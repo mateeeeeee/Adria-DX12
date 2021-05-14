@@ -38,7 +38,17 @@ public:
     ObjectPool(ObjectPool const&) = delete;
     ObjectPool(ObjectPool&&) = delete;
 
-    ~ObjectPool() = default;
+    ~ObjectPool()
+    {
+        Chunk* curr_alloc = mem_alloc;
+        while (curr_alloc != nullptr)
+        {     
+            Chunk* temp = curr_alloc;
+            curr_alloc = curr_alloc->next;
+            free(temp);
+        }
+        mem_alloc = nullptr;
+    }
 
     [[nodiscard]] void* Allocate()
     {
