@@ -32,6 +32,7 @@ Graphics engine written in C++/DirectX12.
 * DirectX 12 Render Passes
 
 ### To Do
+* Clustered Deferred Rendering
 * Ocean FFT
 * Image Based Lighting
 * Bokeh
