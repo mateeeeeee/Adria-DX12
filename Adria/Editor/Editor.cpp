@@ -17,18 +17,6 @@ namespace adria
 {
     using namespace tecs;
 
-    enum COMPONENT_INDEX
-    {
-        MESH,
-        TRANSFORM,
-        MATERIAL,
-        VISIBILITY,
-        LIGHT,
-        SKYBOX,
-        DEFERRED,
-        FORWARD
-    };
-
     /////////////////////////////////////////////////////////////////////////
     /////////////////////////////// PUBLIC //////////////////////////////////
     /////////////////////////////////////////////////////////////////////////
@@ -572,10 +560,36 @@ namespace adria
                 }
 
                 static char const* const components[] = { "Mesh", "Transform", "Material",
-                "Visibility", "Light", "Skybox", "Deferred", "Forward" };
+               "Visibility", "Light", "Skybox", "Deferred", "Forward" };
 
                 static int current_component = 0;
-                ImGui::ListBox("Components", &current_component, components, IM_ARRAYSIZE(components));
+                const char* combo_label = components[current_component];
+                if (ImGui::BeginCombo("Components", combo_label, 0))
+                {
+                    for (int n = 0; n < IM_ARRAYSIZE(components); n++)
+                    {
+                        const bool is_selected = (current_component == n);
+                        if (ImGui::Selectable(components[n], is_selected))
+                            current_component = n;
+
+                        // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                        if (is_selected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+
+                enum COMPONENT_INDEX
+                {
+                    MESH,
+                    TRANSFORM,
+                    MATERIAL,
+                    VISIBILITY,
+                    LIGHT,
+                    SKYBOX,
+                    DEFERRED,
+                    FORWARD
+                };
 
                 static model_parameters_t params{};
                 if (current_component == MESH)
@@ -844,6 +858,42 @@ namespace adria
         
         ImGui::Begin("Renderer Settings");
         {
+            if (ImGui::TreeNode("Deferred Settings"))
+            {
+
+                const char* items[] = { "Regular", "Tiled" }; // , "Clustered"
+            
+                static int item_current_idx = 0; 
+                const char* combo_label = items[item_current_idx];  
+                if (ImGui::BeginCombo("Deferred Type", combo_label, 0))
+                {
+                    for (int n = 0; n < IM_ARRAYSIZE(items); n++)
+                    {
+                        const bool is_selected = (item_current_idx == n);
+                        if (ImGui::Selectable(items[n], is_selected))
+                            item_current_idx = n;
+
+                        if (is_selected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+
+                settings.use_tiled_deferred = (item_current_idx == 1);
+                //settings.use_clustered_deferred = (item_current_idx == 2);
+
+                if (settings.use_tiled_deferred && ImGui::TreeNodeEx("Tiled Deferred", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+                {
+                    ImGui::Checkbox("Visualize Tiles", &settings.visualize_tiled);
+                    if (settings.visualize_tiled) ImGui::SliderInt("Visualize Scale", &settings.visualize_max_lights, 1, 32);
+
+                    ImGui::TreePop();
+                    ImGui::Separator();
+                }
+
+                ImGui::TreePop();
+            }
+
             if (ImGui::TreeNode("Postprocessing"))
             {
                 ImGui::Checkbox("Volumetric Clouds", &settings.clouds);
@@ -925,21 +975,6 @@ namespace adria
                 ImGui::TreePop();
             }
 
-            if (ImGui::TreeNode("Tiled Deferred"))
-            {
-                ImGui::Checkbox("Tiled Deferred", &settings.use_tiled_deferred);
-
-                if (settings.use_tiled_deferred && ImGui::TreeNodeEx("Tiled Deferred", ImGuiTreeNodeFlags_OpenOnDoubleClick))
-                {
-                    ImGui::Checkbox("Visualize", &settings.visualize_tiled);
-                    if (settings.visualize_tiled) ImGui::SliderInt("Visualize Scale", &settings.visualize_max_lights, 1, 32);
-
-                    ImGui::TreePop();
-                    ImGui::Separator();
-                }
-
-                ImGui::TreePop();
-            }
 
             if (ImGui::TreeNode("Misc"))
             {
