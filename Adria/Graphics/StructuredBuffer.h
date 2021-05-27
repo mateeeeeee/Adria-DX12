@@ -19,8 +19,8 @@ namespace adria
 	{
 	public:
 
-		StructuredBuffer(GraphicsCoreDX12* gfx, u32 element_count, D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
-			: device(gfx->Device()), current_state(initial_state), element_count(element_count)
+		StructuredBuffer(ID3D12Device* device, u32 element_count, D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
+			: device(device), current_state(initial_state), element_count(element_count)
 		{
 
 			
@@ -41,8 +41,6 @@ namespace adria
 
 			device->CreateCommittedResource(&heap_properties, D3D12_HEAP_FLAG_NONE, &resource_desc,
 				current_state, nullptr, IID_PPV_ARGS(&resource));
-
-			
 		}
 
 		StructuredBuffer(StructuredBuffer const&) = delete;
@@ -67,7 +65,7 @@ namespace adria
 			
 		}
 
-		D3D12_CPU_DESCRIPTOR_HANDLE SRV(u32) const
+		D3D12_CPU_DESCRIPTOR_HANDLE SRV() const
 		{
 			return srv_handle;
 		}
@@ -102,7 +100,6 @@ namespace adria
 			return resource->GetGPUVirtualAddress();
 		}
 
-		
 	private:
 		ID3D12Device* device;
 		Microsoft::WRL::ComPtr<ID3D12Resource> resource = nullptr;

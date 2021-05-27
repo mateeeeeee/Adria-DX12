@@ -861,7 +861,7 @@ namespace adria
             if (ImGui::TreeNode("Deferred Settings"))
             {
 
-                const char* items[] = { "Regular", "Tiled" }; // , "Clustered"
+                const char* items[] = { "Regular", "Tiled", "Clustered" };
             
                 static int item_current_idx = 0; 
                 const char* combo_label = items[item_current_idx];  
@@ -880,7 +880,7 @@ namespace adria
                 }
 
                 settings.use_tiled_deferred = (item_current_idx == 1);
-                //settings.use_clustered_deferred = (item_current_idx == 2);
+                settings.use_clustered_deferred = (item_current_idx == 2);
 
                 if (settings.use_tiled_deferred && ImGui::TreeNodeEx("Tiled Deferred", ImGuiTreeNodeFlags_OpenOnDoubleClick))
                 {

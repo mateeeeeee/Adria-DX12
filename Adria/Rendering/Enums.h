@@ -18,6 +18,7 @@ namespace adria
 		PS_AmbientPBR,
 		PS_AmbientPBR_SSAO,
 		PS_LightingPBR,
+		PS_ClusteredLightingPBR,
 		VS_DepthMap,
 		PS_DepthMap,
 		VS_DepthMap_Transparent,
@@ -46,7 +47,9 @@ namespace adria
 		CS_Blur_Horizontal,
 		CS_Blur_Vertical,
 		CS_BloomExtract,
-		CS_TiledLighting
+		CS_TiledLighting,
+		CS_ClusterBuilding,
+		CS_ClusterCulling
 	};
 
 	enum class RootSig : u8
@@ -57,6 +60,7 @@ namespace adria
 		eGbufferPBR,
 		eAmbientPBR,
 		eLightingPBR,
+		eClusteredLightingPBR,
 		eDepthMap,
 		eDepthMap_Transparent,
 		eVolumetric,
@@ -72,7 +76,9 @@ namespace adria
 		eAdd,
 		eClouds,
 		eMotionBlur,
-		eTiledLighting
+		eTiledLighting,
+		eClusterBuilding,
+		eClusterCulling
 	};
 
 	enum class PSO : u8
@@ -86,6 +92,7 @@ namespace adria
 		eAmbientPBR,
 		eAmbientPBR_SSAO,
 		eLightingPBR,
+		eClusteredLightingPBR,
 		//eAmbientPBR_IBL,
 		//eAmbientPBR_SSAO_IBL,
 		eToneMap,
@@ -114,6 +121,8 @@ namespace adria
 		eBlur_Vertical,
 		eBloomExtract,
 		eTiledLighting,
+		eClusterBuilding,
+		eClusterCulling,
 		//eBokehGenerate,
 		//eBokehDraw,
         eUnknown

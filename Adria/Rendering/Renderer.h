@@ -38,6 +38,11 @@ namespace adria
 		static constexpr u32 GBUFFER_SIZE = 3;
 		static constexpr u32 SSAO_NOISE_DIM = 8;
 		static constexpr u32 SSAO_KERNEL_SIZE = 16;
+		static constexpr u32 CLUSTER_SIZE_X = 16;
+		static constexpr u32 CLUSTER_SIZE_Y = 16;
+		static constexpr u32 CLUSTER_SIZE_Z = 16;
+		static constexpr u32 CLUSTER_COUNT = CLUSTER_SIZE_X * CLUSTER_SIZE_Y * CLUSTER_SIZE_Z;
+		static constexpr u32 CLUSTER_MAX_LIGHTS = 128;
 
 	public:
 		Renderer(tecs::registry& reg, GraphicsCoreDX12* gfx, u32 width, u32 height);
@@ -118,8 +123,8 @@ namespace adria
 		RenderPass forward_render_pass;
 		RenderPass fxaa_render_pass;
 		RenderPass offscreen_resolve_pass;
-		//persistent cbuffers
-		
+
+		//Persistent cbuffers
 		ConstantBuffer<FrameCBuffer> frame_cbuffer;
 		FrameCBuffer frame_cbuf_data;
 		ConstantBuffer<PostprocessCBuffer> postprocess_cbuffer;
@@ -137,6 +142,13 @@ namespace adria
 		DynamicAllocation material_allocation;
 		DynamicAllocation light_allocation;
 		DynamicAllocation shadow_allocation;
+		
+		//Persistent sbuffers
+		StructuredBuffer<ClusterAABB>	clusters;
+		StructuredBuffer<u32>			light_counter;
+		StructuredBuffer<u32>			light_list;
+		StructuredBuffer<LightGrid>  	light_grid;
+		//Transient sbuffers
 		DynamicAllocation structured_lights_allocation;
 		
 		std::array<DirectX::XMVECTOR, 16> ssao_kernel{};
@@ -145,6 +157,7 @@ namespace adria
 		std::optional<DirectX::BoundingSphere> scene_bounding_sphere = std::nullopt;
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> lens_flare_textures;
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> clouds_textures;
+		bool recreate_clusters = true;
 
 	private:
 
@@ -155,6 +168,7 @@ namespace adria
 		void CreateRenderPasses(u32 width, u32 height);
 		
 		void UpdateConstantBuffers(f32 dt);
+		void UpdateLights();
 		void CameraFrustumCulling();
 		void LightFrustumCulling(LightType type);
 
@@ -163,6 +177,7 @@ namespace adria
 		void PassAmbient(ID3D12GraphicsCommandList4* cmd_list);
 		void PassDeferredLighting(ID3D12GraphicsCommandList4* cmd_list); 
 		void PassDeferredTiledLighting(ID3D12GraphicsCommandList4* cmd_list);
+		void PassDeferredClusteredLighting(ID3D12GraphicsCommandList4* cmd_list);
 		void PassForward(ID3D12GraphicsCommandList4* cmd_list); 
 		void PassPostprocess(ID3D12GraphicsCommandList4* cmd_list);
 		//postprocess

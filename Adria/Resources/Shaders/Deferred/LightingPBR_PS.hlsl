@@ -66,8 +66,6 @@ float4 main(VertexOut pin) : SV_TARGET
             return float4(1, 0, 0, 1);
     }
 
-    
-
     if (light_cbuf.current_light.casts_shadows)
     {
 
@@ -122,7 +120,6 @@ float4 main(VertexOut pin) : SV_TARGET
         Lo = Lo * shadow_factor;
     }
 
-    
     return float4(Lo, 1.0f);
 }
 

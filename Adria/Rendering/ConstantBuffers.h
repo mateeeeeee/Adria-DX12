@@ -169,4 +169,16 @@ namespace adria
 		i32 use_cascades;
 		i32 padd;
 	};
+
+	struct ClusterAABB
+	{
+		DirectX::XMVECTOR min_point;
+		DirectX::XMVECTOR max_point;
+	};
+
+	struct LightGrid
+	{
+		u32 offset;
+		u32 light_count;
+	};
 }

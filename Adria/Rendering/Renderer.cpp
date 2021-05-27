@@ -346,10 +346,15 @@ namespace adria
 	
 	using namespace tecs;
 
+
 	Renderer::Renderer(tecs::registry& reg, GraphicsCoreDX12* gfx, u32 width, u32 height)
 		: reg(reg), gfx(gfx), width(width), height(height), texture_manager(gfx, 1000), backbuffer_count(gfx->BackbufferCount()),
 		frame_cbuffer(gfx->Device(), backbuffer_count), postprocess_cbuffer(gfx->Device(), backbuffer_count),
-		compute_cbuffer(gfx->Device(), backbuffer_count), weather_cbuffer(gfx->Device(), backbuffer_count)
+		compute_cbuffer(gfx->Device(), backbuffer_count), weather_cbuffer(gfx->Device(), backbuffer_count),
+		clusters(gfx->Device(), CLUSTER_COUNT, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
+		light_counter(gfx->Device(), 1, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
+		light_list(gfx->Device(), CLUSTER_COUNT * CLUSTER_MAX_LIGHTS, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
+		light_grid(gfx->Device(), CLUSTER_COUNT, D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
 	{
 
 		LoadShaders();
@@ -369,6 +374,17 @@ namespace adria
 	{
 		this->camera = camera;
 		backbuffer_index = gfx->BackbufferIndex();
+
+		static f32 _near = 0.0f, _far = 0.0f, _fov = 0.0f, _ar = 0.0f;
+		if (fabs(_near - camera->Near()) > 1e-4 || fabs(_far - camera->Far()) > 1e-4 || fabs(_fov - camera->Fov()) > 1e-4
+			|| fabs(_ar - camera->AspectRatio()) > 1e-4)
+		{
+			_near = camera->Near();
+			_far = camera->Far();
+			_fov = camera->Fov();
+			_ar = camera->AspectRatio();
+			recreate_clusters = true;
+		}
 	}
 	void Renderer::Update(f32 dt)
 	{
@@ -407,6 +423,7 @@ namespace adria
 		PassDeferredLighting(cmd_list);
 
 		if (settings.use_tiled_deferred) PassDeferredTiledLighting(cmd_list);
+		else if (settings.use_clustered_deferred) PassDeferredClusteredLighting(cmd_list);
 
 		PassForward(cmd_list);
 
@@ -486,8 +503,6 @@ namespace adria
 			CreateRenderPasses(width, height);
 		}
 	}
-	
-
 	void Renderer::LoadTextures()
 	{
 		ID3D12Resource* noise_upload_texture = nullptr; //keep it alive until call to execute
@@ -710,8 +725,10 @@ namespace adria
 
 			
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/LightingPBR_PS.cso", ps_blob);
-
 			shader_map[PS_LightingPBR] = ps_blob;
+
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ClusteredLightingPBR_PS.cso", ps_blob);
+			shader_map[PS_ClusteredLightingPBR] = ps_blob;
 		}
 
 		//depth maps
@@ -783,6 +800,12 @@ namespace adria
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/TiledLightingCS.cso", cs_blob);
 			shader_map[CS_TiledLighting] = cs_blob;
 
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ClusterBuildingCS.cso", cs_blob);
+			shader_map[CS_ClusterBuilding] = cs_blob;
+
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ClusterCullingCS.cso", cs_blob);
+			shader_map[CS_ClusterCulling] = cs_blob;
+
 		}
 
 		
@@ -812,6 +835,9 @@ namespace adria
 
 			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_LightingPBR].GetPointer(), shader_map[PS_LightingPBR].GetLength(),
 				IID_PPV_ARGS(rs_map[RootSig::eLightingPBR].GetAddressOf())));
+
+			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_ClusteredLightingPBR].GetPointer(), shader_map[PS_ClusteredLightingPBR].GetLength(),
+				IID_PPV_ARGS(rs_map[RootSig::eClusteredLightingPBR].GetAddressOf())));
 
 			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_DepthMap].GetPointer(), shader_map[PS_DepthMap].GetLength(),
 				IID_PPV_ARGS(rs_map[RootSig::eDepthMap].GetAddressOf())));
@@ -848,6 +874,12 @@ namespace adria
 
 			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_TiledLighting].GetPointer(), shader_map[CS_TiledLighting].GetLength(),
 				IID_PPV_ARGS(rs_map[RootSig::eTiledLighting].GetAddressOf())));
+
+			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_ClusterBuilding].GetPointer(), shader_map[CS_ClusterBuilding].GetLength(),
+				IID_PPV_ARGS(rs_map[RootSig::eClusterBuilding].GetAddressOf())));
+
+			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_ClusterCulling].GetPointer(), shader_map[CS_ClusterCulling].GetLength(),
+				IID_PPV_ARGS(rs_map[RootSig::eClusterCulling].GetAddressOf())));
 
 
 			rs_map[RootSig::eCopy] = rs_map[RootSig::eFxaa];
@@ -946,7 +978,6 @@ namespace adria
 		//pso
 		
 		{
-
 
 			//skybox
 			{
@@ -1075,7 +1106,7 @@ namespace adria
 
 			}
 
-			//lighting 
+			//lighting & clustered lighting
 			{
 				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc = {};
 				pso_desc.InputLayout = { nullptr, 0u };
@@ -1088,20 +1119,36 @@ namespace adria
 				pso_desc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
 				pso_desc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
 				pso_desc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_ONE;
-
 				pso_desc.DepthStencilState.DepthEnable = FALSE;
 				pso_desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
 				pso_desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 				pso_desc.DepthStencilState.StencilEnable = FALSE;
 				pso_desc.SampleMask = UINT_MAX;
 				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-
 				pso_desc.NumRenderTargets = 1;
 				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				pso_desc.SampleDesc.Count = 1;
 				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eLightingPBR])));
+
+
+				pso_desc.pRootSignature = rs_map[RootSig::eClusteredLightingPBR].Get();
+				pso_desc.PS = shader_map[PS_ClusteredLightingPBR];
+
+				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eClusteredLightingPBR])));
+			}
+
+			//clustered building and culling
+			{
+				D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc = {};
+				pso_desc.pRootSignature = rs_map[RootSig::eClusterBuilding].Get();
+				pso_desc.CS = shader_map[CS_ClusterBuilding];
+				BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eClusterBuilding])));
+
+				pso_desc.pRootSignature = rs_map[RootSig::eClusterCulling].Get();
+				pso_desc.CS = shader_map[CS_ClusterCulling];
+				BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eClusterCulling])));
 
 			}
 
@@ -2175,6 +2222,35 @@ namespace adria
 		}
 
 	}
+	void Renderer::UpdateLights()
+	{
+		auto upload_buffer = gfx->UploadBuffer();
+		if (settings.use_clustered_deferred || settings.use_tiled_deferred)
+		{
+			auto light_view = reg.view<Light>();
+			std::vector<StructuredLight> structured_lights{};
+			for (auto e : light_view)
+			{
+				StructuredLight structured_light{};
+				auto& light = light_view.get(e);
+
+				structured_light.color = light.color * light.energy;
+				structured_light.position = XMVector4Transform(light.position, camera->View());
+				structured_light.direction = XMVector4Transform(light.direction, camera->View());
+				structured_light.range = light.range;
+				structured_light.type = static_cast<int>(light.type);
+				structured_light.inner_cosine = light.inner_cosine;
+				structured_light.outer_cosine = light.outer_cosine;
+				structured_light.active = light.active;
+				structured_light.casts_shadows = light.casts_shadows;
+
+				structured_lights.push_back(structured_light);
+			}
+
+			structured_lights_allocation = upload_buffer->Allocate(sizeof(StructuredLight) * structured_lights.size(), alignof(StructuredLight));
+			structured_lights_allocation.Update(structured_lights);
+		}
+	}
 	void Renderer::CameraFrustumCulling()
 	{
 		BoundingFrustum camera_frustum = camera->Frustum();
@@ -2381,7 +2457,7 @@ namespace adria
 		{
 			auto const& light_data = lights.get(light);
 			if (!light_data.active) continue;
-			if (settings.use_tiled_deferred && !light_data.casts_shadows) continue; //tiled deferred takes care of noncasting lights
+			if ((settings.use_tiled_deferred || settings.use_clustered_deferred) && !light_data.casts_shadows) continue; //tiled deferred takes care of noncasting lights
 
 			//update cbuffer
 
@@ -2510,7 +2586,6 @@ namespace adria
 			StructuredLight structured_light{};
 			auto& light = light_view.get(e);
 
-			//if (light.casts_shadows || !light.active) continue;
 			structured_light.color = light.color * light.energy;
 			structured_light.position = XMVector4Transform(light.position, camera->View());
 			structured_light.direction = XMVector4Transform(light.direction, camera->View());
@@ -2618,45 +2693,62 @@ namespace adria
 
 		if (settings.visualize_tiled) AddTextures(cmd_list, uav_target, debug_tiled_texture, BlendMode::eAlphaBlend);
 		else CopyTexture(cmd_list, uav_target, BlendMode::eAdditiveBlend);
-		
-		
+
+	}
+	void Renderer::PassDeferredClusteredLighting(ID3D12GraphicsCommandList4* cmd_list)
+	{
+		ADRIA_ASSERT(settings.use_clustered_deferred);
+
+		auto device = gfx->Device();
+		auto upload_buffer = gfx->UploadBuffer();
+		auto descriptor_allocator = gfx->DescriptorAllocator();
+
+		//cluster building
+		if (recreate_clusters)
+		{
+
+			cmd_list->SetComputeRootSignature(rs_map[RootSig::eTiledLighting].Get());
+			cmd_list->SetPipelineState(pso_map[PSO::eTiledLighting].Get());
+			cmd_list->SetComputeRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
+
+			OffsetType descriptor_index = descriptor_allocator->Allocate();
+			D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+			device->CopyDescriptorsSimple(1, dst_descriptor, clusters.UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+			cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
+
+			cmd_list->Dispatch(CLUSTER_SIZE_X, CLUSTER_SIZE_Y, CLUSTER_SIZE_Z);
+		}
+
+		//light culling
+		//StructuredBuffer<ClusterAABB> clusters      : register(t0);
+		//StructuredBuffer<StructuredLight> lights    : register(t1);
+		//
+		//RWStructuredBuffer<uint> light_index_counter    : register(u0); //1
+		//RWStructuredBuffer<uint> light_index_list       : register(u1); //MAX_CLUSTER_LIGHTS * 16^3
+		//RWStructuredBuffer<LightGrid> light_grid        : register(u2); //16^3
+
+		auto light_view = reg.view<Light>();
+		std::vector<StructuredLight> structured_lights{};
+		for (auto e : light_view)
+		{
+			StructuredLight structured_light{};
+			auto& light = light_view.get(e);
+			structured_light.color = light.color * light.energy;
+			structured_light.position = XMVector4Transform(light.position, camera->View());
+			structured_light.direction = XMVector4Transform(light.direction, camera->View());
+			structured_light.range = light.range;
+			structured_light.type = static_cast<int>(light.type);
+			structured_light.inner_cosine = light.inner_cosine;
+			structured_light.outer_cosine = light.outer_cosine;
+			structured_light.active = light.active;
+			structured_light.casts_shadows = light.casts_shadows;
+			structured_lights.push_back(structured_light);
+		}
+		structured_lights_allocation = upload_buffer->Allocate(sizeof(StructuredLight) * structured_lights.size(), alignof(StructuredLight));
+		structured_lights_allocation.Update(structured_lights);
 
 
-		//Volumetric lighting
-		//std::vector<Light> volumetric_lights{};
-		//
-		//auto light_view = reg.view<Light>();
-		//for (auto e : light_view)
-		//{
-		//	auto const& light = light_view.get(e);
-		//	if (light.volumetric) volumetric_lights.push_back(light);
-		//}
-
-		//if (visualize_tiled || volumetric_lights.empty()) return;
-		//lighting_pass.Begin(context);
-		//context->OMSetBlendState(additive_blend.Get(), nullptr, 0xffffffff);
-		//for (auto const& light : volumetric_lights)
-		//{
-		//	ADRIA_ASSERT(light.volumetric);
-		//	light_cbuf_data.casts_shadows = light.casts_shadows;
-		//	light_cbuf_data.color = light.color * light.energy;
-		//	light_cbuf_data.direction = light.direction;
-		//	light_cbuf_data.inner_cosine = light.inner_cosine;
-		//	light_cbuf_data.outer_cosine = light.outer_cosine;
-		//	light_cbuf_data.position = light.position;
-		//	light_cbuf_data.range = light.range;
-		//	light_cbuf_data.volumetric_strength = light.volumetric_strength;
-		//
-		//	XMMATRIX camera_view = camera->View();
-		//	light_cbuf_data.position = XMVector4Transform(light_cbuf_data.position, camera_view);
-		//	light_cbuf_data.direction = XMVector4Transform(light_cbuf_data.direction, camera_view);
-		//	light_cbuffer->Update(context, light_cbuf_data);
-		//
-		//	PassVolumetric(cmd_list, light);
-		//
-		//}
-		//context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
-		//lighting_pass.End(context);
 
 	}
 	void Renderer::PassForward(ID3D12GraphicsCommandList4* cmd_list)

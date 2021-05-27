@@ -22,8 +22,6 @@ struct VertexOut
 [RootSignature(Volumetric_RS)]
 float4 main(VertexOut input) : SV_TARGET
 {
-    
-
     //float2 ScreenCoord = input.pos2D.xy / input.pos2D.w * float2(0.5f, -0.5f) + 0.5f;
     float depth = max(input.PosH.z, depthTx.SampleLevel(linear_clamp_sampler, input.Tex, 2));
     float3 P = GetPositionVS(input.Tex, depth);
