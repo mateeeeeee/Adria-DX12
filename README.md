@@ -7,6 +7,7 @@ Graphics engine written in C++/DirectX12.
 * Entity-Component System
 * Deferred + Forward Rendering 
 * Tiled Deferred Rendering 
+* Clustered Deferred Rendering
 * Physically Based Shading
 * Normal Mapping
 * Shadows
@@ -32,7 +33,6 @@ Graphics engine written in C++/DirectX12.
 * DirectX 12 Render Passes
 
 ### To Do
-* Clustered Deferred Rendering
 * Ocean FFT
 * Image Based Lighting
 * Bokeh
