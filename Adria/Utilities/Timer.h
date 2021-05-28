@@ -56,9 +56,8 @@ namespace adria
 
 	private:
 
-		const tp t0;  //vrijeme stvaranja objekta
-		tp t1;  //vrijeme koje se moze promijeniti sa Mark metodom
-
+		const tp t0; 
+		tp t1;  
 	private:
 
 		static float DurationSecondRatio()

@@ -125,10 +125,11 @@ namespace adria
 		light_parameters_t light_params{};
 		light_params.light_data.casts_shadows = true;
 		light_params.light_data.color = DirectX::XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
-		light_params.light_data.direction = DirectX::XMVectorSet(0.1f, -1.0f, 0.1f, 0.0f);
+		light_params.light_data.energy = 8.0f;
+		light_params.light_data.direction = DirectX::XMVectorSet(0.1f, -1.0f, 0.25f, 0.0f);
 		light_params.light_data.type = LightType::eDirectional;
 		light_params.light_data.active = true;
-		light_params.light_data.use_cascades = false;
+		light_params.light_data.use_cascades = true;
 		light_params.light_data.volumetric = false;
 		light_params.light_data.volumetric_strength = 1.0f;
 		light_params.mesh_type = LightMesh::eQuad;

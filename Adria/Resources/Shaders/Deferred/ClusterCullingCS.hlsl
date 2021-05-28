@@ -1,11 +1,11 @@
 #include "../Util/LightUtil.hlsli"
 #include "../Util/RootSignatures.hlsli"
 
-#define GROUP_SIZE (16*16*4)
+#define GROUP_SIZE (16*16*1)
 #define MAX_CLUSTER_LIGHTS 128
 #define CLUSTER_CULLING_DISPATCH_SIZE_X 1
 #define CLUSTER_CULLING_DISPATCH_SIZE_Y 1
-#define CLUSTER_CULLING_DISPATCH_SIZE_Z 4
+#define CLUSTER_CULLING_DISPATCH_SIZE_Z 16
 
 //references 
 //https://github.com/pezcode/Cluster
@@ -46,7 +46,7 @@ bool LightIntersectsCluster(StructuredLight light, ClusterAABB cluster)
 }
 
 [RootSignature(ClusterCulling_RS)]
-[numthreads(16, 16, 4)]
+[numthreads(16, 16, 1)]
 void main(uint3 groupId : SV_GroupID,
           uint3 dispatchThreadId : SV_DispatchThreadID,
           uint3 groupThreadId : SV_GroupThreadID,

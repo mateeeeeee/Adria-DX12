@@ -72,13 +72,10 @@ namespace adria
 
 		void CreateUAV(D3D12_CPU_DESCRIPTOR_HANDLE handle)
 		{
-			
-			auto desc = resource->GetDesc();
-			ADRIA_ASSERT(!(desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS));
 
 			D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
 			uav_desc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
-			uav_desc.Format = desc.Format;
+			uav_desc.Format = DXGI_FORMAT_UNKNOWN;
 			uav_desc.Buffer.FirstElement = 0;
 			uav_desc.Buffer.NumElements = element_count;
 			uav_desc.Buffer.StructureByteStride = sizeof(T);

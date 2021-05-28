@@ -12,6 +12,7 @@
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/TextureCube.h"
 #include "../Graphics/Texture2DArray.h"
+#include "../Graphics/StructuredBuffer.h"
 
 
 
@@ -104,8 +105,8 @@ namespace adria
 		std::unique_ptr<DescriptorHeap> srv_heap;
 		std::unique_ptr<DescriptorHeap> dsv_heap;
 		std::unique_ptr<DescriptorHeap> uav_heap;
-		std::unique_ptr<DescriptorHeap> null_srv_heap; //used for null descriptors
-		std::unique_ptr<DescriptorHeap> null_uav_heap; //used for null descriptors
+		std::unique_ptr<DescriptorHeap> null_srv_heap; 
+		std::unique_ptr<DescriptorHeap> null_uav_heap; 
 		u32 srv_heap_index = 0;
 		u32 uav_heap_index = 0;
 		u32 rtv_heap_index = 0;
@@ -148,8 +149,6 @@ namespace adria
 		StructuredBuffer<u32>			light_counter;
 		StructuredBuffer<u32>			light_list;
 		StructuredBuffer<LightGrid>  	light_grid;
-		//Transient sbuffers
-		DynamicAllocation structured_lights_allocation;
 		
 		std::array<DirectX::XMVECTOR, 16> ssao_kernel{};
 		DirectX::BoundingBox light_bounding_box;
@@ -164,11 +163,10 @@ namespace adria
 		void LoadShaders();
 		void CreatePipelineStateObjects();
 		void CreateDescriptorHeaps();
-		void CreateTextures(u32 width, u32 height);
+		void CreateViews(u32 width, u32 height);
 		void CreateRenderPasses(u32 width, u32 height);
 		
 		void UpdateConstantBuffers(f32 dt);
-		void UpdateLights();
 		void CameraFrustumCulling();
 		void LightFrustumCulling(LightType type);
 

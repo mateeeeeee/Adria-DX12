@@ -12,7 +12,6 @@
 #include "../Logging/Logger.h"
 #include "../Editor/GUI.h"
 
-#include "../Graphics/StructuredBuffer.h"
 
 using namespace DirectX;
 
@@ -360,7 +359,7 @@ namespace adria
 		LoadShaders();
 		CreatePipelineStateObjects();
 		CreateDescriptorHeaps();
-		CreateTextures(width, height);
+		CreateViews(width, height);
 		CreateRenderPasses(width, height);
 
 	}
@@ -389,7 +388,6 @@ namespace adria
 	void Renderer::Update(f32 dt)
 	{
 		UpdateConstantBuffers(dt);
-		UpdateLights();
 		CameraFrustumCulling();
 	}
 	void Renderer::Render(RendererSettings const& _settings)
@@ -500,7 +498,7 @@ namespace adria
 		width = _width, height = _height;
 		if (width != 0 || height != 0)
 		{
-			CreateTextures(width, height);
+			CreateViews(width, height);
 			CreateRenderPasses(width, height);
 		}
 	}
@@ -728,7 +726,7 @@ namespace adria
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/LightingPBR_PS.cso", ps_blob);
 			shader_map[PS_LightingPBR] = ps_blob;
 
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ClusteredLightingPBR_PS.cso", ps_blob);
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ClusterLightingPBR_PS.cso", ps_blob);
 			shader_map[PS_ClusteredLightingPBR] = ps_blob;
 		}
 
@@ -975,9 +973,7 @@ namespace adria
 			rs_map[RootSig::eBloomExtract] = rs_map[RootSig::eBlur];
 		}
 
-
 		//pso
-		
 		{
 
 			//skybox
@@ -1533,9 +1529,9 @@ namespace adria
 		auto device = gfx->Device();
 
 		rtv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 9));
-		srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 19));
+		srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 23));
 		dsv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 11));
-		uav_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 5));
+		uav_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 9));
 		null_srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, NULL_HEAP_SIZE));
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC null_srv_desc{};
@@ -1560,7 +1556,7 @@ namespace adria
 		
 
 	}
-	void Renderer::CreateTextures(u32 width, u32 height)
+	void Renderer::CreateViews(u32 width, u32 height)
 	{
 		
 		srv_heap_index = 0;
@@ -1861,7 +1857,6 @@ namespace adria
 			debug_tiled_texture = Texture2D(gfx->Device(), tiled_debug_desc);
 			debug_tiled_texture.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
 			debug_tiled_texture.CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
-
 		}
 
 		//offscreen backbuffer
@@ -1881,6 +1876,22 @@ namespace adria
 
 			offscreen_ldr_target.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
 			offscreen_ldr_target.CreateRTV(rtv_heap->GetCpuHandle(rtv_heap_index++));
+		}
+
+		//clustered deferred
+		{
+
+			clusters.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
+			clusters.CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
+
+			light_counter.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
+			light_counter.CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
+
+			light_list.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
+			light_list.CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
+
+			light_grid.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
+			light_grid.CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
 		}
 		
 	}
@@ -2223,36 +2234,7 @@ namespace adria
 		}
 
 	}
-	void Renderer::UpdateLights()
-	{
-		auto upload_buffer = gfx->UploadBuffer();
-		if (settings.use_clustered_deferred || settings.use_tiled_deferred)
-		{
-			auto light_view = reg.view<Light>();
-			std::vector<StructuredLight> structured_lights{};
-			for (auto e : light_view)
-			{
-				StructuredLight structured_light{};
-				auto& light = light_view.get(e);
-
-				structured_light.color = light.color * light.energy;
-				structured_light.position = XMVector4Transform(light.position, camera->View());
-				structured_light.direction = XMVector4Transform(light.direction, camera->View());
-				structured_light.range = light.range;
-				structured_light.type = static_cast<int>(light.type);
-				structured_light.inner_cosine = light.inner_cosine;
-				structured_light.outer_cosine = light.outer_cosine;
-				structured_light.active = light.active;
-				structured_light.casts_shadows = light.casts_shadows;
-
-				structured_lights.push_back(structured_light);
-			}
-
-			u64 alloc_size = sizeof(StructuredLight) * structured_lights.size();
-			structured_lights_allocation = upload_buffer->Allocate(alloc_size, alignof(StructuredLight));
-			structured_lights_allocation.Update(structured_lights.data(), alloc_size);
-		}
-	}
+	
 	void Renderer::CameraFrustumCulling()
 	{
 		BoundingFrustum camera_frustum = camera->Frustum();
@@ -2525,7 +2507,7 @@ namespace adria
 					u32 src_range_sizes[] = { 1,1,1 };
 
 					OffsetType descriptor_index = descriptor_allocator->AllocateRange(_countof(cpu_handles));
-					auto dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+					D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
 					u32 dst_range_sizes[] = { (u32)_countof(cpu_handles) };
 					device->CopyDescriptors(1, &dst_descriptor, dst_range_sizes, _countof(cpu_handles), cpu_handles, src_range_sizes,
 						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -2581,6 +2563,26 @@ namespace adria
 		auto upload_buffer = gfx->UploadBuffer();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 
+		auto light_view = reg.view<Light>();
+		std::vector<StructuredLight> structured_lights{};
+		for (auto e : light_view)
+		{
+			StructuredLight structured_light{};
+			auto& light = light_view.get(e);
+			structured_light.color = light.color * light.energy;
+			structured_light.position = XMVector4Transform(light.position, camera->View());
+			structured_light.direction = XMVector4Transform(light.direction, camera->View());
+			structured_light.range = light.range;
+			structured_light.type = static_cast<int>(light.type);
+			structured_light.inner_cosine = light.inner_cosine;
+			structured_light.outer_cosine = light.outer_cosine;
+			structured_light.active = light.active;
+			structured_light.casts_shadows = light.casts_shadows;
+
+			structured_lights.push_back(structured_light);
+		}
+
+
 		ResourceBarriers tiled_barriers{};
 		depth_stencil_target.Transition(tiled_barriers, D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 		gbuffer[0].Transition(tiled_barriers, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
@@ -2595,7 +2597,6 @@ namespace adria
 		cmd_list->SetPipelineState(pso_map[PSO::eTiledLighting].Get());
 
 		cmd_list->SetComputeRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
-
 		cmd_list->SetComputeRootConstantBufferView(1, compute_cbuffer.View(backbuffer_index).BufferLocation);
 
 		//t0,t1,t2 - gbuffer and depth
@@ -2632,6 +2633,10 @@ namespace adria
 		}
 
 		{
+			u64 alloc_size = sizeof(StructuredLight) * structured_lights.size();
+			DynamicAllocation dynamic_alloc = upload_buffer->Allocate(alloc_size, sizeof(StructuredLight));
+			dynamic_alloc.Update(structured_lights.data(), alloc_size);
+
 			auto i = descriptor_allocator->Allocate();
 
 			D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
@@ -2640,10 +2645,10 @@ namespace adria
 			desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 			desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 			desc.Buffer.StructureByteStride = sizeof(StructuredLight);
-			desc.Buffer.NumElements = structured_lights_allocation.size / desc.Buffer.StructureByteStride;
-			desc.Buffer.FirstElement = structured_lights_allocation.offset / desc.Buffer.StructureByteStride;
+			desc.Buffer.NumElements = dynamic_alloc.size / desc.Buffer.StructureByteStride;
+			desc.Buffer.FirstElement = dynamic_alloc.offset / desc.Buffer.StructureByteStride;
 
-			device->CreateShaderResourceView(structured_lights_allocation.buffer, &desc, descriptor_allocator->GetCpuHandle(i));
+			device->CreateShaderResourceView(dynamic_alloc.buffer, &desc, descriptor_allocator->GetCpuHandle(i));
 
 			cmd_list->SetComputeRootDescriptorTable(4, descriptor_allocator->GetGpuHandle(i));
 
@@ -2657,7 +2662,7 @@ namespace adria
 			black, 0, nullptr);
 
 		cmd_list->Dispatch((u32)std::ceil(width * 1.0f / 16), (height * 1.0f / 16), 1);
-		
+
 
 		tiled_barriers.ReverseTransitions();
 		tiled_barriers.Submit(cmd_list);
@@ -2668,6 +2673,7 @@ namespace adria
 		if (settings.visualize_tiled) AddTextures(cmd_list, uav_target, debug_tiled_texture, BlendMode::eAlphaBlend);
 		else CopyTexture(cmd_list, uav_target, BlendMode::eAdditiveBlend);
 
+
 	}
 	void Renderer::PassDeferredClusteredLighting(ID3D12GraphicsCommandList4* cmd_list)
 	{
@@ -2677,12 +2683,34 @@ namespace adria
 		auto upload_buffer = gfx->UploadBuffer();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 
+		auto light_view = reg.view<Light>();
+		std::vector<StructuredLight> structured_lights{};
+		for (auto e : light_view)
+		{
+			StructuredLight structured_light{};
+			auto& light = light_view.get(e);
+			structured_light.color = light.color * light.energy;
+			structured_light.position = XMVector4Transform(light.position, camera->View());
+			structured_light.direction = XMVector4Transform(light.direction, camera->View());
+			structured_light.range = light.range;
+			structured_light.type = static_cast<int>(light.type);
+			structured_light.inner_cosine = light.inner_cosine;
+			structured_light.outer_cosine = light.outer_cosine;
+			structured_light.active = light.active;
+			structured_light.casts_shadows = light.casts_shadows;
+
+			structured_lights.push_back(structured_light);
+		}
+		u64 alloc_size = sizeof(StructuredLight) * structured_lights.size();
+		DynamicAllocation dynamic_alloc = upload_buffer->Allocate(alloc_size, sizeof(StructuredLight));
+		dynamic_alloc.Update(structured_lights.data(), alloc_size);
+
 		//cluster building
 		if (recreate_clusters)
 		{
 
-			cmd_list->SetComputeRootSignature(rs_map[RootSig::eTiledLighting].Get());
-			cmd_list->SetPipelineState(pso_map[PSO::eTiledLighting].Get());
+			cmd_list->SetComputeRootSignature(rs_map[RootSig::eClusterBuilding].Get());
+			cmd_list->SetPipelineState(pso_map[PSO::eClusterBuilding].Get());
 			cmd_list->SetComputeRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 
 			OffsetType descriptor_index = descriptor_allocator->Allocate();
@@ -2692,29 +2720,31 @@ namespace adria
 			cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
 
 			cmd_list->Dispatch(CLUSTER_SIZE_X, CLUSTER_SIZE_Y, CLUSTER_SIZE_Z);
+
+			recreate_clusters = false;
 		}
 
 		//cluster building
 		{
 			cmd_list->SetComputeRootSignature(rs_map[RootSig::eClusterCulling].Get());
 			cmd_list->SetPipelineState(pso_map[PSO::eClusterCulling].Get());
-
+		
 			OffsetType i = descriptor_allocator->AllocateRange(2);
 			D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(i);
 			device->CopyDescriptorsSimple(1, dst_descriptor, clusters.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
+	
 			D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
 			desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
 			desc.Format = DXGI_FORMAT_UNKNOWN;
 			desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 			desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 			desc.Buffer.StructureByteStride = sizeof(StructuredLight);
-			desc.Buffer.NumElements = structured_lights_allocation.size / desc.Buffer.StructureByteStride;
-			desc.Buffer.FirstElement = structured_lights_allocation.offset / desc.Buffer.StructureByteStride;
-			device->CreateShaderResourceView(structured_lights_allocation.buffer, &desc, descriptor_allocator->GetCpuHandle(i + 1));
-
+			desc.Buffer.NumElements = dynamic_alloc.size / desc.Buffer.StructureByteStride;
+			desc.Buffer.FirstElement = dynamic_alloc.offset / desc.Buffer.StructureByteStride;
+			device->CreateShaderResourceView(dynamic_alloc.buffer, &desc, descriptor_allocator->GetCpuHandle(i + 1));
+		
 			cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetGpuHandle(i));
-
+		
 			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { light_counter.UAV(), light_list.UAV(), light_grid.UAV() };
 			u32 src_range_sizes[] = { 1,1,1 };
 			i = descriptor_allocator->AllocateRange(_countof(cpu_handles));
@@ -2722,12 +2752,56 @@ namespace adria
 			u32 dst_range_sizes[] = { (u32)_countof(cpu_handles) };
 			device->CopyDescriptors(1, &dst_descriptor, dst_range_sizes, _countof(cpu_handles), cpu_handles, src_range_sizes,
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
+		
 			cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(i));
-
-			cmd_list->Dispatch(CLUSTER_SIZE_X / 16, CLUSTER_SIZE_Y / 16, CLUSTER_SIZE_Z / 4);
+			cmd_list->Dispatch(CLUSTER_SIZE_X / 16, CLUSTER_SIZE_Y / 16, CLUSTER_SIZE_Z / 1);
 		}
 
+
+		//clustered lighting
+		lighting_render_pass.Begin(cmd_list);
+		{
+			cmd_list->SetGraphicsRootSignature(rs_map[RootSig::eClusteredLightingPBR].Get());
+			cmd_list->SetPipelineState(pso_map[PSO::eClusteredLightingPBR].Get());
+			cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
+
+			//gbuffer
+			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { gbuffer[0].SRV(), gbuffer[1].SRV(), depth_stencil_target.SRV() };
+			u32 src_range_sizes[] = { 1,1,1 };
+			OffsetType descriptor_index = descriptor_allocator->AllocateRange(_countof(cpu_handles));
+			D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+			u32 dst_range_sizes[] = { (u32)_countof(cpu_handles) };
+			device->CopyDescriptors(1, &dst_descriptor, dst_range_sizes, _countof(cpu_handles), cpu_handles, src_range_sizes,
+				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+			cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
+
+			//light stuff
+			descriptor_index = descriptor_allocator->AllocateRange(_countof(cpu_handles) + 1);
+			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles2[] = { light_list.SRV(), light_grid.SRV() };
+			u32 src_range_sizes2[] = { 1,1 };
+
+			dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index + 1);
+			u32 dst_range_sizes2[] = { (u32)_countof(cpu_handles2) };
+			device->CopyDescriptors(1, &dst_descriptor, dst_range_sizes2, _countof(cpu_handles2), cpu_handles2, src_range_sizes2,
+				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+			D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
+			desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+			desc.Format = DXGI_FORMAT_UNKNOWN;
+			desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+			desc.Buffer.StructureByteStride = sizeof(StructuredLight);
+			desc.Buffer.NumElements = dynamic_alloc.size / desc.Buffer.StructureByteStride;
+			desc.Buffer.FirstElement = dynamic_alloc.offset / desc.Buffer.StructureByteStride;
+			device->CreateShaderResourceView(dynamic_alloc.buffer, &desc, descriptor_allocator->GetCpuHandle(descriptor_index));
+
+			cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetGpuHandle(descriptor_index));
+
+			cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+			cmd_list->DrawInstanced(4, 1, 0, 0);
+		}
+		lighting_render_pass.End(cmd_list);
 
 	}
 	void Renderer::PassForward(ID3D12GraphicsCommandList4* cmd_list)
@@ -3100,6 +3174,7 @@ namespace adria
 			light_view_projections[i] = V * P;
 			shadow_cbuf_data.lightview = V;
 			shadow_cbuf_data.lightviewprojection = light_view_projections[i];
+			shadow_cbuf_data.softness = settings.shadow_softness;
 
 			shadow_allocation = upload_buffer->Allocate(GetCBufferSize<ShadowCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 			shadow_allocation.Update(shadow_cbuf_data);
