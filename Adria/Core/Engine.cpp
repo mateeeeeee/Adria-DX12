@@ -6,7 +6,7 @@
 #include "../Logging/Logger.h"
 #include "../Graphics/GraphicsCoreDX12.h"
 #include "../Rendering/Renderer.h"
-#include "../Rendering/ModelImporter.h"
+#include "../Rendering/EntityLoader.h"
 #include "../Utilities/Random.h"
 #include "../Utilities/Timer.h"
 #include "../Audio/AudioSystem.h"
@@ -23,7 +23,7 @@ namespace adria
 
 		gfx = std::make_unique<GraphicsCoreDX12>(Window::Handle());
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
-		model_importer = std::make_unique<ModelImporter>(reg, gfx.get(), renderer->GetTextureManager());
+		model_importer = std::make_unique<EntityLoader>(reg, gfx.get(), renderer->GetTextureManager());
 		
 		if (init.load_default_scene) InitializeScene();
 

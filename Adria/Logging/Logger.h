@@ -84,27 +84,70 @@ namespace adria
 
 	}
 
-
-	//add std::format when MSVC++ implements it
-	template<typename... Args>
-	std::string StringFormat(std::string const& format, Args... args)
-	{
-		size_t size = snprintf(nullptr, 0, format.c_str(), args...) + 1; 
-		if (size <= 0) return "";
-		std::unique_ptr<char[]> buf(new char[size]);
-		snprintf(buf.get(), size, format.c_str(), args...);
-		return std::string(buf.get(), buf.get() + size - 1); 
-	}
 }
 
-//add std::source_location when MSVC++ implements it
-#define GLOBAL_LOG_INFO(text)        { Log::Info(StringFormat("Function %s in file %s at line %d", __FUNCTION__,__FILE__, __LINE__) + ": " + std::string(text));	}
-#define GLOBAL_LOG_DEBUG(text)       { Log::Debug(StringFormat("Function %s in file %s at line %d", __FUNCTION__,__FILE__, __LINE__) + ": " + std::string(text));	}
-#define GLOBAL_LOG_WARNING(text)     { Log::Warning(StringFormat("Function %s in file %s at line %d", __FUNCTION__,__FILE__, __LINE__)  + ": " + std::string(text)); }
-#define GLOBAL_LOG_ERROR(text)       { Log::Error(StringFormat("Function %s in file %s at line %d", __FUNCTION__,__FILE__, __LINE__) + ": " + std::string(text)); }
+#if defined(__cpp_lib_source_location) && defined(__cpp_lib_format)
+#include <source_location>
+#include <format>
+
+inline void GLOBAL_LOG_INFO(std::string const& text, std::source_location location = std::source_location::current())
+{
+	adria::Log::Info(std::format("Function {} in file {} at line {}: {}", location.function_name(), location.file_name(), location.line(), text));
+}
+inline void GLOBAL_LOG_DEBUG(std::string const& text, std::source_location location = std::source_location::current())
+{
+	adria::Log::Debug(std::format("Function {} in file {} at line {}: {}", location.function_name(), location.file_name(), location.line(), text));
+}
+inline void GLOBAL_LOG_WARNING(std::string const& text, std::source_location location = std::source_location::current())
+{
+	adria::Log::Warning(std::format("Function {} in file {} at line {}: {}", location.function_name(), location.file_name(), location.line(), text));
+}
+inline void GLOBAL_LOG_ERROR(std::string const& text, std::source_location location = std::source_location::current())
+{
+	adria::Log::Error(std::format("Function {} in file {} at line {}: {}", location.function_name(), location.file_name(), location.line(), text));
+}
+
+
+inline void LOG_INFO(adria::Logger& logger, std::string const& text, std::source_location location = std::source_location::current())
+{
+	logger.Info(std::format("Function {} in file {} at line {}: {}", location.function_name(), location.file_name(), location.line(), text));
+}
+inline void LOG_DEBUG(adria::Logger& logger, std::string const& text, std::source_location location = std::source_location::current())
+{
+	logger.Debug(std::format("Function {} in file {} at line {}: {}", location.function_name(), location.file_name(), location.line(), text));
+}
+inline void LOG_WARNING(adria::Logger& logger, std::string const& text, std::source_location location = std::source_location::current())
+{
+	logger.Warning(std::format("Function {} in file {} at line {}: {}", location.function_name(), location.file_name(), location.line(), text));
+}
+inline void LOG_ERROR(adria::Logger& logger, std::string const& text, std::source_location location = std::source_location::current())
+{
+	logger.Error(std::format("Function {} in file {} at line {}: {}", location.function_name(), location.file_name(), location.line(), text));
+}
+
+
+#else 
+
+template<typename... Args>
+std::string StringFormat(std::string const& format, Args... args)
+{
+	size_t size = snprintf(nullptr, 0, format.c_str(), args...) + 1;
+	if (size <= 0) return "";
+	std::unique_ptr<char[]> buf(new char[size]);
+	snprintf(buf.get(), size, format.c_str(), args...);
+	return std::string(buf.get(), buf.get() + size - 1);
+}
+
+#define GLOBAL_LOG_INFO(text)        { adria::Log::Info(StringFormat("Function %s in file %s at line %d", __FUNCTION__,__FILE__, __LINE__) + ": " + std::string(text));	}
+#define GLOBAL_LOG_DEBUG(text)       { adria::Log::Debug(StringFormat("Function %s in file %s at line %d", __FUNCTION__,__FILE__, __LINE__) + ": " + std::string(text));	}
+#define GLOBAL_LOG_WARNING(text)     { adria::Log::Warning(StringFormat("Function %s in file %s at line %d", __FUNCTION__,__FILE__, __LINE__)  + ": " + std::string(text)); }
+#define GLOBAL_LOG_ERROR(text)       { adria::Log::Error(StringFormat("Function %s in file %s at line %d", __FUNCTION__,__FILE__, __LINE__) + ": " + std::string(text)); }
 
 #define LOG_INFO(logger,text)		 { logger.Info(StringFormat("Function %s in file %s at line %d", __FUNCTION__,__FILE__, __LINE__) + ": " + std::string(text));	}
 #define LOG_DEBUG(logger,text)       { logger.Debug(StringFormat("Function %s in file %s at line %d", __FUNCTION__,__FILE__, __LINE__) + ": " + std::string(text));	}
 #define LOG_WARNING(logger,text)     { logger.Warning(StringFormat("Function %s in file %s at line %d", __FUNCTION__,__FILE__, __LINE__)  + ": " + std::string(text)); }
 #define LOG_ERROR(logger,text)       { logger.Error(StringFormat("Function %s in file %s at line %d", __FUNCTION__,__FILE__, __LINE__) + ": " + std::string(text)); }
+
+
+#endif
 

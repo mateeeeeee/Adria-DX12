@@ -3,7 +3,7 @@
 #include "../Rendering/Renderer.h"
 #include "../Core/Events.h"
 #include "../Graphics/GraphicsCoreDX12.h"
-#include "../Rendering/ModelImporter.h"
+#include "../Rendering/EntityLoader.h"
 #include "../Logging/Logger.h"
 #include "../Utilities/FilesUtil.h"
 #include "../Utilities/StringUtil.h"

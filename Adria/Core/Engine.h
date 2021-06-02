@@ -11,7 +11,7 @@ namespace adria
 	struct window_message_t;
 	class GraphicsCoreDX12;
 	class Renderer;
-	class ModelImporter;
+	class EntityLoader;
 	class GUI;
 
 	struct engine_init_t
@@ -48,7 +48,7 @@ namespace adria
 	
 		std::unique_ptr<GraphicsCoreDX12> gfx;
 		std::unique_ptr<Renderer> renderer;
-		std::unique_ptr<ModelImporter> model_importer;
+		std::unique_ptr<EntityLoader> model_importer;
 	private:
 	
 		virtual void InitializeScene();

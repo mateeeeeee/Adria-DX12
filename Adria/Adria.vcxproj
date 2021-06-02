@@ -181,7 +181,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Rendering\Camera.cpp" />
     <ClCompile Include="Rendering\CameraManager.cpp" />
-    <ClCompile Include="Rendering\ModelImporter.cpp" />
+    <ClCompile Include="Rendering\EntityLoader.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
     <ClCompile Include="Utilities\AppException.cpp" />
   </ItemGroup>
@@ -245,7 +245,7 @@
     <ClInclude Include="Rendering\Components.h" />
     <ClInclude Include="Rendering\ConstantBuffers.h" />
     <ClInclude Include="Rendering\Enums.h" />
-    <ClInclude Include="Rendering\ModelImporter.h" />
+    <ClInclude Include="Rendering\EntityLoader.h" />
     <ClInclude Include="Rendering\Renderer.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />
     <ClInclude Include="resource.h" />

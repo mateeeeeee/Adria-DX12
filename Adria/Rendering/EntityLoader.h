@@ -48,12 +48,12 @@ namespace adria
     class TextureManager;
     class GraphicsCoreDX12;
     
-	class ModelImporter
+	class EntityLoader
 	{
 
 	public:
         
-        ModelImporter(tecs::registry& reg, GraphicsCoreDX12* device, TextureManager& texture_manager);
+        EntityLoader(tecs::registry& reg, GraphicsCoreDX12* device, TextureManager& texture_manager);
 
         [[maybe_unused]] tecs::entity LoadSkybox(skybox_parameters_t const&);
 

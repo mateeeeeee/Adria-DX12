@@ -4,7 +4,7 @@
 #include "assimp/postprocess.h"
 #include "assimp/pbrmaterial.h"
 
-#include "ModelImporter.h"
+#include "EntityLoader.h"
 #include "Components.h"
 #include "../Graphics/GraphicsCoreDX12.h"
 #include "../Logging/Logger.h"
@@ -21,12 +21,12 @@ namespace adria
     using namespace tecs;
 
 
-    ModelImporter::ModelImporter(registry& reg, GraphicsCoreDX12* gfx, TextureManager& texture_manager)
+    EntityLoader::EntityLoader(registry& reg, GraphicsCoreDX12* gfx, TextureManager& texture_manager)
         : reg(reg), gfx(gfx), texture_manager(texture_manager)
     {
     }
 
-    entity ModelImporter::LoadSkybox(skybox_parameters_t const& params)
+    entity EntityLoader::LoadSkybox(skybox_parameters_t const& params)
     {
         entity skybox = reg.create();
 
@@ -85,7 +85,7 @@ namespace adria
 
     }
 
-    std::vector<entity> ModelImporter::LoadGLTFModel(model_parameters_t const& params)
+    std::vector<entity> EntityLoader::LoadGLTFModel(model_parameters_t const& params)
     {
         Assimp::Importer importer;
 
@@ -257,7 +257,7 @@ namespace adria
     }
 
     [[maybe_unused]] 
-    entity ModelImporter::LoadLight(light_parameters_t const& params)
+    entity EntityLoader::LoadLight(light_parameters_t const& params)
     {
         entity light = reg.create();
 
@@ -355,7 +355,7 @@ namespace adria
 
     }
 
-    void ModelImporter::LoadModelMesh(tecs::entity e, model_parameters_t const& params)
+    void EntityLoader::LoadModelMesh(tecs::entity e, model_parameters_t const& params)
     {
 
         Assimp::Importer importer;

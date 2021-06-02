@@ -1101,6 +1101,7 @@ namespace adria
 				pso_desc.PS = shader_map[PS_AmbientPBR_SSAO];
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eAmbientPBR_SSAO])));
 
+				
 			}
 
 			//lighting & clustered lighting
