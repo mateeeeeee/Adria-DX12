@@ -27,7 +27,7 @@
 
 
 #define GeometryPassPBR_RS      "RootFlags( ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
-                                "CBV(b0, visibility=SHADER_VISIBILITY_VERTEX), " \
+                                "CBV(b0, visibility=SHADER_VISIBILITY_ALL), " \
                                 "CBV(b1, visibility=SHADER_VISIBILITY_VERTEX), " \
                                 "CBV(b4, visibility=SHADER_VISIBILITY_PIXEL), " \
                                 "DescriptorTable(SRV(t0, numDescriptors = 4, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_PIXEL), " \

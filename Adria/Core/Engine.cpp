@@ -23,7 +23,7 @@ namespace adria
 
 		gfx = std::make_unique<GraphicsCoreDX12>(Window::Handle());
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
-		model_importer = std::make_unique<EntityLoader>(reg, gfx.get(), renderer->GetTextureManager());
+		entity_loader = std::make_unique<EntityLoader>(reg, gfx.get(), renderer->GetTextureManager());
 		
 		if (init.load_default_scene) InitializeScene();
 
@@ -113,13 +113,13 @@ namespace adria
 		
 		skybox_parameters_t skybox_params{};
 		skybox_params.cubemap = L"Resources/Textures/skybox/sunsetcube1024.dds"; 
-		model_importer->LoadSkybox(skybox_params);
+		entity_loader->LoadSkybox(skybox_params);
 
 		model_parameters_t model_params{};
 		model_params.model_path = "Resources/GLTF Models/Sponza/glTF/Sponza.gltf";
 		model_params.textures_path = "Resources/GLTF Models/Sponza/glTF/";
 		model_params.model = DirectX::XMMatrixScaling(0.3f, 0.3f, 0.3f);
-		model_importer->LoadGLTFModel(model_params);
+		entity_loader->LoadGLTFModel(model_params);
 
 		
 		light_parameters_t light_params{};
@@ -136,7 +136,7 @@ namespace adria
 		light_params.mesh_size = 150;
 		light_params.light_texture = L"Resources/Textures/sun.png";
 		
-		model_importer->LoadLight(light_params);
+		entity_loader->LoadLight(light_params);
 		
 
 		renderer->GetTextureManager().GenerateAllMips();

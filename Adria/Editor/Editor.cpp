@@ -179,7 +179,7 @@ namespace adria
                     if (!texture_path.empty()) texture_path.append("/");
 
                     params.textures_path = texture_path;
-                    engine->model_importer->LoadGLTFModel(params);
+                    engine->entity_loader->LoadGLTFModel(params);
                 }
 
                 ImGuiFileDialog::Instance()->Close();
@@ -233,7 +233,7 @@ namespace adria
                         light_params.light_data.active = true;
                         light_params.light_data.volumetric = false;
                         light_params.light_data.volumetric_strength = 1.0f;
-                        engine->model_importer->LoadLight(light_params);
+                        engine->entity_loader->LoadLight(light_params);
                     }
                 }
 
@@ -630,7 +630,7 @@ namespace adria
                         if (engine->reg.has<Mesh>(selected_entity))
                             Log::Warning("Entity already has Mesh Component!\n");
                         else
-                            engine->model_importer->LoadModelMesh(selected_entity, params);
+                            engine->entity_loader->LoadModelMesh(selected_entity, params);
                         break;
                     case TRANSFORM:
                         if (engine->reg.has<Transform>(selected_entity))

@@ -865,6 +865,10 @@ namespace adria
 			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Add].GetPointer(), shader_map[PS_Add].GetLength(),
 				IID_PPV_ARGS(rs_map[RootSig::eAdd].GetAddressOf())));
 
+			//ID3D12VersionedRootSignatureDeserializer* drs = nullptr;
+			//D3D12CreateVersionedRootSignatureDeserializer(shader_map[PS_Add].GetPointer(), shader_map[PS_Add].GetLength(), IID_PPV_ARGS(&drs));
+			//D3D12_VERSIONED_ROOT_SIGNATURE_DESC const* desc = drs->GetUnconvertedRootSignatureDesc();
+
 			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_VolumetricClouds].GetPointer(), shader_map[PS_VolumetricClouds].GetLength(),
 				IID_PPV_ARGS(rs_map[RootSig::eClouds].GetAddressOf())));
 
@@ -963,11 +967,11 @@ namespace adria
 
 				Microsoft::WRL::ComPtr<ID3DBlob> signature;
 				Microsoft::WRL::ComPtr<ID3DBlob> error;
-				D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, feature_data.HighestVersion, &signature, &error);
+				HRESULT hr = D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, feature_data.HighestVersion, &signature, &error);
 				if (error) OutputDebugStringA((char*)error->GetBufferPointer());
 
 				BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[RootSig::eBlur])));
-
+				
 			}
 
 			rs_map[RootSig::eBloomExtract] = rs_map[RootSig::eBlur];
@@ -1282,21 +1286,21 @@ namespace adria
 			//ssao
 			{
 
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
-				psoDesc.InputLayout = { nullptr, 0 };
-				psoDesc.pRootSignature = rs_map[RootSig::eSsao].Get();
-				psoDesc.VS = shader_map[VS_ScreenQuad];
-				psoDesc.PS = shader_map[PS_Ssao];
-				psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-				psoDesc.SampleMask = UINT_MAX;
-				psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				psoDesc.NumRenderTargets = 1;
-				psoDesc.RTVFormats[0] = DXGI_FORMAT_R8_UNORM;
-				psoDesc.SampleDesc.Count = 1;
-				psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
+				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
+				pso_desc.InputLayout = { nullptr, 0 };
+				pso_desc.pRootSignature = rs_map[RootSig::eSsao].Get();
+				pso_desc.VS = shader_map[VS_ScreenQuad];
+				pso_desc.PS = shader_map[PS_Ssao];
+				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+				pso_desc.SampleMask = UINT_MAX;
+				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+				pso_desc.NumRenderTargets = 1;
+				pso_desc.RTVFormats[0] = DXGI_FORMAT_R8_UNORM;
+				pso_desc.SampleDesc.Count = 1;
+				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso_map[PSO::eSsao])));
+				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eSsao])));
 
 			}
 

@@ -48,7 +48,7 @@ namespace adria
 	
 		std::unique_ptr<GraphicsCoreDX12> gfx;
 		std::unique_ptr<Renderer> renderer;
-		std::unique_ptr<EntityLoader> model_importer;
+		std::unique_ptr<EntityLoader> entity_loader;
 	private:
 	
 		virtual void InitializeScene();

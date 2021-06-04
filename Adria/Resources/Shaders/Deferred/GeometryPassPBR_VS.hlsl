@@ -23,8 +23,6 @@ struct VS_OUTPUT
     float3 TangentWS : TANGENT;
     float3 BitangentWS : BITANGENT;
     float3 NormalWS : NORMAL1;
-    matrix view_matrix : MATRIX0;
-
 };
 
 
@@ -44,7 +42,5 @@ VS_OUTPUT main(VS_INPUT input)
     Output.TangentWS = mul(input.Tan, (float3x3) object_cbuf.model);
     Output.BitangentWS = mul(input.Bitan, (float3x3) object_cbuf.model);
     Output.NormalWS = normal_ws;
-    Output.view_matrix = frame_cbuf.view;
-
     return Output;
 }
