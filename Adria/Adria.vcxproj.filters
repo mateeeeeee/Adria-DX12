@@ -568,6 +568,9 @@
     <FxCompile Include="Resources\Shaders\Deferred\ClusterLightingPBR_PS.hlsl">
       <Filter>Shaders\Deferred</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\PostProcess\FogPS.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Shaders\Globals\GlobalsCS.hlsli">

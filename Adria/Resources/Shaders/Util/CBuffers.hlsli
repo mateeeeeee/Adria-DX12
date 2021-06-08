@@ -14,8 +14,6 @@ struct FrameCBuffer
     float camera_near;
     float camera_far;
     float2 screen_resolution;
-    float fog_near;
-    float fog_far;
 };
 
 struct LightCBuffer
@@ -58,20 +56,32 @@ struct ShadowCBuffer
     int visualize;
 };
 
+#define EXPONENTIAL_FOG 0
+#define EXPONENTIAL_HEIGHT_FOG 1
 
 struct PostprocessCBuffer
 {
     float2 noise_scale;
     float ssao_radius;
     float ssao_power;
+    
     float4 samples[16];
     
     float ssr_ray_step;
     float ssr_ray_hit_threshold;
     float motion_blur_intensity;
-    float4 dof_params;
     float tone_map_exposure;
+    
+    float4 dof_params;
+    
     int tone_map_op;
+    float fog_falloff;
+    float fog_density;
+    float fog_start;
+    
+    float4 fog_color;
+
+    int fog_type;
 };
 
 

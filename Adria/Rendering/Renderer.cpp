@@ -694,6 +694,9 @@ namespace adria
 
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/MotionBlurPS.cso", ps_blob);
 			shader_map[PS_MotionBlur] = ps_blob;
+
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/FogPS.cso", ps_blob);
+			shader_map[PS_Fog] = ps_blob;
 		}
 
 		//gbuffer 
@@ -864,6 +867,9 @@ namespace adria
 
 			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Add].GetPointer(), shader_map[PS_Add].GetLength(),
 				IID_PPV_ARGS(rs_map[RootSig::eAdd].GetAddressOf())));
+
+			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Fog].GetPointer(), shader_map[PS_Fog].GetLength(),
+				IID_PPV_ARGS(rs_map[RootSig::eFog].GetAddressOf())));
 
 			//ID3D12VersionedRootSignatureDeserializer* drs = nullptr;
 			//D3D12CreateVersionedRootSignatureDeserializer(shader_map[PS_Add].GetPointer(), shader_map[PS_Add].GetLength(), IID_PPV_ARGS(&drs));
@@ -1461,6 +1467,27 @@ namespace adria
 				pso_desc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
 
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eAdd_AdditiveBlend])));
+			}
+
+			//fog
+			{
+				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc = {};
+
+				pso_desc.InputLayout = { nullptr, 0 };
+				pso_desc.pRootSignature = rs_map[RootSig::eFog].Get();
+				pso_desc.VS = shader_map[VS_ScreenQuad];
+				pso_desc.PS = shader_map[PS_Fog];
+				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+				pso_desc.SampleMask = UINT_MAX;
+				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+				pso_desc.NumRenderTargets = 1;
+				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				pso_desc.SampleDesc.Count = 1;
+				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
+
+				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eFog])));
+
 			}
 
 			//dof
@@ -2153,8 +2180,6 @@ namespace adria
 			frame_cbuf_data.inverse_view = DirectX::XMMatrixInverse(nullptr, camera->View());
 			frame_cbuf_data.inverse_projection = DirectX::XMMatrixInverse(nullptr, camera->Proj());
 			frame_cbuf_data.inverse_view_projection = DirectX::XMMatrixInverse(nullptr, camera->ViewProj());
-			frame_cbuf_data.fog_near = settings.fog_near;
-			frame_cbuf_data.fog_far = settings.fog_far;
 			frame_cbuf_data.screen_resolution_x = width;
 			frame_cbuf_data.screen_resolution_y = height;
 
@@ -2176,6 +2201,11 @@ namespace adria
 			postprocess_cbuf_data.ssr_ray_hit_threshold = settings.ssr_ray_hit_threshold;
 			postprocess_cbuf_data.dof_params = XMVectorSet(settings.dof_near_blur, settings.dof_near, settings.dof_far, settings.dof_far_blur);
 			postprocess_cbuf_data.motion_blur_intensity = settings.motion_blur_intensity;
+			postprocess_cbuf_data.fog_falloff = settings.fog_falloff;
+			postprocess_cbuf_data.fog_density = settings.fog_density;
+			postprocess_cbuf_data.fog_type = static_cast<i32>(settings.fog_type);
+			postprocess_cbuf_data.fog_start = settings.fog_start;
+			postprocess_cbuf_data.fog_color = XMVectorSet(settings.fog_color[0], settings.fog_color[1], settings.fog_color[2], 1);
 			postprocess_cbuffer.Update(postprocess_cbuf_data, backbuffer_index);
 		}
 
@@ -2819,7 +2849,6 @@ namespace adria
 	}
 	void Renderer::PassPostprocess(ID3D12GraphicsCommandList4* cmd_list)
 	{
-		
 		auto lights = reg.view<Light>();
 
 		postprocess_passes[postprocess_index].Begin(cmd_list); //set ping as rt
@@ -2869,6 +2898,17 @@ namespace adria
 			postprocess_passes[postprocess_index].Begin(cmd_list);
 			CopyTexture(cmd_list, blur_final_texture, BlendMode::eAlphaBlend);
 			postprocess_passes[postprocess_index].End(cmd_list);
+			postprocess_barriers.ReverseTransitions();
+			postprocess_barriers.Submit(cmd_list);
+			postprocess_index = !postprocess_index;
+		}
+
+		if (settings.fog)
+		{
+			postprocess_passes[postprocess_index].Begin(cmd_list);
+			PassFog(cmd_list);
+			postprocess_passes[postprocess_index].End(cmd_list);
+
 			postprocess_barriers.ReverseTransitions();
 			postprocess_barriers.Submit(cmd_list);
 			postprocess_index = !postprocess_index;
@@ -3237,7 +3277,12 @@ namespace adria
 		if (light.type == LightType::eDirectional && !light.casts_shadows)
 		{
 			Log::Warning("Calling PassVolumetric on a Directional Light \
-				that does not cast shadows does not make sense!");
+				that does not cast shadows does not make sense!\n");
+			return;
+		}
+		if (!settings.fog)
+		{
+			Log::Warning("Volumetric Lighting requires Fog to be enabled!\n");
 			return;
 		}
 
@@ -3245,6 +3290,7 @@ namespace adria
 		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 		cmd_list->SetGraphicsRootConstantBufferView(1, light_allocation.gpu_address);
 		cmd_list->SetGraphicsRootConstantBufferView(2, shadow_allocation.gpu_address);
+		cmd_list->SetGraphicsRootConstantBufferView(3, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
 
 		D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { depth_stencil_target.SRV(), {} };
 		u32 src_range_sizes[] = { 1,1 };
@@ -3281,7 +3327,7 @@ namespace adria
 
 		device->CopyDescriptors(1, &dst_descriptor, dst_range_sizes, _countof(cpu_handles), cpu_handles, src_range_sizes,
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		cmd_list->SetGraphicsRootDescriptorTable(3, descriptor_allocator->GetGpuHandle(descriptor_index));
+		cmd_list->SetGraphicsRootDescriptorTable(4, descriptor_allocator->GetGpuHandle(descriptor_index));
 
 		cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		cmd_list->DrawInstanced(4, 1, 0, 0);
@@ -3391,8 +3437,6 @@ namespace adria
 		}
 	}
 
-
-	
 	void Renderer::PassLensFlare(ID3D12GraphicsCommandList4* cmd_list, Light const& light)
 	{
 		ADRIA_ASSERT(light.lens_flare);
@@ -3580,6 +3624,36 @@ namespace adria
 
 		cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetGpuHandle(descriptor_index));
 		cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		cmd_list->DrawInstanced(4, 1, 0, 0);
+	}
+	void Renderer::PassFog(ID3D12GraphicsCommandList4* cmd_list)
+	{
+		ADRIA_ASSERT(settings.fog);
+
+		auto device = gfx->Device();
+		auto descriptor_allocator = gfx->DescriptorAllocator();
+
+		cmd_list->SetGraphicsRootSignature(rs_map[RootSig::eFog].Get());
+
+		cmd_list->SetPipelineState(pso_map[PSO::eFog].Get());
+
+		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
+		cmd_list->SetGraphicsRootConstantBufferView(1, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
+
+		OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
+
+		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = {postprocess_textures[!postprocess_index].SRV(), depth_stencil_target.SRV() };
+		D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetCpuHandle(descriptor_index) };
+		u32 src_range_sizes[] = { 1, 1 };
+		u32 dst_range_sizes[] = { 2 };
+
+		device->CopyDescriptors(_countof(dst_ranges), dst_ranges, dst_range_sizes, _countof(src_ranges), src_ranges, src_range_sizes,
+			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+		cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetGpuHandle(descriptor_index));
+
+		cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
 		cmd_list->DrawInstanced(4, 1, 0, 0);
 	}
 	void Renderer::PassGodRays(ID3D12GraphicsCommandList4* cmd_list, Light const& light)

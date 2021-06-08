@@ -197,6 +197,7 @@ namespace adria
 		void PassGodRays(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassMotionBlur(ID3D12GraphicsCommandList4* cmd_list);
 		void PassFxaa(ID3D12GraphicsCommandList4* cmd_list);
+		void PassFog(ID3D12GraphicsCommandList4* cmd_list);
 		void PassToneMap(ID3D12GraphicsCommandList4* cmd_list);
 
 		//result in blur final 

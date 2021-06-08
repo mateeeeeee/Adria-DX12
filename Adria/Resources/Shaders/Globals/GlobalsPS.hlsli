@@ -42,9 +42,54 @@ float4 GetClipSpacePosition(float2 texcoord, float depth)
 }
 
 
-float GetFogAmount(float dist)
+float ExponentialFog(float dist)
 {
-    return saturate((dist - frame_cbuf.fog_near) / (frame_cbuf.fog_far - frame_cbuf.fog_near));
+    float fog_dist = max(dist - postprocess_cbuf.fog_start, 0.0);
+    
+    float fog = exp(-fog_dist * postprocess_cbuf.fog_density);
+    return 1 - fog;
+}
+
+float ExponentialFog(float4 pos_vs)
+{
+    float4 pos_ws = mul(pos_vs, frame_cbuf.inverse_view);
+    pos_ws /= pos_ws.w;
+    float3 camera_to_world = (pos_ws - frame_cbuf.camera_position).xyz;
+
+    float distance = length(camera_to_world);
+    
+    float fog_dist = max(distance - postprocess_cbuf.fog_start, 0.0);
+    
+    float fog = exp(-fog_dist * postprocess_cbuf.fog_density);
+    return 1 - fog;
+}
+
+float ExponentialHeightFog(float4 pos_vs)
+{
+    float4 pos_ws = mul(pos_vs, frame_cbuf.inverse_view);
+    pos_ws /= pos_ws.w;
+    float3 camera_to_world = (pos_ws - frame_cbuf.camera_position).xyz;
+
+    float distance = length(camera_to_world);
+    
+	// Find the fog staring distance to pixel distance
+    float fogDist = max(distance - postprocess_cbuf.fog_start, 0.0);
+
+	// Distance based fog intensity
+    float fogHeightDensityAtViewer = exp(-postprocess_cbuf.fog_falloff * frame_cbuf.camera_position.y);
+    float fogDistInt = fogDist * fogHeightDensityAtViewer;
+
+	// Height based fog intensity
+    float eyeToPixelY = camera_to_world.y * (fogDist / distance);
+    float t = postprocess_cbuf.fog_falloff * eyeToPixelY;
+    const float thresholdT = 0.01;
+    float fogHeightInt = abs(t) > thresholdT ?
+		(1.0 - exp(-t)) / t : 1.0;
+
+	// Combine both factors to get the final factor
+    float fog = exp(-postprocess_cbuf.fog_density * fogDistInt * fogHeightInt);
+
+    return 1 - fog;
 }
 
 

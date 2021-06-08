@@ -36,6 +36,7 @@ namespace adria
 		GS_LensFlare,
 		PS_LensFlare,
 		PS_MotionBlur,
+		PS_Fog,
 		PS_Copy,
 		PS_Add,
 		VS_Solid,
@@ -76,6 +77,7 @@ namespace adria
 		eAdd,
 		eClouds,
 		eMotionBlur,
+		eFog,
 		eTiledLighting,
 		eClusterBuilding,
 		eClusterCulling
@@ -116,6 +118,7 @@ namespace adria
 		eLensFlare,
 		eDof,
 		eClouds,
+		eFog,
 		eMotionBlur,
 		eBlur_Horizontal,
 		eBlur_Vertical,
@@ -157,5 +160,11 @@ namespace adria
 		eNone,
 		eAlphaBlend,
 		eAdditiveBlend
+	};
+
+	enum class FogType : i32
+	{
+		eExponential,
+		eExponentialHeight
 	};
 }

@@ -26,6 +26,7 @@ Graphics engine written in C++/DirectX12.
 * God Rays
 * Lens Flare
 * Motion Blur
+* Fog
 * Volumetric Clouds
 * ImGui Editor
 * Assimp Model Loading

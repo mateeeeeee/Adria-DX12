@@ -85,6 +85,7 @@
                               "CBV(b0, visibility=SHADER_VISIBILITY_PIXEL), " \
                               "CBV(b2, visibility=SHADER_VISIBILITY_PIXEL), " \
                               "CBV(b3, visibility=SHADER_VISIBILITY_PIXEL), " \
+                              "CBV(b5, visibility=SHADER_VISIBILITY_PIXEL), " \
                               "DescriptorTable(SRV(t0, numDescriptors = 2, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_PIXEL ), " \
                               "StaticSampler(s2, " \
                                     "addressU = TEXTURE_ADDRESS_CLAMP, " \
@@ -165,6 +166,16 @@
 #define Add_RS                "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
                               "DescriptorTable(SRV(t0, numDescriptors = 2, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_PIXEL), " \
                                "StaticSampler(s0, " \
+                                 "addressU = TEXTURE_ADDRESS_WRAP, " \
+                                 "addressV = TEXTURE_ADDRESS_WRAP, " \
+                                 "addressW = TEXTURE_ADDRESS_WRAP, " \
+                                 "filter = FILTER_MIN_MAG_MIP_LINEAR, visibility=SHADER_VISIBILITY_PIXEL )"
+
+#define Fog_RS                  "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
+                                "CBV(b0, visibility=SHADER_VISIBILITY_PIXEL), " \
+                                "CBV(b5, visibility=SHADER_VISIBILITY_PIXEL), " \
+                                "DescriptorTable(SRV(t0, numDescriptors = 2, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_PIXEL), " \
+                                "StaticSampler(s0, " \
                                  "addressU = TEXTURE_ADDRESS_WRAP, " \
                                  "addressV = TEXTURE_ADDRESS_WRAP, " \
                                  "addressW = TEXTURE_ADDRESS_WRAP, " \

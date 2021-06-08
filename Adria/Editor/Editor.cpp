@@ -903,6 +903,8 @@ namespace adria
                 ImGui::Checkbox("Bloom", &settings.bloom);
                 ImGui::Checkbox("Motion Blur", &settings.motion_blur);
                 ImGui::Checkbox("FXAA", &settings.fxaa);
+                ImGui::Checkbox("Fog", &settings.fog);
+
 
                 if (settings.clouds && ImGui::TreeNodeEx("Volumetric Clouds", 0))
                 {
@@ -961,6 +963,39 @@ namespace adria
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
+
+                if (settings.fog && ImGui::TreeNodeEx("Fog", 0))
+                {
+                    const char* items[] = { "Exponential", "Exponential Height" };
+                    static int item_current_idx = 0; // Here we store our selection data as an index.
+                    const char* combo_label = items[item_current_idx];  // Label to preview before opening the combo (technically it could be anything)
+                    if (ImGui::BeginCombo("Fog Type", combo_label, 0))
+                    {
+                        for (int n = 0; n < IM_ARRAYSIZE(items); n++)
+                        {
+                            const bool is_selected = (item_current_idx == n);
+                            if (ImGui::Selectable(items[n], is_selected))
+                                item_current_idx = n;
+
+                            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                            if (is_selected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndCombo();
+                    }
+
+                    settings.fog_type = static_cast<FogType>(item_current_idx);
+
+                    ImGui::SliderFloat("Fog Falloff", &settings.fog_falloff, 0.0001f, 0.01f);
+                    ImGui::SliderFloat("Fog Density", &settings.fog_density, 0.0001f, 0.01f);
+                    ImGui::SliderFloat("Fog Start", &settings.fog_start, 0.1f, 10000.0f);
+                    ImGui::ColorEdit3("Fog Color", settings.fog_color);
+
+                    ImGui::TreePop();
+                    ImGui::Separator();
+                }
+
+
                 if (ImGui::TreeNodeEx("Tone Mapping", 0))
                 {
                     ImGui::SliderFloat("Exposure", &settings.tonemap_exposure, 0.01f, 10.0f);
@@ -980,8 +1015,6 @@ namespace adria
             {
                 ImGui::ColorEdit3("Ambient Color", settings.ambient_color);
                 ImGui::SliderFloat("Blur Sigma", &settings.blur_sigma, 0.1f, 10.0f);
-                ImGui::SliderFloat("Fog Near", &settings.fog_near, 0.0f, 1000.0f);
-                ImGui::SliderFloat("Fog Far", &settings.fog_far, settings.fog_near, 2000.0f);
                 ImGui::SliderFloat("Shadow Softness", &settings.shadow_softness, 0.01f, 5.0f);
                 
                 ImGui::TreePop();
