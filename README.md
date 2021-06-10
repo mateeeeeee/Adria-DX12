@@ -23,6 +23,7 @@ Graphics engine written in C++/DirectX12.
 * SSAO
 * SSR
 * FXAA
+* TAA
 * God Rays
 * Lens Flare
 * Motion Blur

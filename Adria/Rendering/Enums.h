@@ -13,6 +13,7 @@ namespace adria
 		VS_ScreenQuad,
 		PS_ToneMap,
 		PS_Fxaa,
+		PS_Taa,
 		VS_GBufferPBR,
 		PS_GBufferPBR,
 		PS_AmbientPBR,
@@ -57,7 +58,8 @@ namespace adria
 	{
 		eSkybox,
 		eToneMap,
-		eFxaa,
+		eFXAA,
+		eTAA,
 		eGbufferPBR,
 		eAmbientPBR,
 		eLightingPBR,
@@ -66,8 +68,8 @@ namespace adria
 		eDepthMap_Transparent,
 		eVolumetric,
 		eForward,
-		eSsao,
-		eSsr,
+		eSSAO,
+		eSSR,
 		eDof,
 		eGodRays,
 		eLensFlare,
@@ -98,7 +100,8 @@ namespace adria
 		//eAmbientPBR_IBL,
 		//eAmbientPBR_SSAO_IBL,
 		eToneMap,
-		eFxaa,
+		eFXAA,
+		eTAA,
 		eCopy,
 		eCopy_AlphaBlend,
 		eCopy_AdditiveBlend,
@@ -112,8 +115,8 @@ namespace adria
 		eVolumetric_Spot,
 		eVolumetric_Point,
 		eVolumetric_Clouds,
-		eSsao,
-		eSsr,
+		eSSAO,
+		eSSR,
 		eGodRays,
 		eLensFlare,
 		eDof,
@@ -166,5 +169,12 @@ namespace adria
 	{
 		eExponential,
 		eExponentialHeight
+	};
+
+	enum AntiAliasing : u8
+	{
+		AntiAliasing_None = 0x0,
+		AntiAliasing_FXAA = 0x1,
+		AntiAliasing_TAA = 0x2
 	};
 }

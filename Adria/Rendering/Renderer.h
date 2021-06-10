@@ -84,7 +84,8 @@ namespace adria
 		std::unordered_map<PSO, Microsoft::WRL::ComPtr<ID3D12PipelineState>> pso_map;
 
 		//textures and heaps
-		Texture2D main_render_target;
+		Texture2D hdr_render_target;
+		Texture2D prev_hdr_render_target;
 		Texture2D depth_stencil_target;
 		Texture2D ldr_render_target;
 		Texture2D offscreen_ldr_target;
@@ -196,13 +197,13 @@ namespace adria
 		void PassBloom(ID3D12GraphicsCommandList4* cmd_list);
 		void PassGodRays(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassMotionBlur(ID3D12GraphicsCommandList4* cmd_list);
-		void PassFxaa(ID3D12GraphicsCommandList4* cmd_list);
+		void PassFXAA(ID3D12GraphicsCommandList4* cmd_list);
+		void PassTAA(ID3D12GraphicsCommandList4* cmd_list);
 		void PassFog(ID3D12GraphicsCommandList4* cmd_list);
 		void PassToneMap(ID3D12GraphicsCommandList4* cmd_list);
 
 		//result in blur final 
 		void BlurTexture(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& texture);
-
 		//result in current render target
 		void CopyTexture(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& texture, BlendMode mode = BlendMode::eNone);
 		

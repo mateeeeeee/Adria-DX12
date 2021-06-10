@@ -902,8 +902,32 @@ namespace adria
                 ImGui::Checkbox("DoF", &settings.dof);
                 ImGui::Checkbox("Bloom", &settings.bloom);
                 ImGui::Checkbox("Motion Blur", &settings.motion_blur);
-                ImGui::Checkbox("FXAA", &settings.fxaa);
                 ImGui::Checkbox("Fog", &settings.fog);
+                if (ImGui::TreeNode("Anti-Aliasing"))
+                {
+                    static bool fxaa = false, taa = false;
+                    ImGui::Checkbox("FXAA", &fxaa);
+                    ImGui::Checkbox("TAA", &taa);
+                    if (fxaa)
+                    {
+                        settings.anti_aliasing = static_cast<AntiAliasing>(settings.anti_aliasing | AntiAliasing_FXAA);
+                    }
+                    else
+                    {
+                        settings.anti_aliasing = static_cast<AntiAliasing>(settings.anti_aliasing & (~AntiAliasing_FXAA));
+                    }
+                    if (taa)
+                    {
+                        settings.anti_aliasing = static_cast<AntiAliasing>(settings.anti_aliasing | AntiAliasing_TAA);
+                    }
+                    else
+                    {
+                        settings.anti_aliasing = static_cast<AntiAliasing>(settings.anti_aliasing & (~AntiAliasing_TAA));
+                    }
+
+                    ImGui::TreePop();
+                }
+
 
 
                 if (settings.clouds && ImGui::TreeNodeEx("Volumetric Clouds", 0))

@@ -397,7 +397,7 @@ namespace adria
 		auto cmd_list = gfx->DefaultCommandList();
 
 		ResourceBarriers main_barrier{};
-		main_render_target.Transition(main_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		hdr_render_target.Transition(main_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		main_barrier.Submit(cmd_list);
 
 		ResourceBarriers depth_barrier{};
@@ -435,7 +435,7 @@ namespace adria
 	void Renderer::ResolveToBackbuffer()
 	{
 		auto cmd_list = gfx->DefaultCommandList();
-		if (settings.fxaa)
+		if (settings.anti_aliasing & AntiAliasing_FXAA)
 		{
 			fxaa_render_pass.Begin(cmd_list);
 			PassToneMap(cmd_list);
@@ -443,7 +443,7 @@ namespace adria
 
 			gfx->SetBackbuffer();
 			
-			PassFxaa(cmd_list);
+			PassFXAA(cmd_list);
 		}
 		else
 		{
@@ -455,7 +455,7 @@ namespace adria
 	void Renderer::ResolveToOffscreenFramebuffer()
 	{
 		auto cmd_list = gfx->DefaultCommandList();
-		if (settings.fxaa)
+		if (settings.anti_aliasing & AntiAliasing_FXAA)
 		{
 			fxaa_render_pass.Begin(cmd_list);
 			PassToneMap(cmd_list);
@@ -468,7 +468,7 @@ namespace adria
 
 			offscreen_resolve_pass.Begin(cmd_list);
 
-			PassFxaa(cmd_list);
+			PassFXAA(cmd_list);
 
 			offscreen_resolve_pass.End(cmd_list);
 
@@ -507,7 +507,6 @@ namespace adria
 		ID3D12Resource* noise_upload_texture = nullptr; //keep it alive until call to execute
 		//upload data to noise texture
 		{
-
 			const u64 upload_buffer_size = GetRequiredIntermediateSize(noise_texture.Resource(), 0, 1);
 
 			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
@@ -676,6 +675,9 @@ namespace adria
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/FXAA_PS.cso", ps_blob);
 			shader_map[PS_Fxaa] = ps_blob;
 
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/TAA_PS.cso", ps_blob);
+			shader_map[PS_Taa] = ps_blob;
+
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/CopyPS.cso", ps_blob);
 			shader_map[PS_Copy] = ps_blob;
 
@@ -827,7 +829,10 @@ namespace adria
 				IID_PPV_ARGS(rs_map[RootSig::eToneMap].GetAddressOf())));
 
 			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Fxaa].GetPointer(), shader_map[PS_Fxaa].GetLength(),
-				IID_PPV_ARGS(rs_map[RootSig::eFxaa].GetAddressOf())));
+				IID_PPV_ARGS(rs_map[RootSig::eFXAA].GetAddressOf())));
+
+			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Taa].GetPointer(), shader_map[PS_Taa].GetLength(),
+				IID_PPV_ARGS(rs_map[RootSig::eTAA].GetAddressOf())));
 
 			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_GBufferPBR].GetPointer(), shader_map[PS_GBufferPBR].GetLength(),
 				IID_PPV_ARGS(rs_map[RootSig::eGbufferPBR].GetAddressOf())));
@@ -854,7 +859,7 @@ namespace adria
 				IID_PPV_ARGS(rs_map[RootSig::eForward].GetAddressOf())));
 
 			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Ssr].GetPointer(), shader_map[PS_Ssr].GetLength(),
-				IID_PPV_ARGS(rs_map[RootSig::eSsr].GetAddressOf())));
+				IID_PPV_ARGS(rs_map[RootSig::eSSR].GetAddressOf())));
 
 			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_GodRays].GetPointer(), shader_map[PS_GodRays].GetLength(),
 				IID_PPV_ARGS(rs_map[RootSig::eGodRays].GetAddressOf())));
@@ -891,7 +896,7 @@ namespace adria
 				IID_PPV_ARGS(rs_map[RootSig::eClusterCulling].GetAddressOf())));
 
 
-			rs_map[RootSig::eCopy] = rs_map[RootSig::eFxaa];
+			rs_map[RootSig::eCopy] = rs_map[RootSig::eFXAA];
 		}
 		//root sigs (written in C++)
 		{
@@ -949,7 +954,7 @@ namespace adria
 				D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, feature_data.HighestVersion, &signature, &error);
 				if (error) OutputDebugStringA((char*)error->GetBufferPointer());
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[RootSig::eSsao])));
+				BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[RootSig::eSSAO])));
 
 			}
 
@@ -982,7 +987,6 @@ namespace adria
 
 			rs_map[RootSig::eBloomExtract] = rs_map[RootSig::eBlur];
 		}
-
 		//pso
 		{
 
@@ -1041,7 +1045,7 @@ namespace adria
 				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_ScreenQuad], input_layout);
 
 				pso_desc.InputLayout = input_layout;
-				pso_desc.pRootSignature = rs_map[RootSig::eFxaa].Get();
+				pso_desc.pRootSignature = rs_map[RootSig::eFXAA].Get();
 				pso_desc.VS = shader_map[VS_ScreenQuad];
 				pso_desc.PS = shader_map[PS_Fxaa];
 				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
@@ -1053,7 +1057,29 @@ namespace adria
 				pso_desc.SampleDesc.Count = 1;
 				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eFxaa])));
+				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eFXAA])));
+			}
+
+			//taa
+			{
+				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc = {};
+				InputLayout input_layout;
+				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_ScreenQuad], input_layout);
+
+				pso_desc.InputLayout = input_layout;
+				pso_desc.pRootSignature = rs_map[RootSig::eTAA].Get();
+				pso_desc.VS = shader_map[VS_ScreenQuad];
+				pso_desc.PS = shader_map[PS_Taa];
+				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+				pso_desc.SampleMask = UINT_MAX;
+				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+				pso_desc.NumRenderTargets = 1;
+				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				pso_desc.SampleDesc.Count = 1;
+				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
+
+				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eTAA])));
 			}
 
 			//gbuffer
@@ -1294,7 +1320,7 @@ namespace adria
 
 				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
 				pso_desc.InputLayout = { nullptr, 0 };
-				pso_desc.pRootSignature = rs_map[RootSig::eSsao].Get();
+				pso_desc.pRootSignature = rs_map[RootSig::eSSAO].Get();
 				pso_desc.VS = shader_map[VS_ScreenQuad];
 				pso_desc.PS = shader_map[PS_Ssao];
 				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
@@ -1306,7 +1332,7 @@ namespace adria
 				pso_desc.SampleDesc.Count = 1;
 				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eSsao])));
+				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eSSAO])));
 
 			}
 
@@ -1316,7 +1342,7 @@ namespace adria
 				
 				D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
 				psoDesc.InputLayout = { nullptr, 0 };
-				psoDesc.pRootSignature = rs_map[RootSig::eSsr].Get();
+				psoDesc.pRootSignature = rs_map[RootSig::eSSR].Get();
 				psoDesc.VS = shader_map[VS_ScreenQuad];
 				psoDesc.PS = shader_map[PS_Ssr];
 				psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
@@ -1328,7 +1354,7 @@ namespace adria
 				psoDesc.SampleDesc.Count = 1;
 				psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso_map[PSO::eSsr])));
+				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso_map[PSO::eSSR])));
 			}
 
 			//god rays
@@ -1560,8 +1586,8 @@ namespace adria
 	{
 		auto device = gfx->Device();
 
-		rtv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 9));
-		srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 23));
+		rtv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 10));
+		srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 24));
 		dsv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 11));
 		uav_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 9));
 		null_srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, NULL_HEAP_SIZE));
@@ -1610,9 +1636,14 @@ namespace adria
 			render_target_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 			render_target_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
-			main_render_target = Texture2D(gfx->Device(), render_target_desc);
-			main_render_target.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
-			main_render_target.CreateRTV(rtv_heap->GetCpuHandle(rtv_heap_index++));
+			hdr_render_target = Texture2D(gfx->Device(), render_target_desc);
+			hdr_render_target.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
+			hdr_render_target.CreateRTV(rtv_heap->GetCpuHandle(rtv_heap_index++));
+
+			render_target_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+			prev_hdr_render_target = Texture2D(gfx->Device(), render_target_desc);
+			prev_hdr_render_target.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
+			prev_hdr_render_target.CreateRTV(rtv_heap->GetCpuHandle(rtv_heap_index++));
 		}
 		
 		//depth stencil target
@@ -1977,7 +2008,7 @@ namespace adria
 		{
 			render_pass_desc_t render_pass_desc{};
 			rtv_attachment_desc_t rtv_attachment_desc{};
-			rtv_attachment_desc.cpu_handle = main_render_target.RTV();
+			rtv_attachment_desc.cpu_handle = hdr_render_target.RTV();
 			rtv_attachment_desc.clear_value = black;
 			rtv_attachment_desc.clear_value.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 			rtv_attachment_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
@@ -1994,7 +2025,7 @@ namespace adria
 		{
 			render_pass_desc_t render_pass_desc{};
 			rtv_attachment_desc_t rtv_attachment_desc{};
-			rtv_attachment_desc.cpu_handle = main_render_target.RTV();
+			rtv_attachment_desc.cpu_handle = hdr_render_target.RTV();
 			rtv_attachment_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
 			rtv_attachment_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
 			render_pass_desc.rtv_attachments.push_back(rtv_attachment_desc);
@@ -2009,7 +2040,7 @@ namespace adria
 		{
 			render_pass_desc_t render_pass_desc{};
 			rtv_attachment_desc_t rtv_attachment_desc{};
-			rtv_attachment_desc.cpu_handle = main_render_target.RTV();
+			rtv_attachment_desc.cpu_handle = hdr_render_target.RTV();
 			rtv_attachment_desc.clear_value = black;
 			rtv_attachment_desc.clear_value.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 			rtv_attachment_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
@@ -2163,7 +2194,6 @@ namespace adria
 			offscreen_resolve_pass = RenderPass(render_pass_desc);
 		}
 	}
-
 
 	void Renderer::UpdateConstantBuffers(f32 dt)
 	{
@@ -2395,8 +2425,8 @@ namespace adria
 
 		ssao_render_pass.Begin(cmd_list);
 		{
-			cmd_list->SetGraphicsRootSignature(rs_map[RootSig::eSsao].Get());
-			cmd_list->SetPipelineState(pso_map[PSO::eSsao].Get());
+			cmd_list->SetGraphicsRootSignature(rs_map[RootSig::eSSAO].Get());
+			cmd_list->SetPipelineState(pso_map[PSO::eSSAO].Get());
 
 			cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 			cmd_list->SetGraphicsRootConstantBufferView(1, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
@@ -2702,7 +2732,7 @@ namespace adria
 		tiled_barriers.ReverseTransitions();
 		tiled_barriers.Submit(cmd_list);
 
-		D3D12_CPU_DESCRIPTOR_HANDLE rtv = main_render_target.RTV();
+		D3D12_CPU_DESCRIPTOR_HANDLE rtv = hdr_render_target.RTV();
 		cmd_list->OMSetRenderTargets(1, &rtv, FALSE, nullptr);
 
 		if (settings.visualize_tiled) AddTextures(cmd_list, uav_target, debug_tiled_texture, BlendMode::eAlphaBlend);
@@ -2853,7 +2883,7 @@ namespace adria
 
 		postprocess_passes[postprocess_index].Begin(cmd_list); //set ping as rt
 
-		CopyTexture(cmd_list, main_render_target);
+		CopyTexture(cmd_list, hdr_render_target);
 
 		for (entity light : lights)
 		{
@@ -2996,9 +3026,31 @@ namespace adria
 			
 		}
 
-	}
+		if (settings.anti_aliasing & AntiAliasing_TAA)
+		{
+			postprocess_passes[postprocess_index].Begin(cmd_list);
+			PassTAA(cmd_list);
+			postprocess_passes[postprocess_index].End(cmd_list);
 
-	
+			postprocess_barriers.ReverseTransitions();
+			postprocess_barriers.Submit(cmd_list);
+			postprocess_index = !postprocess_index;
+
+			ResourceBarriers taa_barrier{};
+			prev_hdr_render_target.Transition(taa_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+				D3D12_RESOURCE_STATE_RENDER_TARGET);
+			taa_barrier.Submit(cmd_list);
+			auto rtv = prev_hdr_render_target.RTV();
+			cmd_list->OMSetRenderTargets(1, &rtv, FALSE, nullptr);
+
+			CopyTexture(cmd_list, postprocess_textures[!postprocess_index]);
+			
+			cmd_list->OMSetRenderTargets(0, nullptr, FALSE, nullptr);
+			taa_barrier.ReverseTransitions();
+			taa_barrier.Submit(cmd_list);
+		}
+
+	}
 
 	void Renderer::PassShadowMapDirectional(ID3D12GraphicsCommandList4* cmd_list, Light const& light)
 	{
@@ -3516,9 +3568,9 @@ namespace adria
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 
-		cmd_list->SetGraphicsRootSignature(rs_map[RootSig::eSsr].Get());
+		cmd_list->SetGraphicsRootSignature(rs_map[RootSig::eSSR].Get());
 
-		cmd_list->SetPipelineState(pso_map[PSO::eSsr].Get());
+		cmd_list->SetPipelineState(pso_map[PSO::eSSR].Get());
 
 		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 		cmd_list->SetGraphicsRootConstantBufferView(1, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
@@ -3656,6 +3708,7 @@ namespace adria
 
 		cmd_list->DrawInstanced(4, 1, 0, 0);
 	}
+	
 	void Renderer::PassGodRays(ID3D12GraphicsCommandList4* cmd_list, Light const& light)
 	{
 		ADRIA_ASSERT(light.god_rays);
@@ -3724,7 +3777,7 @@ namespace adria
 		cmd_list->DrawInstanced(4, 1, 0, 0);
 
 	}
-	void Renderer::PassFxaa(ID3D12GraphicsCommandList4* cmd_list)
+	void Renderer::PassFXAA(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
@@ -3734,9 +3787,9 @@ namespace adria
 			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		fxaa_barrier.Submit(cmd_list);
 
-		cmd_list->SetGraphicsRootSignature(rs_map[RootSig::eFxaa].Get());
+		cmd_list->SetGraphicsRootSignature(rs_map[RootSig::eFXAA].Get());
 
-		cmd_list->SetPipelineState(pso_map[PSO::eFxaa].Get());
+		cmd_list->SetPipelineState(pso_map[PSO::eFXAA].Get());
 
 		OffsetType descriptor_index = descriptor_allocator->Allocate();
 
@@ -3749,11 +3802,29 @@ namespace adria
 
 		cmd_list->DrawInstanced(4, 1, 0, 0);
 
-
 		fxaa_barrier.ReverseTransitions();
 		fxaa_barrier.Submit(cmd_list);
 	}
+	void Renderer::PassTAA(ID3D12GraphicsCommandList4* cmd_list)
+	{
+		
+		auto device = gfx->Device();
+		auto descriptor_allocator = gfx->DescriptorAllocator();
 
+
+		cmd_list->SetGraphicsRootSignature(rs_map[RootSig::eTAA].Get());
+		cmd_list->SetPipelineState(pso_map[PSO::eTAA].Get());
+
+		OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
+		device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index), postprocess_textures[!postprocess_index].SRV(),
+			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index + 1), prev_hdr_render_target.SRV(),
+			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+		cmd_list->SetGraphicsRootDescriptorTable(0, descriptor_allocator->GetGpuHandle(descriptor_index));
+		cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		cmd_list->DrawInstanced(4, 1, 0, 0);
+	}
 
 	void Renderer::BlurTexture(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& texture)
 	{

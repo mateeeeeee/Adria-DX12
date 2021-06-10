@@ -25,6 +25,14 @@
                                  "addressW = TEXTURE_ADDRESS_WRAP, " \
                                  "filter = FILTER_MIN_MAG_MIP_LINEAR, visibility=SHADER_VISIBILITY_PIXEL )"
 
+#define Taa_RS                  "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
+                                "DescriptorTable(SRV(t0, numDescriptors = 2, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_PIXEL), " \
+                                "StaticSampler(s0, " \
+                                 "addressU = TEXTURE_ADDRESS_WRAP, " \
+                                 "addressV = TEXTURE_ADDRESS_WRAP, " \
+                                 "addressW = TEXTURE_ADDRESS_WRAP, " \
+                                 "filter = FILTER_MIN_MAG_MIP_LINEAR, visibility=SHADER_VISIBILITY_PIXEL )"
+
 
 #define GeometryPassPBR_RS      "RootFlags( ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
                                 "CBV(b0, visibility=SHADER_VISIBILITY_ALL), " \

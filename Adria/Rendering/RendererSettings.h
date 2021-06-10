@@ -20,7 +20,7 @@ namespace adria
 		f32 shadow_softness = 1.0f;
 		bool shadow_transparent = false;
 		f32 split_lambda = 0.5f;
-		bool fxaa = true;
+		AntiAliasing anti_aliasing = AntiAliasing_None;
 		f32 tonemap_exposure = 1.0f;
 		ToneMap tone_map_op = ToneMap::eHable;
 		bool ssao = false;
