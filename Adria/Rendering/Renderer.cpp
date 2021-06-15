@@ -2305,10 +2305,10 @@ namespace adria
 			precopy_barriers.Submit(cmd_list);
 
 			
-			for (UINT arraySlice = 0; arraySlice < 6; ++arraySlice)
+			for (u32 array_slice = 0; array_slice < 6; ++array_slice)
 			{
-				const UINT subresource_index = D3D12CalcSubresource(0, arraySlice, 0, env_desc.MipLevels, 6);
-				const UINT unfiltered_subresource_index = D3D12CalcSubresource(0, arraySlice, 0, unfiltered_env_desc.MipLevels, 6);
+				const u32 subresource_index = D3D12CalcSubresource(0, array_slice, 0, env_desc.MipLevels, 6);
+				const u32 unfiltered_subresource_index = D3D12CalcSubresource(0, array_slice, 0, unfiltered_env_desc.MipLevels, 6);
 				auto dst_copy_region = CD3DX12_TEXTURE_COPY_LOCATION{ env_texture.Get(), subresource_index };
 				auto src_copy_region = CD3DX12_TEXTURE_COPY_LOCATION{ unfiltered_env_resource, unfiltered_subresource_index };
 				cmd_list->CopyTextureRegion(&dst_copy_region, 0, 0, 0, &src_copy_region, nullptr);
