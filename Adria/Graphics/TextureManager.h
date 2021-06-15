@@ -58,6 +58,9 @@ namespace adria
 		std::unordered_map<std::variant<std::wstring, std::string>, TEXTURE_HANDLE> loaded_textures{};
 		bool mipmaps = true;
 
+		Microsoft::WRL::ComPtr<ID3D12RootSignature> equirect_root_signature;
+		Microsoft::WRL::ComPtr<ID3D12PipelineState> equirect_pso;
+		
 	private:
 
 		TEXTURE_HANDLE LoadDDSTexture(std::wstring const& texture_path);

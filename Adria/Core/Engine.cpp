@@ -112,16 +112,16 @@ namespace adria
 		camera_manager.AddCamera(camera_desc);
 		
 		skybox_parameters_t skybox_params{};
-		//skybox_params.cubemap = L"Resources/Textures/skybox/sunsetcube1024.dds"; 
-		skybox_params.cubemap_textures = 
-		{
-			L"Resources/Textures/Skybox/right.jpg",
-			L"Resources/Textures/Skybox/left.jpg",
-			L"Resources/Textures/Skybox/top.jpg",
-			L"Resources/Textures/Skybox/bottom.jpg",
-			L"Resources/Textures/Skybox/front.jpg",
-			L"Resources/Textures/Skybox/back.jpg"
-		};
+		skybox_params.cubemap = L"Resources/Textures/skybox/environment.hdr"; 
+		//skybox_params.cubemap_textures = 
+		//{
+		//	L"Resources/Textures/Skybox/right.jpg",
+		//	L"Resources/Textures/Skybox/left.jpg",
+		//	L"Resources/Textures/Skybox/top.jpg",
+		//	L"Resources/Textures/Skybox/bottom.jpg",
+		//	L"Resources/Textures/Skybox/front.jpg",
+		//	L"Resources/Textures/Skybox/back.jpg"
+		//};
 		entity_loader->LoadSkybox(skybox_params);
 
 		model_parameters_t model_params{};
@@ -153,7 +153,6 @@ namespace adria
 		
 
 		renderer->GetTextureManager().GenerateAllMips();
-
 		renderer->LoadTextures();
 
 		gfx->ExecuteCommandList();
