@@ -131,7 +131,7 @@ namespace adria
 
         CreateNullSRV(gfx->Device(), texture_srv_heap->GetFirstCpuHandle());
 
-        // Create equirect2cube root signature
+       
         {
             CD3DX12_DESCRIPTOR_RANGE1 const descriptor_ranges[] =
             {
@@ -153,7 +153,7 @@ namespace adria
 
         }
         
-        // Create equirect2cube pso
+        
         {
             ShaderBlob equirect_cs_shader;
             ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/Equirect2cubeCS.cso", equirect_cs_shader);
@@ -272,7 +272,7 @@ namespace adria
 
                 CreateTextureSRV(device, texture_map[handle].Get(), texture_srv_heap->GetCpuHandle(handle));
             }
-            else
+            else //format == TextureFormat::eHDR
             {
                 auto descriptor_allocator = gfx->DescriptorAllocator();
 
@@ -287,7 +287,7 @@ namespace adria
                 desc.Width = 1024;
                 desc.Height = 1024;
                 desc.DepthOrArraySize = 6;
-                desc.MipLevels = 0;
+                desc.MipLevels = 1;
                 desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
                 desc.SampleDesc.Count = 1;
                 desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS | D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;

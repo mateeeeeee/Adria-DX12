@@ -2229,26 +2229,26 @@ namespace adria
 		heap_desc.NumDescriptors = 3;
 		ibl_heap = std::make_unique<DescriptorHeap>(device, heap_desc);
 
-		ComPtr<ID3D12RootSignature> computeRootSignature;
+		ComPtr<ID3D12RootSignature> root_signature;
 		// Create universal compute root signature.
 		{
-			const CD3DX12_DESCRIPTOR_RANGE1 descriptorRanges[] = {
+			const CD3DX12_DESCRIPTOR_RANGE1 descriptor_ranges[] = {
 				{D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC},
 				{D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE},
 			};
 			CD3DX12_ROOT_PARAMETER1 rootParameters[3] = {};
-			rootParameters[0].InitAsDescriptorTable(1, &descriptorRanges[0]);
-			rootParameters[1].InitAsDescriptorTable(1, &descriptorRanges[1]);
+			rootParameters[0].InitAsDescriptorTable(1, &descriptor_ranges[0]);
+			rootParameters[1].InitAsDescriptorTable(1, &descriptor_ranges[1]);
 			rootParameters[2].InitAsConstants(1, 0);
-			CD3DX12_STATIC_SAMPLER_DESC computeSamplerDesc{ 0, D3D12_FILTER_MIN_MAG_MIP_LINEAR };
+			CD3DX12_STATIC_SAMPLER_DESC sampler_desc{ 0, D3D12_FILTER_MIN_MAG_MIP_LINEAR };
 
-			CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC signatureDesc;
-			signatureDesc.Init_1_1(3, rootParameters, 1, &computeSamplerDesc);
+			CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC signature_desc;
+			signature_desc.Init_1_1(3, rootParameters, 1, &sampler_desc);
 			ComPtr<ID3DBlob> signature;
 			ComPtr<ID3DBlob> error;
-			HRESULT hr = D3DX12SerializeVersionedRootSignature(&signatureDesc, D3D_ROOT_SIGNATURE_VERSION_1_1, &signature, &error);
+			HRESULT hr = D3DX12SerializeVersionedRootSignature(&signature_desc, D3D_ROOT_SIGNATURE_VERSION_1_1, &signature, &error);
 			if (error) OutputDebugStringA((char*)error->GetBufferPointer());
-			BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&computeRootSignature)));
+			BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&root_signature)));
 		}
 
 		ID3D12Resource* unfiltered_env_resource = texture_manager.Resource(unfiltered_env);
@@ -2289,15 +2289,15 @@ namespace adria
 
 		// Compute pre-filtered specular environment map.
 		{
-			ComPtr<ID3D12PipelineState> pipelineState;
+			ComPtr<ID3D12PipelineState> pipeline_state;
 
-			ShaderBlob spmapShader;
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SpmapCS.cso", spmapShader);
+			ShaderBlob spmap_shader;
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SpmapCS.cso", spmap_shader);
 
-			D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc = {};
-			psoDesc.pRootSignature = computeRootSignature.Get();
-			psoDesc.CS = spmapShader;
-			BREAK_IF_FAILED(device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)));
+			D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc = {};
+			pso_desc.pRootSignature = root_signature.Get();
+			pso_desc.CS = spmap_shader;
+			BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pipeline_state)));
 
 			ResourceBarriers precopy_barriers{};
 			precopy_barriers.AddTransition(env_texture.Get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
@@ -2307,21 +2307,20 @@ namespace adria
 			
 			for (UINT arraySlice = 0; arraySlice < 6; ++arraySlice)
 			{
-				const UINT subresourceIndex = D3D12CalcSubresource(0, arraySlice, 0, env_desc.MipLevels, 6);
-				const UINT unfilteredSubresourceIndex = D3D12CalcSubresource(0, arraySlice, 0, unfiltered_env_desc.MipLevels, 6);
-				auto dst_copy_region = CD3DX12_TEXTURE_COPY_LOCATION{ env_texture.Get(), subresourceIndex };
-				auto src_copy_region = CD3DX12_TEXTURE_COPY_LOCATION{ unfiltered_env_resource, unfilteredSubresourceIndex };
+				const UINT subresource_index = D3D12CalcSubresource(0, arraySlice, 0, env_desc.MipLevels, 6);
+				const UINT unfiltered_subresource_index = D3D12CalcSubresource(0, arraySlice, 0, unfiltered_env_desc.MipLevels, 6);
+				auto dst_copy_region = CD3DX12_TEXTURE_COPY_LOCATION{ env_texture.Get(), subresource_index };
+				auto src_copy_region = CD3DX12_TEXTURE_COPY_LOCATION{ unfiltered_env_resource, unfiltered_subresource_index };
 				cmd_list->CopyTextureRegion(&dst_copy_region, 0, 0, 0, &src_copy_region, nullptr);
 			}
-			//cmd_list->CopyResource(env_texture.Get(), unfiltered_env_resource);
-
+			
 			ResourceBarriers postcopy_barriers{};
 			postcopy_barriers.AddTransition(env_texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			postcopy_barriers.AddTransition(unfiltered_env_resource, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 			postcopy_barriers.Submit(cmd_list);
 
-			cmd_list->SetPipelineState(pipelineState.Get());
-			cmd_list->SetComputeRootSignature(computeRootSignature.Get());
+			cmd_list->SetPipelineState(pipeline_state.Get());
+			cmd_list->SetComputeRootSignature(root_signature.Get());
 
 			auto unfiltered_env_descriptor = texture_manager.CpuDescriptorHandle(unfiltered_env);
 			OffsetType descriptor_index = descriptor_allocator->Allocate();
@@ -2330,11 +2329,11 @@ namespace adria
 
 			cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetGpuHandle(descriptor_index));
 
-			float deltaRoughness = 1.0f / std::max<f32>(f32(env_desc.MipLevels - 1), 1.0f);
+			float delta_roughness = 1.0f / std::max<f32>(f32(env_desc.MipLevels - 1), 1.0f);
 			for (u32 level = 1, size = std::max<u64>(unfiltered_env_desc.Width, unfiltered_env_desc.Height) / 2; level < env_desc.MipLevels; ++level, size /= 2)
 			{
-				const u32 numGroups = std::max<u32>(1, size / 32);
-				const float spmapRoughness = level * deltaRoughness;
+				const u32 num_groups = std::max<u32>(1, size / 32);
+				const float spmap_roughness = level * delta_roughness;
 
 				D3D12_RESOURCE_DESC desc = env_texture->GetDesc();
 				D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
@@ -2351,8 +2350,8 @@ namespace adria
 					descriptor_allocator->GetCpuHandle(descriptor_index));
 
 				cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
-				cmd_list->SetComputeRoot32BitConstants(2, 1, &spmapRoughness, 0);
-				cmd_list->Dispatch(numGroups, numGroups, 6);
+				cmd_list->SetComputeRoot32BitConstants(2, 1, &spmap_roughness, 0);
+				cmd_list->Dispatch(num_groups, num_groups, 6);
 			}
 
 			auto env_barrier = CD3DX12_RESOURCE_BARRIER::Transition(env_texture.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COMMON);
@@ -2395,34 +2394,34 @@ namespace adria
 
 		// Compute diffuse irradiance cubemap.
 		{
-			ComPtr<ID3D12PipelineState> pipelineState;
-			ShaderBlob irmapShader;
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/IrmapCS.cso", irmapShader);
+			ComPtr<ID3D12PipelineState> pipeline_state;
+			ShaderBlob irmap_shader;
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/IrmapCS.cso", irmap_shader);
 
-			D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc = {};
-			psoDesc.pRootSignature = computeRootSignature.Get();
-			psoDesc.CS = irmapShader;
-			BREAK_IF_FAILED(device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)));
+			D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc = {};
+			pso_desc.pRootSignature = root_signature.Get();
+			pso_desc.CS = irmap_shader;
+			BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pipeline_state)));
 
 
 			D3D12_RESOURCE_DESC desc = irmap_texture->GetDesc();
-			D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-			uavDesc.Format = desc.Format;
-			uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
-			uavDesc.Texture2DArray.MipSlice = 0;
-			uavDesc.Texture2DArray.FirstArraySlice = 0;
-			uavDesc.Texture2DArray.ArraySize = desc.DepthOrArraySize;
+			D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc = {};
+			uav_desc.Format = desc.Format;
+			uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+			uav_desc.Texture2DArray.MipSlice = 0;
+			uav_desc.Texture2DArray.FirstArraySlice = 0;
+			uav_desc.Texture2DArray.ArraySize = desc.DepthOrArraySize;
 
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
 
 			device->CreateUnorderedAccessView(irmap_texture.Get(), nullptr,
-				&uavDesc,
+				&uav_desc,
 				descriptor_allocator->GetCpuHandle(descriptor_index));
 
 			auto irmap_barrier = CD3DX12_RESOURCE_BARRIER::Transition(irmap_texture.Get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			cmd_list->ResourceBarrier(1, &irmap_barrier);
-			cmd_list->SetPipelineState(pipelineState.Get());
-			cmd_list->SetComputeRootSignature(computeRootSignature.Get());
+			cmd_list->SetPipelineState(pipeline_state.Get());
+			cmd_list->SetComputeRootSignature(root_signature.Get());
 			ID3D12DescriptorHeap* pp_heaps[] = { descriptor_allocator->Heap() };
 			cmd_list->SetDescriptorHeaps(_countof(pp_heaps), pp_heaps);
 
@@ -2475,31 +2474,31 @@ namespace adria
 		{
 			auto desc = brdf_lut_texture->GetDesc();
 
-			D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-			uavDesc.Format = desc.Format;
-			uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
-			uavDesc.Texture2DArray.MipSlice = 0;
-			uavDesc.Texture2DArray.FirstArraySlice = 0;
-			uavDesc.Texture2DArray.ArraySize = desc.DepthOrArraySize;
+			D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc = {};
+			uav_desc.Format = desc.Format;
+			uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+			uav_desc.Texture2DArray.MipSlice = 0;
+			uav_desc.Texture2DArray.FirstArraySlice = 0;
+			uav_desc.Texture2DArray.ArraySize = desc.DepthOrArraySize;
 
 			OffsetType descriptor_index = descriptor_allocator->Allocate();
 			device->CreateUnorderedAccessView(brdf_lut_texture.Get(), nullptr,
-				&uavDesc,
+				&uav_desc,
 				descriptor_allocator->GetCpuHandle(descriptor_index));
 
-			ComPtr<ID3D12PipelineState> pipelineState;
-			ShaderBlob spBRDFShader;
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SpbrdfCS.cso", spBRDFShader);
+			ComPtr<ID3D12PipelineState> pipeline_state;
+			ShaderBlob BRDFShader;
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SpbrdfCS.cso", BRDFShader);
 
-			D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc = {};
-			psoDesc.pRootSignature = computeRootSignature.Get();
-			psoDesc.CS = spBRDFShader;
-			BREAK_IF_FAILED(device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)));
+			D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc = {};
+			pso_desc.pRootSignature = root_signature.Get();
+			pso_desc.CS = BRDFShader;
+			BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pipeline_state)));
 
 			auto brdf_barrier = CD3DX12_RESOURCE_BARRIER::Transition(brdf_lut_texture.Get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			cmd_list->ResourceBarrier(1, &brdf_barrier);
-			cmd_list->SetPipelineState(pipelineState.Get());
-			cmd_list->SetComputeRootSignature(computeRootSignature.Get());
+			cmd_list->SetPipelineState(pipeline_state.Get());
+			cmd_list->SetComputeRootSignature(root_signature.Get());
 			ID3D12DescriptorHeap* pp_heaps[] = { descriptor_allocator->Heap() };
 			cmd_list->SetDescriptorHeaps(_countof(pp_heaps), pp_heaps);
 
