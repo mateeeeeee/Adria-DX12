@@ -9,7 +9,6 @@
 namespace adria
 {
 
-
 	struct texture2d_srv_desc_t
 	{
 		DXGI_FORMAT format;

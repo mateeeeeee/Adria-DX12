@@ -10,46 +10,6 @@
 namespace adria
 {
 	
-
-
-			
-	/*// Create the SRV for the heightmap texture and save to Terrain object.
-			D3D12_SHADER_RESOURCE_VIEW_DESC descSRV = {};
-			descSRV.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-			descSRV.Format = DXGI_FORMAT_R32_FLOAT;
-			descSRV.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
-			descSRV.Texture2DArray.MipLevels = descTex.MipLevels;
-			descSRV.Texture2DArray.MostDetailedMip = 0;
-			descSRV.Texture2DArray.ResourceMinLODClamp = 0.0f;
-			descSRV.Texture2DArray.PlaneSlice = 0;
-			descSRV.Texture2DArray.ArraySize = MAX_CASCADES_NUM;
-			
-
-			for (UINT i = 0; i < 1; ++i) //frame_count
-			{
-				device->CreateShaderResourceView(shadow_map_resource.Get(), &descSRV, shadow_map_srv_heap->GetCpuHandle(i));
-			}
-
-			D3D12_DEPTH_STENCIL_VIEW_DESC descDSV = {};
-			descDSV.Format = DXGI_FORMAT_D32_FLOAT;
-			descDSV.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
-			descDSV.Texture2DArray.MipSlice = 0;
-			descDSV.Texture2DArray.ArraySize = 1;
-			descDSV.Flags = D3D12_DSV_FLAG_NONE;
-
-			for (UINT i = 0; i < MAX_CASCADES_NUM; ++i)
-			{
-				descDSV.Texture2DArray.FirstArraySlice = D3D12CalcSubresource(0, i, 0, 1, 1);
-				device->CreateDepthStencilView(shadow_map_resource.Get(), &descDSV,
-											   shadow_map_dsv_heap->GetCpuHandle(i));
-				//for (UINT j = 0; j < frame_count; ++j)
-				//{
-				//	device->CreateDepthStencilView(shadow_map_resource.Get(), &descDSV, 
-				//		shadow_map_dsv_heap->GetCpuHandle(i + j* MAX_CASCADES_NUM));
-				//}
-			}
-	*/
-
 	struct texture2darray_desc_t
 	{
 		u32 width;

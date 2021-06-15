@@ -69,7 +69,6 @@ namespace adria
 
         LinearDescriptorAllocator* DescriptorAllocator() const;
         LinearUploadBuffer* UploadBuffer() const;
-
 	private:
         UINT width, height;
         UINT backbuffer_index;

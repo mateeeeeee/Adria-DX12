@@ -30,8 +30,16 @@ namespace adria
 
 		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE CpuDescriptorHandle(TEXTURE_HANDLE tex_handle);
 
+		//remove this, only lens flare textures use this
 		void TransitionTexture(TEXTURE_HANDLE handle, ResourceBarriers& barrier,
 			D3D12_RESOURCE_STATES state_before, D3D12_RESOURCE_STATES state_after);
+
+		ID3D12Resource* Resource(TEXTURE_HANDLE handle) const
+		{
+			if (handle == INVALID_TEXTURE_HANDLE) return nullptr;
+			else if (auto it = texture_map.find(handle); it != texture_map.end()) return it->second.Get();
+			else return nullptr;
+		}
 
 		void SetMipMaps(bool);
 

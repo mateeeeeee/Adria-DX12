@@ -112,7 +112,16 @@ namespace adria
 		camera_manager.AddCamera(camera_desc);
 		
 		skybox_parameters_t skybox_params{};
-		skybox_params.cubemap = L"Resources/Textures/skybox/sunsetcube1024.dds"; 
+		//skybox_params.cubemap = L"Resources/Textures/skybox/sunsetcube1024.dds"; 
+		skybox_params.cubemap_textures = 
+		{
+			L"Resources/Textures/Skybox/right.jpg",
+			L"Resources/Textures/Skybox/left.jpg",
+			L"Resources/Textures/Skybox/top.jpg",
+			L"Resources/Textures/Skybox/bottom.jpg",
+			L"Resources/Textures/Skybox/front.jpg",
+			L"Resources/Textures/Skybox/back.jpg"
+		};
 		entity_loader->LoadSkybox(skybox_params);
 
 		model_parameters_t model_params{};
@@ -121,6 +130,10 @@ namespace adria
 		model_params.model = DirectX::XMMatrixScaling(0.3f, 0.3f, 0.3f);
 		entity_loader->LoadGLTFModel(model_params);
 
+		model_params.model_path = "Resources/GLTF Models/DamagedHelmet/glTF/DamagedHelmet.gltf";
+		model_params.textures_path = "Resources/GLTF Models/DamagedHelmet/glTF/";
+		model_params.model = DirectX::XMMatrixScaling(10.0f, 10.0f, 10.0f);
+		entity_loader->LoadGLTFModel(model_params);
 		
 		light_parameters_t light_params{};
 		light_params.light_data.casts_shadows = true;

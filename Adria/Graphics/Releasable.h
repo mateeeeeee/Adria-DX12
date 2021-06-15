@@ -45,7 +45,6 @@ namespace adria
         T* resource;
     };
 
-
     struct ReleasableItem
     {
         std::unique_ptr<ReleasableObject> obj;
@@ -58,7 +57,5 @@ namespace adria
             obj->Release();
         }
     };
-
-
 
 }

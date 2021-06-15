@@ -29,11 +29,18 @@ namespace adria
 	{
 		enum NULL_HEAP_SLOT
 		{
-			TEXTURE2D,
-			TEXTURECUBE,
-			TEXTURE2DARRAY,
-			RWTEXTURE2D,
+			TEXTURE2D_SLOT,
+			TEXTURECUBE_SLOT,
+			TEXTURE2DARRAY_SLOT,
+			RWTEXTURE2D_SLOT,
 			NULL_HEAP_SIZE
+		};
+
+		enum IBL_HEAP_SLOT
+		{
+			ENV_TEXTURE_SLOT,
+			IRMAP_TEXTURE_SLOT,
+			BRDF_LUT_TEXTURE_SLOT
 		};
 
 		static constexpr u32 GBUFFER_SIZE = 3;
@@ -107,7 +114,7 @@ namespace adria
 		std::unique_ptr<DescriptorHeap> dsv_heap;
 		std::unique_ptr<DescriptorHeap> uav_heap;
 		std::unique_ptr<DescriptorHeap> null_srv_heap; 
-		std::unique_ptr<DescriptorHeap> null_uav_heap; 
+		std::unique_ptr<DescriptorHeap> null_uav_heap;
 		u32 srv_heap_index = 0;
 		u32 uav_heap_index = 0;
 		u32 rtv_heap_index = 0;
@@ -159,6 +166,11 @@ namespace adria
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> clouds_textures;
 		bool recreate_clusters = true;
 
+		std::unique_ptr<DescriptorHeap> ibl_heap;
+		Microsoft::WRL::ComPtr<ID3D12Resource> env_texture;
+		Microsoft::WRL::ComPtr<ID3D12Resource> irmap_texture;
+		Microsoft::WRL::ComPtr<ID3D12Resource> brdf_lut_texture;
+	    bool ibl_textures_generated = false;
 	private:
 
 		void LoadShaders();
@@ -166,6 +178,8 @@ namespace adria
 		void CreateDescriptorHeaps();
 		void CreateViews(u32 width, u32 height);
 		void CreateRenderPasses(u32 width, u32 height);
+		void CreateIBLTextures();
+
 		
 		void UpdateConstantBuffers(f32 dt);
 		void CameraFrustumCulling();

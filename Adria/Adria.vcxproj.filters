@@ -65,6 +65,9 @@
     <Filter Include="Editor">
       <UniqueIdentifier>{82f8fa3a-c2b4-4cd1-9a90-c46b3a0b1dfb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Deferred\IBL">
+      <UniqueIdentifier>{216dadbc-ae69-4a54-ae61-1e6776bc1f0c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -573,6 +576,18 @@
     </FxCompile>
     <FxCompile Include="Resources\Shaders\PostProcess\TAA_PS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Deferred\SpmapCS.hlsl">
+      <Filter>Shaders\Deferred\IBL</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Deferred\SpbrdfCS.hlsl">
+      <Filter>Shaders\Deferred\IBL</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Deferred\Equirect2cubeCS.hlsl">
+      <Filter>Shaders\Deferred\IBL</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Deferred\IrmapCS.hlsl">
+      <Filter>Shaders\Deferred\IBL</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

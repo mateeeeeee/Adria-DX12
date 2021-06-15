@@ -21,7 +21,7 @@ float3 getSamplingVector(uint3 ThreadID)
     float2 uv = 2.0 * float2(st.x, 1.0-st.y) - float2(1.0, 1.0);
 
 	// Select vector based on cubemap face index.
-	float3 ret;
+	float3 ret = 0;
 	switch(ThreadID.z)
 	{
 	case 0: ret = float3(1.0,  uv.y, -uv.x); break;
@@ -35,7 +35,7 @@ float3 getSamplingVector(uint3 ThreadID)
 }
 
 [numthreads(32, 32, 1)]
-void cs_main(uint3 ThreadID : SV_DispatchThreadID)
+void main(uint3 ThreadID : SV_DispatchThreadID)
 {
 	float3 v = getSamplingVector(ThreadID);
 	

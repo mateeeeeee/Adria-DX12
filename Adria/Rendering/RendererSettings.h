@@ -53,6 +53,7 @@ namespace adria
 		bool visualize_tiled = false;
 		i32 visualize_max_lights = 16;
 		bool use_clustered_deferred = false;
+		bool ibl = false;
 	};
 
 }

@@ -42,7 +42,6 @@ namespace adria
 			device->CreateCommittedResource(&heap_properties, D3D12_HEAP_FLAG_NONE, &resource_desc,
 				current_state, nullptr, IID_PPV_ARGS(&resource));
 		}
-
 		StructuredBuffer(StructuredBuffer const&) = delete;
 		StructuredBuffer(StructuredBuffer&&) = delete;
 

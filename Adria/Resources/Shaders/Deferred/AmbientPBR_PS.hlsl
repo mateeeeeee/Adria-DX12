@@ -5,9 +5,8 @@ Texture2D               diffuseTx        : register(t1);
 Texture2D               emissiveAoTx     : register(t2);
 Texture2D<float>        depthTx          : register(t3);
 
-
 SamplerState linear_wrap_sampler : register(s0);
-
+SamplerState linear_clamp_sampler : register(s1);
 
 #if SSAO
 Texture2D<float> ssaoTx : register(t7);
@@ -59,9 +58,13 @@ float4 ps_main(VertexOut pin) : SV_TARGET
     
     float depth = depthTx.Sample(linear_wrap_sampler, pin.Tex);
     
-    float3 Position = GetPositionVS(pin.Tex, depth);
+    float3 ViewPosition = GetPositionVS(pin.Tex, depth);
+    
+    float4 WorldPosition = mul(float4(ViewPosition, 1.0f), frame_cbuf.inverse_view);
+    
+    WorldPosition /= WorldPosition.w;
 
-    float3 V = normalize(camera_position.xyz - Position);
+    float3 V = normalize(frame_cbuf.camera_position.xyz - WorldPosition.xyz);
 
     float roughness = albedo_roughness.a;
 

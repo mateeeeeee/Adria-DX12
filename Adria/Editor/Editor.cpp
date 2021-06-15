@@ -1041,6 +1041,7 @@ namespace adria
                 ImGui::SliderFloat("Blur Sigma", &settings.blur_sigma, 0.1f, 10.0f);
                 ImGui::SliderFloat("Shadow Softness", &settings.shadow_softness, 0.01f, 5.0f);
                 
+                ImGui::Checkbox("IBL", &settings.ibl);
                 ImGui::TreePop();
             }
         }

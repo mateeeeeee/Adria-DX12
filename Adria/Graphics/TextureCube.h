@@ -15,6 +15,7 @@ namespace adria
 	{
 		u32 width;
 		u32 height;
+		u32 levels = 1u;
 		DXGI_FORMAT format = DXGI_FORMAT_R32_TYPELESS;
 		D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE;
 		D3D12_RESOURCE_STATES start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
@@ -46,7 +47,7 @@ namespace adria
 			D3D12_RESOURCE_DESC texture_desc = {};
 			texture_desc.Width = desc.width;
 			texture_desc.Height = desc.height;
-			texture_desc.MipLevels = 1;
+			texture_desc.MipLevels = desc.levels > 0 ? desc.levels : 0;
 			texture_desc.DepthOrArraySize = 6;
 			texture_desc.Format = desc.format;
 			texture_desc.SampleDesc.Count = 1;
@@ -142,15 +143,14 @@ namespace adria
 			barriers.AddTransition(resource.Get(), state_before, state_after);
 		}
 
+		
 	private:
 		ID3D12Device* device;
 		Microsoft::WRL::ComPtr<ID3D12Resource> resource = nullptr;
-
 		std::array<D3D12_CPU_DESCRIPTOR_HANDLE, 6> dsv_handles;
 		std::array<D3D12_CPU_DESCRIPTOR_HANDLE, 6> rtv_handles;
 		D3D12_CPU_DESCRIPTOR_HANDLE srv_handle{};
-
-
+		D3D12_CPU_DESCRIPTOR_HANDLE uav_handle{};
 	};
 
 }
