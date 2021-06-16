@@ -1302,13 +1302,9 @@ namespace adria
 				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 
 				pso_desc.BlendState.RenderTarget[0].BlendEnable = TRUE;
-				pso_desc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
 				pso_desc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
 				pso_desc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
-				pso_desc.BlendState.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ZERO;
-				pso_desc.BlendState.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ONE;
-				pso_desc.BlendState.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
-				pso_desc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+				pso_desc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
 
 				pso_desc.DepthStencilState.DepthEnable = TRUE;
 				pso_desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
@@ -1350,21 +1346,21 @@ namespace adria
 			{
 
 				
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
-				psoDesc.InputLayout = { nullptr, 0 };
-				psoDesc.pRootSignature = rs_map[RootSig::eSSR].Get();
-				psoDesc.VS = shader_map[VS_ScreenQuad];
-				psoDesc.PS = shader_map[PS_Ssr];
-				psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-				psoDesc.SampleMask = UINT_MAX;
-				psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				psoDesc.NumRenderTargets = 1;
-				psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				psoDesc.SampleDesc.Count = 1;
-				psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
+				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
+				pso_desc.InputLayout = { nullptr, 0 };
+				pso_desc.pRootSignature = rs_map[RootSig::eSSR].Get();
+				pso_desc.VS = shader_map[VS_ScreenQuad];
+				pso_desc.PS = shader_map[PS_Ssr];
+				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+				pso_desc.SampleMask = UINT_MAX;
+				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+				pso_desc.NumRenderTargets = 1;
+				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				pso_desc.SampleDesc.Count = 1;
+				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso_map[PSO::eSSR])));
+				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eSSR])));
 			}
 
 			//god rays
@@ -1372,21 +1368,25 @@ namespace adria
 				InputLayout il;
 				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_ScreenQuad], il);
 
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
-				psoDesc.InputLayout = il;
-				psoDesc.pRootSignature = rs_map[RootSig::eGodRays].Get();
-				psoDesc.VS = shader_map[VS_ScreenQuad];
-				psoDesc.PS = shader_map[PS_GodRays];
-				psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-				psoDesc.SampleMask = UINT_MAX;
-				psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				psoDesc.NumRenderTargets = 1;
-				psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				psoDesc.SampleDesc.Count = 1;
-				psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
+				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
+				pso_desc.InputLayout = il;
+				pso_desc.pRootSignature = rs_map[RootSig::eGodRays].Get();
+				pso_desc.VS = shader_map[VS_ScreenQuad];
+				pso_desc.PS = shader_map[PS_GodRays];
+				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+				pso_desc.BlendState.RenderTarget[0].BlendEnable = true;
+				pso_desc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
+				pso_desc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_ONE;
+				pso_desc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+				pso_desc.SampleMask = UINT_MAX;
+				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+				pso_desc.NumRenderTargets = 1;
+				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				pso_desc.SampleDesc.Count = 1;
+				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso_map[PSO::eGodRays])));
+				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eGodRays])));
 			}
 
 			//lens flare
@@ -1596,8 +1596,8 @@ namespace adria
 	{
 		auto device = gfx->Device();
 
-		rtv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 10));
-		srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 24));
+		rtv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 11));
+		srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 25));
 		dsv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 11));
 		uav_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 9));
 		null_srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, NULL_HEAP_SIZE));
@@ -1654,6 +1654,10 @@ namespace adria
 			prev_hdr_render_target = Texture2D(gfx->Device(), render_target_desc);
 			prev_hdr_render_target.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
 			prev_hdr_render_target.CreateRTV(rtv_heap->GetCpuHandle(rtv_heap_index++));
+
+			sun_target = Texture2D(gfx->Device(), render_target_desc);
+			sun_target.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
+			sun_target.CreateRTV(rtv_heap->GetCpuHandle(rtv_heap_index++));
 		}
 		
 		//depth stencil target
@@ -3225,6 +3229,7 @@ namespace adria
 		}
 		
 		postprocess_passes[postprocess_index].End(cmd_list); //now we have copy of scene in ping
+
 		
 		ResourceBarriers postprocess_barriers{};
 		postprocess_barriers.AddTransition(postprocess_textures[postprocess_index].Resource(),
@@ -3343,19 +3348,27 @@ namespace adria
 		for (entity light : lights)
 		{
 			auto const& light_data = lights.get(light);
-			if (!light_data.active || !light_data.god_rays) continue;
-			
-			postprocess_passes[postprocess_index].Begin(cmd_list);
+			if (!light_data.active) continue;
 
-			PassGodRays(cmd_list, light_data);
+			if (light_data.type == LightType::eDirectional)
+			{
+				postprocess_barriers.ReverseTransitions();
+				postprocess_barriers.Submit(cmd_list);
 
-			postprocess_passes[postprocess_index].End(cmd_list);
+				DrawSun(cmd_list, light);
+				postprocess_passes[!postprocess_index].Begin(cmd_list);
+				light_data.god_rays ? PassGodRays(cmd_list, light_data) : AddTextures(cmd_list, postprocess_textures[!postprocess_index], sun_target); //void(); // 
+				postprocess_passes[!postprocess_index].End(cmd_list);
 
-			postprocess_barriers.ReverseTransitions();
-			postprocess_barriers.Submit(cmd_list);
-			postprocess_index = !postprocess_index;
-			
+				postprocess_barriers.ReverseTransitions();
+				postprocess_barriers.Submit(cmd_list);
+				
+				break;
+			}
+
 		}
+
+
 
 		if (settings.anti_aliasing & AntiAliasing_TAA)
 		{
@@ -4048,9 +4061,13 @@ namespace adria
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 		auto upload_buffer = gfx->UploadBuffer();
 
-		cmd_list->SetGraphicsRootSignature(rs_map[RootSig::eGodRays].Get());
-		cmd_list->SetPipelineState(pso_map[PSO::eGodRays].Get());
+		if (light.type != LightType::eDirectional)
+		{
+			Log::Warning("Using God Rays on a Non-Directional Light Source\n");
+			return;
+		}
 
+		
 		LightCBuffer light_cbuf_data{};
 		{
 			light_cbuf_data.godrays_decay = light.godrays_decay;
@@ -4078,10 +4095,13 @@ namespace adria
 		light_allocation = upload_buffer->Allocate(GetCBufferSize<LightCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 		light_allocation.Update(light_cbuf_data);
 
+		cmd_list->SetGraphicsRootSignature(rs_map[RootSig::eGodRays].Get());
+		cmd_list->SetPipelineState(pso_map[PSO::eGodRays].Get());
+
 		cmd_list->SetGraphicsRootConstantBufferView(0, light_allocation.gpu_address);
 
 		OffsetType descriptor_index = descriptor_allocator->Allocate();
-		D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = postprocess_textures[!postprocess_index].SRV();
+		D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = sun_target.SRV();
 		device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index), cpu_descriptor,
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
@@ -4155,6 +4175,62 @@ namespace adria
 		cmd_list->SetGraphicsRootDescriptorTable(0, descriptor_allocator->GetGpuHandle(descriptor_index));
 		cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		cmd_list->DrawInstanced(4, 1, 0, 0);
+	}
+
+	void Renderer::DrawSun(ID3D12GraphicsCommandList4* cmd_list, tecs::entity sun)
+	{
+		auto device = gfx->Device();
+		auto descriptor_allocator = gfx->DescriptorAllocator();
+		auto upload_buffer = gfx->UploadBuffer();
+
+		ResourceBarriers sun_barrier{};
+		sun_barrier.AddTransition(sun_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		sun_barrier.AddTransition(depth_stencil_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+		sun_barrier.Submit(cmd_list);
+
+
+		D3D12_CPU_DESCRIPTOR_HANDLE rtv = sun_target.RTV();
+		D3D12_CPU_DESCRIPTOR_HANDLE dsv = depth_stencil_target.DSV();
+		f32 black[4] = { 0.0f };
+		cmd_list->ClearRenderTargetView(rtv, black, 0, nullptr);
+		cmd_list->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
+
+		cmd_list->SetGraphicsRootSignature(rs_map[RootSig::eForward].Get());
+		cmd_list->SetPipelineState(pso_map[PSO::eSun].Get());
+		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
+		{
+			auto [transform, mesh, material] = reg.get<Transform, Mesh, Material>(sun);
+
+			object_cbuf_data.model = transform.current_transform;
+			object_cbuf_data.inverse_transposed_model = DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, object_cbuf_data.model));
+
+			object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+			object_allocation.Update(object_cbuf_data);
+			cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
+
+			material_cbuf_data.diffuse = material.diffuse;
+
+			material_allocation = upload_buffer->Allocate(GetCBufferSize<MaterialCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+			material_allocation.Update(material_cbuf_data);
+			cmd_list->SetGraphicsRootConstantBufferView(2, material_allocation.gpu_address);
+
+			D3D12_CPU_DESCRIPTOR_HANDLE diffuse_handle = texture_manager.CpuDescriptorHandle(material.diffuse_texture);
+			u32 src_range_size = 1;
+
+			OffsetType descriptor_index = descriptor_allocator->Allocate();
+			D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+
+			device->CopyDescriptorsSimple(1, dst_descriptor, diffuse_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+			cmd_list->SetGraphicsRootDescriptorTable(3, descriptor_allocator->GetGpuHandle(descriptor_index));
+
+			mesh.Draw(cmd_list);
+
+		}
+		cmd_list->OMSetRenderTargets(0, nullptr, FALSE, nullptr);
+
+		sun_barrier.ReverseTransitions();
+		sun_barrier.Submit(cmd_list);
 	}
 
 	void Renderer::BlurTexture(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& texture)

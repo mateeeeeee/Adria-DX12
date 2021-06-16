@@ -158,6 +158,7 @@ namespace adria
 		StructuredBuffer<u32>			light_list;
 		StructuredBuffer<LightGrid>  	light_grid;
 		
+		Texture2D sun_target;
 		std::array<DirectX::XMVECTOR, 16> ssao_kernel{};
 		DirectX::BoundingBox light_bounding_box;
 		DirectX::BoundingFrustum light_bounding_frustum;
@@ -216,6 +217,7 @@ namespace adria
 		void PassFog(ID3D12GraphicsCommandList4* cmd_list);
 		void PassToneMap(ID3D12GraphicsCommandList4* cmd_list);
 
+		void DrawSun(ID3D12GraphicsCommandList4* cmd_list, tecs::entity sun);
 		//result in blur final 
 		void BlurTexture(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& texture);
 		//result in current render target
