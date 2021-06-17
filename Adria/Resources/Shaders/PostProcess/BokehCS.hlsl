@@ -1,4 +1,5 @@
 #include "../Globals/GlobalsCS.hlsli"
+#include "../Util/RootSignatures.hlsli"
 
 static const float4 LUM_FACTOR = float4(0.299, 0.587, 0.114, 0);
 
@@ -28,7 +29,7 @@ float BlurFactor2(in float depth, in float2 DOF)
     return saturate((depth - DOF.x) / (DOF.y - DOF.x));
 }
 
-
+[RootSignature(BokehGenerate_RS)]
 [numthreads(32, 32, 1)]
 void main(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
@@ -43,10 +44,10 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
     
     float centerDepth = ConvertZToLinearDepth(depth);
     
-    if (depth < camera_near) 
+    if (depth < 1.0f) 
     {
 
-        float centerBlur = BlurFactor(centerDepth, dof_params);
+        float centerBlur = BlurFactor(centerDepth, postprocess_cbuf.dof_params);
 
         const uint NumSamples = 9;
         const uint2 SamplePoints[NumSamples] =
@@ -74,15 +75,15 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
         float brightnessDiff    = max(centerBrightness - averageBrightness, 0.0f);
 
         [branch]
-        if (brightnessDiff >= bokeh_lum_threshold && centerBlur > bokeh_blur_threshold)
+        if (brightnessDiff >= compute_cbuf.bokeh_lum_threshold && centerBlur > compute_cbuf.bokeh_blur_threshold)
         {
             Bokeh bPoint;
             bPoint.Position = float3(uv, centerDepth);
-            bPoint.Size = centerBlur * bokeh_radius_scale / float2(width, height);
+            bPoint.Size = centerBlur * compute_cbuf.bokeh_radius_scale / float2(width, height);
             
-            float cocRadius = centerBlur * bokeh_radius_scale * 0.45f;
+            float cocRadius = centerBlur * compute_cbuf.bokeh_radius_scale * 0.45f;
             float cocArea = cocRadius * cocRadius * 3.14159f;
-            float falloff = pow(saturate(1.0f / cocArea), bokeh_fallout);
+            float falloff = pow(saturate(1.0f / cocArea), compute_cbuf.bokeh_fallout);
             bPoint.Color = centerColor * falloff;
 
             BokehStack.Append(bPoint);

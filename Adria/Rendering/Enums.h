@@ -38,6 +38,9 @@ namespace adria
 		VS_LensFlare,
 		GS_LensFlare,
 		PS_LensFlare,
+		VS_Bokeh,
+		GS_Bokeh,
+		PS_Bokeh,
 		PS_MotionBlur,
 		PS_Fog,
 		PS_Copy,
@@ -53,7 +56,8 @@ namespace adria
 		CS_BloomExtract,
 		CS_TiledLighting,
 		CS_ClusterBuilding,
-		CS_ClusterCulling
+		CS_ClusterCulling,
+		CS_BokehGenerate
 	};
 
 	enum class RootSig : u8
@@ -73,6 +77,8 @@ namespace adria
 		eSSAO,
 		eSSR,
 		eDof,
+		eBokeh,
+		eBokehGenerate,
 		eGodRays,
 		eLensFlare,
 		eBlur,
@@ -131,8 +137,8 @@ namespace adria
 		eTiledLighting,
 		eClusterBuilding,
 		eClusterCulling,
-		//eBokehGenerate,
-		//eBokehDraw,
+		eBokehGenerate,
+		eBokeh,
         eUnknown
 	};
 

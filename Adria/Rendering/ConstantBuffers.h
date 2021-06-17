@@ -190,4 +190,11 @@ namespace adria
 		u32 offset;
 		u32 light_count;
 	};
+
+	struct Bokeh
+	{
+		DirectX::XMFLOAT3 Position;
+		DirectX::XMFLOAT2 Size;
+		DirectX::XMFLOAT3 Color;
+	};
 }

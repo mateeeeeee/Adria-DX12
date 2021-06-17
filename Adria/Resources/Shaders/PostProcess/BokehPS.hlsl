@@ -1,3 +1,6 @@
+#include "../Util/RootSignatures.hlsli"
+
+
 struct BokehGSOutput
 {
     float4 PositionCS   : SV_Position;
@@ -6,9 +9,10 @@ struct BokehGSOutput
     float Depth         : DEPTH;
 };
 
-Texture2D BokehTexture         : register(t0);
+Texture2D BokehTexture         : register(t1);
 SamplerState LinearWrapSampler : register(s0);
 
+[RootSignature(Bokeh_RS)]
 float4 main(BokehGSOutput input) : SV_TARGET
 {
     float bokehFactor = BokehTexture.Sample(LinearWrapSampler, input.TexCoord).r;

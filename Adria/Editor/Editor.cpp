@@ -400,8 +400,8 @@ namespace adria
                         if (light->god_rays)
                         {
                             ImGui::SliderFloat("God Rays decay", &light->godrays_decay, 0.0f, 1.0f);
-                            ImGui::SliderFloat("God Rays weight", &light->godrays_weight, 0.0f, 0.5f);
-                            ImGui::SliderFloat("God Rays density", &light->godrays_density, 0.1f, 3.0f);
+                            ImGui::SliderFloat("God Rays weight", &light->godrays_weight, 0.0f, 1.0f);
+                            ImGui::SliderFloat("God Rays density", &light->godrays_density, 0.1f, 2.0f);
                             ImGui::SliderFloat("God Rays exposure", &light->godrays_exposure, 0.1f, 10.0f);
                         }
 

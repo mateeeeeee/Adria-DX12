@@ -589,6 +589,18 @@
     <FxCompile Include="Resources\Shaders\Deferred\IrmapCS.hlsl">
       <Filter>Shaders\Deferred\IBL</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\PostProcess\BokehCS.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\PostProcess\BokehGS.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\PostProcess\BokehPS.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\PostProcess\BokehVS.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Shaders\Globals\GlobalsCS.hlsli">

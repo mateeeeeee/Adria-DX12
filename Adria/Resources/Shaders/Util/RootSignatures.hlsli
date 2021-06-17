@@ -242,3 +242,19 @@
                                     "addressV = TEXTURE_ADDRESS_WRAP, " \
                                     "addressW = TEXTURE_ADDRESS_WRAP, " \
                                     "filter = FILTER_MIN_MAG_MIP_LINEAR, visibility=SHADER_VISIBILITY_PIXEL )" 
+
+#define BokehGenerate_RS            "CBV(b0, visibility=SHADER_VISIBILITY_ALL), " \
+                                    "CBV(b5, visibility=SHADER_VISIBILITY_ALL), " \
+                                    "CBV(b6, visibility=SHADER_VISIBILITY_ALL), " \
+                                    "DescriptorTable(SRV(t0, numDescriptors = 2, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
+                                    "DescriptorTable(UAV(u0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
+
+#define Bokeh_RS                    "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
+                                    "DescriptorTable(SRV(t0, numDescriptors = 1, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_VERTEX ), " \
+                                    "DescriptorTable(SRV(t1, numDescriptors = 1, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_PIXEL ), " \
+                                    "StaticSampler(s0, " \
+                                    "addressU = TEXTURE_ADDRESS_WRAP, " \
+                                    "addressV = TEXTURE_ADDRESS_WRAP, " \
+                                    "addressW = TEXTURE_ADDRESS_WRAP, " \
+                                    "filter = FILTER_MIN_MAG_MIP_LINEAR, visibility=SHADER_VISIBILITY_PIXEL )" 
+                                 

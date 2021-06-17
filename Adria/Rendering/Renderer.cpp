@@ -688,6 +688,13 @@ namespace adria
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/LensFlarePS.cso", ps_blob);
 			shader_map[PS_LensFlare] = ps_blob;
 
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BokehVS.cso", vs_blob);
+			shader_map[VS_Bokeh] = vs_blob;
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BokehGS.cso", gs_blob);
+			shader_map[GS_Bokeh] = gs_blob;
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BokehPS.cso", ps_blob);
+			shader_map[PS_Bokeh] = ps_blob;
+
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/DOF_PS.cso", ps_blob);
 			shader_map[PS_Dof] = ps_blob;
 
@@ -815,6 +822,9 @@ namespace adria
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ClusterCullingCS.cso", cs_blob);
 			shader_map[CS_ClusterCulling] = cs_blob;
 
+
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BokehCS.cso", cs_blob);
+			shader_map[CS_BokehGenerate] = cs_blob;
 		}
 
 		
@@ -891,6 +901,9 @@ namespace adria
 			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_MotionBlur].GetPointer(), shader_map[PS_MotionBlur].GetLength(),
 				IID_PPV_ARGS(rs_map[RootSig::eMotionBlur].GetAddressOf())));
 
+			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Bokeh].GetPointer(), shader_map[PS_Bokeh].GetLength(),
+				IID_PPV_ARGS(rs_map[RootSig::eBokeh].GetAddressOf())));
+
 			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_TiledLighting].GetPointer(), shader_map[CS_TiledLighting].GetLength(),
 				IID_PPV_ARGS(rs_map[RootSig::eTiledLighting].GetAddressOf())));
 
@@ -899,6 +912,9 @@ namespace adria
 
 			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_ClusterCulling].GetPointer(), shader_map[CS_ClusterCulling].GetLength(),
 				IID_PPV_ARGS(rs_map[RootSig::eClusterCulling].GetAddressOf())));
+
+			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_BokehGenerate].GetPointer(), shader_map[CS_BokehGenerate].GetLength(),
+				IID_PPV_ARGS(rs_map[RootSig::eBokehGenerate].GetAddressOf())));
 
 
 			rs_map[RootSig::eCopy] = rs_map[RootSig::eFXAA];
@@ -1538,6 +1554,7 @@ namespace adria
 				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 
+
 				pso_desc.SampleMask = UINT_MAX;
 				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 				pso_desc.NumRenderTargets = 1;
@@ -1546,6 +1563,37 @@ namespace adria
 				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eDof])));
+			}
+
+			//bokeh 
+			{
+				D3D12_COMPUTE_PIPELINE_STATE_DESC compute_pso_desc = {};
+				compute_pso_desc.pRootSignature = rs_map[RootSig::eBokehGenerate].Get();
+				compute_pso_desc.CS = shader_map[CS_BokehGenerate];
+				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[PSO::eBokehGenerate])));
+
+
+				// Describe and create the graphics pipeline state object (PSO).
+				D3D12_GRAPHICS_PIPELINE_STATE_DESC graphics_pso_desc{};
+				graphics_pso_desc.InputLayout = { nullptr, 0 };
+				graphics_pso_desc.pRootSignature = rs_map[RootSig::eBokeh].Get();
+				graphics_pso_desc.VS = shader_map[VS_Bokeh];
+				graphics_pso_desc.VS = shader_map[GS_Bokeh];
+				graphics_pso_desc.PS = shader_map[PS_Bokeh];
+				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+				graphics_pso_desc.BlendState.RenderTarget[0].BlendEnable = true;
+				graphics_pso_desc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
+				graphics_pso_desc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_ONE;
+				graphics_pso_desc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+				graphics_pso_desc.SampleMask = UINT_MAX;
+				graphics_pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
+				graphics_pso_desc.NumRenderTargets = 1;
+				graphics_pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				graphics_pso_desc.SampleDesc.Count = 1;
+				graphics_pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
+
+				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&graphics_pso_desc, IID_PPV_ARGS(&pso_map[PSO::eBokeh])));
 			}
 
 			//clouds
@@ -3230,7 +3278,6 @@ namespace adria
 		
 		postprocess_passes[postprocess_index].End(cmd_list); //now we have copy of scene in ping
 
-		
 		ResourceBarriers postprocess_barriers{};
 		postprocess_barriers.AddTransition(postprocess_textures[postprocess_index].Resource(),
 			D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);

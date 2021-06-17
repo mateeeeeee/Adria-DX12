@@ -30,10 +30,16 @@ namespace adria
 		f32 ssr_ray_step = 1.60f;
 		f32 ssr_ray_hit_threshold = 2.00f;
 		bool dof = false;
+		bool bokeh = false;
 		f32 dof_near_blur = 000.0f;
 		f32 dof_near = 200.0f;
 		f32 dof_far = 400.0f;
 		f32 dof_far_blur = 600.0f;
+		f32 bokeh_blur_threshold = 0.9f;
+		f32 bokeh_lum_threshold = 1.0f;
+		f32 bokeh_radius_scale = 25.0f;
+		f32 bokeh_color_scale = 1.0f;
+		f32 bokeh_fallout = 0.9f;
 		bool bloom = false;
 		f32 bloom_threshold = 0.25f;
 		f32 bloom_scale = 2.0f;
