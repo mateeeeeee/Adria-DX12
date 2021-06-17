@@ -3352,23 +3352,31 @@ namespace adria
 
 			if (light_data.type == LightType::eDirectional)
 			{
-				postprocess_barriers.ReverseTransitions();
-				postprocess_barriers.Submit(cmd_list);
-
-				DrawSun(cmd_list, light);
-				postprocess_passes[!postprocess_index].Begin(cmd_list);
-				light_data.god_rays ? PassGodRays(cmd_list, light_data) : AddTextures(cmd_list, postprocess_textures[!postprocess_index], sun_target); //void(); // 
-				postprocess_passes[!postprocess_index].End(cmd_list);
-
-				postprocess_barriers.ReverseTransitions();
-				postprocess_barriers.Submit(cmd_list);
 				
+				DrawSun(cmd_list, light);
+				if (light_data.god_rays)
+				{
+					postprocess_barriers.ReverseTransitions();
+					postprocess_barriers.Submit(cmd_list);
+					postprocess_index = !postprocess_index;
+					postprocess_passes[postprocess_index].Begin(cmd_list);
+					PassGodRays(cmd_list, light_data);
+					postprocess_passes[postprocess_index].End(cmd_list);
+				}
+				else
+				{
+					postprocess_passes[postprocess_index].Begin(cmd_list);
+					AddTextures(cmd_list, postprocess_textures[!postprocess_index], sun_target);
+					postprocess_passes[postprocess_index].End(cmd_list);
+				}
+
+				postprocess_barriers.ReverseTransitions();
+				postprocess_barriers.Submit(cmd_list);
+				postprocess_index = !postprocess_index;
 				break;
 			}
 
 		}
-
-
 
 		if (settings.anti_aliasing & AntiAliasing_TAA)
 		{

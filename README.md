@@ -9,6 +9,7 @@ Graphics engine written in C++/DirectX12.
 * Tiled Deferred Rendering 
 * Clustered Deferred Rendering
 * Physically Based Shading
+* Image Based Lighting
 * Normal Mapping
 * Shadows
     - PCF Shadows for Directional, Spot and Point lights
