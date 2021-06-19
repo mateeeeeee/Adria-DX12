@@ -40,6 +40,7 @@ namespace adria
 		f32 bokeh_radius_scale = 25.0f;
 		f32 bokeh_color_scale = 1.0f;
 		f32 bokeh_fallout = 0.9f;
+		BokehType bokeh_type = BokehType::eHex;
 		bool bloom = false;
 		f32 bloom_threshold = 0.25f;
 		f32 bloom_scale = 2.0f;

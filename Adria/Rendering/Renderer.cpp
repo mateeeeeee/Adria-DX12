@@ -351,10 +351,10 @@ namespace adria
 		: reg(reg), gfx(gfx), width(width), height(height), texture_manager(gfx, 1000), backbuffer_count(gfx->BackbufferCount()),
 		frame_cbuffer(gfx->Device(), backbuffer_count), postprocess_cbuffer(gfx->Device(), backbuffer_count),
 		compute_cbuffer(gfx->Device(), backbuffer_count), weather_cbuffer(gfx->Device(), backbuffer_count),
-		clusters(gfx->Device(), CLUSTER_COUNT, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
-		light_counter(gfx->Device(), 1, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
-		light_list(gfx->Device(), CLUSTER_COUNT * CLUSTER_MAX_LIGHTS, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
-		light_grid(gfx->Device(), CLUSTER_COUNT, D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
+		clusters(gfx->Device(), CLUSTER_COUNT, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
+		light_counter(gfx->Device(), 1, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
+		light_list(gfx->Device(), CLUSTER_COUNT * CLUSTER_MAX_LIGHTS, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
+		light_grid(gfx->Device(), CLUSTER_COUNT, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
 	{
 
 		LoadShaders();
@@ -606,6 +606,14 @@ namespace adria
 			clouds_textures.push_back(texture_manager.CpuDescriptorHandle(texture_manager.LoadTexture(L"Resources\\Textures\\clouds\\weather.dds")));
 			clouds_textures.push_back(texture_manager.CpuDescriptorHandle(texture_manager.LoadTexture(L"Resources\\Textures\\clouds\\cloud.dds")));
 			clouds_textures.push_back(texture_manager.CpuDescriptorHandle(texture_manager.LoadTexture(L"Resources\\Textures\\clouds\\worley.dds")));
+		}
+
+		//bokeh
+		{
+			hex_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Hex.dds");
+			oct_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Oct.dds");
+			circle_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Circle.dds");
+			cross_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Cross.dds");
 		}
 		texture_manager.SetMipMaps(true);
 	}
@@ -1578,7 +1586,7 @@ namespace adria
 				graphics_pso_desc.InputLayout = { nullptr, 0 };
 				graphics_pso_desc.pRootSignature = rs_map[RootSig::eBokeh].Get();
 				graphics_pso_desc.VS = shader_map[VS_Bokeh];
-				graphics_pso_desc.VS = shader_map[GS_Bokeh];
+				graphics_pso_desc.GS = shader_map[GS_Bokeh];
 				graphics_pso_desc.PS = shader_map[PS_Bokeh];
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
@@ -1645,9 +1653,9 @@ namespace adria
 		auto device = gfx->Device();
 
 		rtv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 11));
-		srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 25));
+		srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 26));
 		dsv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 11));
-		uav_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 9));
+		uav_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 10));
 		null_srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, NULL_HEAP_SIZE));
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC null_srv_desc{};
@@ -2017,6 +2025,13 @@ namespace adria
 
 			light_grid.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
 			light_grid.CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
+		}
+
+		//bokeh
+		{
+			bokeh = std::make_unique<StructuredBuffer<Bokeh>>(gfx->Device(), width * height, true, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+			bokeh->CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
+			bokeh->CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
 		}
 		
 	}
@@ -2633,6 +2648,12 @@ namespace adria
 			compute_cbuf_data.threshold = settings.bloom_threshold;
 			compute_cbuf_data.visualize_tiled = settings.visualize_tiled;
 			compute_cbuf_data.visualize_max_lights = settings.visualize_max_lights;
+			compute_cbuf_data.bokeh_blur_threshold = settings.bokeh_blur_threshold;
+			compute_cbuf_data.bokeh_lum_threshold = settings.bokeh_lum_threshold;
+			compute_cbuf_data.dof_params = XMVectorSet(settings.dof_near_blur, settings.dof_near, settings.dof_far, settings.dof_far_blur);
+			compute_cbuf_data.bokeh_radius_scale = settings.bokeh_radius_scale;
+			compute_cbuf_data.bokeh_color_scale = settings.bokeh_color_scale;
+			compute_cbuf_data.bokeh_fallout = settings.bokeh_fallout;
 
 			compute_cbuffer.Update(compute_cbuf_data, backbuffer_index);
 		}
@@ -3353,6 +3374,8 @@ namespace adria
 			barrier.ReverseTransitions();
 			barrier.Submit(cmd_list);
 
+			if (settings.bokeh) PassGenerateBokeh(cmd_list);
+
 			postprocess_passes[postprocess_index].Begin(cmd_list);
 
 			PassDepthOfField(cmd_list);
@@ -3993,6 +4016,8 @@ namespace adria
 	}
 	void Renderer::PassDepthOfField(ID3D12GraphicsCommandList4* cmd_list)
 	{
+		ADRIA_ASSERT(settings.dof);
+
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 
@@ -4016,6 +4041,90 @@ namespace adria
 		cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		cmd_list->DrawInstanced(4, 1, 0, 0);
 
+	}
+	void Renderer::PassGenerateBokeh(ID3D12GraphicsCommandList4* cmd_list)
+	{
+		ADRIA_ASSERT(settings.dof && settings.bokeh);
+
+		auto device = gfx->Device();
+		auto descriptor_allocator = gfx->DescriptorAllocator();
+
+		cmd_list->SetComputeRootSignature(rs_map[RootSig::eBokehGenerate].Get());
+		cmd_list->SetPipelineState(pso_map[PSO::eBokehGenerate].Get());
+
+		cmd_list->SetComputeRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
+		cmd_list->SetComputeRootConstantBufferView(1, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
+		cmd_list->SetComputeRootConstantBufferView(2, compute_cbuffer.View(backbuffer_index).BufferLocation);
+
+		OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
+
+		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { postprocess_textures[!postprocess_index].SRV(), depth_stencil_target.SRV() };
+		D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetCpuHandle(descriptor_index) };
+		u32 src_range_sizes[] = { 1, 1 };
+		u32 dst_range_sizes[] = { 2 };
+		device->CopyDescriptors(_countof(dst_ranges), dst_ranges, dst_range_sizes, _countof(src_ranges), src_ranges, src_range_sizes,
+			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		cmd_list->SetComputeRootDescriptorTable(3, descriptor_allocator->GetGpuHandle(descriptor_index));
+
+		D3D12_CPU_DESCRIPTOR_HANDLE bokeh_uav = bokeh->UAV();
+		descriptor_index = descriptor_allocator->Allocate();
+
+		device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index), bokeh_uav,
+			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+		cmd_list->SetComputeRootDescriptorTable(4, descriptor_allocator->GetGpuHandle(descriptor_index));
+		cmd_list->Dispatch((u32)std::ceil(width / 32.0f), (u32)std::ceil(height / 32.0f), 1);
+		
+
+	}
+	void Renderer::PassDrawBokeh(ID3D12GraphicsCommandList4* cmd_list)
+	{
+		ADRIA_ASSERT(settings.dof && settings.bokeh);
+
+		auto device = gfx->Device();
+		auto descriptor_allocator = gfx->DescriptorAllocator();
+
+		//cmd_list->CopyStructureCount(bokeh_indirect_draw_buffer.Get(), 0, bokeh_uav.Get());
+
+		D3D12_CPU_DESCRIPTOR_HANDLE bokeh_descriptor{};
+		switch (settings.bokeh_type)
+		{
+		case BokehType::eHex:
+			bokeh_descriptor = texture_manager.CpuDescriptorHandle(hex_bokeh_handle);
+			break;
+		case BokehType::eOct:
+			bokeh_descriptor = texture_manager.CpuDescriptorHandle(oct_bokeh_handle);
+			break;
+		case BokehType::eCircle:
+			bokeh_descriptor = texture_manager.CpuDescriptorHandle(circle_bokeh_handle);
+			break;
+		case BokehType::eCross:
+			bokeh_descriptor = texture_manager.CpuDescriptorHandle(cross_bokeh_handle);
+			break;
+		default:
+			ADRIA_ASSERT(false && "Invalid Bokeh Type");
+		}
+
+		cmd_list->SetGraphicsRootSignature(rs_map[RootSig::eBokeh].Get());
+		cmd_list->SetPipelineState(pso_map[PSO::eBokeh].Get());
+
+		OffsetType i = descriptor_allocator->AllocateRange(2);
+
+		device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(i),
+			bokeh->SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+		device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(i + 1),
+			bokeh_descriptor, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+		cmd_list->SetGraphicsRootDescriptorTable(0, descriptor_allocator->GetGpuHandle(i));
+		cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(i + 1));
+
+		cmd_list->IASetVertexBuffers(0, 0, nullptr);
+		cmd_list->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+		cmd_list->IASetIndexBuffer(nullptr);
+
+		context->DrawInstancedIndirect(bokeh_indirect_draw_buffer.Get(), 0);
+		
 	}
 	void Renderer::PassBloom(ID3D12GraphicsCommandList4* cmd_list)
 	{

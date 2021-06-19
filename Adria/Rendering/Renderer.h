@@ -157,6 +157,7 @@ namespace adria
 		StructuredBuffer<u32>			light_counter;
 		StructuredBuffer<u32>			light_list;
 		StructuredBuffer<LightGrid>  	light_grid;
+		std::unique_ptr<StructuredBuffer<Bokeh>> bokeh;
 		
 		Texture2D sun_target;
 		std::array<DirectX::XMVECTOR, 16> ssao_kernel{};
@@ -165,6 +166,11 @@ namespace adria
 		std::optional<DirectX::BoundingSphere> scene_bounding_sphere = std::nullopt;
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> lens_flare_textures;
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> clouds_textures;
+		TEXTURE_HANDLE hex_bokeh_handle = INVALID_TEXTURE_HANDLE;
+		TEXTURE_HANDLE oct_bokeh_handle = INVALID_TEXTURE_HANDLE;
+		TEXTURE_HANDLE circle_bokeh_handle = INVALID_TEXTURE_HANDLE;
+		TEXTURE_HANDLE cross_bokeh_handle = INVALID_TEXTURE_HANDLE;
+
 		bool recreate_clusters = true;
 
 		std::unique_ptr<DescriptorHeap> ibl_heap;
@@ -209,6 +215,8 @@ namespace adria
 		void PassVolumetricClouds(ID3D12GraphicsCommandList4* cmd_list);
 		void PassSSR(ID3D12GraphicsCommandList4* cmd_list);
 		void PassDepthOfField(ID3D12GraphicsCommandList4* cmd_list);
+		void PassGenerateBokeh(ID3D12GraphicsCommandList4* cmd_list);
+		void PassDrawBokeh(ID3D12GraphicsCommandList4* cmd_list);
 		void PassBloom(ID3D12GraphicsCommandList4* cmd_list);
 		void PassGodRays(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassMotionBlur(ID3D12GraphicsCommandList4* cmd_list);

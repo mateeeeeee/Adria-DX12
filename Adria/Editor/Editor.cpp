@@ -903,6 +903,7 @@ namespace adria
                 ImGui::Checkbox("Bloom", &settings.bloom);
                 ImGui::Checkbox("Motion Blur", &settings.motion_blur);
                 ImGui::Checkbox("Fog", &settings.fog);
+
                 if (ImGui::TreeNode("Anti-Aliasing"))
                 {
                     static bool fxaa = false, taa = false;
@@ -927,9 +928,6 @@ namespace adria
 
                     ImGui::TreePop();
                 }
-
-
-
                 if (settings.clouds && ImGui::TreeNodeEx("Volumetric Clouds", 0))
                 {
                     ImGui::SliderFloat("Sun light absorption", &settings.light_absorption, 0.0f, 0.015f);
@@ -944,8 +942,6 @@ namespace adria
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
-
-
                 if (settings.ssao && ImGui::TreeNodeEx("Screen-Space Ambient Occlusion", 0))
                 {
                     ImGui::SliderFloat("Power", &settings.ssao_power, 1.0f, 16.0f);
@@ -969,6 +965,21 @@ namespace adria
                     ImGui::SliderFloat("DoF Near", &settings.dof_near, settings.dof_near_blur, 500.0f);
                     ImGui::SliderFloat("DoF Far", &settings.dof_far, settings.dof_near, 1000.0f);
                     ImGui::SliderFloat("DoF Far Blur", &settings.dof_far_blur, settings.dof_far, 1500.0f);
+                    ImGui::Checkbox("Bokeh", &settings.bokeh);
+
+                    if (settings.bokeh)
+                    {
+                        static char const* const bokeh_types[] = { "HEXAGON", "OCTAGON", "CIRCLE", "CROSS" };
+                        static int bokeh_type_i = static_cast<int>(settings.bokeh_type);
+                        ImGui::ListBox("Bokeh Type", &bokeh_type_i, bokeh_types, IM_ARRAYSIZE(bokeh_types));
+                        settings.bokeh_type = static_cast<BokehType>(bokeh_type_i);
+
+                        ImGui::SliderFloat("Bokeh Blur Threshold", &settings.bokeh_blur_threshold, 0.0f, 1.0f);
+                        ImGui::SliderFloat("Bokeh Lum Threshold", &settings.bokeh_lum_threshold, 0.0f, 10.0f);
+                        ImGui::SliderFloat("Bokeh Color Scale", &settings.bokeh_color_scale, 0.1f, 10.0f);
+                        ImGui::SliderFloat("Bokeh Max Size", &settings.bokeh_radius_scale, 0.0f, 100.0f);
+                        ImGui::SliderFloat("Bokeh Fallout", &settings.bokeh_fallout, 0.0f, 2.0f);
+                    }
                     
                     ImGui::TreePop();
                     ImGui::Separator();
