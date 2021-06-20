@@ -610,11 +610,68 @@ namespace adria
 
 		//bokeh
 		{
+			//this doesnt belong here, move it somewhere else later
+			D3D12_RESOURCE_DESC desc{};
+			desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+			desc.Alignment = 0;
+			desc.SampleDesc.Count = 1;
+			desc.Format = DXGI_FORMAT_UNKNOWN;
+			desc.Width = 4 * sizeof(u32);
+			desc.Height = 1;
+			desc.DepthOrArraySize = 1;
+			desc.MipLevels = 1;
+			desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+			desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+
+			BREAK_IF_FAILED(gfx->Device()->CreateCommittedResource(&heap_properties, D3D12_HEAP_FLAG_NONE, &desc,
+				D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&bokeh_indirect_draw_buffer)));
+
+			D3D12_INDIRECT_ARGUMENT_DESC args[1] = {};
+			args[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW;
+			D3D12_COMMAND_SIGNATURE_DESC command_signature_desc{};
+			command_signature_desc.ByteStride = 16;
+			command_signature_desc.NumArgumentDescs = 1;
+			command_signature_desc.pArgumentDescs = args;
+
+			BREAK_IF_FAILED(
+				gfx->Device()->CreateCommandSignature(
+					&command_signature_desc, nullptr, IID_PPV_ARGS(&bokeh_command_signature)
+				)
+			);
+		}
+
+		ID3D12Resource* bokeh_upload_buffer = nullptr;
+		{
 			hex_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Hex.dds");
 			oct_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Oct.dds");
 			circle_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Circle.dds");
 			cross_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Cross.dds");
+
+			const u64 upload_buffer_size = GetRequiredIntermediateSize(bokeh_indirect_draw_buffer.Get(), 0, 1);
+			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+			auto resource_desc = CD3DX12_RESOURCE_DESC::Buffer(upload_buffer_size);
+			BREAK_IF_FAILED(gfx->Device()->CreateCommittedResource(
+				&heap_properties,
+				D3D12_HEAP_FLAG_NONE,
+				&resource_desc,
+				D3D12_RESOURCE_STATE_GENERIC_READ,
+				nullptr,
+				IID_PPV_ARGS(&bokeh_upload_buffer)));
+
+			u32 init_data[] = { 0,1,0,0 };
+
+			D3D12_SUBRESOURCE_DATA data{};
+			data.pData = init_data;
+			data.RowPitch = sizeof(init_data);
+			data.SlicePitch = 0;
+
+			UpdateSubresources(gfx->DefaultCommandList(), bokeh_indirect_draw_buffer.Get(), bokeh_upload_buffer, 0, 0, 1, &data);
 		}
+		gfx->AddToReleaseQueue(bokeh_upload_buffer);
+
+
 		texture_manager.SetMipMaps(true);
 	}
 	TextureManager& Renderer::GetTextureManager()
@@ -3381,7 +3438,6 @@ namespace adria
 			PassDepthOfField(cmd_list);
 
 			postprocess_passes[postprocess_index].End(cmd_list);
-
 			postprocess_barriers.ReverseTransitions();
 			postprocess_barriers.Submit(cmd_list);
 			postprocess_index = !postprocess_index;
@@ -4041,6 +4097,8 @@ namespace adria
 		cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		cmd_list->DrawInstanced(4, 1, 0, 0);
 
+		if (settings.bokeh) PassDrawBokeh(cmd_list);
+
 	}
 	void Renderer::PassGenerateBokeh(ID3D12GraphicsCommandList4* cmd_list)
 	{
@@ -4075,6 +4133,21 @@ namespace adria
 		cmd_list->SetComputeRootDescriptorTable(4, descriptor_allocator->GetGpuHandle(descriptor_index));
 		cmd_list->Dispatch((u32)std::ceil(width / 32.0f), (u32)std::ceil(height / 32.0f), 1);
 		
+		
+		CD3DX12_RESOURCE_BARRIER precopy_barriers[] = {
+				CD3DX12_RESOURCE_BARRIER::Transition(bokeh_indirect_draw_buffer.Get(), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, D3D12_RESOURCE_STATE_COPY_DEST),
+				CD3DX12_RESOURCE_BARRIER::Transition(bokeh->CounterResource(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE)
+		};
+		cmd_list->ResourceBarrier(_countof(precopy_barriers), precopy_barriers);
+
+		cmd_list->CopyBufferRegion(bokeh_indirect_draw_buffer.Get(), 0, bokeh->CounterResource(), 0, sizeof(u32));
+
+		CD3DX12_RESOURCE_BARRIER postcopy_barriers[] = {
+				CD3DX12_RESOURCE_BARRIER::Transition(bokeh_indirect_draw_buffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT),
+				CD3DX12_RESOURCE_BARRIER::Transition(bokeh->CounterResource(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
+		};
+		cmd_list->ResourceBarrier(_countof(postcopy_barriers), postcopy_barriers);
+		
 
 	}
 	void Renderer::PassDrawBokeh(ID3D12GraphicsCommandList4* cmd_list)
@@ -4084,8 +4157,7 @@ namespace adria
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 
-		//cmd_list->CopyStructureCount(bokeh_indirect_draw_buffer.Get(), 0, bokeh_uav.Get());
-
+		
 		D3D12_CPU_DESCRIPTOR_HANDLE bokeh_descriptor{};
 		switch (settings.bokeh_type)
 		{
@@ -4123,8 +4195,9 @@ namespace adria
 		cmd_list->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 		cmd_list->IASetIndexBuffer(nullptr);
 
-		context->DrawInstancedIndirect(bokeh_indirect_draw_buffer.Get(), 0);
-		
+		cmd_list->ExecuteIndirect(bokeh_command_signature.Get(), 1, bokeh_indirect_draw_buffer.Get(), 0,
+			nullptr, 0);
+
 	}
 	void Renderer::PassBloom(ID3D12GraphicsCommandList4* cmd_list)
 	{

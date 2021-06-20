@@ -166,10 +166,13 @@ namespace adria
 		std::optional<DirectX::BoundingSphere> scene_bounding_sphere = std::nullopt;
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> lens_flare_textures;
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> clouds_textures;
+		Microsoft::WRL::ComPtr<ID3D12CommandSignature> bokeh_command_signature;
+		Microsoft::WRL::ComPtr<ID3D12Resource> bokeh_indirect_draw_buffer;
 		TEXTURE_HANDLE hex_bokeh_handle = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE oct_bokeh_handle = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE circle_bokeh_handle = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE cross_bokeh_handle = INVALID_TEXTURE_HANDLE;
+
 
 		bool recreate_clusters = true;
 

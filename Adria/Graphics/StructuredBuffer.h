@@ -148,6 +148,10 @@ namespace adria
 			return resource.Get();
 		}
 
+		ID3D12Resource* CounterResource() const
+		{
+			return counter_resource.Get();
+		}
 
 	private:
 		ID3D12Device* device;
