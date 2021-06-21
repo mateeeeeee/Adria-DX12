@@ -21,6 +21,7 @@ Graphics engine written in C++/DirectX12.
 * HDR and Tone Mapping
 * Bloom
 * Depth Of Field
+* Bokeh
 * SSAO
 * SSR
 * FXAA

@@ -8,7 +8,7 @@ namespace adria
 	struct RendererSettings
 	{
 		//user settings
-		f32 blur_sigma = 1.0f;
+		f32 blur_sigma = 6.0f;
 		f32 ambient_color[3] = { 15.0f / 255.0f, 15.0f / 255.0f, 15.0f / 255.0f };
 		f32 wind_direction[2] = { 10.0f, 10.0f };
 		bool fog = false;

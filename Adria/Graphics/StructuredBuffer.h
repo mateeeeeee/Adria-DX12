@@ -75,7 +75,7 @@ namespace adria
 			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 
 			BREAK_IF_FAILED(device->CreateCommittedResource(&heap_properties, D3D12_HEAP_FLAG_NONE, &resource_desc,
-				current_state, nullptr, IID_PPV_ARGS(&resource)));
+				current_state, nullptr, IID_PPV_ARGS(&buffer)));
 
 			if (counter)
 			{
@@ -90,8 +90,9 @@ namespace adria
 				resource_desc.SampleDesc.Quality = 0;
 				resource_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 				resource_desc.Alignment = 0;
+
 				BREAK_IF_FAILED(device->CreateCommittedResource(&heap_properties, D3D12_HEAP_FLAG_NONE, &resource_desc,
-					D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&counter_resource)));
+					D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&counter_buffer)));
 			}
 		}
 		StructuredBuffer(StructuredBuffer const&) = delete;
@@ -110,7 +111,7 @@ namespace adria
 			srv_desc.Buffer.StructureByteStride = sizeof(T);
 			srv_desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
-			device->CreateShaderResourceView(resource.Get(), &srv_desc, handle);
+			device->CreateShaderResourceView(buffer.Get(), &srv_desc, handle);
 
 			srv_handle = handle;
 			
@@ -133,9 +134,27 @@ namespace adria
 			uav_desc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 			uav_desc.Buffer.CounterOffsetInBytes = 0;
 
-			device->CreateUnorderedAccessView(resource.Get(), counter_resource.Get(), &uav_desc, handle);
+			device->CreateUnorderedAccessView(buffer.Get(), counter_buffer.Get(), &uav_desc, handle);
 
 			uav_handle = handle;
+		}
+
+		void CreateCounterUAV(D3D12_CPU_DESCRIPTOR_HANDLE counter_handle)
+		{
+			if (counter_buffer)
+			{
+				D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
+				uav_desc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+				uav_desc.Format = DXGI_FORMAT_UNKNOWN;
+				uav_desc.Buffer.CounterOffsetInBytes = 0;
+				uav_desc.Buffer.FirstElement = 0;
+				uav_desc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
+				uav_desc.Buffer.NumElements = 1;
+				uav_desc.Buffer.StructureByteStride = sizeof(u32);
+				device->CreateUnorderedAccessView(counter_buffer.Get(), nullptr, &uav_desc, counter_handle);
+
+				uav_counter_handle = counter_handle;
+			}
 		}
 
 		D3D12_CPU_DESCRIPTOR_HANDLE UAV() const
@@ -143,24 +162,30 @@ namespace adria
 			return uav_handle;
 		}
 
-		ID3D12Resource* Resource() const
+		D3D12_CPU_DESCRIPTOR_HANDLE CounterUAV() const
 		{
-			return resource.Get();
+			return uav_counter_handle;
 		}
 
-		ID3D12Resource* CounterResource() const
+		ID3D12Resource* Buffer() const
 		{
-			return counter_resource.Get();
+			return buffer.Get();
+		}
+
+		ID3D12Resource* CounterBuffer() const
+		{
+			return counter_buffer.Get();
 		}
 
 	private:
 		ID3D12Device* device;
-		Microsoft::WRL::ComPtr<ID3D12Resource> resource = nullptr;
-		Microsoft::WRL::ComPtr<ID3D12Resource> counter_resource = nullptr;
+		Microsoft::WRL::ComPtr<ID3D12Resource> buffer = nullptr;
+		Microsoft::WRL::ComPtr<ID3D12Resource> counter_buffer = nullptr;
 		u32 const element_count;
 		D3D12_RESOURCE_STATES current_state;
 		D3D12_CPU_DESCRIPTOR_HANDLE srv_handle{};
 		D3D12_CPU_DESCRIPTOR_HANDLE uav_handle{};
+		D3D12_CPU_DESCRIPTOR_HANDLE uav_counter_handle{};
 	};
 
 }

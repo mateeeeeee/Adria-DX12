@@ -168,6 +168,7 @@ namespace adria
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> clouds_textures;
 		Microsoft::WRL::ComPtr<ID3D12CommandSignature> bokeh_command_signature;
 		Microsoft::WRL::ComPtr<ID3D12Resource> bokeh_indirect_draw_buffer;
+		Microsoft::WRL::ComPtr<ID3D12Resource> counter_reset_buffer;
 		TEXTURE_HANDLE hex_bokeh_handle = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE oct_bokeh_handle = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE circle_bokeh_handle = INVALID_TEXTURE_HANDLE;
