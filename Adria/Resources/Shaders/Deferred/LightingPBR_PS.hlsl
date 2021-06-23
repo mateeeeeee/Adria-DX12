@@ -128,7 +128,7 @@ float4 main(VertexOut pin) : SV_TARGET
 //https://panoskarabelas.com/posts/screen_space_shadows/
 static const uint SSS_MAX_STEPS = 8; // Max ray steps, affects quality and performance.
 static const float SSS_RAY_MAX_DISTANCE = 0.05f; // Max shadow length, longer shadows are less accurate.
-static const float SSS_THICKNESS = 0.01f; // Depth testing thickness.
+static const float SSS_THICKNESS = 0.05f; // Depth testing thickness.
 static const float SSS_STEP_LENGTH = SSS_RAY_MAX_DISTANCE / SSS_MAX_STEPS;
 float ScreenSpaceShadows(float2 uv)
 {
