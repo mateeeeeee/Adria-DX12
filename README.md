@@ -36,9 +36,6 @@ Graphics engine written in C++/DirectX12.
 * Camera and Light Frustum Culling
 * DirectX 12 Render Passes
 
-### To Do
-* Screen Space Shadows have artifacts
-* SSGI
 
 ## Dependencies
 [assimp](https://github.com/assimp/assimp)
