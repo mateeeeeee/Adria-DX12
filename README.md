@@ -37,13 +37,8 @@ Graphics engine written in C++/DirectX12.
 * DirectX 12 Render Passes
 
 ### To Do
-* Ocean FFT
-* Image Based Lighting
-* Bokeh
-* Voxel Cone Tracing Global Illumination
-* Atmospheric Scattering
-* Terrain
-* Particle Engine
+* Screen Space Shadows have artifacts
+* SSGI
 
 ## Dependencies
 [assimp](https://github.com/assimp/assimp)
