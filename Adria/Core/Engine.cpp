@@ -86,7 +86,7 @@ namespace adria
 	{
 		gfx->ClearBackbuffer();
 
-		renderer->Render(settings);
+		renderer->Render_Multithreaded(settings);
 
 		if (offscreen) renderer->ResolveToOffscreenFramebuffer();
 		else renderer->ResolveToBackbuffer();

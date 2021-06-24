@@ -63,6 +63,8 @@ namespace adria
 
 		void Render(RendererSettings const&);
 
+		void Render_Multithreaded(RendererSettings const&);
+
 		void ResolveToBackbuffer();
 
 		void ResolveToOffscreenFramebuffer();

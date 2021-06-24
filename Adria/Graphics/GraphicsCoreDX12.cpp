@@ -114,11 +114,11 @@ namespace adria
 
             for (UINT i = 0; i < CMD_LIST_COUNT; ++i)
             {
-                hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(frames[fr].cmdAllocators[i].GetAddressOf()));
+                hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(frames[fr].cmd_allocators[i].GetAddressOf()));
                 BREAK_IF_FAILED(hr);
-                hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, frames[fr].cmdAllocators[i].Get(), nullptr, IID_PPV_ARGS(frames[fr].cmdLists[i].GetAddressOf()));
+                hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, frames[fr].cmd_allocators[i].Get(), nullptr, IID_PPV_ARGS(frames[fr].cmd_lists[i].GetAddressOf()));
                 BREAK_IF_FAILED(hr);
-                hr = frames[fr].cmdLists[i]->Close();
+                hr = frames[fr].cmd_lists[i]->Close();
                 BREAK_IF_FAILED(hr);
             }
 
@@ -220,7 +220,6 @@ namespace adria
 
     void GraphicsCoreDX12::ClearBackbuffer()
     {
-
         descriptor_allocators[backbuffer_index]->Clear();
         upload_buffers[backbuffer_index]->Clear();
 
@@ -259,7 +258,11 @@ namespace adria
         barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
         barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
         barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-        frame_resources.cmd_list->ResourceBarrier(1, &barrier);
+
+        UINT cmd_list_index = frame_resources.cmd_list_index;
+
+        if(cmd_list_index > 0) frame_resources.cmd_lists[cmd_list_index - 1]->ResourceBarrier(1, &barrier);
+        else frame_resources.cmd_list->ResourceBarrier(1, &barrier);
 
         ExecuteCommandLists();
 
@@ -268,7 +271,6 @@ namespace adria
         swap_chain->Present(vsync, 0);
 
         MoveToNextFrame();
-
     }
 
     ID3D12Device* GraphicsCoreDX12::Device() const
@@ -281,28 +283,26 @@ namespace adria
         return GetFrameResources().cmd_list.Get();
     }
 
-    ID3D12GraphicsCommandList4* GraphicsCoreDX12::NewCommandList()
+    ID3D12GraphicsCommandList4* GraphicsCoreDX12::NewCommandList() 
     {
         auto& frame_resources = GetFrameResources();
 
         auto i = frame_resources.cmd_list_index.load();
 
-        frame_resources.cmd_list_index++;
+        ++frame_resources.cmd_list_index;
 
         ADRIA_ASSERT(i < CMD_LIST_COUNT && "Not enough command lists");
 
         // Start the command list in a default state:
-        HRESULT hr = frame_resources.cmdAllocators[i]->Reset();
+        HRESULT hr = frame_resources.cmd_allocators[i]->Reset();
         BREAK_IF_FAILED(hr);
-        hr = frame_resources.cmdLists[i]->Reset(frame_resources.cmdAllocators[i].Get(), nullptr);
+        hr = frame_resources.cmd_lists[i]->Reset(frame_resources.cmd_allocators[i].Get(), nullptr);
         BREAK_IF_FAILED(hr);
 
-        //frame_resources.cmdLists[i]->SetGraphicsRootSignature(nullptr);
-        //
         ID3D12DescriptorHeap* ppHeaps[] = { descriptor_allocators[backbuffer_index]->Heap() };
-        frame_resources.cmdLists[i]->SetDescriptorHeaps(1, ppHeaps);
+        frame_resources.cmd_lists[i]->SetDescriptorHeaps(1, ppHeaps);
 
-        return frame_resources.cmdLists[i].Get();
+        return frame_resources.cmd_lists[i].Get();
     }
 
     /////////////////////////////////////////////////////////////
@@ -407,12 +407,12 @@ namespace adria
 
         frame_resources.cmd_list->Close();
 
-        std::vector<ID3D12CommandList*> cmd_lists = { static_cast<ID3D12CommandList*>(frame_resources.cmd_list.Get()) };
+        std::vector<ID3D12CommandList*> cmd_lists = { frame_resources.cmd_list.Get() };
 
         for (UINT i = 0; i < frame_resources.cmd_list_index; ++i)
         {
-            frame_resources.cmdLists[i]->Close();
-            cmd_lists.push_back(static_cast<ID3D12CommandList*>(frame_resources.cmdLists[i].Get()));
+            frame_resources.cmd_lists[i]->Close();
+            cmd_lists.push_back(frame_resources.cmd_lists[i].Get());
         }
 
         direct_queue->ExecuteCommandLists(static_cast<UINT>(cmd_lists.size()), cmd_lists.data());

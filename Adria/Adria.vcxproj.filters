@@ -601,9 +601,6 @@
     <FxCompile Include="Resources\Shaders\PostProcess\BokehVS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\PostProcess\SSGI_PS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Shaders\Globals\GlobalsCS.hlsli">

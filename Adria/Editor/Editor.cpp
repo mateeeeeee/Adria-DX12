@@ -45,11 +45,12 @@ namespace adria
     {
         HandleInput();
 
-        
         if (gui->IsVisible())
         {
             engine->Run(settings, true);
-            engine->gfx->SetBackbuffer();
+
+            auto gui_cmd_list = engine->gfx->NewCommandList();
+            engine->gfx->SetBackbuffer(gui_cmd_list);
             gui->Begin();
             {
                 MenuBar();
@@ -57,22 +58,16 @@ namespace adria
                 auto dockspace_id = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 
                 ListEntities();
-
                 AddEntities();
-
                 Camera();
-
                 Scene();
-
                 RendererSettings();
-
                 Properties();
-
                 Log();
-
                 StatsAndProfiling();
+
             }
-            gui->End(engine->gfx->DefaultCommandList());
+            gui->End(gui_cmd_list);
             engine->Present();
         }
         else

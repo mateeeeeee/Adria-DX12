@@ -434,29 +434,128 @@ namespace adria
 
 		PassPostprocess(cmd_list);
 	}
+
+	void Renderer::Render_Multithreaded(RendererSettings const& _settings)
+	{
+		settings = _settings;
+		if (settings.ibl && !ibl_textures_generated) CreateIBLTextures();
+
+		auto cmd_list = gfx->DefaultCommandList();
+		auto gbuf_cmd_list = gfx->NewCommandList();
+		auto deferred_cmd_list = gfx->NewCommandList();
+		auto postprocess_cmd_list = gfx->NewCommandList();
+
+		hdr_render_target.Resource()->SetName(L"hdr rt");
+		depth_stencil_target.Resource()->SetName(L"depth rt");
+
+
+		auto gbuf_ambient_fut = TaskSystem::Submit([this, gbuf_cmd_list]()
+		{
+			gbuf_cmd_list->SetName(L"gbuf_ambient");
+
+			D3D12_RESOURCE_BARRIER barriers[] = 
+			{
+				CD3DX12_RESOURCE_BARRIER::Transition(hdr_render_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET),
+				CD3DX12_RESOURCE_BARRIER::Transition(depth_stencil_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE)
+			};
+
+			gbuf_cmd_list->ResourceBarrier(_countof(barriers), barriers);
+
+			PassGBuffer(gbuf_cmd_list);
+
+			if (settings.ssao)
+			{
+				D3D12_RESOURCE_BARRIER pre_ssao_barriers[] =
+				{
+					CD3DX12_RESOURCE_BARRIER::Transition(depth_stencil_target.Resource(),D3D12_RESOURCE_STATE_DEPTH_WRITE,  D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
+				};
+				gbuf_cmd_list->ResourceBarrier(_countof(pre_ssao_barriers), pre_ssao_barriers);
+
+
+				PassSSAO(gbuf_cmd_list);
+
+				D3D12_RESOURCE_BARRIER  post_ssao_barriers[] =
+				{
+					CD3DX12_RESOURCE_BARRIER::Transition(depth_stencil_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE)
+				};
+				gbuf_cmd_list->ResourceBarrier(_countof(post_ssao_barriers), post_ssao_barriers);
+
+			}
+			PassAmbient(gbuf_cmd_list);
+		}
+		);
+
+		auto deferred_fut = TaskSystem::Submit([this, deferred_cmd_list]()
+		{
+			
+			deferred_cmd_list->SetName(L"deferred");
+			PassDeferredLighting(deferred_cmd_list);
+
+			if (settings.use_tiled_deferred) PassDeferredTiledLighting(deferred_cmd_list);
+			else if (settings.use_clustered_deferred) PassDeferredClusteredLighting(deferred_cmd_list);
+
+			PassForward(deferred_cmd_list);
+		}
+		);
+
+		auto postprocess_fut = TaskSystem::Submit([this, postprocess_cmd_list]()
+		{
+			
+			postprocess_cmd_list->SetName(L"postprocess");
+			
+			D3D12_RESOURCE_BARRIER barriers[] =
+			{
+				CD3DX12_RESOURCE_BARRIER::Transition(hdr_render_target.Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+				CD3DX12_RESOURCE_BARRIER::Transition(depth_stencil_target.Resource(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
+			};
+
+			postprocess_cmd_list->ResourceBarrier(_countof(barriers), barriers);
+
+			PassPostprocess(postprocess_cmd_list);
+
+		});
+
+		gbuf_ambient_fut.wait();
+		deferred_fut.wait();
+		postprocess_fut.wait();
+	}
+	
 	void Renderer::ResolveToBackbuffer()
 	{
-		auto cmd_list = gfx->DefaultCommandList();
+		auto cmd_list = gfx->NewCommandList(); 
+		D3D12_VIEWPORT vp{};
+		vp.Width = (f32)width;
+		vp.Height = (f32)height;
+		vp.MinDepth = 0.0f;
+		vp.MaxDepth = 1.0f;
+		vp.TopLeftX = 0;
+		vp.TopLeftY = 0;
+		cmd_list->RSSetViewports(1, &vp);
+		D3D12_RECT rect{};
+		rect.bottom = (i64)height;
+		rect.left = 0;
+		rect.right = (i64)width;
+		rect.top = 0;
+		cmd_list->RSSetScissorRects(1, &rect);
+
 		if (settings.anti_aliasing & AntiAliasing_FXAA)
 		{
 			fxaa_render_pass.Begin(cmd_list);
 			PassToneMap(cmd_list);
 			fxaa_render_pass.End(cmd_list);
-
-			gfx->SetBackbuffer();
-			
+			gfx->SetBackbuffer(cmd_list);
 			PassFXAA(cmd_list);
 		}
 		else
 		{
-			gfx->SetBackbuffer();
+			gfx->SetBackbuffer(cmd_list);
 			PassToneMap(cmd_list);
 		}
 
 	}
 	void Renderer::ResolveToOffscreenFramebuffer()
 	{
-		auto cmd_list = gfx->DefaultCommandList();
+		auto cmd_list = gfx->NewCommandList(); 
 		if (settings.anti_aliasing & AntiAliasing_FXAA)
 		{
 			fxaa_render_pass.Begin(cmd_list);
@@ -4498,7 +4597,6 @@ namespace adria
 		sun_barrier.ReverseTransitions();
 		sun_barrier.Submit(cmd_list);
 	}
-
 	void Renderer::BlurTexture(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& texture)
 	{
 		

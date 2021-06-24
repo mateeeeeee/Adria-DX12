@@ -26,17 +26,17 @@ namespace adria
 	class GraphicsCoreDX12
 	{
 		static constexpr UINT BACKBUFFER_COUNT = 3;
-        static constexpr UINT CMD_LIST_COUNT = 8;
+        static constexpr UINT CMD_LIST_COUNT = 12;
 
 		struct frame_resources_t
 		{
 
 			Microsoft::WRL::ComPtr<ID3D12Resource>	back_buffer = nullptr;
 			D3D12_CPU_DESCRIPTOR_HANDLE				back_buffer_rtv{};
-            Microsoft::WRL::ComPtr<ID3D12CommandAllocator> cmd_allocator = nullptr;
-            Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> cmd_list = nullptr;
-            Microsoft::WRL::ComPtr<ID3D12CommandAllocator>      cmdAllocators[CMD_LIST_COUNT] = {};
-            Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4>   cmdLists[CMD_LIST_COUNT] = {};
+            Microsoft::WRL::ComPtr<ID3D12CommandAllocator>      cmd_allocator = nullptr;
+            Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4>  cmd_list = nullptr;
+            Microsoft::WRL::ComPtr<ID3D12CommandAllocator>      cmd_allocators[CMD_LIST_COUNT] = {};
+            Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4>  cmd_lists[CMD_LIST_COUNT] = {};
             std::atomic_uint cmd_list_index = 0;
 		};
 
