@@ -482,6 +482,8 @@ namespace adria
 
 			}
 			PassAmbient(gbuf_cmd_list);
+
+			
 		}
 		);
 
@@ -489,6 +491,7 @@ namespace adria
 		{
 			
 			deferred_cmd_list->SetName(L"deferred");
+			
 			PassDeferredLighting(deferred_cmd_list);
 
 			if (settings.use_tiled_deferred) PassDeferredTiledLighting(deferred_cmd_list);
@@ -519,10 +522,9 @@ namespace adria
 		deferred_fut.wait();
 		postprocess_fut.wait();
 	}
-	
 	void Renderer::ResolveToBackbuffer()
 	{
-		auto cmd_list = gfx->NewCommandList(); 
+		auto cmd_list = gfx->NewCommandList();
 		D3D12_VIEWPORT vp{};
 		vp.Width = (f32)width;
 		vp.Height = (f32)height;
@@ -555,7 +557,7 @@ namespace adria
 	}
 	void Renderer::ResolveToOffscreenFramebuffer()
 	{
-		auto cmd_list = gfx->NewCommandList(); 
+		auto cmd_list = gfx->NewCommandList();
 		if (settings.anti_aliasing & AntiAliasing_FXAA)
 		{
 			fxaa_render_pass.Begin(cmd_list);
@@ -3078,7 +3080,6 @@ namespace adria
 		auto upload_buffer = gfx->UploadBuffer();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 
-		
 		auto lights = reg.view<Light>();
 		for (entity light : lights)
 		{

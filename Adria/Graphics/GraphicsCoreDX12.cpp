@@ -283,7 +283,7 @@ namespace adria
         return GetFrameResources().cmd_list.Get();
     }
 
-    ID3D12GraphicsCommandList4* GraphicsCoreDX12::NewCommandList() 
+    ID3D12GraphicsCommandList4* GraphicsCoreDX12::NewCommandList() const
     {
         auto& frame_resources = GetFrameResources();
 
@@ -303,6 +303,13 @@ namespace adria
         frame_resources.cmd_lists[i]->SetDescriptorHeaps(1, ppHeaps);
 
         return frame_resources.cmd_lists[i].Get();
+    }
+
+    ID3D12GraphicsCommandList4* GraphicsCoreDX12::LastCommandList() const
+    {
+        auto& frame_resources = GetFrameResources();
+        auto i = frame_resources.cmd_list_index.load();
+        return i > 0 ? frame_resources.cmd_lists[i - 1].Get() : frame_resources.cmd_list.Get();
     }
 
     /////////////////////////////////////////////////////////////

@@ -37,7 +37,7 @@ namespace adria
             Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4>  cmd_list = nullptr;
             Microsoft::WRL::ComPtr<ID3D12CommandAllocator>      cmd_allocators[CMD_LIST_COUNT] = {};
             Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4>  cmd_lists[CMD_LIST_COUNT] = {};
-            std::atomic_uint cmd_list_index = 0;
+            mutable std::atomic_uint cmd_list_index = 0;
 		};
 
 	public:
@@ -58,7 +58,8 @@ namespace adria
 
         ID3D12Device* Device() const;
         ID3D12GraphicsCommandList4* DefaultCommandList() const;
-        ID3D12GraphicsCommandList4* NewCommandList();
+        ID3D12GraphicsCommandList4* NewCommandList() const;
+        ID3D12GraphicsCommandList4* LastCommandList() const;
 
         void ResetCommandList();
         void ExecuteCommandList();
