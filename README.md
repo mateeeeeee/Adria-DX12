@@ -34,6 +34,7 @@ Graphics engine written in C++/DirectX12.
 * ImGui Editor
 * Assimp Model Loading
 * Camera and Light Frustum Culling
+* Multithreaded Command List Building
 * DirectX 12 Render Passes
 
 

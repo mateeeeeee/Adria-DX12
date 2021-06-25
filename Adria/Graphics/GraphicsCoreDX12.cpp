@@ -261,8 +261,7 @@ namespace adria
 
         UINT cmd_list_index = frame_resources.cmd_list_index;
 
-        if(cmd_list_index > 0) frame_resources.cmd_lists[cmd_list_index - 1]->ResourceBarrier(1, &barrier);
-        else frame_resources.cmd_list->ResourceBarrier(1, &barrier);
+        LastCommandList()->ResourceBarrier(1, &barrier);
 
         ExecuteCommandLists();
 

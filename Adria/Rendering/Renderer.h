@@ -144,15 +144,6 @@ namespace adria
 		ComputeCBuffer compute_cbuf_data;
 		ConstantBuffer<WeatherCBuffer> weather_cbuffer;
 		WeatherCBuffer weather_cbuf_data;
-		//Transient cbuffers
-		ObjectCBuffer object_cbuf_data{};		
-		MaterialCBuffer material_cbuf_data{};
-		LightCBuffer light_cbuf_data{};
-		ShadowCBuffer shadow_cbuf_data{};
-		DynamicAllocation object_allocation;
-		DynamicAllocation material_allocation;
-		DynamicAllocation light_allocation;
-		DynamicAllocation shadow_allocation;
 		
 		//Persistent sbuffers
 		StructuredBuffer<ClusterAABB>	clusters;

@@ -85,7 +85,6 @@ namespace adria
 	void Engine::Render(RendererSettings const& settings, bool offscreen)
 	{
 		gfx->ClearBackbuffer();
-
 		renderer->Render_Multithreaded(settings);
 
 		if (offscreen) renderer->ResolveToOffscreenFramebuffer();

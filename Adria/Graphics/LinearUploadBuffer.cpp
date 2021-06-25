@@ -1,5 +1,6 @@
 #include "LinearUploadBuffer.h"
 
+#include "../Logging/Logger.h"
 
 namespace adria
 {
@@ -36,11 +37,13 @@ namespace adria
 			allocation.gpu_address = gpu_address + offset;
 			allocation.offset = offset;
 			allocation.size = size_in_bytes;
+
+			
 			return allocation;
 		}
 		else
 		{
-			return DynamicAllocation{};
+			return DynamicAllocation{}; //return optional?
 		}
 	}
 	void LinearUploadBuffer::Clear()

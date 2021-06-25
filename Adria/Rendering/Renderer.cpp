@@ -19,8 +19,8 @@ using namespace Microsoft::WRL;
 
 namespace adria
 {
-	//helpers
-	namespace
+	
+	namespace shadow_helpers
 	{
 		constexpr u32 SHADOW_MAP_SIZE = 2048;
 		constexpr u32 SHADOW_CUBE_SIZE = 512;
@@ -315,8 +315,6 @@ namespace adria
 			return { V,P };
 		}
 
-
-
 		//gauss distribution
 		
 		f32 GaussianDistribution(f32 x, f32 sigma)
@@ -343,9 +341,24 @@ namespace adria
 		}
 		
 	}
+	using namespace shadow_helpers;
+
+	
+	namespace threading
+	{
+		//transient cbuffers
+		thread_local DynamicAllocation object_allocation;
+		thread_local DynamicAllocation material_allocation;
+		thread_local DynamicAllocation light_allocation;
+		thread_local DynamicAllocation shadow_allocation;
+		thread_local ObjectCBuffer object_cbuf_data{};		
+		thread_local MaterialCBuffer material_cbuf_data{};
+		thread_local LightCBuffer light_cbuf_data{};
+		thread_local ShadowCBuffer shadow_cbuf_data{};
+	}
+	using namespace threading;
 
 	using namespace tecs;
-
 
 	Renderer::Renderer(tecs::registry& reg, GraphicsCoreDX12* gfx, u32 width, u32 height)
 		: reg(reg), gfx(gfx), width(width), height(height), texture_manager(gfx, 1000), backbuffer_count(gfx->BackbufferCount()),
@@ -393,6 +406,7 @@ namespace adria
 	}
 	void Renderer::Render(RendererSettings const& _settings)
 	{
+		
 		settings = _settings;
 		if (settings.ibl && !ibl_textures_generated) CreateIBLTextures();
 
@@ -434,7 +448,6 @@ namespace adria
 
 		PassPostprocess(cmd_list);
 	}
-
 	void Renderer::Render_Multithreaded(RendererSettings const& _settings)
 	{
 		settings = _settings;
@@ -462,6 +475,11 @@ namespace adria
 			gbuf_cmd_list->ResourceBarrier(_countof(barriers), barriers);
 
 			PassGBuffer(gbuf_cmd_list);
+		}
+		);
+
+		auto deferred_fut = TaskSystem::Submit([this, deferred_cmd_list]()
+		{
 
 			if (settings.ssao)
 			{
@@ -469,27 +487,20 @@ namespace adria
 				{
 					CD3DX12_RESOURCE_BARRIER::Transition(depth_stencil_target.Resource(),D3D12_RESOURCE_STATE_DEPTH_WRITE,  D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
 				};
-				gbuf_cmd_list->ResourceBarrier(_countof(pre_ssao_barriers), pre_ssao_barriers);
+				deferred_cmd_list->ResourceBarrier(_countof(pre_ssao_barriers), pre_ssao_barriers);
 
 
-				PassSSAO(gbuf_cmd_list);
+				PassSSAO(deferred_cmd_list);
 
 				D3D12_RESOURCE_BARRIER  post_ssao_barriers[] =
 				{
 					CD3DX12_RESOURCE_BARRIER::Transition(depth_stencil_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE)
 				};
-				gbuf_cmd_list->ResourceBarrier(_countof(post_ssao_barriers), post_ssao_barriers);
+				deferred_cmd_list->ResourceBarrier(_countof(post_ssao_barriers), post_ssao_barriers);
 
 			}
-			PassAmbient(gbuf_cmd_list);
+			PassAmbient(deferred_cmd_list);
 
-			
-		}
-		);
-
-		auto deferred_fut = TaskSystem::Submit([this, deferred_cmd_list]()
-		{
-			
 			deferred_cmd_list->SetName(L"deferred");
 			
 			PassDeferredLighting(deferred_cmd_list);
@@ -524,7 +535,7 @@ namespace adria
 	}
 	void Renderer::ResolveToBackbuffer()
 	{
-		auto cmd_list = gfx->NewCommandList();
+		auto cmd_list = gfx->LastCommandList();
 		D3D12_VIEWPORT vp{};
 		vp.Width = (f32)width;
 		vp.Height = (f32)height;
@@ -557,7 +568,7 @@ namespace adria
 	}
 	void Renderer::ResolveToOffscreenFramebuffer()
 	{
-		auto cmd_list = gfx->NewCommandList();
+		auto cmd_list = gfx->LastCommandList();
 		if (settings.anti_aliasing & AntiAliasing_FXAA)
 		{
 			fxaa_render_pass.Begin(cmd_list);
@@ -2912,6 +2923,7 @@ namespace adria
 
 	void Renderer::PassGBuffer(ID3D12GraphicsCommandList4* cmd_list)
 	{
+
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 		auto upload_buffer = gfx->UploadBuffer();
@@ -2946,7 +2958,7 @@ namespace adria
 			material_cbuf_data.roughness_factor = material.roughness_factor;
 			material_cbuf_data.emissive_factor = material.emissive_factor;
 
-			material_allocation = upload_buffer->Allocate(GetCBufferSize<MaterialCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+			DynamicAllocation material_allocation = upload_buffer->Allocate(GetCBufferSize<MaterialCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 			material_allocation.Update(material_cbuf_data);
 			cmd_list->SetGraphicsRootConstantBufferView(2, material_allocation.gpu_address);
 
@@ -4025,7 +4037,7 @@ namespace adria
 
 				material_cbuf_data.diffuse = material.diffuse;
 				
-				material_allocation = upload_buffer->Allocate(GetCBufferSize<MaterialCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				DynamicAllocation material_allocation = upload_buffer->Allocate(GetCBufferSize<MaterialCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 				material_allocation.Update(material_cbuf_data);
 				cmd_list->SetGraphicsRootConstantBufferView(2, material_allocation.gpu_address);
 
@@ -4576,7 +4588,7 @@ namespace adria
 
 			material_cbuf_data.diffuse = material.diffuse;
 
-			material_allocation = upload_buffer->Allocate(GetCBufferSize<MaterialCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+			DynamicAllocation material_allocation = upload_buffer->Allocate(GetCBufferSize<MaterialCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 			material_allocation.Update(material_cbuf_data);
 			cmd_list->SetGraphicsRootConstantBufferView(2, material_allocation.gpu_address);
 

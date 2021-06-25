@@ -49,7 +49,7 @@ namespace adria
         {
             engine->Run(settings, true);
 
-            auto gui_cmd_list = engine->gfx->LastCommandList();
+            auto gui_cmd_list = engine->gfx->NewCommandList();
             engine->gfx->SetBackbuffer(gui_cmd_list);
             gui->Begin();
             {
