@@ -22,7 +22,7 @@ Graphics engine written in C++/DirectX12.
 * Bloom
 * Depth Of Field
 * Bokeh
-* SSAO
+* Ambient Occlusion: SSAO, HBAO
 * SSR
 * FXAA
 * TAA

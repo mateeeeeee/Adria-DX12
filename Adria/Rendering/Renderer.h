@@ -102,8 +102,9 @@ namespace adria
 		Texture2D shadow_depth_map;
 		TextureCube shadow_depth_cubemap;
 		Texture2DArray shadow_depth_cascades;
-		Texture2D ssao_texture;
-		Texture2D noise_texture;
+		Texture2D ao_texture;
+		Texture2D hbao_random_texture;
+		Texture2D ssao_random_texture;
 		Texture2D blur_intermediate_texture;
 		Texture2D blur_final_texture;
 		Texture2D bloom_extract_texture;
@@ -125,6 +126,7 @@ namespace adria
 		//Render Passes
 		RenderPass gbuffer_render_pass;
 		RenderPass ssao_render_pass;
+		RenderPass hbao_render_pass;
 		RenderPass ambient_render_pass;
 		RenderPass lighting_render_pass;
 		RenderPass shadow_map_pass;
@@ -191,6 +193,7 @@ namespace adria
 
 		void PassGBuffer(ID3D12GraphicsCommandList4* cmd_list);
 		void PassSSAO(ID3D12GraphicsCommandList4* cmd_list);
+		void PassHBAO(ID3D12GraphicsCommandList4* cmd_list);
 		void PassAmbient(ID3D12GraphicsCommandList4* cmd_list);
 		void PassDeferredLighting(ID3D12GraphicsCommandList4* cmd_list); 
 		void PassDeferredTiledLighting(ID3D12GraphicsCommandList4* cmd_list);

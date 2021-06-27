@@ -86,33 +86,6 @@ namespace adria
 		i32 visualize;
 	};
 
-
-	/*
-	    float2 noise_scale;
-		float ssao_radius;
-		float ssao_power;
-    
-		float4 samples[16];
-    
-		float ssr_ray_step;
-		float ssr_ray_hit_threshold;
-		float motion_blur_intensity;
-		float tone_map_exposure;
-    
-		float4 dof_params;
-		float4 fog_color;
-    
-		float fog_falloff;
-		float fog_density;
-		float fog_start;
-		int fog_type;
-    
-		int tone_map_op;
-		int ssgi_noise;
-		float ssgi_noise_amount;
-		float ssgi_indirect_amount;
-	*/
-
 	DECLSPEC_ALIGN(16) struct PostprocessCBuffer
 	{
 		DirectX::XMFLOAT2 noise_scale;
@@ -128,14 +101,16 @@ namespace adria
 
 		DirectX::XMVECTOR dof_params;
 		DirectX::XMVECTOR fog_color;
-		i32 tone_map_operator;
+		
 		f32 fog_falloff;
 		f32 fog_density;
 		f32 fog_start;
 		i32 fog_type;
-		i32 ssgi_noise;
-		f32 ssgi_noise_amount;
-		f32 ssgi_indirect_amount;
+
+		f32   hbao_r2;
+		f32   hbao_radius_to_screen;
+		f32   hbao_power;
+		i32	  tone_map_operator;
 	};
 
 	DECLSPEC_ALIGN(16) struct ComputeCBuffer

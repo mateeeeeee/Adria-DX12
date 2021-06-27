@@ -23,9 +23,11 @@ namespace adria
 		AntiAliasing anti_aliasing = AntiAliasing_None;
 		f32 tonemap_exposure = 1.0f;
 		ToneMap tone_map_op = ToneMap::eHable;
-		bool ssao = false;
-		f32 ssao_power = 4.0f;
-		f32 ssao_radius = 1.0f;
+		AmbientOclussion ambient_oclussion = AmbientOclussion::eNone;
+		f32   ssao_power = 4.0f;
+		f32   ssao_radius = 1.0f;
+		f32   hbao_power = 1.5f;
+		f32   hbao_radius = 2.0f;
 		bool ssr = false;
 		f32 ssr_ray_step = 1.60f;
 		f32 ssr_ray_hit_threshold = 2.00f;

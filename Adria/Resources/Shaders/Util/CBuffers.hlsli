@@ -59,29 +59,7 @@ struct ShadowCBuffer
 #define EXPONENTIAL_FOG 0
 #define EXPONENTIAL_HEIGHT_FOG 1
 
-/*
-cbuffer PostprocessCBuf : register(b5)
-{
-    float2  ssao_noise_scale;
-    float   ssao_radius;
-    float   ssao_power;
-    float4  ssao_samples[SSAO_KERNEL_SIZE];
-    float   ssr_ray_step;
-    float   ssr_ray_hit_threshold;
-    float   motion_blur_intensity;
-    float   tone_map_exposure;
-    float4  dof_params;
-    float4  fog_color;
-    float   fog_falloff;
-    float   fog_density;
-    float   fog_start;
-    int     fog_type;
-    int     ssgi_noise;
-    float   ssgi_noise_amount;
-    float   ssgi_indirect_amount;
-};
 
-*/
 
 struct PostprocessCBuffer
 {
@@ -104,10 +82,11 @@ struct PostprocessCBuffer
     float fog_start;
     int fog_type;
     
+    float hbao_r2;
+    float hbao_radius_to_screen;
+    float hbao_power;
     int tone_map_op;
-    int ssgi_noise;
-    float ssgi_noise_amount;
-    float ssgi_indirect_amount;
+
 };
 
 

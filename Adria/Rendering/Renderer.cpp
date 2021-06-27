@@ -422,12 +422,13 @@ namespace adria
 
 		PassGBuffer(cmd_list);
 
-		if (settings.ssao)
+		if (settings.ambient_oclussion != AmbientOclussion::eNone)
 		{
 			depth_barrier.ReverseTransitions();
 			depth_barrier.Submit(cmd_list);
 
-			PassSSAO(cmd_list);
+			if(settings.ambient_oclussion == AmbientOclussion::eSSAO) PassSSAO(cmd_list);
+			else if (settings.ambient_oclussion == AmbientOclussion::eHBAO) PassHBAO(cmd_list);
 
 			depth_barrier.ReverseTransitions();
 			depth_barrier.Submit(cmd_list);
@@ -481,7 +482,7 @@ namespace adria
 		auto deferred_fut = TaskSystem::Submit([this, deferred_cmd_list]()
 		{
 
-			if (settings.ssao)
+			if (settings.ambient_oclussion != AmbientOclussion::eNone)
 			{
 				D3D12_RESOURCE_BARRIER pre_ssao_barriers[] =
 				{
@@ -489,9 +490,9 @@ namespace adria
 				};
 				deferred_cmd_list->ResourceBarrier(_countof(pre_ssao_barriers), pre_ssao_barriers);
 
-
-				PassSSAO(deferred_cmd_list);
-
+				if (settings.ambient_oclussion == AmbientOclussion::eSSAO) PassSSAO(deferred_cmd_list);
+				else if (settings.ambient_oclussion == AmbientOclussion::eHBAO) PassHBAO(deferred_cmd_list);
+				
 				D3D12_RESOURCE_BARRIER  post_ssao_barriers[] =
 				{
 					CD3DX12_RESOURCE_BARRIER::Transition(depth_stencil_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE)
@@ -618,10 +619,12 @@ namespace adria
 	}
 	void Renderer::LoadTextures()
 	{
-		ID3D12Resource* noise_upload_texture = nullptr; //keep it alive until call to execute
-		//upload data to noise texture
+		//ao textures
+
+		ID3D12Resource* ssao_upload_texture = nullptr; //keep it alive until call to execute
+
 		{
-			const u64 upload_buffer_size = GetRequiredIntermediateSize(noise_texture.Resource(), 0, 1);
+			const u64 upload_buffer_size = GetRequiredIntermediateSize(ssao_random_texture.Resource(), 0, 1);
 
 			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 			auto resource_desc = CD3DX12_RESOURCE_DESC::Buffer(upload_buffer_size);
@@ -631,7 +634,7 @@ namespace adria
 				&resource_desc,
 				D3D12_RESOURCE_STATE_GENERIC_READ,
 				nullptr,
-				IID_PPV_ARGS(&noise_upload_texture)));
+				IID_PPV_ARGS(&ssao_upload_texture)));
 
 			RealRandomGenerator rand_float{ 0.0f, 1.0f };
 			std::vector<f32> random_texture_data;
@@ -649,17 +652,60 @@ namespace adria
 			data.RowPitch = 8 * 4 * sizeof(f32);
 			data.SlicePitch = 0;
 
-			UpdateSubresources(gfx->DefaultCommandList(), noise_texture.Resource(), noise_upload_texture, 0, 0, 1, &data);
+			UpdateSubresources(gfx->DefaultCommandList(), ssao_random_texture.Resource(), ssao_upload_texture, 0, 0, 1, &data);
 
-			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(noise_texture.Resource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(ssao_random_texture.Resource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 			gfx->DefaultCommandList()->ResourceBarrier(1, &barrier);
 
-			noise_texture.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
+			ssao_random_texture.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
 
 		}
 
-		gfx->AddToReleaseQueue(noise_upload_texture);
+		
+		ID3D12Resource* hbao_upload_texture = nullptr; //keep it alive until call to execute
+
+		{
+			const u64 upload_buffer_size = GetRequiredIntermediateSize(hbao_random_texture.Resource(), 0, 1);
+
+			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+			auto resource_desc = CD3DX12_RESOURCE_DESC::Buffer(upload_buffer_size);
+			BREAK_IF_FAILED(gfx->Device()->CreateCommittedResource(
+				&heap_properties,
+				D3D12_HEAP_FLAG_NONE,
+				&resource_desc,
+				D3D12_RESOURCE_STATE_GENERIC_READ,
+				nullptr,
+				IID_PPV_ARGS(&hbao_upload_texture)));
+
+			RealRandomGenerator rand_float{ 0.0f, 1.0f };
+			std::vector<f32> random_texture_data;
+			for (i32 i = 0; i < 8 * 8; i++)
+			{
+				f32 rand = rand_float();
+				random_texture_data.push_back(sin(rand)); 
+				random_texture_data.push_back(cos(rand));
+				random_texture_data.push_back(rand_float());
+				random_texture_data.push_back(rand_float());
+			}
+
+			D3D12_SUBRESOURCE_DATA data{};
+			data.pData = random_texture_data.data();
+			data.RowPitch = 8 * 4 * sizeof(f32);
+			data.SlicePitch = 0;
+
+			UpdateSubresources(gfx->DefaultCommandList(), hbao_random_texture.Resource(), hbao_upload_texture, 0, 0, 1, &data);
+
+			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(hbao_random_texture.Resource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+			gfx->DefaultCommandList()->ResourceBarrier(1, &barrier);
+
+			hbao_random_texture.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
+
+		}
+
+		gfx->AddToReleaseQueue(ssao_upload_texture);
+		gfx->AddToReleaseQueue(hbao_upload_texture);
 
 		//lens flare
 		texture_manager.SetMipMaps(false);
@@ -848,8 +894,11 @@ namespace adria
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ScreenQuadVS.cso", vs_blob);
 			shader_map[VS_ScreenQuad] = vs_blob;
 
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SSAO_PS.cso", vs_blob);
-			shader_map[PS_Ssao] = vs_blob;
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SSAO_PS.cso", ps_blob);
+			shader_map[PS_Ssao] = ps_blob;
+
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/HBAO_PS.cso", ps_blob);
+			shader_map[PS_Hbao] = ps_blob;
 
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SSR_PS.cso", ps_blob);
 			shader_map[PS_Ssr] = ps_blob;
@@ -923,7 +972,7 @@ namespace adria
 
 			shader_info_ps.defines.emplace_back(L"SSAO", L"1");
 			ShaderUtility::CompileShader(shader_info_ps, ps_blob);
-			shader_map[PS_AmbientPBR_SSAO] = ps_blob;
+			shader_map[PS_AmbientPBR_AO] = ps_blob;
 
 			shader_info_ps.defines.clear();
 			shader_info_ps.defines.emplace_back(L"IBL", L"1");
@@ -932,7 +981,7 @@ namespace adria
 
 			shader_info_ps.defines.emplace_back(L"SSAO", L"1");
 			ShaderUtility::CompileShader(shader_info_ps, ps_blob);
-			shader_map[PS_AmbientPBR_SSAO_IBL] = ps_blob;
+			shader_map[PS_AmbientPBR_AO_IBL] = ps_blob;
 			
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/LightingPBR_PS.cso", ps_blob);
 			shader_map[PS_LightingPBR] = ps_blob;
@@ -1122,7 +1171,7 @@ namespace adria
 			if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &feature_data, sizeof(feature_data))))
 				feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
 
-			//ssao
+			//ao
 			{
 
 				std::array<CD3DX12_ROOT_PARAMETER1, 3> root_parameters{};
@@ -1169,7 +1218,7 @@ namespace adria
 				D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, feature_data.HighestVersion, &signature, &error);
 				if (error) OutputDebugStringA((char*)error->GetBufferPointer());
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[RootSig::eSSAO])));
+				BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[RootSig::eAO])));
 
 			}
 
@@ -1349,14 +1398,14 @@ namespace adria
 
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eAmbientPBR])));
 
-				pso_desc.PS = shader_map[PS_AmbientPBR_SSAO];
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eAmbientPBR_SSAO])));
+				pso_desc.PS = shader_map[PS_AmbientPBR_AO];
+				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eAmbientPBR_AO])));
 
 				pso_desc.PS = shader_map[PS_AmbientPBR_IBL];
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eAmbientPBR_IBL])));
 
-				pso_desc.PS = shader_map[PS_AmbientPBR_SSAO_IBL];
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eAmbientPBR_SSAO_IBL])));
+				pso_desc.PS = shader_map[PS_AmbientPBR_AO_IBL];
+				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eAmbientPBR_AO_IBL])));
 
 			}
 
@@ -1531,12 +1580,12 @@ namespace adria
 
 			}
 
-			//ssao
+			//ao
 			{
 
 				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
 				pso_desc.InputLayout = { nullptr, 0 };
-				pso_desc.pRootSignature = rs_map[RootSig::eSSAO].Get();
+				pso_desc.pRootSignature = rs_map[RootSig::eAO].Get();
 				pso_desc.VS = shader_map[VS_ScreenQuad];
 				pso_desc.PS = shader_map[PS_Ssao];
 				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
@@ -1549,6 +1598,9 @@ namespace adria
 				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eSSAO])));
+
+				pso_desc.PS = shader_map[PS_Hbao];
+				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eHBAO])));
 
 			}
 
@@ -1839,7 +1891,7 @@ namespace adria
 		auto device = gfx->Device();
 
 		rtv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 11));
-		srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 26));
+		srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 27));
 		dsv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 11));
 		uav_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 11));
 		null_srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, NULL_HEAP_SIZE));
@@ -2059,10 +2111,10 @@ namespace adria
 			ssao_target_desc.start_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE; //its getting blurred in CS
 			ssao_target_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
-			ssao_texture = Texture2D(gfx->Device(), ssao_target_desc);
+			ao_texture = Texture2D(gfx->Device(), ssao_target_desc);
 
-			ssao_texture.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
-			ssao_texture.CreateRTV(rtv_heap->GetCpuHandle(rtv_heap_index++));
+			ao_texture.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
+			ao_texture.CreateRTV(rtv_heap->GetCpuHandle(rtv_heap_index++));
 
 			//noise texture
 			texture2d_desc_t noise_desc{};
@@ -2072,7 +2124,8 @@ namespace adria
 			noise_desc.start_state = D3D12_RESOURCE_STATE_COPY_DEST;
 			noise_desc.clear_value.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 
-			noise_texture = Texture2D(gfx->Device(), noise_desc);
+			ssao_random_texture = Texture2D(gfx->Device(), noise_desc);
+			hbao_random_texture = Texture2D(gfx->Device(), noise_desc);
 
 
 			RealRandomGenerator rand_float{ 0.0f, 1.0f };
@@ -2401,15 +2454,16 @@ namespace adria
 		//ssao render pass
 		{
 			render_pass_desc_t render_pass_desc{};
-			rtv_attachment_desc_t ssao_attachment_desc{};
-			ssao_attachment_desc.cpu_handle = ssao_texture.RTV();
-			ssao_attachment_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_DISCARD;
-			ssao_attachment_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
-			render_pass_desc.rtv_attachments.push_back(ssao_attachment_desc);
+			rtv_attachment_desc_t ao_attachment_desc{};
+			ao_attachment_desc.cpu_handle = ao_texture.RTV();
+			ao_attachment_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_DISCARD;
+			ao_attachment_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
+			render_pass_desc.rtv_attachments.push_back(ao_attachment_desc);
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			
 			ssao_render_pass = RenderPass(render_pass_desc);
+			hbao_render_pass = RenderPass(render_pass_desc);
 		}
 
 		//postprocess passes
@@ -2813,6 +2867,9 @@ namespace adria
 			postprocess_cbuf_data.fog_type = static_cast<i32>(settings.fog_type);
 			postprocess_cbuf_data.fog_start = settings.fog_start;
 			postprocess_cbuf_data.fog_color = XMVectorSet(settings.fog_color[0], settings.fog_color[1], settings.fog_color[2], 1);
+			postprocess_cbuf_data.hbao_r2 = settings.hbao_radius * settings.hbao_radius;
+			postprocess_cbuf_data.hbao_radius_to_screen = settings.hbao_radius * 0.5f * f32(height) / (tanf(camera->Fov() * 0.5f) * 2.0f);
+			postprocess_cbuf_data.hbao_power = settings.hbao_power;
 			postprocess_cbuffer.Update(postprocess_cbuf_data, backbuffer_index);
 		}
 
@@ -2999,7 +3056,7 @@ namespace adria
 	{
 
 		ResourceBarriers ssao_barrier{};
-		ssao_texture.Transition(ssao_barrier, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
+		ao_texture.Transition(ssao_barrier, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
 			D3D12_RESOURCE_STATE_RENDER_TARGET);
 		ssao_barrier.Submit(cmd_list);
 
@@ -3008,14 +3065,14 @@ namespace adria
 
 		ssao_render_pass.Begin(cmd_list);
 		{
-			cmd_list->SetGraphicsRootSignature(rs_map[RootSig::eSSAO].Get());
+			cmd_list->SetGraphicsRootSignature(rs_map[RootSig::eAO].Get());
 			cmd_list->SetPipelineState(pso_map[PSO::eSSAO].Get());
 
 			cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 			cmd_list->SetGraphicsRootConstantBufferView(1, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
 
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
-			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { gbuffer[0].SRV(), depth_stencil_target.SRV(), noise_texture.SRV() };
+			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { gbuffer[0].SRV(), depth_stencil_target.SRV(), ssao_random_texture.SRV() };
 			D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetCpuHandle(descriptor_index) };
 			UINT src_range_sizes[] = { 1, 1, 1 };
 			UINT dst_range_sizes[] = { 3 };
@@ -3032,7 +3089,44 @@ namespace adria
 		ssao_barrier.ReverseTransitions();
 		ssao_barrier.Submit(cmd_list);
 
-		BlurTexture(cmd_list, ssao_texture);
+		BlurTexture(cmd_list, ao_texture);
+	}
+	void Renderer::PassHBAO(ID3D12GraphicsCommandList4* cmd_list)
+	{
+		ResourceBarriers hbao_barrier{};
+		ao_texture.Transition(hbao_barrier, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
+			D3D12_RESOURCE_STATE_RENDER_TARGET);
+		hbao_barrier.Submit(cmd_list);
+
+		auto device = gfx->Device();
+		auto descriptor_allocator = gfx->DescriptorAllocator();
+
+		hbao_render_pass.Begin(cmd_list);
+		{
+			cmd_list->SetGraphicsRootSignature(rs_map[RootSig::eAO].Get());
+			cmd_list->SetPipelineState(pso_map[PSO::eHBAO].Get());
+
+			cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
+			cmd_list->SetGraphicsRootConstantBufferView(1, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
+
+			OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
+			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { gbuffer[0].SRV(), depth_stencil_target.SRV(), hbao_random_texture.SRV() };
+			D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetCpuHandle(descriptor_index) };
+			UINT src_range_sizes[] = { 1, 1, 1 };
+			UINT dst_range_sizes[] = { 3 };
+			device->CopyDescriptors(1, dst_ranges, dst_range_sizes, 3, src_ranges, src_range_sizes,
+				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetGpuHandle(descriptor_index));
+
+			cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+			cmd_list->DrawInstanced(4, 1, 0, 0);
+		}
+		hbao_render_pass.End(cmd_list);
+
+		hbao_barrier.ReverseTransitions();
+		hbao_barrier.Submit(cmd_list);
+
+		BlurTexture(cmd_list, ao_texture);
 	}
 	void Renderer::PassAmbient(ID3D12GraphicsCommandList4* cmd_list)
 	{
@@ -3046,11 +3140,10 @@ namespace adria
 		cmd_list->SetGraphicsRootSignature(rs_map[RootSig::eAmbientPBR].Get());
 		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 
-		
-		if (settings.ssao && settings.ibl)cmd_list->SetPipelineState(pso_map[PSO::eAmbientPBR_SSAO_IBL].Get());
-		else if (settings.ssao && !settings.ibl) cmd_list->SetPipelineState(pso_map[PSO::eAmbientPBR_SSAO].Get());
-		else if (!settings.ssao && settings.ibl) 
-			cmd_list->SetPipelineState(pso_map[PSO::eAmbientPBR_IBL].Get());
+		bool has_ao = settings.ambient_oclussion != AmbientOclussion::eNone;
+		if (has_ao && settings.ibl) cmd_list->SetPipelineState(pso_map[PSO::eAmbientPBR_AO_IBL].Get());
+		else if (has_ao && !settings.ibl) cmd_list->SetPipelineState(pso_map[PSO::eAmbientPBR_AO].Get());
+		else if (!has_ao && settings.ibl) cmd_list->SetPipelineState(pso_map[PSO::eAmbientPBR_IBL].Get());
 		else cmd_list->SetPipelineState(pso_map[PSO::eAmbientPBR].Get());
 
 		D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = {gbuffer[0].SRV(), gbuffer[1].SRV(), gbuffer[2].SRV(), depth_stencil_target.SRV()};
@@ -3066,7 +3159,7 @@ namespace adria
 		D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles2[] = { null_srv_heap->GetCpuHandle(TEXTURE2D_SLOT), 
 		null_srv_heap->GetCpuHandle(TEXTURECUBE_SLOT), null_srv_heap->GetCpuHandle(TEXTURECUBE_SLOT), null_srv_heap->GetCpuHandle(TEXTURE2D_SLOT) };
 		u32 src_range_sizes2[] = { 1,1,1,1 };
-		if (settings.ssao) cpu_handles2[0] = blur_final_texture.SRV(); //contains blurred ssao
+		if (has_ao) cpu_handles2[0] = blur_final_texture.SRV(); //contains blurred ssao
 		if (settings.ibl)
 		{
 			cpu_handles2[1] = ibl_heap->GetCpuHandle(ENV_TEXTURE_SLOT);

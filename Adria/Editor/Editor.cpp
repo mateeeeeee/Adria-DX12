@@ -850,7 +850,6 @@ namespace adria
 
     void Editor::RendererSettings()
     {
-        
         ImGui::Begin("Renderer Settings");
         {
             if (ImGui::TreeNode("Deferred Settings"))
@@ -891,8 +890,47 @@ namespace adria
 
             if (ImGui::TreeNode("Postprocessing"))
             {
+                //ambient oclussion
+                {
+                    const char* items[] = { "None", "SSAO", "HBAO" };
+                    static int item_current_idx = 0;
+                    const char* combo_label = items[item_current_idx];
+                    if (ImGui::BeginCombo("Ambient Occlusion", combo_label, 0))
+                    {
+                        for (int n = 0; n < IM_ARRAYSIZE(items); n++)
+                        {
+                            const bool is_selected = (item_current_idx == n);
+                            if (ImGui::Selectable(items[n], is_selected))
+                                item_current_idx = n;
+
+                            if (is_selected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndCombo();
+                    }
+
+                    settings.ambient_oclussion = static_cast<AmbientOclussion>(item_current_idx);
+
+                    if (settings.ambient_oclussion == AmbientOclussion::eSSAO && ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+                    {
+                        //ImGui::Checkbox("SSAO", &settings.ssao);
+                        ImGui::SliderFloat("Power", &settings.ssao_power, 1.0f, 16.0f);
+                        ImGui::SliderFloat("Radius", &settings.ssao_radius, 0.5f, 4.0f);
+
+                        ImGui::TreePop();
+                        ImGui::Separator();
+                    }
+                    if (settings.ambient_oclussion == AmbientOclussion::eHBAO && ImGui::TreeNodeEx("HBAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+                    {
+                        //ImGui::Checkbox("SSAO", &settings.ssao);
+                        ImGui::SliderFloat("Power", &settings.hbao_power, 1.0f, 16.0f);
+                        ImGui::SliderFloat("Radius", &settings.hbao_radius, 0.25f, 8.0f);
+
+                        ImGui::TreePop();
+                        ImGui::Separator();
+                    }
+                }
                 ImGui::Checkbox("Volumetric Clouds", &settings.clouds);
-                ImGui::Checkbox("SSAO", &settings.ssao);
                 ImGui::Checkbox("SSR", &settings.ssr);
                 ImGui::Checkbox("DoF", &settings.dof);
                 ImGui::Checkbox("Bloom", &settings.bloom);
@@ -934,14 +972,6 @@ namespace adria
                     ImGui::SliderFloat("Coverage", &settings.coverage, 0.0f, 1.0f);
                     ImGui::SliderFloat("Wind speed factor", &settings.wind_speed, 0.0f, 100.0f);
                     ImGui::SliderFloat("Cloud Type", &settings.cloud_type, 0.0f, 1.0f);
-                    ImGui::TreePop();
-                    ImGui::Separator();
-                }
-                if (settings.ssao && ImGui::TreeNodeEx("Screen-Space Ambient Occlusion", 0))
-                {
-                    ImGui::SliderFloat("Power", &settings.ssao_power, 1.0f, 16.0f);
-                    ImGui::SliderFloat("Radius", &settings.ssao_radius, 0.5f, 4.0f);
-
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
@@ -993,7 +1023,6 @@ namespace adria
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
-
                 if (settings.fog && ImGui::TreeNodeEx("Fog", 0))
                 {
                     const char* items[] = { "Exponential", "Exponential Height" };
@@ -1024,8 +1053,6 @@ namespace adria
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
-
-
                 if (ImGui::TreeNodeEx("Tone Mapping", 0))
                 {
                     ImGui::SliderFloat("Exposure", &settings.tonemap_exposure, 0.01f, 10.0f);
@@ -1036,10 +1063,8 @@ namespace adria
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
-
                 ImGui::TreePop();
             }
-
 
             if (ImGui::TreeNode("Misc"))
             {

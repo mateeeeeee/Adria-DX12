@@ -17,9 +17,9 @@ namespace adria
 		VS_GBufferPBR,
 		PS_GBufferPBR,
 		PS_AmbientPBR,
-		PS_AmbientPBR_SSAO,
+		PS_AmbientPBR_AO,
 		PS_AmbientPBR_IBL,
-		PS_AmbientPBR_SSAO_IBL,
+		PS_AmbientPBR_AO_IBL,
 		PS_LightingPBR,
 		PS_ClusteredLightingPBR,
 		VS_DepthMap,
@@ -31,6 +31,7 @@ namespace adria
 		PS_Volumetric_Spot,
 		PS_Volumetric_Point,
 		PS_Ssao,
+		PS_Hbao,
 		PS_Ssr,
 		PS_GodRays,
 		PS_Dof,
@@ -74,7 +75,7 @@ namespace adria
 		eDepthMap_Transparent,
 		eVolumetric,
 		eForward,
-		eSSAO,
+		eAO,
 		eSSR,
 		eDof,
 		eBokeh,
@@ -102,9 +103,9 @@ namespace adria
 		eBillboard,
 		eGbufferPBR,
 		eAmbientPBR,
-		eAmbientPBR_SSAO,
+		eAmbientPBR_AO,
 		eAmbientPBR_IBL,
-		eAmbientPBR_SSAO_IBL,
+		eAmbientPBR_AO_IBL,
 		eLightingPBR,
 		eClusteredLightingPBR,
 		eToneMap,
@@ -124,6 +125,7 @@ namespace adria
 		eVolumetric_Point,
 		eVolumetric_Clouds,
 		eSSAO,
+		eHBAO,
 		eSSR,
 		eGodRays,
 		eLensFlare,
@@ -177,6 +179,13 @@ namespace adria
 	{
 		eExponential,
 		eExponentialHeight
+	};
+
+	enum class AmbientOclussion : u8
+	{
+		eNone,
+		eSSAO,
+		eHBAO
 	};
 
 	enum AntiAliasing : u8
