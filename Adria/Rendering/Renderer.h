@@ -232,5 +232,9 @@ namespace adria
 		void CopyTexture(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& texture, BlendMode mode = BlendMode::eNone);
 		
 		void AddTextures(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& texture1, Texture2D const& texture2, BlendMode mode = BlendMode::eNone);
+
+		void GenerateMips(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& texture,
+			D3D12_RESOURCE_STATES start_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
+			D3D12_RESOURCE_STATES end_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 	};
 }

@@ -55,10 +55,12 @@ namespace adria
 		CS_Blur_Horizontal,
 		CS_Blur_Vertical,
 		CS_BloomExtract,
+		CS_BloomCombine,
 		CS_TiledLighting,
 		CS_ClusterBuilding,
 		CS_ClusterCulling,
-		CS_BokehGenerate
+		CS_BokehGenerate,
+		CS_GenerateMips
 	};
 
 	enum class RootSig : u8
@@ -84,6 +86,7 @@ namespace adria
 		eLensFlare,
 		eBlur,
 		eBloomExtract,
+		eBloomCombine,
 		eCopy,
 		eAdd,
 		eClouds,
@@ -91,7 +94,8 @@ namespace adria
 		eFog,
 		eTiledLighting,
 		eClusterBuilding,
-		eClusterCulling
+		eClusterCulling,
+		eGenerateMips
 	};
 
 	enum class PSO : u8
@@ -136,11 +140,13 @@ namespace adria
 		eBlur_Horizontal,
 		eBlur_Vertical,
 		eBloomExtract,
+		eBloomCombine,
 		eTiledLighting,
 		eClusterBuilding,
 		eClusterCulling,
 		eBokehGenerate,
 		eBokeh,
+		eGenerateMips,
         eUnknown
 	};
 

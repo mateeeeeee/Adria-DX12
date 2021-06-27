@@ -1049,12 +1049,18 @@ namespace adria
 			shader_map[CS_Blur_Horizontal] = cs_blob;
 
 			blur_shader.defines.emplace_back(L"VERTICAL", L"1");
-
 			ShaderUtility::CompileShader(blur_shader, cs_blob);
 			shader_map[CS_Blur_Vertical] = cs_blob;
 
+			blur_shader.shadersource = "Resources/Shaders/Misc/GenerateMipsCS.hlsl";
+			ShaderUtility::CompileShader(blur_shader, cs_blob);
+			shader_map[CS_GenerateMips] = cs_blob;
+
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BloomExtractCS.cso", cs_blob);
 			shader_map[CS_BloomExtract] = cs_blob;
+
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BloomCombineCS.cso", cs_blob);
+			shader_map[CS_BloomCombine] = cs_blob;
 
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/TiledLightingCS.cso", cs_blob);
 			shader_map[CS_TiledLighting] = cs_blob;
@@ -1065,6 +1071,8 @@ namespace adria
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ClusterCullingCS.cso", cs_blob);
 			shader_map[CS_ClusterCulling] = cs_blob;
 
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BokehCS.cso", cs_blob);
+			shader_map[CS_BokehGenerate] = cs_blob;
 
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BokehCS.cso", cs_blob);
 			shader_map[CS_BokehGenerate] = cs_blob;
@@ -1247,9 +1255,84 @@ namespace adria
 
 				BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[RootSig::eBlur])));
 				
+				
 			}
 
-			rs_map[RootSig::eBloomExtract] = rs_map[RootSig::eBlur];
+			//bloom 
+			{
+				rs_map[RootSig::eBloomExtract] = rs_map[RootSig::eBlur];
+
+				std::array<CD3DX12_ROOT_PARAMETER1, 2> root_parameters{};
+				CD3DX12_ROOT_PARAMETER1 root_parameter{};
+
+				CD3DX12_DESCRIPTOR_RANGE1 srv_range{};
+				srv_range.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0, 0);
+				root_parameters[0].InitAsDescriptorTable(1, &srv_range, D3D12_SHADER_VISIBILITY_ALL);
+
+				CD3DX12_DESCRIPTOR_RANGE1 uav_range{};
+				uav_range.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0);
+				root_parameters[1].InitAsDescriptorTable(1, &uav_range, D3D12_SHADER_VISIBILITY_ALL);
+
+				D3D12_STATIC_SAMPLER_DESC linear_clamp_sampler = CD3DX12_STATIC_SAMPLER_DESC(0, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+					D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
+
+				CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_desc{};
+				root_signature_desc.Init_1_1((u32)root_parameters.size(), root_parameters.data(), 1, &linear_clamp_sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+				ComPtr<ID3DBlob> signature;
+				ComPtr<ID3DBlob> error;
+				HRESULT hr = D3DX12SerializeVersionedRootSignature(&root_signature_desc, feature_data.HighestVersion, &signature, &error);
+				if (error) OutputDebugStringA((char*)error->GetBufferPointer());
+
+				BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[RootSig::eBloomCombine])));
+			}
+
+			//mips
+			{
+				D3D12_FEATURE_DATA_ROOT_SIGNATURE feature_data = {};
+
+				feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+
+				if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &feature_data, sizeof(feature_data))))
+				{
+					feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
+				}
+
+				CD3DX12_DESCRIPTOR_RANGE1 srv_uav_ranges[2] = {};
+				CD3DX12_ROOT_PARAMETER1 root_parameters[3] = {};
+				srv_uav_ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
+				srv_uav_ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0);
+				root_parameters[0].InitAsConstants(2, 0);
+				root_parameters[1].InitAsDescriptorTable(1, &srv_uav_ranges[0]);
+				root_parameters[2].InitAsDescriptorTable(1, &srv_uav_ranges[1]);
+
+				D3D12_ROOT_SIGNATURE_FLAGS root_signature_flags =
+					D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+
+				D3D12_STATIC_SAMPLER_DESC sampler = {};
+				sampler.Filter = D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+				sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+				sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+				sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+				sampler.MipLODBias = 0.0f;
+				sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+				sampler.MinLOD = 0.0f;
+				sampler.MaxLOD = D3D12_FLOAT32_MAX;
+				sampler.MaxAnisotropy = 0;
+				sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
+				sampler.ShaderRegister = 0;
+				sampler.RegisterSpace = 0;
+				sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+
+				CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_desc{};
+				root_signature_desc.Init_1_1(_countof(root_parameters), root_parameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+				Microsoft::WRL::ComPtr<ID3DBlob> signature;
+				Microsoft::WRL::ComPtr<ID3DBlob> error;
+
+				BREAK_IF_FAILED(D3DX12SerializeVersionedRootSignature(&root_signature_desc, feature_data.HighestVersion, &signature, &error));
+				BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[RootSig::eGenerateMips])));
+			}
 		}
 		//pso
 		{
@@ -1697,6 +1780,22 @@ namespace adria
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eBloomExtract])));
 			}
 
+			//bloom combine
+			{
+				D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc = {};
+				pso_desc.pRootSignature = rs_map[RootSig::eBloomCombine].Get();
+				pso_desc.CS = shader_map[CS_BloomCombine];
+				BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eBloomCombine])));
+			}
+
+			//mips
+			{
+				D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc = {};
+				pso_desc.pRootSignature = rs_map[RootSig::eGenerateMips].Get();
+				pso_desc.CS = shader_map[CS_GenerateMips];
+				device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eGenerateMips]));
+			}
+
 			//copy
 			{
 				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc = {};
@@ -1890,10 +1989,10 @@ namespace adria
 	{
 		auto device = gfx->Device();
 
-		rtv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 11));
-		srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 27));
-		dsv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 11));
-		uav_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 11));
+		rtv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 25));
+		srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 50));
+		dsv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 25));
+		uav_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 25));
 		null_srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, NULL_HEAP_SIZE));
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC null_srv_desc{};
@@ -1915,7 +2014,6 @@ namespace adria
 		null_uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
 		null_uav_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 		device->CreateUnorderedAccessView(nullptr,nullptr, &null_uav_desc, null_srv_heap->GetCpuHandle(RWTEXTURE2D_SLOT));
-		
 
 	}
 	void Renderer::CreateViews(u32 width, u32 height)
@@ -2099,7 +2197,7 @@ namespace adria
 			}
 		}
 
-		//ssao
+		//ao
 		{
 			//ssao texture
 			texture2d_desc_t ssao_target_desc{};
@@ -2169,6 +2267,7 @@ namespace adria
 			texture2d_desc_t bloom_extract_desc{};
 			bloom_extract_desc.width = width;
 			bloom_extract_desc.height = height;
+			bloom_extract_desc.mips = 5;
 			bloom_extract_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 			bloom_extract_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 			bloom_extract_desc.start_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE; //t0 in CS
@@ -2192,17 +2291,19 @@ namespace adria
 			render_target_desc.width = width;
 			render_target_desc.height = height;
 			render_target_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-			render_target_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+			render_target_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 			render_target_desc.start_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
 			postprocess_textures[0] = Texture2D(gfx->Device(), render_target_desc);
 			postprocess_textures[0].CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
 			postprocess_textures[0].CreateRTV(rtv_heap->GetCpuHandle(rtv_heap_index++));
+			postprocess_textures[0].CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
 
 			render_target_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 			postprocess_textures[1] = Texture2D(gfx->Device(), render_target_desc);
 			postprocess_textures[1].CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
 			postprocess_textures[1].CreateRTV(rtv_heap->GetCpuHandle(rtv_heap_index++));
+			postprocess_textures[1].CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
 		}
 
 		//tiled deferred
@@ -3683,11 +3784,9 @@ namespace adria
 		{
 			PassBloom(cmd_list);
 
-			postprocess_passes[postprocess_index].Begin(cmd_list);
-
-			AddTextures(cmd_list, postprocess_textures[!postprocess_index], blur_final_texture);
-
-			postprocess_passes[postprocess_index].End(cmd_list);
+			//postprocess_passes[postprocess_index].Begin(cmd_list);
+			//AddTextures(cmd_list, postprocess_textures[!postprocess_index], blur_final_texture);
+			//postprocess_passes[postprocess_index].End(cmd_list);
 
 			postprocess_barriers.ReverseTransitions();
 			postprocess_barriers.Submit(cmd_list);
@@ -4438,11 +4537,13 @@ namespace adria
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 		
-		ResourceBarriers barrier{};
-		bloom_extract_texture.Transition(barrier, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-		postprocess_textures[!postprocess_index].Transition(barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-		barrier.Submit(cmd_list);
-		
+
+		D3D12_RESOURCE_BARRIER extract_barriers[] = {
+			CD3DX12_RESOURCE_BARRIER::Transition(bloom_extract_texture.Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
+			CD3DX12_RESOURCE_BARRIER::Transition(postprocess_textures[!postprocess_index].Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
+		};
+		cmd_list->ResourceBarrier(_countof(extract_barriers), extract_barriers);
+
 		cmd_list->SetComputeRootSignature(rs_map[RootSig::eBloomExtract].Get());
 		cmd_list->SetPipelineState(pso_map[PSO::eBloomExtract].Get());
 		cmd_list->SetComputeRootConstantBufferView(0, compute_cbuffer.View(backbuffer_index).BufferLocation);
@@ -4461,12 +4562,47 @@ namespace adria
 		
 		cmd_list->Dispatch((u32)std::ceil(postprocess_textures[!postprocess_index].Width() / 32), 
 						   (u32)std::ceil(postprocess_textures[!postprocess_index].Height() / 32), 1);
-		
-		barrier.ReverseTransitions();
-		barrier.Submit(cmd_list);
 
-		BlurTexture(cmd_list, bloom_extract_texture);
-		
+		D3D12_RESOURCE_BARRIER combine_barriers[] = {
+			CD3DX12_RESOURCE_BARRIER::Transition(bloom_extract_texture.Resource(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
+			CD3DX12_RESOURCE_BARRIER::Transition(postprocess_textures[postprocess_index].Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
+		};
+
+		cmd_list->ResourceBarrier(_countof(combine_barriers), combine_barriers);
+
+		GenerateMips(cmd_list, bloom_extract_texture);
+
+		cmd_list->SetComputeRootSignature(rs_map[RootSig::eBloomCombine].Get());
+		cmd_list->SetPipelineState(pso_map[PSO::eBloomCombine].Get());
+
+		descriptor_index = descriptor_allocator->AllocateRange(3);
+		cpu_descriptor = postprocess_textures[!postprocess_index].SRV();
+		device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index), cpu_descriptor,
+			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		//++descriptor_index;
+		cpu_descriptor = bloom_extract_texture.SRV();
+		device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index + 1), cpu_descriptor,
+			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetGpuHandle(descriptor_index));
+
+		descriptor_index += 2;
+		cpu_descriptor = postprocess_textures[postprocess_index].UAV();
+		device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index), cpu_descriptor,
+			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+		cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
+
+		cmd_list->Dispatch((u32)std::ceil(postprocess_textures[!postprocess_index].Width() / 32),
+			(u32)std::ceil(postprocess_textures[!postprocess_index].Height() / 32), 1);
+
+
+		D3D12_RESOURCE_BARRIER final_barriers[] = {
+			CD3DX12_RESOURCE_BARRIER::Transition(postprocess_textures[!postprocess_index].Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+			CD3DX12_RESOURCE_BARRIER::Transition(postprocess_textures[postprocess_index].Resource(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_RENDER_TARGET),
+		};
+
+		cmd_list->ResourceBarrier(_countof(final_barriers), final_barriers);
+
 	}
 	void Renderer::PassMotionBlur(ID3D12GraphicsCommandList4* cmd_list)
 	{
@@ -4795,6 +4931,83 @@ namespace adria
 		cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 		cmd_list->DrawInstanced(4, 1, 0, 0);
+	}
+	void Renderer::GenerateMips(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& _texture,
+		D3D12_RESOURCE_STATES start_state, D3D12_RESOURCE_STATES end_state)
+	{
+		auto device = gfx->Device();
+		auto descriptor_allocator = gfx->DescriptorAllocator();
+
+		ID3D12Resource* texture = _texture.Resource();
+
+		//Set root signature, pso and descriptor heap
+		cmd_list->SetComputeRootSignature(rs_map[RootSig::eGenerateMips].Get());
+		cmd_list->SetPipelineState(pso_map[PSO::eGenerateMips].Get());
+
+		//Prepare the shader resource view description for the source texture
+		D3D12_SHADER_RESOURCE_VIEW_DESC src_srv_desc = {};
+		src_srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		src_srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+
+		//Prepare the unordered access view description for the destination texture
+		D3D12_UNORDERED_ACCESS_VIEW_DESC dst_uav_desc = {};
+		dst_uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+
+		D3D12_RESOURCE_DESC tex_desc = texture->GetDesc();
+		UINT const mipmap_levels = tex_desc.MipLevels;
+
+		if (start_state != D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
+		{
+			auto transition_barrier = CD3DX12_RESOURCE_BARRIER::Transition(texture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+				D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+			cmd_list->ResourceBarrier(1, &transition_barrier);
+		}
+
+		OffsetType i{};
+		for (UINT top_mip = 0; top_mip < mipmap_levels - 1; top_mip++)
+		{
+			//Get mipmap dimensions
+			UINT dst_width = (std::max)((UINT)tex_desc.Width >> (top_mip + 1), 1u);
+			UINT dst_height = (std::max)(tex_desc.Height >> (top_mip + 1), 1u);
+
+
+			i = descriptor_allocator->AllocateRange(2);
+			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle1 = descriptor_allocator->GetCpuHandle(i);
+			D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle1 = descriptor_allocator->GetGpuHandle(i);
+
+			src_srv_desc.Format = tex_desc.Format;
+			src_srv_desc.Texture2D.MipLevels = 1;
+			src_srv_desc.Texture2D.MostDetailedMip = top_mip;
+			device->CreateShaderResourceView(texture, &src_srv_desc, cpu_handle1);
+
+
+			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle2 = descriptor_allocator->GetCpuHandle(i + 1);
+			D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle2 = descriptor_allocator->GetGpuHandle(i + 1);
+			dst_uav_desc.Format = tex_desc.Format;
+			dst_uav_desc.Texture2D.MipSlice = top_mip + 1;
+			device->CreateUnorderedAccessView(texture, nullptr, &dst_uav_desc, cpu_handle2);
+			//Pass the destination texture pixel size to the shader as constants
+			cmd_list->SetComputeRoot32BitConstant(0, DWParam(1.0f / dst_width).Uint, 0);
+			cmd_list->SetComputeRoot32BitConstant(0, DWParam(1.0f / dst_height).Uint, 1);
+
+			cmd_list->SetComputeRootDescriptorTable(1, gpu_handle1);
+			cmd_list->SetComputeRootDescriptorTable(2, gpu_handle2);
+
+			//Dispatch the compute shader with one thread per 8x8 pixels
+			cmd_list->Dispatch((std::max)(dst_width / 8u, 1u), (std::max)(dst_height / 8u, 1u), 1);
+
+			//Wait for all accesses to the destination texture UAV to be finished before generating the next mipmap, as it will be the source texture for the next mipmap
+			auto uav_barrier = CD3DX12_RESOURCE_BARRIER::UAV(texture);
+			cmd_list->ResourceBarrier(1, &uav_barrier);
+		}
+
+		if (end_state != D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
+		{
+			auto transition_barrier = CD3DX12_RESOURCE_BARRIER::Transition(texture, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
+				end_state);
+			cmd_list->ResourceBarrier(1, &transition_barrier);
+		}
+
 	}
 	void Renderer::AddTextures(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& texture1, Texture2D const& texture2, BlendMode mode)
 	{

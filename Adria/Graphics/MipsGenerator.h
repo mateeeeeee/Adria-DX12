@@ -120,24 +120,24 @@ namespace adria
 		void CreateRootSignature()
 		{
 			
-			D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
+			D3D12_FEATURE_DATA_ROOT_SIGNATURE feature_data = {};
 
-			featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+			feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
 
-			if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
+			if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &feature_data, sizeof(feature_data))))
 			{
-				featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
+				feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
 			}
 
-			CD3DX12_DESCRIPTOR_RANGE1 srvUavRanges[2] = {};
-			CD3DX12_ROOT_PARAMETER1 rootParameters[3] = {};
-			srvUavRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
-			srvUavRanges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0);
-			rootParameters[0].InitAsConstants(2, 0);
-			rootParameters[1].InitAsDescriptorTable(1, &srvUavRanges[0]);
-			rootParameters[2].InitAsDescriptorTable(1, &srvUavRanges[1]);
+			CD3DX12_DESCRIPTOR_RANGE1 srv_uav_ranges[2] = {};
+			CD3DX12_ROOT_PARAMETER1 root_parameters[3] = {};
+			srv_uav_ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
+			srv_uav_ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0);
+			root_parameters[0].InitAsConstants(2, 0);
+			root_parameters[1].InitAsDescriptorTable(1, &srv_uav_ranges[0]);
+			root_parameters[2].InitAsDescriptorTable(1, &srv_uav_ranges[1]);
 
-			D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
+			D3D12_ROOT_SIGNATURE_FLAGS root_signature_flags =
 				D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
 			D3D12_STATIC_SAMPLER_DESC sampler = {};
@@ -155,13 +155,13 @@ namespace adria
 			sampler.RegisterSpace = 0;
 			sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
-			CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc{};
-			rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+			CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_desc{};
+			root_signature_desc.Init_1_1(_countof(root_parameters), root_parameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 			Microsoft::WRL::ComPtr<ID3DBlob> signature;
 			Microsoft::WRL::ComPtr<ID3DBlob> error;
 
-			BREAK_IF_FAILED(D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, featureData.HighestVersion, &signature, &error));
+			BREAK_IF_FAILED(D3DX12SerializeVersionedRootSignature(&root_signature_desc, feature_data.HighestVersion, &signature, &error));
 			BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&root_signature)));
 
 
@@ -177,10 +177,10 @@ namespace adria
 
 			ShaderUtility::CompileShader(info, cs_blob);
 			//Create pipeline state object for the compute shader using the root signature.
-			D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc = {};
-			psoDesc.pRootSignature = root_signature.Get();
-			psoDesc.CS = cs_blob;
-			device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&pso));
+			D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc = {};
+			pso_desc.pRootSignature = root_signature.Get();
+			pso_desc.CS = cs_blob;
+			device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pso));
 		}
 
 		void CreateHeap(UINT max_textures) //approximate number of descriptors as : ~ max_textures * 2 * 10 (avg mip levels)

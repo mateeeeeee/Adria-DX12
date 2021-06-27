@@ -22,12 +22,13 @@ namespace adria
 
 	struct texture2d_desc_t
 	{
-		D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE;
-		D3D12_RESOURCE_STATES start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 		u32 width;
 		u32 height;
 		DXGI_FORMAT format;
 		D3D12_CLEAR_VALUE clear_value;
+		u32 mips = 1;
+		D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE;
+		D3D12_RESOURCE_STATES start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 	};
 
 	class Texture2D
@@ -40,7 +41,7 @@ namespace adria
 			D3D12_RESOURCE_DESC hdr_desc{};
 			hdr_desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 			hdr_desc.DepthOrArraySize = 1;
-			hdr_desc.MipLevels = 1;
+			hdr_desc.MipLevels = desc.mips;
 			hdr_desc.Flags = desc.flags;
 			hdr_desc.Format = desc.format;
 			hdr_desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
