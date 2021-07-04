@@ -1,3 +1,4 @@
+
 #include "../Threading/TaskSystem.h"
 #include "../Utilities/Random.h"
 #include "Renderer.h"
@@ -11,7 +12,7 @@
 #include "../Math/Constants.h"
 #include "../Logging/Logger.h"
 #include "../Editor/GUI.h"
-
+#include "pix3.h"
 
 using namespace DirectX;
 
@@ -406,7 +407,6 @@ namespace adria
 	}
 	void Renderer::Render(RendererSettings const& _settings)
 	{
-		
 		settings = _settings;
 		if (settings.ibl && !ibl_textures_generated) CreateIBLTextures();
 
@@ -459,14 +459,9 @@ namespace adria
 		auto deferred_cmd_list = gfx->NewCommandList();
 		auto postprocess_cmd_list = gfx->NewCommandList();
 
-		hdr_render_target.Resource()->SetName(L"hdr rt");
-		depth_stencil_target.Resource()->SetName(L"depth rt");
-
-
 		auto gbuf_ambient_fut = TaskSystem::Submit([this, gbuf_cmd_list]()
 		{
-			gbuf_cmd_list->SetName(L"gbuf_ambient");
-
+			
 			D3D12_RESOURCE_BARRIER barriers[] = 
 			{
 				CD3DX12_RESOURCE_BARRIER::Transition(hdr_render_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET),
@@ -502,8 +497,6 @@ namespace adria
 			}
 			PassAmbient(deferred_cmd_list);
 
-			deferred_cmd_list->SetName(L"deferred");
-			
 			PassDeferredLighting(deferred_cmd_list);
 
 			if (settings.use_tiled_deferred) PassDeferredTiledLighting(deferred_cmd_list);
@@ -515,8 +508,6 @@ namespace adria
 
 		auto postprocess_fut = TaskSystem::Submit([this, postprocess_cmd_list]()
 		{
-			
-			postprocess_cmd_list->SetName(L"postprocess");
 			
 			D3D12_RESOURCE_BARRIER barriers[] =
 			{
@@ -3081,6 +3072,7 @@ namespace adria
 
 	void Renderer::PassGBuffer(ID3D12GraphicsCommandList4* cmd_list)
 	{
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "GBuffer Pass");
 
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
@@ -3155,6 +3147,7 @@ namespace adria
 	}
 	void Renderer::PassSSAO(ID3D12GraphicsCommandList4* cmd_list)
 	{
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "SSAO Pass");
 
 		ResourceBarriers ssao_barrier{};
 		ao_texture.Transition(ssao_barrier, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
@@ -3194,6 +3187,8 @@ namespace adria
 	}
 	void Renderer::PassHBAO(ID3D12GraphicsCommandList4* cmd_list)
 	{
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "HBAO Pass");
+
 		ResourceBarriers hbao_barrier{};
 		ao_texture.Transition(hbao_barrier, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
 			D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -3231,6 +3226,8 @@ namespace adria
 	}
 	void Renderer::PassAmbient(ID3D12GraphicsCommandList4* cmd_list)
 	{
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Ambient Pass");
+
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 
@@ -3282,6 +3279,8 @@ namespace adria
 	}
 	void Renderer::PassDeferredLighting(ID3D12GraphicsCommandList4* cmd_list)
 	{
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Deferred Lighting Pass");
+
 		auto device = gfx->Device();
 		auto upload_buffer = gfx->UploadBuffer();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
@@ -3409,6 +3408,8 @@ namespace adria
 	{
 		ADRIA_ASSERT(settings.use_tiled_deferred);
 
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Deferred Tiled Lighting Pass");
+
 		auto device = gfx->Device();
 		auto upload_buffer = gfx->UploadBuffer();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
@@ -3528,6 +3529,8 @@ namespace adria
 	void Renderer::PassDeferredClusteredLighting(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		ADRIA_ASSERT(settings.use_clustered_deferred);
+
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Deferred Clustered Lighting Pass");
 
 		auto device = gfx->Device();
 		auto upload_buffer = gfx->UploadBuffer();
@@ -3656,6 +3659,8 @@ namespace adria
 	}
 	void Renderer::PassForward(ID3D12GraphicsCommandList4* cmd_list)
 	{
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Forward Pass");
+
 		forward_render_pass.Begin(cmd_list);
 		PassForwardCommon(cmd_list, false);
 		PassSkybox(cmd_list);
@@ -3664,6 +3669,8 @@ namespace adria
 	}
 	void Renderer::PassPostprocess(ID3D12GraphicsCommandList4* cmd_list)
 	{
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Postprocessing Pass");
+
 		auto lights = reg.view<Light>();
 
 		postprocess_passes[postprocess_index].Begin(cmd_list); //set ping as rt
@@ -3854,6 +3861,8 @@ namespace adria
 
 	void Renderer::PassShadowMapDirectional(ID3D12GraphicsCommandList4* cmd_list, Light const& light)
 	{
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Shadow Map Pass - Directional Light");
+
 		ADRIA_ASSERT(light.type == LightType::eDirectional);
 
 		auto device = gfx->Device();
@@ -3919,6 +3928,8 @@ namespace adria
 	{
 		ADRIA_ASSERT(light.type == LightType::eSpot);
 
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Shadow Map Pass - Spot Light");
+
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 		auto upload_buffer = gfx->UploadBuffer();
@@ -3982,7 +3993,9 @@ namespace adria
 	void Renderer::PassShadowMapPoint(ID3D12GraphicsCommandList4* cmd_list, Light const& light)
 	{
 		ADRIA_ASSERT(light.type == LightType::ePoint);
-		
+
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Shadow Map Pass - Point Light");
+
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 		auto upload_buffer = gfx->UploadBuffer();
@@ -4048,6 +4061,9 @@ namespace adria
 	void Renderer::PassShadowMapCascades(ID3D12GraphicsCommandList4* cmd_list, Light const& light)
 	{
 		ADRIA_ASSERT(light.type == LightType::eDirectional);
+
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Cascaded Shadow Maps Pass - Directional Light");
+
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 		auto upload_buffer = gfx->UploadBuffer();
@@ -4123,6 +4139,9 @@ namespace adria
 	void Renderer::PassVolumetric(ID3D12GraphicsCommandList4* cmd_list, Light const& light)
 	{
 		ADRIA_ASSERT(light.volumetric);
+
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Volumetric Lighting Pass");
+
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 
@@ -4251,6 +4270,8 @@ namespace adria
 	}
 	void Renderer::PassSkybox(ID3D12GraphicsCommandList4* cmd_list)
 	{
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Skybox Pass");
+
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 		auto upload_buffer = gfx->UploadBuffer();
@@ -4292,6 +4313,8 @@ namespace adria
 	void Renderer::PassLensFlare(ID3D12GraphicsCommandList4* cmd_list, Light const& light)
 	{
 		ADRIA_ASSERT(light.lens_flare);
+
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Lens Flare Pass");
 
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
@@ -4335,6 +4358,8 @@ namespace adria
 	}
 	void Renderer::PassVolumetricClouds(ID3D12GraphicsCommandList4* cmd_list)
 	{
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Volumetric Clouds Pass");
+
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 		
@@ -4365,6 +4390,8 @@ namespace adria
 	}
 	void Renderer::PassSSR(ID3D12GraphicsCommandList4* cmd_list)
 	{
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "SSR Pass");
+
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 
@@ -4396,6 +4423,8 @@ namespace adria
 	{
 		ADRIA_ASSERT(settings.dof);
 
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Depth of Field Pass");
+
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 
@@ -4425,6 +4454,8 @@ namespace adria
 	void Renderer::PassGenerateBokeh(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		ADRIA_ASSERT(settings.dof && settings.bokeh);
+
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Bokeh Generation Pass");
 
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
@@ -4488,6 +4519,8 @@ namespace adria
 	{
 		ADRIA_ASSERT(settings.dof && settings.bokeh);
 
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Bokeh Draw Pass");
+
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 
@@ -4534,9 +4567,10 @@ namespace adria
 	}
 	void Renderer::PassBloom(ID3D12GraphicsCommandList4* cmd_list)
 	{
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Bloom Pass");
+
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
-		
 
 		D3D12_RESOURCE_BARRIER extract_barriers[] = {
 			CD3DX12_RESOURCE_BARRIER::Transition(bloom_extract_texture.Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
@@ -4606,6 +4640,8 @@ namespace adria
 	}
 	void Renderer::PassMotionBlur(ID3D12GraphicsCommandList4* cmd_list)
 	{
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Motion Blur Pass");
+
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 
@@ -4632,6 +4668,8 @@ namespace adria
 	void Renderer::PassFog(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		ADRIA_ASSERT(settings.fog);
+
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Fog Pass");
 
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
@@ -4663,6 +4701,8 @@ namespace adria
 	void Renderer::PassGodRays(ID3D12GraphicsCommandList4* cmd_list, Light const& light)
 	{
 		ADRIA_ASSERT(light.god_rays);
+
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "God Rays Pass");
 
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
@@ -4719,6 +4759,8 @@ namespace adria
 	}
 	void Renderer::PassToneMap(ID3D12GraphicsCommandList4* cmd_list)
 	{
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Tone Map Pass");
+
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 
@@ -4737,6 +4779,8 @@ namespace adria
 	}
 	void Renderer::PassFXAA(ID3D12GraphicsCommandList4* cmd_list)
 	{
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "FXAA Pass");
+
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 
@@ -4765,7 +4809,8 @@ namespace adria
 	}
 	void Renderer::PassTAA(ID3D12GraphicsCommandList4* cmd_list)
 	{
-		
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "TAA Pass");
+
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 
@@ -4786,6 +4831,8 @@ namespace adria
 
 	void Renderer::DrawSun(ID3D12GraphicsCommandList4* cmd_list, tecs::entity sun)
 	{
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Sun Pass");
+
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 		auto upload_buffer = gfx->UploadBuffer();

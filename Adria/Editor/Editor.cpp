@@ -10,6 +10,7 @@
 #include "../ImGui/ImGuiFileDialog.h"
 #include "../Utilities/Random.h"
 #include "../Math/BoundingVolumeHelpers.h"
+#include "pix3.h"
 
 using namespace DirectX;
 
@@ -48,15 +49,13 @@ namespace adria
         if (gui->IsVisible())
         {
             engine->Run(settings, true);
-
             auto gui_cmd_list = engine->gfx->NewCommandList();
             engine->gfx->SetBackbuffer(gui_cmd_list);
-            gui->Begin();
             {
+                PIXScopedEvent(gui_cmd_list, PIX_COLOR_DEFAULT, "GUI Pass");
+                gui->Begin();
                 MenuBar();
-
                 auto dockspace_id = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
-
                 ListEntities();
                 AddEntities();
                 Camera();
@@ -65,9 +64,8 @@ namespace adria
                 Properties();
                 Log();
                 StatsAndProfiling();
-
+                gui->End(gui_cmd_list);
             }
-            gui->End(gui_cmd_list);
             engine->Present();
         }
         else

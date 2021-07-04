@@ -645,5 +645,6 @@
     <None Include="Resources\Shaders\Util\CBuffers.hlsli">
       <Filter>Shaders\Util</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
