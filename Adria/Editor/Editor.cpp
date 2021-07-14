@@ -25,15 +25,13 @@ namespace adria
 
     Editor::Editor(editor_init_t const& init) : engine()
     {
+        Log::Initialize(init.log_file);
+        Log::AddLogCallback([this](std::string const& s) { editor_log.AddLog(s.c_str()); });
 
         engine = std::make_unique<Engine>(init.engine_init);
-
         gui = std::make_unique<GUI>(engine->gfx.get());
 
         SetStyle();
-
-        Log::AddLogCallback([this](std::string const& s) { editor_log.AddLog(s.c_str()); });
-
     }
 
     void Editor::HandleWindowMessage(window_message_t const& msg_data)

@@ -16,8 +16,6 @@ namespace adria
 
 	struct engine_init_t
 	{
-		std::string log_file = "";
-		bool multithreaded_init = false;
 		bool vsync = false;
 		bool load_default_scene = true;
 	};

@@ -17,7 +17,6 @@ namespace adria
 
 	Engine::Engine(engine_init_t const& init)  : vsync{ init.vsync }, event_queue {}, input{ event_queue }, camera_manager{ input }
 	{
-		Log::Initialize(init.log_file);
 		TaskSystem::Initialize();
 		ShaderUtility::Initialize();
 

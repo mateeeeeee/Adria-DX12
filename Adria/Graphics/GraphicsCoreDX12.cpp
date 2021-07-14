@@ -1,5 +1,6 @@
 #include "GraphicsCoreDX12.h"
 #include "../Core/Window.h"
+#include "../Logging/Logger.h"
 
 namespace adria
 {
@@ -13,7 +14,7 @@ namespace adria
 
         HRESULT hr = E_FAIL;
 
-        UINT dxgiFactoryFlags = 0;
+        UINT dxgi_factory_flags = 0;
 #if defined(_DEBUG)
         Microsoft::WRL::ComPtr<ID3D12Debug> debugController;
         if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
@@ -21,19 +22,19 @@ namespace adria
             debugController->EnableDebugLayer();
 
             // Enable additional debug layers.
-            dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
+            dxgi_factory_flags |= DXGI_CREATE_FACTORY_DEBUG;
         }
 #endif
 
-        Microsoft::WRL::ComPtr<IDXGIFactory4> pIDXGIFactory = nullptr;
-        hr = CreateDXGIFactory1(IID_PPV_ARGS(&pIDXGIFactory));
+        Microsoft::WRL::ComPtr<IDXGIFactory4> dxgi_factory = nullptr;
+        hr = CreateDXGIFactory1(IID_PPV_ARGS(&dxgi_factory));
         BREAK_IF_FAILED(hr);
 
 
-        Microsoft::WRL::ComPtr<IDXGIAdapter> warpAdapter;
-        BREAK_IF_FAILED(pIDXGIFactory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter)));
+        Microsoft::WRL::ComPtr<IDXGIAdapter> warp_adapter;
+        BREAK_IF_FAILED(dxgi_factory->EnumWarpAdapter(IID_PPV_ARGS(&warp_adapter)));
 
-        hr = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device));
+        hr = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device));
         BREAK_IF_FAILED(hr);
 
 #if defined(_DEBUG)
@@ -48,12 +49,12 @@ namespace adria
         }
 #endif
         // Create command queue
-        D3D12_COMMAND_QUEUE_DESC directQueueDesc = {};
-        directQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-        directQueueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
-        directQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-        directQueueDesc.NodeMask = 0;
-        hr = device->CreateCommandQueue(&directQueueDesc, IID_PPV_ARGS(&direct_queue));
+        D3D12_COMMAND_QUEUE_DESC direct_queue_desc = {};
+        direct_queue_desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+        direct_queue_desc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
+        direct_queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+        direct_queue_desc.NodeMask = 0;
+        hr = device->CreateCommandQueue(&direct_queue_desc, IID_PPV_ARGS(&direct_queue));
         BREAK_IF_FAILED(hr);
 
         hr = device->CreateFence(fence_values[0], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&frame_fence));
@@ -65,16 +66,15 @@ namespace adria
 
 
         Microsoft::WRL::ComPtr<IDXGIAdapter1> pAdapter;
+        dxgi_factory->EnumAdapters1(1, &pAdapter);
 
-        pIDXGIFactory->EnumAdapters1(1, &pAdapter);
-
-        D3D12MA::ALLOCATOR_DESC allocatorDesc = {};
-        allocatorDesc.pDevice = device.Get();
-        allocatorDesc.pAdapter = pAdapter.Get();
-        D3D12MA::Allocator* pAllocator = nullptr;
-        hr = D3D12MA::CreateAllocator(&allocatorDesc, &pAllocator);
+        D3D12MA::ALLOCATOR_DESC allocator_desc = {};
+        allocator_desc.pDevice = device.Get();
+        allocator_desc.pAdapter = pAdapter.Get();
+        D3D12MA::Allocator* _allocator = nullptr;
+        hr = D3D12MA::CreateAllocator(&allocator_desc, &_allocator);
         BREAK_IF_FAILED(hr);
-        allocator.reset(pAllocator);
+        allocator.reset(_allocator);
 
         IDXGISwapChain1* _swapChain = nullptr;
         DXGI_SWAP_CHAIN_DESC1 sd = {};
@@ -88,10 +88,9 @@ namespace adria
         sd.BufferCount = BACKBUFFER_COUNT;
         sd.Flags = 0;
         sd.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
-
         sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
         sd.Scaling = DXGI_SCALING_NONE;
-        hr = pIDXGIFactory->CreateSwapChainForHwnd(direct_queue.Get(), hwnd, &sd, nullptr, nullptr, &_swapChain);
+        hr = dxgi_factory->CreateSwapChainForHwnd(direct_queue.Get(), hwnd, &sd, nullptr, nullptr, &_swapChain);
         hr = _swapChain->QueryInterface(IID_PPV_ARGS(&swap_chain));
         BREAK_IF_FAILED(hr);
 
@@ -272,7 +271,7 @@ namespace adria
         MoveToNextFrame();
     }
 
-    ID3D12Device* GraphicsCoreDX12::Device() const
+    ID3D12Device5* GraphicsCoreDX12::Device() const
     {
         return device.Get();
     }

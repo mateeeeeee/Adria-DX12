@@ -34,12 +34,13 @@ int APIENTRY wWinMain(
         Window::Initialize(window_init);
 
         engine_init_t engine_init{};
-        engine_init.log_file = "adria_log.log";
-        engine_init.multithreaded_init = false;
         engine_init.vsync = false;
         engine_init.load_default_scene = true;
 
-        Editor editor{ {engine_init} };
+        editor_init_t editor_init{};
+        editor_init.engine_init = std::move(engine_init);
+        editor_init.log_file = "adria.log";
+        Editor editor{ editor_init };
 
         Window::SetCallback([&editor](window_message_t const& msg_data) {editor.HandleWindowMessage(msg_data); });
 

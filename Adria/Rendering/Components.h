@@ -135,4 +135,8 @@ namespace adria
 		std::string name = "default";
 	};
 
+	struct COMPONENT RayTracing
+	{
+
+	};
 }

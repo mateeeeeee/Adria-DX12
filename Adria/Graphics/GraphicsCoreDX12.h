@@ -27,7 +27,6 @@ namespace adria
 	{
 		static constexpr UINT BACKBUFFER_COUNT = 3;
         static constexpr UINT CMD_LIST_COUNT = 12;
-
 		struct frame_resources_t
 		{
 
@@ -56,7 +55,7 @@ namespace adria
         void ClearBackbuffer();
         void SwapBuffers(bool vsync = false);
 
-        ID3D12Device* Device() const;
+        ID3D12Device5* Device() const;
         ID3D12GraphicsCommandList4* DefaultCommandList() const;
         ID3D12GraphicsCommandList4* NewCommandList() const;
         ID3D12GraphicsCommandList4* LastCommandList() const;
@@ -70,11 +69,13 @@ namespace adria
 
         LinearDescriptorAllocator* DescriptorAllocator() const;
         LinearUploadBuffer* UploadBuffer() const;
+
 	private:
+
         UINT width, height;
         UINT backbuffer_index;
 		Microsoft::WRL::ComPtr<IDXGISwapChain3> swap_chain = nullptr;
-		Microsoft::WRL::ComPtr<ID3D12Device> device = nullptr;
+		Microsoft::WRL::ComPtr<ID3D12Device5> device = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue> direct_queue = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12Fence> frame_fence = nullptr;
 		HANDLE		 frame_fence_event = nullptr;
