@@ -125,12 +125,8 @@ namespace adria
 		model_parameters_t model_params{};
 		model_params.model_path = "Resources/GLTF Models/Sponza/glTF/Sponza.gltf";
 		model_params.textures_path = "Resources/GLTF Models/Sponza/glTF/";
-		model_params.model = DirectX::XMMatrixScaling(0.3f, 0.3f, 0.3f);
-		entity_loader->LoadGLTFModel(model_params);
-
-		model_params.model_path = "Resources/GLTF Models/DamagedHelmet/glTF/DamagedHelmet.gltf";
-		model_params.textures_path = "Resources/GLTF Models/DamagedHelmet/glTF/";
-		model_params.model = DirectX::XMMatrixScaling(10.0f, 10.0f, 10.0f);
+		model_params.model_scale = 0.3f;
+		model_params.merge_meshes = true;
 		entity_loader->LoadGLTFModel(model_params);
 		
 		light_parameters_t light_params{};
