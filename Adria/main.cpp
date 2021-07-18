@@ -23,7 +23,7 @@ int APIENTRY wWinMain(
     752 bytes of "memory leak" is because of FileDialog singleton. TODO: replace singleton usage with
     instance usage to avoid false memory check
     */
-    MemoryLeak::Checkpoint();
+    //MemoryLeak::Checkpoint();
     {
         window_init_t window_init{};
         window_init.instance = hInstance;
@@ -50,7 +50,7 @@ int APIENTRY wWinMain(
         }
         Window::Destroy();
     }
-    MemoryLeak::CheckLeaks();
+    //MemoryLeak::CheckLeaks();
 
 }
 

@@ -2,7 +2,7 @@
 
 Texture2D               normalMetallicTx : register(t0);
 Texture2D               diffuseTx        : register(t1);
-Texture2D               emissiveAoTx     : register(t2);
+Texture2D               emissiveTx       : register(t2);
 Texture2D<float>        depthTx          : register(t3);
 
 SamplerState linear_wrap_sampler : register(s0);
@@ -40,8 +40,11 @@ float4 ps_main(VertexOut pin) : SV_TARGET
 {
     float4 albedo_roughness = diffuseTx.Sample(linear_wrap_sampler, pin.Tex);
     float3 albedo = albedo_roughness.rgb;
-    float4 emissiveAo = emissiveAoTx.Sample(linear_wrap_sampler, pin.Tex);
-    float ao = emissiveAo.a; 
+    float4 emissive_data = emissiveTx.Sample(linear_wrap_sampler, pin.Tex);
+    float3 emissive = emissive_data.rgb;
+    float emissive_factor = emissive_data.a * 256;
+    emissive = emissive * emissive_factor;
+    float ao = 1.0f; 
     
 #if SSAO
     ao = ssaoTx.Sample(linear_wrap_sampler, pin.Tex);
@@ -109,8 +112,8 @@ float4 ps_main(VertexOut pin) : SV_TARGET
         ibl = diffuseIBL + specularIBL;
     }
     
-    return float4(ibl, 1.0f) * ao + float4(emissiveAo.rgb, 1.0f);
+    return float4(ibl, 1.0f) * ao + float4(emissive.rgb, 1.0f);
 #else
-    return frame_cbuf.global_ambient * float4(albedo, 1.0f) * ao + float4(emissiveAo.rgb, 1.0f);
+    return frame_cbuf.global_ambient * float4(albedo, 1.0f) * ao + float4(emissive.rgb, 1.0f);
 #endif
 }

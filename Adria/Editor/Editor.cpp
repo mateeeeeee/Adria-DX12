@@ -170,7 +170,7 @@ namespace adria
                     if (!texture_path.empty()) texture_path.append("/");
 
                     params.textures_path = texture_path;
-                    engine->entity_loader->LoadGLTFModel(params);
+                    engine->entity_loader->LoadModel(params);
                 }
 
                 ImGuiFileDialog::Instance()->Close();
@@ -472,13 +472,12 @@ namespace adria
                         ImGui::SliderFloat("Albedo Factor", &material->albedo_factor, 0.0f, 1.0f);
                         ImGui::SliderFloat("Metallic Factor", &material->metallic_factor, 0.0f, 1.0f);
                         ImGui::SliderFloat("Roughness Factor", &material->roughness_factor, 0.0f, 1.0f);
-                        ImGui::SliderFloat("Emissive Factor", &material->emissive_factor, 0.0f, 1.0f);
+                        ImGui::SliderFloat("Emissive Factor", &material->emissive_factor, 0.0f, 32.0f);
 
                         //add shader changing
                         if (engine->reg.has<Forward>(selected_entity))
                         {
-                            if (material->diffuse_texture != INVALID_TEXTURE_HANDLE ||
-                                material->albedo_texture != INVALID_TEXTURE_HANDLE)
+                            if (material->albedo_texture != INVALID_TEXTURE_HANDLE)
                                 material->pso = PSO::eTexture;
                             else material->pso = PSO::eSolid;
                         }

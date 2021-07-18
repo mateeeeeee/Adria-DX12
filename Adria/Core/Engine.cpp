@@ -127,7 +127,15 @@ namespace adria
 		model_params.textures_path = "Resources/GLTF Models/Sponza/glTF/";
 		model_params.model_scale = 0.3f;
 		model_params.merge_meshes = true;
-		entity_loader->LoadGLTFModel(model_params);
+		//model_params.model_path = "Resources/Models/SunTemple/SunTemple.fbx";
+		//model_params.textures_path = "Resources/Models/SunTemple/";
+		entity_loader->LoadModel(model_params);
+
+		//model_params.model_path = "Resources/Models/DamagedHelmet/glTF/DamagedHelmet.gltf";
+		//model_params.textures_path = "Resources/Models/DamagedHelmet/glTF/";
+		//model_params.model_scale = 3.0f;
+		//model_params.merge_meshes = true;
+		//entity_loader->LoadModel(model_params);
 		
 		light_parameters_t light_params{};
 		light_params.light_data.casts_shadows = true;

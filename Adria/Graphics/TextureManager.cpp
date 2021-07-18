@@ -1,3 +1,11 @@
+// Maybe use DirectXTex for mipmaps?
+#include "DirectXTex.h"
+#ifdef _DEBUG
+#pragma comment(lib, "Debug\\DirectXTex.lib")
+#else
+#pragma comment(lib, "Release\\DirectXTex.lib")
+#endif
+
 #include "TextureManager.h"
 #include "GraphicsCoreDX12.h"
 #include "d3dx12.h"
@@ -32,6 +40,7 @@ namespace adria
         TextureFormat GetTextureFormat(std::string const& path)
         {
             std::string extension = path.substr(path.find_last_of(".") + 1);
+            std::transform(std::begin(extension), std::end(extension), std::begin(extension), [](char c) {return std::tolower(c); });
 
             if (extension == "dds")
                 return TextureFormat::eDDS;
@@ -544,11 +553,12 @@ namespace adria
             std::unique_ptr<uint8_t[]> decodedData;
             std::vector<D3D12_SUBRESOURCE_DATA> subresources;
 
-            if (mipmaps)
+            if (false && mipmaps)
             {
-                BREAK_IF_FAILED(
-                    DirectX::LoadDDSTextureFromFileEx(device, texture_path.data(), 0, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, DirectX::DDS_LOADER_MIP_RESERVE, &tex2d,
-                        decodedData, subresources));
+                
+                    HRESULT hr = DirectX::LoadDDSTextureFromFileEx(device, texture_path.data(), 0, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, DirectX::DDS_LOADER_MIP_RESERVE, &tex2d,
+                        decodedData, subresources);
+                    BREAK_IF_FAILED(hr);
             }
             else
             {
@@ -558,7 +568,7 @@ namespace adria
             }
 
 
-            const UINT64 uploadBufferSize = GetRequiredIntermediateSize(tex2d, 0, static_cast<UINT>(subresources.size()));
+            UINT64 const uploadBufferSize = GetRequiredIntermediateSize(tex2d, 0, static_cast<UINT>(subresources.size()));
 
             D3D12MA::ALLOCATION_DESC textureUploadAllocDesc = {};
             textureUploadAllocDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
@@ -598,7 +608,7 @@ namespace adria
 
             texture_map.insert({ handle, tex2d });
 
-            if (mipmaps) mips_generator->Add(texture_map[handle].Get());
+            if (false && mipmaps) mips_generator->Add(texture_map[handle].Get());
 
             CreateTextureSRV(device, texture_map[handle].Get(), texture_srv_heap->GetCpuHandle(handle));
 

@@ -58,7 +58,7 @@ namespace adria
 
         [[maybe_unused]] tecs::entity LoadSkybox(skybox_parameters_t const&);
 
-        [[maybe_unused]] std::vector<tecs::entity> LoadGLTFModel(model_parameters_t const&);
+        [[maybe_unused]] std::vector<tecs::entity> LoadModel(model_parameters_t const&);
 
         [[maybe_unused]] tecs::entity LoadLight(light_parameters_t const&);
 

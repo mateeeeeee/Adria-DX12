@@ -63,12 +63,11 @@ namespace adria
 
 	struct COMPONENT Material
 	{
-		TEXTURE_HANDLE diffuse_texture			  = INVALID_TEXTURE_HANDLE;
-		TEXTURE_HANDLE specular_texture			  = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE normal_texture			  = INVALID_TEXTURE_HANDLE;
-
 		TEXTURE_HANDLE albedo_texture		      = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE metallic_roughness_texture = INVALID_TEXTURE_HANDLE;
+		TEXTURE_HANDLE metallic_texture			  = INVALID_TEXTURE_HANDLE;
+		TEXTURE_HANDLE roughness_texture		  = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE emissive_texture			  = INVALID_TEXTURE_HANDLE;
 
 		f32 albedo_factor		= 1.0f;
@@ -76,11 +75,7 @@ namespace adria
 		f32 roughness_factor	= 1.0f;
 		f32 emissive_factor		= 1.0f;
 
-		DirectX::XMFLOAT3 diffuse		= DirectX::XMFLOAT3(1, 1, 1);
-		DirectX::XMFLOAT3 ambient		= DirectX::XMFLOAT3(1, 1, 1);
-		DirectX::XMFLOAT3 specular		= DirectX::XMFLOAT3(1, 1, 1);
-		f32	shininess			= 1.0f;
-
+		DirectX::XMFLOAT3 diffuse = DirectX::XMFLOAT3(1, 1, 1);
 		PSO pso = PSO::eUnknown;
 	};
 

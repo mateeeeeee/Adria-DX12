@@ -6,8 +6,7 @@
 
 namespace adria
 {
-    //add concept for member position.x,y,z
-
+   
     template<typename V>
     concept HasPosition = requires (V v)
     {

@@ -125,14 +125,14 @@ namespace adria
 
         // Create copy queue:
         D3D12_DESCRIPTOR_HEAP_DESC shader_visible_desc = {};
-        shader_visible_desc.NumDescriptors = 1000;
+        shader_visible_desc.NumDescriptors = 10000;
         shader_visible_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
         shader_visible_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
         for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
         {
             descriptor_allocators.emplace_back(new LinearDescriptorAllocator(device.Get(), shader_visible_desc));
-            upload_buffers.emplace_back(new LinearUploadBuffer(device.Get(), 1000000));
+            upload_buffers.emplace_back(new LinearUploadBuffer(device.Get(), 10000000));
         }
 
         release_queue_fence_value = 0;

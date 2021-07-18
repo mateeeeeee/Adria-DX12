@@ -941,13 +941,25 @@ namespace adria
 
 		//gbuffer 
 		{
-			ShaderBlob vs_blob, ps_blob;
+			ShaderBlob vs_blob;
 
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/GeometryPassPBR_VS.cso", vs_blob);
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/GeometryPassPBR_PS.cso", ps_blob);
-
 			shader_map[VS_GBufferPBR] = vs_blob;
+
+			ShaderBlob ps_blob;
+			ShaderInfo shader_info_ps{};
+			shader_info_ps.entrypoint = "main";
+			shader_info_ps.shadersource = "Resources/Shaders/Deferred/GeometryPassPBR_PS.hlsl";
+			shader_info_ps.stage = ShaderStage::PS;
+			shader_info_ps.defines = {};
+
+			ShaderUtility::CompileShader(shader_info_ps, ps_blob);
 			shader_map[PS_GBufferPBR] = ps_blob;
+
+			shader_info_ps.defines.emplace_back(L"METALLIC_ROUGHNESS_SEPARATED", L"1");
+			ShaderUtility::CompileShader(shader_info_ps, ps_blob);
+			shader_map[PS_GBufferPBR_Separated] = ps_blob;
+
 		}
 
 		//ambient & lighting
@@ -1093,6 +1105,9 @@ namespace adria
 
 			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_GBufferPBR].GetPointer(), shader_map[PS_GBufferPBR].GetLength(),
 				IID_PPV_ARGS(rs_map[RootSig::eGbufferPBR].GetAddressOf())));
+
+			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_GBufferPBR_Separated].GetPointer(), shader_map[PS_GBufferPBR_Separated].GetLength(),
+				IID_PPV_ARGS(rs_map[RootSig::eGbufferPBR_Separated].GetAddressOf())));
 
 			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_AmbientPBR].GetPointer(), shader_map[PS_AmbientPBR].GetLength(),
 				IID_PPV_ARGS(rs_map[RootSig::eAmbientPBR].GetAddressOf())));
@@ -1426,7 +1441,6 @@ namespace adria
 				InputLayout input_layout;
 				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_GBufferPBR], input_layout);
 
-				//no emissive
 				pso_desc.InputLayout = input_layout;
 				pso_desc.pRootSignature = rs_map[RootSig::eGbufferPBR].Get();
 				pso_desc.VS = shader_map[VS_GBufferPBR];
@@ -1446,6 +1460,11 @@ namespace adria
 				pso_desc.SampleDesc.Count = 1;
 				pso_desc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eGbufferPBR])));
+
+				pso_desc.pRootSignature = rs_map[RootSig::eGbufferPBR_Separated].Get();
+				pso_desc.PS = shader_map[PS_GBufferPBR_Separated];
+				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eGbufferPBR_Separated])));
+
 			}
 
 			//ambient 
@@ -3086,58 +3105,83 @@ namespace adria
 
 		gbuffer_render_pass.Begin(cmd_list);
 
-		cmd_list->SetGraphicsRootSignature(rs_map[RootSig::eGbufferPBR].Get());
-		cmd_list->SetPipelineState(pso_map[PSO::eGbufferPBR].Get());
-		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
-
-		for (auto e : gbuffer_view)
+		auto gbuffer_pass_lambda = [&](bool separated_metallic_roughness) 
 		{
-			auto [mesh, transform, material, visibility] = gbuffer_view.get<Mesh, Transform, Material, Visibility>(e);
+			if (separated_metallic_roughness)
+			{
+				cmd_list->SetGraphicsRootSignature(rs_map[RootSig::eGbufferPBR_Separated].Get());
+				cmd_list->SetPipelineState(pso_map[PSO::eGbufferPBR_Separated].Get());
+			}
+			else
+			{
+				cmd_list->SetGraphicsRootSignature(rs_map[RootSig::eGbufferPBR].Get());
+				cmd_list->SetPipelineState(pso_map[PSO::eGbufferPBR].Get());
+			}
+			cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 
-			if (!visibility.camera_visible) continue;
+			for (auto e : gbuffer_view)
+			{
+				auto [mesh, transform, material, visibility] = gbuffer_view.get<Mesh, Transform, Material, Visibility>(e);
 
-			object_cbuf_data.model = transform.current_transform;
-			object_cbuf_data.inverse_transposed_model = DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, object_cbuf_data.model));
+				if (!visibility.camera_visible) continue;
 
-			object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-			object_allocation.Update(object_cbuf_data);
-			cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
+				if(separated_metallic_roughness && material.metallic_roughness_texture != INVALID_TEXTURE_HANDLE) continue;
 
-			material_cbuf_data.albedo_factor = material.albedo_factor;
-			material_cbuf_data.metallic_factor = material.metallic_factor;
-			material_cbuf_data.roughness_factor = material.roughness_factor;
-			material_cbuf_data.emissive_factor = material.emissive_factor;
+				object_cbuf_data.model = transform.current_transform;
+				object_cbuf_data.inverse_transposed_model = DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, object_cbuf_data.model));
 
-			DynamicAllocation material_allocation = upload_buffer->Allocate(GetCBufferSize<MaterialCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-			material_allocation.Update(material_cbuf_data);
-			cmd_list->SetGraphicsRootConstantBufferView(2, material_allocation.gpu_address);
+				object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				object_allocation.Update(object_cbuf_data);
+				cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
 
-			std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> texture_handles{};
-			std::vector<u32> src_range_sizes{};
+				material_cbuf_data.albedo_factor = material.albedo_factor;
+				material_cbuf_data.metallic_factor = material.metallic_factor;
+				material_cbuf_data.roughness_factor = material.roughness_factor;
+				material_cbuf_data.emissive_factor = material.emissive_factor;
 
-			ADRIA_ASSERT(material.albedo_texture != INVALID_TEXTURE_HANDLE);
-			
-			texture_handles.push_back(texture_manager.CpuDescriptorHandle(material.albedo_texture));
-			texture_handles.push_back(texture_manager.CpuDescriptorHandle(material.metallic_roughness_texture));
-			texture_handles.push_back(texture_manager.CpuDescriptorHandle(material.normal_texture));
-			texture_handles.push_back(texture_manager.CpuDescriptorHandle(material.emissive_texture));
+				DynamicAllocation material_allocation = upload_buffer->Allocate(GetCBufferSize<MaterialCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				material_allocation.Update(material_cbuf_data);
+				cmd_list->SetGraphicsRootConstantBufferView(2, material_allocation.gpu_address);
 
-			src_range_sizes.push_back(1u);
-			src_range_sizes.push_back(1u);
-			src_range_sizes.push_back(1u);
-			src_range_sizes.push_back(1u);
+				std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> texture_handles{};
+				std::vector<u32> src_range_sizes{};
 
+				ADRIA_ASSERT(material.albedo_texture != INVALID_TEXTURE_HANDLE);
 
-			OffsetType descriptor_index = descriptor_allocator->AllocateRange(texture_handles.size());
-			auto dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
-			u32 dst_range_sizes[] = { (u32)texture_handles.size() };
-			device->CopyDescriptors(1, &dst_descriptor, dst_range_sizes, (u32)texture_handles.size(), texture_handles.data(), src_range_sizes.data(),
-				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				if (!separated_metallic_roughness)
+				{
+					texture_handles.push_back(texture_manager.CpuDescriptorHandle(material.albedo_texture));
+					texture_handles.push_back(texture_manager.CpuDescriptorHandle(material.metallic_roughness_texture));
+					texture_handles.push_back(texture_manager.CpuDescriptorHandle(material.normal_texture));
+					texture_handles.push_back(texture_manager.CpuDescriptorHandle(material.emissive_texture));
 
-			cmd_list->SetGraphicsRootDescriptorTable(3, descriptor_allocator->GetGpuHandle(descriptor_index));
+					src_range_sizes.assign(4, 1u);
+				}
+				else
+				{
+					texture_handles.push_back(texture_manager.CpuDescriptorHandle(material.albedo_texture));
+					texture_handles.push_back(texture_manager.CpuDescriptorHandle(material.metallic_texture));
+					texture_handles.push_back(texture_manager.CpuDescriptorHandle(material.normal_texture));
+					texture_handles.push_back(texture_manager.CpuDescriptorHandle(material.emissive_texture));
+					texture_handles.push_back(texture_manager.CpuDescriptorHandle(material.roughness_texture));
 
-			mesh.Draw(cmd_list);
-		}
+					src_range_sizes.assign(5, 1u);
+				}
+
+				OffsetType descriptor_index = descriptor_allocator->AllocateRange(texture_handles.size());
+				auto dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+				u32 dst_range_sizes[] = { (u32)texture_handles.size() };
+				device->CopyDescriptors(1, &dst_descriptor, dst_range_sizes, (u32)texture_handles.size(), texture_handles.data(), src_range_sizes.data(),
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+				cmd_list->SetGraphicsRootDescriptorTable(3, descriptor_allocator->GetGpuHandle(descriptor_index));
+
+				mesh.Draw(cmd_list);
+			}
+		};
+
+		gbuffer_pass_lambda(false);
+		gbuffer_pass_lambda(true);
 
 		gbuffer_render_pass.End(cmd_list);
 
@@ -4252,7 +4296,7 @@ namespace adria
 				material_allocation.Update(material_cbuf_data);
 				cmd_list->SetGraphicsRootConstantBufferView(2, material_allocation.gpu_address);
 
-				D3D12_CPU_DESCRIPTOR_HANDLE diffuse_handle = texture_manager.CpuDescriptorHandle(material.diffuse_texture);
+				D3D12_CPU_DESCRIPTOR_HANDLE diffuse_handle = texture_manager.CpuDescriptorHandle(material.albedo_texture);
 				u32 src_range_size = 1;
 
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
@@ -4868,7 +4912,7 @@ namespace adria
 			material_allocation.Update(material_cbuf_data);
 			cmd_list->SetGraphicsRootConstantBufferView(2, material_allocation.gpu_address);
 
-			D3D12_CPU_DESCRIPTOR_HANDLE diffuse_handle = texture_manager.CpuDescriptorHandle(material.diffuse_texture);
+			D3D12_CPU_DESCRIPTOR_HANDLE diffuse_handle = texture_manager.CpuDescriptorHandle(material.albedo_texture);
 			u32 src_range_size = 1;
 
 			OffsetType descriptor_index = descriptor_allocator->Allocate();
