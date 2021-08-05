@@ -173,6 +173,7 @@
     <ClCompile Include="..\ThirdParty\ImGui\ImGuizmo.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\RayTracer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -438,6 +439,9 @@
     </ClInclude>
     <ClInclude Include="Rendering\RayTracer.h">
       <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\RayTracingUtil.h">
+      <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

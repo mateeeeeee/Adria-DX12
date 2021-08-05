@@ -128,7 +128,6 @@ namespace adria
 
 	}
 
-
     TextureManager::TextureManager(GraphicsCoreDX12* gfx, UINT max_textures) : gfx(gfx)
     {
         D3D12_DESCRIPTOR_HEAP_DESC texture_heap_desc = {};

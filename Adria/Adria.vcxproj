@@ -182,6 +182,7 @@
     <ClCompile Include="Rendering\Camera.cpp" />
     <ClCompile Include="Rendering\CameraManager.cpp" />
     <ClCompile Include="Rendering\EntityLoader.cpp" />
+    <ClCompile Include="Rendering\RayTracer.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
     <ClCompile Include="Utilities\AppException.cpp" />
   </ItemGroup>
@@ -219,6 +220,7 @@
     <ClInclude Include="Graphics\DynamicAllocation.h" />
     <ClInclude Include="Graphics\MipsGenerator.h" />
     <ClInclude Include="Graphics\LinearUploadBuffer.h" />
+    <ClInclude Include="Graphics\RayTracingUtil.h" />
     <ClInclude Include="Graphics\Releasable.h" />
     <ClInclude Include="Graphics\RenderPass.h" />
     <ClInclude Include="Graphics\ResourceBarriers.h" />

@@ -123,8 +123,8 @@ namespace adria
 		entity_loader->LoadSkybox(skybox_params);
 
 		model_parameters_t model_params{};
-		model_params.model_path = "Resources/GLTF Models/Sponza/glTF/Sponza.gltf";
-		model_params.textures_path = "Resources/GLTF Models/Sponza/glTF/";
+		model_params.model_path = "Resources/Models/Sponza/glTF/Sponza.gltf";
+		model_params.textures_path = "Resources/Models/Sponza/glTF/";
 		model_params.model_scale = 0.3f;
 		model_params.merge_meshes = true;
 		//model_params.model_path = "Resources/Models/SunTemple/SunTemple.fbx";

@@ -15,7 +15,7 @@ namespace adria
 	class DescriptorHeap;
 	
 	using TEXTURE_HANDLE = size_t;
-	inline constexpr TEXTURE_HANDLE const INVALID_TEXTURE_HANDLE = TEXTURE_HANDLE(-1);
+	inline constexpr TEXTURE_HANDLE INVALID_TEXTURE_HANDLE = TEXTURE_HANDLE(-1);
 
 	class TextureManager
 	{
