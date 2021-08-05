@@ -11,11 +11,6 @@
 namespace adria
 {
 
-
-	//class 
-
-
-	//not efficient, fix later
 	class MipsGenerator
 	{
 	public:

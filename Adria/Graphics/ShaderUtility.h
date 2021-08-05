@@ -15,6 +15,7 @@ namespace adria
 		DS,
 		GS,
 		CS,
+		LIB,
 		COUNT
 	};
 

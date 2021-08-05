@@ -2,7 +2,8 @@
 
 namespace adria
 {
-	static ID3D12Resource* CreateBuffer(ID3D12Device5* device, uint64_t size, D3D12_RESOURCE_FLAGS flags, D3D12_RESOURCE_STATES init_state, const D3D12_HEAP_PROPERTIES& heap_props)
+	//helper for making buffers, move it somewhere else later
+	static ID3D12Resource* CreateBuffer(ID3D12Device5* device, uint64_t size, D3D12_RESOURCE_FLAGS flags, D3D12_RESOURCE_STATES init_state, D3D12_HEAP_PROPERTIES const& heap_props)
 	{
 		D3D12_RESOURCE_DESC buf_desc = {};
 		buf_desc.Alignment = 0;
@@ -22,6 +23,20 @@ namespace adria
 		return buffer;
 	}
 
+
+	RayTracer::RayTracer(tecs::registry& reg, GraphicsCoreDX12* gfx, u32 width, u32 height) : reg{ reg }, gfx{ gfx }, width{ width }, height{ height }
+	{
+		ID3D12Device* device = gfx->Device();
+
+		D3D12_FEATURE_DATA_D3D12_OPTIONS5 features5{};
+		HRESULT hr = device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &features5, sizeof(D3D12_FEATURE_DATA_D3D12_OPTIONS5));
+		if (FAILED(hr) || features5.RaytracingTier == D3D12_RAYTRACING_TIER_NOT_SUPPORTED)
+		{
+			Log::Info("Ray Tracing is not supported! All Ray Tracing calls will be silently ignored!\n");
+			ray_tracing_supported = false;
+		}
+		else ray_tracing_supported = true;
+	}
 
 	bool RayTracer::IsSupported() const
 	{
@@ -149,6 +164,16 @@ namespace adria
 		cmd_list->ResourceBarrier(1, &uavBarrier);
 
 		tlas = buffers.result_buffer.Get();
+	}
+
+	void RayTracer::CreateRootSignatures()
+	{
+
+	}
+
+	void RayTracer::CreateStateObjects()
+	{
+
 	}
 
 }

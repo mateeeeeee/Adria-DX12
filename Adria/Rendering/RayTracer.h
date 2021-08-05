@@ -28,18 +28,8 @@ namespace adria
 		};
 
 	public:
-        RayTracer(tecs::registry& reg, GraphicsCoreDX12* gfx, u32 width, u32 height) : reg{ reg }, gfx{ gfx }, width{ width }, height{ height }
-        {
-            ID3D12Device* device = gfx->Device();
 
-            D3D12_FEATURE_DATA_D3D12_OPTIONS5 features5{};
-            HRESULT hr = device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &features5, sizeof(D3D12_FEATURE_DATA_D3D12_OPTIONS5));
-            if (FAILED(hr) || features5.RaytracingTier == D3D12_RAYTRACING_TIER_NOT_SUPPORTED)
-            {
-                Log::Info("Ray Tracing is not supported! All Ray Tracing calls will be silently ignored!\n");
-                ray_tracing_supported = false;
-            }
-        }
+        RayTracer(tecs::registry& reg, GraphicsCoreDX12* gfx, u32 width, u32 height);
 
         bool IsSupported() const;
 
@@ -54,13 +44,19 @@ namespace adria
         Microsoft::WRL::ComPtr<ID3D12Resource> blas = nullptr;
         Microsoft::WRL::ComPtr<ID3D12Resource> tlas = nullptr;
         u64 tlas_size = 0;
-        bool ray_tracing_supported = true;
+
+		Microsoft::WRL::ComPtr<ID3D12RootSignature> rt_root_signature = nullptr;
+		Microsoft::WRL::ComPtr<ID3D12StateObject> rt_state_object = nullptr;
+
+        bool ray_tracing_supported;
 
 	private:
 
         void BuildBottomLevelAS();
-
         void BuildTopLevelAS();
+
+		void CreateRootSignatures();
+		void CreateStateObjects();
 
 	};
 }

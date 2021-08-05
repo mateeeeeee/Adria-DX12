@@ -18,7 +18,7 @@ namespace adria
 			pBytecode = const_cast<void*>(pShaderBytecode);
 		}
 
-		virtual ~ReflectionBlob() { /*non owning blob->empty destructor*/ }
+		virtual ~ReflectionBlob() { /*non owning blob -> empty destructor*/ }
 
 		virtual LPVOID STDMETHODCALLTYPE GetBufferPointer(void) override { return pBytecode; }
 		virtual SIZE_T STDMETHODCALLTYPE GetBufferSize(void) override { return bytecodeSize; }
@@ -54,10 +54,7 @@ namespace adria
 		Microsoft::WRL::ComPtr<IDxcLibrary> library = nullptr;
 		Microsoft::WRL::ComPtr<IDxcCompiler> compiler = nullptr;
 		Microsoft::WRL::ComPtr<IDxcIncludeHandler> include_handler = nullptr;
-
 	}
-
-
 
 	namespace ShaderUtility
 	{
@@ -88,7 +85,6 @@ namespace adria
 			BREAK_IF_FAILED(hr);
 
 			std::vector<wchar_t const*> flags{};
-
 			if (input.flags & ShaderInfo::FLAG_DEBUG)
 			{
 				flags.push_back(L"-Zi");			//Debug info
@@ -97,8 +93,6 @@ namespace adria
 			if (input.flags & ShaderInfo::FLAG_DISABLE_OPTIMIZATION)
 				flags.push_back(L"-Od");
 			else flags.push_back(L"-O3");
-
-
 
 			std::wstring p_target = L"";
 			std::wstring entry_point = L"";
@@ -129,30 +123,32 @@ namespace adria
 				p_target = L"ds_6_0";
 				entry_point = L"ds_main";
 				break;
+			case ShaderStage::LIB:
+				p_target = L"lib_6_3";
+				break;
 			default:
 				ADRIA_ASSERT(false && "Invalid Shader Stage");
 			}
 
 			if (!input.entrypoint.empty()) entry_point = ConvertToWide(input.entrypoint);
 
-			std::vector<DxcDefine> sm6_0_defines{};
-
+			std::vector<DxcDefine> sm6_defines{};
 			for (auto const& define : input.defines)
 			{
-				DxcDefine sm6_0_define{};
-				sm6_0_define.Name = define.name.c_str();
-				sm6_0_define.Value = define.value.c_str();
-				sm6_0_defines.push_back(sm6_0_define);
+				DxcDefine sm6_define{};
+				sm6_define.Name = define.name.c_str();
+				sm6_define.Value = define.value.c_str();
+				sm6_defines.push_back(sm6_define);
 			}
 
 			Microsoft::WRL::ComPtr<IDxcOperationResult> result;
 			hr = compiler->Compile(
-				sourceBlob.Get(),								// pSource
-				shader_source.data(),							// pSourceName
-				entry_point.c_str(),									// pEntryPoint
-				p_target.c_str(),										// pTargetProfile
+				sourceBlob.Get(),									// pSource
+				shader_source.data(),								// pSourceName
+				entry_point.c_str(),								// pEntryPoint
+				p_target.c_str(),									// pTargetProfile
 				flags.data(), (UINT32)flags.size(),					// pArguments, argCount
-				sm6_0_defines.data(), (UINT32)sm6_0_defines.size(),	// pDefines, defineCount
+				sm6_defines.data(), (UINT32)sm6_defines.size(),	// pDefines, defineCount
 				include_handler.Get(),					// pIncludeHandler
 				&result);								// ppResult
 
@@ -181,7 +177,6 @@ namespace adria
 			blob.bytecode.resize(sourceBlob->GetBufferSize());
 			memcpy(blob.GetPointer(), sourceBlob->GetBufferPointer(), blob.GetLength());
 		}
-		
 		void CreateInputLayoutWithReflection(ShaderBlob const& vs_blob, InputLayout& input_layout)
 		{
 			Microsoft::WRL::ComPtr<IDxcContainerReflection> pReflection;
