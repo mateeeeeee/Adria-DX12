@@ -15,12 +15,10 @@
 #include "pix3.h"
 
 using namespace DirectX;
-
 using namespace Microsoft::WRL;
 
 namespace adria
 {
-	
 	namespace shadow_helpers
 	{
 		constexpr u32 SHADOW_MAP_SIZE = 2048;
@@ -344,7 +342,6 @@ namespace adria
 	}
 	using namespace shadow_helpers;
 
-	
 	namespace threading
 	{
 		//transient cbuffers
@@ -849,7 +846,6 @@ namespace adria
 		return offscreen_ldr_target;
 	}
 
-	
 	////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////PRIVATE/////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////

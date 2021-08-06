@@ -68,6 +68,9 @@
     <Filter Include="Shaders\Deferred\IBL">
       <UniqueIdentifier>{216dadbc-ae69-4a54-ae61-1e6776bc1f0c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\RayTracing">
+      <UniqueIdentifier>{b0c1741c-fed3-4183-a633-dfa94a466da2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -173,7 +176,9 @@
     <ClCompile Include="..\ThirdParty\ImGui\ImGuizmo.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\RayTracer.cpp" />
+    <ClCompile Include="Rendering\RayTracer.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -614,6 +619,12 @@
     <FxCompile Include="Resources\Shaders\PostProcess\BloomCombineCS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\RayTracing\RayTracedShadows.hlsl">
+      <Filter>Shaders\RayTracing</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\RayTracing\RTAO.hlsl">
+      <Filter>Shaders\RayTracing</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Shaders\Globals\GlobalsCS.hlsli">
@@ -653,5 +664,8 @@
       <Filter>Shaders\Util</Filter>
     </None>
     <None Include="packages.config" />
+    <None Include="Resources\Shaders\Util\RayTracingUtils.hlsli">
+      <Filter>Shaders\Util</Filter>
+    </None>
   </ItemGroup>
 </Project>

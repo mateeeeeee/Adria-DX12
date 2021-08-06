@@ -24,7 +24,8 @@ namespace adria
 	}
 
 
-	RayTracer::RayTracer(tecs::registry& reg, GraphicsCoreDX12* gfx, u32 width, u32 height) : reg{ reg }, gfx{ gfx }, width{ width }, height{ height }
+	RayTracer::RayTracer(tecs::registry& reg, GraphicsCoreDX12* gfx, u32 width, u32 height) 
+		: reg{ reg }, gfx{ gfx }, width{ width }, height{ height }
 	{
 		ID3D12Device* device = gfx->Device();
 

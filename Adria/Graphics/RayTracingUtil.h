@@ -17,7 +17,6 @@ namespace adria
 			memcpy(shader_id, _data, sizeof(shader_id));
 		}
 	};
-
 	static_assert(sizeof(HitGroupRecord) % D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT == 0);
 
 	class StateObjectBuilder
@@ -58,13 +57,6 @@ namespace adria
 				return nullptr;
 		}
 
-		void BuildDescription(D3D12_STATE_OBJECT_TYPE type, D3D12_STATE_OBJECT_DESC& desc)
-		{
-			desc.Type = type;
-			desc.NumSubobjects = static_cast<u32>(num_subobjects);
-			desc.pSubobjects = num_subobjects ? subobjects.data() : nullptr;
-		}
-
 		ID3D12StateObject* CreateStateObject(ID3D12Device5* device, D3D12_STATE_OBJECT_TYPE type)
 		{
 			D3D12_STATE_OBJECT_DESC desc{};
@@ -99,6 +91,14 @@ namespace adria
 
 			return &subobject;
 		}
+
+		void BuildDescription(D3D12_STATE_OBJECT_TYPE type, D3D12_STATE_OBJECT_DESC& desc)
+		{
+			desc.Type = type;
+			desc.NumSubobjects = static_cast<u32>(num_subobjects);
+			desc.pSubobjects = num_subobjects ? subobjects.data() : nullptr;
+		}
+
 	};
 
 }
