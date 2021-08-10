@@ -165,12 +165,15 @@
     <ClCompile Include="Editor\Editor.cpp" />
     <ClCompile Include="Editor\GUI.cpp" />
     <ClCompile Include="Events\EventQueue.cpp" />
+    <ClCompile Include="Graphics\CopyManager.cpp" />
     <ClCompile Include="Graphics\D3D12MemAlloc.cpp" />
     <ClCompile Include="Graphics\DDSTextureLoader12.cpp" />
     <ClCompile Include="Graphics\DescriptorHeap.cpp" />
     <ClCompile Include="Graphics\GraphicsCoreDX12.cpp" />
     <ClCompile Include="Graphics\LinearDescriptorAllocator.cpp" />
     <ClCompile Include="Graphics\LinearUploadBuffer.cpp" />
+    <ClCompile Include="Graphics\MipsGenerator.cpp" />
+    <ClCompile Include="Graphics\RenderPass.cpp" />
     <ClCompile Include="Graphics\RingDescriptorAllocator.cpp" />
     <ClCompile Include="Graphics\RingUploadBuffer.cpp" />
     <ClCompile Include="Graphics\ShaderUtility.cpp" />
@@ -723,6 +726,8 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.3</ShaderModel>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Resources\Compiled Shaders\%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Resources\Compiled Shaders\%(Filename).cso</ObjectFileOutput>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\RayTracing\RTAO.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Library</ShaderType>
@@ -735,6 +740,8 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.3</ShaderModel>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Resources\Compiled Shaders\%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Resources\Compiled Shaders\%(Filename).cso</ObjectFileOutput>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Shadows\DepthMapPS.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>

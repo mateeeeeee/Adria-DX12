@@ -5,9 +5,6 @@
 #include "../Core/Macros.h"
 #include "../Core/Definitions.h"
 #include "../Utilities/AllocatorUtil.h"
-//#include "../Utilities/RingAllocator.h"
-//#include "../Utilities/LinearAllocator.h"
-
 
 namespace adria
 {

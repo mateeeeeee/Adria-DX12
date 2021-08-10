@@ -16,6 +16,8 @@ namespace adria
 
 		void Clear();
 
+		D3D12_GPU_VIRTUAL_ADDRESS GPUAddress() const;
+
 	private:
 		LinearAllocator linear_allocator;
 		std::mutex alloc_mutex;

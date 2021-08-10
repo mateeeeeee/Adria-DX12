@@ -37,38 +37,18 @@ namespace adria
 		}
 
 		ConstantBuffer(ConstantBuffer const&) = delete;
-		ConstantBuffer(ConstantBuffer&& o) noexcept
-			: cb(std::move(o.cb)), cbuffer_size(o.cbuffer_size), _mapped_data(o._mapped_data)
-		{
-			o._mapped_data = nullptr;
-		}
+		ConstantBuffer(ConstantBuffer&& o) noexcept;
 
 		ConstantBuffer& operator=(ConstantBuffer const&) = delete;
 		ConstantBuffer& operator=(ConstantBuffer&&) = delete;
 
-		~ConstantBuffer()
-		{
-			if (cb != nullptr)
-				cb->Unmap(0, nullptr);
+		~ConstantBuffer();
 
-			_mapped_data = nullptr;
-		}
+		void Update(BufferType const& data, u32 cbuffer_index);
+		void Update(void* data, u32 data_size, u32 cbuffer_index);
 
-		void Update(BufferType const& data, u32 cbuffer_index)
-		{
-			memcpy(&_mapped_data[cbuffer_index * cbuffer_size], &data, sizeof(BufferType)); //maybe change to cbuffer_size
-		}
-		void Update(void* data, u32 data_size, u32 cbuffer_index)
-		{
-			memcpy(&_mapped_data[cbuffer_index * cbuffer_size], data, data_size); 
-		}
-		D3D12_CONSTANT_BUFFER_VIEW_DESC View(u32 cbuffer_index) const
-		{
-			D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-			cbvDesc.BufferLocation = cb->GetGPUVirtualAddress() + (u64)cbuffer_index * cbuffer_size;
-			cbvDesc.SizeInBytes = cbuffer_size;
-			return cbvDesc;
-		}
+		
+		D3D12_CONSTANT_BUFFER_VIEW_DESC View(u32 cbuffer_index) const;
 
 	private:
 		Microsoft::WRL::ComPtr<ID3D12Resource> cb;
@@ -76,6 +56,48 @@ namespace adria
 		u32 const cbuffer_size;
 		u32 const cbuffer_count;
 	};
+
+
+
+	template<typename BufferType>
+	ConstantBuffer<BufferType>::ConstantBuffer(ConstantBuffer&& o) noexcept
+		: cb(std::move(o.cb)), cbuffer_size(o.cbuffer_size), _mapped_data(o._mapped_data)
+	{
+		o._mapped_data = nullptr;
+	}
+	
+	template<typename BufferType>
+	ConstantBuffer<BufferType>::~ConstantBuffer()
+	{
+		if (cb != nullptr)
+			cb->Unmap(0, nullptr);
+
+		_mapped_data = nullptr;
+	}
+
+	template<typename BufferType>
+	void ConstantBuffer<BufferType>::Update(BufferType const& data, u32 cbuffer_index)
+	{
+		memcpy(&_mapped_data[cbuffer_index * cbuffer_size], &data, sizeof(BufferType)); //maybe change to cbuffer_size
+	}
+
+	template<typename BufferType>
+	void ConstantBuffer<BufferType>::Update(void* data, u32 data_size, u32 cbuffer_index)
+	{
+		memcpy(&_mapped_data[cbuffer_index * cbuffer_size], data, data_size);
+	}
+
+	template<typename BufferType>
+	D3D12_CONSTANT_BUFFER_VIEW_DESC ConstantBuffer<BufferType>::View(u32 cbuffer_index) const
+	{
+		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+		cbvDesc.BufferLocation = cb->GetGPUVirtualAddress() + (u64)cbuffer_index * cbuffer_size;
+		cbvDesc.SizeInBytes = cbuffer_size;
+		return cbvDesc;
+	}
+
+
+
 
 
 }

@@ -12,7 +12,6 @@
 namespace adria
 {
 
-
     class IndexBuffer
     {
     public:

@@ -51,4 +51,10 @@ namespace adria
 		std::lock_guard<std::mutex> guard(alloc_mutex);
 		linear_allocator.Clear();
 	}
+
+	D3D12_GPU_VIRTUAL_ADDRESS LinearUploadBuffer::GPUAddress() const
+	{
+		return gpu_address;
+	}
+
 }

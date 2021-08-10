@@ -12,6 +12,7 @@
 #include "../Math/Constants.h"
 #include "../Logging/Logger.h"
 #include "../Editor/GUI.h"
+#include "../Graphics/DWParam.h"
 #include "pix3.h"
 
 using namespace DirectX;

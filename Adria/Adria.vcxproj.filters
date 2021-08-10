@@ -179,6 +179,13 @@
     <ClCompile Include="Rendering\RayTracer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\MipsGenerator.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\CopyManager.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\RenderPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">

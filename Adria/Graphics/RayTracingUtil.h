@@ -4,20 +4,75 @@
 #include <vector>
 #include "../Core/Macros.h"
 #include "../Core/Definitions.h"
+#include "LinearUploadBuffer.h"
 
 namespace adria
 {
-	struct HitGroupRecord
-	{
-		u8 shader_id[D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES]{};
+	using ShaderIdentifier = u8[D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES];
 
-		HitGroupRecord() = default;
-		explicit HitGroupRecord(void const* _data)
+	class ShaderRecord
+	{
+		friend class ShaderTable;
+
+	public:
+		explicit ShaderRecord(void* _shader_id, void* _local_root_args = nullptr, u32 _local_root_args_size = 0)
+			: local_root_args(_local_root_args), local_root_args_size(_local_root_args_size)
 		{
-			memcpy(shader_id, _data, sizeof(shader_id));
+			memcpy(shader_id, _shader_id, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
 		}
+
+	private:
+		ShaderIdentifier shader_id;
+		void* local_root_args;
+		u32 local_root_args_size;
 	};
-	static_assert(sizeof(HitGroupRecord) % D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT == 0);
+
+	class ShaderTable
+	{
+	public:
+
+		ShaderTable(ID3D12Device5* device, u32 total_shader_records)
+			: shader_record_size(Align(sizeof(ShaderRecord), D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT)),
+			  upload_buffer(total_shader_records * shader_record_size)
+		{
+			shader_records.reserve(total_shader_records);
+		}
+
+		void AddShaderRecord(ShaderRecord const& shader_record)
+		{
+			DynamicAllocation allocation = upload_buffer.Allocate(shader_record_size, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT);
+
+			allocation.Update(shader_record);
+
+			shader_records.push_back(shader_record);
+		}
+
+		D3D12_GPU_VIRTUAL_ADDRESS_RANGE_AND_STRIDE GetRangeAndStride() const
+		{
+			D3D12_GPU_VIRTUAL_ADDRESS_RANGE_AND_STRIDE result = { };
+			result.StartAddress = upload_buffer.GPUAddress();
+			result.SizeInBytes = shader_records.size() * shader_record_size;
+			result.StrideInBytes = shader_record_size;
+
+			return result;
+		}
+
+		D3D12_GPU_VIRTUAL_ADDRESS_RANGE ShaderRecord(u64 element) const
+		{
+			ADRIA_ASSERT(element < shader_records.size());
+
+			D3D12_GPU_VIRTUAL_ADDRESS_RANGE result = { };
+			result.StartAddress = upload_buffer.GPUAddress() + shader_record_size * element;
+			result.SizeInBytes = shader_record_size;
+			return result;
+		}
+
+
+	private:
+		std::vector<ShaderRecord> shader_records;
+		u32 shader_record_size;
+		LinearUploadBuffer upload_buffer;
+	};
 
 	class StateObjectBuilder
 	{
@@ -73,6 +128,7 @@ namespace adria
 		u64 num_subobjects;
 
 	private:
+		
 		D3D12_STATE_SUBOBJECT const* AddSubObject(void const* desc, u64 desc_size, D3D12_STATE_SUBOBJECT_TYPE type)
 		{
 			ADRIA_ASSERT(desc != nullptr);
