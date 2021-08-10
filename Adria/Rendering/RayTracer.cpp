@@ -80,7 +80,7 @@ namespace adria
 		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs = {};
 		inputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
 		inputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_NONE;
-		inputs.NumDescs = geo_descs.size();
+		inputs.NumDescs = (i32)geo_descs.size();
 		inputs.pGeometryDescs = geo_descs.data();
 		inputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
 

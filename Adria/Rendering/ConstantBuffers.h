@@ -49,7 +49,6 @@ namespace adria
 		i32 screenspace_shadows;
 	};
 
-
 	DECLSPEC_ALIGN(16) struct ObjectCBuffer
 	{
 		DirectX::XMMATRIX model;
@@ -162,7 +161,6 @@ namespace adria
 		f32 density_factor;
 		f32 cloud_type;
 	};
-
 
 	struct StructuredLight
 	{

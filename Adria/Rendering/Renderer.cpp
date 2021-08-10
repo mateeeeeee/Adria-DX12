@@ -2746,7 +2746,7 @@ namespace adria
 			cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetGpuHandle(descriptor_index));
 
 			float delta_roughness = 1.0f / std::max<f32>(f32(env_desc.MipLevels - 1), 1.0f);
-			for (u32 level = 1, size = std::max<u64>(unfiltered_env_desc.Width, unfiltered_env_desc.Height) / 2; level < env_desc.MipLevels; ++level, size /= 2)
+			for (u32 level = 1, size = (u32)std::max<u64>(unfiltered_env_desc.Width, unfiltered_env_desc.Height) / 2; level < env_desc.MipLevels; ++level, size /= 2)
 			{
 				const u32 num_groups = std::max<u32>(1, size / 32);
 				const float spmap_roughness = level * delta_roughness;
@@ -2847,7 +2847,7 @@ namespace adria
 
 			cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetGpuHandle(descriptor_index + 1));
 			cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
-			cmd_list->Dispatch(desc.Width / 32, desc.Height / 32, 6);
+			cmd_list->Dispatch((u32)desc.Width / 32, (u32)desc.Height / 32, 6u);
 			irmap_barrier = CD3DX12_RESOURCE_BARRIER::Transition(irmap_texture.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COMMON);
 			cmd_list->ResourceBarrier(1, &irmap_barrier);
 
@@ -2919,7 +2919,7 @@ namespace adria
 			cmd_list->SetDescriptorHeaps(_countof(pp_heaps), pp_heaps);
 
 			cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
-			cmd_list->Dispatch(desc.Width / 32, desc.Height / 32, 1);
+			cmd_list->Dispatch((u32)desc.Width / 32, (u32)desc.Height / 32, 1);
 
 			brdf_barrier = CD3DX12_RESOURCE_BARRIER::Transition(brdf_lut_texture.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COMMON);
 			cmd_list->ResourceBarrier(1, &brdf_barrier);
@@ -2949,8 +2949,8 @@ namespace adria
 			frame_cbuf_data.inverse_view = DirectX::XMMatrixInverse(nullptr, camera->View());
 			frame_cbuf_data.inverse_projection = DirectX::XMMatrixInverse(nullptr, camera->Proj());
 			frame_cbuf_data.inverse_view_projection = DirectX::XMMatrixInverse(nullptr, camera->ViewProj());
-			frame_cbuf_data.screen_resolution_x = width;
-			frame_cbuf_data.screen_resolution_y = height;
+			frame_cbuf_data.screen_resolution_x = (f32)width;
+			frame_cbuf_data.screen_resolution_y = (f32)height;
 
 			frame_cbuffer.Update(frame_cbuf_data, backbuffer_index);
 
@@ -3537,7 +3537,7 @@ namespace adria
 			desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 			desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 			desc.Buffer.StructureByteStride = sizeof(StructuredLight);
-			desc.Buffer.NumElements = dynamic_alloc.size / desc.Buffer.StructureByteStride;
+			desc.Buffer.NumElements = static_cast<u32>(dynamic_alloc.size / desc.Buffer.StructureByteStride);
 			desc.Buffer.FirstElement = dynamic_alloc.offset / desc.Buffer.StructureByteStride;
 
 			device->CreateShaderResourceView(dynamic_alloc.buffer, &desc, descriptor_allocator->GetCpuHandle(i));
@@ -3553,7 +3553,7 @@ namespace adria
 		cmd_list->ClearUnorderedAccessViewFloat(uav_debug_for_clear, debug_tiled_texture.UAV(), debug_tiled_texture.Resource(),
 			black, 0, nullptr);
 
-		cmd_list->Dispatch((u32)std::ceil(width * 1.0f / 16), (height * 1.0f / 16), 1);
+		cmd_list->Dispatch((u32)std::ceil(width * 1.0f / 16), (u32)(height * 1.0f / 16), 1);
 
 
 		tiled_barriers.ReverseTransitions();
@@ -3633,7 +3633,7 @@ namespace adria
 			desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 			desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 			desc.Buffer.StructureByteStride = sizeof(StructuredLight);
-			desc.Buffer.NumElements = dynamic_alloc.size / desc.Buffer.StructureByteStride;
+			desc.Buffer.NumElements = static_cast<u32>(dynamic_alloc.size / desc.Buffer.StructureByteStride);
 			desc.Buffer.FirstElement = dynamic_alloc.offset / desc.Buffer.StructureByteStride;
 			device->CreateShaderResourceView(dynamic_alloc.buffer, &desc, descriptor_allocator->GetCpuHandle(i + 1));
 		
@@ -3686,7 +3686,7 @@ namespace adria
 			desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 			desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 			desc.Buffer.StructureByteStride = sizeof(StructuredLight);
-			desc.Buffer.NumElements = dynamic_alloc.size / desc.Buffer.StructureByteStride;
+			desc.Buffer.NumElements = static_cast<u32>(dynamic_alloc.size / desc.Buffer.StructureByteStride);
 			desc.Buffer.FirstElement = dynamic_alloc.offset / desc.Buffer.StructureByteStride;
 			device->CreateShaderResourceView(dynamic_alloc.buffer, &desc, descriptor_allocator->GetCpuHandle(descriptor_index));
 

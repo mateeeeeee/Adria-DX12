@@ -211,7 +211,7 @@ namespace adria
                 {
                     static RealRandomGenerator real(0.0f, 1.0f);
 
-                    for (u32 i = 0; i < light_count_to_add; ++i)
+                    for (i32 i = 0; i < light_count_to_add; ++i)
                     {
                         light_parameters_t light_params{};
                         light_params.light_data.casts_shadows = false;
@@ -1094,7 +1094,7 @@ namespace adria
 
             auto window_size = ImGui::GetWindowSize();
 
-            ImGui::PlotLines("Milliseconds per Frame", frame_times_vec.data(), frame_times_vec.size(), 0, "ms/frame", 0, 30,
+            ImGui::PlotLines("Milliseconds per Frame", frame_times_vec.data(), (i32)frame_times_vec.size(), 0, "ms/frame", 0, 30,
                 ImVec2(window_size.x / 1.25f, window_size.y / 1.25f));
 
             frame_times.pop_front();

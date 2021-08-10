@@ -154,13 +154,13 @@ namespace adria
                 break;
             case WM_EXITSIZEMOVE:
                 resizing = false;
-                event_queue.ConstructAndPushEvent<ResizeEvent>(data.width, data.height);
+                event_queue.ConstructAndPushEvent<ResizeEvent>((u32)data.width, (u32)data.height);
                 break;
             case WM_SIZE:
-                if (!resizing) event_queue.ConstructAndPushEvent<ResizeEvent>(data.width, data.height);
+                if (!resizing) event_queue.ConstructAndPushEvent<ResizeEvent>((u32)data.width, (u32)data.height);
                 break;
             case WM_MOUSEWHEEL:
-                event_queue.ConstructAndPushEvent<ScrollEvent>((f32)GET_WHEEL_DELTA_WPARAM(data.wparam) / WHEEL_DELTA);
+                event_queue.ConstructAndPushEvent<ScrollEvent>((i32)GET_WHEEL_DELTA_WPARAM(data.wparam) / WHEEL_DELTA);
             }
 
         }

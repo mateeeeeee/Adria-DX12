@@ -12,43 +12,7 @@
 namespace adria
 {
 
-	/*
-			//u32 const max_bokeh = width * height;
-			//
-			//D3D11_BUFFER_DESC bokeh_buffer_desc{};
-			//bokeh_buffer_desc.StructureByteStride = sizeof(f32) * 8;
-			//bokeh_buffer_desc.ByteWidth = bokeh_buffer_desc.StructureByteStride * max_bokeh;
-			//bokeh_buffer_desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
-			//bokeh_buffer_desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-			//bokeh_buffer_desc.Usage = D3D11_USAGE_DEFAULT;
-			//
-			//HRESULT hr = device->CreateBuffer(&bokeh_buffer_desc, nullptr, bokeh_buffer.GetAddressOf());
-			//BREAK_IF_FAILED(hr);
-			//
-			//D3D11_UNORDERED_ACCESS_VIEW_DESC bokeh_uav_desc{};
-			//bokeh_uav_desc.Format = DXGI_FORMAT_UNKNOWN;
-			//bokeh_uav_desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-			//bokeh_uav_desc.Buffer.FirstElement = 0;
-			//bokeh_uav_desc.Buffer.NumElements = max_bokeh;
-			//bokeh_uav_desc.Buffer.Flags = D3D11_BUFFER_UAV_FLAG_APPEND;
-			//
-			//hr = device->CreateUnorderedAccessView(bokeh_buffer.Get(), &bokeh_uav_desc, bokeh_uav.GetAddressOf());
-			//BREAK_IF_FAILED(hr);
-			//
-			//D3D11_SHADER_RESOURCE_VIEW_DESC bokeh_srv_desc{};
-			//bokeh_srv_desc.Format = DXGI_FORMAT_UNKNOWN;
-			//bokeh_srv_desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-			//bokeh_srv_desc.Buffer.ElementOffset = 0;
-			//bokeh_srv_desc.Buffer.NumElements = max_bokeh;
-			//
-			//hr = device->CreateShaderResourceView(bokeh_buffer.Get(), &bokeh_srv_desc, bokeh_srv.GetAddressOf());
-			//BREAK_IF_FAILED(hr);
-
-
-
-	*/
-
-
+	
 	template<typename T>
 	class StructuredBuffer
 	{

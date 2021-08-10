@@ -166,12 +166,12 @@ namespace adria
 
 		u32 Width() const
 		{
-			return resource->GetDesc().Width;
+			return (u32)resource->GetDesc().Width;
 		}
 
 		u32 Height() const
 		{
-			return resource->GetDesc().Height;
+			return (u32)resource->GetDesc().Height;
 		}
 
 		DXGI_FORMAT Format() const
