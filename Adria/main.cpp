@@ -5,10 +5,11 @@
 
 #define STB_IMAGE_IMPLEMENTATION  
 #include <stb_image.h>
-#include "Utilities/MemoryLeak.h"
 #include "Core/Window.h"
 #include "Core/Engine.h"
 #include "Editor/Editor.h"
+#include "Utilities/MemoryLeak.h"
+#include "Utilities/CommandLineParser.h"
 
 using namespace adria;
 
@@ -24,23 +25,26 @@ int APIENTRY wWinMain(
     instance usage to avoid false memory check
     */
     //MemoryLeak::Checkpoint();
+
+    command_line_config_info_t cmd_line_info = ParseCommandLine(lpCmdLine);
     {
-        window_init_t window_init{};
-        window_init.instance = hInstance;
-        window_init.width = 1080;
-        window_init.height = 720;
-        window_init.title = "Adria";
-        window_init.maximize = true;
-        Window::Initialize(window_init);
+		window_init_t window_init{};
+		window_init.instance = hInstance;
+		window_init.width = cmd_line_info.window_width;
+		window_init.height = cmd_line_info.window_height;
+		window_init.title = cmd_line_info.window_title;
+		window_init.maximize = cmd_line_info.window_maximize;
+		Window::Initialize(window_init);
 
-        engine_init_t engine_init{};
-        engine_init.vsync = false;
-        engine_init.load_default_scene = true;
+		engine_init_t engine_init{};
+		engine_init.vsync = cmd_line_info.vsync;
+		engine_init.load_default_scene = true;
 
-        editor_init_t editor_init{};
-        editor_init.engine_init = std::move(engine_init);
-        editor_init.log_file = "adria.log";
-        Editor editor{ editor_init };
+		editor_init_t editor_init{};
+		editor_init.engine_init = std::move(engine_init);
+		editor_init.log_file = cmd_line_info.log_file;
+
+		Editor editor{ editor_init };
 
         Window::SetCallback([&editor](window_message_t const& msg_data) {editor.HandleWindowMessage(msg_data); });
 

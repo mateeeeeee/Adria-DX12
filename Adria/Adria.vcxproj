@@ -265,6 +265,7 @@
     <ClInclude Include="Threading\TaskSystem.h" />
     <ClInclude Include="Threading\ThreadPool.h" />
     <ClInclude Include="Utilities\AllocatorUtil.h" />
+    <ClInclude Include="Utilities\CommandLineParser.h" />
     <ClInclude Include="Utilities\FilesUtil.h" />
     <ClInclude Include="Utilities\LinearAllocator.h" />
     <ClInclude Include="Utilities\RingAllocator.h" />

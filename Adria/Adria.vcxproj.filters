@@ -185,7 +185,9 @@
     <ClCompile Include="Graphics\CopyManager.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\RenderPass.cpp" />
+    <ClCompile Include="Graphics\RenderPass.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -454,6 +456,9 @@
     </ClInclude>
     <ClInclude Include="Graphics\RayTracingUtil.h">
       <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\CommandLineParser.h">
+      <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

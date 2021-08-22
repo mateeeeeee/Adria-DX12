@@ -132,13 +132,3 @@
  #endif 
 
 #include <Windows.h>
-
-//move to camera
-
-//#ifdef near
-//#undef near
-//#endif
-//
-//#ifdef far
-//#undef far
-//#endif
