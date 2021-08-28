@@ -48,11 +48,12 @@ namespace adria
 		
 	private:
 
-        void BuildBottomLevelAS();
-        void BuildTopLevelAS();
-
+		void CreateResources();
 		void CreateRootSignatures();
 		void CreateStateObjects();
 		void CreateShaderTables();
+
+        void BuildBottomLevelAS();
+        void BuildTopLevelAS();
 	};
 }
