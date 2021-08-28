@@ -634,7 +634,7 @@
     <FxCompile Include="Resources\Shaders\RayTracing\RayTracedShadows.hlsl">
       <Filter>Shaders\RayTracing</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\RayTracing\RTAO.hlsl">
+    <FxCompile Include="Resources\Shaders\RayTracing\RayTracedAmbientOcclusion.hlsl">
       <Filter>Shaders\RayTracing</Filter>
     </FxCompile>
   </ItemGroup>
@@ -676,8 +676,11 @@
       <Filter>Shaders\Util</Filter>
     </None>
     <None Include="packages.config" />
-    <None Include="Resources\Shaders\Util\RayTracingUtils.hlsli">
+    <None Include="Resources\Shaders\Util\RayTracingUtil.hlsli">
       <Filter>Shaders\Util</Filter>
+    </None>
+    <None Include="Resources\Shaders\Globals\GlobalsRT.hlsli">
+      <Filter>Shaders\Globals</Filter>
     </None>
   </ItemGroup>
 </Project>

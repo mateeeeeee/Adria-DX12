@@ -123,9 +123,6 @@ struct ComputeCBuffer
     int visualize_max_lights;    //tiled deferred
 };
 
-
-
-
 struct WeatherCBuffer
 {
     float4 light_dir;
@@ -142,4 +139,10 @@ struct WeatherCBuffer
     float  clouds_top_height;
     float  density_factor;
     float  cloud_type;
+};
+
+struct RayTracingCBuffer
+{
+    float rtao_radius;
+    int   frame_count;
 };

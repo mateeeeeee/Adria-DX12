@@ -59,7 +59,7 @@ namespace adria
 	{
 		auto device = gfx->Device();
 		auto cmd_list = gfx->DefaultCommandList();
-		auto ray_tracing_view = reg.view<Mesh, Transform, RayTracing>();
+		auto ray_tracing_view = reg.view<Mesh, Transform>();
 
 		std::vector<D3D12_RAYTRACING_GEOMETRY_DESC> geo_descs{};
 		for (auto entity : ray_tracing_view)

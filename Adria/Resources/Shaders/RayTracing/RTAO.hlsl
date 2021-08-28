@@ -1,2 +1,0 @@
-#include "../Util/RayTracingUtils.hlsli"
-

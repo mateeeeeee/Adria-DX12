@@ -75,7 +75,7 @@ namespace adria
 				{
 					i++;
 					wcstombs(str, argv[i], sizeof(str));
-					config.log_file = (atoi(str) > 0);
+					config.log_file = str;
 				}
 				i++;
 			}
