@@ -1,4 +1,9 @@
 #include "RayTracer.h"
+#include "Components.h"
+#include "../Graphics/ShaderUtility.h"
+#include "../Logging/Logger.h"
+
+#define TO_HANDLE(x) (*reinterpret_cast<D3D12_GPU_DESCRIPTOR_HANDLE*>(x))
 
 namespace adria
 {
@@ -177,7 +182,60 @@ namespace adria
 
 	void RayTracer::CreateStateObjects()
 	{
+		ID3D12Device5* device = gfx->Device();
 
+		ShaderInfo compile_info{};
+		compile_info.stage = ShaderStage::LIB;
+		compile_info.shadersource = "Resources/Shaders/RayTracing/RayTracedShadows.hlsl";
+		ShaderBlob rt_shadows_blob;
+		ShaderUtility::CompileShader(compile_info, rt_shadows_blob);
+
+		StateObjectBuilder rt_shadows_state_object_builder(4);
+
+		D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc = {};
+		dxil_lib_desc.DXILLibrary.BytecodeLength = rt_shadows_blob.GetLength();
+		dxil_lib_desc.DXILLibrary.pShaderBytecode = rt_shadows_blob.GetPointer();
+		dxil_lib_desc.NumExports = 0;
+		dxil_lib_desc.pExports = nullptr;
+		rt_shadows_state_object_builder.AddSubObject(dxil_lib_desc);
+
+		// Add a state subobject for the shader payload configuration
+		D3D12_RAYTRACING_SHADER_CONFIG rt_shadows_shader_desc = {};
+		rt_shadows_shader_desc.MaxPayloadSizeInBytes = 4;	//bool in hlsl is 4 bytes
+		rt_shadows_shader_desc.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
+		rt_shadows_state_object_builder.AddSubObject(rt_shadows_shader_desc);
+
+		D3D12_GLOBAL_ROOT_SIGNATURE global_root_sig{};
+		global_root_sig.pGlobalRootSignature = rt_shadows_root_signature.Get();
+		rt_shadows_state_object_builder.AddSubObject(global_root_sig);
+
+		// Add a state subobject for the ray tracing pipeline config
+		D3D12_RAYTRACING_PIPELINE_CONFIG pipeline_config = {};
+		pipeline_config.MaxTraceRecursionDepth = 1;
+		rt_shadows_state_object_builder.AddSubObject(pipeline_config);
+
+		rt_shadows_state_object = rt_shadows_state_object_builder.CreateStateObject(device);
+	}
+	 
+	void RayTracer::CreateShaderTables()
+	{
+		ID3D12Device5* device = gfx->Device();
+		// Get the RTPSO properties
+		Microsoft::WRL::ComPtr<ID3D12StateObjectProperties> pso_info = nullptr;
+		BREAK_IF_FAILED(rt_shadows_state_object->QueryInterface(IID_PPV_ARGS(&pso_info)));
+		
+		void const* rts_ray_gen_id = pso_info->GetShaderIdentifier(L"RTS_RayGen");
+		void const* rts_anyhit_id = pso_info->GetShaderIdentifier(L"RTS_AnyHit");
+		void const* rts_miss_id = pso_info->GetShaderIdentifier(L"RTS_Miss");
+
+		rt_shadows_shader_table_raygen = std::make_unique<ShaderTable>(device, 1);
+		rt_shadows_shader_table_raygen->AddShaderRecord(ShaderRecord(rts_ray_gen_id));
+
+		rt_shadows_shader_table_hit = std::make_unique<ShaderTable>(device, 1);
+		rt_shadows_shader_table_hit->AddShaderRecord(ShaderRecord(rts_anyhit_id));
+
+		rt_shadows_shader_table_miss = std::make_unique<ShaderTable>(device, 1);
+		rt_shadows_shader_table_miss->AddShaderRecord(ShaderRecord(rts_miss_id));
 	}
 
 }

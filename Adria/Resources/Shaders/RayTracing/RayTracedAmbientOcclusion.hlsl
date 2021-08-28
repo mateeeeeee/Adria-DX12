@@ -13,7 +13,7 @@ struct AORayData
 };
 
 [shader("raygeneration")]
-void RayGen()
+void RTAO_RayGen()
 {
     uint3 launchIndex = DispatchRaysIndex();
     uint2 launchDim = DispatchRaysDimensions().xy;
@@ -42,13 +42,13 @@ void RayGen()
 }
 
 [shader("miss")]
-void PrimaryMiss(inout AORayData hitData)
+void RTAO_Miss(inout AORayData hitData)
 {
     hitData.hit = false;
 }
 
 [shader("anyhit")]
-void PrimaryAHS(inout AORayData hitData, in BuiltInTriangleIntersectionAttributes attribs)
+void RTAO_AnyHit(inout AORayData hitData, in BuiltInTriangleIntersectionAttributes attribs)
 {
     hitData.hit = true;
 }

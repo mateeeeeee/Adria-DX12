@@ -15,7 +15,7 @@ namespace adria
 		friend class ShaderTable;
 
 	public:
-		explicit ShaderRecord(void* _shader_id, void* _local_root_args = nullptr, u32 _local_root_args_size = 0)
+		explicit ShaderRecord(void const* _shader_id, void* _local_root_args = nullptr, u32 _local_root_args_size = 0)
 			: local_root_args(_local_root_args), local_root_args_size(_local_root_args_size)
 		{
 			memcpy(shader_id, _shader_id, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
@@ -33,7 +33,7 @@ namespace adria
 
 		ShaderTable(ID3D12Device5* device, u32 total_shader_records)
 			: shader_record_size(Align(sizeof(ShaderRecord), D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT)),
-			  upload_buffer(total_shader_records * shader_record_size)
+			  upload_buffer(device, total_shader_records * shader_record_size)
 		{
 			shader_records.reserve(total_shader_records);
 		}
@@ -57,7 +57,7 @@ namespace adria
 			return result;
 		}
 
-		D3D12_GPU_VIRTUAL_ADDRESS_RANGE ShaderRecord(u64 element) const
+		D3D12_GPU_VIRTUAL_ADDRESS_RANGE GetRange(u64 element) const
 		{
 			ADRIA_ASSERT(element < shader_records.size());
 
@@ -112,7 +112,7 @@ namespace adria
 				return nullptr;
 		}
 
-		ID3D12StateObject* CreateStateObject(ID3D12Device5* device, D3D12_STATE_OBJECT_TYPE type)
+		ID3D12StateObject* CreateStateObject(ID3D12Device5* device, D3D12_STATE_OBJECT_TYPE type = D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE)
 		{
 			D3D12_STATE_OBJECT_DESC desc{};
 			BuildDescription(type, desc);

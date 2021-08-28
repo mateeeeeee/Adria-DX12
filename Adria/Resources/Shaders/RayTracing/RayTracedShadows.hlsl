@@ -10,7 +10,7 @@ struct ShadowRayData
 };
 
 [shader("raygeneration")]
-void RayGen()
+void RTS_RayGen()
 {
     uint3 launchIndex = DispatchRaysIndex();
     uint2 launchDim = DispatchRaysDimensions().xy;
@@ -52,14 +52,14 @@ void RayGen()
 }
 
 [shader("miss")]
-void PrimaryMiss(inout ShadowRayData hitData)
+void Rts_Miss(inout ShadowRayData hitData)
 {
     hitData.hit = false;
 }
 
 
 [shader("anyhit")]
-void PrimaryAHS(inout ShadowRayData hitData, in BuiltInTriangleIntersectionAttributes attribs)
+void Rts_Anyhit(inout ShadowRayData hitData, in BuiltInTriangleIntersectionAttributes attribs)
 {
     hitData.hit = true;
 }
