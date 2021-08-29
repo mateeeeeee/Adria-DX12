@@ -79,12 +79,12 @@ namespace adria
 		static constexpr u64 MAX_SUBOBJECT_DESC_SIZE = sizeof(D3D12_HIT_GROUP_DESC);
 	public:
 
-		explicit StateObjectBuilder(u64 max_subobjects = 12) : max_subobjects(max_subobjects), num_subobjects(0u), subobjects(max_subobjects), subobject_data(max_subobjects * MAX_SUBOBJECT_DESC_SIZE)
+		explicit StateObjectBuilder(u64 max_subobjects) : max_subobjects(max_subobjects), num_subobjects(0u), subobjects(max_subobjects), subobject_data(max_subobjects * MAX_SUBOBJECT_DESC_SIZE)
 		{
 		}
 
 		template<typename SubObjectDesc>
-		D3D12_STATE_SUBOBJECT const* AddSubObject(SubObjectDesc const& desc)
+		[[maybe_unused]] D3D12_STATE_SUBOBJECT const* AddSubObject(SubObjectDesc const& desc)
 		{
 			if constexpr (std::is_same_v<SubObjectDesc, D3D12_STATE_OBJECT_CONFIG>)
 				return AddSubObject(&desc, sizeof(desc), D3D12_STATE_SUBOBJECT_TYPE_STATE_OBJECT_CONFIG);

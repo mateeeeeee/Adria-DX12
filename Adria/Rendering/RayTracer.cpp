@@ -33,7 +33,6 @@ namespace adria
 		: reg{ reg }, gfx{ gfx }, width{ width }, height{ height }
 	{
 		ID3D12Device* device = gfx->Device();
-
 		D3D12_FEATURE_DATA_D3D12_OPTIONS5 features5{};
 		HRESULT hr = device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &features5, sizeof(D3D12_FEATURE_DATA_D3D12_OPTIONS5));
 		if (FAILED(hr) || features5.RaytracingTier == D3D12_RAYTRACING_TIER_NOT_SUPPORTED)
@@ -43,6 +42,7 @@ namespace adria
 		}
 		else ray_tracing_supported = true;
 
+		CreateResources();
 		CreateRootSignatures();
 		CreateStateObjects();
 		CreateShaderTables();
@@ -61,14 +61,57 @@ namespace adria
 		BuildTopLevelAS();
 	}
 
+	Texture2D& RayTracer::RayTraceShadows(Texture2D const& gbuffer_pos)
+	{
+		return rt_shadows_output;
+	}
+
 	void RayTracer::CreateResources()
 	{
-		//create output textures
+		ID3D12Device5* device = gfx->Device();
+
+		dxr_heap = std::make_unique<DescriptorHeap>(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 50);
+
+		texture2d_desc_t uav_target_desc{};
+		uav_target_desc.width = width;
+		uav_target_desc.height = height;
+		uav_target_desc.format = DXGI_FORMAT_R8_UNORM;
+		uav_target_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+		uav_target_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+
+		size_t current_handle_index = 0;
+		rt_shadows_output = Texture2D(device, uav_target_desc);
+		rt_shadows_output.CreateSRV(dxr_heap->GetCpuHandle(current_handle_index++));
+		rt_shadows_output.CreateUAV(dxr_heap->GetCpuHandle(current_handle_index++));
+
+		rtao_output = Texture2D(device, uav_target_desc);
+		rtao_output.CreateSRV(dxr_heap->GetCpuHandle(current_handle_index++));
+		rtao_output.CreateUAV(dxr_heap->GetCpuHandle(current_handle_index++));
 	}
 
 	void RayTracer::CreateRootSignatures()
 	{
-		//todo
+		ID3D12Device5* device = gfx->Device();
+
+		/*global root signature*/
+		D3D12_FEATURE_DATA_ROOT_SIGNATURE feature_data{};
+		feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+
+		std::array<CD3DX12_ROOT_PARAMETER1, 6> root_parameters{};
+		CD3DX12_ROOT_PARAMETER1 root_parameter{};
+
+		//fill root parameters
+
+		CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_desc{};
+		root_signature_desc.Init_1_1((u32)root_parameters.size(), root_parameters.data(), 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+		ComPtr<ID3DBlob> signature;
+		ComPtr<ID3DBlob> error;
+		D3DX12SerializeVersionedRootSignature(&root_signature_desc, feature_data.HighestVersion, &signature, &error);
+		if (error) OutputDebugStringA((char*)error->GetBufferPointer());
+
+		BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rt_shadows_root_signature)));
+
 	}
 
 	void RayTracer::CreateStateObjects()
@@ -81,7 +124,7 @@ namespace adria
 		ShaderBlob rt_shadows_blob;
 		ShaderUtility::CompileShader(compile_info, rt_shadows_blob);
 
-		StateObjectBuilder rt_shadows_state_object_builder(4);
+		StateObjectBuilder rt_shadows_state_object_builder(5);
 
 		D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc = {};
 		dxil_lib_desc.DXILLibrary.BytecodeLength = rt_shadows_blob.GetLength();
@@ -105,18 +148,24 @@ namespace adria
 		pipeline_config.MaxTraceRecursionDepth = 1;
 		rt_shadows_state_object_builder.AddSubObject(pipeline_config);
 
+		D3D12_HIT_GROUP_DESC anyhit_group{};
+		anyhit_group.Type = D3D12_HIT_GROUP_TYPE_TRIANGLES;
+		anyhit_group.AnyHitShaderImport = L"Rts_Anyhit";
+		anyhit_group.HitGroupExport = L"ShadowAnyHitGroup";
+		rt_shadows_state_object_builder.AddSubObject(anyhit_group);
+
 		rt_shadows_state_object = rt_shadows_state_object_builder.CreateStateObject(device);
 	}
 	 
 	void RayTracer::CreateShaderTables()
 	{
 		ID3D12Device5* device = gfx->Device();
-		// Get the RTPSO properties
+		
 		Microsoft::WRL::ComPtr<ID3D12StateObjectProperties> pso_info = nullptr;
 		BREAK_IF_FAILED(rt_shadows_state_object->QueryInterface(IID_PPV_ARGS(&pso_info)));
 		
 		void const* rts_ray_gen_id = pso_info->GetShaderIdentifier(L"RTS_RayGen");
-		void const* rts_anyhit_id = pso_info->GetShaderIdentifier(L"RTS_AnyHit");
+		void const* rts_anyhit_id = pso_info->GetShaderIdentifier(L"ShadowAnyHitGroup");
 		void const* rts_miss_id = pso_info->GetShaderIdentifier(L"RTS_Miss");
 
 		rt_shadows_shader_table_raygen = std::make_unique<ShaderTable>(device, 1);
