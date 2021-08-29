@@ -162,6 +162,13 @@ namespace adria
 		f32 cloud_type;
 	};
 
+	DECLSPEC_ALIGN(16) struct RayTracingCBuffer
+	{
+		f32 rtao_radius;
+		i32 frame_count;
+	};
+
+
 	struct StructuredLight
 	{
 		DirectX::XMVECTOR position;

@@ -2,6 +2,7 @@
 #include "Components.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../Logging/Logger.h"
+#include "pix3.h"
 
 #define TO_HANDLE(x) (*reinterpret_cast<D3D12_GPU_DESCRIPTOR_HANDLE*>(x))
 
@@ -30,7 +31,7 @@ namespace adria
 
 
 	RayTracer::RayTracer(tecs::registry& reg, GraphicsCoreDX12* gfx, u32 width, u32 height) 
-		: reg{ reg }, gfx{ gfx }, width{ width }, height{ height }
+		: reg{ reg }, gfx{ gfx }, width{ width }, height{ height }, ray_tracing_cbuffer(gfx->Device(), gfx->BackbufferCount())
 	{
 		ID3D12Device* device = gfx->Device();
 		D3D12_FEATURE_DATA_D3D12_OPTIONS5 features5{};
@@ -61,8 +62,50 @@ namespace adria
 		BuildTopLevelAS();
 	}
 
-	Texture2D& RayTracer::RayTraceShadows(Texture2D const& gbuffer_pos)
+	Texture2D& RayTracer::RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& gbuffer_pos,
+		D3D12_CONSTANT_BUFFER_VIEW_DESC const& frame_cbuf_view,
+		D3D12_CONSTANT_BUFFER_VIEW_DESC const& light_cbuf_view)
 	{
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Ray Traced Shadows Pass");
+
+		auto device = gfx->Device();
+		auto descriptor_allocator = gfx->DescriptorAllocator();
+
+		ResourceBarriers rts_barrier{};
+		rts_barrier.AddTransition(rt_shadows_output.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		rts_barrier.Submit(cmd_list);
+
+		cmd_list->SetComputeRootSignature(rt_shadows_root_signature.Get());
+
+		cmd_list->SetComputeRootConstantBufferView(0, frame_cbuf_view.BufferLocation);
+		cmd_list->SetComputeRootConstantBufferView(1, light_cbuf_view.BufferLocation);
+		cmd_list->SetComputeRootConstantBufferView(2, ray_tracing_cbuffer.View(gfx->BackbufferIndex()).BufferLocation);
+		cmd_list->SetComputeRootShaderResourceView(3, tlas->GetGPUVirtualAddress());
+
+		OffsetType descriptor_index = descriptor_allocator->AllocateRange(1);
+		auto dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+		device->CopyDescriptorsSimple(1, dst_descriptor, gbuffer_pos.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		cmd_list->SetComputeRootDescriptorTable(4, descriptor_allocator->GetGpuHandle(descriptor_index));
+		
+		descriptor_index = descriptor_allocator->AllocateRange(1);
+		dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+		device->CopyDescriptorsSimple(1, dst_descriptor, rt_shadows_output.UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		cmd_list->SetComputeRootDescriptorTable(5, descriptor_allocator->GetGpuHandle(descriptor_index));
+		
+		cmd_list->SetPipelineState1(rt_shadows_state_object.Get());
+
+		D3D12_DISPATCH_RAYS_DESC dispatch_desc = {};
+		dispatch_desc.HitGroupTable = rt_shadows_shader_table_hit->GetRangeAndStride();
+		dispatch_desc.MissShaderTable = rt_shadows_shader_table_miss->GetRangeAndStride();
+		dispatch_desc.RayGenerationShaderRecord = rt_shadows_shader_table_raygen->GetRange(0);
+		dispatch_desc.Width = width;
+		dispatch_desc.Height = height;
+		dispatch_desc.Depth = 1;
+
+		cmd_list->DispatchRays(&dispatch_desc);
+
+		rts_barrier.ReverseTransitions();
+		rts_barrier.Submit(cmd_list);
 		return rt_shadows_output;
 	}
 
@@ -100,13 +143,33 @@ namespace adria
 		std::array<CD3DX12_ROOT_PARAMETER1, 6> root_parameters{};
 		CD3DX12_ROOT_PARAMETER1 root_parameter{};
 
+		root_parameters[0].InitAsConstantBufferView(0);
+		root_parameters[1].InitAsConstantBufferView(2);
+		root_parameters[2].InitAsConstantBufferView(10);
+		root_parameters[3].InitAsShaderResourceView(0);
+
+		D3D12_DESCRIPTOR_RANGE1 srv_range = {};
+		srv_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+		srv_range.NumDescriptors = 1;
+		srv_range.BaseShaderRegister = 0;
+		srv_range.RegisterSpace = 0;
+		srv_range.OffsetInDescriptorsFromTableStart = 0;
+		root_parameters[4].InitAsDescriptorTable(1, &srv_range);
+
+		D3D12_DESCRIPTOR_RANGE1 uav_range = {};
+		uav_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+		uav_range.NumDescriptors = 1;
+		uav_range.BaseShaderRegister = 0;
+		uav_range.RegisterSpace = 0;
+		uav_range.OffsetInDescriptorsFromTableStart = 0;
+		root_parameters[5].InitAsDescriptorTable(1, &uav_range);
 		//fill root parameters
 
 		CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_desc{};
 		root_signature_desc.Init_1_1((u32)root_parameters.size(), root_parameters.data(), 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
-		ComPtr<ID3DBlob> signature;
-		ComPtr<ID3DBlob> error;
+		Microsoft::WRL::ComPtr<ID3DBlob> signature;
+		Microsoft::WRL::ComPtr<ID3DBlob> error;
 		D3DX12SerializeVersionedRootSignature(&root_signature_desc, feature_data.HighestVersion, &signature, &error);
 		if (error) OutputDebugStringA((char*)error->GetBufferPointer());
 
@@ -292,7 +355,6 @@ namespace adria
 
 		tlas = buffers.result_buffer.Get();
 	}
-
 
 }
 

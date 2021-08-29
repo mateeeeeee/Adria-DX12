@@ -25,7 +25,9 @@ namespace adria
 
         void BuildAccelerationStructures();
 
-		Texture2D& RayTraceShadows(Texture2D const& gbuffer_pos);
+		Texture2D& RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& gbuffer_pos,
+			D3D12_CONSTANT_BUFFER_VIEW_DESC const& frame_cbuf_view,
+			D3D12_CONSTANT_BUFFER_VIEW_DESC const& light_cbuf_view);
 
 
     private:
@@ -35,6 +37,9 @@ namespace adria
 		bool ray_tracing_supported;
 
 		std::unique_ptr<DescriptorHeap> dxr_heap = nullptr;
+		//Persistent cbuffer
+		ConstantBuffer<RayTracingCBuffer> ray_tracing_cbuffer;
+		RayTracingCBuffer ray_tracing_cbuf_data;
 
         Microsoft::WRL::ComPtr<ID3D12Resource> blas = nullptr;
         Microsoft::WRL::ComPtr<ID3D12Resource> tlas = nullptr;
@@ -49,9 +54,9 @@ namespace adria
 
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> rtao_root_signature = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12StateObject> rtao_state_object = nullptr;
-		std::unique_ptr<ShaderTable> rtao_shadows_shader_table_raygen = nullptr;
-		std::unique_ptr<ShaderTable> rtao_shadows_shader_table_miss = nullptr;
-		std::unique_ptr<ShaderTable> rtao_shadows_shader_table_hit = nullptr;
+		std::unique_ptr<ShaderTable> rtao_shader_table_raygen = nullptr;
+		std::unique_ptr<ShaderTable> rtao_shader_table_miss = nullptr;
+		std::unique_ptr<ShaderTable> rtao_shader_table_hit = nullptr;
 		Texture2D rtao_output;
 		
 	private:

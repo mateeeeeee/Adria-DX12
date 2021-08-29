@@ -32,7 +32,7 @@ namespace adria
 	public:
 
 		ShaderTable(ID3D12Device5* device, u32 total_shader_records)
-			: shader_record_size(Align(sizeof(ShaderRecord), D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT)),
+			: shader_record_size((u32)Align(sizeof(ShaderRecord), D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT)),
 			  upload_buffer(device, total_shader_records * shader_record_size)
 		{
 			shader_records.reserve(total_shader_records);

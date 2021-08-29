@@ -47,7 +47,6 @@ namespace adria
 		void Update(BufferType const& data, u32 cbuffer_index);
 		void Update(void* data, u32 data_size, u32 cbuffer_index);
 
-		
 		D3D12_CONSTANT_BUFFER_VIEW_DESC View(u32 cbuffer_index) const;
 
 	private:
