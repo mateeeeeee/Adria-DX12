@@ -95,7 +95,7 @@ namespace adria
 
 		f32 ssr_ray_step;
 		f32 ssr_ray_hit_threshold;
-		f32 motion_blur_intensity;
+		f32 velocity_buffer_scale;
 		f32 tone_map_exposure;
 
 		DirectX::XMVECTOR dof_params;

@@ -118,11 +118,11 @@ float4 main(VertexOut pin) : SV_TARGET
     float3 colorMax = colorAvg + gColorBoxSigma * sigma;
 
     // Find the longest motion vector
-    float2 motion = velocity_buffer.Load(int3(ipos, 0)).rg / 48;
+    float2 motion = velocity_buffer.Load(int3(ipos, 0)).rg;
     [unroll]
     for (int a = 0; a < 8; a++)
     {
-        float2 m = velocity_buffer.Load(int3(ipos + offset[a], 0)).rg / 48;
+        float2 m = velocity_buffer.Load(int3(ipos + offset[a], 0)).rg;
         motion = dot(m, m) > dot(motion, motion) ? m : motion;
     }
     

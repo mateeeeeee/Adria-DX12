@@ -19,7 +19,7 @@ static const int SAMPLE_COUNT = 16;
 [RootSignature(MotionBlur_RS)]
 float4 main(VertexOut pin) : SV_TARGET
 {
-    float2 velocity = velocity_buffer.SampleLevel(linear_wrap_sampler, pin.Tex, 0) / postprocess_cbuf.motion_blur_intensity;
+    float2 velocity = velocity_buffer.SampleLevel(linear_wrap_sampler, pin.Tex, 0);
     
     float2 tex_coord = pin.Tex;
 

@@ -57,7 +57,7 @@ namespace adria
 		f32 density_factor = 0.015f;
 		f32 cloud_type = 1.0f;
 		bool motion_blur = false;
-		f32 motion_blur_intensity = 32.0f;
+		f32 velocity_buffer_scale = 64.0f;
 		bool use_tiled_deferred = false;
 		bool visualize_tiled = false;
 		i32 visualize_max_lights = 16;

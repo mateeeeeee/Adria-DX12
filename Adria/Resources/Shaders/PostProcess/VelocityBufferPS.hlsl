@@ -25,7 +25,7 @@ float2 main(VertexOut pin) : SV_Target0
     
     prev_clip_space_position /= prev_clip_space_position.w;
     
-    float2 velocity = (clip_space_position - prev_clip_space_position).xy;
+    float2 velocity = (clip_space_position - prev_clip_space_position).xy / postprocess_cbuf.velocity_buffer_scale;
     
     return velocity;
 }

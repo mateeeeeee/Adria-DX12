@@ -3026,7 +3026,7 @@ namespace adria
 			postprocess_cbuf_data.ssr_ray_step = settings.ssr_ray_step;
 			postprocess_cbuf_data.ssr_ray_hit_threshold = settings.ssr_ray_hit_threshold;
 			postprocess_cbuf_data.dof_params = XMVectorSet(settings.dof_near_blur, settings.dof_near, settings.dof_far, settings.dof_far_blur);
-			postprocess_cbuf_data.motion_blur_intensity = settings.motion_blur_intensity;
+			postprocess_cbuf_data.velocity_buffer_scale = settings.velocity_buffer_scale;
 			postprocess_cbuf_data.fog_falloff = settings.fog_falloff;
 			postprocess_cbuf_data.fog_density = settings.fog_density;
 			postprocess_cbuf_data.fog_type = static_cast<i32>(settings.fog_type);
@@ -4874,12 +4874,13 @@ namespace adria
 			cmd_list->SetPipelineState(pso_map[PSO::eVelocityBuffer].Get());
 
 			cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
+			cmd_list->SetGraphicsRootConstantBufferView(1, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
 			
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(1);
 			device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index), 
 				depth_stencil_target.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-			cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
+			cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetGpuHandle(descriptor_index));
 			cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 			cmd_list->DrawInstanced(4, 1, 0, 0);
 		}
