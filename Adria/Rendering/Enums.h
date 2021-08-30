@@ -43,6 +43,7 @@ namespace adria
 		VS_Bokeh,
 		GS_Bokeh,
 		PS_Bokeh,
+		PS_VelocityBuffer,
 		PS_MotionBlur,
 		PS_Fog,
 		PS_Copy,
@@ -97,7 +98,8 @@ namespace adria
 		eTiledLighting,
 		eClusterBuilding,
 		eClusterCulling,
-		eGenerateMips
+		eGenerateMips,
+		eVelocityBuffer
 	};
 
 	enum class PSO : u8
@@ -150,10 +152,9 @@ namespace adria
 		eBokehGenerate,
 		eBokeh,
 		eGenerateMips,
+		eVelocityBuffer,
         eUnknown
 	};
-
-
 
 	enum class ToneMap : u8
 	{

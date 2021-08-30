@@ -105,6 +105,7 @@ namespace adria
 		Texture2D ao_texture;
 		Texture2D hbao_random_texture;
 		Texture2D ssao_random_texture;
+		Texture2D velocity_buffer;
 		Texture2D blur_intermediate_texture;
 		Texture2D blur_final_texture;
 		Texture2D bloom_extract_texture;
@@ -134,6 +135,7 @@ namespace adria
 		std::vector<RenderPass> shadow_cascades_passes;
 		std::array<RenderPass, 2> postprocess_passes;
 		RenderPass forward_render_pass;
+		RenderPass velocity_buffer_pass;
 		RenderPass fxaa_render_pass;
 		RenderPass offscreen_resolve_pass;
 
@@ -185,7 +187,6 @@ namespace adria
 		void CreateViews(u32 width, u32 height);
 		void CreateRenderPasses(u32 width, u32 height);
 		void CreateIBLTextures();
-
 		
 		void UpdateConstantBuffers(f32 dt);
 		void CameraFrustumCulling();
@@ -200,7 +201,6 @@ namespace adria
 		void PassDeferredClusteredLighting(ID3D12GraphicsCommandList4* cmd_list);
 		void PassForward(ID3D12GraphicsCommandList4* cmd_list); 
 		void PassPostprocess(ID3D12GraphicsCommandList4* cmd_list);
-		//postprocess
 
 		void PassShadowMapDirectional(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassShadowMapSpot(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
@@ -219,6 +219,7 @@ namespace adria
 		void PassDrawBokeh(ID3D12GraphicsCommandList4* cmd_list);
 		void PassBloom(ID3D12GraphicsCommandList4* cmd_list);
 		void PassGodRays(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
+		void PassVelocityBuffer(ID3D12GraphicsCommandList4* cmd_list);
 		void PassMotionBlur(ID3D12GraphicsCommandList4* cmd_list);
 		void PassFXAA(ID3D12GraphicsCommandList4* cmd_list);
 		void PassTAA(ID3D12GraphicsCommandList4* cmd_list);

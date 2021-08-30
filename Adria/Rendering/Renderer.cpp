@@ -343,7 +343,7 @@ namespace adria
 	}
 	using namespace shadow_helpers;
 
-	namespace threading
+	namespace thread_locals
 	{
 		//transient cbuffers
 		thread_local DynamicAllocation object_allocation;
@@ -355,7 +355,7 @@ namespace adria
 		thread_local LightCBuffer light_cbuf_data{};
 		thread_local ShadowCBuffer shadow_cbuf_data{};
 	}
-	using namespace threading;
+	using namespace thread_locals;
 
 	using namespace tecs;
 
@@ -609,7 +609,6 @@ namespace adria
 	void Renderer::LoadTextures()
 	{
 		//ao textures
-
 		ID3D12Resource* ssao_upload_texture = nullptr; //keep it alive until call to execute
 
 		{
@@ -934,6 +933,9 @@ namespace adria
 
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/FogPS.cso", ps_blob);
 			shader_map[PS_Fog] = ps_blob;
+
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/VelocityBufferPS.cso", ps_blob);
+			shader_map[PS_VelocityBuffer] = ps_blob;
 		}
 
 		//gbuffer 
@@ -1085,7 +1087,6 @@ namespace adria
 		
 		auto device = gfx->Device();
 
-		
 		//root sigs (written in hlsl)
 		{
 			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Skybox].GetPointer(), shader_map[PS_Skybox].GetLength(),
@@ -1170,6 +1171,8 @@ namespace adria
 			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_BokehGenerate].GetPointer(), shader_map[CS_BokehGenerate].GetLength(),
 				IID_PPV_ARGS(rs_map[RootSig::eBokehGenerate].GetAddressOf())));
 
+			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_VelocityBuffer].GetPointer(), shader_map[PS_VelocityBuffer].GetLength(),
+				IID_PPV_ARGS(rs_map[RootSig::eVelocityBuffer].GetAddressOf())));
 
 			rs_map[RootSig::eCopy] = rs_map[RootSig::eFXAA];
 		}
@@ -1988,6 +1991,28 @@ namespace adria
 
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eMotionBlur])));
 			}
+
+			//velocity buffer
+			{
+
+				// Describe and create the graphics pipeline state object (PSO).
+				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
+				pso_desc.InputLayout = { nullptr, 0 };
+				pso_desc.pRootSignature = rs_map[RootSig::eVelocityBuffer].Get();
+				pso_desc.VS = shader_map[VS_ScreenQuad];
+				pso_desc.PS = shader_map[PS_VelocityBuffer];
+				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+
+				pso_desc.SampleMask = UINT_MAX;
+				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+				pso_desc.NumRenderTargets = 1;
+				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16_FLOAT;
+				pso_desc.SampleDesc.Count = 1;
+				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
+
+				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[PSO::eVelocityBuffer])));
+			}
 		}
 
 		
@@ -2103,8 +2128,6 @@ namespace adria
 		//gbuffer
 		{
 			gbuffer.clear();
-
-			
 
 			texture2d_desc_t render_target_desc{};
 			render_target_desc.width = width;
@@ -2382,11 +2405,28 @@ namespace adria
 			bokeh->CreateCounterUAV(uav_heap->GetCpuHandle(uav_heap_index++));
 		}
 		
+		//velocity buffer
+		{
+			texture2d_desc_t velocity_buffer_desc{};
+			velocity_buffer_desc.width = width;
+			velocity_buffer_desc.height = height;
+			velocity_buffer_desc.clear_value.Color[0] = 0.0f;
+			velocity_buffer_desc.clear_value.Color[1] = 0.0f;
+			velocity_buffer_desc.clear_value.Color[2] = 0.0f;
+			velocity_buffer_desc.clear_value.Color[3] = 0.0f;
+			velocity_buffer_desc.clear_value.Format = DXGI_FORMAT_R16G16_FLOAT;
+			velocity_buffer_desc.format = DXGI_FORMAT_R16G16_FLOAT;
+			velocity_buffer_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+			velocity_buffer_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+
+			velocity_buffer = Texture2D(gfx->Device(), velocity_buffer_desc);
+			velocity_buffer.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
+			velocity_buffer.CreateRTV(rtv_heap->GetCpuHandle(rtv_heap_index++));
+		}
 	}
 	void Renderer::CreateRenderPasses(u32 width, u32 height)
 	{
 		static D3D12_CLEAR_VALUE black = { .Format = DXGI_FORMAT_UNKNOWN, .Color = {0.0f, 0.0f, 0.0f, 1.0f}, };
-
 
 		//gbuffer render pass
 		{
@@ -2618,6 +2658,23 @@ namespace adria
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			offscreen_resolve_pass = RenderPass(render_pass_desc);
+		}
+
+		//velocity buffer pass
+		{
+			render_pass_desc_t render_pass_desc{};
+
+			rtv_attachment_desc_t velocity_buffer_attachment{};
+			velocity_buffer_attachment.cpu_handle = velocity_buffer.RTV();
+			velocity_buffer_attachment.clear_value = black;
+			velocity_buffer_attachment.clear_value.Format = DXGI_FORMAT_R16G16_FLOAT;
+			velocity_buffer_attachment.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
+			velocity_buffer_attachment.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
+			render_pass_desc.rtv_attachments.push_back(velocity_buffer_attachment);
+
+			render_pass_desc.width = width;
+			render_pass_desc.height = height;
+			velocity_buffer_pass = RenderPass(render_pass_desc);
 		}
 	}
 	void Renderer::CreateIBLTextures()
@@ -3712,6 +3769,8 @@ namespace adria
 	{
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Postprocessing Pass");
 
+		PassVelocityBuffer(cmd_list);
+
 		auto lights = reg.view<Light>();
 
 		postprocess_passes[postprocess_index].Begin(cmd_list); //set ping as rt
@@ -3831,10 +3890,6 @@ namespace adria
 		if (settings.bloom)
 		{
 			PassBloom(cmd_list);
-
-			//postprocess_passes[postprocess_index].Begin(cmd_list);
-			//AddTextures(cmd_list, postprocess_textures[!postprocess_index], blur_final_texture);
-			//postprocess_passes[postprocess_index].End(cmd_list);
 
 			postprocess_barriers.ReverseTransitions();
 			postprocess_barriers.Submit(cmd_list);
@@ -4694,7 +4749,7 @@ namespace adria
 
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
 
-		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { postprocess_textures[!postprocess_index].SRV(), depth_stencil_target.SRV() };
+		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { postprocess_textures[!postprocess_index].SRV(), velocity_buffer.SRV() };
 		D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetCpuHandle(descriptor_index) };
 		u32 src_range_sizes[] = { 1, 1 };
 		u32 dst_range_sizes[] = { 2 };
@@ -4798,6 +4853,42 @@ namespace adria
 
 		cmd_list->DrawInstanced(4, 1, 0, 0);
 	}
+
+	void Renderer::PassVelocityBuffer(ID3D12GraphicsCommandList4* cmd_list)
+	{
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Velocity Buffer Pass");
+
+		if (!settings.motion_blur && !(settings.anti_aliasing & AntiAliasing_TAA)) return;
+
+		auto device = gfx->Device();
+		auto descriptor_allocator = gfx->DescriptorAllocator();
+
+		ResourceBarriers velocity_barrier{};
+		velocity_barrier.AddTransition(velocity_buffer.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+			D3D12_RESOURCE_STATE_RENDER_TARGET);
+		velocity_barrier.Submit(cmd_list);
+
+		velocity_buffer_pass.Begin(cmd_list);
+		{
+			cmd_list->SetGraphicsRootSignature(rs_map[RootSig::eVelocityBuffer].Get());
+			cmd_list->SetPipelineState(pso_map[PSO::eVelocityBuffer].Get());
+
+			cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
+			
+			OffsetType descriptor_index = descriptor_allocator->AllocateRange(1);
+			device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index), 
+				depth_stencil_target.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+			cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
+			cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+			cmd_list->DrawInstanced(4, 1, 0, 0);
+		}
+		velocity_buffer_pass.End(cmd_list);
+
+		velocity_barrier.ReverseTransitions();
+		velocity_barrier.Submit(cmd_list);
+	}
+
 	void Renderer::PassToneMap(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Tone Map Pass");
@@ -4820,6 +4911,8 @@ namespace adria
 	}
 	void Renderer::PassFXAA(ID3D12GraphicsCommandList4* cmd_list)
 	{
+		ADRIA_ASSERT(settings.anti_aliasing & AntiAliasing_FXAA);
+
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "FXAA Pass");
 
 		auto device = gfx->Device();
@@ -4850,19 +4943,22 @@ namespace adria
 	}
 	void Renderer::PassTAA(ID3D12GraphicsCommandList4* cmd_list)
 	{
+		ADRIA_ASSERT(settings.anti_aliasing & AntiAliasing_TAA);
+
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "TAA Pass");
 
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
 
-
 		cmd_list->SetGraphicsRootSignature(rs_map[RootSig::eTAA].Get());
 		cmd_list->SetPipelineState(pso_map[PSO::eTAA].Get());
 
-		OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
+		OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 		device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index), postprocess_textures[!postprocess_index].SRV(),
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index + 1), prev_hdr_render_target.SRV(),
+			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index + 2), velocity_buffer.SRV(),
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		cmd_list->SetGraphicsRootDescriptorTable(0, descriptor_allocator->GetGpuHandle(descriptor_index));

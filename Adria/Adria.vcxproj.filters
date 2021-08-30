@@ -637,6 +637,9 @@
     <FxCompile Include="Resources\Shaders\RayTracing\RayTracedAmbientOcclusion.hlsl">
       <Filter>Shaders\RayTracing</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\PostProcess\VelocityBufferPS.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Shaders\Globals\GlobalsCS.hlsli">

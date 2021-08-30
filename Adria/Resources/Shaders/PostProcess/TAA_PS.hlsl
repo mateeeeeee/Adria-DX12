@@ -13,7 +13,7 @@ SamplerState linear_wrap_sampler : register(s0);
 
 Texture2D hdr_scene : register(t0);
 Texture2D prev_hdr_scene : register(t1);
-//Texture2D velocity_buffer : register(t2);  for dynamic scenes, see MotionBlurPS on how to generate it
+Texture2D velocity_buffer : register(t2);  //for dynamic scenes, see MotionBlurPS on how to generate it
 
 static const float gAlpha = 0.1f;
 static const float gColorBoxSigma = 1.0f;
@@ -118,16 +118,16 @@ float4 main(VertexOut pin) : SV_TARGET
     float3 colorMax = colorAvg + gColorBoxSigma * sigma;
 
     // Find the longest motion vector
-    //float2 motion = gTexMotionVec.Load(int3(ipos, 0)).xy;
-    //[unroll]
-    //for (int a = 0; a < 8; a++)
-    //{
-    //    float2 m = gTexMotionVec.Load(int3(ipos + offset[a], 0)).rg;
-    //    motion = dot(m, m) > dot(motion, motion) ? m : motion;
-    //}
-    //
+    float2 motion = velocity_buffer.Load(int3(ipos, 0)).rg / 48;
+    [unroll]
+    for (int a = 0; a < 8; a++)
+    {
+        float2 m = velocity_buffer.Load(int3(ipos + offset[a], 0)).rg / 48;
+        motion = dot(m, m) > dot(motion, motion) ? m : motion;
+    }
+    
     // Use motion vector to fetch previous frame color (history)
-    float3 history = BicubicSampleCatmullRom(prev_hdr_scene, pin.Tex * tex_dim, tex_dim);
+    float3 history = BicubicSampleCatmullRom(prev_hdr_scene, (pin.Tex + motion) * tex_dim, tex_dim);
 
     history = RGBToYCgCo(history);
 
