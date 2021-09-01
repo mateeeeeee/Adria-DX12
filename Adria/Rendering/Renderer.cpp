@@ -403,6 +403,12 @@ namespace adria
 		UpdateConstantBuffers(dt);
 		CameraFrustumCulling();
 	}
+
+	void Renderer::SetProfilerSettings(ProfilerFlags _profiler_flags)
+	{
+		profiler_flags = _profiler_flags;
+	}
+
 	void Renderer::Render(RendererSettings const& _settings)
 	{
 		settings = _settings;
@@ -841,6 +847,12 @@ namespace adria
 	{
 		return texture_manager;
 	}
+
+	std::vector<std::string> Renderer::GetProfilerResults()
+{
+		return profiler.GetProfilerResults(gfx->DefaultCommandList());
+	}
+
 	Texture2D Renderer::GetOffscreenTexture() const
 	{
 		return offscreen_ldr_target;

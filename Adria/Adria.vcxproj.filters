@@ -460,6 +460,15 @@
     <ClInclude Include="Utilities\CommandLineParser.h">
       <Filter>Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\Profiler.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\ProfilerFlags.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\EnumUtil.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

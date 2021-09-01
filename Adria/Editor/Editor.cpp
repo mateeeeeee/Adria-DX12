@@ -22,11 +22,120 @@ namespace adria
     /////////////////////////////// PUBLIC //////////////////////////////////
     /////////////////////////////////////////////////////////////////////////
 
+    editor_log{
+		ImGuiTextBuffer     Buf;
+		ImGuiTextFilter     Filter;
+		ImVector<int>       LineOffsets;
+		bool                AutoScroll;
 
-    Editor::Editor(editor_init_t const& init) : engine()
+		EditorLogger()
+		{
+			AutoScroll = true;
+			Clear();
+		}
+
+		void Clear()
+		{
+			Buf.clear();
+			LineOffsets.clear();
+			LineOffsets.push_back(0);
+		}
+
+		void AddLog(const char* fmt, ...) IM_FMTARGS(2)
+		{
+			int old_size = Buf.size();
+			va_list args;
+			va_start(args, fmt);
+			Buf.appendfv(fmt, args);
+			va_end(args);
+			for (int new_size = Buf.size(); old_size < new_size; old_size++)
+				if (Buf[old_size] == '\n')
+					LineOffsets.push_back(old_size + 1);
+		}
+
+		void Draw(const char* title, bool* p_open = NULL)
+		{
+			if (!ImGui::Begin(title, p_open))
+			{
+				ImGui::End();
+				return;
+			}
+
+			// Options menu
+			if (ImGui::BeginPopup("Options"))
+			{
+				ImGui::Checkbox("Auto-scroll", &AutoScroll);
+				ImGui::EndPopup();
+			}
+
+			// Main window
+			if (ImGui::Button("Options"))
+				ImGui::OpenPopup("Options");
+			ImGui::SameLine();
+			bool clear = ImGui::Button("Clear");
+			ImGui::SameLine();
+			bool copy = ImGui::Button("Copy");
+			ImGui::SameLine();
+			Filter.Draw("Filter", -100.0f);
+
+			ImGui::Separator();
+			ImGui::BeginChild("scrolling", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+
+			if (clear)
+				Clear();
+			if (copy)
+				ImGui::LogToClipboard();
+
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+			const char* buf = Buf.begin();
+			const char* buf_end = Buf.end();
+			if (Filter.IsActive())
+			{
+				for (int line_no = 0; line_no < LineOffsets.Size; line_no++)
+				{
+					const char* line_start = buf + LineOffsets[line_no];
+					const char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
+					if (Filter.PassFilter(line_start, line_end))
+						ImGui::TextUnformatted(line_start, line_end);
+				}
+			}
+			else
+			{
+				ImGuiListClipper clipper;
+				clipper.Begin(LineOffsets.Size);
+				while (clipper.Step())
+				{
+					for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
+					{
+						const char* line_start = buf + LineOffsets[line_no];
+						const char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
+						ImGui::TextUnformatted(line_start, line_end);
+					}
+				}
+				clipper.End();
+			}
+			ImGui::PopStyleVar();
+
+			if (AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+				ImGui::SetScrollHereY(1.0f);
+
+			ImGui::EndChild();
+			ImGui::End();
+		}
+	};
+
+	enum class MaterialTextureType
+	{
+		eAlbedo,
+		eMetallicRoughness,
+		eEmissive
+	};
+
+
+    Editor::Editor(editor_init_t const& init) : engine(), editor_log(new EditorLog{})
     {
         Log::Initialize(init.log_file);
-        Log::AddLogCallback([this](std::string const& s) { editor_log.AddLog(s.c_str()); });
+        Log::AddLogCallback([this](std::string const& s) { editor_log->AddLog(s.c_str()); });
 
         engine = std::make_unique<Engine>(init.engine_init);
         gui = std::make_unique<GUI>(engine->gfx.get());
@@ -46,7 +155,7 @@ namespace adria
 
         if (gui->IsVisible())
         {
-            engine->Run(settings, true);
+            engine->Run(renderer_settings, true);
             auto gui_cmd_list = engine->gfx->NewCommandList();
             engine->gfx->SetBackbuffer(gui_cmd_list);
             {
@@ -68,7 +177,7 @@ namespace adria
         }
         else
         {
-            engine->Run(settings, false);
+            engine->Run(renderer_settings, false);
             engine->Present();
         }
     }
@@ -838,7 +947,7 @@ namespace adria
     {
         ImGui::Begin("Log");
         {
-            editor_log.Draw("Log");
+            editor_log->Draw("Log");
         }
         ImGui::End();
     }
@@ -849,8 +958,7 @@ namespace adria
         {
             if (ImGui::TreeNode("Deferred Settings"))
             {
-
-                const char* items[] = { "Regular", "Tiled", "Clustered" };
+                static const char* items[] = { "Regular", "Tiled", "Clustered" };
             
                 static int item_current_idx = 0; 
                 const char* combo_label = items[item_current_idx];  
@@ -868,13 +976,13 @@ namespace adria
                     ImGui::EndCombo();
                 }
 
-                settings.use_tiled_deferred = (item_current_idx == 1);
-                settings.use_clustered_deferred = (item_current_idx == 2);
+                renderer_settings.use_tiled_deferred = (item_current_idx == 1);
+                renderer_settings.use_clustered_deferred = (item_current_idx == 2);
 
-                if (settings.use_tiled_deferred && ImGui::TreeNodeEx("Tiled Deferred", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+                if (renderer_settings.use_tiled_deferred && ImGui::TreeNodeEx("Tiled Deferred", ImGuiTreeNodeFlags_OpenOnDoubleClick))
                 {
-                    ImGui::Checkbox("Visualize Tiles", &settings.visualize_tiled);
-                    if (settings.visualize_tiled) ImGui::SliderInt("Visualize Scale", &settings.visualize_max_lights, 1, 32);
+                    ImGui::Checkbox("Visualize Tiles", &renderer_settings.visualize_tiled);
+                    if (renderer_settings.visualize_tiled) ImGui::SliderInt("Visualize Scale", &renderer_settings.visualize_max_lights, 1, 32);
 
                     ImGui::TreePop();
                     ImGui::Separator();
@@ -904,33 +1012,33 @@ namespace adria
                         ImGui::EndCombo();
                     }
 
-                    settings.ambient_oclussion = static_cast<AmbientOclussion>(item_current_idx);
+                    renderer_settings.ambient_oclussion = static_cast<AmbientOclussion>(item_current_idx);
 
-                    if (settings.ambient_oclussion == AmbientOclussion::eSSAO && ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+                    if (renderer_settings.ambient_oclussion == AmbientOclussion::eSSAO && ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
                     {
                         //ImGui::Checkbox("SSAO", &settings.ssao);
-                        ImGui::SliderFloat("Power", &settings.ssao_power, 1.0f, 16.0f);
-                        ImGui::SliderFloat("Radius", &settings.ssao_radius, 0.5f, 4.0f);
+                        ImGui::SliderFloat("Power", &renderer_settings.ssao_power, 1.0f, 16.0f);
+                        ImGui::SliderFloat("Radius", &renderer_settings.ssao_radius, 0.5f, 4.0f);
 
                         ImGui::TreePop();
                         ImGui::Separator();
                     }
-                    if (settings.ambient_oclussion == AmbientOclussion::eHBAO && ImGui::TreeNodeEx("HBAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+                    if (renderer_settings.ambient_oclussion == AmbientOclussion::eHBAO && ImGui::TreeNodeEx("HBAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
                     {
                         //ImGui::Checkbox("SSAO", &settings.ssao);
-                        ImGui::SliderFloat("Power", &settings.hbao_power, 1.0f, 16.0f);
-                        ImGui::SliderFloat("Radius", &settings.hbao_radius, 0.25f, 8.0f);
+                        ImGui::SliderFloat("Power", &renderer_settings.hbao_power, 1.0f, 16.0f);
+                        ImGui::SliderFloat("Radius", &renderer_settings.hbao_radius, 0.25f, 8.0f);
 
                         ImGui::TreePop();
                         ImGui::Separator();
                     }
                 }
-                ImGui::Checkbox("Volumetric Clouds", &settings.clouds);
-                ImGui::Checkbox("SSR", &settings.ssr);
-                ImGui::Checkbox("DoF", &settings.dof);
-                ImGui::Checkbox("Bloom", &settings.bloom);
-                ImGui::Checkbox("Motion Blur", &settings.motion_blur);
-                ImGui::Checkbox("Fog", &settings.fog);
+                ImGui::Checkbox("Volumetric Clouds", &renderer_settings.clouds);
+                ImGui::Checkbox("SSR", &renderer_settings.ssr);
+                ImGui::Checkbox("DoF", &renderer_settings.dof);
+                ImGui::Checkbox("Bloom", &renderer_settings.bloom);
+                ImGui::Checkbox("Motion Blur", &renderer_settings.motion_blur);
+                ImGui::Checkbox("Fog", &renderer_settings.fog);
 
                 if (ImGui::TreeNode("Anti-Aliasing"))
                 {
@@ -939,86 +1047,86 @@ namespace adria
                     ImGui::Checkbox("TAA", &taa);
                     if (fxaa)
                     {
-                        settings.anti_aliasing = static_cast<AntiAliasing>(settings.anti_aliasing | AntiAliasing_FXAA);
+                        renderer_settings.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.anti_aliasing | AntiAliasing_FXAA);
                     }
                     else
                     {
-                        settings.anti_aliasing = static_cast<AntiAliasing>(settings.anti_aliasing & (~AntiAliasing_FXAA));
+                        renderer_settings.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.anti_aliasing & (~AntiAliasing_FXAA));
                     }
                     if (taa)
                     {
-                        settings.anti_aliasing = static_cast<AntiAliasing>(settings.anti_aliasing | AntiAliasing_TAA);
+                        renderer_settings.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.anti_aliasing | AntiAliasing_TAA);
                     }
                     else
                     {
-                        settings.anti_aliasing = static_cast<AntiAliasing>(settings.anti_aliasing & (~AntiAliasing_TAA));
+                        renderer_settings.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.anti_aliasing & (~AntiAliasing_TAA));
                     }
 
                     ImGui::TreePop();
                 }
-                if (settings.clouds && ImGui::TreeNodeEx("Volumetric Clouds", 0))
+                if (renderer_settings.clouds && ImGui::TreeNodeEx("Volumetric Clouds", 0))
                 {
-                    ImGui::SliderFloat("Sun light absorption", &settings.light_absorption, 0.0f, 0.015f);
-                    ImGui::SliderFloat("Clouds bottom height", &settings.clouds_bottom_height, 1000.0f, 10000.0f);
-                    ImGui::SliderFloat("Clouds top height", &settings.clouds_top_height, 10000.0f, 50000.0f);
-                    ImGui::SliderFloat("Density", &settings.density_factor, 0.0f, 1.0f);
-                    ImGui::SliderFloat("Crispiness", &settings.crispiness, 0.0f, 100.0f);
-                    ImGui::SliderFloat("Curliness", &settings.curliness, 0.0f, 5.0f);
-                    ImGui::SliderFloat("Coverage", &settings.coverage, 0.0f, 1.0f);
-                    ImGui::SliderFloat("Wind speed factor", &settings.wind_speed, 0.0f, 100.0f);
-                    ImGui::SliderFloat("Cloud Type", &settings.cloud_type, 0.0f, 1.0f);
+                    ImGui::SliderFloat("Sun light absorption", &renderer_settings.light_absorption, 0.0f, 0.015f);
+                    ImGui::SliderFloat("Clouds bottom height", &renderer_settings.clouds_bottom_height, 1000.0f, 10000.0f);
+                    ImGui::SliderFloat("Clouds top height", &renderer_settings.clouds_top_height, 10000.0f, 50000.0f);
+                    ImGui::SliderFloat("Density", &renderer_settings.density_factor, 0.0f, 1.0f);
+                    ImGui::SliderFloat("Crispiness", &renderer_settings.crispiness, 0.0f, 100.0f);
+                    ImGui::SliderFloat("Curliness", &renderer_settings.curliness, 0.0f, 5.0f);
+                    ImGui::SliderFloat("Coverage", &renderer_settings.coverage, 0.0f, 1.0f);
+                    ImGui::SliderFloat("Wind speed factor", &renderer_settings.wind_speed, 0.0f, 100.0f);
+                    ImGui::SliderFloat("Cloud Type", &renderer_settings.cloud_type, 0.0f, 1.0f);
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
-                if (settings.ssr && ImGui::TreeNodeEx("Screen-Space Reflections", 0))
+                if (renderer_settings.ssr && ImGui::TreeNodeEx("Screen-Space Reflections", 0))
                 {
-                    ImGui::SliderFloat("Ray Step", &settings.ssr_ray_step, 1.0f, 3.0f);
-                    ImGui::SliderFloat("Ray Hit Threshold", &settings.ssr_ray_hit_threshold, 0.25f, 5.0f);
+                    ImGui::SliderFloat("Ray Step", &renderer_settings.ssr_ray_step, 1.0f, 3.0f);
+                    ImGui::SliderFloat("Ray Hit Threshold", &renderer_settings.ssr_ray_hit_threshold, 0.25f, 5.0f);
 
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
-                if (settings.dof && ImGui::TreeNodeEx("Depth Of Field", 0))
+                if (renderer_settings.dof && ImGui::TreeNodeEx("Depth Of Field", 0))
                 {
 
-                    ImGui::SliderFloat("DoF Near Blur", &settings.dof_near_blur, 0.0f, 200.0f);
-                    ImGui::SliderFloat("DoF Near", &settings.dof_near, settings.dof_near_blur, 500.0f);
-                    ImGui::SliderFloat("DoF Far", &settings.dof_far, settings.dof_near, 1000.0f);
-                    ImGui::SliderFloat("DoF Far Blur", &settings.dof_far_blur, settings.dof_far, 1500.0f);
-                    ImGui::Checkbox("Bokeh", &settings.bokeh);
+                    ImGui::SliderFloat("DoF Near Blur", &renderer_settings.dof_near_blur, 0.0f, 200.0f);
+                    ImGui::SliderFloat("DoF Near", &renderer_settings.dof_near, renderer_settings.dof_near_blur, 500.0f);
+                    ImGui::SliderFloat("DoF Far", &renderer_settings.dof_far, renderer_settings.dof_near, 1000.0f);
+                    ImGui::SliderFloat("DoF Far Blur", &renderer_settings.dof_far_blur, renderer_settings.dof_far, 1500.0f);
+                    ImGui::Checkbox("Bokeh", &renderer_settings.bokeh);
 
-                    if (settings.bokeh)
+                    if (renderer_settings.bokeh)
                     {
                         static char const* const bokeh_types[] = { "HEXAGON", "OCTAGON", "CIRCLE", "CROSS" };
-                        static int bokeh_type_i = static_cast<int>(settings.bokeh_type);
+                        static int bokeh_type_i = static_cast<int>(renderer_settings.bokeh_type);
                         ImGui::ListBox("Bokeh Type", &bokeh_type_i, bokeh_types, IM_ARRAYSIZE(bokeh_types));
-                        settings.bokeh_type = static_cast<BokehType>(bokeh_type_i);
+                        renderer_settings.bokeh_type = static_cast<BokehType>(bokeh_type_i);
 
-                        ImGui::SliderFloat("Bokeh Blur Threshold", &settings.bokeh_blur_threshold, 0.0f, 1.0f);
-                        ImGui::SliderFloat("Bokeh Lum Threshold", &settings.bokeh_lum_threshold, 0.0f, 10.0f);
-                        ImGui::SliderFloat("Bokeh Color Scale", &settings.bokeh_color_scale, 0.1f, 10.0f);
-                        ImGui::SliderFloat("Bokeh Max Size", &settings.bokeh_radius_scale, 0.0f, 100.0f);
-                        ImGui::SliderFloat("Bokeh Fallout", &settings.bokeh_fallout, 0.0f, 2.0f);
+                        ImGui::SliderFloat("Bokeh Blur Threshold", &renderer_settings.bokeh_blur_threshold, 0.0f, 1.0f);
+                        ImGui::SliderFloat("Bokeh Lum Threshold", &renderer_settings.bokeh_lum_threshold, 0.0f, 10.0f);
+                        ImGui::SliderFloat("Bokeh Color Scale", &renderer_settings.bokeh_color_scale, 0.1f, 10.0f);
+                        ImGui::SliderFloat("Bokeh Max Size", &renderer_settings.bokeh_radius_scale, 0.0f, 100.0f);
+                        ImGui::SliderFloat("Bokeh Fallout", &renderer_settings.bokeh_fallout, 0.0f, 2.0f);
                     }
                     
                     ImGui::TreePop();
                     ImGui::Separator();
 
                 }
-                if (settings.bloom && ImGui::TreeNodeEx("Bloom", 0))
+                if (renderer_settings.bloom && ImGui::TreeNodeEx("Bloom", 0))
                 {
-                    ImGui::SliderFloat("Threshold", &settings.bloom_threshold, 0.1f, 2.0f);
-                    ImGui::SliderFloat("Bloom Scale", &settings.bloom_scale, 0.1f, 5.0f);
+                    ImGui::SliderFloat("Threshold", &renderer_settings.bloom_threshold, 0.1f, 2.0f);
+                    ImGui::SliderFloat("Bloom Scale", &renderer_settings.bloom_scale, 0.1f, 5.0f);
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
-                if ((settings.motion_blur || (settings.anti_aliasing & AntiAliasing_TAA)) && ImGui::TreeNodeEx("Velocity Buffer", 0))
+                if ((renderer_settings.motion_blur || (renderer_settings.anti_aliasing & AntiAliasing_TAA)) && ImGui::TreeNodeEx("Velocity Buffer", 0))
                 {
-                    ImGui::SliderFloat("Velocity Buffer Scale", &settings.velocity_buffer_scale, 32.0f, 128.0f);
+                    ImGui::SliderFloat("Velocity Buffer Scale", &renderer_settings.velocity_buffer_scale, 32.0f, 128.0f);
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
-                if (settings.fog && ImGui::TreeNodeEx("Fog", 0))
+                if (renderer_settings.fog && ImGui::TreeNodeEx("Fog", 0))
                 {
                     const char* items[] = { "Exponential", "Exponential Height" };
                     static int item_current_idx = 0; // Here we store our selection data as an index.
@@ -1038,23 +1146,23 @@ namespace adria
                         ImGui::EndCombo();
                     }
 
-                    settings.fog_type = static_cast<FogType>(item_current_idx);
+                    renderer_settings.fog_type = static_cast<FogType>(item_current_idx);
 
-                    ImGui::SliderFloat("Fog Falloff", &settings.fog_falloff, 0.0001f, 0.01f);
-                    ImGui::SliderFloat("Fog Density", &settings.fog_density, 0.0001f, 0.01f);
-                    ImGui::SliderFloat("Fog Start", &settings.fog_start, 0.1f, 10000.0f);
-                    ImGui::ColorEdit3("Fog Color", settings.fog_color);
+                    ImGui::SliderFloat("Fog Falloff", &renderer_settings.fog_falloff, 0.0001f, 0.01f);
+                    ImGui::SliderFloat("Fog Density", &renderer_settings.fog_density, 0.0001f, 0.01f);
+                    ImGui::SliderFloat("Fog Start", &renderer_settings.fog_start, 0.1f, 10000.0f);
+                    ImGui::ColorEdit3("Fog Color", renderer_settings.fog_color);
 
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
                 if (ImGui::TreeNodeEx("Tone Mapping", 0))
                 {
-                    ImGui::SliderFloat("Exposure", &settings.tonemap_exposure, 0.01f, 10.0f);
+                    ImGui::SliderFloat("Exposure", &renderer_settings.tonemap_exposure, 0.01f, 10.0f);
                     static char const* const operators[] = { "REINHARD", "HABLE", "LINEAR" };
-                    static int tone_map_operator = static_cast<int>(settings.tone_map_op);
+                    static int tone_map_operator = static_cast<int>(renderer_settings.tone_map_op);
                     ImGui::ListBox("Tone Map Operator", &tone_map_operator, operators, IM_ARRAYSIZE(operators));
-                    settings.tone_map_op = static_cast<ToneMap>(tone_map_operator);
+                    renderer_settings.tone_map_op = static_cast<ToneMap>(tone_map_operator);
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
@@ -1063,11 +1171,11 @@ namespace adria
 
             if (ImGui::TreeNode("Misc"))
             {
-                ImGui::ColorEdit3("Ambient Color", settings.ambient_color);
-                ImGui::SliderFloat("Blur Sigma", &settings.blur_sigma, 0.1f, 10.0f);
-                ImGui::SliderFloat("Shadow Softness", &settings.shadow_softness, 0.01f, 5.0f);
+                ImGui::ColorEdit3("Ambient Color", renderer_settings.ambient_color);
+                ImGui::SliderFloat("Blur Sigma", &renderer_settings.blur_sigma, 0.1f, 10.0f);
+                ImGui::SliderFloat("Shadow Softness", &renderer_settings.shadow_softness, 0.01f, 5.0f);
                 
-                ImGui::Checkbox("IBL", &settings.ibl);
+                ImGui::Checkbox("IBL", &renderer_settings.ibl);
                 ImGui::TreePop();
             }
         }
@@ -1076,32 +1184,43 @@ namespace adria
 
     void Editor::StatsAndProfiling()
     {
-        static std::deque<f32> frame_times{};
+		
+		if (ImGui::Begin("Profiling"))
+		{
+			ImGuiIO io = ImGui::GetIO();
+			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 
-        if (ImGui::Begin("Stats"))
-        {
-            ImGuiIO io = ImGui::GetIO();
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+			static bool enable_profiling = false;
+			ImGui::Checkbox("Enable Profiling", &enable_profiling);
+			if (enable_profiling)
+			{
+				static bool profile_gbuffer = false;
 
-            frame_times.push_back(1000.0f / io.Framerate);
-        }
+				ImGui::Checkbox("Profile GBuffer Pass", &profile_gbuffer);
+				if (profile_gbuffer)
+				{
+					profiler_flags |= ProfilerFlag_GBuffer;
+				}
+				else profiler_flags &= (~ProfilerFlag_GBuffer);
 
-        if (frame_times.size() >= 60)
-        {
-            std::vector<f32> frame_times_vec(frame_times.size());
+				engine->renderer->SetProfilerSettings(profiler_flags);
 
-            std::copy(frame_times.begin(), frame_times.end(), frame_times_vec.begin());
+				if (ImGui::Begin("Profiler Results"))
+				{
+					std::vector<std::string> results = engine->renderer->GetProfilerResults();
+					std::string concatenated_results;
+					for (auto const& result : results) concatenated_results += result;
+					ImGui::Text(concatenated_results.c_str());
+				}
+				ImGui::End();
 
-            auto window_size = ImGui::GetWindowSize();
-
-            ImGui::PlotLines("Milliseconds per Frame", frame_times_vec.data(), (i32)frame_times_vec.size(), 0, "ms/frame", 0, 30,
-                ImVec2(window_size.x / 1.25f, window_size.y / 1.25f));
-
-            frame_times.pop_front();
-        }
-
-        ImGui::End();
-
+			}
+			else
+			{
+				engine->renderer->SetProfilerSettings(ProfilerFlag_None);
+			}
+		}
+		ImGui::End();
     }
 
     void Editor::OpenMaterialFileDialog(Material* material, MaterialTextureType type)

@@ -13,7 +13,7 @@
 #include "../Graphics/TextureCube.h"
 #include "../Graphics/Texture2DArray.h"
 #include "../Graphics/StructuredBuffer.h"
-
+#include "../Graphics/Profiler.h"
 
 
 namespace adria
@@ -61,6 +61,8 @@ namespace adria
 
 		void Update(f32 dt);
 
+		void SetProfilerSettings(ProfilerFlags);
+
 		void Render(RendererSettings const&);
 
 		void Render_Multithreaded(RendererSettings const&);
@@ -73,9 +75,11 @@ namespace adria
 
 		void LoadTextures();
 
+		Texture2D GetOffscreenTexture() const;
+
 		TextureManager& GetTextureManager();
 
-		Texture2D GetOffscreenTexture() const;
+		std::vector<std::string> GetProfilerResults();
 
 	private:
 		u32 width, height;
@@ -87,6 +91,8 @@ namespace adria
 		Camera const* camera;
 
 		RendererSettings settings;
+		Profiler profiler;
+		ProfilerFlags profiler_flags;
 
 		std::unordered_map<Shader, ShaderBlob> shader_map;
 		std::unordered_map<RootSig, Microsoft::WRL::ComPtr<ID3D12RootSignature>> rs_map;
