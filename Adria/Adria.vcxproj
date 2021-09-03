@@ -173,6 +173,7 @@
     <ClCompile Include="Graphics\LinearDescriptorAllocator.cpp" />
     <ClCompile Include="Graphics\LinearUploadBuffer.cpp" />
     <ClCompile Include="Graphics\MipsGenerator.cpp" />
+    <ClCompile Include="Graphics\Profiler.cpp" />
     <ClCompile Include="Graphics\RenderPass.cpp" />
     <ClCompile Include="Graphics\RingDescriptorAllocator.cpp" />
     <ClCompile Include="Graphics\RingUploadBuffer.cpp" />
@@ -224,7 +225,7 @@
     <ClInclude Include="Graphics\MipsGenerator.h" />
     <ClInclude Include="Graphics\LinearUploadBuffer.h" />
     <ClInclude Include="Graphics\Profiler.h" />
-    <ClInclude Include="Graphics\ProfilerFlags.h" />
+    <ClInclude Include="Graphics\ProfilerSettings.h" />
     <ClInclude Include="Graphics\RayTracingUtil.h" />
     <ClInclude Include="Graphics\ReadbackBuffer.h" />
     <ClInclude Include="Graphics\Releasable.h" />

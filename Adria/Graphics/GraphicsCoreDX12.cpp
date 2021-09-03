@@ -200,12 +200,12 @@ namespace adria
         }
     }
 
-    UINT GraphicsCoreDX12::BackbufferCount()
-    {
-        return BACKBUFFER_COUNT;
-    }
+	void GraphicsCoreDX12::GetTimestampFrequency(UINT64& frequency) const
+	{
+        direct_queue->GetTimestampFrequency(&frequency);
+	}
 
-    UINT GraphicsCoreDX12::BackbufferIndex() const
+	UINT GraphicsCoreDX12::BackbufferIndex() const
     {
         return backbuffer_index;
     }

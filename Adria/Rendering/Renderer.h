@@ -61,7 +61,7 @@ namespace adria
 
 		void Update(f32 dt);
 
-		void SetProfilerSettings(ProfilerFlags);
+		void SetProfilerSettings(ProfilerSettings);
 
 		void Render(RendererSettings const&);
 
@@ -92,7 +92,7 @@ namespace adria
 
 		RendererSettings settings;
 		Profiler profiler;
-		ProfilerFlags profiler_flags;
+		ProfilerSettings profiler_settings;
 
 		std::unordered_map<Shader, ShaderBlob> shader_map;
 		std::unordered_map<RootSig, Microsoft::WRL::ComPtr<ID3D12RootSignature>> rs_map;

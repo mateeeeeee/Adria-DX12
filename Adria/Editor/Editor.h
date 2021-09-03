@@ -4,7 +4,7 @@
 #include "GUI.h"
 #include "../tecs/registry.h"
 #include "../Rendering/RendererSettings.h"
-#include "../Graphics/ProfilerFlags.h"
+#include "../Graphics/ProfilerSettings.h"
 #include "../ImGui/imgui_internal.h"
 #include "../ImGui/ImGuizmo.h"
 
@@ -28,7 +28,7 @@ namespace adria
 	public:
 		Editor(editor_init_t const& init);
 
-		~Editor() = default;
+		~Editor();
 
 		void HandleWindowMessage(window_message_t const& msg_data);
 
@@ -43,7 +43,7 @@ namespace adria
 		bool mouse_in_scene = false;
 		ImGuizmo::OPERATION gizmo_op = ImGuizmo::TRANSLATE;
 		RendererSettings renderer_settings{};
-		ProfilerFlags profiler_flags{};
+		ProfilerSettings profiler_settings{};
 
 	private:
 		void SetStyle();

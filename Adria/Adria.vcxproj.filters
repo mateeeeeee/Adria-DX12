@@ -188,6 +188,9 @@
     <ClCompile Include="Graphics\RenderPass.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\Profiler.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -463,7 +466,7 @@
     <ClInclude Include="Graphics\Profiler.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\ProfilerFlags.h">
+    <ClInclude Include="Graphics\ProfilerSettings.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\EnumUtil.h">

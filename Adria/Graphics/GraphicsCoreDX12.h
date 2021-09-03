@@ -48,8 +48,8 @@ namespace adria
 
         void WaitForGPU();
         void ResizeBackbuffer(UINT w, UINT h);
+        void GetTimestampFrequency(UINT64& frequency) const;
 
-        static UINT BackbufferCount();
         UINT BackbufferIndex() const;
         void SetBackbuffer(ID3D12GraphicsCommandList* cmd_list = nullptr);
         void ClearBackbuffer();
@@ -69,6 +69,11 @@ namespace adria
 
         LinearDescriptorAllocator* DescriptorAllocator() const;
         LinearUploadBuffer* UploadBuffer() const;
+
+		static constexpr UINT BackbufferCount()
+		{
+			return BACKBUFFER_COUNT;
+		}
 
 	private:
 

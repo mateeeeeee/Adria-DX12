@@ -39,6 +39,7 @@ namespace adria
 			resource->Map(0, nullptr, &data);
 			return data;
 		}
+
 		template<typename T> 
 		T const* Map() const { return reinterpret_cast<const T*>(Map()); };
 
@@ -46,6 +47,11 @@ namespace adria
 		{
 			ADRIA_ASSERT(resource != nullptr);
 			resource->Unmap(0, nullptr);
+		}
+
+		ID3D12Resource* Resource() const 
+		{
+			return resource.Get();
 		}
 
 	private:

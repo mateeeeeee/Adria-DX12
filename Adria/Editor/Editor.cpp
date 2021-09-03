@@ -22,7 +22,8 @@ namespace adria
     /////////////////////////////// PUBLIC //////////////////////////////////
     /////////////////////////////////////////////////////////////////////////
 
-    editor_log{
+    struct EditorLogger
+    {
 		ImGuiTextBuffer     Buf;
 		ImGuiTextFilter     Filter;
 		ImVector<int>       LineOffsets;
@@ -132,7 +133,7 @@ namespace adria
 	};
 
 
-    Editor::Editor(editor_init_t const& init) : engine(), editor_log(new EditorLog{})
+    Editor::Editor(editor_init_t const& init) : engine(), editor_log(new EditorLogger{})
     {
         Log::Initialize(init.log_file);
         Log::AddLogCallback([this](std::string const& s) { editor_log->AddLog(s.c_str()); });
@@ -143,7 +144,9 @@ namespace adria
         SetStyle();
     }
 
-    void Editor::HandleWindowMessage(window_message_t const& msg_data)
+    Editor::~Editor() = default;
+
+	void Editor::HandleWindowMessage(window_message_t const& msg_data)
     {
         engine->HandleWindowMessage(msg_data);
         gui->HandleWindowMessage(msg_data);
@@ -1196,14 +1199,9 @@ namespace adria
 			{
 				static bool profile_gbuffer = false;
 
-				ImGui::Checkbox("Profile GBuffer Pass", &profile_gbuffer);
-				if (profile_gbuffer)
-				{
-					profiler_flags |= ProfilerFlag_GBuffer;
-				}
-				else profiler_flags &= (~ProfilerFlag_GBuffer);
-
-				engine->renderer->SetProfilerSettings(profiler_flags);
+				ImGui::Checkbox("Profile GBuffer Pass", &profiler_settings.profile_gbuffer_pass);
+				
+				engine->renderer->SetProfilerSettings(profiler_settings);
 
 				if (ImGui::Begin("Profiler Results"))
 				{
@@ -1213,11 +1211,10 @@ namespace adria
 					ImGui::Text(concatenated_results.c_str());
 				}
 				ImGui::End();
-
 			}
 			else
 			{
-				engine->renderer->SetProfilerSettings(ProfilerFlag_None);
+				engine->renderer->SetProfilerSettings(NO_PROFILING);
 			}
 		}
 		ImGui::End();

@@ -366,7 +366,8 @@ namespace adria
 		clusters(gfx->Device(), CLUSTER_COUNT, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
 		light_counter(gfx->Device(), 1, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
 		light_list(gfx->Device(), CLUSTER_COUNT * CLUSTER_MAX_LIGHTS, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
-		light_grid(gfx->Device(), CLUSTER_COUNT, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
+		light_grid(gfx->Device(), CLUSTER_COUNT, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
+		profiler(gfx)
 	{
 
 		LoadShaders();
@@ -404,9 +405,9 @@ namespace adria
 		CameraFrustumCulling();
 	}
 
-	void Renderer::SetProfilerSettings(ProfilerFlags _profiler_flags)
+	void Renderer::SetProfilerSettings(ProfilerSettings _profiler_settings)
 	{
-		profiler_flags = _profiler_flags;
+		profiler_settings = _profiler_settings;
 	}
 
 	void Renderer::Render(RendererSettings const& _settings)
@@ -3158,6 +3159,7 @@ namespace adria
 	void Renderer::PassGBuffer(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "GBuffer Pass");
+		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, ProfilerBlock::eGBufferPass, profiler_settings.profile_gbuffer_pass);
 
 		auto device = gfx->Device();
 		auto descriptor_allocator = gfx->DescriptorAllocator();
