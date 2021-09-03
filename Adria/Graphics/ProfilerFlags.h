@@ -7,7 +7,8 @@ namespace adria
 	{
 		ProfilerFlag_None = 0x00,
 		ProfilerFlag_Frame = 0x01,
-		ProfilerFlag_GBuffer = 0x02
+		ProfilerFlag_GBuffer = 0x02,
+		ProfilerFlag_COUNT = 3
 	};
 
 	static std::string ToString(ProfilerFlags flag)

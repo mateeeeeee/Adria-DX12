@@ -226,6 +226,7 @@
     <ClInclude Include="Graphics\Profiler.h" />
     <ClInclude Include="Graphics\ProfilerFlags.h" />
     <ClInclude Include="Graphics\RayTracingUtil.h" />
+    <ClInclude Include="Graphics\ReadbackBuffer.h" />
     <ClInclude Include="Graphics\Releasable.h" />
     <ClInclude Include="Graphics\RenderPass.h" />
     <ClInclude Include="Graphics\ResourceBarriers.h" />

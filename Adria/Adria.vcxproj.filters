@@ -469,6 +469,9 @@
     <ClInclude Include="Utilities\EnumUtil.h">
       <Filter>Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\ReadbackBuffer.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

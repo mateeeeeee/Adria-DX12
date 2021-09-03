@@ -12,7 +12,7 @@ namespace adria
 	class Profiler
 	{
 		static constexpr UINT64 FRAME_COUNT = 3;
-		static constexpr UINT64 MAX_PROFILES = 32;
+		static constexpr UINT64 MAX_PROFILES = ProfilerFlag_COUNT;
 
 		struct QueryData
 		{
@@ -25,19 +25,11 @@ namespace adria
 
 		Profiler(ID3D12Device* device) : device{ device }
 		{
-			for (auto& query_heap : query_heaps)
-			{
-				D3D12_QUERY_HEAP_DESC heap_desc = { };
-				heap_desc.Count = MAX_PROFILES * 2;
-				heap_desc.NodeMask = 0;
-				heap_desc.Type = D3D12_QUERY_HEAP_TYPE_TIMESTAMP;
-				device->CreateQueryHeap(&heap_desc, IID_PPV_ARGS(&query_heap));
-			}
-		}
-
-		void AddProfileBlock(ProfilerFlags flag)
-		{
-			
+			D3D12_QUERY_HEAP_DESC heap_desc = { };
+			heap_desc.Count = MAX_PROFILES * 2;
+			heap_desc.NodeMask = 0;
+			heap_desc.Type = D3D12_QUERY_HEAP_TYPE_TIMESTAMP;
+			device->CreateQueryHeap(&heap_desc, IID_PPV_ARGS(&query_heap));
 		}
 
 		void BeginProfileBlock(ID3D12GraphicsCommandList* cmd_list, ProfilerFlags flag)
@@ -50,15 +42,15 @@ namespace adria
 
 		}
 
-		std::vector<std::string> GetProfilerResults(ID3D12GraphicsCommandList* cmd_list, bool log results = false)
+		std::vector<std::string> GetProfilerResults(ID3D12GraphicsCommandList* cmd_list, bool log_results = false)
 		{
 			
 		}
 
 	private:
 		ID3D12Device* device;
-		std::unordered_map<ProfilerFlags, QueryData> query_data_map;
-		std::array<Microsoft::WRL::ComPtr<ID3D12QueryHeap>, FRAME_COUNT> query_heaps;
+		std::array<QueryData, MAX_PROFILES> query_data_map;
+		Microsoft::WRL::ComPtr<ID3D12QueryHeap> query_heap;
 		UINT64 current_frame = 0;
 	};
 }
