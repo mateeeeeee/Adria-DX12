@@ -1,5 +1,4 @@
 #pragma once
-#pragma comment(lib, "assimp-vc142-mt.lib")
 #include <DirectXMath.h>
 #include <optional>
 #include <array>
@@ -42,10 +41,6 @@ namespace adria
         std::optional<std::wstring> light_texture = std::nullopt;
     };
 
-
-
-
-
     class TextureManager;
     class GraphicsCoreDX12;
     
@@ -56,13 +51,11 @@ namespace adria
         
         EntityLoader(tecs::registry& reg, GraphicsCoreDX12* device, TextureManager& texture_manager);
 
-        [[maybe_unused]] tecs::entity LoadSkybox(skybox_parameters_t const&);
+		[[maybe_unused]] std::vector<tecs::entity> LoadGLTFModel(model_parameters_t const&);
 
-        [[maybe_unused]] std::vector<tecs::entity> LoadModel(model_parameters_t const&);
+		[[maybe_unused]] tecs::entity LoadSkybox(skybox_parameters_t const&);
 
         [[maybe_unused]] tecs::entity LoadLight(light_parameters_t const&);
-
-        void LoadModelMesh(tecs::entity, model_parameters_t const&);
 
 	private:
         tecs::registry& reg;

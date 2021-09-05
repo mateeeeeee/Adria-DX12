@@ -1,14 +1,15 @@
-
-#include "assimp/Importer.hpp"
-#include "assimp/scene.h"
-#include "assimp/postprocess.h"
-#include "assimp/pbrmaterial.h"
+#define TINYGLTF_IMPLEMENTATION
+#define TINYGLTF_NO_EXTERNAL_IMAGE
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define TINYGLTF_NOEXCEPTION
+#include "tiny_gltf.h"
 
 #include "EntityLoader.h"
 #include "Components.h"
 #include "../Graphics/GraphicsCoreDX12.h"
 #include "../Logging/Logger.h"
 #include "../Math/BoundingVolumeHelpers.h"
+#include "../Math/ComputeTangentFrame.h"
 #include "../Core/Definitions.h"
 #include "../Utilities/StringUtil.h"
 #include "../Utilities/FilesUtil.h"
@@ -26,7 +27,248 @@ namespace adria
     {
     }
 
-    entity EntityLoader::LoadSkybox(skybox_parameters_t const& params)
+	[[maybe_unused]]
+	std::vector<entity> EntityLoader::LoadGLTFModel(model_parameters_t const& params)
+	{
+		tinygltf::TinyGLTF loader;
+		tinygltf::Model model;
+		std::string err;
+		std::string warn;
+		bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, params.model_path);
+
+		std::string model_name = GetFilename(params.model_path);
+		if (!warn.empty()) Log::Warning(warn.c_str());
+		if (!err.empty()) Log::Error(err.c_str());
+		if (!ret) Log::Error("Failed to load model " + model_name);
+
+		std::vector<CompleteVertex> vertices{};
+		std::vector<u32> indices{};
+		std::vector<entity> entities{};
+
+		tinygltf::Scene const& scene = model.scenes[model.defaultScene];
+		for (size_t i = 0; i < scene.nodes.size(); ++i)
+		{
+			tinygltf::Node const& node = model.nodes[scene.nodes[i]]; //has children: model.nodes[node.children[i]] todo
+			if (node.mesh < 0 || node.mesh >= model.meshes.size()) continue;
+
+			tinygltf::Mesh const& node_mesh = model.meshes[node.mesh];
+			for (size_t i = 0; i < node_mesh.primitives.size(); ++i)
+			{
+				tinygltf::Primitive primitive = node_mesh.primitives[i];
+				tinygltf::Accessor const& index_accessor = model.accessors[primitive.indices];
+
+				entity e = reg.create();
+				entities.push_back(e);
+
+				Mesh mesh_component{};
+				mesh_component.indices_count = static_cast<u32>(index_accessor.count);
+				mesh_component.start_index_location = static_cast<u32>(indices.size());
+				mesh_component.vertex_offset = static_cast<u32>(vertices.size());
+				switch (primitive.mode)
+				{
+				case TINYGLTF_MODE_POINTS:
+					mesh_component.topology = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
+					break;
+				case TINYGLTF_MODE_LINE:
+					mesh_component.topology = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
+					break;
+				case TINYGLTF_MODE_LINE_STRIP:
+					mesh_component.topology = D3D_PRIMITIVE_TOPOLOGY_LINESTRIP;
+					break;
+				case TINYGLTF_MODE_TRIANGLES:
+					mesh_component.topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+					break;
+				case TINYGLTF_MODE_TRIANGLE_STRIP:
+					mesh_component.topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+					break;
+				default:
+					assert(false);
+				}
+				reg.emplace<Mesh>(e, mesh_component);
+
+				tinygltf::Accessor const& position_accessor = model.accessors[primitive.attributes["POSITION"]];
+				tinygltf::BufferView const& position_buffer_view = model.bufferViews[position_accessor.bufferView];
+				tinygltf::Buffer const& position_buffer = model.buffers[position_buffer_view.buffer];
+				int const position_byte_stride = position_accessor.ByteStride(position_buffer_view);
+				u8 const* positions = &position_buffer.data[position_buffer_view.byteOffset + position_accessor.byteOffset];
+
+				tinygltf::Accessor const& texcoord_accessor = model.accessors[primitive.attributes["TEXCOORD_0"]];
+				tinygltf::BufferView const& texcoord_buffer_view = model.bufferViews[texcoord_accessor.bufferView];
+				tinygltf::Buffer const& texcoord_buffer = model.buffers[texcoord_buffer_view.buffer];
+				int const texcoord_byte_stride = texcoord_accessor.ByteStride(texcoord_buffer_view);
+				u8 const* texcoords = &texcoord_buffer.data[texcoord_buffer_view.byteOffset + texcoord_accessor.byteOffset];
+
+				tinygltf::Accessor const& normal_accessor = model.accessors[primitive.attributes["NORMAL"]];
+				tinygltf::BufferView const& normal_buffer_view = model.bufferViews[normal_accessor.bufferView];
+				tinygltf::Buffer const& normal_buffer = model.buffers[normal_buffer_view.buffer];
+				int const normal_byte_stride = normal_accessor.ByteStride(normal_buffer_view);
+				u8 const* normals = &normal_buffer.data[normal_buffer_view.byteOffset + normal_accessor.byteOffset];
+
+				tinygltf::Accessor const& tangent_accessor = model.accessors[primitive.attributes["TANGENT"]];
+				tinygltf::BufferView const& tangent_buffer_view = model.bufferViews[tangent_accessor.bufferView];
+				tinygltf::Buffer const& tangent_buffer = model.buffers[tangent_buffer_view.buffer];
+				int const tangent_byte_stride = tangent_accessor.ByteStride(tangent_buffer_view);
+				u8 const* tangents = &tangent_buffer.data[tangent_buffer_view.byteOffset + tangent_accessor.byteOffset];
+
+				ADRIA_ASSERT(position_accessor.count == texcoord_accessor.count);
+				ADRIA_ASSERT(position_accessor.count == normal_accessor.count);
+
+				std::vector<XMFLOAT3> position_array(position_accessor.count), normal_array(normal_accessor.count),
+					tangent_array(position_accessor.count), bitangent_array(position_accessor.count);
+				std::vector<XMFLOAT2> texcoord_array(texcoord_accessor.count);
+				for (size_t i = 0; i < position_accessor.count; ++i)
+				{
+					XMFLOAT3 position;
+					position.x = (reinterpret_cast<f32 const*>(positions + (i * position_byte_stride)))[0];
+					position.y = (reinterpret_cast<f32 const*>(positions + (i * position_byte_stride)))[1];
+					position.z = (reinterpret_cast<f32 const*>(positions + (i * position_byte_stride)))[2];
+					position_array[i] = position;
+
+					XMFLOAT2 texcoord;
+					texcoord.x = (reinterpret_cast<f32 const*>(texcoords + (i * texcoord_byte_stride)))[0];
+					texcoord.y = (reinterpret_cast<f32 const*>(texcoords + (i * texcoord_byte_stride)))[1];
+					texcoord.y = 1.0f - texcoord.y;
+					texcoord_array[i] = texcoord;
+
+					XMFLOAT3 normal;
+					normal.x = (reinterpret_cast<f32 const*>(normals + (i * normal_byte_stride)))[0];
+					normal.y = (reinterpret_cast<f32 const*>(normals + (i * normal_byte_stride)))[1];
+					normal.z = (reinterpret_cast<f32 const*>(normals + (i * normal_byte_stride)))[2];
+					normal_array[i] = normal;
+
+					XMFLOAT3 tangent{};
+					XMFLOAT3 bitangent{};
+					if (tangents)
+					{
+						tangent.x = (reinterpret_cast<f32 const*>(tangents + (i * tangent_byte_stride)))[0];
+						tangent.y = (reinterpret_cast<f32 const*>(tangents + (i * tangent_byte_stride)))[1];
+						tangent.z = (reinterpret_cast<f32 const*>(tangents + (i * tangent_byte_stride)))[2];
+						float tangent_w = (reinterpret_cast<f32 const*>(tangents + (i * tangent_byte_stride)))[3];
+
+						XMVECTOR _bitangent = XMVectorScale(XMVector3Cross(XMLoadFloat3(&normal), XMLoadFloat3(&tangent)), tangent_w);
+
+						XMStoreFloat3(&bitangent, XMVector3Normalize(_bitangent));
+					}
+
+					tangent_array[i] = tangent;
+					bitangent_array[i] = bitangent;
+				}
+
+				tinygltf::BufferView const& index_buffer_view = model.bufferViews[index_accessor.bufferView];
+				tinygltf::Buffer const& index_buffer = model.buffers[index_buffer_view.buffer];
+				int const index_byte_stride = index_accessor.ByteStride(index_buffer_view);
+				u8 const* indexes = index_buffer.data.data() + index_buffer_view.byteOffset + index_accessor.byteOffset;
+
+				indices.reserve(indices.size() + index_accessor.count);
+				for (size_t i = 0; i < index_accessor.count; ++i)
+				{
+					u32 index = -1;
+					switch (index_accessor.componentType)
+					{
+					case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
+						index = (u32)(reinterpret_cast<u16 const*>(indexes + (i * index_byte_stride)))[0];
+						break;
+					case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
+						index = (reinterpret_cast<u32 const*>(indexes + (i * index_byte_stride)))[0];
+						break;
+					default:
+						ADRIA_ASSERT(false);
+					}
+
+					indices.push_back(index);
+				}
+
+				if (!tangents) //need to generate tangents and bitangents
+				{
+					ComputeTangentFrame(indices.data() - index_accessor.count, index_accessor.count,
+						position_array.data(), normal_array.data(), texcoord_array.data(), position_accessor.count,
+						tangent_array.data(), bitangent_array.data());
+				}
+
+				vertices.reserve(vertices.size() + position_accessor.count);
+				for (size_t i = 0; i < position_accessor.count; ++i)
+				{
+					vertices.push_back(CompleteVertex{
+							position_array[i],
+							texcoord_array[i],
+							normal_array[i],
+							tangent_array[i],
+							bitangent_array[i]
+						});
+				}
+
+
+				Material material{};
+				tinygltf::Material gltf_material = model.materials[primitive.material];
+				tinygltf::PbrMetallicRoughness pbr_metallic_roughness = gltf_material.pbrMetallicRoughness;
+
+				if (pbr_metallic_roughness.baseColorTexture.index >= 0)
+				{
+					tinygltf::Texture const& base_texture = model.textures[pbr_metallic_roughness.baseColorTexture.index];
+					tinygltf::Image const& base_image = model.images[base_texture.source];
+					std::string texbase = params.textures_path + base_image.uri;
+					material.albedo_texture = texture_manager.LoadTexture(ConvertToWide(texbase));
+					material.albedo_factor = (f32)pbr_metallic_roughness.baseColorFactor[0];
+				}
+
+				if (pbr_metallic_roughness.metallicRoughnessTexture.index >= 0)
+				{
+					tinygltf::Texture const& metallic_roughness_texture = model.textures[pbr_metallic_roughness.metallicRoughnessTexture.index];
+					tinygltf::Image const& metallic_roughness_image = model.images[metallic_roughness_texture.source];
+					std::string texmetallicroughness = params.textures_path + metallic_roughness_image.uri;
+					material.metallic_roughness_texture = texture_manager.LoadTexture(ConvertToWide(texmetallicroughness));
+					material.metallic_factor = (f32)pbr_metallic_roughness.metallicFactor;
+					material.roughness_factor = (f32)pbr_metallic_roughness.roughnessFactor;
+				}
+
+				if (gltf_material.normalTexture.index >= 0)
+				{
+					tinygltf::Texture const& normal_texture = model.textures[gltf_material.normalTexture.index];
+					tinygltf::Image const& normal_image = model.images[normal_texture.source];
+					std::string texnormal = params.textures_path + normal_image.uri;
+					material.normal_texture = texture_manager.LoadTexture(ConvertToWide(texnormal));
+				}
+
+				if (gltf_material.emissiveTexture.index >= 0)
+				{
+					tinygltf::Texture const& emissive_texture = model.textures[gltf_material.emissiveTexture.index];
+					tinygltf::Image const& emissive_image = model.images[emissive_texture.source];
+					std::string texemissive = params.textures_path + emissive_image.uri;
+					material.emissive_texture = texture_manager.LoadTexture(ConvertToWide(texemissive));
+					material.emissive_factor = (f32)gltf_material.emissiveFactor[0];
+				}
+				material.pso = PSO::eGbufferPBR;
+
+				reg.emplace<Material>(e, material);
+
+				XMMATRIX model = XMMatrixScaling(params.model_scale, params.model_scale, params.model_scale);
+				BoundingBox aabb = AABBFromRange(vertices.end() - position_accessor.count, vertices.end());
+				aabb.Transform(aabb, model);
+
+				reg.emplace<Visibility>(e, aabb, true, true);
+				reg.emplace<Transform>(e, model, model);
+				reg.emplace<Deferred>(e);
+			}
+		}
+
+		std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>(gfx, vertices);
+		std::shared_ptr<IndexBuffer> ib = std::make_shared<IndexBuffer>(gfx, indices);
+
+		for (entity e : entities)
+		{
+			auto& mesh = reg.get<Mesh>(e);
+			mesh.vb = vb;
+			mesh.ib = ib;
+			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(as_integer(e)));
+		}
+
+		Log::Info("Model" + params.model_path + " successfully loaded!");
+
+		return entities;
+	}
+
+	[[maybe_unused]]
+	entity EntityLoader::LoadSkybox(skybox_parameters_t const& params)
     {
         entity skybox = reg.create();
 
@@ -83,175 +325,6 @@ namespace adria
 
         return skybox;
 
-    }
-
-    std::vector<entity> EntityLoader::LoadModel(model_parameters_t const& params)
-    {
-        Assimp::Importer importer;
-
-		u32 importer_flags =
-			aiProcess_CalcTangentSpace |
-			aiProcess_GenSmoothNormals |
-			aiProcess_JoinIdenticalVertices |
-			aiProcess_ImproveCacheLocality |
-			aiProcess_RemoveRedundantMaterials |
-			aiProcess_LimitBoneWeights |
-			aiProcess_SplitLargeMeshes |
-			aiProcess_Triangulate |
-			aiProcess_GenUVCoords |
-			aiProcess_SortByPType |
-			aiProcess_FindDegenerates |
-			aiProcess_FindInvalidData |
-			aiProcess_FindInstances |
-			aiProcess_ValidateDataStructure |
-			aiProcess_Debone;
-
-		if (params.merge_meshes)
-			importer_flags |= aiProcess_OptimizeMeshes;
-
-        aiScene const* scene = importer.ReadFile(params.model_path, importer_flags);
-        if (scene == nullptr)
-        {
-            GLOBAL_LOG_ERROR("Assimp Model Loading Failed for file " + params.model_path + "!");
-            return {};
-        }
-        auto model_name = GetFilename(params.model_path);
-
-
-        std::vector<CompleteVertex> vertices{};
-        std::vector<u32> indices{};
-        std::vector<entity> entities{};
-        for (u32 mesh_index = 0; mesh_index < scene->mNumMeshes; mesh_index++)
-        {
-            entity e = reg.create();
-            entities.push_back(e);
-
-            const aiMesh* mesh = scene->mMeshes[mesh_index];
-
-            Mesh mesh_component{};
-            mesh_component.indices_count = static_cast<u32>(mesh->mNumFaces * 3);
-            mesh_component.start_index_location = static_cast<u32>(indices.size());
-            mesh_component.vertex_offset = static_cast<u32>(vertices.size());
-
-            reg.emplace<Mesh>(e, mesh_component);
-
-            vertices.reserve(vertices.size() + mesh->mNumVertices);
-
-            for (u32 i = 0; i < mesh->mNumVertices; ++i)
-            {
-                vertices.push_back(
-                    {
-                        reinterpret_cast<XMFLOAT3&>(mesh->mVertices[i]),
-                        reinterpret_cast<XMFLOAT2&>(mesh->mTextureCoords[0][i]),
-                        reinterpret_cast<XMFLOAT3&>(mesh->mNormals[i]),
-                        reinterpret_cast<XMFLOAT3&>(mesh->mTangents[i]),
-                        reinterpret_cast<XMFLOAT3&>(mesh->mBitangents[i])
-                    }
-                );
-            }
-
-
-            indices.reserve(indices.size() + mesh->mNumFaces * 3);
-
-            for (u32 i = 0; i < mesh->mNumFaces; ++i)
-            {
-                indices.push_back(mesh->mFaces[i].mIndices[0]);
-                indices.push_back(mesh->mFaces[i].mIndices[1]);
-                indices.push_back(mesh->mFaces[i].mIndices[2]);
-            }
-
-            aiMaterial const* src_mat = scene->mMaterials[mesh->mMaterialIndex];
-
-            Material material{};
-            f32 albedo_factor[4] = {}, metallic_factor = 1.0f, roughness_factor = 1.0f, emissive_factor[4] = {};
-
-            if (src_mat->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_FACTOR, albedo_factor) == AI_SUCCESS)
-            {
-                material.albedo_factor = albedo_factor[0];
-            }
-            if (src_mat->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLIC_FACTOR, metallic_factor) == AI_SUCCESS)
-            {
-                material.metallic_factor = metallic_factor;
-            }
-            if (src_mat->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_ROUGHNESS_FACTOR, roughness_factor) == AI_SUCCESS)
-            {
-                material.roughness_factor = roughness_factor;
-            }
-            if (src_mat->Get(AI_MATKEY_COLOR_EMISSIVE, emissive_factor) == AI_SUCCESS)
-            {
-                material.emissive_factor = emissive_factor[0];
-            }
-
-			aiString tex_albedo_path, tex_metallic_path, tex_roughness_path,
-				tex_roughness_metallic_path, tex_normal_path, tex_emissive_path;
-
-			if (AI_SUCCESS == src_mat->GetTexture(aiTextureType_DIFFUSE, 0, &tex_albedo_path))
-			{
-				std::string texalbedo = params.textures_path + tex_albedo_path.C_Str();
-				material.albedo_texture = texture_manager.LoadTexture(ConvertToWide(texalbedo));
-			}
-
-			if (AI_SUCCESS == src_mat->GetTexture(aiTextureType_UNKNOWN, 0, &tex_roughness_metallic_path))
-			{
-				std::string texmetallicroughness = params.textures_path + tex_roughness_metallic_path.C_Str();
-				material.metallic_roughness_texture = texture_manager.LoadTexture(ConvertToWide(texmetallicroughness));
-			}
-			else if (AI_SUCCESS == src_mat->GetTexture(aiTextureType_AMBIENT, 0, &tex_metallic_path)
-				  || AI_SUCCESS == src_mat->GetTexture(aiTextureType_SHININESS, 0, &tex_roughness_path))
-			{
-				if (tex_metallic_path.length != 0)
-				{
-					std::string texmetallic = params.textures_path + tex_metallic_path.C_Str();
-					material.metallic_texture = texture_manager.LoadTexture(ConvertToWide(texmetallic));
-				}
-				if (tex_roughness_path.length != 0)
-				{
-					std::string texroughness = params.textures_path + tex_roughness_path.C_Str();
-					material.roughness_texture = texture_manager.LoadTexture(ConvertToWide(texroughness));
-				}
-			}
-
-			if (AI_SUCCESS == src_mat->GetTexture(aiTextureType_NORMALS, 0, &tex_normal_path))
-			{
-				std::string texnorm = params.textures_path + tex_normal_path.C_Str();
-				material.normal_texture = texture_manager.LoadTexture(ConvertToWide(texnorm));
-			}
-
-			if (AI_SUCCESS == src_mat->GetTexture(aiTextureType_EMISSIVE, 0, &tex_emissive_path))
-			{
-				std::string texemissive = params.textures_path + tex_emissive_path.C_Str();
-				material.emissive_texture = texture_manager.LoadTexture(ConvertToWide(texemissive));
-			}
-
-            material.pso = PSO::eGbufferPBR;
-
-            reg.add<Material>(e, material);
-
-			XMMATRIX model = XMMatrixScaling(params.model_scale, params.model_scale, params.model_scale);
-			BoundingBox aabb = AABBFromRange(vertices.end() - mesh->mNumVertices, vertices.end());
-			aabb.Transform(aabb, model);
-
-			reg.emplace<Visibility>(e, aabb, true, true);
-			reg.emplace<Transform>(e, model, model);
-			reg.emplace<Deferred>(e);
-        }
-
-
-        std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>(gfx, vertices);
-        std::shared_ptr<IndexBuffer> ib = std::make_shared<IndexBuffer>(gfx, indices);
-
-        for (entity e : entities)
-        {
-            auto& mesh = reg.get<Mesh>(e);
-            auto& mat = reg.get<Material>(e);
-            mesh.vb = vb;
-            mesh.ib = ib;
-            reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(as_integer(e)));
-        }
-
-        Log::Info("Model" + params.model_path + " successfully loaded!");
-
-        return entities;
     }
 
     [[maybe_unused]] 
@@ -350,98 +423,6 @@ namespace adria
 
 
         return light;
-
-    }
-
-    void EntityLoader::LoadModelMesh(tecs::entity e, model_parameters_t const& params)
-    {
-
-        Assimp::Importer importer;
-        const aiScene* scene = importer.ReadFile(params.model_path,
-            aiProcess_CalcTangentSpace |
-            aiProcess_JoinIdenticalVertices |
-            aiProcess_Triangulate |
-            aiProcess_GenSmoothNormals |
-            aiProcess_SplitLargeMeshes |
-            aiProcess_RemoveRedundantMaterials |
-            aiProcess_GenUVCoords |
-            aiProcess_TransformUVCoords |
-            aiProcess_FlipUVs |
-            aiProcess_OptimizeMeshes |
-            aiProcess_OptimizeGraph
-        );
-
-        if (scene == nullptr)
-        {
-            Log::Error(std::string("Unsuccessful Import: ") + importer.GetErrorString() + "\n");
-            return;
-        }
-
-
-        std::vector<CompleteVertex> vertices;
-        std::vector<u32> indices;
-
-        if (scene->mNumMeshes > 1) Log::Warning("LoadModelMesh excepts only one mesh but there are more than one! \n");
-
-
-        for (u32 meshIndex = 0; meshIndex < scene->mNumMeshes; meshIndex++)
-        {
-
-            const aiMesh* mesh = scene->mMeshes[meshIndex];
-
-            Mesh mesh_component{};
-            mesh_component.indices_count = static_cast<u32>(mesh->mNumFaces * 3);
-            mesh_component.start_index_location = static_cast<u32>(indices.size());
-            mesh_component.vertex_offset = static_cast<u32>(vertices.size());
-
-            reg.emplace<Mesh>(e, mesh_component);
-
-            vertices.reserve(vertices.size() + mesh->mNumVertices);
-
-
-
-            for (u32 i = 0; i < mesh->mNumVertices; ++i)
-            {
-                vertices.push_back(
-                    {
-                        reinterpret_cast<DirectX::XMFLOAT3&>(mesh->mVertices[i]),
-                        mesh->HasTextureCoords(0) ? reinterpret_cast<DirectX::XMFLOAT2 const&>(mesh->mTextureCoords[0][i]) : DirectX::XMFLOAT2{},
-                        reinterpret_cast<DirectX::XMFLOAT3&>(mesh->mNormals[i]),
-                        mesh->HasTangentsAndBitangents() ? reinterpret_cast<XMFLOAT3 const&>(mesh->mTangents[i]) : DirectX::XMFLOAT3{},
-                        mesh->HasTangentsAndBitangents() ? reinterpret_cast<XMFLOAT3 const&>(mesh->mBitangents[i]) : DirectX::XMFLOAT3{},
-                    }
-                );
-            }
-
-            indices.reserve(indices.size() + mesh->mNumFaces * 3);
-
-            for (u32 i = 0; i < mesh->mNumFaces; ++i)
-            {
-                indices.push_back(mesh->mFaces[i].mIndices[0]);
-                indices.push_back(mesh->mFaces[i].mIndices[1]);
-                indices.push_back(mesh->mFaces[i].mIndices[2]);
-            }
-
-        }
-
-        std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>(gfx, vertices);
-        std::shared_ptr<IndexBuffer> ib = std::make_shared<IndexBuffer>(gfx, indices);
-        
-        auto& mesh = reg.get<Mesh>(e);
-
-        mesh.vb = vb;
-        mesh.ib = ib;
-        mesh.vertices = vertices;
-
-        auto model_name = GetFilename(params.model_path);
-
-        std::string name = model_name + std::to_string(as_integer(e));
-
-        auto tag = reg.get_if<Tag>(e);
-        if (tag)
-            tag->name = name;
-        else reg.emplace<Tag>(e, name);
-
 
     }
 }

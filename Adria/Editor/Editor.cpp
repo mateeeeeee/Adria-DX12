@@ -282,7 +282,7 @@ namespace adria
                     if (!texture_path.empty()) texture_path.append("/");
 
                     params.textures_path = texture_path;
-                    engine->entity_loader->LoadModel(params);
+                    engine->entity_loader->LoadGLTFModel(params);
                 }
 
                 ImGuiFileDialog::Instance()->Close();
@@ -732,7 +732,7 @@ namespace adria
                         if (engine->reg.has<Mesh>(selected_entity))
                             Log::Warning("Entity already has Mesh Component!\n");
                         else
-                            engine->entity_loader->LoadModelMesh(selected_entity, params);
+                            Log::Warning("Not supported for now!\n");
                         break;
                     case TRANSFORM:
                         if (engine->reg.has<Transform>(selected_entity))

@@ -475,6 +475,9 @@
     <ClInclude Include="Graphics\ReadbackBuffer.h">
       <Filter>Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Math\ComputeTangentFrame.h">
+      <Filter>Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

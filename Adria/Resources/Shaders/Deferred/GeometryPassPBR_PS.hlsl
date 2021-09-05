@@ -5,21 +5,12 @@ SamplerState linear_wrap_sampler : register(s0);
 
 Texture2D txAlbedo              : register(t0);
 
+Texture2D txMetallicRoughness : register(t1);
+
 Texture2D txNormal              : register(t2);
 
 Texture2D txEmissive            : register(t3);
 
-#if !METALLIC_ROUGHNESS_SEPARATED
-
-Texture2D txMetallicRoughness   : register(t1);
-
-#else 
-
-Texture2D<float> txMetallic            : register(t1);
-
-Texture2D<float> txRoughness           : register(t4);
-
-#endif 
 
 
 
@@ -56,11 +47,7 @@ PS_GBUFFER_OUT PackGBuffer(float3 BaseColor, float3 NormalVS, float4 emissive, f
 
 #include "../Util/RootSignatures.hlsli"
 
-#if !METALLIC_ROUGHNESS_SEPARATED
 [RootSignature(GeometryPassPBR_RS)]
-#else 
-[RootSignature(GeometryPassPBR_Separated_RS)]
-#endif
 PS_GBUFFER_OUT main(VS_OUTPUT In)
 {
 
@@ -80,19 +67,9 @@ PS_GBUFFER_OUT main(VS_OUTPUT In)
     float3 NewNormal = mul(BumpMapNormal, TBN);
     In.NormalVS = normalize(mul(NewNormal, (float3x3) frame_cbuf.view));
 
-#if !METALLIC_ROUGHNESS_SEPARATED
     float3 ao_roughness_metallic = txMetallicRoughness.Sample(linear_wrap_sampler, In.Uvs).rgb;
 
     float3 EmissiveColor = txEmissive.Sample(linear_wrap_sampler, In.Uvs).rgb;
     return PackGBuffer(DiffuseColor.xyz, normalize(In.NormalVS), float4(EmissiveColor, material_cbuf.emissive_factor),
     ao_roughness_metallic.g * material_cbuf.roughness_factor, ao_roughness_metallic.b * material_cbuf.metallic_factor); 
-#else 
-    float metallic = txMetallic.Sample(linear_wrap_sampler, In.Uvs).r;
-    float roughness = txRoughness.Sample(linear_wrap_sampler, In.Uvs).r;
-
-    float3 EmissiveColor = txEmissive.Sample(linear_wrap_sampler, In.Uvs).rgb;
-    return PackGBuffer(DiffuseColor.xyz, normalize(In.NormalVS), float4(EmissiveColor, material_cbuf.emissive_factor),
-    roughness * material_cbuf.roughness_factor, metallic * material_cbuf.metallic_factor);
-
-#endif
 }
