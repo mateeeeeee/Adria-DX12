@@ -66,7 +66,7 @@ namespace adria
 
 		void RendererSettings();
 
-		void StatsAndProfiling();
+		void Profiling();
 
 		void OpenMaterialFileDialog(Material* mat, MaterialTextureType type);
 	};

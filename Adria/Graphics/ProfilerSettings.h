@@ -8,6 +8,9 @@ namespace adria
 	{
 		eFrame,
 		eGBufferPass,
+		eDeferredPass,
+		eForwardPass,
+		ePostprocessing,
 		eCount
 	};
 
@@ -19,6 +22,12 @@ namespace adria
 			return "Frame Pass";
 		case ProfilerBlock::eGBufferPass:
 			return "GBuffer Pass";
+		case ProfilerBlock::eDeferredPass:
+			return "Deferred Pass";
+		case ProfilerBlock::eForwardPass:
+			return "Forward Pass";
+		case ProfilerBlock::ePostprocessing:
+			return "Postprocessing";
 		default:
 			return "";
 		}
@@ -29,6 +38,9 @@ namespace adria
 	{
 		bool profile_frame = false;
 		bool profile_gbuffer_pass = false;
+		bool profile_deferred_pass = false;
+		bool profile_forward_pass = false;
+		bool profile_postprocessing = false;
 	};
 
 	inline constexpr ProfilerSettings NO_PROFILING = ProfilerSettings{};

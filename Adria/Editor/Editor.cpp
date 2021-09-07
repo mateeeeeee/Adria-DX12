@@ -173,7 +173,7 @@ namespace adria
                 RendererSettings();
                 Properties();
                 Log();
-                StatsAndProfiling();
+                Profiling();
                 gui->End(gui_cmd_list);
             }
             engine->Present();
@@ -264,7 +264,7 @@ namespace adria
             if (ImGui::BeginMenu("File"))
             {
                 if (ImGui::MenuItem("New Model"))
-                    ImGuiFileDialog::Instance()->OpenDialog("Choose Model", "Choose File", ".gltf,.obj", ".");
+                    ImGuiFileDialog::Instance()->OpenDialog("Choose Model", "Choose File", ".gltf", ".");
 
                 ImGui::EndMenu();
             }
@@ -698,7 +698,7 @@ namespace adria
                 {
 
                     if (ImGui::Button("Choose Mesh"))
-                        ImGuiFileDialog::Instance()->OpenDialog("Choose Mesh", "Choose File", ".obj,.gltf", ".");
+                        ImGuiFileDialog::Instance()->OpenDialog("Choose Mesh", "Choose File", ".gltf", ".");
 
                     if (ImGuiFileDialog::Instance()->Display("Choose Mesh"))
                     {
@@ -855,29 +855,33 @@ namespace adria
         ImGui::End();
     }
 
-    void Editor::Camera()
-    {
-        auto& camera = engine->camera_manager.GetActiveCamera();
+	void Editor::Camera()
+	{
+		auto& camera = engine->camera_manager.GetActiveCamera();
 
-        ImGui::Begin("Camera");
-        {
-            f32 pos[3] = { camera.Position().m128_f32[0],camera.Position().m128_f32[1], camera.Position().m128_f32[2] };
-
-            ImGui::SliderFloat3("Position", pos, 0.0f, 2000.0f);
-
-            camera.SetPosition(DirectX::XMFLOAT3(pos));
-
-            f32 _near = camera.Near(), _far = camera.Far();
-            f32 _fov = camera.Fov(), _ar = camera.AspectRatio();
-            ImGui::SliderFloat("Near Plane", &_near, 0.0f, 2.0f);
-            ImGui::SliderFloat("Far Plane", &_far, 10.0f, 3000.0f);
-            ImGui::SliderFloat("FOV", &_fov, 0.01f, 1.5707f);
-            camera.SetNearAndFar(_near, _far);
-            camera.SetFov(_fov);
-        }
-        ImGui::End();
-
-    }
+		static bool is_open = true;
+		if (is_open)
+		{
+			if (!ImGui::Begin("Camera", &is_open))
+			{
+				ImGui::End();
+			}
+			else
+			{
+				f32 pos[3] = { camera.Position().m128_f32[0],camera.Position().m128_f32[1], camera.Position().m128_f32[2] };
+				ImGui::SliderFloat3("Position", pos, 0.0f, 2000.0f);
+				camera.SetPosition(DirectX::XMFLOAT3(pos));
+				f32 _near = camera.Near(), _far = camera.Far();
+				f32 _fov = camera.Fov(), _ar = camera.AspectRatio();
+				ImGui::SliderFloat("Near Plane", &_near, 0.0f, 2.0f);
+				ImGui::SliderFloat("Far Plane", &_far, 10.0f, 3000.0f);
+				ImGui::SliderFloat("FOV", &_fov, 0.01f, 1.5707f);
+				camera.SetNearAndFar(_near, _far);
+				camera.SetFov(_fov);
+				ImGui::End();
+			}
+		}
+	}
 
     void Editor::Scene()
     {
@@ -1185,32 +1189,28 @@ namespace adria
         ImGui::End();
     }
 
-    void Editor::StatsAndProfiling()
+    void Editor::Profiling()
     {
-		
 		if (ImGui::Begin("Profiling"))
 		{
 			ImGuiIO io = ImGui::GetIO();
-			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-
+			ImGui::TextWrapped("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 			static bool enable_profiling = false;
 			ImGui::Checkbox("Enable Profiling", &enable_profiling);
+			//ImGui::PushTextWrapPos();
 			if (enable_profiling)
 			{
-				static bool profile_gbuffer = false;
-
 				ImGui::Checkbox("Profile GBuffer Pass", &profiler_settings.profile_gbuffer_pass);
-				
+				ImGui::Checkbox("Profile Deferred Pass", &profiler_settings.profile_deferred_pass);
+				ImGui::Checkbox("Profile Forward Pass", &profiler_settings.profile_forward_pass);
+				ImGui::Checkbox("Profile Postprocessing", &profiler_settings.profile_postprocessing);
+
 				engine->renderer->SetProfilerSettings(profiler_settings);
 
-				if (ImGui::Begin("Profiler Results"))
-				{
-					std::vector<std::string> results = engine->renderer->GetProfilerResults();
-					std::string concatenated_results;
-					for (auto const& result : results) concatenated_results += result;
-					ImGui::Text(concatenated_results.c_str());
-				}
-				ImGui::End();
+				std::vector<std::string> results = engine->renderer->GetProfilerResults();
+				std::string concatenated_results;
+				for (auto const& result : results) concatenated_results += result;
+				ImGui::TextWrapped(concatenated_results.c_str());
 			}
 			else
 			{

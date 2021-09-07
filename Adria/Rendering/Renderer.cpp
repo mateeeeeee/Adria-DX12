@@ -3343,6 +3343,7 @@ namespace adria
 	void Renderer::PassDeferredLighting(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Deferred Lighting Pass");
+		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, ProfilerBlock::eDeferredPass, profiler_settings.profile_deferred_pass);
 
 		auto device = gfx->Device();
 		auto upload_buffer = gfx->UploadBuffer();
@@ -3723,6 +3724,7 @@ namespace adria
 	void Renderer::PassForward(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Forward Pass");
+		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, ProfilerBlock::eForwardPass, profiler_settings.profile_forward_pass);
 
 		forward_render_pass.Begin(cmd_list);
 		PassForwardCommon(cmd_list, false);
@@ -3733,6 +3735,7 @@ namespace adria
 	void Renderer::PassPostprocess(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Postprocessing Pass");
+		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, ProfilerBlock::ePostprocessing, profiler_settings.profile_postprocessing);
 
 		PassVelocityBuffer(cmd_list);
 
@@ -4212,11 +4215,11 @@ namespace adria
 				that does not cast shadows does not make sense!\n");
 			return;
 		}
-		if (!settings.fog)
-		{
-			Log::Warning("Volumetric Lighting requires Fog to be enabled!\n");
-			return;
-		}
+		//if (!settings.fog)
+		//{
+		//	Log::Warning("Volumetric Lighting requires Fog to be enabled!\n");
+		//	return;
+		//}
 
 		cmd_list->SetGraphicsRootSignature(rs_map[RootSig::eVolumetric].Get());
 		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);

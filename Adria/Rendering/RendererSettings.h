@@ -13,8 +13,8 @@ namespace adria
 		f32 wind_direction[2] = { 10.0f, 10.0f };
 		bool fog = false;
 		FogType fog_type = FogType::eExponential;
-		f32 fog_falloff = 0.02f;
-		f32 fog_density = 0.02f;
+		f32 fog_falloff = 0.005f;
+		f32 fog_density = 0.002f;
 		f32 fog_start = 100.0f;
 		f32 fog_color[3] = { 0.5f,0.6f,0.7f };
 		f32 shadow_softness = 1.0f;
