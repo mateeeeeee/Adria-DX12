@@ -32,14 +32,15 @@ Graphics engine written in C++/DirectX12.
 * Fog
 * Volumetric Clouds
 * ImGui Editor
-* Assimp Model Loading
+* Profiler
+* Model Loading with tinygltf
 * Camera and Light Frustum Culling
 * Multithreaded Command List Building
 * DirectX 12 Render Passes
 
 
 ## Dependencies
-[assimp](https://github.com/assimp/assimp)
+[tinygltf](https://github.com/syoyo/tinygltf)
 
 [ImGui](https://github.com/ocornut/imgui)
 
