@@ -8,9 +8,6 @@
     <Filter Include="Utilities">
       <UniqueIdentifier>{5f5eb8d6-7ace-4da4-9c09-4c0421c6d88e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Threading">
-      <UniqueIdentifier>{6e93feed-a08b-471a-870c-bc433d3c1b4d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Logging">
       <UniqueIdentifier>{0267d83e-83de-4015-82c3-053aae4c0283}</UniqueIdentifier>
     </Filter>
@@ -70,6 +67,9 @@
     </Filter>
     <Filter Include="Shaders\RayTracing">
       <UniqueIdentifier>{b0c1741c-fed3-4183-a633-dfa94a466da2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tasks">
+      <UniqueIdentifier>{6e93feed-a08b-471a-870c-bc433d3c1b4d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -215,16 +215,16 @@
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Threading\Task.h">
-      <Filter>Threading</Filter>
+      <Filter>Tasks</Filter>
     </ClInclude>
     <ClInclude Include="Threading\TaskManager.h">
-      <Filter>Threading</Filter>
+      <Filter>Tasks</Filter>
     </ClInclude>
     <ClInclude Include="Threading\TaskSystem.h">
-      <Filter>Threading</Filter>
+      <Filter>Tasks</Filter>
     </ClInclude>
     <ClInclude Include="Threading\ThreadPool.h">
-      <Filter>Threading</Filter>
+      <Filter>Tasks</Filter>
     </ClInclude>
     <ClInclude Include="Logging\Logger.h">
       <Filter>Logging</Filter>
