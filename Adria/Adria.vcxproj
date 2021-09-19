@@ -256,6 +256,7 @@
     <ClInclude Include="Rendering\ConstantBuffers.h" />
     <ClInclude Include="Rendering\Enums.h" />
     <ClInclude Include="Rendering\EntityLoader.h" />
+    <ClInclude Include="Rendering\FrameGraph.h" />
     <ClInclude Include="Rendering\RayTracer.h" />
     <ClInclude Include="Rendering\Renderer.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />

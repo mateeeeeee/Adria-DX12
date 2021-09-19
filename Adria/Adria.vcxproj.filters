@@ -478,6 +478,9 @@
     <ClInclude Include="Math\ComputeTangentFrame.h">
       <Filter>Math</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\FrameGraph.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

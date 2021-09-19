@@ -4821,7 +4821,6 @@ namespace adria
 
 		cmd_list->DrawInstanced(4, 1, 0, 0);
 	}
-
 	void Renderer::PassVelocityBuffer(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Velocity Buffer Pass");
@@ -5198,14 +5197,6 @@ namespace adria
 		cmd_list->DrawInstanced(4, 1, 0, 0);
 	}
 }
-
-
-
-
-
-
-
-
 
 //transparent shadows
 /*
