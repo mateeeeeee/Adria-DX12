@@ -26,11 +26,11 @@ namespace adria
 		desc.NumDescriptors = 30;
 		desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		
-		imgui_allocator = std::make_unique<RingDescriptorAllocator>(gfx->Device(), desc, 1); //reserve first for fonts
+		imgui_allocator = std::make_unique<RingDescriptorAllocator>(gfx->GetDevice(), desc, 1); //reserve first for fonts
 
 		ImGui_ImplWin32_Init(Window::Handle());
 		
-		ImGui_ImplDX12_Init(gfx->Device(), gfx->BackbufferCount(),
+		ImGui_ImplDX12_Init(gfx->GetDevice(), gfx->BackbufferCount(),
 			DXGI_FORMAT_R10G10B10A2_UNORM, imgui_allocator->Heap(),
 			imgui_allocator->GetFirstCpuHandle(),
 			imgui_allocator->GetFirstGpuHandle());

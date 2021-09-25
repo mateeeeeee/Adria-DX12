@@ -45,7 +45,7 @@ namespace adria
 
 		void GenerateAllMips()
 		{
-			mips_generator->Generate(gfx->DefaultCommandList());
+			mips_generator->Generate(gfx->GetDefaultCommandList());
 		}
 
 	private:

@@ -119,7 +119,7 @@
     <ClCompile Include="Graphics\LinearDescriptorAllocator.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\GraphicsCoreDX12.cpp">
+    <ClCompile Include="Graphics\GraphicsCoreDX12_deprecated.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\ShaderUtility.cpp">
@@ -191,7 +191,7 @@
     <ClCompile Include="Graphics\Profiler.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\GraphicsCoreDX12_v2.cpp">
+    <ClCompile Include="Graphics\GraphicsCoreDX12.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
   </ItemGroup>
@@ -325,7 +325,7 @@
     <ClInclude Include="Graphics\DDSTextureLoader12.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GraphicsCoreDX12.h">
+    <ClInclude Include="Graphics\GraphicsCoreDX12_deprecated.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\WICTextureLoader12.h">
@@ -481,7 +481,7 @@
     <ClInclude Include="Math\ComputeTangentFrame.h">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GraphicsCoreDX12_v2.h">
+    <ClInclude Include="Graphics\GraphicsCoreDX12.h">
       <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>

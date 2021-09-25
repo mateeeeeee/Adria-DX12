@@ -31,9 +31,9 @@ namespace adria
 
 
 	RayTracer::RayTracer(tecs::registry& reg, GraphicsCoreDX12* gfx, u32 width, u32 height) 
-		: reg{ reg }, gfx{ gfx }, width{ width }, height{ height }, ray_tracing_cbuffer(gfx->Device(), gfx->BackbufferCount())
+		: reg{ reg }, gfx{ gfx }, width{ width }, height{ height }, ray_tracing_cbuffer(gfx->GetDevice(), gfx->BackbufferCount())
 	{
-		ID3D12Device* device = gfx->Device();
+		ID3D12Device* device = gfx->GetDevice();
 		D3D12_FEATURE_DATA_D3D12_OPTIONS5 features5{};
 		HRESULT hr = device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &features5, sizeof(D3D12_FEATURE_DATA_D3D12_OPTIONS5));
 		if (FAILED(hr) || features5.RaytracingTier == D3D12_RAYTRACING_TIER_NOT_SUPPORTED)
@@ -68,8 +68,8 @@ namespace adria
 	{
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Ray Traced Shadows Pass");
 
-		auto device = gfx->Device();
-		auto descriptor_allocator = gfx->DescriptorAllocator();
+		auto device = gfx->GetDevice();
+		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 		ResourceBarriers rts_barrier{};
 		rts_barrier.AddTransition(rt_shadows_output.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
@@ -111,7 +111,7 @@ namespace adria
 
 	void RayTracer::CreateResources()
 	{
-		ID3D12Device5* device = gfx->Device();
+		ID3D12Device5* device = gfx->GetDevice();
 
 		dxr_heap = std::make_unique<DescriptorHeap>(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 50);
 
@@ -134,7 +134,7 @@ namespace adria
 
 	void RayTracer::CreateRootSignatures()
 	{
-		ID3D12Device5* device = gfx->Device();
+		ID3D12Device5* device = gfx->GetDevice();
 
 		/*global root signature*/
 		D3D12_FEATURE_DATA_ROOT_SIGNATURE feature_data{};
@@ -179,7 +179,7 @@ namespace adria
 
 	void RayTracer::CreateStateObjects()
 	{
-		ID3D12Device5* device = gfx->Device();
+		ID3D12Device5* device = gfx->GetDevice();
 
 		ShaderInfo compile_info{};
 		compile_info.stage = ShaderStage::LIB;
@@ -222,7 +222,7 @@ namespace adria
 	 
 	void RayTracer::CreateShaderTables()
 	{
-		ID3D12Device5* device = gfx->Device();
+		ID3D12Device5* device = gfx->GetDevice();
 		
 		Microsoft::WRL::ComPtr<ID3D12StateObjectProperties> pso_info = nullptr;
 		BREAK_IF_FAILED(rt_shadows_state_object->QueryInterface(IID_PPV_ARGS(&pso_info)));
@@ -243,8 +243,8 @@ namespace adria
 
 	void RayTracer::BuildBottomLevelAS()
 	{
-		auto device = gfx->Device();
-		auto cmd_list = gfx->DefaultCommandList();
+		auto device = gfx->GetDevice();
+		auto cmd_list = gfx->GetDefaultCommandList();
 		auto ray_tracing_view = reg.view<Mesh, Transform>();
 
 		std::vector<D3D12_RAYTRACING_GEOMETRY_DESC> geo_descs{};
@@ -300,8 +300,8 @@ namespace adria
 	void RayTracer::BuildTopLevelAS()
 	{
 
-		auto device = gfx->Device();
-		auto cmd_list = gfx->DefaultCommandList();
+		auto device = gfx->GetDevice();
+		auto cmd_list = gfx->GetDefaultCommandList();
 
 		// First, get the size of the TLAS buffers and create them
 		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs = {};

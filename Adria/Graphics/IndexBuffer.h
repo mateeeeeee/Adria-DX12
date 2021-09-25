@@ -20,8 +20,8 @@ namespace adria
             index_t* indices, size_t index_count) : index_count{ static_cast<UINT>(index_count) }
         {
 
-            auto allocator = gfx->Allocator();
-            auto command_list = gfx->DefaultCommandList();
+            auto allocator = gfx->GetAllocator();
+            auto command_list = gfx->GetDefaultCommandList();
 
             size_t ib_byte_size = sizeof(index_t) * index_count;
             

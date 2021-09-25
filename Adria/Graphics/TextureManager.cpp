@@ -134,10 +134,10 @@ namespace adria
         texture_heap_desc.NumDescriptors = max_textures;
         texture_heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
         texture_heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE; 
-        texture_srv_heap.reset(new DescriptorHeap(gfx->Device(), texture_heap_desc));
-        mips_generator = std::make_unique<MipsGenerator>(gfx->Device(), max_textures);
+        texture_srv_heap.reset(new DescriptorHeap(gfx->GetDevice(), texture_heap_desc));
+        mips_generator = std::make_unique<MipsGenerator>(gfx->GetDevice(), max_textures);
 
-        CreateNullSRV(gfx->Device(), texture_srv_heap->GetFirstCpuHandle());
+        CreateNullSRV(gfx->GetDevice(), texture_srv_heap->GetFirstCpuHandle());
 
        
         {
@@ -157,7 +157,7 @@ namespace adria
             Microsoft::WRL::ComPtr<ID3DBlob> error;
             HRESULT hr = D3DX12SerializeVersionedRootSignature(&signature_desc, D3D_ROOT_SIGNATURE_VERSION_1_1, &signature, &error);
             if (error) GLOBAL_LOG_ERROR(std::string((char*)error->GetBufferPointer()));
-            BREAK_IF_FAILED(gfx->Device()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&equirect_root_signature)));
+            BREAK_IF_FAILED(gfx->GetDevice()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&equirect_root_signature)));
         }
         
         
@@ -168,7 +168,7 @@ namespace adria
             D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc = {};
             pso_desc.pRootSignature = equirect_root_signature.Get();
             pso_desc.CS = equirect_cs_shader;
-            BREAK_IF_FAILED(gfx->Device()->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&equirect_pso)));
+            BREAK_IF_FAILED(gfx->GetDevice()->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&equirect_pso)));
         }
 
         
@@ -213,9 +213,9 @@ namespace adria
         {
             ++handle;
 
-            auto device = gfx->Device();
-            auto allocator = gfx->Allocator();
-            auto cmd_list = gfx->DefaultCommandList();
+            auto device = gfx->GetDevice();
+            auto allocator = gfx->GetAllocator();
+            auto cmd_list = gfx->GetDefaultCommandList();
             
 
             if (format == TextureFormat::eDDS)
@@ -281,7 +281,7 @@ namespace adria
             }
             else //format == TextureFormat::eHDR
             {
-                auto descriptor_allocator = gfx->DescriptorAllocator();
+                auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
                 loaded_textures.insert({ name, handle });
 
@@ -433,9 +433,9 @@ namespace adria
         ADRIA_ASSERT(format == TextureFormat::eJPG || format == TextureFormat::ePNG || format == TextureFormat::eTGA ||
             format == TextureFormat::eBMP || format == TextureFormat::eHDR || format == TextureFormat::ePIC);
 
-        auto device = gfx->Device();
-        auto allocator = gfx->Allocator();
-        auto cmd_list = gfx->DefaultCommandList();
+        auto device = gfx->GetDevice();
+        auto allocator = gfx->GetAllocator();
+        auto cmd_list = gfx->GetDefaultCommandList();
 
         ID3D12Resource* cubemap = nullptr;
 
@@ -544,9 +544,9 @@ namespace adria
             ++handle;
             loaded_textures.insert({ texture_path, handle });
 
-            auto device = gfx->Device();
-            auto cmd_list = gfx->DefaultCommandList();
-            auto allocator = gfx->Allocator();
+            auto device = gfx->GetDevice();
+            auto cmd_list = gfx->GetDefaultCommandList();
+            auto allocator = gfx->GetAllocator();
 
             ID3D12Resource* tex2d = nullptr;
             std::unique_ptr<uint8_t[]> decodedData;
@@ -621,9 +621,9 @@ namespace adria
         if (auto it = loaded_textures.find(texture_path); it == loaded_textures.end())
         {
 
-            auto device = gfx->Device();
-            auto cmd_list = gfx->DefaultCommandList();
-            auto allocator = gfx->Allocator();
+            auto device = gfx->GetDevice();
+            auto cmd_list = gfx->GetDefaultCommandList();
+            auto allocator = gfx->GetAllocator();
 
             ++handle;
             loaded_textures.insert({ texture_path, handle });
@@ -696,9 +696,9 @@ namespace adria
     {
         if (auto it = loaded_textures.find(texture_path); it == loaded_textures.end())
         {
-            auto device = gfx->Device();
-            auto cmd_list = gfx->DefaultCommandList();
-            auto allocator = gfx->Allocator();
+            auto device = gfx->GetDevice();
+            auto cmd_list = gfx->GetDefaultCommandList();
+            auto allocator = gfx->GetAllocator();
 
             ++handle;
             loaded_textures.insert({ texture_path, handle });

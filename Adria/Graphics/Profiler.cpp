@@ -5,13 +5,13 @@
 namespace adria
 {
 
-	Profiler::Profiler(GraphicsCoreDX12* gfx) : gfx{ gfx }, query_readback_buffer(gfx->Device(), MAX_PROFILES * 2 * FRAME_COUNT * sizeof(UINT64))
+	Profiler::Profiler(GraphicsCoreDX12* gfx) : gfx{ gfx }, query_readback_buffer(gfx->GetDevice(), MAX_PROFILES * 2 * FRAME_COUNT * sizeof(UINT64))
 	{
 		D3D12_QUERY_HEAP_DESC heap_desc = { };
 		heap_desc.Count = MAX_PROFILES * 2;
 		heap_desc.NodeMask = 0;
 		heap_desc.Type = D3D12_QUERY_HEAP_TYPE_TIMESTAMP;
-		gfx->Device()->CreateQueryHeap(&heap_desc, IID_PPV_ARGS(&query_heap));
+		gfx->GetDevice()->CreateQueryHeap(&heap_desc, IID_PPV_ARGS(&query_heap));
 	}
 
 	void Profiler::BeginProfileBlock(ID3D12GraphicsCommandList* cmd_list, ProfilerBlock block)

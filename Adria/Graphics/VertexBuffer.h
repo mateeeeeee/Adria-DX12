@@ -20,8 +20,8 @@ namespace adria
 		VertexBuffer(GraphicsCoreDX12* gfx, vertex_t* vertices, size_t vertex_count)
 		{
 
-			auto allocator = gfx->Allocator();
-			auto command_list = gfx->DefaultCommandList();
+			auto allocator = gfx->GetAllocator();
+			auto command_list = gfx->GetDefaultCommandList();
 
 			D3D12_RESOURCE_DESC resource_desc = {};
 			resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;

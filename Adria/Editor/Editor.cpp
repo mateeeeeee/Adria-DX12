@@ -159,7 +159,7 @@ namespace adria
         if (gui->IsVisible())
         {
             engine->Run(renderer_settings, true);
-            auto gui_cmd_list = engine->gfx->NewCommandList();
+            auto gui_cmd_list = engine->gfx->GetNewGraphicsCommandList();
             engine->gfx->SetBackbuffer(gui_cmd_list);
             {
                 PIXScopedEvent(gui_cmd_list, PIX_COLOR_DEFAULT, "GUI Pass");
@@ -535,7 +535,7 @@ namespace adria
                 {
                     if (ImGui::CollapsingHeader("Material"))
                     {
-                        auto device = engine->gfx->Device();
+                        auto device = engine->gfx->GetDevice();
                         auto descriptor_allocator = gui->DescriptorAllocator();
 
                         ImGui::Text("Albedo Texture");
@@ -887,7 +887,7 @@ namespace adria
     {
         ImGui::Begin("Scene");
         {
-            auto device = engine->gfx->Device();
+            auto device = engine->gfx->GetDevice();
             auto descriptor_allocator = gui->DescriptorAllocator();
 
             ImVec2 _scene_dimension = ImGui::GetWindowSize();
