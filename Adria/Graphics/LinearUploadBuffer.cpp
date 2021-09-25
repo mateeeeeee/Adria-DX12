@@ -38,7 +38,6 @@ namespace adria
 			allocation.offset = offset;
 			allocation.size = size_in_bytes;
 
-			
 			return allocation;
 		}
 		else

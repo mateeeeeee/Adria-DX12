@@ -51,12 +51,8 @@ namespace adria
 
 			allocation.reset(alloc);
 
-
 			vb->SetName(L"Vertex Buffer");
 
-			// create upload heap
-			// upload heaps are used to upload data to the GPU. CPU can write to it, GPU can read from it
-			// We will upload the vertex buffer using this heap to the default heap
 			D3D12MA::ALLOCATION_DESC vBufferUploadAllocDesc = {};
 			vBufferUploadAllocDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
 			D3D12_RESOURCE_DESC vertexBufferUploadResourceDesc = {};

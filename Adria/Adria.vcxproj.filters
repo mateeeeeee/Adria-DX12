@@ -191,6 +191,9 @@
     <ClCompile Include="Graphics\Profiler.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\GraphicsCoreDX12_v2.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -478,8 +481,8 @@
     <ClInclude Include="Math\ComputeTangentFrame.h">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\FrameGraph.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="Graphics\GraphicsCoreDX12_v2.h">
+      <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

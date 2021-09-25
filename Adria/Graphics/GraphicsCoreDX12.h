@@ -2,7 +2,6 @@
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
 
-#include <concepts>
 #include <memory>
 #include <mutex>
 #include <vector>
@@ -104,6 +103,7 @@ namespace adria
         void ExecuteCommandLists();
         void MoveToNextFrame();
         void ProcessReleaseQueue();
+
 	};
 }
 
