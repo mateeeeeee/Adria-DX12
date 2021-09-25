@@ -21,6 +21,13 @@
 
 namespace adria
 {
+	enum class QueueType : u8
+	{
+		eGraphics,
+		eCompute,
+		eCount
+	};
+
 	class GraphicsCoreDX12_v2
 	{
 		static constexpr UINT BACKBUFFER_COUNT = 3;
@@ -50,6 +57,33 @@ namespace adria
 		~GraphicsCoreDX12_v2();
 
 		void WaitForGPU();
+
+		void WaitOnQueue(QueueType type)
+		{
+			switch (type)
+			{
+			case QueueType::eGraphics:
+				graphics_queue->Wait(compute_fences[backbuffer_index].Get(), compute_fence_values[backbuffer_index]);
+				++compute_fence_values[backbuffer_index];
+				break;
+			case QueueType::eCompute:
+				compute_queue->Wait(graphics_fences[backbuffer_index].Get(), graphics_fence_values[backbuffer_index]);
+				++graphics_fence_values[backbuffer_index];
+				break;
+			}
+		}
+		void SignalQueue(QueueType type)
+		{
+			switch (type)
+			{
+			case QueueType::eGraphics:
+				graphics_queue->Signal(graphics_fences[backbuffer_index].Get(), graphics_fence_values[backbuffer_index]);
+				break;
+			case QueueType::eCompute:
+				compute_queue->Signal(compute_fences[backbuffer_index].Get(), compute_fence_values[backbuffer_index]);
+				break;
+			}
+		}
 
 		void ResizeBackbuffer(UINT w, UINT h);
 		UINT BackbufferIndex() const;
@@ -129,4 +163,5 @@ namespace adria
 		void MoveToNextFrame();
 		void ProcessReleaseQueue();
 	};
+
 }
