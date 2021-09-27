@@ -1,4 +1,4 @@
-/*#include "GraphicsCoreDX12_deprecated.h"
+#include "GraphicsCoreDX12_deprecated.h"
 #include "../Core/Window.h"
 #include "../Logging/Logger.h"
 
@@ -426,4 +426,3 @@ namespace adria
     }
 
 }
-*/

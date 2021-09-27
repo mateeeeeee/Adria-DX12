@@ -120,6 +120,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\dxc\include\;$(SolutionDir)ThirdParty\DirectXTex\Include\;C:\Users\mateb\OneDrive\Desktop\Projekti\Adria D3D12\ThirdParty\tinygltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
+      <AdditionalOptions>/sdl /w34996 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -139,6 +140,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\dxc\include\;$(SolutionDir)ThirdParty\DirectXTex\Include\;C:\Users\mateb\OneDrive\Desktop\Projekti\Adria D3D12\ThirdParty\tinygltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
+      <AdditionalOptions>/sdl /w34996 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

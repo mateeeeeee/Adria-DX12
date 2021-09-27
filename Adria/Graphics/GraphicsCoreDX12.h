@@ -121,13 +121,10 @@ namespace adria
 		UINT last_backbuffer_index;
 		Microsoft::WRL::ComPtr<IDXGISwapChain3> swap_chain = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12Device5> device = nullptr;
+		
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue> graphics_queue = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue> compute_queue = nullptr;
 		
-		std::unique_ptr<DescriptorHeap> render_target_heap = nullptr;
-		std::vector<std::unique_ptr<LinearDescriptorAllocator>> descriptor_allocators;
-		std::vector<std::unique_ptr<LinearUploadBuffer>> upload_buffers;
-
 		//release queue
 		ReleasablePtr<D3D12MA::Allocator> allocator = nullptr;
 		std::queue<ReleasableItem>  release_queue;
@@ -146,12 +143,18 @@ namespace adria
 		Microsoft::WRL::ComPtr<ID3D12Fence> graphics_fences[BACKBUFFER_COUNT];
 		HANDLE		 graphics_fence_events[BACKBUFFER_COUNT];
 		UINT64       graphics_fence_values[BACKBUFFER_COUNT];
-		UINT64		 graphics_fence_value;
 
 		Microsoft::WRL::ComPtr<ID3D12Fence> compute_fences[BACKBUFFER_COUNT];
 		HANDLE		 compute_fence_events[BACKBUFFER_COUNT];
 		UINT64       compute_fence_values[BACKBUFFER_COUNT];
-		UINT64		 compute_fence_value;
+
+		Microsoft::WRL::ComPtr<ID3D12Fence> wait_fence = nullptr;
+		HANDLE		 wait_event = nullptr;
+		UINT64       wait_fence_value = 0;
+
+		std::unique_ptr<DescriptorHeap> render_target_heap = nullptr;
+		std::vector<std::unique_ptr<LinearDescriptorAllocator>> descriptor_allocators;
+		std::vector<std::unique_ptr<LinearUploadBuffer>> upload_buffers;
 
 	private:
 		FrameResources& GetFrameResources();

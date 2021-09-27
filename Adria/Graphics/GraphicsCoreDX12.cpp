@@ -4,7 +4,7 @@ namespace adria
 {
 
 	GraphicsCoreDX12::GraphicsCoreDX12(void* window_handle)
-		: frame_fence_value(0), graphics_fence_value(1), compute_fence_value(1),
+		: frame_fence_value(0),
 		frame_fence_values{}, graphics_fence_values{}, compute_fence_values{}
 	{
 		HWND hwnd = static_cast<HWND>(window_handle);
@@ -64,6 +64,7 @@ namespace adria
 			graphics_queue_desc.NodeMask = 0;
 			hr = device->CreateCommandQueue(&graphics_queue_desc, IID_PPV_ARGS(&graphics_queue));
 			BREAK_IF_FAILED(hr);
+			graphics_queue->SetName(L"Graphics Queue");
 
 			D3D12_COMMAND_QUEUE_DESC compute_queue_desc = {};
 			compute_queue_desc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
@@ -72,6 +73,7 @@ namespace adria
 			compute_queue_desc.NodeMask = 0;
 			hr = device->CreateCommandQueue(&compute_queue_desc, IID_PPV_ARGS(&compute_queue));
 			BREAK_IF_FAILED(hr);
+			compute_queue->SetName(L"Compute Queue");
 		}
 
 		//create swap chain
@@ -180,6 +182,13 @@ namespace adria
 				compute_fence_events[i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 				if (compute_fence_events[i] == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
 			}
+
+			wait_fence_value = 0;
+			hr = device->CreateFence(wait_fence_value, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&wait_fence));
+			wait_fence_value++;
+			BREAK_IF_FAILED(hr);
+			wait_event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+			if (wait_event == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
 		}
 	}
 
@@ -189,7 +198,6 @@ namespace adria
 	{
 		WaitForGPU();
 		ProcessReleaseQueue();
-
 		for (size_t i = 0; i < BACKBUFFER_COUNT; ++i) 
 		{
 			if (graphics_fences[i]->GetCompletedValue() < graphics_fence_values[i])
@@ -213,19 +221,15 @@ namespace adria
 	void GraphicsCoreDX12::WaitForGPU()
 	{
 		// Schedule a Signal command in the queue.
-		BREAK_IF_FAILED(graphics_queue->Signal(graphics_fences[backbuffer_index].Get(), graphics_fence_values[backbuffer_index]));
-		BREAK_IF_FAILED(compute_queue->Signal(compute_fences[backbuffer_index].Get(), compute_fence_values[backbuffer_index]));
-		// Wait until the fence has been processed.
+		BREAK_IF_FAILED(graphics_queue->Signal(wait_fence.Get(), wait_fence_value));
+		BREAK_IF_FAILED(wait_fence->SetEventOnCompletion(wait_fence_value, wait_event));
+		WaitForSingleObject(wait_event, INFINITE);
+		wait_fence_value++;
 
-		BREAK_IF_FAILED(graphics_fences[backbuffer_index]->SetEventOnCompletion(graphics_fence_values[backbuffer_index], graphics_fence_events[backbuffer_index]));
-		WaitForSingleObjectEx(graphics_fence_events[backbuffer_index], INFINITE, FALSE);
-
-		BREAK_IF_FAILED(compute_fences[backbuffer_index]->SetEventOnCompletion(compute_fence_values[backbuffer_index], compute_fence_events[backbuffer_index]));
-		WaitForSingleObjectEx(compute_fence_events[backbuffer_index], INFINITE, FALSE);
-
-		// Increment the fence value for the current frame.
-		graphics_fence_values[backbuffer_index]++;
-		compute_fence_values[backbuffer_index]++;
+		//BREAK_IF_FAILED(compute_queue->Signal(wait_fence.Get(), wait_fence_value));
+		//BREAK_IF_FAILED(wait_fence->SetEventOnCompletion(wait_fence_value, wait_event));
+		//WaitForSingleObject(wait_event, INFINITE);
+		//wait_fence_value++;
 	}
 
 	void GraphicsCoreDX12::ResizeBackbuffer(UINT w, UINT h)
@@ -291,7 +295,7 @@ namespace adria
 		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 		frame_resources.default_cmd_list->ResourceBarrier(1, &barrier);
 
-		FLOAT const clear_color[] = { 0,0,0,1 };
+		FLOAT const clear_color[] = { 0,0,0,0 };
 		frame_resources.default_cmd_list->ClearRenderTargetView(frame_resources.back_buffer_rtv, clear_color, 0, nullptr);
 
 		frame_resources.default_cmd_list->SetGraphicsRootSignature(nullptr);
@@ -476,11 +480,14 @@ namespace adria
 
 	void GraphicsCoreDX12::ExecuteComputeCommandLists()
 	{
+		
 		auto& frame_resources = GetFrameResources();
+
+		if (frame_resources.compute_cmd_list_index == 0) return;
 
 		std::vector<ID3D12CommandList*> cmd_lists = {};
 
-		for (UINT i = 0; i < frame_resources.cmd_list_index; ++i)
+		for (UINT i = 0; i < frame_resources.compute_cmd_list_index; ++i)
 		{
 			frame_resources.compute_cmd_lists[i]->Close();
 			cmd_lists.push_back(frame_resources.compute_cmd_lists[i].Get());
@@ -507,7 +514,7 @@ namespace adria
 		if (frame_fences[backbuffer_index]->GetCompletedValue() < frame_fence_values[backbuffer_index])
 		{
 			BREAK_IF_FAILED(frame_fences[backbuffer_index]->SetEventOnCompletion(frame_fence_values[backbuffer_index], frame_fence_events[backbuffer_index]));
-			WaitForSingleObjectEx(frame_fence_events[backbuffer_index], INFINITE, FALSE);
+			WaitForSingleObject(frame_fence_events[backbuffer_index], INFINITE);
 		}
 	}
 
