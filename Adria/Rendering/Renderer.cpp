@@ -427,13 +427,13 @@ namespace adria
 
 		PassGBuffer(cmd_list);
 
-		if (settings.ambient_oclussion != AmbientOclussion::eNone)
+		if (settings.ambient_occlusion != AmbientOcclusion::eNone)
 		{
 			depth_barrier.ReverseTransitions();
 			depth_barrier.Submit(cmd_list);
 
-			if(settings.ambient_oclussion == AmbientOclussion::eSSAO) PassSSAO(cmd_list);
-			else if (settings.ambient_oclussion == AmbientOclussion::eHBAO) PassHBAO(cmd_list);
+			if(settings.ambient_occlusion == AmbientOcclusion::eSSAO) PassSSAO(cmd_list);
+			else if (settings.ambient_occlusion == AmbientOcclusion::eHBAO) PassHBAO(cmd_list);
 
 			depth_barrier.ReverseTransitions();
 			depth_barrier.Submit(cmd_list);
@@ -482,7 +482,7 @@ namespace adria
 		auto deferred_fut = TaskSystem::Submit([this, deferred_cmd_list]()
 		{
 
-			if (settings.ambient_oclussion != AmbientOclussion::eNone)
+			if (settings.ambient_occlusion != AmbientOcclusion::eNone)
 			{
 				D3D12_RESOURCE_BARRIER pre_ssao_barriers[] =
 				{
@@ -490,8 +490,8 @@ namespace adria
 				};
 				deferred_cmd_list->ResourceBarrier(_countof(pre_ssao_barriers), pre_ssao_barriers);
 
-				if (settings.ambient_oclussion == AmbientOclussion::eSSAO) PassSSAO(deferred_cmd_list);
-				else if (settings.ambient_oclussion == AmbientOclussion::eHBAO) PassHBAO(deferred_cmd_list);
+				if (settings.ambient_occlusion == AmbientOcclusion::eSSAO) PassSSAO(deferred_cmd_list);
+				else if (settings.ambient_occlusion == AmbientOcclusion::eHBAO) PassHBAO(deferred_cmd_list);
 				
 				D3D12_RESOURCE_BARRIER  post_ssao_barriers[] =
 				{
@@ -3210,6 +3210,7 @@ namespace adria
 	}
 	void Renderer::PassSSAO(ID3D12GraphicsCommandList4* cmd_list)
 	{
+		ADRIA_ASSERT(settings.ambient_occlusion == AmbientOcclusion::eSSAO);
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "SSAO Pass");
 
 		ResourceBarriers ssao_barrier{};
@@ -3250,6 +3251,7 @@ namespace adria
 	}
 	void Renderer::PassHBAO(ID3D12GraphicsCommandList4* cmd_list)
 	{
+		ADRIA_ASSERT(settings.ambient_occlusion == AmbientOcclusion::eHBAO);
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "HBAO Pass");
 
 		ResourceBarriers hbao_barrier{};
@@ -3301,7 +3303,7 @@ namespace adria
 		cmd_list->SetGraphicsRootSignature(rs_map[RootSig::eAmbientPBR].Get());
 		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 
-		bool has_ao = settings.ambient_oclussion != AmbientOclussion::eNone;
+		bool has_ao = settings.ambient_occlusion != AmbientOcclusion::eNone;
 		if (has_ao && settings.ibl) cmd_list->SetPipelineState(pso_map[PSO::eAmbientPBR_AO_IBL].Get());
 		else if (has_ao && !settings.ibl) cmd_list->SetPipelineState(pso_map[PSO::eAmbientPBR_AO].Get());
 		else if (!has_ao && settings.ibl) cmd_list->SetPipelineState(pso_map[PSO::eAmbientPBR_IBL].Get());
@@ -3471,7 +3473,6 @@ namespace adria
 	void Renderer::PassDeferredTiledLighting(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		ADRIA_ASSERT(settings.use_tiled_deferred);
-
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Deferred Tiled Lighting Pass");
 
 		auto device = gfx->GetDevice();
@@ -3593,7 +3594,6 @@ namespace adria
 	void Renderer::PassDeferredClusteredLighting(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		ADRIA_ASSERT(settings.use_clustered_deferred);
-
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Deferred Clustered Lighting Pass");
 
 		auto device = gfx->GetDevice();
@@ -3925,15 +3925,13 @@ namespace adria
 
 	void Renderer::PassShadowMapDirectional(ID3D12GraphicsCommandList4* cmd_list, Light const& light)
 	{
-		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Shadow Map Pass - Directional Light");
-
 		ADRIA_ASSERT(light.type == LightType::eDirectional);
-
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Shadow Map Pass - Directional Light");
+		
 		auto device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 		auto upload_buffer = gfx->GetUploadBuffer();
 
-		
 		auto const& [V, P] = scene_bounding_sphere ? LightViewProjection_Directional(light, *scene_bounding_sphere, light_bounding_box)
 			: LightViewProjection_Directional(light, *camera, light_bounding_box);
 		shadow_cbuf_data.lightview = V;
@@ -3991,7 +3989,6 @@ namespace adria
 	void Renderer::PassShadowMapSpot(ID3D12GraphicsCommandList4* cmd_list, Light const& light)
 	{
 		ADRIA_ASSERT(light.type == LightType::eSpot);
-
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Shadow Map Pass - Spot Light");
 
 		auto device = gfx->GetDevice();
@@ -4057,18 +4054,15 @@ namespace adria
 	void Renderer::PassShadowMapPoint(ID3D12GraphicsCommandList4* cmd_list, Light const& light)
 	{
 		ADRIA_ASSERT(light.type == LightType::ePoint);
-
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Shadow Map Pass - Point Light");
 
 		auto device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 		auto upload_buffer = gfx->GetUploadBuffer();
 
-		
 		ResourceBarriers shadow_cubemap_barrier{};
 		shadow_depth_cubemap.Transition(shadow_cubemap_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		shadow_cubemap_barrier.Submit(cmd_list);
-
 
 		for (u32 i = 0; i < shadow_cubemap_passes.size(); ++i)
 		{
@@ -4125,7 +4119,6 @@ namespace adria
 	void Renderer::PassShadowMapCascades(ID3D12GraphicsCommandList4* cmd_list, Light const& light)
 	{
 		ADRIA_ASSERT(light.type == LightType::eDirectional);
-
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Cascaded Shadow Maps Pass - Directional Light");
 
 		auto device = gfx->GetDevice();
@@ -4203,7 +4196,6 @@ namespace adria
 	void Renderer::PassVolumetric(ID3D12GraphicsCommandList4* cmd_list, Light const& light)
 	{
 		ADRIA_ASSERT(light.volumetric);
-
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Volumetric Lighting Pass");
 
 		auto device = gfx->GetDevice();
@@ -4271,7 +4263,6 @@ namespace adria
 	void Renderer::PassForwardCommon(ID3D12GraphicsCommandList4* cmd_list, bool transparent)
 	{
 		auto forward_view = reg.view<Mesh, Transform, Material, Forward, Visibility>();
-
 		std::unordered_map<PSO, std::vector<entity>> entities_group;
 
 		for (auto e : forward_view)
@@ -4377,7 +4368,6 @@ namespace adria
 	void Renderer::PassLensFlare(ID3D12GraphicsCommandList4* cmd_list, Light const& light)
 	{
 		ADRIA_ASSERT(light.lens_flare);
-
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Lens Flare Pass");
 
 		auto device = gfx->GetDevice();
@@ -4422,6 +4412,7 @@ namespace adria
 	}
 	void Renderer::PassVolumetricClouds(ID3D12GraphicsCommandList4* cmd_list)
 	{
+		ADRIA_ASSERT(settings.clouds);
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Volumetric Clouds Pass");
 
 		auto device = gfx->GetDevice();
@@ -4454,6 +4445,7 @@ namespace adria
 	}
 	void Renderer::PassSSR(ID3D12GraphicsCommandList4* cmd_list)
 	{
+		ADRIA_ASSERT(settings.ssr);
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "SSR Pass");
 
 		auto device = gfx->GetDevice();
@@ -4486,7 +4478,6 @@ namespace adria
 	void Renderer::PassDepthOfField(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		ADRIA_ASSERT(settings.dof);
-
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Depth of Field Pass");
 
 		auto device = gfx->GetDevice();
@@ -4518,7 +4509,6 @@ namespace adria
 	void Renderer::PassGenerateBokeh(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		ADRIA_ASSERT(settings.dof && settings.bokeh);
-
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Bokeh Generation Pass");
 
 		auto device = gfx->GetDevice();
@@ -4582,13 +4572,11 @@ namespace adria
 	void Renderer::PassDrawBokeh(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		ADRIA_ASSERT(settings.dof && settings.bokeh);
-
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Bokeh Draw Pass");
 
 		auto device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-		
 		D3D12_CPU_DESCRIPTOR_HANDLE bokeh_descriptor{};
 		switch (settings.bokeh_type)
 		{
@@ -4631,6 +4619,7 @@ namespace adria
 	}
 	void Renderer::PassBloom(ID3D12GraphicsCommandList4* cmd_list)
 	{
+		ADRIA_ASSERT(settings.bloom);
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Bloom Pass");
 
 		auto device = gfx->GetDevice();
@@ -4704,6 +4693,7 @@ namespace adria
 	}
 	void Renderer::PassMotionBlur(ID3D12GraphicsCommandList4* cmd_list)
 	{
+		ADRIA_ASSERT(settings.motion_blur);
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Motion Blur Pass");
 
 		auto device = gfx->GetDevice();
@@ -4732,7 +4722,6 @@ namespace adria
 	void Renderer::PassFog(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		ADRIA_ASSERT(settings.fog);
-
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Fog Pass");
 
 		auto device = gfx->GetDevice();
@@ -4765,7 +4754,6 @@ namespace adria
 	void Renderer::PassGodRays(ID3D12GraphicsCommandList4* cmd_list, Light const& light)
 	{
 		ADRIA_ASSERT(light.god_rays);
-
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "God Rays Pass");
 
 		auto device = gfx->GetDevice();
@@ -4880,7 +4868,6 @@ namespace adria
 	void Renderer::PassFXAA(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		ADRIA_ASSERT(settings.anti_aliasing & AntiAliasing_FXAA);
-
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "FXAA Pass");
 
 		auto device = gfx->GetDevice();
@@ -4912,7 +4899,6 @@ namespace adria
 	void Renderer::PassTAA(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		ADRIA_ASSERT(settings.anti_aliasing & AntiAliasing_TAA);
-
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "TAA Pass");
 
 		auto device = gfx->GetDevice();

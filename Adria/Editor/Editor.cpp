@@ -1019,9 +1019,9 @@ namespace adria
                         ImGui::EndCombo();
                     }
 
-                    renderer_settings.ambient_oclussion = static_cast<AmbientOclussion>(item_current_idx);
+                    renderer_settings.ambient_occlusion = static_cast<AmbientOcclusion>(item_current_idx);
 
-                    if (renderer_settings.ambient_oclussion == AmbientOclussion::eSSAO && ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+                    if (renderer_settings.ambient_occlusion == AmbientOcclusion::eSSAO && ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
                     {
                         //ImGui::Checkbox("SSAO", &settings.ssao);
                         ImGui::SliderFloat("Power", &renderer_settings.ssao_power, 1.0f, 16.0f);
@@ -1030,7 +1030,7 @@ namespace adria
                         ImGui::TreePop();
                         ImGui::Separator();
                     }
-                    if (renderer_settings.ambient_oclussion == AmbientOclussion::eHBAO && ImGui::TreeNodeEx("HBAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+                    if (renderer_settings.ambient_occlusion == AmbientOcclusion::eHBAO && ImGui::TreeNodeEx("HBAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
                     {
                         //ImGui::Checkbox("SSAO", &settings.ssao);
                         ImGui::SliderFloat("Power", &renderer_settings.hbao_power, 1.0f, 16.0f);

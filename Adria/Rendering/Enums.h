@@ -188,7 +188,7 @@ namespace adria
 		eExponentialHeight
 	};
 
-	enum class AmbientOclussion : u8
+	enum class AmbientOcclusion : u8
 	{
 		eNone,
 		eSSAO,
