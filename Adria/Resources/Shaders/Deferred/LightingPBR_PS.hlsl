@@ -40,7 +40,7 @@ float ScreenSpaceShadows(float2 uv)
     
     float3 ray_direction = -light_cbuf.current_light.direction.xyz;
     float3 ray_step = ray_direction * SSS_STEP_LENGTH;
-    ray_position += ray_step * dither(uv);
+    ray_position += ray_step * dither(uv * frame_cbuf.screen_resolution);
     
      // Ray march towards the light
     float occlusion = 0.0;

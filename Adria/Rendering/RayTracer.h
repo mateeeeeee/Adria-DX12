@@ -29,6 +29,11 @@ namespace adria
 			D3D12_CONSTANT_BUFFER_VIEW_DESC const& frame_cbuf_view,
 			D3D12_CONSTANT_BUFFER_VIEW_DESC const& light_cbuf_view);
 
+		Texture2D& RTAO(ID3D12GraphicsCommandList4* cmd_list, 
+			Texture2D const& gbuffer_pos,
+			Texture2D const& gbuffer_nor,
+			D3D12_CONSTANT_BUFFER_VIEW_DESC const& frame_cbuf_view);
+
 
     private:
         u32 width, height;
