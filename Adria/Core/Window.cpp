@@ -49,6 +49,8 @@ namespace adria
             return;
         }
 
+		::SetWindowLong(_handle, GWL_STYLE, ::GetWindowLong(_handle, GWL_STYLE) & ~WS_MINIMIZEBOX);
+
         if(init.maximize) ::ShowWindow(_handle, SW_SHOWMAXIMIZED);
         else ::ShowWindow(_handle, SW_SHOWNORMAL);
         ::UpdateWindow(_handle);
