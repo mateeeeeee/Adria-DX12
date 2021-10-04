@@ -278,6 +278,10 @@ namespace adria
 		ShaderBlob rt_shadows_blob;
 		ShaderUtility::CompileShader(compile_info, rt_shadows_blob);
 
+		compile_info.shadersource = "Resources/Shaders/RayTracing/RayTracedAmbientOcclusion.hlsl";
+		ShaderBlob rtao_blob;
+		ShaderUtility::CompileShader(compile_info, rtao_blob);
+
 		StateObjectBuilder rt_shadows_state_object_builder(5);
 
 		D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc = {};

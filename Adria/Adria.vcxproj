@@ -167,7 +167,6 @@
     <ClCompile Include="Editor\Editor.cpp" />
     <ClCompile Include="Editor\GUI.cpp" />
     <ClCompile Include="Events\EventQueue.cpp" />
-    <ClCompile Include="Graphics\CopyManager.cpp" />
     <ClCompile Include="Graphics\D3D12MemAlloc.cpp" />
     <ClCompile Include="Graphics\DDSTextureLoader12.cpp" />
     <ClCompile Include="Graphics\DescriptorHeap.cpp" />
@@ -218,7 +217,6 @@
     <ClInclude Include="Events\EventQueue.h" />
     <ClInclude Include="Events\IEvent.h" />
     <ClInclude Include="Graphics\ConstantBuffer.h" />
-    <ClInclude Include="Graphics\CopyManager.h" />
     <ClInclude Include="Graphics\D3D12MemAlloc.h" />
     <ClInclude Include="Graphics\d3dx12.h" />
     <ClInclude Include="Graphics\DDSTextureLoader12.h" />
