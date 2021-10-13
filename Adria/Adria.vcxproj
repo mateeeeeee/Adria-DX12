@@ -118,7 +118,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\dxc\include\;$(SolutionDir)ThirdParty\DirectXTex\Include\;C:\Users\mateb\OneDrive\Desktop\Projekti\Adria D3D12\ThirdParty\tinygltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\dxc\include\;$(SolutionDir)ThirdParty\DirectXTex\Include\;C:\Users\mateb\OneDrive\Desktop\Projekti\Adria D3D12\ThirdParty\tinygltf;C:\Users\mateb\OneDrive\Desktop\Projekti\Adria D3D12\ThirdParty\tinyobjloader;C:\Users\mateb\OneDrive\Desktop\Projekti\Adria D3D12\ThirdParty\FastNoiseLite;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
       <AdditionalOptions>/sdl /w34996 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -138,7 +138,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\dxc\include\;$(SolutionDir)ThirdParty\DirectXTex\Include\;C:\Users\mateb\OneDrive\Desktop\Projekti\Adria D3D12\ThirdParty\tinygltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\dxc\include\;$(SolutionDir)ThirdParty\DirectXTex\Include\;C:\Users\mateb\OneDrive\Desktop\Projekti\Adria D3D12\ThirdParty\tinygltf;C:\Users\mateb\OneDrive\Desktop\Projekti\Adria D3D12\ThirdParty\tinyobjloader;C:\Users\mateb\OneDrive\Desktop\Projekti\Adria D3D12\ThirdParty\FastNoiseLite;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
       <AdditionalOptions>/sdl /w34996 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -191,6 +191,7 @@
     <ClCompile Include="Rendering\RayTracer.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
     <ClCompile Include="Utilities\AppException.cpp" />
+    <ClCompile Include="Utilities\Heightmap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ThirdParty\ImGui\imconfig.h" />
@@ -250,6 +251,7 @@
     <ClInclude Include="Input\Input.h" />
     <ClInclude Include="Logging\Logger.h" />
     <ClInclude Include="Math\BoundingVolumeHelpers.h" />
+    <ClInclude Include="Math\ComputeNormals.h" />
     <ClInclude Include="Math\ComputeTangentFrame.h" />
     <ClInclude Include="Math\Constants.h" />
     <ClInclude Include="Rendering\Camera.h" />
@@ -275,6 +277,8 @@
     <ClInclude Include="Utilities\CommandLineParser.h" />
     <ClInclude Include="Utilities\EnumUtil.h" />
     <ClInclude Include="Utilities\FilesUtil.h" />
+    <ClInclude Include="Utilities\Heightmap.h" />
+    <ClInclude Include="Utilities\HosekDataRGB.h" />
     <ClInclude Include="Utilities\LinearAllocator.h" />
     <ClInclude Include="Utilities\RingAllocator.h" />
     <ClInclude Include="Utilities\RingBuffer.h" />

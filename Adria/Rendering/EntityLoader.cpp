@@ -4,6 +4,10 @@
 #define TINYGLTF_NOEXCEPTION
 #include "tiny_gltf.h"
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#define TINYOBJLOADER_USE_MAPBOX_EARCUT
+#include "tiny_obj_loader.h"
+
 #include "EntityLoader.h"
 #include "Components.h"
 #include "../Graphics/GraphicsCoreDX12.h"
@@ -13,6 +17,7 @@
 #include "../Core/Definitions.h"
 #include "../Utilities/StringUtil.h"
 #include "../Utilities/FilesUtil.h"
+#include "../Utilities/Heightmap.h"
 
 using namespace DirectX;
 
@@ -22,7 +27,258 @@ namespace adria
     using namespace tecs;
 
 
-    EntityLoader::EntityLoader(registry& reg, GraphicsCoreDX12* gfx, TextureManager& texture_manager)
+
+	std::vector<entity> EntityLoader::LoadGrid(grid_parameters_t const& params)
+	{
+		if (params.heightmap)
+		{
+			ADRIA_ASSERT(params.heightmap->Depth() == params.tile_count_z + 1);
+			ADRIA_ASSERT(params.heightmap->Width() == params.tile_count_x + 1);
+		}
+
+		std::vector<entity> chunks;
+		std::vector<TexturedNormalVertex> vertices{};
+		for (u64 j = 0; j <= params.tile_count_z; j++)
+		{
+			for (u64 i = 0; i <= params.tile_count_x; i++)
+			{
+				TexturedNormalVertex vertex{};
+
+				f32 height = params.heightmap ? params.heightmap->HeightAt(i, j) : 0.0f;
+
+				vertex.position = XMFLOAT3(i * params.tile_size_x, height, j * params.tile_size_z);
+				vertex.uv = XMFLOAT2(i * 1.0f * params.texture_scale_x / (params.tile_count_x - 1), j * 1.0f * params.texture_scale_z / (params.tile_count_z - 1));
+				vertex.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
+				vertices.push_back(vertex);
+			}
+		}
+
+		if (!params.split_to_chunks)
+		{
+			std::vector<u32> indices{};
+			u32 i1 = 0;
+			u32 i2 = 1;
+			u32 i3 = static_cast<u32>(i1 + params.tile_count_x + 1);
+			u32 i4 = static_cast<u32>(i2 + params.tile_count_x + 1);
+			for (u64 i = 0; i < params.tile_count_x * params.tile_count_z; ++i)
+			{
+				indices.push_back(i1);
+				indices.push_back(i3);
+				indices.push_back(i2);
+
+
+				indices.push_back(i2);
+				indices.push_back(i3);
+				indices.push_back(i4);
+
+
+				++i1;
+				++i2;
+				++i3;
+				++i4;
+
+				if (i1 % (params.tile_count_x + 1) == params.tile_count_x)
+				{
+					++i1;
+					++i2;
+					++i3;
+					++i4;
+				}
+			}
+
+			ComputeNormals(params.normal_type, vertices, indices);
+
+			entity grid = reg.create();
+
+			Mesh mesh{};
+			mesh.indices_count = (u32)indices.size();
+			mesh.vertex_buffer = std::make_shared<VertexBuffer>(gfx, vertices);
+			mesh.index_buffer = std::make_shared<IndexBuffer>(gfx, indices);
+
+			reg.emplace<Mesh>(grid, mesh);
+			reg.emplace<Transform>(grid);
+
+			BoundingBox aabb = AABBFromRange(vertices.begin(), vertices.end());
+			reg.emplace<Visibility>(grid, aabb, true, true);
+
+			chunks.push_back(grid);
+		}
+		else
+		{
+			std::vector<u32> indices{};
+			for (size_t j = 0; j < params.tile_count_z; j += params.chunk_count_z)
+			{
+				for (size_t i = 0; i < params.tile_count_x; i += params.chunk_count_x)
+				{
+					entity chunk = reg.create();
+
+					u32 const indices_count = static_cast<u32>(params.chunk_count_z * params.chunk_count_x * 3 * 2);
+					u32 const indices_offset = static_cast<u32>(indices.size());
+
+
+					std::vector<TexturedNormalVertex> chunk_vertices_aabb{};
+					for (size_t k = j; k < j + params.chunk_count_z; ++k)
+					{
+						for (size_t m = i; m < i + params.chunk_count_x; ++m)
+						{
+
+							u32 i1 = static_cast<u32>(k * (params.tile_count_x + 1) + m);
+							u32 i2 = static_cast<u32>(i1 + 1);
+							u32 i3 = static_cast<u32>((k + 1) * (params.tile_count_x + 1) + m);
+							u32 i4 = static_cast<u32>(i3 + 1);
+
+							indices.push_back(i1);
+							indices.push_back(i3);
+							indices.push_back(i2);
+
+							indices.push_back(i2);
+							indices.push_back(i3);
+							indices.push_back(i4);
+
+
+							chunk_vertices_aabb.push_back(vertices[i1]);
+							chunk_vertices_aabb.push_back(vertices[i2]);
+							chunk_vertices_aabb.push_back(vertices[i3]);
+							chunk_vertices_aabb.push_back(vertices[i4]);
+						}
+					}
+
+					Mesh mesh{};
+					mesh.indices_count = indices_count;
+					mesh.start_index_location = indices_offset;
+
+					reg.emplace<Mesh>(chunk, mesh);
+
+					reg.emplace<Transform>(chunk);
+
+					BoundingBox aabb = AABBFromRange(chunk_vertices_aabb.begin(), chunk_vertices_aabb.end());
+
+					reg.emplace<Visibility>(chunk, aabb, true, true);
+
+					chunks.push_back(chunk);
+
+				}
+			}
+
+			ComputeNormals(params.normal_type, vertices, indices);
+
+			std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>(gfx, vertices);
+			std::shared_ptr<IndexBuffer> ib = std::make_shared<IndexBuffer>(gfx, indices);
+
+			for (entity chunk : chunks)
+			{
+				auto& mesh = reg.get<Mesh>(chunk);
+
+				mesh.vertex_buffer = vb;
+				mesh.index_buffer = ib;
+			}
+
+		}
+
+		return chunks;
+
+	}
+
+	std::vector<entity> EntityLoader::LoadObjMesh(std::string const& model_path)
+	{
+		tinyobj::ObjReaderConfig reader_config{};
+		tinyobj::ObjReader reader;
+		std::string model_name = GetFilename(model_path);
+		if (!reader.ParseFromFile(model_path, reader_config))
+		{
+			if (!reader.Error().empty())  Log::Error(reader.Error());
+			return {};
+		}
+		if (!reader.Warning().empty())  Log::Warning(reader.Warning());
+
+		tinyobj::attrib_t const& attrib = reader.GetAttrib();
+		std::vector<tinyobj::shape_t> const& shapes = reader.GetShapes();
+		//std::vector<tinyobj::material_t> const& materials = reader.GetMaterials(); ignore materials for now
+
+		// Loop over shapes
+		std::vector<TexturedNormalVertex> vertices{};
+		std::vector<u32> indices{};
+		std::vector<entity> entities{};
+
+		for (size_t s = 0; s < shapes.size(); s++)
+		{
+			entity e = reg.create();
+			entities.push_back(e);
+
+			Mesh mesh_component{};
+			mesh_component.start_index_location = static_cast<u32>(indices.size());
+			mesh_component.base_vertex_location = static_cast<u32>(vertices.size());
+
+			// Loop over faces(polygon)
+			size_t index_offset = 0;
+			for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++)
+			{
+				size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
+
+				// Loop over vertices in the face.
+				for (size_t v = 0; v < fv; v++)
+				{
+					// access to vertex
+					tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
+					indices.push_back(index_offset + v);
+
+					TexturedNormalVertex vertex{};
+					tinyobj::real_t vx = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
+					tinyobj::real_t vy = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
+					tinyobj::real_t vz = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
+
+					vertex.position.x = vx;
+					vertex.position.y = vy;
+					vertex.position.z = vz;
+
+					// Check if `normal_index` is zero or positive. negative = no normal data
+					if (idx.normal_index >= 0)
+					{
+						tinyobj::real_t nx = attrib.normals[3 * size_t(idx.normal_index) + 0];
+						tinyobj::real_t ny = attrib.normals[3 * size_t(idx.normal_index) + 1];
+						tinyobj::real_t nz = attrib.normals[3 * size_t(idx.normal_index) + 2];
+
+						vertex.normal.x = nx;
+						vertex.normal.y = ny;
+						vertex.normal.z = nz;
+					}
+
+					// Check if `texcoord_index` is zero or positive. negative = no texcoord data
+					if (idx.texcoord_index >= 0)
+					{
+						tinyobj::real_t tx = attrib.texcoords[2 * size_t(idx.texcoord_index) + 0];
+						tinyobj::real_t ty = attrib.texcoords[2 * size_t(idx.texcoord_index) + 1];
+
+						vertex.uv.x = tx;
+						vertex.uv.y = ty;
+					}
+
+					vertices.push_back(vertex);
+				}
+				index_offset += fv;
+
+				// per-face material
+				//shapes[s].mesh.material_ids[f];
+			}
+			mesh_component.indices_count = static_cast<u32>(index_offset);
+		}
+
+		std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>(gfx, vertices);
+		std::shared_ptr<IndexBuffer> ib = std::make_shared<IndexBuffer>(gfx, indices);
+
+		for (entity e : entities)
+		{
+			auto& mesh = reg.get<Mesh>(e);
+			mesh.vertex_buffer = vb;
+			mesh.index_buffer = ib;
+			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(as_integer(e)));
+		}
+
+		Log::Info("OBJ Model" + model_path + " successfully loaded!");
+		return entities;
+	}
+
+	EntityLoader::EntityLoader(registry& reg, GraphicsCoreDX12* gfx, TextureManager& texture_manager)
         : reg(reg), gfx(gfx), texture_manager(texture_manager)
     {
     }
@@ -63,7 +319,7 @@ namespace adria
 				Mesh mesh_component{};
 				mesh_component.indices_count = static_cast<u32>(index_accessor.count);
 				mesh_component.start_index_location = static_cast<u32>(indices.size());
-				mesh_component.vertex_offset = static_cast<u32>(vertices.size());
+				mesh_component.base_vertex_location = static_cast<u32>(vertices.size());
 				switch (primitive.mode)
 				{
 				case TINYGLTF_MODE_POINTS:
@@ -257,8 +513,8 @@ namespace adria
 		for (entity e : entities)
 		{
 			auto& mesh = reg.get<Mesh>(e);
-			mesh.vb = vb;
-			mesh.ib = ib;
+			mesh.vertex_buffer = vb;
+			mesh.index_buffer = ib;
 			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(as_integer(e)));
 		}
 
@@ -305,8 +561,8 @@ namespace adria
         };
 
         Mesh skybox_mesh{};
-        skybox_mesh.vb = std::make_shared<VertexBuffer>(gfx, cube_vertices, _countof(cube_vertices));
-        skybox_mesh.ib = std::make_shared<IndexBuffer>(gfx, cube_indices, _countof(cube_indices));
+        skybox_mesh.vertex_buffer = std::make_shared<VertexBuffer>(gfx, cube_vertices, _countof(cube_vertices));
+        skybox_mesh.index_buffer = std::make_shared<IndexBuffer>(gfx, cube_indices, _countof(cube_indices));
         skybox_mesh.indices_count = _countof(cube_indices);
         reg.emplace<Mesh>(skybox, skybox_mesh);
 
@@ -355,8 +611,8 @@ namespace adria
             };
 
             Mesh mesh{};
-            mesh.vb = std::make_shared<VertexBuffer>(gfx, vertices);
-            mesh.ib = std::make_shared<IndexBuffer>(gfx, indices);
+            mesh.vertex_buffer = std::make_shared<VertexBuffer>(gfx, vertices);
+            mesh.index_buffer = std::make_shared<IndexBuffer>(gfx, indices);
             mesh.indices_count = static_cast<u32>(indices.size());
 
             reg.emplace<Mesh>(light, mesh);

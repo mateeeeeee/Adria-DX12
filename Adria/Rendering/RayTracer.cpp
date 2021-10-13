@@ -350,11 +350,11 @@ namespace adria
 			D3D12_RAYTRACING_GEOMETRY_DESC geo_desc{};
 			geo_desc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
 			geo_desc.Triangles.VertexBuffer.StrideInBytes = sizeof(CompleteVertex);
-			geo_desc.Triangles.VertexBuffer.StartAddress = mesh.vb->View().BufferLocation + geo_desc.Triangles.VertexBuffer.StrideInBytes * mesh.vertex_offset;
+			geo_desc.Triangles.VertexBuffer.StartAddress = mesh.vertex_buffer->View().BufferLocation + geo_desc.Triangles.VertexBuffer.StrideInBytes * mesh.start_vertex_location;
 			geo_desc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
 			geo_desc.Triangles.VertexCount = mesh.vertex_count;
-			geo_desc.Triangles.IndexFormat = mesh.ib->View().Format;
-			geo_desc.Triangles.IndexBuffer = mesh.ib->View().BufferLocation + sizeof(geo_desc.Triangles.IndexFormat) * mesh.start_index_location;
+			geo_desc.Triangles.IndexFormat = mesh.index_buffer->View().Format;
+			geo_desc.Triangles.IndexBuffer = mesh.index_buffer->View().BufferLocation + sizeof(geo_desc.Triangles.IndexFormat) * mesh.start_index_location;
 			geo_desc.Triangles.IndexCount = mesh.indices_count;
 			geo_desc.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
 			geo_descs.push_back(geo_desc);

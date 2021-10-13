@@ -191,6 +191,9 @@
     <ClCompile Include="Graphics\GraphicsCoreDX12.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Utilities\Heightmap.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -477,6 +480,15 @@
     </ClInclude>
     <ClInclude Include="Tasks\ThreadPool.h">
       <Filter>Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Heightmap.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\HosekDataRGB.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\ComputeNormals.h">
+      <Filter>Math</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

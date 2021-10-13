@@ -7,11 +7,14 @@
 #include "Components.h"
 #include "../Core/Definitions.h"
 #include "../tecs/registry.h"
+#include "../Math/ComputeNormals.h"
 
 struct ID3D12Device;
 
 namespace adria
 {
+    class Heightmap;
+
     struct model_parameters_t
     {
         std::string model_path = "";
@@ -19,12 +22,25 @@ namespace adria
 		bool merge_meshes = true;
 		f32 model_scale = 1.0f;
     };
-
     struct skybox_parameters_t
     {
         std::optional<std::wstring> cubemap;
         std::array<std::wstring, 6> cubemap_textures;
     };
+	struct grid_parameters_t
+	{
+		u64 tile_count_x;
+		u64 tile_count_z;
+		f32 tile_size_x;
+		f32 tile_size_z;
+		f32 texture_scale_x;
+		f32 texture_scale_z;
+		u64 chunk_count_x;
+		u64 chunk_count_z;
+		bool split_to_chunks = false;
+		ENormalCalculation normal_type = ENormalCalculation::None;
+		std::unique_ptr<Heightmap> heightmap = nullptr;
+	};
 
     enum class ELightMesh
     {
@@ -46,6 +62,9 @@ namespace adria
     
 	class EntityLoader
 	{
+		[[nodiscard]] std::vector<tecs::entity> LoadGrid(grid_parameters_t const&);
+
+		[[nodiscard]] std::vector<tecs::entity> LoadObjMesh(std::string const&);
 
 	public:
         
