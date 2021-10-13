@@ -54,6 +54,8 @@ Graphics engine written in C++/DirectX12.
 
 [D3D12MemoryAllocator](https://github.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator)
 
+[FastNoiseLite](https://github.com/Auburn/FastNoiseLite)
+
 ## Screenshots
 
 Since this is DirectX 12 port of this [engine](https://github.com/mate286/Adria-DX11)
