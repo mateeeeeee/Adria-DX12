@@ -12,7 +12,7 @@ namespace adria
 		f32 ambient_color[3] = { 15.0f / 255.0f, 15.0f / 255.0f, 15.0f / 255.0f };
 		f32 wind_direction[2] = { 10.0f, 10.0f };
 		bool fog = false;
-		FogType fog_type = FogType::eExponential;
+		EFogType fog_type = EFogType::Exponential;
 		f32 fog_falloff = 0.005f;
 		f32 fog_density = 0.002f;
 		f32 fog_start = 100.0f;
@@ -20,10 +20,10 @@ namespace adria
 		f32 shadow_softness = 1.0f;
 		bool shadow_transparent = false;
 		f32 split_lambda = 0.5f;
-		AntiAliasing anti_aliasing = AntiAliasing_None;
+		EAntiAliasing anti_aliasing = AntiAliasing_None;
 		f32 tonemap_exposure = 1.0f;
-		ToneMap tone_map_op = ToneMap::eHable;
-		AmbientOcclusion ambient_occlusion = AmbientOcclusion::eNone;
+		EToneMap tone_map_op = EToneMap::Hable;
+		EAmbientOcclusion ambient_occlusion = EAmbientOcclusion::None;
 		f32   ssao_power = 4.0f;
 		f32   ssao_radius = 1.0f;
 		f32   hbao_power = 1.5f;
@@ -42,7 +42,7 @@ namespace adria
 		f32 bokeh_radius_scale = 25.0f;
 		f32 bokeh_color_scale = 1.0f;
 		f32 bokeh_fallout = 0.9f;
-		BokehType bokeh_type = BokehType::eHex;
+		EBokehType bokeh_type = EBokehType::Hex;
 		bool bloom = false;
 		f32 bloom_threshold = 0.25f;
 		f32 bloom_scale = 2.0f;

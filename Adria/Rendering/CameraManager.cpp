@@ -39,11 +39,19 @@ namespace adria
 		if (input.GetKey(KeyCode::D))
 			camera.Strafe(speed_factor * dt);
 
-		f32 dx = input.GetMouseDeltaX();
-		f32 dy = input.GetMouseDeltaY();
+		if (input.GetKey(KeyCode::Q))
+			camera.Jump(speed_factor * dt);
 
-		camera.Pitch((i64)dy);
-		camera.Yaw((i64)dx);
+		if (input.GetKey(KeyCode::E))
+			camera.Jump(-speed_factor * dt);
+
+		if (input.GetKey(KeyCode::ClickMiddle))
+		{
+			f32 dx = input.GetMouseDeltaX();
+			f32 dy = input.GetMouseDeltaY();
+			camera.Pitch((i64)dy);
+			camera.Yaw((i64)dx);
+		}
 
 		camera.UpdateViewMatrix();
 	}

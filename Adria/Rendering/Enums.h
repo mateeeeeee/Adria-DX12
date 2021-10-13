@@ -6,7 +6,7 @@
 namespace adria
 {
 	
-	enum Shader : u8
+	enum EShader : u8
 	{
 		VS_Skybox,
 		PS_Skybox,
@@ -64,138 +64,138 @@ namespace adria
 		CS_GenerateMips
 	};
 
-	enum class RootSig : u8
+	enum class ERootSig : u8
 	{
-		eSkybox,
-		eToneMap,
-		eFXAA,
-		eTAA,
-		eGbufferPBR,
-		eAmbientPBR,
-		eLightingPBR,
-		eClusteredLightingPBR,
-		eDepthMap,
-		eDepthMap_Transparent,
-		eVolumetric,
-		eForward,
-		eAO,
-		eSSR,
-		eDof,
-		eBokeh,
-		eBokehGenerate,
-		eGodRays,
-		eLensFlare,
-		eBlur,
-		eBloomExtract,
-		eBloomCombine,
-		eCopy,
-		eAdd,
-		eClouds,
-		eMotionBlur,
-		eFog,
-		eTiledLighting,
-		eClusterBuilding,
-		eClusterCulling,
-		eGenerateMips,
-		eVelocityBuffer
+		Skybox,
+		ToneMap,
+		FXAA,
+		TAA,
+		GbufferPBR,
+		AmbientPBR,
+		LightingPBR,
+		ClusteredLightingPBR,
+		DepthMap,
+		DepthMap_Transparent,
+		Volumetric,
+		Forward,
+		AO,
+		SSR,
+		DOF,
+		Bokeh,
+		BokehGenerate,
+		GodRays,
+		LensFlare,
+		Blur,
+		BloomExtract,
+		BloomCombine,
+		Copy,
+		Add,
+		Clouds,
+		MotionBlur,
+		Fog,
+		TiledLighting,
+		ClusterBuilding,
+		ClusterCulling,
+		GenerateMips,
+		VelocityBuffer
 	};
 
-	enum class PSO : u8
+	enum class EPipelineStateObject : u8
 	{
-		eSkybox,
-		eTexture,
-		eSolid,
-		eSun,
-		eBillboard,
-		eGbufferPBR,
-		eAmbientPBR,
-		eAmbientPBR_AO,
-		eAmbientPBR_IBL,
-		eAmbientPBR_AO_IBL,
-		eLightingPBR,
-		eClusteredLightingPBR,
-		eToneMap,
-		eFXAA,
-		eTAA,
-		eCopy,
-		eCopy_AlphaBlend,
-		eCopy_AdditiveBlend,
-		eAdd,
-		eAdd_AlphaBlend,
-		eAdd_AdditiveBlend,
-		eDepthMap,
-		eDepthMap_Transparent,
-		eVolumetric_Directional,
-		eVolumetric_DirectionalCascades,
-		eVolumetric_Spot,
-		eVolumetric_Point,
-		eVolumetric_Clouds,
-		eSSAO,
-		eHBAO,
-		eSSR,
-		eGodRays,
-		eLensFlare,
-		eDof,
-		eClouds,
-		eFog,
-		eMotionBlur,
-		eBlur_Horizontal,
-		eBlur_Vertical,
-		eBloomExtract,
-		eBloomCombine,
-		eTiledLighting,
-		eClusterBuilding,
-		eClusterCulling,
-		eBokehGenerate,
-		eBokeh,
-		eGenerateMips,
-		eVelocityBuffer,
-        eUnknown
+		Skybox,
+		Texture,
+		Solid,
+		Sun,
+		Billboard,
+		GbufferPBR,
+		AmbientPBR,
+		AmbientPBR_AO,
+		AmbientPBR_IBL,
+		AmbientPBR_AO_IBL,
+		LightingPBR,
+		ClusteredLightingPBR,
+		ToneMap,
+		FXAA,
+		TAA,
+		Copy,
+		Copy_AlphaBlend,
+		Copy_AdditiveBlend,
+		Add,
+		Add_AlphaBlend,
+		Add_AdditiveBlend,
+		DepthMap,
+		DepthMap_Transparent,
+		Volumetric_Directional,
+		Volumetric_DirectionalCascades,
+		Volumetric_Spot,
+		Volumetric_Point,
+		Volumetric_Clouds,
+		SSAO,
+		HBAO,
+		SSR,
+		GodRays,
+		LensFlare,
+		DOF,
+		Clouds,
+		Fog,
+		MotionBlur,
+		Blur_Horizontal,
+		Blur_Vertical,
+		BloomExtract,
+		BloomCombine,
+		TiledLighting,
+		ClusterBuilding,
+		ClusterCulling,
+		BokehGenerate,
+		Bokeh,
+		GenerateMips,
+		VelocityBuffer,
+        Unknown
 	};
 
-	enum class ToneMap : u8
+	enum class EToneMap : u8
 	{
-		eReinhard,
-		eHable,
-		eLinear
+		Reinhard,
+		Hable,
+		Linear
 	};
 
-	enum class LightType : i32
+	enum class ELightType : i32
 	{
-		eDirectional,
-		ePoint,
-		eSpot
+		Directional,
+		Point,
+		Spot
 	};
 
-	enum class BokehType : u8
+	enum class EBokehType : u8
 	{
-		eHex,
-		eOct,
-		eCircle,
-		eCross
+		Hex,
+		Oct,
+		Circle,
+		Cross
 	};
 
-	enum class BlendMode : u8
+	enum class EBlendMode : u8
 	{
-		eNone,
-		eAlphaBlend,
-		eAdditiveBlend
+		None,
+		AlphaBlend,
+		AdditiveBlend
 	};
 
-	enum class FogType : i32
+	enum class EFogType : i32
 	{
-		eExponential,
-		eExponentialHeight
+		Exponential,
+		ExponentialHeight
 	};
 
-	enum class AmbientOcclusion : u8
+	enum class EAmbientOcclusion : u8
 	{
-		eNone,
-		eSSAO,
-		eHBAO
+		None,
+		SSAO,
+		HBAO
 	};
 
-	enum AntiAliasing : u8
+	enum EAntiAliasing : u8
 	{
 		AntiAliasing_None = 0x0,
 		AntiAliasing_FXAA = 0x1,

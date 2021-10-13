@@ -27,7 +27,7 @@ namespace adria
 
 	class Renderer
 	{
-		enum NULL_HEAP_SLOT
+		enum ENullHeapSlot
 		{
 			TEXTURE2D_SLOT,
 			TEXTURECUBE_SLOT,
@@ -36,7 +36,7 @@ namespace adria
 			NULL_HEAP_SIZE
 		};
 
-		enum IBL_HEAP_SLOT
+		enum EIBLHeapSlot
 		{
 			ENV_TEXTURE_SLOT,
 			IRMAP_TEXTURE_SLOT,
@@ -94,9 +94,9 @@ namespace adria
 		Profiler profiler;
 		ProfilerSettings profiler_settings;
 
-		std::unordered_map<Shader, ShaderBlob> shader_map;
-		std::unordered_map<RootSig, Microsoft::WRL::ComPtr<ID3D12RootSignature>> rs_map;
-		std::unordered_map<PSO, Microsoft::WRL::ComPtr<ID3D12PipelineState>> pso_map;
+		std::unordered_map<EShader, ShaderBlob> shader_map;
+		std::unordered_map<ERootSig, Microsoft::WRL::ComPtr<ID3D12RootSignature>> rs_map;
+		std::unordered_map<EPipelineStateObject, Microsoft::WRL::ComPtr<ID3D12PipelineState>> pso_map;
 
 		//textures and heaps
 		Texture2D hdr_render_target;
@@ -196,7 +196,7 @@ namespace adria
 		
 		void UpdateConstantBuffers(f32 dt);
 		void CameraFrustumCulling();
-		void LightFrustumCulling(LightType type);
+		void LightFrustumCulling(ELightType type);
 
 		void PassGBuffer(ID3D12GraphicsCommandList4* cmd_list);
 		void PassSSAO(ID3D12GraphicsCommandList4* cmd_list);
@@ -236,9 +236,9 @@ namespace adria
 		//result in blur final 
 		void BlurTexture(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& texture);
 		//result in current render target
-		void CopyTexture(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& texture, BlendMode mode = BlendMode::eNone);
+		void CopyTexture(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& texture, EBlendMode mode = EBlendMode::None);
 		
-		void AddTextures(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& texture1, Texture2D const& texture2, BlendMode mode = BlendMode::eNone);
+		void AddTextures(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& texture1, Texture2D const& texture2, EBlendMode mode = EBlendMode::None);
 
 		void GenerateMips(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& texture,
 			D3D12_RESOURCE_STATES start_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,

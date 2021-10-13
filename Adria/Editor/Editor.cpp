@@ -292,7 +292,7 @@ namespace adria
             {
                 ImGui::Text("Controls\n");
                 ImGui::Text(
-                    "Move Camera with W, A, S, D and Mouse. Use Mouse Scroll for Zoom In/Out.\n"
+                    "Move Camera with W, A, S, D, Q and E. Use Mouse for Rotating Camera. Use Mouse Scroll for Zoom In/Out.\n"
                     "Press I to toggle between Cinema Mode and Editor Mode. (Scene Window has to be active) \n"
                     "Press G to toggle Gizmo. (Scene Window has to be active) \n"
                     "When Gizmo is enabled, use T, R and E to switch between Translation, Rotation and Scaling Mode.\n"
@@ -330,8 +330,8 @@ namespace adria
                         light_params.light_data.color = DirectX::XMVectorSet(real() * 2, real() * 2, real() * 2, 1.0f);
                         light_params.light_data.direction = DirectX::XMVectorSet(0.5f, -1.0f, 0.1f, 0.0f);
                         light_params.light_data.position = DirectX::XMVectorSet(real() * 500 - 250, real() * 500.0f, real() * 500 - 250, 1.0f);
-                        light_params.light_data.type = LightType::ePoint;
-                        light_params.mesh_type = LightMesh::eNoMesh;
+                        light_params.light_data.type = ELightType::Point;
+                        light_params.mesh_type = ELightMesh::NoMesh;
                         light_params.light_data.range = real() * 100.0f + 40.0f;
                         light_params.light_data.active = true;
                         light_params.light_data.volumetric = false;
@@ -431,9 +431,9 @@ namespace adria
                     if (ImGui::CollapsingHeader("Light"))
                     {
 
-                        if (light->type == LightType::eDirectional)			ImGui::Text("Directional Light");
-                        else if (light->type == LightType::eSpot)			ImGui::Text("Spot Light");
-                        else if (light->type == LightType::ePoint)			ImGui::Text("Point Light");
+                        if (light->type == ELightType::Directional)			ImGui::Text("Directional Light");
+                        else if (light->type == ELightType::Spot)			ImGui::Text("Spot Light");
+                        else if (light->type == ELightType::Point)			ImGui::Text("Point Light");
 
                         XMFLOAT4 light_color, light_direction, light_position;
                         XMStoreFloat4(&light_color, light->color);
@@ -454,7 +454,7 @@ namespace adria
                             material.diffuse = XMFLOAT3(color[0], color[1], color[2]);
                         }
 
-                        if (light->type == LightType::eDirectional || light->type == LightType::eSpot)
+                        if (light->type == ELightType::Directional || light->type == ELightType::Spot)
                         {
                             f32 direction[3] = { light_direction.x, light_direction.y, light_direction.z };
 
@@ -462,13 +462,13 @@ namespace adria
 
                             light->direction = XMVectorSet(direction[0], direction[1], direction[2], 0.0f);
 
-                            if (light->type == LightType::eDirectional)
+                            if (light->type == ELightType::Directional)
                             {
                                 light->position = XMVectorScale(-light->direction, 1e3);
                             }
                         }
 
-                        if (light->type == LightType::eSpot)
+                        if (light->type == ELightType::Spot)
                         {
                             f32 inner_angle = XMConvertToDegrees(acos(light->inner_cosine))
                                 , outer_angle = XMConvertToDegrees(acos(light->outer_cosine));
@@ -479,7 +479,7 @@ namespace adria
                             light->outer_cosine = cos(XMConvertToRadians(outer_angle));
                         }
 
-                        if (light->type == LightType::ePoint || light->type == LightType::eSpot)
+                        if (light->type == ELightType::Point || light->type == ELightType::Spot)
                         {
                             f32 position[3] = { light_position.x, light_position.y, light_position.z };
 
@@ -520,7 +520,7 @@ namespace adria
 
                         ImGui::Checkbox("Lens Flare", &light->lens_flare);
 
-                        if (light->type == LightType::eDirectional && light->casts_shadows)
+                        if (light->type == ELightType::Directional && light->casts_shadows)
                         {
                             bool use_cascades = static_cast<bool>(light->use_cascades);
                             ImGui::Checkbox("Use Cascades", &use_cascades);
@@ -590,12 +590,12 @@ namespace adria
                         if (engine->reg.has<Forward>(selected_entity))
                         {
                             if (material->albedo_texture != INVALID_TEXTURE_HANDLE)
-                                material->pso = PSO::eTexture;
-                            else material->pso = PSO::eSolid;
+                                material->pso = EPipelineStateObject::Texture;
+                            else material->pso = EPipelineStateObject::Solid;
                         }
                         else
                         {
-                            material->pso = PSO::eGbufferPBR;
+                            material->pso = EPipelineStateObject::GbufferPBR;
                         }
                     }
 
@@ -681,7 +681,7 @@ namespace adria
                     ImGui::EndCombo();
                 }
 
-                enum COMPONENT_INDEX
+                enum EComponentIndex
                 {
                     MESH,
                     TRANSFORM,
@@ -713,14 +713,14 @@ namespace adria
                     }
                 }
 
-                static LightType light_type = LightType::ePoint;
+                static ELightType light_type = ELightType::Point;
                 if (current_component == LIGHT)
                 {
                     static char const* const light_types[] = { "Directional", "Point", "Spot" };
 
                     static int current_light_type = 0;
                     ImGui::ListBox("Light Types", &current_light_type, light_types, IM_ARRAYSIZE(light_types));
-                    light_type = static_cast<LightType>(current_light_type);
+                    light_type = static_cast<ELightType>(current_light_type);
                 }
 
 
@@ -746,8 +746,8 @@ namespace adria
                         {
                             Material mat{};
                             if (engine->reg.has<Deferred>(selected_entity))
-                                mat.pso = PSO::eGbufferPBR;
-                            else mat.pso = PSO::eSolid;
+                                mat.pso = EPipelineStateObject::GbufferPBR;
+                            else mat.pso = EPipelineStateObject::Solid;
                             engine->reg.emplace<Material>(selected_entity, mat);
                         }
                         break;
@@ -963,76 +963,67 @@ namespace adria
     {
         ImGui::Begin("Renderer Settings");
         {
-            if (ImGui::TreeNode("Deferred Settings"))
-            {
-                static const char* items[] = { "Regular", "Tiled", "Clustered" };
-            
-                static int item_current_idx = 0; 
-                const char* combo_label = items[item_current_idx];  
-                if (ImGui::BeginCombo("Deferred Type", combo_label, 0))
-                {
-                    for (int n = 0; n < IM_ARRAYSIZE(items); n++)
-                    {
-                        const bool is_selected = (item_current_idx == n);
-                        if (ImGui::Selectable(items[n], is_selected))
-                            item_current_idx = n;
+			if (ImGui::TreeNode("Deferred Settings"))
+			{
+				const char* deferred_types[] = { "Regular", "Tiled", "Clustered" };
+				static int current_deferred_type = 0;
+				const char* combo_label = deferred_types[current_deferred_type];
+				if (ImGui::BeginCombo("Deferred Type", combo_label, 0))
+				{
+					for (int n = 0; n < IM_ARRAYSIZE(deferred_types); n++)
+					{
+						const bool is_selected = (current_deferred_type == n);
+						if (ImGui::Selectable(deferred_types[n], is_selected)) current_deferred_type = n;
+						if (is_selected) ImGui::SetItemDefaultFocus();
+					}
+					ImGui::EndCombo();
+				}
 
-                        if (is_selected)
-                            ImGui::SetItemDefaultFocus();
-                    }
-                    ImGui::EndCombo();
-                }
+				renderer_settings.use_tiled_deferred = (current_deferred_type == 1);
+				renderer_settings.use_clustered_deferred = (current_deferred_type == 2);
 
-                renderer_settings.use_tiled_deferred = (item_current_idx == 1);
-                renderer_settings.use_clustered_deferred = (item_current_idx == 2);
+				if (renderer_settings.use_tiled_deferred && ImGui::TreeNodeEx("Tiled Deferred", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+				{
+					ImGui::Checkbox("Visualize Tiles", &renderer_settings.visualize_tiled);
+					if (renderer_settings.visualize_tiled) ImGui::SliderInt("Visualize Scale", &renderer_settings.visualize_max_lights, 1, 32);
 
-                if (renderer_settings.use_tiled_deferred && ImGui::TreeNodeEx("Tiled Deferred", ImGuiTreeNodeFlags_OpenOnDoubleClick))
-                {
-                    ImGui::Checkbox("Visualize Tiles", &renderer_settings.visualize_tiled);
-                    if (renderer_settings.visualize_tiled) ImGui::SliderInt("Visualize Scale", &renderer_settings.visualize_max_lights, 1, 32);
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
 
-                    ImGui::TreePop();
-                    ImGui::Separator();
-                }
-
-                ImGui::TreePop();
-            }
+				ImGui::TreePop();
+			}
 
             if (ImGui::TreeNode("Postprocessing"))
             {
                 //ambient oclussion
                 {
-                    const char* items[] = { "None", "SSAO", "HBAO" };
-                    static int item_current_idx = 0;
-                    const char* combo_label = items[item_current_idx];
-                    if (ImGui::BeginCombo("Ambient Occlusion", combo_label, 0))
+					const char* ao_types[] = { "None", "SSAO", "HBAO" };
+					static int current_ao_type = 0;
+					const char* combo_label = ao_types[current_ao_type];
+					if (ImGui::BeginCombo("Ambient Occlusion", combo_label, 0))
+					{
+						for (int n = 0; n < IM_ARRAYSIZE(ao_types); n++)
+						{
+							const bool is_selected = (current_ao_type == n);
+							if (ImGui::Selectable(ao_types[n], is_selected)) current_ao_type = n;
+							if (is_selected) ImGui::SetItemDefaultFocus();
+						}
+						ImGui::EndCombo();
+					}
+
+                    renderer_settings.ambient_occlusion = static_cast<EAmbientOcclusion>(current_ao_type);
+
+                    if (renderer_settings.ambient_occlusion == EAmbientOcclusion::SSAO && ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
                     {
-                        for (int n = 0; n < IM_ARRAYSIZE(items); n++)
-                        {
-                            const bool is_selected = (item_current_idx == n);
-                            if (ImGui::Selectable(items[n], is_selected))
-                                item_current_idx = n;
-
-                            if (is_selected)
-                                ImGui::SetItemDefaultFocus();
-                        }
-                        ImGui::EndCombo();
-                    }
-
-                    renderer_settings.ambient_occlusion = static_cast<AmbientOcclusion>(item_current_idx);
-
-                    if (renderer_settings.ambient_occlusion == AmbientOcclusion::eSSAO && ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
-                    {
-                        //ImGui::Checkbox("SSAO", &settings.ssao);
                         ImGui::SliderFloat("Power", &renderer_settings.ssao_power, 1.0f, 16.0f);
                         ImGui::SliderFloat("Radius", &renderer_settings.ssao_radius, 0.5f, 4.0f);
 
                         ImGui::TreePop();
                         ImGui::Separator();
                     }
-                    if (renderer_settings.ambient_occlusion == AmbientOcclusion::eHBAO && ImGui::TreeNodeEx("HBAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+                    if (renderer_settings.ambient_occlusion == EAmbientOcclusion::HBAO && ImGui::TreeNodeEx("HBAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
                     {
-                        //ImGui::Checkbox("SSAO", &settings.ssao);
                         ImGui::SliderFloat("Power", &renderer_settings.hbao_power, 1.0f, 16.0f);
                         ImGui::SliderFloat("Radius", &renderer_settings.hbao_radius, 0.25f, 8.0f);
 
@@ -1054,19 +1045,19 @@ namespace adria
                     ImGui::Checkbox("TAA", &taa);
                     if (fxaa)
                     {
-                        renderer_settings.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.anti_aliasing | AntiAliasing_FXAA);
+                        renderer_settings.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.anti_aliasing | AntiAliasing_FXAA);
                     }
                     else
                     {
-                        renderer_settings.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.anti_aliasing & (~AntiAliasing_FXAA));
+                        renderer_settings.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.anti_aliasing & (~AntiAliasing_FXAA));
                     }
                     if (taa)
                     {
-                        renderer_settings.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.anti_aliasing | AntiAliasing_TAA);
+                        renderer_settings.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.anti_aliasing | AntiAliasing_TAA);
                     }
                     else
                     {
-                        renderer_settings.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.anti_aliasing & (~AntiAliasing_TAA));
+                        renderer_settings.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.anti_aliasing & (~AntiAliasing_TAA));
                     }
 
                     ImGui::TreePop();
@@ -1107,7 +1098,7 @@ namespace adria
                         static char const* const bokeh_types[] = { "HEXAGON", "OCTAGON", "CIRCLE", "CROSS" };
                         static int bokeh_type_i = static_cast<int>(renderer_settings.bokeh_type);
                         ImGui::ListBox("Bokeh Type", &bokeh_type_i, bokeh_types, IM_ARRAYSIZE(bokeh_types));
-                        renderer_settings.bokeh_type = static_cast<BokehType>(bokeh_type_i);
+                        renderer_settings.bokeh_type = static_cast<EBokehType>(bokeh_type_i);
 
                         ImGui::SliderFloat("Bokeh Blur Threshold", &renderer_settings.bokeh_blur_threshold, 0.0f, 1.0f);
                         ImGui::SliderFloat("Bokeh Lum Threshold", &renderer_settings.bokeh_lum_threshold, 0.0f, 10.0f);
@@ -1133,43 +1124,39 @@ namespace adria
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
-                if (renderer_settings.fog && ImGui::TreeNodeEx("Fog", 0))
-                {
-                    const char* items[] = { "Exponential", "Exponential Height" };
-                    static int item_current_idx = 0; // Here we store our selection data as an index.
-                    const char* combo_label = items[item_current_idx];  // Label to preview before opening the combo (technically it could be anything)
-                    if (ImGui::BeginCombo("Fog Type", combo_label, 0))
-                    {
-                        for (int n = 0; n < IM_ARRAYSIZE(items); n++)
-                        {
-                            const bool is_selected = (item_current_idx == n);
-                            if (ImGui::Selectable(items[n], is_selected))
-                                item_current_idx = n;
+				if (renderer_settings.fog && ImGui::TreeNodeEx("Fog", 0))
+				{
+					const char* fog_types[] = { "Exponential", "Exponential Height" };
+					static int current_fog_type = 0; // Here we store our selection data as an index.
+					const char* combo_label = fog_types[current_fog_type];  // Label to preview before opening the combo (technically it could be anything)
+					if (ImGui::BeginCombo("Fog Type", combo_label, 0))
+					{
+						for (int n = 0; n < IM_ARRAYSIZE(fog_types); n++)
+						{
+							const bool is_selected = (current_fog_type == n);
+							if (ImGui::Selectable(fog_types[n], is_selected)) current_fog_type = n;
+							if (is_selected) ImGui::SetItemDefaultFocus();
+						}
+						ImGui::EndCombo();
+					}
 
-                            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-                            if (is_selected)
-                                ImGui::SetItemDefaultFocus();
-                        }
-                        ImGui::EndCombo();
-                    }
+					renderer_settings.fog_type = static_cast<EFogType>(current_fog_type);
 
-                    renderer_settings.fog_type = static_cast<FogType>(item_current_idx);
+					ImGui::SliderFloat("Fog Falloff", &renderer_settings.fog_falloff, 0.0001f, 0.01f);
+					ImGui::SliderFloat("Fog Density", &renderer_settings.fog_density, 0.0001f, 0.01f);
+					ImGui::SliderFloat("Fog Start", &renderer_settings.fog_start, 0.1f, 10000.0f);
+					ImGui::ColorEdit3("Fog Color", renderer_settings.fog_color);
 
-                    ImGui::SliderFloat("Fog Falloff", &renderer_settings.fog_falloff, 0.0001f, 0.01f);
-                    ImGui::SliderFloat("Fog Density", &renderer_settings.fog_density, 0.0001f, 0.01f);
-                    ImGui::SliderFloat("Fog Start", &renderer_settings.fog_start, 0.1f, 10000.0f);
-                    ImGui::ColorEdit3("Fog Color", renderer_settings.fog_color);
-
-                    ImGui::TreePop();
-                    ImGui::Separator();
-                }
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
                 if (ImGui::TreeNodeEx("Tone Mapping", 0))
                 {
                     ImGui::SliderFloat("Exposure", &renderer_settings.tonemap_exposure, 0.01f, 10.0f);
                     static char const* const operators[] = { "REINHARD", "HABLE", "LINEAR" };
                     static int tone_map_operator = static_cast<int>(renderer_settings.tone_map_op);
                     ImGui::ListBox("Tone Map Operator", &tone_map_operator, operators, IM_ARRAYSIZE(operators));
-                    renderer_settings.tone_map_op = static_cast<ToneMap>(tone_map_operator);
+                    renderer_settings.tone_map_op = static_cast<EToneMap>(tone_map_operator);
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
@@ -1178,6 +1165,8 @@ namespace adria
 
             if (ImGui::TreeNode("Misc"))
             {
+				ImGui::SliderFloat2("Wind Direction", renderer_settings.wind_direction, 0.0f, 50.0f);
+				ImGui::SliderFloat("Wind speed factor", &renderer_settings.wind_speed, 0.0f, 100.0f);
                 ImGui::ColorEdit3("Ambient Color", renderer_settings.ambient_color);
                 ImGui::SliderFloat("Blur Sigma", &renderer_settings.blur_sigma, 0.1f, 10.0f);
                 ImGui::SliderFloat("Shadow Softness", &renderer_settings.shadow_softness, 0.01f, 5.0f);

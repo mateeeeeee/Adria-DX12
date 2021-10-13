@@ -39,7 +39,7 @@ namespace adria
 		std::unique_ptr<GUI> gui;
 		std::unique_ptr<EditorLogger> editor_log;
 		tecs::entity selected_entity = tecs::null_entity;
-		bool gizmo_enabled = true;
+		bool gizmo_enabled = false;
 		bool mouse_in_scene = false;
 		ImGuizmo::OPERATION gizmo_op = ImGuizmo::TRANSLATE;
 		RendererSettings renderer_settings{};

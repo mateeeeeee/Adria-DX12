@@ -237,7 +237,7 @@ namespace adria
 					material.emissive_texture = texture_manager.LoadTexture(ConvertToWide(texemissive));
 					material.emissive_factor = (f32)gltf_material.emissiveFactor[0];
 				}
-				material.pso = PSO::eGbufferPBR;
+				material.pso = EPipelineStateObject::GbufferPBR;
 
 				reg.emplace<Material>(e, material);
 
@@ -332,13 +332,13 @@ namespace adria
     {
         entity light = reg.create();
 
-        if (params.light_data.type == LightType::eDirectional)
+        if (params.light_data.type == ELightType::Directional)
             const_cast<light_parameters_t&>(params).light_data.position = XMVectorScale(-params.light_data.direction, 1e3);
 
 
         reg.emplace<Light>(light, params.light_data);
 
-        if (params.mesh_type == LightMesh::eQuad)
+        if (params.mesh_type == ELightMesh::Quad)
         {
             u32 const size = params.mesh_size;
             std::vector<TexturedVertex> const vertices =
@@ -366,13 +366,13 @@ namespace adria
 
             if (params.light_texture.has_value())
                 material.albedo_texture = texture_manager.LoadTexture(params.light_texture.value()); //
-            else if (params.light_data.type == LightType::eDirectional)
+            else if (params.light_data.type == ELightType::Directional)
                 material.albedo_texture = texture_manager.LoadTexture(L"Resources/Textures/sun.png");
 
-            if (params.light_data.type == LightType::eDirectional)
-                material.pso = PSO::eSun;
+            if (params.light_data.type == ELightType::Directional)
+                material.pso = EPipelineStateObject::Sun;
             else if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
-                material.pso = PSO::eBillboard;
+                material.pso = EPipelineStateObject::Billboard;
             else GLOBAL_LOG_ERROR("Light with quad mesh needs diffuse texture!");
 
             reg.emplace<Material>(light, material);
@@ -383,9 +383,9 @@ namespace adria
 
             reg.emplace<Visibility>(light, aabb, true, true);
             reg.emplace<Transform>(light, translation_matrix, translation_matrix);
-            if(params.light_data.type != LightType::eDirectional) reg.emplace<Forward>(light, true);
+            if(params.light_data.type != ELightType::Directional) reg.emplace<Forward>(light, true);
         }
-        else if (params.mesh_type == LightMesh::eSphere)
+        else if (params.mesh_type == ELightMesh::Sphere)
         {
             //load sphere mesh and mesh component
            //Mesh sphere_mesh{};
@@ -410,13 +410,13 @@ namespace adria
 
         switch (params.light_data.type)
         {
-        case LightType::eDirectional:
+        case ELightType::Directional:
             reg.emplace<Tag>(light, "Directional Light");
             break;
-        case LightType::eSpot:
+        case ELightType::Spot:
             reg.emplace<Tag>(light, "Spot Light");
             break;
-        case LightType::ePoint:
+        case ELightType::Point:
             reg.emplace<Tag>(light, "Point Light");
             break;
         }

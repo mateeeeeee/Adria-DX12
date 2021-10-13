@@ -93,9 +93,11 @@ namespace adria
 
 		void UpdateViewMatrix();
 
-		void Strafe(f32 dz);
+		void Strafe(f32 dt);
 
-		void Walk(f32 dx);
+		void Walk(f32 dt);
+
+		void Jump(f32 dt);
 
 		void Pitch(i64 dy);
 

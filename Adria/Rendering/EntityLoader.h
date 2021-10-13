@@ -26,17 +26,17 @@ namespace adria
         std::array<std::wstring, 6> cubemap_textures;
     };
 
-    enum class LightMesh
+    enum class ELightMesh
     {
-        eNoMesh,
-        eQuad,
-        eSphere
+        NoMesh,
+        Quad,
+        Sphere
     };
 
     struct light_parameters_t
     {
         Light light_data;
-        LightMesh mesh_type = LightMesh::eNoMesh;
+        ELightMesh mesh_type = ELightMesh::NoMesh;
         u32 mesh_size = 0u;
         std::optional<std::wstring> light_texture = std::nullopt;
     };

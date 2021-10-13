@@ -214,18 +214,6 @@
     <ClInclude Include="Utilities\TemplatesUtil.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Threading\Task.h">
-      <Filter>Tasks</Filter>
-    </ClInclude>
-    <ClInclude Include="Threading\TaskManager.h">
-      <Filter>Tasks</Filter>
-    </ClInclude>
-    <ClInclude Include="Threading\TaskSystem.h">
-      <Filter>Tasks</Filter>
-    </ClInclude>
-    <ClInclude Include="Threading\ThreadPool.h">
-      <Filter>Tasks</Filter>
-    </ClInclude>
     <ClInclude Include="Logging\Logger.h">
       <Filter>Logging</Filter>
     </ClInclude>
@@ -477,6 +465,18 @@
     </ClInclude>
     <ClInclude Include="Graphics\GraphicsCoreDX12.h">
       <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Tasks\Task.h">
+      <Filter>Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="Tasks\TaskManager.h">
+      <Filter>Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="Tasks\TaskSystem.h">
+      <Filter>Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="Tasks\ThreadPool.h">
+      <Filter>Tasks</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

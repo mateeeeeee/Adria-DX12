@@ -62,9 +62,7 @@ namespace adria
 
 		~ThreadPool()
 		{
-
 			Destroy();
-
 		}
 
 		void Destroy()

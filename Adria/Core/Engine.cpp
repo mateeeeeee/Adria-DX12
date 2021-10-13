@@ -110,16 +110,16 @@ namespace adria
 		camera_manager.AddCamera(camera_desc);
 		
 		skybox_parameters_t skybox_params{};
-		skybox_params.cubemap = L"Resources/Textures/skybox/environment.hdr"; 
-		//skybox_params.cubemap_textures = 
-		//{
-		//	L"Resources/Textures/Skybox/right.jpg",
-		//	L"Resources/Textures/Skybox/left.jpg",
-		//	L"Resources/Textures/Skybox/top.jpg",
-		//	L"Resources/Textures/Skybox/bottom.jpg",
-		//	L"Resources/Textures/Skybox/front.jpg",
-		//	L"Resources/Textures/Skybox/back.jpg"
-		//};
+		//skybox_params.cubemap = L"Resources/Textures/skybox/environment.hdr"; 
+		skybox_params.cubemap_textures =
+		{
+			L"Resources/Textures/Skybox/right.jpg",
+			L"Resources/Textures/Skybox/left.jpg",
+			L"Resources/Textures/Skybox/top.jpg",
+			L"Resources/Textures/Skybox/bottom.jpg",
+			L"Resources/Textures/Skybox/front.jpg",
+			L"Resources/Textures/Skybox/back.jpg"
+		};
 		entity_loader->LoadSkybox(skybox_params);
 
 		model_parameters_t model_params{};
@@ -139,12 +139,12 @@ namespace adria
 		light_params.light_data.color = DirectX::XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
 		light_params.light_data.energy = 8.0f;
 		light_params.light_data.direction = DirectX::XMVectorSet(0.1f, -1.0f, 0.25f, 0.0f);
-		light_params.light_data.type = LightType::eDirectional;
+		light_params.light_data.type = ELightType::Directional;
 		light_params.light_data.active = true;
 		light_params.light_data.use_cascades = true;
 		light_params.light_data.volumetric = false;
 		light_params.light_data.volumetric_strength = 1.0f;
-		light_params.mesh_type = LightMesh::eQuad;
+		light_params.mesh_type = ELightMesh::Quad;
 		light_params.mesh_size = 250;
 		light_params.light_texture = L"Resources/Textures/sun.png";
 		
