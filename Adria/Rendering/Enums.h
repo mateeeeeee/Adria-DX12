@@ -10,6 +10,8 @@ namespace adria
 	{
 		VS_Skybox,
 		PS_Skybox,
+		PS_UniformColorSky,
+		PS_HosekWilkieSky,
 		VS_ScreenQuad,
 		PS_ToneMap,
 		PS_Fxaa,
@@ -67,6 +69,7 @@ namespace adria
 	enum class ERootSig : u8
 	{
 		Skybox,
+		Sky,
 		ToneMap,
 		FXAA,
 		TAA,
@@ -103,6 +106,8 @@ namespace adria
 	enum class EPipelineStateObject : u8
 	{
 		Skybox,
+		UniformColorSky,
+		HosekWilkieSky,
 		Texture,
 		Solid,
 		Sun,
@@ -165,6 +170,13 @@ namespace adria
 		Directional,
 		Point,
 		Spot
+	};
+
+	enum class ESkyType : u8
+	{
+		Skybox,
+		UniformColor,
+		HosekWilkie
 	};
 
 	enum class EBokehType : u8

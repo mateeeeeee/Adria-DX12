@@ -40,32 +40,32 @@ namespace adria
 
 		D3D12_PRIMITIVE_TOPOLOGY topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
-		void Draw(ID3D12GraphicsCommandList* context) const
+		void Draw(ID3D12GraphicsCommandList* cmd_list) const
 		{
-			context->IASetPrimitiveTopology(topology);
+			cmd_list->IASetPrimitiveTopology(topology);
 
-			vertex_buffer->Bind(context, 0);
+			vertex_buffer->Bind(cmd_list, 0);
 
 			if (index_buffer)
 			{
-				index_buffer->Bind(context);
-				context->DrawIndexedInstanced(indices_count, instance_count, start_index_location, base_vertex_location, start_instance_location);
+				index_buffer->Bind(cmd_list);
+				cmd_list->DrawIndexedInstanced(indices_count, instance_count, start_index_location, base_vertex_location, start_instance_location);
 			}
-			else context->DrawInstanced(vertex_count, instance_count, start_vertex_location, start_instance_location);
+			else cmd_list->DrawInstanced(vertex_count, instance_count, start_vertex_location, start_instance_location);
 		}
 
-		void Draw(ID3D12GraphicsCommandList* context, D3D12_PRIMITIVE_TOPOLOGY override_topology) const
+		void Draw(ID3D12GraphicsCommandList* cmd_list, D3D12_PRIMITIVE_TOPOLOGY override_topology) const
 		{
-			context->IASetPrimitiveTopology(override_topology);
+			cmd_list->IASetPrimitiveTopology(override_topology);
 
-			vertex_buffer->Bind(context, 0);
+			vertex_buffer->Bind(cmd_list, 0);
 
 			if (index_buffer)
 			{
-				index_buffer->Bind(context);
-				context->DrawIndexedInstanced(indices_count, instance_count, start_index_location, base_vertex_location, start_instance_location);
+				index_buffer->Bind(cmd_list);
+				cmd_list->DrawIndexedInstanced(indices_count, instance_count, start_index_location, base_vertex_location, start_instance_location);
 			}
-			else context->DrawInstanced(vertex_count, instance_count, start_vertex_location, start_instance_location);
+			else cmd_list->DrawInstanced(vertex_count, instance_count, start_vertex_location, start_instance_location);
 		}
 	};
 

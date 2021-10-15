@@ -52,6 +52,8 @@ namespace adria
 
 		void MenuBar();
 
+		void SkySettings();
+
 		void AddEntities();
 
 		void ListEntities();

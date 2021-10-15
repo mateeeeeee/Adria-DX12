@@ -167,6 +167,7 @@ namespace adria
                 MenuBar();
                 auto dockspace_id = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
                 ListEntities();
+                SkySettings();
                 AddEntities();
                 Camera();
                 Scene();
@@ -345,6 +346,67 @@ namespace adria
         }
         ImGui::End();
     }
+
+	void Editor::SkySettings()
+	{
+		ImGui::Begin("Sky");
+		{
+			const char* sky_types[] = { "Skybox", "Uniform Color", "Hosek-Wilkie" };
+			static int current_sky_type = 0;
+			const char* combo_label = sky_types[current_sky_type];
+			if (ImGui::BeginCombo("Sky Type", combo_label, 0))
+			{
+				for (int n = 0; n < IM_ARRAYSIZE(sky_types); n++)
+				{
+					const bool is_selected = (current_sky_type == n);
+					if (ImGui::Selectable(sky_types[n], is_selected)) current_sky_type = n;
+					if (is_selected) ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+
+			if (current_sky_type == 0) renderer_settings.sky_type = ESkyType::Skybox;
+			else if (current_sky_type == 1)
+			{
+				renderer_settings.sky_type = ESkyType::UniformColor;
+				static char const* const sky_colors[] = { "Deep Sky Blue", "Sky Blue", "Light Sky Blue" };
+				static int current_sky_color = 0;
+				ImGui::ListBox("Tone Map Operator", &current_sky_color, sky_colors, IM_ARRAYSIZE(sky_colors));
+
+				switch (current_sky_color)
+				{
+				case 0:
+				{
+					static f32 deep_sky_blue[3] = { 0.0f, 0.75f, 1.0f };
+					memcpy(renderer_settings.sky_color, deep_sky_blue, sizeof(deep_sky_blue));
+					break;
+				}
+				case 1:
+				{
+					static f32 sky_blue[3] = { 0.53f, 0.81f, 0.92f };
+					memcpy(renderer_settings.sky_color, sky_blue, sizeof(sky_blue));
+					break;
+				}
+				case 2:
+				{
+					static f32 light_sky_blue[3] = { 0.53f, 0.81f, 0.98f };
+					memcpy(renderer_settings.sky_color, light_sky_blue, sizeof(light_sky_blue));
+					break;
+				}
+				default:
+					ADRIA_ASSERT(false);
+				}
+			}
+			else if (current_sky_type == 2)
+			{
+				renderer_settings.sky_type = ESkyType::HosekWilkie;
+				ImGui::SliderFloat("Turbidity", &renderer_settings.turbidity, 2.0f, 30.0f);
+				ImGui::SliderFloat("Ground Albedo", &renderer_settings.ground_albedo, 0.0f, 1.0f);
+			}
+
+		}
+		ImGui::End();
+	}
 
     void Editor::ListEntities()
     {

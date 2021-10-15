@@ -194,6 +194,9 @@
     <ClCompile Include="Utilities\Heightmap.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\SkyModel.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -490,6 +493,9 @@
     <ClInclude Include="Math\ComputeNormals.h">
       <Filter>Math</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\SkyModel.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
@@ -669,6 +675,12 @@
     </FxCompile>
     <FxCompile Include="Resources\Shaders\PostProcess\VelocityBufferPS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Misc\HosekWilkieSkyPS.hlsl">
+      <Filter>Shaders\Misc</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Misc\UniformColorSkyPS.hlsl">
+      <Filter>Shaders\Misc</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

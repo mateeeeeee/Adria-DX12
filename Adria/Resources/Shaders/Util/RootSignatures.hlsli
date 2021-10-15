@@ -8,6 +8,11 @@
                                  "addressW = TEXTURE_ADDRESS_WRAP, " \
                                  "filter = FILTER_MIN_MAG_MIP_LINEAR, visibility=SHADER_VISIBILITY_PIXEL)"
 
+#define Sky_RS    "RootFlags( ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
+                  "CBV(b0, visibility=SHADER_VISIBILITY_VERTEX), " \
+                  "CBV(b1, visibility=SHADER_VISIBILITY_VERTEX), " \
+                  "CBV(b7, visibility=SHADER_VISIBILITY_PIXEL)" 
+
 #define ToneMap_RS  "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
                               "CBV(b5, visibility=SHADER_VISIBILITY_PIXEL), " \
                               "DescriptorTable(SRV(t0, numDescriptors = 1, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_PIXEL), " \

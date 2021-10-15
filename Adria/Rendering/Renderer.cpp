@@ -7,6 +7,7 @@
 #include "Renderer.h"
 #include "Camera.h"
 #include "Components.h"
+#include "SkyModel.h"
 #include "../Core/Window.h"
 #include "../Utilities/Timer.h"
 #include "../Math/Constants.h"
@@ -782,6 +783,47 @@ namespace adria
 				D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&bokeh_indirect_draw_buffer)));
 		}
 
+		//create cube vb and ib for sky here, move somewhere else later
+		{
+
+			static const SimpleVertex cube_vertices[8] = 
+			{
+				XMFLOAT3{ -1.0, -1.0,  1.0 },
+				XMFLOAT3{ 1.0, -1.0,  1.0 },
+				XMFLOAT3{ 1.0,  1.0,  1.0 },
+				XMFLOAT3{ -1.0,  1.0,  1.0 },
+				XMFLOAT3{ -1.0, -1.0, -1.0 },
+				XMFLOAT3{ 1.0, -1.0, -1.0 },
+				XMFLOAT3{ 1.0,  1.0, -1.0 },
+				XMFLOAT3{ -1.0,  1.0, -1.0 }
+			};
+
+			static const uint16_t cube_indices[36] = 
+			{
+				// front
+				0, 1, 2,
+				2, 3, 0,
+				// right
+				1, 5, 6,
+				6, 2, 1,
+				// back
+				7, 6, 5,
+				5, 4, 7,
+				// left
+				4, 0, 3,
+				3, 7, 4,
+				// bottom
+				4, 5, 1,
+				1, 0, 4,
+				// top
+				3, 2, 6,
+				6, 7, 3
+			};
+
+			cube_vb = std::make_shared<VertexBuffer>(gfx, cube_vertices, _countof(cube_vertices));
+			cube_ib = std::make_shared<IndexBuffer>(gfx, cube_indices, _countof(cube_indices));
+		}
+
 		//bokeh upload indirect draw buffer
 		ID3D12Resource* bokeh_upload_buffer = nullptr;
 		{
@@ -821,7 +863,6 @@ namespace adria
 			command_signature_desc.ByteStride = sizeof(D3D12_DRAW_ARGUMENTS);
 
 			BREAK_IF_FAILED(gfx->GetDevice()->CreateCommandSignature(&command_signature_desc, nullptr, IID_PPV_ARGS(&bokeh_command_signature)));
-
 
 			// Allocate a buffer that can be used to reset the UAV counters and initialize it to 0.
 			auto buffer_desc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(u32));
@@ -873,6 +914,11 @@ namespace adria
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SkyboxPS.cso", ps_blob);
 			shader_map[VS_Skybox] = vs_blob;
 			shader_map[PS_Skybox] = ps_blob;
+
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/UniformColorSkyPS.cso", ps_blob);
+			shader_map[PS_UniformColorSky] = ps_blob;
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/HosekWilkieSkyPS.cso", ps_blob);
+			shader_map[PS_HosekWilkieSky] = ps_blob;
 
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/TextureVS.cso", vs_blob);
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/TexturePS.cso", ps_blob);
@@ -1093,6 +1139,9 @@ namespace adria
 		{
 			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Skybox].GetPointer(), shader_map[PS_Skybox].GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSig::Skybox].GetAddressOf())));
+
+			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_HosekWilkieSky].GetPointer(), shader_map[PS_HosekWilkieSky].GetLength(),
+				IID_PPV_ARGS(rs_map[ERootSig::Sky].GetAddressOf())));
 
 			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_ToneMap].GetPointer(), shader_map[PS_ToneMap].GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSig::ToneMap].GetAddressOf())));
@@ -1366,6 +1415,13 @@ namespace adria
 				pso_desc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Skybox])));
+
+				pso_desc.pRootSignature = rs_map[ERootSig::Sky].Get();
+				pso_desc.PS = shader_map[PS_UniformColorSky];
+				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::UniformColorSky])));
+
+				pso_desc.PS = shader_map[PS_HosekWilkieSky];
+				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::HosekWilkieSky])));
 			}
 
 			//tonemap
@@ -2994,6 +3050,7 @@ namespace adria
 			frame_cbuf_data.camera_near = camera->Near();
 			frame_cbuf_data.camera_far = camera->Far();
 			frame_cbuf_data.camera_position = camera->Position();
+			frame_cbuf_data.camera_forward = camera->Forward();
 			frame_cbuf_data.view = camera->View();
 			frame_cbuf_data.projection = camera->Proj();
 			frame_cbuf_data.view_projection = camera->ViewProj();
@@ -3081,6 +3138,7 @@ namespace adria
 				}
 			}
 
+			weather_cbuf_data.sky_color = XMVECTOR{ settings.sky_color[0], settings.sky_color[1],settings.sky_color[2], 1.0f };
 			weather_cbuf_data.ambient_color = XMVECTOR{ settings.ambient_color[0], settings.ambient_color[1], settings.ambient_color[2], 1.0f };
 			weather_cbuf_data.wind_dir = XMVECTOR{ settings.wind_direction[0], 0.0f, settings.wind_direction[1], 0.0f };
 			weather_cbuf_data.wind_speed = settings.wind_speed;
@@ -3093,6 +3151,21 @@ namespace adria
 			weather_cbuf_data.clouds_top_height = settings.clouds_top_height;
 			weather_cbuf_data.density_factor = settings.density_factor;
 			weather_cbuf_data.cloud_type = settings.cloud_type;
+
+			XMFLOAT3 sun_dir;
+			XMStoreFloat3(&sun_dir, XMVector3Normalize(weather_cbuf_data.light_dir));
+			SkyParameters sky_params = CalculateSkyParameters(settings.turbidity, settings.ground_albedo, sun_dir);
+
+			weather_cbuf_data.A = sky_params[(size_t)ESkyParams::A];
+			weather_cbuf_data.B = sky_params[(size_t)ESkyParams::B];
+			weather_cbuf_data.C = sky_params[(size_t)ESkyParams::C];
+			weather_cbuf_data.D = sky_params[(size_t)ESkyParams::D];
+			weather_cbuf_data.E = sky_params[(size_t)ESkyParams::E];
+			weather_cbuf_data.F = sky_params[(size_t)ESkyParams::F];
+			weather_cbuf_data.G = sky_params[(size_t)ESkyParams::G];
+			weather_cbuf_data.H = sky_params[(size_t)ESkyParams::H];
+			weather_cbuf_data.I = sky_params[(size_t)ESkyParams::I];
+			weather_cbuf_data.Z = sky_params[(size_t)ESkyParams::Z];
 
 			weather_cbuffer.Update(weather_cbuf_data, backbuffer_index);
 		}
@@ -3728,7 +3801,7 @@ namespace adria
 
 		forward_render_pass.Begin(cmd_list);
 		PassForwardCommon(cmd_list, false);
-		PassSkybox(cmd_list);
+		PassSky(cmd_list);
 		PassForwardCommon(cmd_list, true);
 		forward_render_pass.End(cmd_list);
 	}
@@ -4323,46 +4396,69 @@ namespace adria
 		}
 
 	}
-	void Renderer::PassSkybox(ID3D12GraphicsCommandList4* cmd_list)
+	void Renderer::PassSky(ID3D12GraphicsCommandList4* cmd_list)
 	{
-		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Skybox Pass");
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Sky Pass");
 
 		auto device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 		auto upload_buffer = gfx->GetUploadBuffer();
 
-		cmd_list->SetGraphicsRootSignature(rs_map[ERootSig::Skybox].Get());
-		cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Skybox].Get());
 		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 
 		ObjectCBuffer object_cbuf_data{};
 		object_cbuf_data.model = DirectX::XMMatrixTranslationFromVector(camera->Position());
-
 		object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 		object_allocation.Update(object_cbuf_data);
 		cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
 
-		auto skybox_view = reg.view<Mesh, Transform, Skybox>();
-
-		for (auto e : skybox_view)
+		switch (settings.sky_type)
 		{
-			auto const& [transformation, mesh, skybox] = skybox_view.get<Transform, Mesh, Skybox>(e);
+		case ESkyType::Skybox:
+		{
+			cmd_list->SetGraphicsRootSignature(rs_map[ERootSig::Skybox].Get());
+			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Skybox].Get());
 
-			if (!skybox.active) continue;
+			auto skybox_view = reg.view<Skybox>();
+			for (auto e : skybox_view)
+			{
+				auto const& skybox = skybox_view.get(e);
+				if (!skybox.active) continue;
 
-			OffsetType descriptor_index = descriptor_allocator->Allocate();
-			ADRIA_ASSERT(skybox.cubemap_texture != INVALID_TEXTURE_HANDLE);
-			D3D12_CPU_DESCRIPTOR_HANDLE texture_handle = texture_manager.CpuDescriptorHandle(skybox.cubemap_texture);
+				OffsetType descriptor_index = descriptor_allocator->Allocate();
+				ADRIA_ASSERT(skybox.cubemap_texture != INVALID_TEXTURE_HANDLE);
+				D3D12_CPU_DESCRIPTOR_HANDLE texture_handle = texture_manager.CpuDescriptorHandle(skybox.cubemap_texture);
 
-			device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index), texture_handle,
-				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index), texture_handle,
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-			cmd_list->SetGraphicsRootDescriptorTable(2,
-				descriptor_allocator->GetGpuHandle(descriptor_index));
-
-			mesh.Draw(cmd_list);
-
+				cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetGpuHandle(descriptor_index));
+			}
+			break;
 		}
+		case ESkyType::UniformColor:
+		{
+			cmd_list->SetGraphicsRootSignature(rs_map[ERootSig::Sky].Get());
+			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::UniformColorSky].Get());
+			cmd_list->SetGraphicsRootConstantBufferView(2, weather_cbuffer.View(backbuffer_index).BufferLocation);
+			break;
+		}
+		case ESkyType::HosekWilkie:
+		{
+			cmd_list->SetGraphicsRootSignature(rs_map[ERootSig::Sky].Get());
+			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::HosekWilkieSky].Get());
+			cmd_list->SetGraphicsRootConstantBufferView(2, weather_cbuffer.View(backbuffer_index).BufferLocation);
+			break;
+		}
+		default:
+			ADRIA_ASSERT(false);
+		}
+
+		cmd_list->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		cube_vb->Bind(cmd_list, 0);
+		cube_ib->Bind(cmd_list);
+		cmd_list->DrawIndexedInstanced(cube_ib->IndexCount(), 1, 0, 0, 0);
+
 	}
 
 	void Renderer::PassLensFlare(ID3D12GraphicsCommandList4* cmd_list, Light const& light)

@@ -21,11 +21,10 @@
 
 namespace adria
 {
-	enum class QueueType : u8
+	enum class EQueueType : u8
 	{
-		eGraphics,
-		eCompute,
-		eCount
+		Graphics,
+		Compute,
 	};
 
 	class GraphicsCoreDX12
@@ -58,8 +57,8 @@ namespace adria
 
 		void WaitForGPU();
 
-		void WaitOnQueue(QueueType type);
-		void SignalQueue(QueueType type);
+		void WaitOnQueue(EQueueType type);
+		void SignalQueue(EQueueType type);
 
 		void ResizeBackbuffer(UINT w, UINT h);
 		UINT BackbufferIndex() const;

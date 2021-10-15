@@ -528,48 +528,7 @@ namespace adria
     {
         entity skybox = reg.create();
 
-        static const SimpleVertex cube_vertices[8] = {
-            XMFLOAT3{ -1.0, -1.0,  1.0 },
-            XMFLOAT3{ 1.0, -1.0,  1.0 },
-            XMFLOAT3{ 1.0,  1.0,  1.0 },
-            XMFLOAT3{ -1.0,  1.0,  1.0 },
-            XMFLOAT3{ -1.0, -1.0, -1.0 },
-            XMFLOAT3{ 1.0, -1.0, -1.0 },
-            XMFLOAT3{ 1.0,  1.0, -1.0 },
-            XMFLOAT3{ -1.0,  1.0, -1.0 }
-        };
-
-        static const uint16_t cube_indices[36] = {
-            // front
-            0, 1, 2,
-            2, 3, 0,
-            // right
-            1, 5, 6,
-            6, 2, 1,
-            // back
-            7, 6, 5,
-            5, 4, 7,
-            // left
-            4, 0, 3,
-            3, 7, 4,
-            // bottom
-            4, 5, 1,
-            1, 0, 4,
-            // top
-            3, 2, 6,
-            6, 7, 3
-        };
-
-        Mesh skybox_mesh{};
-        skybox_mesh.vertex_buffer = std::make_shared<VertexBuffer>(gfx, cube_vertices, _countof(cube_vertices));
-        skybox_mesh.index_buffer = std::make_shared<IndexBuffer>(gfx, cube_indices, _countof(cube_indices));
-        skybox_mesh.indices_count = _countof(cube_indices);
-        reg.emplace<Mesh>(skybox, skybox_mesh);
-
-        reg.emplace<Transform>(skybox, Transform{});
-
         Skybox sky{};
-
         sky.active = true;
 
         if (params.cubemap.has_value()) sky.cubemap_texture = texture_manager.LoadCubemap(params.cubemap.value());

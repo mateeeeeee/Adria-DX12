@@ -12,6 +12,8 @@
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/TextureCube.h"
 #include "../Graphics/Texture2DArray.h"
+#include "../Graphics/VertexBuffer.h"
+#include "../Graphics/IndexBuffer.h"
 #include "../Graphics/StructuredBuffer.h"
 #include "../Graphics/Profiler.h"
 
@@ -185,6 +187,9 @@ namespace adria
 		Microsoft::WRL::ComPtr<ID3D12Resource> irmap_texture;
 		Microsoft::WRL::ComPtr<ID3D12Resource> brdf_lut_texture;
 	    bool ibl_textures_generated = false;
+
+		std::shared_ptr<VertexBuffer>	cube_vb = nullptr;
+		std::shared_ptr<IndexBuffer>	cube_ib = nullptr;
 	private:
 
 		void LoadShaders();
@@ -215,8 +220,8 @@ namespace adria
 		void PassVolumetric(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		
 		void PassForwardCommon(ID3D12GraphicsCommandList4* cmd_list, bool transparent);
-		void PassSkybox(ID3D12GraphicsCommandList4* cmd_list);
-
+		void PassSky(ID3D12GraphicsCommandList4* cmd_list);
+		
 		void PassLensFlare(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassVolumetricClouds(ID3D12GraphicsCommandList4* cmd_list);
 		void PassSSR(ID3D12GraphicsCommandList4* cmd_list);

@@ -232,29 +232,29 @@ namespace adria
 		//wait_fence_value++;
 	}
 
-	void GraphicsCoreDX12::WaitOnQueue(QueueType type)
+	void GraphicsCoreDX12::WaitOnQueue(EQueueType type)
 	{
 		switch (type)
 		{
-		case QueueType::eGraphics:
+		case EQueueType::Graphics:
 			graphics_queue->Wait(compute_fences[backbuffer_index].Get(), compute_fence_values[backbuffer_index]);
 			++compute_fence_values[backbuffer_index];
 			break;
-		case QueueType::eCompute:
+		case EQueueType::Compute:
 			compute_queue->Wait(graphics_fences[backbuffer_index].Get(), graphics_fence_values[backbuffer_index]);
 			++graphics_fence_values[backbuffer_index];
 			break;
 		}
 	}
 
-	void GraphicsCoreDX12::SignalQueue(QueueType type)
+	void GraphicsCoreDX12::SignalQueue(EQueueType type)
 	{
 		switch (type)
 		{
-		case QueueType::eGraphics:
+		case EQueueType::Graphics:
 			graphics_queue->Signal(graphics_fences[backbuffer_index].Get(), graphics_fence_values[backbuffer_index]);
 			break;
-		case QueueType::eCompute:
+		case EQueueType::Compute:
 			compute_queue->Signal(compute_fences[backbuffer_index].Get(), compute_fence_values[backbuffer_index]);
 			break;
 		}

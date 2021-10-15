@@ -22,7 +22,7 @@ namespace adria
 		f32 split_lambda = 0.5f;
 		EAntiAliasing anti_aliasing = AntiAliasing_None;
 		f32 tonemap_exposure = 1.0f;
-		EToneMap tone_map_op = EToneMap::Hable;
+		EToneMap tone_map_op = EToneMap::Reinhard;
 		EAmbientOcclusion ambient_occlusion = EAmbientOcclusion::None;
 		f32   ssao_power = 4.0f;
 		f32   ssao_radius = 1.0f;
@@ -63,6 +63,10 @@ namespace adria
 		i32 visualize_max_lights = 16;
 		bool use_clustered_deferred = false;
 		bool ibl = false;
+		ESkyType sky_type = ESkyType::Skybox;
+		f32 sky_color[3] = { 0.53f, 0.81f, 0.92f };
+		f32 turbidity = 2.0f;
+		f32 ground_albedo = 0.1f;
 	};
 
 }

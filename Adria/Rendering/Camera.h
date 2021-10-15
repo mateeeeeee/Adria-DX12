@@ -56,6 +56,11 @@ namespace adria
 			return DirectX::XMLoadFloat3(&right_vector);
 		}
 
+		DirectX::XMVECTOR Forward() const
+		{
+			return DirectX::XMLoadFloat3(&look_vector);
+		}
+
 		f32 Near() const;
 
 		f32 Far() const;

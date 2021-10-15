@@ -11,6 +11,7 @@ struct FrameCBuffer
     row_major matrix inverse_view_projection;
     row_major matrix prev_view_projection;
     float4 camera_position;
+    float4 camera_forward;
     float camera_near;
     float camera_far;
     float2 screen_resolution;
@@ -25,7 +26,7 @@ struct LightCBuffer
 struct ObjectCBuffer
 {
     row_major matrix model;
-    row_major matrix inverse_transposed_model; //jos nesto?
+    row_major matrix inverse_transposed_model;
 };
 
 
@@ -127,6 +128,7 @@ struct WeatherCBuffer
 {
     float4 light_dir;
     float4 light_color;
+    float4 sky_color;
     float4 ambient_color;
     float4 wind_dir;
     float  wind_speed;
@@ -139,6 +141,17 @@ struct WeatherCBuffer
     float  clouds_top_height;
     float  density_factor;
     float  cloud_type;
+        
+    float3 A;
+    float3 B;
+    float3 C;
+    float3 D;
+    float3 E;
+    float3 F;
+    float3 G;
+    float3 H;
+    float3 I;
+    float3 Z;
 };
 
 struct RayTracingCBuffer
