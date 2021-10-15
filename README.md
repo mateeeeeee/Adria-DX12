@@ -31,6 +31,7 @@ Graphics engine written in C++/DirectX12.
 * Motion Blur
 * Fog
 * Volumetric Clouds
+* Hosek-Wilkie Sky
 * ImGui Editor
 * Profiler
 * Model Loading with tinygltf
