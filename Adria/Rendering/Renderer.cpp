@@ -1393,7 +1393,7 @@ namespace adria
 
 			//skybox
 			{
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc = {};
+				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
 				InputLayout input_layout;
 				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_Skybox], input_layout);
 				pso_desc.InputLayout = input_layout;
@@ -3132,7 +3132,7 @@ namespace adria
 
 				if (light_data.type == ELightType::Directional && light_data.active)
 				{
-					weather_cbuf_data.light_dir = -light_data.direction;
+					weather_cbuf_data.light_dir = XMVector3Normalize(-light_data.direction);
 					weather_cbuf_data.light_color = light_data.color * light_data.energy;
 					break;
 				}
@@ -4404,20 +4404,20 @@ namespace adria
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 		auto upload_buffer = gfx->GetUploadBuffer();
 
-		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
-
 		ObjectCBuffer object_cbuf_data{};
 		object_cbuf_data.model = DirectX::XMMatrixTranslationFromVector(camera->Position());
 		object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 		object_allocation.Update(object_cbuf_data);
-		cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
-
+		
 		switch (settings.sky_type)
 		{
 		case ESkyType::Skybox:
 		{
 			cmd_list->SetGraphicsRootSignature(rs_map[ERootSig::Skybox].Get());
 			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Skybox].Get());
+
+			cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
+			cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
 
 			auto skybox_view = reg.view<Skybox>();
 			for (auto e : skybox_view)
@@ -4440,6 +4440,8 @@ namespace adria
 		{
 			cmd_list->SetGraphicsRootSignature(rs_map[ERootSig::Sky].Get());
 			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::UniformColorSky].Get());
+			cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
+			cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
 			cmd_list->SetGraphicsRootConstantBufferView(2, weather_cbuffer.View(backbuffer_index).BufferLocation);
 			break;
 		}
@@ -4447,6 +4449,8 @@ namespace adria
 		{
 			cmd_list->SetGraphicsRootSignature(rs_map[ERootSig::Sky].Get());
 			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::HosekWilkieSky].Get());
+			cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
+			cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
 			cmd_list->SetGraphicsRootConstantBufferView(2, weather_cbuffer.View(backbuffer_index).BufferLocation);
 			break;
 		}
