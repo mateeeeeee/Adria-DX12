@@ -149,10 +149,9 @@ namespace adria
 		light_params.light_texture = L"Resources/Textures/sun.png";
 		
 		entity_loader->LoadLight(light_params);
-		
 
 		renderer->GetTextureManager().GenerateAllMips();
-		renderer->LoadTextures();
+		renderer->CreateResources();
 
 		gfx->ExecuteDefaultCommandList();
 		gfx->WaitForGPU();

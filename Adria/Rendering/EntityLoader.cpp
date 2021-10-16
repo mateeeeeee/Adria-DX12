@@ -550,7 +550,6 @@ namespace adria
         if (params.light_data.type == ELightType::Directional)
             const_cast<light_parameters_t&>(params).light_data.position = XMVectorScale(-params.light_data.direction, 1e3);
 
-
         reg.emplace<Light>(light, params.light_data);
 
         if (params.mesh_type == ELightMesh::Quad)
@@ -636,8 +635,26 @@ namespace adria
             break;
         }
 
-
         return light;
-
     }
+
+	std::vector<entity> EntityLoader::LoadOcean(ocean_parameters_t const& params)
+	{
+		std::vector<entity> ocean_chunks = EntityLoader::LoadGrid(params.ocean_grid);
+
+		Material ocean_material{};
+		ocean_material.diffuse = XMFLOAT3(0.0123f, 0.3613f, 0.6867f); //0, 105, 148
+		ocean_material.pso = EPipelineStateObject::Unknown;
+		Ocean ocean_component{};
+
+		for (auto ocean_chunk : ocean_chunks)
+		{
+			reg.emplace<Material>(ocean_chunk, ocean_material);
+			reg.emplace<Ocean>(ocean_chunk, ocean_component);
+			reg.emplace<Tag>(ocean_chunk, "Ocean Chunk" + std::to_string(as_integer(ocean_chunk)));
+		}
+
+		return ocean_chunks;
+	}
+
 }

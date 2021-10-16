@@ -71,6 +71,9 @@
     <Filter Include="Tasks">
       <UniqueIdentifier>{6e93feed-a08b-471a-870c-bc433d3c1b4d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Ocean">
+      <UniqueIdentifier>{1ad09a65-102a-469e-8203-a87e4c270feb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -681,6 +684,42 @@
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Misc\UniformColorSkyPS.hlsl">
       <Filter>Shaders\Misc</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Ocean\FFT_horizontalCS.hlsl">
+      <Filter>Shaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Ocean\FFT_verticalCS.hlsl">
+      <Filter>Shaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Ocean\InitialSpectrumCS.hlsl">
+      <Filter>Shaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Ocean\NormalMapCS.hlsl">
+      <Filter>Shaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Ocean\OceanLodDS.hlsl">
+      <Filter>Shaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Ocean\OceanLodHS.hlsl">
+      <Filter>Shaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Ocean\OceanLodPS.hlsl">
+      <Filter>Shaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Ocean\OceanLodVS.hlsl">
+      <Filter>Shaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Ocean\OceanPS.hlsl">
+      <Filter>Shaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Ocean\OceanVS.hlsl">
+      <Filter>Shaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Ocean\PhaseCS.hlsl">
+      <Filter>Shaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Ocean\SpectrumCS.hlsl">
+      <Filter>Shaders\Ocean</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

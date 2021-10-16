@@ -310,7 +310,48 @@ namespace adria
         }
     }
 
-    void Editor::AddEntities()
+	void Editor::OceanSettings()
+	{
+		ImGui::Begin("Ocean");
+		{
+			static grid_parameters_t ocean_params{};
+			static i32 tile_count[2] = { 512, 512 };
+			static f32 tile_size[2] = { 40.0f, 40.0f };
+			static f32 texture_scale[2] = { 20.0f, 20.0f };
+
+			ImGui::SliderInt2("Tile Count", tile_count, 32, 1024);
+			ImGui::SliderFloat2("Tile Size", tile_size, 1.0, 100.0f);
+			ImGui::SliderFloat2("Texture Scale", texture_scale, 0.1f, 10.0f);
+
+			ocean_params.tile_count_x = tile_count[0];
+			ocean_params.tile_count_z = tile_count[1];
+			ocean_params.tile_size_x = tile_size[0];
+			ocean_params.tile_size_z = tile_size[1];
+			ocean_params.texture_scale_x = texture_scale[0];
+			ocean_params.texture_scale_z = texture_scale[1];
+
+			if (ImGui::Button("Load Ocean"))
+			{
+				ocean_parameters_t params{};
+				params.ocean_grid = std::move(ocean_params);
+				engine->entity_loader->LoadOcean(params);
+			}
+
+			if (ImGui::TreeNodeEx("Ocean Settings", 0))
+			{
+				ImGui::Checkbox("Tessellation", &renderer_settings.ocean_tesselation);
+				ImGui::Checkbox("Wireframe", &renderer_settings.ocean_wireframe);
+
+				ImGui::SliderFloat("Choppiness", &renderer_settings.ocean_choppiness, 0.0f, 10.0f);
+				renderer_settings.ocean_color_changed = ImGui::ColorEdit3("Ocean Color", renderer_settings.ocean_color);
+				ImGui::TreePop();
+				ImGui::Separator();
+			}
+		}
+		ImGui::End();
+	}
+
+	void Editor::AddEntities()
     {
         ImGui::Begin("Add Entities");
         {

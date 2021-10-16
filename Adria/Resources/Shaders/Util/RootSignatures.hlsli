@@ -272,4 +272,49 @@
                                     "addressW = TEXTURE_ADDRESS_WRAP, " \
                                     "filter = FILTER_MIN_MAG_MIP_LINEAR, visibility=SHADER_VISIBILITY_PIXEL )" 
 
+#define FFT_RS                      "CBV(b10, visibility=SHADER_VISIBILITY_ALL), " \
+                                    "DescriptorTable(SRV(t0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
+                                    "DescriptorTable(SRV(u0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
+
+#define InitialSpectrum_RS          "CBV(b6, visibility=SHADER_VISIBILITY_ALL), " \
+                                    "DescriptorTable(SRV(t0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
+
+#define OceanNormal_RS              "CBV(b6, visibility=SHADER_VISIBILITY_ALL), " \
+                                    "DescriptorTable(SRV(t0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
+                                    "DescriptorTable(SRV(u0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
+
+#define Spectrum_RS                 "CBV(b6, visibility=SHADER_VISIBILITY_ALL), " \
+                                    "DescriptorTable(SRV(t0, numDescriptors = 2, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
+                                    "DescriptorTable(SRV(u0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
+
+
+#define Phase_RS                    "CBV(b6, visibility=SHADER_VISIBILITY_ALL), " \
+                                    "DescriptorTable(SRV(t0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
+                                    "DescriptorTable(SRV(u0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
+
+#define Ocean_RS                    "CBV(b0, visibility=SHADER_VISIBILITY_ALL), " \
+                                    "CBV(b1, visibility=SHADER_VISIBILITY_VERTEX), " \
+                                    "CBV(b4, visibility=SHADER_VISIBILITY_PIXEL), " \
+                                    "CBV(b7, visibility=SHADER_VISIBILITY_PIXEL), " \
+                                    "DescriptorTable(SRV(t0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_VERTEX), " \
+                                    "DescriptorTable(SRV(t1, numDescriptors = 3, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_PIXEL), " \
+                                    "StaticSampler(s0, " \
+                                    "addressU = TEXTURE_ADDRESS_WRAP, " \
+                                    "addressV = TEXTURE_ADDRESS_WRAP, " \
+                                    "addressW = TEXTURE_ADDRESS_WRAP, " \
+                                    "filter = FILTER_MIN_MAG_MIP_LINEAR, visibility=SHADER_VISIBILITY_ALL )" 
+
+#define OceanLOD_RS                 "CBV(b0, visibility=SHADER_VISIBILITY_ALL), " \
+                                    "CBV(b1, visibility=SHADER_VISIBILITY_VERTEX), " \
+                                    "CBV(b4, visibility=SHADER_VISIBILITY_PIXEL), " \
+                                    "CBV(b7, visibility=SHADER_VISIBILITY_PIXEL), " \
+                                    "DescriptorTable(SRV(t0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_DOMAIN), " \
+                                    "DescriptorTable(SRV(t1, numDescriptors = 3, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_PIXEL), " \
+                                    "StaticSampler(s0, " \
+                                    "addressU = TEXTURE_ADDRESS_WRAP, " \
+                                    "addressV = TEXTURE_ADDRESS_WRAP, " \
+                                    "addressW = TEXTURE_ADDRESS_WRAP, " \
+                                    "filter = FILTER_MIN_MAG_MIP_LINEAR, visibility=SHADER_VISIBILITY_ALL )" 
+
+
                                  

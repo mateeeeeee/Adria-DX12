@@ -404,6 +404,7 @@ namespace adria
 	{
 		UpdateConstantBuffers(dt);
 		CameraFrustumCulling();
+		UpdateOcean(dt);
 	}
 
 	void Renderer::SetProfilerSettings(ProfilerSettings _profiler_settings)
@@ -614,11 +615,10 @@ namespace adria
 			CreateRenderPasses(width, height);
 		}
 	}
-	void Renderer::LoadTextures()
+	void Renderer::CreateResources()
 	{
 		//ao textures
 		ID3D12Resource* ssao_upload_texture = nullptr; //keep it alive until call to execute
-
 		{
 			const u64 upload_buffer_size = GetRequiredIntermediateSize(ssao_random_texture.Resource(), 0, 1);
 
@@ -660,7 +660,6 @@ namespace adria
 
 		
 		ID3D12Resource* hbao_upload_texture = nullptr; //keep it alive until call to execute
-
 		{
 			const u64 upload_buffer_size = GetRequiredIntermediateSize(hbao_random_texture.Resource(), 0, 1);
 
@@ -762,27 +761,6 @@ namespace adria
 			clouds_textures.push_back(texture_manager.CpuDescriptorHandle(texture_manager.LoadTexture(L"Resources\\Textures\\clouds\\worley.dds")));
 		}
 
-		//this doesnt belong here, move it somewhere else later
-		//bokeh indirect draw buffer & zero counter buffer
-		{
-			D3D12_RESOURCE_DESC desc{};
-			desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-			desc.Alignment = 0;
-			desc.SampleDesc.Count = 1;
-			desc.Format = DXGI_FORMAT_UNKNOWN;
-			desc.Width = 4 * sizeof(u32);
-			desc.Height = 1;
-			desc.DepthOrArraySize = 1;
-			desc.MipLevels = 1;
-			desc.Flags = D3D12_RESOURCE_FLAG_NONE;
-			desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-
-			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-
-			BREAK_IF_FAILED(gfx->GetDevice()->CreateCommittedResource(&heap_properties, D3D12_HEAP_FLAG_NONE, &desc,
-				D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&bokeh_indirect_draw_buffer)));
-		}
-
 		//create cube vb and ib for sky here, move somewhere else later
 		{
 
@@ -824,16 +802,33 @@ namespace adria
 			cube_ib = std::make_shared<IndexBuffer>(gfx, cube_indices, _countof(cube_indices));
 		}
 
-		//bokeh upload indirect draw buffer
+		//bokeh upload indirect draw buffer and zero counter buffer
 		ID3D12Resource* bokeh_upload_buffer = nullptr;
 		{
+			D3D12_RESOURCE_DESC desc{};
+			desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+			desc.Alignment = 0;
+			desc.SampleDesc.Count = 1;
+			desc.Format = DXGI_FORMAT_UNKNOWN;
+			desc.Width = 4 * sizeof(u32);
+			desc.Height = 1;
+			desc.DepthOrArraySize = 1;
+			desc.MipLevels = 1;
+			desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+			desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+
+			BREAK_IF_FAILED(gfx->GetDevice()->CreateCommittedResource(&heap_properties, D3D12_HEAP_FLAG_NONE, &desc,
+				D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&bokeh_indirect_draw_buffer)));
+
 			hex_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Hex.dds");
 			oct_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Oct.dds");
 			circle_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Circle.dds");
 			cross_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Cross.dds");
 
 			const u64 upload_buffer_size = GetRequiredIntermediateSize(bokeh_indirect_draw_buffer.Get(), 0, 1);
-			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+			heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 			auto resource_desc = CD3DX12_RESOURCE_DESC::Buffer(upload_buffer_size);
 			BREAK_IF_FAILED(gfx->GetDevice()->CreateCommittedResource(
 				&heap_properties,
@@ -906,7 +901,6 @@ namespace adria
 
 	void Renderer::LoadShaders()
 	{
-		
 		//misc
 		{
 			ShaderBlob vs_blob, ps_blob;
@@ -1124,11 +1118,41 @@ namespace adria
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BokehCS.cso", cs_blob);
 			shader_map[CS_BokehGenerate] = cs_blob;
 
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BokehCS.cso", cs_blob);
-			shader_map[CS_BokehGenerate] = cs_blob;
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/FFT_horizontalCS.cso", cs_blob);
+			shader_map[CS_FFT_Horizontal] = cs_blob;
+
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/FFT_verticalCS.cso", cs_blob);
+			shader_map[CS_FFT_Vertical] = cs_blob;
+
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/InitialSpectrumCS.cso", cs_blob);
+			shader_map[CS_InitialSpectrum] = cs_blob;
+
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/NormalMapCS.cso", cs_blob);
+			shader_map[CS_OceanNormals] = cs_blob;
+
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/PhaseCS.cso", cs_blob);
+			shader_map[CS_Phase] = cs_blob;
+
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SpectrumCS.cso", cs_blob);
+			shader_map[CS_Spectrum] = cs_blob;
 		}
 
-		
+		//ocean
+		{
+			ShaderBlob vs_blob, ps_blob;
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanVS.cso", vs_blob);
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanPS.cso", ps_blob);
+			shader_map[VS_Ocean] = vs_blob;
+			shader_map[PS_Ocean] = ps_blob;
+
+			ShaderBlob hs_blob, ds_blob;
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanLodVS.cso", vs_blob);
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanLodDS.cso", ds_blob);
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanLodHS.cso", hs_blob);
+			shader_map[VS_OceanLOD] = vs_blob;
+			shader_map[HS_OceanLOD] = vs_blob;
+			shader_map[DS_OceanLOD] = ds_blob;
+		}
 	}
 	void Renderer::CreatePipelineStateObjects()
 	{
@@ -1194,10 +1218,6 @@ namespace adria
 			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Fog].GetPointer(), shader_map[PS_Fog].GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSig::Fog].GetAddressOf())));
 
-			//ID3D12VersionedRootSignatureDeserializer* drs = nullptr;
-			//D3D12CreateVersionedRootSignatureDeserializer(shader_map[PS_Add].GetPointer(), shader_map[PS_Add].GetLength(), IID_PPV_ARGS(&drs));
-			//D3D12_VERSIONED_ROOT_SIGNATURE_DESC const* desc = drs->GetUnconvertedRootSignatureDesc();
-
 			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_VolumetricClouds].GetPointer(), shader_map[PS_VolumetricClouds].GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSig::Clouds].GetAddressOf())));
 
@@ -1223,7 +1243,33 @@ namespace adria
 				IID_PPV_ARGS(rs_map[ERootSig::VelocityBuffer].GetAddressOf())));
 
 			rs_map[ERootSig::Copy] = rs_map[ERootSig::FXAA];
+
+			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_FFT_Horizontal].GetPointer(), shader_map[CS_FFT_Horizontal].GetLength(),
+				IID_PPV_ARGS(rs_map[ERootSig::FFT].GetAddressOf())));
+
+			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_InitialSpectrum].GetPointer(), shader_map[CS_InitialSpectrum].GetLength(),
+				IID_PPV_ARGS(rs_map[ERootSig::InitialSpectrum].GetAddressOf())));
+
+			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_OceanNormals].GetPointer(), shader_map[CS_OceanNormals].GetLength(),
+				IID_PPV_ARGS(rs_map[ERootSig::OceanNormals].GetAddressOf())));
+
+			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_Phase].GetPointer(), shader_map[CS_Phase].GetLength(),
+				IID_PPV_ARGS(rs_map[ERootSig::Phase].GetAddressOf())));
+
+			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_Spectrum].GetPointer(), shader_map[CS_Spectrum].GetLength(),
+				IID_PPV_ARGS(rs_map[ERootSig::Spectrum].GetAddressOf())));
+
+			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[VS_Ocean].GetPointer(), shader_map[VS_Ocean].GetLength(),
+				IID_PPV_ARGS(rs_map[ERootSig::Ocean].GetAddressOf())));
+
+			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[VS_OceanLOD].GetPointer(), shader_map[VS_OceanLOD].GetLength(),
+				IID_PPV_ARGS(rs_map[ERootSig::OceanLOD].GetAddressOf())));
+
+			//ID3D12VersionedRootSignatureDeserializer* drs = nullptr;
+			//D3D12CreateVersionedRootSignatureDeserializer(shader_map[PS_Add].GetPointer(), shader_map[PS_Add].GetLength(), IID_PPV_ARGS(&drs));
+			//D3D12_VERSIONED_ROOT_SIGNATURE_DESC const* desc = drs->GetUnconvertedRootSignatureDesc();
 		}
+
 		//root sigs (written in C++)
 		{
 			D3D12_FEATURE_DATA_ROOT_SIGNATURE feature_data{};
@@ -1235,7 +1281,6 @@ namespace adria
 
 			//ao
 			{
-
 				std::array<CD3DX12_ROOT_PARAMETER1, 3> root_parameters{};
 				CD3DX12_ROOT_PARAMETER1 root_parameter{};
 
@@ -1279,9 +1324,7 @@ namespace adria
 				ComPtr<ID3DBlob> error;
 				D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, feature_data.HighestVersion, &signature, &error);
 				if (error) OutputDebugStringA((char*)error->GetBufferPointer());
-
 				BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSig::AO])));
-
 			}
 
 			//blur
@@ -1308,8 +1351,6 @@ namespace adria
 				if (error) OutputDebugStringA((char*)error->GetBufferPointer());
 
 				BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSig::Blur])));
-				
-				
 			}
 
 			//bloom 
@@ -1749,8 +1790,6 @@ namespace adria
 
 			//ssr
 			{
-
-				
 				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
 				pso_desc.InputLayout = { nullptr, 0 };
 				pso_desc.pRootSignature = rs_map[ERootSig::SSR].Get();
@@ -1959,7 +1998,6 @@ namespace adria
 				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 
-
 				pso_desc.SampleMask = UINT_MAX;
 				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 				pso_desc.NumRenderTargets = 1;
@@ -1976,7 +2014,6 @@ namespace adria
 				compute_pso_desc.pRootSignature = rs_map[ERootSig::BokehGenerate].Get();
 				compute_pso_desc.CS = shader_map[CS_BokehGenerate];
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::BokehGenerate])));
-
 
 				// Describe and create the graphics pipeline state object (PSO).
 				D3D12_GRAPHICS_PIPELINE_STATE_DESC graphics_pso_desc{};
@@ -2022,8 +2059,6 @@ namespace adria
 
 			//motion blur
 			{
-
-				// Describe and create the graphics pipeline state object (PSO).
 				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
 				pso_desc.InputLayout = { nullptr, 0 };
 				pso_desc.pRootSignature = rs_map[ERootSig::MotionBlur].Get();
@@ -2044,7 +2079,6 @@ namespace adria
 
 			//velocity buffer
 			{
-
 				// Describe and create the graphics pipeline state object (PSO).
 				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
 				pso_desc.InputLayout = { nullptr, 0 };
@@ -2063,9 +2097,63 @@ namespace adria
 
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::VelocityBuffer])));
 			}
-		}
 
-		
+			//ocean 
+			{
+				D3D12_COMPUTE_PIPELINE_STATE_DESC compute_pso_desc = {};
+				compute_pso_desc.pRootSignature = rs_map[ERootSig::FFT].Get();
+				compute_pso_desc.CS = shader_map[CS_FFT_Horizontal];
+				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::FFT_Horizontal])));
+
+				compute_pso_desc.CS = shader_map[CS_FFT_Vertical];
+				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::FFT_Vertical])));
+
+				compute_pso_desc.pRootSignature = rs_map[ERootSig::InitialSpectrum].Get();
+				compute_pso_desc.CS = shader_map[CS_InitialSpectrum];
+				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::InitialSpectrum])));
+
+				compute_pso_desc.pRootSignature = rs_map[ERootSig::InitialSpectrum].Get();
+				compute_pso_desc.CS = shader_map[CS_InitialSpectrum];
+				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::InitialSpectrum])));
+
+				compute_pso_desc.pRootSignature = rs_map[ERootSig::OceanNormals].Get();
+				compute_pso_desc.CS = shader_map[CS_OceanNormals];
+				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::OceanNormals])));
+
+				compute_pso_desc.pRootSignature = rs_map[ERootSig::Phase].Get();
+				compute_pso_desc.CS = shader_map[CS_Phase];
+				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Phase])));
+
+				compute_pso_desc.pRootSignature = rs_map[ERootSig::Spectrum].Get();
+				compute_pso_desc.CS = shader_map[CS_Spectrum];
+				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Spectrum])));
+
+				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
+				InputLayout il;
+				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_Ocean], il);
+				pso_desc.InputLayout = il;
+				pso_desc.pRootSignature = rs_map[ERootSig::Ocean].Get();
+				pso_desc.VS = shader_map[VS_Ocean];
+				pso_desc.PS = shader_map[PS_Ocean];
+				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+				pso_desc.SampleMask = UINT_MAX;
+				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+				pso_desc.NumRenderTargets = 1;
+				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				pso_desc.SampleDesc.Count = 1;
+				pso_desc.DSVFormat =DXGI_FORMAT_D32_FLOAT;
+
+				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Ocean])));
+
+				pso_desc.pRootSignature = rs_map[ERootSig::OceanLOD].Get();
+				pso_desc.VS = shader_map[VS_OceanLOD];
+				pso_desc.DS = shader_map[DS_OceanLOD];
+				pso_desc.HS = shader_map[HS_OceanLOD];
+
+				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::OceanLOD])));
+			}
+		}
 	}
 	void Renderer::CreateDescriptorHeaps()
 	{
@@ -2472,6 +2560,11 @@ namespace adria
 			velocity_buffer = Texture2D(gfx->GetDevice(), velocity_buffer_desc);
 			velocity_buffer.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
 			velocity_buffer.CreateRTV(rtv_heap->GetCpuHandle(rtv_heap_index++));
+		}
+
+		//ocean
+		{
+
 		}
 	}
 	void Renderer::CreateRenderPasses(u32 width, u32 height)
@@ -3115,6 +3208,13 @@ namespace adria
 			compute_cbuf_data.bokeh_color_scale = settings.bokeh_color_scale;
 			compute_cbuf_data.bokeh_fallout = settings.bokeh_fallout;
 
+			compute_cbuf_data.ocean_choppiness = settings.ocean_choppiness;
+			compute_cbuf_data.ocean_size = 512;
+			compute_cbuf_data.resolution = RESOLUTION;
+			compute_cbuf_data.wind_direction_x = settings.wind_direction[0];
+			compute_cbuf_data.wind_direction_y = settings.wind_direction[1];
+			compute_cbuf_data.delta_time = dt;
+
 			compute_cbuffer.Update(compute_cbuf_data, backbuffer_index);
 		}
 
@@ -3171,6 +3271,12 @@ namespace adria
 		}
 
 	}
+
+	void Renderer::UpdateOcean(f32 dt)
+	{
+
+	}
+
 	void Renderer::CameraFrustumCulling()
 	{
 		BoundingFrustum camera_frustum = camera->Frustum();
@@ -4462,6 +4568,11 @@ namespace adria
 		cube_vb->Bind(cmd_list, 0);
 		cube_ib->Bind(cmd_list);
 		cmd_list->DrawIndexedInstanced(cube_ib->IndexCount(), 1, 0, 0, 0);
+
+	}
+
+	void Renderer::PassOcean(ID3D12GraphicsCommandList4* cmd_list)
+	{
 
 	}
 

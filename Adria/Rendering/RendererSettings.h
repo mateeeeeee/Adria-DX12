@@ -67,6 +67,11 @@ namespace adria
 		f32 sky_color[3] = { 0.53f, 0.81f, 0.92f };
 		f32 turbidity = 2.0f;
 		f32 ground_albedo = 0.1f;
+		bool ocean_wireframe = false;
+		bool ocean_tesselation = false;
+		f32 ocean_color[3] = { 0.0123f, 0.3613f, 0.6867f };
+		f32 ocean_choppiness = 1.2f;
+		bool ocean_color_changed = false;
 	};
 
 }

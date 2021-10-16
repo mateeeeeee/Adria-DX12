@@ -63,7 +63,18 @@ namespace adria
 		CS_ClusterBuilding,
 		CS_ClusterCulling,
 		CS_BokehGenerate,
-		CS_GenerateMips
+		CS_GenerateMips,
+		CS_FFT_Horizontal,
+		CS_FFT_Vertical,
+		CS_InitialSpectrum,
+		CS_OceanNormals,
+		CS_Phase,
+		CS_Spectrum,
+		VS_Ocean,
+		PS_Ocean,
+		VS_OceanLOD,
+		DS_OceanLOD,
+		HS_OceanLOD
 	};
 
 	enum class ERootSig : u8
@@ -100,7 +111,14 @@ namespace adria
 		ClusterBuilding,
 		ClusterCulling,
 		GenerateMips,
-		VelocityBuffer
+		VelocityBuffer,
+		FFT,
+		InitialSpectrum,
+		OceanNormals,
+		Phase,
+		Spectrum,
+		Ocean,
+		OceanLOD
 	};
 
 	enum class EPipelineStateObject : u8
@@ -155,6 +173,14 @@ namespace adria
 		Bokeh,
 		GenerateMips,
 		VelocityBuffer,
+		FFT_Horizontal,
+		FFT_Vertical,
+		InitialSpectrum,
+		OceanNormals,
+		Phase,
+		Spectrum,
+		Ocean,
+		OceanLOD,
         Unknown
 	};
 

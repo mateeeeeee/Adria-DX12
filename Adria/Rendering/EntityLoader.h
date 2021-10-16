@@ -41,6 +41,10 @@ namespace adria
 		ENormalCalculation normal_type = ENormalCalculation::None;
 		std::unique_ptr<Heightmap> heightmap = nullptr;
 	};
+	struct ocean_parameters_t
+	{
+		grid_parameters_t ocean_grid;
+	};
 
     enum class ELightMesh
     {
@@ -75,6 +79,8 @@ namespace adria
 		[[maybe_unused]] tecs::entity LoadSkybox(skybox_parameters_t const&);
 
         [[maybe_unused]] tecs::entity LoadLight(light_parameters_t const&);
+
+		[[maybe_unused]] std::vector<tecs::entity> LoadOcean(ocean_parameters_t const&);
 
 	private:
         tecs::registry& reg;

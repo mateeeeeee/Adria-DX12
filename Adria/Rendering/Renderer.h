@@ -53,6 +53,7 @@ namespace adria
 		static constexpr u32 CLUSTER_SIZE_Z = 16;
 		static constexpr u32 CLUSTER_COUNT = CLUSTER_SIZE_X * CLUSTER_SIZE_Y * CLUSTER_SIZE_Z;
 		static constexpr u32 CLUSTER_MAX_LIGHTS = 128;
+		static constexpr u32 RESOLUTION = 512;
 
 	public:
 		Renderer(tecs::registry& reg, GraphicsCoreDX12* gfx, u32 width, u32 height);
@@ -75,7 +76,7 @@ namespace adria
 
 		void OnResize(u32 width, u32 height);
 
-		void LoadTextures();
+		void CreateResources();
 
 		Texture2D GetOffscreenTexture() const;
 
@@ -121,6 +122,13 @@ namespace adria
 		Texture2D debug_tiled_texture;
 		std::array<Texture2D, 2> postprocess_textures;
 		bool postprocess_index = false;
+		std::array<Texture2D, 2> ping_pong_phase_textures;
+		bool pong_phase_pass = false;
+		std::array<Texture2D, 2> ping_pong_spectrum_textures;
+		bool pong_spectrum = true;
+		Texture2D ocean_normal_map;
+		Texture2D ocean_initial_spectrum;
+
 		std::unique_ptr<DescriptorHeap> rtv_heap;
 		std::unique_ptr<DescriptorHeap> srv_heap;
 		std::unique_ptr<DescriptorHeap> dsv_heap;
@@ -179,7 +187,6 @@ namespace adria
 		TEXTURE_HANDLE circle_bokeh_handle = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE cross_bokeh_handle = INVALID_TEXTURE_HANDLE;
 
-
 		bool recreate_clusters = true;
 
 		std::unique_ptr<DescriptorHeap> ibl_heap;
@@ -200,6 +207,7 @@ namespace adria
 		void CreateIBLTextures();
 		
 		void UpdateConstantBuffers(f32 dt);
+		void UpdateOcean(f32 dt);
 		void CameraFrustumCulling();
 		void LightFrustumCulling(ELightType type);
 
@@ -221,6 +229,7 @@ namespace adria
 		
 		void PassForwardCommon(ID3D12GraphicsCommandList4* cmd_list, bool transparent);
 		void PassSky(ID3D12GraphicsCommandList4* cmd_list);
+		void PassOcean(ID3D12GraphicsCommandList4* cmd_list);
 		
 		void PassLensFlare(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassVolumetricClouds(ID3D12GraphicsCommandList4* cmd_list);
