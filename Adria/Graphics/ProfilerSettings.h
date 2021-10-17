@@ -4,29 +4,29 @@
 
 namespace adria
 {
-	enum class ProfilerBlock
+	enum class EProfilerBlock
 	{
-		eFrame,
-		eGBufferPass,
-		eDeferredPass,
-		eForwardPass,
-		ePostprocessing,
-		eCount
+		Frame,
+		GBufferPass,
+		DeferredPass,
+		ForwardPass,
+		Postprocessing,
+		Count
 	};
 
-	static std::string ToString(ProfilerBlock profile_block)
+	static std::string ToString(EProfilerBlock profile_block)
 	{
 		switch (profile_block)
 		{
-		case ProfilerBlock::eFrame:
+		case EProfilerBlock::Frame:
 			return "Frame Pass";
-		case ProfilerBlock::eGBufferPass:
+		case EProfilerBlock::GBufferPass:
 			return "GBuffer Pass";
-		case ProfilerBlock::eDeferredPass:
+		case EProfilerBlock::DeferredPass:
 			return "Deferred Pass";
-		case ProfilerBlock::eForwardPass:
+		case EProfilerBlock::ForwardPass:
 			return "Forward Pass";
-		case ProfilerBlock::ePostprocessing:
+		case EProfilerBlock::Postprocessing:
 			return "Postprocessing";
 		default:
 			return "";

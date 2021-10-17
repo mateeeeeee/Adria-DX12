@@ -17,7 +17,7 @@ struct VS_OUTPUT
 
 
 SamplerState linear_wrap_sampler : register(s0);
-Texture2D DisplacementMap : register(t1);
+Texture2D DisplacementMap : register(t0);
 
 
 

@@ -167,6 +167,7 @@ namespace adria
                 MenuBar();
                 auto dockspace_id = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
                 ListEntities();
+                OceanSettings();
                 SkySettings();
                 AddEntities();
                 Camera();

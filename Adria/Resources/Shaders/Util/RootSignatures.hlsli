@@ -198,7 +198,7 @@
                                  "addressW = TEXTURE_ADDRESS_WRAP, " \
                                  "filter = FILTER_MIN_MAG_MIP_LINEAR, visibility=SHADER_VISIBILITY_PIXEL )"
 
-#define Clouds_RS               "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
+#define Clouds_RS                "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
                                  "CBV(b0, visibility=SHADER_VISIBILITY_PIXEL), " \
                                  "CBV(b7, visibility=SHADER_VISIBILITY_PIXEL), " \
                                  "DescriptorTable(SRV(t0, numDescriptors = 4, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_PIXEL), " \
@@ -274,25 +274,26 @@
 
 #define FFT_RS                      "CBV(b10, visibility=SHADER_VISIBILITY_ALL), " \
                                     "DescriptorTable(SRV(t0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
-                                    "DescriptorTable(SRV(u0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
+                                    "DescriptorTable(UAV(u0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
 
 #define InitialSpectrum_RS          "CBV(b6, visibility=SHADER_VISIBILITY_ALL), " \
-                                    "DescriptorTable(SRV(t0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
+                                    "DescriptorTable(UAV(u0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
 
 #define OceanNormal_RS              "CBV(b6, visibility=SHADER_VISIBILITY_ALL), " \
                                     "DescriptorTable(SRV(t0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
-                                    "DescriptorTable(SRV(u0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
+                                    "DescriptorTable(UAV(u0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
 
 #define Spectrum_RS                 "CBV(b6, visibility=SHADER_VISIBILITY_ALL), " \
                                     "DescriptorTable(SRV(t0, numDescriptors = 2, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
-                                    "DescriptorTable(SRV(u0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
+                                    "DescriptorTable(UAV(u0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
 
 
 #define Phase_RS                    "CBV(b6, visibility=SHADER_VISIBILITY_ALL), " \
                                     "DescriptorTable(SRV(t0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
-                                    "DescriptorTable(SRV(u0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
+                                    "DescriptorTable(UAV(u0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL), " \
 
-#define Ocean_RS                    "CBV(b0, visibility=SHADER_VISIBILITY_ALL), " \
+#define Ocean_RS                    "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
+                                    "CBV(b0, visibility=SHADER_VISIBILITY_ALL), " \
                                     "CBV(b1, visibility=SHADER_VISIBILITY_VERTEX), " \
                                     "CBV(b4, visibility=SHADER_VISIBILITY_PIXEL), " \
                                     "CBV(b7, visibility=SHADER_VISIBILITY_PIXEL), " \
@@ -304,7 +305,8 @@
                                     "addressW = TEXTURE_ADDRESS_WRAP, " \
                                     "filter = FILTER_MIN_MAG_MIP_LINEAR, visibility=SHADER_VISIBILITY_ALL )" 
 
-#define OceanLOD_RS                 "CBV(b0, visibility=SHADER_VISIBILITY_ALL), " \
+#define OceanLOD_RS                 "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
+                                    "CBV(b0, visibility=SHADER_VISIBILITY_ALL), " \
                                     "CBV(b1, visibility=SHADER_VISIBILITY_VERTEX), " \
                                     "CBV(b4, visibility=SHADER_VISIBILITY_PIXEL), " \
                                     "CBV(b7, visibility=SHADER_VISIBILITY_PIXEL), " \

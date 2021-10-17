@@ -14,7 +14,7 @@ namespace adria
 		gfx->GetDevice()->CreateQueryHeap(&heap_desc, IID_PPV_ARGS(&query_heap));
 	}
 
-	void Profiler::BeginProfileBlock(ID3D12GraphicsCommandList* cmd_list, ProfilerBlock block)
+	void Profiler::BeginProfileBlock(ID3D12GraphicsCommandList* cmd_list, EProfilerBlock block)
 	{
 		UINT32 profile_index = static_cast<UINT32>(block);
 		QueryData& profile_data = query_data[profile_index];
@@ -25,7 +25,7 @@ namespace adria
 		profile_data.query_started = true;
 	}
 
-	void Profiler::EndProfileBlock(ID3D12GraphicsCommandList* cmd_list, ProfilerBlock block)
+	void Profiler::EndProfileBlock(ID3D12GraphicsCommandList* cmd_list, EProfilerBlock block)
 	{
 		UINT32 profile_index = static_cast<UINT32>(block);
 		QueryData& profile_data = query_data[profile_index];
@@ -63,7 +63,7 @@ namespace adria
 				double time_ms = (delta / frequency) * 1000.0;
 
 				std::string time_ms_string = std::to_string(time_ms);
-				std::string result = ToString(static_cast<ProfilerBlock>(i)) + " time: " + time_ms_string + "ms\n";
+				std::string result = ToString(static_cast<EProfilerBlock>(i)) + " time: " + time_ms_string + "ms\n";
 				results.push_back(result);
 				if (log_results) Log::Info(result);
 			}

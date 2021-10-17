@@ -8,13 +8,13 @@
 #include "../Core/Definitions.h"
 #include "../tecs/registry.h"
 #include "../Math/ComputeNormals.h"
+#include "../Utilities/Heightmap.h"
 
 struct ID3D12Device;
 
 namespace adria
 {
-    class Heightmap;
-
+   
     struct model_parameters_t
     {
         std::string model_path = "";

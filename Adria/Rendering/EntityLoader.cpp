@@ -17,7 +17,7 @@
 #include "../Core/Definitions.h"
 #include "../Utilities/StringUtil.h"
 #include "../Utilities/FilesUtil.h"
-#include "../Utilities/Heightmap.h"
+
 
 using namespace DirectX;
 

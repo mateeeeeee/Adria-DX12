@@ -12,7 +12,7 @@ namespace adria
 	class Profiler
 	{
 		static constexpr UINT64 FRAME_COUNT = GraphicsCoreDX12::BackbufferCount();
-		static constexpr UINT64 MAX_PROFILES = static_cast<UINT64>(ProfilerBlock::eCount);
+		static constexpr UINT64 MAX_PROFILES = static_cast<UINT64>(EProfilerBlock::Count);
 
 		struct QueryData
 		{
@@ -24,9 +24,9 @@ namespace adria
 
 		Profiler(GraphicsCoreDX12* gfx);
 
-		void BeginProfileBlock(ID3D12GraphicsCommandList* cmd_list, ProfilerBlock block);
+		void BeginProfileBlock(ID3D12GraphicsCommandList* cmd_list, EProfilerBlock block);
 
-		void EndProfileBlock(ID3D12GraphicsCommandList* cmd_list, ProfilerBlock block);
+		void EndProfileBlock(ID3D12GraphicsCommandList* cmd_list, EProfilerBlock block);
 
 		std::vector<std::string> GetProfilerResults(ID3D12GraphicsCommandList* cmd_list, bool log_results = false);
 
@@ -40,7 +40,7 @@ namespace adria
 
 	struct ScopedProfileBlock
 	{
-		ScopedProfileBlock(Profiler& profiler, ID3D12GraphicsCommandList* cmd_list, ProfilerBlock block)
+		ScopedProfileBlock(Profiler& profiler, ID3D12GraphicsCommandList* cmd_list, EProfilerBlock block)
 			: profiler{ profiler }, block{ block }, cmd_list{ cmd_list }
 		{
 			profiler.BeginProfileBlock(cmd_list, block);
@@ -53,7 +53,7 @@ namespace adria
 
 		Profiler& profiler;
 		ID3D12GraphicsCommandList* cmd_list;
-		ProfilerBlock block;
+		EProfilerBlock block;
 	};
 
 	#define DECLARE_SCOPED_PROFILE_BLOCK(profiler, cmd_list, block_id) ScopedProfileBlock block(profiler, context, block_id)

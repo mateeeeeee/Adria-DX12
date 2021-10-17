@@ -1,3 +1,4 @@
+#include "../Globals/GlobalsCS.hlsli"
 #include "../Util/RootSignatures.hlsli"
 
 #define FFT_WORK_GROUP_DIM 256
@@ -27,7 +28,7 @@ float4 ButterflyOperation(float2 a, float2 b, float2 twiddle)
 
 [RootSignature(FFT_RS)]
 [numthreads(FFT_WORK_GROUP_DIM, 1, 1)]
-void cs_main(uint3 group_id : SV_GroupID, uint3 group_thread_id : SV_GroupThreadID)
+void main(uint3 group_id : SV_GroupID, uint3 group_thread_id : SV_GroupThreadID)
 {
     uint2 pixel_coord = uint2(group_thread_id.x, group_id.x);
 

@@ -22,7 +22,7 @@ float Square(float x)
 
 [RootSignature(InitialSpectrum_RS)]
 [numthreads(COMPUTE_WORK_GROUP_DIM, COMPUTE_WORK_GROUP_DIM, 1)]
-void cs_main(uint3 dispatchID : SV_DispatchThreadID)
+void main(uint3 dispatchID : SV_DispatchThreadID)
 {
     uint2 pixel_coord = dispatchID.xy;
     float n = (pixel_coord.x < 0.5f * uint(compute_cbuf.resolution)) ? pixel_coord.x : pixel_coord.x - float(compute_cbuf.resolution);

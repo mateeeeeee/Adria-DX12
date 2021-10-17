@@ -186,6 +186,8 @@ namespace adria
 		TEXTURE_HANDLE oct_bokeh_handle = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE circle_bokeh_handle = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE cross_bokeh_handle = INVALID_TEXTURE_HANDLE;
+		TEXTURE_HANDLE foam_handle = INVALID_TEXTURE_HANDLE;
+		TEXTURE_HANDLE perlin_handle = INVALID_TEXTURE_HANDLE;
 
 		bool recreate_clusters = true;
 
@@ -207,7 +209,7 @@ namespace adria
 		void CreateIBLTextures();
 		
 		void UpdateConstantBuffers(f32 dt);
-		void UpdateOcean(f32 dt);
+		void UpdateOcean(ID3D12GraphicsCommandList4* cmd_list);
 		void CameraFrustumCulling();
 		void LightFrustumCulling(ELightType type);
 

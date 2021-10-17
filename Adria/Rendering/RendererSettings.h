@@ -72,6 +72,7 @@ namespace adria
 		f32 ocean_color[3] = { 0.0123f, 0.3613f, 0.6867f };
 		f32 ocean_choppiness = 1.2f;
 		bool ocean_color_changed = false;
+		bool recreate_initial_spectrum = true;
 	};
 
 }

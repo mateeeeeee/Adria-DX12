@@ -28,7 +28,7 @@ float omega(float k)
 
 [RootSignature(Spectrum_RS)]
 [numthreads(COMPUTE_WORK_GROUP_DIM, COMPUTE_WORK_GROUP_DIM, 1)]
-void cs_main(uint3 dispatchID : SV_DispatchThreadID)
+void main(uint3 dispatchID : SV_DispatchThreadID)
 {
     uint2 pixel_coord = dispatchID.xy;
 
