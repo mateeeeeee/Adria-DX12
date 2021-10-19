@@ -417,11 +417,11 @@ namespace adria
 
 		auto cmd_list = gfx->GetDefaultCommandList();
 
-		ResourceBarriers main_barrier{};
+		ResourceBarrierBatch main_barrier{};
 		hdr_render_target.Transition(main_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		main_barrier.Submit(cmd_list);
 
-		ResourceBarriers depth_barrier{};
+		ResourceBarrierBatch depth_barrier{};
 		depth_stencil_target.Transition(depth_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		depth_barrier.Submit(cmd_list);
 
@@ -572,7 +572,7 @@ namespace adria
 			PassToneMap(cmd_list);
 			fxaa_render_pass.End(cmd_list);
 
-			ResourceBarriers offscreen_barrier{};
+			ResourceBarrierBatch offscreen_barrier{};
 			offscreen_ldr_target.Transition(offscreen_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
 				D3D12_RESOURCE_STATE_RENDER_TARGET);
 			offscreen_barrier.Submit(cmd_list);
@@ -589,7 +589,7 @@ namespace adria
 		}
 		else
 		{
-			ResourceBarriers offscreen_barrier{};
+			ResourceBarrierBatch offscreen_barrier{};
 			offscreen_ldr_target.Transition(offscreen_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
 				D3D12_RESOURCE_STATE_RENDER_TARGET);
 			offscreen_barrier.Submit(cmd_list);
@@ -815,7 +815,7 @@ namespace adria
 		//ocean ping phase initial
 		ID3D12Resource* ping_phase_upload_buffer = nullptr;
 		{
-			const u64 upload_buffer_size = GetRequiredIntermediateSize(ping_pong_phase_textures[0].Resource(), 0, 1);
+			const u64 upload_buffer_size = GetRequiredIntermediateSize(ping_pong_phase_textures[pong_phase].Resource(), 0, 1);
 			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 			auto resource_desc = CD3DX12_RESOURCE_DESC::Buffer(upload_buffer_size);
 			BREAK_IF_FAILED(gfx->GetDevice()->CreateCommittedResource(
@@ -838,14 +838,14 @@ namespace adria
 			D3D12_RESOURCE_BARRIER barrier{};
 			barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 			barrier.Transition.pResource = ping_pong_phase_textures[0].Resource();
-			barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+			barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 			barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST;
 			barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 
 			ID3D12GraphicsCommandList* cmd_list = gfx->GetDefaultCommandList();
 
 			cmd_list->ResourceBarrier(1, &barrier);
-			UpdateSubresources(cmd_list, ping_pong_phase_textures[0].Resource(), ping_phase_upload_buffer, 0, 0, 1, &data);
+			UpdateSubresources(cmd_list, ping_pong_phase_textures[pong_phase].Resource(), ping_phase_upload_buffer, 0, 0, 1, &data);
 			std::swap(barrier.Transition.StateBefore, barrier.Transition.StateAfter);
 			cmd_list->ResourceBarrier(1, &barrier);
 		}
@@ -860,7 +860,7 @@ namespace adria
 		{
 			TEXTURE_HANDLE tex_handle{};
 
-			ResourceBarriers barrier{};
+			ResourceBarrierBatch barrier{};
 
 			tex_handle = texture_manager.LoadTexture(L"Resources/Textures/lensflare/flare0.jpg");
 			lens_flare_textures.push_back(texture_manager.CpuDescriptorHandle(tex_handle));
@@ -2615,14 +2615,38 @@ namespace adria
 			ocean_initial_spectrum.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
 			ocean_initial_spectrum.CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
 
-			ping_pong_phase_textures[0] = Texture2D(gfx->GetDevice(), uav_desc);
-			ping_pong_phase_textures[1] = Texture2D(gfx->GetDevice(), uav_desc);
+			uav_desc.start_state = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+			ping_pong_phase_textures[ pong_phase] = Texture2D(gfx->GetDevice(), uav_desc);
+			ping_pong_phase_textures[ pong_phase].CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
+			ping_pong_phase_textures[ pong_phase].CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
+			uav_desc.start_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+			ping_pong_phase_textures[!pong_phase] = Texture2D(gfx->GetDevice(), uav_desc);
+			ping_pong_phase_textures[!pong_phase].CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
+			ping_pong_phase_textures[!pong_phase].CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
 
 			uav_desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 
-			ping_pong_spectrum_textures[0] = Texture2D(gfx->GetDevice(), uav_desc);
-			ping_pong_spectrum_textures[1] = Texture2D(gfx->GetDevice(), uav_desc);
+			uav_desc.start_state = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+			ping_pong_spectrum_textures[pong_spectrum] = Texture2D(gfx->GetDevice(), uav_desc);
+			ping_pong_spectrum_textures[pong_spectrum].CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
+			ping_pong_spectrum_textures[pong_spectrum].CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
+
+			uav_desc.start_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+			ping_pong_spectrum_textures[!pong_spectrum] = Texture2D(gfx->GetDevice(), uav_desc);
+			ping_pong_spectrum_textures[!pong_spectrum].CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
+			ping_pong_spectrum_textures[!pong_spectrum].CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
+
+			uav_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 			ocean_normal_map = Texture2D(gfx->GetDevice(), uav_desc);
+			ocean_normal_map.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
+			ocean_normal_map.CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
+
+			ocean_initial_spectrum.Resource()->SetName(L"initial spectrum");
+			ocean_normal_map.Resource()->SetName(L"normal map");
+			ping_pong_phase_textures[pong_phase].Resource()->SetName(L"phase texture 0");
+			ping_pong_phase_textures[!pong_phase].Resource()->SetName(L"phase texture 1");
+			ping_pong_spectrum_textures[pong_spectrum].Resource()->SetName(L"spectrum texture 0");
+			ping_pong_spectrum_textures[!pong_spectrum].Resource()->SetName(L"spectrum texture 1");
 		}
 	}
 	void Renderer::CreateRenderPasses(u32 width, u32 height)
@@ -2973,7 +2997,7 @@ namespace adria
 			pso_desc.CS = spmap_shader;
 			BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pipeline_state)));
 
-			ResourceBarriers precopy_barriers{};
+			ResourceBarrierBatch precopy_barriers{};
 			precopy_barriers.AddTransition(env_texture.Get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
 			precopy_barriers.AddTransition(unfiltered_env_resource, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_SOURCE);
 			precopy_barriers.Submit(cmd_list);
@@ -2988,7 +3012,7 @@ namespace adria
 				cmd_list->CopyTextureRegion(&dst_copy_region, 0, 0, 0, &src_copy_region, nullptr);
 			}
 			
-			ResourceBarriers postcopy_barriers{};
+			ResourceBarrierBatch postcopy_barriers{};
 			postcopy_barriers.AddTransition(env_texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			postcopy_barriers.AddTransition(unfiltered_env_resource, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 			postcopy_barriers.Submit(cmd_list);
@@ -3329,170 +3353,6 @@ namespace adria
 		}
 
 	} 
-	void Renderer::UpdateOcean(ID3D12GraphicsCommandList4* cmd_list)
-	{
-		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Ocean Update Pass");
-		auto device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
-		auto upload_buffer = gfx->GetUploadBuffer();
-
-		if (reg.size<Ocean>() == 0) return;
-
-		if (settings.ocean_color_changed)
-		{
-			auto ocean_view = reg.view<Ocean, Material>();
-			for (auto e : ocean_view)
-			{
-				auto& material = ocean_view.get<Material>(e);
-				material.diffuse = XMFLOAT3(settings.ocean_color);
-			}
-		}
-
-		if (settings.recreate_initial_spectrum)
-		{
-			cmd_list->SetComputeRootSignature(rs_map[ERootSig::InitialSpectrum].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::InitialSpectrum].Get());
-			cmd_list->SetComputeRootConstantBufferView(0, compute_cbuffer.View(backbuffer_index).BufferLocation);
-
-			OffsetType descriptor_index = descriptor_allocator->Allocate();
-			D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
-			device->CopyDescriptorsSimple(1, dst_descriptor, ocean_initial_spectrum.UAV(),
-				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
-			cmd_list->Dispatch(RESOLUTION / 32, RESOLUTION / 32, 1);
-			settings.recreate_initial_spectrum = false;
-		}
-
-		//phase
-		{
-			cmd_list->SetComputeRootSignature(rs_map[ERootSig::Phase].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Phase].Get());
-			cmd_list->SetComputeRootConstantBufferView(0, compute_cbuffer.View(backbuffer_index).BufferLocation);
-
-			OffsetType descriptor_index = descriptor_allocator->Allocate();
-			device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index),
-				ping_pong_phase_textures[pong_phase_pass].SRV(),
-				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
-
-			descriptor_index = descriptor_allocator->Allocate();
-			device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index),
-				ping_pong_phase_textures[!pong_phase_pass].UAV(),
-				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetGpuHandle(descriptor_index));
-			cmd_list->Dispatch(RESOLUTION / 32, RESOLUTION / 32, 1);
-			pong_phase_pass = !pong_phase_pass;
-		}
-
-		//spectrum
-		{
-			cmd_list->SetComputeRootSignature(rs_map[ERootSig::Phase].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Phase].Get());
-			cmd_list->SetComputeRootConstantBufferView(0, compute_cbuffer.View(backbuffer_index).BufferLocation);
-
-			D3D12_CPU_DESCRIPTOR_HANDLE srvs[] = { ping_pong_phase_textures[pong_phase_pass].SRV(), ocean_initial_spectrum.SRV() };
-			OffsetType descriptor_index = descriptor_allocator->AllocateRange(_countof(srvs));
-			auto dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
-			u32 dst_range_sizes[] = { _countof(srvs) };
-			u32 src_range_sizes[] = { 1, 1 };
-			device->CopyDescriptors(_countof(dst_range_sizes), &dst_descriptor, dst_range_sizes, _countof(src_range_sizes), srvs, src_range_sizes,
-				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-			cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
-
-			descriptor_index = descriptor_allocator->Allocate();
-			device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index),
-				ping_pong_spectrum_textures[0].UAV(),
-				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetGpuHandle(descriptor_index));
-
-			cmd_list->Dispatch(RESOLUTION / 32, RESOLUTION / 32, 1);
-		}
-
-		//fft
-		{
-			DECLSPEC_ALIGN(16) struct FFTCBuffer
-			{
-				u32 seq_count;
-				u32 subseq_count;
-			};
-			static FFTCBuffer fft_cbuf_data{ .seq_count = RESOLUTION };
-			DynamicAllocation fft_cbuffer_allocation{};
-
-			cmd_list->SetComputeRootSignature(rs_map[ERootSig::FFT].Get());
-			{
-				cmd_list->SetPipelineState(pso_map[EPipelineStateObject::FFT_Horizontal].Get());
-				for (u32 p = 1; p < RESOLUTION; p <<= 1)
-				{
-					fft_cbuf_data.subseq_count = p;
-					fft_cbuffer_allocation = upload_buffer->Allocate(GetCBufferSize<FFTCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-					fft_cbuffer_allocation.Update(fft_cbuf_data);
-					cmd_list->SetComputeRootConstantBufferView(0, fft_cbuffer_allocation.gpu_address);
-
-					OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
-					device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index),
-						ping_pong_spectrum_textures[!pong_spectrum].SRV(),
-						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-					cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
-
-					device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index + 1),
-						ping_pong_spectrum_textures[pong_spectrum].UAV(),
-						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-					cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetGpuHandle(descriptor_index + 1));
-
-					cmd_list->Dispatch(RESOLUTION, 1, 1);
-					pong_spectrum = !pong_spectrum;
-				}
-			}
-
-			{
-				cmd_list->SetPipelineState(pso_map[EPipelineStateObject::FFT_Vertical].Get());
-				for (u32 p = 1; p < RESOLUTION; p <<= 1)
-				{
-					fft_cbuf_data.subseq_count = p;
-					fft_cbuffer_allocation = upload_buffer->Allocate(GetCBufferSize<FFTCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-					fft_cbuffer_allocation.Update(fft_cbuf_data);
-					cmd_list->SetComputeRootConstantBufferView(0, fft_cbuffer_allocation.gpu_address);
-
-					OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
-					device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index),
-						ping_pong_spectrum_textures[!pong_spectrum].SRV(),
-						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-					cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
-
-					device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index + 1),
-						ping_pong_spectrum_textures[pong_spectrum].UAV(),
-						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-					cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetGpuHandle(descriptor_index + 1));
-
-					cmd_list->Dispatch(RESOLUTION, 1, 1);
-					pong_spectrum = !pong_spectrum;
-				}
-			}
-		}
-
-		//normals
-		{
-			cmd_list->SetComputeRootSignature(rs_map[ERootSig::OceanNormalMap].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::OceanNormalMap].Get());
-			cmd_list->SetComputeRootConstantBufferView(0, compute_cbuffer.View(backbuffer_index).BufferLocation);
-
-			OffsetType descriptor_index = descriptor_allocator->Allocate();
-			device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index),
-				ping_pong_spectrum_textures[!pong_spectrum].SRV(),
-				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
-
-			descriptor_index = descriptor_allocator->Allocate();
-			device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index),
-				ocean_normal_map.UAV(),
-				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetGpuHandle(descriptor_index));
-			cmd_list->Dispatch(RESOLUTION / 32, RESOLUTION / 32, 1);
-			pong_phase_pass = !pong_phase_pass;
-		}
-	}
-
 	void Renderer::CameraFrustumCulling()
 	{
 		BoundingFrustum camera_frustum = camera->Frustum();
@@ -3541,7 +3401,7 @@ namespace adria
 		auto upload_buffer = gfx->GetUploadBuffer();
 		auto gbuffer_view = reg.view<Mesh, Transform, Material, Deferred, Visibility>();
 
-		ResourceBarriers gbuffer_barriers{};
+		ResourceBarrierBatch gbuffer_barriers{};
 		for (auto& texture : gbuffer)
 			texture.Transition(gbuffer_barriers, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		gbuffer_barriers.Submit(cmd_list);
@@ -3607,7 +3467,7 @@ namespace adria
 		ADRIA_ASSERT(settings.ambient_occlusion == EAmbientOcclusion::SSAO);
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "SSAO Pass");
 
-		ResourceBarriers ssao_barrier{};
+		ResourceBarrierBatch ssao_barrier{};
 		ao_texture.Transition(ssao_barrier, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
 			D3D12_RESOURCE_STATE_RENDER_TARGET);
 		ssao_barrier.Submit(cmd_list);
@@ -3648,7 +3508,7 @@ namespace adria
 		ADRIA_ASSERT(settings.ambient_occlusion == EAmbientOcclusion::HBAO);
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "HBAO Pass");
 
-		ResourceBarriers hbao_barrier{};
+		ResourceBarrierBatch hbao_barrier{};
 		ao_texture.Transition(hbao_barrier, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
 			D3D12_RESOURCE_STATE_RENDER_TARGET);
 		hbao_barrier.Submit(cmd_list);
@@ -3893,7 +3753,7 @@ namespace adria
 		}
 
 
-		ResourceBarriers tiled_barriers{};
+		ResourceBarrierBatch tiled_barriers{};
 		depth_stencil_target.Transition(tiled_barriers, D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 		gbuffer[0].Transition(tiled_barriers, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 		gbuffer[1].Transition(tiled_barriers, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
@@ -4151,7 +4011,7 @@ namespace adria
 		
 		postprocess_passes[postprocess_index].End(cmd_list); //now we have copy of scene in ping
 
-		ResourceBarriers postprocess_barriers{};
+		ResourceBarrierBatch postprocess_barriers{};
 		postprocess_barriers.AddTransition(postprocess_textures[postprocess_index].Resource(),
 			D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		postprocess_barriers.AddTransition(postprocess_textures[!postprocess_index].Resource(),
@@ -4171,7 +4031,7 @@ namespace adria
 			postprocess_barriers.Submit(cmd_list);
 			postprocess_index = !postprocess_index;
 
-			ResourceBarriers cloud_barriers{};
+			ResourceBarrierBatch cloud_barriers{};
 			postprocess_textures[!postprocess_index].Transition(cloud_barriers,
 				D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 			cloud_barriers.Submit(cmd_list);
@@ -4216,7 +4076,7 @@ namespace adria
 
 		if (settings.dof)
 		{
-			ResourceBarriers barrier{};
+			ResourceBarrierBatch barrier{};
 			postprocess_textures[!postprocess_index].Transition(barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
 				D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 			barrier.Submit(cmd_list);
@@ -4303,7 +4163,7 @@ namespace adria
 			postprocess_barriers.Submit(cmd_list);
 			postprocess_index = !postprocess_index;
 
-			ResourceBarriers taa_barrier{};
+			ResourceBarrierBatch taa_barrier{};
 			prev_hdr_render_target.Transition(taa_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
 				D3D12_RESOURCE_STATE_RENDER_TARGET);
 			taa_barrier.Submit(cmd_list);
@@ -4341,7 +4201,7 @@ namespace adria
 		shadow_allocation.Update(shadow_cbuf_data);
 
 
-		ResourceBarriers shadow_map_barrier{};
+		ResourceBarrierBatch shadow_map_barrier{};
 		shadow_depth_map.Transition(shadow_map_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		shadow_map_barrier.Submit(cmd_list);
 
@@ -4406,7 +4266,7 @@ namespace adria
 		shadow_allocation.Update(shadow_cbuf_data);
 
 		
-		ResourceBarriers shadow_map_barrier{};
+		ResourceBarrierBatch shadow_map_barrier{};
 		shadow_depth_map.Transition(shadow_map_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		shadow_map_barrier.Submit(cmd_list);
 
@@ -4456,7 +4316,7 @@ namespace adria
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 		auto upload_buffer = gfx->GetUploadBuffer();
 
-		ResourceBarriers shadow_cubemap_barrier{};
+		ResourceBarrierBatch shadow_cubemap_barrier{};
 		shadow_depth_cubemap.Transition(shadow_cubemap_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		shadow_cubemap_barrier.Submit(cmd_list);
 
@@ -4521,7 +4381,7 @@ namespace adria
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 		auto upload_buffer = gfx->GetUploadBuffer();
 
-		ResourceBarriers shadow_cascades_barrier{};
+		ResourceBarrierBatch shadow_cascades_barrier{};
 		shadow_depth_cascades.Transition(shadow_cascades_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		shadow_cascades_barrier.Submit(cmd_list);
 
@@ -4787,7 +4647,208 @@ namespace adria
 		cmd_list->DrawIndexedInstanced(cube_ib->IndexCount(), 1, 0, 0, 0);
 
 	}
+	void Renderer::UpdateOcean(ID3D12GraphicsCommandList4* cmd_list)
+	{
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Ocean Update Pass");
+		auto device = gfx->GetDevice();
+		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto upload_buffer = gfx->GetUploadBuffer();
 
+		if (reg.size<Ocean>() == 0) return;
+
+		if (settings.ocean_color_changed)
+		{
+			auto ocean_view = reg.view<Ocean, Material>();
+			for (auto e : ocean_view)
+			{
+				auto& material = ocean_view.get<Material>(e);
+				material.diffuse = XMFLOAT3(settings.ocean_color);
+			}
+		}
+
+		if (settings.recreate_initial_spectrum)
+		{
+			ResourceBarrierBatch initial_spectrum_barrier{};
+			initial_spectrum_barrier.AddTransition(ocean_initial_spectrum.Resource(),
+				D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+			initial_spectrum_barrier.Submit(cmd_list);
+
+			cmd_list->SetComputeRootSignature(rs_map[ERootSig::InitialSpectrum].Get());
+			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::InitialSpectrum].Get());
+			cmd_list->SetComputeRootConstantBufferView(0, compute_cbuffer.View(backbuffer_index).BufferLocation);
+
+			OffsetType descriptor_index = descriptor_allocator->Allocate();
+			D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+			device->CopyDescriptorsSimple(1, dst_descriptor, ocean_initial_spectrum.UAV(),
+				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
+			cmd_list->Dispatch(RESOLUTION / 32, RESOLUTION / 32, 1);
+
+			initial_spectrum_barrier.ReverseTransitions();
+			initial_spectrum_barrier.Submit(cmd_list);
+
+			settings.recreate_initial_spectrum = false;
+		}
+
+		//phase
+		{
+			ResourceBarrierBatch phase_barriers{};
+			phase_barriers.AddTransition(ping_pong_phase_textures[pong_phase].Resource(),
+				D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+			phase_barriers.AddTransition(ping_pong_phase_textures[!pong_phase].Resource(),
+				D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+			phase_barriers.Submit(cmd_list);
+
+			cmd_list->SetComputeRootSignature(rs_map[ERootSig::Phase].Get());
+			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Phase].Get());
+			cmd_list->SetComputeRootConstantBufferView(0, compute_cbuffer.View(backbuffer_index).BufferLocation);
+
+			OffsetType descriptor_index = descriptor_allocator->Allocate();
+			device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index),
+				ping_pong_phase_textures[pong_phase].SRV(),
+				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
+
+			descriptor_index = descriptor_allocator->Allocate();
+			device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index),
+				ping_pong_phase_textures[!pong_phase].UAV(),
+				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetGpuHandle(descriptor_index));
+			cmd_list->Dispatch(RESOLUTION / 32, RESOLUTION / 32, 1);
+
+			pong_phase = !pong_phase;
+		}
+
+		//spectrum
+		{
+			cmd_list->SetComputeRootSignature(rs_map[ERootSig::Spectrum].Get());
+			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Spectrum].Get());
+			cmd_list->SetComputeRootConstantBufferView(0, compute_cbuffer.View(backbuffer_index).BufferLocation);
+
+			D3D12_CPU_DESCRIPTOR_HANDLE srvs[] = { ping_pong_phase_textures[pong_phase].SRV(), ocean_initial_spectrum.SRV() };
+			OffsetType descriptor_index = descriptor_allocator->AllocateRange(_countof(srvs));
+			auto dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+			u32 dst_range_sizes[] = { _countof(srvs) };
+			u32 src_range_sizes[] = { 1, 1 };
+			device->CopyDescriptors(_countof(dst_range_sizes), &dst_descriptor, dst_range_sizes, _countof(src_range_sizes), srvs, src_range_sizes,
+				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+			cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
+
+			descriptor_index = descriptor_allocator->Allocate();
+			device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index),
+				ping_pong_spectrum_textures[pong_spectrum].UAV(),
+				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetGpuHandle(descriptor_index));
+
+			cmd_list->Dispatch(RESOLUTION / 32, RESOLUTION / 32, 1);
+		}
+
+		//fft
+		{
+			DECLSPEC_ALIGN(16) struct FFTCBuffer
+			{
+				u32 seq_count;
+				u32 subseq_count;
+			};
+			static FFTCBuffer fft_cbuf_data{ .seq_count = RESOLUTION };
+			DynamicAllocation fft_cbuffer_allocation{};
+
+			cmd_list->SetComputeRootSignature(rs_map[ERootSig::FFT].Get());
+			{
+				cmd_list->SetPipelineState(pso_map[EPipelineStateObject::FFT_Horizontal].Get());
+				for (u32 p = 1; p < RESOLUTION; p <<= 1)
+				{
+					ResourceBarrierBatch fft_barriers{};
+					fft_barriers.AddTransition(ping_pong_spectrum_textures[pong_spectrum].Resource(),
+						D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+					fft_barriers.AddTransition(ping_pong_spectrum_textures[!pong_spectrum].Resource(),
+						D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+					fft_barriers.Submit(cmd_list);
+					
+					fft_cbuf_data.subseq_count = p;
+					fft_cbuffer_allocation = upload_buffer->Allocate(GetCBufferSize<FFTCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+					fft_cbuffer_allocation.Update(fft_cbuf_data);
+					cmd_list->SetComputeRootConstantBufferView(0, fft_cbuffer_allocation.gpu_address);
+
+					OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
+					device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index),
+						ping_pong_spectrum_textures[!pong_spectrum].SRV(),
+						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
+
+					device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index + 1),
+						ping_pong_spectrum_textures[pong_spectrum].UAV(),
+						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetGpuHandle(descriptor_index + 1));
+					cmd_list->Dispatch(RESOLUTION, 1, 1);
+
+					pong_spectrum = !pong_spectrum;
+				}
+			}
+
+			{
+				cmd_list->SetPipelineState(pso_map[EPipelineStateObject::FFT_Vertical].Get());
+				for (u32 p = 1; p < RESOLUTION; p <<= 1)
+				{
+					ResourceBarrierBatch fft_barriers{};
+					fft_barriers.AddTransition(ping_pong_spectrum_textures[pong_spectrum].Resource(),
+						D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+					fft_barriers.AddTransition(ping_pong_spectrum_textures[!pong_spectrum].Resource(),
+						D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+					fft_barriers.Submit(cmd_list);
+
+					fft_cbuf_data.subseq_count = p;
+					fft_cbuffer_allocation = upload_buffer->Allocate(GetCBufferSize<FFTCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+					fft_cbuffer_allocation.Update(fft_cbuf_data);
+					cmd_list->SetComputeRootConstantBufferView(0, fft_cbuffer_allocation.gpu_address);
+
+					OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
+					device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index),
+						ping_pong_spectrum_textures[!pong_spectrum].SRV(),
+						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
+
+					device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index + 1),
+						ping_pong_spectrum_textures[pong_spectrum].UAV(),
+						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetGpuHandle(descriptor_index + 1));
+					cmd_list->Dispatch(RESOLUTION, 1, 1);
+
+					pong_spectrum = !pong_spectrum;
+
+				}
+			}
+		}
+
+		//normals
+		{
+			ResourceBarrierBatch normal_barrier{};
+			normal_barrier.AddTransition(ocean_normal_map.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+				D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+			normal_barrier.Submit(cmd_list);
+
+			cmd_list->SetComputeRootSignature(rs_map[ERootSig::OceanNormalMap].Get());
+			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::OceanNormalMap].Get());
+			cmd_list->SetComputeRootConstantBufferView(0, compute_cbuffer.View(backbuffer_index).BufferLocation);
+
+			OffsetType descriptor_index = descriptor_allocator->Allocate();
+			device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index),
+				ping_pong_spectrum_textures[!pong_spectrum].SRV(),
+				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
+
+			descriptor_index = descriptor_allocator->Allocate();
+			device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index),
+				ocean_normal_map.UAV(),
+				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetGpuHandle(descriptor_index));
+			cmd_list->Dispatch(RESOLUTION / 32, RESOLUTION / 32, 1);
+
+			normal_barrier.ReverseTransitions();
+			normal_barrier.Submit(cmd_list);
+		}
+	}
 	void Renderer::PassOcean(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		if (reg.size<Ocean>() == 0) return;
@@ -4807,23 +4868,21 @@ namespace adria
 				break;
 			}
 		}
+
 		D3D12_CPU_DESCRIPTOR_HANDLE displacement_handle = ping_pong_spectrum_textures[!pong_spectrum].SRV();
 
 		if (settings.ocean_tesselation)
 		{
-			cmd_list->SetComputeRootSignature(rs_map[ERootSig::OceanLOD].Get());
+			cmd_list->SetGraphicsRootSignature(rs_map[ERootSig::OceanLOD].Get());
 			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::OceanLOD].Get());
 		}
 		else
 		{
-			cmd_list->SetComputeRootSignature(rs_map[ERootSig::Ocean].Get());
+			cmd_list->SetGraphicsRootSignature(rs_map[ERootSig::Ocean].Get());
 			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Ocean].Get());
 		}
 		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 		cmd_list->SetGraphicsRootConstantBufferView(3, weather_cbuffer.View(backbuffer_index).BufferLocation);
-
-		//renderer_settings.ocean_tesselation ? context->DSSetShaderResources(0, 1, &displacement_map_srv) :
-		//ID3D11ShaderResourceView* srvs[] = { ocean_normal_map.SRV(), skybox_srv , texture_manager.GetTextureView(foam_handle) };
 
 		auto ocean_chunk_view = reg.view<Mesh, Material, Transform, Visibility, Ocean>();
 		for (auto ocean_chunk : ocean_chunk_view)
@@ -4850,7 +4909,7 @@ namespace adria
 				cmd_list->SetGraphicsRootDescriptorTable(4, descriptor_allocator->GetGpuHandle(descriptor_index));
 
 				descriptor_index = descriptor_allocator->AllocateRange(3);
-				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { ocean_normal_map.SRV(), skybox_handle , texture_manager.CpuDescriptorHandle(foam_handle) };
+				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { ocean_normal_map.SRV(), skybox_handle, texture_manager.CpuDescriptorHandle(foam_handle) };
 				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetCpuHandle(descriptor_index) };
 				UINT src_range_sizes[] = { 1, 1, 1 };
 				UINT dst_range_sizes[] = { 3 };
@@ -4861,8 +4920,6 @@ namespace adria
 				settings.ocean_tesselation ? mesh.Draw(cmd_list, D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST) : mesh.Draw(cmd_list);
 			}
 		}
-
-		
 	}
 
 	void Renderer::PassLensFlare(ID3D12GraphicsCommandList4* cmd_list, Light const& light)
@@ -5318,7 +5375,7 @@ namespace adria
 		auto device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-		ResourceBarriers velocity_barrier{};
+		ResourceBarrierBatch velocity_barrier{};
 		velocity_barrier.AddTransition(velocity_buffer.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
 			D3D12_RESOURCE_STATE_RENDER_TARGET);
 		velocity_barrier.Submit(cmd_list);
@@ -5373,7 +5430,7 @@ namespace adria
 		auto device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-		ResourceBarriers fxaa_barrier{};
+		ResourceBarrierBatch fxaa_barrier{};
 		ldr_render_target.Transition(fxaa_barrier, D3D12_RESOURCE_STATE_RENDER_TARGET,
 			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		fxaa_barrier.Submit(cmd_list);
@@ -5428,7 +5485,7 @@ namespace adria
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 		auto upload_buffer = gfx->GetUploadBuffer();
 
-		ResourceBarriers sun_barrier{};
+		ResourceBarrierBatch sun_barrier{};
 		sun_barrier.AddTransition(sun_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		sun_barrier.AddTransition(depth_stencil_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		sun_barrier.Submit(cmd_list);
@@ -5483,7 +5540,7 @@ namespace adria
 		auto device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-		ResourceBarriers barrier{};
+		ResourceBarrierBatch barrier{};
 
 		blur_intermediate_texture.Transition(barrier, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 

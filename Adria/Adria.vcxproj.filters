@@ -373,7 +373,7 @@
     <ClInclude Include="Graphics\Texture2D.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\ResourceBarriers.h">
+    <ClInclude Include="Graphics\ResourceBarrierBatch.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\Releasable.h">

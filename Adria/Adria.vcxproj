@@ -234,7 +234,7 @@
     <ClInclude Include="Graphics\ReadbackBuffer.h" />
     <ClInclude Include="Graphics\Releasable.h" />
     <ClInclude Include="Graphics\RenderPass.h" />
-    <ClInclude Include="Graphics\ResourceBarriers.h" />
+    <ClInclude Include="Graphics\ResourceBarrierBatch.h" />
     <ClInclude Include="Graphics\StructuredBuffer.h" />
     <ClInclude Include="Graphics\Texture2D.h" />
     <ClInclude Include="Graphics\Texture2DArray.h" />

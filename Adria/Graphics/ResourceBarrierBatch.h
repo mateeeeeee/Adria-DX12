@@ -5,12 +5,12 @@
 
 namespace adria
 {
-    class ResourceBarriers
+    class ResourceBarrierBatch
     {
         friend class ResourceStateTracker;
     public:
 
-        ResourceBarriers() = default;
+        ResourceBarrierBatch() = default;
 
         void AddTransition(
             ID3D12Resource* resource,
@@ -41,7 +41,7 @@ namespace adria
             command_list->ResourceBarrier(static_cast<UINT>(resource_barriers.size()), resource_barriers.data());
         }
 
-        void Merge(ResourceBarriers&& barriers)
+        void Merge(ResourceBarrierBatch&& barriers)
         {
             for (auto&& barrier : barriers.resource_barriers)
                 resource_barriers.emplace_back(barrier);

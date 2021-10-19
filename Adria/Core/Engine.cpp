@@ -57,7 +57,7 @@ namespace adria
 
 		f32 const dt = timer.MarkInSeconds();
 
-		if (Window::IsActive())
+		if (Window::IsActive() || true) //for now
 		{
 			input.NewFrame();
 			event_queue.ProcessEvents();

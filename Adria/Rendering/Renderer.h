@@ -123,9 +123,9 @@ namespace adria
 		std::array<Texture2D, 2> postprocess_textures;
 		bool postprocess_index = false;
 		std::array<Texture2D, 2> ping_pong_phase_textures;
-		bool pong_phase_pass = false;
+		bool pong_phase = false;
 		std::array<Texture2D, 2> ping_pong_spectrum_textures;
-		bool pong_spectrum = true;
+		bool pong_spectrum = false;
 		Texture2D ocean_normal_map;
 		Texture2D ocean_initial_spectrum;
 

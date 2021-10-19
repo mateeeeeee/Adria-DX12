@@ -526,7 +526,7 @@ namespace adria
             texture_srv_heap->GetFirstCpuHandle();
     }
 
-    void TextureManager::TransitionTexture(TEXTURE_HANDLE handle, ResourceBarriers& barrier,
+    void TextureManager::TransitionTexture(TEXTURE_HANDLE handle, ResourceBarrierBatch& barrier,
         D3D12_RESOURCE_STATES state_before, D3D12_RESOURCE_STATES state_after)
     {
         barrier.AddTransition(texture_map[handle].Get(), state_before, state_after);

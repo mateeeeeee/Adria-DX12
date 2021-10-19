@@ -71,7 +71,7 @@ namespace adria
 		auto device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-		ResourceBarriers rts_barrier{};
+		ResourceBarrierBatch rts_barrier{};
 		rts_barrier.AddTransition(rt_shadows_output.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		rts_barrier.Submit(cmd_list);
 
@@ -116,7 +116,7 @@ namespace adria
 		auto device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-		ResourceBarriers rtao_barrier{};
+		ResourceBarrierBatch rtao_barrier{};
 		rtao_barrier.AddTransition(rtao_output.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		rtao_barrier.Submit(cmd_list);
 

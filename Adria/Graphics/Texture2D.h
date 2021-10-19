@@ -4,7 +4,7 @@
 #include "d3dx12.h"
 #include "../Core/Definitions.h"
 #include "../Core/Macros.h"
-#include "ResourceBarriers.h"
+#include "ResourceBarrierBatch.h"
 
 namespace adria
 {
@@ -153,7 +153,7 @@ namespace adria
 			return dsv_handle;
 		}
 
-		void Transition(ResourceBarriers& barriers, D3D12_RESOURCE_STATES state_before,
+		void Transition(ResourceBarrierBatch& barriers, D3D12_RESOURCE_STATES state_before,
 			D3D12_RESOURCE_STATES state_after) const
 		{
 			barriers.AddTransition(resource.Get(), state_before, state_after);

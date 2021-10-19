@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <memory>
 #include "MipsGenerator.h"
-#include "ResourceBarriers.h"
+#include "ResourceBarrierBatch.h"
 
 namespace adria
 {
@@ -31,7 +31,7 @@ namespace adria
 		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE CpuDescriptorHandle(TEXTURE_HANDLE tex_handle);
 
 		//remove this, only lens flare textures use this
-		void TransitionTexture(TEXTURE_HANDLE handle, ResourceBarriers& barrier,
+		void TransitionTexture(TEXTURE_HANDLE handle, ResourceBarrierBatch& barrier,
 			D3D12_RESOURCE_STATES state_before, D3D12_RESOURCE_STATES state_after);
 
 		ID3D12Resource* Resource(TEXTURE_HANDLE handle) const
