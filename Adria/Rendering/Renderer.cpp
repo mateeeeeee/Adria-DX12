@@ -2178,13 +2178,16 @@ namespace adria
 				pso_desc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Ocean])));
+				pso_desc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
+				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Ocean_Wireframe])));
 
 				pso_desc.pRootSignature = rs_map[ERootSig::OceanLOD].Get();
 				pso_desc.VS = shader_map[VS_OceanLOD];
 				pso_desc.DS = shader_map[DS_OceanLOD];
 				pso_desc.HS = shader_map[HS_OceanLOD];
 				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
-
+				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::OceanLOD_Wireframe])));
+				pso_desc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::OceanLOD])));
 			}
 		}
@@ -4875,12 +4878,14 @@ namespace adria
 		if (settings.ocean_tesselation)
 		{
 			cmd_list->SetGraphicsRootSignature(rs_map[ERootSig::OceanLOD].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::OceanLOD].Get());
+			cmd_list->SetPipelineState(
+				settings.ocean_wireframe ? pso_map[EPipelineStateObject::OceanLOD_Wireframe].Get() : pso_map[EPipelineStateObject::OceanLOD].Get());
 		}
 		else
 		{
 			cmd_list->SetGraphicsRootSignature(rs_map[ERootSig::Ocean].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Ocean].Get());
+			cmd_list->SetPipelineState(
+				settings.ocean_wireframe ? pso_map[EPipelineStateObject::Ocean_Wireframe].Get() : pso_map[EPipelineStateObject::Ocean].Get());
 		}
 		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 		cmd_list->SetGraphicsRootConstantBufferView(3, weather_cbuffer.View(backbuffer_index).BufferLocation);

@@ -225,11 +225,6 @@ namespace adria
 		BREAK_IF_FAILED(wait_fence->SetEventOnCompletion(wait_fence_value, wait_event));
 		WaitForSingleObject(wait_event, INFINITE);
 		wait_fence_value++;
-
-		//BREAK_IF_FAILED(compute_queue->Signal(wait_fence.Get(), wait_fence_value));
-		//BREAK_IF_FAILED(wait_fence->SetEventOnCompletion(wait_fence_value, wait_event));
-		//WaitForSingleObject(wait_event, INFINITE);
-		//wait_fence_value++;
 	}
 
 	void GraphicsCoreDX12::WaitOnQueue(EQueueType type)

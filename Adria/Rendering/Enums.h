@@ -180,7 +180,9 @@ namespace adria
 		Phase,
 		Spectrum,
 		Ocean,
+		Ocean_Wireframe,
 		OceanLOD,
+		OceanLOD_Wireframe,
         Unknown
 	};
 

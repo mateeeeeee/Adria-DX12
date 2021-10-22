@@ -24,8 +24,6 @@ namespace adria
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
 		entity_loader = std::make_unique<EntityLoader>(reg, gfx.get(), renderer->GetTextureManager());
 		
-		if (init.load_default_scene) InitializeScene();
-
 		event_queue.Subscribe<ResizeEvent>([this](ResizeEvent const& e) 
 			{
 				camera_manager.OnResize(e.width, e.height);
@@ -36,6 +34,8 @@ namespace adria
 			{
 				camera_manager.OnScroll(e.scroll);
 			});
+
+		if (init.load_default_scene) InitializeScene();
 	}
 
 	Engine::~Engine()
@@ -110,7 +110,6 @@ namespace adria
 		camera_manager.AddCamera(camera_desc);
 		
 		skybox_parameters_t skybox_params{};
-		//skybox_params.cubemap = L"Resources/Textures/skybox/environment.hdr"; 
 		skybox_params.cubemap_textures =
 		{
 			L"Resources/Textures/Skybox/right.jpg",
@@ -161,7 +160,6 @@ namespace adria
 		ocean_parameters_t params{};
 		params.ocean_grid = std::move(ocean_params);
 		entity_loader->LoadOcean(params);
-
 
 		renderer->GetTextureManager().GenerateAllMips();
 		renderer->UploadData();
