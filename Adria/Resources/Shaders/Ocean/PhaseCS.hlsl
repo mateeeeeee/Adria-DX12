@@ -31,7 +31,6 @@ void main(uint3 dispatchID : SV_DispatchThreadID)
     float2 wave_vector = (2.f * PI * float2(n, m)) / compute_cbuf.ocean_size;
     float k = length(wave_vector);
 
-    // Note: An ad-hoc factor to make the phase change per-frame slow
     float slowdown_factor = 1.f;
 
     float delta_phase = Omega(k) * compute_cbuf.delta_time * slowdown_factor;
