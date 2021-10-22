@@ -76,7 +76,7 @@ namespace adria
 
 		void OnResize(u32 width, u32 height);
 
-		void CreateResources();
+		void UploadData();
 
 		Texture2D GetOffscreenTexture() const;
 
@@ -139,6 +139,9 @@ namespace adria
 		u32 uav_heap_index = 0;
 		u32 rtv_heap_index = 0;
 		u32 dsv_heap_index = 0;
+		std::unique_ptr<DescriptorHeap> constant_srv_heap;
+		std::unique_ptr<DescriptorHeap> constant_dsv_heap;
+		std::unique_ptr<DescriptorHeap> constant_uav_heap;
 
 		//Render Passes
 		RenderPass gbuffer_render_pass;
@@ -203,9 +206,12 @@ namespace adria
 
 		void LoadShaders();
 		void CreatePipelineStateObjects();
+
 		void CreateDescriptorHeaps();
-		void CreateViews(u32 width, u32 height);
+		void CreateResolutionDependentResources(u32 width, u32 height);
+		void CreateOtherResources();
 		void CreateRenderPasses(u32 width, u32 height);
+
 		void CreateIBLTextures();
 		
 		void UpdateConstantBuffers(f32 dt);

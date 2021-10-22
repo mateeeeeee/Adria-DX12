@@ -375,9 +375,10 @@ namespace adria
 		LoadShaders();
 		CreatePipelineStateObjects();
 		CreateDescriptorHeaps();
-		CreateViews(width, height);
-		CreateRenderPasses(width, height);
 
+		CreateResolutionDependentResources(width, height);
+		CreateOtherResources();
+		CreateRenderPasses(width, height);
 	}
 	Renderer::~Renderer()
 	{
@@ -609,11 +610,11 @@ namespace adria
 		width = _width, height = _height;
 		if (width != 0 || height != 0)
 		{
-			CreateViews(width, height);
+			CreateResolutionDependentResources(width, height);
 			CreateRenderPasses(width, height);
 		}
 	}
-	void Renderer::CreateResources()
+	void Renderer::UploadData()
 	{
 		//create cube vb and ib for sky here, move somewhere else later
 		{
@@ -692,9 +693,6 @@ namespace adria
 			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(ssao_random_texture.Resource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 			gfx->GetDefaultCommandList()->ResourceBarrier(1, &barrier);
-
-			ssao_random_texture.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
-
 		}
 
 		ID3D12Resource* hbao_upload_texture = nullptr;
@@ -732,9 +730,6 @@ namespace adria
 			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(hbao_random_texture.Resource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 			gfx->GetDefaultCommandList()->ResourceBarrier(1, &barrier);
-
-			hbao_random_texture.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
-
 		}
 
 		//bokeh upload indirect draw buffer and zero counter buffer
@@ -931,9 +926,6 @@ namespace adria
 		return offscreen_ldr_target;
 	}
 
-	////////////////////////////////////////////////////////////////////////////
-	////////////////////////////////PRIVATE/////////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////
 
 	void Renderer::LoadShaders()
 	{
@@ -2206,6 +2198,9 @@ namespace adria
 		srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 50));
 		dsv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 25));
 		uav_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 25));
+		constant_srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 50));
+		constant_dsv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 25));
+		constant_uav_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 25));
 		null_srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, NULL_HEAP_SIZE));
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC null_srv_desc{};
@@ -2229,7 +2224,7 @@ namespace adria
 		device->CreateUnorderedAccessView(nullptr,nullptr, &null_uav_desc, null_srv_heap->GetCpuHandle(RWTEXTURE2D_SLOT));
 
 	}
-	void Renderer::CreateViews(u32 width, u32 height)
+	void Renderer::CreateResolutionDependentResources(u32 width, u32 height)
 	{
 		
 		srv_heap_index = 0;
@@ -2332,82 +2327,6 @@ namespace adria
 
 		}
 
-		//shadow maps
-		{
-			//shadow map
-			{
-				texture2d_desc_t depth_map_desc{};
-				depth_map_desc.width = SHADOW_MAP_SIZE;
-				depth_map_desc.height = SHADOW_MAP_SIZE;
-				depth_map_desc.format = DXGI_FORMAT_R32_TYPELESS;
-				depth_map_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-				depth_map_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-				depth_map_desc.clear_value.Format = DXGI_FORMAT_D32_FLOAT;
-				depth_map_desc.clear_value.DepthStencil = { 1.0f, 0 };
-				shadow_depth_map = Texture2D(gfx->GetDevice(), depth_map_desc);
-
-				texture2d_srv_desc_t srv_desc{};
-				srv_desc.format = DXGI_FORMAT_R32_FLOAT;
-				shadow_depth_map.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++), &srv_desc);
-
-				texture2d_dsv_desc_t dsv_desc{};
-				dsv_desc.format = DXGI_FORMAT_D32_FLOAT;
-				shadow_depth_map.CreateDSV(dsv_heap->GetCpuHandle(dsv_heap_index++), &dsv_desc);
-			}
-
-			//shadow cubemap
-			{
-				texturecube_desc_t depth_cubemap_desc{};
-				depth_cubemap_desc.width = SHADOW_CUBE_SIZE;
-				depth_cubemap_desc.height = SHADOW_CUBE_SIZE;
-				depth_cubemap_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-				depth_cubemap_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-				depth_cubemap_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-				depth_cubemap_desc.clear_value.Format = DXGI_FORMAT_D32_FLOAT;
-				depth_cubemap_desc.clear_value.DepthStencil = { 1.0f, 0 };
-
-				shadow_depth_cubemap = TextureCube(gfx->GetDevice(), depth_cubemap_desc);
-
-				texturecube_srv_desc_t cube_srv_desc{};
-				cube_srv_desc.format = DXGI_FORMAT_R32_FLOAT;
-				shadow_depth_cubemap.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++), &cube_srv_desc);
-
-
-				texturecube_dsv_desc_t cube_dsv_desc{};
-				cube_dsv_desc.format = DXGI_FORMAT_D32_FLOAT;
-
-				std::array<D3D12_CPU_DESCRIPTOR_HANDLE, 6> dsv_handles{};
-				for (auto& dsv_handle : dsv_handles) dsv_handle = dsv_heap->GetCpuHandle(dsv_heap_index++);
-
-				shadow_depth_cubemap.CreateDSVs(dsv_handles, &cube_dsv_desc);
-			}
-
-			//shadow cascades
-			{
-				texture2darray_desc_t depth_cascade_maps_desc{};
-				depth_cascade_maps_desc.width = SHADOW_CASCADE_MAP_SIZE;
-				depth_cascade_maps_desc.height = SHADOW_CASCADE_MAP_SIZE;
-				depth_cascade_maps_desc.array_size = CASCADE_COUNT;
-				depth_cascade_maps_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-				depth_cascade_maps_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-				depth_cascade_maps_desc.clear_value.Format = DXGI_FORMAT_D32_FLOAT;
-				depth_cascade_maps_desc.clear_value.DepthStencil = { 1.0f, 0 };
-				shadow_depth_cascades = Texture2DArray(gfx->GetDevice(), depth_cascade_maps_desc);
-
-				texture2darray_srv_desc_t array_srv_desc{};
-				array_srv_desc.format = DXGI_FORMAT_R32_FLOAT;
-				shadow_depth_cascades.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++), &array_srv_desc);
-
-				texture2darray_dsv_desc_t array_dsv_desc{};
-				array_dsv_desc.format = DXGI_FORMAT_D32_FLOAT;
-
-				std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> dsv_handles(CASCADE_COUNT);
-				for (auto& dsv_handle : dsv_handles) dsv_handle = dsv_heap->GetCpuHandle(dsv_heap_index++);
-
-				shadow_depth_cascades.CreateDSVs(dsv_handles, &array_dsv_desc);
-			}
-		}
-
 		//ao
 		{
 			//ssao texture
@@ -2424,31 +2343,6 @@ namespace adria
 
 			ao_texture.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
 			ao_texture.CreateRTV(rtv_heap->GetCpuHandle(rtv_heap_index++));
-
-			//noise texture
-			texture2d_desc_t noise_desc{};
-			noise_desc.width = SSAO_NOISE_DIM;
-			noise_desc.height = SSAO_NOISE_DIM;
-			noise_desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-			noise_desc.start_state = D3D12_RESOURCE_STATE_COPY_DEST;
-			noise_desc.clear_value.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-
-			ssao_random_texture = Texture2D(gfx->GetDevice(), noise_desc);
-			hbao_random_texture = Texture2D(gfx->GetDevice(), noise_desc);
-
-
-			RealRandomGenerator rand_float{ 0.0f, 1.0f };
-
-			for (u32 i = 0; i < SSAO_KERNEL_SIZE; i++)
-			{
-				DirectX::XMFLOAT4 _offset = DirectX::XMFLOAT4(2 * rand_float() - 1, 2 * rand_float() - 1, rand_float(), 0.0f);
-				DirectX::XMVECTOR offset = DirectX::XMLoadFloat4(&_offset);
-				offset = DirectX::XMVector4Normalize(offset);
-
-				offset *= rand_float();
-
-				ssao_kernel[i] = offset;
-			}
 		}
 
 		//blur
@@ -2562,22 +2456,6 @@ namespace adria
 			offscreen_ldr_target.CreateRTV(rtv_heap->GetCpuHandle(rtv_heap_index++));
 		}
 
-		//clustered deferred
-		{
-
-			clusters.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
-			clusters.CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
-
-			light_counter.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
-			light_counter.CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
-
-			light_list.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
-			light_list.CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
-
-			light_grid.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
-			light_grid.CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
-		}
-
 		//bokeh
 		{
 			bokeh = std::make_unique<StructuredBuffer<Bokeh>>(gfx->GetDevice(), width * height, true, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
@@ -2605,6 +2483,116 @@ namespace adria
 			velocity_buffer.CreateRTV(rtv_heap->GetCpuHandle(rtv_heap_index++));
 		}
 
+	}
+	void Renderer::CreateOtherResources()
+	{
+		u32 srv_heap_index = 0;
+		u32 dsv_heap_index = 0;
+		u32 uav_heap_index = 0;
+
+		//shadow maps
+		{
+			//shadow map
+			{
+				texture2d_desc_t depth_map_desc{};
+				depth_map_desc.width = SHADOW_MAP_SIZE;
+				depth_map_desc.height = SHADOW_MAP_SIZE;
+				depth_map_desc.format = DXGI_FORMAT_R32_TYPELESS;
+				depth_map_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+				depth_map_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+				depth_map_desc.clear_value.Format = DXGI_FORMAT_D32_FLOAT;
+				depth_map_desc.clear_value.DepthStencil = { 1.0f, 0 };
+				shadow_depth_map = Texture2D(gfx->GetDevice(), depth_map_desc);
+
+				texture2d_srv_desc_t srv_desc{};
+				srv_desc.format = DXGI_FORMAT_R32_FLOAT;
+				shadow_depth_map.CreateSRV(constant_srv_heap->GetCpuHandle(srv_heap_index++), &srv_desc);
+
+				texture2d_dsv_desc_t dsv_desc{};
+				dsv_desc.format = DXGI_FORMAT_D32_FLOAT;
+				shadow_depth_map.CreateDSV(constant_dsv_heap->GetCpuHandle(dsv_heap_index++), &dsv_desc);
+			}
+
+			//shadow cubemap
+			{
+				texturecube_desc_t depth_cubemap_desc{};
+				depth_cubemap_desc.width = SHADOW_CUBE_SIZE;
+				depth_cubemap_desc.height = SHADOW_CUBE_SIZE;
+				depth_cubemap_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+				depth_cubemap_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+				depth_cubemap_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+				depth_cubemap_desc.clear_value.Format = DXGI_FORMAT_D32_FLOAT;
+				depth_cubemap_desc.clear_value.DepthStencil = { 1.0f, 0 };
+
+				shadow_depth_cubemap = TextureCube(gfx->GetDevice(), depth_cubemap_desc);
+
+				texturecube_srv_desc_t cube_srv_desc{};
+				cube_srv_desc.format = DXGI_FORMAT_R32_FLOAT;
+				shadow_depth_cubemap.CreateSRV(constant_srv_heap->GetCpuHandle(srv_heap_index++), &cube_srv_desc);
+
+				texturecube_dsv_desc_t cube_dsv_desc{};
+				cube_dsv_desc.format = DXGI_FORMAT_D32_FLOAT;
+
+				std::array<D3D12_CPU_DESCRIPTOR_HANDLE, 6> dsv_handles{};
+				for (auto& dsv_handle : dsv_handles) dsv_handle = constant_dsv_heap->GetCpuHandle(dsv_heap_index++);
+
+				shadow_depth_cubemap.CreateDSVs(dsv_handles, &cube_dsv_desc);
+			}
+
+			//shadow cascades
+			{
+				texture2darray_desc_t depth_cascade_maps_desc{};
+				depth_cascade_maps_desc.width = SHADOW_CASCADE_MAP_SIZE;
+				depth_cascade_maps_desc.height = SHADOW_CASCADE_MAP_SIZE;
+				depth_cascade_maps_desc.array_size = CASCADE_COUNT;
+				depth_cascade_maps_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+				depth_cascade_maps_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+				depth_cascade_maps_desc.clear_value.Format = DXGI_FORMAT_D32_FLOAT;
+				depth_cascade_maps_desc.clear_value.DepthStencil = { 1.0f, 0 };
+				shadow_depth_cascades = Texture2DArray(gfx->GetDevice(), depth_cascade_maps_desc);
+
+				texture2darray_srv_desc_t array_srv_desc{};
+				array_srv_desc.format = DXGI_FORMAT_R32_FLOAT;
+				shadow_depth_cascades.CreateSRV(constant_srv_heap->GetCpuHandle(srv_heap_index++), &array_srv_desc);
+
+				texture2darray_dsv_desc_t array_dsv_desc{};
+				array_dsv_desc.format = DXGI_FORMAT_D32_FLOAT;
+
+				std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> dsv_handles(CASCADE_COUNT);
+				for (auto& dsv_handle : dsv_handles) dsv_handle = constant_dsv_heap->GetCpuHandle(dsv_heap_index++);
+
+				shadow_depth_cascades.CreateDSVs(dsv_handles, &array_dsv_desc);
+			}
+		}
+
+		//ao
+		{
+			//noise texture
+			texture2d_desc_t noise_desc{};
+			noise_desc.width = SSAO_NOISE_DIM;
+			noise_desc.height = SSAO_NOISE_DIM;
+			noise_desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+			noise_desc.start_state = D3D12_RESOURCE_STATE_COPY_DEST;
+			noise_desc.clear_value.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+
+			ssao_random_texture = Texture2D(gfx->GetDevice(), noise_desc);
+			hbao_random_texture = Texture2D(gfx->GetDevice(), noise_desc);
+
+			ssao_random_texture.CreateSRV(constant_srv_heap->GetCpuHandle(srv_heap_index++));
+			hbao_random_texture.CreateSRV(constant_srv_heap->GetCpuHandle(srv_heap_index++));
+
+			RealRandomGenerator rand_float{ 0.0f, 1.0f };
+			for (u32 i = 0; i < SSAO_KERNEL_SIZE; i++)
+			{
+				DirectX::XMFLOAT4 _offset = DirectX::XMFLOAT4(2 * rand_float() - 1, 2 * rand_float() - 1, rand_float(), 0.0f);
+				DirectX::XMVECTOR offset = DirectX::XMLoadFloat4(&_offset);
+				offset = DirectX::XMVector4Normalize(offset);
+
+				offset *= rand_float();
+				ssao_kernel[i] = offset;
+			}
+		}
+
 		//ocean
 		{
 			texture2d_desc_t uav_desc{};
@@ -2615,35 +2603,51 @@ namespace adria
 			uav_desc.start_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 
 			ocean_initial_spectrum = Texture2D(gfx->GetDevice(), uav_desc);
-			ocean_initial_spectrum.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
-			ocean_initial_spectrum.CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
+			ocean_initial_spectrum.CreateSRV(constant_srv_heap->GetCpuHandle(srv_heap_index++));
+			ocean_initial_spectrum.CreateUAV(constant_uav_heap->GetCpuHandle(uav_heap_index++));
 
 			uav_desc.start_state = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 			ping_pong_phase_textures[pong_phase] = Texture2D(gfx->GetDevice(), uav_desc);
-			ping_pong_phase_textures[pong_phase].CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
-			ping_pong_phase_textures[pong_phase].CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
+			ping_pong_phase_textures[pong_phase].CreateSRV(constant_srv_heap->GetCpuHandle(srv_heap_index++));
+			ping_pong_phase_textures[pong_phase].CreateUAV(constant_uav_heap->GetCpuHandle(uav_heap_index++));
 			uav_desc.start_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 			ping_pong_phase_textures[!pong_phase] = Texture2D(gfx->GetDevice(), uav_desc);
-			ping_pong_phase_textures[!pong_phase].CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
-			ping_pong_phase_textures[!pong_phase].CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
+			ping_pong_phase_textures[!pong_phase].CreateSRV(constant_srv_heap->GetCpuHandle(srv_heap_index++));
+			ping_pong_phase_textures[!pong_phase].CreateUAV(constant_uav_heap->GetCpuHandle(uav_heap_index++));
 
 			uav_desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 
 			uav_desc.start_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 			ping_pong_spectrum_textures[pong_spectrum] = Texture2D(gfx->GetDevice(), uav_desc);
-			ping_pong_spectrum_textures[pong_spectrum].CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
-			ping_pong_spectrum_textures[pong_spectrum].CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
+			ping_pong_spectrum_textures[pong_spectrum].CreateSRV(constant_srv_heap->GetCpuHandle(srv_heap_index++));
+			ping_pong_spectrum_textures[pong_spectrum].CreateUAV(constant_uav_heap->GetCpuHandle(uav_heap_index++));
 
 			uav_desc.start_state = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 			ping_pong_spectrum_textures[!pong_spectrum] = Texture2D(gfx->GetDevice(), uav_desc);
-			ping_pong_spectrum_textures[!pong_spectrum].CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
-			ping_pong_spectrum_textures[!pong_spectrum].CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
+			ping_pong_spectrum_textures[!pong_spectrum].CreateSRV(constant_srv_heap->GetCpuHandle(srv_heap_index++));
+			ping_pong_spectrum_textures[!pong_spectrum].CreateUAV(constant_uav_heap->GetCpuHandle(uav_heap_index++));
 
 			uav_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 			ocean_normal_map = Texture2D(gfx->GetDevice(), uav_desc);
-			ocean_normal_map.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++));
-			ocean_normal_map.CreateUAV(uav_heap->GetCpuHandle(uav_heap_index++));
+			ocean_normal_map.CreateSRV(constant_srv_heap->GetCpuHandle(srv_heap_index++));
+			ocean_normal_map.CreateUAV(constant_uav_heap->GetCpuHandle(uav_heap_index++));
 
+		}
+
+		//clustered deferred
+		{
+
+			clusters.CreateSRV(constant_srv_heap->GetCpuHandle(srv_heap_index++));
+			clusters.CreateUAV(constant_uav_heap->GetCpuHandle(uav_heap_index++));
+
+			light_counter.CreateSRV(constant_srv_heap->GetCpuHandle(srv_heap_index++));
+			light_counter.CreateUAV(constant_uav_heap->GetCpuHandle(uav_heap_index++));
+
+			light_list.CreateSRV(constant_srv_heap->GetCpuHandle(srv_heap_index++));
+			light_list.CreateUAV(constant_uav_heap->GetCpuHandle(uav_heap_index++));
+
+			light_grid.CreateSRV(constant_srv_heap->GetCpuHandle(srv_heap_index++));
+			light_grid.CreateUAV(constant_uav_heap->GetCpuHandle(uav_heap_index++));
 		}
 	}
 	void Renderer::CreateRenderPasses(u32 width, u32 height)

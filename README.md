@@ -32,6 +32,9 @@ Graphics engine written in C++/DirectX12.
 * Fog
 * Volumetric Clouds
 * Hosek-Wilkie Sky
+* Ocean FFT
+    - Adaptive Tesselation
+    - Foam
 * ImGui Editor
 * Profiler
 * Model Loading with tinygltf

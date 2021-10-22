@@ -164,7 +164,7 @@ namespace adria
 
 
 		renderer->GetTextureManager().GenerateAllMips();
-		renderer->CreateResources();
+		renderer->UploadData();
 
 		gfx->ExecuteDefaultCommandList();
 		gfx->WaitForGPU();
