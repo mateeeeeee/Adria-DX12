@@ -233,6 +233,7 @@ namespace adria
 		void PassShadowMapSpot(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassShadowMapPoint(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassShadowMapCascades(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
+		void PassShadowMapCommon(ID3D12GraphicsCommandList4* cmd_list);
 		void PassVolumetric(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		
 		void PassForwardCommon(ID3D12GraphicsCommandList4* cmd_list, bool transparent);

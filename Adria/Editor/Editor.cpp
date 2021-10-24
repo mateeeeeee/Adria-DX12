@@ -338,6 +338,11 @@ namespace adria
 				engine->entity_loader->LoadOcean(params);
 			}
 
+			if (ImGui::Button("Clear"))
+			{
+                engine->reg.clear<Ocean>();
+			}
+
 			if (ImGui::TreeNodeEx("Ocean Settings", 0))
 			{
 				ImGui::Checkbox("Tessellation", &renderer_settings.ocean_tesselation);
@@ -1268,7 +1273,7 @@ namespace adria
                 ImGui::ColorEdit3("Ambient Color", renderer_settings.ambient_color);
                 ImGui::SliderFloat("Blur Sigma", &renderer_settings.blur_sigma, 0.1f, 10.0f);
                 ImGui::SliderFloat("Shadow Softness", &renderer_settings.shadow_softness, 0.01f, 5.0f);
-                
+                ImGui::Checkbox("Transparent Shadows", &renderer_settings.shadow_transparent);
                 ImGui::Checkbox("IBL", &renderer_settings.ibl);
                 ImGui::TreePop();
             }

@@ -926,7 +926,6 @@ namespace adria
 		return offscreen_ldr_target;
 	}
 
-
 	void Renderer::LoadShaders()
 	{
 		//misc
@@ -1682,7 +1681,6 @@ namespace adria
 
 				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_DepthMap], il);
 
-
 				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc = {};
 				pso_desc.InputLayout = il;
 				pso_desc.pRootSignature = rs_map[ERootSig::DepthMap].Get();
@@ -1717,7 +1715,6 @@ namespace adria
 				pso_desc.pRootSignature = rs_map[ERootSig::DepthMap_Transparent].Get();
 				pso_desc.VS = shader_map[VS_DepthMap_Transparent];
 				pso_desc.PS = shader_map[PS_DepthMap_Transparent];
-
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::DepthMap_Transparent])));
 
 			}
@@ -4187,9 +4184,7 @@ namespace adria
 	{
 		ADRIA_ASSERT(light.type == ELightType::Directional);
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Shadow Map Pass - Directional Light");
-		
-		auto device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+
 		auto upload_buffer = gfx->GetUploadBuffer();
 
 		auto const& [V, P] = scene_bounding_sphere ? LightViewProjection_Directional(light, *scene_bounding_sphere, light_bounding_box)
@@ -4201,45 +4196,16 @@ namespace adria
 		shadow_cbuf_data.shadow_matrix1 = XMMatrixInverse(nullptr, camera->View()) * shadow_cbuf_data.lightviewprojection;
 
 		shadow_allocation = upload_buffer->Allocate(GetCBufferSize<ShadowCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-
 		shadow_allocation.Update(shadow_cbuf_data);
-
 
 		ResourceBarrierBatch shadow_map_barrier{};
 		shadow_depth_map.Transition(shadow_map_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		shadow_map_barrier.Submit(cmd_list);
 
-
 		shadow_map_pass.Begin(cmd_list);
 		{
-			cmd_list->SetGraphicsRootSignature(rs_map[ERootSig::DepthMap].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::DepthMap].Get());
-			cmd_list->SetGraphicsRootConstantBufferView(1, shadow_allocation.gpu_address);
-
-
 			LightFrustumCulling(ELightType::Directional);
-
-			auto shadow_view = reg.view<Mesh, Transform, Visibility>();
-			for (auto e : shadow_view)
-			{
-				auto const& visibility = shadow_view.get<Visibility>(e); 
-				if (visibility.light_visible)
-				{
-					auto const& transform = shadow_view.get<Transform>(e); //add const
-					auto const& mesh = shadow_view.get<Mesh>(e);
-
-					object_cbuf_data.model = transform.current_transform;
-					object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
-
-					object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-					object_allocation.Update(object_cbuf_data);
-					cmd_list->SetGraphicsRootConstantBufferView(0, object_allocation.gpu_address);
-
-					mesh.Draw(cmd_list);
-				}
-			}
-
-			//add transparent part later
+			PassShadowMapCommon(cmd_list);
 		}
 		shadow_map_pass.End(cmd_list);
 		
@@ -4251,14 +4217,9 @@ namespace adria
 		ADRIA_ASSERT(light.type == ELightType::Spot);
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Shadow Map Pass - Spot Light");
 
-		auto device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 		auto upload_buffer = gfx->GetUploadBuffer();
 
-		
-		//update cbuffer
-		auto const& [V, P] = scene_bounding_sphere ? LightViewProjection_Directional(light, *scene_bounding_sphere, light_bounding_box)
-			: LightViewProjection_Directional(light, *camera, light_bounding_box);
+		auto const& [V, P] = LightViewProjection_Spot(light, light_bounding_frustum);
 		shadow_cbuf_data.lightview = V;
 		shadow_cbuf_data.lightviewprojection = V * P;
 		shadow_cbuf_data.shadow_map_size = SHADOW_MAP_SIZE;
@@ -4266,45 +4227,16 @@ namespace adria
 		shadow_cbuf_data.shadow_matrix1 = XMMatrixInverse(nullptr, camera->View()) * shadow_cbuf_data.lightviewprojection;
 
 		shadow_allocation = upload_buffer->Allocate(GetCBufferSize<ShadowCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-
 		shadow_allocation.Update(shadow_cbuf_data);
 
-		
 		ResourceBarrierBatch shadow_map_barrier{};
 		shadow_depth_map.Transition(shadow_map_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		shadow_map_barrier.Submit(cmd_list);
 
-
 		shadow_map_pass.Begin(cmd_list);
 		{
-			cmd_list->SetGraphicsRootSignature(rs_map[ERootSig::DepthMap].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::DepthMap].Get());
-			cmd_list->SetGraphicsRootConstantBufferView(1, shadow_allocation.gpu_address);
-
-
-			LightFrustumCulling(ELightType::Directional);
-
-			auto shadow_view = reg.view<Mesh, Transform, Visibility>();
-			for (auto e : shadow_view)
-			{
-				auto const& visibility = shadow_view.get<Visibility>(e);
-				if (visibility.light_visible)
-				{
-					auto const& transform = shadow_view.get<Transform>(e); //add const
-					auto const& mesh = shadow_view.get<Mesh>(e);
-
-					object_cbuf_data.model = transform.current_transform;
-					object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
-
-					object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-					object_allocation.Update(object_cbuf_data);
-					cmd_list->SetGraphicsRootConstantBufferView(0, object_allocation.gpu_address);
-
-					mesh.Draw(cmd_list);
-				}
-			}
-
-			//add transparent part later
+			LightFrustumCulling(ELightType::Spot);
+			PassShadowMapCommon(cmd_list);
 		}
 		shadow_map_pass.End(cmd_list);
 
@@ -4316,8 +4248,6 @@ namespace adria
 		ADRIA_ASSERT(light.type == ELightType::Point);
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Shadow Map Pass - Point Light");
 
-		auto device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 		auto upload_buffer = gfx->GetUploadBuffer();
 
 		ResourceBarrierBatch shadow_cubemap_barrier{};
@@ -4326,63 +4256,29 @@ namespace adria
 
 		for (u32 i = 0; i < shadow_cubemap_passes.size(); ++i)
 		{
-			//Update CBuffers
-			
 			auto const& [V, P] = LightViewProjection_Point(light, i, light_bounding_frustum);
 			shadow_cbuf_data.lightviewprojection = V * P;
 			shadow_cbuf_data.lightview = V;
 				
 			shadow_allocation = upload_buffer->Allocate(GetCBufferSize<ShadowCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-
 			shadow_allocation.Update(shadow_cbuf_data);
 
-			
 			shadow_cubemap_passes[i].Begin(cmd_list);
 			{
-				
-				cmd_list->SetGraphicsRootSignature(rs_map[ERootSig::DepthMap].Get());
-				cmd_list->SetPipelineState(pso_map[EPipelineStateObject::DepthMap].Get());
-				cmd_list->SetGraphicsRootConstantBufferView(1, shadow_allocation.gpu_address);
-
 				LightFrustumCulling(ELightType::Point);
-
-				auto shadow_view = reg.view<Mesh, Transform, Visibility>();
-
-				for (auto e : shadow_view)
-				{
-					auto& visibility = shadow_view.get<Visibility>(e);
-					if (visibility.light_visible)
-					{
-						auto& transform = shadow_view.get<Transform>(e);
-						auto& mesh = shadow_view.get<Mesh>(e);
-
-						object_cbuf_data.model = transform.current_transform;
-						object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
-
-						object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-						object_allocation.Update(object_cbuf_data);
-						cmd_list->SetGraphicsRootConstantBufferView(0, object_allocation.gpu_address);
-
-						mesh.Draw(cmd_list);
-					}
-				}
-				
+				PassShadowMapCommon(cmd_list);
 			}
 			shadow_cubemap_passes[i].End(cmd_list);
 		}
 
-		
 		shadow_cubemap_barrier.ReverseTransitions();
 		shadow_cubemap_barrier.Submit(cmd_list);
-
 	}
 	void Renderer::PassShadowMapCascades(ID3D12GraphicsCommandList4* cmd_list, Light const& light)
 	{
 		ADRIA_ASSERT(light.type == ELightType::Directional);
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Cascaded Shadow Maps Pass - Directional Light");
 
-		auto device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 		auto upload_buffer = gfx->GetUploadBuffer();
 
 		ResourceBarrierBatch shadow_cascades_barrier{};
@@ -4393,13 +4289,9 @@ namespace adria
 		std::array<XMMATRIX, CASCADE_COUNT> proj_matrices = RecalculateProjectionMatrices(*camera, settings.split_lambda, split_distances);
 		std::array<XMMATRIX, CASCADE_COUNT> light_view_projections{};
 
-		cmd_list->SetGraphicsRootSignature(rs_map[ERootSig::DepthMap].Get());
-		cmd_list->SetPipelineState(pso_map[EPipelineStateObject::DepthMap].Get());
-		
 		for (u32 i = 0; i < CASCADE_COUNT; ++i)
 		{
-			//Update
-			
+
 			auto const& [V, P] = LightViewProjection_Cascades(light, *camera, proj_matrices[i], light_bounding_box);
 			light_view_projections[i] = V * P;
 			shadow_cbuf_data.lightview = V;
@@ -4409,36 +4301,15 @@ namespace adria
 			shadow_allocation = upload_buffer->Allocate(GetCBufferSize<ShadowCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 			shadow_allocation.Update(shadow_cbuf_data);
 
-			cmd_list->SetGraphicsRootConstantBufferView(1, shadow_allocation.gpu_address);
-			
 			shadow_cascades_passes[i].Begin(cmd_list);
 			{
 				LightFrustumCulling(ELightType::Directional);
-				auto shadow_view = reg.view<Mesh, Transform, Visibility>();
-				for (auto e : shadow_view)
-				{
-					auto& visibility = shadow_view.get<Visibility>(e); 
-					if (visibility.light_visible)
-					{
-						auto& transform = shadow_view.get<Transform>(e); 
-						auto& mesh = shadow_view.get<Mesh>(e);
-
-						object_cbuf_data.model = transform.current_transform;
-						object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
-
-						object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-						object_allocation.Update(object_cbuf_data);
-						cmd_list->SetGraphicsRootConstantBufferView(0, object_allocation.gpu_address);
-
-						mesh.Draw(cmd_list);
-					}
-				}
+				PassShadowMapCommon(cmd_list);
 			}
 			shadow_cascades_passes[i].End(cmd_list);
 		}
 		shadow_cascades_barrier.ReverseTransitions();
 		shadow_cascades_barrier.Submit(cmd_list);
-
 
 		shadow_cbuf_data.shadow_map_size = SHADOW_CASCADE_MAP_SIZE;
 		shadow_cbuf_data.shadow_matrix1 = DirectX::XMMatrixInverse(nullptr, camera->View()) * light_view_projections[0];
@@ -4453,6 +4324,105 @@ namespace adria
 		shadow_allocation = upload_buffer->Allocate(GetCBufferSize<ShadowCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 		shadow_allocation.Update(shadow_cbuf_data);
 	}
+	void Renderer::PassShadowMapCommon(ID3D12GraphicsCommandList4* cmd_list)
+	{
+		auto device = gfx->GetDevice();
+		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto upload_buffer = gfx->GetUploadBuffer();
+
+		auto shadow_view = reg.view<Mesh, Transform, Visibility>();
+		if (!settings.shadow_transparent)
+		{
+			cmd_list->SetGraphicsRootSignature(rs_map[ERootSig::DepthMap].Get());
+			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::DepthMap].Get());
+			cmd_list->SetGraphicsRootConstantBufferView(1, shadow_allocation.gpu_address);
+
+			for (auto e : shadow_view)
+			{
+				auto const& visibility = shadow_view.get<Visibility>(e);
+				if (visibility.light_visible)
+				{
+					auto const& transform = shadow_view.get<Transform>(e);
+					auto const& mesh = shadow_view.get<Mesh>(e);
+
+					object_cbuf_data.model = transform.current_transform;
+					object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
+
+					object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+					object_allocation.Update(object_cbuf_data);
+					cmd_list->SetGraphicsRootConstantBufferView(0, object_allocation.gpu_address);
+
+					mesh.Draw(cmd_list);
+				}
+			}
+		}
+		else
+		{
+			std::vector<entity> potentially_transparent, not_transparent;
+			for (auto e : shadow_view)
+			{
+				auto const& visibility = shadow_view.get<Visibility>(e);
+				if (visibility.light_visible)
+				{
+					if (auto* p_material = reg.get_if<Material>(e))
+					{
+						if (p_material->albedo_texture != INVALID_TEXTURE_HANDLE)
+							potentially_transparent.push_back(e);
+						else not_transparent.push_back(e);
+					}
+					else not_transparent.push_back(e);
+				}
+			}
+
+			cmd_list->SetGraphicsRootSignature(rs_map[ERootSig::DepthMap].Get());
+			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::DepthMap].Get());
+			cmd_list->SetGraphicsRootConstantBufferView(1, shadow_allocation.gpu_address);
+			for (auto e : not_transparent)
+			{
+				auto& transform = shadow_view.get<Transform>(e);
+				auto& mesh = shadow_view.get<Mesh>(e);
+
+				object_cbuf_data.model = transform.current_transform;
+				object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
+
+				object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				object_allocation.Update(object_cbuf_data);
+				cmd_list->SetGraphicsRootConstantBufferView(0, object_allocation.gpu_address);
+				mesh.Draw(cmd_list);
+			}
+
+			cmd_list->SetGraphicsRootSignature(rs_map[ERootSig::DepthMap_Transparent].Get());
+			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::DepthMap_Transparent].Get());
+			cmd_list->SetGraphicsRootConstantBufferView(1, shadow_allocation.gpu_address);
+
+			for (auto e : potentially_transparent)
+			{
+				auto& transform = shadow_view.get<Transform>(e);
+				auto& mesh = shadow_view.get<Mesh>(e);
+				auto* material = reg.get_if<Material>(e);
+				ADRIA_ASSERT(material != nullptr);
+				ADRIA_ASSERT(material->albedo_texture != INVALID_TEXTURE_HANDLE);
+
+				object_cbuf_data.model = transform.current_transform;
+				object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
+
+				object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				object_allocation.Update(object_cbuf_data);
+				cmd_list->SetGraphicsRootConstantBufferView(0, object_allocation.gpu_address);
+
+				D3D12_CPU_DESCRIPTOR_HANDLE albedo_handle = texture_manager.CpuDescriptorHandle(material->albedo_texture);
+				OffsetType i = descriptor_allocator->Allocate();
+
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(i),
+					albedo_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+				cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetGpuHandle(i));
+
+				mesh.Draw(cmd_list);
+			}
+		}
+	}
+	
 	void Renderer::PassVolumetric(ID3D12GraphicsCommandList4* cmd_list, Light const& light)
 	{
 		ADRIA_ASSERT(light.volumetric);
