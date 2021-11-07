@@ -1,7 +1,5 @@
 # Adria-DX12
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/11a6904c733a48daaf68fa7ecb8b5d57)](https://app.codacy.com/gh/mate286/Adria-DX12?utm_source=github.com&utm_medium=referral&utm_content=mate286/Adria-DX12&utm_campaign=Badge_Grade_Settings)
-
 Graphics engine written in C++/DirectX12. 
 ## Features
 * Entity-Component System
