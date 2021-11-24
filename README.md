@@ -61,4 +61,4 @@ Graphics engine written in C++/DirectX12.
 ## Screenshots
 
 Since this is DirectX 12 port of this [engine](https://github.com/mate286/Adria-DX11)
-(not complete though), you can see some of the screenshots there.
+(not complete though since Voxel GI and Terrain are missing), you can see some of the screenshots there.
