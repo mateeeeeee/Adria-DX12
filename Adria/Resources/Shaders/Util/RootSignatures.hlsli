@@ -319,4 +319,49 @@
                                     "filter = FILTER_MIN_MAG_MIP_LINEAR, visibility=SHADER_VISIBILITY_ALL )" 
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#define InitDeadList_RS             "DescriptorTable(UAV(u0, numDescriptors = 1, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_ALL )" 
+
+#define InitSortDispatchArgs_RS     "DescriptorTable(UAV(u0, numDescriptors = 1, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_ALL ), " \
+                                    "CBV(b11, visibility=SHADER_VISIBILITY_ALL)  "
+
+#define BitonicSortStep_RS          "DescriptorTable(UAV(u0, numDescriptors = 1, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_ALL ), " \
+                                    "CBV(b11, visibility=SHADER_VISIBILITY_ALL), " \
+                                    "CBV(b12, visibility=SHADER_VISIBILITY_ALL)  "
+
+#define Reset_RS                    "DescriptorTable(UAV(u0, numDescriptors = 2, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_ALL )" 
+
+#define Emit_RS                     "DescriptorTable(UAV(u0, numDescriptors = 3, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_ALL ), " \
+                                    "DescriptorTable(SRV(t0, numDescriptors = 1, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_ALL), " \
+                                    "CBV(b11, visibility=SHADER_VISIBILITY_ALL), " \
+                                    "CBV(b13, visibility=SHADER_VISIBILITY_ALL), " \
+                                    "StaticSampler(s0, " \
+                                    "addressU = TEXTURE_ADDRESS_WRAP, " \
+                                    "addressV = TEXTURE_ADDRESS_WRAP, " \
+                                    "addressW = TEXTURE_ADDRESS_WRAP, " \
+                                    "filter = FILTER_MIN_MAG_MIP_LINEAR, visibility=SHADER_VISIBILITY_ALL )" 
+
+#define Simulate_RS                 "DescriptorTable(UAV(u0, numDescriptors = 6, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_ALL ), " \
+                                    "DescriptorTable(SRV(t0, numDescriptors = 1, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_ALL), " \
+                                    "CBV(b0, visibility=SHADER_VISIBILITY_ALL), " \
+                                    "CBV(b6, visibility=SHADER_VISIBILITY_ALL), "  \
+                                    "CBV(b13, visibility=SHADER_VISIBILITY_ALL)"
+
+#define Sort512_RS                  "DescriptorTable(UAV(u0, numDescriptors = 1, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_ALL ), " \
+                                    "CBV(b11, visibility=SHADER_VISIBILITY_ALL)  "
+
+#define Particle_RS                 "DescriptorTable(SRV(t0, numDescriptors = 3, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_VERTEX), " \
+                                    "DescriptorTable(SRV(t3, numDescriptors = 2, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_PIXEL), " \
+                                    "CBV(b12, visibility=SHADER_VISIBILITY_VERTEX), " \
+                                    "CBV(b0, visibility=SHADER_VISIBILITY_ALL), " \
+                                    "StaticSampler(s0, " \
+                                    "addressU = TEXTURE_ADDRESS_CLAMP, " \
+                                    "addressV = TEXTURE_ADDRESS_CLAMP, " \
+                                    "addressW = TEXTURE_ADDRESS_CLAMP, " \
+                                    "filter = FILTER_MIN_MAG_MIP_LINEAR, visibility=SHADER_VISIBILITY_PIXEL )" 
+
+
                                  

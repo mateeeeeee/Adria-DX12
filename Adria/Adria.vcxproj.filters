@@ -74,6 +74,9 @@
     <Filter Include="Shaders\Ocean">
       <UniqueIdentifier>{1ad09a65-102a-469e-8203-a87e4c270feb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Particles">
+      <UniqueIdentifier>{cce0a1aa-c48a-46e6-a52f-cda90620fbec}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -499,6 +502,9 @@
     <ClInclude Include="Rendering\SkyModel.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\ParticleRenderer.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
@@ -721,6 +727,36 @@
     <FxCompile Include="Resources\Shaders\Ocean\SpectrumCS.hlsl">
       <Filter>Shaders\Ocean</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\Particles\BitonicSortStepCS.hlsl">
+      <Filter>Shaders\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Particles\InitDeadListCS.hlsl">
+      <Filter>Shaders\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Particles\InitSortDispatchArgsCS.hlsl">
+      <Filter>Shaders\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Particles\ParticleEmitCS.hlsl">
+      <Filter>Shaders\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Particles\ParticlePS.hlsl">
+      <Filter>Shaders\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Particles\ParticleResetCS.hlsl">
+      <Filter>Shaders\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Particles\ParticleSimulateCS.hlsl">
+      <Filter>Shaders\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Particles\ParticleVS.hlsl">
+      <Filter>Shaders\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Particles\Sort512CS.hlsl">
+      <Filter>Shaders\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Particles\SortInner512CS.hlsl">
+      <Filter>Shaders\Particles</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Shaders\Globals\GlobalsCS.hlsli">
@@ -765,6 +801,9 @@
     </None>
     <None Include="Resources\Shaders\Globals\GlobalsRT.hlsli">
       <Filter>Shaders\Globals</Filter>
+    </None>
+    <None Include="Resources\Shaders\Particles\ParticleGlobals.hlsli">
+      <Filter>Shaders\Particles</Filter>
     </None>
   </ItemGroup>
 </Project>

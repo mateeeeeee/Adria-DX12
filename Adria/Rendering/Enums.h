@@ -74,7 +74,17 @@ namespace adria
 		PS_Ocean,
 		VS_OceanLOD,
 		DS_OceanLOD,
-		HS_OceanLOD
+		HS_OceanLOD,
+		VS_Particles,
+		PS_Particles,
+		CS_ParticleInitDeadList,
+		CS_ParticleReset,
+		CS_ParticleEmit,
+		CS_ParticleSimulate,
+		CS_ParticleBitonicSortStep,
+		CS_ParticleSort512,
+		CS_ParticleSortInner512,
+		CS_ParticleSortInitArgs
 	};
 
 	enum class ERootSig : u8
@@ -118,7 +128,15 @@ namespace adria
 		Phase,
 		Spectrum,
 		Ocean,
-		OceanLOD
+		OceanLOD,
+		Particles_Shading,
+		Particles_InitDeadList,
+		Particles_Reset,
+		Particles_Emit,
+		Particles_Simulate,
+		Particles_InitSortDispatchArgs,
+		Particles_BitonicSortStep,
+		Particles_Sort512,
 	};
 
 	enum class EPipelineStateObject : u8
@@ -183,6 +201,15 @@ namespace adria
 		Ocean_Wireframe,
 		OceanLOD,
 		OceanLOD_Wireframe,
+		Particles_Shading,
+		Particles_InitDeadList,
+		Particles_Reset,
+		Particles_Emit,
+		Particles_Simulate,
+		Particles_InitSortDispatchArgs,
+		Particles_BitonicSortStep,
+		Particles_Sort512,
+		Particles_Sort512Inner,
         Unknown
 	};
 

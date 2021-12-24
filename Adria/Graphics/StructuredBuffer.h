@@ -129,6 +129,7 @@ namespace adria
 		D3D12_CPU_DESCRIPTOR_HANDLE CounterUAV() const
 		{
 			return uav_counter_handle;
+			CD3DX12_DESCRIPTOR_RANGE  d;
 		}
 
 		ID3D12Resource* Buffer() const
