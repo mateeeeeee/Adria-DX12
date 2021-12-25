@@ -64,8 +64,6 @@ namespace adria
 				clear,
 				IID_PPV_ARGS(&resource)
 			));
-
-			
 		}
 
 		void CreateSRV(D3D12_CPU_DESCRIPTOR_HANDLE handle, texture2d_srv_desc_t* _srv_desc = nullptr)

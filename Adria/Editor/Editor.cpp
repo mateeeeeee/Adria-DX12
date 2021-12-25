@@ -357,6 +357,48 @@ namespace adria
 		ImGui::End();
 	}
 
+	void Editor::ParticleSettings()
+	{
+		ImGui::Begin("Particles");
+		{
+			static emitter_parameters_t params{};
+			static char NAME_BUFFER[128];
+			ImGui::InputText("Name", NAME_BUFFER, sizeof(NAME_BUFFER));
+			params.name = std::string(NAME_BUFFER);
+			if (ImGui::Button("Select Texture")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
+			if (ImGuiFileDialog::Instance()->Display("Choose Texture"))
+			{
+				if (ImGuiFileDialog::Instance()->IsOk())
+				{
+					std::wstring texture_path = ConvertToWide(ImGuiFileDialog::Instance()->GetFilePathName());
+					params.texture_path = texture_path;
+				}
+				ImGuiFileDialog::Instance()->Close();
+			}
+			ImGui::Text(ConvertToNarrow(params.texture_path).c_str());
+
+			ImGui::SliderFloat3("Position", params.position, -500.0f, 500.0f);
+			ImGui::SliderFloat3("Velocity", params.velocity, -50.0f, 50.0f);
+			ImGui::SliderFloat3("Position Variance", params.position_variance, -50.0f, 50.0f);
+			ImGui::SliderFloat("Velocity Variance", &params.velocity_variance, -10.0f, 10.0f);
+			ImGui::SliderFloat("Lifespan", &params.lifespan, 0.0f, 50.0f);
+			ImGui::SliderFloat("Start Size", &params.start_size, 0.0f, 50.0f);
+			ImGui::SliderFloat("End Size", &params.end_size, 0.0f, 10.0f);
+			ImGui::SliderFloat("Mass", &params.mass, 0.0f, 10.0f);
+			ImGui::SliderFloat("Particles Per Second", &params.particles_per_second, 1.0f, 1000.0f);
+			ImGui::Checkbox("Alpha Blend", &params.blend);
+			ImGui::Checkbox("Collisions", &params.collisions);
+			ImGui::Checkbox("Sort", &params.sort);
+			if (params.collisions) ImGui::SliderInt("Collision Thickness", &params.collision_thickness, 0, 40);
+
+			if (ImGui::Button("Load Emitter"))
+			{
+				engine->entity_loader->LoadEmitter(params);
+			}
+		}
+		ImGui::End();
+	}
+
 	void Editor::AddEntities()
     {
         ImGui::Begin("Add Entities");
@@ -535,236 +577,280 @@ namespace adria
                 }
 
                 auto light = engine->reg.get_if<Light>(selected_entity);
-                if (light)
+                if (light && ImGui::CollapsingHeader("Light"))
                 {
-                    if (ImGui::CollapsingHeader("Light"))
+                    if (light->type == ELightType::Directional)			ImGui::Text("Directional Light");
+                    else if (light->type == ELightType::Spot)			ImGui::Text("Spot Light");
+                    else if (light->type == ELightType::Point)			ImGui::Text("Point Light");
+
+                    XMFLOAT4 light_color, light_direction, light_position;
+                    XMStoreFloat4(&light_color, light->color);
+                    XMStoreFloat4(&light_direction, light->direction);
+                    XMStoreFloat4(&light_position, light->position);
+
+                    f32 color[3] = { light_color.x, light_color.y, light_color.z };
+
+                    ImGui::ColorEdit3("Light Color", color);
+
+                    light->color = XMVectorSet(color[0], color[1], color[2], 1.0f);
+
+                    ImGui::SliderFloat("Light Energy", &light->energy, 0.0f, 50.0f);
+
+                    if (engine->reg.has<Material>(selected_entity))
                     {
+                        auto& material = engine->reg.get<Material>(selected_entity);
+                        material.diffuse = XMFLOAT3(color[0], color[1], color[2]);
+                    }
 
-                        if (light->type == ELightType::Directional)			ImGui::Text("Directional Light");
-                        else if (light->type == ELightType::Spot)			ImGui::Text("Spot Light");
-                        else if (light->type == ELightType::Point)			ImGui::Text("Point Light");
+                    if (light->type == ELightType::Directional || light->type == ELightType::Spot)
+                    {
+                        f32 direction[3] = { light_direction.x, light_direction.y, light_direction.z };
 
-                        XMFLOAT4 light_color, light_direction, light_position;
-                        XMStoreFloat4(&light_color, light->color);
-                        XMStoreFloat4(&light_direction, light->direction);
-                        XMStoreFloat4(&light_position, light->position);
+                        ImGui::SliderFloat3("Light direction", direction, -1.0f, 1.0f);
 
-                        f32 color[3] = { light_color.x, light_color.y, light_color.z };
+                        light->direction = XMVectorSet(direction[0], direction[1], direction[2], 0.0f);
 
-                        ImGui::ColorEdit3("Light Color", color);
-
-                        light->color = XMVectorSet(color[0], color[1], color[2], 1.0f);
-
-                        ImGui::SliderFloat("Light Energy", &light->energy, 0.0f, 50.0f);
-
-                        if (engine->reg.has<Material>(selected_entity))
+                        if (light->type == ELightType::Directional)
                         {
-                            auto& material = engine->reg.get<Material>(selected_entity);
-                            material.diffuse = XMFLOAT3(color[0], color[1], color[2]);
+                            light->position = XMVectorScale(-light->direction, 1e3);
                         }
+                    }
 
-                        if (light->type == ELightType::Directional || light->type == ELightType::Spot)
-                        {
-                            f32 direction[3] = { light_direction.x, light_direction.y, light_direction.z };
+                    if (light->type == ELightType::Spot)
+                    {
+                        f32 inner_angle = XMConvertToDegrees(acos(light->inner_cosine))
+                            , outer_angle = XMConvertToDegrees(acos(light->outer_cosine));
+                        ImGui::SliderFloat("Inner Spot Angle", &inner_angle, 0.0f, 90.0f);
+                        ImGui::SliderFloat("Outer Spot Angle", &outer_angle, inner_angle, 90.0f);
 
-                            ImGui::SliderFloat3("Light direction", direction, -1.0f, 1.0f);
+                        light->inner_cosine = cos(XMConvertToRadians(inner_angle));
+                        light->outer_cosine = cos(XMConvertToRadians(outer_angle));
+                    }
 
-                            light->direction = XMVectorSet(direction[0], direction[1], direction[2], 0.0f);
+                    if (light->type == ELightType::Point || light->type == ELightType::Spot)
+                    {
+                        f32 position[3] = { light_position.x, light_position.y, light_position.z };
 
-                            if (light->type == ELightType::Directional)
-                            {
-                                light->position = XMVectorScale(-light->direction, 1e3);
-                            }
-                        }
+                        ImGui::SliderFloat3("Light position", position, -300.0f, 500.0f);
 
-                        if (light->type == ELightType::Spot)
-                        {
-                            f32 inner_angle = XMConvertToDegrees(acos(light->inner_cosine))
-                                , outer_angle = XMConvertToDegrees(acos(light->outer_cosine));
-                            ImGui::SliderFloat("Inner Spot Angle", &inner_angle, 0.0f, 90.0f);
-                            ImGui::SliderFloat("Outer Spot Angle", &outer_angle, inner_angle, 90.0f);
+                        light->position = XMVectorSet(position[0], position[1], position[2], 1.0f);
 
-                            light->inner_cosine = cos(XMConvertToRadians(inner_angle));
-                            light->outer_cosine = cos(XMConvertToRadians(outer_angle));
-                        }
+                        ImGui::SliderFloat("Range", &light->range, 50.0f, 1000.0f);
+                    }
 
-                        if (light->type == ELightType::Point || light->type == ELightType::Spot)
-                        {
-                            f32 position[3] = { light_position.x, light_position.y, light_position.z };
+                    if (engine->reg.has<Transform>(selected_entity))
+                    {
+                        auto& tr = engine->reg.get<Transform>(selected_entity);
 
-                            ImGui::SliderFloat3("Light position", position, -300.0f, 500.0f);
+                        tr.current_transform = XMMatrixTranslationFromVector(light->position);
+                    }
 
-                            light->position = XMVectorSet(position[0], position[1], position[2], 1.0f);
+                    ImGui::Checkbox("Active", &light->active);
+                    ImGui::Checkbox("God Rays", &light->god_rays);
 
-                            ImGui::SliderFloat("Range", &light->range, 50.0f, 1000.0f);
-                        }
-
-                        if (engine->reg.has<Transform>(selected_entity))
-                        {
-                            auto& tr = engine->reg.get<Transform>(selected_entity);
-
-                            tr.current_transform = XMMatrixTranslationFromVector(light->position);
-                        }
-
-                        ImGui::Checkbox("Active", &light->active);
-                        ImGui::Checkbox("God Rays", &light->god_rays);
-
-                        if (light->god_rays)
-                        {
-                            ImGui::SliderFloat("God Rays decay", &light->godrays_decay, 0.0f, 1.0f);
-                            ImGui::SliderFloat("God Rays weight", &light->godrays_weight, 0.0f, 1.0f);
-                            ImGui::SliderFloat("God Rays density", &light->godrays_density, 0.1f, 2.0f);
-                            ImGui::SliderFloat("God Rays exposure", &light->godrays_exposure, 0.1f, 10.0f);
-                        }
+                    if (light->god_rays)
+                    {
+                        ImGui::SliderFloat("God Rays decay", &light->godrays_decay, 0.0f, 1.0f);
+                        ImGui::SliderFloat("God Rays weight", &light->godrays_weight, 0.0f, 1.0f);
+                        ImGui::SliderFloat("God Rays density", &light->godrays_density, 0.1f, 2.0f);
+                        ImGui::SliderFloat("God Rays exposure", &light->godrays_exposure, 0.1f, 10.0f);
+                    }
 
 
-                        ImGui::Checkbox("Casts Shadows", &light->casts_shadows);
-                        ImGui::Checkbox("Screen Space Shadows", &light->screenspace_shadows);
-                        ImGui::Checkbox("Volumetric Lighting", &light->volumetric);
+                    ImGui::Checkbox("Casts Shadows", &light->casts_shadows);
+                    ImGui::Checkbox("Screen Space Shadows", &light->screenspace_shadows);
+                    ImGui::Checkbox("Volumetric Lighting", &light->volumetric);
 
-                        if (light->volumetric)
-                        {
-                            ImGui::SliderFloat("Volumetric lighting Strength", &light->volumetric_strength, 0.0f, 5.0f);
-                        }
+                    if (light->volumetric)
+                    {
+                        ImGui::SliderFloat("Volumetric lighting Strength", &light->volumetric_strength, 0.0f, 5.0f);
+                    }
 
-                        ImGui::Checkbox("Lens Flare", &light->lens_flare);
+                    ImGui::Checkbox("Lens Flare", &light->lens_flare);
 
-                        if (light->type == ELightType::Directional && light->casts_shadows)
-                        {
-                            bool use_cascades = static_cast<bool>(light->use_cascades);
-                            ImGui::Checkbox("Use Cascades", &use_cascades);
-                            light->use_cascades = use_cascades;
-                        }
-
+                    if (light->type == ELightType::Directional && light->casts_shadows)
+                    {
+                        bool use_cascades = static_cast<bool>(light->use_cascades);
+                        ImGui::Checkbox("Use Cascades", &use_cascades);
+                        light->use_cascades = use_cascades;
                     }
                 }
 
                 auto material = engine->reg.get_if<Material>(selected_entity);
-                if (material)
+                if (material && ImGui::CollapsingHeader("Material"))
                 {
-                    if (ImGui::CollapsingHeader("Material"))
+                    ID3D12Device5* device = engine->gfx->GetDevice();
+                    RingDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
+
+                    ImGui::Text("Albedo Texture");
+                    D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(material->albedo_texture);
+                    OffsetType descriptor_index = descriptor_allocator->Allocate();
+                    D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+                    device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+                    ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr,
+                        ImVec2(48.0f, 48.0f));
+
+                    ImGui::PushID(0);
+                    if (ImGui::Button("Remove")) material->albedo_texture = INVALID_TEXTURE_HANDLE;
+                    if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
+                    OpenMaterialFileDialog(material, MaterialTextureType::eAlbedo);
+                    ImGui::PopID();
+
+                    ImGui::Text("Metallic-Roughness Texture");
+                    tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(material->metallic_roughness_texture);
+                    descriptor_index = descriptor_allocator->Allocate();
+                    dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+                    device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+                    ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr,
+                        ImVec2(48.0f, 48.0f));
+
+                    ImGui::PushID(1);
+                    if (ImGui::Button("Remove")) material->metallic_roughness_texture = INVALID_TEXTURE_HANDLE;
+                    if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
+                    OpenMaterialFileDialog(material, MaterialTextureType::eMetallicRoughness);
+                    ImGui::PopID();
+
+                    ImGui::Text("Emissive Texture");
+                    tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(material->emissive_texture);
+                    descriptor_index = descriptor_allocator->Allocate();
+                    dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+                    device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+                    ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr,
+                        ImVec2(48.0f, 48.0f));
+
+                    ImGui::PushID(2);
+                    if (ImGui::Button("Remove")) material->emissive_texture = INVALID_TEXTURE_HANDLE;
+                    if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
+                    OpenMaterialFileDialog(material, MaterialTextureType::eEmissive);
+                    ImGui::PopID();
+
+                    ImGui::ColorEdit3("Albedo Color", &material->diffuse.x);
+                    ImGui::SliderFloat("Albedo Factor", &material->albedo_factor, 0.0f, 1.0f);
+                    ImGui::SliderFloat("Metallic Factor", &material->metallic_factor, 0.0f, 1.0f);
+                    ImGui::SliderFloat("Roughness Factor", &material->roughness_factor, 0.0f, 1.0f);
+                    ImGui::SliderFloat("Emissive Factor", &material->emissive_factor, 0.0f, 32.0f);
+
+                    //add shader changing
+                    if (engine->reg.has<Forward>(selected_entity))
                     {
-                        auto device = engine->gfx->GetDevice();
-                        auto descriptor_allocator = gui->DescriptorAllocator();
-
-                        ImGui::Text("Albedo Texture");
-                        D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(material->albedo_texture);
-                        OffsetType descriptor_index = descriptor_allocator->Allocate();
-                        D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
-                        device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-                        ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr,
-                            ImVec2(48.0f, 48.0f));
-
-                        ImGui::PushID(0);
-                        if (ImGui::Button("Remove")) material->albedo_texture = INVALID_TEXTURE_HANDLE;
-                        if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
-                        OpenMaterialFileDialog(material, MaterialTextureType::eAlbedo);
-                        ImGui::PopID();
-
-                        ImGui::Text("Metallic-Roughness Texture");
-                        tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(material->metallic_roughness_texture);
-                        descriptor_index = descriptor_allocator->Allocate();
-                        dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
-                        device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-                        ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr,
-                            ImVec2(48.0f, 48.0f));
-
-                        ImGui::PushID(1);
-                        if (ImGui::Button("Remove")) material->metallic_roughness_texture = INVALID_TEXTURE_HANDLE;
-                        if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
-                        OpenMaterialFileDialog(material, MaterialTextureType::eMetallicRoughness);
-                        ImGui::PopID();
-
-                        ImGui::Text("Emissive Texture");
-                        tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(material->emissive_texture);
-                        descriptor_index = descriptor_allocator->Allocate();
-                        dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
-                        device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-                        ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr,
-                            ImVec2(48.0f, 48.0f));
-
-                        ImGui::PushID(2);
-                        if (ImGui::Button("Remove")) material->emissive_texture = INVALID_TEXTURE_HANDLE;
-                        if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
-                        OpenMaterialFileDialog(material, MaterialTextureType::eEmissive);
-                        ImGui::PopID();
-
-                        ImGui::ColorEdit3("Albedo Color", &material->diffuse.x);
-                        ImGui::SliderFloat("Albedo Factor", &material->albedo_factor, 0.0f, 1.0f);
-                        ImGui::SliderFloat("Metallic Factor", &material->metallic_factor, 0.0f, 1.0f);
-                        ImGui::SliderFloat("Roughness Factor", &material->roughness_factor, 0.0f, 1.0f);
-                        ImGui::SliderFloat("Emissive Factor", &material->emissive_factor, 0.0f, 32.0f);
-
-                        //add shader changing
-                        if (engine->reg.has<Forward>(selected_entity))
-                        {
-                            if (material->albedo_texture != INVALID_TEXTURE_HANDLE)
-                                material->pso = EPipelineStateObject::Texture;
-                            else material->pso = EPipelineStateObject::Solid;
-                        }
-                        else
-                        {
-                            material->pso = EPipelineStateObject::GbufferPBR;
-                        }
+                        if (material->albedo_texture != INVALID_TEXTURE_HANDLE)
+                            material->pso = EPipelineStateObject::Texture;
+                        else material->pso = EPipelineStateObject::Solid;
                     }
-
+                    else
+                    {
+                        material->pso = EPipelineStateObject::GbufferPBR;
+                    }
                 }
 
                 auto transform = engine->reg.get_if<Transform>(selected_entity);
-                if (transform)
+                if (transform && ImGui::CollapsingHeader("Transform"))
                 {
-                    if (ImGui::CollapsingHeader("Transform"))
-                    {
-                        XMFLOAT4X4 tr;
-                        XMStoreFloat4x4(&tr, transform->current_transform);
+					XMFLOAT4X4 tr;
+					XMStoreFloat4x4(&tr, transform->current_transform);
 
-                        float translation[3], rotation[3], scale[3];
-                        ImGuizmo::DecomposeMatrixToComponents(tr.m[0], translation, rotation, scale);
-                        ImGui::InputFloat3("Translation", translation);
-                        ImGui::InputFloat3("Rotation", rotation);
-                        ImGui::InputFloat3("Scale", scale);
-                        ImGuizmo::RecomposeMatrixFromComponents(translation, rotation, scale, tr.m[0]);
+					float translation[3], rotation[3], scale[3];
+					ImGuizmo::DecomposeMatrixToComponents(tr.m[0], translation, rotation, scale);
+					ImGui::InputFloat3("Translation", translation);
+					ImGui::InputFloat3("Rotation", rotation);
+					ImGui::InputFloat3("Scale", scale);
+					ImGuizmo::RecomposeMatrixFromComponents(translation, rotation, scale, tr.m[0]);
 
-                        Visibility* vis = engine->reg.get_if<Visibility>(selected_entity);
+					Visibility* vis = engine->reg.get_if<Visibility>(selected_entity);
 
-                        if (vis)
-                        {
-                            vis->aabb.Transform(vis->aabb, DirectX::XMMatrixInverse(nullptr, transform->current_transform));
-                            transform->current_transform = DirectX::XMLoadFloat4x4(&tr);
-                            vis->aabb.Transform(vis->aabb, transform->current_transform);
-                        }
-                        else transform->current_transform = DirectX::XMLoadFloat4x4(&tr);
-                    }
+					if (vis)
+					{
+						vis->aabb.Transform(vis->aabb, DirectX::XMMatrixInverse(nullptr, transform->current_transform));
+						transform->current_transform = DirectX::XMLoadFloat4x4(&tr);
+						vis->aabb.Transform(vis->aabb, transform->current_transform);
+					}
+					else transform->current_transform = DirectX::XMLoadFloat4x4(&tr);
                 }
 
+				auto emitter = engine->reg.get_if<Emitter>(selected_entity);
+				if (emitter && ImGui::CollapsingHeader("Emitter"))
+				{
+					ID3D12Device5* device = engine->gfx->GetDevice();
+					RingDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
+
+					ImGui::Text("Particle Texture");
+					D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(emitter->particle_texture);
+					OffsetType descriptor_index = descriptor_allocator->Allocate();
+					D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr,
+						ImVec2(48.0f, 48.0f));
+
+					ImGui::PushID(3);
+					if (ImGui::Button("Remove")) emitter->particle_texture = INVALID_TEXTURE_HANDLE;
+					if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
+					if (ImGuiFileDialog::Instance()->Display("Choose Texture"))
+					{
+						if (ImGuiFileDialog::Instance()->IsOk())
+						{
+							std::wstring texture_path = ConvertToWide(ImGuiFileDialog::Instance()->GetFilePathName());
+							emitter->particle_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+						}
+						ImGuiFileDialog::Instance()->Close();
+					}
+					ImGui::PopID();
+
+					f32 pos[3] = { emitter->position.x, emitter->position.y, emitter->position.z },
+						vel[3] = { emitter->velocity.x, emitter->velocity.y, emitter->velocity.z },
+						pos_var[3] = { emitter->position_variance.x, emitter->position_variance.y, emitter->position_variance.z };
+
+					ImGui::SliderFloat3("Position", pos, -500.0f, 500.0f);
+					ImGui::SliderFloat3("Velocity", vel, -50.0f, 50.0f);
+					ImGui::SliderFloat3("Position Variance", pos_var, -50.0f, 50.0f);
+					emitter->position = DirectX::XMFLOAT4(pos[0], pos[1], pos[2], 1.0f);
+					emitter->velocity = DirectX::XMFLOAT4(vel[0], vel[1], vel[2], 1.0f);
+					emitter->position_variance = DirectX::XMFLOAT4(pos_var[0], pos_var[1], pos_var[2], 1.0f);
+
+					if (transform)
+					{
+						XMFLOAT4X4 tr;
+						XMStoreFloat4x4(&tr, transform->current_transform);
+						f32 translation[3], rotation[3], scale[3];
+						ImGuizmo::DecomposeMatrixToComponents(tr.m[0], translation, rotation, scale);
+						ImGuizmo::RecomposeMatrixFromComponents(pos, rotation, scale, tr.m[0]);
+						transform->current_transform = DirectX::XMLoadFloat4x4(&tr);
+					}
+
+					ImGui::SliderFloat("Velocity Variance", &emitter->velocity_variance, -10.0f, 10.0f);
+					ImGui::SliderFloat("Lifespan", &emitter->particle_lifespan, 0.0f, 50.0f);
+					ImGui::SliderFloat("Start Size", &emitter->start_size, 0.0f, 50.0f);
+					ImGui::SliderFloat("End Size", &emitter->end_size, 0.0f, 10.0f);
+					ImGui::SliderFloat("Mass", &emitter->mass, 0.0f, 10.0f);
+					ImGui::SliderFloat("Particles Per Second", &emitter->particles_per_second, 1.0f, 1000.0f);
+
+					ImGui::Checkbox("Alpha Blend", &emitter->alpha_blended);
+					ImGui::Checkbox("Collisions", &emitter->collisions_enabled);
+					if (emitter->collisions_enabled) ImGui::SliderInt("Collision Thickness", &emitter->collision_thickness, 0, 40);
+
+					ImGui::Checkbox("Sort", &emitter->sort);
+					ImGui::Checkbox("Pause", &emitter->pause);
+					if (ImGui::Button("Reset")) emitter->reset_emitter = true;
+				}
+
                 auto skybox = engine->reg.get_if<Skybox>(selected_entity);
-
-                if (skybox)
+                if (skybox && ImGui::CollapsingHeader("Skybox"))
                 {
-                    if (ImGui::CollapsingHeader("Skybox"))
-                    {
-                        ImGui::Checkbox("Active", &skybox->active);
+					ImGui::Checkbox("Active", &skybox->active);
+					if (ImGui::Button("Change Skybox Texture")) ImGuiFileDialog::Instance()->OpenDialog("Choose Skybox Texture", "Choose File", ".hdr,.dds", ".");
+					if (ImGuiFileDialog::Instance()->Display("Choose Skybox Texture"))
+					{
+						if (ImGuiFileDialog::Instance()->IsOk())
+						{
+							std::string texture_path = ImGuiFileDialog::Instance()->GetFilePathName();
 
-                        if (ImGui::Button("Change Skybox Texture")) ImGuiFileDialog::Instance()->OpenDialog("Choose Skybox Texture", "Choose File", ".hdr,.dds", ".");
+							skybox->cubemap_texture = engine->renderer->GetTextureManager().LoadCubemap(ConvertToWide(texture_path));
 
-                        if (ImGuiFileDialog::Instance()->Display("Choose Skybox Texture"))
-                        {
-                            if (ImGuiFileDialog::Instance()->IsOk())
-                            {
-                                std::string texture_path = ImGuiFileDialog::Instance()->GetFilePathName();
-
-                                skybox->cubemap_texture = engine->renderer->GetTextureManager().LoadCubemap(ConvertToWide(texture_path));
-
-                            }
-
-                            ImGuiFileDialog::Instance()->Close();
-                        }
-
-                    }
+						}
+						ImGuiFileDialog::Instance()->Close();
+					}
                 }
 
                 auto forward = engine->reg.get_if<Forward>(selected_entity);
-
                 if (forward)
                 {
                     if (ImGui::CollapsingHeader("Forward")) ImGui::Checkbox("Transparent", &forward->transparent);
@@ -831,7 +917,6 @@ namespace adria
                     ImGui::ListBox("Light Types", &current_light_type, light_types, IM_ARRAYSIZE(light_types));
                     light_type = static_cast<ELightType>(current_light_type);
                 }
-
 
                 if (ImGui::Button("Add Component"))
                 {

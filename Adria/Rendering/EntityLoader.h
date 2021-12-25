@@ -14,7 +14,15 @@ struct ID3D12Device;
 
 namespace adria
 {
-   
+
+
+	enum class ELightMesh
+	{
+		NoMesh,
+		Quad,
+		Sphere
+	};
+
     struct model_parameters_t
     {
         std::string model_path = "";
@@ -45,14 +53,24 @@ namespace adria
 	{
 		grid_parameters_t ocean_grid;
 	};
-
-    enum class ELightMesh
-    {
-        NoMesh,
-        Quad,
-        Sphere
-    };
-
+	struct emitter_parameters_t
+	{
+		std::string name = "Emitter";
+		f32 position[3] = { 50.0f, 10.0f, 0.0f };
+		f32 velocity[3] = { 0.0f, 7.0f, 0.0f };
+		f32 position_variance[3] = { 4.0f, 0.0f, 4.0f };
+		f32 velocity_variance = { 0.6f };
+		f32 lifespan = 50.0f;
+		f32 start_size = 22.0f;
+		f32 end_size = 5.0f;
+		f32 mass = 0.0003f;
+		f32 particles_per_second = 100.0f;
+		std::wstring texture_path = L"Resources/Textures/Particles/fire.png";
+		bool blend = true;
+		bool collisions = false;
+		i32 collision_thickness = 40;
+		bool sort = false;
+	};
     struct light_parameters_t
     {
         Light light_data;
@@ -81,6 +99,8 @@ namespace adria
         [[maybe_unused]] tecs::entity LoadLight(light_parameters_t const&);
 
 		[[maybe_unused]] std::vector<tecs::entity> LoadOcean(ocean_parameters_t const&);
+
+		[[maybe_unused]] tecs::entity LoadEmitter(emitter_parameters_t const&);
 
 	private:
         tecs::registry& reg;

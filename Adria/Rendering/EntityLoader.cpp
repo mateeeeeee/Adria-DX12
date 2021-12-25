@@ -643,7 +643,7 @@ namespace adria
 		std::vector<entity> ocean_chunks = EntityLoader::LoadGrid(params.ocean_grid);
 
 		Material ocean_material{};
-		ocean_material.diffuse = XMFLOAT3(0.0123f, 0.3613f, 0.6867f); //0, 105, 148
+		ocean_material.diffuse = XMFLOAT3(0.0123f, 0.3613f, 0.6867f);
 		ocean_material.pso = EPipelineStateObject::Unknown;
 		Ocean ocean_component{};
 
@@ -655,6 +655,32 @@ namespace adria
 		}
 
 		return ocean_chunks;
+	}
+
+	[[maybe_unused]]
+	entity EntityLoader::LoadEmitter(emitter_parameters_t const& params)
+	{
+		Emitter emitter{};
+		emitter.position = DirectX::XMFLOAT4(params.position[0], params.position[1], params.position[2], 1);
+		emitter.velocity = DirectX::XMFLOAT4(params.velocity[0], params.velocity[1], params.velocity[2], 0);
+		emitter.position_variance = DirectX::XMFLOAT4(params.position_variance[0], params.position_variance[1], params.position_variance[2], 1);
+		emitter.velocity_variance = params.velocity_variance;
+		emitter.number_to_emit = 0;
+		emitter.particle_lifespan = params.lifespan;
+		emitter.start_size = params.start_size;
+		emitter.end_size = params.end_size;
+		emitter.mass = params.mass;
+		emitter.particles_per_second = params.particles_per_second;
+		emitter.sort = params.sort;
+		emitter.particle_texture = texture_manager.LoadTexture(params.texture_path);
+
+		tecs::entity emitter_entity = reg.create();
+		reg.add(emitter_entity, emitter);
+
+		if (params.name.empty()) reg.emplace<Tag>(emitter_entity);
+		else reg.emplace<Tag>(emitter_entity, params.name);
+
+		return emitter_entity;
 	}
 
 }

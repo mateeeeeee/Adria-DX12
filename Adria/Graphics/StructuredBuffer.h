@@ -21,8 +21,6 @@ namespace adria
 		StructuredBuffer(ID3D12Device* device, u32 element_count, bool counter = false, D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
 			: device(device), current_state(initial_state), element_count(element_count)
 		{
-
-			
 			D3D12_RESOURCE_DESC resource_desc{};
 			resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 			resource_desc.Width = element_count * sizeof(T);

@@ -11,6 +11,7 @@
 #include "../Graphics/ShaderUtility.h"
 #include "../Graphics/Texture2D.h"
 #include "../Graphics/GraphicsCoreDX12.h"
+#include "../Graphics/DescriptorHeap.h"
 #include "../Utilities/Random.h"
 
 namespace adria
@@ -77,7 +78,7 @@ namespace adria
 		};
 	public:
 		ParticleRenderer(GraphicsCoreDX12* gfx) : gfx{ gfx },
-			dead_list_buffer(gfx->GetDevice(), MAX_PARTICLES, true),
+			dead_list_buffer(gfx->GetDevice(), MAX_PARTICLES, true, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
 			particle_bufferA(gfx->GetDevice(), MAX_PARTICLES),
 			particle_bufferB(gfx->GetDevice(), MAX_PARTICLES),
 			view_space_positions_buffer(gfx->GetDevice(), MAX_PARTICLES),
@@ -89,9 +90,45 @@ namespace adria
 		{
 			LoadShaders();
 			CreatePipelineStateObjects();
-			CreateRandomTexture();
-			CreateIndexBuffer();
-			CreateIndirectArgsBuffers();
+			CreateResources();
+		}
+
+		void CreateRandomTexture()
+		{
+			ID3D12Device* device = gfx->GetDevice();
+			ID3D12GraphicsCommandList* cmd_list = gfx->GetDefaultCommandList();
+
+			ID3D12Resource* particle_upload_texture = nullptr;
+			const u64 upload_buffer_size = GetRequiredIntermediateSize(random_texture.Resource(), 0, 1);
+
+			CD3DX12_HEAP_PROPERTIES heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+			CD3DX12_RESOURCE_DESC resource_desc = CD3DX12_RESOURCE_DESC::Buffer(upload_buffer_size);
+			BREAK_IF_FAILED(device->CreateCommittedResource(
+				&heap_properties,
+				D3D12_HEAP_FLAG_NONE,
+				&resource_desc,
+				D3D12_RESOURCE_STATE_GENERIC_READ,
+				nullptr,
+				IID_PPV_ARGS(&particle_upload_texture)));
+
+			RealRandomGenerator rand_float{ 0.0f, 1.0f };
+			std::vector<f32> random_texture_data;
+			for (i32 i = 0; i < random_texture.Width() * random_texture.Height(); i++)
+			{
+				random_texture_data.push_back(2.0f * rand_float() - 1.0f);
+				random_texture_data.push_back(2.0f * rand_float() - 1.0f);
+				random_texture_data.push_back(2.0f * rand_float() - 1.0f);
+				random_texture_data.push_back(2.0f * rand_float() - 1.0f);
+			}
+
+			D3D12_SUBRESOURCE_DATA data{};
+			data.pData = random_texture_data.data();
+			data.RowPitch = random_texture.Width() * 4 * sizeof(f32);
+			data.SlicePitch = 0;
+
+			UpdateSubresources(cmd_list, random_texture.Resource(), particle_upload_texture, 0, 0, 1, &data);
+			CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(random_texture.Resource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+			cmd_list->ResourceBarrier(1, &barrier);
 		}
 
 		void Update(f32 dt, Emitter& emitter_params)
@@ -116,19 +153,21 @@ namespace adria
 			D3D12_GPU_DESCRIPTOR_HANDLE depth_srv,
 			D3D12_GPU_DESCRIPTOR_HANDLE particle_srv)
 		{
+			ID3D12GraphicsCommandList* cmd_list = gfx->GetNewGraphicsCommandList();
+
 			if (emitter_params.reset_emitter)
 			{
-				InitializeDeadList();
-				ResetParticles();
+				InitializeDeadList(cmd_list);
+				ResetParticles(cmd_list);
 				emitter_params.reset_emitter = false;
 			}
-			Emit(emitter_params);
-			Simulate(depth_srv);
+			Emit(cmd_list, emitter_params);
+			Simulate(cmd_list, depth_srv);
 			if (emitter_params.sort)
 			{
-				Sort();
+				Sort(cmd_list);
 			}
-			Rasterize(emitter_params, depth_srv, particle_srv);
+			Rasterize(cmd_list, emitter_params, depth_srv, particle_srv);
 		}
 
 	private:
@@ -148,18 +187,15 @@ namespace adria
 
 		Microsoft::WRL::ComPtr<ID3D12CommandSignature>  indirect_render_args_signature;
 		Microsoft::WRL::ComPtr<ID3D12Resource> indirect_render_args_buffer;
-		//uav needed
-
+		D3D12_CPU_DESCRIPTOR_HANDLE indirect_render_args_uav;
 		Microsoft::WRL::ComPtr<ID3D12CommandSignature>  indirect_sort_args_signature;
 		Microsoft::WRL::ComPtr<ID3D12Resource> indirect_sort_args_buffer;
-		//uav needed
-
+		D3D12_CPU_DESCRIPTOR_HANDLE indirect_sort_args_uav;
 		Microsoft::WRL::ComPtr<ID3D12Resource> counter_reset_buffer;
 
+		std::unique_ptr<DescriptorHeap> particle_heap;
 		std::unique_ptr<IndexBuffer> index_buffer;
 
-		//add descriptor heap
-		
 		std::unordered_map<EShader, ShaderBlob> particle_shader_map;
 		std::unordered_map<ERootSig, Microsoft::WRL::ComPtr<ID3D12RootSignature>> particle_rs_map;
 		std::unordered_map<EPipelineStateObject, Microsoft::WRL::ComPtr<ID3D12PipelineState>> particle_pso_map;
@@ -192,7 +228,7 @@ namespace adria
 			particle_shader_map[CS_ParticleSortInner512] = cs_blob;
 
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/InitSortDispatchArgsCS.cso", cs_blob);
-			particle_shader_map[CS_ParticleSortInitArgs] = cs_blob;
+			particle_shader_map[CS_ParticleInitSortDispatchArgs] = cs_blob;
 
 			ShaderBlob vs_blob, ps_blob;
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ParticleVS.cso", vs_blob);
@@ -201,7 +237,6 @@ namespace adria
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ParticlePS.cso", ps_blob);
 			particle_shader_map[PS_Particles] = ps_blob;
 		}
-
 		void CreatePipelineStateObjects()
 		{
 			ID3D12Device* device = gfx->GetDevice();
@@ -228,7 +263,7 @@ namespace adria
 				BREAK_IF_FAILED(device->CreateRootSignature(0, particle_shader_map[PS_Particles].GetPointer(), particle_shader_map[PS_Particles].GetLength(),
 					IID_PPV_ARGS(particle_rs_map[ERootSig::Particles_Shading].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, particle_shader_map[CS_ParticleSortInitArgs].GetPointer(), particle_shader_map[CS_ParticleSortInitArgs].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, particle_shader_map[CS_ParticleInitSortDispatchArgs].GetPointer(), particle_shader_map[CS_ParticleInitSortDispatchArgs].GetLength(),
 					IID_PPV_ARGS(particle_rs_map[ERootSig::Particles_InitSortDispatchArgs].GetAddressOf())));
 
 				BREAK_IF_FAILED(device->CreateRootSignature(0, particle_shader_map[CS_ParticleBitonicSortStep].GetPointer(), particle_shader_map[CS_ParticleBitonicSortStep].GetLength(),
@@ -249,66 +284,208 @@ namespace adria
 				pso_desc.CS = particle_shader_map[CS_ParticleReset];
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&particle_pso_map[EPipelineStateObject::Particles_Reset])));
 
-				/*pso_desc.pRootSignature = particle_rs_map[ERootSig::Particles_InitDeadList].Get();
-				pso_desc.CS = particle_shader_map[CS_ParticleInitDeadList];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&particle_pso_map[EPipelineStateObject::Particles_InitDeadList])));
+				pso_desc.pRootSignature = particle_rs_map[ERootSig::Particles_Simulate].Get();
+				pso_desc.CS = particle_shader_map[CS_ParticleSimulate];
+				BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&particle_pso_map[EPipelineStateObject::Particles_Simulate])));
 
-				pso_desc.pRootSignature = particle_rs_map[ERootSig::Particles_InitDeadList].Get();
-				pso_desc.CS = particle_shader_map[CS_ParticleInitDeadList];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&particle_pso_map[EPipelineStateObject::Particles_InitDeadList])));
+				pso_desc.pRootSignature = particle_rs_map[ERootSig::Particles_Emit].Get();
+				pso_desc.CS = particle_shader_map[CS_ParticleEmit];
+				BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&particle_pso_map[EPipelineStateObject::Particles_Emit])));
 
-				pso_desc.pRootSignature = particle_rs_map[ERootSig::Particles_InitDeadList].Get();
-				pso_desc.CS = particle_shader_map[CS_ParticleInitDeadList];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&particle_pso_map[EPipelineStateObject::Particles_InitDeadList])));
+				pso_desc.pRootSignature = particle_rs_map[ERootSig::Particles_InitSortDispatchArgs].Get();
+				pso_desc.CS = particle_shader_map[CS_ParticleInitSortDispatchArgs];
+				BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&particle_pso_map[EPipelineStateObject::Particles_InitSortDispatchArgs])));
 
-				pso_desc.pRootSignature = particle_rs_map[ERootSig::Particles_InitDeadList].Get();
-				pso_desc.CS = particle_shader_map[CS_ParticleInitDeadList];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&particle_pso_map[EPipelineStateObject::Particles_InitDeadList])));
+				pso_desc.pRootSignature = particle_rs_map[ERootSig::Particles_BitonicSortStep].Get();
+				pso_desc.CS = particle_shader_map[CS_ParticleBitonicSortStep];
+				BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&particle_pso_map[EPipelineStateObject::Particles_BitonicSortStep])));
 
-				pso_desc.pRootSignature = particle_rs_map[ERootSig::Particles_InitDeadList].Get();
-				pso_desc.CS = particle_shader_map[CS_ParticleInitDeadList];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&particle_pso_map[EPipelineStateObject::Particles_InitDeadList])));*/
+				pso_desc.pRootSignature = particle_rs_map[ERootSig::Particles_Sort512].Get();
+				pso_desc.CS = particle_shader_map[CS_ParticleSort512];
+				BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&particle_pso_map[EPipelineStateObject::Particles_Sort512])));
+
+				pso_desc.CS = particle_shader_map[CS_ParticleSortInner512];
+				BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&particle_pso_map[EPipelineStateObject::Particles_SortInner512])));
+			}
+		}
+		void CreateResources()
+		{
+			ID3D12Device* device = gfx->GetDevice();
+			particle_heap = std::make_unique<DescriptorHeap>(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 50);
+
+			//creating command signatures
+			{
+				D3D12_INDIRECT_ARGUMENT_DESC args[1] = {};
+				args[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED;
+
+				D3D12_COMMAND_SIGNATURE_DESC command_signature_desc{};
+				command_signature_desc.NumArgumentDescs = 1;
+				command_signature_desc.pArgumentDescs = args;
+				command_signature_desc.ByteStride = sizeof(D3D12_DRAW_INDEXED_ARGUMENTS);
+				BREAK_IF_FAILED(device->CreateCommandSignature(&command_signature_desc, nullptr, IID_PPV_ARGS(&indirect_render_args_signature)));
+
+				args[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DISPATCH;
+				command_signature_desc.ByteStride = sizeof(D3D12_DISPATCH_ARGUMENTS);
+				BREAK_IF_FAILED(device->CreateCommandSignature(&command_signature_desc, nullptr, IID_PPV_ARGS(&indirect_sort_args_signature)));
+			}
+			//creating indirect args buffers
+			{
+				auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+
+				D3D12_RESOURCE_DESC indirect_render_args_desc{};
+				indirect_render_args_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+				indirect_render_args_desc.Alignment = 0;
+				indirect_render_args_desc.SampleDesc.Count = 1;
+				indirect_render_args_desc.Format = DXGI_FORMAT_UNKNOWN;
+				indirect_render_args_desc.Width = 5 * sizeof(u32);
+				indirect_render_args_desc.Height = 1;
+				indirect_render_args_desc.DepthOrArraySize = 1;
+				indirect_render_args_desc.MipLevels = 1;
+				indirect_render_args_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+				indirect_render_args_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+				BREAK_IF_FAILED(device->CreateCommittedResource(&heap_properties, D3D12_HEAP_FLAG_NONE, &indirect_render_args_desc,
+					D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&indirect_render_args_buffer)));
+
+				D3D12_RESOURCE_DESC indirect_sort_args_desc{};
+				indirect_sort_args_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+				indirect_sort_args_desc.Alignment = 0;
+				indirect_sort_args_desc.SampleDesc.Count = 1;
+				indirect_sort_args_desc.Format = DXGI_FORMAT_UNKNOWN;
+				indirect_sort_args_desc.Width = 4 * sizeof(u32);
+				indirect_sort_args_desc.Height = 1;
+				indirect_sort_args_desc.DepthOrArraySize = 1;
+				indirect_sort_args_desc.MipLevels = 1;
+				indirect_sort_args_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+				indirect_sort_args_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+				BREAK_IF_FAILED(device->CreateCommittedResource(&heap_properties, D3D12_HEAP_FLAG_NONE, &indirect_sort_args_desc,
+					D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&indirect_sort_args_buffer)));
+			}
+			//creating random texture
+			{
+				//noise texture
+				texture2d_desc_t noise_desc{};
+				noise_desc.width = 1024;
+				noise_desc.height = 1024;
+				noise_desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+				noise_desc.start_state = D3D12_RESOURCE_STATE_COPY_DEST;
+				noise_desc.clear_value.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+				random_texture = Texture2D(device, noise_desc);
+			}
+			//creating views
+			{
+				u32 heap_index = 0;
+				random_texture.CreateSRV(particle_heap->GetCpuHandle(heap_index++));
+
+				dead_list_buffer.CreateUAV(particle_heap->GetCpuHandle(heap_index++));
+				dead_list_buffer.CreateCounterUAV(particle_heap->GetCpuHandle(heap_index++));
+
+				particle_bufferA.CreateSRV(particle_heap->GetCpuHandle(heap_index++));
+				particle_bufferA.CreateUAV(particle_heap->GetCpuHandle(heap_index++));
+
+				particle_bufferB.CreateSRV(particle_heap->GetCpuHandle(heap_index++));
+				particle_bufferB.CreateUAV(particle_heap->GetCpuHandle(heap_index++));
+
+				view_space_positions_buffer.CreateSRV(particle_heap->GetCpuHandle(heap_index++));
+				view_space_positions_buffer.CreateUAV(particle_heap->GetCpuHandle(heap_index++));
+
+				alive_index_buffer.CreateSRV(particle_heap->GetCpuHandle(heap_index++));
+				alive_index_buffer.CreateUAV(particle_heap->GetCpuHandle(heap_index++));
+				alive_index_buffer.CreateCounterUAV(particle_heap->GetCpuHandle(heap_index++));
+
+				//indirect buffer uavs?
+			}
+			//creating index buffer
+			{
+				std::vector<UINT> indices(MAX_PARTICLES * 6);
+				UINT base = 0;
+				size_t offset = 0;
+				for (size_t i = 0; i < MAX_PARTICLES; i++)
+				{
+					indices[offset + 0] = base + 0;
+					indices[offset + 1] = base + 1;
+					indices[offset + 2] = base + 2;
+
+					indices[offset + 3] = base + 2;
+					indices[offset + 4] = base + 1;
+					indices[offset + 5] = base + 3;
+
+					base += 4;
+					offset += 6;
+				}
+				index_buffer = std::make_unique<IndexBuffer>(gfx, indices);
+			}
+			//creating reset counter buffer
+			{
+				CD3DX12_RESOURCE_DESC buffer_desc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(u32));
+				CD3DX12_HEAP_PROPERTIES upload_heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+				BREAK_IF_FAILED(gfx->GetDevice()->CreateCommittedResource(
+					&upload_heap,
+					D3D12_HEAP_FLAG_NONE,
+					&buffer_desc,
+					D3D12_RESOURCE_STATE_GENERIC_READ,
+					nullptr,
+					IID_PPV_ARGS(&counter_reset_buffer)));
+
+				u8* mapped_reset_buffer = nullptr;
+				CD3DX12_RANGE read_range(0, 0); 
+				BREAK_IF_FAILED(counter_reset_buffer->Map(0, &read_range, reinterpret_cast<void**>(&mapped_reset_buffer)));
+				ZeroMemory(mapped_reset_buffer, sizeof(u32));
+				counter_reset_buffer->Unmap(0, nullptr);
 			}
 		}
 
-		void CreateIndirectArgsBuffers()
+		void InitializeDeadList(ID3D12GraphicsCommandList* cmd_list)
+		{
+			ID3D12Device* device = gfx->GetDevice();
+			LinearDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
+
+			D3D12_RESOURCE_BARRIER prereset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(dead_list_buffer.CounterBuffer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_DEST);
+			cmd_list->ResourceBarrier(1, &prereset_barrier);
+			cmd_list->CopyBufferRegion(dead_list_buffer.CounterBuffer(), 0, counter_reset_buffer.Get(), 0, sizeof(u32));
+			D3D12_RESOURCE_BARRIER postreset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(dead_list_buffer.CounterBuffer(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+			cmd_list->ResourceBarrier(1, &postreset_barrier);
+
+			cmd_list->SetComputeRootSignature(particle_rs_map[ERootSig::Particles_InitDeadList].Get());
+			cmd_list->SetPipelineState(particle_pso_map[EPipelineStateObject::Particles_InitDeadList].Get());
+			OffsetType descriptor_index = descriptor_allocator->Allocate();
+			device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index), dead_list_buffer.UAV(),
+				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetGpuHandle(descriptor_index));
+			cmd_list->Dispatch((u32)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
+		}
+		void ResetParticles(ID3D12GraphicsCommandList* cmd_list)
+		{
+			ID3D12Device* device = gfx->GetDevice();
+			LinearDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
+
+			cmd_list->SetComputeRootSignature(particle_rs_map[ERootSig::Particles_Reset].Get());
+			cmd_list->SetPipelineState(particle_pso_map[EPipelineStateObject::Particles_Reset].Get());
+			OffsetType descriptor_index = descriptor_allocator->Allocate();
+			device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index), particle_bufferA.UAV(),
+				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index + 1), particle_bufferB.UAV(),
+				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetGpuHandle(descriptor_index));
+			cmd_list->Dispatch((u32)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
+		}
+		void Emit(ID3D12GraphicsCommandList* cmd_list, Emitter const& emitter_params)
 		{
 			
 		}
-		void CreateIndexBuffer()
-		{
-			
-		}
-		void CreateRandomTexture()
-		{
-			
-		}
-
-		void InitializeDeadList()
-		{
-			
-		}
-		void ResetParticles()
+		void Simulate(ID3D12GraphicsCommandList* cmd_list, D3D12_GPU_DESCRIPTOR_HANDLE depth_srv)
 		{
 
 		}
-		void Emit(Emitter const& emitter_params)
-		{
-			
-		}
-		void Simulate(D3D12_GPU_DESCRIPTOR_HANDLE depth_srv)
+		void Rasterize(ID3D12GraphicsCommandList* cmd_list, Emitter const& emitter_params, D3D12_GPU_DESCRIPTOR_HANDLE depth_srv, D3D12_GPU_DESCRIPTOR_HANDLE particle_srv)
 		{
 
 		}
-		void Rasterize(Emitter const& emitter_params, D3D12_GPU_DESCRIPTOR_HANDLE depth_srv, D3D12_GPU_DESCRIPTOR_HANDLE particle_srv)
+		void Sort(ID3D12GraphicsCommandList* cmd_list)
 		{
 
 		}
-		void Sort()
-		{
-
-		}
-
 		bool SortInitial()
 		{
 			

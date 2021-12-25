@@ -84,7 +84,7 @@ namespace adria
 		CS_ParticleBitonicSortStep,
 		CS_ParticleSort512,
 		CS_ParticleSortInner512,
-		CS_ParticleSortInitArgs
+		CS_ParticleInitSortDispatchArgs
 	};
 
 	enum class ERootSig : u8
@@ -209,7 +209,7 @@ namespace adria
 		Particles_InitSortDispatchArgs,
 		Particles_BitonicSortStep,
 		Particles_Sort512,
-		Particles_Sort512Inner,
+		Particles_SortInner512,
         Unknown
 	};
 

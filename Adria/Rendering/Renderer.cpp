@@ -3784,7 +3784,6 @@ namespace adria
 			cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetGpuHandle(descriptor_index));
 		}
 
-		//u0 i u1
 		D3D12_GPU_DESCRIPTOR_HANDLE uav_target_for_clear{};
 		D3D12_GPU_DESCRIPTOR_HANDLE uav_debug_for_clear{};
 		{
@@ -3822,7 +3821,6 @@ namespace adria
 			device->CreateShaderResourceView(dynamic_alloc.buffer, &desc, descriptor_allocator->GetCpuHandle(i));
 
 			cmd_list->SetComputeRootDescriptorTable(4, descriptor_allocator->GetGpuHandle(i));
-
 		}
 
 		f32 black[4] = { 0.0f,0.0f,0.0f,0.0f };
@@ -3834,7 +3832,6 @@ namespace adria
 
 		cmd_list->Dispatch((u32)std::ceil(width * 1.0f / 16), (u32)(height * 1.0f / 16), 1);
 
-
 		tiled_barriers.ReverseTransitions();
 		tiled_barriers.Submit(cmd_list);
 
@@ -3843,8 +3840,6 @@ namespace adria
 
 		if (settings.visualize_tiled) AddTextures(cmd_list, uav_target, debug_tiled_texture, EBlendMode::AlphaBlend);
 		else CopyTexture(cmd_list, uav_target, EBlendMode::AdditiveBlend);
-
-
 	}
 	void Renderer::PassDeferredClusteredLighting(ID3D12GraphicsCommandList4* cmd_list)
 	{
