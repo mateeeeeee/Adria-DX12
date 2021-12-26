@@ -44,9 +44,9 @@ namespace adria
 
         RenderPass(render_pass_desc_t const& desc);
 
-        void Begin(ID3D12GraphicsCommandList4* cmd_list);
+        void Begin(ID3D12GraphicsCommandList4* cmd_list, bool legacy = false);
 
-        void End(ID3D12GraphicsCommandList4* cmd_list);
+        void End(ID3D12GraphicsCommandList4* cmd_list, bool legacy = false);
 
     private:
         std::vector<D3D12_RENDER_PASS_RENDER_TARGET_DESC> rtvs{};
@@ -55,32 +55,4 @@ namespace adria
         u32 width = 0;
         u32 height = 0;
     };
-
-    /*template<bool Legacy>
-	class RenderPass
-	{
-	public:
-
-		RenderPass() = default;
-
-		RenderPass(render_pass_desc_t const& desc);
-
-		void Begin(ID3D12GraphicsCommandList4* cmd_list);
-
-		void End(ID3D12GraphicsCommandList4* cmd_list);
-
-	private:
-		std::vector<D3D12_RENDER_PASS_RENDER_TARGET_DESC> rtvs{};
-		std::unique_ptr<D3D12_RENDER_PASS_DEPTH_STENCIL_DESC> dsv = nullptr;
-		D3D12_RENDER_PASS_FLAGS flags = D3D12_RENDER_PASS_FLAG_NONE;
-		u32 width = 0;
-		u32 height = 0;
-	};
-
-    template<>
-    class RenderPass<true>
-    {
-
-    };*/
-
 }

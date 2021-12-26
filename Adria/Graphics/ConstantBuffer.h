@@ -48,7 +48,10 @@ namespace adria
 		void Update(void* data, u32 data_size, u32 cbuffer_index);
 
 		D3D12_CONSTANT_BUFFER_VIEW_DESC View(u32 cbuffer_index) const;
-
+		ID3D12Resource* Resource() const 
+		{
+			return cb.Get();
+		}
 	private:
 		Microsoft::WRL::ComPtr<ID3D12Resource> cb;
 		u8* _mapped_data = nullptr;

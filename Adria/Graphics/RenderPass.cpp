@@ -32,9 +32,32 @@ namespace adria
 		}
 	}
 
-	void RenderPass::Begin(ID3D12GraphicsCommandList4* cmd_list)
+	void RenderPass::Begin(ID3D12GraphicsCommandList4* cmd_list, bool legacy)
 	{
-		cmd_list->BeginRenderPass(static_cast<u32>(rtvs.size()), rtvs.data(), dsv.get(), flags);
+		if (!legacy)
+		{
+			cmd_list->BeginRenderPass(static_cast<u32>(rtvs.size()), rtvs.data(), dsv.get(), flags);
+		}
+		else
+		{
+			std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> rtv_handles{};
+			D3D12_CPU_DESCRIPTOR_HANDLE* dsv_handle = nullptr;
+			for (auto const& rtv : rtvs)
+			{
+				rtv_handles.push_back(rtv.cpuDescriptor);
+				if(rtv.BeginningAccess.Type == D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR) 
+					cmd_list->ClearRenderTargetView(rtv.cpuDescriptor, rtv.BeginningAccess.Clear.ClearValue.Color, 0, nullptr);
+			}
+
+			if (dsv != nullptr)
+			{
+				dsv_handle = &dsv->cpuDescriptor;
+				if(dsv->DepthBeginningAccess.Type == D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR)
+					cmd_list->ClearDepthStencilView(dsv->cpuDescriptor, D3D12_CLEAR_FLAG_DEPTH, dsv->DepthBeginningAccess.Clear.ClearValue.DepthStencil.Depth,
+													dsv->DepthBeginningAccess.Clear.ClearValue.DepthStencil.Stencil, 0, nullptr);
+			}
+			cmd_list->OMSetRenderTargets(rtv_handles.size(), rtv_handles.data(), FALSE, dsv_handle);
+		}
 
 		D3D12_VIEWPORT vp = {};
 		vp.Width = (f32)width;
@@ -52,9 +75,9 @@ namespace adria
 		cmd_list->RSSetScissorRects(1, &rect);
 	}
 
-	void RenderPass::End(ID3D12GraphicsCommandList4* cmd_list)
+	void RenderPass::End(ID3D12GraphicsCommandList4* cmd_list, bool legacy)
 	{
-		cmd_list->EndRenderPass();
+		if (!legacy) cmd_list->EndRenderPass();
 	}
 
 }

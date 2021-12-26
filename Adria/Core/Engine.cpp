@@ -149,7 +149,7 @@ namespace adria
 		
 		entity_loader->LoadLight(light_params);
 
-		grid_parameters_t ocean_params{};
+		/*grid_parameters_t ocean_params{};
 		ocean_params.tile_count_x = 50;
 		ocean_params.tile_count_z = 50;
 		ocean_params.tile_size_x = 10;
@@ -159,7 +159,7 @@ namespace adria
 
 		ocean_parameters_t params{};
 		params.ocean_grid = std::move(ocean_params);
-		entity_loader->LoadOcean(params);
+		entity_loader->LoadOcean(params);*/
 
 		renderer->GetTextureManager().GenerateAllMips();
 		renderer->UploadData();

@@ -3366,6 +3366,8 @@ namespace adria
 			weather_cbuffer.Update(weather_cbuf_data, backbuffer_index);
 		}
 
+		particle_system.SetCBuffersForThisFrame(frame_cbuffer.View(backbuffer_index).BufferLocation,
+			compute_cbuffer.View(backbuffer_index).BufferLocation);
 	}
 	void Renderer::UpdateParticles(f32 dt)
 	{
@@ -3897,7 +3899,6 @@ namespace adria
 		//cluster building
 		if (recreate_clusters)
 		{
-
 			cmd_list->SetComputeRootSignature(rs_map[ERootSig::ClusterBuilding].Get());
 			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::ClusterBuilding].Get());
 			cmd_list->SetComputeRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
@@ -3905,11 +3906,9 @@ namespace adria
 			OffsetType descriptor_index = descriptor_allocator->Allocate();
 			D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
 			device->CopyDescriptorsSimple(1, dst_descriptor, clusters.UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
 			cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
 
 			cmd_list->Dispatch(CLUSTER_SIZE_X, CLUSTER_SIZE_Y, CLUSTER_SIZE_Z);
-
 			recreate_clusters = false;
 		}
 
@@ -4920,14 +4919,14 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Particles Pass");
 		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::ParticlesPass, profiler_settings.profile_particles_pass);
 
-		particle_pass.Begin(cmd_list);
+		particle_pass.Begin(cmd_list, true);
 		auto emitters = reg.view<Emitter>();
 		for (auto emitter : emitters)
 		{
 			Emitter const& emitter_params = emitters.get(emitter);
 			particle_system.Render(cmd_list, emitter_params, depth_target.SRV(), texture_manager.CpuDescriptorHandle(emitter_params.particle_texture));
 		}
-		particle_pass.End(cmd_list);
+		particle_pass.End(cmd_list, true);
 	}
 
 	void Renderer::PassLensFlare(ID3D12GraphicsCommandList4* cmd_list, Light const& light)
@@ -5097,13 +5096,13 @@ namespace adria
 			CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
 			CD3DX12_RESOURCE_BARRIER::Transition(bokeh->Buffer(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
 		};
-		cmd_list->ResourceBarrier(_countof(dispatch_barriers), dispatch_barriers);
+		cmd_list->ResourceBarrier(ARRAYSIZE(dispatch_barriers), dispatch_barriers);
 
 		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { postprocess_textures[!postprocess_index].SRV(), depth_target.SRV() };
 		D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetCpuHandle(descriptor_index) };
 		u32 src_range_sizes[] = { 1, 1 };
 		u32 dst_range_sizes[] = { 2 };
-		device->CopyDescriptors(_countof(dst_ranges), dst_ranges, dst_range_sizes, _countof(src_ranges), src_ranges, src_range_sizes,
+		device->CopyDescriptors(ARRAYSIZE(dst_ranges), dst_ranges, dst_range_sizes, ARRAYSIZE(src_ranges), src_ranges, src_range_sizes,
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		cmd_list->SetComputeRootDescriptorTable(3, descriptor_allocator->GetGpuHandle(descriptor_index));
 
