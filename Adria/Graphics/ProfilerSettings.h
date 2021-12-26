@@ -10,6 +10,7 @@ namespace adria
 		GBufferPass,
 		DeferredPass,
 		ForwardPass,
+		ParticlesPass,
 		Postprocessing,
 		Count
 	};
@@ -26,6 +27,8 @@ namespace adria
 			return "Deferred Pass";
 		case EProfilerBlock::ForwardPass:
 			return "Forward Pass";
+		case EProfilerBlock::ParticlesPass:
+			return "Particles Pass";
 		case EProfilerBlock::Postprocessing:
 			return "Postprocessing";
 		default:
@@ -40,6 +43,7 @@ namespace adria
 		bool profile_gbuffer_pass = false;
 		bool profile_deferred_pass = false;
 		bool profile_forward_pass = false;
+		bool profile_particles_pass = false;
 		bool profile_postprocessing = false;
 	};
 

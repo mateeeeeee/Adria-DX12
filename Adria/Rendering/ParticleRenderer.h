@@ -18,6 +18,8 @@ namespace adria
 {
 	//based on AMD GPU Particles Sample: https://github.com/GPUOpen-LibrariesAndSDKs/GPUParticles11
 
+	//make PSO for particle shading and add alpha blend, add uav for indirect buffers
+
 	class ParticleRenderer
 	{
 		template<typename T>
@@ -93,7 +95,7 @@ namespace adria
 			CreateResources();
 		}
 
-		void CreateRandomTexture()
+		void UploadData()
 		{
 			ID3D12Device* device = gfx->GetDevice();
 			ID3D12GraphicsCommandList* cmd_list = gfx->GetDefaultCommandList();
@@ -113,7 +115,7 @@ namespace adria
 
 			RealRandomGenerator rand_float{ 0.0f, 1.0f };
 			std::vector<f32> random_texture_data;
-			for (i32 i = 0; i < random_texture.Width() * random_texture.Height(); i++)
+			for (u32 i = 0; i < random_texture.Width() * random_texture.Height(); i++)
 			{
 				random_texture_data.push_back(2.0f * rand_float() - 1.0f);
 				random_texture_data.push_back(2.0f * rand_float() - 1.0f);
@@ -129,6 +131,26 @@ namespace adria
 			UpdateSubresources(cmd_list, random_texture.Resource(), particle_upload_texture, 0, 0, 1, &data);
 			CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(random_texture.Resource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 			cmd_list->ResourceBarrier(1, &barrier);
+
+			gfx->AddToReleaseQueue(particle_upload_texture);
+
+			std::vector<UINT> indices(MAX_PARTICLES * 6);
+			UINT base = 0;
+			size_t offset = 0;
+			for (size_t i = 0; i < MAX_PARTICLES; i++)
+			{
+				indices[offset + 0] = base + 0;
+				indices[offset + 1] = base + 1;
+				indices[offset + 2] = base + 2;
+
+				indices[offset + 3] = base + 2;
+				indices[offset + 4] = base + 1;
+				indices[offset + 5] = base + 3;
+
+				base += 4;
+				offset += 6;
+			}
+			index_buffer = std::make_unique<IndexBuffer>(gfx, indices);
 		}
 
 		void Update(f32 dt, Emitter& emitter_params)
@@ -149,12 +171,9 @@ namespace adria
 			}
 		}
 
-		void Render(Emitter const& emitter_params,
-			D3D12_GPU_DESCRIPTOR_HANDLE depth_srv,
-			D3D12_GPU_DESCRIPTOR_HANDLE particle_srv)
+		void Render(ID3D12GraphicsCommandList* cmd_list, Emitter const& emitter_params, 
+			D3D12_CPU_DESCRIPTOR_HANDLE depth_srv, D3D12_CPU_DESCRIPTOR_HANDLE particle_srv)
 		{
-			ID3D12GraphicsCommandList* cmd_list = gfx->GetNewGraphicsCommandList();
-
 			if (emitter_params.reset_emitter)
 			{
 				InitializeDeadList(cmd_list);
@@ -311,7 +330,7 @@ namespace adria
 		void CreateResources()
 		{
 			ID3D12Device* device = gfx->GetDevice();
-			particle_heap = std::make_unique<DescriptorHeap>(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 50);
+			particle_heap = std::make_unique<DescriptorHeap>(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 50);
 
 			//creating command signatures
 			{
@@ -341,11 +360,11 @@ namespace adria
 				indirect_render_args_desc.Height = 1;
 				indirect_render_args_desc.DepthOrArraySize = 1;
 				indirect_render_args_desc.MipLevels = 1;
-				indirect_render_args_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+				indirect_render_args_desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 				indirect_render_args_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
 				BREAK_IF_FAILED(device->CreateCommittedResource(&heap_properties, D3D12_HEAP_FLAG_NONE, &indirect_render_args_desc,
-					D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&indirect_render_args_buffer)));
+					D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&indirect_render_args_buffer)));
 
 				D3D12_RESOURCE_DESC indirect_sort_args_desc{};
 				indirect_sort_args_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -356,11 +375,11 @@ namespace adria
 				indirect_sort_args_desc.Height = 1;
 				indirect_sort_args_desc.DepthOrArraySize = 1;
 				indirect_sort_args_desc.MipLevels = 1;
-				indirect_sort_args_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+				indirect_sort_args_desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 				indirect_sort_args_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
 				BREAK_IF_FAILED(device->CreateCommittedResource(&heap_properties, D3D12_HEAP_FLAG_NONE, &indirect_sort_args_desc,
-					D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&indirect_sort_args_buffer)));
+					D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&indirect_sort_args_buffer)));
 			}
 			//creating random texture
 			{
@@ -394,27 +413,21 @@ namespace adria
 				alive_index_buffer.CreateUAV(particle_heap->GetCpuHandle(heap_index++));
 				alive_index_buffer.CreateCounterUAV(particle_heap->GetCpuHandle(heap_index++));
 
-				//indirect buffer uavs?
-			}
-			//creating index buffer
-			{
-				std::vector<UINT> indices(MAX_PARTICLES * 6);
-				UINT base = 0;
-				size_t offset = 0;
-				for (size_t i = 0; i < MAX_PARTICLES; i++)
-				{
-					indices[offset + 0] = base + 0;
-					indices[offset + 1] = base + 1;
-					indices[offset + 2] = base + 2;
+				D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
+				uav_desc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+				uav_desc.Format = DXGI_FORMAT_R32_UINT; 
+				uav_desc.Buffer.FirstElement = 0;
+				uav_desc.Buffer.NumElements = 5;
+				uav_desc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 
-					indices[offset + 3] = base + 2;
-					indices[offset + 4] = base + 1;
-					indices[offset + 5] = base + 3;
+				D3D12_CPU_DESCRIPTOR_HANDLE uav_handle = particle_heap->GetCpuHandle(heap_index++);
+				device->CreateUnorderedAccessView(indirect_render_args_buffer.Get(), nullptr, &uav_desc, uav_handle);
+				indirect_render_args_uav = uav_handle;
 
-					base += 4;
-					offset += 6;
-				}
-				index_buffer = std::make_unique<IndexBuffer>(gfx, indices);
+				uav_desc.Buffer.NumElements = 4;
+				uav_handle = particle_heap->GetCpuHandle(heap_index++);
+				device->CreateUnorderedAccessView(indirect_sort_args_buffer.Get(), nullptr, &uav_desc, uav_handle);
+				indirect_sort_args_uav = uav_handle;
 			}
 			//creating reset counter buffer
 			{
@@ -470,18 +483,22 @@ namespace adria
 			cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetGpuHandle(descriptor_index));
 			cmd_list->Dispatch((u32)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
 		}
+
 		void Emit(ID3D12GraphicsCommandList* cmd_list, Emitter const& emitter_params)
 		{
 			
 		}
-		void Simulate(ID3D12GraphicsCommandList* cmd_list, D3D12_GPU_DESCRIPTOR_HANDLE depth_srv)
+		void Simulate(ID3D12GraphicsCommandList* cmd_list, D3D12_CPU_DESCRIPTOR_HANDLE depth_srv)
 		{
 
 		}
-		void Rasterize(ID3D12GraphicsCommandList* cmd_list, Emitter const& emitter_params, D3D12_GPU_DESCRIPTOR_HANDLE depth_srv, D3D12_GPU_DESCRIPTOR_HANDLE particle_srv)
-		{
 
+		void Rasterize(ID3D12GraphicsCommandList* cmd_list, Emitter const& emitter_params,
+			D3D12_CPU_DESCRIPTOR_HANDLE depth_srv, D3D12_CPU_DESCRIPTOR_HANDLE particle_srv)
+		{
+			
 		}
+		
 		void Sort(ID3D12GraphicsCommandList* cmd_list)
 		{
 

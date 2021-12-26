@@ -165,9 +165,10 @@ namespace adria
                 PIXScopedEvent(gui_cmd_list, PIX_COLOR_DEFAULT, "GUI Pass");
                 gui->Begin();
                 MenuBar();
-                auto dockspace_id = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
+                ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
                 ListEntities();
                 OceanSettings();
+                ParticleSettings();
                 SkySettings();
                 AddEntities();
                 Camera();
@@ -1380,6 +1381,7 @@ namespace adria
 				ImGui::Checkbox("Profile GBuffer Pass", &profiler_settings.profile_gbuffer_pass);
 				ImGui::Checkbox("Profile Deferred Pass", &profiler_settings.profile_deferred_pass);
 				ImGui::Checkbox("Profile Forward Pass", &profiler_settings.profile_forward_pass);
+				ImGui::Checkbox("Profile Particles Pass", &profiler_settings.profile_particles_pass);
 				ImGui::Checkbox("Profile Postprocessing", &profiler_settings.profile_postprocessing);
 
 				engine->renderer->SetProfilerSettings(profiler_settings);

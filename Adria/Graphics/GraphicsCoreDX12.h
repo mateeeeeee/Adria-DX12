@@ -58,7 +58,7 @@ namespace adria
 		void WaitForGPU();
 
 		void WaitOnQueue(EQueueType type);
-		void SignalQueue(EQueueType type);
+		void SignalFromQueue(EQueueType type);
 
 		void ResizeBackbuffer(UINT w, UINT h);
 		UINT BackbufferIndex() const;

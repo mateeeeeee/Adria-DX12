@@ -242,7 +242,7 @@ namespace adria
 		}
 	}
 
-	void GraphicsCoreDX12::SignalQueue(EQueueType type)
+	void GraphicsCoreDX12::SignalFromQueue(EQueueType type)
 	{
 		switch (type)
 		{

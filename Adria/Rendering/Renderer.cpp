@@ -369,7 +369,7 @@ namespace adria
 		light_counter(gfx->GetDevice(), 1, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
 		light_list(gfx->GetDevice(), CLUSTER_COUNT * CLUSTER_MAX_LIGHTS, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
 		light_grid(gfx->GetDevice(), CLUSTER_COUNT, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
-		profiler(gfx)
+		profiler(gfx), particle_system(gfx)
 	{
 
 		LoadShaders();
@@ -406,6 +406,7 @@ namespace adria
 	{
 		UpdateConstantBuffers(dt);
 		CameraFrustumCulling();
+		UpdateParticles(dt);
 	}
 	void Renderer::SetProfilerSettings(ProfilerSettings _profiler_settings)
 	{
@@ -423,7 +424,7 @@ namespace adria
 		main_barrier.Submit(cmd_list);
 
 		ResourceBarrierBatch depth_barrier{};
-		depth_stencil_target.Transition(depth_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+		depth_target.Transition(depth_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		depth_barrier.Submit(cmd_list);
 
 		PassGBuffer(cmd_list);
@@ -448,6 +449,7 @@ namespace adria
 		else if (settings.use_clustered_deferred) PassDeferredClusteredLighting(cmd_list);
 
 		PassForward(cmd_list);
+		PassParticles(cmd_list);
 
 		main_barrier.Merge(std::move(depth_barrier));
 		main_barrier.ReverseTransitions();
@@ -467,27 +469,24 @@ namespace adria
 
 		auto gbuf_ambient_fut = TaskSystem::Submit([this, gbuf_cmd_list]()
 		{
-			
 			D3D12_RESOURCE_BARRIER barriers[] = 
 			{
 				CD3DX12_RESOURCE_BARRIER::Transition(hdr_render_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET),
-				CD3DX12_RESOURCE_BARRIER::Transition(depth_stencil_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE)
+				CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE)
 			};
 
 			gbuf_cmd_list->ResourceBarrier(_countof(barriers), barriers);
-
 			PassGBuffer(gbuf_cmd_list);
 		}
 		);
 
 		auto deferred_fut = TaskSystem::Submit([this, deferred_cmd_list]()
 		{
-
 			if (settings.ambient_occlusion != EAmbientOcclusion::None)
 			{
 				D3D12_RESOURCE_BARRIER pre_ssao_barriers[] =
 				{
-					CD3DX12_RESOURCE_BARRIER::Transition(depth_stencil_target.Resource(),D3D12_RESOURCE_STATE_DEPTH_WRITE,  D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
+					CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(),D3D12_RESOURCE_STATE_DEPTH_WRITE,  D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
 				};
 				deferred_cmd_list->ResourceBarrier(_countof(pre_ssao_barriers), pre_ssao_barriers);
 
@@ -496,19 +495,19 @@ namespace adria
 				
 				D3D12_RESOURCE_BARRIER  post_ssao_barriers[] =
 				{
-					CD3DX12_RESOURCE_BARRIER::Transition(depth_stencil_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE)
+					CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE)
 				};
 				deferred_cmd_list->ResourceBarrier(_countof(post_ssao_barriers), post_ssao_barriers);
 
 			}
 			PassAmbient(deferred_cmd_list);
-
 			PassDeferredLighting(deferred_cmd_list);
 
 			if (settings.use_tiled_deferred) PassDeferredTiledLighting(deferred_cmd_list);
 			else if (settings.use_clustered_deferred) PassDeferredClusteredLighting(deferred_cmd_list);
 
 			PassForward(deferred_cmd_list);
+			PassParticles(deferred_cmd_list);
 		}
 		);
 
@@ -518,13 +517,11 @@ namespace adria
 			D3D12_RESOURCE_BARRIER barriers[] =
 			{
 				CD3DX12_RESOURCE_BARRIER::Transition(hdr_render_target.Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
-				CD3DX12_RESOURCE_BARRIER::Transition(depth_stencil_target.Resource(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
+				CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
 			};
 
 			postprocess_cmd_list->ResourceBarrier(_countof(barriers), barriers);
-
 			PassPostprocess(postprocess_cmd_list);
-
 		});
 
 		gbuf_ambient_fut.wait();
@@ -848,6 +845,8 @@ namespace adria
 		gfx->AddToReleaseQueue(hbao_upload_texture);
 		gfx->AddToReleaseQueue(bokeh_upload_buffer);
 		gfx->AddToReleaseQueue(ping_phase_upload_buffer);
+
+		particle_system.UploadData();
 
 		//lens flare
 		texture_manager.SetMipMaps(false);
@@ -1182,7 +1181,7 @@ namespace adria
 		}
 	}
 #pragma warning( push )
-#pragma warning( disable : 6262)
+#pragma warning( disable : 6262 )
 	void Renderer::CreatePipelineStateObjects()
 	{
 		
@@ -2272,14 +2271,14 @@ namespace adria
 			depth_target_desc.clear_value.Format = DXGI_FORMAT_D32_FLOAT;
 			depth_target_desc.clear_value.DepthStencil = { 1.0f, 0 };
 
-			depth_stencil_target = Texture2D(gfx->GetDevice(), depth_target_desc);
+			depth_target = Texture2D(gfx->GetDevice(), depth_target_desc);
 
 			texture2d_srv_desc_t srv_desc{};
 			srv_desc.format = DXGI_FORMAT_R32_FLOAT;
-			depth_stencil_target.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++), &srv_desc);
+			depth_target.CreateSRV(srv_heap->GetCpuHandle(srv_heap_index++), &srv_desc);
 			texture2d_dsv_desc_t dsv_desc{};
 			dsv_desc.format = DXGI_FORMAT_D32_FLOAT;
-			depth_stencil_target.CreateDSV(dsv_heap->GetCpuHandle(dsv_heap_index++), &dsv_desc);
+			depth_target.CreateDSV(dsv_heap->GetCpuHandle(dsv_heap_index++), &dsv_desc);
 		}
 
 		//low dynamic range render target
@@ -2683,7 +2682,7 @@ namespace adria
 			render_pass_desc.rtv_attachments.push_back(gbuffer_emissive_attachment);
 
 			dsv_attachment_desc_t dsv_attachment_desc{};
-			dsv_attachment_desc.cpu_handle = depth_stencil_target.DSV();
+			dsv_attachment_desc.cpu_handle = depth_target.DSV();
 			dsv_attachment_desc.clear_value.Format = DXGI_FORMAT_D32_FLOAT;
 			dsv_attachment_desc.clear_value.DepthStencil.Depth = 1.0f;
 			dsv_attachment_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
@@ -2739,7 +2738,7 @@ namespace adria
 			render_pass_desc.rtv_attachments.push_back(rtv_attachment_desc);
 
 			dsv_attachment_desc_t dsv_attachment_desc{};
-			dsv_attachment_desc.cpu_handle = depth_stencil_target.DSV();
+			dsv_attachment_desc.cpu_handle = depth_target.DSV();
 			dsv_attachment_desc.clear_value.Format = DXGI_FORMAT_D32_FLOAT;
 			dsv_attachment_desc.clear_value.DepthStencil.Depth = 1.0f;
 			dsv_attachment_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
@@ -2838,6 +2837,20 @@ namespace adria
 			
 			ssao_render_pass = RenderPass(render_pass_desc);
 			hbao_render_pass = RenderPass(render_pass_desc);
+		}
+
+		//particle pass
+		{
+			render_pass_desc_t render_pass_desc{};
+			rtv_attachment_desc_t rtv_attachment_desc{};
+			rtv_attachment_desc.cpu_handle = hdr_render_target.RTV();
+			rtv_attachment_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
+			rtv_attachment_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
+			render_pass_desc.rtv_attachments.push_back(rtv_attachment_desc);
+
+			render_pass_desc.width = width;
+			render_pass_desc.height = height;
+			particle_pass = RenderPass(render_pass_desc);
 		}
 
 		//postprocess passes
@@ -3353,7 +3366,16 @@ namespace adria
 			weather_cbuffer.Update(weather_cbuf_data, backbuffer_index);
 		}
 
-	} 
+	}
+	void Renderer::UpdateParticles(f32 dt)
+	{
+		auto emitters = reg.view<Emitter>();
+		for (auto emitter : emitters)
+		{
+			Emitter& emitter_params = emitters.get(emitter);
+			particle_system.Update(dt, emitter_params);
+		}
+	}
 	void Renderer::CameraFrustumCulling()
 	{
 		BoundingFrustum camera_frustum = camera->Frustum();
@@ -3485,7 +3507,7 @@ namespace adria
 			cmd_list->SetGraphicsRootConstantBufferView(1, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
 
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
-			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { gbuffer[0].SRV(), depth_stencil_target.SRV(), ssao_random_texture.SRV() };
+			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { gbuffer[0].SRV(), depth_target.SRV(), ssao_random_texture.SRV() };
 			D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetCpuHandle(descriptor_index) };
 			UINT src_range_sizes[] = { 1, 1, 1 };
 			UINT dst_range_sizes[] = { 3 };
@@ -3526,7 +3548,7 @@ namespace adria
 			cmd_list->SetGraphicsRootConstantBufferView(1, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
 
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
-			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { gbuffer[0].SRV(), depth_stencil_target.SRV(), hbao_random_texture.SRV() };
+			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { gbuffer[0].SRV(), depth_target.SRV(), hbao_random_texture.SRV() };
 			D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetCpuHandle(descriptor_index) };
 			UINT src_range_sizes[] = { 1, 1, 1 };
 			UINT dst_range_sizes[] = { 3 };
@@ -3564,7 +3586,7 @@ namespace adria
 		else if (!has_ao && settings.ibl) cmd_list->SetPipelineState(pso_map[EPipelineStateObject::AmbientPBR_IBL].Get());
 		else cmd_list->SetPipelineState(pso_map[EPipelineStateObject::AmbientPBR].Get());
 
-		D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = {gbuffer[0].SRV(), gbuffer[1].SRV(), gbuffer[2].SRV(), depth_stencil_target.SRV()};
+		D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = {gbuffer[0].SRV(), gbuffer[1].SRV(), gbuffer[2].SRV(), depth_target.SRV()};
 		u32 src_range_sizes[] = {1,1,1,1};
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(_countof(cpu_handles));
 		auto dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
@@ -3673,7 +3695,7 @@ namespace adria
 
 				//t0,t1,t2 - gbuffer and depth
 				{
-					D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { gbuffer[0].SRV(), gbuffer[1].SRV(), depth_stencil_target.SRV() };
+					D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { gbuffer[0].SRV(), gbuffer[1].SRV(), depth_target.SRV() };
 					u32 src_range_sizes[] = { 1,1,1 };
 
 					OffsetType descriptor_index = descriptor_allocator->AllocateRange(_countof(cpu_handles));
@@ -3755,7 +3777,7 @@ namespace adria
 
 
 		ResourceBarrierBatch tiled_barriers{};
-		depth_stencil_target.Transition(tiled_barriers, D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		depth_target.Transition(tiled_barriers, D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 		gbuffer[0].Transition(tiled_barriers, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 		gbuffer[1].Transition(tiled_barriers, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
@@ -3772,7 +3794,7 @@ namespace adria
 
 		//t0,t1,t2 - gbuffer and depth
 		{
-			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { gbuffer[0].SRV(), gbuffer[1].SRV(), depth_stencil_target.SRV() };
+			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { gbuffer[0].SRV(), gbuffer[1].SRV(), depth_target.SRV() };
 			u32 src_range_sizes[] = { 1,1,1 };
 
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(_countof(cpu_handles));
@@ -3933,7 +3955,7 @@ namespace adria
 			cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 
 			//gbuffer
-			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { gbuffer[0].SRV(), gbuffer[1].SRV(), depth_stencil_target.SRV() };
+			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { gbuffer[0].SRV(), gbuffer[1].SRV(), depth_target.SRV() };
 			u32 src_range_sizes[] = { 1,1,1 };
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(_countof(cpu_handles));
 			D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
@@ -4444,7 +4466,7 @@ namespace adria
 		cmd_list->SetGraphicsRootConstantBufferView(2, shadow_allocation.gpu_address);
 		cmd_list->SetGraphicsRootConstantBufferView(3, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
 
-		D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { depth_stencil_target.SRV(), {} };
+		D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { depth_target.SRV(), {} };
 		u32 src_range_sizes[] = { 1,1 };
 
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(_countof(cpu_handles));
@@ -4892,6 +4914,21 @@ namespace adria
 			}
 		}
 	}
+	void Renderer::PassParticles(ID3D12GraphicsCommandList4* cmd_list)
+	{
+		if (reg.size<Emitter>() == 0) return;
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Particles Pass");
+		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::ParticlesPass, profiler_settings.profile_particles_pass);
+
+		particle_pass.Begin(cmd_list);
+		auto emitters = reg.view<Emitter>();
+		for (auto emitter : emitters)
+		{
+			Emitter const& emitter_params = emitters.get(emitter);
+			particle_system.Render(cmd_list, emitter_params, depth_target.SRV(), texture_manager.CpuDescriptorHandle(emitter_params.particle_texture));
+		}
+		particle_pass.End(cmd_list);
+	}
 
 	void Renderer::PassLensFlare(ID3D12GraphicsCommandList4* cmd_list, Light const& light)
 	{
@@ -4902,7 +4939,7 @@ namespace adria
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 		auto upload_buffer = gfx->GetUploadBuffer();
 
-		lens_flare_textures.push_back(depth_stencil_target.SRV());
+		lens_flare_textures.push_back(depth_target.SRV());
 
 		cmd_list->SetGraphicsRootSignature(rs_map[ERootSig::LensFlare].Get());
 		cmd_list->SetPipelineState(pso_map[EPipelineStateObject::LensFlare].Get());
@@ -4954,7 +4991,7 @@ namespace adria
 		
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(4);
 		
-		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { clouds_textures[0], clouds_textures[1], clouds_textures[2], depth_stencil_target.SRV() };
+		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { clouds_textures[0], clouds_textures[1], clouds_textures[2], depth_target.SRV() };
 		D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetCpuHandle(descriptor_index) };
 		u32 src_range_sizes[] = { 1, 1, 1, 1 };
 		u32 dst_range_sizes[] = { 4 };
@@ -4988,7 +5025,7 @@ namespace adria
 
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 
-		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { gbuffer[0].SRV(), postprocess_textures[!postprocess_index].SRV(), depth_stencil_target.SRV() };
+		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { gbuffer[0].SRV(), postprocess_textures[!postprocess_index].SRV(), depth_target.SRV() };
 		D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetCpuHandle(descriptor_index) };
 		u32 src_range_sizes[] = { 1, 1, 1 };
 		u32 dst_range_sizes[] = { 3 };
@@ -5019,7 +5056,7 @@ namespace adria
 
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 
-		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { postprocess_textures[!postprocess_index].SRV(), blur_final_texture.SRV(), depth_stencil_target.SRV() };
+		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { postprocess_textures[!postprocess_index].SRV(), blur_final_texture.SRV(), depth_target.SRV() };
 		D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetCpuHandle(descriptor_index) };
 		u32 src_range_sizes[] = { 1, 1, 1 };
 		u32 dst_range_sizes[] = { 3 };
@@ -5057,12 +5094,12 @@ namespace adria
 
 		D3D12_RESOURCE_BARRIER dispatch_barriers[] =
 		{
-			CD3DX12_RESOURCE_BARRIER::Transition(depth_stencil_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
+			CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
 			CD3DX12_RESOURCE_BARRIER::Transition(bokeh->Buffer(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
 		};
 		cmd_list->ResourceBarrier(_countof(dispatch_barriers), dispatch_barriers);
 
-		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { postprocess_textures[!postprocess_index].SRV(), depth_stencil_target.SRV() };
+		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { postprocess_textures[!postprocess_index].SRV(), depth_target.SRV() };
 		D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetCpuHandle(descriptor_index) };
 		u32 src_range_sizes[] = { 1, 1 };
 		u32 dst_range_sizes[] = { 2 };
@@ -5081,7 +5118,7 @@ namespace adria
 
 		CD3DX12_RESOURCE_BARRIER precopy_barriers[] = {
 				CD3DX12_RESOURCE_BARRIER::Transition(bokeh->Buffer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
-				CD3DX12_RESOURCE_BARRIER::Transition(depth_stencil_target.Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+				CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
 				CD3DX12_RESOURCE_BARRIER::Transition(bokeh_indirect_draw_buffer.Get(), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, D3D12_RESOURCE_STATE_COPY_DEST),
 				CD3DX12_RESOURCE_BARRIER::Transition(bokeh->CounterBuffer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE)
 		};
@@ -5263,7 +5300,7 @@ namespace adria
 
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 
-		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = {postprocess_textures[!postprocess_index].SRV(), depth_stencil_target.SRV() };
+		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = {postprocess_textures[!postprocess_index].SRV(), depth_target.SRV() };
 		D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetCpuHandle(descriptor_index) };
 		u32 src_range_sizes[] = { 1, 1 };
 		u32 dst_range_sizes[] = { 2 };
@@ -5360,7 +5397,7 @@ namespace adria
 			
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(1);
 			device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index), 
-				depth_stencil_target.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				depth_target.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 			cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetGpuHandle(descriptor_index));
 			cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -5457,12 +5494,12 @@ namespace adria
 
 		ResourceBarrierBatch sun_barrier{};
 		sun_barrier.AddTransition(sun_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		sun_barrier.AddTransition(depth_stencil_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+		sun_barrier.AddTransition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		sun_barrier.Submit(cmd_list);
 
 
 		D3D12_CPU_DESCRIPTOR_HANDLE rtv = sun_target.RTV();
-		D3D12_CPU_DESCRIPTOR_HANDLE dsv = depth_stencil_target.DSV();
+		D3D12_CPU_DESCRIPTOR_HANDLE dsv = depth_target.DSV();
 		f32 black[4] = { 0.0f };
 		cmd_list->ClearRenderTargetView(rtv, black, 0, nullptr);
 		cmd_list->OMSetRenderTargets(1, &rtv, FALSE, &dsv);

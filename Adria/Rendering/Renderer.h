@@ -4,6 +4,7 @@
 #include <optional>
 #include "RendererSettings.h"
 #include "ConstantBuffers.h"
+#include "ParticleRenderer.h"
 #include "../tecs/Registry.h"
 #include "../Graphics/TextureManager.h"
 #include "../Graphics/ShaderUtility.h"
@@ -93,6 +94,7 @@ namespace adria
 		TextureManager texture_manager;
 		Camera const* camera;
 
+		ParticleRenderer particle_system;
 		RendererSettings settings;
 		Profiler profiler;
 		ProfilerSettings profiler_settings;
@@ -104,7 +106,7 @@ namespace adria
 		//textures and heaps
 		Texture2D hdr_render_target;
 		Texture2D prev_hdr_render_target;
-		Texture2D depth_stencil_target;
+		Texture2D depth_target;
 		Texture2D ldr_render_target;
 		Texture2D offscreen_ldr_target;
 		std::vector<Texture2D> gbuffer;
@@ -154,6 +156,7 @@ namespace adria
 		std::vector<RenderPass> shadow_cascades_passes;
 		std::array<RenderPass, 2> postprocess_passes;
 		RenderPass forward_render_pass;
+		RenderPass particle_pass;
 		RenderPass velocity_buffer_pass;
 		RenderPass fxaa_render_pass;
 		RenderPass offscreen_resolve_pass;
@@ -216,6 +219,7 @@ namespace adria
 		
 		void UpdateConstantBuffers(f32 dt);
 		void UpdateOcean(ID3D12GraphicsCommandList4* cmd_list);
+		void UpdateParticles(f32 dt);
 		void CameraFrustumCulling();
 		void LightFrustumCulling(ELightType type);
 
@@ -239,6 +243,7 @@ namespace adria
 		void PassForwardCommon(ID3D12GraphicsCommandList4* cmd_list, bool transparent);
 		void PassSky(ID3D12GraphicsCommandList4* cmd_list);
 		void PassOcean(ID3D12GraphicsCommandList4* cmd_list);
+		void PassParticles(ID3D12GraphicsCommandList4* cmd_list);
 		
 		void PassLensFlare(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassVolumetricClouds(ID3D12GraphicsCommandList4* cmd_list);
