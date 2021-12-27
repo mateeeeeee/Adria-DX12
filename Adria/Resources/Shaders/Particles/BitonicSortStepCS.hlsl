@@ -13,7 +13,7 @@ cbuffer SortConstants : register(b12)
     int4 JobParams;
 };
 
-[RootSignature(BitonicSortStep_RS)]
+[RootSignature(Sort_RS)]
 [numthreads(256, 1, 1)]
 void main(uint3 Gid : SV_GroupID, uint3 GTid : SV_GroupThreadID)
 {

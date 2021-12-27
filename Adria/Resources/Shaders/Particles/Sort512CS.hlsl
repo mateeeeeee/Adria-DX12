@@ -18,7 +18,7 @@ RWStructuredBuffer<float2> Data : register(u0);
 
 groupshared float2 LDS[SORT_SIZE];
 
-[RootSignature(Sort512_RS)]
+[RootSignature(Sort_RS)]
 [numthreads(NUM_THREADS, 1, 1)]
 void main(uint3 Gid : SV_GroupID,
 		  uint3 DTid : SV_DispatchThreadID,

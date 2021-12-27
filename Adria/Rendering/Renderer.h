@@ -100,7 +100,7 @@ namespace adria
 		ProfilerSettings profiler_settings;
 
 		std::unordered_map<EShader, ShaderBlob> shader_map;
-		std::unordered_map<ERootSig, Microsoft::WRL::ComPtr<ID3D12RootSignature>> rs_map;
+		std::unordered_map<ERootSignature, Microsoft::WRL::ComPtr<ID3D12RootSignature>> rs_map;
 		std::unordered_map<EPipelineStateObject, Microsoft::WRL::ComPtr<ID3D12PipelineState>> pso_map;
 
 		//textures and heaps

@@ -3,7 +3,6 @@
 
 RWStructuredBuffer<GPUParticlePartA> ParticleBufferA : register(u0);
 RWStructuredBuffer<GPUParticlePartB> ParticleBufferB : register(u1);
-
 AppendStructuredBuffer<uint> DeadListToAddTo : register(u2);
 RWStructuredBuffer<float2> IndexBuffer : register(u3);
 RWStructuredBuffer<float4> ViewSpacePositions : register(u4);

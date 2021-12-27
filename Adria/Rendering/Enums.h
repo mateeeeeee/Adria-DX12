@@ -87,7 +87,7 @@ namespace adria
 		CS_ParticleInitSortDispatchArgs
 	};
 
-	enum class ERootSig : u8
+	enum class ERootSignature : u8
 	{
 		Skybox,
 		Sky,
@@ -135,8 +135,7 @@ namespace adria
 		Particles_Emit,
 		Particles_Simulate,
 		Particles_InitSortDispatchArgs,
-		Particles_BitonicSortStep,
-		Particles_Sort512,
+		Particles_Sort,
 	};
 
 	enum class EPipelineStateObject : u8
