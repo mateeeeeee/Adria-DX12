@@ -81,9 +81,17 @@ namespace adria
 		void Error(std::string const& entry);
 
 		void AddLogCallback(std::function<void(std::string const&)> callback);
-
 	}
+}
 
+template<typename... Args>
+std::string StringFormat(std::string const& format, Args... args)
+{
+	size_t size = snprintf(nullptr, 0, format.c_str(), args...) + 1;
+	if (size <= 0) return "";
+	std::unique_ptr<char[]> buf(new char[size]);
+	snprintf(buf.get(), size, format.c_str(), args...);
+	return std::string(buf.get(), buf.get() + size - 1);
 }
 
 #if defined(__cpp_lib_source_location) && defined(__cpp_lib_format)
@@ -128,15 +136,6 @@ inline void LOG_ERROR(adria::Logger& logger, std::string const& text, std::sourc
 
 #else 
 
-template<typename... Args>
-std::string StringFormat(std::string const& format, Args... args)
-{
-	size_t size = snprintf(nullptr, 0, format.c_str(), args...) + 1;
-	if (size <= 0) return "";
-	std::unique_ptr<char[]> buf(new char[size]);
-	snprintf(buf.get(), size, format.c_str(), args...);
-	return std::string(buf.get(), buf.get() + size - 1);
-}
 
 #define GLOBAL_LOG_INFO(text)        { adria::Log::Info(StringFormat("Function %s in file %s at line %d", __FUNCTION__,__FILE__, __LINE__) + ": " + std::string(text));	}
 #define GLOBAL_LOG_DEBUG(text)       { adria::Log::Debug(StringFormat("Function %s in file %s at line %d", __FUNCTION__,__FILE__, __LINE__) + ": " + std::string(text));	}
