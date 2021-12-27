@@ -96,10 +96,9 @@ namespace adria
 			std::string time_str = std::string(ctime(&c_time));
 			time_str.pop_back();
 			std::string _entry = "[" + time_str + "] " + ToString(log_type) + entry;
-			log_queue.Push(std::move(_entry));
+			log_queue.Push(_entry);
 
-			for (auto& callback : callbacks)
-				callback(_entry);
+			for (auto& callback : callbacks) callback(_entry);
 		}
 	}
 
