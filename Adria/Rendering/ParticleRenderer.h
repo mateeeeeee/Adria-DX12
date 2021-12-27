@@ -717,6 +717,10 @@ namespace adria
 
 			barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(indirect_sort_args_buffer.Get(), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			cmd_list->ResourceBarrier(ARRAYSIZE(barriers), barriers);
+
+			D3D12_RESOURCE_BARRIER uav_barrier = CD3DX12_RESOURCE_BARRIER::UAV(alive_index_buffer.Buffer());
+			cmd_list->ResourceBarrier(1, &uav_barrier);
+
 			return done;
 		}
 		bool SortIncremental(ID3D12GraphicsCommandList* cmd_list, u32 presorted)
@@ -757,6 +761,9 @@ namespace adria
 				sort_dispatch_info_allocation.Update(sort_dispatch_info);
 				cmd_list->SetComputeRootConstantBufferView(2, sort_dispatch_info_allocation.gpu_address);
 				cmd_list->Dispatch(num_thread_groups, 1, 1);
+
+				D3D12_RESOURCE_BARRIER uav_barrier = CD3DX12_RESOURCE_BARRIER::UAV(alive_index_buffer.Buffer());
+				cmd_list->ResourceBarrier(1, &uav_barrier);
 			}
 			cmd_list->SetPipelineState(particle_pso_map[EPipelineStateObject::Particles_SortInner512].Get());
 			cmd_list->Dispatch(num_thread_groups, 1, 1);

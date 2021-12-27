@@ -33,6 +33,7 @@ Graphics engine written in C++/DirectX12.
 * Ocean FFT
     - Adaptive Tesselation
     - Foam
+* Particles
 * ImGui Editor
 * Profiler
 * Model Loading with tinygltf
@@ -42,7 +43,6 @@ Graphics engine written in C++/DirectX12.
 
 ## TODO List
 * Terrain and Instanced Foliage
-* Particle Systems
 * DXR: Ray Traced Shadows, RTAO
 
 

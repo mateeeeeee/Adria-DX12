@@ -253,8 +253,7 @@ namespace adria
 
             if (engine->input.IsKeyDown(KeyCode::R)) gizmo_op = ImGuizmo::ROTATE;
 
-            if (engine->input.IsKeyDown(KeyCode::E)) gizmo_op = ImGuizmo::SCALE; //e because s is for camera movement and its close to wasd and tr
-
+            if (engine->input.IsKeyDown(KeyCode::E)) gizmo_op = ImGuizmo::SCALE;
         }
 
         engine->camera_manager.ShouldUpdate(mouse_in_scene);
