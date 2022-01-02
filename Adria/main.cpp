@@ -7,6 +7,7 @@
 #include <stb_image.h>
 #include "Core/Window.h"
 #include "Core/Engine.h"
+#include "Logging/Logger.h"
 #include "Editor/Editor.h"
 #include "Utilities/MemoryLeak.h"
 #include "Utilities/CommandLineParser.h"
@@ -19,15 +20,11 @@ int APIENTRY wWinMain(
     _In_ LPWSTR    lpCmdLine,
     _In_ int       nCmdShow)
 {
-    /*
-    MemoryLeak::SetBreak(5583);
-    752 bytes of "memory leak" is because of FileDialog singleton. TODO: replace singleton usage with
-    instance usage to avoid false memory check
-    */
     //MemoryLeak::Checkpoint();
-
     command_line_config_info_t cmd_line_info = ParseCommandLine(lpCmdLine);
     {
+		ADRIA_REGISTER_LOGGER(new FileLogger(cmd_line_info.log_file.c_str()));
+
 		window_init_t window_init{};
 		window_init.instance = hInstance;
 		window_init.width = cmd_line_info.window_width;
@@ -42,7 +39,6 @@ int APIENTRY wWinMain(
 
 		editor_init_t editor_init{};
 		editor_init.engine_init = std::move(engine_init);
-		editor_init.log_file = cmd_line_info.log_file;
 
 		Editor editor{ editor_init };
 

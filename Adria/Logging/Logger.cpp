@@ -1,175 +1,91 @@
 #include "Logger.h"
-#include <cassert>
-#include <fstream>
 #include <chrono>
 #include <ctime>   
+
 #include "../Core/Macros.h"
 
 namespace adria
 {
 
-
-	LogType operator|(LogType lhs, LogType rhs)
-	{
-		using T = std::underlying_type_t<LogType>;
-		return static_cast<LogType>(static_cast<T>(lhs) | static_cast<T>(rhs));
-	}
-
-	LogType& operator|=(LogType& lhs, LogType& rhs)
-	{
-		lhs = lhs | rhs;
-		return lhs;
-	}
-
-	LogType operator&(LogType lhs, LogType rhs)
-	{
-		using T = std::underlying_type_t<LogType>;
-		return static_cast<LogType>(static_cast<T>(lhs) & static_cast<T>(rhs));
-	}
-
-	std::string Logger::ToString(LogType type)
+	std::string LevelToString(ELogLevel type)
 	{
 		switch (type)
 		{
-		case LogType::DEBUG_LOG:
-			return "DEBUG: ";
-		case LogType::INFO_LOG:
-			return "INFO: ";
-		case LogType::WARNING_LOG:
-			return "WARNING: ";
-		case LogType::ERROR_LOG:
-			return "ERROR: ";
-		default:
-			assert(false && "Invalid Log Type");
+		case ELogLevel::LOG_DEBUG:
+			return "[DEBUG]";
+		case ELogLevel::LOG_INFO:
+			return "[INFO]";
+		case ELogLevel::LOG_WARNING:
+			return "[WARNING]";
+		case ELogLevel::LOG_ERROR:
+			return "[ERROR]";
 		}
 		return "";
 	}
-
-	Logger::Logger(std::string_view log_file) : filter(LogType::INFO_LOG | LogType::DEBUG_LOG | LogType::ERROR_LOG | LogType::WARNING_LOG)
+	std::string GetLogTime()
 	{
-		log_thread = std::thread{ &Logger::ProcessLogs, this, log_file };
+		auto time = std::chrono::system_clock::now();
+		time_t c_time = std::chrono::system_clock::to_time_t(time);
+		std::string time_str = std::string(ctime(&c_time));
+		time_str.pop_back();
+		return "[" + time_str + "]";
+	}
+	std::string LineInfoToString(char const* file, uint32_t line)
+	{
+		return "[File: " + std::string(file) + "  Line: " + std::to_string(line) + "]";
 	}
 
-	Logger::Logger(std::string_view log_file, LogType filter) : filter(filter)
-	{
-		log_thread = std::thread{ &Logger::ProcessLogs, this, log_file };
-	}
+	LogManager::LogManager() : log_thread(&LogManager::ProcessLogs, this)
+	{}
 
-	Logger::~Logger()
+	LogManager::~LogManager()
 	{
 		exit.store(true);
 		log_thread.join();
 	}
 
-	void Logger::Debug(std::string const& entry)
+	void LogManager::RegisterLogger(ILogger* logger)
 	{
-		Log(entry, LogType::DEBUG_LOG);
+		loggers.emplace_back(logger);
 	}
 
-	void Logger::Info(std::string const& entry)
+	void LogManager::Log(ELogLevel level, char const* str, char const* filename, uint32_t line)
 	{
-		Log(entry, LogType::INFO_LOG);
+		QueueEntry entry{ level, str, filename, line };
+		log_queue.Push(std::move(entry));
 	}
 
-	void Logger::Warning(std::string const& entry)
+	void LogManager::Log(ELogLevel level, char const* str, std::source_location location /*= std::source_location::current()*/)
 	{
-		Log(entry, LogType::WARNING_LOG);
+		Log(level, str, location.file_name(), location.line());
 	}
 
-	void Logger::Error(std::string const& entry)
+	void LogManager::ProcessLogs()
 	{
-		Log(entry, LogType::ERROR_LOG);
-	}
-
-	void Logger::AddLogCallback(std::function<void(std::string const&)> callback)
-	{
-		callbacks.push_back(callback);
-	}
-
-	void Logger::Log(std::string const& entry, LogType log_type)
-	{
-		
-		if ((log_type & filter) != LogType::EMPTY_LOG)
-		{
-			auto time = std::chrono::system_clock::now();
-			time_t c_time = std::chrono::system_clock::to_time_t(time);
-			std::string time_str = std::string(ctime(&c_time));
-			time_str.pop_back();
-			std::string _entry = "[" + time_str + "] " + ToString(log_type) + entry;
-			log_queue.Push(_entry);
-
-			for (auto& callback : callbacks) callback(_entry);
-		}
-	}
-
-	void Logger::ProcessLogs(std::string_view log_file)
-	{
-		std::ofstream log_stream{ log_file.data(), std::ios::out}; // | std::ios::app 
-		assert(!log_stream.fail() && "Logger error");
-
-		std::string entry{};
+		QueueEntry entry{};
 		while (true)
 		{
 			bool success = log_queue.TryPop(entry);
-			if(success) log_stream << entry;
-
+			if (success)
+			{
+				for (auto&& logger : loggers) if (logger) logger->Log(entry.level, entry.str.c_str(), entry.filename.c_str(), entry.line);
+			}
 			if (exit.load() && log_queue.Empty()) break;
 		}
 	}
 
+	FileLogger::FileLogger(char const* log_file, ELogLevel logger_level) : log_stream{ log_file, std::ios::out }, logger_level{ logger_level }
+	{}
 
-	namespace Log
+	FileLogger::~FileLogger()
 	{
-		std::unique_ptr<Logger> p_logger = nullptr;
-		bool initialized = false;
-
-		void Initialize(std::string_view log_file)
-		{
-			if(!initialized) p_logger = std::make_unique<Logger>(log_file);
-			initialized = true;
-		}
-
-		void Initialize(std::string_view log_file, LogType filter)
-		{
-			if (!initialized) p_logger = std::make_unique<Logger>(log_file, filter);
-			initialized = true;
-		}
-
-		void Destroy()
-		{
-			p_logger.reset(nullptr);
-			initialized = false;
-		}
-
-		void Debug(std::string const& entry)
-		{
-			assert(initialized && "Logger was not initialized! Call Log::Initialize!");
-			p_logger->Debug(entry);
-		}
-
-		void Info(std::string const& entry)
-		{
-			assert(initialized && "Logger was not initialized! Call Log::Initialize!");
-			p_logger->Info(entry);
-		}
-
-		void Warning(std::string const& entry)
-		{
-			assert(initialized && "Logger was not initialized! Call Log::Initialize!");
-			p_logger->Warning(entry);
-		}
-
-		void Error(std::string const& entry)
-		{
-			assert(initialized && "Logger was not initialized! Call Log::Initialize!");
-			p_logger->Error(entry);
-		}
-		void AddLogCallback(std::function<void(std::string const&)> callback)
-		{
-			assert(initialized && "Logger was not initialized! Call Log::Initialize!");
-			p_logger->AddLogCallback(callback);
-		}
+		log_stream.close();
 	}
 
+	void FileLogger::Log(ELogLevel level, char const* entry, char const* file, uint32_t line)
+	{
+		if (level < logger_level) return;
+		log_stream << GetLogTime() + LineInfoToString(file, line) + LevelToString(level) + std::string(entry) << "\n";
+	}
 
 }

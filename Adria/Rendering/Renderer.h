@@ -83,7 +83,7 @@ namespace adria
 
 		TextureManager& GetTextureManager();
 
-		std::vector<std::string> GetProfilerResults();
+		std::vector<std::string> GetProfilerResults(bool log = false);
 
 	private:
 		u32 width, height;

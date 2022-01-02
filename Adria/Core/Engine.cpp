@@ -42,7 +42,6 @@ namespace adria
 	{
 		ShaderUtility::Destroy();
 		TaskSystem::Destroy();
-		Log::Destroy();
 	}
 
 	void Engine::HandleWindowMessage(window_message_t const& msg_data)

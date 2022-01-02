@@ -25,14 +25,14 @@ namespace adria
         void Push(T const& value)
         {
             std::lock_guard<std::mutex> lock(mutex);
-            queue.push(std::move(value));
+            queue.push(value);
             condVar.notify_one();
         }
 
         void Push(T&& value)
         {
             std::lock_guard<std::mutex> lock(mutex);
-            queue.push(value);
+            queue.push(std::forward<T>(value));
             condVar.notify_one();
         }
 

@@ -17,13 +17,19 @@ namespace adria
 			if (is_hdr = static_cast<bool>(stbi_is_hdr(image_file.data())); is_hdr)
 			{
 				f32* pixels = stbi_loadf(image_file.data(), &width, &height, &channels, desired_channels);
-				if (!pixels) GLOBAL_LOG_ERROR("Loading Image File " + std::string(image_file.data()) + " Unsuccessful");
+				if (!pixels)
+				{
+					ADRIA_LOG(ERROR, "Loading Image File %s unsuccessful", image_file.data());
+				}
 				else  _pixels.reset(reinterpret_cast<u8*>(pixels));
 			}
 			else
 			{
 				stbi_uc* pixels = stbi_load(image_file.data(), &width, &height, &channels, desired_channels);
-				if (!pixels) GLOBAL_LOG_ERROR("Loading Image File " + std::string(image_file.data()) + " Unsuccessful");
+				if (!pixels)
+				{
+					ADRIA_LOG(ERROR, "Loading Image File %s unsuccessful", image_file.data());
+				}
 				else _pixels.reset(pixels);
 			}
 

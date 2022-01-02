@@ -11,14 +11,13 @@
 
 namespace adria
 {
-	struct EditorLogger;
+	struct ImGuiLogger;
 	struct Material;
 	enum class MaterialTextureType;
 
 	struct editor_init_t
 	{
 		engine_init_t engine_init;
-		std::string log_file = "";
 	};
 
 	
@@ -37,7 +36,7 @@ namespace adria
 	private:
 		std::unique_ptr<Engine> engine;
 		std::unique_ptr<GUI> gui;
-		std::unique_ptr<EditorLogger> editor_log;
+		std::unique_ptr<ImGuiLogger> editor_log;
 		tecs::entity selected_entity = tecs::null_entity;
 		bool gizmo_enabled = false;
 		bool mouse_in_scene = false;

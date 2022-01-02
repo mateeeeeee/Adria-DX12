@@ -41,7 +41,7 @@ namespace adria
 		cmd_list->ResolveQueryData(query_heap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, begin_query_index, 2, query_readback_buffer.Resource(), readback_offset);
 	}
 
-	std::vector<std::string> Profiler::GetProfilerResults(ID3D12GraphicsCommandList* cmd_list, bool log_results /*= false*/)
+	std::vector<std::string> Profiler::GetProfilerResults(ID3D12GraphicsCommandList* cmd_list, bool log_results)
 	{
 		UINT64 gpu_frequency = 0;
 		gfx->GetTimestampFrequency(gpu_frequency);
@@ -63,9 +63,12 @@ namespace adria
 				double time_ms = (delta / frequency) * 1000.0;
 
 				std::string time_ms_string = std::to_string(time_ms);
-				std::string result = ToString(static_cast<EProfilerBlock>(i)) + " time: " + time_ms_string + "ms\n";
+				std::string result = ToString(static_cast<EProfilerBlock>(i)) + " time: " + time_ms_string + "ms";
 				results.push_back(result);
-				if (log_results) Log::Info(result);
+				if (log_results)
+				{
+					ADRIA_LOG(INFO, result.c_str());
+				}
 			}
 			profile_data.query_started = profile_data.query_finished = false;
 		}

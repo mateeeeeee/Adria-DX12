@@ -186,10 +186,16 @@ namespace adria
 		std::string model_name = GetFilename(model_path);
 		if (!reader.ParseFromFile(model_path, reader_config))
 		{
-			if (!reader.Error().empty())  Log::Error(reader.Error());
+			if (!reader.Error().empty())
+			{
+				ADRIA_LOG(ERROR, reader.Error().c_str());
+			}
 			return {};
 		}
-		if (!reader.Warning().empty())  Log::Warning(reader.Warning());
+		if (!reader.Warning().empty())
+		{
+			ADRIA_LOG(WARNING, reader.Warning().c_str());
+		}
 
 		tinyobj::attrib_t const& attrib = reader.GetAttrib();
 		std::vector<tinyobj::shape_t> const& shapes = reader.GetShapes();
@@ -274,7 +280,7 @@ namespace adria
 			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(as_integer(e)));
 		}
 
-		Log::Info("OBJ Model" + model_path + " successfully loaded!");
+		ADRIA_LOG(INFO, "OBJ Mesh %s successfully loaded!", model_path.c_str());
 		return entities;
 	}
 
@@ -293,9 +299,18 @@ namespace adria
 		bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, params.model_path);
 
 		std::string model_name = GetFilename(params.model_path);
-		if (!warn.empty()) Log::Warning(warn.c_str());
-		if (!err.empty()) Log::Error(err.c_str());
-		if (!ret) Log::Error("Failed to load model " + model_name);
+		if (!warn.empty())
+		{
+			ADRIA_LOG(WARNING, warn.c_str());
+		}
+		if (!err.empty())
+		{
+			ADRIA_LOG(ERROR, err.c_str());
+		}
+		if (!ret)
+		{
+			ADRIA_LOG(ERROR, "Failed to load model %s", model_name.c_str());
+		}
 
 		std::vector<CompleteVertex> vertices{};
 		std::vector<u32> indices{};
@@ -517,9 +532,7 @@ namespace adria
 			mesh.index_buffer = ib;
 			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(as_integer(e)));
 		}
-
-		Log::Info("Model" + params.model_path + " successfully loaded!");
-
+		ADRIA_LOG(INFO, "GLTF Mesh %s successfully loaded!", params.model_path.c_str());
 		return entities;
 	}
 
@@ -587,7 +600,10 @@ namespace adria
                 material.pso = EPipelineStateObject::Sun;
             else if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
                 material.pso = EPipelineStateObject::Billboard;
-            else GLOBAL_LOG_ERROR("Light with quad mesh needs diffuse texture!");
+			else 
+			{ 
+				ADRIA_LOG(ERROR, "Light with quad mesh needs diffuse texture!"); 
+			}
 
             reg.emplace<Material>(light, material);
 

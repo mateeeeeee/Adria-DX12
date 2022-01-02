@@ -18,18 +18,22 @@ namespace adria
 {
     using namespace tecs;
 
-    /////////////////////////////////////////////////////////////////////////
-    /////////////////////////////// PUBLIC //////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////
 
-    struct EditorLogger
+	enum class MaterialTextureType
+	{
+		eAlbedo,
+		eMetallicRoughness,
+		eEmissive
+	};
+
+    struct ImGuiLogger
     {
 		ImGuiTextBuffer     Buf;
 		ImGuiTextFilter     Filter;
 		ImVector<int>       LineOffsets;
 		bool                AutoScroll;
 
-		EditorLogger()
+		ImGuiLogger()
 		{
 			AutoScroll = true;
 			Clear();
@@ -125,21 +129,28 @@ namespace adria
 		}
 	};
 
-	enum class MaterialTextureType
+	class EditorLogger : public ILogger
 	{
-		eAlbedo,
-		eMetallicRoughness,
-		eEmissive
+	public:
+		EditorLogger(ImGuiLogger* logger, ELogLevel logger_level = ELogLevel::LOG_DEBUG) : logger{ logger }, logger_level{ logger_level } {}
+
+		virtual void Log(ELogLevel level, char const* entry, char const* file, uint32_t line) override
+		{
+			if (level < logger_level) return;
+			std::string log_entry = GetLogTime() + LevelToString(level) + std::string(entry) + "\n";
+			if (logger) logger->AddLog(log_entry.c_str());
+		}
+	private:
+		ImGuiLogger* logger;
+		ELogLevel logger_level;
 	};
 
 
-    Editor::Editor(editor_init_t const& init) : engine(), editor_log(new EditorLogger{})
+    Editor::Editor(editor_init_t const& init) : engine(), editor_log(new ImGuiLogger{})
     {
-        Log::Initialize(init.log_file);
-        Log::AddLogCallback([this](std::string const& s) { editor_log->AddLog(s.c_str()); });
-
         engine = std::make_unique<Engine>(init.engine_init);
         gui = std::make_unique<GUI>(engine->gfx.get());
+		ADRIA_REGISTER_LOGGER(new EditorLogger(editor_log.get()));
 
         SetStyle();
     }
@@ -857,7 +868,7 @@ namespace adria
                 }
 
                 static char const* const components[] = { "Mesh", "Transform", "Material",
-               "Visibility", "Light", "Skybox", "Deferred", "Forward" };
+               "Visibility", "Light", "Skybox", "Deferred", "Forward", "Emitter" };
 
                 static int current_component = 0;
                 const char* combo_label = components[current_component];
@@ -885,7 +896,8 @@ namespace adria
                     LIGHT,
                     SKYBOX,
                     DEFERRED,
-                    FORWARD
+                    FORWARD,
+                    EMITTER
                 };
 
                 static model_parameters_t params{};
@@ -922,121 +934,194 @@ namespace adria
                 {
                     switch (current_component)
                     {
-                    case MESH:
-                        if (engine->reg.has<Mesh>(selected_entity))
-                            Log::Warning("Entity already has Mesh Component!\n");
-                        else
-                            Log::Warning("Not supported for now!\n");
-                        break;
-                    case TRANSFORM:
-                        if (engine->reg.has<Transform>(selected_entity))
-                            Log::Warning("Entity already has Transform Component!\n");
-                        else engine->reg.emplace<Transform>(selected_entity);
-                        break;
-                    case MATERIAL:
-                        if (engine->reg.has<Material>(selected_entity))
-                            Log::Warning("Entity already has Material Component!\n");
-                        else
-                        {
-                            Material mat{};
-                            if (engine->reg.has<Deferred>(selected_entity))
-                                mat.pso = EPipelineStateObject::GbufferPBR;
-                            else mat.pso = EPipelineStateObject::Solid;
-                            engine->reg.emplace<Material>(selected_entity, mat);
-                        }
-                        break;
-                    case VISIBILITY:
-                        if (engine->reg.has<Visibility>(selected_entity))
-                            Log::Warning("Entity already has Visibility Component!\n");
-                        else if (!engine->reg.has<Mesh>(selected_entity) || !engine->reg.has<Transform>(selected_entity))
-                        {
-                            Log::Warning("Entity has to have Mesh and Transform Component before adding Visibility!\n");
-                        }
-                        else
-                        {
-                            Log::Warning("Deprecated, add Visibility when adding Mesh component!\n");
-                        }
-                        break;
-                    case LIGHT:
-                        if (engine->reg.has<Light>(selected_entity))
-                            Log::Warning("Entity already has Light Component!\n");
-                        else
-                        {
-                            Light light{};
-                            light.type = light_type;
-                            engine->reg.emplace<Light>(selected_entity, light);
-                        }
-                        break;
-                    case SKYBOX:
-                        if (engine->reg.has<Skybox>(selected_entity))
-                            Log::Warning("Entity already has Skybox Component!\n");
-                        else  engine->reg.emplace<Skybox>(selected_entity);
-                        break;
-                    case DEFERRED:
-                        if (engine->reg.has<Deferred>(selected_entity))
-                            Log::Warning("Entity already has Deferred Component!\n");
-                        else if (engine->reg.has<Forward>(selected_entity))
-                            Log::Warning("Cannot add Deferred Component to entity that has Forward Component!\n");
-                        else {
-                            engine->reg.emplace<Deferred>(selected_entity);
-                        }
-                        break;
-                    case FORWARD:
-                        if (engine->reg.has<Forward>(selected_entity))
-                            Log::Warning("Entity already has Forward Component!\n");
-                        else if (engine->reg.has<Deferred>(selected_entity))
-                            Log::Warning("Cannot add Forward Component to entity that has Deferred Component!\n");
-                        else
-                            engine->reg.emplace<Forward>(selected_entity, false);
-                        break;
+					case MESH:
+						if (engine->reg.has<Mesh>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity already has Mesh Component!");
+						}
+						else
+						{
+							ADRIA_LOG(WARNING, "Not supported for now!");
+						}
+						break;
+					case TRANSFORM:
+						if (engine->reg.has<Transform>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity already has Transform Component!");
+						}
+						else engine->reg.emplace<Transform>(selected_entity);
+						break;
+					case MATERIAL:
+						if (engine->reg.has<Material>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity already has Material Component!");
+						}
+						else
+						{
+							Material mat{};
+							if (engine->reg.has<Deferred>(selected_entity))
+								mat.pso = EPipelineStateObject::GbufferPBR;
+							else mat.pso = EPipelineStateObject::Solid;
+							engine->reg.emplace<Material>(selected_entity, mat);
+						}
+						break;
+					case VISIBILITY:
+						if (engine->reg.has<Visibility>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity already has Visibility Component!");
+						}
+						else if (!engine->reg.has<Mesh>(selected_entity) || !engine->reg.has<Transform>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity has to have Mesh and Transform Component before adding Visibility!");
+						}
+						break;
+					case LIGHT:
+						if (engine->reg.has<Light>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity already has Light Component!");
+						}
+						else
+						{
+							Light light{};
+							light.type = light_type;
+							engine->reg.emplace<Light>(selected_entity, light);
+						}
+						break;
+					case SKYBOX:
+						if (engine->reg.has<Skybox>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity already has Skybox Component!");
+						}
+						else
+						{
+							engine->reg.emplace<Skybox>(selected_entity);
+						}
+						break;
+					case DEFERRED:
+						if (engine->reg.has<Deferred>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity already has Deferred Component!");
+						}
+						else if (engine->reg.has<Forward>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Cannot add Deferred Component to entity that has Forward Component!");
+						}
+						else
+						{
+							engine->reg.emplace<Deferred>(selected_entity);
+						}
+						break;
+					case FORWARD:
+						if (engine->reg.has<Forward>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity already has Forward Component!");
+						}
+						else if (engine->reg.has<Deferred>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Cannot add Forward Component to entity that has Deferred Component!");
+						}
+						else
+						{
+							engine->reg.emplace<Forward>(selected_entity, false);
+						}
+						break;
+					case EMITTER:
+						if (engine->reg.has<Emitter>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity already has Emitter Component!");
+						}
+						else
+						{
+							engine->reg.emplace<Emitter>(selected_entity);
+						}
                     }
                 }
 
                 if (ImGui::Button("Remove Component"))
                 {
-                    switch (current_component)
-                    {
-                    case MESH:
-                        if (!engine->reg.has<Mesh>(selected_entity))
-                            Log::Warning("Entity doesn't have Mesh Component!\n");
-                        else engine->reg.remove<Mesh>(selected_entity);
-                        break;
-                    case TRANSFORM:
-                        if (!engine->reg.has<Transform>(selected_entity))
-                            Log::Warning("Entity doesn't have Transform Component!\n");
-                        else engine->reg.remove<Transform>(selected_entity);
-                        break;
-                    case MATERIAL:
-                        if (!engine->reg.has<Material>(selected_entity))
-                            Log::Warning("Entity doesn't have Material Component!\n");
-                        else engine->reg.remove<Material>(selected_entity);
-                        break;
-                    case VISIBILITY:
-                        if (!engine->reg.has<Visibility>(selected_entity))
-                            Log::Warning("Entity doesn't have Visibility Component!\n");
-                        else engine->reg.remove<Visibility>(selected_entity);
-                        break;
-                    case LIGHT:
-                        if (!engine->reg.has<Light>(selected_entity))
-                            Log::Warning("Entity doesn't have Light Component!\n");
-                        else engine->reg.remove<Light>(selected_entity);
-                        break;
-                    case SKYBOX:
-                        if (!engine->reg.has<Skybox>(selected_entity))
-                            Log::Warning("Entity doesn't have Skybox Component!\n");
-                        else engine->reg.remove<Skybox>(selected_entity);
-                        break;
-                    case DEFERRED:
-                        if (!engine->reg.has<Deferred>(selected_entity))
-                            Log::Warning("Entity doesn't have Deferred Component!\n");
-                        else engine->reg.remove<Deferred>(selected_entity);
-                        break;
-                    case FORWARD:
-                        if (!engine->reg.has<Forward>(selected_entity))
-                            Log::Warning("Entity doesn't have Forward Component!\n");
-                        else engine->reg.remove<Forward>(selected_entity);
-                        break;
-                    }
+					switch (current_component)
+					{
+					case MESH:
+						if (!engine->reg.has<Mesh>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity doesn't have Mesh Component!");
+						}
+						else
+						{
+							engine->reg.remove<Mesh>(selected_entity);
+						}
+						break;
+					case TRANSFORM:
+						if (!engine->reg.has<Transform>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity doesn't have Transform Component!");
+						}
+						else
+						{
+							engine->reg.remove<Transform>(selected_entity);
+						}
+						break;
+					case MATERIAL:
+						if (!engine->reg.has<Material>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity doesn't have Material Component!");
+						}
+						else
+						{
+							engine->reg.remove<Material>(selected_entity);
+						}
+						break;
+					case VISIBILITY:
+						if (!engine->reg.has<Visibility>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity doesn't have Visibility Component!");
+						}
+						else
+						{
+							engine->reg.remove<Visibility>(selected_entity);
+						}
+						break;
+					case LIGHT:
+						if (!engine->reg.has<Light>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity doesn't have Light Component!");
+						}
+						else
+						{
+							engine->reg.remove<Light>(selected_entity);
+						}
+						break;
+					case SKYBOX:
+						if (!engine->reg.has<Skybox>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity doesn't have Skybox Component!");
+						}
+						else
+						{
+							engine->reg.remove<Skybox>(selected_entity);
+						}
+						break;
+					case DEFERRED:
+						if (!engine->reg.has<Deferred>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity doesn't have Deferred Component!");
+						}
+						else
+						{
+							engine->reg.remove<Deferred>(selected_entity);
+						}
+						break;
+					case FORWARD:
+						if (!engine->reg.has<Forward>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity doesn't have Forward Component!");
+						}
+						else
+						{
+							engine->reg.remove<Forward>(selected_entity);
+						}
+						break;
+					}
                 }
             }
         }
@@ -1374,9 +1459,10 @@ namespace adria
 			ImGui::TextWrapped("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 			static bool enable_profiling = false;
 			ImGui::Checkbox("Enable Profiling", &enable_profiling);
-			//ImGui::PushTextWrapPos();
 			if (enable_profiling)
 			{
+                static bool log_results = false;
+                ImGui::Checkbox("Log Results", &log_results);
 				ImGui::Checkbox("Profile GBuffer Pass", &profiler_settings.profile_gbuffer_pass);
 				ImGui::Checkbox("Profile Deferred Pass", &profiler_settings.profile_deferred_pass);
 				ImGui::Checkbox("Profile Forward Pass", &profiler_settings.profile_forward_pass);
@@ -1385,7 +1471,7 @@ namespace adria
 
 				engine->renderer->SetProfilerSettings(profiler_settings);
 
-				std::vector<std::string> results = engine->renderer->GetProfilerResults();
+				std::vector<std::string> results = engine->renderer->GetProfilerResults(log_results);
 				std::string concatenated_results;
 				for (auto const& result : results) concatenated_results += result;
 				ImGui::TextWrapped(concatenated_results.c_str());

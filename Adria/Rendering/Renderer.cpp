@@ -916,9 +916,9 @@ namespace adria
 	{
 		return texture_manager;
 	}
-	std::vector<std::string> Renderer::GetProfilerResults()
+	std::vector<std::string> Renderer::GetProfilerResults(bool log)
 {
-		return profiler.GetProfilerResults(gfx->GetDefaultCommandList());
+		return profiler.GetProfilerResults(gfx->GetDefaultCommandList(), log);
 	}
 	Texture2D Renderer::GetOffscreenTexture() const
 	{
@@ -4449,15 +4449,9 @@ namespace adria
 
 		if (light.type == ELightType::Directional && !light.casts_shadows)
 		{
-			Log::Warning("Calling PassVolumetric on a Directional Light \
-				that does not cast shadows does not make sense!\n");
+			ADRIA_LOG(WARNING, "Calling PassVolumetric on a Directional Light that does not cast shadows does not make sense!");
 			return;
 		}
-		//if (!settings.fog)
-		//{
-		//	Log::Warning("Volumetric Lighting requires Fog to be enabled!\n");
-		//	return;
-		//}
 
 		cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::Volumetric].Get());
 		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
@@ -4934,6 +4928,12 @@ namespace adria
 		ADRIA_ASSERT(light.lens_flare);
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Lens Flare Pass");
 
+		if (light.type != ELightType::Directional)
+		{
+			ADRIA_LOG(WARNING, "Using Lens Flare on a Non-Directional Light Source");
+			return;
+		}
+		
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 		auto upload_buffer = gfx->GetUploadBuffer();
@@ -5325,7 +5325,7 @@ namespace adria
 
 		if (light.type != ELightType::Directional)
 		{
-			Log::Warning("Using God Rays on a Non-Directional Light Source\n");
+			ADRIA_LOG(WARNING, "Using God Rays on a Non-Directional Light Source");
 			return;
 		}
 

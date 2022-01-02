@@ -28,7 +28,7 @@ namespace adria
 
 		void EndProfileBlock(ID3D12GraphicsCommandList* cmd_list, EProfilerBlock block);
 
-		std::vector<std::string> GetProfilerResults(ID3D12GraphicsCommandList* cmd_list, bool log_results = false);
+		std::vector<std::string> GetProfilerResults(ID3D12GraphicsCommandList* cmd_list, bool log_results);
 
 	private:
 		GraphicsCoreDX12* gfx;

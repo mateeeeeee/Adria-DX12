@@ -38,7 +38,7 @@ namespace adria
 		HRESULT hr = device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &features5, sizeof(D3D12_FEATURE_DATA_D3D12_OPTIONS5));
 		if (FAILED(hr) || features5.RaytracingTier == D3D12_RAYTRACING_TIER_NOT_SUPPORTED)
 		{
-			Log::Info("Ray Tracing is not supported! All Ray Tracing calls will be silently ignored!\n");
+			ADRIA_LOG(INFO, "Ray Tracing is not supported! All Ray Tracing calls will be silently ignored!");
 			ray_tracing_supported = false;
 		}
 		else ray_tracing_supported = true;

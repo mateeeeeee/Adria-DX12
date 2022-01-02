@@ -156,7 +156,10 @@ namespace adria
             Microsoft::WRL::ComPtr<ID3DBlob> signature;
             Microsoft::WRL::ComPtr<ID3DBlob> error;
             HRESULT hr = D3DX12SerializeVersionedRootSignature(&signature_desc, D3D_ROOT_SIGNATURE_VERSION_1_1, &signature, &error);
-            if (error) GLOBAL_LOG_ERROR(std::string((char*)error->GetBufferPointer()));
+            if (error)
+            { 
+                ADRIA_LOG(ERROR, (char const*)error->GetBufferPointer());
+            }
             BREAK_IF_FAILED(gfx->GetDevice()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&equirect_root_signature)));
         }
         

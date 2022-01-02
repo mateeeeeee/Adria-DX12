@@ -18,7 +18,7 @@ namespace adria
         HWND handle = static_cast<HWND>(Window::Handle());
         if (!handle)
         {
-            GLOBAL_LOG_ERROR("Window handle is NULL! Have you made a call to Window::Initialize?");
+            ADRIA_LOG(ERROR, "Window handle is NULL! Have you made a call to Window::Initialize?");
             return;
         }
         POINT mouse_screen_pos;
