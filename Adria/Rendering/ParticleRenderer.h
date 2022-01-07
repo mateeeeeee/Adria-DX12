@@ -28,21 +28,21 @@ namespace adria
 		struct GPUParticleA
 		{
 			DirectX::XMFLOAT4	TintAndAlpha;	// The color and opacity
-			f32		Rotation;					// The rotation angle
-			u32		IsSleeping;					// Whether or not the particle is sleeping (ie, don't update position)
+			F32		Rotation;					// The rotation angle
+			U32		IsSleeping;					// Whether or not the particle is sleeping (ie, don't update position)
 		};
 		struct GPUParticleB
 		{
 			DirectX::XMFLOAT3	Position;		// World space position
-			f32		Mass;						// Mass of particle
+			F32		Mass;						// Mass of particle
 
 			DirectX::XMFLOAT3	Velocity;		// World space velocity
-			f32		Lifespan;					// Lifespan of the particle.
+			F32		Lifespan;					// Lifespan of the particle.
 
-			f32		DistanceToEye;				// The distance from the particle to the eye
-			f32		Age;						// The current age counting down from lifespan to zero
-			f32		StartSize;					// The size at spawn time
-			f32		EndSize;					// The time at maximum age
+			F32		DistanceToEye;				// The distance from the particle to the eye
+			F32		Age;						// The current age counting down from lifespan to zero
+			F32		StartSize;					// The size at spawn time
+			F32		EndSize;					// The time at maximum age
 		};
 		struct EmitterCBuffer
 		{
@@ -50,31 +50,31 @@ namespace adria
 			DirectX::XMFLOAT4	EmitterVelocity;
 			DirectX::XMFLOAT4	PositionVariance;
 
-			i32	MaxParticlesThisFrame;
-			f32	ParticleLifeSpan;
-			f32	StartSize;
-			f32	EndSize;
+			I32	MaxParticlesThisFrame;
+			F32	ParticleLifeSpan;
+			F32	StartSize;
+			F32	EndSize;
 
-			f32	VelocityVariance;
-			f32	Mass;
-			f32	ElapsedTime;
-			i32 Collisions;
+			F32	VelocityVariance;
+			F32	Mass;
+			F32	ElapsedTime;
+			I32 Collisions;
 
-			i32 CollisionThickness;
+			I32 CollisionThickness;
 		};
 		struct IndexBufferElement
 		{
-			f32	distance;
-			f32	index;
+			F32	distance;
+			F32	index;
 		};
 		struct ViewSpacePositionRadius
 		{
 			DirectX::XMFLOAT3 viewspace_position;
-			f32 radius;
+			F32 radius;
 		};
 		struct SortDispatchInfo
 		{
-			i32 x, y, z, w;
+			I32 x, y, z, w;
 		};
 	public:
 		ParticleRenderer(GraphicsCoreDX12* gfx) : gfx{ gfx },
@@ -95,7 +95,7 @@ namespace adria
 			ID3D12GraphicsCommandList* cmd_list = gfx->GetDefaultCommandList();
 
 			ID3D12Resource* particle_upload_texture = nullptr;
-			const u64 upload_buffer_size = GetRequiredIntermediateSize(random_texture.Resource(), 0, 1);
+			const U64 upload_buffer_size = GetRequiredIntermediateSize(random_texture.Resource(), 0, 1);
 
 			CD3DX12_HEAP_PROPERTIES heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 			CD3DX12_RESOURCE_DESC resource_desc = CD3DX12_RESOURCE_DESC::Buffer(upload_buffer_size);
@@ -108,8 +108,8 @@ namespace adria
 				IID_PPV_ARGS(&particle_upload_texture)));
 
 			RealRandomGenerator rand_float{ 0.0f, 1.0f };
-			std::vector<f32> random_texture_data;
-			for (u32 i = 0; i < random_texture.Width() * random_texture.Height(); i++)
+			std::vector<F32> random_texture_data;
+			for (U32 i = 0; i < random_texture.Width() * random_texture.Height(); i++)
 			{
 				random_texture_data.push_back(2.0f * rand_float() - 1.0f);
 				random_texture_data.push_back(2.0f * rand_float() - 1.0f);
@@ -119,7 +119,7 @@ namespace adria
 
 			D3D12_SUBRESOURCE_DATA data{};
 			data.pData = random_texture_data.data();
-			data.RowPitch = random_texture.Width() * 4 * sizeof(f32);
+			data.RowPitch = random_texture.Width() * 4 * sizeof(F32);
 			data.SlicePitch = 0;
 
 			UpdateSubresources(cmd_list, random_texture.Resource(), particle_upload_texture, 0, 0, 1, &data);
@@ -153,7 +153,7 @@ namespace adria
 			this->compute_cbuffer_address = compute_cbuffer_address;
 		}
 
-		void Update(f32 dt, Emitter& emitter_params)
+		void Update(F32 dt, Emitter& emitter_params)
 		{
 			emitter_params.elapsed_time += dt;
 			if (emitter_params.particles_per_second > 0.0f)
@@ -162,10 +162,10 @@ namespace adria
 
 				if (emitter_params.accumulation > 1.0f)
 				{
-					f64 integer_part = 0.0;
-					f32 fraction = (f32)modf(emitter_params.accumulation, &integer_part);
+					F64 integer_part = 0.0;
+					F32 fraction = (F32)modf(emitter_params.accumulation, &integer_part);
 
-					emitter_params.number_to_emit = (i32)integer_part;
+					emitter_params.number_to_emit = (I32)integer_part;
 					emitter_params.accumulation = fraction;
 				}
 			}
@@ -193,7 +193,7 @@ namespace adria
 		GraphicsCoreDX12* gfx;
 
 		Texture2D random_texture;
-		StructuredBuffer<u32> dead_list_buffer;
+		StructuredBuffer<U32> dead_list_buffer;
 		StructuredBuffer<GPUParticleA> particle_bufferA;
 		StructuredBuffer<GPUParticleB> particle_bufferB;
 		StructuredBuffer<ViewSpacePositionRadius> view_space_positions_buffer;
@@ -377,7 +377,7 @@ namespace adria
 				indirect_render_args_desc.Alignment = 0;
 				indirect_render_args_desc.SampleDesc.Count = 1;
 				indirect_render_args_desc.Format = DXGI_FORMAT_UNKNOWN;
-				indirect_render_args_desc.Width = 5 * sizeof(u32);
+				indirect_render_args_desc.Width = 5 * sizeof(U32);
 				indirect_render_args_desc.Height = 1;
 				indirect_render_args_desc.DepthOrArraySize = 1;
 				indirect_render_args_desc.MipLevels = 1;
@@ -392,7 +392,7 @@ namespace adria
 				indirect_sort_args_desc.Alignment = 0;
 				indirect_sort_args_desc.SampleDesc.Count = 1;
 				indirect_sort_args_desc.Format = DXGI_FORMAT_UNKNOWN;
-				indirect_sort_args_desc.Width = 4 * sizeof(u32);
+				indirect_sort_args_desc.Width = 4 * sizeof(U32);
 				indirect_sort_args_desc.Height = 1;
 				indirect_sort_args_desc.DepthOrArraySize = 1;
 				indirect_sort_args_desc.MipLevels = 1;
@@ -415,7 +415,7 @@ namespace adria
 			}
 			//creating views
 			{
-				u32 heap_index = 0;
+				U32 heap_index = 0;
 				random_texture.CreateSRV(particle_heap->GetCpuHandle(heap_index++));
 
 				dead_list_buffer.CreateUAV(particle_heap->GetCpuHandle(heap_index++));
@@ -452,7 +452,7 @@ namespace adria
 			}
 			//creating reset counter buffer
 			{
-				CD3DX12_RESOURCE_DESC buffer_desc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(u32));
+				CD3DX12_RESOURCE_DESC buffer_desc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(U32));
 				CD3DX12_HEAP_PROPERTIES upload_heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 				BREAK_IF_FAILED(gfx->GetDevice()->CreateCommittedResource(
 					&upload_heap,
@@ -462,10 +462,10 @@ namespace adria
 					nullptr,
 					IID_PPV_ARGS(&counter_reset_buffer)));
 
-				u8* mapped_reset_buffer = nullptr;
+				U8* mapped_reset_buffer = nullptr;
 				CD3DX12_RANGE read_range(0, 0); 
 				BREAK_IF_FAILED(counter_reset_buffer->Map(0, &read_range, reinterpret_cast<void**>(&mapped_reset_buffer)));
-				ZeroMemory(mapped_reset_buffer, sizeof(u32));
+				ZeroMemory(mapped_reset_buffer, sizeof(U32));
 				counter_reset_buffer->Unmap(0, nullptr);
 			}
 		}
@@ -477,7 +477,7 @@ namespace adria
 
 			D3D12_RESOURCE_BARRIER prereset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(dead_list_buffer.CounterBuffer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_DEST);
 			cmd_list->ResourceBarrier(1, &prereset_barrier);
-			cmd_list->CopyBufferRegion(dead_list_buffer.CounterBuffer(), 0, counter_reset_buffer.Get(), 0, sizeof(u32));
+			cmd_list->CopyBufferRegion(dead_list_buffer.CounterBuffer(), 0, counter_reset_buffer.Get(), 0, sizeof(U32));
 			D3D12_RESOURCE_BARRIER postreset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(dead_list_buffer.CounterBuffer(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			cmd_list->ResourceBarrier(1, &postreset_barrier);
 
@@ -487,7 +487,7 @@ namespace adria
 			device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index), dead_list_buffer.UAV(),
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetGpuHandle(descriptor_index));
-			cmd_list->Dispatch((u32)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
+			cmd_list->Dispatch((U32)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
 		}
 		void ResetParticles(ID3D12GraphicsCommandList* cmd_list)
 		{
@@ -502,7 +502,7 @@ namespace adria
 			device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index + 1), particle_bufferB.UAV(),
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetGpuHandle(descriptor_index));
-			cmd_list->Dispatch((u32)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
+			cmd_list->Dispatch((U32)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
 		}
 
 		void Emit(ID3D12GraphicsCommandList* cmd_list, Emitter const& emitter_params)
@@ -556,7 +556,7 @@ namespace adria
 				cmd_list->SetComputeRootConstantBufferView(2, dead_list_buffer.CounterBuffer()->GetGPUVirtualAddress());
 				cmd_list->SetComputeRootConstantBufferView(3, emitter_allocation.gpu_address);
 
-				u32 thread_groups_x = (UINT)std::ceil(emitter_params.number_to_emit * 1.0f / 1024);
+				U32 thread_groups_x = (UINT)std::ceil(emitter_params.number_to_emit * 1.0f / 1024);
 				cmd_list->Dispatch(thread_groups_x, 1, 1);
 
 				barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(dead_list_buffer.CounterBuffer(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
@@ -576,7 +576,7 @@ namespace adria
 			//reset index buffer counter
 			D3D12_RESOURCE_BARRIER prereset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(alive_index_buffer.CounterBuffer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_DEST);
 			cmd_list->ResourceBarrier(1, &prereset_barrier);
-			cmd_list->CopyBufferRegion(alive_index_buffer.CounterBuffer(), 0, counter_reset_buffer.Get(), 0, sizeof(u32));
+			cmd_list->CopyBufferRegion(alive_index_buffer.CounterBuffer(), 0, counter_reset_buffer.Get(), 0, sizeof(U32));
 			D3D12_RESOURCE_BARRIER postreset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(alive_index_buffer.CounterBuffer(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			cmd_list->ResourceBarrier(1, &postreset_barrier);
 
@@ -586,8 +586,8 @@ namespace adria
 														 dead_list_buffer.UAV(), alive_index_buffer.UAV(),
 														 view_space_positions_buffer.UAV(), indirect_render_args_uav };
 			D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetCpuHandle(descriptor_index) };
-			u32 src_range_sizes[] = { 1, 1, 1, 1, 1, 1 };
-			u32 dst_range_sizes[] = { 6 };
+			U32 src_range_sizes[] = { 1, 1, 1, 1, 1, 1 };
+			U32 dst_range_sizes[] = { 6 };
 			device->CopyDescriptors(ARRAYSIZE(dst_ranges), dst_ranges, dst_range_sizes, ARRAYSIZE(src_ranges), src_ranges, src_range_sizes,
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetGpuHandle(descriptor_index));
@@ -600,7 +600,7 @@ namespace adria
 			cmd_list->SetComputeRootConstantBufferView(3, compute_cbuffer_address);
 			cmd_list->SetComputeRootConstantBufferView(4, emitter_allocation.gpu_address);
 
-			u32 thread_groups_x = (UINT)std::ceil(MAX_PARTICLES * 1.0f / 256);
+			U32 thread_groups_x = (UINT)std::ceil(MAX_PARTICLES * 1.0f / 256);
 			cmd_list->Dispatch(thread_groups_x, 1, 1);
 		}
 		void Rasterize(ID3D12GraphicsCommandList* cmd_list, Emitter const& emitter_params,
@@ -618,8 +618,8 @@ namespace adria
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges1[] = { particle_bufferA.SRV(), view_space_positions_buffer.SRV(), alive_index_buffer.SRV() };
 			D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges1[] = { descriptor_allocator->GetCpuHandle(descriptor_index) };
-			u32 src_range_sizes1[] = { 1, 1, 1 };
-			u32 dst_range_sizes1[] = { 3 };
+			U32 src_range_sizes1[] = { 1, 1, 1 };
+			U32 dst_range_sizes1[] = { 3 };
 			device->CopyDescriptors(ARRAYSIZE(dst_ranges1), dst_ranges1, dst_range_sizes1, ARRAYSIZE(src_ranges1), src_ranges1, src_range_sizes1,
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			cmd_list->SetGraphicsRootDescriptorTable(0, descriptor_allocator->GetGpuHandle(descriptor_index));
@@ -627,8 +627,8 @@ namespace adria
 			descriptor_index = descriptor_allocator->AllocateRange(2);
 			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges2[] = { particle_srv, depth_srv };
 			D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges2[] = { descriptor_allocator->GetCpuHandle(descriptor_index) };
-			u32 src_range_sizes2[] = { 1, 1 };
-			u32 dst_range_sizes2[] = { 2 };
+			U32 src_range_sizes2[] = { 1, 1 };
+			U32 dst_range_sizes2[] = { 2 };
 			device->CopyDescriptors(ARRAYSIZE(dst_ranges2), dst_ranges2, dst_range_sizes2, ARRAYSIZE(src_ranges2), src_ranges2, src_range_sizes2,
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
@@ -688,7 +688,7 @@ namespace adria
 			cmd_list->SetComputeRootConstantBufferView(2, sort_dispatch_info_allocation.gpu_address);
 
 			bool done = SortInitial(cmd_list);
-			u32 presorted = 512;
+			U32 presorted = 512;
 			while (!done)
 			{
 				done = SortIncremental(cmd_list, presorted);
@@ -723,7 +723,7 @@ namespace adria
 
 			return done;
 		}
-		bool SortIncremental(ID3D12GraphicsCommandList* cmd_list, u32 presorted)
+		bool SortIncremental(ID3D12GraphicsCommandList* cmd_list, U32 presorted)
 		{
 			ID3D12Device* device = gfx->GetDevice();
 			LinearDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
@@ -740,8 +740,8 @@ namespace adria
 				num_thread_groups = pow2 >> 9;
 			}
 			
-			u32 merge_size = presorted * 2;
-			for (u32 merge_subsize = merge_size >> 1; merge_subsize > 256; merge_subsize = merge_subsize >> 1)
+			U32 merge_size = presorted * 2;
+			for (U32 merge_subsize = merge_size >> 1; merge_subsize > 256; merge_subsize = merge_subsize >> 1)
 			{
 				SortDispatchInfo sort_dispatch_info{};
 				sort_dispatch_info.x = merge_subsize;

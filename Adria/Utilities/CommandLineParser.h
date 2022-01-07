@@ -1,20 +1,22 @@
 #pragma once
 #include <shellapi.h>
 #include <string>
+#include <vector>
+#include "../Utilities/StringUtil.h"
 #include "../Core/Definitions.h"
-
 
 namespace adria
 {
 
 	struct command_line_config_info_t
 	{
-		u32 window_width = 1080;
-		u32 window_height = 720;
+		U32 window_width = 1080;
+		U32 window_height = 720;
 		std::string window_title = "adria";
 		bool window_maximize = false;
-		bool vsync = true;
+		bool vsync = false;
 		std::string log_file = "adria.log";
+		int log_level = 0;
 	};
 
 	static command_line_config_info_t ParseCommandLine(LPWSTR command_line)
@@ -29,58 +31,38 @@ namespace adria
 			return config;
 		}
 
-		if (argc > 0)
+		std::vector<std::wstring> args(argv, argv + argc);
+		for (size_t i = 0; i < args.size(); ++i)
 		{
-			CHAR str[256];
-			INT32 i = 0;
-			while (i < argc)
+			if (args[i] == L"--log")
 			{
-				wcstombs(str, argv[i], sizeof(str));
-
-				if (strcmp(str, "-width") == 0)
-				{
-					i++;
-					wcstombs(str, argv[i], sizeof(str));
-					config.window_width = atoi(str);
-				}
-				else if (strcmp(str, "-height") == 0)
-				{
-					i++;
-					wcstombs(str, argv[i], sizeof(str));
-					config.window_height = atoi(str);
-				}
-				else if (strcmp(str, "-title") == 0)
-				{
-					i++;
-					wcstombs(str, argv[i], sizeof(str));
-					config.window_title = str;
-				}
-				else if (strcmp(str, "-max") == 0)
-				{
-					i++;
-					wcstombs(str, argv[i], sizeof(str));
-					if (strcmp(str, "true") == 0) config.window_maximize = true;
-					else if (strcmp(str, "false") == 0) config.window_maximize = false;
-					//else use default
-				}
-				else if (strcmp(str, "-vsync") == 0)
-				{
-					i++;
-					wcstombs(str, argv[i], sizeof(str));
-					if (strcmp(str, "true") == 0) config.vsync = true;
-					else if (strcmp(str, "false") == 0) config.vsync = false;
-					//else use default
-				}
-				else if (strcmp(str, "-log") == 0)
-				{
-					i++;
-					wcstombs(str, argv[i], sizeof(str));
-					config.log_file = str;
-				}
-				i++;
+				config.log_file = ConvertToNarrow(args[++i]);
+			}
+			else if (args[i] == L"--loglevel")
+			{
+				config.log_level = _wtoi(args[++i].c_str());
+			}
+			else if (args[i] == L"--max")
+			{
+				config.window_maximize = true;
+			}
+			else if (args[i] == L"--vsync")
+			{
+				config.vsync = true;
+			}
+			else if (args[i] == L"--title")
+			{
+				config.window_title = _wtoi(args[++i].c_str());
+			}
+			else if (args[i] == L"--width")
+			{
+				config.window_width = _wtoi(args[++i].c_str());
+			}
+			else if (args[i] == L"--height")
+			{
+				config.window_height = _wtoi(args[++i].c_str());
 			}
 		}
-
 		LocalFree(argv);
 		return config;
 	}

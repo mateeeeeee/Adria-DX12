@@ -22,11 +22,11 @@ namespace adria
 
 	struct texture2d_desc_t
 	{
-		u32 width;
-		u32 height;
+		U32 width;
+		U32 height;
 		DXGI_FORMAT format;
 		D3D12_CLEAR_VALUE clear_value;
-		u32 mips = 1;
+		U32 mips = 1;
 		D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE;
 		D3D12_RESOURCE_STATES start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 	};
@@ -162,14 +162,14 @@ namespace adria
 			return resource.Get();
 		}
 
-		u32 Width() const
+		U32 Width() const
 		{
-			return (u32)resource->GetDesc().Width;
+			return (U32)resource->GetDesc().Width;
 		}
 
-		u32 Height() const
+		U32 Height() const
 		{
-			return (u32)resource->GetDesc().Height;
+			return (U32)resource->GetDesc().Height;
 		}
 
 		DXGI_FORMAT Format() const

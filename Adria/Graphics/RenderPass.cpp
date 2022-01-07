@@ -36,7 +36,7 @@ namespace adria
 	{
 		if (!legacy)
 		{
-			cmd_list->BeginRenderPass(static_cast<u32>(rtvs.size()), rtvs.data(), dsv.get(), flags);
+			cmd_list->BeginRenderPass(static_cast<U32>(rtvs.size()), rtvs.data(), dsv.get(), flags);
 		}
 		else
 		{
@@ -60,17 +60,17 @@ namespace adria
 		}
 
 		D3D12_VIEWPORT vp = {};
-		vp.Width = (f32)width;
-		vp.Height = (f32)height;
+		vp.Width = (F32)width;
+		vp.Height = (F32)height;
 		vp.MinDepth = 0.0f;
 		vp.MaxDepth = 1.0f;
 		vp.TopLeftX = 0;
 		vp.TopLeftY = 0;
 		cmd_list->RSSetViewports(1, &vp);
 		D3D12_RECT rect = {};
-		rect.bottom = (i64)height;
+		rect.bottom = (I64)height;
 		rect.left = 0;
-		rect.right = (i64)width;
+		rect.right = (I64)width;
 		rect.top = 0;
 		cmd_list->RSSetScissorRects(1, &rect);
 	}

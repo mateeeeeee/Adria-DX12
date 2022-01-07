@@ -6,7 +6,7 @@
 
 namespace adria
 {
-    enum class KeyCode : u32
+    enum class KeyCode : U32
     {
        
         F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12,
@@ -53,14 +53,14 @@ namespace adria
 
         // Mouse
         void SetMouseVisible(bool visible);
-        void SetMousePosition(f32 xpos, f32 ypos);
+        void SetMousePosition(F32 xpos, F32 ypos);
 
-        f32 GetMousePositionX()  const { return mouse_position_x; }
-        f32 GetMousePositionY()  const { return mouse_position_y; }
+        F32 GetMousePositionX()  const { return mouse_position_x; }
+        F32 GetMousePositionY()  const { return mouse_position_y; }
 
-        f32 GetMouseDeltaX()     const { return mouse_position_x - prev_mouse_position_x;/*return mouse_delta_x;*/ }
-        f32 GetMouseDeltaY()     const { return mouse_position_y - prev_mouse_position_y;/*return mouse_delta_y;*/ }
-        f32 GetMouseWheelDelta() const { return m_mouse_wheel_delta; }
+        F32 GetMouseDeltaX()     const { return mouse_position_x - prev_mouse_position_x;/*return mouse_delta_x;*/ }
+        F32 GetMouseDeltaY()     const { return mouse_position_y - prev_mouse_position_y;/*return mouse_delta_y;*/ }
+        F32 GetMouseWheelDelta() const { return m_mouse_wheel_delta; }
 
 
     private:
@@ -69,12 +69,12 @@ namespace adria
         std::unordered_map<KeyCode, bool> keys;
         std::unordered_map<KeyCode, bool> prev_keys;
         // Mouse
-        f32 mouse_position_x = 0.0f;
-        f32 mouse_position_y = 0.0f;
+        F32 mouse_position_x = 0.0f;
+        F32 mouse_position_y = 0.0f;
 
-        f32 prev_mouse_position_x = 0.0f;
-        f32 prev_mouse_position_y = 0.0f;
-        f32 m_mouse_wheel_delta = 0.0f;
+        F32 prev_mouse_position_x = 0.0f;
+        F32 prev_mouse_position_y = 0.0f;
+        F32 m_mouse_wheel_delta = 0.0f;
 
         bool new_frame = false;
         bool resizing = false;

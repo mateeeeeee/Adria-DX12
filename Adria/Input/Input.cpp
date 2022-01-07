@@ -7,7 +7,7 @@
 namespace adria
 {
 
-    inline bool IsPressed(i32 key_code)
+    inline bool IsPressed(I32 key_code)
     {
         return (::GetKeyState(key_code) & 0x8000) != 0;
     }
@@ -24,8 +24,8 @@ namespace adria
         POINT mouse_screen_pos;
         if (::GetCursorPos(&mouse_screen_pos))
         {
-            mouse_position_x = static_cast<f32>(mouse_screen_pos.x);
-            mouse_position_y = static_cast<f32>(mouse_screen_pos.y);
+            mouse_position_x = static_cast<F32>(mouse_screen_pos.x);
+            mouse_position_y = static_cast<F32>(mouse_screen_pos.y);
         }
     }
 
@@ -41,8 +41,8 @@ namespace adria
             POINT mouse_screen_pos;
             if (::GetCursorPos(&mouse_screen_pos))
             {
-                mouse_position_x = static_cast<f32>(mouse_screen_pos.x);
-                mouse_position_y = static_cast<f32>(mouse_screen_pos.y);
+                mouse_position_x = static_cast<F32>(mouse_screen_pos.x);
+                mouse_position_y = static_cast<F32>(mouse_screen_pos.y);
             }
 
             //mouse 
@@ -154,25 +154,25 @@ namespace adria
                 break;
             case WM_EXITSIZEMOVE:
                 resizing = false;
-                event_queue.ConstructAndPushEvent<ResizeEvent>((u32)data.width, (u32)data.height);
+                event_queue.ConstructAndPushEvent<ResizeEvent>((U32)data.width, (U32)data.height);
                 break;
             case WM_SIZE:
-                if (!resizing) event_queue.ConstructAndPushEvent<ResizeEvent>((u32)data.width, (u32)data.height);
+                if (!resizing) event_queue.ConstructAndPushEvent<ResizeEvent>((U32)data.width, (U32)data.height);
                 break;
             case WM_MOUSEWHEEL:
-                event_queue.ConstructAndPushEvent<ScrollEvent>((i32)GET_WHEEL_DELTA_WPARAM(data.wparam) / WHEEL_DELTA);
+                event_queue.ConstructAndPushEvent<ScrollEvent>((I32)GET_WHEEL_DELTA_WPARAM(data.wparam) / WHEEL_DELTA);
             }
 
         }
 
-        m_mouse_wheel_delta = (f32)GET_WHEEL_DELTA_WPARAM(data.wparam) / (f32)WHEEL_DELTA;
+        m_mouse_wheel_delta = (F32)GET_WHEEL_DELTA_WPARAM(data.wparam) / (F32)WHEEL_DELTA;
 
     }
     void Input::SetMouseVisible(bool visible)
     {
         ::ShowCursor(visible);
     }
-    void Input::SetMousePosition(f32 xpos, f32 ypos)
+    void Input::SetMousePosition(F32 xpos, F32 ypos)
     {
         HWND handle = static_cast<HWND>(Window::Handle());
         if (handle == ::GetActiveWindow())

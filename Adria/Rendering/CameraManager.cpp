@@ -13,7 +13,7 @@ namespace adria
 	{
 		cameras.emplace_back(camera_desc);
 	}
-	void CameraManager::Update(f32 dt)
+	void CameraManager::Update(F32 dt)
 	{
 		
 		if (cameras.empty() || !update_camera) return;
@@ -47,10 +47,10 @@ namespace adria
 
 		if (input.GetKey(KeyCode::ClickRight))
 		{
-			f32 dx = input.GetMouseDeltaX();
-			f32 dy = input.GetMouseDeltaY();
-			camera.Pitch((i64)dy);
-			camera.Yaw((i64)dx);
+			F32 dx = input.GetMouseDeltaX();
+			F32 dy = input.GetMouseDeltaY();
+			camera.Pitch((I64)dy);
+			camera.Yaw((I64)dx);
 		}
 
 		camera.UpdateViewMatrix();
@@ -63,18 +63,18 @@ namespace adria
 	{
 		return cameras[current_camera];
 	}
-	void CameraManager::OnResize(u32 width, u32 height)
+	void CameraManager::OnResize(U32 width, U32 height)
 	{
 		for (auto& camera : cameras)
 			camera.OnResize(width, height);
 
 	}
-	void CameraManager::OnScroll(i32 scroll)
+	void CameraManager::OnScroll(I32 scroll)
 	{
 		if (update_camera)
 		{
 			auto& camera = cameras[current_camera];
-			camera.Zoom((f32)scroll);
+			camera.Zoom((F32)scroll);
 		}
 	}
 	void CameraManager::ShouldUpdate(bool update)

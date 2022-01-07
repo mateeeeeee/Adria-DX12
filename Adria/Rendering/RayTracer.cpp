@@ -30,7 +30,7 @@ namespace adria
 	}
 
 
-	RayTracer::RayTracer(tecs::registry& reg, GraphicsCoreDX12* gfx, u32 width, u32 height) 
+	RayTracer::RayTracer(tecs::registry& reg, GraphicsCoreDX12* gfx, U32 width, U32 height) 
 		: reg{ reg }, gfx{ gfx }, width{ width }, height{ height }, ray_tracing_cbuffer(gfx->GetDevice(), gfx->BackbufferCount())
 	{
 		ID3D12Device* device = gfx->GetDevice();
@@ -215,7 +215,7 @@ namespace adria
 			//fill root parameters
 
 			CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_desc{};
-			root_signature_desc.Init_1_1((u32)root_parameters.size(), root_parameters.data(), 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+			root_signature_desc.Init_1_1((U32)root_parameters.size(), root_parameters.data(), 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 			Microsoft::WRL::ComPtr<ID3DBlob> signature;
 			Microsoft::WRL::ComPtr<ID3DBlob> error;
@@ -255,7 +255,7 @@ namespace adria
 			//fill root parameters
 
 			CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_desc{};
-			root_signature_desc.Init_1_1((u32)root_parameters.size(), root_parameters.data(), 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+			root_signature_desc.Init_1_1((U32)root_parameters.size(), root_parameters.data(), 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 			Microsoft::WRL::ComPtr<ID3DBlob> signature;
 			Microsoft::WRL::ComPtr<ID3DBlob> error;
@@ -364,7 +364,7 @@ namespace adria
 		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs = {};
 		inputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
 		inputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_NONE;
-		inputs.NumDescs = (u32)geo_descs.size();
+		inputs.NumDescs = (U32)geo_descs.size();
 		inputs.pGeometryDescs = geo_descs.data();
 		inputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
 

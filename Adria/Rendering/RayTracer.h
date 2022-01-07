@@ -19,7 +19,7 @@ namespace adria
 		};
 	public:
 
-        RayTracer(tecs::registry& reg, GraphicsCoreDX12* gfx, u32 width, u32 height);
+        RayTracer(tecs::registry& reg, GraphicsCoreDX12* gfx, U32 width, U32 height);
 
         bool IsSupported() const;
 
@@ -36,7 +36,7 @@ namespace adria
 
 
     private:
-        u32 width, height;
+        U32 width, height;
         tecs::registry& reg;
         GraphicsCoreDX12* gfx;
 		bool ray_tracing_supported;
@@ -48,7 +48,7 @@ namespace adria
 
         Microsoft::WRL::ComPtr<ID3D12Resource> blas = nullptr;
         Microsoft::WRL::ComPtr<ID3D12Resource> tlas = nullptr;
-        u64 tlas_size = 0;
+        U64 tlas_size = 0;
 
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> rt_shadows_root_signature = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12StateObject> rt_shadows_state_object = nullptr;

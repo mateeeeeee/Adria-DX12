@@ -7,10 +7,10 @@ namespace adria
 
 	struct ResizeEvent : IEvent
 	{
-		u32 width;
-		u32 height;
+		U32 width;
+		U32 height;
 
-		ResizeEvent(u32 width, u32 height) : width(width), height(height)
+		ResizeEvent(U32 width, U32 height) : width(width), height(height)
 		{}
 
 		virtual EventTypeID GetEventTypeID() const override
@@ -21,9 +21,9 @@ namespace adria
 
 	struct ScrollEvent : IEvent
 	{
-		i32 scroll;
+		I32 scroll;
 
-		ScrollEvent(i32 scroll) : scroll(scroll)
+		ScrollEvent(I32 scroll) : scroll(scroll)
 		{}
 
 		virtual EventTypeID GetEventTypeID() const override

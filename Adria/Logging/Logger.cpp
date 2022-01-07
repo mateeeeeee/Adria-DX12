@@ -1,6 +1,7 @@
 #include "Logger.h"
 #include <chrono>
 #include <ctime>   
+#include <iostream>
 
 #include "../Core/Macros.h"
 
@@ -87,5 +88,21 @@ namespace adria
 		if (level < logger_level) return;
 		log_stream << GetLogTime() + LineInfoToString(file, line) + LevelToString(level) + std::string(entry) << "\n";
 	}
+
+	OutputStreamLogger::OutputStreamLogger(bool use_cerr /*= false*/, ELogLevel logger_level /*= ELogLevel::LOG_DEBUG*/)
+		: use_cerr{ use_cerr }, logger_level{ logger_level }
+	{
+	}
+
+	OutputStreamLogger::~OutputStreamLogger()
+	{
+	}
+
+	void OutputStreamLogger::Log(ELogLevel level, char const* entry, char const* file, uint32_t line)
+	{
+		if (level < logger_level) return;
+		(use_cerr ? std::cerr : std::cout) << GetLogTime() + LineInfoToString(file, line) + LevelToString(level) + std::string(entry) << "\n";
+	}
+
 
 }

@@ -33,7 +33,7 @@ namespace adria
 		{
 			DynamicAllocation allocation{}; 
 			allocation.buffer = buffer.Get();
-			allocation.cpu_address = reinterpret_cast<u8*>(cpu_address) + offset;
+			allocation.cpu_address = reinterpret_cast<U8*>(cpu_address) + offset;
 			allocation.gpu_address = gpu_address + offset;
 			allocation.offset = offset;
 			allocation.size = size_in_bytes;

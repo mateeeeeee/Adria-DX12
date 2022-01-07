@@ -5,17 +5,17 @@
 namespace adria
 {
 
-	inline constexpr u64 AlignToPowerOfTwo(u64 address, u64 align)
+	inline constexpr U64 AlignToPowerOfTwo(U64 address, U64 align)
 	{
 		if ((0 == align) || (align & (align - 1))) return address;
 
 		return ((address + (align - 1)) & ~(align - 1));
 	}
 
-	inline constexpr u64 Align(u64 address, u64 align)
+	inline constexpr U64 Align(U64 address, U64 align)
 	{
 		if (align == 0 || align == 1) return address;
-		u64 r = address % align; 
+		U64 r = address % align; 
 		return r ? address + (align - r) : address;
 	}
 

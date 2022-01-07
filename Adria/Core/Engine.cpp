@@ -54,7 +54,7 @@ namespace adria
 
 		static EngineTimer timer;
 
-		f32 const dt = timer.MarkInSeconds();
+		F32 const dt = timer.MarkInSeconds();
 
 		if (Window::IsActive() || true) //for now
 		{
@@ -72,7 +72,7 @@ namespace adria
 
 	}
 
-	void Engine::Update(f32 dt)
+	void Engine::Update(F32 dt)
 	{
 		camera_manager.Update(dt);
 		auto const& camera = camera_manager.GetActiveCamera();
@@ -99,10 +99,10 @@ namespace adria
 		gfx->ResetDefaultCommandList();
 
 		camera_desc_t camera_desc{};
-		camera_desc.aspect_ratio = static_cast<f32>(Window::Width()) / Window::Height();
+		camera_desc.aspect_ratio = static_cast<F32>(Window::Width()) / Window::Height();
 		camera_desc.near_plane = 1.0f;
 		camera_desc.far_plane = 1500.0f;
-		camera_desc.fov = pi_div_4<f32>;
+		camera_desc.fov = pi_div_4<F32>;
 		camera_desc.position_x = 0.0f;
 		camera_desc.position_y = 50.0f;
 		camera_desc.position_z = 0.0f;

@@ -13,9 +13,9 @@ namespace adria
 
 	struct texturecube_desc_t
 	{
-		u32 width;
-		u32 height;
-		u32 levels = 1u;
+		U32 width;
+		U32 height;
+		U32 levels = 1u;
 		DXGI_FORMAT format = DXGI_FORMAT_R32_TYPELESS;
 		D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE;
 		D3D12_RESOURCE_STATES start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
@@ -97,7 +97,7 @@ namespace adria
 			dsv_desc.Texture2DArray.ArraySize = 1;
 			dsv_desc.Flags = D3D12_DSV_FLAG_NONE;
 
-			for (u32 face = 0; face < 6; ++face)
+			for (U32 face = 0; face < 6; ++face)
 			{
 				dsv_desc.Texture2DArray.FirstArraySlice = face;
 	
@@ -107,7 +107,7 @@ namespace adria
 			dsv_handles = handles;
 		}
 
-		auto DSV(u32 i) const
+		auto DSV(U32 i) const
 		{
 			return dsv_handles[i];
 		}
@@ -122,7 +122,7 @@ namespace adria
 			rtv_desc.Texture2DArray.PlaneSlice = 0;
 
 
-			for (u32 face = 0; face < 6; ++face)
+			for (U32 face = 0; face < 6; ++face)
 			{
 				rtv_desc.Texture2DArray.FirstArraySlice = face;
 				device->CreateRenderTargetView(resource.Get(), &rtv_desc, handles[face]);
@@ -131,7 +131,7 @@ namespace adria
 			rtv_handles = handles;
 		}
 
-		auto RTV(u32 i) const
+		auto RTV(U32 i) const
 		{
 			return rtv_handles[i];
 		}

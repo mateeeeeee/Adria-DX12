@@ -11,18 +11,18 @@ namespace adria
 	{
 		void* handle	= nullptr;
         void* instance  = nullptr;
-		u32 msg			= 0;
-        u64 wparam      = 0;
-        i64 lparam      = 0;
-		f32 width		= 0;
-		f32 height		= 0;
+		U32 msg			= 0;
+        U64 wparam      = 0;
+        I64 lparam      = 0;
+		F32 width		= 0;
+		F32 height		= 0;
 	};
 
     struct window_init_t
     {
         HINSTANCE instance;
         std::string title;
-        u32 width, height;
+        U32 width, height;
         bool maximize;
     };
 
@@ -32,11 +32,11 @@ namespace adria
 	public:
         static void Initialize(window_init_t const& init);
 
-        static u32 Width();
+        static U32 Width();
 
-        static u32 Height();
+        static U32 Height();
 
-        static std::pair<u32, u32> Position();
+        static std::pair<U32, U32> Position();
 
         static void SetCallback(std::function<void(window_message_t const& window_data)> callback);
 

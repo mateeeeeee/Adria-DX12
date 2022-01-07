@@ -8,14 +8,14 @@
 
 namespace adria
 {
-	using ShaderIdentifier = u8[D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES];
+	using ShaderIdentifier = U8[D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES];
 
 	class ShaderRecord
 	{
 		friend class ShaderTable;
 
 	public:
-		explicit ShaderRecord(void const* _shader_id, void* _local_root_args = nullptr, u32 _local_root_args_size = 0)
+		explicit ShaderRecord(void const* _shader_id, void* _local_root_args = nullptr, U32 _local_root_args_size = 0)
 			: local_root_args(_local_root_args), local_root_args_size(_local_root_args_size)
 		{
 			memcpy(shader_id, _shader_id, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
@@ -24,15 +24,15 @@ namespace adria
 	private:
 		ShaderIdentifier shader_id;
 		void* local_root_args;
-		u32 local_root_args_size;
+		U32 local_root_args_size;
 	};
 
 	class ShaderTable
 	{
 	public:
 
-		ShaderTable(ID3D12Device5* device, u32 total_shader_records)
-			: shader_record_size((u32)Align(sizeof(ShaderRecord), D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT)),
+		ShaderTable(ID3D12Device5* device, U32 total_shader_records)
+			: shader_record_size((U32)Align(sizeof(ShaderRecord), D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT)),
 			  upload_buffer(device, total_shader_records * shader_record_size)
 		{
 			shader_records.reserve(total_shader_records);
@@ -57,7 +57,7 @@ namespace adria
 			return result;
 		}
 
-		D3D12_GPU_VIRTUAL_ADDRESS_RANGE GetRange(u64 element) const
+		D3D12_GPU_VIRTUAL_ADDRESS_RANGE GetRange(U64 element) const
 		{
 			ADRIA_ASSERT(element < shader_records.size());
 
@@ -70,16 +70,16 @@ namespace adria
 
 	private:
 		std::vector<ShaderRecord> shader_records;
-		u32 shader_record_size;
+		U32 shader_record_size;
 		LinearUploadBuffer upload_buffer;
 	};
 
 	class StateObjectBuilder
 	{
-		static constexpr u64 MAX_SUBOBJECT_DESC_SIZE = sizeof(D3D12_HIT_GROUP_DESC);
+		static constexpr U64 MAX_SUBOBJECT_DESC_SIZE = sizeof(D3D12_HIT_GROUP_DESC);
 	public:
 
-		explicit StateObjectBuilder(u64 max_subobjects) : max_subobjects(max_subobjects), num_subobjects(0u), subobjects(max_subobjects), subobject_data(max_subobjects * MAX_SUBOBJECT_DESC_SIZE)
+		explicit StateObjectBuilder(U64 max_subobjects) : max_subobjects(max_subobjects), num_subobjects(0u), subobjects(max_subobjects), subobject_data(max_subobjects * MAX_SUBOBJECT_DESC_SIZE)
 		{
 		}
 
@@ -122,14 +122,14 @@ namespace adria
 		}
 
 	private:
-		std::vector<u8> subobject_data;
+		std::vector<U8> subobject_data;
 		std::vector<D3D12_STATE_SUBOBJECT> subobjects;
-		u64 const max_subobjects;
-		u64 num_subobjects;
+		U64 const max_subobjects;
+		U64 num_subobjects;
 
 	private:
 		
-		D3D12_STATE_SUBOBJECT const* AddSubObject(void const* desc, u64 desc_size, D3D12_STATE_SUBOBJECT_TYPE type)
+		D3D12_STATE_SUBOBJECT const* AddSubObject(void const* desc, U64 desc_size, D3D12_STATE_SUBOBJECT_TYPE type)
 		{
 			ADRIA_ASSERT(desc != nullptr);
 			ADRIA_ASSERT(desc_size > 0);
@@ -137,7 +137,7 @@ namespace adria
 			ADRIA_ASSERT(desc_size <= MAX_SUBOBJECT_DESC_SIZE);
 			ADRIA_ASSERT(num_subobjects < max_subobjects);
 
-			const u64 subobject_offset = num_subobjects * MAX_SUBOBJECT_DESC_SIZE;
+			const U64 subobject_offset = num_subobjects * MAX_SUBOBJECT_DESC_SIZE;
 			memcpy(subobject_data.data() + subobject_offset, desc, desc_size);
 
 			D3D12_STATE_SUBOBJECT& subobject = subobjects[num_subobjects];
@@ -151,7 +151,7 @@ namespace adria
 		void BuildDescription(D3D12_STATE_OBJECT_TYPE type, D3D12_STATE_OBJECT_DESC& desc)
 		{
 			desc.Type = type;
-			desc.NumSubobjects = static_cast<u32>(num_subobjects);
+			desc.NumSubobjects = static_cast<U32>(num_subobjects);
 			desc.pSubobjects = num_subobjects ? subobjects.data() : nullptr;
 		}
 

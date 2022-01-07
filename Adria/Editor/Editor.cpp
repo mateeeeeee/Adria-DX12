@@ -327,9 +327,9 @@ namespace adria
 		ImGui::Begin("Ocean");
 		{
 			static grid_parameters_t ocean_params{};
-			static i32 tile_count[2] = { 512, 512 };
-			static f32 tile_size[2] = { 40.0f, 40.0f };
-			static f32 texture_scale[2] = { 20.0f, 20.0f };
+			static I32 tile_count[2] = { 512, 512 };
+			static F32 tile_size[2] = { 40.0f, 40.0f };
+			static F32 texture_scale[2] = { 20.0f, 20.0f };
 
 			ImGui::SliderInt2("Tile Count", tile_count, 32, 1024);
 			ImGui::SliderFloat2("Tile Size", tile_size, 1.0, 100.0f);
@@ -424,7 +424,7 @@ namespace adria
                 {
                     static RealRandomGenerator real(0.0f, 1.0f);
 
-                    for (i32 i = 0; i < light_count_to_add; ++i)
+                    for (I32 i = 0; i < light_count_to_add; ++i)
                     {
                         light_parameters_t light_params{};
                         light_params.light_data.casts_shadows = false;
@@ -477,19 +477,19 @@ namespace adria
 				{
 				case 0:
 				{
-					static f32 deep_sky_blue[3] = { 0.0f, 0.75f, 1.0f };
+					static F32 deep_sky_blue[3] = { 0.0f, 0.75f, 1.0f };
 					memcpy(renderer_settings.sky_color, deep_sky_blue, sizeof(deep_sky_blue));
 					break;
 				}
 				case 1:
 				{
-					static f32 sky_blue[3] = { 0.53f, 0.81f, 0.92f };
+					static F32 sky_blue[3] = { 0.53f, 0.81f, 0.92f };
 					memcpy(renderer_settings.sky_color, sky_blue, sizeof(sky_blue));
 					break;
 				}
 				case 2:
 				{
-					static f32 light_sky_blue[3] = { 0.53f, 0.81f, 0.98f };
+					static F32 light_sky_blue[3] = { 0.53f, 0.81f, 0.98f };
 					memcpy(renderer_settings.sky_color, light_sky_blue, sizeof(light_sky_blue));
 					break;
 				}
@@ -599,7 +599,7 @@ namespace adria
                     XMStoreFloat4(&light_direction, light->direction);
                     XMStoreFloat4(&light_position, light->position);
 
-                    f32 color[3] = { light_color.x, light_color.y, light_color.z };
+                    F32 color[3] = { light_color.x, light_color.y, light_color.z };
 
                     ImGui::ColorEdit3("Light Color", color);
 
@@ -615,7 +615,7 @@ namespace adria
 
                     if (light->type == ELightType::Directional || light->type == ELightType::Spot)
                     {
-                        f32 direction[3] = { light_direction.x, light_direction.y, light_direction.z };
+                        F32 direction[3] = { light_direction.x, light_direction.y, light_direction.z };
 
                         ImGui::SliderFloat3("Light direction", direction, -1.0f, 1.0f);
 
@@ -629,7 +629,7 @@ namespace adria
 
                     if (light->type == ELightType::Spot)
                     {
-                        f32 inner_angle = XMConvertToDegrees(acos(light->inner_cosine))
+                        F32 inner_angle = XMConvertToDegrees(acos(light->inner_cosine))
                             , outer_angle = XMConvertToDegrees(acos(light->outer_cosine));
                         ImGui::SliderFloat("Inner Spot Angle", &inner_angle, 0.0f, 90.0f);
                         ImGui::SliderFloat("Outer Spot Angle", &outer_angle, inner_angle, 90.0f);
@@ -640,7 +640,7 @@ namespace adria
 
                     if (light->type == ELightType::Point || light->type == ELightType::Spot)
                     {
-                        f32 position[3] = { light_position.x, light_position.y, light_position.z };
+                        F32 position[3] = { light_position.x, light_position.y, light_position.z };
 
                         ImGui::SliderFloat3("Light position", position, -300.0f, 500.0f);
 
@@ -806,7 +806,7 @@ namespace adria
 					}
 					ImGui::PopID();
 
-					f32 pos[3] = { emitter->position.x, emitter->position.y, emitter->position.z },
+					F32 pos[3] = { emitter->position.x, emitter->position.y, emitter->position.z },
 						vel[3] = { emitter->velocity.x, emitter->velocity.y, emitter->velocity.z },
 						pos_var[3] = { emitter->position_variance.x, emitter->position_variance.y, emitter->position_variance.z };
 
@@ -821,7 +821,7 @@ namespace adria
 					{
 						XMFLOAT4X4 tr;
 						XMStoreFloat4x4(&tr, transform->current_transform);
-						f32 translation[3], rotation[3], scale[3];
+						F32 translation[3], rotation[3], scale[3];
 						ImGuizmo::DecomposeMatrixToComponents(tr.m[0], translation, rotation, scale);
 						ImGuizmo::RecomposeMatrixFromComponents(pos, rotation, scale, tr.m[0]);
 						transform->current_transform = DirectX::XMLoadFloat4x4(&tr);
@@ -1141,11 +1141,11 @@ namespace adria
 			}
 			else
 			{
-				f32 pos[3] = { camera.Position().m128_f32[0],camera.Position().m128_f32[1], camera.Position().m128_f32[2] };
+				F32 pos[3] = { camera.Position().m128_f32[0],camera.Position().m128_f32[1], camera.Position().m128_f32[2] };
 				ImGui::SliderFloat3("Position", pos, 0.0f, 2000.0f);
 				camera.SetPosition(DirectX::XMFLOAT3(pos));
-				f32 _near = camera.Near(), _far = camera.Far();
-				f32 _fov = camera.Fov(), _ar = camera.AspectRatio();
+				F32 _near = camera.Near(), _far = camera.Far();
+				F32 _fov = camera.Fov(), _ar = camera.AspectRatio();
 				ImGui::SliderFloat("Near Plane", &_near, 0.0f, 2.0f);
 				ImGui::SliderFloat("Far Plane", &_far, 10.0f, 3000.0f);
 				ImGui::SliderFloat("FOV", &_fov, 0.01f, 1.5707f);

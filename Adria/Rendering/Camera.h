@@ -9,26 +9,26 @@ namespace adria
 
 	struct camera_desc_t
 	{
-		f32 aspect_ratio;
-		f32 near_plane;
-		f32 far_plane;
-		f32 fov;
-		f32 position_x;
-		f32 position_y;
-		f32 position_z;
+		F32 aspect_ratio;
+		F32 near_plane;
+		F32 far_plane;
+		F32 fov;
+		F32 position_x;
+		F32 position_y;
+		F32 position_z;
 	};
 
 	class Camera
 	{
 		friend class CameraManager;
 
-		void SetLens(f32 fov, f32 aspect, f32 zn, f32 zf);
+		void SetLens(F32 fov, F32 aspect, F32 zn, F32 zf);
 
 		void SetView();
 
-		f32 SPEED = 125.0f;
+		F32 SPEED = 125.0f;
 
-		f32 SENSITIVITY = 0.3f;
+		F32 SENSITIVITY = 0.3f;
 
 	public:
 
@@ -61,21 +61,21 @@ namespace adria
 			return DirectX::XMLoadFloat3(&look_vector);
 		}
 
-		f32 Near() const;
+		F32 Near() const;
 
-		f32 Far() const;
+		F32 Far() const;
 
-		f32 Fov() const;
+		F32 Fov() const;
 
-		f32 AspectRatio() const;
+		F32 AspectRatio() const;
 
 		void SetPosition(DirectX::XMFLOAT3 pos);
 
-		void SetNearAndFar(f32 n, f32 f);
+		void SetNearAndFar(F32 n, F32 f);
 
-		void SetAspectRatio(f32 ar);
+		void SetAspectRatio(F32 ar);
 
-		void SetFov(f32 fov);
+		void SetFov(F32 fov);
 
 	private:
 
@@ -86,31 +86,31 @@ namespace adria
 		DirectX::XMFLOAT4X4 view_matrix;
 		DirectX::XMFLOAT4X4 projection_matrix;
 
-		f32 aspect_ratio;
-		f32 fov;
-		f32 _near, _far;  
+		F32 aspect_ratio;
+		F32 fov;
+		F32 _near, _far;  
 
-		f32 speed = 25.0f;
-		f32 sensitivity = 0.3f;
+		F32 speed = 25.0f;
+		F32 sensitivity = 0.3f;
 
 
 	private:
 
 		void UpdateViewMatrix();
 
-		void Strafe(f32 dt);
+		void Strafe(F32 dt);
 
-		void Walk(f32 dt);
+		void Walk(F32 dt);
 
-		void Jump(f32 dt);
+		void Jump(F32 dt);
 
-		void Pitch(i64 dy);
+		void Pitch(I64 dy);
 
-		void Yaw(i64 dx);
+		void Yaw(I64 dx);
 
-		void Zoom(f32 increment);
+		void Zoom(F32 increment);
 
-		void OnResize(u32 w, u32 h);
+		void OnResize(U32 w, U32 h);
 	};
 
 }

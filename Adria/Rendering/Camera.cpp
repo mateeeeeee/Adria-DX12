@@ -6,9 +6,9 @@
 namespace adria
 {
 
-	constexpr f32 DEGREES_TO_RADIANS(f32 degrees)
+	constexpr F32 DEGREES_TO_RADIANS(F32 degrees)
 	{
-		return (degrees * pi<f32> / 180.0f);
+		return (degrees * pi<F32> / 180.0f);
 	}
 
 	Camera::Camera(camera_desc_t const& desc) : position{ desc.position_x, desc.position_y, desc.position_z }, right_vector{ 1.0f,0.0f,0.0f }, up_vector{ 0.0f,1.0f,0.0f },
@@ -23,18 +23,18 @@ namespace adria
 		return DirectX::XMLoadFloat3(&position);
 	}
 
-	f32 Camera::Near() const
+	F32 Camera::Near() const
 	{
 		return _near;
 	}
 
-	f32 Camera::Far() const
+	F32 Camera::Far() const
 	{
 		return _far;
 	}
 
 
-	void Camera::SetLens(f32 fov, f32 aspect, f32 zn, f32 zf)
+	void Camera::SetLens(F32 fov, F32 aspect, F32 zn, F32 zf)
 	{
 		DirectX::XMMATRIX P = DirectX::XMMatrixPerspectiveFovLH(fov, aspect, zn, zf);
 		XMStoreFloat4x4(&projection_matrix, P);
@@ -61,12 +61,12 @@ namespace adria
 		return frustum;
 	}
 
-	f32 Camera::Fov() const
+	F32 Camera::Fov() const
 	{
 		return fov;
 	}
 
-	f32 Camera::AspectRatio() const
+	F32 Camera::AspectRatio() const
 	{
 		return aspect_ratio;
 	}
@@ -76,7 +76,7 @@ namespace adria
 		position = pos;
 	}
 
-	void Camera::SetNearAndFar(f32 near, f32 far)
+	void Camera::SetNearAndFar(F32 near, F32 far)
 	{
 		_near = near;
 		_far = far;
@@ -105,7 +105,7 @@ namespace adria
 		SetView();
 	}
 
-	void Camera::Strafe(f32 dt)
+	void Camera::Strafe(F32 dt)
 	{
 
 		// mPosition += d*mRight
@@ -115,7 +115,7 @@ namespace adria
 		XMStoreFloat3(&position, DirectX::XMVectorMultiplyAdd(s, r, p));
 	}
 
-	void Camera::Walk(f32 dt)
+	void Camera::Walk(F32 dt)
 	{
 		// mPosition += d*mLook
 		DirectX::XMVECTOR s = DirectX::XMVectorReplicate(dt * SPEED);
@@ -125,7 +125,7 @@ namespace adria
 
 	}
 
-	void Camera::Jump(f32 dt)
+	void Camera::Jump(F32 dt)
 	{
 		// mPosition += d*Up
 		DirectX::XMVECTOR s = DirectX::XMVectorReplicate(dt * SPEED);
@@ -134,48 +134,48 @@ namespace adria
 		DirectX::XMStoreFloat3(&position, DirectX::XMVectorMultiplyAdd(s, l, p));
 	}
 
-	void Camera::Pitch(i64 dy)
+	void Camera::Pitch(I64 dy)
 	{
 		// Rotate up and look vector about the right vector.
-		DirectX::XMMATRIX R = DirectX::XMMatrixRotationAxis(XMLoadFloat3(&right_vector), SENSITIVITY * DEGREES_TO_RADIANS((f32)dy));
+		DirectX::XMMATRIX R = DirectX::XMMatrixRotationAxis(XMLoadFloat3(&right_vector), SENSITIVITY * DEGREES_TO_RADIANS((F32)dy));
 		DirectX::XMStoreFloat3(&up_vector, XMVector3TransformNormal(XMLoadFloat3(&up_vector), R));
 		DirectX::XMStoreFloat3(&look_vector, XMVector3TransformNormal(XMLoadFloat3(&look_vector), R));
 	}
 
-	void Camera::Yaw(i64 dx)
+	void Camera::Yaw(I64 dx)
 	{
 		// Rotate the basis vectors about the world y-axis.
 
-		DirectX::XMMATRIX R = DirectX::XMMatrixRotationY(SENSITIVITY * DEGREES_TO_RADIANS((f32)dx));
+		DirectX::XMMATRIX R = DirectX::XMMatrixRotationY(SENSITIVITY * DEGREES_TO_RADIANS((F32)dx));
 
 		DirectX::XMStoreFloat3(&right_vector, XMVector3TransformNormal(XMLoadFloat3(&right_vector), R));
 		DirectX::XMStoreFloat3(&up_vector, XMVector3TransformNormal(XMLoadFloat3(&up_vector), R));
 		DirectX::XMStoreFloat3(&look_vector, XMVector3TransformNormal(XMLoadFloat3(&look_vector), R));
 	}
 
-	void Camera::Zoom(f32 increment)
+	void Camera::Zoom(F32 increment)
 	{
 		fov -= DEGREES_TO_RADIANS(increment);
-		fov = std::clamp(fov, 0.00005f, pi_div_2<f32>);
+		fov = std::clamp(fov, 0.00005f, pi_div_2<F32>);
 		SetLens(fov, aspect_ratio, _near, _far);
 	}
 
-	void Camera::SetAspectRatio(f32 ar)
+	void Camera::SetAspectRatio(F32 ar)
 	{
 		aspect_ratio = ar;
 		SetLens(fov, aspect_ratio, _near, _far);
 	}
 
-	void Camera::SetFov(f32 _fov)
+	void Camera::SetFov(F32 _fov)
 	{
 		fov = _fov;
 		SetLens(fov, aspect_ratio, _near, _far);
 	}
 
 	
-	void Camera::OnResize(u32 w, u32 h)
+	void Camera::OnResize(U32 w, U32 h)
 	{
-		SetAspectRatio(static_cast<f32>(w) / h);
+		SetAspectRatio(static_cast<F32>(w) / h);
 	}
 
 	DirectX::XMMATRIX Camera::View() const

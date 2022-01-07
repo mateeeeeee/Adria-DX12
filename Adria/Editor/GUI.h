@@ -36,7 +36,7 @@ namespace adria
 		GraphicsCoreDX12* gfx;
 		std::unique_ptr<RingDescriptorAllocator> imgui_allocator;
 		bool visible = true;
-		mutable u64 frame_count = 0;
+		mutable U64 frame_count = 0;
 	};
 
 }

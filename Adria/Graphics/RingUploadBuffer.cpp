@@ -35,7 +35,7 @@ namespace adria
 		{
 			DynamicAllocation allocation{}; 
 			allocation.buffer = buffer.Get();
-			allocation.cpu_address = reinterpret_cast<u8*>(cpu_address) + offset;
+			allocation.cpu_address = reinterpret_cast<U8*>(cpu_address) + offset;
 			allocation.gpu_address = gpu_address + offset;
 			allocation.offset = offset;
 			allocation.size = size_in_bytes;
@@ -46,12 +46,12 @@ namespace adria
 			return DynamicAllocation{};
 		}
 	}
-	void RingUploadBuffer::FinishCurrentFrame(u64 frame)
+	void RingUploadBuffer::FinishCurrentFrame(U64 frame)
 	{
 		std::lock_guard<std::mutex> guard(alloc_mutex);
 		ring_allocator.FinishCurrentFrame(frame);
 	}
-	void RingUploadBuffer::ReleaseCompletedFrames(u64 completed_frame)
+	void RingUploadBuffer::ReleaseCompletedFrames(U64 completed_frame)
 	{
 		std::lock_guard<std::mutex> guard(alloc_mutex);
 		ring_allocator.ReleaseCompletedFrames(completed_frame);

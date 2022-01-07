@@ -21,7 +21,7 @@
 
 namespace adria
 {
-	enum class EQueueType : u8
+	enum class EQueueType : U8
 	{
 		Graphics,
 		Compute,

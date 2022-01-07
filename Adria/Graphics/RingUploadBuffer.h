@@ -13,9 +13,9 @@ namespace adria
 
 		DynamicAllocation Allocate(SIZE_T size_in_bytes, SIZE_T alignment);
 
-		void FinishCurrentFrame(u64 frame);
+		void FinishCurrentFrame(U64 frame);
 
-		void ReleaseCompletedFrames(u64 completed_frame);
+		void ReleaseCompletedFrames(U64 completed_frame);
 
 	private:
 		RingAllocator ring_allocator;

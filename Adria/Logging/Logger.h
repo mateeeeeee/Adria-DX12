@@ -4,9 +4,7 @@
 #include <thread>
 #include <string>
 #include <fstream>
-#if defined(__cpp_lib_source_location)
 #include <source_location>
-#endif
 #include "../Utilities/ConcurrentQueue.h"
 
 namespace adria
@@ -19,7 +17,7 @@ namespace adria
 		LOG_WARNING,
 		LOG_ERROR
 	};
-
+	
 	std::string LevelToString(ELogLevel type);
 	std::string GetLogTime();
 	std::string LineInfoToString(char const* file, uint32_t line);
@@ -39,7 +37,18 @@ namespace adria
 		virtual void Log(ELogLevel level, char const* entry, char const* file, uint32_t line) override;
 	private:
 		std::ofstream log_stream;
-		ELogLevel logger_level;
+		ELogLevel const logger_level;
+	};
+
+	class OutputStreamLogger : public ILogger
+	{
+	public:
+		OutputStreamLogger(bool use_cerr = false, ELogLevel logger_level = ELogLevel::LOG_DEBUG);
+		virtual ~OutputStreamLogger() override;
+		virtual void Log(ELogLevel level, char const* entry, char const* file, uint32_t line) override;
+	private:
+		bool const use_cerr;
+		ELogLevel const logger_level;
 	};
 
 	class LogManager
@@ -61,9 +70,7 @@ namespace adria
 
 		void RegisterLogger(ILogger* logger);
 		void Log(ELogLevel level, char const* str, char const* file, uint32_t line);
-#if defined(__cpp_lib_source_location)
 		void Log(ELogLevel level, char const* str, std::source_location location = std::source_location::current());
-#endif
 
 	private:
 		std::vector<std::unique_ptr<ILogger>> loggers;
@@ -80,7 +87,7 @@ namespace adria
 #define ADRIA_REGISTER_LOGGER(logger) g_log.RegisterLogger(logger)
 #define ADRIA_LOG(level, ... ) [&]()  \
 { \
-	const std::size_t size = snprintf(nullptr, 0, __VA_ARGS__) + 1; \
+	size_t const size = snprintf(nullptr, 0, __VA_ARGS__) + 1; \
 	std::unique_ptr<char[]> buf = std::make_unique<char[]>(size); \
 	snprintf(buf.get(), size, __VA_ARGS__); \
 	g_log.Log(ELogLevel::LOG_##level, buf.get(), __FILE__, __LINE__);  \

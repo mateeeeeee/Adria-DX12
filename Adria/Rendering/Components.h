@@ -27,17 +27,17 @@ namespace adria
 		std::shared_ptr<IndexBuffer>	index_buffer = nullptr;
 		std::shared_ptr<VertexBuffer>   instance_buffer = nullptr;
 		//only vb
-		u32 vertex_count = 0;
-		u32 start_vertex_location = 0; //Index of the first vertex
+		U32 vertex_count = 0;
+		U32 start_vertex_location = 0; //Index of the first vertex
 
 		//vb/ib
-		u32 indices_count = 0;
-		u32 start_index_location = 0; //The location of the first index read by the GPU from the index buffer
-		i32 base_vertex_location = 0;  //A value added to each index before reading a vertex from the vertex buffer
+		U32 indices_count = 0;
+		U32 start_index_location = 0; //The location of the first index read by the GPU from the index buffer
+		I32 base_vertex_location = 0;  //A value added to each index before reading a vertex from the vertex buffer
 
 		//instancing
-		u32 instance_count = 1;
-		u32 start_instance_location = 0; //A value added to each index before reading per-instance data from a vertex buffer
+		U32 instance_count = 1;
+		U32 start_instance_location = 0; //A value added to each index before reading per-instance data from a vertex buffer
 
 		D3D12_PRIMITIVE_TOPOLOGY topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
@@ -77,10 +77,10 @@ namespace adria
 		TEXTURE_HANDLE metallic_roughness_texture = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE emissive_texture			  = INVALID_TEXTURE_HANDLE;
 
-		f32 albedo_factor		= 1.0f;
-		f32 metallic_factor		= 1.0f;
-		f32 roughness_factor	= 1.0f;
-		f32 emissive_factor		= 1.0f;
+		F32 albedo_factor		= 1.0f;
+		F32 metallic_factor		= 1.0f;
+		F32 roughness_factor	= 1.0f;
+		F32 emissive_factor		= 1.0f;
 
 		DirectX::XMFLOAT3 diffuse = DirectX::XMFLOAT3(1, 1, 1);
 		EPipelineStateObject pso = EPipelineStateObject::Unknown;
@@ -91,22 +91,22 @@ namespace adria
 		DirectX::XMVECTOR position	= DirectX::XMVectorSet(0, 0, 0, 1);
 		DirectX::XMVECTOR direction	= DirectX::XMVectorSet(0, -1, 0, 0);
 		DirectX::XMVECTOR color		= DirectX::XMVectorSet(1, 1, 1, 1);
-		f32 range = 100.0f;
-		f32 energy = 1.0f;
+		F32 range = 100.0f;
+		F32 energy = 1.0f;
 		ELightType type = ELightType::Directional;
-		f32 outer_cosine;
-		f32 inner_cosine;
+		F32 outer_cosine;
+		F32 inner_cosine;
 		bool casts_shadows = false;
 		bool use_cascades = false;
 		bool active = true;
-		f32 volumetric_strength = 1.0f;
+		F32 volumetric_strength = 1.0f;
 		bool volumetric = false;
 		bool lens_flare = false;
 		bool god_rays = false;
-		f32 godrays_decay = 0.825f;
-		f32 godrays_weight = 0.25f;
-		f32 godrays_density = 0.975f;
-		f32 godrays_exposure = 2.0f;
+		F32 godrays_decay = 0.825f;
+		F32 godrays_weight = 0.25f;
+		F32 godrays_density = 0.975f;
+		F32 godrays_exposure = 2.0f;
 		bool screenspace_shadows = false;
 	};
 
@@ -129,17 +129,17 @@ namespace adria
 		DirectX::XMFLOAT4	position = DirectX::XMFLOAT4(0, 0, 0, 0);
 		DirectX::XMFLOAT4	velocity = DirectX::XMFLOAT4(0, 5, 0, 0);
 		DirectX::XMFLOAT4	position_variance = DirectX::XMFLOAT4(0, 0, 0, 0);
-		i32					number_to_emit = 0;
-		f32					particle_lifespan = 5.0f;
-		f32					start_size = 10.0f;
-		f32					end_size = 1.0f;
-		f32					mass = 1.0f;
-		f32					velocity_variance = 1.0f;
-		f32					particles_per_second = 100;
-		f32					accumulation = 0.0f;
-		f32					elapsed_time = 0.0f;
+		I32					number_to_emit = 0;
+		F32					particle_lifespan = 5.0f;
+		F32					start_size = 10.0f;
+		F32					end_size = 1.0f;
+		F32					mass = 1.0f;
+		F32					velocity_variance = 1.0f;
+		F32					particles_per_second = 100;
+		F32					accumulation = 0.0f;
+		F32					elapsed_time = 0.0f;
 		bool				collisions_enabled = false;
-		i32					collision_thickness = 40;
+		I32					collision_thickness = 40;
 		bool				alpha_blended = true;
 		bool				pause = false;
 		bool				sort = false;

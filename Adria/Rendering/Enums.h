@@ -6,7 +6,7 @@
 namespace adria
 {
 	
-	enum EShader : u8
+	enum EShader : U8
 	{
 		VS_Skybox,
 		PS_Skybox,
@@ -87,7 +87,7 @@ namespace adria
 		CS_ParticleInitSortDispatchArgs
 	};
 
-	enum class ERootSignature : u8
+	enum class ERootSignature : U8
 	{
 		Skybox,
 		Sky,
@@ -138,7 +138,7 @@ namespace adria
 		Particles_Sort,
 	};
 
-	enum class EPipelineStateObject : u8
+	enum class EPipelineStateObject : U8
 	{
 		Skybox,
 		UniformColorSky,
@@ -212,28 +212,28 @@ namespace adria
         Unknown
 	};
 
-	enum class EToneMap : u8
+	enum class EToneMap : U8
 	{
 		Reinhard,
 		Hable,
 		Linear
 	};
 
-	enum class ELightType : i32
+	enum class ELightType : I32
 	{
 		Directional,
 		Point,
 		Spot
 	};
 
-	enum class ESkyType : u8
+	enum class ESkyType : U8
 	{
 		Skybox,
 		UniformColor,
 		HosekWilkie
 	};
 
-	enum class EBokehType : u8
+	enum class EBokehType : U8
 	{
 		Hex,
 		Oct,
@@ -241,27 +241,27 @@ namespace adria
 		Cross
 	};
 
-	enum class EBlendMode : u8
+	enum class EBlendMode : U8
 	{
 		None,
 		AlphaBlend,
 		AdditiveBlend
 	};
 
-	enum class EFogType : i32
+	enum class EFogType : I32
 	{
 		Exponential,
 		ExponentialHeight
 	};
 
-	enum class EAmbientOcclusion : u8
+	enum class EAmbientOcclusion : U8
 	{
 		None,
 		SSAO,
 		HBAO
 	};
 
-	enum EAntiAliasing : u8
+	enum EAntiAliasing : U8
 	{
 		AntiAliasing_None = 0x0,
 		AntiAliasing_FXAA = 0x1,
