@@ -44,6 +44,8 @@ namespace adria
 
         static bool Loop();
 
+        static void Quit(int exit_code);
+
         static void Destroy();
 
         static void* Handle();

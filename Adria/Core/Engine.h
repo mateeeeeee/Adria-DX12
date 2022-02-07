@@ -9,6 +9,7 @@
 namespace adria
 {
 	struct window_message_t;
+	struct SceneConfig;
 	class GraphicsCoreDX12;
 	class Renderer;
 	class EntityLoader;
@@ -17,7 +18,7 @@ namespace adria
 	struct engine_init_t
 	{
 		bool vsync = false;
-		bool load_default_scene = true;
+		char const* scene_file = "scene.json";
 	};
 
 	
@@ -49,7 +50,7 @@ namespace adria
 		std::unique_ptr<EntityLoader> entity_loader;
 	private:
 	
-		virtual void InitializeScene();
+		virtual void InitializeScene(SceneConfig const& config);
 	
 		virtual void Update(float32 dt);
 	

@@ -1,0 +1,41 @@
+{
+    "camera": {
+		"position": [
+			0.0,
+			25.0,
+			0.0
+		],
+		"look_at": [
+			0.0,
+			0.0,
+			1.0
+		],
+        "fov": 45.0,
+        "near": 1.0,
+        "far": 3000.0,
+        "speed": 50.0,
+		"sensitivity" : 0.3
+    },
+	"skybox" : {
+			"texture" : ["Resources/Textures/Skybox/sunsetcube1024.dds"]
+	}, 
+    "models" : [
+	{
+		"path" : "Resources/Models/Sponza/glTF/Sponza.gltf",
+		"scale" : [0.33, 0.33, 0.33]
+	}
+	],
+	"lights" : [
+	{
+		"type" : "directional",
+		"color" : [1.0, 0.9, 0.99],
+		"direction" : [0.1, -1.0, 0.25],
+		"energy" : 8.0,
+		"shadows" : true,
+		"cascades" : true,
+		"volumetric" : false,
+		"mesh" : "quad",
+		"size" : 250
+	}
+	]
+}		

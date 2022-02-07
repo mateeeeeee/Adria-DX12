@@ -9,7 +9,7 @@ namespace adria
 	{
 	}
 
-	void CameraManager::AddCamera(camera_desc_t const& camera_desc)
+	void CameraManager::AddCamera(camera_parameters_t const& camera_desc)
 	{
 		cameras.emplace_back(camera_desc);
 	}

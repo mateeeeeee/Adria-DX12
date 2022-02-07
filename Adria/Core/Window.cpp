@@ -125,7 +125,13 @@ namespace adria
         }
         return true;
     }
-    void Window::Destroy()
+
+	void Window::Quit(int exit_code)
+	{
+        ::PostQuitMessage(exit_code);
+	}
+
+	void Window::Destroy()
     {
         _msg_callback = nullptr;
         if (_handle) ::DestroyWindow(_handle);

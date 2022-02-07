@@ -505,6 +505,9 @@
     <ClInclude Include="Rendering\ParticleRenderer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="Utilities\JsonUtil.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

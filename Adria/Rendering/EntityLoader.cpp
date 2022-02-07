@@ -512,7 +512,7 @@ namespace adria
 
 				reg.emplace<Material>(e, material);
 
-				XMMATRIX model = XMMatrixScaling(params.model_scale, params.model_scale, params.model_scale);
+				XMMATRIX model = params.model_matrix;
 				BoundingBox aabb = AABBFromRange(vertices.end() - position_accessor.count, vertices.end());
 				aabb.Transform(aabb, model);
 

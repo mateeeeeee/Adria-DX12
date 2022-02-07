@@ -7,34 +7,27 @@
 namespace adria
 {
 
-	struct camera_desc_t
+	struct camera_parameters_t
 	{
 		float32 aspect_ratio;
 		float32 near_plane;
 		float32 far_plane;
 		float32 fov;
-		float32 position_x;
-		float32 position_y;
-		float32 position_z;
+		float32 speed;
+		float32 sensitivity;
+		DirectX::XMFLOAT3 position;
+		DirectX::XMFLOAT3 look_at;
 	};
 
 	class Camera
 	{
 		friend class CameraManager;
 
-		void SetLens(float32 fov, float32 aspect, float32 zn, float32 zf);
-
-		void SetView();
-
-		float32 SPEED = 125.0f;
-
-		float32 SENSITIVITY = 0.3f;
-
 	public:
 
 		Camera() = default;
 
-		explicit Camera(camera_desc_t const&);
+		explicit Camera(camera_parameters_t const&);
 
 		DirectX::XMVECTOR Position() const;
 
@@ -88,10 +81,10 @@ namespace adria
 
 		float32 aspect_ratio;
 		float32 fov;
-		float32 _near, _far;  
+		float32 near_plane, far_plane;  
 
-		float32 speed = 25.0f;
-		float32 sensitivity = 0.3f;
+		float32 speed;
+		float32 sensitivity;
 
 
 	private:
@@ -111,6 +104,10 @@ namespace adria
 		void Zoom(float32 increment);
 
 		void OnResize(uint32 w, uint32 h);
+
+		void SetLens(float32 fov, float32 aspect, float32 zn, float32 zf);
+
+		void SetView();
 	};
 
 }

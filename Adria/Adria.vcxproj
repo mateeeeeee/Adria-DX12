@@ -118,7 +118,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\dxc\include\;$(SolutionDir)ThirdParty\DirectXTex\Include\;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\dxc\include\;$(SolutionDir)ThirdParty\DirectXTex\Include\;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;C:\Users\mateb\OneDrive\Desktop\Projekti\Adria D3D12\ThirdParty\json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
       <AdditionalOptions>/sdl /w34996 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -138,7 +138,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\dxc\include\;$(SolutionDir)ThirdParty\DirectXTex\Include\;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\dxc\include\;$(SolutionDir)ThirdParty\DirectXTex\Include\;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;C:\Users\mateb\OneDrive\Desktop\Projekti\Adria D3D12\ThirdParty\json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
       <AdditionalOptions>/sdl /w34996 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -282,6 +282,7 @@
     <ClInclude Include="Utilities\FilesUtil.h" />
     <ClInclude Include="Utilities\Heightmap.h" />
     <ClInclude Include="Utilities\HosekDataRGB.h" />
+    <ClInclude Include="Utilities\JsonUtil.h" />
     <ClInclude Include="Utilities\LinearAllocator.h" />
     <ClInclude Include="Utilities\RingAllocator.h" />
     <ClInclude Include="Utilities\RingBuffer.h" />

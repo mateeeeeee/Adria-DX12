@@ -1,7 +1,7 @@
-#include "../Tasks/TaskSystem.h"
 #include "Engine.h"
 #include "Window.h"
 #include "Events.h"
+#include "../Tasks/TaskSystem.h"
 #include "../Math/Constants.h"
 #include "../Logging/Logger.h"
 #include "../Graphics/GraphicsCoreDX12.h"
@@ -9,13 +9,199 @@
 #include "../Rendering/EntityLoader.h"
 #include "../Utilities/Random.h"
 #include "../Utilities/Timer.h"
+#include "../Utilities/JsonUtil.h"
+#include "../Utilities/StringUtil.h"
+#include "../Utilities/FilesUtil.h"
 #include "../Audio/AudioSystem.h"
+
+using namespace DirectX;
+using json = nlohmann::json;
 
 namespace adria
 {
 	using namespace tecs;
+	
+	struct SceneConfig
+	{
+		std::vector<model_parameters_t> scene_models;
+		std::vector<light_parameters_t> scene_lights;
+		skybox_parameters_t skybox_params;
+		camera_parameters_t camera_params;
+	};
 
-	Engine::Engine(engine_init_t const& init)  : vsync{ init.vsync }, event_queue {}, input{ event_queue }, camera_manager{ input }
+	namespace
+	{
+		std::optional<SceneConfig> ParseSceneConfig(char const* scene_file)
+		{
+			SceneConfig config{};
+
+			json models, lights, camera, skybox;
+			try
+			{
+				JsonParams scene_params = json::parse(std::ifstream(scene_file));
+				models = scene_params.FindJsonArray("models");
+				lights = scene_params.FindJsonArray("lights");
+				camera = scene_params.FindJson("camera");
+				skybox = scene_params.FindJson("skybox");
+			}
+			catch (json::parse_error const& e)
+			{
+				ADRIA_LOG(ERROR, "JSON Parse error: %s! ", e.what());
+				return std::nullopt;
+			}
+
+			for (auto&& model_json : models)
+			{
+				JsonParams model_params(model_json);
+
+				std::string path;
+				if (!model_params.Find<std::string>("path", path))
+				{
+					ADRIA_LOG(WARNING, "Model doesn't have path field! Skipping this model...");
+				}
+				std::string tex_path = model_params.FindOr<std::string>("tex_path", GetPath(path) + "\\");
+
+				float32 position[3] = { 0.0f, 0.0f, 0.0f };
+				model_params.FindArray("translation", position);
+				XMMATRIX translation = XMMatrixTranslation(position[0], position[1], position[2]);
+
+				float32 angles[3] = { 0.0f, 0.0f, 0.0f };
+				model_params.FindArray("rotation", angles);
+				std::transform(std::begin(angles), std::end(angles), std::begin(angles), XMConvertToRadians);
+				XMMATRIX rotation = XMMatrixRotationX(angles[0]) * XMMatrixRotationY(angles[1]) * XMMatrixRotationZ(angles[2]);
+
+				float32 scale_factors[3] = { 1.0f, 1.0f, 1.0f };
+				model_params.FindArray("scale", scale_factors);
+				XMMATRIX scale = XMMatrixScaling(scale_factors[0], scale_factors[1], scale_factors[2]);
+				XMMATRIX transform = rotation * scale * translation;
+
+				config.scene_models.emplace_back(path, tex_path, transform);
+			}
+
+			for (auto&& light_json : lights)
+			{
+				JsonParams light_params(light_json);
+
+				std::string type;
+				if (!light_params.Find<std::string>("type", type))
+				{
+					ADRIA_LOG(WARNING, "Light doesn't have type field! Skipping this light...");
+				}
+
+				light_parameters_t light{};
+				float32 position[3] = { 0.0f, 0.0f, 0.0f };
+				light_params.FindArray("position", position);
+				light.light_data.position = XMVectorSet(position[0], position[1], position[2], 1.0f);
+
+				float32 direction[3] = { 0.0f, -1.0f, 0.0f };
+				light_params.FindArray("direction", direction);
+				light.light_data.direction = XMVectorSet(direction[0], direction[1], direction[2], 0.0f);
+
+				float32 color[3] = { 1.0f, 1.0f, 1.0f };
+				light_params.FindArray("color", color);
+				light.light_data.color = XMVectorSet(color[0], color[1], color[2], 1.0f);
+
+				light.light_data.energy = light_params.FindOr<float32>("energy", 1.0f);
+				light.light_data.range = light_params.FindOr<float32>("range", 100.0f);
+
+				light.light_data.outer_cosine = std::cos(XMConvertToRadians(light_params.FindOr<float32>("outer_angle", 45.0f)));
+				light.light_data.inner_cosine = std::cos(XMConvertToRadians(light_params.FindOr<float32>("outer_angle", 22.5f)));
+
+				light.light_data.casts_shadows = light_params.FindOr<bool>("shadows", true);
+				light.light_data.use_cascades = light_params.FindOr<bool>("cascades", false);
+
+				light.light_data.active = light_params.FindOr<bool>("active", true);
+				light.light_data.volumetric = light_params.FindOr<bool>("volumetric", false);
+				light.light_data.volumetric_strength = light_params.FindOr<float32>("volumetric_strength", 1.0f);
+
+				light.light_data.lens_flare = light_params.FindOr<bool>("lens_flare", false);
+				light.light_data.god_rays = light_params.FindOr<bool>("god_rays", false);
+
+				light.light_data.godrays_decay = light_params.FindOr<float32>("godrays_decay", 0.825f);
+				light.light_data.godrays_exposure = light_params.FindOr<float32>("godrays_exposure", 2.0f);
+				light.light_data.godrays_density = light_params.FindOr<float32>("godrays_density", 0.975f);
+				light.light_data.godrays_weight = light_params.FindOr<float32>("godrays_weight", 0.25f);
+
+				light.mesh_type = ELightMesh::NoMesh;
+				std::string mesh = light_params.FindOr<std::string>("mesh", "");
+				if (mesh == "sphere")
+				{
+					light.mesh_type = ELightMesh::Sphere;
+				}
+				else if (mesh == "quad")
+				{
+					light.mesh_type = ELightMesh::Quad;
+				}
+				light.mesh_size = light_params.FindOr<uint32>("size", 100u);
+				light.light_texture = ConvertToWide(light_params.FindOr<std::string>("texture", ""));
+				if (light.light_texture.has_value() && light.light_texture->empty()) light.light_texture = std::nullopt;
+
+				if (type == "directional")
+				{
+					light.light_data.type = ELightType::Directional;
+				}
+				else if (type == "point")
+				{
+					light.light_data.type = ELightType::Point;
+				}
+				else if (type == "spot")
+				{
+					light.light_data.type = ELightType::Spot;
+				}
+				else
+				{
+					ADRIA_LOG(WARNING, "Light has invalid type %s! Skipping this light...", type.c_str());
+				}
+
+				config.scene_lights.push_back(std::move(light));
+			}
+
+			JsonParams camera_params(camera);
+			config.camera_params.near_plane = camera_params.FindOr<float32>("near", 1.0f);
+			config.camera_params.far_plane = camera_params.FindOr<float32>("far", 3000.0f);
+			config.camera_params.fov = XMConvertToRadians(camera_params.FindOr<float32>("fov", 90.0f));
+			config.camera_params.sensitivity = camera_params.FindOr<float32>("sensitivity", 0.3f);
+			config.camera_params.speed = camera_params.FindOr<float32>("speed", 25.0f);
+
+			float32 position[3] = { 0.0f, 0.0f, 0.0f };
+			camera_params.FindArray("position", position);
+			config.camera_params.position = XMFLOAT3(position);
+
+			float32 look_at[3] = { 0.0f, 0.0f, 10.0f };
+			camera_params.FindArray("look_at", look_at);
+			config.camera_params.look_at = XMFLOAT3(look_at);
+
+			JsonParams skybox_params(skybox);
+			std::vector<std::string> skybox_textures;
+
+			std::string cubemap[1];
+			if (skybox_params.FindArray("texture", cubemap))
+			{
+				config.skybox_params.cubemap = ConvertToWide(cubemap[0]);
+			}
+			else
+			{
+				std::string cubemap[6];
+				if (skybox_params.FindArray("texture", cubemap))
+				{
+					std::wstring w_cubemap[6];
+					std::transform(std::begin(cubemap), std::end(cubemap), std::begin(w_cubemap), [](std::string const& s) {
+						return ConvertToWide(s); });
+					config.skybox_params.cubemap_textures = std::to_array(w_cubemap);
+				}
+				else
+				{
+					ADRIA_LOG(WARNING, "Skybox texture not found or is incorrectly specified!  \
+										Size of texture array has to be either 1 or 6! Fallback to the default one...");
+					config.skybox_params.cubemap = L"Resources/Textures/Skybox/sunsetcube1024.dds";
+				}
+			}
+
+			return config;
+		}
+	}
+
+	Engine::Engine(engine_init_t const& init) : vsync{ init.vsync }, event_queue{}, input{ event_queue }, camera_manager{ input }
 	{
 		TaskSystem::Initialize();
 		ShaderUtility::Initialize();
@@ -35,7 +221,9 @@ namespace adria
 				camera_manager.OnScroll(e.scroll);
 			});
 
-		if (init.load_default_scene) InitializeScene();
+		std::optional<SceneConfig> scene_config = ParseSceneConfig(init.scene_file);
+		if (scene_config.has_value()) InitializeScene(scene_config.value());
+		else Window::Quit(1);
 	}
 
 	Engine::~Engine()
@@ -51,7 +239,6 @@ namespace adria
 
 	void Engine::Run(RendererSettings const& settings, bool offscreen)
 	{
-
 		static EngineTimer timer;
 
 		float32 const dt = timer.MarkInSeconds();
@@ -69,7 +256,6 @@ namespace adria
 			input.NewFrame();
 			event_queue.ProcessEvents();
 		}
-
 	}
 
 	void Engine::Update(float32 dt)
@@ -94,71 +280,16 @@ namespace adria
 		gfx->SwapBuffers(vsync);
 	}
 
-	void Engine::InitializeScene() 
+	void Engine::InitializeScene(SceneConfig const& config)
 	{
 		gfx->ResetDefaultCommandList();
 
-		camera_desc_t camera_desc{};
-		camera_desc.aspect_ratio = static_cast<float32>(Window::Width()) / Window::Height();
-		camera_desc.near_plane = 1.0f;
-		camera_desc.far_plane = 1500.0f;
-		camera_desc.fov = pi_div_4<float32>;
-		camera_desc.position_x = 0.0f;
-		camera_desc.position_y = 50.0f;
-		camera_desc.position_z = 0.0f;
-		camera_manager.AddCamera(camera_desc);
+		const_cast<SceneConfig&>(config).camera_params.aspect_ratio = static_cast<float32>(Window::Width()) / Window::Height();
+		camera_manager.AddCamera(config.camera_params);
 		
-		skybox_parameters_t skybox_params{};
-		skybox_params.cubemap_textures =
-		{
-			L"Resources/Textures/Skybox/right.jpg",
-			L"Resources/Textures/Skybox/left.jpg",
-			L"Resources/Textures/Skybox/top.jpg",
-			L"Resources/Textures/Skybox/bottom.jpg",
-			L"Resources/Textures/Skybox/front.jpg",
-			L"Resources/Textures/Skybox/back.jpg"
-		};
-		entity_loader->LoadSkybox(skybox_params);
-
-		model_parameters_t model_params{};
-		model_params.model_path = "Resources/Models/Sponza/glTF/Sponza.gltf";
-		model_params.textures_path = "Resources/Models/Sponza/glTF/";
-		model_params.model_scale = 0.3f;
-		entity_loader->LoadGLTFModel(model_params);
-
-		//model_params.model_path = "Resources/Models/DamagedHelmet/glTF/DamagedHelmet.gltf";
-		//model_params.textures_path = "Resources/Models/DamagedHelmet/glTF/";
-		//model_params.model_scale = 3.0f;
-		//model_params.merge_meshes = true;
-		//entity_loader->LoadModel(model_params);
-		
-		light_parameters_t light_params{};
-		light_params.light_data.casts_shadows = true;
-		light_params.light_data.color = DirectX::XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
-		light_params.light_data.energy = 8.0f;
-		light_params.light_data.direction = DirectX::XMVectorSet(0.1f, -1.0f, 0.25f, 0.0f);
-		light_params.light_data.type = ELightType::Directional;
-		light_params.light_data.active = true;
-		light_params.light_data.use_cascades = true;
-		light_params.light_data.volumetric = false;
-		light_params.light_data.volumetric_strength = 1.0f;
-		light_params.mesh_type = ELightMesh::Quad;
-		light_params.mesh_size = 250;
-		light_params.light_texture = L"Resources/Textures/sun.png";
-		
-		entity_loader->LoadLight(light_params);
-
-		/*grid_parameters_t ocean_params{};
-		ocean_params.tile_count_x = 50;
-		ocean_params.tile_count_z = 50;
-		ocean_params.tile_size_x = 10;
-		ocean_params.tile_size_z = 10;
-		ocean_params.texture_scale_x = 1;
-		ocean_params.texture_scale_z = 1;
-
-		ocean_parameters_t params{};
-		params.ocean_grid = std::move(ocean_params);
-		entity_loader->LoadOcean(params);*/
+		entity_loader->LoadSkybox(config.skybox_params);
+		for(auto&& model : config.scene_models) entity_loader->LoadGLTFModel(model);
+		for (auto&& light : config.scene_lights) entity_loader->LoadLight(light);
 
 		renderer->GetTextureManager().GenerateAllMips();
 		renderer->UploadData();
@@ -167,3 +298,27 @@ namespace adria
 		gfx->WaitForGPU();
 	}
 }
+
+
+
+/*
+skybox_parameters_t skybox_params{};
+skybox_params.cubemap_textures =
+{
+	L"Resources/Textures/Skybox/right.jpg",
+	L"Resources/Textures/Skybox/left.jpg",
+	L"Resources/Textures/Skybox/top.jpg",
+	L"Resources/Textures/Skybox/bottom.jpg",
+	L"Resources/Textures/Skybox/front.jpg",
+	L"Resources/Textures/Skybox/back.jpg"
+}; */
+/*grid_parameters_t ocean_params{};
+ocean_params.tile_count_x = 50;
+ocean_params.tile_count_z = 50;
+ocean_params.tile_size_x = 10;
+ocean_params.tile_size_z = 10;
+ocean_params.texture_scale_x = 1;
+ocean_params.texture_scale_z = 1;
+ocean_parameters_t params{};
+params.ocean_grid = std::move(ocean_params);
+entity_loader->LoadOcean(params);*/

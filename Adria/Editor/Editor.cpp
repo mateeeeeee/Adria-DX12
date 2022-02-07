@@ -1144,12 +1144,12 @@ namespace adria
 				float32 pos[3] = { camera.Position().m128_f32[0],camera.Position().m128_f32[1], camera.Position().m128_f32[2] };
 				ImGui::SliderFloat3("Position", pos, 0.0f, 2000.0f);
 				camera.SetPosition(DirectX::XMFLOAT3(pos));
-				float32 _near = camera.Near(), _far = camera.Far();
+				float32 near_plane = camera.Near(), far_plane = camera.Far();
 				float32 _fov = camera.Fov(), _ar = camera.AspectRatio();
-				ImGui::SliderFloat("Near Plane", &_near, 0.0f, 2.0f);
-				ImGui::SliderFloat("Far Plane", &_far, 10.0f, 3000.0f);
+				ImGui::SliderFloat("Near Plane", &near_plane, 0.0f, 2.0f);
+				ImGui::SliderFloat("Far Plane", &far_plane, 10.0f, 3000.0f);
 				ImGui::SliderFloat("FOV", &_fov, 0.01f, 1.5707f);
-				camera.SetNearAndFar(_near, _far);
+				camera.SetNearAndFar(near_plane, far_plane);
 				camera.SetFov(_fov);
 				ImGui::End();
 			}
