@@ -38,13 +38,13 @@ namespace adria
 
 		std::vector<entity> chunks;
 		std::vector<TexturedNormalVertex> vertices{};
-		for (U64 j = 0; j <= params.tile_count_z; j++)
+		for (uint64 j = 0; j <= params.tile_count_z; j++)
 		{
-			for (U64 i = 0; i <= params.tile_count_x; i++)
+			for (uint64 i = 0; i <= params.tile_count_x; i++)
 			{
 				TexturedNormalVertex vertex{};
 
-				F32 height = params.heightmap ? params.heightmap->HeightAt(i, j) : 0.0f;
+				float32 height = params.heightmap ? params.heightmap->HeightAt(i, j) : 0.0f;
 
 				vertex.position = XMFLOAT3(i * params.tile_size_x, height, j * params.tile_size_z);
 				vertex.uv = XMFLOAT2(i * 1.0f * params.texture_scale_x / (params.tile_count_x - 1), j * 1.0f * params.texture_scale_z / (params.tile_count_z - 1));
@@ -55,12 +55,12 @@ namespace adria
 
 		if (!params.split_to_chunks)
 		{
-			std::vector<U32> indices{};
-			U32 i1 = 0;
-			U32 i2 = 1;
-			U32 i3 = static_cast<U32>(i1 + params.tile_count_x + 1);
-			U32 i4 = static_cast<U32>(i2 + params.tile_count_x + 1);
-			for (U64 i = 0; i < params.tile_count_x * params.tile_count_z; ++i)
+			std::vector<uint32> indices{};
+			uint32 i1 = 0;
+			uint32 i2 = 1;
+			uint32 i3 = static_cast<uint32>(i1 + params.tile_count_x + 1);
+			uint32 i4 = static_cast<uint32>(i2 + params.tile_count_x + 1);
+			for (uint64 i = 0; i < params.tile_count_x * params.tile_count_z; ++i)
 			{
 				indices.push_back(i1);
 				indices.push_back(i3);
@@ -91,7 +91,7 @@ namespace adria
 			entity grid = reg.create();
 
 			Mesh mesh{};
-			mesh.indices_count = (U32)indices.size();
+			mesh.indices_count = (uint32)indices.size();
 			mesh.vertex_buffer = std::make_shared<VertexBuffer>(gfx, vertices);
 			mesh.index_buffer = std::make_shared<IndexBuffer>(gfx, indices);
 
@@ -105,15 +105,15 @@ namespace adria
 		}
 		else
 		{
-			std::vector<U32> indices{};
+			std::vector<uint32> indices{};
 			for (size_t j = 0; j < params.tile_count_z; j += params.chunk_count_z)
 			{
 				for (size_t i = 0; i < params.tile_count_x; i += params.chunk_count_x)
 				{
 					entity chunk = reg.create();
 
-					U32 const indices_count = static_cast<U32>(params.chunk_count_z * params.chunk_count_x * 3 * 2);
-					U32 const indices_offset = static_cast<U32>(indices.size());
+					uint32 const indices_count = static_cast<uint32>(params.chunk_count_z * params.chunk_count_x * 3 * 2);
+					uint32 const indices_offset = static_cast<uint32>(indices.size());
 
 
 					std::vector<TexturedNormalVertex> chunk_vertices_aabb{};
@@ -122,10 +122,10 @@ namespace adria
 						for (size_t m = i; m < i + params.chunk_count_x; ++m)
 						{
 
-							U32 i1 = static_cast<U32>(k * (params.tile_count_x + 1) + m);
-							U32 i2 = static_cast<U32>(i1 + 1);
-							U32 i3 = static_cast<U32>((k + 1) * (params.tile_count_x + 1) + m);
-							U32 i4 = static_cast<U32>(i3 + 1);
+							uint32 i1 = static_cast<uint32>(k * (params.tile_count_x + 1) + m);
+							uint32 i2 = static_cast<uint32>(i1 + 1);
+							uint32 i3 = static_cast<uint32>((k + 1) * (params.tile_count_x + 1) + m);
+							uint32 i4 = static_cast<uint32>(i3 + 1);
 
 							indices.push_back(i1);
 							indices.push_back(i3);
@@ -203,7 +203,7 @@ namespace adria
 
 		// Loop over shapes
 		std::vector<TexturedNormalVertex> vertices{};
-		std::vector<U32> indices{};
+		std::vector<uint32> indices{};
 		std::vector<entity> entities{};
 
 		for (size_t s = 0; s < shapes.size(); s++)
@@ -212,8 +212,8 @@ namespace adria
 			entities.push_back(e);
 
 			Mesh mesh_component{};
-			mesh_component.start_index_location = static_cast<U32>(indices.size());
-			mesh_component.base_vertex_location = static_cast<U32>(vertices.size());
+			mesh_component.start_index_location = static_cast<uint32>(indices.size());
+			mesh_component.base_vertex_location = static_cast<uint32>(vertices.size());
 
 			// Loop over faces(polygon)
 			size_t index_offset = 0;
@@ -266,7 +266,7 @@ namespace adria
 				// per-face material
 				//shapes[s].mesh.material_ids[f];
 			}
-			mesh_component.indices_count = static_cast<U32>(index_offset);
+			mesh_component.indices_count = static_cast<uint32>(index_offset);
 		}
 
 		std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>(gfx, vertices);
@@ -313,7 +313,7 @@ namespace adria
 		}
 
 		std::vector<CompleteVertex> vertices{};
-		std::vector<U32> indices{};
+		std::vector<uint32> indices{};
 		std::vector<entity> entities{};
 
 		tinygltf::Scene const& scene = model.scenes[model.defaultScene];
@@ -332,9 +332,9 @@ namespace adria
 				entities.push_back(e);
 
 				Mesh mesh_component{};
-				mesh_component.indices_count = static_cast<U32>(index_accessor.count);
-				mesh_component.start_index_location = static_cast<U32>(indices.size());
-				mesh_component.base_vertex_location = static_cast<U32>(vertices.size());
+				mesh_component.indices_count = static_cast<uint32>(index_accessor.count);
+				mesh_component.start_index_location = static_cast<uint32>(indices.size());
+				mesh_component.base_vertex_location = static_cast<uint32>(vertices.size());
 				switch (primitive.mode)
 				{
 				case TINYGLTF_MODE_POINTS:
@@ -361,25 +361,25 @@ namespace adria
 				tinygltf::BufferView const& position_buffer_view = model.bufferViews[position_accessor.bufferView];
 				tinygltf::Buffer const& position_buffer = model.buffers[position_buffer_view.buffer];
 				int const position_byte_stride = position_accessor.ByteStride(position_buffer_view);
-				U8 const* positions = &position_buffer.data[position_buffer_view.byteOffset + position_accessor.byteOffset];
+				uint8 const* positions = &position_buffer.data[position_buffer_view.byteOffset + position_accessor.byteOffset];
 
 				tinygltf::Accessor const& texcoord_accessor = model.accessors[primitive.attributes["TEXCOORD_0"]];
 				tinygltf::BufferView const& texcoord_buffer_view = model.bufferViews[texcoord_accessor.bufferView];
 				tinygltf::Buffer const& texcoord_buffer = model.buffers[texcoord_buffer_view.buffer];
 				int const texcoord_byte_stride = texcoord_accessor.ByteStride(texcoord_buffer_view);
-				U8 const* texcoords = &texcoord_buffer.data[texcoord_buffer_view.byteOffset + texcoord_accessor.byteOffset];
+				uint8 const* texcoords = &texcoord_buffer.data[texcoord_buffer_view.byteOffset + texcoord_accessor.byteOffset];
 
 				tinygltf::Accessor const& normal_accessor = model.accessors[primitive.attributes["NORMAL"]];
 				tinygltf::BufferView const& normal_buffer_view = model.bufferViews[normal_accessor.bufferView];
 				tinygltf::Buffer const& normal_buffer = model.buffers[normal_buffer_view.buffer];
 				int const normal_byte_stride = normal_accessor.ByteStride(normal_buffer_view);
-				U8 const* normals = &normal_buffer.data[normal_buffer_view.byteOffset + normal_accessor.byteOffset];
+				uint8 const* normals = &normal_buffer.data[normal_buffer_view.byteOffset + normal_accessor.byteOffset];
 
 				tinygltf::Accessor const& tangent_accessor = model.accessors[primitive.attributes["TANGENT"]];
 				tinygltf::BufferView const& tangent_buffer_view = model.bufferViews[tangent_accessor.bufferView];
 				tinygltf::Buffer const& tangent_buffer = model.buffers[tangent_buffer_view.buffer];
 				int const tangent_byte_stride = tangent_accessor.ByteStride(tangent_buffer_view);
-				U8 const* tangents = &tangent_buffer.data[tangent_buffer_view.byteOffset + tangent_accessor.byteOffset];
+				uint8 const* tangents = &tangent_buffer.data[tangent_buffer_view.byteOffset + tangent_accessor.byteOffset];
 
 				ADRIA_ASSERT(position_accessor.count == texcoord_accessor.count);
 				ADRIA_ASSERT(position_accessor.count == normal_accessor.count);
@@ -390,31 +390,31 @@ namespace adria
 				for (size_t i = 0; i < position_accessor.count; ++i)
 				{
 					XMFLOAT3 position;
-					position.x = (reinterpret_cast<F32 const*>(positions + (i * position_byte_stride)))[0];
-					position.y = (reinterpret_cast<F32 const*>(positions + (i * position_byte_stride)))[1];
-					position.z = (reinterpret_cast<F32 const*>(positions + (i * position_byte_stride)))[2];
+					position.x = (reinterpret_cast<float32 const*>(positions + (i * position_byte_stride)))[0];
+					position.y = (reinterpret_cast<float32 const*>(positions + (i * position_byte_stride)))[1];
+					position.z = (reinterpret_cast<float32 const*>(positions + (i * position_byte_stride)))[2];
 					position_array[i] = position;
 
 					XMFLOAT2 texcoord;
-					texcoord.x = (reinterpret_cast<F32 const*>(texcoords + (i * texcoord_byte_stride)))[0];
-					texcoord.y = (reinterpret_cast<F32 const*>(texcoords + (i * texcoord_byte_stride)))[1];
+					texcoord.x = (reinterpret_cast<float32 const*>(texcoords + (i * texcoord_byte_stride)))[0];
+					texcoord.y = (reinterpret_cast<float32 const*>(texcoords + (i * texcoord_byte_stride)))[1];
 					texcoord.y = 1.0f - texcoord.y;
 					texcoord_array[i] = texcoord;
 
 					XMFLOAT3 normal;
-					normal.x = (reinterpret_cast<F32 const*>(normals + (i * normal_byte_stride)))[0];
-					normal.y = (reinterpret_cast<F32 const*>(normals + (i * normal_byte_stride)))[1];
-					normal.z = (reinterpret_cast<F32 const*>(normals + (i * normal_byte_stride)))[2];
+					normal.x = (reinterpret_cast<float32 const*>(normals + (i * normal_byte_stride)))[0];
+					normal.y = (reinterpret_cast<float32 const*>(normals + (i * normal_byte_stride)))[1];
+					normal.z = (reinterpret_cast<float32 const*>(normals + (i * normal_byte_stride)))[2];
 					normal_array[i] = normal;
 
 					XMFLOAT3 tangent{};
 					XMFLOAT3 bitangent{};
 					if (tangents)
 					{
-						tangent.x = (reinterpret_cast<F32 const*>(tangents + (i * tangent_byte_stride)))[0];
-						tangent.y = (reinterpret_cast<F32 const*>(tangents + (i * tangent_byte_stride)))[1];
-						tangent.z = (reinterpret_cast<F32 const*>(tangents + (i * tangent_byte_stride)))[2];
-						float tangent_w = (reinterpret_cast<F32 const*>(tangents + (i * tangent_byte_stride)))[3];
+						tangent.x = (reinterpret_cast<float32 const*>(tangents + (i * tangent_byte_stride)))[0];
+						tangent.y = (reinterpret_cast<float32 const*>(tangents + (i * tangent_byte_stride)))[1];
+						tangent.z = (reinterpret_cast<float32 const*>(tangents + (i * tangent_byte_stride)))[2];
+						float tangent_w = (reinterpret_cast<float32 const*>(tangents + (i * tangent_byte_stride)))[3];
 
 						XMVECTOR _bitangent = XMVectorScale(XMVector3Cross(XMLoadFloat3(&normal), XMLoadFloat3(&tangent)), tangent_w);
 
@@ -428,19 +428,19 @@ namespace adria
 				tinygltf::BufferView const& index_buffer_view = model.bufferViews[index_accessor.bufferView];
 				tinygltf::Buffer const& index_buffer = model.buffers[index_buffer_view.buffer];
 				int const index_byte_stride = index_accessor.ByteStride(index_buffer_view);
-				U8 const* indexes = index_buffer.data.data() + index_buffer_view.byteOffset + index_accessor.byteOffset;
+				uint8 const* indexes = index_buffer.data.data() + index_buffer_view.byteOffset + index_accessor.byteOffset;
 
 				indices.reserve(indices.size() + index_accessor.count);
 				for (size_t i = 0; i < index_accessor.count; ++i)
 				{
-					U32 index = -1;
+					uint32 index = -1;
 					switch (index_accessor.componentType)
 					{
 					case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
-						index = (U32)(reinterpret_cast<U16 const*>(indexes + (i * index_byte_stride)))[0];
+						index = (uint32)(reinterpret_cast<uint16 const*>(indexes + (i * index_byte_stride)))[0];
 						break;
 					case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
-						index = (reinterpret_cast<U32 const*>(indexes + (i * index_byte_stride)))[0];
+						index = (reinterpret_cast<uint32 const*>(indexes + (i * index_byte_stride)))[0];
 						break;
 					default:
 						ADRIA_ASSERT(false);
@@ -479,7 +479,7 @@ namespace adria
 					tinygltf::Image const& base_image = model.images[base_texture.source];
 					std::string texbase = params.textures_path + base_image.uri;
 					material.albedo_texture = texture_manager.LoadTexture(ConvertToWide(texbase));
-					material.albedo_factor = (F32)pbr_metallic_roughness.baseColorFactor[0];
+					material.albedo_factor = (float32)pbr_metallic_roughness.baseColorFactor[0];
 				}
 
 				if (pbr_metallic_roughness.metallicRoughnessTexture.index >= 0)
@@ -488,8 +488,8 @@ namespace adria
 					tinygltf::Image const& metallic_roughness_image = model.images[metallic_roughness_texture.source];
 					std::string texmetallicroughness = params.textures_path + metallic_roughness_image.uri;
 					material.metallic_roughness_texture = texture_manager.LoadTexture(ConvertToWide(texmetallicroughness));
-					material.metallic_factor = (F32)pbr_metallic_roughness.metallicFactor;
-					material.roughness_factor = (F32)pbr_metallic_roughness.roughnessFactor;
+					material.metallic_factor = (float32)pbr_metallic_roughness.metallicFactor;
+					material.roughness_factor = (float32)pbr_metallic_roughness.roughnessFactor;
 				}
 
 				if (gltf_material.normalTexture.index >= 0)
@@ -506,7 +506,7 @@ namespace adria
 					tinygltf::Image const& emissive_image = model.images[emissive_texture.source];
 					std::string texemissive = params.textures_path + emissive_image.uri;
 					material.emissive_texture = texture_manager.LoadTexture(ConvertToWide(texemissive));
-					material.emissive_factor = (F32)gltf_material.emissiveFactor[0];
+					material.emissive_factor = (float32)gltf_material.emissiveFactor[0];
 				}
 				material.pso = EPipelineStateObject::GbufferPBR;
 
@@ -567,7 +567,7 @@ namespace adria
 
         if (params.mesh_type == ELightMesh::Quad)
         {
-            U32 const size = params.mesh_size;
+            uint32 const size = params.mesh_size;
             std::vector<TexturedVertex> const vertices =
             {
                 { {-0.5f * size, -0.5f * size, 0.0f}, {0.0f, 0.0f}},
@@ -576,7 +576,7 @@ namespace adria
                 { {-0.5f * size,  0.5f * size, 0.0f}, {0.0f, 1.0f}}
             };
 
-            std::vector<U16> const indices =
+            std::vector<uint16> const indices =
             {
                     0, 2, 1, 2, 0, 3
             };
@@ -584,7 +584,7 @@ namespace adria
             Mesh mesh{};
             mesh.vertex_buffer = std::make_shared<VertexBuffer>(gfx, vertices);
             mesh.index_buffer = std::make_shared<IndexBuffer>(gfx, indices);
-            mesh.indices_count = static_cast<U32>(indices.size());
+            mesh.indices_count = static_cast<uint32>(indices.size());
 
             reg.emplace<Mesh>(light, mesh);
 

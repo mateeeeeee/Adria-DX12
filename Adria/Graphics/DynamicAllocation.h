@@ -10,7 +10,7 @@ namespace adria
 {
 
 	template<typename CBuffer>
-	inline constexpr U32 GetCBufferSize()
+	inline constexpr uint32 GetCBufferSize()
 	{
 		return (sizeof(CBuffer) + (D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1)) & ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
 	}

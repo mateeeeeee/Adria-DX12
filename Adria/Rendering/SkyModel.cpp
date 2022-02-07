@@ -25,7 +25,7 @@ namespace adria
 		double Evaluate(double const* dataset, size_t stride, float turbidity, float albedo, float sun_theta)
 		{
 			// splines are functions of elevation^1/3
-			double elevationK = pow(std::max<float>(0.f, 1.f - sun_theta / (pi<F32> / 2.f)), 1.f / 3.0f);
+			double elevationK = pow(std::max<float>(0.f, 1.f - sun_theta / (pi<float32> / 2.f)), 1.f / 3.0f);
 
 			// table has values for turbidity 1..10
 			int turbidity0		= std::clamp(static_cast<int>(turbidity), 1, 10);
@@ -57,7 +57,7 @@ namespace adria
 
 			XMVECTOR chi = XMVectorDivide(XMVectorReplicate(1.f + cos_gamma * cos_gamma), XMVectorPow(_H * _H + XMVectorReplicate(1.0f) - XMVectorScale(_H, 2.0f * cos_gamma), XMVectorReplicate(1.5)));
 			XMVECTOR temp1 = _A * XMVectorExp(XMVectorScale(_B, 1.0f/(cos_theta + 0.01f)));
-			XMVECTOR temp2 = _C + _D * XMVectorExp(XMVectorScale(_E, gamma)) + XMVectorScale(_F, gamma * gamma) + chi * _G + XMVectorScale(_I, (F32)sqrt(std::max(0.f, cos_theta)));
+			XMVECTOR temp2 = _C + _D * XMVectorExp(XMVectorScale(_E, gamma)) + XMVectorScale(_F, gamma * gamma) + chi * _G + XMVectorScale(_I, (float32)sqrt(std::max(0.f, cos_theta)));
 			XMVECTOR temp = temp1 * temp2;
 
 			XMFLOAT3 result;
@@ -66,7 +66,7 @@ namespace adria
 		}
 	}
 
-	SkyParameters CalculateSkyParameters(F32 turbidity, F32 albedo, XMFLOAT3 sun_direction)
+	SkyParameters CalculateSkyParameters(float32 turbidity, float32 albedo, XMFLOAT3 sun_direction)
 	{
 		float sun_theta = std::acos(std::clamp(sun_direction.y, 0.f, 1.f));
 

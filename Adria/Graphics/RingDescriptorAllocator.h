@@ -31,9 +31,9 @@ namespace adria
 
 		[[nodiscard]] OffsetType AllocateRange(size_t);
 
-		void FinishCurrentFrame(U64 frame);
+		void FinishCurrentFrame(uint64 frame);
 
-		void ReleaseCompletedFrames(U64 completed_frame);
+		void ReleaseCompletedFrames(uint64 completed_frame);
 
 	private:
 		RingAllocator ring_allocator;

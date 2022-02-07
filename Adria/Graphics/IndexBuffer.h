@@ -144,7 +144,7 @@ namespace adria
         Microsoft::WRL::ComPtr<ID3D12Resource> ib;
         ReleasablePtr<D3D12MA::Allocation> allocation = nullptr;
         D3D12_INDEX_BUFFER_VIEW ib_view;
-        U32 index_count;
+        uint32 index_count;
     };
 
 }

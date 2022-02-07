@@ -32,8 +32,8 @@ namespace adria
         std::vector<rtv_attachment_desc_t> rtv_attachments{};
         std::optional<dsv_attachment_desc_t> dsv_attachment = std::nullopt;
         D3D12_RENDER_PASS_FLAGS render_pass_flags = D3D12_RENDER_PASS_FLAG_NONE;
-        U32 width;
-        U32 height;
+        uint32 width;
+        uint32 height;
     };
 
     class RenderPass
@@ -52,7 +52,7 @@ namespace adria
         std::vector<D3D12_RENDER_PASS_RENDER_TARGET_DESC> rtvs{};
         std::unique_ptr<D3D12_RENDER_PASS_DEPTH_STENCIL_DESC> dsv = nullptr;
         D3D12_RENDER_PASS_FLAGS flags = D3D12_RENDER_PASS_FLAG_NONE;
-        U32 width = 0;
-        U32 height = 0;
+        uint32 width = 0;
+        uint32 height = 0;
     };
 }

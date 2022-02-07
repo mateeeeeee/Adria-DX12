@@ -18,7 +18,7 @@ namespace adria
 	{
 	public:
 
-		StructuredBuffer(ID3D12Device* device, U32 element_count, bool counter = false, D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
+		StructuredBuffer(ID3D12Device* device, uint32 element_count, bool counter = false, D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
 			: device(device), current_state(initial_state), element_count(element_count)
 		{
 			D3D12_RESOURCE_DESC resource_desc{};
@@ -42,7 +42,7 @@ namespace adria
 			if (counter)
 			{
 				resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-				resource_desc.Width = sizeof(U32);
+				resource_desc.Width = sizeof(uint32);
 				resource_desc.Height = 1;
 				resource_desc.DepthOrArraySize = 1;
 				resource_desc.MipLevels = 1;
@@ -112,7 +112,7 @@ namespace adria
 				uav_desc.Buffer.FirstElement = 0;
 				uav_desc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 				uav_desc.Buffer.NumElements = 1;
-				uav_desc.Buffer.StructureByteStride = sizeof(U32);
+				uav_desc.Buffer.StructureByteStride = sizeof(uint32);
 				device->CreateUnorderedAccessView(counter_buffer.Get(), nullptr, &uav_desc, counter_handle);
 
 				uav_counter_handle = counter_handle;
@@ -144,7 +144,7 @@ namespace adria
 		ID3D12Device* device;
 		Microsoft::WRL::ComPtr<ID3D12Resource> buffer = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12Resource> counter_buffer = nullptr;
-		U32 const element_count;
+		uint32 const element_count;
 		D3D12_RESOURCE_STATES current_state;
 		D3D12_CPU_DESCRIPTOR_HANDLE srv_handle{};
 		D3D12_CPU_DESCRIPTOR_HANDLE uav_handle{};

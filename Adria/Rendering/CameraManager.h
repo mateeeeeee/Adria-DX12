@@ -15,22 +15,22 @@ namespace adria
 
 		void AddCamera(camera_desc_t const& camera_desc);
 
-		void Update(F32 dt);
+		void Update(float32 dt);
 
 		Camera const& GetActiveCamera() const;
 
 		Camera& GetActiveCamera();
 
-		void OnResize(U32 width, U32 height);
+		void OnResize(uint32 width, uint32 height);
 
-		void OnScroll(I32 scroll);
+		void OnScroll(int32 scroll);
 
 		void ShouldUpdate(bool update);
 
 	private:
 		Input& input;
 		std::vector<Camera> cameras;
-		U32 current_camera = 0;
+		uint32 current_camera = 0;
 		bool update_camera = true;
 	};
 }

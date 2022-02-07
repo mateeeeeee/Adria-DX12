@@ -10,18 +10,18 @@ namespace adria
 	class Image
 	{
 	public:
-		Image(std::string_view image_file, I32 desired_channels = 4)
+		Image(std::string_view image_file, int32 desired_channels = 4)
 		{
-			I32 width, height, channels;
+			int32 width, height, channels;
 
 			if (is_hdr = static_cast<bool>(stbi_is_hdr(image_file.data())); is_hdr)
 			{
-				F32* pixels = stbi_loadf(image_file.data(), &width, &height, &channels, desired_channels);
+				float32* pixels = stbi_loadf(image_file.data(), &width, &height, &channels, desired_channels);
 				if (!pixels)
 				{
 					ADRIA_LOG(ERROR, "Loading Image File %s unsuccessful", image_file.data());
 				}
-				else  _pixels.reset(reinterpret_cast<U8*>(pixels));
+				else  _pixels.reset(reinterpret_cast<uint8*>(pixels));
 			}
 			else
 			{
@@ -33,9 +33,9 @@ namespace adria
 				else _pixels.reset(pixels);
 			}
 
-			_width = static_cast<U32>(width);
-			_height = static_cast<U32>(height);
-			_channels = static_cast<U32>(desired_channels);
+			_width = static_cast<uint32>(width);
+			_height = static_cast<uint32>(height);
+			_channels = static_cast<uint32>(desired_channels);
 		}
 
 		Image(Image const&) = delete;
@@ -45,27 +45,27 @@ namespace adria
 		~Image() = default;
 
 
-		U32 Width() const
+		uint32 Width() const
 		{
 			return _width;
 		}
 
-		U32 Height() const
+		uint32 Height() const
 		{
 			return _height;
 		}
 
-		U32 Channels() const
+		uint32 Channels() const
 		{
 			return _channels;
 		}
 
-		U32 BytesPerPixel() const
+		uint32 BytesPerPixel() const
 		{
-			return _channels * (is_hdr ? sizeof(F32) : sizeof(U8));
+			return _channels * (is_hdr ? sizeof(float32) : sizeof(uint8));
 		}
 
-		U32 Pitch() const
+		uint32 Pitch() const
 		{
 			return _width * BytesPerPixel();
 		}
@@ -83,9 +83,9 @@ namespace adria
 
 
 	private:
-		U32 _width, _height;
-		U32 _channels;
-		std::unique_ptr<U8[]> _pixels;
+		uint32 _width, _height;
+		uint32 _channels;
+		std::unique_ptr<uint8[]> _pixels;
 		bool is_hdr;
 	};
 

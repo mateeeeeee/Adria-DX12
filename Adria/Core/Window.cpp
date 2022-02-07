@@ -9,8 +9,8 @@ namespace adria
     {
         _instance = init.instance;
         const std::wstring window_title = ConvertToWide(init.title);
-        const U32 window_width = init.width;
-        const U32 window_height = init.height;
+        const uint32 window_width = init.width;
+        const uint32 window_height = init.height;
         const LPCWSTR class_name = L"MyWindowClass";
 
         // Register the Window Class
@@ -56,19 +56,19 @@ namespace adria
         ::UpdateWindow(_handle);
         ::SetFocus(_handle);
     }
-    U32 Window::Width()
+    uint32 Window::Width()
 	{
 		RECT rect{};
         ::GetClientRect(_handle, &rect);
-		return static_cast<U32>(rect.right - rect.left);
+		return static_cast<uint32>(rect.right - rect.left);
 	}
-    U32 Window::Height()
+    uint32 Window::Height()
     {
         RECT rect{};
         ::GetClientRect(_handle, &rect);
-        return static_cast<U32>(rect.bottom - rect.top);
+        return static_cast<uint32>(rect.bottom - rect.top);
     }
-    std::pair<U32, U32> Window::Position()
+    std::pair<uint32, uint32> Window::Position()
     {
         RECT rect{};
         ::GetClientRect(_handle, &rect);
@@ -89,11 +89,11 @@ namespace adria
         window_message_t window_data = {};
         window_data.handle = static_cast<void*>(_handle);
         window_data.instance = static_cast<void*>(_instance);
-        window_data.msg = static_cast<U32>(msg);
-        window_data.wparam = static_cast<U64>(wParam);
-        window_data.lparam = static_cast<I64>(lParam);
-        window_data.width = static_cast<F32>(Width());
-        window_data.height = static_cast<F32>(Height());
+        window_data.msg = static_cast<uint32>(msg);
+        window_data.wparam = static_cast<uint64>(wParam);
+        window_data.lparam = static_cast<int64>(lParam);
+        window_data.width = static_cast<float32>(Width());
+        window_data.height = static_cast<float32>(Height());
 
         if (msg == WM_CLOSE || msg == WM_DESTROY)
         {

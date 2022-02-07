@@ -12,9 +12,9 @@ namespace adria
 	
 	struct texture2darray_desc_t
 	{
-		U32 width;
-		U32 height;
-		U32 array_size;
+		uint32 width;
+		uint32 height;
+		uint32 array_size;
 		DXGI_FORMAT format = DXGI_FORMAT_R32_TYPELESS;
 		D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE;
 		D3D12_RESOURCE_STATES start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
@@ -99,7 +99,7 @@ namespace adria
 			dsv_desc.Texture2DArray.ArraySize = 1;
 			dsv_desc.Flags = D3D12_DSV_FLAG_NONE;
 
-			for (U32 i = 0; i < handles.size(); ++i)
+			for (uint32 i = 0; i < handles.size(); ++i)
 			{
 				dsv_desc.Texture2DArray.FirstArraySlice = D3D12CalcSubresource(0, i, 0, 1, 1);
 				device->CreateDepthStencilView(resource.Get(), &dsv_desc, handles[i]);
@@ -108,7 +108,7 @@ namespace adria
 			dsv_handles = handles;
 		}
 
-		auto DSV(U32 i) const
+		auto DSV(uint32 i) const
 		{
 			return dsv_handles[i];
 		}
@@ -124,7 +124,7 @@ namespace adria
 			rtv_desc.Texture2DArray.ArraySize = 1;
 			rtv_desc.Texture2DArray.PlaneSlice = 0;
 
-			for (U32 i = 0; i < handles.size(); ++i)
+			for (uint32 i = 0; i < handles.size(); ++i)
 			{
 				rtv_desc.Texture2DArray.FirstArraySlice = D3D12CalcSubresource(0, i, 0, 1, 1);;
 				device->CreateRenderTargetView(resource.Get(), &rtv_desc, handles[i]);
@@ -133,7 +133,7 @@ namespace adria
 			rtv_handles = handles;
 		}
 
-		auto RTV(U32 i) const
+		auto RTV(uint32 i) const
 		{
 			return rtv_handles[i];
 		}

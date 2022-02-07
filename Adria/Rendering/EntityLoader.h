@@ -28,7 +28,7 @@ namespace adria
         std::string model_path = "";
         std::string textures_path = "";
 		bool merge_meshes = true;
-		F32 model_scale = 1.0f;
+		float32 model_scale = 1.0f;
     };
     struct skybox_parameters_t
     {
@@ -37,14 +37,14 @@ namespace adria
     };
 	struct grid_parameters_t
 	{
-		U64 tile_count_x;
-		U64 tile_count_z;
-		F32 tile_size_x;
-		F32 tile_size_z;
-		F32 texture_scale_x;
-		F32 texture_scale_z;
-		U64 chunk_count_x;
-		U64 chunk_count_z;
+		uint64 tile_count_x;
+		uint64 tile_count_z;
+		float32 tile_size_x;
+		float32 tile_size_z;
+		float32 texture_scale_x;
+		float32 texture_scale_z;
+		uint64 chunk_count_x;
+		uint64 chunk_count_z;
 		bool split_to_chunks = false;
 		ENormalCalculation normal_type = ENormalCalculation::None;
 		std::unique_ptr<Heightmap> heightmap = nullptr;
@@ -56,26 +56,26 @@ namespace adria
 	struct emitter_parameters_t
 	{
 		std::string name = "Emitter";
-		F32 position[3] = { 50.0f, 10.0f, 0.0f };
-		F32 velocity[3] = { 0.0f, 7.0f, 0.0f };
-		F32 position_variance[3] = { 4.0f, 0.0f, 4.0f };
-		F32 velocity_variance = { 0.6f };
-		F32 lifespan = 50.0f;
-		F32 start_size = 22.0f;
-		F32 end_size = 5.0f;
-		F32 mass = 0.0003f;
-		F32 particles_per_second = 100.0f;
+		float32 position[3] = { 50.0f, 10.0f, 0.0f };
+		float32 velocity[3] = { 0.0f, 7.0f, 0.0f };
+		float32 position_variance[3] = { 4.0f, 0.0f, 4.0f };
+		float32 velocity_variance = { 0.6f };
+		float32 lifespan = 50.0f;
+		float32 start_size = 22.0f;
+		float32 end_size = 5.0f;
+		float32 mass = 0.0003f;
+		float32 particles_per_second = 100.0f;
 		std::wstring texture_path = L"Resources/Textures/Particles/fire.png";
 		bool blend = true;
 		bool collisions = false;
-		I32 collision_thickness = 40;
+		int32 collision_thickness = 40;
 		bool sort = false;
 	};
     struct light_parameters_t
     {
         Light light_data;
         ELightMesh mesh_type = ELightMesh::NoMesh;
-        U32 mesh_size = 0u;
+        uint32 mesh_size = 0u;
         std::optional<std::wstring> light_texture = std::nullopt;
     };
 

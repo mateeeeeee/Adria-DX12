@@ -20,10 +20,10 @@ namespace adria
 		DirectX::XMMATRIX prev_view_projection;
 		DirectX::XMVECTOR camera_position;
 		DirectX::XMVECTOR camera_forward;
-		F32 camera_near;
-		F32 camera_far;
-		F32 screen_resolution_x;
-		F32 screen_resolution_y;
+		float32 camera_near;
+		float32 camera_far;
+		float32 screen_resolution_x;
+		float32 screen_resolution_y;
 	};
 
 	DECLSPEC_ALIGN(16) struct LightCBuffer
@@ -32,22 +32,22 @@ namespace adria
 		DirectX::XMVECTOR position;
 		DirectX::XMVECTOR direction;
 		DirectX::XMVECTOR color;
-		F32 range;
-		I32 type;
-		F32 outer_cosine;
-		F32 inner_cosine;
-		I32 casts_shadows;
-		I32 use_cascades;
-		I32 active;
-		F32 volumetric_strength;
-		I32 volumetric;
-		I32 lens_flare;
-		I32 god_rays;
-		F32 godrays_decay;
-		F32 godrays_weight;
-		F32 godrays_density;
-		F32 godrays_exposure;
-		I32 screenspace_shadows;
+		float32 range;
+		int32 type;
+		float32 outer_cosine;
+		float32 inner_cosine;
+		int32 casts_shadows;
+		int32 use_cascades;
+		int32 active;
+		float32 volumetric_strength;
+		int32 volumetric;
+		int32 lens_flare;
+		int32 god_rays;
+		float32 godrays_decay;
+		float32 godrays_weight;
+		float32 godrays_density;
+		float32 godrays_exposure;
+		int32 screenspace_shadows;
 	};
 
 	DECLSPEC_ALIGN(16) struct ObjectCBuffer
@@ -59,16 +59,16 @@ namespace adria
 	DECLSPEC_ALIGN(16) struct MaterialCBuffer
 	{
 		DirectX::XMFLOAT3 ambient;
-		F32 _padd1;
+		float32 _padd1;
 		DirectX::XMFLOAT3 diffuse;
-		F32 _padd2;
+		float32 _padd2;
 		DirectX::XMFLOAT3 specular;
 
-		F32 shininess;
-		F32 albedo_factor;
-		F32 metallic_factor;
-		F32 roughness_factor;
-		F32 emissive_factor;
+		float32 shininess;
+		float32 albedo_factor;
+		float32 metallic_factor;
+		float32 roughness_factor;
+		float32 emissive_factor;
 	};
 
 	DECLSPEC_ALIGN(16) struct ShadowCBuffer
@@ -78,71 +78,71 @@ namespace adria
 		DirectX::XMMATRIX shadow_matrix1;
 		DirectX::XMMATRIX shadow_matrix2;
 		DirectX::XMMATRIX shadow_matrix3; //for cascades three 
-		F32 split0;
-		F32 split1;
-		F32 split2;
-		F32 softness;
-		I32 shadow_map_size;
-		I32 visualize;
+		float32 split0;
+		float32 split1;
+		float32 split2;
+		float32 softness;
+		int32 shadow_map_size;
+		int32 visualize;
 	};
 
 	DECLSPEC_ALIGN(16) struct PostprocessCBuffer
 	{
 		DirectX::XMFLOAT2 noise_scale;
-		F32 ssao_radius;
-		F32 ssao_power;
+		float32 ssao_radius;
+		float32 ssao_power;
 
 		DirectX::XMVECTOR samples[16];
 
-		F32 ssr_ray_step;
-		F32 ssr_ray_hit_threshold;
-		F32 velocity_buffer_scale;
-		F32 tone_map_exposure;
+		float32 ssr_ray_step;
+		float32 ssr_ray_hit_threshold;
+		float32 velocity_buffer_scale;
+		float32 tone_map_exposure;
 
 		DirectX::XMVECTOR dof_params;
 		DirectX::XMVECTOR fog_color;
 		
-		F32 fog_falloff;
-		F32 fog_density;
-		F32 fog_start;
-		I32 fog_type;
+		float32 fog_falloff;
+		float32 fog_density;
+		float32 fog_start;
+		int32 fog_type;
 
-		F32   hbao_r2;
-		F32   hbao_radius_to_screen;
-		F32   hbao_power;
-		I32	  tone_map_operator;
+		float32   hbao_r2;
+		float32   hbao_radius_to_screen;
+		float32   hbao_power;
+		int32	  tone_map_operator;
 	};
 
 	DECLSPEC_ALIGN(16) struct ComputeCBuffer
 	{
-		F32 bloom_scale;  //bloom
-		F32 threshold;    //bloom
+		float32 bloom_scale;  //bloom
+		float32 threshold;    //bloom
 
-		F32 gauss_coeff1; //blur coefficients
-		F32 gauss_coeff2; //blur coefficients
-		F32 gauss_coeff3; //blur coefficients
-		F32 gauss_coeff4; //blur coefficients
-		F32 gauss_coeff5; //blur coefficients
-		F32 gauss_coeff6; //blur coefficients
-		F32 gauss_coeff7; //blur coefficients
-		F32 gauss_coeff8; //blur coefficients
-		F32 gauss_coeff9; //blur coefficients
+		float32 gauss_coeff1; //blur coefficients
+		float32 gauss_coeff2; //blur coefficients
+		float32 gauss_coeff3; //blur coefficients
+		float32 gauss_coeff4; //blur coefficients
+		float32 gauss_coeff5; //blur coefficients
+		float32 gauss_coeff6; //blur coefficients
+		float32 gauss_coeff7; //blur coefficients
+		float32 gauss_coeff8; //blur coefficients
+		float32 gauss_coeff9; //blur coefficients
 
-		F32 bokeh_fallout;				//bokeh
+		float32 bokeh_fallout;				//bokeh
 		DirectX::XMVECTOR dof_params;	//bokeh
-		F32 bokeh_radius_scale;			//bokeh
-		F32 bokeh_color_scale;			//bokeh
-		F32 bokeh_blur_threshold;		//bokeh
-		F32 bokeh_lum_threshold;		//bokeh	
+		float32 bokeh_radius_scale;			//bokeh
+		float32 bokeh_color_scale;			//bokeh
+		float32 bokeh_blur_threshold;		//bokeh
+		float32 bokeh_lum_threshold;		//bokeh	
 
-		I32 ocean_size;					//ocean
-		I32 resolution;					//ocean
-		F32 ocean_choppiness;			//ocean								
-		F32 wind_direction_x;			//ocean
-		F32 wind_direction_y;			//ocean
-		F32 delta_time;					//ocean
-		I32 visualize_tiled;			//tiled deferred
-		I32 visualize_max_lights;		//tiled deferred
+		int32 ocean_size;					//ocean
+		int32 resolution;					//ocean
+		float32 ocean_choppiness;			//ocean								
+		float32 wind_direction_x;			//ocean
+		float32 wind_direction_y;			//ocean
+		float32 delta_time;					//ocean
+		int32 visualize_tiled;			//tiled deferred
+		int32 visualize_max_lights;		//tiled deferred
 	};
 
 	DECLSPEC_ALIGN(16) struct WeatherCBuffer
@@ -153,47 +153,47 @@ namespace adria
 		DirectX::XMVECTOR ambient_color;
 		DirectX::XMVECTOR wind_dir;
 
-		F32 wind_speed;
-		F32 time;
-		F32 crispiness;
-		F32 curliness;
+		float32 wind_speed;
+		float32 time;
+		float32 crispiness;
+		float32 curliness;
 
-		F32 coverage;
-		F32 absorption;
-		F32 clouds_bottom_height;
-		F32 clouds_top_height;
+		float32 coverage;
+		float32 absorption;
+		float32 clouds_bottom_height;
+		float32 clouds_top_height;
 
-		F32 density_factor;
-		F32 cloud_type;
-		F32 _padd[2];
+		float32 density_factor;
+		float32 cloud_type;
+		float32 _padd[2];
 
 		//sky parameters
 		DirectX::XMFLOAT3 A;
-		F32 _paddA;
+		float32 _paddA;
 		DirectX::XMFLOAT3 B;
-		F32 _paddB;
+		float32 _paddB;
 		DirectX::XMFLOAT3 C;
-		F32 _paddC;
+		float32 _paddC;
 		DirectX::XMFLOAT3 D;
-		F32 _paddD;
+		float32 _paddD;
 		DirectX::XMFLOAT3 E;
-		F32 _paddE;
+		float32 _paddE;
 		DirectX::XMFLOAT3 F;
-		F32 _paddF;
+		float32 _paddF;
 		DirectX::XMFLOAT3 G;
-		F32 _paddG;
+		float32 _paddG;
 		DirectX::XMFLOAT3 H;
-		F32 _paddH;
+		float32 _paddH;
 		DirectX::XMFLOAT3 I;
-		F32 _paddI;
+		float32 _paddI;
 		DirectX::XMFLOAT3 Z;
-		F32 _paddZ;
+		float32 _paddZ;
 	};
 
 	DECLSPEC_ALIGN(16) struct RayTracingCBuffer
 	{
-		F32 rtao_radius;
-		I32 frame_count;
+		float32 rtao_radius;
+		int32 frame_count;
 	};
 
 
@@ -202,14 +202,14 @@ namespace adria
 		DirectX::XMVECTOR position;
 		DirectX::XMVECTOR direction;
 		DirectX::XMVECTOR color;
-		I32 active;
-		F32 range;
-		I32 type;
-		F32 outer_cosine;
-		F32 inner_cosine;
-		I32 casts_shadows;
-		I32 use_cascades;
-		I32 padd;
+		int32 active;
+		float32 range;
+		int32 type;
+		float32 outer_cosine;
+		float32 inner_cosine;
+		int32 casts_shadows;
+		int32 use_cascades;
+		int32 padd;
 	};
 
 	struct ClusterAABB
@@ -220,8 +220,8 @@ namespace adria
 
 	struct LightGrid
 	{
-		U32 offset;
-		U32 light_count;
+		uint32 offset;
+		uint32 light_count;
 	};
 
 	struct Bokeh

@@ -46,24 +46,24 @@ namespace adria
 			BRDF_LUT_TEXTURE_SLOT
 		};
 
-		static constexpr U32 GBUFFER_SIZE = 3;
-		static constexpr U32 SSAO_NOISE_DIM = 8;
-		static constexpr U32 SSAO_KERNEL_SIZE = 16;
-		static constexpr U32 CLUSTER_SIZE_X = 16;
-		static constexpr U32 CLUSTER_SIZE_Y = 16;
-		static constexpr U32 CLUSTER_SIZE_Z = 16;
-		static constexpr U32 CLUSTER_COUNT = CLUSTER_SIZE_X * CLUSTER_SIZE_Y * CLUSTER_SIZE_Z;
-		static constexpr U32 CLUSTER_MAX_LIGHTS = 128;
-		static constexpr U32 RESOLUTION = 512;
+		static constexpr uint32 GBUFFER_SIZE = 3;
+		static constexpr uint32 SSAO_NOISE_DIM = 8;
+		static constexpr uint32 SSAO_KERNEL_SIZE = 16;
+		static constexpr uint32 CLUSTER_SIZE_X = 16;
+		static constexpr uint32 CLUSTER_SIZE_Y = 16;
+		static constexpr uint32 CLUSTER_SIZE_Z = 16;
+		static constexpr uint32 CLUSTER_COUNT = CLUSTER_SIZE_X * CLUSTER_SIZE_Y * CLUSTER_SIZE_Z;
+		static constexpr uint32 CLUSTER_MAX_LIGHTS = 128;
+		static constexpr uint32 RESOLUTION = 512;
 
 	public:
-		Renderer(tecs::registry& reg, GraphicsCoreDX12* gfx, U32 width, U32 height);
+		Renderer(tecs::registry& reg, GraphicsCoreDX12* gfx, uint32 width, uint32 height);
 		
 		~Renderer();
 
 		void NewFrame(Camera const* camera);
 
-		void Update(F32 dt);
+		void Update(float32 dt);
 
 		void SetProfilerSettings(ProfilerSettings);
 
@@ -75,7 +75,7 @@ namespace adria
 
 		void ResolveToOffscreenFramebuffer();
 
-		void OnResize(U32 width, U32 height);
+		void OnResize(uint32 width, uint32 height);
 
 		void UploadData();
 
@@ -86,11 +86,11 @@ namespace adria
 		std::vector<std::string> GetProfilerResults(bool log = false);
 
 	private:
-		U32 width, height;
+		uint32 width, height;
 		tecs::registry& reg;
 		GraphicsCoreDX12* gfx;
-		U32 const backbuffer_count;
-		U32 backbuffer_index;
+		uint32 const backbuffer_count;
+		uint32 backbuffer_index;
 		TextureManager texture_manager;
 		Camera const* camera;
 
@@ -137,10 +137,10 @@ namespace adria
 		std::unique_ptr<DescriptorHeap> uav_heap;
 		std::unique_ptr<DescriptorHeap> null_srv_heap; 
 		std::unique_ptr<DescriptorHeap> null_uav_heap;
-		U32 srv_heap_index = 0;
-		U32 uav_heap_index = 0;
-		U32 rtv_heap_index = 0;
-		U32 dsv_heap_index = 0;
+		uint32 srv_heap_index = 0;
+		uint32 uav_heap_index = 0;
+		uint32 rtv_heap_index = 0;
+		uint32 dsv_heap_index = 0;
 		std::unique_ptr<DescriptorHeap> constant_srv_heap;
 		std::unique_ptr<DescriptorHeap> constant_dsv_heap;
 		std::unique_ptr<DescriptorHeap> constant_uav_heap;
@@ -173,8 +173,8 @@ namespace adria
 		
 		//Persistent sbuffers
 		StructuredBuffer<ClusterAABB>	clusters;
-		StructuredBuffer<U32>			light_counter;
-		StructuredBuffer<U32>			light_list;
+		StructuredBuffer<uint32>			light_counter;
+		StructuredBuffer<uint32>			light_list;
 		StructuredBuffer<LightGrid>  	light_grid;
 		std::unique_ptr<StructuredBuffer<Bokeh>> bokeh;
 		
@@ -211,15 +211,15 @@ namespace adria
 		void CreatePipelineStateObjects();
 
 		void CreateDescriptorHeaps();
-		void CreateResolutionDependentResources(U32 width, U32 height);
+		void CreateResolutionDependentResources(uint32 width, uint32 height);
 		void CreateOtherResources();
-		void CreateRenderPasses(U32 width, U32 height);
+		void CreateRenderPasses(uint32 width, uint32 height);
 
 		void CreateIBLTextures();
 		
-		void UpdateConstantBuffers(F32 dt);
+		void UpdateConstantBuffers(float32 dt);
 		void UpdateOcean(ID3D12GraphicsCommandList4* cmd_list);
-		void UpdateParticles(F32 dt);
+		void UpdateParticles(float32 dt);
 		void CameraFrustumCulling();
 		void LightFrustumCulling(ELightType type);
 

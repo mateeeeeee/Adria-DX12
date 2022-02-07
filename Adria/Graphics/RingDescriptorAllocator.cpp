@@ -43,13 +43,13 @@ namespace adria
 		return start;
 	}
 
-	void RingDescriptorAllocator::FinishCurrentFrame(U64 frame)
+	void RingDescriptorAllocator::FinishCurrentFrame(uint64 frame)
 	{
 		std::lock_guard<std::mutex> guard(alloc_lock);
 		ring_allocator.FinishCurrentFrame(frame);
 	}
 
-	void RingDescriptorAllocator::ReleaseCompletedFrames(U64 completed_frame)
+	void RingDescriptorAllocator::ReleaseCompletedFrames(uint64 completed_frame)
 	{
 		std::lock_guard<std::mutex> guard(alloc_lock);
 		ring_allocator.ReleaseCompletedFrames(completed_frame);

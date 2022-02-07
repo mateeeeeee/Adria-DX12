@@ -12,17 +12,17 @@ namespace adria
 	template<typename BufferType>
 	class ConstantBuffer
 	{
-		static constexpr U32 GetCBufferSize()
+		static constexpr uint32 GetCBufferSize()
 		{
 			return (sizeof(BufferType) + (D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1)) & ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
 		}
 
 	public:
-		ConstantBuffer(ID3D12Device* device, U32 cbuffer_count)
+		ConstantBuffer(ID3D12Device* device, uint32 cbuffer_count)
 			: cbuffer_size(GetCBufferSize()), cbuffer_count(cbuffer_count)
 		{
 			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-			auto buffer_desc = CD3DX12_RESOURCE_DESC::Buffer((U64)cbuffer_size * cbuffer_count);
+			auto buffer_desc = CD3DX12_RESOURCE_DESC::Buffer((uint64)cbuffer_size * cbuffer_count);
 
 			BREAK_IF_FAILED(device->CreateCommittedResource(
 				&heap_properties,
@@ -44,19 +44,19 @@ namespace adria
 
 		~ConstantBuffer();
 
-		void Update(BufferType const& data, U32 cbuffer_index);
-		void Update(void* data, U32 data_size, U32 cbuffer_index);
+		void Update(BufferType const& data, uint32 cbuffer_index);
+		void Update(void* data, uint32 data_size, uint32 cbuffer_index);
 
-		D3D12_CONSTANT_BUFFER_VIEW_DESC View(U32 cbuffer_index) const;
+		D3D12_CONSTANT_BUFFER_VIEW_DESC View(uint32 cbuffer_index) const;
 		ID3D12Resource* Resource() const 
 		{
 			return cb.Get();
 		}
 	private:
 		Microsoft::WRL::ComPtr<ID3D12Resource> cb;
-		U8* _mapped_data = nullptr;
-		U32 const cbuffer_size;
-		U32 const cbuffer_count;
+		uint8* _mapped_data = nullptr;
+		uint32 const cbuffer_size;
+		uint32 const cbuffer_count;
 	};
 
 
@@ -78,22 +78,22 @@ namespace adria
 	}
 
 	template<typename BufferType>
-	void ConstantBuffer<BufferType>::Update(BufferType const& data, U32 cbuffer_index)
+	void ConstantBuffer<BufferType>::Update(BufferType const& data, uint32 cbuffer_index)
 	{
 		memcpy(&_mapped_data[cbuffer_index * cbuffer_size], &data, sizeof(BufferType)); //maybe change to cbuffer_size
 	}
 
 	template<typename BufferType>
-	void ConstantBuffer<BufferType>::Update(void* data, U32 data_size, U32 cbuffer_index)
+	void ConstantBuffer<BufferType>::Update(void* data, uint32 data_size, uint32 cbuffer_index)
 	{
 		memcpy(&_mapped_data[cbuffer_index * cbuffer_size], data, data_size);
 	}
 
 	template<typename BufferType>
-	D3D12_CONSTANT_BUFFER_VIEW_DESC ConstantBuffer<BufferType>::View(U32 cbuffer_index) const
+	D3D12_CONSTANT_BUFFER_VIEW_DESC ConstantBuffer<BufferType>::View(uint32 cbuffer_index) const
 	{
 		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-		cbvDesc.BufferLocation = cb->GetGPUVirtualAddress() + (U64)cbuffer_index * cbuffer_size;
+		cbvDesc.BufferLocation = cb->GetGPUVirtualAddress() + (uint64)cbuffer_index * cbuffer_size;
 		cbvDesc.SizeInBytes = cbuffer_size;
 		return cbvDesc;
 	}

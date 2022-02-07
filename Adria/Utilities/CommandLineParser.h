@@ -10,8 +10,8 @@ namespace adria
 
 	struct command_line_config_info_t
 	{
-		U32 window_width = 1080;
-		U32 window_height = 720;
+		uint32 window_width = 1080;
+		uint32 window_height = 720;
 		std::string window_title = "adria";
 		bool window_maximize = false;
 		bool vsync = false;

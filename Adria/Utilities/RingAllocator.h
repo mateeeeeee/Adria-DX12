@@ -11,12 +11,12 @@ namespace adria
 
 		struct BufferEntry
 		{
-			BufferEntry(U64 fv, OffsetType off, OffsetType sz) :
+			BufferEntry(uint64 fv, OffsetType off, OffsetType sz) :
 				frame(fv),
 				offset(off),
 				size(sz)
 			{}
-			U64 frame;
+			uint64 frame;
 			OffsetType offset;
 			OffsetType size;
 		};
@@ -108,13 +108,13 @@ namespace adria
 			return INVALID_OFFSET;
 		}
 
-		void FinishCurrentFrame(U64 frame)
+		void FinishCurrentFrame(uint64 frame)
 		{
 			completed_frames.emplace(frame, tail, current_frame_size);
 			current_frame_size = 0;
 		}
 
-		void ReleaseCompletedFrames(U64 completed_frame)
+		void ReleaseCompletedFrames(uint64 completed_frame)
 		{
 			while (!completed_frames.empty() &&
 				completed_frames.front().frame <= completed_frame)
