@@ -23,7 +23,8 @@ int APIENTRY wWinMain(
     //MemoryLeak::Checkpoint();
     command_line_config_info_t cmd_line_info = ParseCommandLine(lpCmdLine);
     {
-		ADRIA_REGISTER_LOGGER(new FileLogger(cmd_line_info.log_file.c_str()));
+		ADRIA_REGISTER_LOGGER(new FileLogger(cmd_line_info.log_file.c_str(), static_cast<ELogLevel>(cmd_line_info.log_level)));
+		ADRIA_REGISTER_LOGGER(new OutputDebugStringLogger(static_cast<ELogLevel>(cmd_line_info.log_level)));
 
 		window_init_t window_init{};
 		window_init.instance = hInstance;

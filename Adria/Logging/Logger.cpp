@@ -3,6 +3,7 @@
 #include <ctime>   
 #include <iostream>
 
+#include "../Core/Windows.h"
 #include "../Core/Macros.h"
 
 namespace adria
@@ -102,6 +103,19 @@ namespace adria
 	{
 		if (level < logger_level) return;
 		(use_cerr ? std::cerr : std::cout) << GetLogTime() + LineInfoToString(file, line) + LevelToString(level) + std::string(entry) << "\n";
+	}
+
+	OutputDebugStringLogger::OutputDebugStringLogger(ELogLevel logger_level /*= ELogLevel::LOG_DEBUG*/)
+		: logger_level{ logger_level }
+	{}
+
+	OutputDebugStringLogger::~OutputDebugStringLogger()
+	{}
+
+	void OutputDebugStringLogger::Log(ELogLevel level, char const* entry, char const* file, uint32_t line)
+	{
+		std::string log = GetLogTime() + LineInfoToString(file, line) + LevelToString(level) + std::string(entry) + "\n";
+		OutputDebugStringA(log.c_str());
 	}
 
 
