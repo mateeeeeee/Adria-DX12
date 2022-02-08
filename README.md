@@ -63,6 +63,8 @@ Graphics engine written in C++/DirectX12.
 
 [FastNoiseLite](https://github.com/Auburn/FastNoiseLite)
 
+[json](https://github.com/nlohmann/json)
+
 ## Screenshots
 
 Since this is DirectX 12 port of this [engine](https://github.com/mate286/Adria-DX11)
