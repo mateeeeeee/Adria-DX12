@@ -47,7 +47,10 @@ namespace adria
 		float32 godrays_weight;
 		float32 godrays_density;
 		float32 godrays_exposure;
-		int32 screenspace_shadows;
+		int32   sscs;
+		float32 sscs_thickness;
+		float32 sscs_max_ray_distance;
+		float32 sscs_max_depth_distance;
 	};
 
 	DECLSPEC_ALIGN(16) struct ObjectCBuffer

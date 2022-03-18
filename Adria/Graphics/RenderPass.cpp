@@ -56,7 +56,7 @@ namespace adria
 					cmd_list->ClearDepthStencilView(dsv->cpuDescriptor, D3D12_CLEAR_FLAG_DEPTH, dsv->DepthBeginningAccess.Clear.ClearValue.DepthStencil.Depth,
 													dsv->DepthBeginningAccess.Clear.ClearValue.DepthStencil.Stencil, 0, nullptr);
 			}
-			cmd_list->OMSetRenderTargets(rtv_handles.size(), rtv_handles.data(), FALSE, dsv_handle);
+			cmd_list->OMSetRenderTargets((UINT)rtv_handles.size(), rtv_handles.data(), FALSE, dsv_handle);
 		}
 
 		D3D12_VIEWPORT vp = {};

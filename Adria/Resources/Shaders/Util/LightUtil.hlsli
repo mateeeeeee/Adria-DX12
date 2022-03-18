@@ -24,7 +24,10 @@ struct Light
     float godrays_weight;
     float godrays_density;
     float godrays_exposure;
-    int   screenspace_shadows;
+    int   sscs;
+    float sscs_thickness;
+    float sscs_max_ray_distance;
+    float sscs_max_depth_distance;
 };  
 
 struct StructuredLight
@@ -60,7 +63,7 @@ Light CreateLightFromStructured(in StructuredLight structured_light)
     l.godrays_exposure = 0;
     l.godrays_weight = 0;
     l.ss_position = 0;
-    l.screenspace_shadows = 0;
+    l.sscs = 0;
     l.volumetric_strength = 0;
     
     return l;

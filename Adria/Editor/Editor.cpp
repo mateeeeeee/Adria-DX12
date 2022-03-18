@@ -669,9 +669,15 @@ namespace adria
 
 
                     ImGui::Checkbox("Casts Shadows", &light->casts_shadows);
-                    ImGui::Checkbox("Screen Space Shadows", &light->screenspace_shadows);
-                    ImGui::Checkbox("Volumetric Lighting", &light->volumetric);
+                    ImGui::Checkbox("Screen Space Contact Shadows", &light->sscs);
+					if (light->sscs)
+					{
+						ImGui::SliderFloat("Thickness", &light->sscs_thickness, 0.0f, 1.0f);
+						ImGui::SliderFloat("Max Ray Distance", &light->sscs_max_ray_distance, 0.0f, 0.3f);
+						ImGui::SliderFloat("Max Depth Distance", &light->sscs_max_depth_distance, 0.0f, 500.0f);
+					}
 
+                    ImGui::Checkbox("Volumetric Lighting", &light->volumetric);
                     if (light->volumetric)
                     {
                         ImGui::SliderFloat("Volumetric lighting Strength", &light->volumetric_strength, 0.0f, 5.0f);

@@ -7,6 +7,7 @@ Texture2D diffuseRoughnessTx : register(t1);
 Texture2D<float> depthTx : register(t2);
 
 SamplerState linear_wrap_sampler : register(s0);
+SamplerState point_clamp_sampler : register(s1);
 
 
 #include "../Util/ShadowUtil.hlsli"
@@ -14,7 +15,7 @@ SamplerState linear_wrap_sampler : register(s0);
 Texture2D       shadowDepthMap  : register(t4);
 TextureCube     depthCubeMap    : register(t5);
 Texture2DArray  cascadeDepthMap : register(t6);
-SamplerComparisonState shadow_sampler : register(s1);
+SamplerComparisonState shadow_sampler : register(s2);
 
 #include "../Util/DitherUtil.hlsli"
 
@@ -29,57 +30,66 @@ struct VertexOut
 
 
 //https://panoskarabelas.com/posts/screen_space_shadows/
-static const uint SSS_MAX_STEPS = 8; // Max ray steps, affects quality and performance.
-static const float SSS_RAY_MAX_DISTANCE = 0.05f; // Max shadow length, longer shadows are less accurate.
-static const float SSS_THICKNESS = 0.05f; // Depth testing thickness.
-static const float SSS_STEP_LENGTH = SSS_RAY_MAX_DISTANCE / SSS_MAX_STEPS;
-float ScreenSpaceShadows(float2 uv)
+static const uint SSCS_MAX_STEPS = 16; // Max ray steps, affects quality and performance.
+//static const float SSCS_RAY_MAX_DISTANCE = 0.05f; // Max shadow length, longer shadows are less accurate.
+//static const float SSCS_THICKNESS = 0.5f; // Depth testing thickness.
+//static const float SSCS_MAX_DISTANCE = 200.0f;
+
+
+float SSCS(float3 pos_vs)
 {
-    float depth = depthTx.Sample(linear_wrap_sampler, uv);
-    float3 ray_position = GetPositionVS(uv, depth);
-    
-    float3 ray_direction = -light_cbuf.current_light.direction.xyz;
-    float3 ray_step = ray_direction * SSS_STEP_LENGTH;
-    ray_position += ray_step * dither(uv * frame_cbuf.screen_resolution);
-    
-     // Ray march towards the light
-    float occlusion = 0.0;
+    float3 ray_pos = pos_vs;
     float2 ray_uv = 0.0f;
-    
-    for (uint i = 0; i < SSS_MAX_STEPS; i++)
+
+    float4 ray_projected = mul(float4(ray_pos, 1.0f), frame_cbuf.projection);
+    ray_projected.xy /= ray_projected.w;
+    ray_uv = ray_projected.xy * float2(0.5f, -0.5f) + 0.5f;
+
+    float depth = depthTx.Sample(point_clamp_sampler, ray_uv);
+    float linear_depth = ConvertZToLinearDepth(depth);
+
+    const float SSCS_STEP_LENGTH = light_cbuf.current_light.sscs_max_ray_distance / (float) SSCS_MAX_STEPS;
+
+    if (linear_depth > light_cbuf.current_light.sscs_max_depth_distance)
+        return 1.0f;
+
+    float3 ray_direction = normalize(-light_cbuf.current_light.direction.xyz);
+    float3 ray_step = ray_direction * SSCS_STEP_LENGTH;
+    //ray_position += ray_step * dither(uv);
+
+    float occlusion = 0.0f;
+    [unroll(SSCS_MAX_STEPS)]
+    for (uint i = 0; i < SSCS_MAX_STEPS; i++)
     {
         // Step the ray
-        ray_position += ray_step;
+        ray_pos += ray_step;
 
-        float4 ray_projection = mul(float4(ray_position, 1.0), frame_cbuf.projection);
-        ray_uv = ray_projection.xy / ray_projection.w;
-        ray_uv.xy = 0.5 * ray_uv.xy + 0.5;
-        ray_uv.y = 1.0 - ray_uv.y;
+        ray_projected = mul(float4(ray_pos, 1.0), frame_cbuf.projection);
+        ray_projected.xy /= ray_projected.w;
+        ray_uv = ray_projected.xy * float2(0.5f, -0.5f) + 0.5f;
 
-        // Ensure the UV coordinates are inside the screen
+        [branch]
         if (IsSaturated(ray_uv))
         {
-            float depth_z = depthTx.Sample(linear_wrap_sampler, ray_uv);
-            
-            // Compute the difference between the ray's and the camera's depth
-            float depth_linear = ConvertZToLinearDepth(depth_z);
-            float depth_delta = ray_position.z - depth_linear;
+            depth = depthTx.Sample(point_clamp_sampler, ray_uv);
+            //pute the difference between the ray's and the camera's depth
+            linear_depth = ConvertZToLinearDepth(depth);
+            float depth_delta = ray_projected.z - linear_depth;
 
             // Check if the camera can't "see" the ray (ray depth must be larger than the camera depth, so positive depth_delta)
-            if ((depth_delta > 0.0f) && (depth_delta < SSS_THICKNESS))
+            if (depth_delta > 0 && (depth_delta < light_cbuf.current_light.sscs_thickness))
             {
                 // Mark as occluded
                 occlusion = 1.0f;
-
-                // Fade out as we approach the edges of the screen
-                occlusion *= ScreenFade(ray_uv);
+                // screen edge fade:
+                float2 fade = max(12 * abs(ray_uv - 0.5) - 5, 0);
+                occlusion *= saturate(1 - dot(fade, fade));
 
                 break;
             }
         }
     }
 
-    // Convert to visibility
     return 1.0f - occlusion;
 }
 
@@ -104,9 +114,7 @@ float4 main(VertexOut pin) : SV_TARGET
     float3 V = normalize(0.0f.xxx - Position);
     
     float roughness = AlbedoRoughness.a;
-    
-    
-    
+
     float3 Lo = float3(0.0f, 0.0f, 0.0f);
     switch (light_cbuf.current_light.type)
     {
@@ -177,8 +185,8 @@ float4 main(VertexOut pin) : SV_TARGET
         Lo = Lo * shadow_factor;
     }
     
-    if (light_cbuf.current_light.screenspace_shadows)
-        Lo = Lo * ScreenSpaceShadows(pin.Tex);
+    if (light_cbuf.current_light.sscs)
+        Lo = Lo * SSCS(Position);
 
     return float4(Lo, 1.0f);
 }

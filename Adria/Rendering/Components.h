@@ -107,7 +107,10 @@ namespace adria
 		float32 godrays_weight = 0.25f;
 		float32 godrays_density = 0.975f;
 		float32 godrays_exposure = 2.0f;
-		bool screenspace_shadows = false;
+		bool	sscs = false;
+		float32 sscs_thickness = 0.5f;
+		float32 sscs_max_ray_distance = 0.05f;
+		float32 sscs_max_depth_distance = 200.0f;
 	};
 
 	struct COMPONENT Visibility

@@ -3651,7 +3651,10 @@ namespace adria
 			light_cbuf_data.use_cascades = light_data.use_cascades;
 			light_cbuf_data.volumetric = light_data.volumetric;
 			light_cbuf_data.volumetric_strength = light_data.volumetric_strength;
-			light_cbuf_data.screenspace_shadows = light_data.screenspace_shadows;
+			light_cbuf_data.sscs = light_data.sscs;
+			light_cbuf_data.sscs_thickness = light_data.sscs_thickness;
+			light_cbuf_data.sscs_max_ray_distance = light_data.sscs_max_ray_distance;
+			light_cbuf_data.sscs_max_depth_distance = light_data.sscs_max_depth_distance;
 
 			XMMATRIX camera_view = camera->View();
 			light_cbuf_data.position = DirectX::XMVector4Transform(light_cbuf_data.position, camera_view);
@@ -3659,7 +3662,6 @@ namespace adria
 
 			light_allocation = upload_buffer->Allocate(GetCBufferSize<LightCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 			light_allocation.Update(light_cbuf_data);
-			
 
 			//shadow mapping
 			
