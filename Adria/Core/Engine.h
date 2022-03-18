@@ -27,7 +27,7 @@ namespace adria
 		friend class Editor;
 
 	public:
-		Engine(engine_init_t const&);
+		explicit Engine(engine_init_t const&);
 		Engine(Engine const&) = delete;
 		Engine(Engine&&) = delete;
 		Engine& operator=(Engine const&) = delete;
