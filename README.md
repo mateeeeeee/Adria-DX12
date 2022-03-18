@@ -1,6 +1,6 @@
 # Adria-DX12
 
-Graphics engine written in C++/DirectX12. 
+Graphics engine written in C++/DirectX12. For successful build you will need textures that you can find [here](https://github.com/mateeeeeee/Adria-DX11/releases/tag/1.0).
 ## Features
 * Entity-Component System
 * Deferred + Forward Rendering 
