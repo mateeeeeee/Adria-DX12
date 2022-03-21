@@ -33,16 +33,16 @@ namespace adria
 		DirectX::XMVECTOR direction;
 		DirectX::XMVECTOR color;
 		float32 range;
-		int32 type;
+		int32	type;
 		float32 outer_cosine;
 		float32 inner_cosine;
-		int32 casts_shadows;
-		int32 use_cascades;
-		int32 active;
+		int32	casts_shadows;
+		int32	use_cascades;
+		int32	active;
 		float32 volumetric_strength;
-		int32 volumetric;
-		int32 lens_flare;
-		int32 god_rays;
+		int32	volumetric;
+		int32	lens_flare;
+		int32	god_rays;
 		float32 godrays_decay;
 		float32 godrays_weight;
 		float32 godrays_density;
@@ -56,7 +56,7 @@ namespace adria
 	DECLSPEC_ALIGN(16) struct ObjectCBuffer
 	{
 		DirectX::XMMATRIX model;
-		DirectX::XMMATRIX inverse_transposed_model; //jos nesto?
+		DirectX::XMMATRIX inverse_transposed_model; 
 	};
 
 	DECLSPEC_ALIGN(16) struct MaterialCBuffer
@@ -132,7 +132,7 @@ namespace adria
 		float32 gauss_coeff9; //blur coefficients
 
 		float32 bokeh_fallout;				//bokeh
-		DirectX::XMVECTOR dof_params;	//bokeh
+		DirectX::XMVECTOR dof_params;		//bokeh
 		float32 bokeh_radius_scale;			//bokeh
 		float32 bokeh_color_scale;			//bokeh
 		float32 bokeh_blur_threshold;		//bokeh
@@ -144,8 +144,8 @@ namespace adria
 		float32 wind_direction_x;			//ocean
 		float32 wind_direction_y;			//ocean
 		float32 delta_time;					//ocean
-		int32 visualize_tiled;			//tiled deferred
-		int32 visualize_max_lights;		//tiled deferred
+		int32 visualize_tiled;				//tiled deferred
+		int32 visualize_max_lights;			//tiled deferred
 	};
 
 	DECLSPEC_ALIGN(16) struct WeatherCBuffer

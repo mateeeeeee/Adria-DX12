@@ -688,6 +688,7 @@ namespace adria
 		emitter.mass = params.mass;
 		emitter.particles_per_second = params.particles_per_second;
 		emitter.sort = params.sort;
+		emitter.collisions_enabled = params.collisions;
 		emitter.particle_texture = texture_manager.LoadTexture(params.texture_path);
 
 		tecs::entity emitter_entity = reg.create();
