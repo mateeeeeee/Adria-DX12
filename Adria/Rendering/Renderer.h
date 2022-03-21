@@ -94,7 +94,7 @@ namespace adria
 		TextureManager texture_manager;
 		Camera const* camera;
 
-		ParticleRenderer particle_system;
+		ParticleRenderer particle_renderer;
 		RendererSettings settings;
 		Profiler profiler;
 		ProfilerSettings profiler_settings;

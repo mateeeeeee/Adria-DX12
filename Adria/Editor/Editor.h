@@ -13,7 +13,7 @@ namespace adria
 {
 	struct ImGuiLogger;
 	struct Material;
-	enum class MaterialTextureType;
+	enum class EMaterialTextureType;
 
 	struct editor_init_t
 	{
@@ -73,7 +73,7 @@ namespace adria
 
 		void Profiling();
 
-		void OpenMaterialFileDialog(Material* mat, MaterialTextureType type);
+		void OpenMaterialFileDialog(Material* mat, EMaterialTextureType type);
 	};
 }
 

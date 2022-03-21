@@ -19,7 +19,7 @@ namespace adria
     using namespace tecs;
 
 
-	enum class MaterialTextureType
+	enum class EMaterialTextureType
 	{
 		eAlbedo,
 		eMetallicRoughness,
@@ -710,7 +710,7 @@ namespace adria
                     ImGui::PushID(0);
                     if (ImGui::Button("Remove")) material->albedo_texture = INVALID_TEXTURE_HANDLE;
                     if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
-                    OpenMaterialFileDialog(material, MaterialTextureType::eAlbedo);
+                    OpenMaterialFileDialog(material, EMaterialTextureType::eAlbedo);
                     ImGui::PopID();
 
                     ImGui::Text("Metallic-Roughness Texture");
@@ -724,7 +724,7 @@ namespace adria
                     ImGui::PushID(1);
                     if (ImGui::Button("Remove")) material->metallic_roughness_texture = INVALID_TEXTURE_HANDLE;
                     if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
-                    OpenMaterialFileDialog(material, MaterialTextureType::eMetallicRoughness);
+                    OpenMaterialFileDialog(material, EMaterialTextureType::eMetallicRoughness);
                     ImGui::PopID();
 
                     ImGui::Text("Emissive Texture");
@@ -738,7 +738,7 @@ namespace adria
                     ImGui::PushID(2);
                     if (ImGui::Button("Remove")) material->emissive_texture = INVALID_TEXTURE_HANDLE;
                     if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
-                    OpenMaterialFileDialog(material, MaterialTextureType::eEmissive);
+                    OpenMaterialFileDialog(material, EMaterialTextureType::eEmissive);
                     ImGui::PopID();
 
                     ImGui::ColorEdit3("Albedo Color", &material->diffuse.x);
@@ -1490,7 +1490,7 @@ namespace adria
 		ImGui::End();
     }
 
-    void Editor::OpenMaterialFileDialog(Material* material, MaterialTextureType type)
+    void Editor::OpenMaterialFileDialog(Material* material, EMaterialTextureType type)
     {
 
         if (ImGuiFileDialog::Instance()->Display("Choose Texture"))
@@ -1501,13 +1501,13 @@ namespace adria
 
                 switch (type)
                 {
-                case MaterialTextureType::eAlbedo:
+                case EMaterialTextureType::eAlbedo:
                     material->albedo_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
                     break;
-                case MaterialTextureType::eMetallicRoughness:
+                case EMaterialTextureType::eMetallicRoughness:
                     material->metallic_roughness_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
                     break;
-                case MaterialTextureType::eEmissive:
+                case EMaterialTextureType::eEmissive:
                     material->emissive_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
                     break;
                 }

@@ -13,4 +13,6 @@ namespace adria
 	using int64 = int64_t;
 	using float32 = float;
 	using float64 = double;
+
+	using bool32 = int32;
 }

@@ -56,7 +56,7 @@ namespace adria
 		EProfilerBlock block;
 	};
 
-	#define DECLARE_SCOPED_PROFILE_BLOCK(profiler, cmd_list, block_id) ScopedProfileBlock block(profiler, context, block_id)
-	#define DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, block_id, cond) std::unique_ptr<ScopedProfileBlock> scoped_profile = nullptr; \
+	#define SCOPED_PROFILE_BLOCK(profiler, cmd_list, block_id) ScopedProfileBlock block(profiler, context, block_id)
+	#define SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, block_id, cond) std::unique_ptr<ScopedProfileBlock> scoped_profile = nullptr; \
 																						  if(cond) scoped_profile = std::make_unique<ScopedProfileBlock>(profiler, cmd_list, block_id)
 }

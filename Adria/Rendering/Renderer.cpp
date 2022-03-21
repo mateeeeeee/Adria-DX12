@@ -369,7 +369,7 @@ namespace adria
 		light_counter(gfx->GetDevice(), 1, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
 		light_list(gfx->GetDevice(), CLUSTER_COUNT * CLUSTER_MAX_LIGHTS, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
 		light_grid(gfx->GetDevice(), CLUSTER_COUNT, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
-		profiler(gfx), particle_system(gfx)
+		profiler(gfx), particle_renderer(gfx)
 	{
 
 		LoadShaders();
@@ -846,7 +846,7 @@ namespace adria
 		gfx->AddToReleaseQueue(bokeh_upload_buffer);
 		gfx->AddToReleaseQueue(ping_phase_upload_buffer);
 
-		particle_system.UploadData();
+		particle_renderer.UploadData();
 
 		//lens flare
 		texture_manager.SetMipMaps(false);
@@ -1184,9 +1184,7 @@ namespace adria
 #pragma warning( disable : 6262 )
 	void Renderer::CreatePipelineStateObjects()
 	{
-		
 		ID3D12Device* device = gfx->GetDevice();
-		//root sigs (written in hlsl)
 		{
 			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Skybox].GetPointer(), shader_map[PS_Skybox].GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::Skybox].GetAddressOf())));
@@ -1305,7 +1303,6 @@ namespace adria
 
 			if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &feature_data, sizeof(feature_data))))
 				feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
-
 			//ao
 			{
 				std::array<CD3DX12_ROOT_PARAMETER1, 3> root_parameters{};
@@ -1458,7 +1455,6 @@ namespace adria
 		}
 		//pso
 		{
-
 			//skybox
 			{
 				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
@@ -2013,8 +2009,6 @@ namespace adria
 
 			//dof
 			{
-				
-				// Describe and create the graphics pipeline state object (PSO).
 				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
 				pso_desc.InputLayout = { nullptr, 0 };
 				pso_desc.pRootSignature = rs_map[ERootSignature::DOF].Get();
@@ -3366,7 +3360,7 @@ namespace adria
 			weather_cbuffer.Update(weather_cbuf_data, backbuffer_index);
 		}
 
-		particle_system.SetCBuffersForThisFrame(frame_cbuffer.View(backbuffer_index).BufferLocation,
+		particle_renderer.SetCBuffersForThisFrame(frame_cbuffer.View(backbuffer_index).BufferLocation,
 			compute_cbuffer.View(backbuffer_index).BufferLocation);
 	}
 	void Renderer::UpdateParticles(float32 dt)
@@ -3375,7 +3369,7 @@ namespace adria
 		for (auto emitter : emitters)
 		{
 			Emitter& emitter_params = emitters.get(emitter);
-			particle_system.Update(dt, emitter_params);
+			particle_renderer.Update(dt, emitter_params);
 		}
 	}
 	void Renderer::CameraFrustumCulling()
@@ -3419,7 +3413,7 @@ namespace adria
 	void Renderer::PassGBuffer(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "GBuffer Pass");
-		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::GBufferPass, profiler_settings.profile_gbuffer_pass);
+		SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::GBufferPass, profiler_settings.profile_gbuffer_pass);
 
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
@@ -3624,7 +3618,7 @@ namespace adria
 	void Renderer::PassDeferredLighting(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Deferred Lighting Pass");
-		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::DeferredPass, profiler_settings.profile_deferred_pass);
+		SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::DeferredPass, profiler_settings.profile_deferred_pass);
 
 		ID3D12Device* device = gfx->GetDevice();
 		auto upload_buffer = gfx->GetUploadBuffer();
@@ -3997,7 +3991,7 @@ namespace adria
 	void Renderer::PassForward(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Forward Pass");
-		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::ForwardPass, profiler_settings.profile_forward_pass);
+		SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::ForwardPass, profiler_settings.profile_forward_pass);
 
 		UpdateOcean(cmd_list);
 		forward_render_pass.Begin(cmd_list);
@@ -4010,7 +4004,7 @@ namespace adria
 	void Renderer::PassPostprocess(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Postprocessing Pass");
-		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::Postprocessing, profiler_settings.profile_postprocessing);
+		SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::Postprocessing, profiler_settings.profile_postprocessing);
 
 		PassVelocityBuffer(cmd_list);
 
@@ -4913,14 +4907,14 @@ namespace adria
 	{
 		if (reg.size<Emitter>() == 0) return;
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Particles Pass");
-		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::ParticlesPass, profiler_settings.profile_particles_pass);
+		SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::ParticlesPass, profiler_settings.profile_particles_pass);
 
 		particle_pass.Begin(cmd_list, true);
 		auto emitters = reg.view<Emitter>();
 		for (auto emitter : emitters)
 		{
 			Emitter const& emitter_params = emitters.get(emitter);
-			particle_system.Render(cmd_list, emitter_params, depth_target.SRV(), texture_manager.CpuDescriptorHandle(emitter_params.particle_texture));
+			particle_renderer.Render(cmd_list, emitter_params, depth_target.SRV(), texture_manager.CpuDescriptorHandle(emitter_params.particle_texture));
 		}
 		particle_pass.End(cmd_list, true);
 	}
