@@ -1,4 +1,5 @@
 #include "Input.h"
+#include <windowsx.h>
 #include "../Core/Window.h"
 #include "../Logging/Logger.h"
 #include "../Events/EventQueue.h"
@@ -48,104 +49,103 @@ namespace adria
             //mouse 
             {
                 // Keys
-                keys[KeyCode::ClickLeft] = (::GetKeyState(VK_LBUTTON) & 0x8000) != 0; // Left button pressed
-                keys[KeyCode::ClickMiddle] = (::GetKeyState(VK_MBUTTON) & 0x8000) != 0; // Middle button pressed
-                keys[KeyCode::ClickRight] = (::GetKeyState(VK_RBUTTON) & 0x8000) != 0; // Right button pressed
+                keys[EKeyCode::ClickLeft] = (::GetKeyState(VK_LBUTTON) & 0x8000) != 0; // Left button pressed
+                keys[EKeyCode::ClickMiddle] = (::GetKeyState(VK_MBUTTON) & 0x8000) != 0; // Middle button pressed
+                keys[EKeyCode::ClickRight] = (::GetKeyState(VK_RBUTTON) & 0x8000) != 0; // Right button pressed
             }
 
             //keyboard
             {
                 //Use GetKeyboardState()?
 
-                keys[KeyCode::F1] = IsPressed(VK_F1);
-                keys[KeyCode::F2] = IsPressed(VK_F2);
-                keys[KeyCode::F3] = IsPressed(VK_F3);
-                keys[KeyCode::F4] = IsPressed(VK_F4);
-                keys[KeyCode::F5] = IsPressed(VK_F5);
-                keys[KeyCode::F6] = IsPressed(VK_F6);
-                keys[KeyCode::F7] = IsPressed(VK_F7);
-                keys[KeyCode::F8] = IsPressed(VK_F8);
-                keys[KeyCode::F9] = IsPressed(VK_F9);
-                keys[KeyCode::F10] = IsPressed(VK_F10);
-                keys[KeyCode::F11] = IsPressed(VK_F11);
-                keys[KeyCode::F12] = IsPressed(VK_F12);
-                keys[KeyCode::Alpha0] = IsPressed('0');
-                keys[KeyCode::Alpha1] = IsPressed('1');
-                keys[KeyCode::Alpha2] = IsPressed('2');
-                keys[KeyCode::Alpha3] = IsPressed('3');
-                keys[KeyCode::Alpha4] = IsPressed('4');
-                keys[KeyCode::Alpha5] = IsPressed('5');
-                keys[KeyCode::Alpha6] = IsPressed('6');
-                keys[KeyCode::Alpha7] = IsPressed('7');
-                keys[KeyCode::Alpha8] = IsPressed('8');
-                keys[KeyCode::Alpha9] = IsPressed('9');
-                keys[KeyCode::Numpad0] = IsPressed(VK_NUMPAD0);
-                keys[KeyCode::Numpad1] = IsPressed(VK_NUMPAD1);
-                keys[KeyCode::Numpad2] = IsPressed(VK_NUMPAD2);
-                keys[KeyCode::Numpad3] = IsPressed(VK_NUMPAD3);
-                keys[KeyCode::Numpad4] = IsPressed(VK_NUMPAD4);
-                keys[KeyCode::Numpad5] = IsPressed(VK_NUMPAD5);
-                keys[KeyCode::Numpad6] = IsPressed(VK_NUMPAD6);
-                keys[KeyCode::Numpad7] = IsPressed(VK_NUMPAD7);
-                keys[KeyCode::Numpad8] = IsPressed(VK_NUMPAD8);
-                keys[KeyCode::Numpad9] = IsPressed(VK_NUMPAD9);
-                keys[KeyCode::Q] = IsPressed('Q');
-                keys[KeyCode::W] = IsPressed('W');
-                keys[KeyCode::E] = IsPressed('E');
-                keys[KeyCode::R] = IsPressed('R');
-                keys[KeyCode::T] = IsPressed('T');
-                keys[KeyCode::Y] = IsPressed('Y');
-                keys[KeyCode::U] = IsPressed('U');
-                keys[KeyCode::I] = IsPressed('I');
-                keys[KeyCode::O] = IsPressed('O');
-                keys[KeyCode::P] = IsPressed('P');
-                keys[KeyCode::A] = IsPressed('A');
-                keys[KeyCode::S] = IsPressed('S');
-                keys[KeyCode::D] = IsPressed('D');
-                keys[KeyCode::F] = IsPressed('F');
-                keys[KeyCode::G] = IsPressed('G');
-                keys[KeyCode::H] = IsPressed('H');
-                keys[KeyCode::J] = IsPressed('J');
-                keys[KeyCode::K] = IsPressed('K');
-                keys[KeyCode::L] = IsPressed('L');
-                keys[KeyCode::Z] = IsPressed('Z');
-                keys[KeyCode::X] = IsPressed('X');
-                keys[KeyCode::C] = IsPressed('C');
-                keys[KeyCode::V] = IsPressed('V');
-                keys[KeyCode::B] = IsPressed('B');
-                keys[KeyCode::N] = IsPressed('N');
-                keys[KeyCode::M] = IsPressed('M');
-                keys[KeyCode::Esc] = IsPressed(VK_ESCAPE);
-                keys[KeyCode::Tab] = IsPressed(VK_TAB);
-                keys[KeyCode::ShiftLeft] = IsPressed(VK_LSHIFT);
-                keys[KeyCode::ShiftRight] = IsPressed(VK_RSHIFT);
-                keys[KeyCode::CtrlLeft] = IsPressed(VK_LCONTROL);
-                keys[KeyCode::CtrlRight] = IsPressed(VK_RCONTROL);
-                keys[KeyCode::AltLeft] = IsPressed(VK_LMENU);
-                keys[KeyCode::AltRight] = IsPressed(VK_RMENU);
-                keys[KeyCode::Space] = IsPressed(VK_SPACE);
-                keys[KeyCode::CapsLock] = IsPressed(VK_CAPITAL);
-                keys[KeyCode::Backspace] = IsPressed(VK_BACK);
-                keys[KeyCode::Enter] = IsPressed(VK_RETURN);
-                keys[KeyCode::Delete] = IsPressed(VK_DELETE);
-                keys[KeyCode::ArrowLeft] = IsPressed(VK_LEFT);
-                keys[KeyCode::ArrowRight] = IsPressed(VK_RIGHT);
-                keys[KeyCode::ArrowUp] = IsPressed(VK_UP);
-                keys[KeyCode::ArrowDown] = IsPressed(VK_DOWN);
-                keys[KeyCode::PageUp] = IsPressed(VK_PRIOR);
-                keys[KeyCode::PageDown] = IsPressed(VK_NEXT);
-                keys[KeyCode::Home] = IsPressed(VK_HOME);
-                keys[KeyCode::End] = IsPressed(VK_END);
-                keys[KeyCode::Insert] = IsPressed(VK_INSERT);
+                keys[EKeyCode::F1] = IsPressed(VK_F1);
+                keys[EKeyCode::F2] = IsPressed(VK_F2);
+                keys[EKeyCode::F3] = IsPressed(VK_F3);
+                keys[EKeyCode::F4] = IsPressed(VK_F4);
+                keys[EKeyCode::F5] = IsPressed(VK_F5);
+                keys[EKeyCode::F6] = IsPressed(VK_F6);
+                keys[EKeyCode::F7] = IsPressed(VK_F7);
+                keys[EKeyCode::F8] = IsPressed(VK_F8);
+                keys[EKeyCode::F9] = IsPressed(VK_F9);
+                keys[EKeyCode::F10] = IsPressed(VK_F10);
+                keys[EKeyCode::F11] = IsPressed(VK_F11);
+                keys[EKeyCode::F12] = IsPressed(VK_F12);
+                keys[EKeyCode::Alpha0] = IsPressed('0');
+                keys[EKeyCode::Alpha1] = IsPressed('1');
+                keys[EKeyCode::Alpha2] = IsPressed('2');
+                keys[EKeyCode::Alpha3] = IsPressed('3');
+                keys[EKeyCode::Alpha4] = IsPressed('4');
+                keys[EKeyCode::Alpha5] = IsPressed('5');
+                keys[EKeyCode::Alpha6] = IsPressed('6');
+                keys[EKeyCode::Alpha7] = IsPressed('7');
+                keys[EKeyCode::Alpha8] = IsPressed('8');
+                keys[EKeyCode::Alpha9] = IsPressed('9');
+                keys[EKeyCode::Numpad0] = IsPressed(VK_NUMPAD0);
+                keys[EKeyCode::Numpad1] = IsPressed(VK_NUMPAD1);
+                keys[EKeyCode::Numpad2] = IsPressed(VK_NUMPAD2);
+                keys[EKeyCode::Numpad3] = IsPressed(VK_NUMPAD3);
+                keys[EKeyCode::Numpad4] = IsPressed(VK_NUMPAD4);
+                keys[EKeyCode::Numpad5] = IsPressed(VK_NUMPAD5);
+                keys[EKeyCode::Numpad6] = IsPressed(VK_NUMPAD6);
+                keys[EKeyCode::Numpad7] = IsPressed(VK_NUMPAD7);
+                keys[EKeyCode::Numpad8] = IsPressed(VK_NUMPAD8);
+                keys[EKeyCode::Numpad9] = IsPressed(VK_NUMPAD9);
+                keys[EKeyCode::Q] = IsPressed('Q');
+                keys[EKeyCode::W] = IsPressed('W');
+                keys[EKeyCode::E] = IsPressed('E');
+                keys[EKeyCode::R] = IsPressed('R');
+                keys[EKeyCode::T] = IsPressed('T');
+                keys[EKeyCode::Y] = IsPressed('Y');
+                keys[EKeyCode::U] = IsPressed('U');
+                keys[EKeyCode::I] = IsPressed('I');
+                keys[EKeyCode::O] = IsPressed('O');
+                keys[EKeyCode::P] = IsPressed('P');
+                keys[EKeyCode::A] = IsPressed('A');
+                keys[EKeyCode::S] = IsPressed('S');
+                keys[EKeyCode::D] = IsPressed('D');
+                keys[EKeyCode::F] = IsPressed('F');
+                keys[EKeyCode::G] = IsPressed('G');
+                keys[EKeyCode::H] = IsPressed('H');
+                keys[EKeyCode::J] = IsPressed('J');
+                keys[EKeyCode::K] = IsPressed('K');
+                keys[EKeyCode::L] = IsPressed('L');
+                keys[EKeyCode::Z] = IsPressed('Z');
+                keys[EKeyCode::X] = IsPressed('X');
+                keys[EKeyCode::C] = IsPressed('C');
+                keys[EKeyCode::V] = IsPressed('V');
+                keys[EKeyCode::B] = IsPressed('B');
+                keys[EKeyCode::N] = IsPressed('N');
+                keys[EKeyCode::M] = IsPressed('M');
+                keys[EKeyCode::Esc] = IsPressed(VK_ESCAPE);
+                keys[EKeyCode::Tab] = IsPressed(VK_TAB);
+                keys[EKeyCode::ShiftLeft] = IsPressed(VK_LSHIFT);
+                keys[EKeyCode::ShiftRight] = IsPressed(VK_RSHIFT);
+                keys[EKeyCode::CtrlLeft] = IsPressed(VK_LCONTROL);
+                keys[EKeyCode::CtrlRight] = IsPressed(VK_RCONTROL);
+                keys[EKeyCode::AltLeft] = IsPressed(VK_LMENU);
+                keys[EKeyCode::AltRight] = IsPressed(VK_RMENU);
+                keys[EKeyCode::Space] = IsPressed(VK_SPACE);
+                keys[EKeyCode::CapsLock] = IsPressed(VK_CAPITAL);
+                keys[EKeyCode::Backspace] = IsPressed(VK_BACK);
+                keys[EKeyCode::Enter] = IsPressed(VK_RETURN);
+                keys[EKeyCode::Delete] = IsPressed(VK_DELETE);
+                keys[EKeyCode::ArrowLeft] = IsPressed(VK_LEFT);
+                keys[EKeyCode::ArrowRight] = IsPressed(VK_RIGHT);
+                keys[EKeyCode::ArrowUp] = IsPressed(VK_UP);
+                keys[EKeyCode::ArrowDown] = IsPressed(VK_DOWN);
+                keys[EKeyCode::PageUp] = IsPressed(VK_PRIOR);
+                keys[EKeyCode::PageDown] = IsPressed(VK_NEXT);
+                keys[EKeyCode::Home] = IsPressed(VK_HOME);
+                keys[EKeyCode::End] = IsPressed(VK_END);
+                keys[EKeyCode::Insert] = IsPressed(VK_INSERT);
             }
-            if (GetKey(KeyCode::Esc)) PostQuitMessage(0);
+            if (GetKey(EKeyCode::Esc)) PostQuitMessage(0);
         }
 
     }
     void Input::HandleWindowMessage(window_message_t const& data)
     {
         HWND handle = static_cast<HWND>(Window::Handle());
-        //events
         {
             switch (data.msg)
             {
@@ -161,6 +161,14 @@ namespace adria
                 break;
             case WM_MOUSEWHEEL:
                 event_queue.ConstructAndPushEvent<ScrollEvent>((int32)GET_WHEEL_DELTA_WPARAM(data.wparam) / WHEEL_DELTA);
+                break;
+			case WM_LBUTTONDOWN:
+			    {
+			    	auto mx = GET_X_LPARAM(data.lparam);
+			    	auto my = GET_Y_LPARAM(data.lparam);
+			    	event_queue.ConstructAndPushEvent<LeftMouseClickedEvent>(mx, my);
+			    }
+			    break;
             }
 
         }

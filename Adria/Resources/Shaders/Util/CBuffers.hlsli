@@ -15,6 +15,7 @@ struct FrameCBuffer
     float camera_near;
     float camera_far;
     float2 screen_resolution;
+    float2 mouse_normalized_coords;
 };
 
 struct LightCBuffer

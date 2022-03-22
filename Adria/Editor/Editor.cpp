@@ -169,7 +169,8 @@ namespace adria
 
         if (gui->IsVisible())
         {
-            engine->Run(renderer_settings, true);
+            engine->SetSceneViewportData(scene_viewport_data);
+            engine->Run(renderer_settings);
             auto gui_cmd_list = engine->gfx->GetNewGraphicsCommandList();
             engine->gfx->SetBackbuffer(gui_cmd_list);
             {
@@ -194,15 +195,11 @@ namespace adria
         }
         else
         {
-            engine->Run(renderer_settings, false);
+            engine->SetSceneViewportData(std::nullopt);
+            engine->Run(renderer_settings);
             engine->Present();
         }
     }
-
-
-    /////////////////////////////////////////////////////////////////////////
-    /////////////////////////////// PRIVATE /////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////
 
     void Editor::SetStyle()
     {
@@ -253,21 +250,21 @@ namespace adria
 
     void Editor::HandleInput()
     {
-        if (mouse_in_scene && engine->input.IsKeyDown(KeyCode::I)) gui->ToggleVisibility();
+        if (scene_focused && engine->input.IsKeyDown(EKeyCode::I)) gui->ToggleVisibility();
 
-        if (mouse_in_scene && engine->input.IsKeyDown(KeyCode::G)) gizmo_enabled = !gizmo_enabled;
+        if (scene_focused && engine->input.IsKeyDown(EKeyCode::G)) gizmo_enabled = !gizmo_enabled;
 
         if (gizmo_enabled && gui->IsVisible())
         {
 
-            if (engine->input.IsKeyDown(KeyCode::T)) gizmo_op = ImGuizmo::TRANSLATE;
+            if (engine->input.IsKeyDown(EKeyCode::T)) gizmo_op = ImGuizmo::TRANSLATE;
 
-            if (engine->input.IsKeyDown(KeyCode::R)) gizmo_op = ImGuizmo::ROTATE;
+            if (engine->input.IsKeyDown(EKeyCode::R)) gizmo_op = ImGuizmo::ROTATE;
 
-            if (engine->input.IsKeyDown(KeyCode::E)) gizmo_op = ImGuizmo::SCALE;
+            if (engine->input.IsKeyDown(EKeyCode::E)) gizmo_op = ImGuizmo::SCALE;
         }
 
-        engine->camera_manager.ShouldUpdate(mouse_in_scene);
+        engine->camera_manager.ShouldUpdate(scene_focused);
     }
 
     void Editor::MenuBar()
@@ -1169,20 +1166,34 @@ namespace adria
             auto device = engine->gfx->GetDevice();
             auto descriptor_allocator = gui->DescriptorAllocator();
 
-            ImVec2 _scene_dimension = ImGui::GetWindowSize();
-            
+			ImVec2 v_min = ImGui::GetWindowContentRegionMin();
+			ImVec2 v_max = ImGui::GetWindowContentRegionMax();
+			v_min.x += ImGui::GetWindowPos().x;
+			v_min.y += ImGui::GetWindowPos().y;
+			v_max.x += ImGui::GetWindowPos().x;
+			v_max.y += ImGui::GetWindowPos().y;
+			ImVec2 size(v_max.x - v_min.x, v_max.y - v_min.y);
+
             D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetOffscreenTexture().SRV();
             OffsetType descriptor_index = descriptor_allocator->Allocate();
             D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
             device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-            ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr, _scene_dimension);
+            ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr, size);
 
-            mouse_in_scene = ImGui::IsWindowFocused();
+            scene_focused = ImGui::IsWindowFocused();
+
+			ImVec2 mouse_pos = ImGui::GetMousePos();
+			scene_viewport_data.mouse_position_x = mouse_pos.x;
+			scene_viewport_data.mouse_position_y = mouse_pos.y;
+			scene_viewport_data.scene_viewport_focused = scene_focused;
+			scene_viewport_data.scene_viewport_pos_x = v_min.x;
+			scene_viewport_data.scene_viewport_pos_y = v_min.y;
+			scene_viewport_data.scene_viewport_size_x = size.x;
+			scene_viewport_data.scene_viewport_size_y = size.y;
         }
 
         if (selected_entity != null_entity && engine->reg.has<Transform>(selected_entity) && gizmo_enabled)
-        {
-
+		{
             ImGuizmo::SetDrawlist();
 
             ImVec2 window_size = ImGui::GetWindowSize();

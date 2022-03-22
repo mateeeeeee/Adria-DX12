@@ -39,11 +39,11 @@ namespace adria
 		std::unique_ptr<ImGuiLogger> editor_log;
 		tecs::entity selected_entity = tecs::null_entity;
 		bool gizmo_enabled = false;
-		bool mouse_in_scene = false;
+		bool scene_focused = false;
 		ImGuizmo::OPERATION gizmo_op = ImGuizmo::TRANSLATE;
 		RendererSettings renderer_settings{};
 		ProfilerSettings profiler_settings{};
-
+		SceneViewport scene_viewport_data;
 	private:
 		void SetStyle();
 

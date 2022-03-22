@@ -84,7 +84,8 @@ namespace adria
 		CS_ParticleBitonicSortStep,
 		CS_ParticleSort512,
 		CS_ParticleSortInner512,
-		CS_ParticleInitSortDispatchArgs
+		CS_ParticleInitSortDispatchArgs,
+		CS_Picker
 	};
 
 	enum class ERootSignature : uint8
@@ -136,6 +137,7 @@ namespace adria
 		Particles_Simulate,
 		Particles_InitSortDispatchArgs,
 		Particles_Sort,
+		Picker
 	};
 
 	enum class EPipelineStateObject : uint8
@@ -209,6 +211,7 @@ namespace adria
 		Particles_BitonicSortStep,
 		Particles_Sort512,
 		Particles_SortInner512,
+		Picker,
         Unknown
 	};
 

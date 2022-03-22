@@ -220,6 +220,10 @@ namespace adria
 			{
 				camera_manager.OnScroll(e.scroll);
 			});
+		event_queue.Subscribe<LeftMouseClickedEvent>([this](LeftMouseClickedEvent const& e)
+			{
+				renderer->OnLeftMouseClicked();
+			});
 
 		std::optional<SceneConfig> scene_config = ParseSceneConfig(init.scene_file);
 		if (scene_config.has_value()) InitializeScene(scene_config.value());
@@ -237,7 +241,7 @@ namespace adria
 		input.HandleWindowMessage(msg_data);
 	}
 
-	void Engine::Run(RendererSettings const& settings, bool offscreen)
+	void Engine::Run(RendererSettings const& settings)
 	{
 		static EngineTimer timer;
 
@@ -249,7 +253,7 @@ namespace adria
 			event_queue.ProcessEvents();
 
 			Update(dt);
-			Render(settings, offscreen);
+			Render(settings);
 		}
 		else
 		{
@@ -258,26 +262,50 @@ namespace adria
 		}
 	}
 
+	void Engine::Present()
+	{
+		gfx->SwapBuffers(vsync);
+	}
+
+
 	void Engine::Update(float32 dt)
 	{
 		camera_manager.Update(dt);
 		auto const& camera = camera_manager.GetActiveCamera();
+		renderer->SetSceneViewportData(std::move(scene_viewport_data));
 		renderer->NewFrame(&camera);
 		renderer->Update(dt);
 	}
 
-	void Engine::Render(RendererSettings const& settings, bool offscreen)
+	void Engine::Render(RendererSettings const& settings)
 	{
 		gfx->ClearBackbuffer();
 		renderer->Render_Multithreaded(settings);
 
-		if (offscreen) renderer->ResolveToOffscreenFramebuffer();
+		if (editor_active) renderer->ResolveToOffscreenFramebuffer();
 		else renderer->ResolveToBackbuffer();
 	}
 
-	void Engine::Present()
+	void Engine::SetSceneViewportData(std::optional<SceneViewport> viewport_data)
 	{
-		gfx->SwapBuffers(vsync);
+		if (viewport_data.has_value())
+		{
+			editor_active = true;
+			scene_viewport_data = viewport_data.value();
+		}
+		else
+		{
+			editor_active = false;
+			scene_viewport_data.scene_viewport_focused = true;
+			scene_viewport_data.mouse_position_x = input.GetMousePositionX();
+			scene_viewport_data.mouse_position_y = input.GetMousePositionY();
+
+			auto [pos_x, pos_y] = Window::Position();
+			scene_viewport_data.scene_viewport_pos_x = static_cast<float32>(pos_x);
+			scene_viewport_data.scene_viewport_pos_y = static_cast<float32>(pos_y);
+			scene_viewport_data.scene_viewport_size_x = static_cast<float32>(Window::Width());
+			scene_viewport_data.scene_viewport_size_y = static_cast<float32>(Window::Height());
+		}
 	}
 
 	void Engine::InitializeScene(SceneConfig const& config)

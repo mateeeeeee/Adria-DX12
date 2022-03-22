@@ -369,10 +369,11 @@ namespace adria
 		light_counter(gfx->GetDevice(), 1, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
 		light_list(gfx->GetDevice(), CLUSTER_COUNT * CLUSTER_MAX_LIGHTS, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
 		light_grid(gfx->GetDevice(), CLUSTER_COUNT, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
-		profiler(gfx), particle_renderer(gfx)
+		profiler(gfx), particle_renderer(gfx), picker(gfx)
 	{
 
 		LoadShaders();
+		CreateRootSignatures();
 		CreatePipelineStateObjects();
 		CreateDescriptorHeaps();
 
@@ -408,6 +409,12 @@ namespace adria
 		CameraFrustumCulling();
 		UpdateParticles(dt);
 	}
+
+	void Renderer::SetSceneViewportData(SceneViewport&& vp)
+	{
+		current_scene_viewport = std::move(vp);
+	}
+
 	void Renderer::SetProfilerSettings(ProfilerSettings _profiler_settings)
 	{
 		profiler_settings = _profiler_settings;
@@ -419,6 +426,11 @@ namespace adria
 
 		auto cmd_list = gfx->GetDefaultCommandList();
 
+		if (pick_in_current_frame)
+		{
+			PassPicking(cmd_list);
+		}
+
 		ResourceBarrierBatch main_barrier{};
 		hdr_render_target.Transition(main_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		main_barrier.Submit(cmd_list);
@@ -426,6 +438,7 @@ namespace adria
 		ResourceBarrierBatch depth_barrier{};
 		depth_target.Transition(depth_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		depth_barrier.Submit(cmd_list);
+
 
 		PassGBuffer(cmd_list);
 
@@ -474,6 +487,11 @@ namespace adria
 				CD3DX12_RESOURCE_BARRIER::Transition(hdr_render_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET),
 				CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE)
 			};
+
+			if (pick_in_current_frame)
+			{
+				PassPicking(gbuf_cmd_list);
+			}
 
 			gbuf_cmd_list->ResourceBarrier(_countof(barriers), barriers);
 			PassGBuffer(gbuf_cmd_list);
@@ -609,6 +627,13 @@ namespace adria
 		{
 			CreateResolutionDependentResources(width, height);
 			CreateRenderPasses(width, height);
+		}
+	}
+	void Renderer::OnLeftMouseClicked()
+	{
+		if (current_scene_viewport.scene_viewport_focused)
+		{
+			pick_in_current_frame = true;
 		}
 	}
 	void Renderer::UploadData()
@@ -925,11 +950,13 @@ namespace adria
 		return offscreen_ldr_target;
 	}
 
+
+
 	void Renderer::LoadShaders()
 	{
 		//misc
 		{
-			ShaderBlob vs_blob, ps_blob;
+			ShaderBlob vs_blob, ps_blob, cs_blob;
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SkyboxVS.cso", vs_blob);
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SkyboxPS.cso", ps_blob);
 			shader_map[VS_Skybox] = vs_blob;
@@ -1180,11 +1207,10 @@ namespace adria
 			shader_map[DS_OceanLOD] = ds_blob;
 		}
 	}
-#pragma warning( push )
-#pragma warning( disable : 6262 )
-	void Renderer::CreatePipelineStateObjects()
+	void Renderer::CreateRootSignatures()
 	{
 		ID3D12Device* device = gfx->GetDevice();
+		//in HLSL
 		{
 			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Skybox].GetPointer(), shader_map[PS_Skybox].GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::Skybox].GetAddressOf())));
@@ -1295,14 +1321,12 @@ namespace adria
 			//D3D12_VERSIONED_ROOT_SIGNATURE_DESC const* desc = drs->GetUnconvertedRootSignatureDesc();
 		}
 
-		//root sigs (written in C++)
+		D3D12_FEATURE_DATA_ROOT_SIGNATURE feature_data{};
+		feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+		if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &feature_data, sizeof(feature_data))))
+			feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
+		//in C++
 		{
-			D3D12_FEATURE_DATA_ROOT_SIGNATURE feature_data{};
-
-			feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
-
-			if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &feature_data, sizeof(feature_data))))
-				feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
 			//ao
 			{
 				std::array<CD3DX12_ROOT_PARAMETER1, 3> root_parameters{};
@@ -1315,9 +1339,7 @@ namespace adria
 				range.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 1, 0);
 				root_parameters[2].InitAsDescriptorTable(1, &range, D3D12_SHADER_VISIBILITY_PIXEL);
 
-
 				std::array<D3D12_STATIC_SAMPLER_DESC, 2> samplers{};
-
 				D3D12_STATIC_SAMPLER_DESC sampler{};
 				sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
 				sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
@@ -1453,7 +1475,12 @@ namespace adria
 				BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::GenerateMips])));
 			}
 		}
-		//pso
+	}
+#pragma warning( push )
+#pragma warning( disable : 6262 )
+	void Renderer::CreatePipelineStateObjects()
+	{
+		ID3D12Device* device = gfx->GetDevice();
 		{
 			//skybox
 			{
@@ -1659,7 +1686,6 @@ namespace adria
 				pso_desc.pRootSignature = rs_map[ERootSignature::ClusterCulling].Get();
 				pso_desc.CS = shader_map[CS_ClusterCulling];
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::ClusterCulling])));
-
 			}
 
 			//tiled lighting
@@ -2183,6 +2209,7 @@ namespace adria
 		}
 	}
 #pragma warning( pop ) 
+
 	void Renderer::CreateDescriptorHeaps()
 	{
 		ID3D12Device* device = gfx->GetDevice();
@@ -2642,6 +2669,8 @@ namespace adria
 			light_grid.CreateSRV(constant_srv_heap->GetCpuHandle(srv_heap_index++));
 			light_grid.CreateUAV(constant_uav_heap->GetCpuHandle(uav_heap_index++));
 		}
+
+		picker.CreateView(constant_uav_heap->GetCpuHandle(uav_heap_index++));
 	}
 	void Renderer::CreateRenderPasses(uint32 width, uint32 height)
 	{
@@ -3228,7 +3257,6 @@ namespace adria
 	{
 		//frame
 		{
-			
 			frame_cbuf_data.global_ambient = XMVectorSet(settings.ambient_color[0], settings.ambient_color[1], settings.ambient_color[2], 1);
 			frame_cbuf_data.camera_near = camera->Near();
 			frame_cbuf_data.camera_far = camera->Far();
@@ -3242,6 +3270,8 @@ namespace adria
 			frame_cbuf_data.inverse_view_projection = DirectX::XMMatrixInverse(nullptr, camera->ViewProj());
 			frame_cbuf_data.screen_resolution_x = (float32)width;
 			frame_cbuf_data.screen_resolution_y = (float32)height;
+			frame_cbuf_data.mouse_normalized_coords_x = (current_scene_viewport.mouse_position_x - current_scene_viewport.scene_viewport_pos_x) / current_scene_viewport.scene_viewport_size_x;
+			frame_cbuf_data.mouse_normalized_coords_y = (current_scene_viewport.mouse_position_y - current_scene_viewport.scene_viewport_pos_y) / current_scene_viewport.scene_viewport_size_y;
 
 			frame_cbuffer.Update(frame_cbuf_data, backbuffer_index);
 
@@ -3410,6 +3440,14 @@ namespace adria
 		}
 	}
 
+	void Renderer::PassPicking(ID3D12GraphicsCommandList4* cmd_list)
+	{
+		ADRIA_ASSERT(pick_in_current_frame);
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Picking Pass");
+		pick_in_current_frame = false;
+		last_picking_data = picker.Pick(cmd_list, gfx->GetDescriptorAllocator(), 
+			depth_target.SRV(), gbuffer[0].SRV(), frame_cbuffer.View(backbuffer_index).BufferLocation);
+	}
 	void Renderer::PassGBuffer(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "GBuffer Pass");
@@ -5742,58 +5780,3 @@ namespace adria
 		cmd_list->DrawInstanced(4, 1, 0, 0);
 	}
 }
-
-//transparent shadows
-/*
-for (auto e : entities)
-		{
-
-			if (reg->HasComponent<ShadowVisibleTag>(e) || !frustum_culler)
-			{
-
-				auto const& transformation = reg->GetComponent<TransformComponent>(e);
-				auto const& mesh = reg->GetComponent<MeshComponent>(e);
-
-				object_cbuffer_data.model = transformation.transform;
-				object_cbuffer_data.inverse_transpose_model = DirectX::XMMatrixInverse(nullptr, object_cbuffer_data.model);
-				Globals::UpdateCBuffer(context, object_cbuffer_data);
-
-
-				bool has_diffuse = false;
-				TEXTURE_HANDLE tex_handle = INVALID_TEXTURE_HANDLE;
-
-				bool maybe_transparent = true;
-				if (reg->HasComponent<ForwardTag>(e)) maybe_transparent = reg->GetComponent<ForwardTag>(e).transparent;
-
-				if (maybe_transparent && reg->HasComponent<MaterialComponent>(e))
-				{
-					const auto& material = reg->GetComponent<MaterialComponent>(e);
-
-					has_diffuse = material.diffuse_texture != INVALID_TEXTURE_HANDLE;
-					if (has_diffuse)
-						tex_handle = material.diffuse_texture;
-
-				}
-				else if (maybe_transparent && reg->HasComponent<PBRMaterialComponent>(e))
-				{
-					const auto& material = reg->GetComponent<PBRMaterialComponent>(e);
-
-					has_diffuse = material.albedo_texture != INVALID_TEXTURE_HANDLE;
-					if (has_diffuse)
-						tex_handle = material.albedo_texture;
-				}
-
-				if (has_diffuse)
-				{
-					auto view = texture_manager.GetTextureView(tex_handle);
-
-					context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
-
-					transparent_shadow_program.Bind(context);
-				}
-				else shadow_program.Bind(context);
-
-				mesh.Draw(context);
-			}
-		}
-*/

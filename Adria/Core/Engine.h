@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <optional>
 #include "../Events/EventQueue.h"
 #include "../Input/Input.h"
 #include "../tecs/registry.h"
@@ -35,7 +36,7 @@ namespace adria
 		~Engine();
 	
 		void HandleWindowMessage(window_message_t const& msg_data);
-		void Run(RendererSettings const& settings, bool offscreen = false);
+		void Run(RendererSettings const& settings);
 		void Present();
 
 	private:
@@ -48,12 +49,17 @@ namespace adria
 		std::unique_ptr<GraphicsCoreDX12> gfx;
 		std::unique_ptr<Renderer> renderer;
 		std::unique_ptr<EntityLoader> entity_loader;
+
+		SceneViewport scene_viewport_data;
+		bool editor_active = true;
 	private:
 	
 		virtual void InitializeScene(SceneConfig const& config);
 	
 		virtual void Update(float32 dt);
 	
-		virtual void Render(RendererSettings const& settings, bool offscreen);
+		virtual void Render(RendererSettings const& settings);
+
+		void SetSceneViewportData(std::optional<SceneViewport> viewport_data);
 	};
 }

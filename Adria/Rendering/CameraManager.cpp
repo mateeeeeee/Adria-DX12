@@ -20,32 +20,32 @@ namespace adria
 
 		auto& camera = cameras[current_camera];
 
-		if (input.GetKey(KeyCode::Space)) return;
+		if (input.GetKey(EKeyCode::Space)) return;
 
 		float speed_factor = 1.0f;
 
-		if (input.GetKey(KeyCode::ShiftLeft)) speed_factor *= 5.0f;
-		if (input.GetKey(KeyCode::CtrlLeft))  speed_factor *= 0.2f;
+		if (input.GetKey(EKeyCode::ShiftLeft)) speed_factor *= 5.0f;
+		if (input.GetKey(EKeyCode::CtrlLeft))  speed_factor *= 0.2f;
 
-		if (input.GetKey(KeyCode::W))
+		if (input.GetKey(EKeyCode::W))
 			camera.Walk(speed_factor * dt);
 
-		if (input.GetKey(KeyCode::S))
+		if (input.GetKey(EKeyCode::S))
 			camera.Walk(-speed_factor * dt);
 
-		if (input.GetKey(KeyCode::A))
+		if (input.GetKey(EKeyCode::A))
 			camera.Strafe(-speed_factor * dt);
 
-		if (input.GetKey(KeyCode::D))
+		if (input.GetKey(EKeyCode::D))
 			camera.Strafe(speed_factor * dt);
 
-		if (input.GetKey(KeyCode::Q))
+		if (input.GetKey(EKeyCode::Q))
 			camera.Jump(speed_factor * dt);
 
-		if (input.GetKey(KeyCode::E))
+		if (input.GetKey(EKeyCode::E))
 			camera.Jump(-speed_factor * dt);
 
-		if (input.GetKey(KeyCode::ClickRight))
+		if (input.GetKey(EKeyCode::ClickRight))
 		{
 			float32 dx = input.GetMouseDeltaX();
 			float32 dy = input.GetMouseDeltaY();

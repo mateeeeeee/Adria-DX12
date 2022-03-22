@@ -366,5 +366,9 @@
                                     "addressW = TEXTURE_ADDRESS_CLAMP, " \
                                     "filter = FILTER_MIN_MAG_MIP_LINEAR, visibility=SHADER_VISIBILITY_PIXEL )" 
 
+#define Picker_RS                   "CBV(b0, visibility=SHADER_VISIBILITY_ALL), " \
+                                    "DescriptorTable(SRV(t0, numDescriptors = 2, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_ALL), " \
+                                    "DescriptorTable(UAV(u0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL)"
+
 
                                  

@@ -6,7 +6,7 @@
 
 namespace adria
 {
-    enum class KeyCode : uint32
+    enum class EKeyCode : uint32
     {
        
         F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12,
@@ -47,9 +47,9 @@ namespace adria
 
         void HandleWindowMessage(window_message_t const&);
 
-        bool GetKey(KeyCode key)    /*const*/   { return keys[key]; }                         
-        bool IsKeyDown(KeyCode key) /*const*/   { return GetKey(key) && !prev_keys[key]; }
-        bool IsKeyUp(KeyCode key)   /*const*/   { return !GetKey(key) && prev_keys[key]; }
+        bool GetKey(EKeyCode key)    /*const*/   { return keys[key]; }                         
+        bool IsKeyDown(EKeyCode key) /*const*/   { return GetKey(key) && !prev_keys[key]; }
+        bool IsKeyUp(EKeyCode key)   /*const*/   { return !GetKey(key) && prev_keys[key]; }
 
         // Mouse
         void SetMouseVisible(bool visible);
@@ -66,8 +66,8 @@ namespace adria
     private:
         EventQueue& event_queue;
 
-        std::unordered_map<KeyCode, bool> keys;
-        std::unordered_map<KeyCode, bool> prev_keys;
+        std::unordered_map<EKeyCode, bool> keys;
+        std::unordered_map<EKeyCode, bool> prev_keys;
         // Mouse
         float32 mouse_position_x = 0.0f;
         float32 mouse_position_y = 0.0f;

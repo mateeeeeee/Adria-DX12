@@ -3,6 +3,7 @@
 #include <memory>
 #include <optional>
 #include "RendererSettings.h"
+#include "Picker.h"
 #include "ConstantBuffers.h"
 #include "ParticleRenderer.h"
 #include "../tecs/Registry.h"
@@ -65,6 +66,8 @@ namespace adria
 
 		void Update(float32 dt);
 
+		void SetSceneViewportData(SceneViewport&&);
+
 		void SetProfilerSettings(ProfilerSettings);
 
 		void Render(RendererSettings const&);
@@ -76,6 +79,8 @@ namespace adria
 		void ResolveToOffscreenFramebuffer();
 
 		void OnResize(uint32 width, uint32 height);
+
+		void OnLeftMouseClicked();
 
 		void UploadData();
 
@@ -98,6 +103,11 @@ namespace adria
 		RendererSettings settings;
 		Profiler profiler;
 		ProfilerSettings profiler_settings;
+
+		SceneViewport current_scene_viewport;
+		bool pick_in_current_frame = false;
+		Picker picker;
+		PickingData last_picking_data;
 
 		std::unordered_map<EShader, ShaderBlob> shader_map;
 		std::unordered_map<ERootSignature, Microsoft::WRL::ComPtr<ID3D12RootSignature>> rs_map;
@@ -208,6 +218,7 @@ namespace adria
 	private:
 
 		void LoadShaders();
+		void CreateRootSignatures();
 		void CreatePipelineStateObjects();
 
 		void CreateDescriptorHeaps();
@@ -223,6 +234,7 @@ namespace adria
 		void CameraFrustumCulling();
 		void LightFrustumCulling(ELightType type);
 
+		void PassPicking(ID3D12GraphicsCommandList4* cmd_list);
 		void PassGBuffer(ID3D12GraphicsCommandList4* cmd_list);
 		void PassSSAO(ID3D12GraphicsCommandList4* cmd_list);
 		void PassHBAO(ID3D12GraphicsCommandList4* cmd_list);
