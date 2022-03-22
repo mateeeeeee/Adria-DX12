@@ -21,7 +21,8 @@ namespace adria
 	{
 		friend class Renderer;
 	private:
-		Picker(GraphicsCoreDX12* gfx) : gfx(gfx), write_picking_buffer(gfx->GetDevice(), 1), read_picking_buffer(gfx->GetDevice(), sizeof(PickingData))
+		Picker(GraphicsCoreDX12* gfx) : gfx(gfx), write_picking_buffer(gfx->GetDevice(), 1), 
+			read_picking_buffer{ {gfx->GetDevice(), sizeof(PickingData)}, {gfx->GetDevice(), sizeof(PickingData)}, {gfx->GetDevice(), sizeof(PickingData)} }
 		{
 			ID3D12Device* device = gfx->GetDevice();
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/PickerCS.cso", picker_blob);
@@ -39,10 +40,14 @@ namespace adria
 			write_picking_buffer.CreateUAV(uav_handle);
 		}
 
-		PickingData Pick(ID3D12GraphicsCommandList4* cmd_list, LinearDescriptorAllocator* descriptor_allocator, D3D12_CPU_DESCRIPTOR_HANDLE depth_handle, D3D12_CPU_DESCRIPTOR_HANDLE normal_handle,
+		void Pick(ID3D12GraphicsCommandList4* cmd_list, 
+			D3D12_CPU_DESCRIPTOR_HANDLE depth_handle, 
+			D3D12_CPU_DESCRIPTOR_HANDLE normal_handle,
 			D3D12_GPU_VIRTUAL_ADDRESS frame_cbuffer_gpu_address)
 		{
 			ID3D12Device* device = gfx->GetDevice();
+			LinearDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
+			UINT backbuffer_index = gfx->BackbufferIndex();
 
 			cmd_list->SetComputeRootSignature(picker_rs.Get());
 			cmd_list->SetPipelineState(picker_pso.Get());
@@ -68,15 +73,19 @@ namespace adria
 			barrier_batch.Submit(cmd_list);
 
 			cmd_list->Dispatch(1, 1, 1);
-			cmd_list->CopyResource(read_picking_buffer.Resource(), write_picking_buffer.Buffer());
+			cmd_list->CopyResource(read_picking_buffer[backbuffer_index].Resource(), write_picking_buffer.Buffer());
 
 			barrier_batch.ReverseTransitions();
 			barrier_batch.Submit(cmd_list);
+		}
 
-			PickingData const* data = read_picking_buffer.Map<PickingData>();
+		PickingData GetPickingData() const
+		{
+			UINT backbuffer_index = gfx->BackbufferIndex();
+
+			PickingData const* data = read_picking_buffer[backbuffer_index].Map<PickingData>();
 			PickingData picking_data = *data;
-			ADRIA_LOG(INFO, "Pick position: %f %f %f", data->position.x, data->position.y, data->position.z);
-			read_picking_buffer.Unmap();
+			read_picking_buffer[backbuffer_index].Unmap();
 			return picking_data;
 		}
 
@@ -84,7 +93,7 @@ namespace adria
 
 		GraphicsCoreDX12* gfx;
 		StructuredBuffer<PickingData> write_picking_buffer;
-		ReadbackBuffer read_picking_buffer;
+		ReadbackBuffer read_picking_buffer[GraphicsCoreDX12::BackbufferCount()];
 		ShaderBlob picker_blob;
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> picker_rs;
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> picker_pso;

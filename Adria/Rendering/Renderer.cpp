@@ -408,13 +408,13 @@ namespace adria
 		UpdateConstantBuffers(dt);
 		CameraFrustumCulling();
 		UpdateParticles(dt);
+		picking_data = picker.GetPickingData();
 	}
 
 	void Renderer::SetSceneViewportData(SceneViewport&& vp)
 	{
 		current_scene_viewport = std::move(vp);
 	}
-
 	void Renderer::SetProfilerSettings(ProfilerSettings _profiler_settings)
 	{
 		profiler_settings = _profiler_settings;
@@ -426,10 +426,7 @@ namespace adria
 
 		auto cmd_list = gfx->GetDefaultCommandList();
 
-		if (pick_in_current_frame)
-		{
-			PassPicking(cmd_list);
-		}
+		PassPicking(cmd_list);
 
 		ResourceBarrierBatch main_barrier{};
 		hdr_render_target.Transition(main_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -482,16 +479,16 @@ namespace adria
 
 		auto gbuf_ambient_fut = TaskSystem::Submit([this, gbuf_cmd_list]()
 		{
-			D3D12_RESOURCE_BARRIER barriers[] = 
+			
+				//resource state of depth buffer is not correct, it should be D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE instead of 
+				//D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, debug layer doesn't complain but fix it layer
+			PassPicking(gbuf_cmd_list);
+
+			D3D12_RESOURCE_BARRIER barriers[] =
 			{
 				CD3DX12_RESOURCE_BARRIER::Transition(hdr_render_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET),
 				CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE)
 			};
-
-			if (pick_in_current_frame)
-			{
-				PassPicking(gbuf_cmd_list);
-			}
 
 			gbuf_cmd_list->ResourceBarrier(_countof(barriers), barriers);
 			PassGBuffer(gbuf_cmd_list);
@@ -627,13 +624,6 @@ namespace adria
 		{
 			CreateResolutionDependentResources(width, height);
 			CreateRenderPasses(width, height);
-		}
-	}
-	void Renderer::OnLeftMouseClicked()
-	{
-		if (current_scene_viewport.scene_viewport_focused)
-		{
-			pick_in_current_frame = true;
 		}
 	}
 	void Renderer::UploadData()
@@ -945,6 +935,12 @@ namespace adria
 {
 		return profiler.GetProfilerResults(gfx->GetDefaultCommandList(), log);
 	}
+
+	PickingData Renderer::GetPickingData() const
+	{
+		return picker.GetPickingData();
+	}
+
 	Texture2D Renderer::GetOffscreenTexture() const
 	{
 		return offscreen_ldr_target;
@@ -3442,11 +3438,8 @@ namespace adria
 
 	void Renderer::PassPicking(ID3D12GraphicsCommandList4* cmd_list)
 	{
-		ADRIA_ASSERT(pick_in_current_frame);
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Picking Pass");
-		pick_in_current_frame = false;
-		last_picking_data = picker.Pick(cmd_list, gfx->GetDescriptorAllocator(), 
-			depth_target.SRV(), gbuffer[0].SRV(), frame_cbuffer.View(backbuffer_index).BufferLocation);
+		picker.Pick(cmd_list, depth_target.SRV(), gbuffer[0].SRV(), frame_cbuffer.View(backbuffer_index).BufferLocation);
 	}
 	void Renderer::PassGBuffer(ID3D12GraphicsCommandList4* cmd_list)
 	{

@@ -220,10 +220,6 @@ namespace adria
 			{
 				camera_manager.OnScroll(e.scroll);
 			});
-		event_queue.Subscribe<LeftMouseClickedEvent>([this](LeftMouseClickedEvent const& e)
-			{
-				renderer->OnLeftMouseClicked();
-			});
 
 		std::optional<SceneConfig> scene_config = ParseSceneConfig(init.scene_file);
 		if (scene_config.has_value()) InitializeScene(scene_config.value());

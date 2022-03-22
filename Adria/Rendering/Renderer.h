@@ -80,8 +80,6 @@ namespace adria
 
 		void OnResize(uint32 width, uint32 height);
 
-		void OnLeftMouseClicked();
-
 		void UploadData();
 
 		Texture2D GetOffscreenTexture() const;
@@ -89,6 +87,8 @@ namespace adria
 		TextureManager& GetTextureManager();
 
 		std::vector<std::string> GetProfilerResults(bool log = false);
+
+		PickingData GetPickingData() const;
 
 	private:
 		uint32 width, height;
@@ -105,9 +105,8 @@ namespace adria
 		ProfilerSettings profiler_settings;
 
 		SceneViewport current_scene_viewport;
-		bool pick_in_current_frame = false;
 		Picker picker;
-		PickingData last_picking_data;
+		PickingData picking_data;
 
 		std::unordered_map<EShader, ShaderBlob> shader_map;
 		std::unordered_map<ERootSignature, Microsoft::WRL::ComPtr<ID3D12RootSignature>> rs_map;
