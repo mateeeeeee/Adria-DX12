@@ -181,6 +181,7 @@ namespace adria
                 ListEntities();
                 OceanSettings();
                 ParticleSettings();
+				DecalSettings();
                 SkySettings();
                 AddEntities();
                 Camera();
@@ -402,6 +403,80 @@ namespace adria
 			if (ImGui::Button("Load Emitter"))
 			{
 				engine->entity_loader->LoadEmitter(params);
+			}
+		}
+		ImGui::End();
+	}
+
+	void Editor::DecalSettings()
+	{
+		ImGui::Begin("Decals");
+		{
+			static decal_parameters_t params{};
+			static char NAME_BUFFER[128];
+			ImGui::InputText("Name", NAME_BUFFER, sizeof(NAME_BUFFER));
+			params.name = std::string(NAME_BUFFER);
+			ImGui::PushID(6);
+			if (ImGui::Button("Select Albedo Texture")) ImGuiFileDialog::Instance()->OpenDialog("Choose Albedo Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
+			if (ImGuiFileDialog::Instance()->Display("Choose Albedo Texture"))
+			{
+				if (ImGuiFileDialog::Instance()->IsOk())
+				{
+					std::string texture_path = ImGuiFileDialog::Instance()->GetFilePathName();
+					params.albedo_texture_path = texture_path;
+				}
+				ImGuiFileDialog::Instance()->Close();
+			}
+			ImGui::PopID();
+			ImGui::Text(params.albedo_texture_path.c_str());
+
+			ImGui::PushID(7);
+			if (ImGui::Button("Select Normal Texture")) ImGuiFileDialog::Instance()->OpenDialog("Choose Normal Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
+			if (ImGuiFileDialog::Instance()->Display("Choose Normal Texture"))
+			{
+				if (ImGuiFileDialog::Instance()->IsOk())
+				{
+					std::string texture_path = ImGuiFileDialog::Instance()->GetFilePathName();
+					params.normal_texture_path = texture_path;
+				}
+				ImGuiFileDialog::Instance()->Close();
+			}
+			ImGui::PopID();
+			ImGui::Text(params.normal_texture_path.c_str());
+
+			ImGui::DragFloat("Size", &params.size, 2.0f, 10.0f, 200.0f);
+			ImGui::DragFloat("Rotation", &params.rotation, 1.0f, -180.0f, 180.0f);
+			ImGui::Checkbox("Modify GBuffer Normals", &params.modify_gbuffer_normals);
+
+			const char* decal_types[] = { "Wall", "Floor" };
+			static int current_decal_type = 0;
+			const char* combo_label = decal_types[current_decal_type];
+			if (ImGui::BeginCombo("Decal Type", combo_label, 0))
+			{
+				for (int n = 0; n < IM_ARRAYSIZE(decal_types); n++)
+				{
+					const bool is_selected = (current_decal_type == n);
+					if (ImGui::Selectable(decal_types[n], is_selected)) current_decal_type = n;
+					if (is_selected) ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+			params.decal_type = static_cast<EDecalType>(current_decal_type);
+
+			auto picking_data = engine->renderer->GetPickingData();
+			ImGui::Text("Picked Position: %f %f %f", picking_data.position.x, picking_data.position.y, picking_data.position.z);
+			ImGui::Text("Picked Normal: %f %f %f", picking_data.normal.x, picking_data.normal.y, picking_data.normal.z);
+			if (ImGui::Button("Load Decal"))
+			{
+				params.position = picking_data.position;
+				params.normal = picking_data.normal;
+				params.rotation = XMConvertToRadians(params.rotation);
+
+				engine->entity_loader->LoadDecal(params);
+			}
+			if (ImGui::Button("Clear Decals"))
+			{
+				engine->reg.destroy<Decal>();
 			}
 		}
 		ImGui::End();
@@ -844,6 +919,58 @@ namespace adria
 					ImGui::Checkbox("Sort", &emitter->sort);
 					ImGui::Checkbox("Pause", &emitter->pause);
 					if (ImGui::Button("Reset")) emitter->reset_emitter = true;
+				}
+
+				auto decal = engine->reg.get_if<Decal>(selected_entity);
+				if (decal && ImGui::CollapsingHeader("Decal"))
+				{
+					ID3D12Device5* device = engine->gfx->GetDevice();
+					RingDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
+
+					ImGui::Text("Decal Albedo Texture");
+					D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(decal->albedo_decal_texture);
+					OffsetType descriptor_index = descriptor_allocator->Allocate();
+					D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr,
+						ImVec2(48.0f, 48.0f));
+
+					ImGui::PushID(4);
+					if (ImGui::Button("Remove")) decal->albedo_decal_texture = INVALID_TEXTURE_HANDLE;
+					if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
+					if (ImGuiFileDialog::Instance()->Display("Choose Texture"))
+					{
+						if (ImGuiFileDialog::Instance()->IsOk())
+						{
+							std::string texture_path = ImGuiFileDialog::Instance()->GetFilePathName();
+							decal->albedo_decal_texture = engine->renderer->GetTextureManager().LoadTexture(ConvertToWide(texture_path));
+						}
+						ImGuiFileDialog::Instance()->Close();
+					}
+					ImGui::PopID();
+
+					ImGui::Text("Decal Normal Texture");
+					tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(decal->normal_decal_texture);
+					descriptor_index = descriptor_allocator->Allocate();
+					dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr,
+						ImVec2(48.0f, 48.0f));
+
+					ImGui::PushID(5);
+					if (ImGui::Button("Remove")) decal->normal_decal_texture = INVALID_TEXTURE_HANDLE;
+					if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
+					if (ImGuiFileDialog::Instance()->Display("Choose Texture"))
+					{
+						if (ImGuiFileDialog::Instance()->IsOk())
+						{
+							std::string texture_path = ImGuiFileDialog::Instance()->GetFilePathName();
+							decal->normal_decal_texture = engine->renderer->GetTextureManager().LoadTexture(ConvertToWide(texture_path));
+						}
+						ImGuiFileDialog::Instance()->Close();
+					}
+					ImGui::PopID();
+					ImGui::Checkbox("Modify GBuffer Normals", &decal->modify_gbuffer_normals);
 				}
 
                 auto skybox = engine->reg.get_if<Skybox>(selected_entity);
@@ -1481,6 +1608,7 @@ namespace adria
                 static bool log_results = false;
                 ImGui::Checkbox("Log Results", &log_results);
 				ImGui::Checkbox("Profile GBuffer Pass", &profiler_settings.profile_gbuffer_pass);
+				ImGui::Checkbox("Profile Decal Pass", &profiler_settings.profile_decal_pass);
 				ImGui::Checkbox("Profile Deferred Pass", &profiler_settings.profile_deferred_pass);
 				ImGui::Checkbox("Profile Forward Pass", &profiler_settings.profile_forward_pass);
 				ImGui::Checkbox("Profile Particles Pass", &profiler_settings.profile_particles_pass);

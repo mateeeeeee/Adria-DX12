@@ -1,4 +1,5 @@
 #include "../Globals/GlobalsPS.hlsli"
+#include "../Util/RootSignatures.hlsli"
 
 Texture2D<float4> txAlbedoDecal : register(t0);
 Texture2D<float4> txNormalDecal : register(t1);
@@ -26,12 +27,12 @@ struct PS_INPUT
 #define DECAL_WALL  0
 #define DECAL_FLOOR 1
 
-
 cbuffer DecalCBuffer : register(b11)
 {
     int decal_type;
 }
 
+[RootSignature(Decal_RS)]
 PS_DECAL_OUT main(PS_INPUT input)
 {
     PS_DECAL_OUT pout = (PS_DECAL_OUT) 0;

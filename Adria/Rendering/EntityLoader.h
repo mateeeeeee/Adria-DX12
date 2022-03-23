@@ -15,7 +15,6 @@ struct ID3D12Device;
 namespace adria
 {
 
-
 	enum class ELightMesh
 	{
 		NoMesh,
@@ -79,6 +78,19 @@ namespace adria
         std::optional<std::wstring> light_texture = std::nullopt;
     };
 
+	struct decal_parameters_t
+	{
+		std::string name = "Decal";
+		std::string albedo_texture_path = "Resources/Decals/Decal_00_Albedo.tga";
+		std::string normal_texture_path = "Resources/Decals/Decal_00_Normal.png";
+		float32 rotation = 0.0f;
+		float32 size = 50.0f;
+		EDecalType decal_type = EDecalType::Wall;
+		bool modify_gbuffer_normals = false;
+		DirectX::XMFLOAT4 position;
+		DirectX::XMFLOAT4 normal;
+	};
+
     class TextureManager;
     class GraphicsCoreDX12;
     
@@ -101,6 +113,8 @@ namespace adria
 		[[maybe_unused]] std::vector<tecs::entity> LoadOcean(ocean_parameters_t const&);
 
 		[[maybe_unused]] tecs::entity LoadEmitter(emitter_parameters_t const&);
+
+		[[maybe_unused]] tecs::entity LoadDecal(decal_parameters_t const&);
 
 	private:
         tecs::registry& reg;

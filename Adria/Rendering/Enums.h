@@ -72,6 +72,9 @@ namespace adria
 		CS_Spectrum,
 		VS_Ocean,
 		PS_Ocean,
+		VS_Decals,
+		PS_Decals,
+		PS_Decals_ModifyNormals,
 		VS_OceanLOD,
 		DS_OceanLOD,
 		HS_OceanLOD,
@@ -137,7 +140,8 @@ namespace adria
 		Particles_Simulate,
 		Particles_InitSortDispatchArgs,
 		Particles_Sort,
-		Picker
+		Picker,
+		Decals
 	};
 
 	enum class EPipelineStateObject : uint8
@@ -212,6 +216,8 @@ namespace adria
 		Particles_Sort512,
 		Particles_SortInner512,
 		Picker,
+		Decals,
+		Decals_ModifyNormals,
         Unknown
 	};
 
@@ -262,6 +268,12 @@ namespace adria
 		None,
 		SSAO,
 		HBAO
+	};
+
+	enum class EDecalType : uint8
+	{
+		Wall,
+		Floor
 	};
 
 	enum EAntiAliasing : uint8

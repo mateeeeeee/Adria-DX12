@@ -8,6 +8,7 @@ namespace adria
 	{
 		Frame,
 		GBufferPass,
+		DecalPass,
 		DeferredPass,
 		ForwardPass,
 		ParticlesPass,
@@ -15,7 +16,7 @@ namespace adria
 		Count
 	};
 
-	static std::string ToString(EProfilerBlock profile_block)
+	static constexpr std::string ToString(EProfilerBlock profile_block)
 	{
 		switch (profile_block)
 		{
@@ -23,6 +24,8 @@ namespace adria
 			return "Frame Pass";
 		case EProfilerBlock::GBufferPass:
 			return "GBuffer Pass";
+		case EProfilerBlock::DecalPass:
+			return "Decal Pass";
 		case EProfilerBlock::DeferredPass:
 			return "Deferred Pass";
 		case EProfilerBlock::ForwardPass:
@@ -41,6 +44,7 @@ namespace adria
 	{
 		bool profile_frame = false;
 		bool profile_gbuffer_pass = false;
+		bool profile_decal_pass = false;
 		bool profile_deferred_pass = false;
 		bool profile_forward_pass = false;
 		bool profile_particles_pass = false;

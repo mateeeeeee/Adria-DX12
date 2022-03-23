@@ -94,6 +94,15 @@ namespace adria::tecs
 			release_entity(e);
 		}
 
+		template<typename... Cs>
+		void destroy()
+		{
+			auto entities = view<Cs...>();
+			std::vector<entity> to_be_destroyed;
+			for (auto e : entities) to_be_destroyed.push_back(e);
+			for (auto e : to_be_destroyed) destroy(e);
+		}
+
 		bool valid(entity e) const
 		{
 			auto pos = get_index(e);

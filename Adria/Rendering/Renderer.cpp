@@ -436,23 +436,21 @@ namespace adria
 		depth_target.Transition(depth_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		depth_barrier.Submit(cmd_list);
 
-
 		PassGBuffer(cmd_list);
 
+		depth_barrier.ReverseTransitions();
+		depth_barrier.Submit(cmd_list);
+
+		PassDecals(cmd_list);
 		if (settings.ambient_occlusion != EAmbientOcclusion::None)
 		{
-			depth_barrier.ReverseTransitions();
-			depth_barrier.Submit(cmd_list);
-
 			if(settings.ambient_occlusion == EAmbientOcclusion::SSAO) PassSSAO(cmd_list);
 			else if (settings.ambient_occlusion == EAmbientOcclusion::HBAO) PassHBAO(cmd_list);
-
-			depth_barrier.ReverseTransitions();
-			depth_barrier.Submit(cmd_list);
 		}
+		depth_barrier.ReverseTransitions();
+		depth_barrier.Submit(cmd_list);
 
 		PassAmbient(cmd_list);
-
 		PassDeferredLighting(cmd_list);
 
 		if (settings.use_tiled_deferred) PassDeferredTiledLighting(cmd_list);
@@ -935,12 +933,10 @@ namespace adria
 {
 		return profiler.GetProfilerResults(gfx->GetDefaultCommandList(), log);
 	}
-
 	PickingData Renderer::GetPickingData() const
 	{
 		return picker.GetPickingData();
 	}
-
 	Texture2D Renderer::GetOffscreenTexture() const
 	{
 		return offscreen_ldr_target;
@@ -973,6 +969,24 @@ namespace adria
 
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BillboardVS.cso", vs_blob);
 			shader_map[VS_Billboard] = vs_blob;
+
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/DecalVS.cso", vs_blob);
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/DecalPS.cso", ps_blob);
+			shader_map[VS_Decals] = vs_blob;
+			shader_map[PS_Decals] = ps_blob;
+
+			ShaderInfo shader_info_ps{};
+			shader_info_ps.shadersource = "Resources/Shaders/Misc/DecalPS.hlsl";
+			shader_info_ps.stage = ShaderStage::PS;
+			shader_info_ps.defines = { {L"DECAL_MODIFY_NORMALS", L""}};
+			shader_info_ps.entrypoint = "main";
+#ifdef _DEBUG
+			shader_info_ps.flags = ShaderInfo::FLAG_DEBUG | ShaderInfo::FLAG_DISABLE_OPTIMIZATION;
+#else 
+			shader_info_ps.flags = ShaderInfo::FLAG_NONE;
+#endif
+			ShaderUtility::CompileShader(shader_info_ps, ps_blob);
+			shader_map[PS_Decals_ModifyNormals] = ps_blob;
 		}
 
 		//postprocess
@@ -1311,6 +1325,9 @@ namespace adria
 
 			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[VS_OceanLOD].GetPointer(), shader_map[VS_OceanLOD].GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::OceanLOD].GetAddressOf())));
+
+			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Decals].GetPointer(), shader_map[PS_Decals].GetLength(),
+				IID_PPV_ARGS(rs_map[ERootSignature::Decals].GetAddressOf())));
 
 			//ID3D12VersionedRootSignatureDeserializer* drs = nullptr;
 			//D3D12CreateVersionedRootSignatureDeserializer(shader_map[PS_Add].GetPointer(), shader_map[PS_Add].GetLength(), IID_PPV_ARGS(&drs));
@@ -2202,6 +2219,32 @@ namespace adria
 				pso_desc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::OceanLOD])));
 			}
+
+			//decals
+			{
+				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
+				InputLayout il;
+				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_Decals], il);
+				pso_desc.InputLayout = il;
+				pso_desc.pRootSignature = rs_map[ERootSignature::Decals].Get();
+				pso_desc.VS = shader_map[VS_Decals];
+				pso_desc.PS = shader_map[PS_Decals];
+				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+				pso_desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+				pso_desc.SampleMask = UINT_MAX;
+				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+				pso_desc.NumRenderTargets = 1;
+				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				pso_desc.SampleDesc.Count = 1;
+				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
+				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Decals])));
+
+				pso_desc.PS = shader_map[PS_Decals_ModifyNormals];
+				pso_desc.NumRenderTargets = 2;
+				pso_desc.RTVFormats[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Decals_ModifyNormals])));
+			}
 		}
 	}
 #pragma warning( pop ) 
@@ -2711,6 +2754,24 @@ namespace adria
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			gbuffer_render_pass = RenderPass(render_pass_desc);
+		}
+
+		{
+			render_pass_desc_t render_pass_desc{};
+
+			rtv_attachment_desc_t decal_albedo_attachment{};
+			decal_albedo_attachment.cpu_handle = gbuffer[1].RTV();
+			decal_albedo_attachment.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
+			decal_albedo_attachment.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
+			render_pass_desc.rtv_attachments.push_back(decal_albedo_attachment);
+
+			rtv_attachment_desc_t decal_normal_attachment{};
+			decal_normal_attachment.cpu_handle = gbuffer[0].RTV();
+			decal_normal_attachment.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
+			decal_normal_attachment.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
+			render_pass_desc.rtv_attachments.push_back(decal_normal_attachment);
+
+			decal_pass = RenderPass(render_pass_desc);
 		}
 
 		//ambient render pass 
@@ -3493,7 +3554,7 @@ namespace adria
 			texture_handles.push_back(texture_manager.CpuDescriptorHandle(material.metallic_roughness_texture));
 			texture_handles.push_back(texture_manager.CpuDescriptorHandle(material.normal_texture));
 			texture_handles.push_back(texture_manager.CpuDescriptorHandle(material.emissive_texture));
-			src_range_sizes.assign(4, 1u);
+			src_range_sizes.assign(texture_handles.size(), 1u);
 
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(texture_handles.size());
 			auto dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
@@ -3512,6 +3573,72 @@ namespace adria
 		gbuffer_barriers.Submit(cmd_list);
 
 	}
+
+	void Renderer::PassDecals(ID3D12GraphicsCommandList4* cmd_list)
+	{
+		if (reg.size<Decal>() == 0) return;
+		SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::DecalPass, profiler_settings.profile_decal_pass);
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Decal Pass");
+
+		ID3D12Device* device = gfx->GetDevice();
+		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto upload_buffer = gfx->GetUploadBuffer();
+
+		struct DecalCBuffer
+		{
+			int32 decal_type;
+		};
+		DecalCBuffer decal_cbuf_data{};
+		ObjectCBuffer object_cbuf_data{};
+
+		decal_pass.Begin(cmd_list);
+		{
+			cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::Decals].Get());
+			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Decals].Get());
+			cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
+			auto decal_view = reg.view<Decal>();
+
+			//use std::partition for grouping later
+
+			for (auto e : decal_view)
+			{
+				Decal decal = decal_view.get(e);
+				
+				object_cbuf_data.model = decal.decal_model_matrix;
+				object_cbuf_data.inverse_transposed_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+				object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				object_allocation.Update(object_cbuf_data);
+				cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
+
+				decal_cbuf_data.decal_type = static_cast<int32>(decal.decal_type);
+				DynamicAllocation decal_allocation = upload_buffer->Allocate(GetCBufferSize<DecalCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				decal_allocation.Update(decal_cbuf_data);
+				cmd_list->SetGraphicsRootConstantBufferView(2, decal_allocation.gpu_address);
+
+				std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> texture_handles{};
+				std::vector<uint32> src_range_sizes{};
+
+				texture_handles.push_back(texture_manager.CpuDescriptorHandle(decal.albedo_decal_texture));
+				texture_handles.push_back(texture_manager.CpuDescriptorHandle(decal.normal_decal_texture));
+				texture_handles.push_back(depth_target.SRV());
+				src_range_sizes.assign(texture_handles.size(), 1u);
+
+				OffsetType descriptor_index = descriptor_allocator->AllocateRange(texture_handles.size());
+				auto dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+				uint32 dst_range_sizes[] = { (uint32)texture_handles.size() };
+				device->CopyDescriptors(1, &dst_descriptor, dst_range_sizes, (uint32)texture_handles.size(), texture_handles.data(), src_range_sizes.data(),
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				cmd_list->SetGraphicsRootDescriptorTable(3, descriptor_allocator->GetGpuHandle(descriptor_index));
+
+				cmd_list->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+				cube_vb->Bind(cmd_list, 0);
+				cube_ib->Bind(cmd_list);
+				cmd_list->DrawIndexedInstanced(cube_ib->IndexCount(), 1, 0, 0, 0);
+			}
+		}
+		decal_pass.End(cmd_list);
+	}
+
 	void Renderer::PassSSAO(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		ADRIA_ASSERT(settings.ambient_occlusion == EAmbientOcclusion::SSAO);

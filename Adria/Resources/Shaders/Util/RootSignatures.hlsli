@@ -370,5 +370,22 @@
                                     "DescriptorTable(SRV(t0, numDescriptors = 2, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_ALL), " \
                                     "DescriptorTable(UAV(u0, numDescriptors = 1, flags = DATA_VOLATILE), visibility = SHADER_VISIBILITY_ALL)"
 
+#define Decal_RS                    "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
+                                    "CBV(b0, visibility=SHADER_VISIBILITY_ALL), " \
+                                    "CBV(b1, visibility=SHADER_VISIBILITY_VERTEX), " \
+                                    "CBV(b11, visibility=SHADER_VISIBILITY_PIXEL), " \
+                                    "DescriptorTable(SRV(t0, numDescriptors = 3, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_ALL), " \
+                                    "StaticSampler(s0, " \
+                                    "addressU = TEXTURE_ADDRESS_CLAMP, " \
+                                    "addressV = TEXTURE_ADDRESS_CLAMP, " \
+                                    "addressW = TEXTURE_ADDRESS_CLAMP, " \
+                                    "filter = FILTER_MIN_MAG_MIP_POINT, visibility=SHADER_VISIBILITY_PIXEL )," \
+                                    "StaticSampler(s1, " \
+                                    "addressU = TEXTURE_ADDRESS_WRAP, " \
+                                    "addressV = TEXTURE_ADDRESS_WRAP, " \
+                                    "addressW = TEXTURE_ADDRESS_WRAP, " \
+                                    "filter = FILTER_MIN_MAG_MIP_LINEAR, visibility = SHADER_VISIBILITY_PIXEL)" 
+
+
 
                                  

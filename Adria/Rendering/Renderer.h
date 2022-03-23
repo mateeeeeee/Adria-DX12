@@ -156,6 +156,7 @@ namespace adria
 
 		//Render Passes
 		RenderPass gbuffer_render_pass;
+		RenderPass decal_pass;
 		RenderPass ssao_render_pass;
 		RenderPass hbao_render_pass;
 		RenderPass ambient_render_pass;
@@ -235,6 +236,7 @@ namespace adria
 
 		void PassPicking(ID3D12GraphicsCommandList4* cmd_list);
 		void PassGBuffer(ID3D12GraphicsCommandList4* cmd_list);
+		void PassDecals(ID3D12GraphicsCommandList4* cmd_list);
 		void PassSSAO(ID3D12GraphicsCommandList4* cmd_list);
 		void PassHBAO(ID3D12GraphicsCommandList4* cmd_list);
 		void PassAmbient(ID3D12GraphicsCommandList4* cmd_list);

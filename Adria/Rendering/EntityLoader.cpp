@@ -700,4 +700,30 @@ namespace adria
 		return emitter_entity;
 	}
 
+	[[maybe_unused]]
+	entity EntityLoader::LoadDecal(decal_parameters_t const& params)
+	{
+		Decal decal{};
+		if (!params.albedo_texture_path.empty()) decal.albedo_decal_texture = texture_manager.LoadTexture(ConvertToWide(params.albedo_texture_path));
+		if (!params.normal_texture_path.empty()) decal.normal_decal_texture = texture_manager.LoadTexture(ConvertToWide(params.normal_texture_path));
+
+		XMVECTOR P = XMLoadFloat4(&params.position);
+		XMVECTOR N = XMLoadFloat4(&params.normal);
+
+		XMVECTOR ProjectorDirection = XMVectorNegate(N);
+		XMMATRIX RotationMatrix = XMMatrixRotationAxis(ProjectorDirection, params.rotation);
+		XMMATRIX ModelMatrix = XMMatrixScaling(params.size, params.size, params.size) * RotationMatrix * XMMatrixTranslationFromVector(P);
+
+		decal.decal_model_matrix = ModelMatrix;
+		decal.decal_type = params.decal_type;
+		decal.modify_gbuffer_normals = params.modify_gbuffer_normals;
+
+		entity decal_entity = reg.create();
+		reg.add(decal_entity, decal);
+		if (params.name.empty()) reg.emplace<Tag>(decal_entity, "decal");
+		else reg.emplace<Tag>(decal_entity, params.name);
+
+		return decal_entity;
+	}
+
 }

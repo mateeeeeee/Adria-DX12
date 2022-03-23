@@ -55,6 +55,8 @@ namespace adria
 
 		void ParticleSettings();
 
+		void DecalSettings();
+
 		void SkySettings();
 
 		void AddEntities();
