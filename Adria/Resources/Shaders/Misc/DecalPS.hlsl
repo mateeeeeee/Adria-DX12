@@ -62,7 +62,7 @@ PS_DECAL_OUT main(PS_INPUT input)
             return pout;
     }
 
-    float4 albedo = txAlbedoDecal.Sample(linear_wrap_sampler, tex_coords);
+    float4 albedo = txAlbedoDecal.SampleLevel(linear_wrap_sampler, tex_coords, 0);
     if (albedo.a < 0.1)
         discard;
     pout.DiffuseRoughness.rgb = albedo.rgb;
