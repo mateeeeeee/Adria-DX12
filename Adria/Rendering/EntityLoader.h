@@ -81,8 +81,8 @@ namespace adria
 	struct decal_parameters_t
 	{
 		std::string name = "Decal";
-		std::string albedo_texture_path = "Resources/Decals/Decal_00_Albedo.tga";
-		std::string normal_texture_path = "Resources/Decals/Decal_00_Normal.png";
+		std::string albedo_texture_path = "Resources/Textures/Decals/Decal_00_Albedo.tga";
+		std::string normal_texture_path = "Resources/Textures/Decals/Decal_00_Normal.png";
 		float32 rotation = 0.0f;
 		float32 size = 50.0f;
 		bool modify_gbuffer_normals = false;

@@ -964,8 +964,6 @@ namespace adria
 		return offscreen_ldr_target;
 	}
 
-
-
 	void Renderer::LoadShaders()
 	{
 		//misc

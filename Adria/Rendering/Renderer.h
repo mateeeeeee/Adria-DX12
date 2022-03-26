@@ -3,6 +3,7 @@
 #include <memory>
 #include <optional>
 #include "RendererSettings.h"
+#include "SceneViewport.h"
 #include "Picker.h"
 #include "ConstantBuffers.h"
 #include "ParticleRenderer.h"

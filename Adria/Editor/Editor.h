@@ -4,6 +4,7 @@
 #include "GUI.h"
 #include "../tecs/registry.h"
 #include "../Rendering/RendererSettings.h"
+#include "../Rendering/SceneViewport.h"
 #include "../Graphics/ProfilerSettings.h"
 #include "../ImGui/imgui_internal.h"
 #include "../ImGui/ImGuizmo.h"

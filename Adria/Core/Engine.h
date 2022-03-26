@@ -6,6 +6,7 @@
 #include "../tecs/registry.h"
 #include "../Rendering/CameraManager.h"
 #include "../Rendering/RendererSettings.h"
+#include "../Rendering/SceneViewport.h"
 
 namespace adria
 {

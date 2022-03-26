@@ -266,6 +266,7 @@
     <ClInclude Include="Rendering\RayTracer.h" />
     <ClInclude Include="Rendering\Renderer.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />
+    <ClInclude Include="Rendering\SceneViewport.h" />
     <ClInclude Include="Rendering\SkyModel.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Tasks\Task.h" />
