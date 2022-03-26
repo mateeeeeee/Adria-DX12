@@ -704,8 +704,10 @@ namespace adria
 	entity EntityLoader::LoadDecal(decal_parameters_t const& params)
 	{
 		Decal decal{};
+		texture_manager.SetMipMaps(false);
 		if (!params.albedo_texture_path.empty()) decal.albedo_decal_texture = texture_manager.LoadTexture(ConvertToWide(params.albedo_texture_path));
 		if (!params.normal_texture_path.empty()) decal.normal_decal_texture = texture_manager.LoadTexture(ConvertToWide(params.normal_texture_path));
+		texture_manager.SetMipMaps(true);
 
 		XMVECTOR P = XMLoadFloat4(&params.position);
 		XMVECTOR N = XMLoadFloat4(&params.normal);

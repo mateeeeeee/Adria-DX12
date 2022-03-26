@@ -3620,47 +3620,51 @@ namespace adria
 		decal_pass.Begin(cmd_list);
 		{
 			cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::Decals].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Decals].Get());
 			cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 			auto decal_view = reg.view<Decal>();
 
-			//use std::partition for grouping later
-
-			for (auto e : decal_view)
+			auto decal_pass_lambda = [&](bool modify_normals)
 			{
-				Decal decal = decal_view.get(e);
-				
-				object_cbuf_data.model = decal.decal_model_matrix;
-				object_cbuf_data.inverse_transposed_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
-				object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-				object_allocation.Update(object_cbuf_data);
-				cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
+				modify_normals ? cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Decals_ModifyNormals].Get()) : cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Decals].Get());
+				for (auto e : decal_view)
+				{
+					Decal decal = decal_view.get(e);
+					if (decal.modify_gbuffer_normals != modify_normals) continue;
 
-				decal_cbuf_data.decal_type = static_cast<int32>(decal.decal_type);
-				DynamicAllocation decal_allocation = upload_buffer->Allocate(GetCBufferSize<DecalCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-				decal_allocation.Update(decal_cbuf_data);
-				cmd_list->SetGraphicsRootConstantBufferView(2, decal_allocation.gpu_address);
+					object_cbuf_data.model = decal.decal_model_matrix;
+					object_cbuf_data.inverse_transposed_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+					object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+					object_allocation.Update(object_cbuf_data);
+					cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
 
-				std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> texture_handles{};
-				std::vector<uint32> src_range_sizes{};
+					decal_cbuf_data.decal_type = static_cast<int32>(decal.decal_type);
+					DynamicAllocation decal_allocation = upload_buffer->Allocate(GetCBufferSize<DecalCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+					decal_allocation.Update(decal_cbuf_data);
+					cmd_list->SetGraphicsRootConstantBufferView(2, decal_allocation.gpu_address);
 
-				texture_handles.push_back(texture_manager.CpuDescriptorHandle(decal.albedo_decal_texture));
-				texture_handles.push_back(texture_manager.CpuDescriptorHandle(decal.normal_decal_texture));
-				texture_handles.push_back(depth_target.SRV());
-				src_range_sizes.assign(texture_handles.size(), 1u);
+					std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> texture_handles{};
+					std::vector<uint32> src_range_sizes{};
 
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(texture_handles.size());
-				auto dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
-				uint32 dst_range_sizes[] = { (uint32)texture_handles.size() };
-				device->CopyDescriptors(1, &dst_descriptor, dst_range_sizes, (uint32)texture_handles.size(), texture_handles.data(), src_range_sizes.data(),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetGraphicsRootDescriptorTable(3, descriptor_allocator->GetGpuHandle(descriptor_index));
+					texture_handles.push_back(texture_manager.CpuDescriptorHandle(decal.albedo_decal_texture));
+					texture_handles.push_back(texture_manager.CpuDescriptorHandle(decal.normal_decal_texture));
+					texture_handles.push_back(depth_target.SRV());
+					src_range_sizes.assign(texture_handles.size(), 1u);
 
-				cmd_list->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-				cube_vb->Bind(cmd_list);
-				cube_ib->Bind(cmd_list);
-				cmd_list->DrawIndexedInstanced(cube_ib->IndexCount(), 1, 0, 0, 0);
-			}
+					OffsetType descriptor_index = descriptor_allocator->AllocateRange(texture_handles.size());
+					auto dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+					uint32 dst_range_sizes[] = { (uint32)texture_handles.size() };
+					device->CopyDescriptors(1, &dst_descriptor, dst_range_sizes, (uint32)texture_handles.size(), texture_handles.data(), src_range_sizes.data(),
+						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					cmd_list->SetGraphicsRootDescriptorTable(3, descriptor_allocator->GetGpuHandle(descriptor_index));
+
+					cmd_list->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+					cube_vb->Bind(cmd_list);
+					cube_ib->Bind(cmd_list);
+					cmd_list->DrawIndexedInstanced(cube_ib->IndexCount(), 1, 0, 0, 0);
+				}
+			};
+			decal_pass_lambda(false);
+			decal_pass_lambda(true);
 		}
 		decal_pass.End(cmd_list);
 

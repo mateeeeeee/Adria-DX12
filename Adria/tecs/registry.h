@@ -61,7 +61,6 @@ namespace adria::tecs
 
 			entities[i] = make_entity(get_index(next), v + 1);
 			next = make_entity(i);
-
 		}
 
 		void remove_all(entity e)
