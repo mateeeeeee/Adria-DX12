@@ -21,7 +21,7 @@ namespace adria
 		{
 			auto aligned_top = Align(top, align);
 
-			if (aligned_top + size >= max_size) return INVALID_OFFSET;
+			if (aligned_top + size > max_size) return INVALID_OFFSET;
 			else
 			{
 				OffsetType start = aligned_top;

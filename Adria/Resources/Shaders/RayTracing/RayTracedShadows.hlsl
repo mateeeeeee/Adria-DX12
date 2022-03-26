@@ -1,7 +1,7 @@
 #include "../Globals/GlobalsRT.hlsli"
 
 RaytracingAccelerationStructure rt_scene : register(t0);
-Texture2D gbuf_pos : register(t1);
+Texture2D depth_tx : register(t1);
 RWTexture2D<float> shadow_rt_output : register(u0);
 
 struct ShadowRayData
@@ -9,13 +9,17 @@ struct ShadowRayData
     bool hit;
 };
 
+
 [shader("raygeneration")]
 void RTS_RayGen()
 {
     uint3 launchIndex = DispatchRaysIndex();
     uint2 launchDim = DispatchRaysDimensions().xy;
 
-    float3 posView = gbuf_pos.Load(int3(launchIndex.xy, 0)).xyz;
+    float depth = depth_tx.Load(int3(launchIndex.xy, 0)).r;
+    float2 tex_coords = launchDim / frame_cbuf.screen_resolution;
+
+    float3 posView = GetPositionVS(tex_coords, depth);
     float4 posWorld = mul(float4(posView, 1.0f), frame_cbuf.inverse_view);
     posWorld /= posWorld.w;
 
@@ -31,7 +35,7 @@ void RTS_RayGen()
     else if (light.type == DIRECTIONAL_LIGHT)
     {
         direction = -light.direction.xyz;
-        maxT = 1000.0f;
+        maxT = 10000.0f;
     }
     else if (light.type == SPOT_LIGHT)
     {
@@ -43,7 +47,7 @@ void RTS_RayGen()
     ray.Origin = posWorld.xyz;
     ray.Direction = normalize(direction);
     ray.TMin = 0.01;
-    ray.TMax = max(0.01, maxT);
+    ray.TMax = max(0.005, maxT);
 
     ShadowRayData payload;
     payload.hit = true;
@@ -52,14 +56,14 @@ void RTS_RayGen()
 }
 
 [shader("miss")]
-void Rts_Miss(inout ShadowRayData hitData)
+void RTS_Miss(inout ShadowRayData hitData)
 {
     hitData.hit = false;
 }
 
 
 [shader("anyhit")]
-void Rts_Anyhit(inout ShadowRayData hitData, in BuiltInTriangleIntersectionAttributes attribs)
+void RTS_Anyhit(inout ShadowRayData hitData, in BuiltInTriangleIntersectionAttributes attribs)
 {
     hitData.hit = true;
 }
