@@ -25,9 +25,9 @@ namespace adria
 
         void BuildAccelerationStructures();
 
-		Texture2D& RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& gbuffer_pos,
-			D3D12_CONSTANT_BUFFER_VIEW_DESC const& frame_cbuf_view,
-			D3D12_CONSTANT_BUFFER_VIEW_DESC const& light_cbuf_view);
+		Texture2D& RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth_srv,
+			D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address,
+			D3D12_GPU_VIRTUAL_ADDRESS light_cbuf_address);
 
 		Texture2D& RTAO(ID3D12GraphicsCommandList4* cmd_list, 
 			Texture2D const& gbuffer_pos,

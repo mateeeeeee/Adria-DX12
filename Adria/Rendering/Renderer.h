@@ -7,6 +7,7 @@
 #include "Picker.h"
 #include "ConstantBuffers.h"
 #include "ParticleRenderer.h"
+#include "RayTracer.h"
 #include "../tecs/Registry.h"
 #include "../Graphics/TextureManager.h"
 #include "../Graphics/ShaderUtility.h"
@@ -97,12 +98,15 @@ namespace adria
 		uint32 width, height;
 		tecs::registry& reg;
 		GraphicsCoreDX12* gfx;
+
 		uint32 const backbuffer_count;
 		uint32 backbuffer_index;
 		TextureManager texture_manager;
 		Camera const* camera;
 
 		ParticleRenderer particle_renderer;
+		RayTracer ray_tracer;
+
 		RendererSettings settings;
 		Profiler profiler;
 		ProfilerSettings profiler_settings;

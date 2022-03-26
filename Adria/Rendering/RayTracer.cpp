@@ -62,10 +62,12 @@ namespace adria
 		BuildTopLevelAS();
 	}
 
-	Texture2D& RayTracer::RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& gbuffer_pos,
-		D3D12_CONSTANT_BUFFER_VIEW_DESC const& frame_cbuf_view,
-		D3D12_CONSTANT_BUFFER_VIEW_DESC const& light_cbuf_view)
+	Texture2D& RayTracer::RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth_srv,
+		D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address,
+		D3D12_GPU_VIRTUAL_ADDRESS light_cbuf_address)
 	{
+		static Texture2D empty_tex{};
+		if (!ray_tracing_supported) return empty_tex;
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Ray Traced Shadows Pass");
 
 		auto device = gfx->GetDevice();
@@ -77,21 +79,20 @@ namespace adria
 
 		cmd_list->SetComputeRootSignature(rt_shadows_root_signature.Get());
 
-		cmd_list->SetComputeRootConstantBufferView(0, frame_cbuf_view.BufferLocation);
-		cmd_list->SetComputeRootConstantBufferView(1, light_cbuf_view.BufferLocation);
+		cmd_list->SetComputeRootConstantBufferView(0, frame_cbuf_address);
+		cmd_list->SetComputeRootConstantBufferView(1, light_cbuf_address);
 		cmd_list->SetComputeRootConstantBufferView(2, ray_tracing_cbuffer.View(gfx->BackbufferIndex()).BufferLocation);
 		cmd_list->SetComputeRootShaderResourceView(3, tlas->GetGPUVirtualAddress());
 
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(1);
 		auto dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
-		device->CopyDescriptorsSimple(1, dst_descriptor, gbuffer_pos.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		device->CopyDescriptorsSimple(1, dst_descriptor, depth_srv.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		cmd_list->SetComputeRootDescriptorTable(4, descriptor_allocator->GetGpuHandle(descriptor_index));
-		
+
 		descriptor_index = descriptor_allocator->AllocateRange(1);
 		dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
 		device->CopyDescriptorsSimple(1, dst_descriptor, rt_shadows_output.UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		cmd_list->SetComputeRootDescriptorTable(5, descriptor_allocator->GetGpuHandle(descriptor_index));
-		
 		cmd_list->SetPipelineState1(rt_shadows_state_object.Get());
 
 		D3D12_DISPATCH_RAYS_DESC dispatch_desc = {};
@@ -111,6 +112,8 @@ namespace adria
 
 	Texture2D& RayTracer::RTAO(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& gbuffer_pos, Texture2D const& gbuffer_nor, D3D12_CONSTANT_BUFFER_VIEW_DESC const& frame_cbuf_view)
 	{
+		static Texture2D empty_tex{};
+		if (!ray_tracing_supported) return empty_tex;
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Ray Traced Ambient Occlusion");
 
 		auto device = gfx->GetDevice();
@@ -155,7 +158,7 @@ namespace adria
 
 		rtao_barrier.ReverseTransitions();
 		rtao_barrier.Submit(cmd_list);
-		return rt_shadows_output;
+		return rtao_output;
 	}
 
 	void RayTracer::CreateResources()
@@ -185,6 +188,8 @@ namespace adria
 	{
 		ID3D12Device5* device = gfx->GetDevice();
 
+		D3D12_FEATURE_DATA_ROOT_SIGNATURE feature_data{};
+		feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
 		//ray traced shadows
 		{
 			D3D12_FEATURE_DATA_ROOT_SIGNATURE feature_data{};
@@ -198,9 +203,9 @@ namespace adria
 			root_parameters[3].InitAsShaderResourceView(0);
 
 			D3D12_DESCRIPTOR_RANGE1 srv_range = {};
-			srv_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+			srv_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 			srv_range.NumDescriptors = 1;
-			srv_range.BaseShaderRegister = 0;
+			srv_range.BaseShaderRegister = 1;
 			srv_range.RegisterSpace = 0;
 			srv_range.OffsetInDescriptorsFromTableStart = 0;
 			root_parameters[4].InitAsDescriptorTable(1, &srv_range);
@@ -215,35 +220,34 @@ namespace adria
 			//fill root parameters
 
 			CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_desc{};
-			root_signature_desc.Init_1_1((uint32)root_parameters.size(), root_parameters.data(), 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+			root_signature_desc.Init_1_1((uint32)root_parameters.size(), root_parameters.data(), 0, nullptr);
 
 			Microsoft::WRL::ComPtr<ID3DBlob> signature;
 			Microsoft::WRL::ComPtr<ID3DBlob> error;
 			D3DX12SerializeVersionedRootSignature(&root_signature_desc, feature_data.HighestVersion, &signature, &error);
-			if (error) OutputDebugStringA((char*)error->GetBufferPointer());
-
+			if (error)
+			{
+				ADRIA_LOG(ERROR, (char*)error->GetBufferPointer());
+				ADRIA_ASSERT(FALSE);
+			}
 			BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rt_shadows_root_signature)));
-
 		}
 
 		//rtao
 		{
-			D3D12_FEATURE_DATA_ROOT_SIGNATURE feature_data{};
-			feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
 
-			std::array<CD3DX12_ROOT_PARAMETER1, 6> root_parameters{};
+			std::array<CD3DX12_ROOT_PARAMETER1, 4> root_parameters{};
 			
 			root_parameters[0].InitAsConstantBufferView(0);
 			root_parameters[1].InitAsConstantBufferView(10);
-			root_parameters[2].InitAsShaderResourceView(0); //ray acceleration structure
 
 			D3D12_DESCRIPTOR_RANGE1 srv_range = {};
-			srv_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+			srv_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 			srv_range.NumDescriptors = 1;
 			srv_range.BaseShaderRegister = 0;
 			srv_range.RegisterSpace = 0;
 			srv_range.OffsetInDescriptorsFromTableStart = 0;
-			root_parameters[4].InitAsDescriptorTable(1, &srv_range);
+			root_parameters[2].InitAsDescriptorTable(1, &srv_range);
 
 			D3D12_DESCRIPTOR_RANGE1 uav_range = {};
 			uav_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
@@ -251,21 +255,22 @@ namespace adria
 			uav_range.BaseShaderRegister = 0;
 			uav_range.RegisterSpace = 0;
 			uav_range.OffsetInDescriptorsFromTableStart = 0;
-			root_parameters[5].InitAsDescriptorTable(1, &uav_range);
+			root_parameters[3].InitAsDescriptorTable(1, &uav_range);
 			//fill root parameters
 
 			CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_desc{};
-			root_signature_desc.Init_1_1((uint32)root_parameters.size(), root_parameters.data(), 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+			root_signature_desc.Init_1_1((uint32)root_parameters.size(), root_parameters.data(), 0, nullptr);
 
 			Microsoft::WRL::ComPtr<ID3DBlob> signature;
 			Microsoft::WRL::ComPtr<ID3DBlob> error;
 			D3DX12SerializeVersionedRootSignature(&root_signature_desc, feature_data.HighestVersion, &signature, &error);
-			if (error) OutputDebugStringA((char*)error->GetBufferPointer());
-
+			if (error)
+			{
+				ADRIA_LOG(ERROR, (char*)error->GetBufferPointer());
+				ADRIA_ASSERT(FALSE);
+			}
 			BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rtao_root_signature)));
-
 		}
-		
 	}
 
 	void RayTracer::CreateStateObjects()
@@ -308,7 +313,7 @@ namespace adria
 
 		D3D12_HIT_GROUP_DESC anyhit_group{};
 		anyhit_group.Type = D3D12_HIT_GROUP_TYPE_TRIANGLES;
-		anyhit_group.AnyHitShaderImport = L"Rts_Anyhit";
+		anyhit_group.AnyHitShaderImport = L"RTS_Anyhit";
 		anyhit_group.HitGroupExport = L"ShadowAnyHitGroup";
 		rt_shadows_state_object_builder.AddSubObject(anyhit_group);
 
@@ -338,7 +343,7 @@ namespace adria
 
 	void RayTracer::BuildBottomLevelAS()
 	{
-		auto device = gfx->GetDevice();
+		/*auto device = gfx->GetDevice();
 		auto cmd_list = gfx->GetDefaultCommandList();
 		auto ray_tracing_view = reg.view<Mesh, Transform>();
 
@@ -354,28 +359,41 @@ namespace adria
 			geo_desc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
 			geo_desc.Triangles.VertexCount = mesh.vertex_count;
 			geo_desc.Triangles.IndexFormat = mesh.index_buffer->View().Format;
-			geo_desc.Triangles.IndexBuffer = mesh.index_buffer->View().BufferLocation + sizeof(geo_desc.Triangles.IndexFormat) * mesh.start_index_location;
+			geo_desc.Triangles.IndexBuffer = mesh.index_buffer->View().BufferLocation + mesh.start_index_location * (geo_desc.Triangles.IndexFormat == DXGI_FORMAT_R16_UINT ? 2 : 4);
 			geo_desc.Triangles.IndexCount = mesh.indices_count;
 			geo_desc.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
 			geo_descs.push_back(geo_desc);
 		}
 
-		// Get required sizes for an acceleration structure
-		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs = {};
-		inputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
-		inputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_NONE;
-		inputs.NumDescs = (uint32)geo_descs.size();
-		inputs.pGeometryDescs = geo_descs.data();
-		inputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
+		D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO bl_prebuild_info{};
+		{
+			D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs{};
+			inputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
+			inputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
+			inputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
+			inputs.NumDescs = static_cast<uint32>(geo_descs.size());
+			inputs.pGeometryDescs = geo_descs.data();
+			device->GetRaytracingAccelerationStructurePrebuildInfo(&inputs, &bl_prebuild_info);
+		}
+		ADRIA_ASSERT(bl_prebuild_info.ResultDataMaxSizeInBytes > 0);
 
-		D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO info = {};
-		device->GetRaytracingAccelerationStructurePrebuildInfo(&inputs, &info);
+		D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO tl_prebuild_info{};
+		{
+			D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs = {};
+			inputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
+			inputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
+			inputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
+			inputs.pGeometryDescs = nullptr;
+			inputs.NumDescs = 1;
+			device->GetRaytracingAccelerationStructurePrebuildInfo(&inputs, &tl_prebuild_info);
+		}
+		ADRIA_ASSERT(tl_prebuild_info.ResultDataMaxSizeInBytes > 0);
 
 		auto default_heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 
 		AccelerationStructureBuffers buffers{};
-		buffers.scratch_buffer = CreateBuffer(device, info.ScratchDataSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, default_heap);
-		buffers.result_buffer = CreateBuffer(device, info.ResultDataMaxSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, default_heap);
+		buffers.scratch_buffer = CreateBuffer(device, tl_prebuild_info.ScratchDataSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, default_heap);
+		buffers.result_buffer = CreateBuffer(device, bl_prebuild_info.ResultDataMaxSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, default_heap);
 
 		// Create the bottom-level AS
 		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC as_desc = {};
@@ -389,27 +407,12 @@ namespace adria
 		uav_barrier.UAV.pResource = buffers.result_buffer.Get();
 		cmd_list->ResourceBarrier(1, &uav_barrier);
 
-		blas = buffers.result_buffer;
+		blas = buffers.result_buffer;*/
 	}
 
 	void RayTracer::BuildTopLevelAS()
 	{
-
-		auto device = gfx->GetDevice();
-		auto cmd_list = gfx->GetDefaultCommandList();
-
-		// First, get the size of the TLAS buffers and create them
-		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs = {};
-		inputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
-		inputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_NONE;
-		inputs.NumDescs = 1;
-		inputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
-
-		D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO info;
-		device->GetRaytracingAccelerationStructurePrebuildInfo(&inputs, &info);
-
-		// Create the buffers
-		auto default_heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+		/*auto default_heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 		AccelerationStructureBuffers buffers{};
 		buffers.scratch_buffer = CreateBuffer(device, info.ScratchDataSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, default_heap);
 		buffers.result_buffer = CreateBuffer(device, info.ResultDataMaxSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, default_heap);
@@ -448,7 +451,7 @@ namespace adria
 		uavBarrier.UAV.pResource = buffers.result_buffer.Get();
 		cmd_list->ResourceBarrier(1, &uavBarrier);
 
-		tlas = buffers.result_buffer.Get();
+		tlas = buffers.result_buffer.Get(); */
 	}
 
 }

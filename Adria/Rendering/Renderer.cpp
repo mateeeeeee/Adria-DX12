@@ -369,9 +369,8 @@ namespace adria
 		light_counter(gfx->GetDevice(), 1, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
 		light_list(gfx->GetDevice(), CLUSTER_COUNT * CLUSTER_MAX_LIGHTS, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
 		light_grid(gfx->GetDevice(), CLUSTER_COUNT, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
-		profiler(gfx), particle_renderer(gfx), picker(gfx)
+		profiler(gfx), particle_renderer(gfx), picker(gfx), ray_tracer(reg, gfx, width, height)
 	{
-
 		LoadShaders();
 		CreateRootSignatures();
 		CreatePipelineStateObjects();
@@ -387,9 +386,11 @@ namespace adria
 		reg.clear();
 	}
 
-	void Renderer::NewFrame(Camera const* camera)
+	void Renderer::NewFrame(Camera const* _camera)
 	{
-		this->camera = camera;
+		ADRIA_ASSERT(_camera);
+
+		camera = _camera;
 		backbuffer_index = gfx->BackbufferIndex();
 
 		static float32 _near = 0.0f, far_plane = 0.0f, _fov = 0.0f, _ar = 0.0f;
@@ -946,6 +947,8 @@ namespace adria
 		}
 
 		texture_manager.SetMipMaps(true);
+
+		if(ray_tracer.IsSupported()) ray_tracer.BuildAccelerationStructures();
 	}
 	TextureManager& Renderer::GetTextureManager()
 	{
@@ -3874,7 +3877,6 @@ namespace adria
 				default:
 					ADRIA_ASSERT(false);
 				}
-			
 			}
 
 			//lighting + volumetric fog

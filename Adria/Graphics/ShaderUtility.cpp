@@ -4,6 +4,7 @@
 #include <d3dcompiler.h> 
 #include "dxc/dxcapi.h" 
 #include "../Utilities/StringUtil.h"
+#include "../Logging/Logger.h"
 
 
 namespace adria
@@ -160,7 +161,7 @@ namespace adria
 				Microsoft::WRL::ComPtr<IDxcBlobEncoding> errorsBlob;
 				hr = result->GetErrorBuffer(&errorsBlob);
 				if (SUCCEEDED(hr) && errorsBlob)
-					DEBUG_PRINT("Compilation failed with errors:\n%hs\n", (const char*)errorsBlob->GetBufferPointer());
+					ADRIA_LOG(ERROR, "Compilation failed with errors:\n%hs\n", (const char*)errorsBlob->GetBufferPointer());
 			}
 
 			result->GetResult(_blob.GetAddressOf());

@@ -2,7 +2,7 @@
 #include "../Util/RayTracingUtil.hlsli"
 
 RaytracingAccelerationStructure rt_scene : register(t0);
-Texture2D gbuf_pos : register(t1);
+Texture2D depth_tx : register(t1);
 Texture2D gbuf_nor : register(t2);
 RWTexture2D<float> ao_rt_output : register(u0);
 
@@ -18,8 +18,10 @@ void RTAO_RayGen()
     uint3 launchIndex = DispatchRaysIndex();
     uint2 launchDim = DispatchRaysDimensions().xy;
 
-    //change from view to world
-    float3 posView = gbuf_pos.Load(int3(launchIndex.xy, 0)).xyz;
+    float depth = depth_tx.Load(int3(launchIndex.xy, 0)).r;
+    float2 tex_coords = launchDim / frame_cbuf.screen_resolution;
+
+    float3 posView = GetPositionVS(tex_coords, depth);
     float3 normalView = gbuf_nor.Load(int3(launchIndex.xy, 0)).xyz;
     
     float4 posWorld = mul(float4(posView, 1.0f), frame_cbuf.inverse_view);
