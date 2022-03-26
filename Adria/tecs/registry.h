@@ -66,7 +66,6 @@ namespace adria::tecs
 		void remove_all(entity e)
 		{
 			assert(valid(e));
-
 			for (auto& pool : pools)
 				if (pool && pool->contains(e)) pool->remove(e);
 		}
@@ -84,7 +83,7 @@ namespace adria::tecs
 		[[maybe_unused]]
 		entity create()
 		{
-			return next == null_entity ? generate_entity() : recycle_entity();
+			return generate_entity();
 		}
 
 		void destroy(entity e)

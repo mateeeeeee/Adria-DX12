@@ -23,6 +23,7 @@ Graphics engine written in C++/DirectX12. For successful build you will need tex
 * Ambient Occlusion: SSAO, HBAO
 * SSR
 * SSCS
+* Deferred Decals
 * FXAA
 * TAA
 * God Rays
