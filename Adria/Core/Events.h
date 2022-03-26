@@ -32,19 +32,16 @@ namespace adria
 		}
 	};
 
-	struct LeftMouseClickedEvent : IEvent
+	struct RightMouseClickedEvent : IEvent
 	{
 		int32 mx, my;
 
-		LeftMouseClickedEvent(int32 mx, int32 my) : mx(mx), my(my)
+		RightMouseClickedEvent(int32 mx, int32 my) : mx(mx), my(my)
 		{}
 
 		virtual EventTypeID GetEventTypeID() const override
 		{
-			return EventTypeIdGenerator::type<LeftMouseClickedEvent>;
+			return EventTypeIdGenerator::type<RightMouseClickedEvent>;
 		}
 	};
-
-	
-
 }

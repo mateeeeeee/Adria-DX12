@@ -468,6 +468,8 @@ namespace adria
 			ImGui::Text("Picked Normal: %f %f %f", picking_data.normal.x, picking_data.normal.y, picking_data.normal.z);
 			if (ImGui::Button("Load Decal"))
 			{
+				ADRIA_LOG(INFO, "[EDITOR] Position of Decal: %f %f %f", picking_data.position.x, picking_data.position.y, picking_data.position.z);
+
 				params.position = picking_data.position;
 				params.normal = picking_data.normal;
 				params.rotation = XMConvertToRadians(params.rotation);

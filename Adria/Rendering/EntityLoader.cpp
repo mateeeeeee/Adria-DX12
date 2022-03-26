@@ -710,11 +710,13 @@ namespace adria
 		XMVECTOR P = XMLoadFloat4(&params.position);
 		XMVECTOR N = XMLoadFloat4(&params.normal);
 
+		ADRIA_LOG(INFO, "Position of Decal: %f %f %f", params.position.x, params.position.y, params.position.z);
+
 		XMVECTOR ProjectorDirection = XMVectorNegate(N);
 		XMMATRIX RotationMatrix = XMMatrixRotationAxis(ProjectorDirection, params.rotation);
-		XMMATRIX ModelMatrix = XMMatrixScaling(params.size, params.size, params.size) * RotationMatrix * XMMatrixTranslationFromVector(P);
+		XMMATRIX model_matrix = XMMatrixScaling(params.size, params.size, params.size) * RotationMatrix * XMMatrixTranslationFromVector(P);
 
-		decal.decal_model_matrix = ModelMatrix;
+		decal.decal_model_matrix = model_matrix;
 		decal.decal_type = params.decal_type;
 		decal.modify_gbuffer_normals = params.modify_gbuffer_normals;
 

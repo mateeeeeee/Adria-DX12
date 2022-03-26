@@ -408,7 +408,6 @@ namespace adria
 		UpdateConstantBuffers(dt);
 		CameraFrustumCulling();
 		UpdateParticles(dt);
-		picking_data = picker.GetPickingData();
 	}
 
 	void Renderer::SetSceneViewportData(SceneViewport&& vp)
@@ -423,6 +422,11 @@ namespace adria
 	{
 		settings = _settings;
 		if (settings.ibl && !ibl_textures_generated) CreateIBLTextures();
+		if (update_picking_data)
+		{
+			picking_data = picker.GetPickingData();
+			update_picking_data = false;
+		}
 
 		auto cmd_list = gfx->GetDefaultCommandList();
 
@@ -469,6 +473,11 @@ namespace adria
 	{
 		settings = _settings;
 		if (settings.ibl && !ibl_textures_generated) CreateIBLTextures();
+		if (update_picking_data)
+		{
+			picking_data = picker.GetPickingData();
+			update_picking_data = false;
+		}
 
 		auto cmd_list = gfx->GetDefaultCommandList();
 		auto gbuf_cmd_list = gfx->GetNewGraphicsCommandList();
@@ -478,8 +487,8 @@ namespace adria
 		auto gbuf_ambient_fut = TaskSystem::Submit([this, gbuf_cmd_list]()
 		{
 			
-				//resource state of depth buffer is not correct, it should be D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE instead of 
-				//D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, debug layer doesn't complain but fix it layer
+			//resource state of depth buffer is not correct, it should be D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE instead of 
+			//D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, debug layer doesn't complain but fix it layer
 			PassPicking(gbuf_cmd_list);
 
 			D3D12_RESOURCE_BARRIER barriers[] =
@@ -495,24 +504,26 @@ namespace adria
 
 		auto deferred_fut = TaskSystem::Submit([this, deferred_cmd_list]()
 		{
+			D3D12_RESOURCE_BARRIER pre_ssao_barriers[] =
+			{
+				CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(),D3D12_RESOURCE_STATE_DEPTH_WRITE,  D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
+			};
+			deferred_cmd_list->ResourceBarrier(_countof(pre_ssao_barriers), pre_ssao_barriers);
+
+			PassDecals(deferred_cmd_list);
+
 			if (settings.ambient_occlusion != EAmbientOcclusion::None)
 			{
-				D3D12_RESOURCE_BARRIER pre_ssao_barriers[] =
-				{
-					CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(),D3D12_RESOURCE_STATE_DEPTH_WRITE,  D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
-				};
-				deferred_cmd_list->ResourceBarrier(_countof(pre_ssao_barriers), pre_ssao_barriers);
-
 				if (settings.ambient_occlusion == EAmbientOcclusion::SSAO) PassSSAO(deferred_cmd_list);
 				else if (settings.ambient_occlusion == EAmbientOcclusion::HBAO) PassHBAO(deferred_cmd_list);
-				
-				D3D12_RESOURCE_BARRIER  post_ssao_barriers[] =
-				{
-					CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE)
-				};
-				deferred_cmd_list->ResourceBarrier(_countof(post_ssao_barriers), post_ssao_barriers);
-
 			}
+			D3D12_RESOURCE_BARRIER  post_ssao_barriers[] =
+			{
+				CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE)
+			};
+			deferred_cmd_list->ResourceBarrier(_countof(post_ssao_barriers), post_ssao_barriers);
+
+
 			PassAmbient(deferred_cmd_list);
 			PassDeferredLighting(deferred_cmd_list);
 
@@ -624,6 +635,10 @@ namespace adria
 			CreateRenderPasses(width, height);
 		}
 	}
+	void Renderer::OnRightMouseClicked()
+	{
+		update_picking_data = current_scene_viewport.scene_viewport_focused;
+	}
 	void Renderer::UploadData()
 	{
 		//create cube vb and ib for sky here, move somewhere else later
@@ -631,14 +646,14 @@ namespace adria
 
 			static const SimpleVertex cube_vertices[8] =
 			{
-				XMFLOAT3{ -1.0, -1.0,  1.0 },
-				XMFLOAT3{ 1.0, -1.0,  1.0 },
-				XMFLOAT3{ 1.0,  1.0,  1.0 },
-				XMFLOAT3{ -1.0,  1.0,  1.0 },
-				XMFLOAT3{ -1.0, -1.0, -1.0 },
-				XMFLOAT3{ 1.0, -1.0, -1.0 },
-				XMFLOAT3{ 1.0,  1.0, -1.0 },
-				XMFLOAT3{ -1.0,  1.0, -1.0 }
+				XMFLOAT3{ -0.5f, -0.5f,  0.5f },
+				XMFLOAT3{  0.5f, -0.5f,  0.5f },
+				XMFLOAT3{  0.5f,  0.5f,  0.5f },
+				XMFLOAT3{ -0.5f,  0.5f,  0.5f },
+				XMFLOAT3{ -0.5f, -0.5f, -0.5f },
+				XMFLOAT3{  0.5f, -0.5f, -0.5f },
+				XMFLOAT3{  0.5f,  0.5f, -0.5f },
+				XMFLOAT3{ -0.5f,  0.5f, -0.5f }
 			};
 
 			static const uint16_t cube_indices[36] =
@@ -663,8 +678,8 @@ namespace adria
 				6, 7, 3
 			};
 
-			cube_vb = std::make_shared<VertexBuffer>(gfx, cube_vertices, _countof(cube_vertices));
-			cube_ib = std::make_shared<IndexBuffer>(gfx, cube_indices, _countof(cube_indices));
+			cube_vb = std::make_shared<VertexBuffer>(gfx, cube_vertices, ARRAYSIZE(cube_vertices));
+			cube_ib = std::make_shared<IndexBuffer>(gfx, cube_indices, ARRAYSIZE(cube_indices));
 		}
 
 		//ao textures
@@ -935,7 +950,7 @@ namespace adria
 	}
 	PickingData Renderer::GetPickingData() const
 	{
-		return picker.GetPickingData();
+		return picking_data;
 	}
 	Texture2D Renderer::GetOffscreenTexture() const
 	{
@@ -2232,17 +2247,18 @@ namespace adria
 				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				pso_desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+				pso_desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 				pso_desc.SampleMask = UINT_MAX;
 				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 				pso_desc.NumRenderTargets = 1;
-				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				pso_desc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 				pso_desc.SampleDesc.Count = 1;
 				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Decals])));
 
 				pso_desc.PS = shader_map[PS_Decals_ModifyNormals];
 				pso_desc.NumRenderTargets = 2;
-				pso_desc.RTVFormats[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				pso_desc.RTVFormats[1] = DXGI_FORMAT_R8G8B8A8_UNORM;
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Decals_ModifyNormals])));
 			}
 		}
@@ -2771,6 +2787,8 @@ namespace adria
 			decal_normal_attachment.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
 			render_pass_desc.rtv_attachments.push_back(decal_normal_attachment);
 
+			render_pass_desc.width = width;
+			render_pass_desc.height = height;
 			decal_pass = RenderPass(render_pass_desc);
 		}
 
@@ -3566,14 +3584,22 @@ namespace adria
 
 			mesh.Draw(cmd_list);
 		}
-
 		gbuffer_render_pass.End(cmd_list);
 
-		gbuffer_barriers.ReverseTransitions();
-		gbuffer_barriers.Submit(cmd_list);
+		if (reg.size<Decal>() > 0)
+		{
+			gbuffer_barriers.Clear();
+			gbuffer_barriers.AddTransition(gbuffer[2].Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+			gbuffer_barriers.Submit(cmd_list);
+		}
+		else
+		{
+			gbuffer_barriers.ReverseTransitions();
+			gbuffer_barriers.Submit(cmd_list);
+		}
+
 
 	}
-
 	void Renderer::PassDecals(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		if (reg.size<Decal>() == 0) return;
@@ -3631,12 +3657,17 @@ namespace adria
 				cmd_list->SetGraphicsRootDescriptorTable(3, descriptor_allocator->GetGpuHandle(descriptor_index));
 
 				cmd_list->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-				cube_vb->Bind(cmd_list, 0);
+				cube_vb->Bind(cmd_list);
 				cube_ib->Bind(cmd_list);
 				cmd_list->DrawIndexedInstanced(cube_ib->IndexCount(), 1, 0, 0, 0);
 			}
 		}
 		decal_pass.End(cmd_list);
+
+		ResourceBarrierBatch decal_barriers{};
+		decal_barriers.AddTransition(gbuffer[0].Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		decal_barriers.AddTransition(gbuffer[1].Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		decal_barriers.Submit(cmd_list);
 	}
 
 	void Renderer::PassSSAO(ID3D12GraphicsCommandList4* cmd_list)

@@ -82,7 +82,6 @@ namespace adria
 		PickingData GetPickingData() const
 		{
 			UINT backbuffer_index = gfx->BackbufferIndex();
-
 			PickingData const* data = read_picking_buffer[backbuffer_index].Map<PickingData>();
 			PickingData picking_data = *data;
 			read_picking_buffer[backbuffer_index].Unmap();

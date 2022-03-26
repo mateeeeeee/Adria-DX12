@@ -162,15 +162,14 @@ namespace adria
             case WM_MOUSEWHEEL:
                 event_queue.ConstructAndPushEvent<ScrollEvent>((int32)GET_WHEEL_DELTA_WPARAM(data.wparam) / WHEEL_DELTA);
                 break;
-			case WM_LBUTTONDOWN:
+			case WM_RBUTTONDOWN:
 			    {
 			    	auto mx = GET_X_LPARAM(data.lparam);
 			    	auto my = GET_Y_LPARAM(data.lparam);
-			    	event_queue.ConstructAndPushEvent<LeftMouseClickedEvent>(mx, my);
+			    	event_queue.ConstructAndPushEvent<RightMouseClickedEvent>(mx, my);
 			    }
 			    break;
             }
-
         }
 
         m_mouse_wheel_delta = (float32)GET_WHEEL_DELTA_WPARAM(data.wparam) / (float32)WHEEL_DELTA;

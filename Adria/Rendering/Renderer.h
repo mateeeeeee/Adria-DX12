@@ -80,6 +80,8 @@ namespace adria
 
 		void OnResize(uint32 width, uint32 height);
 
+		void OnRightMouseClicked();
+
 		void UploadData();
 
 		Texture2D GetOffscreenTexture() const;
@@ -107,6 +109,7 @@ namespace adria
 		SceneViewport current_scene_viewport;
 		Picker picker;
 		PickingData picking_data;
+		bool update_picking_data = false;
 
 		std::unordered_map<EShader, ShaderBlob> shader_map;
 		std::unordered_map<ERootSignature, Microsoft::WRL::ComPtr<ID3D12RootSignature>> rs_map;

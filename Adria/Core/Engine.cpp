@@ -220,6 +220,10 @@ namespace adria
 			{
 				camera_manager.OnScroll(e.scroll);
 			});
+		event_queue.Subscribe<RightMouseClickedEvent>([this](RightMouseClickedEvent const& e)
+			{
+				renderer->OnRightMouseClicked();
+			});
 
 		std::optional<SceneConfig> scene_config = ParseSceneConfig(init.scene_file);
 		if (scene_config.has_value()) InitializeScene(scene_config.value());
@@ -243,11 +247,10 @@ namespace adria
 
 		float32 const dt = timer.MarkInSeconds();
 
-		if (Window::IsActive() || true) //for now
+		if (Window::IsActive())
 		{
 			input.NewFrame();
 			event_queue.ProcessEvents();
-
 			Update(dt);
 			Render(settings);
 		}
@@ -323,26 +326,3 @@ namespace adria
 	}
 }
 
-
-
-/*
-skybox_parameters_t skybox_params{};
-skybox_params.cubemap_textures =
-{
-	L"Resources/Textures/Skybox/right.jpg",
-	L"Resources/Textures/Skybox/left.jpg",
-	L"Resources/Textures/Skybox/top.jpg",
-	L"Resources/Textures/Skybox/bottom.jpg",
-	L"Resources/Textures/Skybox/front.jpg",
-	L"Resources/Textures/Skybox/back.jpg"
-}; */
-/*grid_parameters_t ocean_params{};
-ocean_params.tile_count_x = 50;
-ocean_params.tile_count_z = 50;
-ocean_params.tile_size_x = 10;
-ocean_params.tile_size_z = 10;
-ocean_params.texture_scale_x = 1;
-ocean_params.texture_scale_z = 1;
-ocean_parameters_t params{};
-params.ocean_grid = std::move(ocean_params);
-entity_loader->LoadOcean(params);*/
