@@ -23,7 +23,6 @@ namespace adria
 		char const* scene_file = "scene.json";
 	};
 
-	
 	class Engine
 	{
 		friend class Editor;

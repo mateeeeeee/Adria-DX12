@@ -170,7 +170,6 @@
     <ClCompile Include="Graphics\D3D12MemAlloc.cpp" />
     <ClCompile Include="Graphics\DDSTextureLoader12.cpp" />
     <ClCompile Include="Graphics\DescriptorHeap.cpp" />
-    <ClCompile Include="Graphics\GraphicsCoreDX12_deprecated.cpp" />
     <ClCompile Include="Graphics\GraphicsCoreDX12.cpp" />
     <ClCompile Include="Graphics\LinearDescriptorAllocator.cpp" />
     <ClCompile Include="Graphics\LinearUploadBuffer.cpp" />
@@ -243,7 +242,6 @@
     <ClInclude Include="Graphics\RingUploadBuffer.h" />
     <ClInclude Include="Graphics\IndexBuffer.h" />
     <ClInclude Include="Graphics\LinearDescriptorAllocator.h" />
-    <ClInclude Include="Graphics\GraphicsCoreDX12_deprecated.h" />
     <ClInclude Include="Graphics\RingDescriptorAllocator.h" />
     <ClInclude Include="Graphics\ShaderUtility.h" />
     <ClInclude Include="Graphics\VertexBuffer.h" />

@@ -373,7 +373,7 @@
 #define Decal_RS                    "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
                                     "CBV(b0, visibility=SHADER_VISIBILITY_ALL), " \
                                     "CBV(b1, visibility=SHADER_VISIBILITY_VERTEX), " \
-                                    "CBV(b11, visibility=SHADER_VISIBILITY_PIXEL), " \
+                                    "RootConstants(num32BitConstants=1, b11, space=0, visibility=SHADER_VISIBILITY_PIXEL), " \
                                     "DescriptorTable(SRV(t0, numDescriptors = 3, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_ALL), " \
                                     "StaticSampler(s0, " \
                                     "addressU = TEXTURE_ADDRESS_CLAMP, " \

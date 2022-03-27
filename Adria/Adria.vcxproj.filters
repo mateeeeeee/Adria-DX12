@@ -125,9 +125,6 @@
     <ClCompile Include="Graphics\LinearDescriptorAllocator.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\GraphicsCoreDX12_deprecated.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="Graphics\ShaderUtility.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
@@ -320,9 +317,6 @@
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\DDSTextureLoader12.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\GraphicsCoreDX12_deprecated.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\WICTextureLoader12.h">

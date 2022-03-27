@@ -369,7 +369,7 @@ namespace adria
 		light_counter(gfx->GetDevice(), 1, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
 		light_list(gfx->GetDevice(), CLUSTER_COUNT * CLUSTER_MAX_LIGHTS, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
 		light_grid(gfx->GetDevice(), CLUSTER_COUNT, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
-		profiler(gfx), particle_renderer(gfx), picker(gfx), ray_tracer(reg, gfx, width, height)
+		profiler(gfx), particle_renderer(gfx), picker(gfx)//, ray_tracer(reg, gfx, width, height)
 	{
 		LoadShaders();
 		CreateRootSignatures();
@@ -948,7 +948,7 @@ namespace adria
 
 		texture_manager.SetMipMaps(true);
 
-		if(ray_tracer.IsSupported()) ray_tracer.BuildAccelerationStructures();
+		//if(ray_tracer.IsSupported()) ray_tracer.BuildAccelerationStructures();
 	}
 	TextureManager& Renderer::GetTextureManager()
 	{
@@ -3644,11 +3644,7 @@ namespace adria
 					object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 					object_allocation.Update(object_cbuf_data);
 					cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
-
-					decal_cbuf_data.decal_type = static_cast<int32>(decal.decal_type);
-					DynamicAllocation decal_allocation = upload_buffer->Allocate(GetCBufferSize<DecalCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-					decal_allocation.Update(decal_cbuf_data);
-					cmd_list->SetGraphicsRootConstantBufferView(2, decal_allocation.gpu_address);
+					cmd_list->SetGraphicsRoot32BitConstant(2, static_cast<UINT>(decal.decal_type), 0);
 
 					std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> texture_handles{};
 					std::vector<uint32> src_range_sizes{};
