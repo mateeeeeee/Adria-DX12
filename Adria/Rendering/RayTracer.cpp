@@ -192,11 +192,7 @@ namespace adria
 		feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
 		//ray traced shadows
 		{
-			D3D12_FEATURE_DATA_ROOT_SIGNATURE feature_data{};
-			feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
-
 			std::array<CD3DX12_ROOT_PARAMETER1, 6> root_parameters{};
-			
 			root_parameters[0].InitAsConstantBufferView(0);
 			root_parameters[1].InitAsConstantBufferView(2);
 			root_parameters[2].InitAsConstantBufferView(10);
@@ -235,9 +231,7 @@ namespace adria
 
 		//rtao
 		{
-
 			std::array<CD3DX12_ROOT_PARAMETER1, 4> root_parameters{};
-			
 			root_parameters[0].InitAsConstantBufferView(0);
 			root_parameters[1].InitAsConstantBufferView(10);
 
@@ -297,10 +291,10 @@ namespace adria
 		rt_shadows_state_object_builder.AddSubObject(dxil_lib_desc);
 
 		// Add a state subobject for the shader payload configuration
-		D3D12_RAYTRACING_SHADER_CONFIG rt_shadows_shader_desc = {};
-		rt_shadows_shader_desc.MaxPayloadSizeInBytes = 4;	//bool in hlsl is 4 bytes
-		rt_shadows_shader_desc.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
-		rt_shadows_state_object_builder.AddSubObject(rt_shadows_shader_desc);
+		D3D12_RAYTRACING_SHADER_CONFIG rt_shadows_shader_config = {};
+		rt_shadows_shader_config.MaxPayloadSizeInBytes = 4;	//bool in hlsl is 4 bytes
+		rt_shadows_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
+		rt_shadows_state_object_builder.AddSubObject(rt_shadows_shader_config);
 
 		D3D12_GLOBAL_ROOT_SIGNATURE global_root_sig{};
 		global_root_sig.pGlobalRootSignature = rt_shadows_root_signature.Get();

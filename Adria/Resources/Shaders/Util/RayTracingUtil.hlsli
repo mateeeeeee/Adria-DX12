@@ -1,8 +1,7 @@
-#include "../Util/LightUtil.hlsli"
 
 //https://github.com/chris-wyman/GettingStartedWithRTXRayTracing/blob/master/05-AmbientOcclusion/Data/Tutorial05/hlslUtils.hlsli
 // Generates a seed for a random number generator from 2 inputs plus a backoff
-uint InitRand(uint val0, uint val1, uint backoff = 16)
+static uint InitRand(uint val0, uint val1, uint backoff = 16)
 {
     uint v0 = val0, v1 = val1, s0 = 0;
 
@@ -16,7 +15,7 @@ uint InitRand(uint val0, uint val1, uint backoff = 16)
     return v0;
 }
 // Takes our seed, updates it, and returns a pseudorandom float in [0..1]
-float NextRand(inout uint s)
+static float NextRand(inout uint s)
 {
     s = (1664525u * s + 1013904223u);
     return float(s & 0x00FFFFFF) / float(0x01000000);
@@ -24,7 +23,7 @@ float NextRand(inout uint s)
 
 // Utility function to get a vector perpendicular to an input vector 
 //    (from "Efficient Construction of Perpendicular Vectors Without Branching")
-float3 GetPerpendicularVector(float3 u)
+static float3 GetPerpendicularVector(float3 u)
 {
     float3 a = abs(u);
     uint xm = ((a.x - a.y) < 0 && (a.x - a.z) < 0) ? 1 : 0;
@@ -34,7 +33,7 @@ float3 GetPerpendicularVector(float3 u)
 }
 
 // Get a cosine-weighted random vector centered around a specified normal direction.
-float3 GetCosHemisphereSample(inout uint randSeed, float3 hitNorm)
+static float3 GetCosHemisphereSample(inout uint randSeed, float3 hitNorm)
 {
 	// Get 2 random numbers to select our sample with
     float2 randVal = float2(NextRand(randSeed), NextRand(randSeed));

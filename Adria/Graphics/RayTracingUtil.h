@@ -8,11 +8,11 @@
 
 namespace adria
 {
-	using ShaderIdentifier = uint8[D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES];
 
 	class ShaderRecord
 	{
 		friend class ShaderTable;
+		using ShaderIdentifier = uint8[D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES];
 
 	public:
 		explicit ShaderRecord(void const* _shader_id, void* _local_root_args = nullptr, uint32 _local_root_args_size = 0)
@@ -80,8 +80,7 @@ namespace adria
 	public:
 
 		explicit StateObjectBuilder(uint64 max_subobjects) : max_subobjects(max_subobjects), num_subobjects(0u), subobjects(max_subobjects), subobject_data(max_subobjects * MAX_SUBOBJECT_DESC_SIZE)
-		{
-		}
+		{}
 
 		template<typename SubObjectDesc>
 		[[maybe_unused]] D3D12_STATE_SUBOBJECT const* AddSubObject(SubObjectDesc const& desc)
@@ -148,7 +147,7 @@ namespace adria
 			return &subobject;
 		}
 
-		void BuildDescription(D3D12_STATE_OBJECT_TYPE type, D3D12_STATE_OBJECT_DESC& desc)
+		void BuildDescription(D3D12_STATE_OBJECT_TYPE type, D3D12_STATE_OBJECT_DESC& desc) const
 		{
 			desc.Type = type;
 			desc.NumSubobjects = static_cast<uint32>(num_subobjects);

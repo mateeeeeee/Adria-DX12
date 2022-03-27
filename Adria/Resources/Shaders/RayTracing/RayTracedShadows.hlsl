@@ -27,20 +27,20 @@ void RTS_RayGen()
     float3 direction;
     float maxT;
 
-    if (light.type == POINT_LIGHT)
+    switch (light.type)
     {
+    case POINT_LIGHT:
         direction = light.position.xyz - posWorld.xyz;
         maxT = length(direction);
-    }
-    else if (light.type == DIRECTIONAL_LIGHT)
-    {
+        break;
+    case DIRECTIONAL_LIGHT:
         direction = -light.direction.xyz;
         maxT = 10000.0f;
-    }
-    else if (light.type == SPOT_LIGHT)
-    {
+        break;
+    case SPOT_LIGHT:
         direction = -light.direction.xyz;
         maxT = length(light.position.xyz - posWorld.xyz);
+        break;
     }
 
     RayDesc ray;
