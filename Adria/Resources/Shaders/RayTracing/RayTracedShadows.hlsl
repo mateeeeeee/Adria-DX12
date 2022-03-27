@@ -51,7 +51,8 @@ void RTS_RayGen()
 
     ShadowRayData payload;
     payload.hit = true;
-    TraceRay(rt_scene, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, 0xFF, 0, 1, 0, ray, payload);
+    TraceRay(rt_scene, (RAY_FLAG_SKIP_CLOSEST_HIT_SHADER
+     | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH), 0xFF, 0, 1, 0, ray, payload);
     shadow_rt_output[launchIndex.xy] = payload.hit ? 0.0f : 1.0f;
 }
 

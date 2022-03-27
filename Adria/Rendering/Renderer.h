@@ -105,7 +105,7 @@ namespace adria
 		Camera const* camera;
 
 		ParticleRenderer particle_renderer;
-		//RayTracer ray_tracer;
+		RayTracer ray_tracer;
 
 		RendererSettings settings;
 		Profiler profiler;

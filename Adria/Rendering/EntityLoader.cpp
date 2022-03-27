@@ -159,7 +159,6 @@ namespace adria
 
 				}
 			}
-
 			ComputeNormals(params.normal_type, vertices, indices);
 
 			std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>(gfx, vertices);
@@ -172,11 +171,8 @@ namespace adria
 				mesh.vertex_buffer = vb;
 				mesh.index_buffer = ib;
 			}
-
 		}
-
 		return chunks;
-
 	}
 
 	std::vector<entity> EntityLoader::LoadObjMesh(std::string const& model_path)
@@ -519,11 +515,16 @@ namespace adria
 				reg.emplace<Visibility>(e, aabb, true, true);
 				reg.emplace<Transform>(e, model, model);
 				reg.emplace<Deferred>(e);
+
+				reg.emplace<RayTracing>(e);
 			}
 		}
 
 		std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>(gfx, vertices);
 		std::shared_ptr<IndexBuffer> ib = std::make_shared<IndexBuffer>(gfx, indices);
+
+		RayTracing::vbs.push_back(vb->Resource());
+		RayTracing::ibs.push_back(ib->Resource());
 
 		for (entity e : entities)
 		{

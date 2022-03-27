@@ -27,6 +27,23 @@ namespace adria
             resource_barriers.push_back(resource_barrier);
         }
 
+        void AddUAV(ID3D12Resource* resource)
+        {
+            D3D12_RESOURCE_BARRIER resource_barrier = {};
+            resource_barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+            resource_barrier.UAV.pResource = resource;
+            resource_barriers.push_back(resource_barrier);
+        }
+
+        void AddAliasing(ID3D12Resource* before, ID3D12Resource* after)
+        {
+            D3D12_RESOURCE_BARRIER resource_barrier = {};
+            resource_barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_ALIASING;
+            resource_barrier.Aliasing.pResourceBefore = before;
+            resource_barrier.Aliasing.pResourceAfter = after;
+            resource_barriers.push_back(resource_barrier);
+        }
+
         void ReverseTransitions()
         {
             for (auto& resource_barrier : resource_barriers)

@@ -11,12 +11,7 @@ namespace adria
 {
 	class RayTracer
 	{
-		struct AccelerationStructureBuffers
-		{
-			Microsoft::WRL::ComPtr<ID3D12Resource> scratch_buffer;
-			Microsoft::WRL::ComPtr<ID3D12Resource> result_buffer;
-			Microsoft::WRL::ComPtr<ID3D12Resource> instance_desc_buffer;    // Used only for top-level AS
-		};
+
 	public:
 
         RayTracer(tecs::registry& reg, GraphicsCoreDX12* gfx, uint32 width, uint32 height);

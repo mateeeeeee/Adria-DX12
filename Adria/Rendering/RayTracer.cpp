@@ -337,9 +337,17 @@ namespace adria
 
 	void RayTracer::BuildBottomLevelAS()
 	{
-		/*auto device = gfx->GetDevice();
+		auto device = gfx->GetDevice();
 		auto cmd_list = gfx->GetDefaultCommandList();
-		auto ray_tracing_view = reg.view<Mesh, Transform>();
+		auto ray_tracing_view = reg.view<Mesh, Transform, RayTracing>();
+
+		ResourceBarrierBatch barriers{};
+		for (auto resource : RayTracing::ibs)
+		{
+			barriers.AddTransition(resource, D3D12_RESOURCE_STATE_INDEX_BUFFER, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		}
+		barriers.Submit(cmd_list);
+
 
 		std::vector<D3D12_RAYTRACING_GEOMETRY_DESC> geo_descs{};
 		for (auto entity : ray_tracing_view)
@@ -360,92 +368,105 @@ namespace adria
 		}
 
 		D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO bl_prebuild_info{};
-		{
-			D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs{};
-			inputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
-			inputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
-			inputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
-			inputs.NumDescs = static_cast<uint32>(geo_descs.size());
-			inputs.pGeometryDescs = geo_descs.data();
-			device->GetRaytracingAccelerationStructurePrebuildInfo(&inputs, &bl_prebuild_info);
-		}
+		
+		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs{};
+		inputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
+		inputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
+		inputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
+		inputs.NumDescs = static_cast<uint32>(geo_descs.size());
+		inputs.pGeometryDescs = geo_descs.data();
+		device->GetRaytracingAccelerationStructurePrebuildInfo(&inputs, &bl_prebuild_info);
+		
 		ADRIA_ASSERT(bl_prebuild_info.ResultDataMaxSizeInBytes > 0);
 
-		D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO tl_prebuild_info{};
-		{
-			D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs = {};
-			inputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
-			inputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
-			inputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
-			inputs.pGeometryDescs = nullptr;
-			inputs.NumDescs = 1;
-			device->GetRaytracingAccelerationStructurePrebuildInfo(&inputs, &tl_prebuild_info);
-		}
-		ADRIA_ASSERT(tl_prebuild_info.ResultDataMaxSizeInBytes > 0);
-
 		auto default_heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+		struct BLAccelerationStructureBuffers
+		{
+			Microsoft::WRL::ComPtr<ID3D12Resource> scratch_buffer;
+			Microsoft::WRL::ComPtr<ID3D12Resource> result_buffer;
+		} blas_buffers{};
 
-		AccelerationStructureBuffers buffers{};
-		buffers.scratch_buffer = CreateBuffer(device, tl_prebuild_info.ScratchDataSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, default_heap);
-		buffers.result_buffer = CreateBuffer(device, bl_prebuild_info.ResultDataMaxSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, default_heap);
+		blas_buffers.scratch_buffer = CreateBuffer(device, bl_prebuild_info.ScratchDataSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, default_heap);
+		blas_buffers.result_buffer = CreateBuffer(device, bl_prebuild_info.ResultDataMaxSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, default_heap);
 
 		// Create the bottom-level AS
-		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC as_desc = {};
-		as_desc.Inputs = inputs;
-		as_desc.DestAccelerationStructureData = buffers.result_buffer->GetGPUVirtualAddress();
-		as_desc.ScratchAccelerationStructureData = buffers.scratch_buffer->GetGPUVirtualAddress();
+		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC blas_desc = {};
+		blas_desc.Inputs = inputs;
+		blas_desc.DestAccelerationStructureData = blas_buffers.result_buffer->GetGPUVirtualAddress();
+		blas_desc.ScratchAccelerationStructureData = blas_buffers.scratch_buffer->GetGPUVirtualAddress();
 
-		cmd_list->BuildRaytracingAccelerationStructure(&as_desc, 0, nullptr);
-		D3D12_RESOURCE_BARRIER uav_barrier = {};
+		cmd_list->BuildRaytracingAccelerationStructure(&blas_desc, 0, nullptr);
+
+		D3D12_RESOURCE_BARRIER uav_barrier{};
 		uav_barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
-		uav_barrier.UAV.pResource = buffers.result_buffer.Get();
+		uav_barrier.UAV.pResource = blas_buffers.result_buffer.Get();
 		cmd_list->ResourceBarrier(1, &uav_barrier);
 
-		blas = buffers.result_buffer;*/
+		blas = blas_buffers.result_buffer;
+
+		barriers.ReverseTransitions();
+		barriers.Submit(cmd_list);
 	}
 
 	void RayTracer::BuildTopLevelAS()
 	{
-		/*auto default_heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-		AccelerationStructureBuffers buffers{};
-		buffers.scratch_buffer = CreateBuffer(device, info.ScratchDataSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, default_heap);
-		buffers.result_buffer = CreateBuffer(device, info.ResultDataMaxSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, default_heap);
-		tlas_size = info.ResultDataMaxSizeInBytes;
+		auto device = gfx->GetDevice();
+		auto cmd_list = gfx->GetDefaultCommandList();
 
+		struct TLAccelerationStructureBuffers
+		{
+			Microsoft::WRL::ComPtr<ID3D12Resource> instance_buffer;
+			Microsoft::WRL::ComPtr<ID3D12Resource> scratch_buffer;
+			Microsoft::WRL::ComPtr<ID3D12Resource> result_buffer;
+		} tlas_buffers{};
+
+		// First, get the size of the TLAS buffers and create them
+		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs = {};
+		inputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
+		inputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
+		inputs.NumDescs = 1;
+		inputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
+
+		D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO tl_prebuild_info;
+		device->GetRaytracingAccelerationStructurePrebuildInfo(&inputs, &tl_prebuild_info);
+		ADRIA_ASSERT(tl_prebuild_info.ResultDataMaxSizeInBytes > 0);
+
+		auto default_heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+		tlas_buffers.scratch_buffer = CreateBuffer(device, tl_prebuild_info.ScratchDataSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, default_heap);
+		tlas_buffers.result_buffer  = CreateBuffer(device, tl_prebuild_info.ResultDataMaxSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, default_heap);
+
+		// The instance desc should be inside a buffer, create and map the buffer
 		auto upload_heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-		buffers.instance_desc_buffer = CreateBuffer(device, sizeof(D3D12_RAYTRACING_INSTANCE_DESC), D3D12_RESOURCE_FLAG_NONE, D3D12_RESOURCE_STATE_GENERIC_READ, upload_heap);
-		D3D12_RAYTRACING_INSTANCE_DESC* instance_desc = nullptr;
-		buffers.instance_desc_buffer->Map(0, nullptr, (void**)&instance_desc);
+		tlas_buffers.instance_buffer = CreateBuffer(device, sizeof(D3D12_RAYTRACING_INSTANCE_DESC), D3D12_RESOURCE_FLAG_NONE, D3D12_RESOURCE_STATE_GENERIC_READ, upload_heap);
+		D3D12_RAYTRACING_INSTANCE_DESC* p_instance_desc = nullptr;
+		tlas_buffers.instance_buffer->Map(0, nullptr, (void**)&p_instance_desc);
 
 		// Initialize the instance desc. We only have a single instance
-
-		instance_desc->InstanceID = 0;                            // This value will be exposed to the shader via InstanceID()
-		instance_desc->InstanceContributionToHitGroupIndex = 0;   // This is the offset inside the shader-table. We only have a single geometry, so the offset 0
-		instance_desc->Flags = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
-		instance_desc->Transform[0][0] = instance_desc->Transform[1][1] = instance_desc->Transform[2][2] = 1.0f;
-		//DirectX::XMMATRIX identity = DirectX::XMMatrixIdentity();
-		//memcpy(instance_desc->Transform, &identity, sizeof(instance_desc->Transform));
-		instance_desc->AccelerationStructure = blas->GetGPUVirtualAddress();
-		instance_desc->InstanceMask = 0xFF;
+		p_instance_desc->InstanceID = 0;                            // This value will be exposed to the shader via InstanceID()
+		p_instance_desc->InstanceContributionToHitGroupIndex = 0;   // This is the offset inside the shader-table. We only have a single geometry, so the offset 0
+		p_instance_desc->Flags = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
+		auto I = DirectX::XMMatrixIdentity();
+		memcpy(p_instance_desc->Transform, &I, sizeof(p_instance_desc->Transform));
+		p_instance_desc->AccelerationStructure = blas->GetGPUVirtualAddress();
+		p_instance_desc->InstanceMask = 0xFF;
 
 		// Unmap
-		buffers.instance_desc_buffer->Unmap(0, nullptr);
+		tlas_buffers.instance_buffer->Unmap(0, nullptr);
 
 		// Create the TLAS
-		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC as_desc = {};
-		as_desc.Inputs = inputs;
-		as_desc.Inputs.InstanceDescs = buffers.instance_desc_buffer->GetGPUVirtualAddress();
-		as_desc.DestAccelerationStructureData = buffers.result_buffer->GetGPUVirtualAddress();
-		as_desc.ScratchAccelerationStructureData = buffers.scratch_buffer->GetGPUVirtualAddress();
-		cmd_list->BuildRaytracingAccelerationStructure(&as_desc, 0, nullptr);
-
+		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC tlas_desc = {};
+		tlas_desc.Inputs = inputs;
+		tlas_desc.Inputs.InstanceDescs = tlas_buffers.instance_buffer->GetGPUVirtualAddress();
+		tlas_desc.DestAccelerationStructureData = tlas_buffers.result_buffer->GetGPUVirtualAddress();
+		tlas_desc.ScratchAccelerationStructureData = tlas_buffers.scratch_buffer->GetGPUVirtualAddress();
+		cmd_list->BuildRaytracingAccelerationStructure(&tlas_desc, 0, nullptr);
 		// We need to insert a UAV barrier before using the acceleration structures in a raytracing operation
-		D3D12_RESOURCE_BARRIER uavBarrier = {};
-		uavBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
-		uavBarrier.UAV.pResource = buffers.result_buffer.Get();
-		cmd_list->ResourceBarrier(1, &uavBarrier);
+		D3D12_RESOURCE_BARRIER uav_barrier = {};
+		uav_barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+		uav_barrier.UAV.pResource = tlas_buffers.result_buffer.Get();
+		cmd_list->ResourceBarrier(1, &uav_barrier);
 
-		tlas = buffers.result_buffer.Get(); */
+		tlas = tlas_buffers.result_buffer;
 	}
 
 }

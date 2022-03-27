@@ -369,7 +369,7 @@ namespace adria
 		light_counter(gfx->GetDevice(), 1, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
 		light_list(gfx->GetDevice(), CLUSTER_COUNT * CLUSTER_MAX_LIGHTS, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
 		light_grid(gfx->GetDevice(), CLUSTER_COUNT, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
-		profiler(gfx), particle_renderer(gfx), picker(gfx)//, ray_tracer(reg, gfx, width, height)
+		profiler(gfx), particle_renderer(gfx), picker(gfx), ray_tracer(reg, gfx, width, height)
 	{
 		LoadShaders();
 		CreateRootSignatures();
@@ -948,7 +948,7 @@ namespace adria
 
 		texture_manager.SetMipMaps(true);
 
-		//if(ray_tracer.IsSupported()) ray_tracer.BuildAccelerationStructures();
+		if(ray_tracer.IsSupported()) ray_tracer.BuildAccelerationStructures();
 	}
 	TextureManager& Renderer::GetTextureManager()
 	{

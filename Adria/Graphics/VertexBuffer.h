@@ -125,6 +125,11 @@ namespace adria
 			return vb_view;
 		}
 
+		ID3D12Resource* Resource() const
+		{
+			return vb.Get();
+		}
+
 	private:
 		Microsoft::WRL::ComPtr<ID3D12Resource> vb;
 		ReleasablePtr<D3D12MA::Allocation> allocation = nullptr;

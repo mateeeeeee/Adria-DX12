@@ -140,6 +140,11 @@ namespace adria
             return index_count;
         }
 
+        ID3D12Resource* Resource() const
+        {
+            return ib.Get();
+        }
+
     private:
         Microsoft::WRL::ComPtr<ID3D12Resource> ib;
         ReleasablePtr<D3D12MA::Allocation> allocation = nullptr;

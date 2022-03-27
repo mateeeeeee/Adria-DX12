@@ -174,6 +174,9 @@ namespace adria
 
 	struct COMPONENT RayTracing
 	{
+		inline static std::vector<ID3D12Resource*> vbs{};
+		inline static std::vector<ID3D12Resource*> ibs{};
 
+		bool enabled = true;
 	};
 }
