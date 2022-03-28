@@ -111,6 +111,7 @@ namespace adria
 		float32 sscs_thickness = 0.5f;
 		float32 sscs_max_ray_distance = 0.05f;
 		float32 sscs_max_depth_distance = 200.0f;
+		bool	ray_traced_shadows = true;
 	};
 
 	struct COMPONENT Visibility

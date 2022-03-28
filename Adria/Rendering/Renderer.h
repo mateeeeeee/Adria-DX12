@@ -72,9 +72,9 @@ namespace adria
 
 		void SetProfilerSettings(ProfilerSettings);
 
-		void Render(RendererSettings const&);
+		void Render__(RendererSettings const&);
 
-		void Render_Multithreaded(RendererSettings const&);
+		void Render(RendererSettings const&);
 
 		void ResolveToBackbuffer();
 

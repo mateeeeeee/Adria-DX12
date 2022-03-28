@@ -419,7 +419,7 @@ namespace adria
 	{
 		profiler_settings = _profiler_settings;
 	}
-	void Renderer::Render(RendererSettings const& _settings)
+	void Renderer::Render__(RendererSettings const& _settings)
 	{
 		settings = _settings;
 		if (settings.ibl && !ibl_textures_generated) CreateIBLTextures();
@@ -474,7 +474,7 @@ namespace adria
 
 		PassPostprocess(cmd_list);
 	}
-	void Renderer::Render_Multithreaded(RendererSettings const& _settings)
+	void Renderer::Render(RendererSettings const& _settings)
 	{
 		settings = _settings;
 		if (settings.ibl && !ibl_textures_generated) CreateIBLTextures();
@@ -493,7 +493,8 @@ namespace adria
 		{
 			D3D12_RESOURCE_BARRIER picking_barriers[] =
 				{
-					CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
+					CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
+					CD3DX12_RESOURCE_BARRIER::Transition(gbuffer[0].Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
 				};
 
 			gbuf_cmd_list->ResourceBarrier(ARRAYSIZE(picking_barriers), picking_barriers);
@@ -502,7 +503,8 @@ namespace adria
 			D3D12_RESOURCE_BARRIER barriers[] =
 			{
 				CD3DX12_RESOURCE_BARRIER::Transition(hdr_render_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET),
-				CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE)
+				CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE),
+				CD3DX12_RESOURCE_BARRIER::Transition(gbuffer[0].Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
 			};
 
 			gbuf_cmd_list->ResourceBarrier(ARRAYSIZE(barriers), barriers);
@@ -512,11 +514,9 @@ namespace adria
 
 		auto deferred_fut = TaskSystem::Submit([this, deferred_cmd_list]()
 		{
-			D3D12_RESOURCE_BARRIER pre_ssao_barriers[] =
-			{
-				CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(),D3D12_RESOURCE_STATE_DEPTH_WRITE,  D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
-			};
-			deferred_cmd_list->ResourceBarrier(ARRAYSIZE(pre_ssao_barriers), pre_ssao_barriers);
+			D3D12_RESOURCE_BARRIER depth_barrier[1] = {};
+			depth_barrier[0] = CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+			deferred_cmd_list->ResourceBarrier(ARRAYSIZE(depth_barrier), depth_barrier);
 
 			PassDecals(deferred_cmd_list);
 
@@ -525,18 +525,15 @@ namespace adria
 				if (settings.ambient_occlusion == EAmbientOcclusion::SSAO) PassSSAO(deferred_cmd_list);
 				else if (settings.ambient_occlusion == EAmbientOcclusion::HBAO) PassHBAO(deferred_cmd_list);
 			}
-			D3D12_RESOURCE_BARRIER  post_ssao_barriers[] =
-			{
-				CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE)
-			};
-			deferred_cmd_list->ResourceBarrier(ARRAYSIZE(post_ssao_barriers), post_ssao_barriers);
-
-
+			
 			PassAmbient(deferred_cmd_list);
 			PassDeferredLighting(deferred_cmd_list);
 
 			if (settings.use_tiled_deferred) PassDeferredTiledLighting(deferred_cmd_list);
 			else if (settings.use_clustered_deferred) PassDeferredClusteredLighting(deferred_cmd_list);
+
+			depth_barrier[0] = CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+			deferred_cmd_list->ResourceBarrier(ARRAYSIZE(depth_barrier), depth_barrier);
 
 			PassForward(deferred_cmd_list);
 			PassParticles(deferred_cmd_list);
@@ -2256,6 +2253,7 @@ namespace adria
 				pso_desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 				pso_desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+				pso_desc.DepthStencilState.DepthEnable = FALSE;
 				pso_desc.SampleMask = UINT_MAX;
 				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 				pso_desc.NumRenderTargets = 1;
@@ -3938,6 +3936,21 @@ namespace adria
 				if (light_data.volumetric) PassVolumetric(cmd_list, light_data);
 			}
 			lighting_render_pass.End(cmd_list);
+
+			D3D12_RESOURCE_BARRIER  pre_rts_barriers[] =
+			{
+				CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
+			};
+			cmd_list->ResourceBarrier(ARRAYSIZE(pre_rts_barriers), pre_rts_barriers);
+			
+			ray_tracer.RayTraceShadows(cmd_list, depth_target, frame_cbuffer.View(backbuffer_index).BufferLocation,
+				light_allocation.gpu_address);
+			
+			D3D12_RESOURCE_BARRIER  post_rts_barriers[] =
+			{
+				CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
+			};
+			cmd_list->ResourceBarrier(ARRAYSIZE(post_rts_barriers), post_rts_barriers);
 
 		}
 	}

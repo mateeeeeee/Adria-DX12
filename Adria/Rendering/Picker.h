@@ -21,7 +21,7 @@ namespace adria
 	{
 		friend class Renderer;
 	private:
-		Picker(GraphicsCoreDX12* gfx) : gfx(gfx), write_picking_buffer(gfx->GetDevice(), 1), 
+		Picker(GraphicsCoreDX12* gfx) : gfx(gfx), write_picking_buffer(gfx->GetDevice(), 1, false, D3D12_RESOURCE_STATE_COPY_SOURCE),
 			read_picking_buffer{ {gfx->GetDevice(), sizeof(PickingData)}, {gfx->GetDevice(), sizeof(PickingData)}, {gfx->GetDevice(), sizeof(PickingData)} }
 		{
 			ID3D12Device* device = gfx->GetDevice();
@@ -69,14 +69,14 @@ namespace adria
 			cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetGpuHandle(descriptor_index));
 
 			ResourceBarrierBatch barrier_batch{};
-			barrier_batch.AddTransition(write_picking_buffer.Buffer(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_SOURCE);
+			barrier_batch.AddTransition(write_picking_buffer.Buffer(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			barrier_batch.Submit(cmd_list);
 
 			cmd_list->Dispatch(1, 1, 1);
-			cmd_list->CopyResource(read_picking_buffer[backbuffer_index].Resource(), write_picking_buffer.Buffer());
 
 			barrier_batch.ReverseTransitions();
 			barrier_batch.Submit(cmd_list);
+			cmd_list->CopyResource(read_picking_buffer[backbuffer_index].Resource(), write_picking_buffer.Buffer());
 		}
 
 		PickingData GetPickingData() const

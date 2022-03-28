@@ -62,7 +62,7 @@ namespace adria
 		BuildTopLevelAS();
 	}
 
-	Texture2D& RayTracer::RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth_srv,
+	Texture2D& RayTracer::RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth,
 		D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address,
 		D3D12_GPU_VIRTUAL_ADDRESS light_cbuf_address)
 	{
@@ -86,7 +86,7 @@ namespace adria
 
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(1);
 		auto dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
-		device->CopyDescriptorsSimple(1, dst_descriptor, depth_srv.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		device->CopyDescriptorsSimple(1, dst_descriptor, depth.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		cmd_list->SetComputeRootDescriptorTable(4, descriptor_allocator->GetGpuHandle(descriptor_index));
 
 		descriptor_index = descriptor_allocator->AllocateRange(1);
@@ -390,7 +390,7 @@ namespace adria
 		blas_buffers.result_buffer = CreateBuffer(device, bl_prebuild_info.ResultDataMaxSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, default_heap);
 
 		// Create the bottom-level AS
-		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC blas_desc = {};
+		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC blas_desc{};
 		blas_desc.Inputs = inputs;
 		blas_desc.DestAccelerationStructureData = blas_buffers.result_buffer->GetGPUVirtualAddress();
 		blas_desc.ScratchAccelerationStructureData = blas_buffers.scratch_buffer->GetGPUVirtualAddress();
