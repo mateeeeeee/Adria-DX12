@@ -341,18 +341,6 @@ namespace adria
 		auto cmd_list = gfx->GetDefaultCommandList();
 		auto ray_tracing_view = reg.view<Mesh, Transform, RayTracing>();
 
-		ResourceBarrierBatch barriers{};
-		for (auto resource : RayTracing::ibs)
-		{
-			barriers.AddTransition(resource, D3D12_RESOURCE_STATE_INDEX_BUFFER, D3D12_RESOURCE_STATE_INDEX_BUFFER | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-		}
-		for (auto resource : RayTracing::vbs)
-		{
-			barriers.AddTransition(resource, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-		}
-		barriers.Submit(cmd_list);
-
-
 		std::vector<D3D12_RAYTRACING_GEOMETRY_DESC> geo_descs{};
 		for (auto entity : ray_tracing_view)
 		{

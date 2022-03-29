@@ -520,11 +520,8 @@ namespace adria
 			}
 		}
 
-		std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>(gfx, vertices);
-		std::shared_ptr<IndexBuffer> ib = std::make_shared<IndexBuffer>(gfx, indices);
-
-		RayTracing::vbs.push_back(vb->Resource());
-		RayTracing::ibs.push_back(ib->Resource());
+		std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>(gfx, vertices, true);
+		std::shared_ptr<IndexBuffer> ib = std::make_shared<IndexBuffer>(gfx, indices, true);
 
 		for (entity e : entities)
 		{

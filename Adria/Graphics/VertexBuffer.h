@@ -17,7 +17,7 @@ namespace adria
 	public:
 
 		template<typename vertex_t>
-		VertexBuffer(GraphicsCoreDX12* gfx, vertex_t* vertices, size_t vertex_count)
+		VertexBuffer(GraphicsCoreDX12* gfx, vertex_t* vertices, size_t vertex_count, bool used_in_rt = false)
 		{
 
 			auto allocator = gfx->GetAllocator();
@@ -53,57 +53,58 @@ namespace adria
 
 			vb->SetName(L"Vertex Buffer");
 
-			D3D12MA::ALLOCATION_DESC vBufferUploadAllocDesc = {};
-			vBufferUploadAllocDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-			D3D12_RESOURCE_DESC vertexBufferUploadResourceDesc = {};
-			vertexBufferUploadResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-			vertexBufferUploadResourceDesc.Alignment = 0;
-			vertexBufferUploadResourceDesc.Width = vertex_count * sizeof(vertex_t);
-			vertexBufferUploadResourceDesc.Height = 1;
-			vertexBufferUploadResourceDesc.DepthOrArraySize = 1;
-			vertexBufferUploadResourceDesc.MipLevels = 1;
-			vertexBufferUploadResourceDesc.Format = DXGI_FORMAT_UNKNOWN;
-			vertexBufferUploadResourceDesc.SampleDesc.Count = 1;
-			vertexBufferUploadResourceDesc.SampleDesc.Quality = 0;
-			vertexBufferUploadResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-			vertexBufferUploadResourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+			D3D12MA::ALLOCATION_DESC vertex_buffer_upload_alloc_desc{};
+			vertex_buffer_upload_alloc_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
+			D3D12_RESOURCE_DESC verte_buffer_upload_resource_desc{};
+			verte_buffer_upload_resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+			verte_buffer_upload_resource_desc.Alignment = 0;
+			verte_buffer_upload_resource_desc.Width = vertex_count * sizeof(vertex_t);
+			verte_buffer_upload_resource_desc.Height = 1;
+			verte_buffer_upload_resource_desc.DepthOrArraySize = 1;
+			verte_buffer_upload_resource_desc.MipLevels = 1;
+			verte_buffer_upload_resource_desc.Format = DXGI_FORMAT_UNKNOWN;
+			verte_buffer_upload_resource_desc.SampleDesc.Count = 1;
+			verte_buffer_upload_resource_desc.SampleDesc.Quality = 0;
+			verte_buffer_upload_resource_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+			verte_buffer_upload_resource_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-			D3D12MA::Allocation* vBufferUploadHeapAllocation = nullptr;
+			D3D12MA::Allocation* vertex_buffer_upload_heap_allocation = nullptr;
 			BREAK_IF_FAILED(allocator->CreateResource(
-				&vBufferUploadAllocDesc,
-				&vertexBufferUploadResourceDesc, // resource description for a buffer
+				&vertex_buffer_upload_alloc_desc,
+				&verte_buffer_upload_resource_desc, // resource description for a buffer
 				D3D12_RESOURCE_STATE_GENERIC_READ, // GPU will read from this buffer and copy its contents to the default heap
 				nullptr,
-				&vBufferUploadHeapAllocation, __uuidof(nullptr), nullptr
+				&vertex_buffer_upload_heap_allocation, __uuidof(nullptr), nullptr
 			));
 
 			// store vertex buffer in upload heap
-			D3D12_SUBRESOURCE_DATA vertexData = {};
-			vertexData.pData = reinterpret_cast<BYTE const*>(vertices); // pointer to our vertex array
-			vertexData.RowPitch = vertex_count * sizeof(vertex_t); // size of all our triangle vertex data
-			vertexData.SlicePitch = vertex_count * sizeof(vertex_t); // also the size of our triangle vertex data
+			D3D12_SUBRESOURCE_DATA vertex_data = {};
+			vertex_data.pData = reinterpret_cast<BYTE const*>(vertices); // pointer to our vertex array
+			vertex_data.RowPitch = vertex_count * sizeof(vertex_t); // size of all our triangle vertex data
+			vertex_data.SlicePitch = vertex_count * sizeof(vertex_t); // also the size of our triangle vertex data
 
-			UINT64 r = UpdateSubresources(command_list, vb.Get(), vBufferUploadHeapAllocation->GetResource(), 0, 0, 1, &vertexData);
+			UINT64 r = UpdateSubresources(command_list, vb.Get(), vertex_buffer_upload_heap_allocation->GetResource(), 0, 0, 1, &vertex_data);
 
-			D3D12_RESOURCE_BARRIER vbBarrier = {};
-			vbBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-			vbBarrier.Transition.pResource = vb.Get();
-			vbBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
-			vbBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-			vbBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-			command_list->ResourceBarrier(1, &vbBarrier);
+			D3D12_RESOURCE_BARRIER vb_barrier = {};
+			vb_barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+			vb_barrier.Transition.pResource = vb.Get();
+			vb_barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+			vb_barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+			if (used_in_rt) vb_barrier.Transition.StateAfter |= D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+			vb_barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+			command_list->ResourceBarrier(1, &vb_barrier);
 
 			// Initialize the vertex buffer view.
 			vb_view.BufferLocation = vb->GetGPUVirtualAddress();
 			vb_view.StrideInBytes = sizeof(vertex_t);
 			vb_view.SizeInBytes = static_cast<UINT>(vertex_count) * sizeof(vertex_t);
 
-			gfx->AddToReleaseQueue(vBufferUploadHeapAllocation);
+			gfx->AddToReleaseQueue(vertex_buffer_upload_heap_allocation);
 		}
 
 		template<typename vertex_t>
-		VertexBuffer(GraphicsCoreDX12* gfx, std::vector<vertex_t> const& vertices)
-			: VertexBuffer(gfx, vertices.data(), vertices.size())
+		VertexBuffer(GraphicsCoreDX12* gfx, std::vector<vertex_t> const& vertices, bool used_in_rt = false)
+			: VertexBuffer(gfx, vertices.data(), vertices.size(), used_in_rt)
 		{
 		}
 
