@@ -3937,7 +3937,7 @@ namespace adria
 			}
 			lighting_render_pass.End(cmd_list);
 
-			/*pre_rts_barriers[] =
+			D3D12_RESOURCE_BARRIER pre_rts_barriers[] =
 			{
 				CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
 			};
@@ -3946,12 +3946,12 @@ namespace adria
 			ray_tracer.RayTraceShadows(cmd_list, depth_target, frame_cbuffer.View(backbuffer_index).BufferLocation,
 				light_allocation.gpu_address);
 			
-			D3D12_RESOURCE_BARRIER  post_rts_barriers[] =
+			D3D12_RESOURCE_BARRIER post_rts_barriers[] =
 			{
 				CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
 			};
 			cmd_list->ResourceBarrier(ARRAYSIZE(post_rts_barriers), post_rts_barriers);
-			*/
+			
 		}
 	}
 	void Renderer::PassDeferredTiledLighting(ID3D12GraphicsCommandList4* cmd_list)

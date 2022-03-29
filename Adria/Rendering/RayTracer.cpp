@@ -344,7 +344,11 @@ namespace adria
 		ResourceBarrierBatch barriers{};
 		for (auto resource : RayTracing::ibs)
 		{
-			barriers.AddTransition(resource, D3D12_RESOURCE_STATE_INDEX_BUFFER, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+			barriers.AddTransition(resource, D3D12_RESOURCE_STATE_INDEX_BUFFER, D3D12_RESOURCE_STATE_INDEX_BUFFER | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		}
+		for (auto resource : RayTracing::vbs)
+		{
+			barriers.AddTransition(resource, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 		}
 		barriers.Submit(cmd_list);
 
@@ -356,8 +360,9 @@ namespace adria
 
 			D3D12_RAYTRACING_GEOMETRY_DESC geo_desc{};
 			geo_desc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
+			geo_desc.Triangles.Transform3x4 = NULL;
 			geo_desc.Triangles.VertexBuffer.StrideInBytes = sizeof(CompleteVertex);
-			geo_desc.Triangles.VertexBuffer.StartAddress = mesh.vertex_buffer->View().BufferLocation + geo_desc.Triangles.VertexBuffer.StrideInBytes * mesh.start_vertex_location;
+			geo_desc.Triangles.VertexBuffer.StartAddress = mesh.vertex_buffer->View().BufferLocation + geo_desc.Triangles.VertexBuffer.StrideInBytes * mesh.base_vertex_location;
 			geo_desc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
 			geo_desc.Triangles.VertexCount = mesh.vertex_count;
 			geo_desc.Triangles.IndexFormat = mesh.index_buffer->View().Format;
@@ -403,9 +408,6 @@ namespace adria
 		cmd_list->ResourceBarrier(1, &uav_barrier);
 
 		blas = blas_buffers.result_buffer;
-
-		barriers.ReverseTransitions();
-		barriers.Submit(cmd_list);
 	}
 
 	void RayTracer::BuildTopLevelAS()
