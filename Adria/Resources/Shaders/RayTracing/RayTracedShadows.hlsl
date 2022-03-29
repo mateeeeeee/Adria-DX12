@@ -27,6 +27,11 @@ void RTS_RayGen()
     float3 direction;
     float maxT;
 
+    //move light vector to world space
+    light.direction.xyz = mul(light.direction.xyz, (float3x3) frame_cbuf.inverse_view);
+    light.position = mul(float4(light.position.xyz, 1.0f), frame_cbuf.inverse_view);
+    light.position.xyz /= light.position.w;
+    
     switch (light.type)
     {
     case POINT_LIGHT:
@@ -46,13 +51,12 @@ void RTS_RayGen()
     RayDesc ray;
     ray.Origin = posWorld.xyz;
     ray.Direction = normalize(direction);
-    ray.TMin = 0.01;
+    ray.TMin = 0.005;
     ray.TMax = max(0.005, maxT);
 
     ShadowRayData payload;
     payload.hit = true;
-    TraceRay(rt_scene, (RAY_FLAG_SKIP_CLOSEST_HIT_SHADER
-     | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH), 0xFF, 0, 1, 0, ray, payload);
+    TraceRay(rt_scene, (RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH), 0xFF, 0, 1, 0, ray, payload);
     shadow_rt_output[launchIndex.xy] = payload.hit ? 0.0f : 1.0f;
 }
 

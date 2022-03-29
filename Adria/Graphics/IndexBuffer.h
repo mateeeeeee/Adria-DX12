@@ -19,13 +19,11 @@ namespace adria
         IndexBuffer(GraphicsCoreDX12* gfx,
             index_t* indices, size_t index_count, bool used_in_rt = false) : index_count{ static_cast<UINT>(index_count) }
         {
-
             auto allocator = gfx->GetAllocator();
             auto command_list = gfx->GetDefaultCommandList();
 
             size_t ib_byte_size = sizeof(index_t) * index_count;
             
-            // create default heap to hold index buffer
             D3D12MA::ALLOCATION_DESC index_buffer_alloc_desc{};
             index_buffer_alloc_desc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
             D3D12_RESOURCE_DESC index_buffer_resource_desc{};
@@ -51,10 +49,8 @@ namespace adria
                 IID_PPV_ARGS(&ib)));
 
             allocation.reset(alloc);
-            // we can give resource heaps a name so when we debug with the graphics debugger we know what resource we are looking at
             ib->SetName(L"Index Buffer");
 
-            // create upload heap to upload index buffer
             D3D12MA::ALLOCATION_DESC index_buffer_upload_alloc_desc = {};
             index_buffer_upload_alloc_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
             D3D12_RESOURCE_DESC index_buffer_upload_resource_desc = {};
@@ -79,16 +75,14 @@ namespace adria
                 &index_buffer_upload_heap_allocation,
                 __uuidof(nullptr), nullptr));
 
-            // store vertex buffer in upload heap
             D3D12_SUBRESOURCE_DATA index_data{};
             index_data.pData = indices;              // pointer to our index array
             index_data.RowPitch = ib_byte_size;      // size of all our index buffer
             index_data.SlicePitch = ib_byte_size;    // also the size of our index buffer
 
             UINT64 r = UpdateSubresources(command_list, ib.Get(), index_buffer_upload_heap_allocation->GetResource(), 0, 0, 1, &index_data);
-            assert(r);
+            ADRIA_ASSERT(r > 0);
 
-            // transition the index buffer data from copy destination state to vertex buffer state
             D3D12_RESOURCE_BARRIER ib_barrier{};
             ib_barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
             ib_barrier.Transition.pResource = ib.Get();

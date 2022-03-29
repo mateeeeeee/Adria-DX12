@@ -419,61 +419,6 @@ namespace adria
 	{
 		profiler_settings = _profiler_settings;
 	}
-	void Renderer::Render__(RendererSettings const& _settings)
-	{
-		settings = _settings;
-		if (settings.ibl && !ibl_textures_generated) CreateIBLTextures();
-		if (update_picking_data)
-		{
-			picking_data = picker.GetPickingData();
-			update_picking_data = false;
-		}
-
-		auto cmd_list = gfx->GetDefaultCommandList();
-
-		ResourceBarrierBatch picker_barrier{};
-		depth_target.Transition(picker_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-		picker_barrier.Submit(cmd_list);
-
-		PassPicking(cmd_list);
-
-		ResourceBarrierBatch main_barrier{};
-		hdr_render_target.Transition(main_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		main_barrier.Submit(cmd_list);
-
-		ResourceBarrierBatch depth_barrier{};
-		depth_target.Transition(depth_barrier, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-		depth_barrier.Submit(cmd_list);
-
-		PassGBuffer(cmd_list);
-
-		depth_barrier.ReverseTransitions();
-		depth_barrier.Submit(cmd_list);
-
-		PassDecals(cmd_list);
-		if (settings.ambient_occlusion != EAmbientOcclusion::None)
-		{
-			if(settings.ambient_occlusion == EAmbientOcclusion::SSAO) PassSSAO(cmd_list);
-			else if (settings.ambient_occlusion == EAmbientOcclusion::HBAO) PassHBAO(cmd_list);
-		}
-		depth_barrier.ReverseTransitions();
-		depth_barrier.Submit(cmd_list);
-
-		PassAmbient(cmd_list);
-		PassDeferredLighting(cmd_list);
-
-		if (settings.use_tiled_deferred) PassDeferredTiledLighting(cmd_list);
-		else if (settings.use_clustered_deferred) PassDeferredClusteredLighting(cmd_list);
-
-		PassForward(cmd_list);
-		PassParticles(cmd_list);
-
-		main_barrier.Merge(std::move(depth_barrier));
-		main_barrier.ReverseTransitions();
-		main_barrier.Submit(cmd_list);
-
-		PassPostprocess(cmd_list);
-	}
 	void Renderer::Render(RendererSettings const& _settings)
 	{
 		settings = _settings;

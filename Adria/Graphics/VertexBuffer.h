@@ -19,7 +19,6 @@ namespace adria
 		template<typename vertex_t>
 		VertexBuffer(GraphicsCoreDX12* gfx, vertex_t* vertices, size_t vertex_count, bool used_in_rt = false)
 		{
-
 			auto allocator = gfx->GetAllocator();
 			auto command_list = gfx->GetDefaultCommandList();
 
@@ -39,7 +38,6 @@ namespace adria
 			D3D12MA::ALLOCATION_DESC allocation_desc = {};
 			allocation_desc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 
-
 			D3D12MA::Allocation* alloc;
 			HRESULT hr = allocator->CreateResource(
 				&allocation_desc,
@@ -50,7 +48,6 @@ namespace adria
 				IID_PPV_ARGS(&vb));
 
 			allocation.reset(alloc);
-
 			vb->SetName(L"Vertex Buffer");
 
 			D3D12MA::ALLOCATION_DESC vertex_buffer_upload_alloc_desc{};
@@ -84,6 +81,7 @@ namespace adria
 			vertex_data.SlicePitch = vertex_count * sizeof(vertex_t); // also the size of our triangle vertex data
 
 			UINT64 r = UpdateSubresources(command_list, vb.Get(), vertex_buffer_upload_heap_allocation->GetResource(), 0, 0, 1, &vertex_data);
+			ADRIA_ASSERT(r > 0);
 
 			D3D12_RESOURCE_BARRIER vb_barrier = {};
 			vb_barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
