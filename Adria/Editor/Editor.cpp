@@ -190,6 +190,7 @@ namespace adria
                 Properties();
                 Log();
                 Profiling();
+				RayTracingDebug();
                 gui->End(gui_cmd_list);
             }
             engine->Present();
@@ -1355,7 +1356,7 @@ namespace adria
 
     void Editor::Log()
     {
-        ImGui::Begin("Log");
+		ImGui::Begin("Log");
         {
             editor_log->Draw("Log");
         }
@@ -1614,6 +1615,29 @@ namespace adria
 		}
 		ImGui::End();
     }
+
+	void Editor::RayTracingDebug()
+	{
+		auto device = engine->gfx->GetDevice();
+		auto descriptor_allocator = gui->DescriptorAllocator();
+		ImVec2 v_min = ImGui::GetWindowContentRegionMin();
+		ImVec2 v_max = ImGui::GetWindowContentRegionMax();
+		v_min.x += ImGui::GetWindowPos().x;
+		v_min.y += ImGui::GetWindowPos().y;
+		v_max.x += ImGui::GetWindowPos().x;
+		v_max.y += ImGui::GetWindowPos().y;
+		ImVec2 size(v_max.x - v_min.x, v_max.y - v_min.y);
+		ImGui::Begin("Ray Tracing Debug");
+		{
+			//ADD BARRIER
+			D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetRTS_Temp().SRV();
+			OffsetType descriptor_index = descriptor_allocator->Allocate();
+			D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+			device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr, size);
+		}
+		ImGui::End();
+	}
 
     void Editor::OpenMaterialFileDialog(Material* material, EMaterialTextureType type)
     {

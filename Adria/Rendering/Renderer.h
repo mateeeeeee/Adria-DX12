@@ -92,6 +92,11 @@ namespace adria
 
 		PickingData GetPickingData() const;
 
+		Texture2D GetRTS_Temp() const
+		{
+			return ray_tracer.GetRTS_Temp();
+		}
+
 	private:
 		uint32 width, height;
 		tecs::registry& reg;

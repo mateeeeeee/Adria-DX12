@@ -24,11 +24,10 @@ namespace adria
 			D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address,
 			D3D12_GPU_VIRTUAL_ADDRESS light_cbuf_address);
 
-		Texture2D& RTAO(ID3D12GraphicsCommandList4* cmd_list, 
-			Texture2D const& gbuffer_pos,
-			Texture2D const& gbuffer_nor,
-			D3D12_CONSTANT_BUFFER_VIEW_DESC const& frame_cbuf_view);
-
+		Texture2D GetRTS_Temp() const
+		{
+			return rt_shadows_output;
+		}
 
     private:
         uint32 width, height;

@@ -29,7 +29,6 @@ namespace adria
 		return buffer;
 	}
 
-
 	RayTracer::RayTracer(tecs::registry& reg, GraphicsCoreDX12* gfx, uint32 width, uint32 height) 
 		: reg{ reg }, gfx{ gfx }, width{ width }, height{ height }, ray_tracing_cbuffer(gfx->GetDevice(), gfx->BackbufferCount())
 	{
@@ -108,57 +107,6 @@ namespace adria
 		rts_barrier.ReverseTransitions();
 		rts_barrier.Submit(cmd_list);
 		return rt_shadows_output;
-	}
-
-	Texture2D& RayTracer::RTAO(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& gbuffer_pos, Texture2D const& gbuffer_nor, D3D12_CONSTANT_BUFFER_VIEW_DESC const& frame_cbuf_view)
-	{
-		static Texture2D empty_tex{};
-		if (!ray_tracing_supported) return empty_tex;
-		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Ray Traced Ambient Occlusion");
-
-		auto device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
-
-		ResourceBarrierBatch rtao_barrier{};
-		rtao_barrier.AddTransition(rtao_output.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-		rtao_barrier.Submit(cmd_list);
-
-		cmd_list->SetComputeRootSignature(rtao_root_signature.Get());
-
-		cmd_list->SetComputeRootConstantBufferView(0, frame_cbuf_view.BufferLocation);
-		cmd_list->SetComputeRootConstantBufferView(1, ray_tracing_cbuffer.View(gfx->BackbufferIndex()).BufferLocation);
-		cmd_list->SetComputeRootShaderResourceView(2, tlas->GetGPUVirtualAddress());
-
-		OffsetType descriptor_index = descriptor_allocator->AllocateRange(1);
-		auto dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
-		device->CopyDescriptorsSimple(1, dst_descriptor, gbuffer_pos.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		cmd_list->SetComputeRootDescriptorTable(3, descriptor_allocator->GetGpuHandle(descriptor_index));
-
-		descriptor_index = descriptor_allocator->AllocateRange(1);
-		dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
-		device->CopyDescriptorsSimple(1, dst_descriptor, gbuffer_nor.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		cmd_list->SetComputeRootDescriptorTable(4, descriptor_allocator->GetGpuHandle(descriptor_index));
-
-		descriptor_index = descriptor_allocator->AllocateRange(1);
-		dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
-		device->CopyDescriptorsSimple(1, dst_descriptor, rtao_output.UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		cmd_list->SetComputeRootDescriptorTable(5, descriptor_allocator->GetGpuHandle(descriptor_index));
-
-		cmd_list->SetPipelineState1(rtao_state_object.Get());
-
-		D3D12_DISPATCH_RAYS_DESC dispatch_desc = {};
-		//dispatch_desc.HitGroupTable = rt_shadows_shader_table_hit->GetRangeAndStride();
-		//dispatch_desc.MissShaderTable = rt_shadows_shader_table_miss->GetRangeAndStride();
-		//dispatch_desc.RayGenerationShaderRecord = rt_shadows_shader_table_raygen->GetRange(0);
-		dispatch_desc.Width = width;
-		dispatch_desc.Height = height;
-		dispatch_desc.Depth = 1;
-
-		cmd_list->DispatchRays(&dispatch_desc);
-
-		rtao_barrier.ReverseTransitions();
-		rtao_barrier.Submit(cmd_list);
-		return rtao_output;
 	}
 
 	void RayTracer::CreateResources()

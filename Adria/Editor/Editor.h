@@ -76,6 +76,8 @@ namespace adria
 
 		void Profiling();
 
+		void RayTracingDebug();
+
 		void OpenMaterialFileDialog(Material* mat, EMaterialTextureType type);
 	};
 }
