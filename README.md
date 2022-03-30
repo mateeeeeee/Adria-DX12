@@ -44,10 +44,6 @@ Graphics engine written in C++/DirectX12. For successful build you will need tex
 * Multithreaded Command List Building
 * DirectX12 Render Passes
 
-## TODO List
-* Terrain and Instanced Foliage
-* DXR: Ray Traced Shadows, RTAO
-
 
 ## Dependencies
 [tinygltf](https://github.com/syoyo/tinygltf)
