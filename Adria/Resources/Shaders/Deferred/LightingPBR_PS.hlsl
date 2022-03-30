@@ -1,6 +1,6 @@
 
 #include "../Globals/GlobalsPS.hlsli"
-
+#include "../Util/DitherUtil.hlsli"
 
 Texture2D normalMetallicTx : register(t0);
 Texture2D diffuseRoughnessTx : register(t1);
@@ -11,13 +11,16 @@ SamplerState point_clamp_sampler : register(s1);
 
 
 #include "../Util/ShadowUtil.hlsli"
+#ifndef RAY_TRACED_SHADOWS
+Texture2D       shadowDepthMap          : register(t4);
+TextureCube     depthCubeMap            : register(t5);
+Texture2DArray  cascadeDepthMap         : register(t6);
+SamplerComparisonState shadow_sampler   : register(s2);
+#else
+Texture2D<float> rayTracedShadowMap  : register(t7);
+#endif
 
-Texture2D       shadowDepthMap  : register(t4);
-TextureCube     depthCubeMap    : register(t5);
-Texture2DArray  cascadeDepthMap : register(t6);
-SamplerComparisonState shadow_sampler : register(s2);
 
-#include "../Util/DitherUtil.hlsli"
 
 
 
@@ -28,13 +31,7 @@ struct VertexOut
 };
 
 
-
-//https://panoskarabelas.com/posts/screen_space_shadows/
-static const uint SSCS_MAX_STEPS = 16; // Max ray steps, affects quality and performance.
-//static const float SSCS_RAY_MAX_DISTANCE = 0.05f; // Max shadow length, longer shadows are less accurate.
-//static const float SSCS_THICKNESS = 0.5f; // Depth testing thickness.
-//static const float SSCS_MAX_DISTANCE = 200.0f;
-
+static const uint SSCS_MAX_STEPS = 16; 
 
 float SSCS(float3 pos_vs)
 {
@@ -131,6 +128,7 @@ float4 main(VertexOut pin) : SV_TARGET
             return float4(1, 0, 0, 1);
     }
 
+#ifndef RAY_TRACED_SHADOWS
     if (light_cbuf.current_light.casts_shadows)
     {
 
@@ -181,22 +179,14 @@ float4 main(VertexOut pin) : SV_TARGET
                 
             shadow_factor = CalcShadowFactor_PCF3x3(shadow_sampler, shadowDepthMap, UVD, shadow_cbuf.shadow_map_size, shadow_cbuf.softness);
         }
-
         Lo = Lo * shadow_factor;
     }
-    
+#else 
+    float shadow_factor = rayTracedShadowMap.Sample(linear_wrap_sampler, pin.Tex).r;
+    Lo = Lo * shadow_factor;
+#endif
     if (light_cbuf.current_light.sscs)
         Lo = Lo * SSCS(Position);
 
     return float4(Lo, 1.0f);
 }
-
-
-/*
-
-
-//
-//
-    
-
-*/

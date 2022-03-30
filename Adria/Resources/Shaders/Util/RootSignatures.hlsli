@@ -71,7 +71,7 @@
                               "CBV(b2, visibility=SHADER_VISIBILITY_PIXEL), " \
                               "CBV(b3, visibility=SHADER_VISIBILITY_PIXEL), " \
                               "DescriptorTable(SRV(t0, numDescriptors = 3, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_PIXEL ), " \
-                              "DescriptorTable(SRV(t4, numDescriptors = 3, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_PIXEL ), " \
+                              "DescriptorTable(SRV(t4, numDescriptors = 4, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_PIXEL ), " \
                               "StaticSampler(s0, " \
                                     "addressU = TEXTURE_ADDRESS_WRAP, " \
                                     "addressV = TEXTURE_ADDRESS_WRAP, " \

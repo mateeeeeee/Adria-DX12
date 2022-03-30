@@ -94,7 +94,7 @@ namespace adria
 
 		Texture2D const& GetRayTracingShadowsTexture_Debug() const
 		{
-			return ray_tracer.GetRayTracingShadowsTexture_Debug();
+			return ray_tracer.GetRayTracingShadowsTexture();
 		}
 
 	private:

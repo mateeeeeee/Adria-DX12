@@ -1058,6 +1058,14 @@ namespace adria
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/LightingPBR_PS.cso", ps_blob);
 			shader_map[PS_LightingPBR] = ps_blob;
 
+			shader_info_ps.shadersource = "Resources/Shaders/Deferred/LightingPBR_PS.hlsl";
+			shader_info_ps.stage = EShaderStage::PS;
+			shader_info_ps.defines.clear();
+			shader_info_ps.defines.emplace_back(L"RAY_TRACED_SHADOWS", L"");
+			shader_info_ps.entrypoint = "main";
+			ShaderUtility::CompileShader(shader_info_ps, ps_blob);
+			shader_map[PS_LightingPBR_RayTracedShadows] = ps_blob;
+
 			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ClusterLightingPBR_PS.cso", ps_blob);
 			shader_map[PS_ClusteredLightingPBR] = ps_blob;
 		}
@@ -1644,9 +1652,10 @@ namespace adria
 				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				pso_desc.SampleDesc.Count = 1;
 				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::LightingPBR])));
 
+				pso_desc.PS = shader_map[PS_LightingPBR_RayTracedShadows];
+				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::LightingPBR_RayTracedShadows])));
 
 				pso_desc.pRootSignature = rs_map[ERootSignature::ClusteredLightingPBR].Get();
 				pso_desc.PS = shader_map[PS_ClusteredLightingPBR];
@@ -3772,7 +3781,6 @@ namespace adria
 			if ((settings.use_tiled_deferred || settings.use_clustered_deferred) && !light_data.casts_shadows) continue; //tiled deferred takes care of noncasting lights
 
 			//update cbuffer
-
 			light_cbuf_data.active = light_data.active;
 			light_cbuf_data.casts_shadows = light_data.casts_shadows;
 			light_cbuf_data.color = light_data.color * light_data.energy;
@@ -3797,9 +3805,24 @@ namespace adria
 			light_allocation = upload_buffer->Allocate(GetCBufferSize<LightCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 			light_allocation.Update(light_cbuf_data);
 
-			//shadow mapping
-			
-			if (light_data.casts_shadows)
+			if (light_data.ray_traced_shadows)
+			{
+				D3D12_RESOURCE_BARRIER pre_rts_barriers[] =
+				{
+					CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
+				};
+				cmd_list->ResourceBarrier(ARRAYSIZE(pre_rts_barriers), pre_rts_barriers);
+
+				ray_tracer.RayTraceShadows(cmd_list, depth_target, frame_cbuffer.View(backbuffer_index).BufferLocation,
+					light_allocation.gpu_address);
+
+				D3D12_RESOURCE_BARRIER post_rts_barriers[] =
+				{
+					CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
+				};
+				cmd_list->ResourceBarrier(ARRAYSIZE(post_rts_barriers), post_rts_barriers);
+			}
+			else if (light_data.casts_shadows)
 			{
 				switch (light_data.type)
 				{
@@ -3822,7 +3845,9 @@ namespace adria
 			lighting_render_pass.Begin(cmd_list);
 			{
 				cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::LightingPBR].Get());
-				cmd_list->SetPipelineState(pso_map[EPipelineStateObject::LightingPBR].Get());
+				cmd_list->SetPipelineState(light_data.ray_traced_shadows ? 
+					pso_map[EPipelineStateObject::LightingPBR_RayTracedShadows].Get() :
+					pso_map[EPipelineStateObject::LightingPBR].Get());
 
 				cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 
@@ -3847,23 +3872,31 @@ namespace adria
 				//t4,t5,t6 - shadow maps
 				{
 					D3D12_CPU_DESCRIPTOR_HANDLE shadow_cpu_handles[] = { null_srv_heap->GetCpuHandle(TEXTURE2D_SLOT),
-						null_srv_heap->GetCpuHandle(TEXTURECUBE_SLOT), null_srv_heap->GetCpuHandle(TEXTURE2DARRAY_SLOT) }; 
-					uint32 src_range_sizes[] = { 1,1,1 };
+						null_srv_heap->GetCpuHandle(TEXTURECUBE_SLOT), null_srv_heap->GetCpuHandle(TEXTURE2DARRAY_SLOT), 
+						null_srv_heap->GetCpuHandle(TEXTURE2D_SLOT) };
+					uint32 src_range_sizes[] = { 1,1,1,1 };
 
-					switch (light_data.type)
+					if (light_data.ray_traced_shadows)
 					{
-					case ELightType::Directional:
-						if (light_data.use_cascades) shadow_cpu_handles[TEXTURE2DARRAY_SLOT] = shadow_depth_cascades.SRV();
-						else shadow_cpu_handles[TEXTURE2D_SLOT] = shadow_depth_map.SRV();
-						break;
-					case ELightType::Spot:
-						shadow_cpu_handles[TEXTURE2D_SLOT] = shadow_depth_map.SRV();
-						break;
-					case ELightType::Point:
-						shadow_cpu_handles[TEXTURECUBE_SLOT] = shadow_depth_cubemap.SRV();
-						break;
-					default:
-						ADRIA_ASSERT(false);
+						shadow_cpu_handles[3] = ray_tracer.GetRayTracingShadowsTexture().SRV();
+					}
+					else if (light_data.casts_shadows)
+					{
+						switch (light_data.type)
+						{
+						case ELightType::Directional:
+							if (light_data.use_cascades) shadow_cpu_handles[2] = shadow_depth_cascades.SRV();
+							else shadow_cpu_handles[0] = shadow_depth_map.SRV();
+							break;
+						case ELightType::Spot:
+							shadow_cpu_handles[0] = shadow_depth_map.SRV();
+							break;
+						case ELightType::Point:
+							shadow_cpu_handles[1] = shadow_depth_cubemap.SRV();
+							break;
+						default:
+							ADRIA_ASSERT(false);
+						}
 					}
 
 					OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(shadow_cpu_handles));
@@ -3881,21 +3914,6 @@ namespace adria
 				if (light_data.volumetric) PassVolumetric(cmd_list, light_data);
 			}
 			lighting_render_pass.End(cmd_list);
-
-			D3D12_RESOURCE_BARRIER pre_rts_barriers[] =
-			{
-				CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
-			};
-			cmd_list->ResourceBarrier(ARRAYSIZE(pre_rts_barriers), pre_rts_barriers);
-			
-			ray_tracer.RayTraceShadows(cmd_list, depth_target, frame_cbuffer.View(backbuffer_index).BufferLocation,
-				light_allocation.gpu_address);
-			
-			D3D12_RESOURCE_BARRIER post_rts_barriers[] =
-			{
-				CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
-			};
-			cmd_list->ResourceBarrier(ARRAYSIZE(post_rts_barriers), post_rts_barriers);
 			
 		}
 	}

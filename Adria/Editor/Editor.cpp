@@ -726,8 +726,8 @@ namespace adria
                         ImGui::SliderFloat("God Rays exposure", &light->godrays_exposure, 0.1f, 10.0f);
                     }
 
-
-                    ImGui::Checkbox("Casts Shadows", &light->casts_shadows);
+                    ImGui::Checkbox("Casts Shadows (Shadow Map)", &light->casts_shadows);
+                    ImGui::Checkbox("Ray Traced Shadows", &light->ray_traced_shadows);
                     ImGui::Checkbox("Screen Space Contact Shadows", &light->sscs);
 					if (light->sscs)
 					{

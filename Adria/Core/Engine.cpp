@@ -76,7 +76,6 @@ namespace adria
 				XMMATRIX transform = rotation * scale * translation;
 
 				bool used_for_ray_tracing = model_params.FindOr<bool>("ray_tracing", true);
-
 				config.scene_models.emplace_back(path, tex_path, transform, used_for_ray_tracing);
 			}
 
@@ -111,6 +110,7 @@ namespace adria
 
 				light.light_data.casts_shadows = light_params.FindOr<bool>("shadows", true);
 				light.light_data.use_cascades = light_params.FindOr<bool>("cascades", false);
+				light.light_data.ray_traced_shadows = light_params.FindOr<bool>("rts", false);
 
 				light.light_data.active = light_params.FindOr<bool>("active", true);
 				light.light_data.volumetric = light_params.FindOr<bool>("volumetric", false);
