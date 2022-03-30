@@ -942,7 +942,7 @@ namespace adria
 
 			ShaderInfo shader_info_ps{};
 			shader_info_ps.shadersource = "Resources/Shaders/Misc/DecalPS.hlsl";
-			shader_info_ps.stage = ShaderStage::PS;
+			shader_info_ps.stage = EShaderStage::PS;
 			shader_info_ps.defines = { {L"DECAL_MODIFY_NORMALS", L""}};
 			shader_info_ps.entrypoint = "main";
 #ifdef _DEBUG
@@ -1036,7 +1036,7 @@ namespace adria
 			ShaderBlob ps_blob;
 			ShaderInfo shader_info_ps{};
 			shader_info_ps.shadersource = "Resources/Shaders/Deferred/AmbientPBR_PS.hlsl";
-			shader_info_ps.stage = ShaderStage::PS;
+			shader_info_ps.stage = EShaderStage::PS;
 			shader_info_ps.defines = {};
 
 			ShaderUtility::CompileShader(shader_info_ps, ps_blob);
@@ -1067,10 +1067,10 @@ namespace adria
 			ShaderBlob vs_blob, ps_blob;
 			ShaderInfo vs_input{}, ps_input{};
 			vs_input.shadersource = "Resources/Shaders/Shadows/DepthMapVS.hlsl";
-			vs_input.stage = ShaderStage::VS;
+			vs_input.stage = EShaderStage::VS;
 			
 			ps_input.shadersource = "Resources/Shaders/Shadows/DepthMapPS.hlsl";
-			ps_input.stage = ShaderStage::PS;
+			ps_input.stage = EShaderStage::PS;
 			
 			ShaderUtility::CompileShader(vs_input, vs_blob);
 			ShaderUtility::CompileShader(ps_input, ps_blob);
@@ -1115,7 +1115,7 @@ namespace adria
 			ShaderInfo blur_shader{};
 
 			blur_shader.shadersource = "Resources/Shaders/PostProcess/BlurCS.hlsl";
-			blur_shader.stage = ShaderStage::CS;
+			blur_shader.stage = EShaderStage::CS;
 
 			ShaderUtility::CompileShader(blur_shader, cs_blob);
 			shader_map[CS_Blur_Horizontal] = cs_blob;

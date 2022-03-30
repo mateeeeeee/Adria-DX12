@@ -272,7 +272,7 @@ namespace adria
 		ID3D12Device5* device = gfx->GetDevice();
 
 		ShaderInfo compile_info{};
-		compile_info.stage = ShaderStage::LIB;
+		compile_info.stage = EShaderStage::LIB;
 		compile_info.shadersource = "Resources/Shaders/RayTracing/RayTracedShadows.hlsl";
 		ShaderBlob rt_shadows_blob;
 		ShaderUtility::CompileShader(compile_info, rt_shadows_blob);

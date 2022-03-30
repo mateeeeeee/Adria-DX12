@@ -309,7 +309,8 @@ namespace adria
                     "When Gizmo is enabled, use T, R and E to switch between Translation, Rotation and Scaling Mode.\n"
                     "Left Click on entity to select it. Left click again on selected entity to unselect it.\n"
                     "Right Click on empty area in Entities window to add entity. Right Click on selected entity to delete it.\n"
-
+					"When placing decals, right click on focused Scene window to pick a point for a decal (it's used only for "
+					"decals currently but that could change in the future)"
                 );
                 ImGui::Spacing();
 

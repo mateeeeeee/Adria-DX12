@@ -151,7 +151,7 @@ namespace adria
 
 		ShaderInfo info{};
 		info.shadersource = "Resources\\Shaders\\Misc\\GenerateMipsCS.hlsl";
-		info.stage = ShaderStage::CS;
+		info.stage = EShaderStage::CS;
 
 		ShaderUtility::CompileShader(info, cs_blob);
 		//Create pipeline state object for the compute shader using the root signature.

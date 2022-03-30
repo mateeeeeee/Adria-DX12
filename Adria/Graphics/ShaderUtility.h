@@ -7,7 +7,7 @@
 namespace adria
 {
 
-	enum class ShaderStage
+	enum class EShaderStage
 	{
 		VS,
 		PS,
@@ -79,7 +79,7 @@ namespace adria
 			FLAG_DISABLE_OPTIMIZATION = 1 << 1,
 		};
 
-		ShaderStage stage = ShaderStage::COUNT;
+		EShaderStage stage = EShaderStage::COUNT;
 		std::string shadersource = "";
 		std::string entrypoint = "";
 		std::vector<ShaderDefine> defines;

@@ -100,31 +100,31 @@ namespace adria
 
 			switch (input.stage)
 			{
-			case ShaderStage::VS:
+			case EShaderStage::VS:
 				p_target = L"vs_6_0";
 				entry_point = L"vs_main";
 				break;
-			case ShaderStage::PS:
+			case EShaderStage::PS:
 				p_target = L"ps_6_0";
 				entry_point = L"ps_main";
 				break;
-			case ShaderStage::CS:
+			case EShaderStage::CS:
 				p_target = L"cs_6_0";
 				entry_point = L"cs_main";
 				break;
-			case ShaderStage::GS:
+			case EShaderStage::GS:
 				p_target = L"gs_6_0";
 				entry_point = L"gs_main";
 				break;
-			case ShaderStage::HS:
+			case EShaderStage::HS:
 				p_target = L"hs_6_0";
 				entry_point = L"hs_main";
 				break;
-			case ShaderStage::DS:
+			case EShaderStage::DS:
 				p_target = L"ds_6_0";
 				entry_point = L"ds_main";
 				break;
-			case ShaderStage::LIB:
+			case EShaderStage::LIB:
 				p_target = L"lib_6_3";
 				break;
 			default:
