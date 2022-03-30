@@ -249,7 +249,7 @@ namespace adria
 
 		float32 const dt = timer.MarkInSeconds();
 
-		if (Window::IsActive())
+		if (Window::IsActive() || true) //crash when window is hidden, temp fix
 		{
 			input.NewFrame();
 			event_queue.ProcessEvents();

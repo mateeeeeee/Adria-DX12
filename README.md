@@ -9,6 +9,7 @@ Graphics engine written in C++/DirectX12. For successful build you will need tex
 * Physically Based Shading
 * Image Based Lighting
 * Normal Mapping
+* Hard Ray Traced Shadows (DXR)
 * Shadows
     - PCF Shadows for Directional, Spot and Point lights
     - Cascade Shadow Maps for Directional Lights
@@ -69,5 +70,16 @@ Graphics engine written in C++/DirectX12. For successful build you will need tex
 
 ## Screenshots
 
-Since this is DirectX 12 port of this [engine](https://github.com/mate286/Adria-DX11)
-(not complete though), you can see some of the screenshots there.
+Since this is DirectX 12 port of this [engine](https://github.com/mate286/Adria-DX11), you can see some of the screenshots there. 
+All of DXR screenshots will go here:
+
+<table>
+  <tr>
+    <td>Filtered shadows using 3 cascades</td>
+     <td>Hard ray traced shadows</td>
+     </tr>
+  <tr>
+    <td><img src="Screenshots/cascades.png"></td>
+    <td><img src="Screenshots/rtshadows.png"></td>
+  </tr>
+ </table>

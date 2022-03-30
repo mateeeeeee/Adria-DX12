@@ -17,7 +17,7 @@ void RTS_RayGen()
     uint2 launchDim = DispatchRaysDimensions().xy;
 
     float depth = depth_tx.Load(int3(launchIndex.xy, 0)).r;
-    float2 tex_coords = launchIndex / frame_cbuf.screen_resolution;
+    float2 tex_coords = (launchIndex + 0.5f) / frame_cbuf.screen_resolution;
 
     float3 posView = GetPositionVS(tex_coords, depth);
     float4 posWorld = mul(float4(posView, 1.0f), frame_cbuf.inverse_view);
@@ -51,7 +51,7 @@ void RTS_RayGen()
     RayDesc ray;
     ray.Origin = posWorld.xyz;
     ray.Direction = normalize(direction);
-    ray.TMin = 0.01f;
+    ray.TMin = 0.1f;
     ray.TMax = maxT;
 
     ShadowRayData payload;

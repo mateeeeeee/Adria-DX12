@@ -20,7 +20,7 @@ namespace adria
 
         void BuildAccelerationStructures();
 
-		[[maybe_unused]] Texture2D& RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth_srv,
+		[[maybe_unused]] Texture2D const& RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth_srv,
 			D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address,
 			D3D12_GPU_VIRTUAL_ADDRESS light_cbuf_address);
 
