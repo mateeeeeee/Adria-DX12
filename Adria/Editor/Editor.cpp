@@ -1630,11 +1630,12 @@ namespace adria
 		ImGui::Begin("Ray Tracing Debug");
 		{
 			//ADD BARRIER
-			D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetRTS_Temp().SRV();
+			D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetRayTracingShadowsTexture_Debug().SRV();
 			OffsetType descriptor_index = descriptor_allocator->Allocate();
 			D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
 			device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr, size);
+			ImGui::Text("Ray Tracing Shadows Image");
 		}
 		ImGui::End();
 	}

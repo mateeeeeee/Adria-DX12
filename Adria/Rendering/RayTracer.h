@@ -24,7 +24,7 @@ namespace adria
 			D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address,
 			D3D12_GPU_VIRTUAL_ADDRESS light_cbuf_address);
 
-		Texture2D GetRTS_Temp() const
+		Texture2D const& GetRayTracingShadowsTexture_Debug() const
 		{
 			return rt_shadows_output;
 		}

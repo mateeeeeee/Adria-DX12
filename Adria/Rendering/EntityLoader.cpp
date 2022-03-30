@@ -516,12 +516,12 @@ namespace adria
 				reg.emplace<Transform>(e, model, model);
 				reg.emplace<Deferred>(e);
 
-				reg.emplace<RayTracing>(e);
+				if(params.used_in_raytracing) reg.emplace<RayTracing>(e);
 			}
 		}
 
-		std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>(gfx, vertices, true);
-		std::shared_ptr<IndexBuffer> ib = std::make_shared<IndexBuffer>(gfx, indices, true);
+		std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>(gfx, vertices, params.used_in_raytracing);
+		std::shared_ptr<IndexBuffer> ib = std::make_shared<IndexBuffer>(gfx, indices, params.used_in_raytracing);
 
 		for (entity e : entities)
 		{

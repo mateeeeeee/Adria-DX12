@@ -92,9 +92,9 @@ namespace adria
 
 		PickingData GetPickingData() const;
 
-		Texture2D GetRTS_Temp() const
+		Texture2D const& GetRayTracingShadowsTexture_Debug() const
 		{
-			return ray_tracer.GetRTS_Temp();
+			return ray_tracer.GetRayTracingShadowsTexture_Debug();
 		}
 
 	private:

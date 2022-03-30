@@ -75,7 +75,9 @@ namespace adria
 				XMMATRIX scale = XMMatrixScaling(scale_factors[0], scale_factors[1], scale_factors[2]);
 				XMMATRIX transform = rotation * scale * translation;
 
-				config.scene_models.emplace_back(path, tex_path, transform);
+				bool used_for_ray_tracing = model_params.FindOr<bool>("ray_tracing", true);
+
+				config.scene_models.emplace_back(path, tex_path, transform, used_for_ray_tracing);
 			}
 
 			for (auto&& light_json : lights)
