@@ -13,11 +13,11 @@ struct ShadowRayData
 [shader("raygeneration")]
 void RTS_RayGen()
 {
-    uint3 launchIndex = DispatchRaysIndex();
+    uint2 launchIndex = DispatchRaysIndex().xy;
     uint2 launchDim = DispatchRaysDimensions().xy;
 
     float depth = depth_tx.Load(int3(launchIndex.xy, 0)).r;
-    float2 tex_coords = launchDim / frame_cbuf.screen_resolution;
+    float2 tex_coords = launchIndex / frame_cbuf.screen_resolution;
 
     float3 posView = GetPositionVS(tex_coords, depth);
     float4 posWorld = mul(float4(posView, 1.0f), frame_cbuf.inverse_view);
@@ -27,7 +27,7 @@ void RTS_RayGen()
     float3 direction;
     float maxT;
 
-    //move light vector to world space
+    //move light vectors from view space to world space
     light.direction.xyz = mul(light.direction.xyz, (float3x3) frame_cbuf.inverse_view);
     light.position = mul(float4(light.position.xyz, 1.0f), frame_cbuf.inverse_view);
     light.position.xyz /= light.position.w;
@@ -40,7 +40,7 @@ void RTS_RayGen()
         break;
     case DIRECTIONAL_LIGHT:
         direction = -light.direction.xyz;
-        maxT = 10000.0f;
+        maxT = 1e9;
         break;
     case SPOT_LIGHT:
         direction = -light.direction.xyz;
@@ -51,12 +51,12 @@ void RTS_RayGen()
     RayDesc ray;
     ray.Origin = posWorld.xyz;
     ray.Direction = normalize(direction);
-    ray.TMin = 0.005;
-    ray.TMax = max(0.005, maxT);
+    ray.TMin = 0.01f;
+    ray.TMax = maxT;
 
     ShadowRayData payload;
     payload.hit = true;
-    TraceRay(rt_scene, (RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH), 0xFF, 0, 1, 0, ray, payload);
+    TraceRay(rt_scene, (RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER), 0xFF, 0, 1, 0, ray, payload);
     shadow_rt_output[launchIndex.xy] = payload.hit ? 0.0f : 1.0f;
 }
 
