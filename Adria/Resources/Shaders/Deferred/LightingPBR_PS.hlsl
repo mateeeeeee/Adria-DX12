@@ -181,12 +181,11 @@ float4 main(VertexOut pin) : SV_TARGET
         }
         Lo = Lo * shadow_factor;
     }
+    if (light_cbuf.current_light.sscs)
+        Lo = Lo * SSCS(Position);
 #else 
     float shadow_factor = rayTracedShadowMap.Sample(linear_wrap_sampler, pin.Tex).r;
     Lo = Lo * shadow_factor;
 #endif
-    if (light_cbuf.current_light.sscs)
-        Lo = Lo * SSCS(Position);
-
     return float4(Lo, 1.0f);
 }
