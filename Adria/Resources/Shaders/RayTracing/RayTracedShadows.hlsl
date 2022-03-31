@@ -10,9 +10,7 @@ struct ShadowRayData
     bool hit;
 };
 
-#define SOFT_SHADOWS
-
-
+#define DEGREES_TO_RADIANS(x) (x) * (PI / 180.0f)
 
 [shader("raygeneration")]
 void RTS_RayGen()
@@ -36,7 +34,7 @@ void RTS_RayGen()
     light.position = mul(float4(light.position.xyz, 1.0f), frame_cbuf.inverse_view);
     light.position.xyz /= light.position.w;
 
-    float softness = 5.0f;
+    float softness = 0.0f;
     switch (light.type)
     {
     case POINT_LIGHT:
@@ -46,7 +44,7 @@ void RTS_RayGen()
     case DIRECTIONAL_LIGHT:
         direction = -light.direction.xyz;
         maxT = 1e9;
-        softness = 0.53f;
+        softness = 0.1f;
         break;
     case SPOT_LIGHT:
         direction = -light.direction.xyz;
@@ -78,7 +76,7 @@ void RTS_RayGen()
     {
         RayDesc ray;
         ray.Origin = posWorld.xyz;
-        ray.Direction = normalize(GetConeSample(randSeed, direction, softness));
+        ray.Direction = normalize(GetConeSample(randSeed, direction, DEGREES_TO_RADIANS(softness)));
         ray.TMin = 0.2f;
         ray.TMax = maxT;
 

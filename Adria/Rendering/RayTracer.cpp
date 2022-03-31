@@ -106,7 +106,7 @@ namespace adria
 		D3D12_DISPATCH_RAYS_DESC dispatch_desc = {};
 		dispatch_desc.HitGroupTable = rt_shadows_shader_table_hit->GetRangeAndStride();
 		dispatch_desc.MissShaderTable = rt_shadows_shader_table_miss->GetRangeAndStride();
-		dispatch_desc.RayGenerationShaderRecord = rt_shadows_shader_table_raygen->GetRange(0);
+		dispatch_desc.RayGenerationShaderRecord = rt_shadows_shader_table_raygen->GetRange(1);
 		dispatch_desc.Width = width;
 		dispatch_desc.Height = height;
 		dispatch_desc.Depth = 1;
