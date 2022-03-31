@@ -718,7 +718,7 @@ namespace adria
 					const char* shadow_types[] = { "None", "Shadow Maps", "Ray Traced Shadows" };
 					static int current_shadow_type = 0;
 					const char* combo_label = shadow_types[current_shadow_type];
-					if (ImGui::BeginCombo("Deferred Type", combo_label, 0))
+					if (ImGui::BeginCombo("Shadows Type", combo_label, 0))
 					{
 						for (int n = 0; n < IM_ARRAYSIZE(shadow_types); n++)
 						{
@@ -753,7 +753,6 @@ namespace adria
 						ImGui::Checkbox("Soft Shadows", &light->soft_rts);
 						//add softness
 					}
-
 
 					ImGui::Checkbox("God Rays", &light->god_rays);
 					if (light->god_rays)
@@ -1018,7 +1017,6 @@ namespace adria
                         if (ImGui::Selectable(components[n], is_selected))
                             current_component = n;
 
-                        // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
                         if (is_selected)
                             ImGui::SetItemDefaultFocus();
                     }
