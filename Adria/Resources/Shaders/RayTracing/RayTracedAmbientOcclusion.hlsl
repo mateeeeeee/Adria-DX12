@@ -12,7 +12,11 @@ struct AORayData
     bool hit;
 };
 
-static const int RAY_COUNT = 32;
+
+
+
+
+static const int RAY_COUNT = 16;
 
 [shader("raygeneration")]
 void RTAO_RayGen()
@@ -40,9 +44,9 @@ void RTAO_RayGen()
         float3 worldDir = GetCosHemisphereSample(randSeed, normalWorld.xyz);
         AORayData rayPayload = { true };
         RayDesc rayAO;
-        rayAO.Origin = posWorld.xyz; 
+        rayAO.Origin = OffsetRay(posWorld.xyz, normalWorld.xyz);
         rayAO.Direction = normalize(worldDir);
-        rayAO.TMin = 0.1f;
+        rayAO.TMin = 0.0f;
         rayAO.TMax = ray_tracing_cbuf.rtao_radius;
 
         TraceRay(rt_scene,

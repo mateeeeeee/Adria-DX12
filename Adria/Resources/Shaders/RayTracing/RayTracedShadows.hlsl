@@ -1,4 +1,5 @@
 #include "../Globals/GlobalsRT.hlsli"
+#include "../Util/RayTracingUtil.hlsli"
 
 RaytracingAccelerationStructure rt_scene : register(t0);
 Texture2D depth_tx : register(t1);
@@ -32,6 +33,10 @@ void RTS_RayGen()
     light.position = mul(float4(light.position.xyz, 1.0f), frame_cbuf.inverse_view);
     light.position.xyz /= light.position.w;
     
+    float3 ddx_ws = ddx(posWorld.xyz);
+    float3 ddy_ws = ddy(posWorld.xyz);
+    float3 normal = normalize(cross(ddx_ws, ddy_ws));
+    
     switch (light.type)
     {
     case POINT_LIGHT:
@@ -51,7 +56,7 @@ void RTS_RayGen()
     RayDesc ray;
     ray.Origin = posWorld.xyz;
     ray.Direction = normalize(direction);
-    ray.TMin = 0.25f;
+    ray.TMin = 0.2f;
     ray.TMax = maxT;
 
     ShadowRayData payload;

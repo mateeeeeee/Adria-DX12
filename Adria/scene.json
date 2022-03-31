@@ -22,7 +22,7 @@
     "models" : [
 	{
 		"path" : "Resources/Models/Sponza/glTF/Sponza.gltf",
-		"scale" : [1.0, 1.0, 1.0]
+		"scale" : [0.33, 0.33, 0.33]
 	}
 	],
 	"lights" : [

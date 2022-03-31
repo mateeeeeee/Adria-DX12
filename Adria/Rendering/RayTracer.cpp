@@ -398,6 +398,7 @@ namespace adria
 	{
 		auto device = gfx->GetDevice();
 		auto cmd_list = gfx->GetDefaultCommandList();
+		auto upload_allocator = gfx->GetUploadBuffer();
 		auto ray_tracing_view = reg.view<Mesh, Transform, RayTracing>();
 
 		std::vector<D3D12_RAYTRACING_GEOMETRY_DESC> geo_descs{};
@@ -405,9 +406,13 @@ namespace adria
 		{
 			auto const& mesh = ray_tracing_view.get<Mesh const>(entity);
 
+			auto const& transform = ray_tracing_view.get<Transform const>(entity);
+			DynamicAllocation transform_alloc = upload_allocator->Allocate(sizeof(DirectX::XMMATRIX), D3D12_RAYTRACING_TRANSFORM3X4_BYTE_ALIGNMENT);
+			transform_alloc.Update(transform.current_transform);
+			
 			D3D12_RAYTRACING_GEOMETRY_DESC geo_desc{};
 			geo_desc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
-			geo_desc.Triangles.Transform3x4 = NULL;
+			geo_desc.Triangles.Transform3x4 = transform_alloc.gpu_address;
 			geo_desc.Triangles.VertexBuffer.StrideInBytes = sizeof(CompleteVertex);
 			geo_desc.Triangles.VertexBuffer.StartAddress = mesh.vertex_buffer->View().BufferLocation + geo_desc.Triangles.VertexBuffer.StrideInBytes * mesh.base_vertex_location;
 			geo_desc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
@@ -494,11 +499,10 @@ namespace adria
 		p_instance_desc->InstanceID = 0;                            // This value will be exposed to the shader via InstanceID()
 		p_instance_desc->InstanceContributionToHitGroupIndex = 0;   // This is the offset inside the shader-table. We only have a single geometry, so the offset 0
 		p_instance_desc->Flags = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
-		auto I = DirectX::XMMatrixIdentity();
+		static const auto I = DirectX::XMMatrixIdentity();
 		memcpy(p_instance_desc->Transform, &I, sizeof(p_instance_desc->Transform));
 		p_instance_desc->AccelerationStructure = blas->GetGPUVirtualAddress();
 		p_instance_desc->InstanceMask = 0xFF;
-
 		// Unmap
 		tlas_buffers.instance_buffer->Unmap(0, nullptr);
 
