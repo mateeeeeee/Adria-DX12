@@ -10,6 +10,9 @@ struct ShadowRayData
     bool hit;
 };
 
+#define SOFT_SHADOWS
+
+
 
 [shader("raygeneration")]
 void RTS_RayGen()
@@ -32,11 +35,8 @@ void RTS_RayGen()
     light.direction.xyz = mul(light.direction.xyz, (float3x3) frame_cbuf.inverse_view);
     light.position = mul(float4(light.position.xyz, 1.0f), frame_cbuf.inverse_view);
     light.position.xyz /= light.position.w;
-    
-    float3 ddx_ws = ddx(posWorld.xyz);
-    float3 ddy_ws = ddy(posWorld.xyz);
-    float3 normal = normalize(cross(ddx_ws, ddy_ws));
-    
+
+    float softness = 5.0f;
     switch (light.type)
     {
     case POINT_LIGHT:
@@ -46,6 +46,7 @@ void RTS_RayGen()
     case DIRECTIONAL_LIGHT:
         direction = -light.direction.xyz;
         maxT = 1e9;
+        softness = 0.53f;
         break;
     case SPOT_LIGHT:
         direction = -light.direction.xyz;
@@ -53,6 +54,7 @@ void RTS_RayGen()
         break;
     }
 
+#ifndef SOFT_SHADOWS
     RayDesc ray;
     ray.Origin = posWorld.xyz;
     ray.Direction = normalize(direction);
@@ -64,6 +66,30 @@ void RTS_RayGen()
     TraceRay(rt_scene, (RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES),
     0xFF, 0, 1, 0, ray, payload);
     shadow_rt_output[launchIndex.xy] = payload.hit ? 0.0f : 1.0f;
+    
+#else
+    static const int RAY_COUNT = 8;
+    
+    uint randSeed = InitRand(launchIndex.x + launchIndex.y * launchDim.x, ray_tracing_cbuf.frame_count, 16);
+    float shadow_factor = 0.0f;
+    
+    [unroll(RAY_COUNT)]
+    for (int i = 0; i < RAY_COUNT; i++)
+    {
+        RayDesc ray;
+        ray.Origin = posWorld.xyz;
+        ray.Direction = normalize(GetConeSample(randSeed, direction, softness));
+        ray.TMin = 0.2f;
+        ray.TMax = maxT;
+
+        ShadowRayData payload;
+        payload.hit = true;
+        TraceRay(rt_scene, (RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES),
+        0xFF, 0, 1, 0, ray, payload);
+        shadow_factor += payload.hit ? 0.0f : 1.0f;
+    }
+    shadow_rt_output[launchIndex.xy] = shadow_factor / RAY_COUNT;
+#endif
 }
 
 [shader("miss")]

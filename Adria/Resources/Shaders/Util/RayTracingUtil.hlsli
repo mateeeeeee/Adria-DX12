@@ -48,6 +48,44 @@ static float3 GetCosHemisphereSample(inout uint randSeed, float3 hitNorm)
     return tangent * (r * cos(phi).x) + bitangent * (r * sin(phi)) + hitNorm.xyz * sqrt(1 - randVal.x);
 }
 
+//https://medium.com/@alexander.wester/ray-tracing-soft-shadows-in-real-time-a53b836d123b
+// Rotation with angle (in radians) and axis
+float3x3 AngleAxis3x3(float angle, float3 axis)
+{
+    float c, s;
+    sincos(angle, s, c);
+
+    float t = 1 - c;
+    float x = axis.x;
+    float y = axis.y;
+    float z = axis.z;
+
+    return float3x3(
+        t * x * x + c, t * x * y - s * z, t * x * z + s * y,
+        t * x * y + s * z, t * y * y + c, t * y * z - s * x,
+        t * x * z - s * y, t * y * z + s * x, t * z * z + c
+    );
+}
+float3 GetConeSample(inout uint randSeed, float3 direction, float coneAngle)
+{
+    float cosAngle = cos(coneAngle);
+
+    float z = NextRand(randSeed) * (1.0f - cosAngle) + cosAngle;
+    float phi = NextRand(randSeed) * 2.0f * 3.141592653589793238f;
+
+    float x = sqrt(1.0f - z * z) * cos(phi);
+    float y = sqrt(1.0f - z * z) * sin(phi);
+    float3 north = float3(0.f, 0.f, 1.f);
+
+    // Find the rotation axis `u` and rotation angle `rot` [1]
+    float3 axis = normalize(cross(north, normalize(direction)));
+    float angle = acos(dot(normalize(direction), north));
+
+    // Convert rotation axis and angle to 3x3 rotation matrix [2]
+    float3x3 R = AngleAxis3x3(angle, axis);
+
+    return mul(R, float3(x, y, z));
+}
 
 
 /*A Fast and Robust Method for Avoiding

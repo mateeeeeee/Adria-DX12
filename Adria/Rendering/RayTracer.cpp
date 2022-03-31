@@ -282,18 +282,40 @@ namespace adria
 		ShaderBlob rt_shadows_blob;
 		ShaderUtility::CompileShader(compile_info, rt_shadows_blob);
 
+		compile_info.defines.emplace_back(L"SOFT_SHADOWS", L"");
+		ShaderBlob rt_soft_shadows_blob;
+		ShaderUtility::CompileShader(compile_info, rt_soft_shadows_blob);
+		compile_info.defines.clear();
+
 		compile_info.shadersource = "Resources/Shaders/RayTracing/RayTracedAmbientOcclusion.hlsl";
 		ShaderBlob rtao_blob;
 		ShaderUtility::CompileShader(compile_info, rtao_blob);
 
-		StateObjectBuilder rt_shadows_state_object_builder(5);
+		StateObjectBuilder rt_shadows_state_object_builder(6);
 		{
+			D3D12_EXPORT_DESC export_descs[] = 
+			{
+				D3D12_EXPORT_DESC{.Name = L"RTS_RayGen_Hard", .ExportToRename = L"RTS_RayGen"},
+				D3D12_EXPORT_DESC{.Name = L"RTS_Anyhit", .ExportToRename = NULL},
+				D3D12_EXPORT_DESC{.Name = L"RTS_Miss", .ExportToRename = NULL}
+			};
+
 			D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc = {};
 			dxil_lib_desc.DXILLibrary.BytecodeLength = rt_shadows_blob.GetLength();
 			dxil_lib_desc.DXILLibrary.pShaderBytecode = rt_shadows_blob.GetPointer();
-			dxil_lib_desc.NumExports = 0;
-			dxil_lib_desc.pExports = nullptr;
+			dxil_lib_desc.NumExports = ARRAYSIZE(export_descs);
+			dxil_lib_desc.pExports = export_descs;
 			rt_shadows_state_object_builder.AddSubObject(dxil_lib_desc);
+
+			D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc2 = {};
+			D3D12_EXPORT_DESC export_desc2{};
+			export_desc2.ExportToRename = L"RTS_RayGen";
+			export_desc2.Name = L"RTS_RayGen_Soft";
+			dxil_lib_desc2.DXILLibrary.BytecodeLength = rt_soft_shadows_blob.GetLength();
+			dxil_lib_desc2.DXILLibrary.pShaderBytecode = rt_soft_shadows_blob.GetPointer();
+			dxil_lib_desc2.NumExports = 1;
+			dxil_lib_desc2.pExports = &export_desc2;
+			rt_shadows_state_object_builder.AddSubObject(dxil_lib_desc2);
 
 			// Add a state subobject for the shader payload configuration
 			D3D12_RAYTRACING_SHADER_CONFIG rt_shadows_shader_config = {};
@@ -361,12 +383,14 @@ namespace adria
 			Microsoft::WRL::ComPtr<ID3D12StateObjectProperties> pso_info = nullptr;
 			BREAK_IF_FAILED(rt_shadows_state_object->QueryInterface(IID_PPV_ARGS(&pso_info)));
 
-			void const* rts_ray_gen_id = pso_info->GetShaderIdentifier(L"RTS_RayGen");
+			void const* rts_ray_gen_hard_id = pso_info->GetShaderIdentifier(L"RTS_RayGen_Hard");
+			void const* rts_ray_gen_soft_id = pso_info->GetShaderIdentifier(L"RTS_RayGen_Soft");
 			void const* rts_anyhit_id = pso_info->GetShaderIdentifier(L"ShadowAnyHitGroup");
 			void const* rts_miss_id = pso_info->GetShaderIdentifier(L"RTS_Miss");
 
-			rt_shadows_shader_table_raygen = std::make_unique<ShaderTable>(device, 1);
-			rt_shadows_shader_table_raygen->AddShaderRecord(ShaderRecord(rts_ray_gen_id));
+			rt_shadows_shader_table_raygen = std::make_unique<ShaderTable>(device, 2);
+			rt_shadows_shader_table_raygen->AddShaderRecord(ShaderRecord(rts_ray_gen_hard_id));
+			rt_shadows_shader_table_raygen->AddShaderRecord(ShaderRecord(rts_ray_gen_soft_id));
 
 			rt_shadows_shader_table_hit = std::make_unique<ShaderTable>(device, 1);
 			rt_shadows_shader_table_hit->AddShaderRecord(ShaderRecord(rts_anyhit_id));
