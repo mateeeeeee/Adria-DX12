@@ -9,7 +9,7 @@ Graphics engine written in C++/DirectX12. For successful build you will need tex
 * Physically Based Shading
 * Image Based Lighting
 * Normal Mapping
-* Hard Ray Traced Shadows (DXR)
+* Hard and Soft Ray Traced Shadows (DXR)
 * Shadows
     - PCF Shadows for Directional, Spot and Point lights
     - Cascade Shadow Maps for Directional Lights
