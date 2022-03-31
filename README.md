@@ -21,7 +21,7 @@ Graphics engine written in C++/DirectX12. For successful build you will need tex
 * Bloom
 * Depth Of Field
 * Bokeh
-* Ambient Occlusion: SSAO, HBAO
+* Ambient Occlusion: SSAO, HBAO, RTAO (DXR)
 * SSR
 * SSCS
 * Deferred Decals
