@@ -12,7 +12,7 @@ struct AORayData
     bool hit;
 };
 
-static const int RAY_COUNT = 1;
+static const int RAY_COUNT = 32;
 
 [shader("raygeneration")]
 void RTAO_RayGen()
@@ -37,7 +37,7 @@ void RTAO_RayGen()
     [unroll(RAY_COUNT)]
     for (int i = 0; i < RAY_COUNT; i++)
     {
-		float3 worldDir = GetCosHemisphereSample(randSeed, normalWorld.xyz);
+        float3 worldDir = GetCosHemisphereSample(randSeed, normalWorld.xyz);
         AORayData rayPayload = { true };
         RayDesc rayAO;
         rayAO.Origin = posWorld.xyz; 

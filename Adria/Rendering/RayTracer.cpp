@@ -128,7 +128,7 @@ namespace adria
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 		ResourceBarrierBatch rtao_barrier{};
-		rtao_barrier.AddTransition(rtao_output.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		rtao_barrier.AddTransition(rtao_output.Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		rtao_barrier.Submit(cmd_list);
 
 		cmd_list->SetComputeRootSignature(rtao_root_signature.Get());
@@ -182,6 +182,7 @@ namespace adria
 		rt_shadows_output.CreateSRV(dxr_heap->GetCpuHandle(current_handle_index++));
 		rt_shadows_output.CreateUAV(dxr_heap->GetCpuHandle(current_handle_index++));
 
+		uav_target_desc.start_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 		rtao_output = Texture2D(device, uav_target_desc);
 		rtao_output.CreateSRV(dxr_heap->GetCpuHandle(current_handle_index++));
 		rtao_output.CreateUAV(dxr_heap->GetCpuHandle(current_handle_index++));
