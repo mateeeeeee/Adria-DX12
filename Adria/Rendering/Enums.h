@@ -269,7 +269,8 @@ namespace adria
 	{
 		None,
 		SSAO,
-		HBAO
+		HBAO,
+		RTAO
 	};
 
 	enum class EDecalType : uint8

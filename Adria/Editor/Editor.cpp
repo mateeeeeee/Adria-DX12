@@ -1402,7 +1402,7 @@ namespace adria
             {
                 //ambient oclussion
                 {
-					const char* ao_types[] = { "None", "SSAO", "HBAO" };
+					const char* ao_types[] = { "None", "SSAO", "HBAO", "RTAO" };
 					static int current_ao_type = 0;
 					const char* combo_label = ao_types[current_ao_type];
 					if (ImGui::BeginCombo("Ambient Occlusion", combo_label, 0))
@@ -1426,7 +1426,7 @@ namespace adria
                         ImGui::TreePop();
                         ImGui::Separator();
                     }
-                    if (renderer_settings.ambient_occlusion == EAmbientOcclusion::HBAO && ImGui::TreeNodeEx("HBAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+					else if (renderer_settings.ambient_occlusion == EAmbientOcclusion::HBAO && ImGui::TreeNodeEx("HBAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
                     {
                         ImGui::SliderFloat("Power", &renderer_settings.hbao_power, 1.0f, 16.0f);
                         ImGui::SliderFloat("Radius", &renderer_settings.hbao_radius, 0.25f, 8.0f);
@@ -1434,6 +1434,13 @@ namespace adria
                         ImGui::TreePop();
                         ImGui::Separator();
                     }
+					else if (renderer_settings.ambient_occlusion == EAmbientOcclusion::RTAO && ImGui::TreeNodeEx("RTAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+					{
+						ImGui::SliderFloat("Radius", &renderer_settings.rtao_radius, 0.25f, 8.0f);
+
+						ImGui::TreePop();
+						ImGui::Separator();
+					}
                 }
                 ImGui::Checkbox("Volumetric Clouds", &renderer_settings.clouds);
                 ImGui::Checkbox("SSR", &renderer_settings.ssr);
@@ -1627,15 +1634,35 @@ namespace adria
 		v_max.x += ImGui::GetWindowPos().x;
 		v_max.y += ImGui::GetWindowPos().y;
 		ImVec2 size(v_max.x - v_min.x, v_max.y - v_min.y);
+		
 		ImGui::Begin("Ray Tracing Debug");
 		{
-			//ADD BARRIER
-			D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetRayTracingShadowsTexture_Debug().SRV();
-			OffsetType descriptor_index = descriptor_allocator->Allocate();
-			D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
-			device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr, size);
-			ImGui::Text("Ray Tracing Shadows Image");
+			static bool show_rts = false;
+			static bool show_rtao = false;
+
+			ImGui::Checkbox("RTS", &show_rts);
+			ImGui::Checkbox("RTAO", &show_rtao);
+			
+			if (show_rts)
+			{
+				D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetRayTracingShadowsTexture_Debug().SRV();
+				OffsetType descriptor_index = descriptor_allocator->Allocate();
+				D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+				device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr, size);
+				ImGui::Text("Ray Tracing Shadows Image");
+			}
+
+			if (show_rtao)
+			{
+				D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetRayTracingAOTexture_Debug().SRV();
+				OffsetType descriptor_index = descriptor_allocator->Allocate();
+				D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+				device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr, size);
+				ImGui::Text("Ray Tracing AO Image");
+			}
+
 		}
 		ImGui::End();
 	}

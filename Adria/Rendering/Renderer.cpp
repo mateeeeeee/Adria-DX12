@@ -409,6 +409,7 @@ namespace adria
 		UpdateConstantBuffers(dt);
 		CameraFrustumCulling();
 		UpdateParticles(dt);
+		ray_tracer.Update(RayTracingParams{.dt = dt, .ao_radius = settings.rtao_radius});
 	}
 
 	void Renderer::SetSceneViewportData(SceneViewport&& vp)
@@ -445,6 +446,7 @@ namespace adria
 			gbuf_cmd_list->ResourceBarrier(ARRAYSIZE(picking_barriers), picking_barriers);
 			PassPicking(gbuf_cmd_list);
 
+
 			D3D12_RESOURCE_BARRIER barriers[] =
 			{
 				CD3DX12_RESOURCE_BARRIER::Transition(hdr_render_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET),
@@ -458,17 +460,38 @@ namespace adria
 		);
 
 		auto deferred_fut = TaskSystem::Submit([this, deferred_cmd_list]()
-		{
-			D3D12_RESOURCE_BARRIER depth_barrier[1] = {};
-			depth_barrier[0] = CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-			deferred_cmd_list->ResourceBarrier(ARRAYSIZE(depth_barrier), depth_barrier);
-
-			PassDecals(deferred_cmd_list);
-
-			if (settings.ambient_occlusion != EAmbientOcclusion::None)
 			{
-				if (settings.ambient_occlusion == EAmbientOcclusion::SSAO) PassSSAO(deferred_cmd_list);
-				else if (settings.ambient_occlusion == EAmbientOcclusion::HBAO) PassHBAO(deferred_cmd_list);
+				D3D12_RESOURCE_BARRIER depth_barrier[1] = {};
+				depth_barrier[0] = CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+				deferred_cmd_list->ResourceBarrier(ARRAYSIZE(depth_barrier), depth_barrier);
+				PassDecals(deferred_cmd_list);
+
+				switch (settings.ambient_occlusion)
+				{
+				case EAmbientOcclusion::SSAO:
+				{
+					PassSSAO(deferred_cmd_list);
+					break;
+				}
+				case EAmbientOcclusion::HBAO:
+				{
+					PassHBAO(deferred_cmd_list);
+					break;
+				}
+				case EAmbientOcclusion::RTAO:
+				{
+					ResourceBarrierBatch rtao_barriers{};
+					rtao_barriers.AddTransition(gbuffer[0].Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+					rtao_barriers.AddTransition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+					rtao_barriers.Submit(deferred_cmd_list);
+					PassRTAO(deferred_cmd_list);
+					rtao_barriers.ReverseTransitions();
+					rtao_barriers.Submit(deferred_cmd_list);
+					break;
+				}
+				case EAmbientOcclusion::None:
+				default:
+					break;
 			}
 			
 			PassAmbient(deferred_cmd_list);
@@ -3710,6 +3733,11 @@ namespace adria
 		hbao_barrier.Submit(cmd_list);
 
 		BlurTexture(cmd_list, ao_texture);
+	}
+	void Renderer::PassRTAO(ID3D12GraphicsCommandList4* cmd_list)
+	{
+		ADRIA_ASSERT(settings.ambient_occlusion == EAmbientOcclusion::RTAO);
+		ray_tracer.RayTraceAmbientOcclusion(cmd_list, depth_target, gbuffer[0], frame_cbuffer.View(backbuffer_index).BufferLocation);
 	}
 	void Renderer::PassAmbient(ID3D12GraphicsCommandList4* cmd_list)
 	{

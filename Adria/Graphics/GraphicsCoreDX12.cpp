@@ -4,7 +4,7 @@ namespace adria
 {
 
 	GraphicsCoreDX12::GraphicsCoreDX12(void* window_handle)
-		: frame_fence_value(0),
+		: frame_fence_value(0), frame_index(0),
 		frame_fence_values{}, graphics_fence_values{}, compute_fence_values{}
 	{
 		HWND hwnd = static_cast<HWND>(window_handle);
@@ -294,6 +294,8 @@ namespace adria
 		return backbuffer_index;
 	}
 
+	UINT GraphicsCoreDX12::FrameIndex() const { return frame_index; }
+
 	void GraphicsCoreDX12::SetBackbuffer(ID3D12GraphicsCommandList* cmd_list /*= nullptr*/)
 	{
 		auto& frame_resources = GetFrameResources();
@@ -539,6 +541,8 @@ namespace adria
 			BREAK_IF_FAILED(frame_fences[backbuffer_index]->SetEventOnCompletion(frame_fence_values[backbuffer_index], frame_fence_events[backbuffer_index]));
 			WaitForSingleObject(frame_fence_events[backbuffer_index], INFINITE);
 		}
+
+		++frame_index;
 	}
 
 	void GraphicsCoreDX12::ProcessReleaseQueue()

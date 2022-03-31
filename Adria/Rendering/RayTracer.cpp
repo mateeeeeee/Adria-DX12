@@ -61,12 +61,21 @@ namespace adria
 		BuildTopLevelAS();
 	}
 
-	Texture2D const& RayTracer::RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth,
+	void RayTracer::Update(RayTracingParams const& params)
+	{
+		if (!ray_tracing_supported) return;
+
+		ray_tracing_cbuf_data.frame_count = gfx->FrameIndex();
+		ray_tracing_cbuf_data.rtao_radius = params.ao_radius;
+
+		ray_tracing_cbuffer.Update(ray_tracing_cbuf_data, gfx->BackbufferIndex());
+	}
+
+	void RayTracer::RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth,
 		D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address,
 		D3D12_GPU_VIRTUAL_ADDRESS light_cbuf_address)
 	{
-		static Texture2D empty_tex{};
-		if (!ray_tracing_supported) return empty_tex;
+		if (!ray_tracing_supported) return;
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Ray Traced Shadows Pass");
 
 		auto device = gfx->GetDevice();
@@ -106,7 +115,53 @@ namespace adria
 
 		rts_barrier.ReverseTransitions();
 		rts_barrier.Submit(cmd_list);
-		return rt_shadows_output;
+
+	}
+
+	void RayTracer::RayTraceAmbientOcclusion(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth, Texture2D const& normal_gbuf,
+		D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address)
+	{
+		if (!ray_tracing_supported) return;
+		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "RTAO Pass");
+
+		auto device = gfx->GetDevice();
+		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+
+		ResourceBarrierBatch rtao_barrier{};
+		rtao_barrier.AddTransition(rtao_output.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		rtao_barrier.Submit(cmd_list);
+
+		cmd_list->SetComputeRootSignature(rtao_root_signature.Get());
+
+		cmd_list->SetComputeRootConstantBufferView(0, frame_cbuf_address);
+		cmd_list->SetComputeRootConstantBufferView(1, ray_tracing_cbuffer.View(gfx->BackbufferIndex()).BufferLocation);
+		cmd_list->SetComputeRootShaderResourceView(2, tlas->GetGPUVirtualAddress());
+
+		OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
+		auto dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+		device->CopyDescriptorsSimple(1, dst_descriptor, depth.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index + 1);
+		device->CopyDescriptorsSimple(1, dst_descriptor, normal_gbuf.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		cmd_list->SetComputeRootDescriptorTable(3, descriptor_allocator->GetGpuHandle(descriptor_index));
+
+		descriptor_index = descriptor_allocator->AllocateRange(1);
+		dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+		device->CopyDescriptorsSimple(1, dst_descriptor, rtao_output.UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		cmd_list->SetComputeRootDescriptorTable(4, descriptor_allocator->GetGpuHandle(descriptor_index));
+		cmd_list->SetPipelineState1(rtao_state_object.Get());
+
+		D3D12_DISPATCH_RAYS_DESC dispatch_desc = {};
+		dispatch_desc.HitGroupTable = rtao_shader_table_hit->GetRangeAndStride();
+		dispatch_desc.MissShaderTable = rtao_shader_table_miss->GetRangeAndStride();
+		dispatch_desc.RayGenerationShaderRecord = rtao_shader_table_raygen->GetRange(0);
+		dispatch_desc.Width = width;
+		dispatch_desc.Height = height;
+		dispatch_desc.Depth = 1;
+
+		cmd_list->DispatchRays(&dispatch_desc);
+
+		rtao_barrier.ReverseTransitions();
+		rtao_barrier.Submit(cmd_list);
 	}
 
 	void RayTracer::CreateResources()
@@ -179,17 +234,18 @@ namespace adria
 
 		//rtao
 		{
-			std::array<CD3DX12_ROOT_PARAMETER1, 4> root_parameters{};
+			std::array<CD3DX12_ROOT_PARAMETER1, 5> root_parameters{};
 			root_parameters[0].InitAsConstantBufferView(0);
 			root_parameters[1].InitAsConstantBufferView(10);
+			root_parameters[2].InitAsShaderResourceView(0);
 
 			D3D12_DESCRIPTOR_RANGE1 srv_range = {};
 			srv_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-			srv_range.NumDescriptors = 1;
-			srv_range.BaseShaderRegister = 0;
+			srv_range.NumDescriptors = 2;
+			srv_range.BaseShaderRegister = 1;
 			srv_range.RegisterSpace = 0;
 			srv_range.OffsetInDescriptorsFromTableStart = 0;
-			root_parameters[2].InitAsDescriptorTable(1, &srv_range);
+			root_parameters[3].InitAsDescriptorTable(1, &srv_range);
 
 			D3D12_DESCRIPTOR_RANGE1 uav_range = {};
 			uav_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
@@ -197,7 +253,7 @@ namespace adria
 			uav_range.BaseShaderRegister = 0;
 			uav_range.RegisterSpace = 0;
 			uav_range.OffsetInDescriptorsFromTableStart = 0;
-			root_parameters[3].InitAsDescriptorTable(1, &uav_range);
+			root_parameters[4].InitAsDescriptorTable(1, &uav_range);
 			//fill root parameters
 
 			CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_desc{};
@@ -230,57 +286,111 @@ namespace adria
 		ShaderUtility::CompileShader(compile_info, rtao_blob);
 
 		StateObjectBuilder rt_shadows_state_object_builder(5);
+		{
+			D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc = {};
+			dxil_lib_desc.DXILLibrary.BytecodeLength = rt_shadows_blob.GetLength();
+			dxil_lib_desc.DXILLibrary.pShaderBytecode = rt_shadows_blob.GetPointer();
+			dxil_lib_desc.NumExports = 0;
+			dxil_lib_desc.pExports = nullptr;
+			rt_shadows_state_object_builder.AddSubObject(dxil_lib_desc);
 
-		D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc = {};
-		dxil_lib_desc.DXILLibrary.BytecodeLength = rt_shadows_blob.GetLength();
-		dxil_lib_desc.DXILLibrary.pShaderBytecode = rt_shadows_blob.GetPointer();
-		dxil_lib_desc.NumExports = 0;
-		dxil_lib_desc.pExports = nullptr;
-		rt_shadows_state_object_builder.AddSubObject(dxil_lib_desc);
+			// Add a state subobject for the shader payload configuration
+			D3D12_RAYTRACING_SHADER_CONFIG rt_shadows_shader_config = {};
+			rt_shadows_shader_config.MaxPayloadSizeInBytes = 4;	//bool in hlsl is 4 bytes
+			rt_shadows_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
+			rt_shadows_state_object_builder.AddSubObject(rt_shadows_shader_config);
 
-		// Add a state subobject for the shader payload configuration
-		D3D12_RAYTRACING_SHADER_CONFIG rt_shadows_shader_config = {};
-		rt_shadows_shader_config.MaxPayloadSizeInBytes = 4;	//bool in hlsl is 4 bytes
-		rt_shadows_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
-		rt_shadows_state_object_builder.AddSubObject(rt_shadows_shader_config);
+			D3D12_GLOBAL_ROOT_SIGNATURE global_root_sig{};
+			global_root_sig.pGlobalRootSignature = rt_shadows_root_signature.Get();
+			rt_shadows_state_object_builder.AddSubObject(global_root_sig);
 
-		D3D12_GLOBAL_ROOT_SIGNATURE global_root_sig{};
-		global_root_sig.pGlobalRootSignature = rt_shadows_root_signature.Get();
-		rt_shadows_state_object_builder.AddSubObject(global_root_sig);
+			// Add a state subobject for the ray tracing pipeline config
+			D3D12_RAYTRACING_PIPELINE_CONFIG pipeline_config = {};
+			pipeline_config.MaxTraceRecursionDepth = 1;
+			rt_shadows_state_object_builder.AddSubObject(pipeline_config);
 
-		// Add a state subobject for the ray tracing pipeline config
-		D3D12_RAYTRACING_PIPELINE_CONFIG pipeline_config = {};
-		pipeline_config.MaxTraceRecursionDepth = 1;
-		rt_shadows_state_object_builder.AddSubObject(pipeline_config);
+			D3D12_HIT_GROUP_DESC anyhit_group{};
+			anyhit_group.Type = D3D12_HIT_GROUP_TYPE_TRIANGLES;
+			anyhit_group.AnyHitShaderImport = L"RTS_Anyhit";
+			anyhit_group.HitGroupExport = L"ShadowAnyHitGroup";
+			rt_shadows_state_object_builder.AddSubObject(anyhit_group);
 
-		D3D12_HIT_GROUP_DESC anyhit_group{};
-		anyhit_group.Type = D3D12_HIT_GROUP_TYPE_TRIANGLES;
-		anyhit_group.AnyHitShaderImport = L"RTS_Anyhit";
-		anyhit_group.HitGroupExport = L"ShadowAnyHitGroup";
-		rt_shadows_state_object_builder.AddSubObject(anyhit_group);
+			rt_shadows_state_object = rt_shadows_state_object_builder.CreateStateObject(device);
+		}
 
-		rt_shadows_state_object = rt_shadows_state_object_builder.CreateStateObject(device);
+		StateObjectBuilder rtao_state_object_builder(5);
+		{
+			D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc = {};
+			dxil_lib_desc.DXILLibrary.BytecodeLength = rtao_blob.GetLength();
+			dxil_lib_desc.DXILLibrary.pShaderBytecode = rtao_blob.GetPointer();
+			dxil_lib_desc.NumExports = 0;
+			dxil_lib_desc.pExports = nullptr;
+			rtao_state_object_builder.AddSubObject(dxil_lib_desc);
+
+			D3D12_RAYTRACING_SHADER_CONFIG rtao_shader_config = {};
+			rtao_shader_config.MaxPayloadSizeInBytes = 4;	//bool in hlsl is 4 bytes
+			rtao_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
+			rtao_state_object_builder.AddSubObject(rtao_shader_config);
+
+			D3D12_GLOBAL_ROOT_SIGNATURE global_root_sig{};
+			global_root_sig.pGlobalRootSignature = rtao_root_signature.Get();
+			rtao_state_object_builder.AddSubObject(global_root_sig);
+
+			// Add a state subobject for the ray tracing pipeline config
+			D3D12_RAYTRACING_PIPELINE_CONFIG pipeline_config = {};
+			pipeline_config.MaxTraceRecursionDepth = 1;
+			rtao_state_object_builder.AddSubObject(pipeline_config);
+
+			D3D12_HIT_GROUP_DESC anyhit_group{};
+			anyhit_group.Type = D3D12_HIT_GROUP_TYPE_TRIANGLES;
+			anyhit_group.AnyHitShaderImport = L"RTAO_AnyHit";
+			anyhit_group.HitGroupExport = L"RTAOAnyHitGroup";
+			rtao_state_object_builder.AddSubObject(anyhit_group);
+
+			rtao_state_object = rtao_state_object_builder.CreateStateObject(device);
+		}
+		//maybe merge state objects and table together?
 	}
 	 
 	void RayTracer::CreateShaderTables()
 	{
 		ID3D12Device5* device = gfx->GetDevice();
-		
-		Microsoft::WRL::ComPtr<ID3D12StateObjectProperties> pso_info = nullptr;
-		BREAK_IF_FAILED(rt_shadows_state_object->QueryInterface(IID_PPV_ARGS(&pso_info)));
-		
-		void const* rts_ray_gen_id = pso_info->GetShaderIdentifier(L"RTS_RayGen");
-		void const* rts_anyhit_id = pso_info->GetShaderIdentifier(L"ShadowAnyHitGroup");
-		void const* rts_miss_id = pso_info->GetShaderIdentifier(L"RTS_Miss");
+		//RTS
+		{
+			Microsoft::WRL::ComPtr<ID3D12StateObjectProperties> pso_info = nullptr;
+			BREAK_IF_FAILED(rt_shadows_state_object->QueryInterface(IID_PPV_ARGS(&pso_info)));
 
-		rt_shadows_shader_table_raygen = std::make_unique<ShaderTable>(device, 1);
-		rt_shadows_shader_table_raygen->AddShaderRecord(ShaderRecord(rts_ray_gen_id));
+			void const* rts_ray_gen_id = pso_info->GetShaderIdentifier(L"RTS_RayGen");
+			void const* rts_anyhit_id = pso_info->GetShaderIdentifier(L"ShadowAnyHitGroup");
+			void const* rts_miss_id = pso_info->GetShaderIdentifier(L"RTS_Miss");
 
-		rt_shadows_shader_table_hit = std::make_unique<ShaderTable>(device, 1);
-		rt_shadows_shader_table_hit->AddShaderRecord(ShaderRecord(rts_anyhit_id));
+			rt_shadows_shader_table_raygen = std::make_unique<ShaderTable>(device, 1);
+			rt_shadows_shader_table_raygen->AddShaderRecord(ShaderRecord(rts_ray_gen_id));
 
-		rt_shadows_shader_table_miss = std::make_unique<ShaderTable>(device, 1);
-		rt_shadows_shader_table_miss->AddShaderRecord(ShaderRecord(rts_miss_id));
+			rt_shadows_shader_table_hit = std::make_unique<ShaderTable>(device, 1);
+			rt_shadows_shader_table_hit->AddShaderRecord(ShaderRecord(rts_anyhit_id));
+
+			rt_shadows_shader_table_miss = std::make_unique<ShaderTable>(device, 1);
+			rt_shadows_shader_table_miss->AddShaderRecord(ShaderRecord(rts_miss_id));
+		}
+		//RTAO
+		{
+			Microsoft::WRL::ComPtr<ID3D12StateObjectProperties> pso_info = nullptr;
+			BREAK_IF_FAILED(rtao_state_object->QueryInterface(IID_PPV_ARGS(&pso_info)));
+
+			void const* rtao_ray_gen_id = pso_info->GetShaderIdentifier(L"RTAO_RayGen");
+			void const* rtao_anyhit_id = pso_info->GetShaderIdentifier(L"RTAOAnyHitGroup");
+			void const* rtao_miss_id = pso_info->GetShaderIdentifier(L"RTAO_Miss");
+
+			rtao_shader_table_raygen = std::make_unique<ShaderTable>(device, 1);
+			rtao_shader_table_raygen->AddShaderRecord(ShaderRecord(rtao_ray_gen_id));
+
+			rtao_shader_table_hit = std::make_unique<ShaderTable>(device, 1);
+			rtao_shader_table_hit->AddShaderRecord(ShaderRecord(rtao_anyhit_id));
+
+			rtao_shader_table_miss = std::make_unique<ShaderTable>(device, 1);
+			rtao_shader_table_miss->AddShaderRecord(ShaderRecord(rtao_miss_id));
+		}
 	}
 
 	void RayTracer::BuildBottomLevelAS()

@@ -9,6 +9,12 @@
 
 namespace adria
 {
+	struct RayTracingParams
+	{
+		float32 dt;
+		float32 ao_radius;
+	};
+
 	class RayTracer
 	{
 
@@ -20,13 +26,22 @@ namespace adria
 
         void BuildAccelerationStructures();
 
-		[[maybe_unused]] Texture2D const& RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth_srv,
+		void Update(RayTracingParams const&);
+
+		void RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth_srv,
 			D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address,
 			D3D12_GPU_VIRTUAL_ADDRESS light_cbuf_address);
+
+		void RayTraceAmbientOcclusion(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth, Texture2D const& normal_gbuf, D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address);
 
 		Texture2D const& GetRayTracingShadowsTexture() const
 		{
 			return rt_shadows_output;
+		}
+
+		Texture2D const& GetRayTracingAmbientOcclusionTexture() const
+		{
+			return rtao_output;
 		}
 
     private:

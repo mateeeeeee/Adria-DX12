@@ -97,6 +97,11 @@ namespace adria
 			return ray_tracer.GetRayTracingShadowsTexture();
 		}
 
+		Texture2D const& GetRayTracingAOTexture_Debug() const
+		{
+			return ray_tracer.GetRayTracingAmbientOcclusionTexture();
+		}
+
 	private:
 		uint32 width, height;
 		tecs::registry& reg;
@@ -250,6 +255,7 @@ namespace adria
 		void PassDecals(ID3D12GraphicsCommandList4* cmd_list);
 		void PassSSAO(ID3D12GraphicsCommandList4* cmd_list);
 		void PassHBAO(ID3D12GraphicsCommandList4* cmd_list);
+		void PassRTAO(ID3D12GraphicsCommandList4* cmd_list);
 		void PassAmbient(ID3D12GraphicsCommandList4* cmd_list);
 		void PassDeferredLighting(ID3D12GraphicsCommandList4* cmd_list); 
 		void PassDeferredTiledLighting(ID3D12GraphicsCommandList4* cmd_list);

@@ -62,6 +62,7 @@ namespace adria
 
 		void ResizeBackbuffer(UINT w, UINT h);
 		UINT BackbufferIndex() const;
+		UINT FrameIndex() const;
 		void SetBackbuffer(ID3D12GraphicsCommandList* cmd_list = nullptr);
 		void ClearBackbuffer();
 		void SwapBuffers(bool vsync = false);
@@ -94,6 +95,7 @@ namespace adria
 		UINT width, height;
 		UINT backbuffer_index;
 		UINT last_backbuffer_index;
+		UINT frame_index;
 		Microsoft::WRL::ComPtr<IDXGISwapChain3> swap_chain = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12Device5> device = nullptr;
 		

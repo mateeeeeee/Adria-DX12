@@ -28,6 +28,7 @@ namespace adria
 		float32   ssao_radius = 1.0f;
 		float32   hbao_power = 1.5f;
 		float32   hbao_radius = 2.0f;
+		float32   rtao_radius = 2.0f;
 		bool ssr = false;
 		float32 ssr_ray_step = 1.60f;
 		float32 ssr_ray_hit_threshold = 2.00f;
