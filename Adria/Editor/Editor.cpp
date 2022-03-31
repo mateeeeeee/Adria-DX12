@@ -728,6 +728,11 @@ namespace adria
 
                     ImGui::Checkbox("Casts Shadows (Shadow Map)", &light->casts_shadows);
                     ImGui::Checkbox("Ray Traced Shadows", &light->ray_traced_shadows);
+					if (light->ray_traced_shadows)
+					{
+						ImGui::Checkbox("Soft Shadows", &light->soft_rts);
+						//add softness param later
+					}
                     ImGui::Checkbox("Screen Space Contact Shadows", &light->sscs);
 					if (light->sscs)
 					{

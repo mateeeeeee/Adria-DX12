@@ -99,6 +99,7 @@ namespace adria
 		bool casts_shadows = false;
 		bool use_cascades = false;
 		bool ray_traced_shadows = false;
+		bool soft_rts = false;
 		bool active = true;
 		float32 volumetric_strength = 1.0f;
 		bool volumetric = false;

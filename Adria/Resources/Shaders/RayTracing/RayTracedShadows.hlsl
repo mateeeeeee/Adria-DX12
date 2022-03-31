@@ -44,7 +44,7 @@ void RTS_RayGen()
     case DIRECTIONAL_LIGHT:
         direction = -light.direction.xyz;
         maxT = 1e9;
-        softness = 0.1f;
+        softness = 0.53f;
         break;
     case SPOT_LIGHT:
         direction = -light.direction.xyz;
@@ -66,9 +66,9 @@ void RTS_RayGen()
     shadow_rt_output[launchIndex.xy] = payload.hit ? 0.0f : 1.0f;
     
 #else
-    static const int RAY_COUNT = 8;
+    static const int RAY_COUNT = 9;
     
-    uint randSeed = InitRand(launchIndex.x + launchIndex.y * launchDim.x, ray_tracing_cbuf.frame_count, 16);
+    uint randSeed = 0; //InitRand(launchIndex.x + launchIndex.y * launchDim.x, ray_tracing_cbuf.frame_count, 16);
     float shadow_factor = 0.0f;
     
     [unroll(RAY_COUNT)]

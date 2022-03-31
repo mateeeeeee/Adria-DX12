@@ -30,7 +30,7 @@ namespace adria
 
 		void RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth_srv,
 			D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address,
-			D3D12_GPU_VIRTUAL_ADDRESS light_cbuf_address);
+			D3D12_GPU_VIRTUAL_ADDRESS light_cbuf_address, bool soft_shadows);
 
 		void RayTraceAmbientOcclusion(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth, Texture2D const& normal_gbuf, D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address);
 

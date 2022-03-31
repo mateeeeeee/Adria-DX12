@@ -3844,7 +3844,7 @@ namespace adria
 				cmd_list->ResourceBarrier(ARRAYSIZE(pre_rts_barriers), pre_rts_barriers);
 
 				ray_tracer.RayTraceShadows(cmd_list, depth_target, frame_cbuffer.View(backbuffer_index).BufferLocation,
-					light_allocation.gpu_address);
+					light_allocation.gpu_address, light_data.soft_rts);
 
 				D3D12_RESOURCE_BARRIER post_rts_barriers[] =
 				{

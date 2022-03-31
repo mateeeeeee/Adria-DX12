@@ -73,7 +73,7 @@ namespace adria
 
 	void RayTracer::RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth,
 		D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address,
-		D3D12_GPU_VIRTUAL_ADDRESS light_cbuf_address)
+		D3D12_GPU_VIRTUAL_ADDRESS light_cbuf_address, bool soft_shadows)
 	{
 		if (!ray_tracing_supported) return;
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Ray Traced Shadows Pass");
@@ -106,7 +106,7 @@ namespace adria
 		D3D12_DISPATCH_RAYS_DESC dispatch_desc = {};
 		dispatch_desc.HitGroupTable = rt_shadows_shader_table_hit->GetRangeAndStride();
 		dispatch_desc.MissShaderTable = rt_shadows_shader_table_miss->GetRangeAndStride();
-		dispatch_desc.RayGenerationShaderRecord = rt_shadows_shader_table_raygen->GetRange(1);
+		dispatch_desc.RayGenerationShaderRecord = rt_shadows_shader_table_raygen->GetRange(static_cast<UINT>(soft_shadows));
 		dispatch_desc.Width = width;
 		dispatch_desc.Height = height;
 		dispatch_desc.Depth = 1;
