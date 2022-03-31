@@ -98,15 +98,15 @@ Nikolaus Binder
 Chapter 6. Ray Tracing Gems
 NVIDIA*/
 
-float origin()
+static float origin()
 {
     return 1.0f / 32.0f;
 }
-float float_scale()
+static float float_scale()
 {
     return 1.0f / 65536.0f;
 }
-float int_scale()
+static float int_scale()
 {
     return 256.0f;
 }
@@ -115,9 +115,9 @@ float3 OffsetRay(const float3 p, const float3 n)
 {
     int3 of_i = int3(int_scale() * n.x, int_scale() * n.y, int_scale() * n.z);
     float3 p_i = float3(
-                    float(int(p.x) + ((p.x < 0) ? -of_i.x : of_i.x)),
-                    float(int(p.y) + ((p.y < 0) ? -of_i.y : of_i.y)),
-                    float(int(p.z) + ((p.z < 0) ? -of_i.z : of_i.z)));
+                    asfloat(asint(p.x) + ((p.x < 0) ? -of_i.x : of_i.x)),
+                    asfloat(asint(p.y) + ((p.y < 0) ? -of_i.y : of_i.y)),
+                    asfloat(asint(p.z) + ((p.z < 0) ? -of_i.z : of_i.z)));
 
     return float3(abs(p.x) < origin() ? p.x + float_scale() * n.x : p_i.x,
               abs(p.y) < origin() ? p.y + float_scale() * n.y : p_i.y,

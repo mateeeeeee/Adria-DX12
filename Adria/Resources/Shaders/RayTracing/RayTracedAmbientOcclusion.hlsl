@@ -46,7 +46,7 @@ void RTAO_RayGen()
         RayDesc rayAO;
         rayAO.Origin = OffsetRay(posWorld.xyz, normalWorld.xyz);
         rayAO.Direction = normalize(worldDir);
-        rayAO.TMin = 0.0f;
+        rayAO.TMin = 0.05f;
         rayAO.TMax = ray_tracing_cbuf.rtao_radius;
 
         TraceRay(rt_scene,
