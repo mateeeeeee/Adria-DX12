@@ -11,7 +11,7 @@ namespace adria
 	class RootSigPSOManager
 	{
 	public:
-		static void Initialize(ID3D12Device* device);
+		static void Initialize(ID3D12Device* gfx);
 
 		static ID3D12RootSignature* GetRootSignature(ERootSignature root_sig);
 		static ID3D12PipelineState* GetPipelineState(EPipelineStateObject pso);

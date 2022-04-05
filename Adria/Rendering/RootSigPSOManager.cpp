@@ -1530,7 +1530,55 @@ namespace adria
 		}
 		void RecreateDependentPSOs(EShader shader)
 		{
+			for (auto& [pso, recreation_data] : dependency_map)
+			{
+				if (auto it = std::find(std::begin(recreation_data.shaders), std::end(recreation_data.shaders), shader); it != std::end(recreation_data.shaders))
+				{
+					size_t const i = recreation_data.recreation_desc.index();
+					if (i == 0)
+					{
+						D3D12_GRAPHICS_PIPELINE_STATE_DESC& desc = std::get<0>(recreation_data.recreation_desc);
+						InputLayout il;
+						for (EShader shader : recreation_data.shaders)
+						{
+							switch (GetStage(shader))
+							{
+							case EShaderStage::VS:
+								ShaderUtility::CreateInputLayoutWithReflection(shader_map[shader], il);
+								desc.VS = shader_map[shader];
+								break;
+							case EShaderStage::PS:
+								desc.PS = shader_map[shader];
+								break;
+							case EShaderStage::DS:
+								desc.DS = shader_map[shader];
+								break;
+							case EShaderStage::HS:
+								desc.HS = shader_map[shader];
+								break;
+							case EShaderStage::GS:
+								desc.GS = shader_map[shader];
+								break;
+							case EShaderStage::CS:
+							case EShaderStage::COUNT:
+							default:
+								ADRIA_ASSERT(false && "Invalid shader stage for graphics pso!");
+							}
+						}
+						desc.InputLayout = il;
+						device->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pso_map[pso]));
+					}
+					else if (i == 1)
+					{
+						D3D12_COMPUTE_PIPELINE_STATE_DESC& desc = std::get<1>(recreation_data.recreation_desc);
+						ADRIA_ASSERT(recreation_data.shaders.size() == 1);
+						ADRIA_ASSERT(GetStage(recreation_data.shaders[0]) == EShaderStage::CS);
+						desc.CS = shader_map[shader];
+						device->CreateComputePipelineState(&desc, IID_PPV_ARGS(&pso_map[pso]));
+					}
 
+				}
+			}
 		}
 	}
 
