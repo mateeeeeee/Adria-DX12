@@ -355,7 +355,6 @@ namespace adria
 				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/HBAO_PS.cso", shader_map[PS_Hbao]);
 				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SSR_PS.cso", shader_map[PS_Ssr]);
 				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/GodRaysPS.cso", shader_map[PS_GodRays]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/CloudsPS.cso", shader_map[PS_VolumetricClouds]);
 				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ToneMapPS.cso", shader_map[PS_ToneMap]);
 				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/FXAA_PS.cso", shader_map[PS_Fxaa]);
 				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/TAA_PS.cso", shader_map[PS_Taa]);
@@ -488,6 +487,11 @@ namespace adria
 				shader_info.stage = EShaderStage::CS;
 				shader_info.macros = GetShaderMacros(CS_GenerateMips);
 				ShaderUtility::CompileShader(shader_info, shader_map[CS_GenerateMips]);
+
+				shader_info.shadersource = shaders_directory + GetShaderSource(PS_VolumetricClouds);
+				shader_info.stage = EShaderStage::PS;
+				shader_info.macros = GetShaderMacros(PS_VolumetricClouds);
+				ShaderUtility::CompileShader(shader_info, shader_map[PS_VolumetricClouds]);
 			}
 		}
 		void CreateAllRootSignatures()
