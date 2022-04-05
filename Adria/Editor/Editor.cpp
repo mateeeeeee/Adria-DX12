@@ -496,6 +496,16 @@ namespace adria
             engine->Run(renderer_settings);
             engine->Present();
         }
+
+		if (!shader_reload_callbacks.empty())
+		{
+			for (auto&& cb : shader_reload_callbacks)
+			{
+				cb();
+			}
+			shader_reload_callbacks.clear();
+		}
+
     }
 
     void Editor::SetStyle()
@@ -1954,18 +1964,18 @@ namespace adria
 			if (ImGui::Button("Compile Shader"))
 			{
 				engine->gfx->WaitForGPU();
-				RootSigPSOManager::RecompileShader((EShader)s.activeIdx);
+				shader_reload_callbacks.push_back([]() {RootSigPSOManager::RecompileShader((EShader)s.activeIdx); });
 			}
 
 			if (ImGui::Button("Compile Changed Shaders"))
 			{
 				engine->gfx->WaitForGPU();
-				RootSigPSOManager::RecompileChangedShaders();
+				shader_reload_callbacks.push_back(RootSigPSOManager::RecompileChangedShaders);
 			}
 			if (ImGui::Button("Compile All Shaders"))
 			{
 				engine->gfx->WaitForGPU();
-				RootSigPSOManager::RecompileAllShaders();
+				shader_reload_callbacks.push_back(RootSigPSOManager::RecompileAllShaders);
 			}
 		}
 		ImGui::End();

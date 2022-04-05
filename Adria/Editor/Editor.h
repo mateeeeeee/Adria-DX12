@@ -45,6 +45,7 @@ namespace adria
 		RendererSettings renderer_settings{};
 		ProfilerSettings profiler_settings{};
 		SceneViewport scene_viewport_data;
+		std::vector<void(*)()> shader_reload_callbacks;
 	private:
 		void SetStyle();
 
