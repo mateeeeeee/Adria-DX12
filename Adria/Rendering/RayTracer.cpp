@@ -39,6 +39,7 @@ namespace adria
 		{
 			ADRIA_LOG(INFO, "Ray Tracing is not supported! All Ray Tracing calls will be silently ignored!");
 			ray_tracing_supported = false;
+			return;
 		}
 		else ray_tracing_supported = true;
 
@@ -282,10 +283,10 @@ namespace adria
 		ShaderBlob rt_shadows_blob;
 		ShaderUtility::CompileShader(compile_info, rt_shadows_blob);
 
-		compile_info.defines.emplace_back(L"SOFT_SHADOWS", L"");
+		compile_info.macros.emplace_back(L"SOFT_SHADOWS", L"");
 		ShaderBlob rt_soft_shadows_blob;
 		ShaderUtility::CompileShader(compile_info, rt_soft_shadows_blob);
-		compile_info.defines.clear();
+		compile_info.macros.clear();
 
 		compile_info.shadersource = "Resources/Shaders/RayTracing/RayTracedAmbientOcclusion.hlsl";
 		ShaderBlob rtao_blob;

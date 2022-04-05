@@ -185,7 +185,7 @@ namespace adria
 			case PS_ToneMap:
 				return "Postprocess/ToneMapPS.hlsl";
 			case PS_Fxaa:
-				return "Postprocess/FXAA.hlsl";
+				return "Postprocess/FXAA_PS.hlsl";
 			case PS_Taa:
 				return "Postprocess/TAA_PS.hlsl";
 			case PS_Copy:

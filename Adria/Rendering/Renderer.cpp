@@ -3530,8 +3530,8 @@ namespace adria
 				D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			initial_spectrum_barrier.Submit(cmd_list);
 
-			cmd_list->SetComputeRootSignature(rs_map[ERootSignature::InitialSpectrum].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::InitialSpectrum].Get());
+			cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::InitialSpectrum));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::InitialSpectrum));
 			cmd_list->SetComputeRootConstantBufferView(0, compute_cbuffer.View(backbuffer_index).BufferLocation);
 
 			OffsetType descriptor_index = descriptor_allocator->Allocate();
@@ -3556,8 +3556,8 @@ namespace adria
 				D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			phase_barriers.Submit(cmd_list);
 
-			cmd_list->SetComputeRootSignature(rs_map[ERootSignature::Phase].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Phase].Get());
+			cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Phase));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Phase));
 			cmd_list->SetComputeRootConstantBufferView(0, compute_cbuffer.View(backbuffer_index).BufferLocation);
 
 			OffsetType descriptor_index = descriptor_allocator->Allocate();
@@ -3578,8 +3578,8 @@ namespace adria
 
 		//spectrum
 		{
-			cmd_list->SetComputeRootSignature(rs_map[ERootSignature::Spectrum].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Spectrum].Get());
+			cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Spectrum));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Spectrum));
 			cmd_list->SetComputeRootConstantBufferView(0, compute_cbuffer.View(backbuffer_index).BufferLocation);
 
 			D3D12_CPU_DESCRIPTOR_HANDLE srvs[] = { ping_pong_phase_textures[pong_phase].SRV(), ocean_initial_spectrum.SRV() };
@@ -3611,9 +3611,9 @@ namespace adria
 			static FFTCBuffer fft_cbuf_data{ .seq_count = RESOLUTION };
 			DynamicAllocation fft_cbuffer_allocation{};
 
-			cmd_list->SetComputeRootSignature(rs_map[ERootSignature::FFT].Get());
+			cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::FFT));
 			{
-				cmd_list->SetPipelineState(pso_map[EPipelineStateObject::FFT_Horizontal].Get());
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::FFT_Horizontal));
 				for (uint32 p = 1; p < RESOLUTION; p <<= 1)
 				{
 					ResourceBarrierBatch fft_barriers{};
@@ -3645,7 +3645,7 @@ namespace adria
 			}
 
 			{
-				cmd_list->SetPipelineState(pso_map[EPipelineStateObject::FFT_Vertical].Get());
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::FFT_Vertical));
 				for (uint32 p = 1; p < RESOLUTION; p <<= 1)
 				{
 					ResourceBarrierBatch fft_barriers{};
@@ -3685,8 +3685,8 @@ namespace adria
 				D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			normal_barrier.Submit(cmd_list);
 
-			cmd_list->SetComputeRootSignature(rs_map[ERootSignature::OceanNormalMap].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::OceanNormalMap].Get());
+			cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::OceanNormalMap));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::OceanNormalMap));
 			cmd_list->SetComputeRootConstantBufferView(0, compute_cbuffer.View(backbuffer_index).BufferLocation);
 
 			OffsetType descriptor_index = descriptor_allocator->Allocate();
@@ -3730,15 +3730,17 @@ namespace adria
 
 		if (settings.ocean_tesselation)
 		{
-			cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::OceanLOD].Get());
+			cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::OceanLOD));
 			cmd_list->SetPipelineState(
-				settings.ocean_wireframe ? pso_map[EPipelineStateObject::OceanLOD_Wireframe].Get() : pso_map[EPipelineStateObject::OceanLOD].Get());
+				settings.ocean_wireframe ? RootSigPSOManager::GetPipelineState(EPipelineStateObject::OceanLOD_Wireframe) : 
+										   RootSigPSOManager::GetPipelineState(EPipelineStateObject::OceanLOD));
 		}
 		else
 		{
-			cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::Ocean].Get());
+			cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Ocean));
 			cmd_list->SetPipelineState(
-				settings.ocean_wireframe ? pso_map[EPipelineStateObject::Ocean_Wireframe].Get() : pso_map[EPipelineStateObject::Ocean].Get());
+				settings.ocean_wireframe ? RootSigPSOManager::GetPipelineState(EPipelineStateObject::Ocean_Wireframe) :
+										   RootSigPSOManager::GetPipelineState(EPipelineStateObject::Ocean));
 		}
 		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 		cmd_list->SetGraphicsRootConstantBufferView(3, weather_cbuffer.View(backbuffer_index).BufferLocation);
@@ -3813,9 +3815,8 @@ namespace adria
 
 		lens_flare_textures.push_back(depth_target.SRV());
 
-		cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::LensFlare].Get());
-		cmd_list->SetPipelineState(pso_map[EPipelineStateObject::LensFlare].Get());
-
+		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::LensFlare));
+		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::LensFlare));
 		light_allocation = upload_buffer->Allocate(GetCBufferSize<LightCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 		
 		{
@@ -3855,8 +3856,8 @@ namespace adria
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 		
-		cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::Clouds].Get());
-		cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Clouds].Get());
+		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Clouds));
+		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Clouds));
 		
 		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 		cmd_list->SetGraphicsRootConstantBufferView(1, weather_cbuffer.View(backbuffer_index).BufferLocation);
@@ -3887,10 +3888,8 @@ namespace adria
 
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
-
-		cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::SSR].Get());
-
-		cmd_list->SetPipelineState(pso_map[EPipelineStateObject::SSR].Get());
+		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::SSR));
+		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::SSR));
 
 		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 		cmd_list->SetGraphicsRootConstantBufferView(1, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
@@ -3919,9 +3918,8 @@ namespace adria
 
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
-
-		cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::DOF].Get());
-		cmd_list->SetPipelineState(pso_map[EPipelineStateObject::DOF].Get());
+		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::DOF));
+		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::DOF));
 
 		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 		cmd_list->SetGraphicsRootConstantBufferView(1, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
@@ -3956,8 +3954,8 @@ namespace adria
 		D3D12_RESOURCE_BARRIER postreset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(bokeh->CounterBuffer(),D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		cmd_list->ResourceBarrier(1, &postreset_barrier);
 
- 		cmd_list->SetComputeRootSignature(rs_map[ERootSignature::BokehGenerate].Get());
-		cmd_list->SetPipelineState(pso_map[EPipelineStateObject::BokehGenerate].Get());
+ 		cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::BokehGenerate));
+		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::BokehGenerate));
 		cmd_list->SetComputeRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 		cmd_list->SetComputeRootConstantBufferView(1, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
 		cmd_list->SetComputeRootConstantBufferView(2, compute_cbuffer.View(backbuffer_index).BufferLocation);
@@ -4032,8 +4030,8 @@ namespace adria
 			ADRIA_ASSERT(false && "Invalid Bokeh Type");
 		}
 
-		cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::Bokeh].Get());
-		cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Bokeh].Get());
+		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Bokeh));
+		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Bokeh));
 
 		OffsetType i = descriptor_allocator->AllocateRange(2);
 
@@ -4067,8 +4065,8 @@ namespace adria
 		};
 		cmd_list->ResourceBarrier(ARRAYSIZE(extract_barriers), extract_barriers);
 
-		cmd_list->SetComputeRootSignature(rs_map[ERootSignature::BloomExtract].Get());
-		cmd_list->SetPipelineState(pso_map[EPipelineStateObject::BloomExtract].Get());
+		cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::BloomExtract));
+		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::BloomExtract));
 		cmd_list->SetComputeRootConstantBufferView(0, compute_cbuffer.View(backbuffer_index).BufferLocation);
 		
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
@@ -4095,8 +4093,8 @@ namespace adria
 
 		GenerateMips(cmd_list, bloom_extract_texture);
 
-		cmd_list->SetComputeRootSignature(rs_map[ERootSignature::BloomCombine].Get());
-		cmd_list->SetPipelineState(pso_map[EPipelineStateObject::BloomCombine].Get());
+		cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::BloomCombine));
+		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::BloomCombine));
 
 		descriptor_index = descriptor_allocator->AllocateRange(3);
 		cpu_descriptor = postprocess_textures[!postprocess_index].SRV();
@@ -4135,8 +4133,8 @@ namespace adria
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-		cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::MotionBlur].Get());
-		cmd_list->SetPipelineState(pso_map[EPipelineStateObject::MotionBlur].Get());
+		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::MotionBlur));
+		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::MotionBlur));
 
 		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 		cmd_list->SetGraphicsRootConstantBufferView(1, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
@@ -4163,9 +4161,8 @@ namespace adria
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-		cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::Fog].Get());
-
-		cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Fog].Get());
+		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Fog));
+		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Fog));
 
 		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 		cmd_list->SetGraphicsRootConstantBufferView(1, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
@@ -4230,8 +4227,8 @@ namespace adria
 		light_allocation = upload_buffer->Allocate(GetCBufferSize<LightCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 		light_allocation.Update(light_cbuf_data);
 
-		cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::GodRays].Get());
-		cmd_list->SetPipelineState(pso_map[EPipelineStateObject::GodRays].Get());
+		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::GodRays));
+		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::GodRays));
 
 		cmd_list->SetGraphicsRootConstantBufferView(0, light_allocation.gpu_address);
 
@@ -4261,8 +4258,8 @@ namespace adria
 
 		velocity_buffer_pass.Begin(cmd_list);
 		{
-			cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::VelocityBuffer].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::VelocityBuffer].Get());
+			cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::VelocityBuffer));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::VelocityBuffer));
 
 			cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 			cmd_list->SetGraphicsRootConstantBufferView(1, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
@@ -4288,8 +4285,9 @@ namespace adria
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-		cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::ToneMap].Get());
-		cmd_list->SetPipelineState(pso_map[EPipelineStateObject::ToneMap].Get());
+		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::ToneMap));
+		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::ToneMap));
+
 		cmd_list->SetGraphicsRootConstantBufferView(0, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
 
 		OffsetType descriptor_index = descriptor_allocator->Allocate();
@@ -4314,9 +4312,8 @@ namespace adria
 			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		fxaa_barrier.Submit(cmd_list);
 
-		cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::FXAA].Get());
-
-		cmd_list->SetPipelineState(pso_map[EPipelineStateObject::FXAA].Get());
+		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::FXAA));
+		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::FXAA));
 
 		OffsetType descriptor_index = descriptor_allocator->Allocate();
 
@@ -4340,8 +4337,8 @@ namespace adria
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-		cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::TAA].Get());
-		cmd_list->SetPipelineState(pso_map[EPipelineStateObject::TAA].Get());
+		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::TAA));
+		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::TAA));
 
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 		device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index), postprocess_textures[!postprocess_index].SRV(),
@@ -4376,8 +4373,9 @@ namespace adria
 		cmd_list->ClearRenderTargetView(rtv, black, 0, nullptr);
 		cmd_list->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
 
-		cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::Forward].Get());
-		cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Sun].Get());
+		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Forward));
+		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Sun));
+
 		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 		{
 			auto [transform, mesh, material] = reg.get<Transform, Mesh, Material>(sun);
@@ -4424,9 +4422,8 @@ namespace adria
 
 		barrier.Submit(cmd_list);
 
-		cmd_list->SetComputeRootSignature(rs_map[ERootSignature::Blur].Get());
-
-		cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Blur_Horizontal].Get());
+		cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Blur));
+		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Blur_Horizontal));
 
 		cmd_list->SetComputeRootConstantBufferView(0, compute_cbuffer.View(backbuffer_index).BufferLocation);
 
@@ -4449,9 +4446,7 @@ namespace adria
 		barrier.Submit(cmd_list);
 
 		//vertical pass
-
-		cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Blur_Vertical].Get());
-
+		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Blur_Vertical));
 		descriptor_index = descriptor_allocator->AllocateRange(2);
 
 		cpu_descriptor = blur_intermediate_texture.SRV();
@@ -4465,7 +4460,6 @@ namespace adria
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetGpuHandle(descriptor_index));
 
-
 		cmd_list->Dispatch(texture.Width(), (UINT)std::ceil(texture.Height() / 1024.0f), 1);
 
 		barrier.Clear();
@@ -4477,18 +4471,18 @@ namespace adria
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-		cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::Copy].Get());
-
+		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Copy));
+		
 		switch (mode)
 		{
 		case EBlendMode::None:
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Copy].Get());
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Copy));
 			break;
 		case EBlendMode::AlphaBlend:
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Copy_AlphaBlend].Get());
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Copy_AlphaBlend));
 			break;
 		case EBlendMode::AdditiveBlend:
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Copy_AdditiveBlend].Get());
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Copy_AdditiveBlend));
 			break;
 		default:
 			ADRIA_ASSERT(false && "Invalid Copy Mode in CopyTexture");
@@ -4514,8 +4508,8 @@ namespace adria
 		ID3D12Resource* texture = _texture.Resource();
 
 		//Set root signature, pso and descriptor heap
-		cmd_list->SetComputeRootSignature(rs_map[ERootSignature::GenerateMips].Get());
-		cmd_list->SetPipelineState(pso_map[EPipelineStateObject::GenerateMips].Get());
+		cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::GenerateMips));
+		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::GenerateMips));
 
 		//Prepare the shader resource view description for the source texture
 		D3D12_SHADER_RESOURCE_VIEW_DESC src_srv_desc = {};
@@ -4587,23 +4581,22 @@ namespace adria
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-		cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::Add].Get());
+		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Add));
 
 		switch (mode)
 		{
 		case EBlendMode::None:
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Add].Get());
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Add));
 			break;
 		case EBlendMode::AlphaBlend:
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Add_AlphaBlend].Get());
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Add_AlphaBlend));
 			break;
 		case EBlendMode::AdditiveBlend:
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Add_AdditiveBlend].Get());
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Add_AdditiveBlend));
 			break;
 		default:
 			ADRIA_ASSERT(false && "Invalid Copy Mode in CopyTexture");
 		}
-
 
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
 		device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index), texture1.SRV(),
