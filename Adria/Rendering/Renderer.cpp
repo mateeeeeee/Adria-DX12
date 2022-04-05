@@ -7,6 +7,7 @@
 #include "Renderer.h"
 #include "Camera.h"
 #include "Components.h"
+#include "RootSigPSOManager.h"
 #include "SkyModel.h"
 #include "../Core/Window.h"
 #include "../Utilities/Timer.h"
@@ -371,11 +372,8 @@ namespace adria
 		light_grid(gfx->GetDevice(), CLUSTER_COUNT, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
 		profiler(gfx), particle_renderer(gfx), picker(gfx), ray_tracer(reg, gfx, width, height)
 	{
-		LoadShaders();
-		CreateRootSignatures();
-		CreatePipelineStateObjects();
+		RootSigPSOManager::Initialize(gfx->GetDevice());
 		CreateDescriptorHeaps();
-
 		CreateResolutionDependentResources(width, height);
 		CreateOtherResources();
 		CreateRenderPasses(width, height);
@@ -931,1322 +929,6 @@ namespace adria
 	{
 		return offscreen_ldr_target;
 	}
-
-	void Renderer::LoadShaders()
-	{
-		//misc
-		{
-			ShaderBlob vs_blob, ps_blob, cs_blob;
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SkyboxVS.cso", vs_blob);
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SkyboxPS.cso", ps_blob);
-			shader_map[VS_Skybox] = vs_blob;
-			shader_map[PS_Skybox] = ps_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/UniformColorSkyPS.cso", ps_blob);
-			shader_map[PS_UniformColorSky] = ps_blob;
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/HosekWilkieSkyPS.cso", ps_blob);
-			shader_map[PS_HosekWilkieSky] = ps_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/TextureVS.cso", vs_blob);
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/TexturePS.cso", ps_blob);
-			shader_map[VS_Texture] = vs_blob;
-			shader_map[PS_Texture] = ps_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SunVS.cso", vs_blob);
-			shader_map[VS_Sun] = vs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BillboardVS.cso", vs_blob);
-			shader_map[VS_Billboard] = vs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/DecalVS.cso", vs_blob);
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/DecalPS.cso", ps_blob);
-			shader_map[VS_Decals] = vs_blob;
-			shader_map[PS_Decals] = ps_blob;
-
-			ShaderInfo shader_info_ps{};
-			shader_info_ps.shadersource = "Resources/Shaders/Misc/DecalPS.hlsl";
-			shader_info_ps.stage = EShaderStage::PS;
-			shader_info_ps.defines = { {L"DECAL_MODIFY_NORMALS", L""}};
-			shader_info_ps.entrypoint = "main";
-#ifdef _DEBUG
-			shader_info_ps.flags = ShaderInfo::FLAG_DEBUG | ShaderInfo::FLAG_DISABLE_OPTIMIZATION;
-#else 
-			shader_info_ps.flags = ShaderInfo::FLAG_NONE;
-#endif
-			ShaderUtility::CompileShader(shader_info_ps, ps_blob);
-			shader_map[PS_Decals_ModifyNormals] = ps_blob;
-		}
-
-		//postprocess
-		{
-			ShaderBlob vs_blob, ps_blob, gs_blob;
-
-			
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ScreenQuadVS.cso", vs_blob);
-			shader_map[VS_ScreenQuad] = vs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SSAO_PS.cso", ps_blob);
-			shader_map[PS_Ssao] = ps_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/HBAO_PS.cso", ps_blob);
-			shader_map[PS_Hbao] = ps_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SSR_PS.cso", ps_blob);
-			shader_map[PS_Ssr] = ps_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/GodRaysPS.cso", ps_blob);
-			shader_map[PS_GodRays] = ps_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/CloudsPS.cso", ps_blob);
-			shader_map[PS_VolumetricClouds] = ps_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ToneMapPS.cso", ps_blob);
-			shader_map[PS_ToneMap] = ps_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/FXAA_PS.cso", ps_blob);
-			shader_map[PS_Fxaa] = ps_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/TAA_PS.cso", ps_blob);
-			shader_map[PS_Taa] = ps_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/CopyPS.cso", ps_blob);
-			shader_map[PS_Copy] = ps_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/AddPS.cso", ps_blob);
-			shader_map[PS_Add] = ps_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/LensFlareVS.cso", vs_blob);
-			shader_map[VS_LensFlare] = vs_blob;
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/LensFlareGS.cso", gs_blob);
-			shader_map[GS_LensFlare] = gs_blob;
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/LensFlarePS.cso", ps_blob);
-			shader_map[PS_LensFlare] = ps_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BokehVS.cso", vs_blob);
-			shader_map[VS_Bokeh] = vs_blob;
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BokehGS.cso", gs_blob);
-			shader_map[GS_Bokeh] = gs_blob;
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BokehPS.cso", ps_blob);
-			shader_map[PS_Bokeh] = ps_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/DOF_PS.cso", ps_blob);
-			shader_map[PS_Dof] = ps_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/MotionBlurPS.cso", ps_blob);
-			shader_map[PS_MotionBlur] = ps_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/FogPS.cso", ps_blob);
-			shader_map[PS_Fog] = ps_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/VelocityBufferPS.cso", ps_blob);
-			shader_map[PS_VelocityBuffer] = ps_blob;
-		}
-
-		//gbuffer 
-		{
-			ShaderBlob vs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/GeometryPassPBR_VS.cso", vs_blob);
-			shader_map[VS_GBufferPBR] = vs_blob;
-
-			ShaderBlob ps_blob;
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/GeometryPassPBR_PS.cso", ps_blob);
-			shader_map[PS_GBufferPBR] = ps_blob;
-		}
-
-		//ambient & lighting
-		{
-			ShaderBlob ps_blob;
-			ShaderInfo shader_info_ps{};
-			shader_info_ps.shadersource = "Resources/Shaders/Deferred/AmbientPBR_PS.hlsl";
-			shader_info_ps.stage = EShaderStage::PS;
-			shader_info_ps.defines = {};
-
-			ShaderUtility::CompileShader(shader_info_ps, ps_blob);
-			shader_map[PS_AmbientPBR] = ps_blob;
-
-			shader_info_ps.defines.emplace_back(L"SSAO", L"1");
-			ShaderUtility::CompileShader(shader_info_ps, ps_blob);
-			shader_map[PS_AmbientPBR_AO] = ps_blob;
-
-			shader_info_ps.defines.clear();
-			shader_info_ps.defines.emplace_back(L"IBL", L"1");
-			ShaderUtility::CompileShader(shader_info_ps, ps_blob);
-			shader_map[PS_AmbientPBR_IBL] = ps_blob;
-
-			shader_info_ps.defines.emplace_back(L"SSAO", L"1");
-			ShaderUtility::CompileShader(shader_info_ps, ps_blob);
-			shader_map[PS_AmbientPBR_AO_IBL] = ps_blob;
-			
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/LightingPBR_PS.cso", ps_blob);
-			shader_map[PS_LightingPBR] = ps_blob;
-
-			shader_info_ps.shadersource = "Resources/Shaders/Deferred/LightingPBR_PS.hlsl";
-			shader_info_ps.stage = EShaderStage::PS;
-			shader_info_ps.defines.clear();
-			shader_info_ps.defines.emplace_back(L"RAY_TRACED_SHADOWS", L"");
-			shader_info_ps.entrypoint = "main";
-			ShaderUtility::CompileShader(shader_info_ps, ps_blob);
-			shader_map[PS_LightingPBR_RayTracedShadows] = ps_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ClusterLightingPBR_PS.cso", ps_blob);
-			shader_map[PS_ClusteredLightingPBR] = ps_blob;
-		}
-
-		//depth maps
-		{
-			ShaderBlob vs_blob, ps_blob;
-			ShaderInfo vs_input{}, ps_input{};
-			vs_input.shadersource = "Resources/Shaders/Shadows/DepthMapVS.hlsl";
-			vs_input.stage = EShaderStage::VS;
-			
-			ps_input.shadersource = "Resources/Shaders/Shadows/DepthMapPS.hlsl";
-			ps_input.stage = EShaderStage::PS;
-			
-			ShaderUtility::CompileShader(vs_input, vs_blob);
-			ShaderUtility::CompileShader(ps_input, ps_blob);
-			
-			//eDepthMap_Transparent
-
-			shader_map[VS_DepthMap] = vs_blob;
-			shader_map[PS_DepthMap] = ps_blob;
-
-			vs_input.defines.emplace_back(L"TRANSPARENT", L"1");
-			ps_input.defines.emplace_back(L"TRANSPARENT", L"1");
-
-			
-			ShaderUtility::CompileShader(vs_input, vs_blob);
-			ShaderUtility::CompileShader(ps_input, ps_blob);
-			
-			shader_map[VS_DepthMap_Transparent] = vs_blob;
-			shader_map[PS_DepthMap_Transparent] = ps_blob;
-		}
-
-		//volumetric
-		{
-			ShaderBlob ps_blob;
-			
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/VolumetricLightDirectionalPS.cso", ps_blob);
-			shader_map[PS_Volumetric_Directional] = ps_blob;
-			
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/VolumetricLightDirectionalCascadesPS.cso", ps_blob);
-			shader_map[PS_Volumetric_DirectionalCascades] = ps_blob;
-			
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/VolumetricLightSpotPS.cso", ps_blob);
-			shader_map[PS_Volumetric_Spot] = ps_blob;
-			
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/VolumetricLightPointPS.cso", ps_blob);
-			shader_map[PS_Volumetric_Point] = ps_blob;
-
-		}
-
-		//compute shaders
-		{
-			ShaderBlob cs_blob;
-			ShaderInfo blur_shader{};
-
-			blur_shader.shadersource = "Resources/Shaders/PostProcess/BlurCS.hlsl";
-			blur_shader.stage = EShaderStage::CS;
-
-			ShaderUtility::CompileShader(blur_shader, cs_blob);
-			shader_map[CS_Blur_Horizontal] = cs_blob;
-
-			blur_shader.defines.emplace_back(L"VERTICAL", L"1");
-			ShaderUtility::CompileShader(blur_shader, cs_blob);
-			shader_map[CS_Blur_Vertical] = cs_blob;
-
-			blur_shader.shadersource = "Resources/Shaders/Misc/GenerateMipsCS.hlsl";
-			ShaderUtility::CompileShader(blur_shader, cs_blob);
-			shader_map[CS_GenerateMips] = cs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BloomExtractCS.cso", cs_blob);
-			shader_map[CS_BloomExtract] = cs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BloomCombineCS.cso", cs_blob);
-			shader_map[CS_BloomCombine] = cs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/TiledLightingCS.cso", cs_blob);
-			shader_map[CS_TiledLighting] = cs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ClusterBuildingCS.cso", cs_blob);
-			shader_map[CS_ClusterBuilding] = cs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ClusterCullingCS.cso", cs_blob);
-			shader_map[CS_ClusterCulling] = cs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BokehCS.cso", cs_blob);
-			shader_map[CS_BokehGenerate] = cs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/FFT_horizontalCS.cso", cs_blob);
-			shader_map[CS_FFT_Horizontal] = cs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/FFT_verticalCS.cso", cs_blob);
-			shader_map[CS_FFT_Vertical] = cs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/InitialSpectrumCS.cso", cs_blob);
-			shader_map[CS_InitialSpectrum] = cs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/NormalMapCS.cso", cs_blob);
-			shader_map[CS_OceanNormalMap] = cs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/PhaseCS.cso", cs_blob);
-			shader_map[CS_Phase] = cs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SpectrumCS.cso", cs_blob);
-			shader_map[CS_Spectrum] = cs_blob;
-		}
-
-		//ocean
-		{
-			ShaderBlob vs_blob, ps_blob;
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanVS.cso", vs_blob);
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanPS.cso", ps_blob);
-			shader_map[VS_Ocean] = vs_blob;
-			shader_map[PS_Ocean] = ps_blob;
-
-			ShaderBlob hs_blob, ds_blob;
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanLodVS.cso", vs_blob);
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanLodHS.cso", hs_blob);
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanLodDS.cso", ds_blob);
-			shader_map[VS_OceanLOD] = vs_blob;
-			shader_map[HS_OceanLOD] = hs_blob;
-			shader_map[DS_OceanLOD] = ds_blob;
-		}
-	}
-	void Renderer::CreateRootSignatures()
-	{
-		ID3D12Device* device = gfx->GetDevice();
-		//in HLSL
-		{
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Skybox].GetPointer(), shader_map[PS_Skybox].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::Skybox].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_HosekWilkieSky].GetPointer(), shader_map[PS_HosekWilkieSky].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::Sky].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_ToneMap].GetPointer(), shader_map[PS_ToneMap].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::ToneMap].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Fxaa].GetPointer(), shader_map[PS_Fxaa].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::FXAA].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Taa].GetPointer(), shader_map[PS_Taa].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::TAA].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_GBufferPBR].GetPointer(), shader_map[PS_GBufferPBR].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::GbufferPBR].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_AmbientPBR].GetPointer(), shader_map[PS_AmbientPBR].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::AmbientPBR].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_LightingPBR].GetPointer(), shader_map[PS_LightingPBR].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::LightingPBR].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_ClusteredLightingPBR].GetPointer(), shader_map[PS_ClusteredLightingPBR].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::ClusteredLightingPBR].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_DepthMap].GetPointer(), shader_map[PS_DepthMap].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::DepthMap].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_DepthMap_Transparent].GetPointer(), shader_map[PS_DepthMap_Transparent].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::DepthMap_Transparent].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Volumetric_Directional].GetPointer(), shader_map[PS_Volumetric_Directional].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::Volumetric].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Texture].GetPointer(), shader_map[PS_Texture].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::Forward].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Ssr].GetPointer(), shader_map[PS_Ssr].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::SSR].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_GodRays].GetPointer(), shader_map[PS_GodRays].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::GodRays].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_LensFlare].GetPointer(), shader_map[PS_LensFlare].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::LensFlare].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Dof].GetPointer(), shader_map[PS_Dof].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::DOF].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Add].GetPointer(), shader_map[PS_Add].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::Add].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Fog].GetPointer(), shader_map[PS_Fog].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::Fog].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_VolumetricClouds].GetPointer(), shader_map[PS_VolumetricClouds].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::Clouds].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_MotionBlur].GetPointer(), shader_map[PS_MotionBlur].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::MotionBlur].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Bokeh].GetPointer(), shader_map[PS_Bokeh].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::Bokeh].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_TiledLighting].GetPointer(), shader_map[CS_TiledLighting].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::TiledLighting].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_ClusterBuilding].GetPointer(), shader_map[CS_ClusterBuilding].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::ClusterBuilding].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_ClusterCulling].GetPointer(), shader_map[CS_ClusterCulling].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::ClusterCulling].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_BokehGenerate].GetPointer(), shader_map[CS_BokehGenerate].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::BokehGenerate].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_VelocityBuffer].GetPointer(), shader_map[PS_VelocityBuffer].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::VelocityBuffer].GetAddressOf())));
-
-			rs_map[ERootSignature::Copy] = rs_map[ERootSignature::FXAA];
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_FFT_Horizontal].GetPointer(), shader_map[CS_FFT_Horizontal].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::FFT].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_InitialSpectrum].GetPointer(), shader_map[CS_InitialSpectrum].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::InitialSpectrum].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_OceanNormalMap].GetPointer(), shader_map[CS_OceanNormalMap].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::OceanNormalMap].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_Phase].GetPointer(), shader_map[CS_Phase].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::Phase].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_Spectrum].GetPointer(), shader_map[CS_Spectrum].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::Spectrum].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[VS_Ocean].GetPointer(), shader_map[VS_Ocean].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::Ocean].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[VS_OceanLOD].GetPointer(), shader_map[VS_OceanLOD].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::OceanLOD].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Decals].GetPointer(), shader_map[PS_Decals].GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::Decals].GetAddressOf())));
-
-			//ID3D12VersionedRootSignatureDeserializer* drs = nullptr;
-			//D3D12CreateVersionedRootSignatureDeserializer(shader_map[PS_Add].GetPointer(), shader_map[PS_Add].GetLength(), IID_PPV_ARGS(&drs));
-			//D3D12_VERSIONED_ROOT_SIGNATURE_DESC const* desc = drs->GetUnconvertedRootSignatureDesc();
-		}
-
-		D3D12_FEATURE_DATA_ROOT_SIGNATURE feature_data{};
-		feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
-		if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &feature_data, sizeof(feature_data))))
-			feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
-		//in C++
-		{
-			//ao
-			{
-				std::array<CD3DX12_ROOT_PARAMETER1, 3> root_parameters{};
-				CD3DX12_ROOT_PARAMETER1 root_parameter{};
-
-				root_parameters[0].InitAsConstantBufferView(0, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL);
-				root_parameters[1].InitAsConstantBufferView(5, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL);
-
-				CD3DX12_DESCRIPTOR_RANGE1 range{};
-				range.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 1, 0);
-				root_parameters[2].InitAsDescriptorTable(1, &range, D3D12_SHADER_VISIBILITY_PIXEL);
-
-				std::array<D3D12_STATIC_SAMPLER_DESC, 2> samplers{};
-				D3D12_STATIC_SAMPLER_DESC sampler{};
-				sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
-				sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-				sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-				sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-				sampler.MipLODBias = 0;
-				sampler.MaxAnisotropy = 0;
-				sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
-				sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
-				sampler.MinLOD = 0.0f;
-				sampler.MaxLOD = D3D12_FLOAT32_MAX;
-				sampler.ShaderRegister = 1;
-				sampler.RegisterSpace = 0;
-				sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-				samplers[0] = sampler;
-
-				sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-				sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-				sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-				sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-				sampler.ShaderRegister = 0;
-				samplers[1] = sampler;
-
-				CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc{};
-				rootSignatureDesc.Init_1_1((uint32)root_parameters.size(), root_parameters.data(), (uint32)samplers.size(), samplers.data(), D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
-				ComPtr<ID3DBlob> signature;
-				ComPtr<ID3DBlob> error;
-				D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, feature_data.HighestVersion, &signature, &error);
-				if (error) OutputDebugStringA((char*)error->GetBufferPointer());
-				BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::AO])));
-			}
-
-			//blur
-			{
-				std::array<CD3DX12_ROOT_PARAMETER1, 3> root_parameters{};
-				CD3DX12_ROOT_PARAMETER1 root_parameter{};
-
-				root_parameters[0].InitAsConstantBufferView(6, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
-
-				CD3DX12_DESCRIPTOR_RANGE1 srv_range{};
-				srv_range.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
-				root_parameters[1].InitAsDescriptorTable(1, &srv_range, D3D12_SHADER_VISIBILITY_ALL);
-
-				CD3DX12_DESCRIPTOR_RANGE1 uav_range{};
-				uav_range.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0);
-				root_parameters[2].InitAsDescriptorTable(1, &uav_range, D3D12_SHADER_VISIBILITY_ALL);
-
-				CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc{};
-				rootSignatureDesc.Init_1_1((uint32)root_parameters.size(), root_parameters.data(), 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
-				ComPtr<ID3DBlob> signature;
-				ComPtr<ID3DBlob> error;
-				HRESULT hr = D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, feature_data.HighestVersion, &signature, &error);
-				if (error) OutputDebugStringA((char*)error->GetBufferPointer());
-
-				BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::Blur])));
-			}
-
-			//bloom 
-			{
-				rs_map[ERootSignature::BloomExtract] = rs_map[ERootSignature::Blur];
-
-				std::array<CD3DX12_ROOT_PARAMETER1, 2> root_parameters{};
-				CD3DX12_ROOT_PARAMETER1 root_parameter{};
-
-				CD3DX12_DESCRIPTOR_RANGE1 srv_range{};
-				srv_range.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0, 0);
-				root_parameters[0].InitAsDescriptorTable(1, &srv_range, D3D12_SHADER_VISIBILITY_ALL);
-
-				CD3DX12_DESCRIPTOR_RANGE1 uav_range{};
-				uav_range.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0);
-				root_parameters[1].InitAsDescriptorTable(1, &uav_range, D3D12_SHADER_VISIBILITY_ALL);
-
-				D3D12_STATIC_SAMPLER_DESC linear_clamp_sampler = CD3DX12_STATIC_SAMPLER_DESC(0, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
-					D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
-
-				CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_desc{};
-				root_signature_desc.Init_1_1((uint32)root_parameters.size(), root_parameters.data(), 1, &linear_clamp_sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
-				ComPtr<ID3DBlob> signature;
-				ComPtr<ID3DBlob> error;
-				HRESULT hr = D3DX12SerializeVersionedRootSignature(&root_signature_desc, feature_data.HighestVersion, &signature, &error);
-				if (error) OutputDebugStringA((char*)error->GetBufferPointer());
-
-				BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::BloomCombine])));
-			}
-
-			//mips
-			{
-				D3D12_FEATURE_DATA_ROOT_SIGNATURE feature_data = {};
-
-				feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
-
-				if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &feature_data, sizeof(feature_data))))
-				{
-					feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
-				}
-
-				CD3DX12_DESCRIPTOR_RANGE1 srv_uav_ranges[2] = {};
-				CD3DX12_ROOT_PARAMETER1 root_parameters[3] = {};
-				srv_uav_ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
-				srv_uav_ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0);
-				root_parameters[0].InitAsConstants(2, 0);
-				root_parameters[1].InitAsDescriptorTable(1, &srv_uav_ranges[0]);
-				root_parameters[2].InitAsDescriptorTable(1, &srv_uav_ranges[1]);
-
-				D3D12_ROOT_SIGNATURE_FLAGS root_signature_flags =
-					D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
-
-				D3D12_STATIC_SAMPLER_DESC sampler = {};
-				sampler.Filter = D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
-				sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-				sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-				sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-				sampler.MipLODBias = 0.0f;
-				sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
-				sampler.MinLOD = 0.0f;
-				sampler.MaxLOD = D3D12_FLOAT32_MAX;
-				sampler.MaxAnisotropy = 0;
-				sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
-				sampler.ShaderRegister = 0;
-				sampler.RegisterSpace = 0;
-				sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-
-				CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_desc{};
-				root_signature_desc.Init_1_1(ARRAYSIZE(root_parameters), root_parameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
-				Microsoft::WRL::ComPtr<ID3DBlob> signature;
-				Microsoft::WRL::ComPtr<ID3DBlob> error;
-
-				BREAK_IF_FAILED(D3DX12SerializeVersionedRootSignature(&root_signature_desc, feature_data.HighestVersion, &signature, &error));
-				BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::GenerateMips])));
-			}
-		}
-	}
-#pragma warning( push )
-#pragma warning( disable : 6262 )
-	void Renderer::CreatePipelineStateObjects()
-	{
-		ID3D12Device* device = gfx->GetDevice();
-		{
-			//skybox
-			{
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
-				InputLayout input_layout;
-				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_Skybox], input_layout);
-				pso_desc.InputLayout = input_layout;
-				pso_desc.pRootSignature = rs_map[ERootSignature::Skybox].Get();
-				pso_desc.VS = shader_map[VS_Skybox];
-				pso_desc.PS = shader_map[PS_Skybox];
-				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				pso_desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-				pso_desc.DepthStencilState.DepthEnable = TRUE;
-				pso_desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-				pso_desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
-				pso_desc.DepthStencilState.StencilEnable = FALSE;
-				pso_desc.SampleMask = UINT_MAX;
-				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				pso_desc.NumRenderTargets = 1;
-				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				pso_desc.SampleDesc.Count = 1;
-				pso_desc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Skybox])));
-
-				pso_desc.pRootSignature = rs_map[ERootSignature::Sky].Get();
-				pso_desc.PS = shader_map[PS_UniformColorSky];
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::UniformColorSky])));
-
-				pso_desc.PS = shader_map[PS_HosekWilkieSky];
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::HosekWilkieSky])));
-			}
-
-			//tonemap
-			{
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc = {};
-				InputLayout input_layout;
-				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_ScreenQuad], input_layout);
-				pso_desc.InputLayout = input_layout;
-				pso_desc.pRootSignature = rs_map[ERootSignature::ToneMap].Get();
-				pso_desc.VS = shader_map[VS_ScreenQuad];
-				pso_desc.PS = shader_map[PS_ToneMap];
-				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-				pso_desc.SampleMask = UINT_MAX;
-				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				pso_desc.NumRenderTargets = 1;
-				pso_desc.RTVFormats[0] = DXGI_FORMAT_R10G10B10A2_UNORM;
-				pso_desc.SampleDesc.Count = 1;
-				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::ToneMap])));
-
-			}
-
-			//fxaa
-			{
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc = {};
-				InputLayout input_layout;
-				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_ScreenQuad], input_layout);
-
-				pso_desc.InputLayout = input_layout;
-				pso_desc.pRootSignature = rs_map[ERootSignature::FXAA].Get();
-				pso_desc.VS = shader_map[VS_ScreenQuad];
-				pso_desc.PS = shader_map[PS_Fxaa];
-				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-				pso_desc.SampleMask = UINT_MAX;
-				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				pso_desc.NumRenderTargets = 1;
-				pso_desc.RTVFormats[0] = DXGI_FORMAT_R10G10B10A2_UNORM;
-				pso_desc.SampleDesc.Count = 1;
-				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::FXAA])));
-			}
-
-			//taa
-			{
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc = {};
-				InputLayout input_layout;
-				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_ScreenQuad], input_layout);
-
-				pso_desc.InputLayout = input_layout;
-				pso_desc.pRootSignature = rs_map[ERootSignature::TAA].Get();
-				pso_desc.VS = shader_map[VS_ScreenQuad];
-				pso_desc.PS = shader_map[PS_Taa];
-				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-				pso_desc.SampleMask = UINT_MAX;
-				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				pso_desc.NumRenderTargets = 1;
-				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				pso_desc.SampleDesc.Count = 1;
-				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::TAA])));
-			}
-
-			//gbuffer
-			{
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc = {};
-				InputLayout input_layout;
-				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_GBufferPBR], input_layout);
-
-				pso_desc.InputLayout = input_layout;
-				pso_desc.pRootSignature = rs_map[ERootSignature::GbufferPBR].Get();
-				pso_desc.VS = shader_map[VS_GBufferPBR];
-				pso_desc.PS = shader_map[PS_GBufferPBR];
-				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-				pso_desc.DepthStencilState.DepthEnable = TRUE;
-				pso_desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-				pso_desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
-				pso_desc.DepthStencilState.StencilEnable = FALSE;
-				pso_desc.SampleMask = UINT_MAX;
-				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				pso_desc.NumRenderTargets = static_cast<uint32>(3);
-				pso_desc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-				pso_desc.RTVFormats[1] = DXGI_FORMAT_R8G8B8A8_UNORM;
-				pso_desc.RTVFormats[2] = DXGI_FORMAT_R8G8B8A8_UNORM;
-				pso_desc.SampleDesc.Count = 1;
-				pso_desc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::GbufferPBR])));
-			}
-
-			//ambient 
-			{
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc = {};
-				pso_desc.InputLayout = { nullptr, 0u };
-				pso_desc.pRootSignature = rs_map[ERootSignature::AmbientPBR].Get();
-				pso_desc.VS = shader_map[VS_ScreenQuad];
-				pso_desc.PS = shader_map[PS_AmbientPBR];
-				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-
-				pso_desc.DepthStencilState.DepthEnable = FALSE;
-				pso_desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-				pso_desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
-				pso_desc.DepthStencilState.StencilEnable = FALSE;
-				pso_desc.SampleMask = UINT_MAX;
-				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-
-				pso_desc.NumRenderTargets = 1;
-				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				pso_desc.SampleDesc.Count = 1;
-				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::AmbientPBR])));
-
-				pso_desc.PS = shader_map[PS_AmbientPBR_AO];
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::AmbientPBR_AO])));
-
-				pso_desc.PS = shader_map[PS_AmbientPBR_IBL];
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::AmbientPBR_IBL])));
-
-				pso_desc.PS = shader_map[PS_AmbientPBR_AO_IBL];
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::AmbientPBR_AO_IBL])));
-
-			}
-
-			//lighting & clustered lighting
-			{
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc = {};
-				pso_desc.InputLayout = { nullptr, 0u };
-				pso_desc.pRootSignature = rs_map[ERootSignature::LightingPBR].Get();
-				pso_desc.VS = shader_map[VS_ScreenQuad];
-				pso_desc.PS = shader_map[PS_LightingPBR];
-				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-				pso_desc.BlendState.RenderTarget[0].BlendEnable = TRUE;
-				pso_desc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
-				pso_desc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
-				pso_desc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_ONE;
-				pso_desc.DepthStencilState.DepthEnable = FALSE;
-				pso_desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-				pso_desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
-				pso_desc.DepthStencilState.StencilEnable = FALSE;
-				pso_desc.SampleMask = UINT_MAX;
-				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				pso_desc.NumRenderTargets = 1;
-				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				pso_desc.SampleDesc.Count = 1;
-				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::LightingPBR])));
-
-				pso_desc.PS = shader_map[PS_LightingPBR_RayTracedShadows];
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::LightingPBR_RayTracedShadows])));
-
-				pso_desc.pRootSignature = rs_map[ERootSignature::ClusteredLightingPBR].Get();
-				pso_desc.PS = shader_map[PS_ClusteredLightingPBR];
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::ClusteredLightingPBR])));
-			}
-
-			//clustered building and culling
-			{
-				D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc = {};
-				pso_desc.pRootSignature = rs_map[ERootSignature::ClusterBuilding].Get();
-				pso_desc.CS = shader_map[CS_ClusterBuilding];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::ClusterBuilding])));
-
-				pso_desc.pRootSignature = rs_map[ERootSignature::ClusterCulling].Get();
-				pso_desc.CS = shader_map[CS_ClusterCulling];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::ClusterCulling])));
-			}
-
-			//tiled lighting
-			{
-				D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc = {};
-				pso_desc.pRootSignature = rs_map[ERootSignature::TiledLighting].Get();
-				pso_desc.CS = shader_map[CS_TiledLighting];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::TiledLighting])));
-			}
-
-			//depth maps
-			{
-				InputLayout il;
-
-				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_DepthMap], il);
-
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc = {};
-				pso_desc.InputLayout = il;
-				pso_desc.pRootSignature = rs_map[ERootSignature::DepthMap].Get();
-				pso_desc.VS = shader_map[VS_DepthMap];
-				pso_desc.PS = shader_map[PS_DepthMap];
-				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-
-				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				pso_desc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
-				pso_desc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
-				pso_desc.RasterizerState.DepthBias = 7500;
-				pso_desc.RasterizerState.DepthBiasClamp = 0.0f;
-				pso_desc.RasterizerState.SlopeScaledDepthBias = 1.0f;
-
-				pso_desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-				pso_desc.DepthStencilState.DepthEnable = TRUE;
-				pso_desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-				pso_desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
-				pso_desc.DepthStencilState.StencilEnable = FALSE;
-
-				pso_desc.SampleMask = UINT_MAX;
-				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				pso_desc.NumRenderTargets = 0;
-				pso_desc.SampleDesc.Count = 1;
-				pso_desc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::DepthMap])));
-
-				//InputLayout il2;
-				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_DepthMap_Transparent], il);
-				pso_desc.InputLayout = il;
-				pso_desc.pRootSignature = rs_map[ERootSignature::DepthMap_Transparent].Get();
-				pso_desc.VS = shader_map[VS_DepthMap_Transparent];
-				pso_desc.PS = shader_map[PS_DepthMap_Transparent];
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::DepthMap_Transparent])));
-
-			}
-
-			//volumetric lighting
-			{
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc = {};
-				pso_desc.InputLayout = { nullptr, 0u };
-				pso_desc.pRootSignature = rs_map[ERootSignature::Volumetric].Get();
-				pso_desc.VS = shader_map[VS_ScreenQuad];
-				pso_desc.PS = shader_map[PS_Volumetric_Directional];
-				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-				pso_desc.BlendState.RenderTarget[0].BlendEnable = TRUE;
-				pso_desc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
-				pso_desc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
-				pso_desc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_ONE;
-
-				pso_desc.DepthStencilState.DepthEnable = FALSE;
-				pso_desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-				pso_desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
-				pso_desc.DepthStencilState.StencilEnable = FALSE;
-				pso_desc.SampleMask = UINT_MAX;
-				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-
-				pso_desc.NumRenderTargets = 1;
-				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				pso_desc.SampleDesc.Count = 1;
-				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Volumetric_Directional])));
-
-				pso_desc.PS = shader_map[PS_Volumetric_DirectionalCascades];
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Volumetric_DirectionalCascades])));
-
-				pso_desc.PS = shader_map[PS_Volumetric_Spot];
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Volumetric_Spot])));
-
-				pso_desc.PS = shader_map[PS_Volumetric_Point];
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Volumetric_Point])));
-
-			}
-			
-			//forward
-			{
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc = {};
-				InputLayout input_layout;
-				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_Sun], input_layout);
-				pso_desc.InputLayout = input_layout;
-				pso_desc.pRootSignature = rs_map[ERootSignature::Forward].Get();
-				pso_desc.VS = shader_map[VS_Sun];
-				pso_desc.PS = shader_map[PS_Texture];
-
-				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-
-				pso_desc.BlendState.RenderTarget[0].BlendEnable = TRUE;
-				pso_desc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
-				pso_desc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
-				pso_desc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
-
-				pso_desc.DepthStencilState.DepthEnable = TRUE;
-				pso_desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-				pso_desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
-				pso_desc.DepthStencilState.StencilEnable = FALSE;
-				pso_desc.SampleMask = UINT_MAX;
-				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				pso_desc.NumRenderTargets = 1;
-				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				pso_desc.SampleDesc.Count = 1;
-				pso_desc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Sun])));
-
-			}
-
-			//ao
-			{
-
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
-				pso_desc.InputLayout = { nullptr, 0 };
-				pso_desc.pRootSignature = rs_map[ERootSignature::AO].Get();
-				pso_desc.VS = shader_map[VS_ScreenQuad];
-				pso_desc.PS = shader_map[PS_Ssao];
-				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-				pso_desc.SampleMask = UINT_MAX;
-				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				pso_desc.NumRenderTargets = 1;
-				pso_desc.RTVFormats[0] = DXGI_FORMAT_R8_UNORM;
-				pso_desc.SampleDesc.Count = 1;
-				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::SSAO])));
-
-				pso_desc.PS = shader_map[PS_Hbao];
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::HBAO])));
-
-			}
-
-			//ssr
-			{
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
-				pso_desc.InputLayout = { nullptr, 0 };
-				pso_desc.pRootSignature = rs_map[ERootSignature::SSR].Get();
-				pso_desc.VS = shader_map[VS_ScreenQuad];
-				pso_desc.PS = shader_map[PS_Ssr];
-				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-				pso_desc.SampleMask = UINT_MAX;
-				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				pso_desc.NumRenderTargets = 1;
-				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				pso_desc.SampleDesc.Count = 1;
-				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::SSR])));
-			}
-
-			//god rays
-			{
-				InputLayout il;
-				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_ScreenQuad], il);
-
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
-				pso_desc.InputLayout = il;
-				pso_desc.pRootSignature = rs_map[ERootSignature::GodRays].Get();
-				pso_desc.VS = shader_map[VS_ScreenQuad];
-				pso_desc.PS = shader_map[PS_GodRays];
-				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-				pso_desc.BlendState.RenderTarget[0].BlendEnable = true;
-				pso_desc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
-				pso_desc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_ONE;
-				pso_desc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
-				pso_desc.SampleMask = UINT_MAX;
-				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				pso_desc.NumRenderTargets = 1;
-				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				pso_desc.SampleDesc.Count = 1;
-				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::GodRays])));
-			}
-
-			//lens flare
-			{
-				// Describe and create the graphics pipeline state object (PSO).
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
-				pso_desc.InputLayout = { nullptr,0 };
-				pso_desc.pRootSignature = rs_map[ERootSignature::LensFlare].Get();
-				pso_desc.VS = shader_map[VS_LensFlare];
-				pso_desc.GS = shader_map[GS_LensFlare];
-				pso_desc.PS = shader_map[PS_LensFlare];
-				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-
-				pso_desc.BlendState.RenderTarget[0].BlendEnable = true;
-				pso_desc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
-				pso_desc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_ONE;
-				pso_desc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
-
-				pso_desc.SampleMask = UINT_MAX;
-				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
-				pso_desc.NumRenderTargets = 1;
-				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				pso_desc.SampleDesc.Count = 1;
-				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::LensFlare])));
-			}
-
-			//blur
-			{
-				D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc = {};
-				pso_desc.pRootSignature = rs_map[ERootSignature::Blur].Get();
-				pso_desc.CS = shader_map[CS_Blur_Horizontal];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Blur_Horizontal])));
-
-				pso_desc.CS = shader_map[CS_Blur_Vertical];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Blur_Vertical])));
-			}
-
-			//bloom extract
-			{
-				D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc = {};
-				pso_desc.pRootSignature = rs_map[ERootSignature::BloomExtract].Get();
-				pso_desc.CS = shader_map[CS_BloomExtract];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::BloomExtract])));
-			}
-
-			//bloom combine
-			{
-				D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc = {};
-				pso_desc.pRootSignature = rs_map[ERootSignature::BloomCombine].Get();
-				pso_desc.CS = shader_map[CS_BloomCombine];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::BloomCombine])));
-			}
-
-			//mips
-			{
-				D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc = {};
-				pso_desc.pRootSignature = rs_map[ERootSignature::GenerateMips].Get();
-				pso_desc.CS = shader_map[CS_GenerateMips];
-				device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::GenerateMips]));
-			}
-
-			//copy
-			{
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc = {};
-				
-				pso_desc.InputLayout = { nullptr, 0 };
-				pso_desc.pRootSignature = rs_map[ERootSignature::Copy].Get();
-				pso_desc.VS = shader_map[VS_ScreenQuad];
-				pso_desc.PS = shader_map[PS_Copy];
-				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-				pso_desc.SampleMask = UINT_MAX;
-				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				pso_desc.NumRenderTargets = 1;
-				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				pso_desc.SampleDesc.Count = 1;
-				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Copy])));
-
-				pso_desc.BlendState.RenderTarget[0].BlendEnable = true;
-				pso_desc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
-				pso_desc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
-				pso_desc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Copy_AlphaBlend])));
-
-
-				pso_desc.BlendState.RenderTarget[0].BlendEnable = true;
-				pso_desc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
-				pso_desc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_ONE;
-				pso_desc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Copy_AdditiveBlend])));
-			}
-
-			//add
-			{
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc = {};
-
-				pso_desc.InputLayout = { nullptr, 0 };
-				pso_desc.pRootSignature = rs_map[ERootSignature::Add].Get();
-				pso_desc.VS = shader_map[VS_ScreenQuad];
-				pso_desc.PS = shader_map[PS_Add];
-				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-				pso_desc.SampleMask = UINT_MAX;
-				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				pso_desc.NumRenderTargets = 1;
-				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				pso_desc.SampleDesc.Count = 1;
-				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Add])));
-
-				pso_desc.BlendState.RenderTarget[0].BlendEnable = true;
-				pso_desc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
-				pso_desc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
-				pso_desc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Add_AlphaBlend])));
-
-
-				pso_desc.BlendState.RenderTarget[0].BlendEnable = true;
-				pso_desc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
-				pso_desc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_ONE;
-				pso_desc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Add_AdditiveBlend])));
-			}
-
-			//fog
-			{
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc = {};
-
-				pso_desc.InputLayout = { nullptr, 0 };
-				pso_desc.pRootSignature = rs_map[ERootSignature::Fog].Get();
-				pso_desc.VS = shader_map[VS_ScreenQuad];
-				pso_desc.PS = shader_map[PS_Fog];
-				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-				pso_desc.SampleMask = UINT_MAX;
-				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				pso_desc.NumRenderTargets = 1;
-				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				pso_desc.SampleDesc.Count = 1;
-				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Fog])));
-
-			}
-
-			//dof
-			{
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
-				pso_desc.InputLayout = { nullptr, 0 };
-				pso_desc.pRootSignature = rs_map[ERootSignature::DOF].Get();
-				pso_desc.VS = shader_map[VS_ScreenQuad];
-				pso_desc.PS = shader_map[PS_Dof];
-				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-
-				pso_desc.SampleMask = UINT_MAX;
-				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				pso_desc.NumRenderTargets = 1;
-				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				pso_desc.SampleDesc.Count = 1;
-				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::DOF])));
-			}
-
-			//bokeh 
-			{
-				D3D12_COMPUTE_PIPELINE_STATE_DESC compute_pso_desc = {};
-				compute_pso_desc.pRootSignature = rs_map[ERootSignature::BokehGenerate].Get();
-				compute_pso_desc.CS = shader_map[CS_BokehGenerate];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::BokehGenerate])));
-
-				// Describe and create the graphics pipeline state object (PSO).
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC graphics_pso_desc{};
-				graphics_pso_desc.InputLayout = { nullptr, 0 };
-				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::Bokeh].Get();
-				graphics_pso_desc.VS = shader_map[VS_Bokeh];
-				graphics_pso_desc.GS = shader_map[GS_Bokeh];
-				graphics_pso_desc.PS = shader_map[PS_Bokeh];
-				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-				graphics_pso_desc.BlendState.RenderTarget[0].BlendEnable = true;
-				graphics_pso_desc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
-				graphics_pso_desc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_ONE;
-				graphics_pso_desc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
-				graphics_pso_desc.SampleMask = UINT_MAX;
-				graphics_pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
-				graphics_pso_desc.NumRenderTargets = 1;
-				graphics_pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				graphics_pso_desc.SampleDesc.Count = 1;
-				graphics_pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&graphics_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Bokeh])));
-			}
-
-			//clouds
-			{
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
-				pso_desc.InputLayout = { nullptr, 0 };
-				pso_desc.pRootSignature = rs_map[ERootSignature::Clouds].Get();
-				pso_desc.VS = shader_map[VS_ScreenQuad];
-				pso_desc.PS = shader_map[PS_VolumetricClouds];
-				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-				pso_desc.SampleMask = UINT_MAX;
-				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				pso_desc.NumRenderTargets = 1;
-				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				pso_desc.SampleDesc.Count = 1;
-				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Clouds])));
-			}
-
-			//motion blur
-			{
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
-				pso_desc.InputLayout = { nullptr, 0 };
-				pso_desc.pRootSignature = rs_map[ERootSignature::MotionBlur].Get();
-				pso_desc.VS = shader_map[VS_ScreenQuad];
-				pso_desc.PS = shader_map[PS_MotionBlur];
-				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-
-				pso_desc.SampleMask = UINT_MAX;
-				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				pso_desc.NumRenderTargets = 1;
-				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				pso_desc.SampleDesc.Count = 1;
-				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::MotionBlur])));
-			}
-
-			//velocity buffer
-			{
-				// Describe and create the graphics pipeline state object (PSO).
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
-				pso_desc.InputLayout = { nullptr, 0 };
-				pso_desc.pRootSignature = rs_map[ERootSignature::VelocityBuffer].Get();
-				pso_desc.VS = shader_map[VS_ScreenQuad];
-				pso_desc.PS = shader_map[PS_VelocityBuffer];
-				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-
-				pso_desc.SampleMask = UINT_MAX;
-				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				pso_desc.NumRenderTargets = 1;
-				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16_FLOAT;
-				pso_desc.SampleDesc.Count = 1;
-				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::VelocityBuffer])));
-			}
-
-			//ocean 
-			{
-				D3D12_COMPUTE_PIPELINE_STATE_DESC compute_pso_desc = {};
-				compute_pso_desc.pRootSignature = rs_map[ERootSignature::FFT].Get();
-				compute_pso_desc.CS = shader_map[CS_FFT_Horizontal];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::FFT_Horizontal])));
-
-				compute_pso_desc.CS = shader_map[CS_FFT_Vertical];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::FFT_Vertical])));
-
-				compute_pso_desc.pRootSignature = rs_map[ERootSignature::InitialSpectrum].Get();
-				compute_pso_desc.CS = shader_map[CS_InitialSpectrum];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::InitialSpectrum])));
-
-				compute_pso_desc.pRootSignature = rs_map[ERootSignature::InitialSpectrum].Get();
-				compute_pso_desc.CS = shader_map[CS_InitialSpectrum];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::InitialSpectrum])));
-
-				compute_pso_desc.pRootSignature = rs_map[ERootSignature::OceanNormalMap].Get();
-				compute_pso_desc.CS = shader_map[CS_OceanNormalMap];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::OceanNormalMap])));
-
-				compute_pso_desc.pRootSignature = rs_map[ERootSignature::Phase].Get();
-				compute_pso_desc.CS = shader_map[CS_Phase];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Phase])));
-
-				compute_pso_desc.pRootSignature = rs_map[ERootSignature::Spectrum].Get();
-				compute_pso_desc.CS = shader_map[CS_Spectrum];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Spectrum])));
-
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
-				InputLayout il;
-				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_Ocean], il);
-				pso_desc.InputLayout = il;
-				pso_desc.pRootSignature = rs_map[ERootSignature::Ocean].Get();
-				pso_desc.VS = shader_map[VS_Ocean];
-				pso_desc.PS = shader_map[PS_Ocean];
-				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-				pso_desc.DepthStencilState.DepthEnable = TRUE;
-				pso_desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-				pso_desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
-				pso_desc.DepthStencilState.StencilEnable = FALSE;
-				pso_desc.SampleMask = UINT_MAX;
-				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				pso_desc.NumRenderTargets = 1;
-				pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				pso_desc.SampleDesc.Count = 1;
-				pso_desc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Ocean])));
-				pso_desc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Ocean_Wireframe])));
-
-				pso_desc.pRootSignature = rs_map[ERootSignature::OceanLOD].Get();
-				pso_desc.VS = shader_map[VS_OceanLOD];
-				pso_desc.DS = shader_map[DS_OceanLOD];
-				pso_desc.HS = shader_map[HS_OceanLOD];
-				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::OceanLOD_Wireframe])));
-				pso_desc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::OceanLOD])));
-			}
-
-			//decals
-			{
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc{};
-				InputLayout il;
-				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_Decals], il);
-				pso_desc.InputLayout = il;
-				pso_desc.pRootSignature = rs_map[ERootSignature::Decals].Get();
-				pso_desc.VS = shader_map[VS_Decals];
-				pso_desc.PS = shader_map[PS_Decals];
-				pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				pso_desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-				pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-				pso_desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-				pso_desc.DepthStencilState.DepthEnable = FALSE;
-				pso_desc.SampleMask = UINT_MAX;
-				pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				pso_desc.NumRenderTargets = 1;
-				pso_desc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-				pso_desc.SampleDesc.Count = 1;
-				pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Decals])));
-
-				pso_desc.PS = shader_map[PS_Decals_ModifyNormals];
-				pso_desc.NumRenderTargets = 2;
-				pso_desc.RTVFormats[1] = DXGI_FORMAT_R8G8B8A8_UNORM;
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Decals_ModifyNormals])));
-			}
-		}
-	}
-#pragma warning( pop ) 
 
 	void Renderer::CreateDescriptorHeaps()
 	{
@@ -3520,8 +2202,8 @@ namespace adria
 
 		gbuffer_render_pass.Begin(cmd_list);
 
-		cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::GbufferPBR].Get());
-		cmd_list->SetPipelineState(pso_map[EPipelineStateObject::GbufferPBR].Get());
+		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::GbufferPBR));
+		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::GbufferPBR));
 		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 
 		for (auto e : gbuffer_view)
@@ -3580,8 +2262,6 @@ namespace adria
 			gbuffer_barriers.ReverseTransitions();
 			gbuffer_barriers.Submit(cmd_list);
 		}
-
-
 	}
 	void Renderer::PassDecals(ID3D12GraphicsCommandList4* cmd_list)
 	{
@@ -3602,13 +2282,13 @@ namespace adria
 
 		decal_pass.Begin(cmd_list);
 		{
-			cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::Decals].Get());
+			cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Decals));
 			cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 			auto decal_view = reg.view<Decal>();
 
 			auto decal_pass_lambda = [&](bool modify_normals)
 			{
-				modify_normals ? cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Decals_ModifyNormals].Get()) : cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Decals].Get());
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(modify_normals ? EPipelineStateObject::Decals_ModifyNormals : EPipelineStateObject::Decals));
 				for (auto e : decal_view)
 				{
 					Decal decal = decal_view.get(e);
@@ -3668,8 +2348,8 @@ namespace adria
 
 		ssao_render_pass.Begin(cmd_list);
 		{
-			cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::AO].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::SSAO].Get());
+			cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::AO));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::SSAO));
 
 			cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 			cmd_list->SetGraphicsRootConstantBufferView(1, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
@@ -3687,7 +2367,6 @@ namespace adria
 			cmd_list->DrawInstanced(4, 1, 0, 0);
 		}
 		ssao_render_pass.End(cmd_list);
-
 
 		ssao_barrier.ReverseTransitions();
 		ssao_barrier.Submit(cmd_list);
@@ -3709,8 +2388,8 @@ namespace adria
 
 		hbao_render_pass.Begin(cmd_list);
 		{
-			cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::AO].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::HBAO].Get());
+			cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::AO));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::HBAO));
 
 			cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 			cmd_list->SetGraphicsRootConstantBufferView(1, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
@@ -3752,14 +2431,14 @@ namespace adria
 
 		ambient_render_pass.Begin(cmd_list);
 
-		cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::AmbientPBR].Get());
+		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::AmbientPBR));
 		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 
 		bool has_ao = settings.ambient_occlusion != EAmbientOcclusion::None;
-		if (has_ao && settings.ibl) cmd_list->SetPipelineState(pso_map[EPipelineStateObject::AmbientPBR_AO_IBL].Get());
-		else if (has_ao && !settings.ibl) cmd_list->SetPipelineState(pso_map[EPipelineStateObject::AmbientPBR_AO].Get());
-		else if (!has_ao && settings.ibl) cmd_list->SetPipelineState(pso_map[EPipelineStateObject::AmbientPBR_IBL].Get());
-		else cmd_list->SetPipelineState(pso_map[EPipelineStateObject::AmbientPBR].Get());
+		if (has_ao && settings.ibl) cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::AmbientPBR_AO_IBL));
+		else if (has_ao && !settings.ibl) cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::AmbientPBR_AO));
+		else if (!has_ao && settings.ibl) cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::AmbientPBR_IBL));
+		else cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::AmbientPBR));
 
 		D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = {gbuffer[0].SRV(), gbuffer[1].SRV(), gbuffer[2].SRV(), depth_target.SRV()};
 		uint32 src_range_sizes[] = {1,1,1,1};
@@ -3874,10 +2553,10 @@ namespace adria
 			//lighting + volumetric fog
 			lighting_render_pass.Begin(cmd_list);
 			{
-				cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::LightingPBR].Get());
+				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::LightingPBR));
 				cmd_list->SetPipelineState(light_data.ray_traced_shadows ? 
-					pso_map[EPipelineStateObject::LightingPBR_RayTracedShadows].Get() :
-					pso_map[EPipelineStateObject::LightingPBR].Get());
+					RootSigPSOManager::GetPipelineState(EPipelineStateObject::LightingPBR_RayTracedShadows) :
+					RootSigPSOManager::GetPipelineState(EPipelineStateObject::LightingPBR));
 
 				cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 
@@ -3986,8 +2665,8 @@ namespace adria
 
 		tiled_barriers.Submit(cmd_list);
 
-		cmd_list->SetComputeRootSignature(rs_map[ERootSignature::TiledLighting].Get());
-		cmd_list->SetPipelineState(pso_map[EPipelineStateObject::TiledLighting].Get());
+		cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::TiledLighting));
+		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::TiledLighting));
 
 		cmd_list->SetComputeRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 		cmd_list->SetComputeRootConstantBufferView(1, compute_cbuffer.View(backbuffer_index).BufferLocation);
@@ -4097,8 +2776,8 @@ namespace adria
 		//cluster building
 		if (recreate_clusters)
 		{
-			cmd_list->SetComputeRootSignature(rs_map[ERootSignature::ClusterBuilding].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::ClusterBuilding].Get());
+			cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::ClusterBuilding));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::ClusterBuilding));
 			cmd_list->SetComputeRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 
 			OffsetType descriptor_index = descriptor_allocator->Allocate();
@@ -4112,8 +2791,8 @@ namespace adria
 
 		//cluster building
 		{
-			cmd_list->SetComputeRootSignature(rs_map[ERootSignature::ClusterCulling].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::ClusterCulling].Get());
+			cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::ClusterCulling));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::ClusterCulling));
 		
 			OffsetType i = descriptor_allocator->AllocateRange(2);
 			D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(i);
@@ -4147,8 +2826,8 @@ namespace adria
 		//clustered lighting
 		lighting_render_pass.Begin(cmd_list);
 		{
-			cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::ClusteredLightingPBR].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::ClusteredLightingPBR].Get());
+			cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::ClusteredLightingPBR));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::ClusteredLightingPBR));
 			cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 
 			//gbuffer
@@ -4547,8 +3226,8 @@ namespace adria
 		auto shadow_view = reg.view<Mesh, Transform, Visibility>();
 		if (!settings.shadow_transparent)
 		{
-			cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::DepthMap].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::DepthMap].Get());
+			cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::DepthMap));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::DepthMap));
 			cmd_list->SetGraphicsRootConstantBufferView(1, shadow_allocation.gpu_address);
 
 			for (auto e : shadow_view)
@@ -4588,8 +3267,8 @@ namespace adria
 				}
 			}
 
-			cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::DepthMap].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::DepthMap].Get());
+			cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::DepthMap));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::DepthMap));
 			cmd_list->SetGraphicsRootConstantBufferView(1, shadow_allocation.gpu_address);
 			for (auto e : not_transparent)
 			{
@@ -4605,8 +3284,8 @@ namespace adria
 				mesh.Draw(cmd_list);
 			}
 
-			cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::DepthMap_Transparent].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::DepthMap_Transparent].Get());
+			cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::DepthMap_Transparent));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::DepthMap_Transparent));
 			cmd_list->SetGraphicsRootConstantBufferView(1, shadow_allocation.gpu_address);
 
 			for (auto e : potentially_transparent)
@@ -4651,7 +3330,7 @@ namespace adria
 			return;
 		}
 
-		cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::Volumetric].Get());
+		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Volumetric));
 		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 		cmd_list->SetGraphicsRootConstantBufferView(1, light_allocation.gpu_address);
 		cmd_list->SetGraphicsRootConstantBufferView(2, shadow_allocation.gpu_address);
@@ -4669,21 +3348,21 @@ namespace adria
 		case ELightType::Directional:
 			if (light.use_cascades)
 			{
-				cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Volumetric_DirectionalCascades].Get());
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Volumetric_DirectionalCascades));
 				cpu_handles[1] = shadow_depth_cascades.SRV();
 			}
 			else
 			{
-				cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Volumetric_Directional].Get());
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Volumetric_Directional));
 				cpu_handles[1] = shadow_depth_map.SRV();
 			}
 			break;
 		case ELightType::Spot:
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Volumetric_Spot].Get());
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Volumetric_Spot));
 			cpu_handles[1] = shadow_depth_map.SRV();
 			break;
 		case ELightType::Point:
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Volumetric_Point].Get());
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Volumetric_Point));
 			cpu_handles[1] = shadow_depth_cubemap.SRV();
 			break;
 		default:
@@ -4718,14 +3397,12 @@ namespace adria
 
 		if (entities_group.empty()) return;
 
-		cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::Forward].Get());
-		
+		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Forward));
 		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 		
 		for (auto const& [pso, entities] : entities_group)
 		{
-			cmd_list->SetPipelineState(pso_map[pso].Get());
-
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(pso));
 			for (auto e : entities)
 			{
 				auto [mesh, transform, material, visibility] = forward_view.get<Mesh, Transform, Material, Visibility>(e);
@@ -4752,9 +3429,7 @@ namespace adria
 				D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
 
 				device->CopyDescriptorsSimple(1, dst_descriptor, diffuse_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
 				cmd_list->SetGraphicsRootDescriptorTable(3, descriptor_allocator->GetGpuHandle(descriptor_index));
-
 				mesh.Draw(cmd_list);
 			}
 
@@ -4778,8 +3453,8 @@ namespace adria
 		{
 		case ESkyType::Skybox:
 		{
-			cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::Skybox].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::Skybox].Get());
+			cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Skybox));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Skybox));
 
 			cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 			cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
@@ -4803,8 +3478,8 @@ namespace adria
 		}
 		case ESkyType::UniformColor:
 		{
-			cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::Sky].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::UniformColorSky].Get());
+			cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Sky));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::UniformColorSky));
 			cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 			cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
 			cmd_list->SetGraphicsRootConstantBufferView(2, weather_cbuffer.View(backbuffer_index).BufferLocation);
@@ -4812,8 +3487,8 @@ namespace adria
 		}
 		case ESkyType::HosekWilkie:
 		{
-			cmd_list->SetGraphicsRootSignature(rs_map[ERootSignature::Sky].Get());
-			cmd_list->SetPipelineState(pso_map[EPipelineStateObject::HosekWilkieSky].Get());
+			cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Sky));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::HosekWilkieSky));
 			cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 			cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
 			cmd_list->SetGraphicsRootConstantBufferView(2, weather_cbuffer.View(backbuffer_index).BufferLocation);

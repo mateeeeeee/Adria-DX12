@@ -14,7 +14,7 @@ float4 Mip(uint2 coord)
 }
 
 [numthreads(8, 8, 1)]
-void cs_main(uint3 DTid : SV_DispatchThreadID)
+void main(uint3 DTid : SV_DispatchThreadID)
 {
 	//Write the final color into the destination texture.
     DstTexture[DTid.xy] = Mip(DTid.xy);

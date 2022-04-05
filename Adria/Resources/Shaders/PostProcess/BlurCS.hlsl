@@ -13,7 +13,7 @@ const static uint size_y = 1024;
 groupshared float4 horizontalpoints[4 + size_x + 4];
 
 [numthreads(size_x, 1, 1)]
-void cs_main(uint3 GroupID : SV_GroupID, uint3 DispatchThreadID : SV_DispatchThreadID, uint3 GroupThreadID : SV_GroupThreadID, uint GroupIndex : SV_GroupIndex)
+void main(uint3 GroupID : SV_GroupID, uint3 DispatchThreadID : SV_DispatchThreadID, uint3 GroupThreadID : SV_GroupThreadID, uint GroupIndex : SV_GroupIndex)
 {
     float filter_gauss[9] =
     {
@@ -75,8 +75,7 @@ groupshared float4 verticalpoints[4 + size_y + 4];
 
 // For the vertical pass, use only a single column of threads
 [numthreads(1, size_y, 1)]
-
-void cs_main(uint3 GroupID : SV_GroupID, uint3 DispatchThreadID : SV_DispatchThreadID, uint3 GroupThreadID : SV_GroupThreadID, uint GroupIndex : SV_GroupIndex)
+void main(uint3 GroupID : SV_GroupID, uint3 DispatchThreadID : SV_DispatchThreadID, uint3 GroupThreadID : SV_GroupThreadID, uint GroupIndex : SV_GroupIndex)
 {
     float filter_gauss[9] =
     {

@@ -134,7 +134,7 @@ namespace adria
 			if (!input.entrypoint.empty()) entry_point = ConvertToWide(input.entrypoint);
 
 			std::vector<DxcDefine> sm6_defines{};
-			for (auto const& define : input.defines)
+			for (auto const& define : input.macros)
 			{
 				DxcDefine sm6_define{};
 				sm6_define.Name = define.name.c_str();

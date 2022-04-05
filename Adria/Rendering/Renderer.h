@@ -124,10 +124,6 @@ namespace adria
 		PickingData picking_data;
 		bool update_picking_data = false;
 
-		std::unordered_map<EShader, ShaderBlob> shader_map;
-		std::unordered_map<ERootSignature, Microsoft::WRL::ComPtr<ID3D12RootSignature>> rs_map;
-		std::unordered_map<EPipelineStateObject, Microsoft::WRL::ComPtr<ID3D12PipelineState>> pso_map;
-
 		//textures and heaps
 		Texture2D hdr_render_target;
 		Texture2D prev_hdr_render_target;
@@ -232,10 +228,6 @@ namespace adria
 		std::shared_ptr<VertexBuffer>	cube_vb = nullptr;
 		std::shared_ptr<IndexBuffer>	cube_ib = nullptr;
 	private:
-
-		void LoadShaders();
-		void CreateRootSignatures();
-		void CreatePipelineStateObjects();
 
 		void CreateDescriptorHeaps();
 		void CreateResolutionDependentResources(uint32 width, uint32 height);

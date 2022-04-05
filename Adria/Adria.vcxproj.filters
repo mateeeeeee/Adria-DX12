@@ -200,6 +200,9 @@
     <ClCompile Include="Rendering\SkyModel.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\RootSigPSOManager.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -506,6 +509,9 @@
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\SceneViewport.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\RootSigPSOManager.h">
       <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>

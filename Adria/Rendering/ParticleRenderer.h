@@ -3,6 +3,7 @@
 #include <DirectXMath.h>
 #include "Enums.h"
 #include "Components.h"
+#include "RootSigPSOManager.h"
 #include "../tecs/registry.h"
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/VertexBuffer.h"
@@ -84,8 +85,6 @@ namespace adria
 			view_space_positions_buffer(gfx->GetDevice(), MAX_PARTICLES),
 			alive_index_buffer(gfx->GetDevice(), MAX_PARTICLES, true)
 		{
-			LoadShaders();
-			CreatePipelineStateObjects();
 			CreateResources();
 		}
 
@@ -147,10 +146,10 @@ namespace adria
 			index_buffer = std::make_unique<IndexBuffer>(gfx, indices);
 		}
 
-		void SetCBuffersForThisFrame(D3D12_GPU_VIRTUAL_ADDRESS frame_cbuffer_address, D3D12_GPU_VIRTUAL_ADDRESS compute_cbuffer_address)
+		void SetCBuffersForThisFrame(D3D12_GPU_VIRTUAL_ADDRESS _frame_cbuffer_address, D3D12_GPU_VIRTUAL_ADDRESS _compute_cbuffer_address)
 		{
-			this->frame_cbuffer_address = frame_cbuffer_address;
-			this->compute_cbuffer_address = compute_cbuffer_address;
+			frame_cbuffer_address = _frame_cbuffer_address;
+			compute_cbuffer_address = _compute_cbuffer_address;
 		}
 
 		void Update(float32 dt, Emitter& emitter_params)
@@ -216,138 +215,8 @@ namespace adria
 		std::unique_ptr<DescriptorHeap> particle_heap;
 		std::unique_ptr<IndexBuffer> index_buffer;
 
-		std::unordered_map<EShader, ShaderBlob> particle_shader_map;
-		std::unordered_map<ERootSignature, Microsoft::WRL::ComPtr<ID3D12RootSignature>> particle_rs_map;
-		std::unordered_map<EPipelineStateObject, Microsoft::WRL::ComPtr<ID3D12PipelineState>> particle_pso_map;
-
 	private:
 
-		void LoadShaders()
-		{
-			ShaderBlob cs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/InitDeadListCS.cso", cs_blob);
-			particle_shader_map[CS_ParticleInitDeadList] = cs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ParticleResetCS.cso", cs_blob);
-			particle_shader_map[CS_ParticleReset] = cs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ParticleEmitCS.cso", cs_blob);
-			particle_shader_map[CS_ParticleEmit] = cs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ParticleSimulateCS.cso", cs_blob);
-			particle_shader_map[CS_ParticleSimulate] = cs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BitonicSortStepCS.cso", cs_blob);
-			particle_shader_map[CS_ParticleBitonicSortStep] = cs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/Sort512CS.cso", cs_blob);
-			particle_shader_map[CS_ParticleSort512] = cs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SortInner512CS.cso", cs_blob);
-			particle_shader_map[CS_ParticleSortInner512] = cs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/InitSortDispatchArgsCS.cso", cs_blob);
-			particle_shader_map[CS_ParticleInitSortDispatchArgs] = cs_blob;
-
-			ShaderBlob vs_blob, ps_blob;
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ParticleVS.cso", vs_blob);
-			particle_shader_map[VS_Particles] = vs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ParticlePS.cso", ps_blob);
-			particle_shader_map[PS_Particles] = ps_blob;
-		}
-		void CreatePipelineStateObjects()
-		{
-			ID3D12Device* device = gfx->GetDevice();
-			D3D12_FEATURE_DATA_ROOT_SIGNATURE feature_data{};
-			feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
-
-			if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &feature_data, sizeof(feature_data))))
-				feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
-
-			//root signatures
-			{
-				BREAK_IF_FAILED(device->CreateRootSignature(0, particle_shader_map[CS_ParticleInitDeadList].GetPointer(), particle_shader_map[CS_ParticleInitDeadList].GetLength(),
-					IID_PPV_ARGS(particle_rs_map[ERootSignature::Particles_InitDeadList].GetAddressOf())));
-
-				BREAK_IF_FAILED(device->CreateRootSignature(0, particle_shader_map[CS_ParticleReset].GetPointer(), particle_shader_map[CS_ParticleReset].GetLength(),
-					IID_PPV_ARGS(particle_rs_map[ERootSignature::Particles_Reset].GetAddressOf())));
-
-				BREAK_IF_FAILED(device->CreateRootSignature(0, particle_shader_map[CS_ParticleSimulate].GetPointer(), particle_shader_map[CS_ParticleSimulate].GetLength(),
-					IID_PPV_ARGS(particle_rs_map[ERootSignature::Particles_Simulate].GetAddressOf())));
-
-				BREAK_IF_FAILED(device->CreateRootSignature(0, particle_shader_map[CS_ParticleEmit].GetPointer(), particle_shader_map[CS_ParticleEmit].GetLength(),
-					IID_PPV_ARGS(particle_rs_map[ERootSignature::Particles_Emit].GetAddressOf())));
-
-				BREAK_IF_FAILED(device->CreateRootSignature(0, particle_shader_map[PS_Particles].GetPointer(), particle_shader_map[PS_Particles].GetLength(),
-					IID_PPV_ARGS(particle_rs_map[ERootSignature::Particles_Shading].GetAddressOf())));
-
-				BREAK_IF_FAILED(device->CreateRootSignature(0, particle_shader_map[CS_ParticleInitSortDispatchArgs].GetPointer(), particle_shader_map[CS_ParticleInitSortDispatchArgs].GetLength(),
-					IID_PPV_ARGS(particle_rs_map[ERootSignature::Particles_InitSortDispatchArgs].GetAddressOf())));
-
-				BREAK_IF_FAILED(device->CreateRootSignature(0, particle_shader_map[CS_ParticleSort512].GetPointer(), particle_shader_map[CS_ParticleSort512].GetLength(),
-					IID_PPV_ARGS(particle_rs_map[ERootSignature::Particles_Sort].GetAddressOf())));
-			}
-
-			//PSOs
-			{
-				D3D12_COMPUTE_PIPELINE_STATE_DESC compute_pso_desc = {};
-				compute_pso_desc.pRootSignature = particle_rs_map[ERootSignature::Particles_InitDeadList].Get();
-				compute_pso_desc.CS = particle_shader_map[CS_ParticleInitDeadList];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&particle_pso_map[EPipelineStateObject::Particles_InitDeadList])));
-
-				compute_pso_desc.pRootSignature = particle_rs_map[ERootSignature::Particles_Reset].Get();
-				compute_pso_desc.CS = particle_shader_map[CS_ParticleReset];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&particle_pso_map[EPipelineStateObject::Particles_Reset])));
-
-				compute_pso_desc.pRootSignature = particle_rs_map[ERootSignature::Particles_Simulate].Get();
-				compute_pso_desc.CS = particle_shader_map[CS_ParticleSimulate];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&particle_pso_map[EPipelineStateObject::Particles_Simulate])));
-
-				compute_pso_desc.pRootSignature = particle_rs_map[ERootSignature::Particles_Emit].Get();
-				compute_pso_desc.CS = particle_shader_map[CS_ParticleEmit];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&particle_pso_map[EPipelineStateObject::Particles_Emit])));
-
-				compute_pso_desc.pRootSignature = particle_rs_map[ERootSignature::Particles_InitSortDispatchArgs].Get();
-				compute_pso_desc.CS = particle_shader_map[CS_ParticleInitSortDispatchArgs];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&particle_pso_map[EPipelineStateObject::Particles_InitSortDispatchArgs])));
-
-				compute_pso_desc.pRootSignature = particle_rs_map[ERootSignature::Particles_Sort].Get();
-				compute_pso_desc.CS = particle_shader_map[CS_ParticleBitonicSortStep];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&particle_pso_map[EPipelineStateObject::Particles_BitonicSortStep])));
-
-				compute_pso_desc.CS = particle_shader_map[CS_ParticleSort512];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&particle_pso_map[EPipelineStateObject::Particles_Sort512])));
-
-				compute_pso_desc.CS = particle_shader_map[CS_ParticleSortInner512];
-				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&particle_pso_map[EPipelineStateObject::Particles_SortInner512])));
-
-				D3D12_GRAPHICS_PIPELINE_STATE_DESC graphics_pso_desc{};
-				graphics_pso_desc.InputLayout = { nullptr, 0u };
-				graphics_pso_desc.pRootSignature = particle_rs_map[ERootSignature::Particles_Shading].Get();
-				graphics_pso_desc.VS = particle_shader_map[VS_Particles];
-				graphics_pso_desc.PS = particle_shader_map[PS_Particles];
-				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				graphics_pso_desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-				graphics_pso_desc.BlendState.RenderTarget[0].BlendEnable = TRUE;
-				graphics_pso_desc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
-				graphics_pso_desc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
-				graphics_pso_desc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
-				graphics_pso_desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-				graphics_pso_desc.DepthStencilState.DepthEnable = FALSE;
-				graphics_pso_desc.DepthStencilState.StencilEnable = FALSE;
-				graphics_pso_desc.SampleMask = UINT_MAX;
-				graphics_pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				graphics_pso_desc.NumRenderTargets = 1;
-				graphics_pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				graphics_pso_desc.SampleDesc.Count = 1;
-				graphics_pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&graphics_pso_desc, IID_PPV_ARGS(&particle_pso_map[EPipelineStateObject::Particles_Shading])));
-			}
-		}
 		void CreateResources()
 		{
 			ID3D12Device* device = gfx->GetDevice();
@@ -481,8 +350,8 @@ namespace adria
 			D3D12_RESOURCE_BARRIER postreset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(dead_list_buffer.CounterBuffer(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			cmd_list->ResourceBarrier(1, &postreset_barrier);
 
-			cmd_list->SetComputeRootSignature(particle_rs_map[ERootSignature::Particles_InitDeadList].Get());
-			cmd_list->SetPipelineState(particle_pso_map[EPipelineStateObject::Particles_InitDeadList].Get());
+			cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_InitDeadList));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_InitDeadList));
 			OffsetType descriptor_index = descriptor_allocator->Allocate();
 			device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index), dead_list_buffer.UAV(),
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -494,8 +363,8 @@ namespace adria
 			ID3D12Device* device = gfx->GetDevice();
 			LinearDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
 
-			cmd_list->SetComputeRootSignature(particle_rs_map[ERootSignature::Particles_Reset].Get());
-			cmd_list->SetPipelineState(particle_pso_map[EPipelineStateObject::Particles_Reset].Get());
+			cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_Reset));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_Reset));
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
 			device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index), particle_bufferA.UAV(),
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -531,8 +400,8 @@ namespace adria
 				emitter_allocation = upload_buffer->Allocate(GetCBufferSize<EmitterCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 				emitter_allocation.Update(emitter_cbuffer_data);
 
-				cmd_list->SetComputeRootSignature(particle_rs_map[ERootSignature::Particles_Emit].Get());
-				cmd_list->SetPipelineState(particle_pso_map[EPipelineStateObject::Particles_Emit].Get());
+				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_Emit));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_Emit));
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index), particle_bufferA.UAV(),
@@ -570,8 +439,8 @@ namespace adria
 			ID3D12Device* device = gfx->GetDevice();
 			LinearDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
 
-			cmd_list->SetComputeRootSignature(particle_rs_map[ERootSignature::Particles_Simulate].Get());
-			cmd_list->SetPipelineState(particle_pso_map[EPipelineStateObject::Particles_Simulate].Get());
+			cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_Simulate));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_Simulate));
 
 			//reset index buffer counter
 			D3D12_RESOURCE_BARRIER prereset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(alive_index_buffer.CounterBuffer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_DEST);
@@ -611,8 +480,8 @@ namespace adria
 			ID3D12Device* device = gfx->GetDevice();
 			LinearDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
 
-			cmd_list->SetGraphicsRootSignature(particle_rs_map[ERootSignature::Particles_Shading].Get());
-			cmd_list->SetPipelineState(particle_pso_map[EPipelineStateObject::Particles_Shading].Get());
+			cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_Shading));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_Shading));
 
 			//add barriers?
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
@@ -667,8 +536,8 @@ namespace adria
 			};
 			cmd_list->ResourceBarrier(ARRAYSIZE(barriers), barriers);
 
-			cmd_list->SetComputeRootSignature(particle_rs_map[ERootSignature::Particles_InitSortDispatchArgs].Get());
-			cmd_list->SetPipelineState(particle_pso_map[EPipelineStateObject::Particles_InitSortDispatchArgs].Get());
+			cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_InitSortDispatchArgs));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_InitSortDispatchArgs));
 
 			OffsetType descriptor_index = descriptor_allocator->Allocate();
 			device->CopyDescriptorsSimple(1, descriptor_allocator->GetCpuHandle(descriptor_index), indirect_sort_args_uav,
@@ -682,7 +551,7 @@ namespace adria
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			sort_dispatch_info_allocation = upload_buffer->Allocate(GetCBufferSize<SortDispatchInfo>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 			sort_dispatch_info_allocation.Update(SortDispatchInfo{});
-			cmd_list->SetComputeRootSignature(particle_rs_map[ERootSignature::Particles_Sort].Get());
+			cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_Sort));
 			cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetGpuHandle(descriptor_index));
 			cmd_list->SetComputeRootConstantBufferView(1, alive_index_buffer.CounterBuffer()->GetGPUVirtualAddress());
 			cmd_list->SetComputeRootConstantBufferView(2, sort_dispatch_info_allocation.gpu_address);
@@ -712,7 +581,7 @@ namespace adria
 				CD3DX12_RESOURCE_BARRIER::Transition(indirect_sort_args_buffer.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT)
 			};
 			cmd_list->ResourceBarrier(ARRAYSIZE(barriers), barriers);
-			cmd_list->SetPipelineState(particle_pso_map[EPipelineStateObject::Particles_Sort512].Get());
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_Sort512));
 			cmd_list->ExecuteIndirect(indirect_sort_args_signature.Get(), 1, indirect_sort_args_buffer.Get(), 0, nullptr, 0);
 
 			barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(indirect_sort_args_buffer.Get(), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
@@ -730,7 +599,7 @@ namespace adria
 			LinearUploadBuffer* upload_buffer = gfx->GetUploadBuffer();
 
 			bool done = true;
-			cmd_list->SetPipelineState(particle_pso_map[EPipelineStateObject::Particles_BitonicSortStep].Get());
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_BitonicSortStep));
 			UINT num_thread_groups = 0;
 			if (MAX_PARTICLES > presorted)
 			{
@@ -765,7 +634,7 @@ namespace adria
 				D3D12_RESOURCE_BARRIER uav_barrier = CD3DX12_RESOURCE_BARRIER::UAV(alive_index_buffer.Buffer());
 				cmd_list->ResourceBarrier(1, &uav_barrier);
 			}
-			cmd_list->SetPipelineState(particle_pso_map[EPipelineStateObject::Particles_SortInner512].Get());
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_SortInner512));
 			cmd_list->Dispatch(num_thread_groups, 1, 1);
 			return done;
 		}

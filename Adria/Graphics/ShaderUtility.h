@@ -64,7 +64,7 @@ namespace adria
 		}
 	};
 
-	struct ShaderDefine
+	struct ShaderMacro
 	{
 		std::wstring name;
 		std::wstring value;
@@ -82,7 +82,7 @@ namespace adria
 		EShaderStage stage = EShaderStage::COUNT;
 		std::string shadersource = "";
 		std::string entrypoint = "";
-		std::vector<ShaderDefine> defines;
+		std::vector<ShaderMacro> macros;
 		UINT64 flags = FLAG_NONE;
 	};
 

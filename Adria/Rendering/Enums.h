@@ -89,7 +89,8 @@ namespace adria
 		CS_ParticleSort512,
 		CS_ParticleSortInner512,
 		CS_ParticleInitSortDispatchArgs,
-		CS_Picker
+		CS_Picker,
+		EShader_Count
 	};
 
 	enum class ERootSignature : uint8

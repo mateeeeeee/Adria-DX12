@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <DirectXMath.h>
+#include "RootSigPSOManager.h"
 #include "../Graphics/ReadbackBuffer.h"
 #include "../Graphics/StructuredBuffer.h"
 #include "../Graphics/ShaderUtility.h"
@@ -24,15 +25,6 @@ namespace adria
 		Picker(GraphicsCoreDX12* gfx) : gfx(gfx), write_picking_buffer(gfx->GetDevice(), 1, false, D3D12_RESOURCE_STATE_COPY_SOURCE),
 			read_picking_buffer{ {gfx->GetDevice(), sizeof(PickingData)}, {gfx->GetDevice(), sizeof(PickingData)}, {gfx->GetDevice(), sizeof(PickingData)} }
 		{
-			ID3D12Device* device = gfx->GetDevice();
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/PickerCS.cso", picker_blob);
-			BREAK_IF_FAILED(device->CreateRootSignature(0, picker_blob.GetPointer(), picker_blob.GetLength(),
-				IID_PPV_ARGS(picker_rs.GetAddressOf())));
-
-			D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc = {};
-			pso_desc.pRootSignature = picker_rs.Get();
-			pso_desc.CS = picker_blob;
-			BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(picker_pso.GetAddressOf())));
 		}
 
 		void CreateView(D3D12_CPU_DESCRIPTOR_HANDLE uav_handle)
@@ -49,8 +41,8 @@ namespace adria
 			LinearDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
 			UINT backbuffer_index = gfx->BackbufferIndex();
 
-			cmd_list->SetComputeRootSignature(picker_rs.Get());
-			cmd_list->SetPipelineState(picker_pso.Get());
+			cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Picker));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Picker));
 
 			cmd_list->SetComputeRootConstantBufferView(0, frame_cbuffer_gpu_address);
 			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { depth_handle, normal_handle };
@@ -94,7 +86,5 @@ namespace adria
 		StructuredBuffer<PickingData> write_picking_buffer;
 		ReadbackBuffer read_picking_buffer[GraphicsCoreDX12::BackbufferCount()];
 		ShaderBlob picker_blob;
-		Microsoft::WRL::ComPtr<ID3D12RootSignature> picker_rs;
-		Microsoft::WRL::ComPtr<ID3D12PipelineState> picker_pso;
 	};
 }

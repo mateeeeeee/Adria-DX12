@@ -17,7 +17,7 @@ struct VS_OUTPUT
 };
 
 
-VS_OUTPUT vs_main(VS_INPUT input)
+VS_OUTPUT main(VS_INPUT input)
 {
     VS_OUTPUT output;
     float4 pos = float4(input.Pos, 1.0f);

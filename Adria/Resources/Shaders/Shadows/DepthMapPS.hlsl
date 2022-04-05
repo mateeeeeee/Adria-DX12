@@ -22,7 +22,7 @@ struct VS_OUTPUT
 #else 
 [RootSignature(DepthMap_RS)]
 #endif
-void ps_main(VS_OUTPUT pin)//: SV_Target
+void main(VS_OUTPUT pin)//: SV_Target
 {
 #if TRANSPARENT 
     if( albedo_texture.Sample(linear_wrap_sampler,pin.TexCoords).a < 0.1 ) 
