@@ -24,14 +24,12 @@ namespace adria
 	
 	class Editor
 	{
-		
+		using ShaderReloadCallback = void(*)();
+
 	public:
 		explicit Editor(editor_init_t const& init);
-
 		~Editor();
-
 		void HandleWindowMessage(window_message_t const& msg_data);
-
 		void Run();
 
 	private:
@@ -45,7 +43,7 @@ namespace adria
 		RendererSettings renderer_settings{};
 		ProfilerSettings profiler_settings{};
 		SceneViewport scene_viewport_data;
-		std::vector<void(*)()> shader_reload_callbacks;
+		ShaderReloadCallback shader_reload_callback;
 	private:
 		void SetStyle();
 
