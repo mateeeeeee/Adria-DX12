@@ -85,18 +85,15 @@ namespace adria
 		void UploadData();
 
 		Texture2D GetOffscreenTexture() const;
-
 		TextureManager& GetTextureManager();
-
 		std::vector<std::string> GetProfilerResults(bool log = false);
-
 		PickingData GetPickingData() const;
 
+		bool IsRayTracingSupported() const { return ray_tracer.IsSupported(); };
 		Texture2D const& GetRayTracingShadowsTexture_Debug() const
 		{
 			return ray_tracer.GetRayTracingShadowsTexture();
 		}
-
 		Texture2D const& GetRayTracingAOTexture_Debug() const
 		{
 			return ray_tracer.GetRayTracingAmbientOcclusionTexture();

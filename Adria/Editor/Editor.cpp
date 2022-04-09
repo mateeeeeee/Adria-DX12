@@ -485,7 +485,7 @@ namespace adria
                 Log();
                 Profiling();
 				ShaderHotReload();
-				RayTracingDebug();
+				if (engine->renderer->IsRayTracingSupported()) RayTracingDebug();
                 gui->End(gui_cmd_list);
             }
             engine->Present();
