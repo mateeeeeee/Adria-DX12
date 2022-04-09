@@ -514,6 +514,9 @@
     <ClInclude Include="Rendering\RootSigPSOManager.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\ByteAddressBuffer.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

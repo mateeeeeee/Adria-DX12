@@ -218,6 +218,7 @@
     <ClInclude Include="Editor\GUI.h" />
     <ClInclude Include="Events\EventQueue.h" />
     <ClInclude Include="Events\IEvent.h" />
+    <ClInclude Include="Graphics\ByteAddressBuffer.h" />
     <ClInclude Include="Graphics\ConstantBuffer.h" />
     <ClInclude Include="Graphics\D3D12MemAlloc.h" />
     <ClInclude Include="Graphics\d3dx12.h" />
