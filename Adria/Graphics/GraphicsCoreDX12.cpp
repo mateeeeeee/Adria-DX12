@@ -16,10 +16,10 @@ namespace adria
 		HRESULT hr = E_FAIL;
 		UINT dxgi_factory_flags = 0;
 #if defined(_DEBUG)
-		Microsoft::WRL::ComPtr<ID3D12Debug> debugController;
-		if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
+		Microsoft::WRL::ComPtr<ID3D12Debug> debug_controller;
+		if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debug_controller))))
 		{
-			debugController->EnableDebugLayer();
+			debug_controller->EnableDebugLayer();
 			dxgi_factory_flags |= DXGI_CREATE_FACTORY_DEBUG;
 		}
 #endif
@@ -35,7 +35,7 @@ namespace adria
 		BREAK_IF_FAILED(hr);
 
 #if defined(_DEBUG)
-		if (debugController != NULL)
+		if (debug_controller != NULL)
 		{
 			ID3D12InfoQueue* pInfoQueue = NULL;
 			device->QueryInterface(IID_PPV_ARGS(&pInfoQueue));
@@ -44,12 +44,12 @@ namespace adria
 			pInfoQueue->Release();
 		}
 #endif
-		Microsoft::WRL::ComPtr<IDXGIAdapter1> pAdapter;
-		dxgi_factory->EnumAdapters1(1, &pAdapter);
+		Microsoft::WRL::ComPtr<IDXGIAdapter1> p_adapter;
+		dxgi_factory->EnumAdapters1(1, &p_adapter);
 
-		D3D12MA::ALLOCATOR_DESC allocator_desc = {};
+		D3D12MA::ALLOCATOR_DESC allocator_desc{};
 		allocator_desc.pDevice = device.Get();
-		allocator_desc.pAdapter = pAdapter.Get();
+		allocator_desc.pAdapter = p_adapter.Get();
 		D3D12MA::Allocator* _allocator = nullptr;
 		hr = D3D12MA::CreateAllocator(&allocator_desc, &_allocator);
 		BREAK_IF_FAILED(hr);
@@ -123,7 +123,7 @@ namespace adria
 			release_queue_event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 			if (release_queue_event == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
 		}
-		
+
 		render_target_heap = std::make_unique<DescriptorHeap>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, BACKBUFFER_COUNT);
 
 		//frame resources
@@ -165,7 +165,7 @@ namespace adria
 
 		//sync objects
 		{
-			for (size_t i = 0; i < BACKBUFFER_COUNT; ++i)
+			for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
 			{
 				hr = device->CreateFence(frame_fence_values[i], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&frame_fences[i]));
 				BREAK_IF_FAILED(hr);
@@ -192,13 +192,11 @@ namespace adria
 		}
 	}
 
-
-
 	GraphicsCoreDX12::~GraphicsCoreDX12()
 	{
 		WaitForGPU();
 		ProcessReleaseQueue();
-		for (size_t i = 0; i < BACKBUFFER_COUNT; ++i) 
+		for (size_t i = 0; i < BACKBUFFER_COUNT; ++i)
 		{
 			if (graphics_fences[i]->GetCompletedValue() < graphics_fence_values[i])
 			{
@@ -226,32 +224,40 @@ namespace adria
 		wait_fence_value++;
 	}
 
-	void GraphicsCoreDX12::WaitOnQueue(EQueueType type)
+	void GraphicsCoreDX12::WaitOnQueue(EQueueType type, UINT64 fence_value)
 	{
 		switch (type)
 		{
 		case EQueueType::Graphics:
-			graphics_queue->Wait(compute_fences[backbuffer_index].Get(), compute_fence_values[backbuffer_index]);
-			++compute_fence_values[backbuffer_index];
+			graphics_queue->Wait(compute_fences[backbuffer_index].Get(), fence_value);
 			break;
 		case EQueueType::Compute:
-			compute_queue->Wait(graphics_fences[backbuffer_index].Get(), graphics_fence_values[backbuffer_index]);
-			++graphics_fence_values[backbuffer_index];
+			compute_queue->Wait(graphics_fences[backbuffer_index].Get(), fence_value);
 			break;
+		default:
+			ADRIA_ASSERT(false && "Unsupported Queue Type!");
 		}
 	}
 
-	void GraphicsCoreDX12::SignalFromQueue(EQueueType type)
+	UINT64 GraphicsCoreDX12::SignalFromQueue(EQueueType type)
 	{
+		UINT64 fence_signal_value = -1;
 		switch (type)
 		{
 		case EQueueType::Graphics:
-			graphics_queue->Signal(graphics_fences[backbuffer_index].Get(), graphics_fence_values[backbuffer_index]);
+			fence_signal_value = graphics_fence_values[backbuffer_index];
+			graphics_queue->Signal(graphics_fences[backbuffer_index].Get(), fence_signal_value);
+			++graphics_fence_values[backbuffer_index];
 			break;
 		case EQueueType::Compute:
+			fence_signal_value = compute_fence_values[backbuffer_index];
 			compute_queue->Signal(compute_fences[backbuffer_index].Get(), compute_fence_values[backbuffer_index]);
+			++compute_fence_values[backbuffer_index];
 			break;
+		default:
+			ADRIA_ASSERT(false && "Unsupported Queue Type!");
 		}
+		return fence_signal_value;
 	}
 
 	void GraphicsCoreDX12::ResizeBackbuffer(UINT w, UINT h)
@@ -504,7 +510,7 @@ namespace adria
 
 	void GraphicsCoreDX12::ExecuteComputeCommandLists()
 	{
-		
+
 		auto& frame_resources = GetFrameResources();
 
 		if (frame_resources.compute_cmd_list_index == 0) return;
@@ -557,7 +563,7 @@ namespace adria
 		}
 
 		BREAK_IF_FAILED(graphics_queue->Signal(release_queue_fence.Get(), release_queue_fence_value));
-		
+
 		++release_queue_fence_value;
 	}
 

@@ -1,6 +1,8 @@
 #pragma once
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "dxguid.lib")
+
 
 #include <memory>
 #include <mutex>
@@ -57,8 +59,8 @@ namespace adria
 
 		void WaitForGPU();
 
-		void WaitOnQueue(EQueueType type);
-		void SignalFromQueue(EQueueType type);
+		void WaitOnQueue(EQueueType type, UINT64 fence_value);
+		UINT64 SignalFromQueue(EQueueType type);
 
 		void ResizeBackbuffer(UINT w, UINT h);
 		UINT BackbufferIndex() const;
@@ -98,10 +100,10 @@ namespace adria
 		UINT frame_index;
 		Microsoft::WRL::ComPtr<IDXGISwapChain3> swap_chain = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12Device5> device = nullptr;
-		
+
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue> graphics_queue = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue> compute_queue = nullptr;
-		
+
 		//release queue
 		ReleasablePtr<D3D12MA::Allocator> allocator = nullptr;
 		std::queue<ReleasableItem>  release_queue;
