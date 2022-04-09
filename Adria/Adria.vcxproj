@@ -191,7 +191,7 @@
     <ClCompile Include="Rendering\Renderer.cpp" />
     <ClCompile Include="Rendering\RootSigPSOManager.cpp" />
     <ClCompile Include="Rendering\SkyModel.cpp" />
-    <ClCompile Include="Utilities\AppException.cpp" />
+    <ClCompile Include="Utilities\AdriaException.cpp" />
     <ClCompile Include="Utilities\Heightmap.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -289,7 +289,7 @@
     <ClInclude Include="Utilities\RingAllocator.h" />
     <ClInclude Include="Utilities\RingBuffer.h" />
     <ClInclude Include="Utilities\ConcurrentQueue.h" />
-    <ClInclude Include="Utilities\AppException.h" />
+    <ClInclude Include="Utilities\AdriaException.h" />
     <ClInclude Include="Utilities\HashUtil.h" />
     <ClInclude Include="Utilities\Image.h" />
     <ClInclude Include="Utilities\MemoryLeak.h" />

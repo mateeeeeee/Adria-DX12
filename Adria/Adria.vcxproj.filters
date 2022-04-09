@@ -143,7 +143,7 @@
     <ClCompile Include="Graphics\RingUploadBuffer.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Utilities\AppException.cpp">
+    <ClCompile Include="Utilities\AdriaException.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
     <ClCompile Include="..\ThirdParty\ImGui\imgui.cpp">
@@ -397,7 +397,7 @@
     <ClInclude Include="Graphics\StructuredBuffer.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\AppException.h">
+    <ClInclude Include="Utilities\AdriaException.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="..\ThirdParty\ImGui\imconfig.h">

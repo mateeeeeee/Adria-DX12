@@ -1,9 +1,9 @@
-#include "AppException.h"
+#include "AdriaException.h"
 
 namespace adria
 {
 
-	AppException::AppException(size_t line, char const* file, char const* message) :line{ line }, file{ file }
+	AdriaException::AdriaException(size_t line, char const* file, char const* message) :line{ line }, file{ file }
 	{
 		std::ostringstream iss;
 		iss << "App Exception \n";
@@ -11,7 +11,7 @@ namespace adria
 		msg = iss.str() + std::string(message);
 	}
 
-	const char* AppException::what() const
+	const char* AdriaException::what() const
 	{
 		return msg.c_str();
 	}
