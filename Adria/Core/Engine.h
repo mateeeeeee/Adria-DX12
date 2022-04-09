@@ -55,11 +55,8 @@ namespace adria
 	private:
 	
 		virtual void InitializeScene(SceneConfig const& config);
-	
 		virtual void Update(float32 dt);
-	
 		virtual void Render(RendererSettings const& settings);
-
 		void SetSceneViewportData(std::optional<SceneViewport> viewport_data);
 	};
 }

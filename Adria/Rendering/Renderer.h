@@ -7,7 +7,7 @@
 #include "Picker.h"
 #include "ConstantBuffers.h"
 #include "ParticleRenderer.h"
-#include "RayTracer.h"
+#include "SimpleRayTracer.h"
 #include "../tecs/Registry.h"
 #include "../Graphics/TextureManager.h"
 #include "../Graphics/ShaderUtility.h"
@@ -110,7 +110,7 @@ namespace adria
 		Camera const* camera;
 
 		ParticleRenderer particle_renderer;
-		RayTracer ray_tracer;
+		SimpleRayTracer ray_tracer;
 
 		RendererSettings settings;
 		Profiler profiler;

@@ -15,30 +15,24 @@ namespace adria
 		float32 ao_radius;
 	};
 
-	class RayTracer
+	//used by Renderer class for simple ray tracing features: shadows, ambient occlusion
+	class SimpleRayTracer
 	{
-
 	public:
 
-        RayTracer(tecs::registry& reg, GraphicsCoreDX12* gfx, uint32 width, uint32 height);
-
+        SimpleRayTracer(tecs::registry& reg, GraphicsCoreDX12* gfx, uint32 width, uint32 height);
         bool IsSupported() const;
-
         void BuildAccelerationStructures();
-
 		void Update(RayTracingParams const&);
-
 		void RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth_srv,
 			D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address,
 			D3D12_GPU_VIRTUAL_ADDRESS light_cbuf_address, bool soft_shadows);
-
 		void RayTraceAmbientOcclusion(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth, Texture2D const& normal_gbuf, D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address);
 
 		Texture2D const& GetRayTracingShadowsTexture() const
 		{
 			return rt_shadows_output;
 		}
-
 		Texture2D const& GetRayTracingAmbientOcclusionTexture() const
 		{
 			return rtao_output;
@@ -51,7 +45,6 @@ namespace adria
 		bool ray_tracing_supported;
 
 		std::unique_ptr<DescriptorHeap> dxr_heap = nullptr;
-		//Persistent cbuffer
 		ConstantBuffer<RayTracingCBuffer> ray_tracing_cbuffer;
 		RayTracingCBuffer ray_tracing_cbuf_data;
 

@@ -74,58 +74,55 @@ namespace adria
         void CreateTextureSRV(ID3D12Device* device, ID3D12Resource* tex, D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle)
         {
             D3D12_RESOURCE_DESC desc = tex->GetDesc();
-            D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+            D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
 
             if (desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D)
             {
 
                 if (desc.DepthOrArraySize == 6)
                 {
-                    srvDesc.TextureCube.MostDetailedMip = 0;
-                    srvDesc.TextureCube.MipLevels = -1;
-                    srvDesc.TextureCube.ResourceMinLODClamp = 0.0f;
+                    srv_desc.TextureCube.MostDetailedMip = 0;
+                    srv_desc.TextureCube.MipLevels = -1;
+                    srv_desc.TextureCube.ResourceMinLODClamp = 0.0f;
                 }
                 else
                 {
-                    srvDesc.Texture2D.MostDetailedMip = 0;
-                    srvDesc.Texture2D.MipLevels = -1;
-                    srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+                    srv_desc.Texture2D.MostDetailedMip = 0;
+                    srv_desc.Texture2D.MipLevels = -1;
+                    srv_desc.Texture2D.ResourceMinLODClamp = 0.0f;
                 }
 
-                srvDesc.Format = desc.Format;
-                srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-                srvDesc.ViewDimension = desc.DepthOrArraySize == 6 ? D3D12_SRV_DIMENSION_TEXTURECUBE : D3D12_SRV_DIMENSION_TEXTURE2D;
-
-                
+                srv_desc.Format = desc.Format;
+                srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+                srv_desc.ViewDimension = desc.DepthOrArraySize == 6 ? D3D12_SRV_DIMENSION_TEXTURECUBE : D3D12_SRV_DIMENSION_TEXTURE2D;
             }
             else if(desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE3D)
             {
-                srvDesc.Format = desc.Format;
-                srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-                srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
-                srvDesc.Texture3D.MipLevels = -1;
-                srvDesc.Texture3D.MostDetailedMip = 0;
-                srvDesc.Texture3D.ResourceMinLODClamp = 0.0f;
+                srv_desc.Format = desc.Format;
+                srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+                srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
+                srv_desc.Texture3D.MipLevels = -1;
+                srv_desc.Texture3D.MostDetailedMip = 0;
+                srv_desc.Texture3D.ResourceMinLODClamp = 0.0f;
             }
 
-            device->CreateShaderResourceView(tex, &srvDesc, cpu_handle);
+            device->CreateShaderResourceView(tex, &srv_desc, cpu_handle);
 
         }
 
         void CreateNullSRV(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle) //bool is_cube
         {
-            D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-            srvDesc.Texture2D.MostDetailedMip = 0;
-            srvDesc.Texture2D.MipLevels = -1;
-            srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+            D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
+            srv_desc.Texture2D.MostDetailedMip = 0;
+            srv_desc.Texture2D.MipLevels = -1;
+            srv_desc.Texture2D.ResourceMinLODClamp = 0.0f;
 
-            srvDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-            srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+            srv_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+            srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+            srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 
-            device->CreateShaderResourceView(nullptr, &srvDesc, cpu_handle);
+            device->CreateShaderResourceView(nullptr, &srv_desc, cpu_handle);
         }
-
 	}
 
     TextureManager::TextureManager(GraphicsCoreDX12* gfx, UINT max_textures) : gfx(gfx)
@@ -138,8 +135,6 @@ namespace adria
         mips_generator = std::make_unique<MipsGenerator>(gfx->GetDevice(), max_textures);
 
         CreateNullSRV(gfx->GetDevice(), texture_srv_heap->GetFirstCpuHandle());
-
-       
         {
             CD3DX12_DESCRIPTOR_RANGE1 const descriptor_ranges[] =
             {
@@ -224,10 +219,7 @@ namespace adria
             if (format == TextureFormat::eDDS)
             {
                 ADRIA_ASSERT(texture_srv_heap->Count() > handle && "Not enough space for descriptors in Texture Cache");
-
                 loaded_textures.insert({ name, handle });
-
-              
                 ID3D12Resource* cubemap = nullptr;
                 std::unique_ptr<uint8_t[]> decodedData;
 
@@ -239,59 +231,47 @@ namespace adria
                         decodedData, subresources, 0, nullptr, &is_cubemap));
 
                 ADRIA_ASSERT(is_cubemap);
-
-
                 const UINT64 uploadBufferSize = GetRequiredIntermediateSize(cubemap, 0,
-                    static_cast<UINT>(subresources.size()));
+					static_cast<UINT>(subresources.size()));
+                D3D12MA::ALLOCATION_DESC texture_upload_alloc_desc{};
+                texture_upload_alloc_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
+                D3D12_RESOURCE_DESC texture_upload_resource_desc{};
+                texture_upload_resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+                texture_upload_resource_desc.Alignment = 0;
+                texture_upload_resource_desc.Width = uploadBufferSize;
+                texture_upload_resource_desc.Height = 1;
+                texture_upload_resource_desc.DepthOrArraySize = 1;
+                texture_upload_resource_desc.MipLevels = 1;
+                texture_upload_resource_desc.Format = DXGI_FORMAT_UNKNOWN;
+                texture_upload_resource_desc.SampleDesc.Count = 1;
+                texture_upload_resource_desc.SampleDesc.Quality = 0;
+                texture_upload_resource_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+                texture_upload_resource_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-
-                D3D12MA::ALLOCATION_DESC textureUploadAllocDesc = {};
-                textureUploadAllocDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-                D3D12_RESOURCE_DESC textureUploadResourceDesc = {};
-                textureUploadResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-                textureUploadResourceDesc.Alignment = 0;
-                textureUploadResourceDesc.Width = uploadBufferSize;
-                textureUploadResourceDesc.Height = 1;
-                textureUploadResourceDesc.DepthOrArraySize = 1;
-                textureUploadResourceDesc.MipLevels = 1;
-                textureUploadResourceDesc.Format = DXGI_FORMAT_UNKNOWN;
-                textureUploadResourceDesc.SampleDesc.Count = 1;
-                textureUploadResourceDesc.SampleDesc.Quality = 0;
-                textureUploadResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-                textureUploadResourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-                D3D12MA::Allocation* textureUploadAllocation;
+                D3D12MA::Allocation* texture_upload_allocation;
                 BREAK_IF_FAILED(allocator->CreateResource(
-                    &textureUploadAllocDesc,
-                    &textureUploadResourceDesc,
+                    &texture_upload_alloc_desc,
+                    &texture_upload_resource_desc,
                     D3D12_RESOURCE_STATE_GENERIC_READ,
                     nullptr,
-                    &textureUploadAllocation, __uuidof(nullptr), nullptr
+                    &texture_upload_allocation, __uuidof(nullptr), nullptr
                 ));
 
-                UpdateSubresources(cmd_list, cubemap, textureUploadAllocation->GetResource(),
+                UpdateSubresources(cmd_list, cubemap, texture_upload_allocation->GetResource(),
                     0, 0, static_cast<UINT>(subresources.size()), subresources.data());
-
                 auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(cubemap,
                     D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
                 cmd_list->ResourceBarrier(1, &barrier);
-
-                gfx->AddToReleaseQueue(textureUploadAllocation);
-
+                gfx->AddToReleaseQueue(texture_upload_allocation);
                 texture_map.insert({ handle, cubemap });
-
                 CreateTextureSRV(device, texture_map[handle].Get(), texture_srv_heap->GetCpuHandle(handle));
             }
             else //format == TextureFormat::eHDR
             {
                 auto descriptor_allocator = gfx->GetDescriptorAllocator();
-
                 loaded_textures.insert({ name, handle });
-
                 Image equirect_hdr_image(ConvertToNarrow(name));
-
                 Microsoft::WRL::ComPtr<ID3D12Resource> cubemap_tex = nullptr;
-
                 D3D12_RESOURCE_DESC desc{};
                 desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
                 desc.Width = 1024;
@@ -317,7 +297,6 @@ namespace adria
                 srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
                 srv_desc.TextureCube.MipLevels = -1;
                 srv_desc.TextureCube.MostDetailedMip = 0;
-
                 device->CreateShaderResourceView(cubemap_tex.Get(), &srv_desc, texture_srv_heap->GetCpuHandle(handle));
 
                 D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
@@ -330,8 +309,6 @@ namespace adria
                 OffsetType uav_index = descriptor_allocator->Allocate();
                 device->CreateUnorderedAccessView(cubemap_tex.Get(), nullptr, &uav_desc, descriptor_allocator->GetCpuHandle(uav_index));
 
-
-                
                 ID3D12Resource* equirect_tex = nullptr;
                 D3D12_RESOURCE_DESC equirect_desc = {};
                 equirect_desc.Width = equirect_hdr_image.Width();
@@ -352,7 +329,6 @@ namespace adria
                     nullptr,
                     IID_PPV_ARGS(&equirect_tex)));
 
-               
                 srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
                 srv_desc.Format = equirect_desc.Format;
                 srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -362,16 +338,14 @@ namespace adria
                 OffsetType srv_index = descriptor_allocator->Allocate();
                 device->CreateShaderResourceView(equirect_tex, &srv_desc, descriptor_allocator->GetCpuHandle(srv_index));
 
-                //--------------------------------------------------------------------------------------------------------------------------
-
-                const UINT64 uploadBufferSize = GetRequiredIntermediateSize(equirect_tex, 0, 1);
+                const UINT64 upload_buffer_size = GetRequiredIntermediateSize(equirect_tex, 0, 1);
 
                 D3D12MA::ALLOCATION_DESC texture_upload_alloc_desc = {};
                 texture_upload_alloc_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
                 D3D12_RESOURCE_DESC texture_upload_resource_desc = {};
                 texture_upload_resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
                 texture_upload_resource_desc.Alignment = 0;
-                texture_upload_resource_desc.Width = uploadBufferSize;
+                texture_upload_resource_desc.Width = upload_buffer_size;
                 texture_upload_resource_desc.Height = 1;
                 texture_upload_resource_desc.DepthOrArraySize = 1;
                 texture_upload_resource_desc.MipLevels = 1;
@@ -441,9 +415,7 @@ namespace adria
         auto cmd_list = gfx->GetDefaultCommandList();
 
         ID3D12Resource* cubemap = nullptr;
-
         ++handle;
-
         D3D12_RESOURCE_DESC desc{};
         desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
         desc.MipLevels = 1;
@@ -451,7 +423,6 @@ namespace adria
         desc.DepthOrArraySize = 6;
         desc.SampleDesc.Count = 1;
         desc.SampleDesc.Quality = 0;
-
 
         std::vector<Image> images{};
         std::vector<D3D12_SUBRESOURCE_DATA> subresources;
@@ -481,43 +452,39 @@ namespace adria
             static_cast<UINT>(subresources.size()));
 
 
-        D3D12MA::ALLOCATION_DESC textureUploadAllocDesc = {};
-        textureUploadAllocDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-        D3D12_RESOURCE_DESC textureUploadResourceDesc = {};
-        textureUploadResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-        textureUploadResourceDesc.Alignment = 0;
-        textureUploadResourceDesc.Width = uploadBufferSize;
-        textureUploadResourceDesc.Height = 1;
-        textureUploadResourceDesc.DepthOrArraySize = 1;
-        textureUploadResourceDesc.MipLevels = 1;
-        textureUploadResourceDesc.Format = DXGI_FORMAT_UNKNOWN;
-        textureUploadResourceDesc.SampleDesc.Count = 1;
-        textureUploadResourceDesc.SampleDesc.Quality = 0;
-        textureUploadResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-        textureUploadResourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+        D3D12MA::ALLOCATION_DESC texture_upload_alloc_desc{};
+        texture_upload_alloc_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
+        D3D12_RESOURCE_DESC texture_upload_resource_desc{};
+        texture_upload_resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+        texture_upload_resource_desc.Alignment = 0;
+        texture_upload_resource_desc.Width = uploadBufferSize;
+        texture_upload_resource_desc.Height = 1;
+        texture_upload_resource_desc.DepthOrArraySize = 1;
+        texture_upload_resource_desc.MipLevels = 1;
+        texture_upload_resource_desc.Format = DXGI_FORMAT_UNKNOWN;
+        texture_upload_resource_desc.SampleDesc.Count = 1;
+        texture_upload_resource_desc.SampleDesc.Quality = 0;
+        texture_upload_resource_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+        texture_upload_resource_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-        D3D12MA::Allocation* textureUploadAllocation;
+        D3D12MA::Allocation* texture_upload_allocation;
         BREAK_IF_FAILED(allocator->CreateResource(
-            &textureUploadAllocDesc,
-            &textureUploadResourceDesc,
+            &texture_upload_alloc_desc,
+            &texture_upload_resource_desc,
             D3D12_RESOURCE_STATE_GENERIC_READ,
             nullptr, // pOptimizedClearValue
-            &textureUploadAllocation, __uuidof(nullptr), nullptr
+            &texture_upload_allocation, __uuidof(nullptr), nullptr
         ));
 
-        UpdateSubresources(cmd_list, cubemap, textureUploadAllocation->GetResource(),
+        UpdateSubresources(cmd_list, cubemap, texture_upload_allocation->GetResource(),
             0, 0, static_cast<UINT>(subresources.size()), subresources.data());
-
         auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(cubemap,
             D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
         cmd_list->ResourceBarrier(1, &barrier);
 
-        gfx->AddToReleaseQueue(textureUploadAllocation);
-
+        gfx->AddToReleaseQueue(texture_upload_allocation);
         texture_map.insert({ handle, cubemap });
-
         CreateTextureSRV(device, texture_map[handle].Get(), texture_srv_heap->GetCpuHandle(handle));
-
         return handle;
     }
 
@@ -569,51 +536,43 @@ namespace adria
                         decodedData, subresources));
             }
 
+            UINT64 const upload_buffer_size = GetRequiredIntermediateSize(tex2d, 0, static_cast<UINT>(subresources.size()));
 
-            UINT64 const uploadBufferSize = GetRequiredIntermediateSize(tex2d, 0, static_cast<UINT>(subresources.size()));
+            D3D12MA::ALLOCATION_DESC texture_upload_alloc_desc{};
+            texture_upload_alloc_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
+            D3D12_RESOURCE_DESC texture_upload_resource_desc{};
+            texture_upload_resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+            texture_upload_resource_desc.Alignment = 0;
+            texture_upload_resource_desc.Width = upload_buffer_size;
+            texture_upload_resource_desc.Height = 1;
+            texture_upload_resource_desc.DepthOrArraySize = 1;
+            texture_upload_resource_desc.MipLevels = 1;
+            texture_upload_resource_desc.Format = DXGI_FORMAT_UNKNOWN;
+            texture_upload_resource_desc.SampleDesc.Count = 1;
+            texture_upload_resource_desc.SampleDesc.Quality = 0;
+            texture_upload_resource_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+            texture_upload_resource_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-            D3D12MA::ALLOCATION_DESC textureUploadAllocDesc = {};
-            textureUploadAllocDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-            D3D12_RESOURCE_DESC textureUploadResourceDesc = {};
-            textureUploadResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-            textureUploadResourceDesc.Alignment = 0;
-            textureUploadResourceDesc.Width = uploadBufferSize;
-            textureUploadResourceDesc.Height = 1;
-            textureUploadResourceDesc.DepthOrArraySize = 1;
-            textureUploadResourceDesc.MipLevels = 1;
-            textureUploadResourceDesc.Format = DXGI_FORMAT_UNKNOWN;
-            textureUploadResourceDesc.SampleDesc.Count = 1;
-            textureUploadResourceDesc.SampleDesc.Quality = 0;
-            textureUploadResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-            textureUploadResourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-
-            D3D12MA::Allocation* textureUploadAllocation;
+            D3D12MA::Allocation* texture_upload_allocation;
             BREAK_IF_FAILED(allocator->CreateResource(
-                &textureUploadAllocDesc,
-                &textureUploadResourceDesc,
+                &texture_upload_alloc_desc,
+                &texture_upload_resource_desc,
                 D3D12_RESOURCE_STATE_GENERIC_READ,
                 nullptr, // pOptimizedClearValue
-                &textureUploadAllocation, __uuidof(nullptr), nullptr
+                &texture_upload_allocation, __uuidof(nullptr), nullptr
             ));
 
-
-            UpdateSubresources(cmd_list, tex2d, textureUploadAllocation->GetResource(),
+            UpdateSubresources(cmd_list, tex2d, texture_upload_allocation->GetResource(),
                 0, 0, static_cast<UINT>(subresources.size()), subresources.data());
-
 
             auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(tex2d,
                 D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             cmd_list->ResourceBarrier(1, &barrier);
 
-            gfx->AddToReleaseQueue(textureUploadAllocation);
-
+            gfx->AddToReleaseQueue(texture_upload_allocation);
             texture_map.insert({ handle, tex2d });
-
             if (false && mipmaps) mips_generator->Add(texture_map[handle].Get());
-
             CreateTextureSRV(device, texture_map[handle].Get(), texture_srv_heap->GetCpuHandle(handle));
-
             return handle;
         }
         else return it->second;
@@ -623,7 +582,6 @@ namespace adria
     {
         if (auto it = loaded_textures.find(texture_path); it == loaded_textures.end())
         {
-
             auto device = gfx->GetDevice();
             auto cmd_list = gfx->GetDefaultCommandList();
             auto allocator = gfx->GetAllocator();
@@ -648,48 +606,41 @@ namespace adria
                     decodedData, subresource));
             }
 
+            const UINT64 upload_buffer_size = GetRequiredIntermediateSize(tex2d, 0, 1);
+            D3D12MA::ALLOCATION_DESC texture_upload_alloc_desc{};
+            texture_upload_alloc_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
+            D3D12_RESOURCE_DESC texture_upload_resource_desc{};
+            texture_upload_resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+            texture_upload_resource_desc.Alignment = 0;
+            texture_upload_resource_desc.Width = upload_buffer_size;
+            texture_upload_resource_desc.Height = 1;
+            texture_upload_resource_desc.DepthOrArraySize = 1;
+            texture_upload_resource_desc.MipLevels = 1;
+            texture_upload_resource_desc.Format = DXGI_FORMAT_UNKNOWN;
+            texture_upload_resource_desc.SampleDesc.Count = 1;
+            texture_upload_resource_desc.SampleDesc.Quality = 0;
+            texture_upload_resource_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+            texture_upload_resource_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-            const UINT64 uploadBufferSize = GetRequiredIntermediateSize(tex2d, 0, 1);
-
-            D3D12MA::ALLOCATION_DESC textureUploadAllocDesc = {};
-            textureUploadAllocDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-            D3D12_RESOURCE_DESC textureUploadResourceDesc = {};
-            textureUploadResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-            textureUploadResourceDesc.Alignment = 0;
-            textureUploadResourceDesc.Width = uploadBufferSize;
-            textureUploadResourceDesc.Height = 1;
-            textureUploadResourceDesc.DepthOrArraySize = 1;
-            textureUploadResourceDesc.MipLevels = 1;
-            textureUploadResourceDesc.Format = DXGI_FORMAT_UNKNOWN;
-            textureUploadResourceDesc.SampleDesc.Count = 1;
-            textureUploadResourceDesc.SampleDesc.Quality = 0;
-            textureUploadResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-            textureUploadResourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-            D3D12MA::Allocation* textureUploadAllocation;
+            D3D12MA::Allocation* texture_upload_allocation;
             BREAK_IF_FAILED(allocator->CreateResource(
-                &textureUploadAllocDesc,
-                &textureUploadResourceDesc,
+                &texture_upload_alloc_desc,
+                &texture_upload_resource_desc,
                 D3D12_RESOURCE_STATE_GENERIC_READ,
                 nullptr, // pOptimizedClearValue
-                &textureUploadAllocation, __uuidof(nullptr), nullptr
+                &texture_upload_allocation, __uuidof(nullptr), nullptr
             ));
 
-            UpdateSubresources(cmd_list, tex2d, textureUploadAllocation->GetResource(),
+            UpdateSubresources(cmd_list, tex2d, texture_upload_allocation->GetResource(),
                 0, 0, 1, &subresource);
 
             auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(tex2d,
                 D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             cmd_list->ResourceBarrier(1, &barrier);
-
-            gfx->AddToReleaseQueue(textureUploadAllocation);
-
+            gfx->AddToReleaseQueue(texture_upload_allocation);
             texture_map.insert({ handle, tex2d });
-
             if (mipmaps) mips_generator->Add(texture_map[handle].Get());
-
             CreateTextureSRV(device, texture_map[handle].Get(), texture_srv_heap->GetCpuHandle(handle));
-
             return handle;
         }
         else return it->second;
@@ -705,16 +656,11 @@ namespace adria
 
             ++handle;
             loaded_textures.insert({ texture_path, handle });
-
             ID3D12Resource* tex2d = nullptr;
-
             Image img(texture_path, 4);
 
             D3D12_RESOURCE_DESC desc{};
-
             desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-            // Describe and create a Texture2D.
-
             desc.MipLevels = mipmaps ? 0 : 1;
             desc.Format = img.IsHDR() ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R8G8B8A8_UNORM;
             desc.Width = img.Width();
@@ -734,52 +680,44 @@ namespace adria
                 nullptr,
                 IID_PPV_ARGS(&tex2d)));
 
-            const UINT64 uploadBufferSize = GetRequiredIntermediateSize(tex2d, 0, 1);
+           UINT64 const upload_buffer_size = GetRequiredIntermediateSize(tex2d, 0, 1);
 
+            D3D12MA::ALLOCATION_DESC texture_upload_alloc_desc{};
+            texture_upload_alloc_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
+            D3D12_RESOURCE_DESC texture_upload_resource_desc{};
+            texture_upload_resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+            texture_upload_resource_desc.Alignment = 0;
+            texture_upload_resource_desc.Width = upload_buffer_size;
+            texture_upload_resource_desc.Height = 1;
+            texture_upload_resource_desc.DepthOrArraySize = 1;
+            texture_upload_resource_desc.MipLevels = 1;
+            texture_upload_resource_desc.Format = DXGI_FORMAT_UNKNOWN;
+            texture_upload_resource_desc.SampleDesc.Count = 1;
+            texture_upload_resource_desc.SampleDesc.Quality = 0;
+            texture_upload_resource_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+            texture_upload_resource_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-            D3D12MA::ALLOCATION_DESC textureUploadAllocDesc = {};
-            textureUploadAllocDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-            D3D12_RESOURCE_DESC textureUploadResourceDesc = {};
-            textureUploadResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-            textureUploadResourceDesc.Alignment = 0;
-            textureUploadResourceDesc.Width = uploadBufferSize;
-            textureUploadResourceDesc.Height = 1;
-            textureUploadResourceDesc.DepthOrArraySize = 1;
-            textureUploadResourceDesc.MipLevels = 1;
-            textureUploadResourceDesc.Format = DXGI_FORMAT_UNKNOWN;
-            textureUploadResourceDesc.SampleDesc.Count = 1;
-            textureUploadResourceDesc.SampleDesc.Quality = 0;
-            textureUploadResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-            textureUploadResourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-            D3D12MA::Allocation* textureUploadAllocation;
+            D3D12MA::Allocation* texture_upload_allocation;
             BREAK_IF_FAILED(allocator->CreateResource(
-                &textureUploadAllocDesc,
-                &textureUploadResourceDesc,
+                &texture_upload_alloc_desc,
+                &texture_upload_resource_desc,
                 D3D12_RESOURCE_STATE_GENERIC_READ,
                 nullptr,
-                &textureUploadAllocation, __uuidof(nullptr), nullptr
+                &texture_upload_allocation, __uuidof(nullptr), nullptr
             ));
-
             D3D12_SUBRESOURCE_DATA data{};
             data.pData = img.Data<void>();
             data.RowPitch = img.Pitch();
 
-            UpdateSubresources(cmd_list, tex2d, textureUploadAllocation->GetResource(),
+            UpdateSubresources(cmd_list, tex2d, texture_upload_allocation->GetResource(),
                 0, 0, 1u, &data);
-
             auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(tex2d,
                 D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             cmd_list->ResourceBarrier(1, &barrier);
-
-            gfx->AddToReleaseQueue(textureUploadAllocation);
-
+            gfx->AddToReleaseQueue(texture_upload_allocation);
             texture_map.insert({ handle, tex2d });
-
             if (mipmaps) mips_generator->Add(texture_map[handle].Get());
-
             CreateTextureSRV(device, texture_map[handle].Get(), texture_srv_heap->GetCpuHandle(handle));
-
             return handle;
         }
         else return it->second;
