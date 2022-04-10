@@ -43,6 +43,7 @@ Graphics engine written in C++/DirectX12. For successful build you will need tex
 * Shader Hot Reload
 * Camera and Light Frustum Culling
 * Multithreaded Command List Building
+* Bindless Texturing 
 * DirectX12 Render Passes
 
 
