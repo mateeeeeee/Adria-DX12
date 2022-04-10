@@ -610,245 +610,21 @@ namespace adria
 	{
 		update_picking_data = current_scene_viewport.scene_viewport_focused;
 	}
-	void Renderer::UploadData()
+	void Renderer::OnSceneInitialized()
 	{
-		//create cube vb and ib for sky here, move somewhere else later
-		{
+		size_t tex2darray_size = (size_t)texture_manager.handle;
+		gfx->ReserveDescriptors(tex2darray_size);
 
-			static const SimpleVertex cube_vertices[8] =
-			{
-				XMFLOAT3{ -0.5f, -0.5f,  0.5f },
-				XMFLOAT3{  0.5f, -0.5f,  0.5f },
-				XMFLOAT3{  0.5f,  0.5f,  0.5f },
-				XMFLOAT3{ -0.5f,  0.5f,  0.5f },
-				XMFLOAT3{ -0.5f, -0.5f, -0.5f },
-				XMFLOAT3{  0.5f, -0.5f, -0.5f },
-				XMFLOAT3{  0.5f,  0.5f, -0.5f },
-				XMFLOAT3{ -0.5f,  0.5f, -0.5f }
-			};
+		ID3D12Device* device = gfx->GetDevice();
+		RingDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
 
-			static const uint16_t cube_indices[36] =
-			{
-				// front
-				0, 1, 2,
-				2, 3, 0,
-				// right
-				1, 5, 6,
-				6, 2, 1,
-				// back
-				7, 6, 5,
-				5, 4, 7,
-				// left
-				4, 0, 3,
-				3, 7, 4,
-				// bottom
-				4, 5, 1,
-				1, 0, 4,
-				// top
-				3, 2, 6,
-				6, 7, 3
-			};
+		device->CopyDescriptorsSimple(tex2darray_size, descriptor_allocator->GetFirstCpuHandle(),
+			texture_manager.texture_srv_heap->GetFirstCpuHandle(),
+			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-			cube_vb = std::make_shared<VertexBuffer>(gfx, cube_vertices, ARRAYSIZE(cube_vertices));
-			cube_ib = std::make_shared<IndexBuffer>(gfx, cube_indices, ARRAYSIZE(cube_indices));
-		}
-
-		//ao textures
-		ID3D12Resource* ssao_upload_texture = nullptr;
-		{
-			const uint64 upload_buffer_size = GetRequiredIntermediateSize(ssao_random_texture.Resource(), 0, 1);
-
-			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-			auto resource_desc = CD3DX12_RESOURCE_DESC::Buffer(upload_buffer_size);
-			BREAK_IF_FAILED(gfx->GetDevice()->CreateCommittedResource(
-				&heap_properties,
-				D3D12_HEAP_FLAG_NONE,
-				&resource_desc,
-				D3D12_RESOURCE_STATE_GENERIC_READ,
-				nullptr,
-				IID_PPV_ARGS(&ssao_upload_texture)));
-
-			RealRandomGenerator rand_float{ 0.0f, 1.0f };
-			std::vector<float32> random_texture_data;
-			for (int32 i = 0; i < 8 * 8; i++)
-			{
-
-				random_texture_data.push_back(rand_float()); //2 * rand_float() - 1
-				random_texture_data.push_back(rand_float());
-				random_texture_data.push_back(0.0f);
-				random_texture_data.push_back(1.0f);
-			}
-
-			D3D12_SUBRESOURCE_DATA data{};
-			data.pData = random_texture_data.data();
-			data.RowPitch = 8 * 4 * sizeof(float32);
-			data.SlicePitch = 0;
-
-			UpdateSubresources(gfx->GetDefaultCommandList(), ssao_random_texture.Resource(), ssao_upload_texture, 0, 0, 1, &data);
-
-			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(ssao_random_texture.Resource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-
-			gfx->GetDefaultCommandList()->ResourceBarrier(1, &barrier);
-		}
-
-		ID3D12Resource* hbao_upload_texture = nullptr;
-		{
-			const uint64 upload_buffer_size = GetRequiredIntermediateSize(hbao_random_texture.Resource(), 0, 1);
-
-			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-			auto resource_desc = CD3DX12_RESOURCE_DESC::Buffer(upload_buffer_size);
-			BREAK_IF_FAILED(gfx->GetDevice()->CreateCommittedResource(
-				&heap_properties,
-				D3D12_HEAP_FLAG_NONE,
-				&resource_desc,
-				D3D12_RESOURCE_STATE_GENERIC_READ,
-				nullptr,
-				IID_PPV_ARGS(&hbao_upload_texture)));
-
-			RealRandomGenerator rand_float{ 0.0f, 1.0f };
-			std::vector<float32> random_texture_data;
-			for (int32 i = 0; i < 8 * 8; i++)
-			{
-				float32 rand = rand_float();
-				random_texture_data.push_back(sin(rand)); 
-				random_texture_data.push_back(cos(rand));
-				random_texture_data.push_back(rand_float());
-				random_texture_data.push_back(rand_float());
-			}
-
-			D3D12_SUBRESOURCE_DATA data{};
-			data.pData = random_texture_data.data();
-			data.RowPitch = 8 * 4 * sizeof(float32);
-			data.SlicePitch = 0;
-
-			UpdateSubresources(gfx->GetDefaultCommandList(), hbao_random_texture.Resource(), hbao_upload_texture, 0, 0, 1, &data);
-
-			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(hbao_random_texture.Resource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-
-			gfx->GetDefaultCommandList()->ResourceBarrier(1, &barrier);
-		}
-
-		//bokeh upload indirect draw buffer and zero counter buffer
-		ID3D12Resource* bokeh_upload_buffer = nullptr;
-		{
-			D3D12_RESOURCE_DESC desc{};
-			desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-			desc.Alignment = 0;
-			desc.SampleDesc.Count = 1;
-			desc.Format = DXGI_FORMAT_UNKNOWN;
-			desc.Width = 4 * sizeof(uint32);
-			desc.Height = 1;
-			desc.DepthOrArraySize = 1;
-			desc.MipLevels = 1;
-			desc.Flags = D3D12_RESOURCE_FLAG_NONE;
-			desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-
-			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-
-			BREAK_IF_FAILED(gfx->GetDevice()->CreateCommittedResource(&heap_properties, D3D12_HEAP_FLAG_NONE, &desc,
-				D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&bokeh_indirect_draw_buffer)));
-
-			hex_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Hex.dds");
-			oct_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Oct.dds");
-			circle_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Circle.dds");
-			cross_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Cross.dds");
-
-			const uint64 upload_buffer_size = GetRequiredIntermediateSize(bokeh_indirect_draw_buffer.Get(), 0, 1);
-			heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-			auto resource_desc = CD3DX12_RESOURCE_DESC::Buffer(upload_buffer_size);
-			BREAK_IF_FAILED(gfx->GetDevice()->CreateCommittedResource(
-				&heap_properties,
-				D3D12_HEAP_FLAG_NONE,
-				&resource_desc,
-				D3D12_RESOURCE_STATE_GENERIC_READ,
-				nullptr,
-				IID_PPV_ARGS(&bokeh_upload_buffer)));
-
-			uint32 init_data[] = { 0,1,0,0 };
-
-			D3D12_SUBRESOURCE_DATA data{};
-			data.pData = init_data;
-			data.RowPitch = sizeof(init_data);
-			data.SlicePitch = 0;
-
-			UpdateSubresources(gfx->GetDefaultCommandList(), bokeh_indirect_draw_buffer.Get(), bokeh_upload_buffer, 0, 0, 1, &data);
-
-			D3D12_INDIRECT_ARGUMENT_DESC args[1];
-			args[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW;
-
-			// Data structure to match the command signature used for ExecuteIndirect.
-
-			D3D12_COMMAND_SIGNATURE_DESC command_signature_desc{};
-			command_signature_desc.NumArgumentDescs = 1;
-			command_signature_desc.pArgumentDescs = args;
-			command_signature_desc.ByteStride = sizeof(D3D12_DRAW_ARGUMENTS);
-
-			BREAK_IF_FAILED(gfx->GetDevice()->CreateCommandSignature(&command_signature_desc, nullptr, IID_PPV_ARGS(&bokeh_command_signature)));
-
-			// Allocate a buffer that can be used to reset the UAV counters and initialize it to 0.
-			auto buffer_desc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(uint32));
-			auto upload_heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-			BREAK_IF_FAILED(gfx->GetDevice()->CreateCommittedResource(
-				&upload_heap,
-				D3D12_HEAP_FLAG_NONE,
-				&buffer_desc,
-				D3D12_RESOURCE_STATE_GENERIC_READ,
-				nullptr,
-				IID_PPV_ARGS(&counter_reset_buffer)));
-
-			uint8* mapped_reset_buffer = nullptr;
-			CD3DX12_RANGE read_range(0, 0);        // We do not intend to read from this resource on the CPU.
-			BREAK_IF_FAILED(counter_reset_buffer->Map(0, &read_range, reinterpret_cast<void**>(&mapped_reset_buffer)));
-			ZeroMemory(mapped_reset_buffer, sizeof(uint32));
-			counter_reset_buffer->Unmap(0, nullptr);
-		}
-
-		//ocean ping phase initial
-		ID3D12Resource* ping_phase_upload_buffer = nullptr;
-		{
-			const uint64 upload_buffer_size = GetRequiredIntermediateSize(ping_pong_phase_textures[pong_phase].Resource(), 0, 1);
-			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-			auto resource_desc = CD3DX12_RESOURCE_DESC::Buffer(upload_buffer_size);
-			BREAK_IF_FAILED(gfx->GetDevice()->CreateCommittedResource(
-				&heap_properties,
-				D3D12_HEAP_FLAG_NONE,
-				&resource_desc,
-				D3D12_RESOURCE_STATE_GENERIC_READ,
-				nullptr,
-				IID_PPV_ARGS(&ping_phase_upload_buffer)));
-
-			std::vector<float32> ping_array(RESOLUTION * RESOLUTION);
-			RealRandomGenerator rand_float{ 0.0f,  2.0f * pi<float32> };
-			for (size_t i = 0; i < ping_array.size(); ++i) ping_array[i] = rand_float();
-
-			D3D12_SUBRESOURCE_DATA data{};
-			data.pData = ping_array.data();
-			data.RowPitch = sizeof(float32) * RESOLUTION;
-			data.SlicePitch = 0;
-
-			D3D12_RESOURCE_BARRIER barrier{};
-			barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-			barrier.Transition.pResource = ping_pong_phase_textures[pong_phase].Resource();
-			barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-			barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST;
-			barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-
-			ID3D12GraphicsCommandList* cmd_list = gfx->GetDefaultCommandList();
-			cmd_list->ResourceBarrier(1, &barrier);
-			UpdateSubresources(cmd_list, ping_pong_phase_textures[pong_phase].Resource(), ping_phase_upload_buffer, 0, 0, 1, &data);
-			std::swap(barrier.Transition.StateBefore, barrier.Transition.StateAfter);
-			cmd_list->ResourceBarrier(1, &barrier);
-		}
-
-		gfx->AddToReleaseQueue(ssao_upload_texture);
-		gfx->AddToReleaseQueue(hbao_upload_texture);
-		gfx->AddToReleaseQueue(bokeh_upload_buffer);
-		gfx->AddToReleaseQueue(ping_phase_upload_buffer);
-
-		particle_renderer.UploadData();
-
-		//lens flare
+		UploadData();
 		texture_manager.SetMipMaps(false);
+		//lens flare
 		{
 			TEXTURE_HANDLE tex_handle{};
 
@@ -898,17 +674,14 @@ namespace adria
 
 			barrier.Submit(gfx->GetDefaultCommandList());
 		}
-
 		//clouds and ocean
 		{
 			clouds_textures.push_back(texture_manager.CpuDescriptorHandle(texture_manager.LoadTexture(L"Resources\\Textures\\clouds\\weather.dds")));
 			clouds_textures.push_back(texture_manager.CpuDescriptorHandle(texture_manager.LoadTexture(L"Resources\\Textures\\clouds\\cloud.dds")));
 			clouds_textures.push_back(texture_manager.CpuDescriptorHandle(texture_manager.LoadTexture(L"Resources\\Textures\\clouds\\worley.dds")));
-
 			foam_handle = texture_manager.LoadTexture(L"Resources/Textures/foam.jpg");
 			perlin_handle = texture_manager.LoadTexture(L"Resources/Textures/perlin.dds");
 		}
-
 		texture_manager.SetMipMaps(true);
 
 		if(ray_tracer.IsSupported()) ray_tracer.BuildAccelerationStructures();
@@ -1991,6 +1764,245 @@ namespace adria
 		}
 
 		ibl_textures_generated = true;
+	}
+
+	void Renderer::UploadData()
+	{
+		//create cube vb and ib for sky here, move somewhere else later
+		{
+
+			static const SimpleVertex cube_vertices[8] =
+			{
+				XMFLOAT3{ -0.5f, -0.5f,  0.5f },
+				XMFLOAT3{  0.5f, -0.5f,  0.5f },
+				XMFLOAT3{  0.5f,  0.5f,  0.5f },
+				XMFLOAT3{ -0.5f,  0.5f,  0.5f },
+				XMFLOAT3{ -0.5f, -0.5f, -0.5f },
+				XMFLOAT3{  0.5f, -0.5f, -0.5f },
+				XMFLOAT3{  0.5f,  0.5f, -0.5f },
+				XMFLOAT3{ -0.5f,  0.5f, -0.5f }
+			};
+
+			static const uint16_t cube_indices[36] =
+			{
+				// front
+				0, 1, 2,
+				2, 3, 0,
+				// right
+				1, 5, 6,
+				6, 2, 1,
+				// back
+				7, 6, 5,
+				5, 4, 7,
+				// left
+				4, 0, 3,
+				3, 7, 4,
+				// bottom
+				4, 5, 1,
+				1, 0, 4,
+				// top
+				3, 2, 6,
+				6, 7, 3
+			};
+
+			cube_vb = std::make_shared<VertexBuffer>(gfx, cube_vertices, ARRAYSIZE(cube_vertices));
+			cube_ib = std::make_shared<IndexBuffer>(gfx, cube_indices, ARRAYSIZE(cube_indices));
+		}
+
+		//ao textures
+		ID3D12Resource* ssao_upload_texture = nullptr;
+		{
+			const uint64 upload_buffer_size = GetRequiredIntermediateSize(ssao_random_texture.Resource(), 0, 1);
+
+			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+			auto resource_desc = CD3DX12_RESOURCE_DESC::Buffer(upload_buffer_size);
+			BREAK_IF_FAILED(gfx->GetDevice()->CreateCommittedResource(
+				&heap_properties,
+				D3D12_HEAP_FLAG_NONE,
+				&resource_desc,
+				D3D12_RESOURCE_STATE_GENERIC_READ,
+				nullptr,
+				IID_PPV_ARGS(&ssao_upload_texture)));
+
+			RealRandomGenerator rand_float{ 0.0f, 1.0f };
+			std::vector<float32> random_texture_data;
+			for (int32 i = 0; i < 8 * 8; i++)
+			{
+
+				random_texture_data.push_back(rand_float()); //2 * rand_float() - 1
+				random_texture_data.push_back(rand_float());
+				random_texture_data.push_back(0.0f);
+				random_texture_data.push_back(1.0f);
+			}
+
+			D3D12_SUBRESOURCE_DATA data{};
+			data.pData = random_texture_data.data();
+			data.RowPitch = 8 * 4 * sizeof(float32);
+			data.SlicePitch = 0;
+
+			UpdateSubresources(gfx->GetDefaultCommandList(), ssao_random_texture.Resource(), ssao_upload_texture, 0, 0, 1, &data);
+
+			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(ssao_random_texture.Resource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+			gfx->GetDefaultCommandList()->ResourceBarrier(1, &barrier);
+		}
+
+		ID3D12Resource* hbao_upload_texture = nullptr;
+		{
+			const uint64 upload_buffer_size = GetRequiredIntermediateSize(hbao_random_texture.Resource(), 0, 1);
+
+			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+			auto resource_desc = CD3DX12_RESOURCE_DESC::Buffer(upload_buffer_size);
+			BREAK_IF_FAILED(gfx->GetDevice()->CreateCommittedResource(
+				&heap_properties,
+				D3D12_HEAP_FLAG_NONE,
+				&resource_desc,
+				D3D12_RESOURCE_STATE_GENERIC_READ,
+				nullptr,
+				IID_PPV_ARGS(&hbao_upload_texture)));
+
+			RealRandomGenerator rand_float{ 0.0f, 1.0f };
+			std::vector<float32> random_texture_data;
+			for (int32 i = 0; i < 8 * 8; i++)
+			{
+				float32 rand = rand_float();
+				random_texture_data.push_back(sin(rand));
+				random_texture_data.push_back(cos(rand));
+				random_texture_data.push_back(rand_float());
+				random_texture_data.push_back(rand_float());
+			}
+
+			D3D12_SUBRESOURCE_DATA data{};
+			data.pData = random_texture_data.data();
+			data.RowPitch = 8 * 4 * sizeof(float32);
+			data.SlicePitch = 0;
+
+			UpdateSubresources(gfx->GetDefaultCommandList(), hbao_random_texture.Resource(), hbao_upload_texture, 0, 0, 1, &data);
+
+			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(hbao_random_texture.Resource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+			gfx->GetDefaultCommandList()->ResourceBarrier(1, &barrier);
+		}
+
+		//bokeh upload indirect draw buffer and zero counter buffer
+		ID3D12Resource* bokeh_upload_buffer = nullptr;
+		{
+			D3D12_RESOURCE_DESC desc{};
+			desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+			desc.Alignment = 0;
+			desc.SampleDesc.Count = 1;
+			desc.Format = DXGI_FORMAT_UNKNOWN;
+			desc.Width = 4 * sizeof(uint32);
+			desc.Height = 1;
+			desc.DepthOrArraySize = 1;
+			desc.MipLevels = 1;
+			desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+			desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+
+			BREAK_IF_FAILED(gfx->GetDevice()->CreateCommittedResource(&heap_properties, D3D12_HEAP_FLAG_NONE, &desc,
+				D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&bokeh_indirect_draw_buffer)));
+
+			hex_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Hex.dds");
+			oct_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Oct.dds");
+			circle_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Circle.dds");
+			cross_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Cross.dds");
+
+			const uint64 upload_buffer_size = GetRequiredIntermediateSize(bokeh_indirect_draw_buffer.Get(), 0, 1);
+			heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+			auto resource_desc = CD3DX12_RESOURCE_DESC::Buffer(upload_buffer_size);
+			BREAK_IF_FAILED(gfx->GetDevice()->CreateCommittedResource(
+				&heap_properties,
+				D3D12_HEAP_FLAG_NONE,
+				&resource_desc,
+				D3D12_RESOURCE_STATE_GENERIC_READ,
+				nullptr,
+				IID_PPV_ARGS(&bokeh_upload_buffer)));
+
+			uint32 init_data[] = { 0,1,0,0 };
+
+			D3D12_SUBRESOURCE_DATA data{};
+			data.pData = init_data;
+			data.RowPitch = sizeof(init_data);
+			data.SlicePitch = 0;
+
+			UpdateSubresources(gfx->GetDefaultCommandList(), bokeh_indirect_draw_buffer.Get(), bokeh_upload_buffer, 0, 0, 1, &data);
+
+			D3D12_INDIRECT_ARGUMENT_DESC args[1];
+			args[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW;
+
+			// Data structure to match the command signature used for ExecuteIndirect.
+
+			D3D12_COMMAND_SIGNATURE_DESC command_signature_desc{};
+			command_signature_desc.NumArgumentDescs = 1;
+			command_signature_desc.pArgumentDescs = args;
+			command_signature_desc.ByteStride = sizeof(D3D12_DRAW_ARGUMENTS);
+
+			BREAK_IF_FAILED(gfx->GetDevice()->CreateCommandSignature(&command_signature_desc, nullptr, IID_PPV_ARGS(&bokeh_command_signature)));
+
+			// Allocate a buffer that can be used to reset the UAV counters and initialize it to 0.
+			auto buffer_desc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(uint32));
+			auto upload_heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+			BREAK_IF_FAILED(gfx->GetDevice()->CreateCommittedResource(
+				&upload_heap,
+				D3D12_HEAP_FLAG_NONE,
+				&buffer_desc,
+				D3D12_RESOURCE_STATE_GENERIC_READ,
+				nullptr,
+				IID_PPV_ARGS(&counter_reset_buffer)));
+
+			uint8* mapped_reset_buffer = nullptr;
+			CD3DX12_RANGE read_range(0, 0);        // We do not intend to read from this resource on the CPU.
+			BREAK_IF_FAILED(counter_reset_buffer->Map(0, &read_range, reinterpret_cast<void**>(&mapped_reset_buffer)));
+			ZeroMemory(mapped_reset_buffer, sizeof(uint32));
+			counter_reset_buffer->Unmap(0, nullptr);
+		}
+
+		//ocean ping phase initial
+		ID3D12Resource* ping_phase_upload_buffer = nullptr;
+		{
+			const uint64 upload_buffer_size = GetRequiredIntermediateSize(ping_pong_phase_textures[pong_phase].Resource(), 0, 1);
+			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+			auto resource_desc = CD3DX12_RESOURCE_DESC::Buffer(upload_buffer_size);
+			BREAK_IF_FAILED(gfx->GetDevice()->CreateCommittedResource(
+				&heap_properties,
+				D3D12_HEAP_FLAG_NONE,
+				&resource_desc,
+				D3D12_RESOURCE_STATE_GENERIC_READ,
+				nullptr,
+				IID_PPV_ARGS(&ping_phase_upload_buffer)));
+
+			std::vector<float32> ping_array(RESOLUTION * RESOLUTION);
+			RealRandomGenerator rand_float{ 0.0f,  2.0f * pi<float32> };
+			for (size_t i = 0; i < ping_array.size(); ++i) ping_array[i] = rand_float();
+
+			D3D12_SUBRESOURCE_DATA data{};
+			data.pData = ping_array.data();
+			data.RowPitch = sizeof(float32) * RESOLUTION;
+			data.SlicePitch = 0;
+
+			D3D12_RESOURCE_BARRIER barrier{};
+			barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+			barrier.Transition.pResource = ping_pong_phase_textures[pong_phase].Resource();
+			barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+			barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST;
+			barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+
+			ID3D12GraphicsCommandList* cmd_list = gfx->GetDefaultCommandList();
+			cmd_list->ResourceBarrier(1, &barrier);
+			UpdateSubresources(cmd_list, ping_pong_phase_textures[pong_phase].Resource(), ping_phase_upload_buffer, 0, 0, 1, &data);
+			std::swap(barrier.Transition.StateBefore, barrier.Transition.StateAfter);
+			cmd_list->ResourceBarrier(1, &barrier);
+		}
+
+		gfx->AddToReleaseQueue(ssao_upload_texture);
+		gfx->AddToReleaseQueue(hbao_upload_texture);
+		gfx->AddToReleaseQueue(bokeh_upload_buffer);
+		gfx->AddToReleaseQueue(ping_phase_upload_buffer);
+
+		particle_renderer.UploadData();
+
 	}
 
 	void Renderer::UpdateConstantBuffers(float32 dt)

@@ -5,6 +5,7 @@
 #include "../tecs/Registry.h"
 #include "../Graphics/Texture2D.h"
 #include "../Graphics/ConstantBuffer.h"
+#include "../Graphics/StructuredBuffer.h"
 
 
 namespace adria
@@ -16,14 +17,15 @@ namespace adria
 	};
 
 	//used by Renderer class for simple ray tracing features: shadows, ambient occlusion
-	class SimpleRayTracer
+	class RayTracer
 	{
 	public:
 
-        SimpleRayTracer(tecs::registry& reg, GraphicsCoreDX12* gfx, uint32 width, uint32 height);
+        RayTracer(tecs::registry& reg, GraphicsCoreDX12* gfx, uint32 width, uint32 height);
         bool IsSupported() const;
         void BuildAccelerationStructures();
 		void Update(RayTracingParams const&);
+
 		void RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth_srv,
 			D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address,
 			D3D12_GPU_VIRTUAL_ADDRESS light_cbuf_address, bool soft_shadows);
@@ -66,6 +68,7 @@ namespace adria
 		std::unique_ptr<ShaderTable> rtao_shader_table_hit = nullptr;
 		Texture2D rtao_output;
 		
+
 	private:
 
 		void CreateResources();

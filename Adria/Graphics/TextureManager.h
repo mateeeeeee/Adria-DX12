@@ -19,6 +19,8 @@ namespace adria
 
 	class TextureManager
 	{
+		friend class Renderer;
+
 	public:
 		TextureManager(GraphicsCoreDX12* gfx, UINT max_textures);
 

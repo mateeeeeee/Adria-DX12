@@ -38,6 +38,7 @@ namespace adria
 	private:
 		RingAllocator ring_allocator;
 		std::mutex alloc_lock;
+
 	};
 
 }

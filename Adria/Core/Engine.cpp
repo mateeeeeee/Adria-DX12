@@ -321,7 +321,7 @@ namespace adria
 		for (auto&& light : config.scene_lights) entity_loader->LoadLight(light);
 
 		renderer->GetTextureManager().GenerateAllMips();
-		renderer->UploadData();
+		renderer->OnSceneInitialized();
 
 		gfx->ExecuteDefaultCommandList();
 		gfx->WaitForGPU();

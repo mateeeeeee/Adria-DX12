@@ -12,7 +12,6 @@ namespace adria
 	class RingDescriptorAllocator;
 	struct window_message_t;
 
-
 	class GUI
 	{
 	public:

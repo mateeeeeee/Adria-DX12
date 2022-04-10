@@ -179,7 +179,7 @@
     <ClCompile Include="..\ThirdParty\ImGui\ImGuizmo.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\SimpleRayTracer.cpp">
+    <ClCompile Include="Rendering\RayTracer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\MipsGenerator.cpp">
@@ -448,7 +448,7 @@
     <ClInclude Include="Utilities\Timer.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\SimpleRayTracer.h">
+    <ClInclude Include="Rendering\RayTracer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\RayTracingUtil.h">

@@ -72,8 +72,8 @@ namespace adria
 
 	struct COMPONENT Material
 	{
+		TEXTURE_HANDLE albedo_texture			  = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE normal_texture			  = INVALID_TEXTURE_HANDLE;
-		TEXTURE_HANDLE albedo_texture		      = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE metallic_roughness_texture = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE emissive_texture			  = INVALID_TEXTURE_HANDLE;
 
@@ -171,10 +171,11 @@ namespace adria
 
 	struct COMPONENT Tag
 	{
-		std::string name = "default";
+		std::string name = "name tag";
 	};
 
 	struct COMPONENT RayTracing
 	{
+	
 	};
 }

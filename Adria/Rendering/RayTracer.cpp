@@ -1,4 +1,4 @@
-#include "SimpleRayTracer.h"
+#include "RayTracer.h"
 #include "Components.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../Logging/Logger.h"
@@ -8,10 +8,9 @@
 
 namespace adria
 {
-	//helper for making buffers, move it somewhere else later
 	static ID3D12Resource* CreateBuffer(ID3D12Device5* device, uint64_t size, D3D12_RESOURCE_FLAGS flags, D3D12_RESOURCE_STATES init_state, D3D12_HEAP_PROPERTIES const& heap_props)
 	{
-		D3D12_RESOURCE_DESC buf_desc = {};
+		D3D12_RESOURCE_DESC buf_desc{};
 		buf_desc.Alignment = 0;
 		buf_desc.DepthOrArraySize = 1;
 		buf_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -29,8 +28,9 @@ namespace adria
 		return buffer;
 	}
 
-	SimpleRayTracer::SimpleRayTracer(tecs::registry& reg, GraphicsCoreDX12* gfx, uint32 width, uint32 height) 
-		: reg{ reg }, gfx{ gfx }, width{ width }, height{ height }, ray_tracing_cbuffer(gfx->GetDevice(), gfx->BackbufferCount())
+	RayTracer::RayTracer(tecs::registry& reg, GraphicsCoreDX12* gfx, uint32 width, uint32 height) 
+		: reg{ reg }, gfx{ gfx }, width{ width }, height{ height }, ray_tracing_cbuffer(gfx->GetDevice(), gfx->BackbufferCount()),
+		ray_tracing_cbuf_data{}
 	{
 		ID3D12Device* device = gfx->GetDevice();
 		D3D12_FEATURE_DATA_D3D12_OPTIONS5 features5{};
@@ -49,12 +49,12 @@ namespace adria
 		CreateShaderTables();
 	}
 
-	bool SimpleRayTracer::IsSupported() const
+	bool RayTracer::IsSupported() const
 	{
 		return ray_tracing_supported;
 	}
 
-	void SimpleRayTracer::BuildAccelerationStructures()
+	void RayTracer::BuildAccelerationStructures()
 	{
 		if (!ray_tracing_supported) return;
 
@@ -62,7 +62,7 @@ namespace adria
 		BuildTopLevelAS();
 	}
 
-	void SimpleRayTracer::Update(RayTracingParams const& params)
+	void RayTracer::Update(RayTracingParams const& params)
 	{
 		if (!ray_tracing_supported) return;
 
@@ -72,7 +72,7 @@ namespace adria
 		ray_tracing_cbuffer.Update(ray_tracing_cbuf_data, gfx->BackbufferIndex());
 	}
 
-	void SimpleRayTracer::RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth,
+	void RayTracer::RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth,
 		D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address,
 		D3D12_GPU_VIRTUAL_ADDRESS light_cbuf_address, bool soft_shadows)
 	{
@@ -119,7 +119,7 @@ namespace adria
 
 	}
 
-	void SimpleRayTracer::RayTraceAmbientOcclusion(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth, Texture2D const& normal_gbuf,
+	void RayTracer::RayTraceAmbientOcclusion(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth, Texture2D const& normal_gbuf,
 		D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address)
 	{
 		if (!ray_tracing_supported) return;
@@ -165,7 +165,7 @@ namespace adria
 		rtao_barrier.Submit(cmd_list);
 	}
 
-	void SimpleRayTracer::CreateResources()
+	void RayTracer::CreateResources()
 	{
 		ID3D12Device5* device = gfx->GetDevice();
 
@@ -189,7 +189,7 @@ namespace adria
 		rtao_output.CreateUAV(dxr_heap->GetCpuHandle(current_handle_index++));
 	}
 
-	void SimpleRayTracer::CreateRootSignatures()
+	void RayTracer::CreateRootSignatures()
 	{
 		ID3D12Device5* device = gfx->GetDevice();
 
@@ -273,7 +273,7 @@ namespace adria
 		}
 	}
 
-	void SimpleRayTracer::CreateStateObjects()
+	void RayTracer::CreateStateObjects()
 	{
 		ID3D12Device5* device = gfx->GetDevice();
 
@@ -376,7 +376,7 @@ namespace adria
 		//maybe merge state objects and table together?
 	}
 	 
-	void SimpleRayTracer::CreateShaderTables()
+	void RayTracer::CreateShaderTables()
 	{
 		ID3D12Device5* device = gfx->GetDevice();
 		//RTS
@@ -419,7 +419,7 @@ namespace adria
 		}
 	}
 
-	void SimpleRayTracer::BuildBottomLevelAS()
+	void RayTracer::BuildBottomLevelAS()
 	{
 		auto device = gfx->GetDevice();
 		auto cmd_list = gfx->GetDefaultCommandList();
@@ -430,7 +430,6 @@ namespace adria
 		for (auto entity : ray_tracing_view)
 		{
 			auto const& mesh = ray_tracing_view.get<Mesh const>(entity);
-
 			auto const& transform = ray_tracing_view.get<Transform const>(entity);
 			DynamicAllocation transform_alloc = upload_allocator->Allocate(sizeof(DirectX::XMMATRIX), D3D12_RAYTRACING_TRANSFORM3X4_BYTE_ALIGNMENT);
 			transform_alloc.Update(transform.current_transform);
@@ -487,7 +486,7 @@ namespace adria
 		blas = blas_buffers.result_buffer;
 	}
 
-	void SimpleRayTracer::BuildTopLevelAS()
+	void RayTracer::BuildTopLevelAS()
 	{
 		auto device = gfx->GetDevice();
 		auto cmd_list = gfx->GetDefaultCommandList();

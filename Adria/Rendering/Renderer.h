@@ -7,7 +7,7 @@
 #include "Picker.h"
 #include "ConstantBuffers.h"
 #include "ParticleRenderer.h"
-#include "SimpleRayTracer.h"
+#include "RayTracer.h"
 #include "../tecs/Registry.h"
 #include "../Graphics/TextureManager.h"
 #include "../Graphics/ShaderUtility.h"
@@ -82,7 +82,7 @@ namespace adria
 
 		void OnRightMouseClicked();
 
-		void UploadData();
+		void OnSceneInitialized();
 
 		Texture2D GetOffscreenTexture() const;
 		TextureManager& GetTextureManager();
@@ -110,7 +110,7 @@ namespace adria
 		Camera const* camera;
 
 		ParticleRenderer particle_renderer;
-		SimpleRayTracer ray_tracer;
+		RayTracer ray_tracer;
 
 		RendererSettings settings;
 		Profiler profiler;
@@ -232,6 +232,7 @@ namespace adria
 		void CreateRenderPasses(uint32 width, uint32 height);
 
 		void CreateIBLTextures();
+		void UploadData();
 		
 		void UpdateConstantBuffers(float32 dt);
 		void UpdateOcean(ID3D12GraphicsCommandList4* cmd_list);

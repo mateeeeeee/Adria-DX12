@@ -84,6 +84,7 @@ namespace adria
 		void AddToReleaseQueue(ID3D12Resource* resource);
 
 		RingDescriptorAllocator* GetDescriptorAllocator() const;
+		void ReserveDescriptors(size_t reserve);
 		LinearUploadBuffer* GetUploadBuffer() const;
 
 		void GetTimestampFrequency(UINT64& frequency) const;

@@ -106,7 +106,6 @@ namespace adria
 			shader_visible_desc.NumDescriptors = 10000;
 			shader_visible_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 			shader_visible_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-
 			descriptor_allocator = std::make_unique<RingDescriptorAllocator>(device.Get(), shader_visible_desc);
 			for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
 			{
@@ -469,6 +468,15 @@ namespace adria
 	RingDescriptorAllocator* GraphicsCoreDX12::GetDescriptorAllocator() const
 	{
 		return descriptor_allocator.get();
+	}
+
+	void GraphicsCoreDX12::ReserveDescriptors(size_t reserve)
+	{
+		D3D12_DESCRIPTOR_HEAP_DESC shader_visible_desc{};
+		shader_visible_desc.NumDescriptors = 10000;
+		shader_visible_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+		shader_visible_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+		descriptor_allocator = std::make_unique<RingDescriptorAllocator>(device.Get(), shader_visible_desc, reserve);
 	}
 
 	LinearUploadBuffer* GraphicsCoreDX12::GetUploadBuffer() const

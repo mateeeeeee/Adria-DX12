@@ -187,7 +187,7 @@
     <ClCompile Include="Rendering\Camera.cpp" />
     <ClCompile Include="Rendering\CameraManager.cpp" />
     <ClCompile Include="Rendering\EntityLoader.cpp" />
-    <ClCompile Include="Rendering\SimpleRayTracer.cpp" />
+    <ClCompile Include="Rendering\RayTracer.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
     <ClCompile Include="Rendering\RootSigPSOManager.cpp" />
     <ClCompile Include="Rendering\SkyModel.cpp" />
@@ -263,7 +263,7 @@
     <ClInclude Include="Rendering\EntityLoader.h" />
     <ClInclude Include="Rendering\ParticleRenderer.h" />
     <ClInclude Include="Rendering\Picker.h" />
-    <ClInclude Include="Rendering\SimpleRayTracer.h" />
+    <ClInclude Include="Rendering\RayTracer.h" />
     <ClInclude Include="Rendering\Renderer.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />
     <ClInclude Include="Rendering\RootSigPSOManager.h" />
