@@ -74,6 +74,11 @@ namespace adria
 		float32 metallic_factor;
 		float32 roughness_factor;
 		float32 emissive_factor;
+
+		int32 albedo_idx = -1;
+		int32 normal_idx = -1;
+		int32 metallic_roughness_idx = -1;
+		int32 emissive_idx = -1;
 	};
 
 	DECLSPEC_ALIGN(16) struct ShadowCBuffer

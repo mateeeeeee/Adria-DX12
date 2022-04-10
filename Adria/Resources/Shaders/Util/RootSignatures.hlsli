@@ -43,7 +43,7 @@
                                 "CBV(b0, visibility=SHADER_VISIBILITY_ALL), " \
                                 "CBV(b1, visibility=SHADER_VISIBILITY_VERTEX), " \
                                 "CBV(b4, visibility=SHADER_VISIBILITY_PIXEL), " \
-                                "DescriptorTable(SRV(t0, numDescriptors = 4, flags = DATA_VOLATILE), visibility=SHADER_VISIBILITY_PIXEL), " \
+                                "DescriptorTable(SRV(t0, numDescriptors=unbounded, space = 1, flags = DESCRIPTORS_VOLATILE), visibility=SHADER_VISIBILITY_PIXEL), " \
                                 "StaticSampler(s0, " \
                                  "addressU = TEXTURE_ADDRESS_WRAP, " \
                                  "addressV = TEXTURE_ADDRESS_WRAP, " \

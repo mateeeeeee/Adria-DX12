@@ -36,12 +36,16 @@ struct MaterialCBuffer
     float3 ambient;
     float3 diffuse;
     float3 specular;
-
     float shininess;
     float albedo_factor;
     float metallic_factor;
     float roughness_factor;
     float emissive_factor;
+    
+    int albedo_idx;
+    int normal_idx;
+    int metallic_roughness_idx;
+    int emissive_idx;
 };
 
 

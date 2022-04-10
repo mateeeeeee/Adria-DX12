@@ -2217,6 +2217,7 @@ namespace adria
 		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::GbufferPBR));
 		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::GbufferPBR));
 		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
+		cmd_list->SetGraphicsRootDescriptorTable(3, descriptor_allocator->GetFirstGpuHandle());
 
 		for (auto e : gbuffer_view)
 		{
@@ -2235,12 +2236,16 @@ namespace adria
 			material_cbuf_data.metallic_factor = material.metallic_factor;
 			material_cbuf_data.roughness_factor = material.roughness_factor;
 			material_cbuf_data.emissive_factor = material.emissive_factor;
+			material_cbuf_data.albedo_idx = material.albedo_texture != INVALID_TEXTURE_HANDLE ? static_cast<int32>(material.albedo_texture) : 0;
+			material_cbuf_data.normal_idx = material.normal_texture != INVALID_TEXTURE_HANDLE ? static_cast<int32>(material.normal_texture) : 0;
+			material_cbuf_data.metallic_roughness_idx = material.metallic_roughness_texture != INVALID_TEXTURE_HANDLE ? static_cast<int32>(material.metallic_roughness_texture) : 0;
+			material_cbuf_data.emissive_idx = material.emissive_texture != INVALID_TEXTURE_HANDLE ? static_cast<int32>(material.emissive_texture) : 0;
 
 			DynamicAllocation material_allocation = upload_buffer->Allocate(GetCBufferSize<MaterialCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 			material_allocation.Update(material_cbuf_data);
 			cmd_list->SetGraphicsRootConstantBufferView(2, material_allocation.gpu_address);
 
-			std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> texture_handles{};
+			/*std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> texture_handles{};
 			std::vector<uint32> src_range_sizes{};
 
 			ADRIA_ASSERT(material.albedo_texture != INVALID_TEXTURE_HANDLE);
@@ -2255,9 +2260,7 @@ namespace adria
 			auto dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
 			uint32 dst_range_sizes[] = { (uint32)texture_handles.size() };
 			device->CopyDescriptors(1, &dst_descriptor, dst_range_sizes, (uint32)texture_handles.size(), texture_handles.data(), src_range_sizes.data(),
-				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-			cmd_list->SetGraphicsRootDescriptorTable(3, descriptor_allocator->GetGpuHandle(descriptor_index));
+				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);*/
 
 			mesh.Draw(cmd_list);
 		}

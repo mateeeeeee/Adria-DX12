@@ -3,15 +3,12 @@
 
 SamplerState linear_wrap_sampler : register(s0);
 
-Texture2D txAlbedo              : register(t0);
+Texture2D tex2darray[] : register(t0, space1);
 
-Texture2D txMetallicRoughness : register(t1);
-
-Texture2D txNormal              : register(t2);
-
-Texture2D txEmissive            : register(t3);
-
-
+//Texture2D txAlbedo              : register(t0);
+//Texture2D txMetallicRoughness   : register(t1);
+//Texture2D txNormal              : register(t2);
+//Texture2D txEmissive            : register(t3);
 
 
 struct VS_OUTPUT
@@ -52,6 +49,11 @@ PS_GBUFFER_OUT main(VS_OUTPUT In)
 {
 
     In.Uvs.y = 1 - In.Uvs.y;
+    
+    Texture2D txAlbedo = tex2darray[material_cbuf.albedo_idx];
+    Texture2D txNormal = tex2darray[material_cbuf.normal_idx];
+    Texture2D txMetallicRoughness = tex2darray[material_cbuf.metallic_roughness_idx];
+    Texture2D txEmissive = tex2darray[material_cbuf.emissive_idx];
  
     float4 DiffuseColor = txAlbedo.Sample(linear_wrap_sampler, In.Uvs) * material_cbuf.albedo_factor;
 

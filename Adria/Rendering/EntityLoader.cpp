@@ -519,16 +519,9 @@ namespace adria
 		std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>(gfx, vertices, params.used_in_raytracing);
 		std::shared_ptr<IndexBuffer> ib = std::make_shared<IndexBuffer>(gfx, indices, params.used_in_raytracing);
 
-		size_t rt_buffers_id = -1;
-		if (params.used_in_raytracing)
-		{
-			rt_buffers_id = RayTracing::rt_buffers.size();
-			RayTracing::rt_buffers.push_back(std::make_pair(vb, ib));
-		}
-
 		for (entity e : entities)
 		{
-			if (params.used_in_raytracing) reg.emplace<RayTracing>(e, rt_buffers_id);
+			if (params.used_in_raytracing) reg.emplace<RayTracing>(e);
 			auto& mesh = reg.get<Mesh>(e);
 			mesh.vertex_buffer = vb;
 			mesh.index_buffer = ib;
