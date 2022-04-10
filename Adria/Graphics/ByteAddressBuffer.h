@@ -20,7 +20,7 @@ namespace adria
 			resource_desc.DepthOrArraySize = 1;
 			resource_desc.MipLevels = 1;
 			resource_desc.Format = DXGI_FORMAT_UNKNOWN;
-			resource_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+			resource_desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 			resource_desc.SampleDesc.Count = 1;
 			resource_desc.SampleDesc.Quality = 0;
 			resource_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
