@@ -83,7 +83,7 @@ namespace adria
 		void AddToReleaseQueue(D3D12MA::Allocation* alloc);
 		void AddToReleaseQueue(ID3D12Resource* resource);
 
-		LinearDescriptorAllocator* GetDescriptorAllocator() const;
+		RingDescriptorAllocator* GetDescriptorAllocator() const;
 		LinearUploadBuffer* GetUploadBuffer() const;
 
 		void GetTimestampFrequency(UINT64& frequency) const;
@@ -132,7 +132,7 @@ namespace adria
 		UINT64       wait_fence_value = 0;
 
 		std::unique_ptr<DescriptorHeap> render_target_heap = nullptr;
-		std::vector<std::unique_ptr<LinearDescriptorAllocator>> descriptor_allocators;
+		std::unique_ptr<RingDescriptorAllocator> descriptor_allocator;
 		std::vector<std::unique_ptr<LinearUploadBuffer>> upload_buffers;
 
 	private:

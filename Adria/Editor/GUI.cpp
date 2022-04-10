@@ -65,7 +65,6 @@ namespace adria
 		ImGui::NewFrame();
 		ImGuizmo::BeginFrame();
 
-
 		imgui_allocator->ReleaseCompletedFrames(frame_count);
 	}
 

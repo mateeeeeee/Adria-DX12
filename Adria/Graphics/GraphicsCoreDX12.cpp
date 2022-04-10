@@ -102,14 +102,14 @@ namespace adria
 
 		//create upload and descriptor allocators
 		{
-			D3D12_DESCRIPTOR_HEAP_DESC shader_visible_desc = {};
+			D3D12_DESCRIPTOR_HEAP_DESC shader_visible_desc{};
 			shader_visible_desc.NumDescriptors = 10000;
 			shader_visible_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 			shader_visible_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
+			descriptor_allocator = std::make_unique<RingDescriptorAllocator>(device.Get(), shader_visible_desc);
 			for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
 			{
-				descriptor_allocators.emplace_back(new LinearDescriptorAllocator(device.Get(), shader_visible_desc));
 				upload_buffers.emplace_back(new LinearUploadBuffer(device.Get(), 10000000));
 			}
 		}
@@ -310,7 +310,7 @@ namespace adria
 
 	void GraphicsCoreDX12::ClearBackbuffer()
 	{
-		descriptor_allocators[backbuffer_index]->Clear();
+		descriptor_allocator->ReleaseCompletedFrames(frame_index);
 		upload_buffers[backbuffer_index]->Clear();
 
 		ResetDefaultCommandList();
@@ -330,7 +330,7 @@ namespace adria
 
 		frame_resources.default_cmd_list->SetGraphicsRootSignature(nullptr);
 
-		ID3D12DescriptorHeap* ppHeaps[] = { descriptor_allocators[backbuffer_index]->Heap() };
+		ID3D12DescriptorHeap* ppHeaps[] = { descriptor_allocator->Heap() };
 		frame_resources.default_cmd_list->SetDescriptorHeaps(1, ppHeaps);
 	}
 
@@ -361,6 +361,8 @@ namespace adria
 		swap_chain->Present(vsync, 0);
 
 		MoveToNextFrame();
+
+		descriptor_allocator->FinishCurrentFrame(frame_index);
 	}
 
 	ID3D12Device5* GraphicsCoreDX12::GetDevice() const
@@ -388,7 +390,7 @@ namespace adria
 		hr = frame_resources.cmd_lists[i]->Reset(frame_resources.cmd_allocators[i].Get(), nullptr);
 		BREAK_IF_FAILED(hr);
 
-		ID3D12DescriptorHeap* ppHeaps[] = { descriptor_allocators[backbuffer_index]->Heap() };
+		ID3D12DescriptorHeap* ppHeaps[] = { descriptor_allocator->Heap() };
 		frame_resources.cmd_lists[i]->SetDescriptorHeaps(1, ppHeaps);
 
 		return frame_resources.cmd_lists[i].Get();
@@ -416,7 +418,7 @@ namespace adria
 		hr = frame_resources.compute_cmd_lists[i]->Reset(frame_resources.compute_cmd_allocators[i].Get(), nullptr);
 		BREAK_IF_FAILED(hr);
 
-		ID3D12DescriptorHeap* ppHeaps[] = { descriptor_allocators[backbuffer_index]->Heap() };
+		ID3D12DescriptorHeap* ppHeaps[] = { descriptor_allocator->Heap() };
 		frame_resources.compute_cmd_lists[i]->SetDescriptorHeaps(1, ppHeaps);
 
 		return frame_resources.compute_cmd_lists[i].Get();
@@ -464,9 +466,9 @@ namespace adria
 		release_queue.emplace(new ReleasableResource(resource), release_queue_fence_value);
 	}
 
-	LinearDescriptorAllocator* GraphicsCoreDX12::GetDescriptorAllocator() const
+	RingDescriptorAllocator* GraphicsCoreDX12::GetDescriptorAllocator() const
 	{
-		return descriptor_allocators[backbuffer_index].get();
+		return descriptor_allocator.get();
 	}
 
 	LinearUploadBuffer* GraphicsCoreDX12::GetUploadBuffer() const

@@ -342,7 +342,7 @@ namespace adria
 		void InitializeDeadList(ID3D12GraphicsCommandList* cmd_list)
 		{
 			ID3D12Device* device = gfx->GetDevice();
-			LinearDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
+			RingDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
 
 			D3D12_RESOURCE_BARRIER prereset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(dead_list_buffer.CounterBuffer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_DEST);
 			cmd_list->ResourceBarrier(1, &prereset_barrier);
@@ -361,7 +361,7 @@ namespace adria
 		void ResetParticles(ID3D12GraphicsCommandList* cmd_list)
 		{
 			ID3D12Device* device = gfx->GetDevice();
-			LinearDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
+			RingDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
 
 			cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_Reset));
 			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_Reset));
@@ -378,7 +378,7 @@ namespace adria
 		{
 			PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Particles Emit Pass");
 			ID3D12Device* device = gfx->GetDevice();
-			LinearDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
+			RingDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
 			LinearUploadBuffer* upload_buffer = gfx->GetUploadBuffer();
 
 			if (emitter_params.number_to_emit > 0)
@@ -437,7 +437,7 @@ namespace adria
 			PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Particles Simulate Pass");
 
 			ID3D12Device* device = gfx->GetDevice();
-			LinearDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
+			RingDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
 
 			cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_Simulate));
 			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_Simulate));
@@ -478,7 +478,7 @@ namespace adria
 			PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Particles Rasterize Pass");
 
 			ID3D12Device* device = gfx->GetDevice();
-			LinearDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
+			RingDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
 
 			cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_Shading));
 			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_Shading));
@@ -527,7 +527,7 @@ namespace adria
 			PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Particles Sort Pass");
 
 			ID3D12Device* device = gfx->GetDevice();
-			LinearDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
+			RingDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
 			LinearUploadBuffer* upload_buffer = gfx->GetUploadBuffer();
 
 			D3D12_RESOURCE_BARRIER barriers[] =
@@ -595,7 +595,7 @@ namespace adria
 		bool SortIncremental(ID3D12GraphicsCommandList* cmd_list, uint32 presorted)
 		{
 			ID3D12Device* device = gfx->GetDevice();
-			LinearDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
+			RingDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
 			LinearUploadBuffer* upload_buffer = gfx->GetUploadBuffer();
 
 			bool done = true;

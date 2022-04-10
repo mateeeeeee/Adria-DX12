@@ -38,7 +38,7 @@ namespace adria
 			D3D12_GPU_VIRTUAL_ADDRESS frame_cbuffer_gpu_address)
 		{
 			ID3D12Device* device = gfx->GetDevice();
-			LinearDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
+			RingDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
 			UINT backbuffer_index = gfx->BackbufferIndex();
 
 			cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Picker));
