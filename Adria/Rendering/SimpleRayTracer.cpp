@@ -514,32 +514,28 @@ namespace adria
 		tlas_buffers.scratch_buffer = CreateBuffer(device, tl_prebuild_info.ScratchDataSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, default_heap);
 		tlas_buffers.result_buffer  = CreateBuffer(device, tl_prebuild_info.ResultDataMaxSizeInBytes, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, default_heap);
 
-		// The instance desc should be inside a buffer, create and map the buffer
 		auto upload_heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 		tlas_buffers.instance_buffer = CreateBuffer(device, sizeof(D3D12_RAYTRACING_INSTANCE_DESC), D3D12_RESOURCE_FLAG_NONE, D3D12_RESOURCE_STATE_GENERIC_READ, upload_heap);
 		D3D12_RAYTRACING_INSTANCE_DESC* p_instance_desc = nullptr;
 		tlas_buffers.instance_buffer->Map(0, nullptr, (void**)&p_instance_desc);
 
-		// Initialize the instance desc. We only have a single instance
-		p_instance_desc->InstanceID = 0;                            // This value will be exposed to the shader via InstanceID()
-		p_instance_desc->InstanceContributionToHitGroupIndex = 0;   // This is the offset inside the shader-table. We only have a single geometry, so the offset 0
+		p_instance_desc->InstanceID = 0;                            
+		p_instance_desc->InstanceContributionToHitGroupIndex = 0;   
 		p_instance_desc->Flags = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
 		static const auto I = DirectX::XMMatrixIdentity();
 		memcpy(p_instance_desc->Transform, &I, sizeof(p_instance_desc->Transform));
 		p_instance_desc->AccelerationStructure = blas->GetGPUVirtualAddress();
 		p_instance_desc->InstanceMask = 0xFF;
-		// Unmap
 		tlas_buffers.instance_buffer->Unmap(0, nullptr);
 
-		// Create the TLAS
 		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC tlas_desc = {};
 		tlas_desc.Inputs = inputs;
 		tlas_desc.Inputs.InstanceDescs = tlas_buffers.instance_buffer->GetGPUVirtualAddress();
 		tlas_desc.DestAccelerationStructureData = tlas_buffers.result_buffer->GetGPUVirtualAddress();
 		tlas_desc.ScratchAccelerationStructureData = tlas_buffers.scratch_buffer->GetGPUVirtualAddress();
 		cmd_list->BuildRaytracingAccelerationStructure(&tlas_desc, 0, nullptr);
-		// We need to insert a UAV barrier before using the acceleration structures in a raytracing operation
-		D3D12_RESOURCE_BARRIER uav_barrier = {};
+		
+		D3D12_RESOURCE_BARRIER uav_barrier{};
 		uav_barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
 		uav_barrier.UAV.pResource = tlas_buffers.result_buffer.Get();
 		cmd_list->ResourceBarrier(1, &uav_barrier);

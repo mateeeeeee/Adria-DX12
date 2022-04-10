@@ -26,8 +26,6 @@ namespace adria
 {
     using namespace tecs;
 
-
-
 	std::vector<entity> EntityLoader::LoadGrid(grid_parameters_t const& params)
 	{
 		if (params.heightmap)
