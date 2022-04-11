@@ -56,7 +56,6 @@ namespace adria
 		BuildBottomLevelAS();
 		BuildTopLevelAS();
 
-		CreateGlobalBuffers();
 		CreateResources();
 		CreateRootSignatures();
 		CreateStateObjects();

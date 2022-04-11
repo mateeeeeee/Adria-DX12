@@ -537,8 +537,8 @@ namespace adria
 			if (params.used_in_raytracing)
 			{
 				RayTracing rt_component{
-					.vertex_offset = rt_vertices_size + mesh.base_vertex_location,
-					.index_offset = rt_indices_size + mesh.start_index_location
+					.vertex_offset = (uint32)rt_vertices_size + mesh.base_vertex_location,
+					.index_offset = (uint32)rt_indices_size + mesh.start_index_location
 				};
 				reg.emplace<RayTracing>(e, rt_component);
 			}

@@ -109,7 +109,7 @@ namespace adria
 
 			D3D12_RESOURCE_BARRIER sb_barrier = {};
 			sb_barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-			sb_barrier.Transition.pResource = vb.Get();
+			sb_barrier.Transition.pResource = buffer.Get();
 			sb_barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
 			sb_barrier.Transition.StateAfter = initial_state;
 			sb_barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;

@@ -6,6 +6,8 @@
 #include "../Graphics/Texture2D.h"
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/StructuredBuffer.h"
+#include "../Graphics/VertexBuffer.h"
+#include "../Graphics/IndexBuffer.h"
 
 
 namespace adria
@@ -84,7 +86,6 @@ namespace adria
         void BuildBottomLevelAS();
         void BuildTopLevelAS();
 
-		void CreateGlobalBuffers();
 		void CreateResources();
 		void CreateRootSignatures();
 		void CreateStateObjects();
