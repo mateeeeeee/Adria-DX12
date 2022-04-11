@@ -18,6 +18,7 @@ namespace adria
 
 		template<typename vertex_t>
 		VertexBuffer(GraphicsCoreDX12* gfx, vertex_t* vertices, size_t vertex_count, bool used_in_rt = false)
+			: vertex_count((UINT)vertex_count)
 		{
 			auto allocator = gfx->GetAllocator();
 			auto command_list = gfx->GetDefaultCommandList();
@@ -52,23 +53,23 @@ namespace adria
 
 			D3D12MA::ALLOCATION_DESC vertex_buffer_upload_alloc_desc{};
 			vertex_buffer_upload_alloc_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-			D3D12_RESOURCE_DESC verte_buffer_upload_resource_desc{};
-			verte_buffer_upload_resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-			verte_buffer_upload_resource_desc.Alignment = 0;
-			verte_buffer_upload_resource_desc.Width = vertex_count * sizeof(vertex_t);
-			verte_buffer_upload_resource_desc.Height = 1;
-			verte_buffer_upload_resource_desc.DepthOrArraySize = 1;
-			verte_buffer_upload_resource_desc.MipLevels = 1;
-			verte_buffer_upload_resource_desc.Format = DXGI_FORMAT_UNKNOWN;
-			verte_buffer_upload_resource_desc.SampleDesc.Count = 1;
-			verte_buffer_upload_resource_desc.SampleDesc.Quality = 0;
-			verte_buffer_upload_resource_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-			verte_buffer_upload_resource_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+			D3D12_RESOURCE_DESC vertex_buffer_upload_resource_desc{};
+			vertex_buffer_upload_resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+			vertex_buffer_upload_resource_desc.Alignment = 0;
+			vertex_buffer_upload_resource_desc.Width = vertex_count * sizeof(vertex_t);
+			vertex_buffer_upload_resource_desc.Height = 1;
+			vertex_buffer_upload_resource_desc.DepthOrArraySize = 1;
+			vertex_buffer_upload_resource_desc.MipLevels = 1;
+			vertex_buffer_upload_resource_desc.Format = DXGI_FORMAT_UNKNOWN;
+			vertex_buffer_upload_resource_desc.SampleDesc.Count = 1;
+			vertex_buffer_upload_resource_desc.SampleDesc.Quality = 0;
+			vertex_buffer_upload_resource_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+			vertex_buffer_upload_resource_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
 			D3D12MA::Allocation* vertex_buffer_upload_heap_allocation = nullptr;
 			BREAK_IF_FAILED(allocator->CreateResource(
 				&vertex_buffer_upload_alloc_desc,
-				&verte_buffer_upload_resource_desc, // resource description for a buffer
+				&vertex_buffer_upload_resource_desc, // resource description for a buffer
 				D3D12_RESOURCE_STATE_GENERIC_READ, // GPU will read from this buffer and copy its contents to the default heap
 				nullptr,
 				&vertex_buffer_upload_heap_allocation, __uuidof(nullptr), nullptr
@@ -124,6 +125,11 @@ namespace adria
 			return vb_view;
 		}
 
+		UINT VertexCount() const
+		{
+			return vertex_count;
+		}
+
 		ID3D12Resource* Resource() const
 		{
 			return vb.Get();
@@ -133,6 +139,7 @@ namespace adria
 		Microsoft::WRL::ComPtr<ID3D12Resource> vb;
 		ReleasablePtr<D3D12MA::Allocation> allocation = nullptr;
 		D3D12_VERTEX_BUFFER_VIEW vb_view;
+		UINT const vertex_count;
 
 	};
 

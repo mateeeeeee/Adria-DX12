@@ -192,8 +192,8 @@ namespace adria
 		
 		//Persistent sbuffers
 		StructuredBuffer<ClusterAABB>	clusters;
-		StructuredBuffer<uint32>			light_counter;
-		StructuredBuffer<uint32>			light_list;
+		StructuredBuffer<uint32>		light_counter;
+		StructuredBuffer<uint32>		light_list;
 		StructuredBuffer<LightGrid>  	light_grid;
 		std::unique_ptr<StructuredBuffer<Bokeh>> bokeh;
 		

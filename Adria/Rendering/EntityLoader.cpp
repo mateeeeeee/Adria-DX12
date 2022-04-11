@@ -519,13 +519,29 @@ namespace adria
 		std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>(gfx, vertices, params.used_in_raytracing);
 		std::shared_ptr<IndexBuffer> ib = std::make_shared<IndexBuffer>(gfx, indices, params.used_in_raytracing);
 
+		size_t rt_vertices_size = RayTracing::rt_vertices.size();
+		size_t rt_indices_size = RayTracing::rt_indices.size();
+		if (params.used_in_raytracing)
+		{
+			RayTracing::rt_vertices.insert(std::end(RayTracing::rt_vertices), std::begin(vertices), std::end(vertices));
+			RayTracing::rt_indices.insert(std::end(RayTracing::rt_indices), std::begin(indices), std::end(indices));
+		}
+
 		for (entity e : entities)
 		{
-			if (params.used_in_raytracing) reg.emplace<RayTracing>(e);
 			auto& mesh = reg.get<Mesh>(e);
 			mesh.vertex_buffer = vb;
 			mesh.index_buffer = ib;
 			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(as_integer(e)));
+
+			if (params.used_in_raytracing)
+			{
+				RayTracing rt_component{
+					.vertex_offset = rt_vertices_size + mesh.base_vertex_location,
+					.index_offset = rt_indices_size + mesh.start_index_location
+				};
+				reg.emplace<RayTracing>(e, rt_component);
+			}
 		}
 		ADRIA_LOG(INFO, "GLTF Mesh %s successfully loaded!", params.model_path.c_str());
 		return entities;

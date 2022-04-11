@@ -54,6 +54,9 @@ namespace adria
         Microsoft::WRL::ComPtr<ID3D12Resource> tlas = nullptr;
         uint64 tlas_size = 0;
 
+		std::unique_ptr<VertexBuffer> global_vb = nullptr;
+		std::unique_ptr<IndexBuffer>  global_ib = nullptr;
+
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> rt_shadows_root_signature = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12StateObject> rt_shadows_state_object = nullptr;
 		std::unique_ptr<ShaderTable> rt_shadows_shader_table_raygen = nullptr;
@@ -67,16 +70,25 @@ namespace adria
 		std::unique_ptr<ShaderTable> rtao_shader_table_miss = nullptr;
 		std::unique_ptr<ShaderTable> rtao_shader_table_hit = nullptr;
 		Texture2D rtao_output;
+
+		Microsoft::WRL::ComPtr<ID3D12RootSignature> rts_root_signature = nullptr;
+		Microsoft::WRL::ComPtr<ID3D12StateObject> rts_state_object = nullptr;
+		std::unique_ptr<ShaderTable> rts_shader_table_raygen = nullptr;
+		std::unique_ptr<ShaderTable> rts_shader_table_miss = nullptr;
+		std::unique_ptr<ShaderTable> rts_shader_table_hit = nullptr;
+		Texture2D rts_output;
 		
 
 	private:
 
+        void BuildBottomLevelAS();
+        void BuildTopLevelAS();
+
+		void CreateGlobalBuffers();
 		void CreateResources();
 		void CreateRootSignatures();
 		void CreateStateObjects();
 		void CreateShaderTables();
 
-        void BuildBottomLevelAS();
-        void BuildTopLevelAS();
 	};
 }

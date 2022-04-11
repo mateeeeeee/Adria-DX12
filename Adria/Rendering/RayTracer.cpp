@@ -42,11 +42,6 @@ namespace adria
 			return;
 		}
 		else ray_tracing_supported = true;
-
-		CreateResources();
-		CreateRootSignatures();
-		CreateStateObjects();
-		CreateShaderTables();
 	}
 
 	bool RayTracer::IsSupported() const
@@ -60,6 +55,12 @@ namespace adria
 
 		BuildBottomLevelAS();
 		BuildTopLevelAS();
+
+		CreateGlobalBuffers();
+		CreateResources();
+		CreateRootSignatures();
+		CreateStateObjects();
+		CreateShaderTables();
 	}
 
 	void RayTracer::Update(RayTracingParams const& params)
@@ -171,6 +172,24 @@ namespace adria
 
 		dxr_heap = std::make_unique<DescriptorHeap>(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 50);
 
+		global_vb = std::make_unique<VertexBuffer>(gfx, RayTracing::rt_vertices, true);
+		global_ib = std::make_unique<IndexBuffer>(gfx, RayTracing::rt_indices, true);
+
+		size_t current_handle_index = 0;
+
+		D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
+		srv_desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+		srv_desc.Format = DXGI_FORMAT_UNKNOWN;
+		srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		srv_desc.Buffer.FirstElement = 0;
+		srv_desc.Buffer.StructureByteStride = sizeof(CompleteVertex);
+		srv_desc.Buffer.NumElements = global_vb->VertexCount();
+		srv_desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+		device->CreateShaderResourceView(global_vb->Resource(), &srv_desc, dxr_heap->GetCpuHandle(current_handle_index++));
+		srv_desc.Buffer.StructureByteStride = sizeof(uint32);
+		srv_desc.Buffer.NumElements = global_ib->IndexCount();
+		device->CreateShaderResourceView(global_ib->Resource(), nullptr, dxr_heap->GetCpuHandle(current_handle_index++));
+
 		texture2d_desc_t uav_target_desc{};
 		uav_target_desc.width = width;
 		uav_target_desc.height = height;
@@ -178,7 +197,6 @@ namespace adria
 		uav_target_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 		uav_target_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
-		size_t current_handle_index = 0;
 		rt_shadows_output = Texture2D(device, uav_target_desc);
 		rt_shadows_output.CreateSRV(dxr_heap->GetCpuHandle(current_handle_index++));
 		rt_shadows_output.CreateUAV(dxr_heap->GetCpuHandle(current_handle_index++));
@@ -541,6 +559,5 @@ namespace adria
 
 		tlas = tlas_buffers.result_buffer;
 	}
-
 }
 

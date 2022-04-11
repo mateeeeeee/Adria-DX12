@@ -176,6 +176,15 @@ namespace adria
 
 	struct COMPONENT RayTracing
 	{
-	
+		friend class EntityLoader;
+		friend class RayTracer;
+
+	public:
+		uint32 vertex_offset; //offset to global raytracing vertex buffer
+		uint32 index_offset;  //offset to global raytracing index buffer
+
+	private:
+		inline static std::vector<CompleteVertex> rt_vertices = {};
+		inline static std::vector<uint32> rt_indices = {};
 	};
 }

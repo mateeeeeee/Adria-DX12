@@ -13,7 +13,7 @@ namespace adria
 		{
 			ADRIA_ASSERT(size > 0);
 			
-			D3D12_RESOURCE_DESC resource_desc = {};
+			D3D12_RESOURCE_DESC resource_desc{};
 			resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 			resource_desc.Width = UINT(size);
 			resource_desc.Height = 1;

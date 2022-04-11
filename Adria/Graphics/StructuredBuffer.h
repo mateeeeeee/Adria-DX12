@@ -57,6 +57,67 @@ namespace adria
 					D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&counter_buffer)));
 			}
 		}
+
+		StructuredBuffer(GraphicsCoreDX12* gfx, T const* data, size_t element_count, D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
+			: device(gfx->GetDevice()), element_count(element_count)
+		{
+			auto command_list = gfx->GetDefaultCommandList();
+
+			D3D12_RESOURCE_DESC structured_buffer_resource_desc{};
+			structured_buffer_resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+			structured_buffer_resource_desc.Width = element_count * sizeof(T);
+			structured_buffer_resource_desc.Height = 1;
+			structured_buffer_resource_desc.DepthOrArraySize = 1;
+			structured_buffer_resource_desc.MipLevels = 1;
+			structured_buffer_resource_desc.Format = DXGI_FORMAT_UNKNOWN;
+			structured_buffer_resource_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+			structured_buffer_resource_desc.SampleDesc.Count = 1;
+			structured_buffer_resource_desc.SampleDesc.Quality = 0;
+			structured_buffer_resource_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+			structured_buffer_resource_desc.Alignment = 0;
+
+			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+			BREAK_IF_FAILED(device->CreateCommittedResource(&heap_properties, D3D12_HEAP_FLAG_NONE, &structured_buffer_resource_desc,
+				D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&buffer)));
+
+			ID3D12Resource* upload_buffer = nullptr;
+			D3D12_RESOURCE_DESC structured_buffer_upload_resource_desc{};
+			structured_buffer_upload_resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+			structured_buffer_upload_resource_desc.Alignment = 0;
+			structured_buffer_upload_resource_desc.Width = element_count * sizeof(T);
+			structured_buffer_upload_resource_desc.Height = 1;
+			structured_buffer_upload_resource_desc.DepthOrArraySize = 1;
+			structured_buffer_upload_resource_desc.MipLevels = 1;
+			structured_buffer_upload_resource_desc.Format = DXGI_FORMAT_UNKNOWN;
+			structured_buffer_upload_resource_desc.SampleDesc.Count = 1;
+			structured_buffer_upload_resource_desc.SampleDesc.Quality = 0;
+			structured_buffer_upload_resource_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+			structured_buffer_upload_resource_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+			heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+			BREAK_IF_FAILED(device->CreateCommittedResource(&heap_properties, D3D12_HEAP_FLAG_NONE, &structured_buffer_upload_resource_desc,
+				D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&upload_buffer)));
+
+			// store vertex buffer in upload heap
+			D3D12_SUBRESOURCE_DATA structure_data{};
+			structure_data.pData = data; 
+			structure_data.RowPitch = element_count * sizeof(T); 
+			structure_data.SlicePitch = element_count * sizeof(T); 
+
+			UINT64 r = UpdateSubresources(command_list, buffer.Get(), upload_buffer, 0, 0, 1, &structure_data);
+			ADRIA_ASSERT(r > 0);
+
+			D3D12_RESOURCE_BARRIER sb_barrier = {};
+			sb_barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+			sb_barrier.Transition.pResource = vb.Get();
+			sb_barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+			sb_barrier.Transition.StateAfter = initial_state;
+			sb_barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+			command_list->ResourceBarrier(1, &sb_barrier);
+
+			gfx->AddToReleaseQueue(upload_buffer);
+		}
+
 		StructuredBuffer(StructuredBuffer const&) = delete;
 		StructuredBuffer(StructuredBuffer&&) = delete;
 
