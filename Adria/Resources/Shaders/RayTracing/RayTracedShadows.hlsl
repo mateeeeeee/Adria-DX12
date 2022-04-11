@@ -98,7 +98,7 @@ void RTS_Miss(inout ShadowRayData hitData)
 
 
 [shader("anyhit")]
-void RTS_Anyhit(inout ShadowRayData hitData, in BuiltInTriangleIntersectionAttributes attribs)
+void RTS_AnyHit(inout ShadowRayData hitData, in BuiltInTriangleIntersectionAttributes attribs)
 {
     hitData.hit = true;
 }

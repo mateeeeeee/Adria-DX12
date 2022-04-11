@@ -1,6 +1,10 @@
 #include "RayTracer.h"
 #include "Components.h"
+#include "../Graphics/VertexBuffer.h"
+#include "../Graphics/IndexBuffer.h"
+#include "../Graphics/StructuredBuffer.h"
 #include "../Graphics/ShaderUtility.h"
+#include "../tecs/Registry.h"
 #include "../Logging/Logger.h"
 #include "pix3.h"
 
@@ -62,7 +66,7 @@ namespace adria
 		CreateShaderTables();
 	}
 
-	void RayTracer::Update(RayTracingParams const& params)
+	void RayTracer::Update(RayTracingSettings const& params)
 	{
 		if (!ray_tracing_supported) return;
 
@@ -185,9 +189,12 @@ namespace adria
 		srv_desc.Buffer.NumElements = global_vb->VertexCount();
 		srv_desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 		device->CreateShaderResourceView(global_vb->Resource(), &srv_desc, dxr_heap->GetCpuHandle(current_handle_index++));
+
 		srv_desc.Buffer.StructureByteStride = sizeof(uint32);
 		srv_desc.Buffer.NumElements = global_ib->IndexCount();
-		device->CreateShaderResourceView(global_ib->Resource(), nullptr, dxr_heap->GetCpuHandle(current_handle_index++));
+		device->CreateShaderResourceView(global_ib->Resource(), &srv_desc, dxr_heap->GetCpuHandle(current_handle_index++));
+
+		geo_info_sb->CreateSRV(dxr_heap->GetCpuHandle(current_handle_index++));
 
 		texture2d_desc_t uav_target_desc{};
 		uav_target_desc.width = width;
@@ -212,7 +219,7 @@ namespace adria
 
 		D3D12_FEATURE_DATA_ROOT_SIGNATURE feature_data{};
 		feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
-		//ray traced shadows
+		//RTS
 		{
 			std::array<CD3DX12_ROOT_PARAMETER1, 6> root_parameters{};
 			root_parameters[0].InitAsConstantBufferView(0);
@@ -251,7 +258,7 @@ namespace adria
 			BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rt_shadows_root_signature)));
 		}
 
-		//rtao
+		//RTAO
 		{
 			std::array<CD3DX12_ROOT_PARAMETER1, 5> root_parameters{};
 			root_parameters[0].InitAsConstantBufferView(0);
@@ -288,6 +295,11 @@ namespace adria
 			}
 			BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rtao_root_signature)));
 		}
+
+		//RTR
+		{
+
+		}
 	}
 
 	void RayTracer::CreateStateObjects()
@@ -308,6 +320,10 @@ namespace adria
 		compile_info.shadersource = "Resources/Shaders/RayTracing/RayTracedAmbientOcclusion.hlsl";
 		ShaderBlob rtao_blob;
 		ShaderUtility::CompileShader(compile_info, rtao_blob);
+
+		compile_info.shadersource = "Resources/Shaders/RayTracing/RayTracedReflections.hlsl";
+		ShaderBlob rtr_blob;
+		ShaderUtility::CompileShader(compile_info, rtr_blob);
 
 		StateObjectBuilder rt_shadows_state_object_builder(6);
 		{
@@ -352,7 +368,7 @@ namespace adria
 
 			D3D12_HIT_GROUP_DESC anyhit_group{};
 			anyhit_group.Type = D3D12_HIT_GROUP_TYPE_TRIANGLES;
-			anyhit_group.AnyHitShaderImport = L"RTS_Anyhit";
+			anyhit_group.AnyHitShaderImport = L"RTS_AnyHit";
 			anyhit_group.HitGroupExport = L"ShadowAnyHitGroup";
 			rt_shadows_state_object_builder.AddSubObject(anyhit_group);
 
@@ -390,7 +406,11 @@ namespace adria
 
 			rtao_state_object = rtao_state_object_builder.CreateStateObject(device);
 		}
-		//maybe merge state objects and table together?
+		
+		StateObjectBuilder rtr_state_object_builder(6);
+		{
+
+		}
 	}
 	 
 	void RayTracer::CreateShaderTables()
@@ -434,6 +454,10 @@ namespace adria
 			rtao_shader_table_miss = std::make_unique<ShaderTable>(device, 1);
 			rtao_shader_table_miss->AddShaderRecord(ShaderRecord(rtao_miss_id));
 		}
+		//RTR
+		{
+
+		}
 	}
 
 	void RayTracer::BuildBottomLevelAS()
@@ -441,13 +465,20 @@ namespace adria
 		auto device = gfx->GetDevice();
 		auto cmd_list = gfx->GetDefaultCommandList();
 		auto upload_allocator = gfx->GetUploadBuffer();
-		auto ray_tracing_view = reg.view<Mesh, Transform, RayTracing>();
+		auto ray_tracing_view = reg.view<Mesh, Transform, Material, RayTracing>();
 
+		std::vector<GeoInfo> geo_info{};
 		std::vector<D3D12_RAYTRACING_GEOMETRY_DESC> geo_descs{};
 		for (auto entity : ray_tracing_view)
 		{
 			auto const& mesh = ray_tracing_view.get<Mesh const>(entity);
 			auto const& transform = ray_tracing_view.get<Transform const>(entity);
+			auto const& ray_tracing = ray_tracing_view.get<RayTracing const>(entity);
+			geo_info.push_back(GeoInfo{
+				.vertex_offset = ray_tracing.vertex_offset,
+				.index_offset = ray_tracing.index_offset
+				});
+
 			DynamicAllocation transform_alloc = upload_allocator->Allocate(sizeof(DirectX::XMMATRIX), D3D12_RAYTRACING_TRANSFORM3X4_BYTE_ALIGNMENT);
 			transform_alloc.Update(transform.current_transform);
 			
@@ -501,6 +532,8 @@ namespace adria
 		cmd_list->ResourceBarrier(1, &uav_barrier);
 
 		blas = blas_buffers.result_buffer;
+
+		geo_info_sb = std::make_unique<StructuredBuffer<GeoInfo>>(gfx, geo_info.data(), geo_info.size());
 	}
 
 	void RayTracer::BuildTopLevelAS()

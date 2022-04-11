@@ -407,7 +407,7 @@ namespace adria
 		UpdateConstantBuffers(dt);
 		CameraFrustumCulling();
 		UpdateParticles(dt);
-		ray_tracer.Update(RayTracingParams{.dt = dt, .ao_radius = settings.rtao_radius});
+		ray_tracer.Update(RayTracingSettings{.dt = dt, .ao_radius = settings.rtao_radius});
 	}
 
 	void Renderer::SetSceneViewportData(SceneViewport&& vp)
@@ -3980,7 +3980,7 @@ namespace adria
 		D3D12_RESOURCE_BARRIER dispatch_barriers[] =
 		{
 			CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
-			CD3DX12_RESOURCE_BARRIER::Transition(bokeh->Buffer(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
+			CD3DX12_RESOURCE_BARRIER::Transition(bokeh->Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
 		};
 		cmd_list->ResourceBarrier(ARRAYSIZE(dispatch_barriers), dispatch_barriers);
 
@@ -4002,7 +4002,7 @@ namespace adria
 		cmd_list->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
 
 		CD3DX12_RESOURCE_BARRIER precopy_barriers[] = {
-				CD3DX12_RESOURCE_BARRIER::Transition(bokeh->Buffer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
+				CD3DX12_RESOURCE_BARRIER::Transition(bokeh->Resource(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
 				CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
 				CD3DX12_RESOURCE_BARRIER::Transition(bokeh_indirect_draw_buffer.Get(), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, D3D12_RESOURCE_STATE_COPY_DEST),
 				CD3DX12_RESOURCE_BARRIER::Transition(bokeh->CounterBuffer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE)

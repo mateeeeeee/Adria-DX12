@@ -191,7 +191,7 @@ namespace adria
 			CD3DX12_DESCRIPTOR_RANGE  d;
 		}
 
-		ID3D12Resource* Buffer() const
+		ID3D12Resource* Resource() const
 		{
 			return buffer.Get();
 		}

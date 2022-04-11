@@ -1,32 +1,44 @@
 #pragma once
 #include <memory>
-#include "../Graphics/RayTracingUtil.h"
 #include "ConstantBuffers.h"
-#include "../tecs/Registry.h"
+#include "../Graphics/RayTracingUtil.h"
 #include "../Graphics/Texture2D.h"
 #include "../Graphics/ConstantBuffer.h"
-#include "../Graphics/StructuredBuffer.h"
-#include "../Graphics/VertexBuffer.h"
-#include "../Graphics/IndexBuffer.h"
 
 
 namespace adria
 {
-	struct RayTracingParams
+	struct RayTracingSettings
 	{
 		float32 dt;
 		float32 ao_radius;
 	};
 
-	//used by Renderer class for simple ray tracing features: shadows, ambient occlusion
+	class VertexBuffer;
+	class IndexBuffer;
+	template<typename T>
+	class StructuredBuffer;
+	namespace tecs
+	{
+		class registry;
+	}
+	
+
 	class RayTracer
 	{
+		struct GeoInfo
+		{
+			uint32 vertex_offset;
+			uint32 index_offset;
+			//material indices
+		};
+
 	public:
 
         RayTracer(tecs::registry& reg, GraphicsCoreDX12* gfx, uint32 width, uint32 height);
         bool IsSupported() const;
         void BuildAccelerationStructures();
-		void Update(RayTracingParams const&);
+		void Update(RayTracingSettings const&);
 
 		void RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth_srv,
 			D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address,
@@ -58,7 +70,9 @@ namespace adria
 
 		std::unique_ptr<VertexBuffer> global_vb = nullptr;
 		std::unique_ptr<IndexBuffer>  global_ib = nullptr;
+		std::unique_ptr<StructuredBuffer<GeoInfo>> geo_info_sb = nullptr;
 
+		//group this kind of quint inside a struct
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> rt_shadows_root_signature = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12StateObject> rt_shadows_state_object = nullptr;
 		std::unique_ptr<ShaderTable> rt_shadows_shader_table_raygen = nullptr;

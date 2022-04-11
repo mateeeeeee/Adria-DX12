@@ -778,6 +778,9 @@
     <FxCompile Include="Resources\Shaders\Misc\PickerCS.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\RayTracing\RayTracedReflections.hlsl">
+      <Filter>Shaders\RayTracing</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Shaders\Globals\GlobalsCS.hlsli">
