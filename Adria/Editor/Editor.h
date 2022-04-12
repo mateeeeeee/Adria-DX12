@@ -1,7 +1,7 @@
 #pragma once
-#include "../Core/Engine.h"
 #include <memory>
 #include "GUI.h"
+#include "../Core/Engine.h"
 #include "../tecs/registry.h"
 #include "../Rendering/RendererSettings.h"
 #include "../Rendering/SceneViewport.h"
@@ -24,7 +24,7 @@ namespace adria
 	
 	class Editor
 	{
-		using ShaderReloadCallback = void(*)();
+		using ShaderReloadCallback = std::function<void()>;
 
 	public:
 		explicit Editor(editor_init_t const& init);
@@ -43,7 +43,7 @@ namespace adria
 		RendererSettings renderer_settings{};
 		ProfilerSettings profiler_settings{};
 		SceneViewport scene_viewport_data;
-		//ShaderReloadCallback shader_reload_callback = nullptr;
+		ShaderReloadCallback shader_reload_callback = nullptr;
 
 	private:
 		void SetStyle();

@@ -449,7 +449,7 @@ namespace adria
         SetStyle();
     }
 
-    Editor::~Editor() = default;
+	Editor::~Editor() = default;
 
 	void Editor::HandleWindowMessage(window_message_t const& msg_data)
     {
@@ -497,11 +497,11 @@ namespace adria
             engine->Present();
         }
 
-		//if (shader_reload_callback != nullptr)
-		//{
-		//	shader_reload_callback();
-		//	shader_reload_callback = nullptr;
-		//}
+		if (shader_reload_callback != nullptr)
+		{
+			shader_reload_callback();
+			shader_reload_callback = nullptr;
+		}
     }
 
     void Editor::SetStyle()
@@ -1945,7 +1945,6 @@ namespace adria
 
 	void Editor::ShaderHotReload()
 	{
-		/*
 		if (ImGui::Begin("Shader Hot Reload"))
 		{
 			static ImGui::ComboFilterState s = { 0, false };
@@ -1975,7 +1974,7 @@ namespace adria
 				shader_reload_callback = RootSigPSOManager::RecompileAllShaders;
 			}
 		}
-		ImGui::End();*/
+		ImGui::End();
 	}
 
 	void Editor::RayTracingDebug()
