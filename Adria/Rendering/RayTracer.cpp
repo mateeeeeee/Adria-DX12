@@ -170,7 +170,7 @@ namespace adria
 	}
 
 	void RayTracer::RayTraceReflections(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth, 
-		Texture2D const& scene, D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address)
+		 D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address)
 	{
 		if (!ray_tracing_supported) return;
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Ray Traced Reflections Pass");
@@ -180,6 +180,7 @@ namespace adria
 
 		ResourceBarrierBatch rtr_barrier{};
 		rtr_barrier.AddTransition(rtr_output.Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		rtr_barrier.AddTransition(depth.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 		rtr_barrier.Submit(cmd_list);
 
 		cmd_list->SetComputeRootSignature(rtr_root_signature.Get());
@@ -378,6 +379,7 @@ namespace adria
 			unbounded_srv_range.BaseShaderRegister = 0;
 			unbounded_srv_range.RegisterSpace = 1;
 			unbounded_srv_range.OffsetInDescriptorsFromTableStart = 0;
+			unbounded_srv_range.Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE;
 			root_parameters[5].InitAsDescriptorTable(1, &unbounded_srv_range);
 
 			D3D12_DESCRIPTOR_RANGE1 geometry_srv_range{};

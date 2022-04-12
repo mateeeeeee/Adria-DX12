@@ -2888,11 +2888,8 @@ namespace adria
 		PassVelocityBuffer(cmd_list);
 
 		auto lights = reg.view<Light>();
-
 		postprocess_passes[postprocess_index].Begin(cmd_list); //set ping as rt
-
 		CopyTexture(cmd_list, hdr_render_target);
-
 		for (entity light : lights)
 		{
 			auto const& light_data = lights.get(light);
@@ -2900,7 +2897,6 @@ namespace adria
 
 			PassLensFlare(cmd_list, light_data);
 		}
-		
 		postprocess_passes[postprocess_index].End(cmd_list); //now we have copy of scene in ping
 
 		ResourceBarrierBatch postprocess_barriers{};
@@ -2954,7 +2950,6 @@ namespace adria
 
 		if (settings.ssr)
 		{
-
 			postprocess_passes[postprocess_index].Begin(cmd_list);
 
 			PassSSR(cmd_list);
@@ -2964,6 +2959,11 @@ namespace adria
 			postprocess_barriers.ReverseTransitions();
 			postprocess_barriers.Submit(cmd_list);
 			postprocess_index = !postprocess_index;
+		}
+
+		if (true)
+		{
+			ray_tracer.RayTraceReflections(cmd_list, depth_target, frame_cbuffer.View(backbuffer_index).BufferLocation);
 		}
 
 		if (settings.dof)
@@ -3042,7 +3042,6 @@ namespace adria
 				postprocess_index = !postprocess_index;
 				break;
 			}
-
 		}
 
 		if (settings.anti_aliasing & AntiAliasing_TAA)
