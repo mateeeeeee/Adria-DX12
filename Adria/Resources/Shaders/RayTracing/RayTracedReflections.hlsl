@@ -3,6 +3,7 @@
 
 
 Texture2D depth_tx : register(t1);
+//Texture2D normal_metallic : register(t2);
 RWTexture2D<float4> rtr_output : register(u0);
 
 //move this to globalsrt.hlsli later
@@ -21,6 +22,17 @@ struct Vertex
     float3 tan;
     float3 bin;
 };
+
+
+static float3 Interpolate(in float3 x0, in float3 x1, in float3 x2, float2 bary)
+{
+    return x0 * (1.0f - bary.x - bary.y) + bary.x * x1 + bary.y * x2;
+}
+
+static float2 Interpolate(in float2 x0, in float2 x1, in float2 x2, float2 bary)
+{
+    return x0 * (1.0f - bary.x - bary.y) + bary.x * x1 + bary.y * x2;
+}
 
 Texture2D Tex2DArray[] : register(t0, space1);
 
@@ -53,7 +65,7 @@ void RTR_RayGen()
     ray.TMax = FLT_MAX;
         
     RTR_Payload payload_data;
-    payload_data.metallic = 1.0f;
+    payload_data.metallic = 0.0f;
     payload_data.reflection_color = 0.0f;
     TraceRay(rt_scene,
 		 RAY_FLAG_NONE,
@@ -91,8 +103,11 @@ void RTR_ClosestHit(inout RTR_Payload payload_data, in HitAttributes attribs)
 
     float3 barycentrics = float3(1.0f - attribs.barycentrics.x - attribs.barycentrics.y, attribs.barycentrics);
 
-    float3 v = barycentrics.x * v0.pos + barycentrics.y * v1.pos + barycentrics.z * v2.pos;
+    float3 pos = Interpolate(v0.pos, v1.pos, v2.pos, attribs.barycentrics);
+    float3 nor = Interpolate(v0.nor, v1.nor, v2.nor, attribs.barycentrics);
     
-    payload_data.reflection_color = v;
+    payload_data.reflection_color = pos;
+    
+    payload_data.metallic = 1.0f;
 
 }

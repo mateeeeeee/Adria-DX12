@@ -63,7 +63,7 @@ namespace adria
         uint32 width, height;
         tecs::registry& reg;
         GraphicsCoreDX12* gfx;
-		bool ray_tracing_supported;
+		D3D12_RAYTRACING_TIER ray_tracing_tier;
 
 		std::unique_ptr<DescriptorHeap> dxr_heap = nullptr;
 		ConstantBuffer<RayTracingCBuffer> ray_tracing_cbuffer;

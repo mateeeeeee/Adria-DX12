@@ -39,23 +39,26 @@ namespace adria
 		ID3D12Device* device = gfx->GetDevice();
 		D3D12_FEATURE_DATA_D3D12_OPTIONS5 features5{};
 		HRESULT hr = device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &features5, sizeof(D3D12_FEATURE_DATA_D3D12_OPTIONS5));
-		if (FAILED(hr) || features5.RaytracingTier == D3D12_RAYTRACING_TIER_NOT_SUPPORTED)
+		ray_tracing_tier = features5.RaytracingTier;
+		if (FAILED(hr) || ray_tracing_tier == D3D12_RAYTRACING_TIER_NOT_SUPPORTED)
 		{
 			ADRIA_LOG(INFO, "Ray Tracing is not supported! All Ray Tracing calls will be silently ignored!");
-			ray_tracing_supported = false;
-			return;
 		}
-		else ray_tracing_supported = true;
+		else if (ray_tracing_tier <= D3D12_RAYTRACING_TIER_1_1)
+		{
+			ADRIA_LOG(INFO, "Ray Tracing Tier is less than Tier 1.1!"
+				"Calls to Ray Traced Shadows and Ray Traced Ambient Occlusion are available, all other calls will be silently ignored!");
+		}
 	}
 
 	bool RayTracer::IsSupported() const
 	{
-		return ray_tracing_supported;
+		return ray_tracing_tier > D3D12_RAYTRACING_TIER_NOT_SUPPORTED;
 	}
 
 	void RayTracer::OnSceneInitialized()
 	{
-		if (!ray_tracing_supported) return;
+		if (!IsSupported()) return;
 
 		BuildBottomLevelAS();
 		BuildTopLevelAS();
@@ -68,7 +71,7 @@ namespace adria
 
 	void RayTracer::Update(RayTracingSettings const& params)
 	{
-		if (!ray_tracing_supported) return;
+		if (!IsSupported()) return;
 
 		ray_tracing_cbuf_data.frame_count = gfx->FrameIndex();
 		ray_tracing_cbuf_data.rtao_radius = params.ao_radius;
@@ -80,7 +83,7 @@ namespace adria
 		D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address,
 		D3D12_GPU_VIRTUAL_ADDRESS light_cbuf_address, bool soft_shadows)
 	{
-		if (!ray_tracing_supported) return;
+		if (!IsSupported()) return;
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Ray Traced Shadows Pass");
 
 		auto device = gfx->GetDevice();
@@ -126,7 +129,7 @@ namespace adria
 	void RayTracer::RayTraceAmbientOcclusion(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth, Texture2D const& normal_gbuf,
 		D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address)
 	{
-		if (!ray_tracing_supported) return;
+		if (!IsSupported()) return;
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Ray Traced Ambient Occlusion Pass");
 
 		auto device = gfx->GetDevice();
@@ -172,7 +175,10 @@ namespace adria
 	void RayTracer::RayTraceReflections(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth, 
 		 D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address)
 	{
-		if (!ray_tracing_supported) return;
+		if (ray_tracing_tier < D3D12_RAYTRACING_TIER_1_1)
+		{
+			return;
+		}
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Ray Traced Reflections Pass");
 
 		auto device = gfx->GetDevice();
