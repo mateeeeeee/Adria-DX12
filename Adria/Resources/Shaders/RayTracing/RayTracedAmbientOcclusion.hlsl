@@ -46,8 +46,8 @@ void RTAO_RayGen()
         rayAO.TMax = ray_tracing_cbuf.rtao_radius;
 
         TraceRay(rt_scene,
-		 RAY_FLAG_NONE,
-		 0xFF, 0, 1, 0, rayAO, rayPayload);
+		 RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH,
+		 0xFF, 0, 0, 0, rayAO, rayPayload);
         ao += rayPayload.hit ? 0.0f : 1.0f;
     }
 
@@ -63,5 +63,5 @@ void RTAO_Miss(inout AORayData hitData)
 [shader("anyhit")]
 void RTAO_AnyHit(inout AORayData hitData, in BuiltInTriangleIntersectionAttributes attribs)
 {
-    //hitData.hit = true;
+    hitData.hit = true;
 }

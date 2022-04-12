@@ -264,6 +264,7 @@ namespace adria
 		rtao_output.CreateSRV(dxr_heap->GetCpuHandle(current_handle_index++));
 		rtao_output.CreateUAV(dxr_heap->GetCpuHandle(current_handle_index++));
 
+		uav_target_desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		rtr_output = Texture2D(device, uav_target_desc);
 		rtr_output.CreateSRV(dxr_heap->GetCpuHandle(current_handle_index++));
 		rtr_output.CreateUAV(dxr_heap->GetCpuHandle(current_handle_index++));

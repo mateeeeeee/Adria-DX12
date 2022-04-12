@@ -54,12 +54,14 @@ void RTR_RayGen()
         
     RTR_Payload payload_data;
     payload_data.metallic = 1.0f;
-    payload_data.reflection_color = float3(1.0f, 1.0f, 1.0f);
+    payload_data.reflection_color = 0.0f;
     TraceRay(rt_scene,
 		 RAY_FLAG_NONE,
-		 0xFF, 0, 1, 0, ray, payload_data);
+		 0xFF, 0, 0, 0, ray, payload_data);
 
     rtr_output[launchIndex.xy].xyz = payload_data.metallic * payload_data.reflection_color;
+    rtr_output[launchIndex.xy].w = 1.0f;
+
 }
 
 [shader("miss")]
@@ -86,9 +88,11 @@ void RTR_ClosestHit(inout RTR_Payload payload_data, in HitAttributes attribs)
     Vertex v0 = vertices[vb_offset + i0];
     Vertex v1 = vertices[vb_offset + i1];
     Vertex v2 = vertices[vb_offset + i2];
-    
-    float3 barcentrics = float3(1.0f - attribs.barycentrics.x - attribs.barycentrics.y, attribs.barycentrics);
 
-    payload_data.reflection_color = float3(0, 1, 0);//barcentrics;
+    float3 barycentrics = float3(1.0f - attribs.barycentrics.x - attribs.barycentrics.y, attribs.barycentrics);
+
+    float3 v = barycentrics.x * v0.pos + barycentrics.y * v1.pos + barycentrics.z * v2.pos;
+    
+    payload_data.reflection_color = v;
 
 }

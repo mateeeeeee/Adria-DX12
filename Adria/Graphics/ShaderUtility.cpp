@@ -125,7 +125,7 @@ namespace adria
 				entry_point = L"ds_main";
 				break;
 			case EShaderStage::LIB:
-				p_target = L"lib_6_3";
+				p_target = L"lib_6_5";
 				break;
 			default:
 				ADRIA_ASSERT(false && "Invalid Shader Stage");
