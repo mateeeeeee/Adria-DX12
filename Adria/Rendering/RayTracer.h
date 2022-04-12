@@ -30,7 +30,11 @@ namespace adria
 		{
 			uint32 vertex_offset;
 			uint32 index_offset;
-			//material indices
+
+			int32 albedo_idx;
+			int32 normal_idx;
+			int32 metallic_roughness_idx;
+			int32 emissive_idx;
 		};
 
 	public:

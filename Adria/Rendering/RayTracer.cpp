@@ -397,8 +397,11 @@ namespace adria
 			geometry_srv_range.OffsetInDescriptorsFromTableStart = 0;
 			root_parameters[6].InitAsDescriptorTable(1, &geometry_srv_range);
 
+			D3D12_STATIC_SAMPLER_DESC linear_wrap_sampler = CD3DX12_STATIC_SAMPLER_DESC(0, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+				D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
+
 			CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_desc{};
-			root_signature_desc.Init_1_1((uint32)root_parameters.size(), root_parameters.data(), 0, nullptr);
+			root_signature_desc.Init_1_1((uint32)root_parameters.size(), root_parameters.data(), 1, &linear_wrap_sampler);
 
 			Microsoft::WRL::ComPtr<ID3DBlob> signature;
 			Microsoft::WRL::ComPtr<ID3DBlob> error;
@@ -537,13 +540,17 @@ namespace adria
 
 			// Add a state subobject for the ray tracing pipeline config
 			D3D12_RAYTRACING_PIPELINE_CONFIG pipeline_config{};
-			pipeline_config.MaxTraceRecursionDepth = 1;
+			pipeline_config.MaxTraceRecursionDepth = 2;
 			rtr_state_object_builder.AddSubObject(pipeline_config);
 
 			D3D12_HIT_GROUP_DESC closesthit_group{};
 			closesthit_group.Type = D3D12_HIT_GROUP_TYPE_TRIANGLES;
-			closesthit_group.ClosestHitShaderImport = L"RTR_ClosestHit";
-			closesthit_group.HitGroupExport = L"RTRClosestHitGroup";
+			closesthit_group.ClosestHitShaderImport = L"RTR_ClosestHitPrimaryRay";
+			closesthit_group.HitGroupExport = L"RTRClosestHitGroupPrimaryRay";
+			rtr_state_object_builder.AddSubObject(closesthit_group);
+
+			closesthit_group.ClosestHitShaderImport = L"RTR_ClosestHitReflectionRay";
+			closesthit_group.HitGroupExport = L"RTRClosestHitGroupReflectionRay";
 			rtr_state_object_builder.AddSubObject(closesthit_group);
 
 			rtr_state_object = rtr_state_object_builder.CreateStateObject(device);
@@ -597,14 +604,16 @@ namespace adria
 			BREAK_IF_FAILED(rtr_state_object->QueryInterface(IID_PPV_ARGS(&pso_info)));
 
 			void const* rtr_ray_gen_id = pso_info->GetShaderIdentifier(L"RTR_RayGen");
-			void const* rtr_closesthit_id = pso_info->GetShaderIdentifier(L"RTRClosestHitGroup");
+			void const* rtr_closesthit_primary_ray_id = pso_info->GetShaderIdentifier(L"RTRClosestHitGroupPrimaryRay");
+			void const* rtr_closesthit_reflection_ray_id = pso_info->GetShaderIdentifier(L"RTRClosestHitGroupReflectionRay");
 			void const* rtr_miss_id = pso_info->GetShaderIdentifier(L"RTR_Miss");
 
 			rtr_shader_table_raygen = std::make_unique<ShaderTable>(device, 1);
 			rtr_shader_table_raygen->AddShaderRecord(ShaderRecord(rtr_ray_gen_id));
 
-			rtr_shader_table_hit = std::make_unique<ShaderTable>(device, 1);
-			rtr_shader_table_hit->AddShaderRecord(ShaderRecord(rtr_closesthit_id));
+			rtr_shader_table_hit = std::make_unique<ShaderTable>(device, 2);
+			rtr_shader_table_hit->AddShaderRecord(ShaderRecord(rtr_closesthit_primary_ray_id));
+			rtr_shader_table_hit->AddShaderRecord(ShaderRecord(rtr_closesthit_reflection_ray_id));
 
 			rtr_shader_table_miss = std::make_unique<ShaderTable>(device, 1);
 			rtr_shader_table_miss->AddShaderRecord(ShaderRecord(rtr_miss_id));
@@ -624,10 +633,16 @@ namespace adria
 		{
 			auto const& mesh = ray_tracing_view.get<Mesh const>(entity);
 			auto const& transform = ray_tracing_view.get<Transform const>(entity);
+			auto const& material = ray_tracing_view.get<Material const>(entity);
 			auto const& ray_tracing = ray_tracing_view.get<RayTracing const>(entity);
+
 			geo_info.push_back(GeoInfo{
 				.vertex_offset = ray_tracing.vertex_offset,
-				.index_offset = ray_tracing.index_offset
+				.index_offset = ray_tracing.index_offset,
+				.albedo_idx = (int32)material.albedo_texture,
+				.normal_idx = (int32)material.normal_texture,
+				.metallic_roughness_idx = (int32)material.metallic_roughness_texture,
+				.emissive_idx = (int32)material.emissive_texture,
 				});
 
 			DynamicAllocation transform_alloc = upload_allocator->Allocate(sizeof(DirectX::XMMATRIX), D3D12_RAYTRACING_TRANSFORM3X4_BYTE_ALIGNMENT);
