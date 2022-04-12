@@ -43,7 +43,8 @@ namespace adria
 		RendererSettings renderer_settings{};
 		ProfilerSettings profiler_settings{};
 		SceneViewport scene_viewport_data;
-		ShaderReloadCallback shader_reload_callback;
+		//ShaderReloadCallback shader_reload_callback = nullptr;
+
 	private:
 		void SetStyle();
 

@@ -23,6 +23,6 @@ static void GenerateCameraRay(uint2 index, out float3 origin, out float3 directi
     screenPos.y = -screenPos.y;
     float4 unprojected = mul(float4(screenPos, 0, 1), frame_cbuf.inverse_view);
     float3 world = unprojected.xyz / unprojected.w;
-    origin = frame_cbuf.camera_position;
+    origin = frame_cbuf.camera_position.xyz;
     direction = normalize(world - origin);
 }

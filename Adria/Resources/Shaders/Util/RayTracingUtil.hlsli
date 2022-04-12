@@ -103,17 +103,17 @@ static float3 OffsetRay(const float3 p, const float3 n)
                   abs(p.z) < origin ? p.z + float_scale * n.z : p_i.z);
 }
 
-static const float PI = 3.141592654f;
-static const float PI_2 = 6.283185307f;
-static const float Pi_DIV_2 = 1.570796327f;
-static const float Pi_DIV_4 = 0.7853981635f;
-static const float PI_INV = 0.318309886f;
+static const float M_PI = 3.141592654f;
+static const float M_PI_2 = 6.283185307f;
+static const float M_Pi_DIV_2 = 1.570796327f;
+static const float M_Pi_DIV_4 = 0.7853981635f;
+static const float M_PI_INV = 0.318309886f;
 static const float FLT_MAX = 3.402823466E+38F;
 static const float FLT_EPSILON = 1.19209290E-07F;
 
 static float DegreesToRadians(float degrees)
 {
-    return degrees * (PI / 180.0f);
+    return degrees * (M_PI / 180.0f);
 }
 
 typedef BuiltInTriangleIntersectionAttributes HitAttributes;

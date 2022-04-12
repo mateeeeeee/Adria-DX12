@@ -497,11 +497,11 @@ namespace adria
             engine->Present();
         }
 
-		if (shader_reload_callback != nullptr)
-		{
-			shader_reload_callback();
-			shader_reload_callback = nullptr;
-		}
+		//if (shader_reload_callback != nullptr)
+		//{
+		//	shader_reload_callback();
+		//	shader_reload_callback = nullptr;
+		//}
     }
 
     void Editor::SetStyle()
@@ -1017,7 +1017,7 @@ namespace adria
                     ImGui::Checkbox("Active", &light->active);
 
 					const char* shadow_types[] = { "None", "Shadow Maps", "Ray Traced Shadows" };
-					static int current_shadow_type = 0;
+					static int current_shadow_type = light->casts_shadows;
 					const char* combo_label = shadow_types[current_shadow_type];
 					if (ImGui::BeginCombo("Shadows Type", combo_label, 0))
 					{
@@ -1689,7 +1689,7 @@ namespace adria
         {
 			if (ImGui::TreeNode("Deferred Settings"))
 			{
-				const char* deferred_types[] = { "Regular", "Tiled", "Clustered" };
+				static const char* deferred_types[] = { "Regular", "Tiled", "Clustered" };
 				static int current_deferred_type = 0;
 				const char* combo_label = deferred_types[current_deferred_type];
 				if (ImGui::BeginCombo("Deferred Type", combo_label, 0))
@@ -1722,7 +1722,7 @@ namespace adria
             {
                 //ambient oclussion
                 {
-					const char* ao_types[] = { "None", "SSAO", "HBAO", "RTAO" };
+					static const char* ao_types[] = { "None", "SSAO", "HBAO", "RTAO" };
 					static int current_ao_type = 0;
 					const char* combo_label = ao_types[current_ao_type];
 					if (ImGui::BeginCombo("Ambient Occlusion", combo_label, 0))
@@ -1857,7 +1857,7 @@ namespace adria
                 }
 				if (renderer_settings.fog && ImGui::TreeNodeEx("Fog", 0))
 				{
-					const char* fog_types[] = { "Exponential", "Exponential Height" };
+					static const char* fog_types[] = { "Exponential", "Exponential Height" };
 					static int current_fog_type = 0; // Here we store our selection data as an index.
 					const char* combo_label = fog_types[current_fog_type];  // Label to preview before opening the combo (technically it could be anything)
 					if (ImGui::BeginCombo("Fog Type", combo_label, 0))
@@ -1945,6 +1945,7 @@ namespace adria
 
 	void Editor::ShaderHotReload()
 	{
+		/*
 		if (ImGui::Begin("Shader Hot Reload"))
 		{
 			static ImGui::ComboFilterState s = { 0, false };
@@ -1974,7 +1975,7 @@ namespace adria
 				shader_reload_callback = RootSigPSOManager::RecompileAllShaders;
 			}
 		}
-		ImGui::End();
+		ImGui::End();*/
 	}
 
 	void Editor::RayTracingDebug()
@@ -1988,18 +1989,24 @@ namespace adria
 		v_max.x += ImGui::GetWindowPos().x;
 		v_max.y += ImGui::GetWindowPos().y;
 		ImVec2 size(v_max.x - v_min.x, v_max.y - v_min.y);
-		
+
 		ImGui::Begin("Ray Tracing Debug");
 		{
-			static bool show_rts = false;
-			static bool show_rtao = false;
-			static bool show_rtr = false;
+			static const char* rt_types[] = { "Shadows", "Ambient Occlusion", "Reflections"};
+			static int current_rt_type = 0; 
+			const char* combo_label = rt_types[current_rt_type];  
+			if (ImGui::BeginCombo("RT Texture Type", combo_label, 0))
+			{
+				for (int n = 0; n < IM_ARRAYSIZE(rt_types); n++)
+				{
+					const bool is_selected = (current_rt_type == n);
+					if (ImGui::Selectable(rt_types[n], is_selected)) current_rt_type = n;
+					if (is_selected) ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
 
-			ImGui::Checkbox("RTS", &show_rts);
-			ImGui::Checkbox("RTAO", &show_rtao);
-			ImGui::Checkbox("RTR", &show_rtr);
-			
-			if (show_rts)
+			if (current_rt_type == 0)
 			{
 				D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetRayTracingShadowsTexture_Debug().SRV();
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
@@ -2008,8 +2015,7 @@ namespace adria
 				ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr, size);
 				ImGui::Text("Ray Tracing Shadows Image");
 			}
-
-			if (show_rtao)
+			else if (current_rt_type == 1)
 			{
 				D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetRayTracingAOTexture_Debug().SRV();
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
@@ -2018,8 +2024,7 @@ namespace adria
 				ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr, size);
 				ImGui::Text("Ray Tracing AO Image");
 			}
-
-			if (show_rtr)
+			else if (current_rt_type == 2)
 			{
 				D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetRayTracingReflectionsTexture_Debug().SRV();
 				OffsetType descriptor_index = descriptor_allocator->Allocate();

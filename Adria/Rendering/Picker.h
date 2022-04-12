@@ -61,14 +61,14 @@ namespace adria
 			cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetGpuHandle(descriptor_index));
 
 			ResourceBarrierBatch barrier_batch{};
-			barrier_batch.AddTransition(write_picking_buffer.Buffer(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+			barrier_batch.AddTransition(write_picking_buffer.Resource(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			barrier_batch.Submit(cmd_list);
 
 			cmd_list->Dispatch(1, 1, 1);
 
 			barrier_batch.ReverseTransitions();
 			barrier_batch.Submit(cmd_list);
-			cmd_list->CopyResource(read_picking_buffer[backbuffer_index].Resource(), write_picking_buffer.Buffer());
+			cmd_list->CopyResource(read_picking_buffer[backbuffer_index].Resource(), write_picking_buffer.Resource());
 		}
 
 		PickingData GetPickingData() const

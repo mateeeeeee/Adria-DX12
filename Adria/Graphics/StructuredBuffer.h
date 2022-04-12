@@ -59,7 +59,7 @@ namespace adria
 		}
 
 		StructuredBuffer(GraphicsCoreDX12* gfx, T const* data, size_t element_count, D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
-			: device(gfx->GetDevice()), element_count(element_count)
+			: device(gfx->GetDevice()), element_count((UINT)element_count)
 		{
 			auto command_list = gfx->GetDefaultCommandList();
 
@@ -205,7 +205,7 @@ namespace adria
 		ID3D12Device* device;
 		Microsoft::WRL::ComPtr<ID3D12Resource> buffer = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12Resource> counter_buffer = nullptr;
-		uint32 const element_count;
+		UINT const element_count;
 		D3D12_RESOURCE_STATES current_state;
 		D3D12_CPU_DESCRIPTOR_HANDLE srv_handle{};
 		D3D12_CPU_DESCRIPTOR_HANDLE uav_handle{};

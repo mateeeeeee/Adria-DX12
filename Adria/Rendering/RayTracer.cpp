@@ -199,8 +199,8 @@ namespace adria
 		cmd_list->SetComputeRootDescriptorTable(4, descriptor_allocator->GetGpuHandle(descriptor_index));
 		cmd_list->SetComputeRootDescriptorTable(5, descriptor_allocator->GetFirstGpuHandle());
 
-		OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
-		auto dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+		descriptor_index = descriptor_allocator->AllocateRange(3);
+		dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
 		device->CopyDescriptorsSimple(3, dst_descriptor, dxr_heap->GetFirstCpuHandle(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		cmd_list->SetComputeRootDescriptorTable(6, descriptor_allocator->GetGpuHandle(descriptor_index));
 
@@ -431,7 +431,7 @@ namespace adria
 			D3D12_EXPORT_DESC export_descs[] = 
 			{
 				D3D12_EXPORT_DESC{.Name = L"RTS_RayGen_Hard", .ExportToRename = L"RTS_RayGen"},
-				D3D12_EXPORT_DESC{.Name = L"RTS_Anyhit", .ExportToRename = NULL},
+				D3D12_EXPORT_DESC{.Name = L"RTS_AnyHit", .ExportToRename = NULL},
 				D3D12_EXPORT_DESC{.Name = L"RTS_Miss", .ExportToRename = NULL}
 			};
 
@@ -533,7 +533,7 @@ namespace adria
 
 			D3D12_HIT_GROUP_DESC closesthit_group{};
 			closesthit_group.Type = D3D12_HIT_GROUP_TYPE_TRIANGLES;
-			closesthit_group.AnyHitShaderImport = L"RTR_ClosestHit";
+			closesthit_group.ClosestHitShaderImport = L"RTR_ClosestHit";
 			closesthit_group.HitGroupExport = L"RTRClosestHitGroup";
 			rtr_state_object_builder.AddSubObject(closesthit_group);
 

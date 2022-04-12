@@ -612,7 +612,7 @@ namespace adria
 	}
 	void Renderer::OnSceneInitialized()
 	{
-		size_t tex2darray_size = (size_t)texture_manager.handle;
+		UINT tex2darray_size = (UINT)texture_manager.handle;
 		gfx->ReserveDescriptors(tex2darray_size);
 
 		ID3D12Device* device = gfx->GetDevice();
