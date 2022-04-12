@@ -37,13 +37,14 @@ namespace adria
 
         RayTracer(tecs::registry& reg, GraphicsCoreDX12* gfx, uint32 width, uint32 height);
         bool IsSupported() const;
-        void BuildAccelerationStructures();
+        void OnSceneInitialized();
 		void Update(RayTracingSettings const&);
 
 		void RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth_srv,
 			D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address,
 			D3D12_GPU_VIRTUAL_ADDRESS light_cbuf_address, bool soft_shadows);
 		void RayTraceAmbientOcclusion(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth, Texture2D const& normal_gbuf, D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address);
+		void RayTraceReflections(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth, Texture2D const& scene, D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address);
 
 		Texture2D const& GetRayTracingShadowsTexture() const
 		{
@@ -52,6 +53,10 @@ namespace adria
 		Texture2D const& GetRayTracingAmbientOcclusionTexture() const
 		{
 			return rtao_output;
+		}
+		Texture2D const& GetRayTracingReflectionsTexture() const
+		{
+			return rtr_output;
 		}
 
     private:
@@ -87,13 +92,12 @@ namespace adria
 		std::unique_ptr<ShaderTable> rtao_shader_table_hit = nullptr;
 		Texture2D rtao_output;
 
-		Microsoft::WRL::ComPtr<ID3D12RootSignature> rts_root_signature = nullptr;
-		Microsoft::WRL::ComPtr<ID3D12StateObject> rts_state_object = nullptr;
-		std::unique_ptr<ShaderTable> rts_shader_table_raygen = nullptr;
-		std::unique_ptr<ShaderTable> rts_shader_table_miss = nullptr;
-		std::unique_ptr<ShaderTable> rts_shader_table_hit = nullptr;
-		Texture2D rts_output;
-		
+		Microsoft::WRL::ComPtr<ID3D12RootSignature> rtr_root_signature = nullptr;
+		Microsoft::WRL::ComPtr<ID3D12StateObject> rtr_state_object = nullptr;
+		std::unique_ptr<ShaderTable> rtr_shader_table_raygen = nullptr;
+		std::unique_ptr<ShaderTable> rtr_shader_table_miss = nullptr;
+		std::unique_ptr<ShaderTable> rtr_shader_table_hit = nullptr;
+		Texture2D rtr_output;
 
 	private:
 

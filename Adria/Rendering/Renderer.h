@@ -98,6 +98,10 @@ namespace adria
 		{
 			return ray_tracer.GetRayTracingAmbientOcclusionTexture();
 		}
+		Texture2D const& GetRayTracingReflectionsTexture_Debug() const
+		{
+			return ray_tracer.GetRayTracingReflectionsTexture();
+		}
 
 	private:
 		uint32 width, height;

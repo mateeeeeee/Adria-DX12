@@ -1993,9 +1993,11 @@ namespace adria
 		{
 			static bool show_rts = false;
 			static bool show_rtao = false;
+			static bool show_rtr = false;
 
 			ImGui::Checkbox("RTS", &show_rts);
 			ImGui::Checkbox("RTAO", &show_rtao);
+			ImGui::Checkbox("RTR", &show_rtr);
 			
 			if (show_rts)
 			{
@@ -2015,6 +2017,16 @@ namespace adria
 				device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr, size);
 				ImGui::Text("Ray Tracing AO Image");
+			}
+
+			if (show_rtr)
+			{
+				D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetRayTracingReflectionsTexture_Debug().SRV();
+				OffsetType descriptor_index = descriptor_allocator->Allocate();
+				D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+				device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr, size);
+				ImGui::Text("Ray Tracing Reflections Image");
 			}
 
 		}

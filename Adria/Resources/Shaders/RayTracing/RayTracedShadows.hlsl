@@ -1,7 +1,7 @@
 #include "../Globals/GlobalsRT.hlsli"
 #include "../Util/RayTracingUtil.hlsli"
 
-RaytracingAccelerationStructure rt_scene : register(t0);
+
 Texture2D depth_tx : register(t1);
 RWTexture2D<float> shadow_rt_output : register(u0);
 
@@ -10,7 +10,7 @@ struct ShadowRayData
     bool hit;
 };
 
-#define DEGREES_TO_RADIANS(x) (x) * (PI / 180.0f)
+
 
 [shader("raygeneration")]
 void RTS_RayGen()
@@ -76,7 +76,7 @@ void RTS_RayGen()
     {
         RayDesc ray;
         ray.Origin = posWorld.xyz;
-        ray.Direction = normalize(GetConeSample(randSeed, direction, DEGREES_TO_RADIANS(softness)));
+        ray.Direction = normalize(GetConeSample(randSeed, direction, DegreesToRadians(softness)));
         ray.TMin = 0.2f;
         ray.TMax = maxT;
 

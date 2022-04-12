@@ -684,7 +684,7 @@ namespace adria
 		}
 		texture_manager.SetMipMaps(true);
 
-		if(ray_tracer.IsSupported()) ray_tracer.BuildAccelerationStructures();
+		if(ray_tracer.IsSupported()) ray_tracer.OnSceneInitialized();
 	}
 	TextureManager& Renderer::GetTextureManager()
 	{
@@ -2244,23 +2244,6 @@ namespace adria
 			DynamicAllocation material_allocation = upload_buffer->Allocate(GetCBufferSize<MaterialCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 			material_allocation.Update(material_cbuf_data);
 			cmd_list->SetGraphicsRootConstantBufferView(2, material_allocation.gpu_address);
-
-			/*std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> texture_handles{};
-			std::vector<uint32> src_range_sizes{};
-
-			ADRIA_ASSERT(material.albedo_texture != INVALID_TEXTURE_HANDLE);
-
-			texture_handles.push_back(texture_manager.CpuDescriptorHandle(material.albedo_texture));
-			texture_handles.push_back(texture_manager.CpuDescriptorHandle(material.metallic_roughness_texture));
-			texture_handles.push_back(texture_manager.CpuDescriptorHandle(material.normal_texture));
-			texture_handles.push_back(texture_manager.CpuDescriptorHandle(material.emissive_texture));
-			src_range_sizes.assign(texture_handles.size(), 1u);
-
-			OffsetType descriptor_index = descriptor_allocator->AllocateRange(texture_handles.size());
-			auto dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
-			uint32 dst_range_sizes[] = { (uint32)texture_handles.size() };
-			device->CopyDescriptors(1, &dst_descriptor, dst_range_sizes, (uint32)texture_handles.size(), texture_handles.data(), src_range_sizes.data(),
-				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);*/
 
 			mesh.Draw(cmd_list);
 		}

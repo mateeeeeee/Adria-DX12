@@ -20,7 +20,6 @@ static float NextRand(inout uint s)
     s = (1664525u * s + 1013904223u);
     return float(s & 0x00FFFFFF) / float(0x01000000);
 }
-
 // Utility function to get a vector perpendicular to an input vector 
 //    (from "Efficient Construction of Perpendicular Vectors Without Branching")
 static float3 GetPerpendicularVector(float3 u)
@@ -31,7 +30,6 @@ static float3 GetPerpendicularVector(float3 u)
     uint zm = 1 ^ (xm | ym);
     return cross(u, float3(xm, ym, zm));
 }
-
 // Get a cosine-weighted random vector centered around a specified normal direction.
 static float3 GetCosHemisphereSample(inout uint randSeed, float3 hitNorm)
 {
@@ -47,10 +45,9 @@ static float3 GetCosHemisphereSample(inout uint randSeed, float3 hitNorm)
 	// Get our cosine-weighted hemisphere lobe sample direction
     return tangent * (r * cos(phi).x) + bitangent * (r * sin(phi)) + hitNorm.xyz * sqrt(1 - randVal.x);
 }
-
 //https://medium.com/@alexander.wester/ray-tracing-soft-shadows-in-real-time-a53b836d123b
 // Rotation with angle (in radians) and axis
-float3x3 AngleAxis3x3(float angle, float3 axis)
+static float3x3 AngleAxis3x3(float angle, float3 axis)
 {
     float c, s;
     sincos(angle, s, c);
@@ -66,7 +63,7 @@ float3x3 AngleAxis3x3(float angle, float3 axis)
         t * x * z - s * y, t * y * z + s * x, t * z * z + c
     );
 }
-float3 GetConeSample(inout uint randSeed, float3 direction, float coneAngle)
+static float3 GetConeSample(inout uint randSeed, float3 direction, float coneAngle)
 {
     float cosAngle = cos(coneAngle);
 
@@ -86,40 +83,37 @@ float3 GetConeSample(inout uint randSeed, float3 direction, float coneAngle)
 
     return mul(R, float3(x, y, z));
 }
-
-
-/*A Fast and Robust Method for Avoiding
-Self-
-Intersection
-Carsten
-Wächter and
-Nikolaus Binder
-
-Chapter 6. Ray Tracing Gems
-NVIDIA*/
-
-static float origin()
+/* A Fast and Robust Method for Avoiding
+Self-Intersection by Carsten Wächter and Nikolaus Binder
+Chapter 6. Ray Tracing Gems NVIDIA */
+static float3 OffsetRay(const float3 p, const float3 n)
 {
-    return 1.0f / 32.0f;
-}
-static float float_scale()
-{
-    return 1.0f / 65536.0f;
-}
-static float int_scale()
-{
-    return 256.0f;
-}
+    static float origin = 1.0f / 32.0f;
+    static float float_scale = 1.0f / 65536.0f;
+    static float int_scale = 256.0f;
 
-float3 OffsetRay(const float3 p, const float3 n)
-{
-    int3 of_i = int3(int_scale() * n.x, int_scale() * n.y, int_scale() * n.z);
+    int3 of_i = int3(int_scale * n.x, int_scale * n.y, int_scale * n.z);
     float3 p_i = float3(
                     asfloat(asint(p.x) + ((p.x < 0) ? -of_i.x : of_i.x)),
                     asfloat(asint(p.y) + ((p.y < 0) ? -of_i.y : of_i.y)),
                     asfloat(asint(p.z) + ((p.z < 0) ? -of_i.z : of_i.z)));
 
-    return float3(abs(p.x) < origin() ? p.x + float_scale() * n.x : p_i.x,
-              abs(p.y) < origin() ? p.y + float_scale() * n.y : p_i.y,
-              abs(p.z) < origin() ? p.z + float_scale() * n.z : p_i.z);
+    return float3(abs(p.x) < origin ? p.x + float_scale * n.x : p_i.x,
+                  abs(p.y) < origin ? p.y + float_scale * n.y : p_i.y,
+                  abs(p.z) < origin ? p.z + float_scale * n.z : p_i.z);
 }
+
+static const float PI = 3.141592654f;
+static const float PI_2 = 6.283185307f;
+static const float Pi_DIV_2 = 1.570796327f;
+static const float Pi_DIV_4 = 0.7853981635f;
+static const float PI_INV = 0.318309886f;
+static const float FLT_MAX = 3.402823466E+38F;
+static const float FLT_EPSILON = 1.19209290E-07F;
+
+static float DegreesToRadians(float degrees)
+{
+    return degrees * (PI / 180.0f);
+}
+
+typedef BuiltInTriangleIntersectionAttributes HitAttributes;

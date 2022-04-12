@@ -1,7 +1,7 @@
 #include "../Globals/GlobalsRT.hlsli"
 #include "../Util/RayTracingUtil.hlsli"
 
-RaytracingAccelerationStructure rt_scene : register(t0);
+
 Texture2D depth_tx : register(t1);
 Texture2D gbuf_nor : register(t2);
 RWTexture2D<float> ao_rt_output : register(u0);
@@ -11,10 +11,6 @@ struct AORayData
 {
     bool hit;
 };
-
-
-
-
 
 static const int RAY_COUNT = 16;
 
