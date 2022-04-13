@@ -274,6 +274,13 @@ namespace adria
 		RTAO
 	};
 
+	enum class EReflections : uint8
+	{
+		None,
+		SSR,
+		RTR
+	};
+
 	enum class EDecalType : uint8
 	{
 		Project_XY,

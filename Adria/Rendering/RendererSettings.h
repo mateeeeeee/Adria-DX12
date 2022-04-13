@@ -9,7 +9,7 @@ namespace adria
 	{
 		//user settings
 		float32 blur_sigma = 6.0f;
-		float32 ambient_color[3] = { 15.0f / 255.0f, 15.0f / 255.0f, 15.0f / 255.0f };
+		float32 ambient_color[3] = { 60.0f / 255.0f, 60.0f / 255.0f, 60.0f / 255.0f };
 		float32 wind_direction[2] = { 10.0f, 10.0f };
 		bool fog = false;
 		EFogType fog_type = EFogType::Exponential;
@@ -29,7 +29,7 @@ namespace adria
 		float32   hbao_power = 1.5f;
 		float32   hbao_radius = 2.0f;
 		float32   rtao_radius = 2.0f;
-		bool ssr = false;
+		EReflections reflections = EReflections::None;
 		float32 ssr_ray_step = 1.60f;
 		float32 ssr_ray_hit_threshold = 2.00f;
 		bool dof = false;

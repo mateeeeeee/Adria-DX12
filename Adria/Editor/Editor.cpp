@@ -312,7 +312,6 @@ namespace adria
 {
     using namespace tecs;
 
-
 	enum class EMaterialTextureType
 	{
 		eAlbedo,
@@ -1762,8 +1761,33 @@ namespace adria
 						ImGui::Separator();
 					}
                 }
+				//reflections
+				{
+					static const char* reflection_types[] = { "None", "SSR", "RTR"};
+					static int current_reflection_type = 0;
+					const char* combo_label = reflection_types[current_reflection_type];
+					if (ImGui::BeginCombo("Reflections", combo_label, 0))
+					{
+						for (int n = 0; n < IM_ARRAYSIZE(reflection_types); n++)
+						{
+							const bool is_selected = (current_reflection_type == n);
+							if (ImGui::Selectable(reflection_types[n], is_selected)) current_reflection_type = n;
+							if (is_selected) ImGui::SetItemDefaultFocus();
+						}
+						ImGui::EndCombo();
+					}
+
+					renderer_settings.reflections = static_cast<EReflections>(current_reflection_type);
+					if (renderer_settings.reflections == EReflections::SSR && ImGui::TreeNodeEx("Screen-Space Reflections", 0))
+					{
+						ImGui::SliderFloat("Ray Step", &renderer_settings.ssr_ray_step, 1.0f, 3.0f);
+						ImGui::SliderFloat("Ray Hit Threshold", &renderer_settings.ssr_ray_hit_threshold, 0.25f, 5.0f);
+					
+						ImGui::TreePop();
+						ImGui::Separator();
+					}
+				}
                 ImGui::Checkbox("Volumetric Clouds", &renderer_settings.clouds);
-                ImGui::Checkbox("SSR", &renderer_settings.ssr);
                 ImGui::Checkbox("DoF", &renderer_settings.dof);
                 ImGui::Checkbox("Bloom", &renderer_settings.bloom);
                 ImGui::Checkbox("Motion Blur", &renderer_settings.motion_blur);
@@ -1807,14 +1831,7 @@ namespace adria
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
-                if (renderer_settings.ssr && ImGui::TreeNodeEx("Screen-Space Reflections", 0))
-                {
-                    ImGui::SliderFloat("Ray Step", &renderer_settings.ssr_ray_step, 1.0f, 3.0f);
-                    ImGui::SliderFloat("Ray Hit Threshold", &renderer_settings.ssr_ray_hit_threshold, 0.25f, 5.0f);
 
-                    ImGui::TreePop();
-                    ImGui::Separator();
-                }
                 if (renderer_settings.dof && ImGui::TreeNodeEx("Depth Of Field", 0))
                 {
 
@@ -2039,7 +2056,6 @@ namespace adria
 
     void Editor::OpenMaterialFileDialog(Material* material, EMaterialTextureType type)
     {
-
         if (ImGuiFileDialog::Instance()->Display("Choose Texture"))
         {
             if (ImGuiFileDialog::Instance()->IsOk())

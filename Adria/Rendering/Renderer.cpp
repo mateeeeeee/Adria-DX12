@@ -2948,22 +2948,31 @@ namespace adria
 			postprocess_index = !postprocess_index;
 		}
 
-		if (settings.ssr)
+		if (settings.reflections == EReflections::SSR)
 		{
 			postprocess_passes[postprocess_index].Begin(cmd_list);
 
 			PassSSR(cmd_list);
 
 			postprocess_passes[postprocess_index].End(cmd_list);
-
+			
 			postprocess_barriers.ReverseTransitions();
 			postprocess_barriers.Submit(cmd_list);
 			postprocess_index = !postprocess_index;
 		}
-
-		if (true)
+		else if (settings.reflections == EReflections::RTR)
 		{
 			ray_tracer.RayTraceReflections(cmd_list, depth_target, frame_cbuffer.View(backbuffer_index).BufferLocation);
+
+			postprocess_passes[postprocess_index].Begin(cmd_list);
+
+			AddTextures(cmd_list, postprocess_textures[!postprocess_index], ray_tracer.GetRayTracingReflectionsTexture(), EBlendMode::None);
+
+			postprocess_passes[postprocess_index].End(cmd_list);
+			
+			postprocess_barriers.ReverseTransitions();
+			postprocess_barriers.Submit(cmd_list);
+			postprocess_index = !postprocess_index;
 		}
 
 		if (settings.dof)
@@ -3880,7 +3889,7 @@ namespace adria
 	}
 	void Renderer::PassSSR(ID3D12GraphicsCommandList4* cmd_list)
 	{
-		ADRIA_ASSERT(settings.ssr);
+		ADRIA_ASSERT(settings.reflections == EReflections::SSR);
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "SSR Pass");
 
 		ID3D12Device* device = gfx->GetDevice();
@@ -4602,9 +4611,7 @@ namespace adria
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		cmd_list->SetGraphicsRootDescriptorTable(0, descriptor_allocator->GetGpuHandle(descriptor_index));
-
 		cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-
 		cmd_list->DrawInstanced(4, 1, 0, 0);
 	}
 }

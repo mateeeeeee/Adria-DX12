@@ -53,7 +53,7 @@ namespace adria
 
 	bool RayTracer::IsSupported() const
 	{
-		return ray_tracing_tier > D3D12_RAYTRACING_TIER_NOT_SUPPORTED;
+		return ray_tracing_tier != D3D12_RAYTRACING_TIER_NOT_SUPPORTED;
 	}
 
 	void RayTracer::OnSceneInitialized()
