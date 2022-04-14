@@ -1,6 +1,6 @@
 # Adria-DX12
 
-Graphics engine written in C++/DirectX12. For successful build you will need textures that you can find [here](https://github.com/mateeeeeee/Adria-DX11/releases/tag/1.0).
+Graphics engine written in C++ using DirectX12/DXR. For successful build you will need textures that you can find [here](https://github.com/mateeeeeee/Adria-DX11/releases/tag/1.0).
 ## Features
 * Entity-Component System
 * Deferred + Forward Rendering 
@@ -9,7 +9,7 @@ Graphics engine written in C++/DirectX12. For successful build you will need tex
 * Physically Based Shading
 * Image Based Lighting
 * Normal Mapping
-* Hard and Soft Ray Traced Shadows (DXR)
+* Ray Traced Shadows (DXR)
 * Shadows
     - PCF Shadows for Directional, Spot and Point lights
     - Cascade Shadow Maps for Directional Lights
@@ -22,7 +22,7 @@ Graphics engine written in C++/DirectX12. For successful build you will need tex
 * Depth Of Field
 * Bokeh
 * Ambient Occlusion: SSAO, HBAO, RTAO (DXR)
-* SSR
+* Reflections: SSR, RTR (DXR)
 * SSCS
 * Deferred Decals
 * FXAA
@@ -73,11 +73,14 @@ All of DXR screenshots will go here:
 
 <table>
   <tr>
-    <td>Filtered shadows using 3 cascades</td>
-     <td>Hard ray traced shadows</td>
+    <td>Cascaded Shadow Maps</td>
+     <td>Hard Ray Traced Shadows</td>
      </tr>
   <tr>
     <td><img src="Screenshots/cascades.png"></td>
     <td><img src="Screenshots/rtshadows.png"></td>
   </tr>
- </table>
+</table>
+
+Ray Traced Reflections, RTAO and Depth of Field Bokeh
+![alt text](Screenshots/rtr.png "Ray Traced Reflections") 
