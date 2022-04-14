@@ -66,9 +66,9 @@ void RTS_RayGen()
     shadow_rt_output[launchIndex.xy] = payload.hit ? 0.0f : 1.0f;
     
 #else
-    static const int RAY_COUNT = 9;
+    static const int RAY_COUNT = 1;
     
-    uint randSeed = 0; //InitRand(launchIndex.x + launchIndex.y * launchDim.x, ray_tracing_cbuf.frame_count, 16);
+    uint randSeed = InitRand(launchIndex.x + launchIndex.y * launchDim.x, ray_tracing_cbuf.frame_count, 16); //0; set to 0 for deterministic output
     float shadow_factor = 0.0f;
     
     [unroll(RAY_COUNT)]

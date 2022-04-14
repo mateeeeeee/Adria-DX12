@@ -2428,6 +2428,7 @@ namespace adria
 	void Renderer::PassRTAO(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		ADRIA_ASSERT(settings.ambient_occlusion == EAmbientOcclusion::RTAO);
+		SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::RT_AmbientOcclusion, profiler_settings.profile_rtao);
 		ray_tracer.RayTraceAmbientOcclusion(cmd_list, depth_target, gbuffer[0], frame_cbuffer.View(backbuffer_index).BufferLocation);
 
 		BlurTexture(cmd_list, ray_tracer.GetRayTracingAmbientOcclusionTexture());
@@ -2528,6 +2529,8 @@ namespace adria
 
 			if (light_data.ray_traced_shadows)
 			{
+				SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::RT_Shadows, profiler_settings.profile_rts);
+
 				D3D12_RESOURCE_BARRIER pre_rts_barriers[] =
 				{
 					CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
@@ -2976,6 +2979,8 @@ namespace adria
 		}
 		else if (settings.reflections == EReflections::RTR)
 		{
+			SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::RT_Reflections, profiler_settings.profile_rtr);
+
 			D3D12_CPU_DESCRIPTOR_HANDLE skybox_handle = null_srv_heap->GetCpuHandle(TEXTURECUBE_SLOT);
 			if (settings.sky_type == ESkyType::Skybox)
 			{

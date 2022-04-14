@@ -1945,6 +1945,10 @@ namespace adria
 				ImGui::Checkbox("Profile Particles Pass", &profiler_settings.profile_particles_pass);
 				ImGui::Checkbox("Profile Postprocessing", &profiler_settings.profile_postprocessing);
 
+				ImGui::Checkbox("Profile Ray Traced Shadows", &profiler_settings.profile_rts);
+				ImGui::Checkbox("Profile Ray Traced AO", &profiler_settings.profile_rtao);
+				ImGui::Checkbox("Profile Ray Traced Reflections", &profiler_settings.profile_rtr);
+
 				engine->renderer->SetProfilerSettings(profiler_settings);
 
 				std::vector<std::string> results = engine->renderer->GetProfilerResults(log_results);

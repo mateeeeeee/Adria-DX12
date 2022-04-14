@@ -49,7 +49,7 @@ SamplerState linear_wrap_sampler : register(s0);
 struct RTR_Payload
 {
     float3 reflection_color;
-    float  metallic;
+    float  reflectivity;
 };
 
 [shader("raygeneration")]
@@ -71,13 +71,13 @@ void RTR_RayGen()
     ray.TMax = FLT_MAX;
         
     RTR_Payload payload_data;
-    payload_data.metallic = 0.0f;
+    payload_data.reflectivity = 0.0f;
     payload_data.reflection_color = 0.0f;
     TraceRay(rt_scene,
 		 RAY_FLAG_FORCE_OPAQUE,
 		 0xFF, 0, 0, 0, ray, payload_data);
 
-    rtr_output[launchIndex.xy] = float4(payload_data.metallic * payload_data.reflection_color, 1.0f);
+    rtr_output[launchIndex.xy] = float4(payload_data.reflectivity * payload_data.reflection_color, 1.0f);
 }
 
 [shader("miss")]
@@ -126,7 +126,7 @@ void RTR_ClosestHitPrimaryRay(inout RTR_Payload payload_data, in HitAttributes a
 		 RAY_FLAG_FORCE_OPAQUE,
 		 0xFF, 1, 0, 0, reflection_ray, payload_data);
     
-    payload_data.metallic = roughness_metallic.y;
+    payload_data.reflectivity = roughness_metallic.y * (1.0f - roughness_metallic.x) * (pos.y < 2.0f);
 }
 
 [shader("closesthit")]

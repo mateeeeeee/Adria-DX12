@@ -13,6 +13,9 @@ namespace adria
 		ForwardPass,
 		ParticlesPass,
 		Postprocessing,
+		RT_Shadows,
+		RT_AmbientOcclusion,
+		RT_Reflections,
 		Count
 	};
 
@@ -34,6 +37,12 @@ namespace adria
 			return "Particles Pass";
 		case EProfilerBlock::Postprocessing:
 			return "Postprocessing";
+		case EProfilerBlock::RT_Shadows:
+			return "RTS";
+		case EProfilerBlock::RT_AmbientOcclusion:
+			return "RTAO";
+		case EProfilerBlock::RT_Reflections:
+			return "RTR";
 		default:
 			return "";
 		}
@@ -49,6 +58,9 @@ namespace adria
 		bool profile_forward_pass = false;
 		bool profile_particles_pass = false;
 		bool profile_postprocessing = false;
+		bool profile_rts = false;
+		bool profile_rtao = false;
+		bool profile_rtr = false;
 	};
 
 	inline constexpr ProfilerSettings NO_PROFILING = ProfilerSettings{};
