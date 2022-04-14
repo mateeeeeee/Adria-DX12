@@ -407,7 +407,10 @@ namespace adria
 		UpdateConstantBuffers(dt);
 		CameraFrustumCulling();
 		UpdateParticles(dt);
-		ray_tracer.Update(RayTracingSettings{.dt = dt, .ao_radius = settings.rtao_radius});
+
+		ray_tracer.Update(RayTracingSettings{
+			.dt = dt, .ao_radius = settings.rtao_radius }
+		);
 	}
 
 	void Renderer::SetSceneViewportData(SceneViewport&& vp)
@@ -684,7 +687,18 @@ namespace adria
 		}
 		texture_manager.SetMipMaps(true);
 
-		if(ray_tracer.IsSupported()) ray_tracer.OnSceneInitialized();
+		if (ray_tracer.IsSupported())
+		{
+			ray_tracer.OnSceneInitialized();
+			ResourceBarrierBatch barriers{};
+			for (auto e : reg.view<Skybox>())
+			{
+				auto const& skybox = reg.get<Skybox>(e);
+				if (skybox.used_in_rt) texture_manager.TransitionTexture(skybox.cubemap_texture, barriers, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+					D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+			}
+			barriers.Submit(gfx->GetDefaultCommandList());
+		}
 	}
 	TextureManager& Renderer::GetTextureManager()
 	{
@@ -2962,7 +2976,22 @@ namespace adria
 		}
 		else if (settings.reflections == EReflections::RTR)
 		{
-			ray_tracer.RayTraceReflections(cmd_list, depth_target, frame_cbuffer.View(backbuffer_index).BufferLocation);
+			D3D12_CPU_DESCRIPTOR_HANDLE skybox_handle = null_srv_heap->GetCpuHandle(TEXTURECUBE_SLOT);
+			if (settings.sky_type == ESkyType::Skybox)
+			{
+				auto skybox_entities = reg.view<Skybox>();
+				for (auto e : skybox_entities)
+				{
+					Skybox skybox = skybox_entities.get(e);
+					if (skybox.active && skybox.used_in_rt)
+					{
+						skybox_handle = texture_manager.CpuDescriptorHandle(skybox.cubemap_texture);
+						break;
+					}
+				}
+			}
+
+			ray_tracer.RayTraceReflections(cmd_list, depth_target, frame_cbuffer.View(backbuffer_index).BufferLocation, skybox_handle);
 
 			postprocess_passes[postprocess_index].Begin(cmd_list);
 

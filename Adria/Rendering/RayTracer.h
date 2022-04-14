@@ -45,10 +45,9 @@ namespace adria
 		void Update(RayTracingSettings const&);
 
 		void RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth_srv,
-			D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address,
-			D3D12_GPU_VIRTUAL_ADDRESS light_cbuf_address, bool soft_shadows);
+			D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address, D3D12_GPU_VIRTUAL_ADDRESS light_cbuf_address, bool soft_shadows);
 		void RayTraceAmbientOcclusion(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth, Texture2D const& normal_gbuf, D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address);
-		void RayTraceReflections(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth, D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address);
+		void RayTraceReflections(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth, D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address, D3D12_CPU_DESCRIPTOR_HANDLE envmap_handle);
 
 		Texture2D const& GetRayTracingShadowsTexture() const
 		{
@@ -68,6 +67,7 @@ namespace adria
         tecs::registry& reg;
         GraphicsCoreDX12* gfx;
 		D3D12_RAYTRACING_TIER ray_tracing_tier;
+		D3D12_CPU_DESCRIPTOR_HANDLE envmap_handle;
 
 		std::unique_ptr<DescriptorHeap> dxr_heap = nullptr;
 		ConstantBuffer<RayTracingCBuffer> ray_tracing_cbuffer;

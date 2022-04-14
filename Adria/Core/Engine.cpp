@@ -211,7 +211,7 @@ namespace adria
 		gfx = std::make_unique<GraphicsCoreDX12>(Window::Handle());
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
 		entity_loader = std::make_unique<EntityLoader>(reg, gfx.get(), renderer->GetTextureManager());
-		
+
 		event_queue.Subscribe<ResizeEvent>([this](ResizeEvent const& e) 
 			{
 				camera_manager.OnResize(e.width, e.height);

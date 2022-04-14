@@ -68,7 +68,7 @@ float4 SSRRayMarch(float3 vDir, inout float3 vHitCoord)
         vProjectedCoord.xy = vProjectedCoord.xy * float2(0.5f, -0.5f) + float2(0.5f, 0.5f);
 
 		//linearize depth here
-        fDepth = depthTx.SampleLevel(point_clamp_sampler, vProjectedCoord.xy, 0); // * g_xFrame_MainCamera_ZFarP;
+        fDepth = depthTx.SampleLevel(point_clamp_sampler, vProjectedCoord.xy, 0); 
 
         float3 fPositionVS = GetPositionVS(vProjectedCoord.xy, fDepth);
 

@@ -554,6 +554,7 @@ namespace adria
 
         Skybox sky{};
         sky.active = true;
+		sky.used_in_rt = params.used_in_rt;
 
         if (params.cubemap.has_value()) sky.cubemap_texture = texture_manager.LoadCubemap(params.cubemap.value());
         else sky.cubemap_texture = texture_manager.LoadCubemap(params.cubemap_textures);

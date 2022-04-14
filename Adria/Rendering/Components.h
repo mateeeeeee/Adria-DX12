@@ -126,6 +126,7 @@ namespace adria
 	{
 		TEXTURE_HANDLE cubemap_texture;
 		bool active;
+		bool used_in_rt;
 	};
 
 	struct COMPONENT Emitter

@@ -44,7 +44,7 @@ namespace adria
 		{
 			ADRIA_LOG(INFO, "Ray Tracing is not supported! All Ray Tracing calls will be silently ignored!");
 		}
-		else if (ray_tracing_tier <= D3D12_RAYTRACING_TIER_1_1)
+		else if (ray_tracing_tier < D3D12_RAYTRACING_TIER_1_1)
 		{
 			ADRIA_LOG(INFO, "Ray Tracing Tier is less than Tier 1.1!"
 				"Calls to Ray Traced Shadows and Ray Traced Ambient Occlusion are available, all other calls will be silently ignored!");
@@ -173,7 +173,7 @@ namespace adria
 	}
 
 	void RayTracer::RayTraceReflections(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth, 
-		 D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address)
+		 D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address, D3D12_CPU_DESCRIPTOR_HANDLE envmap_handle)
 	{
 		if (ray_tracing_tier < D3D12_RAYTRACING_TIER_1_1)
 		{
@@ -195,9 +195,11 @@ namespace adria
 		cmd_list->SetComputeRootConstantBufferView(1, ray_tracing_cbuffer.View(gfx->BackbufferIndex()).BufferLocation);
 		cmd_list->SetComputeRootShaderResourceView(2, tlas->GetGPUVirtualAddress());
 
-		OffsetType descriptor_index = descriptor_allocator->AllocateRange(1);
+		OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
 		auto dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
 		device->CopyDescriptorsSimple(1, dst_descriptor, depth.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index + 1);
+		device->CopyDescriptorsSimple(1, dst_descriptor, envmap_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		cmd_list->SetComputeRootDescriptorTable(3, descriptor_allocator->GetGpuHandle(descriptor_index));
 
 		descriptor_index = descriptor_allocator->AllocateRange(1);
@@ -366,7 +368,7 @@ namespace adria
 
 			D3D12_DESCRIPTOR_RANGE1 srv_range{};
 			srv_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-			srv_range.NumDescriptors = 1;
+			srv_range.NumDescriptors = 2;
 			srv_range.BaseShaderRegister = 1;
 			srv_range.RegisterSpace = 0;
 			srv_range.OffsetInDescriptorsFromTableStart = 0;

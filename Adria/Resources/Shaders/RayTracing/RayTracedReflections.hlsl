@@ -3,6 +3,8 @@
 
 
 Texture2D depth_tx : register(t1);
+TextureCube env_map : register(t2);
+
 RWTexture2D<float4> rtr_output : register(u0);
 
 //move this to globalsrt.hlsli later
@@ -81,7 +83,7 @@ void RTR_RayGen()
 [shader("miss")]
 void RTR_Miss(inout RTR_Payload payload_data)
 {
-    //payload_data.reflection_color = float3(0, 0, 1); 
+    payload_data.reflection_color = env_map.SampleLevel(linear_wrap_sampler, WorldRayDirection(), 0);
 }
 
 

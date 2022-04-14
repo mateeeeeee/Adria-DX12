@@ -34,6 +34,7 @@ namespace adria
     {
         std::optional<std::wstring> cubemap;
         std::array<std::wstring, 6> cubemap_textures;
+		bool used_in_rt;
     };
 	struct grid_parameters_t
 	{
