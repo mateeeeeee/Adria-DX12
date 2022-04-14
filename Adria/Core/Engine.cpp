@@ -198,6 +198,8 @@ namespace adria
 					config.skybox_params.cubemap = L"Resources/Textures/Skybox/sunsetcube1024.dds";
 				}
 			}
+			bool used_for_ray_tracing = skybox_params.FindOr<bool>("ray_tracing", true);
+			config.skybox_params.used_in_rt = used_for_ray_tracing;
 
 			return config;
 		}
