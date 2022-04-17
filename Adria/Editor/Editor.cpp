@@ -1015,22 +1015,28 @@ namespace adria
 
                     ImGui::Checkbox("Active", &light->active);
 
-					const char* shadow_types[] = { "None", "Shadow Maps", "Ray Traced Shadows" };
-					static int current_shadow_type = light->casts_shadows;
-					const char* combo_label = shadow_types[current_shadow_type];
-					if (ImGui::BeginCombo("Shadows Type", combo_label, 0))
+					if (light->type == ELightType::Directional)
 					{
-						for (int n = 0; n < IM_ARRAYSIZE(shadow_types); n++)
+						const char* shadow_types[] = { "None", "Shadow Maps", "Ray Traced Shadows" };
+						static int current_shadow_type = light->casts_shadows;
+						const char* combo_label = shadow_types[current_shadow_type];
+						if (ImGui::BeginCombo("Shadows Type", combo_label, 0))
 						{
-							const bool is_selected = (current_shadow_type == n);
-							if (ImGui::Selectable(shadow_types[n], is_selected)) current_shadow_type = n;
-							if (is_selected) ImGui::SetItemDefaultFocus();
+							for (int n = 0; n < IM_ARRAYSIZE(shadow_types); n++)
+							{
+								const bool is_selected = (current_shadow_type == n);
+								if (ImGui::Selectable(shadow_types[n], is_selected)) current_shadow_type = n;
+								if (is_selected) ImGui::SetItemDefaultFocus();
+							}
+							ImGui::EndCombo();
 						}
-						ImGui::EndCombo();
+						light->casts_shadows = (current_shadow_type == 1);
+						light->ray_traced_shadows = (current_shadow_type == 2);
 					}
-
-					light->casts_shadows = (current_shadow_type == 1);
-					light->ray_traced_shadows = (current_shadow_type == 2);
+					else
+					{
+						ImGui::Checkbox("Casts Shadows", &light->casts_shadows);
+					}
 
 					if (light->casts_shadows)
 					{
