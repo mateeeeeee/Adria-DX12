@@ -311,12 +311,30 @@ namespace adria
 		std::vector<entity> entities{};
 
 		tinygltf::Scene const& scene = model.scenes[model.defaultScene];
-		for (size_t i = 0; i < scene.nodes.size(); ++i)
+
+		std::function<void(int, XMMATRIX)> load_node;
+		load_node = [&](int node_index, XMMATRIX parent_transform)
 		{
-			tinygltf::Node const& node = model.nodes[scene.nodes[i]]; //has children: model.nodes[node.children[i]] todo
-			if (node.mesh < 0 || node.mesh >= model.meshes.size()) continue;
+			ADRIA_ASSERT(node_index >= 0 && node_index < model.nodes.size());
+			tinygltf::Node const& node = model.nodes[node_index];
+			if (node.mesh < 0 || node.mesh >= model.meshes.size()) return;
 
 			tinygltf::Mesh const& node_mesh = model.meshes[node.mesh];
+
+			XMMATRIX translation;
+			if (!node.translation.empty()) translation = XMMatrixTranslation(node.translation[0], node.translation[1], node.translation[2]);
+			else translation = XMMatrixIdentity();
+
+			XMMATRIX rotation;
+			if (!node.rotation.empty()) rotation = XMMatrixRotationX(node.rotation[0]) * XMMatrixRotationY(node.rotation[1]) * XMMatrixRotationZ(node.rotation[2]);
+			else rotation = XMMatrixIdentity();
+
+			XMMATRIX scale;
+			if (!node.scale.empty()) scale = XMMatrixScaling(node.scale[0], node.scale[1], node.scale[2]);
+			else scale = XMMatrixIdentity();
+
+			XMMATRIX transform = rotation * scale * translation;
+
 			for (size_t i = 0; i < node_mesh.primitives.size(); ++i)
 			{
 				tinygltf::Primitive primitive = node_mesh.primitives[i];
@@ -462,7 +480,6 @@ namespace adria
 						});
 				}
 
-
 				Material material{};
 				tinygltf::Material gltf_material = model.materials[primitive.material];
 				tinygltf::PbrMetallicRoughness pbr_metallic_roughness = gltf_material.pbrMetallicRoughness;
@@ -506,7 +523,7 @@ namespace adria
 
 				reg.emplace<Material>(e, material);
 
-				XMMATRIX model = params.model_matrix;
+				XMMATRIX model = transform * parent_transform * params.model_matrix;
 				BoundingBox aabb = AABBFromRange(vertices.end() - position_accessor.count, vertices.end());
 				aabb.Transform(aabb, model);
 
@@ -514,6 +531,13 @@ namespace adria
 				reg.emplace<Transform>(e, model, model);
 				reg.emplace<Deferred>(e);
 			}
+
+			for (int node_index : node.children) load_node(node_index, transform * parent_transform);
+		};
+
+		for (size_t i = 0; i < scene.nodes.size(); ++i)
+		{
+			load_node(i, XMMatrixIdentity());
 		}
 
 		std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>(gfx, vertices, params.used_in_raytracing);
