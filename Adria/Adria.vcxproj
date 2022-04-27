@@ -1038,6 +1038,7 @@
     <None Include="Resources\Shaders\Util\RootSignatures.hlsli" />
     <None Include="Resources\Shaders\Util\ShadowUtil.hlsli" />
     <None Include="Resources\Shaders\Util\ToneMapUtil.hlsli" />
+    <None Include="scene.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

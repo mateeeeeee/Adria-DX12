@@ -317,8 +317,12 @@ namespace adria
 		{
 			ADRIA_ASSERT(node_index >= 0 && node_index < model.nodes.size());
 			tinygltf::Node const& node = model.nodes[node_index];
-			if (node.mesh < 0 || node.mesh >= model.meshes.size()) return;
 
+			if (node.mesh < 0 || node.mesh >= model.meshes.size())
+			{
+				for (int node_index : node.children) load_node(node_index, parent_transform);
+				return;
+			}
 			tinygltf::Mesh const& node_mesh = model.meshes[node.mesh];
 
 			XMMATRIX translation;
@@ -427,9 +431,7 @@ namespace adria
 						tangent.y = (reinterpret_cast<float32 const*>(tangents + (i * tangent_byte_stride)))[1];
 						tangent.z = (reinterpret_cast<float32 const*>(tangents + (i * tangent_byte_stride)))[2];
 						float tangent_w = (reinterpret_cast<float32 const*>(tangents + (i * tangent_byte_stride)))[3];
-
 						XMVECTOR _bitangent = XMVectorScale(XMVector3Cross(XMLoadFloat3(&normal), XMLoadFloat3(&tangent)), tangent_w);
-
 						XMStoreFloat3(&bitangent, XMVector3Normalize(_bitangent));
 					}
 
