@@ -318,27 +318,39 @@ namespace adria
 			ADRIA_ASSERT(node_index >= 0 && node_index < model.nodes.size());
 			tinygltf::Node const& node = model.nodes[node_index];
 
-			if (node.mesh < 0 || node.mesh >= model.meshes.size())
+			XMMATRIX transform = XMMatrixIdentity();
+			if (node.matrix.size() == 16)
 			{
-				for (int node_index : node.children) load_node(node_index, parent_transform);
-				return;
+				float matrix_arr[16] = {};
+				std::copy(node.matrix.begin(), node.matrix.end(), matrix_arr);
+
+				XMFLOAT4X4 local_transform(matrix_arr);
+				XMStoreFloat4x4(&local_transform, transform);
 			}
+			else
+			{
+				XMMATRIX translation = XMMatrixIdentity();
+				if (node.translation.size() == 3) translation = XMMatrixTranslation(node.translation[0], node.translation[1], node.translation[2]);
+
+				XMMATRIX rotation = XMMatrixIdentity();
+				if (node.rotation.size() == 4)
+				{
+					float quat_arr[4] = { node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3] };
+					XMFLOAT4 quat(quat_arr);
+					rotation = XMMatrixRotationQuaternion(XMLoadFloat4(&quat));
+				}
+
+				XMMATRIX scale = XMMatrixIdentity();
+				if (node.scale.size() == 3) scale = XMMatrixScaling(node.scale[0], node.scale[1], node.scale[2]);
+
+				transform = scale * rotation * translation;
+			}
+
+			for (int node_index : node.children) load_node(node_index, transform * parent_transform);
+
+			if (node.mesh < 0 || node.mesh >= model.meshes.size()) return;
+
 			tinygltf::Mesh const& node_mesh = model.meshes[node.mesh];
-
-			XMMATRIX translation;
-			if (!node.translation.empty()) translation = XMMatrixTranslation(node.translation[0], node.translation[1], node.translation[2]);
-			else translation = XMMatrixIdentity();
-
-			XMMATRIX rotation;
-			if (!node.rotation.empty()) rotation = XMMatrixRotationX(node.rotation[0]) * XMMatrixRotationY(node.rotation[1]) * XMMatrixRotationZ(node.rotation[2]);
-			else rotation = XMMatrixIdentity();
-
-			XMMATRIX scale;
-			if (!node.scale.empty()) scale = XMMatrixScaling(node.scale[0], node.scale[1], node.scale[2]);
-			else scale = XMMatrixIdentity();
-
-			XMMATRIX transform = rotation * scale * translation;
-
 			for (size_t i = 0; i < node_mesh.primitives.size(); ++i)
 			{
 				tinygltf::Primitive primitive = node_mesh.primitives[i];
@@ -397,8 +409,8 @@ namespace adria
 				int const tangent_byte_stride = tangent_accessor.ByteStride(tangent_buffer_view);
 				uint8 const* tangents = &tangent_buffer.data[tangent_buffer_view.byteOffset + tangent_accessor.byteOffset];
 
-				ADRIA_ASSERT(position_accessor.count == texcoord_accessor.count);
-				ADRIA_ASSERT(position_accessor.count == normal_accessor.count);
+				//ADRIA_ASSERT(position_accessor.count == texcoord_accessor.count); add log warnings?
+				//ADRIA_ASSERT(position_accessor.count == normal_accessor.count);
 
 				std::vector<XMFLOAT3> position_array(position_accessor.count), normal_array(normal_accessor.count),
 					tangent_array(position_accessor.count), bitangent_array(position_accessor.count);
@@ -534,14 +546,14 @@ namespace adria
 				reg.emplace<Deferred>(e);
 			}
 
-			for (int node_index : node.children) load_node(node_index, transform * parent_transform);
+			
 		};
 
 		for (size_t i = 0; i < scene.nodes.size(); ++i)
 		{
 			load_node(i, XMMatrixIdentity());
 		}
-
+		
 		std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>(gfx, vertices, params.used_in_raytracing);
 		std::shared_ptr<IndexBuffer> ib = std::make_shared<IndexBuffer>(gfx, indices, params.used_in_raytracing);
 
