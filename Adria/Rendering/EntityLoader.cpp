@@ -537,7 +537,7 @@ namespace adria
 
 				reg.emplace<Material>(e, material);
 
-				XMMATRIX model = transform * parent_transform * params.model_matrix;
+				XMMATRIX model = transform * parent_transform;
 				BoundingBox aabb = AABBFromRange(vertices.end() - position_accessor.count, vertices.end());
 				aabb.Transform(aabb, model);
 
@@ -545,13 +545,11 @@ namespace adria
 				reg.emplace<Transform>(e, model, model);
 				reg.emplace<Deferred>(e);
 			}
-
-			
 		};
 
 		for (size_t i = 0; i < scene.nodes.size(); ++i)
 		{
-			load_node(i, XMMatrixIdentity());
+			load_node(i, params.model_matrix);
 		}
 		
 		std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>(gfx, vertices, params.used_in_raytracing);
