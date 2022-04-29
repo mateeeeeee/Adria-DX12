@@ -46,6 +46,10 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 * Bindless Texturing 
 * DirectX12 Render Passes
 
+## TODO
+* Improve DXR features
+* Add DXR Global Illumination
+* Render Graph
 
 ## Dependencies
 [tinygltf](https://github.com/syoyo/tinygltf)
