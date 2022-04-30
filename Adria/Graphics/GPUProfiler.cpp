@@ -1,11 +1,11 @@
-#include "Profiler.h"
+#include "GPUProfiler.h"
 #include "../Core/Macros.h"
 #include "../Logging/Logger.h"
 
 namespace adria
 {
 
-	Profiler::Profiler(GraphicsCoreDX12* gfx) : gfx{ gfx }, query_readback_buffer(gfx->GetDevice(), MAX_PROFILES * 2 * FRAME_COUNT * sizeof(UINT64))
+	GPUProfiler::GPUProfiler(GraphicsCoreDX12* gfx) : gfx{ gfx }, query_readback_buffer(gfx->GetDevice(), MAX_PROFILES * 2 * FRAME_COUNT * sizeof(UINT64))
 	{
 		D3D12_QUERY_HEAP_DESC heap_desc = { };
 		heap_desc.Count = MAX_PROFILES * 2;
@@ -14,7 +14,7 @@ namespace adria
 		gfx->GetDevice()->CreateQueryHeap(&heap_desc, IID_PPV_ARGS(&query_heap));
 	}
 
-	void Profiler::BeginProfileBlock(ID3D12GraphicsCommandList* cmd_list, EProfilerBlock block)
+	void GPUProfiler::BeginProfileBlock(ID3D12GraphicsCommandList* cmd_list, EProfilerBlock block)
 	{
 		UINT32 profile_index = static_cast<UINT32>(block);
 		QueryData& profile_data = query_data[profile_index];
@@ -25,7 +25,7 @@ namespace adria
 		profile_data.query_started = true;
 	}
 
-	void Profiler::EndProfileBlock(ID3D12GraphicsCommandList* cmd_list, EProfilerBlock block)
+	void GPUProfiler::EndProfileBlock(ID3D12GraphicsCommandList* cmd_list, EProfilerBlock block)
 	{
 		UINT32 profile_index = static_cast<UINT32>(block);
 		QueryData& profile_data = query_data[profile_index];
@@ -41,7 +41,7 @@ namespace adria
 		cmd_list->ResolveQueryData(query_heap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, begin_query_index, 2, query_readback_buffer.Resource(), readback_offset);
 	}
 
-	std::vector<std::string> Profiler::GetProfilerResults(ID3D12GraphicsCommandList* cmd_list, bool log_results)
+	std::vector<std::string> GPUProfiler::GetProfilerResults(ID3D12GraphicsCommandList* cmd_list, bool log_results)
 	{
 		UINT64 gpu_frequency = 0;
 		gfx->GetTimestampFrequency(gpu_frequency);

@@ -9,7 +9,7 @@
 
 namespace adria
 {
-	class Profiler
+	class GPUProfiler
 	{
 		static constexpr UINT64 FRAME_COUNT = GraphicsCoreDX12::BackbufferCount();
 		static constexpr UINT64 MAX_PROFILES = static_cast<UINT64>(EProfilerBlock::Count);
@@ -22,7 +22,7 @@ namespace adria
 
 	public:
 
-		Profiler(GraphicsCoreDX12* gfx);
+		GPUProfiler(GraphicsCoreDX12* gfx);
 
 		void BeginProfileBlock(ID3D12GraphicsCommandList* cmd_list, EProfilerBlock block);
 
@@ -38,25 +38,25 @@ namespace adria
 		UINT64 current_frame_index = 0;
 	};
 
-	struct ScopedProfileBlock
+	struct ScopedGPUProfileBlock
 	{
-		ScopedProfileBlock(Profiler& profiler, ID3D12GraphicsCommandList* cmd_list, EProfilerBlock block)
+		ScopedGPUProfileBlock(GPUProfiler& profiler, ID3D12GraphicsCommandList* cmd_list, EProfilerBlock block)
 			: profiler{ profiler }, block{ block }, cmd_list{ cmd_list }
 		{
 			profiler.BeginProfileBlock(cmd_list, block);
 		}
 
-		~ScopedProfileBlock()
+		~ScopedGPUProfileBlock()
 		{
 			profiler.EndProfileBlock(cmd_list, block);
 		}
 
-		Profiler& profiler;
+		GPUProfiler& profiler;
 		ID3D12GraphicsCommandList* cmd_list;
 		EProfilerBlock block;
 	};
 
-	#define SCOPED_PROFILE_BLOCK(profiler, cmd_list, block_id) ScopedProfileBlock block(profiler, context, block_id)
-	#define SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, block_id, cond) std::unique_ptr<ScopedProfileBlock> scoped_profile = nullptr; \
-																						  if(cond) scoped_profile = std::make_unique<ScopedProfileBlock>(profiler, cmd_list, block_id)
+	#define SCOPED_GPU_PROFILE_BLOCK(profiler, cmd_list, block_id) ScopedGPUProfileBlock block(profiler, context, block_id)
+	#define SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, block_id, cond) std::unique_ptr<ScopedGPUProfileBlock> scoped_profile = nullptr; \
+																						  if(cond) scoped_profile = std::make_unique<ScopedGPUProfileBlock>(profiler, cmd_list, block_id)
 }

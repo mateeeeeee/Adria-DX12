@@ -188,7 +188,7 @@
     <ClCompile Include="Graphics\RenderPass.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\Profiler.cpp">
+    <ClCompile Include="Graphics\GPUProfiler.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\GraphicsCoreDX12.cpp">
@@ -202,6 +202,9 @@
     </ClCompile>
     <ClCompile Include="Rendering\RootSigPSOManager.cpp">
       <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Adria D3D11\Adria\Utilities\CPUProfiler.cpp">
+      <Filter>Utilities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -457,7 +460,7 @@
     <ClInclude Include="Utilities\CommandLineParser.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\Profiler.h">
+    <ClInclude Include="Graphics\GPUProfiler.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\ProfilerSettings.h">
@@ -516,6 +519,9 @@
     </ClInclude>
     <ClInclude Include="Graphics\ByteAddressBuffer.h">
       <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Adria D3D11\Adria\Utilities\CPUProfiler.h">
+      <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

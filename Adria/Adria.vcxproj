@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Adria D3D11\Adria\Utilities\CPUProfiler.cpp" />
     <ClCompile Include="..\ThirdParty\ImGui\imgui.cpp" />
     <ClCompile Include="..\ThirdParty\ImGui\ImGuiFileDialog.cpp" />
     <ClCompile Include="..\ThirdParty\ImGui\ImGuizmo.cpp" />
@@ -174,7 +175,7 @@
     <ClCompile Include="Graphics\LinearDescriptorAllocator.cpp" />
     <ClCompile Include="Graphics\LinearUploadBuffer.cpp" />
     <ClCompile Include="Graphics\MipsGenerator.cpp" />
-    <ClCompile Include="Graphics\Profiler.cpp" />
+    <ClCompile Include="Graphics\GPUProfiler.cpp" />
     <ClCompile Include="Graphics\RenderPass.cpp" />
     <ClCompile Include="Graphics\RingDescriptorAllocator.cpp" />
     <ClCompile Include="Graphics\RingUploadBuffer.cpp" />
@@ -195,6 +196,7 @@
     <ClCompile Include="Utilities\Heightmap.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Adria D3D11\Adria\Utilities\CPUProfiler.h" />
     <ClInclude Include="..\ThirdParty\ImGui\imconfig.h" />
     <ClInclude Include="..\ThirdParty\ImGui\imgui.h" />
     <ClInclude Include="..\ThirdParty\ImGui\ImGuiFileDialog.h" />
@@ -229,7 +231,7 @@
     <ClInclude Include="Graphics\GraphicsCoreDX12.h" />
     <ClInclude Include="Graphics\MipsGenerator.h" />
     <ClInclude Include="Graphics\LinearUploadBuffer.h" />
-    <ClInclude Include="Graphics\Profiler.h" />
+    <ClInclude Include="Graphics\GPUProfiler.h" />
     <ClInclude Include="Graphics\ProfilerSettings.h" />
     <ClInclude Include="Graphics\RayTracingUtil.h" />
     <ClInclude Include="Graphics\ReadbackBuffer.h" />

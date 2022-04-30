@@ -19,7 +19,7 @@
 #include "../Graphics/VertexBuffer.h"
 #include "../Graphics/IndexBuffer.h"
 #include "../Graphics/StructuredBuffer.h"
-#include "../Graphics/Profiler.h"
+#include "../Graphics/GPUProfiler.h"
 
 
 namespace adria
@@ -117,7 +117,7 @@ namespace adria
 		RayTracer ray_tracer;
 
 		RendererSettings settings;
-		Profiler profiler;
+		GPUProfiler profiler;
 		ProfilerSettings profiler_settings;
 
 		SceneViewport current_scene_viewport;

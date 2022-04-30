@@ -2214,7 +2214,7 @@ namespace adria
 	void Renderer::PassGBuffer(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "GBuffer Pass");
-		SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::GBufferPass, profiler_settings.profile_gbuffer_pass);
+		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::GBufferPass, profiler_settings.profile_gbuffer_pass);
 
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
@@ -2278,7 +2278,7 @@ namespace adria
 	void Renderer::PassDecals(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		if (reg.size<Decal>() == 0) return;
-		SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::DecalPass, profiler_settings.profile_decal_pass);
+		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::DecalPass, profiler_settings.profile_decal_pass);
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Decal Pass");
 
 		ID3D12Device* device = gfx->GetDevice();
@@ -2428,7 +2428,7 @@ namespace adria
 	void Renderer::PassRTAO(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		ADRIA_ASSERT(settings.ambient_occlusion == EAmbientOcclusion::RTAO);
-		SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::RT_AmbientOcclusion, profiler_settings.profile_rtao);
+		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::RT_AmbientOcclusion, profiler_settings.profile_rtao);
 		ray_tracer.RayTraceAmbientOcclusion(cmd_list, depth_target, gbuffer[0], frame_cbuffer.View(backbuffer_index).BufferLocation);
 
 		BlurTexture(cmd_list, ray_tracer.GetRayTracingAmbientOcclusionTexture());
@@ -2489,7 +2489,7 @@ namespace adria
 	void Renderer::PassDeferredLighting(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Deferred Lighting Pass");
-		SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::DeferredPass, profiler_settings.profile_deferred_pass);
+		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::DeferredPass, profiler_settings.profile_deferred_pass);
 
 		ID3D12Device* device = gfx->GetDevice();
 		auto upload_buffer = gfx->GetUploadBuffer();
@@ -2529,7 +2529,7 @@ namespace adria
 
 			if (light_data.ray_traced_shadows)
 			{
-				SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::RT_Shadows, profiler_settings.profile_rts);
+				SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::RT_Shadows, profiler_settings.profile_rts);
 
 				D3D12_RESOURCE_BARRIER pre_rts_barriers[] =
 				{
@@ -2887,7 +2887,7 @@ namespace adria
 	void Renderer::PassForward(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Forward Pass");
-		SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::ForwardPass, profiler_settings.profile_forward_pass);
+		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::ForwardPass, profiler_settings.profile_forward_pass);
 
 		UpdateOcean(cmd_list);
 		forward_render_pass.Begin(cmd_list);
@@ -2900,7 +2900,7 @@ namespace adria
 	void Renderer::PassPostprocess(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Postprocessing Pass");
-		SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::Postprocessing, profiler_settings.profile_postprocessing);
+		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::Postprocessing, profiler_settings.profile_postprocessing);
 
 		PassVelocityBuffer(cmd_list);
 
@@ -2979,7 +2979,7 @@ namespace adria
 		}
 		else if (settings.reflections == EReflections::RTR)
 		{
-			SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::RT_Reflections, profiler_settings.profile_rtr);
+			SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::RT_Reflections, profiler_settings.profile_rtr);
 
 			D3D12_CPU_DESCRIPTOR_HANDLE skybox_handle = null_srv_heap->GetCpuHandle(TEXTURECUBE_SLOT);
 			if (settings.sky_type == ESkyType::Skybox)
@@ -3826,7 +3826,7 @@ namespace adria
 	{
 		if (reg.size<Emitter>() == 0) return;
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Particles Pass");
-		SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::ParticlesPass, profiler_settings.profile_particles_pass);
+		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::ParticlesPass, profiler_settings.profile_particles_pass);
 
 		particle_pass.Begin(cmd_list, true);
 		auto emitters = reg.view<Emitter>();
