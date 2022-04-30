@@ -203,7 +203,7 @@
     <ClCompile Include="Rendering\RootSigPSOManager.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Adria D3D11\Adria\Utilities\CPUProfiler.cpp">
+    <ClCompile Include="Utilities\CPUProfiler.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
   </ItemGroup>
@@ -520,7 +520,7 @@
     <ClInclude Include="Graphics\ByteAddressBuffer.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Adria D3D11\Adria\Utilities\CPUProfiler.h">
+    <ClInclude Include="Utilities\CPUProfiler.h">
       <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>

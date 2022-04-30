@@ -151,7 +151,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Adria D3D11\Adria\Utilities\CPUProfiler.cpp" />
     <ClCompile Include="..\ThirdParty\ImGui\imgui.cpp" />
     <ClCompile Include="..\ThirdParty\ImGui\ImGuiFileDialog.cpp" />
     <ClCompile Include="..\ThirdParty\ImGui\ImGuizmo.cpp" />
@@ -193,10 +192,10 @@
     <ClCompile Include="Rendering\RootSigPSOManager.cpp" />
     <ClCompile Include="Rendering\SkyModel.cpp" />
     <ClCompile Include="Utilities\AdriaException.cpp" />
+    <ClCompile Include="Utilities\CPUProfiler.cpp" />
     <ClCompile Include="Utilities\Heightmap.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Adria D3D11\Adria\Utilities\CPUProfiler.h" />
     <ClInclude Include="..\ThirdParty\ImGui\imconfig.h" />
     <ClInclude Include="..\ThirdParty\ImGui\imgui.h" />
     <ClInclude Include="..\ThirdParty\ImGui\ImGuiFileDialog.h" />
@@ -283,6 +282,7 @@
     <ClInclude Include="tecs\sparse_set.h" />
     <ClInclude Include="Utilities\AllocatorUtil.h" />
     <ClInclude Include="Utilities\CommandLineParser.h" />
+    <ClInclude Include="Utilities\CPUProfiler.h" />
     <ClInclude Include="Utilities\EnumUtil.h" />
     <ClInclude Include="Utilities\FilesUtil.h" />
     <ClInclude Include="Utilities\Heightmap.h" />

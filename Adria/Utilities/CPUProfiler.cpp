@@ -10,6 +10,11 @@ namespace adria
 		Timer<> cpu_profiler_timer;
 	}
 
+	CPUProfiler::CPUProfiler(size_t max_blocks /*= 16*/)
+	{
+		cpu_time_map.reserve(max_blocks);
+	}
+
 	void CPUProfiler::BeginProfileBlock(char const* name)
 	{
 		cpu_time_map[name].start_ms = cpu_profiler_timer.Elapsed();
@@ -38,12 +43,5 @@ namespace adria
 		}
 		return results;
 	}
-
-	CPUProfiler::CPUProfiler(size_t max_blocks /*= 16*/)
-	{
-		cpu_time_map.reserve(max_blocks);
-	}
-
-
 }
 
