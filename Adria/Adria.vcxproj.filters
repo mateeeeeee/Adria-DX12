@@ -523,6 +523,9 @@
     <ClInclude Include="Utilities\CPUProfiler.h">
       <Filter>Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="Events\Delegate.h">
+      <Filter>Events</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

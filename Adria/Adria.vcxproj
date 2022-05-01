@@ -217,6 +217,7 @@
     <ClInclude Include="Core\Windows.h" />
     <ClInclude Include="Editor\Editor.h" />
     <ClInclude Include="Editor\GUI.h" />
+    <ClInclude Include="Events\Delegate.h" />
     <ClInclude Include="Events\EventQueue.h" />
     <ClInclude Include="Events\IEvent.h" />
     <ClInclude Include="Graphics\ByteAddressBuffer.h" />
