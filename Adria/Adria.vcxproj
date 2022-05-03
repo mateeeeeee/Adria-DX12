@@ -211,7 +211,6 @@
     <ClInclude Include="Audio\AudioSystem.h" />
     <ClInclude Include="Core\Definitions.h" />
     <ClInclude Include="Core\Engine.h" />
-    <ClInclude Include="Core\Events.h" />
     <ClInclude Include="Core\Macros.h" />
     <ClInclude Include="Core\Window.h" />
     <ClInclude Include="Core\Windows.h" />

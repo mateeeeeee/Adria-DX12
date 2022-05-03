@@ -41,7 +41,6 @@ namespace adria
 
 	private:
 		bool vsync;
-		EventQueue event_queue; 
 		Input input;
 		tecs::registry reg;
 		CameraManager camera_manager;

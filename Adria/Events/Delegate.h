@@ -9,6 +9,25 @@
 
 namespace adria
 {
+#define DECLARE_DELEGATE(name, ...) \
+	using name = Delegate<void(__VA_ARGS__)>
+
+#define DECLARE_DELEGATE_RETVAL(name, retval, ...) \
+	using name = Delegate<retval(__VA_ARGS__)>
+
+#define DECLARE_MULTICAST_DELEGATE(name, ...) \
+	using name = MultiCastDelegate<__VA_ARGS__>; \
+
+#define DECLARE_EVENT(name, owner, ...) \
+	class name : public MultiCastDelegate<__VA_ARGS__> \
+	{ \
+	private: \
+		friend class owner; \
+		using MultiCastDelegate::Broadcast; \
+		using MultiCastDelegate::RemoveAll; \
+		using MultiCastDelegate::Remove; \
+	};
+
 	template<typename...>
 	class Delegate;
 
@@ -140,9 +159,9 @@ namespace adria
 		}
 
 		template<typename T>
-		[[nodiscard]] DelegateHandle AddMember(R(T::* mem_pfn)(Args...), T& instance)
+		[[nodiscard]] DelegateHandle AddMember(void(T::* mem_pfn)(Args...), T& instance)
 		{
-			delegate_array.emplace_back(DelegateHandle(0), [&instance, mem_pfn](Args&&... args) mutable -> R {return (instance.*mem_pfn)(std::forward<Args>(args)...); });
+			delegate_array.emplace_back(DelegateHandle(0), [&instance, mem_pfn](Args&&... args) mutable -> void {return (instance.*mem_pfn)(std::forward<Args>(args)...); });
 			return delegate_array.back().first;
 		}
 
@@ -184,15 +203,15 @@ namespace adria
 			delegate_array.clear();
 		}
 
-		void Broadcast(Args&&... args)
+		void Broadcast(Args... args)
 		{
 			for (size_t i = 0; i < delegate_array.size(); ++i)
 			{
-				if (delegate_array[i].first.IsValid()) delegate_array[i].second.Execute(std::forward<Args>(args)...);
+				if (delegate_array[i].first.IsValid()) delegate_array[i].second(std::forward<Args>(args)...);
 			}
 		}
 
-		bool IsHandleBound(const DelegateHandle& handle) const
+		bool IsHandleBound(DelegateHandle const& handle) const
 		{
 			if (handle.IsValid())
 			{
@@ -207,24 +226,5 @@ namespace adria
 	private:
 		std::vector<HandleDelegatePair> delegate_array;
 	};
-
-#define DECLARE_DELEGATE(name, ...) \
-using name = Delegate<void(__VA_ARGS__)>
-
-#define DECLARE_DELEGATE_RETVAL(name, retval, ...) \
-using name = Delegate<retval(__VA_ARGS__)>
-
-#define DECLARE_MULTICAST_DELEGATE(name, ...) \
-using name = MultiCastDelegate<__VA_ARGS__>; \
-
-#define DECLARE_EVENT(name, owner, ...) \
-class name : public MultiCastDelegate<__VA_ARGS__> \
-{ \
-private: \
-	friend class owner; \
-	using MultiCastDelegate::Broadcast; \
-	using MultiCastDelegate::RemoveAll; \
-	using MultiCastDelegate::Remove; \
-};
 
 }

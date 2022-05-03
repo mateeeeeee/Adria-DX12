@@ -45,7 +45,7 @@ namespace adria
 		if (input.GetKey(EKeyCode::E))
 			camera.Jump(-speed_factor * dt);
 
-		if (input.GetKey(EKeyCode::ClickRight))
+		if (input.GetKey(EKeyCode::MouseRight))
 		{
 			float32 dx = input.GetMouseDeltaX();
 			float32 dy = input.GetMouseDeltaY();
