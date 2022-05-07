@@ -437,7 +437,6 @@ namespace adria
 		ELogLevel logger_level;
 	};
 
-
     Editor::Editor(editor_init_t const& init) : engine(), editor_log(new ImGuiLogger{})
     {
         engine = std::make_unique<Engine>(init.engine_init);
@@ -1086,9 +1085,9 @@ namespace adria
                     ImGui::Text("Albedo Texture");
                     D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(material->albedo_texture);
                     OffsetType descriptor_index = descriptor_allocator->Allocate();
-                    D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+                    auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
                     device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-                    ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr,
+                    ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
                         ImVec2(48.0f, 48.0f));
 
                     ImGui::PushID(0);
@@ -1100,9 +1099,9 @@ namespace adria
                     ImGui::Text("Metallic-Roughness Texture");
                     tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(material->metallic_roughness_texture);
                     descriptor_index = descriptor_allocator->Allocate();
-                    dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+                    dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
                     device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-                    ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr,
+                    ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
                         ImVec2(48.0f, 48.0f));
 
                     ImGui::PushID(1);
@@ -1114,9 +1113,9 @@ namespace adria
                     ImGui::Text("Emissive Texture");
                     tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(material->emissive_texture);
                     descriptor_index = descriptor_allocator->Allocate();
-                    dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+                    dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
                     device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-                    ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr,
+                    ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
                         ImVec2(48.0f, 48.0f));
 
                     ImGui::PushID(2);
@@ -1177,9 +1176,9 @@ namespace adria
 					ImGui::Text("Particle Texture");
 					D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(emitter->particle_texture);
 					OffsetType descriptor_index = descriptor_allocator->Allocate();
-					D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+					auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-					ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr,
+					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
 						ImVec2(48.0f, 48.0f));
 
 					ImGui::PushID(3);
@@ -1242,9 +1241,9 @@ namespace adria
 					ImGui::Text("Decal Albedo Texture");
 					D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(decal->albedo_decal_texture);
 					OffsetType descriptor_index = descriptor_allocator->Allocate();
-					D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+					auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-					ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr,
+					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
 						ImVec2(48.0f, 48.0f));
 
 					ImGui::PushID(4);
@@ -1264,9 +1263,9 @@ namespace adria
 					ImGui::Text("Decal Normal Texture");
 					tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(decal->normal_decal_texture);
 					descriptor_index = descriptor_allocator->Allocate();
-					dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+					dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-					ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr,
+					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
 						ImVec2(48.0f, 48.0f));
 
 					ImGui::PushID(5);
@@ -1295,9 +1294,7 @@ namespace adria
 						if (ImGuiFileDialog::Instance()->IsOk())
 						{
 							std::string texture_path = ImGuiFileDialog::Instance()->GetFilePathName();
-
 							skybox->cubemap_texture = engine->renderer->GetTextureManager().LoadCubemap(ConvertToWide(texture_path));
-
 						}
 						ImGuiFileDialog::Instance()->Close();
 					}
@@ -1614,9 +1611,9 @@ namespace adria
 
             D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetOffscreenTexture().SRV();
             OffsetType descriptor_index = descriptor_allocator->Allocate();
-            D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+            auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
             device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-            ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr, size);
+            ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, size);
 
             scene_focused = ImGui::IsWindowFocused();
 
@@ -2035,27 +2032,27 @@ namespace adria
 			{
 				D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetRayTracingShadowsTexture_Debug().SRV();
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
-				D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 				device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr, size);
+				ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, size);
 				ImGui::Text("Ray Tracing Shadows Image");
 			}
 			else if (current_rt_type == 1)
 			{
 				D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetRayTracingAOTexture_Debug().SRV();
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
-				D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 				device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr, size);
+				ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, size);
 				ImGui::Text("Ray Tracing AO Image");
 			}
 			else if (current_rt_type == 2)
 			{
 				D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetRayTracingReflectionsTexture_Debug().SRV();
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
-				D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 				device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				ImGui::Image((ImTextureID)descriptor_allocator->GetGpuHandle(descriptor_index).ptr, size);
+				ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, size);
 				ImGui::Text("Ray Tracing Reflections Image");
 			}
 

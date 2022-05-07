@@ -131,7 +131,7 @@ namespace adria
 			{
 				hr = swap_chain->GetBuffer(fr, IID_PPV_ARGS(&frames[fr].back_buffer));
 				BREAK_IF_FAILED(hr);
-				frames[fr].back_buffer_rtv = render_target_heap->GetCpuHandle(fr);
+				frames[fr].back_buffer_rtv = render_target_heap->GetHandle(fr);
 				device->CreateRenderTargetView(frames[fr].back_buffer.Get(), nullptr, frames[fr].back_buffer_rtv);
 
 
@@ -520,7 +520,6 @@ namespace adria
 
 	void GraphicsCoreDX12::ExecuteComputeCommandLists()
 	{
-
 		auto& frame_resources = GetFrameResources();
 
 		if (frame_resources.compute_cmd_list_index == 0) return;

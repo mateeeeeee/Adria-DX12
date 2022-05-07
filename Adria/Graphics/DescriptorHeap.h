@@ -10,6 +10,31 @@
 namespace adria
 {
 
+	struct DescriptorHandle
+	{
+		friend class DescriptorHeap;
+
+	public:
+		DescriptorHandle(DescriptorHandle const&) = delete;
+		DescriptorHandle(DescriptorHandle&&) noexcept = default;
+
+		DescriptorHandle& operator=(DescriptorHandle const&) = delete;
+		DescriptorHandle& operator=(DescriptorHandle&&) noexcept = default;
+
+		operator D3D12_CPU_DESCRIPTOR_HANDLE const() const { return cpu_pointer; }
+		operator D3D12_GPU_DESCRIPTOR_HANDLE const() const { return gpu_pointer; }
+
+		bool IsShaderVisible() const { return gpu_pointer.ptr != NULL; }
+		D3D12_CPU_DESCRIPTOR_HANDLE const* GetCPUAddress() const { return &cpu_pointer; }
+	private:
+		D3D12_CPU_DESCRIPTOR_HANDLE cpu_pointer = { NULL };
+		D3D12_GPU_DESCRIPTOR_HANDLE gpu_pointer = { NULL };
+
+	private:
+		explicit DescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE cpu_pointer, D3D12_GPU_DESCRIPTOR_HANDLE gpu_pointer = { NULL }) : cpu_pointer(cpu_pointer), gpu_pointer(gpu_pointer)
+		{}
+	};
+
 	class DescriptorHeap
 	{
 	public:
@@ -37,13 +62,9 @@ namespace adria
 
 		~DescriptorHeap() = default;
 
-		D3D12_GPU_DESCRIPTOR_HANDLE GetFirstGpuHandle() const;
+		DescriptorHandle GetFirstHandle() const;
 
-		D3D12_CPU_DESCRIPTOR_HANDLE GetFirstCpuHandle() const;
-
-		D3D12_GPU_DESCRIPTOR_HANDLE GetGpuHandle(size_t index) const;
-
-		D3D12_CPU_DESCRIPTOR_HANDLE GetCpuHandle(size_t index) const;
+		DescriptorHandle GetHandle(size_t index) const;
 
 		size_t Count() const;
 		D3D12_DESCRIPTOR_HEAP_FLAGS Flags() const;

@@ -214,7 +214,6 @@ namespace adria
 		entity_loader = std::make_unique<EntityLoader>(reg, gfx.get(), renderer->GetTextureManager());
 
 		InputEvents& input_events = input.GetInputEvents();
-
 		input_events.window_resized_event.AddMember(&CameraManager::OnResize, camera_manager);
 		input_events.window_resized_event.AddMember(&GraphicsCoreDX12::ResizeBackbuffer, *gfx);
 		input_events.window_resized_event.AddMember(&Renderer::OnResize, *renderer);

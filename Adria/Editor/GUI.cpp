@@ -32,8 +32,8 @@ namespace adria
 		
 		ImGui_ImplDX12_Init(gfx->GetDevice(), gfx->BackbufferCount(),
 			DXGI_FORMAT_R10G10B10A2_UNORM, imgui_allocator->Heap(),
-			imgui_allocator->GetFirstCpuHandle(),
-			imgui_allocator->GetFirstGpuHandle());
+			imgui_allocator->GetFirstHandle(),
+			imgui_allocator->GetFirstHandle());
 
 		ImGuiStyle& style = ImGui::GetStyle();
 		style.WindowBorderSize = 1.0f;

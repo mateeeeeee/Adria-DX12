@@ -396,3 +396,4 @@ FodyWeavers.xsd
 # JetBrains Rider
 .idea/
 *.sln.iml
+/Adria/RenderGraph

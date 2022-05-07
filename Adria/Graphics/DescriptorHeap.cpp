@@ -53,36 +53,26 @@ namespace adria
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
 			D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, count) {}
 
-	D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeap::GetFirstGpuHandle() const
-	{
-		ADRIA_ASSERT(desc.Flags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
-		ADRIA_ASSERT(heap != nullptr);
-		return hGPU;
-	}
-	D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeap::GetFirstCpuHandle() const
+	DescriptorHandle DescriptorHeap::GetFirstHandle() const
 	{
 		ADRIA_ASSERT(heap != nullptr);
-		return hCPU;
+		return DescriptorHandle(hCPU, hGPU);
 	}
-	D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeap::GetGpuHandle(size_t index) const
-	{
-		ADRIA_ASSERT(heap != nullptr);
-		ADRIA_ASSERT(index < desc.NumDescriptors);
-		ADRIA_ASSERT(desc.Flags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
-
-		D3D12_GPU_DESCRIPTOR_HANDLE handle{};
-		handle.ptr = hGPU.ptr + UINT64(index) * UINT64(descriptor_handle_size);
-		return handle;
-	}
-	D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeap::GetCpuHandle(size_t index) const
+	DescriptorHandle DescriptorHeap::GetHandle(size_t index) const
 	{
 		ADRIA_ASSERT(heap != nullptr);
 		ADRIA_ASSERT(index < desc.NumDescriptors);
 
-		D3D12_CPU_DESCRIPTOR_HANDLE handle{};
-		handle.ptr = static_cast<SIZE_T>(hCPU.ptr + UINT64(index) * UINT64(descriptor_handle_size));
+		D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle{};
+		cpu_handle.ptr = static_cast<SIZE_T>(hCPU.ptr + UINT64(index) * UINT64(descriptor_handle_size));
+
+		D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle{.ptr = NULL};
+		if(hGPU.ptr != NULL) gpu_handle.ptr = hGPU.ptr + UINT64(index) * UINT64(descriptor_handle_size);
+
+		DescriptorHandle handle{ cpu_handle, gpu_handle };
 		return handle;
 	}
+
 	size_t DescriptorHeap::Count() const { return desc.NumDescriptors; }
 	D3D12_DESCRIPTOR_HEAP_FLAGS DescriptorHeap::Flags() const { return desc.Flags; }
 	D3D12_DESCRIPTOR_HEAP_TYPE DescriptorHeap::Type() const { return desc.Type; }

@@ -56,8 +56,8 @@ namespace adria
 
 
 				i = descriptor_allocator->AllocateRange(2);
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle1 = descriptor_allocator->GetCpuHandle(i);
-				D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle1 = descriptor_allocator->GetGpuHandle(i);
+				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle1 = descriptor_allocator->GetHandle(i);
+				D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle1 = descriptor_allocator->GetHandle(i);
 
 				src_srv_desc.Format = tex_desc.Format;
 				src_srv_desc.Texture2D.MipLevels = 1;
@@ -65,8 +65,8 @@ namespace adria
 				device->CreateShaderResourceView(texture, &src_srv_desc, cpu_handle1);
 
 
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle2 = descriptor_allocator->GetCpuHandle(i + 1);
-				D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle2 = descriptor_allocator->GetGpuHandle(i + 1);
+				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle2 = descriptor_allocator->GetHandle(i + 1);
+				D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle2 = descriptor_allocator->GetHandle(i + 1);
 				dst_uav_desc.Format = tex_desc.Format;
 				dst_uav_desc.Texture2D.MipSlice = top_mip + 1;
 				device->CreateUnorderedAccessView(texture, nullptr, &dst_uav_desc, cpu_handle2);

@@ -134,7 +134,7 @@ namespace adria
         texture_srv_heap.reset(new DescriptorHeap(gfx->GetDevice(), texture_heap_desc));
         mips_generator = std::make_unique<MipsGenerator>(gfx->GetDevice(), max_textures);
 
-        CreateNullSRV(gfx->GetDevice(), texture_srv_heap->GetFirstCpuHandle());
+        CreateNullSRV(gfx->GetDevice(), texture_srv_heap->GetFirstHandle());
         {
             CD3DX12_DESCRIPTOR_RANGE1 const descriptor_ranges[] =
             {
@@ -264,7 +264,7 @@ namespace adria
                 cmd_list->ResourceBarrier(1, &barrier);
                 gfx->AddToReleaseQueue(texture_upload_allocation);
                 texture_map.insert({ handle, cubemap });
-                CreateTextureSRV(device, texture_map[handle].Get(), texture_srv_heap->GetCpuHandle(handle));
+                CreateTextureSRV(device, texture_map[handle].Get(), texture_srv_heap->GetHandle(handle));
             }
             else //format == TextureFormat::eHDR
             {
@@ -297,7 +297,7 @@ namespace adria
                 srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
                 srv_desc.TextureCube.MipLevels = -1;
                 srv_desc.TextureCube.MostDetailedMip = 0;
-                device->CreateShaderResourceView(cubemap_tex.Get(), &srv_desc, texture_srv_heap->GetCpuHandle(handle));
+                device->CreateShaderResourceView(cubemap_tex.Get(), &srv_desc, texture_srv_heap->GetHandle(handle));
 
                 D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
                 uav_desc.Format = desc.Format;
@@ -307,7 +307,7 @@ namespace adria
                 uav_desc.Texture2DArray.ArraySize = desc.DepthOrArraySize;
 
                 OffsetType uav_index = descriptor_allocator->Allocate();
-                device->CreateUnorderedAccessView(cubemap_tex.Get(), nullptr, &uav_desc, descriptor_allocator->GetCpuHandle(uav_index));
+                device->CreateUnorderedAccessView(cubemap_tex.Get(), nullptr, &uav_desc, descriptor_allocator->GetHandle(uav_index));
 
                 ID3D12Resource* equirect_tex = nullptr;
                 D3D12_RESOURCE_DESC equirect_desc = {};
@@ -336,7 +336,7 @@ namespace adria
                 srv_desc.Texture2D.MostDetailedMip = 0;
 
                 OffsetType srv_index = descriptor_allocator->Allocate();
-                device->CreateShaderResourceView(equirect_tex, &srv_desc, descriptor_allocator->GetCpuHandle(srv_index));
+                device->CreateShaderResourceView(equirect_tex, &srv_desc, descriptor_allocator->GetHandle(srv_index));
 
                 const UINT64 upload_buffer_size = GetRequiredIntermediateSize(equirect_tex, 0, 1);
 
@@ -387,8 +387,8 @@ namespace adria
                 cmd_list->SetComputeRootSignature(equirect_root_signature.Get());
                 cmd_list->SetPipelineState(equirect_pso.Get());
 
-                cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetGpuHandle(1));
-                cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(0));
+                cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetHandle(1));
+                cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(0));
                 cmd_list->Dispatch(1024 / 32, 1024 / 32, 6);
 
                 auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(cubemap_tex.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -484,7 +484,7 @@ namespace adria
 
         gfx->AddToReleaseQueue(texture_upload_allocation);
         texture_map.insert({ handle, cubemap });
-        CreateTextureSRV(device, texture_map[handle].Get(), texture_srv_heap->GetCpuHandle(handle));
+        CreateTextureSRV(device, texture_map[handle].Get(), texture_srv_heap->GetHandle(handle));
         return handle;
     }
 
@@ -492,8 +492,8 @@ namespace adria
     D3D12_CPU_DESCRIPTOR_HANDLE TextureManager::CpuDescriptorHandle(TEXTURE_HANDLE tex_handle)
     {
         return tex_handle != INVALID_TEXTURE_HANDLE ? 
-            texture_srv_heap->GetCpuHandle((size_t)tex_handle) :
-            texture_srv_heap->GetFirstCpuHandle();
+            texture_srv_heap->GetHandle((size_t)tex_handle) :
+            texture_srv_heap->GetFirstHandle();
     }
 
     void TextureManager::TransitionTexture(TEXTURE_HANDLE handle, ResourceBarrierBatch& barrier,
@@ -572,7 +572,7 @@ namespace adria
             gfx->AddToReleaseQueue(texture_upload_allocation);
             texture_map.insert({ handle, tex2d });
             if (false && mipmaps) mips_generator->Add(texture_map[handle].Get());
-            CreateTextureSRV(device, texture_map[handle].Get(), texture_srv_heap->GetCpuHandle(handle));
+            CreateTextureSRV(device, texture_map[handle].Get(), texture_srv_heap->GetHandle(handle));
             return handle;
         }
         else return it->second;
@@ -640,7 +640,7 @@ namespace adria
             gfx->AddToReleaseQueue(texture_upload_allocation);
             texture_map.insert({ handle, tex2d });
             if (mipmaps) mips_generator->Add(texture_map[handle].Get());
-            CreateTextureSRV(device, texture_map[handle].Get(), texture_srv_heap->GetCpuHandle(handle));
+            CreateTextureSRV(device, texture_map[handle].Get(), texture_srv_heap->GetHandle(handle));
             return handle;
         }
         else return it->second;
@@ -717,7 +717,7 @@ namespace adria
             gfx->AddToReleaseQueue(texture_upload_allocation);
             texture_map.insert({ handle, tex2d });
             if (mipmaps) mips_generator->Add(texture_map[handle].Get());
-            CreateTextureSRV(device, texture_map[handle].Get(), texture_srv_heap->GetCpuHandle(handle));
+            CreateTextureSRV(device, texture_map[handle].Get(), texture_srv_heap->GetHandle(handle));
             return handle;
         }
         else return it->second;

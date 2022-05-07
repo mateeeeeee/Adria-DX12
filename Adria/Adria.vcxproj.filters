@@ -77,6 +77,9 @@
     <Filter Include="Shaders\Particles">
       <UniqueIdentifier>{cce0a1aa-c48a-46e6-a52f-cda90620fbec}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RenderGraph">
+      <UniqueIdentifier>{ae8ff9af-e5a9-4001-bb0b-49fa7b006160}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -522,6 +525,9 @@
     </ClInclude>
     <ClInclude Include="Events\Delegate.h">
       <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGraph\RenderGraph.h">
+      <Filter>RenderGraph</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -49,16 +49,16 @@ namespace adria
 			uint32 src_range_sizes[] = { 1,1 };
 
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(_countof(cpu_handles));
-			D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+			auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 			uint32 dst_range_sizes[] = { (uint32)_countof(cpu_handles) };
-			device->CopyDescriptors(1, &dst_descriptor, dst_range_sizes, _countof(cpu_handles), cpu_handles, src_range_sizes,
+			device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes, _countof(cpu_handles), cpu_handles, src_range_sizes,
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetGpuHandle(descriptor_index));
+			cmd_list->SetComputeRootDescriptorTable(1, dst_descriptor);
 
 			descriptor_index = descriptor_allocator->Allocate();
-			dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+			dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 			device->CopyDescriptorsSimple(1, dst_descriptor, write_picking_buffer.UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetGpuHandle(descriptor_index));
+			cmd_list->SetComputeRootDescriptorTable(2, dst_descriptor);
 
 			ResourceBarrierBatch barrier_batch{};
 			barrier_batch.AddTransition(write_picking_buffer.Resource(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);

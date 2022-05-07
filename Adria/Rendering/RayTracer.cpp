@@ -101,14 +101,14 @@ namespace adria
 		cmd_list->SetComputeRootShaderResourceView(3, tlas->GetGPUVirtualAddress());
 
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(1);
-		auto dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+		auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 		device->CopyDescriptorsSimple(1, dst_descriptor, depth.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		cmd_list->SetComputeRootDescriptorTable(4, descriptor_allocator->GetGpuHandle(descriptor_index));
+		cmd_list->SetComputeRootDescriptorTable(4, descriptor_allocator->GetHandle(descriptor_index));
 
 		descriptor_index = descriptor_allocator->AllocateRange(1);
-		dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+		dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 		device->CopyDescriptorsSimple(1, dst_descriptor, rt_shadows_output.UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		cmd_list->SetComputeRootDescriptorTable(5, descriptor_allocator->GetGpuHandle(descriptor_index));
+		cmd_list->SetComputeRootDescriptorTable(5, descriptor_allocator->GetHandle(descriptor_index));
 		cmd_list->SetPipelineState1(rt_shadows_state_object.Get());
 
 		D3D12_DISPATCH_RAYS_DESC dispatch_desc = {};
@@ -146,16 +146,16 @@ namespace adria
 		cmd_list->SetComputeRootShaderResourceView(2, tlas->GetGPUVirtualAddress());
 
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
-		auto dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+		auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 		device->CopyDescriptorsSimple(1, dst_descriptor, depth.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index + 1);
+		dst_descriptor = descriptor_allocator->GetHandle(descriptor_index + 1);
 		device->CopyDescriptorsSimple(1, dst_descriptor, normal_gbuf.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		cmd_list->SetComputeRootDescriptorTable(3, descriptor_allocator->GetGpuHandle(descriptor_index));
+		cmd_list->SetComputeRootDescriptorTable(3, descriptor_allocator->GetHandle(descriptor_index));
 
 		descriptor_index = descriptor_allocator->AllocateRange(1);
-		dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+		dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 		device->CopyDescriptorsSimple(1, dst_descriptor, rtao_output.UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		cmd_list->SetComputeRootDescriptorTable(4, descriptor_allocator->GetGpuHandle(descriptor_index));
+		cmd_list->SetComputeRootDescriptorTable(4, descriptor_allocator->GetHandle(descriptor_index));
 		cmd_list->SetPipelineState1(rtao_state_object.Get());
 
 		D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
@@ -196,22 +196,22 @@ namespace adria
 		cmd_list->SetComputeRootShaderResourceView(2, tlas->GetGPUVirtualAddress());
 
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
-		auto dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+		auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 		device->CopyDescriptorsSimple(1, dst_descriptor, depth.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index + 1);
+		dst_descriptor = descriptor_allocator->GetHandle(descriptor_index + 1);
 		device->CopyDescriptorsSimple(1, dst_descriptor, envmap_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		cmd_list->SetComputeRootDescriptorTable(3, descriptor_allocator->GetGpuHandle(descriptor_index));
+		cmd_list->SetComputeRootDescriptorTable(3, descriptor_allocator->GetHandle(descriptor_index));
 
 		descriptor_index = descriptor_allocator->AllocateRange(1);
-		dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
+		dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 		device->CopyDescriptorsSimple(1, dst_descriptor, rtr_output.UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		cmd_list->SetComputeRootDescriptorTable(4, descriptor_allocator->GetGpuHandle(descriptor_index));
-		cmd_list->SetComputeRootDescriptorTable(5, descriptor_allocator->GetFirstGpuHandle());
+		cmd_list->SetComputeRootDescriptorTable(4, descriptor_allocator->GetHandle(descriptor_index));
+		cmd_list->SetComputeRootDescriptorTable(5, descriptor_allocator->GetFirstHandle());
 
 		descriptor_index = descriptor_allocator->AllocateRange(3);
-		dst_descriptor = descriptor_allocator->GetCpuHandle(descriptor_index);
-		device->CopyDescriptorsSimple(3, dst_descriptor, dxr_heap->GetFirstCpuHandle(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		cmd_list->SetComputeRootDescriptorTable(6, descriptor_allocator->GetGpuHandle(descriptor_index));
+		dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+		device->CopyDescriptorsSimple(3, dst_descriptor, dxr_heap->GetFirstHandle(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		cmd_list->SetComputeRootDescriptorTable(6, descriptor_allocator->GetHandle(descriptor_index));
 
 		cmd_list->SetPipelineState1(rtr_state_object.Get());
 
@@ -248,13 +248,13 @@ namespace adria
 		srv_desc.Buffer.StructureByteStride = sizeof(CompleteVertex);
 		srv_desc.Buffer.NumElements = global_vb->VertexCount();
 		srv_desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-		device->CreateShaderResourceView(global_vb->Resource(), &srv_desc, dxr_heap->GetCpuHandle(current_handle_index++));
+		device->CreateShaderResourceView(global_vb->Resource(), &srv_desc, dxr_heap->GetHandle(current_handle_index++));
 
 		srv_desc.Buffer.StructureByteStride = sizeof(uint32);
 		srv_desc.Buffer.NumElements = global_ib->IndexCount();
-		device->CreateShaderResourceView(global_ib->Resource(), &srv_desc, dxr_heap->GetCpuHandle(current_handle_index++));
+		device->CreateShaderResourceView(global_ib->Resource(), &srv_desc, dxr_heap->GetHandle(current_handle_index++));
 
-		geo_info_sb->CreateSRV(dxr_heap->GetCpuHandle(current_handle_index++));
+		geo_info_sb->CreateSRV(dxr_heap->GetHandle(current_handle_index++));
 
 		texture2d_desc_t uav_target_desc{};
 		uav_target_desc.width = width;
@@ -264,18 +264,18 @@ namespace adria
 		uav_target_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
 		rt_shadows_output = Texture2D(device, uav_target_desc);
-		rt_shadows_output.CreateSRV(dxr_heap->GetCpuHandle(current_handle_index++));
-		rt_shadows_output.CreateUAV(dxr_heap->GetCpuHandle(current_handle_index++));
+		rt_shadows_output.CreateSRV(dxr_heap->GetHandle(current_handle_index++));
+		rt_shadows_output.CreateUAV(dxr_heap->GetHandle(current_handle_index++));
 
 		uav_target_desc.start_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 		rtao_output = Texture2D(device, uav_target_desc);
-		rtao_output.CreateSRV(dxr_heap->GetCpuHandle(current_handle_index++));
-		rtao_output.CreateUAV(dxr_heap->GetCpuHandle(current_handle_index++));
+		rtao_output.CreateSRV(dxr_heap->GetHandle(current_handle_index++));
+		rtao_output.CreateUAV(dxr_heap->GetHandle(current_handle_index++));
 
 		uav_target_desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		rtr_output = Texture2D(device, uav_target_desc);
-		rtr_output.CreateSRV(dxr_heap->GetCpuHandle(current_handle_index++));
-		rtr_output.CreateUAV(dxr_heap->GetCpuHandle(current_handle_index++));
+		rtr_output.CreateSRV(dxr_heap->GetHandle(current_handle_index++));
+		rtr_output.CreateUAV(dxr_heap->GetHandle(current_handle_index++));
 	}
 
 	void RayTracer::CreateRootSignatures()
