@@ -2326,7 +2326,7 @@ namespace adria
 					uint32 dst_range_sizes[] = { (uint32)texture_handles.size() };
 					device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes, (uint32)texture_handles.size(), texture_handles.data(), src_range_sizes.data(),
 						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-					cmd_list->SetGraphicsRootDescriptorTable(3, descriptor_allocator->GetHandle(descriptor_index));
+					cmd_list->SetGraphicsRootDescriptorTable(3, dst_descriptor);
 
 					cmd_list->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 					cube_vb->Bind(cmd_list);
@@ -2367,13 +2367,14 @@ namespace adria
 			cmd_list->SetGraphicsRootConstantBufferView(1, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
 
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
+			auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
 			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { gbuffer[0].SRV(), depth_target.SRV(), ssao_random_texture.SRV() };
-			D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
+			D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor };
 			UINT src_range_sizes[] = { 1, 1, 1 };
 			UINT dst_range_sizes[] = { 3 };
 			device->CopyDescriptors(1, dst_ranges, dst_range_sizes, 3, src_ranges, src_range_sizes,
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
+			cmd_list->SetGraphicsRootDescriptorTable(2, descriptor);
 
 			cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 			cmd_list->DrawInstanced(4, 1, 0, 0);
@@ -2407,13 +2408,15 @@ namespace adria
 			cmd_list->SetGraphicsRootConstantBufferView(1, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
 
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
+			auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
+
 			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { gbuffer[0].SRV(), depth_target.SRV(), hbao_random_texture.SRV() };
-			D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
+			D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor };
 			UINT src_range_sizes[] = { 1, 1, 1 };
 			UINT dst_range_sizes[] = { 3 };
 			device->CopyDescriptors(1, dst_ranges, dst_range_sizes, 3, src_ranges, src_range_sizes,
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
+			cmd_list->SetGraphicsRootDescriptorTable(2, descriptor);
 
 			cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 			cmd_list->DrawInstanced(4, 1, 0, 0);
@@ -2430,7 +2433,6 @@ namespace adria
 		ADRIA_ASSERT(settings.ambient_occlusion == EAmbientOcclusion::RTAO);
 		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::RT_AmbientOcclusion, profiler_settings.profile_rtao);
 		ray_tracer.RayTraceAmbientOcclusion(cmd_list, depth_target, gbuffer[0], frame_cbuffer.View(backbuffer_index).BufferLocation);
-
 		BlurTexture(cmd_list, ray_tracer.GetRayTracingAmbientOcclusionTexture());
 	}
 	void Renderer::PassAmbient(ID3D12GraphicsCommandList4* cmd_list)
@@ -2460,7 +2462,7 @@ namespace adria
 		uint32 dst_range_sizes[] = { (uint32)ARRAYSIZE(cpu_handles) };
 		device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes, ARRAYSIZE(cpu_handles), cpu_handles, src_range_sizes,
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
+		cmd_list->SetGraphicsRootDescriptorTable(1, dst_descriptor);
 
 
 		D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles2[] = { null_srv_heap->GetHandle(TEXTURE2D_SLOT), 
@@ -2479,7 +2481,7 @@ namespace adria
 		uint32 dst_range_sizes2[] = { (uint32)ARRAYSIZE(cpu_handles2) };
 		device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes2, ARRAYSIZE(cpu_handles2), cpu_handles2, src_range_sizes2,
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
+		cmd_list->SetGraphicsRootDescriptorTable(2, dst_descriptor);
 
 		cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		cmd_list->DrawInstanced(4, 1, 0, 0);
@@ -2585,12 +2587,12 @@ namespace adria
 					uint32 src_range_sizes[] = { 1,1,1 };
 
 					OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
-					D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+					auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 					uint32 dst_range_sizes[] = { (uint32)ARRAYSIZE(cpu_handles) };
-					device->CopyDescriptors(1, &dst_descriptor, dst_range_sizes, ARRAYSIZE(cpu_handles), cpu_handles, src_range_sizes,
+					device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes, ARRAYSIZE(cpu_handles), cpu_handles, src_range_sizes,
 						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-					cmd_list->SetGraphicsRootDescriptorTable(3, descriptor_allocator->GetHandle(descriptor_index));
+					cmd_list->SetGraphicsRootDescriptorTable(3, dst_descriptor);
 				}
 
 				//t4,t5,t6 - shadow maps
@@ -2629,7 +2631,7 @@ namespace adria
 					device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes, ARRAYSIZE(shadow_cpu_handles), shadow_cpu_handles, src_range_sizes,
 						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-					cmd_list->SetGraphicsRootDescriptorTable(4, descriptor_allocator->GetHandle(descriptor_index));
+					cmd_list->SetGraphicsRootDescriptorTable(4, dst_descriptor);
 				}
 
 				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -2669,12 +2671,10 @@ namespace adria
 			structured_lights.push_back(structured_light);
 		}
 
-
 		ResourceBarrierBatch tiled_barriers{};
 		depth_target.Transition(tiled_barriers, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 		gbuffer[0].Transition(tiled_barriers, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 		gbuffer[1].Transition(tiled_barriers, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-
 		uav_target.Transition(tiled_barriers, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		debug_tiled_texture.Transition(tiled_barriers, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
@@ -2692,12 +2692,12 @@ namespace adria
 			uint32 src_range_sizes[] = { 1,1,1 };
 
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
-			D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+			auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 			uint32 dst_range_sizes[] = { (uint32)ARRAYSIZE(cpu_handles) };
-			device->CopyDescriptors(1, &dst_descriptor, dst_range_sizes, ARRAYSIZE(cpu_handles), cpu_handles, src_range_sizes,
+			device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes, ARRAYSIZE(cpu_handles), cpu_handles, src_range_sizes,
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-			cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
+			cmd_list->SetComputeRootDescriptorTable(2, dst_descriptor);
 		}
 
 		D3D12_GPU_DESCRIPTOR_HANDLE uav_target_for_clear{};
@@ -2707,13 +2707,12 @@ namespace adria
 			uint32 src_range_sizes[] = { 1,1 };
 
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
-			D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+			auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 			uint32 dst_range_sizes[] = { (uint32)ARRAYSIZE(cpu_handles) };
-			device->CopyDescriptors(1, &dst_descriptor, dst_range_sizes, ARRAYSIZE(cpu_handles), cpu_handles, src_range_sizes,
+			device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes, ARRAYSIZE(cpu_handles), cpu_handles, src_range_sizes,
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-			cmd_list->SetComputeRootDescriptorTable(3, descriptor_allocator->GetHandle(descriptor_index));
-
+			cmd_list->SetComputeRootDescriptorTable(3, dst_descriptor);
 			uav_target_for_clear = descriptor_allocator->GetHandle(descriptor_index);
 			uav_debug_for_clear = descriptor_allocator->GetHandle(descriptor_index + 1);
 		}
@@ -2734,9 +2733,9 @@ namespace adria
 			desc.Buffer.NumElements = static_cast<uint32>(dynamic_alloc.size / desc.Buffer.StructureByteStride);
 			desc.Buffer.FirstElement = dynamic_alloc.offset / desc.Buffer.StructureByteStride;
 
-			device->CreateShaderResourceView(dynamic_alloc.buffer, &desc, descriptor_allocator->GetHandle(i));
-
-			cmd_list->SetComputeRootDescriptorTable(4, descriptor_allocator->GetHandle(i));
+			auto handle = descriptor_allocator->GetHandle(i);
+			device->CreateShaderResourceView(dynamic_alloc.buffer, &desc, handle);
+			cmd_list->SetComputeRootDescriptorTable(4, handle);
 		}
 
 		float32 black[4] = { 0.0f,0.0f,0.0f,0.0f };
@@ -2796,9 +2795,9 @@ namespace adria
 			cmd_list->SetComputeRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 
 			OffsetType descriptor_index = descriptor_allocator->Allocate();
-			D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+			auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 			device->CopyDescriptorsSimple(1, dst_descriptor, clusters.UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
+			cmd_list->SetComputeRootDescriptorTable(1, dst_descriptor);
 
 			cmd_list->Dispatch(CLUSTER_SIZE_X, CLUSTER_SIZE_Y, CLUSTER_SIZE_Z);
 			recreate_clusters = false;
@@ -2810,7 +2809,7 @@ namespace adria
 			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::ClusterCulling));
 		
 			OffsetType i = descriptor_allocator->AllocateRange(2);
-			D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetHandle(i);
+			auto dst_descriptor = descriptor_allocator->GetHandle(i);
 			device->CopyDescriptorsSimple(1, dst_descriptor, clusters.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	
 			D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
@@ -2823,20 +2822,19 @@ namespace adria
 			desc.Buffer.FirstElement = dynamic_alloc.offset / desc.Buffer.StructureByteStride;
 			device->CreateShaderResourceView(dynamic_alloc.buffer, &desc, descriptor_allocator->GetHandle(i + 1));
 		
-			cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetHandle(i));
+			cmd_list->SetComputeRootDescriptorTable(0, dst_descriptor);
 		
 			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { light_counter.UAV(), light_list.UAV(), light_grid.UAV() };
 			uint32 src_range_sizes[] = { 1,1,1 };
 			i = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
 			dst_descriptor = descriptor_allocator->GetHandle(i);
 			uint32 dst_range_sizes[] = { (uint32)ARRAYSIZE(cpu_handles) };
-			device->CopyDescriptors(1, &dst_descriptor, dst_range_sizes, ARRAYSIZE(cpu_handles), cpu_handles, src_range_sizes,
+			device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes, ARRAYSIZE(cpu_handles), cpu_handles, src_range_sizes,
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		
-			cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(i));
+			cmd_list->SetComputeRootDescriptorTable(1, dst_descriptor);
 			cmd_list->Dispatch(CLUSTER_SIZE_X / 16, CLUSTER_SIZE_Y / 16, CLUSTER_SIZE_Z / 1);
 		}
-
 
 		//clustered lighting
 		lighting_render_pass.Begin(cmd_list);
@@ -2849,12 +2847,11 @@ namespace adria
 			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { gbuffer[0].SRV(), gbuffer[1].SRV(), depth_target.SRV() };
 			uint32 src_range_sizes[] = { 1,1,1 };
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
-			D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+			auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 			uint32 dst_range_sizes[] = { (uint32)ARRAYSIZE(cpu_handles) };
-			device->CopyDescriptors(1, &dst_descriptor, dst_range_sizes, ARRAYSIZE(cpu_handles), cpu_handles, src_range_sizes,
+			device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes, ARRAYSIZE(cpu_handles), cpu_handles, src_range_sizes,
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-			cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
+			cmd_list->SetGraphicsRootDescriptorTable(1, dst_descriptor);
 
 			//light stuff
 			descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles) + 1);
@@ -2863,9 +2860,10 @@ namespace adria
 
 			dst_descriptor = descriptor_allocator->GetHandle(descriptor_index + 1);
 			uint32 dst_range_sizes2[] = { (uint32)ARRAYSIZE(cpu_handles2) };
-			device->CopyDescriptors(1, &dst_descriptor, dst_range_sizes2, ARRAYSIZE(cpu_handles2), cpu_handles2, src_range_sizes2,
+			device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes2, ARRAYSIZE(cpu_handles2), cpu_handles2, src_range_sizes2,
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
+			dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 			D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
 			desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
 			desc.Format = DXGI_FORMAT_UNKNOWN;
@@ -2874,10 +2872,9 @@ namespace adria
 			desc.Buffer.StructureByteStride = sizeof(StructuredLight);
 			desc.Buffer.NumElements = static_cast<uint32>(dynamic_alloc.size / desc.Buffer.StructureByteStride);
 			desc.Buffer.FirstElement = dynamic_alloc.offset / desc.Buffer.StructureByteStride;
-			device->CreateShaderResourceView(dynamic_alloc.buffer, &desc, descriptor_allocator->GetHandle(descriptor_index));
+			device->CreateShaderResourceView(dynamic_alloc.buffer, &desc, dst_descriptor);
 
-			cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
-
+			cmd_list->SetGraphicsRootDescriptorTable(2, dst_descriptor);
 			cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 			cmd_list->DrawInstanced(4, 1, 0, 0);
 		}
@@ -3380,7 +3377,7 @@ namespace adria
 		uint32 src_range_sizes[] = { 1,1 };
 
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
-		D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+		auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 		uint32 dst_range_sizes[] = { (uint32)ARRAYSIZE(cpu_handles) };
 
 		switch (light.type)
@@ -3409,9 +3406,9 @@ namespace adria
 			ADRIA_ASSERT(false && "Invalid Light Type!");
 		}
 
-		device->CopyDescriptors(1, &dst_descriptor, dst_range_sizes, ARRAYSIZE(cpu_handles), cpu_handles, src_range_sizes,
+		device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes, ARRAYSIZE(cpu_handles), cpu_handles, src_range_sizes,
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		cmd_list->SetGraphicsRootDescriptorTable(4, descriptor_allocator->GetHandle(descriptor_index));
+		cmd_list->SetGraphicsRootDescriptorTable(4, dst_descriptor);
 
 		cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		cmd_list->DrawInstanced(4, 1, 0, 0);
@@ -3509,10 +3506,11 @@ namespace adria
 				ADRIA_ASSERT(skybox.cubemap_texture != INVALID_TEXTURE_HANDLE);
 				D3D12_CPU_DESCRIPTOR_HANDLE texture_handle = texture_manager.CpuDescriptorHandle(skybox.cubemap_texture);
 
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), texture_handle,
+				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+				device->CopyDescriptorsSimple(1, dst_descriptor, texture_handle,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-				cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
+				cmd_list->SetGraphicsRootDescriptorTable(2, dst_descriptor);
 			}
 			break;
 		}
@@ -3804,19 +3802,20 @@ namespace adria
 				cmd_list->SetGraphicsRootConstantBufferView(2, material_allocation.gpu_address);
 
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
-				D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 				device->CopyDescriptorsSimple(1, dst_descriptor, displacement_handle,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetGraphicsRootDescriptorTable(4, descriptor_allocator->GetHandle(descriptor_index));
+				cmd_list->SetGraphicsRootDescriptorTable(4, dst_descriptor);
 
 				descriptor_index = descriptor_allocator->AllocateRange(3);
+				dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { ocean_normal_map.SRV(), skybox_handle, texture_manager.CpuDescriptorHandle(foam_handle) };
-				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
+				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { dst_descriptor };
 				UINT src_range_sizes[] = { 1, 1, 1 };
 				UINT dst_range_sizes[] = { 3 };
 				device->CopyDescriptors(1, dst_ranges, dst_range_sizes, 3, src_ranges, src_range_sizes,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetGraphicsRootDescriptorTable(5, descriptor_allocator->GetHandle(descriptor_index));
+				cmd_list->SetGraphicsRootDescriptorTable(5, dst_descriptor);
 
 				settings.ocean_tesselation ? mesh.Draw(cmd_list, D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST) : mesh.Draw(cmd_list);
 			}

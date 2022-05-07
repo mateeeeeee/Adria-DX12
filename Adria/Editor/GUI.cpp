@@ -30,10 +30,10 @@ namespace adria
 
 		ImGui_ImplWin32_Init(Window::Handle());
 		
+		DescriptorHandle handle = imgui_allocator->GetFirstHandle();
 		ImGui_ImplDX12_Init(gfx->GetDevice(), gfx->BackbufferCount(),
 			DXGI_FORMAT_R10G10B10A2_UNORM, imgui_allocator->Heap(),
-			imgui_allocator->GetFirstHandle(),
-			imgui_allocator->GetFirstHandle());
+			handle, handle);
 
 		ImGuiStyle& style = ImGui::GetStyle();
 		style.WindowBorderSize = 1.0f;

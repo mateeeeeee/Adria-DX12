@@ -103,12 +103,12 @@ namespace adria
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(1);
 		auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 		device->CopyDescriptorsSimple(1, dst_descriptor, depth.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		cmd_list->SetComputeRootDescriptorTable(4, descriptor_allocator->GetHandle(descriptor_index));
+		cmd_list->SetComputeRootDescriptorTable(4, dst_descriptor);
 
 		descriptor_index = descriptor_allocator->AllocateRange(1);
 		dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 		device->CopyDescriptorsSimple(1, dst_descriptor, rt_shadows_output.UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		cmd_list->SetComputeRootDescriptorTable(5, descriptor_allocator->GetHandle(descriptor_index));
+		cmd_list->SetComputeRootDescriptorTable(5, dst_descriptor);
 		cmd_list->SetPipelineState1(rt_shadows_state_object.Get());
 
 		D3D12_DISPATCH_RAYS_DESC dispatch_desc = {};
@@ -148,14 +148,13 @@ namespace adria
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
 		auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 		device->CopyDescriptorsSimple(1, dst_descriptor, depth.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		dst_descriptor = descriptor_allocator->GetHandle(descriptor_index + 1);
-		device->CopyDescriptorsSimple(1, dst_descriptor, normal_gbuf.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		cmd_list->SetComputeRootDescriptorTable(3, descriptor_allocator->GetHandle(descriptor_index));
+		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), normal_gbuf.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		cmd_list->SetComputeRootDescriptorTable(3, dst_descriptor);
 
 		descriptor_index = descriptor_allocator->AllocateRange(1);
 		dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 		device->CopyDescriptorsSimple(1, dst_descriptor, rtao_output.UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		cmd_list->SetComputeRootDescriptorTable(4, descriptor_allocator->GetHandle(descriptor_index));
+		cmd_list->SetComputeRootDescriptorTable(4, dst_descriptor);
 		cmd_list->SetPipelineState1(rtao_state_object.Get());
 
 		D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
@@ -198,20 +197,19 @@ namespace adria
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
 		auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 		device->CopyDescriptorsSimple(1, dst_descriptor, depth.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		dst_descriptor = descriptor_allocator->GetHandle(descriptor_index + 1);
-		device->CopyDescriptorsSimple(1, dst_descriptor, envmap_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		cmd_list->SetComputeRootDescriptorTable(3, descriptor_allocator->GetHandle(descriptor_index));
+		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), envmap_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		cmd_list->SetComputeRootDescriptorTable(3, dst_descriptor);
 
 		descriptor_index = descriptor_allocator->AllocateRange(1);
 		dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 		device->CopyDescriptorsSimple(1, dst_descriptor, rtr_output.UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		cmd_list->SetComputeRootDescriptorTable(4, descriptor_allocator->GetHandle(descriptor_index));
+		cmd_list->SetComputeRootDescriptorTable(4, dst_descriptor);
 		cmd_list->SetComputeRootDescriptorTable(5, descriptor_allocator->GetFirstHandle());
 
 		descriptor_index = descriptor_allocator->AllocateRange(3);
 		dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 		device->CopyDescriptorsSimple(3, dst_descriptor, dxr_heap->GetFirstHandle(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		cmd_list->SetComputeRootDescriptorTable(6, descriptor_allocator->GetHandle(descriptor_index));
+		cmd_list->SetComputeRootDescriptorTable(6, dst_descriptor);
 
 		cmd_list->SetPipelineState1(rtr_state_object.Get());
 

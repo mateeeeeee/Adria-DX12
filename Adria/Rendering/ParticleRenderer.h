@@ -492,22 +492,24 @@ namespace adria
 
 			//add barriers?
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
+			auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
 			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges1[] = { particle_bufferA.SRV(), view_space_positions_buffer.SRV(), alive_index_buffer.SRV() };
-			D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges1[] = { descriptor_allocator->GetHandle(descriptor_index) };
+			D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges1[] = { descriptor };
 			uint32 src_range_sizes1[] = { 1, 1, 1 };
 			uint32 dst_range_sizes1[] = { 3 };
 			device->CopyDescriptors(ARRAYSIZE(dst_ranges1), dst_ranges1, dst_range_sizes1, ARRAYSIZE(src_ranges1), src_ranges1, src_range_sizes1,
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			cmd_list->SetGraphicsRootDescriptorTable(0, descriptor_allocator->GetHandle(descriptor_index));
+			cmd_list->SetGraphicsRootDescriptorTable(0, descriptor);
 
 			descriptor_index = descriptor_allocator->AllocateRange(2);
+			descriptor = descriptor_allocator->GetHandle(descriptor_index);
 			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges2[] = { particle_srv, depth_srv };
-			D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges2[] = { descriptor_allocator->GetHandle(descriptor_index) };
+			D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges2[] = { descriptor };
 			uint32 src_range_sizes2[] = { 1, 1 };
 			uint32 dst_range_sizes2[] = { 2 };
 			device->CopyDescriptors(ARRAYSIZE(dst_ranges2), dst_ranges2, dst_range_sizes2, ARRAYSIZE(src_ranges2), src_ranges2, src_range_sizes2,
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
+			cmd_list->SetGraphicsRootDescriptorTable(1, descriptor);
 
 			D3D12_RESOURCE_BARRIER barriers[] =
 			{
@@ -547,19 +549,23 @@ namespace adria
 			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_InitSortDispatchArgs));
 
 			OffsetType descriptor_index = descriptor_allocator->Allocate();
-			device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), indirect_sort_args_uav,
+			auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
+
+			device->CopyDescriptorsSimple(1, descriptor, indirect_sort_args_uav,
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetHandle(descriptor_index));
+			cmd_list->SetComputeRootDescriptorTable(0, descriptor);
 			cmd_list->SetComputeRootConstantBufferView(1, alive_index_buffer.CounterBuffer()->GetGPUVirtualAddress());
 			cmd_list->Dispatch(1, 1, 1);
 
 			descriptor_index = descriptor_allocator->Allocate();
-			device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), alive_index_buffer.UAV(),
+			descriptor = descriptor_allocator->GetHandle(descriptor_index);
+
+			device->CopyDescriptorsSimple(1, descriptor, alive_index_buffer.UAV(),
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			sort_dispatch_info_allocation = upload_buffer->Allocate(GetCBufferSize<SortDispatchInfo>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 			sort_dispatch_info_allocation.Update(SortDispatchInfo{});
 			cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_Sort));
-			cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetHandle(descriptor_index));
+			cmd_list->SetComputeRootDescriptorTable(0, descriptor);
 			cmd_list->SetComputeRootConstantBufferView(1, alive_index_buffer.CounterBuffer()->GetGPUVirtualAddress());
 			cmd_list->SetComputeRootConstantBufferView(2, sort_dispatch_info_allocation.gpu_address);
 

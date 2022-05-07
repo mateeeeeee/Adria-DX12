@@ -54,28 +54,23 @@ namespace adria
 				UINT dst_width = (std::max)((UINT)tex_desc.Width >> (top_mip + 1), 1u);
 				UINT dst_height = (std::max)(tex_desc.Height >> (top_mip + 1), 1u);
 
-
 				i = descriptor_allocator->AllocateRange(2);
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle1 = descriptor_allocator->GetHandle(i);
-				D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle1 = descriptor_allocator->GetHandle(i);
+				DescriptorHandle handle1 = descriptor_allocator->GetHandle(i);
 
 				src_srv_desc.Format = tex_desc.Format;
 				src_srv_desc.Texture2D.MipLevels = 1;
 				src_srv_desc.Texture2D.MostDetailedMip = top_mip;
-				device->CreateShaderResourceView(texture, &src_srv_desc, cpu_handle1);
+				device->CreateShaderResourceView(texture, &src_srv_desc, handle1);
 
-
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle2 = descriptor_allocator->GetHandle(i + 1);
-				D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle2 = descriptor_allocator->GetHandle(i + 1);
+				DescriptorHandle handle2 = descriptor_allocator->GetHandle(i + 1);
 				dst_uav_desc.Format = tex_desc.Format;
 				dst_uav_desc.Texture2D.MipSlice = top_mip + 1;
-				device->CreateUnorderedAccessView(texture, nullptr, &dst_uav_desc, cpu_handle2);
+				device->CreateUnorderedAccessView(texture, nullptr, &dst_uav_desc, handle2);
 				//Pass the destination texture pixel size to the shader as constants
 				command_list->SetComputeRoot32BitConstant(0, DWParam(1.0f / dst_width).Uint, 0);
 				command_list->SetComputeRoot32BitConstant(0, DWParam(1.0f / dst_height).Uint, 1);
-
-				command_list->SetComputeRootDescriptorTable(1, gpu_handle1);
-				command_list->SetComputeRootDescriptorTable(2, gpu_handle2);
+				command_list->SetComputeRootDescriptorTable(1, handle1);
+				command_list->SetComputeRootDescriptorTable(2, handle2);
 
 				//Dispatch the compute shader with one thread per 8x8 pixels
 				command_list->Dispatch((std::max)(dst_width / 8u, 1u), (std::max)(dst_height / 8u, 1u), 1);

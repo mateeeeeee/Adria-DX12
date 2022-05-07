@@ -26,6 +26,7 @@ namespace adria
 
 		bool IsShaderVisible() const { return gpu_pointer.ptr != NULL; }
 		D3D12_CPU_DESCRIPTOR_HANDLE const* GetCPUAddress() const { return &cpu_pointer; }
+
 	private:
 		D3D12_CPU_DESCRIPTOR_HANDLE cpu_pointer = { NULL };
 		D3D12_GPU_DESCRIPTOR_HANDLE gpu_pointer = { NULL };
