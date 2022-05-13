@@ -5,7 +5,7 @@
 namespace adria
 {
 
-	GPUProfiler::GPUProfiler(GraphicsCoreDX12* gfx) : gfx{ gfx }, query_readback_buffer(gfx->GetDevice(), MAX_PROFILES * 2 * FRAME_COUNT * sizeof(UINT64))
+	GPUProfiler::GPUProfiler(GraphicsDevice* gfx) : gfx{ gfx }, query_readback_buffer(gfx->GetDevice(), MAX_PROFILES * 2 * FRAME_COUNT * sizeof(UINT64))
 	{
 		D3D12_QUERY_HEAP_DESC heap_desc = { };
 		heap_desc.Count = MAX_PROFILES * 2;

@@ -8,14 +8,14 @@
 namespace adria
 {
 
-	class GraphicsCoreDX12;
+	class GraphicsDevice;
 	class RingDescriptorAllocator;
 	struct window_message_t;
 
 	class GUI
 	{
 	public:
-		GUI(GraphicsCoreDX12* gfx);
+		GUI(GraphicsDevice* gfx);
 
 		~GUI();
 
@@ -32,7 +32,7 @@ namespace adria
 		RingDescriptorAllocator* DescriptorAllocator() const;
 
 	private:
-		GraphicsCoreDX12* gfx;
+		GraphicsDevice* gfx;
 		std::unique_ptr<RingDescriptorAllocator> imgui_allocator;
 		bool visible = true;
 		mutable uint64 frame_count = 0;

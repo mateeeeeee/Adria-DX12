@@ -11,3 +11,5 @@
 #define ADRIA_ASSERT(expr) assert(expr)
 #define ADRIA_OPTIMIZE_ON #pragma optimize("", on)
 #define ADRIA_OPTIMIZE_OFF #pragma optimize("", off)
+
+#define STRINGIFY(x) #x

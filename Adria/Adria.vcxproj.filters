@@ -194,7 +194,7 @@
     <ClCompile Include="Graphics\GPUProfiler.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\GraphicsCoreDX12.cpp">
+    <ClCompile Include="Graphics\GraphicsDeviceDX12.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\Heightmap.cpp">
@@ -208,6 +208,12 @@
     </ClCompile>
     <ClCompile Include="Utilities\CPUProfiler.cpp">
       <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderGraph\RenderGraphResources.cpp">
+      <Filter>RenderGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderGraph\RenderGraph.cpp">
+      <Filter>RenderGraph</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -475,7 +481,7 @@
     <ClInclude Include="Math\ComputeTangentFrame.h">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GraphicsCoreDX12.h">
+    <ClInclude Include="Graphics\GraphicsDeviceDX12.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Tasks\Task.h">
@@ -527,6 +533,21 @@
       <Filter>Events</Filter>
     </ClInclude>
     <ClInclude Include="RenderGraph\RenderGraph.h">
+      <Filter>RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Heap.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGraph\RenderGraphResourceHandle.h">
+      <Filter>RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGraph\RenderGraphPass.h">
+      <Filter>RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGraph\RenderGraphBlackboard.h">
+      <Filter>RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGraph\RenderGraphResources.h">
       <Filter>RenderGraph</Filter>
     </ClInclude>
   </ItemGroup>

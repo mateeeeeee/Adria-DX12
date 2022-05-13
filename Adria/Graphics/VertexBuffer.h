@@ -5,7 +5,7 @@
 #include <array>
 #include "d3dx12.h"
 #include "Releasable.h"
-#include "GraphicsCoreDX12.h"
+#include "GraphicsDeviceDX12.h"
 #include "../Core/Macros.h"
 
 
@@ -17,7 +17,7 @@ namespace adria
 	public:
 
 		template<typename vertex_t>
-		VertexBuffer(GraphicsCoreDX12* gfx, vertex_t* vertices, size_t vertex_count, bool used_in_rt = false)
+		VertexBuffer(GraphicsDevice* gfx, vertex_t* vertices, size_t vertex_count, bool used_in_rt = false)
 			: vertex_count((UINT)vertex_count)
 		{
 			auto allocator = gfx->GetAllocator();
@@ -102,7 +102,7 @@ namespace adria
 		}
 
 		template<typename vertex_t>
-		VertexBuffer(GraphicsCoreDX12* gfx, std::vector<vertex_t> const& vertices, bool used_in_rt = false)
+		VertexBuffer(GraphicsDevice* gfx, std::vector<vertex_t> const& vertices, bool used_in_rt = false)
 			: VertexBuffer(gfx, vertices.data(), vertices.size(), used_in_rt)
 		{
 		}

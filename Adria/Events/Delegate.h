@@ -152,14 +152,14 @@ namespace adria
 #else 
 		template<typename F, std::enable_if_t<std::is_constructible_v<DelegateType, F>>* = nullptr>
 #endif
-		[[nodiscard]] DelegateHandle Add(F&& callable)
+		[[maybe_unused]] DelegateHandle Add(F&& callable)
 		{
 			delegate_array.emplace_back(DelegateHandle(0), std::forward<F>(callable));
 			return delegate_array.back().first;
 		}
 
 		template<typename T>
-		[[nodiscard]] DelegateHandle AddMember(void(T::* mem_pfn)(Args...), T& instance)
+		[[maybe_unused]] DelegateHandle AddMember(void(T::* mem_pfn)(Args...), T& instance)
 		{
 			delegate_array.emplace_back(DelegateHandle(0), [&instance, mem_pfn](Args&&... args) mutable -> void {return (instance.*mem_pfn)(std::forward<Args>(args)...); });
 			return delegate_array.back().first;
@@ -170,7 +170,7 @@ namespace adria
 #else 
 		template<typename F, std::enable_if_t<std::is_constructible_v<DelegateType, F>>* = nullptr>
 #endif
-		[[nodiscard]] DelegateHandle operator+=(F&& callable) noexcept
+		[[maybe_unused]] DelegateHandle operator+=(F&& callable) noexcept
 		{
 			return Add(std::forward<F>(callable));
 		}

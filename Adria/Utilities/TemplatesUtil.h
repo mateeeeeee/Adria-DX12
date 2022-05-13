@@ -1,6 +1,9 @@
 #pragma once
 #include <type_traits>
 #include <utility>
+#ifdef __cpp_concepts
+#include <concepts>
+#endif
 
 namespace adria
 {
@@ -18,7 +21,6 @@ namespace adria
 		static_assert(!std::is_same<T1, T2>::value, "Types must be unique");
 	};
 
-
 	template<typename Base, typename Derived>
 	struct is_derived_from : std::bool_constant<std::is_base_of_v<Base, Derived>&&
 		std::is_convertible_v<const volatile Derived*, const volatile Base*>>
@@ -26,7 +28,6 @@ namespace adria
 
 	template<typename Base, typename Derived>
 	inline constexpr bool is_derived_from_v = is_derived_from<Base, Derived>::value;
-
 
 	template <typename T, typename... Ts>
 	constexpr bool Contains = (std::is_same<T, Ts>{} || ...);
@@ -36,7 +37,13 @@ namespace adria
 	constexpr bool IsSubsetOf<std::tuple<Ts...>, std::tuple<Us...>>
 		= (Contains<Ts, Us...> && ...);
 
-
+#ifdef __cpp_concepts
+#define IS_CONSTRUCTIBLE_REQUIREMENT(T, Class) \
+	template<typename T, typename... Args> requires std::is_constructible_v<Class, Args...>
+#else 
+#define IS_CONSTRUCTIBLE_REQUIREMENT(T, Class) \
+	template<typename T, typename... Args, std::enable_if_t<std::is_constructible_v<Class, Args...>>* = nullptr>
+#endif
 
 //#define DECLARE_HAS_MEMBER_STRUCT(name) \
 //template <typename T, typename U = int> \

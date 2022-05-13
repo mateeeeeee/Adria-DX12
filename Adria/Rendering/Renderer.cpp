@@ -15,6 +15,7 @@
 #include "../Logging/Logger.h"
 #include "../Editor/GUI.h"
 #include "../Graphics/DWParam.h"
+#include "../RenderGraph/RenderGraph.h"
 #include "pix3.h"
 
 using namespace DirectX;
@@ -362,7 +363,7 @@ namespace adria
 	using namespace thread_locals;
 	using namespace tecs;
 
-	Renderer::Renderer(tecs::registry& reg, GraphicsCoreDX12* gfx, uint32 width, uint32 height)
+	Renderer::Renderer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height)
 		: reg(reg), gfx(gfx), width(width), height(height), texture_manager(gfx, 1000), backbuffer_count(gfx->BackbufferCount()),
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count), postprocess_cbuffer(gfx->GetDevice(), backbuffer_count),
 		compute_cbuffer(gfx->GetDevice(), backbuffer_count), weather_cbuffer(gfx->GetDevice(), backbuffer_count),
@@ -447,7 +448,6 @@ namespace adria
 			gbuf_cmd_list->ResourceBarrier(ARRAYSIZE(picking_barriers), picking_barriers);
 			PassPicking(gbuf_cmd_list);
 
-
 			D3D12_RESOURCE_BARRIER barriers[] =
 			{
 				CD3DX12_RESOURCE_BARRIER::Transition(hdr_render_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET),
@@ -526,6 +526,48 @@ namespace adria
 		deferred_fut.wait();
 		postprocess_fut.wait();
 	}
+
+	
+	void Renderer::RGRender(RendererSettings const&)
+	{
+		static RGResourcePool pool(gfx->GetDevice());
+		RenderGraph render_graph{ gfx, pool };
+
+		struct ClearTextureData
+		{
+			RGResourceHandle cleared_texture;
+		};
+
+		render_graph.AddPass<ClearTextureData>("clear pass",
+			[&](ClearTextureData& data, RenderGraphBuilder& rg)
+			{
+				D3D12_RESOURCE_DESC desc{};
+				desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+				desc.DepthOrArraySize = 1;
+				desc.MipLevels = 1;
+				desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+				desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+				desc.SampleDesc.Count = 1u;
+				desc.SampleDesc.Quality = 0u;
+				desc.Width = width;
+				desc.Height = height;
+				auto handle = rg.Create("cleared texture", desc);
+				data.cleared_texture = rg.Write(handle);
+			},
+			[&](ClearTextureData const& data, RenderGraphResources& resources, void* _gfx, void* ctx)
+			{
+				GraphicsDevice* gfx = static_cast<GraphicsDevice*>(_gfx);
+				ID3D12GraphicsCommandList4* cmd_list = static_cast<ID3D12GraphicsCommandList4*>(ctx);
+				ADRIA_ASSERT(gfx != nullptr);
+				ADRIA_ASSERT(cmd_list != nullptr);
+
+				auto& resource = resources.GetResource(data.cleared_texture);
+				FLOAT clear[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+				cmd_list->ClearRenderTargetView(resource.rtv, clear, 0, nullptr);
+			});
+	}
+
 	void Renderer::ResolveToBackbuffer()
 	{
 		auto cmd_list = gfx->GetLastGraphicsCommandList();
@@ -753,7 +795,6 @@ namespace adria
 	}
 	void Renderer::CreateResolutionDependentResources(uint32 width, uint32 height)
 	{
-		
 		srv_heap_index = 0;
 		rtv_heap_index = 0;
 		dsv_heap_index = 0;

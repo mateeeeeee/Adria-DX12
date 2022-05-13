@@ -11,7 +11,7 @@
 
 namespace adria
 {
-	class GraphicsCoreDX12;
+	class GraphicsDevice;
 	class DescriptorHeap;
 	
 	using TEXTURE_HANDLE = size_t;
@@ -22,7 +22,7 @@ namespace adria
 		friend class Renderer;
 
 	public:
-		TextureManager(GraphicsCoreDX12* gfx, UINT max_textures);
+		TextureManager(GraphicsDevice* gfx, UINT max_textures);
 
 		[[nodiscard]] TEXTURE_HANDLE LoadTexture(std::wstring const& name);
 
@@ -51,7 +51,7 @@ namespace adria
 		}
 
 	private:
-		GraphicsCoreDX12* gfx;
+		GraphicsDevice* gfx;
 		std::unique_ptr<DescriptorHeap> texture_srv_heap = nullptr;
 		std::unique_ptr<MipsGenerator> mips_generator = nullptr;
 

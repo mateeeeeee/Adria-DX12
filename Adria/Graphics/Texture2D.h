@@ -36,31 +36,31 @@ namespace adria
 	public:
 		Texture2D() = default;
 
-		Texture2D(ID3D12Device* device, texture2d_desc_t const& desc) : device(device)
+		Texture2D(ID3D12Device* device, texture2d_desc_t const& _desc) : device(device)
 		{
-			D3D12_RESOURCE_DESC hdr_desc{};
-			hdr_desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-			hdr_desc.DepthOrArraySize = 1;
-			hdr_desc.MipLevels = desc.mips;
-			hdr_desc.Flags = desc.flags;
-			hdr_desc.Format = desc.format;
-			hdr_desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-			hdr_desc.SampleDesc.Count = 1u;
-			hdr_desc.SampleDesc.Quality = 0u;
-			hdr_desc.Width = desc.width;
-			hdr_desc.Height = desc.height;
+			D3D12_RESOURCE_DESC desc{};
+			desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+			desc.DepthOrArraySize = 1;
+			desc.MipLevels = _desc.mips;
+			desc.Flags = _desc.flags;
+			desc.Format = _desc.format;
+			desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+			desc.SampleDesc.Count = 1u;
+			desc.SampleDesc.Quality = 0u;
+			desc.Width = _desc.width;
+			desc.Height = _desc.height;
 			auto heap_type = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 
 			D3D12_CLEAR_VALUE const* clear = nullptr;
 
-			if (desc.flags & (D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL))
-				clear = &desc.clear_value;
+			if (_desc.flags & (D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL))
+				clear = &_desc.clear_value;
 
 			BREAK_IF_FAILED(device->CreateCommittedResource(
 				&heap_type,
 				D3D12_HEAP_FLAG_NONE,
-				&hdr_desc,
-				desc.start_state,
+				&desc,
+				_desc.start_state,
 				clear,
 				IID_PPV_ARGS(&resource)
 			));

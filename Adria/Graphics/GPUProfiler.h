@@ -11,7 +11,7 @@ namespace adria
 {
 	class GPUProfiler
 	{
-		static constexpr UINT64 FRAME_COUNT = GraphicsCoreDX12::BackbufferCount();
+		static constexpr UINT64 FRAME_COUNT = GraphicsDevice::BackbufferCount();
 		static constexpr UINT64 MAX_PROFILES = static_cast<UINT64>(EProfilerBlock::Count);
 
 		struct QueryData
@@ -22,7 +22,7 @@ namespace adria
 
 	public:
 
-		GPUProfiler(GraphicsCoreDX12* gfx);
+		GPUProfiler(GraphicsDevice* gfx);
 
 		void BeginProfileBlock(ID3D12GraphicsCommandList* cmd_list, EProfilerBlock block);
 
@@ -31,7 +31,7 @@ namespace adria
 		std::vector<std::string> GetProfilerResults(ID3D12GraphicsCommandList* cmd_list, bool log_results);
 
 	private:
-		GraphicsCoreDX12* gfx;
+		GraphicsDevice* gfx;
 		std::array<QueryData, MAX_PROFILES> query_data;
 		Microsoft::WRL::ComPtr<ID3D12QueryHeap> query_heap;
 		ReadbackBuffer query_readback_buffer;

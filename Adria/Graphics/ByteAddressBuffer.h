@@ -1,5 +1,5 @@
 #pragma once
-#include "GraphicsCoreDX12.h"
+#include "GraphicsDeviceDX12.h"
 #include "d3dx12.h"
 #include <memory>
 
@@ -32,7 +32,7 @@ namespace adria
 		}
 
 		template<typename T>
-		ByteAddressBuffer(GraphicsCoreDX12* gfx, T const* data, size_t element_count, D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
+		ByteAddressBuffer(GraphicsDevice* gfx, T const* data, size_t element_count, D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
 			: device(gfx->GetDevice()), element_count(element_count), element_stride{sizeof(T)}
 		{
 			auto command_list = gfx->GetDefaultCommandList();

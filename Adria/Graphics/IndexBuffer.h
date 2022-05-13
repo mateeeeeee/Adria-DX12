@@ -4,7 +4,7 @@
 #include <vector>
 #include <array>
 #include "d3dx12.h"
-#include "GraphicsCoreDX12.h"
+#include "GraphicsDeviceDX12.h"
 #include "Releasable.h"
 #include "../Core/Macros.h"
 
@@ -16,7 +16,7 @@ namespace adria
     {
     public:
         template<typename index_t>
-        IndexBuffer(GraphicsCoreDX12* gfx,
+        IndexBuffer(GraphicsDevice* gfx,
             index_t* indices, size_t index_count, bool used_in_rt = false) : index_count{ static_cast<UINT>(index_count) }
         {
             auto allocator = gfx->GetAllocator();
@@ -103,7 +103,7 @@ namespace adria
         }
 
         template<typename index_t>
-        IndexBuffer(GraphicsCoreDX12* gfx,
+        IndexBuffer(GraphicsDevice* gfx,
             std::vector<index_t> const& indices, bool used_in_rt = false)
             : IndexBuffer(gfx, indices.data(), indices.size(), used_in_rt)
         {

@@ -20,16 +20,12 @@ namespace adria
 		OffsetType Allocate(OffsetType size, OffsetType align = 0)
 		{
 			auto aligned_top = Align(top, align);
-
 			if (aligned_top + size > max_size) return INVALID_OFFSET;
 			else
 			{
 				OffsetType start = aligned_top;
-
 				aligned_top += size;
-
 				top = aligned_top;
-
 				return start;
 			}
 		}

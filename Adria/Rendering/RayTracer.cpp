@@ -32,7 +32,7 @@ namespace adria
 		return buffer;
 	}
 
-	RayTracer::RayTracer(tecs::registry& reg, GraphicsCoreDX12* gfx, uint32 width, uint32 height) 
+	RayTracer::RayTracer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height) 
 		: reg{ reg }, gfx{ gfx }, width{ width }, height{ height }, ray_tracing_cbuffer(gfx->GetDevice(), gfx->BackbufferCount()),
 		ray_tracing_cbuf_data{}
 	{

@@ -11,7 +11,7 @@
 #include "../Graphics/StructuredBuffer.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../Graphics/Texture2D.h"
-#include "../Graphics/GraphicsCoreDX12.h"
+#include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Graphics/DescriptorHeap.h"
 #include "../Utilities/Random.h"
 #include "pix3.h"
@@ -78,7 +78,7 @@ namespace adria
 			int32 x, y, z, w;
 		};
 	public:
-		ParticleRenderer(GraphicsCoreDX12* gfx) : gfx{ gfx },
+		ParticleRenderer(GraphicsDevice* gfx) : gfx{ gfx },
 			dead_list_buffer(gfx->GetDevice(), MAX_PARTICLES, true, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
 			particle_bufferA(gfx->GetDevice(), MAX_PARTICLES),
 			particle_bufferB(gfx->GetDevice(), MAX_PARTICLES),
@@ -189,7 +189,7 @@ namespace adria
 		}
 
 	private:
-		GraphicsCoreDX12* gfx;
+		GraphicsDevice* gfx;
 
 		Texture2D random_texture;
 		StructuredBuffer<uint32> dead_list_buffer;

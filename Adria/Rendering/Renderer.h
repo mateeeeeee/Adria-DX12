@@ -25,7 +25,7 @@
 namespace adria
 {
 	class Camera;
-	class GraphicsCoreDX12;
+	class GraphicsDevice;
 	template<typename T>
 	class StructuredBuffer;
 	struct Light;
@@ -60,7 +60,7 @@ namespace adria
 		static constexpr uint32 RESOLUTION = 512;
 
 	public:
-		Renderer(tecs::registry& reg, GraphicsCoreDX12* gfx, uint32 width, uint32 height);
+		Renderer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height);
 		
 		~Renderer();
 
@@ -73,6 +73,8 @@ namespace adria
 		void SetProfilerSettings(ProfilerSettings);
 
 		void Render(RendererSettings const&);
+
+		void RGRender(RendererSettings const&);
 
 		void ResolveToBackbuffer();
 
@@ -106,7 +108,7 @@ namespace adria
 	private:
 		uint32 width, height;
 		tecs::registry& reg;
-		GraphicsCoreDX12* gfx;
+		GraphicsDevice* gfx;
 
 		uint32 const backbuffer_count;
 		uint32 backbuffer_index;

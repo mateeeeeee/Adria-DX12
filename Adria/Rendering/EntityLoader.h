@@ -93,7 +93,7 @@ namespace adria
 	};
 
     class TextureManager;
-    class GraphicsCoreDX12;
+    class GraphicsDevice;
     
 	class EntityLoader
 	{
@@ -103,7 +103,7 @@ namespace adria
 
 	public:
         
-        EntityLoader(tecs::registry& reg, GraphicsCoreDX12* device, TextureManager& texture_manager);
+        EntityLoader(tecs::registry& reg, GraphicsDevice* device, TextureManager& texture_manager);
 
 		[[maybe_unused]] std::vector<tecs::entity> LoadGLTFModel(model_parameters_t const&);
 
@@ -119,7 +119,7 @@ namespace adria
 
 	private:
         tecs::registry& reg;
-        GraphicsCoreDX12* gfx;
+        GraphicsDevice* gfx;
         TextureManager& texture_manager;
 	};
 }

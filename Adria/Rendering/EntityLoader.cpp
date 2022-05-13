@@ -10,7 +10,7 @@
 
 #include "EntityLoader.h"
 #include "Components.h"
-#include "../Graphics/GraphicsCoreDX12.h"
+#include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Logging/Logger.h"
 #include "../Math/BoundingVolumeHelpers.h"
 #include "../Math/ComputeTangentFrame.h"
@@ -278,7 +278,7 @@ namespace adria
 		return entities;
 	}
 
-	EntityLoader::EntityLoader(registry& reg, GraphicsCoreDX12* gfx, TextureManager& texture_manager)
+	EntityLoader::EntityLoader(registry& reg, GraphicsDevice* gfx, TextureManager& texture_manager)
         : reg(reg), gfx(gfx), texture_manager(texture_manager)
     {
     }

@@ -1,5 +1,5 @@
 #pragma once
-#include "GraphicsCoreDX12.h"
+#include "GraphicsDeviceDX12.h"
 #include "d3dx12.h"
 #include "DescriptorHeap.h"
 #include "../Core/Definitions.h"

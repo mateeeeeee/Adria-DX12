@@ -19,7 +19,7 @@ namespace adria
 		explicit ThreadPool(uint32_t pool_size = std::thread::hardware_concurrency() - 1) : done(false), task_queue{}
 		{
 			static const uint32_t max_threads = std::thread::hardware_concurrency();
-			uint16_t const num_threads = pool_size == 0 ? max_threads - 1 : std::min(max_threads - 1, pool_size);
+			uint16_t const num_threads = pool_size == 0 ? max_threads - 1 : (std::min)(max_threads - 1, pool_size);
 
 			threads.reserve(num_threads);
 			for (uint16_t i = 0; i < num_threads; ++i)

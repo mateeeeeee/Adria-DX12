@@ -39,7 +39,7 @@ namespace adria
 
 	public:
 
-        RayTracer(tecs::registry& reg, GraphicsCoreDX12* gfx, uint32 width, uint32 height);
+        RayTracer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height);
         bool IsSupported() const;
         void OnSceneInitialized();
 		void Update(RayTracingSettings const&);
@@ -65,7 +65,7 @@ namespace adria
     private:
         uint32 width, height;
         tecs::registry& reg;
-        GraphicsCoreDX12* gfx;
+        GraphicsDevice* gfx;
 		D3D12_RAYTRACING_TIER ray_tracing_tier;
 		D3D12_CPU_DESCRIPTOR_HANDLE envmap_handle;
 

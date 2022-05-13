@@ -3,7 +3,7 @@
 #include "../Tasks/TaskSystem.h"
 #include "../Math/Constants.h"
 #include "../Logging/Logger.h"
-#include "../Graphics/GraphicsCoreDX12.h"
+#include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Rendering/Renderer.h"
 #include "../Rendering/EntityLoader.h"
 #include "../Utilities/Random.h"
@@ -209,13 +209,13 @@ namespace adria
 		TaskSystem::Initialize();
 		ShaderUtility::Initialize();
 
-		gfx = std::make_unique<GraphicsCoreDX12>(Window::Handle());
+		gfx = std::make_unique<GraphicsDevice>(Window::Handle());
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
 		entity_loader = std::make_unique<EntityLoader>(reg, gfx.get(), renderer->GetTextureManager());
 
 		InputEvents& input_events = input.GetInputEvents();
 		input_events.window_resized_event.AddMember(&CameraManager::OnResize, camera_manager);
-		input_events.window_resized_event.AddMember(&GraphicsCoreDX12::ResizeBackbuffer, *gfx);
+		input_events.window_resized_event.AddMember(&GraphicsDevice::ResizeBackbuffer, *gfx);
 		input_events.window_resized_event.AddMember(&Renderer::OnResize, *renderer);
 		input_events.scroll_mouse_event.AddMember(&CameraManager::OnScroll, camera_manager);
 		input_events.right_mouse_clicked.Add([this](int32 mx, int32 my) { renderer->OnRightMouseClicked(); });

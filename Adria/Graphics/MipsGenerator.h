@@ -1,5 +1,5 @@
 #pragma once
-#include "GraphicsCoreDX12.h"
+#include "GraphicsDeviceDX12.h"
 
 namespace adria
 {

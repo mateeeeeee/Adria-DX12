@@ -1,7 +1,7 @@
 #include "Editor.h"
 
 #include "../Rendering/Renderer.h"
-#include "../Graphics/GraphicsCoreDX12.h"
+#include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Rendering/EntityLoader.h"
 #include "../Rendering/RootSigPSOManager.h"
 #include "../Logging/Logger.h"

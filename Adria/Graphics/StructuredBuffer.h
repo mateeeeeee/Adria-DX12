@@ -5,7 +5,7 @@
 #include <array>
 #include "d3dx12.h"
 #include "Releasable.h"
-#include "GraphicsCoreDX12.h"
+#include "GraphicsDeviceDX12.h"
 #include "../Core/Macros.h"
 
 
@@ -58,7 +58,7 @@ namespace adria
 			}
 		}
 
-		StructuredBuffer(GraphicsCoreDX12* gfx, T const* data, size_t element_count, D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
+		StructuredBuffer(GraphicsDevice* gfx, T const* data, size_t element_count, D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
 			: device(gfx->GetDevice()), element_count((UINT)element_count)
 		{
 			auto command_list = gfx->GetDefaultCommandList();

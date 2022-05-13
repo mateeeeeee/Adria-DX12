@@ -7,7 +7,7 @@
 #endif
 
 #include "TextureManager.h"
-#include "GraphicsCoreDX12.h"
+#include "GraphicsDeviceDX12.h"
 #include "d3dx12.h"
 #include "DDSTextureLoader12.h"
 #include "WICTextureLoader12.h"
@@ -125,7 +125,7 @@ namespace adria
         }
 	}
 
-    TextureManager::TextureManager(GraphicsCoreDX12* gfx, UINT max_textures) : gfx(gfx)
+    TextureManager::TextureManager(GraphicsDevice* gfx, UINT max_textures) : gfx(gfx)
     {
         D3D12_DESCRIPTOR_HEAP_DESC texture_heap_desc = {};
         texture_heap_desc.NumDescriptors = max_textures;

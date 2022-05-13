@@ -29,7 +29,7 @@ namespace adria
 		Compute,
 	};
 
-	class GraphicsCoreDX12
+	class GraphicsDevice
 	{
 		static constexpr UINT BACKBUFFER_COUNT = 3;
 		static constexpr UINT CMD_LIST_COUNT = 8;
@@ -52,10 +52,10 @@ namespace adria
 		};
 
 	public:
-		GraphicsCoreDX12(void* window_handle);
-		GraphicsCoreDX12(GraphicsCoreDX12 const&) = delete;
-		GraphicsCoreDX12(GraphicsCoreDX12&&) = default;
-		~GraphicsCoreDX12();
+		GraphicsDevice(void* window_handle);
+		GraphicsDevice(GraphicsDevice const&) = delete;
+		GraphicsDevice(GraphicsDevice&&) = default;
+		~GraphicsDevice();
 
 		void WaitForGPU();
 

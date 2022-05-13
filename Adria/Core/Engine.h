@@ -12,7 +12,7 @@ namespace adria
 {
 	struct window_message_t;
 	struct SceneConfig;
-	class GraphicsCoreDX12;
+	class GraphicsDevice;
 	class Renderer;
 	class EntityLoader;
 	class GUI;
@@ -45,7 +45,7 @@ namespace adria
 		tecs::registry reg;
 		CameraManager camera_manager;
 	
-		std::unique_ptr<GraphicsCoreDX12> gfx;
+		std::unique_ptr<GraphicsDevice> gfx;
 		std::unique_ptr<Renderer> renderer;
 		std::unique_ptr<EntityLoader> entity_loader;
 

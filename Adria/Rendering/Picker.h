@@ -6,7 +6,7 @@
 #include "../Graphics/StructuredBuffer.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../Graphics/ResourceBarrierBatch.h"
-#include "../Graphics/GraphicsCoreDX12.h" 
+#include "../Graphics/GraphicsDeviceDX12.h" 
 #include "../Logging/Logger.h"
 
 
@@ -22,7 +22,7 @@ namespace adria
 	{
 		friend class Renderer;
 	private:
-		Picker(GraphicsCoreDX12* gfx) : gfx(gfx), write_picking_buffer(gfx->GetDevice(), 1, false, D3D12_RESOURCE_STATE_COPY_SOURCE),
+		Picker(GraphicsDevice* gfx) : gfx(gfx), write_picking_buffer(gfx->GetDevice(), 1, false, D3D12_RESOURCE_STATE_COPY_SOURCE),
 			read_picking_buffer{ {gfx->GetDevice(), sizeof(PickingData)}, {gfx->GetDevice(), sizeof(PickingData)}, {gfx->GetDevice(), sizeof(PickingData)} }
 		{
 		}
@@ -82,9 +82,9 @@ namespace adria
 
 	private:
 
-		GraphicsCoreDX12* gfx;
+		GraphicsDevice* gfx;
 		StructuredBuffer<PickingData> write_picking_buffer;
-		ReadbackBuffer read_picking_buffer[GraphicsCoreDX12::BackbufferCount()];
+		ReadbackBuffer read_picking_buffer[GraphicsDevice::BackbufferCount()];
 		ShaderBlob picker_blob;
 	};
 }
