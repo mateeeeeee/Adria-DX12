@@ -539,7 +539,7 @@ namespace adria
 		};
 
 		render_graph.AddPass<ClearTextureData>("clear pass",
-			[&](ClearTextureData& data, RenderGraphBuilder& rg)
+			[&](ClearTextureData& data, RenderGraphBuilder& builder)
 			{
 				D3D12_RESOURCE_DESC desc{};
 				desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -552,8 +552,8 @@ namespace adria
 				desc.SampleDesc.Quality = 0u;
 				desc.Width = width;
 				desc.Height = height;
-				auto handle = rg.Create("cleared texture", desc);
-				data.cleared_texture = rg.Write(handle);
+				auto handle = builder.Create("cleared texture", desc);
+				data.cleared_texture = builder.Write(handle);
 			},
 			[&](ClearTextureData const& data, RenderGraphResources& resources, void* _gfx, void* ctx)
 			{
@@ -564,7 +564,7 @@ namespace adria
 
 				auto& resource = resources.GetResource(data.cleared_texture);
 				FLOAT clear[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
-				cmd_list->ClearRenderTargetView(resource.rtv, clear, 0, nullptr);
+				//cmd_list->ClearRenderTargetView(resource, clear, 0, nullptr);
 			});
 	}
 

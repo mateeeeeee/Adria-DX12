@@ -4,7 +4,6 @@
 #include "RenderGraphBlackboard.h"
 #include "RenderGraphPass.h"
 #include "RenderGraphResources.h"
-
 #include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Graphics/DescriptorHeap.h"
 #include "../Graphics/Heap.h"
@@ -20,45 +19,20 @@ namespace adria
 		Count
 	};
 
+	enum class EImportedViewId : uint32
+	{
+		Backbuffer_RTV,
+		Count
+	};
+
 	static char const* ImportedIdNames[] =
 	{
 		"Backbuffer",
 		"Count"
 	};
 
-	struct ResourceViews
-	{
-		D3D12_CPU_DESCRIPTOR_HANDLE srv = { NULL };
-		D3D12_CPU_DESCRIPTOR_HANDLE uav = { NULL };
-		D3D12_CPU_DESCRIPTOR_HANDLE rtv = { NULL };
-		D3D12_CPU_DESCRIPTOR_HANDLE dsv = { NULL };
-	};
-
 	class RenderGraphResourcePool
 	{
-		struct DescHasher
-		{
-			size_t operator()(D3D12_RESOURCE_DESC const& desc) const
-			{
-				using std::size_t;
-				using std::hash;
-				using std::string;
-
-				size_t seed = 0;
-				HashCombine(seed, desc.Width);
-				HashCombine(seed, desc.Height);
-				HashCombine(seed, desc.DepthOrArraySize);
-				HashCombine(seed, desc.MipLevels);
-				HashCombine(seed, desc.Alignment);
-				HashCombine(seed, (int)desc.Dimension);
-				HashCombine(seed, (int)desc.Format);
-				HashCombine(seed, (int)desc.Layout);
-				//HashCombine(seed, (int)desc.Flags);
-				HashCombine(seed, desc.SampleDesc.Count);
-				HashCombine(seed, desc.SampleDesc.Quality);
-			}
-		};
-
 		struct PooledResource
 		{
 			Microsoft::WRL::ComPtr<ID3D12Resource> resource;
@@ -199,16 +173,241 @@ namespace adria
 			std::unordered_set<RGResourceHandle> destroys;
 		};
 
+		class ResourceViewPool
+		{
+			struct DescHasher
+			{
+				size_t operator()(D3D12_SHADER_RESOURCE_VIEW_DESC const& desc) const
+				{
+					size_t seed = 0;
+					HashCombine(seed, (int)desc.Format);
+					HashCombine(seed, desc.Shader4ComponentMapping);
+					HashCombine(seed, (int)desc.ViewDimension);
+					switch (desc.ViewDimension)
+					{
+					case D3D12_SRV_DIMENSION_TEXTURE2D:
+						HashCombine(seed, desc.Texture2D.MipLevels);
+						HashCombine(seed, desc.Texture2D.MostDetailedMip);
+						HashCombine(seed, desc.Texture2D.PlaneSlice);
+						HashCombine(seed, desc.Texture2D.ResourceMinLODClamp);
+						break;
+					case D3D12_SRV_DIMENSION_TEXTURECUBE:
+						HashCombine(seed, desc.TextureCube.MipLevels);
+						HashCombine(seed, desc.TextureCube.MostDetailedMip);
+						HashCombine(seed, desc.TextureCube.ResourceMinLODClamp);
+						break;
+					case D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE:
+						HashCombine(seed, desc.RaytracingAccelerationStructure.Location);
+						break;
+					default:
+						ADRIA_ASSERT(false);
+					}
+
+					return seed;
+				}
+				size_t operator()(D3D12_RENDER_TARGET_VIEW_DESC const& desc) const
+				{
+					size_t seed = 0;
+					HashCombine(seed, (int)desc.Format);
+					HashCombine(seed, (int)desc.ViewDimension);
+					switch (desc.ViewDimension)
+					{
+					case D3D12_RTV_DIMENSION_TEXTURE2D:
+						HashCombine(seed, desc.Texture2D.MipSlice);
+						HashCombine(seed, desc.Texture2D.PlaneSlice);
+						break;
+					case D3D12_RTV_DIMENSION_TEXTURE2DARRAY:
+						HashCombine(seed, desc.Texture2DArray.MipSlice);
+						HashCombine(seed, desc.Texture2DArray.PlaneSlice);
+						HashCombine(seed, desc.Texture2DArray.FirstArraySlice);
+						HashCombine(seed, desc.Texture2DArray.ArraySize);
+						break;
+					default:
+						ADRIA_ASSERT(false);
+					}
+					return seed;
+				}
+				size_t operator()(D3D12_UNORDERED_ACCESS_VIEW_DESC const& desc) const
+				{
+					size_t seed = 0;
+					HashCombine(seed, (int)desc.Format);
+					HashCombine(seed, (int)desc.ViewDimension);
+					switch (desc.ViewDimension)
+					{
+					case D3D12_UAV_DIMENSION_TEXTURE2D:
+						HashCombine(seed, desc.Texture2D.MipSlice);
+						HashCombine(seed, desc.Texture2D.PlaneSlice);
+						break;
+					default:
+						ADRIA_ASSERT(false);
+					}
+					return seed;
+				}
+				size_t operator()(D3D12_DEPTH_STENCIL_VIEW_DESC const& desc) const
+				{
+					size_t seed = 0;
+					HashCombine(seed, (int)desc.Format);
+					HashCombine(seed, (int)desc.Flags);
+					HashCombine(seed, (int)desc.ViewDimension);
+					switch (desc.ViewDimension)
+					{
+					case D3D12_UAV_DIMENSION_TEXTURE2D:
+						HashCombine(seed, desc.Texture2D.MipSlice);
+						break;
+					case D3D12_UAV_DIMENSION_TEXTURE2DARRAY:
+						HashCombine(seed, desc.Texture2DArray.MipSlice);
+						HashCombine(seed, desc.Texture2DArray.FirstArraySlice);
+						HashCombine(seed, desc.Texture2DArray.ArraySize);
+						break;
+					default:
+						ADRIA_ASSERT(false);
+					}
+					return seed;
+				}
+			};
+
+		public:
+			ResourceViewPool(RenderGraph& parent_graph) : parent_graph(parent_graph), device(parent_graph.gfx->GetDevice())
+			{
+				rtv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 25));
+				srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 50));
+				dsv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 25));
+				uav_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 25));
+			}
+
+			RGResourceView CreateShaderResourceView(RGResourceHandle handle, D3D12_SHADER_RESOURCE_VIEW_DESC const& desc) 
+			{
+				RGResource* resource = parent_graph.GetResource(handle);
+				ID3D12Resource* d3d12_resource = resource->resource;
+				if (auto it = srv_cache.find(handle); it != srv_cache.end())
+				{
+					auto& srv_desc_map = it->second;
+					if (auto it2 = srv_desc_map.find(desc); it2 != srv_desc_map.end())
+					{
+						return it2->second;
+					}
+					else
+					{
+						RGResourceView srv_handle = srv_heap->GetHandle(srv_heap_index++);
+						device->CreateShaderResourceView(d3d12_resource, &desc, srv_handle);
+						srv_desc_map.insert(std::pair(desc, srv_handle));
+						return srv_handle;
+					}
+				}
+				else
+				{
+					RGResourceView srv_handle = srv_heap->GetHandle(srv_heap_index++);
+					device->CreateShaderResourceView(d3d12_resource, &desc, srv_handle);
+					srv_cache[handle].insert(std::pair(desc, srv_handle));
+					return srv_handle;
+				}
+			}
+
+			RGResourceView CreateRenderTargetView(RGResourceHandle handle, D3D12_RENDER_TARGET_VIEW_DESC const& desc) 
+			{
+				RGResource* resource = parent_graph.GetResource(handle);
+				ID3D12Resource* d3d12_resource = resource->resource;
+				if (auto it = rtv_cache.find(handle); it != rtv_cache.end())
+				{
+					auto& rtv_desc_map = it->second;
+					if (auto it2 = rtv_desc_map.find(desc); it2 != rtv_desc_map.end())
+					{
+						return it2->second;
+					}
+					else
+					{
+						RGResourceView rtv_handle = rtv_heap->GetHandle(rtv_heap_index++);
+						device->CreateRenderTargetView(d3d12_resource, &desc, rtv_handle);
+						rtv_desc_map.insert(std::make_pair(desc, rtv_handle));
+						return rtv_handle;
+					}
+				}
+				else
+				{
+					RGResourceView rtv_handle = rtv_heap->GetHandle(rtv_heap_index++);
+					device->CreateRenderTargetView(d3d12_resource, &desc, rtv_handle);
+					rtv_cache[handle].insert(std::make_pair(desc, rtv_handle));
+					return rtv_handle;
+				}
+			}
+
+			RGResourceView CreateUnorderedAccessView(RGResourceHandle handle, D3D12_UNORDERED_ACCESS_VIEW_DESC const& desc) 
+			{
+				RGResource* resource = parent_graph.GetResource(handle);
+				ID3D12Resource* d3d12_resource = resource->resource;
+				if (auto it = uav_cache.find(handle); it != uav_cache.end())
+				{
+					auto& uav_desc_map = it->second;
+					if (auto it2 = uav_desc_map.find(desc); it2 != uav_desc_map.end())
+					{
+						return it2->second;
+					}
+					else
+					{
+						RGResourceView uav_handle = uav_heap->GetHandle(uav_heap_index++);
+						device->CreateUnorderedAccessView(d3d12_resource, nullptr, &desc, uav_handle);
+						uav_desc_map.insert(std::make_pair(desc, uav_handle));
+						return uav_handle;
+					}
+				}
+				else
+				{
+					RGResourceView uav_handle = uav_heap->GetHandle(uav_heap_index++);
+					device->CreateUnorderedAccessView(d3d12_resource, nullptr, &desc, uav_handle);
+					uav_cache[handle].insert(std::make_pair(desc, uav_handle));
+					return uav_handle;
+				}
+
+			}
+
+			RGResourceView CreateDepthStencilView(RGResourceHandle handle, D3D12_DEPTH_STENCIL_VIEW_DESC const& desc) 
+			{
+				RGResource* resource = parent_graph.GetResource(handle);
+				ID3D12Resource* d3d12_resource = resource->resource;
+				if (auto it = dsv_cache.find(handle); it != dsv_cache.end())
+				{
+					auto& dsv_desc_map = it->second;
+					if (auto it2 = dsv_desc_map.find(desc); it2 != dsv_desc_map.end())
+					{
+						return it2->second;
+					}
+					else
+					{
+						RGResourceView dsv_handle = dsv_heap->GetHandle(dsv_heap_index++);
+						device->CreateDepthStencilView(d3d12_resource, &desc, dsv_handle);
+						dsv_desc_map.insert(std::make_pair(desc, dsv_handle));
+						return dsv_handle;
+					}
+				}
+				else
+				{
+					RGResourceView dsv_handle = dsv_heap->GetHandle(dsv_heap_index++);
+					device->CreateDepthStencilView(d3d12_resource, &desc, dsv_handle);
+					dsv_cache[handle].insert(std::make_pair(desc, dsv_handle));
+					return dsv_handle;
+				}
+			}
+
+		private:
+			RenderGraph& parent_graph;
+			ID3D12Device* device;
+			std::unique_ptr<DescriptorHeap> rtv_heap;
+			std::unique_ptr<DescriptorHeap> srv_heap;
+			std::unique_ptr<DescriptorHeap> dsv_heap;
+			std::unique_ptr<DescriptorHeap> uav_heap;
+			std::unordered_map<RGResourceHandle, std::unordered_map<D3D12_SHADER_RESOURCE_VIEW_DESC, RGResourceView, DescHasher>>  srv_cache;
+			std::unordered_map<RGResourceHandle, std::unordered_map<D3D12_RENDER_TARGET_VIEW_DESC, RGResourceView, DescHasher>>    rtv_cache;
+			std::unordered_map<RGResourceHandle, std::unordered_map<D3D12_UNORDERED_ACCESS_VIEW_DESC, RGResourceView, DescHasher>> uav_cache;
+			std::unordered_map<RGResourceHandle, std::unordered_map<D3D12_DEPTH_STENCIL_VIEW_DESC, RGResourceView, DescHasher>>	   dsv_cache;
+			uint32 srv_heap_index = 0;
+			uint32 rtv_heap_index = 0;
+			uint32 uav_heap_index = 0;
+			uint32 dsv_heap_index = 0;
+		};
 	public:
 
-		RenderGraph(GraphicsDevice* gfx, RGResourcePool& pool) : gfx(gfx), pool(pool) 
-		{
-			auto device = gfx->GetDevice();
-			rtv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 25));
-			srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 50));
-			dsv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 25));
-			uav_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 25));
-		}
+		RenderGraph(GraphicsDevice* gfx, RGResourcePool& pool) : gfx(gfx), pool(pool), view_pool(*this)
+		{}
 		RenderGraph(RenderGraph const&) = delete;
 		RenderGraph(RenderGraph&&) = default;
 		RenderGraph& operator=(RenderGraph const&) = delete;
@@ -225,11 +424,15 @@ namespace adria
 		}
 
 		RGResourceHandle CreateResource(char const* name, D3D12_RESOURCE_DESC const& desc);
-		RGResourceHandle ImportResource(EImportedId id, ID3D12Resource* resource, ResourceViews const& views = {});
+		RGResourceHandle ImportResource(EImportedId id, ID3D12Resource* resource);
+		void ImportResourceView(EImportedViewId id, RGResourceView view);
 
 		bool IsValidHandle(RGResourceHandle) const;
+
 		RGResource* GetResource(RGResourceHandle);
-		RGResource* GetImportedResource(EImportedId);
+
+		RGResource* GetImportedResource(EImportedId) const;
+		RGResourceView GetImportedView(EImportedViewId) const;
 
 		void Build();
 		void Execute();
@@ -241,8 +444,10 @@ namespace adria
 		std::vector<std::unique_ptr<RGPassBase>> passes;
 		std::vector<std::unique_ptr<RGResource>> resources;
 		std::vector<RGResourceNode> resource_nodes;
+		std::vector<RGResourceView> resource_views;
 
-		std::unordered_map<EImportedId, RGResource*> imported_resources;
+		std::vector<RGResource*> imported_resources;
+		std::vector<RGResourceView> imported_views;
 
 		std::vector<std::vector<uint64>> adjacency_lists;
 		std::vector<RenderGraphPassBase*> topologically_sorted_passes;
@@ -251,18 +456,12 @@ namespace adria
 		RGBlackboard blackboard;
 		RGResourcePool& pool;
 		GraphicsDevice* gfx;
-
-		std::unique_ptr<DescriptorHeap> rtv_heap;
-		std::unique_ptr<DescriptorHeap> srv_heap;
-		std::unique_ptr<DescriptorHeap> dsv_heap;
-		std::unique_ptr<DescriptorHeap> uav_heap;
+		ResourceViewPool view_pool;
 		//std::unique_ptr<Heap> resource_heap; need better allocator then linear if placed resources are used
 	private:
 
 		RGResourceHandle CreateResourceNode(RGResource* resource);
 		RGResourceNode& GetResourceNode(RGResourceHandle handle);
-
-		void CreateDescriptorHeapsAndViews();
 
 		void BuildAdjacencyLists();
 		void TopologicalSort();
@@ -270,6 +469,11 @@ namespace adria
 		void CullPasses();
 		void CalculateResourcesLifetime();
 		void DepthFirstSearch(size_t i, std::vector<bool>& visited, std::stack<size_t>& stack);
+
+		RGResourceView CreateShaderResourceView(RGResourceHandle handle, D3D12_SHADER_RESOURCE_VIEW_DESC  const& desc);
+		RGResourceView CreateRenderTargetView(RGResourceHandle handle, D3D12_RENDER_TARGET_VIEW_DESC    const& desc);
+		RGResourceView CreateUnorderedAccessView(RGResourceHandle handle, D3D12_UNORDERED_ACCESS_VIEW_DESC const& desc);
+		RGResourceView CreateDepthStencilView(RGResourceHandle handle, D3D12_DEPTH_STENCIL_VIEW_DESC    const& desc);
 	};
 
 }

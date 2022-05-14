@@ -50,15 +50,16 @@ namespace adria
 		return CreateResourceNode(resources.back().get());
 	}
 
-	RGResourceHandle RenderGraph::ImportResource(EImportedId id, ID3D12Resource* resource, ResourceViews const& views)
+	RGResourceHandle RenderGraph::ImportResource(EImportedId id, ID3D12Resource* resource)
 	{
 		auto& imported_resource = resources.emplace_back(new RGResource(ImportedIdNames[(size_t)id], resources.size(), resource));
-		imported_resource->SetSRV(views.srv);
-		imported_resource->SetRTV(views.rtv);
-		imported_resource->SetUAV(views.uav);
-		imported_resource->SetDSV(views.dsv);
-		imported_resources[id] = imported_resource.get();
+		imported_resources[(size_t)id] = imported_resource.get();
 		return CreateResourceNode(resources.back().get());
+	}
+
+	void RenderGraph::ImportResourceView(EImportedViewId id, RGResourceView view)
+	{
+		imported_views[(size_t)id] = view;
 	}
 
 	bool RenderGraph::IsValidHandle(RGResourceHandle handle) const
@@ -72,9 +73,14 @@ namespace adria
 		return node.resource;
 	}
 
-	RGResource* RenderGraph::GetImportedResource(EImportedId id)
+	RGResource* RenderGraph::GetImportedResource(EImportedId id) const
 	{
-		return imported_resources[id];
+		return imported_resources[(size_t)id];
+	}
+
+	RGResourceView RenderGraph::GetImportedView(EImportedViewId id) const
+	{
+		return imported_views[(size_t)id];
 	}
 
 	void RenderGraph::Build()
@@ -88,50 +94,23 @@ namespace adria
 
 	void RenderGraph::Execute()
 	{
-		static uint32 srv_heap_index = 0, rtv_heap_index = 0, uav_heap_index = 0, dsv_heap_index = 0;
+		pool.Tick();
 
-		auto device = gfx->GetDevice();
 		auto cmd_list = gfx->GetNewGraphicsCommandList();
 
 		for (auto& dependency_level : dependency_levels)
 		{
 			for (auto handle : dependency_level.creates)
 			{
-				auto* rg_resource = GetResource(handle);
+				RGResource* rg_resource = GetResource(handle);
 				rg_resource->resource = pool.AllocateResource(rg_resource->desc);
-
-				auto desc = rg_resource->desc;
-				if (!(desc.Flags & D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE))
-				{
-					D3D12_CPU_DESCRIPTOR_HANDLE srv_handle = srv_heap->GetHandle(srv_heap_index++);
-					device->CreateShaderResourceView(rg_resource->resource, nullptr, srv_handle);
-					rg_resource->SetSRV(srv_handle);
-				}
-				if (desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
-				{
-					D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = rtv_heap->GetHandle(rtv_heap_index++);
-					device->CreateRenderTargetView(rg_resource->resource, nullptr, rtv_handle);
-					rg_resource->SetRTV(rtv_handle);
-				}
-				if (desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS)
-				{
-					D3D12_CPU_DESCRIPTOR_HANDLE uav_handle = uav_heap->GetHandle(uav_heap_index++);
-					device->CreateRenderTargetView(rg_resource->resource, nullptr, uav_handle);
-					rg_resource->SetUAV(uav_handle);
-				}
-				if (desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
-				{
-					D3D12_CPU_DESCRIPTOR_HANDLE dsv_handle = dsv_heap->GetHandle(dsv_heap_index++);
-					device->CreateRenderTargetView(rg_resource->resource, nullptr, dsv_handle);
-					rg_resource->SetDSV(dsv_handle);
-				}
 			}
 
 			dependency_level.Execute(gfx, cmd_list);
 
 			for (auto handle : dependency_level.destroys)
 			{
-				auto* rg_resource = GetResource(handle);
+				RGResource* rg_resource = GetResource(handle);
 				pool.ReleaseResource(rg_resource->resource);
 			}
 		}
@@ -146,11 +125,6 @@ namespace adria
 	RGResourceNode& RenderGraph::GetResourceNode(RGResourceHandle handle)
 	{
 		return resource_nodes[handle.id];
-	}
-
-	void RenderGraph::CreateDescriptorHeapsAndViews()
-	{
-		//todo
 	}
 
 	void RenderGraph::BuildAdjacencyLists()
@@ -283,6 +257,26 @@ namespace adria
 			if (!visited[j]) DepthFirstSearch(j, visited, stack);
 		}
 		stack.push(i);
+	}
+
+	RGResourceView RenderGraph::CreateShaderResourceView(RGResourceHandle handle, D3D12_SHADER_RESOURCE_VIEW_DESC const& desc)
+	{
+		return view_pool.CreateShaderResourceView(handle, desc);
+	}
+
+	RGResourceView RenderGraph::CreateRenderTargetView(RGResourceHandle handle, D3D12_RENDER_TARGET_VIEW_DESC const& desc)
+	{
+		return view_pool.CreateRenderTargetView(handle, desc);
+	}
+
+	RGResourceView RenderGraph::CreateUnorderedAccessView(RGResourceHandle handle, D3D12_UNORDERED_ACCESS_VIEW_DESC const& desc)
+	{
+		return view_pool.CreateUnorderedAccessView(handle, desc);
+	}
+
+	RGResourceView RenderGraph::CreateDepthStencilView(RGResourceHandle handle, D3D12_DEPTH_STENCIL_VIEW_DESC const& desc)
+	{
+		return view_pool.CreateDepthStencilView(handle, desc);
 	}
 
 	void RenderGraph::DependencyLevel::AddPass(RenderGraphPassBase* pass)

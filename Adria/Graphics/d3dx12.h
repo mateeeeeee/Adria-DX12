@@ -30,6 +30,23 @@ inline bool operator==( const D3D12_VIEWPORT& l, const D3D12_VIEWPORT& r ) noexc
 inline bool operator!=( const D3D12_VIEWPORT& l, const D3D12_VIEWPORT& r ) noexcept
 { return !( l == r ); }
 
+inline bool operator==(const D3D12_SHADER_RESOURCE_VIEW_DESC& l, const D3D12_SHADER_RESOURCE_VIEW_DESC& r) noexcept
+{
+	return memcmp(&l, &r, sizeof(D3D12_SHADER_RESOURCE_VIEW_DESC)) == 0;
+}
+inline bool operator==(const D3D12_RENDER_TARGET_VIEW_DESC& l, const D3D12_RENDER_TARGET_VIEW_DESC& r) noexcept
+{
+	return memcmp(&l, &r, sizeof(D3D12_RENDER_TARGET_VIEW_DESC)) == 0;
+}
+inline bool operator==(const D3D12_UNORDERED_ACCESS_VIEW_DESC& l, const D3D12_UNORDERED_ACCESS_VIEW_DESC& r) noexcept
+{
+	return memcmp(&l, &r, sizeof(D3D12_UNORDERED_ACCESS_VIEW_DESC)) == 0;
+}
+inline bool operator==(const D3D12_DEPTH_STENCIL_VIEW_DESC& l, const D3D12_DEPTH_STENCIL_VIEW_DESC& r) noexcept
+{
+	return memcmp(&l, &r, sizeof(D3D12_DEPTH_STENCIL_VIEW_DESC)) == 0;
+}
+
 //------------------------------------------------------------------------------------------------
 struct CD3DX12_RECT : public D3D12_RECT
 {

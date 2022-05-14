@@ -21,33 +21,12 @@ namespace adria
 			  desc(desc), ref_count(0)
 		{}
 
-		void SetSRV(D3D12_CPU_DESCRIPTOR_HANDLE _srv)
-		{
-			srv = _srv;
-		}
-		void SetUAV(D3D12_CPU_DESCRIPTOR_HANDLE _uav)
-		{
-			uav = _uav;
-		}
-		void SetRTV(D3D12_CPU_DESCRIPTOR_HANDLE _rtv)
-		{
-			rtv = _rtv;
-		}
-		void SetDSV(D3D12_CPU_DESCRIPTOR_HANDLE _dsv)
-		{
-			dsv = _dsv;
-		}
-
 		std::string name;
 		size_t id;
 		bool imported;
 		size_t version;
 		ID3D12Resource* resource;
 		D3D12_RESOURCE_DESC desc;
-		D3D12_CPU_DESCRIPTOR_HANDLE srv = { NULL };
-		D3D12_CPU_DESCRIPTOR_HANDLE uav = { NULL };
-		D3D12_CPU_DESCRIPTOR_HANDLE rtv = { NULL };
-		D3D12_CPU_DESCRIPTOR_HANDLE dsv = { NULL };
 		size_t ref_count;
 	};
 
@@ -63,9 +42,9 @@ namespace adria
 		RenderGraphPassBase* writer = nullptr;
 		RenderGraphPassBase* last_used_by = nullptr;
 	};
-
 	using RGResourceNode = RenderGraphResourceNode;
 
+	using RGResourceView = D3D12_CPU_DESCRIPTOR_HANDLE;
 	class RenderGraphResources
 	{
 		friend RenderGraph;
@@ -76,11 +55,39 @@ namespace adria
 
 		RGResource& GetResource(RGResourceHandle handle);
 
+		template<typename DescType>
+		RGResourceView CreateResourceView(RGResourceHandle handle, DescType&& desc)
+		{
+			if constexpr (std::is_same_v<std::remove_cvref_t<DescType>, D3D12_SHADER_RESOURCE_VIEW_DESC>)
+			{
+				return CreateShaderResourceView(handle, std::forward<DescType>(desc));
+			}
+			else if constexpr (std::is_same_v<std::remove_cvref_t<DescType>, D3D12_RENDER_TARGET_VIEW_DESC>)
+			{
+				return CreateRenderTargetView(handle, std::forward<DescType>(desc));
+			}
+			else if constexpr (std::is_same_v<std::remove_cvref_t<DescType>, D3D12_UNORDERED_ACCESS_VIEW_DESC>)
+			{
+				return CreateUnorderedAccessView(handle, std::forward<DescType>(desc));
+			}
+			else if constexpr (std::is_same_v<std::remove_cvref_t<DescType>, D3D12_DEPTH_STENCIL_VIEW_DESC>)
+			{
+				return CreateDepthStencilView(handle, std::forward<DescType>(desc));
+			}
+			return RGResourceView{ .ptr = NULL };
+		}
+
 	private:
 		RenderGraph& rg;
 		RenderGraphPassBase& rg_pass;
 
 	private:
 		RenderGraphResources(RenderGraph& rg, RenderGraphPassBase& rg_pass);
+
+		RGResourceView CreateShaderResourceView(RGResourceHandle handle, D3D12_SHADER_RESOURCE_VIEW_DESC  const& desc);
+		RGResourceView CreateRenderTargetView(RGResourceHandle handle, D3D12_RENDER_TARGET_VIEW_DESC    const& desc);
+		RGResourceView CreateUnorderedAccessView(RGResourceHandle handle, D3D12_UNORDERED_ACCESS_VIEW_DESC const& desc);
+		RGResourceView CreateDepthStencilView(RGResourceHandle handle, D3D12_DEPTH_STENCIL_VIEW_DESC    const& desc);
+
 	};
 }
