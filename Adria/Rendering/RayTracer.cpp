@@ -266,7 +266,7 @@ namespace adria
 		device->CreateShaderResourceView(global_ib->GetNative(), &srv_desc, dxr_heap->GetHandle(current_handle_index++));
 
 		BufferViewDesc view_desc{};
-		view_desc.view_type = SRV;
+		view_desc.view_type = EResourceViewType::SRV;
 		geo_info_sb->CreateView(view_desc, dxr_heap->GetHandle(current_handle_index++));
 
 		texture2d_desc_t uav_target_desc{};

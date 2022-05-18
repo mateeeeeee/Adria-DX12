@@ -65,7 +65,7 @@ namespace adria
 
 	struct BufferViewDesc
 	{
-		EResourceViewType view_type = Invalid;
+		EResourceViewType view_type = EResourceViewType::Invalid;
 		uint64 offset = 0;
 		uint64 size = uint64(-1);
 		std::optional<DXGI_FORMAT> new_format;
@@ -294,8 +294,8 @@ namespace adria
 			}
 			return {.ptr = NULL};
 		}
-		D3D12_CPU_DESCRIPTOR_HANDLE GetSRV(size_t i = 0) const { return GetView(SRV, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE GetUAV(size_t i = 0) const { return GetView(UAV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE SRV(size_t i = 0) const { return GetView(EResourceViewType::SRV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE UAV(size_t i = 0) const { return GetView(EResourceViewType::UAV, i); }
 
 		ID3D12Resource* GetNative() const { return resource.Get(); }
 		BufferDesc const& GetDesc() const { return desc; }

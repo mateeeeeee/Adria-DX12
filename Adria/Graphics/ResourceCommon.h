@@ -102,7 +102,7 @@ namespace adria
 	}
 
 	//common
-	enum EResourceViewType : uint8
+	enum class EResourceViewType : uint8
 	{
 		SRV,
 		UAV,

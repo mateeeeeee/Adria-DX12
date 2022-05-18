@@ -29,7 +29,7 @@ namespace adria
 
 	struct TextureViewDesc
 	{
-		EResourceViewType view_type = Invalid;
+		EResourceViewType view_type = EResourceViewType::Invalid;
 		uint32 first_slice = 0;
 		uint32 slice_count = 1;
 		uint32 first_mip = 0;
@@ -133,7 +133,7 @@ namespace adria
 			auto allocator = gfx->GetAllocator();
 
 			D3D12MA::Allocation* alloc = nullptr;
-			HRESULT hr = allocator->CreateResource(
+			hr = allocator->CreateResource(
 				&allocation_desc,
 				&resource_desc,
 				resource_state,
@@ -199,7 +199,7 @@ namespace adria
 
 			switch (view_desc.view_type)
 			{
-			case SRV:
+			case EResourceViewType::SRV:
 			{
 				D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
 				srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -300,7 +300,7 @@ namespace adria
 				return srvs.size() - 1;
 			}
 			break;
-			case UAV:
+			case EResourceViewType::UAV:
 			{
 				D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
 				switch (format)
@@ -365,7 +365,7 @@ namespace adria
 				return uavs.size() - 1;
 			}
 			break;
-			case RTV:
+			case EResourceViewType::RTV:
 			{
 				D3D12_RENDER_TARGET_VIEW_DESC rtv_desc{};
 				switch (format)
@@ -445,7 +445,7 @@ namespace adria
 				return rtvs.size() - 1;
 			}
 			break;
-			case DSV:
+			case EResourceViewType::DSV:
 			{
 				D3D12_DEPTH_STENCIL_VIEW_DESC dsv_desc{};
 				switch (format)
@@ -546,10 +546,10 @@ namespace adria
 			}
 			return { .ptr = NULL };
 		}
-		D3D12_CPU_DESCRIPTOR_HANDLE GetSRV(size_t i = 0) const { return GetView(SRV, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE GetUAV(size_t i = 0) const { return GetView(UAV, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE GetRTV(size_t i = 0) const { return GetView(RTV, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE GetDSV(size_t i = 0) const { return GetView(DSV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE SRV(size_t i = 0) const { return GetView(EResourceViewType::SRV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE UAV(size_t i = 0) const { return GetView(EResourceViewType::UAV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE RTV(size_t i = 0) const { return GetView(EResourceViewType::RTV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE DSV(size_t i = 0) const { return GetView(EResourceViewType::DSV, i); }
 
 		ID3D12Resource* GetNative() const { return resource.Get(); }
 		TextureDesc const& GetDesc() const { return desc; }

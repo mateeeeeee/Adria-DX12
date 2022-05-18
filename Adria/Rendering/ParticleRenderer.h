@@ -371,7 +371,7 @@ namespace adria
 			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_InitDeadList));
 			OffsetType descriptor_index = descriptor_allocator->Allocate();
 			auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
-			device->CopyDescriptorsSimple(1, descriptor, dead_list_buffer.GetView(UAV),
+			device->CopyDescriptorsSimple(1, descriptor, dead_list_buffer.UAV(),
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			cmd_list->SetComputeRootDescriptorTable(0, descriptor);
 			cmd_list->Dispatch((uint32)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
@@ -385,9 +385,9 @@ namespace adria
 			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_Reset));
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
 			auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
-			device->CopyDescriptorsSimple(1, descriptor, particle_bufferA.GetView(UAV),
+			device->CopyDescriptorsSimple(1, descriptor, particle_bufferA.UAV(),
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), particle_bufferB.GetView(UAV),
+			device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), particle_bufferB.UAV(),
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			cmd_list->SetComputeRootDescriptorTable(0, descriptor);
 			cmd_list->Dispatch((uint32)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
@@ -424,11 +424,11 @@ namespace adria
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 				auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				device->CopyDescriptorsSimple(1, descriptor, particle_bufferA.GetView(UAV),
+				device->CopyDescriptorsSimple(1, descriptor, particle_bufferA.UAV(),
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), particle_bufferB.GetView(UAV),
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), particle_bufferB.UAV(),
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 2), dead_list_buffer.GetView(UAV),
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 2), dead_list_buffer.UAV(),
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				cmd_list->SetComputeRootDescriptorTable(0, descriptor);
 
@@ -472,9 +472,9 @@ namespace adria
 
 			//add barriers?
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(6);
-			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { particle_bufferA.GetView(UAV), particle_bufferB.GetView(UAV),
-														 dead_list_buffer.GetView(UAV), alive_index_buffer.GetView(UAV),
-														 view_space_positions_buffer.GetView(UAV), indirect_render_args_uav };
+			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { particle_bufferA.UAV(), particle_bufferB.UAV(),
+														 dead_list_buffer.UAV(), alive_index_buffer.UAV(),
+														 view_space_positions_buffer.UAV(), indirect_render_args_uav };
 			auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
 			D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor };
 			uint32 src_range_sizes[] = { 1, 1, 1, 1, 1, 1 };
@@ -510,7 +510,7 @@ namespace adria
 			//add barriers?
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 			auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
-			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges1[] = { particle_bufferA.GetView(SRV), view_space_positions_buffer.GetView(SRV), alive_index_buffer.GetView(SRV) };
+			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges1[] = { particle_bufferA.SRV(), view_space_positions_buffer.SRV(), alive_index_buffer.SRV() };
 			D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges1[] = { descriptor };
 			uint32 src_range_sizes1[] = { 1, 1, 1 };
 			uint32 dst_range_sizes1[] = { 3 };
@@ -581,7 +581,7 @@ namespace adria
 			descriptor_index = descriptor_allocator->Allocate();
 			descriptor = descriptor_allocator->GetHandle(descriptor_index);
 
-			device->CopyDescriptorsSimple(1, descriptor, alive_index_buffer.GetView(UAV),
+			device->CopyDescriptorsSimple(1, descriptor, alive_index_buffer.UAV(),
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			sort_dispatch_info_allocation = upload_buffer->Allocate(GetCBufferSize<SortDispatchInfo>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 			sort_dispatch_info_allocation.Update(SortDispatchInfo{});

@@ -13,6 +13,7 @@
 #include "../Graphics/Buffer.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../Graphics/Texture2D.h"
+#include "../Graphics/Texture.h"
 #include "../Graphics/RenderPass.h"
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/TextureCube.h"

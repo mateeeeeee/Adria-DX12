@@ -988,9 +988,9 @@ namespace adria
 		{
 			bokeh = std::make_unique<Buffer>(gfx, StructuredBufferDesc<Bokeh>(width * height));
 			BufferViewDesc view_desc{};
-			view_desc.view_type = SRV;
+			view_desc.view_type = EResourceViewType::SRV;
 			bokeh->CreateView(view_desc, srv_heap->GetHandle(srv_heap_index++));
-			view_desc.view_type = UAV;
+			view_desc.view_type = EResourceViewType::UAV;
 			bokeh->CreateView(view_desc, uav_heap->GetHandle(uav_heap_index++), bokeh_counter.GetNative());
 		}
 		
@@ -2790,7 +2790,7 @@ namespace adria
 
 			OffsetType descriptor_index = descriptor_allocator->Allocate();
 			auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-			device->CopyDescriptorsSimple(1, dst_descriptor, clusters.GetView(UAV), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			device->CopyDescriptorsSimple(1, dst_descriptor, clusters.UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			cmd_list->SetComputeRootDescriptorTable(1, dst_descriptor);
 
 			cmd_list->Dispatch(CLUSTER_SIZE_X, CLUSTER_SIZE_Y, CLUSTER_SIZE_Z);
@@ -2804,7 +2804,7 @@ namespace adria
 		
 			OffsetType i = descriptor_allocator->AllocateRange(2);
 			auto dst_descriptor = descriptor_allocator->GetHandle(i);
-			device->CopyDescriptorsSimple(1, dst_descriptor, clusters.GetView(SRV), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			device->CopyDescriptorsSimple(1, dst_descriptor, clusters.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	
 			D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
 			desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
@@ -2818,7 +2818,7 @@ namespace adria
 		
 			cmd_list->SetComputeRootDescriptorTable(0, dst_descriptor);
 		
-			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { light_counter.GetView(UAV), light_list.GetView(UAV), light_grid.GetView(UAV) };
+			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { light_counter.UAV(), light_list.UAV(), light_grid.UAV() };
 			uint32 src_range_sizes[] = { 1,1,1 };
 			i = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
 			dst_descriptor = descriptor_allocator->GetHandle(i);
@@ -2849,7 +2849,7 @@ namespace adria
 
 			//light stuff
 			descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles) + 1);
-			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles2[] = { light_list.GetView(SRV), light_grid.GetView(SRV) };
+			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles2[] = { light_list.SRV(), light_grid.SRV() };
 			uint32 src_range_sizes2[] = { 1,1 };
 
 			dst_descriptor = descriptor_allocator->GetHandle(descriptor_index + 1);
@@ -4019,7 +4019,7 @@ namespace adria
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		cmd_list->SetComputeRootDescriptorTable(3, descriptor_allocator->GetHandle(descriptor_index));
 
-		D3D12_CPU_DESCRIPTOR_HANDLE bokeh_uav = bokeh->GetView(UAV);
+		D3D12_CPU_DESCRIPTOR_HANDLE bokeh_uav = bokeh->UAV();
 		descriptor_index = descriptor_allocator->Allocate();
 
 		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), bokeh_uav,
@@ -4078,7 +4078,7 @@ namespace adria
 		OffsetType i = descriptor_allocator->AllocateRange(2);
 
 		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i),
-			bokeh->GetView(SRV), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			bokeh->SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1),
 			bokeh_descriptor, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
