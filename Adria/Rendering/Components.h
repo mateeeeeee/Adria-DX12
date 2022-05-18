@@ -5,8 +5,7 @@
 #include "../Core/Definitions.h"
 #include <DirectXCollision.h>
 #include "../Graphics/VertexTypes.h"
-#include "../Graphics/VertexBuffer.h"
-#include "../Graphics/IndexBuffer.h"
+#include "../Graphics/Buffer.h"
 #include "../Graphics/TextureManager.h"
 
 
@@ -23,9 +22,9 @@ namespace adria
 
 	struct COMPONENT Mesh
 	{
-		std::shared_ptr<VertexBuffer>	vertex_buffer = nullptr;
-		std::shared_ptr<IndexBuffer>	index_buffer = nullptr;
-		std::shared_ptr<VertexBuffer>   instance_buffer = nullptr;
+		std::shared_ptr<Buffer>		vertex_buffer = nullptr;
+		std::shared_ptr<Buffer>		index_buffer = nullptr;
+		std::shared_ptr<Buffer>		instance_buffer = nullptr;
 		//only vb
 		uint32 vertex_count = 0;
 		uint32 start_vertex_location = 0; //Index of the first vertex
@@ -45,11 +44,20 @@ namespace adria
 		{
 			cmd_list->IASetPrimitiveTopology(topology);
 
-			vertex_buffer->Bind(cmd_list, 0);
+			D3D12_VERTEX_BUFFER_VIEW vb_view{};
+			vb_view.BufferLocation = vertex_buffer->GetGPUAddress();
+			vb_view.SizeInBytes = vertex_buffer->GetDesc().size;
+			vb_view.StrideInBytes = vertex_buffer->GetDesc().stride;
+
+			cmd_list->IASetVertexBuffers(0, 1, &vb_view);
 
 			if (index_buffer)
 			{
-				index_buffer->Bind(cmd_list);
+				D3D12_INDEX_BUFFER_VIEW ib_view{};
+				ib_view.BufferLocation = index_buffer->GetGPUAddress();
+				ib_view.Format = index_buffer->GetDesc().format;
+				ib_view.SizeInBytes = index_buffer->GetDesc().size;
+				cmd_list->IASetIndexBuffer(&ib_view);
 				cmd_list->DrawIndexedInstanced(indices_count, instance_count, start_index_location, base_vertex_location, start_instance_location);
 			}
 			else cmd_list->DrawInstanced(vertex_count, instance_count, start_vertex_location, start_instance_location);
@@ -59,11 +67,20 @@ namespace adria
 		{
 			cmd_list->IASetPrimitiveTopology(override_topology);
 
-			vertex_buffer->Bind(cmd_list, 0);
+			D3D12_VERTEX_BUFFER_VIEW vb_view{};
+			vb_view.BufferLocation = vertex_buffer->GetGPUAddress();
+			vb_view.SizeInBytes = vertex_buffer->GetDesc().size;
+			vb_view.StrideInBytes = vertex_buffer->GetDesc().stride;
+
+			cmd_list->IASetVertexBuffers(0, 1, &vb_view);
 
 			if (index_buffer)
 			{
-				index_buffer->Bind(cmd_list);
+				D3D12_INDEX_BUFFER_VIEW ib_view{};
+				ib_view.BufferLocation = index_buffer->GetGPUAddress();
+				ib_view.Format = index_buffer->GetDesc().format;
+				ib_view.SizeInBytes = index_buffer->GetDesc().size;
+				cmd_list->IASetIndexBuffer(&ib_view);
 				cmd_list->DrawIndexedInstanced(indices_count, instance_count, start_index_location, base_vertex_location, start_instance_location);
 			}
 			else cmd_list->DrawInstanced(vertex_count, instance_count, start_vertex_location, start_instance_location);

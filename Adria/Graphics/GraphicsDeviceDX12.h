@@ -136,8 +136,6 @@ namespace adria
 		std::unique_ptr<RingDescriptorAllocator> descriptor_allocator;
 		std::vector<std::unique_ptr<LinearUploadBuffer>> upload_buffers;
 
-		//cpu heaps
-
 	private:
 		FrameResources& GetFrameResources();
 		FrameResources const& GetFrameResources() const;

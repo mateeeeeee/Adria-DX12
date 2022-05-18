@@ -3,7 +3,7 @@
 #include <wrl.h>
 #include <vector>
 #include <array>
-#include "ReadbackBuffer.h"
+#include "Buffer.h"
 #include "ProfilerSettings.h"
 
 
@@ -34,7 +34,7 @@ namespace adria
 		GraphicsDevice* gfx;
 		std::array<QueryData, MAX_PROFILES> query_data;
 		Microsoft::WRL::ComPtr<ID3D12QueryHeap> query_heap;
-		ReadbackBuffer query_readback_buffer;
+		Buffer query_readback_buffer;
 		UINT64 current_frame_index = 0;
 	};
 

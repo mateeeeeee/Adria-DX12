@@ -228,7 +228,6 @@
     <ClInclude Include="Events\EventQueue.h" />
     <ClInclude Include="Events\IEvent.h" />
     <ClInclude Include="Graphics\Buffer.h" />
-    <ClInclude Include="Graphics\ByteAddressBuffer.h" />
     <ClInclude Include="Graphics\ConstantBuffer.h" />
     <ClInclude Include="Graphics\D3D12MemAlloc.h" />
     <ClInclude Include="Graphics\d3dx12.h" />
@@ -243,7 +242,6 @@
     <ClInclude Include="Graphics\GPUProfiler.h" />
     <ClInclude Include="Graphics\ProfilerSettings.h" />
     <ClInclude Include="Graphics\RayTracingUtil.h" />
-    <ClInclude Include="Graphics\ReadbackBuffer.h" />
     <ClInclude Include="Graphics\Releasable.h" />
     <ClInclude Include="Graphics\RenderPass.h" />
     <ClInclude Include="Graphics\ResourceBarrierBatch.h" />
@@ -253,11 +251,9 @@
     <ClInclude Include="Graphics\TextureCube.h" />
     <ClInclude Include="Graphics\TextureManager.h" />
     <ClInclude Include="Graphics\RingUploadBuffer.h" />
-    <ClInclude Include="Graphics\IndexBuffer.h" />
     <ClInclude Include="Graphics\LinearDescriptorAllocator.h" />
     <ClInclude Include="Graphics\RingDescriptorAllocator.h" />
     <ClInclude Include="Graphics\ShaderUtility.h" />
-    <ClInclude Include="Graphics\VertexBuffer.h" />
     <ClInclude Include="Graphics\VertexTypes.h" />
     <ClInclude Include="Graphics\WICTextureLoader12.h" />
     <ClInclude Include="Input\Input.h" />

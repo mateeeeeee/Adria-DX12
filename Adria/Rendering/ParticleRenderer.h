@@ -6,8 +6,7 @@
 #include "RootSigPSOManager.h"
 #include "../tecs/registry.h"
 #include "../Graphics/ConstantBuffer.h"
-#include "../Graphics/VertexBuffer.h"
-#include "../Graphics/IndexBuffer.h"
+#include "../Graphics/Buffer.h"
 #include "../Graphics/StructuredBuffer.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../Graphics/Texture2D.h"
@@ -143,7 +142,15 @@ namespace adria
 				base += 4;
 				offset += 6;
 			}
-			index_buffer = std::make_unique<IndexBuffer>(gfx, indices);
+
+			BufferDesc ib_desc{};
+			ib_desc.bind_flags = EBindFlag::IndexBuffer;
+			ib_desc.misc_flags = EResourceMiscFlag::None;
+			ib_desc.size = indices.size() * sizeof(UINT);
+			ib_desc.stride = sizeof(UINT);
+			ib_desc.format = DXGI_FORMAT_R32_UINT;
+
+			index_buffer = std::make_unique<Buffer>(gfx, ib_desc, indices.data());
 		}
 
 		void SetCBuffersForThisFrame(D3D12_GPU_VIRTUAL_ADDRESS _frame_cbuffer_address, D3D12_GPU_VIRTUAL_ADDRESS _compute_cbuffer_address)
@@ -213,7 +220,7 @@ namespace adria
 		Microsoft::WRL::ComPtr<ID3D12Resource> counter_reset_buffer;
 
 		std::unique_ptr<DescriptorHeap> particle_heap;
-		std::unique_ptr<IndexBuffer> index_buffer;
+		std::unique_ptr<Buffer> index_buffer;
 
 	private:
 
@@ -523,7 +530,11 @@ namespace adria
 
 			cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			cmd_list->IASetVertexBuffers(0, 0, nullptr);
-			index_buffer->Bind(cmd_list);
+			D3D12_INDEX_BUFFER_VIEW ib_view{};
+			ib_view.BufferLocation = index_buffer->GetGPUAddress();
+			ib_view.Format = index_buffer->GetDesc().format;
+			ib_view.SizeInBytes = index_buffer->GetDesc().size;
+			cmd_list->IASetIndexBuffer(&ib_view);
 			cmd_list->ExecuteIndirect(indirect_render_args_signature.Get(), 1, indirect_render_args_buffer.Get(), 0, nullptr, 0);
 
 			barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(alive_index_buffer.CounterBuffer(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);

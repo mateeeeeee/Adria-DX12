@@ -14,8 +14,7 @@ namespace adria
 		float32 ao_radius;
 	};
 
-	class VertexBuffer;
-	class IndexBuffer;
+	class Buffer;
 	template<typename T>
 	class StructuredBuffer;
 	namespace tecs
@@ -77,8 +76,8 @@ namespace adria
         Microsoft::WRL::ComPtr<ID3D12Resource> tlas = nullptr;
         uint64 tlas_size = 0;
 
-		std::unique_ptr<VertexBuffer> global_vb = nullptr;
-		std::unique_ptr<IndexBuffer>  global_ib = nullptr;
+		std::unique_ptr<Buffer> global_vb = nullptr;
+		std::unique_ptr<Buffer> global_ib = nullptr;
 		std::unique_ptr<StructuredBuffer<GeoInfo>> geo_info_sb = nullptr;
 
 		//group this kind of quint inside a struct

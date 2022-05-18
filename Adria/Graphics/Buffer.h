@@ -101,7 +101,6 @@ namespace adria
 		return 16u;
 	}
 
-
 	enum class EBindFlag : uint32
 	{
 		None = 0,
@@ -133,15 +132,26 @@ namespace adria
 	};
 	DEFINE_ENUM_BIT_OPERATORS(EResourceMiscFlag);
 
+	//MAKE STATIC METHODS FOR CREATING BufferDesc
 	struct BufferDesc
 	{
 		uint64 size = 0;
 		EHeapType heap_type = EHeapType::Default;
 		EBindFlag bind_flags = EBindFlag::None;
 		EResourceMiscFlag misc_flags = EResourceMiscFlag::None;
-		uint32 stride = 0; //structured buffers
-		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN; //typed buffers
+		uint32 stride = 0; //structured buffers, vertex buffers
+		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN; //typed buffers, index buffers
 	};
+
+	static BufferDesc ReadBackBufferDesc(uint64 size)
+	{
+		BufferDesc desc{};
+		desc.bind_flags = EBindFlag::None;
+		desc.heap_type = EHeapType::Readback;
+		desc.size = size;
+		desc.misc_flags = EResourceMiscFlag::None;
+		return desc;
+	}
 
 	enum class EResourceViewType : uint8
 	{
@@ -211,7 +221,7 @@ namespace adria
 
 			device->GetCopyableFootprints(&resource_desc, 0, 1, 0, &footprint, nullptr, nullptr, nullptr);
 
-			D3D12MA::Allocation* alloc = allocation.get();
+			D3D12MA::Allocation* alloc = nullptr; 
 			HRESULT hr = allocator->CreateResource(
 				&allocation_desc,
 				&resource_desc,
@@ -221,6 +231,7 @@ namespace adria
 				IID_PPV_ARGS(&resource)
 			);
 			BREAK_IF_FAILED(hr);
+			allocation.reset(alloc);
 
 			if (desc.heap_type == EHeapType::Readback)
 			{
@@ -252,7 +263,15 @@ namespace adria
 		}
 		Buffer(Buffer const&) = delete;
 		Buffer& operator=(Buffer const&) = delete;
-		~Buffer() = default;
+		~Buffer()
+		{
+			if (mapped_data != nullptr)
+			{
+				ADRIA_ASSERT(resource != nullptr);
+				resource->Unmap(0, nullptr);
+				mapped_data = nullptr;
+			}
+		}
 
 		[[nodiscard]] size_t CreateView(BufferViewDesc const& view_desc, D3D12_CPU_DESCRIPTOR_HANDLE heap_descriptor, 
 			ID3D12Resource* uav_counter = nullptr)
@@ -375,8 +394,12 @@ namespace adria
 		}
 
 		ID3D12Resource* GetNative() const { return resource.Get(); }
+		BufferDesc const& GetDesc() const { return desc; }
 		void* GetMappedData() const { return mapped_data; }
+		template<typename T>
+		T* GetMappedData() const { return reinterpret_cast<T*>(mapped_data); }
 		uint32 GetMappedRowPitch() const { return mapped_rowpitch; }
+		D3D12_GPU_VIRTUAL_ADDRESS GetGPUAddress() const { return resource->GetGPUVirtualAddress(); }
 
 	private:
 		Microsoft::WRL::ComPtr<ID3D12Resource> resource;

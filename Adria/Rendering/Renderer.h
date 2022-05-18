@@ -16,8 +16,6 @@
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/TextureCube.h"
 #include "../Graphics/Texture2DArray.h"
-#include "../Graphics/VertexBuffer.h"
-#include "../Graphics/IndexBuffer.h"
 #include "../Graphics/StructuredBuffer.h"
 #include "../Graphics/GPUProfiler.h"
 
@@ -228,8 +226,8 @@ namespace adria
 		Microsoft::WRL::ComPtr<ID3D12Resource> brdf_lut_texture;
 	    bool ibl_textures_generated = false;
 
-		std::shared_ptr<VertexBuffer>	cube_vb = nullptr;
-		std::shared_ptr<IndexBuffer>	cube_ib = nullptr;
+		std::shared_ptr<Buffer>	cube_vb = nullptr;
+		std::shared_ptr<Buffer>	cube_ib = nullptr;
 	private:
 
 		void CreateDescriptorHeaps();

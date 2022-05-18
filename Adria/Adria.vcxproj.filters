@@ -346,12 +346,6 @@
     <ClInclude Include="Graphics\VertexTypes.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\VertexBuffer.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\IndexBuffer.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\RingUploadBuffer.h">
       <Filter>Graphics</Filter>
     </ClInclude>
@@ -475,9 +469,6 @@
     <ClInclude Include="Utilities\EnumUtil.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\ReadbackBuffer.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Math\ComputeTangentFrame.h">
       <Filter>Math</Filter>
     </ClInclude>
@@ -522,9 +513,6 @@
     </ClInclude>
     <ClInclude Include="Rendering\RootSigPSOManager.h">
       <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\ByteAddressBuffer.h">
-      <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\CPUProfiler.h">
       <Filter>Utilities</Filter>

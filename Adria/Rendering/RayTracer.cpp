@@ -1,7 +1,5 @@
 #include "RayTracer.h"
 #include "Components.h"
-#include "../Graphics/VertexBuffer.h"
-#include "../Graphics/IndexBuffer.h"
 #include "../Graphics/StructuredBuffer.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../tecs/Registry.h"
@@ -233,8 +231,24 @@ namespace adria
 
 		dxr_heap = std::make_unique<DescriptorHeap>(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 50);
 
-		global_vb = std::make_unique<VertexBuffer>(gfx, RayTracing::rt_vertices, true);
-		global_ib = std::make_unique<IndexBuffer>(gfx, RayTracing::rt_indices, true);
+		BufferDesc vb_desc{};
+		vb_desc.bind_flags = EBindFlag::VertexBuffer;
+		vb_desc.misc_flags = EResourceMiscFlag::RayTracing;
+		vb_desc.size = RayTracing::rt_vertices.size() * sizeof(CompleteVertex);
+		vb_desc.stride = sizeof(CompleteVertex);
+
+		BufferDesc ib_desc{};
+		ib_desc.bind_flags = EBindFlag::IndexBuffer;
+		ib_desc.misc_flags = EResourceMiscFlag::RayTracing;
+		ib_desc.size = RayTracing::rt_indices.size() * sizeof(uint32);
+		ib_desc.stride = sizeof(uint32);
+		ib_desc.format = DXGI_FORMAT_R32_UINT;
+
+		global_vb = std::make_unique<Buffer>(gfx, vb_desc, RayTracing::rt_vertices.data());
+		global_ib = std::make_unique<Buffer>(gfx, ib_desc, RayTracing::rt_indices.data());
+
+		UINT const vertex_count = RayTracing::rt_vertices.size();
+		UINT const index_count = RayTracing::rt_indices.size();
 
 		size_t current_handle_index = 0;
 
@@ -244,13 +258,13 @@ namespace adria
 		srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		srv_desc.Buffer.FirstElement = 0;
 		srv_desc.Buffer.StructureByteStride = sizeof(CompleteVertex);
-		srv_desc.Buffer.NumElements = global_vb->VertexCount();
+		srv_desc.Buffer.NumElements = vertex_count;
 		srv_desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-		device->CreateShaderResourceView(global_vb->Resource(), &srv_desc, dxr_heap->GetHandle(current_handle_index++));
+		device->CreateShaderResourceView(global_vb->GetNative(), &srv_desc, dxr_heap->GetHandle(current_handle_index++));
 
 		srv_desc.Buffer.StructureByteStride = sizeof(uint32);
-		srv_desc.Buffer.NumElements = global_ib->IndexCount();
-		device->CreateShaderResourceView(global_ib->Resource(), &srv_desc, dxr_heap->GetHandle(current_handle_index++));
+		srv_desc.Buffer.NumElements = index_count;
+		device->CreateShaderResourceView(global_ib->GetNative(), &srv_desc, dxr_heap->GetHandle(current_handle_index++));
 
 		geo_info_sb->CreateSRV(dxr_heap->GetHandle(current_handle_index++));
 
@@ -652,11 +666,11 @@ namespace adria
 			geo_desc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
 			geo_desc.Triangles.Transform3x4 = transform_alloc.gpu_address;
 			geo_desc.Triangles.VertexBuffer.StrideInBytes = sizeof(CompleteVertex);
-			geo_desc.Triangles.VertexBuffer.StartAddress = mesh.vertex_buffer->View().BufferLocation + geo_desc.Triangles.VertexBuffer.StrideInBytes * mesh.base_vertex_location;
+			//geo_desc.Triangles.VertexBuffer.StartAddress = mesh.vertex_buffer->View().BufferLocation + geo_desc.Triangles.VertexBuffer.StrideInBytes * mesh.base_vertex_location;
 			geo_desc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
 			geo_desc.Triangles.VertexCount = mesh.vertex_count;
-			geo_desc.Triangles.IndexFormat = mesh.index_buffer->View().Format;
-			geo_desc.Triangles.IndexBuffer = mesh.index_buffer->View().BufferLocation + mesh.start_index_location * (geo_desc.Triangles.IndexFormat == DXGI_FORMAT_R16_UINT ? 2 : 4);
+			//geo_desc.Triangles.IndexFormat = mesh.index_buffer->View().Format;
+			//geo_desc.Triangles.IndexBuffer = mesh.index_buffer->View().BufferLocation + mesh.start_index_location * (geo_desc.Triangles.IndexFormat == DXGI_FORMAT_R16_UINT ? 2 : 4);
 			geo_desc.Triangles.IndexCount = mesh.indices_count;
 			geo_desc.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
 			geo_descs.push_back(geo_desc);

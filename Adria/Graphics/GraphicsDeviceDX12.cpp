@@ -109,7 +109,7 @@ namespace adria
 			descriptor_allocator = std::make_unique<RingDescriptorAllocator>(device.Get(), shader_visible_desc);
 			for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
 			{
-				upload_buffers.emplace_back(new LinearUploadBuffer(device.Get(), 10000000));
+				upload_buffers.emplace_back(new LinearUploadBuffer(device.Get(), 100000000));
 			}
 		}
 

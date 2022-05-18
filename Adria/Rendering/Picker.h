@@ -2,7 +2,7 @@
 #include <memory>
 #include <DirectXMath.h>
 #include "RootSigPSOManager.h"
-#include "../Graphics/ReadbackBuffer.h"
+#include "../Graphics/Buffer.h"
 #include "../Graphics/StructuredBuffer.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../Graphics/ResourceBarrierBatch.h"
@@ -23,7 +23,9 @@ namespace adria
 		friend class Renderer;
 	private:
 		Picker(GraphicsDevice* gfx) : gfx(gfx), write_picking_buffer(gfx->GetDevice(), 1, false, D3D12_RESOURCE_STATE_COPY_SOURCE),
-			read_picking_buffer{ {gfx->GetDevice(), sizeof(PickingData)}, {gfx->GetDevice(), sizeof(PickingData)}, {gfx->GetDevice(), sizeof(PickingData)} }
+			read_picking_buffer{ {gfx, ReadBackBufferDesc(sizeof(PickingData))}, 
+								 {gfx, ReadBackBufferDesc(sizeof(PickingData))}, 
+								 {gfx, ReadBackBufferDesc(sizeof(PickingData))}}
 		{
 		}
 
@@ -68,15 +70,15 @@ namespace adria
 
 			barrier_batch.ReverseTransitions();
 			barrier_batch.Submit(cmd_list);
-			cmd_list->CopyResource(read_picking_buffer[backbuffer_index].Resource(), write_picking_buffer.Resource());
+			cmd_list->CopyResource(read_picking_buffer[backbuffer_index].GetNative(), write_picking_buffer.Resource());
 		}
 
 		PickingData GetPickingData() const
 		{
 			UINT backbuffer_index = gfx->BackbufferIndex();
-			PickingData const* data = read_picking_buffer[backbuffer_index].Map<PickingData>();
+			PickingData const* data = read_picking_buffer[backbuffer_index].GetMappedData<PickingData>();
 			PickingData picking_data = *data;
-			read_picking_buffer[backbuffer_index].Unmap();
+			//read_picking_buffer[backbuffer_index].Unmap();
 			return picking_data;
 		}
 
@@ -84,7 +86,7 @@ namespace adria
 
 		GraphicsDevice* gfx;
 		StructuredBuffer<PickingData> write_picking_buffer;
-		ReadbackBuffer read_picking_buffer[GraphicsDevice::BackbufferCount()];
+		Buffer read_picking_buffer[GraphicsDevice::BackbufferCount()];
 		ShaderBlob picker_blob;
 	};
 }

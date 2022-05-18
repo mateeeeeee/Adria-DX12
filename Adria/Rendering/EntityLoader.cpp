@@ -90,8 +90,8 @@ namespace adria
 
 			Mesh mesh{};
 			mesh.indices_count = (uint32)indices.size();
-			mesh.vertex_buffer = std::make_shared<VertexBuffer>(gfx, vertices);
-			mesh.index_buffer = std::make_shared<IndexBuffer>(gfx, indices);
+			//mesh.vertex_buffer = std::make_shared<VertexBuffer>(gfx, vertices);
+			//mesh.index_buffer = std::make_shared<IndexBuffer>(gfx, indices);
 
 			reg.emplace<Mesh>(grid, mesh);
 			reg.emplace<Transform>(grid);
@@ -159,13 +159,25 @@ namespace adria
 			}
 			ComputeNormals(params.normal_type, vertices, indices);
 
-			std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>(gfx, vertices);
-			std::shared_ptr<IndexBuffer> ib = std::make_shared<IndexBuffer>(gfx, indices);
+			BufferDesc vb_desc{
+			.size = vertices.size() * sizeof(CompleteVertex),
+			.bind_flags = EBindFlag::VertexBuffer,
+			.stride = sizeof(CompleteVertex)
+			};
+
+			BufferDesc ib_desc{
+				.size = indices.size() * sizeof(uint32),
+				.bind_flags = EBindFlag::IndexBuffer,
+				.stride = sizeof(uint32),
+				.format = DXGI_FORMAT_R32_UINT
+			};
+
+			std::shared_ptr<Buffer> vb = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());
+			std::shared_ptr<Buffer> ib = std::make_shared<Buffer>(gfx, ib_desc, indices.data());
 
 			for (entity chunk : chunks)
 			{
 				auto& mesh = reg.get<Mesh>(chunk);
-
 				mesh.vertex_buffer = vb;
 				mesh.index_buffer = ib;
 			}
@@ -263,14 +275,27 @@ namespace adria
 			mesh_component.indices_count = static_cast<uint32>(index_offset);
 		}
 
-		std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>(gfx, vertices);
-		std::shared_ptr<IndexBuffer> ib = std::make_shared<IndexBuffer>(gfx, indices);
+		BufferDesc vb_desc{
+			.size = vertices.size() * sizeof(CompleteVertex),
+			.bind_flags = EBindFlag::VertexBuffer,
+			.stride = sizeof(CompleteVertex)
+		};
+
+		BufferDesc ib_desc{
+			.size = indices.size() * sizeof(uint32),
+			.bind_flags = EBindFlag::IndexBuffer,
+			.stride = sizeof(uint32),
+			.format = DXGI_FORMAT_R32_UINT
+		};
+
+		std::shared_ptr<Buffer> vb = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());
+		std::shared_ptr<Buffer> ib = std::make_shared<Buffer>(gfx, ib_desc, indices.data());
 
 		for (entity e : entities)
 		{
 			auto& mesh = reg.get<Mesh>(e);
-			mesh.vertex_buffer = vb;
-			mesh.index_buffer = ib;
+			//mesh.vertex_buffer = vb;
+			//mesh.index_buffer = ib;
 			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(as_integer(e)));
 		}
 
@@ -551,13 +576,26 @@ namespace adria
 		{
 			load_node(i, params.model_matrix);
 		}
-		
-		std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>(gfx, vertices, params.used_in_raytracing);
-		std::shared_ptr<IndexBuffer> ib = std::make_shared<IndexBuffer>(gfx, indices, params.used_in_raytracing);
+
+		BufferDesc vb_desc{
+			.size = vertices.size() * sizeof(CompleteVertex),
+			.bind_flags = EBindFlag::VertexBuffer,
+			.stride = sizeof(CompleteVertex)
+		};
+
+		BufferDesc ib_desc{
+			.size = indices.size() * sizeof(uint32),
+			.bind_flags = EBindFlag::IndexBuffer,
+			.stride = sizeof(uint32),
+			.format = DXGI_FORMAT_R32_UINT
+		};
+
+		std::shared_ptr<Buffer> vb = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());
+		std::shared_ptr<Buffer> ib = std::make_shared<Buffer>(gfx, ib_desc, indices.data());
 
 		size_t rt_vertices_size = RayTracing::rt_vertices.size();
 		size_t rt_indices_size = RayTracing::rt_indices.size();
-		if (params.used_in_raytracing)
+		if (false && params.used_in_raytracing)
 		{
 			RayTracing::rt_vertices.insert(std::end(RayTracing::rt_vertices), std::begin(vertices), std::end(vertices));
 			RayTracing::rt_indices.insert(std::end(RayTracing::rt_indices), std::begin(indices), std::end(indices));
@@ -629,9 +667,22 @@ namespace adria
                     0, 2, 1, 2, 0, 3
             };
 
+			BufferDesc vb_desc{
+			.size = vertices.size() * sizeof(CompleteVertex),
+			.bind_flags = EBindFlag::VertexBuffer,
+			.stride = sizeof(CompleteVertex)
+			};
+
+			BufferDesc ib_desc{
+				.size = indices.size() * sizeof(uint32),
+				.bind_flags = EBindFlag::IndexBuffer,
+				.stride = sizeof(uint32),
+				.format = DXGI_FORMAT_R32_UINT
+			};
+
             Mesh mesh{};
-            mesh.vertex_buffer = std::make_shared<VertexBuffer>(gfx, vertices);
-            mesh.index_buffer = std::make_shared<IndexBuffer>(gfx, indices);
+            mesh.vertex_buffer = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());
+			mesh.index_buffer = std::make_shared<Buffer>(gfx, ib_desc, indices.data());
             mesh.indices_count = static_cast<uint32>(indices.size());
 
             reg.emplace<Mesh>(light, mesh);

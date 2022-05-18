@@ -5,7 +5,7 @@
 namespace adria
 {
 
-	GPUProfiler::GPUProfiler(GraphicsDevice* gfx) : gfx{ gfx }, query_readback_buffer(gfx->GetDevice(), MAX_PROFILES * 2 * FRAME_COUNT * sizeof(UINT64))
+	GPUProfiler::GPUProfiler(GraphicsDevice* gfx) : gfx{ gfx }, query_readback_buffer(gfx, ReadBackBufferDesc(MAX_PROFILES * 2 * FRAME_COUNT * sizeof(UINT64)))
 	{
 		D3D12_QUERY_HEAP_DESC heap_desc = { };
 		heap_desc.Count = MAX_PROFILES * 2;
@@ -38,7 +38,7 @@ namespace adria
 
 		// Resolve the data
 		UINT64 readback_offset = ((current_frame_index * MAX_PROFILES * 2) + begin_query_index) * sizeof(UINT64);
-		cmd_list->ResolveQueryData(query_heap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, begin_query_index, 2, query_readback_buffer.Resource(), readback_offset);
+		cmd_list->ResolveQueryData(query_heap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, begin_query_index, 2, query_readback_buffer.GetNative(), readback_offset);
 	}
 
 	std::vector<std::string> GPUProfiler::GetProfilerResults(ID3D12GraphicsCommandList* cmd_list, bool log_results)
@@ -46,7 +46,7 @@ namespace adria
 		UINT64 gpu_frequency = 0;
 		gfx->GetTimestampFrequency(gpu_frequency);
 
-		UINT64 const* query_timestamps = query_readback_buffer.Map<UINT64>();
+		UINT64 const* query_timestamps = query_readback_buffer.GetMappedData<UINT64>();
 		UINT64 const* frame_query_timestamps = query_timestamps + (current_frame_index * MAX_PROFILES * 2);
 
 		std::vector<std::string> results{};
@@ -73,7 +73,6 @@ namespace adria
 			profile_data.query_started = profile_data.query_finished = false;
 		}
 
-		query_readback_buffer.Unmap();
 		current_frame_index = (current_frame_index + 1) % FRAME_COUNT;
 
 		return results;

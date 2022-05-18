@@ -1860,8 +1860,18 @@ namespace adria
 				6, 7, 3
 			};
 
-			cube_vb = std::make_shared<VertexBuffer>(gfx, cube_vertices, ARRAYSIZE(cube_vertices));
-			cube_ib = std::make_shared<IndexBuffer>(gfx, cube_indices, ARRAYSIZE(cube_indices));
+			BufferDesc vb_desc{};
+			vb_desc.bind_flags = EBindFlag::VertexBuffer;
+			vb_desc.size = sizeof(cube_vertices);
+			vb_desc.stride = sizeof(SimpleVertex);
+			cube_vb = std::make_shared<Buffer>(gfx, vb_desc, cube_vertices);
+
+			BufferDesc ib_desc{};
+			ib_desc.bind_flags = EBindFlag::IndexBuffer;
+			ib_desc.format = DXGI_FORMAT_R16_UINT;
+			ib_desc.stride = sizeof(uint16);
+			ib_desc.size = sizeof(cube_indices);
+			cube_ib = std::make_shared<Buffer>(gfx, ib_desc, cube_indices);
 		}
 
 		//ao textures
@@ -2370,9 +2380,20 @@ namespace adria
 					cmd_list->SetGraphicsRootDescriptorTable(3, dst_descriptor);
 
 					cmd_list->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-					cube_vb->Bind(cmd_list);
-					cube_ib->Bind(cmd_list);
-					cmd_list->DrawIndexedInstanced(cube_ib->IndexCount(), 1, 0, 0, 0);
+
+					D3D12_VERTEX_BUFFER_VIEW vb_view{};
+					vb_view.BufferLocation = cube_vb->GetGPUAddress();
+					vb_view.SizeInBytes = cube_vb->GetDesc().size;
+					vb_view.StrideInBytes = cube_vb->GetDesc().stride;
+					cmd_list->IASetVertexBuffers(0, 1, &vb_view);
+
+					D3D12_INDEX_BUFFER_VIEW ib_view{};
+					ib_view.BufferLocation = cube_ib->GetGPUAddress();
+					ib_view.Format = cube_ib->GetDesc().format;
+					ib_view.SizeInBytes = cube_ib->GetDesc().size;
+					cmd_list->IASetIndexBuffer(&ib_view);
+					uint32 const index_count = cube_ib->GetDesc().size / cube_ib->GetDesc().stride;
+					cmd_list->DrawIndexedInstanced(index_count, 1, 0, 0, 0);
 				}
 			};
 			decal_pass_lambda(false);
@@ -3578,10 +3599,19 @@ namespace adria
 		}
 
 		cmd_list->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		cube_vb->Bind(cmd_list, 0);
-		cube_ib->Bind(cmd_list);
-		cmd_list->DrawIndexedInstanced(cube_ib->IndexCount(), 1, 0, 0, 0);
+		D3D12_VERTEX_BUFFER_VIEW vb_view{};
+		vb_view.BufferLocation = cube_vb->GetGPUAddress();
+		vb_view.SizeInBytes = cube_vb->GetDesc().size;
+		vb_view.StrideInBytes = cube_vb->GetDesc().stride;
+		cmd_list->IASetVertexBuffers(0, 1, &vb_view);
 
+		D3D12_INDEX_BUFFER_VIEW ib_view{};
+		ib_view.BufferLocation = cube_ib->GetGPUAddress();
+		ib_view.Format = cube_ib->GetDesc().format;
+		ib_view.SizeInBytes = cube_ib->GetDesc().size;
+		cmd_list->IASetIndexBuffer(&ib_view);
+		uint32 const index_count = cube_ib->GetDesc().size / cube_ib->GetDesc().stride;
+		cmd_list->DrawIndexedInstanced(index_count, 1, 0, 0, 0);
 	}
 	void Renderer::UpdateOcean(ID3D12GraphicsCommandList4* cmd_list)
 	{
@@ -4484,7 +4514,6 @@ namespace adria
 			cmd_list->SetGraphicsRootDescriptorTable(3, descriptor_allocator->GetHandle(descriptor_index));
 
 			mesh.Draw(cmd_list);
-
 		}
 		cmd_list->OMSetRenderTargets(0, nullptr, FALSE, nullptr);
 
