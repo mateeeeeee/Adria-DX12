@@ -348,6 +348,8 @@ namespace adria
 	}
 	using namespace shadow_helpers;
 
+	using enum EResourceViewType;
+
 	namespace thread_locals
 	{
 		//transient cbuffers
@@ -367,10 +369,10 @@ namespace adria
 		: reg(reg), gfx(gfx), width(width), height(height), texture_manager(gfx, 1000), backbuffer_count(gfx->BackbufferCount()),
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count), postprocess_cbuffer(gfx->GetDevice(), backbuffer_count),
 		compute_cbuffer(gfx->GetDevice(), backbuffer_count), weather_cbuffer(gfx->GetDevice(), backbuffer_count),
-		clusters(gfx->GetDevice(), CLUSTER_COUNT, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
-		light_counter(gfx->GetDevice(), 1, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
-		light_list(gfx->GetDevice(), CLUSTER_COUNT * CLUSTER_MAX_LIGHTS, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
-		light_grid(gfx->GetDevice(), CLUSTER_COUNT, false, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
+		clusters(gfx, StructuredBufferDesc<ClusterAABB>(CLUSTER_COUNT)),
+		light_counter(gfx, StructuredBufferDesc<uint32>(1)),
+		light_list(gfx, StructuredBufferDesc<uint32>(CLUSTER_COUNT * CLUSTER_MAX_LIGHTS)),
+		light_grid(gfx, StructuredBufferDesc<LightGrid>(CLUSTER_COUNT)),
 		profiler(gfx), particle_renderer(gfx), picker(gfx), ray_tracer(reg, gfx, width, height)
 	{
 		RootSigPSOManager::Initialize(gfx->GetDevice());
@@ -525,47 +527,6 @@ namespace adria
 		gbuf_ambient_fut.wait();
 		deferred_fut.wait();
 		postprocess_fut.wait();
-	}
-
-	
-	void Renderer::RGRender(RendererSettings const&)
-	{
-		static RGResourcePool pool(gfx->GetDevice());
-		RenderGraph render_graph{ gfx, pool };
-
-		struct ClearTextureData
-		{
-			RGResourceHandle cleared_texture;
-		};
-
-		render_graph.AddPass<ClearTextureData>("clear pass",
-			[&](ClearTextureData& data, RenderGraphBuilder& builder)
-			{
-				D3D12_RESOURCE_DESC desc{};
-				desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-				desc.DepthOrArraySize = 1;
-				desc.MipLevels = 1;
-				desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-				desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-				desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-				desc.SampleDesc.Count = 1u;
-				desc.SampleDesc.Quality = 0u;
-				desc.Width = width;
-				desc.Height = height;
-				auto handle = builder.Create("cleared texture", desc);
-				data.cleared_texture = builder.Write(handle);
-			},
-			[&](ClearTextureData const& data, RenderGraphResources& resources, void* _gfx, void* ctx)
-			{
-				GraphicsDevice* gfx = static_cast<GraphicsDevice*>(_gfx);
-				ID3D12GraphicsCommandList4* cmd_list = static_cast<ID3D12GraphicsCommandList4*>(ctx);
-				ADRIA_ASSERT(gfx != nullptr);
-				ADRIA_ASSERT(cmd_list != nullptr);
-
-				auto& resource = resources.GetResource(data.cleared_texture);
-				FLOAT clear[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
-				//cmd_list->ClearRenderTargetView(resource, clear, 0, nullptr);
-			});
 	}
 
 	void Renderer::ResolveToBackbuffer()
@@ -1205,17 +1166,19 @@ namespace adria
 		//clustered deferred
 		{
 
-			clusters.CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
-			clusters.CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
 
-			light_counter.CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
-			light_counter.CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
+			BufferViewDesc view_desc{};
+			view_desc.view_type = EResourceViewType::SRV;
+			light_counter.CreateView(view_desc, constant_srv_heap->GetHandle(srv_heap_index++));
+			light_list.CreateView(view_desc, constant_srv_heap->GetHandle(srv_heap_index++));
+			clusters.CreateView(view_desc, constant_srv_heap->GetHandle(srv_heap_index++));
+			light_grid.CreateView(view_desc, constant_srv_heap->GetHandle(srv_heap_index++));
 
-			light_list.CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
-			light_list.CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
-
-			light_grid.CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
-			light_grid.CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
+			view_desc.view_type = EResourceViewType::UAV;
+			light_counter.CreateView(view_desc, constant_uav_heap->GetHandle(uav_heap_index++));
+			light_list.CreateView(view_desc, constant_uav_heap->GetHandle(uav_heap_index++));
+			clusters.CreateView(view_desc, constant_uav_heap->GetHandle(uav_heap_index++));
+			light_grid.CreateView(view_desc, constant_uav_heap->GetHandle(uav_heap_index++));
 		}
 
 		picker.CreateView(constant_uav_heap->GetHandle(uav_heap_index++));
@@ -2858,7 +2821,7 @@ namespace adria
 
 			OffsetType descriptor_index = descriptor_allocator->Allocate();
 			auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-			device->CopyDescriptorsSimple(1, dst_descriptor, clusters.UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			device->CopyDescriptorsSimple(1, dst_descriptor, clusters.GetView(UAV), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			cmd_list->SetComputeRootDescriptorTable(1, dst_descriptor);
 
 			cmd_list->Dispatch(CLUSTER_SIZE_X, CLUSTER_SIZE_Y, CLUSTER_SIZE_Z);
@@ -2872,7 +2835,7 @@ namespace adria
 		
 			OffsetType i = descriptor_allocator->AllocateRange(2);
 			auto dst_descriptor = descriptor_allocator->GetHandle(i);
-			device->CopyDescriptorsSimple(1, dst_descriptor, clusters.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			device->CopyDescriptorsSimple(1, dst_descriptor, clusters.GetView(SRV), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	
 			D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
 			desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
@@ -2886,7 +2849,7 @@ namespace adria
 		
 			cmd_list->SetComputeRootDescriptorTable(0, dst_descriptor);
 		
-			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { light_counter.UAV(), light_list.UAV(), light_grid.UAV() };
+			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { light_counter.GetView(UAV), light_list.GetView(UAV), light_grid.GetView(UAV) };
 			uint32 src_range_sizes[] = { 1,1,1 };
 			i = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
 			dst_descriptor = descriptor_allocator->GetHandle(i);
@@ -2917,7 +2880,7 @@ namespace adria
 
 			//light stuff
 			descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles) + 1);
-			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles2[] = { light_list.SRV(), light_grid.SRV() };
+			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles2[] = { light_list.GetView(SRV), light_grid.GetView(SRV) };
 			uint32 src_range_sizes2[] = { 1,1 };
 
 			dst_descriptor = descriptor_allocator->GetHandle(descriptor_index + 1);

@@ -101,6 +101,16 @@ namespace adria
 		return 16u;
 	}
 
+	//common
+	enum class EResourceViewType : uint8
+	{
+		SRV,
+		UAV,
+		RTV,
+		DSV,
+		Invalid
+	};
+
 	enum class EBindFlag : uint32
 	{
 		None = 0,
@@ -132,7 +142,6 @@ namespace adria
 	};
 	DEFINE_ENUM_BIT_OPERATORS(EResourceMiscFlag);
 
-	//MAKE STATIC METHODS FOR CREATING BufferDesc
 	struct BufferDesc
 	{
 		uint64 size = 0;
@@ -143,6 +152,26 @@ namespace adria
 		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN; //typed buffers, index buffers
 	};
 
+	static BufferDesc VertexBufferDesc(uint64 vertex_count, uint32 stride, bool ray_tracing = true)
+	{
+		BufferDesc desc{};
+		desc.bind_flags = EBindFlag::VertexBuffer;
+		desc.heap_type = EHeapType::Default;
+		desc.size = vertex_count * stride;
+		desc.stride = stride;
+		desc.misc_flags = ray_tracing ? EResourceMiscFlag::RayTracing : EResourceMiscFlag::None;
+		return desc;
+	}
+	static BufferDesc IndexBufferDesc(uint64 index_count, bool small_indices, bool ray_tracing = true)
+	{
+		BufferDesc desc{};
+		desc.bind_flags = EBindFlag::IndexBuffer;
+		desc.heap_type = EHeapType::Default;
+		desc.stride = small_indices ? 2 : 4;
+		desc.size = index_count * desc.stride;
+		desc.misc_flags = ray_tracing ? EResourceMiscFlag::RayTracing : EResourceMiscFlag::None;
+		return desc;
+	}
 	static BufferDesc ReadBackBufferDesc(uint64 size)
 	{
 		BufferDesc desc{};
@@ -152,15 +181,18 @@ namespace adria
 		desc.misc_flags = EResourceMiscFlag::None;
 		return desc;
 	}
-
-	enum class EResourceViewType : uint8
+	template<typename T>
+	static BufferDesc StructuredBufferDesc(uint64 count, bool uav = true, bool dynamic = false)
 	{
-		SRV,
-		UAV,
-		RTV,
-		DSV,
-		Invalid
-	};
+		BufferDesc desc{};
+		desc.heap_type = (uav || !dynamic) ? EHeapType::Default : EHeapType::Upload;
+		desc.bind_flags = EBindFlag::ShaderResource;
+		if (uav) desc.bind_flags |= EBindFlag::UnorderedAccess;
+		desc.misc_flags = EResourceMiscFlag::BufferStructured;
+		desc.stride = sizeof(T);
+		desc.size = desc.stride * count;
+		return desc;
+	}
 
 	struct BufferViewDesc
 	{
@@ -337,7 +369,6 @@ namespace adria
 				{
 					if (HasAllFlags(desc.misc_flags, EResourceMiscFlag::BufferRaw))
 					{
-						// This is a Raw Buffer
 						uav_desc.Format = DXGI_FORMAT_R32_TYPELESS;
 						uav_desc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
 						uav_desc.Buffer.FirstElement = (UINT)view_desc.offset / sizeof(uint32_t);
@@ -345,7 +376,6 @@ namespace adria
 					}
 					else if (HasAllFlags(desc.misc_flags, EResourceMiscFlag::BufferStructured))
 					{
-						// This is a Structured Buffer
 						uav_desc.Format = DXGI_FORMAT_UNKNOWN;
 						uav_desc.Buffer.FirstElement = (UINT)view_desc.offset / desc.stride;
 						uav_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / desc.stride;
@@ -354,8 +384,7 @@ namespace adria
 				}
 				else
 				{
-					// This is a Typed Buffer
-					uint32_t stride = GetFormatStride(format);
+					uint32 stride = GetFormatStride(format);
 					uav_desc.Format = format;
 					uav_desc.Buffer.FirstElement = (UINT)view_desc.offset / stride;
 					uav_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / stride;

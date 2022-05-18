@@ -10,6 +10,7 @@
 #include "RayTracer.h"
 #include "../tecs/Registry.h"
 #include "../Graphics/TextureManager.h"
+#include "../Graphics/Buffer.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../Graphics/Texture2D.h"
 #include "../Graphics/RenderPass.h"
@@ -195,10 +196,10 @@ namespace adria
 		WeatherCBuffer weather_cbuf_data;
 		
 		//Persistent sbuffers
-		StructuredBuffer<ClusterAABB>	clusters;
-		StructuredBuffer<uint32>		light_counter;
-		StructuredBuffer<uint32>		light_list;
-		StructuredBuffer<LightGrid>  	light_grid;
+		Buffer clusters;
+		Buffer light_counter;
+		Buffer light_list;
+		Buffer light_grid;
 		std::unique_ptr<StructuredBuffer<Bokeh>> bokeh;
 		
 		Texture2D sun_target;

@@ -3,7 +3,6 @@
 #include <DirectXMath.h>
 #include "RootSigPSOManager.h"
 #include "../Graphics/Buffer.h"
-#include "../Graphics/StructuredBuffer.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../Graphics/ResourceBarrierBatch.h"
 #include "../Graphics/GraphicsDeviceDX12.h" 
@@ -22,7 +21,8 @@ namespace adria
 	{
 		friend class Renderer;
 	private:
-		Picker(GraphicsDevice* gfx) : gfx(gfx), write_picking_buffer(gfx->GetDevice(), 1, false, D3D12_RESOURCE_STATE_COPY_SOURCE),
+		Picker(GraphicsDevice* gfx) : gfx(gfx), 
+			write_picking_buffer(gfx, StructuredBufferDesc<PickingData>(1)),
 			read_picking_buffer{ {gfx, ReadBackBufferDesc(sizeof(PickingData))}, 
 								 {gfx, ReadBackBufferDesc(sizeof(PickingData))}, 
 								 {gfx, ReadBackBufferDesc(sizeof(PickingData))}}
@@ -31,7 +31,9 @@ namespace adria
 
 		void CreateView(D3D12_CPU_DESCRIPTOR_HANDLE uav_handle)
 		{
-			write_picking_buffer.CreateUAV(uav_handle);
+			BufferViewDesc uav_desc{};
+			uav_desc.view_type = EResourceViewType::UAV;
+			write_picking_buffer.CreateView(uav_desc, uav_handle);
 		}
 
 		void Pick(ID3D12GraphicsCommandList4* cmd_list, 
@@ -59,18 +61,18 @@ namespace adria
 
 			descriptor_index = descriptor_allocator->Allocate();
 			dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-			device->CopyDescriptorsSimple(1, dst_descriptor, write_picking_buffer.UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			device->CopyDescriptorsSimple(1, dst_descriptor, write_picking_buffer.GetView(EResourceViewType::UAV), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			cmd_list->SetComputeRootDescriptorTable(2, dst_descriptor);
 
 			ResourceBarrierBatch barrier_batch{};
-			barrier_batch.AddTransition(write_picking_buffer.Resource(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+			barrier_batch.AddTransition(write_picking_buffer.GetNative(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			barrier_batch.Submit(cmd_list);
 
 			cmd_list->Dispatch(1, 1, 1);
 
 			barrier_batch.ReverseTransitions();
 			barrier_batch.Submit(cmd_list);
-			cmd_list->CopyResource(read_picking_buffer[backbuffer_index].GetNative(), write_picking_buffer.Resource());
+			cmd_list->CopyResource(read_picking_buffer[backbuffer_index].GetNative(), write_picking_buffer.GetNative());
 		}
 
 		PickingData GetPickingData() const
@@ -85,7 +87,7 @@ namespace adria
 	private:
 
 		GraphicsDevice* gfx;
-		StructuredBuffer<PickingData> write_picking_buffer;
+		Buffer write_picking_buffer;
 		Buffer read_picking_buffer[GraphicsDevice::BackbufferCount()];
 		ShaderBlob picker_blob;
 	};
