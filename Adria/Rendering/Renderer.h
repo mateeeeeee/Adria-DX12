@@ -17,7 +17,6 @@
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/TextureCube.h"
 #include "../Graphics/Texture2DArray.h"
-#include "../Graphics/StructuredBuffer.h"
 #include "../Graphics/GPUProfiler.h"
 
 
@@ -25,10 +24,7 @@ namespace adria
 {
 	class Camera;
 	class GraphicsDevice;
-	template<typename T>
-	class StructuredBuffer;
 	struct Light;
-
 
 	class Renderer
 	{
@@ -210,9 +206,11 @@ namespace adria
 		std::optional<DirectX::BoundingSphere> scene_bounding_sphere = std::nullopt;
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> lens_flare_textures;
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> clouds_textures;
+
 		Microsoft::WRL::ComPtr<ID3D12CommandSignature> bokeh_command_signature;
-		Microsoft::WRL::ComPtr<ID3D12Resource> bokeh_indirect_draw_buffer;
-		Microsoft::WRL::ComPtr<ID3D12Resource> counter_reset_buffer;
+		std::unique_ptr<Buffer> bokeh_indirect_draw_buffer;
+		std::unique_ptr<Buffer> counter_reset_buffer;
+
 		TEXTURE_HANDLE hex_bokeh_handle = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE oct_bokeh_handle = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE circle_bokeh_handle = INVALID_TEXTURE_HANDLE;

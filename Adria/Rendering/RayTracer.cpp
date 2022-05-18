@@ -1,6 +1,5 @@
 #include "RayTracer.h"
 #include "Components.h"
-#include "../Graphics/StructuredBuffer.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../tecs/Registry.h"
 #include "../Logging/Logger.h"
@@ -266,7 +265,9 @@ namespace adria
 		srv_desc.Buffer.NumElements = index_count;
 		device->CreateShaderResourceView(global_ib->GetNative(), &srv_desc, dxr_heap->GetHandle(current_handle_index++));
 
-		geo_info_sb->CreateSRV(dxr_heap->GetHandle(current_handle_index++));
+		BufferViewDesc view_desc{};
+		view_desc.view_type = SRV;
+		geo_info_sb->CreateView(view_desc, dxr_heap->GetHandle(current_handle_index++));
 
 		texture2d_desc_t uav_target_desc{};
 		uav_target_desc.width = width;
@@ -710,10 +711,10 @@ namespace adria
 		uav_barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
 		uav_barrier.UAV.pResource = blas_buffers.result_buffer.Get();
 		cmd_list->ResourceBarrier(1, &uav_barrier);
-
 		blas = blas_buffers.result_buffer;
 
-		geo_info_sb = std::make_unique<StructuredBuffer<GeoInfo>>(gfx, geo_info.data(), geo_info.size());
+		BufferDesc desc = StructuredBufferDesc<GeoInfo>(geo_info.size(), false);
+		geo_info_sb = std::make_unique<Buffer>(gfx, desc, geo_info.data());
 	}
 
 	void RayTracer::BuildTopLevelAS()

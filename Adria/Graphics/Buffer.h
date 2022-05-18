@@ -283,9 +283,14 @@ namespace adria
 				hr = resource->Map(0, &read_range, &mapped_data);
 				BREAK_IF_FAILED(hr);
 				mapped_rowpitch = static_cast<uint32>(desc.size);
+
+				if (initial_data)
+				{
+					memcpy(mapped_data, initial_data, desc.size);
+				}
 			}
 
-			if (initial_data != nullptr)
+			if (initial_data != nullptr && desc.heap_type != EHeapType::Upload)
 			{
 				auto cmd_list = gfx->GetDefaultCommandList();
 				auto upload_buffer = gfx->GetUploadBuffer();
@@ -430,9 +435,34 @@ namespace adria
 
 		ID3D12Resource* GetNative() const { return resource.Get(); }
 		BufferDesc const& GetDesc() const { return desc; }
+
 		void* GetMappedData() const { return mapped_data; }
 		template<typename T>
 		T* GetMappedData() const { return reinterpret_cast<T*>(mapped_data); }
+
+		void* Map()
+		{
+			HRESULT hr;
+			if (desc.heap_type == EHeapType::Readback)
+			{
+				hr = resource->Map(0, nullptr, &mapped_data);
+				BREAK_IF_FAILED(hr);
+				mapped_rowpitch = static_cast<uint32_t>(desc.size);
+			}
+			else if (desc.heap_type == EHeapType::Upload)
+			{
+				D3D12_RANGE read_range{};
+				hr = resource->Map(0, &read_range, &mapped_data);
+				BREAK_IF_FAILED(hr);
+				mapped_rowpitch = static_cast<uint32>(desc.size);
+			}
+			return mapped_data;
+		}
+		void Unmap()
+		{
+			resource->Unmap(0, nullptr);
+		}
+
 		uint32 GetMappedRowPitch() const { return mapped_rowpitch; }
 		D3D12_GPU_VIRTUAL_ADDRESS GetGPUAddress() const { return resource->GetGPUVirtualAddress(); }
 

@@ -15,8 +15,7 @@ namespace adria
 	};
 
 	class Buffer;
-	template<typename T>
-	class StructuredBuffer;
+	
 	namespace tecs
 	{
 		class registry;
@@ -78,7 +77,7 @@ namespace adria
 
 		std::unique_ptr<Buffer> global_vb = nullptr;
 		std::unique_ptr<Buffer> global_ib = nullptr;
-		std::unique_ptr<StructuredBuffer<GeoInfo>> geo_info_sb = nullptr;
+		std::unique_ptr<Buffer> geo_info_sb = nullptr;
 
 		//group this kind of quint inside a struct
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> rt_shadows_root_signature = nullptr;
