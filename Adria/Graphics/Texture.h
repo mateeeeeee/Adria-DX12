@@ -546,10 +546,10 @@ namespace adria
 			}
 			return { .ptr = NULL };
 		}
-		D3D12_CPU_DESCRIPTOR_HANDLE GetSRV(size_t i) const { return GetView(SRV, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE GetUAV(size_t i) const { return GetView(UAV, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE GetRTV(size_t i) const { return GetView(RTV, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE GetDSV(size_t i) const { return GetView(DSV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE GetSRV(size_t i = 0) const { return GetView(SRV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE GetUAV(size_t i = 0) const { return GetView(UAV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE GetRTV(size_t i = 0) const { return GetView(RTV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE GetDSV(size_t i = 0) const { return GetView(DSV, i); }
 
 		ID3D12Resource* GetNative() const { return resource.Get(); }
 		TextureDesc const& GetDesc() const { return desc; }
