@@ -348,8 +348,6 @@ namespace adria
 	}
 	using namespace shadow_helpers;
 
-	using enum EResourceViewType;
-
 	namespace thread_locals
 	{
 		//transient cbuffers
@@ -373,6 +371,7 @@ namespace adria
 		light_counter(gfx, StructuredBufferDesc<uint32>(1)),
 		light_list(gfx, StructuredBufferDesc<uint32>(CLUSTER_COUNT * CLUSTER_MAX_LIGHTS)),
 		light_grid(gfx, StructuredBufferDesc<LightGrid>(CLUSTER_COUNT)),
+		bokeh_counter(gfx, CounterBufferDesc()),
 		profiler(gfx), particle_renderer(gfx), picker(gfx), ray_tracer(reg, gfx, width, height)
 	{
 		RootSigPSOManager::Initialize(gfx->GetDevice());
@@ -987,10 +986,12 @@ namespace adria
 
 		//bokeh
 		{
-			bokeh = std::make_unique<StructuredBuffer<Bokeh>>(gfx->GetDevice(), width * height, true, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-			bokeh->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			bokeh->CreateUAV(uav_heap->GetHandle(uav_heap_index++));
-			bokeh->CreateCounterUAV(uav_heap->GetHandle(uav_heap_index++));
+			bokeh = std::make_unique<Buffer>(gfx, StructuredBufferDesc<Bokeh>(width * height));
+			BufferViewDesc view_desc{};
+			view_desc.view_type = SRV;
+			bokeh->CreateView(view_desc, srv_heap->GetHandle(srv_heap_index++));
+			view_desc.view_type = UAV;
+			bokeh->CreateView(view_desc, uav_heap->GetHandle(uav_heap_index++), bokeh_counter.GetNative());
 		}
 		
 		//velocity buffer
@@ -4021,10 +4022,10 @@ namespace adria
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-		D3D12_RESOURCE_BARRIER prereset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(bokeh->CounterBuffer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS,  D3D12_RESOURCE_STATE_COPY_DEST);
+		D3D12_RESOURCE_BARRIER prereset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(bokeh_counter.GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS,  D3D12_RESOURCE_STATE_COPY_DEST);
 		cmd_list->ResourceBarrier(1, &prereset_barrier);
-		cmd_list->CopyBufferRegion(bokeh->CounterBuffer(), 0, counter_reset_buffer.Get(), 0, sizeof(uint32));
-		D3D12_RESOURCE_BARRIER postreset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(bokeh->CounterBuffer(),D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		cmd_list->CopyBufferRegion(bokeh_counter.GetNative(), 0, counter_reset_buffer.Get(), 0, sizeof(uint32));
+		D3D12_RESOURCE_BARRIER postreset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(bokeh_counter.GetNative(),D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		cmd_list->ResourceBarrier(1, &postreset_barrier);
 
  		cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::BokehGenerate));
@@ -4038,7 +4039,7 @@ namespace adria
 		D3D12_RESOURCE_BARRIER dispatch_barriers[] =
 		{
 			CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
-			CD3DX12_RESOURCE_BARRIER::Transition(bokeh->Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
+			CD3DX12_RESOURCE_BARRIER::Transition(bokeh->GetNative(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
 		};
 		cmd_list->ResourceBarrier(ARRAYSIZE(dispatch_barriers), dispatch_barriers);
 
@@ -4050,7 +4051,7 @@ namespace adria
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		cmd_list->SetComputeRootDescriptorTable(3, descriptor_allocator->GetHandle(descriptor_index));
 
-		D3D12_CPU_DESCRIPTOR_HANDLE bokeh_uav = bokeh->UAV();
+		D3D12_CPU_DESCRIPTOR_HANDLE bokeh_uav = bokeh->GetView(UAV);
 		descriptor_index = descriptor_allocator->Allocate();
 
 		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), bokeh_uav,
@@ -4060,19 +4061,19 @@ namespace adria
 		cmd_list->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
 
 		CD3DX12_RESOURCE_BARRIER precopy_barriers[] = {
-				CD3DX12_RESOURCE_BARRIER::Transition(bokeh->Resource(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
+				CD3DX12_RESOURCE_BARRIER::Transition(bokeh->GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
 				CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
 				CD3DX12_RESOURCE_BARRIER::Transition(bokeh_indirect_draw_buffer.Get(), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, D3D12_RESOURCE_STATE_COPY_DEST),
-				CD3DX12_RESOURCE_BARRIER::Transition(bokeh->CounterBuffer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE)
+				CD3DX12_RESOURCE_BARRIER::Transition(bokeh_counter.GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE)
 		};
 		cmd_list->ResourceBarrier(ARRAYSIZE(precopy_barriers), precopy_barriers);
 
-		cmd_list->CopyBufferRegion(bokeh_indirect_draw_buffer.Get(), 0, bokeh->CounterBuffer(), 0, bokeh->CounterBuffer()->GetDesc().Width);
+		cmd_list->CopyBufferRegion(bokeh_indirect_draw_buffer.Get(), 0, bokeh_counter.GetNative(), 0, bokeh_counter.GetDesc().size);
 
 		CD3DX12_RESOURCE_BARRIER postcopy_barriers[] = 
 		{
 				CD3DX12_RESOURCE_BARRIER::Transition(bokeh_indirect_draw_buffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT),
-				CD3DX12_RESOURCE_BARRIER::Transition(bokeh->CounterBuffer(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
+				CD3DX12_RESOURCE_BARRIER::Transition(bokeh_counter.GetNative(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
 		};
 		cmd_list->ResourceBarrier(ARRAYSIZE(postcopy_barriers), postcopy_barriers);
 	}
@@ -4109,7 +4110,7 @@ namespace adria
 		OffsetType i = descriptor_allocator->AllocateRange(2);
 
 		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i),
-			bokeh->SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			bokeh->GetView(SRV), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1),
 			bokeh_descriptor, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);

@@ -7,7 +7,6 @@
 #include "../tecs/registry.h"
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/Buffer.h"
-#include "../Graphics/StructuredBuffer.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../Graphics/Texture2D.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
@@ -78,11 +77,13 @@ namespace adria
 		};
 	public:
 		ParticleRenderer(GraphicsDevice* gfx) : gfx{ gfx },
-			dead_list_buffer(gfx->GetDevice(), MAX_PARTICLES, true, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
-			particle_bufferA(gfx->GetDevice(), MAX_PARTICLES),
-			particle_bufferB(gfx->GetDevice(), MAX_PARTICLES),
-			view_space_positions_buffer(gfx->GetDevice(), MAX_PARTICLES),
-			alive_index_buffer(gfx->GetDevice(), MAX_PARTICLES, true)
+			dead_list_buffer(gfx, StructuredBufferDesc<uint32>(MAX_PARTICLES)),
+			particle_bufferA(gfx, StructuredBufferDesc<GPUParticleA>(MAX_PARTICLES)),
+			particle_bufferB(gfx, StructuredBufferDesc<GPUParticleB>(MAX_PARTICLES)),
+			view_space_positions_buffer(gfx, StructuredBufferDesc<ViewSpacePositionRadius>(MAX_PARTICLES)),
+			alive_index_buffer(gfx, StructuredBufferDesc<IndexBufferElement>(MAX_PARTICLES)),
+			dead_list_buffer_counter(gfx, CounterBufferDesc()),
+			alive_index_buffer_counter(gfx, CounterBufferDesc())
 		{
 			CreateResources();
 		}
@@ -199,11 +200,20 @@ namespace adria
 		GraphicsDevice* gfx;
 
 		Texture2D random_texture;
+		/*
 		StructuredBuffer<uint32> dead_list_buffer;
 		StructuredBuffer<GPUParticleA> particle_bufferA;
 		StructuredBuffer<GPUParticleB> particle_bufferB;
 		StructuredBuffer<ViewSpacePositionRadius> view_space_positions_buffer;
 		StructuredBuffer<IndexBufferElement> alive_index_buffer;
+		*/
+		Buffer dead_list_buffer;
+		Buffer dead_list_buffer_counter;
+		Buffer particle_bufferA;
+		Buffer particle_bufferB;
+		Buffer view_space_positions_buffer;
+		Buffer alive_index_buffer;
+		Buffer alive_index_buffer_counter;
 
 		D3D12_GPU_VIRTUAL_ADDRESS frame_cbuffer_address;
 		D3D12_GPU_VIRTUAL_ADDRESS compute_cbuffer_address;
@@ -294,21 +304,21 @@ namespace adria
 				uint32 heap_index = 0;
 				random_texture.CreateSRV(particle_heap->GetHandle(heap_index++));
 
-				dead_list_buffer.CreateUAV(particle_heap->GetHandle(heap_index++));
-				dead_list_buffer.CreateCounterUAV(particle_heap->GetHandle(heap_index++));
+				BufferViewDesc view_desc{};
+				view_desc.view_type = EResourceViewType::SRV;
+				particle_bufferA.CreateView(view_desc, particle_heap->GetHandle(heap_index++));
+				particle_bufferB.CreateView(view_desc, particle_heap->GetHandle(heap_index++));
+				view_space_positions_buffer.CreateView(view_desc, particle_heap->GetHandle(heap_index++));
+				alive_index_buffer.CreateView(view_desc, particle_heap->GetHandle(heap_index++));
 
-				particle_bufferA.CreateSRV(particle_heap->GetHandle(heap_index++));
-				particle_bufferA.CreateUAV(particle_heap->GetHandle(heap_index++));
-
-				particle_bufferB.CreateSRV(particle_heap->GetHandle(heap_index++));
-				particle_bufferB.CreateUAV(particle_heap->GetHandle(heap_index++));
-
-				view_space_positions_buffer.CreateSRV(particle_heap->GetHandle(heap_index++));
-				view_space_positions_buffer.CreateUAV(particle_heap->GetHandle(heap_index++));
-
-				alive_index_buffer.CreateSRV(particle_heap->GetHandle(heap_index++));
-				alive_index_buffer.CreateUAV(particle_heap->GetHandle(heap_index++));
-				alive_index_buffer.CreateCounterUAV(particle_heap->GetHandle(heap_index++));
+				view_desc.view_type = EResourceViewType::UAV;
+				dead_list_buffer.CreateView(view_desc, particle_heap->GetHandle(heap_index++),
+					dead_list_buffer_counter.GetNative());
+				particle_bufferA.CreateView(view_desc, particle_heap->GetHandle(heap_index++));
+				particle_bufferB.CreateView(view_desc, particle_heap->GetHandle(heap_index++));
+				view_space_positions_buffer.CreateView(view_desc, particle_heap->GetHandle(heap_index++));
+				alive_index_buffer.CreateView(view_desc, particle_heap->GetHandle(heap_index++), 
+					alive_index_buffer_counter.GetNative());
 
 				D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
 				uav_desc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
@@ -351,17 +361,17 @@ namespace adria
 			ID3D12Device* device = gfx->GetDevice();
 			RingDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
 
-			D3D12_RESOURCE_BARRIER prereset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(dead_list_buffer.CounterBuffer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_DEST);
+			D3D12_RESOURCE_BARRIER prereset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(dead_list_buffer_counter.GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_DEST);
 			cmd_list->ResourceBarrier(1, &prereset_barrier);
-			cmd_list->CopyBufferRegion(dead_list_buffer.CounterBuffer(), 0, counter_reset_buffer.Get(), 0, sizeof(uint32));
-			D3D12_RESOURCE_BARRIER postreset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(dead_list_buffer.CounterBuffer(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+			cmd_list->CopyBufferRegion(dead_list_buffer_counter.GetNative(), 0, counter_reset_buffer.Get(), 0, sizeof(uint32));
+			D3D12_RESOURCE_BARRIER postreset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(dead_list_buffer_counter.GetNative(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			cmd_list->ResourceBarrier(1, &postreset_barrier);
 
 			cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_InitDeadList));
 			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_InitDeadList));
 			OffsetType descriptor_index = descriptor_allocator->Allocate();
 			auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
-			device->CopyDescriptorsSimple(1, descriptor, dead_list_buffer.UAV(),
+			device->CopyDescriptorsSimple(1, descriptor, dead_list_buffer.GetView(UAV),
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			cmd_list->SetComputeRootDescriptorTable(0, descriptor);
 			cmd_list->Dispatch((uint32)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
@@ -375,9 +385,9 @@ namespace adria
 			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_Reset));
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
 			auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
-			device->CopyDescriptorsSimple(1, descriptor, particle_bufferA.UAV(),
+			device->CopyDescriptorsSimple(1, descriptor, particle_bufferA.GetView(UAV),
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), particle_bufferB.UAV(),
+			device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), particle_bufferB.GetView(UAV),
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			cmd_list->SetComputeRootDescriptorTable(0, descriptor);
 			cmd_list->Dispatch((uint32)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
@@ -414,11 +424,11 @@ namespace adria
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 				auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				device->CopyDescriptorsSimple(1, descriptor, particle_bufferA.UAV(),
+				device->CopyDescriptorsSimple(1, descriptor, particle_bufferA.GetView(UAV),
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), particle_bufferB.UAV(),
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), particle_bufferB.GetView(UAV),
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 2), dead_list_buffer.UAV(),
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 2), dead_list_buffer.GetView(UAV),
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				cmd_list->SetComputeRootDescriptorTable(0, descriptor);
 
@@ -430,16 +440,16 @@ namespace adria
 
 				D3D12_RESOURCE_BARRIER barriers[] =
 				{
-					CD3DX12_RESOURCE_BARRIER::Transition(dead_list_buffer.CounterBuffer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER)
+					CD3DX12_RESOURCE_BARRIER::Transition(dead_list_buffer_counter.GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER)
 				};
 				cmd_list->ResourceBarrier(ARRAYSIZE(barriers), barriers);
-				cmd_list->SetComputeRootConstantBufferView(2, dead_list_buffer.CounterBuffer()->GetGPUVirtualAddress());
+				cmd_list->SetComputeRootConstantBufferView(2, dead_list_buffer_counter.GetGPUAddress());
 				cmd_list->SetComputeRootConstantBufferView(3, emitter_allocation.gpu_address);
 
 				uint32 thread_groups_x = (UINT)std::ceil(emitter_params.number_to_emit * 1.0f / 1024);
 				cmd_list->Dispatch(thread_groups_x, 1, 1);
 
-				barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(dead_list_buffer.CounterBuffer(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+				barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(dead_list_buffer_counter.GetNative(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 				cmd_list->ResourceBarrier(ARRAYSIZE(barriers), barriers);
 			}
 		}
@@ -454,17 +464,17 @@ namespace adria
 			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_Simulate));
 
 			//reset index buffer counter
-			D3D12_RESOURCE_BARRIER prereset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(alive_index_buffer.CounterBuffer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_DEST);
+			D3D12_RESOURCE_BARRIER prereset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(alive_index_buffer_counter.GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_DEST);
 			cmd_list->ResourceBarrier(1, &prereset_barrier);
-			cmd_list->CopyBufferRegion(alive_index_buffer.CounterBuffer(), 0, counter_reset_buffer.Get(), 0, sizeof(uint32));
-			D3D12_RESOURCE_BARRIER postreset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(alive_index_buffer.CounterBuffer(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+			cmd_list->CopyBufferRegion(alive_index_buffer_counter.GetNative(), 0, counter_reset_buffer.Get(), 0, sizeof(uint32));
+			D3D12_RESOURCE_BARRIER postreset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(alive_index_buffer_counter.GetNative(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			cmd_list->ResourceBarrier(1, &postreset_barrier);
 
 			//add barriers?
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(6);
-			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { particle_bufferA.UAV(), particle_bufferB.UAV(),
-														 dead_list_buffer.UAV(), alive_index_buffer.UAV(),
-														 view_space_positions_buffer.UAV(), indirect_render_args_uav };
+			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { particle_bufferA.GetView(UAV), particle_bufferB.GetView(UAV),
+														 dead_list_buffer.GetView(UAV), alive_index_buffer.GetView(UAV),
+														 view_space_positions_buffer.GetView(UAV), indirect_render_args_uav };
 			auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
 			D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor };
 			uint32 src_range_sizes[] = { 1, 1, 1, 1, 1, 1 };
@@ -500,7 +510,7 @@ namespace adria
 			//add barriers?
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 			auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
-			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges1[] = { particle_bufferA.SRV(), view_space_positions_buffer.SRV(), alive_index_buffer.SRV() };
+			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges1[] = { particle_bufferA.GetView(SRV), view_space_positions_buffer.GetView(SRV), alive_index_buffer.GetView(SRV) };
 			D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges1[] = { descriptor };
 			uint32 src_range_sizes1[] = { 1, 1, 1 };
 			uint32 dst_range_sizes1[] = { 3 };
@@ -520,12 +530,12 @@ namespace adria
 
 			D3D12_RESOURCE_BARRIER barriers[] =
 			{
-				CD3DX12_RESOURCE_BARRIER::Transition(alive_index_buffer.CounterBuffer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER),
+				CD3DX12_RESOURCE_BARRIER::Transition(alive_index_buffer_counter.GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER),
 				CD3DX12_RESOURCE_BARRIER::Transition(indirect_render_args_buffer.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT)
 			};
 			cmd_list->ResourceBarrier(ARRAYSIZE(barriers), barriers);
 
-			cmd_list->SetGraphicsRootConstantBufferView(2, alive_index_buffer.CounterBuffer()->GetGPUVirtualAddress());
+			cmd_list->SetGraphicsRootConstantBufferView(2, alive_index_buffer_counter.GetGPUAddress());
 			cmd_list->SetGraphicsRootConstantBufferView(3, frame_cbuffer_address);
 
 			cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -537,7 +547,7 @@ namespace adria
 			cmd_list->IASetIndexBuffer(&ib_view);
 			cmd_list->ExecuteIndirect(indirect_render_args_signature.Get(), 1, indirect_render_args_buffer.Get(), 0, nullptr, 0);
 
-			barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(alive_index_buffer.CounterBuffer(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+			barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(alive_index_buffer_counter.GetNative(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(indirect_render_args_buffer.Get(), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			cmd_list->ResourceBarrier(ARRAYSIZE(barriers), barriers);
 		}
@@ -552,7 +562,7 @@ namespace adria
 
 			D3D12_RESOURCE_BARRIER barriers[] =
 			{
-				CD3DX12_RESOURCE_BARRIER::Transition(alive_index_buffer.CounterBuffer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER)
+				CD3DX12_RESOURCE_BARRIER::Transition(alive_index_buffer_counter.GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER)
 			};
 			cmd_list->ResourceBarrier(ARRAYSIZE(barriers), barriers);
 
@@ -565,19 +575,19 @@ namespace adria
 			device->CopyDescriptorsSimple(1, descriptor, indirect_sort_args_uav,
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			cmd_list->SetComputeRootDescriptorTable(0, descriptor);
-			cmd_list->SetComputeRootConstantBufferView(1, alive_index_buffer.CounterBuffer()->GetGPUVirtualAddress());
+			cmd_list->SetComputeRootConstantBufferView(1, alive_index_buffer_counter.GetGPUAddress());
 			cmd_list->Dispatch(1, 1, 1);
 
 			descriptor_index = descriptor_allocator->Allocate();
 			descriptor = descriptor_allocator->GetHandle(descriptor_index);
 
-			device->CopyDescriptorsSimple(1, descriptor, alive_index_buffer.UAV(),
+			device->CopyDescriptorsSimple(1, descriptor, alive_index_buffer.GetView(UAV),
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			sort_dispatch_info_allocation = upload_buffer->Allocate(GetCBufferSize<SortDispatchInfo>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 			sort_dispatch_info_allocation.Update(SortDispatchInfo{});
 			cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_Sort));
 			cmd_list->SetComputeRootDescriptorTable(0, descriptor);
-			cmd_list->SetComputeRootConstantBufferView(1, alive_index_buffer.CounterBuffer()->GetGPUVirtualAddress());
+			cmd_list->SetComputeRootConstantBufferView(1, alive_index_buffer_counter.GetGPUAddress());
 			cmd_list->SetComputeRootConstantBufferView(2, sort_dispatch_info_allocation.gpu_address);
 
 			bool done = SortInitial(cmd_list);
@@ -590,7 +600,7 @@ namespace adria
 
 			D3D12_RESOURCE_BARRIER barriers2[] =
 			{
-				CD3DX12_RESOURCE_BARRIER::Transition(alive_index_buffer.CounterBuffer(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
+				CD3DX12_RESOURCE_BARRIER::Transition(alive_index_buffer_counter.GetNative(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
 			};
 			cmd_list->ResourceBarrier(ARRAYSIZE(barriers2), barriers2);
 		}
@@ -611,7 +621,7 @@ namespace adria
 			barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(indirect_sort_args_buffer.Get(), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			cmd_list->ResourceBarrier(ARRAYSIZE(barriers), barriers);
 
-			D3D12_RESOURCE_BARRIER uav_barrier = CD3DX12_RESOURCE_BARRIER::UAV(alive_index_buffer.Resource());
+			D3D12_RESOURCE_BARRIER uav_barrier = CD3DX12_RESOURCE_BARRIER::UAV(alive_index_buffer.GetNative());
 			cmd_list->ResourceBarrier(1, &uav_barrier);
 
 			return done;
@@ -655,7 +665,7 @@ namespace adria
 				cmd_list->SetComputeRootConstantBufferView(2, sort_dispatch_info_allocation.gpu_address);
 				cmd_list->Dispatch(num_thread_groups, 1, 1);
 
-				D3D12_RESOURCE_BARRIER uav_barrier = CD3DX12_RESOURCE_BARRIER::UAV(alive_index_buffer.Resource());
+				D3D12_RESOURCE_BARRIER uav_barrier = CD3DX12_RESOURCE_BARRIER::UAV(alive_index_buffer.GetNative());
 				cmd_list->ResourceBarrier(1, &uav_barrier);
 			}
 			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_SortInner512));

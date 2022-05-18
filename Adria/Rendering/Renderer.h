@@ -200,8 +200,9 @@ namespace adria
 		Buffer light_counter;
 		Buffer light_list;
 		Buffer light_grid;
-		std::unique_ptr<StructuredBuffer<Bokeh>> bokeh;
-		
+		std::unique_ptr<Buffer> bokeh;
+		Buffer bokeh_counter;
+
 		Texture2D sun_target;
 		std::array<DirectX::XMVECTOR, 16> ssao_kernel{};
 		DirectX::BoundingBox light_bounding_box;

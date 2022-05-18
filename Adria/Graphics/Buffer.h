@@ -102,7 +102,7 @@ namespace adria
 	}
 
 	//common
-	enum class EResourceViewType : uint8
+	enum EResourceViewType : uint8
 	{
 		SRV,
 		UAV,
@@ -193,7 +193,13 @@ namespace adria
 		desc.size = desc.stride * count;
 		return desc;
 	}
-
+	static BufferDesc CounterBufferDesc()
+	{
+		BufferDesc desc{};
+		desc.size = sizeof(uint32);
+		desc.bind_flags = EBindFlag::UnorderedAccess;
+		return desc;
+	}
 	struct BufferViewDesc
 	{
 		EResourceViewType view_type = EResourceViewType::Invalid;
@@ -305,7 +311,7 @@ namespace adria
 			}
 		}
 
-		[[nodiscard]] size_t CreateView(BufferViewDesc const& view_desc, D3D12_CPU_DESCRIPTOR_HANDLE heap_descriptor, 
+		[[maybe_unused]] size_t CreateView(BufferViewDesc const& view_desc, D3D12_CPU_DESCRIPTOR_HANDLE heap_descriptor, 
 			ID3D12Resource* uav_counter = nullptr)
 		{
 			if (uav_counter) ADRIA_ASSERT(view_desc.view_type == EResourceViewType::UAV);
