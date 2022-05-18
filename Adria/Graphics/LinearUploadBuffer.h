@@ -12,7 +12,7 @@ namespace adria
 	public:
 		LinearUploadBuffer(ID3D12Device* device, SIZE_T max_size_in_bytes);
 
-		DynamicAllocation Allocate(SIZE_T size_in_bytes, SIZE_T alignment);
+		DynamicAllocation Allocate(SIZE_T size_in_bytes, SIZE_T alignment = 0);
 
 		void Clear();
 

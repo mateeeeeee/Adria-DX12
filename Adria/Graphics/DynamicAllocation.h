@@ -23,7 +23,7 @@ namespace adria
 		OffsetType offset = 0;
 		OffsetType size = 0;
 
-		void Update(void* data, size_t size)
+		void Update(void const* data, size_t size)
 		{
 			memcpy(cpu_address, data, size);
 		}

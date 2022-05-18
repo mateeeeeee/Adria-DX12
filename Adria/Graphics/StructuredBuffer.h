@@ -135,9 +135,7 @@ namespace adria
 			srv_desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
 			device->CreateShaderResourceView(buffer.Get(), &srv_desc, handle);
-
 			srv_handle = handle;
-			
 		}
 
 		D3D12_CPU_DESCRIPTOR_HANDLE SRV() const
@@ -188,7 +186,6 @@ namespace adria
 		D3D12_CPU_DESCRIPTOR_HANDLE CounterUAV() const
 		{
 			return uav_counter_handle;
-			CD3DX12_DESCRIPTOR_RANGE  d;
 		}
 
 		ID3D12Resource* Resource() const

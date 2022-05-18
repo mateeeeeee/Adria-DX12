@@ -550,6 +550,9 @@
     <ClInclude Include="RenderGraph\RenderGraphResources.h">
       <Filter>RenderGraph</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\Buffer.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
