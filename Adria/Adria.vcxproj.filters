@@ -538,6 +538,12 @@
     <ClInclude Include="Graphics\Buffer.h">
       <Filter>Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\Texture.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\ResourceCommon.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
