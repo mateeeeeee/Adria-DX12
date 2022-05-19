@@ -4360,7 +4360,6 @@ namespace adria
 		sun_barrier.AddTransition(depth_target->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		sun_barrier.Submit(cmd_list);
 
-
 		D3D12_CPU_DESCRIPTOR_HANDLE rtv = sun_target->RTV();
 		D3D12_CPU_DESCRIPTOR_HANDLE dsv = depth_target->DSV();
 		float32 black[4] = { 0.0f };
