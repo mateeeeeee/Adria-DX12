@@ -29,11 +29,10 @@ namespace adria
 
 	struct TextureViewDesc
 	{
-		EResourceViewType view_type = EResourceViewType::Invalid;
 		uint32 first_slice = 0;
-		uint32 slice_count = 1;
+		uint32 slice_count = -1;
 		uint32 first_mip = 0;
-		uint32 mip_count = 1;
+		uint32 mip_count = -1;
 		std::optional<DXGI_FORMAT> new_format = std::nullopt;
 	};
 
@@ -46,10 +45,10 @@ namespace adria
 		{
 			HRESULT hr = E_FAIL;
 
-			D3D12MA::ALLOCATION_DESC allocation_desc = {};
+			D3D12MA::ALLOCATION_DESC allocation_desc{};
 			allocation_desc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 
-			D3D12_RESOURCE_DESC resource_desc;
+			D3D12_RESOURCE_DESC resource_desc{};
 			resource_desc.Format = desc.format;
 			resource_desc.Width = desc.width;
 			resource_desc.Height = desc.height;
@@ -187,7 +186,76 @@ namespace adria
 			}
 		}
 
-		[[maybe_unused]] size_t CreateView(TextureViewDesc const& view_desc, D3D12_CPU_DESCRIPTOR_HANDLE descriptor)
+		[[maybe_unused]] size_t CreateSRV(TextureViewDesc const& desc, D3D12_CPU_DESCRIPTOR_HANDLE descriptor)
+		{
+			return CreateView(EResourceViewType::SRV, desc, descriptor);
+		}
+		[[maybe_unused]] size_t CreateUAV(TextureViewDesc const& desc, D3D12_CPU_DESCRIPTOR_HANDLE descriptor)
+		{
+			return CreateView(EResourceViewType::UAV, desc, descriptor);
+		}
+		[[maybe_unused]] size_t CreateRTV(TextureViewDesc const& desc, D3D12_CPU_DESCRIPTOR_HANDLE descriptor)
+		{
+			return CreateView(EResourceViewType::RTV, desc, descriptor);
+		}
+		[[maybe_unused]] size_t CreateDSV(TextureViewDesc const& desc, D3D12_CPU_DESCRIPTOR_HANDLE descriptor)
+		{
+			return CreateView(EResourceViewType::DSV, desc, descriptor);
+		}
+		D3D12_CPU_DESCRIPTOR_HANDLE SRV(size_t i = 0) const { return GetView(EResourceViewType::SRV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE UAV(size_t i = 0) const { return GetView(EResourceViewType::UAV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE RTV(size_t i = 0) const { return GetView(EResourceViewType::RTV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE DSV(size_t i = 0) const { return GetView(EResourceViewType::DSV, i); }
+
+		bool IsMapped() const { return mapped_data != nullptr; }
+		void* GetMappedData() const { return mapped_data; }
+		template<typename T>
+		T* GetMappedData() const { return reinterpret_cast<T*>(mapped_data); }
+		void* Map()
+		{
+			HRESULT hr;
+			if (desc.heap_type == EHeapType::Readback)
+			{
+				hr = resource->Map(0, nullptr, &mapped_data);
+				BREAK_IF_FAILED(hr);
+				mapped_rowpitch = static_cast<uint32_t>(footprint.Footprint.RowPitch);
+			}
+			else if (desc.heap_type == EHeapType::Upload)
+			{
+				D3D12_RANGE read_range{};
+				hr = resource->Map(0, &read_range, &mapped_data);
+				BREAK_IF_FAILED(hr);
+				mapped_rowpitch = static_cast<uint32>(footprint.Footprint.RowPitch);
+			}
+			return mapped_data;
+		}
+		void Unmap()
+		{
+			resource->Unmap(0, nullptr);
+		}
+
+		uint32 GetMappedRowPitch() const { return mapped_rowpitch; }
+		D3D12_GPU_VIRTUAL_ADDRESS GetGPUAddress() const { return resource->GetGPUVirtualAddress(); }
+		ID3D12Resource* GetNative() const { return resource.Get(); }
+		TextureDesc const& GetDesc() const { return desc; }
+
+	private:
+		Microsoft::WRL::ComPtr<ID3D12Resource> resource;
+		TextureDesc desc;
+		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> srvs;
+		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> uavs;
+		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> rtvs;
+		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> dsvs;
+
+		ReleasablePtr<D3D12MA::Allocation> allocation = nullptr;
+		D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint{};
+
+		void* mapped_data = nullptr;
+		uint32 mapped_rowpitch = 0;
+
+	private:
+
+		[[maybe_unused]] size_t CreateView(EResourceViewType view_type, TextureViewDesc const& view_desc, D3D12_CPU_DESCRIPTOR_HANDLE descriptor)
 		{
 			DXGI_FORMAT format = GetDesc().format;
 			if (view_desc.new_format.has_value())
@@ -197,7 +265,7 @@ namespace adria
 			ID3D12Device* device;
 			resource->GetDevice(IID_PPV_ARGS(&device));
 
-			switch (view_desc.view_type)
+			switch (view_type)
 			{
 			case EResourceViewType::SRV:
 			{
@@ -524,7 +592,6 @@ namespace adria
 			}
 			return -1;
 		}
-
 		D3D12_CPU_DESCRIPTOR_HANDLE GetView(EResourceViewType type, size_t index = 0) const
 		{
 			switch (type)
@@ -546,56 +613,6 @@ namespace adria
 			}
 			return { .ptr = NULL };
 		}
-		D3D12_CPU_DESCRIPTOR_HANDLE SRV(size_t i = 0) const { return GetView(EResourceViewType::SRV, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE UAV(size_t i = 0) const { return GetView(EResourceViewType::UAV, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE RTV(size_t i = 0) const { return GetView(EResourceViewType::RTV, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE DSV(size_t i = 0) const { return GetView(EResourceViewType::DSV, i); }
 
-		ID3D12Resource* GetNative() const { return resource.Get(); }
-		TextureDesc const& GetDesc() const { return desc; }
-
-		void* GetMappedData() const { return mapped_data; }
-		template<typename T>
-		T* GetMappedData() const { return reinterpret_cast<T*>(mapped_data); }
-
-		void* Map()
-		{
-			HRESULT hr;
-			if (desc.heap_type == EHeapType::Readback)
-			{
-				hr = resource->Map(0, nullptr, &mapped_data);
-				BREAK_IF_FAILED(hr);
-				mapped_rowpitch = static_cast<uint32_t>(footprint.Footprint.RowPitch);
-			}
-			else if (desc.heap_type == EHeapType::Upload)
-			{
-				D3D12_RANGE read_range{};
-				hr = resource->Map(0, &read_range, &mapped_data);
-				BREAK_IF_FAILED(hr);
-				mapped_rowpitch = static_cast<uint32>(footprint.Footprint.RowPitch);
-			}
-			return mapped_data;
-		}
-		void Unmap()
-		{
-			resource->Unmap(0, nullptr);
-		}
-
-		uint32 GetMappedRowPitch() const { return mapped_rowpitch; }
-		D3D12_GPU_VIRTUAL_ADDRESS GetGPUAddress() const { return resource->GetGPUVirtualAddress(); }
-
-	private:
-		Microsoft::WRL::ComPtr<ID3D12Resource> resource;
-		TextureDesc desc;
-		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> srvs;
-		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> uavs;
-		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> rtvs;
-		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> dsvs;
-
-		ReleasablePtr<D3D12MA::Allocation> allocation = nullptr;
-		D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint{};
-
-		void* mapped_data = nullptr;
-		uint32 mapped_rowpitch = 0;
 	};
 }

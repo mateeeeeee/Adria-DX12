@@ -31,9 +31,7 @@ namespace adria
 
 		void CreateView(D3D12_CPU_DESCRIPTOR_HANDLE uav_handle)
 		{
-			BufferViewDesc uav_desc{};
-			uav_desc.view_type = EResourceViewType::UAV;
-			write_picking_buffer.CreateView(uav_desc, uav_handle);
+			write_picking_buffer.CreateUAV(uav_handle);
 		}
 
 		void Pick(ID3D12GraphicsCommandList4* cmd_list, 
@@ -61,7 +59,7 @@ namespace adria
 
 			descriptor_index = descriptor_allocator->Allocate();
 			dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-			device->CopyDescriptorsSimple(1, dst_descriptor, write_picking_buffer.GetView(EResourceViewType::UAV), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			device->CopyDescriptorsSimple(1, dst_descriptor, write_picking_buffer.UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			cmd_list->SetComputeRootDescriptorTable(2, dst_descriptor);
 
 			ResourceBarrierBatch barrier_batch{};

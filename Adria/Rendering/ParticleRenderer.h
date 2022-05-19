@@ -304,20 +304,17 @@ namespace adria
 				uint32 heap_index = 0;
 				random_texture.CreateSRV(particle_heap->GetHandle(heap_index++));
 
-				BufferViewDesc view_desc{};
-				view_desc.view_type = EResourceViewType::SRV;
-				particle_bufferA.CreateView(view_desc, particle_heap->GetHandle(heap_index++));
-				particle_bufferB.CreateView(view_desc, particle_heap->GetHandle(heap_index++));
-				view_space_positions_buffer.CreateView(view_desc, particle_heap->GetHandle(heap_index++));
-				alive_index_buffer.CreateView(view_desc, particle_heap->GetHandle(heap_index++));
+				particle_bufferA.CreateSRV(particle_heap->GetHandle(heap_index++));
+				particle_bufferB.CreateSRV(particle_heap->GetHandle(heap_index++));
+				view_space_positions_buffer.CreateSRV(particle_heap->GetHandle(heap_index++));
+				alive_index_buffer.CreateSRV(particle_heap->GetHandle(heap_index++));
 
-				view_desc.view_type = EResourceViewType::UAV;
-				dead_list_buffer.CreateView(view_desc, particle_heap->GetHandle(heap_index++),
+				dead_list_buffer.CreateUAV(particle_heap->GetHandle(heap_index++),
 					dead_list_buffer_counter.GetNative());
-				particle_bufferA.CreateView(view_desc, particle_heap->GetHandle(heap_index++));
-				particle_bufferB.CreateView(view_desc, particle_heap->GetHandle(heap_index++));
-				view_space_positions_buffer.CreateView(view_desc, particle_heap->GetHandle(heap_index++));
-				alive_index_buffer.CreateView(view_desc, particle_heap->GetHandle(heap_index++), 
+				particle_bufferA.CreateUAV(particle_heap->GetHandle(heap_index++));
+				particle_bufferB.CreateUAV(particle_heap->GetHandle(heap_index++));
+				view_space_positions_buffer.CreateUAV(particle_heap->GetHandle(heap_index++));
+				alive_index_buffer.CreateUAV(particle_heap->GetHandle(heap_index++),
 					alive_index_buffer_counter.GetNative());
 
 				D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
@@ -540,11 +537,7 @@ namespace adria
 
 			cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			cmd_list->IASetVertexBuffers(0, 0, nullptr);
-			D3D12_INDEX_BUFFER_VIEW ib_view{};
-			ib_view.BufferLocation = index_buffer->GetGPUAddress();
-			ib_view.Format = index_buffer->GetDesc().format;
-			ib_view.SizeInBytes = index_buffer->GetDesc().size;
-			cmd_list->IASetIndexBuffer(&ib_view);
+			BindIndexBuffer(cmd_list, index_buffer.get());
 			cmd_list->ExecuteIndirect(indirect_render_args_signature.Get(), 1, indirect_render_args_buffer.Get(), 0, nullptr, 0);
 
 			barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(alive_index_buffer_counter.GetNative(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);

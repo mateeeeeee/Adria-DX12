@@ -232,7 +232,7 @@ namespace adria
 				{
 					// access to vertex
 					tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
-					indices.push_back(index_offset + v);
+					indices.push_back((uint32)(index_offset + v));
 
 					TexturedNormalVertex vertex{};
 					tinyobj::real_t vx = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
@@ -355,18 +355,18 @@ namespace adria
 			else
 			{
 				XMMATRIX translation = XMMatrixIdentity();
-				if (node.translation.size() == 3) translation = XMMatrixTranslation(node.translation[0], node.translation[1], node.translation[2]);
+				if (node.translation.size() == 3) translation = XMMatrixTranslation((float)node.translation[0], (float)node.translation[1], (float)node.translation[2]);
 
 				XMMATRIX rotation = XMMatrixIdentity();
 				if (node.rotation.size() == 4)
 				{
-					float quat_arr[4] = { node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3] };
+					float quat_arr[4] = { (float)node.rotation[0], (float)node.rotation[1], (float)node.rotation[2], (float)node.rotation[3] };
 					XMFLOAT4 quat(quat_arr);
 					rotation = XMMatrixRotationQuaternion(XMLoadFloat4(&quat));
 				}
 
 				XMMATRIX scale = XMMatrixIdentity();
-				if (node.scale.size() == 3) scale = XMMatrixScaling(node.scale[0], node.scale[1], node.scale[2]);
+				if (node.scale.size() == 3) scale = XMMatrixScaling((float)node.scale[0], (float)node.scale[1], (float)node.scale[2]);
 
 				transform = scale * rotation * translation;
 			}
@@ -574,7 +574,7 @@ namespace adria
 
 		for (size_t i = 0; i < scene.nodes.size(); ++i)
 		{
-			load_node(i, params.model_matrix);
+			load_node((int)i, params.model_matrix);
 		}
 
 		BufferDesc vb_desc{

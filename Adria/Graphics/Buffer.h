@@ -65,7 +65,6 @@ namespace adria
 
 	struct BufferViewDesc
 	{
-		EResourceViewType view_type = EResourceViewType::Invalid;
 		uint64 offset = 0;
 		uint64 size = uint64(-1);
 		std::optional<DXGI_FORMAT> new_format;
@@ -178,15 +177,102 @@ namespace adria
 			}
 		}
 
-		[[maybe_unused]] size_t CreateView(BufferViewDesc const& view_desc, D3D12_CPU_DESCRIPTOR_HANDLE heap_descriptor, 
+		D3D12_CPU_DESCRIPTOR_HANDLE SRV(size_t i = 0) const { return GetView(EResourceViewType::SRV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE UAV(size_t i = 0) const { return GetView(EResourceViewType::UAV, i); }
+
+		[[maybe_unused]] size_t CreateSRV(D3D12_CPU_DESCRIPTOR_HANDLE descriptor, BufferViewDesc const* desc = nullptr)
+		{
+			BufferViewDesc _desc = desc ? *desc : BufferViewDesc{};
+			return CreateView(EResourceViewType::SRV, _desc, descriptor, nullptr);
+		}
+
+		[[maybe_unused]] size_t CreateUAV(D3D12_CPU_DESCRIPTOR_HANDLE descriptor,
+			ID3D12Resource* uav_counter = nullptr, BufferViewDesc const* desc = nullptr)
+		{
+			BufferViewDesc _desc = desc ? *desc : BufferViewDesc{};
+			return CreateView(EResourceViewType::UAV, _desc, descriptor, uav_counter);
+		}
+
+		bool IsMapped() const { return mapped_data != nullptr; }
+		void* GetMappedData() const { return mapped_data; }
+		template<typename T>
+		T* GetMappedData() const { return reinterpret_cast<T*>(mapped_data); }
+		[[maybe_unused]] void* Map()
+		{
+			if (mapped_data) return mapped_data;
+
+			HRESULT hr;
+			if (desc.heap_type == EHeapType::Readback)
+			{
+				hr = resource->Map(0, nullptr, &mapped_data);
+				BREAK_IF_FAILED(hr);
+				mapped_rowpitch = static_cast<uint32_t>(desc.size);
+			}
+			else if (desc.heap_type == EHeapType::Upload)
+			{
+				D3D12_RANGE read_range{};
+				hr = resource->Map(0, &read_range, &mapped_data);
+				BREAK_IF_FAILED(hr);
+				mapped_rowpitch = static_cast<uint32>(desc.size);
+			}
+			return mapped_data;
+		}
+		void Unmap()
+		{
+			resource->Unmap(0, nullptr);
+		}
+		void Update(void const* src_data, size_t data_size)
+		{
+			ADRIA_ASSERT(desc.heap_type == EHeapType::Upload);
+			if (mapped_data)
+			{
+				memcpy(mapped_data, src_data, data_size);
+			}
+			else
+			{
+				Map();
+				ADRIA_ASSERT(mapped_data);
+				memcpy(mapped_data, src_data, data_size);
+			}
+		}
+		template<typename T>
+		void Update(T const& src_data)
+		{
+			Update(&src_data, sizeof(T));
+		}
+
+		ID3D12Resource* GetNative() const { return resource.Get(); }
+		BufferDesc const& GetDesc() const { return desc; }
+		UINT GetMappedRowPitch() const { return mapped_rowpitch; }
+		D3D12_GPU_VIRTUAL_ADDRESS GetGPUAddress() const { return resource->GetGPUVirtualAddress(); }
+		UINT GetCount() const
+		{
+			ADRIA_ASSERT(desc.stride != 0);
+			return static_cast<UINT>(desc.size / desc.stride);
+		}
+	private:
+		Microsoft::WRL::ComPtr<ID3D12Resource> resource;
+		BufferDesc desc;
+		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> srvs;
+		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> uavs;
+
+		ReleasablePtr<D3D12MA::Allocation> allocation = nullptr;
+		D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
+
+		void* mapped_data = nullptr;
+		uint32 mapped_rowpitch = 0;
+
+	private:
+
+		size_t CreateView(EResourceViewType view_type, BufferViewDesc const& view_desc, D3D12_CPU_DESCRIPTOR_HANDLE heap_descriptor,
 			ID3D12Resource* uav_counter = nullptr)
 		{
-			if (uav_counter) ADRIA_ASSERT(view_desc.view_type == EResourceViewType::UAV);
+			if (uav_counter) ADRIA_ASSERT(view_type == EResourceViewType::UAV);
 
 			DXGI_FORMAT format = desc.format;
 			if (view_desc.new_format.has_value()) format = view_desc.new_format.value();
 
-			switch (view_desc.view_type)
+			switch (view_type)
 			{
 			case EResourceViewType::SRV:
 			{
@@ -276,7 +362,9 @@ namespace adria
 			default:
 				ADRIA_ASSERT(false && "Buffer View can only be UAV or SRV!");
 			}
+			return -1;
 		}
+
 		D3D12_CPU_DESCRIPTOR_HANDLE GetView(EResourceViewType type, size_t index = 0) const
 		{
 			switch (type)
@@ -292,56 +380,25 @@ namespace adria
 			default:
 				ADRIA_ASSERT(false && "Invalid view type for buffer!");
 			}
-			return {.ptr = NULL};
+			return { .ptr = NULL };
 		}
-		D3D12_CPU_DESCRIPTOR_HANDLE SRV(size_t i = 0) const { return GetView(EResourceViewType::SRV, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE UAV(size_t i = 0) const { return GetView(EResourceViewType::UAV, i); }
-
-		ID3D12Resource* GetNative() const { return resource.Get(); }
-		BufferDesc const& GetDesc() const { return desc; }
-
-		void* GetMappedData() const { return mapped_data; }
-		template<typename T>
-		T* GetMappedData() const { return reinterpret_cast<T*>(mapped_data); }
-
-		void* Map()
-		{
-			HRESULT hr;
-			if (desc.heap_type == EHeapType::Readback)
-			{
-				hr = resource->Map(0, nullptr, &mapped_data);
-				BREAK_IF_FAILED(hr);
-				mapped_rowpitch = static_cast<uint32_t>(desc.size);
-			}
-			else if (desc.heap_type == EHeapType::Upload)
-			{
-				D3D12_RANGE read_range{};
-				hr = resource->Map(0, &read_range, &mapped_data);
-				BREAK_IF_FAILED(hr);
-				mapped_rowpitch = static_cast<uint32>(desc.size);
-			}
-			return mapped_data;
-		}
-		void Unmap()
-		{
-			resource->Unmap(0, nullptr);
-		}
-
-		uint32 GetMappedRowPitch() const { return mapped_rowpitch; }
-		D3D12_GPU_VIRTUAL_ADDRESS GetGPUAddress() const { return resource->GetGPUVirtualAddress(); }
-
-	private:
-		Microsoft::WRL::ComPtr<ID3D12Resource> resource;
-		BufferDesc desc;
-		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> srvs;
-		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> uavs;
-
-		ReleasablePtr<D3D12MA::Allocation> allocation = nullptr;
-		D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
-
-		void* mapped_data = nullptr;
-		uint32 mapped_rowpitch = 0;
-
 	};
+
+	inline void BindVertexBuffer(ID3D12GraphicsCommandList* cmd_list, Buffer const* vertex_buffer)
+	{
+		D3D12_VERTEX_BUFFER_VIEW vb_view{};
+		vb_view.BufferLocation = vertex_buffer->GetGPUAddress();
+		vb_view.SizeInBytes = (UINT)vertex_buffer->GetDesc().size;
+		vb_view.StrideInBytes = vertex_buffer->GetDesc().stride;
+		cmd_list->IASetVertexBuffers(0, 1, &vb_view);
+	}
+	inline void BindIndexBuffer(ID3D12GraphicsCommandList* cmd_list, Buffer const* index_buffer)
+	{
+		D3D12_INDEX_BUFFER_VIEW ib_view{};
+		ib_view.BufferLocation = index_buffer->GetGPUAddress();
+		ib_view.Format = index_buffer->GetDesc().format;
+		ib_view.SizeInBytes = (UINT)index_buffer->GetDesc().size;
+		cmd_list->IASetIndexBuffer(&ib_view);
+	}
 
 }

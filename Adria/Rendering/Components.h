@@ -43,21 +43,10 @@ namespace adria
 		void Draw(ID3D12GraphicsCommandList* cmd_list) const
 		{
 			cmd_list->IASetPrimitiveTopology(topology);
-
-			D3D12_VERTEX_BUFFER_VIEW vb_view{};
-			vb_view.BufferLocation = vertex_buffer->GetGPUAddress();
-			vb_view.SizeInBytes = vertex_buffer->GetDesc().size;
-			vb_view.StrideInBytes = vertex_buffer->GetDesc().stride;
-
-			cmd_list->IASetVertexBuffers(0, 1, &vb_view);
-
+			BindVertexBuffer(cmd_list, vertex_buffer.get());
 			if (index_buffer)
 			{
-				D3D12_INDEX_BUFFER_VIEW ib_view{};
-				ib_view.BufferLocation = index_buffer->GetGPUAddress();
-				ib_view.Format = index_buffer->GetDesc().format;
-				ib_view.SizeInBytes = index_buffer->GetDesc().size;
-				cmd_list->IASetIndexBuffer(&ib_view);
+				BindIndexBuffer(cmd_list, index_buffer.get());
 				cmd_list->DrawIndexedInstanced(indices_count, instance_count, start_index_location, base_vertex_location, start_instance_location);
 			}
 			else cmd_list->DrawInstanced(vertex_count, instance_count, start_vertex_location, start_instance_location);
@@ -66,21 +55,10 @@ namespace adria
 		void Draw(ID3D12GraphicsCommandList* cmd_list, D3D12_PRIMITIVE_TOPOLOGY override_topology) const
 		{
 			cmd_list->IASetPrimitiveTopology(override_topology);
-
-			D3D12_VERTEX_BUFFER_VIEW vb_view{};
-			vb_view.BufferLocation = vertex_buffer->GetGPUAddress();
-			vb_view.SizeInBytes = vertex_buffer->GetDesc().size;
-			vb_view.StrideInBytes = vertex_buffer->GetDesc().stride;
-
-			cmd_list->IASetVertexBuffers(0, 1, &vb_view);
-
+			BindVertexBuffer(cmd_list, vertex_buffer.get());
 			if (index_buffer)
 			{
-				D3D12_INDEX_BUFFER_VIEW ib_view{};
-				ib_view.BufferLocation = index_buffer->GetGPUAddress();
-				ib_view.Format = index_buffer->GetDesc().format;
-				ib_view.SizeInBytes = index_buffer->GetDesc().size;
-				cmd_list->IASetIndexBuffer(&ib_view);
+				BindIndexBuffer(cmd_list, index_buffer.get());
 				cmd_list->DrawIndexedInstanced(indices_count, instance_count, start_index_location, base_vertex_location, start_instance_location);
 			}
 			else cmd_list->DrawInstanced(vertex_count, instance_count, start_vertex_location, start_instance_location);

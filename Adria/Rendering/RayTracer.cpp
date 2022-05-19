@@ -246,8 +246,8 @@ namespace adria
 		global_vb = std::make_unique<Buffer>(gfx, vb_desc, RayTracing::rt_vertices.data());
 		global_ib = std::make_unique<Buffer>(gfx, ib_desc, RayTracing::rt_indices.data());
 
-		UINT const vertex_count = RayTracing::rt_vertices.size();
-		UINT const index_count = RayTracing::rt_indices.size();
+		UINT const vertex_count = static_cast<UINT>(RayTracing::rt_vertices.size());
+		UINT const index_count = static_cast<UINT>(RayTracing::rt_indices.size());
 
 		size_t current_handle_index = 0;
 
@@ -265,9 +265,7 @@ namespace adria
 		srv_desc.Buffer.NumElements = index_count;
 		device->CreateShaderResourceView(global_ib->GetNative(), &srv_desc, dxr_heap->GetHandle(current_handle_index++));
 
-		BufferViewDesc view_desc{};
-		view_desc.view_type = EResourceViewType::SRV;
-		geo_info_sb->CreateView(view_desc, dxr_heap->GetHandle(current_handle_index++));
+		geo_info_sb->CreateSRV(dxr_heap->GetHandle(current_handle_index++));
 
 		texture2d_desc_t uav_target_desc{};
 		uav_target_desc.width = width;

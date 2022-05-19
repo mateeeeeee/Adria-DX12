@@ -987,11 +987,8 @@ namespace adria
 		//bokeh
 		{
 			bokeh = std::make_unique<Buffer>(gfx, StructuredBufferDesc<Bokeh>(width * height));
-			BufferViewDesc view_desc{};
-			view_desc.view_type = EResourceViewType::SRV;
-			bokeh->CreateView(view_desc, srv_heap->GetHandle(srv_heap_index++));
-			view_desc.view_type = EResourceViewType::UAV;
-			bokeh->CreateView(view_desc, uav_heap->GetHandle(uav_heap_index++), bokeh_counter.GetNative());
+			bokeh->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
+			bokeh->CreateUAV(uav_heap->GetHandle(uav_heap_index++), bokeh_counter.GetNative());
 		}
 		
 		//velocity buffer
@@ -1166,20 +1163,15 @@ namespace adria
 
 		//clustered deferred
 		{
+			light_counter.CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
+			light_list.CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
+			clusters.CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
+			light_grid.CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
 
-
-			BufferViewDesc view_desc{};
-			view_desc.view_type = EResourceViewType::SRV;
-			light_counter.CreateView(view_desc, constant_srv_heap->GetHandle(srv_heap_index++));
-			light_list.CreateView(view_desc, constant_srv_heap->GetHandle(srv_heap_index++));
-			clusters.CreateView(view_desc, constant_srv_heap->GetHandle(srv_heap_index++));
-			light_grid.CreateView(view_desc, constant_srv_heap->GetHandle(srv_heap_index++));
-
-			view_desc.view_type = EResourceViewType::UAV;
-			light_counter.CreateView(view_desc, constant_uav_heap->GetHandle(uav_heap_index++));
-			light_list.CreateView(view_desc, constant_uav_heap->GetHandle(uav_heap_index++));
-			clusters.CreateView(view_desc, constant_uav_heap->GetHandle(uav_heap_index++));
-			light_grid.CreateView(view_desc, constant_uav_heap->GetHandle(uav_heap_index++));
+			light_counter.CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
+			light_list.CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
+			clusters.CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
+			light_grid.CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
 		}
 
 		picker.CreateView(constant_uav_heap->GetHandle(uav_heap_index++));
@@ -2312,20 +2304,9 @@ namespace adria
 					cmd_list->SetGraphicsRootDescriptorTable(3, dst_descriptor);
 
 					cmd_list->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-					D3D12_VERTEX_BUFFER_VIEW vb_view{};
-					vb_view.BufferLocation = cube_vb->GetGPUAddress();
-					vb_view.SizeInBytes = cube_vb->GetDesc().size;
-					vb_view.StrideInBytes = cube_vb->GetDesc().stride;
-					cmd_list->IASetVertexBuffers(0, 1, &vb_view);
-
-					D3D12_INDEX_BUFFER_VIEW ib_view{};
-					ib_view.BufferLocation = cube_ib->GetGPUAddress();
-					ib_view.Format = cube_ib->GetDesc().format;
-					ib_view.SizeInBytes = cube_ib->GetDesc().size;
-					cmd_list->IASetIndexBuffer(&ib_view);
-					uint32 const index_count = cube_ib->GetDesc().size / cube_ib->GetDesc().stride;
-					cmd_list->DrawIndexedInstanced(index_count, 1, 0, 0, 0);
+					BindVertexBuffer(cmd_list, cube_vb.get());
+					BindIndexBuffer(cmd_list, cube_ib.get());
+					cmd_list->DrawIndexedInstanced(cube_ib->GetCount(), 1, 0, 0, 0);
 				}
 			};
 			decal_pass_lambda(false);
@@ -3531,19 +3512,9 @@ namespace adria
 		}
 
 		cmd_list->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		D3D12_VERTEX_BUFFER_VIEW vb_view{};
-		vb_view.BufferLocation = cube_vb->GetGPUAddress();
-		vb_view.SizeInBytes = cube_vb->GetDesc().size;
-		vb_view.StrideInBytes = cube_vb->GetDesc().stride;
-		cmd_list->IASetVertexBuffers(0, 1, &vb_view);
-
-		D3D12_INDEX_BUFFER_VIEW ib_view{};
-		ib_view.BufferLocation = cube_ib->GetGPUAddress();
-		ib_view.Format = cube_ib->GetDesc().format;
-		ib_view.SizeInBytes = cube_ib->GetDesc().size;
-		cmd_list->IASetIndexBuffer(&ib_view);
-		uint32 const index_count = cube_ib->GetDesc().size / cube_ib->GetDesc().stride;
-		cmd_list->DrawIndexedInstanced(index_count, 1, 0, 0, 0);
+		BindVertexBuffer(cmd_list, cube_vb.get());
+		BindIndexBuffer(cmd_list, cube_ib.get());
+		cmd_list->DrawIndexedInstanced(cube_ib->GetCount(), 1, 0, 0, 0);
 	}
 	void Renderer::UpdateOcean(ID3D12GraphicsCommandList4* cmd_list)
 	{
