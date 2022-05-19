@@ -846,7 +846,6 @@
     <None Include="Resources\Shaders\Util\CBuffers.hlsli">
       <Filter>Shaders\Util</Filter>
     </None>
-    <None Include="packages.config" />
     <None Include="Resources\Shaders\Util\RayTracingUtil.hlsli">
       <Filter>Shaders\Util</Filter>
     </None>
@@ -857,5 +856,6 @@
       <Filter>Shaders\Particles</Filter>
     </None>
     <None Include="scene.json" />
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
