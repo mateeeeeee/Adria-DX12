@@ -174,6 +174,7 @@ namespace adria
 			}
 
 		}
+
 		Texture(Texture const&) = delete;
 		Texture& operator=(Texture const&) = delete;
 		~Texture()
@@ -186,21 +187,25 @@ namespace adria
 			}
 		}
 
-		[[maybe_unused]] size_t CreateSRV(TextureViewDesc const& desc, D3D12_CPU_DESCRIPTOR_HANDLE descriptor)
+		[[maybe_unused]] size_t CreateSRV(D3D12_CPU_DESCRIPTOR_HANDLE descriptor, TextureViewDesc const* desc = nullptr)
 		{
-			return CreateView(EResourceViewType::SRV, desc, descriptor);
+			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
+			return CreateView(EResourceViewType::SRV, _desc, descriptor);
 		}
-		[[maybe_unused]] size_t CreateUAV(TextureViewDesc const& desc, D3D12_CPU_DESCRIPTOR_HANDLE descriptor)
+		[[maybe_unused]] size_t CreateUAV(D3D12_CPU_DESCRIPTOR_HANDLE descriptor, TextureViewDesc const* desc = nullptr)
 		{
-			return CreateView(EResourceViewType::UAV, desc, descriptor);
+			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
+			return CreateView(EResourceViewType::UAV, _desc, descriptor);
 		}
-		[[maybe_unused]] size_t CreateRTV(TextureViewDesc const& desc, D3D12_CPU_DESCRIPTOR_HANDLE descriptor)
+		[[maybe_unused]] size_t CreateRTV(D3D12_CPU_DESCRIPTOR_HANDLE descriptor, TextureViewDesc const* desc = nullptr)
 		{
-			return CreateView(EResourceViewType::RTV, desc, descriptor);
+			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
+			return CreateView(EResourceViewType::RTV, _desc, descriptor);
 		}
-		[[maybe_unused]] size_t CreateDSV(TextureViewDesc const& desc, D3D12_CPU_DESCRIPTOR_HANDLE descriptor)
+		[[maybe_unused]] size_t CreateDSV(D3D12_CPU_DESCRIPTOR_HANDLE descriptor, TextureViewDesc const* desc = nullptr)
 		{
-			return CreateView(EResourceViewType::DSV, desc, descriptor);
+			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
+			return CreateView(EResourceViewType::DSV, _desc, descriptor);
 		}
 		D3D12_CPU_DESCRIPTOR_HANDLE SRV(size_t i = 0) const { return GetView(EResourceViewType::SRV, i); }
 		D3D12_CPU_DESCRIPTOR_HANDLE UAV(size_t i = 0) const { return GetView(EResourceViewType::UAV, i); }
