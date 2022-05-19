@@ -76,7 +76,7 @@ namespace adria
 		ray_tracing_cbuffer.Update(ray_tracing_cbuf_data, gfx->BackbufferIndex());
 	}
 
-	void RayTracer::RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth,
+	void RayTracer::RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture const& depth,
 		D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address,
 		D3D12_GPU_VIRTUAL_ADDRESS light_cbuf_address, bool soft_shadows)
 	{
@@ -87,7 +87,7 @@ namespace adria
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 		ResourceBarrierBatch rts_barrier{};
-		rts_barrier.AddTransition(rt_shadows_output.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		rts_barrier.AddTransition(rt_shadows_output->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		rts_barrier.Submit(cmd_list);
 
 		cmd_list->SetComputeRootSignature(rt_shadows_root_signature.Get());
@@ -104,7 +104,7 @@ namespace adria
 
 		descriptor_index = descriptor_allocator->AllocateRange(1);
 		dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-		device->CopyDescriptorsSimple(1, dst_descriptor, rt_shadows_output.UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		device->CopyDescriptorsSimple(1, dst_descriptor, rt_shadows_output->UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		cmd_list->SetComputeRootDescriptorTable(5, dst_descriptor);
 		cmd_list->SetPipelineState1(rt_shadows_state_object.Get());
 
@@ -123,7 +123,7 @@ namespace adria
 
 	}
 
-	void RayTracer::RayTraceAmbientOcclusion(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth, Texture2D const& normal_gbuf,
+	void RayTracer::RayTraceAmbientOcclusion(ID3D12GraphicsCommandList4* cmd_list, Texture const& depth, Texture const& normal_gbuf,
 		D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address)
 	{
 		if (!IsSupported()) return;
@@ -133,7 +133,7 @@ namespace adria
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 		ResourceBarrierBatch rtao_barrier{};
-		rtao_barrier.AddTransition(rtao_output.Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		rtao_barrier.AddTransition(rtao_output->GetNative(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		rtao_barrier.Submit(cmd_list);
 
 		cmd_list->SetComputeRootSignature(rtao_root_signature.Get());
@@ -150,7 +150,7 @@ namespace adria
 
 		descriptor_index = descriptor_allocator->AllocateRange(1);
 		dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-		device->CopyDescriptorsSimple(1, dst_descriptor, rtao_output.UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		device->CopyDescriptorsSimple(1, dst_descriptor, rtao_output->UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		cmd_list->SetComputeRootDescriptorTable(4, dst_descriptor);
 		cmd_list->SetPipelineState1(rtao_state_object.Get());
 
@@ -168,7 +168,7 @@ namespace adria
 		rtao_barrier.Submit(cmd_list);
 	}
 
-	void RayTracer::RayTraceReflections(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth, 
+	void RayTracer::RayTraceReflections(ID3D12GraphicsCommandList4* cmd_list, Texture const& depth, 
 		 D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address, D3D12_CPU_DESCRIPTOR_HANDLE envmap_handle)
 	{
 		if (ray_tracing_tier < D3D12_RAYTRACING_TIER_1_1)
@@ -181,8 +181,8 @@ namespace adria
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 		ResourceBarrierBatch rtr_barrier{};
-		rtr_barrier.AddTransition(rtr_output.Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-		rtr_barrier.AddTransition(depth.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		rtr_barrier.AddTransition(rtr_output->GetNative(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		rtr_barrier.AddTransition(depth.GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 		rtr_barrier.Submit(cmd_list);
 
 		cmd_list->SetComputeRootSignature(rtr_root_signature.Get());
@@ -199,7 +199,7 @@ namespace adria
 
 		descriptor_index = descriptor_allocator->AllocateRange(1);
 		dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-		device->CopyDescriptorsSimple(1, dst_descriptor, rtr_output.UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		device->CopyDescriptorsSimple(1, dst_descriptor, rtr_output->UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		cmd_list->SetComputeRootDescriptorTable(4, dst_descriptor);
 		cmd_list->SetComputeRootDescriptorTable(5, descriptor_allocator->GetFirstHandle());
 
@@ -264,29 +264,28 @@ namespace adria
 		srv_desc.Buffer.StructureByteStride = sizeof(uint32);
 		srv_desc.Buffer.NumElements = index_count;
 		device->CreateShaderResourceView(global_ib->GetNative(), &srv_desc, dxr_heap->GetHandle(current_handle_index++));
-
 		geo_info_sb->CreateSRV(dxr_heap->GetHandle(current_handle_index++));
 
-		texture2d_desc_t uav_target_desc{};
-		uav_target_desc.width = width;
-		uav_target_desc.height = height;
-		uav_target_desc.format = DXGI_FORMAT_R8_UNORM;
-		uav_target_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-		uav_target_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+		TextureDesc uav_desc{};
+		uav_desc.width = width;
+		uav_desc.height = height;
+		uav_desc.format = DXGI_FORMAT_R8_UNORM;
+		uav_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::UnorderedAccess;
+		uav_desc.initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
-		rt_shadows_output = Texture2D(device, uav_target_desc);
-		rt_shadows_output.CreateSRV(dxr_heap->GetHandle(current_handle_index++));
-		rt_shadows_output.CreateUAV(dxr_heap->GetHandle(current_handle_index++));
+		rt_shadows_output = std::make_unique<Texture>(gfx, uav_desc);
+		rt_shadows_output->CreateSRV(dxr_heap->GetHandle(current_handle_index++));
+		rt_shadows_output->CreateUAV(dxr_heap->GetHandle(current_handle_index++));
 
-		uav_target_desc.start_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-		rtao_output = Texture2D(device, uav_target_desc);
-		rtao_output.CreateSRV(dxr_heap->GetHandle(current_handle_index++));
-		rtao_output.CreateUAV(dxr_heap->GetHandle(current_handle_index++));
+		uav_desc.initial_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+		rtao_output = std::make_unique<Texture>(gfx, uav_desc);
+		rtao_output->CreateSRV(dxr_heap->GetHandle(current_handle_index++));
+		rtao_output->CreateUAV(dxr_heap->GetHandle(current_handle_index++));
 
-		uav_target_desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		rtr_output = Texture2D(device, uav_target_desc);
-		rtr_output.CreateSRV(dxr_heap->GetHandle(current_handle_index++));
-		rtr_output.CreateUAV(dxr_heap->GetHandle(current_handle_index++));
+		uav_desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		rtr_output = std::make_unique<Texture>(gfx, uav_desc);
+		rtr_output->CreateSRV(dxr_heap->GetHandle(current_handle_index++));
+		rtr_output->CreateUAV(dxr_heap->GetHandle(current_handle_index++));
 	}
 
 	void RayTracer::CreateRootSignatures()

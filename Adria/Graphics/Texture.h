@@ -30,9 +30,9 @@ namespace adria
 	struct TextureViewDesc
 	{
 		uint32 first_slice = 0;
-		uint32 slice_count = -1;
+		uint32 slice_count = static_cast<uint32>(-1);
 		uint32 first_mip = 0;
-		uint32 mip_count = -1;
+		uint32 mip_count = static_cast<uint32>(-1);
 		std::optional<DXGI_FORMAT> new_format = std::nullopt;
 	};
 
@@ -42,6 +42,7 @@ namespace adria
 	{
 	public:
 		Texture(GraphicsDevice* gfx, TextureDesc const& desc, TextureInitialData* initial_data = nullptr)
+			: desc(desc)
 		{
 			HRESULT hr = E_FAIL;
 
@@ -62,10 +63,10 @@ namespace adria
 			if (HasAllFlags(desc.bind_flags, EBindFlag::DepthStencil))
 			{
 				resource_desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-				if (!HasAllFlags(desc.bind_flags, EBindFlag::ShaderResource))
-				{
-					resource_desc.Flags |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
-				}
+			}
+			if (!HasAllFlags(desc.bind_flags, EBindFlag::ShaderResource))
+			{
+				resource_desc.Flags |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
 			}
 			if (HasAllFlags(desc.bind_flags, EBindFlag::RenderTarget))
 			{
@@ -114,6 +115,7 @@ namespace adria
 				resource_desc.Width = RequiredSize;
 				resource_desc.Height = 1;
 				resource_desc.DepthOrArraySize = 1;
+				resource_desc.MipLevels = 1;
 				resource_desc.Format = DXGI_FORMAT_UNKNOWN;
 				resource_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 				resource_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
@@ -172,7 +174,6 @@ namespace adria
 				UpdateSubresources(cmd_list, resource.Get(), dyn_alloc.buffer,
 					dyn_alloc.offset, 0, data_count, initial_data);
 			}
-
 		}
 
 		Texture(Texture const&) = delete;

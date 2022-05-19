@@ -7,8 +7,8 @@
 #include "../tecs/registry.h"
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/Buffer.h"
+#include "../Graphics/Texture.h"
 #include "../Graphics/ShaderUtility.h"
-#include "../Graphics/Texture2D.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Graphics/DescriptorHeap.h"
 #include "../Utilities/Random.h"
@@ -94,7 +94,7 @@ namespace adria
 			ID3D12GraphicsCommandList* cmd_list = gfx->GetDefaultCommandList();
 
 			ID3D12Resource* particle_upload_texture = nullptr;
-			const uint64 upload_buffer_size = GetRequiredIntermediateSize(random_texture.Resource(), 0, 1);
+			const uint64 upload_buffer_size = GetRequiredIntermediateSize(random_texture->GetNative(), 0, 1);
 
 			CD3DX12_HEAP_PROPERTIES heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 			CD3DX12_RESOURCE_DESC resource_desc = CD3DX12_RESOURCE_DESC::Buffer(upload_buffer_size);
@@ -108,7 +108,7 @@ namespace adria
 
 			RealRandomGenerator rand_float{ 0.0f, 1.0f };
 			std::vector<float32> random_texture_data;
-			for (uint32 i = 0; i < random_texture.Width() * random_texture.Height(); i++)
+			for (uint32 i = 0; i < random_texture->GetDesc().width * random_texture->GetDesc().height; i++)
 			{
 				random_texture_data.push_back(2.0f * rand_float() - 1.0f);
 				random_texture_data.push_back(2.0f * rand_float() - 1.0f);
@@ -118,11 +118,11 @@ namespace adria
 
 			D3D12_SUBRESOURCE_DATA data{};
 			data.pData = random_texture_data.data();
-			data.RowPitch = random_texture.Width() * 4 * sizeof(float32);
+			data.RowPitch = random_texture->GetDesc().width * 4 * sizeof(float32);
 			data.SlicePitch = 0;
 
-			UpdateSubresources(cmd_list, random_texture.Resource(), particle_upload_texture, 0, 0, 1, &data);
-			CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(random_texture.Resource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+			UpdateSubresources(cmd_list, random_texture->GetNative(), particle_upload_texture, 0, 0, 1, &data);
+			CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(random_texture->GetNative(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 			cmd_list->ResourceBarrier(1, &barrier);
 
 			gfx->AddToReleaseQueue(particle_upload_texture);
@@ -199,14 +199,7 @@ namespace adria
 	private:
 		GraphicsDevice* gfx;
 
-		Texture2D random_texture;
-		/*
-		StructuredBuffer<uint32> dead_list_buffer;
-		StructuredBuffer<GPUParticleA> particle_bufferA;
-		StructuredBuffer<GPUParticleB> particle_bufferB;
-		StructuredBuffer<ViewSpacePositionRadius> view_space_positions_buffer;
-		StructuredBuffer<IndexBufferElement> alive_index_buffer;
-		*/
+		std::unique_ptr<Texture> random_texture;
 		Buffer dead_list_buffer;
 		Buffer dead_list_buffer_counter;
 		Buffer particle_bufferA;
@@ -291,18 +284,18 @@ namespace adria
 			//creating random texture
 			{
 				//noise texture
-				texture2d_desc_t noise_desc{};
+				TextureDesc noise_desc{};
 				noise_desc.width = 1024;
 				noise_desc.height = 1024;
 				noise_desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-				noise_desc.start_state = D3D12_RESOURCE_STATE_COPY_DEST;
-				noise_desc.clear_value.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-				random_texture = Texture2D(device, noise_desc);
+				noise_desc.bind_flags = EBindFlag::ShaderResource;
+				noise_desc.initial_state = D3D12_RESOURCE_STATE_COPY_DEST;
+				random_texture = std::make_unique<Texture>(gfx, noise_desc);
 			}
 			//creating views
 			{
 				uint32 heap_index = 0;
-				random_texture.CreateSRV(particle_heap->GetHandle(heap_index++));
+				random_texture->CreateSRV(particle_heap->GetHandle(heap_index++));
 
 				particle_bufferA.CreateSRV(particle_heap->GetHandle(heap_index++));
 				particle_bufferB.CreateSRV(particle_heap->GetHandle(heap_index++));
@@ -431,7 +424,7 @@ namespace adria
 
 				descriptor_index = descriptor_allocator->Allocate();
 				descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				device->CopyDescriptorsSimple(1, descriptor, random_texture.SRV(),
+				device->CopyDescriptorsSimple(1, descriptor, random_texture->SRV(),
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				cmd_list->SetComputeRootDescriptorTable(1, descriptor);
 

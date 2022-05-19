@@ -12,7 +12,6 @@
 #include "../Graphics/TextureManager.h"
 #include "../Graphics/Buffer.h"
 #include "../Graphics/ShaderUtility.h"
-#include "../Graphics/Texture2D.h"
 #include "../Graphics/Texture.h"
 #include "../Graphics/RenderPass.h"
 #include "../Graphics/ConstantBuffer.h"
@@ -70,8 +69,6 @@ namespace adria
 
 		void Render(RendererSettings const&);
 
-		void RGRender(RendererSettings const&);
-
 		void ResolveToBackbuffer();
 
 		void ResolveToOffscreenFramebuffer();
@@ -82,21 +79,21 @@ namespace adria
 
 		void OnSceneInitialized();
 
-		Texture2D GetOffscreenTexture() const;
+		Texture const& GetOffscreenTexture() const;
 		TextureManager& GetTextureManager();
 		std::vector<std::string> GetProfilerResults(bool log = false);
 		PickingData GetPickingData() const;
 
 		bool IsRayTracingSupported() const { return ray_tracer.IsSupported(); };
-		Texture2D const& GetRayTracingShadowsTexture_Debug() const
+		Texture const& GetRayTracingShadowsTexture_Debug() const
 		{
 			return ray_tracer.GetRayTracingShadowsTexture();
 		}
-		Texture2D const& GetRayTracingAOTexture_Debug() const
+		Texture const& GetRayTracingAOTexture_Debug() const
 		{
 			return ray_tracer.GetRayTracingAmbientOcclusionTexture();
 		}
-		Texture2D const& GetRayTracingReflectionsTexture_Debug() const
+		Texture const& GetRayTracingReflectionsTexture_Debug() const
 		{
 			return ray_tracer.GetRayTracingReflectionsTexture();
 		}
@@ -124,32 +121,32 @@ namespace adria
 		bool update_picking_data = false;
 
 		//textures and heaps
-		Texture2D hdr_render_target;
-		Texture2D prev_hdr_render_target;
-		Texture2D depth_target;
-		Texture2D ldr_render_target;
-		Texture2D offscreen_ldr_target;
-		std::vector<Texture2D> gbuffer;
-		Texture2D shadow_depth_map;
+		std::unique_ptr<Texture> hdr_render_target;
+		std::unique_ptr<Texture> prev_hdr_render_target;
+		std::unique_ptr<Texture> depth_target;
+		std::unique_ptr<Texture> ldr_render_target;
+		std::unique_ptr<Texture> offscreen_ldr_target;
+		std::vector<std::unique_ptr<Texture>> gbuffer;
+		std::unique_ptr<Texture> shadow_depth_map;
 		TextureCube shadow_depth_cubemap;
 		Texture2DArray shadow_depth_cascades;
-		Texture2D ao_texture;
-		Texture2D hbao_random_texture;
-		Texture2D ssao_random_texture;
-		Texture2D velocity_buffer;
-		Texture2D blur_intermediate_texture;
-		Texture2D blur_final_texture;
-		Texture2D bloom_extract_texture;
-		Texture2D uav_target;
-		Texture2D debug_tiled_texture;
-		std::array<Texture2D, 2> postprocess_textures;
+		std::unique_ptr<Texture> ao_texture;
+		std::unique_ptr<Texture> hbao_random_texture;
+		std::unique_ptr<Texture> ssao_random_texture;
+		std::unique_ptr<Texture> velocity_buffer;
+		std::unique_ptr<Texture> blur_intermediate_texture;
+		std::unique_ptr<Texture> blur_final_texture;
+		std::unique_ptr<Texture> bloom_extract_texture;
+		std::unique_ptr<Texture> uav_target;
+		std::unique_ptr<Texture> debug_tiled_texture;
+		std::array<std::unique_ptr<Texture>, 2> postprocess_textures;
 		bool postprocess_index = false;
-		std::array<Texture2D, 2> ping_pong_phase_textures;
+		std::array<std::unique_ptr<Texture>, 2> ping_pong_phase_textures;
 		bool pong_phase = false;
-		std::array<Texture2D, 2> ping_pong_spectrum_textures;
+		std::array<std::unique_ptr<Texture>, 2> ping_pong_spectrum_textures;
 		bool pong_spectrum = false;
-		Texture2D ocean_normal_map;
-		Texture2D ocean_initial_spectrum;
+		std::unique_ptr<Texture> ocean_normal_map;
+		std::unique_ptr<Texture> ocean_initial_spectrum;
 
 		std::unique_ptr<DescriptorHeap> rtv_heap;
 		std::unique_ptr<DescriptorHeap> srv_heap;
@@ -200,7 +197,7 @@ namespace adria
 		std::unique_ptr<Buffer> bokeh;
 		Buffer bokeh_counter;
 
-		Texture2D sun_target;
+		std::unique_ptr<Texture> sun_target;
 		std::array<DirectX::XMVECTOR, 16> ssao_kernel{};
 		DirectX::BoundingBox light_bounding_box;
 		DirectX::BoundingFrustum light_bounding_frustum;
@@ -287,13 +284,13 @@ namespace adria
 
 		void DrawSun(ID3D12GraphicsCommandList4* cmd_list, tecs::entity sun);
 		//result in blur final 
-		void BlurTexture(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& texture);
+		void BlurTexture(ID3D12GraphicsCommandList4* cmd_list, Texture const& texture);
 		//result in current render target
-		void CopyTexture(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& texture, EBlendMode mode = EBlendMode::None);
+		void CopyTexture(ID3D12GraphicsCommandList4* cmd_list, Texture const& texture, EBlendMode mode = EBlendMode::None);
 		
-		void AddTextures(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& texture1, Texture2D const& texture2, EBlendMode mode = EBlendMode::None);
+		void AddTextures(ID3D12GraphicsCommandList4* cmd_list, Texture const& texture1, Texture const& texture2, EBlendMode mode = EBlendMode::None);
 
-		void GenerateMips(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& texture,
+		void GenerateMips(ID3D12GraphicsCommandList4* cmd_list, Texture const& texture,
 			D3D12_RESOURCE_STATES start_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
 			D3D12_RESOURCE_STATES end_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 	};

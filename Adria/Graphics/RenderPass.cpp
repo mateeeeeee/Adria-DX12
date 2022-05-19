@@ -4,7 +4,7 @@
 namespace adria
 {
 
-	RenderPass::RenderPass(render_pass_desc_t const& desc) : flags(desc.render_pass_flags),
+	RenderPass::RenderPass(RenderPassDesc const& desc) : flags(desc.render_pass_flags),
 		width(desc.width), height(desc.height)
 	{
 		for (auto const& attachment : desc.rtv_attachments)

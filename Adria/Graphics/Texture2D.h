@@ -8,7 +8,7 @@
 
 namespace adria
 {
-
+	/*
 	struct texture2d_srv_desc_t
 	{
 		DXGI_FORMAT format;
@@ -187,4 +187,5 @@ namespace adria
 		D3D12_CPU_DESCRIPTOR_HANDLE uav_handle{};
 		
 	};
+	*/
 }

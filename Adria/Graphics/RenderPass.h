@@ -9,7 +9,7 @@
 namespace adria
 {
 
-    struct rtv_attachment_desc_t
+    struct RtvAttachmentDesc
     {
         D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle;
         D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE beginning_access;
@@ -17,7 +17,7 @@ namespace adria
         D3D12_CLEAR_VALUE clear_value; 
     };
 
-    struct dsv_attachment_desc_t
+    struct DsvAttachmentDesc
     {
         D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle;
         D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE depth_beginning_access;
@@ -27,10 +27,10 @@ namespace adria
         D3D12_CLEAR_VALUE clear_value;
     };
 
-    struct render_pass_desc_t
+    struct RenderPassDesc
     {
-        std::vector<rtv_attachment_desc_t> rtv_attachments{};
-        std::optional<dsv_attachment_desc_t> dsv_attachment = std::nullopt;
+        std::vector<RtvAttachmentDesc> rtv_attachments{};
+        std::optional<DsvAttachmentDesc> dsv_attachment = std::nullopt;
         D3D12_RENDER_PASS_FLAGS render_pass_flags = D3D12_RENDER_PASS_FLAG_NONE;
         uint32 width;
         uint32 height;
@@ -42,7 +42,7 @@ namespace adria
 
         RenderPass() = default;
 
-        RenderPass(render_pass_desc_t const& desc);
+        explicit RenderPass(RenderPassDesc const& desc);
 
         void Begin(ID3D12GraphicsCommandList4* cmd_list, bool legacy = false);
 

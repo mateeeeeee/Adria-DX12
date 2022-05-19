@@ -2,7 +2,7 @@
 #include <memory>
 #include "ConstantBuffers.h"
 #include "../Graphics/RayTracingUtil.h"
-#include "../Graphics/Texture2D.h"
+#include "../Graphics/Texture.h"
 #include "../Graphics/ConstantBuffer.h"
 
 
@@ -42,22 +42,22 @@ namespace adria
         void OnSceneInitialized();
 		void Update(RayTracingSettings const&);
 
-		void RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth_srv,
+		void RayTraceShadows(ID3D12GraphicsCommandList4* cmd_list, Texture const& depth_srv,
 			D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address, D3D12_GPU_VIRTUAL_ADDRESS light_cbuf_address, bool soft_shadows);
-		void RayTraceAmbientOcclusion(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth, Texture2D const& normal_gbuf, D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address);
-		void RayTraceReflections(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& depth, D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address, D3D12_CPU_DESCRIPTOR_HANDLE envmap_handle);
+		void RayTraceAmbientOcclusion(ID3D12GraphicsCommandList4* cmd_list, Texture const& depth, Texture const& normal_gbuf, D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address);
+		void RayTraceReflections(ID3D12GraphicsCommandList4* cmd_list, Texture const& depth, D3D12_GPU_VIRTUAL_ADDRESS frame_cbuf_address, D3D12_CPU_DESCRIPTOR_HANDLE envmap_handle);
 
-		Texture2D const& GetRayTracingShadowsTexture() const
+		Texture const& GetRayTracingShadowsTexture() const
 		{
-			return rt_shadows_output;
+			return *rt_shadows_output;
 		}
-		Texture2D const& GetRayTracingAmbientOcclusionTexture() const
+		Texture const& GetRayTracingAmbientOcclusionTexture() const
 		{
-			return rtao_output;
+			return *rtao_output;
 		}
-		Texture2D const& GetRayTracingReflectionsTexture() const
+		Texture const& GetRayTracingReflectionsTexture() const
 		{
-			return rtr_output;
+			return *rtr_output;
 		}
 
     private:
@@ -85,21 +85,21 @@ namespace adria
 		std::unique_ptr<ShaderTable> rt_shadows_shader_table_raygen = nullptr;
 		std::unique_ptr<ShaderTable> rt_shadows_shader_table_miss = nullptr;
 		std::unique_ptr<ShaderTable> rt_shadows_shader_table_hit = nullptr;
-		Texture2D rt_shadows_output;
+		std::unique_ptr<Texture> rt_shadows_output;
 
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> rtao_root_signature = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12StateObject> rtao_state_object = nullptr;
 		std::unique_ptr<ShaderTable> rtao_shader_table_raygen = nullptr;
 		std::unique_ptr<ShaderTable> rtao_shader_table_miss = nullptr;
 		std::unique_ptr<ShaderTable> rtao_shader_table_hit = nullptr;
-		Texture2D rtao_output;
+		std::unique_ptr<Texture> rtao_output;
 
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> rtr_root_signature = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12StateObject> rtr_state_object = nullptr;
 		std::unique_ptr<ShaderTable> rtr_shader_table_raygen = nullptr;
 		std::unique_ptr<ShaderTable> rtr_shader_table_miss = nullptr;
 		std::unique_ptr<ShaderTable> rtr_shader_table_hit = nullptr;
-		Texture2D rtr_output;
+		std::unique_ptr<Texture> rtr_output;
 
 	private:
 

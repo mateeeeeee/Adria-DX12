@@ -442,8 +442,8 @@ namespace adria
 		{
 			D3D12_RESOURCE_BARRIER picking_barriers[] =
 				{
-					CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
-					CD3DX12_RESOURCE_BARRIER::Transition(gbuffer[0].Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
+					CD3DX12_RESOURCE_BARRIER::Transition(depth_target->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
+					CD3DX12_RESOURCE_BARRIER::Transition(gbuffer[0]->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
 				};
 
 			gbuf_cmd_list->ResourceBarrier(ARRAYSIZE(picking_barriers), picking_barriers);
@@ -451,9 +451,9 @@ namespace adria
 
 			D3D12_RESOURCE_BARRIER barriers[] =
 			{
-				CD3DX12_RESOURCE_BARRIER::Transition(hdr_render_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET),
-				CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE),
-				CD3DX12_RESOURCE_BARRIER::Transition(gbuffer[0].Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
+				CD3DX12_RESOURCE_BARRIER::Transition(hdr_render_target->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET),
+				CD3DX12_RESOURCE_BARRIER::Transition(depth_target->GetNative(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE),
+				CD3DX12_RESOURCE_BARRIER::Transition(gbuffer[0]->GetNative(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
 			};
 
 			gbuf_cmd_list->ResourceBarrier(ARRAYSIZE(barriers), barriers);
@@ -464,7 +464,7 @@ namespace adria
 		auto deferred_fut = TaskSystem::Submit([this, deferred_cmd_list]()
 		{
 			D3D12_RESOURCE_BARRIER depth_barrier[1] = {};
-			depth_barrier[0] = CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+			depth_barrier[0] = CD3DX12_RESOURCE_BARRIER::Transition(depth_target->GetNative(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 			deferred_cmd_list->ResourceBarrier(ARRAYSIZE(depth_barrier), depth_barrier);
 			PassDecals(deferred_cmd_list);
 
@@ -483,8 +483,8 @@ namespace adria
 			case EAmbientOcclusion::RTAO:
 			{
 				ResourceBarrierBatch rtao_barriers{};
-				rtao_barriers.AddTransition(gbuffer[0].Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-				rtao_barriers.AddTransition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+				rtao_barriers.AddTransition(gbuffer[0]->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+				rtao_barriers.AddTransition(depth_target->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 				rtao_barriers.Submit(deferred_cmd_list);
 				PassRTAO(deferred_cmd_list);
 				rtao_barriers.ReverseTransitions();
@@ -502,7 +502,7 @@ namespace adria
 			if (settings.use_tiled_deferred) PassDeferredTiledLighting(deferred_cmd_list);
 			else if (settings.use_clustered_deferred) PassDeferredClusteredLighting(deferred_cmd_list);
 
-			depth_barrier[0] = CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+			depth_barrier[0] = CD3DX12_RESOURCE_BARRIER::Transition(depth_target->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 			deferred_cmd_list->ResourceBarrier(ARRAYSIZE(depth_barrier), depth_barrier);
 
 			PassForward(deferred_cmd_list);
@@ -515,8 +515,8 @@ namespace adria
 			
 			D3D12_RESOURCE_BARRIER barriers[] =
 			{
-				CD3DX12_RESOURCE_BARRIER::Transition(hdr_render_target.Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
-				CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
+				CD3DX12_RESOURCE_BARRIER::Transition(hdr_render_target->GetNative(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+				CD3DX12_RESOURCE_BARRIER::Transition(depth_target->GetNative(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
 			};
 
 			postprocess_cmd_list->ResourceBarrier(ARRAYSIZE(barriers), barriers);
@@ -571,7 +571,8 @@ namespace adria
 			fxaa_render_pass.End(cmd_list);
 
 			ResourceBarrierBatch offscreen_barrier{};
-			offscreen_ldr_target.Transition(offscreen_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+			offscreen_barrier.AddTransition(offscreen_ldr_target->GetNative(),
+				D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
 				D3D12_RESOURCE_STATE_RENDER_TARGET);
 			offscreen_barrier.Submit(cmd_list);
 
@@ -588,7 +589,8 @@ namespace adria
 		else
 		{
 			ResourceBarrierBatch offscreen_barrier{};
-			offscreen_ldr_target.Transition(offscreen_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+			offscreen_barrier.AddTransition(offscreen_ldr_target->GetNative(),
+				D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
 				D3D12_RESOURCE_STATE_RENDER_TARGET);
 			offscreen_barrier.Submit(cmd_list);
 
@@ -714,9 +716,9 @@ namespace adria
 	{
 		return picking_data;
 	}
-	Texture2D Renderer::GetOffscreenTexture() const
+	Texture const& Renderer::GetOffscreenTexture() const
 	{
-		return offscreen_ldr_target;
+		return *offscreen_ldr_target;
 	}
 
 	void Renderer::CreateDescriptorHeaps()
@@ -760,228 +762,210 @@ namespace adria
 		dsv_heap_index = 0;
 		uav_heap_index = 0;
 
+		D3D12_CLEAR_VALUE rtv_clear_value{};
+		rtv_clear_value.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		rtv_clear_value.Color[0] = 0.0f;
+		rtv_clear_value.Color[1] = 0.0f;
+		rtv_clear_value.Color[2] = 0.0f;
+		rtv_clear_value.Color[3] = 0.0f;
 		//main render target
 		{
-
-			texture2d_desc_t render_target_desc{};
-			render_target_desc.clear_value.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-			render_target_desc.clear_value.Color[0] = 0.0f;
-			render_target_desc.clear_value.Color[1] = 0.0f;
-			render_target_desc.clear_value.Color[2] = 0.0f;
-			render_target_desc.clear_value.Color[3] = 0.0f;
+			TextureDesc render_target_desc{};
+			render_target_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 			render_target_desc.width = width;
 			render_target_desc.height = height;
-			render_target_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-			render_target_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+			render_target_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
+			render_target_desc.clear = rtv_clear_value;
+			render_target_desc.initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
-			hdr_render_target = Texture2D(gfx->GetDevice(), render_target_desc);
-			hdr_render_target.CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			hdr_render_target.CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
+			hdr_render_target = std::make_unique<Texture>(gfx, render_target_desc);
+			hdr_render_target->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
+			hdr_render_target->CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
 
-			render_target_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-			prev_hdr_render_target = Texture2D(gfx->GetDevice(), render_target_desc);
-			prev_hdr_render_target.CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			prev_hdr_render_target.CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
+			prev_hdr_render_target = std::make_unique<Texture>(gfx, render_target_desc);
+			prev_hdr_render_target->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
+			prev_hdr_render_target->CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
 
-			sun_target = Texture2D(gfx->GetDevice(), render_target_desc);
-			sun_target.CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			sun_target.CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
+			sun_target = std::make_unique<Texture>(gfx, render_target_desc);
+			sun_target->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
+			sun_target->CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
 		}
 		
 		//depth stencil target
 		{
+			D3D12_CLEAR_VALUE clear_value{};
+			clear_value.Format = DXGI_FORMAT_D32_FLOAT;
+			clear_value.DepthStencil = { 1.0f, 0 };
 
+			TextureDesc depth_desc{};
+			depth_desc.width = width;
+			depth_desc.height = height;
+			depth_desc.format = DXGI_FORMAT_R32_TYPELESS;
+			depth_desc.bind_flags = EBindFlag::DepthStencil | EBindFlag::ShaderResource;
+			depth_desc.initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+			depth_desc.clear = clear_value;
 
-			texture2d_desc_t depth_target_desc{};
-			depth_target_desc.width = width;
-			depth_target_desc.height = height;
-			depth_target_desc.format = DXGI_FORMAT_R32_TYPELESS;
-			depth_target_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-			depth_target_desc.clear_value.Format = DXGI_FORMAT_D32_FLOAT;
-			depth_target_desc.clear_value.DepthStencil = { 1.0f, 0 };
+			depth_target = std::make_unique<Texture>(gfx, depth_desc);
 
-			depth_target = Texture2D(gfx->GetDevice(), depth_target_desc);
-
-			texture2d_srv_desc_t srv_desc{};
-			srv_desc.format = DXGI_FORMAT_R32_FLOAT;
-			depth_target.CreateSRV(srv_heap->GetHandle(srv_heap_index++), &srv_desc);
-			texture2d_dsv_desc_t dsv_desc{};
-			dsv_desc.format = DXGI_FORMAT_D32_FLOAT;
-			depth_target.CreateDSV(dsv_heap->GetHandle(dsv_heap_index++), &dsv_desc);
+			TextureViewDesc srv_desc{};
+			srv_desc.new_format = DXGI_FORMAT_R32_FLOAT;
+			depth_target->CreateSRV(srv_heap->GetHandle(srv_heap_index++), &srv_desc);
+			TextureViewDesc dsv_desc{};
+			dsv_desc.new_format = DXGI_FORMAT_D32_FLOAT;
+			depth_target->CreateDSV(dsv_heap->GetHandle(dsv_heap_index++), &dsv_desc);
 		}
 
 		//low dynamic range render target
 		{
-			texture2d_desc_t ldr_target_desc{};
-			ldr_target_desc.clear_value.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
-			ldr_target_desc.clear_value.Color[0] = 0.0f;
-			ldr_target_desc.clear_value.Color[1] = 0.0f;
-			ldr_target_desc.clear_value.Color[2] = 0.0f;
-			ldr_target_desc.clear_value.Color[3] = 0.0f;
-			ldr_target_desc.width = width;
-			ldr_target_desc.height = height;
-			ldr_target_desc.format = DXGI_FORMAT_R10G10B10A2_UNORM;
-			ldr_target_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-			ldr_target_desc.start_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
-			ldr_render_target = Texture2D(gfx->GetDevice(), ldr_target_desc);
+			rtv_clear_value.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+			TextureDesc ldr_desc{};
+			ldr_desc.width = width;
+			ldr_desc.height = height;
+			ldr_desc.format = DXGI_FORMAT_R10G10B10A2_UNORM;
+			ldr_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
+			ldr_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+			ldr_desc.clear = rtv_clear_value;
 
-			ldr_render_target.CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			ldr_render_target.CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
+			ldr_render_target = std::make_unique<Texture>(gfx, ldr_desc);
+			ldr_render_target->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
+			ldr_render_target->CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
 		}
 
 		//gbuffer
 		{
 			gbuffer.clear();
 
-			texture2d_desc_t render_target_desc{};
-			render_target_desc.width = width;
-			render_target_desc.height = height;
-			render_target_desc.clear_value.Color[0] = 0.0f;
-			render_target_desc.clear_value.Color[1] = 0.0f;
-			render_target_desc.clear_value.Color[2] = 0.0f;
-			render_target_desc.clear_value.Color[3] = 0.0f;
-			render_target_desc.clear_value.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			render_target_desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			render_target_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-			render_target_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+			rtv_clear_value.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			TextureDesc gbuffer_desc{};
+			gbuffer_desc.width = width;
+			gbuffer_desc.height = height;
+			gbuffer_desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			gbuffer_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
+			gbuffer_desc.initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+			gbuffer_desc.clear = rtv_clear_value;
 
 			for (uint32 i = 0; i < GBUFFER_SIZE; ++i)
 			{
-				gbuffer.emplace_back(gfx->GetDevice(), render_target_desc);
-
-				gbuffer.back().CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
-				gbuffer.back().CreateSRV(srv_heap->GetHandle(srv_heap_index++));
+				gbuffer.emplace_back(std::make_unique<Texture>(gfx, gbuffer_desc));
+				gbuffer.back()->CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
+				gbuffer.back()->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
 			}
-
 		}
 
 		//ao
 		{
-			//ssao texture
-			texture2d_desc_t ssao_target_desc{};
+			rtv_clear_value.Format = DXGI_FORMAT_R8_UNORM;
+			TextureDesc ssao_target_desc{};
 			ssao_target_desc.width = width;
 			ssao_target_desc.height = height;
-			ssao_target_desc.clear_value.Color[0] = 0.0f;
-			ssao_target_desc.clear_value.Format = DXGI_FORMAT_R8_UNORM;
+			ssao_target_desc.clear = rtv_clear_value;
 			ssao_target_desc.format = DXGI_FORMAT_R8_UNORM;
-			ssao_target_desc.start_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE; //its getting blurred in CS
-			ssao_target_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+			ssao_target_desc.initial_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE; 
+			ssao_target_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
 
-			ao_texture = Texture2D(gfx->GetDevice(), ssao_target_desc);
-
-			ao_texture.CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			ao_texture.CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
+			ao_texture = std::make_unique<Texture>(gfx, ssao_target_desc);
+			ao_texture->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
+			ao_texture->CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
 		}
 
 		//blur
 		{
-			texture2d_desc_t blur_desc{};
+			TextureDesc blur_desc{};
 			blur_desc.width = width;
 			blur_desc.height = height;
-			blur_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+			blur_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::ShaderResource;
 			blur_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-			blur_desc.start_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE; //t0 in CS
-			blur_desc.clear_value.Format = blur_desc.format;
+			blur_desc.initial_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE; 
+			blur_intermediate_texture = std::make_unique<Texture>(gfx, blur_desc);
 
-			blur_intermediate_texture = Texture2D(gfx->GetDevice(), blur_desc);
+			blur_desc.initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+			blur_final_texture = std::make_unique<Texture>(gfx, blur_desc);
 
-			blur_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-			blur_final_texture = Texture2D(gfx->GetDevice(), blur_desc);
+			blur_intermediate_texture->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
+			blur_final_texture->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
 
-			blur_intermediate_texture.CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			blur_final_texture.CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-
-			blur_intermediate_texture.CreateUAV(uav_heap->GetHandle(uav_heap_index++));
-			blur_final_texture.CreateUAV(uav_heap->GetHandle(uav_heap_index++));
+			blur_intermediate_texture->CreateUAV(uav_heap->GetHandle(uav_heap_index++));
+			blur_final_texture->CreateUAV(uav_heap->GetHandle(uav_heap_index++));
 		}
 
 		//bloom
 		{
-			texture2d_desc_t bloom_extract_desc{};
+			TextureDesc bloom_extract_desc{};
 			bloom_extract_desc.width = width;
 			bloom_extract_desc.height = height;
-			bloom_extract_desc.mips = 5;
-			bloom_extract_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+			bloom_extract_desc.mip_levels = 5;
+			bloom_extract_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::ShaderResource;
 			bloom_extract_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-			bloom_extract_desc.start_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE; //t0 in CS
-			bloom_extract_desc.clear_value.Format = bloom_extract_desc.format;
+			bloom_extract_desc.initial_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE; //t0 in CS
 
-			bloom_extract_texture = Texture2D(gfx->GetDevice(), bloom_extract_desc);
-
-			bloom_extract_texture.CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			
-			bloom_extract_texture.CreateUAV(uav_heap->GetHandle(uav_heap_index++));
+			bloom_extract_texture = std::make_unique<Texture>(gfx, bloom_extract_desc);
+			bloom_extract_texture->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
+			bloom_extract_texture->CreateUAV(uav_heap->GetHandle(uav_heap_index++));
 		}
 
 		//postprocess
 		{
-			texture2d_desc_t render_target_desc{};
-			render_target_desc.clear_value.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-			render_target_desc.clear_value.Color[0] = 0.0f;
-			render_target_desc.clear_value.Color[1] = 0.0f;
-			render_target_desc.clear_value.Color[2] = 0.0f;
-			render_target_desc.clear_value.Color[3] = 0.0f;
+			TextureDesc render_target_desc{};
+			rtv_clear_value.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+			render_target_desc.clear = rtv_clear_value;
 			render_target_desc.width = width;
 			render_target_desc.height = height;
 			render_target_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-			render_target_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-			render_target_desc.start_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+			render_target_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::RenderTarget | EBindFlag::ShaderResource;
+			render_target_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
-			postprocess_textures[0] = Texture2D(gfx->GetDevice(), render_target_desc);
-			postprocess_textures[0].CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			postprocess_textures[0].CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
-			postprocess_textures[0].CreateUAV(uav_heap->GetHandle(uav_heap_index++));
+			postprocess_textures[0] = std::make_unique<Texture>(gfx, render_target_desc);
+			postprocess_textures[0]->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
+			postprocess_textures[0]->CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
+			postprocess_textures[0]->CreateUAV(uav_heap->GetHandle(uav_heap_index++));
 
-			render_target_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-			postprocess_textures[1] = Texture2D(gfx->GetDevice(), render_target_desc);
-			postprocess_textures[1].CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			postprocess_textures[1].CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
-			postprocess_textures[1].CreateUAV(uav_heap->GetHandle(uav_heap_index++));
+			render_target_desc.initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+			postprocess_textures[1] = std::make_unique<Texture>(gfx, render_target_desc);
+			postprocess_textures[1]->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
+			postprocess_textures[1]->CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
+			postprocess_textures[1]->CreateUAV(uav_heap->GetHandle(uav_heap_index++));
 		}
 
 		//tiled deferred
 		{
 
-			texture2d_desc_t uav_target_desc{};
+			TextureDesc uav_target_desc{};
 			uav_target_desc.width = width;
 			uav_target_desc.height = height;
 			uav_target_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-			uav_target_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-			uav_target_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+			uav_target_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::ShaderResource;
+			uav_target_desc.initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
-			uav_target = Texture2D(gfx->GetDevice(), uav_target_desc);
-			uav_target.CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			uav_target.CreateUAV(uav_heap->GetHandle(uav_heap_index++));
+			uav_target = std::make_unique<Texture>(gfx, uav_target_desc);
+			uav_target->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
+			uav_target->CreateUAV(uav_heap->GetHandle(uav_heap_index++));
 
-			texture2d_desc_t tiled_debug_desc{};
+			TextureDesc tiled_debug_desc{};
 			tiled_debug_desc.width = width;
 			tiled_debug_desc.height = height;
 			tiled_debug_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-			tiled_debug_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-			tiled_debug_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+			tiled_debug_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::ShaderResource;
+			tiled_debug_desc.initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
-			debug_tiled_texture = Texture2D(gfx->GetDevice(), tiled_debug_desc);
-			debug_tiled_texture.CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			debug_tiled_texture.CreateUAV(uav_heap->GetHandle(uav_heap_index++));
+			debug_tiled_texture = std::make_unique<Texture>(gfx, tiled_debug_desc);
+			debug_tiled_texture->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
+			debug_tiled_texture->CreateUAV(uav_heap->GetHandle(uav_heap_index++));
 		}
 
 		//offscreen backbuffer
 		{
-			texture2d_desc_t offscreen_ldr_target_desc{};
-			offscreen_ldr_target_desc.clear_value.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
-			offscreen_ldr_target_desc.clear_value.Color[0] = 0.0f;
-			offscreen_ldr_target_desc.clear_value.Color[1] = 0.0f;
-			offscreen_ldr_target_desc.clear_value.Color[2] = 0.0f;
-			offscreen_ldr_target_desc.clear_value.Color[3] = 0.0f;
+			TextureDesc offscreen_ldr_target_desc{};
+			rtv_clear_value.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+			offscreen_ldr_target_desc.clear = rtv_clear_value;
 			offscreen_ldr_target_desc.width = width;
 			offscreen_ldr_target_desc.height = height;
 			offscreen_ldr_target_desc.format = DXGI_FORMAT_R10G10B10A2_UNORM;
-			offscreen_ldr_target_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-			offscreen_ldr_target_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-			offscreen_ldr_target = Texture2D(gfx->GetDevice(), offscreen_ldr_target_desc);
+			offscreen_ldr_target_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::RenderTarget;
+			offscreen_ldr_target_desc.initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+			offscreen_ldr_target = std::make_unique<Texture>(gfx, offscreen_ldr_target_desc);
 
-			offscreen_ldr_target.CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			offscreen_ldr_target.CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
+			offscreen_ldr_target->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
+			offscreen_ldr_target->CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
 		}
 
 		//bokeh
@@ -993,21 +977,18 @@ namespace adria
 		
 		//velocity buffer
 		{
-			texture2d_desc_t velocity_buffer_desc{};
+			TextureDesc velocity_buffer_desc{};
+			rtv_clear_value.Format = DXGI_FORMAT_R16G16_FLOAT;
+			velocity_buffer_desc.clear = rtv_clear_value;
 			velocity_buffer_desc.width = width;
 			velocity_buffer_desc.height = height;
-			velocity_buffer_desc.clear_value.Color[0] = 0.0f;
-			velocity_buffer_desc.clear_value.Color[1] = 0.0f;
-			velocity_buffer_desc.clear_value.Color[2] = 0.0f;
-			velocity_buffer_desc.clear_value.Color[3] = 0.0f;
-			velocity_buffer_desc.clear_value.Format = DXGI_FORMAT_R16G16_FLOAT;
 			velocity_buffer_desc.format = DXGI_FORMAT_R16G16_FLOAT;
-			velocity_buffer_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-			velocity_buffer_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+			velocity_buffer_desc.initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+			velocity_buffer_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::RenderTarget;
 
-			velocity_buffer = Texture2D(gfx->GetDevice(), velocity_buffer_desc);
-			velocity_buffer.CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			velocity_buffer.CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
+			velocity_buffer = std::make_unique<Texture>(gfx, velocity_buffer_desc);
+			velocity_buffer->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
+			velocity_buffer->CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
 		}
 
 	}
@@ -1021,23 +1002,25 @@ namespace adria
 		{
 			//shadow map
 			{
-				texture2d_desc_t depth_map_desc{};
+				D3D12_CLEAR_VALUE clear_value{};
+				clear_value.Format = DXGI_FORMAT_D32_FLOAT;
+				clear_value.DepthStencil = { 1.0f, 0 };
+				TextureDesc depth_map_desc{};
 				depth_map_desc.width = SHADOW_MAP_SIZE;
 				depth_map_desc.height = SHADOW_MAP_SIZE;
 				depth_map_desc.format = DXGI_FORMAT_R32_TYPELESS;
-				depth_map_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-				depth_map_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-				depth_map_desc.clear_value.Format = DXGI_FORMAT_D32_FLOAT;
-				depth_map_desc.clear_value.DepthStencil = { 1.0f, 0 };
-				shadow_depth_map = Texture2D(gfx->GetDevice(), depth_map_desc);
+				depth_map_desc.bind_flags = EBindFlag::DepthStencil | EBindFlag::ShaderResource;
+				depth_map_desc.initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+				depth_map_desc.clear = clear_value;
+				shadow_depth_map = std::make_unique<Texture>(gfx, depth_map_desc);
 
-				texture2d_srv_desc_t srv_desc{};
-				srv_desc.format = DXGI_FORMAT_R32_FLOAT;
-				shadow_depth_map.CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++), &srv_desc);
+				TextureViewDesc srv_desc{};
+				srv_desc.new_format = DXGI_FORMAT_R32_FLOAT;
+				shadow_depth_map->CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++), &srv_desc);
 
-				texture2d_dsv_desc_t dsv_desc{};
-				dsv_desc.format = DXGI_FORMAT_D32_FLOAT;
-				shadow_depth_map.CreateDSV(constant_dsv_heap->GetHandle(dsv_heap_index++), &dsv_desc);
+				TextureViewDesc dsv_desc{};
+				dsv_desc.new_format = DXGI_FORMAT_D32_FLOAT;
+				shadow_depth_map->CreateDSV(constant_dsv_heap->GetHandle(dsv_heap_index++), &dsv_desc);
 			}
 
 			//shadow cubemap
@@ -1094,19 +1077,18 @@ namespace adria
 
 		//ao
 		{
-			//noise texture
-			texture2d_desc_t noise_desc{};
+			TextureDesc noise_desc{};
 			noise_desc.width = SSAO_NOISE_DIM;
 			noise_desc.height = SSAO_NOISE_DIM;
 			noise_desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-			noise_desc.start_state = D3D12_RESOURCE_STATE_COPY_DEST;
-			noise_desc.clear_value.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+			noise_desc.initial_state = D3D12_RESOURCE_STATE_COPY_DEST;
+			noise_desc.bind_flags = EBindFlag::ShaderResource;
 
-			ssao_random_texture = Texture2D(gfx->GetDevice(), noise_desc);
-			hbao_random_texture = Texture2D(gfx->GetDevice(), noise_desc);
+			ssao_random_texture = std::make_unique<Texture>(gfx, noise_desc);
+			hbao_random_texture = std::make_unique<Texture>(gfx, noise_desc);
 
-			ssao_random_texture.CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
-			hbao_random_texture.CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
+			ssao_random_texture->CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
+			hbao_random_texture->CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
 
 			RealRandomGenerator rand_float{ 0.0f, 1.0f };
 			for (uint32 i = 0; i < SSAO_KERNEL_SIZE; i++)
@@ -1122,42 +1104,42 @@ namespace adria
 
 		//ocean
 		{
-			texture2d_desc_t uav_desc{};
+			TextureDesc uav_desc{};
 			uav_desc.width = RESOLUTION;
 			uav_desc.height = RESOLUTION;
 			uav_desc.format = DXGI_FORMAT_R32_FLOAT;
-			uav_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-			uav_desc.start_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+			uav_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::UnorderedAccess;
+			uav_desc.initial_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 
-			ocean_initial_spectrum = Texture2D(gfx->GetDevice(), uav_desc);
-			ocean_initial_spectrum.CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
-			ocean_initial_spectrum.CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
+			ocean_initial_spectrum = std::make_unique<Texture>(gfx, uav_desc);
+			ocean_initial_spectrum->CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
+			ocean_initial_spectrum->CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
 
-			uav_desc.start_state = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-			ping_pong_phase_textures[pong_phase] = Texture2D(gfx->GetDevice(), uav_desc);
-			ping_pong_phase_textures[pong_phase].CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
-			ping_pong_phase_textures[pong_phase].CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
-			uav_desc.start_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-			ping_pong_phase_textures[!pong_phase] = Texture2D(gfx->GetDevice(), uav_desc);
-			ping_pong_phase_textures[!pong_phase].CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
-			ping_pong_phase_textures[!pong_phase].CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
+			uav_desc.initial_state = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+			ping_pong_phase_textures[pong_phase] = std::make_unique<Texture>(gfx, uav_desc);
+			ping_pong_phase_textures[pong_phase]->CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
+			ping_pong_phase_textures[pong_phase]->CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
+			uav_desc.initial_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+			ping_pong_phase_textures[!pong_phase] = std::make_unique<Texture>(gfx, uav_desc);
+			ping_pong_phase_textures[!pong_phase]->CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
+			ping_pong_phase_textures[!pong_phase]->CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
 
 			uav_desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 
-			uav_desc.start_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-			ping_pong_spectrum_textures[pong_spectrum] = Texture2D(gfx->GetDevice(), uav_desc);
-			ping_pong_spectrum_textures[pong_spectrum].CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
-			ping_pong_spectrum_textures[pong_spectrum].CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
+			uav_desc.initial_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+			ping_pong_spectrum_textures[pong_spectrum] = std::make_unique<Texture>(gfx, uav_desc);
+			ping_pong_spectrum_textures[pong_spectrum]->CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
+			ping_pong_spectrum_textures[pong_spectrum]->CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
 
-			uav_desc.start_state = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-			ping_pong_spectrum_textures[!pong_spectrum] = Texture2D(gfx->GetDevice(), uav_desc);
-			ping_pong_spectrum_textures[!pong_spectrum].CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
-			ping_pong_spectrum_textures[!pong_spectrum].CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
+			uav_desc.initial_state = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+			ping_pong_spectrum_textures[!pong_spectrum] = std::make_unique<Texture>(gfx, uav_desc);
+			ping_pong_spectrum_textures[!pong_spectrum]->CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
+			ping_pong_spectrum_textures[!pong_spectrum]->CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
 
-			uav_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-			ocean_normal_map = Texture2D(gfx->GetDevice(), uav_desc);
-			ocean_normal_map.CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
-			ocean_normal_map.CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
+			uav_desc.initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+			ocean_normal_map = std::make_unique<Texture>(gfx, uav_desc);
+			ocean_normal_map->CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
+			ocean_normal_map->CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
 
 		}
 
@@ -1182,34 +1164,34 @@ namespace adria
 
 		//gbuffer render pass
 		{
-			render_pass_desc_t render_pass_desc{};
+			RenderPassDesc render_pass_desc{};
 
-			rtv_attachment_desc_t gbuffer_normal_attachment{};
-			gbuffer_normal_attachment.cpu_handle = gbuffer[0].RTV();
+			RtvAttachmentDesc gbuffer_normal_attachment{};
+			gbuffer_normal_attachment.cpu_handle = gbuffer[0]->RTV();
 			gbuffer_normal_attachment.clear_value = black;
 			gbuffer_normal_attachment.clear_value.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			gbuffer_normal_attachment.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
 			gbuffer_normal_attachment.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
 			render_pass_desc.rtv_attachments.push_back(gbuffer_normal_attachment);
 
-			rtv_attachment_desc_t gbuffer_albedo_attachment{};
-			gbuffer_albedo_attachment.cpu_handle = gbuffer[1].RTV();
+			RtvAttachmentDesc gbuffer_albedo_attachment{};
+			gbuffer_albedo_attachment.cpu_handle = gbuffer[1]->RTV();
 			gbuffer_albedo_attachment.clear_value = black;
 			gbuffer_normal_attachment.clear_value.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			gbuffer_albedo_attachment.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
 			gbuffer_albedo_attachment.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
 			render_pass_desc.rtv_attachments.push_back(gbuffer_albedo_attachment);
 
-			rtv_attachment_desc_t gbuffer_emissive_attachment{};
-			gbuffer_emissive_attachment.cpu_handle = gbuffer[2].RTV();
+			RtvAttachmentDesc gbuffer_emissive_attachment{};
+			gbuffer_emissive_attachment.cpu_handle = gbuffer[2]->RTV();
 			gbuffer_emissive_attachment.clear_value = black;
 			gbuffer_emissive_attachment.clear_value.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			gbuffer_emissive_attachment.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
 			gbuffer_emissive_attachment.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
 			render_pass_desc.rtv_attachments.push_back(gbuffer_emissive_attachment);
 
-			dsv_attachment_desc_t dsv_attachment_desc{};
-			dsv_attachment_desc.cpu_handle = depth_target.DSV();
+			DsvAttachmentDesc dsv_attachment_desc{};
+			dsv_attachment_desc.cpu_handle = depth_target->DSV();
 			dsv_attachment_desc.clear_value.Format = DXGI_FORMAT_D32_FLOAT;
 			dsv_attachment_desc.clear_value.DepthStencil.Depth = 1.0f;
 			dsv_attachment_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
@@ -1222,16 +1204,16 @@ namespace adria
 		}
 
 		{
-			render_pass_desc_t render_pass_desc{};
+			RenderPassDesc render_pass_desc{};
 
-			rtv_attachment_desc_t decal_albedo_attachment{};
-			decal_albedo_attachment.cpu_handle = gbuffer[1].RTV();
+			RtvAttachmentDesc decal_albedo_attachment{};
+			decal_albedo_attachment.cpu_handle = gbuffer[1]->RTV();
 			decal_albedo_attachment.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
 			decal_albedo_attachment.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
 			render_pass_desc.rtv_attachments.push_back(decal_albedo_attachment);
 
-			rtv_attachment_desc_t decal_normal_attachment{};
-			decal_normal_attachment.cpu_handle = gbuffer[0].RTV();
+			RtvAttachmentDesc decal_normal_attachment{};
+			decal_normal_attachment.cpu_handle = gbuffer[0]->RTV();
 			decal_normal_attachment.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
 			decal_normal_attachment.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
 			render_pass_desc.rtv_attachments.push_back(decal_normal_attachment);
@@ -1243,9 +1225,9 @@ namespace adria
 
 		//ambient render pass 
 		{
-			render_pass_desc_t render_pass_desc{};
-			rtv_attachment_desc_t rtv_attachment_desc{};
-			rtv_attachment_desc.cpu_handle = hdr_render_target.RTV();
+			RenderPassDesc render_pass_desc{};
+			RtvAttachmentDesc rtv_attachment_desc{};
+			rtv_attachment_desc.cpu_handle = hdr_render_target->RTV();
 			rtv_attachment_desc.clear_value = black;
 			rtv_attachment_desc.clear_value.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 			rtv_attachment_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
@@ -1260,9 +1242,9 @@ namespace adria
 
 		//lighting render pass
 		{
-			render_pass_desc_t render_pass_desc{};
-			rtv_attachment_desc_t rtv_attachment_desc{};
-			rtv_attachment_desc.cpu_handle = hdr_render_target.RTV();
+			RenderPassDesc render_pass_desc{};
+			RtvAttachmentDesc rtv_attachment_desc{};
+			rtv_attachment_desc.cpu_handle = hdr_render_target->RTV();
 			rtv_attachment_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
 			rtv_attachment_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
 			render_pass_desc.rtv_attachments.push_back(rtv_attachment_desc);
@@ -1275,17 +1257,17 @@ namespace adria
 
 		//forward render pass
 		{
-			render_pass_desc_t render_pass_desc{};
-			rtv_attachment_desc_t rtv_attachment_desc{};
-			rtv_attachment_desc.cpu_handle = hdr_render_target.RTV();
+			RenderPassDesc render_pass_desc{};
+			RtvAttachmentDesc rtv_attachment_desc{};
+			rtv_attachment_desc.cpu_handle = hdr_render_target->RTV();
 			rtv_attachment_desc.clear_value = black;
 			rtv_attachment_desc.clear_value.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 			rtv_attachment_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
 			rtv_attachment_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
 			render_pass_desc.rtv_attachments.push_back(rtv_attachment_desc);
 
-			dsv_attachment_desc_t dsv_attachment_desc{};
-			dsv_attachment_desc.cpu_handle = depth_target.DSV();
+			DsvAttachmentDesc dsv_attachment_desc{};
+			dsv_attachment_desc.cpu_handle = depth_target->DSV();
 			dsv_attachment_desc.clear_value.Format = DXGI_FORMAT_D32_FLOAT;
 			dsv_attachment_desc.clear_value.DepthStencil.Depth = 1.0f;
 			dsv_attachment_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
@@ -1300,9 +1282,9 @@ namespace adria
 
 		//fxaa render pass
 		{
-			render_pass_desc_t render_pass_desc{};
-			rtv_attachment_desc_t rtv_attachment_desc{};
-			rtv_attachment_desc.cpu_handle = ldr_render_target.RTV();
+			RenderPassDesc render_pass_desc{};
+			RtvAttachmentDesc rtv_attachment_desc{};
+			rtv_attachment_desc.cpu_handle = ldr_render_target->RTV();
 			rtv_attachment_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_DISCARD;
 			rtv_attachment_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
 			render_pass_desc.rtv_attachments.push_back(rtv_attachment_desc);
@@ -1313,9 +1295,9 @@ namespace adria
 
 		//shadow map pass
 		{
-			render_pass_desc_t render_pass_desc{};
-			dsv_attachment_desc_t dsv_attachment_desc{};
-			dsv_attachment_desc.cpu_handle = shadow_depth_map.DSV();
+			RenderPassDesc render_pass_desc{};
+			DsvAttachmentDesc dsv_attachment_desc{};
+			dsv_attachment_desc.cpu_handle = shadow_depth_map->DSV();
 			dsv_attachment_desc.clear_value.Format = DXGI_FORMAT_D32_FLOAT;
 			dsv_attachment_desc.clear_value.DepthStencil.Depth = 1.0f;
 			dsv_attachment_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
@@ -1332,8 +1314,8 @@ namespace adria
 		{
 			for (uint32 i = 0; i < shadow_cubemap_passes.size(); ++i)
 			{
-				render_pass_desc_t render_pass_desc{};
-				dsv_attachment_desc_t dsv_attachment_desc{};
+				RenderPassDesc render_pass_desc{};
+				DsvAttachmentDesc dsv_attachment_desc{};
 				dsv_attachment_desc.cpu_handle = shadow_depth_cubemap.DSV(i);
 				dsv_attachment_desc.clear_value.Format = DXGI_FORMAT_D32_FLOAT;
 				dsv_attachment_desc.clear_value.DepthStencil.Depth = 1.0f;
@@ -1355,8 +1337,8 @@ namespace adria
 			
 			for (uint32 i = 0; i < CASCADE_COUNT; ++i)
 			{
-				render_pass_desc_t render_pass_desc{};
-				dsv_attachment_desc_t dsv_attachment_desc{};
+				RenderPassDesc render_pass_desc{};
+				DsvAttachmentDesc dsv_attachment_desc{};
 				dsv_attachment_desc.cpu_handle = shadow_depth_cascades.DSV(i);
 				dsv_attachment_desc.clear_value.Format = DXGI_FORMAT_D32_FLOAT;
 				dsv_attachment_desc.clear_value.DepthStencil.Depth = 1.0f;
@@ -1373,9 +1355,9 @@ namespace adria
 
 		//ssao render pass
 		{
-			render_pass_desc_t render_pass_desc{};
-			rtv_attachment_desc_t ao_attachment_desc{};
-			ao_attachment_desc.cpu_handle = ao_texture.RTV();
+			RenderPassDesc render_pass_desc{};
+			RtvAttachmentDesc ao_attachment_desc{};
+			ao_attachment_desc.cpu_handle = ao_texture->RTV();
 			ao_attachment_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_DISCARD;
 			ao_attachment_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
 			render_pass_desc.rtv_attachments.push_back(ao_attachment_desc);
@@ -1388,9 +1370,9 @@ namespace adria
 
 		//particle pass
 		{
-			render_pass_desc_t render_pass_desc{};
-			rtv_attachment_desc_t rtv_attachment_desc{};
-			rtv_attachment_desc.cpu_handle = hdr_render_target.RTV();
+			RenderPassDesc render_pass_desc{};
+			RtvAttachmentDesc rtv_attachment_desc{};
+			rtv_attachment_desc.cpu_handle = hdr_render_target->RTV();
 			rtv_attachment_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
 			rtv_attachment_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
 			render_pass_desc.rtv_attachments.push_back(rtv_attachment_desc);
@@ -1402,11 +1384,11 @@ namespace adria
 
 		//postprocess passes
 		{
-			render_pass_desc_t ping_render_pass_desc{};
-			rtv_attachment_desc_t ping_attachment_desc{};
-			ping_attachment_desc.cpu_handle = postprocess_textures[0].RTV();
+			RenderPassDesc ping_render_pass_desc{};
+			RtvAttachmentDesc ping_attachment_desc{};
+			ping_attachment_desc.cpu_handle = postprocess_textures[0]->RTV();
 			ping_attachment_desc.clear_value = black;
-			ping_attachment_desc.clear_value.Format = postprocess_textures[0].Format();
+			ping_attachment_desc.clear_value.Format = postprocess_textures[0]->GetDesc().format;
 			ping_attachment_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
 			ping_attachment_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
 			ping_render_pass_desc.rtv_attachments.push_back(ping_attachment_desc);
@@ -1417,11 +1399,11 @@ namespace adria
 			postprocess_passes[0] = RenderPass(ping_render_pass_desc);
 
 			
-			render_pass_desc_t pong_render_pass_desc{};
-			rtv_attachment_desc_t pong_attachment_desc{};
-			pong_attachment_desc.cpu_handle = postprocess_textures[1].RTV();
+			RenderPassDesc pong_render_pass_desc{};
+			RtvAttachmentDesc pong_attachment_desc{};
+			pong_attachment_desc.cpu_handle = postprocess_textures[1]->RTV();
 			pong_attachment_desc.clear_value = black;
-			pong_attachment_desc.clear_value.Format = postprocess_textures[1].Format();
+			pong_attachment_desc.clear_value.Format = postprocess_textures[1]->GetDesc().format;
 			pong_attachment_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
 			pong_attachment_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
 			pong_render_pass_desc.rtv_attachments.push_back(pong_attachment_desc);
@@ -1435,9 +1417,9 @@ namespace adria
 
 		//offscreen resolve pass
 		{
-			render_pass_desc_t render_pass_desc{};
-			rtv_attachment_desc_t rtv_attachment_desc{};
-			rtv_attachment_desc.cpu_handle = offscreen_ldr_target.RTV();
+			RenderPassDesc render_pass_desc{};
+			RtvAttachmentDesc rtv_attachment_desc{};
+			rtv_attachment_desc.cpu_handle = offscreen_ldr_target->RTV();
 			rtv_attachment_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_DISCARD;
 			rtv_attachment_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
 			render_pass_desc.rtv_attachments.push_back(rtv_attachment_desc);
@@ -1448,10 +1430,10 @@ namespace adria
 
 		//velocity buffer pass
 		{
-			render_pass_desc_t render_pass_desc{};
+			RenderPassDesc render_pass_desc{};
 
-			rtv_attachment_desc_t velocity_buffer_attachment{};
-			velocity_buffer_attachment.cpu_handle = velocity_buffer.RTV();
+			RtvAttachmentDesc velocity_buffer_attachment{};
+			velocity_buffer_attachment.cpu_handle = velocity_buffer->RTV();
 			velocity_buffer_attachment.clear_value = black;
 			velocity_buffer_attachment.clear_value.Format = DXGI_FORMAT_R16G16_FLOAT;
 			velocity_buffer_attachment.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
@@ -1833,7 +1815,7 @@ namespace adria
 		//ao textures
 		ID3D12Resource* ssao_upload_texture = nullptr;
 		{
-			const uint64 upload_buffer_size = GetRequiredIntermediateSize(ssao_random_texture.Resource(), 0, 1);
+			const uint64 upload_buffer_size = GetRequiredIntermediateSize(ssao_random_texture->GetNative(), 0, 1);
 
 			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 			auto resource_desc = CD3DX12_RESOURCE_DESC::Buffer(upload_buffer_size);
@@ -1861,16 +1843,16 @@ namespace adria
 			data.RowPitch = 8 * 4 * sizeof(float32);
 			data.SlicePitch = 0;
 
-			UpdateSubresources(gfx->GetDefaultCommandList(), ssao_random_texture.Resource(), ssao_upload_texture, 0, 0, 1, &data);
+			UpdateSubresources(gfx->GetDefaultCommandList(), ssao_random_texture->GetNative(), ssao_upload_texture, 0, 0, 1, &data);
 
-			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(ssao_random_texture.Resource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(ssao_random_texture->GetNative(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 			gfx->GetDefaultCommandList()->ResourceBarrier(1, &barrier);
 		}
 
 		ID3D12Resource* hbao_upload_texture = nullptr;
 		{
-			const uint64 upload_buffer_size = GetRequiredIntermediateSize(hbao_random_texture.Resource(), 0, 1);
+			const uint64 upload_buffer_size = GetRequiredIntermediateSize(hbao_random_texture->GetNative(), 0, 1);
 
 			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 			auto resource_desc = CD3DX12_RESOURCE_DESC::Buffer(upload_buffer_size);
@@ -1898,9 +1880,9 @@ namespace adria
 			data.RowPitch = 8 * 4 * sizeof(float32);
 			data.SlicePitch = 0;
 
-			UpdateSubresources(gfx->GetDefaultCommandList(), hbao_random_texture.Resource(), hbao_upload_texture, 0, 0, 1, &data);
+			UpdateSubresources(gfx->GetDefaultCommandList(), hbao_random_texture->GetNative(), hbao_upload_texture, 0, 0, 1, &data);
 
-			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(hbao_random_texture.Resource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(hbao_random_texture->GetNative(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 			gfx->GetDefaultCommandList()->ResourceBarrier(1, &barrier);
 		}
@@ -1953,7 +1935,7 @@ namespace adria
 		//ocean ping phase initial
 		ID3D12Resource* ping_phase_upload_buffer = nullptr;
 		{
-			const uint64 upload_buffer_size = GetRequiredIntermediateSize(ping_pong_phase_textures[pong_phase].Resource(), 0, 1);
+			const uint64 upload_buffer_size = GetRequiredIntermediateSize(ping_pong_phase_textures[pong_phase]->GetNative(), 0, 1);
 			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 			auto resource_desc = CD3DX12_RESOURCE_DESC::Buffer(upload_buffer_size);
 			BREAK_IF_FAILED(gfx->GetDevice()->CreateCommittedResource(
@@ -1975,14 +1957,14 @@ namespace adria
 
 			D3D12_RESOURCE_BARRIER barrier{};
 			barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-			barrier.Transition.pResource = ping_pong_phase_textures[pong_phase].Resource();
+			barrier.Transition.pResource = ping_pong_phase_textures[pong_phase]->GetNative();
 			barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 			barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST;
 			barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 
 			ID3D12GraphicsCommandList* cmd_list = gfx->GetDefaultCommandList();
 			cmd_list->ResourceBarrier(1, &barrier);
-			UpdateSubresources(cmd_list, ping_pong_phase_textures[pong_phase].Resource(), ping_phase_upload_buffer, 0, 0, 1, &data);
+			UpdateSubresources(cmd_list, ping_pong_phase_textures[pong_phase]->GetNative(), ping_phase_upload_buffer, 0, 0, 1, &data);
 			std::swap(barrier.Transition.StateBefore, barrier.Transition.StateAfter);
 			cmd_list->ResourceBarrier(1, &barrier);
 		}
@@ -2184,7 +2166,7 @@ namespace adria
 	void Renderer::PassPicking(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Picking Pass");
-		picker.Pick(cmd_list, depth_target.SRV(), gbuffer[0].SRV(), frame_cbuffer.View(backbuffer_index).BufferLocation);
+		picker.Pick(cmd_list, depth_target->SRV(), gbuffer[0]->SRV(), frame_cbuffer.View(backbuffer_index).BufferLocation);
 	}
 	void Renderer::PassGBuffer(ID3D12GraphicsCommandList4* cmd_list)
 	{
@@ -2198,7 +2180,7 @@ namespace adria
 
 		ResourceBarrierBatch gbuffer_barriers{};
 		for (auto& texture : gbuffer)
-			texture.Transition(gbuffer_barriers, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+			gbuffer_barriers.AddTransition(texture->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		gbuffer_barriers.Submit(cmd_list);
 
 		gbuffer_render_pass.Begin(cmd_list);
@@ -2241,7 +2223,7 @@ namespace adria
 		if (reg.size<Decal>() > 0)
 		{
 			gbuffer_barriers.Clear();
-			gbuffer_barriers.AddTransition(gbuffer[2].Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+			gbuffer_barriers.AddTransition(gbuffer[2]->GetNative(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 			gbuffer_barriers.Submit(cmd_list);
 		}
 		else
@@ -2293,7 +2275,7 @@ namespace adria
 
 					texture_handles.push_back(texture_manager.CpuDescriptorHandle(decal.albedo_decal_texture));
 					texture_handles.push_back(texture_manager.CpuDescriptorHandle(decal.normal_decal_texture));
-					texture_handles.push_back(depth_target.SRV());
+					texture_handles.push_back(depth_target->SRV());
 					src_range_sizes.assign(texture_handles.size(), 1u);
 
 					OffsetType descriptor_index = descriptor_allocator->AllocateRange(texture_handles.size());
@@ -2315,8 +2297,8 @@ namespace adria
 		decal_pass.End(cmd_list);
 
 		ResourceBarrierBatch decal_barriers{};
-		decal_barriers.AddTransition(gbuffer[0].Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-		decal_barriers.AddTransition(gbuffer[1].Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		decal_barriers.AddTransition(gbuffer[0]->GetNative(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		decal_barriers.AddTransition(gbuffer[1]->GetNative(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		decal_barriers.Submit(cmd_list);
 	}
 
@@ -2326,7 +2308,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "SSAO Pass");
 
 		ResourceBarrierBatch ssao_barrier{};
-		ao_texture.Transition(ssao_barrier, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
+		ssao_barrier.AddTransition(ao_texture->GetNative(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
 			D3D12_RESOURCE_STATE_RENDER_TARGET);
 		ssao_barrier.Submit(cmd_list);
 
@@ -2343,7 +2325,7 @@ namespace adria
 
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 			auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
-			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { gbuffer[0].SRV(), depth_target.SRV(), ssao_random_texture.SRV() };
+			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { gbuffer[0]->SRV(), depth_target->SRV(), ssao_random_texture->SRV() };
 			D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor };
 			UINT src_range_sizes[] = { 1, 1, 1 };
 			UINT dst_range_sizes[] = { 3 };
@@ -2359,7 +2341,7 @@ namespace adria
 		ssao_barrier.ReverseTransitions();
 		ssao_barrier.Submit(cmd_list);
 
-		BlurTexture(cmd_list, ao_texture);
+		BlurTexture(cmd_list, *ao_texture);
 	}
 	void Renderer::PassHBAO(ID3D12GraphicsCommandList4* cmd_list)
 	{
@@ -2367,7 +2349,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "HBAO Pass");
 
 		ResourceBarrierBatch hbao_barrier{};
-		ao_texture.Transition(hbao_barrier, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
+		hbao_barrier.AddTransition(ao_texture->GetNative(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
 			D3D12_RESOURCE_STATE_RENDER_TARGET);
 		hbao_barrier.Submit(cmd_list);
 
@@ -2385,7 +2367,7 @@ namespace adria
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 			auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
 
-			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { gbuffer[0].SRV(), depth_target.SRV(), hbao_random_texture.SRV() };
+			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { gbuffer[0]->SRV(), depth_target->SRV(), hbao_random_texture->SRV() };
 			D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor };
 			UINT src_range_sizes[] = { 1, 1, 1 };
 			UINT dst_range_sizes[] = { 3 };
@@ -2401,13 +2383,13 @@ namespace adria
 		hbao_barrier.ReverseTransitions();
 		hbao_barrier.Submit(cmd_list);
 
-		BlurTexture(cmd_list, ao_texture);
+		BlurTexture(cmd_list, *ao_texture);
 	}
 	void Renderer::PassRTAO(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		ADRIA_ASSERT(settings.ambient_occlusion == EAmbientOcclusion::RTAO);
 		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::RT_AmbientOcclusion, profiler_settings.profile_rtao);
-		ray_tracer.RayTraceAmbientOcclusion(cmd_list, depth_target, gbuffer[0], frame_cbuffer.View(backbuffer_index).BufferLocation);
+		ray_tracer.RayTraceAmbientOcclusion(cmd_list, *depth_target, *gbuffer[0], frame_cbuffer.View(backbuffer_index).BufferLocation);
 		BlurTexture(cmd_list, ray_tracer.GetRayTracingAmbientOcclusionTexture());
 	}
 	void Renderer::PassAmbient(ID3D12GraphicsCommandList4* cmd_list)
@@ -2430,7 +2412,7 @@ namespace adria
 		else if (!has_ao && settings.ibl) cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::AmbientPBR_IBL));
 		else cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::AmbientPBR));
 
-		D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = {gbuffer[0].SRV(), gbuffer[1].SRV(), gbuffer[2].SRV(), depth_target.SRV()};
+		D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = {gbuffer[0]->SRV(), gbuffer[1]->SRV(), gbuffer[2]->SRV(), depth_target->SRV()};
 		uint32 src_range_sizes[] = {1,1,1,1};
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
 		auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
@@ -2443,7 +2425,7 @@ namespace adria
 		D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles2[] = { null_srv_heap->GetHandle(TEXTURE2D_SLOT), 
 		null_srv_heap->GetHandle(TEXTURECUBE_SLOT), null_srv_heap->GetHandle(TEXTURECUBE_SLOT), null_srv_heap->GetHandle(TEXTURE2D_SLOT) };
 		uint32 src_range_sizes2[] = { 1,1,1,1 };
-		if (has_ao) cpu_handles2[0] = blur_final_texture.SRV(); //contains blurred ssao
+		if (has_ao) cpu_handles2[0] = blur_final_texture->SRV(); //contains blurred ssao
 		if (settings.ibl)
 		{
 			cpu_handles2[1] = ibl_heap->GetHandle(ENV_TEXTURE_SLOT);
@@ -2510,16 +2492,16 @@ namespace adria
 
 				D3D12_RESOURCE_BARRIER pre_rts_barriers[] =
 				{
-					CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
+					CD3DX12_RESOURCE_BARRIER::Transition(depth_target->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
 				};
 				cmd_list->ResourceBarrier(ARRAYSIZE(pre_rts_barriers), pre_rts_barriers);
 
-				ray_tracer.RayTraceShadows(cmd_list, depth_target, frame_cbuffer.View(backbuffer_index).BufferLocation,
+				ray_tracer.RayTraceShadows(cmd_list, *depth_target, frame_cbuffer.View(backbuffer_index).BufferLocation,
 					light_allocation.gpu_address, light_data.soft_rts);
 
 				D3D12_RESOURCE_BARRIER post_rts_barriers[] =
 				{
-					CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
+					CD3DX12_RESOURCE_BARRIER::Transition(depth_target->GetNative(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
 				};
 				cmd_list->ResourceBarrier(ARRAYSIZE(post_rts_barriers), post_rts_barriers);
 			}
@@ -2558,7 +2540,7 @@ namespace adria
 
 				//t0,t1,t2 - gbuffer and depth
 				{
-					D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { gbuffer[0].SRV(), gbuffer[1].SRV(), depth_target.SRV() };
+					D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { gbuffer[0]->SRV(), gbuffer[1]->SRV(), depth_target->SRV() };
 					uint32 src_range_sizes[] = { 1,1,1 };
 
 					OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
@@ -2587,10 +2569,10 @@ namespace adria
 						{
 						case ELightType::Directional:
 							if (light_data.use_cascades) shadow_cpu_handles[2] = shadow_depth_cascades.SRV();
-							else shadow_cpu_handles[0] = shadow_depth_map.SRV();
+							else shadow_cpu_handles[0] = shadow_depth_map->SRV();
 							break;
 						case ELightType::Spot:
-							shadow_cpu_handles[0] = shadow_depth_map.SRV();
+							shadow_cpu_handles[0] = shadow_depth_map->SRV();
 							break;
 						case ELightType::Point:
 							shadow_cpu_handles[1] = shadow_depth_cubemap.SRV();
@@ -2647,11 +2629,11 @@ namespace adria
 		}
 
 		ResourceBarrierBatch tiled_barriers{};
-		depth_target.Transition(tiled_barriers, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-		gbuffer[0].Transition(tiled_barriers, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-		gbuffer[1].Transition(tiled_barriers, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-		uav_target.Transition(tiled_barriers, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-		debug_tiled_texture.Transition(tiled_barriers, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		tiled_barriers.AddTransition(depth_target->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		tiled_barriers.AddTransition(gbuffer[0]->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		tiled_barriers.AddTransition(gbuffer[1]->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		tiled_barriers.AddTransition(uav_target->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		tiled_barriers.AddTransition(debug_tiled_texture->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
 		tiled_barriers.Submit(cmd_list);
 
@@ -2663,7 +2645,7 @@ namespace adria
 
 		//t0,t1,t2 - gbuffer and depth
 		{
-			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { gbuffer[0].SRV(), gbuffer[1].SRV(), depth_target.SRV() };
+			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { gbuffer[0]->SRV(), gbuffer[1]->SRV(), depth_target->SRV() };
 			uint32 src_range_sizes[] = { 1,1,1 };
 
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
@@ -2678,7 +2660,7 @@ namespace adria
 		D3D12_GPU_DESCRIPTOR_HANDLE uav_target_for_clear{};
 		D3D12_GPU_DESCRIPTOR_HANDLE uav_debug_for_clear{};
 		{
-			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { uav_target.UAV(), debug_tiled_texture.UAV() };
+			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { uav_target->UAV(), debug_tiled_texture->UAV() };
 			uint32 src_range_sizes[] = { 1,1 };
 
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
@@ -2715,9 +2697,9 @@ namespace adria
 
 		float32 black[4] = { 0.0f,0.0f,0.0f,0.0f };
 
-		cmd_list->ClearUnorderedAccessViewFloat(uav_target_for_clear, uav_target.UAV(), uav_target.Resource(),
+		cmd_list->ClearUnorderedAccessViewFloat(uav_target_for_clear, uav_target->UAV(), uav_target->GetNative(),
 			black, 0, nullptr);
-		cmd_list->ClearUnorderedAccessViewFloat(uav_debug_for_clear, debug_tiled_texture.UAV(), debug_tiled_texture.Resource(),
+		cmd_list->ClearUnorderedAccessViewFloat(uav_debug_for_clear, debug_tiled_texture->UAV(), debug_tiled_texture->GetNative(),
 			black, 0, nullptr);
 
 		cmd_list->Dispatch((uint32)std::ceil(width * 1.0f / 16), (uint32)(height * 1.0f / 16), 1);
@@ -2725,11 +2707,11 @@ namespace adria
 		tiled_barriers.ReverseTransitions();
 		tiled_barriers.Submit(cmd_list);
 
-		D3D12_CPU_DESCRIPTOR_HANDLE rtv = hdr_render_target.RTV();
+		D3D12_CPU_DESCRIPTOR_HANDLE rtv = hdr_render_target->RTV();
 		cmd_list->OMSetRenderTargets(1, &rtv, FALSE, nullptr);
 
-		if (settings.visualize_tiled) AddTextures(cmd_list, uav_target, debug_tiled_texture, EBlendMode::AlphaBlend);
-		else CopyTexture(cmd_list, uav_target, EBlendMode::AdditiveBlend);
+		if (settings.visualize_tiled) AddTextures(cmd_list, *uav_target, *debug_tiled_texture, EBlendMode::AlphaBlend);
+		else CopyTexture(cmd_list, *uav_target, EBlendMode::AdditiveBlend);
 	}
 	void Renderer::PassDeferredClusteredLighting(ID3D12GraphicsCommandList4* cmd_list)
 	{
@@ -2819,7 +2801,7 @@ namespace adria
 			cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 
 			//gbuffer
-			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { gbuffer[0].SRV(), gbuffer[1].SRV(), depth_target.SRV() };
+			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { gbuffer[0]->SRV(), gbuffer[1]->SRV(), depth_target->SRV() };
 			uint32 src_range_sizes[] = { 1,1,1 };
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
 			auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
@@ -2878,7 +2860,7 @@ namespace adria
 
 		auto lights = reg.view<Light>();
 		postprocess_passes[postprocess_index].Begin(cmd_list); //set ping as rt
-		CopyTexture(cmd_list, hdr_render_target);
+		CopyTexture(cmd_list, *hdr_render_target);
 		for (entity light : lights)
 		{
 			auto const& light_data = lights.get(light);
@@ -2889,9 +2871,9 @@ namespace adria
 		postprocess_passes[postprocess_index].End(cmd_list); //now we have copy of scene in ping
 
 		ResourceBarrierBatch postprocess_barriers{};
-		postprocess_barriers.AddTransition(postprocess_textures[postprocess_index].Resource(),
+		postprocess_barriers.AddTransition(postprocess_textures[postprocess_index]->GetNative(),
 			D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-		postprocess_barriers.AddTransition(postprocess_textures[!postprocess_index].Resource(),
+		postprocess_barriers.AddTransition(postprocess_textures[!postprocess_index]->GetNative(),
 			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		postprocess_barriers.Submit(cmd_list);
 		postprocess_index = !postprocess_index;
@@ -2909,17 +2891,17 @@ namespace adria
 			postprocess_index = !postprocess_index;
 
 			ResourceBarrierBatch cloud_barriers{};
-			postprocess_textures[!postprocess_index].Transition(cloud_barriers,
+			cloud_barriers.AddTransition(postprocess_textures[!postprocess_index]->GetNative(),
 				D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 			cloud_barriers.Submit(cmd_list);
 
-			BlurTexture(cmd_list, postprocess_textures[!postprocess_index]);
+			BlurTexture(cmd_list, *postprocess_textures[!postprocess_index]);
 
 			cloud_barriers.ReverseTransitions();
 			cloud_barriers.Submit(cmd_list);
 
 			postprocess_passes[postprocess_index].Begin(cmd_list);
-			CopyTexture(cmd_list, blur_final_texture, EBlendMode::AlphaBlend);
+			CopyTexture(cmd_list, *blur_final_texture, EBlendMode::AlphaBlend);
 			postprocess_passes[postprocess_index].End(cmd_list);
 			postprocess_barriers.ReverseTransitions();
 			postprocess_barriers.Submit(cmd_list);
@@ -2968,11 +2950,11 @@ namespace adria
 				}
 			}
 
-			ray_tracer.RayTraceReflections(cmd_list, depth_target, frame_cbuffer.View(backbuffer_index).BufferLocation, skybox_handle);
+			ray_tracer.RayTraceReflections(cmd_list, *depth_target, frame_cbuffer.View(backbuffer_index).BufferLocation, skybox_handle);
 
 			postprocess_passes[postprocess_index].Begin(cmd_list);
 
-			AddTextures(cmd_list, postprocess_textures[!postprocess_index], ray_tracer.GetRayTracingReflectionsTexture(), EBlendMode::None);
+			AddTextures(cmd_list, *postprocess_textures[!postprocess_index], ray_tracer.GetRayTracingReflectionsTexture(), EBlendMode::None);
 
 			postprocess_passes[postprocess_index].End(cmd_list);
 			
@@ -2984,19 +2966,18 @@ namespace adria
 		if (settings.dof)
 		{
 			ResourceBarrierBatch barrier{};
-			postprocess_textures[!postprocess_index].Transition(barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-				D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+
+			barrier.AddTransition(postprocess_textures[!postprocess_index]->GetNative(),
+				D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 			barrier.Submit(cmd_list);
 
-			BlurTexture(cmd_list, postprocess_textures[!postprocess_index]);
-
+			BlurTexture(cmd_list, *postprocess_textures[!postprocess_index]);
 			if (settings.bokeh) PassGenerateBokeh(cmd_list);
 
 			barrier.ReverseTransitions();
 			barrier.Submit(cmd_list);
 
 			postprocess_passes[postprocess_index].Begin(cmd_list);
-
 			PassDepthOfField(cmd_list);
 
 			postprocess_passes[postprocess_index].End(cmd_list);
@@ -3008,9 +2989,7 @@ namespace adria
 		if (settings.motion_blur)
 		{
 			postprocess_passes[postprocess_index].Begin(cmd_list);
-
 			PassMotionBlur(cmd_list);
-
 			postprocess_passes[postprocess_index].End(cmd_list);
 
 			postprocess_barriers.ReverseTransitions();
@@ -3048,7 +3027,7 @@ namespace adria
 				else
 				{
 					postprocess_passes[postprocess_index].Begin(cmd_list);
-					AddTextures(cmd_list, postprocess_textures[!postprocess_index], sun_target);
+					AddTextures(cmd_list, *postprocess_textures[!postprocess_index], *sun_target);
 					postprocess_passes[postprocess_index].End(cmd_list);
 				}
 
@@ -3070,13 +3049,14 @@ namespace adria
 			postprocess_index = !postprocess_index;
 
 			ResourceBarrierBatch taa_barrier{};
-			prev_hdr_render_target.Transition(taa_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+			taa_barrier.AddTransition(prev_hdr_render_target->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
 				D3D12_RESOURCE_STATE_RENDER_TARGET);
+
 			taa_barrier.Submit(cmd_list);
-			auto rtv = prev_hdr_render_target.RTV();
+			auto rtv = prev_hdr_render_target->RTV();
 			cmd_list->OMSetRenderTargets(1, &rtv, FALSE, nullptr);
 
-			CopyTexture(cmd_list, postprocess_textures[!postprocess_index]);
+			CopyTexture(cmd_list, *postprocess_textures[!postprocess_index]);
 			
 			cmd_list->OMSetRenderTargets(0, nullptr, FALSE, nullptr);
 			taa_barrier.ReverseTransitions();
@@ -3104,7 +3084,8 @@ namespace adria
 		shadow_allocation.Update(shadow_cbuf_data);
 
 		ResourceBarrierBatch shadow_map_barrier{};
-		shadow_depth_map.Transition(shadow_map_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+		shadow_map_barrier.AddTransition(shadow_depth_map->GetNative(),
+			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		shadow_map_barrier.Submit(cmd_list);
 
 		shadow_map_pass.Begin(cmd_list);
@@ -3135,7 +3116,7 @@ namespace adria
 		shadow_allocation.Update(shadow_cbuf_data);
 
 		ResourceBarrierBatch shadow_map_barrier{};
-		shadow_depth_map.Transition(shadow_map_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+		shadow_map_barrier.AddTransition(shadow_depth_map->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		shadow_map_barrier.Submit(cmd_list);
 
 		shadow_map_pass.Begin(cmd_list);
@@ -3348,7 +3329,7 @@ namespace adria
 		cmd_list->SetGraphicsRootConstantBufferView(2, shadow_allocation.gpu_address);
 		cmd_list->SetGraphicsRootConstantBufferView(3, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
 
-		D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { depth_target.SRV(), {} };
+		D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { depth_target->SRV(), {} };
 		uint32 src_range_sizes[] = { 1,1 };
 
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
@@ -3366,12 +3347,12 @@ namespace adria
 			else
 			{
 				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Volumetric_Directional));
-				cpu_handles[1] = shadow_depth_map.SRV();
+				cpu_handles[1] = shadow_depth_map->SRV();
 			}
 			break;
 		case ELightType::Spot:
 			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Volumetric_Spot));
-			cpu_handles[1] = shadow_depth_map.SRV();
+			cpu_handles[1] = shadow_depth_map->SRV();
 			break;
 		case ELightType::Point:
 			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Volumetric_Point));
@@ -3538,7 +3519,7 @@ namespace adria
 		if (settings.recreate_initial_spectrum)
 		{
 			ResourceBarrierBatch initial_spectrum_barrier{};
-			initial_spectrum_barrier.AddTransition(ocean_initial_spectrum.Resource(),
+			initial_spectrum_barrier.AddTransition(ocean_initial_spectrum->GetNative(),
 				D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			initial_spectrum_barrier.Submit(cmd_list);
 
@@ -3548,7 +3529,7 @@ namespace adria
 
 			OffsetType descriptor_index = descriptor_allocator->Allocate();
 			D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-			device->CopyDescriptorsSimple(1, dst_descriptor, ocean_initial_spectrum.UAV(),
+			device->CopyDescriptorsSimple(1, dst_descriptor, ocean_initial_spectrum->UAV(),
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
 			cmd_list->Dispatch(RESOLUTION / 32, RESOLUTION / 32, 1);
@@ -3562,9 +3543,9 @@ namespace adria
 		//phase
 		{
 			ResourceBarrierBatch phase_barriers{};
-			phase_barriers.AddTransition(ping_pong_phase_textures[pong_phase].Resource(),
+			phase_barriers.AddTransition(ping_pong_phase_textures[pong_phase]->GetNative(),
 				D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-			phase_barriers.AddTransition(ping_pong_phase_textures[!pong_phase].Resource(),
+			phase_barriers.AddTransition(ping_pong_phase_textures[!pong_phase]->GetNative(),
 				D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			phase_barriers.Submit(cmd_list);
 
@@ -3574,13 +3555,13 @@ namespace adria
 
 			OffsetType descriptor_index = descriptor_allocator->Allocate();
 			device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index),
-				ping_pong_phase_textures[pong_phase].SRV(),
+				ping_pong_phase_textures[pong_phase]->SRV(),
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
 
 			descriptor_index = descriptor_allocator->Allocate();
 			device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index),
-				ping_pong_phase_textures[!pong_phase].UAV(),
+				ping_pong_phase_textures[!pong_phase]->UAV(),
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
 			cmd_list->Dispatch(RESOLUTION / 32, RESOLUTION / 32, 1);
@@ -3594,7 +3575,7 @@ namespace adria
 			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Spectrum));
 			cmd_list->SetComputeRootConstantBufferView(0, compute_cbuffer.View(backbuffer_index).BufferLocation);
 
-			D3D12_CPU_DESCRIPTOR_HANDLE srvs[] = { ping_pong_phase_textures[pong_phase].SRV(), ocean_initial_spectrum.SRV() };
+			D3D12_CPU_DESCRIPTOR_HANDLE srvs[] = { ping_pong_phase_textures[pong_phase]->SRV(), ocean_initial_spectrum->SRV() };
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(srvs));
 			auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 			uint32 dst_range_sizes[] = { ARRAYSIZE(srvs) };
@@ -3606,7 +3587,7 @@ namespace adria
 
 			descriptor_index = descriptor_allocator->Allocate();
 			device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index),
-				ping_pong_spectrum_textures[pong_spectrum].UAV(),
+				ping_pong_spectrum_textures[pong_spectrum]->UAV(),
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
 
@@ -3629,9 +3610,9 @@ namespace adria
 				for (uint32 p = 1; p < RESOLUTION; p <<= 1)
 				{
 					ResourceBarrierBatch fft_barriers{};
-					fft_barriers.AddTransition(ping_pong_spectrum_textures[!pong_spectrum].Resource(),
+					fft_barriers.AddTransition(ping_pong_spectrum_textures[!pong_spectrum]->GetNative(),
 						D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-					fft_barriers.AddTransition(ping_pong_spectrum_textures[pong_spectrum].Resource(),
+					fft_barriers.AddTransition(ping_pong_spectrum_textures[pong_spectrum]->GetNative(),
 						D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 					fft_barriers.Submit(cmd_list);
 					
@@ -3642,12 +3623,12 @@ namespace adria
 
 					OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
 					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index),
-						ping_pong_spectrum_textures[pong_spectrum].SRV(),
+						ping_pong_spectrum_textures[pong_spectrum]->SRV(),
 						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 					cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
 
 					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1),
-						ping_pong_spectrum_textures[!pong_spectrum].UAV(),
+						ping_pong_spectrum_textures[!pong_spectrum]->UAV(),
 						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 					cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index + 1));
 					cmd_list->Dispatch(RESOLUTION, 1, 1);
@@ -3661,9 +3642,9 @@ namespace adria
 				for (uint32 p = 1; p < RESOLUTION; p <<= 1)
 				{
 					ResourceBarrierBatch fft_barriers{};
-					fft_barriers.AddTransition(ping_pong_spectrum_textures[!pong_spectrum].Resource(),
+					fft_barriers.AddTransition(ping_pong_spectrum_textures[!pong_spectrum]->GetNative(),
 						D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-					fft_barriers.AddTransition(ping_pong_spectrum_textures[pong_spectrum].Resource(),
+					fft_barriers.AddTransition(ping_pong_spectrum_textures[pong_spectrum]->GetNative(),
 						D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 					fft_barriers.Submit(cmd_list);
 
@@ -3674,12 +3655,12 @@ namespace adria
 
 					OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
 					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index),
-						ping_pong_spectrum_textures[pong_spectrum].SRV(),
+						ping_pong_spectrum_textures[pong_spectrum]->SRV(),
 						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 					cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
 
 					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1),
-						ping_pong_spectrum_textures[!pong_spectrum].UAV(),
+						ping_pong_spectrum_textures[!pong_spectrum]->UAV(),
 						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 					cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index + 1));
 					cmd_list->Dispatch(RESOLUTION, 1, 1);
@@ -3693,7 +3674,7 @@ namespace adria
 		//normals
 		{
 			ResourceBarrierBatch normal_barrier{};
-			normal_barrier.AddTransition(ocean_normal_map.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+			normal_barrier.AddTransition(ocean_normal_map->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
 				D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			normal_barrier.Submit(cmd_list);
 
@@ -3703,13 +3684,13 @@ namespace adria
 
 			OffsetType descriptor_index = descriptor_allocator->Allocate();
 			device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index),
-				ping_pong_spectrum_textures[pong_spectrum].SRV(),
+				ping_pong_spectrum_textures[pong_spectrum]->SRV(),
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
 
 			descriptor_index = descriptor_allocator->Allocate();
 			device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index),
-				ocean_normal_map.UAV(),
+				ocean_normal_map->UAV(),
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
 			cmd_list->Dispatch(RESOLUTION / 32, RESOLUTION / 32, 1);
@@ -3738,7 +3719,7 @@ namespace adria
 			}
 		}
 
-		D3D12_CPU_DESCRIPTOR_HANDLE displacement_handle = ping_pong_spectrum_textures[!pong_spectrum].SRV();
+		D3D12_CPU_DESCRIPTOR_HANDLE displacement_handle = ping_pong_spectrum_textures[!pong_spectrum]->SRV();
 
 		if (settings.ocean_tesselation)
 		{
@@ -3783,7 +3764,7 @@ namespace adria
 
 				descriptor_index = descriptor_allocator->AllocateRange(3);
 				dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { ocean_normal_map.SRV(), skybox_handle, texture_manager.CpuDescriptorHandle(foam_handle) };
+				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { ocean_normal_map->SRV(), skybox_handle, texture_manager.CpuDescriptorHandle(foam_handle) };
 				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { dst_descriptor };
 				UINT src_range_sizes[] = { 1, 1, 1 };
 				UINT dst_range_sizes[] = { 3 };
@@ -3806,7 +3787,7 @@ namespace adria
 		for (auto emitter : emitters)
 		{
 			Emitter const& emitter_params = emitters.get(emitter);
-			particle_renderer.Render(cmd_list, emitter_params, depth_target.SRV(), texture_manager.CpuDescriptorHandle(emitter_params.particle_texture));
+			particle_renderer.Render(cmd_list, emitter_params, depth_target->SRV(), texture_manager.CpuDescriptorHandle(emitter_params.particle_texture));
 		}
 		particle_pass.End(cmd_list, true);
 	}
@@ -3826,7 +3807,7 @@ namespace adria
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 		auto upload_buffer = gfx->GetUploadBuffer();
 
-		lens_flare_textures.push_back(depth_target.SRV());
+		lens_flare_textures.push_back(depth_target->SRV());
 
 		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::LensFlare));
 		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::LensFlare));
@@ -3877,7 +3858,7 @@ namespace adria
 		
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(4);
 		
-		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { clouds_textures[0], clouds_textures[1], clouds_textures[2], depth_target.SRV() };
+		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { clouds_textures[0], clouds_textures[1], clouds_textures[2], depth_target->SRV() };
 		D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
 		uint32 src_range_sizes[] = { 1, 1, 1, 1 };
 		uint32 dst_range_sizes[] = { 4 };
@@ -3909,7 +3890,7 @@ namespace adria
 
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 
-		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { gbuffer[0].SRV(), postprocess_textures[!postprocess_index].SRV(), depth_target.SRV() };
+		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { gbuffer[0]->SRV(), postprocess_textures[!postprocess_index]->SRV(), depth_target->SRV() };
 		D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
 		uint32 src_range_sizes[] = { 1, 1, 1 };
 		uint32 dst_range_sizes[] = { 3 };
@@ -3939,7 +3920,7 @@ namespace adria
 
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 
-		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { postprocess_textures[!postprocess_index].SRV(), blur_final_texture.SRV(), depth_target.SRV() };
+		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { postprocess_textures[!postprocess_index]->SRV(), blur_final_texture->SRV(), depth_target->SRV() };
 		D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
 		uint32 src_range_sizes[] = { 1, 1, 1 };
 		uint32 dst_range_sizes[] = { 3 };
@@ -3977,12 +3958,12 @@ namespace adria
 
 		D3D12_RESOURCE_BARRIER dispatch_barriers[] =
 		{
-			CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
+			CD3DX12_RESOURCE_BARRIER::Transition(depth_target->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
 			CD3DX12_RESOURCE_BARRIER::Transition(bokeh->GetNative(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
 		};
 		cmd_list->ResourceBarrier(ARRAYSIZE(dispatch_barriers), dispatch_barriers);
 
-		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { postprocess_textures[!postprocess_index].SRV(), depth_target.SRV() };
+		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { postprocess_textures[!postprocess_index]->SRV(), depth_target->SRV() };
 		D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
 		uint32 src_range_sizes[] = { 1, 1 };
 		uint32 dst_range_sizes[] = { 2 };
@@ -4001,7 +3982,7 @@ namespace adria
 
 		CD3DX12_RESOURCE_BARRIER precopy_barriers[] = {
 				CD3DX12_RESOURCE_BARRIER::Transition(bokeh->GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
-				CD3DX12_RESOURCE_BARRIER::Transition(depth_target.Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+				CD3DX12_RESOURCE_BARRIER::Transition(depth_target->GetNative(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
 				CD3DX12_RESOURCE_BARRIER::Transition(bokeh_indirect_draw_buffer->GetNative(), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, D3D12_RESOURCE_STATE_COPY_DEST),
 				CD3DX12_RESOURCE_BARRIER::Transition(bokeh_counter.GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE)
 		};
@@ -4073,8 +4054,8 @@ namespace adria
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 		D3D12_RESOURCE_BARRIER extract_barriers[] = {
-			CD3DX12_RESOURCE_BARRIER::Transition(bloom_extract_texture.Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
-			CD3DX12_RESOURCE_BARRIER::Transition(postprocess_textures[!postprocess_index].Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
+			CD3DX12_RESOURCE_BARRIER::Transition(bloom_extract_texture->GetNative(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
+			CD3DX12_RESOURCE_BARRIER::Transition(postprocess_textures[!postprocess_index]->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
 		};
 		cmd_list->ResourceBarrier(ARRAYSIZE(extract_barriers), extract_barriers);
 
@@ -4083,56 +4064,56 @@ namespace adria
 		cmd_list->SetComputeRootConstantBufferView(0, compute_cbuffer.View(backbuffer_index).BufferLocation);
 		
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
-		D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = postprocess_textures[!postprocess_index].SRV();
+		D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = postprocess_textures[!postprocess_index]->SRV();
 		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
 		
 		++descriptor_index;
-		cpu_descriptor = bloom_extract_texture.UAV();
+		cpu_descriptor = bloom_extract_texture->UAV();
 		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
 		
-		cmd_list->Dispatch((uint32)std::ceil(postprocess_textures[!postprocess_index].Width() / 32), 
-						   (uint32)std::ceil(postprocess_textures[!postprocess_index].Height() / 32), 1);
+		cmd_list->Dispatch((uint32)std::ceil(postprocess_textures[!postprocess_index]->GetDesc().width / 32),
+			(uint32)std::ceil(postprocess_textures[!postprocess_index]->GetDesc().height / 32), 1);
 
 		D3D12_RESOURCE_BARRIER combine_barriers[] = {
-			CD3DX12_RESOURCE_BARRIER::Transition(bloom_extract_texture.Resource(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
-			CD3DX12_RESOURCE_BARRIER::Transition(postprocess_textures[postprocess_index].Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
+			CD3DX12_RESOURCE_BARRIER::Transition(bloom_extract_texture->GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
+			CD3DX12_RESOURCE_BARRIER::Transition(postprocess_textures[postprocess_index]->GetNative(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
 		};
 
 		cmd_list->ResourceBarrier(ARRAYSIZE(combine_barriers), combine_barriers);
 
-		GenerateMips(cmd_list, bloom_extract_texture);
+		GenerateMips(cmd_list, *bloom_extract_texture);
 
 		cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::BloomCombine));
 		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::BloomCombine));
 
 		descriptor_index = descriptor_allocator->AllocateRange(3);
-		cpu_descriptor = postprocess_textures[!postprocess_index].SRV();
+		cpu_descriptor = postprocess_textures[!postprocess_index]->SRV();
 		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		//++descriptor_index;
-		cpu_descriptor = bloom_extract_texture.SRV();
+		cpu_descriptor = bloom_extract_texture->SRV();
 		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), cpu_descriptor,
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetHandle(descriptor_index));
 
 		descriptor_index += 2;
-		cpu_descriptor = postprocess_textures[postprocess_index].UAV();
+		cpu_descriptor = postprocess_textures[postprocess_index]->UAV();
 		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
 
-		cmd_list->Dispatch((uint32)std::ceil(postprocess_textures[!postprocess_index].Width() / 32),
-			(uint32)std::ceil(postprocess_textures[!postprocess_index].Height() / 32), 1);
+		cmd_list->Dispatch((uint32)std::ceil(postprocess_textures[!postprocess_index]->GetDesc().width / 32),
+			(uint32)std::ceil(postprocess_textures[!postprocess_index]->GetDesc().height / 32), 1);
 
 
 		D3D12_RESOURCE_BARRIER final_barriers[] = {
-			CD3DX12_RESOURCE_BARRIER::Transition(postprocess_textures[!postprocess_index].Resource(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
-			CD3DX12_RESOURCE_BARRIER::Transition(postprocess_textures[postprocess_index].Resource(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_RENDER_TARGET),
+			CD3DX12_RESOURCE_BARRIER::Transition(postprocess_textures[!postprocess_index]->GetNative(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+			CD3DX12_RESOURCE_BARRIER::Transition(postprocess_textures[postprocess_index]->GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_RENDER_TARGET),
 		};
 
 		cmd_list->ResourceBarrier(ARRAYSIZE(final_barriers), final_barriers);
@@ -4154,7 +4135,7 @@ namespace adria
 
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
 
-		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { postprocess_textures[!postprocess_index].SRV(), velocity_buffer.SRV() };
+		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { postprocess_textures[!postprocess_index]->SRV(), velocity_buffer->SRV() };
 		D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
 		uint32 src_range_sizes[] = { 1, 1 };
 		uint32 dst_range_sizes[] = { 2 };
@@ -4182,7 +4163,7 @@ namespace adria
 
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 
-		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = {postprocess_textures[!postprocess_index].SRV(), depth_target.SRV() };
+		D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = {postprocess_textures[!postprocess_index]->SRV(), depth_target->SRV() };
 		D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
 		uint32 src_range_sizes[] = { 1, 1 };
 		uint32 dst_range_sizes[] = { 2 };
@@ -4246,7 +4227,7 @@ namespace adria
 		cmd_list->SetGraphicsRootConstantBufferView(0, light_allocation.gpu_address);
 
 		OffsetType descriptor_index = descriptor_allocator->Allocate();
-		D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = sun_target.SRV();
+		D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = sun_target->SRV();
 		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
@@ -4265,7 +4246,7 @@ namespace adria
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 		ResourceBarrierBatch velocity_barrier{};
-		velocity_barrier.AddTransition(velocity_buffer.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+		velocity_barrier.AddTransition(velocity_buffer->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
 			D3D12_RESOURCE_STATE_RENDER_TARGET);
 		velocity_barrier.Submit(cmd_list);
 
@@ -4279,7 +4260,7 @@ namespace adria
 			
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(1);
 			device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), 
-				depth_target.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				depth_target->SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 			cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
 			cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -4304,7 +4285,7 @@ namespace adria
 		cmd_list->SetGraphicsRootConstantBufferView(0, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
 
 		OffsetType descriptor_index = descriptor_allocator->Allocate();
-		D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = postprocess_textures[!postprocess_index].SRV();
+		D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = postprocess_textures[!postprocess_index]->SRV();
 		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
@@ -4321,7 +4302,7 @@ namespace adria
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 		ResourceBarrierBatch fxaa_barrier{};
-		ldr_render_target.Transition(fxaa_barrier, D3D12_RESOURCE_STATE_RENDER_TARGET,
+		fxaa_barrier.AddTransition(ldr_render_target->GetNative(), D3D12_RESOURCE_STATE_RENDER_TARGET,
 			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		fxaa_barrier.Submit(cmd_list);
 
@@ -4330,7 +4311,7 @@ namespace adria
 
 		OffsetType descriptor_index = descriptor_allocator->Allocate();
 
-		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), ldr_render_target.SRV(),
+		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), ldr_render_target->SRV(),
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		cmd_list->SetGraphicsRootDescriptorTable(0, descriptor_allocator->GetHandle(descriptor_index));
@@ -4354,11 +4335,11 @@ namespace adria
 		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::TAA));
 
 		OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
-		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), postprocess_textures[!postprocess_index].SRV(),
+		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), postprocess_textures[!postprocess_index]->SRV(),
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), prev_hdr_render_target.SRV(),
+		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), prev_hdr_render_target->SRV(),
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 2), velocity_buffer.SRV(),
+		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 2), velocity_buffer->SRV(),
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		cmd_list->SetGraphicsRootDescriptorTable(0, descriptor_allocator->GetHandle(descriptor_index));
@@ -4375,13 +4356,13 @@ namespace adria
 		auto upload_buffer = gfx->GetUploadBuffer();
 
 		ResourceBarrierBatch sun_barrier{};
-		sun_barrier.AddTransition(sun_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		sun_barrier.AddTransition(depth_target.Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+		sun_barrier.AddTransition(sun_target->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		sun_barrier.AddTransition(depth_target->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		sun_barrier.Submit(cmd_list);
 
 
-		D3D12_CPU_DESCRIPTOR_HANDLE rtv = sun_target.RTV();
-		D3D12_CPU_DESCRIPTOR_HANDLE dsv = depth_target.DSV();
+		D3D12_CPU_DESCRIPTOR_HANDLE rtv = sun_target->RTV();
+		D3D12_CPU_DESCRIPTOR_HANDLE dsv = depth_target->DSV();
 		float32 black[4] = { 0.0f };
 		cmd_list->ClearRenderTargetView(rtv, black, 0, nullptr);
 		cmd_list->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
@@ -4423,14 +4404,14 @@ namespace adria
 		sun_barrier.ReverseTransitions();
 		sun_barrier.Submit(cmd_list);
 	}
-	void Renderer::BlurTexture(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& texture)
+	void Renderer::BlurTexture(ID3D12GraphicsCommandList4* cmd_list, Texture const& texture)
 	{
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 		ResourceBarrierBatch barrier{};
-
-		blur_intermediate_texture.Transition(barrier, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		barrier.AddTransition(blur_intermediate_texture->GetNative(),
+			D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
 		barrier.Submit(cmd_list);
 
@@ -4446,39 +4427,39 @@ namespace adria
 		cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
 
 		++descriptor_index;
-		cpu_descriptor = blur_intermediate_texture.UAV();
+		cpu_descriptor = blur_intermediate_texture->UAV();
 		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
 
-		cmd_list->Dispatch((uint32)std::ceil(texture.Width() / 1024.0f), texture.Height(), 1);
+		cmd_list->Dispatch((uint32)std::ceil(texture.GetDesc().width / 1024.0f), texture.GetDesc().height, 1);
 
 		barrier.ReverseTransitions();
-		blur_final_texture.Transition(barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		barrier.AddTransition(blur_final_texture->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		barrier.Submit(cmd_list);
 
 		//vertical pass
 		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Blur_Vertical));
 		descriptor_index = descriptor_allocator->AllocateRange(2);
 
-		cpu_descriptor = blur_intermediate_texture.SRV();
+		cpu_descriptor = blur_intermediate_texture->SRV();
 		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
 
 		++descriptor_index;
-		cpu_descriptor = blur_final_texture.UAV();
+		cpu_descriptor = blur_final_texture->UAV();
 		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
 
-		cmd_list->Dispatch(texture.Width(), (UINT)std::ceil(texture.Height() / 1024.0f), 1);
+		cmd_list->Dispatch(texture.GetDesc().width, (UINT)std::ceil(texture.GetDesc().height / 1024.0f), 1);
 
 		barrier.Clear();
-		blur_final_texture.Transition(barrier, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		barrier.AddTransition(blur_final_texture->GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		barrier.Submit(cmd_list);
 	}
-	void Renderer::CopyTexture(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& texture, EBlendMode mode)
+	void Renderer::CopyTexture(ID3D12GraphicsCommandList4* cmd_list, Texture const& texture, EBlendMode mode)
 	{
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
@@ -4511,13 +4492,13 @@ namespace adria
 
 		cmd_list->DrawInstanced(4, 1, 0, 0);
 	}
-	void Renderer::GenerateMips(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& _texture,
+	void Renderer::GenerateMips(ID3D12GraphicsCommandList4* cmd_list, Texture const& _texture,
 		D3D12_RESOURCE_STATES start_state, D3D12_RESOURCE_STATES end_state)
 	{
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-		ID3D12Resource* texture = _texture.Resource();
+		ID3D12Resource* texture = _texture.GetNative();
 
 		//Set root signature, pso and descriptor heap
 		cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::GenerateMips));
@@ -4588,7 +4569,7 @@ namespace adria
 		}
 
 	}
-	void Renderer::AddTextures(ID3D12GraphicsCommandList4* cmd_list, Texture2D const& texture1, Texture2D const& texture2, EBlendMode mode)
+	void Renderer::AddTextures(ID3D12GraphicsCommandList4* cmd_list, Texture const& texture1, Texture const& texture2, EBlendMode mode)
 	{
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
