@@ -110,6 +110,5 @@ namespace adria
 		void CreateRootSignatures();
 		void CreateStateObjects();
 		void CreateShaderTables();
-
 	};
 }

@@ -15,7 +15,7 @@
 #include "../Graphics/Texture.h"
 #include "../Graphics/RenderPass.h"
 #include "../Graphics/ConstantBuffer.h"
-#include "../Graphics/TextureCube.h"
+//#include "../Graphics/TextureCube.h"
 #include "../Graphics/Texture2DArray.h"
 #include "../Graphics/GPUProfiler.h"
 
@@ -112,7 +112,7 @@ namespace adria
 		RayTracer ray_tracer;
 
 		RendererSettings settings;
-		GPUProfiler profiler;
+		GPUProfiler gpu_profiler;
 		ProfilerSettings profiler_settings;
 
 		SceneViewport current_scene_viewport;
@@ -128,8 +128,8 @@ namespace adria
 		std::unique_ptr<Texture> offscreen_ldr_target;
 		std::vector<std::unique_ptr<Texture>> gbuffer;
 		std::unique_ptr<Texture> shadow_depth_map;
-		TextureCube shadow_depth_cubemap;
-		Texture2DArray shadow_depth_cascades;
+		std::unique_ptr<Texture> shadow_depth_cubemap;
+		std::unique_ptr<Texture> shadow_depth_cascades;
 		std::unique_ptr<Texture> ao_texture;
 		std::unique_ptr<Texture> hbao_random_texture;
 		std::unique_ptr<Texture> ssao_random_texture;

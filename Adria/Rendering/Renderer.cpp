@@ -241,13 +241,9 @@ namespace adria
 			BoundingBox& cull_box)
 		{
 			static float32 const farFactor = 1.5f;
-			static float32 const lightDistanceFactor = 4.0f;
+			static float32 const lightDistanceFactor = 1.0f;
 
-			//std::array<XMMATRIX, CASCADE_COUNT> projectionMatrices = RecalculateProjectionMatrices(camera);
 			std::array<XMMATRIX, CASCADE_COUNT> lightViewProjectionMatrices{};
-
-			//for (u32 i = 0; i < CASCADE_COUNT; ++i)
-			//{
 
 			BoundingFrustum frustum(projection_matrix);
 			frustum.Transform(frustum, XMMatrixInverse(nullptr, camera.View()));
@@ -372,7 +368,7 @@ namespace adria
 		light_list(gfx, StructuredBufferDesc<uint32>(CLUSTER_COUNT * CLUSTER_MAX_LIGHTS)),
 		light_grid(gfx, StructuredBufferDesc<LightGrid>(CLUSTER_COUNT)),
 		bokeh_counter(gfx, CounterBufferDesc()),
-		profiler(gfx), particle_renderer(gfx), picker(gfx), ray_tracer(reg, gfx, width, height)
+		gpu_profiler(gfx), particle_renderer(gfx), picker(gfx), ray_tracer(reg, gfx, width, height)
 	{
 		RootSigPSOManager::Initialize(gfx->GetDevice());
 		CreateDescriptorHeaps();
@@ -710,7 +706,7 @@ namespace adria
 	}
 	std::vector<std::string> Renderer::GetProfilerResults(bool log)
 {
-		return profiler.GetProfilerResults(gfx->GetDefaultCommandList(), log);
+		return gpu_profiler.GetProfilerResults(gfx->GetDefaultCommandList(), log);
 	}
 	PickingData Renderer::GetPickingData() const
 	{
@@ -1025,53 +1021,73 @@ namespace adria
 
 			//shadow cubemap
 			{
-				texturecube_desc_t depth_cubemap_desc{};
-				depth_cubemap_desc.width = SHADOW_CUBE_SIZE;
-				depth_cubemap_desc.height = SHADOW_CUBE_SIZE;
-				depth_cubemap_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-				depth_cubemap_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-				depth_cubemap_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-				depth_cubemap_desc.clear_value.Format = DXGI_FORMAT_D32_FLOAT;
-				depth_cubemap_desc.clear_value.DepthStencil = { 1.0f, 0 };
+				TextureDesc cubemap_desc{};
+				cubemap_desc.width = SHADOW_CUBE_SIZE;
+				cubemap_desc.height = SHADOW_CUBE_SIZE;
+				cubemap_desc.misc_flags = EResourceMiscFlag::TextureCube;
+				cubemap_desc.array_size = 6;
+				cubemap_desc.format = DXGI_FORMAT_R32_TYPELESS;
+				cubemap_desc.clear = D3D12_CLEAR_VALUE{ .Format = DXGI_FORMAT_D32_FLOAT, .DepthStencil = {1.0f, 0}};
+				cubemap_desc.initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+				cubemap_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::DepthStencil;
 
-				shadow_depth_cubemap = TextureCube(gfx->GetDevice(), depth_cubemap_desc);
+				shadow_depth_cubemap = std::make_unique<Texture>(gfx, cubemap_desc);
 
-				texturecube_srv_desc_t cube_srv_desc{};
-				cube_srv_desc.format = DXGI_FORMAT_R32_FLOAT;
-				shadow_depth_cubemap.CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++), &cube_srv_desc);
+				TextureViewDesc cube_srv_desc{};
+				cube_srv_desc.new_format = DXGI_FORMAT_R32_FLOAT;
+				cube_srv_desc.first_mip = 0;
+				cube_srv_desc.mip_count = 1;
+				shadow_depth_cubemap->CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++), &cube_srv_desc);
 
-				texturecube_dsv_desc_t cube_dsv_desc{};
-				cube_dsv_desc.format = DXGI_FORMAT_D32_FLOAT;
-
-				std::array<D3D12_CPU_DESCRIPTOR_HANDLE, 6> dsv_handles{};
-				for (auto& dsv_handle : dsv_handles) dsv_handle = constant_dsv_heap->GetHandle(dsv_heap_index++);
-
-				shadow_depth_cubemap.CreateDSVs(dsv_handles, &cube_dsv_desc);
+				TextureViewDesc cube_dsv_desc{};
+				cube_dsv_desc.new_format = DXGI_FORMAT_D32_FLOAT;
+				cube_dsv_desc.first_mip = 0;
+				cube_dsv_desc.slice_count = 1;
+				for (size_t i = 0; i < 6; ++i)
+				{
+					cube_dsv_desc.first_slice = i;
+					size_t j = shadow_depth_cubemap->CreateDSV(constant_dsv_heap->GetHandle(dsv_heap_index++), &cube_dsv_desc);
+					ADRIA_ASSERT(j == i);
+				}
 			}
 
 			//shadow cascades
 			{
-				texture2darray_desc_t depth_cascade_maps_desc{};
+				//texture2darray_desc_t depth_cascade_maps_desc{};
+				//depth_cascade_maps_desc.width = SHADOW_CASCADE_MAP_SIZE;
+				//depth_cascade_maps_desc.height = SHADOW_CASCADE_MAP_SIZE;
+				//depth_cascade_maps_desc.array_size = CASCADE_COUNT;
+				//depth_cascade_maps_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+				//depth_cascade_maps_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+				//depth_cascade_maps_desc.clear_value.Format = DXGI_FORMAT_D32_FLOAT;
+				//depth_cascade_maps_desc.clear_value.DepthStencil = { 1.0f, 0 };
+
+				TextureDesc depth_cascade_maps_desc{};
 				depth_cascade_maps_desc.width = SHADOW_CASCADE_MAP_SIZE;
 				depth_cascade_maps_desc.height = SHADOW_CASCADE_MAP_SIZE;
+				depth_cascade_maps_desc.misc_flags = EResourceMiscFlag::None;
 				depth_cascade_maps_desc.array_size = CASCADE_COUNT;
-				depth_cascade_maps_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-				depth_cascade_maps_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-				depth_cascade_maps_desc.clear_value.Format = DXGI_FORMAT_D32_FLOAT;
-				depth_cascade_maps_desc.clear_value.DepthStencil = { 1.0f, 0 };
-				shadow_depth_cascades = Texture2DArray(gfx->GetDevice(), depth_cascade_maps_desc);
+				depth_cascade_maps_desc.format = DXGI_FORMAT_R32_TYPELESS;
+				depth_cascade_maps_desc.clear = D3D12_CLEAR_VALUE{ .Format = DXGI_FORMAT_D32_FLOAT, .DepthStencil = {1.0f, 0} };
+				depth_cascade_maps_desc.initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+				depth_cascade_maps_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::DepthStencil;
 
-				texture2darray_srv_desc_t array_srv_desc{};
-				array_srv_desc.format = DXGI_FORMAT_R32_FLOAT;
-				shadow_depth_cascades.CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++), &array_srv_desc);
+				shadow_depth_cascades = std::make_unique<Texture>(gfx, depth_cascade_maps_desc);
 
-				texture2darray_dsv_desc_t array_dsv_desc{};
-				array_dsv_desc.format = DXGI_FORMAT_D32_FLOAT;
+				TextureViewDesc srv_desc{};
+				srv_desc.new_format = DXGI_FORMAT_R32_FLOAT;
+				srv_desc.mip_count = 1;
+				shadow_depth_cascades->CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++), &srv_desc);
 
-				std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> dsv_handles(CASCADE_COUNT);
-				for (auto& dsv_handle : dsv_handles) dsv_handle = constant_dsv_heap->GetHandle(dsv_heap_index++);
-
-				shadow_depth_cascades.CreateDSVs(dsv_handles, &array_dsv_desc);
+				TextureViewDesc dsv_desc{};
+				dsv_desc.new_format = DXGI_FORMAT_D32_FLOAT;
+				dsv_desc.first_mip = 0;
+				dsv_desc.slice_count = 1;
+				for (size_t i = 0; i < CASCADE_COUNT; ++i)
+				{
+					dsv_desc.first_slice = D3D12CalcSubresource(0, i, 0, 1, 1);
+					shadow_depth_cascades->CreateDSV(constant_dsv_heap->GetHandle(dsv_heap_index++), &dsv_desc);
+				}
 			}
 		}
 
@@ -1316,7 +1332,7 @@ namespace adria
 			{
 				RenderPassDesc render_pass_desc{};
 				DsvAttachmentDesc dsv_attachment_desc{};
-				dsv_attachment_desc.cpu_handle = shadow_depth_cubemap.DSV(i);
+				dsv_attachment_desc.cpu_handle = shadow_depth_cubemap->DSV(i);
 				dsv_attachment_desc.clear_value.Format = DXGI_FORMAT_D32_FLOAT;
 				dsv_attachment_desc.clear_value.DepthStencil.Depth = 1.0f;
 				dsv_attachment_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
@@ -1339,7 +1355,7 @@ namespace adria
 			{
 				RenderPassDesc render_pass_desc{};
 				DsvAttachmentDesc dsv_attachment_desc{};
-				dsv_attachment_desc.cpu_handle = shadow_depth_cascades.DSV(i);
+				dsv_attachment_desc.cpu_handle = shadow_depth_cascades->DSV(i);
 				dsv_attachment_desc.clear_value.Format = DXGI_FORMAT_D32_FLOAT;
 				dsv_attachment_desc.clear_value.DepthStencil.Depth = 1.0f;
 				dsv_attachment_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
@@ -2171,7 +2187,7 @@ namespace adria
 	void Renderer::PassGBuffer(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "GBuffer Pass");
-		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::GBufferPass, profiler_settings.profile_gbuffer_pass);
+		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(gpu_profiler, cmd_list, EProfilerBlock::GBufferPass, profiler_settings.profile_gbuffer_pass);
 
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
@@ -2235,7 +2251,7 @@ namespace adria
 	void Renderer::PassDecals(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		if (reg.size<Decal>() == 0) return;
-		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::DecalPass, profiler_settings.profile_decal_pass);
+		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(gpu_profiler, cmd_list, EProfilerBlock::DecalPass, profiler_settings.profile_decal_pass);
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Decal Pass");
 
 		ID3D12Device* device = gfx->GetDevice();
@@ -2388,7 +2404,7 @@ namespace adria
 	void Renderer::PassRTAO(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		ADRIA_ASSERT(settings.ambient_occlusion == EAmbientOcclusion::RTAO);
-		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::RT_AmbientOcclusion, profiler_settings.profile_rtao);
+		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(gpu_profiler, cmd_list, EProfilerBlock::RT_AmbientOcclusion, profiler_settings.profile_rtao);
 		ray_tracer.RayTraceAmbientOcclusion(cmd_list, *depth_target, *gbuffer[0], frame_cbuffer.View(backbuffer_index).BufferLocation);
 		BlurTexture(cmd_list, ray_tracer.GetRayTracingAmbientOcclusionTexture());
 	}
@@ -2448,7 +2464,7 @@ namespace adria
 	void Renderer::PassDeferredLighting(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Deferred Lighting Pass");
-		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::DeferredPass, profiler_settings.profile_deferred_pass);
+		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(gpu_profiler, cmd_list, EProfilerBlock::DeferredPass, profiler_settings.profile_deferred_pass);
 
 		ID3D12Device* device = gfx->GetDevice();
 		auto upload_buffer = gfx->GetUploadBuffer();
@@ -2488,7 +2504,7 @@ namespace adria
 
 			if (light_data.ray_traced_shadows)
 			{
-				SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::RT_Shadows, profiler_settings.profile_rts);
+				SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(gpu_profiler, cmd_list, EProfilerBlock::RT_Shadows, profiler_settings.profile_rts);
 
 				D3D12_RESOURCE_BARRIER pre_rts_barriers[] =
 				{
@@ -2568,14 +2584,14 @@ namespace adria
 						switch (light_data.type)
 						{
 						case ELightType::Directional:
-							if (light_data.use_cascades) shadow_cpu_handles[2] = shadow_depth_cascades.SRV();
+							if (light_data.use_cascades) shadow_cpu_handles[2] = shadow_depth_cascades->SRV();
 							else shadow_cpu_handles[0] = shadow_depth_map->SRV();
 							break;
 						case ELightType::Spot:
 							shadow_cpu_handles[0] = shadow_depth_map->SRV();
 							break;
 						case ELightType::Point:
-							shadow_cpu_handles[1] = shadow_depth_cubemap.SRV();
+							shadow_cpu_handles[1] = shadow_depth_cubemap->SRV();
 							break;
 						default:
 							ADRIA_ASSERT(false);
@@ -2841,7 +2857,7 @@ namespace adria
 	void Renderer::PassForward(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Forward Pass");
-		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::ForwardPass, profiler_settings.profile_forward_pass);
+		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(gpu_profiler, cmd_list, EProfilerBlock::ForwardPass, profiler_settings.profile_forward_pass);
 
 		UpdateOcean(cmd_list);
 		forward_render_pass.Begin(cmd_list);
@@ -2854,7 +2870,7 @@ namespace adria
 	void Renderer::PassPostprocess(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Postprocessing Pass");
-		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::Postprocessing, profiler_settings.profile_postprocessing);
+		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(gpu_profiler, cmd_list, EProfilerBlock::Postprocessing, profiler_settings.profile_postprocessing);
 
 		PassVelocityBuffer(cmd_list);
 
@@ -2933,7 +2949,7 @@ namespace adria
 		}
 		else if (settings.reflections == EReflections::RTR)
 		{
-			SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::RT_Reflections, profiler_settings.profile_rtr);
+			SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(gpu_profiler, cmd_list, EProfilerBlock::RT_Reflections, profiler_settings.profile_rtr);
 
 			D3D12_CPU_DESCRIPTOR_HANDLE skybox_handle = null_srv_heap->GetHandle(TEXTURECUBE_SLOT);
 			if (settings.sky_type == ESkyType::Skybox)
@@ -3137,7 +3153,8 @@ namespace adria
 		auto upload_buffer = gfx->GetUploadBuffer();
 
 		ResourceBarrierBatch shadow_cubemap_barrier{};
-		shadow_depth_cubemap.Transition(shadow_cubemap_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+		shadow_cubemap_barrier.AddTransition(shadow_depth_cubemap->GetNative(),
+			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		shadow_cubemap_barrier.Submit(cmd_list);
 
 		for (uint32 i = 0; i < shadow_cubemap_passes.size(); ++i)
@@ -3168,7 +3185,8 @@ namespace adria
 		auto upload_buffer = gfx->GetUploadBuffer();
 
 		ResourceBarrierBatch shadow_cascades_barrier{};
-		shadow_depth_cascades.Transition(shadow_cascades_barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+		shadow_cascades_barrier.AddTransition(shadow_depth_cascades->GetNative(),
+			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		shadow_cascades_barrier.Submit(cmd_list);
 
 		std::array<float32, CASCADE_COUNT> split_distances;
@@ -3342,7 +3360,7 @@ namespace adria
 			if (light.use_cascades)
 			{
 				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Volumetric_DirectionalCascades));
-				cpu_handles[1] = shadow_depth_cascades.SRV();
+				cpu_handles[1] = shadow_depth_cascades->SRV();
 			}
 			else
 			{
@@ -3356,7 +3374,7 @@ namespace adria
 			break;
 		case ELightType::Point:
 			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Volumetric_Point));
-			cpu_handles[1] = shadow_depth_cubemap.SRV();
+			cpu_handles[1] = shadow_depth_cubemap->SRV();
 			break;
 		default:
 			ADRIA_ASSERT(false && "Invalid Light Type!");
@@ -3780,7 +3798,7 @@ namespace adria
 	{
 		if (reg.size<Emitter>() == 0) return;
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Particles Pass");
-		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, cmd_list, EProfilerBlock::ParticlesPass, profiler_settings.profile_particles_pass);
+		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(gpu_profiler, cmd_list, EProfilerBlock::ParticlesPass, profiler_settings.profile_particles_pass);
 
 		particle_pass.Begin(cmd_list, true);
 		auto emitters = reg.view<Emitter>();

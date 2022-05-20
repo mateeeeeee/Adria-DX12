@@ -215,8 +215,9 @@ namespace adria
 		DynamicAllocation sort_dispatch_info_allocation;
 
 		Microsoft::WRL::ComPtr<ID3D12CommandSignature>  indirect_render_args_signature;
-		Microsoft::WRL::ComPtr<ID3D12Resource> indirect_render_args_buffer;
-		D3D12_CPU_DESCRIPTOR_HANDLE indirect_render_args_uav;
+		//Microsoft::WRL::ComPtr<ID3D12Resource> indirect_render_args_buffer;
+		std::unique_ptr<Buffer> indirect_render_args_buffer;
+		//D3D12_CPU_DESCRIPTOR_HANDLE indirect_render_args_uav;
 		Microsoft::WRL::ComPtr<ID3D12CommandSignature>  indirect_sort_args_signature;
 		Microsoft::WRL::ComPtr<ID3D12Resource> indirect_sort_args_buffer;
 		D3D12_CPU_DESCRIPTOR_HANDLE indirect_sort_args_uav;
@@ -249,23 +250,32 @@ namespace adria
 			}
 			//creating indirect args buffers
 			{
+				
+				//
+				//D3D12_RESOURCE_DESC indirect_render_args_desc{};
+				//indirect_render_args_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+				//indirect_render_args_desc.Alignment = 0;
+				//indirect_render_args_desc.SampleDesc.Count = 1;
+				//indirect_render_args_desc.Format = DXGI_FORMAT_UNKNOWN;
+				//indirect_render_args_desc.Width = 5 * sizeof(uint32);
+				//indirect_render_args_desc.Height = 1;
+				//indirect_render_args_desc.DepthOrArraySize = 1;
+				//indirect_render_args_desc.MipLevels = 1;
+				//indirect_render_args_desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+				//indirect_render_args_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+				BufferDesc indirect_render_args_desc2{};
+				indirect_render_args_desc2.bind_flags = EBindFlag::UnorderedAccess;
+				indirect_render_args_desc2.size = 5 * sizeof(uint32);
+				indirect_render_args_desc2.misc_flags = EResourceMiscFlag::IndirectArgs;
+				
+				indirect_render_args_buffer = std::make_unique<Buffer>(gfx, indirect_render_args_desc2);
+
+
+				//BREAK_IF_FAILED(device->CreateCommittedResource(&heap_properties, D3D12_HEAP_FLAG_NONE, &indirect_render_args_desc,
+				//	D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&indirect_render_args_buffer)));
+
 				auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-
-				D3D12_RESOURCE_DESC indirect_render_args_desc{};
-				indirect_render_args_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-				indirect_render_args_desc.Alignment = 0;
-				indirect_render_args_desc.SampleDesc.Count = 1;
-				indirect_render_args_desc.Format = DXGI_FORMAT_UNKNOWN;
-				indirect_render_args_desc.Width = 5 * sizeof(uint32);
-				indirect_render_args_desc.Height = 1;
-				indirect_render_args_desc.DepthOrArraySize = 1;
-				indirect_render_args_desc.MipLevels = 1;
-				indirect_render_args_desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-				indirect_render_args_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-
-				BREAK_IF_FAILED(device->CreateCommittedResource(&heap_properties, D3D12_HEAP_FLAG_NONE, &indirect_render_args_desc,
-					D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&indirect_render_args_buffer)));
-
 				D3D12_RESOURCE_DESC indirect_sort_args_desc{};
 				indirect_sort_args_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 				indirect_sort_args_desc.Alignment = 0;
@@ -310,18 +320,20 @@ namespace adria
 				alive_index_buffer.CreateUAV(particle_heap->GetHandle(heap_index++),
 					alive_index_buffer_counter.GetNative());
 
+				D3D12_CPU_DESCRIPTOR_HANDLE uav_handle = particle_heap->GetHandle(heap_index++);
+				BufferViewDesc uav_desc2{};
+				uav_desc2.new_format = DXGI_FORMAT_R32_UINT;
+				indirect_render_args_buffer->CreateUAV(uav_handle, nullptr, &uav_desc2);
+
+				//device->CreateUnorderedAccessView(indirect_render_args_buffer.Get(), nullptr, &uav_desc, uav_handle);
+				//indirect_render_args_uav = uav_handle;
+
 				D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
 				uav_desc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
-				uav_desc.Format = DXGI_FORMAT_R32_UINT; 
+				uav_desc.Format = DXGI_FORMAT_R32_UINT;
 				uav_desc.Buffer.FirstElement = 0;
-				uav_desc.Buffer.NumElements = 5;
-				uav_desc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
-
-				D3D12_CPU_DESCRIPTOR_HANDLE uav_handle = particle_heap->GetHandle(heap_index++);
-				device->CreateUnorderedAccessView(indirect_render_args_buffer.Get(), nullptr, &uav_desc, uav_handle);
-				indirect_render_args_uav = uav_handle;
-
 				uav_desc.Buffer.NumElements = 4;
+				uav_desc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 				uav_handle = particle_heap->GetHandle(heap_index++);
 				device->CreateUnorderedAccessView(indirect_sort_args_buffer.Get(), nullptr, &uav_desc, uav_handle);
 				indirect_sort_args_uav = uav_handle;
@@ -464,7 +476,7 @@ namespace adria
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(6);
 			D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { particle_bufferA.UAV(), particle_bufferB.UAV(),
 														 dead_list_buffer.UAV(), alive_index_buffer.UAV(),
-														 view_space_positions_buffer.UAV(), indirect_render_args_uav };
+														 view_space_positions_buffer.UAV(), indirect_render_args_buffer->UAV()};
 			auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
 			D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor };
 			uint32 src_range_sizes[] = { 1, 1, 1, 1, 1, 1 };
@@ -521,7 +533,7 @@ namespace adria
 			D3D12_RESOURCE_BARRIER barriers[] =
 			{
 				CD3DX12_RESOURCE_BARRIER::Transition(alive_index_buffer_counter.GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER),
-				CD3DX12_RESOURCE_BARRIER::Transition(indirect_render_args_buffer.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT)
+				CD3DX12_RESOURCE_BARRIER::Transition(indirect_render_args_buffer->GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT)
 			};
 			cmd_list->ResourceBarrier(ARRAYSIZE(barriers), barriers);
 
@@ -531,10 +543,10 @@ namespace adria
 			cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			cmd_list->IASetVertexBuffers(0, 0, nullptr);
 			BindIndexBuffer(cmd_list, index_buffer.get());
-			cmd_list->ExecuteIndirect(indirect_render_args_signature.Get(), 1, indirect_render_args_buffer.Get(), 0, nullptr, 0);
+			cmd_list->ExecuteIndirect(indirect_render_args_signature.Get(), 1, indirect_render_args_buffer->GetNative(), 0, nullptr, 0);
 
 			barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(alive_index_buffer_counter.GetNative(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-			barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(indirect_render_args_buffer.Get(), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+			barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(indirect_render_args_buffer->GetNative(), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			cmd_list->ResourceBarrier(ARRAYSIZE(barriers), barriers);
 		}
 		

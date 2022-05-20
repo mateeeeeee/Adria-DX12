@@ -10,7 +10,7 @@ namespace adria
 		EHeapType heap_type = EHeapType::Default;
 		EBindFlag bind_flags = EBindFlag::None;
 		EResourceMiscFlag misc_flags = EResourceMiscFlag::None;
-		uint32 stride = 0; //structured buffers, vertex buffers
+		uint32 stride = 0; //structured buffers, (vertex buffers, index buffers, needed for count calculation not for srv as structured buffers)
 		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN; //typed buffers, index buffers
 	};
 
@@ -67,7 +67,7 @@ namespace adria
 	{
 		uint64 offset = 0;
 		uint64 size = uint64(-1);
-		std::optional<DXGI_FORMAT> new_format;
+		std::optional<DXGI_FORMAT> new_format = std::nullopt;
 	};
 
 	class Buffer

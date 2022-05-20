@@ -373,9 +373,6 @@
     <ClInclude Include="Graphics\MipsGenerator.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\Texture2D.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\ResourceBarrierBatch.h">
       <Filter>Graphics</Filter>
     </ClInclude>
@@ -389,12 +386,6 @@
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\LinearUploadBuffer.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\TextureCube.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Texture2DArray.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\AdriaException.h">

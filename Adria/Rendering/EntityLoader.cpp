@@ -650,7 +650,6 @@ namespace adria
             const_cast<light_parameters_t&>(params).light_data.position = XMVectorScale(-params.light_data.direction, 1e3);
 
         reg.emplace<Light>(light, params.light_data);
-
         if (params.mesh_type == ELightMesh::Quad)
         {
             uint32 const size = params.mesh_size;
@@ -704,7 +703,6 @@ namespace adria
 			}
 
             reg.emplace<Material>(light, material);
-
             BoundingBox aabb = AABBFromRange(vertices.begin(), vertices.end());
             auto translation_matrix = XMMatrixTranslationFromVector(params.light_data.position);
             aabb.Transform(aabb, XMMatrixTranslationFromVector(params.light_data.position));
@@ -748,7 +746,6 @@ namespace adria
             reg.emplace<Tag>(light, "Point Light");
             break;
         }
-
         return light;
     }
 
