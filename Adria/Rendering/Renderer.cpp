@@ -4360,6 +4360,8 @@ namespace adria
 		sun_barrier.AddTransition(depth_target->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 		sun_barrier.Submit(cmd_list);
 
+		sun_target->GetNative()->SetName(L"Sun target");
+
 		D3D12_CPU_DESCRIPTOR_HANDLE rtv = sun_target->RTV();
 		D3D12_CPU_DESCRIPTOR_HANDLE dsv = depth_target->DSV();
 		float32 black[4] = { 0.0f };
@@ -4368,7 +4370,6 @@ namespace adria
 
 		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Forward));
 		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Sun));
-
 		cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
 		{
 			auto [transform, mesh, material] = reg.get<Transform, Mesh, Material>(sun);

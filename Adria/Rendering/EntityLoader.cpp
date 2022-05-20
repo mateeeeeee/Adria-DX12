@@ -668,17 +668,16 @@ namespace adria
             };
 
 			BufferDesc vb_desc{
-			.size = vertices.size() * sizeof(CompleteVertex),
+			.size = vertices.size() * sizeof(TexturedVertex),
 			.bind_flags = EBindFlag::VertexBuffer,
-			.stride = sizeof(CompleteVertex)
+			.stride = sizeof(TexturedVertex)
 			};
 
 			BufferDesc ib_desc{
-				.size = indices.size() * sizeof(uint32),
+				.size = indices.size() * sizeof(uint16),
 				.bind_flags = EBindFlag::IndexBuffer,
-				.stride = sizeof(uint32),
-				.format = DXGI_FORMAT_R32_UINT
-			};
+				.stride = sizeof(uint16),
+				.format = DXGI_FORMAT_R16_UINT };
 
             Mesh mesh{};
             mesh.vertex_buffer = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());
