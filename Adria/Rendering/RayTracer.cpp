@@ -664,11 +664,11 @@ namespace adria
 			geo_desc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
 			geo_desc.Triangles.Transform3x4 = transform_alloc.gpu_address;
 			geo_desc.Triangles.VertexBuffer.StrideInBytes = sizeof(CompleteVertex);
-			//geo_desc.Triangles.VertexBuffer.StartAddress = mesh.vertex_buffer->View().BufferLocation + geo_desc.Triangles.VertexBuffer.StrideInBytes * mesh.base_vertex_location;
+			geo_desc.Triangles.VertexBuffer.StartAddress = mesh.vertex_buffer->GetGPUAddress() + geo_desc.Triangles.VertexBuffer.StrideInBytes * mesh.base_vertex_location;
 			geo_desc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
 			geo_desc.Triangles.VertexCount = mesh.vertex_count;
-			//geo_desc.Triangles.IndexFormat = mesh.index_buffer->View().Format;
-			//geo_desc.Triangles.IndexBuffer = mesh.index_buffer->View().BufferLocation + mesh.start_index_location * (geo_desc.Triangles.IndexFormat == DXGI_FORMAT_R16_UINT ? 2 : 4);
+			geo_desc.Triangles.IndexFormat = mesh.index_buffer->GetDesc().format;
+			geo_desc.Triangles.IndexBuffer = mesh.index_buffer->GetGPUAddress() + mesh.start_index_location * (mesh.index_buffer->GetDesc().stride);
 			geo_desc.Triangles.IndexCount = mesh.indices_count;
 			geo_desc.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
 			geo_descs.push_back(geo_desc);
