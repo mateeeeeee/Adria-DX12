@@ -204,12 +204,14 @@ namespace adria
 		}
 	}
 
-	Engine::Engine(engine_init_t const& init) : vsync{ init.vsync }, input{}, camera_manager{ input }
+	Engine::Engine(EngineInit const& init) : vsync{ init.vsync }, input{}, camera_manager{ input }
 	{
 		TaskSystem::Initialize();
 		ShaderUtility::Initialize();
 
-		gfx = std::make_unique<GraphicsDevice>(Window::Handle());
+		gfx = std::make_unique<GraphicsDevice>(GraphicsOptions{.debug_layer = init.debug_layer,
+															   .dred = init.dred,
+															   .gpu_validation = init.gpu_validation});
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
 		entity_loader = std::make_unique<EntityLoader>(reg, gfx.get(), renderer->GetTextureManager());
 

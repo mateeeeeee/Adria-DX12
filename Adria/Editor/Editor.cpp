@@ -437,7 +437,7 @@ namespace adria
 		ELogLevel logger_level;
 	};
 
-    Editor::Editor(editor_init_t const& init) : engine(), editor_log(new ImGuiLogger{})
+    Editor::Editor(EditorInit const& init) : engine(), editor_log(new ImGuiLogger{})
     {
         engine = std::make_unique<Engine>(init.engine_init);
         gui = std::make_unique<GUI>(engine->gfx.get());

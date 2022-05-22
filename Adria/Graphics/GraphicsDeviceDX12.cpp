@@ -1,7 +1,9 @@
 #include <map>
 #include <dxgidebug.h>
 #include "GraphicsDeviceDX12.h"
+#include "pix3.h"
 #include "../Logging/Logger.h"
+#include "../Core/Window.h"
 
 
 namespace adria
@@ -138,7 +140,7 @@ namespace adria
 			D3D12_DRED_PAGE_FAULT_OUTPUT DredPageFaultOutput;
 			if (SUCCEEDED(dred->GetPageFaultAllocationOutput(&DredPageFaultOutput)))
 			{
-				ADRIA_LOG(DEBUG, "[DRED] PageFault at VA GPUAddress \"0x%x\"", DredPageFaultOutput.PageFaultVA);
+				ADRIA_LOG(DEBUG, "[DRED] PageFault at VA GPUAddress \"0x%llx\"", DredPageFaultOutput.PageFaultVA);
 
 				D3D12_DRED_ALLOCATION_NODE const* pNode = DredPageFaultOutput.pHeadExistingAllocationNode;
 				if (pNode)
@@ -179,38 +181,61 @@ namespace adria
 		else LogDredInfo(device, dred.Get());
 	}
 
-	GraphicsDevice::GraphicsDevice(void* window_handle)
+	GraphicsDevice::GraphicsDevice(GraphicsOptions const& options)
 		: frame_fence_value(0), frame_index(0),
 		frame_fence_values{}, graphics_fence_values{}, compute_fence_values{}
 	{
-		HWND hwnd = static_cast<HWND>(window_handle);
-		RECT rect{};
-		GetClientRect(hwnd, &rect);
-		width = rect.right - rect.left;
-		height = rect.bottom - rect.top;
+		HWND hwnd = static_cast<HWND>(Window::Handle());
+		width = Window::Width();
+		height = Window::Height();
 
 		HRESULT hr = E_FAIL;
 		UINT dxgi_factory_flags = 0;
 
+		if (options.debug_layer)
+		{
+			Microsoft::WRL::ComPtr<ID3D12Debug> debug_controller = nullptr;
+			if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debug_controller))))
+			{
+				debug_controller->EnableDebugLayer();
+				dxgi_factory_flags |= DXGI_CREATE_FACTORY_DEBUG;
 #if defined(_DEBUG)
-		Microsoft::WRL::ComPtr<ID3D12Debug> debug_controller = NULL;
-		if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debug_controller))) && debug_controller != NULL)
-		{
-			debug_controller->EnableDebugLayer();
-			dxgi_factory_flags |= DXGI_CREATE_FACTORY_DEBUG;
+				ADRIA_LOG(INFO, "D3D12 Debug Layer Enabled");
+#else
+				ADRIA_LOG(WARNING, "D3D12 Debug Layer Enabled in Release Mode");
+#endif	
+			}
+			else ADRIA_LOG(WARNING, "debug layer setup failed!");
 		}
-		else ADRIA_LOG(WARNING, "debug layer setup failed!");
-
-
-		Microsoft::WRL::ComPtr<ID3D12DeviceRemovedExtendedDataSettings1> dred_settings;
-		hr = D3D12GetDebugInterface(IID_PPV_ARGS(&dred_settings));
-		if (SUCCEEDED(hr) && dred_settings != NULL)
+		if (options.dred)
 		{
-			dred_settings->SetAutoBreadcrumbsEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
-			dred_settings->SetPageFaultEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
-		}
-		else ADRIA_LOG(WARNING, "Dred setup failed!");
+			Microsoft::WRL::ComPtr<ID3D12DeviceRemovedExtendedDataSettings1> dred_settings;
+			hr = D3D12GetDebugInterface(IID_PPV_ARGS(&dred_settings));
+			if (SUCCEEDED(hr) && dred_settings != NULL)
+			{
+				dred_settings->SetAutoBreadcrumbsEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+				dred_settings->SetPageFaultEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+#if defined(_DEBUG)
+				ADRIA_LOG(INFO, "D3D12 DRED Enabled");
+#else
+				ADRIA_LOG(WARNING, "D3D12 DRED Enabled in Release Mode");
 #endif
+			}
+			else ADRIA_LOG(WARNING, "Dred setup failed!");
+		}
+		if (options.gpu_validation)
+		{
+			Microsoft::WRL::ComPtr<ID3D12Debug1> debug_controller = nullptr;
+			if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debug_controller))))
+			{
+				debug_controller->SetEnableGPUBasedValidation(true);
+#if defined(_DEBUG)
+				ADRIA_LOG(INFO, "D3D12 GPU Based Validation Enabled");
+#else
+				ADRIA_LOG(WARNING, "D3D12 GPU Based Validation Enabled in Release Mode");
+#endif	
+			}
+		}
 
 		Microsoft::WRL::ComPtr<IDXGIFactory4> dxgi_factory = nullptr;
 		hr = CreateDXGIFactory1(IID_PPV_ARGS(&dxgi_factory));
@@ -222,16 +247,19 @@ namespace adria
 		hr = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device));
 		BREAK_IF_FAILED(hr);
 
-#if defined(_DEBUG)
-		if (debug_controller != NULL)
+		if (options.debug_layer)
 		{
-			ID3D12InfoQueue* pInfoQueue = NULL;
-			device->QueryInterface(IID_PPV_ARGS(&pInfoQueue));
-			pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
-			pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
-			pInfoQueue->Release();
+			Microsoft::WRL::ComPtr<ID3D12Debug> debug_controller = nullptr;
+			if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debug_controller))))
+			{
+				ID3D12InfoQueue* pInfoQueue = NULL;
+				device->QueryInterface(IID_PPV_ARGS(&pInfoQueue));
+				pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
+				pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
+				pInfoQueue->Release();
+			}
 		}
-#endif
+
 		Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter;
 		dxgi_factory->EnumAdapters1(1, &adapter);
 
@@ -376,7 +404,6 @@ namespace adria
 			if (wait_event == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
 		}
 
-#if defined(_DEBUG)
 		hr = device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&dred_fence));
 		device_removed_event = ::CreateEvent(nullptr, false, false, nullptr);
 		hr = dred_fence->SetEventOnCompletion(UINT64_MAX, device_removed_event);
@@ -385,7 +412,7 @@ namespace adria
 			ADRIA_LOG(WARNING, "Failed to set device removed completion event!");
 		}
 		RegisterWaitForSingleObject(&wait_handle, device_removed_event, DeviceRemovedHandler, device.Get(), INFINITE, 0);
-#endif
+
 		std::atexit([]()
 			{
 				Microsoft::WRL::ComPtr<IDXGIDebug1> dxgi_debug;

@@ -5,7 +5,7 @@
 
 namespace adria
 {
-    void Window::Initialize(window_init_t const& init)
+    void Window::Initialize(WindowInit const& init)
     {
         _instance = init.instance;
         const std::wstring window_title = ConvertToWide(init.title);

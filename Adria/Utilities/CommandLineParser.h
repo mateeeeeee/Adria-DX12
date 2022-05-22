@@ -18,6 +18,9 @@ namespace adria
 		std::string scene_file = "scene.json";
 		std::string log_file = "adria.log";
 		int log_level = 0;
+		bool debug_layer = false;
+		bool gpu_validation = false;
+		bool dred = false;
 	};
 
 	static CommandLineConfigInfo ParseCommandLine(LPWSTR command_line)
@@ -66,6 +69,18 @@ namespace adria
 			else if (args[i] == L"--height")
 			{
 				config.window_height = _wtoi(args[++i].c_str());
+			}
+			else if (args[i] == L"--debug_layer")
+			{
+				config.debug_layer = true;
+			}
+			else if (args[i] == L"--dred_debug")
+			{
+				config.dred = true;
+			}
+			else if (args[i] == L"--gpu_validation")
+			{
+				config.gpu_validation = true;
 			}
 		}
 		LocalFree(argv);

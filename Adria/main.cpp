@@ -32,7 +32,7 @@ int APIENTRY wWinMain(
         ADRIA_REGISTER_LOGGER(new FileLogger(cmd_line_info.log_file.c_str(), static_cast<ELogLevel>(cmd_line_info.log_level)));
         ADRIA_REGISTER_LOGGER(new OutputDebugStringLogger(static_cast<ELogLevel>(cmd_line_info.log_level)));
 
-        window_init_t window_init{};
+        WindowInit window_init{};
         window_init.instance = hInstance;
         window_init.width = cmd_line_info.window_width;
         window_init.height = cmd_line_info.window_height;
@@ -40,11 +40,14 @@ int APIENTRY wWinMain(
         window_init.maximize = cmd_line_info.window_maximize;
         Window::Initialize(window_init);
 
-        engine_init_t engine_init{};
+        EngineInit engine_init{};
         engine_init.vsync = cmd_line_info.vsync;
+        engine_init.debug_layer = cmd_line_info.debug_layer;
+        engine_init.dred = cmd_line_info.dred;
+        engine_init.gpu_validation = cmd_line_info.gpu_validation;
         engine_init.scene_file = cmd_line_info.scene_file.c_str();
 
-        editor_init_t editor_init{};
+        EditorInit editor_init{};
         editor_init.engine_init = std::move(engine_init);
 
         Editor editor{ editor_init };

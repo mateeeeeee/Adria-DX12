@@ -17,9 +17,12 @@ namespace adria
 	class EntityLoader;
 	class GUI;
 
-	struct engine_init_t
+	struct EngineInit
 	{
 		bool vsync = false;
+		bool debug_layer = false;
+		bool gpu_validation = false;
+		bool dred = false;
 		char const* scene_file = "scene.json";
 	};
 
@@ -28,7 +31,7 @@ namespace adria
 		friend class Editor;
 
 	public:
-		explicit Engine(engine_init_t const&);
+		explicit Engine(EngineInit const&);
 		Engine(Engine const&) = delete;
 		Engine(Engine&&) = delete;
 		Engine& operator=(Engine const&) = delete;

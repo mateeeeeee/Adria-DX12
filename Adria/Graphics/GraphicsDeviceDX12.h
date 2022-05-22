@@ -29,6 +29,13 @@ namespace adria
 		Compute,
 	};
 
+	struct GraphicsOptions
+	{
+		bool debug_layer = false;
+		bool dred = false;
+		bool gpu_validation = false;
+	};
+
 	class GraphicsDevice
 	{
 		static constexpr UINT BACKBUFFER_COUNT = 3;
@@ -52,7 +59,7 @@ namespace adria
 		};
 
 	public:
-		GraphicsDevice(void* window_handle);
+		explicit GraphicsDevice(GraphicsOptions const&);
 		GraphicsDevice(GraphicsDevice const&) = delete;
 		GraphicsDevice(GraphicsDevice&&) = default;
 		~GraphicsDevice();

@@ -18,7 +18,7 @@ namespace adria
 		float32 height		= 0;
 	};
 
-    struct window_init_t
+    struct WindowInit
     {
         HINSTANCE instance;
         std::string title;
@@ -30,7 +30,7 @@ namespace adria
 	class Window
 	{
 	public:
-        static void Initialize(window_init_t const& init);
+        static void Initialize(WindowInit const& init);
 
         static uint32 Width();
 
