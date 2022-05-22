@@ -636,7 +636,7 @@ namespace adria
 	{
 		auto device = gfx->GetDevice();
 		auto cmd_list = gfx->GetDefaultCommandList();
-		auto upload_allocator = gfx->GetUploadBuffer();
+		auto upload_allocator = gfx->GetDynamicAllocator();
 		auto ray_tracing_view = reg.view<Mesh, Transform, Material, RayTracing>();
 
 		std::vector<GeoInfo> geo_info{};

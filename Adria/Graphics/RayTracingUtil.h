@@ -4,7 +4,7 @@
 #include <vector>
 #include "../Core/Macros.h"
 #include "../Core/Definitions.h"
-#include "LinearUploadBuffer.h"
+#include "LinearDynamicAllocator.h"
 
 namespace adria
 {
@@ -69,7 +69,7 @@ namespace adria
 	private:
 		std::vector<ShaderRecord> shader_records;
 		uint32 shader_record_size;
-		LinearUploadBuffer upload_buffer;
+		LinearDynamicAllocator upload_buffer;
 	};
 
 	class StateObjectBuilder

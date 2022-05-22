@@ -220,18 +220,18 @@ namespace adria
             {
                 ADRIA_ASSERT(texture_srv_heap->Count() > handle && "Not enough space for descriptors in Texture Cache");
                 loaded_textures.insert({ name, handle });
-                ID3D12Resource* cubemap = nullptr;
+                Microsoft::WRL::ComPtr<ID3D12Resource> cubemap = nullptr;
                 std::unique_ptr<uint8_t[]> decodedData;
 
                 std::vector<D3D12_SUBRESOURCE_DATA> subresources;
 
                 bool is_cubemap;
                 BREAK_IF_FAILED(
-                    DirectX::LoadDDSTextureFromFile(device, name.c_str(), &cubemap,
+                    DirectX::LoadDDSTextureFromFile(device, name.c_str(), cubemap.GetAddressOf(),
                         decodedData, subresources, 0, nullptr, &is_cubemap));
 
                 ADRIA_ASSERT(is_cubemap);
-                const UINT64 uploadBufferSize = GetRequiredIntermediateSize(cubemap, 0,
+                const UINT64 uploadBufferSize = GetRequiredIntermediateSize(cubemap.Get(), 0,
 					static_cast<UINT>(subresources.size()));
                 D3D12MA::ALLOCATION_DESC texture_upload_alloc_desc{};
                 texture_upload_alloc_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
@@ -257,9 +257,9 @@ namespace adria
                     &texture_upload_allocation, __uuidof(nullptr), nullptr
                 ));
 
-                UpdateSubresources(cmd_list, cubemap, texture_upload_allocation->GetResource(),
+                UpdateSubresources(cmd_list, cubemap.Get(), texture_upload_allocation->GetResource(),
                     0, 0, static_cast<UINT>(subresources.size()), subresources.data());
-                auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(cubemap,
+                auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(cubemap.Get(),
                     D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
                 cmd_list->ResourceBarrier(1, &barrier);
                 gfx->AddToReleaseQueue(texture_upload_allocation);
@@ -518,7 +518,7 @@ namespace adria
             auto cmd_list = gfx->GetDefaultCommandList();
             auto allocator = gfx->GetAllocator();
 
-            ID3D12Resource* tex2d = nullptr;
+            Microsoft::WRL::ComPtr<ID3D12Resource> tex2d = nullptr;
             std::unique_ptr<uint8_t[]> decodedData;
             std::vector<D3D12_SUBRESOURCE_DATA> subresources;
 
@@ -532,11 +532,11 @@ namespace adria
             else
             {
                 BREAK_IF_FAILED(
-                    DirectX::LoadDDSTextureFromFile(device, texture_path.data(), &tex2d,
+                    DirectX::LoadDDSTextureFromFile(device, texture_path.data(), tex2d.GetAddressOf(),
                         decodedData, subresources));
             }
 
-            UINT64 const upload_buffer_size = GetRequiredIntermediateSize(tex2d, 0, static_cast<UINT>(subresources.size()));
+            UINT64 const upload_buffer_size = GetRequiredIntermediateSize(tex2d.Get(), 0, static_cast<UINT>(subresources.size()));
 
             D3D12MA::ALLOCATION_DESC texture_upload_alloc_desc{};
             texture_upload_alloc_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
@@ -562,10 +562,10 @@ namespace adria
                 &texture_upload_allocation, __uuidof(nullptr), nullptr
             ));
 
-            UpdateSubresources(cmd_list, tex2d, texture_upload_allocation->GetResource(),
+            UpdateSubresources(cmd_list, tex2d.Get(), texture_upload_allocation->GetResource(),
                 0, 0, static_cast<UINT>(subresources.size()), subresources.data());
 
-            auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(tex2d,
+            auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(tex2d.Get(),
                 D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             cmd_list->ResourceBarrier(1, &barrier);
 
@@ -589,7 +589,7 @@ namespace adria
             ++handle;
             loaded_textures.insert({ texture_path, handle });
 
-            ID3D12Resource* tex2d = nullptr;
+            Microsoft::WRL::ComPtr<ID3D12Resource> tex2d = nullptr;
             std::unique_ptr<uint8_t[]> decodedData;
             std::vector<D3D12_SUBRESOURCE_DATA> subresources;
             D3D12_SUBRESOURCE_DATA subresource{};
@@ -602,11 +602,11 @@ namespace adria
             }
             else
             {
-                BREAK_IF_FAILED(DirectX::LoadWICTextureFromFile(device, texture_path.data(), &tex2d,
+                BREAK_IF_FAILED(DirectX::LoadWICTextureFromFile(device, texture_path.data(), tex2d.GetAddressOf(),
                     decodedData, subresource));
             }
 
-            const UINT64 upload_buffer_size = GetRequiredIntermediateSize(tex2d, 0, 1);
+            const UINT64 upload_buffer_size = GetRequiredIntermediateSize(tex2d.Get(), 0, 1);
             D3D12MA::ALLOCATION_DESC texture_upload_alloc_desc{};
             texture_upload_alloc_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
             D3D12_RESOURCE_DESC texture_upload_resource_desc{};
@@ -631,10 +631,10 @@ namespace adria
                 &texture_upload_allocation, __uuidof(nullptr), nullptr
             ));
 
-            UpdateSubresources(cmd_list, tex2d, texture_upload_allocation->GetResource(),
+            UpdateSubresources(cmd_list, tex2d.Get(), texture_upload_allocation->GetResource(),
                 0, 0, 1, &subresource);
 
-            auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(tex2d,
+            auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(tex2d.Get(),
                 D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             cmd_list->ResourceBarrier(1, &barrier);
             gfx->AddToReleaseQueue(texture_upload_allocation);
@@ -655,8 +655,8 @@ namespace adria
             auto allocator = gfx->GetAllocator();
 
             ++handle;
-            loaded_textures.insert({ texture_path, handle });
-            ID3D12Resource* tex2d = nullptr;
+			loaded_textures.insert({ texture_path, handle });
+            Microsoft::WRL::ComPtr<ID3D12Resource> tex2d = nullptr;
             Image img(texture_path, 4);
 
             D3D12_RESOURCE_DESC desc{};
@@ -678,9 +678,9 @@ namespace adria
                 &desc,
                 D3D12_RESOURCE_STATE_COPY_DEST,
                 nullptr,
-                IID_PPV_ARGS(&tex2d)));
+                IID_PPV_ARGS(tex2d.GetAddressOf())));
 
-           UINT64 const upload_buffer_size = GetRequiredIntermediateSize(tex2d, 0, 1);
+           UINT64 const upload_buffer_size = GetRequiredIntermediateSize(tex2d.Get(), 0, 1);
 
             D3D12MA::ALLOCATION_DESC texture_upload_alloc_desc{};
             texture_upload_alloc_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
@@ -709,9 +709,9 @@ namespace adria
             data.pData = img.Data<void>();
             data.RowPitch = img.Pitch();
 
-            UpdateSubresources(cmd_list, tex2d, texture_upload_allocation->GetResource(),
+            UpdateSubresources(cmd_list, tex2d.Get(), texture_upload_allocation->GetResource(),
                 0, 0, 1u, &data);
-            auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(tex2d,
+            auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(tex2d.Get(),
                 D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             cmd_list->ResourceBarrier(1, &barrier);
             gfx->AddToReleaseQueue(texture_upload_allocation);

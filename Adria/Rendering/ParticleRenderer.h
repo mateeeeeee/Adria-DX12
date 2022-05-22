@@ -400,7 +400,7 @@ namespace adria
 			PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Particles Emit Pass");
 			ID3D12Device* device = gfx->GetDevice();
 			RingDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
-			LinearUploadBuffer* upload_buffer = gfx->GetUploadBuffer();
+			LinearDynamicAllocator* upload_buffer = gfx->GetDynamicAllocator();
 
 			if (emitter_params.number_to_emit > 0)
 			{
@@ -556,7 +556,7 @@ namespace adria
 
 			ID3D12Device* device = gfx->GetDevice();
 			RingDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
-			LinearUploadBuffer* upload_buffer = gfx->GetUploadBuffer();
+			LinearDynamicAllocator* upload_buffer = gfx->GetDynamicAllocator();
 
 			D3D12_RESOURCE_BARRIER barriers[] =
 			{
@@ -628,7 +628,7 @@ namespace adria
 		{
 			ID3D12Device* device = gfx->GetDevice();
 			RingDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
-			LinearUploadBuffer* upload_buffer = gfx->GetUploadBuffer();
+			LinearDynamicAllocator* upload_buffer = gfx->GetDynamicAllocator();
 
 			bool done = true;
 			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_BitonicSortStep));

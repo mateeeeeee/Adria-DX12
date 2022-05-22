@@ -12,6 +12,7 @@ namespace adria
 	{
 	public:
 		static void Initialize(ID3D12Device* gfx);
+		static void Destroy();
 
 		static ID3D12RootSignature* GetRootSignature(ERootSignature root_sig);
 		static ID3D12PipelineState* GetPipelineState(EPipelineStateObject pso);

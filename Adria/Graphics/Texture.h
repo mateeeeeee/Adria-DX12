@@ -163,7 +163,7 @@ namespace adria
 				const_cast<TextureDesc&>(desc).mip_levels = (uint32_t)log2(std::max<uint32>(desc.width, desc.height)) + 1;
 			}
 
-			auto upload_buffer = gfx->GetUploadBuffer();
+			auto upload_buffer = gfx->GetDynamicAllocator();
 			auto cmd_list = gfx->GetDefaultCommandList();
 			if (initial_data != nullptr)
 			{
@@ -268,8 +268,8 @@ namespace adria
 			{
 				format = *view_desc.new_format;
 			}
-			ID3D12Device* device;
-			resource->GetDevice(IID_PPV_ARGS(&device));
+			Microsoft::WRL::ComPtr<ID3D12Device> device;
+			resource->GetDevice(IID_PPV_ARGS(device.GetAddressOf()));
 
 			switch (view_type)
 			{

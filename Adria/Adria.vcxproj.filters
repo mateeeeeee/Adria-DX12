@@ -14,9 +14,6 @@
     <Filter Include="Events">
       <UniqueIdentifier>{89bbabae-27da-4d3e-9aea-f01a3bf07905}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Audio">
-      <UniqueIdentifier>{23d17a82-7972-4a3a-9996-4ab375ac7127}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core">
       <UniqueIdentifier>{1471750e-b525-434b-8cb0-2a8b5be3e67d}</UniqueIdentifier>
     </Filter>
@@ -89,12 +86,6 @@
     <ClCompile Include="Events\EventQueue.cpp">
       <Filter>Events</Filter>
     </ClCompile>
-    <ClCompile Include="Audio\AudioEngine.cpp">
-      <Filter>Audio</Filter>
-    </ClCompile>
-    <ClCompile Include="Audio\AudioSystem.cpp">
-      <Filter>Audio</Filter>
-    </ClCompile>
     <ClCompile Include="Core\Engine.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -140,7 +131,7 @@
     <ClCompile Include="Rendering\Renderer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\LinearUploadBuffer.cpp">
+    <ClCompile Include="Graphics\LinearDynamicAllocator.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\RingUploadBuffer.cpp">
@@ -247,19 +238,13 @@
     <ClInclude Include="Events\IEvent.h">
       <Filter>Events</Filter>
     </ClInclude>
-    <ClInclude Include="Audio\AudioEngine.h">
-      <Filter>Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="Audio\AudioSystem.h">
-      <Filter>Audio</Filter>
-    </ClInclude>
     <ClInclude Include="Core\Definitions.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\Window.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\MemoryLeak.h">
+    <ClInclude Include="Utilities\MemoryDebugger.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Core\Engine.h">
@@ -385,7 +370,7 @@
     <ClInclude Include="Graphics\DynamicAllocation.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\LinearUploadBuffer.h">
+    <ClInclude Include="Graphics\LinearDynamicAllocator.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\AdriaException.h">

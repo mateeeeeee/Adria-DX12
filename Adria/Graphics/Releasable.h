@@ -26,7 +26,8 @@ namespace adria
 
     struct ReleasableObject
     {
-        virtual void Release() = 0;
+		virtual void Release() = 0;
+		virtual ~ReleasableObject() = default;
     };
 
     template<Releasable T>

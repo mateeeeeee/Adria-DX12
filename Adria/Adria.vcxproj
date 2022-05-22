@@ -161,8 +161,6 @@
     <ClCompile Include="..\ThirdParty\ImGui\imgui_impl_win32.cpp" />
     <ClCompile Include="..\ThirdParty\ImGui\imgui_tables.cpp" />
     <ClCompile Include="..\ThirdParty\ImGui\imgui_widgets.cpp" />
-    <ClCompile Include="Audio\AudioEngine.cpp" />
-    <ClCompile Include="Audio\AudioSystem.cpp" />
     <ClCompile Include="Core\Engine.cpp" />
     <ClCompile Include="Core\Window.cpp" />
     <ClCompile Include="Editor\Editor.cpp" />
@@ -173,7 +171,7 @@
     <ClCompile Include="Graphics\DescriptorHeap.cpp" />
     <ClCompile Include="Graphics\GraphicsDeviceDX12.cpp" />
     <ClCompile Include="Graphics\LinearDescriptorAllocator.cpp" />
-    <ClCompile Include="Graphics\LinearUploadBuffer.cpp" />
+    <ClCompile Include="Graphics\LinearDynamicAllocator.cpp" />
     <ClCompile Include="Graphics\MipsGenerator.cpp" />
     <ClCompile Include="Graphics\GPUProfiler.cpp" />
     <ClCompile Include="Graphics\RenderPass.cpp" />
@@ -216,8 +214,6 @@
     <ClInclude Include="..\ThirdParty\ImGui\imstb_rectpack.h" />
     <ClInclude Include="..\ThirdParty\ImGui\imstb_textedit.h" />
     <ClInclude Include="..\ThirdParty\ImGui\imstb_truetype.h" />
-    <ClInclude Include="Audio\AudioEngine.h" />
-    <ClInclude Include="Audio\AudioSystem.h" />
     <ClInclude Include="Core\Definitions.h" />
     <ClInclude Include="Core\Engine.h" />
     <ClInclude Include="Core\Macros.h" />
@@ -239,7 +235,7 @@
     <ClInclude Include="Graphics\GraphicsDeviceDX12.h" />
     <ClInclude Include="Graphics\Heap.h" />
     <ClInclude Include="Graphics\MipsGenerator.h" />
-    <ClInclude Include="Graphics\LinearUploadBuffer.h" />
+    <ClInclude Include="Graphics\LinearDynamicAllocator.h" />
     <ClInclude Include="Graphics\GPUProfiler.h" />
     <ClInclude Include="Graphics\ProfilerSettings.h" />
     <ClInclude Include="Graphics\RayTracingUtil.h" />
@@ -320,7 +316,7 @@
     <ClInclude Include="Utilities\AdriaException.h" />
     <ClInclude Include="Utilities\HashUtil.h" />
     <ClInclude Include="Utilities\Image.h" />
-    <ClInclude Include="Utilities\MemoryLeak.h" />
+    <ClInclude Include="Utilities\MemoryDebugger.h" />
     <ClInclude Include="Utilities\ObjectPool.h" />
     <ClInclude Include="Utilities\Random.h" />
     <ClInclude Include="Utilities\StringUtil.h" />

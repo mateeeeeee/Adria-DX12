@@ -23,8 +23,8 @@ namespace adria
 	private:
 		Picker(GraphicsDevice* gfx) : gfx(gfx), 
 			write_picking_buffer(gfx, StructuredBufferDesc<PickingData>(1)),
-			read_picking_buffer{ {gfx, ReadBackBufferDesc(sizeof(PickingData))}, 
-								 {gfx, ReadBackBufferDesc(sizeof(PickingData))}, 
+			read_picking_buffer{ {gfx, ReadBackBufferDesc(sizeof(PickingData))},
+								 {gfx, ReadBackBufferDesc(sizeof(PickingData))},
 								 {gfx, ReadBackBufferDesc(sizeof(PickingData))}}
 		{
 		}

@@ -1592,6 +1592,16 @@ namespace adria
 		CreateAllPSOs();
 	}
 
+	void RootSigPSOManager::Destroy()
+	{
+		shader_map.clear();
+		shader_file_data_map.clear();
+		rs_map.clear();
+		pso_map.clear();
+		dependency_map.clear();
+		device = nullptr;
+	}
+
 	ID3D12RootSignature* RootSigPSOManager::GetRootSignature(ERootSignature root_sig)
 	{
 		return rs_map[root_sig].Get();

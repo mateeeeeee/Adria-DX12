@@ -8,7 +8,7 @@
 namespace adria
 {
 
-	struct command_line_config_info_t
+	struct CommandLineConfigInfo
 	{
 		uint32 window_width = 1080;
 		uint32 window_height = 720;
@@ -20,9 +20,9 @@ namespace adria
 		int log_level = 0;
 	};
 
-	static command_line_config_info_t ParseCommandLine(LPWSTR command_line)
+	static CommandLineConfigInfo ParseCommandLine(LPWSTR command_line)
 	{
-		command_line_config_info_t config{};
+		CommandLineConfigInfo config{};
 
 		int argc = 0;
 		LPWSTR* argv = CommandLineToArgvW(command_line, &argc);

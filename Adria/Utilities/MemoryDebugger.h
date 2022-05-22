@@ -8,8 +8,9 @@
 
 namespace adria
 {
+	typedef int (__CRTDECL* AllocHook)(int, void*, size_t, int, long, unsigned char const*, int);
 	
-	class MemoryLeak
+	class MemoryDebugger
 	{
 	public:
 		static void Checkpoint()
@@ -30,6 +31,11 @@ namespace adria
 		static void SetBreak(long alloc_id)
 		{
 			_CrtSetBreakAlloc(alloc_id);
+		}
+
+		static void SetAllocHook(AllocHook hook)
+		{
+			_CrtSetAllocHook(hook);
 		}
 
 	private:

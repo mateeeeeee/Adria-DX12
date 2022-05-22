@@ -1,7 +1,121 @@
+#include <dxgidebug.h>
 #include "GraphicsDeviceDX12.h"
+#include "../Logging/Logger.h"
+
 
 namespace adria
 {
+	namespace
+	{
+		inline constexpr wchar_t const* DredBreadcrumbOpName(D3D12_AUTO_BREADCRUMB_OP op)
+		{
+			switch (op)
+			{
+			case D3D12_AUTO_BREADCRUMB_OP_SETMARKER: return L"Set marker";
+			case D3D12_AUTO_BREADCRUMB_OP_BEGINEVENT: return L"Begin event";
+			case D3D12_AUTO_BREADCRUMB_OP_ENDEVENT: return L"End event";
+			case D3D12_AUTO_BREADCRUMB_OP_DRAWINSTANCED: return L"Draw instanced";
+			case D3D12_AUTO_BREADCRUMB_OP_DRAWINDEXEDINSTANCED: return L"Draw indexed instanced";
+			case D3D12_AUTO_BREADCRUMB_OP_EXECUTEINDIRECT: return L"Execute indirect";
+			case D3D12_AUTO_BREADCRUMB_OP_DISPATCH: return L"Dispatch";
+			case D3D12_AUTO_BREADCRUMB_OP_COPYBUFFERREGION: return L"Copy buffer region";
+			case D3D12_AUTO_BREADCRUMB_OP_COPYTEXTUREREGION: return L"Copy texture region";
+			case D3D12_AUTO_BREADCRUMB_OP_COPYRESOURCE: return L"Copy resource";
+			case D3D12_AUTO_BREADCRUMB_OP_COPYTILES: return L"Copy tiles";
+			case D3D12_AUTO_BREADCRUMB_OP_RESOLVESUBRESOURCE: return L"Resolve subresource";
+			case D3D12_AUTO_BREADCRUMB_OP_CLEARRENDERTARGETVIEW: return L"Clear render target view";
+			case D3D12_AUTO_BREADCRUMB_OP_CLEARUNORDEREDACCESSVIEW: return L"Clear unordered access view";
+			case D3D12_AUTO_BREADCRUMB_OP_CLEARDEPTHSTENCILVIEW: return L"Clear depth stencil view";
+			case D3D12_AUTO_BREADCRUMB_OP_RESOURCEBARRIER: return L"Resource barrier";
+			case D3D12_AUTO_BREADCRUMB_OP_EXECUTEBUNDLE: return L"Execute bundle";
+			case D3D12_AUTO_BREADCRUMB_OP_PRESENT: return L"Present";
+			case D3D12_AUTO_BREADCRUMB_OP_RESOLVEQUERYDATA: return L"Resolve query data";
+			case D3D12_AUTO_BREADCRUMB_OP_BEGINSUBMISSION: return L"Begin submission";
+			case D3D12_AUTO_BREADCRUMB_OP_ENDSUBMISSION: return L"End submission";
+			case D3D12_AUTO_BREADCRUMB_OP_DECODEFRAME: return L"Decode frame";
+			case D3D12_AUTO_BREADCRUMB_OP_PROCESSFRAMES: return L"Process frames";
+			case D3D12_AUTO_BREADCRUMB_OP_ATOMICCOPYBUFFERUINT: return L"Atomic copy buffer uint";
+			case D3D12_AUTO_BREADCRUMB_OP_ATOMICCOPYBUFFERUINT64: return L"Atomic copy buffer uint64";
+			case D3D12_AUTO_BREADCRUMB_OP_RESOLVESUBRESOURCEREGION: return L"Resolve subresource region";
+			case D3D12_AUTO_BREADCRUMB_OP_WRITEBUFFERIMMEDIATE: return L"Write buffer immediate";
+			case D3D12_AUTO_BREADCRUMB_OP_DECODEFRAME1: return L"Decode frame 1";
+			case D3D12_AUTO_BREADCRUMB_OP_SETPROTECTEDRESOURCESESSION: return L"Set protected resource session";
+			case D3D12_AUTO_BREADCRUMB_OP_DECODEFRAME2: return L"Decode frame 2";
+			case D3D12_AUTO_BREADCRUMB_OP_PROCESSFRAMES1: return L"Process frames 1";
+			case D3D12_AUTO_BREADCRUMB_OP_BUILDRAYTRACINGACCELERATIONSTRUCTURE: return L"Build raytracing acceleration structure";
+			case D3D12_AUTO_BREADCRUMB_OP_EMITRAYTRACINGACCELERATIONSTRUCTUREPOSTBUILDINFO: return L"Emit raytracing acceleration structure post build info";
+			case D3D12_AUTO_BREADCRUMB_OP_COPYRAYTRACINGACCELERATIONSTRUCTURE: return L"Copy raytracing acceleration structure";
+			case D3D12_AUTO_BREADCRUMB_OP_DISPATCHRAYS: return L"Dispatch rays";
+			case D3D12_AUTO_BREADCRUMB_OP_INITIALIZEMETACOMMAND: return L"Initialize meta command";
+			case D3D12_AUTO_BREADCRUMB_OP_EXECUTEMETACOMMAND: return L"Execute meta command";
+			case D3D12_AUTO_BREADCRUMB_OP_ESTIMATEMOTION: return L"Estimate motion";
+			case D3D12_AUTO_BREADCRUMB_OP_RESOLVEMOTIONVECTORHEAP: return L"Resolve motion vector heap";
+			case D3D12_AUTO_BREADCRUMB_OP_SETPIPELINESTATE1: return L"Set pipeline state 1";
+			case D3D12_AUTO_BREADCRUMB_OP_INITIALIZEEXTENSIONCOMMAND: return L"Initialize extension command";
+			case D3D12_AUTO_BREADCRUMB_OP_EXECUTEEXTENSIONCOMMAND: return L"Execute extension command";
+			case D3D12_AUTO_BREADCRUMB_OP_DISPATCHMESH: return L"Dispatch mesh";
+			default: return L"Unknown";
+			}
+		}
+		inline constexpr wchar_t const* DredAllocationName(D3D12_DRED_ALLOCATION_TYPE type)
+		{
+			switch (type)
+			{
+			case D3D12_DRED_ALLOCATION_TYPE_COMMAND_QUEUE: return L"Command queue";
+			case D3D12_DRED_ALLOCATION_TYPE_COMMAND_ALLOCATOR: return L"Command allocator";
+			case D3D12_DRED_ALLOCATION_TYPE_PIPELINE_STATE: return L"Pipeline state";
+			case D3D12_DRED_ALLOCATION_TYPE_COMMAND_LIST: return L"Command list";
+			case D3D12_DRED_ALLOCATION_TYPE_FENCE: return L"Fence";
+			case D3D12_DRED_ALLOCATION_TYPE_DESCRIPTOR_HEAP: return L"Descriptor heap";
+			case D3D12_DRED_ALLOCATION_TYPE_HEAP: return L"Heap";
+			case D3D12_DRED_ALLOCATION_TYPE_QUERY_HEAP: return L"Query heap";
+			case D3D12_DRED_ALLOCATION_TYPE_COMMAND_SIGNATURE: return L"Command signature";
+			case D3D12_DRED_ALLOCATION_TYPE_PIPELINE_LIBRARY: return L"Pipeline library";
+			case D3D12_DRED_ALLOCATION_TYPE_VIDEO_DECODER: return L"Video decoder";
+			case D3D12_DRED_ALLOCATION_TYPE_VIDEO_PROCESSOR: return L"Video processor";
+			case D3D12_DRED_ALLOCATION_TYPE_RESOURCE: return L"Resource";
+			case D3D12_DRED_ALLOCATION_TYPE_PASS: return L"Pass";
+			case D3D12_DRED_ALLOCATION_TYPE_CRYPTOSESSION: return L"Crypto session";
+			case D3D12_DRED_ALLOCATION_TYPE_CRYPTOSESSIONPOLICY: return L"Crypto session policy";
+			case D3D12_DRED_ALLOCATION_TYPE_PROTECTEDRESOURCESESSION: return L"Protected resource session";
+			case D3D12_DRED_ALLOCATION_TYPE_VIDEO_DECODER_HEAP: return L"Video decoder heap";
+			case D3D12_DRED_ALLOCATION_TYPE_COMMAND_POOL: return L"Command pool";
+			case D3D12_DRED_ALLOCATION_TYPE_COMMAND_RECORDER: return L"Command recorder";
+			case D3D12_DRED_ALLOCATION_TYPE_STATE_OBJECT: return L"State object";
+			case D3D12_DRED_ALLOCATION_TYPE_METACOMMAND: return L"Meta command";
+			case D3D12_DRED_ALLOCATION_TYPE_SCHEDULINGGROUP: return L"Scheduling group";
+			case D3D12_DRED_ALLOCATION_TYPE_VIDEO_MOTION_ESTIMATOR: return L"Video motion estimator";
+			case D3D12_DRED_ALLOCATION_TYPE_VIDEO_MOTION_VECTOR_HEAP: return L"Video motion vector heap";
+			case D3D12_DRED_ALLOCATION_TYPE_INVALID: return L"Invalid";
+			default: return L"Unknown";
+			}
+		}
+		void LogDredInfo(ID3D12Device5* device, ID3D12DeviceRemovedExtendedData1* dred)
+		{
+
+		}
+		
+	}
+
+	void DeviceRemovedHandler(void* _device, BYTE)
+	{
+		ID3D12Device5* device = static_cast<ID3D12Device5*>(_device);
+		HRESULT removed_reason = device->GetDeviceRemovedReason();
+		ADRIA_LOG(ERROR, "Device removed, reason code: %ld", removed_reason);
+
+		Microsoft::WRL::ComPtr<ID3D12DeviceRemovedExtendedData1> dred;
+		if (FAILED(device->QueryInterface(IID_PPV_ARGS(&dred))))
+		{
+			ADRIA_LOG(ERROR, "Failed to get DRED interface");
+		}
+		else
+		{
+			D3D12_DRED_AUTO_BREADCRUMBS_OUTPUT1 DredAutoBreadcrumbsOutput;
+			D3D12_DRED_PAGE_FAULT_OUTPUT DredPageFaultOutput;
+			BREAK_IF_FAILED(dred->GetAutoBreadcrumbsOutput1(&DredAutoBreadcrumbsOutput));
+			BREAK_IF_FAILED(dred->GetPageFaultAllocationOutput(&DredPageFaultOutput));
+		}
+	}
 
 	GraphicsDevice::GraphicsDevice(void* window_handle)
 		: frame_fence_value(0), frame_index(0),
@@ -15,13 +129,15 @@ namespace adria
 
 		HRESULT hr = E_FAIL;
 		UINT dxgi_factory_flags = 0;
+
 #if defined(_DEBUG)
-		Microsoft::WRL::ComPtr<ID3D12Debug> debug_controller;
-		if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debug_controller))))
+		Microsoft::WRL::ComPtr<ID3D12Debug> debug_controller = NULL;
+		if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debug_controller))) && debug_controller != NULL)
 		{
 			debug_controller->EnableDebugLayer();
 			dxgi_factory_flags |= DXGI_CREATE_FACTORY_DEBUG;
 		}
+		else ADRIA_LOG(WARNING, "debug layer setup failed!");
 #endif
 
 		Microsoft::WRL::ComPtr<IDXGIFactory4> dxgi_factory = nullptr;
@@ -43,16 +159,24 @@ namespace adria
 			pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
 			pInfoQueue->Release();
 		}
+
+		//Microsoft::WRL::ComPtr<ID3D12DeviceRemovedExtendedDataSettings1> dred_settings;
+		//hr = D3D12GetDebugInterface(IID_PPV_ARGS(&dred_settings));
+		//if (SUCCEEDED(hr) && dred_settings != NULL)
+		//{
+		//	dred_settings->SetAutoBreadcrumbsEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+		//	dred_settings->SetPageFaultEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+		//}
+		//else ADRIA_LOG(WARNING, "Dred setup failed!");
 #endif
-		Microsoft::WRL::ComPtr<IDXGIAdapter1> p_adapter;
-		dxgi_factory->EnumAdapters1(1, &p_adapter);
+		Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter;
+		dxgi_factory->EnumAdapters1(1, &adapter);
 
 		D3D12MA::ALLOCATOR_DESC allocator_desc{};
 		allocator_desc.pDevice = device.Get();
-		allocator_desc.pAdapter = p_adapter.Get();
+		allocator_desc.pAdapter = adapter.Get();
 		D3D12MA::Allocator* _allocator = nullptr;
-		hr = D3D12MA::CreateAllocator(&allocator_desc, &_allocator);
-		BREAK_IF_FAILED(hr);
+		BREAK_IF_FAILED(D3D12MA::CreateAllocator(&allocator_desc, &_allocator));
 		allocator.reset(_allocator);
 
 		// Create command queues
@@ -95,6 +219,7 @@ namespace adria
 			hr = dxgi_factory->CreateSwapChainForHwnd(graphics_queue.Get(), hwnd, &sd, nullptr, nullptr, &_swapChain);
 			hr = _swapChain->QueryInterface(IID_PPV_ARGS(&swap_chain));
 			BREAK_IF_FAILED(hr);
+			_swapChain->Release();
 
 			backbuffer_index = swap_chain->GetCurrentBackBufferIndex();
 			last_backbuffer_index = backbuffer_index;
@@ -109,7 +234,7 @@ namespace adria
 			descriptor_allocator = std::make_unique<RingDescriptorAllocator>(device.Get(), shader_visible_desc);
 			for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
 			{
-				upload_buffers.emplace_back(new LinearUploadBuffer(device.Get(), 100000000));
+				dynamic_allocators.emplace_back(new LinearDynamicAllocator(device.Get(), 100000000));
 			}
 		}
 
@@ -134,7 +259,6 @@ namespace adria
 				frames[fr].back_buffer_rtv = render_target_heap->GetHandle(fr);
 				device->CreateRenderTargetView(frames[fr].back_buffer.Get(), nullptr, frames[fr].back_buffer_rtv);
 
-
 				hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(frames[fr].default_cmd_allocator.GetAddressOf()));
 				BREAK_IF_FAILED(hr);
 				hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, frames[fr].default_cmd_allocator.Get(), nullptr, IID_PPV_ARGS(frames[fr].default_cmd_list.GetAddressOf()));
@@ -158,7 +282,6 @@ namespace adria
 					hr = frames[fr].compute_cmd_lists[i]->Close();
 					BREAK_IF_FAILED(hr);
 				}
-
 			}
 		}
 
@@ -189,12 +312,36 @@ namespace adria
 			wait_event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 			if (wait_event == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
 		}
+
+#if defined(_DEBUG)
+		//hr = device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&dred_fence));
+		//device_removed_event = ::CreateEvent(nullptr, false, false, nullptr);
+		//hr = dred_fence->SetEventOnCompletion(UINT64_MAX, device_removed_event);
+		//if (FAILED(hr) || device_removed_event == nullptr)
+		//{
+		//	ADRIA_LOG(WARNING, "Failed to set device removed completion event!");
+		//}
+		//RegisterWaitForSingleObject(&wait_handle, device_removed_event, DeviceRemovedHandler, device.Get(), INFINITE, 0);
+#endif
+		std::atexit([]()
+			{
+				Microsoft::WRL::ComPtr<IDXGIDebug1> dxgi_debug;
+				if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(dxgi_debug.GetAddressOf()))))
+				{
+					dxgi_debug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_DETAIL | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
+				}
+			});
 	}
 
 	GraphicsDevice::~GraphicsDevice()
 	{
 		WaitForGPU();
 		ProcessReleaseQueue();
+
+		//ADRIA_ASSERT(UnregisterWaitEx(wait_handle, INVALID_HANDLE_VALUE));
+		//CloseHandle(wait_handle);
+		//CloseHandle(device_removed_event);
+
 		for (size_t i = 0; i < BACKBUFFER_COUNT; ++i)
 		{
 			if (graphics_fences[i]->GetCompletedValue() < graphics_fence_values[i])
@@ -310,7 +457,7 @@ namespace adria
 	void GraphicsDevice::ClearBackbuffer()
 	{
 		descriptor_allocator->ReleaseCompletedFrames(frame_index);
-		upload_buffers[backbuffer_index]->Clear();
+		dynamic_allocators[backbuffer_index]->Clear();
 
 		ResetDefaultCommandList();
 
@@ -479,9 +626,9 @@ namespace adria
 		descriptor_allocator = std::make_unique<RingDescriptorAllocator>(device.Get(), shader_visible_desc, reserve);
 	}
 
-	LinearUploadBuffer* GraphicsDevice::GetUploadBuffer() const
+	LinearDynamicAllocator* GraphicsDevice::GetDynamicAllocator() const
 	{
-		return upload_buffers[backbuffer_index].get();
+		return dynamic_allocators[backbuffer_index].get();
 	}
 
 	void GraphicsDevice::GetTimestampFrequency(UINT64& frequency) const

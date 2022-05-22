@@ -154,7 +154,7 @@ namespace adria
 			if (initial_data != nullptr && desc.heap_type != EHeapType::Upload)
 			{
 				auto cmd_list = gfx->GetDefaultCommandList();
-				auto upload_buffer = gfx->GetUploadBuffer();
+				auto upload_buffer = gfx->GetDynamicAllocator();
 				DynamicAllocation upload_alloc = upload_buffer->Allocate(buffer_size);
 				upload_alloc.Update(initial_data, desc.size);
 				cmd_list->CopyBufferRegion(
@@ -310,8 +310,8 @@ namespace adria
 					srv_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / stride;
 				}
 
-				ID3D12Device* device;
-				resource->GetDevice(IID_PPV_ARGS(&device));
+				Microsoft::WRL::ComPtr<ID3D12Device> device;
+				resource->GetDevice(IID_PPV_ARGS(device.GetAddressOf()));
 
 				device->CreateShaderResourceView(resource.Get(), &srv_desc, heap_descriptor);
 				srvs.push_back(heap_descriptor);
@@ -349,8 +349,8 @@ namespace adria
 					uav_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / stride;
 				}
 
-				ID3D12Device* device;
-				resource->GetDevice(IID_PPV_ARGS(&device));
+				Microsoft::WRL::ComPtr<ID3D12Device> device;
+				resource->GetDevice(IID_PPV_ARGS(device.GetAddressOf()));
 
 				device->CreateUnorderedAccessView(resource.Get(), uav_counter, &uav_desc, heap_descriptor);
 				uavs.push_back(heap_descriptor);

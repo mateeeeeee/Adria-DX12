@@ -1,10 +1,10 @@
-#include "LinearUploadBuffer.h"
+#include "LinearDynamicAllocator.h"
 
 #include "../Logging/Logger.h"
 
 namespace adria
 {
-	LinearUploadBuffer::LinearUploadBuffer(ID3D12Device* device, SIZE_T max_size_in_bytes)
+	LinearDynamicAllocator::LinearDynamicAllocator(ID3D12Device* device, SIZE_T max_size_in_bytes)
 		: linear_allocator(max_size_in_bytes)
 	{
 		auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
@@ -21,7 +21,7 @@ namespace adria
 		BREAK_IF_FAILED(buffer->Map(0, &read_range, reinterpret_cast<void**>(&cpu_address)));
 		gpu_address = buffer->GetGPUVirtualAddress();
 	}
-	DynamicAllocation LinearUploadBuffer::Allocate(SIZE_T size_in_bytes, SIZE_T alignment)
+	DynamicAllocation LinearDynamicAllocator::Allocate(SIZE_T size_in_bytes, SIZE_T alignment)
 	{
 		OffsetType offset = INVALID_OFFSET;
 		{
@@ -45,13 +45,13 @@ namespace adria
 			return DynamicAllocation{}; //return optional?
 		}
 	}
-	void LinearUploadBuffer::Clear()
+	void LinearDynamicAllocator::Clear()
 	{
 		std::lock_guard<std::mutex> guard(alloc_mutex);
 		linear_allocator.Clear();
 	}
 
-	D3D12_GPU_VIRTUAL_ADDRESS LinearUploadBuffer::GPUAddress() const
+	D3D12_GPU_VIRTUAL_ADDRESS LinearDynamicAllocator::GPUAddress() const
 	{
 		return gpu_address;
 	}

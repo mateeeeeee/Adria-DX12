@@ -379,6 +379,7 @@ namespace adria
 	Renderer::~Renderer()
 	{
 		gfx->WaitForGPU();
+		RootSigPSOManager::Destroy();
 		reg.clear();
 	}
 
@@ -2191,7 +2192,7 @@ namespace adria
 
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
-		auto upload_buffer = gfx->GetUploadBuffer();
+		auto upload_buffer = gfx->GetDynamicAllocator();
 		auto gbuffer_view = reg.view<Mesh, Transform, Material, Deferred, Visibility>();
 
 		ResourceBarrierBatch gbuffer_barriers{};
@@ -2256,7 +2257,7 @@ namespace adria
 
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
-		auto upload_buffer = gfx->GetUploadBuffer();
+		auto upload_buffer = gfx->GetDynamicAllocator();
 
 		struct DecalCBuffer
 		{
@@ -2467,7 +2468,7 @@ namespace adria
 		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(gpu_profiler, cmd_list, EProfilerBlock::DeferredPass, profiler_settings.profile_deferred_pass);
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto upload_buffer = gfx->GetUploadBuffer();
+		auto upload_buffer = gfx->GetDynamicAllocator();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 		auto lights = reg.view<Light>();
@@ -2622,7 +2623,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Deferred Tiled Lighting Pass");
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto upload_buffer = gfx->GetUploadBuffer();
+		auto upload_buffer = gfx->GetDynamicAllocator();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 		auto light_view = reg.view<Light>();
@@ -2735,7 +2736,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Deferred Clustered Lighting Pass");
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto upload_buffer = gfx->GetUploadBuffer();
+		auto upload_buffer = gfx->GetDynamicAllocator();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 		auto light_view = reg.view<Light>();
@@ -3086,7 +3087,7 @@ namespace adria
 		ADRIA_ASSERT(light.type == ELightType::Directional);
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Shadow Map Pass - Directional Light");
 
-		auto upload_buffer = gfx->GetUploadBuffer();
+		auto upload_buffer = gfx->GetDynamicAllocator();
 
 		auto const& [V, P] = scene_bounding_sphere ? LightViewProjection_Directional(light, *scene_bounding_sphere, light_bounding_box)
 			: LightViewProjection_Directional(light, *camera, light_bounding_box);
@@ -3119,7 +3120,7 @@ namespace adria
 		ADRIA_ASSERT(light.type == ELightType::Spot);
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Shadow Map Pass - Spot Light");
 
-		auto upload_buffer = gfx->GetUploadBuffer();
+		auto upload_buffer = gfx->GetDynamicAllocator();
 
 		auto const& [V, P] = LightViewProjection_Spot(light, light_bounding_frustum);
 		shadow_cbuf_data.lightview = V;
@@ -3150,7 +3151,7 @@ namespace adria
 		ADRIA_ASSERT(light.type == ELightType::Point);
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Shadow Map Pass - Point Light");
 
-		auto upload_buffer = gfx->GetUploadBuffer();
+		auto upload_buffer = gfx->GetDynamicAllocator();
 
 		ResourceBarrierBatch shadow_cubemap_barrier{};
 		shadow_cubemap_barrier.AddTransition(shadow_depth_cubemap->GetNative(),
@@ -3182,7 +3183,7 @@ namespace adria
 		ADRIA_ASSERT(light.type == ELightType::Directional);
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Cascaded Shadow Maps Pass - Directional Light");
 
-		auto upload_buffer = gfx->GetUploadBuffer();
+		auto upload_buffer = gfx->GetDynamicAllocator();
 
 		ResourceBarrierBatch shadow_cascades_barrier{};
 		shadow_cascades_barrier.AddTransition(shadow_depth_cascades->GetNative(),
@@ -3232,7 +3233,7 @@ namespace adria
 	{
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
-		auto upload_buffer = gfx->GetUploadBuffer();
+		auto upload_buffer = gfx->GetDynamicAllocator();
 
 		auto shadow_view = reg.view<Mesh, Transform, Visibility>();
 		if (!settings.shadow_transparent)
@@ -3404,7 +3405,7 @@ namespace adria
 
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
-		auto upload_buffer = gfx->GetUploadBuffer();
+		auto upload_buffer = gfx->GetDynamicAllocator();
 
 		if (entities_group.empty()) return;
 
@@ -3453,7 +3454,7 @@ namespace adria
 
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
-		auto upload_buffer = gfx->GetUploadBuffer();
+		auto upload_buffer = gfx->GetDynamicAllocator();
 
 		ObjectCBuffer object_cbuf_data{};
 		object_cbuf_data.model = DirectX::XMMatrixTranslationFromVector(camera->Position());
@@ -3520,7 +3521,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Ocean Update Pass");
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
-		auto upload_buffer = gfx->GetUploadBuffer();
+		auto upload_buffer = gfx->GetDynamicAllocator();
 
 		if (reg.size<Ocean>() == 0) return;
 
@@ -3723,7 +3724,7 @@ namespace adria
 
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
-		auto upload_buffer = gfx->GetUploadBuffer();
+		auto upload_buffer = gfx->GetDynamicAllocator();
 		
 		auto skyboxes = reg.view<Skybox>();
 		D3D12_CPU_DESCRIPTOR_HANDLE skybox_handle = null_srv_heap->GetHandle(TEXTURECUBE_SLOT);
@@ -3823,7 +3824,7 @@ namespace adria
 		
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
-		auto upload_buffer = gfx->GetUploadBuffer();
+		auto upload_buffer = gfx->GetDynamicAllocator();
 
 		lens_flare_textures.push_back(depth_target->SRV());
 
@@ -4203,7 +4204,7 @@ namespace adria
 
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
-		auto upload_buffer = gfx->GetUploadBuffer();
+		auto upload_buffer = gfx->GetDynamicAllocator();
 
 		if (light.type != ELightType::Directional)
 		{
@@ -4371,7 +4372,7 @@ namespace adria
 
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
-		auto upload_buffer = gfx->GetUploadBuffer();
+		auto upload_buffer = gfx->GetDynamicAllocator();
 
 		ResourceBarrierBatch sun_barrier{};
 		sun_barrier.AddTransition(sun_target->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);

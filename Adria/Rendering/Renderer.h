@@ -15,8 +15,6 @@
 #include "../Graphics/Texture.h"
 #include "../Graphics/RenderPass.h"
 #include "../Graphics/ConstantBuffer.h"
-//#include "../Graphics/TextureCube.h"
-#include "../Graphics/Texture2DArray.h"
 #include "../Graphics/GPUProfiler.h"
 
 

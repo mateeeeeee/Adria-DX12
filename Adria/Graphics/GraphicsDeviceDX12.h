@@ -18,7 +18,7 @@
 #include "D3D12MemAlloc.h"
 #include "RingDescriptorAllocator.h"
 #include "LinearDescriptorAllocator.h"
-#include "LinearUploadBuffer.h"
+#include "LinearDynamicAllocator.h"
 #include "Releasable.h"
 
 namespace adria
@@ -83,9 +83,9 @@ namespace adria
 		void AddToReleaseQueue(D3D12MA::Allocation* alloc);
 		void AddToReleaseQueue(ID3D12Resource* resource);
 
-		RingDescriptorAllocator* GetDescriptorAllocator() const;
 		void ReserveDescriptors(size_t reserve);
-		LinearUploadBuffer* GetUploadBuffer() const;
+		RingDescriptorAllocator* GetDescriptorAllocator() const;
+		LinearDynamicAllocator* GetDynamicAllocator() const;
 
 		void GetTimestampFrequency(UINT64& frequency) const;
 
@@ -93,7 +93,6 @@ namespace adria
 		{
 			return BACKBUFFER_COUNT;
 		}
-
 	private:
 		UINT width, height;
 		UINT backbuffer_index;
@@ -134,9 +133,13 @@ namespace adria
 
 		std::unique_ptr<DescriptorHeap> render_target_heap = nullptr;
 		std::unique_ptr<RingDescriptorAllocator> descriptor_allocator;
-		std::vector<std::unique_ptr<LinearUploadBuffer>> upload_buffers;
+		std::vector<std::unique_ptr<LinearDynamicAllocator>> dynamic_allocators;
 
+		//Microsoft::WRL::ComPtr<ID3D12Fence> dred_fence = nullptr;
+		//HANDLE device_removed_event = nullptr;
+		//HANDLE wait_handle = nullptr;
 	private:
+
 		FrameResources& GetFrameResources();
 		FrameResources const& GetFrameResources() const;
 
