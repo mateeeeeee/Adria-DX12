@@ -678,11 +678,8 @@ namespace adria
 	void GraphicsDevice::ExecuteDefaultCommandList()
 	{
 		auto& frame_resources = GetFrameResources();
-
 		frame_resources.default_cmd_list->Close();
-
 		ID3D12CommandList* cmd_list = frame_resources.default_cmd_list.Get();
-
 		graphics_queue->ExecuteCommandLists(1, &cmd_list);
 	}
 
@@ -738,38 +735,28 @@ namespace adria
 	void GraphicsDevice::ExecuteGraphicsCommandLists()
 	{
 		auto& frame_resources = GetFrameResources();
-
 		frame_resources.default_cmd_list->Close();
-
 		std::vector<ID3D12CommandList*> cmd_lists = { frame_resources.default_cmd_list.Get() };
-
 		for (UINT i = 0; i < frame_resources.cmd_list_index; ++i)
 		{
 			frame_resources.cmd_lists[i]->Close();
 			cmd_lists.push_back(frame_resources.cmd_lists[i].Get());
 		}
-
 		graphics_queue->ExecuteCommandLists(static_cast<UINT>(cmd_lists.size()), cmd_lists.data());
-
 		frame_resources.cmd_list_index.store(0);
 	}
 
 	void GraphicsDevice::ExecuteComputeCommandLists()
 	{
 		auto& frame_resources = GetFrameResources();
-
 		if (frame_resources.compute_cmd_list_index == 0) return;
-
 		std::vector<ID3D12CommandList*> cmd_lists = {};
-
 		for (UINT i = 0; i < frame_resources.compute_cmd_list_index; ++i)
 		{
 			frame_resources.compute_cmd_lists[i]->Close();
 			cmd_lists.push_back(frame_resources.compute_cmd_lists[i].Get());
 		}
-
 		compute_queue->ExecuteCommandLists(static_cast<UINT>(cmd_lists.size()), cmd_lists.data());
-
 		frame_resources.compute_cmd_list_index.store(0);
 	}
 
@@ -777,7 +764,6 @@ namespace adria
 	{
 		// Assign the current fence value to the current frame.
 		frame_fence_values[backbuffer_index] = frame_fence_value;
-
 		// Signal and increment the fence value.
 		BREAK_IF_FAILED(graphics_queue->Signal(frame_fences[backbuffer_index].Get(), frame_fence_value));
 		++frame_fence_value;
@@ -785,13 +771,11 @@ namespace adria
 		// Update the frame index.
 		last_backbuffer_index = backbuffer_index;
 		backbuffer_index = swap_chain->GetCurrentBackBufferIndex();
-
 		if (frame_fences[backbuffer_index]->GetCompletedValue() < frame_fence_values[backbuffer_index])
 		{
 			BREAK_IF_FAILED(frame_fences[backbuffer_index]->SetEventOnCompletion(frame_fence_values[backbuffer_index], frame_fence_events[backbuffer_index]));
 			WaitForSingleObject(frame_fence_events[backbuffer_index], INFINITE);
 		}
-
 		++frame_index;
 	}
 
@@ -799,16 +783,12 @@ namespace adria
 	{
 		while (!release_queue.empty())
 		{
-			if (release_queue.front().fence_value > release_queue_fence->GetCompletedValue())
-				break;
-
+			if (release_queue.front().fence_value > release_queue_fence->GetCompletedValue()) break;
 			auto allocation = std::move(release_queue.front());
 			allocation.Release();
 			release_queue.pop();
 		}
-
 		BREAK_IF_FAILED(graphics_queue->Signal(release_queue_fence.Get(), release_queue_fence_value));
-
 		++release_queue_fence_value;
 	}
 
