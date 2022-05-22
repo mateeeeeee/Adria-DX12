@@ -856,6 +856,7 @@ namespace adria
 			}
 			else if (current_sky_type == 2)
 			{
+				engine->gfx->GetDevice()->RemoveDevice();
 				renderer_settings.sky_type = ESkyType::HosekWilkie;
 				ImGui::SliderFloat("Turbidity", &renderer_settings.turbidity, 2.0f, 30.0f);
 				ImGui::SliderFloat("Ground Albedo", &renderer_settings.ground_albedo, 0.0f, 1.0f);

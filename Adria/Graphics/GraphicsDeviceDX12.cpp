@@ -1,3 +1,4 @@
+#include <map>
 #include <dxgidebug.h>
 #include "GraphicsDeviceDX12.h"
 #include "../Logging/Logger.h"
@@ -92,9 +93,79 @@ namespace adria
 		}
 		void LogDredInfo(ID3D12Device5* device, ID3D12DeviceRemovedExtendedData1* dred)
 		{
+			D3D12_DRED_AUTO_BREADCRUMBS_OUTPUT1 DredAutoBreadcrumbsOutput;
+			if (SUCCEEDED(dred->GetAutoBreadcrumbsOutput1(&DredAutoBreadcrumbsOutput)))
+			{
+				ADRIA_LOG(DEBUG, "[DRED] Last tracked GPU operations:");
+				std::map<int32, wchar_t const*> contextStrings;
+				D3D12_AUTO_BREADCRUMB_NODE1 const* pNode = DredAutoBreadcrumbsOutput.pHeadAutoBreadcrumbNode;
+				while (pNode && pNode->pLastBreadcrumbValue)
+				{
+					int32 lastCompletedOp = *pNode->pLastBreadcrumbValue;
+					if (lastCompletedOp != (int)pNode->BreadcrumbCount && lastCompletedOp != 0)
+					{
+						ADRIA_LOG(DEBUG, "[DRED] Commandlist \"%s\" on CommandQueue \"%s\", %d completed of %d", pNode->pCommandListDebugNameA, pNode->pCommandQueueDebugNameA, lastCompletedOp, pNode->BreadcrumbCount);
 
+						int32 firstOp = std::max<int32>(lastCompletedOp - 100, 0);
+						int32 lastOp = std::min<int32>(lastCompletedOp + 20, int32(pNode->BreadcrumbCount) - 1);
+
+						contextStrings.clear();
+						for (uint32 breadcrumbContext = firstOp; breadcrumbContext < pNode->BreadcrumbContextsCount; ++breadcrumbContext)
+						{
+							const D3D12_DRED_BREADCRUMB_CONTEXT& context = pNode->pBreadcrumbContexts[breadcrumbContext];
+							contextStrings[context.BreadcrumbIndex] = context.pContextString;
+						}
+
+						for (int32 op = firstOp; op <= lastOp; ++op)
+						{
+							D3D12_AUTO_BREADCRUMB_OP breadcrumbOp = pNode->pCommandHistory[op];
+
+							std::wstring context_string;
+							auto it = contextStrings.find(op);
+							if (it != contextStrings.end())
+							{
+								context_string = it->second;
+							}
+
+							wchar_t const* opName = DredBreadcrumbOpName(breadcrumbOp);
+							ADRIA_LOG(DEBUG, "\tOp: %d, %ls%ls%s", op, opName, context_string.c_str(), (op + 1 == lastCompletedOp) ? " - Last completed" : "");
+						}
+					}
+					pNode = pNode->pNext;
+				}
+			}
+
+			D3D12_DRED_PAGE_FAULT_OUTPUT DredPageFaultOutput;
+			if (SUCCEEDED(dred->GetPageFaultAllocationOutput(&DredPageFaultOutput)))
+			{
+				ADRIA_LOG(DEBUG, "[DRED] PageFault at VA GPUAddress \"0x%x\"", DredPageFaultOutput.PageFaultVA);
+
+				D3D12_DRED_ALLOCATION_NODE const* pNode = DredPageFaultOutput.pHeadExistingAllocationNode;
+				if (pNode)
+				{
+					ADRIA_LOG(DEBUG, "[DRED] Active objects with VA ranges that match the faulting VA:");
+					while (pNode)
+					{
+						wchar_t const* AllocTypeName = DredAllocationName(pNode->AllocationType);
+						ADRIA_LOG(DEBUG, "\tName: %s (Type: %ls)", pNode->ObjectNameA, AllocTypeName);
+						pNode = pNode->pNext;
+					}
+				}
+
+				pNode = DredPageFaultOutput.pHeadRecentFreedAllocationNode;
+				if (pNode)
+				{
+					ADRIA_LOG(DEBUG, "[DRED] Recent freed objects with VA ranges that match the faulting VA:");
+					while (pNode)
+					{
+						uint32 allocTypeIndex = pNode->AllocationType - D3D12_DRED_ALLOCATION_TYPE_COMMAND_QUEUE;
+						wchar_t const* AllocTypeName = DredAllocationName(pNode->AllocationType); 
+						ADRIA_LOG(DEBUG, "\tName: %s (Type: %ls)", pNode->ObjectNameA, AllocTypeName);
+						pNode = pNode->pNext;
+					}
+				}
+			}
 		}
-		
 	}
 
 	void DeviceRemovedHandler(void* _device, BYTE)
@@ -104,17 +175,8 @@ namespace adria
 		ADRIA_LOG(ERROR, "Device removed, reason code: %ld", removed_reason);
 
 		Microsoft::WRL::ComPtr<ID3D12DeviceRemovedExtendedData1> dred;
-		if (FAILED(device->QueryInterface(IID_PPV_ARGS(&dred))))
-		{
-			ADRIA_LOG(ERROR, "Failed to get DRED interface");
-		}
-		else
-		{
-			D3D12_DRED_AUTO_BREADCRUMBS_OUTPUT1 DredAutoBreadcrumbsOutput;
-			D3D12_DRED_PAGE_FAULT_OUTPUT DredPageFaultOutput;
-			BREAK_IF_FAILED(dred->GetAutoBreadcrumbsOutput1(&DredAutoBreadcrumbsOutput));
-			BREAK_IF_FAILED(dred->GetPageFaultAllocationOutput(&DredPageFaultOutput));
-		}
+		if (FAILED(device->QueryInterface(IID_PPV_ARGS(&dred)))) ADRIA_LOG(ERROR, "Failed to get DRED interface");
+		else LogDredInfo(device, dred.Get());
 	}
 
 	GraphicsDevice::GraphicsDevice(void* window_handle)
@@ -138,6 +200,16 @@ namespace adria
 			dxgi_factory_flags |= DXGI_CREATE_FACTORY_DEBUG;
 		}
 		else ADRIA_LOG(WARNING, "debug layer setup failed!");
+
+
+		Microsoft::WRL::ComPtr<ID3D12DeviceRemovedExtendedDataSettings1> dred_settings;
+		hr = D3D12GetDebugInterface(IID_PPV_ARGS(&dred_settings));
+		if (SUCCEEDED(hr) && dred_settings != NULL)
+		{
+			dred_settings->SetAutoBreadcrumbsEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+			dred_settings->SetPageFaultEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+		}
+		else ADRIA_LOG(WARNING, "Dred setup failed!");
 #endif
 
 		Microsoft::WRL::ComPtr<IDXGIFactory4> dxgi_factory = nullptr;
@@ -159,15 +231,6 @@ namespace adria
 			pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
 			pInfoQueue->Release();
 		}
-
-		//Microsoft::WRL::ComPtr<ID3D12DeviceRemovedExtendedDataSettings1> dred_settings;
-		//hr = D3D12GetDebugInterface(IID_PPV_ARGS(&dred_settings));
-		//if (SUCCEEDED(hr) && dred_settings != NULL)
-		//{
-		//	dred_settings->SetAutoBreadcrumbsEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
-		//	dred_settings->SetPageFaultEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
-		//}
-		//else ADRIA_LOG(WARNING, "Dred setup failed!");
 #endif
 		Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter;
 		dxgi_factory->EnumAdapters1(1, &adapter);
@@ -314,14 +377,14 @@ namespace adria
 		}
 
 #if defined(_DEBUG)
-		//hr = device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&dred_fence));
-		//device_removed_event = ::CreateEvent(nullptr, false, false, nullptr);
-		//hr = dred_fence->SetEventOnCompletion(UINT64_MAX, device_removed_event);
-		//if (FAILED(hr) || device_removed_event == nullptr)
-		//{
-		//	ADRIA_LOG(WARNING, "Failed to set device removed completion event!");
-		//}
-		//RegisterWaitForSingleObject(&wait_handle, device_removed_event, DeviceRemovedHandler, device.Get(), INFINITE, 0);
+		hr = device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&dred_fence));
+		device_removed_event = ::CreateEvent(nullptr, false, false, nullptr);
+		hr = dred_fence->SetEventOnCompletion(UINT64_MAX, device_removed_event);
+		if (FAILED(hr) || device_removed_event == nullptr)
+		{
+			ADRIA_LOG(WARNING, "Failed to set device removed completion event!");
+		}
+		RegisterWaitForSingleObject(&wait_handle, device_removed_event, DeviceRemovedHandler, device.Get(), INFINITE, 0);
 #endif
 		std::atexit([]()
 			{
@@ -338,9 +401,8 @@ namespace adria
 		WaitForGPU();
 		ProcessReleaseQueue();
 
-		//ADRIA_ASSERT(UnregisterWaitEx(wait_handle, INVALID_HANDLE_VALUE));
-		//CloseHandle(wait_handle);
-		//CloseHandle(device_removed_event);
+		ADRIA_ASSERT(UnregisterWaitEx(wait_handle, INVALID_HANDLE_VALUE));
+		CloseHandle(device_removed_event);
 
 		for (size_t i = 0; i < BACKBUFFER_COUNT; ++i)
 		{

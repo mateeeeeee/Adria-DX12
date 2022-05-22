@@ -135,9 +135,9 @@ namespace adria
 		std::unique_ptr<RingDescriptorAllocator> descriptor_allocator;
 		std::vector<std::unique_ptr<LinearDynamicAllocator>> dynamic_allocators;
 
-		//Microsoft::WRL::ComPtr<ID3D12Fence> dred_fence = nullptr;
-		//HANDLE device_removed_event = nullptr;
-		//HANDLE wait_handle = nullptr;
+		Microsoft::WRL::ComPtr<ID3D12Fence> dred_fence = nullptr;
+		HANDLE device_removed_event = nullptr;
+		HANDLE wait_handle = nullptr;
 	private:
 
 		FrameResources& GetFrameResources();
