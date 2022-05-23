@@ -595,7 +595,7 @@ namespace adria
 
 		size_t rt_vertices_size = RayTracing::rt_vertices.size();
 		size_t rt_indices_size = RayTracing::rt_indices.size();
-		if (false && params.used_in_raytracing)
+		if (params.used_in_raytracing)
 		{
 			RayTracing::rt_vertices.insert(std::end(RayTracing::rt_vertices), std::begin(vertices), std::end(vertices));
 			RayTracing::rt_indices.insert(std::end(RayTracing::rt_indices), std::begin(indices), std::end(indices));
