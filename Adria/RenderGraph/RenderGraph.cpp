@@ -8,20 +8,20 @@
 namespace adria
 {
 
-	RGResourceHandle RenderGraphBuilder::Create(char const* name, D3D12_RESOURCE_DESC const& desc)
+	RGResourceHandle RenderGraphBuilder::CreateTexture(char const* name, TextureDesc const& desc)
 	{
-		RGResourceHandle handle = rg.CreateResource(name, desc);
+		RGResourceHandle handle = rg.CreateTexture(name, desc);
 		rg_pass.creates.insert(handle);
 		return handle;
 	}
 
-	RGResourceHandle RenderGraphBuilder::Read(RGResourceHandle const& handle)
+	RGResourceHandle RenderGraphBuilder::ReadResource(RGResourceHandle const& handle)
 	{
 		rg_pass.reads.insert(handle);
 		return handle;
 	}
 
-	RGResourceHandle RenderGraphBuilder::Write(RGResourceHandle& handle)
+	RGResourceHandle RenderGraphBuilder::WriteResource(RGResourceHandle& handle)
 	{
 		if (rg_pass.creates.contains(handle))
 		{
@@ -44,17 +44,15 @@ namespace adria
 		: rg(rg), rg_pass(rg_pass)
 	{}
 
-	RGResourceHandle RenderGraph::CreateResource(char const* name, D3D12_RESOURCE_DESC const& desc)
+	RGResourceHandle RenderGraph::CreateTexture(char const* name, TextureDesc const& desc)
 	{
-		resources.emplace_back(new RGTexture(name, resources.size(), desc));
-		return CreateResourceNode(resources.back().get());
+		textures.emplace_back(new RGTexture(name, textures.size(), desc));
+		return CreateResourceNode(textures.back().get());
 	}
 
-	RGResourceHandle RenderGraph::ImportResource(EImportedId id, ID3D12Resource* resource)
+	RGResourceHandle RenderGraph::ImportResource(EImportedId id, ID3D12Resource* texture)
 	{
-		auto& imported_resource = resources.emplace_back(new RGTexture(ImportedIdNames[(size_t)id], resources.size(), resource));
-		imported_resources[(size_t)id] = imported_resource.get();
-		return CreateResourceNode(resources.back().get());
+		imported_resources[(size_t)id] = texture;
 	}
 
 	void RenderGraph::ImportResourceView(EImportedViewId id, RGResourceView view)
@@ -64,16 +62,16 @@ namespace adria
 
 	bool RenderGraph::IsValidHandle(RGResourceHandle handle) const
 	{
-		return handle.IsValid() && handle.id < resource_nodes.size();
+		return handle.IsValid() && handle.id < texture_nodes.size();
 	}
 
-	RGTexture* RenderGraph::GetResource(RGResourceHandle handle) 
+	RGTexture* RenderGraph::GetTexture(RGResourceHandle handle) 
 	{
-		RGResourceNode& node = GetResourceNode(handle);
+		RGTextureNode& node = GetResourceNode(handle);
 		return node.resource;
 	}
 
-	RGTexture* RenderGraph::GetImportedResource(EImportedId id) const
+	ID3D12Resource* RenderGraph::GetImportedResource(EImportedId id) const
 	{
 		return imported_resources[(size_t)id];
 	}
@@ -102,29 +100,29 @@ namespace adria
 		{
 			for (auto handle : dependency_level.creates)
 			{
-				RGTexture* rg_resource = GetResource(handle);
-				rg_resource->resource = pool.AllocateResource(rg_resource->desc);
+				RGTexture* rg_texture = GetTexture(handle);
+				rg_texture->texture = pool.AllocateTexture(rg_texture->desc);
 			}
 
 			dependency_level.Execute(gfx, cmd_list);
 
 			for (auto handle : dependency_level.destroys)
 			{
-				RGTexture* rg_resource = GetResource(handle);
-				pool.ReleaseResource(rg_resource->resource);
+				RGTexture* rg_texture = GetTexture(handle);
+				pool.ReleaseTexture(rg_texture->texture);
 			}
 		}
 	}
 
 	RGResourceHandle RenderGraph::CreateResourceNode(RGTexture* resource)
 	{
-		resource_nodes.emplace_back(resource);
-		return RGResourceHandle(resource_nodes.size() - 1);
+		texture_nodes.emplace_back(resource);
+		return RGResourceHandle(texture_nodes.size() - 1);
 	}
 
-	RGResourceNode& RenderGraph::GetResourceNode(RGResourceHandle handle)
+	RGTextureNode& RenderGraph::GetResourceNode(RGResourceHandle handle)
 	{
-		return resource_nodes[handle.id];
+		return texture_nodes[handle.id];
 	}
 
 	void RenderGraph::BuildAdjacencyLists()
@@ -206,12 +204,12 @@ namespace adria
 			}
 		}
 
-		std::stack<RGResourceNode> zero_ref_resources;
-		for (auto& node : resource_nodes) if (node.resource->ref_count == 0) zero_ref_resources.push(node);
+		std::stack<RGTextureNode> zero_ref_resources;
+		for (auto& node : texture_nodes) if (node.resource->ref_count == 0) zero_ref_resources.push(node);
 
 		while (!zero_ref_resources.empty())
 		{
-			RGResourceNode unreferenced_resource = zero_ref_resources.top();
+			RGTextureNode unreferenced_resource = zero_ref_resources.top();
 			zero_ref_resources.pop();
 			auto* writer = unreferenced_resource.writer;
 			if (writer == nullptr || !writer->CanBeCulled()) continue;
@@ -238,9 +236,9 @@ namespace adria
 				GetResourceNode(id).last_used_by = pass.get();
 		}
 
-		for (size_t i = 0; i < resource_nodes.size(); ++i)
+		for (size_t i = 0; i < texture_nodes.size(); ++i)
 		{
-			resource_nodes[i].last_used_by->destroy.insert(RGResourceHandle(i));
+			texture_nodes[i].last_used_by->destroy.insert(RGResourceHandle(i));
 		}
 
 		for (auto& dependency_level : dependency_levels)
@@ -259,24 +257,32 @@ namespace adria
 		stack.push(i);
 	}
 
-	RGResourceView RenderGraph::CreateShaderResourceView(RGResourceHandle handle, D3D12_SHADER_RESOURCE_VIEW_DESC const& desc)
+	RGResourceView RenderGraph::CreateShaderResourceView(RGResourceHandle handle, TextureViewDesc const& desc)
 	{
-		return view_pool.CreateShaderResourceView(handle, desc);
+		RGTexture* texture = GetTexture(handle);
+		size_t i = texture->texture->CreateSRV({ NULL }, {});
+		return texture->texture->SRV(i);
 	}
 
-	RGResourceView RenderGraph::CreateRenderTargetView(RGResourceHandle handle, D3D12_RENDER_TARGET_VIEW_DESC const& desc)
+	RGResourceView RenderGraph::CreateRenderTargetView(RGResourceHandle handle, TextureViewDesc const& desc)
 	{
-		return view_pool.CreateRenderTargetView(handle, desc);
+		RGTexture* texture = GetTexture(handle);
+		size_t i = texture->texture->CreateRTV({ NULL }, {});
+		return texture->texture->SRV(i);
 	}
 
-	RGResourceView RenderGraph::CreateUnorderedAccessView(RGResourceHandle handle, D3D12_UNORDERED_ACCESS_VIEW_DESC const& desc)
+	RGResourceView RenderGraph::CreateUnorderedAccessView(RGResourceHandle handle, TextureViewDesc const& desc)
 	{
-		return view_pool.CreateUnorderedAccessView(handle, desc);
+		RGTexture* texture = GetTexture(handle);
+		size_t i = texture->texture->CreateUAV({ NULL }, {});
+		return texture->texture->SRV(i);
 	}
 
-	RGResourceView RenderGraph::CreateDepthStencilView(RGResourceHandle handle, D3D12_DEPTH_STENCIL_VIEW_DESC const& desc)
+	RGResourceView RenderGraph::CreateDepthStencilView(RGResourceHandle handle, TextureViewDesc const& desc)
 	{
-		return view_pool.CreateDepthStencilView(handle, desc);
+		RGTexture* texture = GetTexture(handle);
+		size_t i = texture->texture->CreateDSV({ NULL }, {});
+		return texture->texture->SRV(i);
 	}
 
 	void RenderGraph::DependencyLevel::AddPass(RenderGraphPassBase* pass)

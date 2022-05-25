@@ -617,7 +617,7 @@ namespace adria
 	void Renderer::OnSceneInitialized()
 	{
 		UINT tex2darray_size = (UINT)texture_manager.handle;
-		gfx->ReserveDescriptors(tex2darray_size);
+		gfx->ReserveOnlineDescriptors(tex2darray_size);
 
 		ID3D12Device* device = gfx->GetDevice();
 		RingDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();

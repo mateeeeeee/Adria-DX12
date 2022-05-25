@@ -7,27 +7,27 @@ namespace adria
 	RenderGraphResources::RenderGraphResources(RenderGraph& rg, RenderGraphPassBase& rg_pass) : rg(rg), rg_pass(rg_pass)
 	{}
 
-	RGTexture& RenderGraphResources::GetResource(RGResourceHandle handle)
+	RGTexture& RenderGraphResources::GetTexture(RGResourceHandle handle)
 	{
-		return *rg.GetResource(handle);
+		return *rg.GetTexture(handle);
 	}
 
-	RGResourceView RenderGraphResources::CreateShaderResourceView(RGResourceHandle handle, D3D12_SHADER_RESOURCE_VIEW_DESC const& desc)
+	RGResourceView RenderGraphResources::CreateShaderResourceView(RGResourceHandle handle, TextureViewDesc const& desc)
 	{
 		return rg.CreateShaderResourceView(handle, desc);
 	}
 
-	RGResourceView RenderGraphResources::CreateRenderTargetView(RGResourceHandle handle, D3D12_RENDER_TARGET_VIEW_DESC const& desc)
+	RGResourceView RenderGraphResources::CreateRenderTargetView(RGResourceHandle handle, TextureViewDesc const& desc)
 	{
 		return rg.CreateRenderTargetView(handle, desc);
 	}
 
-	RGResourceView RenderGraphResources::CreateUnorderedAccessView(RGResourceHandle handle, D3D12_UNORDERED_ACCESS_VIEW_DESC const& desc)
+	RGResourceView RenderGraphResources::CreateUnorderedAccessView(RGResourceHandle handle, TextureViewDesc const& desc)
 	{
 		return rg.CreateUnorderedAccessView(handle, desc);
 	}
 
-	RGResourceView RenderGraphResources::CreateDepthStencilView(RGResourceHandle handle, D3D12_DEPTH_STENCIL_VIEW_DESC const& desc)
+	RGResourceView RenderGraphResources::CreateDepthStencilView(RGResourceHandle handle, TextureViewDesc const& desc)
 	{
 		return rg.CreateDepthStencilView(handle, desc);
 	}

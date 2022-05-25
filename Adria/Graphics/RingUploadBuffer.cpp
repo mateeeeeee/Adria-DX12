@@ -25,7 +25,6 @@ namespace adria
 	{
 
 		OffsetType offset = INVALID_OFFSET;
-
 		{
 			std::lock_guard<std::mutex> guard(alloc_mutex);
 			offset = ring_allocator.Allocate(size_in_bytes, alignment);
@@ -43,6 +42,7 @@ namespace adria
 		}
 		else
 		{
+			ADRIA_ASSERT(false && "Not enough memory in Dynamic Allocator. Increase the size to avoid this error!");
 			return DynamicAllocation{};
 		}
 	}

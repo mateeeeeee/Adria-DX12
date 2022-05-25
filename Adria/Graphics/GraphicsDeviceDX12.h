@@ -7,6 +7,7 @@
 #include <memory>
 #include <mutex>
 #include <vector>
+#include <array>
 #include <queue>
 #include <variant>
 
@@ -58,6 +59,11 @@ namespace adria
 			mutable std::atomic_uint compute_cmd_list_index = 0;
 		};
 
+		struct HeapPair
+		{
+			std::unique_ptr<DescriptorHeap> heap_for_size_dependent_resources;
+			std::unique_ptr<DescriptorHeap> heap_for_size_independent_resources;
+		};
 	public:
 		explicit GraphicsDevice(GraphicsOptions const&);
 		GraphicsDevice(GraphicsDevice const&) = delete;
@@ -90,7 +96,8 @@ namespace adria
 		void AddToReleaseQueue(D3D12MA::Allocation* alloc);
 		void AddToReleaseQueue(ID3D12Resource* resource);
 
-		void ReserveDescriptors(size_t reserve);
+		DescriptorHandle AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE, bool heap_for_size_dependent = false);
+		void ReserveOnlineDescriptors(size_t reserve);
 		RingDescriptorAllocator* GetDescriptorAllocator() const;
 		LinearDynamicAllocator* GetDynamicAllocator() const;
 
@@ -138,7 +145,8 @@ namespace adria
 		HANDLE		 wait_event = nullptr;
 		UINT64       wait_fence_value = 0;
 
-		std::unique_ptr<DescriptorHeap> render_target_heap = nullptr;
+		std::array<HeapPair, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES> offline_descriptor_allocators;
+
 		std::unique_ptr<RingDescriptorAllocator> descriptor_allocator;
 		std::vector<std::unique_ptr<LinearDynamicAllocator>> dynamic_allocators;
 

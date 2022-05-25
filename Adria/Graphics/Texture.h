@@ -25,6 +25,8 @@ namespace adria
 		EResourceMiscFlag misc_flags = EResourceMiscFlag::None;
 		std::optional<D3D12_CLEAR_VALUE> clear = std::nullopt;
 		D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+
+		std::strong_ordering operator<=>(TextureDesc const& other) const = default;
 	};
 
 	struct TextureViewDesc
@@ -34,6 +36,8 @@ namespace adria
 		uint32 first_mip = 0;
 		uint32 mip_count = static_cast<uint32>(-1);
 		std::optional<DXGI_FORMAT> new_format = std::nullopt;
+
+		std::strong_ordering operator<=>(TextureViewDesc const& other) const = default;
 	};
 
 	using TextureInitialData = D3D12_SUBRESOURCE_DATA;

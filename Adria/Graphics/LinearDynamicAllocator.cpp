@@ -42,6 +42,7 @@ namespace adria
 		}
 		else
 		{
+			ADRIA_ASSERT(false && "Not enough memory in Dynamic Allocator. Increase the size to avoid this error!");
 			return DynamicAllocation{}; //return optional?
 		}
 	}

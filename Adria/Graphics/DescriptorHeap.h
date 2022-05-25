@@ -63,8 +63,11 @@ namespace adria
 
 		~DescriptorHeap() = default;
 
+		DescriptorHandle AllocateDescriptor()
+		{
+			return GetHandle(current_alloc_index++);
+		}
 		DescriptorHandle GetFirstHandle() const;
-
 		DescriptorHandle GetHandle(size_t index) const;
 
 		size_t Count() const;
@@ -73,13 +76,14 @@ namespace adria
 		size_t Increment() const;
 		ID3D12DescriptorHeap* Heap() const;
 
+		void Reset() { current_alloc_index = 0; }
 	private:
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>	heap;
 		D3D12_DESCRIPTOR_HEAP_DESC                      desc;
 		D3D12_CPU_DESCRIPTOR_HANDLE                     hCPU;
 		D3D12_GPU_DESCRIPTOR_HANDLE                     hGPU;
 		UINT	                                        descriptor_handle_size;
-
+		UINT											current_alloc_index;
 	private:
 
 		void CreateHelper(ID3D12Device* pDevice, D3D12_DESCRIPTOR_HEAP_DESC const& _desc);

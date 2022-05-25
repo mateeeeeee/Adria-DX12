@@ -9,15 +9,6 @@
 
 namespace adria
 {
-
-	//typedef struct D3D12_HEAP_DESC
-	//{
-	//	UINT64 SizeInBytes;
-	//	D3D12_HEAP_PROPERTIES Properties;
-	//	UINT64 Alignment;
-	//	D3D12_HEAP_FLAGS Flags;
-	//} 	D3D12_HEAP_DESC;
-
 	class Heap
 	{
 	public:
@@ -26,7 +17,6 @@ namespace adria
 			BREAK_IF_FAILED(device->CreateHeap(&heap_desc, IID_PPV_ARGS(&heap)));
 			allocator = std::make_unique<LinearAllocator>(heap_desc.SizeInBytes);
 		}
-
 		Heap(ID3D12Device* device, std::vector<D3D12_RESOURCE_DESC> const& resources)
 		{
 			D3D12_RESOURCE_ALLOCATION_INFO alloc_info = device->GetResourceAllocationInfo(0,

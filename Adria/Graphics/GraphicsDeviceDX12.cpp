@@ -168,17 +168,16 @@ namespace adria
 				}
 			}
 		}
-	}
+		void DeviceRemovedHandler(void* _device, BYTE)
+		{
+			ID3D12Device5* device = static_cast<ID3D12Device5*>(_device);
+			HRESULT removed_reason = device->GetDeviceRemovedReason();
+			ADRIA_LOG(ERROR, "Device removed, reason code: %ld", removed_reason);
 
-	void DeviceRemovedHandler(void* _device, BYTE)
-	{
-		ID3D12Device5* device = static_cast<ID3D12Device5*>(_device);
-		HRESULT removed_reason = device->GetDeviceRemovedReason();
-		ADRIA_LOG(ERROR, "Device removed, reason code: %ld", removed_reason);
-
-		Microsoft::WRL::ComPtr<ID3D12DeviceRemovedExtendedData1> dred;
-		if (FAILED(device->QueryInterface(IID_PPV_ARGS(&dred)))) ADRIA_LOG(ERROR, "Failed to get DRED interface");
-		else LogDredInfo(device, dred.Get());
+			Microsoft::WRL::ComPtr<ID3D12DeviceRemovedExtendedData1> dred;
+			if (FAILED(device->QueryInterface(IID_PPV_ARGS(&dred)))) ADRIA_LOG(ERROR, "Failed to get DRED interface");
+			else LogDredInfo(device, dred.Get());
+		}
 	}
 
 	GraphicsDevice::GraphicsDevice(GraphicsOptions const& options)
@@ -323,9 +322,15 @@ namespace adria
 			shader_visible_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 			shader_visible_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 			descriptor_allocator = std::make_unique<RingDescriptorAllocator>(device.Get(), shader_visible_desc);
+			for (size_t i = 0; i < offline_descriptor_allocators.size(); ++i)
+			{
+				offline_descriptor_allocators[i].heap_for_size_dependent_resources = std::make_unique<DescriptorHeap>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE(i), D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 100);
+				offline_descriptor_allocators[i].heap_for_size_independent_resources = std::make_unique<DescriptorHeap>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE(i), D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 100);
+			}
+
 			for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
 			{
-				dynamic_allocators.emplace_back(new LinearDynamicAllocator(device.Get(), 100000000));
+				dynamic_allocators.emplace_back(new LinearDynamicAllocator(device.Get(), 25'000'000));
 			}
 		}
 
@@ -339,7 +344,10 @@ namespace adria
 			if (release_queue_event == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
 		}
 
-		render_target_heap = std::make_unique<DescriptorHeap>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, BACKBUFFER_COUNT);
+		//heaps
+		{
+			
+		}
 
 		//frame resources
 		{
@@ -347,7 +355,7 @@ namespace adria
 			{
 				hr = swap_chain->GetBuffer(fr, IID_PPV_ARGS(&frames[fr].back_buffer));
 				BREAK_IF_FAILED(hr);
-				frames[fr].back_buffer_rtv = render_target_heap->GetHandle(fr);
+				frames[fr].back_buffer_rtv = offline_descriptor_allocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV].heap_for_size_dependent_resources->AllocateDescriptor();
 				device->CreateRenderTargetView(frames[fr].back_buffer.Get(), nullptr, frames[fr].back_buffer_rtv);
 
 				hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(frames[fr].default_cmd_allocator.GetAddressOf()));
@@ -404,15 +412,6 @@ namespace adria
 			if (wait_event == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
 		}
 
-		hr = device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&dred_fence));
-		device_removed_event = ::CreateEvent(nullptr, false, false, nullptr);
-		hr = dred_fence->SetEventOnCompletion(UINT64_MAX, device_removed_event);
-		if (FAILED(hr) || device_removed_event == nullptr)
-		{
-			ADRIA_LOG(WARNING, "Failed to set device removed completion event!");
-		}
-		RegisterWaitForSingleObject(&wait_handle, device_removed_event, DeviceRemovedHandler, device.Get(), INFINITE, 0);
-
 		std::atexit([]()
 			{
 				Microsoft::WRL::ComPtr<IDXGIDebug1> dxgi_debug;
@@ -421,6 +420,16 @@ namespace adria
 					dxgi_debug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_DETAIL | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
 				}
 			});
+
+		hr = device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&dred_fence));
+		device_removed_event = ::CreateEvent(nullptr, false, false, nullptr);
+		hr = dred_fence->SetEventOnCompletion(UINT64_MAX, device_removed_event);
+		if (FAILED(hr) || device_removed_event == nullptr)
+		{
+			ADRIA_LOG(WARNING, "Failed to set device removed completion event!");
+			return;
+		}
+		RegisterWaitForSingleObject(&wait_handle, device_removed_event, DeviceRemovedHandler, device.Get(), INFINITE, 0);
 	}
 
 	GraphicsDevice::~GraphicsDevice()
@@ -517,6 +526,12 @@ namespace adria
 			HRESULT hr = swap_chain->ResizeBuffers(desc.BufferCount, width, height, desc.BufferDesc.Format, desc.Flags);
 			BREAK_IF_FAILED(hr);
 
+			//offline_descriptor_allocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV].heap_for_size_dependent_resources->AllocateDescriptor();
+			for (auto& heap_pair : offline_descriptor_allocators)
+			{
+				heap_pair.heap_for_size_dependent_resources->Reset();
+			}
+
 			backbuffer_index = swap_chain->GetCurrentBackBufferIndex();
 			for (uint32_t i = 0; i < BACKBUFFER_COUNT; ++i)
 			{
@@ -524,7 +539,7 @@ namespace adria
 
 				hr = swap_chain->GetBuffer(i, __uuidof(ID3D12Resource), (void**)frames[fr].back_buffer.GetAddressOf());
 				BREAK_IF_FAILED(hr);
-				device->CreateRenderTargetView(frames[fr].back_buffer.Get(), nullptr, frames[fr].back_buffer_rtv);
+				device->CreateRenderTargetView(frames[fr].back_buffer.Get(), nullptr, offline_descriptor_allocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV].heap_for_size_dependent_resources->AllocateDescriptor());
 			}
 		}
 	}
@@ -698,12 +713,19 @@ namespace adria
 		release_queue.emplace(new ReleasableResource(resource), release_queue_fence_value);
 	}
 
+	DescriptorHandle GraphicsDevice::AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type, bool heap_for_size_dependent /*= false*/)
+	{
+		DescriptorHeap* heap = heap_for_size_dependent ? offline_descriptor_allocators[type].heap_for_size_dependent_resources.get() :
+			offline_descriptor_allocators[type].heap_for_size_independent_resources.get();
+		return heap->AllocateDescriptor();
+	}
+
 	RingDescriptorAllocator* GraphicsDevice::GetDescriptorAllocator() const
 	{
 		return descriptor_allocator.get();
 	}
 
-	void GraphicsDevice::ReserveDescriptors(size_t reserve)
+	void GraphicsDevice::ReserveOnlineDescriptors(size_t reserve)
 	{
 		D3D12_DESCRIPTOR_HEAP_DESC shader_visible_desc{};
 		shader_visible_desc.NumDescriptors = 10000;

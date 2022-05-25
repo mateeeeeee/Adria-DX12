@@ -5,7 +5,7 @@
 namespace adria
 {
 	DescriptorHeap::DescriptorHeap(ID3D12DescriptorHeap* pExistingHeap)
-		: heap{ pExistingHeap }
+		: heap{ pExistingHeap }, current_alloc_index(0)
 	{
 		hCPU = pExistingHeap->GetCPUDescriptorHandleForHeapStart();
 		hGPU = pExistingHeap->GetGPUDescriptorHandleForHeapStart();
@@ -23,7 +23,7 @@ namespace adria
 		: desc{},
 		hCPU{},
 		hGPU{},
-		descriptor_handle_size(0)
+		descriptor_handle_size(0), current_alloc_index(0)
 	{
 		CreateHelper(device, _desc);
 	}
@@ -36,7 +36,7 @@ namespace adria
 		: desc{},
 		hCPU{},
 		hGPU{},
-		descriptor_handle_size(0)
+		descriptor_handle_size(0), current_alloc_index(0)
 	{
 		ADRIA_ASSERT(count <= UINT32_MAX && "Too many descriptors");
 		D3D12_DESCRIPTOR_HEAP_DESC desc = {};

@@ -12,6 +12,8 @@ namespace adria
 		EResourceMiscFlag misc_flags = EResourceMiscFlag::None;
 		uint32 stride = 0; //structured buffers, (vertex buffers, index buffers, needed for count calculation not for srv as structured buffers)
 		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN; //typed buffers, index buffers
+
+		std::strong_ordering operator<=>(BufferDesc const& other) const = default;
 	};
 
 	static BufferDesc VertexBufferDesc(uint64 vertex_count, uint32 stride, bool ray_tracing = true)
@@ -68,6 +70,8 @@ namespace adria
 		uint64 offset = 0;
 		uint64 size = uint64(-1);
 		std::optional<DXGI_FORMAT> new_format = std::nullopt;
+
+		std::strong_ordering operator<=>(BufferViewDesc const& other) const = default;
 	};
 
 	class Buffer
