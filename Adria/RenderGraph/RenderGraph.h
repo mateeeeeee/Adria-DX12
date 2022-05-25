@@ -278,7 +278,7 @@ namespace adria
 			RGResourceView CreateShaderResourceView(RGResourceHandle handle, D3D12_SHADER_RESOURCE_VIEW_DESC const& desc) 
 			{
 				RGTexture* resource = parent_graph.GetResource(handle);
-				ID3D12Resource* d3d12_resource = resource->resource;
+				ID3D12Resource* d3d12_resource = nullptr; // resource->resource;
 				if (auto it = srv_cache.find(handle); it != srv_cache.end())
 				{
 					auto& srv_desc_map = it->second;
@@ -306,7 +306,7 @@ namespace adria
 			RGResourceView CreateRenderTargetView(RGResourceHandle handle, D3D12_RENDER_TARGET_VIEW_DESC const& desc) 
 			{
 				RGTexture* resource = parent_graph.GetResource(handle);
-				ID3D12Resource* d3d12_resource = resource->resource;
+				ID3D12Resource* d3d12_resource = nullptr; // resource->resource;resource->resource;
 				if (auto it = rtv_cache.find(handle); it != rtv_cache.end())
 				{
 					auto& rtv_desc_map = it->second;
@@ -334,7 +334,7 @@ namespace adria
 			RGResourceView CreateUnorderedAccessView(RGResourceHandle handle, D3D12_UNORDERED_ACCESS_VIEW_DESC const& desc) 
 			{
 				RGTexture* resource = parent_graph.GetResource(handle);
-				ID3D12Resource* d3d12_resource = resource->resource;
+				ID3D12Resource* d3d12_resource = nullptr; // resource->resource;
 				if (auto it = uav_cache.find(handle); it != uav_cache.end())
 				{
 					auto& uav_desc_map = it->second;
@@ -363,7 +363,7 @@ namespace adria
 			RGResourceView CreateDepthStencilView(RGResourceHandle handle, D3D12_DEPTH_STENCIL_VIEW_DESC const& desc) 
 			{
 				RGTexture* resource = parent_graph.GetResource(handle);
-				ID3D12Resource* d3d12_resource = resource->resource;
+				ID3D12Resource* d3d12_resource = nullptr; // resource->resource;
 				if (auto it = dsv_cache.find(handle); it != dsv_cache.end())
 				{
 					auto& dsv_desc_map = it->second;
