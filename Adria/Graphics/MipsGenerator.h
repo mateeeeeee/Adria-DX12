@@ -16,7 +16,7 @@ namespace adria
 
 	private:
 		ID3D12Device* device;
-		std::unique_ptr<LinearDescriptorAllocator> descriptor_allocator;
+		std::unique_ptr<LinearOnlineDescriptorAllocator> descriptor_allocator;
 		std::vector<ID3D12Resource*> resources;
 	private:
 

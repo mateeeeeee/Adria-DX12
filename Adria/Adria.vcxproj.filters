@@ -116,13 +116,13 @@
     <ClCompile Include="Graphics\DescriptorHeap.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\LinearDescriptorAllocator.cpp">
+    <ClCompile Include="Graphics\LinearOnlineDescriptorAllocator.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\ShaderUtility.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\RingDescriptorAllocator.cpp">
+    <ClCompile Include="Graphics\RingOnlineDescriptorAllocator.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\TextureManager.cpp">
@@ -319,7 +319,7 @@
     <ClInclude Include="Graphics\WICTextureLoader12.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\LinearDescriptorAllocator.h">
+    <ClInclude Include="Graphics\LinearOnlineDescriptorAllocator.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\DescriptorHeap.h">
@@ -334,7 +334,7 @@
     <ClInclude Include="Graphics\RingUploadBuffer.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\RingDescriptorAllocator.h">
+    <ClInclude Include="Graphics\RingOnlineDescriptorAllocator.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\RingAllocator.h">
@@ -518,6 +518,9 @@
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\ResourceCommon.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\OfflineDescriptorAllocator.h">
       <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>

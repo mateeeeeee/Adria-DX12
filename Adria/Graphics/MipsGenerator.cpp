@@ -1,5 +1,5 @@
 #include "MipsGenerator.h"
-#include "LinearDescriptorAllocator.h"
+#include "LinearOnlineDescriptorAllocator.h"
 #include "DWParam.h"
 #include "ShaderUtility.h"
 #include "d3dx12.h"
@@ -96,7 +96,7 @@ namespace adria
 		shader_visible_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		shader_visible_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
-		descriptor_allocator = std::make_unique<LinearDescriptorAllocator>(device, shader_visible_desc);
+		descriptor_allocator = std::make_unique<LinearOnlineDescriptorAllocator>(device, shader_visible_desc);
 	}
 
 }

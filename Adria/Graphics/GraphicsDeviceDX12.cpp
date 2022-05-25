@@ -321,10 +321,10 @@ namespace adria
 			shader_visible_desc.NumDescriptors = 10000;
 			shader_visible_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 			shader_visible_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-			descriptor_allocator = std::make_unique<RingDescriptorAllocator>(device.Get(), shader_visible_desc);
+			descriptor_allocator = std::make_unique<RingOnlineDescriptorAllocator>(device.Get(), shader_visible_desc);
 			for (size_t i = 0; i < offline_descriptor_allocators.size(); ++i)
 			{
-				offline_descriptor_allocators[i] = std::make_unique<DescriptorHeap>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE(i), D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 250);
+				offline_descriptor_allocators[i] = std::make_unique<OfflineDescriptorAllocator>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE(i), D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 250);
 			}
 
 			for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
@@ -517,18 +517,13 @@ namespace adria
 			HRESULT hr = swap_chain->ResizeBuffers(desc.BufferCount, width, height, desc.BufferDesc.Format, desc.Flags);
 			BREAK_IF_FAILED(hr);
 
-			for (auto& heap : offline_descriptor_allocators)
-			{
-				heap->Reset();
-			}
-
 			backbuffer_index = swap_chain->GetCurrentBackBufferIndex();
 			for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
 			{
 				UINT fr = (backbuffer_index + i) % BACKBUFFER_COUNT;
 				hr = swap_chain->GetBuffer(i, __uuidof(ID3D12Resource), (void**)frames[fr].back_buffer.GetAddressOf());
 				BREAK_IF_FAILED(hr);
-				device->CreateRenderTargetView(frames[fr].back_buffer.Get(), nullptr, offline_descriptor_allocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV]->AllocateDescriptor());
+				device->CreateRenderTargetView(frames[fr].back_buffer.Get(), nullptr, frames[fr].back_buffer_rtv);
 			}
 		}
 	}
@@ -702,12 +697,17 @@ namespace adria
 		release_queue.emplace(new ReleasableResource(resource), release_queue_fence_value);
 	}
 
-	DescriptorHandle GraphicsDevice::AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type, bool heap_for_size_dependent /*= false*/)
+	D3D12_CPU_DESCRIPTOR_HANDLE GraphicsDevice::AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type)
 	{
 		return offline_descriptor_allocators[type]->AllocateDescriptor();
 	}
 
-	RingDescriptorAllocator* GraphicsDevice::GetDescriptorAllocator() const
+	void GraphicsDevice::FreeOfflineDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE handle, D3D12_DESCRIPTOR_HEAP_TYPE type)
+	{
+		offline_descriptor_allocators[type]->FreeDescriptor(handle);
+	}
+
+	RingOnlineDescriptorAllocator* GraphicsDevice::GetOnlineDescriptorAllocator() const
 	{
 		return descriptor_allocator.get();
 	}
@@ -718,7 +718,7 @@ namespace adria
 		shader_visible_desc.NumDescriptors = 10000;
 		shader_visible_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		shader_visible_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-		descriptor_allocator = std::make_unique<RingDescriptorAllocator>(device.Get(), shader_visible_desc, reserve);
+		descriptor_allocator = std::make_unique<RingOnlineDescriptorAllocator>(device.Get(), shader_visible_desc, reserve);
 	}
 
 	LinearDynamicAllocator* GraphicsDevice::GetDynamicAllocator() const

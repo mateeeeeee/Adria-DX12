@@ -26,7 +26,7 @@ namespace adria
 		desc.NumDescriptors = 30;
 		desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		
-		imgui_allocator = std::make_unique<RingDescriptorAllocator>(gfx->GetDevice(), desc, 1); //reserve first for fonts
+		imgui_allocator = std::make_unique<RingOnlineDescriptorAllocator>(gfx->GetDevice(), desc, 1); //reserve first for fonts
 
 		ImGui_ImplWin32_Init(Window::Handle());
 		
@@ -106,7 +106,7 @@ namespace adria
 	{
 		return visible;
 	}
-	RingDescriptorAllocator* GUI::DescriptorAllocator() const
+	RingOnlineDescriptorAllocator* GUI::DescriptorAllocator() const
 	{
 		return imgui_allocator.get();
 	}

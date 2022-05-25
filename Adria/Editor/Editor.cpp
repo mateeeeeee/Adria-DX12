@@ -1080,7 +1080,7 @@ namespace adria
                 if (material && ImGui::CollapsingHeader("Material"))
                 {
                     ID3D12Device5* device = engine->gfx->GetDevice();
-                    RingDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
+                    RingOnlineDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
 
                     ImGui::Text("Albedo Texture");
                     D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(material->albedo_texture);
@@ -1171,7 +1171,7 @@ namespace adria
 				if (emitter && ImGui::CollapsingHeader("Emitter"))
 				{
 					ID3D12Device5* device = engine->gfx->GetDevice();
-					RingDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
+					RingOnlineDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
 
 					ImGui::Text("Particle Texture");
 					D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(emitter->particle_texture);
@@ -1236,7 +1236,7 @@ namespace adria
 				if (decal && ImGui::CollapsingHeader("Decal"))
 				{
 					ID3D12Device5* device = engine->gfx->GetDevice();
-					RingDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
+					RingOnlineDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
 
 					ImGui::Text("Decal Albedo Texture");
 					D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(decal->albedo_decal_texture);

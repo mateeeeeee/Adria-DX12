@@ -84,7 +84,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Ray Traced Shadows Pass");
 
 		auto device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 		ResourceBarrierBatch rts_barrier{};
 		rts_barrier.AddTransition(rt_shadows_output->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
@@ -130,7 +130,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Ray Traced Ambient Occlusion Pass");
 
 		auto device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 		ResourceBarrierBatch rtao_barrier{};
 		rtao_barrier.AddTransition(rtao_output->GetNative(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
@@ -178,7 +178,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Ray Traced Reflections Pass");
 
 		auto device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 		ResourceBarrierBatch rtr_barrier{};
 		rtr_barrier.AddTransition(rtr_output->GetNative(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
@@ -205,7 +205,8 @@ namespace adria
 
 		descriptor_index = descriptor_allocator->AllocateRange(3);
 		dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-		device->CopyDescriptorsSimple(3, dst_descriptor, dxr_heap->GetFirstHandle(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		
+		device->CopyDescriptorsSimple(3, dst_descriptor, first_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		cmd_list->SetComputeRootDescriptorTable(6, dst_descriptor);
 
 		cmd_list->SetPipelineState1(rtr_state_object.Get());
@@ -227,9 +228,6 @@ namespace adria
 	void RayTracer::CreateResources()
 	{
 		ID3D12Device5* device = gfx->GetDevice();
-
-		dxr_heap = std::make_unique<DescriptorHeap>(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 50);
-
 		if (RayTracing::rt_vertices.empty() || RayTracing::rt_indices.empty())
 		{
 			ADRIA_LOG(WARNING, "Ray tracing buffers are empty. This is expected if the meshes are loaded with ray-tracing support off");
@@ -265,12 +263,13 @@ namespace adria
 		srv_desc.Buffer.StructureByteStride = sizeof(CompleteVertex);
 		srv_desc.Buffer.NumElements = vertex_count;
 		srv_desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-		device->CreateShaderResourceView(global_vb->GetNative(), &srv_desc, dxr_heap->GetHandle(current_handle_index++));
+		first_handle = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		device->CreateShaderResourceView(global_vb->GetNative(), &srv_desc, first_handle);
 
 		srv_desc.Buffer.StructureByteStride = sizeof(uint32);
 		srv_desc.Buffer.NumElements = index_count;
-		device->CreateShaderResourceView(global_ib->GetNative(), &srv_desc, dxr_heap->GetHandle(current_handle_index++));
-		geo_info_sb->CreateSRV(dxr_heap->GetHandle(current_handle_index++));
+		device->CreateShaderResourceView(global_ib->GetNative(), &srv_desc, gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+		geo_info_sb->CreateSRV();
 
 		TextureDesc uav_desc{};
 		uav_desc.width = width;
@@ -280,18 +279,18 @@ namespace adria
 		uav_desc.initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
 		rt_shadows_output = std::make_unique<Texture>(gfx, uav_desc);
-		rt_shadows_output->CreateSRV(dxr_heap->GetHandle(current_handle_index++));
-		rt_shadows_output->CreateUAV(dxr_heap->GetHandle(current_handle_index++));
+		rt_shadows_output->CreateSRV();
+		rt_shadows_output->CreateUAV();
 
 		uav_desc.initial_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 		rtao_output = std::make_unique<Texture>(gfx, uav_desc);
-		rtao_output->CreateSRV(dxr_heap->GetHandle(current_handle_index++));
-		rtao_output->CreateUAV(dxr_heap->GetHandle(current_handle_index++));
+		rtao_output->CreateSRV();
+		rtao_output->CreateUAV();
 
 		uav_desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		rtr_output = std::make_unique<Texture>(gfx, uav_desc);
-		rtr_output->CreateSRV(dxr_heap->GetHandle(current_handle_index++));
-		rtr_output->CreateUAV(dxr_heap->GetHandle(current_handle_index++));
+		rtr_output->CreateSRV();
+		rtr_output->CreateUAV();
 	}
 
 	void RayTracer::CreateRootSignatures()

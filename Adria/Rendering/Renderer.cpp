@@ -620,7 +620,7 @@ namespace adria
 		gfx->ReserveOnlineDescriptors(tex2darray_size);
 
 		ID3D12Device* device = gfx->GetDevice();
-		RingDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
+		RingOnlineDescriptorAllocator* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 		device->CopyDescriptorsSimple(tex2darray_size, descriptor_allocator->GetFirstHandle(),
 			texture_manager.texture_srv_heap->GetFirstHandle(),
@@ -722,15 +722,7 @@ namespace adria
 	{
 		ID3D12Device* device = gfx->GetDevice();
 
-		rtv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 25));
-		srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 50));
-		dsv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 25));
-		uav_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 25));
-		constant_srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 50));
-		constant_dsv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 25));
-		constant_uav_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 25));
 		null_srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, NULL_HEAP_SIZE));
-
 		D3D12_SHADER_RESOURCE_VIEW_DESC null_srv_desc{};
 		null_srv_desc.Texture2D.MostDetailedMip = 0;
 		null_srv_desc.Texture2D.MipLevels = -1;
@@ -750,15 +742,9 @@ namespace adria
 		null_uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
 		null_uav_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 		device->CreateUnorderedAccessView(nullptr,nullptr, &null_uav_desc, null_srv_heap->GetHandle(RWTEXTURE2D_SLOT));
-
 	}
 	void Renderer::CreateResolutionDependentResources(uint32 width, uint32 height)
 	{
-		srv_heap_index = 0;
-		rtv_heap_index = 0;
-		dsv_heap_index = 0;
-		uav_heap_index = 0;
-
 		D3D12_CLEAR_VALUE rtv_clear_value{};
 		rtv_clear_value.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		rtv_clear_value.Color[0] = 0.0f;
@@ -776,16 +762,16 @@ namespace adria
 			render_target_desc.initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
 			hdr_render_target = std::make_unique<Texture>(gfx, render_target_desc);
-			hdr_render_target->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			hdr_render_target->CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
+			hdr_render_target->CreateSRV();
+			hdr_render_target->CreateRTV();
 
 			prev_hdr_render_target = std::make_unique<Texture>(gfx, render_target_desc);
-			prev_hdr_render_target->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			prev_hdr_render_target->CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
+			prev_hdr_render_target->CreateSRV();
+			prev_hdr_render_target->CreateRTV();
 
 			sun_target = std::make_unique<Texture>(gfx, render_target_desc);
-			sun_target->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			sun_target->CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
+			sun_target->CreateSRV();
+			sun_target->CreateRTV();
 		}
 		
 		//depth stencil target
@@ -806,10 +792,10 @@ namespace adria
 
 			TextureViewDesc srv_desc{};
 			srv_desc.new_format = DXGI_FORMAT_R32_FLOAT;
-			depth_target->CreateSRV(srv_heap->GetHandle(srv_heap_index++), &srv_desc);
+			depth_target->CreateSRV();
 			TextureViewDesc dsv_desc{};
 			dsv_desc.new_format = DXGI_FORMAT_D32_FLOAT;
-			depth_target->CreateDSV(dsv_heap->GetHandle(dsv_heap_index++), &dsv_desc);
+			depth_target->CreateDSV();
 		}
 
 		//low dynamic range render target
@@ -824,8 +810,8 @@ namespace adria
 			ldr_desc.clear = rtv_clear_value;
 
 			ldr_render_target = std::make_unique<Texture>(gfx, ldr_desc);
-			ldr_render_target->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			ldr_render_target->CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
+			ldr_render_target->CreateSRV();
+			ldr_render_target->CreateRTV();
 		}
 
 		//gbuffer
@@ -844,11 +830,10 @@ namespace adria
 			for (uint32 i = 0; i < GBUFFER_SIZE; ++i)
 			{
 				gbuffer.emplace_back(std::make_unique<Texture>(gfx, gbuffer_desc));
-				gbuffer.back()->CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
-				gbuffer.back()->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
+				gbuffer.back()->CreateRTV();
+				gbuffer.back()->CreateSRV();
 			}
 		}
-
 		//ao
 		{
 			rtv_clear_value.Format = DXGI_FORMAT_R8_UNORM;
@@ -861,8 +846,8 @@ namespace adria
 			ssao_target_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
 
 			ao_texture = std::make_unique<Texture>(gfx, ssao_target_desc);
-			ao_texture->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			ao_texture->CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
+			ao_texture->CreateSRV();
+			ao_texture->CreateRTV();
 		}
 
 		//blur
@@ -878,11 +863,11 @@ namespace adria
 			blur_desc.initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 			blur_final_texture = std::make_unique<Texture>(gfx, blur_desc);
 
-			blur_intermediate_texture->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			blur_final_texture->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
+			blur_intermediate_texture->CreateSRV();
+			blur_final_texture->CreateSRV();
 
-			blur_intermediate_texture->CreateUAV(uav_heap->GetHandle(uav_heap_index++));
-			blur_final_texture->CreateUAV(uav_heap->GetHandle(uav_heap_index++));
+			blur_intermediate_texture->CreateUAV();
+			blur_final_texture->CreateUAV();
 		}
 
 		//bloom
@@ -896,8 +881,8 @@ namespace adria
 			bloom_extract_desc.initial_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE; //t0 in CS
 
 			bloom_extract_texture = std::make_unique<Texture>(gfx, bloom_extract_desc);
-			bloom_extract_texture->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			bloom_extract_texture->CreateUAV(uav_heap->GetHandle(uav_heap_index++));
+			bloom_extract_texture->CreateSRV();
+			bloom_extract_texture->CreateUAV();
 		}
 
 		//postprocess
@@ -912,15 +897,15 @@ namespace adria
 			render_target_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
 			postprocess_textures[0] = std::make_unique<Texture>(gfx, render_target_desc);
-			postprocess_textures[0]->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			postprocess_textures[0]->CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
-			postprocess_textures[0]->CreateUAV(uav_heap->GetHandle(uav_heap_index++));
+			postprocess_textures[0]->CreateSRV();
+			postprocess_textures[0]->CreateRTV();
+			postprocess_textures[0]->CreateUAV();
 
 			render_target_desc.initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 			postprocess_textures[1] = std::make_unique<Texture>(gfx, render_target_desc);
-			postprocess_textures[1]->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			postprocess_textures[1]->CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
-			postprocess_textures[1]->CreateUAV(uav_heap->GetHandle(uav_heap_index++));
+			postprocess_textures[1]->CreateSRV();
+			postprocess_textures[1]->CreateRTV();
+			postprocess_textures[1]->CreateUAV();
 		}
 
 		//tiled deferred
@@ -934,8 +919,8 @@ namespace adria
 			uav_target_desc.initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
 			uav_target = std::make_unique<Texture>(gfx, uav_target_desc);
-			uav_target->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			uav_target->CreateUAV(uav_heap->GetHandle(uav_heap_index++));
+			uav_target->CreateSRV();
+			uav_target->CreateUAV();
 
 			TextureDesc tiled_debug_desc{};
 			tiled_debug_desc.width = width;
@@ -945,8 +930,8 @@ namespace adria
 			tiled_debug_desc.initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
 			debug_tiled_texture = std::make_unique<Texture>(gfx, tiled_debug_desc);
-			debug_tiled_texture->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			debug_tiled_texture->CreateUAV(uav_heap->GetHandle(uav_heap_index++));
+			debug_tiled_texture->CreateSRV();
+			debug_tiled_texture->CreateUAV();
 		}
 
 		//offscreen backbuffer
@@ -961,15 +946,15 @@ namespace adria
 			offscreen_ldr_target_desc.initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 			offscreen_ldr_target = std::make_unique<Texture>(gfx, offscreen_ldr_target_desc);
 
-			offscreen_ldr_target->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			offscreen_ldr_target->CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
+			offscreen_ldr_target->CreateSRV();
+			offscreen_ldr_target->CreateRTV();
 		}
 
 		//bokeh
 		{
 			bokeh = std::make_unique<Buffer>(gfx, StructuredBufferDesc<Bokeh>(width * height));
-			bokeh->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			bokeh->CreateUAV(uav_heap->GetHandle(uav_heap_index++), bokeh_counter.GetNative());
+			bokeh->CreateSRV();
+			bokeh->CreateUAV(bokeh_counter.GetNative());
 		}
 		
 		//velocity buffer
@@ -984,17 +969,13 @@ namespace adria
 			velocity_buffer_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::RenderTarget;
 
 			velocity_buffer = std::make_unique<Texture>(gfx, velocity_buffer_desc);
-			velocity_buffer->CreateSRV(srv_heap->GetHandle(srv_heap_index++));
-			velocity_buffer->CreateRTV(rtv_heap->GetHandle(rtv_heap_index++));
+			velocity_buffer->CreateSRV();
+			velocity_buffer->CreateRTV();
 		}
 
 	}
 	void Renderer::CreateOtherResources()
 	{
-		uint32 srv_heap_index = 0;
-		uint32 dsv_heap_index = 0;
-		uint32 uav_heap_index = 0;
-
 		//shadow maps
 		{
 			//shadow map
@@ -1013,11 +994,11 @@ namespace adria
 
 				TextureViewDesc srv_desc{};
 				srv_desc.new_format = DXGI_FORMAT_R32_FLOAT;
-				shadow_depth_map->CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++), &srv_desc);
+				shadow_depth_map->CreateSRV(&srv_desc);
 
 				TextureViewDesc dsv_desc{};
 				dsv_desc.new_format = DXGI_FORMAT_D32_FLOAT;
-				shadow_depth_map->CreateDSV(constant_dsv_heap->GetHandle(dsv_heap_index++), &dsv_desc);
+				shadow_depth_map->CreateDSV(&dsv_desc);
 			}
 
 			//shadow cubemap
@@ -1038,7 +1019,7 @@ namespace adria
 				cube_srv_desc.new_format = DXGI_FORMAT_R32_FLOAT;
 				cube_srv_desc.first_mip = 0;
 				cube_srv_desc.mip_count = 1;
-				shadow_depth_cubemap->CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++), &cube_srv_desc);
+				shadow_depth_cubemap->CreateSRV(&cube_srv_desc);
 
 				TextureViewDesc cube_dsv_desc{};
 				cube_dsv_desc.new_format = DXGI_FORMAT_D32_FLOAT;
@@ -1047,22 +1028,13 @@ namespace adria
 				for (size_t i = 0; i < 6; ++i)
 				{
 					cube_dsv_desc.first_slice = i;
-					size_t j = shadow_depth_cubemap->CreateDSV(constant_dsv_heap->GetHandle(dsv_heap_index++), &cube_dsv_desc);
+					size_t j = shadow_depth_cubemap->CreateDSV(&cube_dsv_desc);
 					ADRIA_ASSERT(j == i);
 				}
 			}
 
 			//shadow cascades
 			{
-				//texture2darray_desc_t depth_cascade_maps_desc{};
-				//depth_cascade_maps_desc.width = SHADOW_CASCADE_MAP_SIZE;
-				//depth_cascade_maps_desc.height = SHADOW_CASCADE_MAP_SIZE;
-				//depth_cascade_maps_desc.array_size = CASCADE_COUNT;
-				//depth_cascade_maps_desc.flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-				//depth_cascade_maps_desc.start_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-				//depth_cascade_maps_desc.clear_value.Format = DXGI_FORMAT_D32_FLOAT;
-				//depth_cascade_maps_desc.clear_value.DepthStencil = { 1.0f, 0 };
-
 				TextureDesc depth_cascade_maps_desc{};
 				depth_cascade_maps_desc.width = SHADOW_CASCADE_MAP_SIZE;
 				depth_cascade_maps_desc.height = SHADOW_CASCADE_MAP_SIZE;
@@ -1078,7 +1050,7 @@ namespace adria
 				TextureViewDesc srv_desc{};
 				srv_desc.new_format = DXGI_FORMAT_R32_FLOAT;
 				srv_desc.mip_count = 1;
-				shadow_depth_cascades->CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++), &srv_desc);
+				shadow_depth_cascades->CreateSRV(&srv_desc);
 
 				TextureViewDesc dsv_desc{};
 				dsv_desc.new_format = DXGI_FORMAT_D32_FLOAT;
@@ -1087,7 +1059,7 @@ namespace adria
 				for (size_t i = 0; i < CASCADE_COUNT; ++i)
 				{
 					dsv_desc.first_slice = D3D12CalcSubresource(0, i, 0, 1, 1);
-					shadow_depth_cascades->CreateDSV(constant_dsv_heap->GetHandle(dsv_heap_index++), &dsv_desc);
+					shadow_depth_cascades->CreateDSV(&dsv_desc);
 				}
 			}
 		}
@@ -1104,8 +1076,8 @@ namespace adria
 			ssao_random_texture = std::make_unique<Texture>(gfx, noise_desc);
 			hbao_random_texture = std::make_unique<Texture>(gfx, noise_desc);
 
-			ssao_random_texture->CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
-			hbao_random_texture->CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
+			ssao_random_texture->CreateSRV();
+			hbao_random_texture->CreateSRV();
 
 			RealRandomGenerator rand_float{ 0.0f, 1.0f };
 			for (uint32 i = 0; i < SSAO_KERNEL_SIZE; i++)
@@ -1129,51 +1101,50 @@ namespace adria
 			uav_desc.initial_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 
 			ocean_initial_spectrum = std::make_unique<Texture>(gfx, uav_desc);
-			ocean_initial_spectrum->CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
-			ocean_initial_spectrum->CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
+			ocean_initial_spectrum->CreateSRV();
+			ocean_initial_spectrum->CreateUAV();
 
 			uav_desc.initial_state = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 			ping_pong_phase_textures[pong_phase] = std::make_unique<Texture>(gfx, uav_desc);
-			ping_pong_phase_textures[pong_phase]->CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
-			ping_pong_phase_textures[pong_phase]->CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
+			ping_pong_phase_textures[pong_phase]->CreateSRV();
+			ping_pong_phase_textures[pong_phase]->CreateUAV();
 			uav_desc.initial_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 			ping_pong_phase_textures[!pong_phase] = std::make_unique<Texture>(gfx, uav_desc);
-			ping_pong_phase_textures[!pong_phase]->CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
-			ping_pong_phase_textures[!pong_phase]->CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
+			ping_pong_phase_textures[!pong_phase]->CreateSRV();
+			ping_pong_phase_textures[!pong_phase]->CreateUAV();
 
 			uav_desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 
 			uav_desc.initial_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 			ping_pong_spectrum_textures[pong_spectrum] = std::make_unique<Texture>(gfx, uav_desc);
-			ping_pong_spectrum_textures[pong_spectrum]->CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
-			ping_pong_spectrum_textures[pong_spectrum]->CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
+			ping_pong_spectrum_textures[pong_spectrum]->CreateSRV();
+			ping_pong_spectrum_textures[pong_spectrum]->CreateUAV();
 
 			uav_desc.initial_state = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 			ping_pong_spectrum_textures[!pong_spectrum] = std::make_unique<Texture>(gfx, uav_desc);
-			ping_pong_spectrum_textures[!pong_spectrum]->CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
-			ping_pong_spectrum_textures[!pong_spectrum]->CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
+			ping_pong_spectrum_textures[!pong_spectrum]->CreateSRV();
+			ping_pong_spectrum_textures[!pong_spectrum]->CreateUAV();
 
 			uav_desc.initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 			ocean_normal_map = std::make_unique<Texture>(gfx, uav_desc);
-			ocean_normal_map->CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
-			ocean_normal_map->CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
-
+			ocean_normal_map->CreateSRV();
+			ocean_normal_map->CreateUAV();
 		}
 
 		//clustered deferred
 		{
-			light_counter.CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
-			light_list.CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
-			clusters.CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
-			light_grid.CreateSRV(constant_srv_heap->GetHandle(srv_heap_index++));
+			light_counter.CreateSRV();
+			light_list.CreateSRV();
+			clusters.CreateSRV();
+			light_grid.CreateSRV();
 
-			light_counter.CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
-			light_list.CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
-			clusters.CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
-			light_grid.CreateUAV(constant_uav_heap->GetHandle(uav_heap_index++));
+			light_counter.CreateUAV();
+			light_list.CreateUAV();
+			clusters.CreateUAV();
+			light_grid.CreateUAV();
 		}
 
-		picker.CreateView(constant_uav_heap->GetHandle(uav_heap_index++));
+		picker.CreateView();
 	}
 	void Renderer::CreateRenderPasses(uint32 width, uint32 height)
 	{
@@ -1466,7 +1437,7 @@ namespace adria
 	{
 		ID3D12Device* device = gfx->GetDevice();
 		auto cmd_list = gfx->GetDefaultCommandList();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 		
 		auto skyboxes = reg.view<Skybox>();
 		TEXTURE_HANDLE unfiltered_env = INVALID_TEXTURE_HANDLE;
@@ -2191,7 +2162,7 @@ namespace adria
 		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(gpu_profiler, cmd_list, EProfilerBlock::GBufferPass, profiler_settings.profile_gbuffer_pass);
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 		auto upload_buffer = gfx->GetDynamicAllocator();
 		auto gbuffer_view = reg.view<Mesh, Transform, Material, Deferred, Visibility>();
 
@@ -2256,7 +2227,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Decal Pass");
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 		auto upload_buffer = gfx->GetDynamicAllocator();
 
 		struct DecalCBuffer
@@ -2330,7 +2301,7 @@ namespace adria
 		ssao_barrier.Submit(cmd_list);
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 		ssao_render_pass.Begin(cmd_list);
 		{
@@ -2371,7 +2342,7 @@ namespace adria
 		hbao_barrier.Submit(cmd_list);
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 		hbao_render_pass.Begin(cmd_list);
 		{
@@ -2414,7 +2385,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Ambient Pass");
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 		if (!ibl_textures_generated) settings.ibl = false;
 
@@ -2469,7 +2440,7 @@ namespace adria
 
 		ID3D12Device* device = gfx->GetDevice();
 		auto upload_buffer = gfx->GetDynamicAllocator();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 		auto lights = reg.view<Light>();
 		for (entity light : lights)
@@ -2624,7 +2595,7 @@ namespace adria
 
 		ID3D12Device* device = gfx->GetDevice();
 		auto upload_buffer = gfx->GetDynamicAllocator();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 		auto light_view = reg.view<Light>();
 		std::vector<StructuredLight> structured_lights{};
@@ -2737,7 +2708,7 @@ namespace adria
 
 		ID3D12Device* device = gfx->GetDevice();
 		auto upload_buffer = gfx->GetDynamicAllocator();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 		auto light_view = reg.view<Light>();
 		std::vector<StructuredLight> structured_lights{};
@@ -3232,7 +3203,7 @@ namespace adria
 	void Renderer::PassShadowMapCommon(ID3D12GraphicsCommandList4* cmd_list)
 	{
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 		auto upload_buffer = gfx->GetDynamicAllocator();
 
 		auto shadow_view = reg.view<Mesh, Transform, Visibility>();
@@ -3334,7 +3305,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Volumetric Lighting Pass");
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 		if (light.type == ELightType::Directional && !light.casts_shadows)
 		{
@@ -3404,7 +3375,7 @@ namespace adria
 		}
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 		auto upload_buffer = gfx->GetDynamicAllocator();
 
 		if (entities_group.empty()) return;
@@ -3453,7 +3424,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Sky Pass");
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 		auto upload_buffer = gfx->GetDynamicAllocator();
 
 		ObjectCBuffer object_cbuf_data{};
@@ -3520,7 +3491,7 @@ namespace adria
 	{
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Ocean Update Pass");
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 		auto upload_buffer = gfx->GetDynamicAllocator();
 
 		if (reg.size<Ocean>() == 0) return;
@@ -3723,7 +3694,7 @@ namespace adria
 		if (reg.size<Ocean>() == 0) return;
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 		auto upload_buffer = gfx->GetDynamicAllocator();
 		
 		auto skyboxes = reg.view<Skybox>();
@@ -3823,7 +3794,7 @@ namespace adria
 		}
 		
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 		auto upload_buffer = gfx->GetDynamicAllocator();
 
 		lens_flare_textures.push_back(depth_target->SRV());
@@ -3867,7 +3838,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Volumetric Clouds Pass");
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 		
 		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Clouds));
 		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Clouds));
@@ -3900,7 +3871,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "SSR Pass");
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::SSR));
 		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::SSR));
 
@@ -3930,7 +3901,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Depth of Field Pass");
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::DOF));
 		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::DOF));
 
@@ -3959,7 +3930,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Bokeh Generation Pass");
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 		D3D12_RESOURCE_BARRIER prereset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(bokeh_counter.GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS,  D3D12_RESOURCE_STATE_COPY_DEST);
 		cmd_list->ResourceBarrier(1, &prereset_barrier);
@@ -4022,7 +3993,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Bokeh Draw Pass");
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 		D3D12_CPU_DESCRIPTOR_HANDLE bokeh_descriptor{};
 		switch (settings.bokeh_type)
@@ -4070,7 +4041,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Bloom Pass");
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 		D3D12_RESOURCE_BARRIER extract_barriers[] = {
 			CD3DX12_RESOURCE_BARRIER::Transition(bloom_extract_texture->GetNative(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
@@ -4144,7 +4115,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Motion Blur Pass");
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::MotionBlur));
 		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::MotionBlur));
@@ -4172,7 +4143,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Fog Pass");
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Fog));
 		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Fog));
@@ -4203,7 +4174,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "God Rays Pass");
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 		auto upload_buffer = gfx->GetDynamicAllocator();
 
 		if (light.type != ELightType::Directional)
@@ -4262,7 +4233,7 @@ namespace adria
 		if (!settings.motion_blur && !(settings.anti_aliasing & AntiAliasing_TAA)) return;
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 		ResourceBarrierBatch velocity_barrier{};
 		velocity_barrier.AddTransition(velocity_buffer->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
@@ -4296,7 +4267,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Tone Map Pass");
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::ToneMap));
 		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::ToneMap));
@@ -4318,7 +4289,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "FXAA Pass");
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 		ResourceBarrierBatch fxaa_barrier{};
 		fxaa_barrier.AddTransition(ldr_render_target->GetNative(), D3D12_RESOURCE_STATE_RENDER_TARGET,
@@ -4348,7 +4319,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "TAA Pass");
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::TAA));
 		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::TAA));
@@ -4371,7 +4342,7 @@ namespace adria
 		PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Sun Pass");
 
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 		auto upload_buffer = gfx->GetDynamicAllocator();
 
 		ResourceBarrierBatch sun_barrier{};
@@ -4426,7 +4397,7 @@ namespace adria
 	void Renderer::BlurTexture(ID3D12GraphicsCommandList4* cmd_list, Texture const& texture)
 	{
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 		ResourceBarrierBatch barrier{};
 		barrier.AddTransition(blur_intermediate_texture->GetNative(),
@@ -4481,7 +4452,7 @@ namespace adria
 	void Renderer::CopyTexture(ID3D12GraphicsCommandList4* cmd_list, Texture const& texture, EBlendMode mode)
 	{
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Copy));
 		
@@ -4515,7 +4486,7 @@ namespace adria
 		D3D12_RESOURCE_STATES start_state, D3D12_RESOURCE_STATES end_state)
 	{
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 		ID3D12Resource* texture = _texture.GetNative();
 
@@ -4591,7 +4562,7 @@ namespace adria
 	void Renderer::AddTextures(ID3D12GraphicsCommandList4* cmd_list, Texture const& texture1, Texture const& texture2, EBlendMode mode)
 	{
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Add));
 

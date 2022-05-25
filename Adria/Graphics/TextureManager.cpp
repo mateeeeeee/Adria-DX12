@@ -268,7 +268,7 @@ namespace adria
             }
             else //format == TextureFormat::eHDR
             {
-                auto descriptor_allocator = gfx->GetDescriptorAllocator();
+                auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
                 loaded_textures.insert({ name, handle });
                 Image equirect_hdr_image(ConvertToNarrow(name));
                 Microsoft::WRL::ComPtr<ID3D12Resource> cubemap_tex = nullptr;

@@ -10,7 +10,6 @@
 #include "../Graphics/Texture.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
-#include "../Graphics/DescriptorHeap.h"
 #include "../Utilities/Random.h"
 #include "pix3.h"
 
@@ -223,7 +222,6 @@ namespace adria
 		D3D12_CPU_DESCRIPTOR_HANDLE indirect_sort_args_uav;
 		Microsoft::WRL::ComPtr<ID3D12Resource> counter_reset_buffer;
 
-		std::unique_ptr<DescriptorHeap> particle_heap;
 		std::unique_ptr<Buffer> index_buffer;
 
 	private:
@@ -231,8 +229,6 @@ namespace adria
 		void CreateResources()
 		{
 			ID3D12Device* device = gfx->GetDevice();
-			particle_heap = std::make_unique<DescriptorHeap>(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 50);
-
 			//creating command signatures
 			{
 				D3D12_INDIRECT_ARGUMENT_DESC args[1] = {};
@@ -250,30 +246,12 @@ namespace adria
 			}
 			//creating indirect args buffers
 			{
-				
-				//
-				//D3D12_RESOURCE_DESC indirect_render_args_desc{};
-				//indirect_render_args_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-				//indirect_render_args_desc.Alignment = 0;
-				//indirect_render_args_desc.SampleDesc.Count = 1;
-				//indirect_render_args_desc.Format = DXGI_FORMAT_UNKNOWN;
-				//indirect_render_args_desc.Width = 5 * sizeof(uint32);
-				//indirect_render_args_desc.Height = 1;
-				//indirect_render_args_desc.DepthOrArraySize = 1;
-				//indirect_render_args_desc.MipLevels = 1;
-				//indirect_render_args_desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-				//indirect_render_args_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-
 				BufferDesc indirect_render_args_desc2{};
 				indirect_render_args_desc2.bind_flags = EBindFlag::UnorderedAccess;
 				indirect_render_args_desc2.size = 5 * sizeof(uint32);
 				indirect_render_args_desc2.misc_flags = EResourceMiscFlag::IndirectArgs;
 				
 				indirect_render_args_buffer = std::make_unique<Buffer>(gfx, indirect_render_args_desc2);
-
-
-				//BREAK_IF_FAILED(device->CreateCommittedResource(&heap_properties, D3D12_HEAP_FLAG_NONE, &indirect_render_args_desc,
-				//	D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&indirect_render_args_buffer)));
 
 				auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 				D3D12_RESOURCE_DESC indirect_sort_args_desc{};
@@ -305,28 +283,22 @@ namespace adria
 			//creating views
 			{
 				uint32 heap_index = 0;
-				random_texture->CreateSRV(particle_heap->GetHandle(heap_index++));
+				random_texture->CreateSRV();
 
-				particle_bufferA.CreateSRV(particle_heap->GetHandle(heap_index++));
-				particle_bufferB.CreateSRV(particle_heap->GetHandle(heap_index++));
-				view_space_positions_buffer.CreateSRV(particle_heap->GetHandle(heap_index++));
-				alive_index_buffer.CreateSRV(particle_heap->GetHandle(heap_index++));
+				particle_bufferA.CreateSRV();
+				particle_bufferB.CreateSRV();
+				view_space_positions_buffer.CreateSRV();
+				alive_index_buffer.CreateSRV();
 
-				dead_list_buffer.CreateUAV(particle_heap->GetHandle(heap_index++),
-					dead_list_buffer_counter.GetNative());
-				particle_bufferA.CreateUAV(particle_heap->GetHandle(heap_index++));
-				particle_bufferB.CreateUAV(particle_heap->GetHandle(heap_index++));
-				view_space_positions_buffer.CreateUAV(particle_heap->GetHandle(heap_index++));
-				alive_index_buffer.CreateUAV(particle_heap->GetHandle(heap_index++),
-					alive_index_buffer_counter.GetNative());
+				dead_list_buffer.CreateUAV(dead_list_buffer_counter.GetNative());
+				particle_bufferA.CreateUAV();
+				particle_bufferB.CreateUAV();
+				view_space_positions_buffer.CreateUAV();
+				alive_index_buffer.CreateUAV(alive_index_buffer_counter.GetNative());
 
-				D3D12_CPU_DESCRIPTOR_HANDLE uav_handle = particle_heap->GetHandle(heap_index++);
 				BufferViewDesc uav_desc2{};
 				uav_desc2.new_format = DXGI_FORMAT_R32_UINT;
-				indirect_render_args_buffer->CreateUAV(uav_handle, nullptr, &uav_desc2);
-
-				//device->CreateUnorderedAccessView(indirect_render_args_buffer.Get(), nullptr, &uav_desc, uav_handle);
-				//indirect_render_args_uav = uav_handle;
+				indirect_render_args_buffer->CreateUAV(nullptr, &uav_desc2);
 
 				D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
 				uav_desc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
@@ -334,7 +306,7 @@ namespace adria
 				uav_desc.Buffer.FirstElement = 0;
 				uav_desc.Buffer.NumElements = 4;
 				uav_desc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
-				uav_handle = particle_heap->GetHandle(heap_index++);
+				auto uav_handle = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				device->CreateUnorderedAccessView(indirect_sort_args_buffer.Get(), nullptr, &uav_desc, uav_handle);
 				indirect_sort_args_uav = uav_handle;
 			}
@@ -361,7 +333,7 @@ namespace adria
 		void InitializeDeadList(ID3D12GraphicsCommandList* cmd_list)
 		{
 			ID3D12Device* device = gfx->GetDevice();
-			RingDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
+			RingOnlineDescriptorAllocator* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 			D3D12_RESOURCE_BARRIER prereset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(dead_list_buffer_counter.GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_DEST);
 			cmd_list->ResourceBarrier(1, &prereset_barrier);
@@ -381,7 +353,7 @@ namespace adria
 		void ResetParticles(ID3D12GraphicsCommandList* cmd_list)
 		{
 			ID3D12Device* device = gfx->GetDevice();
-			RingDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
+			RingOnlineDescriptorAllocator* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 			cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_Reset));
 			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_Reset));
@@ -399,7 +371,7 @@ namespace adria
 		{
 			PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Particles Emit Pass");
 			ID3D12Device* device = gfx->GetDevice();
-			RingDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
+			RingOnlineDescriptorAllocator* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 			LinearDynamicAllocator* upload_buffer = gfx->GetDynamicAllocator();
 
 			if (emitter_params.number_to_emit > 0)
@@ -460,7 +432,7 @@ namespace adria
 			PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Particles Simulate Pass");
 
 			ID3D12Device* device = gfx->GetDevice();
-			RingDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
+			RingOnlineDescriptorAllocator* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 			cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_Simulate));
 			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_Simulate));
@@ -504,7 +476,7 @@ namespace adria
 			PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Particles Rasterize Pass");
 
 			ID3D12Device* device = gfx->GetDevice();
-			RingDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
+			RingOnlineDescriptorAllocator* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 			cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_Shading));
 			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_Shading));
@@ -555,7 +527,7 @@ namespace adria
 			PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Particles Sort Pass");
 
 			ID3D12Device* device = gfx->GetDevice();
-			RingDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
+			RingOnlineDescriptorAllocator* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 			LinearDynamicAllocator* upload_buffer = gfx->GetDynamicAllocator();
 
 			D3D12_RESOURCE_BARRIER barriers[] =
@@ -627,7 +599,7 @@ namespace adria
 		bool SortIncremental(ID3D12GraphicsCommandList* cmd_list, uint32 presorted)
 		{
 			ID3D12Device* device = gfx->GetDevice();
-			RingDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
+			RingOnlineDescriptorAllocator* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 			LinearDynamicAllocator* upload_buffer = gfx->GetDynamicAllocator();
 
 			bool done = true;

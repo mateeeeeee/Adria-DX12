@@ -46,7 +46,7 @@ namespace adria
 	{
 	public:
 		Texture(GraphicsDevice* gfx, TextureDesc const& desc, TextureInitialData* initial_data = nullptr)
-			: desc(desc)
+			: gfx(gfx), desc(desc)
 		{
 			HRESULT hr = E_FAIL;
 
@@ -190,32 +190,44 @@ namespace adria
 				resource->Unmap(0, nullptr);
 				mapped_data = nullptr;
 			}
+
+			for (auto& srv : srvs) gfx->FreeOfflineDescriptor(srv, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			for (auto& uav : uavs) gfx->FreeOfflineDescriptor(uav, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			for (auto& rtv : rtvs) gfx->FreeOfflineDescriptor(rtv, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+			for (auto& dsv : dsvs) gfx->FreeOfflineDescriptor(dsv, D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 		}
 
-		[[maybe_unused]] size_t CreateSRV(D3D12_CPU_DESCRIPTOR_HANDLE descriptor, TextureViewDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateSRV(TextureViewDesc const* desc = nullptr)
 		{
 			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
-			return CreateView(EResourceViewType::SRV, _desc, descriptor);
+			return CreateView(EResourceViewType::SRV, _desc);
 		}
-		[[maybe_unused]] size_t CreateUAV(D3D12_CPU_DESCRIPTOR_HANDLE descriptor, TextureViewDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateUAV(TextureViewDesc const* desc = nullptr)
 		{
 			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
-			return CreateView(EResourceViewType::UAV, _desc, descriptor);
+			return CreateView(EResourceViewType::UAV, _desc);
 		}
-		[[maybe_unused]] size_t CreateRTV(D3D12_CPU_DESCRIPTOR_HANDLE descriptor, TextureViewDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateRTV(TextureViewDesc const* desc = nullptr)
 		{
 			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
-			return CreateView(EResourceViewType::RTV, _desc, descriptor);
+			return CreateView(EResourceViewType::RTV, _desc);
 		}
-		[[maybe_unused]] size_t CreateDSV(D3D12_CPU_DESCRIPTOR_HANDLE descriptor, TextureViewDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateDSV(TextureViewDesc const* desc = nullptr)
 		{
 			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
-			return CreateView(EResourceViewType::DSV, _desc, descriptor);
+			return CreateView(EResourceViewType::DSV, _desc);
 		}
 		D3D12_CPU_DESCRIPTOR_HANDLE SRV(size_t i = 0) const { return GetView(EResourceViewType::SRV, i); }
 		D3D12_CPU_DESCRIPTOR_HANDLE UAV(size_t i = 0) const { return GetView(EResourceViewType::UAV, i); }
 		D3D12_CPU_DESCRIPTOR_HANDLE RTV(size_t i = 0) const { return GetView(EResourceViewType::RTV, i); }
 		D3D12_CPU_DESCRIPTOR_HANDLE DSV(size_t i = 0) const { return GetView(EResourceViewType::DSV, i); }
+		void ClearViews()
+		{
+			srvs.clear();
+			uavs.clear();
+			rtvs.clear();
+			dsvs.clear();
+		}
 
 		bool IsMapped() const { return mapped_data != nullptr; }
 		void* GetMappedData() const { return mapped_data; }
@@ -250,6 +262,7 @@ namespace adria
 		TextureDesc const& GetDesc() const { return desc; }
 
 	private:
+		GraphicsDevice* gfx;
 		Microsoft::WRL::ComPtr<ID3D12Resource> resource;
 		TextureDesc desc;
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> srvs;
@@ -265,7 +278,7 @@ namespace adria
 
 	private:
 
-		[[maybe_unused]] size_t CreateView(EResourceViewType view_type, TextureViewDesc const& view_desc, D3D12_CPU_DESCRIPTOR_HANDLE descriptor)
+		[[maybe_unused]] size_t CreateView(EResourceViewType view_type, TextureViewDesc const& view_desc)
 		{
 			DXGI_FORMAT format = GetDesc().format;
 			if (view_desc.new_format.has_value())
@@ -279,6 +292,7 @@ namespace adria
 			{
 			case EResourceViewType::SRV:
 			{
+				D3D12_CPU_DESCRIPTOR_HANDLE descriptor = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
 				srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 				switch (format)
@@ -380,6 +394,7 @@ namespace adria
 			break;
 			case EResourceViewType::UAV:
 			{
+				D3D12_CPU_DESCRIPTOR_HANDLE descriptor = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
 				switch (format)
 				{
@@ -445,6 +460,7 @@ namespace adria
 			break;
 			case EResourceViewType::RTV:
 			{
+				D3D12_CPU_DESCRIPTOR_HANDLE descriptor = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 				D3D12_RENDER_TARGET_VIEW_DESC rtv_desc{};
 				switch (format)
 				{
@@ -525,6 +541,7 @@ namespace adria
 			break;
 			case EResourceViewType::DSV:
 			{
+				D3D12_CPU_DESCRIPTOR_HANDLE descriptor = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 				D3D12_DEPTH_STENCIL_VIEW_DESC dsv_desc{};
 				switch (format)
 				{

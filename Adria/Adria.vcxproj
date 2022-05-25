@@ -170,12 +170,12 @@
     <ClCompile Include="Graphics\DDSTextureLoader12.cpp" />
     <ClCompile Include="Graphics\DescriptorHeap.cpp" />
     <ClCompile Include="Graphics\GraphicsDeviceDX12.cpp" />
-    <ClCompile Include="Graphics\LinearDescriptorAllocator.cpp" />
+    <ClCompile Include="Graphics\LinearOnlineDescriptorAllocator.cpp" />
     <ClCompile Include="Graphics\LinearDynamicAllocator.cpp" />
     <ClCompile Include="Graphics\MipsGenerator.cpp" />
     <ClCompile Include="Graphics\GPUProfiler.cpp" />
     <ClCompile Include="Graphics\RenderPass.cpp" />
-    <ClCompile Include="Graphics\RingDescriptorAllocator.cpp" />
+    <ClCompile Include="Graphics\RingOnlineDescriptorAllocator.cpp" />
     <ClCompile Include="Graphics\RingUploadBuffer.cpp" />
     <ClCompile Include="Graphics\ShaderUtility.cpp" />
     <ClCompile Include="Graphics\TextureManager.cpp" />
@@ -237,6 +237,7 @@
     <ClInclude Include="Graphics\MipsGenerator.h" />
     <ClInclude Include="Graphics\LinearDynamicAllocator.h" />
     <ClInclude Include="Graphics\GPUProfiler.h" />
+    <ClInclude Include="Graphics\OfflineDescriptorAllocator.h" />
     <ClInclude Include="Graphics\ProfilerSettings.h" />
     <ClInclude Include="Graphics\RayTracingUtil.h" />
     <ClInclude Include="Graphics\Releasable.h" />
@@ -246,8 +247,8 @@
     <ClInclude Include="Graphics\Texture.h" />
     <ClInclude Include="Graphics\TextureManager.h" />
     <ClInclude Include="Graphics\RingUploadBuffer.h" />
-    <ClInclude Include="Graphics\LinearDescriptorAllocator.h" />
-    <ClInclude Include="Graphics\RingDescriptorAllocator.h" />
+    <ClInclude Include="Graphics\LinearOnlineDescriptorAllocator.h" />
+    <ClInclude Include="Graphics\RingOnlineDescriptorAllocator.h" />
     <ClInclude Include="Graphics\ShaderUtility.h" />
     <ClInclude Include="Graphics\VertexTypes.h" />
     <ClInclude Include="Graphics\WICTextureLoader12.h" />

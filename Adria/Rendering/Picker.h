@@ -22,16 +22,17 @@ namespace adria
 		friend class Renderer;
 	private:
 		Picker(GraphicsDevice* gfx) : gfx(gfx), 
-			write_picking_buffer(gfx, StructuredBufferDesc<PickingData>(1)),
+			write_picking_buffer(gfx,  StructuredBufferDesc<PickingData>(1)),
 			read_picking_buffer{ {gfx, ReadBackBufferDesc(sizeof(PickingData))},
 								 {gfx, ReadBackBufferDesc(sizeof(PickingData))},
 								 {gfx, ReadBackBufferDesc(sizeof(PickingData))}}
 		{
+			
 		}
 
-		void CreateView(D3D12_CPU_DESCRIPTOR_HANDLE uav_handle)
+		void CreateView()
 		{
-			write_picking_buffer.CreateUAV(uav_handle);
+			write_picking_buffer.CreateUAV();
 		}
 
 		void Pick(ID3D12GraphicsCommandList4* cmd_list, 
@@ -40,7 +41,7 @@ namespace adria
 			D3D12_GPU_VIRTUAL_ADDRESS frame_cbuffer_gpu_address)
 		{
 			ID3D12Device* device = gfx->GetDevice();
-			RingDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
+			RingOnlineDescriptorAllocator* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 			UINT backbuffer_index = gfx->BackbufferIndex();
 
 			cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Picker));
@@ -78,7 +79,6 @@ namespace adria
 			UINT backbuffer_index = gfx->BackbufferIndex();
 			PickingData const* data = read_picking_buffer[backbuffer_index].GetMappedData<PickingData>();
 			PickingData picking_data = *data;
-			//read_picking_buffer[backbuffer_index].Unmap();
 			return picking_data;
 		}
 

@@ -67,7 +67,6 @@ namespace adria
 		D3D12_RAYTRACING_TIER ray_tracing_tier;
 		D3D12_CPU_DESCRIPTOR_HANDLE envmap_handle;
 
-		std::unique_ptr<DescriptorHeap> dxr_heap = nullptr;
 		ConstantBuffer<RayTracingCBuffer> ray_tracing_cbuffer;
 		RayTracingCBuffer ray_tracing_cbuf_data;
 
@@ -78,6 +77,7 @@ namespace adria
 		std::unique_ptr<Buffer> global_vb = nullptr;
 		std::unique_ptr<Buffer> global_ib = nullptr;
 		std::unique_ptr<Buffer> geo_info_sb = nullptr;
+		D3D12_CPU_DESCRIPTOR_HANDLE first_handle;
 
 		//group this kind of quint inside a struct
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> rt_shadows_root_signature = nullptr;

@@ -146,19 +146,8 @@ namespace adria
 		std::unique_ptr<Texture> ocean_normal_map;
 		std::unique_ptr<Texture> ocean_initial_spectrum;
 
-		std::unique_ptr<DescriptorHeap> rtv_heap;
-		std::unique_ptr<DescriptorHeap> srv_heap;
-		std::unique_ptr<DescriptorHeap> dsv_heap;
-		std::unique_ptr<DescriptorHeap> uav_heap;
 		std::unique_ptr<DescriptorHeap> null_srv_heap; 
 		std::unique_ptr<DescriptorHeap> null_uav_heap;
-		uint32 srv_heap_index = 0;
-		uint32 uav_heap_index = 0;
-		uint32 rtv_heap_index = 0;
-		uint32 dsv_heap_index = 0;
-		std::unique_ptr<DescriptorHeap> constant_srv_heap;
-		std::unique_ptr<DescriptorHeap> constant_dsv_heap;
-		std::unique_ptr<DescriptorHeap> constant_uav_heap;
 
 		//Render Passes
 		RenderPass gbuffer_render_pass;

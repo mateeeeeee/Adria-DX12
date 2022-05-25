@@ -179,22 +179,29 @@ namespace adria
 				resource->Unmap(0, nullptr);
 				mapped_data = nullptr;
 			}
+
+			for (auto& srv : srvs) gfx->FreeOfflineDescriptor(srv, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			for (auto& uav : uavs) gfx->FreeOfflineDescriptor(uav, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		}
 
 		D3D12_CPU_DESCRIPTOR_HANDLE SRV(size_t i = 0) const { return GetView(EResourceViewType::SRV, i); }
 		D3D12_CPU_DESCRIPTOR_HANDLE UAV(size_t i = 0) const { return GetView(EResourceViewType::UAV, i); }
 
-		[[maybe_unused]] size_t CreateSRV(D3D12_CPU_DESCRIPTOR_HANDLE descriptor, BufferViewDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateSRV(BufferViewDesc const* desc = nullptr)
 		{
 			BufferViewDesc _desc = desc ? *desc : BufferViewDesc{};
-			return CreateView(EResourceViewType::SRV, _desc, descriptor, nullptr);
+			return CreateView(EResourceViewType::SRV, _desc, nullptr);
 		}
-
-		[[maybe_unused]] size_t CreateUAV(D3D12_CPU_DESCRIPTOR_HANDLE descriptor,
+		[[maybe_unused]] size_t CreateUAV(
 			ID3D12Resource* uav_counter = nullptr, BufferViewDesc const* desc = nullptr)
 		{
 			BufferViewDesc _desc = desc ? *desc : BufferViewDesc{};
-			return CreateView(EResourceViewType::UAV, _desc, descriptor, uav_counter);
+			return CreateView(EResourceViewType::UAV, _desc, uav_counter);
+		}
+		void ClearViews()
+		{
+			srvs.clear();
+			uavs.clear();
 		}
 
 		bool IsMapped() const { return mapped_data != nullptr; }
@@ -269,7 +276,7 @@ namespace adria
 
 	private:
 
-		size_t CreateView(EResourceViewType view_type, BufferViewDesc const& view_desc, D3D12_CPU_DESCRIPTOR_HANDLE heap_descriptor,
+		size_t CreateView(EResourceViewType view_type, BufferViewDesc const& view_desc,
 			ID3D12Resource* uav_counter = nullptr)
 		{
 			if (uav_counter) ADRIA_ASSERT(view_type == EResourceViewType::UAV);
@@ -277,6 +284,7 @@ namespace adria
 			DXGI_FORMAT format = desc.format;
 			if (view_desc.new_format.has_value()) format = view_desc.new_format.value();
 
+			D3D12_CPU_DESCRIPTOR_HANDLE heap_descriptor = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			switch (view_type)
 			{
 			case EResourceViewType::SRV:

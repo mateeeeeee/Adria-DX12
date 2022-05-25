@@ -5,27 +5,27 @@
 namespace adria
 {
 
-	class RingDescriptorAllocator : public DescriptorHeap
+	class RingOnlineDescriptorAllocator : public DescriptorHeap
 	{
 	public:
-		RingDescriptorAllocator(
+		RingOnlineDescriptorAllocator(
 			ID3D12DescriptorHeap* pExistingHeap, OffsetType reserve = 0);
 
-		RingDescriptorAllocator(
+		RingOnlineDescriptorAllocator(
 			ID3D12Device* device,
 			D3D12_DESCRIPTOR_HEAP_DESC const& desc, OffsetType reserve = 0);
 
-		RingDescriptorAllocator(
+		RingOnlineDescriptorAllocator(
 			ID3D12Device* device,
 			D3D12_DESCRIPTOR_HEAP_TYPE type,
 			D3D12_DESCRIPTOR_HEAP_FLAGS flags,
 			size_t capacity, OffsetType reserve = 0);
 
-		RingDescriptorAllocator(
+		RingOnlineDescriptorAllocator(
 			ID3D12Device* device,
 			size_t count, OffsetType reserve = 0);
 
-		~RingDescriptorAllocator() = default;
+		~RingOnlineDescriptorAllocator() = default;
 
 		[[nodiscard]] OffsetType Allocate();
 

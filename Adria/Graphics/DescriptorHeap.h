@@ -5,8 +5,6 @@
 #include <vector>
 #include "../Core/Macros.h"
 
-//https://github.com/microsoft/DirectXTK12/blob/master/Inc/DescriptorHeap.h
-
 namespace adria
 {
 
@@ -15,6 +13,7 @@ namespace adria
 		friend class DescriptorHeap;
 
 	public:
+		DescriptorHandle() = default;
 		DescriptorHandle(DescriptorHandle const&) = delete;
 		DescriptorHandle(DescriptorHandle&&) noexcept = default;
 
@@ -26,13 +25,14 @@ namespace adria
 
 		bool IsShaderVisible() const { return gpu_pointer.ptr != NULL; }
 		D3D12_CPU_DESCRIPTOR_HANDLE const* GetCPUAddress() const { return &cpu_pointer; }
-
+		SIZE_T GetHeapOffset() const { return offset_in_heap; }
 	private:
 		D3D12_CPU_DESCRIPTOR_HANDLE cpu_pointer = { NULL };
 		D3D12_GPU_DESCRIPTOR_HANDLE gpu_pointer = { NULL };
+		SIZE_T offset_in_heap = -1;
 
 	private:
-		explicit DescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE cpu_pointer, D3D12_GPU_DESCRIPTOR_HANDLE gpu_pointer = { NULL }) : cpu_pointer(cpu_pointer), gpu_pointer(gpu_pointer)
+		explicit DescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE cpu_pointer, D3D12_GPU_DESCRIPTOR_HANDLE gpu_pointer = { NULL }, SIZE_T offset_in_heap = -1) : cpu_pointer(cpu_pointer), gpu_pointer(gpu_pointer)
 		{}
 	};
 
@@ -63,10 +63,6 @@ namespace adria
 
 		~DescriptorHeap() = default;
 
-		DescriptorHandle AllocateDescriptor()
-		{
-			return GetHandle(current_alloc_index++);
-		}
 		DescriptorHandle GetFirstHandle() const;
 		DescriptorHandle GetHandle(size_t index) const;
 
@@ -76,14 +72,12 @@ namespace adria
 		size_t Increment() const;
 		ID3D12DescriptorHeap* Heap() const;
 
-		void Reset() { current_alloc_index = 0; }
-	private:
+	protected:
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>	heap;
 		D3D12_DESCRIPTOR_HEAP_DESC                      desc;
 		D3D12_CPU_DESCRIPTOR_HANDLE                     hCPU;
 		D3D12_GPU_DESCRIPTOR_HANDLE                     hGPU;
 		UINT	                                        descriptor_handle_size;
-		UINT											current_alloc_index;
 	private:
 
 		void CreateHelper(ID3D12Device* pDevice, D3D12_DESCRIPTOR_HEAP_DESC const& _desc);

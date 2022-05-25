@@ -17,8 +17,9 @@
 
 #define D3D12MA_D3D12_HEADERS_ALREADY_INCLUDED
 #include "D3D12MemAlloc.h"
-#include "RingDescriptorAllocator.h"
-#include "LinearDescriptorAllocator.h"
+#include "RingOnlineDescriptorAllocator.h"
+#include "LinearOnlineDescriptorAllocator.h"
+#include "OfflineDescriptorAllocator.h"
 #include "LinearDynamicAllocator.h"
 #include "Releasable.h"
 
@@ -59,11 +60,6 @@ namespace adria
 			mutable std::atomic_uint compute_cmd_list_index = 0;
 		};
 
-		struct HeapPair
-		{
-			std::unique_ptr<DescriptorHeap> heap_for_size_dependent_resources;
-			std::unique_ptr<DescriptorHeap> heap_for_size_independent_resources;
-		};
 	public:
 		explicit GraphicsDevice(GraphicsOptions const&);
 		GraphicsDevice(GraphicsDevice const&) = delete;
@@ -96,9 +92,10 @@ namespace adria
 		void AddToReleaseQueue(D3D12MA::Allocation* alloc);
 		void AddToReleaseQueue(ID3D12Resource* resource);
 
-		DescriptorHandle AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE, bool heap_for_size_dependent = false);
+		D3D12_CPU_DESCRIPTOR_HANDLE AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE);
+		void FreeOfflineDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE, D3D12_DESCRIPTOR_HEAP_TYPE);
 		void ReserveOnlineDescriptors(size_t reserve);
-		RingDescriptorAllocator* GetDescriptorAllocator() const;
+		RingOnlineDescriptorAllocator* GetOnlineDescriptorAllocator() const;
 		LinearDynamicAllocator* GetDynamicAllocator() const;
 
 		void GetTimestampFrequency(UINT64& frequency) const;
@@ -145,9 +142,9 @@ namespace adria
 		HANDLE		 wait_event = nullptr;
 		UINT64       wait_fence_value = 0;
 
-		std::array< std::unique_ptr<DescriptorHeap>, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES> offline_descriptor_allocators;
+		std::array< std::unique_ptr<OfflineDescriptorAllocator>, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES> offline_descriptor_allocators;
 
-		std::unique_ptr<RingDescriptorAllocator> descriptor_allocator;
+		std::unique_ptr<RingOnlineDescriptorAllocator> descriptor_allocator;
 		std::vector<std::unique_ptr<LinearDynamicAllocator>> dynamic_allocators;
 
 		Microsoft::WRL::ComPtr<ID3D12Fence> dred_fence = nullptr;
