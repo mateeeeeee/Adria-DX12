@@ -230,6 +230,12 @@ namespace adria
 
 		dxr_heap = std::make_unique<DescriptorHeap>(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 50);
 
+		if (RayTracing::rt_vertices.empty() || RayTracing::rt_indices.empty())
+		{
+			ADRIA_LOG(WARNING, "Ray tracing buffers are empty. This is expected if the meshes are loaded with ray-tracing support off");
+			return;
+		}
+
 		BufferDesc vb_desc{};
 		vb_desc.bind_flags = EBindFlag::VertexBuffer;
 		vb_desc.misc_flags = EResourceMiscFlag::RayTracing;
