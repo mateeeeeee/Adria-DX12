@@ -324,8 +324,7 @@ namespace adria
 			descriptor_allocator = std::make_unique<RingDescriptorAllocator>(device.Get(), shader_visible_desc);
 			for (size_t i = 0; i < offline_descriptor_allocators.size(); ++i)
 			{
-				offline_descriptor_allocators[i].heap_for_size_dependent_resources = std::make_unique<DescriptorHeap>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE(i), D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 100);
-				offline_descriptor_allocators[i].heap_for_size_independent_resources = std::make_unique<DescriptorHeap>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE(i), D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 100);
+				offline_descriptor_allocators[i] = std::make_unique<DescriptorHeap>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE(i), D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 250);
 			}
 
 			for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
@@ -344,18 +343,13 @@ namespace adria
 			if (release_queue_event == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
 		}
 
-		//heaps
-		{
-			
-		}
-
 		//frame resources
 		{
 			for (UINT fr = 0; fr < BACKBUFFER_COUNT; ++fr)
 			{
 				hr = swap_chain->GetBuffer(fr, IID_PPV_ARGS(&frames[fr].back_buffer));
 				BREAK_IF_FAILED(hr);
-				frames[fr].back_buffer_rtv = offline_descriptor_allocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV].heap_for_size_dependent_resources->AllocateDescriptor();
+				frames[fr].back_buffer_rtv = offline_descriptor_allocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV]->AllocateDescriptor();
 				device->CreateRenderTargetView(frames[fr].back_buffer.Get(), nullptr, frames[fr].back_buffer_rtv);
 
 				hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(frames[fr].default_cmd_allocator.GetAddressOf()));
@@ -508,13 +502,11 @@ namespace adria
 	{
 		if ((width != w || height != h) && width > 0 && height > 0)
 		{
-
 			width = w;
 			height = h;
-
 			WaitForGPU();
 
-			for (uint32_t fr = 0; fr < BACKBUFFER_COUNT; ++fr)
+			for (UINT fr = 0; fr < BACKBUFFER_COUNT; ++fr)
 			{
 				frames[fr].back_buffer.Reset();
 				frame_fence_values[fr] = frame_fence_values[backbuffer_index];
@@ -522,24 +514,21 @@ namespace adria
 
 			DXGI_SWAP_CHAIN_DESC desc = {};
 			swap_chain->GetDesc(&desc);
-
 			HRESULT hr = swap_chain->ResizeBuffers(desc.BufferCount, width, height, desc.BufferDesc.Format, desc.Flags);
 			BREAK_IF_FAILED(hr);
 
-			//offline_descriptor_allocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV].heap_for_size_dependent_resources->AllocateDescriptor();
-			for (auto& heap_pair : offline_descriptor_allocators)
+			for (auto& heap : offline_descriptor_allocators)
 			{
-				heap_pair.heap_for_size_dependent_resources->Reset();
+				heap->Reset();
 			}
 
 			backbuffer_index = swap_chain->GetCurrentBackBufferIndex();
-			for (uint32_t i = 0; i < BACKBUFFER_COUNT; ++i)
+			for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
 			{
-				uint32_t fr = (backbuffer_index + i) % BACKBUFFER_COUNT;
-
+				UINT fr = (backbuffer_index + i) % BACKBUFFER_COUNT;
 				hr = swap_chain->GetBuffer(i, __uuidof(ID3D12Resource), (void**)frames[fr].back_buffer.GetAddressOf());
 				BREAK_IF_FAILED(hr);
-				device->CreateRenderTargetView(frames[fr].back_buffer.Get(), nullptr, offline_descriptor_allocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV].heap_for_size_dependent_resources->AllocateDescriptor());
+				device->CreateRenderTargetView(frames[fr].back_buffer.Get(), nullptr, offline_descriptor_allocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV]->AllocateDescriptor());
 			}
 		}
 	}
@@ -715,9 +704,7 @@ namespace adria
 
 	DescriptorHandle GraphicsDevice::AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type, bool heap_for_size_dependent /*= false*/)
 	{
-		DescriptorHeap* heap = heap_for_size_dependent ? offline_descriptor_allocators[type].heap_for_size_dependent_resources.get() :
-			offline_descriptor_allocators[type].heap_for_size_independent_resources.get();
-		return heap->AllocateDescriptor();
+		return offline_descriptor_allocators[type]->AllocateDescriptor();
 	}
 
 	RingDescriptorAllocator* GraphicsDevice::GetDescriptorAllocator() const

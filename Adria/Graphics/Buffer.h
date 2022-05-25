@@ -79,7 +79,7 @@ namespace adria
 	public:
 
 		Buffer(GraphicsDevice* gfx, BufferDesc const& desc, void const* initial_data = nullptr)
-			: desc(desc)
+			: gfx(gfx), desc(desc)
 		{
 			UINT64 buffer_size = desc.size;
 			if (HasAllFlags(desc.bind_flags, EBindFlag::ConstantBuffer))
@@ -255,6 +255,7 @@ namespace adria
 			return static_cast<UINT>(desc.size / desc.stride);
 		}
 	private:
+		GraphicsDevice* gfx;
 		Microsoft::WRL::ComPtr<ID3D12Resource> resource;
 		BufferDesc desc;
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> srvs;
