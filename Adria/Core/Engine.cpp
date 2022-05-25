@@ -22,10 +22,10 @@ namespace adria
 	
 	struct SceneConfig
 	{
-		std::vector<model_parameters_t> scene_models;
-		std::vector<light_parameters_t> scene_lights;
-		skybox_parameters_t skybox_params;
-		camera_parameters_t camera_params;
+		std::vector<ModelParameters> scene_models;
+		std::vector<LightParameters> scene_lights;
+		SkyboxParameters skybox_params;
+		CameraParameters camera_params;
 	};
 
 	namespace
@@ -88,7 +88,7 @@ namespace adria
 					ADRIA_LOG(WARNING, "Light doesn't have type field! Skipping this light...");
 				}
 
-				light_parameters_t light{};
+				LightParameters light{};
 				float32 position[3] = { 0.0f, 0.0f, 0.0f };
 				light_params.FindArray("position", position);
 				light.light_data.position = XMVectorSet(position[0], position[1], position[2], 1.0f);

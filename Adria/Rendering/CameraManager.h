@@ -13,7 +13,7 @@ namespace adria
 	public:
 		CameraManager(Input&);
 
-		void AddCamera(camera_parameters_t const& camera_desc);
+		void AddCamera(CameraParameters const& camera_desc);
 
 		void Update(float32 dt);
 

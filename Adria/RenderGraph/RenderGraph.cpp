@@ -46,13 +46,13 @@ namespace adria
 
 	RGResourceHandle RenderGraph::CreateResource(char const* name, D3D12_RESOURCE_DESC const& desc)
 	{
-		resources.emplace_back(new RGResource(name, resources.size(), desc));
+		resources.emplace_back(new RGTexture(name, resources.size(), desc));
 		return CreateResourceNode(resources.back().get());
 	}
 
 	RGResourceHandle RenderGraph::ImportResource(EImportedId id, ID3D12Resource* resource)
 	{
-		auto& imported_resource = resources.emplace_back(new RGResource(ImportedIdNames[(size_t)id], resources.size(), resource));
+		auto& imported_resource = resources.emplace_back(new RGTexture(ImportedIdNames[(size_t)id], resources.size(), resource));
 		imported_resources[(size_t)id] = imported_resource.get();
 		return CreateResourceNode(resources.back().get());
 	}
@@ -67,13 +67,13 @@ namespace adria
 		return handle.IsValid() && handle.id < resource_nodes.size();
 	}
 
-	RGResource* RenderGraph::GetResource(RGResourceHandle handle) 
+	RGTexture* RenderGraph::GetResource(RGResourceHandle handle) 
 	{
 		RGResourceNode& node = GetResourceNode(handle);
 		return node.resource;
 	}
 
-	RGResource* RenderGraph::GetImportedResource(EImportedId id) const
+	RGTexture* RenderGraph::GetImportedResource(EImportedId id) const
 	{
 		return imported_resources[(size_t)id];
 	}
@@ -102,7 +102,7 @@ namespace adria
 		{
 			for (auto handle : dependency_level.creates)
 			{
-				RGResource* rg_resource = GetResource(handle);
+				RGTexture* rg_resource = GetResource(handle);
 				rg_resource->resource = pool.AllocateResource(rg_resource->desc);
 			}
 
@@ -110,13 +110,13 @@ namespace adria
 
 			for (auto handle : dependency_level.destroys)
 			{
-				RGResource* rg_resource = GetResource(handle);
+				RGTexture* rg_resource = GetResource(handle);
 				pool.ReleaseResource(rg_resource->resource);
 			}
 		}
 	}
 
-	RGResourceHandle RenderGraph::CreateResourceNode(RGResource* resource)
+	RGResourceHandle RenderGraph::CreateResourceNode(RGTexture* resource)
 	{
 		resource_nodes.emplace_back(resource);
 		return RGResourceHandle(resource_nodes.size() - 1);

@@ -586,7 +586,7 @@ namespace adria
                 {
                     std::string model_path = ImGuiFileDialog::Instance()->GetFilePathName();
 
-                    model_parameters_t params{};
+                    ModelParameters params{};
                     params.model_path = model_path;
                     std::string texture_path = ImGuiFileDialog::Instance()->GetCurrentPath();
                     if (!texture_path.empty()) texture_path.append("/");
@@ -624,7 +624,7 @@ namespace adria
 	{
 		ImGui::Begin("Ocean");
 		{
-			static grid_parameters_t ocean_params{};
+			static GridParameters ocean_params{};
 			static int32 tile_count[2] = { 512, 512 };
 			static float32 tile_size[2] = { 40.0f, 40.0f };
 			static float32 texture_scale[2] = { 20.0f, 20.0f };
@@ -642,7 +642,7 @@ namespace adria
 
 			if (ImGui::Button("Load Ocean"))
 			{
-				ocean_parameters_t params{};
+				OceanParameters params{};
 				params.ocean_grid = std::move(ocean_params);
 				engine->entity_loader->LoadOcean(params);
 			}
@@ -670,7 +670,7 @@ namespace adria
 	{
 		ImGui::Begin("Particles");
 		{
-			static emitter_parameters_t params{};
+			static EmitterParameters params{};
 			static char NAME_BUFFER[128];
 			ImGui::InputText("Name", NAME_BUFFER, sizeof(NAME_BUFFER));
 			params.name = std::string(NAME_BUFFER);
@@ -712,7 +712,7 @@ namespace adria
 	{
 		ImGui::Begin("Decals");
 		{
-			static decal_parameters_t params{};
+			static DecalParameters params{};
 			static char NAME_BUFFER[128];
 			ImGui::InputText("Name", NAME_BUFFER, sizeof(NAME_BUFFER));
 			params.name = std::string(NAME_BUFFER);
@@ -783,7 +783,7 @@ namespace adria
 
                     for (int32 i = 0; i < light_count_to_add; ++i)
                     {
-                        light_parameters_t light_params{};
+                        LightParameters light_params{};
                         light_params.light_data.casts_shadows = false;
                         light_params.light_data.color = DirectX::XMVectorSet(real() * 2, real() * 2, real() * 2, 1.0f);
                         light_params.light_data.direction = DirectX::XMVectorSet(0.5f, -1.0f, 0.1f, 0.0f);
@@ -1338,7 +1338,7 @@ namespace adria
                     EMITTER
                 };
 
-                static model_parameters_t params{};
+                static ModelParameters params{};
                 if (current_component == MESH)
                 {
 

@@ -277,7 +277,7 @@ namespace adria
 
 			RGResourceView CreateShaderResourceView(RGResourceHandle handle, D3D12_SHADER_RESOURCE_VIEW_DESC const& desc) 
 			{
-				RGResource* resource = parent_graph.GetResource(handle);
+				RGTexture* resource = parent_graph.GetResource(handle);
 				ID3D12Resource* d3d12_resource = resource->resource;
 				if (auto it = srv_cache.find(handle); it != srv_cache.end())
 				{
@@ -305,7 +305,7 @@ namespace adria
 
 			RGResourceView CreateRenderTargetView(RGResourceHandle handle, D3D12_RENDER_TARGET_VIEW_DESC const& desc) 
 			{
-				RGResource* resource = parent_graph.GetResource(handle);
+				RGTexture* resource = parent_graph.GetResource(handle);
 				ID3D12Resource* d3d12_resource = resource->resource;
 				if (auto it = rtv_cache.find(handle); it != rtv_cache.end())
 				{
@@ -333,7 +333,7 @@ namespace adria
 
 			RGResourceView CreateUnorderedAccessView(RGResourceHandle handle, D3D12_UNORDERED_ACCESS_VIEW_DESC const& desc) 
 			{
-				RGResource* resource = parent_graph.GetResource(handle);
+				RGTexture* resource = parent_graph.GetResource(handle);
 				ID3D12Resource* d3d12_resource = resource->resource;
 				if (auto it = uav_cache.find(handle); it != uav_cache.end())
 				{
@@ -362,7 +362,7 @@ namespace adria
 
 			RGResourceView CreateDepthStencilView(RGResourceHandle handle, D3D12_DEPTH_STENCIL_VIEW_DESC const& desc) 
 			{
-				RGResource* resource = parent_graph.GetResource(handle);
+				RGTexture* resource = parent_graph.GetResource(handle);
 				ID3D12Resource* d3d12_resource = resource->resource;
 				if (auto it = dsv_cache.find(handle); it != dsv_cache.end())
 				{
@@ -429,9 +429,9 @@ namespace adria
 
 		bool IsValidHandle(RGResourceHandle) const;
 
-		RGResource* GetResource(RGResourceHandle);
+		RGTexture* GetResource(RGResourceHandle);
 
-		RGResource* GetImportedResource(EImportedId) const;
+		RGTexture* GetImportedResource(EImportedId) const;
 		RGResourceView GetImportedView(EImportedViewId) const;
 
 		void Build();
@@ -442,11 +442,11 @@ namespace adria
 
 	private:
 		std::vector<std::unique_ptr<RGPassBase>> passes;
-		std::vector<std::unique_ptr<RGResource>> resources;
+		std::vector<std::unique_ptr<RGTexture>> resources;
 		std::vector<RGResourceNode> resource_nodes;
 		std::vector<RGResourceView> resource_views;
 
-		std::vector<RGResource*> imported_resources;
+		std::vector<RGTexture*> imported_resources;
 		std::vector<RGResourceView> imported_views;
 
 		std::vector<std::vector<uint64>> adjacency_lists;
@@ -460,7 +460,7 @@ namespace adria
 		//std::unique_ptr<Heap> resource_heap; need better allocator then linear if placed resources are used
 	private:
 
-		RGResourceHandle CreateResourceNode(RGResource* resource);
+		RGResourceHandle CreateResourceNode(RGTexture* resource);
 		RGResourceNode& GetResourceNode(RGResourceHandle handle);
 
 		void BuildAdjacencyLists();

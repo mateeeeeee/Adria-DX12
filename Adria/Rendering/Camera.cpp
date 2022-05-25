@@ -7,7 +7,7 @@ using namespace DirectX;
 namespace adria
 {
 
-	Camera::Camera(camera_parameters_t const& desc) : position{ desc.position }, right_vector{ 1.0f,0.0f,0.0f }, up_vector{ 0.0f,1.0f,0.0f },
+	Camera::Camera(CameraParameters const& desc) : position{ desc.position }, right_vector{ 1.0f,0.0f,0.0f }, up_vector{ 0.0f,1.0f,0.0f },
 		look_vector{ desc.look_at }, aspect_ratio{ desc.aspect_ratio }, fov{ desc.fov }, near_plane{ desc.near_plane }, far_plane{ desc.far_plane },
 		speed{ desc.speed }, sensitivity{ desc.sensitivity }
 	{

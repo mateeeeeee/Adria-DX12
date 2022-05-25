@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
-#include <d3d12.h>
-#include <wrl.h>
+#include "../Graphics/Texture.h"
 #include "RenderGraphResourceHandle.h"
 
 namespace adria
@@ -9,15 +8,15 @@ namespace adria
 	class RenderGraphPassBase;
 	class RenderGraph;
 
-	struct RenderGraphResource
+	struct RenderGraphTexture
 	{
-		RenderGraphResource(char const* name, size_t id, ID3D12Resource* resource)
-			: name(name), id(id), imported(true), version(0), resource(resource), 
-			  desc(resource->GetDesc()), ref_count(0)
+		RenderGraphTexture(char const* name, size_t id, Texture* texture)
+			: name(name), id(id), imported(true), version(0), texture(texture),
+			  desc(texture->GetDesc()), ref_count(0)
 		{}
 
-		RenderGraphResource(char const* name, size_t id, D3D12_RESOURCE_DESC const& desc)
-			: name(name), id(id), imported(false), version(0), resource(nullptr), 
+		RenderGraphTexture(char const* name, size_t id, TextureDesc const& desc)
+			: name(name), id(id), imported(false), version(0), texture(nullptr),
 			  desc(desc), ref_count(0)
 		{}
 
@@ -25,19 +24,19 @@ namespace adria
 		size_t id;
 		bool imported;
 		size_t version;
-		ID3D12Resource* resource;
-		D3D12_RESOURCE_DESC desc;
+		Texture* texture;
+		TextureDesc desc;
 		size_t ref_count;
 	};
 
-	using RGResource = RenderGraphResource;
+	using RGTexture = RenderGraphTexture;
 
 	struct RenderGraphResourceNode
 	{
-		explicit RenderGraphResourceNode(RGResource* resource)
+		explicit RenderGraphResourceNode(RGTexture* resource)
 			: resource(resource), version(resource->version)
 		{}
-		RGResource* resource;
+		RGTexture* resource;
 		size_t version;
 		RenderGraphPassBase* writer = nullptr;
 		RenderGraphPassBase* last_used_by = nullptr;
@@ -53,7 +52,7 @@ namespace adria
 		RenderGraphResources(RenderGraphResources const&) = delete;
 		RenderGraphResources& operator=(RenderGraphResources const&) = delete;
 
-		RGResource& GetResource(RGResourceHandle handle);
+		RGTexture& GetResource(RGResourceHandle handle);
 
 		template<typename DescType>
 		RGResourceView CreateResourceView(RGResourceHandle handle, DescType&& desc)

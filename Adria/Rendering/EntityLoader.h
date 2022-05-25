@@ -22,7 +22,7 @@ namespace adria
 		Sphere
 	};
 
-    struct model_parameters_t
+    struct ModelParameters
     {
         std::string model_path = "";
         std::string textures_path = "";
@@ -30,13 +30,13 @@ namespace adria
 		bool used_in_raytracing = true;
 		bool merge_meshes = true;
     };
-    struct skybox_parameters_t
+    struct SkyboxParameters
     {
         std::optional<std::wstring> cubemap;
         std::array<std::wstring, 6> cubemap_textures;
 		bool used_in_rt = true;
     };
-	struct grid_parameters_t
+	struct GridParameters
 	{
 		uint64 tile_count_x;
 		uint64 tile_count_z;
@@ -50,11 +50,11 @@ namespace adria
 		ENormalCalculation normal_type = ENormalCalculation::None;
 		std::unique_ptr<Heightmap> heightmap = nullptr;
 	};
-	struct ocean_parameters_t
+	struct OceanParameters
 	{
-		grid_parameters_t ocean_grid;
+		GridParameters ocean_grid;
 	};
-	struct emitter_parameters_t
+	struct EmitterParameters
 	{
 		std::string name = "Emitter";
 		float32 position[3] = { 50.0f, 10.0f, 0.0f };
@@ -72,7 +72,7 @@ namespace adria
 		int32 collision_thickness = 40;
 		bool sort = false;
 	};
-    struct light_parameters_t
+    struct LightParameters
     {
         Light light_data;
         ELightMesh mesh_type = ELightMesh::NoMesh;
@@ -80,7 +80,7 @@ namespace adria
         std::optional<std::wstring> light_texture = std::nullopt;
     };
 
-	struct decal_parameters_t
+	struct DecalParameters
 	{
 		std::string name = "Decal";
 		std::string albedo_texture_path = "Resources/Textures/Decals/Decal_00_Albedo.tga";
@@ -97,7 +97,7 @@ namespace adria
     
 	class EntityLoader
 	{
-		[[nodiscard]] std::vector<tecs::entity> LoadGrid(grid_parameters_t const&);
+		[[nodiscard]] std::vector<tecs::entity> LoadGrid(GridParameters const&);
 
 		[[nodiscard]] std::vector<tecs::entity> LoadObjMesh(std::string const&);
 
@@ -105,17 +105,17 @@ namespace adria
         
         EntityLoader(tecs::registry& reg, GraphicsDevice* device, TextureManager& texture_manager);
 
-		[[maybe_unused]] std::vector<tecs::entity> LoadGLTFModel(model_parameters_t const&);
+		[[maybe_unused]] std::vector<tecs::entity> LoadGLTFModel(ModelParameters const&);
 
-		[[maybe_unused]] tecs::entity LoadSkybox(skybox_parameters_t const&);
+		[[maybe_unused]] tecs::entity LoadSkybox(SkyboxParameters const&);
 
-        [[maybe_unused]] tecs::entity LoadLight(light_parameters_t const&);
+        [[maybe_unused]] tecs::entity LoadLight(LightParameters const&);
 
-		[[maybe_unused]] std::vector<tecs::entity> LoadOcean(ocean_parameters_t const&);
+		[[maybe_unused]] std::vector<tecs::entity> LoadOcean(OceanParameters const&);
 
-		[[maybe_unused]] tecs::entity LoadEmitter(emitter_parameters_t const&);
+		[[maybe_unused]] tecs::entity LoadEmitter(EmitterParameters const&);
 
-		[[maybe_unused]] tecs::entity LoadDecal(decal_parameters_t const&);
+		[[maybe_unused]] tecs::entity LoadDecal(DecalParameters const&);
 
 	private:
         tecs::registry& reg;

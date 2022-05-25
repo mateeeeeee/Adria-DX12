@@ -7,7 +7,7 @@
 namespace adria
 {
 
-	struct camera_parameters_t
+	struct CameraParameters
 	{
 		float32 aspect_ratio;
 		float32 near_plane;
@@ -27,7 +27,7 @@ namespace adria
 
 		Camera() = default;
 
-		explicit Camera(camera_parameters_t const&);
+		explicit Camera(CameraParameters const&);
 
 		DirectX::XMVECTOR Position() const;
 

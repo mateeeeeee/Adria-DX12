@@ -26,7 +26,7 @@ namespace adria
 {
     using namespace tecs;
 
-	std::vector<entity> EntityLoader::LoadGrid(grid_parameters_t const& params)
+	std::vector<entity> EntityLoader::LoadGrid(GridParameters const& params)
 	{
 		if (params.heightmap)
 		{
@@ -309,7 +309,7 @@ namespace adria
     }
 
 	[[maybe_unused]]
-	std::vector<entity> EntityLoader::LoadGLTFModel(model_parameters_t const& params)
+	std::vector<entity> EntityLoader::LoadGLTFModel(ModelParameters const& params)
 	{
 		tinygltf::TinyGLTF loader;
 		tinygltf::Model model;
@@ -622,7 +622,7 @@ namespace adria
 	}
 
 	[[maybe_unused]]
-	entity EntityLoader::LoadSkybox(skybox_parameters_t const& params)
+	entity EntityLoader::LoadSkybox(SkyboxParameters const& params)
     {
         entity skybox = reg.create();
 
@@ -642,12 +642,12 @@ namespace adria
     }
 
     [[maybe_unused]] 
-    entity EntityLoader::LoadLight(light_parameters_t const& params)
+    entity EntityLoader::LoadLight(LightParameters const& params)
     {
         entity light = reg.create();
 
         if (params.light_data.type == ELightType::Directional)
-            const_cast<light_parameters_t&>(params).light_data.position = XMVectorScale(-params.light_data.direction, 1e3);
+            const_cast<LightParameters&>(params).light_data.position = XMVectorScale(-params.light_data.direction, 1e3);
 
         reg.emplace<Light>(light, params.light_data);
         if (params.mesh_type == ELightMesh::Quad)
@@ -749,7 +749,7 @@ namespace adria
         return light;
     }
 
-	std::vector<entity> EntityLoader::LoadOcean(ocean_parameters_t const& params)
+	std::vector<entity> EntityLoader::LoadOcean(OceanParameters const& params)
 	{
 		std::vector<entity> ocean_chunks = EntityLoader::LoadGrid(params.ocean_grid);
 
@@ -769,7 +769,7 @@ namespace adria
 	}
 
 	[[maybe_unused]]
-	entity EntityLoader::LoadEmitter(emitter_parameters_t const& params)
+	entity EntityLoader::LoadEmitter(EmitterParameters const& params)
 	{
 		Emitter emitter{};
 		emitter.position = DirectX::XMFLOAT4(params.position[0], params.position[1], params.position[2], 1);
@@ -796,7 +796,7 @@ namespace adria
 	}
 
 	[[maybe_unused]]
-	entity EntityLoader::LoadDecal(decal_parameters_t const& params)
+	entity EntityLoader::LoadDecal(DecalParameters const& params)
 	{
 		Decal decal{};
 		texture_manager.SetMipMaps(false);
