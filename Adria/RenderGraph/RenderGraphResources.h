@@ -43,6 +43,7 @@ namespace adria
 	};
 	using RGTextureNode = RenderGraphTextureNode;
 
+
 	using RGResourceView = D3D12_CPU_DESCRIPTOR_HANDLE;
 	enum class RGResourceViewType
 	{

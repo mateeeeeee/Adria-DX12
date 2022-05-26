@@ -60,6 +60,15 @@ namespace adria
 
 		Texture* AllocateTexture(TextureDesc const& desc)
 		{
+			for (auto& [pool_texture, active] : texture_pool)
+			{
+				if (!active && pool_texture.texture->GetDesc() == desc)
+				{
+					pool_texture.last_used_frame = frame_index;
+					active = true;
+					return pool_texture.texture.get();
+				}
+			}
 			return texture_pool.emplace_back(std::pair{ PooledTexture{ std::make_unique<Texture>(device, desc), frame_index}, true}).first.texture.get();
 		}
 
@@ -92,9 +101,12 @@ namespace adria
 		RenderGraphBuilder& operator=(RenderGraphBuilder const&) = delete;
 
 		RGResourceHandle CreateTexture(char const* name, TextureDesc const& desc);
-		RGResourceHandle ReadResource(RGResourceHandle const& handle);
-		RGResourceHandle WriteResource(RGResourceHandle& handle);
 
+		RGResourceHandle Read(RGResourceHandle const& handle, ERGReadFlag read_flag = ReadFlag_PixelShaderAccess);
+		RGResourceHandle Write(RGResourceHandle& handle, ERGWriteFlag write_flag = WriteFlag_UnorderedAccess);
+		RGResourceHandle RenderTarget(RGResourceHandle& handle, ERGLoadStoreAccessOp load_store_op);
+		RGResourceHandle DepthStencil(RGResourceHandle& handle, ERGLoadStoreAccessOp depth_load_store_op, bool readonly = false, 
+			ERGLoadStoreAccessOp stencil_load_store_op = ERGLoadStoreAccessOp::NoAccess_NoAccess);
 	private:
 
 		RenderGraphBuilder(RenderGraph&, RenderGraphPassBase&);
@@ -119,8 +131,6 @@ namespace adria
 			void AddPass(RenderGraphPassBase* pass);
 
 			void SetupDestroys();
-
-			void Execute(GraphicsDevice* gfx, std::vector<ID3D12GraphicsCommandList4*> const& cmd_lists);
 
 			void Execute(GraphicsDevice* gfx, ID3D12GraphicsCommandList4* cmd_list);
 

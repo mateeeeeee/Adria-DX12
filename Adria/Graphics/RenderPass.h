@@ -45,7 +45,6 @@ namespace adria
         explicit RenderPass(RenderPassDesc const& desc);
 
         void Begin(ID3D12GraphicsCommandList4* cmd_list, bool legacy = false);
-
         void End(ID3D12GraphicsCommandList4* cmd_list, bool legacy = false);
 
     private:

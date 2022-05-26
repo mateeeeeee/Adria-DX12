@@ -15,29 +15,83 @@ namespace adria
 		return handle;
 	}
 
-	RGResourceHandle RenderGraphBuilder::ReadResource(RGResourceHandle const& handle)
+	RGResourceHandle RenderGraphBuilder::Read(RGResourceHandle const& handle, ERGReadFlag read_flag)
 	{
+		if (rg_pass.type == ERGPassType::Copy) read_flag = ReadFlag_CopySrc;
+
 		rg_pass.reads.insert(handle);
+		switch (read_flag)
+		{
+		case ReadFlag_PixelShaderAccess:
+			rg_pass.resource_state_map[handle] = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+			break;
+		case ReadFlag_NonPixelShaderAccess:
+			rg_pass.resource_state_map[handle] = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+			break;
+		case ReadFlag_AllPixelShaderAccess:
+			rg_pass.resource_state_map[handle] = D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
+			break;
+		case ReadFlag_CopySrc:
+			rg_pass.resource_state_map[handle] = D3D12_RESOURCE_STATE_COPY_SOURCE;
+			break;
+		case ReadFlag_IndirectArgument:
+			rg_pass.resource_state_map[handle] = D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
+			break;
+		default:
+			ADRIA_ASSERT(false && "Invalid Read Flag!");
+		}
+
 		return handle;
 	}
 
-	RGResourceHandle RenderGraphBuilder::WriteResource(RGResourceHandle& handle)
+	RGResourceHandle RenderGraphBuilder::Write(RGResourceHandle& handle, ERGWriteFlag write_flag)
 	{
-		if (rg_pass.creates.contains(handle))
+		if (rg_pass.type == ERGPassType::Copy) write_flag = WriteFlag_CopyDst;
+
+		D3D12_RESOURCE_STATES resource_states = D3D12_RESOURCE_STATE_COMMON;
+		switch (write_flag)
 		{
-			rg_pass.writes.insert(handle);
-			return handle;
+		case WriteFlag_UnorderedAccess:
+			resource_states = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+			break;
+		case WriteFlag_CopyDst:
+			resource_states = D3D12_RESOURCE_STATE_COPY_DEST;
+			break;
+		default:
+			ADRIA_ASSERT(false && "Invalid Read Flag!");
 		}
-		else
-		{
-			auto const& node = rg.GetResourceNode(handle);
-			++node.resource->version;
-			if (node.resource->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
-			handle = RGResourceHandle();
-			RGResourceHandle new_handle = rg.CreateResourceNode(node.resource);
-			rg_pass.writes.insert(new_handle);
-			return new_handle;
-		}
+
+		rg_pass.resource_state_map[handle] = resource_states;
+		rg_pass.writes.insert(handle);
+
+		auto const& node = rg.GetResourceNode(handle);
+		if (node.resource->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
+		if (!rg_pass.creates.contains(handle)) ++node.resource->version;
+
+		return handle;
+	}
+
+	RGResourceHandle RenderGraphBuilder::RenderTarget(RGResourceHandle& handle, ERGLoadStoreAccessOp load_store_op)
+	{
+		rg_pass.resource_state_map[handle] = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		rg_pass.writes.insert(handle);
+		rg_pass.render_targets.push_back(RenderGraphPassBase::RenderTargetInfo{ .render_target_handle = handle, .render_target_access = load_store_op });
+		auto const& node = rg.GetResourceNode(handle);
+		if (node.resource->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
+		if (!rg_pass.creates.contains(handle)) ++node.resource->version;
+		return handle;
+	}
+
+	RGResourceHandle RenderGraphBuilder::DepthStencil(RGResourceHandle& handle, ERGLoadStoreAccessOp depth_load_store_op, bool readonly /*= false*/, ERGLoadStoreAccessOp stencil_load_store_op /*= ERGLoadStoreAccessOp::NoAccess_NoAccess*/)
+	{
+		rg_pass.reads.insert(handle);
+		rg_pass.depth_stencil = RenderGraphPassBase::DepthStencilInfo{ .depth_stencil_handle = handle, .depth_access = depth_load_store_op,.stencil_access = stencil_load_store_op, .readonly = readonly };
+		auto const& node = rg.GetResourceNode(handle);
+
+		if (!rg_pass.creates.contains(handle)) ++node.resource->version;
+		if (node.resource->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
+		rg_pass.resource_state_map[handle] = readonly ? D3D12_RESOURCE_STATE_DEPTH_READ : D3D12_RESOURCE_STATE_DEPTH_WRITE;
+		return handle;
 	}
 
 	RenderGraphBuilder::RenderGraphBuilder(RenderGraph& rg, RenderGraphPassBase& rg_pass)
@@ -260,28 +314,28 @@ namespace adria
 	RGResourceView RenderGraph::CreateShaderResourceView(RGResourceHandle handle, TextureViewDesc const& desc)
 	{
 		RGTexture* texture = GetTexture(handle);
-		size_t i = texture->texture->CreateSRV({ NULL }, {});
+		size_t i = texture->texture->CreateSRV(&desc);
 		return texture->texture->SRV(i);
 	}
 
 	RGResourceView RenderGraph::CreateRenderTargetView(RGResourceHandle handle, TextureViewDesc const& desc)
 	{
 		RGTexture* texture = GetTexture(handle);
-		size_t i = texture->texture->CreateRTV({ NULL }, {});
+		size_t i = texture->texture->CreateRTV(&desc);
 		return texture->texture->SRV(i);
 	}
 
 	RGResourceView RenderGraph::CreateUnorderedAccessView(RGResourceHandle handle, TextureViewDesc const& desc)
 	{
 		RGTexture* texture = GetTexture(handle);
-		size_t i = texture->texture->CreateUAV({ NULL }, {});
+		size_t i = texture->texture->CreateUAV(&desc);
 		return texture->texture->SRV(i);
 	}
 
 	RGResourceView RenderGraph::CreateDepthStencilView(RGResourceHandle handle, TextureViewDesc const& desc)
 	{
 		RGTexture* texture = GetTexture(handle);
-		size_t i = texture->texture->CreateDSV({ NULL }, {});
+		size_t i = texture->texture->CreateDSV(&desc);
 		return texture->texture->SRV(i);
 	}
 
@@ -302,27 +356,10 @@ namespace adria
 	{
 		for (auto& pass : passes)
 		{
+			if (pass->IsCulled()) continue;
 			RenderGraphResources rg_resources(rg, *pass);
-			if(!pass->IsCulled()) pass->Execute(rg_resources, gfx, cmd_list);
+			pass->Execute(rg_resources, gfx, cmd_list);
 		}
-	}
-
-	void RenderGraph::DependencyLevel::Execute(GraphicsDevice* gfx, std::vector<ID3D12GraphicsCommandList4*> const& cmd_lists)
-	{
-		ADRIA_ASSERT(passes.size() <= cmd_lists.size());
-		std::vector<std::future<void>> void_futures;
-
-		for (size_t i = 0; i < passes.size(); ++i)
-		{
-			if (passes[i]->IsCulled()) continue;
-			void_futures.push_back(
-				TaskSystem::Submit([&](size_t j) 
-					{
-						RenderGraphResources rg_resources(rg, *passes[j]);
-						passes[j]->Execute(rg_resources, gfx, cmd_lists[j]);
-					}, i));
-		}
-		for (auto& fut : void_futures) fut.wait();
 	}
 
 	size_t RenderGraph::DependencyLevel::GetSize() const

@@ -10,6 +10,7 @@ namespace adria
 		RenderGraphResourceHandle() : id(invalid_id) {}
 		RenderGraphResourceHandle(size_t _id) : id(_id) {}
 
+		void Invalidate() { id = invalid_id; }
 		bool IsValid() const { return id != invalid_id; }
 		auto operator<=>(RenderGraphResourceHandle const&) const = default;
 
