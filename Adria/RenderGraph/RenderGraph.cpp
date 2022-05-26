@@ -8,14 +8,14 @@
 namespace adria
 {
 
-	RGResourceHandle RenderGraphBuilder::CreateTexture(char const* name, TextureDesc const& desc)
+	RGTextureHandle RenderGraphBuilder::CreateTexture(char const* name, TextureDesc const& desc)
 	{
-		RGResourceHandle handle = rg.CreateTexture(name, desc);
+		RGTextureHandle handle = rg.CreateTexture(name, desc);
 		rg_pass.creates.insert(handle);
 		return handle;
 	}
 
-	RGResourceHandle RenderGraphBuilder::Read(RGResourceHandle const& handle, ERGReadFlag read_flag)
+	adria::RGTextureHandle RenderGraphBuilder::Read(RGTextureHandle handle, ERGReadFlag read_flag /*= ReadFlag_PixelShaderAccess*/)
 	{
 		if (rg_pass.type == ERGPassType::Copy) read_flag = ReadFlag_CopySrc;
 
@@ -44,7 +44,7 @@ namespace adria
 		return handle;
 	}
 
-	RGResourceHandle RenderGraphBuilder::Write(RGResourceHandle& handle, ERGWriteFlag write_flag)
+	adria::RGTextureHandle RenderGraphBuilder::Write(RGTextureHandle handle, ERGWriteFlag write_flag /*= WriteFlag_UnorderedAccess*/)
 	{
 		if (rg_pass.type == ERGPassType::Copy) write_flag = WriteFlag_CopyDst;
 
@@ -64,32 +64,32 @@ namespace adria
 		rg_pass.resource_state_map[handle] = resource_states;
 		rg_pass.writes.insert(handle);
 
-		auto const& node = rg.GetResourceNode(handle);
-		if (node.resource->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
-		if (!rg_pass.creates.contains(handle)) ++node.resource->version;
+		auto const& node = rg.GetTextureNode(handle);
+		if (node.texture->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
+		if (!rg_pass.creates.contains(handle)) ++node.texture->version;
 
 		return handle;
 	}
 
-	RGResourceHandle RenderGraphBuilder::RenderTarget(RGResourceHandle& handle, ERGLoadStoreAccessOp load_store_op)
+	adria::RGTextureHandle RenderGraphBuilder::RenderTarget(RGTextureHandle handle, ERGLoadStoreAccessOp load_store_op)
 	{
 		rg_pass.resource_state_map[handle] = D3D12_RESOURCE_STATE_RENDER_TARGET;
 		rg_pass.writes.insert(handle);
 		rg_pass.render_targets.push_back(RenderGraphPassBase::RenderTargetInfo{ .render_target_handle = handle, .render_target_access = load_store_op });
-		auto const& node = rg.GetResourceNode(handle);
-		if (node.resource->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
-		if (!rg_pass.creates.contains(handle)) ++node.resource->version;
+		auto const& node = rg.GetTextureNode(handle);
+		if (node.texture->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
+		if (!rg_pass.creates.contains(handle)) ++node.texture->version;
 		return handle;
 	}
 
-	RGResourceHandle RenderGraphBuilder::DepthStencil(RGResourceHandle& handle, ERGLoadStoreAccessOp depth_load_store_op, bool readonly /*= false*/, ERGLoadStoreAccessOp stencil_load_store_op /*= ERGLoadStoreAccessOp::NoAccess_NoAccess*/)
+	adria::RGTextureHandle RenderGraphBuilder::DepthStencil(RGTextureHandle handle, ERGLoadStoreAccessOp depth_load_store_op, bool readonly /*= false*/, ERGLoadStoreAccessOp stencil_load_store_op /*= ERGLoadStoreAccessOp::NoAccess_NoAccess*/)
 	{
 		rg_pass.reads.insert(handle);
 		rg_pass.depth_stencil = RenderGraphPassBase::DepthStencilInfo{ .depth_stencil_handle = handle, .depth_access = depth_load_store_op,.stencil_access = stencil_load_store_op, .readonly = readonly };
-		auto const& node = rg.GetResourceNode(handle);
+		auto const& node = rg.GetTextureNode(handle);
 
-		if (!rg_pass.creates.contains(handle)) ++node.resource->version;
-		if (node.resource->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
+		if (!rg_pass.creates.contains(handle)) ++node.texture->version;
+		if (node.texture->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
 		rg_pass.resource_state_map[handle] = readonly ? D3D12_RESOURCE_STATE_DEPTH_READ : D3D12_RESOURCE_STATE_DEPTH_WRITE;
 		return handle;
 	}
@@ -98,41 +98,44 @@ namespace adria
 		: rg(rg), rg_pass(rg_pass)
 	{}
 
-	RGResourceHandle RenderGraph::CreateTexture(char const* name, TextureDesc const& desc)
+	RGTextureHandle RenderGraph::CreateTexture(char const* name, TextureDesc const& desc)
 	{
 		textures.emplace_back(new RGTexture(name, textures.size(), desc));
-		return CreateResourceNode(textures.back().get());
+		return CreateTextureNode(textures.back().get());
 	}
 
-	RGResourceHandle RenderGraph::ImportResource(EImportedId id, ID3D12Resource* texture)
+	RGTextureHandle RenderGraph::ImportTexture(char const* name, Texture* texture)
 	{
-		imported_resources[(size_t)id] = texture;
+		imported_textures.emplace_back(new RGTexture(name, imported_textures.size(), texture));
+		return CreateTextureNode(textures.back().get());
 	}
 
-	void RenderGraph::ImportResourceView(EImportedViewId id, RGResourceView view)
+	Texture* RenderGraph::GetTexture(RGTextureHandle handle) 
 	{
-		imported_views[(size_t)id] = view;
+		RGTextureNode const& node = GetTextureNode(handle);
+		return node.texture->resource;
 	}
 
-	bool RenderGraph::IsValidHandle(RGResourceHandle handle) const
+	RGBufferHandle RenderGraph::CreateBuffer(char const* name, BufferDesc const& desc)
+	{
+
+	}
+
+	Buffer* RenderGraph::GetBuffer(RGBufferHandle handle)
+	{
+		RGBufferNode const& node = GetBufferNode(handle);
+		return node.buffer->resource;
+	}
+
+	Texture* RenderGraph::GetImportedTexture(RGTextureHandle handle)
+	{
+		RGTextureNode const& node = GetTextureNode(handle);
+		return node.texture->resource;
+	}
+
+	bool RenderGraph::IsValidTextureHandle(RGTextureHandle handle) const
 	{
 		return handle.IsValid() && handle.id < texture_nodes.size();
-	}
-
-	RGTexture* RenderGraph::GetTexture(RGResourceHandle handle) 
-	{
-		RGTextureNode& node = GetResourceNode(handle);
-		return node.resource;
-	}
-
-	ID3D12Resource* RenderGraph::GetImportedResource(EImportedId id) const
-	{
-		return imported_resources[(size_t)id];
-	}
-
-	RGResourceView RenderGraph::GetImportedView(EImportedViewId id) const
-	{
-		return imported_views[(size_t)id];
 	}
 
 	void RenderGraph::Build()
@@ -154,29 +157,50 @@ namespace adria
 		{
 			for (auto handle : dependency_level.creates)
 			{
-				RGTexture* rg_texture = GetTexture(handle);
-				rg_texture->texture = pool.AllocateTexture(rg_texture->desc);
+				auto& rg_texture_node = GetTextureNode(handle);
+				rg_texture_node.texture->resource = pool.AllocateTexture(rg_texture_node.texture->desc);
 			}
 
 			dependency_level.Execute(gfx, cmd_list);
 
 			for (auto handle : dependency_level.destroys)
 			{
-				RGTexture* rg_texture = GetTexture(handle);
-				pool.ReleaseTexture(rg_texture->texture);
+				auto& rg_texture_node = GetTextureNode(handle);
+				pool.ReleaseTexture(rg_texture_node.texture->resource);
 			}
 		}
 	}
 
-	RGResourceHandle RenderGraph::CreateResourceNode(RGTexture* resource)
+	RGTextureHandle RenderGraph::CreateTextureNode(RGTexture* resource)
 	{
 		texture_nodes.emplace_back(resource);
-		return RGResourceHandle(texture_nodes.size() - 1);
+		return RGTextureHandle(texture_nodes.size() - 1);
 	}
 
-	RGTextureNode& RenderGraph::GetResourceNode(RGResourceHandle handle)
+	RGTextureNode const& RenderGraph::GetTextureNode(RGTextureHandle handle) const
 	{
 		return texture_nodes[handle.id];
+	}
+
+	RGTextureNode& RenderGraph::GetTextureNode(RGTextureHandle handle)
+	{
+		return texture_nodes[handle.id];
+	}
+
+	RGBufferHandle RenderGraph::CreateBufferNode(RGBuffer* resource)
+	{
+		buffer_nodes.emplace_back(resource);
+		return RGBufferHandle(buffer_nodes.size() - 1);
+	}
+
+	RGBufferNode const& RenderGraph::GetBufferNode(RGBufferHandle handle) const
+	{
+		return buffer_nodes[handle.id];
+	}
+
+	RGBufferNode& RenderGraph::GetBufferNode(RGBufferHandle handle)
+	{
+		return buffer_nodes[handle.id];
 	}
 
 	void RenderGraph::BuildAdjacencyLists()
@@ -248,18 +272,18 @@ namespace adria
 			pass->ref_count = pass->writes.size();
 			for (auto id : pass->reads)
 			{
-				auto& consumed = GetResourceNode(id);
-				++consumed.resource->ref_count;
+				auto& consumed = GetTextureNode(id);
+				++consumed.texture->ref_count;
 			}
 			for (auto id : pass->writes)
 			{
-				auto& written = GetResourceNode(id);
+				auto& written = GetTextureNode(id);
 				written.writer = pass.get();
 			}
 		}
 
 		std::stack<RGTextureNode> zero_ref_resources;
-		for (auto& node : texture_nodes) if (node.resource->ref_count == 0) zero_ref_resources.push(node);
+		for (auto& node : texture_nodes) if (node.texture->ref_count == 0) zero_ref_resources.push(node);
 
 		while (!zero_ref_resources.empty())
 		{
@@ -272,8 +296,8 @@ namespace adria
 			{
 				for (auto id : writer->reads)
 				{
-					auto& node = GetResourceNode(id);
-					if (--node.resource->ref_count == 0) zero_ref_resources.push(node);
+					auto& node = GetTextureNode(id);
+					if (--node.texture->ref_count == 0) zero_ref_resources.push(node);
 				}
 			}
 		}
@@ -285,14 +309,14 @@ namespace adria
 		{
 			if (pass->IsCulled()) continue;
 			for (auto id : pass->writes)
-				GetResourceNode(id).last_used_by = pass.get();
+				GetTextureNode(id).last_used_by = pass.get();
 			for (auto id : pass->reads)
-				GetResourceNode(id).last_used_by = pass.get();
+				GetTextureNode(id).last_used_by = pass.get();
 		}
 
 		for (size_t i = 0; i < texture_nodes.size(); ++i)
 		{
-			texture_nodes[i].last_used_by->destroy.insert(RGResourceHandle(i));
+			texture_nodes[i].last_used_by->destroy.insert(RGTextureHandle(i));
 		}
 
 		for (auto& dependency_level : dependency_levels)
@@ -311,32 +335,46 @@ namespace adria
 		stack.push(i);
 	}
 
-	RGResourceView RenderGraph::CreateShaderResourceView(RGResourceHandle handle, TextureViewDesc const& desc)
+	RGResourceView RenderGraph::CreateShaderResourceView(RGTextureHandle handle, TextureViewDesc const& desc)
 	{
-		RGTexture* texture = GetTexture(handle);
-		size_t i = texture->texture->CreateSRV(&desc);
-		return texture->texture->SRV(i);
+		Texture* texture = GetTexture(handle);
+		size_t i = texture->CreateSRV(&desc);
+		return texture->SRV(i);
 	}
 
-	RGResourceView RenderGraph::CreateRenderTargetView(RGResourceHandle handle, TextureViewDesc const& desc)
+	RGResourceView RenderGraph::CreateRenderTargetView(RGTextureHandle handle, TextureViewDesc const& desc)
 	{
-		RGTexture* texture = GetTexture(handle);
-		size_t i = texture->texture->CreateRTV(&desc);
-		return texture->texture->SRV(i);
+		Texture* texture = GetTexture(handle);
+		size_t i = texture->CreateRTV(&desc);
+		return texture->RTV(i);
 	}
 
-	RGResourceView RenderGraph::CreateUnorderedAccessView(RGResourceHandle handle, TextureViewDesc const& desc)
+	RGResourceView RenderGraph::CreateUnorderedAccessView(RGTextureHandle handle, TextureViewDesc const& desc)
 	{
-		RGTexture* texture = GetTexture(handle);
-		size_t i = texture->texture->CreateUAV(&desc);
-		return texture->texture->SRV(i);
+		Texture* texture = GetTexture(handle);
+		size_t i = texture->CreateUAV(&desc);
+		return texture->UAV(i);
 	}
 
-	RGResourceView RenderGraph::CreateDepthStencilView(RGResourceHandle handle, TextureViewDesc const& desc)
+	RGResourceView RenderGraph::CreateDepthStencilView(RGTextureHandle handle, TextureViewDesc const& desc)
 	{
-		RGTexture* texture = GetTexture(handle);
-		size_t i = texture->texture->CreateDSV(&desc);
-		return texture->texture->SRV(i);
+		Texture* texture = GetTexture(handle);
+		size_t i = texture->CreateDSV(&desc);
+		return texture->UAV(i);
+	}
+
+	RGResourceView RenderGraph::CreateShaderResourceView(RGBufferHandle handle, BufferViewDesc const& desc)
+	{
+		Buffer* buffer = GetBuffer(handle);
+		size_t i = buffer->CreateSRV(&desc);
+		return buffer->SRV(i);
+	}
+
+	RGResourceView RenderGraph::CreateUnorderedAccessView(RGBufferHandle handle, BufferViewDesc const& desc)
+	{
+		Buffer* buffer = GetBuffer(handle);
+		size_t i = buffer->CreateUAV(nullptr, &desc);
+		return buffer->UAV(i);
 	}
 
 	void RenderGraph::DependencyLevel::AddPass(RenderGraphPassBase* pass)

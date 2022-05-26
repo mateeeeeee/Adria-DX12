@@ -93,13 +93,13 @@ namespace adria
 
 		struct RenderTargetInfo
 		{
-			RGResourceHandle render_target_handle;
+			RGTextureHandle render_target_handle;
 			ERGLoadStoreAccessOp render_target_access;
 		};
 
 		struct DepthStencilInfo
 		{
-			RGResourceHandle depth_stencil_handle;
+			RGTextureHandle depth_stencil_handle;
 			ERGLoadStoreAccessOp depth_access;
 			ERGLoadStoreAccessOp stencil_access;
 			bool readonly;
@@ -123,12 +123,12 @@ namespace adria
 		size_t ref_count = 0ull;
 		ERGPassType type;
 		ERGPassFlags flags;
-		std::unordered_set<RGResourceHandle> creates;
-		std::unordered_set<RGResourceHandle> reads;
-		std::unordered_set<RGResourceHandle> writes;
-		std::unordered_set<RGResourceHandle> destroy;
+		std::unordered_set<RGTextureHandle> creates;
+		std::unordered_set<RGTextureHandle> reads;
+		std::unordered_set<RGTextureHandle> writes;
+		std::unordered_set<RGTextureHandle> destroy;
 
-		std::unordered_map<RGResourceHandle, D3D12_RESOURCE_STATES> resource_state_map;
+		std::unordered_map<RGTextureHandle, D3D12_RESOURCE_STATES> resource_state_map;
 		std::vector<RenderTargetInfo> render_targets;
 		std::optional<DepthStencilInfo> depth_stencil = std::nullopt;
 	};

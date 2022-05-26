@@ -12,25 +12,6 @@
 
 namespace adria
 {
-
-	enum class EImportedId : uint32
-	{
-		Backbuffer,
-		Count
-	};
-
-	enum class EImportedViewId : uint32
-	{
-		Backbuffer_RTV,
-		Count
-	};
-
-	static char const* ImportedIdNames[] =
-	{
-		"Backbuffer",
-		"Count"
-	};
-
 	class RenderGraphResourcePool
 	{
 		struct PooledTexture
@@ -100,12 +81,12 @@ namespace adria
 		RenderGraphBuilder(RenderGraphBuilder const&) = delete;
 		RenderGraphBuilder& operator=(RenderGraphBuilder const&) = delete;
 
-		RGResourceHandle CreateTexture(char const* name, TextureDesc const& desc);
+		RGTextureHandle CreateTexture(char const* name, TextureDesc const& desc);
 
-		RGResourceHandle Read(RGResourceHandle const& handle, ERGReadFlag read_flag = ReadFlag_PixelShaderAccess);
-		RGResourceHandle Write(RGResourceHandle& handle, ERGWriteFlag write_flag = WriteFlag_UnorderedAccess);
-		RGResourceHandle RenderTarget(RGResourceHandle& handle, ERGLoadStoreAccessOp load_store_op);
-		RGResourceHandle DepthStencil(RGResourceHandle& handle, ERGLoadStoreAccessOp depth_load_store_op, bool readonly = false, 
+		RGTextureHandle Read(RGTextureHandle handle, ERGReadFlag read_flag = ReadFlag_PixelShaderAccess);
+		RGTextureHandle Write(RGTextureHandle handle, ERGWriteFlag write_flag = WriteFlag_UnorderedAccess);
+		RGTextureHandle RenderTarget(RGTextureHandle handle, ERGLoadStoreAccessOp load_store_op);
+		RGTextureHandle DepthStencil(RGTextureHandle handle, ERGLoadStoreAccessOp depth_load_store_op, bool readonly = false, 
 			ERGLoadStoreAccessOp stencil_load_store_op = ERGLoadStoreAccessOp::NoAccess_NoAccess);
 	private:
 
@@ -141,10 +122,10 @@ namespace adria
 		private:
 			RenderGraph& rg;
 			std::vector<RenderGraphPassBase*>    passes;
-			std::unordered_set<RGResourceHandle> creates;
-			std::unordered_set<RGResourceHandle> reads;
-			std::unordered_set<RGResourceHandle> writes;
-			std::unordered_set<RGResourceHandle> destroys;
+			std::unordered_set<RGTextureHandle> creates;
+			std::unordered_set<RGTextureHandle> reads;
+			std::unordered_set<RGTextureHandle> writes;
+			std::unordered_set<RGTextureHandle> destroys;
 		};
 
 	public:
@@ -166,29 +147,32 @@ namespace adria
 			return *dynamic_cast<RenderGraphPass<PassData>*>(passes.back().get());
 		}
 
-		RGResourceHandle CreateTexture(char const* name, TextureDesc const& desc);
-		RGTexture* GetTexture(RGResourceHandle);
+		RGTextureHandle CreateTexture(char const* name, TextureDesc const& desc);
+		Texture* GetTexture(RGTextureHandle);
 
-		bool IsValidHandle(RGResourceHandle) const;
+		RGBufferHandle CreateBuffer(char const* name, BufferDesc const& desc);
+		Buffer* GetBuffer(RGBufferHandle);
 
-		RGResourceHandle ImportResource(EImportedId id, ID3D12Resource* texture);
-		void ImportResourceView(EImportedViewId id, RGResourceView view);
-		ID3D12Resource* GetImportedResource(EImportedId id) const;
-		RGResourceView GetImportedView(EImportedViewId) const;
+		RGTextureHandle ImportTexture(char const* name, Texture* texture);
+		Texture* GetImportedTexture(RGTextureHandle);
 
 		void Build();
 		void Execute();
+
+		bool IsValidTextureHandle(RGTextureHandle) const;
 
 		RGBlackboard const& GetBlackboard() const { return blackboard; }
 		RGBlackboard& GetBlackboard() { return blackboard; }
 
 	private:
 		std::vector<std::unique_ptr<RGPassBase>> passes;
+
 		std::vector<std::unique_ptr<RGTexture>> textures;
 		std::vector<RGTextureNode> texture_nodes;
+		std::vector<Texture*> imported_textures;
 
-		std::vector<ID3D12Resource*> imported_resources;
-		std::vector<RGResourceView> imported_views;
+		std::vector<std::unique_ptr<RGBuffer>> buffers;
+		std::vector<RGBufferNode> buffer_nodes;
 
 		std::vector<std::vector<uint64>> adjacency_lists;
 		std::vector<RenderGraphPassBase*> topologically_sorted_passes;
@@ -197,11 +181,15 @@ namespace adria
 		RGBlackboard blackboard;
 		RGResourcePool& pool;
 		GraphicsDevice* gfx;
-		//std::unique_ptr<Heap> resource_heap; need better allocator then linear if placed resources are used
 	private:
 
-		RGResourceHandle CreateResourceNode(RGTexture* resource);
-		RGTextureNode& GetResourceNode(RGResourceHandle handle);
+		RGTextureHandle CreateTextureNode(RGTexture* resource);
+		RGTextureNode const& GetTextureNode(RGTextureHandle handle) const;
+		RGTextureNode& GetTextureNode(RGTextureHandle handle);
+
+		RGBufferHandle CreateBufferNode(RGBuffer* resource);
+		RGBufferNode const& GetBufferNode(RGBufferHandle handle) const;
+		RGBufferNode& GetBufferNode(RGBufferHandle handle);
 
 		void BuildAdjacencyLists();
 		void TopologicalSort();
@@ -210,10 +198,13 @@ namespace adria
 		void CalculateResourcesLifetime();
 		void DepthFirstSearch(size_t i, std::vector<bool>& visited, std::stack<size_t>& stack);
 
-		RGResourceView CreateShaderResourceView(RGResourceHandle handle, TextureViewDesc  const& desc);
-		RGResourceView CreateRenderTargetView(RGResourceHandle handle, TextureViewDesc    const& desc);
-		RGResourceView CreateUnorderedAccessView(RGResourceHandle handle, TextureViewDesc const& desc);
-		RGResourceView CreateDepthStencilView(RGResourceHandle handle, TextureViewDesc    const& desc);
+		RGResourceView CreateShaderResourceView(RGTextureHandle handle, TextureViewDesc  const& desc);
+		RGResourceView CreateRenderTargetView(RGTextureHandle handle, TextureViewDesc    const& desc);
+		RGResourceView CreateUnorderedAccessView(RGTextureHandle handle, TextureViewDesc const& desc);
+		RGResourceView CreateDepthStencilView(RGTextureHandle handle, TextureViewDesc    const& desc);
+
+		RGResourceView CreateShaderResourceView(RGBufferHandle handle,  BufferViewDesc const& desc);
+		RGResourceView CreateUnorderedAccessView(RGBufferHandle handle, BufferViewDesc const& desc);
 	};
 
 }

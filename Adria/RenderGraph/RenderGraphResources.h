@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-#include "../Graphics/Texture.h"
 #include "RenderGraphResourceHandle.h"
 
 namespace adria
@@ -8,75 +7,133 @@ namespace adria
 	class RenderGraphPassBase;
 	class RenderGraph;
 
-	struct RenderGraphTexture
-	{
-		RenderGraphTexture(char const* name, size_t id, Texture* texture)
-			: name(name), id(id), imported(true), version(0), texture(texture),
-			  desc(texture->GetDesc()), ref_count(0)
-		{}
+	template<typename ResourceType>
+	struct RGResourceTraits;
 
-		RenderGraphTexture(char const* name, size_t id, TextureDesc const& desc)
-			: name(name), id(id), imported(false), version(0), texture(nullptr),
-			  desc(desc), ref_count(0)
+	template<>
+	struct RGResourceTraits<Texture>
+	{
+		using ResourceDesc = TextureDesc;
+	};
+
+	template<>
+	struct RGResourceTraits<Buffer>
+	{
+		using ResourceDesc = BufferDesc;
+	};
+
+	struct RenderGraphResource
+	{
+		RenderGraphResource(char const* name, size_t id, bool imported)
+			: name(name), id(id), imported(imported), version(0), ref_count(0)
 		{}
 
 		std::string name;
 		size_t id;
 		bool imported;
 		size_t version;
-		Texture* texture;
-		TextureDesc desc;
 		size_t ref_count;
 	};
 
-	using RGTexture = RenderGraphTexture;
+	template<typename ResourceType>
+	struct TypedRenderGraphResource : RenderGraphResource
+	{
+		using ResourceDesc = RGResourceTraits<ResourceType>::ResourceDesc;
+
+		TypedRenderGraphResource(char const* name, size_t id, ResourceType* resource)
+			: RenderGraphResource(name, id, true), resource(resource), desc(resource->GetDesc())
+		{}
+
+		TypedRenderGraphResource(char const* name, size_t id, ResourceDesc const& desc)
+			: RenderGraphResource(name, id, true), resource(nullptr), desc(desc)
+		{}
+
+		ResourceType* resource;
+		ResourceDesc desc;
+	};
+	using RGTexture = TypedRenderGraphResource<Texture>;
+	using RGBuffer = TypedRenderGraphResource<Buffer>;
 
 	struct RenderGraphTextureNode
 	{
-		explicit RenderGraphTextureNode(RGTexture* resource)
-			: resource(resource), version(resource->version)
+		explicit RenderGraphTextureNode(RGTexture* texture)
+			: texture(texture), version(texture->version)
 		{}
-		RGTexture* resource;
+		RGTexture* texture;
 		size_t version;
 		RenderGraphPassBase* writer = nullptr;
 		RenderGraphPassBase* last_used_by = nullptr;
 	};
 	using RGTextureNode = RenderGraphTextureNode;
 
+	struct RenderGraphBufferNode
+	{
+		explicit RenderGraphBufferNode(RGBuffer* buffer)
+			: buffer(buffer), version(buffer->version)
+		{}
+		RGBuffer* buffer;
+		size_t version;
+		RenderGraphPassBase* writer = nullptr;
+		RenderGraphPassBase* last_used_by = nullptr;
+	};
+	using RGBufferNode = RenderGraphBufferNode;
 
 	using RGResourceView = D3D12_CPU_DESCRIPTOR_HANDLE;
-	enum class RGResourceViewType
+	enum RGResourceViewType
 	{
-		SRV,
-		UAV,
-		RTV,
-		DSV
+		RG_SRV,
+		RG_UAV,
+		RG_RTV,
+		RG_DSV
 	};
 
 	class RenderGraphResources
 	{
 		friend RenderGraph;
-
-
 	public:
 		RenderGraphResources() = delete;
 		RenderGraphResources(RenderGraphResources const&) = delete;
 		RenderGraphResources& operator=(RenderGraphResources const&) = delete;
 
-		RGTexture& GetTexture(RGResourceHandle handle);
+		Texture& GetTexture(RGTextureHandle handle);
+		Buffer& GetBuffer(RGBufferHandle handle);
 
 		template<RGResourceViewType ViewType>
-		RGResourceView CreateTextureView(RGResourceHandle handle, TextureViewDesc const& view_desc)
+		RGResourceView CreateTextureView(RGTextureHandle handle, TextureViewDesc const& view_desc)
 		{
-			if constexpr (ViewType == RGResourceViewType::SRV)
+			switch (ViewType)
+			{
+			case RG_SRV:
 				return CreateShaderResourceView(handle, view_desc);
-			else if constexpr (ViewType == RGResourceViewType::UAV)
+			case RG_UAV:
 				return CreateUnorderedAccessView(handle, view_desc);
-			else if constexpr (ViewType == RGResourceViewType::RTV)
+			case RG_RTV:
 				return CreateRenderTargetView(handle, view_desc);
-			else if constexpr (ViewType == RGResourceViewType::DSV)
+			case RG_DSV:
 				return CreateDepthStencilView(handle, view_desc);
-			else  RGResourceView{ .ptr = NULL };
+			default:
+				ADRIA_ASSERT(false && "Invalid View Type");
+			}
+
+			return  RGResourceView{ .ptr = NULL };
+		}
+
+		template<RGResourceViewType ViewType>
+		RGResourceView CreateBufferView(RGBufferHandle handle, BufferViewDesc const& view_desc)
+		{
+			switch (ViewType)
+			{
+			case RG_SRV:
+				return CreateShaderResourceView(handle, view_desc);
+			case RG_UAV:
+				return CreateUnorderedAccessView(handle, view_desc);
+			case RG_RTV:
+			case RG_DSV:
+			default:
+				ADRIA_ASSERT(false && "Invalid View Type");
+			}
+
+			return  RGResourceView{ .ptr = NULL };
 		}
 
 	private:
@@ -86,10 +143,12 @@ namespace adria
 	private:
 		RenderGraphResources(RenderGraph& rg, RenderGraphPassBase& rg_pass);
 
-		RGResourceView CreateShaderResourceView(RGResourceHandle handle, TextureViewDesc  const& desc);
-		RGResourceView CreateRenderTargetView(RGResourceHandle handle, TextureViewDesc    const& desc);
-		RGResourceView CreateUnorderedAccessView(RGResourceHandle handle, TextureViewDesc const& desc);
-		RGResourceView CreateDepthStencilView(RGResourceHandle handle, TextureViewDesc    const& desc);
+		RGResourceView CreateShaderResourceView(RGTextureHandle handle, TextureViewDesc  const& desc);
+		RGResourceView CreateRenderTargetView(RGTextureHandle handle, TextureViewDesc    const& desc);
+		RGResourceView CreateUnorderedAccessView(RGTextureHandle handle, TextureViewDesc const& desc);
+		RGResourceView CreateDepthStencilView(RGTextureHandle handle, TextureViewDesc    const& desc);
 
+		RGResourceView CreateShaderResourceView(RGBufferHandle handle, BufferViewDesc  const& desc);
+		RGResourceView CreateUnorderedAccessView(RGBufferHandle handle, BufferViewDesc const& desc);
 	};
 }
