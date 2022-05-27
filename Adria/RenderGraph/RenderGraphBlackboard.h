@@ -8,6 +8,12 @@
 namespace adria
 {
 
+	struct Test
+	{
+		int x;
+		float y;
+	};
+
 	class RenderGraphBlackboard
 	{
 	public:
@@ -15,6 +21,12 @@ namespace adria
 		~RenderGraphBlackboard() = default;
 		RenderGraphBlackboard(RenderGraphBlackboard const&) = delete;
 		RenderGraphBlackboard& operator=(RenderGraphBlackboard const&) = delete;
+
+		template<typename T>
+		T& Add(T&& data)
+		{
+			return Create<T>(std::forward<T>(data));
+		}
 
 		template<typename T, typename... Args> requires std::is_constructible_v<T, Args...>
 		T& Create(Args&&... args)
