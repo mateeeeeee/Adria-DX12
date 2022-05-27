@@ -15,7 +15,7 @@ namespace adria
 		return handle;
 	}
 
-	adria::RGTextureHandle RenderGraphBuilder::Read(RGTextureHandle handle, ERGReadFlag read_flag /*= ReadFlag_PixelShaderAccess*/)
+	RGTextureHandle RenderGraphBuilder::Read(RGTextureHandle handle, ERGReadFlag read_flag /*= ReadFlag_PixelShaderAccess*/)
 	{
 		if (rg_pass.type == ERGPassType::Copy) read_flag = ReadFlag_CopySrc;
 
@@ -44,7 +44,7 @@ namespace adria
 		return handle;
 	}
 
-	adria::RGTextureHandle RenderGraphBuilder::Write(RGTextureHandle handle, ERGWriteFlag write_flag /*= WriteFlag_UnorderedAccess*/)
+	RGTextureHandle RenderGraphBuilder::Write(RGTextureHandle handle, ERGWriteFlag write_flag /*= WriteFlag_UnorderedAccess*/)
 	{
 		if (rg_pass.type == ERGPassType::Copy) write_flag = WriteFlag_CopyDst;
 
@@ -71,7 +71,7 @@ namespace adria
 		return handle;
 	}
 
-	adria::RGTextureHandle RenderGraphBuilder::RenderTarget(RGTextureHandle handle, ERGLoadStoreAccessOp load_store_op)
+	RGTextureHandle RenderGraphBuilder::RenderTarget(RGTextureHandle handle, ERGLoadStoreAccessOp load_store_op)
 	{
 		rg_pass.resource_state_map[handle] = D3D12_RESOURCE_STATE_RENDER_TARGET;
 		rg_pass.writes.insert(handle);
@@ -82,7 +82,7 @@ namespace adria
 		return handle;
 	}
 
-	adria::RGTextureHandle RenderGraphBuilder::DepthStencil(RGTextureHandle handle, ERGLoadStoreAccessOp depth_load_store_op, bool readonly /*= false*/, ERGLoadStoreAccessOp stencil_load_store_op /*= ERGLoadStoreAccessOp::NoAccess_NoAccess*/)
+	RGTextureHandle RenderGraphBuilder::DepthStencil(RGTextureHandle handle, ERGLoadStoreAccessOp depth_load_store_op, bool readonly /*= false*/, ERGLoadStoreAccessOp stencil_load_store_op /*= ERGLoadStoreAccessOp::NoAccess_NoAccess*/)
 	{
 		rg_pass.reads.insert(handle);
 		rg_pass.depth_stencil = RenderGraphPassBase::DepthStencilInfo{ .depth_stencil_handle = handle, .depth_access = depth_load_store_op,.stencil_access = stencil_load_store_op, .readonly = readonly };
@@ -92,6 +92,26 @@ namespace adria
 		if (node.texture->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
 		rg_pass.resource_state_map[handle] = readonly ? D3D12_RESOURCE_STATE_DEPTH_READ : D3D12_RESOURCE_STATE_DEPTH_WRITE;
 		return handle;
+	}
+
+	RGTextureHandleSRV RenderGraphBuilder::CreateSRV(RGTextureHandle handle, TextureViewDesc const& desc)
+	{
+		return rg.CreateSRV(handle, desc);
+	}
+
+	RGTextureHandleUAV RenderGraphBuilder::CreateUAV(RGTextureHandle handle, TextureViewDesc const& desc)
+	{
+		return rg.CreateUAV(handle, desc);
+	}
+
+	RGTextureHandleRTV RenderGraphBuilder::CreateRTV(RGTextureHandle handle, TextureViewDesc const& desc)
+	{
+		return rg.CreateRTV(handle, desc);
+	}
+
+	RGTextureHandleDSV RenderGraphBuilder::CreateDSV(RGTextureHandle handle, TextureViewDesc const& desc)
+	{
+		return rg.CreateDSV(handle, desc);
 	}
 
 	RenderGraphBuilder::RenderGraphBuilder(RenderGraph& rg, RenderGraphPassBase& rg_pass)
@@ -136,6 +156,11 @@ namespace adria
 	bool RenderGraph::IsValidTextureHandle(RGTextureHandle handle) const
 	{
 		return handle.IsValid() && handle.id < texture_nodes.size();
+	}
+
+	bool RenderGraph::IsValidBufferHandle(RGBufferHandle handle) const
+	{
+		return handle.IsValid() && handle.id < buffer_nodes.size();
 	}
 
 	void RenderGraph::Build()
@@ -335,46 +360,24 @@ namespace adria
 		stack.push(i);
 	}
 
-	RGResourceView RenderGraph::CreateShaderResourceView(RGTextureHandle handle, TextureViewDesc const& desc)
+	RGTextureHandleSRV RenderGraph::CreateSRV(RGTextureHandle handle, TextureViewDesc const& desc)
 	{
-		Texture* texture = GetTexture(handle);
-		size_t i = texture->CreateSRV(&desc);
-		return texture->SRV(i);
+		
 	}
 
-	RGResourceView RenderGraph::CreateRenderTargetView(RGTextureHandle handle, TextureViewDesc const& desc)
+	RGTextureHandleUAV RenderGraph::CreateUAV(RGTextureHandle handle, TextureViewDesc const& desc)
 	{
-		Texture* texture = GetTexture(handle);
-		size_t i = texture->CreateRTV(&desc);
-		return texture->RTV(i);
+		
 	}
 
-	RGResourceView RenderGraph::CreateUnorderedAccessView(RGTextureHandle handle, TextureViewDesc const& desc)
+	RGTextureHandleRTV RenderGraph::CreateRTV(RGTextureHandle handle, TextureViewDesc const& desc)
 	{
-		Texture* texture = GetTexture(handle);
-		size_t i = texture->CreateUAV(&desc);
-		return texture->UAV(i);
+		
 	}
 
-	RGResourceView RenderGraph::CreateDepthStencilView(RGTextureHandle handle, TextureViewDesc const& desc)
+	RGTextureHandleDSV RenderGraph::CreateDSV(RGTextureHandle handle, TextureViewDesc const& desc)
 	{
-		Texture* texture = GetTexture(handle);
-		size_t i = texture->CreateDSV(&desc);
-		return texture->UAV(i);
-	}
-
-	RGResourceView RenderGraph::CreateShaderResourceView(RGBufferHandle handle, BufferViewDesc const& desc)
-	{
-		Buffer* buffer = GetBuffer(handle);
-		size_t i = buffer->CreateSRV(&desc);
-		return buffer->SRV(i);
-	}
-
-	RGResourceView RenderGraph::CreateUnorderedAccessView(RGBufferHandle handle, BufferViewDesc const& desc)
-	{
-		Buffer* buffer = GetBuffer(handle);
-		size_t i = buffer->CreateUAV(nullptr, &desc);
-		return buffer->UAV(i);
+		
 	}
 
 	void RenderGraph::DependencyLevel::AddPass(RenderGraphPassBase* pass)

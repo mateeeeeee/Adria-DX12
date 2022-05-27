@@ -17,38 +17,26 @@ namespace adria
 		return *rg.GetBuffer(handle);
 	}
 
-	RGResourceView RenderGraphResources::CreateShaderResourceView(RGTextureHandle handle, TextureViewDesc const& desc)
+
+	ResourceView RenderGraphResources::GetSRV(RGTextureHandleSRV handle) const
 	{
-		return rg.CreateShaderResourceView(handle, desc);
+
 	}
 
-	RGResourceView RenderGraphResources::CreateRenderTargetView(RGTextureHandle handle, TextureViewDesc const& desc)
+	ResourceView RenderGraphResources::GetUAV(RGTextureHandleUAV handle) const
 	{
-		return rg.CreateRenderTargetView(handle, desc);
+
 	}
 
-	RGResourceView RenderGraphResources::CreateUnorderedAccessView(RGTextureHandle handle, TextureViewDesc const& desc)
+	ResourceView RenderGraphResources::GetRTV(RGTextureHandleRTV handle) const
 	{
-		return rg.CreateUnorderedAccessView(handle, desc);
+
 	}
 
-	RGResourceView RenderGraphResources::CreateDepthStencilView(RGTextureHandle handle, TextureViewDesc const& desc)
+	ResourceView RenderGraphResources::GetDSV(RGTextureHandleDSV handle) const
 	{
-		return rg.CreateDepthStencilView(handle, desc);
+
 	}
-
-
-	RGResourceView RenderGraphResources::CreateShaderResourceView(RGBufferHandle handle, BufferViewDesc const& desc)
-	{
-		return rg.CreateShaderResourceView(handle, desc);
-	}
-
-	RGResourceView RenderGraphResources::CreateUnorderedAccessView(RGBufferHandle handle, BufferViewDesc const& desc)
-	{
-		return rg.CreateUnorderedAccessView(handle, desc);
-	}
-
-
 
 }
 

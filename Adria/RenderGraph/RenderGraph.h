@@ -88,6 +88,11 @@ namespace adria
 		RGTextureHandle RenderTarget(RGTextureHandle handle, ERGLoadStoreAccessOp load_store_op);
 		RGTextureHandle DepthStencil(RGTextureHandle handle, ERGLoadStoreAccessOp depth_load_store_op, bool readonly = false, 
 			ERGLoadStoreAccessOp stencil_load_store_op = ERGLoadStoreAccessOp::NoAccess_NoAccess);
+
+		RGTextureHandleSRV CreateSRV(RGTextureHandle handle, TextureViewDesc const& desc);
+		RGTextureHandleUAV CreateUAV(RGTextureHandle handle, TextureViewDesc const& desc);
+		RGTextureHandleRTV CreateRTV(RGTextureHandle handle, TextureViewDesc const& desc);
+		RGTextureHandleDSV CreateDSV(RGTextureHandle handle, TextureViewDesc const& desc);
 	private:
 
 		RenderGraphBuilder(RenderGraph&, RenderGraphPassBase&);
@@ -107,21 +112,17 @@ namespace adria
 		{
 			friend RenderGraph;
 		public:
+
 			explicit DependencyLevel(RenderGraph& rg) : rg(rg) {}
-
 			void AddPass(RenderGraphPassBase* pass);
-
 			void SetupDestroys();
-
 			void Execute(GraphicsDevice* gfx, ID3D12GraphicsCommandList4* cmd_list);
-
 			size_t GetSize() const;
-
 			size_t GetNonCulledSize() const;
 
 		private:
 			RenderGraph& rg;
-			std::vector<RenderGraphPassBase*>    passes;
+			std::vector<RenderGraphPassBase*>   passes;
 			std::unordered_set<RGTextureHandle> creates;
 			std::unordered_set<RGTextureHandle> reads;
 			std::unordered_set<RGTextureHandle> writes;
@@ -160,6 +161,7 @@ namespace adria
 		void Execute();
 
 		bool IsValidTextureHandle(RGTextureHandle) const;
+		bool IsValidBufferHandle(RGBufferHandle) const;
 
 		RGBlackboard const& GetBlackboard() const { return blackboard; }
 		RGBlackboard& GetBlackboard() { return blackboard; }
@@ -198,13 +200,10 @@ namespace adria
 		void CalculateResourcesLifetime();
 		void DepthFirstSearch(size_t i, std::vector<bool>& visited, std::stack<size_t>& stack);
 
-		RGResourceView CreateShaderResourceView(RGTextureHandle handle, TextureViewDesc  const& desc);
-		RGResourceView CreateRenderTargetView(RGTextureHandle handle, TextureViewDesc    const& desc);
-		RGResourceView CreateUnorderedAccessView(RGTextureHandle handle, TextureViewDesc const& desc);
-		RGResourceView CreateDepthStencilView(RGTextureHandle handle, TextureViewDesc    const& desc);
-
-		RGResourceView CreateShaderResourceView(RGBufferHandle handle,  BufferViewDesc const& desc);
-		RGResourceView CreateUnorderedAccessView(RGBufferHandle handle, BufferViewDesc const& desc);
+		RGTextureHandleSRV CreateSRV(RGTextureHandle handle, TextureViewDesc const& desc);
+		RGTextureHandleUAV CreateUAV(RGTextureHandle handle, TextureViewDesc const& desc);
+		RGTextureHandleRTV CreateRTV(RGTextureHandle handle, TextureViewDesc const& desc);
+		RGTextureHandleDSV CreateDSV(RGTextureHandle handle, TextureViewDesc const& desc);
 	};
 
 }
