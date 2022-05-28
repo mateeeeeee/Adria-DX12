@@ -18,6 +18,11 @@ namespace adria
 	}
 
 
+	RGBlackboard& RenderGraphResources::GetBlackboard()
+	{
+		return rg.GetBlackboard();
+	}
+
 	ResourceView RenderGraphResources::GetSRV(RGTextureHandleSRV handle) const
 	{
 		return rg.GetSRV(handle);

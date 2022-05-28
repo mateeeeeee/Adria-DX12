@@ -425,46 +425,82 @@ namespace adria
 
 	ResourceView RenderGraph::GetSRV(RGTextureHandleSRV handle) const
 	{
-		RGTextureHandle tex_handle = handle.GetTypedResourceHandle();
-		std::vector<TextureViewDesc>& view_descs = view_desc_map[tex_handle];
-		TextureViewDesc const& view_desc = view_descs[handle.GetViewId()];
+		if (auto it = texture_srv_cache.find(handle); it != texture_srv_cache.end())
+		{
+			return it->second;
+		}
+		else
+		{
+			RGTextureHandle tex_handle = handle.GetTypedResourceHandle();
+			std::vector<TextureViewDesc>& view_descs = view_desc_map[tex_handle];
+			TextureViewDesc const& view_desc = view_descs[handle.GetViewId()];
 
-		Texture* texture = GetTexture(tex_handle);
-		size_t i = texture->CreateSRV(&view_desc);
-		return texture->SRV(i);
+			Texture* texture = GetTexture(tex_handle);
+			size_t i = texture->CreateSRV(&view_desc);
+			ResourceView srv = texture->SRV(i);
+			texture_srv_cache.insert(std::make_pair(handle, srv));
+			return srv;
+		}
 	}
 
 	ResourceView RenderGraph::GetUAV(RGTextureHandleUAV handle) const
 	{
-		RGTextureHandle tex_handle = handle.GetTypedResourceHandle();
-		std::vector<TextureViewDesc>& view_descs = view_desc_map[tex_handle];
-		TextureViewDesc const& view_desc = view_descs[handle.GetViewId()];
+		if (auto it = texture_uav_cache.find(handle); it != texture_uav_cache.end())
+		{
+			return it->second;
+		}
+		else
+		{
+			RGTextureHandle tex_handle = handle.GetTypedResourceHandle();
+			std::vector<TextureViewDesc>& view_descs = view_desc_map[tex_handle];
+			TextureViewDesc const& view_desc = view_descs[handle.GetViewId()];
 
-		Texture* texture = GetTexture(tex_handle);
-		size_t i = texture->CreateUAV(&view_desc);
-		return texture->UAV(i);
+			Texture* texture = GetTexture(tex_handle);
+			size_t i = texture->CreateUAV(&view_desc);
+			ResourceView uav = texture->UAV(i);
+			texture_uav_cache.insert(std::make_pair(handle, uav));
+			return uav;
+		}
 	}
 
 	ResourceView RenderGraph::GetRTV(RGTextureHandleRTV handle) const
 	{
-		RGTextureHandle tex_handle = handle.GetTypedResourceHandle();
-		std::vector<TextureViewDesc>& view_descs = view_desc_map[tex_handle];
-		TextureViewDesc const& view_desc = view_descs[handle.GetViewId()];
+		if (auto it = texture_rtv_cache.find(handle); it != texture_rtv_cache.end())
+		{
+			return it->second;
+		}
+		else
+		{
+			RGTextureHandle tex_handle = handle.GetTypedResourceHandle();
+			std::vector<TextureViewDesc>& view_descs = view_desc_map[tex_handle];
+			TextureViewDesc const& view_desc = view_descs[handle.GetViewId()];
 
-		Texture* texture = GetTexture(tex_handle);
-		size_t i = texture->CreateRTV(&view_desc);
-		return texture->RTV(i);
+			Texture* texture = GetTexture(tex_handle);
+			size_t i = texture->CreateRTV(&view_desc);
+			ResourceView rtv = texture->RTV(i);
+			texture_rtv_cache.insert(std::make_pair(handle, rtv));
+			return rtv;
+		}
 	}
 
 	ResourceView RenderGraph::GetDSV(RGTextureHandleDSV handle) const
 	{
-		RGTextureHandle tex_handle = handle.GetTypedResourceHandle();
-		std::vector<TextureViewDesc>& view_descs = view_desc_map[tex_handle];
-		TextureViewDesc const& view_desc = view_descs[handle.GetViewId()];
+		if (auto it = texture_dsv_cache.find(handle); it != texture_dsv_cache.end())
+		{
+			return it->second;
+		}
+		else
+		{
+			RGTextureHandle tex_handle = handle.GetTypedResourceHandle();
+			std::vector<TextureViewDesc>& view_descs = view_desc_map[tex_handle];
+			TextureViewDesc const& view_desc = view_descs[handle.GetViewId()];
 
-		Texture* texture = GetTexture(tex_handle);
-		size_t i = texture->CreateDSV(&view_desc);
-		return texture->DSV(i);
+			Texture* texture = GetTexture(tex_handle);
+			size_t i = texture->CreateDSV(&view_desc);
+			ResourceView dsv = texture->DSV(i);
+			texture_dsv_cache.insert(std::make_pair(handle, dsv));
+			return dsv;
+		}
 	}
 
 	void RenderGraph::DependencyLevel::AddPass(RenderGraphPassBase* pass)

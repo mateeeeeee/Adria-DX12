@@ -67,6 +67,8 @@ namespace adria
 
 		void Render(RendererSettings const&);
 
+		void Render_RGraph(RendererSettings const&);
+
 		void ResolveToBackbuffer();
 
 		void ResolveToOffscreenFramebuffer();

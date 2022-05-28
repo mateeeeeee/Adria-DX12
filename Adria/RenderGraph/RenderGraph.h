@@ -88,10 +88,10 @@ namespace adria
 		RGTextureHandle DepthStencil(RGTextureHandleDSV dsv_handle, ERGLoadStoreAccessOp depth_load_store_op, bool readonly = false, 
 			ERGLoadStoreAccessOp stencil_load_store_op = ERGLoadStoreAccessOp::NoAccess_NoAccess);
 
-		RGTextureHandleSRV CreateSRV(RGTextureHandle handle, TextureViewDesc const& desc);
-		RGTextureHandleUAV CreateUAV(RGTextureHandle handle, TextureViewDesc const& desc);
-		RGTextureHandleRTV CreateRTV(RGTextureHandle handle, TextureViewDesc const& desc);
-		RGTextureHandleDSV CreateDSV(RGTextureHandle handle, TextureViewDesc const& desc);
+		RGTextureHandleSRV CreateSRV(RGTextureHandle handle, TextureViewDesc const& desc = {});
+		RGTextureHandleUAV CreateUAV(RGTextureHandle handle, TextureViewDesc const& desc = {});
+		RGTextureHandleRTV CreateRTV(RGTextureHandle handle, TextureViewDesc const& desc = {});
+		RGTextureHandleDSV CreateDSV(RGTextureHandle handle, TextureViewDesc const& desc = {});
 
 		void SetViewport(uint32 width, uint32 height);
 	private:
@@ -141,12 +141,12 @@ namespace adria
 		~RenderGraph() = default;
 
 		template<typename PassData, typename... Args> requires std::is_constructible_v<RenderGraphPass<PassData>, Args...>
-		[[maybe_unused]] RenderGraphPass<PassData> const& AddPass(Args&&... args)
+		[[maybe_unused]] PassData const& AddPass(Args&&... args)
 		{
 			passes.emplace_back(std::make_unique<RenderGraphPass<PassData>>(std::forward<Args>(args)...));
 			RenderGraphBuilder builder(*this, *passes.back());
 			passes.back()->Setup(builder);
-			return *dynamic_cast<RenderGraphPass<PassData>*>(passes.back().get());
+			return (*dynamic_cast<RenderGraphPass<PassData>*>(passes.back().get()))->GetPassData();
 		}
 
 		RGTextureHandle CreateTexture(char const* name, TextureDesc const& desc);
@@ -212,7 +212,6 @@ namespace adria
 		RGTextureHandleRTV CreateRTV(RGTextureHandle handle, TextureViewDesc const& desc);
 		RGTextureHandleDSV CreateDSV(RGTextureHandle handle, TextureViewDesc const& desc);
 
-		//add cache to prevent recreating everytime
 		ResourceView GetSRV(RGTextureHandleSRV handle) const;
 		ResourceView GetUAV(RGTextureHandleUAV handle) const;
 		ResourceView GetRTV(RGTextureHandleRTV handle) const;

@@ -523,6 +523,183 @@ namespace adria
 		postprocess_fut.wait();
 	}
 
+	void Renderer::Render_RGraph(RendererSettings const& _settings)
+	{
+		settings = _settings;
+
+		static RGResourcePool pool(gfx);
+		RenderGraph rg_graph(gfx, pool);
+
+		struct GBufferPassData
+		{
+			RGTextureHandle gbuffer_normal;
+			RGTextureHandle gbuffer_albedo;
+			RGTextureHandle gbuffer_emissive;
+			RGTextureHandle depth_stencil;
+		};
+
+		GBufferPassData const& gbuffer_data = rg_graph.AddPass<GBufferPassData>("GBuffer Pass",
+			[&](GBufferPassData& data, RenderGraphBuilder& builder)
+			{
+				D3D12_CLEAR_VALUE rtv_clear_value{};
+				rtv_clear_value.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				rtv_clear_value.Color[0] = 0.0f;
+				rtv_clear_value.Color[1] = 0.0f;
+				rtv_clear_value.Color[2] = 0.0f;
+				rtv_clear_value.Color[3] = 0.0f;
+
+				TextureDesc gbuffer_desc{};
+				gbuffer_desc.width = width;
+				gbuffer_desc.height = height;
+				gbuffer_desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				gbuffer_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
+				gbuffer_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+				gbuffer_desc.clear = rtv_clear_value;
+
+				RGTextureHandle gbuffer_normal = builder.CreateTexture("GBuffer Normal", gbuffer_desc);
+				RGTextureHandle gbuffer_albedo = builder.CreateTexture("GBuffer Albedo", gbuffer_desc);
+				RGTextureHandle gbuffer_emissive = builder.CreateTexture("GBuffer Emissive", gbuffer_desc);
+
+				RGTextureHandleRTV gbuffer_normal_rtv = builder.CreateRTV(gbuffer_normal);
+				RGTextureHandleRTV gbuffer_albedo_rtv = builder.CreateRTV(gbuffer_albedo);
+				RGTextureHandleRTV gbuffer_emissive_rtv = builder.CreateRTV(gbuffer_emissive);
+
+				D3D12_CLEAR_VALUE clear_value{};
+				clear_value.Format = DXGI_FORMAT_D32_FLOAT;
+				clear_value.DepthStencil = { 1.0f, 0 };
+
+				TextureDesc depth_desc{};
+				depth_desc.width = width;
+				depth_desc.height = height;
+				depth_desc.format = DXGI_FORMAT_R32_TYPELESS;
+				depth_desc.bind_flags = EBindFlag::DepthStencil | EBindFlag::ShaderResource;
+				depth_desc.initial_state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+				depth_desc.clear = clear_value;
+				RGTextureHandle depth_stencil = builder.CreateTexture("Depth Stencil", gbuffer_desc);
+				RGTextureHandleDSV depth_stencil_dsv = builder.CreateDSV(depth_stencil);
+
+				builder.SetViewport(width, height);
+				data.gbuffer_normal = builder.RenderTarget(gbuffer_normal_rtv, ERGLoadStoreAccessOp::Clear_Preserve);
+				data.gbuffer_albedo = builder.RenderTarget(gbuffer_albedo_rtv, ERGLoadStoreAccessOp::Clear_Preserve);
+				data.gbuffer_emissive = builder.RenderTarget(gbuffer_emissive_rtv, ERGLoadStoreAccessOp::Clear_Preserve);
+				data.depth_stencil = builder.DepthStencil(depth_stencil_dsv, ERGLoadStoreAccessOp::Clear_Preserve);
+			},
+			[&](GBufferPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
+			{
+				PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "GBuffer Pass");
+				SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(gpu_profiler, cmd_list, EProfilerBlock::GBufferPass, profiler_settings.profile_gbuffer_pass);
+
+				ID3D12Device* device = gfx->GetDevice();
+				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto dynamic_allocator = gfx->GetDynamicAllocator();
+				auto gbuffer_view = reg.view<Mesh, Transform, Material, Deferred, Visibility>();
+
+				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::GbufferPBR));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::GbufferPBR));
+				cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
+				cmd_list->SetGraphicsRootDescriptorTable(3, descriptor_allocator->GetFirstHandle());
+
+				for (auto e : gbuffer_view)
+				{
+					auto [mesh, transform, material, visibility] = gbuffer_view.get<Mesh, Transform, Material, Visibility>(e);
+
+					if (!visibility.camera_visible) continue;
+
+					object_cbuf_data.model = transform.current_transform;
+					object_cbuf_data.inverse_transposed_model = DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, object_cbuf_data.model));
+
+					object_allocation = dynamic_allocator->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+					object_allocation.Update(object_cbuf_data);
+					cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
+
+					material_cbuf_data.albedo_factor = material.albedo_factor;
+					material_cbuf_data.metallic_factor = material.metallic_factor;
+					material_cbuf_data.roughness_factor = material.roughness_factor;
+					material_cbuf_data.emissive_factor = material.emissive_factor;
+					material_cbuf_data.albedo_idx = material.albedo_texture != INVALID_TEXTURE_HANDLE ? static_cast<int32>(material.albedo_texture) : 0;
+					material_cbuf_data.normal_idx = material.normal_texture != INVALID_TEXTURE_HANDLE ? static_cast<int32>(material.normal_texture) : 0;
+					material_cbuf_data.metallic_roughness_idx = material.metallic_roughness_texture != INVALID_TEXTURE_HANDLE ? static_cast<int32>(material.metallic_roughness_texture) : 0;
+					material_cbuf_data.emissive_idx = material.emissive_texture != INVALID_TEXTURE_HANDLE ? static_cast<int32>(material.emissive_texture) : 0;
+
+					DynamicAllocation material_allocation = dynamic_allocator->Allocate(GetCBufferSize<MaterialCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+					material_allocation.Update(material_cbuf_data);
+					cmd_list->SetGraphicsRootConstantBufferView(2, material_allocation.gpu_address);
+					mesh.Draw(cmd_list);
+				}
+			});
+
+		struct AmbientPassData
+		{
+			RGTextureHandle hdr_rt;
+			RGTextureHandleSRV gbuffer_normal_srv;
+			RGTextureHandleSRV gbuffer_albedo_srv;
+			RGTextureHandleSRV gbuffer_emissive_srv;
+			RGTextureHandleSRV depth_stencil_srv;
+		};
+		rg_graph.AddPass<AmbientPassData>("Ambient Pass",
+			[&](AmbientPassData& data, RenderGraphBuilder& builder) 
+			{
+				D3D12_CLEAR_VALUE rtv_clear_value{};
+				rtv_clear_value.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				rtv_clear_value.Color[0] = 0.0f;
+				rtv_clear_value.Color[1] = 0.0f;
+				rtv_clear_value.Color[2] = 0.0f;
+				rtv_clear_value.Color[3] = 0.0f;
+
+				TextureDesc render_target_desc{};
+				render_target_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				render_target_desc.width = width;
+				render_target_desc.height = height;
+				render_target_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
+				render_target_desc.clear = rtv_clear_value;
+				render_target_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+				RGTextureHandle hdr_rt = builder.CreateTexture("HDR Render Target", render_target_desc);
+				RGTextureHandleRTV hdr_rt_rtv = builder.CreateRTV(hdr_rt);
+
+				data.hdr_rt = builder.RenderTarget(hdr_rt_rtv, ERGLoadStoreAccessOp::Clear_Preserve);
+				data.gbuffer_normal_srv = builder.CreateSRV(builder.Read(gbuffer_data.gbuffer_normal));
+				data.gbuffer_albedo_srv = builder.CreateSRV(builder.Read(gbuffer_data.gbuffer_albedo));
+				data.gbuffer_emissive_srv = builder.CreateSRV(builder.Read(gbuffer_data.gbuffer_emissive));
+				data.depth_stencil_srv = builder.CreateSRV(builder.Read(gbuffer_data.depth_stencil));
+			},
+			[&](AmbientPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list) 
+			{
+				PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Ambient Pass");
+
+				ID3D12Device* device = gfx->GetDevice();
+				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+
+				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::AmbientPBR));
+				cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::AmbientPBR));
+
+				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { resources.GetSRV(data.gbuffer_normal_srv), 
+					resources.GetSRV(data.gbuffer_albedo_srv), resources.GetSRV(data.gbuffer_emissive_srv), resources.GetSRV(data.depth_stencil_srv) };
+				uint32 src_range_sizes[] = { 1,1,1,1 };
+				OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
+				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+				uint32 dst_range_sizes[] = { (uint32)ARRAYSIZE(cpu_handles) };
+				device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes, ARRAYSIZE(cpu_handles), cpu_handles, src_range_sizes,
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				cmd_list->SetGraphicsRootDescriptorTable(1, dst_descriptor);
+
+				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles2[] = { null_srv_heap->GetHandle(TEXTURE2D_SLOT),
+				null_srv_heap->GetHandle(TEXTURECUBE_SLOT), null_srv_heap->GetHandle(TEXTURECUBE_SLOT), null_srv_heap->GetHandle(TEXTURE2D_SLOT) };
+				uint32 src_range_sizes2[] = { 1,1,1,1 };
+
+				descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles2));
+				dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+				uint32 dst_range_sizes2[] = { (uint32)ARRAYSIZE(cpu_handles2) };
+				device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes2, ARRAYSIZE(cpu_handles2), cpu_handles2, src_range_sizes2,
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				cmd_list->SetGraphicsRootDescriptorTable(2, dst_descriptor);
+
+				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+				cmd_list->DrawInstanced(4, 1, 0, 0);
+			}
+			);
+	}
+
 	void Renderer::ResolveToBackbuffer()
 	{
 		auto cmd_list = gfx->GetLastGraphicsCommandList();
