@@ -82,6 +82,7 @@ namespace adria
 	using RGBufferNode = RenderGraphBufferNode;
 
 	using ResourceView = D3D12_CPU_DESCRIPTOR_HANDLE;
+	using ResourceState = D3D12_RESOURCE_STATES;
 	using CommandList = ID3D12GraphicsCommandList4;
 
 	class RenderGraphResources

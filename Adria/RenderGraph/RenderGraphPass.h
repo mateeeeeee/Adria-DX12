@@ -20,26 +20,27 @@ namespace adria
 	enum class ERGPassFlags : uint32
 	{
 		None = 0x00,
-		ForceNoCull = 0x01,
-		AllowUAVWrites = 0x02,
-		DisableRenderPass = 0x04
+		ForceNoCull = 0x01,			    //RGPass cannot be culled by Render Graph
+		AllowUAVWrites = 0x02,		    //allow uav writes, only makes sense if APIRenderPassDisabled is not set
+		AutoRenderPassDisabled = 0x04,  //RGPass will manage render targets by himself
+		LegacyRenderPassEnabled = 0x08 //don't use DX12 Render Passes, use OMSetRenderTargets
 	};
 	DEFINE_ENUM_BIT_OPERATORS(ERGPassFlags);
 
-	enum ERGReadFlag : uint32
+	enum ERGReadAccess : uint8
 	{
-		ReadFlag_PixelShaderAccess,
-		ReadFlag_NonPixelShaderAccess,
-		ReadFlag_AllPixelShaderAccess,
-		ReadFlag_IndirectArgument,
-		ReadFlag_CopySrc
+		ReadAccess_PixelShader,
+		ReadAccess_NonPixelShader,
+		ReadAccess_AllPixelShader,
+		ReadAccess_IndirectArgument,
+		ReadAccess_CopySrc
 	};
 
-	enum ERGWriteFlag : uint32
+	enum ERGWriteAccess : uint8
 	{
 
-		WriteFlag_UnorderedAccess,
-		WriteFlag_CopyDst
+		WriteAccess_Unordered,
+		WriteAccess_CopyDst
 	};
 
 	enum class ERGLoadAccessOp : uint8
@@ -82,7 +83,6 @@ namespace adria
 		load_op  = static_cast<ERGLoadAccessOp>(((uint8)load_store_op >> 2) & 0x11);
 	}
 
-
 	class RenderGraph;
 	class RenderGraphBuilder;
 
@@ -93,13 +93,12 @@ namespace adria
 
 		struct RenderTargetInfo
 		{
-			RGTextureHandle render_target_handle;
+			RGTextureHandleRTV render_target_handle;
 			ERGLoadStoreAccessOp render_target_access;
 		};
-
 		struct DepthStencilInfo
 		{
-			RGTextureHandle depth_stencil_handle;
+			RGTextureHandleDSV depth_stencil_handle;
 			ERGLoadStoreAccessOp depth_access;
 			ERGLoadStoreAccessOp stencil_access;
 			bool readonly;
@@ -115,9 +114,11 @@ namespace adria
 		virtual void Setup(RenderGraphBuilder&) = 0;
 		virtual void Execute(RenderGraphResources&, GraphicsDevice*, CommandList*) const = 0;
 
-		bool CanBeCulled() const { return HasAnyFlag(flags, ERGPassFlags::ForceNoCull); }
 		bool IsCulled() const { return ref_count == 0; }
-
+		bool CanBeCulled() const { return HasAnyFlag(flags, ERGPassFlags::ForceNoCull); }
+		bool IsAutoRenderPassDisabled() const { return HasAnyFlag(flags, ERGPassFlags::AutoRenderPassDisabled); }
+		bool IsUsingLegacyRenderPasses() const { return HasAnyFlag(flags, ERGPassFlags::LegacyRenderPassEnabled); }
+		bool AllowUAVWrites() const { return HasAnyFlag(flags, ERGPassFlags::AllowUAVWrites); }
 	private:
 		std::string name;
 		size_t ref_count = 0ull;
@@ -128,8 +129,8 @@ namespace adria
 		std::unordered_set<RGTextureHandle> writes;
 		std::unordered_set<RGTextureHandle> destroy;
 
-		std::unordered_map<RGTextureHandle, D3D12_RESOURCE_STATES> resource_state_map;
-		std::vector<RenderTargetInfo> render_targets;
+		std::unordered_map<RGTextureHandle, ResourceState> resource_state_map;
+		std::vector<RenderTargetInfo> render_targets_info;
 		std::optional<DepthStencilInfo> depth_stencil = std::nullopt;
 	};
 	using RGPassBase = RenderGraphPassBase;

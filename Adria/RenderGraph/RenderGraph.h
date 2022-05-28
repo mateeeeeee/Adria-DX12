@@ -52,7 +52,6 @@ namespace adria
 			}
 			return texture_pool.emplace_back(std::pair{ PooledTexture{ std::make_unique<Texture>(device, desc), frame_index}, true}).first.texture.get();
 		}
-
 		void ReleaseTexture(Texture* texture)
 		{
 			for (auto& [pooled_texture, active] : texture_pool)
@@ -83,18 +82,18 @@ namespace adria
 
 		RGTextureHandle CreateTexture(char const* name, TextureDesc const& desc);
 
-		RGTextureHandle Read(RGTextureHandle handle, ERGReadFlag read_flag = ReadFlag_PixelShaderAccess);
-		RGTextureHandle Write(RGTextureHandle handle, ERGWriteFlag write_flag = WriteFlag_UnorderedAccess);
-		RGTextureHandle RenderTarget(RGTextureHandle handle, ERGLoadStoreAccessOp load_store_op);
-		RGTextureHandle DepthStencil(RGTextureHandle handle, ERGLoadStoreAccessOp depth_load_store_op, bool readonly = false, 
+		RGTextureHandle Read(RGTextureHandle handle, ERGReadAccess read_flag = ReadAccess_PixelShader);
+		RGTextureHandle Write(RGTextureHandle handle, ERGWriteAccess write_flag = WriteAccess_Unordered);
+		RGTextureHandle RenderTarget(RGTextureHandleRTV rtv_handle, ERGLoadStoreAccessOp load_store_op);
+		RGTextureHandle DepthStencil(RGTextureHandleDSV dsv_handle, ERGLoadStoreAccessOp depth_load_store_op, bool readonly = false, 
 			ERGLoadStoreAccessOp stencil_load_store_op = ERGLoadStoreAccessOp::NoAccess_NoAccess);
 
 		RGTextureHandleSRV CreateSRV(RGTextureHandle handle, TextureViewDesc const& desc);
 		RGTextureHandleUAV CreateUAV(RGTextureHandle handle, TextureViewDesc const& desc);
 		RGTextureHandleRTV CreateRTV(RGTextureHandle handle, TextureViewDesc const& desc);
 		RGTextureHandleDSV CreateDSV(RGTextureHandle handle, TextureViewDesc const& desc);
-	private:
 
+	private:
 		RenderGraphBuilder(RenderGraph&, RenderGraphPassBase&);
 
 	private:
@@ -115,7 +114,7 @@ namespace adria
 
 			explicit DependencyLevel(RenderGraph& rg) : rg(rg) {}
 			void AddPass(RenderGraphPassBase* pass);
-			void SetupDestroys();
+			void Setup();
 			void Execute(GraphicsDevice* gfx, CommandList* cmd_list);
 			size_t GetSize() const;
 			size_t GetNonCulledSize() const;
@@ -127,6 +126,7 @@ namespace adria
 			std::unordered_set<RGTextureHandle> reads;
 			std::unordered_set<RGTextureHandle> writes;
 			std::unordered_set<RGTextureHandle> destroys;
+			std::unordered_map<RGTextureHandle, ResourceState> required_states;
 		};
 
 	public:
@@ -173,7 +173,11 @@ namespace adria
 		std::vector<RGTextureNode> texture_nodes;
 		std::vector<Texture*> imported_textures;
 		
-		mutable std::unordered_map<RGTextureHandle, std::vector<TextureViewDesc>> view_desc_map;
+		mutable std::unordered_map<RGTextureHandle, std::vector<TextureViewDesc>> view_desc_map; //
+		mutable std::unordered_map<RGTextureHandleSRV, ResourceView> texture_srv_cache; 
+		mutable std::unordered_map<RGTextureHandleUAV, ResourceView> texture_uav_cache; 
+		mutable std::unordered_map<RGTextureHandleRTV, ResourceView> texture_rtv_cache; 
+		mutable std::unordered_map<RGTextureHandleDSV, ResourceView> texture_dsv_cache; 
 
 		std::vector<std::unique_ptr<RGBuffer>> buffers;
 		std::vector<RGBufferNode> buffer_nodes;
@@ -207,6 +211,7 @@ namespace adria
 		RGTextureHandleRTV CreateRTV(RGTextureHandle handle, TextureViewDesc const& desc);
 		RGTextureHandleDSV CreateDSV(RGTextureHandle handle, TextureViewDesc const& desc);
 
+		//add cache to prevent recreating everytime
 		ResourceView GetSRV(RGTextureHandleSRV handle) const;
 		ResourceView GetUAV(RGTextureHandleUAV handle) const;
 		ResourceView GetRTV(RGTextureHandleRTV handle) const;

@@ -1,4 +1,6 @@
 #include "RenderGraph.h"
+#include "../Graphics/RenderPass.h"
+#include "../Graphics/ResourceBarrierBatch.h"
 #include "../Tasks/TaskSystem.h"
 
 #include <algorithm>
@@ -15,26 +17,26 @@ namespace adria
 		return handle;
 	}
 
-	RGTextureHandle RenderGraphBuilder::Read(RGTextureHandle handle, ERGReadFlag read_flag /*= ReadFlag_PixelShaderAccess*/)
+	RGTextureHandle RenderGraphBuilder::Read(RGTextureHandle handle, ERGReadAccess read_flag /*= ReadFlag_PixelShaderAccess*/)
 	{
-		if (rg_pass.type == ERGPassType::Copy) read_flag = ReadFlag_CopySrc;
+		if (rg_pass.type == ERGPassType::Copy) read_flag = ReadAccess_CopySrc;
 
 		rg_pass.reads.insert(handle);
 		switch (read_flag)
 		{
-		case ReadFlag_PixelShaderAccess:
+		case ReadAccess_PixelShader:
 			rg_pass.resource_state_map[handle] = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 			break;
-		case ReadFlag_NonPixelShaderAccess:
+		case ReadAccess_NonPixelShader:
 			rg_pass.resource_state_map[handle] = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 			break;
-		case ReadFlag_AllPixelShaderAccess:
+		case ReadAccess_AllPixelShader:
 			rg_pass.resource_state_map[handle] = D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
 			break;
-		case ReadFlag_CopySrc:
+		case ReadAccess_CopySrc:
 			rg_pass.resource_state_map[handle] = D3D12_RESOURCE_STATE_COPY_SOURCE;
 			break;
-		case ReadFlag_IndirectArgument:
+		case ReadAccess_IndirectArgument:
 			rg_pass.resource_state_map[handle] = D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
 			break;
 		default:
@@ -44,17 +46,17 @@ namespace adria
 		return handle;
 	}
 
-	RGTextureHandle RenderGraphBuilder::Write(RGTextureHandle handle, ERGWriteFlag write_flag /*= WriteFlag_UnorderedAccess*/)
+	RGTextureHandle RenderGraphBuilder::Write(RGTextureHandle handle, ERGWriteAccess write_flag /*= WriteFlag_UnorderedAccess*/)
 	{
-		if (rg_pass.type == ERGPassType::Copy) write_flag = WriteFlag_CopyDst;
+		if (rg_pass.type == ERGPassType::Copy) write_flag = WriteAccess_CopyDst;
 
 		D3D12_RESOURCE_STATES resource_states = D3D12_RESOURCE_STATE_COMMON;
 		switch (write_flag)
 		{
-		case WriteFlag_UnorderedAccess:
+		case WriteAccess_Unordered:
 			resource_states = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 			break;
-		case WriteFlag_CopyDst:
+		case WriteAccess_CopyDst:
 			resource_states = D3D12_RESOURCE_STATE_COPY_DEST;
 			break;
 		default:
@@ -71,21 +73,23 @@ namespace adria
 		return handle;
 	}
 
-	RGTextureHandle RenderGraphBuilder::RenderTarget(RGTextureHandle handle, ERGLoadStoreAccessOp load_store_op)
+	RGTextureHandle RenderGraphBuilder::RenderTarget(RGTextureHandleRTV rtv_handle, ERGLoadStoreAccessOp load_store_op)
 	{
+		RGTextureHandle handle = rtv_handle.GetTypedResourceHandle();
 		rg_pass.resource_state_map[handle] = D3D12_RESOURCE_STATE_RENDER_TARGET;
 		rg_pass.writes.insert(handle);
-		rg_pass.render_targets.push_back(RenderGraphPassBase::RenderTargetInfo{ .render_target_handle = handle, .render_target_access = load_store_op });
+		rg_pass.render_targets_info.push_back(RenderGraphPassBase::RenderTargetInfo{ .render_target_handle = rtv_handle, .render_target_access = load_store_op });
 		auto const& node = rg.GetTextureNode(handle);
 		if (node.texture->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
 		if (!rg_pass.creates.contains(handle)) ++node.texture->version;
 		return handle;
 	}
 
-	RGTextureHandle RenderGraphBuilder::DepthStencil(RGTextureHandle handle, ERGLoadStoreAccessOp depth_load_store_op, bool readonly /*= false*/, ERGLoadStoreAccessOp stencil_load_store_op /*= ERGLoadStoreAccessOp::NoAccess_NoAccess*/)
+	RGTextureHandle RenderGraphBuilder::DepthStencil(RGTextureHandleDSV dsv_handle, ERGLoadStoreAccessOp depth_load_store_op, bool readonly /*= false*/, ERGLoadStoreAccessOp stencil_load_store_op /*= ERGLoadStoreAccessOp::NoAccess_NoAccess*/)
 	{
-		rg_pass.reads.insert(handle);
-		rg_pass.depth_stencil = RenderGraphPassBase::DepthStencilInfo{ .depth_stencil_handle = handle, .depth_access = depth_load_store_op,.stencil_access = stencil_load_store_op, .readonly = readonly };
+		RGTextureHandle handle = dsv_handle.GetTypedResourceHandle();
+		readonly ? rg_pass.reads.insert(handle) : rg_pass.writes.insert(handle);
+		rg_pass.depth_stencil = RenderGraphPassBase::DepthStencilInfo{ .depth_stencil_handle = dsv_handle, .depth_access = depth_load_store_op,.stencil_access = stencil_load_store_op, .readonly = readonly };
 		auto const& node = rg.GetTextureNode(handle);
 
 		if (!rg_pass.creates.contains(handle)) ++node.texture->version;
@@ -176,21 +180,47 @@ namespace adria
 	{
 		pool.Tick();
 
-		auto cmd_list = gfx->GetNewGraphicsCommandList();
+		for (auto& dependency_level : dependency_levels) dependency_level.Setup();
 
-		for (auto& dependency_level : dependency_levels)
+		auto cmd_list = gfx->GetNewGraphicsCommandList();
+		for (size_t i = 0; i < dependency_levels.size(); ++i)
 		{
+			auto& dependency_level = dependency_levels[i];
 			for (auto handle : dependency_level.creates)
 			{
-				auto& rg_texture_node = GetTextureNode(handle);
+				auto const& rg_texture_node = GetTextureNode(handle);
 				rg_texture_node.texture->resource = pool.AllocateTexture(rg_texture_node.texture->desc);
 			}
 
+			ResourceBarrierBatch barrier_batcher{};
+			{
+				for (auto const& [texture_handle, state] : dependency_level.required_states)
+				{
+					Texture* texture = GetTexture(texture_handle);
+					if (dependency_level.creates.contains(texture_handle))
+					{
+						ADRIA_ASSERT(HasAllFlags(texture->GetDesc().initial_state, state) && "Creator of texture needs to set initial state of resource without need for resource barriers!");
+						continue;
+					}
+					for (int32_t j = i - 1; j >= 0; --j)
+					{
+						auto& prev_dependency_level = dependency_levels[j];
+						if (prev_dependency_level.required_states.contains(texture_handle))
+						{
+							ResourceState prev_state = prev_dependency_level.required_states[texture_handle];
+							if (state != prev_state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, state);
+							break;
+						}
+					}
+				}
+			}
+
+			barrier_batcher.Submit(cmd_list);
 			dependency_level.Execute(gfx, cmd_list);
 
 			for (auto handle : dependency_level.destroys)
 			{
-				auto& rg_texture_node = GetTextureNode(handle);
+				auto const& rg_texture_node = GetTextureNode(handle);
 				pool.ReleaseTexture(rg_texture_node.texture->resource);
 			}
 		}
@@ -343,11 +373,6 @@ namespace adria
 		{
 			texture_nodes[i].last_used_by->destroy.insert(RGTextureHandle(i));
 		}
-
-		for (auto& dependency_level : dependency_levels)
-		{
-			dependency_level.SetupDestroys();
-		}
 	}
 
 	void RenderGraph::DepthFirstSearch(size_t i, std::vector<bool>& visited, std::stack<size_t>& stack)
@@ -444,9 +469,16 @@ namespace adria
 		creates.insert(pass->creates.begin(), pass->creates.end());
 	}
 
-	void RenderGraph::DependencyLevel::SetupDestroys()
+	void RenderGraph::DependencyLevel::Setup()
 	{
-		for (auto& pass : passes) destroys.insert(pass->destroy.begin(), pass->destroy.end());
+		for (auto& pass : passes)
+		{
+			destroys.insert(pass->destroy.begin(), pass->destroy.end());
+			for (auto [resource, state] : pass->resource_state_map)
+			{
+				required_states[resource] |= state;
+			}
+		}
 	}
 
 	void RenderGraph::DependencyLevel::Execute(GraphicsDevice* gfx, CommandList* cmd_list)
@@ -455,7 +487,125 @@ namespace adria
 		{
 			if (pass->IsCulled()) continue;
 			RenderGraphResources rg_resources(rg, *pass);
-			pass->Execute(rg_resources, gfx, cmd_list);
+			if (pass->type == ERGPassType::Graphics && !pass->IsAutoRenderPassDisabled())
+			{
+				RenderPassDesc render_pass_desc{};
+				if (pass->AllowUAVWrites()) render_pass_desc.render_pass_flags = D3D12_RENDER_PASS_FLAG_ALLOW_UAV_WRITES;
+				else render_pass_desc.render_pass_flags = D3D12_RENDER_PASS_FLAG_NONE;
+
+				for (auto const& render_target_info : pass->render_targets_info)
+				{
+					RGTextureHandle rt_texture = render_target_info.render_target_handle.GetTypedResourceHandle();
+					Texture* texture = rg.GetTexture(rt_texture);
+
+					RtvAttachmentDesc rtv_desc{};
+					std::optional<D3D12_CLEAR_VALUE> clear = texture->GetDesc().clear;
+					rtv_desc.clear_value = clear.has_value() ? clear.value() : D3D12_CLEAR_VALUE{};
+					rtv_desc.cpu_handle = rg.GetRTV(render_target_info.render_target_handle);
+					
+					ERGLoadAccessOp load_access = ERGLoadAccessOp::NoAccess;
+					ERGStoreAccessOp store_access = ERGStoreAccessOp::NoAccess;
+					SplitAccessOp(render_target_info.render_target_access, load_access, store_access);
+
+					switch (load_access)
+					{
+					case ERGLoadAccessOp::Clear:
+						rtv_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
+						break;
+					case ERGLoadAccessOp::Discard:
+						rtv_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_DISCARD;
+						break;
+					case ERGLoadAccessOp::Preserve: 
+						rtv_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
+						break;
+					case ERGLoadAccessOp::NoAccess:
+						rtv_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS;
+						break;
+					default:
+						ADRIA_ASSERT(false && "Invalid Load Access!");
+					}
+
+					switch (store_access)
+					{
+					case ERGStoreAccessOp::Resolve:
+						rtv_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_RESOLVE;
+						break;
+					case ERGStoreAccessOp::Discard:
+						rtv_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD;
+						break;
+					case ERGStoreAccessOp::Preserve:
+						rtv_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
+						break;
+					case ERGStoreAccessOp::NoAccess:
+						rtv_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_NO_ACCESS;;
+						break;
+					default:
+						ADRIA_ASSERT(false && "Invalid Store Access!");
+					}
+
+					render_pass_desc.rtv_attachments.push_back(std::move(rtv_desc));
+				}
+				
+				if (pass->depth_stencil.has_value())
+				{
+					auto depth_stencil_info = pass->depth_stencil.value();
+					RGTextureHandle ds_texture = depth_stencil_info.depth_stencil_handle.GetTypedResourceHandle();
+					Texture* texture = rg.GetTexture(ds_texture);
+
+					DsvAttachmentDesc dsv_desc{};
+					std::optional<D3D12_CLEAR_VALUE> clear = texture->GetDesc().clear;
+					dsv_desc.clear_value = clear.has_value() ? clear.value() : D3D12_CLEAR_VALUE{};
+					dsv_desc.cpu_handle = rg.GetDSV(depth_stencil_info.depth_stencil_handle);
+
+					ERGLoadAccessOp load_access = ERGLoadAccessOp::NoAccess;
+					ERGStoreAccessOp store_access = ERGStoreAccessOp::NoAccess;
+					SplitAccessOp(depth_stencil_info.depth_access, load_access, store_access);
+
+					switch (load_access)
+					{
+					case ERGLoadAccessOp::Clear:
+						dsv_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
+						break;
+					case ERGLoadAccessOp::Discard:
+						dsv_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_DISCARD;
+						break;
+					case ERGLoadAccessOp::Preserve:
+						dsv_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
+						break;
+					case ERGLoadAccessOp::NoAccess:
+						dsv_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS;
+						break;
+					default:
+						ADRIA_ASSERT(false && "Invalid Load Access!");
+					}
+
+					switch (store_access)
+					{
+					case ERGStoreAccessOp::Resolve:
+						dsv_desc.depth_ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_RESOLVE;
+						break;
+					case ERGStoreAccessOp::Discard:
+						dsv_desc.depth_ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD;
+						break;
+					case ERGStoreAccessOp::Preserve:
+						dsv_desc.depth_ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
+						break;
+					case ERGStoreAccessOp::NoAccess:
+						dsv_desc.depth_ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_NO_ACCESS;;
+						break;
+					default:
+						ADRIA_ASSERT(false && "Invalid Store Access!");
+					}
+					//todo add stencil
+					render_pass_desc.dsv_attachment = std::move(dsv_desc);
+				}
+				
+				RenderPass render_pass(render_pass_desc);
+				render_pass.Begin(cmd_list, pass->IsUsingLegacyRenderPasses());
+				pass->Execute(rg_resources, gfx, cmd_list);
+				render_pass.End(cmd_list, pass->IsUsingLegacyRenderPasses());
+			}
+			else pass->Execute(rg_resources, gfx, cmd_list);
 		}
 	}
 

@@ -55,10 +55,9 @@ namespace adria
 		}
 
 		size_t GetViewId() const { return (id >> 32); };
-
-		RenderGraphResourceHandle GetResourceHandle() const
+		size_t GetResourceId() const
 		{
-			return RenderGraphResourceHandle((size_t)static_cast<uint32>(id));
+			return (size_t)static_cast<uint32>(id);
 		};
 
 		void Invalidate() { id = invalid_id; }
@@ -75,8 +74,8 @@ namespace adria
 
 		auto GetTypedResourceHandle() const
 		{
-			if constexpr (ResourceType == ERGResourceType::Texture) return RGTextureHandle(GetResourceHandle().id);
-			else if constexpr (ResourceType == ERGResourceType::Buffer) return RGBufferHandle(GetResourceHandle().id);
+			if constexpr (ResourceType == ERGResourceType::Buffer) return RGBufferHandle(GetResourceId());
+			else if constexpr (ResourceType == ERGResourceType::Texture) return RGTextureHandle(GetResourceId());
 		}
 	};
 
@@ -94,14 +93,14 @@ namespace std
 	{
 		size_t operator()(adria::RGTextureHandle const& h) const
 		{
-			return hash<adria::uint32>()(h.id);
+			return hash<decltype(h.id)>()(h.id);
 		}
 	};
 	template <> struct hash<adria::RGBufferHandle>
 	{
 		size_t operator()(adria::RGBufferHandle const& h) const
 		{
-			return hash<adria::uint32>()(h.id);
+			return hash<decltype(h.id)>()(h.id);
 		}
 	};
 }
