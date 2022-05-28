@@ -21,8 +21,6 @@
 using namespace DirectX;
 using namespace Microsoft::WRL;
 
-
-
 namespace adria
 {
 	namespace shadow_helpers

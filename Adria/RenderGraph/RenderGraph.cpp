@@ -118,6 +118,12 @@ namespace adria
 		return rg.CreateDSV(handle, desc);
 	}
 
+	void RenderGraphBuilder::SetViewport(uint32 width, uint32 height)
+	{
+		rg_pass.viewport_width = width;
+		rg_pass.viewport_height = height;
+	}
+
 	RenderGraphBuilder::RenderGraphBuilder(RenderGraph& rg, RenderGraphPassBase& rg_pass)
 		: rg(rg), rg_pass(rg_pass)
 	{}
@@ -487,7 +493,7 @@ namespace adria
 		{
 			if (pass->IsCulled()) continue;
 			RenderGraphResources rg_resources(rg, *pass);
-			if (pass->type == ERGPassType::Graphics && !pass->IsAutoRenderPassDisabled())
+			if (pass->type == ERGPassType::Graphics && !pass->SkipAutoRenderPassSetup())
 			{
 				RenderPassDesc render_pass_desc{};
 				if (pass->AllowUAVWrites()) render_pass_desc.render_pass_flags = D3D12_RENDER_PASS_FLAG_ALLOW_UAV_WRITES;
@@ -599,11 +605,12 @@ namespace adria
 					//todo add stencil
 					render_pass_desc.dsv_attachment = std::move(dsv_desc);
 				}
-				
+				render_pass_desc.width = pass->viewport_width;
+				render_pass_desc.height = pass->viewport_height;
 				RenderPass render_pass(render_pass_desc);
-				render_pass.Begin(cmd_list, pass->IsUsingLegacyRenderPasses());
+				render_pass.Begin(cmd_list, pass->UseLegacyRenderPasses());
 				pass->Execute(rg_resources, gfx, cmd_list);
-				render_pass.End(cmd_list, pass->IsUsingLegacyRenderPasses());
+				render_pass.End(cmd_list, pass->UseLegacyRenderPasses());
 			}
 			else pass->Execute(rg_resources, gfx, cmd_list);
 		}

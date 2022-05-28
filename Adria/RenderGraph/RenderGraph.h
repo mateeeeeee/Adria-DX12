@@ -93,6 +93,7 @@ namespace adria
 		RGTextureHandleRTV CreateRTV(RGTextureHandle handle, TextureViewDesc const& desc);
 		RGTextureHandleDSV CreateDSV(RGTextureHandle handle, TextureViewDesc const& desc);
 
+		void SetViewport(uint32 width, uint32 height);
 	private:
 		RenderGraphBuilder(RenderGraph&, RenderGraphPassBase&);
 
