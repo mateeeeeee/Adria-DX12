@@ -103,4 +103,32 @@ namespace std
 			return hash<decltype(h.id)>()(h.id);
 		}
 	};
+	template <> struct hash<adria::RGTextureHandleSRV>
+	{
+		size_t operator()(adria::RGTextureHandleSRV const& h) const
+		{
+			return hash<decltype(h.id)>()(h.id);
+		}
+	};
+	template <> struct hash<adria::RGTextureHandleUAV>
+	{
+		size_t operator()(adria::RGTextureHandleUAV const& h) const
+		{
+			return hash<decltype(h.id)>()(h.id);
+		}
+	};
+	template <> struct hash<adria::RGTextureHandleRTV>
+	{
+		size_t operator()(adria::RGTextureHandleRTV const& h) const
+		{
+			return hash<decltype(h.id)>()(h.id);
+		}
+	};
+	template <> struct hash<adria::RGTextureHandleDSV>
+	{
+		size_t operator()(adria::RGTextureHandleDSV const& h) const
+		{
+			return hash<decltype(h.id)>()(h.id);
+		}
+	};
 }

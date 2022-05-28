@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include "RenderGraphResourceHandle.h"
+#include "RenderGraphBlackboard.h"
 
 namespace adria
 {

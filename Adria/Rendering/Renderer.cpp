@@ -698,6 +698,9 @@ namespace adria
 				cmd_list->DrawInstanced(4, 1, 0, 0);
 			}
 			);
+
+		rg_graph.Build();
+		rg_graph.Execute();
 	}
 
 	void Renderer::ResolveToBackbuffer()

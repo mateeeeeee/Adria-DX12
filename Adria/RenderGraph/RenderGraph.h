@@ -146,7 +146,7 @@ namespace adria
 			passes.emplace_back(std::make_unique<RenderGraphPass<PassData>>(std::forward<Args>(args)...));
 			RenderGraphBuilder builder(*this, *passes.back());
 			passes.back()->Setup(builder);
-			return (*dynamic_cast<RenderGraphPass<PassData>*>(passes.back().get()))->GetPassData();
+			return (*dynamic_cast<RenderGraphPass<PassData>*>(passes.back().get())).GetPassData();
 		}
 
 		RGTextureHandle CreateTexture(char const* name, TextureDesc const& desc);
@@ -172,7 +172,7 @@ namespace adria
 
 		std::vector<std::unique_ptr<RGTexture>> textures;
 		std::vector<RGTextureNode> texture_nodes;
-		std::vector<Texture*> imported_textures;
+		std::vector<RGTexture*> imported_textures;
 		
 		mutable std::unordered_map<RGTextureHandle, std::vector<TextureViewDesc>> view_desc_map; //
 		mutable std::unordered_map<RGTextureHandleSRV, ResourceView> texture_srv_cache; 

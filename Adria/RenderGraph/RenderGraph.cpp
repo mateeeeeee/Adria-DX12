@@ -148,7 +148,7 @@ namespace adria
 
 	RGBufferHandle RenderGraph::CreateBuffer(char const* name, BufferDesc const& desc)
 	{
-
+		return RGBufferHandle{};
 	}
 
 	Buffer* RenderGraph::GetBuffer(RGBufferHandle handle) const
@@ -208,7 +208,7 @@ namespace adria
 						ADRIA_ASSERT(HasAllFlags(texture->GetDesc().initial_state, state) && "Creator of texture needs to set initial state of resource without need for resource barriers!");
 						continue;
 					}
-					for (int32_t j = i - 1; j >= 0; --j)
+					for (int32 j = (int32)i - 1; j >= 0; --j)
 					{
 						auto& prev_dependency_level = dependency_levels[j];
 						if (prev_dependency_level.required_states.contains(texture_handle))
@@ -228,6 +228,19 @@ namespace adria
 			{
 				auto const& rg_texture_node = GetTextureNode(handle);
 				pool.ReleaseTexture(rg_texture_node.texture->resource);
+
+				Texture* texture = GetTexture(handle);
+				ResourceState initial_state = texture->GetDesc().initial_state;
+				for (int32_t j = (int32)i - 1; j >= 0; --j)
+				{
+					auto& prev_dependency_level = dependency_levels[j];
+					if (prev_dependency_level.required_states.contains(handle))
+					{
+						ResourceState prev_state = prev_dependency_level.required_states[handle];
+						if (initial_state != prev_state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, initial_state);
+						break;
+					}
+				}
 			}
 		}
 	}
