@@ -23,7 +23,8 @@ namespace adria
 		inline constexpr static uint32 invalid_id = uint32(-1);
 
 		RenderGraphResourceHandle() : id(invalid_id) {}
-		RenderGraphResourceHandle(size_t _id) : id(static_cast<uint32>(_id)) {}
+		RenderGraphResourceHandle(RenderGraphResourceHandle const&) = default;
+		explicit RenderGraphResourceHandle(size_t _id) : id(static_cast<uint32>(_id)) {}
 
 		void Invalidate() { id = invalid_id; }
 		bool IsValid() const { return id != invalid_id; }
@@ -31,6 +32,15 @@ namespace adria
 
 		uint32 id;
 	};
+
+	template<ERGResourceType ResourceType>
+	struct TypedRenderGraphResourceHandle : RenderGraphResourceHandle 
+	{
+		using RenderGraphResourceHandle::RenderGraphResourceHandle;
+	};
+
+	using RGBufferHandle = TypedRenderGraphResourceHandle<ERGResourceType::Buffer>;
+	using RGTextureHandle = TypedRenderGraphResourceHandle<ERGResourceType::Texture>;
 
 	struct RenderGraphResourceViewHandle
 	{
@@ -45,7 +55,8 @@ namespace adria
 		}
 
 		size_t GetViewId() const { return (id >> 32); };
-		RenderGraphResourceHandle GetResourceHandle() const 
+
+		RenderGraphResourceHandle GetResourceHandle() const
 		{
 			return RenderGraphResourceHandle((size_t)static_cast<uint32>(id));
 		};
@@ -57,21 +68,24 @@ namespace adria
 		uint64 id;
 	};
 
-	template<ERGResourceType ResourceType>
-	struct TypedRenderGraphResourceHandle : RenderGraphResourceHandle {};
-
-	using RGBufferHandle = TypedRenderGraphResourceHandle<ERGResourceType::Buffer>;
-	using RGTextureHandle = TypedRenderGraphResourceHandle<ERGResourceType::Texture>;
-
 	template<ERGResourceType ResourceType, ERGResourceViewType ResourceViewType>
-	struct TypedRenderGraphResourceViewHandle : RenderGraphResourceViewHandle {};
+	struct TypedRenderGraphResourceViewHandle : RenderGraphResourceViewHandle 
+	{
+		using RenderGraphResourceViewHandle::RenderGraphResourceViewHandle;
 
-	using RGTextureHandleSRV = TypedRenderGraphResourceViewHandle<ERGResourceType::Texture, ERGResourceViewType::SRV>;
-	using RGTextureHandleUAV = TypedRenderGraphResourceViewHandle<ERGResourceType::Texture, ERGResourceViewType::UAV>;
-	using RGTextureHandleRTV = TypedRenderGraphResourceViewHandle<ERGResourceType::Texture, ERGResourceViewType::RTV>;
-	using RGTextureHandleDSV = TypedRenderGraphResourceViewHandle<ERGResourceType::Texture, ERGResourceViewType::DSV>;
-	using RGBufferHandleDSV = TypedRenderGraphResourceViewHandle<ERGResourceType::Buffer, ERGResourceViewType::SRV>;
-	using RGBufferHandleDSV = TypedRenderGraphResourceViewHandle<ERGResourceType::Buffer, ERGResourceViewType::UAV>;
+		auto GetTypedResourceHandle() const
+		{
+			if constexpr (ResourceType == ERGResourceType::Texture) return RGTextureHandle(GetResourceHandle().id);
+			else if constexpr (ResourceType == ERGResourceType::Buffer) return RGBufferHandle(GetResourceHandle().id);
+		}
+	};
+
+	using RGTextureHandleSRV = TypedRenderGraphResourceViewHandle<ERGResourceType::Texture,  ERGResourceViewType::SRV>;
+	using RGTextureHandleUAV = TypedRenderGraphResourceViewHandle<ERGResourceType::Texture,  ERGResourceViewType::UAV>;
+	using RGTextureHandleRTV = TypedRenderGraphResourceViewHandle<ERGResourceType::Texture,  ERGResourceViewType::RTV>;
+	using RGTextureHandleDSV = TypedRenderGraphResourceViewHandle<ERGResourceType::Texture,  ERGResourceViewType::DSV>;
+	using RGBufferHandleSRV  = TypedRenderGraphResourceViewHandle<ERGResourceType::Buffer,   ERGResourceViewType::SRV>;
+	using RGBufferHandleUAV  = TypedRenderGraphResourceViewHandle<ERGResourceType::Buffer,   ERGResourceViewType::UAV>;
 }
 
 namespace std 

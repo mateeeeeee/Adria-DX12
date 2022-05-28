@@ -113,7 +113,7 @@ namespace adria
 	protected:
 
 		virtual void Setup(RenderGraphBuilder&) = 0;
-		virtual void Execute(RenderGraphResources&, void*, void*) const = 0;
+		virtual void Execute(RenderGraphResources&, GraphicsDevice*, CommandList*) const = 0;
 
 		bool CanBeCulled() const { return HasAnyFlag(flags, ERGPassFlags::ForceNoCull); }
 		bool IsCulled() const { return ref_count == 0; }
@@ -139,7 +139,7 @@ namespace adria
 	{
 	public:
 		using SetupFunc = std::function<void(PassData&, RenderGraphBuilder&)>;
-		using ExecuteFunc = std::function<void(PassData const&, RenderGraphResources&, void*, void*)>;
+		using ExecuteFunc = std::function<void(PassData const&, RenderGraphResources&, GraphicsDevice*, CommandList*)>;
 
 	public:
 		RenderGraphPass(char const* name, SetupFunc&& setup, ExecuteFunc&& execute, ERGPassType type = ERGPassType::Graphics, ERGPassFlags flags = ERGPassFlags::None)
@@ -164,10 +164,10 @@ namespace adria
 			setup(data, builder);
 		}
 
-		void Execute(RenderGraphResources& resources, void* ctx, void* dev) const override
+		void Execute(RenderGraphResources& resources, GraphicsDevice* dev, CommandList* ctx) const override
 		{
 			ADRIA_ASSERT(setup != nullptr && "execute function is null!");
-			execute(data, resources, ctx, dev);
+			execute(data, resources, dev, ctx);
 		}
 	};
 

@@ -20,22 +20,22 @@ namespace adria
 
 	ResourceView RenderGraphResources::GetSRV(RGTextureHandleSRV handle) const
 	{
-
+		return rg.GetSRV(handle);
 	}
 
 	ResourceView RenderGraphResources::GetUAV(RGTextureHandleUAV handle) const
 	{
-
+		return rg.GetUAV(handle);
 	}
 
 	ResourceView RenderGraphResources::GetRTV(RGTextureHandleRTV handle) const
 	{
-
+		return rg.GetRTV(handle);
 	}
 
 	ResourceView RenderGraphResources::GetDSV(RGTextureHandleDSV handle) const
 	{
-
+		return rg.GetDSV(handle);
 	}
 
 }

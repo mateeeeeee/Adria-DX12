@@ -116,7 +116,7 @@ namespace adria
 			explicit DependencyLevel(RenderGraph& rg) : rg(rg) {}
 			void AddPass(RenderGraphPassBase* pass);
 			void SetupDestroys();
-			void Execute(GraphicsDevice* gfx, ID3D12GraphicsCommandList4* cmd_list);
+			void Execute(GraphicsDevice* gfx, CommandList* cmd_list);
 			size_t GetSize() const;
 			size_t GetNonCulledSize() const;
 
@@ -149,10 +149,10 @@ namespace adria
 		}
 
 		RGTextureHandle CreateTexture(char const* name, TextureDesc const& desc);
-		Texture* GetTexture(RGTextureHandle);
+		Texture* GetTexture(RGTextureHandle) const;
 
 		RGBufferHandle CreateBuffer(char const* name, BufferDesc const& desc);
-		Buffer* GetBuffer(RGBufferHandle);
+		Buffer* GetBuffer(RGBufferHandle) const;
 
 		RGTextureHandle ImportTexture(char const* name, Texture* texture);
 		Texture* GetImportedTexture(RGTextureHandle);
@@ -172,6 +172,8 @@ namespace adria
 		std::vector<std::unique_ptr<RGTexture>> textures;
 		std::vector<RGTextureNode> texture_nodes;
 		std::vector<Texture*> imported_textures;
+		
+		mutable std::unordered_map<RGTextureHandle, std::vector<TextureViewDesc>> view_desc_map;
 
 		std::vector<std::unique_ptr<RGBuffer>> buffers;
 		std::vector<RGBufferNode> buffer_nodes;
@@ -204,6 +206,11 @@ namespace adria
 		RGTextureHandleUAV CreateUAV(RGTextureHandle handle, TextureViewDesc const& desc);
 		RGTextureHandleRTV CreateRTV(RGTextureHandle handle, TextureViewDesc const& desc);
 		RGTextureHandleDSV CreateDSV(RGTextureHandle handle, TextureViewDesc const& desc);
+
+		ResourceView GetSRV(RGTextureHandleSRV handle) const;
+		ResourceView GetUAV(RGTextureHandleUAV handle) const;
+		ResourceView GetRTV(RGTextureHandleRTV handle) const;
+		ResourceView GetDSV(RGTextureHandleDSV handle) const;
 	};
 
 }
