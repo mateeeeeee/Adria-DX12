@@ -150,13 +150,11 @@ namespace adria
 		}
 
 		RGTextureHandle CreateTexture(char const* name, TextureDesc const& desc);
+		RGTextureHandle ImportTexture(char const* name, Texture* texture);
 		Texture* GetTexture(RGTextureHandle) const;
 
 		RGBufferHandle CreateBuffer(char const* name, BufferDesc const& desc);
 		Buffer* GetBuffer(RGBufferHandle) const;
-
-		RGTextureHandle ImportTexture(char const* name, Texture* texture);
-		Texture* GetImportedTexture(RGTextureHandle);
 
 		void Build();
 		void Execute();
@@ -169,19 +167,8 @@ namespace adria
 
 	private:
 		std::vector<std::unique_ptr<RGPassBase>> passes;
-
 		std::vector<std::unique_ptr<RGTexture>> textures;
-		std::vector<RGTextureNode> texture_nodes;
-		std::vector<RGTexture*> imported_textures;
-		
-		mutable std::unordered_map<RGTextureHandle, std::vector<TextureViewDesc>> view_desc_map; //
-		mutable std::unordered_map<RGTextureHandleSRV, ResourceView> texture_srv_cache; 
-		mutable std::unordered_map<RGTextureHandleUAV, ResourceView> texture_uav_cache; 
-		mutable std::unordered_map<RGTextureHandleRTV, ResourceView> texture_rtv_cache; 
-		mutable std::unordered_map<RGTextureHandleDSV, ResourceView> texture_dsv_cache; 
-
 		std::vector<std::unique_ptr<RGBuffer>> buffers;
-		std::vector<RGBufferNode> buffer_nodes;
 
 		std::vector<std::vector<uint64>> adjacency_lists;
 		std::vector<RenderGraphPassBase*> topologically_sorted_passes;
@@ -190,15 +177,16 @@ namespace adria
 		RGBlackboard blackboard;
 		RGResourcePool& pool;
 		GraphicsDevice* gfx;
+
+		mutable std::unordered_map<RGTextureHandle, std::vector<TextureViewDesc>> view_desc_map;
+		mutable std::unordered_map<RGTextureHandleSRV, ResourceView> texture_srv_cache;
+		mutable std::unordered_map<RGTextureHandleUAV, ResourceView> texture_uav_cache;
+		mutable std::unordered_map<RGTextureHandleRTV, ResourceView> texture_rtv_cache;
+		mutable std::unordered_map<RGTextureHandleDSV, ResourceView> texture_dsv_cache;
+
 	private:
-
-		RGTextureHandle CreateTextureNode(RGTexture* resource);
-		RGTextureNode const& GetTextureNode(RGTextureHandle handle) const;
-		RGTextureNode& GetTextureNode(RGTextureHandle handle);
-
-		RGBufferHandle CreateBufferNode(RGBuffer* resource);
-		RGBufferNode const& GetBufferNode(RGBufferHandle handle) const;
-		RGBufferNode& GetBufferNode(RGBufferHandle handle);
+		RGTexture* GetRGTexture(RGTextureHandle handle) const;
+		RGBuffer* GetRGBuffer(RGBufferHandle handle) const;
 
 		void BuildAdjacencyLists();
 		void TopologicalSort();

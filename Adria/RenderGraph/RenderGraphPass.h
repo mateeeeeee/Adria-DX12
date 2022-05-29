@@ -21,9 +21,9 @@ namespace adria
 	{
 		None = 0x00,
 		ForceNoCull = 0x01,			    //RGPass cannot be culled by Render Graph
-		AllowUAVWrites = 0x02,		    //allow uav writes, only makes sense if APIRenderPassDisabled is not set
-		SkipAutoRenderPass = 0x04,  //RGPass will manage render targets by himself
-		LegacyRenderPassEnabled = 0x08 //don't use DX12 Render Passes, use OMSetRenderTargets
+		AllowUAVWrites = 0x02,		    //allow uav writes, only makes sense if LegacyRenderPassEnabled is disabled
+		SkipAutoRenderPass = 0x04,		//RGPass will manage render targets by himself
+		LegacyRenderPassEnabled = 0x08  //don't use DX12 Render Passes, use OMSetRenderTargets
 	};
 	DEFINE_ENUM_BIT_OPERATORS(ERGPassFlags);
 
@@ -123,7 +123,7 @@ namespace adria
 		std::string name;
 		size_t ref_count = 0ull;
 		ERGPassType type;
-		ERGPassFlags flags;
+		ERGPassFlags flags = ERGPassFlags::None;
 		std::unordered_set<RGTextureHandle> creates;
 		std::unordered_set<RGTextureHandle> reads;
 		std::unordered_set<RGTextureHandle> writes;

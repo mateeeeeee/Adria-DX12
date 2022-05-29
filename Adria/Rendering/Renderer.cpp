@@ -636,7 +636,7 @@ namespace adria
 			RGTextureHandleSRV gbuffer_emissive_srv;
 			RGTextureHandleSRV depth_stencil_srv;
 		};
-		rg_graph.AddPass<AmbientPassData>("Ambient Pass",
+		AmbientPassData const& ambient_data = rg_graph.AddPass<AmbientPassData>("Ambient Pass",
 			[&](AmbientPassData& data, RenderGraphBuilder& builder) 
 			{
 				D3D12_CLEAR_VALUE rtv_clear_value{};
@@ -698,6 +698,27 @@ namespace adria
 				cmd_list->DrawInstanced(4, 1, 0, 0);
 			}
 			);
+
+		struct CopyPassData
+		{
+			RGTextureHandle src;
+			RGTextureHandle dst;
+		};
+
+		RGTextureHandle imported_texture = rg_graph.ImportTexture("LDR Target", offscreen_ldr_target.get());
+
+		rg_graph.AddPass<CopyPassData>("Copy Pass", 
+			[&](CopyPassData& data, RenderGraphBuilder& builder)
+			{
+				data.src = builder.Read(ambient_data.hdr_rt);
+				data.dst = builder.Write(imported_texture);
+			}, 
+			[](CopyPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
+			{
+				Texture& src = resources.GetTexture(data.src);
+				Texture& dst = resources.GetTexture(data.dst);
+				cmd_list->CopyResource(dst.GetNative(), src.GetNative());
+			}, ERGPassType::Copy, ERGPassFlags::ForceNoCull);
 
 		rg_graph.Build();
 		rg_graph.Execute();

@@ -36,6 +36,9 @@ namespace adria
 		bool imported;
 		size_t version;
 		size_t ref_count;
+
+		RenderGraphPassBase* writer = nullptr;
+		RenderGraphPassBase* last_used_by = nullptr;
 	};
 
 	template<ERGResourceType ResourceType>
@@ -57,30 +60,6 @@ namespace adria
 	};
 	using RGTexture = TypedRenderGraphResource<ERGResourceType::Texture>;
 	using RGBuffer = TypedRenderGraphResource<ERGResourceType::Buffer>;
-
-	struct RenderGraphTextureNode
-	{
-		explicit RenderGraphTextureNode(RGTexture* texture)
-			: texture(texture), version(texture->version)
-		{}
-		RGTexture* texture;
-		size_t version;
-		RenderGraphPassBase* writer = nullptr;
-		RenderGraphPassBase* last_used_by = nullptr;
-	};
-	using RGTextureNode = RenderGraphTextureNode;
-
-	struct RenderGraphBufferNode
-	{
-		explicit RenderGraphBufferNode(RGBuffer* buffer)
-			: buffer(buffer), version(buffer->version)
-		{}
-		RGBuffer* buffer;
-		size_t version;
-		RenderGraphPassBase* writer = nullptr;
-		RenderGraphPassBase* last_used_by = nullptr;
-	};
-	using RGBufferNode = RenderGraphBufferNode;
 
 	using ResourceView = D3D12_CPU_DESCRIPTOR_HANDLE;
 	using ResourceState = D3D12_RESOURCE_STATES;

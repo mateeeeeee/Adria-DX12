@@ -8,12 +8,6 @@
 namespace adria
 {
 
-	struct Test
-	{
-		int x;
-		float y;
-	};
-
 	class RenderGraphBlackboard
 	{
 	public:
