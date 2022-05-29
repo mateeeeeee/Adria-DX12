@@ -7,12 +7,12 @@ namespace adria
 	RenderGraphResources::RenderGraphResources(RenderGraph& rg, RenderGraphPassBase& rg_pass) : rg(rg), rg_pass(rg_pass)
 	{}
 
-	Texture& RenderGraphResources::GetTexture(RGTextureHandle handle)
+	Texture& RenderGraphResources::GetTexture(RGTextureRef handle)
 	{
 		return *rg.GetTexture(handle);
 	}
 
-	Buffer& RenderGraphResources::GetBuffer(RGBufferHandle handle)
+	Buffer& RenderGraphResources::GetBuffer(RGBufferRef handle)
 	{
 		return *rg.GetBuffer(handle);
 	}
@@ -23,22 +23,22 @@ namespace adria
 		return rg.GetBlackboard();
 	}
 
-	ResourceView RenderGraphResources::GetSRV(RGTextureHandleSRV handle) const
+	ResourceView RenderGraphResources::GetSRV(RGTextureRefSRV handle) const
 	{
 		return rg.GetSRV(handle);
 	}
 
-	ResourceView RenderGraphResources::GetUAV(RGTextureHandleUAV handle) const
+	ResourceView RenderGraphResources::GetUAV(RGTextureRefUAV handle) const
 	{
 		return rg.GetUAV(handle);
 	}
 
-	ResourceView RenderGraphResources::GetRTV(RGTextureHandleRTV handle) const
+	ResourceView RenderGraphResources::GetRTV(RGTextureRefRTV handle) const
 	{
 		return rg.GetRTV(handle);
 	}
 
-	ResourceView RenderGraphResources::GetDSV(RGTextureHandleDSV handle) const
+	ResourceView RenderGraphResources::GetDSV(RGTextureRefDSV handle) const
 	{
 		return rg.GetDSV(handle);
 	}

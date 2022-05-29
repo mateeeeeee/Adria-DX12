@@ -80,7 +80,7 @@ namespace adria
 
 		void Submit(ID3D12GraphicsCommandList* command_list) const
 		{
-			command_list->ResourceBarrier(static_cast<UINT>(resource_barriers.size()), resource_barriers.data());
+			if(!resource_barriers.empty()) command_list->ResourceBarrier(static_cast<UINT>(resource_barriers.size()), resource_barriers.data());
 		}
 
 		void Merge(ResourceBarrierBatch&& barriers)

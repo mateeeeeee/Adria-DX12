@@ -499,7 +499,7 @@
     <ClInclude Include="Graphics\Heap.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="RenderGraph\RenderGraphResourceHandle.h">
+    <ClInclude Include="RenderGraph\RenderGraphResourceRef.h">
       <Filter>RenderGraph</Filter>
     </ClInclude>
     <ClInclude Include="RenderGraph\RenderGraphPass.h">

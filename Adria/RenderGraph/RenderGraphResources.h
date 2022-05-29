@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "RenderGraphResourceHandle.h"
+#include "RenderGraphResourceRef.h"
 #include "RenderGraphBlackboard.h"
 
 namespace adria
@@ -73,14 +73,14 @@ namespace adria
 		RenderGraphResources(RenderGraphResources const&) = delete;
 		RenderGraphResources& operator=(RenderGraphResources const&) = delete;
 
-		Texture& GetTexture(RGTextureHandle handle);
-		Buffer& GetBuffer(RGBufferHandle handle);
+		Texture& GetTexture(RGTextureRef handle);
+		Buffer& GetBuffer(RGBufferRef handle);
 		RGBlackboard& GetBlackboard();
 
-		ResourceView GetSRV(RGTextureHandleSRV handle) const;
-		ResourceView GetUAV(RGTextureHandleUAV handle) const;
-		ResourceView GetRTV(RGTextureHandleRTV handle) const;
-		ResourceView GetDSV(RGTextureHandleDSV handle) const;
+		ResourceView GetSRV(RGTextureRefSRV handle) const;
+		ResourceView GetUAV(RGTextureRefUAV handle) const;
+		ResourceView GetRTV(RGTextureRefRTV handle) const;
+		ResourceView GetDSV(RGTextureRefDSV handle) const;
 
 	private:
 		RenderGraph& rg;

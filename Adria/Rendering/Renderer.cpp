@@ -527,15 +527,15 @@ namespace adria
 	{
 		settings = _settings;
 
-		static RGResourcePool pool(gfx);
-		RenderGraph rg_graph(gfx, pool);
+		static RenderGraph rg_graph(gfx);
+		rg_graph.Clear();
 
 		struct GBufferPassData
 		{
-			RGTextureHandle gbuffer_normal;
-			RGTextureHandle gbuffer_albedo;
-			RGTextureHandle gbuffer_emissive;
-			RGTextureHandle depth_stencil;
+			RGTextureRef gbuffer_normal;
+			RGTextureRef gbuffer_albedo;
+			RGTextureRef gbuffer_emissive;
+			RGTextureRef depth_stencil;
 		};
 
 		GBufferPassData const& gbuffer_data = rg_graph.AddPass<GBufferPassData>("GBuffer Pass",
@@ -556,13 +556,13 @@ namespace adria
 				gbuffer_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
 				gbuffer_desc.clear = rtv_clear_value;
 
-				RGTextureHandle gbuffer_normal = builder.CreateTexture("GBuffer Normal", gbuffer_desc);
-				RGTextureHandle gbuffer_albedo = builder.CreateTexture("GBuffer Albedo", gbuffer_desc);
-				RGTextureHandle gbuffer_emissive = builder.CreateTexture("GBuffer Emissive", gbuffer_desc);
+				RGTextureRef gbuffer_normal = builder.CreateTexture("GBuffer Normal", gbuffer_desc);
+				RGTextureRef gbuffer_albedo = builder.CreateTexture("GBuffer Albedo", gbuffer_desc);
+				RGTextureRef gbuffer_emissive = builder.CreateTexture("GBuffer Emissive", gbuffer_desc);
 
-				RGTextureHandleRTV gbuffer_normal_rtv = builder.CreateRTV(gbuffer_normal);
-				RGTextureHandleRTV gbuffer_albedo_rtv = builder.CreateRTV(gbuffer_albedo);
-				RGTextureHandleRTV gbuffer_emissive_rtv = builder.CreateRTV(gbuffer_emissive);
+				RGTextureRefRTV gbuffer_normal_rtv = builder.CreateRTV(gbuffer_normal);
+				RGTextureRefRTV gbuffer_albedo_rtv = builder.CreateRTV(gbuffer_albedo);
+				RGTextureRefRTV gbuffer_emissive_rtv = builder.CreateRTV(gbuffer_emissive);
 
 				D3D12_CLEAR_VALUE clear_value{};
 				clear_value.Format = DXGI_FORMAT_D32_FLOAT;
@@ -575,8 +575,8 @@ namespace adria
 				depth_desc.bind_flags = EBindFlag::DepthStencil | EBindFlag::ShaderResource;
 				depth_desc.initial_state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 				depth_desc.clear = clear_value;
-				RGTextureHandle depth_stencil = builder.CreateTexture("Depth Stencil", gbuffer_desc);
-				RGTextureHandleDSV depth_stencil_dsv = builder.CreateDSV(depth_stencil);
+				RGTextureRef depth_stencil = builder.CreateTexture("Depth Stencil", depth_desc);
+				RGTextureRefDSV depth_stencil_dsv = builder.CreateDSV(depth_stencil);
 
 				builder.SetViewport(width, height);
 				data.gbuffer_normal = builder.RenderTarget(gbuffer_normal_rtv, ERGLoadStoreAccessOp::Clear_Preserve);
@@ -630,17 +630,17 @@ namespace adria
 
 		struct AmbientPassData
 		{
-			RGTextureHandle hdr_rt;
-			RGTextureHandleSRV gbuffer_normal_srv;
-			RGTextureHandleSRV gbuffer_albedo_srv;
-			RGTextureHandleSRV gbuffer_emissive_srv;
-			RGTextureHandleSRV depth_stencil_srv;
+			RGTextureRef hdr_rt;
+			RGTextureRefSRV gbuffer_normal_srv;
+			RGTextureRefSRV gbuffer_albedo_srv;
+			RGTextureRefSRV gbuffer_emissive_srv;
+			RGTextureRefSRV depth_stencil_srv;
 		};
 		AmbientPassData const& ambient_data = rg_graph.AddPass<AmbientPassData>("Ambient Pass",
 			[&](AmbientPassData& data, RenderGraphBuilder& builder) 
 			{
 				D3D12_CLEAR_VALUE rtv_clear_value{};
-				rtv_clear_value.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				rtv_clear_value.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				rtv_clear_value.Color[0] = 0.0f;
 				rtv_clear_value.Color[1] = 0.0f;
 				rtv_clear_value.Color[2] = 0.0f;
@@ -653,8 +653,8 @@ namespace adria
 				render_target_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
 				render_target_desc.clear = rtv_clear_value;
 				render_target_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
-				RGTextureHandle hdr_rt = builder.CreateTexture("HDR Render Target", render_target_desc);
-				RGTextureHandleRTV hdr_rt_rtv = builder.CreateRTV(hdr_rt);
+				RGTextureRef hdr_rt = builder.CreateTexture("HDR Render Target", render_target_desc);
+				RGTextureRefRTV hdr_rt_rtv = builder.CreateRTV(hdr_rt);
 
 				data.hdr_rt = builder.RenderTarget(hdr_rt_rtv, ERGLoadStoreAccessOp::Clear_Preserve);
 				data.gbuffer_normal_srv = builder.CreateSRV(builder.Read(gbuffer_data.gbuffer_normal));
@@ -699,26 +699,45 @@ namespace adria
 			}
 			);
 
-		struct CopyPassData
+		struct TonemapPassData
 		{
-			RGTextureHandle src;
-			RGTextureHandle dst;
+			RGTextureRef src;
+			RGTextureRefSRV src_srv;
+			RGTextureRef dst;
+			RGTextureRefRTV dst_rtv;
 		};
 
-		RGTextureHandle imported_texture = rg_graph.ImportTexture("LDR Target", offscreen_ldr_target.get());
+		offscreen_ldr_target->GetNative()->SetName(L"LDR Target");
+		RGTextureRef imported_texture = rg_graph.ImportTexture("LDR Target", offscreen_ldr_target.get());
 
-		rg_graph.AddPass<CopyPassData>("Copy Pass", 
-			[&](CopyPassData& data, RenderGraphBuilder& builder)
+		rg_graph.AddPass<TonemapPassData>("Tone Map Pass",
+			[&](TonemapPassData& data, RenderGraphBuilder& builder)
 			{
-				data.src = builder.Read(ambient_data.hdr_rt);
-				data.dst = builder.Write(imported_texture);
+				data.src = builder.Read(ambient_data.hdr_rt, ReadAccess_PixelShader);
+				data.src_srv = builder.CreateSRV(data.src);
+				data.dst_rtv = builder.CreateRTV(imported_texture);
+				data.dst = builder.RenderTarget(data.dst_rtv, ERGLoadStoreAccessOp::Discard_Preserve);
 			}, 
-			[](CopyPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
+			[&](TonemapPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
-				Texture& src = resources.GetTexture(data.src);
-				Texture& dst = resources.GetTexture(data.dst);
-				cmd_list->CopyResource(dst.GetNative(), src.GetNative());
-			}, ERGPassType::Copy, ERGPassFlags::ForceNoCull);
+				PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Tone Map Pass");
+
+				ID3D12Device* device = gfx->GetDevice();
+				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+
+				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::ToneMap));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::ToneMap));
+
+				cmd_list->SetGraphicsRootConstantBufferView(0, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
+
+				OffsetType descriptor_index = descriptor_allocator->Allocate();
+				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = resources.GetSRV(data.src_srv); // postprocess_textures[!postprocess_index]->SRV();
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
+				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+				cmd_list->DrawInstanced(4, 1, 0, 0);
+			}, ERGPassType::Graphics, ERGPassFlags::ForceNoCull);
 
 		rg_graph.Build();
 		rg_graph.Execute();

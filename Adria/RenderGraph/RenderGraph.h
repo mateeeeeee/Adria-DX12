@@ -80,18 +80,18 @@ namespace adria
 		RenderGraphBuilder(RenderGraphBuilder const&) = delete;
 		RenderGraphBuilder& operator=(RenderGraphBuilder const&) = delete;
 
-		RGTextureHandle CreateTexture(char const* name, TextureDesc const& desc);
+		RGTextureRef CreateTexture(char const* name, TextureDesc const& desc);
 
-		RGTextureHandle Read(RGTextureHandle handle, ERGReadAccess read_flag = ReadAccess_PixelShader);
-		RGTextureHandle Write(RGTextureHandle handle, ERGWriteAccess write_flag = WriteAccess_Unordered);
-		RGTextureHandle RenderTarget(RGTextureHandleRTV rtv_handle, ERGLoadStoreAccessOp load_store_op);
-		RGTextureHandle DepthStencil(RGTextureHandleDSV dsv_handle, ERGLoadStoreAccessOp depth_load_store_op, bool readonly = false, 
+		RGTextureRef Read(RGTextureRef handle, ERGReadAccess read_flag = ReadAccess_PixelShader);
+		RGTextureRef Write(RGTextureRef handle, ERGWriteAccess write_flag = WriteAccess_Unordered);
+		RGTextureRef RenderTarget(RGTextureRefRTV rtv_handle, ERGLoadStoreAccessOp load_store_op);
+		RGTextureRef DepthStencil(RGTextureRefDSV dsv_handle, ERGLoadStoreAccessOp depth_load_store_op, bool readonly = false, 
 			ERGLoadStoreAccessOp stencil_load_store_op = ERGLoadStoreAccessOp::NoAccess_NoAccess);
 
-		RGTextureHandleSRV CreateSRV(RGTextureHandle handle, TextureViewDesc const& desc = {});
-		RGTextureHandleUAV CreateUAV(RGTextureHandle handle, TextureViewDesc const& desc = {});
-		RGTextureHandleRTV CreateRTV(RGTextureHandle handle, TextureViewDesc const& desc = {});
-		RGTextureHandleDSV CreateDSV(RGTextureHandle handle, TextureViewDesc const& desc = {});
+		RGTextureRefSRV CreateSRV(RGTextureRef handle, TextureViewDesc const& desc = {});
+		RGTextureRefUAV CreateUAV(RGTextureRef handle, TextureViewDesc const& desc = {});
+		RGTextureRefRTV CreateRTV(RGTextureRef handle, TextureViewDesc const& desc = {});
+		RGTextureRefDSV CreateDSV(RGTextureRef handle, TextureViewDesc const& desc = {});
 
 		void SetViewport(uint32 width, uint32 height);
 	private:
@@ -123,16 +123,16 @@ namespace adria
 		private:
 			RenderGraph& rg;
 			std::vector<RenderGraphPassBase*>   passes;
-			std::unordered_set<RGTextureHandle> creates;
-			std::unordered_set<RGTextureHandle> reads;
-			std::unordered_set<RGTextureHandle> writes;
-			std::unordered_set<RGTextureHandle> destroys;
-			std::unordered_map<RGTextureHandle, ResourceState> required_states;
+			std::unordered_set<RGTextureRef> creates;
+			std::unordered_set<RGTextureRef> reads;
+			std::unordered_set<RGTextureRef> writes;
+			std::unordered_set<RGTextureRef> destroys;
+			std::unordered_map<RGTextureRef, ResourceState> required_states;
 		};
 
 	public:
 
-		RenderGraph(GraphicsDevice* gfx, RGResourcePool& pool) : gfx(gfx), pool(pool)
+		RenderGraph(GraphicsDevice* gfx) : gfx(gfx), pool(gfx)
 		{}
 		RenderGraph(RenderGraph const&) = delete;
 		RenderGraph(RenderGraph&&) = default;
@@ -149,23 +149,28 @@ namespace adria
 			return (*dynamic_cast<RenderGraphPass<PassData>*>(passes.back().get())).GetPassData();
 		}
 
-		RGTextureHandle CreateTexture(char const* name, TextureDesc const& desc);
-		RGTextureHandle ImportTexture(char const* name, Texture* texture);
-		Texture* GetTexture(RGTextureHandle) const;
+		RGTextureRef CreateTexture(char const* name, TextureDesc const& desc);
+		RGTextureRef ImportTexture(char const* name, Texture* texture);
+		Texture* GetTexture(RGTextureRef) const;
 
-		RGBufferHandle CreateBuffer(char const* name, BufferDesc const& desc);
-		Buffer* GetBuffer(RGBufferHandle) const;
+		RGBufferRef CreateBuffer(char const* name, BufferDesc const& desc);
+		Buffer* GetBuffer(RGBufferRef) const;
 
+		void Clear();
 		void Build();
 		void Execute();
 
-		bool IsValidTextureHandle(RGTextureHandle) const;
-		bool IsValidBufferHandle(RGBufferHandle) const;
+		bool IsValidTextureHandle(RGTextureRef) const;
+		bool IsValidBufferHandle(RGBufferRef) const;
 
 		RGBlackboard const& GetBlackboard() const { return blackboard; }
 		RGBlackboard& GetBlackboard() { return blackboard; }
 
 	private:
+		GraphicsDevice* gfx;
+		RGBlackboard blackboard;
+		RGResourcePool pool;
+
 		std::vector<std::unique_ptr<RGPassBase>> passes;
 		std::vector<std::unique_ptr<RGTexture>> textures;
 		std::vector<std::unique_ptr<RGBuffer>> buffers;
@@ -174,19 +179,15 @@ namespace adria
 		std::vector<RenderGraphPassBase*> topologically_sorted_passes;
 		std::vector<DependencyLevel> dependency_levels;
 
-		RGBlackboard blackboard;
-		RGResourcePool& pool;
-		GraphicsDevice* gfx;
-
-		mutable std::unordered_map<RGTextureHandle, std::vector<TextureViewDesc>> view_desc_map;
-		mutable std::unordered_map<RGTextureHandleSRV, ResourceView> texture_srv_cache;
-		mutable std::unordered_map<RGTextureHandleUAV, ResourceView> texture_uav_cache;
-		mutable std::unordered_map<RGTextureHandleRTV, ResourceView> texture_rtv_cache;
-		mutable std::unordered_map<RGTextureHandleDSV, ResourceView> texture_dsv_cache;
+		mutable std::unordered_map<RGTextureRef, std::vector<TextureViewDesc>> view_desc_map;
+		mutable std::unordered_map<RGTextureRefSRV, ResourceView> texture_srv_cache;
+		mutable std::unordered_map<RGTextureRefUAV, ResourceView> texture_uav_cache;
+		mutable std::unordered_map<RGTextureRefRTV, ResourceView> texture_rtv_cache;
+		mutable std::unordered_map<RGTextureRefDSV, ResourceView> texture_dsv_cache;
 
 	private:
-		RGTexture* GetRGTexture(RGTextureHandle handle) const;
-		RGBuffer* GetRGBuffer(RGBufferHandle handle) const;
+		RGTexture* GetRGTexture(RGTextureRef handle) const;
+		RGBuffer* GetRGBuffer(RGBufferRef handle) const;
 
 		void BuildAdjacencyLists();
 		void TopologicalSort();
@@ -195,15 +196,15 @@ namespace adria
 		void CalculateResourcesLifetime();
 		void DepthFirstSearch(size_t i, std::vector<bool>& visited, std::stack<size_t>& stack);
 
-		RGTextureHandleSRV CreateSRV(RGTextureHandle handle, TextureViewDesc const& desc);
-		RGTextureHandleUAV CreateUAV(RGTextureHandle handle, TextureViewDesc const& desc);
-		RGTextureHandleRTV CreateRTV(RGTextureHandle handle, TextureViewDesc const& desc);
-		RGTextureHandleDSV CreateDSV(RGTextureHandle handle, TextureViewDesc const& desc);
+		RGTextureRefSRV CreateSRV(RGTextureRef handle, TextureViewDesc const& desc);
+		RGTextureRefUAV CreateUAV(RGTextureRef handle, TextureViewDesc const& desc);
+		RGTextureRefRTV CreateRTV(RGTextureRef handle, TextureViewDesc const& desc);
+		RGTextureRefDSV CreateDSV(RGTextureRef handle, TextureViewDesc const& desc);
 
-		ResourceView GetSRV(RGTextureHandleSRV handle) const;
-		ResourceView GetUAV(RGTextureHandleUAV handle) const;
-		ResourceView GetRTV(RGTextureHandleRTV handle) const;
-		ResourceView GetDSV(RGTextureHandleDSV handle) const;
+		ResourceView GetSRV(RGTextureRefSRV handle) const;
+		ResourceView GetUAV(RGTextureRefUAV handle) const;
+		ResourceView GetRTV(RGTextureRefRTV handle) const;
+		ResourceView GetDSV(RGTextureRefDSV handle) const;
 	};
 
 }

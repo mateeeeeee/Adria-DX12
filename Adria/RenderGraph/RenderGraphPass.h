@@ -3,7 +3,7 @@
 #include <functional>
 #include <unordered_set>
 #include <unordered_map>
-#include "RenderGraphResourceHandle.h"
+#include "RenderGraphResourceRef.h"
 #include "RenderGraphResources.h"
 #include "../Core/Definitions.h"
 #include "../Utilities/EnumUtil.h"
@@ -31,7 +31,7 @@ namespace adria
 	{
 		ReadAccess_PixelShader,
 		ReadAccess_NonPixelShader,
-		ReadAccess_AllPixelShader,
+		ReadAccess_AllShader,
 		ReadAccess_IndirectArgument,
 		ReadAccess_CopySrc
 	};
@@ -93,12 +93,12 @@ namespace adria
 
 		struct RenderTargetInfo
 		{
-			RGTextureHandleRTV render_target_handle;
+			RGTextureRefRTV render_target_handle;
 			ERGLoadStoreAccessOp render_target_access;
 		};
 		struct DepthStencilInfo
 		{
-			RGTextureHandleDSV depth_stencil_handle;
+			RGTextureRefDSV depth_stencil_handle;
 			ERGLoadStoreAccessOp depth_access;
 			ERGLoadStoreAccessOp stencil_access;
 			bool readonly;
@@ -115,7 +115,7 @@ namespace adria
 		virtual void Execute(RenderGraphResources&, GraphicsDevice*, CommandList*) const = 0;
 
 		bool IsCulled() const { return ref_count == 0; }
-		bool CanBeCulled() const { return HasAnyFlag(flags, ERGPassFlags::ForceNoCull); }
+		bool CanBeCulled() const { return !HasAnyFlag(flags, ERGPassFlags::ForceNoCull); }
 		bool SkipAutoRenderPassSetup() const { return HasAnyFlag(flags, ERGPassFlags::SkipAutoRenderPass); }
 		bool UseLegacyRenderPasses() const { return HasAnyFlag(flags, ERGPassFlags::LegacyRenderPassEnabled); }
 		bool AllowUAVWrites() const { return HasAnyFlag(flags, ERGPassFlags::AllowUAVWrites); }
@@ -124,12 +124,12 @@ namespace adria
 		size_t ref_count = 0ull;
 		ERGPassType type;
 		ERGPassFlags flags = ERGPassFlags::None;
-		std::unordered_set<RGTextureHandle> creates;
-		std::unordered_set<RGTextureHandle> reads;
-		std::unordered_set<RGTextureHandle> writes;
-		std::unordered_set<RGTextureHandle> destroy;
+		std::unordered_set<RGTextureRef> creates;
+		std::unordered_set<RGTextureRef> reads;
+		std::unordered_set<RGTextureRef> writes;
+		std::unordered_set<RGTextureRef> destroy;
 
-		std::unordered_map<RGTextureHandle, ResourceState> resource_state_map;
+		std::unordered_map<RGTextureRef, ResourceState> resource_state_map;
 
 		std::vector<RenderTargetInfo> render_targets_info;
 		std::optional<DepthStencilInfo> depth_stencil = std::nullopt;

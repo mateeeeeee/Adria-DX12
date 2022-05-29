@@ -10,14 +10,14 @@
 namespace adria
 {
 
-	RGTextureHandle RenderGraphBuilder::CreateTexture(char const* name, TextureDesc const& desc)
+	RGTextureRef RenderGraphBuilder::CreateTexture(char const* name, TextureDesc const& desc)
 	{
-		RGTextureHandle handle = rg.CreateTexture(name, desc);
+		RGTextureRef handle = rg.CreateTexture(name, desc);
 		rg_pass.creates.insert(handle);
 		return handle;
 	}
 
-	RGTextureHandle RenderGraphBuilder::Read(RGTextureHandle handle, ERGReadAccess read_flag /*= ReadFlag_PixelShaderAccess*/)
+	RGTextureRef RenderGraphBuilder::Read(RGTextureRef handle, ERGReadAccess read_flag /*= ReadFlag_PixelShaderAccess*/)
 	{
 		if (rg_pass.type == ERGPassType::Copy) read_flag = ReadAccess_CopySrc;
 
@@ -30,7 +30,7 @@ namespace adria
 		case ReadAccess_NonPixelShader:
 			rg_pass.resource_state_map[handle] = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 			break;
-		case ReadAccess_AllPixelShader:
+		case ReadAccess_AllShader:
 			rg_pass.resource_state_map[handle] = D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
 			break;
 		case ReadAccess_CopySrc:
@@ -46,7 +46,7 @@ namespace adria
 		return handle;
 	}
 
-	RGTextureHandle RenderGraphBuilder::Write(RGTextureHandle handle, ERGWriteAccess write_flag /*= WriteFlag_UnorderedAccess*/)
+	RGTextureRef RenderGraphBuilder::Write(RGTextureRef handle, ERGWriteAccess write_flag /*= WriteFlag_UnorderedAccess*/)
 	{
 		if (rg_pass.type == ERGPassType::Copy) write_flag = WriteAccess_CopyDst;
 
@@ -73,9 +73,9 @@ namespace adria
 		return handle;
 	}
 
-	RGTextureHandle RenderGraphBuilder::RenderTarget(RGTextureHandleRTV rtv_handle, ERGLoadStoreAccessOp load_store_op)
+	RGTextureRef RenderGraphBuilder::RenderTarget(RGTextureRefRTV rtv_handle, ERGLoadStoreAccessOp load_store_op)
 	{
-		RGTextureHandle handle = rtv_handle.GetTypedResourceHandle();
+		RGTextureRef handle = rtv_handle.GetTypedResourceHandle();
 		rg_pass.resource_state_map[handle] = D3D12_RESOURCE_STATE_RENDER_TARGET;
 		rg_pass.writes.insert(handle);
 		rg_pass.render_targets_info.push_back(RenderGraphPassBase::RenderTargetInfo{ .render_target_handle = rtv_handle, .render_target_access = load_store_op });
@@ -85,9 +85,9 @@ namespace adria
 		return handle;
 	}
 
-	RGTextureHandle RenderGraphBuilder::DepthStencil(RGTextureHandleDSV dsv_handle, ERGLoadStoreAccessOp depth_load_store_op, bool readonly /*= false*/, ERGLoadStoreAccessOp stencil_load_store_op /*= ERGLoadStoreAccessOp::NoAccess_NoAccess*/)
+	RGTextureRef RenderGraphBuilder::DepthStencil(RGTextureRefDSV dsv_handle, ERGLoadStoreAccessOp depth_load_store_op, bool readonly /*= false*/, ERGLoadStoreAccessOp stencil_load_store_op /*= ERGLoadStoreAccessOp::NoAccess_NoAccess*/)
 	{
-		RGTextureHandle handle = dsv_handle.GetTypedResourceHandle();
+		RGTextureRef handle = dsv_handle.GetTypedResourceHandle();
 		readonly ? rg_pass.reads.insert(handle) : rg_pass.writes.insert(handle);
 		rg_pass.depth_stencil = RenderGraphPassBase::DepthStencilInfo{ .depth_stencil_handle = dsv_handle, .depth_access = depth_load_store_op,.stencil_access = stencil_load_store_op, .readonly = readonly };
 		auto* rg_texture = rg.GetRGTexture(handle);
@@ -98,22 +98,22 @@ namespace adria
 		return handle;
 	}
 
-	RGTextureHandleSRV RenderGraphBuilder::CreateSRV(RGTextureHandle handle, TextureViewDesc const& desc)
+	RGTextureRefSRV RenderGraphBuilder::CreateSRV(RGTextureRef handle, TextureViewDesc const& desc)
 	{
 		return rg.CreateSRV(handle, desc);
 	}
 
-	RGTextureHandleUAV RenderGraphBuilder::CreateUAV(RGTextureHandle handle, TextureViewDesc const& desc)
+	RGTextureRefUAV RenderGraphBuilder::CreateUAV(RGTextureRef handle, TextureViewDesc const& desc)
 	{
 		return rg.CreateUAV(handle, desc);
 	}
 
-	RGTextureHandleRTV RenderGraphBuilder::CreateRTV(RGTextureHandle handle, TextureViewDesc const& desc)
+	RGTextureRefRTV RenderGraphBuilder::CreateRTV(RGTextureRef handle, TextureViewDesc const& desc)
 	{
 		return rg.CreateRTV(handle, desc);
 	}
 
-	RGTextureHandleDSV RenderGraphBuilder::CreateDSV(RGTextureHandle handle, TextureViewDesc const& desc)
+	RGTextureRefDSV RenderGraphBuilder::CreateDSV(RGTextureRef handle, TextureViewDesc const& desc)
 	{
 		return rg.CreateDSV(handle, desc);
 	}
@@ -128,41 +128,51 @@ namespace adria
 		: rg(rg), rg_pass(rg_pass)
 	{}
 
-	RGTextureHandle RenderGraph::CreateTexture(char const* name, TextureDesc const& desc)
+	RGTextureRef RenderGraph::CreateTexture(char const* name, TextureDesc const& desc)
 	{
 		textures.emplace_back(new RGTexture(name, textures.size(), desc));
-		return RGTextureHandle(textures.size() - 1);
+		return RGTextureRef(textures.size() - 1);
 	}
 
-	RGTextureHandle RenderGraph::ImportTexture(char const* name, Texture* texture)
+	RGTextureRef RenderGraph::ImportTexture(char const* name, Texture* texture)
 	{
 		textures.emplace_back(new RGTexture(name, textures.size(), texture));
-		return RGTextureHandle(textures.size() - 1);
+		return RGTextureRef(textures.size() - 1);
 	}
 
-	Texture* RenderGraph::GetTexture(RGTextureHandle handle) const
+	Texture* RenderGraph::GetTexture(RGTextureRef handle) const
 	{
 		RGTexture* texture = GetRGTexture(handle);
 		return texture->resource;
 	}
 
-	RGBufferHandle RenderGraph::CreateBuffer(char const* name, BufferDesc const& desc)
+	RGBufferRef RenderGraph::CreateBuffer(char const* name, BufferDesc const& desc)
 	{
-		return RGBufferHandle{};
+		return RGBufferRef{};
 	}
 
-	Buffer* RenderGraph::GetBuffer(RGBufferHandle handle) const
+	Buffer* RenderGraph::GetBuffer(RGBufferRef handle) const
 	{
 		RGBuffer* buffer = GetRGBuffer(handle);
 		return buffer->resource;
 	}
 
-	bool RenderGraph::IsValidTextureHandle(RGTextureHandle handle) const
+	void RenderGraph::Clear()
+	{
+		passes.clear();
+		textures.clear();
+		buffers.clear();
+		adjacency_lists.clear();
+		topologically_sorted_passes.clear();
+		dependency_levels.clear();
+	}
+
+	bool RenderGraph::IsValidTextureHandle(RGTextureRef handle) const
 	{
 		return handle.IsValid() && handle.id < textures.size();
 	}
 
-	bool RenderGraph::IsValidBufferHandle(RGBufferHandle handle) const
+	bool RenderGraph::IsValidBufferHandle(RGBufferRef handle) const
 	{
 		return handle.IsValid() && handle.id < buffers.size();
 	}
@@ -183,12 +193,13 @@ namespace adria
 		for (auto& dependency_level : dependency_levels) dependency_level.Setup();
 
 		auto cmd_list = gfx->GetNewGraphicsCommandList();
+		ResourceBarrierBatch final_barrier_batcher{};
 		for (size_t i = 0; i < dependency_levels.size(); ++i)
 		{
 			auto& dependency_level = dependency_levels[i];
 			for (auto handle : dependency_level.creates)
 			{
-				auto* rg_texture = GetRGTexture(handle);
+				RGTexture* rg_texture = GetRGTexture(handle);
 				rg_texture->resource = pool.AllocateTexture(rg_texture->desc);
 			}
 
@@ -196,12 +207,14 @@ namespace adria
 			{
 				for (auto const& [texture_handle, state] : dependency_level.required_states)
 				{
-					Texture* texture = GetTexture(texture_handle);
+					RGTexture* rg_texture = GetRGTexture(texture_handle);
+					Texture* texture = rg_texture->resource;
 					if (dependency_level.creates.contains(texture_handle))
 					{
-						ADRIA_ASSERT(HasAllFlags(texture->GetDesc().initial_state, state) && "Creator of texture needs to set initial state of resource without need for resource barriers!");
+						ADRIA_ASSERT(HasAllFlags(texture->GetDesc().initial_state, state) && "First Resource Usage must be compatible with initial resource state!");
 						continue;
 					}
+					bool found = false;
 					for (int32 j = (int32)i - 1; j >= 0; --j)
 					{
 						auto& prev_dependency_level = dependency_levels[j];
@@ -209,8 +222,14 @@ namespace adria
 						{
 							ResourceState prev_state = prev_dependency_level.required_states[texture_handle];
 							if (state != prev_state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, state);
+							found = true;
 							break;
 						}
+					}
+					if (!found && rg_texture->imported)
+					{
+						ResourceState prev_state = rg_texture->desc.initial_state;
+						if (state != prev_state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, state);
 					}
 				}
 			}
@@ -221,30 +240,23 @@ namespace adria
 			for (auto handle : dependency_level.destroys)
 			{
 				auto* rg_texture = GetRGTexture(handle);
-				pool.ReleaseTexture(rg_texture->resource);
-
-				Texture* texture = GetTexture(handle);
+				Texture* texture = rg_texture->resource;
 				ResourceState initial_state = texture->GetDesc().initial_state;
-				for (int32_t j = (int32)i - 1; j >= 0; --j)
-				{
-					auto& prev_dependency_level = dependency_levels[j];
-					if (prev_dependency_level.required_states.contains(handle))
-					{
-						ResourceState prev_state = prev_dependency_level.required_states[handle];
-						if (initial_state != prev_state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, initial_state);
-						break;
-					}
-				}
+				ADRIA_ASSERT(dependency_level.required_states.contains(handle));
+				ResourceState state = dependency_level.required_states[handle];
+				if (initial_state != state) final_barrier_batcher.AddTransition(texture->GetNative(), state, initial_state);
+				if (!rg_texture->imported) pool.ReleaseTexture(rg_texture->resource);
 			}
 		}
+		final_barrier_batcher.Submit(cmd_list);
 	}
 
-	RGTexture* RenderGraph::GetRGTexture(RGTextureHandle handle) const
+	RGTexture* RenderGraph::GetRGTexture(RGTextureRef handle) const
 	{
 		return textures[handle.id].get();
 	}
 
-	RGBuffer* RenderGraph::GetRGBuffer(RGBufferHandle handle) const
+	RGBuffer* RenderGraph::GetRGBuffer(RGBufferRef handle) const
 	{
 		return buffers[handle.id].get();
 	}
@@ -355,14 +367,21 @@ namespace adria
 		{
 			if (pass->IsCulled()) continue;
 			for (auto id : pass->writes)
-				GetRGTexture(id)->last_used_by = pass.get();
+			{
+				RGTexture* rg_texture = GetRGTexture(id);
+				rg_texture->last_used_by = pass.get();
+			}
+				
 			for (auto id : pass->reads)
-				GetRGTexture(id)->last_used_by = pass.get();
+			{
+				RGTexture* rg_texture = GetRGTexture(id);
+				rg_texture->last_used_by = pass.get();
+			}
 		}
 
 		for (size_t i = 0; i < textures.size(); ++i)
 		{
-			if(textures[i]->last_used_by != nullptr) textures[i]->last_used_by->destroy.insert(RGTextureHandle(i));
+			if(textures[i]->last_used_by != nullptr) textures[i]->last_used_by->destroy.insert(RGTextureRef(i));
 		}
 	}
 
@@ -376,39 +395,39 @@ namespace adria
 		stack.push(i);
 	}
 
-	RGTextureHandleSRV RenderGraph::CreateSRV(RGTextureHandle handle, TextureViewDesc const& desc)
+	RGTextureRefSRV RenderGraph::CreateSRV(RGTextureRef handle, TextureViewDesc const& desc)
 	{
 		std::vector<TextureViewDesc>& view_descs = view_desc_map[handle];
 		size_t view_id = view_descs.size();
 		view_descs.push_back(desc);
-		return RGTextureHandleSRV(view_id, handle);
+		return RGTextureRefSRV(view_id, handle);
 	}
 
-	RGTextureHandleUAV RenderGraph::CreateUAV(RGTextureHandle handle, TextureViewDesc const& desc)
+	RGTextureRefUAV RenderGraph::CreateUAV(RGTextureRef handle, TextureViewDesc const& desc)
 	{
 		std::vector<TextureViewDesc>& view_descs = view_desc_map[handle];
 		size_t view_id = view_descs.size();
 		view_descs.push_back(desc);
-		return RGTextureHandleUAV(view_id, handle);
+		return RGTextureRefUAV(view_id, handle);
 	}
 
-	RGTextureHandleRTV RenderGraph::CreateRTV(RGTextureHandle handle, TextureViewDesc const& desc)
+	RGTextureRefRTV RenderGraph::CreateRTV(RGTextureRef handle, TextureViewDesc const& desc)
 	{
 		std::vector<TextureViewDesc>& view_descs = view_desc_map[handle];
 		size_t view_id = view_descs.size();
 		view_descs.push_back(desc);
-		return RGTextureHandleRTV(view_id, handle);
+		return RGTextureRefRTV(view_id, handle);
 	}
 
-	RGTextureHandleDSV RenderGraph::CreateDSV(RGTextureHandle handle, TextureViewDesc const& desc)
+	RGTextureRefDSV RenderGraph::CreateDSV(RGTextureRef handle, TextureViewDesc const& desc)
 	{
 		std::vector<TextureViewDesc>& view_descs = view_desc_map[handle];
 		size_t view_id = view_descs.size();
 		view_descs.push_back(desc);
-		return RGTextureHandleDSV(view_id, handle);
+		return RGTextureRefDSV(view_id, handle);
 	}
 
-	ResourceView RenderGraph::GetSRV(RGTextureHandleSRV handle) const
+	ResourceView RenderGraph::GetSRV(RGTextureRefSRV handle) const
 	{
 		if (auto it = texture_srv_cache.find(handle); it != texture_srv_cache.end())
 		{
@@ -416,7 +435,7 @@ namespace adria
 		}
 		else
 		{
-			RGTextureHandle tex_handle = handle.GetTypedResourceHandle();
+			RGTextureRef tex_handle = handle.GetTypedResourceHandle();
 			std::vector<TextureViewDesc>& view_descs = view_desc_map[tex_handle];
 			TextureViewDesc const& view_desc = view_descs[handle.GetViewId()];
 
@@ -428,7 +447,7 @@ namespace adria
 		}
 	}
 
-	ResourceView RenderGraph::GetUAV(RGTextureHandleUAV handle) const
+	ResourceView RenderGraph::GetUAV(RGTextureRefUAV handle) const
 	{
 		if (auto it = texture_uav_cache.find(handle); it != texture_uav_cache.end())
 		{
@@ -436,7 +455,7 @@ namespace adria
 		}
 		else
 		{
-			RGTextureHandle tex_handle = handle.GetTypedResourceHandle();
+			RGTextureRef tex_handle = handle.GetTypedResourceHandle();
 			std::vector<TextureViewDesc>& view_descs = view_desc_map[tex_handle];
 			TextureViewDesc const& view_desc = view_descs[handle.GetViewId()];
 
@@ -448,7 +467,7 @@ namespace adria
 		}
 	}
 
-	ResourceView RenderGraph::GetRTV(RGTextureHandleRTV handle) const
+	ResourceView RenderGraph::GetRTV(RGTextureRefRTV handle) const
 	{
 		if (auto it = texture_rtv_cache.find(handle); it != texture_rtv_cache.end())
 		{
@@ -456,7 +475,7 @@ namespace adria
 		}
 		else
 		{
-			RGTextureHandle tex_handle = handle.GetTypedResourceHandle();
+			RGTextureRef tex_handle = handle.GetTypedResourceHandle();
 			std::vector<TextureViewDesc>& view_descs = view_desc_map[tex_handle];
 			TextureViewDesc const& view_desc = view_descs[handle.GetViewId()];
 
@@ -468,7 +487,7 @@ namespace adria
 		}
 	}
 
-	ResourceView RenderGraph::GetDSV(RGTextureHandleDSV handle) const
+	ResourceView RenderGraph::GetDSV(RGTextureRefDSV handle) const
 	{
 		if (auto it = texture_dsv_cache.find(handle); it != texture_dsv_cache.end())
 		{
@@ -476,7 +495,7 @@ namespace adria
 		}
 		else
 		{
-			RGTextureHandle tex_handle = handle.GetTypedResourceHandle();
+			RGTextureRef tex_handle = handle.GetTypedResourceHandle();
 			std::vector<TextureViewDesc>& view_descs = view_desc_map[tex_handle];
 			TextureViewDesc const& view_desc = view_descs[handle.GetViewId()];
 
@@ -522,7 +541,7 @@ namespace adria
 
 				for (auto const& render_target_info : pass->render_targets_info)
 				{
-					RGTextureHandle rt_texture = render_target_info.render_target_handle.GetTypedResourceHandle();
+					RGTextureRef rt_texture = render_target_info.render_target_handle.GetTypedResourceHandle();
 					Texture* texture = rg.GetTexture(rt_texture);
 
 					RtvAttachmentDesc rtv_desc{};
@@ -576,7 +595,7 @@ namespace adria
 				if (pass->depth_stencil.has_value())
 				{
 					auto depth_stencil_info = pass->depth_stencil.value();
-					RGTextureHandle ds_texture = depth_stencil_info.depth_stencil_handle.GetTypedResourceHandle();
+					RGTextureRef ds_texture = depth_stencil_info.depth_stencil_handle.GetTypedResourceHandle();
 					Texture* texture = rg.GetTexture(ds_texture);
 
 					DsvAttachmentDesc dsv_desc{};
