@@ -66,7 +66,7 @@ namespace adria
 		rg_pass.resource_state_map[handle] = resource_states;
 		rg_pass.writes.insert(handle);
 
-		auto& texture = rg.textures[handle.id];
+		auto* texture = rg.GetRGTexture(handle);
 		if (texture->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
 		if (!rg_pass.creates.contains(handle)) ++texture->version;
 
