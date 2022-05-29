@@ -52,7 +52,7 @@ namespace adria
 		{}
 
 		TypedRenderGraphResource(char const* name, size_t id, ResourceDesc const& desc)
-			: RenderGraphResource(name, id, true), resource(nullptr), desc(desc)
+			: RenderGraphResource(name, id, false), resource(nullptr), desc(desc)
 		{}
 
 		Resource* resource;

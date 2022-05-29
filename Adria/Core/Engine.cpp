@@ -274,7 +274,7 @@ namespace adria
 	void Engine::Render(RendererSettings const& settings)
 	{
 		gfx->ClearBackbuffer();
-		renderer->Render_RGraph(settings);
+		renderer->Render(settings);
 
 		if (editor_active) renderer->ResolveToOffscreenFramebuffer();
 		else renderer->ResolveToBackbuffer();
