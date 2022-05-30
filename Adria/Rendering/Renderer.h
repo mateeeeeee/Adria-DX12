@@ -16,7 +16,7 @@
 #include "../Graphics/RenderPass.h"
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/GPUProfiler.h"
-
+#include "../RenderGraph/RenderGraph.h"
 
 namespace adria
 {
@@ -102,6 +102,7 @@ namespace adria
 		uint32 width, height;
 		tecs::registry& reg;
 		GraphicsDevice* gfx;
+		RGResourcePool pool;
 
 		uint32 const backbuffer_count;
 		uint32 backbuffer_index;

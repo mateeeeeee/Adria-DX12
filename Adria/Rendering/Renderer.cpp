@@ -15,7 +15,6 @@
 #include "../Logging/Logger.h"
 #include "../Editor/GUI.h"
 #include "../Graphics/DWParam.h"
-#include "../RenderGraph/RenderGraph.h"
 #include "pix3.h"
 
 using namespace DirectX;
@@ -358,7 +357,7 @@ namespace adria
 	using namespace tecs;
 
 	Renderer::Renderer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height)
-		: reg(reg), gfx(gfx), width(width), height(height), texture_manager(gfx, 1000), backbuffer_count(gfx->BackbufferCount()),
+		: reg(reg), gfx(gfx), pool(gfx), width(width), height(height), texture_manager(gfx, 1000), backbuffer_count(gfx->BackbufferCount()),
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count), postprocess_cbuffer(gfx->GetDevice(), backbuffer_count),
 		compute_cbuffer(gfx->GetDevice(), backbuffer_count), weather_cbuffer(gfx->GetDevice(), backbuffer_count),
 		clusters(gfx, StructuredBufferDesc<ClusterAABB>(CLUSTER_COUNT)),
@@ -527,8 +526,7 @@ namespace adria
 	{
 		settings = _settings;
 
-		static RenderGraph rg_graph(gfx);
-		rg_graph.Clear();
+		RenderGraph rg_graph(pool);
 
 		struct GBufferPassData
 		{
@@ -560,9 +558,9 @@ namespace adria
 				RGTextureRef gbuffer_albedo = builder.CreateTexture("GBuffer Albedo", gbuffer_desc);
 				RGTextureRef gbuffer_emissive = builder.CreateTexture("GBuffer Emissive", gbuffer_desc);
 
-				RGTextureRefRTV gbuffer_normal_rtv = builder.CreateRTV(gbuffer_normal);
-				RGTextureRefRTV gbuffer_albedo_rtv = builder.CreateRTV(gbuffer_albedo);
-				RGTextureRefRTV gbuffer_emissive_rtv = builder.CreateRTV(gbuffer_emissive);
+				RGTextureRTVRef gbuffer_normal_rtv = builder.CreateRTV(gbuffer_normal);
+				RGTextureRTVRef gbuffer_albedo_rtv = builder.CreateRTV(gbuffer_albedo);
+				RGTextureRTVRef gbuffer_emissive_rtv = builder.CreateRTV(gbuffer_emissive);
 
 				D3D12_CLEAR_VALUE clear_value{};
 				clear_value.Format = DXGI_FORMAT_D32_FLOAT;
@@ -576,7 +574,7 @@ namespace adria
 				depth_desc.initial_state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 				depth_desc.clear = clear_value;
 				RGTextureRef depth_stencil = builder.CreateTexture("Depth Stencil", depth_desc);
-				RGTextureRefDSV depth_stencil_dsv = builder.CreateDSV(depth_stencil);
+				RGTextureDSVRef depth_stencil_dsv = builder.CreateDSV(depth_stencil);
 
 				builder.SetViewport(width, height);
 				data.gbuffer_normal = builder.RenderTarget(gbuffer_normal_rtv, ERGLoadStoreAccessOp::Clear_Preserve);
@@ -631,10 +629,10 @@ namespace adria
 		struct AmbientPassData
 		{
 			RGTextureRef hdr_rt;
-			RGTextureRefSRV gbuffer_normal_srv;
-			RGTextureRefSRV gbuffer_albedo_srv;
-			RGTextureRefSRV gbuffer_emissive_srv;
-			RGTextureRefSRV depth_stencil_srv;
+			RGTextureSRVRef gbuffer_normal_srv;
+			RGTextureSRVRef gbuffer_albedo_srv;
+			RGTextureSRVRef gbuffer_emissive_srv;
+			RGTextureSRVRef depth_stencil_srv;
 		};
 		AmbientPassData const& ambient_data = rg_graph.AddPass<AmbientPassData>("Ambient Pass",
 			[&](AmbientPassData& data, RenderGraphBuilder& builder) 
@@ -654,7 +652,7 @@ namespace adria
 				render_target_desc.clear = rtv_clear_value;
 				render_target_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
 				RGTextureRef hdr_rt = builder.CreateTexture("HDR Render Target", render_target_desc);
-				RGTextureRefRTV hdr_rt_rtv = builder.CreateRTV(hdr_rt);
+				RGTextureRTVRef hdr_rt_rtv = builder.CreateRTV(hdr_rt);
 
 				data.hdr_rt = builder.RenderTarget(hdr_rt_rtv, ERGLoadStoreAccessOp::Clear_Preserve);
 				data.gbuffer_normal_srv = builder.CreateSRV(builder.Read(gbuffer_data.gbuffer_normal));
@@ -702,9 +700,9 @@ namespace adria
 		struct TonemapPassData
 		{
 			RGTextureRef src;
-			RGTextureRefSRV src_srv;
+			RGTextureSRVRef src_srv;
 			RGTextureRef dst;
-			RGTextureRefRTV dst_rtv;
+			RGTextureRTVRef dst_rtv;
 		};
 
 		offscreen_ldr_target->GetNative()->SetName(L"LDR Target");

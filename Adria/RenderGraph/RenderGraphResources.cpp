@@ -23,22 +23,22 @@ namespace adria
 		return rg.GetBlackboard();
 	}
 
-	ResourceView RenderGraphResources::GetSRV(RGTextureRefSRV handle) const
+	ResourceView RenderGraphResources::GetSRV(RGTextureSRVRef handle) const
 	{
 		return rg.GetSRV(handle);
 	}
 
-	ResourceView RenderGraphResources::GetUAV(RGTextureRefUAV handle) const
+	ResourceView RenderGraphResources::GetUAV(RGTextureUAVRef handle) const
 	{
 		return rg.GetUAV(handle);
 	}
 
-	ResourceView RenderGraphResources::GetRTV(RGTextureRefRTV handle) const
+	ResourceView RenderGraphResources::GetRTV(RGTextureRTVRef handle) const
 	{
 		return rg.GetRTV(handle);
 	}
 
-	ResourceView RenderGraphResources::GetDSV(RGTextureRefDSV handle) const
+	ResourceView RenderGraphResources::GetDSV(RGTextureDSVRef handle) const
 	{
 		return rg.GetDSV(handle);
 	}

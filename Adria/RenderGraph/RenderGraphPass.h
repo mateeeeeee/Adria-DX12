@@ -93,12 +93,12 @@ namespace adria
 
 		struct RenderTargetInfo
 		{
-			RGTextureRefRTV render_target_handle;
+			RGTextureRTVRef render_target_handle;
 			ERGLoadStoreAccessOp render_target_access;
 		};
 		struct DepthStencilInfo
 		{
-			RGTextureRefDSV depth_stencil_handle;
+			RGTextureDSVRef depth_stencil_handle;
 			ERGLoadStoreAccessOp depth_access;
 			ERGLoadStoreAccessOp stencil_access;
 			bool readonly;

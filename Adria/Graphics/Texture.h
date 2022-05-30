@@ -217,6 +217,42 @@ namespace adria
 			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
 			return CreateView(EResourceViewType::DSV, _desc);
 		}
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE CreateAndTakeSRV(TextureViewDesc const* desc = nullptr)
+		{
+			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
+			size_t i = CreateView(EResourceViewType::SRV, _desc);
+			ADRIA_ASSERT(srvs.size() - 1 == i);
+			D3D12_CPU_DESCRIPTOR_HANDLE srv = srvs.back();
+			srvs.pop_back();
+			return srv;
+		}
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE CreateAndTakeUAV(TextureViewDesc const* desc = nullptr)
+		{
+			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
+			size_t i = CreateView(EResourceViewType::UAV, _desc);
+			ADRIA_ASSERT(uavs.size() - 1 == i);
+			D3D12_CPU_DESCRIPTOR_HANDLE uav = uavs.back();
+			uavs.pop_back();
+			return uav;
+		}
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE CreateAndTakeRTV(TextureViewDesc const* desc = nullptr)
+		{
+			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
+			size_t i = CreateView(EResourceViewType::RTV, _desc);
+			ADRIA_ASSERT(rtvs.size() - 1 == i);
+			D3D12_CPU_DESCRIPTOR_HANDLE rtv = rtvs.back();
+			rtvs.pop_back();
+			return rtv;
+		}
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE CreateAndTakeDSV(TextureViewDesc const* desc = nullptr)
+		{
+			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
+			size_t i = CreateView(EResourceViewType::DSV, _desc);
+			ADRIA_ASSERT(dsvs.size() - 1 == i);
+			D3D12_CPU_DESCRIPTOR_HANDLE dsv = dsvs.back();
+			dsvs.pop_back();
+			return dsv;
+		}
 		D3D12_CPU_DESCRIPTOR_HANDLE SRV(size_t i = 0) const { return GetView(EResourceViewType::SRV, i); }
 		D3D12_CPU_DESCRIPTOR_HANDLE UAV(size_t i = 0) const { return GetView(EResourceViewType::UAV, i); }
 		D3D12_CPU_DESCRIPTOR_HANDLE RTV(size_t i = 0) const { return GetView(EResourceViewType::RTV, i); }

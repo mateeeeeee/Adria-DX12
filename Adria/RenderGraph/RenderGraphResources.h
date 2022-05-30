@@ -77,10 +77,10 @@ namespace adria
 		Buffer& GetBuffer(RGBufferRef handle);
 		RGBlackboard& GetBlackboard();
 
-		ResourceView GetSRV(RGTextureRefSRV handle) const;
-		ResourceView GetUAV(RGTextureRefUAV handle) const;
-		ResourceView GetRTV(RGTextureRefRTV handle) const;
-		ResourceView GetDSV(RGTextureRefDSV handle) const;
+		ResourceView GetSRV(RGTextureSRVRef handle) const;
+		ResourceView GetUAV(RGTextureUAVRef handle) const;
+		ResourceView GetRTV(RGTextureRTVRef handle) const;
+		ResourceView GetDSV(RGTextureDSVRef handle) const;
 
 	private:
 		RenderGraph& rg;

@@ -79,12 +79,12 @@ namespace adria
 		}
 	};
 
-	using RGTextureRefSRV = TypedRenderGraphResourceViewRef<ERGResourceType::Texture,  ERGResourceViewType::SRV>;
-	using RGTextureRefUAV = TypedRenderGraphResourceViewRef<ERGResourceType::Texture,  ERGResourceViewType::UAV>;
-	using RGTextureRefRTV = TypedRenderGraphResourceViewRef<ERGResourceType::Texture,  ERGResourceViewType::RTV>;
-	using RGTextureRefDSV = TypedRenderGraphResourceViewRef<ERGResourceType::Texture,  ERGResourceViewType::DSV>;
-	using RGBufferRefSRV  = TypedRenderGraphResourceViewRef<ERGResourceType::Buffer,   ERGResourceViewType::SRV>;
-	using RGBufferRefUAV  = TypedRenderGraphResourceViewRef<ERGResourceType::Buffer,   ERGResourceViewType::UAV>;
+	using RGTextureSRVRef = TypedRenderGraphResourceViewRef<ERGResourceType::Texture,  ERGResourceViewType::SRV>;
+	using RGTextureUAVRef = TypedRenderGraphResourceViewRef<ERGResourceType::Texture,  ERGResourceViewType::UAV>;
+	using RGTextureRTVRef = TypedRenderGraphResourceViewRef<ERGResourceType::Texture,  ERGResourceViewType::RTV>;
+	using RGTextureDSVRef = TypedRenderGraphResourceViewRef<ERGResourceType::Texture,  ERGResourceViewType::DSV>;
+	using RGBufferSRVRef  = TypedRenderGraphResourceViewRef<ERGResourceType::Buffer,   ERGResourceViewType::SRV>;
+	using RGBufferUAVRef  = TypedRenderGraphResourceViewRef<ERGResourceType::Buffer,   ERGResourceViewType::UAV>;
 }
 
 namespace std 
@@ -103,30 +103,30 @@ namespace std
 			return hash<decltype(h.id)>()(h.id);
 		}
 	};
-	template <> struct hash<adria::RGTextureRefSRV>
+	template <> struct hash<adria::RGTextureSRVRef>
 	{
-		size_t operator()(adria::RGTextureRefSRV const& h) const
+		size_t operator()(adria::RGTextureSRVRef const& h) const
 		{
 			return hash<decltype(h.id)>()(h.id);
 		}
 	};
-	template <> struct hash<adria::RGTextureRefUAV>
+	template <> struct hash<adria::RGTextureUAVRef>
 	{
-		size_t operator()(adria::RGTextureRefUAV const& h) const
+		size_t operator()(adria::RGTextureUAVRef const& h) const
 		{
 			return hash<decltype(h.id)>()(h.id);
 		}
 	};
-	template <> struct hash<adria::RGTextureRefRTV>
+	template <> struct hash<adria::RGTextureRTVRef>
 	{
-		size_t operator()(adria::RGTextureRefRTV const& h) const
+		size_t operator()(adria::RGTextureRTVRef const& h) const
 		{
 			return hash<decltype(h.id)>()(h.id);
 		}
 	};
-	template <> struct hash<adria::RGTextureRefDSV>
+	template <> struct hash<adria::RGTextureDSVRef>
 	{
-		size_t operator()(adria::RGTextureRefDSV const& h) const
+		size_t operator()(adria::RGTextureDSVRef const& h) const
 		{
 			return hash<decltype(h.id)>()(h.id);
 		}
