@@ -357,7 +357,7 @@ namespace adria
 	using namespace tecs;
 
 	Renderer::Renderer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height)
-		: reg(reg), gfx(gfx), pool(gfx), width(width), height(height), texture_manager(gfx, 1000), backbuffer_count(gfx->BackbufferCount()),
+		: reg(reg), gfx(gfx), width(width), height(height), texture_manager(gfx, 1000), backbuffer_count(gfx->BackbufferCount()),
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count), postprocess_cbuffer(gfx->GetDevice(), backbuffer_count),
 		compute_cbuffer(gfx->GetDevice(), backbuffer_count), weather_cbuffer(gfx->GetDevice(), backbuffer_count),
 		clusters(gfx, StructuredBufferDesc<ClusterAABB>(CLUSTER_COUNT)),
@@ -522,228 +522,6 @@ namespace adria
 		postprocess_fut.wait();
 	}
 
-	void Renderer::Render_RGraph(RendererSettings const& _settings)
-	{
-		settings = _settings;
-
-		RenderGraph rg_graph(pool);
-
-		struct GBufferPassData
-		{
-			RGTextureRef gbuffer_normal;
-			RGTextureRef gbuffer_albedo;
-			RGTextureRef gbuffer_emissive;
-			RGTextureRef depth_stencil;
-		};
-
-		GBufferPassData const& gbuffer_data = rg_graph.AddPass<GBufferPassData>("GBuffer Pass",
-			[&](GBufferPassData& data, RenderGraphBuilder& builder)
-			{
-				D3D12_CLEAR_VALUE rtv_clear_value{};
-				rtv_clear_value.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-				rtv_clear_value.Color[0] = 0.0f;
-				rtv_clear_value.Color[1] = 0.0f;
-				rtv_clear_value.Color[2] = 0.0f;
-				rtv_clear_value.Color[3] = 0.0f;
-
-				TextureDesc gbuffer_desc{};
-				gbuffer_desc.width = width;
-				gbuffer_desc.height = height;
-				gbuffer_desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
-				gbuffer_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
-				gbuffer_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
-				gbuffer_desc.clear = rtv_clear_value;
-
-				RGTextureRef gbuffer_normal = builder.CreateTexture("GBuffer Normal", gbuffer_desc);
-				RGTextureRef gbuffer_albedo = builder.CreateTexture("GBuffer Albedo", gbuffer_desc);
-				RGTextureRef gbuffer_emissive = builder.CreateTexture("GBuffer Emissive", gbuffer_desc);
-
-				RGTextureRTVRef gbuffer_normal_rtv = builder.CreateRTV(gbuffer_normal);
-				RGTextureRTVRef gbuffer_albedo_rtv = builder.CreateRTV(gbuffer_albedo);
-				RGTextureRTVRef gbuffer_emissive_rtv = builder.CreateRTV(gbuffer_emissive);
-
-				D3D12_CLEAR_VALUE clear_value{};
-				clear_value.Format = DXGI_FORMAT_D32_FLOAT;
-				clear_value.DepthStencil.Depth = 1.0f;
-				clear_value.DepthStencil.Stencil = 0;
-
-				TextureDesc depth_desc{};
-				depth_desc.width = width;
-				depth_desc.height = height;
-				depth_desc.format = DXGI_FORMAT_R32_TYPELESS;
-				depth_desc.bind_flags = EBindFlag::DepthStencil | EBindFlag::ShaderResource;
-				depth_desc.initial_state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
-				depth_desc.clear = clear_value;
-				RGTextureRef depth_stencil = builder.CreateTexture("Depth Stencil", depth_desc);
-				RGTextureDSVRef depth_stencil_dsv = builder.CreateDSV(depth_stencil);
-
-				builder.SetViewport(width, height);
-				data.gbuffer_normal = builder.RenderTarget(gbuffer_normal_rtv, ERGLoadStoreAccessOp::Clear_Preserve);
-				data.gbuffer_albedo = builder.RenderTarget(gbuffer_albedo_rtv, ERGLoadStoreAccessOp::Clear_Preserve);
-				data.gbuffer_emissive = builder.RenderTarget(gbuffer_emissive_rtv, ERGLoadStoreAccessOp::Clear_Preserve);
-				data.depth_stencil = builder.DepthStencil(depth_stencil_dsv, ERGLoadStoreAccessOp::Clear_Preserve);
-			},
-			[&](GBufferPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
-			{
-				PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "GBuffer Pass");
-				SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(gpu_profiler, cmd_list, EProfilerBlock::GBufferPass, profiler_settings.profile_gbuffer_pass);
-
-				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
-				auto dynamic_allocator = gfx->GetDynamicAllocator();
-				auto gbuffer_view = reg.view<Mesh, Transform, Material, Deferred, Visibility>();
-
-				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::GbufferPBR));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::GbufferPBR));
-				cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
-				cmd_list->SetGraphicsRootDescriptorTable(3, descriptor_allocator->GetFirstHandle());
-
-				for (auto e : gbuffer_view)
-				{
-					auto [mesh, transform, material, visibility] = gbuffer_view.get<Mesh, Transform, Material, Visibility>(e);
-
-					if (!visibility.camera_visible) continue;
-
-					object_cbuf_data.model = transform.current_transform;
-					object_cbuf_data.inverse_transposed_model = DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, object_cbuf_data.model));
-
-					object_allocation = dynamic_allocator->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-					object_allocation.Update(object_cbuf_data);
-					cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
-
-					material_cbuf_data.albedo_factor = material.albedo_factor;
-					material_cbuf_data.metallic_factor = material.metallic_factor;
-					material_cbuf_data.roughness_factor = material.roughness_factor;
-					material_cbuf_data.emissive_factor = material.emissive_factor;
-					material_cbuf_data.albedo_idx = material.albedo_texture != INVALID_TEXTURE_HANDLE ? static_cast<int32>(material.albedo_texture) : 0;
-					material_cbuf_data.normal_idx = material.normal_texture != INVALID_TEXTURE_HANDLE ? static_cast<int32>(material.normal_texture) : 0;
-					material_cbuf_data.metallic_roughness_idx = material.metallic_roughness_texture != INVALID_TEXTURE_HANDLE ? static_cast<int32>(material.metallic_roughness_texture) : 0;
-					material_cbuf_data.emissive_idx = material.emissive_texture != INVALID_TEXTURE_HANDLE ? static_cast<int32>(material.emissive_texture) : 0;
-
-					DynamicAllocation material_allocation = dynamic_allocator->Allocate(GetCBufferSize<MaterialCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-					material_allocation.Update(material_cbuf_data);
-					cmd_list->SetGraphicsRootConstantBufferView(2, material_allocation.gpu_address);
-					mesh.Draw(cmd_list);
-				}
-			});
-
-		struct AmbientPassData
-		{
-			RGTextureRef hdr_rt;
-			RGTextureSRVRef gbuffer_normal_srv;
-			RGTextureSRVRef gbuffer_albedo_srv;
-			RGTextureSRVRef gbuffer_emissive_srv;
-			RGTextureSRVRef depth_stencil_srv;
-		};
-		AmbientPassData const& ambient_data = rg_graph.AddPass<AmbientPassData>("Ambient Pass",
-			[&](AmbientPassData& data, RenderGraphBuilder& builder) 
-			{
-				D3D12_CLEAR_VALUE rtv_clear_value{};
-				rtv_clear_value.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				rtv_clear_value.Color[0] = 0.0f;
-				rtv_clear_value.Color[1] = 0.0f;
-				rtv_clear_value.Color[2] = 0.0f;
-				rtv_clear_value.Color[3] = 0.0f;
-
-				TextureDesc render_target_desc{};
-				render_target_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				render_target_desc.width = width;
-				render_target_desc.height = height;
-				render_target_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
-				render_target_desc.clear = rtv_clear_value;
-				render_target_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
-				RGTextureRef hdr_rt = builder.CreateTexture("HDR Render Target", render_target_desc);
-				RGTextureRTVRef hdr_rt_rtv = builder.CreateRTV(hdr_rt);
-
-				data.hdr_rt = builder.RenderTarget(hdr_rt_rtv, ERGLoadStoreAccessOp::Clear_Preserve);
-				data.gbuffer_normal_srv = builder.CreateSRV(builder.Read(gbuffer_data.gbuffer_normal));
-				data.gbuffer_albedo_srv = builder.CreateSRV(builder.Read(gbuffer_data.gbuffer_albedo));
-				data.gbuffer_emissive_srv = builder.CreateSRV(builder.Read(gbuffer_data.gbuffer_emissive));
-				data.depth_stencil_srv = builder.CreateSRV(builder.Read(gbuffer_data.depth_stencil));
-
-				builder.SetViewport(width, height);
-			},
-			[&](AmbientPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list) 
-			{
-				PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Ambient Pass");
-
-				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
-
-				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::AmbientPBR));
-				cmd_list->SetGraphicsRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::AmbientPBR));
-
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { resources.GetSRV(data.gbuffer_normal_srv), 
-					resources.GetSRV(data.gbuffer_albedo_srv), resources.GetSRV(data.gbuffer_emissive_srv), resources.GetSRV(data.depth_stencil_srv) };
-				uint32 src_range_sizes[] = { 1,1,1,1 };
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
-				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				uint32 dst_range_sizes[] = { (uint32)ARRAYSIZE(cpu_handles) };
-				device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes, ARRAYSIZE(cpu_handles), cpu_handles, src_range_sizes,
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetGraphicsRootDescriptorTable(1, dst_descriptor);
-
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles2[] = { null_srv_heap->GetHandle(TEXTURE2D_SLOT),
-				null_srv_heap->GetHandle(TEXTURECUBE_SLOT), null_srv_heap->GetHandle(TEXTURECUBE_SLOT), null_srv_heap->GetHandle(TEXTURE2D_SLOT) };
-				uint32 src_range_sizes2[] = { 1,1,1,1 };
-
-				descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles2));
-				dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				uint32 dst_range_sizes2[] = { (uint32)ARRAYSIZE(cpu_handles2) };
-				device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes2, ARRAYSIZE(cpu_handles2), cpu_handles2, src_range_sizes2,
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetGraphicsRootDescriptorTable(2, dst_descriptor);
-
-				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-				cmd_list->DrawInstanced(4, 1, 0, 0);
-			}
-			);
-
-		struct TonemapPassData
-		{
-			RGTextureRef src;
-			RGTextureSRVRef src_srv;
-			RGTextureRef dst;
-			RGTextureRTVRef dst_rtv;
-		};
-
-		RGTextureRef imported_texture = rg_graph.ImportTexture("LDR Target", offscreen_ldr_target.get());
-
-		rg_graph.AddPass<TonemapPassData>("Tone Map Pass",
-			[&](TonemapPassData& data, RenderGraphBuilder& builder)
-			{
-				data.src = builder.Read(ambient_data.hdr_rt, ReadAccess_PixelShader);
-				data.src_srv = builder.CreateSRV(data.src);
-				data.dst_rtv = builder.CreateRTV(imported_texture);
-				data.dst = builder.RenderTarget(data.dst_rtv, ERGLoadStoreAccessOp::Discard_Preserve);
-				builder.SetViewport(width, height);
-			}, 
-			[&](TonemapPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
-			{
-				PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Tone Map Pass");
-
-				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
-
-				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::ToneMap));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::ToneMap));
-
-				cmd_list->SetGraphicsRootConstantBufferView(0, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
-
-				OffsetType descriptor_index = descriptor_allocator->Allocate();
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = resources.GetSRV(data.src_srv); // postprocess_textures[!postprocess_index]->SRV();
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
-				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-				cmd_list->DrawInstanced(4, 1, 0, 0);
-			}, ERGPassType::Graphics, ERGPassFlags::ForceNoCull);
-
-		rg_graph.Build();
-		rg_graph.Execute();
-	}
-
 	void Renderer::ResolveToBackbuffer()
 	{
 		auto cmd_list = gfx->GetLastGraphicsCommandList();
@@ -851,51 +629,26 @@ namespace adria
 		{
 			TEXTURE_HANDLE tex_handle{};
 
-			ResourceBarrierBatch barrier{};
-
 			tex_handle = texture_manager.LoadTexture(L"Resources/Textures/lensflare/flare0.jpg");
 			lens_flare_textures.push_back(texture_manager.CpuDescriptorHandle(tex_handle));
-
-			texture_manager.TransitionTexture(tex_handle, barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-				D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
 			tex_handle = texture_manager.LoadTexture(L"Resources/Textures/lensflare/flare1.jpg");
 			lens_flare_textures.push_back(texture_manager.CpuDescriptorHandle(tex_handle));
 
-			texture_manager.TransitionTexture(tex_handle, barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-				D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-
 			tex_handle = texture_manager.LoadTexture(L"Resources/Textures/lensflare/flare2.jpg");
 			lens_flare_textures.push_back(texture_manager.CpuDescriptorHandle(tex_handle));
-
-			texture_manager.TransitionTexture(tex_handle, barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-				D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
 			tex_handle = texture_manager.LoadTexture(L"Resources/Textures/lensflare/flare3.jpg");
 			lens_flare_textures.push_back(texture_manager.CpuDescriptorHandle(tex_handle));
 
-			texture_manager.TransitionTexture(tex_handle, barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-				D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-
 			tex_handle = texture_manager.LoadTexture(L"Resources/Textures/lensflare/flare4.jpg");
 			lens_flare_textures.push_back(texture_manager.CpuDescriptorHandle(tex_handle));
-
-			texture_manager.TransitionTexture(tex_handle, barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-				D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
 			tex_handle = texture_manager.LoadTexture(L"Resources/Textures/lensflare/flare5.jpg");
 			lens_flare_textures.push_back(texture_manager.CpuDescriptorHandle(tex_handle));
 
-			texture_manager.TransitionTexture(tex_handle, barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-				D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-
 			tex_handle = texture_manager.LoadTexture(L"Resources/Textures/lensflare/flare6.jpg");
 			lens_flare_textures.push_back(texture_manager.CpuDescriptorHandle(tex_handle));
-
-			texture_manager.TransitionTexture(tex_handle, barrier, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-				D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-
-			barrier.Submit(gfx->GetDefaultCommandList());
 		}
 		//clouds and ocean
 		{
@@ -906,19 +659,6 @@ namespace adria
 			perlin_handle = texture_manager.LoadTexture(L"Resources/Textures/perlin.dds");
 		}
 		texture_manager.SetMipMaps(true);
-
-		if (ray_tracer.IsSupported())
-		{
-			ray_tracer.OnSceneInitialized();
-			ResourceBarrierBatch barriers{};
-			for (auto e : reg.view<Skybox>())
-			{
-				auto const& skybox = reg.get<Skybox>(e);
-				if (skybox.used_in_rt) texture_manager.TransitionTexture(skybox.cubemap_texture, barriers, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-					D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-			}
-			barriers.Submit(gfx->GetDefaultCommandList());
-		}
 	}
 	TextureManager& Renderer::GetTextureManager()
 	{
@@ -941,7 +681,7 @@ namespace adria
 	{
 		ID3D12Device* device = gfx->GetDevice();
 
-		null_srv_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, NULL_HEAP_SIZE));
+		null_heap.reset(new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, NULL_HEAP_SIZE));
 		D3D12_SHADER_RESOURCE_VIEW_DESC null_srv_desc{};
 		null_srv_desc.Texture2D.MostDetailedMip = 0;
 		null_srv_desc.Texture2D.MipLevels = -1;
@@ -951,16 +691,16 @@ namespace adria
 		null_srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		null_srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 
-		device->CreateShaderResourceView(nullptr, &null_srv_desc, null_srv_heap->GetHandle(TEXTURE2D_SLOT));
+		device->CreateShaderResourceView(nullptr, &null_srv_desc, null_heap->GetHandle(TEXTURE2D_SLOT));
 		null_srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
-		device->CreateShaderResourceView(nullptr, &null_srv_desc, null_srv_heap->GetHandle(TEXTURECUBE_SLOT));
+		device->CreateShaderResourceView(nullptr, &null_srv_desc, null_heap->GetHandle(TEXTURECUBE_SLOT));
 		null_srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
-		device->CreateShaderResourceView(nullptr, &null_srv_desc, null_srv_heap->GetHandle(TEXTURE2DARRAY_SLOT));
+		device->CreateShaderResourceView(nullptr, &null_srv_desc, null_heap->GetHandle(TEXTURE2DARRAY_SLOT));
 
 		D3D12_UNORDERED_ACCESS_VIEW_DESC null_uav_desc{};
 		null_uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
 		null_uav_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-		device->CreateUnorderedAccessView(nullptr,nullptr, &null_uav_desc, null_srv_heap->GetHandle(RWTEXTURE2D_SLOT));
+		device->CreateUnorderedAccessView(nullptr,nullptr, &null_uav_desc, null_heap->GetHandle(RWTEXTURE2D_SLOT));
 	}
 	void Renderer::CreateResolutionDependentResources(uint32 width, uint32 height)
 	{
@@ -2629,8 +2369,8 @@ namespace adria
 		cmd_list->SetGraphicsRootDescriptorTable(1, dst_descriptor);
 
 
-		D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles2[] = { null_srv_heap->GetHandle(TEXTURE2D_SLOT), 
-		null_srv_heap->GetHandle(TEXTURECUBE_SLOT), null_srv_heap->GetHandle(TEXTURECUBE_SLOT), null_srv_heap->GetHandle(TEXTURE2D_SLOT) };
+		D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles2[] = { null_heap->GetHandle(TEXTURE2D_SLOT), 
+		null_heap->GetHandle(TEXTURECUBE_SLOT), null_heap->GetHandle(TEXTURECUBE_SLOT), null_heap->GetHandle(TEXTURE2D_SLOT) };
 		uint32 src_range_sizes2[] = { 1,1,1,1 };
 		if (has_ao) cpu_handles2[0] = blur_final_texture->SRV(); //contains blurred ssao
 		if (settings.ibl)
@@ -2761,9 +2501,9 @@ namespace adria
 
 				//t4,t5,t6 - shadow maps
 				{
-					D3D12_CPU_DESCRIPTOR_HANDLE shadow_cpu_handles[] = { null_srv_heap->GetHandle(TEXTURE2D_SLOT),
-						null_srv_heap->GetHandle(TEXTURECUBE_SLOT), null_srv_heap->GetHandle(TEXTURE2DARRAY_SLOT), 
-						null_srv_heap->GetHandle(TEXTURE2D_SLOT) };
+					D3D12_CPU_DESCRIPTOR_HANDLE shadow_cpu_handles[] = { null_heap->GetHandle(TEXTURE2D_SLOT),
+						null_heap->GetHandle(TEXTURECUBE_SLOT), null_heap->GetHandle(TEXTURE2DARRAY_SLOT), 
+						null_heap->GetHandle(TEXTURE2D_SLOT) };
 					uint32 src_range_sizes[] = { 1,1,1,1 };
 
 					if (light_data.ray_traced_shadows)
@@ -3142,7 +2882,7 @@ namespace adria
 		{
 			SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(gpu_profiler, cmd_list, EProfilerBlock::RT_Reflections, profiler_settings.profile_rtr);
 
-			D3D12_CPU_DESCRIPTOR_HANDLE skybox_handle = null_srv_heap->GetHandle(TEXTURECUBE_SLOT);
+			D3D12_CPU_DESCRIPTOR_HANDLE skybox_handle = null_heap->GetHandle(TEXTURECUBE_SLOT);
 			if (settings.sky_type == ESkyType::Skybox)
 			{
 				auto skybox_entities = reg.view<Skybox>();
@@ -3917,7 +3657,7 @@ namespace adria
 		auto upload_buffer = gfx->GetDynamicAllocator();
 		
 		auto skyboxes = reg.view<Skybox>();
-		D3D12_CPU_DESCRIPTOR_HANDLE skybox_handle = null_srv_heap->GetHandle(TEXTURECUBE_SLOT);
+		D3D12_CPU_DESCRIPTOR_HANDLE skybox_handle = null_heap->GetHandle(TEXTURECUBE_SLOT);
 		for (auto skybox : skyboxes)
 		{
 			auto const& _skybox = skyboxes.get(skybox);

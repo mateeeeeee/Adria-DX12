@@ -43,10 +43,6 @@ namespace adria
 			D3D12_RESOURCE_DESC tex_desc = texture->GetDesc();
 			UINT const mipmap_levels = tex_desc.MipLevels;
 
-			auto transition_barrier = CD3DX12_RESOURCE_BARRIER::Transition(texture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-				D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-			command_list->ResourceBarrier(1, &transition_barrier);
-
 			OffsetType i{};
 			for (UINT top_mip = 0; top_mip < mipmap_levels - 1; top_mip++)
 			{
@@ -79,10 +75,6 @@ namespace adria
 				auto uav_barrier = CD3DX12_RESOURCE_BARRIER::UAV(texture);
 				command_list->ResourceBarrier(1, &uav_barrier);
 			}
-
-			transition_barrier = CD3DX12_RESOURCE_BARRIER::Transition(texture, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
-				D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-			command_list->ResourceBarrier(1, &transition_barrier);
 		}
 
 		resources.clear();

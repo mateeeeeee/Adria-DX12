@@ -48,6 +48,10 @@ namespace adria
 		void Update(void* data, uint32 data_size, uint32 cbuffer_index);
 
 		D3D12_CONSTANT_BUFFER_VIEW_DESC View(uint32 cbuffer_index) const;
+		D3D12_GPU_VIRTUAL_ADDRESS BufferLocation(uint32 cbuffer_index) const
+		{
+			return View(cbuffer_index).BufferLocation;
+		}
 		ID3D12Resource* Resource() const 
 		{
 			return cb.Get();

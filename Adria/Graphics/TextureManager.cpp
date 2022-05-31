@@ -260,7 +260,7 @@ namespace adria
                 UpdateSubresources(cmd_list, cubemap.Get(), texture_upload_allocation->GetResource(),
                     0, 0, static_cast<UINT>(subresources.size()), subresources.data());
                 auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(cubemap.Get(),
-                    D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+                    D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
                 cmd_list->ResourceBarrier(1, &barrier);
                 gfx->AddToReleaseQueue(texture_upload_allocation);
                 texture_map.insert({ handle, cubemap });
@@ -391,7 +391,7 @@ namespace adria
                 cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(0));
                 cmd_list->Dispatch(1024 / 32, 1024 / 32, 6);
 
-                auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(cubemap_tex.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+                auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(cubemap_tex.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
                 cmd_list->ResourceBarrier(1, &barrier);
 
                 //context->GenerateMips(cubemap_srv.Get());
@@ -479,7 +479,7 @@ namespace adria
         UpdateSubresources(cmd_list, cubemap, texture_upload_allocation->GetResource(),
             0, 0, static_cast<UINT>(subresources.size()), subresources.data());
         auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(cubemap,
-            D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
         cmd_list->ResourceBarrier(1, &barrier);
 
         gfx->AddToReleaseQueue(texture_upload_allocation);
@@ -494,12 +494,6 @@ namespace adria
         return tex_handle != INVALID_TEXTURE_HANDLE ? 
             texture_srv_heap->GetHandle((size_t)tex_handle) :
             texture_srv_heap->GetFirstHandle();
-    }
-
-    void TextureManager::TransitionTexture(TEXTURE_HANDLE handle, ResourceBarrierBatch& barrier,
-        D3D12_RESOURCE_STATES state_before, D3D12_RESOURCE_STATES state_after)
-    {
-        barrier.AddTransition(texture_map[handle].Get(), state_before, state_after);
     }
 
     void TextureManager::SetMipMaps(bool mips)
@@ -566,7 +560,7 @@ namespace adria
                 0, 0, static_cast<UINT>(subresources.size()), subresources.data());
 
             auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(tex2d.Get(),
-                D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+                D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
             cmd_list->ResourceBarrier(1, &barrier);
 
             gfx->AddToReleaseQueue(texture_upload_allocation);
@@ -635,7 +629,7 @@ namespace adria
                 0, 0, 1, &subresource);
 
             auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(tex2d.Get(),
-                D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+                D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
             cmd_list->ResourceBarrier(1, &barrier);
             gfx->AddToReleaseQueue(texture_upload_allocation);
             texture_map.insert({ handle, tex2d });
@@ -712,7 +706,7 @@ namespace adria
             UpdateSubresources(cmd_list, tex2d.Get(), texture_upload_allocation->GetResource(),
                 0, 0, 1u, &data);
             auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(tex2d.Get(),
-                D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+                D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
             cmd_list->ResourceBarrier(1, &barrier);
             gfx->AddToReleaseQueue(texture_upload_allocation);
             texture_map.insert({ handle, tex2d });

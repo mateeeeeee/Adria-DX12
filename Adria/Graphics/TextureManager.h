@@ -20,6 +20,7 @@ namespace adria
 	class TextureManager
 	{
 		friend class Renderer;
+		friend class RenderGraphRenderer;
 
 	public:
 		TextureManager(GraphicsDevice* gfx, UINT max_textures);
@@ -31,10 +32,6 @@ namespace adria
 		[[nodiscard]] TEXTURE_HANDLE LoadCubemap(std::array<std::wstring, 6> const& cubemap_textures);
 
 		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE CpuDescriptorHandle(TEXTURE_HANDLE tex_handle);
-
-		//remove this, only lens flare textures use this
-		void TransitionTexture(TEXTURE_HANDLE handle, ResourceBarrierBatch& barrier,
-			D3D12_RESOURCE_STATES state_before, D3D12_RESOURCE_STATES state_after);
 
 		ID3D12Resource* Resource(TEXTURE_HANDLE handle) const
 		{

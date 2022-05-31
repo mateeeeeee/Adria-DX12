@@ -194,8 +194,11 @@
     <ClCompile Include="Rendering\Camera.cpp" />
     <ClCompile Include="Rendering\CameraManager.cpp" />
     <ClCompile Include="Rendering\EntityLoader.cpp" />
+    <ClCompile Include="Rendering\Passes\AmbientPass.cpp" />
+    <ClCompile Include="Rendering\Passes\GBufferPass.cpp" />
     <ClCompile Include="Rendering\RayTracer.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
+    <ClCompile Include="Rendering\RenderGraphRenderer.cpp" />
     <ClCompile Include="Rendering\RootSigPSOManager.cpp" />
     <ClCompile Include="Rendering\SkyModel.cpp" />
     <ClCompile Include="Utilities\AdriaException.cpp" />
@@ -270,6 +273,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="RenderGraph\RenderGraphResourcePool.h" />
     <ClInclude Include="RenderGraph\RenderGraphResourceRef.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
@@ -285,10 +289,14 @@
     <ClInclude Include="Rendering\Enums.h" />
     <ClInclude Include="Rendering\EntityLoader.h" />
     <ClInclude Include="Rendering\ParticleRenderer.h" />
+    <ClInclude Include="Rendering\Passes\AmbientPass.h" />
+    <ClInclude Include="Rendering\Passes\GBufferPass.h" />
     <ClInclude Include="Rendering\Picker.h" />
     <ClInclude Include="Rendering\RayTracer.h" />
     <ClInclude Include="Rendering\Renderer.h" />
+    <ClInclude Include="Rendering\RendererGlobalData.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />
+    <ClInclude Include="Rendering\RenderGraphRenderer.h" />
     <ClInclude Include="Rendering\RootSigPSOManager.h" />
     <ClInclude Include="Rendering\SceneViewport.h" />
     <ClInclude Include="Rendering\SkyModel.h" />

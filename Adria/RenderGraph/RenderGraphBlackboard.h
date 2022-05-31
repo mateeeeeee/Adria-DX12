@@ -19,7 +19,7 @@ namespace adria
 		template<typename T>
 		T& Add(T&& data)
 		{
-			return Create<T>(std::forward<T>(data));
+			return Create<std::remove_cvref_t<T>>(std::forward<T>(data));
 		}
 
 		template<typename T, typename... Args> requires std::is_constructible_v<T, Args...>
@@ -37,7 +37,7 @@ namespace adria
 		{
 			if (auto it = board_data.find(typeid(T)); it != board_data.end())
 			{
-				return *reinterpret_cast<T const*>(board_data->second.get());
+				return reinterpret_cast<T const*>(it->second.get());
 			}
 			else return nullptr;
 		}

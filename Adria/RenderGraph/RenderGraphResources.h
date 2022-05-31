@@ -75,7 +75,6 @@ namespace adria
 
 		Texture& GetTexture(RGTextureRef handle);
 		Buffer& GetBuffer(RGBufferRef handle);
-		RGBlackboard& GetBlackboard();
 
 		ResourceView GetSRV(RGTextureSRVRef handle) const;
 		ResourceView GetUAV(RGTextureUAVRef handle) const;

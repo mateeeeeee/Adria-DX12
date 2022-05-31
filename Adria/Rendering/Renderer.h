@@ -16,7 +16,6 @@
 #include "../Graphics/RenderPass.h"
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/GPUProfiler.h"
-#include "../RenderGraph/RenderGraph.h"
 
 namespace adria
 {
@@ -67,8 +66,6 @@ namespace adria
 
 		void Render(RendererSettings const&);
 
-		void Render_RGraph(RendererSettings const&);
-
 		void ResolveToBackbuffer();
 
 		void ResolveToOffscreenFramebuffer();
@@ -102,7 +99,6 @@ namespace adria
 		uint32 width, height;
 		tecs::registry& reg;
 		GraphicsDevice* gfx;
-		RGResourcePool pool;
 
 		uint32 const backbuffer_count;
 		uint32 backbuffer_index;
@@ -149,8 +145,7 @@ namespace adria
 		std::unique_ptr<Texture> ocean_normal_map;
 		std::unique_ptr<Texture> ocean_initial_spectrum;
 
-		std::unique_ptr<DescriptorHeap> null_srv_heap; 
-		std::unique_ptr<DescriptorHeap> null_uav_heap;
+		std::unique_ptr<DescriptorHeap> null_heap; 
 
 		//Render Passes
 		RenderPass gbuffer_render_pass;
