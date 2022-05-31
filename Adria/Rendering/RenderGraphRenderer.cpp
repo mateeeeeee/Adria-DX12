@@ -15,7 +15,7 @@ namespace adria
 
 	RenderGraphRenderer::RenderGraphRenderer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx), 
 		texture_manager(gfx, 1000), gpu_profiler(gfx), camera(nullptr), width(width), height(height), 
-		backbuffer_count(gfx->BackbufferCount()), backbuffer_index(gfx->BackbufferIndex()), final_texture(nullptr),
+		backbuffer_count(gfx->BackbufferCount()), backbuffer_index(gfx->BackbufferIndex()), //final_texture(nullptr),
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count), postprocess_cbuffer(gfx->GetDevice(), backbuffer_count),
 		gbuffer_pass(reg, gpu_profiler, width, height), ambient_pass(width, height), tonemap_pass(width, height)
 	{
@@ -24,6 +24,12 @@ namespace adria
 		CreateSizeDependentResources();
 	}
 
+	RenderGraphRenderer::~RenderGraphRenderer()
+	{
+		gfx->WaitForGPU();
+		RootSigPSOManager::Destroy();
+		reg.clear();
+	}
 	void RenderGraphRenderer::NewFrame(Camera const* _camera)
 	{
 		ADRIA_ASSERT(_camera);
@@ -56,7 +62,6 @@ namespace adria
 		AmbientPassData ambient_data = ambient_pass.AddPass(render_graph, gbuffer_data.gbuffer_normal, gbuffer_data.gbuffer_albedo,
 			gbuffer_data.gbuffer_emissive, gbuffer_data.depth_stencil);
 
-		//removing these three lines causes memory exhaustion
 		if (settings.gui_visible)
 		{
 			RGTextureRef final_texture_ref = render_graph.ImportTexture("Final Texture", final_texture.get());

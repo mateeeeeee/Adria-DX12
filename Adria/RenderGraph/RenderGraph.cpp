@@ -501,13 +501,14 @@ namespace adria
 		passes.push_back(pass);
 		reads.insert(pass->reads.begin(), pass->reads.end());
 		writes.insert(pass->writes.begin(), pass->writes.end());
-		creates.insert(pass->creates.begin(), pass->creates.end());
 	}
 
 	void RenderGraph::DependencyLevel::Setup()
 	{
 		for (auto& pass : passes)
 		{
+			if (pass->IsCulled()) continue;
+			creates.insert(pass->creates.begin(), pass->creates.end());
 			destroys.insert(pass->destroy.begin(), pass->destroy.end());
 			for (auto [resource, state] : pass->resource_state_map)
 			{

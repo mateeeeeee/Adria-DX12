@@ -40,6 +40,7 @@ namespace adria
 	public:
 
 		RenderGraphRenderer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height);
+		~RenderGraphRenderer();
 
 		void NewFrame(Camera const* camera);
 		void Update(float32 dt);
