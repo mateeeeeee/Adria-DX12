@@ -448,7 +448,7 @@ namespace adria
 
 	Editor::~Editor() = default;
 
-	void Editor::HandleWindowMessage(window_message_t const& msg_data)
+	void Editor::HandleWindowMessage(WindowMessage const& msg_data)
     {
         engine->HandleWindowMessage(msg_data);
         gui->HandleWindowMessage(msg_data);

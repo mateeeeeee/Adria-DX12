@@ -29,7 +29,7 @@ namespace adria
 	public:
 		explicit Editor(EditorInit const& init);
 		~Editor();
-		void HandleWindowMessage(window_message_t const& msg_data);
+		void HandleWindowMessage(WindowMessage const& msg_data);
 		void Run();
 
 	private:

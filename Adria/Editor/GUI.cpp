@@ -90,7 +90,7 @@ namespace adria
 		++frame_count;
 
 	}
-	void GUI::HandleWindowMessage(window_message_t const& msg_data) const
+	void GUI::HandleWindowMessage(WindowMessage const& msg_data) const
 	{
 		ImGui_ImplWin32_WndProcHandler(static_cast<HWND>(msg_data.handle),
 			msg_data.msg, msg_data.wparam, msg_data.lparam);

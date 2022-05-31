@@ -564,7 +564,8 @@ namespace adria
 
 				D3D12_CLEAR_VALUE clear_value{};
 				clear_value.Format = DXGI_FORMAT_D32_FLOAT;
-				clear_value.DepthStencil = { 1.0f, 0 };
+				clear_value.DepthStencil.Depth = 1.0f;
+				clear_value.DepthStencil.Stencil = 0;
 
 				TextureDesc depth_desc{};
 				depth_desc.width = width;
@@ -659,6 +660,8 @@ namespace adria
 				data.gbuffer_albedo_srv = builder.CreateSRV(builder.Read(gbuffer_data.gbuffer_albedo));
 				data.gbuffer_emissive_srv = builder.CreateSRV(builder.Read(gbuffer_data.gbuffer_emissive));
 				data.depth_stencil_srv = builder.CreateSRV(builder.Read(gbuffer_data.depth_stencil));
+
+				builder.SetViewport(width, height);
 			},
 			[&](AmbientPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list) 
 			{
@@ -705,7 +708,6 @@ namespace adria
 			RGTextureRTVRef dst_rtv;
 		};
 
-		offscreen_ldr_target->GetNative()->SetName(L"LDR Target");
 		RGTextureRef imported_texture = rg_graph.ImportTexture("LDR Target", offscreen_ldr_target.get());
 
 		rg_graph.AddPass<TonemapPassData>("Tone Map Pass",
@@ -715,6 +717,7 @@ namespace adria
 				data.src_srv = builder.CreateSRV(data.src);
 				data.dst_rtv = builder.CreateRTV(imported_texture);
 				data.dst = builder.RenderTarget(data.dst_rtv, ERGLoadStoreAccessOp::Discard_Preserve);
+				builder.SetViewport(width, height);
 			}, 
 			[&](TonemapPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
@@ -806,13 +809,13 @@ namespace adria
 				D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
 				D3D12_RESOURCE_STATE_RENDER_TARGET);
 			offscreen_barrier.Submit(cmd_list);
-
+			
 			offscreen_resolve_pass.Begin(cmd_list);
-
+			
 			PassToneMap(cmd_list);
-
+			
 			offscreen_resolve_pass.End(cmd_list);
-
+			
 			offscreen_barrier.ReverseTransitions();
 			offscreen_barrier.Submit(cmd_list);
 		}

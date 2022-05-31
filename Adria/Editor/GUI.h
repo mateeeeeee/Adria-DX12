@@ -10,7 +10,7 @@ namespace adria
 
 	class GraphicsDevice;
 	class RingOnlineDescriptorAllocator;
-	struct window_message_t;
+	struct WindowMessage;
 
 	class GUI
 	{
@@ -23,7 +23,7 @@ namespace adria
 
 		void End(ID3D12GraphicsCommandList* cmd_list) const;
 
-		void HandleWindowMessage(window_message_t const&) const;
+		void HandleWindowMessage(WindowMessage const&) const;
 
 		void ToggleVisibility();
 

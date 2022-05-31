@@ -233,7 +233,7 @@ namespace adria
 		TaskSystem::Destroy();
 	}
 
-	void Engine::HandleWindowMessage(window_message_t const& msg_data)
+	void Engine::HandleWindowMessage(WindowMessage const& msg_data)
 	{
 		input.HandleWindowMessage(msg_data);
 	}

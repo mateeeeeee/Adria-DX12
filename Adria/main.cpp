@@ -52,7 +52,7 @@ int APIENTRY wWinMain(
 
         Editor editor{ editor_init };
 
-        Window::SetCallback([&editor](window_message_t const& msg_data) {editor.HandleWindowMessage(msg_data); });
+        Window::SetCallback([&editor](WindowMessage const& msg_data) {editor.HandleWindowMessage(msg_data); });
 
         while (Window::Loop())
         {

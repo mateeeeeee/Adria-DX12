@@ -79,8 +79,8 @@ namespace adria
 
 	inline constexpr void SplitAccessOp(ERGLoadStoreAccessOp load_store_op, ERGLoadAccessOp& load_op, ERGStoreAccessOp& store_op)
 	{
-		store_op = static_cast<ERGStoreAccessOp>((uint8)load_store_op & 0x11);
-		load_op  = static_cast<ERGLoadAccessOp>(((uint8)load_store_op >> 2) & 0x11);
+		store_op = static_cast<ERGStoreAccessOp>((uint8)load_store_op & 0b11);
+		load_op  = static_cast<ERGLoadAccessOp>(((uint8)load_store_op >> 2) & 0b11);
 	}
 
 	class RenderGraph;

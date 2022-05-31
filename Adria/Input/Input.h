@@ -36,7 +36,7 @@ namespace adria
 		MouseRight
 	};
 
-	struct window_message_t;
+	struct WindowMessage;
 
 	DECLARE_EVENT(WindowResizedEvent, Input, uint32, uint32);
 	DECLARE_EVENT(RightMouseClickedEvent, Input, int32, int32);
@@ -56,7 +56,7 @@ namespace adria
 
 		void NewFrame();
 
-		void HandleWindowMessage(window_message_t const&);
+		void HandleWindowMessage(WindowMessage const&);
 
 		bool GetKey(EKeyCode key)    /*const*/ { return keys[key]; }
 		bool IsKeyDown(EKeyCode key) /*const*/ { return GetKey(key) && !prev_keys[key]; }

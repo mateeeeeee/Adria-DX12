@@ -10,7 +10,7 @@
 
 namespace adria
 {
-	struct window_message_t;
+	struct WindowMessage;
 	struct SceneConfig;
 	class GraphicsDevice;
 	class Renderer;
@@ -38,7 +38,7 @@ namespace adria
 		Engine& operator=(Engine&&) = delete;
 		~Engine();
 	
-		void HandleWindowMessage(window_message_t const& msg_data);
+		void HandleWindowMessage(WindowMessage const& msg_data);
 		void Run(RendererSettings const& settings);
 		void Present();
 
