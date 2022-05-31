@@ -18,6 +18,7 @@ namespace adria
 		{
 			bool query_started = false;
 			bool query_finished = false;
+			ID3D12GraphicsCommandList* cmd_list = nullptr;
 		};
 
 	public:

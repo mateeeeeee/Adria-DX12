@@ -6,7 +6,6 @@
 #include "../../RenderGraph/RenderGraph.h"
 #include "../../Graphics/GPUProfiler.h"
 #include "../../tecs/registry.h"
-#include "pix3.h"
 
 namespace adria
 {
@@ -20,7 +19,7 @@ namespace adria
 	{
 		RendererGlobalData const& global_data = rendergraph.GetBlackboard().GetChecked<RendererGlobalData>();
 		return rendergraph.AddPass<GBufferPassData>("GBuffer Pass",
-			[&](GBufferPassData& data, RenderGraphBuilder& builder)
+			[=](GBufferPassData& data, RenderGraphBuilder& builder)
 			{
 				D3D12_CLEAR_VALUE rtv_clear_value{};
 				rtv_clear_value.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -66,10 +65,9 @@ namespace adria
 				data.gbuffer_emissive = builder.RenderTarget(gbuffer_emissive_rtv, ERGLoadStoreAccessOp::Clear_Preserve);
 				data.depth_stencil = builder.DepthStencil(depth_stencil_dsv, ERGLoadStoreAccessOp::Clear_Preserve);
 			},
-			[&](GBufferPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](GBufferPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
-				PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "GBuffer Pass"); //move this in render graph
-				//SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(gpu_profiler, cmd_list, EProfilerBlock::GBufferPass, profile_pass);
+				SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(gpu_profiler, cmd_list, EProfilerBlock::GBufferPass, profile_pass);
 
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();

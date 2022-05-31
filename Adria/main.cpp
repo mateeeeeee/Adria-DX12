@@ -60,6 +60,9 @@ int APIENTRY wWinMain(
         }
         Window::Destroy();   
     }
+
+    int x = 5;
+
 }
 
 

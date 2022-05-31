@@ -64,7 +64,7 @@ namespace adria
 		GPUProfiler gpu_profiler;
 
 		RendererSettings settings;
-		ProfilerSettings profiler_settings;
+		ProfilerSettings profiler_settings = NO_PROFILING;
 
 		TextureManager texture_manager;
 		Camera const* camera;

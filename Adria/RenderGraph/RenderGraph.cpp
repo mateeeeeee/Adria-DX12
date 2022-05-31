@@ -2,10 +2,13 @@
 #include "../Graphics/RenderPass.h"
 #include "../Graphics/ResourceBarrierBatch.h"
 #include "../Tasks/TaskSystem.h"
+#include "../Utilities/StringUtil.h"
 
 #include <algorithm>
 #include <d3d12.h>
 #include <wrl.h> 
+#include "pix3.h"
+
 
 namespace adria
 {
@@ -176,6 +179,7 @@ namespace adria
 		CalculateResourcesLifetime();
 	}
 
+	//check if dependency level has been culled before setup and all that, avoid uneccessary barriers
 	void RenderGraph::Execute()
 	{
 		pool.Tick();
@@ -190,7 +194,7 @@ namespace adria
 			for (auto handle : dependency_level.creates)
 			{
 				RGTexture* rg_texture = GetRGTexture(handle);
-				rg_texture->resource = pool.AllocateTexture(rg_texture->desc);
+				if(!rg_texture->imported) rg_texture->resource = pool.AllocateTexture(rg_texture->desc, ConvertToWide(rg_texture->name).c_str());
 			}
 
 			ResourceBarrierBatch barrier_batcher{};
@@ -633,12 +637,14 @@ namespace adria
 				render_pass_desc.width = pass->viewport_width;
 				render_pass_desc.height = pass->viewport_height;
 				RenderPass render_pass(render_pass_desc);
+				PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, pass->name.c_str());
 				render_pass.Begin(cmd_list, pass->UseLegacyRenderPasses());
 				pass->Execute(rg_resources, gfx, cmd_list);
 				render_pass.End(cmd_list, pass->UseLegacyRenderPasses());
 			}
 			else
 			{
+				PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, pass->name.c_str());
 				pass->Execute(rg_resources, gfx, cmd_list);
 			}
 		}

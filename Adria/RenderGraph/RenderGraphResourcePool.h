@@ -30,7 +30,7 @@ namespace adria
 			}
 			++frame_index;
 		}
-		Texture* AllocateTexture(TextureDesc const& desc)
+		Texture* AllocateTexture(TextureDesc const& desc, wchar_t const* name)
 		{
 			for (auto& [pool_texture, active] : texture_pool)
 			{
@@ -38,10 +38,13 @@ namespace adria
 				{
 					pool_texture.last_used_frame = frame_index;
 					active = true;
+					pool_texture.texture->GetNative()->SetName(name);
 					return pool_texture.texture.get();
 				}
 			}
-			return texture_pool.emplace_back(std::pair{ PooledTexture{ std::make_unique<Texture>(device, desc), frame_index}, true }).first.texture.get();
+			auto& texture = texture_pool.emplace_back(std::pair{ PooledTexture{ std::make_unique<Texture>(device, desc), frame_index}, true }).first.texture;
+			texture->GetNative()->SetName(name);
+			return texture.get();
 		}
 		void ReleaseTexture(Texture* texture)
 		{

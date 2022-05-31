@@ -35,16 +35,26 @@ namespace adria
 		UINT32 end_query_index = UINT32(profile_index * 2 + 1);
 		cmd_list->EndQuery(query_heap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, end_query_index);
 		profile_data.query_finished = true;
-
-		// Resolve the data
-		UINT64 readback_offset = ((current_frame_index * MAX_PROFILES * 2) + begin_query_index) * sizeof(UINT64);
-		cmd_list->ResolveQueryData(query_heap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, begin_query_index, 2, query_readback_buffer.GetNative(), readback_offset);
+		profile_data.cmd_list = cmd_list;
 	}
 
 	std::vector<std::string> GPUProfiler::GetProfilerResults(ID3D12GraphicsCommandList* cmd_list, bool log_results)
 	{
 		UINT64 gpu_frequency = 0;
 		gfx->GetTimestampFrequency(gpu_frequency);
+
+		for (size_t i = 0; i < MAX_PROFILES; ++i)
+		{
+			QueryData& profile_data = query_data[i];
+			if (profile_data.query_started && profile_data.query_finished)
+			{
+				UINT32 begin_query_index = UINT32(i * 2);
+				UINT32 end_query_index = UINT32(i * 2 + 1);
+				UINT64 readback_offset = ((current_frame_index * MAX_PROFILES * 2) + begin_query_index) * sizeof(UINT64);
+				ADRIA_ASSERT(profile_data.cmd_list);
+				profile_data.cmd_list->ResolveQueryData(query_heap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, begin_query_index, 2, query_readback_buffer.GetNative(), readback_offset);
+			}
+		}
 
 		UINT64 const* query_timestamps = query_readback_buffer.GetMappedData<UINT64>();
 		UINT64 const* frame_query_timestamps = query_timestamps + (current_frame_index * MAX_PROFILES * 2);
@@ -65,19 +75,14 @@ namespace adria
 				std::string time_ms_string = std::to_string(time_ms);
 				std::string result = ToString(static_cast<EProfilerBlock>(i)) + " time: " + time_ms_string + "ms";
 				results.push_back(result);
-				if (log_results)
-				{
-					ADRIA_LOG(INFO, result.c_str());
-				}
+				if (log_results) ADRIA_LOG(INFO, result.c_str());
 			}
 			profile_data.query_started = profile_data.query_finished = false;
+			profile_data.cmd_list = nullptr;
 		}
 
 		current_frame_index = (current_frame_index + 1) % FRAME_COUNT;
 
 		return results;
 	}
-
-
 }
-

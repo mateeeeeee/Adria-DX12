@@ -30,13 +30,11 @@ namespace adria
 		camera = _camera;
 		backbuffer_index = gfx->BackbufferIndex();
 	}
-
 	void RenderGraphRenderer::Update(float32 dt)
 	{
 		UpdatePersistentConstantBuffers(dt);
 		CameraFrustumCulling();
 	}
-
 	void RenderGraphRenderer::Render(RendererSettings const& _settings)
 	{
 		settings = _settings;
@@ -58,8 +56,12 @@ namespace adria
 		AmbientPassData ambient_data = ambient_pass.AddPass(render_graph, gbuffer_data.gbuffer_normal, gbuffer_data.gbuffer_albedo,
 			gbuffer_data.gbuffer_emissive, gbuffer_data.depth_stencil);
 
-		RGTextureRef final_texture_ref = render_graph.ImportTexture("Final Texture", final_texture.get());
-		if(settings.gui_visible) ResolveToTexture(render_graph, ambient_data.hdr, final_texture_ref);
+		//removing these three lines causes memory exhaustion
+		if (settings.gui_visible)
+		{
+			RGTextureRef final_texture_ref = render_graph.ImportTexture("Final Texture", final_texture.get());
+			ResolveToTexture(render_graph, ambient_data.hdr, final_texture_ref);
+		}
 		else ResolveToBackbuffer(render_graph, ambient_data.hdr);
 
 		render_graph.Build();
@@ -82,7 +84,6 @@ namespace adria
 			tonemap_pass.OnResize(w, h);
 		}
 	}
-
 	void RenderGraphRenderer::OnSceneInitialized()
 	{
 		UINT tex2darray_size = (UINT)texture_manager.handle;
@@ -125,7 +126,6 @@ namespace adria
 		null_uav_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 		device->CreateUnorderedAccessView(nullptr, nullptr, &null_uav_desc, null_heap->GetHandle(NULL_HEAP_SLOT_RWTEXTURE2D));
 	}
-
 	void RenderGraphRenderer::CreateSizeDependentResources()
 	{
 		D3D12_CLEAR_VALUE rtv_clear_value{};
@@ -145,7 +145,6 @@ namespace adria
 
 		final_texture = std::make_unique<Texture>(gfx, ldr_desc);
 		final_texture->CreateSRV();
-		final_texture->CreateRTV();
 	}
 
 	void RenderGraphRenderer::UpdatePersistentConstantBuffers(float32 dt)
@@ -191,7 +190,6 @@ namespace adria
 		postprocess_cbuf_data.hbao_power = settings.hbao_power;
 		postprocess_cbuffer.Update(postprocess_cbuf_data, backbuffer_index);
 	}
-
 	void RenderGraphRenderer::CameraFrustumCulling()
 	{
 		BoundingFrustum camera_frustum = camera->Frustum();

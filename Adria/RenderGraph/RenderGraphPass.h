@@ -114,7 +114,7 @@ namespace adria
 		virtual void Setup(RenderGraphBuilder&) = 0;
 		virtual void Execute(RenderGraphResources&, GraphicsDevice*, CommandList*) const = 0;
 
-		bool IsCulled() const { return ref_count == 0; }
+		bool IsCulled() const { return CanBeCulled() && ref_count == 0; }
 		bool CanBeCulled() const { return !HasAnyFlag(flags, ERGPassFlags::ForceNoCull); }
 		bool SkipAutoRenderPassSetup() const { return HasAnyFlag(flags, ERGPassFlags::SkipAutoRenderPass); }
 		bool UseLegacyRenderPasses() const { return HasAnyFlag(flags, ERGPassFlags::LegacyRenderPassEnabled); }
