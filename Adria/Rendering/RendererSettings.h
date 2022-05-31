@@ -7,6 +7,7 @@ namespace adria
 
 	struct RendererSettings
 	{
+		bool gui_visible = false;
 		//user settings
 		float32 blur_sigma = 6.0f;
 		float32 ambient_color[3] = { 60.0f / 255.0f, 60.0f / 255.0f, 60.0f / 255.0f };

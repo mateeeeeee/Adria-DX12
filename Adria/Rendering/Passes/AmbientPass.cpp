@@ -17,13 +17,13 @@ namespace adria
 		width = w, height = h;
 	}
 
-	AmbientPassData const& AmbientPass::AddPass(RenderGraph& rendergraph, RGBlackboard& blackboard,
+	AmbientPassData const& AmbientPass::AddPass(RenderGraph& rendergraph, 
 		RGTextureRef gbuffer_normal,
 		RGTextureRef gbuffer_albedo,
 		RGTextureRef gbuffer_emissive,
 		RGTextureRef depth_stencil, std::optional<RGTextureSRVRef> ambient_occlusion_texture)
 	{
-		RendererGlobalData const& global_data = blackboard.GetChecked<RendererGlobalData>();
+		RendererGlobalData const& global_data = rendergraph.GetBlackboard().GetChecked<RendererGlobalData>();
 
 		return rendergraph.AddPass<AmbientPassData>("Ambient Pass",
 			[&](AmbientPassData& data, RenderGraphBuilder& builder)
@@ -45,7 +45,7 @@ namespace adria
 				RGTextureRef hdr_rt = builder.CreateTexture("HDR Render Target", render_target_desc);
 				RGTextureRTVRef hdr_rt_rtv = builder.CreateRTV(hdr_rt);
 
-				data.hdr_rt = builder.RenderTarget(hdr_rt_rtv, ERGLoadStoreAccessOp::Clear_Preserve);
+				data.hdr = builder.RenderTarget(hdr_rt_rtv, ERGLoadStoreAccessOp::Clear_Preserve);
 				data.gbuffer_normal_srv = builder.CreateSRV(builder.Read(gbuffer_normal));
 				data.gbuffer_albedo_srv = builder.CreateSRV(builder.Read(gbuffer_albedo));
 				data.gbuffer_emissive_srv = builder.CreateSRV(builder.Read(gbuffer_emissive));

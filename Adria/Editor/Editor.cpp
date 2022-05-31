@@ -457,10 +457,10 @@ namespace adria
     void Editor::Run()
     {
         HandleInput();
-
+		renderer_settings.gui_visible = gui->IsVisible();
         if (gui->IsVisible())
         {
-            engine->SetSceneViewportData(scene_viewport_data);
+			engine->SetSceneViewportData(scene_viewport_data);
             engine->Run(renderer_settings);
             auto gui_cmd_list = engine->gfx->GetNewGraphicsCommandList();
             engine->gfx->SetBackbuffer(gui_cmd_list);

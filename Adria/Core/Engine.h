@@ -53,7 +53,7 @@ namespace adria
 		std::unique_ptr<EntityLoader> entity_loader;
 
 		SceneViewport scene_viewport_data;
-		bool editor_active = true;
+		bool editor_active = true; //remove this
 	private:
 	
 		virtual void InitializeScene(SceneConfig const& config);

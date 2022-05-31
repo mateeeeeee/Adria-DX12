@@ -1,7 +1,6 @@
 #pragma once
 #include "../../Core/Definitions.h"
 #include "../../RenderGraph/RenderGraphResourceRef.h"
-#include "../../RenderGraph/RenderGraphBlackboard.h"
 
 
 namespace adria
@@ -26,7 +25,7 @@ namespace adria
 	public:
 		GBufferPass(tecs::registry& reg, GPUProfiler& gpu_profiler, uint32 w, uint32 h);
 
-		GBufferPassData const& AddPass(RenderGraph& rendergraph, RGBlackboard& blackboard, bool profile_pass);
+		GBufferPassData const& AddPass(RenderGraph& rendergraph, bool profile_pass);
 
 		void OnResize(uint32 w, uint32 h);
 

@@ -4,6 +4,7 @@
 #include "ConstantBuffers.h"
 #include "Passes/GBufferPass.h"
 #include "Passes/AmbientPass.h"
+#include "Passes/ToneMapPass.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/TextureManager.h"
@@ -34,6 +35,7 @@ namespace adria
 			NULL_HEAP_SLOT_RWTEXTURE2D,
 			NULL_HEAP_SIZE
 		};
+		static constexpr uint32 SSAO_KERNEL_SIZE = 16;
 
 	public:
 
@@ -47,34 +49,47 @@ namespace adria
 		void OnResize(uint32 w, uint32 h);
 		void OnSceneInitialized();
 
+		Texture const* GetFinalTexture() const { return nullptr; }
 		TextureManager& GetTextureManager();
 	private:
 		tecs::registry& reg;
 		GraphicsDevice* gfx;
 		RGResourcePool resource_pool;
 
-		TextureManager texture_manager;
-		Camera const* camera;
 		CPUProfiler cpu_profiler;
 		GPUProfiler gpu_profiler;
 
 		RendererSettings settings;
 		ProfilerSettings profiler_settings;
 
+		TextureManager texture_manager;
+		Camera const* camera;
+
 		uint32 const backbuffer_count;
 		uint32 backbuffer_index;
 		uint32 width;
 		uint32 height;
 
+		//resources
+		std::unique_ptr<Texture> final_texture;
 
-		std::unique_ptr<DescriptorHeap> null_heap;
 		//Persistent constant buffers
 		ConstantBuffer<FrameCBuffer> frame_cbuffer;
+		ConstantBuffer<PostprocessCBuffer> postprocess_cbuffer;
 
+		//misc
+		std::unique_ptr<DescriptorHeap> null_heap;
+		std::array<DirectX::XMVECTOR, SSAO_KERNEL_SIZE> ssao_kernel{};
+
+		//passes
 		GBufferPass gbuffer_pass;
 		AmbientPass ambient_pass;
+		ToneMapPass tonemap_pass;
 	private:
 		void CreateNullHeap();
 		void UpdatePersistentConstantBuffers(float32 dt);
+
+		void ResolveToBackbuffer(RenderGraph& rg, RGTextureRef hdr_texture);
+		void ResolveToTexture(RenderGraph& rg, RGTextureRef hdr_texture);
 	};
 }

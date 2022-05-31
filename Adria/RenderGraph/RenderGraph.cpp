@@ -637,7 +637,10 @@ namespace adria
 				pass->Execute(rg_resources, gfx, cmd_list);
 				render_pass.End(cmd_list, pass->UseLegacyRenderPasses());
 			}
-			else pass->Execute(rg_resources, gfx, cmd_list);
+			else
+			{
+				pass->Execute(rg_resources, gfx, cmd_list);
+			}
 		}
 	}
 

@@ -16,10 +16,9 @@ namespace adria
 	{
 	}
 
-	GBufferPassData const& GBufferPass::AddPass(RenderGraph& rendergraph, RGBlackboard& blackboard, bool profile_pass)
+	GBufferPassData const& GBufferPass::AddPass(RenderGraph& rendergraph, bool profile_pass)
 	{
-		RendererGlobalData const& global_data = blackboard.GetChecked<RendererGlobalData>();
-
+		RendererGlobalData const& global_data = rendergraph.GetBlackboard().GetChecked<RendererGlobalData>();
 		return rendergraph.AddPass<GBufferPassData>("GBuffer Pass",
 			[&](GBufferPassData& data, RenderGraphBuilder& builder)
 			{

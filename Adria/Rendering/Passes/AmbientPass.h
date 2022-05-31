@@ -1,8 +1,6 @@
 #pragma once
 #include "../../Core/Definitions.h"
 #include "../../RenderGraph/RenderGraphResourceRef.h"
-#include "../../RenderGraph/RenderGraphBlackboard.h"
-
 
 namespace adria
 {
@@ -15,7 +13,7 @@ namespace adria
 
 	struct AmbientPassData
 	{
-		RGTextureRef hdr_rt;
+		RGTextureRef hdr;
 		RGTextureSRVRef gbuffer_normal_srv;
 		RGTextureSRVRef gbuffer_albedo_srv;
 		RGTextureSRVRef gbuffer_emissive_srv;
@@ -27,7 +25,7 @@ namespace adria
 	public:
 		AmbientPass(uint32 w, uint32 h);
 
-		AmbientPassData const& AddPass(RenderGraph& rendergraph, RGBlackboard& blackboard,
+		AmbientPassData const& AddPass(RenderGraph& rendergraph,
 			RGTextureRef gbuffer_normal,
 			RGTextureRef gbuffer_albedo,
 			RGTextureRef gbuffer_emissive,
