@@ -21,6 +21,7 @@ namespace adria
 	{
 		RootSigPSOManager::Initialize(gfx->GetDevice());
 		CreateNullHeap();
+		CreateSizeDependentResources();
 	}
 
 	void RenderGraphRenderer::NewFrame(Camera const* _camera)
@@ -33,6 +34,7 @@ namespace adria
 	void RenderGraphRenderer::Update(float32 dt)
 	{
 		UpdatePersistentConstantBuffers(dt);
+		CameraFrustumCulling();
 	}
 
 	void RenderGraphRenderer::Render(RendererSettings const& _settings)
@@ -56,7 +58,9 @@ namespace adria
 		AmbientPassData ambient_data = ambient_pass.AddPass(render_graph, gbuffer_data.gbuffer_normal, gbuffer_data.gbuffer_albedo,
 			gbuffer_data.gbuffer_emissive, gbuffer_data.depth_stencil);
 
-		ResolveToBackbuffer(render_graph, ambient_data.hdr);
+		RGTextureRef final_texture_ref = render_graph.ImportTexture("Final Texture", final_texture.get());
+		if(settings.gui_visible) ResolveToTexture(render_graph, ambient_data.hdr, final_texture_ref);
+		else ResolveToBackbuffer(render_graph, ambient_data.hdr);
 
 		render_graph.Build();
 		render_graph.Execute();
@@ -72,6 +76,7 @@ namespace adria
 		if (width != w || height != h)
 		{
 			width = w; height = h;
+			CreateSizeDependentResources();
 			gbuffer_pass.OnResize(w, h);
 			ambient_pass.OnResize(w, h);
 			tonemap_pass.OnResize(w, h);
@@ -120,6 +125,29 @@ namespace adria
 		null_uav_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 		device->CreateUnorderedAccessView(nullptr, nullptr, &null_uav_desc, null_heap->GetHandle(NULL_HEAP_SLOT_RWTEXTURE2D));
 	}
+
+	void RenderGraphRenderer::CreateSizeDependentResources()
+	{
+		D3D12_CLEAR_VALUE rtv_clear_value{};
+		rtv_clear_value.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+		rtv_clear_value.Color[0] = 0.0f;
+		rtv_clear_value.Color[1] = 0.0f;
+		rtv_clear_value.Color[2] = 0.0f;
+		rtv_clear_value.Color[3] = 0.0f;
+
+		TextureDesc ldr_desc{};
+		ldr_desc.width = width;
+		ldr_desc.height = height;
+		ldr_desc.format = DXGI_FORMAT_R10G10B10A2_UNORM;
+		ldr_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
+		ldr_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		ldr_desc.clear = rtv_clear_value;
+
+		final_texture = std::make_unique<Texture>(gfx, ldr_desc);
+		final_texture->CreateSRV();
+		final_texture->CreateRTV();
+	}
+
 	void RenderGraphRenderer::UpdatePersistentConstantBuffers(float32 dt)
 	{
 		FrameCBuffer frame_cbuf_data;
@@ -164,13 +192,22 @@ namespace adria
 		postprocess_cbuffer.Update(postprocess_cbuf_data, backbuffer_index);
 	}
 
+	void RenderGraphRenderer::CameraFrustumCulling()
+	{
+		BoundingFrustum camera_frustum = camera->Frustum();
+		auto visibility_view = reg.view<Visibility>();
+		for (auto e : visibility_view)
+		{
+			auto& visibility = visibility_view.get(e);
+			visibility.camera_visible = camera_frustum.Intersects(visibility.aabb) || reg.has<Light>(e); //dont cull lights for now
+		}
+	}
 
 	void RenderGraphRenderer::ResolveToBackbuffer(RenderGraph& rg, RGTextureRef hdr_texture)
 	{
 		if (HasAnyFlag(settings.anti_aliasing, AntiAliasing_FXAA))
 		{
 			//tone_map.AddPass(rg,...);
-
 			//fxaa_pass.AddPass(rg,...);
 		}
 		else
@@ -179,9 +216,17 @@ namespace adria
 		}
 
 	}
-	void RenderGraphRenderer::ResolveToTexture(RenderGraph& rg, RGTextureRef hdr_texture)
+	void RenderGraphRenderer::ResolveToTexture(RenderGraph& rg, RGTextureRef hdr_texture, RGTextureRef resolve_texture)
 	{
-
+		if (HasAnyFlag(settings.anti_aliasing, AntiAliasing_FXAA))
+		{
+			//tone_map.AddPass(rg,...);
+			//fxaa_pass.AddPass(rg,...);
+		}
+		else
+		{
+			tonemap_pass.AddPass(rg, hdr_texture, resolve_texture);
+		}
 	}
 
 }

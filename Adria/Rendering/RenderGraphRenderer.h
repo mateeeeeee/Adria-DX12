@@ -49,8 +49,12 @@ namespace adria
 		void OnResize(uint32 w, uint32 h);
 		void OnSceneInitialized();
 
-		Texture const* GetFinalTexture() const { return nullptr; }
+		Texture const* GetFinalTexture() const { return final_texture.get(); }
 		TextureManager& GetTextureManager();
+		std::vector<std::string> GetProfilerResults(bool log)
+		{
+			return gpu_profiler.GetProfilerResults(gfx->GetDefaultCommandList(), log);
+		}
 	private:
 		tecs::registry& reg;
 		GraphicsDevice* gfx;
@@ -85,11 +89,14 @@ namespace adria
 		GBufferPass gbuffer_pass;
 		AmbientPass ambient_pass;
 		ToneMapPass tonemap_pass;
+
 	private:
 		void CreateNullHeap();
+		void CreateSizeDependentResources();
 		void UpdatePersistentConstantBuffers(float32 dt);
+		void CameraFrustumCulling();
 
 		void ResolveToBackbuffer(RenderGraph& rg, RGTextureRef hdr_texture);
-		void ResolveToTexture(RenderGraph& rg, RGTextureRef hdr_texture);
+		void ResolveToTexture(RenderGraph& rg, RGTextureRef hdr_texture, RGTextureRef resolve_texture);
 	};
 }

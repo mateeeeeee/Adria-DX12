@@ -1,6 +1,6 @@
 #include "Editor.h"
 
-#include "../Rendering/Renderer.h"
+#include "../Rendering/RenderGraphRenderer.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Rendering/EntityLoader.h"
 #include "../Rendering/RootSigPSOManager.h"
@@ -482,7 +482,7 @@ namespace adria
                 Log();
                 Profiling();
 				ShaderHotReload();
-				if (engine->renderer->IsRayTracingSupported()) RayTracingDebug();
+				//if (engine->renderer->IsRayTracingSupported()) RayTracingDebug();
                 gui->End(gui_cmd_list);
             }
             engine->Present();
@@ -710,6 +710,7 @@ namespace adria
 
 	void Editor::DecalSettings()
 	{
+		/*
 		ImGui::Begin("Decals");
 		{
 			static DecalParameters params{};
@@ -765,6 +766,7 @@ namespace adria
 			}
 		}
 		ImGui::End();
+		*/
 	}
 
 	void Editor::AddEntities()
@@ -1609,7 +1611,7 @@ namespace adria
 			v_max.y += ImGui::GetWindowPos().y;
 			ImVec2 size(v_max.x - v_min.x, v_max.y - v_min.y);
 
-            D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetOffscreenTexture().SRV();
+            D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetFinalTexture()->SRV();
             OffsetType descriptor_index = descriptor_allocator->Allocate();
             auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
             device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -2002,6 +2004,7 @@ namespace adria
 
 	void Editor::RayTracingDebug()
 	{
+		/*
 		auto device = engine->gfx->GetDevice();
 		auto descriptor_allocator = gui->DescriptorAllocator();
 		ImVec2 v_min = ImGui::GetWindowContentRegionMin();
@@ -2058,6 +2061,7 @@ namespace adria
 
 		}
 		ImGui::End();
+		*/
 	}
 
     void Editor::OpenMaterialFileDialog(Material* material, EMaterialTextureType type)

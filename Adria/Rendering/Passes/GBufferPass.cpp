@@ -68,8 +68,8 @@ namespace adria
 			},
 			[&](GBufferPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
-				PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "GBuffer Pass");
-				SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(gpu_profiler, cmd_list, EProfilerBlock::GBufferPass, profile_pass);
+				PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "GBuffer Pass"); //move this in render graph
+				//SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(gpu_profiler, cmd_list, EProfilerBlock::GBufferPass, profile_pass);
 
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();

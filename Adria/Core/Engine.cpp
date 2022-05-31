@@ -4,7 +4,7 @@
 #include "../Math/Constants.h"
 #include "../Logging/Logger.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
-#include "../Rendering/Renderer.h"
+#include "../Rendering/RenderGraphRenderer.h"
 #include "../Rendering/EntityLoader.h"
 #include "../Utilities/Random.h"
 #include "../Utilities/Timer.h"
@@ -212,15 +212,14 @@ namespace adria
 		gfx = std::make_unique<GraphicsDevice>(GraphicsOptions{.debug_layer = init.debug_layer,
 															   .dred = init.dred,
 															   .gpu_validation = init.gpu_validation});
-		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
+		renderer = std::make_unique<RenderGraphRenderer>(reg, gfx.get(), Window::Width(), Window::Height());
 		entity_loader = std::make_unique<EntityLoader>(reg, gfx.get(), renderer->GetTextureManager());
 
 		InputEvents& input_events = input.GetInputEvents();
 		input_events.window_resized_event.AddMember(&CameraManager::OnResize, camera_manager);
 		input_events.window_resized_event.AddMember(&GraphicsDevice::ResizeBackbuffer, *gfx);
-		input_events.window_resized_event.AddMember(&Renderer::OnResize, *renderer);
+		input_events.window_resized_event.AddMember(&RenderGraphRenderer::OnResize, *renderer);
 		input_events.scroll_mouse_event.AddMember(&CameraManager::OnScroll, camera_manager);
-		input_events.right_mouse_clicked.Add([this](int32 mx, int32 my) { renderer->OnRightMouseClicked(); });
 
 		std::optional<SceneConfig> scene_config = ParseSceneConfig(init.scene_file);
 		if (scene_config.has_value()) InitializeScene(scene_config.value());
@@ -264,7 +263,6 @@ namespace adria
 	{
 		camera_manager.Update(dt);
 		auto const& camera = camera_manager.GetActiveCamera();
-		renderer->SetSceneViewportData(std::move(scene_viewport_data));
 		renderer->NewFrame(&camera);
 		renderer->Update(dt);
 	}
@@ -273,9 +271,6 @@ namespace adria
 	{
 		gfx->ClearBackbuffer();
 		renderer->Render(settings);
-
-		if (editor_active) renderer->ResolveToOffscreenFramebuffer();
-		else renderer->ResolveToBackbuffer();
 	}
 
 	void Engine::SetSceneViewportData(std::optional<SceneViewport> viewport_data)
