@@ -3,6 +3,7 @@
 #include "Camera.h"
 #include "Components.h"
 #include "RootSigPSOManager.h"
+#include "SkyModel.h"
 #include "../tecs/Registry.h"
 #include "../Graphics/Buffer.h"
 #include "../Graphics/Texture.h"
@@ -15,9 +16,11 @@ namespace adria
 
 	RenderGraphRenderer::RenderGraphRenderer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx), 
 		texture_manager(gfx, 1000), gpu_profiler(gfx), camera(nullptr), width(width), height(height), 
-		backbuffer_count(gfx->BackbufferCount()), backbuffer_index(gfx->BackbufferIndex()), //final_texture(nullptr),
+		backbuffer_count(gfx->BackbufferCount()), backbuffer_index(gfx->BackbufferIndex()), final_texture(nullptr),
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count), postprocess_cbuffer(gfx->GetDevice(), backbuffer_count),
-		gbuffer_pass(reg, gpu_profiler, width, height), ambient_pass(width, height), tonemap_pass(width, height)
+		weather_cbuffer(gfx->GetDevice(), backbuffer_count), compute_cbuffer(gfx->GetDevice(), backbuffer_count),
+		gbuffer_pass(reg, gpu_profiler, width, height), ambient_pass(width, height), sky_pass(reg, texture_manager, width, height),
+		tonemap_pass(width, height)
 	{
 		RootSigPSOManager::Initialize(gfx->GetDevice());
 		CreateNullHeap();
@@ -49,8 +52,10 @@ namespace adria
 
 		RendererGlobalData global_data{};
 		{
+			global_data.camera_position = camera->Position();
 			global_data.frame_cbuffer_address = frame_cbuffer.BufferLocation(backbuffer_index);
 			global_data.postprocess_cbuffer_address = postprocess_cbuffer.BufferLocation(backbuffer_index);
+			global_data.weather_cbuffer_address = weather_cbuffer.BufferLocation(backbuffer_index);
 			global_data.null_srv_texture2d = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURE2D);
 			global_data.null_uav_texture2d = null_heap->GetHandle(NULL_HEAP_SLOT_RWTEXTURE2D);
 			global_data.null_srv_texture2darray = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURE2DARRAY);
@@ -86,6 +91,7 @@ namespace adria
 			CreateSizeDependentResources();
 			gbuffer_pass.OnResize(w, h);
 			ambient_pass.OnResize(w, h);
+			sky_pass.OnResize(w, h);
 			tonemap_pass.OnResize(w, h);
 		}
 	}
@@ -100,6 +106,8 @@ namespace adria
 		device->CopyDescriptorsSimple(tex2darray_size, descriptor_allocator->GetFirstHandle(),
 			texture_manager.texture_srv_heap->GetFirstHandle(),
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+		sky_pass.OnSceneInitialized(gfx);
 	}
 
 	TextureManager& RenderGraphRenderer::GetTextureManager()
@@ -154,46 +162,103 @@ namespace adria
 
 	void RenderGraphRenderer::UpdatePersistentConstantBuffers(float32 dt)
 	{
-		FrameCBuffer frame_cbuf_data;
-		frame_cbuf_data.global_ambient = XMVectorSet(settings.ambient_color[0], settings.ambient_color[1], settings.ambient_color[2], 1);
-		frame_cbuf_data.camera_near = camera->Near();
-		frame_cbuf_data.camera_far = camera->Far();
-		frame_cbuf_data.camera_position = camera->Position();
-		frame_cbuf_data.camera_forward = camera->Forward();
-		frame_cbuf_data.view = camera->View();
-		frame_cbuf_data.projection = camera->Proj();
-		frame_cbuf_data.view_projection = camera->ViewProj();
-		frame_cbuf_data.inverse_view = DirectX::XMMatrixInverse(nullptr, camera->View());
-		frame_cbuf_data.inverse_projection = DirectX::XMMatrixInverse(nullptr, camera->Proj());
-		frame_cbuf_data.inverse_view_projection = DirectX::XMMatrixInverse(nullptr, camera->ViewProj());
-		frame_cbuf_data.screen_resolution_x = (float32)width;
-		frame_cbuf_data.screen_resolution_y = (float32)height;
-		frame_cbuf_data.mouse_normalized_coords_x = 0.0f;	//move this to some other cbuffer?
-		frame_cbuf_data.mouse_normalized_coords_y = 0.0f;	//move this to some other cbuffer?
+		//frame
+		{
+			FrameCBuffer frame_cbuf_data;
+			frame_cbuf_data.global_ambient = XMVectorSet(settings.ambient_color[0], settings.ambient_color[1], settings.ambient_color[2], 1);
+			frame_cbuf_data.camera_near = camera->Near();
+			frame_cbuf_data.camera_far = camera->Far();
+			frame_cbuf_data.camera_position = camera->Position();
+			frame_cbuf_data.camera_forward = camera->Forward();
+			frame_cbuf_data.view = camera->View();
+			frame_cbuf_data.projection = camera->Proj();
+			frame_cbuf_data.view_projection = camera->ViewProj();
+			frame_cbuf_data.inverse_view = DirectX::XMMatrixInverse(nullptr, camera->View());
+			frame_cbuf_data.inverse_projection = DirectX::XMMatrixInverse(nullptr, camera->Proj());
+			frame_cbuf_data.inverse_view_projection = DirectX::XMMatrixInverse(nullptr, camera->ViewProj());
+			frame_cbuf_data.screen_resolution_x = (float32)width;
+			frame_cbuf_data.screen_resolution_y = (float32)height;
+			frame_cbuf_data.mouse_normalized_coords_x = 0.0f;	//move this to some other cbuffer?
+			frame_cbuf_data.mouse_normalized_coords_y = 0.0f;	//move this to some other cbuffer?
 
-		frame_cbuffer.Update(frame_cbuf_data, backbuffer_index);
-		frame_cbuf_data.prev_view_projection = camera->ViewProj();
+			frame_cbuffer.Update(frame_cbuf_data, backbuffer_index);
+			frame_cbuf_data.prev_view_projection = camera->ViewProj();
+		}
+		
+		//postprocess
+		{
+			PostprocessCBuffer postprocess_cbuf_data{};
+			postprocess_cbuf_data.tone_map_exposure = settings.tonemap_exposure;
+			postprocess_cbuf_data.tone_map_operator = static_cast<int>(settings.tone_map_op);
+			postprocess_cbuf_data.noise_scale = XMFLOAT2((float32)width / 8, (float32)height / 8);
+			postprocess_cbuf_data.ssao_power = settings.ssao_power;
+			postprocess_cbuf_data.ssao_radius = settings.ssao_radius;
+			for (uint32 i = 0; i < SSAO_KERNEL_SIZE; ++i) postprocess_cbuf_data.samples[i] = ssao_kernel[i];
+			postprocess_cbuf_data.ssr_ray_step = settings.ssr_ray_step;
+			postprocess_cbuf_data.ssr_ray_hit_threshold = settings.ssr_ray_hit_threshold;
+			postprocess_cbuf_data.dof_params = XMVectorSet(settings.dof_near_blur, settings.dof_near, settings.dof_far, settings.dof_far_blur);
+			postprocess_cbuf_data.velocity_buffer_scale = settings.velocity_buffer_scale;
+			postprocess_cbuf_data.fog_falloff = settings.fog_falloff;
+			postprocess_cbuf_data.fog_density = settings.fog_density;
+			postprocess_cbuf_data.fog_type = static_cast<int32>(settings.fog_type);
+			postprocess_cbuf_data.fog_start = settings.fog_start;
+			postprocess_cbuf_data.fog_color = XMVectorSet(settings.fog_color[0], settings.fog_color[1], settings.fog_color[2], 1);
+			postprocess_cbuf_data.hbao_r2 = settings.hbao_radius * settings.hbao_radius;
+			postprocess_cbuf_data.hbao_radius_to_screen = settings.hbao_radius * 0.5f * float32(height) / (tanf(camera->Fov() * 0.5f) * 2.0f);
+			postprocess_cbuf_data.hbao_power = settings.hbao_power;
+			postprocess_cbuffer.Update(postprocess_cbuf_data, backbuffer_index);
 
-		PostprocessCBuffer postprocess_cbuf_data{};
-		postprocess_cbuf_data.tone_map_exposure = settings.tonemap_exposure;
-		postprocess_cbuf_data.tone_map_operator = static_cast<int>(settings.tone_map_op);
-		postprocess_cbuf_data.noise_scale = XMFLOAT2((float32)width / 8, (float32)height / 8);
-		postprocess_cbuf_data.ssao_power = settings.ssao_power;
-		postprocess_cbuf_data.ssao_radius = settings.ssao_radius;
-		for (uint32 i = 0; i < SSAO_KERNEL_SIZE; ++i) postprocess_cbuf_data.samples[i] = ssao_kernel[i];
-		postprocess_cbuf_data.ssr_ray_step = settings.ssr_ray_step;
-		postprocess_cbuf_data.ssr_ray_hit_threshold = settings.ssr_ray_hit_threshold;
-		postprocess_cbuf_data.dof_params = XMVectorSet(settings.dof_near_blur, settings.dof_near, settings.dof_far, settings.dof_far_blur);
-		postprocess_cbuf_data.velocity_buffer_scale = settings.velocity_buffer_scale;
-		postprocess_cbuf_data.fog_falloff = settings.fog_falloff;
-		postprocess_cbuf_data.fog_density = settings.fog_density;
-		postprocess_cbuf_data.fog_type = static_cast<int32>(settings.fog_type);
-		postprocess_cbuf_data.fog_start = settings.fog_start;
-		postprocess_cbuf_data.fog_color = XMVectorSet(settings.fog_color[0], settings.fog_color[1], settings.fog_color[2], 1);
-		postprocess_cbuf_data.hbao_r2 = settings.hbao_radius * settings.hbao_radius;
-		postprocess_cbuf_data.hbao_radius_to_screen = settings.hbao_radius * 0.5f * float32(height) / (tanf(camera->Fov() * 0.5f) * 2.0f);
-		postprocess_cbuf_data.hbao_power = settings.hbao_power;
-		postprocess_cbuffer.Update(postprocess_cbuf_data, backbuffer_index);
+		}
+		
+		//weather
+		{
+			WeatherCBuffer weather_cbuf_data{};
+			static float32 total_time = 0.0f;
+			total_time += dt;
+
+			auto lights = reg.view<Light>();
+			for (auto light : lights)
+			{
+				auto const& light_data = lights.get(light);
+				if (light_data.type == ELightType::Directional && light_data.active)
+				{
+					weather_cbuf_data.light_dir = XMVector3Normalize(-light_data.direction);
+					weather_cbuf_data.light_color = light_data.color * light_data.energy;
+					break;
+				}
+			}
+
+			weather_cbuf_data.sky_color = XMVECTOR{ settings.sky_color[0], settings.sky_color[1],settings.sky_color[2], 1.0f };
+			weather_cbuf_data.ambient_color = XMVECTOR{ settings.ambient_color[0], settings.ambient_color[1], settings.ambient_color[2], 1.0f };
+			weather_cbuf_data.wind_dir = XMVECTOR{ settings.wind_direction[0], 0.0f, settings.wind_direction[1], 0.0f };
+			weather_cbuf_data.wind_speed = settings.wind_speed;
+			weather_cbuf_data.time = total_time;
+			weather_cbuf_data.crispiness = settings.crispiness;
+			weather_cbuf_data.curliness = settings.curliness;
+			weather_cbuf_data.coverage = settings.coverage;
+			weather_cbuf_data.absorption = settings.light_absorption;
+			weather_cbuf_data.clouds_bottom_height = settings.clouds_bottom_height;
+			weather_cbuf_data.clouds_top_height = settings.clouds_top_height;
+			weather_cbuf_data.density_factor = settings.density_factor;
+			weather_cbuf_data.cloud_type = settings.cloud_type;
+
+			XMFLOAT3 sun_dir;
+			XMStoreFloat3(&sun_dir, XMVector3Normalize(weather_cbuf_data.light_dir));
+			SkyParameters sky_params = CalculateSkyParameters(settings.turbidity, settings.ground_albedo, sun_dir);
+
+			weather_cbuf_data.A = sky_params[ESkyParam_A];
+			weather_cbuf_data.B = sky_params[ESkyParam_B];
+			weather_cbuf_data.C = sky_params[ESkyParam_C];
+			weather_cbuf_data.D = sky_params[ESkyParam_D];
+			weather_cbuf_data.E = sky_params[ESkyParam_E];
+			weather_cbuf_data.F = sky_params[ESkyParam_F];
+			weather_cbuf_data.G = sky_params[ESkyParam_G];
+			weather_cbuf_data.H = sky_params[ESkyParam_H];
+			weather_cbuf_data.I = sky_params[ESkyParam_I];
+			weather_cbuf_data.Z = sky_params[ESkyParam_Z];
+
+			weather_cbuffer.Update(weather_cbuf_data, backbuffer_index);
+		}
 	}
 	void RenderGraphRenderer::CameraFrustumCulling()
 	{

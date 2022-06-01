@@ -23,8 +23,6 @@ namespace adria
 			},
 			[=](ToneMapPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
-				PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "ToneMap Pass");
-
 				if (!data.target.IsValid())
 				{
 					D3D12_VIEWPORT vp{};

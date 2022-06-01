@@ -4,6 +4,7 @@
 #include "ConstantBuffers.h"
 #include "Passes/GBufferPass.h"
 #include "Passes/AmbientPass.h"
+#include "Passes/SkyPass.h"
 #include "Passes/ToneMapPass.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../Graphics/ConstantBuffer.h"
@@ -52,7 +53,7 @@ namespace adria
 
 		Texture const* GetFinalTexture() const { return final_texture.get(); }
 		TextureManager& GetTextureManager();
-		std::vector<std::string> GetProfilerResults(bool log)
+		std::vector<std::string> GetProfilerResults(bool log) const
 		{
 			return gpu_profiler.GetProfilerResults(gfx->GetDefaultCommandList(), log);
 		}
@@ -81,7 +82,8 @@ namespace adria
 		//Persistent constant buffers
 		ConstantBuffer<FrameCBuffer> frame_cbuffer;
 		ConstantBuffer<PostprocessCBuffer> postprocess_cbuffer;
-
+		ConstantBuffer<ComputeCBuffer> compute_cbuffer;
+		ConstantBuffer<WeatherCBuffer> weather_cbuffer;
 		//misc
 		std::unique_ptr<DescriptorHeap> null_heap;
 		std::array<DirectX::XMVECTOR, SSAO_KERNEL_SIZE> ssao_kernel{};
@@ -90,7 +92,7 @@ namespace adria
 		GBufferPass gbuffer_pass;
 		AmbientPass ambient_pass;
 		ToneMapPass tonemap_pass;
-
+		SkyPass		sky_pass;
 	private:
 		void CreateNullHeap();
 		void CreateSizeDependentResources();

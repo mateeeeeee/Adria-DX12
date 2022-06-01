@@ -38,14 +38,14 @@ namespace adria
 		profile_data.cmd_list = cmd_list;
 	}
 
-	std::vector<std::string> GPUProfiler::GetProfilerResults(ID3D12GraphicsCommandList* cmd_list, bool log_results)
+	std::vector<std::string> GPUProfiler::GetProfilerResults(ID3D12GraphicsCommandList* cmd_list, bool log_results) const
 	{
 		UINT64 gpu_frequency = 0;
 		gfx->GetTimestampFrequency(gpu_frequency);
 
 		for (size_t i = 0; i < MAX_PROFILES; ++i)
 		{
-			QueryData& profile_data = query_data[i];
+			QueryData const& profile_data = query_data[i];
 			if (profile_data.query_started && profile_data.query_finished)
 			{
 				UINT32 begin_query_index = UINT32(i * 2);
