@@ -66,13 +66,14 @@ namespace adria
 		GBufferPassData gbuffer_data = gbuffer_pass.AddPass(render_graph, profiler_settings.profile_gbuffer_pass);
 		AmbientPassData ambient_data = ambient_pass.AddPass(render_graph, gbuffer_data.gbuffer_normal, gbuffer_data.gbuffer_albedo,
 			gbuffer_data.gbuffer_emissive, gbuffer_data.depth_stencil);
+		SkyPassData sky_data = sky_pass.AddPass(render_graph, ambient_data.hdr_rtv, gbuffer_data.depth_stencil_dsv, settings.sky_type);
 
 		if (settings.gui_visible)
 		{
 			RGTextureRef final_texture_ref = render_graph.ImportTexture("Final Texture", final_texture.get());
-			ResolveToTexture(render_graph, ambient_data.hdr, final_texture_ref);
+			ResolveToTexture(render_graph, sky_data.render_target, final_texture_ref);
 		}
-		else ResolveToBackbuffer(render_graph, ambient_data.hdr);
+		else ResolveToBackbuffer(render_graph, sky_data.render_target);
 
 		render_graph.Build();
 		render_graph.Execute();

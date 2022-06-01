@@ -64,6 +64,7 @@ namespace adria
 				data.gbuffer_albedo = builder.RenderTarget(gbuffer_albedo_rtv, ERGLoadStoreAccessOp::Clear_Preserve);
 				data.gbuffer_emissive = builder.RenderTarget(gbuffer_emissive_rtv, ERGLoadStoreAccessOp::Clear_Preserve);
 				data.depth_stencil = builder.DepthStencil(depth_stencil_dsv, ERGLoadStoreAccessOp::Clear_Preserve);
+				data.depth_stencil_dsv = depth_stencil_dsv;
 			},
 			[=](GBufferPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
 			{

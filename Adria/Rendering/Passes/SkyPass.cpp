@@ -15,12 +15,15 @@ namespace adria
 	SkyPass::SkyPass(tecs::registry& reg, TextureManager& texture_manager, uint32 w, uint32 h) : reg(reg), texture_manager(texture_manager), width(w), height(h)
 	{
 	}
-	SkyPassData const& SkyPass::AddPass(RenderGraph& rg, ESkyType sky_type)
+	SkyPassData const& SkyPass::AddPass(RenderGraph& rg, RGTextureRTVRef render_target_rtv, RGTextureDSVRef depth_target_dsv, ESkyType sky_type)
 	{
 		RendererGlobalData const& global_data = rg.GetBlackboard().GetChecked<RendererGlobalData>();
 		return rg.AddPass<SkyPassData>("Sky Pass",
 			[=](SkyPassData& data, RenderGraphBuilder& builder)
 			{
+				data.render_target_rtv = render_target_rtv;
+				data.render_target = builder.RenderTarget(render_target_rtv, ERGLoadStoreAccessOp::Preserve_Preserve);
+				builder.DepthStencil(depth_target_dsv, ERGLoadStoreAccessOp::Preserve_Preserve, true);
 				builder.SetViewport(width, height);
 			},
 			[=, this](SkyPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)

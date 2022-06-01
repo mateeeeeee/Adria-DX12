@@ -43,9 +43,9 @@ namespace adria
 				render_target_desc.clear = rtv_clear_value;
 				render_target_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
 				RGTextureRef hdr_rt = builder.CreateTexture("HDR Render Target", render_target_desc);
-				RGTextureRTVRef hdr_rt_rtv = builder.CreateRTV(hdr_rt);
 
-				data.hdr = builder.RenderTarget(hdr_rt_rtv, ERGLoadStoreAccessOp::Clear_Preserve);
+				data.hdr_rtv = builder.CreateRTV(hdr_rt);
+				data.hdr = builder.RenderTarget(data.hdr_rtv, ERGLoadStoreAccessOp::Clear_Preserve);
 				data.gbuffer_normal_srv = builder.CreateSRV(builder.Read(gbuffer_normal));
 				data.gbuffer_albedo_srv = builder.CreateSRV(builder.Read(gbuffer_albedo));
 				data.gbuffer_emissive_srv = builder.CreateSRV(builder.Read(gbuffer_emissive));

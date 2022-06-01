@@ -14,6 +14,7 @@ namespace adria
 	struct AmbientPassData
 	{
 		RGTextureRef hdr;
+		RGTextureRTVRef hdr_rtv;
 		RGTextureSRVRef gbuffer_normal_srv;
 		RGTextureSRVRef gbuffer_albedo_srv;
 		RGTextureSRVRef gbuffer_emissive_srv;

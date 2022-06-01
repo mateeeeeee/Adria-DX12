@@ -18,6 +18,7 @@ namespace adria
 		RGTextureRef gbuffer_albedo;
 		RGTextureRef gbuffer_emissive;
 		RGTextureRef depth_stencil;
+		RGTextureDSVRef depth_stencil_dsv;
 	};
 
 	class GBufferPass

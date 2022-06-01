@@ -67,12 +67,14 @@ namespace adria
 		}
 
 		rg_pass.resource_state_map[handle] |= resource_states;
-		rg_pass.writes.insert(handle);
-
 		auto* texture = rg.GetRGTexture(handle);
 		if (texture->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
-		if (!rg_pass.creates.contains(handle)) ++texture->version;
 
+		if (!rg_pass.creates.contains(handle))
+		{
+			++texture->version;
+		}
+		rg_pass.writes.insert(handle);
 		return handle;
 	}
 
@@ -80,22 +82,30 @@ namespace adria
 	{
 		RGTextureRef handle = rtv_handle.GetTypedResourceHandle();
 		rg_pass.resource_state_map[handle] |= D3D12_RESOURCE_STATE_RENDER_TARGET;
-		rg_pass.writes.insert(handle);
 		rg_pass.render_targets_info.push_back(RenderGraphPassBase::RenderTargetInfo{ .render_target_handle = rtv_handle, .render_target_access = load_store_op });
 		auto* rg_texture = rg.GetRGTexture(handle);
 		if (rg_texture->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
-		if (!rg_pass.creates.contains(handle)) ++rg_texture->version;
+
+		if (!rg_pass.creates.contains(handle))
+		{
+			++rg_texture->version;
+		}
+		rg_pass.writes.insert(handle);
 		return handle;
 	}
 
 	RGTextureRef RenderGraphBuilder::DepthStencil(RGTextureDSVRef dsv_handle, ERGLoadStoreAccessOp depth_load_store_op, bool readonly /*= false*/, ERGLoadStoreAccessOp stencil_load_store_op /*= ERGLoadStoreAccessOp::NoAccess_NoAccess*/)
 	{
 		RGTextureRef handle = dsv_handle.GetTypedResourceHandle();
-		readonly ? rg_pass.reads.insert(handle) : rg_pass.writes.insert(handle);
 		rg_pass.depth_stencil = RenderGraphPassBase::DepthStencilInfo{ .depth_stencil_handle = dsv_handle, .depth_access = depth_load_store_op,.stencil_access = stencil_load_store_op, .readonly = readonly };
 		auto* rg_texture = rg.GetRGTexture(handle);
 
-		if (!rg_pass.creates.contains(handle) && !readonly) ++rg_texture->version;
+		if (!rg_pass.creates.contains(handle) && !readonly)
+		{
+			++rg_texture->version;
+		}
+		readonly ? rg_pass.reads.insert(handle) : rg_pass.writes.insert(handle);
+
 		if (rg_texture->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
 		rg_pass.resource_state_map[handle] |= readonly ? D3D12_RESOURCE_STATE_DEPTH_READ : D3D12_RESOURCE_STATE_DEPTH_WRITE;
 		return handle;
