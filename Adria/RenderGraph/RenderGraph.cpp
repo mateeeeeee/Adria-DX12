@@ -635,6 +635,7 @@ namespace adria
 					//todo add stencil
 					render_pass_desc.dsv_attachment = std::move(dsv_desc);
 				}
+				ADRIA_ASSERT((pass->viewport_width == 0 || pass->viewport_height == 0) && "Viewport Width/Height is 0! The call to builder.SetViewport is probably missing...");
 				render_pass_desc.width = pass->viewport_width;
 				render_pass_desc.height = pass->viewport_height;
 				RenderPass render_pass(render_pass_desc);
