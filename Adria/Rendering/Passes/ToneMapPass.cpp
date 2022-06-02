@@ -1,5 +1,5 @@
 #include "ToneMapPass.h"
-#include "../RendererGlobalData.h"
+#include "../GlobalBlackboardData.h"
 #include "../RootSigPSOManager.h"
 #include "../../RenderGraph/RenderGraph.h"
 #include "pix3.h"
@@ -9,7 +9,7 @@ namespace adria
 
 	ToneMapPassData const& ToneMapPass::AddPass(RenderGraph& rg, RGTextureRef hdr_texture, std::optional<RGTextureRef> ldr_texture)
 	{
-		RendererGlobalData const& global_data = rg.GetBlackboard().GetChecked<RendererGlobalData>();
+		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
 		ERGPassFlags flags = !ldr_texture.has_value() ? ERGPassFlags::ForceNoCull | ERGPassFlags::SkipAutoRenderPass : ERGPassFlags::None;
 
 		return rg.AddPass<ToneMapPassData>("ToneMap Pass",

@@ -2,7 +2,7 @@
 #include "../ConstantBuffers.h"
 #include "../Components.h"
 #include "../Enums.h"
-#include "../RendererGlobalData.h"
+#include "../GlobalBlackboardData.h"
 #include "../RootSigPSOManager.h"
 #include "../../RenderGraph/RenderGraph.h"
 #include "../../Graphics/GPUProfiler.h"
@@ -17,7 +17,7 @@ namespace adria
 	}
 	SkyPassData const& SkyPass::AddPass(RenderGraph& rg, RGTextureRTVRef render_target_rtv, RGTextureDSVRef depth_target_dsv, ESkyType sky_type)
 	{
-		RendererGlobalData const& global_data = rg.GetBlackboard().GetChecked<RendererGlobalData>();
+		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
 		return rg.AddPass<SkyPassData>("Sky Pass",
 			[=](SkyPassData& data, RenderGraphBuilder& builder)
 			{

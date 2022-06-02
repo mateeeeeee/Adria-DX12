@@ -73,6 +73,8 @@ namespace adria
 		RenderGraphResources(RenderGraphResources const&) = delete;
 		RenderGraphResources& operator=(RenderGraphResources const&) = delete;
 
+		RGBlackboard& GetBlackboard();
+
 		Texture& GetTexture(RGTextureRef handle);
 		Buffer& GetBuffer(RGBufferRef handle);
 

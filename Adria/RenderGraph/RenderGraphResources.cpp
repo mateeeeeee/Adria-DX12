@@ -7,6 +7,11 @@ namespace adria
 	RenderGraphResources::RenderGraphResources(RenderGraph& rg, RenderGraphPassBase& rg_pass) : rg(rg), rg_pass(rg_pass)
 	{}
 
+	RGBlackboard& RenderGraphResources::GetBlackboard()
+	{
+		return rg.GetBlackboard();
+	}
+
 	Texture& RenderGraphResources::GetTexture(RGTextureRef handle)
 	{
 		return *rg.GetTexture(handle);

@@ -1,5 +1,5 @@
 #include "RenderGraphRenderer.h"
-#include "RendererGlobalData.h"
+#include "GlobalBlackboardData.h"
 #include "Camera.h"
 #include "Components.h"
 #include "RootSigPSOManager.h"
@@ -50,7 +50,7 @@ namespace adria
 		RenderGraph render_graph(resource_pool);
 		RGBlackboard& rg_blackboard = render_graph.GetBlackboard();
 
-		RendererGlobalData global_data{};
+		GlobalBlackboardData global_data{};
 		{
 			global_data.camera_position = camera->Position();
 			global_data.camera_view = camera->View();
@@ -64,7 +64,7 @@ namespace adria
 			global_data.null_srv_texture2darray = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURE2DARRAY);
 			global_data.null_srv_texturecube = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURECUBE);
 		}
-		rg_blackboard.Add<RendererGlobalData>(std::move(global_data));
+		rg_blackboard.Add<GlobalBlackboardData>(std::move(global_data));
 
 		GBufferPassData gbuffer_data = gbuffer_pass.AddPass(render_graph, profiler_settings.profile_gbuffer_pass);
 		AmbientPassData ambient_data = ambient_pass.AddPass(render_graph, gbuffer_data.gbuffer_normal, gbuffer_data.gbuffer_albedo,
@@ -78,8 +78,16 @@ namespace adria
 			if (!light.active) continue;
 			if ((settings.use_tiled_deferred || settings.use_clustered_deferred) && !light.casts_shadows) continue;  //tiled/clustered deferred takes care of noncasting lights
 
-			lighting_pass.AddPass(render_graph, light, ambient_data.hdr_rtv,
-				ambient_data.gbuffer_normal_srv, ambient_data.gbuffer_albedo_srv, ambient_data.depth_stencil_srv);
+			if (light.casts_shadows)
+			{
+				
+			}
+			else
+			{
+				lighting_pass.AddPass(render_graph, light, ambient_data.hdr_rtv,
+					ambient_data.gbuffer_normal_srv, ambient_data.gbuffer_albedo_srv, ambient_data.depth_stencil_srv);
+			}
+			
 		}
 		
 

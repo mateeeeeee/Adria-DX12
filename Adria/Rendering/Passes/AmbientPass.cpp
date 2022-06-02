@@ -1,6 +1,6 @@
 #include "AmbientPass.h"
 #include "../Components.h"
-#include "../RendererGlobalData.h"
+#include "../GlobalBlackboardData.h"
 #include "../RootSigPSOManager.h"
 #include "../../RenderGraph/RenderGraph.h"
 #include "pix3.h"
@@ -23,7 +23,7 @@ namespace adria
 		RGTextureRef gbuffer_emissive,
 		RGTextureRef depth_stencil, std::optional<RGTextureSRVRef> ambient_occlusion_texture)
 	{
-		RendererGlobalData const& global_data = rendergraph.GetBlackboard().GetChecked<RendererGlobalData>();
+		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
 
 		return rendergraph.AddPass<AmbientPassData>("Ambient Pass",
 			[=](AmbientPassData& data, RenderGraphBuilder& builder)

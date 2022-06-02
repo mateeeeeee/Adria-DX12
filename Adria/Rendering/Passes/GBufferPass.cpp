@@ -1,7 +1,7 @@
 #include "GBufferPass.h"
 #include "../ConstantBuffers.h"
 #include "../Components.h"
-#include "../RendererGlobalData.h"
+#include "../GlobalBlackboardData.h"
 #include "../RootSigPSOManager.h"
 #include "../../RenderGraph/RenderGraph.h"
 #include "../../Graphics/GPUProfiler.h"
@@ -17,7 +17,7 @@ namespace adria
 
 	GBufferPassData const& GBufferPass::AddPass(RenderGraph& rendergraph, bool profile_pass)
 	{
-		RendererGlobalData const& global_data = rendergraph.GetBlackboard().GetChecked<RendererGlobalData>();
+		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
 		return rendergraph.AddPass<GBufferPassData>("GBuffer Pass",
 			[=](GBufferPassData& data, RenderGraphBuilder& builder)
 			{

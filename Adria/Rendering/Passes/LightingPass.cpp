@@ -1,7 +1,7 @@
 #include "LightingPass.h"
 #include "../ConstantBuffers.h"
 #include "../Components.h"
-#include "../RendererGlobalData.h"
+#include "../GlobalBlackboardData.h"
 #include "../RootSigPSOManager.h"
 #include "../../RenderGraph/RenderGraph.h"
 #include "../../Graphics/GPUProfiler.h"
@@ -17,9 +17,7 @@ namespace adria
 		RGTextureSRVRef gbuffer_albedo_srv,
 		RGTextureSRVRef depth_stencil_srv)
 	{
-		RendererGlobalData const& global_data = rendergraph.GetBlackboard().GetChecked<RendererGlobalData>();
-
-		//ShadowData = shadow_pass.AddPass(rendergraph, Light, ...);
+		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
 
 		return rendergraph.AddPass<LightingPassData>("Lighting Pass",
 			[=](LightingPassData& data, RenderGraphBuilder& builder)
@@ -67,9 +65,7 @@ namespace adria
 					RootSigPSOManager::GetPipelineState(EPipelineStateObject::LightingPBR));
 
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
-
 				cmd_list->SetGraphicsRootConstantBufferView(1, light_allocation.gpu_address);
-
 				//cmd_list->SetGraphicsRootConstantBufferView(2, shadow_allocation.gpu_address);
 
 				//t0,t1,t2 - gbuffer and depth

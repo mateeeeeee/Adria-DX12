@@ -5,7 +5,7 @@
 
 namespace adria
 {
-	struct RendererGlobalData
+	struct GlobalBlackboardData
 	{
 		DirectX::XMVECTOR			camera_position;
 		DirectX::XMMATRIX			camera_view;

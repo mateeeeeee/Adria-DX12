@@ -197,6 +197,7 @@
     <ClCompile Include="Rendering\Passes\AmbientPass.cpp" />
     <ClCompile Include="Rendering\Passes\GBufferPass.cpp" />
     <ClCompile Include="Rendering\Passes\LightingPass.cpp" />
+    <ClCompile Include="Rendering\Passes\ShadowPass.cpp" />
     <ClCompile Include="Rendering\Passes\SkyPass.cpp" />
     <ClCompile Include="Rendering\Passes\ToneMapPass.cpp" />
     <ClCompile Include="Rendering\RayTracer.cpp" />
@@ -295,12 +296,13 @@
     <ClInclude Include="Rendering\Passes\AmbientPass.h" />
     <ClInclude Include="Rendering\Passes\GBufferPass.h" />
     <ClInclude Include="Rendering\Passes\LightingPass.h" />
+    <ClInclude Include="Rendering\Passes\ShadowPass.h" />
     <ClInclude Include="Rendering\Passes\SkyPass.h" />
     <ClInclude Include="Rendering\Passes\ToneMapPass.h" />
     <ClInclude Include="Rendering\Picker.h" />
     <ClInclude Include="Rendering\RayTracer.h" />
     <ClInclude Include="Rendering\Renderer.h" />
-    <ClInclude Include="Rendering\RendererGlobalData.h" />
+    <ClInclude Include="Rendering\GlobalBlackboardData.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />
     <ClInclude Include="Rendering\RenderGraphRenderer.h" />
     <ClInclude Include="Rendering\RootSigPSOManager.h" />

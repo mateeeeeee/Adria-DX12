@@ -33,6 +33,12 @@ namespace adria
 		}
 
 		template<typename T>
+		[[maybe_unused]] bool Remove()
+		{
+			return board_data.erase(typeid(T)) != 0;
+		}
+
+		template<typename T>
 		T const* Get() const
 		{
 			if (auto it = board_data.find(typeid(T)); it != board_data.end())
