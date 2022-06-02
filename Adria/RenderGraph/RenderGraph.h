@@ -102,6 +102,7 @@ namespace adria
 
 		void Build();
 		void Execute();
+		void Execute_Multithreaded();
 
 		bool IsValidTextureHandle(RGTextureRef) const;
 		bool IsValidBufferHandle(RGBufferRef) const;

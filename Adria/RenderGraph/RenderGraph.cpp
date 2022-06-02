@@ -189,7 +189,6 @@ namespace adria
 		CalculateResourcesLifetime();
 	}
 
-	//check if dependency level has been culled before setup and all that, avoid uneccessary barriers
 	void RenderGraph::Execute()
 	{
 		pool.Tick();
@@ -252,6 +251,75 @@ namespace adria
 			}
 		}
 		final_barrier_batcher.Submit(cmd_list);
+	}
+
+	void RenderGraph::Execute_Multithreaded()
+	{
+		pool.Tick();
+		for (auto& dependency_level : dependency_levels) dependency_level.Setup();
+		std::vector<CommandList*> cmd_lists(dependency_levels.size(), gfx->GetNewGraphicsCommandList());
+		std::vector<std::future<void>> futures;
+
+		ResourceBarrierBatch final_barrier_batcher{};
+
+		for (size_t i = 0; i < dependency_levels.size(); ++i)
+		{
+			futures.push_back(TaskSystem::Submit([&](size_t j)-> void 
+				{
+					auto& dependency_level = dependency_levels[j];
+					for (auto handle : dependency_level.creates)
+					{
+						RGTexture* rg_texture = GetRGTexture(handle); //allocate is not thread safe?
+						if (!rg_texture->imported) rg_texture->resource = pool.AllocateTexture(rg_texture->desc, ConvertToWide(rg_texture->name).c_str());
+					}
+
+					ResourceBarrierBatch barrier_batcher{};
+					{
+						for (auto const& [texture_handle, state] : dependency_level.required_states)
+						{
+							RGTexture* rg_texture = GetRGTexture(texture_handle);
+							Texture* texture = rg_texture->resource;
+							if (dependency_level.creates.contains(texture_handle))
+							{
+								ADRIA_ASSERT(HasAllFlags(texture->GetDesc().initial_state, state) && "First Resource Usage must be compatible with initial resource state!");
+								continue;
+							}
+							bool found = false;
+							for (int32 k = (int32)j - 1; k >= 0; --k)
+							{
+								auto& prev_dependency_level = dependency_levels[k];
+								if (prev_dependency_level.required_states.contains(texture_handle))
+								{
+									ResourceState prev_state = prev_dependency_level.required_states[texture_handle];
+									if (state != prev_state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, state);
+									found = true;
+									break;
+								}
+							}
+							if (!found && rg_texture->imported)
+							{
+								ResourceState prev_state = rg_texture->desc.initial_state;
+								if (state != prev_state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, state);
+							}
+
+							barrier_batcher.Submit(cmd_lists[j]);
+							dependency_level.Execute(gfx, cmd_lists[j]);
+							for (auto handle : dependency_level.destroys)
+							{
+								auto* rg_texture = GetRGTexture(handle);
+								Texture* texture = rg_texture->resource;
+								ResourceState initial_state = texture->GetDesc().initial_state;
+								ADRIA_ASSERT(dependency_level.required_states.contains(handle));
+								ResourceState state = dependency_level.required_states[handle];
+								if (initial_state != state) final_barrier_batcher.AddTransition(texture->GetNative(), state, initial_state);
+								if (!rg_texture->imported) pool.ReleaseTexture(rg_texture->resource);
+							}
+						}
+					}
+				}, i));
+		}
+		for (auto& future : futures) future.wait();
+		final_barrier_batcher.Submit(gfx->GetLastGraphicsCommandList());
 	}
 
 	RGTexture* RenderGraph::GetRGTexture(RGTextureRef handle) const

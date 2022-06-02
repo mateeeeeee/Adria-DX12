@@ -20,7 +20,7 @@ namespace adria
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count), postprocess_cbuffer(gfx->GetDevice(), backbuffer_count),
 		weather_cbuffer(gfx->GetDevice(), backbuffer_count), compute_cbuffer(gfx->GetDevice(), backbuffer_count),
 		gbuffer_pass(reg, gpu_profiler, width, height), ambient_pass(width, height), sky_pass(reg, texture_manager, width, height),
-		tonemap_pass(width, height)
+		lighting_pass(width, height), tonemap_pass(width, height)
 	{
 		RootSigPSOManager::Initialize(gfx->GetDevice());
 		CreateNullHeap();
@@ -53,6 +53,9 @@ namespace adria
 		RendererGlobalData global_data{};
 		{
 			global_data.camera_position = camera->Position();
+			global_data.camera_view = camera->View();
+			global_data.camera_proj = camera->Proj();
+			global_data.camera_viewproj = camera->ViewProj();
 			global_data.frame_cbuffer_address = frame_cbuffer.BufferLocation(backbuffer_index);
 			global_data.postprocess_cbuffer_address = postprocess_cbuffer.BufferLocation(backbuffer_index);
 			global_data.weather_cbuffer_address = weather_cbuffer.BufferLocation(backbuffer_index);
@@ -67,6 +70,18 @@ namespace adria
 		AmbientPassData ambient_data = ambient_pass.AddPass(render_graph, gbuffer_data.gbuffer_normal, gbuffer_data.gbuffer_albedo,
 			gbuffer_data.gbuffer_emissive, gbuffer_data.depth_stencil);
 		SkyPassData sky_data = sky_pass.AddPass(render_graph, ambient_data.hdr_rtv, gbuffer_data.depth_stencil_dsv, settings.sky_type);
+
+		auto light_entities = reg.view<Light>();
+		for (tecs::entity light_entity : light_entities)
+		{
+			auto const& light = light_entities.get(light_entity);
+			if (!light.active) continue;
+			if ((settings.use_tiled_deferred || settings.use_clustered_deferred) && !light.casts_shadows) continue;  //tiled/clustered deferred takes care of noncasting lights
+
+			lighting_pass.AddPass(render_graph, light, ambient_data.hdr_rtv,
+				ambient_data.gbuffer_normal_srv, ambient_data.gbuffer_albedo_srv, ambient_data.depth_stencil_srv);
+		}
+		
 
 		if (settings.gui_visible)
 		{
@@ -93,6 +108,7 @@ namespace adria
 			gbuffer_pass.OnResize(w, h);
 			ambient_pass.OnResize(w, h);
 			sky_pass.OnResize(w, h);
+			lighting_pass.OnResize(w, h);
 			tonemap_pass.OnResize(w, h);
 		}
 	}

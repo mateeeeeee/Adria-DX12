@@ -5,6 +5,7 @@
 #include "Passes/GBufferPass.h"
 #include "Passes/AmbientPass.h"
 #include "Passes/SkyPass.h"
+#include "Passes/LightingPass.h"
 #include "Passes/ToneMapPass.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../Graphics/ConstantBuffer.h"
@@ -89,10 +90,11 @@ namespace adria
 		std::array<DirectX::XMVECTOR, SSAO_KERNEL_SIZE> ssao_kernel{};
 
 		//passes
-		GBufferPass gbuffer_pass;
-		AmbientPass ambient_pass;
-		ToneMapPass tonemap_pass;
-		SkyPass		sky_pass;
+		GBufferPass  gbuffer_pass;
+		AmbientPass  ambient_pass;
+		ToneMapPass  tonemap_pass;
+		SkyPass		 sky_pass;
+		LightingPass lighting_pass;
 	private:
 		void CreateNullHeap();
 		void CreateSizeDependentResources();

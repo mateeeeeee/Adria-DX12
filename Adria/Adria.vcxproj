@@ -196,6 +196,7 @@
     <ClCompile Include="Rendering\EntityLoader.cpp" />
     <ClCompile Include="Rendering\Passes\AmbientPass.cpp" />
     <ClCompile Include="Rendering\Passes\GBufferPass.cpp" />
+    <ClCompile Include="Rendering\Passes\LightingPass.cpp" />
     <ClCompile Include="Rendering\Passes\SkyPass.cpp" />
     <ClCompile Include="Rendering\Passes\ToneMapPass.cpp" />
     <ClCompile Include="Rendering\RayTracer.cpp" />
@@ -293,6 +294,7 @@
     <ClInclude Include="Rendering\ParticleRenderer.h" />
     <ClInclude Include="Rendering\Passes\AmbientPass.h" />
     <ClInclude Include="Rendering\Passes\GBufferPass.h" />
+    <ClInclude Include="Rendering\Passes\LightingPass.h" />
     <ClInclude Include="Rendering\Passes\SkyPass.h" />
     <ClInclude Include="Rendering\Passes\ToneMapPass.h" />
     <ClInclude Include="Rendering\Picker.h" />

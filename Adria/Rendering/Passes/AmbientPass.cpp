@@ -26,7 +26,7 @@ namespace adria
 		RendererGlobalData const& global_data = rendergraph.GetBlackboard().GetChecked<RendererGlobalData>();
 
 		return rendergraph.AddPass<AmbientPassData>("Ambient Pass",
-			[&](AmbientPassData& data, RenderGraphBuilder& builder)
+			[=](AmbientPassData& data, RenderGraphBuilder& builder)
 			{
 				D3D12_CLEAR_VALUE rtv_clear_value{};
 				rtv_clear_value.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
