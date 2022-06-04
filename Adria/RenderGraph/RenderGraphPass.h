@@ -23,7 +23,7 @@ namespace adria
 		ForceNoCull = 0x01,			    //RGPass cannot be culled by Render Graph
 		AllowUAVWrites = 0x02,		    //allow uav writes, only makes sense if LegacyRenderPassEnabled is disabled
 		SkipAutoRenderPass = 0x04,		//RGPass will manage render targets by himself
-		LegacyRenderPassEnabled = 0x08  //don't use DX12 Render Passes, use OMSetRenderTargets
+		LegacyRenderPassEnabled = 0x08,  //don't use DX12 Render Passes, use OMSetRenderTargets
 	};
 	DEFINE_ENUM_BIT_OPERATORS(ERGPassFlags);
 

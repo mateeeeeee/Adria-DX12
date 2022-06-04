@@ -1,6 +1,7 @@
 #pragma once
 #include <stack>
 #include <array>
+#include <mutex>
 #include "RenderGraphBlackboard.h"
 #include "RenderGraphPass.h"
 #include "RenderGraphResources.h"
@@ -41,8 +42,11 @@ namespace adria
 	};
 	using RGBuilder = RenderGraphBuilder;
 
+
 	class RenderGraph
 	{
+		static constexpr bool Multithreaded = false;
+
 		friend class RenderGraphBuilder;
 		friend class RenderGraphResources;
 
@@ -55,6 +59,7 @@ namespace adria
 			void AddPass(RenderGraphPassBase* pass);
 			void Setup();
 			void Execute(GraphicsDevice* gfx, CommandList* cmd_list);
+			void Execute(GraphicsDevice* gfx, std::vector<CommandList*> const& cmd_lists);
 			size_t GetSize() const;
 			size_t GetNonCulledSize() const;
 
@@ -102,7 +107,6 @@ namespace adria
 
 		void Build();
 		void Execute();
-		void Execute_Multithreaded();
 
 		bool IsValidTextureHandle(RGTextureRef) const;
 		bool IsValidBufferHandle(RGBufferRef) const;
@@ -129,6 +133,11 @@ namespace adria
 		mutable std::unordered_map<RGTextureRTVRef, ResourceView> texture_rtv_cache;
 		mutable std::unordered_map<RGTextureDSVRef, ResourceView> texture_dsv_cache;
 
+		mutable std::mutex srv_cache_mutex;
+		mutable std::mutex uav_cache_mutex;
+		mutable std::mutex rtv_cache_mutex;
+		mutable std::mutex dsv_cache_mutex;
+		static constexpr size_t  i = sizeof(std::mutex);
 	private:
 		RGTexture* GetRGTexture(RGTextureRef handle) const;
 		RGBuffer* GetRGBuffer(RGBufferRef handle) const;
@@ -149,6 +158,9 @@ namespace adria
 		ResourceView GetUAV(RGTextureUAVRef handle) const;
 		ResourceView GetRTV(RGTextureRTVRef handle) const;
 		ResourceView GetDSV(RGTextureDSVRef handle) const;
+
+		void Execute_Singlethreaded();
+		void Execute_Multithreaded();
 	};
 
 }
