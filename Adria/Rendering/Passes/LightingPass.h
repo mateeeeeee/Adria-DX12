@@ -1,6 +1,8 @@
 #pragma once
+#include <optional>
 #include "../../Core/Definitions.h"
 #include "../../RenderGraph/RenderGraphResourceRef.h"
+#include "../../tecs/entity.h"
 
 namespace adria
 {
@@ -25,7 +27,7 @@ namespace adria
 			RGTextureRTVRef hdr_rtv,
 			RGTextureSRVRef gbuffer_normal_srv,
 			RGTextureSRVRef gbuffer_albedo_srv,
-			RGTextureSRVRef depth_stencil_srv);
+			RGTextureSRVRef depth_stencil_srv, std::optional<RGTextureSRVRef> shadow_map_srv = std::nullopt);
 
 		void OnResize(uint32 w, uint32 h)
 		{

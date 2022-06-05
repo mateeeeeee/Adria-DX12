@@ -124,7 +124,7 @@ namespace adria
 		std::vector<std::unique_ptr<RGBuffer>> buffers;
 
 		std::vector<std::vector<uint64>> adjacency_lists;
-		std::vector<RenderGraphPassBase*> topologically_sorted_passes;
+		std::vector<size_t> topologically_sorted_passes;
 		std::vector<DependencyLevel> dependency_levels;
 
 		mutable std::unordered_map<RGTextureRef, std::vector<TextureViewDesc>> view_desc_map;

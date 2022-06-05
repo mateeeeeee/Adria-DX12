@@ -55,8 +55,6 @@ namespace adria
 			},
 			[&](AmbientPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
-				PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Ambient Pass");
-
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 

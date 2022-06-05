@@ -195,7 +195,7 @@ namespace adria
 			return { V,P };
 		}
 
-		std::array<XMMATRIX, ShadowPass::CASCADE_COUNT> RecalculateProjectionMatrices(Camera const& camera, float32 split_lambda, std::array<float32, ShadowPass::CASCADE_COUNT>& split_distances)
+		std::array<XMMATRIX, ShadowPass::SHADOW_CASCADE_COUNT> RecalculateProjectionMatrices(Camera const& camera, float32 split_lambda, std::array<float32, ShadowPass::SHADOW_CASCADE_COUNT>& split_distances)
 		{
 
 			float32 camera_near = camera.Near();
@@ -203,7 +203,7 @@ namespace adria
 			float32 fov = camera.Fov();
 			float32 ar = camera.AspectRatio();
 
-			float32 f = 1.0f / ShadowPass::CASCADE_COUNT;
+			float32 f = 1.0f / ShadowPass::SHADOW_CASCADE_COUNT;
 
 			for (uint32 i = 0; i < split_distances.size(); i++)
 			{
@@ -213,7 +213,7 @@ namespace adria
 				split_distances[i] = l * split_lambda + u * (1.0f - split_lambda);
 			}
 
-			std::array<XMMATRIX, ShadowPass::CASCADE_COUNT> projectionMatrices{};
+			std::array<XMMATRIX, ShadowPass::SHADOW_CASCADE_COUNT> projectionMatrices{};
 			projectionMatrices[0] = DirectX::XMMatrixPerspectiveFovLH(fov, ar, camera_near, split_distances[0]);
 			for (uint32 i = 1; i < projectionMatrices.size(); ++i)
 				projectionMatrices[i] = DirectX::XMMatrixPerspectiveFovLH(fov, ar, split_distances[i - 1], split_distances[i]);
@@ -228,7 +228,7 @@ namespace adria
 			static float32 const farFactor = 1.5f;
 			static float32 const lightDistanceFactor = 1.0f;
 
-			std::array<XMMATRIX, ShadowPass::CASCADE_COUNT> lightViewProjectionMatrices{};
+			std::array<XMMATRIX, ShadowPass::SHADOW_CASCADE_COUNT> lightViewProjectionMatrices{};
 
 			BoundingFrustum frustum(projection_matrix);
 			frustum.Transform(frustum, XMMatrixInverse(nullptr, camera.View()));
@@ -304,7 +304,7 @@ namespace adria
 
 
 	ShadowPass::ShadowPass(tecs::registry& reg, TextureManager& texture_manager)
-		: reg(reg), texture_manager(texture_manager)
+		: reg(reg), texture_manager(texture_manager), camera(nullptr)
 	{
 		
 	}
@@ -317,6 +317,8 @@ namespace adria
 	ShadowPassData const& ShadowPass::AddPass(RenderGraph& rg, Light const& light)
 	{
 		ADRIA_ASSERT(light.casts_shadows);
+		const_cast<Light&>(light).use_cascades = false; //tmp
+		
 		switch (light.type)
 		{
 		case ELightType::Directional:
@@ -329,14 +331,14 @@ namespace adria
 		default:
 			ADRIA_ASSERT(false);
 		}
-		return ShadowPassData{};
+		return {};
 	}
 
 	ShadowPassData const& ShadowPass::ShadowMapPass_Directional(RenderGraph& rg, Light const& light, std::optional<DirectX::BoundingSphere> const& scene_bounding_sphere)
 	{
 		ADRIA_ASSERT(light.type == ELightType::Directional && light.use_cascades == false);
-
 		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
+
 		return rg.AddPass<ShadowPassData>("Shadow Map Directional Pass",
 			[=](ShadowPassData& data, RenderGraphBuilder& builder)
 			{
@@ -385,23 +387,24 @@ namespace adria
 				LightFrustumCulling(ELightType::Directional, light_box, std::nullopt);
 				ShadowMapPass_Common(gfx, cmd_list, shadow_allocation.gpu_address, false);
 
-				resources.GetBlackboard().Create<ShadowBlackboardData>(shadow_allocation.gpu_address);
+				ShadowBlackboardData& blackboard_data = resources.GetBlackboard().Create<ShadowBlackboardData>();;
+				blackboard_data.light_shadow_allocation = shadow_allocation.gpu_address;
 			});
 	}
 
 	ShadowPassData const& ShadowPass::ShadowMapPass_DirectionalCascades(RenderGraph& rg, Light const& light)
 	{
-		return ShadowPassData{};
+		return {};
 	}
 
 	ShadowPassData const& ShadowPass::ShadowMapPass_Point(RenderGraph& rg, Light const& light)
 	{
-		return ShadowPassData{};
+		return {};
 	}
 
 	ShadowPassData const& ShadowPass::ShadowMapPass_Spot(RenderGraph& rg, Light const& light)
 	{
-		return ShadowPassData{};
+		return {};
 	}
 
 	void ShadowPass::ShadowMapPass_Common(GraphicsDevice* gfx, ID3D12GraphicsCommandList* cmd_list,

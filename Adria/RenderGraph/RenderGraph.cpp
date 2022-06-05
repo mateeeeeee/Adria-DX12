@@ -340,19 +340,19 @@ namespace adria
 		adjacency_lists.resize(passes.size());
 		for (size_t i = 0; i < passes.size(); ++i)
 		{
-			auto& node = passes[i];
-			std::vector<uint64>& adjacent_nodes_indices = adjacency_lists[i];
+			auto& pass = passes[i];
+			std::vector<uint64>& pass_adjacency_list = adjacency_lists[i];
 			for (size_t j = passes.size(); j-- != 0;)
 			{
 				if (i == j) continue;
 
-				auto& other_node = passes[j];
-				for (auto const& other_node_reads : other_node->reads)
+				auto& other_pass = passes[j];
+				for (auto const& other_node_read : other_pass->reads)
 				{
-					bool depends = node->writes.find(other_node_reads) != node->writes.end();
+					bool depends = pass->writes.find(other_node_read) != pass->writes.end();
 					if (depends)
 					{
-						adjacent_nodes_indices.push_back(j);
+						pass_adjacency_list.push_back(j);
 						break;
 					}
 				}
@@ -372,7 +372,7 @@ namespace adria
 		while (!stack.empty())
 		{
 			size_t i = stack.top();
-			topologically_sorted_passes.push_back(passes[i].get());
+			topologically_sorted_passes.push_back(i);
 			stack.pop();
 		}
 	}
@@ -382,18 +382,18 @@ namespace adria
 		std::vector<size_t> distances(topologically_sorted_passes.size(), 0);
 		for (size_t u = 0; u < topologically_sorted_passes.size(); ++u)
 		{
-			auto topologically_sorted_pass = topologically_sorted_passes[u];
-			for (auto v : adjacency_lists[u])
+			size_t i = topologically_sorted_passes[u];
+			for (auto v : adjacency_lists[i])
 			{
 				if (distances[v] < distances[u] + 1) distances[v] = distances[u] + 1;
 			}
 		}
 
 		dependency_levels.resize(*std::max_element(std::begin(distances), std::end(distances)) + 1, DependencyLevel(*this));
-		for (size_t i = 0; i < topologically_sorted_passes.size(); ++i)
+		for (size_t i = 0; i < passes.size(); ++i)
 		{
 			size_t level = distances[i];
-			dependency_levels[level].AddPass(topologically_sorted_passes[i]);
+			dependency_levels[level].AddPass(passes[i].get());
 		}
 	}
 

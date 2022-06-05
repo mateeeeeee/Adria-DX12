@@ -20,7 +20,7 @@ namespace adria
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count), postprocess_cbuffer(gfx->GetDevice(), backbuffer_count),
 		weather_cbuffer(gfx->GetDevice(), backbuffer_count), compute_cbuffer(gfx->GetDevice(), backbuffer_count),
 		gbuffer_pass(reg, gpu_profiler, width, height), ambient_pass(width, height), sky_pass(reg, texture_manager, width, height),
-		lighting_pass(width, height), tonemap_pass(width, height)
+		shadow_pass(reg, texture_manager), lighting_pass(width, height), tonemap_pass(width, height)
 	{
 		RootSigPSOManager::Initialize(gfx->GetDevice());
 		CreateNullHeap();
@@ -38,6 +38,7 @@ namespace adria
 		ADRIA_ASSERT(_camera);
 		camera = _camera;
 		backbuffer_index = gfx->BackbufferIndex();
+		shadow_pass.SetCamera(camera);
 	}
 	void RenderGraphRenderer::Update(float32 dt)
 	{
@@ -66,10 +67,10 @@ namespace adria
 		}
 		rg_blackboard.Add<GlobalBlackboardData>(std::move(global_data));
 
+
 		GBufferPassData gbuffer_data = gbuffer_pass.AddPass(render_graph, profiler_settings.profile_gbuffer_pass);
 		AmbientPassData ambient_data = ambient_pass.AddPass(render_graph, gbuffer_data.gbuffer_normal, gbuffer_data.gbuffer_albedo,
 			gbuffer_data.gbuffer_emissive, gbuffer_data.depth_stencil);
-		SkyPassData sky_data = sky_pass.AddPass(render_graph, ambient_data.hdr_rtv, gbuffer_data.depth_stencil_dsv, settings.sky_type);
 
 		auto light_entities = reg.view<Light>();
 		for (tecs::entity light_entity : light_entities)
@@ -77,19 +78,20 @@ namespace adria
 			auto const& light = light_entities.get(light_entity);
 			if (!light.active) continue;
 			if ((settings.use_tiled_deferred || settings.use_clustered_deferred) && !light.casts_shadows) continue;  //tiled/clustered deferred takes care of noncasting lights
-
 			if (light.casts_shadows)
 			{
-				
+				ShadowPassData const& shadow_data = shadow_pass.AddPass(render_graph, light);
+				lighting_pass.AddPass(render_graph, light, ambient_data.hdr_rtv,
+					ambient_data.gbuffer_normal_srv, ambient_data.gbuffer_albedo_srv, ambient_data.depth_stencil_srv, shadow_data.depth_map_srv);
 			}
 			else
 			{
 				lighting_pass.AddPass(render_graph, light, ambient_data.hdr_rtv,
 					ambient_data.gbuffer_normal_srv, ambient_data.gbuffer_albedo_srv, ambient_data.depth_stencil_srv);
 			}
-			
 		}
-		
+
+		SkyPassData sky_data = sky_pass.AddPass(render_graph, ambient_data.hdr_rtv, gbuffer_data.depth_stencil_dsv, settings.sky_type);
 
 		if (settings.gui_visible)
 		{

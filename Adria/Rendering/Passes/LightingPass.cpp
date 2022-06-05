@@ -1,4 +1,5 @@
 #include "LightingPass.h"
+#include "ShadowPass.h"
 #include "../ConstantBuffers.h"
 #include "../Components.h"
 #include "../GlobalBlackboardData.h"
@@ -15,7 +16,7 @@ namespace adria
 		RGTextureRTVRef hdr_rtv,
 		RGTextureSRVRef gbuffer_normal_srv,
 		RGTextureSRVRef gbuffer_albedo_srv,
-		RGTextureSRVRef depth_stencil_srv)
+		RGTextureSRVRef depth_stencil_srv, std::optional<RGTextureSRVRef> shadow_map_srv)
 	{
 		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
 
@@ -26,6 +27,7 @@ namespace adria
 				builder.Read(gbuffer_normal_srv.GetTypedResourceHandle());
 				builder.Read(gbuffer_albedo_srv.GetTypedResourceHandle());
 				builder.Read(depth_stencil_srv.GetTypedResourceHandle());
+				if(shadow_map_srv) builder.Read(shadow_map_srv->GetTypedResourceHandle());
 				builder.SetViewport(width, height);
 			},
 			[=](LightingPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
@@ -64,9 +66,10 @@ namespace adria
 					RootSigPSOManager::GetPipelineState(EPipelineStateObject::LightingPBR_RayTracedShadows) :
 					RootSigPSOManager::GetPipelineState(EPipelineStateObject::LightingPBR));
 
+				ShadowBlackboardData const& shadow_blackboard_data = resources.GetBlackboard().GetChecked<ShadowBlackboardData>();
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetGraphicsRootConstantBufferView(1, light_allocation.gpu_address);
-				//cmd_list->SetGraphicsRootConstantBufferView(2, shadow_allocation.gpu_address);
+				cmd_list->SetGraphicsRootConstantBufferView(2, shadow_blackboard_data.light_shadow_allocation);
 
 				//t0,t1,t2 - gbuffer and depth
 				{
@@ -82,30 +85,35 @@ namespace adria
 					cmd_list->SetGraphicsRootDescriptorTable(3, dst_descriptor);
 				}
 
-				//t4,t5,t6 - shadow maps
-				/* {
-					D3D12_CPU_DESCRIPTOR_HANDLE shadow_cpu_handles[] = { null_heap->GetHandle(TEXTURE2D_SLOT),
-						null_heap->GetHandle(TEXTURECUBE_SLOT), null_heap->GetHandle(TEXTURE2DARRAY_SLOT),
-						null_heap->GetHandle(TEXTURE2D_SLOT) };
+				GlobalBlackboardData const& global_blackboard_data = resources.GetBlackboard().GetChecked<GlobalBlackboardData>();
+				{
+					D3D12_CPU_DESCRIPTOR_HANDLE shadow_cpu_handles[] = 
+					{ 
+						global_blackboard_data.null_srv_texture2d,
+						global_blackboard_data.null_srv_texturecube,
+						global_blackboard_data.null_srv_texture2darray,
+						global_blackboard_data.null_srv_texture2d };
 					uint32 src_range_sizes[] = { 1,1,1,1 };
 
 					if (light_data.ray_traced_shadows)
 					{
-						shadow_cpu_handles[3] = ray_tracer.GetRayTracingShadowsTexture().SRV();
+						//shadow_cpu_handles[3] = ray_tracer.GetRayTracingShadowsTexture().SRV();
 					}
 					else if (light_data.casts_shadows)
 					{
+						ADRIA_ASSERT(shadow_map_srv.has_value());
+						ResourceView shadow_map = resources.GetSRV(shadow_map_srv.value());
 						switch (light_data.type)
 						{
 						case ELightType::Directional:
-							if (light_data.use_cascades) shadow_cpu_handles[2] = shadow_depth_cascades->SRV();
-							else shadow_cpu_handles[0] = shadow_depth_map->SRV();
+							if (light_data.use_cascades) shadow_cpu_handles[2] = shadow_map;
+							else shadow_cpu_handles[0] = shadow_map;
 							break;
 						case ELightType::Spot:
-							shadow_cpu_handles[0] = shadow_depth_map->SRV();
+							shadow_cpu_handles[0] = shadow_map;
 							break;
 						case ELightType::Point:
-							shadow_cpu_handles[1] = shadow_depth_cubemap->SRV();
+							shadow_cpu_handles[1] = shadow_map;
 							break;
 						default:
 							ADRIA_ASSERT(false);
@@ -119,7 +127,7 @@ namespace adria
 						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 					cmd_list->SetGraphicsRootDescriptorTable(4, dst_descriptor);
-				} */
+				}
 
 				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 				cmd_list->DrawInstanced(4, 1, 0, 0);

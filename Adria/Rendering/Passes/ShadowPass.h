@@ -1,8 +1,10 @@
 #pragma once
 #include <optional>
+#include <map>
 #include <DirectXCollision.h>
 #include "../../Core/Definitions.h"
 #include "../../RenderGraph/RenderGraphResourceRef.h"
+#include "../../tecs/entity.h"
 
 namespace adria
 {
@@ -24,27 +26,28 @@ namespace adria
 
 	struct ShadowBlackboardData
 	{
-		D3D12_GPU_VIRTUAL_ADDRESS shadow_allocation;
+		D3D12_GPU_VIRTUAL_ADDRESS light_shadow_allocation;
 	};
 
 	class ShadowPass
 	{
 	public:
-
 		static constexpr uint32 SHADOW_MAP_SIZE = 2048;
 		static constexpr uint32 SHADOW_CUBE_SIZE = 512;
 		static constexpr uint32 SHADOW_CASCADE_MAP_SIZE = 1024;
-		static constexpr uint32 CASCADE_COUNT = 3;
+		static constexpr uint32 SHADOW_CASCADE_COUNT = 3;
+
 	public:
 		ShadowPass(tecs::registry& reg, TextureManager& texture_manager);
 		void SetCamera(Camera const* camera);
 		ShadowPassData const& AddPass(RenderGraph& rg, Light const& light);
+
 	private:
 		tecs::registry& reg;
 		TextureManager& texture_manager;
 		Camera const* camera;
+
 	private:
-		
 		ShadowPassData const& ShadowMapPass_Directional(RenderGraph& rg, Light const& light, std::optional<DirectX::BoundingSphere> const& scene_bounding_sphere = std::nullopt);
 		ShadowPassData const& ShadowMapPass_DirectionalCascades(RenderGraph& rg, Light const& light);
 		ShadowPassData const& ShadowMapPass_Point(RenderGraph& rg, Light const& light);

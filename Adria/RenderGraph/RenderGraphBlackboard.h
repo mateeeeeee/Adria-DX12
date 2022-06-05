@@ -27,15 +27,9 @@ namespace adria
 		{
 			ADRIA_ASSERT(board_data.find(typeid(T)) == board_data.end() && "Cannot create same type more than once in blackboard!");
 			board_data[typeid(T)] = std::make_unique<uint8[]>(sizeof(T));
-			T& data_entry = *reinterpret_cast<T*>(board_data[typeid(T)].get());
-			data_entry = T{ std::forward<Args>(args)... };
-			return data_entry;
-		}
-
-		template<typename T>
-		[[maybe_unused]] bool Remove()
-		{
-			return board_data.erase(typeid(T)) != 0;
+			T* data_entry = reinterpret_cast<T*>(board_data[typeid(T)].get());
+			*data_entry = T{ std::forward<Args>(args)... };
+			return *data_entry;
 		}
 
 		template<typename T>
