@@ -6,8 +6,10 @@
 #include "Passes/AmbientPass.h"
 #include "Passes/SkyPass.h"
 #include "Passes/LightingPass.h"
+#include "Passes/TiledLightingPass.h"
 #include "Passes/ShadowPass.h"
 #include "Passes/ToneMapPass.h"
+#include "Passes/CopyToTexturePass.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/TextureManager.h"
@@ -96,6 +98,8 @@ namespace adria
 		ToneMapPass  tonemap_pass;
 		SkyPass		 sky_pass;
 		LightingPass lighting_pass;
+		TiledLightingPass tiled_lighting_pass;
+		CopyToTexturePass copy_to_texture_pass;
 		ShadowPass   shadow_pass;
 	private:
 		void CreateNullHeap();

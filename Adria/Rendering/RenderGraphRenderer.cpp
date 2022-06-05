@@ -20,7 +20,8 @@ namespace adria
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count), postprocess_cbuffer(gfx->GetDevice(), backbuffer_count),
 		weather_cbuffer(gfx->GetDevice(), backbuffer_count), compute_cbuffer(gfx->GetDevice(), backbuffer_count),
 		gbuffer_pass(reg, gpu_profiler, width, height), ambient_pass(width, height), sky_pass(reg, texture_manager, width, height),
-		shadow_pass(reg, texture_manager), lighting_pass(width, height), tonemap_pass(width, height)
+		shadow_pass(reg, texture_manager), lighting_pass(width, height), tonemap_pass(width, height),
+		tiled_lighting_pass(reg, width, height), copy_to_texture_pass(width, height)
 	{
 		RootSigPSOManager::Initialize(gfx->GetDevice());
 		CreateNullHeap();
@@ -59,6 +60,7 @@ namespace adria
 			global_data.camera_viewproj = camera->ViewProj();
 			global_data.frame_cbuffer_address = frame_cbuffer.BufferLocation(backbuffer_index);
 			global_data.postprocess_cbuffer_address = postprocess_cbuffer.BufferLocation(backbuffer_index);
+			global_data.compute_cbuffer_address = compute_cbuffer.BufferLocation(backbuffer_index);
 			global_data.weather_cbuffer_address = weather_cbuffer.BufferLocation(backbuffer_index);
 			global_data.null_srv_texture2d = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURE2D);
 			global_data.null_uav_texture2d = null_heap->GetHandle(NULL_HEAP_SLOT_RWTEXTURE2D);
@@ -66,7 +68,6 @@ namespace adria
 			global_data.null_srv_texturecube = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURECUBE);
 		}
 		rg_blackboard.Add<GlobalBlackboardData>(std::move(global_data));
-
 
 		GBufferPassData gbuffer_data = gbuffer_pass.AddPass(render_graph, profiler_settings.profile_gbuffer_pass);
 		AmbientPassData ambient_data = ambient_pass.AddPass(render_graph, gbuffer_data.gbuffer_normal, gbuffer_data.gbuffer_albedo,
@@ -89,6 +90,24 @@ namespace adria
 				lighting_pass.AddPass(render_graph, light, ambient_data.hdr_rtv,
 					ambient_data.gbuffer_normal_srv, ambient_data.gbuffer_albedo_srv, ambient_data.depth_stencil_srv);
 			}
+		}
+		if (settings.use_tiled_deferred)
+		{
+			if (settings.visualize_tiled) 
+			{
+				//AddTextures(cmd_list, *uav_target, *debug_tiled_texture, EBlendMode::AlphaBlend);
+			}
+			else
+			{
+				TiledLightingPassData tiled_data = tiled_lighting_pass.AddPass(render_graph,
+					ambient_data.gbuffer_normal_srv, ambient_data.gbuffer_albedo_srv, ambient_data.depth_stencil_srv);
+				CopyToTexturePassData copy_data = copy_to_texture_pass.AddPass(render_graph,
+					ambient_data.hdr_rtv, tiled_data.tiled_srv, EBlendMode::AdditiveBlend);
+			}
+		}
+		else if (settings.use_clustered_deferred)
+		{
+			//todo
 		}
 
 		SkyPassData sky_data = sky_pass.AddPass(render_graph, ambient_data.hdr_rtv, gbuffer_data.depth_stencil_dsv, settings.sky_type);
@@ -285,6 +304,41 @@ namespace adria
 			weather_cbuf_data.Z = sky_params[ESkyParam_Z];
 
 			weather_cbuffer.Update(weather_cbuf_data, backbuffer_index);
+		}
+
+		//compute 
+		{
+			std::array<float32, 9> coeffs{};
+			coeffs.fill(1.0f / 9);
+			ComputeCBuffer compute_cbuf_data{};
+			compute_cbuf_data.gauss_coeff1 = coeffs[0];
+			compute_cbuf_data.gauss_coeff2 = coeffs[1];
+			compute_cbuf_data.gauss_coeff3 = coeffs[2];
+			compute_cbuf_data.gauss_coeff4 = coeffs[3];
+			compute_cbuf_data.gauss_coeff5 = coeffs[4];
+			compute_cbuf_data.gauss_coeff6 = coeffs[5];
+			compute_cbuf_data.gauss_coeff7 = coeffs[6];
+			compute_cbuf_data.gauss_coeff8 = coeffs[7];
+			compute_cbuf_data.gauss_coeff9 = coeffs[8];
+			compute_cbuf_data.bloom_scale = settings.bloom_scale;
+			compute_cbuf_data.threshold = settings.bloom_threshold;
+			compute_cbuf_data.visualize_tiled = settings.visualize_tiled;
+			compute_cbuf_data.visualize_max_lights = settings.visualize_max_lights;
+			compute_cbuf_data.bokeh_blur_threshold = settings.bokeh_blur_threshold;
+			compute_cbuf_data.bokeh_lum_threshold = settings.bokeh_lum_threshold;
+			compute_cbuf_data.dof_params = XMVectorSet(settings.dof_near_blur, settings.dof_near, settings.dof_far, settings.dof_far_blur);
+			compute_cbuf_data.bokeh_radius_scale = settings.bokeh_radius_scale;
+			compute_cbuf_data.bokeh_color_scale = settings.bokeh_color_scale;
+			compute_cbuf_data.bokeh_fallout = settings.bokeh_fallout;
+
+			compute_cbuf_data.ocean_choppiness = settings.ocean_choppiness;
+			compute_cbuf_data.ocean_size = 512;
+			compute_cbuf_data.resolution = 512; //fft resolution
+			compute_cbuf_data.wind_direction_x = settings.wind_direction[0];
+			compute_cbuf_data.wind_direction_y = settings.wind_direction[1];
+			compute_cbuf_data.delta_time = dt;
+
+			compute_cbuffer.Update(compute_cbuf_data, backbuffer_index);
 		}
 	}
 	void RenderGraphRenderer::CameraFrustumCulling()

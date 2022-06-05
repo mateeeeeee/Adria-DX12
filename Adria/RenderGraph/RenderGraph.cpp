@@ -503,8 +503,7 @@ namespace adria
 
 	ResourceView RenderGraph::GetSRV(RGTextureSRVRef handle) const
 	{
-		std::scoped_lock lock(srv_cache_mutex);
-
+		//std::scoped_lock lock(srv_cache_mutex);
 		if (auto it = texture_srv_cache.find(handle); it != texture_srv_cache.end())
 		{
 			return it->second;
@@ -524,7 +523,7 @@ namespace adria
 
 	ResourceView RenderGraph::GetUAV(RGTextureUAVRef handle) const
 	{
-		std::scoped_lock lock(uav_cache_mutex);
+		//std::scoped_lock lock(uav_cache_mutex);
 		if (auto it = texture_uav_cache.find(handle); it != texture_uav_cache.end())
 		{
 			return it->second;
@@ -544,7 +543,7 @@ namespace adria
 
 	ResourceView RenderGraph::GetRTV(RGTextureRTVRef handle) const
 	{
-		std::scoped_lock lock(rtv_cache_mutex);
+		//std::scoped_lock lock(rtv_cache_mutex);
 		if (auto it = texture_rtv_cache.find(handle); it != texture_rtv_cache.end())
 		{
 			return it->second;
@@ -564,7 +563,7 @@ namespace adria
 
 	ResourceView RenderGraph::GetDSV(RGTextureDSVRef handle) const
 	{
-		std::scoped_lock lock(dsv_cache_mutex);
+		//std::scoped_lock lock(dsv_cache_mutex);
 		if (auto it = texture_dsv_cache.find(handle); it != texture_dsv_cache.end())
 		{
 			return it->second;

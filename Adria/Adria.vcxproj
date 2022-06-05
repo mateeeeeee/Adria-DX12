@@ -195,10 +195,12 @@
     <ClCompile Include="Rendering\CameraManager.cpp" />
     <ClCompile Include="Rendering\EntityLoader.cpp" />
     <ClCompile Include="Rendering\Passes\AmbientPass.cpp" />
+    <ClCompile Include="Rendering\Passes\CopyToTexturePass.cpp" />
     <ClCompile Include="Rendering\Passes\GBufferPass.cpp" />
     <ClCompile Include="Rendering\Passes\LightingPass.cpp" />
     <ClCompile Include="Rendering\Passes\ShadowPass.cpp" />
     <ClCompile Include="Rendering\Passes\SkyPass.cpp" />
+    <ClCompile Include="Rendering\Passes\TiledLightingPass.cpp" />
     <ClCompile Include="Rendering\Passes\ToneMapPass.cpp" />
     <ClCompile Include="Rendering\RayTracer.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
@@ -294,10 +296,12 @@
     <ClInclude Include="Rendering\EntityLoader.h" />
     <ClInclude Include="Rendering\ParticleRenderer.h" />
     <ClInclude Include="Rendering\Passes\AmbientPass.h" />
+    <ClInclude Include="Rendering\Passes\CopyToTexturePass.h" />
     <ClInclude Include="Rendering\Passes\GBufferPass.h" />
     <ClInclude Include="Rendering\Passes\LightingPass.h" />
     <ClInclude Include="Rendering\Passes\ShadowPass.h" />
     <ClInclude Include="Rendering\Passes\SkyPass.h" />
+    <ClInclude Include="Rendering\Passes\TiledLightingPass.h" />
     <ClInclude Include="Rendering\Passes\ToneMapPass.h" />
     <ClInclude Include="Rendering\Picker.h" />
     <ClInclude Include="Rendering\RayTracer.h" />
