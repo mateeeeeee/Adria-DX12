@@ -91,6 +91,7 @@ namespace adria
 					ambient_data.gbuffer_normal_srv, ambient_data.gbuffer_albedo_srv, ambient_data.depth_stencil_srv);
 			}
 		}
+
 		if (settings.use_tiled_deferred)
 		{
 			if (settings.visualize_tiled) 
@@ -107,7 +108,7 @@ namespace adria
 		}
 		else if (settings.use_clustered_deferred)
 		{
-			//todo
+			
 		}
 
 		SkyPassData sky_data = sky_pass.AddPass(render_graph, ambient_data.hdr_rtv, gbuffer_data.depth_stencil_dsv, settings.sky_type);
@@ -138,6 +139,8 @@ namespace adria
 			ambient_pass.OnResize(w, h);
 			sky_pass.OnResize(w, h);
 			lighting_pass.OnResize(w, h);
+			tiled_lighting_pass.OnResize(w, h);
+			copy_to_texture_pass.OnResize(w, h);
 			tonemap_pass.OnResize(w, h);
 		}
 	}

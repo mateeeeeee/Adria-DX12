@@ -20,14 +20,9 @@ namespace adria
 	{
 		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
 
-		return rendergraph.AddPass<TiledLightingPassData>("Lighting Pass",
+		return rendergraph.AddPass<TiledLightingPassData>("Tiled Lighting Pass",
 			[=](TiledLightingPassData& data, RenderGraphBuilder& builder)
 			{
-				builder.Read(gbuffer_normal_srv.GetTypedResourceHandle(), ReadAccess_NonPixelShader);
-				builder.Read(gbuffer_albedo_srv.GetTypedResourceHandle(), ReadAccess_NonPixelShader);
-				builder.Read(depth_stencil_srv.GetTypedResourceHandle(),  ReadAccess_NonPixelShader);
-				builder.SetViewport(width, height);
-
 				TextureDesc tiled_desc{};
 				tiled_desc.width = width;
 				tiled_desc.height = height;
@@ -49,6 +44,14 @@ namespace adria
 				RGTextureRef tiled_debug_target = builder.CreateTexture("Tiled UAV target", tiled_debug_desc);
 				data.tiled_debug_uav = builder.CreateUAV(tiled_debug_target);
 				data.tiled_debug_srv = builder.CreateSRV(tiled_debug_target);
+
+				builder.Read(gbuffer_normal_srv.GetResourceHandle(), ReadAccess_NonPixelShader);
+				builder.Read(gbuffer_albedo_srv.GetResourceHandle(), ReadAccess_NonPixelShader);
+				builder.Read(depth_stencil_srv.GetResourceHandle(), ReadAccess_NonPixelShader);
+				builder.SetViewport(width, height);
+
+				builder.Write(tiled_target, WriteAccess_Unordered);
+				builder.Write(tiled_debug_target, WriteAccess_Unordered);
 			},
 			[=](TiledLightingPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
@@ -135,10 +138,10 @@ namespace adria
 
 				float32 black[4] = { 0.0f,0.0f,0.0f,0.0f };
 
-				Texture& tiled_target = resources.GetTexture(data.tiled_uav.GetTypedResourceHandle());
+				Texture& tiled_target = resources.GetTexture(data.tiled_uav.GetResourceHandle());
 				cmd_list->ClearUnorderedAccessViewFloat(uav_target_for_clear, resources.GetUAV(data.tiled_uav), tiled_target.GetNative(),
 					black, 0, nullptr);
-				Texture& tiled_debug_target = resources.GetTexture(data.tiled_debug_uav.GetTypedResourceHandle());
+				Texture& tiled_debug_target = resources.GetTexture(data.tiled_debug_uav.GetResourceHandle());
 				cmd_list->ClearUnorderedAccessViewFloat(uav_debug_for_clear, resources.GetUAV(data.tiled_debug_uav), tiled_debug_target.GetNative(),
 					black, 0, nullptr);
 				cmd_list->Dispatch((uint32)std::ceil(width * 1.0f / 16), (uint32)(height * 1.0f / 16), 1);

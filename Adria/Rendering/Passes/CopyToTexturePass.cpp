@@ -9,10 +9,10 @@ namespace adria
 	CopyToTexturePassData const& CopyToTexturePass::AddPass(RenderGraph& rendergraph, RGTextureRTVRef render_target,
 		RGTextureSRVRef texture_srv, EBlendMode mode)
 	{
-		return rendergraph.AddPass<CopyToTexturePassData>("Lighting Pass",
+		return rendergraph.AddPass<CopyToTexturePassData>("CopyToTexture Pass",
 			[=](CopyToTexturePassData& data, RenderGraphBuilder& builder)
 		{
-			builder.Read(texture_srv.GetTypedResourceHandle(), ReadAccess_PixelShader);
+			builder.Read(texture_srv.GetResourceHandle(), ReadAccess_PixelShader);
 			data.render_target = render_target;
 			data.texture_srv = texture_srv;
 			builder.RenderTarget(data.render_target, ERGLoadStoreAccessOp::Preserve_Preserve);

@@ -80,7 +80,7 @@ namespace adria
 
 	RGTextureRef RenderGraphBuilder::RenderTarget(RGTextureRTVRef rtv_handle, ERGLoadStoreAccessOp load_store_op)
 	{
-		RGTextureRef handle = rtv_handle.GetTypedResourceHandle();
+		RGTextureRef handle = rtv_handle.GetResourceHandle();
 		rg_pass.resource_state_map[handle] |= D3D12_RESOURCE_STATE_RENDER_TARGET;
 		rg_pass.render_targets_info.push_back(RenderGraphPassBase::RenderTargetInfo{ .render_target_handle = rtv_handle, .render_target_access = load_store_op });
 		auto* rg_texture = rg.GetRGTexture(handle);
@@ -96,7 +96,7 @@ namespace adria
 
 	RGTextureRef RenderGraphBuilder::DepthStencil(RGTextureDSVRef dsv_handle, ERGLoadStoreAccessOp depth_load_store_op, bool readonly /*= false*/, ERGLoadStoreAccessOp stencil_load_store_op /*= ERGLoadStoreAccessOp::NoAccess_NoAccess*/)
 	{
-		RGTextureRef handle = dsv_handle.GetTypedResourceHandle();
+		RGTextureRef handle = dsv_handle.GetResourceHandle();
 		rg_pass.depth_stencil = RenderGraphPassBase::DepthStencilInfo{ .depth_stencil_handle = dsv_handle, .depth_access = depth_load_store_op,.stencil_access = stencil_load_store_op, .readonly = readonly };
 		auto* rg_texture = rg.GetRGTexture(handle);
 
@@ -510,7 +510,7 @@ namespace adria
 		}
 		else
 		{
-			RGTextureRef tex_handle = handle.GetTypedResourceHandle();
+			RGTextureRef tex_handle = handle.GetResourceHandle();
 			std::vector<TextureViewDesc>& view_descs = view_desc_map[tex_handle];
 			TextureViewDesc const& view_desc = view_descs[handle.GetViewId()];
 
@@ -530,7 +530,7 @@ namespace adria
 		}
 		else
 		{
-			RGTextureRef tex_handle = handle.GetTypedResourceHandle();
+			RGTextureRef tex_handle = handle.GetResourceHandle();
 			std::vector<TextureViewDesc>& view_descs = view_desc_map[tex_handle];
 			TextureViewDesc const& view_desc = view_descs[handle.GetViewId()];
 
@@ -550,7 +550,7 @@ namespace adria
 		}
 		else
 		{
-			RGTextureRef tex_handle = handle.GetTypedResourceHandle();
+			RGTextureRef tex_handle = handle.GetResourceHandle();
 			std::vector<TextureViewDesc>& view_descs = view_desc_map[tex_handle];
 			TextureViewDesc const& view_desc = view_descs[handle.GetViewId()];
 
@@ -570,7 +570,7 @@ namespace adria
 		}
 		else
 		{
-			RGTextureRef tex_handle = handle.GetTypedResourceHandle();
+			RGTextureRef tex_handle = handle.GetResourceHandle();
 			std::vector<TextureViewDesc>& view_descs = view_desc_map[tex_handle];
 			TextureViewDesc const& view_desc = view_descs[handle.GetViewId()];
 
@@ -616,7 +616,7 @@ namespace adria
 
 				for (auto const& render_target_info : pass->render_targets_info)
 				{
-					RGTextureRef rt_texture = render_target_info.render_target_handle.GetTypedResourceHandle();
+					RGTextureRef rt_texture = render_target_info.render_target_handle.GetResourceHandle();
 					Texture* texture = rg.GetTexture(rt_texture);
 
 					RtvAttachmentDesc rtv_desc{};
@@ -670,7 +670,7 @@ namespace adria
 				if (pass->depth_stencil.has_value())
 				{
 					auto depth_stencil_info = pass->depth_stencil.value();
-					RGTextureRef ds_texture = depth_stencil_info.depth_stencil_handle.GetTypedResourceHandle();
+					RGTextureRef ds_texture = depth_stencil_info.depth_stencil_handle.GetResourceHandle();
 					Texture* texture = rg.GetTexture(ds_texture);
 
 					DsvAttachmentDesc dsv_desc{};
@@ -756,7 +756,7 @@ namespace adria
 
 						for (auto const& render_target_info : pass->render_targets_info)
 						{
-							RGTextureRef rt_texture = render_target_info.render_target_handle.GetTypedResourceHandle();
+							RGTextureRef rt_texture = render_target_info.render_target_handle.GetResourceHandle();
 							Texture* texture = rg.GetTexture(rt_texture);
 
 							RtvAttachmentDesc rtv_desc{};
@@ -810,7 +810,7 @@ namespace adria
 						if (pass->depth_stencil.has_value())
 						{
 							auto depth_stencil_info = pass->depth_stencil.value();
-							RGTextureRef ds_texture = depth_stencil_info.depth_stencil_handle.GetTypedResourceHandle();
+							RGTextureRef ds_texture = depth_stencil_info.depth_stencil_handle.GetResourceHandle();
 							Texture* texture = rg.GetTexture(ds_texture);
 
 							DsvAttachmentDesc dsv_desc{};

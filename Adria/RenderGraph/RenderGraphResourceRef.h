@@ -72,7 +72,7 @@ namespace adria
 	{
 		using RenderGraphResourceViewRef::RenderGraphResourceViewRef;
 
-		auto GetTypedResourceHandle() const
+		auto GetResourceHandle() const
 		{
 			if constexpr (ResourceType == ERGResourceType::Buffer) return RGBufferRef(GetResourceId());
 			else if constexpr (ResourceType == ERGResourceType::Texture) return RGTextureRef(GetResourceId());

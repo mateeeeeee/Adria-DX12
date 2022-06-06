@@ -26,10 +26,10 @@ namespace adria
 			[=](LightingPassData& data, RenderGraphBuilder& builder)
 			{
 				builder.RenderTarget(hdr_rtv, ERGLoadStoreAccessOp::Preserve_Preserve);
-				builder.Read(gbuffer_normal_srv.GetTypedResourceHandle());
-				builder.Read(gbuffer_albedo_srv.GetTypedResourceHandle());
-				builder.Read(depth_stencil_srv.GetTypedResourceHandle());
-				if(shadow_map_srv) builder.Read(shadow_map_srv->GetTypedResourceHandle());
+				builder.Read(gbuffer_normal_srv.GetResourceHandle());
+				builder.Read(gbuffer_albedo_srv.GetResourceHandle());
+				builder.Read(depth_stencil_srv.GetResourceHandle());
+				if(shadow_map_srv) builder.Read(shadow_map_srv->GetResourceHandle());
 				builder.SetViewport(width, height);
 			},
 			[=](LightingPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
