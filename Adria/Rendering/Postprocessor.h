@@ -1,6 +1,8 @@
 #pragma once
 #include "Enums.h"
 #include "RendererSettings.h"
+#include "Passes/BlurPass.h"
+#include "Passes/CopyToTexturePass.h"
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceRef.h"
 
@@ -22,12 +24,12 @@ namespace adria
 		{
 			RGTextureRef src_texture;
 			RGTextureRef dst_texture;
+			RGTextureRTVRef dst_rtv;
 		};
 
 		struct VolumetricCloudsPassData
 		{
-			RGTextureRef input;
-			RGTextureRef output;
+			RGTextureSRVRef output_srv;
 		};
 
 	public:
@@ -42,8 +44,11 @@ namespace adria
 		TextureManager& texture_manager;
 		uint32 width, height;
 		std::vector<size_t> cloud_textures;
+
+		BlurPass blur_pass;
+		CopyToTexturePass copy_to_texture_pass;
 	private:
 		CopyHDRPassData const& AddCopyHDRPass(RenderGraph& rg, RGTextureRef hdr_texture);
-		VolumetricCloudsPassData const& AddVolumetricCloudsPass(RenderGraph& rg, RGTextureRef input, RGTextureSRVRef depth_srv);
+		VolumetricCloudsPassData const& AddVolumetricCloudsPass(RenderGraph& rg, RGTextureSRVRef depth_srv);
 	};
 }

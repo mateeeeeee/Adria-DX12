@@ -10,7 +10,8 @@
 namespace adria
 {
 
-	Postprocessor::Postprocessor(TextureManager& texture_manager, uint32 width, uint32 height) : texture_manager(texture_manager), width(width), height(height)
+	Postprocessor::Postprocessor(TextureManager& texture_manager, uint32 width, uint32 height) : texture_manager(texture_manager), width(width), height(height),
+		blur_pass(width, height), copy_to_texture_pass(width, height)
 	{
 
 	}
@@ -23,8 +24,10 @@ namespace adria
 
 		if (settings.clouds)
 		{
-			VolumetricCloudsPassData const& clouds_data = AddVolumetricCloudsPass(rg, data.final_texture, depth_srv);
-			data.final_texture = clouds_data.output;
+			VolumetricCloudsPassData const& clouds_data = AddVolumetricCloudsPass(rg, depth_srv);
+			BlurPassData const& blur_data = blur_pass.AddPass(rg, clouds_data.output_srv, "Volumetric Clouds");
+			CopyToTexturePassData copy_texture_data = copy_to_texture_pass.AddPass(rg, copy_data.dst_rtv, blur_data.final_srv, EBlendMode::AlphaBlend);
+			data.final_texture = copy_texture_data.render_target.GetResourceHandle();
 		}
 
 		return data;
@@ -33,6 +36,8 @@ namespace adria
 	void Postprocessor::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
+		blur_pass.OnResize(width, height);
+		copy_to_texture_pass.OnResize(width, height);
 	}
 
 	void Postprocessor::OnSceneInitialized()
@@ -65,6 +70,7 @@ namespace adria
 				RGTextureRef postprocess = builder.CreateTexture("Postprocess Texture", postprocess_desc);
 				data.src_texture = builder.Read(hdr_texture);
 				data.dst_texture = builder.Write(postprocess);
+				data.dst_rtv = builder.CreateRTV(postprocess);
 			},
 			[=](CopyHDRPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
@@ -74,7 +80,7 @@ namespace adria
 			}, ERGPassType::Copy, ERGPassFlags::None);
 	}
 
-	Postprocessor::VolumetricCloudsPassData const& Postprocessor::AddVolumetricCloudsPass(RenderGraph& rg, RGTextureRef input, RGTextureSRVRef depth_srv)
+	Postprocessor::VolumetricCloudsPassData const& Postprocessor::AddVolumetricCloudsPass(RenderGraph& rg, RGTextureSRVRef depth_srv)
 	{
 		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
 		return rg.AddPass<VolumetricCloudsPassData>("Volumetric Clouds Pass",
@@ -92,12 +98,13 @@ namespace adria
 				clouds_output_desc.width = width;
 				clouds_output_desc.height = height;
 				clouds_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				clouds_output_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::RenderTarget | EBindFlag::ShaderResource;
+				clouds_output_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
 				clouds_output_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
 				RGTextureRef clouds_output = builder.CreateTexture("Volumetric Clouds Output", clouds_output_desc);
-				data.output = builder.Read(input, ReadAccess_PixelShader);
-				data.output = builder.RenderTarget(builder.CreateRTV(clouds_output), ERGLoadStoreAccessOp::Discard_Preserve);
+				builder.Read(depth_srv.GetResourceHandle(), ReadAccess_PixelShader);
+				builder.RenderTarget(builder.CreateRTV(clouds_output), ERGLoadStoreAccessOp::Discard_Preserve);
+				data.output_srv = builder.CreateSRV(clouds_output);
 				builder.SetViewport(width, height);
 			},
 			[=](VolumetricCloudsPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)

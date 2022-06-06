@@ -98,18 +98,10 @@ namespace adria
 			return (*dynamic_cast<RenderGraphPass<PassData>*>(passes.back().get())).GetPassData();
 		}
 
-		RGTextureRef CreateTexture(char const* name, TextureDesc const& desc);
-		RGTextureRef ImportTexture(char const* name, Texture* texture);
-		Texture* GetTexture(RGTextureRef) const;
-
-		RGBufferRef CreateBuffer(char const* name, BufferDesc const& desc);
-		Buffer* GetBuffer(RGBufferRef) const;
-
 		void Build();
 		void Execute();
 
-		bool IsValidTextureHandle(RGTextureRef) const;
-		bool IsValidBufferHandle(RGBufferRef) const;
+		RGTextureRef ImportTexture(char const* name, Texture* texture);
 
 		RGBlackboard const& GetBlackboard() const { return blackboard; }
 		RGBlackboard& GetBlackboard() { return blackboard; }
@@ -148,6 +140,15 @@ namespace adria
 		void CullPasses();
 		void CalculateResourcesLifetime();
 		void DepthFirstSearch(size_t i, std::vector<bool>& visited, std::stack<size_t>& stack);
+
+		RGTextureRef CreateTexture(char const* name, TextureDesc const& desc);
+		Texture* GetTexture(RGTextureRef) const;
+
+		RGBufferRef CreateBuffer(char const* name, BufferDesc const& desc);
+		Buffer* GetBuffer(RGBufferRef) const;
+
+		bool IsValidTextureHandle(RGTextureRef) const;
+		bool IsValidBufferHandle(RGBufferRef) const;
 
 		RGTextureSRVRef CreateSRV(RGTextureRef handle, TextureViewDesc const& desc);
 		RGTextureUAVRef CreateUAV(RGTextureRef handle, TextureViewDesc const& desc);

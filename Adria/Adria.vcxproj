@@ -195,6 +195,7 @@
     <ClCompile Include="Rendering\CameraManager.cpp" />
     <ClCompile Include="Rendering\EntityLoader.cpp" />
     <ClCompile Include="Rendering\Passes\AmbientPass.cpp" />
+    <ClCompile Include="Rendering\Passes\BlurPass.cpp" />
     <ClCompile Include="Rendering\Passes\CopyToTexturePass.cpp" />
     <ClCompile Include="Rendering\Passes\GBufferPass.cpp" />
     <ClCompile Include="Rendering\Passes\LightingPass.cpp" />
@@ -299,6 +300,7 @@
     <ClInclude Include="Rendering\EntityLoader.h" />
     <ClInclude Include="Rendering\ParticleRenderer.h" />
     <ClInclude Include="Rendering\Passes\AmbientPass.h" />
+    <ClInclude Include="Rendering\Passes\BlurPass.h" />
     <ClInclude Include="Rendering\Passes\CopyToTexturePass.h" />
     <ClInclude Include="Rendering\Passes\GBufferPass.h" />
     <ClInclude Include="Rendering\Passes\LightingPass.h" />
