@@ -236,6 +236,9 @@
     <ClCompile Include="Rendering\Passes\CopyToTexturePass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\Postprocessor.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -585,6 +588,9 @@
     </ClInclude>
     <ClInclude Include="Rendering\Passes\CopyToTexturePass.h">
       <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Postprocessor.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

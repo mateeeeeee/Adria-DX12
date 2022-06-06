@@ -21,7 +21,7 @@ namespace adria
 		weather_cbuffer(gfx->GetDevice(), backbuffer_count), compute_cbuffer(gfx->GetDevice(), backbuffer_count),
 		gbuffer_pass(reg, gpu_profiler, width, height), ambient_pass(width, height), sky_pass(reg, texture_manager, width, height),
 		shadow_pass(reg, texture_manager), lighting_pass(width, height), tonemap_pass(width, height),
-		tiled_lighting_pass(reg, width, height), copy_to_texture_pass(width, height)
+		tiled_lighting_pass(reg, width, height), copy_to_texture_pass(width, height), postprocessor(width, height)
 	{
 		RootSigPSOManager::Initialize(gfx->GetDevice());
 		CreateNullHeap();
@@ -48,7 +48,7 @@ namespace adria
 	}
 	void RenderGraphRenderer::Render(RendererSettings const& _settings)
 	{
-		settings = _settings;
+		render_settings = _settings;
 		RenderGraph render_graph(resource_pool);
 		RGBlackboard& rg_blackboard = render_graph.GetBlackboard();
 
@@ -78,7 +78,7 @@ namespace adria
 		{
 			auto const& light = light_entities.get(light_entity);
 			if (!light.active) continue;
-			if ((settings.use_tiled_deferred || settings.use_clustered_deferred) && !light.casts_shadows) continue;  //tiled/clustered deferred takes care of noncasting lights
+			if ((render_settings.use_tiled_deferred || render_settings.use_clustered_deferred) && !light.casts_shadows) continue;  //tiled/clustered deferred takes care of noncasting lights
 			if (light.casts_shadows)
 			{
 				ShadowPassData const& shadow_data = shadow_pass.AddPass(render_graph, light);
@@ -92,9 +92,9 @@ namespace adria
 			}
 		}
 
-		if (settings.use_tiled_deferred)
+		if (render_settings.use_tiled_deferred)
 		{
-			if (settings.visualize_tiled) 
+			if (render_settings.visualize_tiled) 
 			{
 				//AddTextures(cmd_list, *uav_target, *debug_tiled_texture, EBlendMode::AlphaBlend);
 			}
@@ -106,19 +106,20 @@ namespace adria
 					ambient_data.hdr_rtv, tiled_data.tiled_srv, EBlendMode::AdditiveBlend);
 			}
 		}
-		else if (settings.use_clustered_deferred)
+		else if (render_settings.use_clustered_deferred)
 		{
 			
 		}
 
-		SkyPassData sky_data = sky_pass.AddPass(render_graph, ambient_data.hdr_rtv, gbuffer_data.depth_stencil_dsv, settings.sky_type);
+		SkyPassData sky_data = sky_pass.AddPass(render_graph, ambient_data.hdr_rtv, gbuffer_data.depth_stencil_dsv, render_settings.sky_type);
+		PostprocessData postprocess_data = postprocessor.AddPasses(render_graph, render_settings.postprocessor, sky_data.render_target);
 
-		if (settings.gui_visible)
+		if (render_settings.gui_visible)
 		{
 			RGTextureRef final_texture_ref = render_graph.ImportTexture("Final Texture", final_texture.get());
-			ResolveToTexture(render_graph, sky_data.render_target, final_texture_ref);
+			ResolveToTexture(render_graph, postprocess_data.final_texture, final_texture_ref);
 		}
-		else ResolveToBackbuffer(render_graph, sky_data.render_target);
+		else ResolveToBackbuffer(render_graph, postprocess_data.final_texture);
 
 		render_graph.Build();
 		render_graph.Execute();
@@ -142,6 +143,7 @@ namespace adria
 			tiled_lighting_pass.OnResize(w, h);
 			copy_to_texture_pass.OnResize(w, h);
 			tonemap_pass.OnResize(w, h);
+			postprocessor.OnResize(w, h);
 		}
 	}
 	void RenderGraphRenderer::OnSceneInitialized()
@@ -214,7 +216,7 @@ namespace adria
 		//frame
 		{
 			FrameCBuffer frame_cbuf_data;
-			frame_cbuf_data.global_ambient = XMVectorSet(settings.ambient_color[0], settings.ambient_color[1], settings.ambient_color[2], 1);
+			frame_cbuf_data.global_ambient = XMVectorSet(render_settings.ambient_color[0], render_settings.ambient_color[1], render_settings.ambient_color[2], 1);
 			frame_cbuf_data.camera_near = camera->Near();
 			frame_cbuf_data.camera_far = camera->Far();
 			frame_cbuf_data.camera_position = camera->Position();
@@ -236,6 +238,7 @@ namespace adria
 		
 		//postprocess
 		{
+			PostprocessSettings const& settings = render_settings.postprocessor;
 			PostprocessCBuffer postprocess_cbuf_data{};
 			postprocess_cbuf_data.tone_map_exposure = settings.tonemap_exposure;
 			postprocess_cbuf_data.tone_map_operator = static_cast<int>(settings.tone_map_op);
@@ -277,23 +280,23 @@ namespace adria
 				}
 			}
 
-			weather_cbuf_data.sky_color = XMVECTOR{ settings.sky_color[0], settings.sky_color[1],settings.sky_color[2], 1.0f };
-			weather_cbuf_data.ambient_color = XMVECTOR{ settings.ambient_color[0], settings.ambient_color[1], settings.ambient_color[2], 1.0f };
-			weather_cbuf_data.wind_dir = XMVECTOR{ settings.wind_direction[0], 0.0f, settings.wind_direction[1], 0.0f };
-			weather_cbuf_data.wind_speed = settings.wind_speed;
+			weather_cbuf_data.sky_color = XMVECTOR{ render_settings.sky_color[0], render_settings.sky_color[1],render_settings.sky_color[2], 1.0f };
+			weather_cbuf_data.ambient_color = XMVECTOR{ render_settings.ambient_color[0], render_settings.ambient_color[1], render_settings.ambient_color[2], 1.0f };
+			weather_cbuf_data.wind_dir = XMVECTOR{ render_settings.wind_direction[0], 0.0f, render_settings.wind_direction[1], 0.0f };
+			weather_cbuf_data.wind_speed = render_settings.postprocessor.wind_speed;
 			weather_cbuf_data.time = total_time;
-			weather_cbuf_data.crispiness = settings.crispiness;
-			weather_cbuf_data.curliness = settings.curliness;
-			weather_cbuf_data.coverage = settings.coverage;
-			weather_cbuf_data.absorption = settings.light_absorption;
-			weather_cbuf_data.clouds_bottom_height = settings.clouds_bottom_height;
-			weather_cbuf_data.clouds_top_height = settings.clouds_top_height;
-			weather_cbuf_data.density_factor = settings.density_factor;
-			weather_cbuf_data.cloud_type = settings.cloud_type;
+			weather_cbuf_data.crispiness = render_settings.postprocessor.crispiness;
+			weather_cbuf_data.curliness = render_settings.postprocessor.curliness;
+			weather_cbuf_data.coverage = render_settings.postprocessor.coverage;
+			weather_cbuf_data.absorption = render_settings.postprocessor.light_absorption;
+			weather_cbuf_data.clouds_bottom_height = render_settings.postprocessor.clouds_bottom_height;
+			weather_cbuf_data.clouds_top_height = render_settings.postprocessor.clouds_top_height;
+			weather_cbuf_data.density_factor = render_settings.postprocessor.density_factor;
+			weather_cbuf_data.cloud_type = render_settings.postprocessor.cloud_type;
 
 			XMFLOAT3 sun_dir;
 			XMStoreFloat3(&sun_dir, XMVector3Normalize(weather_cbuf_data.light_dir));
-			SkyParameters sky_params = CalculateSkyParameters(settings.turbidity, settings.ground_albedo, sun_dir);
+			SkyParameters sky_params = CalculateSkyParameters(render_settings.turbidity, render_settings.ground_albedo, sun_dir);
 
 			weather_cbuf_data.A = sky_params[ESkyParam_A];
 			weather_cbuf_data.B = sky_params[ESkyParam_B];
@@ -323,22 +326,22 @@ namespace adria
 			compute_cbuf_data.gauss_coeff7 = coeffs[6];
 			compute_cbuf_data.gauss_coeff8 = coeffs[7];
 			compute_cbuf_data.gauss_coeff9 = coeffs[8];
-			compute_cbuf_data.bloom_scale = settings.bloom_scale;
-			compute_cbuf_data.threshold = settings.bloom_threshold;
-			compute_cbuf_data.visualize_tiled = settings.visualize_tiled;
-			compute_cbuf_data.visualize_max_lights = settings.visualize_max_lights;
-			compute_cbuf_data.bokeh_blur_threshold = settings.bokeh_blur_threshold;
-			compute_cbuf_data.bokeh_lum_threshold = settings.bokeh_lum_threshold;
-			compute_cbuf_data.dof_params = XMVectorSet(settings.dof_near_blur, settings.dof_near, settings.dof_far, settings.dof_far_blur);
-			compute_cbuf_data.bokeh_radius_scale = settings.bokeh_radius_scale;
-			compute_cbuf_data.bokeh_color_scale = settings.bokeh_color_scale;
-			compute_cbuf_data.bokeh_fallout = settings.bokeh_fallout;
+			compute_cbuf_data.bloom_scale = render_settings.postprocessor.bloom_scale;
+			compute_cbuf_data.threshold = render_settings.postprocessor.bloom_threshold;
+			compute_cbuf_data.visualize_tiled = render_settings.visualize_tiled;
+			compute_cbuf_data.visualize_max_lights = render_settings.visualize_max_lights;
+			compute_cbuf_data.bokeh_blur_threshold = render_settings.postprocessor.bokeh_blur_threshold;
+			compute_cbuf_data.bokeh_lum_threshold = render_settings.postprocessor.bokeh_lum_threshold;
+			compute_cbuf_data.dof_params = XMVectorSet(render_settings.postprocessor.dof_near_blur, render_settings.postprocessor.dof_near, render_settings.postprocessor.dof_far, render_settings.postprocessor.dof_far_blur);
+			compute_cbuf_data.bokeh_radius_scale = render_settings.postprocessor.bokeh_radius_scale;
+			compute_cbuf_data.bokeh_color_scale = render_settings.postprocessor.bokeh_color_scale;
+			compute_cbuf_data.bokeh_fallout = render_settings.postprocessor.bokeh_fallout;
 
-			compute_cbuf_data.ocean_choppiness = settings.ocean_choppiness;
+			compute_cbuf_data.ocean_choppiness = render_settings.ocean_choppiness;
 			compute_cbuf_data.ocean_size = 512;
 			compute_cbuf_data.resolution = 512; //fft resolution
-			compute_cbuf_data.wind_direction_x = settings.wind_direction[0];
-			compute_cbuf_data.wind_direction_y = settings.wind_direction[1];
+			compute_cbuf_data.wind_direction_x = render_settings.wind_direction[0];
+			compute_cbuf_data.wind_direction_y = render_settings.wind_direction[1];
 			compute_cbuf_data.delta_time = dt;
 
 			compute_cbuffer.Update(compute_cbuf_data, backbuffer_index);
@@ -357,7 +360,7 @@ namespace adria
 
 	void RenderGraphRenderer::ResolveToBackbuffer(RenderGraph& rg, RGTextureRef hdr_texture)
 	{
-		if (HasAnyFlag(settings.anti_aliasing, AntiAliasing_FXAA))
+		if (HasAnyFlag(render_settings.postprocessor.anti_aliasing, AntiAliasing_FXAA))
 		{
 			//tone_map.AddPass(rg,...);
 			//fxaa_pass.AddPass(rg,...);
@@ -370,7 +373,7 @@ namespace adria
 	}
 	void RenderGraphRenderer::ResolveToTexture(RenderGraph& rg, RGTextureRef hdr_texture, RGTextureRef resolve_texture)
 	{
-		if (HasAnyFlag(settings.anti_aliasing, AntiAliasing_FXAA))
+		if (HasAnyFlag(render_settings.postprocessor.anti_aliasing, AntiAliasing_FXAA))
 		{
 			//tone_map.AddPass(rg,...);
 			//fxaa_pass.AddPass(rg,...);

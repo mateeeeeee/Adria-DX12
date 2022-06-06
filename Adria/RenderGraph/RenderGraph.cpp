@@ -28,19 +28,19 @@ namespace adria
 		switch (read_flag)
 		{
 		case ReadAccess_PixelShader:
-			rg_pass.resource_state_map[handle] = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+			rg_pass.resource_state_map[handle] |= D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 			break;
 		case ReadAccess_NonPixelShader:
-			rg_pass.resource_state_map[handle] = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+			rg_pass.resource_state_map[handle] |= D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 			break;
 		case ReadAccess_AllShader:
-			rg_pass.resource_state_map[handle] = D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
+			rg_pass.resource_state_map[handle] |= D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
 			break;
 		case ReadAccess_CopySrc:
-			rg_pass.resource_state_map[handle] = D3D12_RESOURCE_STATE_COPY_SOURCE;
+			rg_pass.resource_state_map[handle] |= D3D12_RESOURCE_STATE_COPY_SOURCE;
 			break;
 		case ReadAccess_IndirectArgument:
-			rg_pass.resource_state_map[handle] = D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
+			rg_pass.resource_state_map[handle] |= D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
 			break;
 		default:
 			ADRIA_ASSERT(false && "Invalid Read Flag!");
@@ -471,6 +471,7 @@ namespace adria
 
 	RGTextureSRVRef RenderGraph::CreateSRV(RGTextureRef handle, TextureViewDesc const& desc)
 	{
+		//add check if desc already exists?
 		std::vector<TextureViewDesc>& view_descs = view_desc_map[handle];
 		size_t view_id = view_descs.size();
 		view_descs.push_back(desc);

@@ -1739,27 +1739,27 @@ namespace adria
 						ImGui::EndCombo();
 					}
 
-                    renderer_settings.ambient_occlusion = static_cast<EAmbientOcclusion>(current_ao_type);
+                    renderer_settings.postprocessor.ambient_occlusion = static_cast<EAmbientOcclusion>(current_ao_type);
 
-                    if (renderer_settings.ambient_occlusion == EAmbientOcclusion::SSAO && ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+                    if (renderer_settings.postprocessor.ambient_occlusion == EAmbientOcclusion::SSAO && ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
                     {
-                        ImGui::SliderFloat("Power", &renderer_settings.ssao_power, 1.0f, 16.0f);
-                        ImGui::SliderFloat("Radius", &renderer_settings.ssao_radius, 0.5f, 4.0f);
+                        ImGui::SliderFloat("Power", &renderer_settings.postprocessor.ssao_power, 1.0f, 16.0f);
+                        ImGui::SliderFloat("Radius", &renderer_settings.postprocessor.ssao_radius, 0.5f, 4.0f);
 
                         ImGui::TreePop();
                         ImGui::Separator();
                     }
-					else if (renderer_settings.ambient_occlusion == EAmbientOcclusion::HBAO && ImGui::TreeNodeEx("HBAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+					else if (renderer_settings.postprocessor.ambient_occlusion == EAmbientOcclusion::HBAO && ImGui::TreeNodeEx("HBAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
                     {
-                        ImGui::SliderFloat("Power", &renderer_settings.hbao_power, 1.0f, 16.0f);
-                        ImGui::SliderFloat("Radius", &renderer_settings.hbao_radius, 0.25f, 8.0f);
+                        ImGui::SliderFloat("Power", &renderer_settings.postprocessor.hbao_power, 1.0f, 16.0f);
+                        ImGui::SliderFloat("Radius", &renderer_settings.postprocessor.hbao_radius, 0.25f, 8.0f);
 
                         ImGui::TreePop();
                         ImGui::Separator();
                     }
-					else if (renderer_settings.ambient_occlusion == EAmbientOcclusion::RTAO && ImGui::TreeNodeEx("RTAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+					else if (renderer_settings.postprocessor.ambient_occlusion == EAmbientOcclusion::RTAO && ImGui::TreeNodeEx("RTAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
 					{
-						ImGui::SliderFloat("Radius", &renderer_settings.rtao_radius, 0.25f, 8.0f);
+						ImGui::SliderFloat("Radius", &renderer_settings.postprocessor.rtao_radius, 0.25f, 8.0f);
 
 						ImGui::TreePop();
 						ImGui::Separator();
@@ -1781,21 +1781,21 @@ namespace adria
 						ImGui::EndCombo();
 					}
 
-					renderer_settings.reflections = static_cast<EReflections>(current_reflection_type);
-					if (renderer_settings.reflections == EReflections::SSR && ImGui::TreeNodeEx("Screen-Space Reflections", 0))
+					renderer_settings.postprocessor.reflections = static_cast<EReflections>(current_reflection_type);
+					if (renderer_settings.postprocessor.reflections == EReflections::SSR && ImGui::TreeNodeEx("Screen-Space Reflections", 0))
 					{
-						ImGui::SliderFloat("Ray Step", &renderer_settings.ssr_ray_step, 1.0f, 3.0f);
-						ImGui::SliderFloat("Ray Hit Threshold", &renderer_settings.ssr_ray_hit_threshold, 0.25f, 5.0f);
+						ImGui::SliderFloat("Ray Step", &renderer_settings.postprocessor.ssr_ray_step, 1.0f, 3.0f);
+						ImGui::SliderFloat("Ray Hit Threshold", &renderer_settings.postprocessor.ssr_ray_hit_threshold, 0.25f, 5.0f);
 					
 						ImGui::TreePop();
 						ImGui::Separator();
 					}
 				}
-                ImGui::Checkbox("Volumetric Clouds", &renderer_settings.clouds);
-                ImGui::Checkbox("DoF", &renderer_settings.dof);
-                ImGui::Checkbox("Bloom", &renderer_settings.bloom);
-                ImGui::Checkbox("Motion Blur", &renderer_settings.motion_blur);
-                ImGui::Checkbox("Fog", &renderer_settings.fog);
+                ImGui::Checkbox("Volumetric Clouds", &renderer_settings.postprocessor.clouds);
+                ImGui::Checkbox("DoF", &renderer_settings.postprocessor.dof);
+                ImGui::Checkbox("Bloom", &renderer_settings.postprocessor.bloom);
+                ImGui::Checkbox("Motion Blur", &renderer_settings.postprocessor.motion_blur);
+                ImGui::Checkbox("Fog", &renderer_settings.postprocessor.fog);
 
                 if (ImGui::TreeNode("Anti-Aliasing"))
                 {
@@ -1804,79 +1804,79 @@ namespace adria
                     ImGui::Checkbox("TAA", &taa);
                     if (fxaa)
                     {
-                        renderer_settings.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.anti_aliasing | AntiAliasing_FXAA);
+                        renderer_settings.postprocessor.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocessor.anti_aliasing | AntiAliasing_FXAA);
                     }
                     else
                     {
-                        renderer_settings.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.anti_aliasing & (~AntiAliasing_FXAA));
+                        renderer_settings.postprocessor.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocessor.anti_aliasing & (~AntiAliasing_FXAA));
                     }
                     if (taa)
                     {
-                        renderer_settings.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.anti_aliasing | AntiAliasing_TAA);
+                        renderer_settings.postprocessor.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocessor.anti_aliasing | AntiAliasing_TAA);
                     }
                     else
                     {
-                        renderer_settings.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.anti_aliasing & (~AntiAliasing_TAA));
+                        renderer_settings.postprocessor.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocessor.anti_aliasing & (~AntiAliasing_TAA));
                     }
 
                     ImGui::TreePop();
                 }
-                if (renderer_settings.clouds && ImGui::TreeNodeEx("Volumetric Clouds", 0))
+                if (renderer_settings.postprocessor.clouds && ImGui::TreeNodeEx("Volumetric Clouds", 0))
                 {
-                    ImGui::SliderFloat("Sun light absorption", &renderer_settings.light_absorption, 0.0f, 0.015f);
-                    ImGui::SliderFloat("Clouds bottom height", &renderer_settings.clouds_bottom_height, 1000.0f, 10000.0f);
-                    ImGui::SliderFloat("Clouds top height", &renderer_settings.clouds_top_height, 10000.0f, 50000.0f);
-                    ImGui::SliderFloat("Density", &renderer_settings.density_factor, 0.0f, 1.0f);
-                    ImGui::SliderFloat("Crispiness", &renderer_settings.crispiness, 0.0f, 100.0f);
-                    ImGui::SliderFloat("Curliness", &renderer_settings.curliness, 0.0f, 5.0f);
-                    ImGui::SliderFloat("Coverage", &renderer_settings.coverage, 0.0f, 1.0f);
-                    ImGui::SliderFloat("Wind speed factor", &renderer_settings.wind_speed, 0.0f, 100.0f);
-                    ImGui::SliderFloat("Cloud Type", &renderer_settings.cloud_type, 0.0f, 1.0f);
+                    ImGui::SliderFloat("Sun light absorption", &renderer_settings.postprocessor.light_absorption, 0.0f, 0.015f);
+                    ImGui::SliderFloat("Clouds bottom height", &renderer_settings.postprocessor.clouds_bottom_height, 1000.0f, 10000.0f);
+                    ImGui::SliderFloat("Clouds top height", &renderer_settings.postprocessor.clouds_top_height, 10000.0f, 50000.0f);
+                    ImGui::SliderFloat("Density", &renderer_settings.postprocessor.density_factor, 0.0f, 1.0f);
+                    ImGui::SliderFloat("Crispiness", &renderer_settings.postprocessor.crispiness, 0.0f, 100.0f);
+                    ImGui::SliderFloat("Curliness", &renderer_settings.postprocessor.curliness, 0.0f, 5.0f);
+                    ImGui::SliderFloat("Coverage", &renderer_settings.postprocessor.coverage, 0.0f, 1.0f);
+                    ImGui::SliderFloat("Wind speed factor", &renderer_settings.postprocessor.wind_speed, 0.0f, 100.0f);
+                    ImGui::SliderFloat("Cloud Type", &renderer_settings.postprocessor.cloud_type, 0.0f, 1.0f);
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
 
-                if (renderer_settings.dof && ImGui::TreeNodeEx("Depth Of Field", 0))
+                if (renderer_settings.postprocessor.dof && ImGui::TreeNodeEx("Depth Of Field", 0))
                 {
 
-                    ImGui::SliderFloat("DoF Near Blur", &renderer_settings.dof_near_blur, 0.0f, 200.0f);
-                    ImGui::SliderFloat("DoF Near", &renderer_settings.dof_near, renderer_settings.dof_near_blur, 500.0f);
-                    ImGui::SliderFloat("DoF Far", &renderer_settings.dof_far, renderer_settings.dof_near, 1000.0f);
-                    ImGui::SliderFloat("DoF Far Blur", &renderer_settings.dof_far_blur, renderer_settings.dof_far, 1500.0f);
-                    ImGui::Checkbox("Bokeh", &renderer_settings.bokeh);
+                    ImGui::SliderFloat("DoF Near Blur", &renderer_settings.postprocessor.dof_near_blur, 0.0f, 200.0f);
+                    ImGui::SliderFloat("DoF Near", &renderer_settings.postprocessor.dof_near, renderer_settings.postprocessor.dof_near_blur, 500.0f);
+                    ImGui::SliderFloat("DoF Far", &renderer_settings.postprocessor.dof_far, renderer_settings.postprocessor.dof_near, 1000.0f);
+                    ImGui::SliderFloat("DoF Far Blur", &renderer_settings.postprocessor.dof_far_blur, renderer_settings.postprocessor.dof_far, 1500.0f);
+                    ImGui::Checkbox("Bokeh", &renderer_settings.postprocessor.bokeh);
 
-                    if (renderer_settings.bokeh)
+                    if (renderer_settings.postprocessor.bokeh)
                     {
                         static char const* const bokeh_types[] = { "HEXAGON", "OCTAGON", "CIRCLE", "CROSS" };
-                        static int bokeh_type_i = static_cast<int>(renderer_settings.bokeh_type);
+                        static int bokeh_type_i = static_cast<int>(renderer_settings.postprocessor.bokeh_type);
                         ImGui::ListBox("Bokeh Type", &bokeh_type_i, bokeh_types, IM_ARRAYSIZE(bokeh_types));
-                        renderer_settings.bokeh_type = static_cast<EBokehType>(bokeh_type_i);
+                        renderer_settings.postprocessor.bokeh_type = static_cast<EBokehType>(bokeh_type_i);
 
-                        ImGui::SliderFloat("Bokeh Blur Threshold", &renderer_settings.bokeh_blur_threshold, 0.0f, 1.0f);
-                        ImGui::SliderFloat("Bokeh Lum Threshold", &renderer_settings.bokeh_lum_threshold, 0.0f, 10.0f);
-                        ImGui::SliderFloat("Bokeh Color Scale", &renderer_settings.bokeh_color_scale, 0.1f, 10.0f);
-                        ImGui::SliderFloat("Bokeh Max Size", &renderer_settings.bokeh_radius_scale, 0.0f, 100.0f);
-                        ImGui::SliderFloat("Bokeh Fallout", &renderer_settings.bokeh_fallout, 0.0f, 2.0f);
+                        ImGui::SliderFloat("Bokeh Blur Threshold", &renderer_settings.postprocessor.bokeh_blur_threshold, 0.0f, 1.0f);
+                        ImGui::SliderFloat("Bokeh Lum Threshold", &renderer_settings.postprocessor.bokeh_lum_threshold, 0.0f, 10.0f);
+                        ImGui::SliderFloat("Bokeh Color Scale", &renderer_settings.postprocessor.bokeh_color_scale, 0.1f, 10.0f);
+                        ImGui::SliderFloat("Bokeh Max Size", &renderer_settings.postprocessor.bokeh_radius_scale, 0.0f, 100.0f);
+                        ImGui::SliderFloat("Bokeh Fallout", &renderer_settings.postprocessor.bokeh_fallout, 0.0f, 2.0f);
                     }
                     
                     ImGui::TreePop();
                     ImGui::Separator();
 
                 }
-                if (renderer_settings.bloom && ImGui::TreeNodeEx("Bloom", 0))
+                if (renderer_settings.postprocessor.bloom && ImGui::TreeNodeEx("Bloom", 0))
                 {
-                    ImGui::SliderFloat("Threshold", &renderer_settings.bloom_threshold, 0.1f, 2.0f);
-                    ImGui::SliderFloat("Bloom Scale", &renderer_settings.bloom_scale, 0.1f, 5.0f);
+                    ImGui::SliderFloat("Threshold", &renderer_settings.postprocessor.bloom_threshold, 0.1f, 2.0f);
+                    ImGui::SliderFloat("Bloom Scale", &renderer_settings.postprocessor.bloom_scale, 0.1f, 5.0f);
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
-                if ((renderer_settings.motion_blur || (renderer_settings.anti_aliasing & AntiAliasing_TAA)) && ImGui::TreeNodeEx("Velocity Buffer", 0))
+                if ((renderer_settings.postprocessor.motion_blur || (renderer_settings.postprocessor.anti_aliasing & AntiAliasing_TAA)) && ImGui::TreeNodeEx("Velocity Buffer", 0))
                 {
-                    ImGui::SliderFloat("Velocity Buffer Scale", &renderer_settings.velocity_buffer_scale, 32.0f, 128.0f);
+                    ImGui::SliderFloat("Velocity Buffer Scale", &renderer_settings.postprocessor.velocity_buffer_scale, 32.0f, 128.0f);
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
-				if (renderer_settings.fog && ImGui::TreeNodeEx("Fog", 0))
+				if (renderer_settings.postprocessor.fog && ImGui::TreeNodeEx("Fog", 0))
 				{
 					static const char* fog_types[] = { "Exponential", "Exponential Height" };
 					static int current_fog_type = 0; // Here we store our selection data as an index.
@@ -1892,23 +1892,23 @@ namespace adria
 						ImGui::EndCombo();
 					}
 
-					renderer_settings.fog_type = static_cast<EFogType>(current_fog_type);
+					renderer_settings.postprocessor.fog_type = static_cast<EFogType>(current_fog_type);
 
-					ImGui::SliderFloat("Fog Falloff", &renderer_settings.fog_falloff, 0.0001f, 0.01f);
-					ImGui::SliderFloat("Fog Density", &renderer_settings.fog_density, 0.0001f, 0.01f);
-					ImGui::SliderFloat("Fog Start", &renderer_settings.fog_start, 0.1f, 10000.0f);
-					ImGui::ColorEdit3("Fog Color", renderer_settings.fog_color);
+					ImGui::SliderFloat("Fog Falloff", &renderer_settings.postprocessor.fog_falloff, 0.0001f, 0.01f);
+					ImGui::SliderFloat("Fog Density", &renderer_settings.postprocessor.fog_density, 0.0001f, 0.01f);
+					ImGui::SliderFloat("Fog Start", &renderer_settings.postprocessor.fog_start, 0.1f, 10000.0f);
+					ImGui::ColorEdit3("Fog Color", renderer_settings.postprocessor.fog_color);
 
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
                 if (ImGui::TreeNodeEx("Tone Mapping", 0))
                 {
-                    ImGui::SliderFloat("Exposure", &renderer_settings.tonemap_exposure, 0.01f, 10.0f);
+                    ImGui::SliderFloat("Exposure", &renderer_settings.postprocessor.tonemap_exposure, 0.01f, 10.0f);
                     static char const* const operators[] = { "REINHARD", "HABLE", "LINEAR" };
-                    static int tone_map_operator = static_cast<int>(renderer_settings.tone_map_op);
+                    static int tone_map_operator = static_cast<int>(renderer_settings.postprocessor.tone_map_op);
                     ImGui::ListBox("Tone Map Operator", &tone_map_operator, operators, IM_ARRAYSIZE(operators));
-                    renderer_settings.tone_map_op = static_cast<EToneMap>(tone_map_operator);
+                    renderer_settings.postprocessor.tone_map_op = static_cast<EToneMap>(tone_map_operator);
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
@@ -1918,7 +1918,7 @@ namespace adria
             if (ImGui::TreeNode("Misc"))
             {
 				ImGui::SliderFloat2("Wind Direction", renderer_settings.wind_direction, 0.0f, 50.0f);
-				ImGui::SliderFloat("Wind speed factor", &renderer_settings.wind_speed, 0.0f, 100.0f);
+				ImGui::SliderFloat("Wind speed factor", &renderer_settings.postprocessor.wind_speed, 0.0f, 100.0f);
                 ImGui::ColorEdit3("Ambient Color", renderer_settings.ambient_color);
                 ImGui::SliderFloat("Blur Sigma", &renderer_settings.blur_sigma, 0.1f, 10.0f);
                 ImGui::SliderFloat("Shadow Softness", &renderer_settings.shadow_softness, 0.01f, 5.0f);

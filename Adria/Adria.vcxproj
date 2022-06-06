@@ -202,8 +202,11 @@
     <ClCompile Include="Rendering\Passes\SkyPass.cpp" />
     <ClCompile Include="Rendering\Passes\TiledLightingPass.cpp" />
     <ClCompile Include="Rendering\Passes\ToneMapPass.cpp" />
+    <ClCompile Include="Rendering\Postprocessor.cpp" />
     <ClCompile Include="Rendering\RayTracer.cpp" />
-    <ClCompile Include="Rendering\Renderer.cpp" />
+    <ClCompile Include="Rendering\Renderer.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Rendering\RenderGraphRenderer.cpp" />
     <ClCompile Include="Rendering\RootSigPSOManager.cpp" />
     <ClCompile Include="Rendering\SkyModel.cpp" />
@@ -304,8 +307,11 @@
     <ClInclude Include="Rendering\Passes\TiledLightingPass.h" />
     <ClInclude Include="Rendering\Passes\ToneMapPass.h" />
     <ClInclude Include="Rendering\Picker.h" />
+    <ClInclude Include="Rendering\Postprocessor.h" />
     <ClInclude Include="Rendering\RayTracer.h" />
-    <ClInclude Include="Rendering\Renderer.h" />
+    <ClInclude Include="Rendering\Renderer.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="Rendering\GlobalBlackboardData.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />
     <ClInclude Include="Rendering\RenderGraphRenderer.h" />

@@ -12,8 +12,7 @@ namespace adria
 
 	GBufferPass::GBufferPass(tecs::registry& reg, GPUProfiler& gpu_profiler, uint32 w, uint32 h) :
 		reg{ reg }, gpu_profiler{ gpu_profiler }, width{ w }, height{ h }
-	{
-	}
+	{}
 
 	GBufferPassData const& GBufferPass::AddPass(RenderGraph& rendergraph, bool profile_pass)
 	{
@@ -116,6 +115,5 @@ namespace adria
 	{
 		width = w, height = h;
 	}
-
 }
 

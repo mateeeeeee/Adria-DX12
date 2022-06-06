@@ -2,6 +2,7 @@
 #include "RendererSettings.h"
 #include "SceneViewport.h"
 #include "ConstantBuffers.h"
+#include "Postprocessor.h"
 #include "Passes/GBufferPass.h"
 #include "Passes/AmbientPass.h"
 #include "Passes/SkyPass.h"
@@ -69,7 +70,7 @@ namespace adria
 		CPUProfiler cpu_profiler;
 		GPUProfiler gpu_profiler;
 
-		RendererSettings settings;
+		RendererSettings render_settings;
 		ProfilerSettings profiler_settings = NO_PROFILING;
 
 		TextureManager texture_manager;
@@ -100,7 +101,8 @@ namespace adria
 		LightingPass lighting_pass;
 		TiledLightingPass tiled_lighting_pass;
 		CopyToTexturePass copy_to_texture_pass;
-		ShadowPass   shadow_pass;
+		ShadowPass    shadow_pass;
+		Postprocessor postprocessor;
 	private:
 		void CreateNullHeap();
 		void CreateSizeDependentResources();
