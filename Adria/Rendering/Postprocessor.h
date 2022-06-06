@@ -32,11 +32,17 @@ namespace adria
 			RGTextureSRVRef output_srv;
 		};
 
+		struct SSRPassData
+		{
+			RGTextureSRVRef input_srv;
+			RGTextureSRVRef output_srv;
+		};
+
 	public:
 		Postprocessor(TextureManager& texture_manager, uint32 width, uint32 height);
 
 		PostprocessData const& AddPasses(RenderGraph& rg, PostprocessSettings const& settings,
-			RGTextureRef hdr_texture, RGTextureSRVRef depth_srv);
+			RGTextureRef hdr_texture, RGTextureSRVRef gbuffer_normal_srv, RGTextureSRVRef depth_srv);
 
 		void OnResize(uint32 w, uint32 h);
 		void OnSceneInitialized();
@@ -47,8 +53,10 @@ namespace adria
 
 		BlurPass blur_pass;
 		CopyToTexturePass copy_to_texture_pass;
+
 	private:
 		CopyHDRPassData const& AddCopyHDRPass(RenderGraph& rg, RGTextureRef hdr_texture);
 		VolumetricCloudsPassData const& AddVolumetricCloudsPass(RenderGraph& rg, RGTextureSRVRef depth_srv);
+		SSRPassData const& AddSSRPass(RenderGraph& rg, RGTextureRef input, RGTextureSRVRef gbuffer_normal_srv, RGTextureSRVRef depth_srv);
 	};
 }

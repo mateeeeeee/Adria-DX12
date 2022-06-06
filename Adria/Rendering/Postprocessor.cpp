@@ -16,7 +16,8 @@ namespace adria
 
 	}
 
-	PostprocessData const& Postprocessor::AddPasses(RenderGraph& rg, PostprocessSettings const& settings, RGTextureRef hdr_texture, RGTextureSRVRef depth_srv)
+	PostprocessData const& Postprocessor::AddPasses(RenderGraph& rg, PostprocessSettings const& settings, 
+		RGTextureRef hdr_texture, RGTextureSRVRef gbuffer_normal_srv, RGTextureSRVRef depth_srv)
 	{
 		PostprocessData data{};
 		CopyHDRPassData const& copy_data = AddCopyHDRPass(rg, hdr_texture);
@@ -28,6 +29,11 @@ namespace adria
 			BlurPassData const& blur_data = blur_pass.AddPass(rg, clouds_data.output_srv, "Volumetric Clouds");
 			CopyToTexturePassData copy_texture_data = copy_to_texture_pass.AddPass(rg, copy_data.dst_rtv, blur_data.final_srv, EBlendMode::AlphaBlend);
 			data.final_texture = copy_texture_data.render_target.GetResourceHandle();
+		}
+		if (settings.reflections == EReflections::SSR)
+		{
+			SSRPassData const& ssr_data = AddSSRPass(rg, data.final_texture, gbuffer_normal_srv, depth_srv);
+			data.final_texture = ssr_data.output_srv.GetResourceHandle();
 		}
 
 		return data;
@@ -132,6 +138,65 @@ namespace adria
 				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 				cmd_list->DrawInstanced(4, 1, 0, 0);
 
+			}, ERGPassType::Graphics, ERGPassFlags::None);
+	}
+
+	Postprocessor::SSRPassData const& Postprocessor::AddSSRPass(RenderGraph& rg,
+		RGTextureRef input, RGTextureSRVRef gbuffer_normal_srv, RGTextureSRVRef depth_srv)
+	{
+		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		return rg.AddPass<SSRPassData>("SSR Pass",
+			[=](SSRPassData& data, RenderGraphBuilder& builder)
+			{
+				D3D12_CLEAR_VALUE rtv_clear_value{};
+				rtv_clear_value.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				rtv_clear_value.Color[0] = 0.0f;
+				rtv_clear_value.Color[1] = 0.0f;
+				rtv_clear_value.Color[2] = 0.0f;
+				rtv_clear_value.Color[3] = 0.0f;
+
+				TextureDesc ssr_output_desc{};
+				ssr_output_desc.clear = rtv_clear_value;
+				ssr_output_desc.width = width;
+				ssr_output_desc.height = height;
+				ssr_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				ssr_output_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::RenderTarget | EBindFlag::ShaderResource;
+				ssr_output_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+				RGTextureRef ssr_output = builder.CreateTexture("SSR Output", ssr_output_desc);
+				builder.RenderTarget(builder.CreateRTV(ssr_output), ERGLoadStoreAccessOp::Discard_Preserve);
+				builder.Read(input);
+				builder.Read(gbuffer_normal_srv.GetResourceHandle());
+				builder.Read(depth_srv.GetResourceHandle());
+				builder.SetViewport(width, height);
+				data.input_srv = builder.CreateSRV(input);
+				data.output_srv = builder.CreateSRV(ssr_output);
+			},
+			[=](SSRPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
+			{
+				ID3D12Device* device = gfx->GetDevice();
+				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::SSR));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::SSR));
+
+				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
+				cmd_list->SetGraphicsRootConstantBufferView(1, global_data.postprocess_cbuffer_address);
+
+				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
+
+				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { resources.GetSRV(gbuffer_normal_srv), resources.GetSRV(data.input_srv), resources.GetSRV(depth_srv)};
+				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
+				uint32 src_range_sizes[] = { 1, 1, 1 };
+				uint32 dst_range_sizes[] = { 3 };
+
+				device->CopyDescriptors(ARRAYSIZE(dst_ranges), dst_ranges, dst_range_sizes, ARRAYSIZE(src_ranges), src_ranges, src_range_sizes,
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+				cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
+
+				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+				cmd_list->DrawInstanced(4, 1, 0, 0);
 			}, ERGPassType::Graphics, ERGPassFlags::None);
 	}
 

@@ -112,7 +112,8 @@ namespace adria
 		}
 
 		SkyPassData sky_data = sky_pass.AddPass(render_graph, ambient_data.hdr_rtv, gbuffer_data.depth_stencil_dsv, render_settings.sky_type);
-		PostprocessData postprocess_data = postprocessor.AddPasses(render_graph, render_settings.postprocessor, sky_data.render_target, ambient_data.depth_stencil_srv);
+		PostprocessData postprocess_data = postprocessor.AddPasses(render_graph, render_settings.postprocessor,  sky_data.render_target,
+																   ambient_data.gbuffer_normal_srv, ambient_data.depth_stencil_srv);
 
 		if (render_settings.gui_visible)
 		{
