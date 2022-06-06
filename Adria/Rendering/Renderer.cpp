@@ -4489,7 +4489,6 @@ namespace adria
 			src_srv_desc.Texture2D.MostDetailedMip = top_mip;
 			device->CreateShaderResourceView(texture, &src_srv_desc, cpu_handle1);
 
-
 			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle2 = descriptor_allocator->GetHandle(i + 1);
 			D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle2 = descriptor_allocator->GetHandle(i + 1);
 			dst_uav_desc.Format = tex_desc.Format;

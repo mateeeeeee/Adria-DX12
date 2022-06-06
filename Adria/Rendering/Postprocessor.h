@@ -38,6 +38,12 @@ namespace adria
 			RGTextureSRVRef output_srv;
 		};
 
+		struct FogPassData
+		{
+			RGTextureSRVRef input_srv;
+			RGTextureSRVRef output_srv;
+		};
+
 	public:
 		Postprocessor(TextureManager& texture_manager, uint32 width, uint32 height);
 
@@ -58,5 +64,6 @@ namespace adria
 		CopyHDRPassData const& AddCopyHDRPass(RenderGraph& rg, RGTextureRef hdr_texture);
 		VolumetricCloudsPassData const& AddVolumetricCloudsPass(RenderGraph& rg, RGTextureSRVRef depth_srv);
 		SSRPassData const& AddSSRPass(RenderGraph& rg, RGTextureRef input, RGTextureSRVRef gbuffer_normal_srv, RGTextureSRVRef depth_srv);
+		FogPassData const& AddFogPass(RenderGraph& rg, RGTextureRef input, RGTextureSRVRef depth_srv);
 	};
 }
