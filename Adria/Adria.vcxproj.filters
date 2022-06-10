@@ -598,6 +598,9 @@
     <ClInclude Include="Rendering\Passes\BlurPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
+    <ClInclude Include="RenderGraph\RenderGraphResourceName.h">
+      <Filter>RenderGraph</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
