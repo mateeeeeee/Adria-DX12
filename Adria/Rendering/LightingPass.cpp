@@ -33,12 +33,10 @@ namespace adria
 				data.gbuffer_albedo = builder.ReadTexture(RG_RES_NAME(GBufferAlbedo), ReadAccess_PixelShader);
 				data.depth			= builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
 
-				std::string const shadowmap = "ShadowMap" + std::to_string(light_id);
-				std::string const allocation = "ShadowAllocation" + std::to_string(light_id);
-				if (builder.IsTextureDeclared(RG_STR_RES_NAME(shadowmap)))
+				if (builder.IsTextureDeclared(RG_RES_NAME_IDX(ShadowMap, light_id)))
 				{
-					data.shadow_map = builder.ReadTexture(RG_STR_RES_NAME(shadowmap), ReadAccess_PixelShader);
-					data.shadow_alloc = builder.UseAllocation(RG_STR_RES_NAME(allocation));
+					data.shadow_map = builder.ReadTexture(RG_RES_NAME_IDX(ShadowMap, light_id), ReadAccess_PixelShader);
+					data.shadow_alloc = builder.UseAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id));
 				}
 				else
 				{

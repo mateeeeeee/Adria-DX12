@@ -347,9 +347,6 @@ namespace adria
 				clear_value.DepthStencil.Depth = 1.0f;
 				clear_value.DepthStencil.Stencil = 0;
 
-				std::string const shadowmap = "ShadowMap" + std::to_string(light_id);
-				std::string const allocation = "ShadowAllocation" + std::to_string(light_id);
-
 				TextureDesc depth_desc{};
 				depth_desc.width = SHADOW_MAP_SIZE;
 				depth_desc.height = SHADOW_MAP_SIZE;
@@ -358,11 +355,11 @@ namespace adria
 				depth_desc.initial_state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 				depth_desc.clear = clear_value;
 
-				builder.DeclareTexture(RG_STR_RES_NAME(shadowmap), depth_desc);
-				builder.DeclareAllocation(RG_STR_RES_NAME(allocation), AllocDesc{ GetCBufferSize<ShadowCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT });
+				builder.DeclareTexture(RG_RES_NAME_IDX(ShadowMap, light_id), depth_desc);
+				builder.DeclareAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id), AllocDesc{ GetCBufferSize<ShadowCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT });
 				
-				builder.WriteDepthStencil(RG_STR_RES_NAME(shadowmap), ERGLoadStoreAccessOp::Clear_Preserve);
-				data.alloc_id = builder.UseAllocation(RG_STR_RES_NAME(allocation));
+				builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light_id), ERGLoadStoreAccessOp::Clear_Preserve);
+				data.alloc_id = builder.UseAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id));
 				builder.SetViewport(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
 			},
 			[=](ShadowPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
