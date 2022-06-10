@@ -9,15 +9,22 @@ namespace adria
 	ToneMapPass::ToneMapPass(uint32 w, uint32 h) : width(w), height(h)
 	{}
 
-	void ToneMapPass::AddPass(RenderGraph& rg, bool render_to_backbuffer)
+	void ToneMapPass::AddPass(RenderGraph& rg, RGResourceName hdr_src, bool render_to_backbuffer)
 	{
 		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
 		ERGPassFlags flags = render_to_backbuffer ? ERGPassFlags::ForceNoCull | ERGPassFlags::SkipAutoRenderPass : ERGPassFlags::None;
 
+
+		struct ToneMapPassData
+		{
+			RGRenderTargetId	target;
+			RGTextureReadOnlyId hdr_srv;
+		};
+
 		rg.AddPass<ToneMapPassData>("ToneMap Pass",
 			[=](ToneMapPassData& data, RenderGraphBuilder& builder)
 			{
-				data.hdr_srv = builder.ReadTexture(RG_RES_NAME(HDR_RenderTarget), ReadAccess_PixelShader);
+				data.hdr_srv = builder.ReadTexture(hdr_src, ReadAccess_PixelShader);
 				ADRIA_ASSERT(!render_to_backbuffer && builder.IsTextureDeclared(RG_RES_NAME(FinalTexture)));
 				if (!render_to_backbuffer) data.target = builder.WriteRenderTarget(RG_RES_NAME(FinalTexture), ERGLoadStoreAccessOp::Discard_Preserve);
 				else data.target = RGRenderTargetId();

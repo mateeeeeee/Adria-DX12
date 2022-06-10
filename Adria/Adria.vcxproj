@@ -193,12 +193,14 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Rendering\AmbientPass.cpp" />
+    <ClCompile Include="Rendering\BlurPass.cpp" />
     <ClCompile Include="Rendering\Camera.cpp" />
     <ClCompile Include="Rendering\CameraManager.cpp" />
     <ClCompile Include="Rendering\CopyToTexturePass.cpp" />
     <ClCompile Include="Rendering\EntityLoader.cpp" />
     <ClCompile Include="Rendering\GBufferPass.cpp" />
     <ClCompile Include="Rendering\LightingPass.cpp" />
+    <ClCompile Include="Rendering\Postprocessor.cpp" />
     <ClCompile Include="Rendering\RenderGraphRenderer.cpp" />
     <ClCompile Include="Rendering\RootSigPSOManager.cpp" />
     <ClCompile Include="Rendering\ShadowPass.cpp" />
@@ -287,6 +289,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="Rendering\AmbientPass.h" />
+    <ClInclude Include="Rendering\BlurPass.h" />
     <ClInclude Include="Rendering\Camera.h" />
     <ClInclude Include="Rendering\CameraManager.h" />
     <ClInclude Include="Rendering\Components.h" />
@@ -297,6 +300,7 @@
     <ClInclude Include="Rendering\GBufferPass.h" />
     <ClInclude Include="Rendering\GlobalBlackboardData.h" />
     <ClInclude Include="Rendering\LightingPass.h" />
+    <ClInclude Include="Rendering\Postprocessor.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />
     <ClInclude Include="Rendering\RenderGraphRenderer.h" />
     <ClInclude Include="Rendering\RootSigPSOManager.h" />

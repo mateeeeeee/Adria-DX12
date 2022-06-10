@@ -36,14 +36,18 @@ namespace adria
 	RGTextureCopySrcId RenderGraphBuilder::ReadCopySrcTexture(RGResourceName name)
 	{
 		RGTextureCopySrcId copy_src_id = rg.ReadCopySrcTexture(name);
-		rg_pass.reads.insert(RGTextureId(copy_src_id));
+		RGTextureId res_id(copy_src_id);
+		rg_pass.resource_state_map[res_id] |= D3D12_RESOURCE_STATE_COPY_SOURCE;
+		rg_pass.reads.insert(res_id);
 		return copy_src_id;
 	}
 
 	RGTextureCopyDstId RenderGraphBuilder::WriteCopyDstTexture(RGResourceName name)
 	{
-		RGTextureCopyDstId copy_dst_id = rg.ReadCopySrcTexture(name);
-		rg_pass.writes.insert(RGTextureId(copy_dst_id));
+		RGTextureCopyDstId copy_dst_id = rg.WriteCopyDstTexture(name);
+		RGTextureId res_id(copy_dst_id);
+		rg_pass.resource_state_map[res_id] |= D3D12_RESOURCE_STATE_COPY_DEST;
+		rg_pass.writes.insert(res_id);
 		return copy_dst_id;
 	}
 

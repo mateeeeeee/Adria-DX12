@@ -2,7 +2,7 @@
 #include "RendererSettings.h"
 //#include "SceneViewport.h"
 #include "ConstantBuffers.h"
-//#include "Postprocessor.h"
+#include "Postprocessor.h"
 #include "GBufferPass.h"
 #include "AmbientPass.h"
 #include "SkyPass.h"
@@ -102,7 +102,7 @@ namespace adria
 		TiledLightingPass tiled_lighting_pass;
 		CopyToTexturePass copy_to_texture_pass;
 		ShadowPass    shadow_pass;
-		//Postprocessor postprocessor;
+		Postprocessor postprocessor;
 	private:
 		void CreateNullHeap();
 		void CreateSizeDependentResources();

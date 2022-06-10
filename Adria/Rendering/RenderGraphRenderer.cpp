@@ -21,7 +21,7 @@ namespace adria
 		weather_cbuffer(gfx->GetDevice(), backbuffer_count), compute_cbuffer(gfx->GetDevice(), backbuffer_count)
 		,gbuffer_pass(reg, gpu_profiler, width, height), ambient_pass(width, height), tonemap_pass(width, height)
 		,sky_pass(reg, texture_manager, width, height), lighting_pass(width, height), shadow_pass(reg, texture_manager),
-		tiled_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height) //, postprocessor(texture_manager, width, height)
+		tiled_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), postprocessor(texture_manager, width, height)
 	{
 		RootSigPSOManager::Initialize(gfx->GetDevice());
 		CreateNullHeap();
@@ -107,8 +107,7 @@ namespace adria
 		}
 
 		sky_pass.AddPass(render_graph, render_settings.sky_type);
-		//PostprocessData postprocess_data = postprocessor.AddPasses(render_graph, render_settings.postprocessor,  sky_data.render_target,
-		//														   ambient_data.gbuffer_normal_srv, ambient_data.depth_stencil_srv);
+		postprocessor.AddPasses(render_graph, render_settings.postprocessor);
 
 		if (render_settings.gui_visible)
 		{
@@ -139,7 +138,7 @@ namespace adria
 			tiled_lighting_pass.OnResize(w, h);
 			copy_to_texture_pass.OnResize(w, h);
 			tonemap_pass.OnResize(w, h);
-			//postprocessor.OnResize(w, h);
+			postprocessor.OnResize(w, h);
 		}
 	}
 	void RenderGraphRenderer::OnSceneInitialized()
@@ -155,7 +154,7 @@ namespace adria
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		sky_pass.OnSceneInitialized(gfx);
-		//postprocessor.OnSceneInitialized();
+		postprocessor.OnSceneInitialized();
 	}
 
 	TextureManager& RenderGraphRenderer::GetTextureManager()
@@ -364,7 +363,7 @@ namespace adria
 		}
 		else
 		{
-			tonemap_pass.AddPass(rg, true);
+			tonemap_pass.AddPass(rg, postprocessor.GetFinalResource(), true);
 		}
 	}
 
@@ -377,7 +376,7 @@ namespace adria
 		}
 		else
 		{
-			tonemap_pass.AddPass(rg, false);
+			tonemap_pass.AddPass(rg, postprocessor.GetFinalResource(), false);
 		}
 	}
 
