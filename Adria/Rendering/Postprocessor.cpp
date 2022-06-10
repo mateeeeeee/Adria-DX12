@@ -18,6 +18,12 @@ namespace adria
 	void Postprocessor::AddPasses(RenderGraph& rg, PostprocessSettings const& settings)
 	{
 		AddCopyHDRPass(rg);
+		if (settings.clouds)
+		{
+			AddVolumetricCloudsPass(rg);
+			blur_pass.AddPass(rg, RG_RES_NAME(CloudsOutput), RG_RES_NAME(BlurredCloudsOutput), "Volumetric Clouds");
+			copy_to_texture_pass.AddPass(rg, RG_RES_NAME(PostprocessMain), RG_RES_NAME(BlurredCloudsOutput), EBlendMode::AlphaBlend);
+		}
 	}
 
 	void Postprocessor::OnResize(uint32 w, uint32 h)
@@ -36,7 +42,7 @@ namespace adria
 
 	RGResourceName Postprocessor::GetFinalResource() const
 	{
-		return RG_RES_NAME(PostprocessCopy);
+		return RG_RES_NAME(PostprocessMain);
 	}
 
 	void Postprocessor::AddCopyHDRPass(RenderGraph& rg)
@@ -57,8 +63,8 @@ namespace adria
 				postprocess_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::RenderTarget | EBindFlag::ShaderResource;
 				postprocess_desc.initial_state = D3D12_RESOURCE_STATE_COPY_DEST;
 
-				builder.DeclareTexture(RG_RES_NAME(PostprocessCopy), postprocess_desc);
-				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(PostprocessCopy));
+				builder.DeclareTexture(RG_RES_NAME(PostprocessMain), postprocess_desc);
+				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(PostprocessMain));
 				data.copy_src = builder.ReadCopySrcTexture(RG_RES_NAME(HDR_RenderTarget));
 			},
 			[=](CopyPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
@@ -69,6 +75,64 @@ namespace adria
 			}, ERGPassType::Copy, ERGPassFlags::None);
 	}
 
+	void Postprocessor::AddVolumetricCloudsPass(RenderGraph& rg)
+	{
+		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
+
+		struct VolumetricCloudsPassData
+		{
+			RGTextureReadOnlyId depth;
+		};
+		rg.AddPass<VolumetricCloudsPassData>("Volumetric Clouds Pass",
+			[=](VolumetricCloudsPassData& data, RenderGraphBuilder& builder)
+			{
+				D3D12_CLEAR_VALUE rtv_clear_value{};
+				rtv_clear_value.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				rtv_clear_value.Color[0] = 0.0f;
+				rtv_clear_value.Color[1] = 0.0f;
+				rtv_clear_value.Color[2] = 0.0f;
+				rtv_clear_value.Color[3] = 0.0f;
+
+				TextureDesc clouds_output_desc{};
+				clouds_output_desc.clear = rtv_clear_value;
+				clouds_output_desc.width = width;
+				clouds_output_desc.height = height;
+				clouds_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				clouds_output_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
+				clouds_output_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+				builder.DeclareTexture(RG_RES_NAME(CloudsOutput), clouds_output_desc);
+				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
+				builder.WriteRenderTarget(RG_RES_NAME(CloudsOutput), ERGLoadStoreAccessOp::Clear_Preserve);
+				builder.SetViewport(width, height);
+			},
+			[=](VolumetricCloudsPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			{
+				ID3D12Device* device = gfx->GetDevice();
+				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+
+				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Clouds));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Clouds));
+
+				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
+				cmd_list->SetGraphicsRootConstantBufferView(1, global_data.weather_cbuffer_address);
+
+				OffsetType descriptor_index = descriptor_allocator->AllocateRange(4);
+				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { texture_manager.CpuDescriptorHandle(cloud_textures[0]),  texture_manager.CpuDescriptorHandle(cloud_textures[1]),
+															 texture_manager.CpuDescriptorHandle(cloud_textures[2]), resources.GetDescriptor(data.depth) };
+				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
+				uint32 src_range_sizes[] = { 1, 1, 1, 1 };
+				uint32 dst_range_sizes[] = { 4 };
+
+				device->CopyDescriptors(ARRAYSIZE(dst_ranges), dst_ranges, dst_range_sizes, ARRAYSIZE(src_ranges), src_ranges, src_range_sizes,
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+				cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
+				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+				cmd_list->DrawInstanced(4, 1, 0, 0);
+
+			}, ERGPassType::Graphics, ERGPassFlags::None);
+	}
 
 }
 
