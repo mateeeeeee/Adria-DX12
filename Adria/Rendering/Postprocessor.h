@@ -30,6 +30,7 @@ namespace adria
 		TextureManager& texture_manager;
 		uint32 width, height;
 		std::vector<size_t> cloud_textures;
+		RGResourceName final_resource;
 
 		BlurPass blur_pass;
 		CopyToTexturePass copy_to_texture_pass;
@@ -37,7 +38,7 @@ namespace adria
 	private:
 		void AddCopyHDRPass(RenderGraph& rg);
 		void AddVolumetricCloudsPass(RenderGraph& rg);
-		//SSRPassData const& AddSSRPass(RenderGraph& rg, RGTextureRef input, RGTextureSRVRef gbuffer_normal_srv, RGTextureSRVRef depth_srv);
+		void AddSSRPass(RenderGraph& rg);
 		//FogPassData const& AddFogPass(RenderGraph& rg, RGTextureRef input, RGTextureSRVRef depth_srv);
 	};
 }

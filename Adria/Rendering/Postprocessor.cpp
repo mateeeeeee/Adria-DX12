@@ -18,11 +18,18 @@ namespace adria
 	void Postprocessor::AddPasses(RenderGraph& rg, PostprocessSettings const& settings)
 	{
 		AddCopyHDRPass(rg);
+		final_resource = RG_RES_NAME(PostprocessMain);
 		if (settings.clouds)
 		{
 			AddVolumetricCloudsPass(rg);
 			blur_pass.AddPass(rg, RG_RES_NAME(CloudsOutput), RG_RES_NAME(BlurredCloudsOutput), "Volumetric Clouds");
 			copy_to_texture_pass.AddPass(rg, RG_RES_NAME(PostprocessMain), RG_RES_NAME(BlurredCloudsOutput), EBlendMode::AlphaBlend);
+		}
+
+		if (settings.reflections == EReflections::SSR)
+		{
+			AddSSRPass(rg);
+			final_resource = RG_RES_NAME(SSR_Output);
 		}
 	}
 
@@ -42,7 +49,7 @@ namespace adria
 
 	RGResourceName Postprocessor::GetFinalResource() const
 	{
-		return RG_RES_NAME(PostprocessMain);
+		return final_resource;
 	}
 
 	void Postprocessor::AddCopyHDRPass(RenderGraph& rg)
@@ -131,6 +138,62 @@ namespace adria
 				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 				cmd_list->DrawInstanced(4, 1, 0, 0);
 
+			}, ERGPassType::Graphics, ERGPassFlags::None);
+	}
+
+	void Postprocessor::AddSSRPass(RenderGraph& rg)
+	{
+		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
+
+		struct SSRPassData
+		{
+			RGTextureReadOnlyId normals;
+			RGTextureReadOnlyId input;
+			RGTextureReadOnlyId depth;
+		};
+
+		rg.AddPass<SSRPassData>("SSR Pass",
+			[=](SSRPassData& data, RenderGraphBuilder& builder)
+			{
+				TextureDesc ssr_output_desc{};
+				ssr_output_desc.width = width;
+				ssr_output_desc.height = height;
+				ssr_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				ssr_output_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::RenderTarget | EBindFlag::ShaderResource;
+				ssr_output_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+				builder.DeclareTexture(RG_RES_NAME(SSR_Output), ssr_output_desc);
+				builder.WriteRenderTarget(RG_RES_NAME(SSR_Output), ERGLoadStoreAccessOp::Discard_Preserve);
+				data.input = builder.ReadTexture(final_resource, ReadAccess_PixelShader);
+				data.normals = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_PixelShader);
+				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
+				builder.SetViewport(width, height);
+			},
+			[=](SSRPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			{
+				ID3D12Device* device = gfx->GetDevice();
+				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::SSR));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::SSR));
+
+				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
+				cmd_list->SetGraphicsRootConstantBufferView(1, global_data.postprocess_cbuffer_address);
+
+				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
+
+				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { resources.GetDescriptor(data.normals), resources.GetDescriptor(data.input), resources.GetDescriptor(data.depth) };
+				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
+				uint32 src_range_sizes[] = { 1, 1, 1 };
+				uint32 dst_range_sizes[] = { 3 };
+
+				device->CopyDescriptors(ARRAYSIZE(dst_ranges), dst_ranges, dst_range_sizes, ARRAYSIZE(src_ranges), src_ranges, src_range_sizes,
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+				cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
+
+				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+				cmd_list->DrawInstanced(4, 1, 0, 0);
 			}, ERGPassType::Graphics, ERGPassFlags::None);
 	}
 
