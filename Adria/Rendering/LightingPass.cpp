@@ -24,6 +24,7 @@ namespace adria
 			RGTextureReadOnlyId shadow_map;
 			RGAllocationId		shadow_alloc;
 		};
+
 		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
 		rendergraph.AddPass<LightingPassData>("Lighting Pass",
 			[=](LightingPassData& data, RenderGraphBuilder& builder)

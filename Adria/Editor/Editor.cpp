@@ -789,7 +789,7 @@ namespace adria
                         light_params.light_data.casts_shadows = false;
                         light_params.light_data.color = DirectX::XMVectorSet(real() * 2, real() * 2, real() * 2, 1.0f);
                         light_params.light_data.direction = DirectX::XMVectorSet(0.5f, -1.0f, 0.1f, 0.0f);
-                        light_params.light_data.position = DirectX::XMVectorSet(real() * 500 - 250, real() * 500.0f, real() * 500 - 250, 1.0f);
+                        light_params.light_data.position = DirectX::XMVectorSet(real() * 200 - 100, real() * 200.0f, real() * 200 - 100, 1.0f);
                         light_params.light_data.type = ELightType::Point;
                         light_params.mesh_type = ELightMesh::NoMesh;
                         light_params.light_data.range = real() * 100.0f + 40.0f;

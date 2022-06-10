@@ -74,8 +74,10 @@ namespace adria
 
 		RGBlackboard& GetBlackboard();
 
-		Texture const& GetResource(RGTextureCopySrcId res_id) const;
-		Texture const& GetResource(RGTextureCopyDstId res_id) const;
+		Texture const& GetTexture(RGTextureId res_id) const;
+
+		Texture const& GetCopyResource(RGTextureCopySrcId res_id) const;
+		Texture const& GetCopyResource(RGTextureCopyDstId res_id) const;
 
 		RGDescriptor GetDescriptor(RGTextureReadOnlyId res_id) const;
 		RGDescriptor GetDescriptor(RGTextureReadWriteId res_id) const;

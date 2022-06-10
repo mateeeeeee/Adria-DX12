@@ -20,8 +20,8 @@ namespace adria
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count), postprocess_cbuffer(gfx->GetDevice(), backbuffer_count),
 		weather_cbuffer(gfx->GetDevice(), backbuffer_count), compute_cbuffer(gfx->GetDevice(), backbuffer_count)
 		,gbuffer_pass(reg, gpu_profiler, width, height), ambient_pass(width, height), tonemap_pass(width, height)
-		,sky_pass(reg, texture_manager, width, height), lighting_pass(width, height), shadow_pass(reg, texture_manager)  
-		//tiled_lighting_pass(reg, width, height), copy_to_texture_pass(width, height), postprocessor(texture_manager, width, height)
+		,sky_pass(reg, texture_manager, width, height), lighting_pass(width, height), shadow_pass(reg, texture_manager),
+		tiled_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height) //, postprocessor(texture_manager, width, height)
 	{
 		RootSigPSOManager::Initialize(gfx->GetDevice());
 		CreateNullHeap();
@@ -89,7 +89,7 @@ namespace adria
 			}
 		}
 
-		/*if (render_settings.use_tiled_deferred)
+		if (render_settings.use_tiled_deferred)
 		{
 			if (render_settings.visualize_tiled) 
 			{
@@ -97,17 +97,14 @@ namespace adria
 			}
 			else
 			{
-				TiledLightingPassData tiled_data = tiled_lighting_pass.AddPass(render_graph,
-					ambient_data.gbuffer_normal_srv, ambient_data.gbuffer_albedo_srv, ambient_data.depth_stencil_srv);
-				CopyToTexturePassData copy_data = copy_to_texture_pass.AddPass(render_graph,
-					ambient_data.hdr_rtv, tiled_data.tiled_srv, EBlendMode::AdditiveBlend);
+				tiled_lighting_pass.AddPass(render_graph);
+				copy_to_texture_pass.AddPass(render_graph, RG_RES_NAME(HDR_RenderTarget), RG_RES_NAME(TiledTarget), EBlendMode::AdditiveBlend);
 			}
 		}
 		else if (render_settings.use_clustered_deferred)
 		{
 			
 		}
-		*/
 
 		sky_pass.AddPass(render_graph, render_settings.sky_type);
 		//PostprocessData postprocess_data = postprocessor.AddPasses(render_graph, render_settings.postprocessor,  sky_data.render_target,
@@ -139,8 +136,8 @@ namespace adria
 			ambient_pass.OnResize(w, h);
 			sky_pass.OnResize(w, h);
 			lighting_pass.OnResize(w, h);
-			//tiled_lighting_pass.OnResize(w, h);
-			//copy_to_texture_pass.OnResize(w, h);
+			tiled_lighting_pass.OnResize(w, h);
+			copy_to_texture_pass.OnResize(w, h);
 			tonemap_pass.OnResize(w, h);
 			//postprocessor.OnResize(w, h);
 		}

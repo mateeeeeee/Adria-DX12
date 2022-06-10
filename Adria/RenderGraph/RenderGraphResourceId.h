@@ -101,10 +101,6 @@ namespace adria
 	{
 		using RenderGraphResourceDescriptorId::RenderGraphResourceDescriptorId;
 
-	private:
-		friend class RenderGraphBuilder;
-		friend class RenderGraph;
-
 		auto GetResourceId() const
 		{
 			if constexpr (ResourceType == ERGResourceType::Buffer) return RGBufferId(RenderGraphResourceDescriptorId::GetResourceId());

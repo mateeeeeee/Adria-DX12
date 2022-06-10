@@ -12,15 +12,21 @@ namespace adria
 		return rg.GetBlackboard();
 	}
 
-	Texture const& RenderGraphResources::GetResource(RGTextureCopySrcId res_id) const
+	Texture const& RenderGraphResources::GetTexture(RGTextureId res_id) const
+	{
+		return *rg.GetTexture(res_id);
+	}
+
+	Texture const& RenderGraphResources::GetCopyResource(RGTextureCopySrcId res_id) const
 	{
 		return rg.GetResource(res_id);
 	}
 
-	Texture const& RenderGraphResources::GetResource(RGTextureCopyDstId res_id) const
+	Texture const& RenderGraphResources::GetCopyResource(RGTextureCopyDstId res_id) const
 	{
 		return rg.GetResource(res_id);
 	}
+
 
 	RGDescriptor RenderGraphResources::GetDescriptor(RGTextureReadOnlyId res_id) const
 	{
