@@ -19,9 +19,21 @@ namespace adria
 		return RGTextureId(textures.size() - 1);
 	}
 
+	RGAllocationId RenderGraph::DeclareAllocation(RGResourceName name, AllocDesc const& alloc)
+	{
+		dynamic_allocations.emplace_back(gfx->GetDynamicAllocator()->Allocate(alloc.size_in_bytes, alloc.alignment));
+		alloc_name_id_map[name] = RGAllocationId{ dynamic_allocations.size() - 1 };
+		return RGAllocationId{ dynamic_allocations.size() - 1 };
+	}
+
 	bool RenderGraph::IsTextureDeclared(RGResourceName name)
 	{
 		return texture_name_id_map.find(name) != texture_name_id_map.end();
+	}
+
+	bool RenderGraph::IsAllocationDeclared(RGResourceName name)
+	{
+		return alloc_name_id_map.find(name) != alloc_name_id_map.end();
 	}
 
 	void RenderGraph::ImportTexture(RGResourceName name, Texture* texture)
@@ -38,6 +50,11 @@ namespace adria
 	bool RenderGraph::IsValidBufferHandle(RGBufferId handle) const
 	{
 		return handle.IsValid() && handle.id < buffers.size();
+	}
+
+	bool RenderGraph::IsValidAllocHandle(RGAllocationId alloc) const
+	{
+		return alloc.id < dynamic_allocations.size();
 	}
 
 	void RenderGraph::Build()
@@ -395,6 +412,18 @@ namespace adria
 		size_t view_id = view_descs.size();
 		view_descs.push_back(desc);
 		return RGDepthStencilId(view_id, handle);
+	}
+
+	RGAllocationId RenderGraph::UseAllocation(RGResourceName name)
+	{
+		RGAllocationId alloc = alloc_name_id_map[name];
+		ADRIA_ASSERT(IsValidAllocHandle(alloc) && "Allocation has not been declared!");
+		return alloc;
+	}
+
+	DynamicAllocation& RenderGraph::GetAllocation(RGAllocationId alloc)
+	{
+		return dynamic_allocations[alloc.id];
 	}
 
 	Texture const& RenderGraph::GetResource(RGTextureCopySrcId res_id) const

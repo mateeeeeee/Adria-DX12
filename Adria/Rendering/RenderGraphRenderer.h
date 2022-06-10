@@ -5,10 +5,10 @@
 //#include "Postprocessor.h"
 #include "GBufferPass.h"
 #include "AmbientPass.h"
-//#include "Passes/SkyPass.h"
-//#include "Passes/LightingPass.h"
+#include "SkyPass.h"
+#include "LightingPass.h"
 //#include "Passes/TiledLightingPass.h"
-//#include "Passes/ShadowPass.h"
+#include "ShadowPass.h"
 #include "ToneMapPass.h"
 //#include "Passes/CopyToTexturePass.h"
 #include "../Graphics/ShaderUtility.h"
@@ -97,11 +97,11 @@ namespace adria
 		GBufferPass  gbuffer_pass;
 		AmbientPass  ambient_pass;
 		ToneMapPass  tonemap_pass;
-		//SkyPass		 sky_pass;
-		//LightingPass lighting_pass;
+		SkyPass		 sky_pass;
+		LightingPass lighting_pass;
 		//TiledLightingPass tiled_lighting_pass;
 		//CopyToTexturePass copy_to_texture_pass;
-		//ShadowPass    shadow_pass;
+		ShadowPass    shadow_pass;
 		//Postprocessor postprocessor;
 	private:
 		void CreateNullHeap();

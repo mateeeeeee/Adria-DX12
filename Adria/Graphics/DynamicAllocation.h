@@ -35,4 +35,12 @@ namespace adria
 		}
 	};
 
+
+	struct AllocDesc
+	{
+		size_t size_in_bytes;
+		size_t alignment;
+	};
+
+
 }

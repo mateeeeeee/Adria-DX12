@@ -78,6 +78,7 @@ namespace adria
 		std::vector<std::unique_ptr<RGPassBase>> passes;
 		std::vector<std::unique_ptr<RGTexture>> textures;
 		std::vector<std::unique_ptr<RGBuffer>> buffers;
+		std::vector<DynamicAllocation> dynamic_allocations;
 
 		std::vector<std::vector<uint64>> adjacency_lists;
 		std::vector<size_t> topologically_sorted_passes;
@@ -85,6 +86,7 @@ namespace adria
 
 		std::unordered_map<RGResourceName, RGTextureId> texture_name_id_map;
 		std::unordered_map<RGResourceName, RGBufferId>  buffer_name_id_map;
+		std::unordered_map<RGResourceName, RGAllocationId>  alloc_name_id_map;
 
 		mutable std::unordered_map<RGTextureId, std::vector<TextureViewDesc>> view_desc_map;
 		mutable std::unordered_map<RGTextureReadOnlyId, RGDescriptor> texture_srv_cache;
@@ -108,10 +110,15 @@ namespace adria
 		void DepthFirstSearch(size_t i, std::vector<bool>& visited, std::stack<size_t>& stack);
 
 		RGTextureId DeclareTexture(RGResourceName name, TextureDesc const& desc);
+
+		RGAllocationId DeclareAllocation(RGResourceName name, AllocDesc const& alloc);
+
 		bool IsTextureDeclared(RGResourceName name);
+		bool IsAllocationDeclared(RGResourceName name);
 
 		bool IsValidTextureHandle(RGTextureId) const;
 		bool IsValidBufferHandle(RGBufferId) const;
+		bool IsValidAllocHandle(RGAllocationId) const;
 
 		RGTexture* GetRGTexture(RGTextureId) const;
 		RGBuffer* GetRGBuffer(RGBufferId) const;
@@ -124,6 +131,7 @@ namespace adria
 		RGTextureReadWriteId WriteTexture(RGResourceName name, TextureViewDesc const& desc);
 		RGRenderTargetId RenderTarget(RGResourceName name, TextureViewDesc const& desc);
 		RGDepthStencilId DepthStencil(RGResourceName name, TextureViewDesc const& desc);
+		RGAllocationId UseAllocation(RGResourceName name);
 
 		Texture const& GetResource(RGTextureCopySrcId res_id) const;
 		Texture const& GetResource(RGTextureCopyDstId res_id) const;
@@ -131,6 +139,7 @@ namespace adria
 		RGDescriptor GetDescriptor(RGTextureReadWriteId res_id) const;
 		RGDescriptor GetDescriptor(RGRenderTargetId res_id) const;
 		RGDescriptor GetDescriptor(RGDepthStencilId res_id) const;
+		DynamicAllocation& GetAllocation(RGAllocationId alloc_id);
 
 		void Execute_Singlethreaded();
 		void Execute_Multithreaded();

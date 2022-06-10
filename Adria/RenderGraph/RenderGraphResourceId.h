@@ -123,6 +123,11 @@ namespace adria
 	using RGBufferReadWriteId	= TypedRenderGraphResourceDescriptorId<ERGResourceType::Buffer,   ERGDescriptorType::UAV>;
 	using RGBufferCopySrcId		= RGBufferCopyId<ERGCopyMode::Src>;
 	using RGBufferCopyDstId		= RGBufferCopyId<ERGCopyMode::Dst>;
+
+	struct RGAllocationId : RGResourceId
+	{
+		using RGResourceId::RGResourceId;
+	};
 }
 
 namespace std 

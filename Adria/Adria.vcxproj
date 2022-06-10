@@ -197,9 +197,12 @@
     <ClCompile Include="Rendering\CameraManager.cpp" />
     <ClCompile Include="Rendering\EntityLoader.cpp" />
     <ClCompile Include="Rendering\GBufferPass.cpp" />
+    <ClCompile Include="Rendering\LightingPass.cpp" />
     <ClCompile Include="Rendering\RenderGraphRenderer.cpp" />
     <ClCompile Include="Rendering\RootSigPSOManager.cpp" />
+    <ClCompile Include="Rendering\ShadowPass.cpp" />
     <ClCompile Include="Rendering\SkyModel.cpp" />
+    <ClCompile Include="Rendering\SkyPass.cpp" />
     <ClCompile Include="Rendering\ToneMapPass.cpp" />
     <ClCompile Include="Utilities\AdriaException.cpp" />
     <ClCompile Include="Utilities\CPUProfiler.cpp" />
@@ -290,11 +293,14 @@
     <ClInclude Include="Rendering\EntityLoader.h" />
     <ClInclude Include="Rendering\GBufferPass.h" />
     <ClInclude Include="Rendering\GlobalBlackboardData.h" />
+    <ClInclude Include="Rendering\LightingPass.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />
     <ClInclude Include="Rendering\RenderGraphRenderer.h" />
     <ClInclude Include="Rendering\RootSigPSOManager.h" />
     <ClInclude Include="Rendering\SceneViewport.h" />
+    <ClInclude Include="Rendering\ShadowPass.h" />
     <ClInclude Include="Rendering\SkyModel.h" />
+    <ClInclude Include="Rendering\SkyPass.h" />
     <ClInclude Include="Rendering\ToneMapPass.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Tasks\Task.h" />

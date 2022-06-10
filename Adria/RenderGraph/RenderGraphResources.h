@@ -82,6 +82,7 @@ namespace adria
 		RGDescriptor GetDescriptor(RGRenderTargetId res_id) const;
 		RGDescriptor GetDescriptor(RGDepthStencilId res_id) const;
 
+		DynamicAllocation& GetAllocation(RGAllocationId);
 	private:
 		RenderGraph& rg;
 		RenderGraphPassBase& rg_pass;

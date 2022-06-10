@@ -13,7 +13,6 @@ namespace adria
 		: rg(rg), rg_pass(rg_pass)
 	{}
 
-
 	bool RenderGraphBuilder::IsTextureDeclared(RGResourceName name)
 	{
 		return rg.IsTextureDeclared(name);
@@ -27,6 +26,11 @@ namespace adria
 	void RenderGraphBuilder::DeclareBuffer(RGResourceName name, BufferDesc const& desc)
 	{
 		ADRIA_ASSERT(false && "Not yet implemented!");
+	}
+
+	void RenderGraphBuilder::DeclareAllocation(RGResourceName name, AllocDesc const& desc)
+	{
+		rg.DeclareAllocation(name, desc);
 	}
 
 	RGTextureCopySrcId RenderGraphBuilder::ReadCopySrcTexture(RGResourceName name)
@@ -134,6 +138,11 @@ namespace adria
 		if (rg_texture->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
 		rg_pass.resource_state_map[res_id] |= D3D12_RESOURCE_STATE_DEPTH_READ;
 		return depth_stencil_id;
+	}
+
+	RGAllocationId RenderGraphBuilder::UseAllocation(RGResourceName name)
+	{
+		return rg.UseAllocation(name);
 	}
 
 }

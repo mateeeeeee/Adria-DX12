@@ -42,5 +42,10 @@ namespace adria
 		return rg.GetDescriptor(res_id);
 	}
 
+	DynamicAllocation& RenderGraphResources::GetAllocation(RGAllocationId alloc_id)
+	{
+		return rg.GetAllocation(alloc_id);
+	}
+
 }
 

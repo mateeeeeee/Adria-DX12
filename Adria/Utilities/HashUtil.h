@@ -55,4 +55,9 @@ namespace adria
 	{
 		return crc::crc64_impl(_str, N - 1);
 	}
+
+	constexpr uint64_t crc64(std::string const& _str)
+	{
+		return crc::crc64_impl(_str.c_str(), _str.size());
+	}
 }
