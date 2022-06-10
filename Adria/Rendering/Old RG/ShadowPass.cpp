@@ -367,7 +367,7 @@ namespace adria
 				builder.DepthStencil(data.depth_map_dsv, ERGLoadStoreAccessOp::Clear_Preserve);
 				builder.SetViewport(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
 			},
-			[=](ShadowPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](ShadowPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				auto upload_buffer = gfx->GetDynamicAllocator();
 

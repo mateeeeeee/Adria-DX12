@@ -3,6 +3,7 @@
 #include <typeindex>
 #include <memory>
 #include "../Core/Definitions.h"
+#include "../Core/Macros.h"
 #include "../Utilities/TemplatesUtil.h"
 
 namespace adria

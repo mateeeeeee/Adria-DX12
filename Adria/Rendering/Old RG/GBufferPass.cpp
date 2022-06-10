@@ -14,6 +14,11 @@ namespace adria
 		reg{ reg }, gpu_profiler{ gpu_profiler }, width{ w }, height{ h }
 	{}
 
+	GBufferPass::GBufferPass(tecs::registry& reg, GPUProfiler& gpu_profiler, uint32 w, uint32 h)
+	{
+
+	}
+
 	GBufferPassData const& GBufferPass::AddPass(RenderGraph& rendergraph, bool profile_pass)
 	{
 		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
@@ -65,7 +70,7 @@ namespace adria
 				data.depth_stencil = builder.DepthStencil(depth_stencil_dsv, ERGLoadStoreAccessOp::Clear_Preserve);
 				data.depth_stencil_dsv = depth_stencil_dsv;
 			},
-			[=](GBufferPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](GBufferPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(gpu_profiler, cmd_list, EProfilerBlock::GBufferPass, profile_pass);
 
@@ -111,9 +116,5 @@ namespace adria
 			});
 	}
 
-	void GBufferPass::OnResize(uint32 w, uint32 h)
-	{
-		width = w, height = h;
-	}
 }
 

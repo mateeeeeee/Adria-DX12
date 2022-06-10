@@ -131,9 +131,6 @@
     <ClCompile Include="Graphics\TextureManager.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\Renderer.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="Graphics\LinearDynamicAllocator.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
@@ -176,9 +173,6 @@
     <ClCompile Include="..\ThirdParty\ImGui\ImGuizmo.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\RayTracer.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="Graphics\MipsGenerator.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
@@ -212,34 +206,16 @@
     <ClCompile Include="Rendering\RenderGraphRenderer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\Passes\GBufferPass.cpp">
+    <ClCompile Include="RenderGraph\RenderGraphBuilder.cpp">
+      <Filter>RenderGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\GBufferPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\Passes\AmbientPass.cpp">
+    <ClCompile Include="Rendering\AmbientPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\Passes\ToneMapPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Passes\SkyPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Passes\LightingPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Passes\ShadowPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Passes\TiledLightingPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Passes\CopyToTexturePass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Postprocessor.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Passes\BlurPass.cpp">
+    <ClCompile Include="Rendering\ToneMapPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
   </ItemGroup>
@@ -317,9 +293,6 @@
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\Enums.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Renderer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\EntityLoader.h">
@@ -460,9 +433,6 @@
     <ClInclude Include="Utilities\Timer.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\RayTracer.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\RayTracingUtil.h">
       <Filter>Graphics</Filter>
     </ClInclude>
@@ -508,17 +478,8 @@
     <ClInclude Include="Rendering\SkyModel.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\ParticleRenderer.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Utilities\JsonUtil.h">
       <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Picker.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\SceneViewport.h">
-      <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\RootSigPSOManager.h">
       <Filter>Rendering</Filter>
@@ -534,9 +495,6 @@
     </ClInclude>
     <ClInclude Include="Graphics\Heap.h">
       <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderGraph\RenderGraphResourceRef.h">
-      <Filter>RenderGraph</Filter>
     </ClInclude>
     <ClInclude Include="RenderGraph\RenderGraphPass.h">
       <Filter>RenderGraph</Filter>
@@ -562,44 +520,32 @@
     <ClInclude Include="Rendering\RenderGraphRenderer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\Passes\GBufferPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
     <ClInclude Include="RenderGraph\RenderGraphResourcePool.h">
       <Filter>RenderGraph</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Passes\AmbientPass.h">
-      <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\GlobalBlackboardData.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\Passes\ToneMapPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Passes\SkyPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Passes\LightingPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Passes\ShadowPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Passes\TiledLightingPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Passes\CopyToTexturePass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Postprocessor.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Passes\BlurPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
     <ClInclude Include="RenderGraph\RenderGraphResourceName.h">
       <Filter>RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGraph\RenderGraphBuilder.h">
+      <Filter>RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGraph\RenderGraphResourceId.h">
+      <Filter>RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\GBufferPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\AmbientPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\ToneMapPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\SceneViewport.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

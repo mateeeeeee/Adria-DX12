@@ -1,27 +1,29 @@
 #include "ToneMapPass.h"
-#include "../GlobalBlackboardData.h"
-#include "../RootSigPSOManager.h"
-#include "../../RenderGraph/RenderGraph.h"
-#include "pix3.h"
+#include "GlobalBlackboardData.h"
+#include "RootSigPSOManager.h"
+#include "../RenderGraph/RenderGraph.h"
 
 namespace adria
 {
 
-	ToneMapPassData const& ToneMapPass::AddPass(RenderGraph& rg, RGTextureRef hdr_texture, std::optional<RGTextureRef> ldr_texture)
+	ToneMapPass::ToneMapPass(uint32 w, uint32 h) : width(w), height(h)
+	{}
+
+	void ToneMapPass::AddPass(RenderGraph& rg, bool render_to_backbuffer)
 	{
 		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
-		ERGPassFlags flags = !ldr_texture.has_value() ? ERGPassFlags::ForceNoCull | ERGPassFlags::SkipAutoRenderPass : ERGPassFlags::None;
+		ERGPassFlags flags = render_to_backbuffer ? ERGPassFlags::ForceNoCull | ERGPassFlags::SkipAutoRenderPass : ERGPassFlags::None;
 
-		return rg.AddPass<ToneMapPassData>("ToneMap Pass",
+		rg.AddPass<ToneMapPassData>("ToneMap Pass",
 			[=](ToneMapPassData& data, RenderGraphBuilder& builder)
 			{
-				data.hdr_srv = builder.CreateSRV(builder.Read(hdr_texture, ReadAccess_PixelShader));
-				if (ldr_texture.has_value())
-					data.target = builder.RenderTarget(builder.CreateRTV(*ldr_texture), ERGLoadStoreAccessOp::Discard_Preserve);
-				else data.target = RGTextureRef();
+				data.hdr_srv = builder.ReadTexture(RG_RES_NAME(HDR_RenderTarget), ReadAccess_PixelShader);
+				ADRIA_ASSERT(!render_to_backbuffer && builder.IsTextureDeclared(RG_RES_NAME(FinalTexture)));
+				if (!render_to_backbuffer) data.target = builder.WriteRenderTarget(RG_RES_NAME(FinalTexture), ERGLoadStoreAccessOp::Discard_Preserve);
+				else data.target = RGRenderTargetId();
 				builder.SetViewport(width, height);
 			},
-			[=](ToneMapPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](ToneMapPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				if (!data.target.IsValid())
 				{
@@ -51,7 +53,7 @@ namespace adria
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.postprocess_cbuffer_address);
 
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = resources.GetSRV(data.hdr_srv);
+				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = resources.GetDescriptor(data.hdr_srv);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
@@ -66,4 +68,3 @@ namespace adria
 	}
 
 }
-

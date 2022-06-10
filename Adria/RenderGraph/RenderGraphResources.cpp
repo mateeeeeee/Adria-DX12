@@ -12,34 +12,34 @@ namespace adria
 		return rg.GetBlackboard();
 	}
 
-	Texture& RenderGraphResources::GetTexture(RGTextureRef handle)
+	Texture const& RenderGraphResources::GetResource(RGTextureCopySrcId res_id) const
 	{
-		return *rg.GetTexture(handle);
+		return rg.GetResource(res_id);
 	}
 
-	Buffer& RenderGraphResources::GetBuffer(RGBufferRef handle)
+	Texture const& RenderGraphResources::GetResource(RGTextureCopyDstId res_id) const
 	{
-		return *rg.GetBuffer(handle);
+		return rg.GetResource(res_id);
 	}
 
-	ResourceView RenderGraphResources::GetSRV(RGTextureSRVRef handle) const
+	RGDescriptor RenderGraphResources::GetDescriptor(RGTextureReadOnlyId res_id) const
 	{
-		return rg.GetSRV(handle);
+		return rg.GetDescriptor(res_id);
 	}
 
-	ResourceView RenderGraphResources::GetUAV(RGTextureUAVRef handle) const
+	RGDescriptor RenderGraphResources::GetDescriptor(RGTextureReadWriteId res_id) const
 	{
-		return rg.GetUAV(handle);
+		return rg.GetDescriptor(res_id);
 	}
 
-	ResourceView RenderGraphResources::GetRTV(RGTextureRTVRef handle) const
+	RGDescriptor RenderGraphResources::GetDescriptor(RGRenderTargetId res_id) const
 	{
-		return rg.GetRTV(handle);
+		return rg.GetDescriptor(res_id);
 	}
 
-	ResourceView RenderGraphResources::GetDSV(RGTextureDSVRef handle) const
+	RGDescriptor RenderGraphResources::GetDescriptor(RGDepthStencilId res_id) const
 	{
-		return rg.GetDSV(handle);
+		return rg.GetDescriptor(res_id);
 	}
 
 }

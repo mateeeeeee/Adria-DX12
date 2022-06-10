@@ -18,10 +18,11 @@ namespace adria
 		texture_manager(gfx, 1000), gpu_profiler(gfx), camera(nullptr), width(width), height(height), 
 		backbuffer_count(gfx->BackbufferCount()), backbuffer_index(gfx->BackbufferIndex()), final_texture(nullptr),
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count), postprocess_cbuffer(gfx->GetDevice(), backbuffer_count),
-		weather_cbuffer(gfx->GetDevice(), backbuffer_count), compute_cbuffer(gfx->GetDevice(), backbuffer_count),
-		gbuffer_pass(reg, gpu_profiler, width, height), ambient_pass(width, height), sky_pass(reg, texture_manager, width, height),
-		shadow_pass(reg, texture_manager), lighting_pass(width, height), tonemap_pass(width, height),
-		tiled_lighting_pass(reg, width, height), copy_to_texture_pass(width, height), postprocessor(texture_manager, width, height)
+		weather_cbuffer(gfx->GetDevice(), backbuffer_count), compute_cbuffer(gfx->GetDevice(), backbuffer_count)
+		,gbuffer_pass(reg, gpu_profiler, width, height), ambient_pass(width, height), tonemap_pass(width, height)
+		//,sky_pass(reg, texture_manager, width, height),
+		//shadow_pass(reg, texture_manager), lighting_pass(width, height), 
+		//tiled_lighting_pass(reg, width, height), copy_to_texture_pass(width, height), postprocessor(texture_manager, width, height)
 	{
 		RootSigPSOManager::Initialize(gfx->GetDevice());
 		CreateNullHeap();
@@ -39,7 +40,6 @@ namespace adria
 		ADRIA_ASSERT(_camera);
 		camera = _camera;
 		backbuffer_index = gfx->BackbufferIndex();
-		shadow_pass.SetCamera(camera);
 	}
 	void RenderGraphRenderer::Update(float32 dt)
 	{
@@ -69,11 +69,10 @@ namespace adria
 		}
 		rg_blackboard.Add<GlobalBlackboardData>(std::move(global_data));
 
-		GBufferPassData gbuffer_data = gbuffer_pass.AddPass(render_graph, profiler_settings.profile_gbuffer_pass);
-		AmbientPassData ambient_data = ambient_pass.AddPass(render_graph, gbuffer_data.gbuffer_normal, gbuffer_data.gbuffer_albedo,
-			gbuffer_data.gbuffer_emissive, gbuffer_data.depth_stencil);
+		gbuffer_pass.AddPass(render_graph, profiler_settings.profile_gbuffer_pass);
+		ambient_pass.AddPass(render_graph);
 
-		auto light_entities = reg.view<Light>();
+		/*auto light_entities = reg.view<Light>();
 		for (tecs::entity light_entity : light_entities)
 		{
 			auto const& light = light_entities.get(light_entity);
@@ -110,18 +109,19 @@ namespace adria
 		{
 			
 		}
+		*/
 
-		SkyPassData sky_data = sky_pass.AddPass(render_graph, ambient_data.hdr_rtv, gbuffer_data.depth_stencil_dsv, render_settings.sky_type);
-		PostprocessData postprocess_data = postprocessor.AddPasses(render_graph, render_settings.postprocessor,  sky_data.render_target,
-																   ambient_data.gbuffer_normal_srv, ambient_data.depth_stencil_srv);
+		//SkyPassData sky_data = sky_pass.AddPass(render_graph, ambient_data.hdr_rtv, gbuffer_data.depth_stencil_dsv, render_settings.sky_type);
+		//PostprocessData postprocess_data = postprocessor.AddPasses(render_graph, render_settings.postprocessor,  sky_data.render_target,
+		//														   ambient_data.gbuffer_normal_srv, ambient_data.depth_stencil_srv);
 
 		if (render_settings.gui_visible)
 		{
-			RGTextureRef final_texture_ref = render_graph.ImportTexture("Final Texture", final_texture.get());
-			ResolveToTexture(render_graph, postprocess_data.final_texture, final_texture_ref);
+			render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
+			ResolveToTexture(render_graph);
 		}
-		else ResolveToBackbuffer(render_graph, postprocess_data.final_texture);
-
+		else ResolveToBackbuffer(render_graph);
+		
 		render_graph.Build();
 		render_graph.Execute();
 	}
@@ -139,12 +139,12 @@ namespace adria
 			CreateSizeDependentResources();
 			gbuffer_pass.OnResize(w, h);
 			ambient_pass.OnResize(w, h);
-			sky_pass.OnResize(w, h);
-			lighting_pass.OnResize(w, h);
-			tiled_lighting_pass.OnResize(w, h);
-			copy_to_texture_pass.OnResize(w, h);
+			//sky_pass.OnResize(w, h);
+			//lighting_pass.OnResize(w, h);
+			//tiled_lighting_pass.OnResize(w, h);
+			//copy_to_texture_pass.OnResize(w, h);
 			tonemap_pass.OnResize(w, h);
-			postprocessor.OnResize(w, h);
+			//postprocessor.OnResize(w, h);
 		}
 	}
 	void RenderGraphRenderer::OnSceneInitialized()
@@ -159,8 +159,8 @@ namespace adria
 			texture_manager.texture_srv_heap->GetFirstHandle(),
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-		sky_pass.OnSceneInitialized(gfx);
-		postprocessor.OnSceneInitialized();
+		//sky_pass.OnSceneInitialized(gfx);
+		//postprocessor.OnSceneInitialized();
 	}
 
 	TextureManager& RenderGraphRenderer::GetTextureManager()
@@ -360,7 +360,7 @@ namespace adria
 		}
 	}
 
-	void RenderGraphRenderer::ResolveToBackbuffer(RenderGraph& rg, RGTextureRef hdr_texture)
+	void RenderGraphRenderer::ResolveToBackbuffer(RenderGraph& rg)
 	{
 		if (HasAnyFlag(render_settings.postprocessor.anti_aliasing, AntiAliasing_FXAA))
 		{
@@ -369,11 +369,11 @@ namespace adria
 		}
 		else
 		{
-			tonemap_pass.AddPass(rg, hdr_texture);
+			tonemap_pass.AddPass(rg, true);
 		}
-
 	}
-	void RenderGraphRenderer::ResolveToTexture(RenderGraph& rg, RGTextureRef hdr_texture, RGTextureRef resolve_texture)
+
+	void RenderGraphRenderer::ResolveToTexture(RenderGraph& rg)
 	{
 		if (HasAnyFlag(render_settings.postprocessor.anti_aliasing, AntiAliasing_FXAA))
 		{
@@ -382,7 +382,7 @@ namespace adria
 		}
 		else
 		{
-			tonemap_pass.AddPass(rg, hdr_texture, resolve_texture);
+			tonemap_pass.AddPass(rg, false);
 		}
 	}
 

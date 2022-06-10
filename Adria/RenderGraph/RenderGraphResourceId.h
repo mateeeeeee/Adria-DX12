@@ -1,4 +1,5 @@
 #pragma once
+#include <compare>
 #include "../Core/Definitions.h"
 
 namespace adria
@@ -9,7 +10,13 @@ namespace adria
 		Texture
 	};
 
-	enum class ERGResourceViewType : uint8
+	enum class ERGCopyMode : uint8
+	{
+		Src,
+		Dst
+	};
+
+	enum class ERGDescriptorType : uint8
 	{
 		SRV,
 		UAV,
@@ -34,20 +41,42 @@ namespace adria
 	using RGResourceId = RenderGraphResourceId;
 
 	template<ERGResourceType ResourceType>
-	struct TypedRenderGraphResourceHandle : RGResourceId
+	struct TypedRenderGraphResourceId : RGResourceId
 	{
 		using RGResourceId::RGResourceId;
 	};
 
-	using RGBufferId = TypedRenderGraphResourceHandle<ERGResourceType::Buffer>;
-	using RGTextureId = TypedRenderGraphResourceHandle<ERGResourceType::Texture>;
+	using RGBufferId = TypedRenderGraphResourceId<ERGResourceType::Buffer>;
+	using RGTextureId = TypedRenderGraphResourceId<ERGResourceType::Texture>;
 
-	struct RenderGraphResourceViewRef
+	template<ERGCopyMode Mode>
+	struct RGTextureCopyId : RGTextureId
+	{
+		using RGTextureId::RGTextureId;
+	private:
+		friend class RenderGraphBuilder;
+		friend class RenderGraph;
+
+		RGTextureCopyId(RGTextureId const& id) : RGTextureId(id) {}
+	};
+
+	template<ERGCopyMode Mode>
+	struct RGBufferCopyId : RGBufferId
+	{
+		using RGBufferId::RGBufferId;
+	private:
+		friend class RenderGraphBuilder;
+		friend class RenderGraph;
+
+		RGBufferCopyId(RGBufferId const& id) : RGBufferId(id) {}
+	};
+
+	struct RenderGraphResourceDescriptorId
 	{
 		inline constexpr static uint64 invalid_id = uint64(-1);
 
-		RenderGraphResourceViewRef() : id(invalid_id) {}
-		RenderGraphResourceViewRef(size_t view_id, RenderGraphResourceId resource_handle)
+		RenderGraphResourceDescriptorId() : id(invalid_id) {}
+		RenderGraphResourceDescriptorId(size_t view_id, RenderGraphResourceId resource_handle)
 			: id(invalid_id)
 		{
 			uint32 _resource_id = resource_handle.id;
@@ -62,34 +91,38 @@ namespace adria
 
 		void Invalidate() { id = invalid_id; }
 		bool IsValid() const { return id != invalid_id; }
-		auto operator<=>(RenderGraphResourceViewRef const&) const = default;
+		auto operator<=>(RenderGraphResourceDescriptorId const&) const = default;
 
 		uint64 id;
 	};
 
-	template<ERGResourceType ResourceType, ERGResourceViewType ResourceViewType>
-	struct TypedRenderGraphResourceViewRef : RenderGraphResourceViewRef 
+	template<ERGResourceType ResourceType, ERGDescriptorType ResourceViewType>
+	struct TypedRenderGraphResourceDescriptorId : RenderGraphResourceDescriptorId 
 	{
-		using RenderGraphResourceViewRef::RenderGraphResourceViewRef;
+		using RenderGraphResourceDescriptorId::RenderGraphResourceDescriptorId;
 
-		auto GetResourceHandle() const
+	private:
+		friend class RenderGraphBuilder;
+		friend class RenderGraph;
+
+		auto GetResourceId() const
 		{
-			if constexpr (ResourceType == ERGResourceType::Buffer) return RGBufferId(GetResourceId());
-			else if constexpr (ResourceType == ERGResourceType::Texture) return RGTextureId(GetResourceId());
+			if constexpr (ResourceType == ERGResourceType::Buffer) return RGBufferId(RenderGraphResourceDescriptorId::GetResourceId());
+			else if constexpr (ResourceType == ERGResourceType::Texture) return RGTextureId(RenderGraphResourceDescriptorId::GetResourceId());
 		}
 	};
 
-	using RGRenderTargetId = TypedRenderGraphResourceViewRef<ERGResourceType::Texture, ERGResourceViewType::RTV>;
-	using RGDepthStencilId = TypedRenderGraphResourceViewRef<ERGResourceType::Texture, ERGResourceViewType::DSV>;
-	using RGTextureReadOnlyId	= TypedRenderGraphResourceViewRef<ERGResourceType::Texture,  ERGResourceViewType::SRV>;
-	using RGTextureReadWriteId	= TypedRenderGraphResourceViewRef<ERGResourceType::Texture,  ERGResourceViewType::UAV>;
-	using RGTextureCopySrcId	= RGTextureId;
-	using RGTextureCopyDstId	= RGTextureId;
+	using RGRenderTargetId		= TypedRenderGraphResourceDescriptorId<ERGResourceType::Texture, ERGDescriptorType::RTV>;
+	using RGDepthStencilId		= TypedRenderGraphResourceDescriptorId<ERGResourceType::Texture, ERGDescriptorType::DSV>;
+	using RGTextureReadOnlyId	= TypedRenderGraphResourceDescriptorId<ERGResourceType::Texture,  ERGDescriptorType::SRV>;
+	using RGTextureReadWriteId	= TypedRenderGraphResourceDescriptorId<ERGResourceType::Texture,  ERGDescriptorType::UAV>;
+	using RGTextureCopySrcId	= RGTextureCopyId<ERGCopyMode::Src>;
+	using RGTextureCopyDstId	= RGTextureCopyId<ERGCopyMode::Dst>;
 
-	using RGBufferReadOnlyId	= TypedRenderGraphResourceViewRef<ERGResourceType::Buffer,   ERGResourceViewType::SRV>;
-	using RGBufferReadWriteId	= TypedRenderGraphResourceViewRef<ERGResourceType::Buffer,   ERGResourceViewType::UAV>;
-	using RGBufferCopySrcId	= RGBufferId;
-	using RGBufferCopyDstId	= RGBufferId;
+	using RGBufferReadOnlyId	= TypedRenderGraphResourceDescriptorId<ERGResourceType::Buffer,   ERGDescriptorType::SRV>;
+	using RGBufferReadWriteId	= TypedRenderGraphResourceDescriptorId<ERGResourceType::Buffer,   ERGDescriptorType::UAV>;
+	using RGBufferCopySrcId		= RGBufferCopyId<ERGCopyMode::Src>;
+	using RGBufferCopyDstId		= RGBufferCopyId<ERGCopyMode::Dst>;
 }
 
 namespace std 

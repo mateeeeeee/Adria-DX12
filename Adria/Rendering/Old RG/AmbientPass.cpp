@@ -3,7 +3,6 @@
 #include "../GlobalBlackboardData.h"
 #include "../RootSigPSOManager.h"
 #include "../../RenderGraph/RenderGraph.h"
-#include "pix3.h"
 
 namespace adria
 {
@@ -53,7 +52,7 @@ namespace adria
 
 				builder.SetViewport(width, height);
 			},
-			[&](AmbientPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
+			[&](AmbientPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();

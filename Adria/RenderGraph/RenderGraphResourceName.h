@@ -18,11 +18,11 @@ namespace adria
 		
 #if RG_DEBUG
 		template<size_t N>
-		explicit RenderGraphResourceName(char const (&_name)[N]) : hashed_name(crc64(_name)), name(_name)
+		constexpr explicit RenderGraphResourceName(char const (&_name)[N]) : hashed_name(crc64(_name)), name(_name)
 		{}
 #else
 		template<size_t N>
-		explicit RenderGraphResourceName(char const (&_name)[N]) : hashed_name(crc64(_name))
+		constexpr explicit RenderGraphResourceName(char const (&_name)[N]) : hashed_name(crc64(_name))
 		{}
 #endif
 		uint64 hashed_name;
@@ -32,6 +32,10 @@ namespace adria
 	};
 	using RGResourceName = RenderGraphResourceName;
 
+	inline bool operator==(RenderGraphResourceName const& name1, RenderGraphResourceName const& name2)
+	{
+		return name1.hashed_name == name2.hashed_name;
+	}
 }
 
 namespace std

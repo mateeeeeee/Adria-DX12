@@ -32,7 +32,7 @@ namespace adria
 				if(shadow_map_srv) builder.Read(shadow_map_srv->GetResourceHandle());
 				builder.SetViewport(width, height);
 			},
-			[=](LightingPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](LightingPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -104,7 +104,7 @@ namespace adria
 					else if (light.casts_shadows)
 					{
 						ADRIA_ASSERT(shadow_map_srv.has_value());
-						ResourceView shadow_map = resources.GetSRV(shadow_map_srv.value());
+						RGDescriptor shadow_map = resources.GetSRV(shadow_map_srv.value());
 						switch (light.type)
 						{
 						case ELightType::Directional:
@@ -160,7 +160,7 @@ namespace adria
 					auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 					uint32 dst_range_sizes[] = { (uint32)ARRAYSIZE(cpu_handles) };
 
-					ResourceView shadow_map = resources.GetSRV(shadow_map_srv.value());
+					RGDescriptor shadow_map = resources.GetSRV(shadow_map_srv.value());
 					switch (light.type)
 					{
 					case ELightType::Directional:

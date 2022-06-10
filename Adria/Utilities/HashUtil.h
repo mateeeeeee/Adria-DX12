@@ -20,7 +20,7 @@ namespace adria
 
 		template <uint64_t c> struct CrcInternal<c, 0>
 		{
-			static constexpr uint32_t value = c;
+			static constexpr uint64_t value = c;
 		};
 
 		template<uint64_t c>
@@ -38,7 +38,7 @@ namespace adria
 
 		static constexpr uint64_t CRC_TABLE[] = { CRC64_TABLE_0(0) };
 
-		constexpr uint64_t crc64_loop(const char* str, size_t N)
+		constexpr uint64_t crc64_impl(const char* str, size_t N)
 		{
 			uint64_t val = 0xFFFFFFFFFFFFFFFFL;
 			for (size_t idx = 0; idx < N; ++idx)
@@ -53,6 +53,6 @@ namespace adria
 	template<size_t N>
 	constexpr uint64_t crc64(char const (&_str)[N])
 	{
-		return crc::crc64_loop(_str, N - 1);
+		return crc::crc64_impl(_str, N - 1);
 	}
 }

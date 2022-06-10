@@ -187,30 +187,20 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="RenderGraph\RenderGraphBuilder.cpp" />
     <ClCompile Include="RenderGraph\RenderGraphResources.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Rendering\AmbientPass.cpp" />
     <ClCompile Include="Rendering\Camera.cpp" />
     <ClCompile Include="Rendering\CameraManager.cpp" />
     <ClCompile Include="Rendering\EntityLoader.cpp" />
-    <ClCompile Include="Rendering\Passes\AmbientPass.cpp" />
-    <ClCompile Include="Rendering\Passes\BlurPass.cpp" />
-    <ClCompile Include="Rendering\Passes\CopyToTexturePass.cpp" />
-    <ClCompile Include="Rendering\Passes\GBufferPass.cpp" />
-    <ClCompile Include="Rendering\Passes\LightingPass.cpp" />
-    <ClCompile Include="Rendering\Passes\ShadowPass.cpp" />
-    <ClCompile Include="Rendering\Passes\SkyPass.cpp" />
-    <ClCompile Include="Rendering\Passes\TiledLightingPass.cpp" />
-    <ClCompile Include="Rendering\Passes\ToneMapPass.cpp" />
-    <ClCompile Include="Rendering\Postprocessor.cpp" />
-    <ClCompile Include="Rendering\RayTracer.cpp" />
-    <ClCompile Include="Rendering\Renderer.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="Rendering\GBufferPass.cpp" />
     <ClCompile Include="Rendering\RenderGraphRenderer.cpp" />
     <ClCompile Include="Rendering\RootSigPSOManager.cpp" />
     <ClCompile Include="Rendering\SkyModel.cpp" />
+    <ClCompile Include="Rendering\ToneMapPass.cpp" />
     <ClCompile Include="Utilities\AdriaException.cpp" />
     <ClCompile Include="Utilities\CPUProfiler.cpp" />
     <ClCompile Include="Utilities\Heightmap.cpp" />
@@ -279,48 +269,33 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="RenderGraph\RenderGraphBuilder.h" />
     <ClInclude Include="RenderGraph\RenderGraphPass.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="RenderGraph\RenderGraphResourceId.h" />
     <ClInclude Include="RenderGraph\RenderGraphResourceName.h" />
     <ClInclude Include="RenderGraph\RenderGraphResourcePool.h" />
-    <ClInclude Include="RenderGraph\RenderGraphResourceRef.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="RenderGraph\RenderGraphResources.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="Rendering\AmbientPass.h" />
     <ClInclude Include="Rendering\Camera.h" />
     <ClInclude Include="Rendering\CameraManager.h" />
     <ClInclude Include="Rendering\Components.h" />
     <ClInclude Include="Rendering\ConstantBuffers.h" />
     <ClInclude Include="Rendering\Enums.h" />
     <ClInclude Include="Rendering\EntityLoader.h" />
-    <ClInclude Include="Rendering\ParticleRenderer.h" />
-    <ClInclude Include="Rendering\Passes\AmbientPass.h" />
-    <ClInclude Include="Rendering\Passes\BlurPass.h" />
-    <ClInclude Include="Rendering\Passes\CopyToTexturePass.h" />
-    <ClInclude Include="Rendering\Passes\GBufferPass.h" />
-    <ClInclude Include="Rendering\Passes\LightingPass.h" />
-    <ClInclude Include="Rendering\Passes\ShadowPass.h" />
-    <ClInclude Include="Rendering\Passes\SkyPass.h" />
-    <ClInclude Include="Rendering\Passes\TiledLightingPass.h" />
-    <ClInclude Include="Rendering\Passes\ToneMapPass.h" />
-    <ClInclude Include="Rendering\Picker.h" />
-    <ClInclude Include="Rendering\Postprocessor.h" />
-    <ClInclude Include="Rendering\RayTracer.h" />
-    <ClInclude Include="Rendering\Renderer.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClInclude>
+    <ClInclude Include="Rendering\GBufferPass.h" />
     <ClInclude Include="Rendering\GlobalBlackboardData.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />
     <ClInclude Include="Rendering\RenderGraphRenderer.h" />
     <ClInclude Include="Rendering\RootSigPSOManager.h" />
     <ClInclude Include="Rendering\SceneViewport.h" />
     <ClInclude Include="Rendering\SkyModel.h" />
+    <ClInclude Include="Rendering\ToneMapPass.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Tasks\Task.h" />
     <ClInclude Include="Tasks\TaskManager.h" />

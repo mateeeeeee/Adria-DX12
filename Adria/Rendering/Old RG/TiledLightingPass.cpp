@@ -53,7 +53,7 @@ namespace adria
 				builder.Write(tiled_target, WriteAccess_Unordered);
 				builder.Write(tiled_debug_target, WriteAccess_Unordered);
 			},
-			[=](TiledLightingPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](TiledLightingPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto upload_buffer = gfx->GetDynamicAllocator();

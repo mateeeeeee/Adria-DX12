@@ -1,16 +1,16 @@
 #pragma once
 #include "RendererSettings.h"
-#include "SceneViewport.h"
+//#include "SceneViewport.h"
 #include "ConstantBuffers.h"
-#include "Postprocessor.h"
-#include "Passes/GBufferPass.h"
-#include "Passes/AmbientPass.h"
-#include "Passes/SkyPass.h"
-#include "Passes/LightingPass.h"
-#include "Passes/TiledLightingPass.h"
-#include "Passes/ShadowPass.h"
-#include "Passes/ToneMapPass.h"
-#include "Passes/CopyToTexturePass.h"
+//#include "Postprocessor.h"
+#include "GBufferPass.h"
+#include "AmbientPass.h"
+//#include "Passes/SkyPass.h"
+//#include "Passes/LightingPass.h"
+//#include "Passes/TiledLightingPass.h"
+//#include "Passes/ShadowPass.h"
+#include "ToneMapPass.h"
+//#include "Passes/CopyToTexturePass.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/TextureManager.h"
@@ -97,19 +97,19 @@ namespace adria
 		GBufferPass  gbuffer_pass;
 		AmbientPass  ambient_pass;
 		ToneMapPass  tonemap_pass;
-		SkyPass		 sky_pass;
-		LightingPass lighting_pass;
-		TiledLightingPass tiled_lighting_pass;
-		CopyToTexturePass copy_to_texture_pass;
-		ShadowPass    shadow_pass;
-		Postprocessor postprocessor;
+		//SkyPass		 sky_pass;
+		//LightingPass lighting_pass;
+		//TiledLightingPass tiled_lighting_pass;
+		//CopyToTexturePass copy_to_texture_pass;
+		//ShadowPass    shadow_pass;
+		//Postprocessor postprocessor;
 	private:
 		void CreateNullHeap();
 		void CreateSizeDependentResources();
 		void UpdatePersistentConstantBuffers(float32 dt);
 		void CameraFrustumCulling();
 
-		void ResolveToBackbuffer(RenderGraph& rg, RGTextureRef hdr_texture);
-		void ResolveToTexture(RenderGraph& rg, RGTextureRef hdr_texture, RGTextureRef resolve_texture);
+		void ResolveToBackbuffer(RenderGraph& rg);
+		void ResolveToTexture(RenderGraph& rg);
 	};
 }

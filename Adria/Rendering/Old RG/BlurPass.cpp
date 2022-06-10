@@ -35,7 +35,7 @@ namespace adria
 				data.final_uav = builder.CreateUAV(final_texture);
 				builder.SetViewport(width, height);
 			},
-			[=](BlurPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](BlurPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();

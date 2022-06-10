@@ -3,50 +3,14 @@
 #include <array>
 #include <mutex>
 #include "RenderGraphBlackboard.h"
-#include "RenderGraphPass.h"
-#include "RenderGraphResources.h"
+#include "RenderGraphBuilder.h"
 #include "RenderGraphResourcePool.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
 
 namespace adria
 {
-	class RenderGraphBuilder
-	{
-		friend class RenderGraph;
-
-	public:
-		RenderGraphBuilder() = delete;
-		RenderGraphBuilder(RenderGraphBuilder const&) = delete;
-		RenderGraphBuilder& operator=(RenderGraphBuilder const&) = delete;
-
-		RGTextureRef CreateTexture(char const* name, TextureDesc const& desc);
-
-		RGTextureRef Read(RGTextureRef handle, ERGReadAccess read_flag = ReadAccess_PixelShader);
-		RGTextureRef Write(RGTextureRef handle, ERGWriteAccess write_flag = WriteAccess_Unordered);
-		RGTextureRef RenderTarget(RGTextureRTVRef rtv_handle, ERGLoadStoreAccessOp load_store_op);
-		RGTextureRef DepthStencil(RGTextureDSVRef dsv_handle, ERGLoadStoreAccessOp depth_load_store_op, bool readonly = false, 
-			ERGLoadStoreAccessOp stencil_load_store_op = ERGLoadStoreAccessOp::NoAccess_NoAccess);
-
-		RGTextureSRVRef CreateSRV(RGTextureRef handle, TextureViewDesc const& desc = {});
-		RGTextureUAVRef CreateUAV(RGTextureRef handle, TextureViewDesc const& desc = {});
-		RGTextureRTVRef CreateRTV(RGTextureRef handle, TextureViewDesc const& desc = {});
-		RGTextureDSVRef CreateDSV(RGTextureRef handle, TextureViewDesc const& desc = {});
-
-		void SetViewport(uint32 width, uint32 height);
-	private:
-		RenderGraphBuilder(RenderGraph&, RenderGraphPassBase&);
-
-	private:
-		RenderGraph& rg;
-		RenderGraphPassBase& rg_pass;
-	};
-	using RGBuilder = RenderGraphBuilder;
-
-
 	class RenderGraph
 	{
-		static constexpr bool Multithreaded = false;
-
 		friend class RenderGraphBuilder;
 		friend class RenderGraphResources;
 
@@ -58,19 +22,19 @@ namespace adria
 			explicit DependencyLevel(RenderGraph& rg) : rg(rg) {}
 			void AddPass(RenderGraphPassBase* pass);
 			void Setup();
-			void Execute(GraphicsDevice* gfx, CommandList* cmd_list);
-			void Execute(GraphicsDevice* gfx, std::vector<CommandList*> const& cmd_lists);
+			void Execute(GraphicsDevice* gfx, RGCommandList* cmd_list);
+			void Execute(GraphicsDevice* gfx, std::vector<RGCommandList*> const& cmd_lists);
 			size_t GetSize() const;
 			size_t GetNonCulledSize() const;
 
 		private:
 			RenderGraph& rg;
-			std::vector<RenderGraphPassBase*>   passes;
-			std::unordered_set<RGTextureRef> creates;
-			std::unordered_set<RGTextureRef> reads;
-			std::unordered_set<RGTextureRef> writes;
-			std::unordered_set<RGTextureRef> destroys;
-			std::unordered_map<RGTextureRef, ResourceState> required_states;
+			std::vector<RenderGraphPassBase*> passes;
+			std::unordered_set<RGTextureId> creates;
+			std::unordered_set<RGTextureId> reads;
+			std::unordered_set<RGTextureId> writes;
+			std::unordered_set<RGTextureId> destroys;
+			std::unordered_map<RGTextureId, RGResourceState> required_states;
 		};
 
 	public:
@@ -90,18 +54,18 @@ namespace adria
 		}
 
 		template<typename PassData, typename... Args> requires std::is_constructible_v<RenderGraphPass<PassData>, Args...>
-		[[maybe_unused]] PassData const& AddPass(Args&&... args)
+		[[maybe_unused]] decltype(auto) AddPass(Args&&... args)
 		{
 			passes.emplace_back(std::make_unique<RenderGraphPass<PassData>>(std::forward<Args>(args)...));
 			RenderGraphBuilder builder(*this, *passes.back());
 			passes.back()->Setup(builder);
-			return (*dynamic_cast<RenderGraphPass<PassData>*>(passes.back().get())).GetPassData();
+			return *dynamic_cast<RenderGraphPass<PassData>*>(passes.back().get());
 		}
 
 		void Build();
 		void Execute();
 
-		RGTextureRef ImportTexture(char const* name, Texture* texture);
+		void ImportTexture(RGResourceName name, Texture* texture);
 
 		RGBlackboard const& GetBlackboard() const { return blackboard; }
 		RGBlackboard& GetBlackboard() { return blackboard; }
@@ -119,20 +83,22 @@ namespace adria
 		std::vector<size_t> topologically_sorted_passes;
 		std::vector<DependencyLevel> dependency_levels;
 
-		mutable std::unordered_map<RGTextureRef, std::vector<TextureViewDesc>> view_desc_map;
-		mutable std::unordered_map<RGTextureSRVRef, ResourceView> texture_srv_cache;
-		mutable std::unordered_map<RGTextureUAVRef, ResourceView> texture_uav_cache;
-		mutable std::unordered_map<RGTextureRTVRef, ResourceView> texture_rtv_cache;
-		mutable std::unordered_map<RGTextureDSVRef, ResourceView> texture_dsv_cache;
+		std::unordered_map<RGResourceName, RGTextureId> texture_name_id_map;
+		std::unordered_map<RGResourceName, RGBufferId>  buffer_name_id_map;
 
+		mutable std::unordered_map<RGTextureId, std::vector<TextureViewDesc>> view_desc_map;
+		mutable std::unordered_map<RGTextureReadOnlyId, RGDescriptor> texture_srv_cache;
+		mutable std::unordered_map<RGTextureReadWriteId, RGDescriptor> texture_uav_cache;
+		mutable std::unordered_map<RGRenderTargetId, RGDescriptor> texture_rtv_cache;
+		mutable std::unordered_map<RGDepthStencilId, RGDescriptor> texture_dsv_cache;
+
+#ifdef RG_MULTITHREADED
 		mutable std::mutex srv_cache_mutex;
 		mutable std::mutex uav_cache_mutex;
 		mutable std::mutex rtv_cache_mutex;
 		mutable std::mutex dsv_cache_mutex;
-		static constexpr size_t  i = sizeof(std::mutex);
+#endif
 	private:
-		RGTexture* GetRGTexture(RGTextureRef handle) const;
-		RGBuffer* GetRGBuffer(RGBufferRef handle) const;
 
 		void BuildAdjacencyLists();
 		void TopologicalSort();
@@ -141,24 +107,30 @@ namespace adria
 		void CalculateResourcesLifetime();
 		void DepthFirstSearch(size_t i, std::vector<bool>& visited, std::stack<size_t>& stack);
 
-		RGTextureRef CreateTexture(char const* name, TextureDesc const& desc);
-		Texture* GetTexture(RGTextureRef) const;
+		RGTextureId DeclareTexture(RGResourceName name, TextureDesc const& desc);
+		bool IsTextureDeclared(RGResourceName name);
 
-		RGBufferRef CreateBuffer(char const* name, BufferDesc const& desc);
-		Buffer* GetBuffer(RGBufferRef) const;
+		bool IsValidTextureHandle(RGTextureId) const;
+		bool IsValidBufferHandle(RGBufferId) const;
 
-		bool IsValidTextureHandle(RGTextureRef) const;
-		bool IsValidBufferHandle(RGBufferRef) const;
+		RGTexture* GetRGTexture(RGTextureId) const;
+		RGBuffer* GetRGBuffer(RGBufferId) const;
+		Texture* GetTexture(RGTextureId res_id) const;
+		Buffer* GetBuffer(RGBufferId res_id) const;
 
-		RGTextureSRVRef CreateSRV(RGTextureRef handle, TextureViewDesc const& desc);
-		RGTextureUAVRef CreateUAV(RGTextureRef handle, TextureViewDesc const& desc);
-		RGTextureRTVRef CreateRTV(RGTextureRef handle, TextureViewDesc const& desc);
-		RGTextureDSVRef CreateDSV(RGTextureRef handle, TextureViewDesc const& desc);
+		RGTextureCopySrcId ReadCopySrcTexture(RGResourceName name);
+		RGTextureCopyDstId WriteCopyDstTexture(RGResourceName name);
+		RGTextureReadOnlyId ReadTexture(RGResourceName name, TextureViewDesc const& desc);
+		RGTextureReadWriteId WriteTexture(RGResourceName name, TextureViewDesc const& desc);
+		RGRenderTargetId RenderTarget(RGResourceName name, TextureViewDesc const& desc);
+		RGDepthStencilId DepthStencil(RGResourceName name, TextureViewDesc const& desc);
 
-		ResourceView GetSRV(RGTextureSRVRef handle) const;
-		ResourceView GetUAV(RGTextureUAVRef handle) const;
-		ResourceView GetRTV(RGTextureRTVRef handle) const;
-		ResourceView GetDSV(RGTextureDSVRef handle) const;
+		Texture const& GetResource(RGTextureCopySrcId res_id) const;
+		Texture const& GetResource(RGTextureCopyDstId res_id) const;
+		RGDescriptor GetDescriptor(RGTextureReadOnlyId res_id) const;
+		RGDescriptor GetDescriptor(RGTextureReadWriteId res_id) const;
+		RGDescriptor GetDescriptor(RGRenderTargetId res_id) const;
+		RGDescriptor GetDescriptor(RGDepthStencilId res_id) const;
 
 		void Execute_Singlethreaded();
 		void Execute_Multithreaded();
