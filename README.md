@@ -1,11 +1,16 @@
 # Adria-DX12
 
 Graphics engine written in C++ using DirectX12/DXR. For successful build you will need textures that you can find [here](https://github.com/mateeeeeee/Adria-DX11/releases/tag/1.0).
+The engine is currently being ported to new Render Graph system. For a previous full version of the engine see for example [here](https://github.com/mateeeeeee/Adria-DX12/tree/cb7cdf03123f3109c2de02f4e10d6596c2a74650).
 ## Features
-* Entity-Component System
-* Deferred + Forward Rendering 
+* Render Graph
+	- Automatic Resource Barriers
+	- Resource Reuse using Resource Pool
+	- Pass Culling
+	- Optional Multithreaded Command List Building
 * Tiled Deferred Rendering 
 * Clustered Deferred Rendering
+* Deferred + Forward Rendering 
 * Physically Based Shading
 * Image Based Lighting
 * Normal Mapping
@@ -41,15 +46,15 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 * Profiler
 * Model Loading with tinygltf
 * Shader Hot Reload
+* Entity-Component System
 * Camera and Light Frustum Culling
-* Multithreaded Command List Building
 * Bindless Texturing 
 * DirectX12 Render Passes
 
 ## TODO
+* ComputeAsync using RenderGraph
 * Improve DXR features
 * Add DXR Global Illumination
-* Render Graph
 
 ## Dependencies
 [tinygltf](https://github.com/syoyo/tinygltf)

@@ -39,6 +39,7 @@ namespace adria
 		void AddCopyHDRPass(RenderGraph& rg);
 		void AddVolumetricCloudsPass(RenderGraph& rg);
 		void AddSSRPass(RenderGraph& rg);
+		void AddFogPass(RenderGraph& rg);
 		//FogPassData const& AddFogPass(RenderGraph& rg, RGTextureRef input, RGTextureSRVRef depth_srv);
 	};
 }
