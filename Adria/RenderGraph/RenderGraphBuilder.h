@@ -20,6 +20,9 @@ namespace adria
 		void DeclareBuffer(RGResourceName name, BufferDesc const& desc);
 		void DeclareAllocation(RGResourceName name, AllocDesc const& desc);
 
+		void DummyWriteTexture(RGResourceName name);
+		void DummyReadTexture(RGResourceName name);
+
 		[[nodiscard]] RGTextureCopySrcId ReadCopySrcTexture(RGResourceName name);
 		[[nodiscard]] RGTextureCopyDstId WriteCopyDstTexture(RGResourceName name);
 		[[nodiscard]] RGTextureReadOnlyId ReadTexture(RGResourceName name, ERGReadAccess read_access, TextureViewDesc const& desc = {});
@@ -29,7 +32,6 @@ namespace adria
 		[[maybe_unused]] RGDepthStencilId ReadDepthStencil(RGResourceName name, ERGLoadStoreAccessOp load_store_op, ERGLoadStoreAccessOp stencil_load_store_op = ERGLoadStoreAccessOp::NoAccess_NoAccess, TextureViewDesc const& desc = {});
 		[[nodiscard]] RGAllocationId UseAllocation(RGResourceName name);
 		
-		void ForceWriteTexture(RGResourceName name);
 		void SetViewport(uint32 width, uint32 height);
 	private:
 		RenderGraphBuilder(RenderGraph&, RenderGraphPassBase&);

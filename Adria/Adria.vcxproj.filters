@@ -236,7 +236,6 @@
     <ClCompile Include="Rendering\TiledLightingPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\Postprocessor.cpp" />
     <ClCompile Include="Rendering\FXAAPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
@@ -245,6 +244,9 @@
     </ClCompile>
     <ClCompile Include="Rendering\GenerateMipsPass.cpp">
       <Filter>Rendering\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Postprocessor.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -33,6 +33,18 @@ namespace adria
 		rg.DeclareAllocation(name, desc);
 	}
 
+	void RenderGraphBuilder::DummyWriteTexture(RGResourceName name)
+	{
+		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
+		rg_pass.writes.insert(rg.GetTextureId(name));
+	}
+
+	void RenderGraphBuilder::DummyReadTexture(RGResourceName name)
+	{
+		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
+		rg_pass.reads.insert(rg.GetTextureId(name));
+	}
+
 	RGTextureCopySrcId RenderGraphBuilder::ReadCopySrcTexture(RGResourceName name)
 	{
 		RGTextureCopySrcId copy_src_id = rg.ReadCopySrcTexture(name);
@@ -148,11 +160,4 @@ namespace adria
 	{
 		return rg.UseAllocation(name);
 	}
-
-	void RenderGraphBuilder::ForceWriteTexture(RGResourceName name)
-	{
-		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
-		rg_pass.writes.insert(rg.GetTextureId(name));
-	}
-
 }

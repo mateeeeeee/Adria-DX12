@@ -18,7 +18,7 @@ namespace adria
 			[=](GenerateMipsPassData& data, RenderGraphBuilder& builder)
 			{
 				data.texture_src = builder.ReadTexture(texture_name, ReadAccess_NonPixelShader);
-				builder.WriteTextureDummy(texture_name);
+				builder.DummyWriteTexture(texture_name);
 				builder.SetViewport(width, height);
 			},
 			[=](GenerateMipsPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)

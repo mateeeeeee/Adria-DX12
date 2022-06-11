@@ -224,6 +224,8 @@ namespace adria
 		void UpdateConstantBuffers(float32 dt);
 		void UpdateOcean(ID3D12GraphicsCommandList4* cmd_list);
 		void UpdateParticles(float32 dt);
+		void CameraFrustumCulling();
+		void LightFrustumCulling(ELightType type);
 
 		void PassPicking(ID3D12GraphicsCommandList4* cmd_list);
 		void PassDecals(ID3D12GraphicsCommandList4* cmd_list);
@@ -232,29 +234,27 @@ namespace adria
 		void PassRTAO(ID3D12GraphicsCommandList4* cmd_list);
 		void PassDeferredClusteredLighting(ID3D12GraphicsCommandList4* cmd_list);
 		void PassForward(ID3D12GraphicsCommandList4* cmd_list); 
+		void PassPostprocess(ID3D12GraphicsCommandList4* cmd_list);
 
+		void PassShadowMapDirectional(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassShadowMapSpot(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassShadowMapPoint(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassShadowMapCascades(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassShadowMapCommon(ID3D12GraphicsCommandList4* cmd_list);
-
+		void PassVolumetric(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
+		
 		void PassForwardCommon(ID3D12GraphicsCommandList4* cmd_list, bool transparent);
-		void PassSky(ID3D12GraphicsCommandList4* cmd_list);
 		void PassOcean(ID3D12GraphicsCommandList4* cmd_list);
 		void PassParticles(ID3D12GraphicsCommandList4* cmd_list);
 		
 		void PassLensFlare(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassGenerateBokeh(ID3D12GraphicsCommandList4* cmd_list);
 		void PassDrawBokeh(ID3D12GraphicsCommandList4* cmd_list);
-		void PassBloom(ID3D12GraphicsCommandList4* cmd_list);
 		void PassGodRays(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassVelocityBuffer(ID3D12GraphicsCommandList4* cmd_list);
 		void PassMotionBlur(ID3D12GraphicsCommandList4* cmd_list);
 		void PassTAA(ID3D12GraphicsCommandList4* cmd_list);
-		void DrawSun(ID3D12GraphicsCommandList4* cmd_list, tecs::entity sun);
 
-		void GenerateMips(ID3D12GraphicsCommandList4* cmd_list, Texture const& texture,
-			D3D12_RESOURCE_STATES start_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
-			D3D12_RESOURCE_STATES end_state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		void DrawSun(ID3D12GraphicsCommandList4* cmd_list, tecs::entity sun);
 	};
 }

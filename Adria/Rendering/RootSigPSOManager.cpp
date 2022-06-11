@@ -1069,7 +1069,7 @@ namespace adria
 				graphics_pso_desc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
 				graphics_pso_desc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
 				graphics_pso_desc.DepthStencilState.DepthEnable = TRUE;
-				graphics_pso_desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+				graphics_pso_desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
 				graphics_pso_desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 				graphics_pso_desc.DepthStencilState.StencilEnable = FALSE;
 				graphics_pso_desc.SampleMask = UINT_MAX;

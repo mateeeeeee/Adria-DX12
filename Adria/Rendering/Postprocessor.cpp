@@ -6,19 +6,23 @@
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/GPUProfiler.h"
 #include "../tecs/registry.h"
+#include "../Logging/Logger.h"
 
 //add array of ResourceNames of Postprocess
+using namespace DirectX;
 
 namespace adria
 {
-	Postprocessor::Postprocessor(TextureManager& texture_manager, uint32 width, uint32 height)
-		: texture_manager(texture_manager), width(width), height(height),
-		  blur_pass(width, height), copy_to_texture_pass(width, height), generate_mips_pass(width, height)
-	{
-	}
+	Postprocessor::Postprocessor(tecs::registry& reg, TextureManager& texture_manager, uint32 width, uint32 height)
+		: reg(reg), texture_manager(texture_manager), width(width), height(height),
+		  blur_pass(width, height), copy_to_texture_pass(width, height), generate_mips_pass(width, height),
+		  add_textures_pass(width, height)
+	{}
 
 	void Postprocessor::AddPasses(RenderGraph& rg, PostprocessSettings const& settings)
 	{
+		auto lights = reg.view<Light>();
+
 		AddCopyHDRPass(rg);
 		final_resource = RG_RES_NAME(PostprocessMain);
 		if (settings.clouds)
@@ -49,6 +53,28 @@ namespace adria
 		{
 			AddBloomPass(rg);
 			final_resource = RG_RES_NAME(BloomOutput);
+		}
+
+		for (tecs::entity light_entity : lights)
+		{
+			/*auto const& light = lights.get(light_entity);
+			if (!light.active) continue;
+
+			if (light.type == ELightType::Directional)
+			{
+				AddSunPass(rg, light_entity);
+				if (light.god_rays)
+				{
+					AddGodRaysPass(rg, light);
+					copy_to_texture_pass.AddPass(rg, final_resource, RG_RES_NAME(GodRaysOutput), EBlendMode::AdditiveBlend);
+				}
+				else
+				{
+					copy_to_texture_pass.AddPass(rg, final_resource, RG_RES_NAME(SunOutput), EBlendMode::AdditiveBlend);
+				}
+				break;
+			}
+			*/
 		}
 	}
 
@@ -375,6 +401,212 @@ namespace adria
 				cmd_list->Dispatch((uint32)std::ceil(width / 32.0f),(uint32)std::ceil(height / 32.0f), 1);
 			}, ERGPassType::Compute, ERGPassFlags::None);
 
+	}
+
+	void Postprocessor::AddSunPass(RenderGraph& rg, tecs::entity sun)
+	{
+		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		RGResourceName last_resource = final_resource;
+
+		rg.AddPass<void>("Sun Pass",
+			[=](RenderGraphBuilder& builder)
+			{
+				D3D12_CLEAR_VALUE rtv_clear_value{};
+				rtv_clear_value.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				rtv_clear_value.Color[0] = 0.0f;
+				rtv_clear_value.Color[1] = 0.0f;
+				rtv_clear_value.Color[2] = 0.0f;
+				rtv_clear_value.Color[3] = 0.0f;
+				TextureDesc sun_output_desc{};
+				sun_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				sun_output_desc.width = width;
+				sun_output_desc.height = height;
+				sun_output_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
+				sun_output_desc.clear = rtv_clear_value;
+				sun_output_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+				builder.DeclareTexture(RG_RES_NAME(SunOutput), sun_output_desc);
+				builder.ReadDepthStencil(RG_RES_NAME(DepthStencil), ERGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteRenderTarget(RG_RES_NAME(SunOutput), ERGLoadStoreAccessOp::Clear_Preserve);
+				builder.SetViewport(width, height);
+			},
+			[=](RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			{
+				ID3D12Device* device = gfx->GetDevice();
+				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto dynamic_allocator = gfx->GetDynamicAllocator();
+
+				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Forward));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Sun));
+				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
+				
+				auto [transform, mesh, material] = reg.get<Transform, Mesh, Material>(sun);
+
+				ObjectCBuffer object_cbuf_data{};
+				object_cbuf_data.model = transform.current_transform;
+				object_cbuf_data.inverse_transposed_model = DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, object_cbuf_data.model));
+
+				DynamicAllocation object_allocation = dynamic_allocator->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				object_allocation.Update(object_cbuf_data);
+				cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
+
+				MaterialCBuffer material_cbuf_data{};
+				material_cbuf_data.diffuse = material.diffuse;
+				DynamicAllocation material_allocation = dynamic_allocator->Allocate(GetCBufferSize<MaterialCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				material_allocation.Update(material_cbuf_data);
+				cmd_list->SetGraphicsRootConstantBufferView(2, material_allocation.gpu_address);
+
+				D3D12_CPU_DESCRIPTOR_HANDLE diffuse_handle = texture_manager.CpuDescriptorHandle(material.albedo_texture);
+				uint32 src_range_size = 1;
+
+				OffsetType descriptor_index = descriptor_allocator->Allocate();
+				D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+
+				device->CopyDescriptorsSimple(1, dst_descriptor, diffuse_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				cmd_list->SetGraphicsRootDescriptorTable(3, descriptor_allocator->GetHandle(descriptor_index));
+				mesh.Draw(cmd_list);
+
+			}, ERGPassType::Graphics, ERGPassFlags::None);
+	}
+
+	void Postprocessor::AddGodRaysPass(RenderGraph& rg, Light const& light)
+	{
+		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
+
+		struct GodRaysPassData
+		{
+			RGTextureReadOnlyId sun_output;
+		};
+
+		rg.AddPass<GodRaysPassData>("GodRays Pass",
+			[=](GodRaysPassData& data, RenderGraphBuilder& builder)
+			{
+				D3D12_CLEAR_VALUE rtv_clear_value{};
+				rtv_clear_value.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				rtv_clear_value.Color[0] = 0.0f;
+				rtv_clear_value.Color[1] = 0.0f;
+				rtv_clear_value.Color[2] = 0.0f;
+				rtv_clear_value.Color[3] = 0.0f;
+				TextureDesc god_rays_desc{};
+				god_rays_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				god_rays_desc.width = width;
+				god_rays_desc.height = height;
+				god_rays_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
+				god_rays_desc.clear = rtv_clear_value;
+				god_rays_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+				builder.DeclareTexture(RG_RES_NAME(GodRaysOutput), god_rays_desc);
+				builder.WriteRenderTarget(RG_RES_NAME(GodRaysOutput), ERGLoadStoreAccessOp::Clear_Preserve);
+				data.sun_output = builder.ReadTexture(RG_RES_NAME(SunOutput), ReadAccess_PixelShader);
+				builder.SetViewport(width, height);
+			},
+			[=](GodRaysPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			{
+				ID3D12Device* device = gfx->GetDevice();
+				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto dynamic_allocator = gfx->GetDynamicAllocator();
+
+				if (light.type != ELightType::Directional)
+				{
+					ADRIA_LOG(WARNING, "Using God Rays on a Non-Directional Light Source");
+					return;
+				}
+
+				LightCBuffer light_cbuf_data{};
+				{
+					light_cbuf_data.godrays_decay = light.godrays_decay;
+					light_cbuf_data.godrays_density = light.godrays_density;
+					light_cbuf_data.godrays_exposure = light.godrays_exposure;
+					light_cbuf_data.godrays_weight = light.godrays_weight;
+
+					auto camera_position = global_data.camera_position;
+					XMVECTOR light_position = light.type == ELightType::Directional ?
+						XMVector4Transform(light.position, XMMatrixTranslation(XMVectorGetX(camera_position), 0.0f, XMVectorGetY(camera_position)))
+						: light.position;
+
+					DirectX::XMVECTOR light_pos_h = XMVector4Transform(light_position, global_data.camera_viewproj);
+					DirectX::XMFLOAT4 light_pos{};
+					DirectX::XMStoreFloat4(&light_pos, light_pos_h);
+					light_cbuf_data.ss_position = XMVectorSet(0.5f * light_pos.x / light_pos.w + 0.5f, -0.5f * light_pos.y / light_pos.w + 0.5f, light_pos.z / light_pos.w, 1.0f);
+
+					static const float32 f_max_sun_dist = 1.3f;
+					float32 f_max_dist = (std::max)(abs(XMVectorGetX(light_cbuf_data.ss_position)), abs(XMVectorGetY(light_cbuf_data.ss_position)));
+					if (f_max_dist >= 1.0f)
+						light_cbuf_data.color = XMVector3Transform(light.color, XMMatrixScaling((f_max_sun_dist - f_max_dist), (f_max_sun_dist - f_max_dist), (f_max_sun_dist - f_max_dist)));
+					else light_cbuf_data.color = light.color;
+				}
+
+				DynamicAllocation light_allocation = dynamic_allocator->Allocate(GetCBufferSize<LightCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				light_allocation.Update(light_cbuf_data);
+
+				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::GodRays));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::GodRays));
+
+				cmd_list->SetGraphicsRootConstantBufferView(0, light_allocation.gpu_address);
+
+				OffsetType descriptor_index = descriptor_allocator->Allocate();
+				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = resources.GetDescriptor(data.sun_output);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
+				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+				cmd_list->DrawInstanced(4, 1, 0, 0);
+			}, ERGPassType::Graphics, ERGPassFlags::None);
+
+		/*
+		ID3D12Device* device = gfx->GetDevice();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+		auto upload_buffer = gfx->GetDynamicAllocator();
+
+		if (light.type != ELightType::Directional)
+		{
+			ADRIA_LOG(WARNING, "Using God Rays on a Non-Directional Light Source");
+			return;
+		}
+
+
+		LightCBuffer light_cbuf_data{};
+		{
+			light_cbuf_data.godrays_decay = light.godrays_decay;
+			light_cbuf_data.godrays_density = light.godrays_density;
+			light_cbuf_data.godrays_exposure = light.godrays_exposure;
+			light_cbuf_data.godrays_weight = light.godrays_weight;
+
+			auto camera_position = camera->Position();
+			XMVECTOR light_position = light.type == ELightType::Directional ?
+				XMVector4Transform(light.position, XMMatrixTranslation(XMVectorGetX(camera_position), 0.0f, XMVectorGetY(camera_position)))
+				: light.position;
+
+			DirectX::XMVECTOR light_pos_h = XMVector4Transform(light_position, camera->ViewProj());
+			DirectX::XMFLOAT4 light_pos{};
+			DirectX::XMStoreFloat4(&light_pos, light_pos_h);
+			light_cbuf_data.ss_position = XMVectorSet(0.5f * light_pos.x / light_pos.w + 0.5f, -0.5f * light_pos.y / light_pos.w + 0.5f, light_pos.z / light_pos.w, 1.0f);
+
+			static const float32 f_max_sun_dist = 1.3f;
+			float32 f_max_dist = (std::max)(abs(XMVectorGetX(light_cbuf_data.ss_position)), abs(XMVectorGetY(light_cbuf_data.ss_position)));
+			if (f_max_dist >= 1.0f)
+				light_cbuf_data.color = XMVector3Transform(light.color, XMMatrixScaling((f_max_sun_dist - f_max_dist), (f_max_sun_dist - f_max_dist), (f_max_sun_dist - f_max_dist)));
+			else light_cbuf_data.color = light.color;
+		}
+
+		light_allocation = upload_buffer->Allocate(GetCBufferSize<LightCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+		light_allocation.Update(light_cbuf_data);
+
+		cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::GodRays));
+		cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::GodRays));
+
+		cmd_list->SetGraphicsRootConstantBufferView(0, light_allocation.gpu_address);
+
+		OffsetType descriptor_index = descriptor_allocator->Allocate();
+		D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = sun_target->SRV();
+		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
+			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
+
+		cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+		cmd_list->DrawInstanced(4, 1, 0, 0);
+		*/
 	}
 
 	void Postprocessor::AddDepthOfFieldPass(RenderGraph& rg)

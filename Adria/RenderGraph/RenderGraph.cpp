@@ -90,7 +90,6 @@ namespace adria
 	void RenderGraph::Execute_Singlethreaded()
 	{
 		pool.Tick();
-
 		for (auto& dependency_level : dependency_levels) dependency_level.Setup();
 
 		auto cmd_list = gfx->GetNewGraphicsCommandList();
@@ -116,7 +115,6 @@ namespace adria
 						{
 							barrier_batcher.AddTransition(texture->GetNative(), texture->GetDesc().initial_state, state);
 						}
-						//ADRIA_ASSERT(HasAllFlags(texture->GetDesc().initial_state, state) && "First Resource Usage must be compatible with initial resource state!");
 						continue;
 					}
 					bool found = false;
