@@ -21,8 +21,8 @@ namespace adria
 		weather_cbuffer(gfx->GetDevice(), backbuffer_count), compute_cbuffer(gfx->GetDevice(), backbuffer_count)
 		,gbuffer_pass(reg, gpu_profiler, width, height), ambient_pass(width, height), tonemap_pass(width, height)
 		,sky_pass(reg, texture_manager, width, height), lighting_pass(width, height), shadow_pass(reg, texture_manager),
-		tiled_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), postprocessor(texture_manager, width, height),
-		fxaa_pass(width, height)
+		tiled_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
+		postprocessor(texture_manager, width, height), fxaa_pass(width, height)
 	{
 		RootSigPSOManager::Initialize(gfx->GetDevice());
 		CreateNullHeap();
@@ -92,15 +92,9 @@ namespace adria
 
 		if (render_settings.use_tiled_deferred)
 		{
-			if (render_settings.visualize_tiled) 
-			{
-				//AddTextures(cmd_list, *uav_target, *debug_tiled_texture, EBlendMode::AlphaBlend);
-			}
-			else
-			{
-				tiled_lighting_pass.AddPass(render_graph);
-				copy_to_texture_pass.AddPass(render_graph, RG_RES_NAME(HDR_RenderTarget), RG_RES_NAME(TiledTarget), EBlendMode::AdditiveBlend);
-			}
+			tiled_lighting_pass.AddPass(render_graph);
+			if (render_settings.visualize_tiled)  add_textures_pass.AddPass(render_graph, RG_RES_NAME(HDR_RenderTarget), RG_RES_NAME(TiledTarget), RG_RES_NAME(TiledDebugTarget), EBlendMode::AlphaBlend);
+			else copy_to_texture_pass.AddPass(render_graph, RG_RES_NAME(HDR_RenderTarget), RG_RES_NAME(TiledTarget), EBlendMode::AdditiveBlend);
 		}
 		else if (render_settings.use_clustered_deferred)
 		{
@@ -141,6 +135,7 @@ namespace adria
 			tonemap_pass.OnResize(w, h);
 			fxaa_pass.OnResize(w, h);
 			postprocessor.OnResize(w, h);
+			add_textures_pass.OnResize(w, h);
 		}
 	}
 	void RenderGraphRenderer::OnSceneInitialized()
@@ -368,8 +363,6 @@ namespace adria
 			tonemap_pass.AddPass(rg, postprocessor.GetFinalResource(), true);
 		}
 	}
-
-	
 	void RenderGraphRenderer::ResolveToTexture(RenderGraph& rg)
 	{
 		if (HasAnyFlag(render_settings.postprocessor.anti_aliasing, AntiAliasing_FXAA))

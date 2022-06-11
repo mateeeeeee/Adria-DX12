@@ -254,7 +254,6 @@ namespace adria
 		void PassVelocityBuffer(ID3D12GraphicsCommandList4* cmd_list);
 		void PassMotionBlur(ID3D12GraphicsCommandList4* cmd_list);
 		void PassFXAA(ID3D12GraphicsCommandList4* cmd_list);
-		void PassTAA(ID3D12GraphicsCommandList4* cmd_list);
 
 		void DrawSun(ID3D12GraphicsCommandList4* cmd_list, tecs::entity sun);
 		//result in blur final 

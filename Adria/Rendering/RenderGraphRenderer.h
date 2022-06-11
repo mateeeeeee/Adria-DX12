@@ -12,6 +12,7 @@
 #include "ToneMapPass.h"
 #include "FXAAPass.h"
 #include "CopyToTexturePass.h"
+#include "AddTexturesPass.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/TextureManager.h"
@@ -103,6 +104,7 @@ namespace adria
 		LightingPass lighting_pass;
 		TiledLightingPass tiled_lighting_pass;
 		CopyToTexturePass copy_to_texture_pass;
+		AddTexturesPass add_textures_pass;
 		ShadowPass    shadow_pass;
 		Postprocessor postprocessor;
 	private:
