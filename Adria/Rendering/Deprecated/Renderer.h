@@ -213,19 +213,11 @@ namespace adria
 		std::shared_ptr<Buffer>	cube_ib = nullptr;
 	private:
 
-		void CreateDescriptorHeaps();
-		void CreateResolutionDependentResources(uint32 width, uint32 height);
-		void CreateOtherResources();
-		void CreateRenderPasses(uint32 width, uint32 height);
-
 		void CreateIBLTextures();
 		void UploadData();
 		
-		void UpdateConstantBuffers(float32 dt);
 		void UpdateOcean(ID3D12GraphicsCommandList4* cmd_list);
 		void UpdateParticles(float32 dt);
-		void CameraFrustumCulling();
-		void LightFrustumCulling(ELightType type);
 
 		void PassPicking(ID3D12GraphicsCommandList4* cmd_list);
 		void PassDecals(ID3D12GraphicsCommandList4* cmd_list);
@@ -234,7 +226,6 @@ namespace adria
 		void PassRTAO(ID3D12GraphicsCommandList4* cmd_list);
 		void PassDeferredClusteredLighting(ID3D12GraphicsCommandList4* cmd_list);
 		void PassForward(ID3D12GraphicsCommandList4* cmd_list); 
-		void PassPostprocess(ID3D12GraphicsCommandList4* cmd_list);
 
 		void PassShadowMapDirectional(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassShadowMapSpot(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
@@ -250,11 +241,8 @@ namespace adria
 		void PassLensFlare(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassGenerateBokeh(ID3D12GraphicsCommandList4* cmd_list);
 		void PassDrawBokeh(ID3D12GraphicsCommandList4* cmd_list);
-		void PassGodRays(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassVelocityBuffer(ID3D12GraphicsCommandList4* cmd_list);
 		void PassMotionBlur(ID3D12GraphicsCommandList4* cmd_list);
 		void PassTAA(ID3D12GraphicsCommandList4* cmd_list);
-
-		void DrawSun(ID3D12GraphicsCommandList4* cmd_list, tecs::entity sun);
 	};
 }

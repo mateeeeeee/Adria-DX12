@@ -156,6 +156,8 @@ namespace adria
 
 	void RenderGraph::Execute_Multithreaded()
 	{
+#ifdef RG_MULTITHREADED
+		static_assert(false, "Update code to reflect single-threaded one");
 		pool.Tick();
 
 		for (auto& dependency_level : dependency_levels) dependency_level.Setup();
@@ -219,6 +221,7 @@ namespace adria
 		}
 		auto cmd_list = gfx->GetNewGraphicsCommandList();
 		final_barrier_batcher.Submit(cmd_list);
+#endif
 	}
 
 	void RenderGraph::BuildAdjacencyLists()

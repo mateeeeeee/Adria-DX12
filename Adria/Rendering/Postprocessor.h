@@ -38,6 +38,7 @@ namespace adria
 		TextureManager& texture_manager;
 		uint32 width, height;
 		std::vector<size_t> cloud_textures;
+		std::vector<size_t> lens_flare_textures;
 		RGResourceName final_resource;
 
 		BlurPass blur_pass;
@@ -52,6 +53,7 @@ namespace adria
 		void AddBloomPass(RenderGraph& rg);
 		void AddSunPass(RenderGraph& rg, tecs::entity sun);
 		void AddGodRaysPass(RenderGraph& rg, Light const& light);
+		void AddLensFlarePass(RenderGraph& rg, Light const& light);
 		void AddDepthOfFieldPass(RenderGraph& rg);	
 		void AddGenerateBokehPasses(RenderGraph& rg);
 		void AddDrawBokehPass(RenderGraph& rg);
