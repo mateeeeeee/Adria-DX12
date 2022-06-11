@@ -1,10 +1,16 @@
 #pragma once
 #include "RendererSettings.h"
-#include "SceneViewport.h"
+//#include "SceneViewport.h"
 #include "ConstantBuffers.h"
-#include "Passes/GBufferPass.h"
-#include "Passes/AmbientPass.h"
-#include "Passes/ToneMapPass.h"
+#include "Postprocessor.h"
+#include "GBufferPass.h"
+#include "AmbientPass.h"
+#include "SkyPass.h"
+#include "LightingPass.h"
+#include "TiledLightingPass.h"
+#include "ShadowPass.h"
+#include "ToneMapPass.h"
+#include "CopyToTexturePass.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/TextureManager.h"
@@ -40,6 +46,7 @@ namespace adria
 	public:
 
 		RenderGraphRenderer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height);
+		~RenderGraphRenderer();
 
 		void NewFrame(Camera const* camera);
 		void Update(float32 dt);
@@ -49,8 +56,12 @@ namespace adria
 		void OnResize(uint32 w, uint32 h);
 		void OnSceneInitialized();
 
-		Texture const* GetFinalTexture() const { return nullptr; }
+		Texture const* GetFinalTexture() const { return final_texture.get(); }
 		TextureManager& GetTextureManager();
+		std::vector<std::string> GetProfilerResults(bool log) const
+		{
+			return gpu_profiler.GetProfilerResults(gfx->GetDefaultCommandList(), log);
+		}
 	private:
 		tecs::registry& reg;
 		GraphicsDevice* gfx;
@@ -59,8 +70,8 @@ namespace adria
 		CPUProfiler cpu_profiler;
 		GPUProfiler gpu_profiler;
 
-		RendererSettings settings;
-		ProfilerSettings profiler_settings;
+		RendererSettings render_settings;
+		ProfilerSettings profiler_settings = NO_PROFILING;
 
 		TextureManager texture_manager;
 		Camera const* camera;
@@ -76,20 +87,29 @@ namespace adria
 		//Persistent constant buffers
 		ConstantBuffer<FrameCBuffer> frame_cbuffer;
 		ConstantBuffer<PostprocessCBuffer> postprocess_cbuffer;
-
+		ConstantBuffer<ComputeCBuffer> compute_cbuffer;
+		ConstantBuffer<WeatherCBuffer> weather_cbuffer;
 		//misc
 		std::unique_ptr<DescriptorHeap> null_heap;
 		std::array<DirectX::XMVECTOR, SSAO_KERNEL_SIZE> ssao_kernel{};
 
 		//passes
-		GBufferPass gbuffer_pass;
-		AmbientPass ambient_pass;
-		ToneMapPass tonemap_pass;
+		GBufferPass  gbuffer_pass;
+		AmbientPass  ambient_pass;
+		ToneMapPass  tonemap_pass;
+		SkyPass		 sky_pass;
+		LightingPass lighting_pass;
+		TiledLightingPass tiled_lighting_pass;
+		CopyToTexturePass copy_to_texture_pass;
+		ShadowPass    shadow_pass;
+		Postprocessor postprocessor;
 	private:
 		void CreateNullHeap();
+		void CreateSizeDependentResources();
 		void UpdatePersistentConstantBuffers(float32 dt);
+		void CameraFrustumCulling();
 
-		void ResolveToBackbuffer(RenderGraph& rg, RGTextureRef hdr_texture);
-		void ResolveToTexture(RenderGraph& rg, RGTextureRef hdr_texture);
+		void ResolveToBackbuffer(RenderGraph& rg);
+		void ResolveToTexture(RenderGraph& rg);
 	};
 }

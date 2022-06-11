@@ -664,7 +664,7 @@ namespace adria
 	{
 		return texture_manager;
 	}
-	std::vector<std::string> Renderer::GetProfilerResults(bool log)
+	std::vector<std::string> Renderer::GetProfilerResults(bool log) const
 {
 		return gpu_profiler.GetProfilerResults(gfx->GetDefaultCommandList(), log);
 	}
@@ -2046,16 +2046,16 @@ namespace adria
 			XMStoreFloat3(&sun_dir, XMVector3Normalize(weather_cbuf_data.light_dir));
 			SkyParameters sky_params = CalculateSkyParameters(settings.turbidity, settings.ground_albedo, sun_dir);
 
-			weather_cbuf_data.A = sky_params[(size_t)ESkyParams::A];
-			weather_cbuf_data.B = sky_params[(size_t)ESkyParams::B];
-			weather_cbuf_data.C = sky_params[(size_t)ESkyParams::C];
-			weather_cbuf_data.D = sky_params[(size_t)ESkyParams::D];
-			weather_cbuf_data.E = sky_params[(size_t)ESkyParams::E];
-			weather_cbuf_data.F = sky_params[(size_t)ESkyParams::F];
-			weather_cbuf_data.G = sky_params[(size_t)ESkyParams::G];
-			weather_cbuf_data.H = sky_params[(size_t)ESkyParams::H];
-			weather_cbuf_data.I = sky_params[(size_t)ESkyParams::I];
-			weather_cbuf_data.Z = sky_params[(size_t)ESkyParams::Z];
+			weather_cbuf_data.A = sky_params[ESkyParam_A];
+			weather_cbuf_data.B = sky_params[ESkyParam_B];
+			weather_cbuf_data.C = sky_params[ESkyParam_C];
+			weather_cbuf_data.D = sky_params[ESkyParam_D];
+			weather_cbuf_data.E = sky_params[ESkyParam_E];
+			weather_cbuf_data.F = sky_params[ESkyParam_F];
+			weather_cbuf_data.G = sky_params[ESkyParam_G];
+			weather_cbuf_data.H = sky_params[ESkyParam_H];
+			weather_cbuf_data.I = sky_params[ESkyParam_I];
+			weather_cbuf_data.Z = sky_params[ESkyParam_Z];
 
 			weather_cbuffer.Update(weather_cbuf_data, backbuffer_index);
 		}
@@ -4488,7 +4488,6 @@ namespace adria
 			src_srv_desc.Texture2D.MipLevels = 1;
 			src_srv_desc.Texture2D.MostDetailedMip = top_mip;
 			device->CreateShaderResourceView(texture, &src_srv_desc, cpu_handle1);
-
 
 			D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle2 = descriptor_allocator->GetHandle(i + 1);
 			D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle2 = descriptor_allocator->GetHandle(i + 1);

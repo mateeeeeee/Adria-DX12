@@ -178,6 +178,15 @@ namespace adria
 			if (FAILED(device->QueryInterface(IID_PPV_ARGS(&dred)))) ADRIA_LOG(ERROR, "Failed to get DRED interface");
 			else LogDredInfo(device, dred.Get());
 		}
+
+		inline void ReportLiveObjects()
+		{
+			Microsoft::WRL::ComPtr<IDXGIDebug1> dxgi_debug;
+			if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(dxgi_debug.GetAddressOf()))))
+			{
+				dxgi_debug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_DETAIL | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
+			}
+		}
 	}
 
 	GraphicsDevice::GraphicsDevice(GraphicsOptions const& options)
@@ -406,14 +415,7 @@ namespace adria
 			if (wait_event == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
 		}
 
-		std::atexit([]()
-			{
-				Microsoft::WRL::ComPtr<IDXGIDebug1> dxgi_debug;
-				if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(dxgi_debug.GetAddressOf()))))
-				{
-					dxgi_debug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_DETAIL | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
-				}
-			});
+		std::atexit(ReportLiveObjects);
 
 		hr = device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&dred_fence));
 		device_removed_event = ::CreateEvent(nullptr, false, false, nullptr);
@@ -793,8 +795,6 @@ namespace adria
 		while (!release_queue.empty())
 		{
 			if (release_queue.front().fence_value > release_queue_fence->GetCompletedValue()) break;
-			auto allocation = std::move(release_queue.front());
-			allocation.Release();
 			release_queue.pop();
 		}
 		BREAK_IF_FAILED(graphics_queue->Signal(release_queue_fence.Get(), release_queue_fence_value));

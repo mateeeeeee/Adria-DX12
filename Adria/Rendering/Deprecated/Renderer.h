@@ -23,7 +23,7 @@ namespace adria
 	class GraphicsDevice;
 	struct Light;
 
-	class Renderer
+	class [[deprecated("new render graph renderer is being used instead")]] Renderer
 	{
 		enum ENullHeapSlot
 		{
@@ -78,7 +78,7 @@ namespace adria
 
 		Texture const& GetOffscreenTexture() const;
 		TextureManager& GetTextureManager();
-		std::vector<std::string> GetProfilerResults(bool log = false);
+		std::vector<std::string> GetProfilerResults(bool log = false) const;
 		PickingData GetPickingData() const;
 
 		bool IsRayTracingSupported() const { return ray_tracer.IsSupported(); };

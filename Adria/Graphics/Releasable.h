@@ -27,7 +27,7 @@ namespace adria
     struct ReleasableObject
     {
 		virtual void Release() = 0;
-		virtual ~ReleasableObject() = default;
+        virtual ~ReleasableObject() = default;
     };
 
     template<Releasable T>
@@ -38,9 +38,14 @@ namespace adria
             resource = r;
         }
 
+        virtual ~ReleasableResource()
+        {
+            Release();
+        }
+
         virtual void Release() override
         {
-            resource->Release();
+            if(resource) resource->Release();
         }
 
         T* resource;
@@ -52,11 +57,6 @@ namespace adria
         UINT64 fence_value;
 
         ReleasableItem(ReleasableObject* obj, UINT64 fence_value) : obj(obj), fence_value(fence_value) {}
-
-        void Release()
-        {
-            obj->Release();
-        }
     };
 
 }

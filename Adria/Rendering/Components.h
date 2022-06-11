@@ -8,8 +8,6 @@
 #include "../Graphics/Buffer.h"
 #include "../Graphics/TextureManager.h"
 
-
-
 #define COMPONENT 
 
 namespace adria

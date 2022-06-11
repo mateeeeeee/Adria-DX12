@@ -1,50 +1,41 @@
 #include "GBufferPass.h"
-#include "../ConstantBuffers.h"
-#include "../Components.h"
-#include "../RendererGlobalData.h"
-#include "../RootSigPSOManager.h"
-#include "../../RenderGraph/RenderGraph.h"
-#include "../../Graphics/GPUProfiler.h"
-#include "../../tecs/registry.h"
-#include "pix3.h"
+#include "ConstantBuffers.h"
+#include "Components.h"
+#include "GlobalBlackboardData.h"
+#include "RootSigPSOManager.h"
+#include "../RenderGraph/RenderGraph.h"
+#include "../Graphics/GPUProfiler.h"
+#include "../tecs/registry.h"
 
 namespace adria
 {
 
 	GBufferPass::GBufferPass(tecs::registry& reg, GPUProfiler& gpu_profiler, uint32 w, uint32 h) :
 		reg{ reg }, gpu_profiler{ gpu_profiler }, width{ w }, height{ h }
-	{
-	}
+	{}
 
-	GBufferPassData const& GBufferPass::AddPass(RenderGraph& rendergraph, bool profile_pass)
+	void GBufferPass::AddPass(RenderGraph& rendergraph, bool profile_pass)
 	{
-		RendererGlobalData const& global_data = rendergraph.GetBlackboard().GetChecked<RendererGlobalData>();
-		return rendergraph.AddPass<GBufferPassData>("GBuffer Pass",
-			[&](GBufferPassData& data, RenderGraphBuilder& builder)
+		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		rendergraph.AddPass<void>("GBuffer Pass",
+			[=](RenderGraphBuilder& builder)
 			{
-				D3D12_CLEAR_VALUE rtv_clear_value{};
-				rtv_clear_value.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-				rtv_clear_value.Color[0] = 0.0f;
-				rtv_clear_value.Color[1] = 0.0f;
-				rtv_clear_value.Color[2] = 0.0f;
-				rtv_clear_value.Color[3] = 0.0f;
-
+				//later inside RGTextureDesc, keep width, height, format, clear state and deduce bind flags and initial state from usage
 				TextureDesc gbuffer_desc{};
 				gbuffer_desc.width = width;
 				gbuffer_desc.height = height;
 				gbuffer_desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
 				gbuffer_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
 				gbuffer_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
-				gbuffer_desc.clear = rtv_clear_value;
 
-				RGTextureRef gbuffer_normal = builder.CreateTexture("GBuffer Normal", gbuffer_desc);
-				RGTextureRef gbuffer_albedo = builder.CreateTexture("GBuffer Albedo", gbuffer_desc);
-				RGTextureRef gbuffer_emissive = builder.CreateTexture("GBuffer Emissive", gbuffer_desc);
+				builder.DeclareTexture(RG_RES_NAME(GBufferNormal), gbuffer_desc);
+				builder.DeclareTexture(RG_RES_NAME(GBufferAlbedo), gbuffer_desc);
+				builder.DeclareTexture(RG_RES_NAME(GBufferEmissive), gbuffer_desc);
 
-				RGTextureRTVRef gbuffer_normal_rtv = builder.CreateRTV(gbuffer_normal);
-				RGTextureRTVRef gbuffer_albedo_rtv = builder.CreateRTV(gbuffer_albedo);
-				RGTextureRTVRef gbuffer_emissive_rtv = builder.CreateRTV(gbuffer_emissive);
-
+				builder.WriteRenderTarget(RG_RES_NAME(GBufferNormal), ERGLoadStoreAccessOp::Discard_Preserve);
+				builder.WriteRenderTarget(RG_RES_NAME(GBufferAlbedo), ERGLoadStoreAccessOp::Discard_Preserve);
+				builder.WriteRenderTarget(RG_RES_NAME(GBufferEmissive), ERGLoadStoreAccessOp::Discard_Preserve);
+				
 				D3D12_CLEAR_VALUE clear_value{};
 				clear_value.Format = DXGI_FORMAT_D32_FLOAT;
 				clear_value.DepthStencil.Depth = 1.0f;
@@ -57,18 +48,12 @@ namespace adria
 				depth_desc.bind_flags = EBindFlag::DepthStencil | EBindFlag::ShaderResource;
 				depth_desc.initial_state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 				depth_desc.clear = clear_value;
-				RGTextureRef depth_stencil = builder.CreateTexture("Depth Stencil", depth_desc);
-				RGTextureDSVRef depth_stencil_dsv = builder.CreateDSV(depth_stencil);
-
+				builder.DeclareTexture(RG_RES_NAME(DepthStencil), depth_desc);
+				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), ERGLoadStoreAccessOp::Clear_Preserve);
 				builder.SetViewport(width, height);
-				data.gbuffer_normal = builder.RenderTarget(gbuffer_normal_rtv, ERGLoadStoreAccessOp::Clear_Preserve);
-				data.gbuffer_albedo = builder.RenderTarget(gbuffer_albedo_rtv, ERGLoadStoreAccessOp::Clear_Preserve);
-				data.gbuffer_emissive = builder.RenderTarget(gbuffer_emissive_rtv, ERGLoadStoreAccessOp::Clear_Preserve);
-				data.depth_stencil = builder.DepthStencil(depth_stencil_dsv, ERGLoadStoreAccessOp::Clear_Preserve);
 			},
-			[&](GBufferPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
-				PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "GBuffer Pass");
 				SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(gpu_profiler, cmd_list, EProfilerBlock::GBufferPass, profile_pass);
 
 				ID3D12Device* device = gfx->GetDevice();

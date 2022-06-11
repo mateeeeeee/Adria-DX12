@@ -182,6 +182,8 @@ namespace adria
 
 		Texture(Texture const&) = delete;
 		Texture& operator=(Texture const&) = delete;
+		Texture(Texture&&) = delete;
+		Texture& operator=(Texture&&) = delete;
 		~Texture()
 		{
 			if (mapped_data != nullptr)
@@ -257,13 +259,6 @@ namespace adria
 		D3D12_CPU_DESCRIPTOR_HANDLE UAV(size_t i = 0) const { return GetView(EResourceViewType::UAV, i); }
 		D3D12_CPU_DESCRIPTOR_HANDLE RTV(size_t i = 0) const { return GetView(EResourceViewType::RTV, i); }
 		D3D12_CPU_DESCRIPTOR_HANDLE DSV(size_t i = 0) const { return GetView(EResourceViewType::DSV, i); }
-		void ClearViews()
-		{
-			srvs.clear();
-			uavs.clear();
-			rtvs.clear();
-			dsvs.clear();
-		}
 
 		bool IsMapped() const { return mapped_data != nullptr; }
 		void* GetMappedData() const { return mapped_data; }

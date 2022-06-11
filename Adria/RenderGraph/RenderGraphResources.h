@@ -1,6 +1,7 @@
 #pragma once
-#include <string>
-#include "RenderGraphResourceRef.h"
+#include "../Graphics/Buffer.h"
+#include "../Graphics/Texture.h"
+#include "RenderGraphResourceId.h"
 #include "RenderGraphBlackboard.h"
 
 namespace adria
@@ -27,11 +28,10 @@ namespace adria
 
 	struct RenderGraphResource
 	{
-		RenderGraphResource(char const* name, size_t id, bool imported)
-			: name(name), id(id), imported(imported), version(0), ref_count(0)
+		RenderGraphResource(size_t id, bool imported)
+			: id(id), imported(imported), version(0), ref_count(0)
 		{}
 
-		std::string name;
 		size_t id;
 		bool imported;
 		size_t version;
@@ -47,12 +47,12 @@ namespace adria
 		using Resource = RGResourceTraits<ResourceType>::Resource;
 		using ResourceDesc = RGResourceTraits<ResourceType>::ResourceDesc;
 
-		TypedRenderGraphResource(char const* name, size_t id, Resource* resource)
-			: RenderGraphResource(name, id, true), resource(resource), desc(resource->GetDesc())
+		TypedRenderGraphResource(size_t id, Resource* resource)
+			: RenderGraphResource(id, true), resource(resource), desc(resource->GetDesc())
 		{}
 
-		TypedRenderGraphResource(char const* name, size_t id, ResourceDesc const& desc)
-			: RenderGraphResource(name, id, false), resource(nullptr), desc(desc)
+		TypedRenderGraphResource(size_t id, ResourceDesc const& desc)
+			: RenderGraphResource(id, false), resource(nullptr), desc(desc)
 		{}
 
 		Resource* resource;
@@ -60,10 +60,9 @@ namespace adria
 	};
 	using RGTexture = TypedRenderGraphResource<ERGResourceType::Texture>;
 	using RGBuffer = TypedRenderGraphResource<ERGResourceType::Buffer>;
-
-	using ResourceView = D3D12_CPU_DESCRIPTOR_HANDLE;
-	using ResourceState = D3D12_RESOURCE_STATES;
-	using CommandList = ID3D12GraphicsCommandList4;
+	using RGDescriptor = D3D12_CPU_DESCRIPTOR_HANDLE;
+	using RGResourceState = D3D12_RESOURCE_STATES;
+	using RGCommandList = ID3D12GraphicsCommandList4;
 
 	class RenderGraphResources
 	{
@@ -73,14 +72,19 @@ namespace adria
 		RenderGraphResources(RenderGraphResources const&) = delete;
 		RenderGraphResources& operator=(RenderGraphResources const&) = delete;
 
-		Texture& GetTexture(RGTextureRef handle);
-		Buffer& GetBuffer(RGBufferRef handle);
+		RGBlackboard& GetBlackboard();
 
-		ResourceView GetSRV(RGTextureSRVRef handle) const;
-		ResourceView GetUAV(RGTextureUAVRef handle) const;
-		ResourceView GetRTV(RGTextureRTVRef handle) const;
-		ResourceView GetDSV(RGTextureDSVRef handle) const;
+		Texture const& GetTexture(RGTextureId res_id) const;
 
+		Texture const& GetCopyResource(RGTextureCopySrcId res_id) const;
+		Texture const& GetCopyResource(RGTextureCopyDstId res_id) const;
+
+		RGDescriptor GetDescriptor(RGTextureReadOnlyId res_id) const;
+		RGDescriptor GetDescriptor(RGTextureReadWriteId res_id) const;
+		RGDescriptor GetDescriptor(RGRenderTargetId res_id) const;
+		RGDescriptor GetDescriptor(RGDepthStencilId res_id) const;
+
+		DynamicAllocation& GetAllocation(RGAllocationId);
 	private:
 		RenderGraph& rg;
 		RenderGraphPassBase& rg_pass;

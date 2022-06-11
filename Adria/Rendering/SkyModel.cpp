@@ -71,7 +71,7 @@ namespace adria
 		float sun_theta = std::acos(std::clamp(sun_direction.y, 0.f, 1.f));
 
 		SkyParameters params{};
-		for (size_t i = 0; i < (size_t)ESkyParams::Z; ++i)
+		for (size_t i = 0; i < ESkyParam_Z; ++i)
 		{
 			auto& param = params[i];
 			param.x = (float)Evaluate(datasetsRGB[0] + i, 9, turbidity, albedo, sun_theta);
@@ -79,28 +79,28 @@ namespace adria
 			param.z = (float)Evaluate(datasetsRGB[2] + i, 9, turbidity, albedo, sun_theta);
 		}
 
-		auto& paramZ = params[(size_t)ESkyParams::Z];
+		auto& paramZ = params[ESkyParam_Z];
 		paramZ.x = (float)Evaluate(datasetsRGBRad[0], 1, turbidity, albedo, sun_theta);
 		paramZ.y = (float)Evaluate(datasetsRGBRad[1], 1, turbidity, albedo, sun_theta);
 		paramZ.z = (float)Evaluate(datasetsRGBRad[2], 1, turbidity, albedo, sun_theta);
 
 		XMFLOAT3 S = HosekWilkie(std::cos(sun_theta), 0.0f, 1.0f,
-			params[(size_t)ESkyParams::A],
-			params[(size_t)ESkyParams::B],
-			params[(size_t)ESkyParams::C],
-			params[(size_t)ESkyParams::D],
-			params[(size_t)ESkyParams::E],
-			params[(size_t)ESkyParams::F],
-			params[(size_t)ESkyParams::G],
-			params[(size_t)ESkyParams::H],
-			params[(size_t)ESkyParams::I]);
+			params[ESkyParam_A],
+			params[ESkyParam_B],
+			params[ESkyParam_C],
+			params[ESkyParam_D],
+			params[ESkyParam_E],
+			params[ESkyParam_F],
+			params[ESkyParam_G],
+			params[ESkyParam_H],
+			params[ESkyParam_I]);
 
 		XMVECTOR _S = XMLoadFloat3(&S);
-		XMVECTOR _Z = XMLoadFloat3(&params[(size_t)ESkyParams::Z]);
+		XMVECTOR _Z = XMLoadFloat3(&params[ESkyParam_Z]);
 		_S = _S * _Z;
 
 		_Z = XMVectorDivide(_Z, XMVector3Dot(_S, XMVectorSet(0.2126f, 0.7152f, 0.0722f, 0.0f)));
-		XMStoreFloat3(&params[(size_t)ESkyParams::Z], _Z);
+		XMStoreFloat3(&params[ESkyParam_Z], _Z);
 
 		return params;
 	}

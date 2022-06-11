@@ -1,11 +1,8 @@
 #pragma once
-
 #include <functional>
 #include <unordered_set>
 #include <unordered_map>
-#include "RenderGraphResourceRef.h"
 #include "RenderGraphResources.h"
-#include "../Core/Definitions.h"
 #include "../Utilities/EnumUtil.h"
 
 namespace adria
@@ -23,7 +20,7 @@ namespace adria
 		ForceNoCull = 0x01,			    //RGPass cannot be culled by Render Graph
 		AllowUAVWrites = 0x02,		    //allow uav writes, only makes sense if LegacyRenderPassEnabled is disabled
 		SkipAutoRenderPass = 0x04,		//RGPass will manage render targets by himself
-		LegacyRenderPassEnabled = 0x08  //don't use DX12 Render Passes, use OMSetRenderTargets
+		LegacyRenderPassEnabled = 0x08,  //don't use DX12 Render Passes, use OMSetRenderTargets
 	};
 	DEFINE_ENUM_BIT_OPERATORS(ERGPassFlags);
 
@@ -31,16 +28,7 @@ namespace adria
 	{
 		ReadAccess_PixelShader,
 		ReadAccess_NonPixelShader,
-		ReadAccess_AllShader,
-		ReadAccess_IndirectArgument,
-		ReadAccess_CopySrc
-	};
-
-	enum ERGWriteAccess : uint8
-	{
-
-		WriteAccess_Unordered,
-		WriteAccess_CopyDst
+		ReadAccess_AllShader
 	};
 
 	enum class ERGLoadAccessOp : uint8
@@ -93,12 +81,12 @@ namespace adria
 
 		struct RenderTargetInfo
 		{
-			RGTextureRTVRef render_target_handle;
+			RGRenderTargetId render_target_handle;
 			ERGLoadStoreAccessOp render_target_access;
 		};
 		struct DepthStencilInfo
 		{
-			RGTextureDSVRef depth_stencil_handle;
+			RGDepthStencilId depth_stencil_handle;
 			ERGLoadStoreAccessOp depth_access;
 			ERGLoadStoreAccessOp stencil_access;
 			bool readonly;
@@ -112,9 +100,9 @@ namespace adria
 	protected:
 
 		virtual void Setup(RenderGraphBuilder&) = 0;
-		virtual void Execute(RenderGraphResources&, GraphicsDevice*, CommandList*) const = 0;
+		virtual void Execute(RenderGraphResources&, GraphicsDevice*, RGCommandList*) const = 0;
 
-		bool IsCulled() const { return ref_count == 0; }
+		bool IsCulled() const { return CanBeCulled() && ref_count == 0; }
 		bool CanBeCulled() const { return !HasAnyFlag(flags, ERGPassFlags::ForceNoCull); }
 		bool SkipAutoRenderPassSetup() const { return HasAnyFlag(flags, ERGPassFlags::SkipAutoRenderPass); }
 		bool UseLegacyRenderPasses() const { return HasAnyFlag(flags, ERGPassFlags::LegacyRenderPassEnabled); }
@@ -124,12 +112,12 @@ namespace adria
 		size_t ref_count = 0ull;
 		ERGPassType type;
 		ERGPassFlags flags = ERGPassFlags::None;
-		std::unordered_set<RGTextureRef> creates;
-		std::unordered_set<RGTextureRef> reads;
-		std::unordered_set<RGTextureRef> writes;
-		std::unordered_set<RGTextureRef> destroy;
+		std::unordered_set<RGTextureId> creates;
+		std::unordered_set<RGTextureId> reads;
+		std::unordered_set<RGTextureId> writes;
+		std::unordered_set<RGTextureId> destroy;
 
-		std::unordered_map<RGTextureRef, ResourceState> resource_state_map;
+		std::unordered_map<RGTextureId, RGResourceState> resource_state_map;
 
 		std::vector<RenderTargetInfo> render_targets_info;
 		std::optional<DepthStencilInfo> depth_stencil = std::nullopt;
@@ -142,7 +130,7 @@ namespace adria
 	{
 	public:
 		using SetupFunc = std::function<void(PassData&, RenderGraphBuilder&)>;
-		using ExecuteFunc = std::function<void(PassData const&, RenderGraphResources&, GraphicsDevice*, CommandList*)>;
+		using ExecuteFunc = std::function<void(PassData const&, RenderGraphResources&, GraphicsDevice*, RGCommandList*)>;
 
 	public:
 		RenderGraphPass(char const* name, SetupFunc&& setup, ExecuteFunc&& execute, ERGPassType type = ERGPassType::Graphics, ERGPassFlags flags = ERGPassFlags::None)
@@ -167,10 +155,46 @@ namespace adria
 			setup(data, builder);
 		}
 
-		void Execute(RenderGraphResources& resources, GraphicsDevice* dev, CommandList* ctx) const override
+		void Execute(RenderGraphResources& resources, GraphicsDevice* dev, RGCommandList* ctx) const override
 		{
 			ADRIA_ASSERT(setup != nullptr && "execute function is null!");
 			execute(data, resources, dev, ctx);
+		}
+	};
+
+	template<>
+	class RenderGraphPass<void> final : public RenderGraphPassBase
+	{
+	public:
+		using SetupFunc = std::function<void(RenderGraphBuilder&)>;
+		using ExecuteFunc = std::function<void(RenderGraphResources&, GraphicsDevice*, RGCommandList*)>;
+
+	public:
+		RenderGraphPass(char const* name, SetupFunc&& setup, ExecuteFunc&& execute, ERGPassType type = ERGPassType::Graphics, ERGPassFlags flags = ERGPassFlags::None)
+			: RenderGraphPassBase(name, type, flags), setup(std::move(setup)), execute(std::move(execute))
+		{}
+
+		void GetPassData() const
+		{
+			return;
+		}
+
+	private:
+		SetupFunc setup;
+		ExecuteFunc execute;
+
+	private:
+
+		void Setup(RenderGraphBuilder& builder) override
+		{
+			ADRIA_ASSERT(setup != nullptr && "setup function is null!");
+			setup(builder);
+		}
+
+		void Execute(RenderGraphResources& resources, GraphicsDevice* dev, RGCommandList* ctx) const override
+		{
+			ADRIA_ASSERT(setup != nullptr && "execute function is null!");
+			execute(resources, dev, ctx);
 		}
 	};
 

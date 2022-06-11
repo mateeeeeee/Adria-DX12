@@ -6,22 +6,22 @@
 namespace adria
 {
 
-	enum class ESkyParams : uint8
+	enum ESkyParams : uint16
 	{
-		A = 0,
-		B,
-		C,
-		D,
-		E,
-		F,
-		G,
-		I,
-		H,
-		Z,
-		Count
+		ESkyParam_A = 0,
+		ESkyParam_B,
+		ESkyParam_C,
+		ESkyParam_D,
+		ESkyParam_E,
+		ESkyParam_F,
+		ESkyParam_G,
+		ESkyParam_I,
+		ESkyParam_H,
+		ESkyParam_Z,
+		ESkyParam_Count
 	};
 
-	using SkyParameters = std::array<DirectX::XMFLOAT3, (size_t)ESkyParams::Count>;
+	using SkyParameters = std::array<DirectX::XMFLOAT3, ESkyParam_Count>;
 
 	SkyParameters CalculateSkyParameters(float32 turbidity, float32 albedo, DirectX::XMFLOAT3 sun_direction);
 }

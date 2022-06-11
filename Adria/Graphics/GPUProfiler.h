@@ -18,6 +18,7 @@ namespace adria
 		{
 			bool query_started = false;
 			bool query_finished = false;
+			ID3D12GraphicsCommandList* cmd_list = nullptr;
 		};
 
 	public:
@@ -28,14 +29,14 @@ namespace adria
 
 		void EndProfileBlock(ID3D12GraphicsCommandList* cmd_list, EProfilerBlock block);
 
-		std::vector<std::string> GetProfilerResults(ID3D12GraphicsCommandList* cmd_list, bool log_results);
+		std::vector<std::string> GetProfilerResults(ID3D12GraphicsCommandList* cmd_list, bool log_results) const;
 
 	private:
 		GraphicsDevice* gfx;
-		std::array<QueryData, MAX_PROFILES> query_data;
+		mutable std::array<QueryData, MAX_PROFILES> query_data;
 		Microsoft::WRL::ComPtr<ID3D12QueryHeap> query_heap;
 		Buffer query_readback_buffer;
-		UINT64 current_frame_index = 0;
+		mutable UINT64 current_frame_index = 0;
 	};
 
 	struct ScopedGPUProfileBlock

@@ -41,7 +41,8 @@ namespace adria
 					return pool_texture.texture.get();
 				}
 			}
-			return texture_pool.emplace_back(std::pair{ PooledTexture{ std::make_unique<Texture>(device, desc), frame_index}, true }).first.texture.get();
+			auto& texture = texture_pool.emplace_back(std::pair{ PooledTexture{ std::make_unique<Texture>(device, desc), frame_index}, true }).first.texture;
+			return texture.get();
 		}
 		void ReleaseTexture(Texture* texture)
 		{
