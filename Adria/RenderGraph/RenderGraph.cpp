@@ -93,7 +93,6 @@ namespace adria
 		for (auto& dependency_level : dependency_levels) dependency_level.Setup();
 
 		auto cmd_list = gfx->GetNewGraphicsCommandList();
-		ResourceBarrierBatch final_barrier_batcher{};
 		for (size_t i = 0; i < dependency_levels.size(); ++i)
 		{
 			auto& dependency_level = dependency_levels[i];
@@ -124,7 +123,7 @@ namespace adria
 						if (prev_dependency_level.required_states.contains(texture_handle))
 						{
 							RGResourceState prev_state = prev_dependency_level.required_states[texture_handle];
-							if (state != prev_state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, state);
+							if (prev_state != state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, state); //!HasAllFlags(prev_state, state)
 							found = true;
 							break;
 						}
@@ -132,13 +131,15 @@ namespace adria
 					if (!found && rg_texture->imported)
 					{
 						RGResourceState prev_state = rg_texture->desc.initial_state;
-						if (state != prev_state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, state);
+						if (prev_state != state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, state); //!HasAllFlags(prev_state, state)
 					}
 				}
 			}
 
 			barrier_batcher.Submit(cmd_list);
 			dependency_level.Execute(gfx, cmd_list);
+
+			barrier_batcher.Clear();
 			for (auto handle : dependency_level.destroys)
 			{
 				auto* rg_texture = GetRGTexture(handle);
@@ -146,11 +147,11 @@ namespace adria
 				RGResourceState initial_state = texture->GetDesc().initial_state;
 				ADRIA_ASSERT(dependency_level.required_states.contains(handle));
 				RGResourceState state = dependency_level.required_states[handle];
-				if (initial_state != state) final_barrier_batcher.AddTransition(texture->GetNative(), state, initial_state);
+				if (initial_state != state) barrier_batcher.AddTransition(texture->GetNative(), state, initial_state);
 				if (!rg_texture->imported) pool.ReleaseTexture(rg_texture->resource);
 			}
+			barrier_batcher.Submit(cmd_list);
 		}
-		final_barrier_batcher.Submit(cmd_list);
 	}
 
 	void RenderGraph::Execute_Multithreaded()
@@ -227,10 +228,8 @@ namespace adria
 		{
 			auto& pass = passes[i];
 			std::vector<uint64>& pass_adjacency_list = adjacency_lists[i];
-			for (size_t j = passes.size(); j-- != 0;)
+			for (size_t j = i + 1; j < passes.size(); ++j)
 			{
-				if (i == j) continue;
-
 				auto& other_pass = passes[j];
 				for (auto const& other_node_read : other_pass->reads)
 				{
@@ -270,7 +269,7 @@ namespace adria
 			size_t i = topologically_sorted_passes[u];
 			for (auto v : adjacency_lists[i])
 			{
-				if (distances[v] < distances[u] + 1) distances[v] = distances[u] + 1;
+				if (distances[v] < distances[i] + 1) distances[v] = distances[i] + 1;
 			}
 		}
 
@@ -322,8 +321,9 @@ namespace adria
 
 	void RenderGraph::CalculateResourcesLifetime()
 	{
-		for (auto& pass : passes) 
+		for (size_t i = 0; i < topologically_sorted_passes.size(); ++i)
 		{
+			auto& pass = passes[topologically_sorted_passes[i]];
 			if (pass->IsCulled()) continue;
 			for (auto id : pass->writes)
 			{

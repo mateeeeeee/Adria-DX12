@@ -49,7 +49,7 @@ namespace adria
 	{
 		RGTextureCopySrcId copy_src_id = rg.ReadCopySrcTexture(name);
 		RGTextureId res_id(copy_src_id);
-		rg_pass.resource_state_map[res_id] |= D3D12_RESOURCE_STATE_COPY_SOURCE;
+		rg_pass.resource_state_map[res_id] = D3D12_RESOURCE_STATE_COPY_SOURCE;
 		rg_pass.reads.insert(res_id);
 		return copy_src_id;
 	}
@@ -58,8 +58,14 @@ namespace adria
 	{
 		RGTextureCopyDstId copy_dst_id = rg.WriteCopyDstTexture(name);
 		RGTextureId res_id(copy_dst_id);
-		rg_pass.resource_state_map[res_id] |= D3D12_RESOURCE_STATE_COPY_DEST;
+		rg_pass.resource_state_map[res_id] = D3D12_RESOURCE_STATE_COPY_DEST;
+		if (!rg_pass.creates.contains(res_id))
+		{
+			DummyReadTexture(name);
+		}
 		rg_pass.writes.insert(res_id);
+		auto* texture = rg.GetRGTexture(res_id);
+		if (texture->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
 		return copy_dst_id;
 	}
 
@@ -71,13 +77,13 @@ namespace adria
 		switch (read_access)
 		{
 		case ReadAccess_PixelShader:
-			rg_pass.resource_state_map[res_id] |= D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+			rg_pass.resource_state_map[res_id] = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 			break;
 		case ReadAccess_NonPixelShader:
-			rg_pass.resource_state_map[res_id] |= D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+			rg_pass.resource_state_map[res_id] = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 			break;
 		case ReadAccess_AllShader:
-			rg_pass.resource_state_map[res_id] |= D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
+			rg_pass.resource_state_map[res_id] = D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
 			break;
 		default:
 			ADRIA_ASSERT(false && "Invalid Read Flag!");
@@ -92,14 +98,14 @@ namespace adria
 		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
 		RGTextureReadWriteId read_write_id = rg.WriteTexture(name, desc);
 		RGTextureId res_id = read_write_id.GetResourceId();
-		rg_pass.resource_state_map[res_id] |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-		auto* texture = rg.GetRGTexture(res_id);
-		if (texture->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
+		rg_pass.resource_state_map[res_id] = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 		if (!rg_pass.creates.contains(res_id))
 		{
-			++texture->version;
+			DummyReadTexture(name);
 		}
 		rg_pass.writes.insert(res_id);
+		auto* texture = rg.GetRGTexture(res_id);
+		if (texture->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
 		return read_write_id;
 	}
 
@@ -108,16 +114,15 @@ namespace adria
 		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
 		RGRenderTargetId render_target_id = rg.RenderTarget(name, desc);
 		RGTextureId res_id = render_target_id.GetResourceId();
-		rg_pass.resource_state_map[res_id] |= D3D12_RESOURCE_STATE_RENDER_TARGET;
+		rg_pass.resource_state_map[res_id] = D3D12_RESOURCE_STATE_RENDER_TARGET;
 		rg_pass.render_targets_info.push_back(RenderGraphPassBase::RenderTargetInfo{ .render_target_handle = render_target_id, .render_target_access = load_store_op });
-		auto* rg_texture = rg.GetRGTexture(res_id);
-		if (rg_texture->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
-
 		if (!rg_pass.creates.contains(res_id))
 		{
-			++rg_texture->version;
+			DummyReadTexture(name);
 		}
 		rg_pass.writes.insert(res_id);
+		auto* rg_texture = rg.GetRGTexture(res_id);
+		if (rg_texture->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
 		return render_target_id;
 	}
 
@@ -126,18 +131,15 @@ namespace adria
 		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
 		RGDepthStencilId depth_stencil_id = rg.DepthStencil(name, desc);
 		RGTextureId res_id = depth_stencil_id.GetResourceId();
-
+		rg_pass.resource_state_map[res_id] = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 		rg_pass.depth_stencil = RenderGraphPassBase::DepthStencilInfo{ .depth_stencil_handle = depth_stencil_id, .depth_access = load_store_op,.stencil_access = stencil_load_store_op, .readonly = false };
-		auto* rg_texture = rg.GetRGTexture(res_id);
-
 		if (!rg_pass.creates.contains(res_id))
 		{
-			++rg_texture->version;
+			DummyReadTexture(name);
 		}
 		rg_pass.writes.insert(res_id);
-
+		auto* rg_texture = rg.GetRGTexture(res_id);
 		if (rg_texture->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
-		rg_pass.resource_state_map[res_id] |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
 		return depth_stencil_id;
 	}
 
@@ -152,7 +154,7 @@ namespace adria
 		rg_pass.reads.insert(res_id);
 
 		if (rg_texture->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
-		rg_pass.resource_state_map[res_id] |= D3D12_RESOURCE_STATE_DEPTH_READ;
+		rg_pass.resource_state_map[res_id] = D3D12_RESOURCE_STATE_DEPTH_READ;
 		return depth_stencil_id;
 	}
 

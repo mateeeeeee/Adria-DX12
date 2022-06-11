@@ -57,7 +57,7 @@ namespace adria
 
 		for (tecs::entity light_entity : lights)
 		{
-			/*auto const& light = lights.get(light_entity);
+			auto const& light = lights.get(light_entity);
 			if (!light.active) continue;
 
 			if (light.type == ELightType::Directional)
@@ -74,7 +74,6 @@ namespace adria
 				}
 				break;
 			}
-			*/
 		}
 	}
 
