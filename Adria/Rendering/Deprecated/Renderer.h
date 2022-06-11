@@ -228,11 +228,7 @@ namespace adria
 		void PassDeferredClusteredLighting(ID3D12GraphicsCommandList4* cmd_list);
 		void PassForward(ID3D12GraphicsCommandList4* cmd_list); 
 
-		void PassShadowMapDirectional(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
-		void PassShadowMapSpot(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
-		void PassShadowMapPoint(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassShadowMapCascades(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
-		void PassShadowMapCommon(ID3D12GraphicsCommandList4* cmd_list);
 
 		void PassForwardCommon(ID3D12GraphicsCommandList4* cmd_list, bool transparent);
 		void PassOcean(ID3D12GraphicsCommandList4* cmd_list);

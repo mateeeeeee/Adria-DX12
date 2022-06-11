@@ -313,8 +313,6 @@ namespace adria
 	void ShadowPass::AddPass(RenderGraph& rg, Light const& light, size_t light_id)
 	{
 		ADRIA_ASSERT(light.casts_shadows);
-		const_cast<Light&>(light).use_cascades = false; //tmp
-
 		switch (light.type)
 		{
 		case ELightType::Directional:
@@ -386,7 +384,89 @@ namespace adria
 
 	void ShadowPass::ShadowMapPass_DirectionalCascades(RenderGraph& rg, Light const& light, size_t light_id)
 	{
-		
+		ADRIA_ASSERT(light.type == ELightType::Directional && light.use_cascades == true);
+		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		struct ShadowPassData
+		{
+			RGAllocationId alloc_id;
+		};
+
+		std::array<float32, SHADOW_CASCADE_COUNT> split_distances;
+		std::array<XMMATRIX, SHADOW_CASCADE_COUNT> proj_matrices = RecalculateProjectionMatrices(*camera, 0.5f, split_distances);
+		std::array<XMMATRIX, SHADOW_CASCADE_COUNT> light_view_projections{};
+		std::array<XMMATRIX, SHADOW_CASCADE_COUNT> light_views{};
+		std::array<DirectX::BoundingBox, SHADOW_CASCADE_COUNT> light_bounding_boxes{};
+		for (uint32 i = 0; i < SHADOW_CASCADE_COUNT; ++i)
+		{
+			auto const& [V, P] = LightViewProjection_Cascades(light, *camera, proj_matrices[i], light_bounding_boxes[i]);
+			light_views[i] = V;
+			light_view_projections[i] = V * P;
+		}
+
+		for (size_t i = 0; i < SHADOW_CASCADE_COUNT; ++i)
+		{
+			std::string name = "Shadow Map Cascade Pass " + std::to_string(i);
+			rg.AddPass<ShadowPassData>(name.c_str(),
+				[=](ShadowPassData& data, RenderGraphBuilder& builder)
+				{
+					if (i == 0)
+					{
+						TextureDesc depth_cascade_maps_desc{};
+						depth_cascade_maps_desc.width = SHADOW_CASCADE_MAP_SIZE;
+						depth_cascade_maps_desc.height = SHADOW_CASCADE_MAP_SIZE;
+						depth_cascade_maps_desc.misc_flags = EResourceMiscFlag::None;
+						depth_cascade_maps_desc.array_size = SHADOW_CASCADE_COUNT;
+						depth_cascade_maps_desc.format = DXGI_FORMAT_R32_TYPELESS;
+						depth_cascade_maps_desc.clear = D3D12_CLEAR_VALUE{ .Format = DXGI_FORMAT_D32_FLOAT, .DepthStencil = {1.0f, 0} };
+						depth_cascade_maps_desc.initial_state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+						depth_cascade_maps_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::DepthStencil;
+						builder.DeclareTexture(RG_RES_NAME_IDX(ShadowMap, light_id), depth_cascade_maps_desc);
+						builder.DeclareAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id), AllocDesc{ GetCBufferSize<ShadowCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT });
+					}
+
+					TextureViewDesc dsv_desc{};
+					dsv_desc.new_format = DXGI_FORMAT_D32_FLOAT;
+					dsv_desc.first_mip = 0;
+					dsv_desc.slice_count = 1;
+					dsv_desc.first_slice = D3D12CalcSubresource(0, i, 0, 1, 1);
+					builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light_id), ERGLoadStoreAccessOp::Clear_Preserve,
+						ERGLoadStoreAccessOp::NoAccess_NoAccess, dsv_desc);
+					data.alloc_id = builder.UseAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id));
+					builder.SetViewport(SHADOW_CASCADE_MAP_SIZE, SHADOW_CASCADE_MAP_SIZE);
+				},
+				[=](ShadowPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+				{
+					auto dynamic_allocator = gfx->GetDynamicAllocator();
+					ShadowCBuffer shadow_cbuf_data{};
+					shadow_cbuf_data.lightview = light_views[i];
+					shadow_cbuf_data.lightviewprojection = light_view_projections[i];
+					shadow_cbuf_data.softness = 1.0f;
+
+					DynamicAllocation shadow_allocation = dynamic_allocator->Allocate(GetCBufferSize<ShadowCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+					shadow_allocation.Update(shadow_cbuf_data);
+
+					LightFrustumCulling(ELightType::Directional, light_bounding_boxes[i], std::nullopt);
+					ShadowMapPass_Common(gfx, cmd_list, shadow_allocation.gpu_address, false);
+
+					if (i == 0)
+					{
+						ShadowCBuffer shadow_cbuf_data{};
+						shadow_cbuf_data.shadow_map_size = SHADOW_CASCADE_MAP_SIZE;
+						shadow_cbuf_data.shadow_matrix1 = DirectX::XMMatrixInverse(nullptr, camera->View()) * light_view_projections[0];
+						shadow_cbuf_data.shadow_matrix2 = DirectX::XMMatrixInverse(nullptr, camera->View()) * light_view_projections[1];
+						shadow_cbuf_data.shadow_matrix3 = DirectX::XMMatrixInverse(nullptr, camera->View()) * light_view_projections[2];
+						shadow_cbuf_data.split0 = split_distances[0];
+						shadow_cbuf_data.split1 = split_distances[1];
+						shadow_cbuf_data.split2 = split_distances[2];
+						shadow_cbuf_data.softness = 1.0f;
+						shadow_cbuf_data.visualize = static_cast<int>(false);
+
+						shadow_allocation = resources.GetAllocation(data.alloc_id);
+						shadow_allocation.Update(shadow_cbuf_data);
+					}
+
+				});
+		}
 	}
 
 	void ShadowPass::ShadowMapPass_Point(RenderGraph& rg, Light const& light, size_t light_id)
