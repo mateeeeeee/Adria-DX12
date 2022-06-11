@@ -110,11 +110,12 @@ namespace adria
 		void DepthFirstSearch(size_t i, std::vector<bool>& visited, std::stack<size_t>& stack);
 
 		RGTextureId DeclareTexture(RGResourceName name, TextureDesc const& desc);
-
+		RGBufferId DeclareBuffer(RGResourceName name, BufferDesc const& desc);
 		RGAllocationId DeclareAllocation(RGResourceName name, AllocDesc const& alloc);
 
-		bool IsTextureDeclared(RGResourceName name);
-		bool IsAllocationDeclared(RGResourceName name);
+		bool IsTextureDeclared(RGResourceName);
+		bool IsBufferDeclared(RGResourceName);
+		bool IsAllocationDeclared(RGResourceName);
 
 		bool IsValidTextureHandle(RGTextureId) const;
 		bool IsValidBufferHandle(RGBufferId) const;
@@ -122,8 +123,10 @@ namespace adria
 
 		RGTexture* GetRGTexture(RGTextureId) const;
 		RGBuffer* GetRGBuffer(RGBufferId) const;
-		Texture* GetTexture(RGTextureId res_id) const;
-		Buffer* GetBuffer(RGBufferId res_id) const;
+
+		RGTextureId GetTextureId(RGResourceName);
+		RGBufferId GetBufferId(RGResourceName);
+		RGAllocationId UseAllocation(RGResourceName);
 
 		RGTextureCopySrcId ReadCopySrcTexture(RGResourceName name);
 		RGTextureCopyDstId WriteCopyDstTexture(RGResourceName name);
@@ -131,15 +134,17 @@ namespace adria
 		RGTextureReadWriteId WriteTexture(RGResourceName name, TextureViewDesc const& desc);
 		RGRenderTargetId RenderTarget(RGResourceName name, TextureViewDesc const& desc);
 		RGDepthStencilId DepthStencil(RGResourceName name, TextureViewDesc const& desc);
-		RGAllocationId UseAllocation(RGResourceName name);
 
-		Texture const& GetResource(RGTextureCopySrcId res_id) const;
-		Texture const& GetResource(RGTextureCopyDstId res_id) const;
-		RGDescriptor GetDescriptor(RGTextureReadOnlyId res_id) const;
-		RGDescriptor GetDescriptor(RGTextureReadWriteId res_id) const;
-		RGDescriptor GetDescriptor(RGRenderTargetId res_id) const;
-		RGDescriptor GetDescriptor(RGDepthStencilId res_id) const;
-		DynamicAllocation& GetAllocation(RGAllocationId alloc_id);
+		Texture const& GetResource(RGTextureCopySrcId) const;
+		Texture const& GetResource(RGTextureCopyDstId) const;
+		RGDescriptor GetDescriptor(RGTextureReadOnlyId) const;
+		RGDescriptor GetDescriptor(RGTextureReadWriteId) const;
+		RGDescriptor GetDescriptor(RGRenderTargetId) const;
+		RGDescriptor GetDescriptor(RGDepthStencilId) const;
+
+		DynamicAllocation& GetAllocation(RGAllocationId);
+		Texture* GetTexture(RGTextureId) const;
+		Buffer* GetBuffer(RGBufferId) const;
 
 		void Execute_Singlethreaded();
 		void Execute_Multithreaded();

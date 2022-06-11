@@ -19,6 +19,13 @@ namespace adria
 		return RGTextureId(textures.size() - 1);
 	}
 
+	RGBufferId RenderGraph::DeclareBuffer(RGResourceName name, BufferDesc const& desc)
+	{
+		buffers.emplace_back(new RGBuffer(buffers.size(), desc));
+		buffer_name_id_map[name] = RGBufferId(buffers.size() - 1);
+		return RGBufferId(buffers.size() - 1);
+	}
+
 	RGAllocationId RenderGraph::DeclareAllocation(RGResourceName name, AllocDesc const& alloc)
 	{
 		dynamic_allocations.emplace_back(gfx->GetDynamicAllocator()->Allocate(alloc.size_in_bytes, alloc.alignment));
@@ -29,6 +36,11 @@ namespace adria
 	bool RenderGraph::IsTextureDeclared(RGResourceName name)
 	{
 		return texture_name_id_map.find(name) != texture_name_id_map.end();
+	}
+
+	bool RenderGraph::IsBufferDeclared(RGResourceName name)
+	{
+		return buffer_name_id_map.find(name) != buffer_name_id_map.end();
 	}
 
 	bool RenderGraph::IsAllocationDeclared(RGResourceName name)
@@ -100,7 +112,11 @@ namespace adria
 					Texture* texture = rg_texture->resource;
 					if (dependency_level.creates.contains(texture_handle))
 					{
-						ADRIA_ASSERT(HasAllFlags(texture->GetDesc().initial_state, state) && "First Resource Usage must be compatible with initial resource state!");
+						if (!HasAllFlags(texture->GetDesc().initial_state, state))
+						{
+							barrier_batcher.AddTransition(texture->GetNative(), texture->GetDesc().initial_state, state);
+						}
+						//ADRIA_ASSERT(HasAllFlags(texture->GetDesc().initial_state, state) && "First Resource Usage must be compatible with initial resource state!");
 						continue;
 					}
 					bool found = false;
@@ -358,6 +374,18 @@ namespace adria
 	Buffer* RenderGraph::GetBuffer(RGBufferId res_id) const
 	{
 		return GetRGBuffer(res_id)->resource;
+	}
+
+	RGTextureId RenderGraph::GetTextureId(RGResourceName name)
+	{
+		ADRIA_ASSERT(IsTextureDeclared(name));
+		return texture_name_id_map[name];
+	}
+
+	RGBufferId RenderGraph::GetBufferId(RGResourceName name)
+	{
+		ADRIA_ASSERT(IsTextureDeclared(name));
+		return buffer_name_id_map[name];
 	}
 
 	RGTextureCopySrcId RenderGraph::ReadCopySrcTexture(RGResourceName name)

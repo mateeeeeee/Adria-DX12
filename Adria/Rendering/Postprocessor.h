@@ -3,6 +3,7 @@
 #include "RendererSettings.h"
 #include "BlurPass.h"
 #include "CopyToTexturePass.h"
+#include "GenerateMipsPass.h"
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
 
@@ -34,12 +35,15 @@ namespace adria
 
 		BlurPass blur_pass;
 		CopyToTexturePass copy_to_texture_pass;
-
+		GenerateMipsPass generate_mips_pass;
 	private:
 		void AddCopyHDRPass(RenderGraph& rg);
 		void AddVolumetricCloudsPass(RenderGraph& rg);
 		void AddSSRPass(RenderGraph& rg);
 		void AddFogPass(RenderGraph& rg);
+		void AddBloomPass(RenderGraph& rg);
 		void AddDepthOfFieldPass(RenderGraph& rg);	
+		void AddGenerateBokehPasses(RenderGraph& rg);
+		void AddDrawBokehPass(RenderGraph& rg);
 	};
 }

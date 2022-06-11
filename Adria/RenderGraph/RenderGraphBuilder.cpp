@@ -149,4 +149,10 @@ namespace adria
 		return rg.UseAllocation(name);
 	}
 
+	void RenderGraphBuilder::ForceWriteTexture(RGResourceName name)
+	{
+		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
+		rg_pass.writes.insert(rg.GetTextureId(name));
+	}
+
 }

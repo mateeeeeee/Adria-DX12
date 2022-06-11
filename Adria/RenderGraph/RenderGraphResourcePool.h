@@ -34,7 +34,7 @@ namespace adria
 		{
 			for (auto& [pool_texture, active] : texture_pool)
 			{
-				if (!active && pool_texture.texture->GetDesc() == desc)
+				if (!active && pool_texture.texture->GetDesc().IsCompatible(desc))
 				{
 					pool_texture.last_used_frame = frame_index;
 					active = true;
