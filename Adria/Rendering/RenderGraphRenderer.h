@@ -10,6 +10,7 @@
 #include "TiledLightingPass.h"
 #include "ShadowPass.h"
 #include "ToneMapPass.h"
+#include "FXAAPass.h"
 #include "CopyToTexturePass.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../Graphics/ConstantBuffer.h"
@@ -97,6 +98,7 @@ namespace adria
 		GBufferPass  gbuffer_pass;
 		AmbientPass  ambient_pass;
 		ToneMapPass  tonemap_pass;
+		FXAAPass	 fxaa_pass;
 		SkyPass		 sky_pass;
 		LightingPass lighting_pass;
 		TiledLightingPass tiled_lighting_pass;

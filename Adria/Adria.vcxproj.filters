@@ -237,6 +237,9 @@
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\Postprocessor.cpp" />
+    <ClCompile Include="Rendering\FXAAPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -585,6 +588,9 @@
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\BlurPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\FXAAPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
   </ItemGroup>

@@ -224,37 +224,28 @@ namespace adria
 		void UpdateConstantBuffers(float32 dt);
 		void UpdateOcean(ID3D12GraphicsCommandList4* cmd_list);
 		void UpdateParticles(float32 dt);
-		void CameraFrustumCulling();
-		void LightFrustumCulling(ELightType type);
 
 		void PassPicking(ID3D12GraphicsCommandList4* cmd_list);
-		void PassGBuffer(ID3D12GraphicsCommandList4* cmd_list);
 		void PassDecals(ID3D12GraphicsCommandList4* cmd_list);
 		void PassSSAO(ID3D12GraphicsCommandList4* cmd_list);
 		void PassHBAO(ID3D12GraphicsCommandList4* cmd_list);
 		void PassRTAO(ID3D12GraphicsCommandList4* cmd_list);
 		void PassAmbient(ID3D12GraphicsCommandList4* cmd_list);
-		void PassDeferredLighting(ID3D12GraphicsCommandList4* cmd_list); 
-		void PassDeferredTiledLighting(ID3D12GraphicsCommandList4* cmd_list);
 		void PassDeferredClusteredLighting(ID3D12GraphicsCommandList4* cmd_list);
 		void PassForward(ID3D12GraphicsCommandList4* cmd_list); 
 		void PassPostprocess(ID3D12GraphicsCommandList4* cmd_list);
 
-		void PassShadowMapDirectional(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassShadowMapSpot(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassShadowMapPoint(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassShadowMapCascades(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassShadowMapCommon(ID3D12GraphicsCommandList4* cmd_list);
-		void PassVolumetric(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
-		
+
 		void PassForwardCommon(ID3D12GraphicsCommandList4* cmd_list, bool transparent);
 		void PassSky(ID3D12GraphicsCommandList4* cmd_list);
 		void PassOcean(ID3D12GraphicsCommandList4* cmd_list);
 		void PassParticles(ID3D12GraphicsCommandList4* cmd_list);
 		
 		void PassLensFlare(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
-		void PassVolumetricClouds(ID3D12GraphicsCommandList4* cmd_list);
-		void PassSSR(ID3D12GraphicsCommandList4* cmd_list);
 		void PassDepthOfField(ID3D12GraphicsCommandList4* cmd_list);
 		void PassGenerateBokeh(ID3D12GraphicsCommandList4* cmd_list);
 		void PassDrawBokeh(ID3D12GraphicsCommandList4* cmd_list);
@@ -264,15 +255,9 @@ namespace adria
 		void PassMotionBlur(ID3D12GraphicsCommandList4* cmd_list);
 		void PassFXAA(ID3D12GraphicsCommandList4* cmd_list);
 		void PassTAA(ID3D12GraphicsCommandList4* cmd_list);
-		void PassFog(ID3D12GraphicsCommandList4* cmd_list);
-		void PassToneMap(ID3D12GraphicsCommandList4* cmd_list);
 
 		void DrawSun(ID3D12GraphicsCommandList4* cmd_list, tecs::entity sun);
 		//result in blur final 
-		void BlurTexture(ID3D12GraphicsCommandList4* cmd_list, Texture const& texture);
-		//result in current render target
-		void CopyTexture(ID3D12GraphicsCommandList4* cmd_list, Texture const& texture, EBlendMode mode = EBlendMode::None);
-		
 		void AddTextures(ID3D12GraphicsCommandList4* cmd_list, Texture const& texture1, Texture const& texture2, EBlendMode mode = EBlendMode::None);
 
 		void GenerateMips(ID3D12GraphicsCommandList4* cmd_list, Texture const& texture,

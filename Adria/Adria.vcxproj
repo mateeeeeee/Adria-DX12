@@ -198,6 +198,7 @@
     <ClCompile Include="Rendering\CameraManager.cpp" />
     <ClCompile Include="Rendering\CopyToTexturePass.cpp" />
     <ClCompile Include="Rendering\EntityLoader.cpp" />
+    <ClCompile Include="Rendering\FXAAPass.cpp" />
     <ClCompile Include="Rendering\GBufferPass.cpp" />
     <ClCompile Include="Rendering\LightingPass.cpp" />
     <ClCompile Include="Rendering\Postprocessor.cpp" />
@@ -297,6 +298,7 @@
     <ClInclude Include="Rendering\CopyToTexturePass.h" />
     <ClInclude Include="Rendering\Enums.h" />
     <ClInclude Include="Rendering\EntityLoader.h" />
+    <ClInclude Include="Rendering\FXAAPass.h" />
     <ClInclude Include="Rendering\GBufferPass.h" />
     <ClInclude Include="Rendering\GlobalBlackboardData.h" />
     <ClInclude Include="Rendering\LightingPass.h" />

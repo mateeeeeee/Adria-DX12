@@ -21,7 +21,8 @@ namespace adria
 		weather_cbuffer(gfx->GetDevice(), backbuffer_count), compute_cbuffer(gfx->GetDevice(), backbuffer_count)
 		,gbuffer_pass(reg, gpu_profiler, width, height), ambient_pass(width, height), tonemap_pass(width, height)
 		,sky_pass(reg, texture_manager, width, height), lighting_pass(width, height), shadow_pass(reg, texture_manager),
-		tiled_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), postprocessor(texture_manager, width, height)
+		tiled_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), postprocessor(texture_manager, width, height),
+		fxaa_pass(width, height)
 	{
 		RootSigPSOManager::Initialize(gfx->GetDevice());
 		CreateNullHeap();
@@ -138,6 +139,7 @@ namespace adria
 			tiled_lighting_pass.OnResize(w, h);
 			copy_to_texture_pass.OnResize(w, h);
 			tonemap_pass.OnResize(w, h);
+			fxaa_pass.OnResize(w, h);
 			postprocessor.OnResize(w, h);
 		}
 	}
@@ -358,8 +360,8 @@ namespace adria
 	{
 		if (HasAnyFlag(render_settings.postprocessor.anti_aliasing, AntiAliasing_FXAA))
 		{
-			//tone_map.AddPass(rg,...);
-			//fxaa_pass.AddPass(rg,...);
+			tonemap_pass.AddPass(rg, postprocessor.GetFinalResource(), RG_RES_NAME(FXAAInput));
+			fxaa_pass.AddPass(rg, RG_RES_NAME(FXAAInput), true);
 		}
 		else
 		{
@@ -367,12 +369,13 @@ namespace adria
 		}
 	}
 
+	
 	void RenderGraphRenderer::ResolveToTexture(RenderGraph& rg)
 	{
 		if (HasAnyFlag(render_settings.postprocessor.anti_aliasing, AntiAliasing_FXAA))
 		{
-			//tone_map.AddPass(rg,...);
-			//fxaa_pass.AddPass(rg,...);
+			tonemap_pass.AddPass(rg, postprocessor.GetFinalResource(), RG_RES_NAME(FXAAInput));
+			fxaa_pass.AddPass(rg, RG_RES_NAME(FXAAInput), false);
 		}
 		else
 		{

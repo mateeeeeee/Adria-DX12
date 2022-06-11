@@ -7,14 +7,15 @@ namespace adria
 {
 	class RenderGraph;
 
-	class ToneMapPass
+	class FXAAPass
 	{
 	public:
-		ToneMapPass(uint32 w, uint32 h);
-		void AddPass(RenderGraph& rg, RGResourceName hdr_src, bool render_to_backbuffer);
-		void AddPass(RenderGraph& rg, RGResourceName hdr_src, RGResourceName fxaa_input);
+		FXAAPass(uint32 w, uint32 h);
+		void AddPass(RenderGraph& rg, RGResourceName input, bool render_to_backbuffer);
 		void OnResize(uint32 w, uint32 h);
 	private:
 		uint32 width, height;
 	};
 }
+
+
