@@ -7,6 +7,8 @@
 #include "../Graphics/GPUProfiler.h"
 #include "../tecs/registry.h"
 
+//add array of ResourceNames of Postprocess
+
 namespace adria
 {
 	Postprocessor::Postprocessor(TextureManager& texture_manager, uint32 width, uint32 height)
@@ -31,11 +33,17 @@ namespace adria
 			AddSSRPass(rg);
 			final_resource = RG_RES_NAME(SSR_Output);
 		}
-
 		if (settings.fog)
 		{
 			AddFogPass(rg);
 			final_resource = RG_RES_NAME(FogOutput);
+		}
+		if (settings.dof)
+		{
+			blur_pass.AddPass(rg, final_resource, RG_RES_NAME(BlurredDofInput), "DoF");
+			//if (settings.bokeh) PassGenerateBokeh(cmd_list);
+			AddDepthOfFieldPass(rg);
+			final_resource = RG_RES_NAME(DepthOfFieldOutput);
 		}
 	}
 
@@ -196,9 +204,7 @@ namespace adria
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 				cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
-
 				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-
 				cmd_list->DrawInstanced(4, 1, 0, 0);
 			}, ERGPassType::Graphics, ERGPassFlags::None);
 	}
@@ -263,5 +269,61 @@ namespace adria
 
 			}, ERGPassType::Graphics, ERGPassFlags::None);
 	}
+
+	void Postprocessor::AddDepthOfFieldPass(RenderGraph& rg)
+	{
+		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
+
+		struct SSRPassData
+		{
+			RGTextureReadOnlyId input;
+			RGTextureReadOnlyId blurred_input;
+			RGTextureReadOnlyId depth;
+		};
+
+		rg.AddPass<SSRPassData>("DepthOfField Pass",
+			[=](SSRPassData& data, RenderGraphBuilder& builder)
+			{
+				TextureDesc dof_output_desc{};
+				dof_output_desc.width = width;
+				dof_output_desc.height = height;
+				dof_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				dof_output_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::RenderTarget | EBindFlag::ShaderResource;
+				dof_output_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+				builder.DeclareTexture(RG_RES_NAME(DepthOfFieldOutput), dof_output_desc);
+				builder.WriteRenderTarget(RG_RES_NAME(DepthOfFieldOutput), ERGLoadStoreAccessOp::Discard_Preserve);
+				data.input = builder.ReadTexture(final_resource, ReadAccess_PixelShader);
+				data.blurred_input = builder.ReadTexture(RG_RES_NAME(BlurredDofInput), ReadAccess_PixelShader);
+				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
+				builder.SetViewport(width, height);
+			},
+			[=](SSRPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			{
+				ID3D12Device* device = gfx->GetDevice();
+				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::DOF));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::DOF));
+
+				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
+				cmd_list->SetGraphicsRootConstantBufferView(1, global_data.postprocess_cbuffer_address);
+
+				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
+
+				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { resources.GetDescriptor(data.input), resources.GetDescriptor(data.blurred_input), resources.GetDescriptor(data.depth) };
+				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
+				uint32 src_range_sizes[] = { 1, 1, 1 };
+				uint32 dst_range_sizes[] = { 3 };
+
+				device->CopyDescriptors(ARRAYSIZE(dst_ranges), dst_ranges, dst_range_sizes, ARRAYSIZE(src_ranges), src_ranges, src_range_sizes,
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+				cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
+				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+				cmd_list->DrawInstanced(4, 1, 0, 0);
+
+			}, ERGPassType::Graphics, ERGPassFlags::None);
+	}
+
 }
 
