@@ -381,7 +381,7 @@ namespace adria
 
 				LightFrustumCulling(ELightType::Directional, light_box, std::nullopt);
 				ShadowMapPass_Common(gfx, cmd_list, shadow_allocation.gpu_address, false);
-			}).GetPassData();
+			});
 	}
 
 	void ShadowPass::ShadowMapPass_DirectionalCascades(RenderGraph& rg, Light const& light, size_t light_id)
@@ -391,12 +391,113 @@ namespace adria
 
 	void ShadowPass::ShadowMapPass_Point(RenderGraph& rg, Light const& light, size_t light_id)
 	{
-		
+		ADRIA_ASSERT(light.type == ELightType::Point);
+		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		struct ShadowPassData
+		{
+			RGAllocationId alloc_id;
+		};
+
+		for (size_t i = 0; i < 6; ++i)
+		{
+			std::string name = "Shadow Map Point Pass " + std::to_string(i);
+			rg.AddPass<ShadowPassData>(name.c_str(),
+				[=](ShadowPassData& data, RenderGraphBuilder& builder)
+				{
+					if (i == 0)
+					{
+						TextureDesc cubemap_desc{};
+						cubemap_desc.width = SHADOW_CUBE_SIZE;
+						cubemap_desc.height = SHADOW_CUBE_SIZE;
+						cubemap_desc.misc_flags = EResourceMiscFlag::TextureCube;
+						cubemap_desc.array_size = 6;
+						cubemap_desc.format = DXGI_FORMAT_R32_TYPELESS;
+						cubemap_desc.clear = D3D12_CLEAR_VALUE{ .Format = DXGI_FORMAT_D32_FLOAT, .DepthStencil = {1.0f, 0} };
+						cubemap_desc.initial_state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+						cubemap_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::DepthStencil;
+						builder.DeclareTexture(RG_RES_NAME_IDX(ShadowMap, light_id), cubemap_desc);
+						builder.DeclareAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id), AllocDesc{ GetCBufferSize<ShadowCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT });
+					}
+
+					TextureViewDesc cube_dsv_desc{};
+					cube_dsv_desc.new_format = DXGI_FORMAT_D32_FLOAT;
+					cube_dsv_desc.first_mip = 0;
+					cube_dsv_desc.slice_count = 1;
+					cube_dsv_desc.first_slice = i;
+
+					builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light_id), ERGLoadStoreAccessOp::Clear_Preserve,
+						ERGLoadStoreAccessOp::NoAccess_NoAccess, cube_dsv_desc);
+					data.alloc_id = builder.UseAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id));
+					builder.SetViewport(SHADOW_CUBE_SIZE, SHADOW_CUBE_SIZE);
+				},
+				[=](ShadowPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+				{
+					auto dynamic_allocator = gfx->GetDynamicAllocator();
+
+					DirectX::BoundingFrustum light_bounding_frustum;
+					auto const& [V, P] = LightViewProjection_Point(light, i, light_bounding_frustum);
+					ShadowCBuffer shadow_cbuf_data{};
+					shadow_cbuf_data.lightviewprojection = V * P;
+					shadow_cbuf_data.lightview = V;
+
+					DynamicAllocation shadow_allocation = dynamic_allocator->Allocate(GetCBufferSize<ShadowCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+					shadow_allocation.Update(shadow_cbuf_data);
+
+					LightFrustumCulling(ELightType::Point, std::nullopt, light_bounding_frustum);
+					ShadowMapPass_Common(gfx, cmd_list, shadow_allocation.gpu_address, false);
+				});
+		}
 	}
 
 	void ShadowPass::ShadowMapPass_Spot(RenderGraph& rg, Light const& light, size_t light_id)
 	{
-		
+		ADRIA_ASSERT(light.type == ELightType::Spot);
+		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		struct ShadowPassData
+		{
+			RGAllocationId alloc_id;
+		};
+		rg.AddPass<ShadowPassData>("Shadow Map Spot Pass",
+			[=](ShadowPassData& data, RenderGraphBuilder& builder)
+			{
+				D3D12_CLEAR_VALUE clear_value{};
+				clear_value.Format = DXGI_FORMAT_D32_FLOAT;
+				clear_value.DepthStencil.Depth = 1.0f;
+				clear_value.DepthStencil.Stencil = 0;
+
+				TextureDesc depth_desc{};
+				depth_desc.width = SHADOW_MAP_SIZE;
+				depth_desc.height = SHADOW_MAP_SIZE;
+				depth_desc.format = DXGI_FORMAT_R32_TYPELESS;
+				depth_desc.bind_flags = EBindFlag::DepthStencil | EBindFlag::ShaderResource;
+				depth_desc.initial_state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+				depth_desc.clear = clear_value;
+
+				builder.DeclareTexture(RG_RES_NAME_IDX(ShadowMap, light_id), depth_desc);
+				builder.DeclareAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id), AllocDesc{ GetCBufferSize<ShadowCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT });
+				builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light_id), ERGLoadStoreAccessOp::Clear_Preserve);
+				data.alloc_id = builder.UseAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id));
+				builder.SetViewport(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
+			},
+			[=](ShadowPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			{
+				auto upload_buffer = gfx->GetDynamicAllocator();
+
+				DirectX::BoundingFrustum light_bounding_frustum;
+				auto const& [V, P] = LightViewProjection_Spot(light, light_bounding_frustum);
+				ShadowCBuffer shadow_cbuf_data{};
+				shadow_cbuf_data.lightview = V;
+				shadow_cbuf_data.lightviewprojection = V * P;
+				shadow_cbuf_data.shadow_map_size = SHADOW_MAP_SIZE;
+				shadow_cbuf_data.softness = 1.0f;
+				shadow_cbuf_data.shadow_matrix1 = XMMatrixInverse(nullptr, camera->View()) * shadow_cbuf_data.lightviewprojection;
+
+				DynamicAllocation& shadow_allocation = resources.GetAllocation(data.alloc_id);
+				shadow_allocation.Update(shadow_cbuf_data);
+
+				LightFrustumCulling(ELightType::Spot, std::nullopt, light_bounding_frustum);
+				ShadowMapPass_Common(gfx, cmd_list, shadow_allocation.gpu_address, false);
+			});
 	}
 
 	void ShadowPass::ShadowMapPass_Common(GraphicsDevice* gfx, ID3D12GraphicsCommandList4* cmd_list,

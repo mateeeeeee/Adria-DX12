@@ -221,6 +221,7 @@ namespace adria
 
 		void PassPicking(ID3D12GraphicsCommandList4* cmd_list);
 		void PassDecals(ID3D12GraphicsCommandList4* cmd_list);
+		
 		void PassSSAO(ID3D12GraphicsCommandList4* cmd_list);
 		void PassHBAO(ID3D12GraphicsCommandList4* cmd_list);
 		void PassRTAO(ID3D12GraphicsCommandList4* cmd_list);
@@ -232,15 +233,14 @@ namespace adria
 		void PassShadowMapPoint(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassShadowMapCascades(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassShadowMapCommon(ID3D12GraphicsCommandList4* cmd_list);
-		void PassVolumetric(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
-		
+
 		void PassForwardCommon(ID3D12GraphicsCommandList4* cmd_list, bool transparent);
 		void PassOcean(ID3D12GraphicsCommandList4* cmd_list);
 		void PassParticles(ID3D12GraphicsCommandList4* cmd_list);
 		
-		void PassLensFlare(ID3D12GraphicsCommandList4* cmd_list, Light const& light);
 		void PassGenerateBokeh(ID3D12GraphicsCommandList4* cmd_list);
 		void PassDrawBokeh(ID3D12GraphicsCommandList4* cmd_list);
+		
 		void PassVelocityBuffer(ID3D12GraphicsCommandList4* cmd_list);
 		void PassMotionBlur(ID3D12GraphicsCommandList4* cmd_list);
 		void PassTAA(ID3D12GraphicsCommandList4* cmd_list);
