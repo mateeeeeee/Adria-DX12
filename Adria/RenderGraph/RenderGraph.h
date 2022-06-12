@@ -6,6 +6,8 @@
 #include "RenderGraphBuilder.h"
 #include "RenderGraphResourcePool.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
+#include "../Utilities/HashSet.h"
+#include "../Utilities/HashMap.h"
 
 namespace adria
 {
@@ -30,17 +32,17 @@ namespace adria
 		private:
 			RenderGraph& rg;
 			std::vector<RenderGraphPassBase*> passes;
-			tsl::robin_set<RGTextureId> texture_creates;
-			tsl::robin_set<RGTextureId> texture_reads;
-			tsl::robin_set<RGTextureId> texture_writes;
-			tsl::robin_set<RGTextureId> texture_destroys;
-			tsl::robin_map<RGTextureId, RGResourceState> texture_state_map;
+			HashSet<RGTextureId> texture_creates;
+			HashSet<RGTextureId> texture_reads;
+			HashSet<RGTextureId> texture_writes;
+			HashSet<RGTextureId> texture_destroys;
+			HashMap<RGTextureId, RGResourceState> texture_state_map;
 
-			tsl::robin_set<RGBufferId> buffer_creates;
-			tsl::robin_set<RGBufferId> buffer_reads;
-			tsl::robin_set<RGBufferId> buffer_writes;
-			tsl::robin_set<RGBufferId> buffer_destroys;
-			tsl::robin_map<RGBufferId, RGResourceState> buffer_state_map;
+			HashSet<RGBufferId> buffer_creates;
+			HashSet<RGBufferId> buffer_reads;
+			HashSet<RGBufferId> buffer_writes;
+			HashSet<RGBufferId> buffer_destroys;
+			HashMap<RGBufferId, RGResourceState> buffer_state_map;
 		};
 
 	public:
@@ -53,10 +55,30 @@ namespace adria
 		RenderGraph& operator=(RenderGraph&&) = default;
 		~RenderGraph()
 		{
-			for (auto& [_, view] : texture_srv_cache) gfx->FreeOfflineDescriptor(view, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			for (auto& [_, view] : texture_uav_cache) gfx->FreeOfflineDescriptor(view, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			for (auto& [_, view] : texture_rtv_cache) gfx->FreeOfflineDescriptor(view, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-			for (auto& [_, view] : texture_dsv_cache) gfx->FreeOfflineDescriptor(view, D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+			for (auto& [id, view_descs] : texture_view_desc_map)
+			{
+				for (size_t i = 0; i < view_descs.size(); ++i)
+				{
+					std::vector<RGDescriptor>& views = texture_view_map[id];
+					ADRIA_ASSERT(views.size() == view_descs.size());
+					switch (view_descs[i].second)
+					{
+					case ERGDescriptorType::RenderTarget:
+						gfx->FreeOfflineDescriptor(views[i], D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+						continue;
+					case ERGDescriptorType::DepthStencil:
+						gfx->FreeOfflineDescriptor(views[i], D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+						continue;
+					default:
+						gfx->FreeOfflineDescriptor(views[i], D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					}
+				}
+			}
+
+			for (auto& [buf_id, view_vector] : buffer_view_map)
+			{
+				for (auto view : view_vector) gfx->FreeOfflineDescriptor(view, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			}
 		}
 
 		template<typename PassData, typename... Args> requires std::is_constructible_v<RenderGraphPass<PassData>, Args...>
@@ -91,19 +113,15 @@ namespace adria
 		std::vector<size_t> topologically_sorted_passes;
 		std::vector<DependencyLevel> dependency_levels;
 
-		tsl::robin_map<RGResourceName, RGTextureId> texture_name_id_map;
-		tsl::robin_map<RGResourceName, RGBufferId>  buffer_name_id_map;
-		tsl::robin_map<RGResourceName, RGAllocationId>  alloc_name_id_map;
+		HashMap<RGResourceName, RGTextureId> texture_name_id_map;
+		HashMap<RGResourceName, RGBufferId>  buffer_name_id_map;
+		HashMap<RGResourceName, RGAllocationId>  alloc_name_id_map;
 
-		mutable tsl::robin_map<RGTextureId, std::vector<TextureViewDesc>> texture_view_desc_map;
-		mutable tsl::robin_map<RGTextureReadOnlyId, RGDescriptor> texture_srv_cache;
-		mutable tsl::robin_map<RGTextureReadWriteId, RGDescriptor> texture_uav_cache;
-		mutable tsl::robin_map<RGRenderTargetId, RGDescriptor> texture_rtv_cache;
-		mutable tsl::robin_map<RGDepthStencilId, RGDescriptor> texture_dsv_cache;
+		mutable HashMap<RGTextureId, std::vector<std::pair<TextureViewDesc, ERGDescriptorType>>> texture_view_desc_map;
+		mutable HashMap<RGTextureId, std::vector<RGDescriptor>> texture_view_map;
 
-		mutable tsl::robin_map<RGBufferId, std::vector<BufferViewDesc>> buffer_view_desc_map;
-		mutable tsl::robin_map<RGBufferReadOnlyId, RGDescriptor> buffer_srv_cache;
-		mutable tsl::robin_map<RGBufferReadWriteId, RGDescriptor> buffer_uav_cache;
+		mutable HashMap<RGBufferId, std::vector<std::pair<BufferViewDesc, ERGDescriptorType>>> buffer_view_desc_map;
+		mutable HashMap<RGBufferId, std::vector<RGDescriptor>> buffer_view_map;
 
 	private:
 
@@ -163,6 +181,8 @@ namespace adria
 		Texture* GetTexture(RGTextureId) const;
 		Buffer* GetBuffer(RGBufferId) const;
 
+		void CreateTextureViews(RGTextureId);
+		void CreateBufferViews(RGBufferId);
 		void Execute_Singlethreaded();
 		void Execute_Multithreaded();
 	};

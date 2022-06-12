@@ -4,7 +4,8 @@
 #include "../Core/Definitions.h"
 #include "../Core/Macros.h"
 #include "../Utilities/TemplatesUtil.h"
-#include "tsl/robin_map.h"
+#include "../Utilities/HashMap.h"
+
 
 namespace adria
 {
@@ -52,7 +53,7 @@ namespace adria
 		}
 
 	private:
-		tsl::robin_map<std::type_index, std::unique_ptr<uint8[]>> board_data;
+		HashMap<std::type_index, std::unique_ptr<uint8[]>> board_data;
 	};
 
 	using RGBlackboard = RenderGraphBlackboard;

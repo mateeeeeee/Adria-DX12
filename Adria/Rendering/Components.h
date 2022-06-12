@@ -1,6 +1,5 @@
 #pragma once
 #include <memory>
-#include <unordered_map>
 #include "Enums.h"
 #include "../Core/Definitions.h"
 #include <DirectXCollision.h>
@@ -65,10 +64,10 @@ namespace adria
 
 	struct COMPONENT Material
 	{
-		TEXTURE_HANDLE albedo_texture			  = INVALID_TEXTURE_HANDLE;
-		TEXTURE_HANDLE normal_texture			  = INVALID_TEXTURE_HANDLE;
-		TEXTURE_HANDLE metallic_roughness_texture = INVALID_TEXTURE_HANDLE;
-		TEXTURE_HANDLE emissive_texture			  = INVALID_TEXTURE_HANDLE;
+		TextureHandle albedo_texture			  = INVALID_TEXTURE_HANDLE;
+		TextureHandle normal_texture			  = INVALID_TEXTURE_HANDLE;
+		TextureHandle metallic_roughness_texture  = INVALID_TEXTURE_HANDLE;
+		TextureHandle emissive_texture			  = INVALID_TEXTURE_HANDLE;
 
 		float32 albedo_factor		= 1.0f;
 		float32 metallic_factor		= 1.0f;
@@ -117,14 +116,14 @@ namespace adria
 
 	struct COMPONENT Skybox
 	{
-		TEXTURE_HANDLE cubemap_texture;
+		TextureHandle cubemap_texture;
 		bool active;
 		bool used_in_rt;
 	};
 
 	struct COMPONENT Emitter
 	{
-		TEXTURE_HANDLE		particle_texture = INVALID_TEXTURE_HANDLE;
+		TextureHandle		particle_texture = INVALID_TEXTURE_HANDLE;
 		DirectX::XMFLOAT4	position = DirectX::XMFLOAT4(0, 0, 0, 0);
 		DirectX::XMFLOAT4	velocity = DirectX::XMFLOAT4(0, 5, 0, 0);
 		DirectX::XMFLOAT4	position_variance = DirectX::XMFLOAT4(0, 0, 0, 0);
@@ -147,8 +146,8 @@ namespace adria
 
 	struct COMPONENT Decal
 	{
-		TEXTURE_HANDLE albedo_decal_texture = INVALID_TEXTURE_HANDLE;
-		TEXTURE_HANDLE normal_decal_texture = INVALID_TEXTURE_HANDLE;
+		TextureHandle albedo_decal_texture = INVALID_TEXTURE_HANDLE;
+		TextureHandle normal_decal_texture = INVALID_TEXTURE_HANDLE;
 		DirectX::XMMATRIX decal_model_matrix = DirectX::XMMatrixIdentity();
 		EDecalType decal_type = EDecalType::Project_XY;
 		bool modify_gbuffer_normals = false;

@@ -173,7 +173,7 @@ namespace adria
     }
 
     [[nodiscard]]
-    TEXTURE_HANDLE TextureManager::LoadTexture(std::wstring const& name)
+    TextureHandle TextureManager::LoadTexture(std::wstring const& name)
     {
         TextureFormat format = GetTextureFormat(name);
 
@@ -202,7 +202,7 @@ namespace adria
     }
 
     [[nodiscard]]
-    TEXTURE_HANDLE TextureManager::LoadCubemap(std::wstring const& name)
+    TextureHandle TextureManager::LoadCubemap(std::wstring const& name)
     {
         TextureFormat format = GetTextureFormat(name);
         ADRIA_ASSERT(format == TextureFormat::eDDS || format == TextureFormat::eHDR && "Cubemap in one file has to be .dds or .hdr format");
@@ -404,7 +404,7 @@ namespace adria
     }
 
     [[nodiscard]]
-    TEXTURE_HANDLE TextureManager::LoadCubemap(std::array<std::wstring, 6> const& cubemap_textures)
+    TextureHandle TextureManager::LoadCubemap(std::array<std::wstring, 6> const& cubemap_textures)
     {
         TextureFormat format = GetTextureFormat(cubemap_textures[0]);
         ADRIA_ASSERT(format == TextureFormat::eJPG || format == TextureFormat::ePNG || format == TextureFormat::eTGA ||
@@ -489,7 +489,7 @@ namespace adria
     }
 
     [[nodiscard]]
-    D3D12_CPU_DESCRIPTOR_HANDLE TextureManager::CpuDescriptorHandle(TEXTURE_HANDLE tex_handle)
+    D3D12_CPU_DESCRIPTOR_HANDLE TextureManager::CpuDescriptorHandle(TextureHandle tex_handle)
     {
         return tex_handle != INVALID_TEXTURE_HANDLE ? 
             texture_srv_heap->GetHandle((size_t)tex_handle) :
@@ -501,7 +501,7 @@ namespace adria
         mipmaps = mips;
     }
 
-    TEXTURE_HANDLE TextureManager::LoadDDSTexture(std::wstring const& texture_path)
+    TextureHandle TextureManager::LoadDDSTexture(std::wstring const& texture_path)
     {
         if (auto it = loaded_textures.find(texture_path); it == loaded_textures.end())
         {
@@ -572,7 +572,7 @@ namespace adria
         else return it->second;
     }
 
-    TEXTURE_HANDLE TextureManager::LoadWICTexture(std::wstring const& texture_path)
+    TextureHandle TextureManager::LoadWICTexture(std::wstring const& texture_path)
     {
         if (auto it = loaded_textures.find(texture_path); it == loaded_textures.end())
         {
@@ -640,7 +640,7 @@ namespace adria
         else return it->second;
     }
 
-    TEXTURE_HANDLE TextureManager::LoadTexture_HDR_TGA_PIC(std::string const& texture_path)
+    TextureHandle TextureManager::LoadTexture_HDR_TGA_PIC(std::string const& texture_path)
     {
         if (auto it = loaded_textures.find(texture_path); it == loaded_textures.end())
         {

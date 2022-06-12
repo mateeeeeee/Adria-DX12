@@ -11,7 +11,7 @@
 #include "../Graphics/ShaderUtility.h"
 #include "../Logging/Logger.h"
 #include "../Utilities/Timer.h"
-#include "tsl/robin_map.h"
+#include "../Utilities/HashMap.h"
 
 namespace fs = std::filesystem;
 using namespace Microsoft::WRL;
@@ -32,11 +32,11 @@ namespace adria
 		};
 
 		ID3D12Device* device;
-		tsl::robin_map<EShader, ShaderBlob> shader_map;
-		tsl::robin_map<EShader, ShaderFileData> shader_file_data_map;
-		tsl::robin_map<ERootSignature, ComPtr<ID3D12RootSignature>> rs_map;
-		tsl::robin_map<EPipelineStateObject, ComPtr<ID3D12PipelineState>> pso_map;
-		tsl::robin_map<EPipelineStateObject, RecreationData> dependency_map;
+		HashMap<EShader, ShaderBlob> shader_map;
+		HashMap<EShader, ShaderFileData> shader_file_data_map;
+		HashMap<ERootSignature, ComPtr<ID3D12RootSignature>> rs_map;
+		HashMap<EPipelineStateObject, ComPtr<ID3D12PipelineState>> pso_map;
+		HashMap<EPipelineStateObject, RecreationData> dependency_map;
 
 		std::string const compiled_shaders_directory = "Resources/Compiled Shaders/";
 		std::string const shaders_directory = "Resources/Shaders/";

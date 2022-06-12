@@ -2,8 +2,8 @@
 #include <functional>
 #include "RenderGraphResources.h"
 #include "../Utilities/EnumUtil.h"
-#include "tsl/robin_set.h"
-#include "tsl/robin_map.h"
+#include "../Utilities/HashSet.h"
+#include "../Utilities/HashMap.h"
 
 
 namespace adria
@@ -116,17 +116,17 @@ namespace adria
 		ERGPassType type;
 		ERGPassFlags flags = ERGPassFlags::None;
 
-		tsl::robin_set<RGTextureId> texture_creates;
-		tsl::robin_set<RGTextureId> texture_reads;
-		tsl::robin_set<RGTextureId> texture_writes;
-		tsl::robin_set<RGTextureId> texture_destroys;
-		tsl::robin_map<RGTextureId, RGResourceState> texture_state_map;
+		HashSet<RGTextureId> texture_creates;
+		HashSet<RGTextureId> texture_reads;
+		HashSet<RGTextureId> texture_writes;
+		HashSet<RGTextureId> texture_destroys;
+		HashMap<RGTextureId, RGResourceState> texture_state_map;
 		
-		tsl::robin_set<RGBufferId> buffer_creates;
-		tsl::robin_set<RGBufferId> buffer_reads;
-		tsl::robin_set<RGBufferId> buffer_writes;
-		tsl::robin_set<RGBufferId> buffer_destroys;
-		tsl::robin_map<RGBufferId, RGResourceState> buffer_state_map;
+		HashSet<RGBufferId> buffer_creates;
+		HashSet<RGBufferId> buffer_reads;
+		HashSet<RGBufferId> buffer_writes;
+		HashSet<RGBufferId> buffer_destroys;
+		HashMap<RGBufferId, RGResourceState> buffer_state_map;
 
 		std::vector<RenderTargetInfo> render_targets_info;
 		std::optional<DepthStencilInfo> depth_stencil = std::nullopt;

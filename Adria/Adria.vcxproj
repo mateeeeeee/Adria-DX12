@@ -333,6 +333,8 @@
     <ClInclude Include="Utilities\CPUProfiler.h" />
     <ClInclude Include="Utilities\EnumUtil.h" />
     <ClInclude Include="Utilities\FilesUtil.h" />
+    <ClInclude Include="Utilities\HashMap.h" />
+    <ClInclude Include="Utilities\HashSet.h" />
     <ClInclude Include="Utilities\Heightmap.h" />
     <ClInclude Include="Utilities\HosekDataRGB.h" />
     <ClInclude Include="Utilities\JsonUtil.h" />
