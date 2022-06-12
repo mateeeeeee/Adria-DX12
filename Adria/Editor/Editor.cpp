@@ -1969,8 +1969,13 @@ namespace adria
 			if (display_vram_usage)
 			{
 				GPUMemoryUsage vram = engine->gfx->GetMemoryUsage();
+				float const ratio = vram.usage * 1.0f / vram.budget;
 				std::string vram_display_string = "VRAM usage: " + std::to_string(vram.usage / 1024 / 1024) + "MB / " + std::to_string(vram.budget / 1024 / 1024) + "MB\n";
+				if (ratio >= 0.9f && ratio <= 1.0f) ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 0, 255));
+				else if (ratio > 1.0f) ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
+				else ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 255, 255));
 				ImGui::TextWrapped(vram_display_string.c_str());
+				ImGui::PopStyleColor();
 			}
 		}
 		ImGui::End();
