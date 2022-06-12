@@ -38,6 +38,12 @@ namespace adria
 		bool gpu_validation = false;
 	};
 
+	struct GPUMemoryUsage
+	{
+		UINT64 usage;
+		UINT64 budget;
+	};
+
 	class GraphicsDevice
 	{
 		static constexpr UINT BACKBUFFER_COUNT = 3;
@@ -99,6 +105,15 @@ namespace adria
 		LinearDynamicAllocator* GetDynamicAllocator() const;
 
 		void GetTimestampFrequency(UINT64& frequency) const;
+		GPUMemoryUsage GetMemoryUsage() const
+		{
+			GPUMemoryUsage gpu_memory_usage{};
+			D3D12MA::Budget budget;
+			allocator->GetBudget(&budget, nullptr);
+			gpu_memory_usage.budget = budget.BudgetBytes;
+			gpu_memory_usage.usage = budget.UsageBytes;
+			return gpu_memory_usage;
+		}
 
 		static constexpr UINT BackbufferCount()
 		{

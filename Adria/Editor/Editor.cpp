@@ -1964,6 +1964,14 @@ namespace adria
 			{
 				engine->renderer->SetProfilerSettings(NO_PROFILING);
 			}
+			static bool display_vram_usage = false;
+			ImGui::Checkbox("Display VRAM Usage", &display_vram_usage);
+			if (display_vram_usage)
+			{
+				GPUMemoryUsage vram = engine->gfx->GetMemoryUsage();
+				std::string vram_display_string = "VRAM usage: " + std::to_string(vram.usage / 1024 / 1024) + "MB / " + std::to_string(vram.budget / 1024 / 1024) + "MB\n";
+				ImGui::TextWrapped(vram_display_string.c_str());
+			}
 		}
 		ImGui::End();
     }
