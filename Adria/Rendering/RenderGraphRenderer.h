@@ -8,6 +8,7 @@
 #include "SkyPass.h"
 #include "LightingPass.h"
 #include "TiledLightingPass.h"
+#include "ClusteredLightingPass.h"
 #include "ShadowPass.h"
 #include "ToneMapPass.h"
 #include "FXAAPass.h"
@@ -103,6 +104,7 @@ namespace adria
 		SkyPass		 sky_pass;
 		LightingPass lighting_pass;
 		TiledLightingPass tiled_lighting_pass;
+		ClusteredLightingPass clustered_lighting_pass;
 		CopyToTexturePass copy_to_texture_pass;
 		AddTexturesPass add_textures_pass;
 		ShadowPass    shadow_pass;

@@ -46,7 +46,6 @@ namespace adria
 				data.gbuffer_normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
 				data.gbuffer_albedo = builder.ReadTexture(RG_RES_NAME(GBufferAlbedo), ReadAccess_NonPixelShader);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
-				builder.SetViewport(width, height);
 			},
 			[=](TiledLightingPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
@@ -133,7 +132,7 @@ namespace adria
 					cmd_list->SetComputeRootDescriptorTable(4, handle);
 				}
 
-				float32 black[4] = { 0.0f,0.0f,0.0f,0.0f };
+				static constexpr float32 black[4] = { 0.0f,0.0f,0.0f,0.0f };
 
 				Texture const& tiled_target = context.GetTexture(data.tiled_target.GetResourceId());
 				cmd_list->ClearUnorderedAccessViewFloat(uav_target_for_clear, context.GetReadWriteTexture(data.tiled_target), tiled_target.GetNative(),

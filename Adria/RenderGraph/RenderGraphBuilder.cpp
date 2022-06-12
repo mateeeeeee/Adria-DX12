@@ -176,7 +176,7 @@ namespace adria
 		rg_pass.buffer_state_map[res_id] = D3D12_RESOURCE_STATE_COPY_DEST;
 		if (!rg_pass.buffer_creates.contains(res_id) && !rg_pass.SkipDependencyWhenWriting())
 		{
-			DummyReadTexture(name);
+			DummyReadBuffer(name);
 		}
 		rg_pass.buffer_writes.insert(res_id);
 		auto* buffer = rg.GetRGBuffer(res_id);
@@ -225,7 +225,7 @@ namespace adria
 		rg_pass.buffer_state_map[res_id] = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 		if (!rg_pass.buffer_creates.contains(res_id) && !rg_pass.SkipDependencyWhenWriting())
 		{
-			DummyReadTexture(name);
+			DummyReadBuffer(name);
 		}
 		rg_pass.buffer_writes.insert(res_id);
 		auto* buffer = rg.GetRGBuffer(res_id);

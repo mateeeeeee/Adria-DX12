@@ -34,6 +34,9 @@ namespace adria
 		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
 
 		rendergraph.ImportBuffer(RG_RES_NAME(ClustersBuffer), &clusters);
+		rendergraph.ImportBuffer(RG_RES_NAME(LightCounter), &light_counter);
+		rendergraph.ImportBuffer(RG_RES_NAME(LightGrid), &light_grid);
+		rendergraph.ImportBuffer(RG_RES_NAME(LightList), &light_list);
 
 		struct ClusterBuildingPassData
 		{
@@ -86,6 +89,10 @@ namespace adria
 		struct ClusterCullingPassData
 		{
 			RGAllocationId alloc_id;
+			RGBufferReadOnlyId clusters_srv;
+			RGBufferReadWriteId light_counter_uav;
+			RGBufferReadWriteId light_grid_uav;
+			RGBufferReadWriteId light_list_uav;
 		};
 		rendergraph.AddPass<ClusterCullingPassData>("Cluster Culling Pass",
 			[=](ClusterCullingPassData& data, RenderGraphBuilder& builder)
@@ -93,6 +100,10 @@ namespace adria
 				uint64 alloc_size = sizeof(StructuredLight) * structured_lights.size();
 				builder.DeclareAllocation(RG_RES_NAME(ClusterAllocation), AllocDesc{.size_in_bytes = alloc_size, .alignment = sizeof(StructuredLight) });
 				data.alloc_id = builder.UseAllocation(RG_RES_NAME(ClusterAllocation));
+				data.clusters_srv = builder.ReadBuffer(RG_RES_NAME(ClustersBuffer), ReadAccess_NonPixelShader);
+				data.light_counter_uav = builder.WriteBuffer(RG_RES_NAME(LightCounter));
+				data.light_grid_uav = builder.WriteBuffer(RG_RES_NAME(LightGrid));
+				data.light_list_uav = builder.WriteBuffer(RG_RES_NAME(LightList));
 			},
 			[=](ClusterCullingPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
@@ -108,7 +119,7 @@ namespace adria
 
 				OffsetType i = descriptor_allocator->AllocateRange(2);
 				auto dst_descriptor = descriptor_allocator->GetHandle(i);
-				device->CopyDescriptorsSimple(1, dst_descriptor, clusters.SRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, dst_descriptor, context.GetReadOnlyBuffer(data.clusters_srv), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 				D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
 				desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
@@ -122,7 +133,9 @@ namespace adria
 
 				cmd_list->SetComputeRootDescriptorTable(0, dst_descriptor);
 
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { light_counter.UAV(), light_list.UAV(), light_grid.UAV() };
+				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = {	context.GetReadWriteBuffer(data.light_counter_uav),
+																context.GetReadWriteBuffer(data.light_list_uav),
+																context.GetReadWriteBuffer(data.light_grid_uav)};
 				uint32 src_range_sizes[] = { 1,1,1 };
 				i = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
 				dst_descriptor = descriptor_allocator->GetHandle(i);
@@ -141,6 +154,8 @@ namespace adria
 			RGTextureReadOnlyId gbuffer_normal;
 			RGTextureReadOnlyId gbuffer_albedo;
 			RGTextureReadOnlyId depth;
+			RGBufferReadOnlyId light_grid_srv;
+			RGBufferReadOnlyId light_list_srv;
 		};
 		rendergraph.AddPass<ClusterLightingPassData>("Cluster Lighting Pass",
 			[=](ClusterLightingPassData& data, RenderGraphBuilder& builder)
@@ -149,6 +164,9 @@ namespace adria
 				data.gbuffer_normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_PixelShader);
 				data.gbuffer_albedo = builder.ReadTexture(RG_RES_NAME(GBufferAlbedo), ReadAccess_PixelShader);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
+				data.light_grid_srv = builder.ReadBuffer(RG_RES_NAME(LightGrid), ReadAccess_PixelShader);
+				data.light_list_srv = builder.ReadBuffer(RG_RES_NAME(LightList), ReadAccess_PixelShader);
+				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), ERGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);
 			},
 			[=](ClusterLightingPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
@@ -175,7 +193,7 @@ namespace adria
 
 				//light stuff
 				descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles) + 1);
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles2[] = { light_list.SRV(), light_grid.SRV() };
+				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles2[] = { context.GetReadOnlyBuffer(data.light_list_srv), context.GetReadOnlyBuffer(data.light_grid_srv) };
 				uint32 src_range_sizes2[] = { 1,1 };
 
 				dst_descriptor = descriptor_allocator->GetHandle(descriptor_index + 1);

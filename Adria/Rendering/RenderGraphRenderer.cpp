@@ -22,7 +22,8 @@ namespace adria
 		,gbuffer_pass(reg, gpu_profiler, width, height), ambient_pass(width, height), tonemap_pass(width, height)
 		,sky_pass(reg, texture_manager, width, height), lighting_pass(width, height), shadow_pass(reg, texture_manager),
 		tiled_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
-		postprocessor(reg, texture_manager, width, height), fxaa_pass(width, height)
+		postprocessor(reg, texture_manager, width, height), fxaa_pass(width, height),
+		clustered_lighting_pass(reg, gfx, width, height)
 	{
 		RootSigPSOManager::Initialize(gfx->GetDevice());
 		CreateNullHeap();
@@ -98,7 +99,7 @@ namespace adria
 		}
 		else if (render_settings.use_clustered_deferred)
 		{
-			
+			clustered_lighting_pass.AddPass(render_graph, true);
 		}
 
 		sky_pass.AddPass(render_graph, render_settings.sky_type);
@@ -131,6 +132,7 @@ namespace adria
 			sky_pass.OnResize(w, h);
 			lighting_pass.OnResize(w, h);
 			tiled_lighting_pass.OnResize(w, h);
+			clustered_lighting_pass.OnResize(w, h);
 			copy_to_texture_pass.OnResize(w, h);
 			tonemap_pass.OnResize(w, h);
 			fxaa_pass.OnResize(w, h);
