@@ -30,11 +30,17 @@ namespace adria
 		private:
 			RenderGraph& rg;
 			std::vector<RenderGraphPassBase*> passes;
-			std::unordered_set<RGTextureId> creates;
-			std::unordered_set<RGTextureId> reads;
-			std::unordered_set<RGTextureId> writes;
-			std::unordered_set<RGTextureId> destroys;
-			std::unordered_map<RGTextureId, RGResourceState> required_states;
+			tsl::robin_set<RGTextureId> texture_creates;
+			tsl::robin_set<RGTextureId> texture_reads;
+			tsl::robin_set<RGTextureId> texture_writes;
+			tsl::robin_set<RGTextureId> texture_destroys;
+			tsl::robin_map<RGTextureId, RGResourceState> texture_state_map;
+
+			tsl::robin_set<RGBufferId> buffer_creates;
+			tsl::robin_set<RGBufferId> buffer_reads;
+			tsl::robin_set<RGBufferId> buffer_writes;
+			tsl::robin_set<RGBufferId> buffer_destroys;
+			tsl::robin_map<RGBufferId, RGResourceState> buffer_state_map;
 		};
 
 	public:
@@ -66,6 +72,7 @@ namespace adria
 		void Execute();
 
 		void ImportTexture(RGResourceName name, Texture* texture);
+		void ImportBuffer(RGResourceName name, Buffer* buffer);
 
 		RGBlackboard const& GetBlackboard() const { return blackboard; }
 		RGBlackboard& GetBlackboard() { return blackboard; }
@@ -88,17 +95,23 @@ namespace adria
 		std::unordered_map<RGResourceName, RGBufferId>  buffer_name_id_map;
 		std::unordered_map<RGResourceName, RGAllocationId>  alloc_name_id_map;
 
-		mutable std::unordered_map<RGTextureId, std::vector<TextureViewDesc>> view_desc_map;
+		mutable std::unordered_map<RGTextureId, std::vector<TextureViewDesc>> texture_view_desc_map;
 		mutable std::unordered_map<RGTextureReadOnlyId, RGDescriptor> texture_srv_cache;
 		mutable std::unordered_map<RGTextureReadWriteId, RGDescriptor> texture_uav_cache;
 		mutable std::unordered_map<RGRenderTargetId, RGDescriptor> texture_rtv_cache;
 		mutable std::unordered_map<RGDepthStencilId, RGDescriptor> texture_dsv_cache;
 
-#ifdef RG_MULTITHREADED
+		mutable std::unordered_map<RGBufferId, std::vector<BufferViewDesc>> buffer_view_desc_map;
+		mutable std::unordered_map<RGBufferReadOnlyId, RGDescriptor> buffer_srv_cache;
+		mutable std::unordered_map<RGBufferReadWriteId, RGDescriptor> buffer_uav_cache;
+
+#ifdef RG_MULTITHREADED //if views are created before and not on demand maybe mutexes are not neccessary?
 		mutable std::mutex srv_cache_mutex;
 		mutable std::mutex uav_cache_mutex;
 		mutable std::mutex rtv_cache_mutex;
 		mutable std::mutex dsv_cache_mutex;
+		mutable std::mutex buffer_srv_cache_mutex;
+		mutable std::mutex buffer_uav_cache_mutex;
 #endif
 	private:
 
@@ -128,19 +141,32 @@ namespace adria
 		RGBufferId GetBufferId(RGResourceName);
 		RGAllocationId UseAllocation(RGResourceName);
 
-		RGTextureCopySrcId ReadCopySrcTexture(RGResourceName name);
-		RGTextureCopyDstId WriteCopyDstTexture(RGResourceName name);
-		RGTextureReadOnlyId ReadTexture(RGResourceName name, TextureViewDesc const& desc);
-		RGTextureReadWriteId WriteTexture(RGResourceName name, TextureViewDesc const& desc);
+		RGTextureCopySrcId ReadCopySrcTexture(RGResourceName);
+		RGTextureCopyDstId WriteCopyDstTexture(RGResourceName);
+		RGBufferCopySrcId  ReadCopySrcBuffer(RGResourceName);
+		RGBufferCopyDstId  WriteCopyDstBuffer(RGResourceName);
+		RGBufferIndirectArgsId  ReadIndirectArgsBuffer(RGResourceName);
+
 		RGRenderTargetId RenderTarget(RGResourceName name, TextureViewDesc const& desc);
 		RGDepthStencilId DepthStencil(RGResourceName name, TextureViewDesc const& desc);
+		RGTextureReadOnlyId ReadTexture(RGResourceName name, TextureViewDesc const& desc);
+		RGTextureReadWriteId WriteTexture(RGResourceName name, TextureViewDesc const& desc);
+		RGBufferReadOnlyId ReadBuffer(RGResourceName name, BufferViewDesc const& desc);
+		RGBufferReadWriteId WriteBuffer(RGResourceName name, BufferViewDesc const& desc);
 
+		//rename!!!
 		Texture const& GetResource(RGTextureCopySrcId) const;
 		Texture const& GetResource(RGTextureCopyDstId) const;
-		RGDescriptor GetDescriptor(RGTextureReadOnlyId) const;
-		RGDescriptor GetDescriptor(RGTextureReadWriteId) const;
+		Buffer const& GetResource(RGBufferCopySrcId) const;
+		Buffer const& GetResource(RGBufferCopyDstId) const;
+		Buffer const& GetIndirectArgsBuffer(RGBufferIndirectArgsId) const;
+
 		RGDescriptor GetDescriptor(RGRenderTargetId) const;
 		RGDescriptor GetDescriptor(RGDepthStencilId) const;
+		RGDescriptor GetDescriptor(RGTextureReadOnlyId) const;
+		RGDescriptor GetDescriptor(RGTextureReadWriteId) const;
+		RGDescriptor GetDescriptor(RGBufferReadOnlyId) const;
+		RGDescriptor GetDescriptor(RGBufferReadWriteId) const;
 
 		DynamicAllocation& GetAllocation(RGAllocationId);
 		Texture* GetTexture(RGTextureId) const;

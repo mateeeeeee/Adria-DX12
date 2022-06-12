@@ -12,6 +12,12 @@ namespace adria
 			uint64 last_used_frame;
 		};
 
+		struct PooledBuffer
+		{
+			std::unique_ptr<Buffer> buffer;
+			uint64 last_used_frame;
+		};
+
 	public:
 		explicit RenderGraphResourcePool(GraphicsDevice* device) : device(device) {}
 
@@ -30,6 +36,7 @@ namespace adria
 			}
 			++frame_index;
 		}
+
 		Texture* AllocateTexture(TextureDesc const& desc)
 		{
 			for (auto& [pool_texture, active] : texture_pool)
@@ -56,11 +63,38 @@ namespace adria
 			}
 		}
 
+		Buffer* AllocateBuffer(BufferDesc const& desc)
+		{
+			for (auto& [pool_buffer, active] : buffer_pool)
+			{
+				if (!active && pool_buffer.buffer->GetDesc() == desc)
+				{
+					pool_buffer.last_used_frame = frame_index;
+					active = true;
+					return pool_buffer.buffer.get();
+				}
+			}
+			auto& buffer = buffer_pool.emplace_back(std::pair{ PooledBuffer{ std::make_unique<Buffer>(device, desc), frame_index}, true }).first.buffer;
+			return buffer.get();
+		}
+		void ReleaseBuffer(Buffer* buffer)
+		{
+			for (auto& [pooled_buffer, active] : buffer_pool)
+			{
+				auto& buffer_ptr = pooled_buffer.buffer;
+				if (active && buffer_ptr.get() == buffer)
+				{
+					active = false;
+				}
+			}
+		}
+
 		GraphicsDevice* GetDevice() const { return device; }
 	private:
 		GraphicsDevice* device = nullptr;
 		uint64 frame_index = 0;
 		std::vector<std::pair<PooledTexture, bool>> texture_pool;
+		std::vector<std::pair<PooledBuffer, bool>>  buffer_pool;
 	};
 	using RGResourcePool = RenderGraphResourcePool;
 

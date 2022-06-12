@@ -75,14 +75,22 @@ namespace adria
 		RGBlackboard& GetBlackboard();
 
 		Texture const& GetTexture(RGTextureId res_id) const;
+		Buffer  const& GetBuffer(RGBufferId res_id) const;
 
+		//rename!!!
 		Texture const& GetCopyResource(RGTextureCopySrcId res_id) const;
 		Texture const& GetCopyResource(RGTextureCopyDstId res_id) const;
+		Buffer  const& GetCopyResource(RGBufferCopySrcId res_id) const;
+		Buffer  const& GetCopyResource(RGBufferCopyDstId res_id) const;
+		Buffer  const& GetIndirectArgsBuffer(RGBufferIndirectArgsId res_id) const;
 
-		RGDescriptor GetDescriptor(RGTextureReadOnlyId res_id) const;
-		RGDescriptor GetDescriptor(RGTextureReadWriteId res_id) const;
 		RGDescriptor GetDescriptor(RGRenderTargetId res_id) const;
 		RGDescriptor GetDescriptor(RGDepthStencilId res_id) const;
+		RGDescriptor GetDescriptor(RGTextureReadOnlyId res_id) const;
+		RGDescriptor GetDescriptor(RGTextureReadWriteId res_id) const;
+
+		RGDescriptor GetDescriptor(RGBufferReadOnlyId res_id) const;
+		RGDescriptor GetDescriptor(RGBufferReadWriteId res_id) const;
 
 		DynamicAllocation& GetAllocation(RGAllocationId);
 	private:

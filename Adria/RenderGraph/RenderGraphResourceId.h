@@ -10,18 +10,14 @@ namespace adria
 		Texture
 	};
 
-	enum class ERGCopyMode : uint8
+	enum class ERGResourceMode : uint8
 	{
-		Src,
-		Dst
-	};
-
-	enum class ERGDescriptorType : uint8
-	{
-		SRV,
-		UAV,
-		RTV,
-		DSV
+		CopySrc, 
+		CopyDst,
+		IndirectArgs,
+		Vertex,
+		Index,
+		Constant
 	};
 
 	struct RenderGraphResourceId
@@ -49,27 +45,39 @@ namespace adria
 	using RGBufferId = TypedRenderGraphResourceId<ERGResourceType::Buffer>;
 	using RGTextureId = TypedRenderGraphResourceId<ERGResourceType::Texture>;
 
-	template<ERGCopyMode Mode>
-	struct RGTextureCopyId : RGTextureId
+	template<ERGResourceMode Mode>
+	struct RGTextureModeId : RGTextureId
 	{
 		using RGTextureId::RGTextureId;
 	private:
 		friend class RenderGraphBuilder;
 		friend class RenderGraph;
 
-		RGTextureCopyId(RGTextureId const& id) : RGTextureId(id) {}
+		RGTextureModeId(RGTextureId const& id) : RGTextureId(id) {}
 	};
 
-	template<ERGCopyMode Mode>
-	struct RGBufferCopyId : RGBufferId
+	template<ERGResourceMode Mode>
+	struct RGBufferModeId : RGBufferId
 	{
 		using RGBufferId::RGBufferId;
 	private:
 		friend class RenderGraphBuilder;
 		friend class RenderGraph;
 
-		RGBufferCopyId(RGBufferId const& id) : RGBufferId(id) {}
+		RGBufferModeId(RGBufferId const& id) : RGBufferId(id) {}
 	};
+
+	using RGTextureCopySrcId = RGTextureModeId<ERGResourceMode::CopySrc>;
+	using RGTextureCopyDstId = RGTextureModeId<ERGResourceMode::CopyDst>;
+
+	using RGBufferCopySrcId = RGBufferModeId<ERGResourceMode::CopySrc>;
+	using RGBufferCopyDstId = RGBufferModeId<ERGResourceMode::CopyDst>;
+	using RGBufferIndirectArgsId = RGBufferModeId<ERGResourceMode::IndirectArgs>;
+	using RGBufferVertexId = RGBufferModeId<ERGResourceMode::Vertex>;
+	using RGBufferIndexId = RGBufferModeId<ERGResourceMode::Index>;
+	using RGBufferConstantId = RGBufferModeId<ERGResourceMode::Constant>;
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	struct RenderGraphResourceDescriptorId
 	{
@@ -96,6 +104,14 @@ namespace adria
 		uint64 id;
 	};
 
+	enum class ERGDescriptorType : uint8
+	{
+		ReadOnly,
+		ReadWrite,
+		RenderTarget,
+		DepthStencil
+	};
+
 	template<ERGResourceType ResourceType, ERGDescriptorType ResourceViewType>
 	struct TypedRenderGraphResourceDescriptorId : RenderGraphResourceDescriptorId 
 	{
@@ -108,17 +124,15 @@ namespace adria
 		}
 	};
 
-	using RGRenderTargetId		= TypedRenderGraphResourceDescriptorId<ERGResourceType::Texture, ERGDescriptorType::RTV>;
-	using RGDepthStencilId		= TypedRenderGraphResourceDescriptorId<ERGResourceType::Texture, ERGDescriptorType::DSV>;
-	using RGTextureReadOnlyId	= TypedRenderGraphResourceDescriptorId<ERGResourceType::Texture,  ERGDescriptorType::SRV>;
-	using RGTextureReadWriteId	= TypedRenderGraphResourceDescriptorId<ERGResourceType::Texture,  ERGDescriptorType::UAV>;
-	using RGTextureCopySrcId	= RGTextureCopyId<ERGCopyMode::Src>;
-	using RGTextureCopyDstId	= RGTextureCopyId<ERGCopyMode::Dst>;
+	using RGRenderTargetId		 = TypedRenderGraphResourceDescriptorId<ERGResourceType::Texture, ERGDescriptorType::RenderTarget>;
+	using RGDepthStencilId		 = TypedRenderGraphResourceDescriptorId<ERGResourceType::Texture, ERGDescriptorType::DepthStencil>;
+	using RGTextureReadOnlyId	 = TypedRenderGraphResourceDescriptorId<ERGResourceType::Texture,  ERGDescriptorType::ReadOnly>;
+	using RGTextureReadWriteId	 = TypedRenderGraphResourceDescriptorId<ERGResourceType::Texture,  ERGDescriptorType::ReadWrite>;
 
-	using RGBufferReadOnlyId	= TypedRenderGraphResourceDescriptorId<ERGResourceType::Buffer,   ERGDescriptorType::SRV>;
-	using RGBufferReadWriteId	= TypedRenderGraphResourceDescriptorId<ERGResourceType::Buffer,   ERGDescriptorType::UAV>;
-	using RGBufferCopySrcId		= RGBufferCopyId<ERGCopyMode::Src>;
-	using RGBufferCopyDstId		= RGBufferCopyId<ERGCopyMode::Dst>;
+	using RGBufferReadOnlyId	 = TypedRenderGraphResourceDescriptorId<ERGResourceType::Buffer,   ERGDescriptorType::ReadOnly>;
+	using RGBufferReadWriteId	 = TypedRenderGraphResourceDescriptorId<ERGResourceType::Buffer,   ERGDescriptorType::ReadWrite>;
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	struct RGAllocationId : RGResourceId
 	{
@@ -166,6 +180,22 @@ namespace std
 	template <> struct hash<adria::RGDepthStencilId>
 	{
 		size_t operator()(adria::RGDepthStencilId const& h) const
+		{
+			return hash<decltype(h.id)>()(h.id);
+		}
+	};
+
+	template <> struct hash<adria::RGBufferReadOnlyId>
+	{
+		size_t operator()(adria::RGBufferReadOnlyId const& h) const
+		{
+			return hash<decltype(h.id)>()(h.id);
+		}
+	};
+
+	template <> struct hash<adria::RGBufferReadWriteId>
+	{
+		size_t operator()(adria::RGBufferReadWriteId const& h) const
 		{
 			return hash<decltype(h.id)>()(h.id);
 		}

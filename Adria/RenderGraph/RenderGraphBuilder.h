@@ -1,8 +1,7 @@
 #pragma once
 #include "RenderGraphResourceName.h"
-#include "RenderGraphResourceId.h"
-#include "RenderGraphResources.h"
 #include "RenderGraphPass.h"
+#include "RenderGraphResources.h"
 
 namespace adria
 {
@@ -22,6 +21,8 @@ namespace adria
 
 		void DummyWriteTexture(RGResourceName name);
 		void DummyReadTexture(RGResourceName name);
+		void DummyReadBuffer(RGResourceName name);
+		void DummyWriteBuffer(RGResourceName name);
 
 		[[nodiscard]] RGTextureCopySrcId ReadCopySrcTexture(RGResourceName name);
 		[[nodiscard]] RGTextureCopyDstId WriteCopyDstTexture(RGResourceName name);
@@ -30,6 +31,13 @@ namespace adria
 		[[maybe_unused]] RGRenderTargetId WriteRenderTarget(RGResourceName name, ERGLoadStoreAccessOp load_store_op, TextureViewDesc const& desc = {});
 		[[maybe_unused]] RGDepthStencilId WriteDepthStencil(RGResourceName name, ERGLoadStoreAccessOp load_store_op, ERGLoadStoreAccessOp stencil_load_store_op = ERGLoadStoreAccessOp::NoAccess_NoAccess, TextureViewDesc const& desc = {});
 		[[maybe_unused]] RGDepthStencilId ReadDepthStencil(RGResourceName name, ERGLoadStoreAccessOp load_store_op, ERGLoadStoreAccessOp stencil_load_store_op = ERGLoadStoreAccessOp::NoAccess_NoAccess, TextureViewDesc const& desc = {});
+
+		[[nodiscard]] RGBufferCopySrcId ReadCopySrcBuffer(RGResourceName name);
+		[[nodiscard]] RGBufferCopyDstId WriteCopyDstBuffer(RGResourceName name);
+		[[nodiscard]] RGBufferIndirectArgsId ReadIndirectArgsBuffer(RGResourceName name);
+		[[nodiscard]] RGBufferReadOnlyId ReadBuffer(RGResourceName name, ERGReadAccess read_access, BufferViewDesc const& desc = {});
+		[[nodiscard]] RGBufferReadWriteId WriteBuffer(RGResourceName name, BufferViewDesc const& desc = {});
+
 		[[nodiscard]] RGAllocationId UseAllocation(RGResourceName name);
 		
 		void SetViewport(uint32 width, uint32 height);

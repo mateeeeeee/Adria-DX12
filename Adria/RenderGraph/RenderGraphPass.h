@@ -1,9 +1,10 @@
 #pragma once
 #include <functional>
-#include <unordered_set>
-#include <unordered_map>
 #include "RenderGraphResources.h"
 #include "../Utilities/EnumUtil.h"
+#include "tsl/robin_set.h"
+#include "tsl/robin_map.h"
+
 
 namespace adria
 {
@@ -75,6 +76,19 @@ namespace adria
 	class RenderGraph;
 	class RenderGraphBuilder;
 
+
+	/*template<typename ResourceIdType>
+	struct ResourceInfo
+	{
+		std::unordered_set<ResourceIdType> creates;
+		std::unordered_set<ResourceIdType> reads;
+		std::unordered_set<ResourceIdType> writes;
+		std::unordered_set<ResourceIdType> destroy;
+		std::unordered_map<ResourceIdType, RGResourceState> resource_state_map;
+	};
+	using TexturesInfo = ResourceInfo<RGTextureId>;
+	using BuffersInfo = ResourceInfo<RGBufferId>;*/
+
 	class RenderGraphPassBase
 	{
 		friend RenderGraph;
@@ -114,12 +128,18 @@ namespace adria
 		size_t ref_count = 0ull;
 		ERGPassType type;
 		ERGPassFlags flags = ERGPassFlags::None;
-		std::unordered_set<RGTextureId> creates;
-		std::unordered_set<RGTextureId> reads;
-		std::unordered_set<RGTextureId> writes;
-		std::unordered_set<RGTextureId> destroy;
 
-		std::unordered_map<RGTextureId, RGResourceState> resource_state_map;
+		tsl::robin_set<RGTextureId> texture_creates;
+		tsl::robin_set<RGTextureId> texture_reads;
+		tsl::robin_set<RGTextureId> texture_writes;
+		tsl::robin_set<RGTextureId> texture_destroys;
+		tsl::robin_map<RGTextureId, RGResourceState> texture_state_map;
+		
+		tsl::robin_set<RGBufferId> buffer_creates;
+		tsl::robin_set<RGBufferId> buffer_reads;
+		tsl::robin_set<RGBufferId> buffer_writes;
+		tsl::robin_set<RGBufferId> buffer_destroys;
+		tsl::robin_map<RGBufferId, RGResourceState> buffer_state_map;
 
 		std::vector<RenderTargetInfo> render_targets_info;
 		std::optional<DepthStencilInfo> depth_stencil = std::nullopt;

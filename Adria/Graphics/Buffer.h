@@ -192,16 +192,28 @@ namespace adria
 			BufferViewDesc _desc = desc ? *desc : BufferViewDesc{};
 			return CreateView(EResourceViewType::SRV, _desc, nullptr);
 		}
-		[[maybe_unused]] size_t CreateUAV(
-			ID3D12Resource* uav_counter = nullptr, BufferViewDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateUAV(ID3D12Resource* uav_counter = nullptr, BufferViewDesc const* desc = nullptr)
 		{
 			BufferViewDesc _desc = desc ? *desc : BufferViewDesc{};
 			return CreateView(EResourceViewType::UAV, _desc, uav_counter);
 		}
-		void ClearViews()
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE CreateAndTakeSRV(BufferViewDesc const* desc = nullptr)
 		{
-			srvs.clear();
-			uavs.clear();
+			BufferViewDesc _desc = desc ? *desc : BufferViewDesc{};
+			size_t i = CreateView(EResourceViewType::SRV, _desc);
+			ADRIA_ASSERT(srvs.size() - 1 == i);
+			D3D12_CPU_DESCRIPTOR_HANDLE srv = srvs.back();
+			srvs.pop_back();
+			return srv;
+		}
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE CreateAndTakeUAV(BufferViewDesc const* desc = nullptr)
+		{
+			BufferViewDesc _desc = desc ? *desc : BufferViewDesc{};
+			size_t i = CreateView(EResourceViewType::UAV, _desc);
+			ADRIA_ASSERT(uavs.size() - 1 == i);
+			D3D12_CPU_DESCRIPTOR_HANDLE uav = uavs.back();
+			uavs.pop_back();
+			return uav;
 		}
 
 		bool IsMapped() const { return mapped_data != nullptr; }
