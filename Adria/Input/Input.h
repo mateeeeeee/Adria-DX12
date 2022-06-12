@@ -3,7 +3,7 @@
 #include "../Core/Windows.h"
 #include "../Events/Delegate.h"
 #include <array>
-#include <unordered_map>
+#include "tsl/robin_map.h"
 
 namespace adria
 {
@@ -77,8 +77,8 @@ namespace adria
 
 	private:
 		InputEvents input_events;
-		std::unordered_map<EKeyCode, bool> keys;
-		std::unordered_map<EKeyCode, bool> prev_keys;
+		tsl::robin_map<EKeyCode, bool> keys;
+		tsl::robin_map<EKeyCode, bool> prev_keys;
 		// Mouse
 		float32 mouse_position_x = 0.0f;
 		float32 mouse_position_y = 0.0f;

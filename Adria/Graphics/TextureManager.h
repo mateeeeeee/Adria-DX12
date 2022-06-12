@@ -4,7 +4,7 @@
 #include <d3d12.h>
 #include <wrl.h>
 #include <variant>
-#include <unordered_map>
+#include "tsl/robin_map.h"
 #include <memory>
 #include "MipsGenerator.h"
 #include "ResourceBarrierBatch.h"
@@ -53,8 +53,8 @@ namespace adria
 		std::unique_ptr<MipsGenerator> mips_generator = nullptr;
 
 		TEXTURE_HANDLE handle = 0;
-		std::unordered_map<TEXTURE_HANDLE, Microsoft::WRL::ComPtr<ID3D12Resource>> texture_map{};
-		std::unordered_map<std::variant<std::wstring, std::string>, TEXTURE_HANDLE> loaded_textures{};
+		tsl::robin_map<TEXTURE_HANDLE, Microsoft::WRL::ComPtr<ID3D12Resource>> texture_map{};
+		tsl::robin_map<std::variant<std::wstring, std::string>, TEXTURE_HANDLE> loaded_textures{};
 		bool mipmaps = true;
 
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> equirect_root_signature;

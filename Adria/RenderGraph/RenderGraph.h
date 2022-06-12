@@ -91,28 +91,20 @@ namespace adria
 		std::vector<size_t> topologically_sorted_passes;
 		std::vector<DependencyLevel> dependency_levels;
 
-		std::unordered_map<RGResourceName, RGTextureId> texture_name_id_map;
-		std::unordered_map<RGResourceName, RGBufferId>  buffer_name_id_map;
-		std::unordered_map<RGResourceName, RGAllocationId>  alloc_name_id_map;
+		tsl::robin_map<RGResourceName, RGTextureId> texture_name_id_map;
+		tsl::robin_map<RGResourceName, RGBufferId>  buffer_name_id_map;
+		tsl::robin_map<RGResourceName, RGAllocationId>  alloc_name_id_map;
 
-		mutable std::unordered_map<RGTextureId, std::vector<TextureViewDesc>> texture_view_desc_map;
-		mutable std::unordered_map<RGTextureReadOnlyId, RGDescriptor> texture_srv_cache;
-		mutable std::unordered_map<RGTextureReadWriteId, RGDescriptor> texture_uav_cache;
-		mutable std::unordered_map<RGRenderTargetId, RGDescriptor> texture_rtv_cache;
-		mutable std::unordered_map<RGDepthStencilId, RGDescriptor> texture_dsv_cache;
+		mutable tsl::robin_map<RGTextureId, std::vector<TextureViewDesc>> texture_view_desc_map;
+		mutable tsl::robin_map<RGTextureReadOnlyId, RGDescriptor> texture_srv_cache;
+		mutable tsl::robin_map<RGTextureReadWriteId, RGDescriptor> texture_uav_cache;
+		mutable tsl::robin_map<RGRenderTargetId, RGDescriptor> texture_rtv_cache;
+		mutable tsl::robin_map<RGDepthStencilId, RGDescriptor> texture_dsv_cache;
 
-		mutable std::unordered_map<RGBufferId, std::vector<BufferViewDesc>> buffer_view_desc_map;
-		mutable std::unordered_map<RGBufferReadOnlyId, RGDescriptor> buffer_srv_cache;
-		mutable std::unordered_map<RGBufferReadWriteId, RGDescriptor> buffer_uav_cache;
+		mutable tsl::robin_map<RGBufferId, std::vector<BufferViewDesc>> buffer_view_desc_map;
+		mutable tsl::robin_map<RGBufferReadOnlyId, RGDescriptor> buffer_srv_cache;
+		mutable tsl::robin_map<RGBufferReadWriteId, RGDescriptor> buffer_uav_cache;
 
-#ifdef RG_MULTITHREADED //if views are created before and not on demand maybe mutexes are not neccessary?
-		mutable std::mutex srv_cache_mutex;
-		mutable std::mutex uav_cache_mutex;
-		mutable std::mutex rtv_cache_mutex;
-		mutable std::mutex dsv_cache_mutex;
-		mutable std::mutex buffer_srv_cache_mutex;
-		mutable std::mutex buffer_uav_cache_mutex;
-#endif
 	private:
 
 		void BuildAdjacencyLists();

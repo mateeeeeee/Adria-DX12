@@ -76,19 +76,6 @@ namespace adria
 	class RenderGraph;
 	class RenderGraphBuilder;
 
-
-	/*template<typename ResourceIdType>
-	struct ResourceInfo
-	{
-		std::unordered_set<ResourceIdType> creates;
-		std::unordered_set<ResourceIdType> reads;
-		std::unordered_set<ResourceIdType> writes;
-		std::unordered_set<ResourceIdType> destroy;
-		std::unordered_map<ResourceIdType, RGResourceState> resource_state_map;
-	};
-	using TexturesInfo = ResourceInfo<RGTextureId>;
-	using BuffersInfo = ResourceInfo<RGBufferId>;*/
-
 	class RenderGraphPassBase
 	{
 		friend RenderGraph;

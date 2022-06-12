@@ -1,6 +1,5 @@
 #include <d3d12.h>
 #include <wrl.h> 
-#include <unordered_map>
 #include <memory>
 #include <array>
 #include <string_view>
@@ -12,6 +11,7 @@
 #include "../Graphics/ShaderUtility.h"
 #include "../Logging/Logger.h"
 #include "../Utilities/Timer.h"
+#include "tsl/robin_map.h"
 
 namespace fs = std::filesystem;
 using namespace Microsoft::WRL;
@@ -32,11 +32,11 @@ namespace adria
 		};
 
 		ID3D12Device* device;
-		std::unordered_map<EShader, ShaderBlob> shader_map;
-		std::unordered_map<EShader, ShaderFileData> shader_file_data_map;
-		std::unordered_map<ERootSignature, ComPtr<ID3D12RootSignature>> rs_map;
-		std::unordered_map<EPipelineStateObject, ComPtr<ID3D12PipelineState>> pso_map;
-		std::unordered_map<EPipelineStateObject, RecreationData> dependency_map;
+		tsl::robin_map<EShader, ShaderBlob> shader_map;
+		tsl::robin_map<EShader, ShaderFileData> shader_file_data_map;
+		tsl::robin_map<ERootSignature, ComPtr<ID3D12RootSignature>> rs_map;
+		tsl::robin_map<EPipelineStateObject, ComPtr<ID3D12PipelineState>> pso_map;
+		tsl::robin_map<EPipelineStateObject, RecreationData> dependency_map;
 
 		std::string const compiled_shaders_directory = "Resources/Compiled Shaders/";
 		std::string const shaders_directory = "Resources/Shaders/";
@@ -1537,7 +1537,7 @@ namespace adria
 					size_t const i = recreation_data.recreation_desc.index();
 					if (i == 0)
 					{
-						D3D12_GRAPHICS_PIPELINE_STATE_DESC& desc = std::get<0>(recreation_data.recreation_desc);
+						D3D12_GRAPHICS_PIPELINE_STATE_DESC& desc = const_cast<D3D12_GRAPHICS_PIPELINE_STATE_DESC&>(std::get<0>(recreation_data.recreation_desc));
 						InputLayout il;
 						for (EShader shader : recreation_data.shaders)
 						{
@@ -1570,7 +1570,7 @@ namespace adria
 					}
 					else if (i == 1)
 					{
-						D3D12_COMPUTE_PIPELINE_STATE_DESC& desc = std::get<1>(recreation_data.recreation_desc);
+						D3D12_COMPUTE_PIPELINE_STATE_DESC& desc = const_cast<D3D12_COMPUTE_PIPELINE_STATE_DESC&>(std::get<1>(recreation_data.recreation_desc));
 						ADRIA_ASSERT(recreation_data.shaders.size() == 1);
 						ADRIA_ASSERT(GetStage(recreation_data.shaders[0]) == EShaderStage::CS);
 						desc.CS = shader_map[shader];

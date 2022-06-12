@@ -1,10 +1,10 @@
 #pragma once
-#include <unordered_map>
 #include <typeindex>
 #include <memory>
 #include "../Core/Definitions.h"
 #include "../Core/Macros.h"
 #include "../Utilities/TemplatesUtil.h"
+#include "tsl/robin_map.h"
 
 namespace adria
 {
@@ -52,7 +52,7 @@ namespace adria
 		}
 
 	private:
-		std::unordered_map<std::type_index, std::unique_ptr<uint8[]>> board_data;
+		tsl::robin_map<std::type_index, std::unique_ptr<uint8[]>> board_data;
 	};
 
 	using RGBlackboard = RenderGraphBlackboard;
