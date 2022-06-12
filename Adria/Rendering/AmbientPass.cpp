@@ -61,8 +61,8 @@ namespace adria
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::AmbientPBR));
 
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { resources.GetDescriptor(data.gbuffer_normal_srv),
-					resources.GetDescriptor(data.gbuffer_albedo_srv), resources.GetDescriptor(data.gbuffer_emissive_srv), resources.GetDescriptor(data.depth_stencil_srv) };
+				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { resources.GetReadOnlyTexture(data.gbuffer_normal_srv),
+					resources.GetReadOnlyTexture(data.gbuffer_albedo_srv), resources.GetReadOnlyTexture(data.gbuffer_emissive_srv), resources.GetReadOnlyTexture(data.depth_stencil_srv) };
 				uint32 src_range_sizes[] = { 1,1,1,1 };
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
 				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
@@ -75,7 +75,7 @@ namespace adria
 															   global_data.null_srv_texturecube, global_data.null_srv_texture2d };
 				uint32 src_range_sizes2[] = { 1,1,1,1 };
 
-				if (data.ambient_occlusion_srv.IsValid()) cpu_handles2[0] = resources.GetDescriptor(data.ambient_occlusion_srv);
+				if (data.ambient_occlusion_srv.IsValid()) cpu_handles2[0] = resources.GetReadOnlyTexture(data.ambient_occlusion_srv);
 
 				descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles2));
 				dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);

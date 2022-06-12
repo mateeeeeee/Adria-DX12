@@ -136,8 +136,8 @@ namespace adria
 			},
 			[=](CopyPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
-				Texture const& src_texture = resources.GetCopyResource(data.copy_src);
-				Texture const& dst_texture = resources.GetCopyResource(data.copy_dst);
+				Texture const& src_texture = resources.GetCopySrcTexture(data.copy_src);
+				Texture const& dst_texture = resources.GetCopyDstTexture(data.copy_dst);
 				cmd_list->CopyResource(dst_texture.GetNative(), src_texture.GetNative());
 			}, ERGPassType::Copy, ERGPassFlags::None);
 	}
@@ -185,7 +185,7 @@ namespace adria
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(4);
 				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { texture_manager.CpuDescriptorHandle(cloud_textures[0]),  texture_manager.CpuDescriptorHandle(cloud_textures[1]),
-															 texture_manager.CpuDescriptorHandle(cloud_textures[2]), resources.GetDescriptor(data.depth) };
+															 texture_manager.CpuDescriptorHandle(cloud_textures[2]), resources.GetReadOnlyTexture(data.depth) };
 				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
 				uint32 src_range_sizes[] = { 1, 1, 1, 1 };
 				uint32 dst_range_sizes[] = { 4 };
@@ -240,7 +240,7 @@ namespace adria
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 
-				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { resources.GetDescriptor(data.normals), resources.GetDescriptor(data.input), resources.GetDescriptor(data.depth) };
+				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { resources.GetReadOnlyTexture(data.normals), resources.GetReadOnlyTexture(data.input), resources.GetReadOnlyTexture(data.depth) };
 				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
 				uint32 src_range_sizes[] = { 1, 1, 1 };
 				uint32 dst_range_sizes[] = { 3 };
@@ -300,7 +300,7 @@ namespace adria
 				cmd_list->SetGraphicsRootConstantBufferView(1, global_data.postprocess_cbuffer_address);
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
-				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { resources.GetDescriptor(data.input),  resources.GetDescriptor(data.depth) };
+				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { resources.GetReadOnlyTexture(data.input),  resources.GetReadOnlyTexture(data.depth) };
 				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
 				uint32 src_range_sizes[] = { 1, 1 };
 				uint32 dst_range_sizes[] = { 2 };
@@ -350,13 +350,13 @@ namespace adria
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.compute_cbuffer_address);
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = resources.GetDescriptor(data.input);
+				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = resources.GetReadOnlyTexture(data.input);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
 
 				++descriptor_index;
-				cpu_descriptor = resources.GetDescriptor(data.extract);
+				cpu_descriptor = resources.GetReadWriteTexture(data.extract);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
@@ -397,17 +397,17 @@ namespace adria
 				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::BloomCombine));
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = resources.GetDescriptor(data.input);
+				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = resources.GetReadOnlyTexture(data.input);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-				cpu_descriptor = resources.GetDescriptor(data.extract);
+				cpu_descriptor = resources.GetReadOnlyTexture(data.extract);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), cpu_descriptor,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetHandle(descriptor_index));
 
 				descriptor_index += 2;
-				cpu_descriptor = resources.GetDescriptor(data.output);
+				cpu_descriptor = resources.GetReadWriteTexture(data.output);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
@@ -559,7 +559,7 @@ namespace adria
 				cmd_list->SetGraphicsRootConstantBufferView(0, light_allocation.gpu_address);
 
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = resources.GetDescriptor(data.sun_output);
+				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = resources.GetReadOnlyTexture(data.sun_output);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
@@ -600,7 +600,7 @@ namespace adria
 				for (size_t i = 0; i < lens_flare_textures.size(); ++i)
 					lens_flare_descriptors.push_back(texture_manager.CpuDescriptorHandle(lens_flare_textures[i]));
 
-				lens_flare_descriptors.push_back(resources.GetDescriptor(data.depth));
+				lens_flare_descriptors.push_back(resources.GetReadOnlyTexture(data.depth));
 
 				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::LensFlare));
 				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::LensFlare));
@@ -674,7 +674,7 @@ namespace adria
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 
-				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { resources.GetDescriptor(data.input), resources.GetDescriptor(data.blurred_input), resources.GetDescriptor(data.depth) };
+				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { resources.GetReadOnlyTexture(data.input), resources.GetReadOnlyTexture(data.blurred_input), resources.GetReadOnlyTexture(data.depth) };
 				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
 				uint32 src_range_sizes[] = { 1, 1, 1 };
 				uint32 dst_range_sizes[] = { 3 };

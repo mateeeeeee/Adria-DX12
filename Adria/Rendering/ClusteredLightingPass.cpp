@@ -159,9 +159,9 @@ namespace adria
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 
 				//gbuffer
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { resources.GetDescriptor(data.gbuffer_normal), 
-															  resources.GetDescriptor(data.gbuffer_albedo), 
-															  resources.GetDescriptor(data.depth) };
+				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { resources.GetReadOnlyTexture(data.gbuffer_normal), 
+															  resources.GetReadOnlyTexture(data.gbuffer_albedo), 
+															  resources.GetReadOnlyTexture(data.depth) };
 				uint32 src_range_sizes[] = { 1,1,1 };
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
 				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);

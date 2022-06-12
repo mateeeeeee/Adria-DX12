@@ -89,9 +89,9 @@ namespace adria
 
 				//t0,t1,t2 - gbuffer and depth
 				{
-					D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { resources.GetDescriptor(data.gbuffer_normal), 
-																  resources.GetDescriptor(data.gbuffer_albedo),
-																  resources.GetDescriptor(data.depth) };
+					D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { resources.GetReadOnlyTexture(data.gbuffer_normal), 
+																  resources.GetReadOnlyTexture(data.gbuffer_albedo),
+																  resources.GetReadOnlyTexture(data.depth) };
 					uint32 src_range_sizes[] = { 1,1,1 };
 
 					OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
@@ -120,7 +120,7 @@ namespace adria
 					else if (light.casts_shadows)
 					{
 						ADRIA_ASSERT(data.shadow_map.IsValid());
-						RGDescriptor shadow_map = resources.GetDescriptor(data.shadow_map);
+						RGDescriptor shadow_map = resources.GetReadOnlyTexture(data.shadow_map);
 						switch (light.type)
 						{
 						case ELightType::Directional:
@@ -169,7 +169,7 @@ namespace adria
 					if (light.casts_shadows) cmd_list->SetGraphicsRootConstantBufferView(2, resources.GetAllocation(data.shadow_alloc).gpu_address);
 					cmd_list->SetGraphicsRootConstantBufferView(3, global_data.postprocess_cbuffer_address);
 
-					D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { resources.GetDescriptor(data.depth), {} };
+					D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { resources.GetReadOnlyTexture(data.depth), {} };
 					uint32 src_range_sizes[] = { 1,1 };
 
 					OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
@@ -182,21 +182,21 @@ namespace adria
 						if (light.use_cascades)
 						{
 							cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Volumetric_DirectionalCascades));
-							cpu_handles[1] = data.shadow_map.IsValid() ? resources.GetDescriptor(data.shadow_map) : global_data.null_srv_texture2darray;
+							cpu_handles[1] = data.shadow_map.IsValid() ? resources.GetReadOnlyTexture(data.shadow_map) : global_data.null_srv_texture2darray;
 						}
 						else
 						{
 							cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Volumetric_Directional));
-							cpu_handles[1] = data.shadow_map.IsValid() ? resources.GetDescriptor(data.shadow_map) : global_data.null_srv_texture2d;
+							cpu_handles[1] = data.shadow_map.IsValid() ? resources.GetReadOnlyTexture(data.shadow_map) : global_data.null_srv_texture2d;
 						}
 						break;
 					case ELightType::Spot:
 						cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Volumetric_Spot));
-						cpu_handles[1] = data.shadow_map.IsValid() ? resources.GetDescriptor(data.shadow_map) : global_data.null_srv_texture2d;
+						cpu_handles[1] = data.shadow_map.IsValid() ? resources.GetReadOnlyTexture(data.shadow_map) : global_data.null_srv_texture2d;
 						break;
 					case ELightType::Point:
 						cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Volumetric_Point));
-						cpu_handles[1] = data.shadow_map.IsValid() ? resources.GetDescriptor(data.shadow_map) : global_data.null_srv_texturecube;
+						cpu_handles[1] = data.shadow_map.IsValid() ? resources.GetReadOnlyTexture(data.shadow_map) : global_data.null_srv_texturecube;
 						break;
 					default:
 						ADRIA_ASSERT(false && "Invalid Light Type!");

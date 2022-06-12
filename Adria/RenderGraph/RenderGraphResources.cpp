@@ -22,25 +22,25 @@ namespace adria
 		return *rg.GetBuffer(res_id);
 	}
 
-	Texture const& RenderGraphResources::GetCopyResource(RGTextureCopySrcId res_id) const
+	Texture const& RenderGraphResources::GetCopySrcTexture(RGTextureCopySrcId res_id) const
 	{
-		return rg.GetResource(res_id);
+		return rg.GetCopySrcTexture(res_id);
 	}
 
-	Texture const& RenderGraphResources::GetCopyResource(RGTextureCopyDstId res_id) const
+	Texture const& RenderGraphResources::GetCopyDstTexture(RGTextureCopyDstId res_id) const
 	{
-		return rg.GetResource(res_id);
+		return rg.GetCopyDstTexture(res_id);
 	}
 
 
-	Buffer const& RenderGraphResources::GetCopyResource(RGBufferCopySrcId res_id) const
+	Buffer const& RenderGraphResources::GetCopySrcBuffer(RGBufferCopySrcId res_id) const
 	{
-		return rg.GetResource(res_id);
+		return rg.GetCopySrcBuffer(res_id);
 	}
 
-	Buffer const& RenderGraphResources::GetCopyResource(RGBufferCopyDstId res_id) const
+	Buffer const& RenderGraphResources::GetCopyDstBuffer(RGBufferCopyDstId res_id) const
 	{
-		return rg.GetResource(res_id);
+		return rg.GetCopyDstBuffer(res_id);
 	}
 
 	Buffer const& RenderGraphResources::GetIndirectArgsBuffer(RGBufferIndirectArgsId res_id) const
@@ -48,34 +48,34 @@ namespace adria
 		return rg.GetIndirectArgsBuffer(res_id);
 	}
 
-	RGDescriptor RenderGraphResources::GetDescriptor(RGRenderTargetId res_id) const
+	RGDescriptor RenderGraphResources::GetRenderTarget(RGRenderTargetId res_id) const
 	{
-		return rg.GetDescriptor(res_id);
+		return rg.GetRenderTarget(res_id);
 	}
 
-	RGDescriptor RenderGraphResources::GetDescriptor(RGDepthStencilId res_id) const
+	RGDescriptor RenderGraphResources::GetDepthStencil(RGDepthStencilId res_id) const
 	{
-		return rg.GetDescriptor(res_id);
+		return rg.GetDepthStencil(res_id);
 	}
 
-	RGDescriptor RenderGraphResources::GetDescriptor(RGTextureReadOnlyId res_id) const
+	RGDescriptor RenderGraphResources::GetReadOnlyTexture(RGTextureReadOnlyId res_id) const
 	{
-		return rg.GetDescriptor(res_id);
+		return rg.GetReadOnlyTexture(res_id);
 	}
 
-	RGDescriptor RenderGraphResources::GetDescriptor(RGTextureReadWriteId res_id) const
+	RGDescriptor RenderGraphResources::GetReadWriteTexture(RGTextureReadWriteId res_id) const
 	{
-		return rg.GetDescriptor(res_id);
+		return rg.GetReadWriteTexture(res_id);
 	}
 
-	RGDescriptor RenderGraphResources::GetDescriptor(RGBufferReadOnlyId res_id) const
+	RGDescriptor RenderGraphResources::GetReadOnlyBuffer(RGBufferReadOnlyId res_id) const
 	{
-		return rg.GetDescriptor(res_id);
+		return rg.GetReadOnlyBuffer(res_id);
 	}
 
-	RGDescriptor RenderGraphResources::GetDescriptor(RGBufferReadWriteId res_id) const
+	RGDescriptor RenderGraphResources::GetReadWriteBuffer(RGBufferReadWriteId res_id) const
 	{
-		return rg.GetDescriptor(res_id);
+		return rg.GetReadWriteBuffer(res_id);
 	}
 
 	DynamicAllocation& RenderGraphResources::GetAllocation(RGAllocationId alloc_id)

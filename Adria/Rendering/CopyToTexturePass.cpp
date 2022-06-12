@@ -44,7 +44,7 @@ namespace adria
 
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
 
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), resources.GetDescriptor(data.texture_src),
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), resources.GetReadOnlyTexture(data.texture_src),
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 				cmd_list->SetGraphicsRootDescriptorTable(0, descriptor_allocator->GetHandle(descriptor_index));

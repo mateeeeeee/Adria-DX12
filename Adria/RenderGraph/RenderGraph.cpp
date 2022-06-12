@@ -525,22 +525,22 @@ namespace adria
 		return dynamic_allocations[alloc.id];
 	}
 
-	Texture const& RenderGraph::GetResource(RGTextureCopySrcId res_id) const
+	Texture const& RenderGraph::GetCopySrcTexture(RGTextureCopySrcId res_id) const
 	{
 		return *GetTexture(RGTextureId(res_id));
 	}
 
-	Texture const& RenderGraph::GetResource(RGTextureCopyDstId res_id) const
+	Texture const& RenderGraph::GetCopyDstTexture(RGTextureCopyDstId res_id) const
 	{
 		return *GetTexture(RGTextureId(res_id));
 	}
 
-	Buffer const& RenderGraph::GetResource(RGBufferCopySrcId res_id) const
+	Buffer const& RenderGraph::GetCopySrcBuffer(RGBufferCopySrcId res_id) const
 	{
 		return *GetBuffer(RGBufferId(res_id));
 	}
 
-	Buffer const& RenderGraph::GetResource(RGBufferCopyDstId res_id) const
+	Buffer const& RenderGraph::GetCopyDstBuffer(RGBufferCopyDstId res_id) const
 	{
 		return *GetBuffer(RGBufferId(res_id));
 	}
@@ -550,7 +550,7 @@ namespace adria
 		return *GetBuffer(RGBufferId(res_id));
 	}
 
-	RGDescriptor RenderGraph::GetDescriptor(RGRenderTargetId res_id) const
+	RGDescriptor RenderGraph::GetRenderTarget(RGRenderTargetId res_id) const
 	{
 #ifdef RG_MULTITHREADED
 		std::scoped_lock lock(rtv_cache_mutex);
@@ -572,7 +572,7 @@ namespace adria
 		}
 	}
 
-	RGDescriptor RenderGraph::GetDescriptor(RGDepthStencilId res_id) const
+	RGDescriptor RenderGraph::GetDepthStencil(RGDepthStencilId res_id) const
 	{
 #ifdef RG_MULTITHREADED
 		std::scoped_lock lock(dsv_cache_mutex);
@@ -594,7 +594,7 @@ namespace adria
 		}
 	}
 
-	RGDescriptor RenderGraph::GetDescriptor(RGTextureReadOnlyId res_id) const
+	RGDescriptor RenderGraph::GetReadOnlyTexture(RGTextureReadOnlyId res_id) const
 	{
 #ifdef RG_MULTITHREADED
 		std::scoped_lock lock(srv_cache_mutex);
@@ -616,7 +616,7 @@ namespace adria
 		}
 	}
 
-	RGDescriptor RenderGraph::GetDescriptor(RGTextureReadWriteId res_id) const
+	RGDescriptor RenderGraph::GetReadWriteTexture(RGTextureReadWriteId res_id) const
 	{
 #ifdef RG_MULTITHREADED
 		std::scoped_lock lock(uav_cache_mutex);
@@ -638,7 +638,7 @@ namespace adria
 		}
 	}
 
-	RGDescriptor RenderGraph::GetDescriptor(RGBufferReadOnlyId res_id) const
+	RGDescriptor RenderGraph::GetReadOnlyBuffer(RGBufferReadOnlyId res_id) const
 	{
 		if (auto it = buffer_srv_cache.find(res_id); it != buffer_srv_cache.end())
 		{
@@ -657,7 +657,7 @@ namespace adria
 		}
 	}
 
-	RGDescriptor RenderGraph::GetDescriptor(RGBufferReadWriteId res_id) const
+	RGDescriptor RenderGraph::GetReadWriteBuffer(RGBufferReadWriteId res_id) const
 	{
 		if (auto it = buffer_uav_cache.find(res_id); it != buffer_uav_cache.end())
 		{
@@ -727,7 +727,7 @@ namespace adria
 					RtvAttachmentDesc rtv_desc{};
 					std::optional<D3D12_CLEAR_VALUE> clear = texture->GetDesc().clear;
 					rtv_desc.clear_value = clear.has_value() ? clear.value() : D3D12_CLEAR_VALUE{};
-					rtv_desc.cpu_handle = rg.GetDescriptor(render_target_info.render_target_handle);
+					rtv_desc.cpu_handle = rg.GetRenderTarget(render_target_info.render_target_handle);
 					
 					ERGLoadAccessOp load_access = ERGLoadAccessOp::NoAccess;
 					ERGStoreAccessOp store_access = ERGStoreAccessOp::NoAccess;
@@ -781,7 +781,7 @@ namespace adria
 					DsvAttachmentDesc dsv_desc{};
 					std::optional<D3D12_CLEAR_VALUE> clear = texture->GetDesc().clear;
 					dsv_desc.clear_value = clear.has_value() ? clear.value() : D3D12_CLEAR_VALUE{};
-					dsv_desc.cpu_handle = rg.GetDescriptor(depth_stencil_info.depth_stencil_handle);
+					dsv_desc.cpu_handle = rg.GetDepthStencil(depth_stencil_info.depth_stencil_handle);
 
 					ERGLoadAccessOp load_access = ERGLoadAccessOp::NoAccess;
 					ERGStoreAccessOp store_access = ERGStoreAccessOp::NoAccess;
@@ -867,7 +867,7 @@ namespace adria
 							RtvAttachmentDesc rtv_desc{};
 							std::optional<D3D12_CLEAR_VALUE> clear = texture->GetDesc().clear;
 							rtv_desc.clear_value = clear.has_value() ? clear.value() : D3D12_CLEAR_VALUE{};
-							rtv_desc.cpu_handle = rg.GetDescriptor(render_target_info.render_target_handle);
+							rtv_desc.cpu_handle = rg.GetRenderTarget(render_target_info.render_target_handle);
 
 							ERGLoadAccessOp load_access = ERGLoadAccessOp::NoAccess;
 							ERGStoreAccessOp store_access = ERGStoreAccessOp::NoAccess;
@@ -921,7 +921,7 @@ namespace adria
 							DsvAttachmentDesc dsv_desc{};
 							std::optional<D3D12_CLEAR_VALUE> clear = texture->GetDesc().clear;
 							dsv_desc.clear_value = clear.has_value() ? clear.value() : D3D12_CLEAR_VALUE{};
-							dsv_desc.cpu_handle = rg.GetDescriptor(depth_stencil_info.depth_stencil_handle);
+							dsv_desc.cpu_handle = rg.GetDepthStencil(depth_stencil_info.depth_stencil_handle);
 
 							ERGLoadAccessOp load_access = ERGLoadAccessOp::NoAccess;
 							ERGStoreAccessOp store_access = ERGStoreAccessOp::NoAccess;

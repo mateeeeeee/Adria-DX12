@@ -59,7 +59,7 @@ namespace adria
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.postprocess_cbuffer_address);
 
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = resources.GetDescriptor(data.hdr_srv);
+				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = resources.GetReadOnlyTexture(data.hdr_srv);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
@@ -105,7 +105,7 @@ namespace adria
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.postprocess_cbuffer_address);
 
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = resources.GetDescriptor(data.hdr_srv);
+				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = resources.GetReadOnlyTexture(data.hdr_srv);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));

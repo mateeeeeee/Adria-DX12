@@ -146,19 +146,18 @@ namespace adria
 		RGBufferReadOnlyId ReadBuffer(RGResourceName name, BufferViewDesc const& desc);
 		RGBufferReadWriteId WriteBuffer(RGResourceName name, BufferViewDesc const& desc);
 
-		//rename!!!
-		Texture const& GetResource(RGTextureCopySrcId) const;
-		Texture const& GetResource(RGTextureCopyDstId) const;
-		Buffer const& GetResource(RGBufferCopySrcId) const;
-		Buffer const& GetResource(RGBufferCopyDstId) const;
+		Texture const& GetCopySrcTexture(RGTextureCopySrcId) const;
+		Texture const& GetCopyDstTexture(RGTextureCopyDstId) const;
+		Buffer const& GetCopySrcBuffer(RGBufferCopySrcId) const;
+		Buffer const& GetCopyDstBuffer(RGBufferCopyDstId) const;
 		Buffer const& GetIndirectArgsBuffer(RGBufferIndirectArgsId) const;
 
-		RGDescriptor GetDescriptor(RGRenderTargetId) const;
-		RGDescriptor GetDescriptor(RGDepthStencilId) const;
-		RGDescriptor GetDescriptor(RGTextureReadOnlyId) const;
-		RGDescriptor GetDescriptor(RGTextureReadWriteId) const;
-		RGDescriptor GetDescriptor(RGBufferReadOnlyId) const;
-		RGDescriptor GetDescriptor(RGBufferReadWriteId) const;
+		RGDescriptor GetRenderTarget(RGRenderTargetId) const;
+		RGDescriptor GetDepthStencil(RGDepthStencilId) const;
+		RGDescriptor GetReadOnlyTexture(RGTextureReadOnlyId) const;
+		RGDescriptor GetReadWriteTexture(RGTextureReadWriteId) const;
+		RGDescriptor GetReadOnlyBuffer(RGBufferReadOnlyId) const;
+		RGDescriptor GetReadWriteBuffer(RGBufferReadWriteId) const;
 
 		DynamicAllocation& GetAllocation(RGAllocationId);
 		Texture* GetTexture(RGTextureId) const;
