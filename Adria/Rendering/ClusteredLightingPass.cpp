@@ -18,7 +18,7 @@ namespace adria
 		light_list(gfx, StructuredBufferDesc<uint32>(CLUSTER_COUNT * CLUSTER_MAX_LIGHTS)),
 		light_grid(gfx, StructuredBufferDesc<LightGrid>(CLUSTER_COUNT))
 	{
-		light_counter.CreateSRV();
+		/*light_counter.CreateSRV();
 		light_list.CreateSRV();
 		clusters.CreateSRV();
 		light_grid.CreateSRV();
@@ -26,15 +26,18 @@ namespace adria
 		light_counter.CreateUAV();
 		light_list.CreateUAV();
 		clusters.CreateUAV();
-		light_grid.CreateUAV();
+		light_grid.CreateUAV();*/
 	}
 
 	void ClusteredLightingPass::AddPass(RenderGraph& rendergraph, bool recreate_clusters)
 	{
 		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
 
+		rendergraph.ImportBuffer(RG_RES_NAME(ClustersBuffer), &clusters);
+
 		struct ClusterBuildingPassData
 		{
+			RGBufferReadWriteId cluster_uav;
 		};
 
 		if (recreate_clusters)
@@ -42,9 +45,9 @@ namespace adria
 			rendergraph.AddPass<ClusterBuildingPassData>("Cluster Building Pass",
 				[=](ClusterBuildingPassData& data, RenderGraphBuilder& builder)
 				{
-
+					data.cluster_uav = builder.WriteBuffer(RG_RES_NAME(ClustersBuffer));
 				},
-				[=](ClusterBuildingPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+				[=](ClusterBuildingPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 				{
 					ID3D12Device* device = gfx->GetDevice();
 					auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -55,7 +58,7 @@ namespace adria
 
 					OffsetType descriptor_index = descriptor_allocator->Allocate();
 					auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-					device->CopyDescriptorsSimple(1, dst_descriptor, clusters.UAV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					device->CopyDescriptorsSimple(1, dst_descriptor, context.GetReadWriteBuffer(data.cluster_uav), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 					cmd_list->SetComputeRootDescriptorTable(1, dst_descriptor);
 
 					cmd_list->Dispatch(CLUSTER_SIZE_X, CLUSTER_SIZE_Y, CLUSTER_SIZE_Z);
@@ -91,13 +94,13 @@ namespace adria
 				builder.DeclareAllocation(RG_RES_NAME(ClusterAllocation), AllocDesc{.size_in_bytes = alloc_size, .alignment = sizeof(StructuredLight) });
 				data.alloc_id = builder.UseAllocation(RG_RES_NAME(ClusterAllocation));
 			},
-			[=](ClusterCullingPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](ClusterCullingPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto upload_buffer = gfx->GetDynamicAllocator();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				DynamicAllocation& dynamic_alloc = resources.GetAllocation(data.alloc_id);
+				DynamicAllocation& dynamic_alloc = context.GetAllocation(data.alloc_id);
 				dynamic_alloc.Update(structured_lights.data(), dynamic_alloc.size);
 
 				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::ClusterCulling));
@@ -148,7 +151,7 @@ namespace adria
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
-			[=](ClusterLightingPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](ClusterLightingPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto upload_buffer = gfx->GetDynamicAllocator();
@@ -159,9 +162,9 @@ namespace adria
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 
 				//gbuffer
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { resources.GetReadOnlyTexture(data.gbuffer_normal), 
-															  resources.GetReadOnlyTexture(data.gbuffer_albedo), 
-															  resources.GetReadOnlyTexture(data.depth) };
+				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { context.GetReadOnlyTexture(data.gbuffer_normal), 
+															  context.GetReadOnlyTexture(data.gbuffer_albedo), 
+															  context.GetReadOnlyTexture(data.depth) };
 				uint32 src_range_sizes[] = { 1,1,1 };
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
 				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
@@ -182,7 +185,7 @@ namespace adria
 
 				dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 
-				DynamicAllocation& dynamic_alloc = resources.GetAllocation(data.alloc_id);
+				DynamicAllocation& dynamic_alloc = context.GetAllocation(data.alloc_id);
 				D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
 				desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
 				desc.Format = DXGI_FORMAT_UNKNOWN;

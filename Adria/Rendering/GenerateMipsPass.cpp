@@ -21,12 +21,12 @@ namespace adria
 				builder.DummyWriteTexture(texture_name);
 				builder.SetViewport(width, height);
 			},
-			[=](GenerateMipsPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](GenerateMipsPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				Texture const& texture = resources.GetTexture(data.texture_src.GetResourceId());
+				Texture const& texture = context.GetTexture(data.texture_src.GetResourceId());
 				//Set root signature, pso and descriptor heap
 				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::GenerateMips));
 				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::GenerateMips));

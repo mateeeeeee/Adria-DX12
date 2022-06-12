@@ -197,7 +197,7 @@
     <ClCompile Include="Utilities\CPUProfiler.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="RenderGraph\RenderGraphResources.cpp">
+    <ClCompile Include="RenderGraph\RenderGraphContext.cpp">
       <Filter>RenderGraph</Filter>
     </ClCompile>
     <ClCompile Include="RenderGraph\RenderGraph.cpp">
@@ -535,7 +535,7 @@
     <ClInclude Include="RenderGraph\RenderGraphBlackboard.h">
       <Filter>RenderGraph</Filter>
     </ClInclude>
-    <ClInclude Include="RenderGraph\RenderGraphResources.h">
+    <ClInclude Include="RenderGraph\RenderGraphContext.h">
       <Filter>RenderGraph</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\Buffer.h">

@@ -14,7 +14,7 @@ namespace adria
 	class RenderGraph
 	{
 		friend class RenderGraphBuilder;
-		friend class RenderGraphResources;
+		friend class RenderGraphContext;
 
 		class DependencyLevel
 		{

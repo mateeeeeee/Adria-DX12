@@ -52,7 +52,7 @@ namespace adria
 				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), ERGLoadStoreAccessOp::Clear_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(gpu_profiler, cmd_list, EProfilerBlock::GBufferPass, profile_pass);
 

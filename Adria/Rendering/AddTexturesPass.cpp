@@ -25,7 +25,7 @@ namespace adria
 				data.texture_src2 = builder.ReadTexture(texture2, ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
-			[=](CopyToTexturePassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](CopyToTexturePassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -48,9 +48,9 @@ namespace adria
 				}
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), resources.GetReadOnlyTexture(data.texture_src1),
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), context.GetReadOnlyTexture(data.texture_src1),
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), resources.GetReadOnlyTexture(data.texture_src2),
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), context.GetReadOnlyTexture(data.texture_src2),
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 				cmd_list->SetGraphicsRootDescriptorTable(0, descriptor_allocator->GetHandle(descriptor_index));

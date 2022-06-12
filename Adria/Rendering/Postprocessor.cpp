@@ -134,10 +134,10 @@ namespace adria
 				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(PostprocessMain));
 				data.copy_src = builder.ReadCopySrcTexture(RG_RES_NAME(HDR_RenderTarget));
 			},
-			[=](CopyPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](CopyPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
-				Texture const& src_texture = resources.GetCopySrcTexture(data.copy_src);
-				Texture const& dst_texture = resources.GetCopyDstTexture(data.copy_dst);
+				Texture const& src_texture = context.GetCopySrcTexture(data.copy_src);
+				Texture const& dst_texture = context.GetCopyDstTexture(data.copy_dst);
 				cmd_list->CopyResource(dst_texture.GetNative(), src_texture.GetNative());
 			}, ERGPassType::Copy, ERGPassFlags::None);
 	}
@@ -172,7 +172,7 @@ namespace adria
 				builder.WriteRenderTarget(RG_RES_NAME(CloudsOutput), ERGLoadStoreAccessOp::Clear_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](VolumetricCloudsPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](VolumetricCloudsPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -185,7 +185,7 @@ namespace adria
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(4);
 				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { texture_manager.CpuDescriptorHandle(cloud_textures[0]),  texture_manager.CpuDescriptorHandle(cloud_textures[1]),
-															 texture_manager.CpuDescriptorHandle(cloud_textures[2]), resources.GetReadOnlyTexture(data.depth) };
+															 texture_manager.CpuDescriptorHandle(cloud_textures[2]), context.GetReadOnlyTexture(data.depth) };
 				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
 				uint32 src_range_sizes[] = { 1, 1, 1, 1 };
 				uint32 dst_range_sizes[] = { 4 };
@@ -228,7 +228,7 @@ namespace adria
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
-			[=](SSRPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](SSRPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -240,7 +240,7 @@ namespace adria
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 
-				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { resources.GetReadOnlyTexture(data.normals), resources.GetReadOnlyTexture(data.input), resources.GetReadOnlyTexture(data.depth) };
+				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { context.GetReadOnlyTexture(data.normals), context.GetReadOnlyTexture(data.input), context.GetReadOnlyTexture(data.depth) };
 				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
 				uint32 src_range_sizes[] = { 1, 1, 1 };
 				uint32 dst_range_sizes[] = { 3 };
@@ -288,7 +288,7 @@ namespace adria
 				builder.WriteRenderTarget(RG_RES_NAME(FogOutput), ERGLoadStoreAccessOp::Discard_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](FogPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](FogPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -300,7 +300,7 @@ namespace adria
 				cmd_list->SetGraphicsRootConstantBufferView(1, global_data.postprocess_cbuffer_address);
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
-				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { resources.GetReadOnlyTexture(data.input),  resources.GetReadOnlyTexture(data.depth) };
+				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { context.GetReadOnlyTexture(data.input),  context.GetReadOnlyTexture(data.depth) };
 				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
 				uint32 src_range_sizes[] = { 1, 1 };
 				uint32 dst_range_sizes[] = { 2 };
@@ -340,7 +340,7 @@ namespace adria
 				data.extract = builder.WriteTexture(RG_RES_NAME(BloomExtract));
 				data.input = builder.ReadTexture(last_resource, ReadAccess_NonPixelShader);
 			},
-			[=](BloomExtractPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](BloomExtractPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -350,13 +350,13 @@ namespace adria
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.compute_cbuffer_address);
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = resources.GetReadOnlyTexture(data.input);
+				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = context.GetReadOnlyTexture(data.input);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
 
 				++descriptor_index;
-				cpu_descriptor = resources.GetReadWriteTexture(data.extract);
+				cpu_descriptor = context.GetReadWriteTexture(data.extract);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
@@ -388,7 +388,7 @@ namespace adria
 				data.extract = builder.ReadTexture(RG_RES_NAME(BloomExtract), ReadAccess_NonPixelShader);
 				data.input  = builder.ReadTexture(final_resource, ReadAccess_NonPixelShader);
 			},
-			[=](BloomCombinePassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](BloomCombinePassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -397,17 +397,17 @@ namespace adria
 				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::BloomCombine));
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = resources.GetReadOnlyTexture(data.input);
+				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = context.GetReadOnlyTexture(data.input);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-				cpu_descriptor = resources.GetReadOnlyTexture(data.extract);
+				cpu_descriptor = context.GetReadOnlyTexture(data.extract);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), cpu_descriptor,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetHandle(descriptor_index));
 
 				descriptor_index += 2;
-				cpu_descriptor = resources.GetReadWriteTexture(data.output);
+				cpu_descriptor = context.GetReadWriteTexture(data.output);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
@@ -444,7 +444,7 @@ namespace adria
 				builder.WriteRenderTarget(RG_RES_NAME(SunOutput), ERGLoadStoreAccessOp::Clear_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -514,7 +514,7 @@ namespace adria
 				data.sun_output = builder.ReadTexture(RG_RES_NAME(SunOutput), ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
-			[=](GodRaysPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](GodRaysPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -559,7 +559,7 @@ namespace adria
 				cmd_list->SetGraphicsRootConstantBufferView(0, light_allocation.gpu_address);
 
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = resources.GetReadOnlyTexture(data.sun_output);
+				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = context.GetReadOnlyTexture(data.sun_output);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
@@ -584,7 +584,7 @@ namespace adria
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
-			[=](LensFlarePassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](LensFlarePassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -600,7 +600,7 @@ namespace adria
 				for (size_t i = 0; i < lens_flare_textures.size(); ++i)
 					lens_flare_descriptors.push_back(texture_manager.CpuDescriptorHandle(lens_flare_textures[i]));
 
-				lens_flare_descriptors.push_back(resources.GetReadOnlyTexture(data.depth));
+				lens_flare_descriptors.push_back(context.GetReadOnlyTexture(data.depth));
 
 				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::LensFlare));
 				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::LensFlare));
@@ -662,7 +662,7 @@ namespace adria
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
-			[=](DepthOfFieldPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](DepthOfFieldPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -674,7 +674,7 @@ namespace adria
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 
-				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { resources.GetReadOnlyTexture(data.input), resources.GetReadOnlyTexture(data.blurred_input), resources.GetReadOnlyTexture(data.depth) };
+				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { context.GetReadOnlyTexture(data.input), context.GetReadOnlyTexture(data.blurred_input), context.GetReadOnlyTexture(data.depth) };
 				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
 				uint32 src_range_sizes[] = { 1, 1, 1 };
 				uint32 dst_range_sizes[] = { 3 };
@@ -714,7 +714,7 @@ namespace adria
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
-			[=](GenerateBokehPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](GenerateBokehPassData const& data, RenderGraphResources& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -806,7 +806,7 @@ namespace adria
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
-			[=](DepthOfFieldPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](DepthOfFieldPassData const& data, RenderGraphResources& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();

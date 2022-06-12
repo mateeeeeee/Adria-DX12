@@ -48,7 +48,7 @@ namespace adria
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 				builder.SetViewport(width, height);
 			},
-			[=](TiledLightingPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](TiledLightingPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
@@ -81,9 +81,9 @@ namespace adria
 
 				//t0,t1,t2 - gbuffer and depth
 				{
-					D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { resources.GetReadOnlyTexture(data.gbuffer_normal), 
-																  resources.GetReadOnlyTexture(data.gbuffer_albedo), 
-																  resources.GetReadOnlyTexture(data.depth) };
+					D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { context.GetReadOnlyTexture(data.gbuffer_normal), 
+																  context.GetReadOnlyTexture(data.gbuffer_albedo), 
+																  context.GetReadOnlyTexture(data.depth) };
 					uint32 src_range_sizes[] = { 1,1,1 };
 
 					OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
@@ -98,7 +98,7 @@ namespace adria
 				D3D12_GPU_DESCRIPTOR_HANDLE uav_target_for_clear{};
 				D3D12_GPU_DESCRIPTOR_HANDLE uav_debug_for_clear{};
 				{
-					D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { resources.GetReadWriteTexture(data.tiled_target), resources.GetReadWriteTexture(data.tiled_debug_target) };
+					D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { context.GetReadWriteTexture(data.tiled_target), context.GetReadWriteTexture(data.tiled_debug_target) };
 					uint32 src_range_sizes[] = { 1,1 };
 
 					OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
@@ -135,11 +135,11 @@ namespace adria
 
 				float32 black[4] = { 0.0f,0.0f,0.0f,0.0f };
 
-				Texture const& tiled_target = resources.GetTexture(data.tiled_target.GetResourceId());
-				cmd_list->ClearUnorderedAccessViewFloat(uav_target_for_clear, resources.GetReadWriteTexture(data.tiled_target), tiled_target.GetNative(),
+				Texture const& tiled_target = context.GetTexture(data.tiled_target.GetResourceId());
+				cmd_list->ClearUnorderedAccessViewFloat(uav_target_for_clear, context.GetReadWriteTexture(data.tiled_target), tiled_target.GetNative(),
 					black, 0, nullptr);
-				Texture const& tiled_debug_target = resources.GetTexture(data.tiled_debug_target.GetResourceId());
-				cmd_list->ClearUnorderedAccessViewFloat(uav_debug_for_clear, resources.GetReadWriteTexture(data.tiled_debug_target), tiled_debug_target.GetNative(),
+				Texture const& tiled_debug_target = context.GetTexture(data.tiled_debug_target.GetResourceId());
+				cmd_list->ClearUnorderedAccessViewFloat(uav_debug_for_clear, context.GetReadWriteTexture(data.tiled_debug_target), tiled_debug_target.GetNative(),
 					black, 0, nullptr);
 				cmd_list->Dispatch((uint32)std::ceil(width * 1.0f / 16), (uint32)(height * 1.0f / 16), 1);
 			}, ERGPassType::Compute, ERGPassFlags::None);

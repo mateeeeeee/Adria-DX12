@@ -1,6 +1,6 @@
 #pragma once
 #include <functional>
-#include "RenderGraphResources.h"
+#include "RenderGraphContext.h"
 #include "../Utilities/EnumUtil.h"
 #include "../Utilities/HashSet.h"
 #include "../Utilities/HashMap.h"
@@ -102,7 +102,7 @@ namespace adria
 	protected:
 
 		virtual void Setup(RenderGraphBuilder&) = 0;
-		virtual void Execute(RenderGraphResources&, GraphicsDevice*, RGCommandList*) const = 0;
+		virtual void Execute(RenderGraphContext&, GraphicsDevice*, RGCommandList*) const = 0;
 
 		bool IsCulled() const { return CanBeCulled() && ref_count == 0; }
 		bool CanBeCulled() const { return !HasAnyFlag(flags, ERGPassFlags::ForceNoCull); }
@@ -139,7 +139,7 @@ namespace adria
 	{
 	public:
 		using SetupFunc = std::function<void(PassData&, RenderGraphBuilder&)>;
-		using ExecuteFunc = std::function<void(PassData const&, RenderGraphResources&, GraphicsDevice*, RGCommandList*)>;
+		using ExecuteFunc = std::function<void(PassData const&, RenderGraphContext&, GraphicsDevice*, RGCommandList*)>;
 
 	public:
 		RenderGraphPass(char const* name, SetupFunc&& setup, ExecuteFunc&& execute, ERGPassType type = ERGPassType::Graphics, ERGPassFlags flags = ERGPassFlags::None)
@@ -164,10 +164,10 @@ namespace adria
 			setup(data, builder);
 		}
 
-		void Execute(RenderGraphResources& resources, GraphicsDevice* dev, RGCommandList* ctx) const override
+		void Execute(RenderGraphContext& context, GraphicsDevice* dev, RGCommandList* ctx) const override
 		{
 			ADRIA_ASSERT(setup != nullptr && "execute function is null!");
-			execute(data, resources, dev, ctx);
+			execute(data, context, dev, ctx);
 		}
 	};
 
@@ -176,7 +176,7 @@ namespace adria
 	{
 	public:
 		using SetupFunc = std::function<void(RenderGraphBuilder&)>;
-		using ExecuteFunc = std::function<void(RenderGraphResources&, GraphicsDevice*, RGCommandList*)>;
+		using ExecuteFunc = std::function<void(RenderGraphContext&, GraphicsDevice*, RGCommandList*)>;
 
 	public:
 		RenderGraphPass(char const* name, SetupFunc&& setup, ExecuteFunc&& execute, ERGPassType type = ERGPassType::Graphics, ERGPassFlags flags = ERGPassFlags::None)
@@ -200,10 +200,10 @@ namespace adria
 			setup(builder);
 		}
 
-		void Execute(RenderGraphResources& resources, GraphicsDevice* dev, RGCommandList* ctx) const override
+		void Execute(RenderGraphContext& context, GraphicsDevice* dev, RGCommandList* ctx) const override
 		{
 			ADRIA_ASSERT(setup != nullptr && "execute function is null!");
-			execute(resources, dev, ctx);
+			execute(context, dev, ctx);
 		}
 	};
 

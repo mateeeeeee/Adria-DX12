@@ -1,7 +1,7 @@
 #pragma once
 #include "RenderGraphResourceName.h"
 #include "RenderGraphPass.h"
-#include "RenderGraphResources.h"
+#include "RenderGraphContext.h"
 
 namespace adria
 {

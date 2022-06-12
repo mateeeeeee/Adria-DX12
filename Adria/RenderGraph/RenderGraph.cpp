@@ -684,7 +684,7 @@ namespace adria
 		for (auto& pass : passes)
 		{
 			if (pass->IsCulled()) continue;
-			RenderGraphResources rg_resources(rg, *pass);
+			RenderGraphContext rg_resources(rg, *pass);
 			if (pass->type == ERGPassType::Graphics && !pass->SkipAutoRenderPassSetup())
 			{
 				RenderPassDesc render_pass_desc{};
@@ -824,7 +824,7 @@ namespace adria
 			futures.push_back(TaskSystem::Submit([&](size_t j) 
 				{
 					RGCommandList* cmd_list = cmd_lists[j];
-					RenderGraphResources rg_resources(rg, *pass);
+					RenderGraphContext rg_resources(rg, *pass);
 					if (pass->type == ERGPassType::Graphics && !pass->SkipAutoRenderPassSetup())
 					{
 						RenderPassDesc render_pass_desc{};

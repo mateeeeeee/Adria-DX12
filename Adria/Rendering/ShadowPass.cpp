@@ -360,7 +360,7 @@ namespace adria
 				data.alloc_id = builder.UseAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id));
 				builder.SetViewport(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
 			},
-			[=](ShadowPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](ShadowPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				auto upload_buffer = gfx->GetDynamicAllocator();
 
@@ -374,7 +374,7 @@ namespace adria
 				shadow_cbuf_data.softness = 1.0f;
 				shadow_cbuf_data.shadow_matrix1 = XMMatrixInverse(nullptr, camera->View()) * shadow_cbuf_data.lightviewprojection;
 
-				DynamicAllocation& shadow_allocation = resources.GetAllocation(data.alloc_id);
+				DynamicAllocation& shadow_allocation = context.GetAllocation(data.alloc_id);
 				shadow_allocation.Update(shadow_cbuf_data);
 
 				LightFrustumCulling(ELightType::Directional, light_box, std::nullopt);
@@ -434,7 +434,7 @@ namespace adria
 					data.alloc_id = builder.UseAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id));
 					builder.SetViewport(SHADOW_CASCADE_MAP_SIZE, SHADOW_CASCADE_MAP_SIZE);
 				},
-				[=](ShadowPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+				[=](ShadowPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 				{
 					auto dynamic_allocator = gfx->GetDynamicAllocator();
 					ShadowCBuffer shadow_cbuf_data{};
@@ -461,7 +461,7 @@ namespace adria
 						shadow_cbuf_data.softness = 1.0f;
 						shadow_cbuf_data.visualize = static_cast<int>(false);
 
-						shadow_allocation = resources.GetAllocation(data.alloc_id);
+						shadow_allocation = context.GetAllocation(data.alloc_id);
 						shadow_allocation.Update(shadow_cbuf_data);
 					}
 
@@ -510,7 +510,7 @@ namespace adria
 					data.alloc_id = builder.UseAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id));
 					builder.SetViewport(SHADOW_CUBE_SIZE, SHADOW_CUBE_SIZE);
 				},
-				[=](ShadowPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+				[=](ShadowPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 				{
 					auto dynamic_allocator = gfx->GetDynamicAllocator();
 
@@ -559,7 +559,7 @@ namespace adria
 				data.alloc_id = builder.UseAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id));
 				builder.SetViewport(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
 			},
-			[=](ShadowPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](ShadowPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				auto upload_buffer = gfx->GetDynamicAllocator();
 
@@ -572,7 +572,7 @@ namespace adria
 				shadow_cbuf_data.softness = 1.0f;
 				shadow_cbuf_data.shadow_matrix1 = XMMatrixInverse(nullptr, camera->View()) * shadow_cbuf_data.lightviewprojection;
 
-				DynamicAllocation& shadow_allocation = resources.GetAllocation(data.alloc_id);
+				DynamicAllocation& shadow_allocation = context.GetAllocation(data.alloc_id);
 				shadow_allocation.Update(shadow_cbuf_data);
 
 				LightFrustumCulling(ELightType::Spot, std::nullopt, light_bounding_frustum);

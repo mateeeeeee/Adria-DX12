@@ -64,13 +64,13 @@ namespace adria
 	using RGResourceState = D3D12_RESOURCE_STATES;
 	using RGCommandList = ID3D12GraphicsCommandList4;
 
-	class RenderGraphResources
+	class RenderGraphContext
 	{
 		friend RenderGraph;
 	public:
-		RenderGraphResources() = delete;
-		RenderGraphResources(RenderGraphResources const&) = delete;
-		RenderGraphResources& operator=(RenderGraphResources const&) = delete;
+		RenderGraphContext() = delete;
+		RenderGraphContext(RenderGraphContext const&) = delete;
+		RenderGraphContext& operator=(RenderGraphContext const&) = delete;
 
 		RGBlackboard& GetBlackboard();
 
@@ -97,6 +97,6 @@ namespace adria
 		RenderGraphPassBase& rg_pass;
 
 	private:
-		RenderGraphResources(RenderGraph& rg, RenderGraphPassBase& rg_pass);
+		RenderGraphContext(RenderGraph& rg, RenderGraphPassBase& rg_pass);
 	};
 }
