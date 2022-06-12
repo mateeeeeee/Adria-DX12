@@ -7,13 +7,18 @@
 #else
 #define RG_DEBUG 0
 #endif
-#define RG_IDENTITY(a) a
-#define RG_CONCAT(a,b) a##b
-#define RG_STRINGIFY(c) #c
-#define RG_RES_NAME(name) RGResourceName(#name) 
-#define RG_RES_NAME_IDX(name, idx) RGResourceName(#name, idx)
-#define RG_STR_RES_NAME(name) RGResourceName(name)
-#define RG_STR_RES_NAME_IDX(name, idx) RGResourceName(name, idx)
+
+#if RG_DEBUG
+#define RG_RES_NAME(name) RGResourceName(#name, adria::crc64(#name)) 
+#define RG_RES_NAME_IDX(name, idx) RGResourceName(#name, adria::crc64(#name) + idx)
+#define RG_STR_RES_NAME(name) RGResourceName(name) RGResourceName(name, adria::crc64(name)) 
+#define RG_STR_RES_NAME_IDX(name, idx) RGResourceName(name, idx) RGResourceName(name, adria::crc64(name) + idx)
+#else 
+#define RG_RES_NAME(name) RGResourceName(adria::crc64(#name)) 
+#define RG_RES_NAME_IDX(name, idx) RGResourceName(adria::crc64(#name) + idx)
+#define RG_STR_RES_NAME(name) RGResourceName(name) RGResourceName(adria::crc64(name)) 
+#define RG_STR_RES_NAME_IDX(name, idx) RGResourceName(name, idx) RGResourceName(adria::crc64(name) + idx)
+#endif
 
 
 namespace adria
@@ -25,12 +30,12 @@ namespace adria
 #if RG_DEBUG
 		RenderGraphResourceName() : hashed_name(INVALID_HASH), name{"uninitialized"}{}
 		template<size_t N>
-		constexpr explicit RenderGraphResourceName(char const (&_name)[N], uint64 idx = 0) : hashed_name(crc64(_name) + idx), name(_name)
+		constexpr explicit RenderGraphResourceName(char const (&_name)[N], uint64 hash) : hashed_name(hash), name(_name)
 		{}
 #else
 		RenderGraphResourceName() : hashed_name(INVALID_HASH) {}
 		template<size_t N>
-		constexpr explicit RenderGraphResourceName(char const (&_name)[N], uint64 idx = 0) : hashed_name(crc64(_name) + idx)
+		constexpr explicit RenderGraphResourceName(uint64 hash) : hashed_name(hash)
 		{}
 #endif
 		uint64 hashed_name;
