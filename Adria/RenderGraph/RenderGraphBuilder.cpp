@@ -35,13 +35,11 @@ namespace adria
 
 	void RenderGraphBuilder::DummyWriteTexture(RGResourceName name)
 	{
-		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
 		rg_pass.writes.insert(rg.GetTextureId(name));
 	}
 
 	void RenderGraphBuilder::DummyReadTexture(RGResourceName name)
 	{
-		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
 		rg_pass.reads.insert(rg.GetTextureId(name));
 	}
 
@@ -59,7 +57,7 @@ namespace adria
 		RGTextureCopyDstId copy_dst_id = rg.WriteCopyDstTexture(name);
 		RGTextureId res_id(copy_dst_id);
 		rg_pass.resource_state_map[res_id] = D3D12_RESOURCE_STATE_COPY_DEST;
-		if (!rg_pass.creates.contains(res_id))
+		if (!rg_pass.creates.contains(res_id) && !rg_pass.SkipDependencyWhenWriting())
 		{
 			DummyReadTexture(name);
 		}
@@ -99,7 +97,7 @@ namespace adria
 		RGTextureReadWriteId read_write_id = rg.WriteTexture(name, desc);
 		RGTextureId res_id = read_write_id.GetResourceId();
 		rg_pass.resource_state_map[res_id] = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-		if (!rg_pass.creates.contains(res_id))
+		if (!rg_pass.creates.contains(res_id) && !rg_pass.SkipDependencyWhenWriting())
 		{
 			DummyReadTexture(name);
 		}
@@ -116,7 +114,7 @@ namespace adria
 		RGTextureId res_id = render_target_id.GetResourceId();
 		rg_pass.resource_state_map[res_id] = D3D12_RESOURCE_STATE_RENDER_TARGET;
 		rg_pass.render_targets_info.push_back(RenderGraphPassBase::RenderTargetInfo{ .render_target_handle = render_target_id, .render_target_access = load_store_op });
-		if (!rg_pass.creates.contains(res_id))
+		if (!rg_pass.creates.contains(res_id) && !rg_pass.SkipDependencyWhenWriting())
 		{
 			DummyReadTexture(name);
 		}
@@ -133,7 +131,7 @@ namespace adria
 		RGTextureId res_id = depth_stencil_id.GetResourceId();
 		rg_pass.resource_state_map[res_id] = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 		rg_pass.depth_stencil = RenderGraphPassBase::DepthStencilInfo{ .depth_stencil_handle = depth_stencil_id, .depth_access = load_store_op,.stencil_access = stencil_load_store_op, .readonly = false };
-		if (!rg_pass.creates.contains(res_id))
+		if (!rg_pass.creates.contains(res_id) && !rg_pass.SkipDependencyWhenWriting())
 		{
 			DummyReadTexture(name);
 		}

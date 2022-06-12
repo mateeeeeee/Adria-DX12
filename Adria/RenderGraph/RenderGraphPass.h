@@ -17,10 +17,11 @@ namespace adria
 	enum class ERGPassFlags : uint32
 	{
 		None = 0x00,
-		ForceNoCull = 0x01,			    //RGPass cannot be culled by Render Graph
-		AllowUAVWrites = 0x02,		    //allow uav writes, only makes sense if LegacyRenderPassEnabled is disabled
-		SkipAutoRenderPass = 0x04,		//RGPass will manage render targets by himself
-		LegacyRenderPassEnabled = 0x08,  //don't use DX12 Render Passes, use OMSetRenderTargets
+		ForceNoCull = 0x01,						//RGPass cannot be culled by Render Graph
+		AllowUAVWrites = 0x02,					//Allow uav writes, only makes sense if LegacyRenderPassEnabled is disabled
+		SkipAutoRenderPass = 0x04,				//RGPass will manage render targets by himself
+		LegacyRenderPassEnabled = 0x08,			//Don't use DX12 Render Passes, use OMSetRenderTargets
+		SkipDependencyWhenWriting = 0x10	    //When writing to the same resource as some previous pass, skip adding dependency between those passes
 	};
 	DEFINE_ENUM_BIT_OPERATORS(ERGPassFlags);
 
@@ -107,6 +108,7 @@ namespace adria
 		bool SkipAutoRenderPassSetup() const { return HasAnyFlag(flags, ERGPassFlags::SkipAutoRenderPass); }
 		bool UseLegacyRenderPasses() const { return HasAnyFlag(flags, ERGPassFlags::LegacyRenderPassEnabled); }
 		bool AllowUAVWrites() const { return HasAnyFlag(flags, ERGPassFlags::AllowUAVWrites); }
+		bool SkipDependencyWhenWriting() const { return HasAnyFlag(flags, ERGPassFlags::SkipDependencyWhenWriting); };
 	private:
 		std::string name;
 		size_t ref_count = 0ull;
