@@ -197,6 +197,7 @@
     <ClCompile Include="Rendering\BlurPass.cpp" />
     <ClCompile Include="Rendering\Camera.cpp" />
     <ClCompile Include="Rendering\CameraManager.cpp" />
+    <ClCompile Include="Rendering\ClusteredLightingPass.cpp" />
     <ClCompile Include="Rendering\CopyToTexturePass.cpp" />
     <ClCompile Include="Rendering\EntityLoader.cpp" />
     <ClCompile Include="Rendering\FXAAPass.cpp" />
@@ -296,6 +297,7 @@
     <ClInclude Include="Rendering\BlurPass.h" />
     <ClInclude Include="Rendering\Camera.h" />
     <ClInclude Include="Rendering\CameraManager.h" />
+    <ClInclude Include="Rendering\ClusteredLightingPass.h" />
     <ClInclude Include="Rendering\Components.h" />
     <ClInclude Include="Rendering\ConstantBuffers.h" />
     <ClInclude Include="Rendering\CopyToTexturePass.h" />

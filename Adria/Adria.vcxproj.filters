@@ -248,6 +248,9 @@
     <ClCompile Include="Rendering\Postprocessor.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\ClusteredLightingPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -605,6 +608,9 @@
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\GenerateMipsPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\ClusteredLightingPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
   </ItemGroup>

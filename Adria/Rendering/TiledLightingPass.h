@@ -11,7 +11,6 @@ namespace adria
 		class registry;
 	}
 	class RenderGraph;
-	struct Light;
 
 	class TiledLightingPass
 	{

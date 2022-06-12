@@ -2707,7 +2707,7 @@ namespace adria
 			recreate_clusters = false;
 		}
 
-		//cluster building
+		//cluster culling
 		{
 			cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::ClusterCulling));
 			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::ClusterCulling));

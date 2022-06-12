@@ -4,10 +4,8 @@
 #include "GlobalBlackboardData.h"
 #include "RootSigPSOManager.h"
 #include "../RenderGraph/RenderGraph.h"
-#include "../Graphics/GPUProfiler.h"
 #include "../tecs/registry.h"
 #include "../Logging/Logger.h"
-#include "pix3.h"
 
 using namespace DirectX;
 
@@ -53,7 +51,7 @@ namespace adria
 			[=](TiledLightingPassData const& data, RenderGraphResources& resources, GraphicsDevice* gfx, RGCommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
-				auto upload_buffer = gfx->GetDynamicAllocator();
+				auto dynamic_allocator = gfx->GetDynamicAllocator();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				auto light_view = reg.view<Light>();
@@ -116,7 +114,7 @@ namespace adria
 
 				{
 					uint64 alloc_size = sizeof(StructuredLight) * structured_lights.size();
-					DynamicAllocation dynamic_alloc = upload_buffer->Allocate(alloc_size, sizeof(StructuredLight));
+					DynamicAllocation dynamic_alloc = dynamic_allocator->Allocate(alloc_size, sizeof(StructuredLight));
 					dynamic_alloc.Update(structured_lights.data(), alloc_size);
 
 					auto i = descriptor_allocator->Allocate();
