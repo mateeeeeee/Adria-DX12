@@ -137,4 +137,49 @@ namespace adria
 		RayTracing = 1 << 3,
 	};
 	DEFINE_ENUM_BIT_OPERATORS(EBufferMiscFlag);
+
+	enum class EResourceState : uint64
+	{
+		Common = 0,
+		VertexAndConstantBuffer = 0x1,
+		IndexBuffer = 0x2,
+		RenderTarget = 0x4,
+		UnorderedAccess = 0x8,
+		DepthWrite = 0x10,
+		DepthRead = 0x20,
+		NonPixelShaderResource = 0x40,
+		PixelShaderResource = 0x80,
+		IndirectArgument = 0x100,
+		CopyDest = 0x200,
+		CopySource = 0x400,
+		RaytracingAccelerationStructure = 0x800,
+		GenericRead = (((((0x1 | 0x2) | 0x40) | 0x80) | 0x100) | 0x400),
+	};
+	DEFINE_ENUM_BIT_OPERATORS(EResourceState);
+
+	inline constexpr bool IsReadState(EResourceState state)
+	{
+		return HasAnyFlag(state, EResourceState::GenericRead);
+	}
+	inline constexpr bool IsWriteState(EResourceState state)
+	{
+		return HasAnyFlag(state, EResourceState::RenderTarget | EResourceState::UnorderedAccess | EResourceState::DepthWrite | EResourceState::CopyDest);
+	}
+	inline constexpr D3D12_RESOURCE_STATES ConvertToAPIState(EResourceState state)
+	{
+		D3D12_RESOURCE_STATES api_state = D3D12_RESOURCE_STATE_COMMON;
+		if (HasAnyFlag(state, EResourceState::VertexAndConstantBuffer)) api_state |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+		if (HasAnyFlag(state, EResourceState::IndexBuffer)) api_state |= D3D12_RESOURCE_STATE_INDEX_BUFFER;
+		if (HasAnyFlag(state, EResourceState::RenderTarget)) api_state |= D3D12_RESOURCE_STATE_RENDER_TARGET;
+		if (HasAnyFlag(state, EResourceState::UnorderedAccess)) api_state |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+		if (HasAnyFlag(state, EResourceState::DepthWrite)) api_state |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
+		if (HasAnyFlag(state, EResourceState::DepthRead)) api_state |= D3D12_RESOURCE_STATE_DEPTH_READ;
+		if (HasAnyFlag(state, EResourceState::NonPixelShaderResource)) api_state |= D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+		if (HasAnyFlag(state, EResourceState::PixelShaderResource)) api_state |= D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+		if (HasAnyFlag(state, EResourceState::IndirectArgument)) api_state |= D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
+		if (HasAnyFlag(state, EResourceState::CopyDest)) api_state |= D3D12_RESOURCE_STATE_COPY_DEST;
+		if (HasAnyFlag(state, EResourceState::CopySource)) api_state |= D3D12_RESOURCE_STATE_COPY_SOURCE;
+		if (HasAnyFlag(state, EResourceState::RaytracingAccelerationStructure)) api_state |= D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
+		return api_state;
+	}
 }
