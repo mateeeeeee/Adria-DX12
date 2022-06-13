@@ -47,7 +47,7 @@ namespace adria
 				depth_desc.format = DXGI_FORMAT_R32_TYPELESS;
 				depth_desc.bind_flags = EBindFlag::DepthStencil | EBindFlag::ShaderResource;
 				depth_desc.initial_state = EResourceState::DepthWrite;
-				depth_desc.clear = clear_value;
+				depth_desc.clear_value = ClearValue(1.0f, 0);
 				builder.DeclareTexture(RG_RES_NAME(DepthStencil), depth_desc);
 				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), ERGLoadStoreAccessOp::Clear_Preserve);
 				builder.SetViewport(width, height);

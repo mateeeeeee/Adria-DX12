@@ -50,7 +50,7 @@ namespace adria
 		}
 
 		ClearValue(float32(&_color)[4])
-			: color{_color }
+			: active_member(ActiveMember::Color), color{_color }
 		{
 		}
 
@@ -64,6 +64,13 @@ namespace adria
 		ClearValue(ClearDepthStencil const& depth_stencil)
 			: active_member(ActiveMember::DepthStencil), depth_stencil(depth_stencil)
 		{}
+
+		ClearValue(ClearValue const& other)
+			: active_member(other.active_member)
+		{
+			if (active_member == ActiveMember::Color) color = other.color;
+			else if (active_member == ActiveMember::DepthStencil) depth_stencil = other.depth_stencil;
+		}
 
 		bool operator==(ClearValue const& other) const
 		{
@@ -105,10 +112,9 @@ namespace adria
 		EBindFlag bind_flags = EBindFlag::None;
 		ETextureMiscFlag misc_flags = ETextureMiscFlag::None;
 		EResourceState initial_state = EResourceState::PixelShaderResource | EResourceState::NonPixelShaderResource;//D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-		std::optional<D3D12_CLEAR_VALUE> clear = std::nullopt;
+		ClearValue clear_value{};
 
 		std::strong_ordering operator<=>(TextureDesc const& other) const = default;
-
 		bool IsCompatible(TextureDesc const& desc) const
 		{
 			return type == desc.type && width == desc.width && height == desc.height && array_size == desc.array_size
@@ -185,11 +191,57 @@ namespace adria
 				ADRIA_ASSERT(false && "Invalid Texture Type!");
 				break;
 			}
-			D3D12_CLEAR_VALUE* clear_value = nullptr;
-			D3D12_CLEAR_VALUE clear = desc.clear.value_or(D3D12_CLEAR_VALUE{});
-			if (desc.clear.has_value() && HasAnyFlag(desc.bind_flags, EBindFlag::RenderTarget | EBindFlag::DepthStencil))
+			D3D12_CLEAR_VALUE* clear_value_ptr = nullptr;
+			D3D12_CLEAR_VALUE clear_value{};
+			if (HasAnyFlag(desc.bind_flags, EBindFlag::DepthStencil) && desc.clear_value.active_member == ClearValue::ActiveMember::DepthStencil)
 			{
-				clear_value = &clear;
+				clear_value.DepthStencil.Depth = desc.clear_value.depth_stencil.depth;
+				clear_value.DepthStencil.Stencil = desc.clear_value.depth_stencil.stencil;
+				switch (desc.format)
+				{
+				case DXGI_FORMAT_R16_TYPELESS:
+					clear_value.Format = DXGI_FORMAT_D16_UNORM;
+					break;
+				case DXGI_FORMAT_R32_TYPELESS:
+					clear_value.Format = DXGI_FORMAT_D32_FLOAT;
+					break;
+				case DXGI_FORMAT_R24G8_TYPELESS:
+					clear_value.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+					break;
+				case DXGI_FORMAT_R32G8X24_TYPELESS:
+					clear_value.Format = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+					break;
+				default:
+					clear_value.Format = desc.format;
+					break;
+				}
+				clear_value_ptr = &clear_value;
+			}
+			else if (HasAnyFlag(desc.bind_flags, EBindFlag::RenderTarget) && desc.clear_value.active_member == ClearValue::ActiveMember::Color)
+			{
+				clear_value.Color[0] = desc.clear_value.color.color[0];
+				clear_value.Color[1] = desc.clear_value.color.color[1];
+				clear_value.Color[2] = desc.clear_value.color.color[2];
+				clear_value.Color[3] = desc.clear_value.color.color[3];
+				switch (desc.format)
+				{
+				case DXGI_FORMAT_R16_TYPELESS:
+					clear_value.Format = DXGI_FORMAT_R16_UNORM;
+					break;
+				case DXGI_FORMAT_R32_TYPELESS:
+					clear_value.Format = DXGI_FORMAT_R32_FLOAT;
+					break;
+				case DXGI_FORMAT_R24G8_TYPELESS:
+					clear_value.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+					break;
+				case DXGI_FORMAT_R32G8X24_TYPELESS:
+					clear_value.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+					break;
+				default:
+					clear_value.Format = desc.format;
+					break;
+				}
+				clear_value_ptr = &clear_value;
 			}
 
 			D3D12_RESOURCE_STATES resource_state = ConvertToD3D12ResourceState(desc.initial_state);
@@ -230,7 +282,7 @@ namespace adria
 				&allocation_desc,
 				&resource_desc,
 				resource_state,
-				clear_value,
+				clear_value_ptr,
 				&alloc,
 				IID_PPV_ARGS(&resource)
 			);

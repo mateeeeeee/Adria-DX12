@@ -152,15 +152,8 @@ namespace adria
 		rg.AddPass<VolumetricCloudsPassData>("Volumetric Clouds Pass",
 			[=](VolumetricCloudsPassData& data, RenderGraphBuilder& builder)
 			{
-				D3D12_CLEAR_VALUE rtv_clear_value{};
-				rtv_clear_value.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				rtv_clear_value.Color[0] = 0.0f;
-				rtv_clear_value.Color[1] = 0.0f;
-				rtv_clear_value.Color[2] = 0.0f;
-				rtv_clear_value.Color[3] = 0.0f;
-
 				TextureDesc clouds_output_desc{};
-				clouds_output_desc.clear = rtv_clear_value;
+				clouds_output_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 				clouds_output_desc.width = width;
 				clouds_output_desc.height = height;
 				clouds_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
@@ -267,15 +260,8 @@ namespace adria
 		rg.AddPass<FogPassData>("Fog Pass",
 			[=](FogPassData& data, RenderGraphBuilder& builder)
 			{
-				D3D12_CLEAR_VALUE rtv_clear_value{};
-				rtv_clear_value.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				rtv_clear_value.Color[0] = 0.0f;
-				rtv_clear_value.Color[1] = 0.0f;
-				rtv_clear_value.Color[2] = 0.0f;
-				rtv_clear_value.Color[3] = 0.0f;
-
 				TextureDesc fog_output_desc{};
-				fog_output_desc.clear = rtv_clear_value;
+				fog_output_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 				fog_output_desc.width = width;
 				fog_output_desc.height = height;
 				fog_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
@@ -425,18 +411,12 @@ namespace adria
 		rg.AddPass<void>("Sun Pass",
 			[=](RenderGraphBuilder& builder)
 			{
-				D3D12_CLEAR_VALUE rtv_clear_value{};
-				rtv_clear_value.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				rtv_clear_value.Color[0] = 0.0f;
-				rtv_clear_value.Color[1] = 0.0f;
-				rtv_clear_value.Color[2] = 0.0f;
-				rtv_clear_value.Color[3] = 0.0f;
 				TextureDesc sun_output_desc{};
 				sun_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				sun_output_desc.width = width;
 				sun_output_desc.height = height;
 				sun_output_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
-				sun_output_desc.clear = rtv_clear_value;
+				sun_output_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 				sun_output_desc.initial_state = EResourceState::RenderTarget;
 
 				builder.DeclareTexture(RG_RES_NAME(SunOutput), sun_output_desc);
@@ -495,18 +475,12 @@ namespace adria
 		rg.AddPass<GodRaysPassData>("GodRays Pass",
 			[=](GodRaysPassData& data, RenderGraphBuilder& builder)
 			{
-				D3D12_CLEAR_VALUE rtv_clear_value{};
-				rtv_clear_value.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				rtv_clear_value.Color[0] = 0.0f;
-				rtv_clear_value.Color[1] = 0.0f;
-				rtv_clear_value.Color[2] = 0.0f;
-				rtv_clear_value.Color[3] = 0.0f;
 				TextureDesc god_rays_desc{};
 				god_rays_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				god_rays_desc.width = width;
 				god_rays_desc.height = height;
 				god_rays_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
-				god_rays_desc.clear = rtv_clear_value;
+				god_rays_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 				god_rays_desc.initial_state = EResourceState::RenderTarget;
 
 				builder.DeclareTexture(RG_RES_NAME(GodRaysOutput), god_rays_desc);

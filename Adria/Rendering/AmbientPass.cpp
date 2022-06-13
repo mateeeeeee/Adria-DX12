@@ -26,20 +26,14 @@ namespace adria
 		rendergraph.AddPass<AmbientPassData>("Ambient Pass",
 			[=](AmbientPassData& data, RenderGraphBuilder& builder)
 			{
-				D3D12_CLEAR_VALUE rtv_clear_value{};
-				rtv_clear_value.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				rtv_clear_value.Color[0] = 0.0f;
-				rtv_clear_value.Color[1] = 0.0f;
-				rtv_clear_value.Color[2] = 0.0f;
-				rtv_clear_value.Color[3] = 0.0f;
-
 				TextureDesc render_target_desc{};
 				render_target_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				render_target_desc.width = width;
 				render_target_desc.height = height;
 				render_target_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
-				render_target_desc.clear = rtv_clear_value;
+				render_target_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 				render_target_desc.initial_state = EResourceState::RenderTarget;
+
 				builder.DeclareTexture(RG_RES_NAME(HDR_RenderTarget), render_target_desc);
 				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), ERGLoadStoreAccessOp::Clear_Preserve);
 				data.gbuffer_normal_srv = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_PixelShader);

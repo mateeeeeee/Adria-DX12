@@ -704,8 +704,17 @@ namespace adria
 					Texture* texture = rg.GetTexture(rt_texture);
 
 					RtvAttachmentDesc rtv_desc{};
-					std::optional<D3D12_CLEAR_VALUE> clear = texture->GetDesc().clear;
-					rtv_desc.clear_value = clear.has_value() ? clear.value() : D3D12_CLEAR_VALUE{};
+					TextureDesc const& desc = texture->GetDesc();
+					ClearValue const& clear_value = desc.clear_value;
+					if (clear_value.active_member != ClearValue::ActiveMember::None)
+					{
+						ADRIA_ASSERT(clear_value.active_member == ClearValue::ActiveMember::Color && "Invalid Clear Value for Render Target");
+						rtv_desc.clear_value.Format = desc.format;
+						rtv_desc.clear_value.Color[0] = desc.clear_value.color.color[0];
+						rtv_desc.clear_value.Color[1] = desc.clear_value.color.color[1];
+						rtv_desc.clear_value.Color[2] = desc.clear_value.color.color[2];
+						rtv_desc.clear_value.Color[3] = desc.clear_value.color.color[3];
+					}
 					rtv_desc.cpu_handle = rg.GetRenderTarget(render_target_info.render_target_handle);
 					
 					ERGLoadAccessOp load_access = ERGLoadAccessOp::NoAccess;
@@ -758,8 +767,15 @@ namespace adria
 					Texture* texture = rg.GetTexture(ds_texture);
 
 					DsvAttachmentDesc dsv_desc{};
-					std::optional<D3D12_CLEAR_VALUE> clear = texture->GetDesc().clear;
-					dsv_desc.clear_value = clear.has_value() ? clear.value() : D3D12_CLEAR_VALUE{};
+					TextureDesc const& desc = texture->GetDesc();
+					ClearValue const& clear_value = desc.clear_value;
+					if (clear_value.active_member != ClearValue::ActiveMember::None)
+					{
+						ADRIA_ASSERT(clear_value.active_member == ClearValue::ActiveMember::DepthStencil && "Invalid Clear Value for Depth Stencil");
+						dsv_desc.clear_value.Format = desc.format;
+						dsv_desc.clear_value.DepthStencil.Depth = desc.clear_value.depth_stencil.depth;
+						dsv_desc.clear_value.DepthStencil.Stencil = desc.clear_value.depth_stencil.stencil;
+					}
 					dsv_desc.cpu_handle = rg.GetDepthStencil(depth_stencil_info.depth_stencil_handle);
 
 					ERGLoadAccessOp load_access = ERGLoadAccessOp::NoAccess;
@@ -823,145 +839,9 @@ namespace adria
 
 	void RenderGraph::DependencyLevel::Execute(GraphicsDevice* gfx, std::vector<CommandList*> const& cmd_lists)
 	{
-		std::vector<std::future<void>> futures;
-		for (size_t i = 0; i < passes.size(); ++i)
-		{
-			auto& pass = passes[i];
-			if (pass->IsCulled()) continue;
-			futures.push_back(TaskSystem::Submit([&](size_t j) 
-				{
-					CommandList* cmd_list = cmd_lists[j];
-					RenderGraphContext rg_resources(rg, *pass);
-					if (pass->type == ERGPassType::Graphics && !pass->SkipAutoRenderPassSetup())
-					{
-						RenderPassDesc render_pass_desc{};
-						if (pass->AllowUAVWrites()) render_pass_desc.render_pass_flags = D3D12_RENDER_PASS_FLAG_ALLOW_UAV_WRITES;
-						else render_pass_desc.render_pass_flags = D3D12_RENDER_PASS_FLAG_NONE;
-
-						for (auto const& render_target_info : pass->render_targets_info)
-						{
-							RGTextureId rt_texture = render_target_info.render_target_handle.GetResourceId();
-							Texture* texture = rg.GetTexture(rt_texture);
-
-							RtvAttachmentDesc rtv_desc{};
-							std::optional<D3D12_CLEAR_VALUE> clear = texture->GetDesc().clear;
-							rtv_desc.clear_value = clear.has_value() ? clear.value() : D3D12_CLEAR_VALUE{};
-							rtv_desc.cpu_handle = rg.GetRenderTarget(render_target_info.render_target_handle);
-
-							ERGLoadAccessOp load_access = ERGLoadAccessOp::NoAccess;
-							ERGStoreAccessOp store_access = ERGStoreAccessOp::NoAccess;
-							SplitAccessOp(render_target_info.render_target_access, load_access, store_access);
-
-							switch (load_access)
-							{
-							case ERGLoadAccessOp::Clear:
-								rtv_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
-								break;
-							case ERGLoadAccessOp::Discard:
-								rtv_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_DISCARD;
-								break;
-							case ERGLoadAccessOp::Preserve:
-								rtv_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
-								break;
-							case ERGLoadAccessOp::NoAccess:
-								rtv_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS;
-								break;
-							default:
-								ADRIA_ASSERT(false && "Invalid Load Access!");
-							}
-
-							switch (store_access)
-							{
-							case ERGStoreAccessOp::Resolve:
-								rtv_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_RESOLVE;
-								break;
-							case ERGStoreAccessOp::Discard:
-								rtv_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD;
-								break;
-							case ERGStoreAccessOp::Preserve:
-								rtv_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
-								break;
-							case ERGStoreAccessOp::NoAccess:
-								rtv_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_NO_ACCESS;;
-								break;
-							default:
-								ADRIA_ASSERT(false && "Invalid Store Access!");
-							}
-
-							render_pass_desc.rtv_attachments.push_back(std::move(rtv_desc));
-						}
-
-						if (pass->depth_stencil.has_value())
-						{
-							auto depth_stencil_info = pass->depth_stencil.value();
-							RGTextureId ds_texture = depth_stencil_info.depth_stencil_handle.GetResourceId();
-							Texture* texture = rg.GetTexture(ds_texture);
-
-							DsvAttachmentDesc dsv_desc{};
-							std::optional<D3D12_CLEAR_VALUE> clear = texture->GetDesc().clear;
-							dsv_desc.clear_value = clear.has_value() ? clear.value() : D3D12_CLEAR_VALUE{};
-							dsv_desc.cpu_handle = rg.GetDepthStencil(depth_stencil_info.depth_stencil_handle);
-
-							ERGLoadAccessOp load_access = ERGLoadAccessOp::NoAccess;
-							ERGStoreAccessOp store_access = ERGStoreAccessOp::NoAccess;
-							SplitAccessOp(depth_stencil_info.depth_access, load_access, store_access);
-
-							switch (load_access)
-							{
-							case ERGLoadAccessOp::Clear:
-								dsv_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
-								break;
-							case ERGLoadAccessOp::Discard:
-								dsv_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_DISCARD;
-								break;
-							case ERGLoadAccessOp::Preserve:
-								dsv_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
-								break;
-							case ERGLoadAccessOp::NoAccess:
-								dsv_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS;
-								break;
-							default:
-								ADRIA_ASSERT(false && "Invalid Load Access!");
-							}
-
-							switch (store_access)
-							{
-							case ERGStoreAccessOp::Resolve:
-								dsv_desc.depth_ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_RESOLVE;
-								break;
-							case ERGStoreAccessOp::Discard:
-								dsv_desc.depth_ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD;
-								break;
-							case ERGStoreAccessOp::Preserve:
-								dsv_desc.depth_ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
-								break;
-							case ERGStoreAccessOp::NoAccess:
-								dsv_desc.depth_ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_NO_ACCESS;;
-								break;
-							default:
-								ADRIA_ASSERT(false && "Invalid Store Access!");
-							}
-							//todo add stencil
-							render_pass_desc.dsv_attachment = std::move(dsv_desc);
-						}
-						ADRIA_ASSERT((pass->viewport_width != 0 && pass->viewport_height != 0) && "Viewport Width/Height is 0! The call to builder.SetViewport is probably missing...");
-						render_pass_desc.width = pass->viewport_width;
-						render_pass_desc.height = pass->viewport_height;
-						RenderPass render_pass(render_pass_desc);
-						PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, pass->name.c_str());
-						render_pass.Begin(cmd_list, pass->UseLegacyRenderPasses());
-						pass->Execute(rg_resources, gfx, cmd_list);
-						render_pass.End(cmd_list, pass->UseLegacyRenderPasses());
-					}
-					else
-					{
-						PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, pass->name.c_str());
-						pass->Execute(rg_resources, gfx, cmd_list);
-					}
-			}, i));
-		}
-
-		for (auto& future : futures) future.wait();
+#ifdef RG_MULTITHREADED
+		static_assert(false && "Todo");
+#endif
 	}
 
 	size_t RenderGraph::DependencyLevel::GetSize() const

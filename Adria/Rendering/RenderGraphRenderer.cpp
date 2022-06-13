@@ -200,7 +200,7 @@ namespace adria
 		ldr_desc.format = DXGI_FORMAT_R10G10B10A2_UNORM;
 		ldr_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
 		ldr_desc.initial_state = EResourceState::RenderTarget;
-		ldr_desc.clear = rtv_clear_value;
+		ldr_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 
 		final_texture = std::make_unique<Texture>(gfx, ldr_desc);
 		final_texture->CreateSRV();

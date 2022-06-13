@@ -72,7 +72,7 @@ namespace adria
 					cmd_list->SetComputeRootDescriptorTable(2, gpu_handle2);
 
 					//Dispatch the compute shader with one thread per 8x8 pixels
-					cmd_list->Dispatch((std::max)(std::ceil(dst_width / 8.0f), 1.0f), (std::max)(std::ceil(dst_height / 8.0f), 1.0f), 1);
+					cmd_list->Dispatch((UINT)std::max(std::ceil(dst_width / 8.0f), 1.0f), (UINT)std::max(std::ceil(dst_height / 8.0f), 1.0f), 1);
 
 					//Wait for all accesses to the destination texture UAV to be finished before generating the next mipmap, as it will be the source texture for the next mipmap
 					auto uav_barrier = CD3DX12_RESOURCE_BARRIER::UAV(texture.GetNative());
