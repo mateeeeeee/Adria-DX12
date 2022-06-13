@@ -414,7 +414,7 @@ namespace adria
 						TextureDesc depth_cascade_maps_desc{};
 						depth_cascade_maps_desc.width = SHADOW_CASCADE_MAP_SIZE;
 						depth_cascade_maps_desc.height = SHADOW_CASCADE_MAP_SIZE;
-						depth_cascade_maps_desc.misc_flags = EResourceMiscFlag::None;
+						depth_cascade_maps_desc.misc_flags = ETextureMiscFlag::None;
 						depth_cascade_maps_desc.array_size = SHADOW_CASCADE_COUNT;
 						depth_cascade_maps_desc.format = DXGI_FORMAT_R32_TYPELESS;
 						depth_cascade_maps_desc.clear = D3D12_CLEAR_VALUE{ .Format = DXGI_FORMAT_D32_FLOAT, .DepthStencil = {1.0f, 0} };
@@ -489,7 +489,7 @@ namespace adria
 						TextureDesc cubemap_desc{};
 						cubemap_desc.width = SHADOW_CUBE_SIZE;
 						cubemap_desc.height = SHADOW_CUBE_SIZE;
-						cubemap_desc.misc_flags = EResourceMiscFlag::TextureCube;
+						cubemap_desc.misc_flags = ETextureMiscFlag::TextureCube;
 						cubemap_desc.array_size = 6;
 						cubemap_desc.format = DXGI_FORMAT_R32_TYPELESS;
 						cubemap_desc.clear = D3D12_CLEAR_VALUE{ .Format = DXGI_FORMAT_D32_FLOAT, .DepthStencil = {1.0f, 0} };

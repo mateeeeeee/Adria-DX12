@@ -20,9 +20,9 @@ namespace adria
 		uint32 mip_levels = 1;
 		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
 		uint32 sample_count = 1;
-		EHeapType heap_type = EHeapType::Default;
+		EResourceUsage heap_type = EResourceUsage::Default;
 		EBindFlag bind_flags = EBindFlag::None;
-		EResourceMiscFlag misc_flags = EResourceMiscFlag::None;
+		ETextureMiscFlag misc_flags = ETextureMiscFlag::None;
 		D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 		std::optional<D3D12_CLEAR_VALUE> clear = std::nullopt;
 
@@ -118,7 +118,7 @@ namespace adria
 			}
 
 			auto device = gfx->GetDevice();
-			if (desc.heap_type == EHeapType::Readback || desc.heap_type == EHeapType::Upload)
+			if (desc.heap_type == EResourceUsage::Readback || desc.heap_type == EResourceUsage::Upload)
 			{
 				UINT64 RequiredSize = 0;
 				device->GetCopyableFootprints(&resource_desc, 0, 1, 0, &footprint, nullptr, nullptr, &RequiredSize);
@@ -131,12 +131,12 @@ namespace adria
 				resource_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 				resource_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-				if (desc.heap_type == EHeapType::Readback)
+				if (desc.heap_type == EResourceUsage::Readback)
 				{
 					allocation_desc.HeapType = D3D12_HEAP_TYPE_READBACK;
 					resource_state = D3D12_RESOURCE_STATE_COPY_DEST;
 				}
-				else if (desc.heap_type == EHeapType::Upload)
+				else if (desc.heap_type == EResourceUsage::Upload)
 				{
 					allocation_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
 					resource_state = D3D12_RESOURCE_STATE_GENERIC_READ;
@@ -156,13 +156,13 @@ namespace adria
 			BREAK_IF_FAILED(hr);
 			allocation.reset(alloc);
 
-			if (desc.heap_type == EHeapType::Readback)
+			if (desc.heap_type == EResourceUsage::Readback)
 			{
 				hr = resource->Map(0, nullptr, &mapped_data);
 				BREAK_IF_FAILED(hr);
 				mapped_rowpitch = footprint.Footprint.RowPitch;
 			}
-			else if (desc.heap_type == EHeapType::Upload)
+			else if (desc.heap_type == EResourceUsage::Upload)
 			{
 				D3D12_RANGE read_range = {};
 				hr = resource->Map(0, &read_range, &mapped_data);
@@ -206,6 +206,7 @@ namespace adria
 			for (auto& dsv : dsvs) gfx->FreeOfflineDescriptor(dsv, D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 		}
 
+		//TextureViewDesc const* desc = nullptr --> TextureViewDesc const& desc = {}
 		[[maybe_unused]] size_t CreateSRV(TextureViewDesc const* desc = nullptr)
 		{
 			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
@@ -274,13 +275,13 @@ namespace adria
 		void* Map()
 		{
 			HRESULT hr;
-			if (desc.heap_type == EHeapType::Readback)
+			if (desc.heap_type == EResourceUsage::Readback)
 			{
 				hr = resource->Map(0, nullptr, &mapped_data);
 				BREAK_IF_FAILED(hr);
 				mapped_rowpitch = static_cast<uint32_t>(footprint.Footprint.RowPitch);
 			}
-			else if (desc.heap_type == EHeapType::Upload)
+			else if (desc.heap_type == EResourceUsage::Upload)
 			{
 				D3D12_RANGE read_range{};
 				hr = resource->Map(0, &read_range, &mapped_data);
@@ -373,7 +374,7 @@ namespace adria
 				{
 					if (desc.array_size > 1)
 					{
-						if (HasAnyFlag(desc.misc_flags, EResourceMiscFlag::TextureCube))
+						if (HasAnyFlag(desc.misc_flags, ETextureMiscFlag::TextureCube))
 						{
 							if (desc.array_size > 6)
 							{

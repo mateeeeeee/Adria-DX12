@@ -7,12 +7,11 @@ namespace adria
 	struct BufferDesc
 	{
 		uint64 size = 0;
-		EHeapType heap_type = EHeapType::Default;
+		EResourceUsage heap_type = EResourceUsage::Default;
 		EBindFlag bind_flags = EBindFlag::None;
-		EResourceMiscFlag misc_flags = EResourceMiscFlag::None;
+		EBufferMiscFlag misc_flags = EBufferMiscFlag::None;
 		uint32 stride = 0; //structured buffers, (vertex buffers, index buffers, needed for count calculation not for srv as structured buffers)
 		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN; //typed buffers, index buffers
-
 		std::strong_ordering operator<=>(BufferDesc const& other) const = default;
 	};
 
@@ -20,39 +19,39 @@ namespace adria
 	{
 		BufferDesc desc{};
 		desc.bind_flags = EBindFlag::None;
-		desc.heap_type = EHeapType::Default;
+		desc.heap_type = EResourceUsage::Default;
 		desc.size = vertex_count * stride;
 		desc.stride = stride;
-		desc.misc_flags = ray_tracing ? EResourceMiscFlag::RayTracing : EResourceMiscFlag::None;
+		desc.misc_flags = ray_tracing ? EBufferMiscFlag::RayTracing : EBufferMiscFlag::None;
 		return desc;
 	}
 	static BufferDesc IndexBufferDesc(uint64 index_count, bool small_indices, bool ray_tracing = true)
 	{
 		BufferDesc desc{};
 		desc.bind_flags = EBindFlag::None;
-		desc.heap_type = EHeapType::Default;
+		desc.heap_type = EResourceUsage::Default;
 		desc.stride = small_indices ? 2 : 4;
 		desc.size = index_count * desc.stride;
-		desc.misc_flags = ray_tracing ? EResourceMiscFlag::RayTracing : EResourceMiscFlag::None;
+		desc.misc_flags = ray_tracing ? EBufferMiscFlag::RayTracing : EBufferMiscFlag::None;
 		return desc;
 	}
 	static BufferDesc ReadBackBufferDesc(uint64 size)
 	{
 		BufferDesc desc{};
 		desc.bind_flags = EBindFlag::None;
-		desc.heap_type = EHeapType::Readback;
+		desc.heap_type = EResourceUsage::Readback;
 		desc.size = size;
-		desc.misc_flags = EResourceMiscFlag::None;
+		desc.misc_flags = EBufferMiscFlag::None;
 		return desc;
 	}
 	template<typename T>
 	static BufferDesc StructuredBufferDesc(uint64 count, bool uav = true, bool dynamic = false)
 	{
 		BufferDesc desc{};
-		desc.heap_type = (uav || !dynamic) ? EHeapType::Default : EHeapType::Upload;
+		desc.heap_type = (uav || !dynamic) ? EResourceUsage::Default : EResourceUsage::Upload;
 		desc.bind_flags = EBindFlag::ShaderResource;
 		if (uav) desc.bind_flags |= EBindFlag::UnorderedAccess;
-		desc.misc_flags = EResourceMiscFlag::BufferStructured;
+		desc.misc_flags = EBufferMiscFlag::BufferStructured;
 		desc.stride = sizeof(T);
 		desc.size = desc.stride * count;
 		return desc;
@@ -70,7 +69,6 @@ namespace adria
 		uint64 offset = 0;
 		uint64 size = uint64(-1);
 		std::optional<DXGI_FORMAT> new_format = std::nullopt;
-
 		std::strong_ordering operator<=>(BufferViewDesc const& other) const = default;
 	};
 
@@ -101,20 +99,20 @@ namespace adria
 			if (HasAllFlags(desc.bind_flags, EBindFlag::UnorderedAccess))
 				resource_desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
-			if (!HasAllFlags(desc.bind_flags, EBindFlag::ShaderResource) && !HasAllFlags(desc.misc_flags, EResourceMiscFlag::RayTracing))
+			if (!HasAllFlags(desc.bind_flags, EBindFlag::ShaderResource) && !HasAllFlags(desc.misc_flags, EBufferMiscFlag::RayTracing))
 				resource_desc.Flags |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
 
 			D3D12_RESOURCE_STATES resource_state = D3D12_RESOURCE_STATE_COMMON;
 
 			D3D12MA::ALLOCATION_DESC allocation_desc{};
 			allocation_desc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
-			if (desc.heap_type == EHeapType::Readback)
+			if (desc.heap_type == EResourceUsage::Readback)
 			{
 				allocation_desc.HeapType = D3D12_HEAP_TYPE_READBACK;
 				resource_state = D3D12_RESOURCE_STATE_COPY_DEST;
 				resource_desc.Flags |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
 			}
-			else if (desc.heap_type == EHeapType::Upload)
+			else if (desc.heap_type == EResourceUsage::Upload)
 			{
 				allocation_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
 				resource_state = D3D12_RESOURCE_STATE_GENERIC_READ;
@@ -136,13 +134,13 @@ namespace adria
 			BREAK_IF_FAILED(hr);
 			allocation.reset(alloc);
 
-			if (desc.heap_type == EHeapType::Readback)
+			if (desc.heap_type == EResourceUsage::Readback)
 			{
 				hr = resource->Map(0, nullptr, &mapped_data);
 				BREAK_IF_FAILED(hr);
 				mapped_rowpitch = static_cast<uint32_t>(desc.size);
 			}
-			else if (desc.heap_type == EHeapType::Upload)
+			else if (desc.heap_type == EResourceUsage::Upload)
 			{
 				D3D12_RANGE read_range{};
 				hr = resource->Map(0, &read_range, &mapped_data);
@@ -155,7 +153,7 @@ namespace adria
 				}
 			}
 
-			if (initial_data != nullptr && desc.heap_type != EHeapType::Upload)
+			if (initial_data != nullptr && desc.heap_type != EResourceUsage::Upload)
 			{
 				auto cmd_list = gfx->GetDefaultCommandList();
 				auto upload_buffer = gfx->GetDynamicAllocator();
@@ -225,13 +223,13 @@ namespace adria
 			if (mapped_data) return mapped_data;
 
 			HRESULT hr;
-			if (desc.heap_type == EHeapType::Readback)
+			if (desc.heap_type == EResourceUsage::Readback)
 			{
 				hr = resource->Map(0, nullptr, &mapped_data);
 				BREAK_IF_FAILED(hr);
 				mapped_rowpitch = static_cast<uint32_t>(desc.size);
 			}
-			else if (desc.heap_type == EHeapType::Upload)
+			else if (desc.heap_type == EResourceUsage::Upload)
 			{
 				D3D12_RANGE read_range{};
 				hr = resource->Map(0, &read_range, &mapped_data);
@@ -246,7 +244,7 @@ namespace adria
 		}
 		void Update(void const* src_data, size_t data_size)
 		{
-			ADRIA_ASSERT(desc.heap_type == EHeapType::Upload);
+			ADRIA_ASSERT(desc.heap_type == EResourceUsage::Upload);
 			if (mapped_data)
 			{
 				memcpy(mapped_data, src_data, data_size);
@@ -306,7 +304,7 @@ namespace adria
 
 				if (format == DXGI_FORMAT_UNKNOWN)
 				{
-					if (HasAllFlags(desc.misc_flags, EResourceMiscFlag::BufferRaw))
+					if (HasAllFlags(desc.misc_flags, EBufferMiscFlag::BufferRaw))
 					{
 						// This is a Raw Buffer
 						srv_desc.Format = DXGI_FORMAT_R32_TYPELESS;
@@ -315,7 +313,7 @@ namespace adria
 						srv_desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
 						srv_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / sizeof(uint32_t);
 					}
-					else if (HasAllFlags(desc.misc_flags, EResourceMiscFlag::BufferStructured))
+					else if (HasAllFlags(desc.misc_flags, EBufferMiscFlag::BufferStructured))
 					{
 						// This is a Structured Buffer
 						srv_desc.Format = DXGI_FORMAT_UNKNOWN;
@@ -351,14 +349,14 @@ namespace adria
 
 				if (format == DXGI_FORMAT_UNKNOWN)
 				{
-					if (HasAllFlags(desc.misc_flags, EResourceMiscFlag::BufferRaw))
+					if (HasAllFlags(desc.misc_flags, EBufferMiscFlag::BufferRaw))
 					{
 						uav_desc.Format = DXGI_FORMAT_R32_TYPELESS;
 						uav_desc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
 						uav_desc.Buffer.FirstElement = (UINT)view_desc.offset / sizeof(uint32_t);
 						uav_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / sizeof(uint32_t);
 					}
-					else if (HasAllFlags(desc.misc_flags, EResourceMiscFlag::BufferStructured))
+					else if (HasAllFlags(desc.misc_flags, EBufferMiscFlag::BufferStructured))
 					{
 						uav_desc.Format = DXGI_FORMAT_UNKNOWN;
 						uav_desc.Buffer.FirstElement = (UINT)view_desc.offset / desc.stride;

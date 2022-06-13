@@ -101,7 +101,7 @@ namespace adria
 		View_UnorderedAccess,
 		View_RenderTarget,
 		View_DepthStencil,
-		Invalid
+		View_Invalid
 	};
 
 	enum class EBindFlag : uint32
@@ -114,21 +114,27 @@ namespace adria
 	};
 	DEFINE_ENUM_BIT_OPERATORS(EBindFlag);
 
-	enum class EHeapType : uint8
+	enum class EResourceUsage : uint8
 	{
 		Default,	// CPU no access, GPU read/write
 		Upload,	    // CPU write, GPU read
 		Readback,	// CPU read, GPU write
 	};
 
-	enum class EResourceMiscFlag : uint32
+	enum class ETextureMiscFlag : uint32
 	{
 		None = 0,
-		TextureCube = 1 << 0,
-		IndirectArgs = 1 << 1,
-		BufferRaw = 1 << 2,
-		BufferStructured = 1 << 3,
-		RayTracing = 1 << 4,
+		TextureCube = 1 << 0
 	};
-	DEFINE_ENUM_BIT_OPERATORS(EResourceMiscFlag);
+	DEFINE_ENUM_BIT_OPERATORS(ETextureMiscFlag);
+
+	enum class EBufferMiscFlag : uint32
+	{
+		None,
+		IndirectArgs = 1 << 0,
+		BufferRaw = 1 << 1,
+		BufferStructured = 1 << 2,
+		RayTracing = 1 << 3,
+	};
+	DEFINE_ENUM_BIT_OPERATORS(EBufferMiscFlag);
 }
