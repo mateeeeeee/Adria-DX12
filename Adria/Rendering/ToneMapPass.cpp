@@ -29,7 +29,7 @@ namespace adria
 				else data.target = RGRenderTargetId();
 				builder.SetViewport(width, height);
 			},
-			[=](ToneMapPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](ToneMapPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				if (!data.target.IsValid())
 				{
@@ -87,14 +87,14 @@ namespace adria
 				fxaa_input_desc.height = height;
 				fxaa_input_desc.format = DXGI_FORMAT_R10G10B10A2_UNORM;
 				fxaa_input_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
-				fxaa_input_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+				fxaa_input_desc.initial_state = EResourceState::RenderTarget;
 				builder.DeclareTexture(fxaa_input, fxaa_input_desc);
 
 				data.hdr_srv = builder.ReadTexture(hdr_src, ReadAccess_PixelShader);
 				data.target = builder.WriteRenderTarget(fxaa_input, ERGLoadStoreAccessOp::Discard_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](ToneMapPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](ToneMapPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();

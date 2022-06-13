@@ -21,7 +21,7 @@ namespace adria
 				builder.DummyWriteTexture(texture_name);
 				builder.SetViewport(width, height);
 			},
-			[=](GenerateMipsPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](GenerateMipsPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();

@@ -20,7 +20,7 @@ namespace adria
 				data.texture_src = builder.ReadTexture(texture_src, ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
-			[=](CopyToTexturePassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](CopyToTexturePassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();

@@ -94,7 +94,6 @@ namespace adria
 		return 16u;
 	}
 
-	//common
 	enum EView : uint8
 	{
 		View_ShaderResource,
@@ -165,7 +164,7 @@ namespace adria
 	{
 		return HasAnyFlag(state, EResourceState::RenderTarget | EResourceState::UnorderedAccess | EResourceState::DepthWrite | EResourceState::CopyDest);
 	}
-	inline constexpr D3D12_RESOURCE_STATES ConvertToAPIState(EResourceState state)
+	inline constexpr D3D12_RESOURCE_STATES ConvertToD3D12ResourceState(EResourceState state)
 	{
 		D3D12_RESOURCE_STATES api_state = D3D12_RESOURCE_STATE_COMMON;
 		if (HasAnyFlag(state, EResourceState::VertexAndConstantBuffer)) api_state |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;

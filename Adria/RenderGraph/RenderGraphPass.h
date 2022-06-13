@@ -22,7 +22,7 @@ namespace adria
 		AllowUAVWrites = 0x02,					//Allow uav writes, only makes sense if LegacyRenderPassEnabled is disabled
 		SkipAutoRenderPass = 0x04,				//RGPass will manage render targets by himself
 		LegacyRenderPassEnabled = 0x08,			//Don't use DX12 Render Passes, use OMSetRenderTargets
-		SkipDependencyWhenWriting = 0x10	    //When writing to the same resource as some previous pass, skip adding dependency between those passes
+		ActAsCreatorWhenWriting = 0x10			//When writing to a resource, avoid forcing dependency by acting as a creator
 	};
 	DEFINE_ENUM_BIT_OPERATORS(ERGPassFlags);
 
@@ -102,14 +102,14 @@ namespace adria
 	protected:
 
 		virtual void Setup(RenderGraphBuilder&) = 0;
-		virtual void Execute(RenderGraphContext&, GraphicsDevice*, RGCommandList*) const = 0;
+		virtual void Execute(RenderGraphContext&, GraphicsDevice*, CommandList*) const = 0;
 
 		bool IsCulled() const { return CanBeCulled() && ref_count == 0; }
 		bool CanBeCulled() const { return !HasAnyFlag(flags, ERGPassFlags::ForceNoCull); }
 		bool SkipAutoRenderPassSetup() const { return HasAnyFlag(flags, ERGPassFlags::SkipAutoRenderPass); }
 		bool UseLegacyRenderPasses() const { return HasAnyFlag(flags, ERGPassFlags::LegacyRenderPassEnabled); }
 		bool AllowUAVWrites() const { return HasAnyFlag(flags, ERGPassFlags::AllowUAVWrites); }
-		bool SkipDependencyWhenWriting() const { return HasAnyFlag(flags, ERGPassFlags::SkipDependencyWhenWriting); };
+		bool ActAsCreatorWhenWriting() const { return HasAnyFlag(flags, ERGPassFlags::ActAsCreatorWhenWriting); };
 	private:
 		std::string name;
 		size_t ref_count = 0ull;
@@ -120,13 +120,13 @@ namespace adria
 		HashSet<RGTextureId> texture_reads;
 		HashSet<RGTextureId> texture_writes;
 		HashSet<RGTextureId> texture_destroys;
-		HashMap<RGTextureId, RGResourceState> texture_state_map;
+		HashMap<RGTextureId, EResourceState> texture_state_map;
 		
 		HashSet<RGBufferId> buffer_creates;
 		HashSet<RGBufferId> buffer_reads;
 		HashSet<RGBufferId> buffer_writes;
 		HashSet<RGBufferId> buffer_destroys;
-		HashMap<RGBufferId, RGResourceState> buffer_state_map;
+		HashMap<RGBufferId, EResourceState> buffer_state_map;
 
 		std::vector<RenderTargetInfo> render_targets_info;
 		std::optional<DepthStencilInfo> depth_stencil = std::nullopt;
@@ -139,7 +139,7 @@ namespace adria
 	{
 	public:
 		using SetupFunc = std::function<void(PassData&, RenderGraphBuilder&)>;
-		using ExecuteFunc = std::function<void(PassData const&, RenderGraphContext&, GraphicsDevice*, RGCommandList*)>;
+		using ExecuteFunc = std::function<void(PassData const&, RenderGraphContext&, GraphicsDevice*, CommandList*)>;
 
 	public:
 		RenderGraphPass(char const* name, SetupFunc&& setup, ExecuteFunc&& execute, ERGPassType type = ERGPassType::Graphics, ERGPassFlags flags = ERGPassFlags::None)
@@ -164,7 +164,7 @@ namespace adria
 			setup(data, builder);
 		}
 
-		void Execute(RenderGraphContext& context, GraphicsDevice* dev, RGCommandList* ctx) const override
+		void Execute(RenderGraphContext& context, GraphicsDevice* dev, CommandList* ctx) const override
 		{
 			ADRIA_ASSERT(setup != nullptr && "execute function is null!");
 			execute(data, context, dev, ctx);
@@ -176,7 +176,7 @@ namespace adria
 	{
 	public:
 		using SetupFunc = std::function<void(RenderGraphBuilder&)>;
-		using ExecuteFunc = std::function<void(RenderGraphContext&, GraphicsDevice*, RGCommandList*)>;
+		using ExecuteFunc = std::function<void(RenderGraphContext&, GraphicsDevice*, CommandList*)>;
 
 	public:
 		RenderGraphPass(char const* name, SetupFunc&& setup, ExecuteFunc&& execute, ERGPassType type = ERGPassType::Graphics, ERGPassFlags flags = ERGPassFlags::None)
@@ -200,7 +200,7 @@ namespace adria
 			setup(builder);
 		}
 
-		void Execute(RenderGraphContext& context, GraphicsDevice* dev, RGCommandList* ctx) const override
+		void Execute(RenderGraphContext& context, GraphicsDevice* dev, CommandList* ctx) const override
 		{
 			ADRIA_ASSERT(setup != nullptr && "execute function is null!");
 			execute(context, dev, ctx);

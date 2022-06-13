@@ -59,7 +59,10 @@ namespace adria
 		void OnResize(uint32 w, uint32 h);
 		void OnSceneInitialized();
 
-		Texture const* GetFinalTexture() const { return final_texture.get(); }
+		Texture const* GetFinalTexture() const 
+		{ 
+			return final_texture.get(); 
+		}
 		TextureManager& GetTextureManager();
 		std::vector<std::string> GetProfilerResults(bool log) const
 		{

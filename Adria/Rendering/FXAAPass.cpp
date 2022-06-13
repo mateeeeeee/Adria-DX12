@@ -29,7 +29,7 @@ namespace adria
 				else data.render_target.Invalidate();
 				builder.SetViewport(width, height);
 			},
-			[=](FXAAPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](FXAAPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				if (!data.render_target.IsValid())
 				{

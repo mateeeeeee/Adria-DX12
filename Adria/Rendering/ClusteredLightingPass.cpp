@@ -50,7 +50,7 @@ namespace adria
 				{
 					data.cluster_uav = builder.WriteBuffer(RG_RES_NAME(ClustersBuffer));
 				},
-				[=](ClusterBuildingPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+				[=](ClusterBuildingPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 				{
 					ID3D12Device* device = gfx->GetDevice();
 					auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -105,7 +105,7 @@ namespace adria
 				data.light_grid_uav = builder.WriteBuffer(RG_RES_NAME(LightGrid));
 				data.light_list_uav = builder.WriteBuffer(RG_RES_NAME(LightList));
 			},
-			[=](ClusterCullingPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](ClusterCullingPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto upload_buffer = gfx->GetDynamicAllocator();
@@ -169,7 +169,7 @@ namespace adria
 				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), ERGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](ClusterLightingPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](ClusterLightingPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto upload_buffer = gfx->GetDynamicAllocator();

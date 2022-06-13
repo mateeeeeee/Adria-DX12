@@ -6,15 +6,15 @@ namespace adria
 {
 
 #define DEFINE_ENUM_BIT_OPERATORS(ENUMTYPE) \
-static_assert(std::is_enum_v<ENUMTYPE>); \
-using TYPE = std::underlying_type_t<ENUMTYPE>; \
-inline ENUMTYPE  operator|(ENUMTYPE a, ENUMTYPE b) { return ENUMTYPE(((TYPE)a) | ((TYPE)b)); } \
-inline ENUMTYPE& operator|=(ENUMTYPE& a, ENUMTYPE b) { return (ENUMTYPE &)(((TYPE&)a) |= ((TYPE)b)); } \
-inline ENUMTYPE  operator&(ENUMTYPE a, ENUMTYPE b) { return ENUMTYPE(((TYPE)a) & ((TYPE)b)); } \
-inline ENUMTYPE& operator&=(ENUMTYPE& a, ENUMTYPE b) { return (ENUMTYPE &)(((TYPE&)a) &= ((TYPE)b)); } \
-inline ENUMTYPE  operator~(ENUMTYPE a) { return ENUMTYPE(~((TYPE)a)); } \
-inline ENUMTYPE  operator^(ENUMTYPE a, ENUMTYPE b) { return ENUMTYPE(((TYPE)a) ^ ((TYPE)b)); } \
-inline ENUMTYPE& operator^=(ENUMTYPE& a, ENUMTYPE b) { return (ENUMTYPE &)(((TYPE&)a) ^= ((TYPE)b)); }
+	static_assert(std::is_enum_v<ENUMTYPE>); \
+	using ENUMTYPE##UnderlyingType = std::underlying_type_t<ENUMTYPE>; \
+	inline ENUMTYPE  operator|(ENUMTYPE a, ENUMTYPE b) { return ENUMTYPE(((ENUMTYPE##UnderlyingType)a) | ((ENUMTYPE##UnderlyingType)b)); } \
+	inline ENUMTYPE& operator|=(ENUMTYPE& a, ENUMTYPE b) { return (ENUMTYPE &)(((ENUMTYPE##UnderlyingType&)a) |= ((ENUMTYPE##UnderlyingType)b)); } \
+	inline ENUMTYPE  operator&(ENUMTYPE a, ENUMTYPE b) { return ENUMTYPE(((ENUMTYPE##UnderlyingType)a) & ((ENUMTYPE##UnderlyingType)b)); } \
+	inline ENUMTYPE& operator&=(ENUMTYPE& a, ENUMTYPE b) { return (ENUMTYPE &)(((ENUMTYPE##UnderlyingType&)a) &= ((ENUMTYPE##UnderlyingType)b)); } \
+	inline ENUMTYPE  operator~(ENUMTYPE a) { return ENUMTYPE(~((ENUMTYPE##UnderlyingType)a)); } \
+	inline ENUMTYPE  operator^(ENUMTYPE a, ENUMTYPE b) { return ENUMTYPE(((ENUMTYPE##UnderlyingType)a) ^ ((ENUMTYPE##UnderlyingType)b)); } \
+	inline ENUMTYPE& operator^=(ENUMTYPE& a, ENUMTYPE b) { return (ENUMTYPE &)(((ENUMTYPE##UnderlyingType&)a) ^= ((ENUMTYPE##UnderlyingType)b)); }
 
 	template<typename Enum> requires std::is_enum_v<Enum> 
 	inline constexpr bool HasAllFlags(Enum value, Enum flags)

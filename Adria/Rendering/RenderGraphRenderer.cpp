@@ -199,7 +199,7 @@ namespace adria
 		ldr_desc.height = height;
 		ldr_desc.format = DXGI_FORMAT_R10G10B10A2_UNORM;
 		ldr_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
-		ldr_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		ldr_desc.initial_state = EResourceState::RenderTarget;
 		ldr_desc.clear = rtv_clear_value;
 
 		final_texture = std::make_unique<Texture>(gfx, ldr_desc);

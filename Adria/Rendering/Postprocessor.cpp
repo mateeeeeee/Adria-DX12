@@ -128,13 +128,13 @@ namespace adria
 				postprocess_desc.height = height;
 				postprocess_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				postprocess_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::RenderTarget | EBindFlag::ShaderResource;
-				postprocess_desc.initial_state = D3D12_RESOURCE_STATE_COPY_DEST;
+				postprocess_desc.initial_state = EResourceState::CopyDest;
 
 				builder.DeclareTexture(RG_RES_NAME(PostprocessMain), postprocess_desc);
 				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(PostprocessMain));
 				data.copy_src = builder.ReadCopySrcTexture(RG_RES_NAME(HDR_RenderTarget));
 			},
-			[=](CopyPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](CopyPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				Texture const& src_texture = context.GetCopySrcTexture(data.copy_src);
 				Texture const& dst_texture = context.GetCopyDstTexture(data.copy_dst);
@@ -165,14 +165,14 @@ namespace adria
 				clouds_output_desc.height = height;
 				clouds_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				clouds_output_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
-				clouds_output_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+				clouds_output_desc.initial_state = EResourceState::RenderTarget;
 
 				builder.DeclareTexture(RG_RES_NAME(CloudsOutput), clouds_output_desc);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
 				builder.WriteRenderTarget(RG_RES_NAME(CloudsOutput), ERGLoadStoreAccessOp::Clear_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](VolumetricCloudsPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](VolumetricCloudsPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -219,7 +219,7 @@ namespace adria
 				ssr_output_desc.height = height;
 				ssr_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				ssr_output_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::RenderTarget | EBindFlag::ShaderResource;
-				ssr_output_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+				ssr_output_desc.initial_state = EResourceState::RenderTarget;
 
 				builder.DeclareTexture(RG_RES_NAME(SSR_Output), ssr_output_desc);
 				builder.WriteRenderTarget(RG_RES_NAME(SSR_Output), ERGLoadStoreAccessOp::Discard_Preserve);
@@ -228,7 +228,7 @@ namespace adria
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
-			[=](SSRPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](SSRPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -280,7 +280,7 @@ namespace adria
 				fog_output_desc.height = height;
 				fog_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				fog_output_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource | EBindFlag::UnorderedAccess;
-				fog_output_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+				fog_output_desc.initial_state = EResourceState::RenderTarget;
 
 				builder.DeclareTexture(RG_RES_NAME(FogOutput), fog_output_desc);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
@@ -288,7 +288,7 @@ namespace adria
 				builder.WriteRenderTarget(RG_RES_NAME(FogOutput), ERGLoadStoreAccessOp::Discard_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](FogPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](FogPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -334,13 +334,13 @@ namespace adria
 				bloom_extract_desc.mip_levels = 5;
 				bloom_extract_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::ShaderResource;
 				bloom_extract_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				bloom_extract_desc.initial_state = D3D12_RESOURCE_STATE_UNORDERED_ACCESS; 
+				bloom_extract_desc.initial_state = EResourceState::UnorderedAccess;
 
 				builder.DeclareTexture(RG_RES_NAME(BloomExtract), bloom_extract_desc);
 				data.extract = builder.WriteTexture(RG_RES_NAME(BloomExtract));
 				data.input = builder.ReadTexture(last_resource, ReadAccess_NonPixelShader);
 			},
-			[=](BloomExtractPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](BloomExtractPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -382,13 +382,13 @@ namespace adria
 				bloom_output_desc.height = height;
 				bloom_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				bloom_output_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::RenderTarget | EBindFlag::ShaderResource;
-				bloom_output_desc.initial_state = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+				bloom_output_desc.initial_state = EResourceState::UnorderedAccess;
 				builder.DeclareTexture(RG_RES_NAME(BloomOutput), bloom_output_desc);
 				data.output = builder.WriteTexture(RG_RES_NAME(BloomOutput));
 				data.extract = builder.ReadTexture(RG_RES_NAME(BloomExtract), ReadAccess_NonPixelShader);
 				data.input  = builder.ReadTexture(final_resource, ReadAccess_NonPixelShader);
 			},
-			[=](BloomCombinePassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](BloomCombinePassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -437,14 +437,14 @@ namespace adria
 				sun_output_desc.height = height;
 				sun_output_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
 				sun_output_desc.clear = rtv_clear_value;
-				sun_output_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+				sun_output_desc.initial_state = EResourceState::RenderTarget;
 
 				builder.DeclareTexture(RG_RES_NAME(SunOutput), sun_output_desc);
 				builder.ReadDepthStencil(RG_RES_NAME(DepthStencil), ERGLoadStoreAccessOp::Preserve_Preserve);
 				builder.WriteRenderTarget(RG_RES_NAME(SunOutput), ERGLoadStoreAccessOp::Clear_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -507,14 +507,14 @@ namespace adria
 				god_rays_desc.height = height;
 				god_rays_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
 				god_rays_desc.clear = rtv_clear_value;
-				god_rays_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+				god_rays_desc.initial_state = EResourceState::RenderTarget;
 
 				builder.DeclareTexture(RG_RES_NAME(GodRaysOutput), god_rays_desc);
 				builder.WriteRenderTarget(RG_RES_NAME(GodRaysOutput), ERGLoadStoreAccessOp::Clear_Preserve);
 				data.sun_output = builder.ReadTexture(RG_RES_NAME(SunOutput), ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
-			[=](GodRaysPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](GodRaysPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -584,7 +584,7 @@ namespace adria
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
-			[=](LensFlarePassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](LensFlarePassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -653,7 +653,7 @@ namespace adria
 				dof_output_desc.height = height;
 				dof_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				dof_output_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::RenderTarget | EBindFlag::ShaderResource;
-				dof_output_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+				dof_output_desc.initial_state = EResourceState::RenderTarget;
 
 				builder.DeclareTexture(RG_RES_NAME(DepthOfFieldOutput), dof_output_desc);
 				builder.WriteRenderTarget(RG_RES_NAME(DepthOfFieldOutput), ERGLoadStoreAccessOp::Discard_Preserve);
@@ -662,7 +662,7 @@ namespace adria
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
-			[=](DepthOfFieldPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](DepthOfFieldPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();

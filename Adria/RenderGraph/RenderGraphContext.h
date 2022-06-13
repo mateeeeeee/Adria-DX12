@@ -61,8 +61,7 @@ namespace adria
 	using RGTexture = TypedRenderGraphResource<ERGResourceType::Texture>;
 	using RGBuffer = TypedRenderGraphResource<ERGResourceType::Buffer>;
 	using RGDescriptor = D3D12_CPU_DESCRIPTOR_HANDLE;
-	using RGResourceState = D3D12_RESOURCE_STATES;
-	using RGCommandList = ID3D12GraphicsCommandList4;
+	using CommandList = ID3D12GraphicsCommandList4;
 
 	class RenderGraphContext
 	{

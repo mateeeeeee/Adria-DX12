@@ -350,7 +350,7 @@ namespace adria
 				depth_desc.height = SHADOW_MAP_SIZE;
 				depth_desc.format = DXGI_FORMAT_R32_TYPELESS;
 				depth_desc.bind_flags = EBindFlag::DepthStencil | EBindFlag::ShaderResource;
-				depth_desc.initial_state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+				depth_desc.initial_state = EResourceState::DepthWrite;
 				depth_desc.clear = clear_value;
 
 				builder.DeclareTexture(RG_RES_NAME_IDX(ShadowMap, light_id), depth_desc);
@@ -360,7 +360,7 @@ namespace adria
 				data.alloc_id = builder.UseAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id));
 				builder.SetViewport(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
 			},
-			[=](ShadowPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](ShadowPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				auto upload_buffer = gfx->GetDynamicAllocator();
 
@@ -418,7 +418,7 @@ namespace adria
 						depth_cascade_maps_desc.array_size = SHADOW_CASCADE_COUNT;
 						depth_cascade_maps_desc.format = DXGI_FORMAT_R32_TYPELESS;
 						depth_cascade_maps_desc.clear = D3D12_CLEAR_VALUE{ .Format = DXGI_FORMAT_D32_FLOAT, .DepthStencil = {1.0f, 0} };
-						depth_cascade_maps_desc.initial_state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+						depth_cascade_maps_desc.initial_state = EResourceState::DepthWrite;
 						depth_cascade_maps_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::DepthStencil;
 						builder.DeclareTexture(RG_RES_NAME_IDX(ShadowMap, light_id), depth_cascade_maps_desc);
 						builder.DeclareAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id), AllocDesc{ GetCBufferSize<ShadowCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT });
@@ -434,7 +434,7 @@ namespace adria
 					data.alloc_id = builder.UseAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id));
 					builder.SetViewport(SHADOW_CASCADE_MAP_SIZE, SHADOW_CASCADE_MAP_SIZE);
 				},
-				[=](ShadowPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+				[=](ShadowPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 				{
 					auto dynamic_allocator = gfx->GetDynamicAllocator();
 					ShadowCBuffer shadow_cbuf_data{};
@@ -493,7 +493,7 @@ namespace adria
 						cubemap_desc.array_size = 6;
 						cubemap_desc.format = DXGI_FORMAT_R32_TYPELESS;
 						cubemap_desc.clear = D3D12_CLEAR_VALUE{ .Format = DXGI_FORMAT_D32_FLOAT, .DepthStencil = {1.0f, 0} };
-						cubemap_desc.initial_state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+						cubemap_desc.initial_state = EResourceState::DepthWrite;
 						cubemap_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::DepthStencil;
 						builder.DeclareTexture(RG_RES_NAME_IDX(ShadowMap, light_id), cubemap_desc);
 						builder.DeclareAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id), AllocDesc{ GetCBufferSize<ShadowCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT });
@@ -510,7 +510,7 @@ namespace adria
 					data.alloc_id = builder.UseAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id));
 					builder.SetViewport(SHADOW_CUBE_SIZE, SHADOW_CUBE_SIZE);
 				},
-				[=](ShadowPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+				[=](ShadowPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 				{
 					auto dynamic_allocator = gfx->GetDynamicAllocator();
 
@@ -550,7 +550,7 @@ namespace adria
 				depth_desc.height = SHADOW_MAP_SIZE;
 				depth_desc.format = DXGI_FORMAT_R32_TYPELESS;
 				depth_desc.bind_flags = EBindFlag::DepthStencil | EBindFlag::ShaderResource;
-				depth_desc.initial_state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+				depth_desc.initial_state = EResourceState::DepthWrite;
 				depth_desc.clear = clear_value;
 
 				builder.DeclareTexture(RG_RES_NAME_IDX(ShadowMap, light_id), depth_desc);
@@ -559,7 +559,7 @@ namespace adria
 				data.alloc_id = builder.UseAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id));
 				builder.SetViewport(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
 			},
-			[=](ShadowPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](ShadowPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				auto upload_buffer = gfx->GetDynamicAllocator();
 

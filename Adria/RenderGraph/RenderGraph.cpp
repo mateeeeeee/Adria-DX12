@@ -125,7 +125,9 @@ namespace adria
 					{
 						if (!HasAllFlags(texture->GetDesc().initial_state, state))
 						{
-							barrier_batcher.AddTransition(texture->GetNative(), texture->GetDesc().initial_state, state);
+							D3D12_RESOURCE_STATES initial_state = ConvertToD3D12ResourceState(texture->GetDesc().initial_state);
+							D3D12_RESOURCE_STATES wanted_state = ConvertToD3D12ResourceState(state);
+							barrier_batcher.AddTransition(texture->GetNative(), initial_state, wanted_state);
 						}
 						continue;
 					}
@@ -135,16 +137,18 @@ namespace adria
 						auto& prev_dependency_level = dependency_levels[j];
 						if (prev_dependency_level.texture_state_map.contains(tex_id))
 						{
-							RGResourceState prev_state = prev_dependency_level.texture_state_map[tex_id];
-							if (prev_state != state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, state); //!HasAllFlags(prev_state, state)
+							D3D12_RESOURCE_STATES wanted_state = ConvertToD3D12ResourceState(state);
+							D3D12_RESOURCE_STATES prev_state = ConvertToD3D12ResourceState(prev_dependency_level.texture_state_map[tex_id]);
+							if (prev_state != wanted_state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, wanted_state); 
 							found = true;
 							break;
 						}
 					}
 					if (!found && rg_texture->imported)
 					{
-						RGResourceState prev_state = rg_texture->desc.initial_state;
-						if (prev_state != state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, state); //!HasAllFlags(prev_state, state)
+						D3D12_RESOURCE_STATES wanted_state = ConvertToD3D12ResourceState(state);
+						D3D12_RESOURCE_STATES prev_state = ConvertToD3D12ResourceState(rg_texture->desc.initial_state);
+						if (prev_state != wanted_state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, wanted_state); 
 					}
 				}
 				for (auto const& [buf_id, state] : dependency_level.buffer_state_map)
@@ -153,9 +157,9 @@ namespace adria
 					Buffer* buffer = rg_buffer->resource;
 					if (dependency_level.buffer_creates.contains(buf_id))
 					{
-						if (state != D3D12_RESOURCE_STATE_COMMON) //check if there is an implicit transition, maybe this can be avoided
+						if (state != EResourceState::Common) //check if there is an implicit transition, maybe this can be avoided
 						{
-							barrier_batcher.AddTransition(buffer->GetNative(), D3D12_RESOURCE_STATE_COMMON, state);
+							barrier_batcher.AddTransition(buffer->GetNative(), D3D12_RESOURCE_STATE_COMMON, ConvertToD3D12ResourceState(state));
 						}
 						continue;
 					}
@@ -165,16 +169,16 @@ namespace adria
 						auto& prev_dependency_level = dependency_levels[j];
 						if (prev_dependency_level.buffer_state_map.contains(buf_id))
 						{
-							RGResourceState prev_state = prev_dependency_level.buffer_state_map[buf_id];
-							if (prev_state != state) barrier_batcher.AddTransition(buffer->GetNative(), prev_state, state); 
+							D3D12_RESOURCE_STATES wanted_state = ConvertToD3D12ResourceState(state);
+							D3D12_RESOURCE_STATES prev_state = ConvertToD3D12ResourceState(prev_dependency_level.buffer_state_map[buf_id]);
+							if (prev_state != wanted_state) barrier_batcher.AddTransition(buffer->GetNative(), prev_state, wanted_state);
 							found = true;
 							break;
 						}
 					}
 					if (!found && rg_buffer->imported)
 					{
-						RGResourceState prev_state = D3D12_RESOURCE_STATE_COMMON;
-						if (prev_state != state) barrier_batcher.AddTransition(buffer->GetNative(), prev_state, state);
+						if (EResourceState::Common != state) barrier_batcher.AddTransition(buffer->GetNative(), D3D12_RESOURCE_STATE_COMMON, ConvertToD3D12ResourceState(state));
 					}
 				}
 			}
@@ -187,20 +191,23 @@ namespace adria
 			{
 				RGTexture* rg_texture = GetRGTexture(tex_id);
 				Texture* texture = rg_texture->resource;
-				RGResourceState initial_state = texture->GetDesc().initial_state;
+				EResourceState initial_state = texture->GetDesc().initial_state;
+				D3D12_RESOURCE_STATES wanted_state = ConvertToD3D12ResourceState(initial_state);
 				ADRIA_ASSERT(dependency_level.texture_state_map.contains(tex_id));
-				RGResourceState state = dependency_level.texture_state_map[tex_id];
-				if (initial_state != state) barrier_batcher.AddTransition(texture->GetNative(), state, initial_state);
+				EResourceState state = dependency_level.texture_state_map[tex_id];
+				D3D12_RESOURCE_STATES prev_state = ConvertToD3D12ResourceState(state);
+				if (initial_state != state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, wanted_state);
 				if (!rg_texture->imported) pool.ReleaseTexture(rg_texture->resource);
 			}
 			for (RGBufferId buf_id : dependency_level.buffer_destroys)
 			{
 				RGBuffer* rg_buffer = GetRGBuffer(buf_id);
 				Buffer* buffer = rg_buffer->resource;
-				RGResourceState initial_state = D3D12_RESOURCE_STATE_COMMON;
+				D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATE_COMMON;
 				ADRIA_ASSERT(dependency_level.buffer_state_map.contains(buf_id));
-				RGResourceState state = dependency_level.buffer_state_map[buf_id];
-				if (initial_state != state) barrier_batcher.AddTransition(buffer->GetNative(), state, initial_state);
+				EResourceState state = dependency_level.buffer_state_map[buf_id];
+				D3D12_RESOURCE_STATES prev_state = ConvertToD3D12ResourceState(state);
+				if (initial_state != prev_state) barrier_batcher.AddTransition(buffer->GetNative(), prev_state, initial_state);
 				if (!rg_buffer->imported) pool.ReleaseBuffer(rg_buffer->resource);
 			}
 			barrier_batcher.Submit(cmd_list);
@@ -679,7 +686,7 @@ namespace adria
 		}
 	}
 
-	void RenderGraph::DependencyLevel::Execute(GraphicsDevice* gfx, RGCommandList* cmd_list)
+	void RenderGraph::DependencyLevel::Execute(GraphicsDevice* gfx, CommandList* cmd_list)
 	{
 		for (auto& pass : passes)
 		{
@@ -814,7 +821,7 @@ namespace adria
 		}
 	}
 
-	void RenderGraph::DependencyLevel::Execute(GraphicsDevice* gfx, std::vector<RGCommandList*> const& cmd_lists)
+	void RenderGraph::DependencyLevel::Execute(GraphicsDevice* gfx, std::vector<CommandList*> const& cmd_lists)
 	{
 		std::vector<std::future<void>> futures;
 		for (size_t i = 0; i < passes.size(); ++i)
@@ -823,7 +830,7 @@ namespace adria
 			if (pass->IsCulled()) continue;
 			futures.push_back(TaskSystem::Submit([&](size_t j) 
 				{
-					RGCommandList* cmd_list = cmd_lists[j];
+					CommandList* cmd_list = cmd_lists[j];
 					RenderGraphContext rg_resources(rg, *pass);
 					if (pass->type == ERGPassType::Graphics && !pass->SkipAutoRenderPassSetup())
 					{

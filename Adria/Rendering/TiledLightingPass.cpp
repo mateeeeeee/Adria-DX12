@@ -37,7 +37,7 @@ namespace adria
 				tiled_desc.height = height;
 				tiled_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				tiled_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::ShaderResource;
-				tiled_desc.initial_state = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+				tiled_desc.initial_state = EResourceState::UnorderedAccess;
 				builder.DeclareTexture(RG_RES_NAME(TiledTarget), tiled_desc);
 				builder.DeclareTexture(RG_RES_NAME(TiledDebugTarget), tiled_desc);
 
@@ -47,7 +47,7 @@ namespace adria
 				data.gbuffer_albedo = builder.ReadTexture(RG_RES_NAME(GBufferAlbedo), ReadAccess_NonPixelShader);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
-			[=](TiledLightingPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](TiledLightingPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();

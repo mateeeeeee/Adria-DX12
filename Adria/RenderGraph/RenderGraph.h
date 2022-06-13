@@ -24,8 +24,8 @@ namespace adria
 			explicit DependencyLevel(RenderGraph& rg) : rg(rg) {}
 			void AddPass(RenderGraphPassBase* pass);
 			void Setup();
-			void Execute(GraphicsDevice* gfx, RGCommandList* cmd_list);
-			void Execute(GraphicsDevice* gfx, std::vector<RGCommandList*> const& cmd_lists);
+			void Execute(GraphicsDevice* gfx, CommandList* cmd_list);
+			void Execute(GraphicsDevice* gfx, std::vector<CommandList*> const& cmd_lists);
 			size_t GetSize() const;
 			size_t GetNonCulledSize() const;
 
@@ -36,13 +36,13 @@ namespace adria
 			HashSet<RGTextureId> texture_reads;
 			HashSet<RGTextureId> texture_writes;
 			HashSet<RGTextureId> texture_destroys;
-			HashMap<RGTextureId, RGResourceState> texture_state_map;
+			HashMap<RGTextureId, EResourceState> texture_state_map;
 
 			HashSet<RGBufferId> buffer_creates;
 			HashSet<RGBufferId> buffer_reads;
 			HashSet<RGBufferId> buffer_writes;
 			HashSet<RGBufferId> buffer_destroys;
-			HashMap<RGBufferId, RGResourceState> buffer_state_map;
+			HashMap<RGBufferId, EResourceState> buffer_state_map;
 		};
 
 	public:

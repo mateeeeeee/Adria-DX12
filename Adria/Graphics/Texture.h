@@ -2,7 +2,88 @@
 #include "ResourceCommon.h"
 
 namespace adria
-{
+{	
+	struct ClearValue
+	{
+		enum class ActiveMember
+		{
+			None,
+			Color,
+			DepthStencil
+		};
+		struct ClearColor
+		{
+			ClearColor(float32 r = 0.0f, float32 g = 0.0f, float32 b = 0.0f, float32 a = 0.0f)
+				: color{ r, g, b, a }
+			{
+			}
+			ClearColor(float32(&_color)[4])
+				: color{ _color[0], _color[1], _color[2], _color[3] }
+			{
+			}
+			ClearColor(ClearColor const& other)
+				: color{ other.color[0], other.color[1], other.color[2], other.color[3] }
+			{
+			}
+
+			bool operator==(ClearColor const& other) const
+			{
+				return memcmp(color, other.color, sizeof(color)) == 0;
+			}
+
+			float32 color[4];
+		};
+		struct ClearDepthStencil
+		{
+			ClearDepthStencil(float32 depth = 0.0f, uint8 stencil = 1)
+				: depth(depth), stencil(stencil)
+			{}
+			float32 depth;
+			uint8 stencil;
+		};
+
+		ClearValue() : active_member(ActiveMember::None), depth_stencil{} {}
+
+		ClearValue(float32 r, float32 g, float32 b, float32 a)
+			: active_member(ActiveMember::Color), color(r, g, b, a)
+		{
+		}
+
+		ClearValue(float32(&_color)[4])
+			: color{_color }
+		{
+		}
+
+		ClearValue(ClearColor const& color)
+			: active_member(ActiveMember::Color), color(color)
+		{}
+
+		ClearValue(float32 depth, uint8 stencil)
+			: active_member(ActiveMember::DepthStencil), depth_stencil(depth, stencil)
+		{}
+		ClearValue(ClearDepthStencil const& depth_stencil)
+			: active_member(ActiveMember::DepthStencil), depth_stencil(depth_stencil)
+		{}
+
+		bool operator==(ClearValue const& other) const
+		{
+			if (active_member != other.active_member) return false;
+			else if (active_member == ActiveMember::Color)
+			{
+				return color == other.color;
+			}
+			else return depth_stencil.depth == other.depth_stencil.depth
+				&& depth_stencil.stencil == other.depth_stencil.stencil;
+		}
+
+		ActiveMember active_member;
+		union
+		{
+			ClearColor color;
+			ClearDepthStencil depth_stencil;
+		};
+	};
+
 	enum ETextureType : uint8
 	{
 		TextureType_1D,
@@ -23,7 +104,7 @@ namespace adria
 		EResourceUsage heap_type = EResourceUsage::Default;
 		EBindFlag bind_flags = EBindFlag::None;
 		ETextureMiscFlag misc_flags = ETextureMiscFlag::None;
-		D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+		EResourceState initial_state = EResourceState::PixelShaderResource | EResourceState::NonPixelShaderResource;//D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 		std::optional<D3D12_CLEAR_VALUE> clear = std::nullopt;
 
 		std::strong_ordering operator<=>(TextureDesc const& other) const = default;
@@ -111,7 +192,7 @@ namespace adria
 				clear_value = &clear;
 			}
 
-			D3D12_RESOURCE_STATES resource_state = desc.initial_state;
+			D3D12_RESOURCE_STATES resource_state = ConvertToD3D12ResourceState(desc.initial_state);
 			if (initial_data != nullptr)
 			{
 				resource_state = D3D12_RESOURCE_STATE_COMMON;

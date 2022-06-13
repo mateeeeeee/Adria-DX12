@@ -39,7 +39,7 @@ namespace adria
 				render_target_desc.height = height;
 				render_target_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
 				render_target_desc.clear = rtv_clear_value;
-				render_target_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+				render_target_desc.initial_state = EResourceState::RenderTarget;
 				builder.DeclareTexture(RG_RES_NAME(HDR_RenderTarget), render_target_desc);
 				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), ERGLoadStoreAccessOp::Clear_Preserve);
 				data.gbuffer_normal_srv = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_PixelShader);
@@ -52,7 +52,7 @@ namespace adria
 					RGTextureReadOnlyId();
 				builder.SetViewport(width, height);
 			},
-			[&](AmbientPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[&](AmbientPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
