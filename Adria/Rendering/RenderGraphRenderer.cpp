@@ -187,13 +187,6 @@ namespace adria
 	}
 	void RenderGraphRenderer::CreateSizeDependentResources()
 	{
-		D3D12_CLEAR_VALUE rtv_clear_value{};
-		rtv_clear_value.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
-		rtv_clear_value.Color[0] = 0.0f;
-		rtv_clear_value.Color[1] = 0.0f;
-		rtv_clear_value.Color[2] = 0.0f;
-		rtv_clear_value.Color[3] = 0.0f;
-
 		TextureDesc ldr_desc{};
 		ldr_desc.width = width;
 		ldr_desc.height = height;

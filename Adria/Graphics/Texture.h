@@ -66,7 +66,7 @@ namespace adria
 		{}
 
 		ClearValue(ClearValue const& other)
-			: active_member(other.active_member)
+			: active_member(other.active_member), color{}
 		{
 			if (active_member == ActiveMember::Color) color = other.color;
 			else if (active_member == ActiveMember::DepthStencil) depth_stencil = other.depth_stencil;
@@ -106,13 +106,13 @@ namespace adria
 		uint32 depth = 0;
 		uint32 array_size = 1;
 		uint32 mip_levels = 1;
-		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
 		uint32 sample_count = 1;
 		EResourceUsage heap_type = EResourceUsage::Default;
 		EBindFlag bind_flags = EBindFlag::None;
 		ETextureMiscFlag misc_flags = ETextureMiscFlag::None;
 		EResourceState initial_state = EResourceState::PixelShaderResource | EResourceState::NonPixelShaderResource;//D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 		ClearValue clear_value{};
+		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
 
 		std::strong_ordering operator<=>(TextureDesc const& other) const = default;
 		bool IsCompatible(TextureDesc const& desc) const
@@ -143,7 +143,6 @@ namespace adria
 			: gfx(gfx), desc(desc)
 		{
 			HRESULT hr = E_FAIL;
-
 			D3D12MA::ALLOCATION_DESC allocation_desc{};
 			allocation_desc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 
@@ -161,10 +160,11 @@ namespace adria
 			if (HasAllFlags(desc.bind_flags, EBindFlag::DepthStencil))
 			{
 				resource_desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-			}
-			if (!HasAllFlags(desc.bind_flags, EBindFlag::ShaderResource))
-			{
-				resource_desc.Flags |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
+
+				if (!HasAllFlags(desc.bind_flags, EBindFlag::ShaderResource))
+				{
+					resource_desc.Flags |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
+				}
 			}
 			if (HasAllFlags(desc.bind_flags, EBindFlag::RenderTarget))
 			{

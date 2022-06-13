@@ -123,12 +123,10 @@ namespace adria
 		rg.AddPass<CopyPassData>("Copy HDR Pass",
 			[=](CopyPassData& data, RenderGraphBuilder& builder)
 			{
-				TextureDesc postprocess_desc{};
+				RGTextureDesc postprocess_desc{};
 				postprocess_desc.width = width;
 				postprocess_desc.height = height;
 				postprocess_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				postprocess_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::RenderTarget | EBindFlag::ShaderResource;
-				postprocess_desc.initial_state = EResourceState::CopyDest;
 
 				builder.DeclareTexture(RG_RES_NAME(PostprocessMain), postprocess_desc);
 				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(PostprocessMain));
@@ -152,13 +150,11 @@ namespace adria
 		rg.AddPass<VolumetricCloudsPassData>("Volumetric Clouds Pass",
 			[=](VolumetricCloudsPassData& data, RenderGraphBuilder& builder)
 			{
-				TextureDesc clouds_output_desc{};
+				RGTextureDesc clouds_output_desc{};
 				clouds_output_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 				clouds_output_desc.width = width;
 				clouds_output_desc.height = height;
 				clouds_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				clouds_output_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
-				clouds_output_desc.initial_state = EResourceState::RenderTarget;
 
 				builder.DeclareTexture(RG_RES_NAME(CloudsOutput), clouds_output_desc);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
@@ -207,12 +203,10 @@ namespace adria
 		rg.AddPass<SSRPassData>("SSR Pass",
 			[=](SSRPassData& data, RenderGraphBuilder& builder)
 			{
-				TextureDesc ssr_output_desc{};
+				RGTextureDesc ssr_output_desc{};
 				ssr_output_desc.width = width;
 				ssr_output_desc.height = height;
 				ssr_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				ssr_output_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::RenderTarget | EBindFlag::ShaderResource;
-				ssr_output_desc.initial_state = EResourceState::RenderTarget;
 
 				builder.DeclareTexture(RG_RES_NAME(SSR_Output), ssr_output_desc);
 				builder.WriteRenderTarget(RG_RES_NAME(SSR_Output), ERGLoadStoreAccessOp::Discard_Preserve);
@@ -260,13 +254,11 @@ namespace adria
 		rg.AddPass<FogPassData>("Fog Pass",
 			[=](FogPassData& data, RenderGraphBuilder& builder)
 			{
-				TextureDesc fog_output_desc{};
+				RGTextureDesc fog_output_desc{};
 				fog_output_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 				fog_output_desc.width = width;
 				fog_output_desc.height = height;
 				fog_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				fog_output_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource | EBindFlag::UnorderedAccess;
-				fog_output_desc.initial_state = EResourceState::RenderTarget;
 
 				builder.DeclareTexture(RG_RES_NAME(FogOutput), fog_output_desc);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
@@ -314,13 +306,11 @@ namespace adria
 		rg.AddPass<BloomExtractPassData>("BloomExtract Pass",
 			[=](BloomExtractPassData& data, RenderGraphBuilder& builder)
 			{
-				TextureDesc bloom_extract_desc{};
+				RGTextureDesc bloom_extract_desc{};
 				bloom_extract_desc.width = width;
 				bloom_extract_desc.height = height;
 				bloom_extract_desc.mip_levels = 5;
-				bloom_extract_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::ShaderResource;
 				bloom_extract_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				bloom_extract_desc.initial_state = EResourceState::UnorderedAccess;
 
 				builder.DeclareTexture(RG_RES_NAME(BloomExtract), bloom_extract_desc);
 				data.extract = builder.WriteTexture(RG_RES_NAME(BloomExtract));
@@ -363,12 +353,11 @@ namespace adria
 		rg.AddPass<BloomCombinePassData>("BloomCombine Pass",
 			[=](BloomCombinePassData& data, RenderGraphBuilder& builder)
 			{
-				TextureDesc bloom_output_desc{};
+				RGTextureDesc bloom_output_desc{};
 				bloom_output_desc.width = width;
 				bloom_output_desc.height = height;
 				bloom_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				bloom_output_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::RenderTarget | EBindFlag::ShaderResource;
-				bloom_output_desc.initial_state = EResourceState::UnorderedAccess;
+				
 				builder.DeclareTexture(RG_RES_NAME(BloomOutput), bloom_output_desc);
 				data.output = builder.WriteTexture(RG_RES_NAME(BloomOutput));
 				data.extract = builder.ReadTexture(RG_RES_NAME(BloomExtract), ReadAccess_NonPixelShader);
@@ -411,13 +400,11 @@ namespace adria
 		rg.AddPass<void>("Sun Pass",
 			[=](RenderGraphBuilder& builder)
 			{
-				TextureDesc sun_output_desc{};
+				RGTextureDesc sun_output_desc{};
 				sun_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				sun_output_desc.width = width;
 				sun_output_desc.height = height;
-				sun_output_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
 				sun_output_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
-				sun_output_desc.initial_state = EResourceState::RenderTarget;
 
 				builder.DeclareTexture(RG_RES_NAME(SunOutput), sun_output_desc);
 				builder.ReadDepthStencil(RG_RES_NAME(DepthStencil), ERGLoadStoreAccessOp::Preserve_Preserve);
@@ -475,14 +462,12 @@ namespace adria
 		rg.AddPass<GodRaysPassData>("GodRays Pass",
 			[=](GodRaysPassData& data, RenderGraphBuilder& builder)
 			{
-				TextureDesc god_rays_desc{};
+				RGTextureDesc god_rays_desc{};
 				god_rays_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				god_rays_desc.width = width;
 				god_rays_desc.height = height;
-				god_rays_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
 				god_rays_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
-				god_rays_desc.initial_state = EResourceState::RenderTarget;
-
+				
 				builder.DeclareTexture(RG_RES_NAME(GodRaysOutput), god_rays_desc);
 				builder.WriteRenderTarget(RG_RES_NAME(GodRaysOutput), ERGLoadStoreAccessOp::Clear_Preserve);
 				data.sun_output = builder.ReadTexture(RG_RES_NAME(SunOutput), ReadAccess_PixelShader);
@@ -622,13 +607,11 @@ namespace adria
 		rg.AddPass<DepthOfFieldPassData>("DepthOfField Pass",
 			[=](DepthOfFieldPassData& data, RenderGraphBuilder& builder)
 			{
-				TextureDesc dof_output_desc{};
+				RGTextureDesc dof_output_desc{};
 				dof_output_desc.width = width;
 				dof_output_desc.height = height;
 				dof_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				dof_output_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::RenderTarget | EBindFlag::ShaderResource;
-				dof_output_desc.initial_state = EResourceState::RenderTarget;
-
+				
 				builder.DeclareTexture(RG_RES_NAME(DepthOfFieldOutput), dof_output_desc);
 				builder.WriteRenderTarget(RG_RES_NAME(DepthOfFieldOutput), ERGLoadStoreAccessOp::Discard_Preserve);
 				data.input = builder.ReadTexture(last_resource, ReadAccess_PixelShader);

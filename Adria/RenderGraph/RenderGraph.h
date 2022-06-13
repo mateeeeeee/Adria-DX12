@@ -132,8 +132,8 @@ namespace adria
 		void CalculateResourcesLifetime();
 		void DepthFirstSearch(size_t i, std::vector<bool>& visited, std::stack<size_t>& stack);
 
-		RGTextureId DeclareTexture(RGResourceName name, TextureDesc const& desc);
-		RGBufferId DeclareBuffer(RGResourceName name, BufferDesc const& desc);
+		RGTextureId DeclareTexture(RGResourceName name, RGTextureDesc const& desc);
+		RGBufferId DeclareBuffer(RGResourceName name, RGBufferDesc const& desc);
 		RGAllocationId DeclareAllocation(RGResourceName name, AllocDesc const& alloc);
 
 		bool IsTextureDeclared(RGResourceName);

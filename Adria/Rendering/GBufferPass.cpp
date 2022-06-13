@@ -21,13 +21,11 @@ namespace adria
 			[=](RenderGraphBuilder& builder)
 			{
 				//later inside RGTextureDesc, keep width, height, format, clear state and deduce bind flags and initial state from usage
-				TextureDesc gbuffer_desc{};
+				RGTextureDesc gbuffer_desc{};
 				gbuffer_desc.width = width;
 				gbuffer_desc.height = height;
 				gbuffer_desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
-				gbuffer_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
-				gbuffer_desc.initial_state = EResourceState::RenderTarget;
-
+				
 				builder.DeclareTexture(RG_RES_NAME(GBufferNormal), gbuffer_desc);
 				builder.DeclareTexture(RG_RES_NAME(GBufferAlbedo), gbuffer_desc);
 				builder.DeclareTexture(RG_RES_NAME(GBufferEmissive), gbuffer_desc);
@@ -41,12 +39,10 @@ namespace adria
 				clear_value.DepthStencil.Depth = 1.0f;
 				clear_value.DepthStencil.Stencil = 0;
 
-				TextureDesc depth_desc{};
+				RGTextureDesc depth_desc{};
 				depth_desc.width = width;
 				depth_desc.height = height;
 				depth_desc.format = DXGI_FORMAT_R32_TYPELESS;
-				depth_desc.bind_flags = EBindFlag::DepthStencil | EBindFlag::ShaderResource;
-				depth_desc.initial_state = EResourceState::DepthWrite;
 				depth_desc.clear_value = ClearValue(1.0f, 0);
 				builder.DeclareTexture(RG_RES_NAME(DepthStencil), depth_desc);
 				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), ERGLoadStoreAccessOp::Clear_Preserve);

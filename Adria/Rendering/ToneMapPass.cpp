@@ -82,12 +82,10 @@ namespace adria
 		rg.AddPass<ToneMapPassData>("ToneMap Pass",
 			[=](ToneMapPassData& data, RenderGraphBuilder& builder)
 			{
-				TextureDesc fxaa_input_desc{};
+				RGTextureDesc fxaa_input_desc{};
 				fxaa_input_desc.width = width;
 				fxaa_input_desc.height = height;
 				fxaa_input_desc.format = DXGI_FORMAT_R10G10B10A2_UNORM;
-				fxaa_input_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
-				fxaa_input_desc.initial_state = EResourceState::RenderTarget;
 				builder.DeclareTexture(fxaa_input, fxaa_input_desc);
 
 				data.hdr_srv = builder.ReadTexture(hdr_src, ReadAccess_PixelShader);

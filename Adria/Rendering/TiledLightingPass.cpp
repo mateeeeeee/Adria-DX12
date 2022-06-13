@@ -32,12 +32,11 @@ namespace adria
 		rendergraph.AddPass<TiledLightingPassData>("Tiled Lighting Pass",
 			[=](TiledLightingPassData& data, RenderGraphBuilder& builder)
 			{
-				TextureDesc tiled_desc{};
+				RGTextureDesc tiled_desc{};
 				tiled_desc.width = width;
 				tiled_desc.height = height;
 				tiled_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				tiled_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::ShaderResource;
-				tiled_desc.initial_state = EResourceState::UnorderedAccess;
+				
 				builder.DeclareTexture(RG_RES_NAME(TiledTarget), tiled_desc);
 				builder.DeclareTexture(RG_RES_NAME(TiledDebugTarget), tiled_desc);
 

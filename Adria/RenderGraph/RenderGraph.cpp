@@ -12,16 +12,18 @@
 
 namespace adria
 {
-	RGTextureId RenderGraph::DeclareTexture(RGResourceName name, TextureDesc const& desc)
+	RGTextureId RenderGraph::DeclareTexture(RGResourceName name, RGTextureDesc const& desc)
 	{
-		textures.emplace_back(new RGTexture(textures.size(), desc));
+		TextureDesc tex_desc{}; FillTextureDesc(desc, tex_desc);
+		textures.emplace_back(new RGTexture(textures.size(), tex_desc));
 		texture_name_id_map[name] = RGTextureId(textures.size() - 1);
 		return RGTextureId(textures.size() - 1);
 	}
 
-	RGBufferId RenderGraph::DeclareBuffer(RGResourceName name, BufferDesc const& desc)
+	RGBufferId RenderGraph::DeclareBuffer(RGResourceName name, RGBufferDesc const& desc)
 	{
-		buffers.emplace_back(new RGBuffer(buffers.size(), desc));
+		BufferDesc buf_desc{}; FillBufferDesc(desc, buf_desc);
+		buffers.emplace_back(new RGBuffer(buffers.size(), buf_desc));
 		buffer_name_id_map[name] = RGBufferId(buffers.size() - 1);
 		return RGBufferId(buffers.size() - 1);
 	}
@@ -485,6 +487,11 @@ namespace adria
 	{
 		RGTextureId handle = texture_name_id_map[name];
 		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
+		RGTexture* rg_texture = GetRGTexture(handle);
+		if (rg_texture->desc.initial_state == EResourceState::Common)
+		{
+			rg_texture->desc.initial_state = EResourceState::CopySource;
+		}
 		return RGTextureCopySrcId(handle);
 	}
 
@@ -492,6 +499,11 @@ namespace adria
 	{
 		RGTextureId handle = texture_name_id_map[name];
 		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
+		RGTexture* rg_texture = GetRGTexture(handle);
+		if (rg_texture->desc.initial_state == EResourceState::Common)
+		{
+			rg_texture->desc.initial_state = EResourceState::CopyDest;
+		}
 		return RGTextureCopyDstId(handle);
 	}
 
@@ -520,6 +532,12 @@ namespace adria
 	{
 		RGTextureId handle = texture_name_id_map[name];
 		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
+		RGTexture* rg_texture = GetRGTexture(handle);
+		rg_texture->desc.bind_flags |= EBindFlag::RenderTarget;
+		if (rg_texture->desc.initial_state == EResourceState::Common)
+		{
+			rg_texture->desc.initial_state = EResourceState::RenderTarget;
+		}
 		std::vector<std::pair<TextureViewDesc, ERGDescriptorType>>& view_descs = texture_view_desc_map[handle];
 		size_t view_id = view_descs.size();
 		view_descs.emplace_back(desc, ERGDescriptorType::RenderTarget);
@@ -530,6 +548,12 @@ namespace adria
 	{
 		RGTextureId handle = texture_name_id_map[name];
 		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
+		RGTexture* rg_texture = GetRGTexture(handle);
+		rg_texture->desc.bind_flags |= EBindFlag::DepthStencil;
+		if (rg_texture->desc.initial_state == EResourceState::Common)
+		{
+			rg_texture->desc.initial_state = EResourceState::DepthWrite;
+		}
 		std::vector<std::pair<TextureViewDesc, ERGDescriptorType>>& view_descs = texture_view_desc_map[handle];
 		size_t view_id = view_descs.size();
 		view_descs.emplace_back(desc, ERGDescriptorType::DepthStencil);
@@ -540,6 +564,12 @@ namespace adria
 	{
 		RGTextureId handle = texture_name_id_map[name];
 		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
+		RGTexture* rg_texture = GetRGTexture(handle);
+		rg_texture->desc.bind_flags |= EBindFlag::ShaderResource;
+		if (rg_texture->desc.initial_state == EResourceState::Common)
+		{
+			rg_texture->desc.initial_state = EResourceState::PixelShaderResource | EResourceState::NonPixelShaderResource;
+		}
 		std::vector<std::pair<TextureViewDesc, ERGDescriptorType>>& view_descs = texture_view_desc_map[handle];
 		size_t view_id = view_descs.size();
 		view_descs.emplace_back(desc, ERGDescriptorType::ReadOnly);
@@ -550,6 +580,12 @@ namespace adria
 	{
 		RGTextureId handle = texture_name_id_map[name];
 		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
+		RGTexture* rg_texture = GetRGTexture(handle);
+		rg_texture->desc.bind_flags |= EBindFlag::UnorderedAccess;
+		if (rg_texture->desc.initial_state == EResourceState::Common)
+		{
+			rg_texture->desc.initial_state = EResourceState::UnorderedAccess;
+		}
 		std::vector<std::pair<TextureViewDesc, ERGDescriptorType>>& view_descs = texture_view_desc_map[handle];
 		size_t view_id = view_descs.size();
 		view_descs.emplace_back(desc, ERGDescriptorType::ReadWrite);
@@ -560,6 +596,8 @@ namespace adria
 	{
 		RGBufferId handle = buffer_name_id_map[name];
 		ADRIA_ASSERT(IsValidBufferHandle(handle) && "Resource has not been declared!");
+		RGBuffer* rg_buffer = GetRGBuffer(handle);
+		rg_buffer->desc.bind_flags |= EBindFlag::ShaderResource;
 		std::vector<std::pair<BufferViewDesc, ERGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
 		size_t view_id = view_descs.size();
 		view_descs.emplace_back(desc, ERGDescriptorType::ReadOnly);
@@ -570,6 +608,8 @@ namespace adria
 	{
 		RGBufferId handle = buffer_name_id_map[name];
 		ADRIA_ASSERT(IsValidBufferHandle(handle) && "Resource has not been declared!");
+		RGBuffer* rg_buffer = GetRGBuffer(handle);
+		rg_buffer->desc.bind_flags |= EBindFlag::UnorderedAccess;
 		std::vector<std::pair<BufferViewDesc, ERGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
 		size_t view_id = view_descs.size();
 		view_descs.emplace_back(desc, ERGDescriptorType::ReadWrite);

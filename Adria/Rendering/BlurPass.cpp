@@ -25,13 +25,11 @@ namespace adria
 		rendergraph.AddPass<BlurPassData>(name.c_str(),
 			[=](BlurPassData& data, RenderGraphBuilder& builder)
 			{
-				TextureDesc blur_desc{};
+				RGTextureDesc blur_desc{};
 				blur_desc.width = width;
 				blur_desc.height = height;
-				blur_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::ShaderResource;
 				blur_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				blur_desc.initial_state = EResourceState::UnorderedAccess;
-
+				
 				builder.DeclareTexture(RG_RES_NAME_IDX(Intermediate, counter), blur_desc);
 				data.dst_texture = builder.WriteTexture(RG_RES_NAME_IDX(Intermediate, counter));
 				data.src_texture = builder.ReadTexture(src_texture, ReadAccess_NonPixelShader);
@@ -70,13 +68,11 @@ namespace adria
 		rendergraph.AddPass<BlurPassData>(name.c_str(),
 			[=](BlurPassData& data, RenderGraphBuilder& builder)
 			{
-				TextureDesc blur_desc{};
+				RGTextureDesc blur_desc{};
 				blur_desc.width = width;
 				blur_desc.height = height;
-				blur_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::ShaderResource;
 				blur_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				blur_desc.initial_state = EResourceState::UnorderedAccess;
-
+				
 				builder.DeclareTexture(blurred_texture, blur_desc);
 				data.dst_texture = builder.WriteTexture(blurred_texture);
 				data.src_texture = builder.ReadTexture(RG_RES_NAME_IDX(Intermediate, counter), ReadAccess_NonPixelShader);

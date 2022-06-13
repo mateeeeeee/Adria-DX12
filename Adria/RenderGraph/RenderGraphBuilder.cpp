@@ -12,12 +12,12 @@ namespace adria
 		return rg.IsTextureDeclared(name);
 	}
 
-	void RenderGraphBuilder::DeclareTexture(RGResourceName name, TextureDesc const& desc)
+	void RenderGraphBuilder::DeclareTexture(RGResourceName name, RGTextureDesc const& desc)
 	{
 		rg_pass.texture_creates.insert(rg.DeclareTexture(name, desc));
 	}
 
-	void RenderGraphBuilder::DeclareBuffer(RGResourceName name, BufferDesc const& desc)
+	void RenderGraphBuilder::DeclareBuffer(RGResourceName name, RGBufferDesc const& desc)
 	{
 		rg_pass.buffer_creates.insert(rg.DeclareBuffer(name, desc));
 	}

@@ -6,6 +6,7 @@ The engine is currently being ported to new Render Graph system. For a previous 
 * Render Graph
 	- Automatic Resource Barriers
 	- Resource Reuse using Resource Pool
+	- Automatic Resource Bind Flags and Initial State Deduction
 	- Pass Culling
 	- Optional Multithreaded Command List Building
 * Tiled Deferred Rendering 
