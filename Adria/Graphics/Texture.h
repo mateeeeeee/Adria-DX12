@@ -129,7 +129,6 @@ namespace adria
 		uint32 slice_count = static_cast<uint32>(-1);
 		uint32 first_mip = 0;
 		uint32 mip_count = static_cast<uint32>(-1);
-		std::optional<DXGI_FORMAT> new_format = std::nullopt;
 
 		std::strong_ordering operator<=>(TextureViewDesc const& other) const = default;
 	};
@@ -453,10 +452,6 @@ namespace adria
 		[[maybe_unused]] size_t CreateView(EView view_type, TextureViewDesc const& view_desc)
 		{
 			DXGI_FORMAT format = GetDesc().format;
-			if (view_desc.new_format.has_value())
-			{
-				format = *view_desc.new_format;
-			}
 			Microsoft::WRL::ComPtr<ID3D12Device> device;
 			resource->GetDevice(IID_PPV_ARGS(device.GetAddressOf()));
 

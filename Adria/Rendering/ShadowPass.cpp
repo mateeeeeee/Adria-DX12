@@ -415,13 +415,7 @@ namespace adria
 						builder.DeclareAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id), AllocDesc{ GetCBufferSize<ShadowCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT });
 					}
 
-					TextureViewDesc dsv_desc{};
-					dsv_desc.new_format = DXGI_FORMAT_D32_FLOAT;
-					dsv_desc.first_mip = 0;
-					dsv_desc.slice_count = 1;
-					dsv_desc.first_slice = D3D12CalcSubresource(0, i, 0, 1, 1);
-					builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light_id), ERGLoadStoreAccessOp::Clear_Preserve,
-						ERGLoadStoreAccessOp::NoAccess_NoAccess, dsv_desc);
+					builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light_id), ERGLoadStoreAccessOp::Clear_Preserve, 0, -1, i, 1);
 					data.alloc_id = builder.UseAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id));
 					builder.SetViewport(SHADOW_CASCADE_MAP_SIZE, SHADOW_CASCADE_MAP_SIZE);
 				},
@@ -488,14 +482,7 @@ namespace adria
 						builder.DeclareAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id), AllocDesc{ GetCBufferSize<ShadowCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT });
 					}
 
-					TextureViewDesc cube_dsv_desc{};
-					cube_dsv_desc.new_format = DXGI_FORMAT_D32_FLOAT;
-					cube_dsv_desc.first_mip = 0;
-					cube_dsv_desc.slice_count = 1;
-					cube_dsv_desc.first_slice = i;
-
-					builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light_id), ERGLoadStoreAccessOp::Clear_Preserve,
-						ERGLoadStoreAccessOp::NoAccess_NoAccess, cube_dsv_desc);
+					builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light_id), ERGLoadStoreAccessOp::Clear_Preserve, 0, -1, i, 1);
 					data.alloc_id = builder.UseAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id));
 					builder.SetViewport(SHADOW_CUBE_SIZE, SHADOW_CUBE_SIZE);
 				},

@@ -68,7 +68,6 @@ namespace adria
 	{
 		uint64 offset = 0;
 		uint64 size = uint64(-1);
-		std::optional<DXGI_FORMAT> new_format = std::nullopt;
 		std::strong_ordering operator<=>(BufferViewDesc const& other) const = default;
 	};
 
@@ -292,8 +291,7 @@ namespace adria
 			if (uav_counter) ADRIA_ASSERT(view_type == View_UnorderedAccess);
 
 			DXGI_FORMAT format = desc.format;
-			if (view_desc.new_format.has_value()) format = view_desc.new_format.value();
-
+			
 			D3D12_CPU_DESCRIPTOR_HANDLE heap_descriptor = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			switch (view_type)
 			{
