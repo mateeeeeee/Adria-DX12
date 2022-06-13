@@ -23,8 +23,8 @@ namespace adria
 		EHeapType heap_type = EHeapType::Default;
 		EBindFlag bind_flags = EBindFlag::None;
 		EResourceMiscFlag misc_flags = EResourceMiscFlag::None;
-		std::optional<D3D12_CLEAR_VALUE> clear = std::nullopt;
 		D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+		std::optional<D3D12_CLEAR_VALUE> clear = std::nullopt;
 
 		std::strong_ordering operator<=>(TextureDesc const& other) const = default;
 
@@ -209,27 +209,27 @@ namespace adria
 		[[maybe_unused]] size_t CreateSRV(TextureViewDesc const* desc = nullptr)
 		{
 			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
-			return CreateView(EResourceViewType::SRV, _desc);
+			return CreateView(View_ShaderResource, _desc);
 		}
 		[[maybe_unused]] size_t CreateUAV(TextureViewDesc const* desc = nullptr)
 		{
 			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
-			return CreateView(EResourceViewType::UAV, _desc);
+			return CreateView(View_UnorderedAccess, _desc);
 		}
 		[[maybe_unused]] size_t CreateRTV(TextureViewDesc const* desc = nullptr)
 		{
 			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
-			return CreateView(EResourceViewType::RTV, _desc);
+			return CreateView(View_RenderTarget, _desc);
 		}
 		[[maybe_unused]] size_t CreateDSV(TextureViewDesc const* desc = nullptr)
 		{
 			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
-			return CreateView(EResourceViewType::DSV, _desc);
+			return CreateView(View_DepthStencil, _desc);
 		}
 		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE CreateAndTakeSRV(TextureViewDesc const* desc = nullptr)
 		{
 			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
-			size_t i = CreateView(EResourceViewType::SRV, _desc);
+			size_t i = CreateView(View_ShaderResource, _desc);
 			ADRIA_ASSERT(srvs.size() - 1 == i);
 			D3D12_CPU_DESCRIPTOR_HANDLE srv = srvs.back();
 			srvs.pop_back();
@@ -238,7 +238,7 @@ namespace adria
 		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE CreateAndTakeUAV(TextureViewDesc const* desc = nullptr)
 		{
 			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
-			size_t i = CreateView(EResourceViewType::UAV, _desc);
+			size_t i = CreateView(View_UnorderedAccess, _desc);
 			ADRIA_ASSERT(uavs.size() - 1 == i);
 			D3D12_CPU_DESCRIPTOR_HANDLE uav = uavs.back();
 			uavs.pop_back();
@@ -247,7 +247,7 @@ namespace adria
 		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE CreateAndTakeRTV(TextureViewDesc const* desc = nullptr)
 		{
 			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
-			size_t i = CreateView(EResourceViewType::RTV, _desc);
+			size_t i = CreateView(View_RenderTarget, _desc);
 			ADRIA_ASSERT(rtvs.size() - 1 == i);
 			D3D12_CPU_DESCRIPTOR_HANDLE rtv = rtvs.back();
 			rtvs.pop_back();
@@ -256,16 +256,16 @@ namespace adria
 		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE CreateAndTakeDSV(TextureViewDesc const* desc = nullptr)
 		{
 			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
-			size_t i = CreateView(EResourceViewType::DSV, _desc);
+			size_t i = CreateView(View_DepthStencil, _desc);
 			ADRIA_ASSERT(dsvs.size() - 1 == i);
 			D3D12_CPU_DESCRIPTOR_HANDLE dsv = dsvs.back();
 			dsvs.pop_back();
 			return dsv;
 		}
-		D3D12_CPU_DESCRIPTOR_HANDLE SRV(size_t i = 0) const { return GetView(EResourceViewType::SRV, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE UAV(size_t i = 0) const { return GetView(EResourceViewType::UAV, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE RTV(size_t i = 0) const { return GetView(EResourceViewType::RTV, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE DSV(size_t i = 0) const { return GetView(EResourceViewType::DSV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE SRV(size_t i = 0) const { return GetView(View_ShaderResource, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE UAV(size_t i = 0) const { return GetView(View_UnorderedAccess, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE RTV(size_t i = 0) const { return GetView(View_RenderTarget, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE DSV(size_t i = 0) const { return GetView(View_DepthStencil, i); }
 
 		bool IsMapped() const { return mapped_data != nullptr; }
 		void* GetMappedData() const { return mapped_data; }
@@ -316,7 +316,7 @@ namespace adria
 
 	private:
 
-		[[maybe_unused]] size_t CreateView(EResourceViewType view_type, TextureViewDesc const& view_desc)
+		[[maybe_unused]] size_t CreateView(EView view_type, TextureViewDesc const& view_desc)
 		{
 			DXGI_FORMAT format = GetDesc().format;
 			if (view_desc.new_format.has_value())
@@ -328,7 +328,7 @@ namespace adria
 
 			switch (view_type)
 			{
-			case EResourceViewType::SRV:
+			case View_ShaderResource:
 			{
 				D3D12_CPU_DESCRIPTOR_HANDLE descriptor = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
@@ -430,7 +430,7 @@ namespace adria
 				return srvs.size() - 1;
 			}
 			break;
-			case EResourceViewType::UAV:
+			case View_UnorderedAccess:
 			{
 				D3D12_CPU_DESCRIPTOR_HANDLE descriptor = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
@@ -496,7 +496,7 @@ namespace adria
 				return uavs.size() - 1;
 			}
 			break;
-			case EResourceViewType::RTV:
+			case View_RenderTarget:
 			{
 				D3D12_CPU_DESCRIPTOR_HANDLE descriptor = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 				D3D12_RENDER_TARGET_VIEW_DESC rtv_desc{};
@@ -577,7 +577,7 @@ namespace adria
 				return rtvs.size() - 1;
 			}
 			break;
-			case EResourceViewType::DSV:
+			case View_DepthStencil:
 			{
 				D3D12_CPU_DESCRIPTOR_HANDLE descriptor = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 				D3D12_DEPTH_STENCIL_VIEW_DESC dsv_desc{};
@@ -657,20 +657,20 @@ namespace adria
 			}
 			return -1;
 		}
-		D3D12_CPU_DESCRIPTOR_HANDLE GetView(EResourceViewType type, size_t index = 0) const
+		D3D12_CPU_DESCRIPTOR_HANDLE GetView(EView type, size_t index = 0) const
 		{
 			switch (type)
 			{
-			case EResourceViewType::SRV:
+			case View_ShaderResource:
 				ADRIA_ASSERT(index < srvs.size());
 				return srvs[index];
-			case EResourceViewType::UAV:
+			case View_UnorderedAccess:
 				ADRIA_ASSERT(index < uavs.size());
 				return uavs[index];
-			case EResourceViewType::RTV:
+			case View_RenderTarget:
 				ADRIA_ASSERT(index < rtvs.size());
 				return rtvs[index];
-			case EResourceViewType::DSV:
+			case View_DepthStencil:
 				ADRIA_ASSERT(index < dsvs.size());
 				return dsvs[index];
 			default:

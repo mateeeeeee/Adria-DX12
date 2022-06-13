@@ -161,13 +161,13 @@ namespace adria
 
 			BufferDesc vb_desc{
 			.size = vertices.size() * sizeof(CompleteVertex),
-			.bind_flags = EBindFlag::VertexBuffer,
+			.bind_flags = EBindFlag::None,
 			.stride = sizeof(CompleteVertex)
 			};
 
 			BufferDesc ib_desc{
 				.size = indices.size() * sizeof(uint32),
-				.bind_flags = EBindFlag::IndexBuffer,
+				.bind_flags = EBindFlag::None,
 				.stride = sizeof(uint32),
 				.format = DXGI_FORMAT_R32_UINT
 			};
@@ -277,13 +277,13 @@ namespace adria
 
 		BufferDesc vb_desc{
 			.size = vertices.size() * sizeof(CompleteVertex),
-			.bind_flags = EBindFlag::VertexBuffer,
+			.bind_flags = EBindFlag::None,
 			.stride = sizeof(CompleteVertex)
 		};
 
 		BufferDesc ib_desc{
 			.size = indices.size() * sizeof(uint32),
-			.bind_flags = EBindFlag::IndexBuffer,
+			.bind_flags = EBindFlag::None,
 			.stride = sizeof(uint32),
 			.format = DXGI_FORMAT_R32_UINT
 		};
@@ -579,13 +579,13 @@ namespace adria
 
 		BufferDesc vb_desc{
 			.size = vertices.size() * sizeof(CompleteVertex),
-			.bind_flags = EBindFlag::VertexBuffer,
+			.bind_flags = EBindFlag::None,
 			.stride = sizeof(CompleteVertex)
 		};
 
 		BufferDesc ib_desc{
 			.size = indices.size() * sizeof(uint32),
-			.bind_flags = EBindFlag::IndexBuffer,
+			.bind_flags = EBindFlag::None,
 			.stride = sizeof(uint32),
 			.format = DXGI_FORMAT_R32_UINT
 		};
@@ -668,13 +668,13 @@ namespace adria
 
 			BufferDesc vb_desc{
 			.size = vertices.size() * sizeof(TexturedVertex),
-			.bind_flags = EBindFlag::VertexBuffer,
+			.bind_flags = EBindFlag::None,
 			.stride = sizeof(TexturedVertex)
 			};
 
 			BufferDesc ib_desc{
 				.size = indices.size() * sizeof(uint16),
-				.bind_flags = EBindFlag::IndexBuffer,
+				.bind_flags = EBindFlag::None,
 				.stride = sizeof(uint16),
 				.format = DXGI_FORMAT_R16_UINT };
 

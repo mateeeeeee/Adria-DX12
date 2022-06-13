@@ -19,7 +19,7 @@ namespace adria
 	static BufferDesc VertexBufferDesc(uint64 vertex_count, uint32 stride, bool ray_tracing = true)
 	{
 		BufferDesc desc{};
-		desc.bind_flags = EBindFlag::VertexBuffer;
+		desc.bind_flags = EBindFlag::None;
 		desc.heap_type = EHeapType::Default;
 		desc.size = vertex_count * stride;
 		desc.stride = stride;
@@ -29,7 +29,7 @@ namespace adria
 	static BufferDesc IndexBufferDesc(uint64 index_count, bool small_indices, bool ray_tracing = true)
 	{
 		BufferDesc desc{};
-		desc.bind_flags = EBindFlag::IndexBuffer;
+		desc.bind_flags = EBindFlag::None;
 		desc.heap_type = EHeapType::Default;
 		desc.stride = small_indices ? 2 : 4;
 		desc.size = index_count * desc.stride;
@@ -82,7 +82,7 @@ namespace adria
 			: gfx(gfx), desc(desc)
 		{
 			UINT64 buffer_size = desc.size;
-			if (HasAllFlags(desc.bind_flags, EBindFlag::ConstantBuffer))
+			if (HasAllFlags(desc.bind_flags, EBindFlag::None))
 				buffer_size = Align(buffer_size, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 
 			D3D12_RESOURCE_DESC resource_desc{};
@@ -184,23 +184,23 @@ namespace adria
 			for (auto& uav : uavs) gfx->FreeOfflineDescriptor(uav, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		}
 
-		D3D12_CPU_DESCRIPTOR_HANDLE SRV(size_t i = 0) const { return GetView(EResourceViewType::SRV, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE UAV(size_t i = 0) const { return GetView(EResourceViewType::UAV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE SRV(size_t i = 0) const { return GetView(View_ShaderResource, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE UAV(size_t i = 0) const { return GetView(View_UnorderedAccess, i); }
 
 		[[maybe_unused]] size_t CreateSRV(BufferViewDesc const* desc = nullptr)
 		{
 			BufferViewDesc _desc = desc ? *desc : BufferViewDesc{};
-			return CreateView(EResourceViewType::SRV, _desc, nullptr);
+			return CreateView(View_ShaderResource, _desc, nullptr);
 		}
 		[[maybe_unused]] size_t CreateUAV(ID3D12Resource* uav_counter = nullptr, BufferViewDesc const* desc = nullptr)
 		{
 			BufferViewDesc _desc = desc ? *desc : BufferViewDesc{};
-			return CreateView(EResourceViewType::UAV, _desc, uav_counter);
+			return CreateView(View_UnorderedAccess, _desc, uav_counter);
 		}
 		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE CreateAndTakeSRV(BufferViewDesc const* desc = nullptr)
 		{
 			BufferViewDesc _desc = desc ? *desc : BufferViewDesc{};
-			size_t i = CreateView(EResourceViewType::SRV, _desc);
+			size_t i = CreateView(View_ShaderResource, _desc);
 			ADRIA_ASSERT(srvs.size() - 1 == i);
 			D3D12_CPU_DESCRIPTOR_HANDLE srv = srvs.back();
 			srvs.pop_back();
@@ -209,7 +209,7 @@ namespace adria
 		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE CreateAndTakeUAV(BufferViewDesc const* desc = nullptr)
 		{
 			BufferViewDesc _desc = desc ? *desc : BufferViewDesc{};
-			size_t i = CreateView(EResourceViewType::UAV, _desc);
+			size_t i = CreateView(View_UnorderedAccess, _desc);
 			ADRIA_ASSERT(uavs.size() - 1 == i);
 			D3D12_CPU_DESCRIPTOR_HANDLE uav = uavs.back();
 			uavs.pop_back();
@@ -288,10 +288,10 @@ namespace adria
 
 	private:
 
-		size_t CreateView(EResourceViewType view_type, BufferViewDesc const& view_desc,
+		size_t CreateView(EView view_type, BufferViewDesc const& view_desc,
 			ID3D12Resource* uav_counter = nullptr)
 		{
-			if (uav_counter) ADRIA_ASSERT(view_type == EResourceViewType::UAV);
+			if (uav_counter) ADRIA_ASSERT(view_type == View_UnorderedAccess);
 
 			DXGI_FORMAT format = desc.format;
 			if (view_desc.new_format.has_value()) format = view_desc.new_format.value();
@@ -299,7 +299,7 @@ namespace adria
 			D3D12_CPU_DESCRIPTOR_HANDLE heap_descriptor = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			switch (view_type)
 			{
-			case EResourceViewType::SRV:
+			case View_ShaderResource:
 			{
 				D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
 				srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -343,7 +343,7 @@ namespace adria
 				return srvs.size() - 1;
 			}
 			break;
-			case EResourceViewType::UAV:
+			case View_UnorderedAccess:
 			{
 				D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
 				uav_desc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
@@ -382,26 +382,26 @@ namespace adria
 				return uavs.size() - 1;
 			}
 			break;
-			case EResourceViewType::RTV:
-			case EResourceViewType::DSV:
+			case View_RenderTarget:
+			case View_DepthStencil:
 			default:
 				ADRIA_ASSERT(false && "Buffer View can only be UAV or SRV!");
 			}
 			return -1;
 		}
 
-		D3D12_CPU_DESCRIPTOR_HANDLE GetView(EResourceViewType type, size_t index = 0) const
+		D3D12_CPU_DESCRIPTOR_HANDLE GetView(EView type, size_t index = 0) const
 		{
 			switch (type)
 			{
-			case EResourceViewType::SRV:
+			case View_ShaderResource:
 				ADRIA_ASSERT(index < srvs.size());
 				return srvs[index];
-			case EResourceViewType::UAV:
+			case View_UnorderedAccess:
 				ADRIA_ASSERT(index < uavs.size());
 				return uavs[index];
-			case EResourceViewType::RTV:
-			case EResourceViewType::DSV:
+			case View_RenderTarget:
+			case View_DepthStencil:
 			default:
 				ADRIA_ASSERT(false && "Invalid view type for buffer!");
 			}

@@ -95,25 +95,22 @@ namespace adria
 	}
 
 	//common
-	enum class EResourceViewType : uint8
+	enum EView : uint8
 	{
-		SRV,
-		UAV,
-		RTV,
-		DSV,
+		View_ShaderResource,
+		View_UnorderedAccess,
+		View_RenderTarget,
+		View_DepthStencil,
 		Invalid
 	};
 
 	enum class EBindFlag : uint32
 	{
 		None = 0,
-		VertexBuffer = 1 << 0,
-		IndexBuffer = 1 << 1,
-		ConstantBuffer = 1 << 2,
-		ShaderResource = 1 << 3,
-		RenderTarget = 1 << 4,
-		DepthStencil = 1 << 5,
-		UnorderedAccess = 1 << 6,
+		ShaderResource = 1 << 0,
+		RenderTarget = 1 << 1,
+		DepthStencil = 1 << 2,
+		UnorderedAccess = 1 << 3,
 	};
 	DEFINE_ENUM_BIT_OPERATORS(EBindFlag);
 

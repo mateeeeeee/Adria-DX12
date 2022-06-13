@@ -142,13 +142,13 @@ namespace adria
 		};
 
 		BufferDesc vb_desc{};
-		vb_desc.bind_flags = EBindFlag::VertexBuffer;
+		vb_desc.bind_flags = EBindFlag::None;
 		vb_desc.size = sizeof(cube_vertices);
 		vb_desc.stride = sizeof(SimpleVertex);
 		cube_vb = std::make_unique<Buffer>(gfx, vb_desc, cube_vertices);
 
 		BufferDesc ib_desc{};
-		ib_desc.bind_flags = EBindFlag::IndexBuffer;
+		ib_desc.bind_flags = EBindFlag::None;
 		ib_desc.format = DXGI_FORMAT_R16_UINT;
 		ib_desc.stride = sizeof(uint16);
 		ib_desc.size = sizeof(cube_indices);
