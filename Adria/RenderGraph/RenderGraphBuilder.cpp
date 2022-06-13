@@ -246,12 +246,12 @@ namespace adria
 
 	void RenderGraphBuilder::AddBufferBindFlags(RGResourceName name, EBindFlag flags)
 	{
-
+		rg.AddBufferBindFlags(name, flags);
 	}
 
 	void RenderGraphBuilder::AddTextureBindFlags(RGResourceName name, EBindFlag flags)
 	{
-
+		rg.AddTextureBindFlags(name, flags);
 	}
 
 }

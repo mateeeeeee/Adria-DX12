@@ -483,6 +483,22 @@ namespace adria
 		return buffer_name_id_map[name];
 	}
 
+	void RenderGraph::AddBufferBindFlags(RGResourceName name, EBindFlag flags)
+	{
+		RGBufferId handle = buffer_name_id_map[name];
+		ADRIA_ASSERT(IsValidBufferHandle(handle) && "Resource has not been declared!");
+		RGBuffer* rg_buffer = GetRGBuffer(handle);
+		rg_buffer->desc.bind_flags |= flags;
+	}
+
+	void RenderGraph::AddTextureBindFlags(RGResourceName name, EBindFlag flags)
+	{
+		RGTextureId handle = texture_name_id_map[name];
+		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
+		RGTexture* rg_texture = GetRGTexture(handle);
+		rg_texture->desc.bind_flags |= flags;
+	}
+
 	RGTextureCopySrcId RenderGraph::ReadCopySrcTexture(RGResourceName name)
 	{
 		RGTextureId handle = texture_name_id_map[name];

@@ -150,6 +150,8 @@ namespace adria
 		RGTextureId GetTextureId(RGResourceName);
 		RGBufferId GetBufferId(RGResourceName);
 		RGAllocationId UseAllocation(RGResourceName);
+		void AddBufferBindFlags(RGResourceName name, EBindFlag flags);
+		void AddTextureBindFlags(RGResourceName name, EBindFlag flags);
 
 		RGTextureCopySrcId ReadCopySrcTexture(RGResourceName);
 		RGTextureCopyDstId WriteCopyDstTexture(RGResourceName);
