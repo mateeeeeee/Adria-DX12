@@ -117,10 +117,10 @@ namespace adria
 		HashMap<RGResourceName, RGBufferId>  buffer_name_id_map;
 		HashMap<RGResourceName, RGAllocationId>  alloc_name_id_map;
 
-		mutable HashMap<RGTextureId, std::vector<std::pair<TextureViewDesc, ERGDescriptorType>>> texture_view_desc_map;
+		mutable HashMap<RGTextureId, std::vector<std::pair<TextureSubresourceDesc, ERGDescriptorType>>> texture_view_desc_map;
 		mutable HashMap<RGTextureId, std::vector<RGDescriptor>> texture_view_map;
 
-		mutable HashMap<RGBufferId, std::vector<std::pair<BufferViewDesc, ERGDescriptorType>>> buffer_view_desc_map;
+		mutable HashMap<RGBufferId, std::vector<std::pair<BufferSubresourceDesc, ERGDescriptorType>>> buffer_view_desc_map;
 		mutable HashMap<RGBufferId, std::vector<RGDescriptor>> buffer_view_map;
 
 	private:
@@ -157,12 +157,12 @@ namespace adria
 		RGBufferCopyDstId  WriteCopyDstBuffer(RGResourceName);
 		RGBufferIndirectArgsId  ReadIndirectArgsBuffer(RGResourceName);
 
-		RGRenderTargetId RenderTarget(RGResourceName name, TextureViewDesc const& desc);
-		RGDepthStencilId DepthStencil(RGResourceName name, TextureViewDesc const& desc);
-		RGTextureReadOnlyId ReadTexture(RGResourceName name, TextureViewDesc const& desc);
-		RGTextureReadWriteId WriteTexture(RGResourceName name, TextureViewDesc const& desc);
-		RGBufferReadOnlyId ReadBuffer(RGResourceName name, BufferViewDesc const& desc);
-		RGBufferReadWriteId WriteBuffer(RGResourceName name, BufferViewDesc const& desc);
+		RGRenderTargetId RenderTarget(RGResourceName name, TextureSubresourceDesc const& desc);
+		RGDepthStencilId DepthStencil(RGResourceName name, TextureSubresourceDesc const& desc);
+		RGTextureReadOnlyId ReadTexture(RGResourceName name, TextureSubresourceDesc const& desc);
+		RGTextureReadWriteId WriteTexture(RGResourceName name, TextureSubresourceDesc const& desc);
+		RGBufferReadOnlyId ReadBuffer(RGResourceName name, BufferSubresourceDesc const& desc);
+		RGBufferReadWriteId WriteBuffer(RGResourceName name, BufferSubresourceDesc const& desc);
 
 		Texture const& GetCopySrcTexture(RGTextureCopySrcId) const;
 		Texture const& GetCopyDstTexture(RGTextureCopyDstId) const;

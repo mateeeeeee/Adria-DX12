@@ -71,7 +71,7 @@ namespace adria
 		return copy_dst_id;
 	}
 
-	RGTextureReadOnlyId RenderGraphBuilder::ReadTextureImpl(RGResourceName name, ERGReadAccess read_access, TextureViewDesc const& desc /*= {}*/)
+	RGTextureReadOnlyId RenderGraphBuilder::ReadTextureImpl(RGResourceName name, ERGReadAccess read_access, TextureSubresourceDesc const& desc /*= {}*/)
 	{
 		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
 		RGTextureReadOnlyId read_only_id = rg.ReadTexture(name, desc);
@@ -95,7 +95,7 @@ namespace adria
 		return read_only_id;
 	}
 
-	RGTextureReadWriteId RenderGraphBuilder::WriteTextureImpl(RGResourceName name, TextureViewDesc const& desc /*= {}*/)
+	RGTextureReadWriteId RenderGraphBuilder::WriteTextureImpl(RGResourceName name, TextureSubresourceDesc const& desc /*= {}*/)
 	{
 		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
 		RGTextureReadWriteId read_write_id = rg.WriteTexture(name, desc);
@@ -111,7 +111,7 @@ namespace adria
 		return read_write_id;
 	}
 
-	RGRenderTargetId RenderGraphBuilder::WriteRenderTargetImpl(RGResourceName name, ERGLoadStoreAccessOp load_store_op, TextureViewDesc const& desc /*= {}*/)
+	RGRenderTargetId RenderGraphBuilder::WriteRenderTargetImpl(RGResourceName name, ERGLoadStoreAccessOp load_store_op, TextureSubresourceDesc const& desc /*= {}*/)
 	{
 		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
 		RGRenderTargetId render_target_id = rg.RenderTarget(name, desc);
@@ -128,7 +128,7 @@ namespace adria
 		return render_target_id;
 	}
 
-	RGDepthStencilId RenderGraphBuilder::WriteDepthStencilImpl(RGResourceName name, ERGLoadStoreAccessOp load_store_op, ERGLoadStoreAccessOp stencil_load_store_op /*= ERGLoadStoreAccessOp::NoAccess_NoAccess*/, TextureViewDesc const& desc /*= {}*/)
+	RGDepthStencilId RenderGraphBuilder::WriteDepthStencilImpl(RGResourceName name, ERGLoadStoreAccessOp load_store_op, ERGLoadStoreAccessOp stencil_load_store_op /*= ERGLoadStoreAccessOp::NoAccess_NoAccess*/, TextureSubresourceDesc const& desc /*= {}*/)
 	{
 		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
 		RGDepthStencilId depth_stencil_id = rg.DepthStencil(name, desc);
@@ -145,7 +145,7 @@ namespace adria
 		return depth_stencil_id;
 	}
 
-	RGDepthStencilId RenderGraphBuilder::ReadDepthStencilImpl(RGResourceName name, ERGLoadStoreAccessOp load_store_op, ERGLoadStoreAccessOp stencil_load_store_op /*= ERGLoadStoreAccessOp::NoAccess_NoAccess*/, TextureViewDesc const& desc /*= {}*/)
+	RGDepthStencilId RenderGraphBuilder::ReadDepthStencilImpl(RGResourceName name, ERGLoadStoreAccessOp load_store_op, ERGLoadStoreAccessOp stencil_load_store_op /*= ERGLoadStoreAccessOp::NoAccess_NoAccess*/, TextureSubresourceDesc const& desc /*= {}*/)
 	{
 		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
 		RGDepthStencilId depth_stencil_id = rg.DepthStencil(name, desc);
@@ -193,7 +193,7 @@ namespace adria
 		return indirect_args_id;
 	}
 
-	RGBufferReadOnlyId RenderGraphBuilder::ReadBufferImpl(RGResourceName name, ERGReadAccess read_access, BufferViewDesc const& desc /*= {}*/)
+	RGBufferReadOnlyId RenderGraphBuilder::ReadBufferImpl(RGResourceName name, ERGReadAccess read_access, BufferSubresourceDesc const& desc /*= {}*/)
 	{
 		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
 		RGBufferReadOnlyId read_only_id = rg.ReadBuffer(name, desc);
@@ -217,7 +217,7 @@ namespace adria
 		return read_only_id;
 	}
 
-	RGBufferReadWriteId RenderGraphBuilder::WriteBufferImpl(RGResourceName name, BufferViewDesc const& desc /*= {}*/)
+	RGBufferReadWriteId RenderGraphBuilder::WriteBufferImpl(RGResourceName name, BufferSubresourceDesc const& desc /*= {}*/)
 	{
 		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
 		RGBufferReadWriteId read_write_id = rg.WriteBuffer(name, desc);

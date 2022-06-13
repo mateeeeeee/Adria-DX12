@@ -429,16 +429,16 @@ namespace adria
 			switch (type)
 			{
 			case ERGDescriptorType::RenderTarget:
-				view = texture->CreateAndTakeRTV(&view_desc);
+				view = texture->TakeSubresource_RTV(&view_desc);
 				break;
 			case ERGDescriptorType::DepthStencil:
-				view = texture->CreateAndTakeDSV(&view_desc);
+				view = texture->TakeSubresource_DSV(&view_desc);
 				break;
 			case ERGDescriptorType::ReadOnly:
-				view = texture->CreateAndTakeSRV(&view_desc);
+				view = texture->TakeSubresource_SRV(&view_desc);
 				break;
 			case ERGDescriptorType::ReadWrite:
-				view = texture->CreateAndTakeUAV(&view_desc);
+				view = texture->TakeSubresource_UAV(&view_desc);
 				break;
 			default:
 				ADRIA_ASSERT(false && "invalid resource view type for texture");
@@ -457,10 +457,10 @@ namespace adria
 			switch (type)
 			{
 			case ERGDescriptorType::ReadOnly:
-				view = buffer->CreateAndTakeSRV(&view_desc);
+				view = buffer->TakeSubresource_SRV(&view_desc);
 				break;
 			case ERGDescriptorType::ReadWrite:
-				view = buffer->CreateAndTakeUAV(&view_desc);
+				view = buffer->TakeSubresource_UAV(&view_desc);
 				break;
 			case ERGDescriptorType::RenderTarget:
 			case ERGDescriptorType::DepthStencil:
@@ -528,7 +528,7 @@ namespace adria
 		return RGBufferIndirectArgsId(handle);
 	}
 
-	RGRenderTargetId RenderGraph::RenderTarget(RGResourceName name, TextureViewDesc const& desc)
+	RGRenderTargetId RenderGraph::RenderTarget(RGResourceName name, TextureSubresourceDesc const& desc)
 	{
 		RGTextureId handle = texture_name_id_map[name];
 		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
@@ -538,13 +538,13 @@ namespace adria
 		{
 			rg_texture->desc.initial_state = EResourceState::RenderTarget;
 		}
-		std::vector<std::pair<TextureViewDesc, ERGDescriptorType>>& view_descs = texture_view_desc_map[handle];
+		std::vector<std::pair<TextureSubresourceDesc, ERGDescriptorType>>& view_descs = texture_view_desc_map[handle];
 		size_t view_id = view_descs.size();
 		view_descs.emplace_back(desc, ERGDescriptorType::RenderTarget);
 		return RGRenderTargetId(view_id, handle);
 	}
 
-	RGDepthStencilId RenderGraph::DepthStencil(RGResourceName name, TextureViewDesc const& desc)
+	RGDepthStencilId RenderGraph::DepthStencil(RGResourceName name, TextureSubresourceDesc const& desc)
 	{
 		RGTextureId handle = texture_name_id_map[name];
 		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
@@ -554,13 +554,13 @@ namespace adria
 		{
 			rg_texture->desc.initial_state = EResourceState::DepthWrite;
 		}
-		std::vector<std::pair<TextureViewDesc, ERGDescriptorType>>& view_descs = texture_view_desc_map[handle];
+		std::vector<std::pair<TextureSubresourceDesc, ERGDescriptorType>>& view_descs = texture_view_desc_map[handle];
 		size_t view_id = view_descs.size();
 		view_descs.emplace_back(desc, ERGDescriptorType::DepthStencil);
 		return RGDepthStencilId(view_id, handle);
 	}
 
-	RGTextureReadOnlyId RenderGraph::ReadTexture(RGResourceName name, TextureViewDesc const& desc)
+	RGTextureReadOnlyId RenderGraph::ReadTexture(RGResourceName name, TextureSubresourceDesc const& desc)
 	{
 		RGTextureId handle = texture_name_id_map[name];
 		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
@@ -570,13 +570,13 @@ namespace adria
 		{
 			rg_texture->desc.initial_state = EResourceState::PixelShaderResource | EResourceState::NonPixelShaderResource;
 		}
-		std::vector<std::pair<TextureViewDesc, ERGDescriptorType>>& view_descs = texture_view_desc_map[handle];
+		std::vector<std::pair<TextureSubresourceDesc, ERGDescriptorType>>& view_descs = texture_view_desc_map[handle];
 		size_t view_id = view_descs.size();
 		view_descs.emplace_back(desc, ERGDescriptorType::ReadOnly);
 		return RGTextureReadOnlyId(view_id, handle);
 	}
 
-	RGTextureReadWriteId RenderGraph::WriteTexture(RGResourceName name, TextureViewDesc const& desc)
+	RGTextureReadWriteId RenderGraph::WriteTexture(RGResourceName name, TextureSubresourceDesc const& desc)
 	{
 		RGTextureId handle = texture_name_id_map[name];
 		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
@@ -586,31 +586,31 @@ namespace adria
 		{
 			rg_texture->desc.initial_state = EResourceState::UnorderedAccess;
 		}
-		std::vector<std::pair<TextureViewDesc, ERGDescriptorType>>& view_descs = texture_view_desc_map[handle];
+		std::vector<std::pair<TextureSubresourceDesc, ERGDescriptorType>>& view_descs = texture_view_desc_map[handle];
 		size_t view_id = view_descs.size();
 		view_descs.emplace_back(desc, ERGDescriptorType::ReadWrite);
 		return RGTextureReadWriteId(view_id, handle);
 	}
 
-	RGBufferReadOnlyId RenderGraph::ReadBuffer(RGResourceName name, BufferViewDesc const& desc)
+	RGBufferReadOnlyId RenderGraph::ReadBuffer(RGResourceName name, BufferSubresourceDesc const& desc)
 	{
 		RGBufferId handle = buffer_name_id_map[name];
 		ADRIA_ASSERT(IsValidBufferHandle(handle) && "Resource has not been declared!");
 		RGBuffer* rg_buffer = GetRGBuffer(handle);
 		rg_buffer->desc.bind_flags |= EBindFlag::ShaderResource;
-		std::vector<std::pair<BufferViewDesc, ERGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
+		std::vector<std::pair<BufferSubresourceDesc, ERGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
 		size_t view_id = view_descs.size();
 		view_descs.emplace_back(desc, ERGDescriptorType::ReadOnly);
 		return RGBufferReadOnlyId(view_id, handle);
 	}
 
-	RGBufferReadWriteId RenderGraph::WriteBuffer(RGResourceName name, BufferViewDesc const& desc)
+	RGBufferReadWriteId RenderGraph::WriteBuffer(RGResourceName name, BufferSubresourceDesc const& desc)
 	{
 		RGBufferId handle = buffer_name_id_map[name];
 		ADRIA_ASSERT(IsValidBufferHandle(handle) && "Resource has not been declared!");
 		RGBuffer* rg_buffer = GetRGBuffer(handle);
 		rg_buffer->desc.bind_flags |= EBindFlag::UnorderedAccess;
-		std::vector<std::pair<BufferViewDesc, ERGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
+		std::vector<std::pair<BufferSubresourceDesc, ERGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
 		size_t view_id = view_descs.size();
 		view_descs.emplace_back(desc, ERGDescriptorType::ReadWrite);
 		return RGBufferReadWriteId(view_id, handle);

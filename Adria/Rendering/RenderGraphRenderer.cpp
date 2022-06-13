@@ -196,7 +196,7 @@ namespace adria
 		ldr_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 
 		final_texture = std::make_unique<Texture>(gfx, ldr_desc);
-		final_texture->CreateSRV();
+		final_texture->CreateSubresource_SRV();
 	}
 
 	void RenderGraphRenderer::UpdatePersistentConstantBuffers(float32 dt)

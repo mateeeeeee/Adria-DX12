@@ -64,11 +64,11 @@ namespace adria
 		return desc;
 	}
 
-	struct BufferViewDesc
+	struct BufferSubresourceDesc
 	{
 		uint64 offset = 0;
 		uint64 size = uint64(-1);
-		std::strong_ordering operator<=>(BufferViewDesc const& other) const = default;
+		std::strong_ordering operator<=>(BufferSubresourceDesc const& other) const = default;
 	};
 
 	class Buffer
@@ -181,36 +181,46 @@ namespace adria
 			for (auto& uav : uavs) gfx->FreeOfflineDescriptor(uav, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		}
 
-		D3D12_CPU_DESCRIPTOR_HANDLE SRV(size_t i = 0) const { return GetView(View_ShaderResource, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE UAV(size_t i = 0) const { return GetView(View_UnorderedAccess, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE GetSubresource_SRV(size_t i = 0) const { return GetSubresource(SubresourceType_SRV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE GetSubresource_UAV(size_t i = 0) const { return GetSubresource(SubresourceType_UAV, i); }
 
-		[[maybe_unused]] size_t CreateSRV(BufferViewDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateSubresource_SRV(BufferSubresourceDesc const* desc = nullptr)
 		{
-			BufferViewDesc _desc = desc ? *desc : BufferViewDesc{};
-			return CreateView(View_ShaderResource, _desc, nullptr);
+			BufferSubresourceDesc _desc = desc ? *desc : BufferSubresourceDesc{};
+			return CreateSubresource(SubresourceType_SRV, _desc, nullptr);
 		}
-		[[maybe_unused]] size_t CreateUAV(ID3D12Resource* uav_counter = nullptr, BufferViewDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateSubresource_UAV(ID3D12Resource* uav_counter = nullptr, BufferSubresourceDesc const* desc = nullptr)
 		{
-			BufferViewDesc _desc = desc ? *desc : BufferViewDesc{};
-			return CreateView(View_UnorderedAccess, _desc, uav_counter);
+			BufferSubresourceDesc _desc = desc ? *desc : BufferSubresourceDesc{};
+			return CreateSubresource(SubresourceType_UAV, _desc, uav_counter);
 		}
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE CreateAndTakeSRV(BufferViewDesc const* desc = nullptr)
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeSubresource_SRV(BufferSubresourceDesc const* desc = nullptr)
 		{
-			BufferViewDesc _desc = desc ? *desc : BufferViewDesc{};
-			size_t i = CreateView(View_ShaderResource, _desc);
+			BufferSubresourceDesc _desc = desc ? *desc : BufferSubresourceDesc{};
+			size_t i = CreateSubresource(SubresourceType_SRV, _desc);
 			ADRIA_ASSERT(srvs.size() - 1 == i);
 			D3D12_CPU_DESCRIPTOR_HANDLE srv = srvs.back();
 			srvs.pop_back();
 			return srv;
 		}
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE CreateAndTakeUAV(BufferViewDesc const* desc = nullptr)
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeSubresource_UAV(BufferSubresourceDesc const* desc = nullptr)
 		{
-			BufferViewDesc _desc = desc ? *desc : BufferViewDesc{};
-			size_t i = CreateView(View_UnorderedAccess, _desc);
+			BufferSubresourceDesc _desc = desc ? *desc : BufferSubresourceDesc{};
+			size_t i = CreateSubresource(SubresourceType_UAV, _desc);
 			ADRIA_ASSERT(uavs.size() - 1 == i);
 			D3D12_CPU_DESCRIPTOR_HANDLE uav = uavs.back();
 			uavs.pop_back();
 			return uav;
+		}
+
+		ID3D12Resource* GetNative() const { return resource.Get(); }
+		BufferDesc const& GetDesc() const { return desc; }
+		UINT GetMappedRowPitch() const { return mapped_rowpitch; }
+		D3D12_GPU_VIRTUAL_ADDRESS GetGPUAddress() const { return resource->GetGPUVirtualAddress(); }
+		UINT GetCount() const
+		{
+			ADRIA_ASSERT(desc.stride != 0);
+			return static_cast<UINT>(desc.size / desc.stride);
 		}
 
 		bool IsMapped() const { return mapped_data != nullptr; }
@@ -261,15 +271,6 @@ namespace adria
 			Update(&src_data, sizeof(T));
 		}
 
-		ID3D12Resource* GetNative() const { return resource.Get(); }
-		BufferDesc const& GetDesc() const { return desc; }
-		UINT GetMappedRowPitch() const { return mapped_rowpitch; }
-		D3D12_GPU_VIRTUAL_ADDRESS GetGPUAddress() const { return resource->GetGPUVirtualAddress(); }
-		UINT GetCount() const
-		{
-			ADRIA_ASSERT(desc.stride != 0);
-			return static_cast<UINT>(desc.size / desc.stride);
-		}
 	private:
 		GraphicsDevice* gfx;
 		Microsoft::WRL::ComPtr<ID3D12Resource> resource;
@@ -285,17 +286,17 @@ namespace adria
 
 	private:
 
-		size_t CreateView(EView view_type, BufferViewDesc const& view_desc,
+		size_t CreateSubresource(ESubresourceType view_type, BufferSubresourceDesc const& view_desc,
 			ID3D12Resource* uav_counter = nullptr)
 		{
-			if (uav_counter) ADRIA_ASSERT(view_type == View_UnorderedAccess);
+			if (uav_counter) ADRIA_ASSERT(view_type == SubresourceType_UAV);
 
 			DXGI_FORMAT format = desc.format;
 			
 			D3D12_CPU_DESCRIPTOR_HANDLE heap_descriptor = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			switch (view_type)
 			{
-			case View_ShaderResource:
+			case SubresourceType_SRV:
 			{
 				D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
 				srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -339,7 +340,7 @@ namespace adria
 				return srvs.size() - 1;
 			}
 			break;
-			case View_UnorderedAccess:
+			case SubresourceType_UAV:
 			{
 				D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
 				uav_desc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
@@ -378,26 +379,26 @@ namespace adria
 				return uavs.size() - 1;
 			}
 			break;
-			case View_RenderTarget:
-			case View_DepthStencil:
+			case SubresourceType_RTV:
+			case SubresourceType_DSV:
 			default:
 				ADRIA_ASSERT(false && "Buffer View can only be UAV or SRV!");
 			}
 			return -1;
 		}
 
-		D3D12_CPU_DESCRIPTOR_HANDLE GetView(EView type, size_t index = 0) const
+		D3D12_CPU_DESCRIPTOR_HANDLE GetSubresource(ESubresourceType type, size_t index = 0) const
 		{
 			switch (type)
 			{
-			case View_ShaderResource:
+			case SubresourceType_SRV:
 				ADRIA_ASSERT(index < srvs.size());
 				return srvs[index];
-			case View_UnorderedAccess:
+			case SubresourceType_UAV:
 				ADRIA_ASSERT(index < uavs.size());
 				return uavs[index];
-			case View_RenderTarget:
-			case View_DepthStencil:
+			case SubresourceType_RTV:
+			case SubresourceType_DSV:
 			default:
 				ADRIA_ASSERT(false && "Invalid view type for buffer!");
 			}

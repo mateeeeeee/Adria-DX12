@@ -94,13 +94,13 @@ namespace adria
 		return 16u;
 	}
 
-	enum EView : uint8
+	enum ESubresourceType : uint8
 	{
-		View_ShaderResource,
-		View_UnorderedAccess,
-		View_RenderTarget,
-		View_DepthStencil,
-		View_Invalid
+		SubresourceType_SRV,
+		SubresourceType_UAV,
+		SubresourceType_RTV,
+		SubresourceType_DSV,
+		SubresourceType_Invalid
 	};
 
 	enum class EBindFlag : uint32

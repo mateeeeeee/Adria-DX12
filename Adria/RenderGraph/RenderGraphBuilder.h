@@ -85,36 +85,36 @@ namespace adria
 		[[nodiscard]] RGTextureReadOnlyId ReadTexture(RGResourceName name, ERGReadAccess read_access, 
 			uint32 first_mip = 0, uint32 mip_count = -1, uint32 first_slice = 0, uint32 slice_count = -1)
 		{
-			return ReadTextureImpl(name, read_access, TextureViewDesc{ first_slice, slice_count, first_mip, mip_count });
+			return ReadTextureImpl(name, read_access, TextureSubresourceDesc{ first_slice, slice_count, first_mip, mip_count });
 		}
 		[[nodiscard]] RGTextureReadWriteId WriteTexture(RGResourceName name,
 			uint32 first_mip = 0, uint32 mip_count = -1, uint32 first_slice = 0, uint32 slice_count = -1)
 		{
-			return WriteTextureImpl(name, TextureViewDesc{ first_slice, slice_count, first_mip, mip_count });
+			return WriteTextureImpl(name, TextureSubresourceDesc{ first_slice, slice_count, first_mip, mip_count });
 		}
 		[[maybe_unused]] RGRenderTargetId WriteRenderTarget(RGResourceName name, ERGLoadStoreAccessOp load_store_op, 
 			uint32 first_mip = 0, uint32 mip_count = -1, uint32 first_slice = 0, uint32 slice_count = -1)
 		{
-			return WriteRenderTargetImpl(name, load_store_op, TextureViewDesc{ first_slice, slice_count, first_mip, mip_count });
+			return WriteRenderTargetImpl(name, load_store_op, TextureSubresourceDesc{ first_slice, slice_count, first_mip, mip_count });
 		}
 		[[maybe_unused]] RGDepthStencilId WriteDepthStencil(RGResourceName name, ERGLoadStoreAccessOp load_store_op, 
 			uint32 first_mip = 0, uint32 mip_count = -1, uint32 first_slice = 0, uint32 slice_count = -1)
 		{
-			return WriteDepthStencilImpl(name, load_store_op, ERGLoadStoreAccessOp::NoAccess_NoAccess, TextureViewDesc{ first_slice, slice_count, first_mip, mip_count });
+			return WriteDepthStencilImpl(name, load_store_op, ERGLoadStoreAccessOp::NoAccess_NoAccess, TextureSubresourceDesc{ first_slice, slice_count, first_mip, mip_count });
 		}
 		[[maybe_unused]] RGDepthStencilId ReadDepthStencil(RGResourceName name, ERGLoadStoreAccessOp load_store_op,
 			uint32 first_mip = 0, uint32 mip_count = -1, uint32 first_slice = 0, uint32 slice_count = -1)
 		{
-			return ReadDepthStencilImpl(name, load_store_op, ERGLoadStoreAccessOp::NoAccess_NoAccess, TextureViewDesc{ first_slice, slice_count, first_mip, mip_count });
+			return ReadDepthStencilImpl(name, load_store_op, ERGLoadStoreAccessOp::NoAccess_NoAccess, TextureSubresourceDesc{ first_slice, slice_count, first_mip, mip_count });
 		}
 
 		[[nodiscard]] RGBufferReadOnlyId ReadBuffer(RGResourceName name, ERGReadAccess read_access, uint32 offset = 0, uint32 size = -1)
 		{
-			return ReadBufferImpl(name, read_access, BufferViewDesc{ offset, size });
+			return ReadBufferImpl(name, read_access, BufferSubresourceDesc{ offset, size });
 		}
 		[[nodiscard]] RGBufferReadWriteId WriteBuffer(RGResourceName name, uint32 offset = 0, uint32 size = -1)
 		{
-			return WriteBufferImpl(name, BufferViewDesc{ offset, size });
+			return WriteBufferImpl(name, BufferSubresourceDesc{ offset, size });
 		}
 
 		void SetViewport(uint32 width, uint32 height);
@@ -127,13 +127,13 @@ namespace adria
 	private:
 		RenderGraphBuilder(RenderGraph&, RenderGraphPassBase&);
 
-		[[nodiscard]] RGTextureReadOnlyId ReadTextureImpl(RGResourceName name, ERGReadAccess read_access, TextureViewDesc const& desc);
-		[[nodiscard]] RGTextureReadWriteId WriteTextureImpl(RGResourceName name, TextureViewDesc const& desc);
-		[[maybe_unused]] RGRenderTargetId WriteRenderTargetImpl(RGResourceName name, ERGLoadStoreAccessOp load_store_op, TextureViewDesc const& desc);
-		[[maybe_unused]] RGDepthStencilId WriteDepthStencilImpl(RGResourceName name, ERGLoadStoreAccessOp load_store_op, ERGLoadStoreAccessOp stencil_load_store_op, TextureViewDesc const& desc);
-		[[maybe_unused]] RGDepthStencilId ReadDepthStencilImpl(RGResourceName name, ERGLoadStoreAccessOp load_store_op, ERGLoadStoreAccessOp stencil_load_store_op, TextureViewDesc const& desc);
-		[[nodiscard]] RGBufferReadOnlyId ReadBufferImpl(RGResourceName name, ERGReadAccess read_access, BufferViewDesc const& desc);
-		[[nodiscard]] RGBufferReadWriteId WriteBufferImpl(RGResourceName name, BufferViewDesc const& desc);
+		[[nodiscard]] RGTextureReadOnlyId ReadTextureImpl(RGResourceName name, ERGReadAccess read_access, TextureSubresourceDesc const& desc);
+		[[nodiscard]] RGTextureReadWriteId WriteTextureImpl(RGResourceName name, TextureSubresourceDesc const& desc);
+		[[maybe_unused]] RGRenderTargetId WriteRenderTargetImpl(RGResourceName name, ERGLoadStoreAccessOp load_store_op, TextureSubresourceDesc const& desc);
+		[[maybe_unused]] RGDepthStencilId WriteDepthStencilImpl(RGResourceName name, ERGLoadStoreAccessOp load_store_op, ERGLoadStoreAccessOp stencil_load_store_op, TextureSubresourceDesc const& desc);
+		[[maybe_unused]] RGDepthStencilId ReadDepthStencilImpl(RGResourceName name, ERGLoadStoreAccessOp load_store_op, ERGLoadStoreAccessOp stencil_load_store_op, TextureSubresourceDesc const& desc);
+		[[nodiscard]] RGBufferReadOnlyId ReadBufferImpl(RGResourceName name, ERGReadAccess read_access, BufferSubresourceDesc const& desc);
+		[[nodiscard]] RGBufferReadWriteId WriteBufferImpl(RGResourceName name, BufferSubresourceDesc const& desc);
 	};
 
 	using RGBuilder = RenderGraphBuilder;

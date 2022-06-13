@@ -123,14 +123,14 @@ namespace adria
 		}
 	};
 
-	struct TextureViewDesc
+	struct TextureSubresourceDesc
 	{
 		uint32 first_slice = 0;
 		uint32 slice_count = static_cast<uint32>(-1);
 		uint32 first_mip = 0;
 		uint32 mip_count = static_cast<uint32>(-1);
 
-		std::strong_ordering operator<=>(TextureViewDesc const& other) const = default;
+		std::strong_ordering operator<=>(TextureSubresourceDesc const& other) const = default;
 	};
 
 	using TextureInitialData = D3D12_SUBRESOURCE_DATA;
@@ -338,67 +338,71 @@ namespace adria
 			for (auto& dsv : dsvs) gfx->FreeOfflineDescriptor(dsv, D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 		}
 
-		//TextureViewDesc const* desc = nullptr --> TextureViewDesc const& desc = {}
-		[[maybe_unused]] size_t CreateSRV(TextureViewDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateSubresource_SRV(TextureSubresourceDesc const* desc = nullptr)
 		{
-			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
-			return CreateView(View_ShaderResource, _desc);
+			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
+			return CreateSubresource(SubresourceType_SRV, _desc);
 		}
-		[[maybe_unused]] size_t CreateUAV(TextureViewDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateSubresource_UAV(TextureSubresourceDesc const* desc = nullptr)
 		{
-			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
-			return CreateView(View_UnorderedAccess, _desc);
+			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
+			return CreateSubresource(SubresourceType_UAV, _desc);
 		}
-		[[maybe_unused]] size_t CreateRTV(TextureViewDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateSubresource_RTV(TextureSubresourceDesc const* desc = nullptr)
 		{
-			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
-			return CreateView(View_RenderTarget, _desc);
+			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
+			return CreateSubresource(SubresourceType_RTV, _desc);
 		}
-		[[maybe_unused]] size_t CreateDSV(TextureViewDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateSubresource_DSV(TextureSubresourceDesc const* desc = nullptr)
 		{
-			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
-			return CreateView(View_DepthStencil, _desc);
+			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
+			return CreateSubresource(SubresourceType_DSV, _desc);
 		}
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE CreateAndTakeSRV(TextureViewDesc const* desc = nullptr)
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeSubresource_SRV(TextureSubresourceDesc const* desc = nullptr)
 		{
-			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
-			size_t i = CreateView(View_ShaderResource, _desc);
+			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
+			size_t i = CreateSubresource(SubresourceType_SRV, _desc);
 			ADRIA_ASSERT(srvs.size() - 1 == i);
 			D3D12_CPU_DESCRIPTOR_HANDLE srv = srvs.back();
 			srvs.pop_back();
 			return srv;
 		}
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE CreateAndTakeUAV(TextureViewDesc const* desc = nullptr)
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeSubresource_UAV(TextureSubresourceDesc const* desc = nullptr)
 		{
-			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
-			size_t i = CreateView(View_UnorderedAccess, _desc);
+			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
+			size_t i = CreateSubresource(SubresourceType_UAV, _desc);
 			ADRIA_ASSERT(uavs.size() - 1 == i);
 			D3D12_CPU_DESCRIPTOR_HANDLE uav = uavs.back();
 			uavs.pop_back();
 			return uav;
 		}
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE CreateAndTakeRTV(TextureViewDesc const* desc = nullptr)
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeSubresource_RTV(TextureSubresourceDesc const* desc = nullptr)
 		{
-			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
-			size_t i = CreateView(View_RenderTarget, _desc);
+			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
+			size_t i = CreateSubresource(SubresourceType_RTV, _desc);
 			ADRIA_ASSERT(rtvs.size() - 1 == i);
 			D3D12_CPU_DESCRIPTOR_HANDLE rtv = rtvs.back();
 			rtvs.pop_back();
 			return rtv;
 		}
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE CreateAndTakeDSV(TextureViewDesc const* desc = nullptr)
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeSubresource_DSV(TextureSubresourceDesc const* desc = nullptr)
 		{
-			TextureViewDesc _desc = desc ? *desc : TextureViewDesc{};
-			size_t i = CreateView(View_DepthStencil, _desc);
+			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
+			size_t i = CreateSubresource(SubresourceType_DSV, _desc);
 			ADRIA_ASSERT(dsvs.size() - 1 == i);
 			D3D12_CPU_DESCRIPTOR_HANDLE dsv = dsvs.back();
 			dsvs.pop_back();
 			return dsv;
 		}
-		D3D12_CPU_DESCRIPTOR_HANDLE SRV(size_t i = 0) const { return GetView(View_ShaderResource, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE UAV(size_t i = 0) const { return GetView(View_UnorderedAccess, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE RTV(size_t i = 0) const { return GetView(View_RenderTarget, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE DSV(size_t i = 0) const { return GetView(View_DepthStencil, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE GetSubresource_SRV(size_t i = 0) const { return GetSubresource(SubresourceType_SRV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE GetSubresource_UAV(size_t i = 0) const { return GetSubresource(SubresourceType_UAV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE GetSubresource_RTV(size_t i = 0) const { return GetSubresource(SubresourceType_RTV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE GetSubresource_DSV(size_t i = 0) const { return GetSubresource(SubresourceType_DSV, i); }
+
+		uint32 GetMappedRowPitch() const { return mapped_rowpitch; }
+		D3D12_GPU_VIRTUAL_ADDRESS GetGPUAddress() const { return resource->GetGPUVirtualAddress(); }
+		ID3D12Resource* GetNative() const { return resource.Get(); }
+		TextureDesc const& GetDesc() const { return desc; }
 
 		bool IsMapped() const { return mapped_data != nullptr; }
 		void* GetMappedData() const { return mapped_data; }
@@ -427,11 +431,6 @@ namespace adria
 			resource->Unmap(0, nullptr);
 		}
 
-		uint32 GetMappedRowPitch() const { return mapped_rowpitch; }
-		D3D12_GPU_VIRTUAL_ADDRESS GetGPUAddress() const { return resource->GetGPUVirtualAddress(); }
-		ID3D12Resource* GetNative() const { return resource.Get(); }
-		TextureDesc const& GetDesc() const { return desc; }
-
 	private:
 		GraphicsDevice* gfx;
 		Microsoft::WRL::ComPtr<ID3D12Resource> resource;
@@ -449,7 +448,7 @@ namespace adria
 
 	private:
 
-		[[maybe_unused]] size_t CreateView(EView view_type, TextureViewDesc const& view_desc)
+		[[maybe_unused]] size_t CreateSubresource(ESubresourceType view_type, TextureSubresourceDesc const& view_desc)
 		{
 			DXGI_FORMAT format = GetDesc().format;
 			Microsoft::WRL::ComPtr<ID3D12Device> device;
@@ -457,7 +456,7 @@ namespace adria
 
 			switch (view_type)
 			{
-			case View_ShaderResource:
+			case SubresourceType_SRV:
 			{
 				D3D12_CPU_DESCRIPTOR_HANDLE descriptor = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
@@ -559,7 +558,7 @@ namespace adria
 				return srvs.size() - 1;
 			}
 			break;
-			case View_UnorderedAccess:
+			case SubresourceType_UAV:
 			{
 				D3D12_CPU_DESCRIPTOR_HANDLE descriptor = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
@@ -625,7 +624,7 @@ namespace adria
 				return uavs.size() - 1;
 			}
 			break;
-			case View_RenderTarget:
+			case SubresourceType_RTV:
 			{
 				D3D12_CPU_DESCRIPTOR_HANDLE descriptor = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 				D3D12_RENDER_TARGET_VIEW_DESC rtv_desc{};
@@ -706,7 +705,7 @@ namespace adria
 				return rtvs.size() - 1;
 			}
 			break;
-			case View_DepthStencil:
+			case SubresourceType_DSV:
 			{
 				D3D12_CPU_DESCRIPTOR_HANDLE descriptor = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 				D3D12_DEPTH_STENCIL_VIEW_DESC dsv_desc{};
@@ -786,20 +785,20 @@ namespace adria
 			}
 			return -1;
 		}
-		D3D12_CPU_DESCRIPTOR_HANDLE GetView(EView type, size_t index = 0) const
+		D3D12_CPU_DESCRIPTOR_HANDLE GetSubresource(ESubresourceType type, size_t index = 0) const
 		{
 			switch (type)
 			{
-			case View_ShaderResource:
+			case SubresourceType_SRV:
 				ADRIA_ASSERT(index < srvs.size());
 				return srvs[index];
-			case View_UnorderedAccess:
+			case SubresourceType_UAV:
 				ADRIA_ASSERT(index < uavs.size());
 				return uavs[index];
-			case View_RenderTarget:
+			case SubresourceType_RTV:
 				ADRIA_ASSERT(index < rtvs.size());
 				return rtvs[index];
-			case View_DepthStencil:
+			case SubresourceType_DSV:
 				ADRIA_ASSERT(index < dsvs.size());
 				return dsvs[index];
 			default:
