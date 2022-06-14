@@ -1,9 +1,9 @@
 #pragma once
 #include <optional>
-#include "../../Core/Definitions.h"
+#include "../Core/Definitions.h"
 #include "../Graphics/Buffer.h"
-#include "../../RenderGraph/RenderGraphResourceId.h"
-#include "../../tecs/entity.h"
+#include "../RenderGraph/RenderGraphResourceId.h"
+#include "../tecs/entity.h"
 
 namespace adria
 {

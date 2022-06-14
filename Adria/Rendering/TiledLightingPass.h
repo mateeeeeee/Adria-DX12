@@ -1,8 +1,8 @@
 #pragma once
 #include <optional>
-#include "../../Core/Definitions.h"
-#include "../../RenderGraph/RenderGraphResourceId.h"
-#include "../../tecs/entity.h"
+#include "../Core/Definitions.h"
+#include "../RenderGraph/RenderGraphResourceId.h"
+#include "../tecs/entity.h"
 
 namespace adria
 {

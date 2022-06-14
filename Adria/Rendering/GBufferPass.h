@@ -1,6 +1,6 @@
 #pragma once
-#include "../../Core/Definitions.h"
-#include "../../RenderGraph/RenderGraphResourceId.h"
+#include "../Core/Definitions.h"
+#include "../RenderGraph/RenderGraphResourceId.h"
 
 
 
