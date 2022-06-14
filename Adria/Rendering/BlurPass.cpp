@@ -87,7 +87,7 @@ namespace adria
 				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Blur_Vertical));
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
 
-				RGDescriptor cpu_descriptor = context.GetReadOnlyTexture(data.src_texture);
+				Descriptor cpu_descriptor = context.GetReadOnlyTexture(data.src_texture);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));

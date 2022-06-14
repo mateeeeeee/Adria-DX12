@@ -120,7 +120,7 @@ namespace adria
 					else if (light.casts_shadows)
 					{
 						ADRIA_ASSERT(data.shadow_map.IsValid());
-						RGDescriptor shadow_map = context.GetReadOnlyTexture(data.shadow_map);
+						Descriptor shadow_map = context.GetReadOnlyTexture(data.shadow_map);
 						switch (light.type)
 						{
 						case ELightType::Directional:

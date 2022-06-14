@@ -8,7 +8,6 @@
 #include "../tecs/registry.h"
 #include "../Logging/Logger.h"
 
-//add array of ResourceNames of Postprocess
 using namespace DirectX;
 
 namespace adria
@@ -19,9 +18,11 @@ namespace adria
 		  add_textures_pass(width, height)
 	{}
 
-	void Postprocessor::AddPasses(RenderGraph& rg, PostprocessSettings const& settings)
+	void Postprocessor::AddPasses(RenderGraph& rg, PostprocessSettings const& _settings)
 	{
+		settings = _settings;
 		auto lights = reg.view<Light>();
+		AddVelocityBufferPass(rg);
 
 		AddCopyHDRPass(rg);
 		final_resource = RG_RES_NAME(PostprocessMain);
@@ -38,7 +39,6 @@ namespace adria
 			blur_pass.AddPass(rg, RG_RES_NAME(CloudsOutput), RG_RES_NAME(BlurredCloudsOutput), "Volumetric Clouds");
 			copy_to_texture_pass.AddPass(rg, RG_RES_NAME(PostprocessMain), RG_RES_NAME(BlurredCloudsOutput), EBlendMode::AlphaBlend);
 		}
-
 		if (settings.reflections == EReflections::SSR)
 		{
 			AddSSRPass(rg);
@@ -56,10 +56,21 @@ namespace adria
 			AddDepthOfFieldPass(rg);
 			final_resource = RG_RES_NAME(DepthOfFieldOutput);
 		}
+		if (settings.motion_blur)
+		{
+			AddMotionBlurPass(rg);
+			final_resource = RG_RES_NAME(MotionBlurOutput);
+		}
 		if (settings.bloom)
 		{
 			AddBloomPass(rg);
 			final_resource = RG_RES_NAME(BloomOutput);
+		}
+		if (HasAnyFlag(settings.anti_aliasing, AntiAliasing_TAA))
+		{
+			AddTAAPass(rg);
+			final_resource = RG_RES_NAME(TAAOutput);
+			AddHistoryCopyPass(rg);
 		}
 
 		for (tecs::entity light_entity : lights)
@@ -84,15 +95,23 @@ namespace adria
 		}
 	}
 
-	void Postprocessor::OnResize(uint32 w, uint32 h)
+	void Postprocessor::OnResize(GraphicsDevice* gfx, uint32 w, uint32 h)
 	{
 		width = w, height = h;
 		blur_pass.OnResize(width, height);
 		copy_to_texture_pass.OnResize(width, height);
 		generate_mips_pass.OnResize(w, h);
+
+		TextureDesc render_target_desc{};
+		render_target_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		render_target_desc.width = width;
+		render_target_desc.height = height;
+		render_target_desc.bind_flags = EBindFlag::ShaderResource;
+		render_target_desc.initial_state = EResourceState::CopyDest;
+		history_buffer = std::make_unique<Texture>(gfx, render_target_desc);
 	}
 
-	void Postprocessor::OnSceneInitialized()
+	void Postprocessor::OnSceneInitialized(GraphicsDevice* gfx)
 	{
 		cloud_textures.push_back(texture_manager.LoadTexture(L"Resources\\Textures\\clouds\\weather.dds"));
 		cloud_textures.push_back(texture_manager.LoadTexture(L"Resources\\Textures\\clouds\\cloud.dds"));
@@ -105,6 +124,15 @@ namespace adria
 		lens_flare_textures.push_back(texture_manager.LoadTexture(L"Resources/Textures/lensflare/flare4.jpg"));
 		lens_flare_textures.push_back(texture_manager.LoadTexture(L"Resources/Textures/lensflare/flare5.jpg"));
 		lens_flare_textures.push_back(texture_manager.LoadTexture(L"Resources/Textures/lensflare/flare6.jpg"));
+
+		TextureDesc render_target_desc{};
+		render_target_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		render_target_desc.width = width;
+		render_target_desc.height = height;
+		render_target_desc.bind_flags = EBindFlag::ShaderResource;
+		render_target_desc.initial_state = EResourceState::CopyDest;
+
+		history_buffer = std::make_unique<Texture>(gfx, render_target_desc);
 	}
 
 	RGResourceName Postprocessor::GetFinalResource() const
@@ -138,6 +166,49 @@ namespace adria
 				Texture const& dst_texture = context.GetCopyDstTexture(data.copy_dst);
 				cmd_list->CopyResource(dst_texture.GetNative(), src_texture.GetNative());
 			}, ERGPassType::Copy, ERGPassFlags::None);
+	}
+
+	void Postprocessor::AddVelocityBufferPass(RenderGraph& rg)
+	{
+		//if (!settings.motion_blur && !(settings.anti_aliasing & AntiAliasing_TAA)) return;
+		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		struct VelocityBufferPassData
+		{
+			RGTextureReadOnlyId depth_srv;
+		};
+		rg.AddPass<VelocityBufferPassData>("Velocity Buffer Pass",
+			[=](VelocityBufferPassData& data, RenderGraphBuilder& builder)
+			{
+				RGTextureDesc velocity_buffer_desc{};
+				velocity_buffer_desc.width = width;
+				velocity_buffer_desc.height = height;
+				velocity_buffer_desc.format = DXGI_FORMAT_R16G16_FLOAT;
+
+				builder.SetViewport(width, height);
+				builder.DeclareTexture(RG_RES_NAME(VelocityBuffer), velocity_buffer_desc);
+				builder.WriteRenderTarget(RG_RES_NAME(VelocityBuffer), ERGLoadStoreAccessOp::Discard_Preserve);
+				data.depth_srv = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
+			},
+			[=](VelocityBufferPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			{
+				ID3D12Device* device = gfx->GetDevice();
+				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+
+				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::VelocityBuffer));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::VelocityBuffer));
+
+				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
+				cmd_list->SetGraphicsRootConstantBufferView(1, global_data.postprocess_cbuffer_address);
+
+				OffsetType descriptor_index = descriptor_allocator->AllocateRange(1);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index),
+					context.GetReadOnlyTexture(data.depth_srv), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+				cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
+				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+				cmd_list->DrawInstanced(4, 1, 0, 0);
+
+			}, ERGPassType::Graphics, ERGPassFlags::None);
 	}
 
 	void Postprocessor::AddVolumetricCloudsPass(RenderGraph& rg)
@@ -644,6 +715,139 @@ namespace adria
 				cmd_list->DrawInstanced(4, 1, 0, 0);
 
 			}, ERGPassType::Graphics, ERGPassFlags::None);
+	}
+
+	void Postprocessor::AddMotionBlurPass(RenderGraph& rg)
+	{
+		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		RGResourceName last_resource = final_resource;
+		struct MotionBlurPassData
+		{
+			RGTextureReadOnlyId input_srv;
+			RGTextureReadOnlyId velocity_srv;
+		};
+		rg.AddPass<MotionBlurPassData>("Motion Blur Pass",
+			[=](MotionBlurPassData& data, RenderGraphBuilder& builder)
+			{
+				RGTextureDesc motion_blur_desc{};
+				motion_blur_desc.width = width;
+				motion_blur_desc.height = height;
+				motion_blur_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+				builder.SetViewport(width, height);
+				builder.DeclareTexture(RG_RES_NAME(MotionBlurOutput), motion_blur_desc);
+				builder.WriteRenderTarget(RG_RES_NAME(MotionBlurOutput), ERGLoadStoreAccessOp::Discard_Preserve);
+				data.input_srv = builder.ReadTexture(last_resource, ReadAccess_PixelShader);
+				data.velocity_srv = builder.ReadTexture(RG_RES_NAME(VelocityBuffer), ReadAccess_PixelShader);
+			},
+			[=](MotionBlurPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			{
+				ID3D12Device* device = gfx->GetDevice();
+				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+
+				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::MotionBlur));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::MotionBlur));
+
+				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
+				cmd_list->SetGraphicsRootConstantBufferView(1, global_data.postprocess_cbuffer_address);
+
+				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
+
+				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { context.GetReadOnlyTexture(data.input_srv), context.GetReadOnlyTexture(data.velocity_srv) };
+				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
+				uint32 src_range_sizes[] = { 1, 1 };
+				uint32 dst_range_sizes[] = { 2 };
+
+				device->CopyDescriptors(ARRAYSIZE(dst_ranges), dst_ranges, dst_range_sizes, ARRAYSIZE(src_ranges), src_ranges, src_range_sizes,
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+				cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
+				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+				cmd_list->DrawInstanced(4, 1, 0, 0); 
+
+			}, ERGPassType::Graphics, ERGPassFlags::None);
+
+	}
+
+	void Postprocessor::AddHistoryCopyPass(RenderGraph& rg)
+	{
+		struct CopyPassData
+		{
+			RGTextureCopySrcId copy_src;
+			RGTextureCopyDstId copy_dst;
+		};
+		RGResourceName last_resource = final_resource;
+
+		rg.AddPass<CopyPassData>("History Copy Pass",
+			[=](CopyPassData& data, RenderGraphBuilder& builder)
+			{
+				RGTextureDesc postprocess_desc{};
+				postprocess_desc.width = width;
+				postprocess_desc.height = height;
+				postprocess_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+				builder.DeclareTexture(RG_RES_NAME(PostprocessMain), postprocess_desc);
+				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(HistoryBuffer));
+				data.copy_src = builder.ReadCopySrcTexture(last_resource);
+			},
+			[=](CopyPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			{
+				Texture const& src_texture = context.GetCopySrcTexture(data.copy_src);
+				Texture const& dst_texture = context.GetCopyDstTexture(data.copy_dst);
+				cmd_list->CopyResource(dst_texture.GetNative(), src_texture.GetNative());
+			}, ERGPassType::Copy, ERGPassFlags::None);
+	}
+
+	void Postprocessor::AddTAAPass(RenderGraph& rg)
+	{
+		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		RGResourceName last_resource = final_resource;
+
+		struct TAAPassData
+		{
+			RGTextureReadOnlyId input_srv;
+			RGTextureReadOnlyId history_srv;
+			RGTextureReadOnlyId velocity_srv;
+		};
+
+		rg.ImportTexture(RG_RES_NAME(HistoryBuffer), history_buffer.get());
+		rg.AddPass<TAAPassData>("TAA Pass",
+			[=](TAAPassData& data, RenderGraphBuilder& builder)
+			{
+				RGTextureDesc taa_desc{};
+				taa_desc.width = width;
+				taa_desc.height = height;
+				taa_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+				builder.SetViewport(width, height);
+				builder.DeclareTexture(RG_RES_NAME(TAAOutput), taa_desc);
+				builder.WriteRenderTarget(RG_RES_NAME(TAAOutput), ERGLoadStoreAccessOp::Discard_Preserve);
+				data.input_srv = builder.ReadTexture(last_resource, ReadAccess_PixelShader);
+				data.history_srv = builder.ReadTexture(RG_RES_NAME(HistoryBuffer), ReadAccess_PixelShader);
+				data.velocity_srv = builder.ReadTexture(RG_RES_NAME(VelocityBuffer), ReadAccess_PixelShader);
+			},
+			[=](TAAPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			{
+				ID3D12Device* device = gfx->GetDevice();
+				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+
+				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::TAA));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::TAA));
+
+				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), context.GetReadOnlyTexture(data.input_srv),
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), context.GetReadOnlyTexture(data.history_srv),
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 2), context.GetReadOnlyTexture(data.velocity_srv),
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+				cmd_list->SetGraphicsRootDescriptorTable(0, descriptor_allocator->GetHandle(descriptor_index));
+				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+				cmd_list->DrawInstanced(4, 1, 0, 0);
+
+			}, ERGPassType::Graphics, ERGPassFlags::None);
+
 	}
 
 	void Postprocessor::AddGenerateBokehPasses(RenderGraph& rg)

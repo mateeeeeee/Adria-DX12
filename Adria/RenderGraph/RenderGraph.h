@@ -55,29 +55,27 @@ namespace adria
 		RenderGraph& operator=(RenderGraph&&) = default;
 		~RenderGraph()
 		{
-			for (auto& [id, view_descs] : texture_view_desc_map)
+			for (auto& [tex_id, view_vector] : texture_view_map)
 			{
-				for (size_t i = 0; i < view_descs.size(); ++i)
+				for (auto [view, type] : view_vector)
 				{
-					std::vector<RGDescriptor>& views = texture_view_map[id];
-					ADRIA_ASSERT(views.size() == view_descs.size());
-					switch (view_descs[i].second)
+					switch (type)
 					{
 					case ERGDescriptorType::RenderTarget:
-						gfx->FreeOfflineDescriptor(views[i], D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+						gfx->FreeOfflineDescriptor(view, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 						continue;
 					case ERGDescriptorType::DepthStencil:
-						gfx->FreeOfflineDescriptor(views[i], D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+						gfx->FreeOfflineDescriptor(view, D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 						continue;
 					default:
-						gfx->FreeOfflineDescriptor(views[i], D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+						gfx->FreeOfflineDescriptor(view, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 					}
 				}
 			}
 
 			for (auto& [buf_id, view_vector] : buffer_view_map)
 			{
-				for (auto view : view_vector) gfx->FreeOfflineDescriptor(view, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				for (auto [view, type] : view_vector) gfx->FreeOfflineDescriptor(view, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			}
 		}
 
@@ -118,10 +116,10 @@ namespace adria
 		HashMap<RGResourceName, RGAllocationId>  alloc_name_id_map;
 
 		mutable HashMap<RGTextureId, std::vector<std::pair<TextureSubresourceDesc, ERGDescriptorType>>> texture_view_desc_map;
-		mutable HashMap<RGTextureId, std::vector<RGDescriptor>> texture_view_map;
+		mutable HashMap<RGTextureId, std::vector<std::pair<D3D12_CPU_DESCRIPTOR_HANDLE, ERGDescriptorType>>> texture_view_map;
 
 		mutable HashMap<RGBufferId, std::vector<std::pair<BufferSubresourceDesc, ERGDescriptorType>>> buffer_view_desc_map;
-		mutable HashMap<RGBufferId, std::vector<RGDescriptor>> buffer_view_map;
+		mutable HashMap<RGBufferId, std::vector<std::pair<D3D12_CPU_DESCRIPTOR_HANDLE, ERGDescriptorType>>> buffer_view_map;
 
 	private:
 
@@ -172,12 +170,12 @@ namespace adria
 		Buffer const& GetCopyDstBuffer(RGBufferCopyDstId) const;
 		Buffer const& GetIndirectArgsBuffer(RGBufferIndirectArgsId) const;
 
-		RGDescriptor GetRenderTarget(RGRenderTargetId) const;
-		RGDescriptor GetDepthStencil(RGDepthStencilId) const;
-		RGDescriptor GetReadOnlyTexture(RGTextureReadOnlyId) const;
-		RGDescriptor GetReadWriteTexture(RGTextureReadWriteId) const;
-		RGDescriptor GetReadOnlyBuffer(RGBufferReadOnlyId) const;
-		RGDescriptor GetReadWriteBuffer(RGBufferReadWriteId) const;
+		Descriptor GetRenderTarget(RGRenderTargetId) const;
+		Descriptor GetDepthStencil(RGDepthStencilId) const;
+		Descriptor GetReadOnlyTexture(RGTextureReadOnlyId) const;
+		Descriptor GetReadWriteTexture(RGTextureReadWriteId) const;
+		Descriptor GetReadOnlyBuffer(RGBufferReadOnlyId) const;
+		Descriptor GetReadWriteBuffer(RGBufferReadWriteId) const;
 
 		DynamicAllocation& GetAllocation(RGAllocationId);
 		Texture* GetTexture(RGTextureId) const;

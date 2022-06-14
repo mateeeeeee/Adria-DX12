@@ -160,7 +160,7 @@ namespace adria
 			copy_to_texture_pass.OnResize(w, h);
 			tonemap_pass.OnResize(w, h);
 			fxaa_pass.OnResize(w, h);
-			postprocessor.OnResize(w, h);
+			postprocessor.OnResize(gfx, w, h);
 			add_textures_pass.OnResize(w, h);
 		}
 	}
@@ -179,7 +179,7 @@ namespace adria
 		sky_pass.OnSceneInitialized(gfx);
 		ssao_pass.OnSceneInitialized(gfx);
 		hbao_pass.OnSceneInitialized(gfx);
-		postprocessor.OnSceneInitialized();
+		postprocessor.OnSceneInitialized(gfx);
 
 		gfx->ExecuteDefaultCommandList();
 		gfx->WaitForGPU();

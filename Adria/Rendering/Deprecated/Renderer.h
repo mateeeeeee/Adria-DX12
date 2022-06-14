@@ -214,7 +214,6 @@ namespace adria
 	private:
 
 		void CreateIBLTextures();
-		void UploadData();
 		
 		void UpdateOcean(ID3D12GraphicsCommandList4* cmd_list);
 		void UpdateParticles(float32 dt);
@@ -222,7 +221,6 @@ namespace adria
 		void PassPicking(ID3D12GraphicsCommandList4* cmd_list);
 		void PassDecals(ID3D12GraphicsCommandList4* cmd_list);
 		
-		void PassHBAO(ID3D12GraphicsCommandList4* cmd_list);
 		void PassRTAO(ID3D12GraphicsCommandList4* cmd_list);
 		void PassForward(ID3D12GraphicsCommandList4* cmd_list); 
 
