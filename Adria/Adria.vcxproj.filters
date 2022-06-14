@@ -251,6 +251,9 @@
     <ClCompile Include="Rendering\ClusteredLightingPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\SSAOPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -618,6 +621,9 @@
     </ClInclude>
     <ClInclude Include="Utilities\HashSet.h">
       <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\SSAOPass.h">
+      <Filter>Rendering\Passes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

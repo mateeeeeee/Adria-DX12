@@ -253,5 +253,4 @@ namespace adria
 	{
 		rg.AddTextureBindFlags(name, flags);
 	}
-
 }

@@ -32,11 +32,21 @@ namespace adria
 		template<size_t N>
 		constexpr explicit RenderGraphResourceName(char const (&_name)[N], uint64 hash) : hashed_name(hash), name(_name)
 		{}
+
+		char const* GetName() const
+		{
+			return name;
+		}
 #else
 		RenderGraphResourceName() : hashed_name(INVALID_HASH) {}
 		template<size_t N>
 		constexpr explicit RenderGraphResourceName(uint64 hash) : hashed_name(hash)
 		{}
+
+		char const* GetName() const
+		{
+			return "";
+		}
 #endif
 		uint64 hashed_name;
 #if RG_DEBUG
@@ -44,7 +54,6 @@ namespace adria
 #endif
 	};
 	using RGResourceName = RenderGraphResourceName;
-
 	inline bool operator==(RenderGraphResourceName const& name1, RenderGraphResourceName const& name2)
 	{
 		return name1.hashed_name == name2.hashed_name;

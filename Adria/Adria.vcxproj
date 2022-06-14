@@ -210,6 +210,7 @@
     <ClCompile Include="Rendering\ShadowPass.cpp" />
     <ClCompile Include="Rendering\SkyModel.cpp" />
     <ClCompile Include="Rendering\SkyPass.cpp" />
+    <ClCompile Include="Rendering\SSAOPass.cpp" />
     <ClCompile Include="Rendering\TiledLightingPass.cpp" />
     <ClCompile Include="Rendering\ToneMapPass.cpp" />
     <ClCompile Include="Utilities\AdriaException.cpp" />
@@ -316,6 +317,7 @@
     <ClInclude Include="Rendering\ShadowPass.h" />
     <ClInclude Include="Rendering\SkyModel.h" />
     <ClInclude Include="Rendering\SkyPass.h" />
+    <ClInclude Include="Rendering\SSAOPass.h" />
     <ClInclude Include="Rendering\TiledLightingPass.h" />
     <ClInclude Include="Rendering\ToneMapPass.h" />
     <ClInclude Include="resource.h" />

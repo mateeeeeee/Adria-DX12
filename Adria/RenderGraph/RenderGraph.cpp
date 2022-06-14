@@ -100,7 +100,7 @@ namespace adria
 		pool.Tick();
 		for (auto& dependency_level : dependency_levels) dependency_level.Setup();
 
-		auto cmd_list = gfx->GetDefaultCommandList();
+		auto cmd_list = gfx->GetNewGraphicsCommandList();
 		for (size_t i = 0; i < dependency_levels.size(); ++i)
 		{
 			auto& dependency_level = dependency_levels[i];

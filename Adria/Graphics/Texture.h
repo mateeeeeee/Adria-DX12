@@ -313,9 +313,17 @@ namespace adria
 				uint32 data_count = desc.array_size * std::max<uint32>(1u, desc.mip_levels);
 				UINT64 required_size;
 				device->GetCopyableFootprints(&resource_desc, 0, data_count, 0, nullptr, nullptr, nullptr, &required_size);
-				DynamicAllocation dyn_alloc = upload_buffer->Allocate(required_size);
+				DynamicAllocation dyn_alloc = upload_buffer->Allocate(required_size, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
 				UpdateSubresources(cmd_list, resource.Get(), dyn_alloc.buffer,
 					dyn_alloc.offset, 0, data_count, initial_data);
+
+				D3D12_RESOURCE_BARRIER barrier{};
+				barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+				barrier.Transition.pResource = resource.Get();
+				barrier.Transition.StateAfter = ConvertToD3D12ResourceState(desc.initial_state);
+				barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+				barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+				cmd_list->ResourceBarrier(1, &barrier);
 			}
 		}
 

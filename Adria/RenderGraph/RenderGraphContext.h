@@ -3,6 +3,9 @@
 #include "../Graphics/Texture.h"
 #include "RenderGraphResourceId.h"
 #include "RenderGraphBlackboard.h"
+#if RG_DEBUG
+#include "../Utilities/StringUtil.h"
+#endif
 
 namespace adria
 {
@@ -55,6 +58,13 @@ namespace adria
 			: RenderGraphResource(id, false), resource(nullptr), desc(desc)
 		{}
 
+		void SetDebugName(wchar_t const* name)
+		{
+#if RG_DEBUG
+			ADRIA_ASSERT(resource != nullptr && "Call SetName if at allocation/creation of a resource");
+			resource->GetNative()->SetName(name);
+#endif
+		}
 		Resource* resource;
 		ResourceDesc desc;
 	};

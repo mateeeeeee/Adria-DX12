@@ -8,6 +8,7 @@
 #include "../Graphics/Buffer.h"
 #include "../Graphics/Texture.h"
 #include "../RenderGraph/RenderGraph.h"
+#include "../Utilities/Random.h"
 
 using namespace DirectX;
 
@@ -23,7 +24,7 @@ namespace adria
 		,sky_pass(reg, texture_manager, width, height), lighting_pass(width, height), shadow_pass(reg, texture_manager),
 		tiled_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
 		postprocessor(reg, texture_manager, width, height), fxaa_pass(width, height),
-		clustered_lighting_pass(reg, gfx, width, height)
+		clustered_lighting_pass(reg, gfx, width, height), ssao_pass(width, height)
 	{
 		RootSigPSOManager::Initialize(gfx->GetDevice());
 		CreateNullHeap();
@@ -70,8 +71,29 @@ namespace adria
 			global_data.null_srv_texturecube = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURECUBE);
 		}
 		rg_blackboard.Add<GlobalBlackboardData>(std::move(global_data));
-
 		gbuffer_pass.AddPass(render_graph, profiler_settings.profile_gbuffer_pass);
+
+		switch (render_settings.postprocessor.ambient_occlusion)
+		{
+		case EAmbientOcclusion::SSAO:
+		{
+			ssao_pass.AddPass(render_graph);
+			break;
+		}
+		case EAmbientOcclusion::HBAO:
+		{
+			ADRIA_ASSERT(false && "Not yet implemented");
+			break;
+		}
+		case EAmbientOcclusion::RTAO:
+		{
+			ADRIA_ASSERT(false && "Not yet implemented");
+			break;
+		}
+		case EAmbientOcclusion::None:
+		default:
+			break;
+		}
 		ambient_pass.AddPass(render_graph);
 
 		auto light_entities = reg.view<Light>();
@@ -129,6 +151,7 @@ namespace adria
 			CreateSizeDependentResources();
 			gbuffer_pass.OnResize(w, h);
 			ambient_pass.OnResize(w, h);
+			ssao_pass.OnResize(w, h);
 			sky_pass.OnResize(w, h);
 			lighting_pass.OnResize(w, h);
 			tiled_lighting_pass.OnResize(w, h);
@@ -153,7 +176,22 @@ namespace adria
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		sky_pass.OnSceneInitialized(gfx);
+		ssao_pass.OnSceneInitialized(gfx);
 		postprocessor.OnSceneInitialized();
+
+		gfx->ExecuteDefaultCommandList();
+		gfx->WaitForGPU();
+
+		RealRandomGenerator rand_float{ 0.0f, 1.0f };
+		for (uint32 i = 0; i < SSAO_KERNEL_SIZE; i++)
+		{
+			DirectX::XMFLOAT4 _offset = DirectX::XMFLOAT4(2 * rand_float() - 1, 2 * rand_float() - 1, rand_float(), 0.0f);
+			DirectX::XMVECTOR offset = DirectX::XMLoadFloat4(&_offset);
+			offset = DirectX::XMVector4Normalize(offset);
+
+			offset *= rand_float();
+			ssao_kernel[i] = offset;
+		}
 	}
 
 	TextureManager& RenderGraphRenderer::GetTextureManager()

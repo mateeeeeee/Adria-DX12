@@ -24,8 +24,11 @@ namespace adria
 			[=](ToneMapPassData& data, RenderGraphBuilder& builder)
 			{
 				data.hdr_srv = builder.ReadTexture(hdr_src, ReadAccess_PixelShader);
-				ADRIA_ASSERT(!render_to_backbuffer && builder.IsTextureDeclared(RG_RES_NAME(FinalTexture)));
-				if (!render_to_backbuffer) data.target = builder.WriteRenderTarget(RG_RES_NAME(FinalTexture), ERGLoadStoreAccessOp::Discard_Preserve);
+				if (!render_to_backbuffer)
+				{
+					ADRIA_ASSERT(builder.IsTextureDeclared(RG_RES_NAME(FinalTexture)));
+					data.target = builder.WriteRenderTarget(RG_RES_NAME(FinalTexture), ERGLoadStoreAccessOp::Discard_Preserve);
+				}
 				else data.target = RGRenderTargetId();
 				builder.SetViewport(width, height);
 			},

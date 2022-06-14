@@ -12,6 +12,7 @@
 #include "ShadowPass.h"
 #include "ToneMapPass.h"
 #include "FXAAPass.h"
+#include "SSAOPass.h"
 #include "CopyToTexturePass.h"
 #include "AddTexturesPass.h"
 #include "../Graphics/ShaderUtility.h"
@@ -44,7 +45,7 @@ namespace adria
 			NULL_HEAP_SLOT_RWTEXTURE2D,
 			NULL_HEAP_SIZE
 		};
-		static constexpr uint32 SSAO_KERNEL_SIZE = 16;
+		static constexpr uint32 SSAO_KERNEL_SIZE = SSAOPass::KERNEL_SIZE;
 
 	public:
 
@@ -101,6 +102,7 @@ namespace adria
 
 		//passes
 		GBufferPass  gbuffer_pass;
+		SSAOPass	 ssao_pass;
 		AmbientPass  ambient_pass;
 		ToneMapPass  tonemap_pass;
 		FXAAPass	 fxaa_pass;
