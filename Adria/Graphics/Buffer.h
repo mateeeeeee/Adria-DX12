@@ -271,6 +271,10 @@ namespace adria
 			Update(&src_data, sizeof(T));
 		}
 
+		void SetName(char const* name)
+		{
+			resource->SetName(ConvertToWide(name).c_str());
+		}
 	private:
 		GraphicsDevice* gfx;
 		Microsoft::WRL::ComPtr<ID3D12Resource> resource;

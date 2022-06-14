@@ -439,6 +439,10 @@ namespace adria
 			resource->Unmap(0, nullptr);
 		}
 
+		void SetName(char const* name)
+		{
+			resource->SetName(ConvertToWide(name).c_str());
+		}
 	private:
 		GraphicsDevice* gfx;
 		Microsoft::WRL::ComPtr<ID3D12Resource> resource;

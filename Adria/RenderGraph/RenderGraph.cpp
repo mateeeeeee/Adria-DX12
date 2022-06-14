@@ -14,16 +14,18 @@ namespace adria
 {
 	RGTextureId RenderGraph::DeclareTexture(RGResourceName name, RGTextureDesc const& desc)
 	{
+		ADRIA_ASSERT(texture_name_id_map.find(name) == texture_name_id_map.end() && "Texture with that name has already been declared");
 		TextureDesc tex_desc{}; FillTextureDesc(desc, tex_desc);
-		textures.emplace_back(new RGTexture(textures.size(), tex_desc));
+		textures.emplace_back(new RGTexture(textures.size(), tex_desc, name));
 		texture_name_id_map[name] = RGTextureId(textures.size() - 1);
 		return RGTextureId(textures.size() - 1);
 	}
 
 	RGBufferId RenderGraph::DeclareBuffer(RGResourceName name, RGBufferDesc const& desc)
 	{
+		ADRIA_ASSERT(buffer_name_id_map.find(name) == buffer_name_id_map.end() && "Buffer with that name has already been declared");
 		BufferDesc buf_desc{}; FillBufferDesc(desc, buf_desc);
-		buffers.emplace_back(new RGBuffer(buffers.size(), buf_desc));
+		buffers.emplace_back(new RGBuffer(buffers.size(), buf_desc, name));
 		buffer_name_id_map[name] = RGBufferId(buffers.size() - 1);
 		return RGBufferId(buffers.size() - 1);
 	}
@@ -52,13 +54,15 @@ namespace adria
 
 	void RenderGraph::ImportTexture(RGResourceName name, Texture* texture)
 	{
-		textures.emplace_back(new RGTexture(textures.size(), texture));
+		textures.emplace_back(new RGTexture(textures.size(), texture, name));
+		textures.back()->SetName();
 		texture_name_id_map[name] = RGTextureId(textures.size() - 1);
 	}
 
 	void RenderGraph::ImportBuffer(RGResourceName name, Buffer* buffer)
 	{
-		buffers.emplace_back(new RGBuffer(buffers.size(), buffer));
+		buffers.emplace_back(new RGBuffer(buffers.size(), buffer, name));
+		buffers.back()->SetName();
 		buffer_name_id_map[name] = RGBufferId(buffers.size() - 1);
 	}
 
@@ -109,12 +113,14 @@ namespace adria
 				RGTexture* rg_texture = GetRGTexture(tex_id);
 				rg_texture->resource = pool.AllocateTexture(rg_texture->desc);
 				CreateTextureViews(tex_id);
+				rg_texture->SetName();
 			}
 			for (auto buf_id : dependency_level.buffer_creates)
 			{
 				RGBuffer* rg_buffer = GetRGBuffer(buf_id);
 				rg_buffer->resource = pool.AllocateBuffer(rg_buffer->desc);
 				CreateBufferViews(buf_id);
+				rg_buffer->SetName();
 			}
 
 			ResourceBarrierBatch barrier_batcher{};

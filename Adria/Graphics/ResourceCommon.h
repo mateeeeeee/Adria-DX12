@@ -4,6 +4,7 @@
 #include "GraphicsDeviceDX12.h"
 #include "d3dx12.h"
 #include "../Utilities/EnumUtil.h"
+#include "../Utilities/StringUtil.h"
 
 namespace adria
 {

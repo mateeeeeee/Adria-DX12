@@ -33,7 +33,7 @@ namespace adria
 		constexpr explicit RenderGraphResourceName(char const (&_name)[N], uint64 hash) : hashed_name(hash), name(_name)
 		{}
 
-		char const* GetName() const
+		operator char const*() const
 		{
 			return name;
 		}
@@ -43,7 +43,7 @@ namespace adria
 		constexpr explicit RenderGraphResourceName(uint64 hash) : hashed_name(hash)
 		{}
 
-		char const* GetName() const
+		operator char const* () const
 		{
 			return "";
 		}

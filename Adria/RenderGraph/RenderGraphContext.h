@@ -31,8 +31,8 @@ namespace adria
 
 	struct RenderGraphResource
 	{
-		RenderGraphResource(size_t id, bool imported)
-			: id(id), imported(imported), version(0), ref_count(0)
+		RenderGraphResource(size_t id, bool imported, char const* name)
+			: id(id), imported(imported), version(0), ref_count(0), name(name)
 		{}
 
 		size_t id;
@@ -42,6 +42,7 @@ namespace adria
 
 		RenderGraphPassBase* writer = nullptr;
 		RenderGraphPassBase* last_used_by = nullptr;
+		char const* name = "";
 	};
 
 	template<ERGResourceType ResourceType>
@@ -50,21 +51,22 @@ namespace adria
 		using Resource = RGResourceTraits<ResourceType>::Resource;
 		using ResourceDesc = RGResourceTraits<ResourceType>::ResourceDesc;
 
-		TypedRenderGraphResource(size_t id, Resource* resource)
-			: RenderGraphResource(id, true), resource(resource), desc(resource->GetDesc())
+		TypedRenderGraphResource(size_t id, Resource* resource, char const* name = "")
+			: RenderGraphResource(id, true, name), resource(resource), desc(resource->GetDesc())
 		{}
 
-		TypedRenderGraphResource(size_t id, ResourceDesc const& desc)
-			: RenderGraphResource(id, false), resource(nullptr), desc(desc)
+		TypedRenderGraphResource(size_t id, ResourceDesc const& desc, char const* name = "")
+			: RenderGraphResource(id, false, name), resource(nullptr), desc(desc)
 		{}
 
-		void SetDebugName(wchar_t const* name)
+		void SetName()
 		{
 #if RG_DEBUG
-			ADRIA_ASSERT(resource != nullptr && "Call SetName if at allocation/creation of a resource");
-			resource->GetNative()->SetName(name);
+			ADRIA_ASSERT(resource != nullptr && "Call SetDebugName at allocation/creation of a resource");
+			resource->SetName(name);
 #endif
 		}
+
 		Resource* resource;
 		ResourceDesc desc;
 	};

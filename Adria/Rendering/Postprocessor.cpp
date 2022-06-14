@@ -66,13 +66,6 @@ namespace adria
 			AddBloomPass(rg);
 			final_resource = RG_RES_NAME(BloomOutput);
 		}
-		if (HasAnyFlag(settings.anti_aliasing, AntiAliasing_TAA))
-		{
-			AddTAAPass(rg);
-			final_resource = RG_RES_NAME(TAAOutput);
-			AddHistoryCopyPass(rg);
-		}
-
 		for (tecs::entity light_entity : lights)
 		{
 			auto const& light = lights.get(light_entity);
@@ -92,6 +85,12 @@ namespace adria
 				}
 				break;
 			}
+		}
+		if (HasAnyFlag(settings.anti_aliasing, AntiAliasing_TAA))
+		{
+			AddTAAPass(rg);
+			final_resource = RG_RES_NAME(TAAOutput);
+			AddHistoryCopyPass(rg);
 		}
 	}
 
@@ -170,7 +169,6 @@ namespace adria
 
 	void Postprocessor::AddVelocityBufferPass(RenderGraph& rg)
 	{
-		//if (!settings.motion_blur && !(settings.anti_aliasing & AntiAliasing_TAA)) return;
 		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
 		struct VelocityBufferPassData
 		{
@@ -781,12 +779,11 @@ namespace adria
 		rg.AddPass<CopyPassData>("History Copy Pass",
 			[=](CopyPassData& data, RenderGraphBuilder& builder)
 			{
-				RGTextureDesc postprocess_desc{};
-				postprocess_desc.width = width;
-				postprocess_desc.height = height;
-				postprocess_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				RGTextureDesc history_desc{};
+				history_desc.width = width;
+				history_desc.height = height;
+				history_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 
-				builder.DeclareTexture(RG_RES_NAME(PostprocessMain), postprocess_desc);
 				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(HistoryBuffer));
 				data.copy_src = builder.ReadCopySrcTexture(last_resource);
 			},
