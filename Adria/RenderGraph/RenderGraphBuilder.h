@@ -23,7 +23,7 @@ namespace adria
 	{
 		uint64 size = 0;
 		uint32 stride = 0;
-		EResourceUsage heap_type = EResourceUsage::Default;
+		EResourceUsage resource_usage = EResourceUsage::Default;
 		EBufferMiscFlag misc_flags = EBufferMiscFlag::None;
 		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
 	};
@@ -48,7 +48,7 @@ namespace adria
 	{
 		buf_desc.size = rg_buf_desc.size;
 		buf_desc.stride = rg_buf_desc.stride;
-		buf_desc.heap_type = rg_buf_desc.heap_type;
+		buf_desc.resource_usage = rg_buf_desc.resource_usage;
 		buf_desc.misc_flags = rg_buf_desc.misc_flags;
 		buf_desc.format = rg_buf_desc.format;
 		buf_desc.bind_flags = EBindFlag::None;
@@ -116,6 +116,10 @@ namespace adria
 		{
 			return WriteBufferImpl(name, BufferSubresourceDesc{ offset, size });
 		}
+		[[nodiscard]] RGBufferReadWriteId WriteBuffer(RGResourceName name, RGResourceName counter_name, uint32 offset = 0, uint32 size = -1)
+		{
+			return WriteBufferImpl(name, counter_name, BufferSubresourceDesc{ offset, size });
+		}
 
 		void SetViewport(uint32 width, uint32 height);
 		void AddBufferBindFlags(RGResourceName name, EBindFlag flags);
@@ -134,6 +138,7 @@ namespace adria
 		[[maybe_unused]] RGDepthStencilId ReadDepthStencilImpl(RGResourceName name, ERGLoadStoreAccessOp load_store_op, ERGLoadStoreAccessOp stencil_load_store_op, TextureSubresourceDesc const& desc);
 		[[nodiscard]] RGBufferReadOnlyId ReadBufferImpl(RGResourceName name, ERGReadAccess read_access, BufferSubresourceDesc const& desc);
 		[[nodiscard]] RGBufferReadWriteId WriteBufferImpl(RGResourceName name, BufferSubresourceDesc const& desc);
+		[[nodiscard]] RGBufferReadWriteId WriteBufferImpl(RGResourceName name, RGResourceName counter_name, BufferSubresourceDesc const& desc);
 	};
 
 	using RGBuilder = RenderGraphBuilder;

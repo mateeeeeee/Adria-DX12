@@ -106,7 +106,9 @@ namespace adria
 					int32 lastCompletedOp = *pNode->pLastBreadcrumbValue;
 					if (lastCompletedOp != (int)pNode->BreadcrumbCount && lastCompletedOp != 0)
 					{
-						ADRIA_LOG(DEBUG, "[DRED] Commandlist \"%s\" on CommandQueue \"%s\", %d completed of %d", pNode->pCommandListDebugNameA, pNode->pCommandQueueDebugNameA, lastCompletedOp, pNode->BreadcrumbCount);
+						char const* cmd_list_name = "cmd_list";
+						char const* queue_name = "graphics queue";
+						ADRIA_LOG(DEBUG, "[DRED] Commandlist \"%s\" on CommandQueue \"%s\", %d completed of %d", cmd_list_name, queue_name, lastCompletedOp, pNode->BreadcrumbCount);
 
 						int32 firstOp = std::max<int32>(lastCompletedOp - 100, 0);
 						int32 lastOp = std::min<int32>(lastCompletedOp + 20, int32(pNode->BreadcrumbCount) - 1);
@@ -178,7 +180,6 @@ namespace adria
 			if (FAILED(device->QueryInterface(IID_PPV_ARGS(&dred)))) ADRIA_LOG(ERROR, "Failed to get DRED interface");
 			else LogDredInfo(device, dred.Get());
 		}
-
 		inline void ReportLiveObjects()
 		{
 			Microsoft::WRL::ComPtr<IDXGIDebug1> dxgi_debug;
@@ -552,7 +553,7 @@ namespace adria
 		ResetDefaultCommandList();
 
 		auto& frame_resources = GetFrameResources();
-		D3D12_RESOURCE_BARRIER barrier = {};
+		D3D12_RESOURCE_BARRIER barrier{};
 		barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
 		barrier.Transition.pResource = frame_resources.back_buffer.Get();
 		barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
@@ -563,9 +564,7 @@ namespace adria
 
 		FLOAT const clear_color[] = { 0,0,0,0 };
 		frame_resources.default_cmd_list->ClearRenderTargetView(frame_resources.back_buffer_rtv, clear_color, 0, nullptr);
-
 		frame_resources.default_cmd_list->SetGraphicsRootSignature(nullptr);
-
 		ID3D12DescriptorHeap* ppHeaps[] = { descriptor_allocator->Heap() };
 		frame_resources.default_cmd_list->SetDescriptorHeaps(1, ppHeaps);
 	}
@@ -800,7 +799,6 @@ namespace adria
 		BREAK_IF_FAILED(graphics_queue->Signal(release_queue_fence.Get(), release_queue_fence_value));
 		++release_queue_fence_value;
 	}
-
 }
 
 

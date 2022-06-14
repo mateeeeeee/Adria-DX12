@@ -7,7 +7,7 @@ namespace adria
 	struct BufferDesc
 	{
 		uint64 size = 0;
-		EResourceUsage heap_type = EResourceUsage::Default;
+		EResourceUsage resource_usage = EResourceUsage::Default;
 		EBindFlag bind_flags = EBindFlag::None;
 		EBufferMiscFlag misc_flags = EBufferMiscFlag::None;
 		uint32 stride = 0; //structured buffers, (vertex buffers, index buffers, needed for count calculation not for srv as structured buffers)
@@ -19,7 +19,7 @@ namespace adria
 	{
 		BufferDesc desc{};
 		desc.bind_flags = EBindFlag::None;
-		desc.heap_type = EResourceUsage::Default;
+		desc.resource_usage = EResourceUsage::Default;
 		desc.size = vertex_count * stride;
 		desc.stride = stride;
 		desc.misc_flags = ray_tracing ? EBufferMiscFlag::RayTracing : EBufferMiscFlag::None;
@@ -29,7 +29,7 @@ namespace adria
 	{
 		BufferDesc desc{};
 		desc.bind_flags = EBindFlag::None;
-		desc.heap_type = EResourceUsage::Default;
+		desc.resource_usage = EResourceUsage::Default;
 		desc.stride = small_indices ? 2 : 4;
 		desc.size = index_count * desc.stride;
 		desc.misc_flags = ray_tracing ? EBufferMiscFlag::RayTracing : EBufferMiscFlag::None;
@@ -39,7 +39,7 @@ namespace adria
 	{
 		BufferDesc desc{};
 		desc.bind_flags = EBindFlag::None;
-		desc.heap_type = EResourceUsage::Readback;
+		desc.resource_usage = EResourceUsage::Readback;
 		desc.size = size;
 		desc.misc_flags = EBufferMiscFlag::None;
 		return desc;
@@ -48,7 +48,7 @@ namespace adria
 	static BufferDesc StructuredBufferDesc(uint64 count, bool uav = true, bool dynamic = false)
 	{
 		BufferDesc desc{};
-		desc.heap_type = (uav || !dynamic) ? EResourceUsage::Default : EResourceUsage::Upload;
+		desc.resource_usage = (uav || !dynamic) ? EResourceUsage::Default : EResourceUsage::Upload;
 		desc.bind_flags = EBindFlag::ShaderResource;
 		if (uav) desc.bind_flags |= EBindFlag::UnorderedAccess;
 		desc.misc_flags = EBufferMiscFlag::BufferStructured;
@@ -79,7 +79,7 @@ namespace adria
 			: gfx(gfx), desc(desc)
 		{
 			UINT64 buffer_size = desc.size;
-			if (HasAllFlags(desc.bind_flags, EBindFlag::None))
+			if (HasAllFlags(desc.misc_flags, EBufferMiscFlag::ConstantBuffer))
 				buffer_size = Align(buffer_size, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 
 			D3D12_RESOURCE_DESC resource_desc{};
@@ -105,13 +105,13 @@ namespace adria
 
 			D3D12MA::ALLOCATION_DESC allocation_desc{};
 			allocation_desc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
-			if (desc.heap_type == EResourceUsage::Readback)
+			if (desc.resource_usage == EResourceUsage::Readback)
 			{
 				allocation_desc.HeapType = D3D12_HEAP_TYPE_READBACK;
 				resource_state = D3D12_RESOURCE_STATE_COPY_DEST;
 				resource_desc.Flags |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
 			}
-			else if (desc.heap_type == EResourceUsage::Upload)
+			else if (desc.resource_usage == EResourceUsage::Upload)
 			{
 				allocation_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
 				resource_state = D3D12_RESOURCE_STATE_GENERIC_READ;
@@ -133,13 +133,13 @@ namespace adria
 			BREAK_IF_FAILED(hr);
 			allocation.reset(alloc);
 
-			if (desc.heap_type == EResourceUsage::Readback)
+			if (desc.resource_usage == EResourceUsage::Readback)
 			{
 				hr = resource->Map(0, nullptr, &mapped_data);
 				BREAK_IF_FAILED(hr);
 				mapped_rowpitch = static_cast<uint32_t>(desc.size);
 			}
-			else if (desc.heap_type == EResourceUsage::Upload)
+			else if (desc.resource_usage == EResourceUsage::Upload)
 			{
 				D3D12_RANGE read_range{};
 				hr = resource->Map(0, &read_range, &mapped_data);
@@ -152,7 +152,7 @@ namespace adria
 				}
 			}
 
-			if (initial_data != nullptr && desc.heap_type != EResourceUsage::Upload)
+			if (initial_data != nullptr && desc.resource_usage != EResourceUsage::Upload)
 			{
 				auto cmd_list = gfx->GetDefaultCommandList();
 				auto upload_buffer = gfx->GetDynamicAllocator();
@@ -203,10 +203,10 @@ namespace adria
 			srvs.pop_back();
 			return srv;
 		}
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeSubresource_UAV(BufferSubresourceDesc const* desc = nullptr)
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeSubresource_UAV(BufferSubresourceDesc const* desc = nullptr, ID3D12Resource* uav_counter = nullptr)
 		{
 			BufferSubresourceDesc _desc = desc ? *desc : BufferSubresourceDesc{};
-			size_t i = CreateSubresource(SubresourceType_UAV, _desc);
+			size_t i = CreateSubresource(SubresourceType_UAV, _desc, uav_counter);
 			ADRIA_ASSERT(uavs.size() - 1 == i);
 			D3D12_CPU_DESCRIPTOR_HANDLE uav = uavs.back();
 			uavs.pop_back();
@@ -232,13 +232,13 @@ namespace adria
 			if (mapped_data) return mapped_data;
 
 			HRESULT hr;
-			if (desc.heap_type == EResourceUsage::Readback)
+			if (desc.resource_usage == EResourceUsage::Readback)
 			{
 				hr = resource->Map(0, nullptr, &mapped_data);
 				BREAK_IF_FAILED(hr);
 				mapped_rowpitch = static_cast<uint32_t>(desc.size);
 			}
-			else if (desc.heap_type == EResourceUsage::Upload)
+			else if (desc.resource_usage == EResourceUsage::Upload)
 			{
 				D3D12_RANGE read_range{};
 				hr = resource->Map(0, &read_range, &mapped_data);
@@ -253,7 +253,7 @@ namespace adria
 		}
 		void Update(void const* src_data, size_t data_size)
 		{
-			ADRIA_ASSERT(desc.heap_type == EResourceUsage::Upload);
+			ADRIA_ASSERT(desc.resource_usage == EResourceUsage::Upload);
 			if (mapped_data)
 			{
 				memcpy(mapped_data, src_data, data_size);

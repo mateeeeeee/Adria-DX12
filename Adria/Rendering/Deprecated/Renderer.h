@@ -215,22 +215,21 @@ namespace adria
 
 		void CreateIBLTextures();
 		
-		void UpdateOcean(ID3D12GraphicsCommandList4* cmd_list);
-		void UpdateParticles(float32 dt);
-
+		void UpdateOcean(ID3D12GraphicsCommandList4* cmd_list); //5
+		void PassOcean(ID3D12GraphicsCommandList4* cmd_list);
+		
+		void UpdateParticles(float32 dt);						//6
+		void PassParticles(ID3D12GraphicsCommandList4* cmd_list);
+		
 		void PassPicking(ID3D12GraphicsCommandList4* cmd_list); //1
 		void PassDecals(ID3D12GraphicsCommandList4* cmd_list);  //2
 		
-		void PassRTAO(ID3D12GraphicsCommandList4* cmd_list);
-		void PassForward(ID3D12GraphicsCommandList4* cmd_list); 
-
-		void PassForwardCommon(ID3D12GraphicsCommandList4* cmd_list, bool transparent);
-		void PassOcean(ID3D12GraphicsCommandList4* cmd_list);
-		void PassParticles(ID3D12GraphicsCommandList4* cmd_list);
+		void PassRTAO(ID3D12GraphicsCommandList4* cmd_list); //7
 		
+		void PassForward(ID3D12GraphicsCommandList4* cmd_list); 
+		void PassForwardCommon(ID3D12GraphicsCommandList4* cmd_list, bool transparent);
+
 		void PassGenerateBokeh(ID3D12GraphicsCommandList4* cmd_list); //3
 		void PassDrawBokeh(ID3D12GraphicsCommandList4* cmd_list);	  //4
-		
-		void PassMotionBlur(ID3D12GraphicsCommandList4* cmd_list);
 	};
 }

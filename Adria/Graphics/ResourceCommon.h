@@ -135,6 +135,9 @@ namespace adria
 		BufferRaw = 1 << 1,
 		BufferStructured = 1 << 2,
 		RayTracing = 1 << 3,
+		ConstantBuffer = 1 << 4,
+		VertexBuffer = 1 << 5,
+		IndexBuffer = 1 << 6
 	};
 	DEFINE_ENUM_BIT_OPERATORS(EBufferMiscFlag);
 

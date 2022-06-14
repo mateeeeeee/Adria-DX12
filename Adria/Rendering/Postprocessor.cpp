@@ -52,8 +52,9 @@ namespace adria
 		if (settings.dof)
 		{
 			blur_pass.AddPass(rg, final_resource, RG_RES_NAME(BlurredDofInput), "DoF");
-			//if (settings.bokeh) PassGenerateBokeh(cmd_list);
+			if (settings.bokeh) AddGenerateBokehPasses(rg);
 			AddDepthOfFieldPass(rg);
+			//if (settings.bokeh) AddDrawBokehPass(rg);
 			final_resource = RG_RES_NAME(DepthOfFieldOutput);
 		}
 		if (settings.motion_blur)
@@ -124,14 +125,41 @@ namespace adria
 		lens_flare_textures.push_back(texture_manager.LoadTexture(L"Resources/Textures/lensflare/flare5.jpg"));
 		lens_flare_textures.push_back(texture_manager.LoadTexture(L"Resources/Textures/lensflare/flare6.jpg"));
 
+		hex_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Hex.dds");
+		oct_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Oct.dds");
+		circle_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Circle.dds");
+		cross_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Cross.dds");
+
 		TextureDesc render_target_desc{};
 		render_target_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		render_target_desc.width = width;
 		render_target_desc.height = height;
 		render_target_desc.bind_flags = EBindFlag::ShaderResource;
 		render_target_desc.initial_state = EResourceState::CopyDest;
-
 		history_buffer = std::make_unique<Texture>(gfx, render_target_desc);
+
+		BufferDesc reset_buffer_desc{};
+		reset_buffer_desc.size = sizeof(uint32);
+		reset_buffer_desc.resource_usage = EResourceUsage::Upload;
+		uint32 initial_data[] = { 0 };
+		counter_reset_buffer = std::make_unique<Buffer>(gfx, reset_buffer_desc, initial_data);
+
+		BufferDesc buffer_desc{};
+		buffer_desc.size = 4 * sizeof(uint32);
+		buffer_desc.bind_flags = EBindFlag::None;
+		buffer_desc.misc_flags = EBufferMiscFlag::IndirectArgs;
+		buffer_desc.resource_usage = EResourceUsage::Default;
+
+		uint32 init_data[] = { 0,1,0,0 };
+		bokeh_indirect_buffer = std::make_unique<Buffer>(gfx, buffer_desc, init_data);
+
+		D3D12_INDIRECT_ARGUMENT_DESC args[1];
+		args[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW;
+		D3D12_COMMAND_SIGNATURE_DESC command_signature_desc{};
+		command_signature_desc.NumArgumentDescs = 1;
+		command_signature_desc.pArgumentDescs = args;
+		command_signature_desc.ByteStride = sizeof(D3D12_DRAW_ARGUMENTS);
+		BREAK_IF_FAILED(gfx->GetDevice()->CreateCommandSignature(&command_signature_desc, nullptr, IID_PPV_ARGS(&bokeh_command_signature)));
 	}
 
 	RGResourceName Postprocessor::GetFinalResource() const
@@ -850,55 +878,61 @@ namespace adria
 	void Postprocessor::AddGenerateBokehPasses(RenderGraph& rg)
 	{
 		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
-
-		struct GenerateBokehPassData
+		RGResourceName last_resource = final_resource;
+		struct BokehCounterResetPassData
 		{
-			RGTextureReadOnlyId input;
-			RGTextureReadOnlyId depth;
+			RGBufferCopySrcId src;
+			RGBufferCopyDstId dst;
 		};
-		/*
-		rg.AddPass<GenerateBokehPassData>("GenerateBokeh Pass",
-			[=](GenerateBokehPassData& data, RenderGraphBuilder& builder)
+		
+		rg.AddPass<BokehCounterResetPassData>("Bokeh Counter Reset Pass",
+			[=](BokehCounterResetPassData& data, RenderGraphBuilder& builder)
 			{
-				TextureDesc dof_output_desc{};
-				dof_output_desc.width = width;
-				dof_output_desc.height = height;
-				dof_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				dof_output_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::RenderTarget | EBindFlag::ShaderResource;
-				dof_output_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
-
-				//builder.DeclareBuffer(RG_RES_NAME(DepthOfFieldOutput), dof_output_desc);
-				data.input = builder.ReadTexture(final_resource, ReadAccess_PixelShader);
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
-				builder.SetViewport(width, height);
+				RGBufferDesc bokeh_counter_desc{};
+				bokeh_counter_desc.size = sizeof(uint32);
+				builder.DeclareBuffer(RG_RES_NAME(BokehCounter), bokeh_counter_desc);
+				data.dst = builder.WriteCopyDstBuffer(RG_RES_NAME(BokehCounter));
 			},
-			[=](GenerateBokehPassData const& data, RenderGraphResources& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](BokehCounterResetPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			{
+				Buffer const& bokeh_counter = context.GetCopyDstBuffer(data.dst);
+				cmd_list->CopyBufferRegion(bokeh_counter.GetNative(), 0, counter_reset_buffer->GetNative(), 0, sizeof(uint32));
+			}, ERGPassType::Copy, ERGPassFlags::ForceNoCull);
+			
+		struct BokehGeneratePassData
+		{
+			RGTextureReadOnlyId input_srv;
+			RGTextureReadOnlyId depth_srv;
+			RGBufferReadWriteId bokeh_uav;
+		};
+
+		rg.AddPass<BokehGeneratePassData>("Bokeh Generate Pass",
+			[=](BokehGeneratePassData& data, RenderGraphBuilder& builder)
+			{
+				RGBufferDesc bokeh_desc{};
+				bokeh_desc.resource_usage = EResourceUsage::Default;
+				bokeh_desc.misc_flags = EBufferMiscFlag::BufferStructured;
+				bokeh_desc.stride = sizeof(Bokeh);
+				bokeh_desc.size = bokeh_desc.stride * width * height;
+				builder.DeclareBuffer(RG_RES_NAME(Bokeh), bokeh_desc);
+				data.bokeh_uav = builder.WriteBuffer(RG_RES_NAME(Bokeh), RG_RES_NAME(BokehCounter));
+				data.input_srv = builder.ReadTexture(last_resource, ReadAccess_NonPixelShader);
+				data.depth_srv = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+			},
+			[=](BokehGeneratePassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				D3D12_RESOURCE_BARRIER prereset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(bokeh_counter.GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_DEST);
-				cmd_list->ResourceBarrier(1, &prereset_barrier);
-				cmd_list->CopyBufferRegion(bokeh_counter.GetNative(), 0, counter_reset_buffer->GetNative(), 0, sizeof(uint32));
-				D3D12_RESOURCE_BARRIER postreset_barrier = CD3DX12_RESOURCE_BARRIER::Transition(bokeh_counter.GetNative(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-				cmd_list->ResourceBarrier(1, &postreset_barrier);
-
 				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::BokehGenerate));
 				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::BokehGenerate));
-				cmd_list->SetComputeRootConstantBufferView(0, frame_cbuffer.View(backbuffer_index).BufferLocation);
-				cmd_list->SetComputeRootConstantBufferView(1, postprocess_cbuffer.View(backbuffer_index).BufferLocation);
-				cmd_list->SetComputeRootConstantBufferView(2, compute_cbuffer.View(backbuffer_index).BufferLocation);
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
+				cmd_list->SetComputeRootConstantBufferView(1, global_data.postprocess_cbuffer_address);
+				cmd_list->SetComputeRootConstantBufferView(2, global_data.compute_cbuffer_address);
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
 
-				D3D12_RESOURCE_BARRIER dispatch_barriers[] =
-				{
-					CD3DX12_RESOURCE_BARRIER::Transition(depth_target->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
-					CD3DX12_RESOURCE_BARRIER::Transition(bokeh->GetNative(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
-				};
-				cmd_list->ResourceBarrier(ARRAYSIZE(dispatch_barriers), dispatch_barriers);
-
-				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { postprocess_textures[!postprocess_index]->SRV(), depth_target->SRV() };
+				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { context.GetReadOnlyTexture(data.input_srv), context.GetReadOnlyTexture(data.depth_srv) };
 				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
 				uint32 src_range_sizes[] = { 1, 1 };
 				uint32 dst_range_sizes[] = { 2 };
@@ -906,7 +940,7 @@ namespace adria
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				cmd_list->SetComputeRootDescriptorTable(3, descriptor_allocator->GetHandle(descriptor_index));
 
-				D3D12_CPU_DESCRIPTOR_HANDLE bokeh_uav = bokeh->UAV();
+				D3D12_CPU_DESCRIPTOR_HANDLE bokeh_uav = context.GetReadWriteBuffer(data.bokeh_uav);
 				descriptor_index = descriptor_allocator->Allocate();
 
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), bokeh_uav, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -914,82 +948,95 @@ namespace adria
 				cmd_list->SetComputeRootDescriptorTable(4, descriptor_allocator->GetHandle(descriptor_index));
 				cmd_list->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
 
-				CD3DX12_RESOURCE_BARRIER precopy_barriers[] = {
-						CD3DX12_RESOURCE_BARRIER::Transition(bokeh->GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
-						CD3DX12_RESOURCE_BARRIER::Transition(depth_target->GetNative(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
-						CD3DX12_RESOURCE_BARRIER::Transition(bokeh_indirect_draw_buffer->GetNative(), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, D3D12_RESOURCE_STATE_COPY_DEST),
-						CD3DX12_RESOURCE_BARRIER::Transition(bokeh_counter.GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE)
-				};
-				cmd_list->ResourceBarrier(ARRAYSIZE(precopy_barriers), precopy_barriers);
+				//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+				/*cmd_list->CopyBufferRegion(bokeh_indirect_draw_buffer->GetNative(), 0, bokeh_counter.GetNative(), 0, bokeh_counter.GetDesc().size);
+				*/
+			}, ERGPassType::Compute, ERGPassFlags::ForceNoCull);
 
-				cmd_list->CopyBufferRegion(bokeh_indirect_draw_buffer->GetNative(), 0, bokeh_counter.GetNative(), 0, bokeh_counter.GetDesc().size);
-
-				CD3DX12_RESOURCE_BARRIER postcopy_barriers[] =
-				{
-						CD3DX12_RESOURCE_BARRIER::Transition(bokeh_indirect_draw_buffer->GetNative(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT),
-						CD3DX12_RESOURCE_BARRIER::Transition(bokeh_counter.GetNative(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
-				};
-				cmd_list->ResourceBarrier(ARRAYSIZE(postcopy_barriers), postcopy_barriers);
-
-			}, ERGPassType::Compute, ERGPassFlags::None);
-			*/
+		struct BokehCopyToIndirectBufferPass
+		{
+			RGBufferCopySrcId src;
+			RGBufferCopyDstId dst;
+		};
+		rg.ImportBuffer(RG_RES_NAME(BokehIndirectDraw), bokeh_indirect_buffer.get());
+		rg.AddPass<BokehCopyToIndirectBufferPass>("Bokeh Indirect Buffer Pass",
+			[=](BokehCopyToIndirectBufferPass& data, RenderGraphBuilder& builder)
+			{
+				data.dst = builder.WriteCopyDstBuffer(RG_RES_NAME(BokehIndirectDraw));
+				data.src = builder.ReadCopySrcBuffer(RG_RES_NAME(BokehCounter));
+			},
+			[=](BokehCopyToIndirectBufferPass const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			{
+				Buffer const& src_buffer = context.GetCopySrcBuffer(data.src);
+				Buffer const& dst_buffer = context.GetCopyDstBuffer(data.dst);
+				cmd_list->CopyBufferRegion(dst_buffer.GetNative(), 0, src_buffer.GetNative(), 0, src_buffer.GetDesc().size);
+			}, ERGPassType::Copy, ERGPassFlags::ForceNoCull);
 	}
 
 	void Postprocessor::AddDrawBokehPass(RenderGraph& rg)
 	{
 		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
-
-		/*
-		struct DepthOfFieldPassData
+		RGResourceName last_resource = final_resource;
+		struct BokehDrawPassData
 		{
-			RGTextureReadOnlyId input;
-			RGTextureReadOnlyId blurred_input;
-			RGTextureReadOnlyId depth;
+			RGBufferReadOnlyId bokeh_srv;
+			RGBufferIndirectArgsId bokeh_indirect_args;
 		};
 
-		rg.AddPass<DepthOfFieldPassData>("DrawBokeh Pass",
-			[=](DepthOfFieldPassData& data, RenderGraphBuilder& builder)
+		rg.AddPass<BokehDrawPassData>("Bokeh Draw Pass",
+			[=](BokehDrawPassData& data, RenderGraphBuilder& builder) 
 			{
-				TextureDesc dof_output_desc{};
-				dof_output_desc.width = width;
-				dof_output_desc.height = height;
-				dof_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				dof_output_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::RenderTarget | EBindFlag::ShaderResource;
-				dof_output_desc.initial_state = D3D12_RESOURCE_STATE_RENDER_TARGET;
-
-				builder.DeclareTexture(RG_RES_NAME(DepthOfFieldOutput), dof_output_desc);
-				builder.WriteRenderTarget(RG_RES_NAME(DepthOfFieldOutput), ERGLoadStoreAccessOp::Discard_Preserve);
-				data.input = builder.ReadTexture(final_resource, ReadAccess_PixelShader);
-				data.blurred_input = builder.ReadTexture(RG_RES_NAME(BlurredDofInput), ReadAccess_PixelShader);
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
+				builder.WriteRenderTarget(last_resource, ERGLoadStoreAccessOp::Preserve_Preserve);
+				data.bokeh_srv = builder.ReadBuffer(RG_RES_NAME(Bokeh), ReadAccess_PixelShader);
+				data.bokeh_indirect_args = builder.ReadIndirectArgsBuffer(RG_RES_NAME(BokehIndirectDraw));
 				builder.SetViewport(width, height);
 			},
-			[=](DepthOfFieldPassData const& data, RenderGraphResources& context, GraphicsDevice* gfx, RGCommandList* cmd_list)
+			[=](BokehDrawPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
-				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::DOF));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::DOF));
 
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetGraphicsRootConstantBufferView(1, global_data.postprocess_cbuffer_address);
+				D3D12_CPU_DESCRIPTOR_HANDLE bokeh_descriptor{};
+				switch (settings.bokeh_type)
+				{
+				case EBokehType::Hex:
+					bokeh_descriptor = texture_manager.CpuDescriptorHandle(hex_bokeh_handle);
+					break;
+				case EBokehType::Oct:
+					bokeh_descriptor = texture_manager.CpuDescriptorHandle(oct_bokeh_handle);
+					break;
+				case EBokehType::Circle:
+					bokeh_descriptor = texture_manager.CpuDescriptorHandle(circle_bokeh_handle);
+					break;
+				case EBokehType::Cross:
+					bokeh_descriptor = texture_manager.CpuDescriptorHandle(cross_bokeh_handle);
+					break;
+				default:
+					ADRIA_ASSERT(false && "Invalid Bokeh Type");
+				}
 
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
+				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Bokeh));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Bokeh));
 
-				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { resources.GetDescriptor(data.input), resources.GetDescriptor(data.blurred_input), resources.GetDescriptor(data.depth) };
-				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
-				uint32 src_range_sizes[] = { 1, 1, 1 };
-				uint32 dst_range_sizes[] = { 3 };
+				OffsetType i = descriptor_allocator->AllocateRange(2);
 
-				device->CopyDescriptors(ARRAYSIZE(dst_ranges), dst_ranges, dst_range_sizes, ARRAYSIZE(src_ranges), src_ranges, src_range_sizes,
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i),
+					context.GetReadOnlyBuffer(data.bokeh_srv), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-				cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
-				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-				cmd_list->DrawInstanced(4, 1, 0, 0);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1),
+					bokeh_descriptor, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
+				cmd_list->SetGraphicsRootDescriptorTable(0, descriptor_allocator->GetHandle(i));
+				cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetHandle(i + 1));
+
+				cmd_list->IASetVertexBuffers(0, 0, nullptr);
+				cmd_list->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+
+				Buffer const& indirect_args_buffer = context.GetIndirectArgsBuffer(data.bokeh_indirect_args);
+				cmd_list->ExecuteIndirect(bokeh_command_signature.Get(), 1, indirect_args_buffer.GetNative(), 0,
+					nullptr, 0);
 			}, ERGPassType::Graphics, ERGPassFlags::None);
-			*/
+		
 	}
 
 }

@@ -1,5 +1,7 @@
 #pragma once
 #include <memory>
+#include <d3d12.h>
+#include <wrl.h>
 #include "Enums.h"
 #include "RendererSettings.h"
 #include "BlurPass.h"
@@ -22,6 +24,7 @@ namespace adria
 	class GPUProfiler;
 	class TextureManager;
 	class Texture;
+	class Buffer;
 	struct Light;
 
 	class Postprocessor
@@ -44,8 +47,16 @@ namespace adria
 
 		std::vector<size_t> cloud_textures;
 		std::vector<size_t> lens_flare_textures;
+		size_t hex_bokeh_handle;
+		size_t oct_bokeh_handle;
+		size_t circle_bokeh_handle;
+		size_t cross_bokeh_handle;
+
 		RGResourceName final_resource;
 		std::unique_ptr<Texture> history_buffer;
+		std::unique_ptr<Buffer> counter_reset_buffer;
+		std::unique_ptr<Buffer> bokeh_indirect_buffer;
+		Microsoft::WRL::ComPtr<ID3D12CommandSignature> bokeh_command_signature;
 		//helper passes
 		BlurPass blur_pass;
 		CopyToTexturePass copy_to_texture_pass;

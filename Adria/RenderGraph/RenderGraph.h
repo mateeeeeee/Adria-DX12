@@ -113,6 +113,7 @@ namespace adria
 
 		HashMap<RGResourceName, RGTextureId> texture_name_id_map;
 		HashMap<RGResourceName, RGBufferId>  buffer_name_id_map;
+		HashMap<RGBufferReadWriteId, RGBufferId> buffer_uav_counter_map;
 		HashMap<RGResourceName, RGAllocationId>  alloc_name_id_map;
 
 		mutable HashMap<RGTextureId, std::vector<std::pair<TextureSubresourceDesc, ERGDescriptorType>>> texture_view_desc_map;
@@ -163,6 +164,7 @@ namespace adria
 		RGTextureReadWriteId WriteTexture(RGResourceName name, TextureSubresourceDesc const& desc);
 		RGBufferReadOnlyId ReadBuffer(RGResourceName name, BufferSubresourceDesc const& desc);
 		RGBufferReadWriteId WriteBuffer(RGResourceName name, BufferSubresourceDesc const& desc);
+		RGBufferReadWriteId WriteBuffer(RGResourceName name, RGResourceName counter_name, BufferSubresourceDesc const& desc);
 
 		Texture const& GetCopySrcTexture(RGTextureCopySrcId) const;
 		Texture const& GetCopyDstTexture(RGTextureCopyDstId) const;

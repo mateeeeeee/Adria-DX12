@@ -233,6 +233,23 @@ namespace adria
 		return read_write_id;
 	}
 
+	RGBufferReadWriteId RenderGraphBuilder::WriteBufferImpl(RGResourceName name, RGResourceName counter_name, BufferSubresourceDesc const& desc)
+	{
+		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
+		RGBufferReadWriteId read_write_id = rg.WriteBuffer(name, counter_name, desc);
+		
+		RGBufferId res_id = read_write_id.GetResourceId();
+		rg_pass.buffer_state_map[res_id] = EResourceState::UnorderedAccess;
+		if (!rg_pass.buffer_creates.contains(res_id) && !rg_pass.ActAsCreatorWhenWriting())
+		{
+			DummyReadBuffer(name);
+		}
+		rg_pass.buffer_writes.insert(res_id);
+		auto* buffer = rg.GetRGBuffer(res_id);
+		if (buffer->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
+		return read_write_id;
+	}
+
 	RGAllocationId RenderGraphBuilder::UseAllocation(RGResourceName name)
 	{
 		return rg.UseAllocation(name);

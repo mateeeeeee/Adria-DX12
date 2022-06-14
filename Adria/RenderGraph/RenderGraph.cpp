@@ -456,18 +456,30 @@ namespace adria
 	void RenderGraph::CreateBufferViews(RGBufferId res_id)
 	{
 		auto const& view_descs = buffer_view_desc_map[res_id];
-		for (auto const& [view_desc, type] : view_descs)
+		for (size_t i = 0; i < view_descs.size(); ++i)
 		{
+			auto const& [view_desc, type] = view_descs[i];
 			Buffer* buffer = GetBuffer(res_id);
+			
 			Descriptor view;
 			switch (type)
 			{
 			case ERGDescriptorType::ReadOnly:
+			{
 				view = buffer->TakeSubresource_SRV(&view_desc);
 				break;
+			}
 			case ERGDescriptorType::ReadWrite:
-				view = buffer->TakeSubresource_UAV(&view_desc);
+			{
+				RGBufferReadWriteId rw_id(i, res_id);
+				if (buffer_uav_counter_map.contains(rw_id))
+				{
+					RGBuffer* counter_buffer = GetRGBuffer(buffer_uav_counter_map[rw_id]);
+					view = buffer->TakeSubresource_UAV(&view_desc, counter_buffer->resource->GetNative());
+				}
+				else view = buffer->TakeSubresource_UAV(&view_desc);
 				break;
+			}
 			case ERGDescriptorType::RenderTarget:
 			case ERGDescriptorType::DepthStencil:
 			default:
@@ -636,6 +648,27 @@ namespace adria
 		size_t view_id = view_descs.size();
 		view_descs.emplace_back(desc, ERGDescriptorType::ReadWrite);
 		return RGBufferReadWriteId(view_id, handle);
+	}
+
+	RGBufferReadWriteId RenderGraph::WriteBuffer(RGResourceName name, RGResourceName counter_name, BufferSubresourceDesc const& desc)
+	{
+		RGBufferId handle = buffer_name_id_map[name];
+		RGBufferId counter_handle = buffer_name_id_map[counter_name];
+		ADRIA_ASSERT(IsValidBufferHandle(handle) && "Resource has not been declared!");
+		ADRIA_ASSERT(IsValidBufferHandle(counter_handle) && "Resource has not been declared!");
+
+		RGBuffer* rg_buffer = GetRGBuffer(handle);
+		RGBuffer* rg_counter_buffer = GetRGBuffer(counter_handle);
+
+		rg_buffer->desc.bind_flags |= EBindFlag::UnorderedAccess;
+		rg_counter_buffer->desc.bind_flags |= EBindFlag::UnorderedAccess;
+
+		std::vector<std::pair<BufferSubresourceDesc, ERGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
+		size_t view_id = view_descs.size();
+		view_descs.emplace_back(desc, ERGDescriptorType::ReadWrite);
+		RGBufferReadWriteId rw_id = RGBufferReadWriteId(view_id, handle);
+		buffer_uav_counter_map.insert(std::make_pair(rw_id, counter_handle));
+		return rw_id;
 	}
 
 	RGAllocationId RenderGraph::UseAllocation(RGResourceName name)
