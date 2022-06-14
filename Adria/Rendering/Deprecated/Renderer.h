@@ -218,8 +218,8 @@ namespace adria
 		void UpdateOcean(ID3D12GraphicsCommandList4* cmd_list);
 		void UpdateParticles(float32 dt);
 
-		void PassPicking(ID3D12GraphicsCommandList4* cmd_list);
-		void PassDecals(ID3D12GraphicsCommandList4* cmd_list);
+		void PassPicking(ID3D12GraphicsCommandList4* cmd_list); //1
+		void PassDecals(ID3D12GraphicsCommandList4* cmd_list);  //2
 		
 		void PassRTAO(ID3D12GraphicsCommandList4* cmd_list);
 		void PassForward(ID3D12GraphicsCommandList4* cmd_list); 
@@ -228,11 +228,9 @@ namespace adria
 		void PassOcean(ID3D12GraphicsCommandList4* cmd_list);
 		void PassParticles(ID3D12GraphicsCommandList4* cmd_list);
 		
-		void PassGenerateBokeh(ID3D12GraphicsCommandList4* cmd_list);
-		void PassDrawBokeh(ID3D12GraphicsCommandList4* cmd_list);
+		void PassGenerateBokeh(ID3D12GraphicsCommandList4* cmd_list); //3
+		void PassDrawBokeh(ID3D12GraphicsCommandList4* cmd_list);	  //4
 		
-		void PassVelocityBuffer(ID3D12GraphicsCommandList4* cmd_list);
 		void PassMotionBlur(ID3D12GraphicsCommandList4* cmd_list);
-		void PassTAA(ID3D12GraphicsCommandList4* cmd_list);
 	};
 }

@@ -243,7 +243,7 @@ namespace adria
 	{
 		//frame
 		{
-			FrameCBuffer frame_cbuf_data;
+			static FrameCBuffer frame_cbuf_data{};
 			frame_cbuf_data.global_ambient = XMVectorSet(render_settings.ambient_color[0], render_settings.ambient_color[1], render_settings.ambient_color[2], 1);
 			frame_cbuf_data.camera_near = camera->Near();
 			frame_cbuf_data.camera_far = camera->Far();
@@ -267,7 +267,7 @@ namespace adria
 		//postprocess
 		{
 			PostprocessSettings const& settings = render_settings.postprocessor;
-			PostprocessCBuffer postprocess_cbuf_data{};
+			static PostprocessCBuffer postprocess_cbuf_data{};
 			postprocess_cbuf_data.tone_map_exposure = settings.tonemap_exposure;
 			postprocess_cbuf_data.tone_map_operator = static_cast<int>(settings.tone_map_op);
 			postprocess_cbuf_data.noise_scale = XMFLOAT2((float32)width / 8, (float32)height / 8);
@@ -292,7 +292,7 @@ namespace adria
 		
 		//weather
 		{
-			WeatherCBuffer weather_cbuf_data{};
+			static WeatherCBuffer weather_cbuf_data{};
 			static float32 total_time = 0.0f;
 			total_time += dt;
 
@@ -344,7 +344,7 @@ namespace adria
 		{
 			std::array<float32, 9> coeffs{};
 			coeffs.fill(1.0f / 9);
-			ComputeCBuffer compute_cbuf_data{};
+			static ComputeCBuffer compute_cbuf_data{};
 			compute_cbuf_data.gauss_coeff1 = coeffs[0];
 			compute_cbuf_data.gauss_coeff2 = coeffs[1];
 			compute_cbuf_data.gauss_coeff3 = coeffs[2];
