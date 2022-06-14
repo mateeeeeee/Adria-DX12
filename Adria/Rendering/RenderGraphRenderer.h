@@ -13,6 +13,7 @@
 #include "ToneMapPass.h"
 #include "FXAAPass.h"
 #include "SSAOPass.h"
+#include "HBAOPass.h"
 #include "CopyToTexturePass.h"
 #include "AddTexturesPass.h"
 #include "../Graphics/ShaderUtility.h"
@@ -103,6 +104,7 @@ namespace adria
 		//passes
 		GBufferPass  gbuffer_pass;
 		SSAOPass	 ssao_pass;
+		HBAOPass     hbao_pass;
 		AmbientPass  ambient_pass;
 		ToneMapPass  tonemap_pass;
 		FXAAPass	 fxaa_pass;

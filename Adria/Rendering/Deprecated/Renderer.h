@@ -222,10 +222,8 @@ namespace adria
 		void PassPicking(ID3D12GraphicsCommandList4* cmd_list);
 		void PassDecals(ID3D12GraphicsCommandList4* cmd_list);
 		
-		void PassSSAO(ID3D12GraphicsCommandList4* cmd_list);
 		void PassHBAO(ID3D12GraphicsCommandList4* cmd_list);
 		void PassRTAO(ID3D12GraphicsCommandList4* cmd_list);
-		void PassDeferredClusteredLighting(ID3D12GraphicsCommandList4* cmd_list);
 		void PassForward(ID3D12GraphicsCommandList4* cmd_list); 
 
 		void PassForwardCommon(ID3D12GraphicsCommandList4* cmd_list, bool transparent);

@@ -203,6 +203,7 @@
     <ClCompile Include="Rendering\FXAAPass.cpp" />
     <ClCompile Include="Rendering\GBufferPass.cpp" />
     <ClCompile Include="Rendering\GenerateMipsPass.cpp" />
+    <ClCompile Include="Rendering\HBAOPass.cpp" />
     <ClCompile Include="Rendering\LightingPass.cpp" />
     <ClCompile Include="Rendering\Postprocessor.cpp" />
     <ClCompile Include="Rendering\RenderGraphRenderer.cpp" />
@@ -308,6 +309,7 @@
     <ClInclude Include="Rendering\GBufferPass.h" />
     <ClInclude Include="Rendering\GenerateMipsPass.h" />
     <ClInclude Include="Rendering\GlobalBlackboardData.h" />
+    <ClInclude Include="Rendering\HBAOPass.h" />
     <ClInclude Include="Rendering\LightingPass.h" />
     <ClInclude Include="Rendering\Postprocessor.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />

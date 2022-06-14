@@ -24,7 +24,7 @@ namespace adria
 		,sky_pass(reg, texture_manager, width, height), lighting_pass(width, height), shadow_pass(reg, texture_manager),
 		tiled_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
 		postprocessor(reg, texture_manager, width, height), fxaa_pass(width, height),
-		clustered_lighting_pass(reg, gfx, width, height), ssao_pass(width, height)
+		clustered_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height)
 	{
 		RootSigPSOManager::Initialize(gfx->GetDevice());
 		CreateNullHeap();
@@ -82,7 +82,7 @@ namespace adria
 		}
 		case EAmbientOcclusion::HBAO:
 		{
-			ADRIA_ASSERT(false && "Not yet implemented");
+			hbao_pass.AddPass(render_graph);
 			break;
 		}
 		case EAmbientOcclusion::RTAO:
@@ -152,6 +152,7 @@ namespace adria
 			gbuffer_pass.OnResize(w, h);
 			ambient_pass.OnResize(w, h);
 			ssao_pass.OnResize(w, h);
+			hbao_pass.OnResize(w, h);
 			sky_pass.OnResize(w, h);
 			lighting_pass.OnResize(w, h);
 			tiled_lighting_pass.OnResize(w, h);
@@ -177,6 +178,7 @@ namespace adria
 
 		sky_pass.OnSceneInitialized(gfx);
 		ssao_pass.OnSceneInitialized(gfx);
+		hbao_pass.OnSceneInitialized(gfx);
 		postprocessor.OnSceneInitialized();
 
 		gfx->ExecuteDefaultCommandList();
