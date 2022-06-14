@@ -77,7 +77,7 @@ namespace adria
 		void AddHistoryCopyPass(RenderGraph& rg);
 		void AddTAAPass(RenderGraph& rg);
 
-		void AddGenerateBokehPasses(RenderGraph& rg);
+		void AddGenerateBokehPass(RenderGraph& rg);
 		void AddDrawBokehPass(RenderGraph& rg);
 	};
 }

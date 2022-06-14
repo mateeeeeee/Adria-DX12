@@ -221,15 +221,12 @@ namespace adria
 		void UpdateParticles(float32 dt);						//6
 		void PassParticles(ID3D12GraphicsCommandList4* cmd_list);
 		
-		void PassPicking(ID3D12GraphicsCommandList4* cmd_list); //1
-		void PassDecals(ID3D12GraphicsCommandList4* cmd_list);  //2
+		void PassPicking(ID3D12GraphicsCommandList4* cmd_list); //3
+		void PassDecals(ID3D12GraphicsCommandList4* cmd_list);  //4
 		
 		void PassRTAO(ID3D12GraphicsCommandList4* cmd_list); //7
 		
 		void PassForward(ID3D12GraphicsCommandList4* cmd_list); 
 		void PassForwardCommon(ID3D12GraphicsCommandList4* cmd_list, bool transparent);
-
-		void PassGenerateBokeh(ID3D12GraphicsCommandList4* cmd_list); //3
-		void PassDrawBokeh(ID3D12GraphicsCommandList4* cmd_list);	  //4
 	};
 }

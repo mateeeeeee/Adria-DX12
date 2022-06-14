@@ -237,9 +237,13 @@ namespace adria
 	{
 		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
 		RGBufferReadWriteId read_write_id = rg.WriteBuffer(name, counter_name, desc);
+
+		RGBufferId counter_id = rg.GetBufferId(counter_name);
 		
 		RGBufferId res_id = read_write_id.GetResourceId();
 		rg_pass.buffer_state_map[res_id] = EResourceState::UnorderedAccess;
+		rg_pass.buffer_state_map[counter_id] = EResourceState::UnorderedAccess;
+		DummyWriteBuffer(counter_name);
 		if (!rg_pass.buffer_creates.contains(res_id) && !rg_pass.ActAsCreatorWhenWriting())
 		{
 			DummyReadBuffer(name);

@@ -27,7 +27,7 @@ namespace adria
 			{
 				PooledTexture& resource = texture_pool[i].first;
 				bool active = texture_pool[i].second;
-				if (!active && resource.last_used_frame + 3 < frame_index)
+				if (!active && resource.last_used_frame + 4 < frame_index)
 				{
 					std::swap(texture_pool[i], texture_pool.back());
 					texture_pool.pop_back();
