@@ -47,10 +47,10 @@ namespace adria
 
 		std::vector<size_t> cloud_textures;
 		std::vector<size_t> lens_flare_textures;
-		size_t hex_bokeh_handle;
-		size_t oct_bokeh_handle;
-		size_t circle_bokeh_handle;
-		size_t cross_bokeh_handle;
+		size_t hex_bokeh_handle = -1;
+		size_t oct_bokeh_handle = -1;
+		size_t circle_bokeh_handle = -1;
+		size_t cross_bokeh_handle = -1;
 
 		RGResourceName final_resource;
 		std::unique_ptr<Texture> history_buffer;

@@ -54,7 +54,7 @@ namespace adria
 			blur_pass.AddPass(rg, final_resource, RG_RES_NAME(BlurredDofInput), "DoF");
 			if (settings.bokeh) AddGenerateBokehPass(rg);
 			AddDepthOfFieldPass(rg);
-			//if (settings.bokeh) AddDrawBokehPass(rg);
+			if (settings.bokeh) AddDrawBokehPass(rg);
 			final_resource = RG_RES_NAME(DepthOfFieldOutput);
 		}
 		if (settings.motion_blur)
@@ -897,7 +897,7 @@ namespace adria
 			{
 				Buffer const& bokeh_counter = context.GetCopyDstBuffer(data.dst);
 				cmd_list->CopyBufferRegion(bokeh_counter.GetNative(), 0, counter_reset_buffer->GetNative(), 0, sizeof(uint32));
-			}, ERGPassType::Copy, ERGPassFlags::ForceNoCull);
+			}, ERGPassType::Copy, ERGPassFlags::None);
 			
 		struct BokehGeneratePassData
 		{
@@ -948,26 +948,26 @@ namespace adria
 				cmd_list->SetComputeRootDescriptorTable(4, descriptor_allocator->GetHandle(descriptor_index));
 				cmd_list->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
 
-			}, ERGPassType::Compute, ERGPassFlags::ForceNoCull);
-		//
-		//struct BokehCopyToIndirectBufferPass
-		//{
-		//	RGBufferCopySrcId src;
-		//	RGBufferCopyDstId dst;
-		//};
-		//rg.ImportBuffer(RG_RES_NAME(BokehIndirectDraw), bokeh_indirect_buffer.get());
-		//rg.AddPass<BokehCopyToIndirectBufferPass>("Bokeh Indirect Buffer Pass",
-		//	[=](BokehCopyToIndirectBufferPass& data, RenderGraphBuilder& builder)
-		//	{
-		//		data.dst = builder.WriteCopyDstBuffer(RG_RES_NAME(BokehIndirectDraw));
-		//		data.src = builder.ReadCopySrcBuffer(RG_RES_NAME(BokehCounter));
-		//	},
-		//	[=](BokehCopyToIndirectBufferPass const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
-		//	{
-		//		Buffer const& src_buffer = context.GetCopySrcBuffer(data.src);
-		//		Buffer const& dst_buffer = context.GetCopyDstBuffer(data.dst);
-		//		cmd_list->CopyBufferRegion(dst_buffer.GetNative(), 0, src_buffer.GetNative(), 0, src_buffer.GetDesc().size);
-		//	}, ERGPassType::Copy, ERGPassFlags::None);
+			}, ERGPassType::Compute, ERGPassFlags::None);
+		
+		struct BokehCopyToIndirectBufferPass
+		{
+			RGBufferCopySrcId src;
+			RGBufferCopyDstId dst;
+		};
+		rg.ImportBuffer(RG_RES_NAME(BokehIndirectDraw), bokeh_indirect_buffer.get());
+		rg.AddPass<BokehCopyToIndirectBufferPass>("Bokeh Indirect Buffer Pass",
+			[=](BokehCopyToIndirectBufferPass& data, RenderGraphBuilder& builder)
+			{
+				data.dst = builder.WriteCopyDstBuffer(RG_RES_NAME(BokehIndirectDraw));
+				data.src = builder.ReadCopySrcBuffer(RG_RES_NAME(BokehCounter));
+			},
+			[=](BokehCopyToIndirectBufferPass const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			{
+				Buffer const& src_buffer = context.GetCopySrcBuffer(data.src);
+				Buffer const& dst_buffer = context.GetCopyDstBuffer(data.dst);
+				cmd_list->CopyBufferRegion(dst_buffer.GetNative(), 0, src_buffer.GetNative(), 0, src_buffer.GetDesc().size);
+			}, ERGPassType::Copy, ERGPassFlags::None);
 	}
 
 	void Postprocessor::AddDrawBokehPass(RenderGraph& rg)

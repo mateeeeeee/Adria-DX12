@@ -44,7 +44,7 @@ namespace adria
 
 	void RenderGraphBuilder::DummyWriteBuffer(RGResourceName name)
 	{
-		rg_pass.buffer_reads.insert(rg.GetBufferId(name));
+		rg_pass.buffer_writes.insert(rg.GetBufferId(name));
 	}
 
 	RGTextureCopySrcId RenderGraphBuilder::ReadCopySrcTexture(RGResourceName name)
