@@ -86,6 +86,8 @@ namespace adria
 
 				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Blur));
 				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Blur_Vertical));
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.compute_cbuffer_address);
+
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
 
 				Descriptor cpu_descriptor = context.GetReadOnlyTexture(data.src_texture);

@@ -52,9 +52,12 @@ namespace adria
 		if (settings.dof)
 		{
 			blur_pass.AddPass(rg, final_resource, RG_RES_NAME(BlurredDofInput), "DoF");
-			if (settings.bokeh) AddGenerateBokehPass(rg);
+			if (settings.bokeh)
+			{
+				AddGenerateBokehPass(rg);
+				AddDrawBokehPass(rg);
+			}
 			AddDepthOfFieldPass(rg);
-			if (settings.bokeh) AddDrawBokehPass(rg);
 			final_resource = RG_RES_NAME(DepthOfFieldOutput);
 		}
 		if (settings.motion_blur)
@@ -983,7 +986,7 @@ namespace adria
 		rg.AddPass<BokehDrawPassData>("Bokeh Draw Pass",
 			[=](BokehDrawPassData& data, RenderGraphBuilder& builder) 
 			{
-				builder.WriteRenderTarget(RG_RES_NAME(DepthOfFieldOutput), ERGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteRenderTarget(last_resource, ERGLoadStoreAccessOp::Preserve_Preserve);
 				data.bokeh_srv = builder.ReadBuffer(RG_RES_NAME(Bokeh), ReadAccess_PixelShader);
 				data.bokeh_indirect_args = builder.ReadIndirectArgsBuffer(RG_RES_NAME(BokehIndirectDraw));
 				builder.SetViewport(width, height);
