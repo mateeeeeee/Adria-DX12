@@ -1,6 +1,6 @@
 #pragma once
 #include "RendererSettings.h"
-//#include "SceneViewport.h"
+#include "ViewportData.h"
 #include "ConstantBuffers.h"
 #include "Postprocessor.h"
 #include "GBufferPass.h"
@@ -16,6 +16,7 @@
 #include "HBAOPass.h"
 #include "CopyToTexturePass.h"
 #include "AddTexturesPass.h"
+#include "PickingPass.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/TextureManager.h"
@@ -58,14 +59,21 @@ namespace adria
 		void Render(RendererSettings const&);
 
 		void SetProfilerSettings(ProfilerSettings const&);
+		void SetViewportData(ViewportData&& vp)
+		{
+			viewport_data = std::move(vp);
+		}
+
 		void OnResize(uint32 w, uint32 h);
 		void OnSceneInitialized();
+		void OnRightMouseClicked(int32 x, int32 y);
 
 		Texture const* GetFinalTexture() const 
 		{ 
 			return final_texture.get(); 
 		}
 		TextureManager& GetTextureManager();
+		PickingData const& GetPickingData() const { return picking_data; }
 		std::vector<std::string> GetProfilerResults(bool log) const
 		{
 			return gpu_profiler.GetProfilerResults(gfx->GetDefaultCommandList(), log);
@@ -80,6 +88,7 @@ namespace adria
 
 		RendererSettings render_settings;
 		ProfilerSettings profiler_settings = NO_PROFILING;
+		ViewportData viewport_data;
 
 		TextureManager texture_manager;
 		Camera const* camera;
@@ -100,6 +109,8 @@ namespace adria
 		//misc
 		std::unique_ptr<DescriptorHeap> null_heap;
 		std::array<DirectX::XMVECTOR, SSAO_KERNEL_SIZE> ssao_kernel{};
+		bool update_picking_data = false;
+		PickingData picking_data;
 
 		//passes
 		GBufferPass  gbuffer_pass;
@@ -115,6 +126,7 @@ namespace adria
 		CopyToTexturePass copy_to_texture_pass;
 		AddTexturesPass add_textures_pass;
 		ShadowPass    shadow_pass;
+		PickingPass picking_pass;
 		Postprocessor postprocessor;
 	private:
 		void CreateNullHeap();

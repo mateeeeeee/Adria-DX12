@@ -3,7 +3,7 @@
 
 namespace adria
 {
-	struct SceneViewport
+	struct ViewportData
 	{
 		float32 scene_viewport_pos_x;
 		float32 scene_viewport_pos_y;

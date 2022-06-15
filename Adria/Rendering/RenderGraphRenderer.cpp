@@ -23,7 +23,7 @@ namespace adria
 		,gbuffer_pass(reg, gpu_profiler, width, height), ambient_pass(width, height), tonemap_pass(width, height)
 		,sky_pass(reg, texture_manager, width, height), lighting_pass(width, height), shadow_pass(reg, texture_manager),
 		tiled_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
-		postprocessor(reg, texture_manager, width, height), fxaa_pass(width, height),
+		postprocessor(reg, texture_manager, width, height), fxaa_pass(width, height), picking_pass(gfx, width, height),
 		clustered_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height)
 	{
 		RootSigPSOManager::Initialize(gfx->GetDevice());
@@ -71,8 +71,15 @@ namespace adria
 			global_data.null_srv_texturecube = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURECUBE);
 		}
 		rg_blackboard.Add<GlobalBlackboardData>(std::move(global_data));
-		gbuffer_pass.AddPass(render_graph, profiler_settings.profile_gbuffer_pass);
 
+		if (update_picking_data)
+		{
+			picking_data = picking_pass.GetPickingData();
+			update_picking_data = false;
+		}
+
+		gbuffer_pass.AddPass(render_graph, profiler_settings.profile_gbuffer_pass);
+		
 		switch (render_settings.postprocessor.ambient_occlusion)
 		{
 		case EAmbientOcclusion::SSAO:
@@ -125,6 +132,7 @@ namespace adria
 		}
 
 		sky_pass.AddPass(render_graph, render_settings.sky_type);
+		picking_pass.AddPass(render_graph);
 		postprocessor.AddPasses(render_graph, render_settings.postprocessor);
 
 		if (render_settings.gui_visible)
@@ -162,6 +170,7 @@ namespace adria
 			fxaa_pass.OnResize(w, h);
 			postprocessor.OnResize(gfx, w, h);
 			add_textures_pass.OnResize(w, h);
+			picking_pass.OnResize(w, h);
 		}
 	}
 	void RenderGraphRenderer::OnSceneInitialized()
@@ -194,6 +203,11 @@ namespace adria
 			offset *= rand_float();
 			ssao_kernel[i] = offset;
 		}
+	}
+
+	void RenderGraphRenderer::OnRightMouseClicked(int32 x, int32 y)
+	{
+		update_picking_data = true;
 	}
 
 	TextureManager& RenderGraphRenderer::GetTextureManager()
@@ -257,8 +271,8 @@ namespace adria
 			frame_cbuf_data.inverse_view_projection = DirectX::XMMatrixInverse(nullptr, camera->ViewProj());
 			frame_cbuf_data.screen_resolution_x = (float32)width;
 			frame_cbuf_data.screen_resolution_y = (float32)height;
-			frame_cbuf_data.mouse_normalized_coords_x = 0.0f;	//move this to some other cbuffer?
-			frame_cbuf_data.mouse_normalized_coords_y = 0.0f;	//move this to some other cbuffer?
+			frame_cbuf_data.mouse_normalized_coords_x = (viewport_data.mouse_position_x - viewport_data.scene_viewport_pos_x) / viewport_data.scene_viewport_size_x;
+			frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
 
 			frame_cbuffer.Update(frame_cbuf_data, backbuffer_index);
 			frame_cbuf_data.prev_view_projection = camera->ViewProj();

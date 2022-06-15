@@ -257,6 +257,7 @@
     <ClCompile Include="Rendering\HBAOPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\PickingPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -583,7 +584,7 @@
     <ClInclude Include="Rendering\ToneMapPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\SceneViewport.h">
+    <ClInclude Include="Rendering\ViewportData.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\SkyPass.h">
@@ -629,6 +630,9 @@
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\HBAOPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\PickingPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
   </ItemGroup>

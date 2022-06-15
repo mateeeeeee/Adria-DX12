@@ -96,6 +96,5 @@ namespace adria
 
 	private:
 		std::vector<D3D12_RESOURCE_BARRIER> resource_barriers;
-
 	};
 }

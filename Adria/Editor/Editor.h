@@ -4,7 +4,7 @@
 #include "../Core/Engine.h"
 #include "../tecs/registry.h"
 #include "../Rendering/RendererSettings.h"
-#include "../Rendering/SceneViewport.h"
+#include "../Rendering/ViewportData.h"
 #include "../Graphics/ProfilerSettings.h"
 #include "../ImGui/imgui_internal.h"
 #include "../ImGui/ImGuizmo.h"
@@ -21,7 +21,6 @@ namespace adria
 		EngineInit engine_init;
 	};
 
-	
 	class Editor
 	{
 		using ShaderReloadCallback = std::function<void()>;
@@ -42,7 +41,7 @@ namespace adria
 		ImGuizmo::OPERATION gizmo_op = ImGuizmo::TRANSLATE;
 		RendererSettings renderer_settings{};
 		ProfilerSettings profiler_settings{};
-		SceneViewport scene_viewport_data;
+		ViewportData viewport_data;
 		ShaderReloadCallback shader_reload_callback = nullptr;
 
 	private:

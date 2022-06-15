@@ -205,6 +205,7 @@
     <ClCompile Include="Rendering\GenerateMipsPass.cpp" />
     <ClCompile Include="Rendering\HBAOPass.cpp" />
     <ClCompile Include="Rendering\LightingPass.cpp" />
+    <ClCompile Include="Rendering\PickingPass.cpp" />
     <ClCompile Include="Rendering\Postprocessor.cpp" />
     <ClCompile Include="Rendering\RenderGraphRenderer.cpp" />
     <ClCompile Include="Rendering\RootSigPSOManager.cpp" />
@@ -311,11 +312,12 @@
     <ClInclude Include="Rendering\GlobalBlackboardData.h" />
     <ClInclude Include="Rendering\HBAOPass.h" />
     <ClInclude Include="Rendering\LightingPass.h" />
+    <ClInclude Include="Rendering\PickingPass.h" />
     <ClInclude Include="Rendering\Postprocessor.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />
     <ClInclude Include="Rendering\RenderGraphRenderer.h" />
     <ClInclude Include="Rendering\RootSigPSOManager.h" />
-    <ClInclude Include="Rendering\SceneViewport.h" />
+    <ClInclude Include="Rendering\ViewportData.h" />
     <ClInclude Include="Rendering\ShadowPass.h" />
     <ClInclude Include="Rendering\SkyModel.h" />
     <ClInclude Include="Rendering\SkyPass.h" />

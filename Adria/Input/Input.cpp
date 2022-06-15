@@ -169,7 +169,6 @@ namespace adria
 			break;
 			}
 		}
-
 		m_mouse_wheel_delta = (float32)GET_WHEEL_DELTA_WPARAM(data.wparam) / (float32)WHEEL_DELTA;
 
 	}

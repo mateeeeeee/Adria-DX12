@@ -460,7 +460,7 @@ namespace adria
 		renderer_settings.gui_visible = gui->IsVisible();
         if (gui->IsVisible())
         {
-			engine->SetSceneViewportData(scene_viewport_data);
+			engine->SetViewportData(viewport_data);
             engine->Run(renderer_settings);
             auto gui_cmd_list = engine->gfx->GetNewGraphicsCommandList();
             engine->gfx->SetBackbuffer(gui_cmd_list);
@@ -489,7 +489,7 @@ namespace adria
         }
         else
         {
-            engine->SetSceneViewportData(std::nullopt);
+            engine->SetViewportData(std::nullopt);
             engine->Run(renderer_settings);
             engine->Present();
         }
@@ -710,7 +710,6 @@ namespace adria
 
 	void Editor::DecalSettings()
 	{
-		/*
 		ImGui::Begin("Decals");
 		{
 			static DecalParameters params{};
@@ -766,7 +765,6 @@ namespace adria
 			}
 		}
 		ImGui::End();
-		*/
 	}
 
 	void Editor::AddEntities()
@@ -1620,13 +1618,13 @@ namespace adria
             scene_focused = ImGui::IsWindowFocused();
 
 			ImVec2 mouse_pos = ImGui::GetMousePos();
-			scene_viewport_data.mouse_position_x = mouse_pos.x;
-			scene_viewport_data.mouse_position_y = mouse_pos.y;
-			scene_viewport_data.scene_viewport_focused = scene_focused;
-			scene_viewport_data.scene_viewport_pos_x = v_min.x;
-			scene_viewport_data.scene_viewport_pos_y = v_min.y;
-			scene_viewport_data.scene_viewport_size_x = size.x;
-			scene_viewport_data.scene_viewport_size_y = size.y;
+			viewport_data.mouse_position_x = mouse_pos.x;
+			viewport_data.mouse_position_y = mouse_pos.y;
+			viewport_data.scene_viewport_focused = scene_focused;
+			viewport_data.scene_viewport_pos_x = v_min.x;
+			viewport_data.scene_viewport_pos_y = v_min.y;
+			viewport_data.scene_viewport_size_x = size.x;
+			viewport_data.scene_viewport_size_y = size.y;
         }
 
         if (selected_entity != null_entity && engine->reg.has<Transform>(selected_entity) && gizmo_enabled)

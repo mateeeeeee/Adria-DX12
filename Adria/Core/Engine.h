@@ -6,7 +6,7 @@
 #include "../tecs/registry.h"
 #include "../Rendering/CameraManager.h"
 #include "../Rendering/RendererSettings.h"
-#include "../Rendering/SceneViewport.h"
+#include "../Rendering/ViewportData.h"
 
 namespace adria
 {
@@ -52,13 +52,12 @@ namespace adria
 		std::unique_ptr<RenderGraphRenderer> renderer;
 		std::unique_ptr<EntityLoader> entity_loader;
 
-		SceneViewport scene_viewport_data;
-		bool editor_active = true; //remove this
+		ViewportData viewport_data;
 	private:
 	
 		virtual void InitializeScene(SceneConfig const& config);
 		virtual void Update(float32 dt);
 		virtual void Render(RendererSettings const& settings);
-		void SetSceneViewportData(std::optional<SceneViewport> viewport_data);
+		void SetViewportData(std::optional<ViewportData> viewport_data);
 	};
 }
