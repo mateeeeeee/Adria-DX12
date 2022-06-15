@@ -3,7 +3,6 @@
 #include "../RenderGraph/RenderGraphResourceId.h"
 
 
-
 namespace adria
 {
 	namespace tecs

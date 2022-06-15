@@ -307,6 +307,9 @@ namespace adria
 
 		renderer->GetTextureManager().GenerateAllMips();
 		renderer->OnSceneInitialized();
+
+		gfx->ExecuteDefaultCommandList();
+		gfx->WaitForGPU();
 	}
 }
 

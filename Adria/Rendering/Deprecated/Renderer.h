@@ -213,20 +213,14 @@ namespace adria
 		std::shared_ptr<Buffer>	cube_ib = nullptr;
 	private:
 
-		void CreateIBLTextures();
+		void CreateIBLTextures(); //5
 		
-		void UpdateOcean(ID3D12GraphicsCommandList4* cmd_list); //5
+		void UpdateOcean(ID3D12GraphicsCommandList4* cmd_list); //2
 		void PassOcean(ID3D12GraphicsCommandList4* cmd_list);
 		
-		void UpdateParticles(float32 dt);						//6
+		void UpdateParticles(float32 dt);						//3
 		void PassParticles(ID3D12GraphicsCommandList4* cmd_list);
-		
-		void PassPicking(ID3D12GraphicsCommandList4* cmd_list); //3
-		void PassDecals(ID3D12GraphicsCommandList4* cmd_list);  //4
-		
-		void PassRTAO(ID3D12GraphicsCommandList4* cmd_list); //7
-		
-		void PassForward(ID3D12GraphicsCommandList4* cmd_list); 
-		void PassForwardCommon(ID3D12GraphicsCommandList4* cmd_list, bool transparent);
+
+		void PassRTAO(ID3D12GraphicsCommandList4* cmd_list); //4 + RTS and RTR
 	};
 }

@@ -34,11 +34,6 @@ namespace adria
 				builder.WriteRenderTarget(RG_RES_NAME(GBufferAlbedo), ERGLoadStoreAccessOp::Discard_Preserve);
 				builder.WriteRenderTarget(RG_RES_NAME(GBufferEmissive), ERGLoadStoreAccessOp::Discard_Preserve);
 				
-				D3D12_CLEAR_VALUE clear_value{};
-				clear_value.Format = DXGI_FORMAT_D32_FLOAT;
-				clear_value.DepthStencil.Depth = 1.0f;
-				clear_value.DepthStencil.Stencil = 0;
-
 				RGTextureDesc depth_desc{};
 				depth_desc.width = width;
 				depth_desc.height = height;

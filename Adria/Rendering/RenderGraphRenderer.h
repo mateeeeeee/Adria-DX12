@@ -17,6 +17,7 @@
 #include "CopyToTexturePass.h"
 #include "AddTexturesPass.h"
 #include "PickingPass.h"
+#include "DecalsPass.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/TextureManager.h"
@@ -127,6 +128,7 @@ namespace adria
 		AddTexturesPass add_textures_pass;
 		ShadowPass    shadow_pass;
 		PickingPass picking_pass;
+		DecalsPass decals_pass;
 		Postprocessor postprocessor;
 	private:
 		void CreateNullHeap();

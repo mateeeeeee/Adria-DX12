@@ -24,7 +24,8 @@ namespace adria
 		,sky_pass(reg, texture_manager, width, height), lighting_pass(width, height), shadow_pass(reg, texture_manager),
 		tiled_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
 		postprocessor(reg, texture_manager, width, height), fxaa_pass(width, height), picking_pass(gfx, width, height),
-		clustered_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height)
+		clustered_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height),
+		decals_pass(reg, texture_manager, width, height)
 	{
 		RootSigPSOManager::Initialize(gfx->GetDevice());
 		CreateNullHeap();
@@ -79,7 +80,7 @@ namespace adria
 		}
 
 		gbuffer_pass.AddPass(render_graph, profiler_settings.profile_gbuffer_pass);
-		
+		decals_pass.AddPass(render_graph);
 		switch (render_settings.postprocessor.ambient_occlusion)
 		{
 		case EAmbientOcclusion::SSAO:
@@ -171,6 +172,7 @@ namespace adria
 			postprocessor.OnResize(gfx, w, h);
 			add_textures_pass.OnResize(w, h);
 			picking_pass.OnResize(w, h);
+			decals_pass.OnResize(w, h);
 		}
 	}
 	void RenderGraphRenderer::OnSceneInitialized()
@@ -186,12 +188,10 @@ namespace adria
 			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		sky_pass.OnSceneInitialized(gfx);
+		decals_pass.OnSceneInitialized(gfx);
 		ssao_pass.OnSceneInitialized(gfx);
 		hbao_pass.OnSceneInitialized(gfx);
 		postprocessor.OnSceneInitialized(gfx);
-
-		gfx->ExecuteDefaultCommandList();
-		gfx->WaitForGPU();
 
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
 		for (uint32 i = 0; i < SSAO_KERNEL_SIZE; i++)
