@@ -206,6 +206,7 @@
     <ClCompile Include="Rendering\GenerateMipsPass.cpp" />
     <ClCompile Include="Rendering\HBAOPass.cpp" />
     <ClCompile Include="Rendering\LightingPass.cpp" />
+    <ClCompile Include="Rendering\OceanPass.cpp" />
     <ClCompile Include="Rendering\PickingPass.cpp" />
     <ClCompile Include="Rendering\Postprocessor.cpp" />
     <ClCompile Include="Rendering\RenderGraphRenderer.cpp" />
@@ -314,6 +315,7 @@
     <ClInclude Include="Rendering\GlobalBlackboardData.h" />
     <ClInclude Include="Rendering\HBAOPass.h" />
     <ClInclude Include="Rendering\LightingPass.h" />
+    <ClInclude Include="Rendering\OceanPass.h" />
     <ClInclude Include="Rendering\PickingPass.h" />
     <ClInclude Include="Rendering\Postprocessor.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />

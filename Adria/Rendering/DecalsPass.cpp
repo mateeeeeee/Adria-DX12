@@ -18,6 +18,7 @@ namespace adria
 
 	void DecalsPass::AddPass(RenderGraph& rendergraph)
 	{
+		if (reg.size<Decal>() == 0) return;
 		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
 
 		struct DecalsPassData
@@ -34,8 +35,6 @@ namespace adria
 			},
 			[=](DecalsPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
-				if (reg.size<Decal>() == 0) return;
-				
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				auto upload_buffer = gfx->GetDynamicAllocator();

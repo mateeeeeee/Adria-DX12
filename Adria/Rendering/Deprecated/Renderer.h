@@ -214,10 +214,7 @@ namespace adria
 	private:
 
 		void CreateIBLTextures(); //5
-		
-		void UpdateOcean(ID3D12GraphicsCommandList4* cmd_list); //2
-		void PassOcean(ID3D12GraphicsCommandList4* cmd_list);
-		
+
 		void UpdateParticles(float32 dt);						//3
 		void PassParticles(ID3D12GraphicsCommandList4* cmd_list);
 

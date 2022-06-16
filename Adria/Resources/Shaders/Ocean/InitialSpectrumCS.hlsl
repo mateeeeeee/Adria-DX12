@@ -8,7 +8,7 @@ static const float g = 9.81f;
 static const float KM = 370.0f;
 static const float CM = 0.23f;
 
-RWTexture2D<float4> InitialSpectrum : register(u0);
+RWTexture2D<float> InitialSpectrum : register(u0);
 
 float Omega(float k)
 {
@@ -30,6 +30,11 @@ void main(uint3 dispatchID : SV_DispatchThreadID)
 
     float2 wave_vector = (2.f * PI * float2(n, m)) / compute_cbuf.ocean_size;
     float k = length(wave_vector);
+    if (wave_vector.x == 0.0 && wave_vector.y == 0.0)
+    {
+        InitialSpectrum[pixel_coord] = 0.0f;
+        return;
+    }
 
     float U10 = length(float2(compute_cbuf.wind_direction_x, compute_cbuf.wind_direction_y));
 
@@ -64,10 +69,7 @@ void main(uint3 dispatchID : SV_DispatchThreadID)
 	
     float dk = 2.0 * PI / compute_cbuf.ocean_size;
     float h = sqrt(S / 2.0) * dk;
-	
-    if (wave_vector.x == 0.0 && wave_vector.y == 0.0)
-        h = 0.f;
     
-    InitialSpectrum[pixel_coord] = float4(h, 0.f, 0.f, 0.f);
+    InitialSpectrum[pixel_coord] = h;
 
 }

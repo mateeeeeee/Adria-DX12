@@ -88,10 +88,23 @@ namespace adria
 
 			entity grid = reg.create();
 
+			BufferDesc vb_desc{
+			.size = vertices.size() * sizeof(TexturedNormalVertex),
+			.bind_flags = EBindFlag::None,
+			.stride = sizeof(TexturedNormalVertex)
+			};
+
+			BufferDesc ib_desc{
+				.size = indices.size() * sizeof(uint32),
+				.bind_flags = EBindFlag::None,
+				.stride = sizeof(uint32),
+				.format = DXGI_FORMAT_R32_UINT
+			};
+
 			Mesh mesh{};
 			mesh.indices_count = (uint32)indices.size();
-			//mesh.vertex_buffer = std::make_shared<VertexBuffer>(gfx, vertices);
-			//mesh.index_buffer = std::make_shared<IndexBuffer>(gfx, indices);
+			mesh.vertex_buffer = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());
+			mesh.index_buffer = std::make_shared<Buffer>(gfx, ib_desc, indices.data());
 
 			reg.emplace<Mesh>(grid, mesh);
 			reg.emplace<Transform>(grid);
@@ -160,9 +173,9 @@ namespace adria
 			ComputeNormals(params.normal_type, vertices, indices);
 
 			BufferDesc vb_desc{
-			.size = vertices.size() * sizeof(CompleteVertex),
+			.size = vertices.size() * sizeof(TexturedNormalVertex),
 			.bind_flags = EBindFlag::None,
-			.stride = sizeof(CompleteVertex)
+			.stride = sizeof(TexturedNormalVertex)
 			};
 
 			BufferDesc ib_desc{
@@ -294,8 +307,8 @@ namespace adria
 		for (entity e : entities)
 		{
 			auto& mesh = reg.get<Mesh>(e);
-			//mesh.vertex_buffer = vb;
-			//mesh.index_buffer = ib;
+			mesh.vertex_buffer = vb;
+			mesh.index_buffer = ib;
 			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(as_integer(e)));
 		}
 

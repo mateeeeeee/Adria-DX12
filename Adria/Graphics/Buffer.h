@@ -71,11 +71,13 @@ namespace adria
 		std::strong_ordering operator<=>(BufferSubresourceDesc const& other) const = default;
 	};
 
+	using BufferInitialData = void const*;
+
 	class Buffer
 	{
 	public:
 
-		Buffer(GraphicsDevice* gfx, BufferDesc const& desc, void const* initial_data = nullptr)
+		Buffer(GraphicsDevice* gfx, BufferDesc const& desc, BufferInitialData initial_data = nullptr)
 			: gfx(gfx), desc(desc)
 		{
 			UINT64 buffer_size = desc.size;

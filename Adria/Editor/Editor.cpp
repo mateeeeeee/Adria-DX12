@@ -1915,7 +1915,7 @@ namespace adria
 
             if (ImGui::TreeNode("Misc"))
             {
-				ImGui::SliderFloat2("Wind Direction", renderer_settings.wind_direction, 0.0f, 50.0f);
+				renderer_settings.recreate_initial_spectrum = ImGui::SliderFloat2("Wind Direction", renderer_settings.wind_direction, 0.0f, 50.0f);
 				ImGui::SliderFloat("Wind speed factor", &renderer_settings.postprocessor.wind_speed, 0.0f, 100.0f);
                 ImGui::ColorEdit3("Ambient Color", renderer_settings.ambient_color);
                 ImGui::SliderFloat("Blur Sigma", &renderer_settings.blur_sigma, 0.1f, 10.0f);
