@@ -81,6 +81,9 @@ namespace adria
 		[[nodiscard]] RGBufferCopySrcId ReadCopySrcBuffer(RGResourceName name);
 		[[nodiscard]] RGBufferCopyDstId WriteCopyDstBuffer(RGResourceName name);
 		[[nodiscard]] RGBufferIndirectArgsId ReadIndirectArgsBuffer(RGResourceName name);
+		[[nodiscard]] RGBufferVertexId ReadVertexBuffer(RGResourceName name);
+		[[nodiscard]] RGBufferIndexId ReadIndexBuffer(RGResourceName name);
+		[[nodiscard]] RGBufferConstantId ReadConstantBuffer(RGResourceName name);
 		
 		[[nodiscard]] RGTextureReadOnlyId ReadTexture(RGResourceName name, ERGReadAccess read_access, 
 			uint32 first_mip = 0, uint32 mip_count = -1, uint32 first_slice = 0, uint32 slice_count = -1)

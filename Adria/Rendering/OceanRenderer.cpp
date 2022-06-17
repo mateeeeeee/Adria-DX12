@@ -1,4 +1,4 @@
-#include "OceanPass.h"
+#include "OceanRenderer.h"
 #include "ConstantBuffers.h"
 #include "Components.h"
 #include "GlobalBlackboardData.h"
@@ -15,11 +15,11 @@ using namespace DirectX;
 namespace adria
 {
 
-	OceanPass::OceanPass(tecs::registry& reg, TextureManager& texture_manager, uint32 w, uint32 h)
+	OceanRenderer::OceanRenderer(tecs::registry& reg, TextureManager& texture_manager, uint32 w, uint32 h)
 		: reg{ reg }, texture_manager{ texture_manager }, width{ w }, height{ h }
 	{}
 
-	void OceanPass::UpdateOceanColor(float32(&color)[3])
+	void OceanRenderer::UpdateOceanColor(float32(&color)[3])
 	{
 		if (reg.size<Ocean>() == 0) return;
 
@@ -31,7 +31,7 @@ namespace adria
 		}
 	}
 
-	void OceanPass::AddPasses(RenderGraph& rendergraph, bool recreate_spectrum, bool tesselated, bool wireframe)
+	void OceanRenderer::AddPasses(RenderGraph& rendergraph, bool recreate_spectrum, bool tesselated, bool wireframe)
 	{
 		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
 		if (reg.size<Ocean>() == 0) return;
@@ -385,12 +385,12 @@ namespace adria
 			ERGPassType::Graphics, ERGPassFlags::None);
 	}
 
-	void OceanPass::OnResize(uint32 w, uint32 h)
+	void OceanRenderer::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
 	}
 
-	void OceanPass::OnSceneInitialized(GraphicsDevice* gfx)
+	void OceanRenderer::OnSceneInitialized(GraphicsDevice* gfx)
 	{
 		foam_handle = texture_manager.LoadTexture(L"Resources/Textures/foam.jpg");
 		perlin_handle = texture_manager.LoadTexture(L"Resources/Textures/perlin.dds");

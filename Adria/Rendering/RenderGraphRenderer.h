@@ -18,7 +18,7 @@
 #include "AddTexturesPass.h"
 #include "PickingPass.h"
 #include "DecalsPass.h"
-#include "OceanPass.h"
+#include "OceanRenderer.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/TextureManager.h"
@@ -69,6 +69,8 @@ namespace adria
 		void OnResize(uint32 w, uint32 h);
 		void OnSceneInitialized();
 		void OnRightMouseClicked(int32 x, int32 y);
+		void OnParticleEmitterAdded(size_t emitter_id);
+		void OnParticleEmitterRemoved(size_t emitter_id);
 
 		Texture const* GetFinalTexture() const 
 		{ 
@@ -130,7 +132,7 @@ namespace adria
 		ShadowPass    shadow_pass;
 		PickingPass picking_pass;
 		DecalsPass decals_pass;
-		OceanPass  ocean_pass;
+		OceanRenderer  ocean_pass;
 		Postprocessor postprocessor;
 	private:
 		void CreateNullHeap();

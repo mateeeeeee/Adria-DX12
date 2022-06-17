@@ -562,6 +562,27 @@ namespace adria
 		return RGBufferIndirectArgsId(handle);
 	}
 
+	RGBufferVertexId RenderGraph::ReadVertexBuffer(RGResourceName name)
+	{
+		RGBufferId handle = buffer_name_id_map[name];
+		ADRIA_ASSERT(IsValidBufferHandle(handle) && "Resource has not been declared!");
+		return RGBufferVertexId(handle);
+	}
+
+	RGBufferIndexId RenderGraph::ReadIndexBuffer(RGResourceName name)
+	{
+		RGBufferId handle = buffer_name_id_map[name];
+		ADRIA_ASSERT(IsValidBufferHandle(handle) && "Resource has not been declared!");
+		return RGBufferIndexId(handle);
+	}
+
+	RGBufferConstantId RenderGraph::ReadConstantBuffer(RGResourceName name)
+	{
+		RGBufferId handle = buffer_name_id_map[name];
+		ADRIA_ASSERT(IsValidBufferHandle(handle) && "Resource has not been declared!");
+		return RGBufferConstantId(handle);
+	}
+
 	RGRenderTargetId RenderGraph::RenderTarget(RGResourceName name, TextureSubresourceDesc const& desc)
 	{
 		RGTextureId handle = texture_name_id_map[name];
@@ -704,6 +725,21 @@ namespace adria
 	}
 
 	Buffer const& RenderGraph::GetIndirectArgsBuffer(RGBufferIndirectArgsId res_id) const
+	{
+		return *GetBuffer(RGBufferId(res_id));
+	}
+
+	Buffer const& RenderGraph::GetVertexBuffer(RGBufferVertexId res_id) const
+	{
+		return *GetBuffer(RGBufferId(res_id));
+	}
+
+	Buffer const& RenderGraph::GetIndexBuffer(RGBufferIndexId res_id) const
+	{
+		return *GetBuffer(RGBufferId(res_id));
+	}
+
+	Buffer const& RenderGraph::GetConstantBuffer(RGBufferConstantId res_id) const
 	{
 		return *GetBuffer(RGBufferId(res_id));
 	}

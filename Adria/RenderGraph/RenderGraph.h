@@ -157,6 +157,9 @@ namespace adria
 		RGBufferCopySrcId  ReadCopySrcBuffer(RGResourceName);
 		RGBufferCopyDstId  WriteCopyDstBuffer(RGResourceName);
 		RGBufferIndirectArgsId  ReadIndirectArgsBuffer(RGResourceName);
+		RGBufferVertexId  ReadVertexBuffer(RGResourceName);
+		RGBufferIndexId  ReadIndexBuffer(RGResourceName);
+		RGBufferConstantId  ReadConstantBuffer(RGResourceName);
 
 		RGRenderTargetId RenderTarget(RGResourceName name, TextureSubresourceDesc const& desc);
 		RGDepthStencilId DepthStencil(RGResourceName name, TextureSubresourceDesc const& desc);
@@ -171,6 +174,9 @@ namespace adria
 		Buffer const& GetCopySrcBuffer(RGBufferCopySrcId) const;
 		Buffer const& GetCopyDstBuffer(RGBufferCopyDstId) const;
 		Buffer const& GetIndirectArgsBuffer(RGBufferIndirectArgsId) const;
+		Buffer const& GetVertexBuffer(RGBufferVertexId) const;
+		Buffer const& GetIndexBuffer(RGBufferIndexId) const;
+		Buffer const& GetConstantBuffer(RGBufferConstantId) const;
 
 		Descriptor GetRenderTarget(RGRenderTargetId) const;
 		Descriptor GetDepthStencil(RGDepthStencilId) const;

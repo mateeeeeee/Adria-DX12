@@ -214,6 +214,16 @@ namespace adria
 		update_picking_data = true;
 	}
 
+	void RenderGraphRenderer::OnParticleEmitterAdded(size_t emitter_id)
+	{
+		//particle_renderer.OnEmitterAdded(emitter_id);
+	}
+
+	void RenderGraphRenderer::OnParticleEmitterRemoved(size_t emitter_id)
+	{
+		//particle_renderer.OnEmitterRemoved(emitter_id);
+	}
+
 	TextureManager& RenderGraphRenderer::GetTextureManager()
 	{
 		return texture_manager;

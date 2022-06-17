@@ -1,5 +1,6 @@
 #include "Engine.h"
 #include "Window.h"
+#include "../Editor/EditorEvents.h"
 #include "../Tasks/TaskSystem.h"
 #include "../Math/Constants.h"
 #include "../Logging/Logger.h"
@@ -292,6 +293,12 @@ namespace adria
 			viewport_data.scene_viewport_size_y = static_cast<float32>(Window::Height());
 		}
 		renderer->SetViewportData(std::move(viewport_data));
+	}
+
+	void Engine::RegisterEditorEventCallbacks(EditorEvents& events)
+	{
+		events.particle_emitter_added.AddMember(&RenderGraphRenderer::OnParticleEmitterAdded, *renderer);
+		events.particle_emitter_removed.AddMember(&RenderGraphRenderer::OnParticleEmitterRemoved, *renderer);
 	}
 
 	void Engine::InitializeScene(SceneConfig const& config)

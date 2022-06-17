@@ -263,8 +263,11 @@
     <ClCompile Include="Rendering\DecalsPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\OceanPass.cpp">
-      <Filter>Rendering\Passes</Filter>
+    <ClCompile Include="Rendering\OceanRenderer.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\ParticleRenderer.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -646,8 +649,14 @@
     <ClInclude Include="Rendering\DecalsPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\OceanPass.h">
-      <Filter>Rendering\Passes</Filter>
+    <ClInclude Include="Rendering\OceanRenderer.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\ParticleRenderer.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\EditorEvents.h">
+      <Filter>Editor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

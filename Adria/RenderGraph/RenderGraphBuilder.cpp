@@ -193,6 +193,33 @@ namespace adria
 		return indirect_args_id;
 	}
 
+	RGBufferVertexId RenderGraphBuilder::ReadVertexBuffer(RGResourceName name)
+	{
+		RGBufferVertexId vertex_buf_id = rg.ReadVertexBuffer(name);
+		RGBufferId res_id(vertex_buf_id);
+		rg_pass.buffer_state_map[res_id] = EResourceState::VertexAndConstantBuffer;
+		rg_pass.buffer_reads.insert(res_id);
+		return vertex_buf_id;
+	}
+
+	RGBufferIndexId RenderGraphBuilder::ReadIndexBuffer(RGResourceName name)
+	{
+		RGBufferIndexId index_buf_id = rg.ReadVertexBuffer(name);
+		RGBufferId res_id(index_buf_id);
+		rg_pass.buffer_state_map[res_id] = EResourceState::IndexBuffer;
+		rg_pass.buffer_reads.insert(res_id);
+		return index_buf_id;
+	}
+
+	RGBufferConstantId RenderGraphBuilder::ReadConstantBuffer(RGResourceName name)
+	{
+		RGBufferConstantId constant_buf_id = rg.ReadVertexBuffer(name);
+		RGBufferId res_id(constant_buf_id);
+		rg_pass.buffer_state_map[res_id] = EResourceState::VertexAndConstantBuffer;
+		rg_pass.buffer_reads.insert(res_id);
+		return constant_buf_id;
+	}
+
 	RGBufferReadOnlyId RenderGraphBuilder::ReadBufferImpl(RGResourceName name, ERGReadAccess read_access, BufferSubresourceDesc const& desc /*= {}*/)
 	{
 		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");

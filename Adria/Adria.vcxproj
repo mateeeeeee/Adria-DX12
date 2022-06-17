@@ -206,7 +206,8 @@
     <ClCompile Include="Rendering\GenerateMipsPass.cpp" />
     <ClCompile Include="Rendering\HBAOPass.cpp" />
     <ClCompile Include="Rendering\LightingPass.cpp" />
-    <ClCompile Include="Rendering\OceanPass.cpp" />
+    <ClCompile Include="Rendering\OceanRenderer.cpp" />
+    <ClCompile Include="Rendering\ParticleRenderer.cpp" />
     <ClCompile Include="Rendering\PickingPass.cpp" />
     <ClCompile Include="Rendering\Postprocessor.cpp" />
     <ClCompile Include="Rendering\RenderGraphRenderer.cpp" />
@@ -239,6 +240,7 @@
     <ClInclude Include="Core\Window.h" />
     <ClInclude Include="Core\Windows.h" />
     <ClInclude Include="Editor\Editor.h" />
+    <ClInclude Include="Editor\EditorEvents.h" />
     <ClInclude Include="Editor\GUI.h" />
     <ClInclude Include="Events\Delegate.h" />
     <ClInclude Include="Events\EventQueue.h" />
@@ -315,7 +317,8 @@
     <ClInclude Include="Rendering\GlobalBlackboardData.h" />
     <ClInclude Include="Rendering\HBAOPass.h" />
     <ClInclude Include="Rendering\LightingPass.h" />
-    <ClInclude Include="Rendering\OceanPass.h" />
+    <ClInclude Include="Rendering\OceanRenderer.h" />
+    <ClInclude Include="Rendering\ParticleRenderer.h" />
     <ClInclude Include="Rendering\PickingPass.h" />
     <ClInclude Include="Rendering\Postprocessor.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />

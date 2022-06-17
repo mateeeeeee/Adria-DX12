@@ -15,6 +15,7 @@ namespace adria
 	class GraphicsDevice;
 	class RenderGraphRenderer;
 	class EntityLoader;
+	struct EditorEvents;
 	class GUI;
 
 	struct EngineInit
@@ -59,5 +60,6 @@ namespace adria
 		virtual void Update(float32 dt);
 		virtual void Render(RendererSettings const& settings);
 		void SetViewportData(std::optional<ViewportData> viewport_data);
+		void RegisterEditorEventCallbacks(EditorEvents&);
 	};
 }

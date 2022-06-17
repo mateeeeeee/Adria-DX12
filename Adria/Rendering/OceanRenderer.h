@@ -15,12 +15,12 @@ namespace adria
 	class GraphicsDevice;
 	class Texture;
 
-	class OceanPass
+	class OceanRenderer
 	{
 		static constexpr uint32 FFT_RESOLUTION = 512;
 
 	public:
-		OceanPass(tecs::registry& reg, TextureManager& texture_manager, uint32 w, uint32 h);
+		OceanRenderer(tecs::registry& reg, TextureManager& texture_manager, uint32 w, uint32 h);
 
 		void UpdateOceanColor(float32(&color)[3]);
 

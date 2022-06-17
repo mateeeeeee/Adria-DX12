@@ -48,6 +48,21 @@ namespace adria
 		return rg.GetIndirectArgsBuffer(res_id);
 	}
 
+	Buffer const& RenderGraphContext::GetVertexBuffer(RGBufferVertexId res_id) const
+	{
+		return rg.GetVertexBuffer(res_id);
+	}
+
+	Buffer const& RenderGraphContext::GetIndexBuffer(RGBufferIndexId res_id) const
+	{
+		return rg.GetIndexBuffer(res_id);
+	}
+
+	Buffer const& RenderGraphContext::GetConstantBuffer(RGBufferConstantId res_id) const
+	{
+		return rg.GetConstantBuffer(res_id);
+	}
+
 	Descriptor RenderGraphContext::GetRenderTarget(RGRenderTargetId res_id) const
 	{
 		return rg.GetRenderTarget(res_id);

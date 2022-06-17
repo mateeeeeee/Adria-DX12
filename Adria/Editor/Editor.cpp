@@ -442,8 +442,8 @@ namespace adria
         engine = std::make_unique<Engine>(init.engine_init);
         gui = std::make_unique<GUI>(engine->gfx.get());
 		ADRIA_REGISTER_LOGGER(new EditorLogger(editor_log.get()));
-
-        SetStyle();
+		engine->RegisterEditorEventCallbacks(editor_events);
+		SetStyle();
     }
 
 	Editor::~Editor() = default;
@@ -702,7 +702,8 @@ namespace adria
 
 			if (ImGui::Button("Load Emitter"))
 			{
-				engine->entity_loader->LoadEmitter(params);
+				tecs::entity e = engine->entity_loader->LoadEmitter(params);
+				editor_events.particle_emitter_added.Broadcast(tecs::as_integer(e));
 			}
 		}
 		ImGui::End();
@@ -878,7 +879,6 @@ namespace adria
                     entity empty = engine->reg.create();
                     engine->reg.emplace<Tag>(empty);
                 }
-
                 ImGui::EndPopup();
             }
 
@@ -920,10 +920,11 @@ namespace adria
 
             }
 
-            for (auto e : deleted_entities)
-                engine->reg.destroy(e);
-
-
+			for (auto e : deleted_entities)
+			{
+				if (engine->reg.has<Emitter>(e)) editor_events.particle_emitter_removed.Broadcast(tecs::as_integer(e));
+				engine->reg.destroy(e);
+			}
         }
         ImGui::End();
     }

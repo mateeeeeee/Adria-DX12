@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include "GUI.h"
+#include "EditorEvents.h"
 #include "../Core/Engine.h"
 #include "../tecs/registry.h"
 #include "../Rendering/RendererSettings.h"
@@ -43,6 +44,7 @@ namespace adria
 		ProfilerSettings profiler_settings{};
 		ViewportData viewport_data;
 		ShaderReloadCallback shader_reload_callback = nullptr;
+		EditorEvents editor_events;
 
 	private:
 		void SetStyle();

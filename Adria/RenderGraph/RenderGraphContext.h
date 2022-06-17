@@ -93,6 +93,9 @@ namespace adria
 		Buffer  const& GetCopySrcBuffer(RGBufferCopySrcId res_id) const;
 		Buffer  const& GetCopyDstBuffer(RGBufferCopyDstId res_id) const;
 		Buffer  const& GetIndirectArgsBuffer(RGBufferIndirectArgsId res_id) const;
+		Buffer  const& GetVertexBuffer(RGBufferVertexId res_id) const;
+		Buffer  const& GetIndexBuffer(RGBufferIndexId res_id) const;
+		Buffer  const& GetConstantBuffer(RGBufferConstantId res_id) const;
 
 		Descriptor GetRenderTarget(RGRenderTargetId res_id) const;
 		Descriptor GetDepthStencil(RGDepthStencilId res_id) const;

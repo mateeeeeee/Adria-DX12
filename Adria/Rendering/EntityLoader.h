@@ -9,6 +9,7 @@
 #include "../tecs/registry.h"
 #include "../Math/ComputeNormals.h"
 #include "../Utilities/Heightmap.h"
+#include "../Events/Delegate.h"
 
 struct ID3D12Device;
 
@@ -94,7 +95,7 @@ namespace adria
 
     class TextureManager;
     class GraphicsDevice;
-    
+ 
 	class EntityLoader
 	{
 		[[nodiscard]] std::vector<tecs::entity> LoadGrid(GridParameters const&);
