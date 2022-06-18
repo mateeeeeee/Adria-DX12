@@ -269,6 +269,9 @@
     <ClCompile Include="Rendering\ParticleRenderer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\RayTracer.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -657,6 +660,9 @@
     </ClInclude>
     <ClInclude Include="Editor\EditorEvents.h">
       <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\RayTracer.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

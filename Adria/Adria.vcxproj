@@ -210,6 +210,7 @@
     <ClCompile Include="Rendering\ParticleRenderer.cpp" />
     <ClCompile Include="Rendering\PickingPass.cpp" />
     <ClCompile Include="Rendering\Postprocessor.cpp" />
+    <ClCompile Include="Rendering\RayTracer.cpp" />
     <ClCompile Include="Rendering\RenderGraphRenderer.cpp" />
     <ClCompile Include="Rendering\RootSigPSOManager.cpp" />
     <ClCompile Include="Rendering\ShadowPass.cpp" />
@@ -321,6 +322,7 @@
     <ClInclude Include="Rendering\ParticleRenderer.h" />
     <ClInclude Include="Rendering\PickingPass.h" />
     <ClInclude Include="Rendering\Postprocessor.h" />
+    <ClInclude Include="Rendering\RayTracer.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />
     <ClInclude Include="Rendering\RenderGraphRenderer.h" />
     <ClInclude Include="Rendering\RootSigPSOManager.h" />

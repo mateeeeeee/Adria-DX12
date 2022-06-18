@@ -157,11 +157,11 @@ namespace adria
 	void ParticleRenderer::OnEmitterAdded(size_t id)
 	{
 		dead_list_buffer_map.emplace(std::make_pair(id, std::make_unique<Buffer>(gfx, StructuredBufferDesc<uint32>(MAX_PARTICLES))));
-		alive_index_buffer_map.emplace(std::make_pair(id, std::make_unique<Buffer>(gfx, StructuredBufferDesc<uint32>(MAX_PARTICLES))));
+		alive_index_buffer_map.emplace(std::make_pair(id, std::make_unique<Buffer>(gfx, StructuredBufferDesc<IndexBufferElement>(MAX_PARTICLES))));
 		dead_list_buffer_counter_map.emplace(std::make_pair(id, std::make_unique<Buffer>(gfx, CounterBufferDesc())));
 		alive_index_buffer_counter_map.emplace(std::make_pair(id, std::make_unique<Buffer>(gfx, CounterBufferDesc())));
 		particle_bufferA_map.emplace(std::make_pair(id, std::make_unique<Buffer>(gfx, StructuredBufferDesc<GPUParticleA>(MAX_PARTICLES))));
-		particle_bufferB_map.emplace(std::make_pair(id, std::make_unique<Buffer>(gfx, StructuredBufferDesc<GPUParticleA>(MAX_PARTICLES))));
+		particle_bufferB_map.emplace(std::make_pair(id, std::make_unique<Buffer>(gfx, StructuredBufferDesc<GPUParticleB>(MAX_PARTICLES))));
 		view_space_positions_buffer_map.emplace(std::make_pair(id, std::make_unique<Buffer>(gfx, StructuredBufferDesc<ViewSpacePositionRadius>(MAX_PARTICLES))));
 	}
 

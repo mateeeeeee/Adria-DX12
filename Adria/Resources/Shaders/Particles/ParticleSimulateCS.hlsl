@@ -96,7 +96,7 @@ void main( uint3 id : SV_DispatchThreadID )
 
 		if (NewPosition.y < -10)
         {
-            killParticle = true;
+            //killParticle = true;
         }
 
         pb.Position = NewPosition;
