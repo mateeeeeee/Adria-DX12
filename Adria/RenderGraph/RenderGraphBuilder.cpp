@@ -274,6 +274,7 @@ namespace adria
 		if (!rg_pass.buffer_creates.contains(res_id) && !rg_pass.ActAsCreatorWhenWriting())
 		{
 			DummyReadBuffer(name);
+			DummyReadBuffer(counter_name);
 		}
 		rg_pass.buffer_writes.insert(res_id);
 		auto* buffer = rg.GetRGBuffer(res_id);

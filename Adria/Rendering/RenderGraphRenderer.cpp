@@ -25,7 +25,8 @@ namespace adria
 		tiled_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
 		postprocessor(reg, texture_manager, width, height), fxaa_pass(width, height), picking_pass(gfx, width, height),
 		clustered_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height),
-		decals_pass(reg, texture_manager, width, height), ocean_pass(reg, texture_manager, width, height)
+		decals_pass(reg, texture_manager, width, height), ocean_renderer(reg, texture_manager, width, height),
+		particle_renderer(reg, gfx, texture_manager, width, height)
 	{
 		RootSigPSOManager::Initialize(gfx->GetDevice());
 		CreateNullHeap();
@@ -49,6 +50,7 @@ namespace adria
 	{
 		UpdatePersistentConstantBuffers(dt);
 		CameraFrustumCulling();
+		particle_renderer.Update(dt);
 	}
 	void RenderGraphRenderer::Render(RendererSettings const& _settings)
 	{
@@ -132,11 +134,12 @@ namespace adria
 			clustered_lighting_pass.AddPass(render_graph, true);
 		}
 
-		ocean_pass.UpdateOceanColor(render_settings.ocean_color);
-		ocean_pass.AddPasses(render_graph, render_settings.recreate_initial_spectrum, 
+		ocean_renderer.UpdateOceanColor(render_settings.ocean_color);
+		ocean_renderer.AddPasses(render_graph, render_settings.recreate_initial_spectrum, 
 			render_settings.ocean_tesselation, render_settings.ocean_wireframe);
 		sky_pass.AddPass(render_graph, render_settings.sky_type);
 		picking_pass.AddPass(render_graph);
+		particle_renderer.AddPasses(render_graph);
 		postprocessor.AddPasses(render_graph, render_settings.postprocessor);
 
 		if (render_settings.gui_visible)
@@ -176,7 +179,8 @@ namespace adria
 			add_textures_pass.OnResize(w, h);
 			picking_pass.OnResize(w, h);
 			decals_pass.OnResize(w, h);
-			ocean_pass.OnResize(w, h);
+			ocean_renderer.OnResize(w, h);
+			particle_renderer.OnResize(w, h);
 		}
 	}
 	void RenderGraphRenderer::OnSceneInitialized()
@@ -196,7 +200,8 @@ namespace adria
 		ssao_pass.OnSceneInitialized(gfx);
 		hbao_pass.OnSceneInitialized(gfx);
 		postprocessor.OnSceneInitialized(gfx);
-		ocean_pass.OnSceneInitialized(gfx);
+		ocean_renderer.OnSceneInitialized(gfx);
+		particle_renderer.OnSceneInitialized();
 
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
 		for (uint32 i = 0; i < SSAO_KERNEL_SIZE; i++)
@@ -216,12 +221,12 @@ namespace adria
 
 	void RenderGraphRenderer::OnParticleEmitterAdded(size_t emitter_id)
 	{
-		//particle_renderer.OnEmitterAdded(emitter_id);
+		particle_renderer.OnEmitterAdded(emitter_id);
 	}
 
 	void RenderGraphRenderer::OnParticleEmitterRemoved(size_t emitter_id)
 	{
-		//particle_renderer.OnEmitterRemoved(emitter_id);
+		particle_renderer.OnEmitterRemoved(emitter_id);
 	}
 
 	TextureManager& RenderGraphRenderer::GetTextureManager()

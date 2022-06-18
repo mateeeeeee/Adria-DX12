@@ -215,9 +215,6 @@ namespace adria
 
 		void CreateIBLTextures(); //5
 
-		void UpdateParticles(float32 dt);						//3
-		void PassParticles(ID3D12GraphicsCommandList4* cmd_list);
-
 		void PassRTAO(ID3D12GraphicsCommandList4* cmd_list); //4 + RTS and RTR
 	};
 }

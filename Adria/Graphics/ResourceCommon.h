@@ -156,7 +156,7 @@ namespace adria
 		CopyDest = 0x200,
 		CopySource = 0x400,
 		RaytracingAccelerationStructure = 0x800,
-		GenericRead = (((((0x1 | 0x2) | 0x40) | 0x80) | 0x100) | 0x400),
+		GenericRead = VertexAndConstantBuffer | IndexBuffer | DepthRead | NonPixelShaderResource | PixelShaderResource | IndirectArgument | CopySource | RaytracingAccelerationStructure,
 	};
 	DEFINE_ENUM_BIT_OPERATORS(EResourceState);
 
@@ -167,6 +167,10 @@ namespace adria
 	inline constexpr bool IsWriteState(EResourceState state)
 	{
 		return HasAnyFlag(state, EResourceState::RenderTarget | EResourceState::UnorderedAccess | EResourceState::DepthWrite | EResourceState::CopyDest);
+	}
+	inline constexpr bool IsValidState(EResourceState state)
+	{
+		return true; //todo
 	}
 	inline constexpr D3D12_RESOURCE_STATES ConvertToD3D12ResourceState(EResourceState state)
 	{

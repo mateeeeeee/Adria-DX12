@@ -80,7 +80,7 @@ namespace adria
 		void Update(float32 dt);
 		void AddPasses(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h);
-		void OnSceneInitialized(GraphicsDevice* gfx);
+		void OnSceneInitialized();
 		void OnEmitterAdded(size_t id);
 		void OnEmitterRemoved(size_t id);
 	private:
@@ -104,7 +104,6 @@ namespace adria
 		HashMap<size_t, std::unique_ptr<Buffer>> alive_index_buffer_counter_map;
 
 	private:
-		void DeclareRenderGraphResources(RenderGraph& rendergraph);
 		void AddInitializeDeadListPass(RenderGraph& rendergraph, Emitter const& emitter_params, size_t emitter_id);
 		void AddResetParticlesPass(RenderGraph& rendergraph, Emitter const& emitter_params, size_t emitter_id);
 		void AddEmitPass(RenderGraph& rendergraph, Emitter const& emitter_params, size_t emitter_id);

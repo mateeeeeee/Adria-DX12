@@ -83,7 +83,7 @@ namespace adria
 		width = w, height = h;
 	}
 
-	void ParticleRenderer::OnSceneInitialized(GraphicsDevice* gfx)
+	void ParticleRenderer::OnSceneInitialized()
 	{
 		ID3D12Device* device = gfx->GetDevice();
 
@@ -101,18 +101,15 @@ namespace adria
 		BREAK_IF_FAILED(device->CreateCommandSignature(&command_signature_desc, nullptr, IID_PPV_ARGS(&indirect_sort_args_signature)));
 
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
-		std::vector<float32> random_texture_data;
-		for (uint32 i = 0; i < random_texture->GetDesc().width * random_texture->GetDesc().height; i++)
+		std::vector<float32> random_texture_data(1024 * 1024 * 4);
+		for (uint32 i = 0; i < random_texture_data.size(); i++)
 		{
-			random_texture_data.push_back(2.0f * rand_float() - 1.0f);
-			random_texture_data.push_back(2.0f * rand_float() - 1.0f);
-			random_texture_data.push_back(2.0f * rand_float() - 1.0f);
-			random_texture_data.push_back(2.0f * rand_float() - 1.0f);
+			random_texture_data[i] = 2.0f * rand_float() - 1.0f;
 		}
 
 		D3D12_SUBRESOURCE_DATA initial_data{};
 		initial_data.pData = random_texture_data.data();
-		initial_data.RowPitch = random_texture->GetDesc().width * 4 * sizeof(float32);
+		initial_data.RowPitch = 1024 * 4 * sizeof(float32);
 		initial_data.SlicePitch = 0;
 
 		TextureDesc noise_desc{};
@@ -122,6 +119,7 @@ namespace adria
 		noise_desc.bind_flags = EBindFlag::ShaderResource;
 		noise_desc.initial_state = EResourceState::CopyDest;
 		random_texture = std::make_unique<Texture>(gfx, noise_desc, &initial_data);
+		random_texture->CreateSubresource_SRV();
 
 		std::vector<uint32> indices(MAX_PARTICLES * 6);
 		uint32 base = 0;
@@ -139,7 +137,7 @@ namespace adria
 			base += 4;
 			offset += 6;
 		}
-		BufferInitialData initial_data = indices.data();
+		BufferInitialData ib_initial_data = indices.data();
 
 		BufferDesc ib_desc{};
 		ib_desc.bind_flags = EBindFlag::None;
@@ -147,7 +145,7 @@ namespace adria
 		ib_desc.size = indices.size() * sizeof(uint32);
 		ib_desc.stride = sizeof(uint32);
 		ib_desc.format = DXGI_FORMAT_R32_UINT;
-		index_buffer = std::make_unique<Buffer>(gfx, ib_desc, initial_data);
+		index_buffer = std::make_unique<Buffer>(gfx, ib_desc, ib_initial_data);
 
 		BufferDesc reset_buffer_desc{};
 		reset_buffer_desc.size = sizeof(uint32);
@@ -184,7 +182,7 @@ namespace adria
 		{
 			RGBufferCopyDstId copy_dst;
 		};
-		rg.AddPass<ResetDeadListBufferCounterPassData>("Reset DeadList Buffer Counter Pass",
+		rg.AddPass<ResetDeadListBufferCounterPassData>("Particle Reset Dead List Counter Pass",
 			[=](ResetDeadListBufferCounterPassData& data, RenderGraphBuilder& builder)
 			{
 				data.copy_dst = builder.WriteCopyDstBuffer(RG_RES_NAME_IDX(DeadListBufferCounter, id));
@@ -266,13 +264,13 @@ namespace adria
 				desc.misc_flags = EBufferMiscFlag::ConstantBuffer;
 				desc.size = sizeof(uint32);
 
-				builder.DeclareBuffer(RG_RES_NAME(DeadListCounterCopy), desc);
-				data.dst = builder.WriteCopyDstBuffer(RG_RES_NAME(DeadListCounterCopy));
+				builder.DeclareBuffer(RG_RES_NAME_IDX(DeadListCounterCopy, id), desc);
+				data.dst = builder.WriteCopyDstBuffer(RG_RES_NAME_IDX(DeadListCounterCopy, id));
 				data.src = builder.ReadCopySrcBuffer(RG_RES_NAME_IDX(DeadListBufferCounter, id));
 			},
 			[](CopyCounterPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
-				cmd_list->CopyResource(ctx.GetCopyDstBuffer(data.dst).GetNative(), ctx.GetCopySrcBuffer(data.src).GetNative());
+				cmd_list->CopyBufferRegion(ctx.GetCopyDstBuffer(data.dst).GetNative(), 0, ctx.GetCopySrcBuffer(data.src).GetNative(), 0, sizeof(uint32));
 			}, ERGPassType::Copy, ERGPassFlags::None);
 
 		struct InitializeDeadListPassData
@@ -292,7 +290,7 @@ namespace adria
 				data.particle_bufferA = builder.WriteBuffer(RG_RES_NAME_IDX(ParticleBufferA, id));
 				data.particle_bufferB = builder.WriteBuffer(RG_RES_NAME_IDX(ParticleBufferB, id));
 				data.dead_list = builder.WriteBuffer(RG_RES_NAME_IDX(DeadListBuffer, id), RG_RES_NAME_IDX(DeadListBufferCounter, id));
-				data.dead_list_counter_copy = builder.ReadConstantBuffer(RG_RES_NAME(DeadListCounterCopy));
+				data.dead_list_counter_copy = builder.ReadConstantBuffer(RG_RES_NAME_IDX(DeadListBufferCounter, id));
 			},
 			[=](InitializeDeadListPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
@@ -338,25 +336,13 @@ namespace adria
 						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 					cmd_list->SetComputeRootDescriptorTable(1, descriptor);
 
-					//temporary
 					Buffer const& buffer = context.GetBuffer(data.dead_list_counter_copy);
-					D3D12_RESOURCE_BARRIER barrier{};
-					barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-					barrier.Transition.pResource = buffer.GetNative();
-					barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-					barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-					barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-					cmd_list->ResourceBarrier(1, &barrier);
 					cmd_list->SetComputeRootConstantBufferView(2, buffer.GetGPUAddress()); //constant buffer, add read as constant buffer to builder?
 					
 					cmd_list->SetComputeRootConstantBufferView(3, emitter_allocation.gpu_address);
 
 					uint32 thread_groups_x = (UINT)std::ceil(emitter_params.number_to_emit * 1.0f / 1024);
 					cmd_list->Dispatch(thread_groups_x, 1, 1);
-
-					std::swap(barrier.Transition.StateBefore, barrier.Transition.StateAfter);
-					cmd_list->ResourceBarrier(1, &barrier);
-
 				}
 			}, ERGPassType::Compute, ERGPassFlags::None);
 	}
@@ -399,20 +385,22 @@ namespace adria
 				data.particle_bufferA = builder.WriteBuffer(RG_RES_NAME_IDX(ParticleBufferA, id));
 				data.particle_bufferB = builder.WriteBuffer(RG_RES_NAME_IDX(ParticleBufferB, id));
 				data.dead_list = builder.WriteBuffer(RG_RES_NAME_IDX(DeadListBuffer, id), RG_RES_NAME_IDX(DeadListBufferCounter, id));
-				data.alive_index = builder.WriteBuffer(RG_RES_NAME_IDX(AliveIndexBuffer, id));
+				data.alive_index = builder.WriteBuffer(RG_RES_NAME_IDX(AliveIndexBuffer, id), RG_RES_NAME_IDX(AliveIndexBufferCounter, id));
 				data.vs_positions = builder.WriteBuffer(RG_RES_NAME_IDX(VSPositions, id));
 
 				RGBufferDesc indirect_render_args_desc{};
 				indirect_render_args_desc.size = 5 * sizeof(uint32);
 				indirect_render_args_desc.misc_flags = EBufferMiscFlag::IndirectArgs;
 
-				builder.DeclareBuffer(RG_RES_NAME(ParticleIndirectRenderBuffer), indirect_render_args_desc);
-				data.indirect_render_args = builder.WriteBuffer(RG_RES_NAME(ParticleIndirectRenderBuffer));
+				builder.DeclareBuffer(RG_RES_NAME_IDX(ParticleIndirectRenderBuffer, id), indirect_render_args_desc);
+				data.indirect_render_args = builder.WriteBuffer(RG_RES_NAME_IDX(ParticleIndirectRenderBuffer, id));
 			},
 			[=](InitializeDeadListPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				RingOnlineDescriptorAllocator* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_Simulate));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_Simulate));
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(6);
 				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { context.GetReadWriteBuffer(data.particle_bufferA),
@@ -422,15 +410,6 @@ namespace adria
 															 context.GetReadWriteBuffer(data.vs_positions),
 															 context.GetReadWriteBuffer(data.indirect_render_args),
 														   };
-				auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor };
-				uint32 src_range_sizes[] = { 1, 1, 1, 1, 1, 1 };
-				uint32 dst_range_sizes[] = { 6 };
-				device->CopyDescriptors(ARRAYSIZE(dst_ranges), dst_ranges, dst_range_sizes, ARRAYSIZE(src_ranges), src_ranges, src_range_sizes,
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetComputeRootDescriptorTable(0, descriptor);
-
-				descriptor_index = descriptor_allocator->Allocate();
 				auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
 				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor };
 				uint32 src_range_sizes[] = { 1, 1, 1, 1, 1, 1 };
@@ -476,7 +455,7 @@ namespace adria
 			RGBufferConstantId alive_index_counter;
 		};
 
-		rg.AddPass<ParticleDrawPass>("Ocean Draw Pass",
+		rg.AddPass<ParticleDrawPass>("Particle Draw Pass",
 			[=](ParticleDrawPass& data, RenderGraphBuilder& builder)
 			{
 				data.particle_bufferA = builder.ReadBuffer(RG_RES_NAME_IDX(ParticleBufferA, id), ReadAccess_PixelShader);
@@ -485,7 +464,7 @@ namespace adria
 				data.alive_index = builder.ReadBuffer(RG_RES_NAME_IDX(AliveIndexBuffer, id), ReadAccess_PixelShader);
 				data.vs_positions = builder.ReadBuffer(RG_RES_NAME_IDX(VSPositions, id), ReadAccess_PixelShader);
 				data.alive_index_counter = builder.ReadConstantBuffer(RG_RES_NAME_IDX(AliveIndexBufferCounter, id));
-				data.indirect_render_args = builder.ReadIndirectArgsBuffer(RG_RES_NAME(ParticleIndirectRenderBuffer));
+				data.indirect_render_args = builder.ReadIndirectArgsBuffer(RG_RES_NAME_IDX(ParticleIndirectRenderBuffer, id));
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
 				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), ERGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);
@@ -498,10 +477,9 @@ namespace adria
 				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_Shading));
 				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_Shading));
 
-				//add barriers?
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 				auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				Descriptor src_ranges1[] = { ctx.GetReadOnlyBuffer(data.alive_index), ctx.GetReadOnlyBuffer(data.vs_positions), ctx.GetReadOnlyBuffer(data.alive_index) };
+				Descriptor src_ranges1[] = { ctx.GetReadOnlyBuffer(data.particle_bufferA), ctx.GetReadOnlyBuffer(data.vs_positions), ctx.GetReadOnlyBuffer(data.alive_index) };
 				Descriptor dst_ranges1[] = { descriptor };
 				uint32 src_range_sizes1[] = { 1, 1, 1 };
 				uint32 dst_range_sizes1[] = { 3 };
@@ -528,8 +506,7 @@ namespace adria
 				cmd_list->IASetVertexBuffers(0, 0, nullptr);
 				BindIndexBuffer(cmd_list, index_buffer.get());
 				cmd_list->ExecuteIndirect(indirect_render_args_signature.Get(), 1, ctx.GetIndirectArgsBuffer(data.indirect_render_args).GetNative(), 0, nullptr, 0);
-			},
-				ERGPassType::Graphics, ERGPassFlags::None);
+			}, ERGPassType::Graphics, ERGPassFlags::None);
 	}
 
 }

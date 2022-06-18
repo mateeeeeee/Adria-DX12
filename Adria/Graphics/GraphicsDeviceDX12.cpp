@@ -339,7 +339,7 @@ namespace adria
 
 			for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
 			{
-				dynamic_allocators.emplace_back(new LinearDynamicAllocator(device.Get(), 25'000'000));
+				dynamic_allocators.emplace_back(new LinearDynamicAllocator(device.Get(), 50'000'000));
 			}
 		}
 

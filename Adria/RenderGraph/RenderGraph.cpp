@@ -133,6 +133,7 @@ namespace adria
 					{
 						if (!HasAllFlags(texture->GetDesc().initial_state, state))
 						{
+							ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
 							D3D12_RESOURCE_STATES initial_state = ConvertToD3D12ResourceState(texture->GetDesc().initial_state);
 							D3D12_RESOURCE_STATES wanted_state = ConvertToD3D12ResourceState(state);
 							barrier_batcher.AddTransition(texture->GetNative(), initial_state, wanted_state);
@@ -145,6 +146,7 @@ namespace adria
 						auto& prev_dependency_level = dependency_levels[j];
 						if (prev_dependency_level.texture_state_map.contains(tex_id))
 						{
+							ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
 							D3D12_RESOURCE_STATES wanted_state = ConvertToD3D12ResourceState(state);
 							D3D12_RESOURCE_STATES prev_state = ConvertToD3D12ResourceState(prev_dependency_level.texture_state_map[tex_id]);
 							if (prev_state != wanted_state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, wanted_state); 
@@ -154,6 +156,7 @@ namespace adria
 					}
 					if (!found && rg_texture->imported)
 					{
+						ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
 						D3D12_RESOURCE_STATES wanted_state = ConvertToD3D12ResourceState(state);
 						D3D12_RESOURCE_STATES prev_state = ConvertToD3D12ResourceState(rg_texture->desc.initial_state);
 						if (prev_state != wanted_state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, wanted_state); 
@@ -167,6 +170,7 @@ namespace adria
 					{
 						if (state != EResourceState::Common) //check if there is an implicit transition, maybe this can be avoided
 						{
+							ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
 							barrier_batcher.AddTransition(buffer->GetNative(), D3D12_RESOURCE_STATE_COMMON, ConvertToD3D12ResourceState(state));
 						}
 						continue;
@@ -177,6 +181,7 @@ namespace adria
 						auto& prev_dependency_level = dependency_levels[j];
 						if (prev_dependency_level.buffer_state_map.contains(buf_id))
 						{
+							ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
 							D3D12_RESOURCE_STATES wanted_state = ConvertToD3D12ResourceState(state);
 							D3D12_RESOURCE_STATES prev_state = ConvertToD3D12ResourceState(prev_dependency_level.buffer_state_map[buf_id]);
 							if (prev_state != wanted_state) barrier_batcher.AddTransition(buffer->GetNative(), prev_state, wanted_state);
@@ -186,6 +191,7 @@ namespace adria
 					}
 					if (!found && rg_buffer->imported)
 					{
+						ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
 						if (EResourceState::Common != state) barrier_batcher.AddTransition(buffer->GetNative(), D3D12_RESOURCE_STATE_COMMON, ConvertToD3D12ResourceState(state));
 					}
 				}
@@ -654,6 +660,11 @@ namespace adria
 		RGBuffer* rg_buffer = GetRGBuffer(handle);
 		rg_buffer->desc.bind_flags |= EBindFlag::ShaderResource;
 		std::vector<std::pair<BufferSubresourceDesc, ERGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
+		for (size_t i = 0; i < view_descs.size(); ++i)
+		{
+			auto const& [_desc, _type] = view_descs[i];
+			if (desc == _desc && _type == ERGDescriptorType::ReadOnly) return RGBufferReadOnlyId(i, handle);
+		}
 		size_t view_id = view_descs.size();
 		view_descs.emplace_back(desc, ERGDescriptorType::ReadOnly);
 		return RGBufferReadOnlyId(view_id, handle);
@@ -666,6 +677,11 @@ namespace adria
 		RGBuffer* rg_buffer = GetRGBuffer(handle);
 		rg_buffer->desc.bind_flags |= EBindFlag::UnorderedAccess;
 		std::vector<std::pair<BufferSubresourceDesc, ERGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
+		for (size_t i = 0; i < view_descs.size(); ++i)
+		{
+			auto const& [_desc, _type] = view_descs[i];
+			if (desc == _desc && _type == ERGDescriptorType::ReadWrite) return RGBufferReadWriteId(i, handle);
+		}
 		size_t view_id = view_descs.size();
 		view_descs.emplace_back(desc, ERGDescriptorType::ReadWrite);
 		return RGBufferReadWriteId(view_id, handle);
@@ -685,6 +701,18 @@ namespace adria
 		rg_counter_buffer->desc.bind_flags |= EBindFlag::UnorderedAccess;
 
 		std::vector<std::pair<BufferSubresourceDesc, ERGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
+		for (size_t i = 0; i < view_descs.size(); ++i)
+		{
+			auto const& [_desc, _type] = view_descs[i];
+			if (desc == _desc && _type == ERGDescriptorType::ReadWrite)
+			{
+				RGBufferReadWriteId rw_id(i, handle);
+				if (auto it = buffer_uav_counter_map.find(rw_id); it != buffer_uav_counter_map.end())
+				{
+					if (it->second == counter_handle) return rw_id;
+				}
+			}
+		}
 		size_t view_id = view_descs.size();
 		view_descs.emplace_back(desc, ERGDescriptorType::ReadWrite);
 		RGBufferReadWriteId rw_id = RGBufferReadWriteId(view_id, handle);
