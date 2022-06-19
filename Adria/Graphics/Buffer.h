@@ -216,6 +216,10 @@ namespace adria
 		}
 
 		ID3D12Resource* GetNative() const { return resource.Get(); }
+		ID3D12Resource* Release() const 
+		{ 
+			
+		}
 		BufferDesc const& GetDesc() const { return desc; }
 		UINT GetMappedRowPitch() const { return mapped_rowpitch; }
 		D3D12_GPU_VIRTUAL_ADDRESS GetGPUAddress() const { return resource->GetGPUVirtualAddress(); }
@@ -272,7 +276,6 @@ namespace adria
 		{
 			Update(&src_data, sizeof(T));
 		}
-
 		void SetName(char const* name)
 		{
 			resource->SetName(ConvertToWide(name).c_str());

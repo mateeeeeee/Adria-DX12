@@ -22,7 +22,7 @@ namespace adria
 
 	class ParticleRenderer
 	{
-		static constexpr size_t MAX_PARTICLES = 400 * 1024;
+		static constexpr size_t MAX_PARTICLES = 100 * 1024;
 
 		struct GPUParticleA
 		{

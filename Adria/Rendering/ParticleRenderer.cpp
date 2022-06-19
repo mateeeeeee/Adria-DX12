@@ -167,6 +167,14 @@ namespace adria
 
 	void ParticleRenderer::OnEmitterRemoved(size_t id)
 	{
+		gfx->AddToReleaseQueue(dead_list_buffer_map[id]->GetNative());
+		gfx->AddToReleaseQueue(alive_index_buffer_map[id]->GetNative());
+		gfx->AddToReleaseQueue(dead_list_buffer_counter_map[id]->GetNative());
+		gfx->AddToReleaseQueue(alive_index_buffer_counter_map[id]->GetNative());
+		gfx->AddToReleaseQueue(particle_bufferA_map[id]->GetNative());
+		gfx->AddToReleaseQueue(particle_bufferB_map[id]->GetNative());
+		gfx->AddToReleaseQueue(view_space_positions_buffer_map[id]->GetNative());
+
 		dead_list_buffer_map.erase(id);
 		alive_index_buffer_map.erase(id);
 		dead_list_buffer_counter_map.erase(id);
@@ -434,8 +442,154 @@ namespace adria
 
 	}
 
-	void ParticleRenderer::AddSortPasses(RenderGraph& rendergraph, Emitter const& emitter_params, size_t emitter_id)
+	void ParticleRenderer::AddSortPasses(RenderGraph& rg, Emitter const& emitter_params, size_t id)
 	{
+		struct InitializeSortDispatchArgsPassData
+		{
+			RGBufferReadWriteId indirect_render_args;
+			RGBufferConstantId  alive_index_count;
+		};
+		rg.AddPass<InitializeSortDispatchArgsPassData>("Particle Initialize Sort Dispatch Args Pass",
+			[=](InitializeSortDispatchArgsPassData& data, RenderGraphBuilder& builder)
+			{
+				RGBufferDesc indirect_sort_args_desc{};
+				indirect_sort_args_desc.size = 4 * sizeof(uint32);
+				indirect_sort_args_desc.misc_flags = EBufferMiscFlag::IndirectArgs;
+
+				builder.DeclareBuffer(RG_RES_NAME_IDX(ParticleIndirectSortBuffer, id), indirect_sort_args_desc);
+				data.indirect_render_args = builder.WriteBuffer(RG_RES_NAME_IDX(ParticleIndirectSortBuffer, id));
+				data.alive_index_count = builder.ReadConstantBuffer(RG_RES_NAME_IDX(AliveIndexBufferCounter, id));
+			},
+			[=](InitializeSortDispatchArgsPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			{
+				ID3D12Device* device = gfx->GetDevice();
+				RingOnlineDescriptorAllocator* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+
+				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_InitSortDispatchArgs));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_InitSortDispatchArgs));
+
+				OffsetType descriptor_index = descriptor_allocator->Allocate();
+				auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
+
+				device->CopyDescriptorsSimple(1, descriptor, ctx.GetReadWriteBuffer(data.indirect_render_args),
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				cmd_list->SetComputeRootDescriptorTable(0, descriptor);
+				cmd_list->SetComputeRootConstantBufferView(1, ctx.GetConstantBuffer(data.alive_index_count).GetGPUAddress());
+				cmd_list->Dispatch(1, 1, 1);
+			}, ERGPassType::Compute, ERGPassFlags::None);
+
+		struct InitialSortPassData
+		{
+			RGBufferConstantId  alive_index_count;
+			RGBufferReadWriteId alive_index;
+			RGBufferIndirectArgsId indirect_args;
+		};
+		rg.AddPass<InitialSortPassData>("Particle Initial Sort Pass",
+			[=](InitialSortPassData& data, RenderGraphBuilder& builder)
+			{
+				data.alive_index = builder.WriteBuffer(RG_RES_NAME_IDX(AliveIndexBuffer, id));
+				data.alive_index_count = builder.ReadConstantBuffer(RG_RES_NAME_IDX(AliveIndexBufferCounter, id));
+				data.indirect_args = builder.ReadIndirectArgsBuffer(RG_RES_NAME_IDX(ParticleIndirectSortBuffer, id));
+			},
+			[=](InitialSortPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			{
+				ID3D12Device* device = gfx->GetDevice();
+				RingOnlineDescriptorAllocator* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				LinearDynamicAllocator* dynamic_allocator = gfx->GetDynamicAllocator();
+
+				OffsetType descriptor_index = descriptor_allocator->Allocate();
+				auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
+				device->CopyDescriptorsSimple(1, descriptor, ctx.GetReadWriteBuffer(data.alive_index),
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				DynamicAllocation sort_dispatch_info_allocation = dynamic_allocator->Allocate(GetCBufferSize<SortDispatchInfo>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				sort_dispatch_info_allocation.Update(SortDispatchInfo{});
+				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_Sort));
+				cmd_list->SetComputeRootDescriptorTable(0, descriptor);
+				cmd_list->SetComputeRootConstantBufferView(1, ctx.GetConstantBuffer(data.alive_index_count).GetGPUAddress());
+				cmd_list->SetComputeRootConstantBufferView(2, sort_dispatch_info_allocation.gpu_address);
+
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_Sort512));
+				cmd_list->ExecuteIndirect(indirect_sort_args_signature.Get(), 1, ctx.GetIndirectArgsBuffer(data.indirect_args).GetNative(), 0, nullptr, 0);
+				
+				D3D12_RESOURCE_BARRIER uav_barrier = CD3DX12_RESOURCE_BARRIER::UAV(ctx.GetBuffer(data.alive_index.GetResourceId()).GetNative());
+				cmd_list->ResourceBarrier(1, &uav_barrier);
+
+			}, ERGPassType::Compute, ERGPassFlags::None);
+
+		bool needs_incremental_sort = (((MAX_PARTICLES - 1) >> 9) + 1) > 1;
+		uint32 presorted = 512;
+		while (needs_incremental_sort)
+		{
+			if (MAX_PARTICLES > presorted * 2) needs_incremental_sort = false;
+
+			struct IncrementalSortPassData
+			{
+				RGBufferConstantId  alive_index_count;
+				RGBufferReadWriteId alive_index;
+				RGBufferIndirectArgsId indirect_args;
+			};
+			rg.AddPass<IncrementalSortPassData>("Particle Incremental Sort Pass",
+				[=](IncrementalSortPassData& data, RenderGraphBuilder& builder)
+				{
+					data.alive_index = builder.WriteBuffer(RG_RES_NAME_IDX(AliveIndexBuffer, id));
+					data.alive_index_count = builder.ReadConstantBuffer(RG_RES_NAME_IDX(AliveIndexBufferCounter, id));
+					data.indirect_args = builder.ReadIndirectArgsBuffer(RG_RES_NAME_IDX(ParticleIndirectSortBuffer, id));
+				},
+				[=](IncrementalSortPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+				{
+					ID3D12Device* device = gfx->GetDevice();
+					RingOnlineDescriptorAllocator* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+					LinearDynamicAllocator* dynamic_allocator = gfx->GetDynamicAllocator();
+
+					OffsetType descriptor_index = descriptor_allocator->Allocate();
+					auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
+					device->CopyDescriptorsSimple(1, descriptor, ctx.GetReadWriteBuffer(data.alive_index),
+						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_Sort));
+					cmd_list->SetComputeRootDescriptorTable(0, descriptor);
+					cmd_list->SetComputeRootConstantBufferView(1, ctx.GetConstantBuffer(data.alive_index_count).GetGPUAddress());
+					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_BitonicSortStep));
+
+					uint32 num_thread_groups = 0;
+					if (MAX_PARTICLES > presorted)
+					{
+						uint32 pow2 = presorted;
+						while (pow2 < MAX_PARTICLES) pow2 *= 2;
+						num_thread_groups = pow2 >> 9;
+					}
+
+					uint32 merge_size = presorted * 2;
+					for (uint32 merge_subsize = merge_size >> 1; merge_subsize > 256; merge_subsize = merge_subsize >> 1)
+					{
+						SortDispatchInfo sort_dispatch_info{};
+						sort_dispatch_info.x = merge_subsize;
+						if (merge_subsize == merge_size >> 1)
+						{
+							sort_dispatch_info.y = (2 * merge_subsize - 1);
+							sort_dispatch_info.z = -1;
+						}
+						else
+						{
+							sort_dispatch_info.y = merge_subsize;
+							sort_dispatch_info.z = 1;
+						}
+						sort_dispatch_info.w = 0;
+
+						DynamicAllocation sort_dispatch_info_allocation = dynamic_allocator->Allocate(GetCBufferSize<SortDispatchInfo>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+						sort_dispatch_info_allocation.Update(sort_dispatch_info);
+						cmd_list->SetComputeRootConstantBufferView(2, sort_dispatch_info_allocation.gpu_address);
+						cmd_list->Dispatch(num_thread_groups, 1, 1);
+
+						D3D12_RESOURCE_BARRIER uav_barrier = CD3DX12_RESOURCE_BARRIER::UAV(ctx.GetBuffer(data.alive_index.GetResourceId()).GetNative());
+						cmd_list->ResourceBarrier(1, &uav_barrier);
+					}
+					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_SortInner512));
+					cmd_list->Dispatch(num_thread_groups, 1, 1);
+
+				}, ERGPassType::Compute, ERGPassFlags::None);
+
+			presorted *= 2;
+		}
 
 	}
 
