@@ -33,8 +33,8 @@ namespace adria
 
 	void OceanRenderer::AddPasses(RenderGraph& rendergraph, bool recreate_spectrum, bool tesselated, bool wireframe)
 	{
-		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
 		if (reg.size<Ocean>() == 0) return;
+		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
 
 		rendergraph.ImportTexture(RG_RES_NAME(InitialSpectrum), initial_spectrum.get());
 		rendergraph.ImportTexture(RG_RES_NAME(PongPhase), ping_pong_phase_textures[pong_phase].get());

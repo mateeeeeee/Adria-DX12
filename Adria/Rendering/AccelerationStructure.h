@@ -39,6 +39,8 @@ namespace adria
 			BuildTopLevel();
 		}
 
+		Buffer const* GetTLAS() const { return tlas.get(); }
+
 	private:
 		GraphicsDevice* gfx;
 		std::vector<D3D12_RAYTRACING_GEOMETRY_DESC> geo_descs;

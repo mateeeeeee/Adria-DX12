@@ -4,14 +4,15 @@
 #include <wrl.h>
 #include <DirectXMath.h>
 #include "ConstantBuffers.h"
+#include "AccelerationStructure.h"
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
 #include "../Graphics/ConstantBuffer.h"
-#include "../Graphics/RayTracingUtil.h" //fwd declare
+#include "../Graphics/RayTracingUtil.h" 
 
 namespace adria
 {
-	/*
+	
 	namespace tecs
 	{
 		class registry;
@@ -48,19 +49,18 @@ namespace adria
 			std::unique_ptr<ShaderTable> shader_table_raygen = nullptr;
 			std::unique_ptr<ShaderTable> shader_table_miss = nullptr;
 			std::unique_ptr<ShaderTable> shader_table_hit = nullptr;
-			std::unique_ptr<Texture> output;
 		};
 
 	public:
-		RayTracer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height) {}
+		RayTracer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height);
 		bool IsSupported() const;
 
-		void OnResize(uint32 width, uint32 height) {}
-		void SceneInitialize() {}
+		void OnResize(uint32 width, uint32 height);
+		void OnSceneInitialized();
 
 		void Update(RayTracingSettings const&);
 
-		void AddRayTracedShadowsPass(RenderGraph&);
+		void AddRayTracedShadowsPass(RenderGraph&, size_t light_id, bool soft_shadows);
 		void AddRayTracedReflectionsPass(RenderGraph&);
 		void AddRayTracedAmbientOcclusionPass(RenderGraph&);
 
@@ -70,6 +70,7 @@ namespace adria
 		GraphicsDevice* gfx;
 		D3D12_RAYTRACING_TIER ray_tracing_tier;
 
+		AccelerationStructure accel_structure;
 		ConstantBuffer<RayTracingCBuffer> ray_tracing_cbuffer;
 
 		std::unique_ptr<Buffer> global_vb = nullptr;
@@ -80,6 +81,11 @@ namespace adria
 		RayTracingProgram ray_traced_shadows;
 		RayTracingProgram ray_traced_ambient_occlusion;
 		RayTracingProgram ray_traced_reflections;
+
+	private:
+		void CreateRootSignatures();
+		void CreateStateObjects();
+		void CreateShaderTables();
 	};
-	*/
+	
 }
