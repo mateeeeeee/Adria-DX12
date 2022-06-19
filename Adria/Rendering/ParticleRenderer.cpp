@@ -167,13 +167,13 @@ namespace adria
 
 	void ParticleRenderer::OnEmitterRemoved(size_t id)
 	{
-		gfx->AddToReleaseQueue(dead_list_buffer_map[id]->GetNative());
-		gfx->AddToReleaseQueue(alive_index_buffer_map[id]->GetNative());
-		gfx->AddToReleaseQueue(dead_list_buffer_counter_map[id]->GetNative());
-		gfx->AddToReleaseQueue(alive_index_buffer_counter_map[id]->GetNative());
-		gfx->AddToReleaseQueue(particle_bufferA_map[id]->GetNative());
-		gfx->AddToReleaseQueue(particle_bufferB_map[id]->GetNative());
-		gfx->AddToReleaseQueue(view_space_positions_buffer_map[id]->GetNative());
+		gfx->AddToReleaseQueue(dead_list_buffer_map[id]->Detach());
+		gfx->AddToReleaseQueue(alive_index_buffer_map[id]->Detach());
+		gfx->AddToReleaseQueue(dead_list_buffer_counter_map[id]->Detach());
+		gfx->AddToReleaseQueue(alive_index_buffer_counter_map[id]->Detach());
+		gfx->AddToReleaseQueue(particle_bufferA_map[id]->Detach());
+		gfx->AddToReleaseQueue(particle_bufferB_map[id]->Detach());
+		gfx->AddToReleaseQueue(view_space_positions_buffer_map[id]->Detach());
 
 		dead_list_buffer_map.erase(id);
 		alive_index_buffer_map.erase(id);

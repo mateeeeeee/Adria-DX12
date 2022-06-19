@@ -216,9 +216,13 @@ namespace adria
 		}
 
 		ID3D12Resource* GetNative() const { return resource.Get(); }
-		ID3D12Resource* Release() const 
+		ID3D12Resource* Detach()  
 		{ 
-			
+			return resource.Detach();
+		}
+		D3D12MA::Allocation* DetachAllocation()
+		{
+			return allocation.release();
 		}
 		BufferDesc const& GetDesc() const { return desc; }
 		UINT GetMappedRowPitch() const { return mapped_rowpitch; }

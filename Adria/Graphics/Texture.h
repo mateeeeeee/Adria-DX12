@@ -413,6 +413,11 @@ namespace adria
 		uint32 GetMappedRowPitch() const { return mapped_rowpitch; }
 		D3D12_GPU_VIRTUAL_ADDRESS GetGPUAddress() const { return resource->GetGPUVirtualAddress(); }
 		ID3D12Resource* GetNative() const { return resource.Get(); }
+		ID3D12Resource* Detach(){ return resource.Detach(); }
+		D3D12MA::Allocation* DetachAllocation()
+		{
+			return allocation.release();
+		}
 		TextureDesc const& GetDesc() const { return desc; }
 
 		bool IsMapped() const { return mapped_data != nullptr; }
