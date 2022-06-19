@@ -600,6 +600,11 @@ namespace adria
 			rg_texture->desc.initial_state = EResourceState::RenderTarget;
 		}
 		std::vector<std::pair<TextureSubresourceDesc, ERGDescriptorType>>& view_descs = texture_view_desc_map[handle];
+		for (size_t i = 0; i < view_descs.size(); ++i)
+		{
+			auto const& [_desc, _type] = view_descs[i];
+			if (desc == _desc && _type == ERGDescriptorType::RenderTarget) return RGRenderTargetId(i, handle);
+		}
 		size_t view_id = view_descs.size();
 		view_descs.emplace_back(desc, ERGDescriptorType::RenderTarget);
 		return RGRenderTargetId(view_id, handle);
@@ -616,6 +621,11 @@ namespace adria
 			rg_texture->desc.initial_state = EResourceState::DepthWrite;
 		}
 		std::vector<std::pair<TextureSubresourceDesc, ERGDescriptorType>>& view_descs = texture_view_desc_map[handle];
+		for (size_t i = 0; i < view_descs.size(); ++i)
+		{
+			auto const& [_desc, _type] = view_descs[i];
+			if (desc == _desc && _type == ERGDescriptorType::DepthStencil) return RGDepthStencilId(i, handle);
+		}
 		size_t view_id = view_descs.size();
 		view_descs.emplace_back(desc, ERGDescriptorType::DepthStencil);
 		return RGDepthStencilId(view_id, handle);
@@ -632,6 +642,11 @@ namespace adria
 			rg_texture->desc.initial_state = EResourceState::PixelShaderResource | EResourceState::NonPixelShaderResource;
 		}
 		std::vector<std::pair<TextureSubresourceDesc, ERGDescriptorType>>& view_descs = texture_view_desc_map[handle];
+		for (size_t i = 0; i < view_descs.size(); ++i)
+		{
+			auto const& [_desc, _type] = view_descs[i];
+			if (desc == _desc && _type == ERGDescriptorType::ReadOnly) return RGTextureReadOnlyId(i, handle);
+		}
 		size_t view_id = view_descs.size();
 		view_descs.emplace_back(desc, ERGDescriptorType::ReadOnly);
 		return RGTextureReadOnlyId(view_id, handle);
@@ -648,6 +663,11 @@ namespace adria
 			rg_texture->desc.initial_state = EResourceState::UnorderedAccess;
 		}
 		std::vector<std::pair<TextureSubresourceDesc, ERGDescriptorType>>& view_descs = texture_view_desc_map[handle];
+		for (size_t i = 0; i < view_descs.size(); ++i)
+		{
+			auto const& [_desc, _type] = view_descs[i];
+			if (desc == _desc && _type == ERGDescriptorType::ReadWrite) return RGTextureReadWriteId(i, handle);
+		}
 		size_t view_id = view_descs.size();
 		view_descs.emplace_back(desc, ERGDescriptorType::ReadWrite);
 		return RGTextureReadWriteId(view_id, handle);

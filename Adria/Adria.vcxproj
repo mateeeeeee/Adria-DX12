@@ -300,6 +300,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="Rendering\AccelerationStructure.h" />
     <ClInclude Include="Rendering\AddTexturesPass.h" />
     <ClInclude Include="Rendering\AmbientPass.h" />
     <ClInclude Include="Rendering\BlurPass.h" />

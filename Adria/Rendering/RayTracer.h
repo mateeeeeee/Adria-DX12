@@ -80,5 +80,6 @@ namespace adria
 		RayTracingProgram ray_traced_shadows;
 		RayTracingProgram ray_traced_ambient_occlusion;
 		RayTracingProgram ray_traced_reflections;
-	};*/
+	};
+	*/
 }
