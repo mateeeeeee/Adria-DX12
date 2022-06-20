@@ -256,9 +256,9 @@ namespace adria
 				cmd_list->SetComputeRootDescriptorTable(5, descriptor_allocator->GetFirstHandle());
 
 				descriptor_index = descriptor_allocator->AllocateRange(3);
-				device->CopyDescriptorsSimple(3, descriptor_allocator->GetHandle(descriptor_index + 0), ctx.GetReadOnlyBuffer(data.vb), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(3, descriptor_allocator->GetHandle(descriptor_index + 1), ctx.GetReadOnlyBuffer(data.ib), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(3, descriptor_allocator->GetHandle(descriptor_index + 2), ctx.GetReadOnlyBuffer(data.geo), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 0), ctx.GetReadOnlyBuffer(data.vb), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), ctx.GetReadOnlyBuffer(data.ib), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 2), ctx.GetReadOnlyBuffer(data.geo), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				cmd_list->SetComputeRootDescriptorTable(6, dst_descriptor);
 
 				cmd_list->SetPipelineState1(ray_traced_reflections.state_object.Get());
