@@ -380,8 +380,7 @@ namespace adria
                 cmd_list->ResourceBarrier(_countof(barriers), barriers);
 
                 ID3D12DescriptorHeap* heap = descriptor_allocator->Heap();
-                heap->AddRef();
-				cmd_list->SetDescriptorHeaps(1, &heap);
+                cmd_list->SetDescriptorHeaps(1, &heap);
 
                 //Set root signature, pso and descriptor heap
                 cmd_list->SetComputeRootSignature(equirect_root_signature.Get());

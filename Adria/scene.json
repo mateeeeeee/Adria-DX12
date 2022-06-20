@@ -17,7 +17,7 @@
 		"sensitivity" : 0.3
     },
 	"skybox" : {
-			"texture" : ["Resources/Textures/Skybox/barcelona.hdr"]
+			"texture" : ["Resources/Textures/Skybox/sunsetcube1024.dds"]
 	}, 
     "models" : [
 	{
