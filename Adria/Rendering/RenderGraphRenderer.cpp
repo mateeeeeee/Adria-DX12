@@ -26,7 +26,7 @@ namespace adria
 		postprocessor(reg, texture_manager, width, height), fxaa_pass(width, height), picking_pass(gfx, width, height),
 		clustered_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height),
 		decals_pass(reg, texture_manager, width, height), ocean_renderer(reg, texture_manager, width, height),
-		particle_renderer(reg, gfx, texture_manager, width, height)
+		particle_renderer(reg, gfx, texture_manager, width, height), ray_tracer(reg, gfx, width, height)
 	{
 		RootSigPSOManager::Initialize(gfx->GetDevice());
 		CreateNullHeap();
@@ -97,7 +97,8 @@ namespace adria
 		}
 		case EAmbientOcclusion::RTAO:
 		{
-			ADRIA_ASSERT(false && "Not yet implemented");
+			ray_tracer.AddRayTracedAmbientOcclusionPass(render_graph);
+			blur_pass.AddPass(render_graph)
 			break;
 		}
 		case EAmbientOcclusion::None:
@@ -110,17 +111,14 @@ namespace adria
 		for (tecs::entity light_entity : light_entities)
 		{
 			auto const& light = light_entities.get(light_entity);
+			size_t light_id = tecs::as_integer(light_entity);
 			if (!light.active) continue;
 			if ((render_settings.use_tiled_deferred || render_settings.use_clustered_deferred) && !light.casts_shadows) continue;  //tiled/clustered deferred takes care of noncasting lights
-			if (light.casts_shadows)
-			{
-				shadow_pass.AddPass(render_graph, light, tecs::as_integer(light_entity));
-				lighting_pass.AddPass(render_graph, light, tecs::as_integer(light_entity));
-			}
-			else
-			{
-				lighting_pass.AddPass(render_graph, light, tecs::as_integer(light_entity));
-			}
+			
+			if (light.casts_shadows) shadow_pass.AddPass(render_graph, light, light_id);
+			else if (light.ray_traced_shadows) ray_tracer.AddRayTracedShadowsPass(render_graph, light, light_id);
+
+			lighting_pass.AddPass(render_graph, light, light_id);
 		}
 
 		if (render_settings.use_tiled_deferred)
@@ -181,6 +179,7 @@ namespace adria
 			decals_pass.OnResize(w, h);
 			ocean_renderer.OnResize(w, h);
 			particle_renderer.OnResize(w, h);
+			ray_tracer.OnResize(w, h);
 		}
 	}
 	void RenderGraphRenderer::OnSceneInitialized()
@@ -202,6 +201,7 @@ namespace adria
 		postprocessor.OnSceneInitialized(gfx);
 		ocean_renderer.OnSceneInitialized(gfx);
 		particle_renderer.OnSceneInitialized();
+		ray_tracer.OnSceneInitialized();
 
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
 		for (uint32 i = 0; i < SSAO_KERNEL_SIZE; i++)

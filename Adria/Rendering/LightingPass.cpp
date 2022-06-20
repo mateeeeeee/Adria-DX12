@@ -22,6 +22,7 @@ namespace adria
 			RGTextureReadOnlyId gbuffer_albedo;
 			RGTextureReadOnlyId depth;
 			RGTextureReadOnlyId shadow_map;
+			RGTextureReadOnlyId ray_traced_shadows;
 			RGAllocationId		shadow_alloc;
 		};
 
@@ -32,9 +33,13 @@ namespace adria
 				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), ERGLoadStoreAccessOp::Preserve_Preserve);
 				data.gbuffer_normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_PixelShader);
 				data.gbuffer_albedo = builder.ReadTexture(RG_RES_NAME(GBufferAlbedo), ReadAccess_PixelShader);
-				data.depth			= builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
+				data.depth			= builder.ReadTexture(RG_RES_NAME(DepthStencil),  ReadAccess_PixelShader);
 
-				if (builder.IsTextureDeclared(RG_RES_NAME_IDX(ShadowMap, light_id)))
+				if (builder.IsTextureDeclared(RG_RES_NAME_IDX(RayTracedShadows, light_id)))
+				{
+					data.ray_traced_shadows = builder.ReadTexture(RG_RES_NAME_IDX(RayTracedShadows, light_id), ReadAccess_PixelShader);
+				}
+				else if (builder.IsTextureDeclared(RG_RES_NAME_IDX(ShadowMap, light_id)))
 				{
 					data.shadow_map = builder.ReadTexture(RG_RES_NAME_IDX(ShadowMap, light_id), ReadAccess_PixelShader);
 					data.shadow_alloc = builder.UseAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id));
@@ -44,7 +49,6 @@ namespace adria
 					data.shadow_map.Invalidate();
 					data.shadow_alloc.Invalidate();
 				}
-					
 				builder.SetViewport(width, height);
 			},
 			[=](LightingPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
@@ -103,19 +107,19 @@ namespace adria
 					cmd_list->SetGraphicsRootDescriptorTable(3, dst_descriptor);
 				}
 
-				GlobalBlackboardData const& global_blackboard_data = context.GetBlackboard().GetChecked<GlobalBlackboardData>();
 				{
 					Descriptor shadow_cpu_handles[] =
 					{
-						global_blackboard_data.null_srv_texture2d,
-						global_blackboard_data.null_srv_texturecube,
-						global_blackboard_data.null_srv_texture2darray,
-						global_blackboard_data.null_srv_texture2d };
+						global_data.null_srv_texture2d,
+						global_data.null_srv_texturecube,
+						global_data.null_srv_texture2darray,
+						global_data.null_srv_texture2d };
 					uint32 src_range_sizes[] = { 1,1,1,1 };
 
 					if (light.ray_traced_shadows)
 					{
-						//shadow_cpu_handles[3] = ray_tracer.GetRayTracingShadowsTexture().SRV();
+						Descriptor ray_traced_shadows = context.GetReadOnlyTexture(data.ray_traced_shadows);
+						shadow_cpu_handles[3] = ray_traced_shadows;
 					}
 					else if (light.casts_shadows)
 					{
@@ -143,7 +147,6 @@ namespace adria
 					uint32 dst_range_sizes[] = { (uint32)ARRAYSIZE(shadow_cpu_handles) };
 					device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes, ARRAYSIZE(shadow_cpu_handles), shadow_cpu_handles, src_range_sizes,
 						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
 					cmd_list->SetGraphicsRootDescriptorTable(4, dst_descriptor);
 				}
 
@@ -205,10 +208,8 @@ namespace adria
 					device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes, ARRAYSIZE(cpu_handles), cpu_handles, src_range_sizes,
 						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 					cmd_list->SetGraphicsRootDescriptorTable(4, dst_descriptor);
-
 					cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 					cmd_list->DrawInstanced(4, 1, 0, 0);
-
 				}
 			});
 

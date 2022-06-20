@@ -113,4 +113,5 @@ namespace adria
 	private:
 		RenderGraphContext(RenderGraph& rg, RenderGraphPassBase& rg_pass);
 	};
+	using RGContext = RenderGraphContext;
 }

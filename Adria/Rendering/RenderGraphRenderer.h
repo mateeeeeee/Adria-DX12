@@ -20,14 +20,13 @@
 #include "DecalsPass.h"
 #include "OceanRenderer.h"
 #include "ParticleRenderer.h"
+#include "RayTracer.h"
 #include "../Graphics/ShaderUtility.h"
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/TextureManager.h"
 #include "../Graphics/GPUProfiler.h"
 #include "../Utilities/CPUProfiler.h" 
 #include "../RenderGraph/RenderGraphResourcePool.h"
-
-
 
 namespace adria
 {
@@ -135,6 +134,7 @@ namespace adria
 		DecalsPass decals_pass;
 		OceanRenderer  ocean_renderer;
 		ParticleRenderer particle_renderer;
+		RayTracer ray_tracer;
 		Postprocessor postprocessor;
 	private:
 		void CreateNullHeap();

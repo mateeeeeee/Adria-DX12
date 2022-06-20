@@ -3,6 +3,7 @@
 #include <d3d12.h>
 #include <wrl.h>
 #include <DirectXMath.h>
+#include "BlurPass.h"
 #include "ConstantBuffers.h"
 #include "AccelerationStructure.h"
 #include "../Core/Definitions.h"
@@ -22,11 +23,19 @@ namespace adria
 	class GraphicsDevice;
 	class Texture;
 	class Buffer;
+	struct Light;
 	
 	struct RayTracingSettings
 	{
 		float32 dt;
 		float32 ao_radius;
+	};
+
+	enum class ERayTracingFeature : uint8 
+	{
+		Shadows,
+		Reflections,
+		AmbientOcclusion
 	};
 
 	class RayTracer
@@ -35,7 +44,6 @@ namespace adria
 		{
 			uint32 vertex_offset;
 			uint32 index_offset;
-
 			int32 albedo_idx;
 			int32 normal_idx;
 			int32 metallic_roughness_idx;
@@ -54,14 +62,15 @@ namespace adria
 	public:
 		RayTracer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height);
 		bool IsSupported() const;
+		bool IsFeatureSupported(ERayTracingFeature feature) const;
 
 		void OnResize(uint32 width, uint32 height);
 		void OnSceneInitialized();
 
 		void Update(RayTracingSettings const&);
 
-		void AddRayTracedShadowsPass(RenderGraph&, size_t light_id);
-		void AddRayTracedReflectionsPass(RenderGraph&);
+		void AddRayTracedShadowsPass(RenderGraph&, Light const&, size_t);
+		void AddRayTracedReflectionsPass(RenderGraph&, D3D12_CPU_DESCRIPTOR_HANDLE);
 		void AddRayTracedAmbientOcclusionPass(RenderGraph&);
 
 	private:
@@ -75,13 +84,13 @@ namespace adria
 
 		std::unique_ptr<Buffer> global_vb = nullptr;
 		std::unique_ptr<Buffer> global_ib = nullptr;
-		std::unique_ptr<Buffer> geo_info_sb = nullptr;
-		D3D12_CPU_DESCRIPTOR_HANDLE first_handle;
+		std::unique_ptr<Buffer> geo_buffer = nullptr;
 
 		RayTracingProgram ray_traced_shadows;
 		RayTracingProgram ray_traced_ambient_occlusion;
 		RayTracingProgram ray_traced_reflections;
 
+		BlurPass blur_pass;
 	private:
 		void CreateRootSignatures();
 		void CreateStateObjects();

@@ -13,7 +13,7 @@ namespace adria
 
 	RayTracer::RayTracer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height)
 		: reg(reg), gfx(gfx), width(width), height(height), accel_structure(gfx),
-		ray_tracing_cbuffer(gfx->GetDevice(), gfx->BackbufferCount())
+		ray_tracing_cbuffer(gfx->GetDevice(), gfx->BackbufferCount()), blur_pass(width, height)
 	{
 		ID3D12Device* device = gfx->GetDevice();
 		D3D12_FEATURE_DATA_D3D12_OPTIONS5 features5{};
@@ -39,9 +39,24 @@ namespace adria
 		return ray_tracing_tier != D3D12_RAYTRACING_TIER_NOT_SUPPORTED;
 	}
 
+	bool RayTracer::IsFeatureSupported(ERayTracingFeature feature) const
+	{
+		switch (feature)
+		{
+		case ERayTracingFeature::Shadows:
+		case ERayTracingFeature::AmbientOcclusion:
+			return ray_tracing_tier >= D3D12_RAYTRACING_TIER_1_0;
+		case ERayTracingFeature::Reflections:
+			return ray_tracing_tier >= D3D12_RAYTRACING_TIER_1_1;
+		default:
+			return false;
+		}
+	}
+
 	void RayTracer::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
+		blur_pass.OnResize(w, h);
 	}
 
 	void RayTracer::OnSceneInitialized()
@@ -67,7 +82,7 @@ namespace adria
 		accel_structure.Build();
 
 		BufferDesc desc = StructuredBufferDesc<GeoInfo>(geo_info.size(), false);
-		geo_info_sb = std::make_unique<Buffer>(gfx, desc, geo_info.data());
+		geo_buffer = std::make_unique<Buffer>(gfx, desc, geo_info.data());
 
 		ID3D12Device5* device = gfx->GetDevice();
 		if (RayTracing::rt_vertices.empty() || RayTracing::rt_indices.empty())
@@ -104,12 +119,11 @@ namespace adria
 		ray_tracing_cbuffer.Update(ray_tracing_cbuf_data, gfx->BackbufferIndex());
 	}
 
-	void RayTracer::AddRayTracedShadowsPass(RenderGraph& rg, size_t light_id)
+	void RayTracer::AddRayTracedShadowsPass(RenderGraph& rg, Light const& light, size_t light_id)
 	{
-		if (!IsSupported()) return;
+		if (!IsFeatureSupported(ERayTracingFeature::Shadows)) return;
 
 		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
-
 		struct RayTracedShadowsPassData
 		{
 			RGTextureReadOnlyId depth;
@@ -134,19 +148,15 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
-				Light* light = reg.get_if<Light>(tecs::entity(light_id));
-				ADRIA_ASSERT(light != nullptr);
-				ADRIA_ASSERT(light->ray_traced_shadows);
-
 				LightCBuffer light_cbuf_data{};
-				light_cbuf_data.active = light->active;
-				light_cbuf_data.color = light->color * light->energy;
-				light_cbuf_data.direction = light->direction;
-				light_cbuf_data.inner_cosine = light->inner_cosine;
-				light_cbuf_data.outer_cosine = light->outer_cosine;
-				light_cbuf_data.position = light->position;
-				light_cbuf_data.range = light->range;
-				light_cbuf_data.type = static_cast<int32>(light->type);
+				light_cbuf_data.active = light.active;
+				light_cbuf_data.color = light.color * light.energy;
+				light_cbuf_data.direction = light.direction;
+				light_cbuf_data.inner_cosine = light.inner_cosine;
+				light_cbuf_data.outer_cosine = light.outer_cosine;
+				light_cbuf_data.position = light.position;
+				light_cbuf_data.range = light.range;
+				light_cbuf_data.type = static_cast<int32>(light.type);
 				XMMATRIX camera_view = global_data.camera_view;
 				light_cbuf_data.position = DirectX::XMVector4Transform(light_cbuf_data.position, camera_view);
 				light_cbuf_data.direction = DirectX::XMVector4Transform(light_cbuf_data.direction, camera_view);
@@ -176,7 +186,7 @@ namespace adria
 				D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
 				dispatch_desc.HitGroupTable = ray_traced_shadows.shader_table_hit->GetRangeAndStride();
 				dispatch_desc.MissShaderTable = ray_traced_shadows.shader_table_miss->GetRangeAndStride();
-				dispatch_desc.RayGenerationShaderRecord = ray_traced_shadows.shader_table_raygen->GetRange(static_cast<UINT>(light->soft_rts));
+				dispatch_desc.RayGenerationShaderRecord = ray_traced_shadows.shader_table_raygen->GetRange(static_cast<UINT>(light.soft_rts));
 				dispatch_desc.Width = width;
 				dispatch_desc.Height = height;
 				dispatch_desc.Depth = 1;
@@ -186,14 +196,144 @@ namespace adria
 			}, ERGPassType::Compute, ERGPassFlags::None);
 	}
 
-	void RayTracer::AddRayTracedReflectionsPass(RenderGraph& rg)
+	void RayTracer::AddRayTracedReflectionsPass(RenderGraph& rg, Descriptor envmap)
 	{
+		if (!IsFeatureSupported(ERayTracingFeature::Reflections)) return;
+
+		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		struct RayTracedReflectionsPassData
+		{
+			RGTextureReadOnlyId depth;
+			RGTextureReadOnlyId normal;
+			RGTextureReadWriteId output;
+
+			RGBufferReadOnlyId vb;
+			RGBufferReadOnlyId ib;
+			RGBufferReadOnlyId geo;
+		};
+
+		rg.ImportBuffer(RG_RES_NAME(BigVertexBuffer), global_vb.get());
+		rg.ImportBuffer(RG_RES_NAME(BigIndexBuffer), global_ib.get());
+		rg.ImportBuffer(RG_RES_NAME(BigGeometryBuffer), geo_buffer.get());
+
+		rg.AddPass<RayTracedReflectionsPassData>("Ray Traced Reflections Pass",
+			[=](RayTracedReflectionsPassData& data, RGBuilder& builder)
+			{
+				RGTextureDesc desc{};
+				desc.width = width;
+				desc.height = height;
+				desc.format = DXGI_FORMAT_R8_UNORM;
+				builder.DeclareTexture(RG_RES_NAME(RTR_Output), desc);
+
+				data.output = builder.WriteTexture(RG_RES_NAME(RTR_Output));
+				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				data.normal = builder.ReadTexture(RG_RES_NAME(GBufferNormals), ReadAccess_NonPixelShader);
+
+				data.vb = builder.ReadBuffer(RG_RES_NAME(BigVertexBuffer), ReadAccess_NonPixelShader);
+				data.ib = builder.ReadBuffer(RG_RES_NAME(BigIndexBuffer), ReadAccess_NonPixelShader);
+				data.geo = builder.ReadBuffer(RG_RES_NAME(BigGeometryBuffer), ReadAccess_NonPixelShader);
+			},
+			[=](RayTracedReflectionsPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			{
+				auto device = gfx->GetDevice();
+				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+
+				cmd_list->SetComputeRootSignature(ray_traced_reflections.root_signature.Get());
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
+				cmd_list->SetComputeRootConstantBufferView(1, ray_tracing_cbuffer.View(gfx->BackbufferIndex()).BufferLocation);
+				cmd_list->SetComputeRootShaderResourceView(2, accel_structure.GetTLAS()->GetGPUAddress());
+
+				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
+				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+				device->CopyDescriptorsSimple(1, dst_descriptor, ctx.GetReadOnlyTexture(data.depth), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), envmap, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				cmd_list->SetComputeRootDescriptorTable(3, dst_descriptor);
+
+				descriptor_index = descriptor_allocator->AllocateRange(1);
+				dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+				device->CopyDescriptorsSimple(1, dst_descriptor, ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				cmd_list->SetComputeRootDescriptorTable(4, dst_descriptor);
+				cmd_list->SetComputeRootDescriptorTable(5, descriptor_allocator->GetFirstHandle());
+
+				descriptor_index = descriptor_allocator->AllocateRange(3);
+				device->CopyDescriptorsSimple(3, descriptor_allocator->GetHandle(descriptor_index + 0), ctx.GetReadOnlyBuffer(data.vb), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(3, descriptor_allocator->GetHandle(descriptor_index + 1), ctx.GetReadOnlyBuffer(data.ib), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(3, descriptor_allocator->GetHandle(descriptor_index + 2), ctx.GetReadOnlyBuffer(data.geo), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				cmd_list->SetComputeRootDescriptorTable(6, dst_descriptor);
+
+				cmd_list->SetPipelineState1(ray_traced_reflections.state_object.Get());
+
+				D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
+				dispatch_desc.HitGroupTable = ray_traced_reflections.shader_table_hit->GetRangeAndStride();
+				dispatch_desc.MissShaderTable = ray_traced_reflections.shader_table_miss->GetRangeAndStride();
+				dispatch_desc.RayGenerationShaderRecord = ray_traced_reflections.shader_table_raygen->GetRange(0);
+				dispatch_desc.Width = width;
+				dispatch_desc.Height = height;
+				dispatch_desc.Depth = 1;
+
+				cmd_list->DispatchRays(&dispatch_desc);
+			}, ERGPassType::Compute, ERGPassFlags::None);
 
 	}
 
 	void RayTracer::AddRayTracedAmbientOcclusionPass(RenderGraph& rg)
 	{
+		if (!IsFeatureSupported(ERayTracingFeature::AmbientOcclusion)) return;
 
+		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		struct RayTracedAmbientOcclusionPassData
+		{
+			RGTextureReadOnlyId depth;
+			RGTextureReadOnlyId normal;
+			RGTextureReadWriteId output;
+		};
+
+		rg.AddPass<RayTracedAmbientOcclusionPassData>("Ray Traced Shadows Pass",
+			[=](RayTracedAmbientOcclusionPassData& data, RGBuilder& builder)
+			{
+				RGTextureDesc desc{};
+				desc.width = width;
+				desc.height = height;
+				desc.format = DXGI_FORMAT_R8_UNORM;
+				builder.DeclareTexture(RG_RES_NAME(RTAO_Output), desc);
+
+				data.output = builder.WriteTexture(RG_RES_NAME(RTAO_Output));
+				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				data.normal = builder.ReadTexture(RG_RES_NAME(GBufferNormals), ReadAccess_NonPixelShader);
+			},
+			[=](RayTracedAmbientOcclusionPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			{
+				auto device = gfx->GetDevice();
+				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+
+				cmd_list->SetComputeRootSignature(ray_traced_ambient_occlusion.root_signature.Get());
+
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
+				cmd_list->SetComputeRootConstantBufferView(1, ray_tracing_cbuffer.View(gfx->BackbufferIndex()).BufferLocation);
+				cmd_list->SetComputeRootShaderResourceView(2, accel_structure.GetTLAS()->GetGPUAddress());
+
+				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
+				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+				device->CopyDescriptorsSimple(1, dst_descriptor, ctx.GetReadOnlyTexture(data.depth), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), ctx.GetReadOnlyTexture(data.normal), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				cmd_list->SetComputeRootDescriptorTable(3, dst_descriptor);
+
+				descriptor_index = descriptor_allocator->AllocateRange(1);
+				dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+				device->CopyDescriptorsSimple(1, dst_descriptor, ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				cmd_list->SetComputeRootDescriptorTable(4, dst_descriptor);
+				cmd_list->SetPipelineState1(ray_traced_ambient_occlusion.state_object.Get());
+
+				D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
+				dispatch_desc.HitGroupTable = ray_traced_ambient_occlusion.shader_table_hit->GetRangeAndStride();
+				dispatch_desc.MissShaderTable = ray_traced_ambient_occlusion.shader_table_miss->GetRangeAndStride();
+				dispatch_desc.RayGenerationShaderRecord = ray_traced_ambient_occlusion.shader_table_raygen->GetRange(0);
+				dispatch_desc.Width = width;
+				dispatch_desc.Height = height;
+				dispatch_desc.Depth = 1;
+
+				cmd_list->DispatchRays(&dispatch_desc);
+			}, ERGPassType::Compute, ERGPassFlags::None);
 	}
 
 	void RayTracer::CreateRootSignatures()
