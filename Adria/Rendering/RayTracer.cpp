@@ -6,6 +6,8 @@
 #include "../Graphics/ShaderUtility.h"
 #include "../Logging/Logger.h"
 
+using namespace DirectX;
+
 namespace adria
 {
 
@@ -102,7 +104,7 @@ namespace adria
 		ray_tracing_cbuffer.Update(ray_tracing_cbuf_data, gfx->BackbufferIndex());
 	}
 
-	void RayTracer::AddRayTracedShadowsPass(RenderGraph& rg, size_t light_id,bool soft_shadows)
+	void RayTracer::AddRayTracedShadowsPass(RenderGraph& rg, size_t light_id)
 	{
 		if (!IsSupported()) return;
 
@@ -112,7 +114,6 @@ namespace adria
 		{
 			RGTextureReadOnlyId depth;
 			RGTextureReadWriteId shadow;
-			RGAllocationId light_alloc;
 		};
 
 		rg.AddPass<RayTracedShadowsPassData>("Ray Traced Shadows Pass",
@@ -126,17 +127,37 @@ namespace adria
 
 				data.shadow = builder.WriteTexture(RG_RES_NAME_IDX(RayTracedShadows, light_id));
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
-				data.light_alloc = builder.UseAllocation(RG_RES_NAME_IDX(LightAllocation, light_id));
 			},
 			[=](RayTracedShadowsPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				auto device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto dynamic_allocator = gfx->GetDynamicAllocator();
+
+				Light* light = reg.get_if<Light>(tecs::entity(light_id));
+				ADRIA_ASSERT(light != nullptr);
+				ADRIA_ASSERT(light->ray_traced_shadows);
+
+				LightCBuffer light_cbuf_data{};
+				light_cbuf_data.active = light->active;
+				light_cbuf_data.color = light->color * light->energy;
+				light_cbuf_data.direction = light->direction;
+				light_cbuf_data.inner_cosine = light->inner_cosine;
+				light_cbuf_data.outer_cosine = light->outer_cosine;
+				light_cbuf_data.position = light->position;
+				light_cbuf_data.range = light->range;
+				light_cbuf_data.type = static_cast<int32>(light->type);
+				XMMATRIX camera_view = global_data.camera_view;
+				light_cbuf_data.position = DirectX::XMVector4Transform(light_cbuf_data.position, camera_view);
+				light_cbuf_data.direction = DirectX::XMVector4Transform(light_cbuf_data.direction, camera_view);
+
+				DynamicAllocation light_allocation = dynamic_allocator->Allocate(GetCBufferSize<LightCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				light_allocation.Update(light_cbuf_data);
 
 				cmd_list->SetComputeRootSignature(ray_traced_shadows.root_signature.Get());
 
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRootConstantBufferView(1, ctx.GetAllocation(data.light_alloc).gpu_address);
+				cmd_list->SetComputeRootConstantBufferView(1, light_allocation.gpu_address);
 				cmd_list->SetComputeRootConstantBufferView(2, ray_tracing_cbuffer.View(gfx->BackbufferIndex()).BufferLocation);
 				cmd_list->SetComputeRootShaderResourceView(3, accel_structure.GetTLAS()->GetGPUAddress());
 
@@ -155,7 +176,7 @@ namespace adria
 				D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
 				dispatch_desc.HitGroupTable = ray_traced_shadows.shader_table_hit->GetRangeAndStride();
 				dispatch_desc.MissShaderTable = ray_traced_shadows.shader_table_miss->GetRangeAndStride();
-				dispatch_desc.RayGenerationShaderRecord = ray_traced_shadows.shader_table_raygen->GetRange(static_cast<UINT>(soft_shadows));
+				dispatch_desc.RayGenerationShaderRecord = ray_traced_shadows.shader_table_raygen->GetRange(static_cast<UINT>(light->soft_rts));
 				dispatch_desc.Width = width;
 				dispatch_desc.Height = height;
 				dispatch_desc.Depth = 1;

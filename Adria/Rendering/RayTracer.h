@@ -60,7 +60,7 @@ namespace adria
 
 		void Update(RayTracingSettings const&);
 
-		void AddRayTracedShadowsPass(RenderGraph&, size_t light_id, bool soft_shadows);
+		void AddRayTracedShadowsPass(RenderGraph&, size_t light_id);
 		void AddRayTracedReflectionsPass(RenderGraph&);
 		void AddRayTracedAmbientOcclusionPass(RenderGraph&);
 

@@ -105,7 +105,7 @@ namespace adria
 
 				GlobalBlackboardData const& global_blackboard_data = context.GetBlackboard().GetChecked<GlobalBlackboardData>();
 				{
-					D3D12_CPU_DESCRIPTOR_HANDLE shadow_cpu_handles[] =
+					Descriptor shadow_cpu_handles[] =
 					{
 						global_blackboard_data.null_srv_texture2d,
 						global_blackboard_data.null_srv_texturecube,
@@ -169,7 +169,7 @@ namespace adria
 					if (light.casts_shadows) cmd_list->SetGraphicsRootConstantBufferView(2, context.GetAllocation(data.shadow_alloc).gpu_address);
 					cmd_list->SetGraphicsRootConstantBufferView(3, global_data.postprocess_cbuffer_address);
 
-					D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { context.GetReadOnlyTexture(data.depth), {} };
+					Descriptor cpu_handles[] = { context.GetReadOnlyTexture(data.depth), {} };
 					uint32 src_range_sizes[] = { 1,1 };
 
 					OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
