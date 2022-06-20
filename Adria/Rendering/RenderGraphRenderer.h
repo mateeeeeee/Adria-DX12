@@ -126,6 +126,10 @@ namespace adria
 		bool update_picking_data = false;
 		PickingData picking_data;
 
+		std::unique_ptr<Texture> env_texture;
+		std::unique_ptr<Texture> irmap_texture;
+		std::unique_ptr<Texture> brdf_lut_texture;
+		bool ibl_generated = false;
 #ifdef _DEBUG
 		std::unique_ptr<Texture> rtao_debug_texture;
 #endif
@@ -155,6 +159,7 @@ namespace adria
 		void CreateSizeDependentResources();
 		void UpdatePersistentConstantBuffers(float32 dt);
 		void CameraFrustumCulling();
+		void GenerateIBLTextures();
 
 		void ResolveToBackbuffer(RenderGraph& rg);
 		void ResolveToTexture(RenderGraph& rg);

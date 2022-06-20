@@ -19,7 +19,11 @@ namespace adria
 			RGTextureReadOnlyId gbuffer_albedo_srv;
 			RGTextureReadOnlyId gbuffer_emissive_srv;
 			RGTextureReadOnlyId depth_stencil_srv;
+
 			RGTextureReadOnlyId ambient_occlusion_srv;
+			RGTextureReadOnlyId env_srv;
+			RGTextureReadOnlyId irmap_srv;
+			RGTextureReadOnlyId brdf_srv;
 		};
 
 		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
@@ -38,11 +42,19 @@ namespace adria
 				data.gbuffer_albedo_srv = builder.ReadTexture(RG_RES_NAME(GBufferAlbedo), ReadAccess_PixelShader);
 				data.gbuffer_emissive_srv = builder.ReadTexture(RG_RES_NAME(GBufferEmissive), ReadAccess_PixelShader);
 				data.depth_stencil_srv = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
-				data.ambient_occlusion_srv = RGTextureReadOnlyId();
 				if (builder.IsTextureDeclared(RG_RES_NAME(AmbientOcclusion)))
 				{
 					data.ambient_occlusion_srv = builder.ReadTexture(RG_RES_NAME(AmbientOcclusion), ReadAccess_PixelShader);
 				}
+				if (builder.IsTextureDeclared(RG_RES_NAME(EnvTexture)) && 
+					builder.IsTextureDeclared(RG_RES_NAME(IrmapTexture)) &&
+					builder.IsTextureDeclared(RG_RES_NAME(BrdfTexture)))
+				{
+					data.env_srv = builder.ReadTexture(RG_RES_NAME(EnvTexture), ReadAccess_PixelShader);
+					data.irmap_srv = builder.ReadTexture(RG_RES_NAME(IrmapTexture), ReadAccess_PixelShader);
+					data.brdf_srv = builder.ReadTexture(RG_RES_NAME(BrdfTexture), ReadAccess_PixelShader);
+				}
+
 				builder.SetViewport(width, height);
 			},
 			[&](AmbientPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
@@ -52,10 +64,13 @@ namespace adria
 
 				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::AmbientPBR));
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				if (data.ambient_occlusion_srv.IsValid())
-					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::AmbientPBR_AO));
-				else 
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::AmbientPBR));
+
+				bool has_ao = data.ambient_occlusion_srv.IsValid();
+				bool has_ibl = data.env_srv.IsValid() && data.irmap_srv.IsValid() && data.brdf_srv.IsValid();
+				if (has_ao && has_ibl) cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::AmbientPBR_AO_IBL));
+				else if (has_ao && has_ibl) cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::AmbientPBR_AO));
+				else if (!has_ao && has_ibl) cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::AmbientPBR_IBL));
+				else cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::AmbientPBR));
 
 				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { context.GetReadOnlyTexture(data.gbuffer_normal_srv),
 					context.GetReadOnlyTexture(data.gbuffer_albedo_srv), context.GetReadOnlyTexture(data.gbuffer_emissive_srv), context.GetReadOnlyTexture(data.depth_stencil_srv) };
@@ -71,7 +86,13 @@ namespace adria
 															   global_data.null_srv_texturecube, global_data.null_srv_texture2d };
 				uint32 src_range_sizes2[] = { 1,1,1,1 };
 
-				if (data.ambient_occlusion_srv.IsValid()) cpu_handles2[0] = context.GetReadOnlyTexture(data.ambient_occlusion_srv);
+				if (has_ao) cpu_handles2[0] = context.GetReadOnlyTexture(data.ambient_occlusion_srv);
+				if (has_ibl)
+				{
+					cpu_handles2[1] = context.GetReadOnlyTexture(data.env_srv);
+					cpu_handles2[2] = context.GetReadOnlyTexture(data.irmap_srv);
+					cpu_handles2[3] = context.GetReadOnlyTexture(data.brdf_srv);
+				}
 
 				descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles2));
 				dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);

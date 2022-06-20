@@ -9,7 +9,7 @@
 #include <wrl.h> 
 #include "pix3.h"
 
-#define RG_MULTITHREADED
+//#define RG_MULTITHREADED
 
 namespace adria
 {

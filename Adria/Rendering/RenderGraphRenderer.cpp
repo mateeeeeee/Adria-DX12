@@ -81,6 +81,14 @@ namespace adria
 			update_picking_data = false;
 		}
 
+		if (render_settings.ibl)
+		{
+			if(!ibl_generated) GenerateIBLTextures();
+			render_graph.ImportTexture(RG_RES_NAME(EnvTexture), env_texture.get());
+			render_graph.ImportTexture(RG_RES_NAME(IrmapTexture), irmap_texture.get());
+			render_graph.ImportTexture(RG_RES_NAME(BrdfTexture), brdf_lut_texture.get());
+		}
+
 		gbuffer_pass.AddPass(render_graph, profiler_settings.profile_gbuffer_pass);
 		decals_pass.AddPass(render_graph);
 		switch (render_settings.postprocessor.ambient_occlusion)
@@ -305,6 +313,248 @@ namespace adria
 		rtao_debug_texture = std::make_unique<Texture>(gfx, rtao_debug_desc);
 		rtao_debug_texture->CreateSubresource_SRV();
 #endif
+	}
+
+	void RenderGraphRenderer::GenerateIBLTextures()
+	{
+		ID3D12Device* device = gfx->GetDevice();
+		auto cmd_list = gfx->GetDefaultCommandList();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+
+		auto skyboxes = reg.view<Skybox>();
+		TextureHandle unfiltered_env = INVALID_TEXTURE_HANDLE;
+		for (auto skybox : skyboxes)
+		{
+			auto const& _skybox = skyboxes.get(skybox);
+			if (_skybox.active)
+			{
+				unfiltered_env = _skybox.cubemap_texture;
+				break;
+			}
+		}
+
+		Microsoft::WRL::ComPtr<ID3D12RootSignature> root_signature;
+		{
+			const CD3DX12_DESCRIPTOR_RANGE1 descriptor_ranges[] = {
+				{D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC},
+				{D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE},
+			};
+			CD3DX12_ROOT_PARAMETER1 rootParameters[3] = {};
+			rootParameters[0].InitAsDescriptorTable(1, &descriptor_ranges[0]);
+			rootParameters[1].InitAsDescriptorTable(1, &descriptor_ranges[1]);
+			rootParameters[2].InitAsConstants(1, 0);
+			CD3DX12_STATIC_SAMPLER_DESC sampler_desc{ 0, D3D12_FILTER_MIN_MAG_MIP_LINEAR };
+
+			CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC signature_desc;
+			signature_desc.Init_1_1(3, rootParameters, 1, &sampler_desc);
+			Microsoft::WRL::ComPtr<ID3DBlob> signature;
+			Microsoft::WRL::ComPtr<ID3DBlob> error;
+			HRESULT hr = D3DX12SerializeVersionedRootSignature(&signature_desc, D3D_ROOT_SIGNATURE_VERSION_1_1, &signature, &error);
+			if (error) OutputDebugStringA((char*)error->GetBufferPointer());
+			BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&root_signature)));
+		}
+
+		ID3D12Resource* unfiltered_env_resource = texture_manager.Resource(unfiltered_env);
+		ADRIA_ASSERT(unfiltered_env_resource);
+		D3D12_RESOURCE_DESC unfiltered_env_desc = unfiltered_env_resource->GetDesc();
+
+
+		TextureDesc env_desc{};
+		env_desc.width = unfiltered_env_desc.Width;
+		env_desc.height = unfiltered_env_desc.Height;
+		env_desc.depth = 6;
+		env_desc.mip_levels = 0;
+		env_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		env_desc.bind_flags = EBindFlag::UnorderedAccess;
+		env_desc.misc_flags = ETextureMiscFlag::TextureCube;
+		env_texture = std::make_unique<Texture>(gfx, env_desc);
+		env_texture->CreateSubresource_SRV();
+
+		// Compute pre-filtered specular environment map.
+		{
+			Microsoft::WRL::ComPtr<ID3D12PipelineState> pipeline_state;
+
+			ShaderBlob spmap_shader;
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SpmapCS.cso", spmap_shader);
+
+			D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc = {};
+			pso_desc.pRootSignature = root_signature.Get();
+			pso_desc.CS = spmap_shader;
+			BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pipeline_state)));
+
+			ResourceBarrierBatch precopy_barriers{};
+			precopy_barriers.AddTransition(env_texture->GetNative(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
+			precopy_barriers.AddTransition(unfiltered_env_resource, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_SOURCE);
+			precopy_barriers.Submit(cmd_list);
+
+			for (uint32 array_slice = 0; array_slice < 6; ++array_slice)
+			{
+				const uint32 subresource_index = D3D12CalcSubresource(0, array_slice, 0, env_desc.mip_levels, 6);
+				const uint32 unfiltered_subresource_index = D3D12CalcSubresource(0, array_slice, 0, unfiltered_env_desc.MipLevels, 6);
+				auto dst_copy_region = CD3DX12_TEXTURE_COPY_LOCATION{ env_texture->GetNative(), subresource_index };
+				auto src_copy_region = CD3DX12_TEXTURE_COPY_LOCATION{ unfiltered_env_resource, unfiltered_subresource_index };
+				cmd_list->CopyTextureRegion(&dst_copy_region, 0, 0, 0, &src_copy_region, nullptr);
+			}
+
+			ResourceBarrierBatch postcopy_barriers{};
+			postcopy_barriers.AddTransition(env_texture->GetNative(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+			postcopy_barriers.AddTransition(unfiltered_env_resource, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+			postcopy_barriers.Submit(cmd_list);
+
+			cmd_list->SetPipelineState(pipeline_state.Get());
+			cmd_list->SetComputeRootSignature(root_signature.Get());
+
+			auto unfiltered_env_descriptor = texture_manager.CpuDescriptorHandle(unfiltered_env);
+			OffsetType descriptor_index = descriptor_allocator->Allocate();
+			device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), unfiltered_env_descriptor,
+				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+			cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetHandle(descriptor_index));
+
+			float delta_roughness = 1.0f / std::max<float32>(float32(env_desc.mip_levels - 1), 1.0f);
+			for (uint32 level = 1, size = (uint32)std::max<uint64>(unfiltered_env_desc.Width, unfiltered_env_desc.Height) / 2; level < env_desc.mip_levels; ++level, size /= 2)
+			{
+				const uint32 num_groups = std::max<uint32>(1, size / 32);
+				const float spmap_roughness = level * delta_roughness;
+
+				D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc{};
+				uavDesc.Format = env_texture->GetDesc().format;
+				uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+				uavDesc.Texture2DArray.MipSlice = level;
+				uavDesc.Texture2DArray.FirstArraySlice = 0;
+				uavDesc.Texture2DArray.ArraySize = env_texture->GetDesc().depth;
+
+				OffsetType descriptor_index = descriptor_allocator->Allocate();
+
+				device->CreateUnorderedAccessView(env_texture->GetNative(), nullptr,
+					&uavDesc,
+					descriptor_allocator->GetHandle(descriptor_index));
+
+				cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
+				cmd_list->SetComputeRoot32BitConstants(2, 1, &spmap_roughness, 0);
+				cmd_list->Dispatch(num_groups, num_groups, 6);
+			}
+
+			auto env_barrier = CD3DX12_RESOURCE_BARRIER::Transition(env_texture->GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COMMON);
+			cmd_list->ResourceBarrier(1, &env_barrier);
+
+			gfx->ExecuteDefaultCommandList();
+			gfx->WaitForGPU();
+			gfx->ResetDefaultCommandList();
+		}
+
+		TextureDesc irmap_desc{};
+		irmap_desc.width = 32;
+		irmap_desc.height = 32;
+		irmap_desc.depth = 6;
+		irmap_desc.mip_levels = 1;
+		irmap_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		irmap_desc.bind_flags = EBindFlag::UnorderedAccess;
+		irmap_desc.misc_flags = ETextureMiscFlag::TextureCube;
+		irmap_texture = std::make_unique<Texture>(gfx, irmap_desc);
+
+		// Compute diffuse irradiance cubemap.
+		{
+			Microsoft::WRL::ComPtr<ID3D12PipelineState> pipeline_state;
+			ShaderBlob irmap_shader;
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/IrmapCS.cso", irmap_shader);
+
+			D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc{};
+			pso_desc.pRootSignature = root_signature.Get();
+			pso_desc.CS = irmap_shader;
+			BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pipeline_state)));
+
+			TextureDesc desc = irmap_texture->GetDesc();
+			D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc = {};
+			uav_desc.Format = desc.format;
+			uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+			uav_desc.Texture2DArray.MipSlice = 0;
+			uav_desc.Texture2DArray.FirstArraySlice = 0;
+			uav_desc.Texture2DArray.ArraySize = desc.depth;
+
+			OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
+
+			device->CreateUnorderedAccessView(irmap_texture->GetNative(), nullptr,
+				&uav_desc,
+				descriptor_allocator->GetHandle(descriptor_index));
+
+			auto irmap_barrier = CD3DX12_RESOURCE_BARRIER::Transition(irmap_texture->GetNative(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+			cmd_list->ResourceBarrier(1, &irmap_barrier);
+			cmd_list->SetPipelineState(pipeline_state.Get());
+			cmd_list->SetComputeRootSignature(root_signature.Get());
+			ID3D12DescriptorHeap* pp_heaps[] = { descriptor_allocator->Heap() };
+			cmd_list->SetDescriptorHeaps(ARRAYSIZE(pp_heaps), pp_heaps);
+
+			device->CopyDescriptorsSimple(1,
+				descriptor_allocator->GetHandle(descriptor_index + 1), env_texture->GetSubresource_SRV(),
+				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+			cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetHandle(descriptor_index + 1));
+			cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
+			cmd_list->Dispatch((uint32)desc.width / 32, (uint32)desc.height / 32, 6u);
+			irmap_barrier = CD3DX12_RESOURCE_BARRIER::Transition(irmap_texture->GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COMMON);
+			cmd_list->ResourceBarrier(1, &irmap_barrier);
+
+			gfx->ExecuteDefaultCommandList();
+			gfx->WaitForGPU();
+			gfx->ResetDefaultCommandList();
+		}
+
+
+		// Compute Cook-Torrance BRDF 2D LUT for split-sum approximation.
+		TextureDesc brdf_desc{};
+		brdf_desc.width = 256;
+		brdf_desc.height = 256;
+		brdf_desc.depth = 1;
+		brdf_desc.mip_levels = 1;
+		brdf_desc.format = DXGI_FORMAT_R16G16_FLOAT;
+		brdf_desc.bind_flags = EBindFlag::UnorderedAccess;
+		brdf_lut_texture = std::make_unique<Texture>(gfx, irmap_desc);
+
+		{
+			TextureDesc desc = brdf_lut_texture->GetDesc();
+
+			D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
+			uav_desc.Format = desc.format;
+			uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+			uav_desc.Texture2DArray.MipSlice = 0;
+			uav_desc.Texture2DArray.FirstArraySlice = 0;
+			uav_desc.Texture2DArray.ArraySize = desc.depth;
+
+			OffsetType descriptor_index = descriptor_allocator->Allocate();
+			device->CreateUnorderedAccessView(brdf_lut_texture->GetNative(), nullptr,
+				&uav_desc,
+				descriptor_allocator->GetHandle(descriptor_index));
+
+			Microsoft::WRL::ComPtr<ID3D12PipelineState> pipeline_state;
+			ShaderBlob BRDFShader;
+			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SpbrdfCS.cso", BRDFShader);
+
+			D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc = {};
+			pso_desc.pRootSignature = root_signature.Get();
+			pso_desc.CS = BRDFShader;
+			BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pipeline_state)));
+
+			auto brdf_barrier = CD3DX12_RESOURCE_BARRIER::Transition(brdf_lut_texture->GetNative(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+			cmd_list->ResourceBarrier(1, &brdf_barrier);
+			cmd_list->SetPipelineState(pipeline_state.Get());
+			cmd_list->SetComputeRootSignature(root_signature.Get());
+			ID3D12DescriptorHeap* pp_heaps[] = { descriptor_allocator->Heap() };
+			cmd_list->SetDescriptorHeaps(ARRAYSIZE(pp_heaps), pp_heaps);
+
+			cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
+			cmd_list->Dispatch((uint32)desc.width / 32, (uint32)desc.height / 32, 1);
+
+			brdf_barrier = CD3DX12_RESOURCE_BARRIER::Transition(brdf_lut_texture->GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COMMON);
+			cmd_list->ResourceBarrier(1, &brdf_barrier);
+
+			gfx->ExecuteDefaultCommandList();
+			gfx->WaitForGPU();
+			gfx->ResetDefaultCommandList();
+			cmd_list->SetDescriptorHeaps(ARRAYSIZE(pp_heaps), pp_heaps);
+		}
+
+		ibl_generated = true;
 	}
 
 	void RenderGraphRenderer::UpdatePersistentConstantBuffers(float32 dt)

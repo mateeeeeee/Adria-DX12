@@ -571,9 +571,6 @@
     <ClInclude Include="Graphics\OfflineDescriptorAllocator.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\RenderGraphRenderer.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="RenderGraph\RenderGraphResourcePool.h">
       <Filter>RenderGraph</Filter>
     </ClInclude>
@@ -665,6 +662,9 @@
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\AccelerationStructure.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\RenderGraphRenderer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>
