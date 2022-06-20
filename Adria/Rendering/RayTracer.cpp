@@ -228,7 +228,7 @@ namespace adria
 
 				data.output = builder.WriteTexture(RG_RES_NAME(RTR_Output));
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
-				data.normal = builder.ReadTexture(RG_RES_NAME(GBufferNormals), ReadAccess_NonPixelShader);
+				data.normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
 
 				data.vb = builder.ReadBuffer(RG_RES_NAME(BigVertexBuffer), ReadAccess_NonPixelShader);
 				data.ib = builder.ReadBuffer(RG_RES_NAME(BigIndexBuffer), ReadAccess_NonPixelShader);
@@ -289,7 +289,7 @@ namespace adria
 			RGTextureReadWriteId output;
 		};
 
-		rg.AddPass<RayTracedAmbientOcclusionPassData>("Ray Traced Shadows Pass",
+		rg.AddPass<RayTracedAmbientOcclusionPassData>("Ray Traced Ambient Occlusion Pass",
 			[=](RayTracedAmbientOcclusionPassData& data, RGBuilder& builder)
 			{
 				RGTextureDesc desc{};
@@ -300,7 +300,7 @@ namespace adria
 
 				data.output = builder.WriteTexture(RG_RES_NAME(RTAO_Output));
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
-				data.normal = builder.ReadTexture(RG_RES_NAME(GBufferNormals), ReadAccess_NonPixelShader);
+				data.normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
 			},
 			[=](RayTracedAmbientOcclusionPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
 			{

@@ -39,11 +39,17 @@ namespace adria
 			blur_pass.AddPass(rg, RG_RES_NAME(CloudsOutput), RG_RES_NAME(BlurredCloudsOutput), "Volumetric Clouds");
 			copy_to_texture_pass.AddPass(rg, RG_RES_NAME(PostprocessMain), RG_RES_NAME(BlurredCloudsOutput), EBlendMode::AlphaBlend);
 		}
+
 		if (settings.reflections == EReflections::SSR)
 		{
 			AddSSRPass(rg);
 			final_resource = RG_RES_NAME(SSR_Output);
 		}
+		else if (settings.reflections == EReflections::RTR)
+		{
+			copy_to_texture_pass.AddPass(rg, final_resource, RG_RES_NAME(RTR_Output), EBlendMode::AdditiveBlend);
+		}
+
 		if (settings.fog)
 		{
 			AddFogPass(rg);
