@@ -47,7 +47,7 @@ namespace adria
 	class GraphicsDevice
 	{
 		static constexpr UINT BACKBUFFER_COUNT = 3;
-		static constexpr UINT CMD_LIST_COUNT = 16;
+		static constexpr UINT CMD_LIST_COUNT = 32;
 
 		struct FrameResources
 		{

@@ -462,7 +462,7 @@ namespace adria
         {
 			engine->SetViewportData(viewport_data);
             engine->Run(renderer_settings);
-            auto gui_cmd_list = engine->gfx->GetNewGraphicsCommandList();
+            auto gui_cmd_list = engine->gfx->GetDefaultCommandList();
             engine->gfx->SetBackbuffer(gui_cmd_list);
             {
                 PIXScopedEvent(gui_cmd_list, PIX_COLOR_DEFAULT, "GUI Pass");

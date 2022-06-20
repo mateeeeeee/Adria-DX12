@@ -214,7 +214,6 @@ namespace adria
             auto device = gfx->GetDevice();
             auto allocator = gfx->GetAllocator();
             auto cmd_list = gfx->GetDefaultCommandList();
-            
 
             if (format == TextureFormat::eDDS)
             {
@@ -380,8 +379,9 @@ namespace adria
                     CD3DX12_RESOURCE_BARRIER::Transition(equirect_tex, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE) };
                 cmd_list->ResourceBarrier(_countof(barriers), barriers);
 
-                ID3D12DescriptorHeap* pp_heaps[] = { descriptor_allocator->Heap() };
-                cmd_list->SetDescriptorHeaps(1, pp_heaps);
+                ID3D12DescriptorHeap* heap = descriptor_allocator->Heap();
+                heap->AddRef();
+				cmd_list->SetDescriptorHeaps(1, &heap);
 
                 //Set root signature, pso and descriptor heap
                 cmd_list->SetComputeRootSignature(equirect_root_signature.Get());

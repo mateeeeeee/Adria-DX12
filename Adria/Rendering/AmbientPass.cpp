@@ -103,8 +103,7 @@ namespace adria
 
 				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 				cmd_list->DrawInstanced(4, 1, 0, 0);
-			}
-			);
+			});
 	}
 
 	void AmbientPass::OnResize(uint32 w, uint32 h)

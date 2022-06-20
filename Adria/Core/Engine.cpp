@@ -306,9 +306,9 @@ namespace adria
 		gfx->ResetDefaultCommandList();
 
 		const_cast<SceneConfig&>(config).camera_params.aspect_ratio = static_cast<float32>(Window::Width()) / Window::Height();
-		camera_manager.AddCamera(config.camera_params);
-		
+		camera_manager.AddCamera(config.camera_params);		
 		entity_loader->LoadSkybox(config.skybox_params);
+
 		for(auto&& model : config.scene_models) entity_loader->LoadGLTFModel(model);
 		for (auto&& light : config.scene_lights) entity_loader->LoadLight(light);
 

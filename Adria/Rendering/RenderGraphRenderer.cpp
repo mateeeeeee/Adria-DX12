@@ -362,12 +362,14 @@ namespace adria
 		TextureDesc env_desc{};
 		env_desc.width = unfiltered_env_desc.Width;
 		env_desc.height = unfiltered_env_desc.Height;
-		env_desc.depth = 6;
+		env_desc.array_size = 6;
 		env_desc.mip_levels = 0;
 		env_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		env_desc.bind_flags = EBindFlag::UnorderedAccess;
+		env_desc.initial_state = EResourceState::PixelShaderResource;
 		env_desc.misc_flags = ETextureMiscFlag::TextureCube;
 		env_texture = std::make_unique<Texture>(gfx, env_desc);
+		env_texture->SetName("Env Map");
 		env_texture->CreateSubresource_SRV();
 
 		// Compute pre-filtered specular environment map.
@@ -383,8 +385,8 @@ namespace adria
 			BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pipeline_state)));
 
 			ResourceBarrierBatch precopy_barriers{};
-			precopy_barriers.AddTransition(env_texture->GetNative(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
-			precopy_barriers.AddTransition(unfiltered_env_resource, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_SOURCE);
+			precopy_barriers.AddTransition(env_texture->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_DEST);
+			precopy_barriers.AddTransition(unfiltered_env_resource, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_SOURCE);
 			precopy_barriers.Submit(cmd_list);
 
 			for (uint32 array_slice = 0; array_slice < 6; ++array_slice)
@@ -398,7 +400,7 @@ namespace adria
 
 			ResourceBarrierBatch postcopy_barriers{};
 			postcopy_barriers.AddTransition(env_texture->GetNative(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-			postcopy_barriers.AddTransition(unfiltered_env_resource, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+			postcopy_barriers.AddTransition(unfiltered_env_resource, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 			postcopy_barriers.Submit(cmd_list);
 
 			cmd_list->SetPipelineState(pipeline_state.Get());
@@ -422,7 +424,7 @@ namespace adria
 				uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
 				uavDesc.Texture2DArray.MipSlice = level;
 				uavDesc.Texture2DArray.FirstArraySlice = 0;
-				uavDesc.Texture2DArray.ArraySize = env_texture->GetDesc().depth;
+				uavDesc.Texture2DArray.ArraySize = env_texture->GetDesc().array_size;
 
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
 
@@ -435,7 +437,7 @@ namespace adria
 				cmd_list->Dispatch(num_groups, num_groups, 6);
 			}
 
-			auto env_barrier = CD3DX12_RESOURCE_BARRIER::Transition(env_texture->GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COMMON);
+			auto env_barrier = CD3DX12_RESOURCE_BARRIER::Transition(env_texture->GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 			cmd_list->ResourceBarrier(1, &env_barrier);
 
 			gfx->ExecuteDefaultCommandList();
@@ -446,13 +448,15 @@ namespace adria
 		TextureDesc irmap_desc{};
 		irmap_desc.width = 32;
 		irmap_desc.height = 32;
-		irmap_desc.depth = 6;
+		irmap_desc.array_size = 6;
 		irmap_desc.mip_levels = 1;
 		irmap_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		irmap_desc.bind_flags = EBindFlag::UnorderedAccess;
 		irmap_desc.misc_flags = ETextureMiscFlag::TextureCube;
+		irmap_desc.initial_state = EResourceState::PixelShaderResource;
 		irmap_texture = std::make_unique<Texture>(gfx, irmap_desc);
 
+		irmap_texture->SetName("Irmap");
 		// Compute diffuse irradiance cubemap.
 		{
 			Microsoft::WRL::ComPtr<ID3D12PipelineState> pipeline_state;
@@ -470,7 +474,7 @@ namespace adria
 			uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
 			uav_desc.Texture2DArray.MipSlice = 0;
 			uav_desc.Texture2DArray.FirstArraySlice = 0;
-			uav_desc.Texture2DArray.ArraySize = desc.depth;
+			uav_desc.Texture2DArray.ArraySize = desc.array_size;
 
 			OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
 
@@ -478,7 +482,7 @@ namespace adria
 				&uav_desc,
 				descriptor_allocator->GetHandle(descriptor_index));
 
-			auto irmap_barrier = CD3DX12_RESOURCE_BARRIER::Transition(irmap_texture->GetNative(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+			auto irmap_barrier = CD3DX12_RESOURCE_BARRIER::Transition(irmap_texture->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			cmd_list->ResourceBarrier(1, &irmap_barrier);
 			cmd_list->SetPipelineState(pipeline_state.Get());
 			cmd_list->SetComputeRootSignature(root_signature.Get());
@@ -492,7 +496,7 @@ namespace adria
 			cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetHandle(descriptor_index + 1));
 			cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
 			cmd_list->Dispatch((uint32)desc.width / 32, (uint32)desc.height / 32, 6u);
-			irmap_barrier = CD3DX12_RESOURCE_BARRIER::Transition(irmap_texture->GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COMMON);
+			irmap_barrier = CD3DX12_RESOURCE_BARRIER::Transition(irmap_texture->GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 			cmd_list->ResourceBarrier(1, &irmap_barrier);
 
 			gfx->ExecuteDefaultCommandList();
@@ -500,17 +504,18 @@ namespace adria
 			gfx->ResetDefaultCommandList();
 		}
 
-
 		// Compute Cook-Torrance BRDF 2D LUT for split-sum approximation.
 		TextureDesc brdf_desc{};
 		brdf_desc.width = 256;
 		brdf_desc.height = 256;
-		brdf_desc.depth = 1;
+		brdf_desc.array_size = 1;
 		brdf_desc.mip_levels = 1;
 		brdf_desc.format = DXGI_FORMAT_R16G16_FLOAT;
 		brdf_desc.bind_flags = EBindFlag::UnorderedAccess;
-		brdf_lut_texture = std::make_unique<Texture>(gfx, irmap_desc);
+		brdf_desc.initial_state = EResourceState::PixelShaderResource;
+		brdf_lut_texture = std::make_unique<Texture>(gfx, brdf_desc);
 
+		brdf_lut_texture->SetName("BrdfLut");
 		{
 			TextureDesc desc = brdf_lut_texture->GetDesc();
 
@@ -519,7 +524,7 @@ namespace adria
 			uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
 			uav_desc.Texture2DArray.MipSlice = 0;
 			uav_desc.Texture2DArray.FirstArraySlice = 0;
-			uav_desc.Texture2DArray.ArraySize = desc.depth;
+			uav_desc.Texture2DArray.ArraySize = desc.array_size;
 
 			OffsetType descriptor_index = descriptor_allocator->Allocate();
 			device->CreateUnorderedAccessView(brdf_lut_texture->GetNative(), nullptr,
@@ -535,7 +540,7 @@ namespace adria
 			pso_desc.CS = BRDFShader;
 			BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pipeline_state)));
 
-			auto brdf_barrier = CD3DX12_RESOURCE_BARRIER::Transition(brdf_lut_texture->GetNative(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+			auto brdf_barrier = CD3DX12_RESOURCE_BARRIER::Transition(brdf_lut_texture->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 			cmd_list->ResourceBarrier(1, &brdf_barrier);
 			cmd_list->SetPipelineState(pipeline_state.Get());
 			cmd_list->SetComputeRootSignature(root_signature.Get());
@@ -545,7 +550,7 @@ namespace adria
 			cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
 			cmd_list->Dispatch((uint32)desc.width / 32, (uint32)desc.height / 32, 1);
 
-			brdf_barrier = CD3DX12_RESOURCE_BARRIER::Transition(brdf_lut_texture->GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COMMON);
+			brdf_barrier = CD3DX12_RESOURCE_BARRIER::Transition(brdf_lut_texture->GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 			cmd_list->ResourceBarrier(1, &brdf_barrier);
 
 			gfx->ExecuteDefaultCommandList();
