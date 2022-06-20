@@ -98,7 +98,6 @@ namespace adria
 		case EAmbientOcclusion::RTAO:
 		{
 			ray_tracer.AddRayTracedAmbientOcclusionPass(render_graph);
-			blur_pass.AddPass(render_graph)
 			break;
 		}
 		case EAmbientOcclusion::None:
@@ -138,6 +137,25 @@ namespace adria
 		sky_pass.AddPass(render_graph, render_settings.sky_type);
 		picking_pass.AddPass(render_graph);
 		particle_renderer.AddPasses(render_graph);
+
+		if (render_settings.postprocessor.reflections == EReflections::RTR)
+		{
+			D3D12_CPU_DESCRIPTOR_HANDLE skybox_handle = global_data.null_srv_texturecube;
+			if (render_settings.sky_type == ESkyType::Skybox)
+			{
+				auto skybox_entities = reg.view<Skybox>();
+				for (auto e : skybox_entities)
+				{
+					Skybox skybox = skybox_entities.get(e);
+					if (skybox.active && skybox.used_in_rt)
+					{
+						skybox_handle = texture_manager.CpuDescriptorHandle(skybox.cubemap_texture);
+						break;
+					}
+				}
+			}
+			ray_tracer.AddRayTracedReflectionsPass(render_graph, skybox_handle);
+		}
 		postprocessor.AddPasses(render_graph, render_settings.postprocessor);
 
 		if (render_settings.gui_visible)

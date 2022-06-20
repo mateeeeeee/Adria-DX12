@@ -22,6 +22,7 @@ namespace adria
 		if (FAILED(hr) || ray_tracing_tier == D3D12_RAYTRACING_TIER_NOT_SUPPORTED)
 		{
 			ADRIA_LOG(INFO, "Ray Tracing is not supported! All Ray Tracing calls will be silently ignored!");
+			return;
 		}
 		else if (ray_tracing_tier < D3D12_RAYTRACING_TIER_1_1)
 		{
@@ -334,6 +335,8 @@ namespace adria
 
 				cmd_list->DispatchRays(&dispatch_desc);
 			}, ERGPassType::Compute, ERGPassFlags::None);
+
+		blur_pass.AddPass(rg, RG_RES_NAME(RTAO_Output), RG_RES_NAME(AmbientOcclusion));
 	}
 
 	void RayTracer::CreateRootSignatures()
