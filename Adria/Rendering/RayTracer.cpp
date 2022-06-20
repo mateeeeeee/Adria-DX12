@@ -274,7 +274,6 @@ namespace adria
 
 				cmd_list->DispatchRays(&dispatch_desc);
 			}, ERGPassType::Compute, ERGPassFlags::None);
-
 	}
 
 	void RayTracer::AddRayTracedAmbientOcclusionPass(RenderGraph& rg)
@@ -337,6 +336,28 @@ namespace adria
 			}, ERGPassType::Compute, ERGPassFlags::None);
 
 		blur_pass.AddPass(rg, RG_RES_NAME(RTAO_Output), RG_RES_NAME(AmbientOcclusion));
+	}
+
+	void RayTracer::AddRayTracedAmbientOcclusionDebugPass(RenderGraph& rg, RGResourceName debug)
+	{
+		struct CopyPassData
+		{
+			RGTextureCopySrcId copy_src;
+			RGTextureCopyDstId copy_dst;
+		};
+
+		rg.AddPass<CopyPassData>("Copy RTAO Pass",
+			[=](CopyPassData& data, RenderGraphBuilder& builder)
+			{
+				data.copy_dst = builder.WriteCopyDstTexture(debug);
+				data.copy_src = builder.ReadCopySrcTexture(RG_RES_NAME(RTAO_Output));
+			},
+			[=](CopyPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			{
+				Texture const& src_texture = context.GetCopySrcTexture(data.copy_src);
+				Texture const& dst_texture = context.GetCopyDstTexture(data.copy_dst);
+				cmd_list->CopyResource(dst_texture.GetNative(), src_texture.GetNative());
+			}, ERGPassType::Copy, ERGPassFlags::ForceNoCull);
 	}
 
 	void RayTracer::CreateRootSignatures()

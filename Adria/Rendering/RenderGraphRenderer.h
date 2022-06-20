@@ -82,6 +82,16 @@ namespace adria
 		{
 			return gpu_profiler.GetProfilerResults(gfx->GetDefaultCommandList(), log);
 		}
+
+		bool IsRayTracingSupported() const { return ray_tracer.IsSupported(); }
+		Texture const* GetRTAODebugTexture() const 
+		{
+#ifdef _DEBUG
+			return rtao_debug_texture.get();
+#else 
+			return nullptr;
+#endif
+		}
 	private:
 		tecs::registry& reg;
 		GraphicsDevice* gfx;
@@ -115,6 +125,10 @@ namespace adria
 		std::array<DirectX::XMVECTOR, SSAO_KERNEL_SIZE> ssao_kernel{};
 		bool update_picking_data = false;
 		PickingData picking_data;
+
+#ifdef _DEBUG
+		std::unique_ptr<Texture> rtao_debug_texture;
+#endif
 
 		//passes
 		GBufferPass  gbuffer_pass;

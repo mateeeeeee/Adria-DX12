@@ -482,7 +482,7 @@ namespace adria
                 Log();
                 Profiling();
 				ShaderHotReload();
-				//if (engine->renderer->IsRayTracingSupported()) RayTracingDebug();
+				if (engine->renderer->IsRayTracingSupported()) RayTracingDebug();
                 gui->End(gui_cmd_list);
             }
             engine->Present();
@@ -2016,7 +2016,7 @@ namespace adria
 
 	void Editor::RayTracingDebug()
 	{
-		/*
+#ifdef _DEBUG
 		auto device = engine->gfx->GetDevice();
 		auto descriptor_allocator = gui->DescriptorAllocator();
 		ImVec2 v_min = ImGui::GetWindowContentRegionMin();
@@ -2045,16 +2045,16 @@ namespace adria
 
 			if (current_rt_type == 0)
 			{
-				D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetRayTracingShadowsTexture_Debug().SRV();
+				/*D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetRayTracingShadowsTexture_Debug().SRV();
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
 				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 				device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, size);
-				ImGui::Text("Ray Tracing Shadows Image");
+				ImGui::Text("Ray Tracing Shadows Image"); */
 			}
 			else if (current_rt_type == 1)
 			{
-				D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetRayTracingAOTexture_Debug().SRV();
+				D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetRTAODebugTexture()->GetSubresource_SRV();
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
 				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 				device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -2063,17 +2063,17 @@ namespace adria
 			}
 			else if (current_rt_type == 2)
 			{
-				D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetRayTracingReflectionsTexture_Debug().SRV();
+				/*D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetRayTracingReflectionsTexture_Debug().SRV();
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
 				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 				device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, size);
-				ImGui::Text("Ray Tracing Reflections Image");
+				ImGui::Text("Ray Tracing Reflections Image"); */
 			}
 
 		}
 		ImGui::End();
-		*/
+#endif
 	}
 
     void Editor::OpenMaterialFileDialog(Material* material, EMaterialTextureType type)

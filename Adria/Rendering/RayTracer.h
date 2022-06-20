@@ -73,6 +73,7 @@ namespace adria
 		void AddRayTracedReflectionsPass(RenderGraph&, D3D12_CPU_DESCRIPTOR_HANDLE);
 		void AddRayTracedAmbientOcclusionPass(RenderGraph&);
 
+		void AddRayTracedAmbientOcclusionDebugPass(RenderGraph&, RGResourceName);
 	private:
 		uint32 width, height;
 		tecs::registry& reg;
