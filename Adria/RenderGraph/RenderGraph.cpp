@@ -9,6 +9,7 @@
 #include <wrl.h> 
 #include "pix3.h"
 
+#define RG_MULTITHREADED
 
 namespace adria
 {
@@ -230,9 +231,134 @@ namespace adria
 
 	void RenderGraph::Execute_Multithreaded()
 	{
-#ifdef RG_MULTITHREADED
-		static_assert(false, "Todo");
-#endif
+		pool.Tick();
+		for (auto& dependency_level : dependency_levels) dependency_level.Setup();
+
+		for (size_t i = 0; i < dependency_levels.size(); ++i)
+		{
+			auto& dependency_level = dependency_levels[i];
+			for (auto tex_id : dependency_level.texture_creates)
+			{
+				RGTexture* rg_texture = GetRGTexture(tex_id);
+				rg_texture->resource = pool.AllocateTexture(rg_texture->desc);
+				CreateTextureViews(tex_id);
+				rg_texture->SetName();
+			}
+			for (auto buf_id : dependency_level.buffer_creates)
+			{
+				RGBuffer* rg_buffer = GetRGBuffer(buf_id);
+				rg_buffer->resource = pool.AllocateBuffer(rg_buffer->desc);
+				CreateBufferViews(buf_id);
+				rg_buffer->SetName();
+			}
+
+			ResourceBarrierBatch barrier_batcher{};
+			{
+				for (auto const& [tex_id, state] : dependency_level.texture_state_map)
+				{
+					RGTexture* rg_texture = GetRGTexture(tex_id);
+					Texture* texture = rg_texture->resource;
+					if (dependency_level.texture_creates.contains(tex_id))
+					{
+						if (!HasAllFlags(texture->GetDesc().initial_state, state))
+						{
+							ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
+							D3D12_RESOURCE_STATES initial_state = ConvertToD3D12ResourceState(texture->GetDesc().initial_state);
+							D3D12_RESOURCE_STATES wanted_state = ConvertToD3D12ResourceState(state);
+							barrier_batcher.AddTransition(texture->GetNative(), initial_state, wanted_state);
+						}
+						continue;
+					}
+					bool found = false;
+					for (int32 j = (int32)i - 1; j >= 0; --j)
+					{
+						auto& prev_dependency_level = dependency_levels[j];
+						if (prev_dependency_level.texture_state_map.contains(tex_id))
+						{
+							ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
+							D3D12_RESOURCE_STATES wanted_state = ConvertToD3D12ResourceState(state);
+							D3D12_RESOURCE_STATES prev_state = ConvertToD3D12ResourceState(prev_dependency_level.texture_state_map[tex_id]);
+							if (prev_state != wanted_state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, wanted_state);
+							found = true;
+							break;
+						}
+					}
+					if (!found && rg_texture->imported)
+					{
+						ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
+						D3D12_RESOURCE_STATES wanted_state = ConvertToD3D12ResourceState(state);
+						D3D12_RESOURCE_STATES prev_state = ConvertToD3D12ResourceState(rg_texture->desc.initial_state);
+						if (prev_state != wanted_state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, wanted_state);
+					}
+				}
+				for (auto const& [buf_id, state] : dependency_level.buffer_state_map)
+				{
+					RGBuffer* rg_buffer = GetRGBuffer(buf_id);
+					Buffer* buffer = rg_buffer->resource;
+					if (dependency_level.buffer_creates.contains(buf_id))
+					{
+						if (state != EResourceState::Common) //check if there is an implicit transition, maybe this can be avoided
+						{
+							ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
+							barrier_batcher.AddTransition(buffer->GetNative(), D3D12_RESOURCE_STATE_COMMON, ConvertToD3D12ResourceState(state));
+						}
+						continue;
+					}
+					bool found = false;
+					for (int32 j = (int32)i - 1; j >= 0; --j)
+					{
+						auto& prev_dependency_level = dependency_levels[j];
+						if (prev_dependency_level.buffer_state_map.contains(buf_id))
+						{
+							ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
+							D3D12_RESOURCE_STATES wanted_state = ConvertToD3D12ResourceState(state);
+							D3D12_RESOURCE_STATES prev_state = ConvertToD3D12ResourceState(prev_dependency_level.buffer_state_map[buf_id]);
+							if (prev_state != wanted_state) barrier_batcher.AddTransition(buffer->GetNative(), prev_state, wanted_state);
+							found = true;
+							break;
+						}
+					}
+					if (!found && rg_buffer->imported)
+					{
+						ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
+						if (EResourceState::Common != state) barrier_batcher.AddTransition(buffer->GetNative(), D3D12_RESOURCE_STATE_COMMON, ConvertToD3D12ResourceState(state));
+					}
+				}
+			}
+
+			uint32 cmd_list_count = dependency_level.GetSize();
+			std::vector<CommandList*> cmd_lists; cmd_lists.reserve(cmd_list_count);
+			for (size_t i = 0; i < cmd_list_count; ++i) cmd_lists.push_back(gfx->GetNewGraphicsCommandList());
+
+			barrier_batcher.Submit(cmd_lists.front());
+			dependency_level.Execute(gfx, cmd_lists);
+
+			barrier_batcher.Clear();
+			for (RGTextureId tex_id : dependency_level.texture_destroys)
+			{
+				RGTexture* rg_texture = GetRGTexture(tex_id);
+				Texture* texture = rg_texture->resource;
+				EResourceState initial_state = texture->GetDesc().initial_state;
+				D3D12_RESOURCE_STATES wanted_state = ConvertToD3D12ResourceState(initial_state);
+				ADRIA_ASSERT(dependency_level.texture_state_map.contains(tex_id));
+				EResourceState state = dependency_level.texture_state_map[tex_id];
+				D3D12_RESOURCE_STATES prev_state = ConvertToD3D12ResourceState(state);
+				if (initial_state != state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, wanted_state);
+				if (!rg_texture->imported) pool.ReleaseTexture(rg_texture->resource);
+			}
+			for (RGBufferId buf_id : dependency_level.buffer_destroys)
+			{
+				RGBuffer* rg_buffer = GetRGBuffer(buf_id);
+				Buffer* buffer = rg_buffer->resource;
+				D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATE_COMMON;
+				ADRIA_ASSERT(dependency_level.buffer_state_map.contains(buf_id));
+				EResourceState state = dependency_level.buffer_state_map[buf_id];
+				D3D12_RESOURCE_STATES prev_state = ConvertToD3D12ResourceState(state);
+				if (initial_state != prev_state) barrier_batcher.AddTransition(buffer->GetNative(), prev_state, initial_state);
+				if (!rg_buffer->imported) pool.ReleaseBuffer(rg_buffer->resource);
+			}
+			barrier_batcher.Submit(cmd_lists.back());
+		}
 	}
 
 	void RenderGraph::BuildAdjacencyLists()
@@ -1018,9 +1144,160 @@ namespace adria
 
 	void RenderGraph::DependencyLevel::Execute(GraphicsDevice* gfx, std::vector<CommandList*> const& cmd_lists)
 	{
-#ifdef RG_MULTITHREADED
-		static_assert(false && "Todo");
-#endif
+		std::vector<std::future<void>> pass_futures;
+		for (size_t k = 0; k < passes.size(); ++k)
+		{
+			pass_futures.push_back(TaskSystem::Submit([&](size_t j)
+				{
+				auto& pass = passes[j];
+				CommandList* cmd_list = cmd_lists[j];
+				if (pass->IsCulled()) return;
+				RenderGraphContext rg_resources(rg, *pass);
+				if (pass->type == ERGPassType::Graphics && !pass->SkipAutoRenderPassSetup())
+				{
+					RenderPassDesc render_pass_desc{};
+					if (pass->AllowUAVWrites()) render_pass_desc.render_pass_flags = D3D12_RENDER_PASS_FLAG_ALLOW_UAV_WRITES;
+					else render_pass_desc.render_pass_flags = D3D12_RENDER_PASS_FLAG_NONE;
+
+					for (auto const& render_target_info : pass->render_targets_info)
+					{
+						RGTextureId rt_texture = render_target_info.render_target_handle.GetResourceId();
+						Texture* texture = rg.GetTexture(rt_texture);
+
+						RtvAttachmentDesc rtv_desc{};
+						TextureDesc const& desc = texture->GetDesc();
+						ClearValue const& clear_value = desc.clear_value;
+						if (clear_value.active_member != ClearValue::ActiveMember::None)
+						{
+							ADRIA_ASSERT(clear_value.active_member == ClearValue::ActiveMember::Color && "Invalid Clear Value for Render Target");
+							rtv_desc.clear_value.Format = desc.format;
+							rtv_desc.clear_value.Color[0] = desc.clear_value.color.color[0];
+							rtv_desc.clear_value.Color[1] = desc.clear_value.color.color[1];
+							rtv_desc.clear_value.Color[2] = desc.clear_value.color.color[2];
+							rtv_desc.clear_value.Color[3] = desc.clear_value.color.color[3];
+						}
+						rtv_desc.cpu_handle = rg.GetRenderTarget(render_target_info.render_target_handle);
+
+						ERGLoadAccessOp load_access = ERGLoadAccessOp::NoAccess;
+						ERGStoreAccessOp store_access = ERGStoreAccessOp::NoAccess;
+						SplitAccessOp(render_target_info.render_target_access, load_access, store_access);
+
+						switch (load_access)
+						{
+						case ERGLoadAccessOp::Clear:
+							rtv_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
+							break;
+						case ERGLoadAccessOp::Discard:
+							rtv_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_DISCARD;
+							break;
+						case ERGLoadAccessOp::Preserve:
+							rtv_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
+							break;
+						case ERGLoadAccessOp::NoAccess:
+							rtv_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS;
+							break;
+						default:
+							ADRIA_ASSERT(false && "Invalid Load Access!");
+						}
+
+						switch (store_access)
+						{
+						case ERGStoreAccessOp::Resolve:
+							rtv_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_RESOLVE;
+							break;
+						case ERGStoreAccessOp::Discard:
+							rtv_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD;
+							break;
+						case ERGStoreAccessOp::Preserve:
+							rtv_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
+							break;
+						case ERGStoreAccessOp::NoAccess:
+							rtv_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_NO_ACCESS;;
+							break;
+						default:
+							ADRIA_ASSERT(false && "Invalid Store Access!");
+						}
+
+						render_pass_desc.rtv_attachments.push_back(std::move(rtv_desc));
+					}
+
+					if (pass->depth_stencil.has_value())
+					{
+						auto depth_stencil_info = pass->depth_stencil.value();
+						RGTextureId ds_texture = depth_stencil_info.depth_stencil_handle.GetResourceId();
+						Texture* texture = rg.GetTexture(ds_texture);
+
+						DsvAttachmentDesc dsv_desc{};
+						TextureDesc const& desc = texture->GetDesc();
+						ClearValue const& clear_value = desc.clear_value;
+						if (clear_value.active_member != ClearValue::ActiveMember::None)
+						{
+							ADRIA_ASSERT(clear_value.active_member == ClearValue::ActiveMember::DepthStencil && "Invalid Clear Value for Depth Stencil");
+							dsv_desc.clear_value.Format = desc.format;
+							dsv_desc.clear_value.DepthStencil.Depth = desc.clear_value.depth_stencil.depth;
+							dsv_desc.clear_value.DepthStencil.Stencil = desc.clear_value.depth_stencil.stencil;
+						}
+						dsv_desc.cpu_handle = rg.GetDepthStencil(depth_stencil_info.depth_stencil_handle);
+
+						ERGLoadAccessOp load_access = ERGLoadAccessOp::NoAccess;
+						ERGStoreAccessOp store_access = ERGStoreAccessOp::NoAccess;
+						SplitAccessOp(depth_stencil_info.depth_access, load_access, store_access);
+
+						switch (load_access)
+						{
+						case ERGLoadAccessOp::Clear:
+							dsv_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
+							break;
+						case ERGLoadAccessOp::Discard:
+							dsv_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_DISCARD;
+							break;
+						case ERGLoadAccessOp::Preserve:
+							dsv_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
+							break;
+						case ERGLoadAccessOp::NoAccess:
+							dsv_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS;
+							break;
+						default:
+							ADRIA_ASSERT(false && "Invalid Load Access!");
+						}
+
+						switch (store_access)
+						{
+						case ERGStoreAccessOp::Resolve:
+							dsv_desc.depth_ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_RESOLVE;
+							break;
+						case ERGStoreAccessOp::Discard:
+							dsv_desc.depth_ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD;
+							break;
+						case ERGStoreAccessOp::Preserve:
+							dsv_desc.depth_ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
+							break;
+						case ERGStoreAccessOp::NoAccess:
+							dsv_desc.depth_ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_NO_ACCESS;;
+							break;
+						default:
+							ADRIA_ASSERT(false && "Invalid Store Access!");
+						}
+						//todo add stencil
+						render_pass_desc.dsv_attachment = std::move(dsv_desc);
+					}
+					ADRIA_ASSERT((pass->viewport_width != 0 && pass->viewport_height != 0) && "Viewport Width/Height is 0! The call to builder.SetViewport is probably missing...");
+					render_pass_desc.width = pass->viewport_width;
+					render_pass_desc.height = pass->viewport_height;
+					RenderPass render_pass(render_pass_desc);
+					PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, pass->name.c_str());
+					render_pass.Begin(cmd_list, pass->UseLegacyRenderPasses());
+					pass->Execute(rg_resources, gfx, cmd_list);
+					render_pass.End(cmd_list, pass->UseLegacyRenderPasses());
+				}
+				else
+				{
+					PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, pass->name.c_str());
+					pass->Execute(rg_resources, gfx, cmd_list);
+				}
+				}, k));
+		}
+		for (auto& future : pass_futures) future.wait();
 	}
 
 	size_t RenderGraph::DependencyLevel::GetSize() const
