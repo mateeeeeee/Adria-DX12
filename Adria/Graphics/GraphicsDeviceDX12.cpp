@@ -341,6 +341,7 @@ namespace adria
 			{
 				dynamic_allocators.emplace_back(new LinearDynamicAllocator(device.Get(), 50'000'000));
 			}
+			dynamic_allocator_before_rendering.reset(new LinearDynamicAllocator(device.Get(), 750'000'000));
 		}
 
 		//release queue
@@ -547,6 +548,12 @@ namespace adria
 
 	void GraphicsDevice::ClearBackbuffer()
 	{
+		if (rendering_not_started) [[unlikely]]
+		{
+			rendering_not_started = FALSE;
+			dynamic_allocator_before_rendering = nullptr;
+		}
+
 		descriptor_allocator->ReleaseCompletedFrames(frame_index);
 		dynamic_allocators[backbuffer_index]->Clear();
 
@@ -724,7 +731,8 @@ namespace adria
 
 	LinearDynamicAllocator* GraphicsDevice::GetDynamicAllocator() const
 	{
-		return dynamic_allocators[backbuffer_index].get();
+		if (rendering_not_started) return dynamic_allocator_before_rendering.get();
+		else return dynamic_allocators[backbuffer_index].get();
 	}
 
 	void GraphicsDevice::GetTimestampFrequency(UINT64& frequency) const

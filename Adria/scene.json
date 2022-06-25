@@ -21,8 +21,8 @@
 	}, 
     "models" : [
 	{
-		"path" : "Resources/Models/Sponza/glTF/Sponza.gltf",
-		"scale" : [10.0, 10.0, 10.0]
+		"path" : "Resources/Models/Sponza-New/scene.gltf",
+		"scale" : [1.0, 1.0, 1.0]
 	}
 	],
 	"lights" : [

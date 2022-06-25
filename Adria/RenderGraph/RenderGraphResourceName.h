@@ -39,11 +39,10 @@ namespace adria
 		}
 #else
 		RenderGraphResourceName() : hashed_name(INVALID_HASH) {}
-		template<size_t N>
 		constexpr explicit RenderGraphResourceName(uint64 hash) : hashed_name(hash)
 		{}
 
-		operator char const* () const
+		operator char const*() const
 		{
 			return "";
 		}
