@@ -14,7 +14,7 @@ namespace adria
 	struct SceneConfig;
 	class GraphicsDevice;
 	class RenderGraphRenderer;
-	class EntityLoader;
+	class ModelImporter;
 	struct EditorEvents;
 	class GUI;
 
@@ -51,7 +51,7 @@ namespace adria
 	
 		std::unique_ptr<GraphicsDevice> gfx;
 		std::unique_ptr<RenderGraphRenderer> renderer;
-		std::unique_ptr<EntityLoader> entity_loader;
+		std::unique_ptr<ModelImporter> entity_loader;
 
 		ViewportData viewport_data;
 	private:

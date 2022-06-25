@@ -2,7 +2,7 @@
 
 #include "../Rendering/RenderGraphRenderer.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
-#include "../Rendering/EntityLoader.h"
+#include "../Rendering/ModelImporter.h"
 #include "../Rendering/RootSigPSOManager.h"
 #include "../Logging/Logger.h"
 #include "../Utilities/FilesUtil.h"
@@ -593,7 +593,7 @@ namespace adria
                     if (!texture_path.empty()) texture_path.append("/");
 
                     params.textures_path = texture_path;
-                    engine->entity_loader->LoadGLTFModel(params);
+                    engine->entity_loader->ImportModel_GLTF(params);
                 }
 
                 ImGuiFileDialog::Instance()->Close();

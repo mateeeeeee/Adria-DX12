@@ -101,7 +101,7 @@
     <ClCompile Include="Rendering\CameraManager.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\EntityLoader.cpp">
+    <ClCompile Include="Rendering\ModelImporter.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\Camera.cpp">
@@ -349,7 +349,7 @@
     <ClInclude Include="Rendering\Enums.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\EntityLoader.h">
+    <ClInclude Include="Rendering\ModelImporter.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\Camera.h">

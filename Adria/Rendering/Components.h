@@ -169,7 +169,7 @@ namespace adria
 
 	struct COMPONENT RayTracing
 	{
-		friend class EntityLoader;
+		friend class ModelImporter;
 		friend class RayTracer;
 
 	public:

@@ -6,7 +6,7 @@
 #include "../Logging/Logger.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Rendering/RenderGraphRenderer.h"
-#include "../Rendering/EntityLoader.h"
+#include "../Rendering/ModelImporter.h"
 #include "../Utilities/Random.h"
 #include "../Utilities/Timer.h"
 #include "../Utilities/JsonUtil.h"
@@ -214,7 +214,7 @@ namespace adria
 															   .dred = init.dred,
 															   .gpu_validation = init.gpu_validation});
 		renderer = std::make_unique<RenderGraphRenderer>(reg, gfx.get(), Window::Width(), Window::Height());
-		entity_loader = std::make_unique<EntityLoader>(reg, gfx.get(), renderer->GetTextureManager());
+		entity_loader = std::make_unique<ModelImporter>(reg, gfx.get(), renderer->GetTextureManager());
 
 		InputEvents& input_events = input.GetInputEvents();
 		input_events.window_resized_event.AddMember(&CameraManager::OnResize, camera_manager);
@@ -309,7 +309,7 @@ namespace adria
 		camera_manager.AddCamera(config.camera_params);		
 		entity_loader->LoadSkybox(config.skybox_params);
 
-		for(auto&& model : config.scene_models) entity_loader->LoadGLTFModel(model);
+		for(auto&& model : config.scene_models) entity_loader->ImportModel_GLTF(model);
 		for (auto&& light : config.scene_lights) entity_loader->LoadLight(light);
 
 		renderer->GetTextureManager().GenerateAllMips();

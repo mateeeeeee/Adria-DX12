@@ -80,7 +80,6 @@ namespace adria
         uint32 mesh_size = 0u;
         std::optional<std::wstring> light_texture = std::nullopt;
     };
-
 	struct DecalParameters
 	{
 		std::string name = "Decal";
@@ -96,28 +95,21 @@ namespace adria
     class TextureManager;
     class GraphicsDevice;
  
-	class EntityLoader
+	class ModelImporter
 	{
 		[[nodiscard]] std::vector<tecs::entity> LoadGrid(GridParameters const&);
-
 		[[nodiscard]] std::vector<tecs::entity> LoadObjMesh(std::string const&);
-
 	public:
         
-        EntityLoader(tecs::registry& reg, GraphicsDevice* device, TextureManager& texture_manager);
-
-		[[maybe_unused]] std::vector<tecs::entity> LoadGLTFModel(ModelParameters const&);
+        ModelImporter(tecs::registry& reg, GraphicsDevice* device, TextureManager& texture_manager);
 
 		[[maybe_unused]] tecs::entity LoadSkybox(SkyboxParameters const&);
-
         [[maybe_unused]] tecs::entity LoadLight(LightParameters const&);
-
 		[[maybe_unused]] std::vector<tecs::entity> LoadOcean(OceanParameters const&);
-
 		[[maybe_unused]] tecs::entity LoadEmitter(EmitterParameters const&);
-
 		[[maybe_unused]] tecs::entity LoadDecal(DecalParameters const&);
 
+		[[maybe_unused]] std::vector<tecs::entity> ImportModel_GLTF(ModelParameters const&);
 	private:
         tecs::registry& reg;
         GraphicsDevice* gfx;
