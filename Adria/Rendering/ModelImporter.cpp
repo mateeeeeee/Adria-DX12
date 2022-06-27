@@ -556,10 +556,12 @@ namespace adria
 		if (!err.empty())
 		{
 			ADRIA_LOG(ERROR, err.c_str());
+			return {};
 		}
 		if (!ret)
 		{
 			ADRIA_LOG(ERROR, "Failed to load model %s", model_name.c_str());
+			return {};
 		}
 
 		std::vector<CompleteVertex> vertices{};
