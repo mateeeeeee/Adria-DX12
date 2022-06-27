@@ -16,21 +16,14 @@
         "speed": 50.0,
 		"sensitivity" : 0.3
     },
-	"skybox" : {
+		"skybox" : {
 			"texture" : ["Resources/Textures/Skybox/sunsetcube1024.dds"]
 	}, 
     "models" : [
-<<<<<<< HEAD
 			{
 				"path": "Resources/Models/AbandonedWarehouse/AbandonedWarehouse.gltf",
 				"scale": [ 5.0, 5.0, 5.0 ]
 			}
-=======
-	{
-		"path" : "Resources/Models/Sponza/glTF/Sponza.gltf",
-		"scale" : [10.0, 10.0, 10.0]
-	}
->>>>>>> 1385214329c098458023970afe26cc87ba3e838b
 	],
 	"lights" : [
 	{

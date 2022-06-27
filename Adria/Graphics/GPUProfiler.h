@@ -9,6 +9,13 @@
 
 namespace adria
 {
+
+	struct TimeStamp
+	{
+		FLOAT time_in_ms;
+		std::string name;
+	};
+
 	class GPUProfiler
 	{
 		static constexpr UINT64 FRAME_COUNT = GraphicsDevice::BackbufferCount();
@@ -29,7 +36,7 @@ namespace adria
 
 		void EndProfileBlock(ID3D12GraphicsCommandList* cmd_list, EProfilerBlock block);
 
-		std::vector<std::string> GetProfilerResults(ID3D12GraphicsCommandList* cmd_list, bool log_results) const;
+		std::vector<TimeStamp> GetProfilerResults(ID3D12GraphicsCommandList* cmd_list) const;
 
 	private:
 		GraphicsDevice* gfx;

@@ -309,7 +309,7 @@ namespace ImGui
 
 namespace adria
 {
-    using namespace tecs;
+	using namespace tecs;
 
 	enum class EMaterialTextureType
 	{
@@ -318,8 +318,8 @@ namespace adria
 		eEmissive
 	};
 
-    struct ImGuiLogger
-    {
+	struct ImGuiLogger
+	{
 		ImGuiTextBuffer     Buf;
 		ImGuiTextFilter     Filter;
 		ImVector<int>       LineOffsets;
@@ -437,73 +437,73 @@ namespace adria
 		ELogLevel logger_level;
 	};
 
-    Editor::Editor(EditorInit const& init) : engine(), editor_log(new ImGuiLogger{})
-    {
-        engine = std::make_unique<Engine>(init.engine_init);
-        gui = std::make_unique<GUI>(engine->gfx.get());
+	Editor::Editor(EditorInit const& init) : engine(), editor_log(new ImGuiLogger{})
+	{
+		engine = std::make_unique<Engine>(init.engine_init);
+		gui = std::make_unique<GUI>(engine->gfx.get());
 		ADRIA_REGISTER_LOGGER(new EditorLogger(editor_log.get()));
 		engine->RegisterEditorEventCallbacks(editor_events);
 		SetStyle();
-    }
+	}
 
 	Editor::~Editor() = default;
 
 	void Editor::HandleWindowMessage(WindowMessage const& msg_data)
-    {
-        engine->HandleWindowMessage(msg_data);
-        gui->HandleWindowMessage(msg_data);
-    }
+	{
+		engine->HandleWindowMessage(msg_data);
+		gui->HandleWindowMessage(msg_data);
+	}
 
-    void Editor::Run()
-    {
-        HandleInput();
+	void Editor::Run()
+	{
+		HandleInput();
 		renderer_settings.gui_visible = gui->IsVisible();
-        if (gui->IsVisible())
-        {
+		if (gui->IsVisible())
+		{
 			engine->SetViewportData(viewport_data);
-            engine->Run(renderer_settings);
-            auto gui_cmd_list = engine->gfx->GetDefaultCommandList();
-            engine->gfx->SetBackbuffer(gui_cmd_list);
-            {
-                PIXScopedEvent(gui_cmd_list, PIX_COLOR_DEFAULT, "GUI Pass");
-                gui->Begin();
-                MenuBar();
-                ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
-                ListEntities();
-                OceanSettings();
-                ParticleSettings();
+			engine->Run(renderer_settings);
+			auto gui_cmd_list = engine->gfx->GetDefaultCommandList();
+			engine->gfx->SetBackbuffer(gui_cmd_list);
+			{
+				PIXScopedEvent(gui_cmd_list, PIX_COLOR_DEFAULT, "GUI Pass");
+				gui->Begin();
+				MenuBar();
+				ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
+				ListEntities();
+				OceanSettings();
+				ParticleSettings();
 				DecalSettings();
-                SkySettings();
-                AddEntities();
-                Camera();
-                Scene();
-                RendererSettings();
-                Properties();
-                Log();
-                Profiling();
+				SkySettings();
+				AddEntities();
+				Camera();
+				Scene();
+				RendererSettings();
+				Properties();
+				Log();
+				Profiling();
 				ShaderHotReload();
-				if (engine->renderer->IsRayTracingSupported()) 
+				if (engine->renderer->IsRayTracingSupported())
 					RayTracingDebug();
-                gui->End(gui_cmd_list);
-            }
-            engine->Present();
-        }
-        else
-        {
-            engine->SetViewportData(std::nullopt);
-            engine->Run(renderer_settings);
-            engine->Present();
-        }
+				gui->End(gui_cmd_list);
+			}
+			engine->Present();
+		}
+		else
+		{
+			engine->SetViewportData(std::nullopt);
+			engine->Run(renderer_settings);
+			engine->Present();
+		}
 
 		if (shader_reload_callback != nullptr)
 		{
 			shader_reload_callback();
 			shader_reload_callback = nullptr;
 		}
-    }
+	}
 
-    void Editor::SetStyle()
-    {
+	void Editor::SetStyle()
+	{
 		constexpr auto ColorFromBytes = [](uint8_t r, uint8_t g, uint8_t b)
 		{
 			return ImVec4((float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f, 1.0f);
@@ -597,79 +597,79 @@ namespace adria
 			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 		}
 #endif
-    }
+	}
 
-    void Editor::HandleInput()
-    {
-        if (scene_focused && engine->input.IsKeyDown(EKeyCode::I)) gui->ToggleVisibility();
+	void Editor::HandleInput()
+	{
+		if (scene_focused && engine->input.IsKeyDown(EKeyCode::I)) gui->ToggleVisibility();
 
-        if (scene_focused && engine->input.IsKeyDown(EKeyCode::G)) gizmo_enabled = !gizmo_enabled;
+		if (scene_focused && engine->input.IsKeyDown(EKeyCode::G)) gizmo_enabled = !gizmo_enabled;
 
-        if (gizmo_enabled && gui->IsVisible())
-        {
+		if (gizmo_enabled && gui->IsVisible())
+		{
 
-            if (engine->input.IsKeyDown(EKeyCode::T)) gizmo_op = ImGuizmo::TRANSLATE;
+			if (engine->input.IsKeyDown(EKeyCode::T)) gizmo_op = ImGuizmo::TRANSLATE;
 
-            if (engine->input.IsKeyDown(EKeyCode::R)) gizmo_op = ImGuizmo::ROTATE;
+			if (engine->input.IsKeyDown(EKeyCode::R)) gizmo_op = ImGuizmo::ROTATE;
 
-            if (engine->input.IsKeyDown(EKeyCode::E)) gizmo_op = ImGuizmo::SCALE;
-        }
+			if (engine->input.IsKeyDown(EKeyCode::E)) gizmo_op = ImGuizmo::SCALE;
+		}
 
-        engine->camera_manager.ShouldUpdate(scene_focused);
-    }
+		engine->camera_manager.ShouldUpdate(scene_focused);
+	}
 
-    void Editor::MenuBar()
-    {
-        if (ImGui::BeginMainMenuBar())
-        {
-            if (ImGui::BeginMenu("File"))
-            {
-                if (ImGui::MenuItem("New Model"))
-                    ImGuiFileDialog::Instance()->OpenDialog("Choose Model", "Choose File", ".gltf", ".");
+	void Editor::MenuBar()
+	{
+		if (ImGui::BeginMainMenuBar())
+		{
+			if (ImGui::BeginMenu("File"))
+			{
+				if (ImGui::MenuItem("New Model"))
+					ImGuiFileDialog::Instance()->OpenDialog("Choose Model", "Choose File", ".gltf", ".");
 
-                ImGui::EndMenu();
-            }
+				ImGui::EndMenu();
+			}
 
-            if (ImGuiFileDialog::Instance()->Display("Choose Model"))
-            {
+			if (ImGuiFileDialog::Instance()->Display("Choose Model"))
+			{
 
-                if (ImGuiFileDialog::Instance()->IsOk())
-                {
-                    std::string model_path = ImGuiFileDialog::Instance()->GetFilePathName();
+				if (ImGuiFileDialog::Instance()->IsOk())
+				{
+					std::string model_path = ImGuiFileDialog::Instance()->GetFilePathName();
 
-                    ModelParameters params{};
-                    params.model_path = model_path;
-                    std::string texture_path = ImGuiFileDialog::Instance()->GetCurrentPath();
-                    if (!texture_path.empty()) texture_path.append("/");
+					ModelParameters params{};
+					params.model_path = model_path;
+					std::string texture_path = ImGuiFileDialog::Instance()->GetCurrentPath();
+					if (!texture_path.empty()) texture_path.append("/");
 
-                    params.textures_path = texture_path;
-                    engine->entity_loader->ImportModel_GLTF(params);
-                }
+					params.textures_path = texture_path;
+					engine->entity_loader->ImportModel_GLTF(params);
+				}
 
-                ImGuiFileDialog::Instance()->Close();
-            }
+				ImGuiFileDialog::Instance()->Close();
+			}
 
-            if (ImGui::BeginMenu("Help"))
-            {
-                ImGui::Text("Controls\n");
-                ImGui::Text(
-                    "Move Camera with W, A, S, D, Q and E. Use Mouse for Rotating Camera. Use Mouse Scroll for Zoom In/Out.\n"
-                    "Press I to toggle between Cinema Mode and Editor Mode. (Scene Window has to be active) \n"
-                    "Press G to toggle Gizmo. (Scene Window has to be active) \n"
-                    "When Gizmo is enabled, use T, R and E to switch between Translation, Rotation and Scaling Mode.\n"
-                    "Left Click on entity to select it. Left click again on selected entity to unselect it.\n"
-                    "Right Click on empty area in Entities window to add entity. Right Click on selected entity to delete it.\n"
+			if (ImGui::BeginMenu("Help"))
+			{
+				ImGui::Text("Controls\n");
+				ImGui::Text(
+					"Move Camera with W, A, S, D, Q and E. Use Mouse for Rotating Camera. Use Mouse Scroll for Zoom In/Out.\n"
+					"Press I to toggle between Cinema Mode and Editor Mode. (Scene Window has to be active) \n"
+					"Press G to toggle Gizmo. (Scene Window has to be active) \n"
+					"When Gizmo is enabled, use T, R and E to switch between Translation, Rotation and Scaling Mode.\n"
+					"Left Click on entity to select it. Left click again on selected entity to unselect it.\n"
+					"Right Click on empty area in Entities window to add entity. Right Click on selected entity to delete it.\n"
 					"When placing decals, right click on focused Scene window to pick a point for a decal (it's used only for "
 					"decals currently but that could change in the future)"
-                );
-                ImGui::Spacing();
+				);
+				ImGui::Spacing();
 
-                ImGui::EndMenu();
-            }
+				ImGui::EndMenu();
+			}
 
-            ImGui::EndMainMenuBar();
-        }
-    }
+			ImGui::EndMainMenuBar();
+		}
+	}
 
 	void Editor::OceanSettings()
 	{
@@ -700,7 +700,7 @@ namespace adria
 
 			if (ImGui::Button("Clear"))
 			{
-                engine->reg.clear<Ocean>();
+				engine->reg.clear<Ocean>();
 			}
 
 			if (ImGui::TreeNodeEx("Ocean Settings", 0))
@@ -820,41 +820,41 @@ namespace adria
 	}
 
 	void Editor::AddEntities()
-    {
-        ImGui::Begin("Add Entities");
-        {
-            //random lights
-            {
-                ImGui::Text("For Easy Demonstration of Tiled Deferred Rendering");
-                static int light_count_to_add = 1;
-                ImGui::SliderInt("Light Count", &light_count_to_add, 1, 128);
+	{
+		ImGui::Begin("Add Entities");
+		{
+			//random lights
+			{
+				ImGui::Text("For Easy Demonstration of Tiled Deferred Rendering");
+				static int light_count_to_add = 1;
+				ImGui::SliderInt("Light Count", &light_count_to_add, 1, 128);
 
-                if (ImGui::Button("Create Random Lights"))
-                {
-                    static RealRandomGenerator real(0.0f, 1.0f);
+				if (ImGui::Button("Create Random Lights"))
+				{
+					static RealRandomGenerator real(0.0f, 1.0f);
 
-                    for (int32 i = 0; i < light_count_to_add; ++i)
-                    {
-                        LightParameters light_params{};
-                        light_params.light_data.casts_shadows = false;
-                        light_params.light_data.color = DirectX::XMVectorSet(real() * 2, real() * 2, real() * 2, 1.0f);
-                        light_params.light_data.direction = DirectX::XMVectorSet(0.5f, -1.0f, 0.1f, 0.0f);
-                        light_params.light_data.position = DirectX::XMVectorSet(real() * 200 - 100, real() * 200.0f, real() * 200 - 100, 1.0f);
-                        light_params.light_data.type = ELightType::Point;
-                        light_params.mesh_type = ELightMesh::NoMesh;
-                        light_params.light_data.range = real() * 100.0f + 40.0f;
-                        light_params.light_data.active = true;
-                        light_params.light_data.volumetric = false;
-                        light_params.light_data.volumetric_strength = 1.0f;
-                        engine->entity_loader->LoadLight(light_params);
-                    }
-                }
+					for (int32 i = 0; i < light_count_to_add; ++i)
+					{
+						LightParameters light_params{};
+						light_params.light_data.casts_shadows = false;
+						light_params.light_data.color = DirectX::XMVectorSet(real() * 2, real() * 2, real() * 2, 1.0f);
+						light_params.light_data.direction = DirectX::XMVectorSet(0.5f, -1.0f, 0.1f, 0.0f);
+						light_params.light_data.position = DirectX::XMVectorSet(real() * 200 - 100, real() * 200.0f, real() * 200 - 100, 1.0f);
+						light_params.light_data.type = ELightType::Point;
+						light_params.mesh_type = ELightMesh::NoMesh;
+						light_params.light_data.range = real() * 100.0f + 40.0f;
+						light_params.light_data.active = true;
+						light_params.light_data.volumetric = false;
+						light_params.light_data.volumetric_strength = 1.0f;
+						engine->entity_loader->LoadLight(light_params);
+					}
+				}
 
-            }
+			}
 
-        }
-        ImGui::End();
-    }
+		}
+		ImGui::End();
+	}
 
 	void Editor::SkySettings()
 	{
@@ -917,153 +917,151 @@ namespace adria
 		ImGui::End();
 	}
 
-    void Editor::ListEntities()
-    {
-        auto all_entities = engine->reg.view<Tag>();
+	void Editor::ListEntities()
+	{
+		auto all_entities = engine->reg.view<Tag>();
 
-        ImGui::Begin("Entities");
-        {
-            if (ImGui::BeginPopupContextWindow(0, 1, false))
-            {
-                if (ImGui::MenuItem("Create"))
-                {
-                    entity empty = engine->reg.create();
-                    engine->reg.emplace<Tag>(empty);
-                }
-                ImGui::EndPopup();
-            }
+		ImGui::Begin("Entities");
+		{
+			if (ImGui::BeginPopupContextWindow(0, 1, false))
+			{
+				if (ImGui::MenuItem("Create"))
+				{
+					entity empty = engine->reg.create();
+					engine->reg.emplace<Tag>(empty);
+				}
+				ImGui::EndPopup();
+			}
 
-            std::vector<entity> deleted_entities{};
-            for (auto e : all_entities)
-            {
-                auto& tag = all_entities.get(e);
+			std::vector<entity> deleted_entities{};
+			for (auto e : all_entities)
+			{
+				auto& tag = all_entities.get(e);
 
-                ImGuiTreeNodeFlags flags = ((selected_entity == e) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
-                flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
-                bool opened = ImGui::TreeNodeEx(tag.name.c_str(), flags);
-
-
-                if (ImGui::IsItemClicked())
-                {
-                    if (e == selected_entity)
-                        selected_entity = null_entity;
-                    else
-                        selected_entity = e;
-                }
+				ImGuiTreeNodeFlags flags = ((selected_entity == e) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
+				flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
+				bool opened = ImGui::TreeNodeEx(tag.name.c_str(), flags);
 
 
-                bool entity_deleted = false;
-                if (ImGui::BeginPopupContextItem())
-                {
-                    if (ImGui::MenuItem("Delete")) entity_deleted = true;
-
-                    ImGui::EndPopup();
-                }
-
-                if (opened) ImGui::TreePop();
-
-                if (entity_deleted)
-                {
-                    deleted_entities.push_back(e);
-                    if (selected_entity == e) selected_entity = null_entity;
-                }
+				if (ImGui::IsItemClicked())
+				{
+					if (e == selected_entity)
+						selected_entity = null_entity;
+					else
+						selected_entity = e;
+				}
 
 
-            }
+				bool entity_deleted = false;
+				if (ImGui::BeginPopupContextItem())
+				{
+					if (ImGui::MenuItem("Delete")) entity_deleted = true;
+
+					ImGui::EndPopup();
+				}
+
+				if (opened) ImGui::TreePop();
+
+				if (entity_deleted)
+				{
+					deleted_entities.push_back(e);
+					if (selected_entity == e) selected_entity = null_entity;
+				}
+			}
 
 			for (auto e : deleted_entities)
 			{
 				if (engine->reg.has<Emitter>(e)) editor_events.particle_emitter_removed.Broadcast(tecs::as_integer(e));
 				engine->reg.destroy(e);
 			}
-        }
-        ImGui::End();
-    }
+		}
+		ImGui::End();
+	}
 
-    void Editor::Properties()
-    {
-        ImGui::Begin("Properties");
-        {
-            if (selected_entity != null_entity)
-            {
-                auto tag = engine->reg.get_if<Tag>(selected_entity);
-                if (tag)
-                {
-                    char buffer[256];
-                    memset(buffer, 0, sizeof(buffer));
-                    std::strncpy(buffer, tag->name.c_str(), sizeof(buffer));
-                    if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
-                        tag->name = std::string(buffer);
-                }
+	void Editor::Properties()
+	{
+		ImGui::Begin("Properties");
+		{
+			if (selected_entity != null_entity)
+			{
+				auto tag = engine->reg.get_if<Tag>(selected_entity);
+				if (tag)
+				{
+					char buffer[256];
+					memset(buffer, 0, sizeof(buffer));
+					std::strncpy(buffer, tag->name.c_str(), sizeof(buffer));
+					if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
+						tag->name = std::string(buffer);
+				}
 
-                auto light = engine->reg.get_if<Light>(selected_entity);
-                if (light && ImGui::CollapsingHeader("Light"))
-                {
-                    if (light->type == ELightType::Directional)	ImGui::Text("Directional Light");
-                    else if (light->type == ELightType::Spot)	ImGui::Text("Spot Light");
-                    else if (light->type == ELightType::Point)	ImGui::Text("Point Light");
+				auto light = engine->reg.get_if<Light>(selected_entity);
+				if (light && ImGui::CollapsingHeader("Light"))
+				{
+					if (light->type == ELightType::Directional)	ImGui::Text("Directional Light");
+					else if (light->type == ELightType::Spot)	ImGui::Text("Spot Light");
+					else if (light->type == ELightType::Point)	ImGui::Text("Point Light");
 
-                    XMFLOAT4 light_color, light_direction, light_position;
-                    XMStoreFloat4(&light_color, light->color);
-                    XMStoreFloat4(&light_direction, light->direction);
-                    XMStoreFloat4(&light_position, light->position);
+					XMFLOAT4 light_color, light_direction, light_position;
+					XMStoreFloat4(&light_color, light->color);
+					XMStoreFloat4(&light_direction, light->direction);
+					XMStoreFloat4(&light_position, light->position);
 
-                    float32 color[3] = { light_color.x, light_color.y, light_color.z };
-                    ImGui::ColorEdit3("Light Color", color);
-                    light->color = XMVectorSet(color[0], color[1], color[2], 1.0f);
+					float32 color[3] = { light_color.x, light_color.y, light_color.z };
+					ImGui::ColorEdit3("Light Color", color);
+					light->color = XMVectorSet(color[0], color[1], color[2], 1.0f);
 
-                    ImGui::SliderFloat("Light Energy", &light->energy, 0.0f, 50.0f);
+					ImGui::SliderFloat("Light Energy", &light->energy, 0.0f, 50.0f);
 
-                    if (engine->reg.has<Material>(selected_entity))
-                    {
-                        auto& material = engine->reg.get<Material>(selected_entity);
-                        material.diffuse = XMFLOAT3(color[0], color[1], color[2]);
-                    }
+					if (engine->reg.has<Material>(selected_entity))
+					{
+						auto& material = engine->reg.get<Material>(selected_entity);
+						material.diffuse = XMFLOAT3(color[0], color[1], color[2]);
+					}
 
-                    if (light->type == ELightType::Directional || light->type == ELightType::Spot)
-                    {
-                        float32 direction[3] = { light_direction.x, light_direction.y, light_direction.z };
+					if (light->type == ELightType::Directional || light->type == ELightType::Spot)
+					{
+						float32 direction[3] = { light_direction.x, light_direction.y, light_direction.z };
 
-                        ImGui::SliderFloat3("Light direction", direction, -1.0f, 1.0f);
+						ImGui::SliderFloat3("Light direction", direction, -1.0f, 1.0f);
 
-                        light->direction = XMVectorSet(direction[0], direction[1], direction[2], 0.0f);
+						light->direction = XMVectorSet(direction[0], direction[1], direction[2], 0.0f);
 
-                        if (light->type == ELightType::Directional)
-                        {
-                            light->position = XMVectorScale(-light->direction, 1e3);
-                        }
-                    }
+						if (light->type == ELightType::Directional)
+						{
+							light->position = XMVectorScale(-light->direction, 1e3);
+						}
+					}
 
-                    if (light->type == ELightType::Spot)
-                    {
-                        float32 inner_angle = XMConvertToDegrees(acos(light->inner_cosine))
-                            , outer_angle = XMConvertToDegrees(acos(light->outer_cosine));
-                        ImGui::SliderFloat("Inner Spot Angle", &inner_angle, 0.0f, 90.0f);
-                        ImGui::SliderFloat("Outer Spot Angle", &outer_angle, inner_angle, 90.0f);
+					if (light->type == ELightType::Spot)
+					{
+						float32 inner_angle = XMConvertToDegrees(acos(light->inner_cosine))
+							, outer_angle = XMConvertToDegrees(acos(light->outer_cosine));
+						ImGui::SliderFloat("Inner Spot Angle", &inner_angle, 0.0f, 90.0f);
+						ImGui::SliderFloat("Outer Spot Angle", &outer_angle, inner_angle, 90.0f);
 
-                        light->inner_cosine = cos(XMConvertToRadians(inner_angle));
-                        light->outer_cosine = cos(XMConvertToRadians(outer_angle));
-                    }
+						light->inner_cosine = cos(XMConvertToRadians(inner_angle));
+						light->outer_cosine = cos(XMConvertToRadians(outer_angle));
+					}
 
-                    if (light->type == ELightType::Point || light->type == ELightType::Spot)
-                    {
-                        float32 position[3] = { light_position.x, light_position.y, light_position.z };
+					if (light->type == ELightType::Point || light->type == ELightType::Spot)
+					{
+						float32 position[3] = { light_position.x, light_position.y, light_position.z };
 
-                        ImGui::SliderFloat3("Light position", position, -300.0f, 500.0f);
+						ImGui::SliderFloat3("Light position", position, -300.0f, 500.0f);
 
-                        light->position = XMVectorSet(position[0], position[1], position[2], 1.0f);
+						light->position = XMVectorSet(position[0], position[1], position[2], 1.0f);
 
-                        ImGui::SliderFloat("Range", &light->range, 50.0f, 1000.0f);
-                    }
+						ImGui::SliderFloat("Range", &light->range, 50.0f, 1000.0f);
+					}
 
-                    if (engine->reg.has<Transform>(selected_entity))
-                    {
-                        auto& tr = engine->reg.get<Transform>(selected_entity);
+					if (engine->reg.has<Transform>(selected_entity))
+					{
+						auto& tr = engine->reg.get<Transform>(selected_entity);
 
-                        tr.current_transform = XMMatrixTranslationFromVector(light->position);
-                    }
+						tr.current_transform = XMMatrixTranslationFromVector(light->position);
+					}
 
-                    ImGui::Checkbox("Active", &light->active);
+					ImGui::Checkbox("Active", &light->active);
 
 					if (light->type == ELightType::Directional)
 					{
@@ -1119,85 +1117,85 @@ namespace adria
 						ImGui::SliderFloat("God Rays exposure", &light->godrays_exposure, 0.1f, 10.0f);
 					}
 
-                    ImGui::Checkbox("Volumetric Lighting", &light->volumetric);
-                    if (light->volumetric)
-                    {
-                        ImGui::SliderFloat("Volumetric lighting Strength", &light->volumetric_strength, 0.0f, 5.0f);
-                    }
+					ImGui::Checkbox("Volumetric Lighting", &light->volumetric);
+					if (light->volumetric)
+					{
+						ImGui::SliderFloat("Volumetric lighting Strength", &light->volumetric_strength, 0.0f, 5.0f);
+					}
 
-                    ImGui::Checkbox("Lens Flare", &light->lens_flare);
-                }
+					ImGui::Checkbox("Lens Flare", &light->lens_flare);
+				}
 
-                auto material = engine->reg.get_if<Material>(selected_entity);
-                if (material && ImGui::CollapsingHeader("Material"))
-                {
-                    ID3D12Device5* device = engine->gfx->GetDevice();
-                    RingOnlineDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
+				auto material = engine->reg.get_if<Material>(selected_entity);
+				if (material && ImGui::CollapsingHeader("Material"))
+				{
+					ID3D12Device5* device = engine->gfx->GetDevice();
+					RingOnlineDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
 
-                    ImGui::Text("Albedo Texture");
-                    D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(material->albedo_texture);
-                    OffsetType descriptor_index = descriptor_allocator->Allocate();
-                    auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-                    device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-                    ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
-                        ImVec2(48.0f, 48.0f));
+					ImGui::Text("Albedo Texture");
+					D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(material->albedo_texture);
+					OffsetType descriptor_index = descriptor_allocator->Allocate();
+					auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
+						ImVec2(48.0f, 48.0f));
 
-                    ImGui::PushID(0);
-                    if (ImGui::Button("Remove")) material->albedo_texture = INVALID_TEXTURE_HANDLE;
-                    if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
-                    OpenMaterialFileDialog(material, EMaterialTextureType::eAlbedo);
-                    ImGui::PopID();
+					ImGui::PushID(0);
+					if (ImGui::Button("Remove")) material->albedo_texture = INVALID_TEXTURE_HANDLE;
+					if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
+					OpenMaterialFileDialog(material, EMaterialTextureType::eAlbedo);
+					ImGui::PopID();
 
-                    ImGui::Text("Metallic-Roughness Texture");
-                    tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(material->metallic_roughness_texture);
-                    descriptor_index = descriptor_allocator->Allocate();
-                    dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-                    device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-                    ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
-                        ImVec2(48.0f, 48.0f));
+					ImGui::Text("Metallic-Roughness Texture");
+					tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(material->metallic_roughness_texture);
+					descriptor_index = descriptor_allocator->Allocate();
+					dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
+						ImVec2(48.0f, 48.0f));
 
-                    ImGui::PushID(1);
-                    if (ImGui::Button("Remove")) material->metallic_roughness_texture = INVALID_TEXTURE_HANDLE;
-                    if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
-                    OpenMaterialFileDialog(material, EMaterialTextureType::eMetallicRoughness);
-                    ImGui::PopID();
+					ImGui::PushID(1);
+					if (ImGui::Button("Remove")) material->metallic_roughness_texture = INVALID_TEXTURE_HANDLE;
+					if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
+					OpenMaterialFileDialog(material, EMaterialTextureType::eMetallicRoughness);
+					ImGui::PopID();
 
-                    ImGui::Text("Emissive Texture");
-                    tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(material->emissive_texture);
-                    descriptor_index = descriptor_allocator->Allocate();
-                    dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-                    device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-                    ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
-                        ImVec2(48.0f, 48.0f));
+					ImGui::Text("Emissive Texture");
+					tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(material->emissive_texture);
+					descriptor_index = descriptor_allocator->Allocate();
+					dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
+						ImVec2(48.0f, 48.0f));
 
-                    ImGui::PushID(2);
-                    if (ImGui::Button("Remove")) material->emissive_texture = INVALID_TEXTURE_HANDLE;
-                    if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
-                    OpenMaterialFileDialog(material, EMaterialTextureType::eEmissive);
-                    ImGui::PopID();
+					ImGui::PushID(2);
+					if (ImGui::Button("Remove")) material->emissive_texture = INVALID_TEXTURE_HANDLE;
+					if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
+					OpenMaterialFileDialog(material, EMaterialTextureType::eEmissive);
+					ImGui::PopID();
 
-                    ImGui::ColorEdit3("Albedo Color", &material->diffuse.x);
-                    ImGui::SliderFloat("Albedo Factor", &material->albedo_factor, 0.0f, 1.0f);
-                    ImGui::SliderFloat("Metallic Factor", &material->metallic_factor, 0.0f, 1.0f);
-                    ImGui::SliderFloat("Roughness Factor", &material->roughness_factor, 0.0f, 1.0f);
-                    ImGui::SliderFloat("Emissive Factor", &material->emissive_factor, 0.0f, 32.0f);
+					ImGui::ColorEdit3("Albedo Color", &material->diffuse.x);
+					ImGui::SliderFloat("Albedo Factor", &material->albedo_factor, 0.0f, 1.0f);
+					ImGui::SliderFloat("Metallic Factor", &material->metallic_factor, 0.0f, 1.0f);
+					ImGui::SliderFloat("Roughness Factor", &material->roughness_factor, 0.0f, 1.0f);
+					ImGui::SliderFloat("Emissive Factor", &material->emissive_factor, 0.0f, 32.0f);
 
-                    //add shader changing
-                    if (engine->reg.has<Forward>(selected_entity))
-                    {
-                        if (material->albedo_texture != INVALID_TEXTURE_HANDLE)
-                            material->pso = EPipelineStateObject::Texture;
-                        else material->pso = EPipelineStateObject::Solid;
-                    }
-                    else
-                    {
-                        material->pso = EPipelineStateObject::GbufferPBR;
-                    }
-                }
+					//add shader changing
+					if (engine->reg.has<Forward>(selected_entity))
+					{
+						if (material->albedo_texture != INVALID_TEXTURE_HANDLE)
+							material->pso = EPipelineStateObject::Texture;
+						else material->pso = EPipelineStateObject::Solid;
+					}
+					else
+					{
+						material->pso = EPipelineStateObject::GbufferPBR;
+					}
+				}
 
-                auto transform = engine->reg.get_if<Transform>(selected_entity);
-                if (transform && ImGui::CollapsingHeader("Transform"))
-                {
+				auto transform = engine->reg.get_if<Transform>(selected_entity);
+				if (transform && ImGui::CollapsingHeader("Transform"))
+				{
 					XMFLOAT4X4 tr;
 					XMStoreFloat4x4(&tr, transform->current_transform);
 
@@ -1217,7 +1215,7 @@ namespace adria
 						vis->aabb.Transform(vis->aabb, transform->current_transform);
 					}
 					else transform->current_transform = DirectX::XMLoadFloat4x4(&tr);
-                }
+				}
 
 				auto emitter = engine->reg.get_if<Emitter>(selected_entity);
 				if (emitter && ImGui::CollapsingHeader("Emitter"))
@@ -1336,9 +1334,9 @@ namespace adria
 					ImGui::Checkbox("Modify GBuffer Normals", &decal->modify_gbuffer_normals);
 				}
 
-                auto skybox = engine->reg.get_if<Skybox>(selected_entity);
-                if (skybox && ImGui::CollapsingHeader("Skybox"))
-                {
+				auto skybox = engine->reg.get_if<Skybox>(selected_entity);
+				if (skybox && ImGui::CollapsingHeader("Skybox"))
+				{
 					ImGui::Checkbox("Active", &skybox->active);
 					if (ImGui::Button("Change Skybox Texture")) ImGuiFileDialog::Instance()->OpenDialog("Choose Skybox Texture", "Choose File", ".hdr,.dds", ".");
 					if (ImGuiFileDialog::Instance()->Display("Choose Skybox Texture"))
@@ -1350,273 +1348,17 @@ namespace adria
 						}
 						ImGuiFileDialog::Instance()->Close();
 					}
-                }
+				}
 
-                auto forward = engine->reg.get_if<Forward>(selected_entity);
-                if (forward)
-                {
-                    if (ImGui::CollapsingHeader("Forward")) ImGui::Checkbox("Transparent", &forward->transparent);
-                }
-
-                static char const* const components[] = { "Mesh", "Transform", "Material",
-               "Visibility", "Light", "Skybox", "Deferred", "Forward", "Emitter" };
-
-                static int current_component = 0;
-                const char* combo_label = components[current_component];
-                if (ImGui::BeginCombo("Components", combo_label, 0))
-                {
-                    for (int n = 0; n < IM_ARRAYSIZE(components); n++)
-                    {
-                        const bool is_selected = (current_component == n);
-                        if (ImGui::Selectable(components[n], is_selected))
-                            current_component = n;
-
-                        if (is_selected)
-                            ImGui::SetItemDefaultFocus();
-                    }
-                    ImGui::EndCombo();
-                }
-
-                enum EComponentIndex
-                {
-                    MESH,
-                    TRANSFORM,
-                    MATERIAL,
-                    VISIBILITY,
-                    LIGHT,
-                    SKYBOX,
-                    DEFERRED,
-                    FORWARD,
-                    EMITTER
-                };
-
-                static ModelParameters params{};
-                if (current_component == MESH)
-                {
-
-                    if (ImGui::Button("Choose Mesh"))
-                        ImGuiFileDialog::Instance()->OpenDialog("Choose Mesh", "Choose File", ".gltf", ".");
-
-                    if (ImGuiFileDialog::Instance()->Display("Choose Mesh"))
-                    {
-
-                        if (ImGuiFileDialog::Instance()->IsOk())
-                        {
-                            std::string model_path = ImGuiFileDialog::Instance()->GetFilePathName();
-                            params.model_path = model_path;
-                        }
-
-                        ImGuiFileDialog::Instance()->Close();
-                    }
-                }
-
-                static ELightType light_type = ELightType::Point;
-                if (current_component == LIGHT)
-                {
-                    static char const* const light_types[] = { "Directional", "Point", "Spot" };
-
-                    static int current_light_type = 0;
-                    ImGui::ListBox("Light Types", &current_light_type, light_types, IM_ARRAYSIZE(light_types));
-                    light_type = static_cast<ELightType>(current_light_type);
-                }
-
-                if (ImGui::Button("Add Component"))
-                {
-                    switch (current_component)
-                    {
-					case MESH:
-						if (engine->reg.has<Mesh>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity already has Mesh Component!");
-						}
-						else
-						{
-							ADRIA_LOG(WARNING, "Not supported for now!");
-						}
-						break;
-					case TRANSFORM:
-						if (engine->reg.has<Transform>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity already has Transform Component!");
-						}
-						else engine->reg.emplace<Transform>(selected_entity);
-						break;
-					case MATERIAL:
-						if (engine->reg.has<Material>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity already has Material Component!");
-						}
-						else
-						{
-							Material mat{};
-							if (engine->reg.has<Deferred>(selected_entity))
-								mat.pso = EPipelineStateObject::GbufferPBR;
-							else mat.pso = EPipelineStateObject::Solid;
-							engine->reg.emplace<Material>(selected_entity, mat);
-						}
-						break;
-					case VISIBILITY:
-						if (engine->reg.has<Visibility>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity already has Visibility Component!");
-						}
-						else if (!engine->reg.has<Mesh>(selected_entity) || !engine->reg.has<Transform>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity has to have Mesh and Transform Component before adding Visibility!");
-						}
-						break;
-					case LIGHT:
-						if (engine->reg.has<Light>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity already has Light Component!");
-						}
-						else
-						{
-							Light light{};
-							light.type = light_type;
-							engine->reg.emplace<Light>(selected_entity, light);
-						}
-						break;
-					case SKYBOX:
-						if (engine->reg.has<Skybox>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity already has Skybox Component!");
-						}
-						else
-						{
-							engine->reg.emplace<Skybox>(selected_entity);
-						}
-						break;
-					case DEFERRED:
-						if (engine->reg.has<Deferred>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity already has Deferred Component!");
-						}
-						else if (engine->reg.has<Forward>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Cannot add Deferred Component to entity that has Forward Component!");
-						}
-						else
-						{
-							engine->reg.emplace<Deferred>(selected_entity);
-						}
-						break;
-					case FORWARD:
-						if (engine->reg.has<Forward>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity already has Forward Component!");
-						}
-						else if (engine->reg.has<Deferred>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Cannot add Forward Component to entity that has Deferred Component!");
-						}
-						else
-						{
-							engine->reg.emplace<Forward>(selected_entity, false);
-						}
-						break;
-					case EMITTER:
-						if (engine->reg.has<Emitter>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity already has Emitter Component!");
-						}
-						else
-						{
-							engine->reg.emplace<Emitter>(selected_entity);
-						}
-                    }
-                }
-
-                if (ImGui::Button("Remove Component"))
-                {
-					switch (current_component)
-					{
-					case MESH:
-						if (!engine->reg.has<Mesh>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity doesn't have Mesh Component!");
-						}
-						else
-						{
-							engine->reg.remove<Mesh>(selected_entity);
-						}
-						break;
-					case TRANSFORM:
-						if (!engine->reg.has<Transform>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity doesn't have Transform Component!");
-						}
-						else
-						{
-							engine->reg.remove<Transform>(selected_entity);
-						}
-						break;
-					case MATERIAL:
-						if (!engine->reg.has<Material>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity doesn't have Material Component!");
-						}
-						else
-						{
-							engine->reg.remove<Material>(selected_entity);
-						}
-						break;
-					case VISIBILITY:
-						if (!engine->reg.has<Visibility>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity doesn't have Visibility Component!");
-						}
-						else
-						{
-							engine->reg.remove<Visibility>(selected_entity);
-						}
-						break;
-					case LIGHT:
-						if (!engine->reg.has<Light>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity doesn't have Light Component!");
-						}
-						else
-						{
-							engine->reg.remove<Light>(selected_entity);
-						}
-						break;
-					case SKYBOX:
-						if (!engine->reg.has<Skybox>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity doesn't have Skybox Component!");
-						}
-						else
-						{
-							engine->reg.remove<Skybox>(selected_entity);
-						}
-						break;
-					case DEFERRED:
-						if (!engine->reg.has<Deferred>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity doesn't have Deferred Component!");
-						}
-						else
-						{
-							engine->reg.remove<Deferred>(selected_entity);
-						}
-						break;
-					case FORWARD:
-						if (!engine->reg.has<Forward>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity doesn't have Forward Component!");
-						}
-						else
-						{
-							engine->reg.remove<Forward>(selected_entity);
-						}
-						break;
-					}
-                }
-            }
-        }
-        ImGui::End();
-    }
+				auto forward = engine->reg.get_if<Forward>(selected_entity);
+				if (forward)
+				{
+					if (ImGui::CollapsingHeader("Forward")) ImGui::Checkbox("Transparent", &forward->transparent);
+				}
+			}
+		}
+		ImGui::End();
+	}
 
 	void Editor::Camera()
 	{
@@ -1646,12 +1388,12 @@ namespace adria
 		}
 	}
 
-    void Editor::Scene()
-    {
-        ImGui::Begin("Scene");
-        {
-            auto device = engine->gfx->GetDevice();
-            auto descriptor_allocator = gui->DescriptorAllocator();
+	void Editor::Scene()
+	{
+		ImGui::Begin("Scene");
+		{
+			auto device = engine->gfx->GetDevice();
+			auto descriptor_allocator = gui->DescriptorAllocator();
 
 			ImVec2 v_min = ImGui::GetWindowContentRegionMin();
 			ImVec2 v_max = ImGui::GetWindowContentRegionMax();
@@ -1661,13 +1403,13 @@ namespace adria
 			v_max.y += ImGui::GetWindowPos().y;
 			ImVec2 size(v_max.x - v_min.x, v_max.y - v_min.y);
 
-            D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetFinalTexture()->GetSubresource_SRV();
-            OffsetType descriptor_index = descriptor_allocator->Allocate();
-            auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-            device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-            ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, size);
+			D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetFinalTexture()->GetSubresource_SRV();
+			OffsetType descriptor_index = descriptor_allocator->Allocate();
+			auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+			device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, size);
 
-            scene_focused = ImGui::IsWindowFocused();
+			scene_focused = ImGui::IsWindowFocused();
 
 			ImVec2 mouse_pos = ImGui::GetMousePos();
 			viewport_data.mouse_position_x = mouse_pos.x;
@@ -1677,69 +1419,69 @@ namespace adria
 			viewport_data.scene_viewport_pos_y = v_min.y;
 			viewport_data.scene_viewport_size_x = size.x;
 			viewport_data.scene_viewport_size_y = size.y;
-        }
+		}
 
-        if (selected_entity != null_entity && engine->reg.has<Transform>(selected_entity) && gizmo_enabled)
+		if (selected_entity != null_entity && engine->reg.has<Transform>(selected_entity) && gizmo_enabled)
 		{
-            ImGuizmo::SetDrawlist();
+			ImGuizmo::SetDrawlist();
 
-            ImVec2 window_size = ImGui::GetWindowSize();
-            ImVec2 window_pos = ImGui::GetWindowPos();
+			ImVec2 window_size = ImGui::GetWindowSize();
+			ImVec2 window_pos = ImGui::GetWindowPos();
 
-            ImGuizmo::SetRect(window_pos.x, window_pos.y,
-                window_size.x, window_size.y);
+			ImGuizmo::SetRect(window_pos.x, window_pos.y,
+				window_size.x, window_size.y);
 
-            auto& camera = engine->camera_manager.GetActiveCamera();
+			auto& camera = engine->camera_manager.GetActiveCamera();
 
-            auto camera_view = camera.View();
-            auto camera_proj = camera.Proj();
+			auto camera_view = camera.View();
+			auto camera_proj = camera.Proj();
 
-            DirectX::XMFLOAT4X4 view, projection;
+			DirectX::XMFLOAT4X4 view, projection;
 
-            DirectX::XMStoreFloat4x4(&view, camera_view);
-            DirectX::XMStoreFloat4x4(&projection, camera_proj);
+			DirectX::XMStoreFloat4x4(&view, camera_view);
+			DirectX::XMStoreFloat4x4(&projection, camera_proj);
 
 
-            auto& entity_transform = engine->reg.get<Transform>(selected_entity);
+			auto& entity_transform = engine->reg.get<Transform>(selected_entity);
 
-            DirectX::XMFLOAT4X4 tr;
-            DirectX::XMStoreFloat4x4(&tr, entity_transform.current_transform);
+			DirectX::XMFLOAT4X4 tr;
+			DirectX::XMStoreFloat4x4(&tr, entity_transform.current_transform);
 
-            ImGuizmo::Manipulate(view.m[0], projection.m[0], gizmo_op, ImGuizmo::LOCAL,
-                tr.m[0]);
+			ImGuizmo::Manipulate(view.m[0], projection.m[0], gizmo_op, ImGuizmo::LOCAL,
+				tr.m[0]);
 
-            if (ImGuizmo::IsUsing())
-            {
-                Visibility* vis = engine->reg.get_if<Visibility>(selected_entity);
+			if (ImGuizmo::IsUsing())
+			{
+				Visibility* vis = engine->reg.get_if<Visibility>(selected_entity);
 
-                if (vis)
-                {
-                    vis->aabb.Transform(vis->aabb, DirectX::XMMatrixInverse(nullptr, entity_transform.current_transform));
-                    entity_transform.current_transform = DirectX::XMLoadFloat4x4(&tr);
-                    vis->aabb.Transform(vis->aabb, entity_transform.current_transform);
-                }
-                else entity_transform.current_transform = DirectX::XMLoadFloat4x4(&tr);
+				if (vis)
+				{
+					vis->aabb.Transform(vis->aabb, DirectX::XMMatrixInverse(nullptr, entity_transform.current_transform));
+					entity_transform.current_transform = DirectX::XMLoadFloat4x4(&tr);
+					vis->aabb.Transform(vis->aabb, entity_transform.current_transform);
+				}
+				else entity_transform.current_transform = DirectX::XMLoadFloat4x4(&tr);
 
-            }
-        }
+			}
+		}
 
-        ImGui::End();
+		ImGui::End();
 
-    }
+	}
 
-    void Editor::Log()
-    {
+	void Editor::Log()
+	{
 		ImGui::Begin("Log");
-        {
-            editor_log->Draw("Log");
-        }
-        ImGui::End();
-    }
+		{
+			editor_log->Draw("Log");
+		}
+		ImGui::End();
+	}
 
-    void Editor::RendererSettings()
-    {
-        ImGui::Begin("Renderer Settings");
-        {
+	void Editor::RendererSettings()
+	{
+		ImGui::Begin("Renderer Settings");
+		{
 			if (ImGui::TreeNode("Deferred Settings"))
 			{
 				static const char* deferred_types[] = { "Regular", "Tiled", "Clustered" };
@@ -1767,14 +1509,13 @@ namespace adria
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
-
 				ImGui::TreePop();
 			}
 
-            if (ImGui::TreeNode("Postprocessing"))
-            {
-                //ambient oclussion
-                {
+			if (ImGui::TreeNode("Postprocessing"))
+			{
+				//ambient oclussion
+				{
 					static const char* ao_types[] = { "None", "SSAO", "HBAO", "RTAO" };
 					static int current_ao_type = 0;
 					const char* combo_label = ao_types[current_ao_type];
@@ -1789,24 +1530,23 @@ namespace adria
 						ImGui::EndCombo();
 					}
 
-                    renderer_settings.postprocessor.ambient_occlusion = static_cast<EAmbientOcclusion>(current_ao_type);
+					renderer_settings.postprocessor.ambient_occlusion = static_cast<EAmbientOcclusion>(current_ao_type);
+					if (renderer_settings.postprocessor.ambient_occlusion == EAmbientOcclusion::SSAO && ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+					{
+						ImGui::SliderFloat("Power", &renderer_settings.postprocessor.ssao_power, 1.0f, 16.0f);
+						ImGui::SliderFloat("Radius", &renderer_settings.postprocessor.ssao_radius, 0.5f, 4.0f);
 
-                    if (renderer_settings.postprocessor.ambient_occlusion == EAmbientOcclusion::SSAO && ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
-                    {
-                        ImGui::SliderFloat("Power", &renderer_settings.postprocessor.ssao_power, 1.0f, 16.0f);
-                        ImGui::SliderFloat("Radius", &renderer_settings.postprocessor.ssao_radius, 0.5f, 4.0f);
-
-                        ImGui::TreePop();
-                        ImGui::Separator();
-                    }
+						ImGui::TreePop();
+						ImGui::Separator();
+					}
 					else if (renderer_settings.postprocessor.ambient_occlusion == EAmbientOcclusion::HBAO && ImGui::TreeNodeEx("HBAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
-                    {
-                        ImGui::SliderFloat("Power", &renderer_settings.postprocessor.hbao_power, 1.0f, 16.0f);
-                        ImGui::SliderFloat("Radius", &renderer_settings.postprocessor.hbao_radius, 0.25f, 8.0f);
+					{
+						ImGui::SliderFloat("Power", &renderer_settings.postprocessor.hbao_power, 1.0f, 16.0f);
+						ImGui::SliderFloat("Radius", &renderer_settings.postprocessor.hbao_radius, 0.25f, 8.0f);
 
-                        ImGui::TreePop();
-                        ImGui::Separator();
-                    }
+						ImGui::TreePop();
+						ImGui::Separator();
+					}
 					else if (renderer_settings.postprocessor.ambient_occlusion == EAmbientOcclusion::RTAO && ImGui::TreeNodeEx("RTAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
 					{
 						ImGui::SliderFloat("Radius", &renderer_settings.postprocessor.rtao_radius, 0.25f, 8.0f);
@@ -1814,10 +1554,10 @@ namespace adria
 						ImGui::TreePop();
 						ImGui::Separator();
 					}
-                }
+				}
 				//reflections
 				{
-					static const char* reflection_types[] = { "None", "SSR", "RTR"};
+					static const char* reflection_types[] = { "None", "SSR", "RTR" };
 					static int current_reflection_type = 0;
 					const char* combo_label = reflection_types[current_reflection_type];
 					if (ImGui::BeginCombo("Reflections", combo_label, 0))
@@ -1836,96 +1576,85 @@ namespace adria
 					{
 						ImGui::SliderFloat("Ray Step", &renderer_settings.postprocessor.ssr_ray_step, 1.0f, 3.0f);
 						ImGui::SliderFloat("Ray Hit Threshold", &renderer_settings.postprocessor.ssr_ray_hit_threshold, 0.25f, 5.0f);
-					
+
 						ImGui::TreePop();
 						ImGui::Separator();
 					}
 				}
-                ImGui::Checkbox("Volumetric Clouds", &renderer_settings.postprocessor.clouds);
-                ImGui::Checkbox("DoF", &renderer_settings.postprocessor.dof);
-                ImGui::Checkbox("Bloom", &renderer_settings.postprocessor.bloom);
-                ImGui::Checkbox("Motion Blur", &renderer_settings.postprocessor.motion_blur);
-                ImGui::Checkbox("Fog", &renderer_settings.postprocessor.fog);
+				ImGui::Checkbox("Volumetric Clouds", &renderer_settings.postprocessor.clouds);
+				ImGui::Checkbox("DoF", &renderer_settings.postprocessor.dof);
+				ImGui::Checkbox("Bloom", &renderer_settings.postprocessor.bloom);
+				ImGui::Checkbox("Motion Blur", &renderer_settings.postprocessor.motion_blur);
+				ImGui::Checkbox("Fog", &renderer_settings.postprocessor.fog);
 
-                if (ImGui::TreeNode("Anti-Aliasing"))
-                {
-                    static bool fxaa = false, taa = false;
-                    ImGui::Checkbox("FXAA", &fxaa);
-                    ImGui::Checkbox("TAA", &taa);
-                    if (fxaa)
-                    {
-                        renderer_settings.postprocessor.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocessor.anti_aliasing | AntiAliasing_FXAA);
-                    }
-                    else
-                    {
-                        renderer_settings.postprocessor.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocessor.anti_aliasing & (~AntiAliasing_FXAA));
-                    }
-                    if (taa)
-                    {
-                        renderer_settings.postprocessor.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocessor.anti_aliasing | AntiAliasing_TAA);
-                    }
-                    else
-                    {
-                        renderer_settings.postprocessor.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocessor.anti_aliasing & (~AntiAliasing_TAA));
-                    }
+				if (ImGui::TreeNode("Anti-Aliasing"))
+				{
+					static bool fxaa = false, taa = false;
+					ImGui::Checkbox("FXAA", &fxaa);
+					ImGui::Checkbox("TAA", &taa);
+					if (fxaa) renderer_settings.postprocessor.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocessor.anti_aliasing | AntiAliasing_FXAA);
+					else renderer_settings.postprocessor.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocessor.anti_aliasing & (~AntiAliasing_FXAA));
 
-                    ImGui::TreePop();
-                }
-                if (renderer_settings.postprocessor.clouds && ImGui::TreeNodeEx("Volumetric Clouds", 0))
-                {
-                    ImGui::SliderFloat("Sun light absorption", &renderer_settings.postprocessor.light_absorption, 0.0f, 0.015f);
-                    ImGui::SliderFloat("Clouds bottom height", &renderer_settings.postprocessor.clouds_bottom_height, 1000.0f, 10000.0f);
-                    ImGui::SliderFloat("Clouds top height", &renderer_settings.postprocessor.clouds_top_height, 10000.0f, 50000.0f);
-                    ImGui::SliderFloat("Density", &renderer_settings.postprocessor.density_factor, 0.0f, 1.0f);
-                    ImGui::SliderFloat("Crispiness", &renderer_settings.postprocessor.crispiness, 0.0f, 100.0f);
-                    ImGui::SliderFloat("Curliness", &renderer_settings.postprocessor.curliness, 0.0f, 5.0f);
-                    ImGui::SliderFloat("Coverage", &renderer_settings.postprocessor.coverage, 0.0f, 1.0f);
-                    ImGui::SliderFloat("Wind speed factor", &renderer_settings.postprocessor.wind_speed, 0.0f, 100.0f);
-                    ImGui::SliderFloat("Cloud Type", &renderer_settings.postprocessor.cloud_type, 0.0f, 1.0f);
-                    ImGui::TreePop();
-                    ImGui::Separator();
-                }
+					if (taa) renderer_settings.postprocessor.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocessor.anti_aliasing | AntiAliasing_TAA);
+					else renderer_settings.postprocessor.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocessor.anti_aliasing & (~AntiAliasing_TAA));
 
-                if (renderer_settings.postprocessor.dof && ImGui::TreeNodeEx("Depth Of Field", 0))
-                {
+					ImGui::TreePop();
+				}
+				if (renderer_settings.postprocessor.clouds && ImGui::TreeNodeEx("Volumetric Clouds", 0))
+				{
+					ImGui::SliderFloat("Sun light absorption", &renderer_settings.postprocessor.light_absorption, 0.0f, 0.015f);
+					ImGui::SliderFloat("Clouds bottom height", &renderer_settings.postprocessor.clouds_bottom_height, 1000.0f, 10000.0f);
+					ImGui::SliderFloat("Clouds top height", &renderer_settings.postprocessor.clouds_top_height, 10000.0f, 50000.0f);
+					ImGui::SliderFloat("Density", &renderer_settings.postprocessor.density_factor, 0.0f, 1.0f);
+					ImGui::SliderFloat("Crispiness", &renderer_settings.postprocessor.crispiness, 0.0f, 100.0f);
+					ImGui::SliderFloat("Curliness", &renderer_settings.postprocessor.curliness, 0.0f, 5.0f);
+					ImGui::SliderFloat("Coverage", &renderer_settings.postprocessor.coverage, 0.0f, 1.0f);
+					ImGui::SliderFloat("Wind speed factor", &renderer_settings.postprocessor.wind_speed, 0.0f, 100.0f);
+					ImGui::SliderFloat("Cloud Type", &renderer_settings.postprocessor.cloud_type, 0.0f, 1.0f);
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
 
-                    ImGui::SliderFloat("DoF Near Blur", &renderer_settings.postprocessor.dof_near_blur, 0.0f, 200.0f);
-                    ImGui::SliderFloat("DoF Near", &renderer_settings.postprocessor.dof_near, renderer_settings.postprocessor.dof_near_blur, 500.0f);
-                    ImGui::SliderFloat("DoF Far", &renderer_settings.postprocessor.dof_far, renderer_settings.postprocessor.dof_near, 1000.0f);
-                    ImGui::SliderFloat("DoF Far Blur", &renderer_settings.postprocessor.dof_far_blur, renderer_settings.postprocessor.dof_far, 1500.0f);
-                    ImGui::Checkbox("Bokeh", &renderer_settings.postprocessor.bokeh);
+				if (renderer_settings.postprocessor.dof && ImGui::TreeNodeEx("Depth Of Field", 0))
+				{
 
-                    if (renderer_settings.postprocessor.bokeh)
-                    {
-                        static char const* const bokeh_types[] = { "HEXAGON", "OCTAGON", "CIRCLE", "CROSS" };
-                        static int bokeh_type_i = static_cast<int>(renderer_settings.postprocessor.bokeh_type);
-                        ImGui::ListBox("Bokeh Type", &bokeh_type_i, bokeh_types, IM_ARRAYSIZE(bokeh_types));
-                        renderer_settings.postprocessor.bokeh_type = static_cast<EBokehType>(bokeh_type_i);
+					ImGui::SliderFloat("DoF Near Blur", &renderer_settings.postprocessor.dof_near_blur, 0.0f, 200.0f);
+					ImGui::SliderFloat("DoF Near", &renderer_settings.postprocessor.dof_near, renderer_settings.postprocessor.dof_near_blur, 500.0f);
+					ImGui::SliderFloat("DoF Far", &renderer_settings.postprocessor.dof_far, renderer_settings.postprocessor.dof_near, 1000.0f);
+					ImGui::SliderFloat("DoF Far Blur", &renderer_settings.postprocessor.dof_far_blur, renderer_settings.postprocessor.dof_far, 1500.0f);
+					ImGui::Checkbox("Bokeh", &renderer_settings.postprocessor.bokeh);
 
-                        ImGui::SliderFloat("Bokeh Blur Threshold", &renderer_settings.postprocessor.bokeh_blur_threshold, 0.0f, 1.0f);
-                        ImGui::SliderFloat("Bokeh Lum Threshold", &renderer_settings.postprocessor.bokeh_lum_threshold, 0.0f, 10.0f);
-                        ImGui::SliderFloat("Bokeh Color Scale", &renderer_settings.postprocessor.bokeh_color_scale, 0.1f, 10.0f);
-                        ImGui::SliderFloat("Bokeh Max Size", &renderer_settings.postprocessor.bokeh_radius_scale, 0.0f, 100.0f);
-                        ImGui::SliderFloat("Bokeh Fallout", &renderer_settings.postprocessor.bokeh_fallout, 0.0f, 2.0f);
-                    }
-                    
-                    ImGui::TreePop();
-                    ImGui::Separator();
+					if (renderer_settings.postprocessor.bokeh)
+					{
+						static char const* const bokeh_types[] = { "HEXAGON", "OCTAGON", "CIRCLE", "CROSS" };
+						static int bokeh_type_i = static_cast<int>(renderer_settings.postprocessor.bokeh_type);
+						ImGui::ListBox("Bokeh Type", &bokeh_type_i, bokeh_types, IM_ARRAYSIZE(bokeh_types));
+						renderer_settings.postprocessor.bokeh_type = static_cast<EBokehType>(bokeh_type_i);
 
-                }
-                if (renderer_settings.postprocessor.bloom && ImGui::TreeNodeEx("Bloom", 0))
-                {
-                    ImGui::SliderFloat("Threshold", &renderer_settings.postprocessor.bloom_threshold, 0.1f, 2.0f);
-                    ImGui::SliderFloat("Bloom Scale", &renderer_settings.postprocessor.bloom_scale, 0.1f, 5.0f);
-                    ImGui::TreePop();
-                    ImGui::Separator();
-                }
-                if ((renderer_settings.postprocessor.motion_blur || (renderer_settings.postprocessor.anti_aliasing & AntiAliasing_TAA)) && ImGui::TreeNodeEx("Velocity Buffer", 0))
-                {
-                    ImGui::SliderFloat("Velocity Buffer Scale", &renderer_settings.postprocessor.velocity_buffer_scale, 32.0f, 128.0f);
-                    ImGui::TreePop();
-                    ImGui::Separator();
-                }
+						ImGui::SliderFloat("Bokeh Blur Threshold", &renderer_settings.postprocessor.bokeh_blur_threshold, 0.0f, 1.0f);
+						ImGui::SliderFloat("Bokeh Lum Threshold", &renderer_settings.postprocessor.bokeh_lum_threshold, 0.0f, 10.0f);
+						ImGui::SliderFloat("Bokeh Color Scale", &renderer_settings.postprocessor.bokeh_color_scale, 0.1f, 10.0f);
+						ImGui::SliderFloat("Bokeh Max Size", &renderer_settings.postprocessor.bokeh_radius_scale, 0.0f, 100.0f);
+						ImGui::SliderFloat("Bokeh Fallout", &renderer_settings.postprocessor.bokeh_fallout, 0.0f, 2.0f);
+					}
+
+					ImGui::TreePop();
+					ImGui::Separator();
+
+				}
+				if (renderer_settings.postprocessor.bloom && ImGui::TreeNodeEx("Bloom", 0))
+				{
+					ImGui::SliderFloat("Threshold", &renderer_settings.postprocessor.bloom_threshold, 0.1f, 2.0f);
+					ImGui::SliderFloat("Bloom Scale", &renderer_settings.postprocessor.bloom_scale, 0.1f, 5.0f);
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
+				if ((renderer_settings.postprocessor.motion_blur || (renderer_settings.postprocessor.anti_aliasing & AntiAliasing_TAA)) && ImGui::TreeNodeEx("Velocity Buffer", 0))
+				{
+					ImGui::SliderFloat("Velocity Buffer Scale", &renderer_settings.postprocessor.velocity_buffer_scale, 32.0f, 128.0f);
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
 				if (renderer_settings.postprocessor.fog && ImGui::TreeNodeEx("Fog", 0))
 				{
 					static const char* fog_types[] = { "Exponential", "Exponential Height" };
@@ -1952,36 +1681,36 @@ namespace adria
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
-                if (ImGui::TreeNodeEx("Tone Mapping", 0))
-                {
-                    ImGui::SliderFloat("Exposure", &renderer_settings.postprocessor.tonemap_exposure, 0.01f, 10.0f);
-                    static char const* const operators[] = { "REINHARD", "HABLE", "LINEAR" };
-                    static int tone_map_operator = static_cast<int>(renderer_settings.postprocessor.tone_map_op);
-                    ImGui::ListBox("Tone Map Operator", &tone_map_operator, operators, IM_ARRAYSIZE(operators));
-                    renderer_settings.postprocessor.tone_map_op = static_cast<EToneMap>(tone_map_operator);
-                    ImGui::TreePop();
-                    ImGui::Separator();
-                }
-                ImGui::TreePop();
-            }
+				if (ImGui::TreeNodeEx("Tone Mapping", 0))
+				{
+					ImGui::SliderFloat("Exposure", &renderer_settings.postprocessor.tonemap_exposure, 0.01f, 10.0f);
+					static char const* const operators[] = { "REINHARD", "HABLE", "LINEAR" };
+					static int tone_map_operator = static_cast<int>(renderer_settings.postprocessor.tone_map_op);
+					ImGui::ListBox("Tone Map Operator", &tone_map_operator, operators, IM_ARRAYSIZE(operators));
+					renderer_settings.postprocessor.tone_map_op = static_cast<EToneMap>(tone_map_operator);
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
+				ImGui::TreePop();
+			}
 
-            if (ImGui::TreeNode("Misc"))
-            {
+			if (ImGui::TreeNode("Misc"))
+			{
 				renderer_settings.recreate_initial_spectrum = ImGui::SliderFloat2("Wind Direction", renderer_settings.wind_direction, 0.0f, 50.0f);
 				ImGui::SliderFloat("Wind speed factor", &renderer_settings.postprocessor.wind_speed, 0.0f, 100.0f);
-                ImGui::ColorEdit3("Ambient Color", renderer_settings.ambient_color);
-                ImGui::SliderFloat("Blur Sigma", &renderer_settings.blur_sigma, 0.1f, 10.0f);
-                ImGui::SliderFloat("Shadow Softness", &renderer_settings.shadow_softness, 0.01f, 5.0f);
-                ImGui::Checkbox("Transparent Shadows", &renderer_settings.shadow_transparent);
-                ImGui::Checkbox("IBL", &renderer_settings.ibl);
-                ImGui::TreePop();
-            }
-        }
-        ImGui::End();
-    }
+				ImGui::ColorEdit3("Ambient Color", renderer_settings.ambient_color);
+				ImGui::SliderFloat("Blur Sigma", &renderer_settings.blur_sigma, 0.1f, 10.0f);
+				ImGui::SliderFloat("Shadow Softness", &renderer_settings.shadow_softness, 0.01f, 5.0f);
+				ImGui::Checkbox("Transparent Shadows", &renderer_settings.shadow_transparent);
+				ImGui::Checkbox("IBL", &renderer_settings.ibl);
+				ImGui::TreePop();
+			}
+		}
+		ImGui::End();
+	}
 
-    void Editor::Profiling()
-    {
+	void Editor::Profiling()
+	{
 		if (ImGui::Begin("Profiling"))
 		{
 			ImGuiIO io = ImGui::GetIO();
@@ -1990,8 +1719,8 @@ namespace adria
 			ImGui::Checkbox("Enable Profiling", &enable_profiling);
 			if (enable_profiling)
 			{
-                static bool log_results = false;
-                ImGui::Checkbox("Log Results", &log_results);
+				static bool log_results = false;
+				ImGui::Checkbox("Log Results", &log_results);
 				ImGui::Checkbox("Profile GBuffer Pass", &profiler_settings.profile_gbuffer_pass);
 				ImGui::Checkbox("Profile Decal Pass", &profiler_settings.profile_decal_pass);
 				ImGui::Checkbox("Profile Deferred Pass", &profiler_settings.profile_deferred_pass);
@@ -2005,15 +1734,11 @@ namespace adria
 
 				engine->renderer->SetProfilerSettings(profiler_settings);
 
-				std::vector<std::string> results = engine->renderer->GetProfilerResults(log_results);
-				std::string concatenated_results;
-				for (auto const& result : results) concatenated_results += result;
-				ImGui::TextWrapped(concatenated_results.c_str());
+				std::vector<TimeStamp> results = engine->renderer->GetProfilerResults();
+				//TODO
 			}
-			else
-			{
-				engine->renderer->SetProfilerSettings(NO_PROFILING);
-			}
+			else engine->renderer->SetProfilerSettings(NO_PROFILING);
+
 			static bool display_vram_usage = false;
 			ImGui::Checkbox("Display VRAM Usage", &display_vram_usage);
 			if (display_vram_usage)
@@ -2029,7 +1754,7 @@ namespace adria
 			}
 		}
 		ImGui::End();
-    }
+	}
 
 	void Editor::ShaderHotReload()
 	{
@@ -2080,9 +1805,9 @@ namespace adria
 
 		ImGui::Begin("Ray Tracing Debug");
 		{
-			static const char* rt_types[] = { "Shadows", "Ambient Occlusion", "Reflections"};
-			static int current_rt_type = 0; 
-			const char* combo_label = rt_types[current_rt_type];  
+			static const char* rt_types[] = { "Shadows", "Ambient Occlusion", "Reflections" };
+			static int current_rt_type = 0;
+			const char* combo_label = rt_types[current_rt_type];
 			if (ImGui::BeginCombo("RT Texture Type", combo_label, 0))
 			{
 				for (int n = 0; n < IM_ARRAYSIZE(rt_types); n++)
@@ -2127,30 +1852,29 @@ namespace adria
 #endif
 	}
 
-    void Editor::OpenMaterialFileDialog(Material* material, EMaterialTextureType type)
-    {
-        if (ImGuiFileDialog::Instance()->Display("Choose Texture"))
-        {
-            if (ImGuiFileDialog::Instance()->IsOk())
-            {
-                std::wstring texture_path = ConvertToWide(ImGuiFileDialog::Instance()->GetFilePathName());
+	void Editor::OpenMaterialFileDialog(Material* material, EMaterialTextureType type)
+	{
+		if (ImGuiFileDialog::Instance()->Display("Choose Texture"))
+		{
+			if (ImGuiFileDialog::Instance()->IsOk())
+			{
+				std::wstring texture_path = ConvertToWide(ImGuiFileDialog::Instance()->GetFilePathName());
 
-                switch (type)
-                {
-                case EMaterialTextureType::eAlbedo:
-                    material->albedo_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
-                    break;
-                case EMaterialTextureType::eMetallicRoughness:
-                    material->metallic_roughness_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
-                    break;
-                case EMaterialTextureType::eEmissive:
-                    material->emissive_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
-                    break;
-                }
-            }
+				switch (type)
+				{
+				case EMaterialTextureType::eAlbedo:
+					material->albedo_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+					break;
+				case EMaterialTextureType::eMetallicRoughness:
+					material->metallic_roughness_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+					break;
+				case EMaterialTextureType::eEmissive:
+					material->emissive_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+					break;
+				}
+			}
 
-            ImGuiFileDialog::Instance()->Close();
-        }
-    }
-
+			ImGuiFileDialog::Instance()->Close();
+		}
+	}
 }

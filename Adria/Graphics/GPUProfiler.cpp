@@ -1,6 +1,5 @@
 #include "GPUProfiler.h"
 #include "../Core/Macros.h"
-#include "../Logging/Logger.h"
 
 namespace adria
 {
@@ -38,7 +37,7 @@ namespace adria
 		profile_data.cmd_list = cmd_list;
 	}
 
-	std::vector<std::string> GPUProfiler::GetProfilerResults(ID3D12GraphicsCommandList* cmd_list, bool log_results) const
+	std::vector<TimeStamp> GPUProfiler::GetProfilerResults(ID3D12GraphicsCommandList* cmd_list) const
 	{
 		UINT64 gpu_frequency = 0;
 		gfx->GetTimestampFrequency(gpu_frequency);
@@ -59,7 +58,7 @@ namespace adria
 		UINT64 const* query_timestamps = query_readback_buffer.GetMappedData<UINT64>();
 		UINT64 const* frame_query_timestamps = query_timestamps + (current_frame_index * MAX_PROFILES * 2);
 
-		std::vector<std::string> results{};
+		std::vector<TimeStamp> results{};
 		for (size_t i = 0; i < MAX_PROFILES; ++i)
 		{
 			QueryData& profile_data = query_data[i];
@@ -69,20 +68,14 @@ namespace adria
 				UINT64 end_time = frame_query_timestamps[i * 2 + 1];
 
 				UINT64 delta = end_time - start_time;
-				double frequency = double(gpu_frequency);
-				double time_ms = (delta / frequency) * 1000.0;
-
-				std::string time_ms_string = std::to_string(time_ms);
-				std::string result = ToString(static_cast<EProfilerBlock>(i)) + " time: " + time_ms_string + "ms";
-				results.push_back(result);
-				if (log_results) ADRIA_LOG(INFO, result.c_str());
+				FLOAT frequency = FLOAT(gpu_frequency);
+				FLOAT time_ms = (delta / frequency) * 1000.0f;
+				results.emplace_back(time_ms, ToString(static_cast<EProfilerBlock>(i)));
 			}
 			profile_data.query_started = profile_data.query_finished = false;
 			profile_data.cmd_list = nullptr;
 		}
-
 		current_frame_index = (current_frame_index + 1) % FRAME_COUNT;
-
 		return results;
 	}
 }
