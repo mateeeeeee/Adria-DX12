@@ -349,6 +349,7 @@
     <ClInclude Include="Utilities\CPUProfiler.h" />
     <ClInclude Include="Utilities\EnumUtil.h" />
     <ClInclude Include="Utilities\FilesUtil.h" />
+    <ClInclude Include="Utilities\FileWatcher.h" />
     <ClInclude Include="Utilities\HashMap.h" />
     <ClInclude Include="Utilities\HashSet.h" />
     <ClInclude Include="Utilities\Heightmap.h" />
