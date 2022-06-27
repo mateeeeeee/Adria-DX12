@@ -904,6 +904,7 @@ namespace adria
 				graphics_pso_desc.VS = shader_map[VS_GBufferPBR];
 				graphics_pso_desc.PS = shader_map[PS_GBufferPBR];
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+				graphics_pso_desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.DepthStencilState.DepthEnable = TRUE;
 				graphics_pso_desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;

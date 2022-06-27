@@ -12,7 +12,7 @@
 		],
         "fov": 45.0,
         "near": 1.0,
-        "far": 300.0,
+        "far": 700.0,
         "speed": 50.0,
 		"sensitivity" : 0.3
     },
@@ -20,10 +20,10 @@
 			"texture" : ["Resources/Textures/Skybox/sunsetcube1024.dds"]
 	}, 
     "models" : [
-	{
-		"path" : "Resources/Models/Sponza-New/scene.gltf",
-		"scale" : [1.0, 1.0, 1.0]
-	}
+			{
+				"path": "Resources/Models/AbandonedWarehouse/AbandonedWarehouse.gltf",
+				"scale": [ 5.0, 5.0, 5.0 ]
+			}
 	],
 	"lights" : [
 	{

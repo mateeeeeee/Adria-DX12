@@ -13,6 +13,7 @@ struct VS_OUTPUT
     float3 TangentWS : TANGENT;
     float3 BitangentWS : BITANGENT;
     float3 NormalWS : NORMAL1;
+    bool IsFrontFace : SV_IsFrontFace;
 };
 
 
@@ -41,7 +42,6 @@ PS_GBUFFER_OUT PackGBuffer(float3 BaseColor, float3 NormalVS, float4 emissive, f
 [RootSignature(GeometryPassPBR_RS)]
 PS_GBUFFER_OUT main(VS_OUTPUT In)
 {
-
     In.Uvs.y = 1 - In.Uvs.y;
     
     Texture2D txAlbedo = Tex2DArray[material_cbuf.albedo_idx];
@@ -55,6 +55,8 @@ PS_GBUFFER_OUT main(VS_OUTPUT In)
         discard;
 
     float3 Normal = normalize(In.NormalWS);
+    if (In.IsFrontFace) Normal = -Normal;
+    
     float3 Tangent = normalize(In.TangentWS);
     float3 Bitangent = normalize(In.BitangentWS);
     float3 BumpMapNormal = txNormal.Sample(linear_wrap_sampler, In.Uvs).xyz;
