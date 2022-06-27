@@ -624,16 +624,6 @@ namespace adria
 
 		ImGui::Begin("Entities");
 		{
-			if (ImGui::BeginPopupContextWindow(0, 1, false))
-			{
-				if (ImGui::MenuItem("Create"))
-				{
-					entity empty = engine->reg.create();
-					engine->reg.emplace<Tag>(empty);
-				}
-				ImGui::EndPopup();
-			}
-
 			std::vector<entity> deleted_entities{};
 			for (auto e : all_entities)
 			{
