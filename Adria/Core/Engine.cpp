@@ -208,7 +208,7 @@ namespace adria
 	Engine::Engine(EngineInit const& init) : vsync{ init.vsync }, input{}, camera_manager{ input }
 	{
 		TaskSystem::Initialize();
-		ShaderUtility::Initialize();
+		ShaderCompiler::Initialize();
 
 		gfx = std::make_unique<GraphicsDevice>(GraphicsOptions{.debug_layer = init.debug_layer,
 															   .dred = init.dred,
@@ -230,7 +230,7 @@ namespace adria
 
 	Engine::~Engine()
 	{
-		ShaderUtility::Destroy();
+		ShaderCompiler::Destroy();
 		TaskSystem::Destroy();
 	}
 

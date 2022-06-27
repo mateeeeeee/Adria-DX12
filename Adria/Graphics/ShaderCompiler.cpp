@@ -1,5 +1,5 @@
 #pragma comment(lib, "dxcompiler.lib")
-#include "ShaderUtility.h"
+#include "ShaderCompiler.h"
 #include <wrl.h>
 #include <d3dcompiler.h> 
 #include "dxc/dxcapi.h" 
@@ -57,7 +57,7 @@ namespace adria
 		Microsoft::WRL::ComPtr<IDxcIncludeHandler> include_handler = nullptr;
 	}
 
-	namespace ShaderUtility
+	namespace ShaderCompiler
 	{
 		void Initialize()
 		{
@@ -74,24 +74,23 @@ namespace adria
 			compiler.Reset();
 			library.Reset();
 		}
-		void CompileShader(ShaderInfo const& input, ShaderBlob& blob)
+		void CompileShader(ShaderCompileInput const& input, ShaderBlob& blob)
 		{
 			Microsoft::WRL::ComPtr<IDxcBlob> _blob;
 			uint32_t codePage = CP_UTF8; 
 			Microsoft::WRL::ComPtr<IDxcBlobEncoding> sourceBlob;
 
-			std::wstring shader_source = ConvertToWide(input.shadersource);
-
+			std::wstring shader_source = ConvertToWide(input.source_file);
 			HRESULT hr = library->CreateBlobFromFile(shader_source.data(), &codePage, &sourceBlob);
 			BREAK_IF_FAILED(hr);
 
 			std::vector<wchar_t const*> flags{};
-			if (input.flags & ShaderInfo::FLAG_DEBUG)
+			if (input.flags & ShaderCompileInput::FlagDebug)
 			{
 				flags.push_back(L"-Zi");			//Debug info
 				flags.push_back(L"-Qembed_debug");	//Embed debug info into the shader
 			}
-			if (input.flags & ShaderInfo::FLAG_DISABLE_OPTIMIZATION)
+			if (input.flags & ShaderCompileInput::FlagDisableOptimization)
 				flags.push_back(L"-Od");
 			else flags.push_back(L"-O3");
 
@@ -132,7 +131,6 @@ namespace adria
 			}
 
 			if (!input.entrypoint.empty()) entry_point = ConvertToWide(input.entrypoint);
-
 			std::vector<DxcDefine> sm6_defines{};
 			for (auto const& define : input.macros)
 			{
@@ -153,8 +151,7 @@ namespace adria
 				include_handler.Get(),					// pIncludeHandler
 				&result);								// ppResult
 
-			if (SUCCEEDED(hr))
-				result->GetStatus(&hr);
+			if (SUCCEEDED(hr)) result->GetStatus(&hr);
 
 			if (FAILED(hr) && result)
 			{
@@ -176,15 +173,13 @@ namespace adria
 			BREAK_IF_FAILED(hr);
 
 			blob.bytecode.resize(sourceBlob->GetBufferSize());
-			memcpy(blob.GetPointer(), sourceBlob->GetBufferPointer(), blob.GetLength());
+			memcpy(blob.GetPointer(), sourceBlob->GetBufferPointer(), sourceBlob->GetBufferSize());
 		}
 		void CreateInputLayoutWithReflection(ShaderBlob const& vs_blob, InputLayout& input_layout)
 		{
 			Microsoft::WRL::ComPtr<IDxcContainerReflection> pReflection;
 			HRESULT hr = DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(pReflection.GetAddressOf()));
-
 			ReflectionBlob my_blob{ vs_blob.GetPointer() , vs_blob.GetLength() };
-
 			BREAK_IF_FAILED(hr);
 			hr = pReflection->Load(&my_blob);
 			BREAK_IF_FAILED(hr);
@@ -207,16 +202,11 @@ namespace adria
 
 			input_layout.il_desc.clear();
 			input_layout.semantic_names.clear();
-
 			input_layout.il_desc.resize(shaderDesc.InputParameters);
-
 			for (uint32_t i = 0; i < shaderDesc.InputParameters; i++)
 			{
-
 				pVertexShaderReflection->GetInputParameterDesc(i, &param_desc);
-
 				input_layout.semantic_names.push_back(param_desc.SemanticName);
-
 				input_layout.il_desc[i].SemanticName = input_layout.semantic_names.back().c_str();
 				input_layout.il_desc[i].SemanticIndex = param_desc.SemanticIndex;
 				input_layout.il_desc[i].InputSlot = 0;
@@ -250,7 +240,6 @@ namespace adria
 					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.il_desc[i].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 				}
 			}
-
 		}
 	}
 }

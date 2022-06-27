@@ -8,7 +8,7 @@
 #include <variant>
 #include "RootSigPSOManager.h"
 #include "../Graphics/d3dx12.h"
-#include "../Graphics/ShaderUtility.h"
+#include "../Graphics/ShaderCompiler.h"
 #include "../Logging/Logger.h"
 #include "../Utilities/Timer.h"
 #include "../Utilities/HashMap.h"
@@ -134,7 +134,7 @@ namespace adria
 				return EShaderStage::DS;
 			case EShader_Count:
 			default:
-				return EShaderStage::COUNT;
+				return EShaderStage::ShaderCount;
 			}
 		}
 		constexpr std::string GetShaderSource(EShader shader)
@@ -339,159 +339,159 @@ namespace adria
 		{
 			//compiled offline
 			{
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SkyboxVS.cso", shader_map[VS_Skybox]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SkyboxPS.cso", shader_map[PS_Skybox]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/UniformColorSkyPS.cso", shader_map[PS_UniformColorSky]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/HosekWilkieSkyPS.cso", shader_map[PS_HosekWilkieSky]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/TextureVS.cso", shader_map[VS_Texture]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/TexturePS.cso", shader_map[PS_Texture]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SunVS.cso", shader_map[VS_Sun]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BillboardVS.cso", shader_map[VS_Billboard]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/DecalVS.cso", shader_map[VS_Decals]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/DecalPS.cso", shader_map[PS_Decals]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SkyboxVS.cso", shader_map[VS_Skybox]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SkyboxPS.cso", shader_map[PS_Skybox]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/UniformColorSkyPS.cso", shader_map[PS_UniformColorSky]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/HosekWilkieSkyPS.cso", shader_map[PS_HosekWilkieSky]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/TextureVS.cso", shader_map[VS_Texture]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/TexturePS.cso", shader_map[PS_Texture]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SunVS.cso", shader_map[VS_Sun]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BillboardVS.cso", shader_map[VS_Billboard]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/DecalVS.cso", shader_map[VS_Decals]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/DecalPS.cso", shader_map[PS_Decals]);
 
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ScreenQuadVS.cso", shader_map[VS_ScreenQuad]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SSAO_PS.cso", shader_map[PS_Ssao]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/HBAO_PS.cso", shader_map[PS_Hbao]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SSR_PS.cso", shader_map[PS_Ssr]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/GodRaysPS.cso", shader_map[PS_GodRays]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ToneMapPS.cso", shader_map[PS_ToneMap]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/FXAA_PS.cso", shader_map[PS_Fxaa]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/TAA_PS.cso", shader_map[PS_Taa]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/CopyPS.cso", shader_map[PS_Copy]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/AddPS.cso", shader_map[PS_Add]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/LensFlareVS.cso", shader_map[VS_LensFlare]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/LensFlareGS.cso", shader_map[GS_LensFlare]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/LensFlarePS.cso", shader_map[PS_LensFlare]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BokehVS.cso", shader_map[VS_Bokeh]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BokehGS.cso", shader_map[GS_Bokeh]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BokehPS.cso", shader_map[PS_Bokeh]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/DOF_PS.cso", shader_map[PS_Dof]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/MotionBlurPS.cso", shader_map[PS_MotionBlur]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/FogPS.cso", shader_map[PS_Fog]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/VelocityBufferPS.cso", shader_map[PS_VelocityBuffer]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ScreenQuadVS.cso", shader_map[VS_ScreenQuad]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SSAO_PS.cso", shader_map[PS_Ssao]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/HBAO_PS.cso", shader_map[PS_Hbao]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SSR_PS.cso", shader_map[PS_Ssr]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/GodRaysPS.cso", shader_map[PS_GodRays]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ToneMapPS.cso", shader_map[PS_ToneMap]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/FXAA_PS.cso", shader_map[PS_Fxaa]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/TAA_PS.cso", shader_map[PS_Taa]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/CopyPS.cso", shader_map[PS_Copy]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/AddPS.cso", shader_map[PS_Add]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/LensFlareVS.cso", shader_map[VS_LensFlare]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/LensFlareGS.cso", shader_map[GS_LensFlare]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/LensFlarePS.cso", shader_map[PS_LensFlare]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BokehVS.cso", shader_map[VS_Bokeh]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BokehGS.cso", shader_map[GS_Bokeh]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BokehPS.cso", shader_map[PS_Bokeh]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/DOF_PS.cso", shader_map[PS_Dof]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/MotionBlurPS.cso", shader_map[PS_MotionBlur]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/FogPS.cso", shader_map[PS_Fog]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/VelocityBufferPS.cso", shader_map[PS_VelocityBuffer]);
 
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/GeometryPassPBR_VS.cso", shader_map[VS_GBufferPBR]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/GeometryPassPBR_PS.cso", shader_map[PS_GBufferPBR]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/LightingPBR_PS.cso", shader_map[PS_LightingPBR]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ClusterLightingPBR_PS.cso", shader_map[PS_ClusteredLightingPBR]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/VolumetricLightDirectionalPS.cso", shader_map[PS_Volumetric_Directional]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/VolumetricLightDirectionalCascadesPS.cso", shader_map[PS_Volumetric_DirectionalCascades]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/VolumetricLightSpotPS.cso", shader_map[PS_Volumetric_Spot]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/VolumetricLightPointPS.cso", shader_map[PS_Volumetric_Point]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/GeometryPassPBR_VS.cso", shader_map[VS_GBufferPBR]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/GeometryPassPBR_PS.cso", shader_map[PS_GBufferPBR]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/LightingPBR_PS.cso", shader_map[PS_LightingPBR]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ClusterLightingPBR_PS.cso", shader_map[PS_ClusteredLightingPBR]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/VolumetricLightDirectionalPS.cso", shader_map[PS_Volumetric_Directional]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/VolumetricLightDirectionalCascadesPS.cso", shader_map[PS_Volumetric_DirectionalCascades]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/VolumetricLightSpotPS.cso", shader_map[PS_Volumetric_Spot]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/VolumetricLightPointPS.cso", shader_map[PS_Volumetric_Point]);
 
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BloomExtractCS.cso", shader_map[CS_BloomExtract]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BloomCombineCS.cso", shader_map[CS_BloomCombine]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/TiledLightingCS.cso", shader_map[CS_TiledLighting]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ClusterBuildingCS.cso", shader_map[CS_ClusterBuilding]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ClusterCullingCS.cso", shader_map[CS_ClusterCulling]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BokehCS.cso", shader_map[CS_BokehGenerate]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/FFT_horizontalCS.cso", shader_map[CS_FFT_Horizontal]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/FFT_verticalCS.cso", shader_map[CS_FFT_Vertical]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/InitialSpectrumCS.cso", shader_map[CS_InitialSpectrum]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/NormalMapCS.cso", shader_map[CS_OceanNormalMap]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/PhaseCS.cso", shader_map[CS_Phase]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SpectrumCS.cso", shader_map[CS_Spectrum]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BloomExtractCS.cso", shader_map[CS_BloomExtract]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BloomCombineCS.cso", shader_map[CS_BloomCombine]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/TiledLightingCS.cso", shader_map[CS_TiledLighting]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ClusterBuildingCS.cso", shader_map[CS_ClusterBuilding]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ClusterCullingCS.cso", shader_map[CS_ClusterCulling]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BokehCS.cso", shader_map[CS_BokehGenerate]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/FFT_horizontalCS.cso", shader_map[CS_FFT_Horizontal]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/FFT_verticalCS.cso", shader_map[CS_FFT_Vertical]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/InitialSpectrumCS.cso", shader_map[CS_InitialSpectrum]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/NormalMapCS.cso", shader_map[CS_OceanNormalMap]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/PhaseCS.cso", shader_map[CS_Phase]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SpectrumCS.cso", shader_map[CS_Spectrum]);
 
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanVS.cso", shader_map[VS_Ocean]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanPS.cso", shader_map[PS_Ocean]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanLodVS.cso", shader_map[VS_OceanLOD]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanLodHS.cso", shader_map[HS_OceanLOD]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanLodDS.cso", shader_map[DS_OceanLOD]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanVS.cso", shader_map[VS_Ocean]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanPS.cso", shader_map[PS_Ocean]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanLodVS.cso", shader_map[VS_OceanLOD]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanLodHS.cso", shader_map[HS_OceanLOD]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanLodDS.cso", shader_map[DS_OceanLOD]);
 
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/PickerCS.cso", shader_map[CS_Picker]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/PickerCS.cso", shader_map[CS_Picker]);
 
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/InitDeadListCS.cso", shader_map[CS_ParticleInitDeadList]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ParticleResetCS.cso", shader_map[CS_ParticleReset]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ParticleEmitCS.cso", shader_map[CS_ParticleEmit]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ParticleSimulateCS.cso", shader_map[CS_ParticleSimulate]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BitonicSortStepCS.cso", shader_map[CS_ParticleBitonicSortStep]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/Sort512CS.cso", shader_map[CS_ParticleSort512]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SortInner512CS.cso", shader_map[CS_ParticleSortInner512]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/InitSortDispatchArgsCS.cso", shader_map[CS_ParticleInitSortDispatchArgs]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ParticleVS.cso", shader_map[VS_Particles]);
-				ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ParticlePS.cso", shader_map[PS_Particles]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/InitDeadListCS.cso", shader_map[CS_ParticleInitDeadList]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ParticleResetCS.cso", shader_map[CS_ParticleReset]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ParticleEmitCS.cso", shader_map[CS_ParticleEmit]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ParticleSimulateCS.cso", shader_map[CS_ParticleSimulate]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BitonicSortStepCS.cso", shader_map[CS_ParticleBitonicSortStep]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/Sort512CS.cso", shader_map[CS_ParticleSort512]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SortInner512CS.cso", shader_map[CS_ParticleSortInner512]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/InitSortDispatchArgsCS.cso", shader_map[CS_ParticleInitSortDispatchArgs]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ParticleVS.cso", shader_map[VS_Particles]);
+				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ParticlePS.cso", shader_map[PS_Particles]);
 			}
 			
 			//compiled runtime
-			ShaderInfo shader_info{};
+			ShaderCompileInput shader_info{};
 			shader_info.entrypoint = "main";
 			shader_info.flags =
 #if _DEBUG
-				ShaderInfo::FLAG_DEBUG | ShaderInfo::FLAG_DISABLE_OPTIMIZATION;
+				ShaderCompileInput::FlagDebug | ShaderCompileInput::FlagDisableOptimization;
 #else
-				ShaderInfo::FLAG_NONE;
+				ShaderCompileInput::FlagNone;
 #endif
 			{
-				shader_info.shadersource = shaders_directory + GetShaderSource(PS_Decals_ModifyNormals);
+				shader_info.source_file = shaders_directory + GetShaderSource(PS_Decals_ModifyNormals);
 				shader_info.stage = EShaderStage::PS;
 				shader_info.macros = GetShaderMacros(PS_Decals_ModifyNormals);
-				ShaderUtility::CompileShader(shader_info, shader_map[PS_Decals_ModifyNormals]);
+				ShaderCompiler::CompileShader(shader_info, shader_map[PS_Decals_ModifyNormals]);
 
-				shader_info.shadersource = shaders_directory + GetShaderSource(PS_AmbientPBR);
+				shader_info.source_file = shaders_directory + GetShaderSource(PS_AmbientPBR);
 				shader_info.stage = EShaderStage::PS;
 				shader_info.macros = GetShaderMacros(PS_AmbientPBR);
-				ShaderUtility::CompileShader(shader_info, shader_map[PS_AmbientPBR]);
+				ShaderCompiler::CompileShader(shader_info, shader_map[PS_AmbientPBR]);
 
-				shader_info.shadersource = shaders_directory + GetShaderSource(PS_AmbientPBR_AO);
+				shader_info.source_file = shaders_directory + GetShaderSource(PS_AmbientPBR_AO);
 				shader_info.stage = EShaderStage::PS;
 				shader_info.macros = GetShaderMacros(PS_AmbientPBR_AO);
-				ShaderUtility::CompileShader(shader_info, shader_map[PS_AmbientPBR_AO]);
+				ShaderCompiler::CompileShader(shader_info, shader_map[PS_AmbientPBR_AO]);
 
-				shader_info.shadersource = shaders_directory + GetShaderSource(PS_AmbientPBR_IBL);
+				shader_info.source_file = shaders_directory + GetShaderSource(PS_AmbientPBR_IBL);
 				shader_info.stage = EShaderStage::PS;
 				shader_info.macros = GetShaderMacros(PS_AmbientPBR_IBL);
-				ShaderUtility::CompileShader(shader_info, shader_map[PS_AmbientPBR_IBL]);
+				ShaderCompiler::CompileShader(shader_info, shader_map[PS_AmbientPBR_IBL]);
 
-				shader_info.shadersource = shaders_directory + GetShaderSource(PS_AmbientPBR_AO_IBL);
+				shader_info.source_file = shaders_directory + GetShaderSource(PS_AmbientPBR_AO_IBL);
 				shader_info.stage = EShaderStage::PS;
 				shader_info.macros = GetShaderMacros(PS_AmbientPBR_AO_IBL);
-				ShaderUtility::CompileShader(shader_info, shader_map[PS_AmbientPBR_AO_IBL]);
+				ShaderCompiler::CompileShader(shader_info, shader_map[PS_AmbientPBR_AO_IBL]);
 
-				shader_info.shadersource = shaders_directory + GetShaderSource(PS_LightingPBR_RayTracedShadows);
+				shader_info.source_file = shaders_directory + GetShaderSource(PS_LightingPBR_RayTracedShadows);
 				shader_info.stage = EShaderStage::PS;
 				shader_info.macros = GetShaderMacros(PS_LightingPBR_RayTracedShadows); 
-				ShaderUtility::CompileShader(shader_info, shader_map[PS_LightingPBR_RayTracedShadows]);
+				ShaderCompiler::CompileShader(shader_info, shader_map[PS_LightingPBR_RayTracedShadows]);
 
-				shader_info.shadersource = shaders_directory + GetShaderSource(VS_DepthMap);
+				shader_info.source_file = shaders_directory + GetShaderSource(VS_DepthMap);
 				shader_info.stage = EShaderStage::VS;
 				shader_info.macros = GetShaderMacros(VS_DepthMap);
-				ShaderUtility::CompileShader(shader_info, shader_map[VS_DepthMap]);
+				ShaderCompiler::CompileShader(shader_info, shader_map[VS_DepthMap]);
 
-				shader_info.shadersource = shaders_directory + GetShaderSource(PS_DepthMap);
+				shader_info.source_file = shaders_directory + GetShaderSource(PS_DepthMap);
 				shader_info.stage = EShaderStage::PS;
 				shader_info.macros = GetShaderMacros(PS_DepthMap);
-				ShaderUtility::CompileShader(shader_info, shader_map[PS_DepthMap]);
+				ShaderCompiler::CompileShader(shader_info, shader_map[PS_DepthMap]);
 
-				shader_info.shadersource = shaders_directory + GetShaderSource(VS_DepthMap_Transparent);
+				shader_info.source_file = shaders_directory + GetShaderSource(VS_DepthMap_Transparent);
 				shader_info.stage = EShaderStage::VS;
 				shader_info.macros = GetShaderMacros(VS_DepthMap_Transparent);
-				ShaderUtility::CompileShader(shader_info, shader_map[VS_DepthMap_Transparent]);
+				ShaderCompiler::CompileShader(shader_info, shader_map[VS_DepthMap_Transparent]);
 
-				shader_info.shadersource = shaders_directory + GetShaderSource(PS_DepthMap_Transparent);
+				shader_info.source_file = shaders_directory + GetShaderSource(PS_DepthMap_Transparent);
 				shader_info.stage = EShaderStage::PS;
 				shader_info.macros = GetShaderMacros(PS_DepthMap_Transparent);
-				ShaderUtility::CompileShader(shader_info, shader_map[PS_DepthMap_Transparent]);
+				ShaderCompiler::CompileShader(shader_info, shader_map[PS_DepthMap_Transparent]);
 
-				shader_info.shadersource = shaders_directory + GetShaderSource(CS_Blur_Horizontal);
+				shader_info.source_file = shaders_directory + GetShaderSource(CS_Blur_Horizontal);
 				shader_info.stage = EShaderStage::CS;
 				shader_info.macros = GetShaderMacros(CS_Blur_Horizontal);
-				ShaderUtility::CompileShader(shader_info, shader_map[CS_Blur_Horizontal]);
+				ShaderCompiler::CompileShader(shader_info, shader_map[CS_Blur_Horizontal]);
 
-				shader_info.shadersource = shaders_directory + GetShaderSource(CS_Blur_Vertical);
+				shader_info.source_file = shaders_directory + GetShaderSource(CS_Blur_Vertical);
 				shader_info.stage = EShaderStage::CS;
 				shader_info.macros = GetShaderMacros(CS_Blur_Vertical);
-				ShaderUtility::CompileShader(shader_info, shader_map[CS_Blur_Vertical]);
+				ShaderCompiler::CompileShader(shader_info, shader_map[CS_Blur_Vertical]);
 
-				shader_info.shadersource = shaders_directory + GetShaderSource(CS_GenerateMips);
+				shader_info.source_file = shaders_directory + GetShaderSource(CS_GenerateMips);
 				shader_info.stage = EShaderStage::CS;
 				shader_info.macros = GetShaderMacros(CS_GenerateMips);
-				ShaderUtility::CompileShader(shader_info, shader_map[CS_GenerateMips]);
+				ShaderCompiler::CompileShader(shader_info, shader_map[CS_GenerateMips]);
 
-				shader_info.shadersource = shaders_directory + GetShaderSource(PS_VolumetricClouds);
+				shader_info.source_file = shaders_directory + GetShaderSource(PS_VolumetricClouds);
 				shader_info.stage = EShaderStage::PS;
 				shader_info.macros = GetShaderMacros(PS_VolumetricClouds);
-				ShaderUtility::CompileShader(shader_info, shader_map[PS_VolumetricClouds]);
+				ShaderCompiler::CompileShader(shader_info, shader_map[PS_VolumetricClouds]);
 			}
 		}
 		void CreateAllRootSignatures()
@@ -818,7 +818,7 @@ namespace adria
 				AddDependency(EPipelineStateObject::Particles_Shading, { VS_Particles, PS_Particles }, graphics_pso_desc);
 
 				graphics_pso_desc = {};
-				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_Skybox], input_layout);
+				ShaderCompiler::CreateInputLayoutWithReflection(shader_map[VS_Skybox], input_layout);
 				graphics_pso_desc.InputLayout = input_layout;
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::Skybox].Get();
 				graphics_pso_desc.VS = shader_map[VS_Skybox];
@@ -849,7 +849,7 @@ namespace adria
 				AddDependency(EPipelineStateObject::HosekWilkieSky, { VS_Skybox, PS_HosekWilkieSky }, graphics_pso_desc);
 
 				graphics_pso_desc = {};
-				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_ScreenQuad], input_layout);
+				ShaderCompiler::CreateInputLayoutWithReflection(shader_map[VS_ScreenQuad], input_layout);
 				graphics_pso_desc.InputLayout = input_layout;
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::ToneMap].Get();
 				graphics_pso_desc.VS = shader_map[VS_ScreenQuad];
@@ -898,7 +898,7 @@ namespace adria
 				AddDependency(EPipelineStateObject::TAA, { VS_ScreenQuad, PS_Taa }, graphics_pso_desc);
 
 				graphics_pso_desc = {};
-				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_GBufferPBR], input_layout);
+				ShaderCompiler::CreateInputLayoutWithReflection(shader_map[VS_GBufferPBR], input_layout);
 				graphics_pso_desc.InputLayout = input_layout;
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::GbufferPBR].Get();
 				graphics_pso_desc.VS = shader_map[VS_GBufferPBR];
@@ -987,7 +987,7 @@ namespace adria
 				AddDependency(EPipelineStateObject::ClusteredLightingPBR, { VS_ScreenQuad, PS_ClusteredLightingPBR }, graphics_pso_desc);
 
 				graphics_pso_desc = {};
-				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_DepthMap], input_layout);
+				ShaderCompiler::CreateInputLayoutWithReflection(shader_map[VS_DepthMap], input_layout);
 				graphics_pso_desc.InputLayout = input_layout;
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::DepthMap].Get();
 				graphics_pso_desc.VS = shader_map[VS_DepthMap];
@@ -1012,7 +1012,7 @@ namespace adria
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&graphics_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::DepthMap])));
 				AddDependency(EPipelineStateObject::DepthMap, { VS_DepthMap, PS_DepthMap }, graphics_pso_desc);
 
-				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_DepthMap_Transparent], input_layout);
+				ShaderCompiler::CreateInputLayoutWithReflection(shader_map[VS_DepthMap_Transparent], input_layout);
 				graphics_pso_desc.InputLayout = input_layout;
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::DepthMap_Transparent].Get();
 				graphics_pso_desc.VS = shader_map[VS_DepthMap_Transparent];
@@ -1057,7 +1057,7 @@ namespace adria
 				AddDependency(EPipelineStateObject::Volumetric_Point, { VS_ScreenQuad, PS_Volumetric_Point }, graphics_pso_desc);
 
 				graphics_pso_desc = {};
-				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_Sun], input_layout);
+				ShaderCompiler::CreateInputLayoutWithReflection(shader_map[VS_Sun], input_layout);
 				graphics_pso_desc = {};
 				graphics_pso_desc.InputLayout = input_layout;
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::Forward].Get();
@@ -1119,7 +1119,7 @@ namespace adria
 				AddDependency(EPipelineStateObject::SSR, { VS_ScreenQuad, PS_Ssr }, graphics_pso_desc);
 
 				graphics_pso_desc = {};
-				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_ScreenQuad], input_layout);
+				ShaderCompiler::CreateInputLayoutWithReflection(shader_map[VS_ScreenQuad], input_layout);
 				graphics_pso_desc.InputLayout = input_layout;
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::GodRays].Get();
 				graphics_pso_desc.VS = shader_map[VS_ScreenQuad];
@@ -1322,7 +1322,7 @@ namespace adria
 				AddDependency(EPipelineStateObject::VelocityBuffer, { VS_ScreenQuad, PS_VelocityBuffer }, graphics_pso_desc);
 
 				graphics_pso_desc = {};
-				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_Ocean], input_layout);
+				ShaderCompiler::CreateInputLayoutWithReflection(shader_map[VS_Ocean], input_layout);
 				graphics_pso_desc.InputLayout = input_layout;
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::Ocean].Get();
 				graphics_pso_desc.VS = shader_map[VS_Ocean];
@@ -1359,7 +1359,7 @@ namespace adria
 				AddDependency(EPipelineStateObject::OceanLOD, { VS_OceanLOD, DS_OceanLOD, HS_OceanLOD, PS_Ocean }, graphics_pso_desc);
 
 				graphics_pso_desc = {};
-				ShaderUtility::CreateInputLayoutWithReflection(shader_map[VS_Decals], input_layout);
+				ShaderCompiler::CreateInputLayoutWithReflection(shader_map[VS_Decals], input_layout);
 				graphics_pso_desc.InputLayout = input_layout;
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::Decals].Get();
 				graphics_pso_desc.VS = shader_map[VS_Decals];
@@ -1545,7 +1545,7 @@ namespace adria
 							switch (GetStage(shader))
 							{
 							case EShaderStage::VS:
-								ShaderUtility::CreateInputLayoutWithReflection(shader_map[shader], il);
+								ShaderCompiler::CreateInputLayoutWithReflection(shader_map[shader], il);
 								desc.VS = shader_map[shader];
 								break;
 							case EShaderStage::PS:
@@ -1561,7 +1561,7 @@ namespace adria
 								desc.GS = shader_map[shader];
 								break;
 							case EShaderStage::CS:
-							case EShaderStage::COUNT:
+							case EShaderStage::ShaderCount:
 							default:
 								ADRIA_ASSERT(false && "Invalid shader stage for graphics pso!");
 							}
@@ -1595,6 +1595,14 @@ namespace adria
 
 	void RootSigPSOManager::Destroy()
 	{
+		auto FreeContainer = []<typename T>(T& container)
+		{
+			container.clear();
+			T empty;
+			using std::swap;
+			swap(container, empty);
+		};
+
 		shader_map.clear();
 		shader_file_data_map.clear();
 		rs_map.clear();
@@ -1607,30 +1615,12 @@ namespace adria
 	{
 		return rs_map[root_sig].Get();
 	}
-
 	ID3D12PipelineState* RootSigPSOManager::GetPipelineState(EPipelineStateObject pso)
 	{
 		return pso_map[pso].Get();
 	}
 
-	void RootSigPSOManager::RecompileShader(EShader shader, bool recreate_psos /*= true*/)
-	{
-		ShaderInfo shader_info{ .entrypoint = "main" };
-		shader_info.flags =
-#if _DEBUG
-			ShaderInfo::FLAG_DEBUG | ShaderInfo::FLAG_DISABLE_OPTIMIZATION;
-#else
-			ShaderInfo::FLAG_NONE;
-#endif
-		shader_info.shadersource = std::string(shaders_directory) + GetShaderSource(shader);
-		shader_info.stage = GetStage(shader);
-		shader_info.macros = GetShaderMacros(shader);
-
-		ShaderUtility::CompileShader(shader_info, shader_map[shader]);
-		if (recreate_psos) RecreateDependentPSOs(shader);
-	}
-
-	void RootSigPSOManager::RecompileChangedShaders()
+	void RootSigPSOManager::CheckIfShadersHaveChanged()
 	{
 		ADRIA_LOG(INFO, "Recompiling changed shaders...");
 		using UnderlyingType = std::underlying_type_t<EShader>;
@@ -1644,28 +1634,7 @@ namespace adria
 			{
 				if (HasShaderChanged((EShader)s))
 				{
-					RecompileShader((EShader)s, false);
-					RecreateDependentPSOs((EShader)s);
-				}
-			});
-		ADRIA_LOG(INFO, "Compilation done!");
-	}
-
-	void RootSigPSOManager::RecompileAllShaders()
-	{
-		ADRIA_LOG(INFO, "Recompiling changed shaders...");
-		using UnderlyingType = std::underlying_type_t<EShader>;
-		std::vector<UnderlyingType> shaders(EShader_Count);
-		std::iota(std::begin(shaders), std::end(shaders), 0);
-		std::for_each(
-			std::execution::seq,
-			std::begin(shaders),
-			std::end(shaders),
-			[](UnderlyingType s)
-			{
-				if (HasShaderChanged((EShader)s))
-				{
-					RecompileShader((EShader)s, false);
+					//RecompileShader((EShader)s, false);
 				}
 			});
 		CreateAllPSOs();

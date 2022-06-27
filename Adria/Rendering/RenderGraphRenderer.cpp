@@ -377,7 +377,7 @@ namespace adria
 			Microsoft::WRL::ComPtr<ID3D12PipelineState> pipeline_state;
 
 			ShaderBlob spmap_shader;
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SpmapCS.cso", spmap_shader);
+			ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SpmapCS.cso", spmap_shader);
 
 			D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc = {};
 			pso_desc.pRootSignature = root_signature.Get();
@@ -461,7 +461,7 @@ namespace adria
 		{
 			Microsoft::WRL::ComPtr<ID3D12PipelineState> pipeline_state;
 			ShaderBlob irmap_shader;
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/IrmapCS.cso", irmap_shader);
+			ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/IrmapCS.cso", irmap_shader);
 
 			D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc{};
 			pso_desc.pRootSignature = root_signature.Get();
@@ -533,7 +533,7 @@ namespace adria
 
 			Microsoft::WRL::ComPtr<ID3D12PipelineState> pipeline_state;
 			ShaderBlob BRDFShader;
-			ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SpbrdfCS.cso", BRDFShader);
+			ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SpbrdfCS.cso", BRDFShader);
 
 			D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc = {};
 			pso_desc.pRootSignature = root_signature.Get();

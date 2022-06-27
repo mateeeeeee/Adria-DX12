@@ -177,7 +177,7 @@
     <ClCompile Include="Graphics\RenderPass.cpp" />
     <ClCompile Include="Graphics\RingOnlineDescriptorAllocator.cpp" />
     <ClCompile Include="Graphics\RingUploadBuffer.cpp" />
-    <ClCompile Include="Graphics\ShaderUtility.cpp" />
+    <ClCompile Include="Graphics\ShaderCompiler.cpp" />
     <ClCompile Include="Graphics\TextureManager.cpp" />
     <ClCompile Include="Graphics\WICTextureLoader12.cpp" />
     <ClCompile Include="Input\Input.cpp" />
@@ -271,7 +271,7 @@
     <ClInclude Include="Graphics\RingUploadBuffer.h" />
     <ClInclude Include="Graphics\LinearOnlineDescriptorAllocator.h" />
     <ClInclude Include="Graphics\RingOnlineDescriptorAllocator.h" />
-    <ClInclude Include="Graphics\ShaderUtility.h" />
+    <ClInclude Include="Graphics\ShaderCompiler.h" />
     <ClInclude Include="Graphics\VertexTypes.h" />
     <ClInclude Include="Graphics\WICTextureLoader12.h" />
     <ClInclude Include="Input\Input.h" />

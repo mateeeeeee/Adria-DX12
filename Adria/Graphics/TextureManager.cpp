@@ -11,7 +11,7 @@
 #include "d3dx12.h"
 #include "DDSTextureLoader12.h"
 #include "WICTextureLoader12.h"
-#include "ShaderUtility.h"
+#include "ShaderCompiler.h"
 #include "../Utilities/StringUtil.h"
 #include "../Utilities/Image.h"
 #include "../Core/Macros.h"
@@ -161,7 +161,7 @@ namespace adria
         
         {
             ShaderBlob equirect_cs_shader;
-            ShaderUtility::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/Equirect2cubeCS.cso", equirect_cs_shader);
+            ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/Equirect2cubeCS.cso", equirect_cs_shader);
 
             D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc = {};
             pso_desc.pRootSignature = equirect_root_signature.Get();

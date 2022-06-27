@@ -16,7 +16,7 @@ namespace adria
 		GS,
 		CS,
 		LIB,
-		COUNT
+		ShaderCount
 	};
 
 	struct ShaderBlob
@@ -40,26 +40,21 @@ namespace adria
 			Bytecode.BytecodeLength = GetLength();
 			return Bytecode;
 		}
-
 	};
 
 	struct InputLayout
 	{
 		mutable std::vector<D3D12_INPUT_ELEMENT_DESC> il_desc;
 		std::vector<std::string> semantic_names;
-
 		operator D3D12_INPUT_LAYOUT_DESC() const
 		{
 			D3D12_INPUT_LAYOUT_DESC desc{};
-
 			ADRIA_ASSERT(semantic_names.size() == il_desc.size());
-
 			for (uint32_t i = 0; i < il_desc.size(); ++i)
 				il_desc[i].SemanticName = semantic_names[i].c_str();
 
 			desc.NumElements = static_cast<UINT>(il_desc.size());
 			desc.pInputElementDescs = il_desc.data();
-
 			return desc;
 		}
 	};
@@ -70,29 +65,35 @@ namespace adria
 		std::wstring value;
 	};
 
-	struct ShaderInfo
+	struct ShaderCompileInput
 	{
-		enum FLAGS
+		enum EShaderCompileFlags
 		{
-			FLAG_NONE = 0,
-			FLAG_DEBUG = 1 << 0,
-			FLAG_DISABLE_OPTIMIZATION = 1 << 1,
+			FlagNone = 0,
+			FlagDebug = 1 << 0,
+			FlagDisableOptimization = 1 << 1,
 		};
 
-		EShaderStage stage = EShaderStage::COUNT;
-		std::string shadersource = "";
+		EShaderStage stage = EShaderStage::ShaderCount;
+		std::string source_file = "";
 		std::string entrypoint = "";
 		std::vector<ShaderMacro> macros;
-		UINT64 flags = FLAG_NONE;
+		UINT64 flags = FlagNone;
 	};
 
-	namespace ShaderUtility
+	struct ShaderCompileOutput
+	{
+		ShaderBlob blob;
+		std::vector<std::string> dependent_files;
+	};
+
+	namespace ShaderCompiler
 	{
 		void Initialize();
 
 		void Destroy();
 
-		void CompileShader(ShaderInfo const& input, ShaderBlob& blob);
+		void CompileShader(ShaderCompileInput const& input, ShaderBlob& blob);
 
 		void GetBlobFromCompiledShader(std::wstring_view filename, ShaderBlob& blob);
 

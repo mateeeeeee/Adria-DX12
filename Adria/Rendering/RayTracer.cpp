@@ -3,7 +3,7 @@
 #include "GlobalBlackboardData.h"
 #include "../tecs/registry.h"
 #include "../RenderGraph/RenderGraph.h"
-#include "../Graphics/ShaderUtility.h"
+#include "../Graphics/ShaderCompiler.h"
 #include "../Logging/Logger.h"
 
 using namespace DirectX;
@@ -503,24 +503,24 @@ namespace adria
 	{
 		ID3D12Device5* device = gfx->GetDevice();
 
-		ShaderInfo compile_info{};
+		ShaderCompileInput compile_info{};
 		compile_info.stage = EShaderStage::LIB;
-		compile_info.shadersource = "Resources/Shaders/RayTracing/RayTracedShadows.hlsl";
+		compile_info.source_file = "Resources/Shaders/RayTracing/RayTracedShadows.hlsl";
 		ShaderBlob rt_shadows_blob;
-		ShaderUtility::CompileShader(compile_info, rt_shadows_blob);
+		ShaderCompiler::CompileShader(compile_info, rt_shadows_blob);
 
 		compile_info.macros.emplace_back(L"SOFT_SHADOWS", L"");
 		ShaderBlob rt_soft_shadows_blob;
-		ShaderUtility::CompileShader(compile_info, rt_soft_shadows_blob);
+		ShaderCompiler::CompileShader(compile_info, rt_soft_shadows_blob);
 		compile_info.macros.clear();
 
-		compile_info.shadersource = "Resources/Shaders/RayTracing/RayTracedAmbientOcclusion.hlsl";
+		compile_info.source_file = "Resources/Shaders/RayTracing/RayTracedAmbientOcclusion.hlsl";
 		ShaderBlob rtao_blob;
-		ShaderUtility::CompileShader(compile_info, rtao_blob);
+		ShaderCompiler::CompileShader(compile_info, rtao_blob);
 
-		compile_info.shadersource = "Resources/Shaders/RayTracing/RayTracedReflections.hlsl";
+		compile_info.source_file = "Resources/Shaders/RayTracing/RayTracedReflections.hlsl";
 		ShaderBlob rtr_blob;
-		ShaderUtility::CompileShader(compile_info, rtr_blob);
+		ShaderCompiler::CompileShader(compile_info, rtr_blob);
 
 		StateObjectBuilder rt_shadows_state_object_builder(6);
 		{

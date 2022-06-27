@@ -17,9 +17,7 @@ namespace adria
 		static ID3D12RootSignature* GetRootSignature(ERootSignature root_sig);
 		static ID3D12PipelineState* GetPipelineState(EPipelineStateObject pso);
 
-		static void RecompileShader(EShader shader, bool recreate_psos = true);
-		static void RecompileChangedShaders();
-		static void RecompileAllShaders();
+		static void CheckIfShadersHaveChanged();
 	};
 
 }

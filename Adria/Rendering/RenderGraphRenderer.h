@@ -21,7 +21,7 @@
 #include "OceanRenderer.h"
 #include "ParticleRenderer.h"
 #include "RayTracer.h"
-#include "../Graphics/ShaderUtility.h"
+#include "../Graphics/ShaderCompiler.h"
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/TextureManager.h"
 #include "../Graphics/GPUProfiler.h"

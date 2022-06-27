@@ -8,7 +8,7 @@
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/Buffer.h"
 #include "../Graphics/Texture.h"
-#include "../Graphics/ShaderUtility.h"
+#include "../Graphics/ShaderCompiler.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Utilities/Random.h"
 #include "../Logging/Logger.h"

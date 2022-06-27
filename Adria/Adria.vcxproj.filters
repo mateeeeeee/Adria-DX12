@@ -122,7 +122,7 @@
     <ClCompile Include="Graphics\LinearOnlineDescriptorAllocator.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\ShaderUtility.cpp">
+    <ClCompile Include="Graphics\ShaderCompiler.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\RingOnlineDescriptorAllocator.cpp">
@@ -388,7 +388,7 @@
     <ClInclude Include="Graphics\DescriptorHeap.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\ShaderUtility.h">
+    <ClInclude Include="Graphics\ShaderCompiler.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\VertexTypes.h">
