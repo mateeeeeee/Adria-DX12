@@ -43,7 +43,6 @@ namespace adria
 		RendererSettings renderer_settings{};
 		ProfilerSettings profiler_settings{};
 		ViewportData viewport_data;
-		ShaderReloadCallback shader_reload_callback = nullptr;
 		EditorEvents editor_events;
 
 	private:

@@ -80,7 +80,7 @@ namespace adria
 		PickingData const& GetPickingData() const { return picking_data; }
 		std::vector<TimeStamp> GetProfilerResults() const
 		{
-			return gpu_profiler.GetProfilerResults(gfx->GetDefaultCommandList(), log);
+			return gpu_profiler.GetProfilerResults(gfx->GetDefaultCommandList());
 		}
 
 		bool IsRayTracingSupported() const { return ray_tracer.IsSupported(); }
