@@ -191,7 +191,7 @@
     <ClCompile Include="Rendering\SkyModel.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\RootSigPSOManager.cpp">
+    <ClCompile Include="Rendering\PSOManager.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\CPUProfiler.cpp">
@@ -272,6 +272,7 @@
     <ClCompile Include="Rendering\RayTracer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\ShaderManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -535,7 +536,7 @@
     <ClInclude Include="Utilities\JsonUtil.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\RootSigPSOManager.h">
+    <ClInclude Include="Rendering\PSOManager.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\CPUProfiler.h">
@@ -669,6 +670,9 @@
     </ClInclude>
     <ClInclude Include="Utilities\FileWatcher.h">
       <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\ShaderManager.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

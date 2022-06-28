@@ -93,7 +93,6 @@ namespace adria
 		void Destroy();
 		void CompileShader(ShaderCompileInput const& input, ShaderCompileOutput& blob);
 		void GetBlobFromCompiledShader(std::wstring_view filename, ShaderBlob& blob);
-		void CreateInputLayoutWithReflection(ShaderBlob const& vs_blob,
-			InputLayout& input_layout);
+		void CreateInputLayoutWithReflection(ShaderBlob const& vs_blob, InputLayout& input_layout);
 	}
 }

@@ -3,7 +3,7 @@
 #include "Components.h"
 #include "Enums.h"
 #include "GlobalBlackboardData.h"
-#include "RootSigPSOManager.h"
+#include "PSOManager.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/GPUProfiler.h"
 #include "../tecs/registry.h"

@@ -3,7 +3,7 @@
 #include "DWParam.h"
 #include "ShaderCompiler.h"
 #include "d3dx12.h"
-#include "../Rendering/RootSigPSOManager.h"
+#include "../Rendering/PSOManager.h"
 
 //https://slindev.com/d3d12-texture-mipmap-generation/
 

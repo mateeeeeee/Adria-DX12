@@ -3,7 +3,7 @@
 #include "../Rendering/RenderGraphRenderer.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Rendering/ModelImporter.h"
-#include "../Rendering/RootSigPSOManager.h"
+#include "../Rendering/PSOManager.h"
 #include "../Logging/Logger.h"
 #include "../Utilities/FilesUtil.h"
 #include "../Utilities/StringUtil.h"

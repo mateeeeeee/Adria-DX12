@@ -1,6 +1,6 @@
 #include "GenerateMipsPass.h"
 #include "GlobalBlackboardData.h"
-#include "RootSigPSOManager.h"
+#include "PSOManager.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/DWParam.h"
 

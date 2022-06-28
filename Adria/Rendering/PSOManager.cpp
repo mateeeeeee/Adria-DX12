@@ -1,339 +1,21 @@
-#include <d3d12.h>
-#include <wrl.h> 
 #include <memory>
 #include <array>
 #include <string_view>
 #include <execution>
-#include <filesystem>
 #include <variant>
-#include "RootSigPSOManager.h"
-#include "../Graphics/d3dx12.h"
-#include "../Graphics/ShaderCompiler.h"
-#include "../Logging/Logger.h"
-#include "../Utilities/Timer.h"
-#include "../Utilities/HashMap.h"
+#include "PSOManager.h"
+
 
 namespace fs = std::filesystem;
 using namespace Microsoft::WRL;
 
 namespace adria
 {
-	namespace
+	namespace shader
 	{
-		struct ShaderFileData
-		{
-			fs::file_time_type last_changed_timestamp;
-		};
 
-		struct RecreationData
-		{
-			std::vector<EShader> shaders;
-			std::variant<D3D12_GRAPHICS_PIPELINE_STATE_DESC, D3D12_COMPUTE_PIPELINE_STATE_DESC> recreation_desc;
-		};
-
-		ID3D12Device* device;
-		HashMap<EShader, ShaderBlob> shader_map;
-		HashMap<EShader, ShaderFileData> shader_file_data_map;
 		HashMap<ERootSignature, ComPtr<ID3D12RootSignature>> rs_map;
 		HashMap<EPipelineStateObject, ComPtr<ID3D12PipelineState>> pso_map;
-		HashMap<EPipelineStateObject, RecreationData> dependency_map;
-
-		std::string const compiled_shaders_directory = "Resources/Compiled Shaders/";
-		std::string const shaders_directory = "Resources/Shaders/";
-		std::string const shaders_headers_directories[] = { "Resources/Shaders/Globals", "Resources/Shaders/Util/" };
-
-		constexpr EShaderStage GetStage(EShader shader)
-		{
-			switch (shader)
-			{
-			case VS_Skybox:
-			case VS_Texture:
-			case VS_Solid:
-			case VS_Billboard:
-			case VS_Sun:
-			case VS_Decals:
-			case VS_GBufferPBR:
-			case VS_ScreenQuad:
-			case VS_LensFlare:
-			case VS_Bokeh:
-			case VS_DepthMap:
-			case VS_DepthMap_Transparent:
-			case VS_Ocean:
-			case VS_OceanLOD:
-			case VS_Particles:
-				return EShaderStage::VS;
-			case PS_Skybox:
-			case PS_HosekWilkieSky:
-			case PS_UniformColorSky:
-			case PS_Texture:
-			case PS_Solid:
-			case PS_Decals:
-			case PS_Decals_ModifyNormals:
-			case PS_GBufferPBR:
-			case PS_AmbientPBR:
-			case PS_AmbientPBR_AO:
-			case PS_AmbientPBR_IBL:
-			case PS_AmbientPBR_AO_IBL:
-			case PS_LightingPBR:
-			case PS_ClusteredLightingPBR:
-			case PS_ToneMap:
-			case PS_Fxaa:
-			case PS_Taa:
-			case PS_Copy:
-			case PS_Add:
-			case PS_Ssao:
-			case PS_Hbao:
-			case PS_Ssr:
-			case PS_LensFlare:
-			case PS_GodRays:
-			case PS_Dof:
-			case PS_Bokeh:
-			case PS_VolumetricClouds:
-			case PS_VelocityBuffer:
-			case PS_MotionBlur:
-			case PS_Fog:
-			case PS_DepthMap:
-			case PS_DepthMap_Transparent:
-			case PS_Volumetric_Directional:
-			case PS_Volumetric_Spot:
-			case PS_Volumetric_Point:
-			case PS_Volumetric_DirectionalCascades:
-			case PS_Ocean:
-			case PS_Particles:
-				return EShaderStage::PS;
-			case GS_LensFlare:
-			case GS_Bokeh:
-				return EShaderStage::GS;
-			case CS_Blur_Horizontal:
-			case CS_Blur_Vertical:
-			case CS_BokehGenerate:
-			case CS_BloomExtract:
-			case CS_BloomCombine:
-			case CS_InitialSpectrum:
-			case CS_Phase:
-			case CS_Spectrum:
-			case CS_FFT_Horizontal:
-			case CS_FFT_Vertical:
-			case CS_OceanNormalMap:
-			case CS_TiledLighting:
-			case CS_ClusterBuilding:
-			case CS_ClusterCulling:
-			case CS_ParticleInitDeadList:
-			case CS_ParticleReset:
-			case CS_ParticleEmit:
-			case CS_ParticleSimulate:
-			case CS_ParticleBitonicSortStep:
-			case CS_ParticleSort512:
-			case CS_ParticleSortInner512:
-			case CS_ParticleInitSortDispatchArgs:
-			case CS_Picker:
-				return EShaderStage::CS;
-			case HS_OceanLOD:
-				return EShaderStage::HS;
-			case DS_OceanLOD:
-				return EShaderStage::DS;
-			case EShader_Count:
-			default:
-				return EShaderStage::ShaderCount;
-			}
-		}
-		constexpr std::string GetShaderSource(EShader shader)
-		{
-			switch (shader)
-			{
-			case VS_Skybox:
-				return "Misc/SkyboxVS.hlsl";
-			case PS_Skybox:
-				return "Misc/SkyboxPS.hlsl";
-			case PS_HosekWilkieSky:
-				return "Misc/HosekWilkieSkyPS.hlsl";
-			case PS_UniformColorSky:
-				return "Misc/UniformColorSkyPS.hlsl";
-			case VS_Texture:
-				return "Misc/TextureVS.hlsl";
-			case PS_Texture:
-				return "Misc/TexturePS.hlsl";
-			case VS_Solid:
-				return "Misc/SolidVS.hlsl";
-			case PS_Solid:
-				return "Misc/SolidPS.hlsl";
-			case VS_Sun:
-				return "Misc/SunVS.hlsl";
-			case VS_Billboard:
-				return "Misc/BillboardVS.hlsl";
-			case VS_Decals:
-				return "Misc/DecalVS.hlsl";
-			case PS_Decals:
-			case PS_Decals_ModifyNormals:
-				return "Misc/DecalPS.hlsl";
-			case VS_GBufferPBR:
-				return "Deferred/GeometryPassPBR_VS.hlsl";
-			case PS_GBufferPBR:
-				return "Deferred/GeometryPassPBR_PS.hlsl";
-			case VS_ScreenQuad:
-				return "Postprocess/ScreenQuadVS.hlsl";
-			case PS_AmbientPBR:
-			case PS_AmbientPBR_AO:
-			case PS_AmbientPBR_IBL:
-			case PS_AmbientPBR_AO_IBL:
-				return "Deferred/AmbientPBR_PS.hlsl";
-			case PS_LightingPBR:
-			case PS_LightingPBR_RayTracedShadows:
-				return "Deferred/LightingPBR_PS.hlsl";
-			case PS_ClusteredLightingPBR:
-				return "Deferred/ClusterLightingPBR_PS.hlsl";
-			case PS_ToneMap:
-				return "Postprocess/ToneMapPS.hlsl";
-			case PS_Fxaa:
-				return "Postprocess/FXAA_PS.hlsl";
-			case PS_Taa:
-				return "Postprocess/TAA_PS.hlsl";
-			case PS_Copy:
-				return "Postprocess/CopyPS.hlsl";
-			case PS_Add:
-				return "Postprocess/AddPS.hlsl";
-			case PS_Ssao:
-				return "Postprocess/SSAO_PS.hlsl";
-			case PS_Hbao:
-				return "Postprocess/HBAO_PS.hlsl";
-			case PS_Ssr:
-				return "Postprocess/SSR_PS.hlsl";
-			case VS_LensFlare:
-				return "Postprocess/LensFlareVS.hlsl";
-			case GS_LensFlare:
-				return "Postprocess/LensFlareGS.hlsl";
-			case PS_LensFlare:
-				return "Postprocess/LensFlarePS.hlsl";
-			case PS_GodRays:
-				return "Postprocess/GodRaysPS.hlsl";
-			case PS_Dof:
-				return "Postprocess/DOF_PS.hlsl";
-			case VS_Bokeh:
-				return "Postprocess/BokehVS.hlsl";
-			case GS_Bokeh:
-				return "Postprocess/BokehGS.hlsl";
-			case PS_Bokeh:
-				return "Postprocess/BokehPS.hlsl";
-			case PS_VolumetricClouds:
-				return "Postprocess/CloudsPS.hlsl";
-			case PS_VelocityBuffer:
-				return "Postprocess/VelocityBufferPS.hlsl";
-			case PS_MotionBlur:
-				return "Postprocess/MotionBlurPS.hlsl";
-			case PS_Fog:
-				return "Postprocess/FogPS.hlsl";
-			case VS_DepthMap:
-			case VS_DepthMap_Transparent:
-				return "Shadows/DepthMapVS.hlsl";
-			case PS_DepthMap:
-			case PS_DepthMap_Transparent:
-				return "Shadows/DepthMapPS.hlsl";
-			case PS_Volumetric_Directional:
-				return "Postprocess/VolumetricLightDirectionalPS.hlsl";
-			case PS_Volumetric_DirectionalCascades:
-				return "Postprocess/VolumetricLightDirectionalCascadesPS.hlsl";
-			case PS_Volumetric_Spot:
-				return "Postprocess/VolumetricLightSpotPS.hlsl";
-			case PS_Volumetric_Point:
-				return "Postprocess/VolumetricLightPointPS.hlsl";
-			case CS_Blur_Horizontal:
-			case CS_Blur_Vertical:
-				return "Postprocess/BlurCS.hlsl";
-			case CS_BokehGenerate:
-				return "Postprocess/BokehCS.hlsl";
-			case CS_BloomExtract:
-				return "Postprocess/BloomExtractCS.hlsl";
-			case CS_BloomCombine:
-				return "Postprocess/BloomCombineCS.hlsl";
-			case CS_InitialSpectrum:
-				return "Ocean/InitialSpectrumCS.hlsl";
-			case CS_Phase:
-				return "Ocean/PhaseCS.hlsl";
-			case CS_Spectrum:
-				return "Ocean/SpectrumCS.hlsl";
-			case CS_FFT_Horizontal:
-				return "Ocean/FFT_horizontalCS.hlsl";
-			case CS_FFT_Vertical:
-				return "Ocean/FFT_verticalCS.hlsl";
-			case CS_OceanNormalMap:
-				return "Ocean/NormalMapCS.hlsl";
-			case CS_TiledLighting:
-				return "Deferred/TiledLightingCS.hlsl";
-			case CS_ClusterBuilding:
-				return "Deferred/ClusterBuildingCS.hlsl";
-			case CS_ClusterCulling:
-				return "Deferred/ClusterCullingCS.hlsl";
-			case VS_Ocean:
-				return "Ocean/OceanVS.hlsl";
-			case PS_Ocean:
-				return "Ocean/OceanPS.hlsl";
-			case VS_OceanLOD:
-				return "Ocean/OceanLodVS.hlsl";
-			case HS_OceanLOD:
-				return "Ocean/OceanLodHS.hlsl";
-			case DS_OceanLOD:
-				return "Ocean/OceanLodDS.hlsl";
-			case CS_Picker:
-				return "Misc/PickerCS.hlsl";
-			case VS_Particles:
-				return "Particles/ParticleVS.hlsl";
-			case PS_Particles:
-				return "Particles/ParticlePS.hlsl";
-			case CS_ParticleInitDeadList:
-				return "Particles/InitDeadListCS.hlsl";
-			case CS_ParticleReset:
-				return "Particles/ParticleResetCS.hlsl";
-			case CS_ParticleEmit:
-				return "Particles/ParticleEmitCS.hlsl";
-			case CS_ParticleSimulate:
-				return "Particles/ParticleSimulateCS.hlsl";
-			case CS_ParticleBitonicSortStep:
-				return "Particles/BitonicSortStepCS.hlsl";
-			case CS_ParticleSort512:
-				return "Particles/Sort512CS.hlsl";
-			case CS_ParticleSortInner512:
-				return "Particles/SortInner512CS.hlsl";
-			case CS_ParticleInitSortDispatchArgs:
-				return "Particles/InitSortDispatchArgsCS.hlsl";
-			case CS_GenerateMips:
-				return "Misc/GenerateMipsCS.hlsl";
-			case EShader_Count:
-			default:
-				return "";
-			}
-		}
-		constexpr std::vector<ShaderMacro> GetShaderMacros(EShader shader)
-		{
-			switch (shader)
-			{
-			case PS_Decals_ModifyNormals:
-				return { {L"DECAL_MODIFY_NORMALS", L""} };
-			case PS_AmbientPBR_AO:
-				return { {L"SSAO", L"1"} };
-			case PS_AmbientPBR_IBL:
-				return { {L"IBL", L"1"} };
-			case PS_AmbientPBR_AO_IBL:
-				return { {L"SSAO", L"1"}, {L"IBL", L"1"} };
-			case VS_DepthMap_Transparent:
-			case PS_DepthMap_Transparent:
-				return { {L"TRANSPARENT", L"1"} };
-			case CS_Blur_Vertical:
-				return { { L"VERTICAL", L"1" } };
-			case PS_LightingPBR_RayTracedShadows:
-				return { { L"RAY_TRACED_SHADOWS", L"" } };
-			default:
-				return {};
-			}
-		}
-
-		void AddDependency(EPipelineStateObject pso, std::vector<EShader> const& shaders, D3D12_GRAPHICS_PIPELINE_STATE_DESC const& desc)
-		{
-			dependency_map[pso] = { .shaders = shaders, .recreation_desc = desc };
-		}
-		void AddDependency(EPipelineStateObject pso, std::vector<EShader> const& shaders, D3D12_COMPUTE_PIPELINE_STATE_DESC const& desc)
-		{
-			dependency_map[pso] = { .shaders = shaders, .recreation_desc = desc };
-		}
 
 		void CompileAllShaders()
 		{
@@ -494,8 +176,17 @@ namespace adria
 				ShaderCompiler::CompileShader(shader_info, shader_map[PS_VolumetricClouds]);
 			}
 		}
+	}
+
+	namespace pso
+	{
+		using namespace shader;
+		GraphicsDevice* gfx;
+
+
 		void CreateAllRootSignatures()
 		{
+			ID3D12Device* device = gfx->GetDevice();
 			//HLSL
 			{
 				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Skybox].GetPointer(), shader_map[PS_Skybox].GetLength(),
@@ -638,7 +329,7 @@ namespace adria
 			feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
 			if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &feature_data, sizeof(feature_data))))
 				feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
-			//in C++
+			//C++
 			{
 				//ao
 				{
@@ -791,13 +482,14 @@ namespace adria
 		}
 		void CreateAllPSOs()
 		{
+			ID3D12Device* device = gfx->GetDevice();
 			D3D12_GRAPHICS_PIPELINE_STATE_DESC graphics_pso_desc{};
 			InputLayout input_layout;
 			{
 				graphics_pso_desc.InputLayout = { nullptr, 0u };
-				graphics_pso_desc.pRootSignature =rs_map[ERootSignature::Particles_Shading].Get();
-				graphics_pso_desc.VS =shader_map[VS_Particles];
-				graphics_pso_desc.PS =shader_map[PS_Particles];
+				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::Particles_Shading].Get();
+				graphics_pso_desc.VS = shader_map[VS_Particles];
+				graphics_pso_desc.PS = shader_map[PS_Particles];
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
@@ -1509,82 +1201,10 @@ namespace adria
 				AddDependency(EPipelineStateObject::Spectrum, { CS_Spectrum }, compute_pso_desc);
 			}
 		}
-
-		void FillShaderDataFileMap()
-		{
-			using UnderlyingType = std::underlying_type_t<EShader>;
-			for (UnderlyingType i = 0; i < EShader_Count; ++i)
-			{
-				ShaderFileData file_data{
-					.last_changed_timestamp = std::filesystem::last_write_time(fs::path(shaders_directory + GetShaderSource((EShader)i)))
-				};
-				shader_file_data_map[(EShader)i] = file_data;
-			}
-		}
-		bool HasShaderChanged(EShader shader)
-		{
-			std::string shader_source = GetShaderSource(shader);
-			fs::file_time_type curr_timestamp = std::filesystem::last_write_time(fs::path(shaders_directory + GetShaderSource(shader)));
-			bool has_changed = shader_file_data_map[shader].last_changed_timestamp != curr_timestamp;
-			if (has_changed) shader_file_data_map[shader].last_changed_timestamp = curr_timestamp;
-			return has_changed;
-		}
-		void RecreateDependentPSOs(EShader shader)
-		{
-			for (auto& [pso, recreation_data] : dependency_map)
-			{
-				if (auto it = std::find(std::begin(recreation_data.shaders), std::end(recreation_data.shaders), shader); it != std::end(recreation_data.shaders))
-				{
-					size_t const i = recreation_data.recreation_desc.index();
-					if (i == 0)
-					{
-						D3D12_GRAPHICS_PIPELINE_STATE_DESC& desc = const_cast<D3D12_GRAPHICS_PIPELINE_STATE_DESC&>(std::get<0>(recreation_data.recreation_desc));
-						InputLayout il;
-						for (EShader shader : recreation_data.shaders)
-						{
-							switch (GetStage(shader))
-							{
-							case EShaderStage::VS:
-								ShaderCompiler::CreateInputLayoutWithReflection(shader_map[shader], il);
-								desc.VS = shader_map[shader];
-								break;
-							case EShaderStage::PS:
-								desc.PS = shader_map[shader];
-								break;
-							case EShaderStage::DS:
-								desc.DS = shader_map[shader];
-								break;
-							case EShaderStage::HS:
-								desc.HS = shader_map[shader];
-								break;
-							case EShaderStage::GS:
-								desc.GS = shader_map[shader];
-								break;
-							case EShaderStage::CS:
-							case EShaderStage::ShaderCount:
-							default:
-								ADRIA_ASSERT(false && "Invalid shader stage for graphics pso!");
-							}
-						}
-						desc.InputLayout = il;
-						device->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pso_map[pso]));
-					}
-					else if (i == 1)
-					{
-						D3D12_COMPUTE_PIPELINE_STATE_DESC& desc = const_cast<D3D12_COMPUTE_PIPELINE_STATE_DESC&>(std::get<1>(recreation_data.recreation_desc));
-						ADRIA_ASSERT(recreation_data.shaders.size() == 1);
-						ADRIA_ASSERT(GetStage(recreation_data.shaders[0]) == EShaderStage::CS);
-						desc.CS = shader_map[shader];
-						device->CreateComputePipelineState(&desc, IID_PPV_ARGS(&pso_map[pso]));
-					}
-
-				}
-			}
-		}
 	}
 
 
-	void RootSigPSOManager::Initialize(ID3D12Device* _device)
+	void PSOManager::Initialize(ID3D12Device* _device)
 	{
 		device = _device;
 		CompileAllShaders();
@@ -1593,7 +1213,7 @@ namespace adria
 		CreateAllPSOs();
 	}
 
-	void RootSigPSOManager::Destroy()
+	void PSOManager::Destroy()
 	{
 		auto FreeContainer = []<typename T>(T& container)
 		{
@@ -1611,16 +1231,7 @@ namespace adria
 		device = nullptr;
 	}
 
-	ID3D12RootSignature* RootSigPSOManager::GetRootSignature(ERootSignature root_sig)
-	{
-		return rs_map[root_sig].Get();
-	}
-	ID3D12PipelineState* RootSigPSOManager::GetPipelineState(EPipelineStateObject pso)
-	{
-		return pso_map[pso].Get();
-	}
-
-	void RootSigPSOManager::CheckIfShadersHaveChanged()
+	void ShaderManager::CheckIfShadersHaveChanged()
 	{
 		ADRIA_LOG(INFO, "Recompiling changed shaders...");
 		using UnderlyingType = std::underlying_type_t<EShader>;

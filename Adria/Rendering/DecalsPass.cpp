@@ -2,7 +2,7 @@
 #include "ConstantBuffers.h"
 #include "Components.h"
 #include "GlobalBlackboardData.h"
-#include "RootSigPSOManager.h"
+#include "PSOManager.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/TextureManager.h"
 #include "../tecs/registry.h"

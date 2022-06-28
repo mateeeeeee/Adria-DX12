@@ -2,7 +2,7 @@
 #include "GlobalBlackboardData.h"
 #include "Camera.h"
 #include "Components.h"
-#include "RootSigPSOManager.h"
+#include "PSOManager.h"
 #include "SkyModel.h"
 #include "../tecs/Registry.h"
 #include "../Graphics/Buffer.h"

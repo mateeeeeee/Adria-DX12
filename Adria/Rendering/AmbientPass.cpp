@@ -1,7 +1,7 @@
 #include "AmbientPass.h"
 #include "Components.h"
 #include "GlobalBlackboardData.h"
-#include "RootSigPSOManager.h"
+#include "PSOManager.h"
 #include "../RenderGraph/RenderGraph.h"
 
 namespace adria

@@ -212,7 +212,8 @@
     <ClCompile Include="Rendering\Postprocessor.cpp" />
     <ClCompile Include="Rendering\RayTracer.cpp" />
     <ClCompile Include="Rendering\RenderGraphRenderer.cpp" />
-    <ClCompile Include="Rendering\RootSigPSOManager.cpp" />
+    <ClCompile Include="Rendering\PSOManager.cpp" />
+    <ClCompile Include="Rendering\ShaderManager.cpp" />
     <ClCompile Include="Rendering\ShadowPass.cpp" />
     <ClCompile Include="Rendering\SkyModel.cpp" />
     <ClCompile Include="Rendering\SkyPass.cpp" />
@@ -326,7 +327,8 @@
     <ClInclude Include="Rendering\RayTracer.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />
     <ClInclude Include="Rendering\RenderGraphRenderer.h" />
-    <ClInclude Include="Rendering\RootSigPSOManager.h" />
+    <ClInclude Include="Rendering\PSOManager.h" />
+    <ClInclude Include="Rendering\ShaderManager.h" />
     <ClInclude Include="Rendering\ViewportData.h" />
     <ClInclude Include="Rendering\ShadowPass.h" />
     <ClInclude Include="Rendering\SkyModel.h" />
