@@ -1,6 +1,5 @@
 #pragma once
 #include "Enums.h"
-#include "ShaderManager.h"
 
 struct ID3D12RootSignature;
 struct ID3D12PipelineState;

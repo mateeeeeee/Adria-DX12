@@ -4,6 +4,12 @@
 #include <execution>
 #include <variant>
 #include "PSOManager.h"
+#include "ShaderManager.h"
+#include "../Graphics/GraphicsDeviceDX12.h"
+#include "../Graphics/ShaderCompiler.h"
+#include "../Logging/Logger.h"
+#include "../Utilities/Timer.h"
+#include "../Utilities/HashMap.h"
 
 
 namespace fs = std::filesystem;
@@ -11,317 +17,155 @@ using namespace Microsoft::WRL;
 
 namespace adria
 {
-	namespace shader
+	namespace
 	{
-
+		GraphicsDevice* gfx;
 		HashMap<ERootSignature, ComPtr<ID3D12RootSignature>> rs_map;
 		HashMap<EPipelineStateObject, ComPtr<ID3D12PipelineState>> pso_map;
 
-		void CompileAllShaders()
+		inline ShaderBlob const& GetShader(EShader shader)
 		{
-			//compiled offline
-			{
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SkyboxVS.cso", shader_map[VS_Skybox]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SkyboxPS.cso", shader_map[PS_Skybox]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/UniformColorSkyPS.cso", shader_map[PS_UniformColorSky]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/HosekWilkieSkyPS.cso", shader_map[PS_HosekWilkieSky]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/TextureVS.cso", shader_map[VS_Texture]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/TexturePS.cso", shader_map[PS_Texture]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SunVS.cso", shader_map[VS_Sun]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BillboardVS.cso", shader_map[VS_Billboard]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/DecalVS.cso", shader_map[VS_Decals]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/DecalPS.cso", shader_map[PS_Decals]);
-
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ScreenQuadVS.cso", shader_map[VS_ScreenQuad]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SSAO_PS.cso", shader_map[PS_Ssao]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/HBAO_PS.cso", shader_map[PS_Hbao]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SSR_PS.cso", shader_map[PS_Ssr]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/GodRaysPS.cso", shader_map[PS_GodRays]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ToneMapPS.cso", shader_map[PS_ToneMap]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/FXAA_PS.cso", shader_map[PS_Fxaa]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/TAA_PS.cso", shader_map[PS_Taa]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/CopyPS.cso", shader_map[PS_Copy]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/AddPS.cso", shader_map[PS_Add]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/LensFlareVS.cso", shader_map[VS_LensFlare]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/LensFlareGS.cso", shader_map[GS_LensFlare]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/LensFlarePS.cso", shader_map[PS_LensFlare]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BokehVS.cso", shader_map[VS_Bokeh]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BokehGS.cso", shader_map[GS_Bokeh]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BokehPS.cso", shader_map[PS_Bokeh]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/DOF_PS.cso", shader_map[PS_Dof]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/MotionBlurPS.cso", shader_map[PS_MotionBlur]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/FogPS.cso", shader_map[PS_Fog]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/VelocityBufferPS.cso", shader_map[PS_VelocityBuffer]);
-
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/GeometryPassPBR_VS.cso", shader_map[VS_GBufferPBR]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/GeometryPassPBR_PS.cso", shader_map[PS_GBufferPBR]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/LightingPBR_PS.cso", shader_map[PS_LightingPBR]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ClusterLightingPBR_PS.cso", shader_map[PS_ClusteredLightingPBR]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/VolumetricLightDirectionalPS.cso", shader_map[PS_Volumetric_Directional]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/VolumetricLightDirectionalCascadesPS.cso", shader_map[PS_Volumetric_DirectionalCascades]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/VolumetricLightSpotPS.cso", shader_map[PS_Volumetric_Spot]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/VolumetricLightPointPS.cso", shader_map[PS_Volumetric_Point]);
-
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BloomExtractCS.cso", shader_map[CS_BloomExtract]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BloomCombineCS.cso", shader_map[CS_BloomCombine]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/TiledLightingCS.cso", shader_map[CS_TiledLighting]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ClusterBuildingCS.cso", shader_map[CS_ClusterBuilding]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ClusterCullingCS.cso", shader_map[CS_ClusterCulling]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BokehCS.cso", shader_map[CS_BokehGenerate]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/FFT_horizontalCS.cso", shader_map[CS_FFT_Horizontal]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/FFT_verticalCS.cso", shader_map[CS_FFT_Vertical]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/InitialSpectrumCS.cso", shader_map[CS_InitialSpectrum]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/NormalMapCS.cso", shader_map[CS_OceanNormalMap]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/PhaseCS.cso", shader_map[CS_Phase]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SpectrumCS.cso", shader_map[CS_Spectrum]);
-
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanVS.cso", shader_map[VS_Ocean]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanPS.cso", shader_map[PS_Ocean]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanLodVS.cso", shader_map[VS_OceanLOD]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanLodHS.cso", shader_map[HS_OceanLOD]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/OceanLodDS.cso", shader_map[DS_OceanLOD]);
-
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/PickerCS.cso", shader_map[CS_Picker]);
-
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/InitDeadListCS.cso", shader_map[CS_ParticleInitDeadList]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ParticleResetCS.cso", shader_map[CS_ParticleReset]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ParticleEmitCS.cso", shader_map[CS_ParticleEmit]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ParticleSimulateCS.cso", shader_map[CS_ParticleSimulate]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/BitonicSortStepCS.cso", shader_map[CS_ParticleBitonicSortStep]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/Sort512CS.cso", shader_map[CS_ParticleSort512]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SortInner512CS.cso", shader_map[CS_ParticleSortInner512]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/InitSortDispatchArgsCS.cso", shader_map[CS_ParticleInitSortDispatchArgs]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ParticleVS.cso", shader_map[VS_Particles]);
-				ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/ParticlePS.cso", shader_map[PS_Particles]);
-			}
-			
-			//compiled runtime
-			ShaderCompileInput shader_info{};
-			shader_info.entrypoint = "main";
-			shader_info.flags =
-#if _DEBUG
-				ShaderCompileInput::FlagDebug | ShaderCompileInput::FlagDisableOptimization;
-#else
-				ShaderCompileInput::FlagNone;
-#endif
-			{
-				shader_info.source_file = shaders_directory + GetShaderSource(PS_Decals_ModifyNormals);
-				shader_info.stage = EShaderStage::PS;
-				shader_info.macros = GetShaderMacros(PS_Decals_ModifyNormals);
-				ShaderCompiler::CompileShader(shader_info, shader_map[PS_Decals_ModifyNormals]);
-
-				shader_info.source_file = shaders_directory + GetShaderSource(PS_AmbientPBR);
-				shader_info.stage = EShaderStage::PS;
-				shader_info.macros = GetShaderMacros(PS_AmbientPBR);
-				ShaderCompiler::CompileShader(shader_info, shader_map[PS_AmbientPBR]);
-
-				shader_info.source_file = shaders_directory + GetShaderSource(PS_AmbientPBR_AO);
-				shader_info.stage = EShaderStage::PS;
-				shader_info.macros = GetShaderMacros(PS_AmbientPBR_AO);
-				ShaderCompiler::CompileShader(shader_info, shader_map[PS_AmbientPBR_AO]);
-
-				shader_info.source_file = shaders_directory + GetShaderSource(PS_AmbientPBR_IBL);
-				shader_info.stage = EShaderStage::PS;
-				shader_info.macros = GetShaderMacros(PS_AmbientPBR_IBL);
-				ShaderCompiler::CompileShader(shader_info, shader_map[PS_AmbientPBR_IBL]);
-
-				shader_info.source_file = shaders_directory + GetShaderSource(PS_AmbientPBR_AO_IBL);
-				shader_info.stage = EShaderStage::PS;
-				shader_info.macros = GetShaderMacros(PS_AmbientPBR_AO_IBL);
-				ShaderCompiler::CompileShader(shader_info, shader_map[PS_AmbientPBR_AO_IBL]);
-
-				shader_info.source_file = shaders_directory + GetShaderSource(PS_LightingPBR_RayTracedShadows);
-				shader_info.stage = EShaderStage::PS;
-				shader_info.macros = GetShaderMacros(PS_LightingPBR_RayTracedShadows); 
-				ShaderCompiler::CompileShader(shader_info, shader_map[PS_LightingPBR_RayTracedShadows]);
-
-				shader_info.source_file = shaders_directory + GetShaderSource(VS_DepthMap);
-				shader_info.stage = EShaderStage::VS;
-				shader_info.macros = GetShaderMacros(VS_DepthMap);
-				ShaderCompiler::CompileShader(shader_info, shader_map[VS_DepthMap]);
-
-				shader_info.source_file = shaders_directory + GetShaderSource(PS_DepthMap);
-				shader_info.stage = EShaderStage::PS;
-				shader_info.macros = GetShaderMacros(PS_DepthMap);
-				ShaderCompiler::CompileShader(shader_info, shader_map[PS_DepthMap]);
-
-				shader_info.source_file = shaders_directory + GetShaderSource(VS_DepthMap_Transparent);
-				shader_info.stage = EShaderStage::VS;
-				shader_info.macros = GetShaderMacros(VS_DepthMap_Transparent);
-				ShaderCompiler::CompileShader(shader_info, shader_map[VS_DepthMap_Transparent]);
-
-				shader_info.source_file = shaders_directory + GetShaderSource(PS_DepthMap_Transparent);
-				shader_info.stage = EShaderStage::PS;
-				shader_info.macros = GetShaderMacros(PS_DepthMap_Transparent);
-				ShaderCompiler::CompileShader(shader_info, shader_map[PS_DepthMap_Transparent]);
-
-				shader_info.source_file = shaders_directory + GetShaderSource(CS_Blur_Horizontal);
-				shader_info.stage = EShaderStage::CS;
-				shader_info.macros = GetShaderMacros(CS_Blur_Horizontal);
-				ShaderCompiler::CompileShader(shader_info, shader_map[CS_Blur_Horizontal]);
-
-				shader_info.source_file = shaders_directory + GetShaderSource(CS_Blur_Vertical);
-				shader_info.stage = EShaderStage::CS;
-				shader_info.macros = GetShaderMacros(CS_Blur_Vertical);
-				ShaderCompiler::CompileShader(shader_info, shader_map[CS_Blur_Vertical]);
-
-				shader_info.source_file = shaders_directory + GetShaderSource(CS_GenerateMips);
-				shader_info.stage = EShaderStage::CS;
-				shader_info.macros = GetShaderMacros(CS_GenerateMips);
-				ShaderCompiler::CompileShader(shader_info, shader_map[CS_GenerateMips]);
-
-				shader_info.source_file = shaders_directory + GetShaderSource(PS_VolumetricClouds);
-				shader_info.stage = EShaderStage::PS;
-				shader_info.macros = GetShaderMacros(PS_VolumetricClouds);
-				ShaderCompiler::CompileShader(shader_info, shader_map[PS_VolumetricClouds]);
-			}
+			return ShaderManager::GetShader(shader);
 		}
-	}
-
-	namespace pso
-	{
-		using namespace shader;
-		GraphicsDevice* gfx;
-
 
 		void CreateAllRootSignatures()
 		{
 			ID3D12Device* device = gfx->GetDevice();
 			//HLSL
 			{
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Skybox].GetPointer(), shader_map[PS_Skybox].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Skybox).GetPointer(), GetShader(PS_Skybox).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::Skybox].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_HosekWilkieSky].GetPointer(), shader_map[PS_HosekWilkieSky].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_HosekWilkieSky).GetPointer(), GetShader(PS_HosekWilkieSky).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::Sky].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_ToneMap].GetPointer(), shader_map[PS_ToneMap].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_ToneMap).GetPointer(), GetShader(PS_ToneMap).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::ToneMap].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Fxaa].GetPointer(), shader_map[PS_Fxaa].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Fxaa).GetPointer(), GetShader(PS_Fxaa).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::FXAA].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Taa].GetPointer(), shader_map[PS_Taa].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Taa).GetPointer(), GetShader(PS_Taa).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::TAA].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_GBufferPBR].GetPointer(), shader_map[PS_GBufferPBR].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_GBufferPBR).GetPointer(), GetShader(PS_GBufferPBR).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::GbufferPBR].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_AmbientPBR].GetPointer(), shader_map[PS_AmbientPBR].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_AmbientPBR).GetPointer(), GetShader(PS_AmbientPBR).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::AmbientPBR].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_LightingPBR].GetPointer(), shader_map[PS_LightingPBR].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_LightingPBR).GetPointer(), GetShader(PS_LightingPBR).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::LightingPBR].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_ClusteredLightingPBR].GetPointer(), shader_map[PS_ClusteredLightingPBR].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_ClusteredLightingPBR).GetPointer(), GetShader(PS_ClusteredLightingPBR).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::ClusteredLightingPBR].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_DepthMap].GetPointer(), shader_map[PS_DepthMap].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_DepthMap).GetPointer(), GetShader(PS_DepthMap).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::DepthMap].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_DepthMap_Transparent].GetPointer(), shader_map[PS_DepthMap_Transparent].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_DepthMap_Transparent).GetPointer(), GetShader(PS_DepthMap_Transparent).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::DepthMap_Transparent].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Volumetric_Directional].GetPointer(), shader_map[PS_Volumetric_Directional].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Volumetric_Directional).GetPointer(), GetShader(PS_Volumetric_Directional).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::Volumetric].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Texture].GetPointer(), shader_map[PS_Texture].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Texture).GetPointer(), GetShader(PS_Texture).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::Forward].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Ssr].GetPointer(), shader_map[PS_Ssr].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Ssr).GetPointer(), GetShader(PS_Ssr).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::SSR].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_GodRays].GetPointer(), shader_map[PS_GodRays].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_GodRays).GetPointer(), GetShader(PS_GodRays).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::GodRays].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_LensFlare].GetPointer(), shader_map[PS_LensFlare].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_LensFlare).GetPointer(), GetShader(PS_LensFlare).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::LensFlare].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Dof].GetPointer(), shader_map[PS_Dof].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Dof).GetPointer(), GetShader(PS_Dof).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::DOF].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Add].GetPointer(), shader_map[PS_Add].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Add).GetPointer(), GetShader(PS_Add).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::Add].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Fog].GetPointer(), shader_map[PS_Fog].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Fog).GetPointer(), GetShader(PS_Fog).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::Fog].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_VolumetricClouds].GetPointer(), shader_map[PS_VolumetricClouds].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_VolumetricClouds).GetPointer(), GetShader(PS_VolumetricClouds).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::Clouds].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_MotionBlur].GetPointer(), shader_map[PS_MotionBlur].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_MotionBlur).GetPointer(), GetShader(PS_MotionBlur).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::MotionBlur].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Bokeh].GetPointer(), shader_map[PS_Bokeh].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Bokeh).GetPointer(), GetShader(PS_Bokeh).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::Bokeh].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_TiledLighting].GetPointer(), shader_map[CS_TiledLighting].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_TiledLighting).GetPointer(), GetShader(CS_TiledLighting).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::TiledLighting].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_ClusterBuilding].GetPointer(), shader_map[CS_ClusterBuilding].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_ClusterBuilding).GetPointer(), GetShader(CS_ClusterBuilding).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::ClusterBuilding].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_ClusterCulling].GetPointer(), shader_map[CS_ClusterCulling].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_ClusterCulling).GetPointer(), GetShader(CS_ClusterCulling).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::ClusterCulling].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_BokehGenerate].GetPointer(), shader_map[CS_BokehGenerate].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_BokehGenerate).GetPointer(), GetShader(CS_BokehGenerate).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::BokehGenerate].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_VelocityBuffer].GetPointer(), shader_map[PS_VelocityBuffer].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_VelocityBuffer).GetPointer(), GetShader(PS_VelocityBuffer).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::VelocityBuffer].GetAddressOf())));
 
 				rs_map[ERootSignature::Copy] = rs_map[ERootSignature::FXAA];
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_FFT_Horizontal].GetPointer(), shader_map[CS_FFT_Horizontal].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_FFT_Horizontal).GetPointer(), GetShader(CS_FFT_Horizontal).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::FFT].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_InitialSpectrum].GetPointer(), shader_map[CS_InitialSpectrum].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_InitialSpectrum).GetPointer(), GetShader(CS_InitialSpectrum).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::InitialSpectrum].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_OceanNormalMap].GetPointer(), shader_map[CS_OceanNormalMap].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_OceanNormalMap).GetPointer(), GetShader(CS_OceanNormalMap).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::OceanNormalMap].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_Phase].GetPointer(), shader_map[CS_Phase].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_Phase).GetPointer(), GetShader(CS_Phase).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::Phase].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_Spectrum].GetPointer(), shader_map[CS_Spectrum].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_Spectrum).GetPointer(), GetShader(CS_Spectrum).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::Spectrum].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[VS_Ocean].GetPointer(), shader_map[VS_Ocean].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(VS_Ocean).GetPointer(), GetShader(VS_Ocean).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::Ocean].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[VS_OceanLOD].GetPointer(), shader_map[VS_OceanLOD].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(VS_OceanLOD).GetPointer(), GetShader(VS_OceanLOD).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::OceanLOD].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Decals].GetPointer(), shader_map[PS_Decals].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Decals).GetPointer(), GetShader(PS_Decals).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::Decals].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_Picker].GetPointer(), shader_map[CS_Picker].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_Picker).GetPointer(), GetShader(CS_Picker).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::Picker].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_ParticleInitDeadList].GetPointer(), shader_map[CS_ParticleInitDeadList].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_ParticleInitDeadList).GetPointer(), GetShader(CS_ParticleInitDeadList).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::Particles_InitDeadList].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_ParticleReset].GetPointer(), shader_map[CS_ParticleReset].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_ParticleReset).GetPointer(), GetShader(CS_ParticleReset).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::Particles_Reset].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_ParticleSimulate].GetPointer(), shader_map[CS_ParticleSimulate].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_ParticleSimulate).GetPointer(), GetShader(CS_ParticleSimulate).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::Particles_Simulate].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_ParticleEmit].GetPointer(), shader_map[CS_ParticleEmit].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_ParticleEmit).GetPointer(), GetShader(CS_ParticleEmit).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::Particles_Emit].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[PS_Particles].GetPointer(), shader_map[PS_Particles].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Particles).GetPointer(), GetShader(PS_Particles).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::Particles_Shading].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_ParticleInitSortDispatchArgs].GetPointer(), shader_map[CS_ParticleInitSortDispatchArgs].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_ParticleInitSortDispatchArgs).GetPointer(), GetShader(CS_ParticleInitSortDispatchArgs).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::Particles_InitSortDispatchArgs].GetAddressOf())));
 
-				BREAK_IF_FAILED(device->CreateRootSignature(0, shader_map[CS_ParticleSort512].GetPointer(), shader_map[CS_ParticleSort512].GetLength(),
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_ParticleSort512).GetPointer(), GetShader(CS_ParticleSort512).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::Particles_Sort].GetAddressOf())));
 
 				//ID3D12VersionedRootSignatureDeserializer* drs = nullptr;
-				//D3D12CreateVersionedRootSignatureDeserializer(shader_map[PS_Add].GetPointer(), shader_map[PS_Add].GetLength(), IID_PPV_ARGS(&drs));
+				//D3D12CreateVersionedRootSignatureDeserializer(GetShader(PS_Add).GetPointer(), shader_map[PS_Add].GetLength(), IID_PPV_ARGS(&drs));
 				//D3D12_VERSIONED_ROOT_SIGNATURE_DESC const* desc = drs->GetUnconvertedRootSignatureDesc();
 			}
 
@@ -488,8 +332,8 @@ namespace adria
 			{
 				graphics_pso_desc.InputLayout = { nullptr, 0u };
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::Particles_Shading].Get();
-				graphics_pso_desc.VS = shader_map[VS_Particles];
-				graphics_pso_desc.PS = shader_map[PS_Particles];
+				graphics_pso_desc.VS = GetShader(VS_Particles);
+				graphics_pso_desc.PS = GetShader(PS_Particles);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
@@ -510,11 +354,11 @@ namespace adria
 				AddDependency(EPipelineStateObject::Particles_Shading, { VS_Particles, PS_Particles }, graphics_pso_desc);
 
 				graphics_pso_desc = {};
-				ShaderCompiler::CreateInputLayoutWithReflection(shader_map[VS_Skybox], input_layout);
+				ShaderCompiler::CreateInputLayoutWithReflection(ShaderManager::GetShader(VS_Skybox), input_layout);
 				graphics_pso_desc.InputLayout = input_layout;
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::Skybox].Get();
-				graphics_pso_desc.VS = shader_map[VS_Skybox];
-				graphics_pso_desc.PS = shader_map[PS_Skybox];
+				graphics_pso_desc.VS = GetShader(VS_Skybox);
+				graphics_pso_desc.PS = GetShader(PS_Skybox);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
@@ -532,11 +376,11 @@ namespace adria
 				AddDependency(EPipelineStateObject::Skybox, { VS_Skybox, PS_Skybox }, graphics_pso_desc);
 
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::Sky].Get();
-				graphics_pso_desc.PS = shader_map[PS_UniformColorSky];
+				graphics_pso_desc.PS = GetShader(PS_UniformColorSky);
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&graphics_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::UniformColorSky])));
 				AddDependency(EPipelineStateObject::UniformColorSky, { VS_Skybox, PS_UniformColorSky }, graphics_pso_desc);
 
-				graphics_pso_desc.PS = shader_map[PS_HosekWilkieSky];
+				graphics_pso_desc.PS = GetShader(PS_HosekWilkieSky);
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&graphics_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::HosekWilkieSky])));
 				AddDependency(EPipelineStateObject::HosekWilkieSky, { VS_Skybox, PS_HosekWilkieSky }, graphics_pso_desc);
 
@@ -544,8 +388,8 @@ namespace adria
 				ShaderCompiler::CreateInputLayoutWithReflection(shader_map[VS_ScreenQuad], input_layout);
 				graphics_pso_desc.InputLayout = input_layout;
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::ToneMap].Get();
-				graphics_pso_desc.VS = shader_map[VS_ScreenQuad];
-				graphics_pso_desc.PS = shader_map[PS_ToneMap];
+				graphics_pso_desc.VS = GetShader(VS_ScreenQuad);
+				graphics_pso_desc.PS = GetShader(PS_ToneMap);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.SampleMask = UINT_MAX;
@@ -560,8 +404,8 @@ namespace adria
 				graphics_pso_desc = {};
 				graphics_pso_desc.InputLayout = input_layout;
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::FXAA].Get();
-				graphics_pso_desc.VS = shader_map[VS_ScreenQuad];
-				graphics_pso_desc.PS = shader_map[PS_Fxaa];
+				graphics_pso_desc.VS = GetShader(VS_ScreenQuad);
+				graphics_pso_desc.PS = GetShader(PS_Fxaa);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.SampleMask = UINT_MAX;
@@ -576,8 +420,8 @@ namespace adria
 				graphics_pso_desc = {};
 				graphics_pso_desc.InputLayout = input_layout;
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::TAA].Get();
-				graphics_pso_desc.VS = shader_map[VS_ScreenQuad];
-				graphics_pso_desc.PS = shader_map[PS_Taa];
+				graphics_pso_desc.VS = GetShader(VS_ScreenQuad);
+				graphics_pso_desc.PS = GetShader(PS_Taa);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.SampleMask = UINT_MAX;
@@ -593,8 +437,8 @@ namespace adria
 				ShaderCompiler::CreateInputLayoutWithReflection(shader_map[VS_GBufferPBR], input_layout);
 				graphics_pso_desc.InputLayout = input_layout;
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::GbufferPBR].Get();
-				graphics_pso_desc.VS = shader_map[VS_GBufferPBR];
-				graphics_pso_desc.PS = shader_map[PS_GBufferPBR];
+				graphics_pso_desc.VS = GetShader(VS_GBufferPBR);
+				graphics_pso_desc.PS = GetShader(PS_GBufferPBR);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
@@ -616,8 +460,8 @@ namespace adria
 				graphics_pso_desc = {};
 				graphics_pso_desc.InputLayout = { nullptr, 0u };
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::AmbientPBR].Get();
-				graphics_pso_desc.VS = shader_map[VS_ScreenQuad];
-				graphics_pso_desc.PS = shader_map[PS_AmbientPBR];
+				graphics_pso_desc.VS = GetShader(VS_ScreenQuad);
+				graphics_pso_desc.PS = GetShader(PS_AmbientPBR);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.DepthStencilState.DepthEnable = FALSE;
@@ -633,23 +477,23 @@ namespace adria
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&graphics_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::AmbientPBR])));
 				AddDependency(EPipelineStateObject::AmbientPBR, { VS_ScreenQuad, PS_AmbientPBR }, graphics_pso_desc);
 
-				graphics_pso_desc.PS = shader_map[PS_AmbientPBR_AO];
+				graphics_pso_desc.PS = GetShader(PS_AmbientPBR_AO);
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&graphics_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::AmbientPBR_AO])));
 				AddDependency(EPipelineStateObject::AmbientPBR_AO, { VS_ScreenQuad, PS_AmbientPBR_AO }, graphics_pso_desc);
 
-				graphics_pso_desc.PS = shader_map[PS_AmbientPBR_IBL];
+				graphics_pso_desc.PS = GetShader(PS_AmbientPBR_IBL);
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&graphics_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::AmbientPBR_IBL])));
 				AddDependency(EPipelineStateObject::AmbientPBR_IBL, { VS_ScreenQuad, PS_AmbientPBR_IBL }, graphics_pso_desc);
 
-				graphics_pso_desc.PS = shader_map[PS_AmbientPBR_AO_IBL];
+				graphics_pso_desc.PS = GetShader(PS_AmbientPBR_AO_IBL);
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&graphics_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::AmbientPBR_AO_IBL])));
 				AddDependency(EPipelineStateObject::AmbientPBR_AO_IBL, { VS_ScreenQuad, PS_AmbientPBR_AO_IBL }, graphics_pso_desc);
 
 				graphics_pso_desc = {};
 				graphics_pso_desc.InputLayout = { nullptr, 0u };
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::LightingPBR].Get();
-				graphics_pso_desc.VS = shader_map[VS_ScreenQuad];
-				graphics_pso_desc.PS = shader_map[PS_LightingPBR];
+				graphics_pso_desc.VS = GetShader(VS_ScreenQuad);
+				graphics_pso_desc.PS = GetShader(PS_LightingPBR);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState.RenderTarget[0].BlendEnable = TRUE;
@@ -669,12 +513,12 @@ namespace adria
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&graphics_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::LightingPBR])));
 				AddDependency(EPipelineStateObject::LightingPBR, { VS_ScreenQuad, PS_LightingPBR }, graphics_pso_desc);
 
-				graphics_pso_desc.PS = shader_map[PS_LightingPBR_RayTracedShadows];
+				graphics_pso_desc.PS = GetShader(PS_LightingPBR_RayTracedShadows);
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&graphics_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::LightingPBR_RayTracedShadows])));
 				AddDependency(EPipelineStateObject::LightingPBR_RayTracedShadows, { VS_ScreenQuad, PS_LightingPBR_RayTracedShadows }, graphics_pso_desc);
 
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::ClusteredLightingPBR].Get();
-				graphics_pso_desc.PS = shader_map[PS_ClusteredLightingPBR];
+				graphics_pso_desc.PS = GetShader(PS_ClusteredLightingPBR);
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&graphics_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::ClusteredLightingPBR])));
 				AddDependency(EPipelineStateObject::ClusteredLightingPBR, { VS_ScreenQuad, PS_ClusteredLightingPBR }, graphics_pso_desc);
 
@@ -682,8 +526,8 @@ namespace adria
 				ShaderCompiler::CreateInputLayoutWithReflection(shader_map[VS_DepthMap], input_layout);
 				graphics_pso_desc.InputLayout = input_layout;
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::DepthMap].Get();
-				graphics_pso_desc.VS = shader_map[VS_DepthMap];
-				graphics_pso_desc.PS = shader_map[PS_DepthMap];
+				graphics_pso_desc.VS = GetShader(VS_DepthMap);
+				graphics_pso_desc.PS = GetShader(PS_DepthMap);
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
@@ -707,16 +551,16 @@ namespace adria
 				ShaderCompiler::CreateInputLayoutWithReflection(shader_map[VS_DepthMap_Transparent], input_layout);
 				graphics_pso_desc.InputLayout = input_layout;
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::DepthMap_Transparent].Get();
-				graphics_pso_desc.VS = shader_map[VS_DepthMap_Transparent];
-				graphics_pso_desc.PS = shader_map[PS_DepthMap_Transparent];
+				graphics_pso_desc.VS = GetShader(VS_DepthMap_Transparent);
+				graphics_pso_desc.PS = GetShader(PS_DepthMap_Transparent);
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&graphics_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::DepthMap_Transparent])));
 				AddDependency(EPipelineStateObject::DepthMap_Transparent, { VS_DepthMap_Transparent, PS_DepthMap_Transparent }, graphics_pso_desc);
 
 				graphics_pso_desc = {};
 				graphics_pso_desc.InputLayout = { nullptr, 0u };
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::Volumetric].Get();
-				graphics_pso_desc.VS = shader_map[VS_ScreenQuad];
-				graphics_pso_desc.PS = shader_map[PS_Volumetric_Directional];
+				graphics_pso_desc.VS = GetShader(VS_ScreenQuad);
+				graphics_pso_desc.PS = GetShader(PS_Volumetric_Directional);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState.RenderTarget[0].BlendEnable = TRUE;
@@ -736,15 +580,15 @@ namespace adria
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&graphics_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Volumetric_Directional])));
 				AddDependency(EPipelineStateObject::Volumetric_Directional, { VS_ScreenQuad, PS_Volumetric_Directional }, graphics_pso_desc);
 
-				graphics_pso_desc.PS = shader_map[PS_Volumetric_DirectionalCascades];
+				graphics_pso_desc.PS = GetShader(PS_Volumetric_DirectionalCascades);
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&graphics_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Volumetric_DirectionalCascades])));
 				AddDependency(EPipelineStateObject::Volumetric_DirectionalCascades, { VS_ScreenQuad, PS_Volumetric_DirectionalCascades }, graphics_pso_desc);
 
-				graphics_pso_desc.PS = shader_map[PS_Volumetric_Spot];
+				graphics_pso_desc.PS = GetShader(PS_Volumetric_Spot);
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&graphics_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Volumetric_Spot])));
 				AddDependency(EPipelineStateObject::Volumetric_Spot, { VS_ScreenQuad, PS_Volumetric_Spot }, graphics_pso_desc);
 
-				graphics_pso_desc.PS = shader_map[PS_Volumetric_Point];
+				graphics_pso_desc.PS = GetShader(PS_Volumetric_Point);
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&graphics_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Volumetric_Point])));
 				AddDependency(EPipelineStateObject::Volumetric_Point, { VS_ScreenQuad, PS_Volumetric_Point }, graphics_pso_desc);
 
@@ -753,8 +597,8 @@ namespace adria
 				graphics_pso_desc = {};
 				graphics_pso_desc.InputLayout = input_layout;
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::Forward].Get();
-				graphics_pso_desc.VS = shader_map[VS_Sun];
-				graphics_pso_desc.PS = shader_map[PS_Texture];
+				graphics_pso_desc.VS = GetShader(VS_Sun);
+				graphics_pso_desc.PS = GetShader(PS_Texture);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState.RenderTarget[0].BlendEnable = TRUE;
@@ -777,8 +621,8 @@ namespace adria
 				graphics_pso_desc = {};
 				graphics_pso_desc.InputLayout = { nullptr, 0 };
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::AO].Get();
-				graphics_pso_desc.VS = shader_map[VS_ScreenQuad];
-				graphics_pso_desc.PS = shader_map[PS_Ssao];
+				graphics_pso_desc.VS = GetShader(VS_ScreenQuad);
+				graphics_pso_desc.PS = GetShader(PS_Ssao);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.SampleMask = UINT_MAX;
@@ -790,15 +634,15 @@ namespace adria
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&graphics_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::SSAO])));
 				AddDependency(EPipelineStateObject::SSAO, { VS_ScreenQuad, PS_Ssao }, graphics_pso_desc);
 
-				graphics_pso_desc.PS = shader_map[PS_Hbao];
+				graphics_pso_desc.PS = GetShader(PS_Hbao);
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&graphics_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::HBAO])));
 				AddDependency(EPipelineStateObject::HBAO, { VS_ScreenQuad, PS_Hbao }, graphics_pso_desc);
 
 				graphics_pso_desc = {};
 				graphics_pso_desc.InputLayout = { nullptr, 0 };
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::SSR].Get();
-				graphics_pso_desc.VS = shader_map[VS_ScreenQuad];
-				graphics_pso_desc.PS = shader_map[PS_Ssr];
+				graphics_pso_desc.VS = GetShader(VS_ScreenQuad);
+				graphics_pso_desc.PS = GetShader(PS_Ssr);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.SampleMask = UINT_MAX;
@@ -814,8 +658,8 @@ namespace adria
 				ShaderCompiler::CreateInputLayoutWithReflection(shader_map[VS_ScreenQuad], input_layout);
 				graphics_pso_desc.InputLayout = input_layout;
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::GodRays].Get();
-				graphics_pso_desc.VS = shader_map[VS_ScreenQuad];
-				graphics_pso_desc.PS = shader_map[PS_GodRays];
+				graphics_pso_desc.VS = GetShader(VS_ScreenQuad);
+				graphics_pso_desc.PS = GetShader(PS_GodRays);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState.RenderTarget[0].BlendEnable = true;
@@ -834,9 +678,9 @@ namespace adria
 				graphics_pso_desc = {};
 				graphics_pso_desc.InputLayout = { nullptr, 0 };
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::LensFlare].Get();
-				graphics_pso_desc.VS = shader_map[VS_LensFlare];
-				graphics_pso_desc.GS = shader_map[GS_LensFlare];
-				graphics_pso_desc.PS = shader_map[PS_LensFlare];
+				graphics_pso_desc.VS = GetShader(VS_LensFlare);
+				graphics_pso_desc.GS = GetShader(GS_LensFlare);
+				graphics_pso_desc.PS = GetShader(PS_LensFlare);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState.RenderTarget[0].BlendEnable = true;
@@ -855,8 +699,8 @@ namespace adria
 				graphics_pso_desc = {};
 				graphics_pso_desc.InputLayout = { nullptr, 0 };
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::Copy].Get();
-				graphics_pso_desc.VS = shader_map[VS_ScreenQuad];
-				graphics_pso_desc.PS = shader_map[PS_Copy];
+				graphics_pso_desc.VS = GetShader(VS_ScreenQuad);
+				graphics_pso_desc.PS = GetShader(PS_Copy);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.SampleMask = UINT_MAX;
@@ -885,8 +729,8 @@ namespace adria
 				graphics_pso_desc = {};
 				graphics_pso_desc.InputLayout = { nullptr, 0 };
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::Add].Get();
-				graphics_pso_desc.VS = shader_map[VS_ScreenQuad];
-				graphics_pso_desc.PS = shader_map[PS_Add];
+				graphics_pso_desc.VS = GetShader(VS_ScreenQuad);
+				graphics_pso_desc.PS = GetShader(PS_Add);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.SampleMask = UINT_MAX;
@@ -915,8 +759,8 @@ namespace adria
 				graphics_pso_desc = {};
 				graphics_pso_desc.InputLayout = { nullptr, 0 };
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::Fog].Get();
-				graphics_pso_desc.VS = shader_map[VS_ScreenQuad];
-				graphics_pso_desc.PS = shader_map[PS_Fog];
+				graphics_pso_desc.VS = GetShader(VS_ScreenQuad);
+				graphics_pso_desc.PS = GetShader(PS_Fog);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.SampleMask = UINT_MAX;
@@ -931,8 +775,8 @@ namespace adria
 				graphics_pso_desc = {};
 				graphics_pso_desc.InputLayout = { nullptr, 0 };
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::DOF].Get();
-				graphics_pso_desc.VS = shader_map[VS_ScreenQuad];
-				graphics_pso_desc.PS = shader_map[PS_Dof];
+				graphics_pso_desc.VS = GetShader(VS_ScreenQuad);
+				graphics_pso_desc.PS = GetShader(PS_Dof);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.SampleMask = UINT_MAX;
@@ -947,9 +791,9 @@ namespace adria
 				graphics_pso_desc = {};
 				graphics_pso_desc.InputLayout = { nullptr, 0 };
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::Bokeh].Get();
-				graphics_pso_desc.VS = shader_map[VS_Bokeh];
-				graphics_pso_desc.GS = shader_map[GS_Bokeh];
-				graphics_pso_desc.PS = shader_map[PS_Bokeh];
+				graphics_pso_desc.VS = GetShader(VS_Bokeh);
+				graphics_pso_desc.GS = GetShader(GS_Bokeh);
+				graphics_pso_desc.PS = GetShader(PS_Bokeh);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState.RenderTarget[0].BlendEnable = true;
@@ -968,8 +812,8 @@ namespace adria
 				graphics_pso_desc = {};
 				graphics_pso_desc.InputLayout = { nullptr, 0 };
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::Clouds].Get();
-				graphics_pso_desc.VS = shader_map[VS_ScreenQuad];
-				graphics_pso_desc.PS = shader_map[PS_VolumetricClouds];
+				graphics_pso_desc.VS = GetShader(VS_ScreenQuad);
+				graphics_pso_desc.PS = GetShader(PS_VolumetricClouds);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.SampleMask = UINT_MAX;
@@ -984,8 +828,8 @@ namespace adria
 				graphics_pso_desc = {};
 				graphics_pso_desc.InputLayout = { nullptr, 0 };
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::MotionBlur].Get();
-				graphics_pso_desc.VS = shader_map[VS_ScreenQuad];
-				graphics_pso_desc.PS = shader_map[PS_MotionBlur];
+				graphics_pso_desc.VS = GetShader(VS_ScreenQuad);
+				graphics_pso_desc.PS = GetShader(PS_MotionBlur);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.SampleMask = UINT_MAX;
@@ -1000,8 +844,8 @@ namespace adria
 				graphics_pso_desc = {};
 				graphics_pso_desc.InputLayout = { nullptr, 0 };
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::VelocityBuffer].Get();
-				graphics_pso_desc.VS = shader_map[VS_ScreenQuad];
-				graphics_pso_desc.PS = shader_map[PS_VelocityBuffer];
+				graphics_pso_desc.VS = GetShader(VS_ScreenQuad);
+				graphics_pso_desc.PS = GetShader(PS_VelocityBuffer);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.SampleMask = UINT_MAX;
@@ -1017,8 +861,8 @@ namespace adria
 				ShaderCompiler::CreateInputLayoutWithReflection(shader_map[VS_Ocean], input_layout);
 				graphics_pso_desc.InputLayout = input_layout;
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::Ocean].Get();
-				graphics_pso_desc.VS = shader_map[VS_Ocean];
-				graphics_pso_desc.PS = shader_map[PS_Ocean];
+				graphics_pso_desc.VS = GetShader(VS_Ocean);
+				graphics_pso_desc.PS = GetShader(PS_Ocean);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.DepthStencilState.DepthEnable = TRUE;
@@ -1039,9 +883,9 @@ namespace adria
 				AddDependency(EPipelineStateObject::Ocean_Wireframe, { VS_Ocean, PS_Ocean }, graphics_pso_desc);
 
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::OceanLOD].Get();
-				graphics_pso_desc.VS = shader_map[VS_OceanLOD];
-				graphics_pso_desc.DS = shader_map[DS_OceanLOD];
-				graphics_pso_desc.HS = shader_map[HS_OceanLOD];
+				graphics_pso_desc.VS = GetShader(VS_OceanLOD);
+				graphics_pso_desc.DS = GetShader(DS_OceanLOD);
+				graphics_pso_desc.HS = GetShader(HS_OceanLOD);
 				graphics_pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&graphics_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::OceanLOD_Wireframe])));
 				AddDependency(EPipelineStateObject::OceanLOD_Wireframe, { VS_OceanLOD, DS_OceanLOD, HS_OceanLOD, PS_Ocean }, graphics_pso_desc);
@@ -1054,8 +898,8 @@ namespace adria
 				ShaderCompiler::CreateInputLayoutWithReflection(shader_map[VS_Decals], input_layout);
 				graphics_pso_desc.InputLayout = input_layout;
 				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::Decals].Get();
-				graphics_pso_desc.VS = shader_map[VS_Decals];
-				graphics_pso_desc.PS = shader_map[PS_Decals];
+				graphics_pso_desc.VS = GetShader(VS_Decals);
+				graphics_pso_desc.PS = GetShader(PS_Decals);
 				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 				graphics_pso_desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
@@ -1070,7 +914,7 @@ namespace adria
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&graphics_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Decals])));
 				AddDependency(EPipelineStateObject::Decals, { VS_Decals, PS_Decals }, graphics_pso_desc);
 
-				graphics_pso_desc.PS = shader_map[PS_Decals_ModifyNormals];
+				graphics_pso_desc.PS = GetShader(PS_Decals_ModifyNormals);
 				graphics_pso_desc.NumRenderTargets = 2;
 				graphics_pso_desc.RTVFormats[1] = DXGI_FORMAT_R8G8B8A8_UNORM;
 				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&graphics_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Decals_ModifyNormals])));
@@ -1080,135 +924,133 @@ namespace adria
 			D3D12_COMPUTE_PIPELINE_STATE_DESC compute_pso_desc{};
 			{
 				compute_pso_desc.pRootSignature = rs_map[ERootSignature::Picker].Get();
-				compute_pso_desc.CS = shader_map[CS_Picker];
+				compute_pso_desc.CS = GetShader(CS_Picker);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(pso_map[EPipelineStateObject::Picker].GetAddressOf())));
 				AddDependency(EPipelineStateObject::Picker, { CS_Picker }, compute_pso_desc);
 
 				compute_pso_desc.pRootSignature = rs_map[ERootSignature::Particles_InitDeadList].Get();
-				compute_pso_desc.CS = shader_map[CS_ParticleInitDeadList];
+				compute_pso_desc.CS = GetShader(CS_ParticleInitDeadList);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Particles_InitDeadList])));
 				AddDependency(EPipelineStateObject::Particles_InitDeadList, { CS_ParticleInitDeadList }, compute_pso_desc);
 
 				compute_pso_desc.pRootSignature = rs_map[ERootSignature::Particles_Reset].Get();
-				compute_pso_desc.CS = shader_map[CS_ParticleReset];
+				compute_pso_desc.CS = GetShader(CS_ParticleReset);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Particles_Reset])));
 				AddDependency(EPipelineStateObject::Particles_Reset, { CS_ParticleReset }, compute_pso_desc);
 
 				compute_pso_desc.pRootSignature = rs_map[ERootSignature::Particles_Simulate].Get();
-				compute_pso_desc.CS = shader_map[CS_ParticleSimulate];
+				compute_pso_desc.CS = GetShader(CS_ParticleSimulate);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Particles_Simulate])));
 				AddDependency(EPipelineStateObject::Particles_Simulate, { CS_ParticleSimulate }, compute_pso_desc);
 
 				compute_pso_desc.pRootSignature = rs_map[ERootSignature::Particles_Emit].Get();
-				compute_pso_desc.CS = shader_map[CS_ParticleEmit];
+				compute_pso_desc.CS = GetShader(CS_ParticleEmit);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Particles_Emit])));
 				AddDependency(EPipelineStateObject::Particles_Emit, { CS_ParticleEmit }, compute_pso_desc);
 
 				compute_pso_desc.pRootSignature = rs_map[ERootSignature::Particles_InitSortDispatchArgs].Get();
-				compute_pso_desc.CS = shader_map[CS_ParticleInitSortDispatchArgs];
+				compute_pso_desc.CS = GetShader(CS_ParticleInitSortDispatchArgs);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Particles_InitSortDispatchArgs])));
 				AddDependency(EPipelineStateObject::Particles_InitSortDispatchArgs, { CS_ParticleInitSortDispatchArgs }, compute_pso_desc);
 
 				compute_pso_desc.pRootSignature = rs_map[ERootSignature::Particles_Sort].Get();
-				compute_pso_desc.CS = shader_map[CS_ParticleBitonicSortStep];
+				compute_pso_desc.CS = GetShader(CS_ParticleBitonicSortStep);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Particles_BitonicSortStep])));
 				AddDependency(EPipelineStateObject::Particles_BitonicSortStep, { CS_ParticleBitonicSortStep }, compute_pso_desc);
 
-				compute_pso_desc.CS = shader_map[CS_ParticleSort512];
+				compute_pso_desc.CS = GetShader(CS_ParticleSort512);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Particles_Sort512])));
 				AddDependency(EPipelineStateObject::Particles_Sort512, { CS_ParticleSort512 }, compute_pso_desc);
 
-				compute_pso_desc.CS = shader_map[CS_ParticleSortInner512];
+				compute_pso_desc.CS = GetShader(CS_ParticleSortInner512);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Particles_SortInner512])));
 				AddDependency(EPipelineStateObject::Particles_SortInner512, { CS_ParticleSortInner512 }, compute_pso_desc);
 
 				compute_pso_desc.pRootSignature = rs_map[ERootSignature::ClusterBuilding].Get();
-				compute_pso_desc.CS = shader_map[CS_ClusterBuilding];
+				compute_pso_desc.CS = GetShader(CS_ClusterBuilding);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::ClusterBuilding])));
 				AddDependency(EPipelineStateObject::ClusterBuilding, { CS_ClusterBuilding }, compute_pso_desc);
 
 				compute_pso_desc.pRootSignature = rs_map[ERootSignature::ClusterCulling].Get();
-				compute_pso_desc.CS = shader_map[CS_ClusterCulling];
+				compute_pso_desc.CS = GetShader(CS_ClusterCulling);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::ClusterCulling])));
 				AddDependency(EPipelineStateObject::ClusterCulling, { CS_ClusterCulling }, compute_pso_desc);
 
 				compute_pso_desc.pRootSignature = rs_map[ERootSignature::TiledLighting].Get();
-				compute_pso_desc.CS = shader_map[CS_TiledLighting];
+				compute_pso_desc.CS = GetShader(CS_TiledLighting);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::TiledLighting])));
 				AddDependency(EPipelineStateObject::TiledLighting, { CS_TiledLighting }, compute_pso_desc);
 
 				compute_pso_desc.pRootSignature = rs_map[ERootSignature::Blur].Get();
-				compute_pso_desc.CS = shader_map[CS_Blur_Horizontal];
+				compute_pso_desc.CS = GetShader(CS_Blur_Horizontal);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Blur_Horizontal])));
 				AddDependency(EPipelineStateObject::Blur_Horizontal, { CS_Blur_Horizontal }, compute_pso_desc);
 
-				compute_pso_desc.CS = shader_map[CS_Blur_Vertical];
+				compute_pso_desc.CS = GetShader(CS_Blur_Vertical);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Blur_Vertical])));
 				AddDependency(EPipelineStateObject::Blur_Vertical, { CS_Blur_Vertical }, compute_pso_desc);
 
 				compute_pso_desc.pRootSignature = rs_map[ERootSignature::BloomExtract].Get();
-				compute_pso_desc.CS = shader_map[CS_BloomExtract];
+				compute_pso_desc.CS = GetShader(CS_BloomExtract);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::BloomExtract])));
 				AddDependency(EPipelineStateObject::BloomExtract, { CS_BloomExtract }, compute_pso_desc);
 
 				compute_pso_desc.pRootSignature = rs_map[ERootSignature::BloomCombine].Get();
-				compute_pso_desc.CS = shader_map[CS_BloomCombine];
+				compute_pso_desc.CS = GetShader(CS_BloomCombine);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::BloomCombine])));
 				AddDependency(EPipelineStateObject::BloomCombine, { CS_BloomCombine }, compute_pso_desc);
 
 				compute_pso_desc.pRootSignature = rs_map[ERootSignature::GenerateMips].Get();
-				compute_pso_desc.CS = shader_map[CS_GenerateMips];
+				compute_pso_desc.CS = GetShader(CS_GenerateMips);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::GenerateMips])));
 				AddDependency(EPipelineStateObject::GenerateMips, { CS_GenerateMips }, compute_pso_desc);
 
 				compute_pso_desc.pRootSignature = rs_map[ERootSignature::BokehGenerate].Get();
-				compute_pso_desc.CS = shader_map[CS_BokehGenerate];
+				compute_pso_desc.CS = GetShader(CS_BokehGenerate);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::BokehGenerate])));
 				AddDependency(EPipelineStateObject::BokehGenerate, { CS_BokehGenerate }, compute_pso_desc);
 				///////////////
 				compute_pso_desc.pRootSignature = rs_map[ERootSignature::FFT].Get();
-				compute_pso_desc.CS = shader_map[CS_FFT_Horizontal];
+				compute_pso_desc.CS = GetShader(CS_FFT_Horizontal);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::FFT_Horizontal])));
 				AddDependency(EPipelineStateObject::FFT_Horizontal, { CS_FFT_Horizontal }, compute_pso_desc);
 
-				compute_pso_desc.CS = shader_map[CS_FFT_Vertical];
+				compute_pso_desc.CS = GetShader(CS_FFT_Vertical);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::FFT_Vertical])));
 				AddDependency(EPipelineStateObject::FFT_Vertical, { CS_FFT_Vertical }, compute_pso_desc);
 
 				compute_pso_desc.pRootSignature = rs_map[ERootSignature::InitialSpectrum].Get();
-				compute_pso_desc.CS = shader_map[CS_InitialSpectrum];
+				compute_pso_desc.CS = GetShader(CS_InitialSpectrum);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::InitialSpectrum])));
 				AddDependency(EPipelineStateObject::InitialSpectrum, { CS_InitialSpectrum }, compute_pso_desc);
 
 				compute_pso_desc.pRootSignature = rs_map[ERootSignature::InitialSpectrum].Get();
-				compute_pso_desc.CS = shader_map[CS_InitialSpectrum];
+				compute_pso_desc.CS = GetShader(CS_InitialSpectrum);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::InitialSpectrum])));
 				AddDependency(EPipelineStateObject::InitialSpectrum, { CS_InitialSpectrum }, compute_pso_desc);
 
 				compute_pso_desc.pRootSignature = rs_map[ERootSignature::OceanNormalMap].Get();
-				compute_pso_desc.CS = shader_map[CS_OceanNormalMap];
+				compute_pso_desc.CS = GetShader(CS_OceanNormalMap);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::OceanNormalMap])));
 				AddDependency(EPipelineStateObject::OceanNormalMap, { CS_OceanNormalMap }, compute_pso_desc);
 
 				compute_pso_desc.pRootSignature = rs_map[ERootSignature::Phase].Get();
-				compute_pso_desc.CS = shader_map[CS_Phase];
+				compute_pso_desc.CS = GetShader(CS_Phase);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Phase])));
 				AddDependency(EPipelineStateObject::Phase, { CS_Phase }, compute_pso_desc);
 
 				compute_pso_desc.pRootSignature = rs_map[ERootSignature::Spectrum].Get();
-				compute_pso_desc.CS = shader_map[CS_Spectrum];
+				compute_pso_desc.CS = GetShader(CS_Spectrum);
 				BREAK_IF_FAILED(device->CreateComputePipelineState(&compute_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Spectrum])));
 				AddDependency(EPipelineStateObject::Spectrum, { CS_Spectrum }, compute_pso_desc);
 			}
 		}
 	}
 
-
-	void PSOManager::Initialize(ID3D12Device* _device)
+	void PSOManager::Initialize(GraphicsDevice* _gfx)
 	{
-		device = _device;
-		CompileAllShaders();
-		FillShaderDataFileMap();
+		gfx = _gfx;
+		ShaderManager::Initialize();
 		CreateAllRootSignatures();
 		CreateAllPSOs();
 	}
@@ -1222,34 +1064,21 @@ namespace adria
 			using std::swap;
 			swap(container, empty);
 		};
-
-		shader_map.clear();
-		shader_file_data_map.clear();
-		rs_map.clear();
-		pso_map.clear();
-		dependency_map.clear();
-		device = nullptr;
+		FreeContainer(rs_map);
+		FreeContainer(pso_map);
+		gfx = nullptr;
+		ShaderManager::Destroy();
 	}
 
-	void ShaderManager::CheckIfShadersHaveChanged()
+	ID3D12RootSignature* PSOManager::GetRootSignature(ERootSignature root_sig)
 	{
-		ADRIA_LOG(INFO, "Recompiling changed shaders...");
-		using UnderlyingType = std::underlying_type_t<EShader>;
-		std::vector<UnderlyingType> shaders(EShader_Count);
-		std::iota(std::begin(shaders), std::end(shaders), 0);
-		std::for_each(
-			std::execution::seq,
-			std::begin(shaders),
-			std::end(shaders),
-			[](UnderlyingType s)
-			{
-				if (HasShaderChanged((EShader)s))
-				{
-					//RecompileShader((EShader)s, false);
-				}
-			});
-		CreateAllPSOs();
-		ADRIA_LOG(INFO, "Compilation done!");
+
 	}
+
+	ID3D12PipelineState* PSOManager::GetPipelineState(EPipelineStateObject pso)
+	{
+
+	}
+
 }
 
