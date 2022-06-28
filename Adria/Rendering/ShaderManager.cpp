@@ -109,6 +109,11 @@ namespace adria
 				return EShaderStage::HS;
 			case DS_OceanLOD:
 				return EShaderStage::DS;
+			case LIB_Shadows:
+			case LIB_SoftShadows:
+			case LIB_AmbientOcclusion:
+			case LIB_Reflections:
+				return EShaderStage::LIB;
 			case EShader_Count:
 			default:
 				return EShaderStage::ShaderCount;
@@ -274,6 +279,13 @@ namespace adria
 				return "Particles/InitSortDispatchArgsCS.hlsl";
 			case CS_GenerateMips:
 				return "Misc/GenerateMipsCS.hlsl";
+			case LIB_Shadows:
+			case LIB_SoftShadows:
+				return "RayTracing/RayTracedShadows.hlsl";
+			case LIB_AmbientOcclusion:
+				return "RayTracing/RayTracedAmbientOcclusion.hlsl";
+			case LIB_Reflections:
+				return "RayTracing/RayTracedReflections.hlsl";
 			case EShader_Count:
 			default:
 				return "";
@@ -298,6 +310,8 @@ namespace adria
 				return { { L"VERTICAL", L"1" } };
 			case PS_LightingPBR_RayTracedShadows:
 				return { { L"RAY_TRACED_SHADOWS", L"" } };
+			case LIB_SoftShadows:
+				return { { L"SOFT_SHADOWS", L"" } };
 			default:
 				return {};
 			}

@@ -212,7 +212,8 @@
     <ClCompile Include="Rendering\Postprocessor.cpp" />
     <ClCompile Include="Rendering\RayTracer.cpp" />
     <ClCompile Include="Rendering\RenderGraphRenderer.cpp" />
-    <ClCompile Include="Rendering\PSOManager.cpp" />
+    <ClCompile Include="Rendering\PipelineState.cpp" />
+    <ClCompile Include="Rendering\RootSignatureCache.cpp" />
     <ClCompile Include="Rendering\ShaderManager.cpp" />
     <ClCompile Include="Rendering\ShadowPass.cpp" />
     <ClCompile Include="Rendering\SkyModel.cpp" />
@@ -267,6 +268,7 @@
     <ClInclude Include="Graphics\RenderPass.h" />
     <ClInclude Include="Graphics\ResourceBarrierBatch.h" />
     <ClInclude Include="Graphics\ResourceCommon.h" />
+    <ClInclude Include="Graphics\Shader.h" />
     <ClInclude Include="Graphics\Texture.h" />
     <ClInclude Include="Graphics\TextureManager.h" />
     <ClInclude Include="Graphics\RingUploadBuffer.h" />
@@ -327,7 +329,8 @@
     <ClInclude Include="Rendering\RayTracer.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />
     <ClInclude Include="Rendering\RenderGraphRenderer.h" />
-    <ClInclude Include="Rendering\PSOManager.h" />
+    <ClInclude Include="Rendering\PipelineState.h" />
+    <ClInclude Include="Rendering\RootSignatureCache.h" />
     <ClInclude Include="Rendering\ShaderManager.h" />
     <ClInclude Include="Rendering\ViewportData.h" />
     <ClInclude Include="Rendering\ShadowPass.h" />

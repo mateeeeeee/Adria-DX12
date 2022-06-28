@@ -90,6 +90,10 @@ namespace adria
 		CS_ParticleSortInner512,
 		CS_ParticleInitSortDispatchArgs,
 		CS_Picker,
+		LIB_Shadows,
+		LIB_SoftShadows,
+		LIB_AmbientOcclusion,
+		LIB_Reflections,
 		EShader_Count
 	};
 

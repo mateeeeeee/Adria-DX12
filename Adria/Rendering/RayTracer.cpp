@@ -3,7 +3,7 @@
 #include "GlobalBlackboardData.h"
 #include "../tecs/registry.h"
 #include "../RenderGraph/RenderGraph.h"
-#include "../Graphics/ShaderCompiler.h"
+#include "ShaderManager.h"
 #include "../Logging/Logger.h"
 
 using namespace DirectX;

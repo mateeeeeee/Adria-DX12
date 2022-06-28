@@ -118,6 +118,13 @@ namespace adria
 			return state_obj;
 		}
 
+		D3D12_STATE_OBJECT_DESC GetDesc(D3D12_STATE_OBJECT_TYPE type = D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE) const
+		{
+			D3D12_STATE_OBJECT_DESC desc{};
+			BuildDescription(type, desc);
+			return desc;
+		}
+
 	private:
 		std::vector<uint8> subobject_data;
 		std::vector<D3D12_STATE_SUBOBJECT> subobjects;

@@ -1,6 +1,6 @@
 #include "CopyToTexturePass.h"
 #include "GlobalBlackboardData.h"
-#include "PSOManager.h"
+#include "PipelineState.h"
 #include "../RenderGraph/RenderGraph.h"
 
 namespace adria
