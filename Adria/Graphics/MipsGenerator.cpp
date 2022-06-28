@@ -27,7 +27,7 @@ namespace adria
 
 		//Set root signature, pso and descriptor heap
 		command_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::GenerateMips));
-		command_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::GenerateMips));
+		command_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::GenerateMips));
 
 		for (auto texture : resources)
 		{

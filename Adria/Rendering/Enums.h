@@ -8,6 +8,7 @@ namespace adria
 	
 	enum EShader : uint8
 	{
+		EShader_Invalid,
 		VS_Skybox,
 		PS_Skybox,
 		PS_UniformColorSky,
@@ -147,10 +148,13 @@ namespace adria
 		Particles_InitSortDispatchArgs,
 		Particles_Sort,
 		Picker,
-		Decals
+		Decals,
+		RayTracedShadows,
+		RayTracedAmbientOcclusion,
+		RayTracedReflections
 	};
 
-	enum class EPipelineStateObject : uint8
+	enum class EPipelineState : uint8
 	{
 		Skybox,
 		UniformColorSky,

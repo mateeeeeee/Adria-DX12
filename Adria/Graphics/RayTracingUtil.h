@@ -51,7 +51,6 @@ namespace adria
 			result.StartAddress = upload_buffer.GPUAddress();
 			result.SizeInBytes = shader_records.size() * shader_record_size;
 			result.StrideInBytes = shader_record_size;
-
 			return result;
 		}
 

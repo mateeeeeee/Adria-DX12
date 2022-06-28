@@ -43,7 +43,7 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::AO));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::SSAO));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::SSAO));
 
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetGraphicsRootConstantBufferView(1, global_data.postprocess_cbuffer_address);

@@ -53,7 +53,7 @@ namespace adria
 				auto gbuffer_view = reg.view<Mesh, Transform, Material, Deferred, Visibility>();
 
 				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::GbufferPBR));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::GbufferPBR));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::GbufferPBR));
 				cmd_list->SetGraphicsRootConstantBufferView(0, (D3D12_GPU_VIRTUAL_ADDRESS)global_data.frame_cbuffer_address);
 				cmd_list->SetGraphicsRootDescriptorTable(3, descriptor_allocator->GetFirstHandle());
 

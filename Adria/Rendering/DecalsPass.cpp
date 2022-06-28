@@ -52,7 +52,7 @@ namespace adria
 
 				auto decal_pass_lambda = [&](bool modify_normals)
 				{
-					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(modify_normals ? EPipelineStateObject::Decals_ModifyNormals : EPipelineStateObject::Decals));
+					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(modify_normals ? EPipelineState::Decals_ModifyNormals : EPipelineState::Decals));
 					for (auto e : decal_view)
 					{
 						Decal decal = decal_view.get(e);

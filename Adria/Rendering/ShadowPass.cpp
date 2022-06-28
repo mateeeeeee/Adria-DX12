@@ -565,7 +565,7 @@ namespace adria
 		if (!transparent)
 		{
 			cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::DepthMap));
-			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::DepthMap));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::DepthMap));
 			cmd_list->SetGraphicsRootConstantBufferView(1, allocation_address);
 
 			for (auto e : shadow_view)
@@ -607,7 +607,7 @@ namespace adria
 			}
 
 			cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::DepthMap));
-			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::DepthMap));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::DepthMap));
 			cmd_list->SetGraphicsRootConstantBufferView(1, allocation_address);
 			for (auto e : not_transparent)
 			{
@@ -625,7 +625,7 @@ namespace adria
 			}
 
 			cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::DepthMap_Transparent));
-			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::DepthMap_Transparent));
+			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::DepthMap_Transparent));
 			cmd_list->SetGraphicsRootConstantBufferView(1, allocation_address);
 
 			for (auto e : potentially_transparent)

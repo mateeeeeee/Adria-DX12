@@ -11,6 +11,6 @@ namespace adria
 	{
 		void Initialize(GraphicsDevice* gfx);
 		void Destroy();
-		ID3D12RootSignature* GetRootSignature(ERootSignature root_signature_id);
+		ID3D12RootSignature* Get(ERootSignature root_signature_id);
 	};
 }

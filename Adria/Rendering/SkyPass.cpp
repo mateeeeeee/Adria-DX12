@@ -43,7 +43,7 @@ namespace adria
 				case ESkyType::Skybox:
 				{
 					cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Skybox));
-					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Skybox));
+					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Skybox));
 
 					cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 					cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
@@ -69,7 +69,7 @@ namespace adria
 				case ESkyType::UniformColor:
 				{
 					cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Sky));
-					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::UniformColorSky));
+					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::UniformColorSky));
 					cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 					cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
 					cmd_list->SetGraphicsRootConstantBufferView(2, global_data.weather_cbuffer_address);
@@ -78,7 +78,7 @@ namespace adria
 				case ESkyType::HosekWilkie:
 				{
 					cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Sky));
-					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::HosekWilkieSky));
+					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::HosekWilkieSky));
 					cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 					cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
 					cmd_list->SetGraphicsRootConstantBufferView(2, global_data.weather_cbuffer_address);

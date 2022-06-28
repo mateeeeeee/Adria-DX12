@@ -53,7 +53,7 @@ namespace adria
 				UINT backbuffer_index = gfx->BackbufferIndex();
 
 				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Picker));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Picker));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Picker));
 
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { context.GetReadOnlyTexture(data.depth_srv), context.GetReadOnlyTexture(data.normal_srv) };

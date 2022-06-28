@@ -54,7 +54,7 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::FXAA));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::FXAA));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::FXAA));
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), context.GetReadOnlyTexture(data.ldr_src),
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);

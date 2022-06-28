@@ -49,11 +49,9 @@ namespace adria
 		{
 			D3D12_INPUT_LAYOUT_DESC desc{};
 			ADRIA_ASSERT(semantic_names.size() == il_desc.size());
-			for (uint32_t i = 0; i < il_desc.size(); ++i)
-				il_desc[i].SemanticName = semantic_names[i].c_str();
-
+			for (uint32_t i = 0; i < il_desc.size(); ++i) il_desc[i].SemanticName = semantic_names[i].c_str();
 			desc.NumElements = static_cast<UINT>(il_desc.size());
-			desc.pInputElementDescs = il_desc.data();
+			desc.pInputElementDescs = desc.NumElements ? il_desc.data() : nullptr;
 			return desc;
 		}
 	};

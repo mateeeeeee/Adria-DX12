@@ -56,7 +56,7 @@ namespace adria
 					auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 					cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::ClusterBuilding));
-					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::ClusterBuilding));
+					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::ClusterBuilding));
 					cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 
 					OffsetType descriptor_index = descriptor_allocator->Allocate();
@@ -115,7 +115,7 @@ namespace adria
 				dynamic_alloc.Update(structured_lights.data(), dynamic_alloc.size);
 
 				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::ClusterCulling));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::ClusterCulling));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::ClusterCulling));
 
 				OffsetType i = descriptor_allocator->AllocateRange(2);
 				auto dst_descriptor = descriptor_allocator->GetHandle(i);
@@ -176,7 +176,7 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::ClusteredLightingPBR));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::ClusteredLightingPBR));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::ClusteredLightingPBR));
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 
 				//gbuffer

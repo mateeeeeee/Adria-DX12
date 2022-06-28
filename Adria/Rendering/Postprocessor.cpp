@@ -230,7 +230,7 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::VelocityBuffer));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::VelocityBuffer));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::VelocityBuffer));
 
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetGraphicsRootConstantBufferView(1, global_data.postprocess_cbuffer_address);
@@ -273,7 +273,7 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Clouds));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Clouds));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Clouds));
 
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetGraphicsRootConstantBufferView(1, global_data.weather_cbuffer_address);
@@ -326,7 +326,7 @@ namespace adria
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::SSR));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::SSR));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::SSR));
 
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetGraphicsRootConstantBufferView(1, global_data.postprocess_cbuffer_address);
@@ -378,7 +378,7 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Fog));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Fog));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Fog));
 
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetGraphicsRootConstantBufferView(1, global_data.postprocess_cbuffer_address);
@@ -428,7 +428,7 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::BloomExtract));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::BloomExtract));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::BloomExtract));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.compute_cbuffer_address);
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
@@ -475,7 +475,7 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::BloomCombine));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::BloomCombine));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::BloomCombine));
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = context.GetReadOnlyTexture(data.input);
@@ -524,7 +524,7 @@ namespace adria
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Forward));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Sun));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Sun));
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				
 				auto [transform, mesh, material] = reg.get<Transform, Mesh, Material>(sun);
@@ -619,7 +619,7 @@ namespace adria
 				light_allocation.Update(light_cbuf_data);
 
 				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::GodRays));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::GodRays));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::GodRays));
 
 				cmd_list->SetGraphicsRootConstantBufferView(0, light_allocation.gpu_address);
 
@@ -668,7 +668,7 @@ namespace adria
 				lens_flare_descriptors.push_back(context.GetReadOnlyTexture(data.depth));
 
 				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::LensFlare));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::LensFlare));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::LensFlare));
 				DynamicAllocation light_allocation = dynamic_allocator->Allocate(GetCBufferSize<LightCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 				LightCBuffer light_cbuf_data{};
 				{
@@ -730,7 +730,7 @@ namespace adria
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::DOF));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::DOF));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::DOF));
 
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetGraphicsRootConstantBufferView(1, global_data.postprocess_cbuffer_address);
@@ -781,7 +781,7 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::MotionBlur));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::MotionBlur));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::MotionBlur));
 
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetGraphicsRootConstantBufferView(1, global_data.postprocess_cbuffer_address);
@@ -866,7 +866,7 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::TAA));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::TAA));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::TAA));
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), context.GetReadOnlyTexture(data.input_srv),
@@ -934,7 +934,7 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 		
 				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::BokehGenerate));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::BokehGenerate));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::BokehGenerate));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRootConstantBufferView(1, global_data.postprocess_cbuffer_address);
 				cmd_list->SetComputeRootConstantBufferView(2, global_data.compute_cbuffer_address);
@@ -1022,7 +1022,7 @@ namespace adria
 				}
 
 				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Bokeh));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Bokeh));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Bokeh));
 
 				OffsetType i = descriptor_allocator->AllocateRange(2);
 

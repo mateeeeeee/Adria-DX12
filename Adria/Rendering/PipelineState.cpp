@@ -11,53 +11,20 @@
 #include "../Utilities/Timer.h"
 #include "../Utilities/HashMap.h"
 
-
-namespace fs = std::filesystem;
 using namespace Microsoft::WRL;
 
 namespace adria
 {
-	namespace
+	#if 0
+namespace
 	{
-		inline ShaderBlob const& GetShader(EShader shader)
-		{
-			return ShaderManager::GetShader(shader);
-		}
-
-		void CreateAllRootSignatures()
-		{
-			ID3D12Device* device = gfx->GetDevice();
-			
-		}
 		void CreateAllPSOs()
 		{
 			ID3D12Device* device = gfx->GetDevice();
 			D3D12_GRAPHICS_PIPELINE_STATE_DESC graphics_pso_desc{};
 			InputLayout input_layout;
 			{
-				graphics_pso_desc.InputLayout = { nullptr, 0u };
-				graphics_pso_desc.pRootSignature = rs_map[ERootSignature::Particles_Shading].Get();
-				graphics_pso_desc.VS = GetShader(VS_Particles);
-				graphics_pso_desc.PS = GetShader(PS_Particles);
-				graphics_pso_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				graphics_pso_desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-				graphics_pso_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-				graphics_pso_desc.BlendState.RenderTarget[0].BlendEnable = TRUE;
-				graphics_pso_desc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
-				graphics_pso_desc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
-				graphics_pso_desc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
-				graphics_pso_desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-				graphics_pso_desc.DepthStencilState.DepthEnable = FALSE;
-				graphics_pso_desc.DepthStencilState.StencilEnable = FALSE;
-				graphics_pso_desc.SampleMask = UINT_MAX;
-				graphics_pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				graphics_pso_desc.NumRenderTargets = 1;
-				graphics_pso_desc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				graphics_pso_desc.SampleDesc.Count = 1;
-				graphics_pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-				BREAK_IF_FAILED(device->CreateGraphicsPipelineState(&graphics_pso_desc, IID_PPV_ARGS(&pso_map[EPipelineStateObject::Particles_Shading])));
-				AddDependency(EPipelineStateObject::Particles_Shading, { VS_Particles, PS_Particles }, graphics_pso_desc);
-
+				
 				graphics_pso_desc = {};
 				ShaderCompiler::CreateInputLayoutWithReflection(ShaderManager::GetShader(VS_Skybox), input_layout);
 				graphics_pso_desc.InputLayout = input_layout;
@@ -751,39 +718,7 @@ namespace adria
 			}
 		}
 	}
-
-	void PSOManager::Initialize(GraphicsDevice* _gfx)
-	{
-		gfx = _gfx;
-		ShaderManager::Initialize();
-		CreateAllRootSignatures();
-		CreateAllPSOs();
-	}
-
-	void PSOManager::Destroy()
-	{
-		auto FreeContainer = []<typename T>(T& container)
-		{
-			container.clear();
-			T empty;
-			using std::swap;
-			swap(container, empty);
-		};
-		FreeContainer(rs_map);
-		FreeContainer(pso_map);
-		gfx = nullptr;
-		ShaderManager::Destroy();
-	}
-
-	ID3D12RootSignature* PSOManager::GetRootSignature(ERootSignature root_sig)
-	{
-
-	}
-
-	ID3D12PipelineState* PSOManager::GetPipelineState(EPipelineStateObject pso)
-	{
-
-	}
+#endif
 
 }
 

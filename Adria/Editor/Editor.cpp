@@ -875,12 +875,12 @@ namespace adria
 					if (engine->reg.has<Forward>(selected_entity))
 					{
 						if (material->albedo_texture != INVALID_TEXTURE_HANDLE)
-							material->pso = EPipelineStateObject::Texture;
-						else material->pso = EPipelineStateObject::Solid;
+							material->pso = EPipelineState::Texture;
+						else material->pso = EPipelineState::Solid;
 					}
 					else
 					{
-						material->pso = EPipelineStateObject::GbufferPBR;
+						material->pso = EPipelineState::GbufferPBR;
 					}
 				}
 

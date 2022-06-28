@@ -57,7 +57,7 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::ToneMap));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::ToneMap));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::ToneMap));
 
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.postprocess_cbuffer_address);
 
@@ -101,7 +101,7 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::ToneMap));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::ToneMap));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::ToneMap));
 
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.postprocess_cbuffer_address);
 

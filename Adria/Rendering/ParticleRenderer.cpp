@@ -216,7 +216,7 @@ namespace adria
 				RingOnlineDescriptorAllocator* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_InitDeadList));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_InitDeadList));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Particles_InitDeadList));
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
 				auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
 				device->CopyDescriptorsSimple(1, descriptor, context.GetReadWriteBuffer(data.dead_list),
@@ -245,7 +245,7 @@ namespace adria
 				RingOnlineDescriptorAllocator* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_Reset));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_Reset));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Particles_Reset));
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
 				auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
 				device->CopyDescriptorsSimple(1, descriptor, context.GetReadWriteBuffer(data.particle_bufferA),
@@ -326,7 +326,7 @@ namespace adria
 					emitter_allocation.Update(emitter_cbuffer_data);
 
 					cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_Emit));
-					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_Emit));
+					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Particles_Emit));
 
 					OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 					auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
@@ -408,7 +408,7 @@ namespace adria
 				ID3D12Device* device = gfx->GetDevice();
 				RingOnlineDescriptorAllocator* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_Simulate));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_Simulate));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Particles_Simulate));
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(6);
 				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { context.GetReadWriteBuffer(data.particle_bufferA),
@@ -466,7 +466,7 @@ namespace adria
 				RingOnlineDescriptorAllocator* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_InitSortDispatchArgs));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_InitSortDispatchArgs));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Particles_InitSortDispatchArgs));
 
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
 				auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
@@ -508,7 +508,7 @@ namespace adria
 				cmd_list->SetComputeRootConstantBufferView(1, ctx.GetConstantBuffer(data.alive_index_count).GetGPUAddress());
 				cmd_list->SetComputeRootConstantBufferView(2, sort_dispatch_info_allocation.gpu_address);
 
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_Sort512));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Particles_Sort512));
 				cmd_list->ExecuteIndirect(indirect_sort_args_signature.Get(), 1, ctx.GetIndirectArgsBuffer(data.indirect_args).GetNative(), 0, nullptr, 0);
 				
 				D3D12_RESOURCE_BARRIER uav_barrier = CD3DX12_RESOURCE_BARRIER::UAV(ctx.GetBuffer(data.alive_index.GetResourceId()).GetNative());
@@ -548,7 +548,7 @@ namespace adria
 					cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_Sort));
 					cmd_list->SetComputeRootDescriptorTable(0, descriptor);
 					cmd_list->SetComputeRootConstantBufferView(1, ctx.GetConstantBuffer(data.alive_index_count).GetGPUAddress());
-					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_BitonicSortStep));
+					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Particles_BitonicSortStep));
 
 					uint32 num_thread_groups = 0;
 					if (MAX_PARTICLES > presorted)
@@ -583,7 +583,7 @@ namespace adria
 						D3D12_RESOURCE_BARRIER uav_barrier = CD3DX12_RESOURCE_BARRIER::UAV(ctx.GetBuffer(data.alive_index.GetResourceId()).GetNative());
 						cmd_list->ResourceBarrier(1, &uav_barrier);
 					}
-					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_SortInner512));
+					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Particles_SortInner512));
 					cmd_list->Dispatch(num_thread_groups, 1, 1);
 
 				}, ERGPassType::Compute, ERGPassFlags::None);
@@ -629,7 +629,7 @@ namespace adria
 				RingOnlineDescriptorAllocator* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Particles_Shading));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Particles_Shading));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Particles_Shading));
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 				auto descriptor = descriptor_allocator->GetHandle(descriptor_index);

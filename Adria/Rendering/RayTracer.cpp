@@ -1,9 +1,11 @@
 #include "RayTracer.h"
 #include "Components.h"
 #include "GlobalBlackboardData.h"
+#include "ShaderManager.h"
+#include "RootSignatureCache.h"
 #include "../tecs/registry.h"
 #include "../RenderGraph/RenderGraph.h"
-#include "ShaderManager.h"
+#include "../Graphics/Shader.h"
 #include "../Logging/Logger.h"
 
 using namespace DirectX;
@@ -30,7 +32,6 @@ namespace adria
 				"Calls to Ray Traced Reflections will be silently ignored!");
 		}
 
-		CreateRootSignatures();
 		CreateStateObjects();
 		CreateShaderTables();
 	}
@@ -165,7 +166,7 @@ namespace adria
 				DynamicAllocation light_allocation = dynamic_allocator->Allocate(GetCBufferSize<LightCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 				light_allocation.Update(light_cbuf_data);
 
-				cmd_list->SetComputeRootSignature(ray_traced_shadows.root_signature.Get());
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::RayTracedShadows));
 
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRootConstantBufferView(1, light_allocation.gpu_address);
@@ -239,7 +240,7 @@ namespace adria
 				auto device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				cmd_list->SetComputeRootSignature(ray_traced_reflections.root_signature.Get());
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::RayTracedReflections));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRootConstantBufferView(1, ray_tracing_cbuffer.View(gfx->BackbufferIndex()).BufferLocation);
 				cmd_list->SetComputeRootShaderResourceView(2, accel_structure.GetTLAS()->GetGPUAddress());
@@ -306,7 +307,7 @@ namespace adria
 				auto device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				cmd_list->SetComputeRootSignature(ray_traced_ambient_occlusion.root_signature.Get());
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::RayTracedAmbientOcclusion));
 
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRootConstantBufferView(1, ray_tracing_cbuffer.View(gfx->BackbufferIndex()).BufferLocation);
@@ -360,167 +361,14 @@ namespace adria
 			}, ERGPassType::Copy, ERGPassFlags::ForceNoCull);
 	}
 
-	void RayTracer::CreateRootSignatures()
-	{
-		ID3D12Device5* device = gfx->GetDevice();
-
-		D3D12_FEATURE_DATA_ROOT_SIGNATURE feature_data{};
-		feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
-		//RTS
-		{
-			std::array<CD3DX12_ROOT_PARAMETER1, 6> root_parameters{};
-			root_parameters[0].InitAsConstantBufferView(0);
-			root_parameters[1].InitAsConstantBufferView(2);
-			root_parameters[2].InitAsConstantBufferView(10);
-			root_parameters[3].InitAsShaderResourceView(0);
-
-			D3D12_DESCRIPTOR_RANGE1 srv_range = {};
-			srv_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-			srv_range.NumDescriptors = 1;
-			srv_range.BaseShaderRegister = 1;
-			srv_range.RegisterSpace = 0;
-			srv_range.OffsetInDescriptorsFromTableStart = 0;
-			root_parameters[4].InitAsDescriptorTable(1, &srv_range);
-
-			D3D12_DESCRIPTOR_RANGE1 uav_range = {};
-			uav_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-			uav_range.NumDescriptors = 1;
-			uav_range.BaseShaderRegister = 0;
-			uav_range.RegisterSpace = 0;
-			uav_range.OffsetInDescriptorsFromTableStart = 0;
-			root_parameters[5].InitAsDescriptorTable(1, &uav_range);
-
-			CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_desc{};
-			root_signature_desc.Init_1_1((uint32)root_parameters.size(), root_parameters.data(), 0, nullptr);
-
-			Microsoft::WRL::ComPtr<ID3DBlob> signature;
-			Microsoft::WRL::ComPtr<ID3DBlob> error;
-			D3DX12SerializeVersionedRootSignature(&root_signature_desc, feature_data.HighestVersion, &signature, &error);
-			if (error)
-			{
-				ADRIA_LOG(ERROR, (char*)error->GetBufferPointer());
-				ADRIA_ASSERT(FALSE);
-			}
-			BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&ray_traced_shadows.root_signature)));
-		}
-
-		//RTAO
-		{
-			std::array<CD3DX12_ROOT_PARAMETER1, 5> root_parameters{};
-			root_parameters[0].InitAsConstantBufferView(0);
-			root_parameters[1].InitAsConstantBufferView(10);
-			root_parameters[2].InitAsShaderResourceView(0);
-
-			D3D12_DESCRIPTOR_RANGE1 srv_range = {};
-			srv_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-			srv_range.NumDescriptors = 2;
-			srv_range.BaseShaderRegister = 1;
-			srv_range.RegisterSpace = 0;
-			srv_range.OffsetInDescriptorsFromTableStart = 0;
-			root_parameters[3].InitAsDescriptorTable(1, &srv_range);
-
-			D3D12_DESCRIPTOR_RANGE1 uav_range = {};
-			uav_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-			uav_range.NumDescriptors = 1;
-			uav_range.BaseShaderRegister = 0;
-			uav_range.RegisterSpace = 0;
-			uav_range.OffsetInDescriptorsFromTableStart = 0;
-			root_parameters[4].InitAsDescriptorTable(1, &uav_range);
-
-			CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_desc{};
-			root_signature_desc.Init_1_1((uint32)root_parameters.size(), root_parameters.data(), 0, nullptr);
-
-			Microsoft::WRL::ComPtr<ID3DBlob> signature;
-			Microsoft::WRL::ComPtr<ID3DBlob> error;
-			D3DX12SerializeVersionedRootSignature(&root_signature_desc, feature_data.HighestVersion, &signature, &error);
-			if (error)
-			{
-				ADRIA_LOG(ERROR, (char*)error->GetBufferPointer());
-				ADRIA_ASSERT(FALSE);
-			}
-			BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&ray_traced_ambient_occlusion.root_signature)));
-		}
-
-		//RTR
-		{
-			std::array<CD3DX12_ROOT_PARAMETER1, 7> root_parameters{};
-			root_parameters[0].InitAsConstantBufferView(0);
-			root_parameters[1].InitAsConstantBufferView(10);
-			root_parameters[2].InitAsShaderResourceView(0);
-
-			D3D12_DESCRIPTOR_RANGE1 srv_range{};
-			srv_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-			srv_range.NumDescriptors = 2;
-			srv_range.BaseShaderRegister = 1;
-			srv_range.RegisterSpace = 0;
-			srv_range.OffsetInDescriptorsFromTableStart = 0;
-			root_parameters[3].InitAsDescriptorTable(1, &srv_range);
-
-			D3D12_DESCRIPTOR_RANGE1 uav_range{};
-			uav_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-			uav_range.NumDescriptors = 1;
-			uav_range.BaseShaderRegister = 0;
-			uav_range.RegisterSpace = 0;
-			uav_range.OffsetInDescriptorsFromTableStart = 0;
-			root_parameters[4].InitAsDescriptorTable(1, &uav_range);
-
-			D3D12_DESCRIPTOR_RANGE1 unbounded_srv_range{};
-			unbounded_srv_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-			unbounded_srv_range.NumDescriptors = UINT_MAX;
-			unbounded_srv_range.BaseShaderRegister = 0;
-			unbounded_srv_range.RegisterSpace = 1;
-			unbounded_srv_range.OffsetInDescriptorsFromTableStart = 0;
-			unbounded_srv_range.Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE;
-			root_parameters[5].InitAsDescriptorTable(1, &unbounded_srv_range);
-
-			D3D12_DESCRIPTOR_RANGE1 geometry_srv_range{};
-			geometry_srv_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-			geometry_srv_range.NumDescriptors = 3;
-			geometry_srv_range.BaseShaderRegister = 0;
-			geometry_srv_range.RegisterSpace = 2;
-			geometry_srv_range.OffsetInDescriptorsFromTableStart = 0;
-			root_parameters[6].InitAsDescriptorTable(1, &geometry_srv_range);
-
-			D3D12_STATIC_SAMPLER_DESC linear_wrap_sampler = CD3DX12_STATIC_SAMPLER_DESC(0, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
-				D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
-
-			CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_desc{};
-			root_signature_desc.Init_1_1((uint32)root_parameters.size(), root_parameters.data(), 1, &linear_wrap_sampler);
-
-			Microsoft::WRL::ComPtr<ID3DBlob> signature;
-			Microsoft::WRL::ComPtr<ID3DBlob> error;
-			D3DX12SerializeVersionedRootSignature(&root_signature_desc, feature_data.HighestVersion, &signature, &error);
-			if (error)
-			{
-				ADRIA_LOG(ERROR, (char*)error->GetBufferPointer());
-				ADRIA_ASSERT(FALSE);
-			}
-			BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&ray_traced_reflections.root_signature)));
-		}
-	}
-
 	void RayTracer::CreateStateObjects()
 	{
 		ID3D12Device5* device = gfx->GetDevice();
 
-		ShaderCompileInput compile_info{};
-		compile_info.stage = EShaderStage::LIB;
-		compile_info.source_file = "Resources/Shaders/RayTracing/RayTracedShadows.hlsl";
-		ShaderBlob rt_shadows_blob;
-		ShaderCompiler::CompileShader(compile_info, rt_shadows_blob);
-
-		compile_info.macros.emplace_back(L"SOFT_SHADOWS", L"");
-		ShaderBlob rt_soft_shadows_blob;
-		ShaderCompiler::CompileShader(compile_info, rt_soft_shadows_blob);
-		compile_info.macros.clear();
-
-		compile_info.source_file = "Resources/Shaders/RayTracing/RayTracedAmbientOcclusion.hlsl";
-		ShaderBlob rtao_blob;
-		ShaderCompiler::CompileShader(compile_info, rtao_blob);
-
-		compile_info.source_file = "Resources/Shaders/RayTracing/RayTracedReflections.hlsl";
-		ShaderBlob rtr_blob;
-		ShaderCompiler::CompileShader(compile_info, rtr_blob);
+		ShaderBlob rt_shadows_blob = ShaderManager::GetShader(LIB_Shadows);
+		ShaderBlob rt_soft_shadows_blob = ShaderManager::GetShader(LIB_SoftShadows);
+		ShaderBlob rtao_blob = ShaderManager::GetShader(LIB_AmbientOcclusion);
+		ShaderBlob rtr_blob = ShaderManager::GetShader(LIB_Reflections);
 
 		StateObjectBuilder rt_shadows_state_object_builder(6);
 		{
@@ -555,7 +403,7 @@ namespace adria
 			rt_shadows_state_object_builder.AddSubObject(rt_shadows_shader_config);
 
 			D3D12_GLOBAL_ROOT_SIGNATURE global_root_sig{};
-			global_root_sig.pGlobalRootSignature = ray_traced_shadows.root_signature.Get();
+			global_root_sig.pGlobalRootSignature = RootSignatureCache::Get(ERootSignature::RayTracedShadows);
 			rt_shadows_state_object_builder.AddSubObject(global_root_sig);
 
 			// Add a state subobject for the ray tracing pipeline config
@@ -587,7 +435,7 @@ namespace adria
 			rtao_state_object_builder.AddSubObject(rtao_shader_config);
 
 			D3D12_GLOBAL_ROOT_SIGNATURE global_root_sig{};
-			global_root_sig.pGlobalRootSignature = ray_traced_ambient_occlusion.root_signature.Get();
+			global_root_sig.pGlobalRootSignature = RootSignatureCache::Get(ERootSignature::RayTracedAmbientOcclusion);
 			rtao_state_object_builder.AddSubObject(global_root_sig);
 
 			// Add a state subobject for the ray tracing pipeline config
@@ -619,7 +467,7 @@ namespace adria
 			rtr_state_object_builder.AddSubObject(rtr_shader_config);
 
 			D3D12_GLOBAL_ROOT_SIGNATURE global_root_sig{};
-			global_root_sig.pGlobalRootSignature = ray_traced_reflections.root_signature.Get();
+			global_root_sig.pGlobalRootSignature = RootSignatureCache::Get(ERootSignature::RayTracedReflections);
 			rtr_state_object_builder.AddSubObject(global_root_sig);
 
 			// Add a state subobject for the ray tracing pipeline config
@@ -699,6 +547,12 @@ namespace adria
 			ray_traced_reflections.shader_table_miss = std::make_unique<ShaderTable>(device, 1);
 			ray_traced_reflections.shader_table_miss->AddShaderRecord(ShaderRecord(rtr_miss_id));
 		}
+	}
+
+	void RayTracer::OnLibraryRecompiled(EShader shader)
+	{
+		CreateStateObjects();
+		CreateShaderTables();
 	}
 
 }

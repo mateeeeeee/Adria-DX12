@@ -35,13 +35,13 @@ namespace adria
 				switch (mode)
 				{
 				case EBlendMode::None:
-					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Add));
+					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Add));
 					break;
 				case EBlendMode::AlphaBlend:
-					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Add_AlphaBlend));
+					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Add_AlphaBlend));
 					break;
 				case EBlendMode::AdditiveBlend:
-					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Add_AdditiveBlend));
+					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Add_AdditiveBlend));
 					break;
 				default:
 					ADRIA_ASSERT(false && "Invalid Copy Mode in CopyTexture");

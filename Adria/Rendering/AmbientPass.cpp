@@ -67,10 +67,10 @@ namespace adria
 
 				bool has_ao = data.ambient_occlusion_srv.IsValid();
 				bool has_ibl = data.env_srv.IsValid() && data.irmap_srv.IsValid() && data.brdf_srv.IsValid();
-				if (has_ao && has_ibl) cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::AmbientPBR_AO_IBL));
-				else if (has_ao && has_ibl) cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::AmbientPBR_AO));
-				else if (!has_ao && has_ibl) cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::AmbientPBR_IBL));
-				else cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::AmbientPBR));
+				if (has_ao && has_ibl) cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::AmbientPBR_AO_IBL));
+				else if (has_ao && has_ibl) cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::AmbientPBR_AO));
+				else if (!has_ao && has_ibl) cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::AmbientPBR_IBL));
+				else cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::AmbientPBR));
 
 				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { context.GetReadOnlyTexture(data.gbuffer_normal_srv),
 					context.GetReadOnlyTexture(data.gbuffer_albedo_srv), context.GetReadOnlyTexture(data.gbuffer_emissive_srv), context.GetReadOnlyTexture(data.depth_stencil_srv) };

@@ -75,7 +75,7 @@ namespace adria
 		float32 emissive_factor		= 1.0f;
 
 		DirectX::XMFLOAT3 diffuse = DirectX::XMFLOAT3(1, 1, 1);
-		EPipelineStateObject pso = EPipelineStateObject::Unknown;
+		EPipelineState pso = EPipelineState::Unknown;
 	};
 
 	struct COMPONENT Light

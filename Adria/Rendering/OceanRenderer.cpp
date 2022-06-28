@@ -59,7 +59,7 @@ namespace adria
 					auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 					cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::InitialSpectrum));
-					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::InitialSpectrum));
+					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::InitialSpectrum));
 					cmd_list->SetComputeRootConstantBufferView(0, global_data.compute_cbuffer_address);
 
 					OffsetType descriptor_index = descriptor_allocator->Allocate();
@@ -88,7 +88,7 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Phase));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Phase));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Phase));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.compute_cbuffer_address);
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index),
@@ -124,7 +124,7 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Spectrum));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Spectrum));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Spectrum));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.compute_cbuffer_address);
 
 				D3D12_CPU_DESCRIPTOR_HANDLE srvs[] = { context.GetReadOnlyTexture(data.phase_srv), context.GetReadOnlyTexture(data.initial_spectrum_srv)};
@@ -177,7 +177,7 @@ namespace adria
 					auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 					cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::FFT));
-					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::FFT_Horizontal));
+					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::FFT_Horizontal));
 
 					FFTCBuffer fft_cbuf_data{ .seq_count = FFT_RESOLUTION };
 					fft_cbuf_data.subseq_count = p;
@@ -225,7 +225,7 @@ namespace adria
 					auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 					cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::FFT));
-					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::FFT_Vertical));
+					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::FFT_Vertical));
 
 					FFTCBuffer fft_cbuf_data{ .seq_count = FFT_RESOLUTION };
 					fft_cbuf_data.subseq_count = p;
@@ -273,7 +273,7 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::OceanNormalMap));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::OceanNormalMap));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::OceanNormalMap));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.compute_cbuffer_address);
 
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
@@ -329,15 +329,15 @@ namespace adria
 				{
 					cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::OceanLOD));
 					cmd_list->SetPipelineState(
-						wireframe ? RootSigPSOManager::GetPipelineState(EPipelineStateObject::OceanLOD_Wireframe) :
-						RootSigPSOManager::GetPipelineState(EPipelineStateObject::OceanLOD));
+						wireframe ? RootSigPSOManager::GetPipelineState(EPipelineState::OceanLOD_Wireframe) :
+						RootSigPSOManager::GetPipelineState(EPipelineState::OceanLOD));
 				}
 				else
 				{
 					cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Ocean));
 					cmd_list->SetPipelineState(
-						wireframe ? RootSigPSOManager::GetPipelineState(EPipelineStateObject::Ocean_Wireframe) :
-						RootSigPSOManager::GetPipelineState(EPipelineStateObject::Ocean));
+						wireframe ? RootSigPSOManager::GetPipelineState(EPipelineState::Ocean_Wireframe) :
+						RootSigPSOManager::GetPipelineState(EPipelineState::Ocean));
 				}
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetGraphicsRootConstantBufferView(3, global_data.weather_cbuffer_address);

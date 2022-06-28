@@ -29,7 +29,7 @@ namespace adria
 				Texture const& texture = context.GetTexture(data.texture_src.GetResourceId());
 				//Set root signature, pso and descriptor heap
 				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::GenerateMips));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::GenerateMips));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::GenerateMips));
 
 				//Prepare the shader resource view description for the source texture
 				D3D12_SHADER_RESOURCE_VIEW_DESC src_srv_desc{};

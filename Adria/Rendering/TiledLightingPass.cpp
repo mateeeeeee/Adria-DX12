@@ -72,7 +72,7 @@ namespace adria
 				}
 
 				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::TiledLighting));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::TiledLighting));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::TiledLighting));
 
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRootConstantBufferView(1, global_data.compute_cbuffer_address);

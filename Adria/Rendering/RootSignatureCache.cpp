@@ -308,6 +308,135 @@ namespace adria
 					BREAK_IF_FAILED(D3DX12SerializeVersionedRootSignature(&root_signature_desc, feature_data.HighestVersion, &signature, &error));
 					BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::GenerateMips])));
 				}
+
+				//RTS
+				{
+					std::array<CD3DX12_ROOT_PARAMETER1, 6> root_parameters{};
+					root_parameters[0].InitAsConstantBufferView(0);
+					root_parameters[1].InitAsConstantBufferView(2);
+					root_parameters[2].InitAsConstantBufferView(10);
+					root_parameters[3].InitAsShaderResourceView(0);
+
+					D3D12_DESCRIPTOR_RANGE1 srv_range = {};
+					srv_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+					srv_range.NumDescriptors = 1;
+					srv_range.BaseShaderRegister = 1;
+					srv_range.RegisterSpace = 0;
+					srv_range.OffsetInDescriptorsFromTableStart = 0;
+					root_parameters[4].InitAsDescriptorTable(1, &srv_range);
+
+					D3D12_DESCRIPTOR_RANGE1 uav_range = {};
+					uav_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+					uav_range.NumDescriptors = 1;
+					uav_range.BaseShaderRegister = 0;
+					uav_range.RegisterSpace = 0;
+					uav_range.OffsetInDescriptorsFromTableStart = 0;
+					root_parameters[5].InitAsDescriptorTable(1, &uav_range);
+
+					CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_desc{};
+					root_signature_desc.Init_1_1((uint32)root_parameters.size(), root_parameters.data(), 0, nullptr);
+
+					Microsoft::WRL::ComPtr<ID3DBlob> signature;
+					Microsoft::WRL::ComPtr<ID3DBlob> error;
+					D3DX12SerializeVersionedRootSignature(&root_signature_desc, feature_data.HighestVersion, &signature, &error);
+					if (error)
+					{
+						ADRIA_ASSERT(FALSE);
+					}
+					BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::RayTracedShadows])));
+				}
+
+				//RTAO
+				{
+					std::array<CD3DX12_ROOT_PARAMETER1, 5> root_parameters{};
+					root_parameters[0].InitAsConstantBufferView(0);
+					root_parameters[1].InitAsConstantBufferView(10);
+					root_parameters[2].InitAsShaderResourceView(0);
+
+					D3D12_DESCRIPTOR_RANGE1 srv_range = {};
+					srv_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+					srv_range.NumDescriptors = 2;
+					srv_range.BaseShaderRegister = 1;
+					srv_range.RegisterSpace = 0;
+					srv_range.OffsetInDescriptorsFromTableStart = 0;
+					root_parameters[3].InitAsDescriptorTable(1, &srv_range);
+
+					D3D12_DESCRIPTOR_RANGE1 uav_range = {};
+					uav_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+					uav_range.NumDescriptors = 1;
+					uav_range.BaseShaderRegister = 0;
+					uav_range.RegisterSpace = 0;
+					uav_range.OffsetInDescriptorsFromTableStart = 0;
+					root_parameters[4].InitAsDescriptorTable(1, &uav_range);
+
+					CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_desc{};
+					root_signature_desc.Init_1_1((uint32)root_parameters.size(), root_parameters.data(), 0, nullptr);
+
+					Microsoft::WRL::ComPtr<ID3DBlob> signature;
+					Microsoft::WRL::ComPtr<ID3DBlob> error;
+					D3DX12SerializeVersionedRootSignature(&root_signature_desc, feature_data.HighestVersion, &signature, &error);
+					if (error)
+					{
+						ADRIA_ASSERT(FALSE);
+					}
+					BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::RayTracedAmbientOcclusion])));
+				}
+
+				//RTR
+				{
+					std::array<CD3DX12_ROOT_PARAMETER1, 7> root_parameters{};
+					root_parameters[0].InitAsConstantBufferView(0);
+					root_parameters[1].InitAsConstantBufferView(10);
+					root_parameters[2].InitAsShaderResourceView(0);
+
+					D3D12_DESCRIPTOR_RANGE1 srv_range{};
+					srv_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+					srv_range.NumDescriptors = 2;
+					srv_range.BaseShaderRegister = 1;
+					srv_range.RegisterSpace = 0;
+					srv_range.OffsetInDescriptorsFromTableStart = 0;
+					root_parameters[3].InitAsDescriptorTable(1, &srv_range);
+
+					D3D12_DESCRIPTOR_RANGE1 uav_range{};
+					uav_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+					uav_range.NumDescriptors = 1;
+					uav_range.BaseShaderRegister = 0;
+					uav_range.RegisterSpace = 0;
+					uav_range.OffsetInDescriptorsFromTableStart = 0;
+					root_parameters[4].InitAsDescriptorTable(1, &uav_range);
+
+					D3D12_DESCRIPTOR_RANGE1 unbounded_srv_range{};
+					unbounded_srv_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+					unbounded_srv_range.NumDescriptors = UINT_MAX;
+					unbounded_srv_range.BaseShaderRegister = 0;
+					unbounded_srv_range.RegisterSpace = 1;
+					unbounded_srv_range.OffsetInDescriptorsFromTableStart = 0;
+					unbounded_srv_range.Flags = D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE;
+					root_parameters[5].InitAsDescriptorTable(1, &unbounded_srv_range);
+
+					D3D12_DESCRIPTOR_RANGE1 geometry_srv_range{};
+					geometry_srv_range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+					geometry_srv_range.NumDescriptors = 3;
+					geometry_srv_range.BaseShaderRegister = 0;
+					geometry_srv_range.RegisterSpace = 2;
+					geometry_srv_range.OffsetInDescriptorsFromTableStart = 0;
+					root_parameters[6].InitAsDescriptorTable(1, &geometry_srv_range);
+
+					D3D12_STATIC_SAMPLER_DESC linear_wrap_sampler = CD3DX12_STATIC_SAMPLER_DESC(0, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+						D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
+
+					CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_desc{};
+					root_signature_desc.Init_1_1((uint32)root_parameters.size(), root_parameters.data(), 1, &linear_wrap_sampler);
+
+					Microsoft::WRL::ComPtr<ID3DBlob> signature;
+					Microsoft::WRL::ComPtr<ID3DBlob> error;
+					D3DX12SerializeVersionedRootSignature(&root_signature_desc, feature_data.HighestVersion, &signature, &error);
+					if (error)
+					{
+						ADRIA_ASSERT(FALSE);
+					}
+					BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::RayTracedReflections])));
+				}
 			}
 		}
 	}
@@ -329,7 +458,7 @@ namespace adria
 			};
 			FreeContainer(rs_map);
 		}
-		ID3D12RootSignature* GetRootSignature(ERootSignature root_signature_id)
+		ID3D12RootSignature* Get(ERootSignature root_signature_id)
 		{
 			return rs_map[root_signature_id].Get();
 		}

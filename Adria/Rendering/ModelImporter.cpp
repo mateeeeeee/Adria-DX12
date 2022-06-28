@@ -395,9 +395,9 @@ namespace adria
                 material.albedo_texture = texture_manager.LoadTexture(L"Resources/Textures/sun.png");
 
             if (params.light_data.type == ELightType::Directional)
-                material.pso = EPipelineStateObject::Sun;
+                material.pso = EPipelineState::Sun;
             else if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
-                material.pso = EPipelineStateObject::Billboard;
+                material.pso = EPipelineState::Billboard;
 			else 
 			{ 
 				ADRIA_LOG(ERROR, "Light with quad mesh needs diffuse texture!"); 
@@ -456,7 +456,7 @@ namespace adria
 
 		Material ocean_material{};
 		ocean_material.diffuse = XMFLOAT3(0.0123f, 0.3613f, 0.6867f);
-		ocean_material.pso = EPipelineStateObject::Unknown;
+		ocean_material.pso = EPipelineState::Unknown;
 		Ocean ocean_component{};
 
 		for (auto ocean_chunk : ocean_chunks)
@@ -794,7 +794,7 @@ namespace adria
 					material.emissive_texture = texture_manager.LoadTexture(ConvertToWide(texemissive));
 					material.emissive_factor = (float32)gltf_material.emissiveFactor[0];
 				}
-				material.pso = EPipelineStateObject::GbufferPBR;
+				material.pso = EPipelineState::GbufferPBR;
 
 				reg.emplace<Material>(e, material);
 				reg.emplace<Deferred>(e);

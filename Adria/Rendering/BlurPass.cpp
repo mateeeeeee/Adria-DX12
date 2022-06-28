@@ -42,7 +42,7 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Blur));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Blur_Horizontal));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Blur_Horizontal));
 
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.compute_cbuffer_address);
 
@@ -85,7 +85,7 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Blur));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Blur_Vertical));
+				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Blur_Vertical));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.compute_cbuffer_address);
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);

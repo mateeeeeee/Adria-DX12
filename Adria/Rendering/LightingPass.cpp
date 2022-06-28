@@ -84,8 +84,8 @@ namespace adria
 
 				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::LightingPBR));
 				cmd_list->SetPipelineState(light.ray_traced_shadows ?
-					RootSigPSOManager::GetPipelineState(EPipelineStateObject::LightingPBR_RayTracedShadows) :
-					RootSigPSOManager::GetPipelineState(EPipelineStateObject::LightingPBR));
+					RootSigPSOManager::GetPipelineState(EPipelineState::LightingPBR_RayTracedShadows) :
+					RootSigPSOManager::GetPipelineState(EPipelineState::LightingPBR));
 
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetGraphicsRootConstantBufferView(1, light_allocation.gpu_address);
@@ -184,21 +184,21 @@ namespace adria
 					case ELightType::Directional:
 						if (light.use_cascades)
 						{
-							cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Volumetric_DirectionalCascades));
+							cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Volumetric_DirectionalCascades));
 							cpu_handles[1] = data.shadow_map.IsValid() ? context.GetReadOnlyTexture(data.shadow_map) : global_data.null_srv_texture2darray;
 						}
 						else
 						{
-							cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Volumetric_Directional));
+							cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Volumetric_Directional));
 							cpu_handles[1] = data.shadow_map.IsValid() ? context.GetReadOnlyTexture(data.shadow_map) : global_data.null_srv_texture2d;
 						}
 						break;
 					case ELightType::Spot:
-						cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Volumetric_Spot));
+						cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Volumetric_Spot));
 						cpu_handles[1] = data.shadow_map.IsValid() ? context.GetReadOnlyTexture(data.shadow_map) : global_data.null_srv_texture2d;
 						break;
 					case ELightType::Point:
-						cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineStateObject::Volumetric_Point));
+						cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Volumetric_Point));
 						cpu_handles[1] = data.shadow_map.IsValid() ? context.GetReadOnlyTexture(data.shadow_map) : global_data.null_srv_texturecube;
 						break;
 					default:

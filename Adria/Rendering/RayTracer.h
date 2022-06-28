@@ -52,7 +52,6 @@ namespace adria
 
 		struct RayTracingProgram
 		{
-			Microsoft::WRL::ComPtr<ID3D12RootSignature> root_signature = nullptr;
 			Microsoft::WRL::ComPtr<ID3D12StateObject> state_object = nullptr;
 			std::unique_ptr<ShaderTable> shader_table_raygen = nullptr;
 			std::unique_ptr<ShaderTable> shader_table_miss = nullptr;
@@ -93,9 +92,9 @@ namespace adria
 
 		BlurPass blur_pass;
 	private:
-		void CreateRootSignatures();
 		void CreateStateObjects();
 		void CreateShaderTables();
+		void OnLibraryRecompiled(EShader shader);
 	};
 	
 }

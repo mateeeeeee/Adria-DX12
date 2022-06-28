@@ -16,6 +16,8 @@ namespace adria
 	{
 		constexpr char const* shaders_directory = "Resources/Shaders/";
 		std::unique_ptr<FileWatcher> file_watcher;
+		ShaderRecompiledEvent shader_recompiled_event;
+		LibraryRecompiledEvent library_recompiled_event;
 		HashMap<EShader, ShaderBlob> shader_map;
 		HashMap<EShader, HashSet<fs::path>> dependent_files_map;
 
@@ -334,7 +336,8 @@ namespace adria
 			shader_map[shader] = std::move(output.blob);
 			dependent_files_map[shader].clear();
 			dependent_files_map[shader].insert(output.dependent_files.begin(), output.dependent_files.end());
-			//SEND EVENT HERE
+			
+			shader_recompiled_event.Broadcast(shader);
 		}
 		void CompileAllShaders()
 		{
@@ -348,7 +351,11 @@ namespace adria
 				std::end(shaders),
 				[](UnderlyingType s)
 				{
-					CompileShader((EShader)s);
+					EShader shader = static_cast<EShader>(s);
+					CompileShader(shader);
+					GetStage(shader) == EShaderStage::LIB ? 
+						library_recompiled_event.Broadcast(shader) : 
+						shader_recompiled_event.Broadcast(shader);
 				});
 			ADRIA_LOG(INFO, "Compilation done!");
 		}
@@ -385,5 +392,16 @@ namespace adria
 	{
 		return shader_map[shader];
 	}
+
+	ShaderRecompiledEvent& ShaderManager::GetShaderRecompiledEvent()
+	{
+		return shader_recompiled_event;
+	}
+
+	LibraryRecompiledEvent& ShaderManager::GetLibraryRecompiledEvent()
+	{
+		return library_recompiled_event;
+	}
+
 }
 
