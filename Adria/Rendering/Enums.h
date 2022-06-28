@@ -100,6 +100,7 @@ namespace adria
 
 	enum class ERootSignature : uint8
 	{
+		Invalid,
 		Skybox,
 		Sky,
 		ToneMap,

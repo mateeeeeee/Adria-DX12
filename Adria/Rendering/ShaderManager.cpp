@@ -390,6 +390,7 @@ namespace adria
 
 	ShaderBlob const& ShaderManager::GetShader(EShader shader)
 	{
+		if (shader == EShader_Invalid) return ShaderBlob{};
 		return shader_map[shader];
 	}
 

@@ -191,9 +191,6 @@
     <ClCompile Include="Rendering\SkyModel.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\PipelineState.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="Utilities\CPUProfiler.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
@@ -280,6 +277,9 @@
     </ClCompile>
     <ClCompile Include="Rendering\PSOCache.cpp">
       <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\GraphicsStates.cpp">
+      <Filter>Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -690,6 +690,9 @@
     </ClInclude>
     <ClInclude Include="Rendering\PSOCache.h">
       <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GraphicsStates.h">
+      <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

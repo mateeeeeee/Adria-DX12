@@ -226,48 +226,44 @@ namespace adria
 			D3D12_SHADER_DESC shaderDesc;
 			BREAK_IF_FAILED(pVertexShaderReflection->GetDesc(&shaderDesc));
 
-			// Read input layout description from shader info
 			D3D12_SIGNATURE_PARAMETER_DESC param_desc{};
 			D3D12_INPUT_ELEMENT_DESC d3d12element_desc{};
 
-			input_layout.il_desc.clear();
-			input_layout.semantic_names.clear();
-			input_layout.il_desc.resize(shaderDesc.InputParameters);
+			input_layout.elements.clear();
+			input_layout.elements.resize(shaderDesc.InputParameters);
 			for (uint32_t i = 0; i < shaderDesc.InputParameters; i++)
 			{
 				pVertexShaderReflection->GetInputParameterDesc(i, &param_desc);
-				input_layout.semantic_names.push_back(param_desc.SemanticName);
-				input_layout.il_desc[i].SemanticName = input_layout.semantic_names.back().c_str();
-				input_layout.il_desc[i].SemanticIndex = param_desc.SemanticIndex;
-				input_layout.il_desc[i].InputSlot = 0;
-				input_layout.il_desc[i].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
-				input_layout.il_desc[i].InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
-				input_layout.il_desc[i].InstanceDataStepRate = 0;
+				input_layout.elements[i].semantic_name = std::string(param_desc.SemanticName);
+				input_layout.elements[i].semantic_index = param_desc.SemanticIndex;
+				input_layout.elements[i].aligned_byte_offset = InputLayout::APPEND_ALIGNED_ELEMENT;
+				input_layout.elements[i].input_slot_class = EInputClassification::PerVertexData;
+				input_layout.elements[i].input_slot = 0;
 
 				// determine DXGI format
 				if (param_desc.Mask == 1)
 				{
-					if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)		 input_layout.il_desc[i].Format = DXGI_FORMAT_R32_UINT;
-					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  input_layout.il_desc[i].Format = DXGI_FORMAT_R32_SINT;
-					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.il_desc[i].Format = DXGI_FORMAT_R32_FLOAT;
+					if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)		 input_layout.elements[i].format = DXGI_FORMAT_R32_UINT;
+					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  input_layout.elements[i].format = DXGI_FORMAT_R32_SINT;
+					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.elements[i].format = DXGI_FORMAT_R32_FLOAT;
 				}
 				else if (param_desc.Mask <= 3)
 				{
-					if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)		 input_layout.il_desc[i].Format = DXGI_FORMAT_R32G32_UINT;
-					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  input_layout.il_desc[i].Format = DXGI_FORMAT_R32G32_SINT;
-					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.il_desc[i].Format = DXGI_FORMAT_R32G32_FLOAT;
+					if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)		 input_layout.elements[i].format = DXGI_FORMAT_R32G32_UINT;
+					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  input_layout.elements[i].format = DXGI_FORMAT_R32G32_SINT;
+					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.elements[i].format = DXGI_FORMAT_R32G32_FLOAT;
 				}
 				else if (param_desc.Mask <= 7)
 				{
-					if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)		 input_layout.il_desc[i].Format = DXGI_FORMAT_R32G32B32_UINT;
-					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  input_layout.il_desc[i].Format = DXGI_FORMAT_R32G32B32_SINT;
-					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.il_desc[i].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+					if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)		 input_layout.elements[i].format = DXGI_FORMAT_R32G32B32_UINT;
+					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  input_layout.elements[i].format = DXGI_FORMAT_R32G32B32_SINT;
+					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.elements[i].format = DXGI_FORMAT_R32G32B32_FLOAT;
 				}
 				else if (param_desc.Mask <= 15)
 				{
-					if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)		 input_layout.il_desc[i].Format = DXGI_FORMAT_R32G32B32A32_UINT;
-					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  input_layout.il_desc[i].Format = DXGI_FORMAT_R32G32B32A32_SINT;
-					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.il_desc[i].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+					if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)		 input_layout.elements[i].format = DXGI_FORMAT_R32G32B32A32_UINT;
+					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  input_layout.elements[i].format = DXGI_FORMAT_R32G32B32A32_SINT;
+					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.elements[i].format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 				}
 			}
 		}

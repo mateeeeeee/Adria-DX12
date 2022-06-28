@@ -170,6 +170,7 @@
     <ClCompile Include="Graphics\DDSTextureLoader12.cpp" />
     <ClCompile Include="Graphics\DescriptorHeap.cpp" />
     <ClCompile Include="Graphics\GraphicsDeviceDX12.cpp" />
+    <ClCompile Include="Graphics\GraphicsStates.cpp" />
     <ClCompile Include="Graphics\LinearOnlineDescriptorAllocator.cpp" />
     <ClCompile Include="Graphics\LinearDynamicAllocator.cpp" />
     <ClCompile Include="Graphics\MipsGenerator.cpp" />
@@ -213,7 +214,6 @@
     <ClCompile Include="Rendering\PSOCache.cpp" />
     <ClCompile Include="Rendering\RayTracer.cpp" />
     <ClCompile Include="Rendering\RenderGraphRenderer.cpp" />
-    <ClCompile Include="Rendering\PipelineState.cpp" />
     <ClCompile Include="Rendering\RootSignatureCache.cpp" />
     <ClCompile Include="Rendering\ShaderManager.cpp" />
     <ClCompile Include="Rendering\ShadowPass.cpp" />
@@ -258,6 +258,7 @@
     <ClInclude Include="Graphics\DWParam.h" />
     <ClInclude Include="Graphics\DynamicAllocation.h" />
     <ClInclude Include="Graphics\GraphicsDeviceDX12.h" />
+    <ClInclude Include="Graphics\GraphicsStates.h" />
     <ClInclude Include="Graphics\Heap.h" />
     <ClInclude Include="Graphics\MipsGenerator.h" />
     <ClInclude Include="Graphics\LinearDynamicAllocator.h" />
