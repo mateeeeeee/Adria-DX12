@@ -9,8 +9,43 @@
 
 namespace adria
 {
+	namespace
+	{
+		Microsoft::WRL::ComPtr<IDxcLibrary> library = nullptr;
+		Microsoft::WRL::ComPtr<IDxcCompiler> compiler = nullptr;
+		Microsoft::WRL::ComPtr<IDxcUtils> utils = nullptr;
+		Microsoft::WRL::ComPtr<IDxcIncludeHandler> include_handler = nullptr;
+	}
 
-	//for shader reflection
+	class CustomIncludeHandler : public IDxcIncludeHandler
+	{
+	public:
+		CustomIncludeHandler() {}
+
+		HRESULT STDMETHODCALLTYPE LoadSource(_In_ LPCWSTR pFilename, _COM_Outptr_result_maybenull_ IDxcBlob** ppIncludeSource) override
+		{
+			Microsoft::WRL::ComPtr<IDxcBlobEncoding> pEncoding;
+			std::string path = ConvertToNarrow(pFilename);
+			HRESULT hr = utils->LoadFile(pFilename, nullptr, pEncoding.GetAddressOf());
+			if (SUCCEEDED(hr))
+			{
+				include_files.push_back(path);
+				*ppIncludeSource = pEncoding.Detach();
+			}
+			else *ppIncludeSource = nullptr;
+			return hr;
+		}
+		HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, _COM_Outptr_ void __RPC_FAR* __RPC_FAR* ppvObject) override
+		{
+			return include_handler->QueryInterface(riid, ppvObject);
+		}
+
+		ULONG STDMETHODCALLTYPE AddRef(void) override { return 1; }
+		ULONG STDMETHODCALLTYPE Release(void) override { return 1; }
+
+		std::vector<std::string> include_files;
+	};
+
 	class ReflectionBlob : public IDxcBlob
 	{
 	public:
@@ -42,7 +77,7 @@ namespace adria
 
 		}
 
-		virtual ULONG STDMETHODCALLTYPE AddRef(void) override {return 1;}
+		virtual ULONG STDMETHODCALLTYPE AddRef(void) override { return 1; }
 
 		virtual ULONG STDMETHODCALLTYPE Release(void) override { return 1; }
 	private:
@@ -50,31 +85,23 @@ namespace adria
 		SIZE_T bytecodeSize = 0;
 	};
 
-	namespace
-	{
-		Microsoft::WRL::ComPtr<IDxcLibrary> library = nullptr;
-		Microsoft::WRL::ComPtr<IDxcCompiler> compiler = nullptr;
-		Microsoft::WRL::ComPtr<IDxcIncludeHandler> include_handler = nullptr;
-	}
-
 	namespace ShaderCompiler
 	{
 		void Initialize()
 		{
-			HRESULT hr = DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&library));
-			BREAK_IF_FAILED(hr);
-			hr = DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&compiler));
-			BREAK_IF_FAILED(hr);
+			BREAK_IF_FAILED(DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&library)));
+			BREAK_IF_FAILED(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&compiler)));
 			BREAK_IF_FAILED(library->CreateIncludeHandler(&include_handler));
-
+			BREAK_IF_FAILED(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(utils.GetAddressOf())));
 		}
 		void Destroy()
 		{
 			include_handler.Reset();
 			compiler.Reset();
 			library.Reset();
+			utils.Reset();
 		}
-		void CompileShader(ShaderCompileInput const& input, ShaderBlob& blob)
+		void CompileShader(ShaderCompileInput const& input, ShaderCompileOutput& output)
 		{
 			Microsoft::WRL::ComPtr<IDxcBlob> _blob;
 			uint32_t codePage = CP_UTF8; 
@@ -140,6 +167,7 @@ namespace adria
 				sm6_defines.push_back(sm6_define);
 			}
 
+			CustomIncludeHandler custom_include_handler{};
 			Microsoft::WRL::ComPtr<IDxcOperationResult> result;
 			hr = compiler->Compile(
 				sourceBlob.Get(),									// pSource
@@ -147,9 +175,9 @@ namespace adria
 				entry_point.c_str(),								// pEntryPoint
 				p_target.c_str(),									// pTargetProfile
 				flags.data(), (UINT32)flags.size(),					// pArguments, argCount
-				sm6_defines.data(), (UINT32)sm6_defines.size(),	// pDefines, defineCount
-				include_handler.Get(),					// pIncludeHandler
-				&result);								// ppResult
+				sm6_defines.data(), (UINT32)sm6_defines.size(),		// pDefines, defineCount
+				&custom_include_handler,								// pIncludeHandler
+				&result);											// ppResult
 
 			if (SUCCEEDED(hr)) result->GetStatus(&hr);
 
@@ -162,8 +190,10 @@ namespace adria
 			}
 
 			result->GetResult(_blob.GetAddressOf());
-			blob.bytecode.resize(_blob->GetBufferSize());
-			memcpy(blob.GetPointer(), _blob->GetBufferPointer(), blob.GetLength());
+			output.blob.bytecode.resize(_blob->GetBufferSize());
+			memcpy(output.blob.GetPointer(), _blob->GetBufferPointer(), _blob->GetBufferSize());
+			output.dependent_files = custom_include_handler.include_files;
+			output.dependent_files.push_back(input.source_file);
 		}
 		void GetBlobFromCompiledShader(std::wstring_view filename, ShaderBlob& blob)
 		{
