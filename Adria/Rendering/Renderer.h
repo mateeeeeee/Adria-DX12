@@ -79,7 +79,7 @@ namespace adria
 		}
 		TextureManager& GetTextureManager();
 		PickingData const& GetPickingData() const { return picking_data; }
-		std::vector<TimeStamp> GetProfilerResults() const
+		std::vector<Timestamp> GetProfilerResults() const
 		{
 			return gpu_profiler.GetProfilerResults(gfx->GetDefaultCommandList());
 		}

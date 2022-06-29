@@ -17,7 +17,27 @@ using namespace DirectX;
 
 namespace adria
 {
-	using namespace tecs;
+	//heavily based of AMD Cauldron code
+	struct ProfilerState
+	{
+		bool  show_average;
+		struct AccumulatedTimeStamp
+		{
+			float sum;
+			float minimum;
+			float maximum;
+
+			AccumulatedTimeStamp()
+				: sum(0.0f), minimum(FLT_MAX), maximum(0)
+			{
+			}
+		};
+
+		std::vector<AccumulatedTimeStamp> displayed_timestamps;
+		std::vector<AccumulatedTimeStamp> accumulating_timestamps;
+		float64 last_reset_time;
+		uint32 accumulating_frame_count;
+	};
 
 	enum class EMaterialTextureType
 	{
@@ -1447,31 +1467,121 @@ namespace adria
 		if (ImGui::Begin("Profiling"))
 		{
 			ImGuiIO io = ImGui::GetIO();
-			ImGui::TextWrapped("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 			static bool enable_profiling = false;
 			ImGui::Checkbox("Enable Profiling", &enable_profiling);
 			if (enable_profiling)
 			{
-				static bool log_results = false;
-				ImGui::Checkbox("Log Results", &log_results);
-				ImGui::Checkbox("Profile GBuffer Pass", &profiler_settings.profile_gbuffer_pass);
-				ImGui::Checkbox("Profile Decal Pass", &profiler_settings.profile_decal_pass);
-				ImGui::Checkbox("Profile Deferred Pass", &profiler_settings.profile_deferred_pass);
-				ImGui::Checkbox("Profile Forward Pass", &profiler_settings.profile_forward_pass);
-				ImGui::Checkbox("Profile Particles Pass", &profiler_settings.profile_particles_pass);
-				ImGui::Checkbox("Profile Postprocessing", &profiler_settings.profile_postprocessing);
-
-				ImGui::Checkbox("Profile Ray Traced Shadows", &profiler_settings.profile_rts);
-				ImGui::Checkbox("Profile Ray Traced AO", &profiler_settings.profile_rtao);
-				ImGui::Checkbox("Profile Ray Traced Reflections", &profiler_settings.profile_rtr);
-
+				static ProfilerState state;
+				if (ImGui::CollapsingHeader("Profiler Settings", ImGuiTreeNodeFlags_DefaultOpen))
+				{
+					ImGui::Checkbox("Profile GBuffer Pass", &profiler_settings.profile_gbuffer_pass);
+					ImGui::Checkbox("Profile Decal Pass", &profiler_settings.profile_decal_pass);
+					ImGui::Checkbox("Profile Deferred Pass", &profiler_settings.profile_deferred_pass);
+					ImGui::Checkbox("Profile Forward Pass", &profiler_settings.profile_forward_pass);
+					ImGui::Checkbox("Profile Particles Pass", &profiler_settings.profile_particles_pass);
+					ImGui::Checkbox("Profile Postprocessing", &profiler_settings.profile_postprocessing);
+				}
 				engine->renderer->SetProfilerSettings(profiler_settings);
 
-				std::vector<TimeStamp> results = engine->renderer->GetProfilerResults();
-				//TODO
-			}
-			else engine->renderer->SetProfilerSettings(NO_PROFILING);
+				static constexpr uint64 NUM_FRAMES = 128;
+				static float32 FRAME_TIME_ARRAY[NUM_FRAMES] = { 0 };
+				static float32 RECENT_HIGHEST_FRAME_TIME = 0.0f;
+				static constexpr int32 FRAME_TIME_GRAPH_MAX_FPS[] = { 800, 240, 120, 90, 65, 45, 30, 15, 10, 5, 4, 3, 2, 1 };
+				static float32 FRAME_TIME_GRAPH_MAX_VALUES[ARRAYSIZE(FRAME_TIME_GRAPH_MAX_FPS)] = { 0 };
+				for (uint64 i = 0; i < ARRAYSIZE(FRAME_TIME_GRAPH_MAX_FPS); ++i) { FRAME_TIME_GRAPH_MAX_VALUES[i] = 1000.f / FRAME_TIME_GRAPH_MAX_FPS[i]; }
 
+				std::vector<Timestamp> time_stamps = engine->renderer->GetProfilerResults();
+				FRAME_TIME_ARRAY[NUM_FRAMES - 1] = 1000.0f / io.Framerate;
+				for (uint32 i = 0; i < NUM_FRAMES - 1; i++) FRAME_TIME_ARRAY[i] = FRAME_TIME_ARRAY[i + 1];
+				RECENT_HIGHEST_FRAME_TIME = std::max(RECENT_HIGHEST_FRAME_TIME, FRAME_TIME_ARRAY[NUM_FRAMES - 1]);
+				float32 frameTime_ms = FRAME_TIME_ARRAY[NUM_FRAMES - 1];
+				const int32 fps = static_cast<int32>(1000.0f / frameTime_ms);
+
+				ImGui::Text("FPS        : %d (%.2f ms)", fps, frameTime_ms);
+				if (ImGui::CollapsingHeader("Timings", ImGuiTreeNodeFlags_DefaultOpen))
+				{
+					ImGui::Checkbox("Show Avg/Min/Max", &state.show_average);
+					ImGui::Spacing();
+
+					uint64 i_max = 0;
+					for (uint64 i = 0; i < ARRAYSIZE(FRAME_TIME_GRAPH_MAX_VALUES); ++i)
+					{
+						if (RECENT_HIGHEST_FRAME_TIME < FRAME_TIME_GRAPH_MAX_VALUES[i]) // FRAME_TIME_GRAPH_MAX_VALUES are in increasing order
+						{
+							i_max = std::min(ARRAYSIZE(FRAME_TIME_GRAPH_MAX_VALUES) - 1, i + 1);
+							break;
+						}
+					}
+					ImGui::PlotLines("", FRAME_TIME_ARRAY, NUM_FRAMES, 0, "GPU frame time (ms)", 0.0f, FRAME_TIME_GRAPH_MAX_VALUES[i_max], ImVec2(0, 80));
+
+					constexpr uint32_t avg_timestamp_update_interval = 1000;
+					static auto MillisecondsNow = []()
+					{
+						static LARGE_INTEGER s_frequency;
+						static BOOL s_use_qpc = QueryPerformanceFrequency(&s_frequency);
+						double milliseconds = 0;
+						if (s_use_qpc)
+						{
+							LARGE_INTEGER now;
+							QueryPerformanceCounter(&now);
+							milliseconds = double(1000.0 * now.QuadPart) / s_frequency.QuadPart;
+						}
+						else milliseconds = double(GetTickCount64());
+						return milliseconds;
+					};
+					const double current_time = MillisecondsNow();
+
+					bool reset_accumulating_state = false;
+					if ((state.accumulating_frame_count > 1) &&
+						((current_time - state.last_reset_time) > avg_timestamp_update_interval))
+					{
+						std::swap(state.displayed_timestamps, state.accumulating_timestamps);
+						for (uint32_t i = 0; i < state.displayed_timestamps.size(); i++)
+						{
+							state.displayed_timestamps[i].sum /= state.accumulating_frame_count;
+						}
+						reset_accumulating_state = true;
+					}
+
+					reset_accumulating_state |= (state.accumulating_timestamps.size() != time_stamps.size());
+					if (reset_accumulating_state)
+					{
+						state.accumulating_timestamps.resize(0);
+						state.accumulating_timestamps.resize(time_stamps.size());
+						state.last_reset_time = current_time;
+						state.accumulating_frame_count = 0;
+					}
+
+					for (uint64 i = 0; i < time_stamps.size(); i++)
+					{
+						float32 value = time_stamps[i].time_in_ms;
+						char const* pStrUnit = "ms";
+						ImGui::Text("%-18s: %7.2f %s", time_stamps[i].name.c_str(), value, pStrUnit);
+						if (state.show_average)
+						{
+							if (state.displayed_timestamps.size() == time_stamps.size())
+							{
+								ImGui::SameLine();
+								ImGui::Text("  avg: %7.2f %s", state.displayed_timestamps[i].sum, pStrUnit);
+								ImGui::SameLine();
+								ImGui::Text("  min: %7.2f %s", state.displayed_timestamps[i].minimum, pStrUnit);
+								ImGui::SameLine();
+								ImGui::Text("  max: %7.2f %s", state.displayed_timestamps[i].maximum, pStrUnit);
+							}
+
+							ProfilerState::AccumulatedTimeStamp* pAccumulatingTimeStamp = &state.accumulating_timestamps[i];
+							pAccumulatingTimeStamp->sum += time_stamps[i].time_in_ms;
+							pAccumulatingTimeStamp->minimum = std::min<float>(pAccumulatingTimeStamp->minimum, time_stamps[i].time_in_ms);
+							pAccumulatingTimeStamp->maximum = std::max<float>(pAccumulatingTimeStamp->maximum, time_stamps[i].time_in_ms);
+						}
+					}
+					state.accumulating_frame_count++;
+				}
+			}
+			else
+			{
+				engine->renderer->SetProfilerSettings(NO_PROFILING);
+			}
 			static bool display_vram_usage = false;
 			ImGui::Checkbox("Display VRAM Usage", &display_vram_usage);
 			if (display_vram_usage)

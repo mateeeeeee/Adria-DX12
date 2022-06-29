@@ -37,7 +37,7 @@ namespace adria
 		profile_data.cmd_list = cmd_list;
 	}
 
-	std::vector<TimeStamp> GPUProfiler::GetProfilerResults(ID3D12GraphicsCommandList* cmd_list) const
+	std::vector<Timestamp> GPUProfiler::GetProfilerResults(ID3D12GraphicsCommandList* cmd_list) const
 	{
 		UINT64 gpu_frequency = 0;
 		gfx->GetTimestampFrequency(gpu_frequency);
@@ -58,7 +58,7 @@ namespace adria
 		UINT64 const* query_timestamps = query_readback_buffer.GetMappedData<UINT64>();
 		UINT64 const* frame_query_timestamps = query_timestamps + (current_frame_index * MAX_PROFILES * 2);
 
-		std::vector<TimeStamp> results{};
+		std::vector<Timestamp> results{};
 		for (size_t i = 0; i < MAX_PROFILES; ++i)
 		{
 			QueryData& profile_data = query_data[i];

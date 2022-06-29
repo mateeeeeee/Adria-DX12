@@ -10,7 +10,7 @@
 namespace adria
 {
 
-	struct TimeStamp
+	struct Timestamp
 	{
 		FLOAT time_in_ms;
 		std::string name;
@@ -36,7 +36,7 @@ namespace adria
 
 		void EndProfileBlock(ID3D12GraphicsCommandList* cmd_list, EProfilerBlock block);
 
-		std::vector<TimeStamp> GetProfilerResults(ID3D12GraphicsCommandList* cmd_list) const;
+		std::vector<Timestamp> GetProfilerResults(ID3D12GraphicsCommandList* cmd_list) const;
 
 	private:
 		GraphicsDevice* gfx;
