@@ -35,8 +35,6 @@ PS_GBUFFER_OUT PackGBuffer(float3 BaseColor, float3 NormalVS, float4 emissive, f
     return Out;
 }
 
-
-
 #include "../Util/RootSignatures.hlsli"
 
 [RootSignature(GeometryPassPBR_RS)]

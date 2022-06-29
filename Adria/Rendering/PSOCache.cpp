@@ -69,6 +69,7 @@ namespace adria
 				gfx_pso_desc.PS = PS_ToneMap;
 				gfx_pso_desc.num_render_targets = 1;
 				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R10G10B10A2_UNORM;
+				gfx_pso_desc.depth_state.depth_enable = false;
 				gfx_pso_map[EPipelineState::ToneMap] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc.root_signature = ERootSignature::FXAA;
@@ -203,6 +204,7 @@ namespace adria
 				gfx_pso_desc.PS = PS_Ssao;
 				gfx_pso_desc.num_render_targets = 1;
 				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R8_UNORM;
+				gfx_pso_desc.depth_state.depth_enable = false;
 				gfx_pso_map[EPipelineState::SSAO] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 				
 				gfx_pso_desc.PS = PS_Hbao;
@@ -214,7 +216,7 @@ namespace adria
 				gfx_pso_desc.PS = PS_Ssr;
 				gfx_pso_desc.num_render_targets = 1;
 				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-
+				gfx_pso_desc.depth_state.depth_enable = false;
 				gfx_pso_map[EPipelineState::SSR] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 				
 
@@ -229,7 +231,6 @@ namespace adria
 				gfx_pso_desc.blend_state.render_target[0].blend_op = EBlendOp::Add;
 				gfx_pso_desc.num_render_targets = 1;
 				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-
 				gfx_pso_map[EPipelineState::GodRays] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
