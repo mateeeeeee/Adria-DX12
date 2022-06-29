@@ -69,7 +69,7 @@ namespace adria
 				bool has_ao = data.ambient_occlusion_srv.IsValid();
 				bool has_ibl = data.env_srv.IsValid() && data.irmap_srv.IsValid() && data.brdf_srv.IsValid();
 				if (has_ao && has_ibl) cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::AmbientPBR_AO_IBL));
-				else if (has_ao && has_ibl) cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::AmbientPBR_AO));
+				else if (has_ao && !has_ibl) cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::AmbientPBR_AO));
 				else if (!has_ao && has_ibl) cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::AmbientPBR_IBL));
 				else cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::AmbientPBR));
 
