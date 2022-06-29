@@ -1,6 +1,7 @@
 #include "PSOCache.h"
 #include "ShaderManager.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
+#include "../Graphics/GraphicsStates.h"
 #include "../Graphics/ShaderCompiler.h"
 #include "../Logging/Logger.h"
 #include "../Utilities/Timer.h"

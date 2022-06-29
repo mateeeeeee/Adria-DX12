@@ -44,7 +44,7 @@ namespace adria
 		ProfilerSettings profiler_settings{};
 		ViewportData viewport_data;
 		EditorEvents editor_events;
-
+		bool reload_shaders = false;
 	private:
 		void SetStyle();
 

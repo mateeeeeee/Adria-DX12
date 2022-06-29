@@ -2,6 +2,8 @@
 #include "Enums.h"
 #include "PipelineState.h"
 
+struct ID3D12PipelineState;
+
 namespace adria
 {
 	class GraphicsDevice;

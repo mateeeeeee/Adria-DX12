@@ -17,5 +17,5 @@ TextureCube cubemap : register(t0);
 [RootSignature(Skybox_RS)]
 float4 main(VertexOut pin) : SV_Target
 {
-    return 0.5 * cubemap.Sample(linear_sampler, pin.PosL);
+    return cubemap.Sample(linear_sampler, pin.PosL);
 }

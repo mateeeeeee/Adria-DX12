@@ -4,6 +4,7 @@
 #include "Components.h"
 #include "PSOCache.h" 
 #include "RootSignatureCache.h"
+#include "ShaderManager.h"
 #include "SkyModel.h"
 #include "../tecs/Registry.h"
 #include "../Graphics/Buffer.h"

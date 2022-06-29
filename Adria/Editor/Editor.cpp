@@ -4,6 +4,7 @@
 #include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Rendering/ModelImporter.h"
 #include "../Rendering/PipelineState.h"
+#include "../Rendering/ShaderManager.h"
 #include "../Logging/Logger.h"
 #include "../Utilities/FilesUtil.h"
 #include "../Utilities/StringUtil.h"
@@ -200,6 +201,11 @@ namespace adria
 			engine->SetViewportData(std::nullopt);
 			engine->Run(renderer_settings);
 			engine->Present();
+		}
+		if (reload_shaders)
+		{
+			engine->gfx->WaitForGPU();
+			ShaderManager::CheckIfShadersHaveChanged();
 		}
 	}
 
@@ -1453,8 +1459,7 @@ namespace adria
 		{
 			if (ImGui::Button("Compile Changed Shaders"))
 			{
-				engine->gfx->WaitForGPU();
-				ShaderManager::CheckIfShadersHaveChanged();
+				reload_shaders = true;
 			}
 		}
 		ImGui::End();
