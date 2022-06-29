@@ -113,7 +113,7 @@ namespace adria
 			D3D12_STATE_OBJECT_DESC desc{};
 			BuildDescription(type, desc);
 			ID3D12StateObject* state_obj = nullptr;
-			BREAK_IF_FAILED(device->CreateStateObject(&desc, IID_PPV_ARGS(&state_obj)));
+			HRESULT hr = device->CreateStateObject(&desc, IID_PPV_ARGS(&state_obj));
 			return state_obj;
 		}
 

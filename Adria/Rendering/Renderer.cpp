@@ -30,9 +30,6 @@ namespace adria
 		decals_pass(reg, texture_manager, width, height), ocean_renderer(reg, texture_manager, width, height),
 		particle_renderer(reg, gfx, texture_manager, width, height), ray_tracer(reg, gfx, width, height), aabb_pass(reg, width, height)
 	{
-		ShaderManager::Initialize();
-		RootSignatureCache::Initialize(gfx);
-		PSOCache::Initialize(gfx);
 		CreateNullHeap();
 		CreateSizeDependentResources();
 	}
@@ -40,9 +37,6 @@ namespace adria
 	Renderer::~Renderer()
 	{
 		gfx->WaitForGPU();
-		PSOCache::Destroy();
-		RootSignatureCache::Destroy();
-		ShaderManager::Destroy();
 		reg.clear();
 	}
 	void Renderer::NewFrame(Camera const* _camera)

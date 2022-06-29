@@ -407,11 +407,7 @@ namespace adria
 			}
 
             reg.emplace<Material>(light, material);
-            BoundingBox aabb = AABBFromRange(vertices.begin(), vertices.end());
-            auto translation_matrix = XMMatrixTranslationFromVector(params.light_data.position);
-            aabb.Transform(aabb, XMMatrixTranslationFromVector(params.light_data.position));
-
-            reg.emplace<AABB>(light, aabb, true, true);
+			auto translation_matrix = XMMatrixTranslationFromVector(params.light_data.position);
             reg.emplace<Transform>(light, translation_matrix, translation_matrix);
             if(params.light_data.type != ELightType::Directional) reg.emplace<Forward>(light, true);
         }
