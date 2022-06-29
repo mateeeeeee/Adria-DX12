@@ -90,7 +90,7 @@ namespace adria
 				gfx_pso_desc.root_signature = ERootSignature::GbufferPBR;
 				gfx_pso_desc.VS = VS_GBufferPBR;
 				gfx_pso_desc.PS = PS_GBufferPBR;
-				gfx_pso_desc.depth_state.depth_enable = TRUE;
+				gfx_pso_desc.depth_state.depth_enable = true;
 				gfx_pso_desc.depth_state.depth_write_mask = EDepthWriteMask::All;
 				gfx_pso_desc.depth_state.depth_func = EComparisonFunc::LessEqual;
 				gfx_pso_desc.num_render_targets = 3u;

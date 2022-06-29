@@ -49,7 +49,7 @@ PS_GBUFFER_OUT main(VS_OUTPUT In)
     float4 DiffuseColor = txAlbedo.Sample(linear_wrap_sampler, In.Uvs) * material_cbuf.albedo_factor;
 
 #ifdef MASK
-    if(DiffuseColor.a < alpha_cutoff) discard;
+    if(DiffuseColor.a < material_cbuf.alpha_cutoff) discard;
 #endif
     float3 Normal = normalize(In.NormalWS);
     if (!In.IsFrontFace) Normal = -Normal;

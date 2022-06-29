@@ -629,7 +629,6 @@ namespace adria
 				else if (gltf_material.alphaMode == "BLEND")
 				{
 					material.alpha_mode = EMaterialAlphaMode::Blend;
-					material.pso = material.double_sided ? EPipelineState::GBufferPBR_NoCull : EPipelineState::GBufferPBR;
 				}
 				else if (gltf_material.alphaMode == "MASK")
 				{

@@ -214,6 +214,16 @@ namespace adria
 					RayTracingDebug();
 				gui->End(gui_cmd_list);
 			}
+			if (!aabb_updates.empty())
+			{
+				engine->gfx->WaitForGPU();
+				while (!aabb_updates.empty())
+				{
+					AABB* aabb = aabb_updates.front();
+					aabb->UpdateBuffer(engine->gfx.get());
+					aabb_updates.pop();
+				}
+			}
 			engine->Present();
 		}
 		else
@@ -228,19 +238,6 @@ namespace adria
 		{
 			engine->gfx->WaitForGPU();
 			ShaderManager::CheckIfShadersHaveChanged();
-		}
-
-		if (!aabb_updates.empty())
-		{
-			engine->gfx->WaitForGPU();
-			engine->gfx->ResetDefaultCommandList();
-			while (!aabb_updates.empty())
-			{
-				AABB* aabb = aabb_updates.front();
-				aabb->UpdateBuffer(engine->gfx.get());
-				aabb_updates.pop();
-			}
-			engine->gfx->ExecuteDefaultCommandList();
 		}
 	}
 

@@ -143,7 +143,16 @@ namespace adria
 				SimpleVertex{corners[6]},
 				SimpleVertex{corners[7]}
 			};
-			aabb_vb = std::make_unique<Buffer>(gfx, VertexBufferDesc(ARRAYSIZE(vertices), sizeof(SimpleVertex), false), vertices);
+			if (!aabb_vb)
+			{
+				BufferDesc desc = VertexBufferDesc(ARRAYSIZE(vertices), sizeof(SimpleVertex), false);
+				desc.resource_usage = EResourceUsage::Upload;
+				aabb_vb = std::make_unique<Buffer>(gfx, desc, vertices);
+			}
+			else
+			{
+				aabb_vb->Update(vertices, sizeof(vertices));
+			}
 		}
 	};
 
