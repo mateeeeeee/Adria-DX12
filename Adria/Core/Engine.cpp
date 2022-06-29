@@ -5,7 +5,7 @@
 #include "../Math/Constants.h"
 #include "../Logging/Logger.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
-#include "../Rendering/RenderGraphRenderer.h"
+#include "../Rendering/Renderer.h"
 #include "../Rendering/ModelImporter.h"
 #include "../Rendering/ShaderManager.h"
 #include "../Utilities/Random.h"
@@ -214,15 +214,15 @@ namespace adria
 		gfx = std::make_unique<GraphicsDevice>(GraphicsOptions{.debug_layer = init.debug_layer,
 															   .dred = init.dred,
 															   .gpu_validation = init.gpu_validation});
-		renderer = std::make_unique<RenderGraphRenderer>(reg, gfx.get(), Window::Width(), Window::Height());
+		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
 		entity_loader = std::make_unique<ModelImporter>(reg, gfx.get(), renderer->GetTextureManager());
 
 		InputEvents& input_events = input.GetInputEvents();
 		input_events.window_resized_event.AddMember(&CameraManager::OnResize, camera_manager);
 		input_events.window_resized_event.AddMember(&GraphicsDevice::ResizeBackbuffer, *gfx);
-		input_events.window_resized_event.AddMember(&RenderGraphRenderer::OnResize, *renderer);
+		input_events.window_resized_event.AddMember(&Renderer::OnResize, *renderer);
 		input_events.scroll_mouse_event.AddMember(&CameraManager::OnScroll, camera_manager);
-		input_events.right_mouse_clicked.AddMember(&RenderGraphRenderer::OnRightMouseClicked, *renderer);
+		input_events.right_mouse_clicked.AddMember(&Renderer::OnRightMouseClicked, *renderer);
 		std::ignore = input_events.f5_pressed_event.Add(ShaderManager::CheckIfShadersHaveChanged);
 
 		std::optional<SceneConfig> scene_config = ParseSceneConfig(init.scene_file);
@@ -299,8 +299,8 @@ namespace adria
 
 	void Engine::RegisterEditorEventCallbacks(EditorEvents& events)
 	{
-		events.particle_emitter_added.AddMember(&RenderGraphRenderer::OnParticleEmitterAdded, *renderer);
-		events.particle_emitter_removed.AddMember(&RenderGraphRenderer::OnParticleEmitterRemoved, *renderer);
+		events.particle_emitter_added.AddMember(&Renderer::OnParticleEmitterAdded, *renderer);
+		events.particle_emitter_removed.AddMember(&Renderer::OnParticleEmitterRemoved, *renderer);
 	}
 
 	void Engine::InitializeScene(SceneConfig const& config)

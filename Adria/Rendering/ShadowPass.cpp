@@ -562,7 +562,7 @@ namespace adria
 		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 		auto upload_buffer = gfx->GetDynamicAllocator();
 
-		auto shadow_view = reg.view<Mesh, Transform, Visibility>();
+		auto shadow_view = reg.view<Mesh, Transform, AABB>();
 		if (!transparent)
 		{
 			cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::DepthMap));
@@ -571,14 +571,20 @@ namespace adria
 
 			for (auto e : shadow_view)
 			{
-				auto const& visibility = shadow_view.get<Visibility>(e);
-				if (visibility.light_visible)
+				auto const& aabb = shadow_view.get<AABB>(e);
+				if (aabb.light_visible)
 				{
 					auto const& transform = shadow_view.get<Transform>(e);
 					auto const& mesh = shadow_view.get<Mesh>(e);
 
+					DirectX::XMMATRIX parent_transform = DirectX::XMMatrixIdentity();
+					if (Relationship* relationship = reg.get_if<Relationship>(e))
+					{
+						if (auto* root_transform = reg.get_if<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
+					}
+
 					ObjectCBuffer object_cbuf_data{};
-					object_cbuf_data.model = transform.current_transform;
+					object_cbuf_data.model = transform.current_transform * parent_transform;
 					object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
 
 					DynamicAllocation object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
@@ -594,8 +600,8 @@ namespace adria
 			std::vector<tecs::entity> potentially_transparent, not_transparent;
 			for (auto e : shadow_view)
 			{
-				auto const& visibility = shadow_view.get<Visibility>(e);
-				if (visibility.light_visible)
+				auto const& aabb = shadow_view.get<AABB>(e);
+				if (aabb.light_visible)
 				{
 					if (auto* p_material = reg.get_if<Material>(e))
 					{
@@ -615,8 +621,14 @@ namespace adria
 				auto& transform = shadow_view.get<Transform>(e);
 				auto& mesh = shadow_view.get<Mesh>(e);
 
+				DirectX::XMMATRIX parent_transform = DirectX::XMMatrixIdentity();
+				if (Relationship* relationship = reg.get_if<Relationship>(e))
+				{
+					if (auto* root_transform = reg.get_if<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
+				}
+
 				ObjectCBuffer object_cbuf_data{};
-				object_cbuf_data.model = transform.current_transform;
+				object_cbuf_data.model = transform.current_transform * parent_transform;
 				object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
 
 				DynamicAllocation object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
@@ -637,8 +649,13 @@ namespace adria
 				ADRIA_ASSERT(material != nullptr);
 				ADRIA_ASSERT(material->albedo_texture != INVALID_TEXTURE_HANDLE);
 
+				DirectX::XMMATRIX parent_transform = DirectX::XMMatrixIdentity();
+				if (Relationship* relationship = reg.get_if<Relationship>(e))
+				{
+					if (auto* root_transform = reg.get_if<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
+				}
 				ObjectCBuffer object_cbuf_data{};
-				object_cbuf_data.model = transform.current_transform;
+				object_cbuf_data.model = transform.current_transform * parent_transform;
 				object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
 
 				DynamicAllocation object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
@@ -660,21 +677,21 @@ namespace adria
 
 	void ShadowPass::LightFrustumCulling(ELightType type, std::optional<DirectX::BoundingBox> const& light_bounding_box, std::optional<DirectX::BoundingFrustum> const& light_bounding_frustum)
 	{
-		auto visibility_view = reg.view<Visibility>();
+		auto aabb_view = reg.view<AABB>();
 
-		for (auto e : visibility_view)
+		for (auto e : aabb_view)
 		{
-			auto& visibility = visibility_view.get(e);
+			auto& aabb = aabb_view.get(e);
 			switch (type)
 			{
 			case ELightType::Directional:
 				ADRIA_ASSERT(light_bounding_box.has_value());
-				visibility.light_visible = light_bounding_box->Intersects(visibility.aabb);
+				aabb.light_visible = light_bounding_box->Intersects(aabb.bounding_box);
 				break;
 			case ELightType::Spot:
 			case ELightType::Point:
 				ADRIA_ASSERT(light_bounding_frustum.has_value());
-				visibility.light_visible = light_bounding_frustum->Intersects(visibility.aabb);
+				aabb.light_visible = light_bounding_frustum->Intersects(aabb.bounding_box);
 				break;
 			default:
 				ADRIA_ASSERT(false);

@@ -1018,10 +1018,10 @@ struct CD3DX12_ROOT_PARAMETER : public D3D12_ROOT_PARAMETER
         _Out_ D3D12_ROOT_PARAMETER &rootParam,
         UINT numDescriptorRanges,
         _In_reads_(numDescriptorRanges) const D3D12_DESCRIPTOR_RANGE* pDescriptorRanges,
-        D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL) noexcept
+        D3D12_SHADER_VISIBILITY aabb = D3D12_SHADER_VISIBILITY_ALL) noexcept
     {
         rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-        rootParam.ShaderVisibility = visibility;
+        rootParam.ShaderVisibility = aabb;
         CD3DX12_ROOT_DESCRIPTOR_TABLE::Init(rootParam.DescriptorTable, numDescriptorRanges, pDescriptorRanges);
     }
 
@@ -1030,10 +1030,10 @@ struct CD3DX12_ROOT_PARAMETER : public D3D12_ROOT_PARAMETER
         UINT num32BitValues,
         UINT shaderRegister,
         UINT registerSpace = 0,
-        D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL) noexcept
+        D3D12_SHADER_VISIBILITY aabb = D3D12_SHADER_VISIBILITY_ALL) noexcept
     {
         rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
-        rootParam.ShaderVisibility = visibility;
+        rootParam.ShaderVisibility = aabb;
         CD3DX12_ROOT_CONSTANTS::Init(rootParam.Constants, num32BitValues, shaderRegister, registerSpace);
     }
 
@@ -1041,10 +1041,10 @@ struct CD3DX12_ROOT_PARAMETER : public D3D12_ROOT_PARAMETER
         _Out_ D3D12_ROOT_PARAMETER &rootParam,
         UINT shaderRegister,
         UINT registerSpace = 0,
-        D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL) noexcept
+        D3D12_SHADER_VISIBILITY aabb = D3D12_SHADER_VISIBILITY_ALL) noexcept
     {
         rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-        rootParam.ShaderVisibility = visibility;
+        rootParam.ShaderVisibility = aabb;
         CD3DX12_ROOT_DESCRIPTOR::Init(rootParam.Descriptor, shaderRegister, registerSpace);
     }
 
@@ -1052,10 +1052,10 @@ struct CD3DX12_ROOT_PARAMETER : public D3D12_ROOT_PARAMETER
         _Out_ D3D12_ROOT_PARAMETER &rootParam,
         UINT shaderRegister,
         UINT registerSpace = 0,
-        D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL) noexcept
+        D3D12_SHADER_VISIBILITY aabb = D3D12_SHADER_VISIBILITY_ALL) noexcept
     {
         rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
-        rootParam.ShaderVisibility = visibility;
+        rootParam.ShaderVisibility = aabb;
         CD3DX12_ROOT_DESCRIPTOR::Init(rootParam.Descriptor, shaderRegister, registerSpace);
     }
 
@@ -1063,52 +1063,52 @@ struct CD3DX12_ROOT_PARAMETER : public D3D12_ROOT_PARAMETER
         _Out_ D3D12_ROOT_PARAMETER &rootParam,
         UINT shaderRegister,
         UINT registerSpace = 0,
-        D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL) noexcept
+        D3D12_SHADER_VISIBILITY aabb = D3D12_SHADER_VISIBILITY_ALL) noexcept
     {
         rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_UAV;
-        rootParam.ShaderVisibility = visibility;
+        rootParam.ShaderVisibility = aabb;
         CD3DX12_ROOT_DESCRIPTOR::Init(rootParam.Descriptor, shaderRegister, registerSpace);
     }
 
     inline void InitAsDescriptorTable(
         UINT numDescriptorRanges,
         _In_reads_(numDescriptorRanges) const D3D12_DESCRIPTOR_RANGE* pDescriptorRanges,
-        D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL) noexcept
+        D3D12_SHADER_VISIBILITY aabb = D3D12_SHADER_VISIBILITY_ALL) noexcept
     {
-        InitAsDescriptorTable(*this, numDescriptorRanges, pDescriptorRanges, visibility);
+        InitAsDescriptorTable(*this, numDescriptorRanges, pDescriptorRanges, aabb);
     }
 
     inline void InitAsConstants(
         UINT num32BitValues,
         UINT shaderRegister,
         UINT registerSpace = 0,
-        D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL) noexcept
+        D3D12_SHADER_VISIBILITY aabb = D3D12_SHADER_VISIBILITY_ALL) noexcept
     {
-        InitAsConstants(*this, num32BitValues, shaderRegister, registerSpace, visibility);
+        InitAsConstants(*this, num32BitValues, shaderRegister, registerSpace, aabb);
     }
 
     inline void InitAsConstantBufferView(
         UINT shaderRegister,
         UINT registerSpace = 0,
-        D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL) noexcept
+        D3D12_SHADER_VISIBILITY aabb = D3D12_SHADER_VISIBILITY_ALL) noexcept
     {
-        InitAsConstantBufferView(*this, shaderRegister, registerSpace, visibility);
+        InitAsConstantBufferView(*this, shaderRegister, registerSpace, aabb);
     }
 
     inline void InitAsShaderResourceView(
         UINT shaderRegister,
         UINT registerSpace = 0,
-        D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL) noexcept
+        D3D12_SHADER_VISIBILITY aabb = D3D12_SHADER_VISIBILITY_ALL) noexcept
     {
-        InitAsShaderResourceView(*this, shaderRegister, registerSpace, visibility);
+        InitAsShaderResourceView(*this, shaderRegister, registerSpace, aabb);
     }
 
     inline void InitAsUnorderedAccessView(
         UINT shaderRegister,
         UINT registerSpace = 0,
-        D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL) noexcept
+        D3D12_SHADER_VISIBILITY aabb = D3D12_SHADER_VISIBILITY_ALL) noexcept
     {
-        InitAsUnorderedAccessView(*this, shaderRegister, registerSpace, visibility);
+        InitAsUnorderedAccessView(*this, shaderRegister, registerSpace, aabb);
     }
 };
 
@@ -1389,10 +1389,10 @@ struct CD3DX12_ROOT_PARAMETER1 : public D3D12_ROOT_PARAMETER1
         _Out_ D3D12_ROOT_PARAMETER1 &rootParam,
         UINT numDescriptorRanges,
         _In_reads_(numDescriptorRanges) const D3D12_DESCRIPTOR_RANGE1* pDescriptorRanges,
-        D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL) noexcept
+        D3D12_SHADER_VISIBILITY aabb = D3D12_SHADER_VISIBILITY_ALL) noexcept
     {
         rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-        rootParam.ShaderVisibility = visibility;
+        rootParam.ShaderVisibility = aabb;
         CD3DX12_ROOT_DESCRIPTOR_TABLE1::Init(rootParam.DescriptorTable, numDescriptorRanges, pDescriptorRanges);
     }
 
@@ -1401,10 +1401,10 @@ struct CD3DX12_ROOT_PARAMETER1 : public D3D12_ROOT_PARAMETER1
         UINT num32BitValues,
         UINT shaderRegister,
         UINT registerSpace = 0,
-        D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL) noexcept
+        D3D12_SHADER_VISIBILITY aabb = D3D12_SHADER_VISIBILITY_ALL) noexcept
     {
         rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
-        rootParam.ShaderVisibility = visibility;
+        rootParam.ShaderVisibility = aabb;
         CD3DX12_ROOT_CONSTANTS::Init(rootParam.Constants, num32BitValues, shaderRegister, registerSpace);
     }
 
@@ -1413,10 +1413,10 @@ struct CD3DX12_ROOT_PARAMETER1 : public D3D12_ROOT_PARAMETER1
         UINT shaderRegister,
         UINT registerSpace = 0,
         D3D12_ROOT_DESCRIPTOR_FLAGS flags = D3D12_ROOT_DESCRIPTOR_FLAG_NONE,
-        D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL) noexcept
+        D3D12_SHADER_VISIBILITY aabb = D3D12_SHADER_VISIBILITY_ALL) noexcept
     {
         rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-        rootParam.ShaderVisibility = visibility;
+        rootParam.ShaderVisibility = aabb;
         CD3DX12_ROOT_DESCRIPTOR1::Init(rootParam.Descriptor, shaderRegister, registerSpace, flags);
     }
 
@@ -1425,10 +1425,10 @@ struct CD3DX12_ROOT_PARAMETER1 : public D3D12_ROOT_PARAMETER1
         UINT shaderRegister,
         UINT registerSpace = 0,
         D3D12_ROOT_DESCRIPTOR_FLAGS flags = D3D12_ROOT_DESCRIPTOR_FLAG_NONE,
-        D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL) noexcept
+        D3D12_SHADER_VISIBILITY aabb = D3D12_SHADER_VISIBILITY_ALL) noexcept
     {
         rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
-        rootParam.ShaderVisibility = visibility;
+        rootParam.ShaderVisibility = aabb;
         CD3DX12_ROOT_DESCRIPTOR1::Init(rootParam.Descriptor, shaderRegister, registerSpace, flags);
     }
 
@@ -1437,55 +1437,55 @@ struct CD3DX12_ROOT_PARAMETER1 : public D3D12_ROOT_PARAMETER1
         UINT shaderRegister,
         UINT registerSpace = 0,
         D3D12_ROOT_DESCRIPTOR_FLAGS flags = D3D12_ROOT_DESCRIPTOR_FLAG_NONE,
-        D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL) noexcept
+        D3D12_SHADER_VISIBILITY aabb = D3D12_SHADER_VISIBILITY_ALL) noexcept
     {
         rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_UAV;
-        rootParam.ShaderVisibility = visibility;
+        rootParam.ShaderVisibility = aabb;
         CD3DX12_ROOT_DESCRIPTOR1::Init(rootParam.Descriptor, shaderRegister, registerSpace, flags);
     }
 
     inline void InitAsDescriptorTable(
         UINT numDescriptorRanges,
         _In_reads_(numDescriptorRanges) const D3D12_DESCRIPTOR_RANGE1* pDescriptorRanges,
-        D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL) noexcept
+        D3D12_SHADER_VISIBILITY aabb = D3D12_SHADER_VISIBILITY_ALL) noexcept
     {
-        InitAsDescriptorTable(*this, numDescriptorRanges, pDescriptorRanges, visibility);
+        InitAsDescriptorTable(*this, numDescriptorRanges, pDescriptorRanges, aabb);
     }
 
     inline void InitAsConstants(
         UINT num32BitValues,
         UINT shaderRegister,
         UINT registerSpace = 0,
-        D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL) noexcept
+        D3D12_SHADER_VISIBILITY aabb = D3D12_SHADER_VISIBILITY_ALL) noexcept
     {
-        InitAsConstants(*this, num32BitValues, shaderRegister, registerSpace, visibility);
+        InitAsConstants(*this, num32BitValues, shaderRegister, registerSpace, aabb);
     }
 
     inline void InitAsConstantBufferView(
         UINT shaderRegister,
         UINT registerSpace = 0,
         D3D12_ROOT_DESCRIPTOR_FLAGS flags = D3D12_ROOT_DESCRIPTOR_FLAG_NONE,
-        D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL) noexcept
+        D3D12_SHADER_VISIBILITY aabb = D3D12_SHADER_VISIBILITY_ALL) noexcept
     {
-        InitAsConstantBufferView(*this, shaderRegister, registerSpace, flags, visibility);
+        InitAsConstantBufferView(*this, shaderRegister, registerSpace, flags, aabb);
     }
 
     inline void InitAsShaderResourceView(
         UINT shaderRegister,
         UINT registerSpace = 0,
         D3D12_ROOT_DESCRIPTOR_FLAGS flags = D3D12_ROOT_DESCRIPTOR_FLAG_NONE,
-        D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL) noexcept
+        D3D12_SHADER_VISIBILITY aabb = D3D12_SHADER_VISIBILITY_ALL) noexcept
     {
-        InitAsShaderResourceView(*this, shaderRegister, registerSpace, flags, visibility);
+        InitAsShaderResourceView(*this, shaderRegister, registerSpace, flags, aabb);
     }
 
     inline void InitAsUnorderedAccessView(
         UINT shaderRegister,
         UINT registerSpace = 0,
         D3D12_ROOT_DESCRIPTOR_FLAGS flags = D3D12_ROOT_DESCRIPTOR_FLAG_NONE,
-        D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL) noexcept
+        D3D12_SHADER_VISIBILITY aabb = D3D12_SHADER_VISIBILITY_ALL) noexcept
     {
-        InitAsUnorderedAccessView(*this, shaderRegister, registerSpace, flags, visibility);
+        InitAsUnorderedAccessView(*this, shaderRegister, registerSpace, flags, aabb);
     }
 };
 

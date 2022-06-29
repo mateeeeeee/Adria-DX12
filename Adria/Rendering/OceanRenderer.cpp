@@ -343,14 +343,14 @@ namespace adria
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetGraphicsRootConstantBufferView(3, global_data.weather_cbuffer_address);
 
-				auto ocean_chunk_view = reg.view<Mesh, Material, Transform, Visibility, Ocean>();
+				auto ocean_chunk_view = reg.view<Mesh, Material, Transform, AABB, Ocean>();
 				ObjectCBuffer object_cbuf_data{};
 				MaterialCBuffer material_cbuf_data{};
 				for (auto ocean_chunk : ocean_chunk_view)
 				{
-					auto const& [mesh, material, transform, visibility] = ocean_chunk_view.get<const Mesh, const Material, const Transform, const Visibility>(ocean_chunk);
+					auto const& [mesh, material, transform, aabb] = ocean_chunk_view.get<const Mesh, const Material, const Transform, const AABB>(ocean_chunk);
 
-					if (visibility.camera_visible)
+					if (aabb.camera_visible)
 					{
 						object_cbuf_data.model = transform.current_transform;
 						object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);

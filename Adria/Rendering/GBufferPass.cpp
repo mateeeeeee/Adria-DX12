@@ -51,7 +51,7 @@ namespace adria
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
-				auto gbuffer_view = reg.view<Mesh, Transform, Material, Deferred, Visibility>();
+				auto gbuffer_view = reg.view<Mesh, Transform, Material, Deferred, AABB>();
 
 				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::GbufferPBR));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::GbufferPBR));
@@ -60,12 +60,18 @@ namespace adria
 
 				for (auto e : gbuffer_view)
 				{
-					auto [mesh, transform, material, visibility] = gbuffer_view.get<Mesh, Transform, Material, Visibility>(e);
+					auto [mesh, transform, material, aabb] = gbuffer_view.get<Mesh, Transform, Material, AABB>(e);
 
-					if (!visibility.camera_visible) continue;
+					if (!aabb.camera_visible) continue;
+
+					DirectX::XMMATRIX parent_transform = DirectX::XMMatrixIdentity();
+					if (Relationship* relationship = reg.get_if<Relationship>(e))
+					{
+						if (auto* root_transform = reg.get_if<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
+					}
 
 					ObjectCBuffer object_cbuf_data{};
-					object_cbuf_data.model = transform.current_transform;
+					object_cbuf_data.model = transform.current_transform * parent_transform;
 					object_cbuf_data.inverse_transposed_model = DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, object_cbuf_data.model));
 
 					DynamicAllocation object_allocation = dynamic_allocator->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);

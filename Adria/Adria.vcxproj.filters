@@ -200,7 +200,7 @@
     <ClCompile Include="RenderGraph\RenderGraph.cpp">
       <Filter>RenderGraph</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\RenderGraphRenderer.cpp">
+    <ClCompile Include="Rendering\Renderer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="RenderGraph\RenderGraphBuilder.cpp">
@@ -676,7 +676,7 @@
     <ClInclude Include="Rendering\AccelerationStructure.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\RenderGraphRenderer.h">
+    <ClInclude Include="Rendering\Renderer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\FileWatcher.h">

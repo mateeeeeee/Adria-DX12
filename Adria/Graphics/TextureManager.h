@@ -20,7 +20,7 @@ namespace adria
 	class TextureManager
 	{
 		friend class Renderer;
-		friend class RenderGraphRenderer;
+		friend class Renderer;
 
 	public:
 		TextureManager(GraphicsDevice* gfx, UINT max_textures);

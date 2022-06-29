@@ -111,7 +111,7 @@ namespace adria
 			reg.emplace<Transform>(grid);
 
 			BoundingBox aabb = AABBFromRange(vertices.begin(), vertices.end());
-			reg.emplace<Visibility>(grid, aabb, true, true);
+			reg.emplace<AABB>(grid, aabb, true, true);
 
 			chunks.push_back(grid);
 		}
@@ -165,7 +165,7 @@ namespace adria
 
 					BoundingBox aabb = AABBFromRange(chunk_vertices_aabb.begin(), chunk_vertices_aabb.end());
 
-					reg.emplace<Visibility>(chunk, aabb, true, true);
+					reg.emplace<AABB>(chunk, aabb, true, true);
 
 					chunks.push_back(chunk);
 
@@ -408,7 +408,7 @@ namespace adria
             auto translation_matrix = XMMatrixTranslationFromVector(params.light_data.position);
             aabb.Transform(aabb, XMMatrixTranslationFromVector(params.light_data.position));
 
-            reg.emplace<Visibility>(light, aabb, true, true);
+            reg.emplace<AABB>(light, aabb, true, true);
             reg.emplace<Transform>(light, translation_matrix, translation_matrix);
             if(params.light_data.type != ELightType::Directional) reg.emplace<Forward>(light, true);
         }
@@ -872,7 +872,7 @@ namespace adria
 					XMMATRIX model = XMLoadFloat4x4(&transforms.world) * parent_transform;
 					BoundingBox aabb = AABBFromRange(vertices.begin() + mesh.base_vertex_location, vertices.begin() + mesh.base_vertex_location + mesh.vertex_count);
 					aabb.Transform(aabb, model);
-					reg.emplace<Visibility>(e, aabb, true, true);
+					reg.emplace<AABB>(e, aabb, true, true);
 					reg.emplace<Transform>(e, model, model);
 				}
 			}
@@ -911,13 +911,23 @@ namespace adria
 			RayTracing::rt_indices.insert(std::end(RayTracing::rt_indices), std::begin(indices), std::end(indices));
 		}
 
+		entity root = reg.create();
+		reg.emplace<Transform>(root);
+		reg.emplace<Tag>(root, model_name);
+		Relationship relationship;
+		relationship.children_count = entities.size();
+		ADRIA_ASSERT(relationship.children_count <= Relationship::MAX_CHILDREN);
+		for (size_t i = 0; i < relationship.children_count; ++i)
+		{
+			relationship.children[i] = entities[i];
+		}
+		reg.add<Relationship>(root, relationship);
 		for (entity e : entities)
 		{
 			auto& mesh = reg.get<Mesh>(e);
 			mesh.vertex_buffer = vb;
 			mesh.index_buffer = ib;
 			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(as_integer(e)));
-
 			if (params.used_in_raytracing)
 			{
 				RayTracing rt_component{
@@ -926,6 +936,7 @@ namespace adria
 				};
 				reg.emplace<RayTracing>(e, rt_component);
 			}
+			reg.emplace<Relationship>(e, root);
 		}
 		ADRIA_LOG(INFO, "GLTF Mesh %s successfully loaded!", params.model_path.c_str());
 		return entities;

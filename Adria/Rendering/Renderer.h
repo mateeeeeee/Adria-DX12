@@ -39,7 +39,7 @@ namespace adria
 	class Texture;
 	struct Light;
 
-	class RenderGraphRenderer
+	class Renderer
 	{
 		enum ENullHeapSlot
 		{
@@ -53,8 +53,8 @@ namespace adria
 
 	public:
 
-		RenderGraphRenderer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height);
-		~RenderGraphRenderer();
+		Renderer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height);
+		~Renderer();
 
 		void NewFrame(Camera const* camera);
 		void Update(float32 dt);
@@ -100,7 +100,7 @@ namespace adria
 		CPUProfiler cpu_profiler;
 		GPUProfiler gpu_profiler;
 
-		RendererSettings render_settings;
+		RendererSettings renderer_settings;
 		ProfilerSettings profiler_settings = NO_PROFILING;
 		ViewportData viewport_data;
 

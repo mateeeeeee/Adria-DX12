@@ -1,6 +1,6 @@
 #include "Editor.h"
 
-#include "../Rendering/RenderGraphRenderer.h"
+#include "../Rendering/Renderer.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Rendering/ModelImporter.h"
 #include "../Rendering/PipelineState.h"
@@ -627,27 +627,25 @@ namespace adria
 	void Editor::ListEntities()
 	{
 		auto all_entities = engine->reg.view<Tag>();
-
 		ImGui::Begin("Entities");
 		{
 			std::vector<entity> deleted_entities{};
-			for (auto e : all_entities)
+			std::function<void(entity, bool)> ShowEntity;
+			ShowEntity = [&](entity e, bool first_iteration)
 			{
+				Relationship* relationship = engine->reg.get_if<Relationship>(e);
+				if (first_iteration && relationship && relationship->parent != null_entity) return;
 				auto& tag = all_entities.get(e);
 
 				ImGuiTreeNodeFlags flags = ((selected_entity == e) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 				flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 				bool opened = ImGui::TreeNodeEx(tag.name.c_str(), flags);
 
-
 				if (ImGui::IsItemClicked())
 				{
-					if (e == selected_entity)
-						selected_entity = null_entity;
-					else
-						selected_entity = e;
+					if (e == selected_entity) selected_entity = null_entity;
+					else selected_entity = e;
 				}
-
 
 				bool entity_deleted = false;
 				if (ImGui::BeginPopupContextItem())
@@ -657,20 +655,54 @@ namespace adria
 					ImGui::EndPopup();
 				}
 
-				if (opened) ImGui::TreePop();
-
 				if (entity_deleted)
 				{
 					deleted_entities.push_back(e);
-					if (selected_entity == e) selected_entity = null_entity;
+					if (relationship)
+					{
+						for (size_t i = 0; i < relationship->children_count; ++i)
+						{
+							deleted_entities.push_back(relationship->children[i]);
+						}
+					}
 				}
-			}
 
+				if (opened)
+				{
+					if (relationship)
+					{
+						for (size_t i = 0; i < relationship->children_count; ++i)
+						{
+							ShowEntity(relationship->children[i], false);
+						}
+					}
+					ImGui::TreePop();
+				}
+			};
+
+			for (auto e : all_entities) ShowEntity(e, true);
 			for (auto e : deleted_entities)
 			{
-				if (engine->reg.has<Emitter>(e)) editor_events.particle_emitter_removed.Broadcast(tecs::as_integer(e));
-				engine->reg.destroy(e);
+				if (Relationship* relationship = engine->reg.get_if<Relationship>(e))
+				{
+					if (relationship->parent != null_entity)
+					{
+						ADRIA_ASSERT(engine->reg.has<Relationship>(relationship->parent));
+						Relationship& parent_relationship = engine->reg.get<Relationship>(relationship->parent);
+						for (size_t i = 0; i < parent_relationship.children_count; ++i)
+						{
+							entity child = parent_relationship.children[i];
+							if (child == e)
+							{
+								std::swap(parent_relationship.children[i], parent_relationship.children[parent_relationship.children_count - 1]);
+								--parent_relationship.children_count;
+								break;
+							}
+						}
+					}
+				}
 			}
+			for (auto e : deleted_entities) engine->reg.destroy(e);
 		}
 		ImGui::End();
 	}
@@ -903,15 +935,32 @@ namespace adria
 					ImGui::InputFloat3("Scale", scale);
 					ImGuizmo::RecomposeMatrixFromComponents(translation, rotation, scale, tr.m[0]);
 
-					Visibility* vis = engine->reg.get_if<Visibility>(selected_entity);
-
-					if (vis)
+					if (Emitter* emitter = engine->reg.get_if<Emitter>(selected_entity))
 					{
-						vis->aabb.Transform(vis->aabb, DirectX::XMMatrixInverse(nullptr, transform->current_transform));
-						transform->current_transform = DirectX::XMLoadFloat4x4(&tr);
-						vis->aabb.Transform(vis->aabb, transform->current_transform);
+						emitter->position = XMFLOAT4(translation[0], translation[1], translation[2], 1.0f);
 					}
-					else transform->current_transform = DirectX::XMLoadFloat4x4(&tr);
+
+					if (AABB* aabb = engine->reg.get_if<AABB>(selected_entity))
+					{
+						aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, transform->current_transform));
+						aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));
+						//aabb->UpdateBuffer(engine->gfx.get());
+					}
+
+					if (Relationship* relationship = engine->reg.get_if<Relationship>(selected_entity))
+					{
+						for (size_t i = 0; i < relationship->children_count; ++i)
+						{
+							entity child = relationship->children[i];
+							if (AABB* aabb = engine->reg.get_if<AABB>(child))
+							{
+								aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, transform->current_transform));
+								aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));
+								//aabb->UpdateBuffer(engine->gfx.get());
+							}
+						}
+					}
+					transform->current_transform = DirectX::XMLoadFloat4x4(&tr);
 				}
 
 				auto emitter = engine->reg.get_if<Emitter>(selected_entity);
@@ -1052,6 +1101,11 @@ namespace adria
 				{
 					if (ImGui::CollapsingHeader("Forward")) ImGui::Checkbox("Transparent", &forward->transparent);
 				}
+
+				if (AABB* aabb = engine->reg.get_if<AABB>(selected_entity))
+				{
+					//aabb->draw_aabb = true;
+				}
 			}
 		}
 		ImGui::End();
@@ -1138,7 +1192,6 @@ namespace adria
 			DirectX::XMStoreFloat4x4(&view, camera_view);
 			DirectX::XMStoreFloat4x4(&projection, camera_proj);
 
-
 			auto& entity_transform = engine->reg.get<Transform>(selected_entity);
 
 			DirectX::XMFLOAT4X4 tr;
@@ -1149,21 +1202,32 @@ namespace adria
 
 			if (ImGuizmo::IsUsing())
 			{
-				Visibility* vis = engine->reg.get_if<Visibility>(selected_entity);
-
-				if (vis)
+				AABB* aabb = engine->reg.get_if<AABB>(selected_entity);
+				if (aabb)
 				{
-					vis->aabb.Transform(vis->aabb, DirectX::XMMatrixInverse(nullptr, entity_transform.current_transform));
-					entity_transform.current_transform = DirectX::XMLoadFloat4x4(&tr);
-					vis->aabb.Transform(vis->aabb, entity_transform.current_transform);
+					aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, entity_transform.current_transform));
+					aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));
+					//aabb->UpdateBuffer(engine->gfx.get());
 				}
-				else entity_transform.current_transform = DirectX::XMLoadFloat4x4(&tr);
 
+				if (Relationship* relationship = engine->reg.get_if<Relationship>(selected_entity))
+				{
+					for (size_t i = 0; i < relationship->children_count; ++i)
+					{
+						entity child = relationship->children[i];
+						if (AABB* aabb = engine->reg.get_if<AABB>(child))
+						{
+							aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, entity_transform.current_transform));
+							aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));
+							//aabb->UpdateBuffer(engine->gfx.get());
+						}
+					}
+				}
+				entity_transform.current_transform = DirectX::XMLoadFloat4x4(&tr);
 			}
 		}
 
 		ImGui::End();
-
 	}
 
 	void Editor::Log()

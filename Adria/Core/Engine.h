@@ -13,7 +13,7 @@ namespace adria
 	struct WindowMessage;
 	struct SceneConfig;
 	class GraphicsDevice;
-	class RenderGraphRenderer;
+	class Renderer;
 	class ModelImporter;
 	struct EditorEvents;
 	class GUI;
@@ -50,7 +50,7 @@ namespace adria
 		CameraManager camera_manager;
 	
 		std::unique_ptr<GraphicsDevice> gfx;
-		std::unique_ptr<RenderGraphRenderer> renderer;
+		std::unique_ptr<Renderer> renderer;
 		std::unique_ptr<ModelImporter> entity_loader;
 
 		ViewportData viewport_data;

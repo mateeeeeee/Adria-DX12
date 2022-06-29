@@ -6,6 +6,7 @@
 #include "../Graphics/VertexTypes.h"
 #include "../Graphics/Buffer.h"
 #include "../Graphics/TextureManager.h"
+#include "../tecs/entity.h"
 
 #define COMPONENT 
 
@@ -62,6 +63,14 @@ namespace adria
 		}
 	};
 
+	struct COMPONENT Relationship
+	{
+		static constexpr size_t MAX_CHILDREN = 2048;
+		tecs::entity parent = tecs::null_entity;
+		size_t children_count = 0;
+		tecs::entity children[MAX_CHILDREN] = { tecs::null_entity };
+	};
+
 	struct COMPONENT Material
 	{
 		TextureHandle albedo_texture			  = INVALID_TEXTURE_HANDLE;
@@ -107,9 +116,9 @@ namespace adria
 		float32 sscs_max_depth_distance = 200.0f;
 	};
 
-	struct COMPONENT Visibility
+	struct COMPONENT AABB
 	{
-		DirectX::BoundingBox aabb;
+		DirectX::BoundingBox bounding_box;
 		bool camera_visible = true;
 		bool light_visible = true;
 	};

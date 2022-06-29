@@ -442,8 +442,8 @@ namespace adria
 				NewFilter.DenyList.NumIDs = ARRAYSIZE(DenyIds);
 				NewFilter.DenyList.pIDList = DenyIds;
 
-				BREAK_IF_FAILED(pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true), GetDevice());
-				BREAK_IF_FAILED(pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true), GetDevice());
+				BREAK_IF_FAILED(pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true));
+				BREAK_IF_FAILED(pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true));
 				pInfoQueue->PushStorageFilter(&NewFilter);
 
 				Microsoft::WRL::ComPtr<ID3D12InfoQueue1> pInfoQueue1;

@@ -1,4 +1,4 @@
-#include "RenderGraphRenderer.h"
+#include "Renderer.h"
 #include "GlobalBlackboardData.h"
 #include "Camera.h"
 #include "Components.h"
@@ -17,7 +17,7 @@ using namespace DirectX;
 namespace adria
 {
 
-	RenderGraphRenderer::RenderGraphRenderer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx), 
+	Renderer::Renderer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx), 
 		texture_manager(gfx, 1000), gpu_profiler(gfx), camera(nullptr), width(width), height(height), 
 		backbuffer_count(gfx->BackbufferCount()), backbuffer_index(gfx->BackbufferIndex()), final_texture(nullptr),
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count), postprocess_cbuffer(gfx->GetDevice(), backbuffer_count),
@@ -37,7 +37,7 @@ namespace adria
 		CreateSizeDependentResources();
 	}
 
-	RenderGraphRenderer::~RenderGraphRenderer()
+	Renderer::~Renderer()
 	{
 		gfx->WaitForGPU();
 		PSOCache::Destroy();
@@ -45,22 +45,22 @@ namespace adria
 		ShaderManager::Destroy();
 		reg.clear();
 	}
-	void RenderGraphRenderer::NewFrame(Camera const* _camera)
+	void Renderer::NewFrame(Camera const* _camera)
 	{
 		ADRIA_ASSERT(_camera);
 		camera = _camera;
 		backbuffer_index = gfx->BackbufferIndex();
 		shadow_pass.SetCamera(camera);
 	}
-	void RenderGraphRenderer::Update(float32 dt)
+	void Renderer::Update(float32 dt)
 	{
 		UpdatePersistentConstantBuffers(dt);
 		CameraFrustumCulling();
 		particle_renderer.Update(dt);
 	}
-	void RenderGraphRenderer::Render(RendererSettings const& _settings)
+	void Renderer::Render(RendererSettings const& _settings)
 	{
-		render_settings = _settings;
+		renderer_settings = _settings;
 		RenderGraph render_graph(resource_pool);
 		RGBlackboard& rg_blackboard = render_graph.GetBlackboard();
 
@@ -87,7 +87,7 @@ namespace adria
 			update_picking_data = false;
 		}
 
-		if (render_settings.ibl)
+		if (renderer_settings.ibl)
 		{
 			if(!ibl_generated) GenerateIBLTextures();
 			render_graph.ImportTexture(RG_RES_NAME(EnvTexture), env_texture.get());
@@ -97,7 +97,7 @@ namespace adria
 
 		gbuffer_pass.AddPass(render_graph, profiler_settings.profile_gbuffer_pass);
 		decals_pass.AddPass(render_graph);
-		switch (render_settings.postprocessor.ambient_occlusion)
+		switch (renderer_settings.postprocessor.ambient_occlusion)
 		{
 		case EAmbientOcclusion::SSAO:
 		{
@@ -130,7 +130,7 @@ namespace adria
 			auto const& light = light_entities.get(light_entity);
 			size_t light_id = tecs::as_integer(light_entity);
 			if (!light.active) continue;
-			if ((render_settings.use_tiled_deferred || render_settings.use_clustered_deferred) && !light.casts_shadows) continue;  //tiled/clustered deferred takes care of noncasting lights
+			if ((renderer_settings.use_tiled_deferred || renderer_settings.use_clustered_deferred) && !light.casts_shadows) continue;  //tiled/clustered deferred takes care of noncasting lights
 			
 			if (light.casts_shadows) shadow_pass.AddPass(render_graph, light, light_id);
 			else if (light.ray_traced_shadows) ray_tracer.AddRayTracedShadowsPass(render_graph, light, light_id);
@@ -138,28 +138,28 @@ namespace adria
 			lighting_pass.AddPass(render_graph, light, light_id);
 		}
 
-		if (render_settings.use_tiled_deferred)
+		if (renderer_settings.use_tiled_deferred)
 		{
 			tiled_lighting_pass.AddPass(render_graph);
-			if (render_settings.visualize_tiled)  add_textures_pass.AddPass(render_graph, RG_RES_NAME(HDR_RenderTarget), RG_RES_NAME(TiledTarget), RG_RES_NAME(TiledDebugTarget), EBlendMode::AlphaBlend);
+			if (renderer_settings.visualize_tiled)  add_textures_pass.AddPass(render_graph, RG_RES_NAME(HDR_RenderTarget), RG_RES_NAME(TiledTarget), RG_RES_NAME(TiledDebugTarget), EBlendMode::AlphaBlend);
 			else copy_to_texture_pass.AddPass(render_graph, RG_RES_NAME(HDR_RenderTarget), RG_RES_NAME(TiledTarget), EBlendMode::AdditiveBlend);
 		}
-		else if (render_settings.use_clustered_deferred)
+		else if (renderer_settings.use_clustered_deferred)
 		{
 			clustered_lighting_pass.AddPass(render_graph, true);
 		}
 
-		ocean_renderer.UpdateOceanColor(render_settings.ocean_color);
-		ocean_renderer.AddPasses(render_graph, render_settings.recreate_initial_spectrum, 
-			render_settings.ocean_tesselation, render_settings.ocean_wireframe);
-		sky_pass.AddPass(render_graph, render_settings.sky_type);
+		ocean_renderer.UpdateOceanColor(renderer_settings.ocean_color);
+		ocean_renderer.AddPasses(render_graph, renderer_settings.recreate_initial_spectrum, 
+			renderer_settings.ocean_tesselation, renderer_settings.ocean_wireframe);
+		sky_pass.AddPass(render_graph, renderer_settings.sky_type);
 		picking_pass.AddPass(render_graph);
 		particle_renderer.AddPasses(render_graph);
 
-		if (render_settings.postprocessor.reflections == EReflections::RTR)
+		if (renderer_settings.postprocessor.reflections == EReflections::RTR)
 		{
 			D3D12_CPU_DESCRIPTOR_HANDLE skybox_handle = global_data.null_srv_texturecube;
-			if (render_settings.sky_type == ESkyType::Skybox)
+			if (renderer_settings.sky_type == ESkyType::Skybox)
 			{
 				auto skybox_entities = reg.view<Skybox>();
 				for (auto e : skybox_entities)
@@ -174,9 +174,9 @@ namespace adria
 			}
 			ray_tracer.AddRayTracedReflectionsPass(render_graph, skybox_handle);
 		}
-		postprocessor.AddPasses(render_graph, render_settings.postprocessor);
+		postprocessor.AddPasses(render_graph, renderer_settings.postprocessor);
 
-		if (render_settings.gui_visible)
+		if (renderer_settings.gui_visible)
 		{
 			render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
 			ResolveToTexture(render_graph);
@@ -187,12 +187,12 @@ namespace adria
 		render_graph.Execute();
 	}
 
-	void RenderGraphRenderer::SetProfilerSettings(ProfilerSettings const& _profiler_settings)
+	void Renderer::SetProfilerSettings(ProfilerSettings const& _profiler_settings)
 	{
 		profiler_settings = _profiler_settings;
 	}
 
-	void RenderGraphRenderer::OnResize(uint32 w, uint32 h)
+	void Renderer::OnResize(uint32 w, uint32 h)
 	{
 		if (width != w || height != h)
 		{
@@ -218,7 +218,7 @@ namespace adria
 			ray_tracer.OnResize(w, h);
 		}
 	}
-	void RenderGraphRenderer::OnSceneInitialized()
+	void Renderer::OnSceneInitialized()
 	{
 		UINT tex2darray_size = (UINT)texture_manager.handle;
 		gfx->ReserveOnlineDescriptors(tex2darray_size);
@@ -250,27 +250,27 @@ namespace adria
 			ssao_kernel[i] = offset;
 		}
 	}
-	void RenderGraphRenderer::OnRightMouseClicked(int32 x, int32 y)
+	void Renderer::OnRightMouseClicked(int32 x, int32 y)
 	{
 		update_picking_data = true;
 	}
 
-	void RenderGraphRenderer::OnParticleEmitterAdded(size_t emitter_id)
+	void Renderer::OnParticleEmitterAdded(size_t emitter_id)
 	{
 		particle_renderer.OnEmitterAdded(emitter_id);
 	}
 
-	void RenderGraphRenderer::OnParticleEmitterRemoved(size_t emitter_id)
+	void Renderer::OnParticleEmitterRemoved(size_t emitter_id)
 	{
 		particle_renderer.OnEmitterRemoved(emitter_id);
 	}
 
-	TextureManager& RenderGraphRenderer::GetTextureManager()
+	TextureManager& Renderer::GetTextureManager()
 	{
 		return texture_manager;
 	}
 
-	void RenderGraphRenderer::CreateNullHeap()
+	void Renderer::CreateNullHeap()
 	{
 		ID3D12Device* device = gfx->GetDevice();
 		null_heap = std::make_unique<DescriptorHeap>(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, NULL_HEAP_SIZE);
@@ -294,7 +294,7 @@ namespace adria
 		null_uav_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 		device->CreateUnorderedAccessView(nullptr, nullptr, &null_uav_desc, null_heap->GetHandle(NULL_HEAP_SLOT_RWTEXTURE2D));
 	}
-	void RenderGraphRenderer::CreateSizeDependentResources()
+	void Renderer::CreateSizeDependentResources()
 	{
 		TextureDesc ldr_desc{};
 		ldr_desc.width = width;
@@ -321,7 +321,7 @@ namespace adria
 #endif
 	}
 
-	void RenderGraphRenderer::GenerateIBLTextures()
+	void Renderer::GenerateIBLTextures()
 	{
 		ID3D12Device* device = gfx->GetDevice();
 		auto cmd_list = gfx->GetDefaultCommandList();
@@ -568,12 +568,12 @@ namespace adria
 		ibl_generated = true;
 	}
 
-	void RenderGraphRenderer::UpdatePersistentConstantBuffers(float32 dt)
+	void Renderer::UpdatePersistentConstantBuffers(float32 dt)
 	{
 		//frame
 		{
 			static FrameCBuffer frame_cbuf_data{};
-			frame_cbuf_data.global_ambient = XMVectorSet(render_settings.ambient_color[0], render_settings.ambient_color[1], render_settings.ambient_color[2], 1);
+			frame_cbuf_data.global_ambient = XMVectorSet(renderer_settings.ambient_color[0], renderer_settings.ambient_color[1], renderer_settings.ambient_color[2], 1);
 			frame_cbuf_data.camera_near = camera->Near();
 			frame_cbuf_data.camera_far = camera->Far();
 			frame_cbuf_data.camera_position = camera->Position();
@@ -595,7 +595,7 @@ namespace adria
 		
 		//postprocess
 		{
-			PostprocessSettings const& settings = render_settings.postprocessor;
+			PostprocessSettings const& settings = renderer_settings.postprocessor;
 			static PostprocessCBuffer postprocess_cbuf_data{};
 			postprocess_cbuf_data.tone_map_exposure = settings.tonemap_exposure;
 			postprocess_cbuf_data.tone_map_operator = static_cast<int>(settings.tone_map_op);
@@ -637,23 +637,23 @@ namespace adria
 				}
 			}
 
-			weather_cbuf_data.sky_color = XMVECTOR{ render_settings.sky_color[0], render_settings.sky_color[1],render_settings.sky_color[2], 1.0f };
-			weather_cbuf_data.ambient_color = XMVECTOR{ render_settings.ambient_color[0], render_settings.ambient_color[1], render_settings.ambient_color[2], 1.0f };
-			weather_cbuf_data.wind_dir = XMVECTOR{ render_settings.wind_direction[0], 0.0f, render_settings.wind_direction[1], 0.0f };
-			weather_cbuf_data.wind_speed = render_settings.postprocessor.wind_speed;
+			weather_cbuf_data.sky_color = XMVECTOR{ renderer_settings.sky_color[0], renderer_settings.sky_color[1],renderer_settings.sky_color[2], 1.0f };
+			weather_cbuf_data.ambient_color = XMVECTOR{ renderer_settings.ambient_color[0], renderer_settings.ambient_color[1], renderer_settings.ambient_color[2], 1.0f };
+			weather_cbuf_data.wind_dir = XMVECTOR{ renderer_settings.wind_direction[0], 0.0f, renderer_settings.wind_direction[1], 0.0f };
+			weather_cbuf_data.wind_speed = renderer_settings.postprocessor.wind_speed;
 			weather_cbuf_data.time = total_time;
-			weather_cbuf_data.crispiness = render_settings.postprocessor.crispiness;
-			weather_cbuf_data.curliness = render_settings.postprocessor.curliness;
-			weather_cbuf_data.coverage = render_settings.postprocessor.coverage;
-			weather_cbuf_data.absorption = render_settings.postprocessor.light_absorption;
-			weather_cbuf_data.clouds_bottom_height = render_settings.postprocessor.clouds_bottom_height;
-			weather_cbuf_data.clouds_top_height = render_settings.postprocessor.clouds_top_height;
-			weather_cbuf_data.density_factor = render_settings.postprocessor.density_factor;
-			weather_cbuf_data.cloud_type = render_settings.postprocessor.cloud_type;
+			weather_cbuf_data.crispiness = renderer_settings.postprocessor.crispiness;
+			weather_cbuf_data.curliness = renderer_settings.postprocessor.curliness;
+			weather_cbuf_data.coverage = renderer_settings.postprocessor.coverage;
+			weather_cbuf_data.absorption = renderer_settings.postprocessor.light_absorption;
+			weather_cbuf_data.clouds_bottom_height = renderer_settings.postprocessor.clouds_bottom_height;
+			weather_cbuf_data.clouds_top_height = renderer_settings.postprocessor.clouds_top_height;
+			weather_cbuf_data.density_factor = renderer_settings.postprocessor.density_factor;
+			weather_cbuf_data.cloud_type = renderer_settings.postprocessor.cloud_type;
 
 			XMFLOAT3 sun_dir;
 			XMStoreFloat3(&sun_dir, XMVector3Normalize(weather_cbuf_data.light_dir));
-			SkyParameters sky_params = CalculateSkyParameters(render_settings.turbidity, render_settings.ground_albedo, sun_dir);
+			SkyParameters sky_params = CalculateSkyParameters(renderer_settings.turbidity, renderer_settings.ground_albedo, sun_dir);
 
 			weather_cbuf_data.A = sky_params[ESkyParam_A];
 			weather_cbuf_data.B = sky_params[ESkyParam_B];
@@ -683,41 +683,41 @@ namespace adria
 			compute_cbuf_data.gauss_coeff7 = coeffs[6];
 			compute_cbuf_data.gauss_coeff8 = coeffs[7];
 			compute_cbuf_data.gauss_coeff9 = coeffs[8];
-			compute_cbuf_data.bloom_scale = render_settings.postprocessor.bloom_scale;
-			compute_cbuf_data.threshold = render_settings.postprocessor.bloom_threshold;
-			compute_cbuf_data.visualize_tiled = render_settings.visualize_tiled;
-			compute_cbuf_data.visualize_max_lights = render_settings.visualize_max_lights;
-			compute_cbuf_data.bokeh_blur_threshold = render_settings.postprocessor.bokeh_blur_threshold;
-			compute_cbuf_data.bokeh_lum_threshold = render_settings.postprocessor.bokeh_lum_threshold;
-			compute_cbuf_data.dof_params = XMVectorSet(render_settings.postprocessor.dof_near_blur, render_settings.postprocessor.dof_near, render_settings.postprocessor.dof_far, render_settings.postprocessor.dof_far_blur);
-			compute_cbuf_data.bokeh_radius_scale = render_settings.postprocessor.bokeh_radius_scale;
-			compute_cbuf_data.bokeh_color_scale = render_settings.postprocessor.bokeh_color_scale;
-			compute_cbuf_data.bokeh_fallout = render_settings.postprocessor.bokeh_fallout;
+			compute_cbuf_data.bloom_scale = renderer_settings.postprocessor.bloom_scale;
+			compute_cbuf_data.threshold = renderer_settings.postprocessor.bloom_threshold;
+			compute_cbuf_data.visualize_tiled = renderer_settings.visualize_tiled;
+			compute_cbuf_data.visualize_max_lights = renderer_settings.visualize_max_lights;
+			compute_cbuf_data.bokeh_blur_threshold = renderer_settings.postprocessor.bokeh_blur_threshold;
+			compute_cbuf_data.bokeh_lum_threshold = renderer_settings.postprocessor.bokeh_lum_threshold;
+			compute_cbuf_data.dof_params = XMVectorSet(renderer_settings.postprocessor.dof_near_blur, renderer_settings.postprocessor.dof_near, renderer_settings.postprocessor.dof_far, renderer_settings.postprocessor.dof_far_blur);
+			compute_cbuf_data.bokeh_radius_scale = renderer_settings.postprocessor.bokeh_radius_scale;
+			compute_cbuf_data.bokeh_color_scale = renderer_settings.postprocessor.bokeh_color_scale;
+			compute_cbuf_data.bokeh_fallout = renderer_settings.postprocessor.bokeh_fallout;
 
-			compute_cbuf_data.ocean_choppiness = render_settings.ocean_choppiness;
+			compute_cbuf_data.ocean_choppiness = renderer_settings.ocean_choppiness;
 			compute_cbuf_data.ocean_size = 512;
 			compute_cbuf_data.resolution = 512; //fft resolution
-			compute_cbuf_data.wind_direction_x = render_settings.wind_direction[0];
-			compute_cbuf_data.wind_direction_y = render_settings.wind_direction[1];
+			compute_cbuf_data.wind_direction_x = renderer_settings.wind_direction[0];
+			compute_cbuf_data.wind_direction_y = renderer_settings.wind_direction[1];
 			compute_cbuf_data.delta_time = dt;
 
 			compute_cbuffer.Update(compute_cbuf_data, backbuffer_index);
 		}
 	}
-	void RenderGraphRenderer::CameraFrustumCulling()
+	void Renderer::CameraFrustumCulling()
 	{
 		BoundingFrustum camera_frustum = camera->Frustum();
-		auto visibility_view = reg.view<Visibility>();
+		auto visibility_view = reg.view<AABB>();
 		for (auto e : visibility_view)
 		{
-			auto& visibility = visibility_view.get(e);
-			visibility.camera_visible = camera_frustum.Intersects(visibility.aabb) || reg.has<Light>(e); //dont cull lights for now
+			auto& aabb = visibility_view.get(e);
+			aabb.camera_visible = camera_frustum.Intersects(aabb.bounding_box) || reg.has<Light>(e); //dont cull lights for now
 		}
 	}
 
-	void RenderGraphRenderer::ResolveToBackbuffer(RenderGraph& rg)
+	void Renderer::ResolveToBackbuffer(RenderGraph& rg)
 	{
-		if (HasAnyFlag(render_settings.postprocessor.anti_aliasing, AntiAliasing_FXAA))
+		if (HasAnyFlag(renderer_settings.postprocessor.anti_aliasing, AntiAliasing_FXAA))
 		{
 			tonemap_pass.AddPass(rg, postprocessor.GetFinalResource(), RG_RES_NAME(FXAAInput));
 			fxaa_pass.AddPass(rg, RG_RES_NAME(FXAAInput), true);
@@ -727,9 +727,9 @@ namespace adria
 			tonemap_pass.AddPass(rg, postprocessor.GetFinalResource(), true);
 		}
 	}
-	void RenderGraphRenderer::ResolveToTexture(RenderGraph& rg)
+	void Renderer::ResolveToTexture(RenderGraph& rg)
 	{
-		if (HasAnyFlag(render_settings.postprocessor.anti_aliasing, AntiAliasing_FXAA))
+		if (HasAnyFlag(renderer_settings.postprocessor.anti_aliasing, AntiAliasing_FXAA))
 		{
 			tonemap_pass.AddPass(rg, postprocessor.GetFinalResource(), RG_RES_NAME(FXAAInput));
 			fxaa_pass.AddPass(rg, RG_RES_NAME(FXAAInput), false);
