@@ -5,7 +5,7 @@
 #include "PSOCache.h" 
 #include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
-#include "../tecs/registry.h"
+#include "entt/entity/registry.hpp"
 #include "../Logging/Logger.h"
 
 using namespace DirectX;
@@ -13,7 +13,7 @@ using namespace DirectX;
 namespace adria
 {
 
-	TiledLightingPass::TiledLightingPass(tecs::registry& reg, uint32 w, uint32 h) : reg(reg), width(w), height(h)
+	TiledLightingPass::TiledLightingPass(entt::registry& reg, uint32 w, uint32 h) : reg(reg), width(w), height(h)
 	{
 	}
 
@@ -58,7 +58,7 @@ namespace adria
 				for (auto e : light_view)
 				{
 					StructuredLight structured_light{};
-					auto& light = light_view.get(e);
+					auto& light = light_view.get<Light>(e);
 					structured_light.color = light.color * light.energy;
 					structured_light.position = XMVector4Transform(light.position, global_data.camera_view);
 					structured_light.direction = XMVector4Transform(light.direction, global_data.camera_view);

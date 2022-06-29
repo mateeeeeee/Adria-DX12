@@ -10,7 +10,7 @@
 #include "GenerateMipsPass.h"
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
-#include "../tecs/entity.h"
+#include "entt/entity/entity.hpp"
 
 
 namespace adria
@@ -31,7 +31,7 @@ namespace adria
 	{
 
 	public:
-		Postprocessor(tecs::registry& reg, TextureManager& texture_manager, uint32 width, uint32 height);
+		Postprocessor(entt::registry& reg, TextureManager& texture_manager, uint32 width, uint32 height);
 
 		void AddPasses(RenderGraph& rg, PostprocessSettings const& settings);
 
@@ -40,7 +40,7 @@ namespace adria
 
 		RGResourceName GetFinalResource() const;
 	private:
-		tecs::registry& reg;
+		entt::registry& reg;
 		TextureManager& texture_manager;
 		uint32 width, height;
 		PostprocessSettings settings;
@@ -69,7 +69,7 @@ namespace adria
 		void AddSSRPass(RenderGraph& rg);
 		void AddFogPass(RenderGraph& rg);
 		void AddBloomPass(RenderGraph& rg);
-		void AddSunPass(RenderGraph& rg, tecs::entity sun);
+		void AddSunPass(RenderGraph& rg, entt::entity sun);
 		void AddGodRaysPass(RenderGraph& rg, Light const& light);
 		void AddLensFlarePass(RenderGraph& rg, Light const& light);
 		void AddDepthOfFieldPass(RenderGraph& rg);	

@@ -4,7 +4,7 @@
 #include "GlobalBlackboardData.h"
 #include "PSOCache.h" 
 #include "RootSignatureCache.h"
-#include "../tecs/registry.h"
+#include "entt/entity/registry.hpp"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/Buffer.h"
@@ -17,7 +17,7 @@
 namespace adria
 {
 
-	ParticleRenderer::ParticleRenderer(tecs::registry& reg, GraphicsDevice* gfx, TextureManager& texture_manager, uint32 w, uint32 h)
+	ParticleRenderer::ParticleRenderer(entt::registry& reg, GraphicsDevice* gfx, TextureManager& texture_manager, uint32 w, uint32 h)
 		: reg(reg), gfx(gfx), texture_manager(texture_manager), width(w), height(h)
 	{
 	}
@@ -27,7 +27,7 @@ namespace adria
 		auto emitters = reg.view<Emitter>();
 		for (auto emitter : emitters)
 		{
-			Emitter& emitter_params = emitters.get(emitter);
+			Emitter& emitter_params = emitters.get<Emitter>(emitter);
 			emitter_params.elapsed_time += dt;
 			if (emitter_params.particles_per_second > 0.0f)
 			{
@@ -51,10 +51,10 @@ namespace adria
 		auto emitters = reg.view<Emitter>();
 		for (auto emitter : emitters)
 		{
-			Emitter const& emitter_params = emitters.get(emitter);
+			Emitter const& emitter_params = emitters.get<Emitter>(emitter);
 			if (emitter_params.pause) continue;
 
-			size_t id = tecs::as_integer(emitter);
+			size_t id = entt::to_integral(emitter);
 			rg.ImportBuffer(RG_RES_NAME_IDX(DeadListBuffer, id), dead_list_buffer_map[id].get());
 			rg.ImportBuffer(RG_RES_NAME_IDX(AliveIndexBuffer, id), alive_index_buffer_map[id].get());
 			rg.ImportBuffer(RG_RES_NAME_IDX(DeadListBufferCounter, id), dead_list_buffer_counter_map[id].get());

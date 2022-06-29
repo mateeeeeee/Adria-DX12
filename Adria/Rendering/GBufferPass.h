@@ -1,7 +1,7 @@
 #pragma once
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
-
+#include "entt/entity/fwd.hpp"
 
 namespace adria
 {
@@ -16,14 +16,14 @@ namespace adria
 	class GBufferPass
 	{
 	public:
-		GBufferPass(tecs::registry& reg, GPUProfiler& gpu_profiler, uint32 w, uint32 h);
+		GBufferPass(entt::registry& reg, GPUProfiler& gpu_profiler, uint32 w, uint32 h);
 
 		void AddPass(RenderGraph& rendergraph, bool profile_pass);
 
 		void OnResize(uint32 w, uint32 h);
 
 	private:
-		tecs::registry& reg;
+		entt::registry& reg;
 		GPUProfiler& gpu_profiler;
 		uint32 width, height;
 	};

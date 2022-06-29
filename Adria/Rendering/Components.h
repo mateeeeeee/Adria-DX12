@@ -6,7 +6,7 @@
 #include "../Graphics/VertexTypes.h"
 #include "../Graphics/Buffer.h"
 #include "../Graphics/TextureManager.h"
-#include "../tecs/entity.h"
+#include "entt/entity/entity.hpp"
 
 #define COMPONENT 
 
@@ -66,9 +66,9 @@ namespace adria
 	struct COMPONENT Relationship
 	{
 		static constexpr size_t MAX_CHILDREN = 2048;
-		tecs::entity parent = tecs::null_entity;
+		entt::entity parent = entt::null;
 		size_t children_count = 0;
-		tecs::entity children[MAX_CHILDREN] = { tecs::null_entity };
+		entt::entity children[MAX_CHILDREN] = { entt::null };
 	};
 
 	struct COMPONENT Material

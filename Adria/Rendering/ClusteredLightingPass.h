@@ -3,7 +3,7 @@
 #include "../Core/Definitions.h"
 #include "../Graphics/Buffer.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
-#include "../tecs/entity.h"
+#include "entt/entity/entity.hpp"
 
 namespace adria
 {
@@ -23,7 +23,7 @@ namespace adria
 		static constexpr uint32 CLUSTER_MAX_LIGHTS = 128;
 
 	public:
-		ClusteredLightingPass(tecs::registry& reg, GraphicsDevice* gfx, uint32 w, uint32 h);
+		ClusteredLightingPass(entt::registry& reg, GraphicsDevice* gfx, uint32 w, uint32 h);
 
 		void AddPass(RenderGraph& rendergraph, bool recreate_clusters);
 
@@ -33,7 +33,7 @@ namespace adria
 		}
 
 	private:
-		tecs::registry& reg;
+		entt::registry& reg;
 		uint32 width, height;
 		//maybe move to render graph?
 		Buffer clusters;

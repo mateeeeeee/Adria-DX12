@@ -4,7 +4,7 @@
 #include <DirectXCollision.h>
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
-#include "../tecs/entity.h"
+#include "entt/entity/entity.hpp"
 
 namespace adria
 {
@@ -28,12 +28,12 @@ namespace adria
 		static constexpr uint32 SHADOW_CASCADE_COUNT = 3;
 
 	public:
-		ShadowPass(tecs::registry& reg, TextureManager& texture_manager);
+		ShadowPass(entt::registry& reg, TextureManager& texture_manager);
 		void SetCamera(Camera const* camera);
 		void AddPass(RenderGraph& rg, Light const& light, size_t light_id);
 
 	private:
-		tecs::registry& reg;
+		entt::registry& reg;
 		TextureManager& texture_manager;
 		Camera const* camera;
 

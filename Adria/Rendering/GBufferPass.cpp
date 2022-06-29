@@ -6,12 +6,12 @@
 #include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/GPUProfiler.h"
-#include "../tecs/registry.h"
+#include "entt/entity/registry.hpp"
 
 namespace adria
 {
 
-	GBufferPass::GBufferPass(tecs::registry& reg, GPUProfiler& gpu_profiler, uint32 w, uint32 h) :
+	GBufferPass::GBufferPass(entt::registry& reg, GPUProfiler& gpu_profiler, uint32 w, uint32 h) :
 		reg{ reg }, gpu_profiler{ gpu_profiler }, width{ w }, height{ h }
 	{}
 
@@ -65,9 +65,9 @@ namespace adria
 					if (!aabb.camera_visible) continue;
 
 					DirectX::XMMATRIX parent_transform = DirectX::XMMatrixIdentity();
-					if (Relationship* relationship = reg.get_if<Relationship>(e))
+					if (Relationship* relationship = reg.try_get<Relationship>(e))
 					{
-						if (auto* root_transform = reg.get_if<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
+						if (auto* root_transform = reg.try_get<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
 					}
 
 					ObjectCBuffer object_cbuf_data{};

@@ -6,14 +6,14 @@
 #include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/GPUProfiler.h"
-#include "../tecs/registry.h"
+#include "entt/entity/registry.hpp"
 #include "../Logging/Logger.h"
 
 using namespace DirectX;
 
 namespace adria
 {
-	Postprocessor::Postprocessor(tecs::registry& reg, TextureManager& texture_manager, uint32 width, uint32 height)
+	Postprocessor::Postprocessor(entt::registry& reg, TextureManager& texture_manager, uint32 width, uint32 height)
 		: reg(reg), texture_manager(texture_manager), width(width), height(height),
 		  blur_pass(width, height), copy_to_texture_pass(width, height), generate_mips_pass(width, height),
 		  add_textures_pass(width, height)
@@ -27,9 +27,9 @@ namespace adria
 
 		AddCopyHDRPass(rg);
 		final_resource = RG_RES_NAME(PostprocessMain);
-		for (tecs::entity light : lights)
+		for (entt::entity light : lights)
 		{
-			auto const& light_data = lights.get(light);
+			auto const& light_data = lights.get<Light>(light);
 			if (!light_data.active || !light_data.lens_flare) continue;
 			AddLensFlarePass(rg, light_data);
 		}
@@ -77,9 +77,9 @@ namespace adria
 			AddBloomPass(rg);
 			final_resource = RG_RES_NAME(BloomOutput);
 		}
-		for (tecs::entity light_entity : lights)
+		for (entt::entity light_entity : lights)
 		{
-			auto const& light = lights.get(light_entity);
+			auto const& light = lights.get<Light>(light_entity);
 			if (!light.active) continue;
 
 			if (light.type == ELightType::Directional)
@@ -499,7 +499,7 @@ namespace adria
 
 	}
 
-	void Postprocessor::AddSunPass(RenderGraph& rg, tecs::entity sun)
+	void Postprocessor::AddSunPass(RenderGraph& rg, entt::entity sun)
 	{
 		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
 		RGResourceName last_resource = final_resource;

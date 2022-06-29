@@ -53,7 +53,7 @@ namespace adria
 
 	public:
 
-		Renderer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height);
+		Renderer(entt::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height);
 		~Renderer();
 
 		void NewFrame(Camera const* camera);
@@ -93,7 +93,7 @@ namespace adria
 #endif
 		}
 	private:
-		tecs::registry& reg;
+		entt::registry& reg;
 		GraphicsDevice* gfx;
 		RGResourcePool resource_pool;
 

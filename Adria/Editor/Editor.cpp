@@ -460,8 +460,8 @@ namespace adria
 
 			if (ImGui::Button("Load Emitter"))
 			{
-				tecs::entity e = engine->entity_loader->LoadEmitter(params);
-				editor_events.particle_emitter_added.Broadcast(tecs::as_integer(e));
+				entt::entity e = engine->entity_loader->LoadEmitter(params);
+				editor_events.particle_emitter_added.Broadcast(entt::to_integral(e));
 			}
 		}
 		ImGui::End();
@@ -520,7 +520,7 @@ namespace adria
 			}
 			if (ImGui::Button("Clear Decals"))
 			{
-				engine->reg.destroy<Decal>();
+				for(auto e : engine->reg.view<Decal>()) engine->reg.destroy(e);
 			}
 		}
 		ImGui::End();
@@ -629,13 +629,13 @@ namespace adria
 		auto all_entities = engine->reg.view<Tag>();
 		ImGui::Begin("Entities");
 		{
-			std::vector<entity> deleted_entities{};
-			std::function<void(entity, bool)> ShowEntity;
-			ShowEntity = [&](entity e, bool first_iteration)
+			std::vector<entt::entity> deleted_entities{};
+			std::function<void(entt::entity, bool)> ShowEntity;
+			ShowEntity = [&](entt::entity e, bool first_iteration)
 			{
-				Relationship* relationship = engine->reg.get_if<Relationship>(e);
-				if (first_iteration && relationship && relationship->parent != null_entity) return;
-				auto& tag = all_entities.get(e);
+				Relationship* relationship = engine->reg.try_get<Relationship>(e);
+				if (first_iteration && relationship && relationship->parent != entt::null) return;
+				auto& tag = all_entities.get<Tag>(e);
 
 				ImGuiTreeNodeFlags flags = ((selected_entity == e) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 				flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
@@ -643,7 +643,7 @@ namespace adria
 
 				if (ImGui::IsItemClicked())
 				{
-					if (e == selected_entity) selected_entity = null_entity;
+					if (e == selected_entity) selected_entity = entt::null;
 					else selected_entity = e;
 				}
 
@@ -683,15 +683,15 @@ namespace adria
 			for (auto e : all_entities) ShowEntity(e, true);
 			for (auto e : deleted_entities)
 			{
-				if (Relationship* relationship = engine->reg.get_if<Relationship>(e))
+				if (Relationship* relationship = engine->reg.try_get<Relationship>(e))
 				{
-					if (relationship->parent != null_entity)
+					if (relationship->parent != entt::null)
 					{
-						ADRIA_ASSERT(engine->reg.has<Relationship>(relationship->parent));
+						ADRIA_ASSERT(engine->reg.all_of<Relationship>(relationship->parent));
 						Relationship& parent_relationship = engine->reg.get<Relationship>(relationship->parent);
 						for (size_t i = 0; i < parent_relationship.children_count; ++i)
 						{
-							entity child = parent_relationship.children[i];
+							entt::entity child = parent_relationship.children[i];
 							if (child == e)
 							{
 								std::swap(parent_relationship.children[i], parent_relationship.children[parent_relationship.children_count - 1]);
@@ -711,9 +711,9 @@ namespace adria
 	{
 		ImGui::Begin("Properties");
 		{
-			if (selected_entity != null_entity)
+			if (selected_entity != entt::null)
 			{
-				auto tag = engine->reg.get_if<Tag>(selected_entity);
+				auto tag = engine->reg.try_get<Tag>(selected_entity);
 				if (tag)
 				{
 					char buffer[256];
@@ -723,7 +723,7 @@ namespace adria
 						tag->name = std::string(buffer);
 				}
 
-				auto light = engine->reg.get_if<Light>(selected_entity);
+				auto light = engine->reg.try_get<Light>(selected_entity);
 				if (light && ImGui::CollapsingHeader("Light"))
 				{
 					if (light->type == ELightType::Directional)	ImGui::Text("Directional Light");
@@ -741,7 +741,7 @@ namespace adria
 
 					ImGui::SliderFloat("Light Energy", &light->energy, 0.0f, 50.0f);
 
-					if (engine->reg.has<Material>(selected_entity))
+					if (engine->reg.all_of<Material>(selected_entity))
 					{
 						auto& material = engine->reg.get<Material>(selected_entity);
 						material.diffuse = XMFLOAT3(color[0], color[1], color[2]);
@@ -783,7 +783,7 @@ namespace adria
 						ImGui::SliderFloat("Range", &light->range, 50.0f, 1000.0f);
 					}
 
-					if (engine->reg.has<Transform>(selected_entity))
+					if (engine->reg.all_of<Transform>(selected_entity))
 					{
 						auto& tr = engine->reg.get<Transform>(selected_entity);
 
@@ -855,7 +855,7 @@ namespace adria
 					ImGui::Checkbox("Lens Flare", &light->lens_flare);
 				}
 
-				auto material = engine->reg.get_if<Material>(selected_entity);
+				auto material = engine->reg.try_get<Material>(selected_entity);
 				if (material && ImGui::CollapsingHeader("Material"))
 				{
 					ID3D12Device5* device = engine->gfx->GetDevice();
@@ -910,7 +910,7 @@ namespace adria
 					ImGui::SliderFloat("Emissive Factor", &material->emissive_factor, 0.0f, 32.0f);
 
 					//add shader changing
-					if (engine->reg.has<Forward>(selected_entity))
+					if (engine->reg.all_of<Forward>(selected_entity))
 					{
 						if (material->albedo_texture != INVALID_TEXTURE_HANDLE)
 							material->pso = EPipelineState::Texture;
@@ -922,7 +922,7 @@ namespace adria
 					}
 				}
 
-				auto transform = engine->reg.get_if<Transform>(selected_entity);
+				auto transform = engine->reg.try_get<Transform>(selected_entity);
 				if (transform && ImGui::CollapsingHeader("Transform"))
 				{
 					XMFLOAT4X4 tr;
@@ -935,24 +935,24 @@ namespace adria
 					ImGui::InputFloat3("Scale", scale);
 					ImGuizmo::RecomposeMatrixFromComponents(translation, rotation, scale, tr.m[0]);
 
-					if (Emitter* emitter = engine->reg.get_if<Emitter>(selected_entity))
+					if (Emitter* emitter = engine->reg.try_get<Emitter>(selected_entity))
 					{
 						emitter->position = XMFLOAT4(translation[0], translation[1], translation[2], 1.0f);
 					}
 
-					if (AABB* aabb = engine->reg.get_if<AABB>(selected_entity))
+					if (AABB* aabb = engine->reg.try_get<AABB>(selected_entity))
 					{
 						aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, transform->current_transform));
 						aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));
 						//aabb->UpdateBuffer(engine->gfx.get());
 					}
 
-					if (Relationship* relationship = engine->reg.get_if<Relationship>(selected_entity))
+					if (Relationship* relationship = engine->reg.try_get<Relationship>(selected_entity))
 					{
 						for (size_t i = 0; i < relationship->children_count; ++i)
 						{
-							entity child = relationship->children[i];
-							if (AABB* aabb = engine->reg.get_if<AABB>(child))
+							entt::entity child = relationship->children[i];
+							if (AABB* aabb = engine->reg.try_get<AABB>(child))
 							{
 								aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, transform->current_transform));
 								aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));
@@ -963,7 +963,7 @@ namespace adria
 					transform->current_transform = DirectX::XMLoadFloat4x4(&tr);
 				}
 
-				auto emitter = engine->reg.get_if<Emitter>(selected_entity);
+				auto emitter = engine->reg.try_get<Emitter>(selected_entity);
 				if (emitter && ImGui::CollapsingHeader("Emitter"))
 				{
 					ID3D12Device5* device = engine->gfx->GetDevice();
@@ -1028,7 +1028,7 @@ namespace adria
 					if (ImGui::Button("Reset")) emitter->reset_emitter = true;
 				}
 
-				auto decal = engine->reg.get_if<Decal>(selected_entity);
+				auto decal = engine->reg.try_get<Decal>(selected_entity);
 				if (decal && ImGui::CollapsingHeader("Decal"))
 				{
 					ID3D12Device5* device = engine->gfx->GetDevice();
@@ -1080,7 +1080,7 @@ namespace adria
 					ImGui::Checkbox("Modify GBuffer Normals", &decal->modify_gbuffer_normals);
 				}
 
-				auto skybox = engine->reg.get_if<Skybox>(selected_entity);
+				auto skybox = engine->reg.try_get<Skybox>(selected_entity);
 				if (skybox && ImGui::CollapsingHeader("Skybox"))
 				{
 					ImGui::Checkbox("Active", &skybox->active);
@@ -1096,13 +1096,13 @@ namespace adria
 					}
 				}
 
-				auto forward = engine->reg.get_if<Forward>(selected_entity);
+				auto forward = engine->reg.try_get<Forward>(selected_entity);
 				if (forward)
 				{
 					if (ImGui::CollapsingHeader("Forward")) ImGui::Checkbox("Transparent", &forward->transparent);
 				}
 
-				if (AABB* aabb = engine->reg.get_if<AABB>(selected_entity))
+				if (AABB* aabb = engine->reg.try_get<AABB>(selected_entity))
 				{
 					//aabb->draw_aabb = true;
 				}
@@ -1172,7 +1172,7 @@ namespace adria
 			viewport_data.scene_viewport_size_y = size.y;
 		}
 
-		if (selected_entity != null_entity && engine->reg.has<Transform>(selected_entity) && gizmo_enabled)
+		if (selected_entity != entt::null && engine->reg.all_of<Transform>(selected_entity) && gizmo_enabled)
 		{
 			ImGuizmo::SetDrawlist();
 
@@ -1202,7 +1202,7 @@ namespace adria
 
 			if (ImGuizmo::IsUsing())
 			{
-				AABB* aabb = engine->reg.get_if<AABB>(selected_entity);
+				AABB* aabb = engine->reg.try_get<AABB>(selected_entity);
 				if (aabb)
 				{
 					aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, entity_transform.current_transform));
@@ -1210,12 +1210,12 @@ namespace adria
 					//aabb->UpdateBuffer(engine->gfx.get());
 				}
 
-				if (Relationship* relationship = engine->reg.get_if<Relationship>(selected_entity))
+				if (Relationship* relationship = engine->reg.try_get<Relationship>(selected_entity))
 				{
 					for (size_t i = 0; i < relationship->children_count; ++i)
 					{
-						entity child = relationship->children[i];
-						if (AABB* aabb = engine->reg.get_if<AABB>(child))
+						entt::entity child = relationship->children[i];
+						if (AABB* aabb = engine->reg.try_get<AABB>(child))
 						{
 							aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, entity_transform.current_transform));
 							aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));

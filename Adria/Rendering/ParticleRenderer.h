@@ -6,13 +6,10 @@
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
 #include "../Utilities/HashMap.h"
+#include "entt/entity/fwd.hpp"
 
 namespace adria
 {
-	namespace tecs
-	{
-		class registry;
-	}
 	class RenderGraph;
 	class TextureManager;
 	class GraphicsDevice;
@@ -76,7 +73,7 @@ namespace adria
 			int32 x, y, z, w;
 		};
 	public:
-		ParticleRenderer(tecs::registry& reg, GraphicsDevice* gfx, TextureManager& texture_manager, uint32 w, uint32 h);
+		ParticleRenderer(entt::registry& reg, GraphicsDevice* gfx, TextureManager& texture_manager, uint32 w, uint32 h);
 		void Update(float32 dt);
 		void AddPasses(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h);
@@ -84,7 +81,7 @@ namespace adria
 		void OnEmitterAdded(size_t id);
 		void OnEmitterRemoved(size_t id);
 	private:
-		tecs::registry& reg;
+		entt::registry& reg;
 		GraphicsDevice* gfx;
 		TextureManager& texture_manager;
 		uint32 width, height;

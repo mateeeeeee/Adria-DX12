@@ -6,7 +6,7 @@
 #include <string>
 #include "Components.h"
 #include "../Core/Definitions.h"
-#include "../tecs/registry.h"
+#include "entt/entity/registry.hpp"
 #include "../Math/ComputeNormals.h"
 #include "../Utilities/Heightmap.h"
 #include "../Events/Delegate.h"
@@ -97,21 +97,21 @@ namespace adria
  
 	class ModelImporter
 	{
-		[[nodiscard]] std::vector<tecs::entity> LoadGrid(GridParameters const&);
-		[[nodiscard]] std::vector<tecs::entity> LoadObjMesh(std::string const&);
+		[[nodiscard]] std::vector<entt::entity> LoadGrid(GridParameters const&);
+		[[nodiscard]] std::vector<entt::entity> LoadObjMesh(std::string const&);
 	public:
         
-        ModelImporter(tecs::registry& reg, GraphicsDevice* device, TextureManager& texture_manager);
+        ModelImporter(entt::registry& reg, GraphicsDevice* device, TextureManager& texture_manager);
 
-		[[maybe_unused]] tecs::entity LoadSkybox(SkyboxParameters const&);
-        [[maybe_unused]] tecs::entity LoadLight(LightParameters const&);
-		[[maybe_unused]] std::vector<tecs::entity> LoadOcean(OceanParameters const&);
-		[[maybe_unused]] tecs::entity LoadEmitter(EmitterParameters const&);
-		[[maybe_unused]] tecs::entity LoadDecal(DecalParameters const&);
+		[[maybe_unused]] entt::entity LoadSkybox(SkyboxParameters const&);
+        [[maybe_unused]] entt::entity LoadLight(LightParameters const&);
+		[[maybe_unused]] std::vector<entt::entity> LoadOcean(OceanParameters const&);
+		[[maybe_unused]] entt::entity LoadEmitter(EmitterParameters const&);
+		[[maybe_unused]] entt::entity LoadDecal(DecalParameters const&);
 
-		[[maybe_unused]] std::vector<tecs::entity> ImportModel_GLTF(ModelParameters const&);
+		[[maybe_unused]] std::vector<entt::entity> ImportModel_GLTF(ModelParameters const&);
 	private:
-        tecs::registry& reg;
+        entt::registry& reg;
         GraphicsDevice* gfx;
         TextureManager& texture_manager;
 	};

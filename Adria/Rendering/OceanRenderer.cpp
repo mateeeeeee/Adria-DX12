@@ -7,7 +7,7 @@
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/Texture.h"
 #include "../Graphics/TextureManager.h"
-#include "../tecs/registry.h"
+#include "entt/entity/registry.hpp"
 #include "../Utilities/Random.h"
 #include "../Math/Constants.h"
 
@@ -16,13 +16,13 @@ using namespace DirectX;
 namespace adria
 {
 
-	OceanRenderer::OceanRenderer(tecs::registry& reg, TextureManager& texture_manager, uint32 w, uint32 h)
+	OceanRenderer::OceanRenderer(entt::registry& reg, TextureManager& texture_manager, uint32 w, uint32 h)
 		: reg{ reg }, texture_manager{ texture_manager }, width{ w }, height{ h }
 	{}
 
 	void OceanRenderer::UpdateOceanColor(float32(&color)[3])
 	{
-		if (reg.size<Ocean>() == 0) return;
+		if (reg.view<Ocean>().size() == 0) return;
 
 		auto ocean_view = reg.view<Ocean, Material>();
 		for (auto e : ocean_view)
@@ -34,7 +34,7 @@ namespace adria
 
 	void OceanRenderer::AddPasses(RenderGraph& rendergraph, bool recreate_spectrum, bool tesselated, bool wireframe)
 	{
-		if (reg.size<Ocean>() == 0) return;
+		if (reg.view<Ocean>().size() == 0) return;
 		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
 
 		rendergraph.ImportTexture(RG_RES_NAME(InitialSpectrum), initial_spectrum.get());
@@ -317,7 +317,7 @@ namespace adria
 				D3D12_CPU_DESCRIPTOR_HANDLE skybox_handle = global_data.null_srv_texturecube;
 				for (auto skybox : skyboxes)
 				{
-					auto const& _skybox = skyboxes.get(skybox);
+					auto const& _skybox = skyboxes.get<Skybox>(skybox);
 					if (_skybox.active)
 					{
 						skybox_handle = texture_manager.CpuDescriptorHandle(_skybox.cubemap_texture);

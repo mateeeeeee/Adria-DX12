@@ -2,14 +2,10 @@
 #include <memory>
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
-
+#include "entt/entity/fwd.hpp"
 
 namespace adria
 {
-	namespace tecs
-	{
-		class registry;
-	}
 	class RenderGraph;
 	class TextureManager;
 	class GraphicsDevice;
@@ -20,7 +16,7 @@ namespace adria
 		static constexpr uint32 FFT_RESOLUTION = 512;
 
 	public:
-		OceanRenderer(tecs::registry& reg, TextureManager& texture_manager, uint32 w, uint32 h);
+		OceanRenderer(entt::registry& reg, TextureManager& texture_manager, uint32 w, uint32 h);
 
 		void UpdateOceanColor(float32(&color)[3]);
 
@@ -31,7 +27,7 @@ namespace adria
 		void OnSceneInitialized(GraphicsDevice* gfx);
 
 	private:
-		tecs::registry& reg;
+		entt::registry& reg;
 		TextureManager& texture_manager;
 		size_t foam_handle = -1;
 		size_t perlin_handle = -1;

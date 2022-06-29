@@ -7,14 +7,14 @@
 #include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/GPUProfiler.h"
-#include "../tecs/registry.h"
+#include "entt/entity/registry.hpp"
 
 using namespace DirectX;
 
 namespace adria
 {
 
-	SkyPass::SkyPass(tecs::registry& reg, TextureManager& texture_manager, uint32 w, uint32 h)
+	SkyPass::SkyPass(entt::registry& reg, TextureManager& texture_manager, uint32 w, uint32 h)
 		: reg(reg), texture_manager(texture_manager), width(w), height(h)
 	{}
 
@@ -52,7 +52,7 @@ namespace adria
 					auto skybox_view = reg.view<Skybox>();
 					for (auto e : skybox_view)
 					{
-						auto const& skybox = skybox_view.get(e);
+						auto const& skybox = skybox_view.get<Skybox>(e);
 						if (!skybox.active) continue;
 
 						OffsetType descriptor_index = descriptor_allocator->Allocate();

@@ -3,7 +3,7 @@
 #include "GlobalBlackboardData.h"
 #include "ShaderManager.h"
 #include "RootSignatureCache.h"
-#include "../tecs/registry.h"
+#include "entt/entity/registry.hpp"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/Shader.h"
 #include "../Logging/Logger.h"
@@ -13,7 +13,7 @@ using namespace DirectX;
 namespace adria
 {
 
-	RayTracer::RayTracer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height)
+	RayTracer::RayTracer(entt::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height)
 		: reg(reg), gfx(gfx), width(width), height(height), accel_structure(gfx),
 		ray_tracing_cbuffer(gfx->GetDevice(), gfx->BackbufferCount()), blur_pass(width, height)
 	{

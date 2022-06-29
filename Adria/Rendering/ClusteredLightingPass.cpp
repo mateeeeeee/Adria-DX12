@@ -5,7 +5,7 @@
 #include "PSOCache.h" 
 #include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
-#include "../tecs/registry.h"
+#include "entt/entity/registry.hpp"
 #include "../Logging/Logger.h"
 
 using namespace DirectX;
@@ -13,21 +13,12 @@ using namespace DirectX;
 namespace adria
 {
 
-	ClusteredLightingPass::ClusteredLightingPass(tecs::registry& reg, GraphicsDevice* gfx, uint32 w, uint32 h) : reg(reg), width(w), height(h),
+	ClusteredLightingPass::ClusteredLightingPass(entt::registry& reg, GraphicsDevice* gfx, uint32 w, uint32 h) : reg(reg), width(w), height(h),
 		clusters(gfx, StructuredBufferDesc<ClusterAABB>(CLUSTER_COUNT)),
 		light_counter(gfx, StructuredBufferDesc<uint32>(1)),
 		light_list(gfx, StructuredBufferDesc<uint32>(CLUSTER_COUNT * CLUSTER_MAX_LIGHTS)),
 		light_grid(gfx, StructuredBufferDesc<LightGrid>(CLUSTER_COUNT))
 	{
-		/*light_counter.CreateSRV();
-		light_list.CreateSRV();
-		clusters.CreateSRV();
-		light_grid.CreateSRV();
-
-		light_counter.CreateUAV();
-		light_list.CreateUAV();
-		clusters.CreateUAV();
-		light_grid.CreateUAV();*/
 	}
 
 	void ClusteredLightingPass::AddPass(RenderGraph& rendergraph, bool recreate_clusters)
@@ -74,7 +65,7 @@ namespace adria
 		for (auto e : light_view)
 		{
 			StructuredLight structured_light{};
-			auto& light = light_view.get(e);
+			auto& light = light_view.get<Light>(e);
 			structured_light.color = light.color * light.energy;
 			structured_light.position = XMVector4Transform(light.position, global_data.camera_view);
 			structured_light.direction = XMVector4Transform(light.direction, global_data.camera_view);

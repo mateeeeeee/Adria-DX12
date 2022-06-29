@@ -2,7 +2,7 @@
 #include <optional>
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
-#include "../tecs/entity.h"
+#include "entt/entity/entity.hpp"
 
 namespace adria
 {

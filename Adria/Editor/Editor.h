@@ -3,7 +3,7 @@
 #include "GUI.h"
 #include "EditorEvents.h"
 #include "../Core/Engine.h"
-#include "../tecs/registry.h"
+#include "entt/entity/registry.hpp"
 #include "../Rendering/RendererSettings.h"
 #include "../Rendering/ViewportData.h"
 #include "../Graphics/ProfilerSettings.h"
@@ -36,7 +36,7 @@ namespace adria
 		std::unique_ptr<Engine> engine;
 		std::unique_ptr<GUI> gui;
 		std::unique_ptr<ImGuiLogger> editor_log;
-		tecs::entity selected_entity = tecs::null_entity;
+		entt::entity selected_entity = entt::null;
 		bool gizmo_enabled = false;
 		bool scene_focused = false;
 		ImGuizmo::OPERATION gizmo_op = ImGuizmo::TRANSLATE;

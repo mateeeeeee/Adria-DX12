@@ -25,9 +25,8 @@ using namespace DirectX;
 
 namespace adria
 {
-    using namespace tecs;
 
-	std::vector<entity> ModelImporter::LoadGrid(GridParameters const& params)
+	std::vector<entt::entity> ModelImporter::LoadGrid(GridParameters const& params)
 	{
 		if (params.heightmap)
 		{
@@ -35,7 +34,7 @@ namespace adria
 			ADRIA_ASSERT(params.heightmap->Width() == params.tile_count_x + 1);
 		}
 
-		std::vector<entity> chunks;
+		std::vector<entt::entity> chunks;
 		std::vector<TexturedNormalVertex> vertices{};
 		for (uint64 j = 0; j <= params.tile_count_z; j++)
 		{
@@ -87,7 +86,7 @@ namespace adria
 
 			ComputeNormals(params.normal_type, vertices, indices);
 
-			entity grid = reg.create();
+			entt::entity grid = reg.create();
 
 			BufferDesc vb_desc{
 			.size = vertices.size() * sizeof(TexturedNormalVertex),
@@ -122,7 +121,7 @@ namespace adria
 			{
 				for (size_t i = 0; i < params.tile_count_x; i += params.chunk_count_x)
 				{
-					entity chunk = reg.create();
+					entt::entity chunk = reg.create();
 
 					uint32 const indices_count = static_cast<uint32>(params.chunk_count_z * params.chunk_count_x * 3 * 2);
 					uint32 const indices_offset = static_cast<uint32>(indices.size());
@@ -189,7 +188,7 @@ namespace adria
 			std::shared_ptr<Buffer> vb = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());
 			std::shared_ptr<Buffer> ib = std::make_shared<Buffer>(gfx, ib_desc, indices.data());
 
-			for (entity chunk : chunks)
+			for (entt::entity chunk : chunks)
 			{
 				auto& mesh = reg.get<Mesh>(chunk);
 				mesh.vertex_buffer = vb;
@@ -199,7 +198,7 @@ namespace adria
 		return chunks;
 	}
 
-	std::vector<entity> ModelImporter::LoadObjMesh(std::string const& model_path)
+	std::vector<entt::entity> ModelImporter::LoadObjMesh(std::string const& model_path)
 	{
 		tinyobj::ObjReaderConfig reader_config{};
 		tinyobj::ObjReader reader;
@@ -224,11 +223,11 @@ namespace adria
 		// Loop over shapes
 		std::vector<TexturedNormalVertex> vertices{};
 		std::vector<uint32> indices{};
-		std::vector<entity> entities{};
+		std::vector<entt::entity> entities{};
 
 		for (size_t s = 0; s < shapes.size(); s++)
 		{
-			entity e = reg.create();
+			entt::entity e = reg.create();
 			entities.push_back(e);
 
 			Mesh mesh_component{};
@@ -305,27 +304,27 @@ namespace adria
 		std::shared_ptr<Buffer> vb = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());
 		std::shared_ptr<Buffer> ib = std::make_shared<Buffer>(gfx, ib_desc, indices.data());
 
-		for (entity e : entities)
+		for (entt::entity e : entities)
 		{
 			auto& mesh = reg.get<Mesh>(e);
 			mesh.vertex_buffer = vb;
 			mesh.index_buffer = ib;
-			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(as_integer(e)));
+			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(entt::to_integral(e)));
 		}
 
 		ADRIA_LOG(INFO, "OBJ Mesh %s successfully loaded!", model_path.c_str());
 		return entities;
 	}
 
-	ModelImporter::ModelImporter(registry& reg, GraphicsDevice* gfx, TextureManager& texture_manager)
+	ModelImporter::ModelImporter(entt::registry& reg, GraphicsDevice* gfx, TextureManager& texture_manager)
         : reg(reg), gfx(gfx), texture_manager(texture_manager)
     {
     }
 
 	[[maybe_unused]]
-	entity ModelImporter::LoadSkybox(SkyboxParameters const& params)
+	entt::entity ModelImporter::LoadSkybox(SkyboxParameters const& params)
     {
-        entity skybox = reg.create();
+        entt::entity skybox = reg.create();
 
         Skybox sky{};
         sky.active = true;
@@ -343,9 +342,9 @@ namespace adria
     }
 
     [[maybe_unused]] 
-    entity ModelImporter::LoadLight(LightParameters const& params)
+	entt::entity ModelImporter::LoadLight(LightParameters const& params)
     {
-        entity light = reg.create();
+        entt::entity light = reg.create();
 
         if (params.light_data.type == ELightType::Directional)
             const_cast<LightParameters&>(params).light_data.position = XMVectorScale(-params.light_data.direction, 1e3);
@@ -450,9 +449,9 @@ namespace adria
         return light;
     }
 
-	std::vector<entity> ModelImporter::LoadOcean(OceanParameters const& params)
+	std::vector<entt::entity> ModelImporter::LoadOcean(OceanParameters const& params)
 	{
-		std::vector<entity> ocean_chunks = ModelImporter::LoadGrid(params.ocean_grid);
+		std::vector<entt::entity> ocean_chunks = ModelImporter::LoadGrid(params.ocean_grid);
 
 		Material ocean_material{};
 		ocean_material.diffuse = XMFLOAT3(0.0123f, 0.3613f, 0.6867f);
@@ -463,14 +462,14 @@ namespace adria
 		{
 			reg.emplace<Material>(ocean_chunk, ocean_material);
 			reg.emplace<Ocean>(ocean_chunk, ocean_component);
-			reg.emplace<Tag>(ocean_chunk, "Ocean Chunk" + std::to_string(as_integer(ocean_chunk)));
+			reg.emplace<Tag>(ocean_chunk, "Ocean Chunk" + std::to_string(entt::to_integral(ocean_chunk)));
 		}
 
 		return ocean_chunks;
 	}
 
 	[[maybe_unused]]
-	entity ModelImporter::LoadEmitter(EmitterParameters const& params)
+	entt::entity ModelImporter::LoadEmitter(EmitterParameters const& params)
 	{
 		Emitter emitter{};
 		emitter.position = DirectX::XMFLOAT4(params.position[0], params.position[1], params.position[2], 1);
@@ -487,8 +486,8 @@ namespace adria
 		emitter.collisions_enabled = params.collisions;
 		emitter.particle_texture = texture_manager.LoadTexture(params.texture_path);
 
-		tecs::entity emitter_entity = reg.create();
-		reg.add(emitter_entity, emitter);
+		entt::entity emitter_entity = reg.create();
+		reg.emplace<Emitter>(emitter_entity, emitter);
 
 		if (params.name.empty()) reg.emplace<Tag>(emitter_entity);
 		else reg.emplace<Tag>(emitter_entity, params.name);
@@ -497,7 +496,7 @@ namespace adria
 	}
 
 	[[maybe_unused]]
-	entity ModelImporter::LoadDecal(DecalParameters const& params)
+	entt::entity ModelImporter::LoadDecal(DecalParameters const& params)
 	{
 		Decal decal{};
 		texture_manager.SetMipMaps(false);
@@ -530,8 +529,8 @@ namespace adria
 			decal.decal_type = EDecalType::Project_XY;
 		}
 
-		entity decal_entity = reg.create();
-		reg.add(decal_entity, decal);
+		entt::entity decal_entity = reg.create();
+		reg.emplace<Decal>(decal_entity, decal);
 		if (params.name.empty()) reg.emplace<Tag>(decal_entity, "decal");
 		else reg.emplace<Tag>(decal_entity, params.name);
 
@@ -540,7 +539,7 @@ namespace adria
 
 	
 	[[maybe_unused]]
-	std::vector<entity> ModelImporter::ImportModel_GLTF(ModelParameters const& params)
+	std::vector<entt::entity> ModelImporter::ImportModel_GLTF(ModelParameters const& params)
 	{
 		tinygltf::TinyGLTF loader;
 		tinygltf::Model model;
@@ -566,17 +565,17 @@ namespace adria
 
 		std::vector<CompleteVertex> vertices{};
 		std::vector<uint32> indices{};
-		std::vector<entity> entities{};
-		HashMap<std::string, std::vector<entity>> mesh_name_to_entities_map;
+		std::vector<entt::entity> entities{};
+		HashMap<std::string, std::vector<entt::entity>> mesh_name_to_entities_map;
 		for (auto& mesh : model.meshes)
 		{
-			std::vector<entity>& mesh_entities = mesh_name_to_entities_map[mesh.name];
+			std::vector<entt::entity>& mesh_entities = mesh_name_to_entities_map[mesh.name];
 			for (auto& primitive : mesh.primitives)
 			{
 				ADRIA_ASSERT(primitive.indices >= 0);
 				tinygltf::Accessor const& index_accessor = model.accessors[primitive.indices];
 
-				entity e = reg.create();
+				entt::entity e = reg.create();
 				entities.push_back(e);
 				mesh_entities.push_back(e);
 
@@ -865,8 +864,8 @@ namespace adria
 			if (node.mesh >= 0)
 			{
 				auto const& mesh = model.meshes[node.mesh];
-				std::vector<entity> const& mesh_entities = mesh_name_to_entities_map[mesh.name];
-				for (entity e : mesh_entities)
+				std::vector<entt::entity> const& mesh_entities = mesh_name_to_entities_map[mesh.name];
+				for (entt::entity e : mesh_entities)
 				{
 					Mesh const& mesh = reg.get<Mesh>(e);
 					XMMATRIX model = XMLoadFloat4x4(&transforms.world) * parent_transform;
@@ -911,7 +910,7 @@ namespace adria
 			RayTracing::rt_indices.insert(std::end(RayTracing::rt_indices), std::begin(indices), std::end(indices));
 		}
 
-		entity root = reg.create();
+		entt::entity root = reg.create();
 		reg.emplace<Transform>(root);
 		reg.emplace<Tag>(root, model_name);
 		Relationship relationship;
@@ -921,13 +920,13 @@ namespace adria
 		{
 			relationship.children[i] = entities[i];
 		}
-		reg.add<Relationship>(root, relationship);
-		for (entity e : entities)
+		reg.emplace<Relationship>(root, relationship);
+		for (entt::entity e : entities)
 		{
 			auto& mesh = reg.get<Mesh>(e);
 			mesh.vertex_buffer = vb;
 			mesh.index_buffer = ib;
-			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(as_integer(e)));
+			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(entt::to_integral(e)));
 			if (params.used_in_raytracing)
 			{
 				RayTracing rt_component{

@@ -2,14 +2,10 @@
 #include <memory>
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
-
+#include "entt/entity/fwd.hpp"
 
 namespace adria
 {
-	namespace tecs
-	{
-		class registry;
-	}
 	class RenderGraph;
 	class TextureManager;
 	class GraphicsDevice;
@@ -18,7 +14,7 @@ namespace adria
 	class DecalsPass
 	{
 	public:
-		DecalsPass(tecs::registry& reg, TextureManager& texture_manager, uint32 w, uint32 h);
+		DecalsPass(entt::registry& reg, TextureManager& texture_manager, uint32 w, uint32 h);
 
 		void AddPass(RenderGraph& rendergraph);
 
@@ -27,7 +23,7 @@ namespace adria
 		void OnSceneInitialized(GraphicsDevice* gfx);
 
 	private:
-		tecs::registry& reg;
+		entt::registry& reg;
 		TextureManager& texture_manager;
 		uint32 width, height;
 		std::unique_ptr<Buffer>	cube_vb = nullptr;

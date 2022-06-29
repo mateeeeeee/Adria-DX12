@@ -6,20 +6,20 @@
 #include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/TextureManager.h"
-#include "../tecs/registry.h"
+#include "entt/entity/registry.hpp"
 
 using namespace DirectX;
 
 namespace adria
 {
 
-	DecalsPass::DecalsPass(tecs::registry& reg, TextureManager& texture_manager, uint32 w, uint32 h)
+	DecalsPass::DecalsPass(entt::registry& reg, TextureManager& texture_manager, uint32 w, uint32 h)
 	 : reg{ reg }, texture_manager{ texture_manager }, width{ w }, height{ h }
 	{}
 
 	void DecalsPass::AddPass(RenderGraph& rendergraph)
 	{
-		if (reg.size<Decal>() == 0) return;
+		if (reg.view<Decal>().size() == 0) return;
 		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
 
 		struct DecalsPassData
@@ -56,7 +56,7 @@ namespace adria
 					cmd_list->SetPipelineState(PSOCache::Get(modify_normals ? EPipelineState::Decals_ModifyNormals : EPipelineState::Decals));
 					for (auto e : decal_view)
 					{
-						Decal decal = decal_view.get(e);
+						Decal& decal = decal_view.get<Decal>(e);
 						if (decal.modify_gbuffer_normals != modify_normals) continue;
 
 						object_cbuf_data.model = decal.decal_model_matrix;

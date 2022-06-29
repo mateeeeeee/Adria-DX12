@@ -9,7 +9,7 @@
 #include "../Graphics/GPUProfiler.h"
 #include "../Graphics/TextureManager.h"
 #include "../Graphics/Texture.h"
-#include "../tecs/registry.h"
+#include "entt/entity/registry.hpp"
 
 using namespace DirectX;
 
@@ -302,7 +302,7 @@ namespace adria
 		}
 	}
 
-	ShadowPass::ShadowPass(tecs::registry& reg, TextureManager& texture_manager)
+	ShadowPass::ShadowPass(entt::registry& reg, TextureManager& texture_manager)
 		: reg(reg), texture_manager(texture_manager), camera(nullptr)
 	{}
 
@@ -578,9 +578,9 @@ namespace adria
 					auto const& mesh = shadow_view.get<Mesh>(e);
 
 					DirectX::XMMATRIX parent_transform = DirectX::XMMatrixIdentity();
-					if (Relationship* relationship = reg.get_if<Relationship>(e))
+					if (Relationship* relationship = reg.try_get<Relationship>(e))
 					{
-						if (auto* root_transform = reg.get_if<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
+						if (auto* root_transform = reg.try_get<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
 					}
 
 					ObjectCBuffer object_cbuf_data{};
@@ -597,13 +597,13 @@ namespace adria
 		}
 		else
 		{
-			std::vector<tecs::entity> potentially_transparent, not_transparent;
+			std::vector<entt::entity> potentially_transparent, not_transparent;
 			for (auto e : shadow_view)
 			{
 				auto const& aabb = shadow_view.get<AABB>(e);
 				if (aabb.light_visible)
 				{
-					if (auto* p_material = reg.get_if<Material>(e))
+					if (auto* p_material = reg.try_get<Material>(e))
 					{
 						if (p_material->albedo_texture != INVALID_TEXTURE_HANDLE)
 							potentially_transparent.push_back(e);
@@ -622,9 +622,9 @@ namespace adria
 				auto& mesh = shadow_view.get<Mesh>(e);
 
 				DirectX::XMMATRIX parent_transform = DirectX::XMMatrixIdentity();
-				if (Relationship* relationship = reg.get_if<Relationship>(e))
+				if (Relationship* relationship = reg.try_get<Relationship>(e))
 				{
-					if (auto* root_transform = reg.get_if<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
+					if (auto* root_transform = reg.try_get<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
 				}
 
 				ObjectCBuffer object_cbuf_data{};
@@ -645,14 +645,14 @@ namespace adria
 			{
 				auto& transform = shadow_view.get<Transform>(e);
 				auto& mesh = shadow_view.get<Mesh>(e);
-				auto* material = reg.get_if<Material>(e);
+				auto* material = reg.try_get<Material>(e);
 				ADRIA_ASSERT(material != nullptr);
 				ADRIA_ASSERT(material->albedo_texture != INVALID_TEXTURE_HANDLE);
 
 				DirectX::XMMATRIX parent_transform = DirectX::XMMatrixIdentity();
-				if (Relationship* relationship = reg.get_if<Relationship>(e))
+				if (Relationship* relationship = reg.try_get<Relationship>(e))
 				{
-					if (auto* root_transform = reg.get_if<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
+					if (auto* root_transform = reg.try_get<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
 				}
 				ObjectCBuffer object_cbuf_data{};
 				object_cbuf_data.model = transform.current_transform * parent_transform;
@@ -681,7 +681,7 @@ namespace adria
 
 		for (auto e : aabb_view)
 		{
-			auto& aabb = aabb_view.get(e);
+			auto& aabb = aabb_view.get<AABB>(e);
 			switch (type)
 			{
 			case ELightType::Directional:

@@ -2,7 +2,7 @@
 #include <optional>
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
-#include "../tecs/entity.h"
+#include "entt/entity/entity.hpp"
 
 namespace adria
 {
@@ -15,7 +15,7 @@ namespace adria
 	class TiledLightingPass
 	{
 	public:
-		TiledLightingPass(tecs::registry& reg, uint32 w, uint32 h);
+		TiledLightingPass(entt::registry& reg, uint32 w, uint32 h);
 
 		void AddPass(RenderGraph& rendergraph);
 
@@ -25,7 +25,7 @@ namespace adria
 		}
 
 	private:
-		tecs::registry& reg;
+		entt::registry& reg;
 		uint32 width, height;
 	};
 

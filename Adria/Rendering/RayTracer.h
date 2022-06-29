@@ -59,7 +59,7 @@ namespace adria
 		};
 
 	public:
-		RayTracer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height);
+		RayTracer(entt::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height);
 		bool IsSupported() const;
 		bool IsFeatureSupported(ERayTracingFeature feature) const;
 
@@ -75,7 +75,7 @@ namespace adria
 		void AddRayTracedAmbientOcclusionDebugPass(RenderGraph&, RGResourceName);
 	private:
 		uint32 width, height;
-		tecs::registry& reg;
+		entt::registry& reg;
 		GraphicsDevice* gfx;
 		D3D12_RAYTRACING_TIER ray_tracing_tier;
 

@@ -6,7 +6,7 @@
 #include "RootSignatureCache.h"
 #include "ShaderManager.h"
 #include "SkyModel.h"
-#include "../tecs/Registry.h"
+#include "entt/entity/registry.hpp"
 #include "../Graphics/Buffer.h"
 #include "../Graphics/Texture.h"
 #include "../RenderGraph/RenderGraph.h"
@@ -17,7 +17,7 @@ using namespace DirectX;
 namespace adria
 {
 
-	Renderer::Renderer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx), 
+	Renderer::Renderer(entt::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx), 
 		texture_manager(gfx, 1000), gpu_profiler(gfx), camera(nullptr), width(width), height(height), 
 		backbuffer_count(gfx->BackbufferCount()), backbuffer_index(gfx->BackbufferIndex()), final_texture(nullptr),
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count), postprocess_cbuffer(gfx->GetDevice(), backbuffer_count),
@@ -125,10 +125,10 @@ namespace adria
 		ambient_pass.AddPass(render_graph);
 
 		auto light_entities = reg.view<Light>();
-		for (tecs::entity light_entity : light_entities)
+		for (entt::entity light_entity : light_entities)
 		{
-			auto const& light = light_entities.get(light_entity);
-			size_t light_id = tecs::as_integer(light_entity);
+			auto const& light = light_entities.get<Light>(light_entity);
+			size_t light_id = entt::to_integral(light_entity);
 			if (!light.active) continue;
 			if ((renderer_settings.use_tiled_deferred || renderer_settings.use_clustered_deferred) && !light.casts_shadows) continue;  //tiled/clustered deferred takes care of noncasting lights
 			
@@ -164,7 +164,7 @@ namespace adria
 				auto skybox_entities = reg.view<Skybox>();
 				for (auto e : skybox_entities)
 				{
-					Skybox skybox = skybox_entities.get(e);
+					Skybox skybox = skybox_entities.get<Skybox>(e);
 					if (skybox.active && skybox.used_in_rt)
 					{
 						skybox_handle = texture_manager.CpuDescriptorHandle(skybox.cubemap_texture);
@@ -331,7 +331,7 @@ namespace adria
 		TextureHandle unfiltered_env = INVALID_TEXTURE_HANDLE;
 		for (auto skybox : skyboxes)
 		{
-			auto const& _skybox = skyboxes.get(skybox);
+			auto const& _skybox = skyboxes.get<Skybox>(skybox);
 			if (_skybox.active)
 			{
 				unfiltered_env = _skybox.cubemap_texture;
@@ -628,7 +628,7 @@ namespace adria
 			auto lights = reg.view<Light>();
 			for (auto light : lights)
 			{
-				auto const& light_data = lights.get(light);
+				auto const& light_data = lights.get<Light>(light);
 				if (light_data.type == ELightType::Directional && light_data.active)
 				{
 					weather_cbuf_data.light_dir = XMVector3Normalize(-light_data.direction);
@@ -707,11 +707,11 @@ namespace adria
 	void Renderer::CameraFrustumCulling()
 	{
 		BoundingFrustum camera_frustum = camera->Frustum();
-		auto visibility_view = reg.view<AABB>();
-		for (auto e : visibility_view)
+		auto aabb_view = reg.view<AABB>();
+		for (auto e : aabb_view)
 		{
-			auto& aabb = visibility_view.get(e);
-			aabb.camera_visible = camera_frustum.Intersects(aabb.bounding_box) || reg.has<Light>(e); //dont cull lights for now
+			auto& aabb = aabb_view.get<AABB>(e);
+			aabb.camera_visible = camera_frustum.Intersects(aabb.bounding_box) || reg.all_of<Light>(e); //dont cull lights for now
 		}
 	}
 

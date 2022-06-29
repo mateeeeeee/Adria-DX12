@@ -367,21 +367,6 @@
     <ClInclude Include="Rendering\Camera.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="tecs\component_pool.h">
-      <Filter>tecs</Filter>
-    </ClInclude>
-    <ClInclude Include="tecs\entity.h">
-      <Filter>tecs</Filter>
-    </ClInclude>
-    <ClInclude Include="tecs\entity_view.h">
-      <Filter>tecs</Filter>
-    </ClInclude>
-    <ClInclude Include="tecs\registry.h">
-      <Filter>tecs</Filter>
-    </ClInclude>
-    <ClInclude Include="tecs\sparse_set.h">
-      <Filter>tecs</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\D3D12MemAlloc.h">
       <Filter>Graphics</Filter>
     </ClInclude>
