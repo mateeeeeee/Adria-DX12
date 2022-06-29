@@ -659,6 +659,7 @@ namespace adria
 					ImGui::TreePop();
 				}
 			};
+			for (auto e : all_entities) ShowEntity(e, true);
 		}
 		ImGui::End();
 	}
