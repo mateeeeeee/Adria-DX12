@@ -35,6 +35,7 @@ struct MaterialCBuffer
 {
     float3 ambient;
     float3 diffuse;
+    float  alpha_cutoff;
     float3 specular;
     float shininess;
     float albedo_factor;

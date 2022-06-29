@@ -83,6 +83,10 @@ namespace adria
 		float32 roughness_factor	= 1.0f;
 		float32 emissive_factor		= 1.0f;
 
+		EMaterialAlphaMode alpha_mode = EMaterialAlphaMode::Opaque;
+		float32 alpha_cutoff		= 0.5f;
+		bool    double_sided		= false;
+
 		DirectX::XMFLOAT3 diffuse = DirectX::XMFLOAT3(1, 1, 1);
 		EPipelineState pso = EPipelineState::Unknown;
 	};

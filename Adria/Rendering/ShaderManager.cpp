@@ -49,6 +49,7 @@ namespace adria
 			case PS_Decals:
 			case PS_Decals_ModifyNormals:
 			case PS_GBufferPBR:
+			case PS_GBufferPBR_Mask:
 			case PS_AmbientPBR:
 			case PS_AmbientPBR_AO:
 			case PS_AmbientPBR_IBL:
@@ -155,6 +156,7 @@ namespace adria
 			case VS_GBufferPBR:
 				return "Deferred/GeometryPassPBR_VS.hlsl";
 			case PS_GBufferPBR:
+			case PS_GBufferPBR_Mask:
 				return "Deferred/GeometryPassPBR_PS.hlsl";
 			case VS_ScreenQuad:
 				return "Postprocess/ScreenQuadVS.hlsl";
@@ -316,6 +318,8 @@ namespace adria
 				return { { L"RAY_TRACED_SHADOWS", L"" } };
 			case LIB_SoftShadows:
 				return { { L"SOFT_SHADOWS", L"" } };
+			case PS_GBufferPBR_Mask:
+				return { { L"MASK", L"1" } };
 			default:
 				return {};
 			}

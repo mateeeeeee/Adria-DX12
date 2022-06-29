@@ -19,6 +19,7 @@ namespace adria
 		PS_Taa,
 		VS_GBufferPBR,
 		PS_GBufferPBR,
+		PS_GBufferPBR_Mask,
 		PS_AmbientPBR,
 		PS_AmbientPBR_AO,
 		PS_AmbientPBR_IBL,
@@ -164,7 +165,10 @@ namespace adria
 		Solid,
 		Sun,
 		Billboard,
-		GbufferPBR,
+		GBufferPBR,
+		GBufferPBR_NoCull,
+		GBufferPBR_Mask,
+		GBufferPBR_Mask_NoCull,
 		AmbientPBR,
 		AmbientPBR_AO,
 		AmbientPBR_IBL,
@@ -303,5 +307,12 @@ namespace adria
 		AntiAliasing_None = 0x0,
 		AntiAliasing_FXAA = 0x1,
 		AntiAliasing_TAA = 0x2
+	};
+
+	enum class EMaterialAlphaMode : uint8
+	{
+		Opaque,
+		Blend,
+		Mask
 	};
 }

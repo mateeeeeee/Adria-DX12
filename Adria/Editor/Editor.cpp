@@ -890,7 +890,7 @@ namespace adria
 					}
 					else
 					{
-						material->pso = EPipelineState::GbufferPBR;
+						material->pso = EPipelineState::GBufferPBR;
 					}
 				}
 

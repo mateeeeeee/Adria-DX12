@@ -98,7 +98,16 @@ namespace adria
 				gfx_pso_desc.rtv_formats[1] = DXGI_FORMAT_R8G8B8A8_UNORM;
 				gfx_pso_desc.rtv_formats[2] = DXGI_FORMAT_R8G8B8A8_UNORM;
 				gfx_pso_desc.dsv_format = DXGI_FORMAT_D32_FLOAT;
-				gfx_pso_map[EPipelineState::GbufferPBR] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
+				gfx_pso_map[EPipelineState::GBufferPBR] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
+
+				gfx_pso_desc.PS = PS_GBufferPBR_Mask;
+				gfx_pso_map[EPipelineState::GBufferPBR_Mask] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
+
+				gfx_pso_desc.rasterizer_state.cull_mode = ECullMode::None;
+				gfx_pso_map[EPipelineState::GBufferPBR_Mask_NoCull] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
+
+				gfx_pso_desc.PS = PS_GBufferPBR;
+				gfx_pso_map[EPipelineState::GBufferPBR_NoCull] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
 				gfx_pso_desc.root_signature = ERootSignature::AmbientPBR;

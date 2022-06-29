@@ -66,7 +66,7 @@ namespace adria
 		DirectX::XMFLOAT3 ambient;
 		float32 _padd1;
 		DirectX::XMFLOAT3 diffuse;
-		float32 _padd2;
+		float32 alpha_cutoff;
 		DirectX::XMFLOAT3 specular;
 
 		float32 shininess;

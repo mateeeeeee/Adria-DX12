@@ -46,14 +46,13 @@ PS_GBUFFER_OUT main(VS_OUTPUT In)
     Texture2D txNormal = Tex2DArray[material_cbuf.normal_idx];
     Texture2D txMetallicRoughness = Tex2DArray[material_cbuf.metallic_roughness_idx];
     Texture2D txEmissive = Tex2DArray[material_cbuf.emissive_idx];
- 
     float4 DiffuseColor = txAlbedo.Sample(linear_wrap_sampler, In.Uvs) * material_cbuf.albedo_factor;
 
-    if (DiffuseColor.a < 0.1)
-        discard;
-
+#ifdef MASK
+    if(DiffuseColor.a < alpha_cutoff) discard;
+#endif
     float3 Normal = normalize(In.NormalWS);
-    if (In.IsFrontFace) Normal = -Normal;
+    if (!In.IsFrontFace) Normal = -Normal;
     
     float3 Tangent = normalize(In.TangentWS);
     float3 Bitangent = normalize(In.BitangentWS);
