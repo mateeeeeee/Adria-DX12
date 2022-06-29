@@ -1454,7 +1454,7 @@ namespace adria
 			if (ImGui::Button("Compile Changed Shaders"))
 			{
 				engine->gfx->WaitForGPU();
-				//add event broadcast here
+				ShaderManager::CheckIfShadersHaveChanged();
 			}
 		}
 		ImGui::End();

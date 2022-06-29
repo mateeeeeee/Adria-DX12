@@ -41,12 +41,14 @@ namespace adria
 	DECLARE_EVENT(WindowResizedEvent, Input, uint32, uint32);
 	DECLARE_EVENT(RightMouseClickedEvent, Input, int32, int32);
 	DECLARE_EVENT(MiddleMouseScrolledEvent, Input, int32);
+	DECLARE_EVENT(F5PressedEvent, Input);
 
 	struct InputEvents
 	{
 		MiddleMouseScrolledEvent scroll_mouse_event;
 		RightMouseClickedEvent right_mouse_clicked;
 		WindowResizedEvent window_resized_event;
+		F5PressedEvent f5_pressed_event;
 	};
 
 	class Input

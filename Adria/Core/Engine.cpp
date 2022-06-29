@@ -7,6 +7,7 @@
 #include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Rendering/RenderGraphRenderer.h"
 #include "../Rendering/ModelImporter.h"
+#include "../Rendering/ShaderManager.h"
 #include "../Utilities/Random.h"
 #include "../Utilities/Timer.h"
 #include "../Utilities/JsonUtil.h"
@@ -222,6 +223,7 @@ namespace adria
 		input_events.window_resized_event.AddMember(&RenderGraphRenderer::OnResize, *renderer);
 		input_events.scroll_mouse_event.AddMember(&CameraManager::OnScroll, camera_manager);
 		input_events.right_mouse_clicked.AddMember(&RenderGraphRenderer::OnRightMouseClicked, *renderer);
+		std::ignore = input_events.f5_pressed_event.Add(ShaderManager::CheckIfShadersHaveChanged);
 
 		std::optional<SceneConfig> scene_config = ParseSceneConfig(init.scene_file);
 		if (scene_config.has_value()) InitializeScene(scene_config.value());

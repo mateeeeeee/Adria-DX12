@@ -167,6 +167,12 @@ namespace adria
 				input_events.right_mouse_clicked.Broadcast(mx, my);
 			}
 			break;
+			case WM_KEYDOWN:
+				if (data.wparam == VK_F5)
+				{
+					input_events.f5_pressed_event.Broadcast();
+				}
+				break;
 			}
 		}
 		m_mouse_wheel_delta = (float32)GET_WHEEL_DELTA_WPARAM(data.wparam) / (float32)WHEEL_DELTA;
