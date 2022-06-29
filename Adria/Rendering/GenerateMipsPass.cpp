@@ -1,6 +1,7 @@
 #include "GenerateMipsPass.h"
 #include "GlobalBlackboardData.h"
-#include "PipelineState.h"
+#include "PSOCache.h" 
+#include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/DWParam.h"
 
@@ -28,8 +29,8 @@ namespace adria
 
 				Texture const& texture = context.GetTexture(data.texture_src.GetResourceId());
 				//Set root signature, pso and descriptor heap
-				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::GenerateMips));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::GenerateMips));
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::GenerateMips));
+				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::GenerateMips));
 
 				//Prepare the shader resource view description for the source texture
 				D3D12_SHADER_RESOURCE_VIEW_DESC src_srv_desc{};

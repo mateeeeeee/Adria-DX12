@@ -186,7 +186,7 @@ namespace adria
 			{
 				for (size_t i = 0; i < delegate_array.size(); ++i)
 				{
-					if (delegate_array[i].Handle == handle)
+					if (delegate_array[i].first == handle)
 					{
 						std::swap(delegate_array[i], delegate_array.back());
 						delegate_array.pop_back();

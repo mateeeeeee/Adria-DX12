@@ -1,6 +1,7 @@
 #include "ToneMapPass.h"
 #include "GlobalBlackboardData.h"
-#include "PipelineState.h"
+#include "PSOCache.h" 
+#include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
 
 namespace adria
@@ -56,8 +57,8 @@ namespace adria
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::ToneMap));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::ToneMap));
+				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::ToneMap));
+				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ToneMap));
 
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.postprocess_cbuffer_address);
 
@@ -100,8 +101,8 @@ namespace adria
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::ToneMap));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::ToneMap));
+				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::ToneMap));
+				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ToneMap));
 
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.postprocess_cbuffer_address);
 

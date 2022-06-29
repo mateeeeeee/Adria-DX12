@@ -1,6 +1,7 @@
 #include "AddTexturesPass.h"
 #include "GlobalBlackboardData.h"
-#include "PipelineState.h"
+#include "PSOCache.h" 
+#include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
 
 namespace adria
@@ -30,18 +31,18 @@ namespace adria
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Add));
+				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Add));
 
 				switch (mode)
 				{
 				case EBlendMode::None:
-					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Add));
+					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Add));
 					break;
 				case EBlendMode::AlphaBlend:
-					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Add_AlphaBlend));
+					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Add_AlphaBlend));
 					break;
 				case EBlendMode::AdditiveBlend:
-					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Add_AdditiveBlend));
+					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Add_AdditiveBlend));
 					break;
 				default:
 					ADRIA_ASSERT(false && "Invalid Copy Mode in CopyTexture");

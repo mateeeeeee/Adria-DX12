@@ -1,5 +1,6 @@
 #include "PickingPass.h"
-#include "PipelineState.h"
+#include "PSOCache.h" 
+#include "RootSignatureCache.h"
 #include "GlobalBlackboardData.h"
 #include "../Logging/Logger.h"
 #include "../RenderGraph/RenderGraph.h"
@@ -52,8 +53,8 @@ namespace adria
 				RingOnlineDescriptorAllocator* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				UINT backbuffer_index = gfx->BackbufferIndex();
 
-				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Picker));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Picker));
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Picker));
+				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Picker));
 
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { context.GetReadOnlyTexture(data.depth_srv), context.GetReadOnlyTexture(data.normal_srv) };

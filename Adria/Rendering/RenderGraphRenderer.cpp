@@ -2,7 +2,8 @@
 #include "GlobalBlackboardData.h"
 #include "Camera.h"
 #include "Components.h"
-#include "PipelineState.h"
+#include "PSOCache.h" 
+#include "RootSignatureCache.h"
 #include "SkyModel.h"
 #include "../tecs/Registry.h"
 #include "../Graphics/Buffer.h"
@@ -28,7 +29,9 @@ namespace adria
 		decals_pass(reg, texture_manager, width, height), ocean_renderer(reg, texture_manager, width, height),
 		particle_renderer(reg, gfx, texture_manager, width, height), ray_tracer(reg, gfx, width, height)
 	{
-		RootSigPSOManager::Initialize(gfx->GetDevice());
+		ShaderManager::Initialize();
+		RootSignatureCache::Initialize(gfx);
+		PSOCache::Initialize(gfx);
 		CreateNullHeap();
 		CreateSizeDependentResources();
 	}
@@ -36,7 +39,9 @@ namespace adria
 	RenderGraphRenderer::~RenderGraphRenderer()
 	{
 		gfx->WaitForGPU();
-		RootSigPSOManager::Destroy();
+		PSOCache::Destroy();
+		RootSignatureCache::Destroy();
+		ShaderManager::Destroy();
 		reg.clear();
 	}
 	void RenderGraphRenderer::NewFrame(Camera const* _camera)

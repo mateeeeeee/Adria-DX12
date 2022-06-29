@@ -3,7 +3,8 @@
 #include "DWParam.h"
 #include "ShaderCompiler.h"
 #include "d3dx12.h"
-#include "../Rendering/PipelineState.h"
+#include "../Rendering/RootSignatureCache.h"
+#include "../Rendering/PSOCache.h"
 
 //https://slindev.com/d3d12-texture-mipmap-generation/
 
@@ -26,8 +27,8 @@ namespace adria
 		command_list->SetDescriptorHeaps(1, pp_heaps);
 
 		//Set root signature, pso and descriptor heap
-		command_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::GenerateMips));
-		command_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::GenerateMips));
+		command_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::GenerateMips));
+		command_list->SetPipelineState(PSOCache::Get(EPipelineState::GenerateMips));
 
 		for (auto texture : resources)
 		{

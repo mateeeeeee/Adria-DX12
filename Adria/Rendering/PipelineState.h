@@ -1,12 +1,13 @@
 #pragma once
 #include <d3d12.h>
+#include <wrl.h>
 #include "Enums.h"
 #include "RootSignatureCache.h"
 #include "ShaderManager.h"
+#include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Graphics/GraphicsStates.h"
+#include "../Graphics/Shader.h"
 #include "../Core/Macros.h"
-
-//struct ID3D12PipelineState;
 
 namespace adria
 {
@@ -56,8 +57,8 @@ namespace adria
 	private:
 		void OnShaderRecompiled(EShader s)
 		{
-			std::array<EShader, 5> shaders{ desc.VS, desc.PS, desc.GS, desc.HS, desc.DS };
-			for (size_t i = 0; i < shaders.size(); ++i)
+			EShader shaders[] = {desc.VS, desc.PS, desc.GS, desc.HS, desc.DS};
+			for (size_t i = 0; i < ARRAYSIZE(shaders); ++i)
 			{
 				if (s == shaders[i])
 				{
@@ -75,17 +76,23 @@ namespace adria
 			_desc.GS = ShaderManager::GetShader(desc.GS);
 			_desc.HS = ShaderManager::GetShader(desc.HS);
 			_desc.DS = ShaderManager::GetShader(desc.DS);
-			_desc.InputLayout = desc.input_layout;
+			std::vector<D3D12_INPUT_ELEMENT_DESC> input_element_descs;
+			ConvertInputLayout(desc.input_layout, input_element_descs);
+			_desc.InputLayout = { .pInputElementDescs = input_element_descs.data(), .NumElements = (UINT)input_element_descs.size() };
 			_desc.BlendState = ConvertBlendDesc(desc.blend_state);
 			_desc.RasterizerState = ConvertRasterizerDesc(desc.rasterizer_state);
 			_desc.DepthStencilState = ConvertDepthStencilDesc(desc.depth_state);
 			_desc.SampleDesc = DXGI_SAMPLE_DESC{ .Count = 1, .Quality = 0 };
 			_desc.DSVFormat = desc.dsv_format;
 			_desc.NumRenderTargets = desc.num_render_targets;
+			for (size_t i = 0; i < ARRAYSIZE(_desc.RTVFormats); ++i)
+			{
+				_desc.RTVFormats[i] = desc.rtv_formats[i];
+			}
 			_desc.PrimitiveTopologyType = desc.topology_type;
 			_desc.SampleMask = desc.sample_mask;
 
-			BREAK_IF_FAILED(gfx->GetDevice()->CreateGraphicsPipelineState(&_desc, IID_PPV_ARGS(pso.ReleaseAndGetAddressOf())));
+			BREAK_IF_FAILED(gfx->GetDevice()->CreateGraphicsPipelineState(&_desc, IID_PPV_ARGS(pso.GetAddressOf())));
 		}
 	};
 
@@ -99,6 +106,7 @@ namespace adria
 	{
 	public:
 		ComputePipelineState(GraphicsDevice* gfx, ComputePipelineStateDesc const& desc)
+			: gfx(gfx), desc(desc)
 		{
 			Create(desc);
 			event_handle = ShaderManager::GetShaderRecompiledEvent().AddMember(&ComputePipelineState::OnShaderRecompiled, *this);
@@ -106,6 +114,11 @@ namespace adria
 		~ComputePipelineState()
 		{
 			ShaderManager::GetShaderRecompiledEvent().Remove(event_handle);
+		}
+
+		operator ID3D12PipelineState* () const
+		{
+			return pso.Get();
 		}
 
 	private:

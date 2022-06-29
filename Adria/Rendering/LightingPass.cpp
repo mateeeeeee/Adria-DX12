@@ -3,7 +3,8 @@
 #include "ConstantBuffers.h"
 #include "Components.h"
 #include "GlobalBlackboardData.h"
-#include "PipelineState.h"
+#include "PSOCache.h" 
+#include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/GPUProfiler.h"
 #include "../Logging/Logger.h"
@@ -82,10 +83,10 @@ namespace adria
 				DynamicAllocation light_allocation = dynamic_allocator->Allocate(GetCBufferSize<LightCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 				light_allocation.Update(light_cbuf_data);
 
-				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::LightingPBR));
+				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::LightingPBR));
 				cmd_list->SetPipelineState(light.ray_traced_shadows ?
-					RootSigPSOManager::GetPipelineState(EPipelineState::LightingPBR_RayTracedShadows) :
-					RootSigPSOManager::GetPipelineState(EPipelineState::LightingPBR));
+					PSOCache::Get(EPipelineState::LightingPBR_RayTracedShadows) :
+					PSOCache::Get(EPipelineState::LightingPBR));
 
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetGraphicsRootConstantBufferView(1, light_allocation.gpu_address);
@@ -166,7 +167,7 @@ namespace adria
 						return;
 					}
 
-					cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Volumetric));
+					cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Volumetric));
 					cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 					cmd_list->SetGraphicsRootConstantBufferView(1, light_allocation.gpu_address);
 					if (light.casts_shadows) cmd_list->SetGraphicsRootConstantBufferView(2, context.GetAllocation(data.shadow_alloc).gpu_address);
@@ -184,21 +185,21 @@ namespace adria
 					case ELightType::Directional:
 						if (light.use_cascades)
 						{
-							cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Volumetric_DirectionalCascades));
+							cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Volumetric_DirectionalCascades));
 							cpu_handles[1] = data.shadow_map.IsValid() ? context.GetReadOnlyTexture(data.shadow_map) : global_data.null_srv_texture2darray;
 						}
 						else
 						{
-							cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Volumetric_Directional));
+							cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Volumetric_Directional));
 							cpu_handles[1] = data.shadow_map.IsValid() ? context.GetReadOnlyTexture(data.shadow_map) : global_data.null_srv_texture2d;
 						}
 						break;
 					case ELightType::Spot:
-						cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Volumetric_Spot));
+						cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Volumetric_Spot));
 						cpu_handles[1] = data.shadow_map.IsValid() ? context.GetReadOnlyTexture(data.shadow_map) : global_data.null_srv_texture2d;
 						break;
 					case ELightType::Point:
-						cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Volumetric_Point));
+						cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Volumetric_Point));
 						cpu_handles[1] = data.shadow_map.IsValid() ? context.GetReadOnlyTexture(data.shadow_map) : global_data.null_srv_texturecube;
 						break;
 					default:

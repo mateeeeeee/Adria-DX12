@@ -2,7 +2,8 @@
 #include "ConstantBuffers.h"
 #include "Components.h"
 #include "GlobalBlackboardData.h"
-#include "PipelineState.h"
+#include "PSOCache.h" 
+#include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../tecs/registry.h"
 #include "../Logging/Logger.h"
@@ -71,8 +72,8 @@ namespace adria
 					structured_lights.push_back(structured_light);
 				}
 
-				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::TiledLighting));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::TiledLighting));
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::TiledLighting));
+				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::TiledLighting));
 
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRootConstantBufferView(1, global_data.compute_cbuffer_address);

@@ -2,7 +2,8 @@
 #include "ConstantBuffers.h"
 #include "Components.h"
 #include "GlobalBlackboardData.h"
-#include "PipelineState.h"
+#include "PSOCache.h" 
+#include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/TextureManager.h"
 #include "../tecs/registry.h"
@@ -46,13 +47,13 @@ namespace adria
 				DecalCBuffer decal_cbuf_data{};
 				ObjectCBuffer object_cbuf_data{};
 
-				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Decals));
+				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Decals));
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				auto decal_view = reg.view<Decal>();
 
 				auto decal_pass_lambda = [&](bool modify_normals)
 				{
-					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(modify_normals ? EPipelineState::Decals_ModifyNormals : EPipelineState::Decals));
+					cmd_list->SetPipelineState(PSOCache::Get(modify_normals ? EPipelineState::Decals_ModifyNormals : EPipelineState::Decals));
 					for (auto e : decal_view)
 					{
 						Decal decal = decal_view.get(e);

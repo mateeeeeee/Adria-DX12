@@ -63,42 +63,34 @@ namespace adria
 			uint32 input_slot = 0;
 			uint32 aligned_byte_offset = APPEND_ALIGNED_ELEMENT;
 			EInputClassification input_slot_class = EInputClassification::PerVertexData;
-
-			operator D3D12_INPUT_ELEMENT_DESC() const
-			{
-				D3D12_INPUT_ELEMENT_DESC desc{};
-				desc.AlignedByteOffset = aligned_byte_offset;
-				desc.Format = format;
-				desc.InputSlot = input_slot;
-				switch (input_slot_class)
-				{
-				case EInputClassification::PerVertexData:
-					desc.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
-					break;
-				case EInputClassification::PerInstanceData:
-					desc.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA;
-					break;
-				}
-				desc.InstanceDataStepRate = 0;
-				if (desc.InputSlotClass == D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA) desc.InstanceDataStepRate = 1;
-				desc.SemanticIndex = semantic_index;
-				desc.SemanticName = semantic_name.c_str();
-				return desc;
-			}
 		};
 		std::vector<InputElement> elements;
-
-		operator D3D12_INPUT_LAYOUT_DESC() const
-		{
-			D3D12_INPUT_LAYOUT_DESC desc{};
-			std::vector< D3D12_INPUT_ELEMENT_DESC> element_descs(elements.size());
-			for (uint32_t i = 0; i < elements.size(); ++i)
-			{
-				element_descs[i] = elements[i];
-			}
-			desc.NumElements = static_cast<UINT>(element_descs.size());
-			desc.pInputElementDescs = element_descs.data();
-			return desc;
-		}
 	};
+
+	inline void ConvertInputLayout(InputLayout const& input_layout, std::vector<D3D12_INPUT_ELEMENT_DESC>& element_descs)
+	{
+		element_descs.resize(input_layout.elements.size());
+		for (uint32_t i = 0; i < element_descs.size(); ++i)
+		{
+			InputLayout::InputElement const& element = input_layout.elements[i];
+			D3D12_INPUT_ELEMENT_DESC desc{};
+			desc.AlignedByteOffset = element.aligned_byte_offset;
+			desc.Format = element.format;
+			desc.InputSlot = element.input_slot;
+			switch (element.input_slot_class)
+			{
+			case EInputClassification::PerVertexData:
+				desc.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+				break;
+			case EInputClassification::PerInstanceData:
+				desc.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA;
+				break;
+			}
+			desc.InstanceDataStepRate = 0;
+			if (desc.InputSlotClass == D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA) desc.InstanceDataStepRate = 1;
+			desc.SemanticIndex = element.semantic_index;
+			desc.SemanticName = element.semantic_name.c_str();
+			element_descs[i] = desc;
+		}
+	}
 }

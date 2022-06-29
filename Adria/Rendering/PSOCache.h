@@ -10,7 +10,6 @@ namespace adria
 	{
 		void Initialize(GraphicsDevice* gfx);
 		void Destroy();
-		ComputePipelineState& GetComputePipelineState(EPipelineState);
-		GraphicsPipelineState& GetGraphicsPipelineState(EPipelineState);
+		ID3D12PipelineState* Get(EPipelineState);
 	};
 }

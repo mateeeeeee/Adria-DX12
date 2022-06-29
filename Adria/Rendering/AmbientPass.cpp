@@ -1,7 +1,8 @@
 #include "AmbientPass.h"
 #include "Components.h"
 #include "GlobalBlackboardData.h"
-#include "PipelineState.h"
+#include "PSOCache.h" 
+#include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
 
 namespace adria
@@ -62,15 +63,15 @@ namespace adria
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::AmbientPBR));
+				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::AmbientPBR));
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 
 				bool has_ao = data.ambient_occlusion_srv.IsValid();
 				bool has_ibl = data.env_srv.IsValid() && data.irmap_srv.IsValid() && data.brdf_srv.IsValid();
-				if (has_ao && has_ibl) cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::AmbientPBR_AO_IBL));
-				else if (has_ao && has_ibl) cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::AmbientPBR_AO));
-				else if (!has_ao && has_ibl) cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::AmbientPBR_IBL));
-				else cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::AmbientPBR));
+				if (has_ao && has_ibl) cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::AmbientPBR_AO_IBL));
+				else if (has_ao && has_ibl) cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::AmbientPBR_AO));
+				else if (!has_ao && has_ibl) cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::AmbientPBR_IBL));
+				else cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::AmbientPBR));
 
 				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { context.GetReadOnlyTexture(data.gbuffer_normal_srv),
 					context.GetReadOnlyTexture(data.gbuffer_albedo_srv), context.GetReadOnlyTexture(data.gbuffer_emissive_srv), context.GetReadOnlyTexture(data.depth_stencil_srv) };

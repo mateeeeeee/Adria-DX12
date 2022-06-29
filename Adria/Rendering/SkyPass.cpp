@@ -3,7 +3,8 @@
 #include "Components.h"
 #include "Enums.h"
 #include "GlobalBlackboardData.h"
-#include "PipelineState.h"
+#include "PSOCache.h" 
+#include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/GPUProfiler.h"
 #include "../tecs/registry.h"
@@ -42,8 +43,8 @@ namespace adria
 				{
 				case ESkyType::Skybox:
 				{
-					cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Skybox));
-					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::Skybox));
+					cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Skybox));
+					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Skybox));
 
 					cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 					cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
@@ -68,8 +69,8 @@ namespace adria
 				}
 				case ESkyType::UniformColor:
 				{
-					cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Sky));
-					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::UniformColorSky));
+					cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Sky));
+					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::UniformColorSky));
 					cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 					cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
 					cmd_list->SetGraphicsRootConstantBufferView(2, global_data.weather_cbuffer_address);
@@ -77,8 +78,8 @@ namespace adria
 				}
 				case ESkyType::HosekWilkie:
 				{
-					cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::Sky));
-					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::HosekWilkieSky));
+					cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Sky));
+					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::HosekWilkieSky));
 					cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 					cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
 					cmd_list->SetGraphicsRootConstantBufferView(2, global_data.weather_cbuffer_address);

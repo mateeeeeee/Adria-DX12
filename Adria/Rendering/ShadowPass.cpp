@@ -3,7 +3,8 @@
 #include "ConstantBuffers.h"
 #include "Components.h"
 #include "GlobalBlackboardData.h"
-#include "PipelineState.h"
+#include "PSOCache.h" 
+#include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/GPUProfiler.h"
 #include "../Graphics/TextureManager.h"
@@ -564,8 +565,8 @@ namespace adria
 		auto shadow_view = reg.view<Mesh, Transform, Visibility>();
 		if (!transparent)
 		{
-			cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::DepthMap));
-			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::DepthMap));
+			cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::DepthMap));
+			cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::DepthMap));
 			cmd_list->SetGraphicsRootConstantBufferView(1, allocation_address);
 
 			for (auto e : shadow_view)
@@ -606,8 +607,8 @@ namespace adria
 				}
 			}
 
-			cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::DepthMap));
-			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::DepthMap));
+			cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::DepthMap));
+			cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::DepthMap));
 			cmd_list->SetGraphicsRootConstantBufferView(1, allocation_address);
 			for (auto e : not_transparent)
 			{
@@ -624,8 +625,8 @@ namespace adria
 				mesh.Draw(cmd_list);
 			}
 
-			cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::DepthMap_Transparent));
-			cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::DepthMap_Transparent));
+			cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::DepthMap_Transparent));
+			cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::DepthMap_Transparent));
 			cmd_list->SetGraphicsRootConstantBufferView(1, allocation_address);
 
 			for (auto e : potentially_transparent)

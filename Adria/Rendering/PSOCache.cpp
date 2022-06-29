@@ -14,6 +14,12 @@ namespace adria
 		HashMap<EPipelineState, std::unique_ptr<GraphicsPipelineState>> gfx_pso_map;
 		HashMap<EPipelineState, std::unique_ptr<ComputePipelineState>>  compute_pso_map;
 
+		enum EPipelineStateType
+		{
+			Graphics,
+			Compute
+		};
+
 		inline ShaderBlob const& GetShader(EShader shader)
 		{
 			return ShaderManager::GetShader(shader);
@@ -441,6 +447,8 @@ namespace adria
 
 				compute_pso_desc.root_signature = ERootSignature::BloomCombine;
 				compute_pso_desc.CS = CS_BloomCombine;
+				compute_pso_map[EPipelineState::BloomCombine] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
 
 				compute_pso_desc.root_signature = ERootSignature::GenerateMips;
 				compute_pso_desc.CS = CS_GenerateMips;
@@ -492,13 +500,10 @@ namespace adria
 		compute_pso_map.clear();
 	}
 
-	ComputePipelineState& PSOCache::GetComputePipelineState(EPipelineState ps)
+	ID3D12PipelineState* PSOCache::Get(EPipelineState ps)
 	{
-		return *compute_pso_map[ps];
-	}
-	GraphicsPipelineState& PSOCache::GetGraphicsPipelineState(EPipelineState ps)
-	{
-		return *gfx_pso_map[ps];
+		if (compute_pso_map.contains(ps)) return *compute_pso_map[ps];
+		else return *gfx_pso_map[ps];
 	}
 }
 

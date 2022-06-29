@@ -80,7 +80,7 @@ namespace adria
 		Front,
 		Back,
 	};
-	enum class EColorWrite : uint8
+	enum class EColorWrite
 	{
 		Disable = 0,
 		EnableRed = 1 << 0,

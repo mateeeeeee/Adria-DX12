@@ -2,7 +2,8 @@
 #include "ConstantBuffers.h"
 #include "Components.h"
 #include "GlobalBlackboardData.h"
-#include "PipelineState.h"
+#include "PSOCache.h" 
+#include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/GPUProfiler.h"
 #include "../tecs/registry.h"
@@ -52,8 +53,8 @@ namespace adria
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 				auto gbuffer_view = reg.view<Mesh, Transform, Material, Deferred, Visibility>();
 
-				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::GbufferPBR));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::GbufferPBR));
+				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::GbufferPBR));
+				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::GbufferPBR));
 				cmd_list->SetGraphicsRootConstantBufferView(0, (D3D12_GPU_VIRTUAL_ADDRESS)global_data.frame_cbuffer_address);
 				cmd_list->SetGraphicsRootDescriptorTable(3, descriptor_allocator->GetFirstHandle());
 

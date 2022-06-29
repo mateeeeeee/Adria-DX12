@@ -54,6 +54,7 @@ namespace adria
 			case PS_AmbientPBR_IBL:
 			case PS_AmbientPBR_AO_IBL:
 			case PS_LightingPBR:
+			case PS_LightingPBR_RayTracedShadows:
 			case PS_ClusteredLightingPBR:
 			case PS_ToneMap:
 			case PS_Fxaa:
@@ -106,6 +107,7 @@ namespace adria
 			case CS_ParticleSortInner512:
 			case CS_ParticleInitSortDispatchArgs:
 			case CS_Picker:
+			case CS_GenerateMips:
 				return EShaderStage::CS;
 			case HS_OceanLOD:
 				return EShaderStage::HS;
@@ -321,6 +323,8 @@ namespace adria
 
 		void CompileShader(EShader shader)
 		{
+			if (shader == EShader_Invalid) return;
+
 			ShaderCompileInput shader_info{ .entrypoint = "main" };
 			shader_info.flags =
 #if _DEBUG
@@ -390,7 +394,6 @@ namespace adria
 
 	ShaderBlob const& ShaderManager::GetShader(EShader shader)
 	{
-		if (shader == EShader_Invalid) return ShaderBlob{};
 		return shader_map[shader];
 	}
 

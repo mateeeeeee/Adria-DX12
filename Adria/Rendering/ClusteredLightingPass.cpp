@@ -2,7 +2,8 @@
 #include "ConstantBuffers.h"
 #include "Components.h"
 #include "GlobalBlackboardData.h"
-#include "PipelineState.h"
+#include "PSOCache.h" 
+#include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../tecs/registry.h"
 #include "../Logging/Logger.h"
@@ -55,8 +56,8 @@ namespace adria
 					ID3D12Device* device = gfx->GetDevice();
 					auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-					cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::ClusterBuilding));
-					cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::ClusterBuilding));
+					cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::ClusterBuilding));
+					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ClusterBuilding));
 					cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 
 					OffsetType descriptor_index = descriptor_allocator->Allocate();
@@ -114,8 +115,8 @@ namespace adria
 				DynamicAllocation& dynamic_alloc = context.GetAllocation(data.alloc_id);
 				dynamic_alloc.Update(structured_lights.data(), dynamic_alloc.size);
 
-				cmd_list->SetComputeRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::ClusterCulling));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::ClusterCulling));
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::ClusterCulling));
+				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ClusterCulling));
 
 				OffsetType i = descriptor_allocator->AllocateRange(2);
 				auto dst_descriptor = descriptor_allocator->GetHandle(i);
@@ -175,8 +176,8 @@ namespace adria
 				auto upload_buffer = gfx->GetDynamicAllocator();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				cmd_list->SetGraphicsRootSignature(RootSigPSOManager::GetRootSignature(ERootSignature::ClusteredLightingPBR));
-				cmd_list->SetPipelineState(RootSigPSOManager::GetPipelineState(EPipelineState::ClusteredLightingPBR));
+				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::ClusteredLightingPBR));
+				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ClusteredLightingPBR));
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 
 				//gbuffer
