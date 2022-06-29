@@ -28,7 +28,7 @@ namespace adria
 		postprocessor(reg, texture_manager, width, height), fxaa_pass(width, height), picking_pass(gfx, width, height),
 		clustered_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height),
 		decals_pass(reg, texture_manager, width, height), ocean_renderer(reg, texture_manager, width, height),
-		particle_renderer(reg, gfx, texture_manager, width, height), ray_tracer(reg, gfx, width, height)
+		particle_renderer(reg, gfx, texture_manager, width, height), ray_tracer(reg, gfx, width, height), aabb_pass(reg, width, height)
 	{
 		ShaderManager::Initialize();
 		RootSignatureCache::Initialize(gfx);
@@ -149,6 +149,7 @@ namespace adria
 			clustered_lighting_pass.AddPass(render_graph, true);
 		}
 
+		aabb_pass.AddPass(render_graph);
 		ocean_renderer.UpdateOceanColor(renderer_settings.ocean_color);
 		ocean_renderer.AddPasses(render_graph, renderer_settings.recreate_initial_spectrum, 
 			renderer_settings.ocean_tesselation, renderer_settings.ocean_wireframe);
@@ -216,6 +217,7 @@ namespace adria
 			ocean_renderer.OnResize(w, h);
 			particle_renderer.OnResize(w, h);
 			ray_tracer.OnResize(w, h);
+			aabb_pass.OnResize(w, h);
 		}
 	}
 	void Renderer::OnSceneInitialized()
@@ -236,6 +238,7 @@ namespace adria
 		hbao_pass.OnSceneInitialized(gfx);
 		postprocessor.OnSceneInitialized(gfx);
 		ocean_renderer.OnSceneInitialized(gfx);
+		aabb_pass.OnSceneInitialized(gfx);
 		particle_renderer.OnSceneInitialized();
 		ray_tracer.OnSceneInitialized();
 

@@ -55,7 +55,7 @@ namespace adria
 
 				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::GbufferPBR));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::GbufferPBR));
-				cmd_list->SetGraphicsRootConstantBufferView(0, (D3D12_GPU_VIRTUAL_ADDRESS)global_data.frame_cbuffer_address);
+				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetGraphicsRootDescriptorTable(3, descriptor_allocator->GetFirstHandle());
 
 				for (auto e : gbuffer_view)

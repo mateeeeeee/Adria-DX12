@@ -109,9 +109,13 @@ namespace adria
 			reg.emplace<Mesh>(grid, mesh);
 			reg.emplace<Transform>(grid);
 
-			BoundingBox aabb = AABBFromRange(vertices.begin(), vertices.end());
-			reg.emplace<AABB>(grid, aabb, true, true);
-
+			BoundingBox bounding_box = AABBFromRange(vertices.begin(), vertices.end());
+			AABB aabb{};
+			aabb.bounding_box = bounding_box;
+			aabb.light_visible = true;
+			aabb.camera_visible = true;
+			aabb.UpdateBuffer(gfx);
+			reg.emplace<AABB>(grid, aabb);
 			chunks.push_back(grid);
 		}
 		else
@@ -159,15 +163,16 @@ namespace adria
 					mesh.start_index_location = indices_offset;
 
 					reg.emplace<Mesh>(chunk, mesh);
-
 					reg.emplace<Transform>(chunk);
 
-					BoundingBox aabb = AABBFromRange(chunk_vertices_aabb.begin(), chunk_vertices_aabb.end());
-
-					reg.emplace<AABB>(chunk, aabb, true, true);
-
+					BoundingBox bounding_box = AABBFromRange(chunk_vertices_aabb.begin(), chunk_vertices_aabb.end());
+					AABB aabb{};
+					aabb.bounding_box = bounding_box;
+					aabb.light_visible = true;
+					aabb.camera_visible = true;
+					aabb.UpdateBuffer(gfx);
+					reg.emplace<AABB>(chunk, aabb);
 					chunks.push_back(chunk);
-
 				}
 			}
 			ComputeNormals(params.normal_type, vertices, indices);
@@ -218,8 +223,7 @@ namespace adria
 
 		tinyobj::attrib_t const& attrib = reader.GetAttrib();
 		std::vector<tinyobj::shape_t> const& shapes = reader.GetShapes();
-		//std::vector<tinyobj::material_t> const& materials = reader.GetMaterials(); ignore materials for now
-
+		
 		// Loop over shapes
 		std::vector<TexturedNormalVertex> vertices{};
 		std::vector<uint32> indices{};
@@ -869,9 +873,15 @@ namespace adria
 				{
 					Mesh const& mesh = reg.get<Mesh>(e);
 					XMMATRIX model = XMLoadFloat4x4(&transforms.world) * parent_transform;
-					BoundingBox aabb = AABBFromRange(vertices.begin() + mesh.base_vertex_location, vertices.begin() + mesh.base_vertex_location + mesh.vertex_count);
-					aabb.Transform(aabb, model);
-					reg.emplace<AABB>(e, aabb, true, true);
+					BoundingBox bounding_box = AABBFromRange(vertices.begin() + mesh.base_vertex_location, vertices.begin() + mesh.base_vertex_location + mesh.vertex_count);
+					bounding_box.Transform(bounding_box, model);
+
+					AABB aabb{};
+					aabb.bounding_box = bounding_box;
+					aabb.light_visible = true;
+					aabb.camera_visible = true;
+					aabb.UpdateBuffer(gfx);
+					reg.emplace<AABB>(e, aabb);
 					reg.emplace<Transform>(e, model, model);
 				}
 			}

@@ -18,6 +18,7 @@
 #include "AddTexturesPass.h"
 #include "PickingPass.h"
 #include "DecalsPass.h"
+#include "AABBPass.h"
 #include "OceanRenderer.h"
 #include "ParticleRenderer.h"
 #include "RayTracer.h"
@@ -154,6 +155,7 @@ namespace adria
 		ParticleRenderer particle_renderer;
 		RayTracer ray_tracer;
 		Postprocessor postprocessor;
+		AABBPass aabb_pass;
 	private:
 		void CreateNullHeap();
 		void CreateSizeDependentResources();

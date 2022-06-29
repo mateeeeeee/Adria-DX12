@@ -284,6 +284,7 @@
     <ClCompile Include="Rendering\PipelineState.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\AABBPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -681,6 +682,9 @@
     </ClInclude>
     <ClInclude Include="Graphics\GraphicsStates.h">
       <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\AABBPass.h">
+      <Filter>Rendering\Passes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

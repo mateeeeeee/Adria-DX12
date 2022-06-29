@@ -901,7 +901,7 @@ namespace adria
 					{
 						aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, transform->current_transform));
 						aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));
-						//aabb->UpdateBuffer(engine->gfx.get());
+						aabb->UpdateBuffer(engine->gfx.get());
 					}
 
 					if (Relationship* relationship = engine->reg.try_get<Relationship>(selected_entity))
@@ -913,7 +913,7 @@ namespace adria
 							{
 								aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, transform->current_transform));
 								aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));
-								//aabb->UpdateBuffer(engine->gfx.get());
+								aabb->UpdateBuffer(engine->gfx.get());
 							}
 						}
 					}
@@ -1061,7 +1061,7 @@ namespace adria
 
 				if (AABB* aabb = engine->reg.try_get<AABB>(selected_entity))
 				{
-					//aabb->draw_aabb = true;
+					aabb->draw_aabb = true;
 				}
 			}
 		}
@@ -1164,7 +1164,7 @@ namespace adria
 				{
 					aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, entity_transform.current_transform));
 					aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));
-					//aabb->UpdateBuffer(engine->gfx.get());
+					aabb->UpdateBuffer(engine->gfx.get());
 				}
 
 				if (Relationship* relationship = engine->reg.try_get<Relationship>(selected_entity))
@@ -1176,7 +1176,7 @@ namespace adria
 						{
 							aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, entity_transform.current_transform));
 							aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));
-							//aabb->UpdateBuffer(engine->gfx.get());
+							aabb->UpdateBuffer(engine->gfx.get());
 						}
 					}
 				}

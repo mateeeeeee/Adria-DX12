@@ -33,6 +33,7 @@ namespace adria
 		desc.stride = small_indices ? 2 : 4;
 		desc.size = index_count * desc.stride;
 		desc.misc_flags = ray_tracing ? EBufferMiscFlag::RayTracing : EBufferMiscFlag::None;
+		desc.format = small_indices ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
 		return desc;
 	}
 	static BufferDesc ReadBackBufferDesc(uint64 size)
