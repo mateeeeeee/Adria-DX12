@@ -330,7 +330,7 @@ namespace adria
 #if _DEBUG
 				ShaderCompileInput::FlagDebug | ShaderCompileInput::FlagDisableOptimization;
 #else
-				ShaderCompileInput::FLAG_NONE;
+				ShaderCompileInput::FlagNone;
 #endif
 			shader_info.source_file = std::string(shaders_directory) + GetShaderSource(shader);
 			shader_info.stage = GetStage(shader);

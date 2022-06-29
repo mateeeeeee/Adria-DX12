@@ -21,8 +21,8 @@
 	}, 
     "models" : [
 			{
-				"path": "Resources/Models/AbandonedWarehouse/AbandonedWarehouse.gltf",
-				"scale": [ 5.0, 5.0, 5.0 ]
+				"path": "Resources/Models/Sponza/glTF/sponza.gltf",
+				"scale": [ 15.0, 15.0, 15.0 ]
 			}
 	],
 	"lights" : [

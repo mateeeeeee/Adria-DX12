@@ -16,6 +16,7 @@ namespace adria
 	struct ImGuiLogger;
 	struct Material;
 	enum class EMaterialTextureType;
+	struct AABB;
 
 	struct EditorInit
 	{
@@ -45,6 +46,7 @@ namespace adria
 		ViewportData viewport_data;
 		EditorEvents editor_events;
 		bool reload_shaders = false;
+		std::queue<AABB*> aabb_updates;
 	private:
 		void SetStyle();
 
