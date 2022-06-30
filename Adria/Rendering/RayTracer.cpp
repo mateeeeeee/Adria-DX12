@@ -31,7 +31,7 @@ namespace adria
 			ADRIA_LOG(INFO, "Ray Tracing Tier is less than Tier 1.1!"
 				"Calls to Ray Traced Reflections will be silently ignored!");
 		}
-
+		OnResize(width, height);
 		CreateStateObjects();
 		CreateShaderTables();
 	}
@@ -59,6 +59,26 @@ namespace adria
 	{
 		width = w, height = h;
 		blur_pass.OnResize(w, h);
+
+#ifdef _DEBUG
+		TextureDesc debug_desc{};
+		debug_desc.width = width;
+		debug_desc.height = height;
+		debug_desc.format = DXGI_FORMAT_R8_UNORM;
+		debug_desc.bind_flags = EBindFlag::ShaderResource;
+		debug_desc.initial_state = EResourceState::CopyDest;
+		debug_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
+
+		rtao_debug_texture = std::make_unique<Texture>(gfx, debug_desc);
+		rtao_debug_texture->CreateSubresource_SRV();
+
+		rts_debug_texture = std::make_unique<Texture>(gfx, debug_desc);
+		rts_debug_texture->CreateSubresource_SRV();
+
+		debug_desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		rtr_debug_texture = std::make_unique<Texture>(gfx, debug_desc);
+		rtr_debug_texture->CreateSubresource_SRV();
+#endif
 	}
 
 	void RayTracer::OnSceneInitialized()
@@ -196,9 +216,12 @@ namespace adria
 				cmd_list->DispatchRays(&dispatch_desc);
 
 			}, ERGPassType::Compute, ERGPassFlags::None);
+#ifdef _DEBUG
+		AddRayTracedShadowsDebugPass(rg, light_id);
+#endif
 	}
 
-	void RayTracer::AddRayTracedReflectionsPass(RenderGraph& rg, Descriptor envmap)
+	void RayTracer::AddRayTracedReflectionsPass(RenderGraph& rg, D3D12_CPU_DESCRIPTOR_HANDLE envmap)
 	{
 		if (!IsFeatureSupported(ERayTracingFeature::Reflections)) return;
 
@@ -224,7 +247,7 @@ namespace adria
 				RGTextureDesc desc{};
 				desc.width = width;
 				desc.height = height;
-				desc.format = DXGI_FORMAT_R8_UNORM;
+				desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
 				builder.DeclareTexture(RG_RES_NAME(RTR_Output), desc);
 
 				data.output = builder.WriteTexture(RG_RES_NAME(RTR_Output));
@@ -275,6 +298,9 @@ namespace adria
 
 				cmd_list->DispatchRays(&dispatch_desc);
 			}, ERGPassType::Compute, ERGPassFlags::None);
+#ifdef _DEBUG
+		AddRayTracedReflectionsDebugPass(rg);
+#endif
 	}
 
 	void RayTracer::AddRayTracedAmbientOcclusionPass(RenderGraph& rg)
@@ -335,22 +361,24 @@ namespace adria
 
 				cmd_list->DispatchRays(&dispatch_desc);
 			}, ERGPassType::Compute, ERGPassFlags::None);
-
+#ifdef _DEBUG
+		AddRayTracedAmbientOcclusionDebugPass(rg);
+#endif
 		blur_pass.AddPass(rg, RG_RES_NAME(RTAO_Output), RG_RES_NAME(AmbientOcclusion));
 	}
-
-	void RayTracer::AddRayTracedAmbientOcclusionDebugPass(RenderGraph& rg, RGResourceName debug)
+#ifdef _DEBUG
+	void RayTracer::AddRayTracedAmbientOcclusionDebugPass(RenderGraph& rg)
 	{
 		struct CopyPassData
 		{
 			RGTextureCopySrcId copy_src;
 			RGTextureCopyDstId copy_dst;
 		};
-
+		rg.ImportTexture(RG_RES_NAME(RTAO_Debug), rtao_debug_texture.get());
 		rg.AddPass<CopyPassData>("Copy RTAO Pass",
 			[=](CopyPassData& data, RenderGraphBuilder& builder)
 			{
-				data.copy_dst = builder.WriteCopyDstTexture(debug);
+				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(RTAO_Debug));
 				data.copy_src = builder.ReadCopySrcTexture(RG_RES_NAME(RTAO_Output));
 			},
 			[=](CopyPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
@@ -360,7 +388,50 @@ namespace adria
 				cmd_list->CopyResource(dst_texture.GetNative(), src_texture.GetNative());
 			}, ERGPassType::Copy, ERGPassFlags::ForceNoCull);
 	}
+	void RayTracer::AddRayTracedShadowsDebugPass(RenderGraph& rg, size_t light_id)
+	{
+		struct CopyPassData
+		{
+			RGTextureCopySrcId copy_src;
+			RGTextureCopyDstId copy_dst;
+		};
 
+		rg.ImportTexture(RG_RES_NAME(RayTracedShadows_Debug), rts_debug_texture.get());
+		rg.AddPass<CopyPassData>("Copy RTS Pass",
+			[=](CopyPassData& data, RenderGraphBuilder& builder)
+			{
+				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(RayTracedShadows_Debug));
+				data.copy_src = builder.ReadCopySrcTexture(RG_RES_NAME_IDX(RayTracedShadows, light_id));
+			},
+			[=](CopyPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			{
+				Texture const& src_texture = context.GetCopySrcTexture(data.copy_src);
+				Texture const& dst_texture = context.GetCopyDstTexture(data.copy_dst);
+				cmd_list->CopyResource(dst_texture.GetNative(), src_texture.GetNative());
+			}, ERGPassType::Copy, ERGPassFlags::ForceNoCull);
+	}
+	void RayTracer::AddRayTracedReflectionsDebugPass(RenderGraph& rg)
+	{
+		struct CopyPassData
+		{
+			RGTextureCopySrcId copy_src;
+			RGTextureCopyDstId copy_dst;
+		};
+		rg.ImportTexture(RG_RES_NAME(RTR_Debug), rtr_debug_texture.get());
+		rg.AddPass<CopyPassData>("Copy RTR Pass",
+			[=](CopyPassData& data, RenderGraphBuilder& builder)
+			{
+				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(RTR_Debug));
+				data.copy_src = builder.ReadCopySrcTexture(RG_RES_NAME(RTR_Output));
+			},
+			[=](CopyPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			{
+				Texture const& src_texture = context.GetCopySrcTexture(data.copy_src);
+				Texture const& dst_texture = context.GetCopyDstTexture(data.copy_dst);
+				cmd_list->CopyResource(dst_texture.GetNative(), src_texture.GetNative());
+			}, ERGPassType::Copy, ERGPassFlags::ForceNoCull);
+	}
+#endif
 	void RayTracer::CreateStateObjects()
 	{
 		ID3D12Device5* device = gfx->GetDevice();
@@ -488,7 +559,6 @@ namespace adria
 			ray_traced_reflections.state_object = rtr_state_object_builder.CreateStateObject(device);
 		}
 	}
-
 	void RayTracer::CreateShaderTables()
 	{
 		ID3D12Device5* device = gfx->GetDevice();
@@ -548,7 +618,6 @@ namespace adria
 			ray_traced_reflections.shader_table_miss->AddShaderRecord(ShaderRecord(rtr_miss_id));
 		}
 	}
-
 	void RayTracer::OnLibraryRecompiled(EShader shader)
 	{
 		CreateStateObjects();

@@ -72,7 +72,20 @@ namespace adria
 		void AddRayTracedReflectionsPass(RenderGraph&, D3D12_CPU_DESCRIPTOR_HANDLE);
 		void AddRayTracedAmbientOcclusionPass(RenderGraph&);
 
-		void AddRayTracedAmbientOcclusionDebugPass(RenderGraph&, RGResourceName);
+#ifdef _DEBUG
+		Texture const* GetRTAODebugTexture() const
+		{
+			return rtao_debug_texture.get();
+		}
+		Texture const* GetRTSDebugTexture() const
+		{
+			return rts_debug_texture.get();
+		}
+		Texture const* GetRTRDebugTexture() const
+		{
+			return rtr_debug_texture.get();
+		}
+#endif
 	private:
 		uint32 width, height;
 		entt::registry& reg;
@@ -91,10 +104,23 @@ namespace adria
 		RayTracingProgram ray_traced_reflections;
 
 		BlurPass blur_pass;
+
+#ifdef _DEBUG
+		std::unique_ptr<Texture> rtao_debug_texture;
+		std::unique_ptr<Texture> rts_debug_texture;
+		std::unique_ptr<Texture> rtr_debug_texture;
+#endif
+		
 	private:
 		void CreateStateObjects();
 		void CreateShaderTables();
 		void OnLibraryRecompiled(EShader shader);
+
+#ifdef _DEBUG
+		void AddRayTracedAmbientOcclusionDebugPass(RenderGraph&);
+		void AddRayTracedShadowsDebugPass(RenderGraph&, size_t);
+		void AddRayTracedReflectionsDebugPass(RenderGraph&);
+#endif
 	};
 	
 }

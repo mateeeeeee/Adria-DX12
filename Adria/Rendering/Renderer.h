@@ -85,14 +85,23 @@ namespace adria
 		}
 
 		bool IsRayTracingSupported() const { return ray_tracer.IsSupported(); }
+
+#ifdef _DEBUG
 		Texture const* GetRTAODebugTexture() const 
 		{
-#ifdef _DEBUG
-			return rtao_debug_texture.get();
-#else 
-			return nullptr;
-#endif
+			return ray_tracer.GetRTAODebugTexture();
 		}
+
+		Texture const* GetRTSDebugTexture() const
+		{
+			return ray_tracer.GetRTSDebugTexture();
+		}
+
+		Texture const* GetRTRDebugTexture() const
+		{
+			return ray_tracer.GetRTRDebugTexture();
+		}
+#endif
 	private:
 		entt::registry& reg;
 		GraphicsDevice* gfx;
@@ -131,9 +140,6 @@ namespace adria
 		std::unique_ptr<Texture> irmap_texture;
 		std::unique_ptr<Texture> brdf_lut_texture;
 		bool ibl_generated = false;
-#ifdef _DEBUG
-		std::unique_ptr<Texture> rtao_debug_texture;
-#endif
 
 		//passes
 		GBufferPass  gbuffer_pass;

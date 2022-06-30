@@ -106,10 +106,6 @@ namespace adria
 		case EAmbientOcclusion::RTAO:
 		{
 			ray_tracer.AddRayTracedAmbientOcclusionPass(render_graph);
-#ifdef _DEBUG
-			render_graph.ImportTexture(RG_RES_NAME(RTAO_Debug), rtao_debug_texture.get());
-			ray_tracer.AddRayTracedAmbientOcclusionDebugPass(render_graph, RG_RES_NAME(RTAO_Debug));
-#endif
 			break;
 		}
 		case EAmbientOcclusion::None:
@@ -303,19 +299,6 @@ namespace adria
 
 		final_texture = std::make_unique<Texture>(gfx, ldr_desc);
 		final_texture->CreateSubresource_SRV();
-
-#ifdef _DEBUG
-		TextureDesc rtao_debug_desc{};
-		rtao_debug_desc.width = width;
-		rtao_debug_desc.height = height;
-		rtao_debug_desc.format = DXGI_FORMAT_R8_UNORM;
-		rtao_debug_desc.bind_flags = EBindFlag::ShaderResource;
-		rtao_debug_desc.initial_state = EResourceState::CopyDest;
-		rtao_debug_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
-
-		rtao_debug_texture = std::make_unique<Texture>(gfx, rtao_debug_desc);
-		rtao_debug_texture->CreateSubresource_SRV();
-#endif
 	}
 
 	void Renderer::GenerateIBLTextures()
