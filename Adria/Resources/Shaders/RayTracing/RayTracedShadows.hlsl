@@ -10,8 +10,6 @@ struct ShadowRayData
     bool hit;
 };
 
-
-
 [shader("raygeneration")]
 void RTS_RayGen()
 {

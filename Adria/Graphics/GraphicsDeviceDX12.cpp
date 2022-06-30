@@ -256,19 +256,6 @@ namespace adria
 		hr = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device));
 		BREAK_IF_FAILED(hr);
 
-		if (options.debug_layer)
-		{
-			Microsoft::WRL::ComPtr<ID3D12Debug> debug_controller = nullptr;
-			if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debug_controller))))
-			{
-				ID3D12InfoQueue* pInfoQueue = NULL;
-				device->QueryInterface(IID_PPV_ARGS(&pInfoQueue));
-				pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
-				pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
-				pInfoQueue->Release();
-			}
-		}
-
 		Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter;
 		dxgi_factory->EnumAdapters1(1, &adapter);
 
@@ -417,23 +404,23 @@ namespace adria
 			if (wait_event == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
 		}
 
-		//info queue
+		//Info queue
 		{
 			Microsoft::WRL::ComPtr<ID3D12InfoQueue> pInfoQueue;
 			if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(pInfoQueue.GetAddressOf()))))
 			{
 				//D3D12_MESSAGE_CATEGORY Categories[] = {};
-
+		
 				D3D12_MESSAGE_SEVERITY Severities[] =
 				{
 					D3D12_MESSAGE_SEVERITY_INFO
 				};
-
+		
 				D3D12_MESSAGE_ID DenyIds[] =
 				{
 					D3D12_MESSAGE_ID_INVALID_DESCRIPTOR_HANDLE,
 				};
-
+		
 				D3D12_INFO_QUEUE_FILTER NewFilter = {};
 				//NewFilter.DenyList.NumCategories = ARRAYSIZE(Categories);
 				//NewFilter.DenyList.pCategoryList = Categories;
@@ -441,11 +428,12 @@ namespace adria
 				NewFilter.DenyList.pSeverityList = Severities;
 				NewFilter.DenyList.NumIDs = ARRAYSIZE(DenyIds);
 				NewFilter.DenyList.pIDList = DenyIds;
-
+		
 				BREAK_IF_FAILED(pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true));
 				BREAK_IF_FAILED(pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true));
+				BREAK_IF_FAILED(pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true));
 				pInfoQueue->PushStorageFilter(&NewFilter);
-
+		
 				Microsoft::WRL::ComPtr<ID3D12InfoQueue1> pInfoQueue1;
 				if (pInfoQueue.As(&pInfoQueue1))
 				{
@@ -463,9 +451,8 @@ namespace adria
 				}
 			}
 		}
-
 		std::atexit(ReportLiveObjects);
-
+		
 		hr = device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&dred_fence));
 		device_removed_event = ::CreateEvent(nullptr, false, false, nullptr);
 		hr = dred_fence->SetEventOnCompletion(UINT64_MAX, device_removed_event);

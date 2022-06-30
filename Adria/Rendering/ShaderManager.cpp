@@ -345,7 +345,9 @@ namespace adria
 			dependent_files_map[shader].clear();
 			dependent_files_map[shader].insert(output.dependent_files.begin(), output.dependent_files.end());
 			
-			shader_recompiled_event.Broadcast(shader);
+			shader_info.stage == EShaderStage::LIB ?
+				library_recompiled_event.Broadcast(shader) :
+				shader_recompiled_event.Broadcast(shader);
 		}
 		void CompileAllShaders()
 		{
@@ -361,9 +363,6 @@ namespace adria
 				{
 					EShader shader = static_cast<EShader>(s);
 					CompileShader(shader);
-					GetStage(shader) == EShaderStage::LIB ? 
-						library_recompiled_event.Broadcast(shader) : 
-						shader_recompiled_event.Broadcast(shader);
 				});
 			ADRIA_LOG(INFO, "Compilation done!");
 		}

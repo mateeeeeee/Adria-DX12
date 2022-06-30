@@ -238,6 +238,7 @@ namespace adria
 		{
 			engine->gfx->WaitForGPU();
 			ShaderManager::CheckIfShadersHaveChanged();
+			reload_shaders = false;
 		}
 	}
 

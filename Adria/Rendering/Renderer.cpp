@@ -51,6 +51,7 @@ namespace adria
 		UpdatePersistentConstantBuffers(dt);
 		CameraFrustumCulling();
 		particle_renderer.Update(dt);
+		ray_tracer.Update(RayTracingSettings{ .dt = dt, .ao_radius = renderer_settings.postprocessor.rtao_radius});
 	}
 	void Renderer::Render(RendererSettings const& _settings)
 	{

@@ -34,13 +34,13 @@ namespace adria
 		OnResize(width, height);
 		CreateStateObjects();
 		CreateShaderTables();
+		ShaderManager::GetLibraryRecompiledEvent().AddMember(&RayTracer::OnLibraryRecompiled, *this);
 	}
 
 	bool RayTracer::IsSupported() const
 	{
 		return ray_tracing_tier != D3D12_RAYTRACING_TIER_NOT_SUPPORTED;
 	}
-
 	bool RayTracer::IsFeatureSupported(ERayTracingFeature feature) const
 	{
 		switch (feature)
@@ -54,7 +54,6 @@ namespace adria
 			return false;
 		}
 	}
-
 	void RayTracer::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
@@ -80,7 +79,6 @@ namespace adria
 		rtr_debug_texture->CreateSubresource_SRV();
 #endif
 	}
-
 	void RayTracer::OnSceneInitialized()
 	{
 		if (!IsSupported()) return;
@@ -130,7 +128,6 @@ namespace adria
 		global_ib = std::make_unique<Buffer>(gfx, ib_desc, RayTracing::rt_indices.data());
 
 	}
-
 	void RayTracer::Update(RayTracingSettings const& params)
 	{
 		if (!IsSupported()) return;
@@ -220,7 +217,6 @@ namespace adria
 		AddRayTracedShadowsDebugPass(rg, light_id);
 #endif
 	}
-
 	void RayTracer::AddRayTracedReflectionsPass(RenderGraph& rg, D3D12_CPU_DESCRIPTOR_HANDLE envmap)
 	{
 		if (!IsFeatureSupported(ERayTracingFeature::Reflections)) return;
@@ -302,7 +298,6 @@ namespace adria
 		AddRayTracedReflectionsDebugPass(rg);
 #endif
 	}
-
 	void RayTracer::AddRayTracedAmbientOcclusionPass(RenderGraph& rg)
 	{
 		if (!IsFeatureSupported(ERayTracingFeature::AmbientOcclusion)) return;
