@@ -1,4 +1,4 @@
-#include "CommandLineParser.h"
+#include "CommandLineArgs.h"
 #include <string>
 #include <vector>
 #include <ranges>
@@ -32,7 +32,11 @@ namespace adria
 				string_args[ECmdLineArg::LogFile] = "adria.log";
 				string_args[ECmdLineArg::WindowTitle] = "adria";
 			}
-
+			void TrimStringView(std::string_view& untrimmed_arg)
+			{
+				untrimmed_arg.remove_prefix(std::min(untrimmed_arg.find_first_not_of(" "), untrimmed_arg.size()));
+				untrimmed_arg.remove_suffix(std::min(untrimmed_arg.size() - untrimmed_arg.find_last_not_of(" ") - 1, untrimmed_arg.size()));
+			}
 			enum class ECmdLineType
 			{
 				Bool,
@@ -100,6 +104,8 @@ namespace adria
 				constexpr std::string_view operands_delim{"="};
 				for (std::string_view operand : std::views::split(expression, operands_delim))
 				{
+					if (operand.empty()) continue;
+					TrimStringView(operand);
 					operands.push_back(operand);
 				}
 				if (operands.size() != 2) continue;

@@ -9,7 +9,7 @@
 #include "Logging/Logger.h"
 #include "Editor/Editor.h"
 #include "Utilities/MemoryDebugger.h"
-#include "Utilities/CommandLineParser.h"
+#include "Utilities/CommandLineArgs.h"
 
 using namespace adria;
 

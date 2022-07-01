@@ -285,7 +285,7 @@
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\AABBPass.cpp" />
-    <ClCompile Include="Utilities\CommandLineParser.cpp">
+    <ClCompile Include="Utilities\CommandLineArgs.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
   </ItemGroup>
@@ -491,7 +491,7 @@
     <ClInclude Include="Graphics\RayTracingUtil.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\CommandLineParser.h">
+    <ClInclude Include="Utilities\CommandLineArgs.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GPUProfiler.h">
