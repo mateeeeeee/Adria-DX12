@@ -1657,7 +1657,7 @@ namespace adria
 			}
 			else if (current_rt_type == 2)
 			{
-				D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetRTSDebugTexture()->GetSubresource_SRV();
+				D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetRTRDebugTexture()->GetSubresource_SRV();
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
 				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 				device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
