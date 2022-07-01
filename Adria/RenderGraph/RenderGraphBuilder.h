@@ -85,7 +85,7 @@ namespace adria
 		[[nodiscard]] RGBufferIndexId ReadIndexBuffer(RGResourceName name);
 		[[nodiscard]] RGBufferConstantId ReadConstantBuffer(RGResourceName name);
 		
-		[[nodiscard]] RGTextureReadOnlyId ReadTexture(RGResourceName name, ERGReadAccess read_access, 
+		[[nodiscard]] RGTextureReadOnlyId ReadTexture(RGResourceName name, ERGReadAccess read_access = ReadAccess_AllShader,
 			uint32 first_mip = 0, uint32 mip_count = -1, uint32 first_slice = 0, uint32 slice_count = -1)
 		{
 			return ReadTextureImpl(name, read_access, TextureSubresourceDesc{ first_slice, slice_count, first_mip, mip_count });
@@ -111,7 +111,7 @@ namespace adria
 			return ReadDepthStencilImpl(name, load_store_op, ERGLoadStoreAccessOp::NoAccess_NoAccess, TextureSubresourceDesc{ first_slice, slice_count, first_mip, mip_count });
 		}
 
-		[[nodiscard]] RGBufferReadOnlyId ReadBuffer(RGResourceName name, ERGReadAccess read_access, uint32 offset = 0, uint32 size = -1)
+		[[nodiscard]] RGBufferReadOnlyId ReadBuffer(RGResourceName name, ERGReadAccess read_access = ReadAccess_AllShader, uint32 offset = 0, uint32 size = -1)
 		{
 			return ReadBufferImpl(name, read_access, BufferSubresourceDesc{ offset, size });
 		}

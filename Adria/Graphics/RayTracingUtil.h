@@ -14,7 +14,7 @@ namespace adria
 		friend class ShaderTable;
 		using ShaderIdentifier = uint8[D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES];
 
-	public:
+	private:
 		explicit ShaderRecord(void const* _shader_id, void* _local_root_args = nullptr, uint32 _local_root_args_size = 0)
 			: local_root_args(_local_root_args), local_root_args_size(_local_root_args_size)
 		{
@@ -38,19 +38,9 @@ namespace adria
 			shader_records.reserve(total_shader_records);
 		}
 
-		void AddShaderRecord(ShaderRecord const& shader_record)
-		{
-			DynamicAllocation allocation = upload_buffer.Allocate(shader_record_size, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT);
-			allocation.Update(shader_record);
-			shader_records.push_back(shader_record);
-		}
-
 		void EmplaceShaderRecord(void const* _shader_id)
 		{
-			DynamicAllocation allocation = upload_buffer.Allocate(shader_record_size, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT);
-			ShaderRecord shader_record(_shader_id);
-			allocation.Update(shader_record);
-			shader_records.push_back(shader_record);
+			AddShaderRecord(ShaderRecord(_shader_id));
 		}
 
 		D3D12_GPU_VIRTUAL_ADDRESS_RANGE_AND_STRIDE GetRangeAndStride() const
@@ -77,6 +67,16 @@ namespace adria
 		std::vector<ShaderRecord> shader_records;
 		uint32 shader_record_size;
 		LinearDynamicAllocator upload_buffer;
+
+	private:
+
+		void AddShaderRecord(ShaderRecord const& shader_record)
+		{
+			DynamicAllocation allocation = upload_buffer.Allocate(shader_record_size, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT);
+			allocation.Update(shader_record);
+			shader_records.push_back(shader_record);
+		}
+
 	};
 
 	class StateObjectBuilder

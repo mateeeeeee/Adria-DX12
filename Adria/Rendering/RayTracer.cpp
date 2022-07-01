@@ -247,12 +247,12 @@ namespace adria
 				builder.DeclareTexture(RG_RES_NAME(RTR_Output), desc);
 
 				data.output = builder.WriteTexture(RG_RES_NAME(RTR_Output));
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
-				data.normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
+				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil));
+				data.normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal));
 
-				data.vb = builder.ReadBuffer(RG_RES_NAME(BigVertexBuffer), ReadAccess_NonPixelShader);
-				data.ib = builder.ReadBuffer(RG_RES_NAME(BigIndexBuffer), ReadAccess_NonPixelShader);
-				data.geo = builder.ReadBuffer(RG_RES_NAME(BigGeometryBuffer), ReadAccess_NonPixelShader);
+				data.vb = builder.ReadBuffer(RG_RES_NAME(BigVertexBuffer));
+				data.ib = builder.ReadBuffer(RG_RES_NAME(BigIndexBuffer));
+				data.geo = builder.ReadBuffer(RG_RES_NAME(BigGeometryBuffer));
 			},
 			[=](RayTracedReflectionsPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
@@ -277,6 +277,7 @@ namespace adria
 				cmd_list->SetComputeRootDescriptorTable(5, descriptor_allocator->GetFirstHandle());
 
 				descriptor_index = descriptor_allocator->AllocateRange(3);
+				dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 0), ctx.GetReadOnlyBuffer(data.vb), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), ctx.GetReadOnlyBuffer(data.ib), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 2), ctx.GetReadOnlyBuffer(data.geo), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -567,14 +568,14 @@ namespace adria
 			void const* rts_miss_id = pso_info->GetShaderIdentifier(L"RTS_Miss");
 
 			ray_traced_shadows.shader_table_raygen = std::make_unique<ShaderTable>(device, 2);
-			ray_traced_shadows.shader_table_raygen->AddShaderRecord(ShaderRecord(rts_ray_gen_hard_id));
-			ray_traced_shadows.shader_table_raygen->AddShaderRecord(ShaderRecord(rts_ray_gen_soft_id));
+			ray_traced_shadows.shader_table_raygen->EmplaceShaderRecord(rts_ray_gen_hard_id);
+			ray_traced_shadows.shader_table_raygen->EmplaceShaderRecord(rts_ray_gen_soft_id);
 
 			ray_traced_shadows.shader_table_hit = std::make_unique<ShaderTable>(device, 1);
-			ray_traced_shadows.shader_table_hit->AddShaderRecord(ShaderRecord(rts_anyhit_id));
+			ray_traced_shadows.shader_table_hit->EmplaceShaderRecord(rts_anyhit_id);
 
 			ray_traced_shadows.shader_table_miss = std::make_unique<ShaderTable>(device, 1);
-			ray_traced_shadows.shader_table_miss->AddShaderRecord(ShaderRecord(rts_miss_id));
+			ray_traced_shadows.shader_table_miss->EmplaceShaderRecord(rts_miss_id);
 		}
 		{
 			Microsoft::WRL::ComPtr<ID3D12StateObjectProperties> pso_info = nullptr;
@@ -585,13 +586,13 @@ namespace adria
 			void const* rtao_miss_id = pso_info->GetShaderIdentifier(L"RTAO_Miss");
 
 			ray_traced_ambient_occlusion.shader_table_raygen = std::make_unique<ShaderTable>(device, 1);
-			ray_traced_ambient_occlusion.shader_table_raygen->AddShaderRecord(ShaderRecord(rtao_ray_gen_id));
+			ray_traced_ambient_occlusion.shader_table_raygen->EmplaceShaderRecord(rtao_ray_gen_id);
 
 			ray_traced_ambient_occlusion.shader_table_hit = std::make_unique<ShaderTable>(device, 1);
-			ray_traced_ambient_occlusion.shader_table_hit->AddShaderRecord(ShaderRecord(rtao_anyhit_id));
+			ray_traced_ambient_occlusion.shader_table_hit->EmplaceShaderRecord(rtao_anyhit_id);
 
 			ray_traced_ambient_occlusion.shader_table_miss = std::make_unique<ShaderTable>(device, 1);
-			ray_traced_ambient_occlusion.shader_table_miss->AddShaderRecord(ShaderRecord(rtao_miss_id));
+			ray_traced_ambient_occlusion.shader_table_miss->EmplaceShaderRecord(rtao_miss_id);
 		}
 		{
 			Microsoft::WRL::ComPtr<ID3D12StateObjectProperties> pso_info = nullptr;
@@ -603,14 +604,14 @@ namespace adria
 			void const* rtr_miss_id = pso_info->GetShaderIdentifier(L"RTR_Miss");
 
 			ray_traced_reflections.shader_table_raygen = std::make_unique<ShaderTable>(device, 1);
-			ray_traced_reflections.shader_table_raygen->AddShaderRecord(ShaderRecord(rtr_ray_gen_id));
+			ray_traced_reflections.shader_table_raygen->EmplaceShaderRecord(rtr_ray_gen_id);
 
 			ray_traced_reflections.shader_table_hit = std::make_unique<ShaderTable>(device, 2);
-			ray_traced_reflections.shader_table_hit->AddShaderRecord(ShaderRecord(rtr_closesthit_primary_ray_id));
-			ray_traced_reflections.shader_table_hit->AddShaderRecord(ShaderRecord(rtr_closesthit_reflection_ray_id));
+			ray_traced_reflections.shader_table_hit->EmplaceShaderRecord(rtr_closesthit_primary_ray_id);
+			ray_traced_reflections.shader_table_hit->EmplaceShaderRecord(rtr_closesthit_reflection_ray_id);
 
 			ray_traced_reflections.shader_table_miss = std::make_unique<ShaderTable>(device, 1);
-			ray_traced_reflections.shader_table_miss->AddShaderRecord(ShaderRecord(rtr_miss_id));
+			ray_traced_reflections.shader_table_miss->EmplaceShaderRecord(rtr_miss_id);
 		}
 	}
 	void RayTracer::OnLibraryRecompiled(EShader shader)

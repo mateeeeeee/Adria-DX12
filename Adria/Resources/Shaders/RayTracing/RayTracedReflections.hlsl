@@ -77,6 +77,7 @@ void RTR_RayGen()
 		 RAY_FLAG_FORCE_OPAQUE,
 		 0xFF, 0, 0, 0, ray, payload_data);
 
+        
     rtr_output[launchIndex.xy] = float4(payload_data.reflectivity * payload_data.reflection_color, 1.0f);
 }
 

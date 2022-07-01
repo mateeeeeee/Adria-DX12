@@ -224,6 +224,8 @@ namespace adria
 	{
 		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
 		RGBufferReadOnlyId read_only_id = rg.ReadBuffer(name, desc);
+		if (rg_pass.type == ERGPassType::Compute) read_access = ReadAccess_NonPixelShader;
+
 		RGBufferId res_id = read_only_id.GetResourceId();
 		switch (read_access)
 		{
