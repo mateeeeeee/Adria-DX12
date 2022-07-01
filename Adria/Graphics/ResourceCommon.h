@@ -134,10 +134,10 @@ namespace adria
 		IndirectArgs = 1 << 0,
 		BufferRaw = 1 << 1,
 		BufferStructured = 1 << 2,
-		RayTracing = 1 << 3,
-		ConstantBuffer = 1 << 4,
-		VertexBuffer = 1 << 5,
-		IndexBuffer = 1 << 6
+		ConstantBuffer = 1 << 3,
+		VertexBuffer = 1 << 4,
+		IndexBuffer = 1 << 5,
+		AccelStruct = 1 << 6
 	};
 	DEFINE_ENUM_BIT_OPERATORS(EBufferMiscFlag);
 
@@ -156,7 +156,7 @@ namespace adria
 		CopyDest = 0x200,
 		CopySource = 0x400,
 		RaytracingAccelerationStructure = 0x800,
-		GenericRead = VertexAndConstantBuffer | IndexBuffer | DepthRead | NonPixelShaderResource | PixelShaderResource | IndirectArgument | CopySource | RaytracingAccelerationStructure,
+		GenericRead = VertexAndConstantBuffer | IndexBuffer | DepthRead | NonPixelShaderResource | PixelShaderResource | IndirectArgument | CopySource,
 	};
 	DEFINE_ENUM_BIT_OPERATORS(EResourceState);
 

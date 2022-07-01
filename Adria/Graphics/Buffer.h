@@ -15,24 +15,22 @@ namespace adria
 		std::strong_ordering operator<=>(BufferDesc const& other) const = default;
 	};
 
-	static BufferDesc VertexBufferDesc(uint64 vertex_count, uint32 stride, bool ray_tracing = true)
+	static BufferDesc VertexBufferDesc(uint64 vertex_count, uint32 stride)
 	{
 		BufferDesc desc{};
 		desc.bind_flags = EBindFlag::None;
 		desc.resource_usage = EResourceUsage::Default;
 		desc.size = vertex_count * stride;
 		desc.stride = stride;
-		desc.misc_flags = ray_tracing ? EBufferMiscFlag::RayTracing : EBufferMiscFlag::None;
 		return desc;
 	}
-	static BufferDesc IndexBufferDesc(uint64 index_count, bool small_indices, bool ray_tracing = true)
+	static BufferDesc IndexBufferDesc(uint64 index_count, bool small_indices)
 	{
 		BufferDesc desc{};
 		desc.bind_flags = EBindFlag::None;
 		desc.resource_usage = EResourceUsage::Default;
 		desc.stride = small_indices ? 2 : 4;
 		desc.size = index_count * desc.stride;
-		desc.misc_flags = ray_tracing ? EBufferMiscFlag::RayTracing : EBufferMiscFlag::None;
 		desc.format = small_indices ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
 		return desc;
 	}
@@ -101,10 +99,12 @@ namespace adria
 			if (HasAllFlags(desc.bind_flags, EBindFlag::UnorderedAccess))
 				resource_desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
-			if (!HasAllFlags(desc.bind_flags, EBindFlag::ShaderResource) && !HasAllFlags(desc.misc_flags, EBufferMiscFlag::RayTracing))
+			if (!HasAllFlags(desc.bind_flags, EBindFlag::ShaderResource))
 				resource_desc.Flags |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
 
 			D3D12_RESOURCE_STATES resource_state = D3D12_RESOURCE_STATE_COMMON;
+			if (HasAllFlags(desc.misc_flags, EBufferMiscFlag::AccelStruct))
+				resource_state = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
 
 			D3D12MA::ALLOCATION_DESC allocation_desc{};
 			allocation_desc.HeapType = D3D12_HEAP_TYPE_DEFAULT;

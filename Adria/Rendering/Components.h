@@ -145,7 +145,7 @@ namespace adria
 			};
 			if (!aabb_vb)
 			{
-				BufferDesc desc = VertexBufferDesc(ARRAYSIZE(vertices), sizeof(SimpleVertex), false);
+				BufferDesc desc = VertexBufferDesc(ARRAYSIZE(vertices), sizeof(SimpleVertex));
 				desc.resource_usage = EResourceUsage::Upload;
 				aabb_vb = std::make_unique<Buffer>(gfx, desc, vertices);
 			}

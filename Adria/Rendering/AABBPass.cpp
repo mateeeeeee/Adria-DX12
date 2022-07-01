@@ -99,7 +99,7 @@ namespace adria
 			6, 7,
 			7, 4
 		};
-		aabb_ib = std::make_unique<Buffer>(gfx, IndexBufferDesc(ARRAYSIZE(aabb_indices), true, false), aabb_indices);
+		aabb_ib = std::make_unique<Buffer>(gfx, IndexBufferDesc(ARRAYSIZE(aabb_indices), true), aabb_indices);
 	}
 }
 

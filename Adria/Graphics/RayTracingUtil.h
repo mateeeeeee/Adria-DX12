@@ -45,6 +45,14 @@ namespace adria
 			shader_records.push_back(shader_record);
 		}
 
+		void EmplaceShaderRecord(void const* _shader_id)
+		{
+			DynamicAllocation allocation = upload_buffer.Allocate(shader_record_size, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT);
+			ShaderRecord shader_record(_shader_id);
+			allocation.Update(shader_record);
+			shader_records.push_back(shader_record);
+		}
+
 		D3D12_GPU_VIRTUAL_ADDRESS_RANGE_AND_STRIDE GetRangeAndStride() const
 		{
 			D3D12_GPU_VIRTUAL_ADDRESS_RANGE_AND_STRIDE result{};

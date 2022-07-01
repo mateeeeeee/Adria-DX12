@@ -113,13 +113,13 @@ namespace adria
 
 		BufferDesc vb_desc{};
 		vb_desc.bind_flags = EBindFlag::ShaderResource;
-		vb_desc.misc_flags = EBufferMiscFlag::RayTracing | EBufferMiscFlag::VertexBuffer;
+		vb_desc.misc_flags = EBufferMiscFlag::VertexBuffer;
 		vb_desc.size = RayTracing::rt_vertices.size() * sizeof(CompleteVertex);
 		vb_desc.stride = sizeof(CompleteVertex);
 
 		BufferDesc ib_desc{};
 		ib_desc.bind_flags = EBindFlag::ShaderResource;
-		ib_desc.misc_flags = EBufferMiscFlag::RayTracing | EBufferMiscFlag::IndexBuffer;
+		ib_desc.misc_flags = EBufferMiscFlag::IndexBuffer;
 		ib_desc.size = RayTracing::rt_indices.size() * sizeof(uint32);
 		ib_desc.stride = sizeof(uint32);
 		ib_desc.format = DXGI_FORMAT_R32_UINT;

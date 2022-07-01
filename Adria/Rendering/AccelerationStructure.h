@@ -75,8 +75,9 @@ namespace adria
 			blas_buffers.scratch_buffer = std::make_unique<Buffer>(gfx, scratch_buffer_desc);
 
 			BufferDesc result_buffer_desc{};
-			result_buffer_desc.bind_flags = EBindFlag::UnorderedAccess;
+			result_buffer_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::ShaderResource;
 			result_buffer_desc.size = bl_prebuild_info.ResultDataMaxSizeInBytes;
+			result_buffer_desc.misc_flags = EBufferMiscFlag::AccelStruct;
 			blas_buffers.result_buffer = std::make_unique<Buffer>(gfx, result_buffer_desc);
 
 			// Create the bottom-level AS
@@ -122,8 +123,9 @@ namespace adria
 			tlas_buffers.scratch_buffer = std::make_unique<Buffer>(gfx, scratch_buffer_desc);
 
 			BufferDesc result_buffer_desc{};
-			result_buffer_desc.bind_flags = EBindFlag::UnorderedAccess;
+			result_buffer_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::ShaderResource;
 			result_buffer_desc.size = tl_prebuild_info.ResultDataMaxSizeInBytes;
+			result_buffer_desc.misc_flags = EBufferMiscFlag::AccelStruct;
 			tlas_buffers.result_buffer = std::make_unique<Buffer>(gfx, result_buffer_desc);
 
 			BufferDesc instance_buffer_desc{};
