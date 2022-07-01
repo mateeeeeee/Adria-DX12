@@ -44,9 +44,21 @@ namespace adria
 	private:
 		GraphicsDevice* gfx;
 		std::vector<D3D12_RAYTRACING_GEOMETRY_DESC> geo_descs;
+
 		std::unique_ptr<Buffer> blas;
 		std::unique_ptr<Buffer> tlas;
+		struct BLAccelerationStructureBuffers
+		{
+			std::unique_ptr<Buffer> scratch_buffer;
+			std::unique_ptr<Buffer> result_buffer;
+		} blas_buffers{};
 
+		struct TLAccelerationStructureBuffers
+		{
+			std::unique_ptr<Buffer> instance_buffer;
+			std::unique_ptr<Buffer> scratch_buffer;
+			std::unique_ptr<Buffer> result_buffer;
+		} tlas_buffers{};
 	private:
 		void BuildBottomLevel()
 		{
@@ -63,23 +75,17 @@ namespace adria
 			device->GetRaytracingAccelerationStructurePrebuildInfo(&inputs, &bl_prebuild_info);
 			ADRIA_ASSERT(bl_prebuild_info.ResultDataMaxSizeInBytes > 0);
 
-			struct BLAccelerationStructureBuffers
-			{
-				std::unique_ptr<Buffer> scratch_buffer;
-				std::unique_ptr<Buffer> result_buffer;
-			} blas_buffers{};
-
 			BufferDesc scratch_buffer_desc{};
 			scratch_buffer_desc.bind_flags = EBindFlag::UnorderedAccess;
 			scratch_buffer_desc.size = bl_prebuild_info.ScratchDataSizeInBytes;
 			blas_buffers.scratch_buffer = std::make_unique<Buffer>(gfx, scratch_buffer_desc);
-
+			
 			BufferDesc result_buffer_desc{};
 			result_buffer_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::ShaderResource;
 			result_buffer_desc.size = bl_prebuild_info.ResultDataMaxSizeInBytes;
 			result_buffer_desc.misc_flags = EBufferMiscFlag::AccelStruct;
 			blas_buffers.result_buffer = std::make_unique<Buffer>(gfx, result_buffer_desc);
-
+			
 			// Create the bottom-level AS
 			D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC blas_desc{};
 			blas_desc.Inputs = inputs;
@@ -98,13 +104,6 @@ namespace adria
 		{
 			ID3D12Device5* device = gfx->GetDevice();
 			ID3D12GraphicsCommandList4* cmd_list = gfx->GetDefaultCommandList();
-
-			struct TLAccelerationStructureBuffers
-			{
-				std::unique_ptr<Buffer> instance_buffer;
-				std::unique_ptr<Buffer> scratch_buffer;
-				std::unique_ptr<Buffer> result_buffer;
-			} tlas_buffers{};
 
 			// First, get the size of the TLAS buffers and create them
 			D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs{};

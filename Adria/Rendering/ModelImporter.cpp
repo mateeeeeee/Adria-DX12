@@ -325,7 +325,6 @@ namespace adria
     {
     }
 
-	[[maybe_unused]]
 	entt::entity ModelImporter::LoadSkybox(SkyboxParameters const& params)
     {
         entt::entity skybox = reg.create();
@@ -344,8 +343,7 @@ namespace adria
         return skybox;
 
     }
-
-    [[maybe_unused]] 
+ 
 	entt::entity ModelImporter::LoadLight(LightParameters const& params)
     {
         entt::entity light = reg.create();
@@ -468,7 +466,6 @@ namespace adria
 		return ocean_chunks;
 	}
 
-	[[maybe_unused]]
 	entt::entity ModelImporter::LoadEmitter(EmitterParameters const& params)
 	{
 		Emitter emitter{};
@@ -495,7 +492,6 @@ namespace adria
 		return emitter_entity;
 	}
 
-	[[maybe_unused]]
 	entt::entity ModelImporter::LoadDecal(DecalParameters const& params)
 	{
 		Decal decal{};
@@ -537,8 +533,6 @@ namespace adria
 		return decal_entity;
 	}
 
-	
-	[[maybe_unused]]
 	std::vector<entt::entity> ModelImporter::ImportModel_GLTF(ModelParameters const& params)
 	{
 		tinygltf::TinyGLTF loader;
@@ -905,20 +899,8 @@ namespace adria
 			LoadNode(scene.nodes[i], params.model_matrix);
 		}
 
-		BufferDesc vb_desc
-		{
-					.size = vertices.size() * sizeof(CompleteVertex),
-					.bind_flags = EBindFlag::None,
-					.stride = sizeof(CompleteVertex)
-		};
-
-		BufferDesc ib_desc
-		{
-			.size = indices.size() * sizeof(uint32),
-			.bind_flags = EBindFlag::None,
-			.stride = sizeof(uint32),
-			.format = DXGI_FORMAT_R32_UINT
-		};
+		BufferDesc vb_desc = VertexBufferDesc(vertices.size(), sizeof(CompleteVertex), params.used_in_raytracing);
+		BufferDesc ib_desc = IndexBufferDesc(indices.size(), false, params.used_in_raytracing);
 
 		std::shared_ptr<Buffer> vb = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());
 		std::shared_ptr<Buffer> ib = std::make_shared<Buffer>(gfx, ib_desc, indices.data());

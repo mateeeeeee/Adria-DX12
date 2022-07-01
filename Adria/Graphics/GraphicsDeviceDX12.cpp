@@ -179,6 +179,7 @@ namespace adria
 			Microsoft::WRL::ComPtr<ID3D12DeviceRemovedExtendedData1> dred;
 			if (FAILED(device->QueryInterface(IID_PPV_ARGS(&dred)))) ADRIA_LOG(ERROR, "Failed to get DRED interface");
 			else LogDredInfo(device, dred.Get());
+			std::exit(1);
 		}
 		inline void ReportLiveObjects()
 		{
@@ -224,6 +225,7 @@ namespace adria
 			{
 				dred_settings->SetAutoBreadcrumbsEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
 				dred_settings->SetPageFaultEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+				dred_settings->SetBreadcrumbContextEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
 #if defined(_DEBUG)
 				ADRIA_LOG(INFO, "D3D12 DRED Enabled");
 #else
@@ -435,7 +437,8 @@ namespace adria
 				pInfoQueue->PushStorageFilter(&NewFilter);
 		
 				Microsoft::WRL::ComPtr<ID3D12InfoQueue1> pInfoQueue1;
-				if (pInfoQueue.As(&pInfoQueue1))
+				pInfoQueue.As(&pInfoQueue1);
+				if (pInfoQueue1)
 				{
 					auto MessageCallback = [](
 						D3D12_MESSAGE_CATEGORY Category,

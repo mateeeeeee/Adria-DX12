@@ -71,7 +71,8 @@ namespace adria
 					batched_entities[params].push_back(e);
 				}
 
-				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::GbufferPBR));
+				auto* rs = RootSignatureCache::Get(ERootSignature::GbufferPBR);
+				cmd_list->SetGraphicsRootSignature(rs);
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetGraphicsRootDescriptorTable(3, descriptor_allocator->GetFirstHandle());
 

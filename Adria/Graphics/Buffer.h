@@ -15,19 +15,19 @@ namespace adria
 		std::strong_ordering operator<=>(BufferDesc const& other) const = default;
 	};
 
-	static BufferDesc VertexBufferDesc(uint64 vertex_count, uint32 stride)
+	static BufferDesc VertexBufferDesc(uint64 vertex_count, uint32 stride, bool ray_tracing = true)
 	{
 		BufferDesc desc{};
-		desc.bind_flags = EBindFlag::None;
+		desc.bind_flags = ray_tracing ? EBindFlag::ShaderResource : EBindFlag::None;
 		desc.resource_usage = EResourceUsage::Default;
 		desc.size = vertex_count * stride;
 		desc.stride = stride;
 		return desc;
 	}
-	static BufferDesc IndexBufferDesc(uint64 index_count, bool small_indices)
+	static BufferDesc IndexBufferDesc(uint64 index_count, bool small_indices, bool ray_tracing = true)
 	{
 		BufferDesc desc{};
-		desc.bind_flags = EBindFlag::None;
+		desc.bind_flags = ray_tracing ? EBindFlag::ShaderResource : EBindFlag::None;
 		desc.resource_usage = EResourceUsage::Default;
 		desc.stride = small_indices ? 2 : 4;
 		desc.size = index_count * desc.stride;
@@ -167,6 +167,17 @@ namespace adria
 					upload_alloc.buffer,
 					upload_alloc.offset,
 					desc.size);
+
+				if (HasAnyFlag(desc.bind_flags, EBindFlag::ShaderResource))
+				{
+					D3D12_RESOURCE_BARRIER barrier{};
+					barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+					barrier.Transition.pResource = resource.Get();
+					barrier.Transition.StateAfter = ConvertToD3D12ResourceState(EResourceState::NonPixelShaderResource);
+					barrier.Transition.StateBefore = ConvertToD3D12ResourceState(EResourceState::CopyDest);
+					barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+					cmd_list->ResourceBarrier(1, &barrier);
+				}
 			}
 		}
 		Buffer(Buffer const&) = delete;
@@ -261,6 +272,8 @@ namespace adria
 		void Unmap()
 		{
 			resource->Unmap(0, nullptr);
+			mapped_data = nullptr;
+			mapped_rowpitch = 0;
 		}
 		void Update(void const* src_data, size_t data_size)
 		{
@@ -314,14 +327,13 @@ namespace adria
 			{
 				D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
 				srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-
+				srv_desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
 				if (format == DXGI_FORMAT_UNKNOWN)
 				{
 					if (HasAllFlags(desc.misc_flags, EBufferMiscFlag::BufferRaw))
 					{
 						// This is a Raw Buffer
 						srv_desc.Format = DXGI_FORMAT_R32_TYPELESS;
-						srv_desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
 						srv_desc.Buffer.FirstElement = (UINT)view_desc.offset / sizeof(uint32_t);
 						srv_desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
 						srv_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / sizeof(uint32_t);
@@ -330,7 +342,6 @@ namespace adria
 					{
 						// This is a Structured Buffer
 						srv_desc.Format = DXGI_FORMAT_UNKNOWN;
-						srv_desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
 						srv_desc.Buffer.FirstElement = (UINT)view_desc.offset / desc.stride;
 						srv_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / desc.stride;
 						srv_desc.Buffer.StructureByteStride = desc.stride;
