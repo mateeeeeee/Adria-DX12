@@ -230,6 +230,7 @@
     <ClCompile Include="Rendering\TiledLightingPass.cpp" />
     <ClCompile Include="Rendering\ToneMapPass.cpp" />
     <ClCompile Include="Utilities\AdriaException.cpp" />
+    <ClCompile Include="Utilities\CommandLineParser.cpp" />
     <ClCompile Include="Utilities\CPUProfiler.cpp" />
     <ClCompile Include="Utilities\Heightmap.cpp" />
   </ItemGroup>
