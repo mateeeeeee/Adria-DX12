@@ -15,7 +15,6 @@ namespace adria
 {
 	struct ImGuiLogger;
 	struct Material;
-	enum class EMaterialTextureType;
 	struct AABB;
 
 	struct EditorInit
@@ -25,8 +24,6 @@ namespace adria
 
 	class Editor
 	{
-		using ShaderReloadCallback = std::function<void()>;
-
 	public:
 		explicit Editor(EditorInit const& init);
 		~Editor();
@@ -47,42 +44,25 @@ namespace adria
 		EditorEvents editor_events;
 		bool reload_shaders = false;
 		std::queue<AABB*> aabb_updates;
+
 	private:
 		void SetStyle();
-
 		void HandleInput();
-
 		void MenuBar();
-
 		void OceanSettings();
-
 		void ParticleSettings();
-
 		void DecalSettings();
-
 		void SkySettings();
-
 		void AddEntities();
-
 		void ListEntities();
-
 		void Properties();
-
 		void Camera();
-
 		void Scene();
-
 		void Log();
-
 		void RendererSettings();
-
 		void Profiling();
-
 		void ShaderHotReload();
-
 		void RayTracingDebug();
-
-		void OpenMaterialFileDialog(Material* mat, EMaterialTextureType type);
 	};
 }
 

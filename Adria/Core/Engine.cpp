@@ -62,7 +62,7 @@ namespace adria
 				{
 					ADRIA_LOG(WARNING, "Model doesn't have path field! Skipping this model...");
 				}
-				std::string tex_path = model_params.FindOr<std::string>("tex_path", GetPath(path) + "\\");
+				std::string tex_path = model_params.FindOr<std::string>("tex_path", GetParentPath(path) + "\\");
 
 				float32 position[3] = { 0.0f, 0.0f, 0.0f };
 				model_params.FindArray("translation", position);

@@ -161,9 +161,6 @@
     <ClCompile Include="..\ThirdParty\ImGui\imgui_widgets.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="..\ThirdParty\ImGui\ImGuiFileDialog.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
     <ClCompile Include="Editor\GUI.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
@@ -453,12 +450,6 @@
       <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\ThirdParty\ImGui\imgui_internal.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\ImGui\ImGuiFileDialog.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\ImGui\ImGuiFileDialogConfig.h">
       <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\ThirdParty\ImGui\imstb_rectpack.h">

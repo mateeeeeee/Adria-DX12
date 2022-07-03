@@ -85,6 +85,7 @@ namespace adria
 			{
 				if (arg == "true") return true;
 				if (arg == "false") return false;
+				__assume(false); //std::unreachable() C++ 23
 				ADRIA_ASSERT_MSG(false, "Invalid Bool Arg in Command Line!");
 			}
 			inline int32 ToInt(std::string_view arg)

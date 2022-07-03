@@ -62,7 +62,7 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 
 [ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo)
 
-[ImGuiFileDialog](https://github.com/aiekick/ImGuiFileDialog)
+[nativefiledialog](https://github.com/mlabbe/nativefiledialog)
 
 [stb](https://github.com/nothings/stb)
 

@@ -1,5 +1,5 @@
 #include "Editor.h"
-
+#include "nfd.h"
 #include "../Rendering/Renderer.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Rendering/ModelImporter.h"
@@ -8,7 +8,6 @@
 #include "../Logging/Logger.h"
 #include "../Utilities/FilesUtil.h"
 #include "../Utilities/StringUtil.h"
-#include "../ImGui/ImGuiFileDialog.h"
 #include "../Utilities/Random.h"
 #include "../Math/BoundingVolumeHelpers.h"
 #include "pix3.h"
@@ -38,14 +37,6 @@ namespace adria
 		float64 last_reset_time;
 		uint32 accumulating_frame_count;
 	};
-
-	enum class EMaterialTextureType
-	{
-		eAlbedo,
-		eMetallicRoughness,
-		eEmissive
-	};
-
 	struct ImGuiLogger
 	{
 		ImGuiTextBuffer     Buf;
@@ -148,7 +139,6 @@ namespace adria
 			ImGui::End();
 		}
 	};
-
 	class EditorLogger : public ILogger
 	{
 	public:
@@ -363,31 +353,27 @@ namespace adria
 		{
 			if (ImGui::BeginMenu("File"))
 			{
-				if (ImGui::MenuItem("New Model"))
-					ImGuiFileDialog::Instance()->OpenDialog("Choose Model", "Choose File", ".gltf", ".");
+				if (ImGui::MenuItem("Load Model"))
+				{
+					nfdchar_t* file_path = NULL;
+					const nfdchar_t* filter_list = "gltf";
+					nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
+					if (result == NFD_OKAY)
+					{
+						std::string model_path = file_path;
 
+						ModelParameters params{};
+						params.model_path = model_path;
+						std::string texture_path = GetParentPath(model_path);
+						if (!texture_path.empty()) texture_path.append("/");
+
+						params.textures_path = texture_path;
+						engine->entity_loader->ImportModel_GLTF(params);
+						free(file_path);
+					}
+				}
 				ImGui::EndMenu();
 			}
-
-			if (ImGuiFileDialog::Instance()->Display("Choose Model"))
-			{
-
-				if (ImGuiFileDialog::Instance()->IsOk())
-				{
-					std::string model_path = ImGuiFileDialog::Instance()->GetFilePathName();
-
-					ModelParameters params{};
-					params.model_path = model_path;
-					std::string texture_path = ImGuiFileDialog::Instance()->GetCurrentPath();
-					if (!texture_path.empty()) texture_path.append("/");
-
-					params.textures_path = texture_path;
-					engine->entity_loader->ImportModel_GLTF(params);
-				}
-
-				ImGuiFileDialog::Instance()->Close();
-			}
-
 			if (ImGui::BeginMenu("Help"))
 			{
 				ImGui::Text("Controls\n");
@@ -464,18 +450,20 @@ namespace adria
 			static char NAME_BUFFER[128];
 			ImGui::InputText("Name", NAME_BUFFER, sizeof(NAME_BUFFER));
 			params.name = std::string(NAME_BUFFER);
-			if (ImGui::Button("Select Texture")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
-			if (ImGuiFileDialog::Instance()->Display("Choose Texture"))
+			if (ImGui::Button("Select Texture"))
 			{
-				if (ImGuiFileDialog::Instance()->IsOk())
+				nfdchar_t* file_path = NULL;
+				nfdchar_t const* filter_list = "jpg,jpeg,tga,dds,png";
+				nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
+				if (result == NFD_OKAY)
 				{
-					std::wstring texture_path = ConvertToWide(ImGuiFileDialog::Instance()->GetFilePathName());
+					std::wstring texture_path = ConvertToWide(file_path);
 					params.texture_path = texture_path;
+					free(file_path);
 				}
-				ImGuiFileDialog::Instance()->Close();
 			}
-			ImGui::Text(ConvertToNarrow(params.texture_path).c_str());
 
+			ImGui::Text(ConvertToNarrow(params.texture_path).c_str());
 			ImGui::SliderFloat3("Position", params.position, -500.0f, 500.0f);
 			ImGui::SliderFloat3("Velocity", params.velocity, -50.0f, 50.0f);
 			ImGui::SliderFloat3("Position Variance", params.position_variance, -50.0f, 50.0f);
@@ -508,30 +496,35 @@ namespace adria
 			ImGui::InputText("Name", NAME_BUFFER, sizeof(NAME_BUFFER));
 			params.name = std::string(NAME_BUFFER);
 			ImGui::PushID(6);
-			if (ImGui::Button("Select Albedo Texture")) ImGuiFileDialog::Instance()->OpenDialog("Choose Albedo Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
-			if (ImGuiFileDialog::Instance()->Display("Choose Albedo Texture"))
+			if (ImGui::Button("Select Albedo Texture"))
 			{
-				if (ImGuiFileDialog::Instance()->IsOk())
+				nfdchar_t* file_path = NULL;
+				nfdchar_t const* filter_list = "jpg,jpeg,tga,dds,png";
+				nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
+				if (result == NFD_OKAY)
 				{
-					std::string texture_path = ImGuiFileDialog::Instance()->GetFilePathName();
+					std::string texture_path = file_path;
 					params.albedo_texture_path = texture_path;
+					free(file_path);
 				}
-				ImGuiFileDialog::Instance()->Close();
 			}
 			ImGui::PopID();
 			ImGui::Text(params.albedo_texture_path.c_str());
 
 			ImGui::PushID(7);
-			if (ImGui::Button("Select Normal Texture")) ImGuiFileDialog::Instance()->OpenDialog("Choose Normal Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
-			if (ImGuiFileDialog::Instance()->Display("Choose Normal Texture"))
+			if (ImGui::Button("Select Normal Texture"))
 			{
-				if (ImGuiFileDialog::Instance()->IsOk())
+				nfdchar_t* file_path = NULL;
+				nfdchar_t const* filter_list = "jpg,jpeg,tga,dds,png";
+				nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
+				if (result == NFD_OKAY)
 				{
-					std::string texture_path = ImGuiFileDialog::Instance()->GetFilePathName();
+					std::string texture_path = file_path;
 					params.normal_texture_path = texture_path;
+					free(file_path);
 				}
-				ImGuiFileDialog::Instance()->Close();
 			}
+
 			ImGui::PopID();
 			ImGui::Text(params.normal_texture_path.c_str());
 
@@ -860,8 +853,18 @@ namespace adria
 
 					ImGui::PushID(0);
 					if (ImGui::Button("Remove")) material->albedo_texture = INVALID_TEXTURE_HANDLE;
-					if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
-					OpenMaterialFileDialog(material, EMaterialTextureType::eAlbedo);
+					if (ImGui::Button("Select"))
+					{
+						nfdchar_t* file_path = NULL;
+						nfdchar_t const* filter_list = "jpg,jpeg,tga,dds,png";
+						nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
+						if (result == NFD_OKAY)
+						{
+							std::wstring texture_path = ConvertToWide(file_path);
+							material->albedo_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+							free(file_path);
+						}
+					}
 					ImGui::PopID();
 
 					ImGui::Text("Metallic-Roughness Texture");
@@ -874,8 +877,18 @@ namespace adria
 
 					ImGui::PushID(1);
 					if (ImGui::Button("Remove")) material->metallic_roughness_texture = INVALID_TEXTURE_HANDLE;
-					if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
-					OpenMaterialFileDialog(material, EMaterialTextureType::eMetallicRoughness);
+					if (ImGui::Button("Select"))
+					{
+						nfdchar_t* file_path = NULL;
+						nfdchar_t const* filter_list = "jpg,jpeg,tga,dds,png";
+						nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
+						if (result == NFD_OKAY)
+						{
+							std::wstring texture_path = ConvertToWide(file_path);
+							material->metallic_roughness_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+							free(file_path);
+						}
+					}
 					ImGui::PopID();
 
 					ImGui::Text("Emissive Texture");
@@ -888,8 +901,18 @@ namespace adria
 
 					ImGui::PushID(2);
 					if (ImGui::Button("Remove")) material->emissive_texture = INVALID_TEXTURE_HANDLE;
-					if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
-					OpenMaterialFileDialog(material, EMaterialTextureType::eEmissive);
+					if (ImGui::Button("Select"))
+					{
+						nfdchar_t* file_path = NULL;
+						nfdchar_t const* filter_list = "jpg,jpeg,tga,dds,png";
+						nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
+						if (result == NFD_OKAY)
+						{
+							std::wstring texture_path = ConvertToWide(file_path);
+							material->emissive_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+							free(file_path);
+						}
+					}
 					ImGui::PopID();
 
 					ImGui::ColorEdit3("Albedo Color", &material->diffuse.x);
@@ -968,15 +991,17 @@ namespace adria
 
 					ImGui::PushID(3);
 					if (ImGui::Button("Remove")) emitter->particle_texture = INVALID_TEXTURE_HANDLE;
-					if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
-					if (ImGuiFileDialog::Instance()->Display("Choose Texture"))
+					if (ImGui::Button("Select"))
 					{
-						if (ImGuiFileDialog::Instance()->IsOk())
+						nfdchar_t* file_path = NULL;
+						nfdchar_t const* filter_list = "jpg,jpeg,tga,dds,png";
+						nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
+						if (result == NFD_OKAY)
 						{
-							std::wstring texture_path = ConvertToWide(ImGuiFileDialog::Instance()->GetFilePathName());
+							std::wstring texture_path = ConvertToWide(file_path);
 							emitter->particle_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+							free(file_path);
 						}
-						ImGuiFileDialog::Instance()->Close();
 					}
 					ImGui::PopID();
 
@@ -1033,15 +1058,17 @@ namespace adria
 
 					ImGui::PushID(4);
 					if (ImGui::Button("Remove")) decal->albedo_decal_texture = INVALID_TEXTURE_HANDLE;
-					if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
-					if (ImGuiFileDialog::Instance()->Display("Choose Texture"))
+					if (ImGui::Button("Select"))
 					{
-						if (ImGuiFileDialog::Instance()->IsOk())
+						nfdchar_t* file_path = NULL;
+						nfdchar_t const* filter_list = "jpg,jpeg,tga,dds,png";
+						nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
+						if (result == NFD_OKAY)
 						{
-							std::string texture_path = ImGuiFileDialog::Instance()->GetFilePathName();
-							decal->albedo_decal_texture = engine->renderer->GetTextureManager().LoadTexture(ConvertToWide(texture_path));
+							std::wstring texture_path = ConvertToWide(file_path);
+							decal->albedo_decal_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+							free(file_path);
 						}
-						ImGuiFileDialog::Instance()->Close();
 					}
 					ImGui::PopID();
 
@@ -1055,15 +1082,17 @@ namespace adria
 
 					ImGui::PushID(5);
 					if (ImGui::Button("Remove")) decal->normal_decal_texture = INVALID_TEXTURE_HANDLE;
-					if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
-					if (ImGuiFileDialog::Instance()->Display("Choose Texture"))
+					if (ImGui::Button("Select"))
 					{
-						if (ImGuiFileDialog::Instance()->IsOk())
+						nfdchar_t* file_path = NULL;
+						nfdchar_t const* filter_list = "jpg,jpeg,tga,dds,png";
+						nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
+						if (result == NFD_OKAY)
 						{
-							std::string texture_path = ImGuiFileDialog::Instance()->GetFilePathName();
-							decal->normal_decal_texture = engine->renderer->GetTextureManager().LoadTexture(ConvertToWide(texture_path));
+							std::wstring texture_path = ConvertToWide(file_path);
+							decal->normal_decal_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+							free(file_path);
 						}
-						ImGuiFileDialog::Instance()->Close();
 					}
 					ImGui::PopID();
 					ImGui::Checkbox("Modify GBuffer Normals", &decal->modify_gbuffer_normals);
@@ -1073,15 +1102,17 @@ namespace adria
 				if (skybox && ImGui::CollapsingHeader("Skybox"))
 				{
 					ImGui::Checkbox("Active", &skybox->active);
-					if (ImGui::Button("Change Skybox Texture")) ImGuiFileDialog::Instance()->OpenDialog("Choose Skybox Texture", "Choose File", ".hdr,.dds", ".");
-					if (ImGuiFileDialog::Instance()->Display("Choose Skybox Texture"))
+					if (ImGui::Button("Select"))
 					{
-						if (ImGuiFileDialog::Instance()->IsOk())
+						nfdchar_t* file_path = NULL;
+						nfdchar_t const* filter_list = "jpg,jpeg,tga,dds,png";
+						nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
+						if (result == NFD_OKAY)
 						{
-							std::string texture_path = ImGuiFileDialog::Instance()->GetFilePathName();
-							skybox->cubemap_texture = engine->renderer->GetTextureManager().LoadCubemap(ConvertToWide(texture_path));
+							std::wstring texture_path = ConvertToWide(file_path);
+							skybox->cubemap_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+							free(file_path);
 						}
-						ImGuiFileDialog::Instance()->Close();
 					}
 				}
 
@@ -1668,31 +1699,5 @@ namespace adria
 		}
 		ImGui::End();
 #endif
-	}
-
-	void Editor::OpenMaterialFileDialog(Material* material, EMaterialTextureType type)
-	{
-		if (ImGuiFileDialog::Instance()->Display("Choose Texture"))
-		{
-			if (ImGuiFileDialog::Instance()->IsOk())
-			{
-				std::wstring texture_path = ConvertToWide(ImGuiFileDialog::Instance()->GetFilePathName());
-
-				switch (type)
-				{
-				case EMaterialTextureType::eAlbedo:
-					material->albedo_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
-					break;
-				case EMaterialTextureType::eMetallicRoughness:
-					material->metallic_roughness_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
-					break;
-				case EMaterialTextureType::eEmissive:
-					material->emissive_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
-					break;
-				}
-			}
-
-			ImGuiFileDialog::Instance()->Close();
-		}
 	}
 }

@@ -6,7 +6,7 @@ namespace fs = std::filesystem;
 
 namespace adria
 {
-	inline std::string GetPath(std::string const& complete_path)
+	inline std::string GetParentPath(std::string const& complete_path)
 	{
 		fs::path p(complete_path);
 
