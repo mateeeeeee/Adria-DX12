@@ -12,4 +12,6 @@
 #define ADRIA_OPTIMIZE_OFF #pragma optimize("", off)
 #define ADRIA_WARNINGS_OFF #pragma(warning(push, 0))
 #define ADRIA_WARNINGS_ON  #pragma(warning(pop))
-#define ADRIA_DEBUG_BREAK() __debugbreak()
+#define ADRIA_DEBUGBREAK() __debugbreak()
+#define ADRIA_FORCEINLINE __forceinline
+#define ADRIA_UNREACHABLE() __assume(false)
