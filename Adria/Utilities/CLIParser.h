@@ -125,6 +125,7 @@ namespace adria
 					if (found) break;
 				}
 			}
+			LocalFree(argv);
 		}
 
 		void Parse(std::wstring const& cmd_line)
