@@ -281,9 +281,8 @@
     <ClCompile Include="Rendering\PipelineState.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\AABBPass.cpp" />
-    <ClCompile Include="Utilities\CommandLineArgs.cpp">
-      <Filter>Utilities</Filter>
+    <ClCompile Include="Rendering\AABBPass.cpp">
+      <Filter>Rendering\Passes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -482,9 +481,6 @@
     <ClInclude Include="Graphics\RayTracingUtil.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\CommandLineArgs.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\GPUProfiler.h">
       <Filter>Graphics</Filter>
     </ClInclude>
@@ -679,6 +675,9 @@
     </ClInclude>
     <ClInclude Include="Rendering\AABBPass.h">
       <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\CLIParser.h">
+      <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

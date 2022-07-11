@@ -24,7 +24,7 @@ namespace adria
 		bool debug_layer = false;
 		bool gpu_validation = false;
 		bool dred = false;
-		char const* scene_file = "scene.json";
+		std::string scene_file = "scene.json";
 	};
 
 	class Engine
