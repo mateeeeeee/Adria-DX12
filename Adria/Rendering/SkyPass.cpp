@@ -150,7 +150,7 @@ namespace adria
 
 		BufferDesc ib_desc{};
 		ib_desc.bind_flags = EBindFlag::None;
-		ib_desc.format = DXGI_FORMAT_R16_UINT;
+		ib_desc.format = EFormat::R16_UINT;
 		ib_desc.stride = sizeof(uint16);
 		ib_desc.size = sizeof(cube_indices);
 		cube_ib = std::make_unique<Buffer>(gfx, ib_desc, cube_indices);

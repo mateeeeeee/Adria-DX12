@@ -36,7 +36,7 @@ namespace adria
 				RGTextureDesc tiled_desc{};
 				tiled_desc.width = width;
 				tiled_desc.height = height;
-				tiled_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				tiled_desc.format = EFormat::R16G16B16A16_FLOAT;
 				
 				builder.DeclareTexture(RG_RES_NAME(TiledTarget), tiled_desc);
 				builder.DeclareTexture(RG_RES_NAME(TiledDebugTarget), tiled_desc);

@@ -89,7 +89,7 @@ namespace adria
 				RGTextureDesc fxaa_input_desc{};
 				fxaa_input_desc.width = width;
 				fxaa_input_desc.height = height;
-				fxaa_input_desc.format = DXGI_FORMAT_R10G10B10A2_UNORM;
+				fxaa_input_desc.format = EFormat::R10G10B10A2_UNORM;
 				builder.DeclareTexture(fxaa_input, fxaa_input_desc);
 
 				data.hdr_srv = builder.ReadTexture(hdr_src, ReadAccess_PixelShader);

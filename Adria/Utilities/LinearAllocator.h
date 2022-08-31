@@ -3,7 +3,6 @@
 
 namespace adria
 {
-
 	class LinearAllocator
 	{
 	public:
@@ -45,5 +44,4 @@ namespace adria
 		OffsetType const reserve;
 		OffsetType top;
 	};
-
 }

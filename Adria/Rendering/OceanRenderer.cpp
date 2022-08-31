@@ -261,7 +261,7 @@ namespace adria
 				RGTextureDesc ocean_desc{};
 				ocean_desc.width = FFT_RESOLUTION;
 				ocean_desc.height = FFT_RESOLUTION;
-				ocean_desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+				ocean_desc.format = EFormat::R32G32B32A32_FLOAT;
 				builder.DeclareTexture(RG_RES_NAME(OceanNormals), ocean_desc);
 
 				RGResourceName pong_spectrum_texture = !pong_spectrum ? RG_RES_NAME(PongSpectrum) : RG_RES_NAME(PingSpectrum);
@@ -399,7 +399,7 @@ namespace adria
 		TextureDesc ocean_texture_desc{};
 		ocean_texture_desc.width = FFT_RESOLUTION;
 		ocean_texture_desc.height = FFT_RESOLUTION;
-		ocean_texture_desc.format = DXGI_FORMAT_R32_FLOAT;
+		ocean_texture_desc.format = EFormat::R32_FLOAT;
 		ocean_texture_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::UnorderedAccess;
 		ocean_texture_desc.initial_state = EResourceState::UnorderedAccess;
 		initial_spectrum = std::make_unique<Texture>(gfx, ocean_texture_desc);
@@ -416,7 +416,7 @@ namespace adria
 		ping_pong_phase_textures[pong_phase] = std::make_unique<Texture>(gfx, ocean_texture_desc, &data);
 		ping_pong_phase_textures[!pong_phase] = std::make_unique<Texture>(gfx, ocean_texture_desc);
 
-		ocean_texture_desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+		ocean_texture_desc.format = EFormat::R32G32B32A32_FLOAT;
 		ping_pong_spectrum_textures[pong_spectrum] = std::make_unique<Texture>(gfx, ocean_texture_desc);
 		ping_pong_spectrum_textures[!pong_spectrum] = std::make_unique<Texture>(gfx, ocean_texture_desc);
 	}

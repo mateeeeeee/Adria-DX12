@@ -27,7 +27,7 @@ namespace adria
 			[=](HBAOPassData& data, RenderGraphBuilder& builder)
 			{
 				RGTextureDesc render_target_desc{};
-				render_target_desc.format = DXGI_FORMAT_R8_UNORM;
+				render_target_desc.format = EFormat::R8_UNORM;
 				render_target_desc.width = width;
 				render_target_desc.height = height;
 				render_target_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
@@ -93,7 +93,7 @@ namespace adria
 		TextureDesc noise_desc{};
 		noise_desc.width = NOISE_DIM;
 		noise_desc.height = NOISE_DIM;
-		noise_desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+		noise_desc.format = EFormat::R32G32B32A32_FLOAT;
 		noise_desc.initial_state = EResourceState::PixelShaderResource;
 		noise_desc.bind_flags = EBindFlag::ShaderResource;
 

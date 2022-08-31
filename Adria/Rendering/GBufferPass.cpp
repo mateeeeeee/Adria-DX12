@@ -26,7 +26,7 @@ namespace adria
 				RGTextureDesc gbuffer_desc{};
 				gbuffer_desc.width = width;
 				gbuffer_desc.height = height;
-				gbuffer_desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				gbuffer_desc.format = EFormat::R8G8B8A8_UNORM;
 				
 				builder.DeclareTexture(RG_RES_NAME(GBufferNormal), gbuffer_desc);
 				builder.DeclareTexture(RG_RES_NAME(GBufferAlbedo), gbuffer_desc);
@@ -39,7 +39,7 @@ namespace adria
 				RGTextureDesc depth_desc{};
 				depth_desc.width = width;
 				depth_desc.height = height;
-				depth_desc.format = DXGI_FORMAT_R32_TYPELESS;
+				depth_desc.format = EFormat::R32_TYPELESS;
 				depth_desc.clear_value = ClearValue(1.0f, 0);
 				builder.DeclareTexture(RG_RES_NAME(DepthStencil), depth_desc);
 				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), ERGLoadStoreAccessOp::Clear_Preserve);

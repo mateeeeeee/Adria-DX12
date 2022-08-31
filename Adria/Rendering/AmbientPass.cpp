@@ -32,7 +32,7 @@ namespace adria
 			[=](AmbientPassData& data, RenderGraphBuilder& builder)
 			{
 				RGTextureDesc render_target_desc{};
-				render_target_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				render_target_desc.format = EFormat::R16G16B16A16_FLOAT;
 				render_target_desc.width = width;
 				render_target_desc.height = height;
 				render_target_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);

@@ -97,7 +97,7 @@ namespace adria
 			args.reserve(128);
 		}
 
-		CLIArg& AddArg(bool has_value, std::convertible_to<std::string> auto... prefixes)
+		[[nodiscard]] CLIArg& AddArg(bool has_value, std::convertible_to<std::string> auto... prefixes)
 		{
 			args.emplace_back(std::vector<std::string>{prefixes...}, has_value);
 			return args.back();

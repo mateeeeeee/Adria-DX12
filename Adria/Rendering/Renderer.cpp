@@ -293,7 +293,7 @@ namespace adria
 		TextureDesc ldr_desc{};
 		ldr_desc.width = width;
 		ldr_desc.height = height;
-		ldr_desc.format = DXGI_FORMAT_R10G10B10A2_UNORM;
+		ldr_desc.format = EFormat::R10G10B10A2_UNORM;
 		ldr_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
 		ldr_desc.initial_state = EResourceState::RenderTarget;
 		ldr_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
@@ -351,7 +351,7 @@ namespace adria
 		env_desc.height = unfiltered_env_desc.Height;
 		env_desc.array_size = 6;
 		env_desc.mip_levels = 0;
-		env_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		env_desc.format = EFormat::R16G16B16A16_FLOAT;
 		env_desc.bind_flags = EBindFlag::UnorderedAccess;
 		env_desc.initial_state = EResourceState::PixelShaderResource;
 		env_desc.misc_flags = ETextureMiscFlag::TextureCube;
@@ -406,17 +406,17 @@ namespace adria
 				const uint32 num_groups = std::max<uint32>(1, size / 32);
 				const float spmap_roughness = level * delta_roughness;
 
-				D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc{};
-				uavDesc.Format = env_texture->GetDesc().format;
-				uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
-				uavDesc.Texture2DArray.MipSlice = level;
-				uavDesc.Texture2DArray.FirstArraySlice = 0;
-				uavDesc.Texture2DArray.ArraySize = env_texture->GetDesc().array_size;
+				D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
+				uav_desc.Format = ConvertFormat(env_texture->GetDesc().format);
+				uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+				uav_desc.Texture2DArray.MipSlice = level;
+				uav_desc.Texture2DArray.FirstArraySlice = 0;
+				uav_desc.Texture2DArray.ArraySize = env_texture->GetDesc().array_size;
 
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
 
 				device->CreateUnorderedAccessView(env_texture->GetNative(), nullptr,
-					&uavDesc,
+					&uav_desc,
 					descriptor_allocator->GetHandle(descriptor_index));
 
 				cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
@@ -437,7 +437,7 @@ namespace adria
 		irmap_desc.height = 32;
 		irmap_desc.array_size = 6;
 		irmap_desc.mip_levels = 1;
-		irmap_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		irmap_desc.format = EFormat::R16G16B16A16_FLOAT;
 		irmap_desc.bind_flags = EBindFlag::UnorderedAccess;
 		irmap_desc.misc_flags = ETextureMiscFlag::TextureCube;
 		irmap_desc.initial_state = EResourceState::PixelShaderResource;
@@ -457,7 +457,7 @@ namespace adria
 
 			TextureDesc desc = irmap_texture->GetDesc();
 			D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc = {};
-			uav_desc.Format = desc.format;
+			uav_desc.Format = ConvertFormat(desc.format);
 			uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
 			uav_desc.Texture2DArray.MipSlice = 0;
 			uav_desc.Texture2DArray.FirstArraySlice = 0;
@@ -497,7 +497,7 @@ namespace adria
 		brdf_desc.height = 256;
 		brdf_desc.array_size = 1;
 		brdf_desc.mip_levels = 1;
-		brdf_desc.format = DXGI_FORMAT_R16G16_FLOAT;
+		brdf_desc.format = EFormat::R16G16_FLOAT;
 		brdf_desc.bind_flags = EBindFlag::UnorderedAccess;
 		brdf_desc.initial_state = EResourceState::PixelShaderResource;
 		brdf_lut_texture = std::make_unique<Texture>(gfx, brdf_desc);
@@ -507,7 +507,7 @@ namespace adria
 			TextureDesc desc = brdf_lut_texture->GetDesc();
 
 			D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
-			uav_desc.Format = desc.format;
+			uav_desc.Format = ConvertFormat(desc.format);
 			uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
 			uav_desc.Texture2DArray.MipSlice = 0;
 			uav_desc.Texture2DArray.FirstArraySlice = 0;

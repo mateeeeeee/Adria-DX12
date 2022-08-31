@@ -26,7 +26,7 @@ namespace adria
 			geo_desc.Triangles.VertexBuffer.StartAddress = mesh.vertex_buffer->GetGPUAddress() + geo_desc.Triangles.VertexBuffer.StrideInBytes * mesh.base_vertex_location;
 			geo_desc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
 			geo_desc.Triangles.VertexCount = mesh.vertex_count;
-			geo_desc.Triangles.IndexFormat = mesh.index_buffer->GetDesc().format;
+			geo_desc.Triangles.IndexFormat = ConvertFormat(mesh.index_buffer->GetDesc().format);
 			geo_desc.Triangles.IndexBuffer = mesh.index_buffer->GetGPUAddress() + mesh.start_index_location * (mesh.index_buffer->GetDesc().stride);
 			geo_desc.Triangles.IndexCount = mesh.indices_count;
 			geo_desc.Flags = is_transparent ? D3D12_RAYTRACING_GEOMETRY_FLAG_NONE : D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;

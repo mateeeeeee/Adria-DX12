@@ -17,7 +17,7 @@ namespace adria
 		EResourceUsage heap_type = EResourceUsage::Default;
 		ETextureMiscFlag misc_flags = ETextureMiscFlag::None;
 		ClearValue clear_value{};
-		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
+		EFormat format = EFormat::UNKNOWN;
 	};
 	struct RGBufferDesc
 	{
@@ -25,7 +25,7 @@ namespace adria
 		uint32 stride = 0;
 		EResourceUsage resource_usage = EResourceUsage::Default;
 		EBufferMiscFlag misc_flags = EBufferMiscFlag::None;
-		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
+		EFormat format = EFormat::UNKNOWN;
 	};
 
 	static void FillTextureDesc(RGTextureDesc const& rg_tex_desc, TextureDesc& tex_desc)

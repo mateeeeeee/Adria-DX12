@@ -112,7 +112,7 @@ namespace adria
 		ETextureMiscFlag misc_flags = ETextureMiscFlag::None;
 		EResourceState initial_state = EResourceState::PixelShaderResource | EResourceState::NonPixelShaderResource;//D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 		ClearValue clear_value{};
-		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
+		EFormat format = EFormat::UNKNOWN;
 
 		std::strong_ordering operator<=>(TextureDesc const& other) const = default;
 		bool IsCompatible(TextureDesc const& desc) const
@@ -146,7 +146,7 @@ namespace adria
 			allocation_desc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 
 			D3D12_RESOURCE_DESC resource_desc{};
-			resource_desc.Format = desc.format;
+			resource_desc.Format = ConvertFormat(desc.format);
 			resource_desc.Width = desc.width;
 			resource_desc.Height = desc.height;
 			resource_desc.MipLevels = desc.mip_levels;
@@ -198,20 +198,20 @@ namespace adria
 				clear_value.DepthStencil.Stencil = desc.clear_value.depth_stencil.stencil;
 				switch (desc.format)
 				{
-				case DXGI_FORMAT_R16_TYPELESS:
+				case EFormat::R16_TYPELESS:
 					clear_value.Format = DXGI_FORMAT_D16_UNORM;
 					break;
-				case DXGI_FORMAT_R32_TYPELESS:
+				case EFormat::R32_TYPELESS:
 					clear_value.Format = DXGI_FORMAT_D32_FLOAT;
 					break;
-				case DXGI_FORMAT_R24G8_TYPELESS:
+				case EFormat::R24G8_TYPELESS:
 					clear_value.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 					break;
-				case DXGI_FORMAT_R32G8X24_TYPELESS:
+				case EFormat::R32G8X24_TYPELESS:
 					clear_value.Format = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
 					break;
 				default:
-					clear_value.Format = desc.format;
+					clear_value.Format = ConvertFormat(desc.format);
 					break;
 				}
 				clear_value_ptr = &clear_value;
@@ -224,20 +224,20 @@ namespace adria
 				clear_value.Color[3] = desc.clear_value.color.color[3];
 				switch (desc.format)
 				{
-				case DXGI_FORMAT_R16_TYPELESS:
+				case EFormat::R16_TYPELESS:
 					clear_value.Format = DXGI_FORMAT_R16_UNORM;
 					break;
-				case DXGI_FORMAT_R32_TYPELESS:
+				case EFormat::R32_TYPELESS:
 					clear_value.Format = DXGI_FORMAT_R32_FLOAT;
 					break;
-				case DXGI_FORMAT_R24G8_TYPELESS:
+				case EFormat::R24G8_TYPELESS:
 					clear_value.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 					break;
-				case DXGI_FORMAT_R32G8X24_TYPELESS:
+				case EFormat::R32G8X24_TYPELESS:
 					clear_value.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
 					break;
 				default:
-					clear_value.Format = desc.format;
+					clear_value.Format = ConvertFormat(desc.format);
 					break;
 				}
 				clear_value_ptr = &clear_value;
@@ -470,7 +470,7 @@ namespace adria
 
 		[[maybe_unused]] size_t CreateSubresource(ESubresourceType view_type, TextureSubresourceDesc const& view_desc)
 		{
-			DXGI_FORMAT format = GetDesc().format;
+			EFormat format = GetDesc().format;
 			Microsoft::WRL::ComPtr<ID3D12Device> device;
 			resource->GetDevice(IID_PPV_ARGS(device.GetAddressOf()));
 
@@ -483,20 +483,20 @@ namespace adria
 				srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 				switch (format)
 				{
-				case DXGI_FORMAT_R16_TYPELESS:
+				case EFormat::R16_TYPELESS:
 					srv_desc.Format = DXGI_FORMAT_R16_UNORM;
 					break;
-				case DXGI_FORMAT_R32_TYPELESS:
+				case EFormat::R32_TYPELESS:
 					srv_desc.Format = DXGI_FORMAT_R32_FLOAT;
 					break;
-				case DXGI_FORMAT_R24G8_TYPELESS:
+				case EFormat::R24G8_TYPELESS:
 					srv_desc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 					break;
-				case DXGI_FORMAT_R32G8X24_TYPELESS:
+				case EFormat::R32G8X24_TYPELESS:
 					srv_desc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
 					break;
 				default:
-					srv_desc.Format = format;
+					srv_desc.Format = ConvertFormat(format);
 					break;
 				}
 
@@ -584,20 +584,20 @@ namespace adria
 				D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
 				switch (format)
 				{
-				case DXGI_FORMAT_R16_TYPELESS:
+				case EFormat::R16_TYPELESS:
 					uav_desc.Format = DXGI_FORMAT_R16_UNORM;
 					break;
-				case DXGI_FORMAT_R32_TYPELESS:
+				case EFormat::R32_TYPELESS:
 					uav_desc.Format = DXGI_FORMAT_R32_FLOAT;
 					break;
-				case DXGI_FORMAT_R24G8_TYPELESS:
+				case EFormat::R24G8_TYPELESS:
 					uav_desc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 					break;
-				case DXGI_FORMAT_R32G8X24_TYPELESS:
+				case EFormat::R32G8X24_TYPELESS:
 					uav_desc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
 					break;
 				default:
-					uav_desc.Format = format;
+					uav_desc.Format = ConvertFormat(format);
 					break;
 				}
 
@@ -650,20 +650,20 @@ namespace adria
 				D3D12_RENDER_TARGET_VIEW_DESC rtv_desc{};
 				switch (format)
 				{
-				case DXGI_FORMAT_R16_TYPELESS:
+				case EFormat::R16_TYPELESS:
 					rtv_desc.Format = DXGI_FORMAT_R16_UNORM;
 					break;
-				case DXGI_FORMAT_R32_TYPELESS:
+				case EFormat::R32_TYPELESS:
 					rtv_desc.Format = DXGI_FORMAT_R32_FLOAT;
 					break;
-				case DXGI_FORMAT_R24G8_TYPELESS:
+				case EFormat::R24G8_TYPELESS:
 					rtv_desc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 					break;
-				case DXGI_FORMAT_R32G8X24_TYPELESS:
+				case EFormat::R32G8X24_TYPELESS:
 					rtv_desc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
 					break;
 				default:
-					rtv_desc.Format = format;
+					rtv_desc.Format = ConvertFormat(format);
 					break;
 				}
 
@@ -731,20 +731,20 @@ namespace adria
 				D3D12_DEPTH_STENCIL_VIEW_DESC dsv_desc{};
 				switch (format)
 				{
-				case DXGI_FORMAT_R16_TYPELESS:
+				case EFormat::R16_TYPELESS:
 					dsv_desc.Format = DXGI_FORMAT_D16_UNORM;
 					break;
-				case DXGI_FORMAT_R32_TYPELESS:
+				case EFormat::R32_TYPELESS:
 					dsv_desc.Format = DXGI_FORMAT_D32_FLOAT;
 					break;
-				case DXGI_FORMAT_R24G8_TYPELESS:
+				case EFormat::R24G8_TYPELESS:
 					dsv_desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 					break;
-				case DXGI_FORMAT_R32G8X24_TYPELESS:
+				case EFormat::R32G8X24_TYPELESS:
 					dsv_desc.Format = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
 					break;
 				default:
-					dsv_desc.Format = format;
+					dsv_desc.Format = ConvertFormat(format);
 					break;
 				}
 

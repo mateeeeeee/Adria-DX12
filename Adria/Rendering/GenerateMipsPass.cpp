@@ -55,14 +55,14 @@ namespace adria
 					D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle1 = descriptor_allocator->GetHandle(i);
 					D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle1 = descriptor_allocator->GetHandle(i);
 
-					src_srv_desc.Format = tex_desc.format;
+					src_srv_desc.Format = ConvertFormat(tex_desc.format);
 					src_srv_desc.Texture2D.MipLevels = 1;
 					src_srv_desc.Texture2D.MostDetailedMip = top_mip;
 					device->CreateShaderResourceView(texture.GetNative(), &src_srv_desc, cpu_handle1);
 
 					D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle2 = descriptor_allocator->GetHandle(i + 1);
 					D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle2 = descriptor_allocator->GetHandle(i + 1);
-					dst_uav_desc.Format = tex_desc.format;
+					dst_uav_desc.Format = ConvertFormat(tex_desc.format);
 					dst_uav_desc.Texture2D.MipSlice = top_mip + 1;
 					device->CreateUnorderedAccessView(texture.GetNative(), nullptr, &dst_uav_desc, cpu_handle2);
 					//Pass the destination texture pixel size to the shader as constants

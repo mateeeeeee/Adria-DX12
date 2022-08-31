@@ -1014,7 +1014,7 @@ namespace adria
 					if (clear_value.active_member != ClearValue::ActiveMember::None)
 					{
 						ADRIA_ASSERT(clear_value.active_member == ClearValue::ActiveMember::Color && "Invalid Clear Value for Render Target");
-						rtv_desc.clear_value.Format = desc.format;
+						rtv_desc.clear_value.Format = ConvertFormat(desc.format);
 						rtv_desc.clear_value.Color[0] = desc.clear_value.color.color[0];
 						rtv_desc.clear_value.Color[1] = desc.clear_value.color.color[1];
 						rtv_desc.clear_value.Color[2] = desc.clear_value.color.color[2];
@@ -1077,7 +1077,7 @@ namespace adria
 					if (clear_value.active_member != ClearValue::ActiveMember::None)
 					{
 						ADRIA_ASSERT(clear_value.active_member == ClearValue::ActiveMember::DepthStencil && "Invalid Clear Value for Depth Stencil");
-						dsv_desc.clear_value.Format = desc.format;
+						dsv_desc.clear_value.Format = ConvertFormat(desc.format);
 						dsv_desc.clear_value.DepthStencil.Depth = desc.clear_value.depth_stencil.depth;
 						dsv_desc.clear_value.DepthStencil.Stencil = desc.clear_value.depth_stencil.stencil;
 					}
@@ -1170,7 +1170,7 @@ namespace adria
 						if (clear_value.active_member != ClearValue::ActiveMember::None)
 						{
 							ADRIA_ASSERT(clear_value.active_member == ClearValue::ActiveMember::Color && "Invalid Clear Value for Render Target");
-							rtv_desc.clear_value.Format = desc.format;
+							rtv_desc.clear_value.Format = ConvertFormat(desc.format);
 							rtv_desc.clear_value.Color[0] = desc.clear_value.color.color[0];
 							rtv_desc.clear_value.Color[1] = desc.clear_value.color.color[1];
 							rtv_desc.clear_value.Color[2] = desc.clear_value.color.color[2];
@@ -1233,7 +1233,7 @@ namespace adria
 						if (clear_value.active_member != ClearValue::ActiveMember::None)
 						{
 							ADRIA_ASSERT(clear_value.active_member == ClearValue::ActiveMember::DepthStencil && "Invalid Clear Value for Depth Stencil");
-							dsv_desc.clear_value.Format = desc.format;
+							dsv_desc.clear_value.Format = ConvertFormat(desc.format);
 							dsv_desc.clear_value.DepthStencil.Depth = desc.clear_value.depth_stencil.depth;
 							dsv_desc.clear_value.DepthStencil.Stencil = desc.clear_value.depth_stencil.stencil;
 						}

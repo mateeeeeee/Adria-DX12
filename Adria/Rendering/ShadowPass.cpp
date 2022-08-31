@@ -344,7 +344,7 @@ namespace adria
 				RGTextureDesc depth_desc{};
 				depth_desc.width = SHADOW_MAP_SIZE;
 				depth_desc.height = SHADOW_MAP_SIZE;
-				depth_desc.format = DXGI_FORMAT_R32_TYPELESS;
+				depth_desc.format = EFormat::R32_TYPELESS;
 				depth_desc.clear_value = ClearValue(1.0f, 0);
 
 				builder.DeclareTexture(RG_RES_NAME_IDX(ShadowMap, light_id), depth_desc);
@@ -410,7 +410,7 @@ namespace adria
 						depth_cascade_maps_desc.height = SHADOW_CASCADE_MAP_SIZE;
 						depth_cascade_maps_desc.misc_flags = ETextureMiscFlag::None;
 						depth_cascade_maps_desc.array_size = SHADOW_CASCADE_COUNT;
-						depth_cascade_maps_desc.format = DXGI_FORMAT_R32_TYPELESS;
+						depth_cascade_maps_desc.format = EFormat::R32_TYPELESS;
 						depth_cascade_maps_desc.clear_value = ClearValue(1.0f, 0);
 						builder.DeclareTexture(RG_RES_NAME_IDX(ShadowMap, light_id), depth_cascade_maps_desc);
 						builder.DeclareAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id), AllocDesc{ GetCBufferSize<ShadowCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT });
@@ -477,7 +477,7 @@ namespace adria
 						cubemap_desc.height = SHADOW_CUBE_SIZE;
 						cubemap_desc.misc_flags = ETextureMiscFlag::TextureCube;
 						cubemap_desc.array_size = 6;
-						cubemap_desc.format = DXGI_FORMAT_R32_TYPELESS;
+						cubemap_desc.format = EFormat::R32_TYPELESS;
 						cubemap_desc.clear_value = ClearValue(1.0f, 0);
 						builder.DeclareTexture(RG_RES_NAME_IDX(ShadowMap, light_id), cubemap_desc);
 						builder.DeclareAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id), AllocDesc{ GetCBufferSize<ShadowCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT });
@@ -525,7 +525,7 @@ namespace adria
 				RGTextureDesc depth_desc{};
 				depth_desc.width = SHADOW_MAP_SIZE;
 				depth_desc.height = SHADOW_MAP_SIZE;
-				depth_desc.format = DXGI_FORMAT_R32_TYPELESS;
+				depth_desc.format = EFormat::R32_TYPELESS;
 				depth_desc.clear_value = ClearValue(1.0f, 0);
 
 				builder.DeclareTexture(RG_RES_NAME_IDX(ShadowMap, light_id), depth_desc);

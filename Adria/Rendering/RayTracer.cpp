@@ -63,7 +63,7 @@ namespace adria
 		TextureDesc debug_desc{};
 		debug_desc.width = width;
 		debug_desc.height = height;
-		debug_desc.format = DXGI_FORMAT_R8_UNORM;
+		debug_desc.format = EFormat::R8_UNORM;
 		debug_desc.bind_flags = EBindFlag::ShaderResource;
 		debug_desc.initial_state = EResourceState::CopyDest;
 		debug_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
@@ -74,7 +74,7 @@ namespace adria
 		rts_debug_texture = std::make_unique<Texture>(gfx, debug_desc);
 		rts_debug_texture->CreateSubresource_SRV();
 
-		debug_desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		debug_desc.format = EFormat::R8G8B8A8_UNORM;
 		rtr_debug_texture = std::make_unique<Texture>(gfx, debug_desc);
 		rtr_debug_texture->CreateSubresource_SRV();
 #endif
@@ -122,7 +122,7 @@ namespace adria
 		ib_desc.misc_flags = EBufferMiscFlag::IndexBuffer | EBufferMiscFlag::BufferStructured;
 		ib_desc.size = RayTracing::rt_indices.size() * sizeof(uint32);
 		ib_desc.stride = sizeof(uint32);
-		ib_desc.format = DXGI_FORMAT_R32_UINT;
+		ib_desc.format = EFormat::R32_UINT;
 
 		global_vb = std::make_unique<Buffer>(gfx, vb_desc, RayTracing::rt_vertices.data());
 		global_ib = std::make_unique<Buffer>(gfx, ib_desc, RayTracing::rt_indices.data());
@@ -155,7 +155,7 @@ namespace adria
 				RGTextureDesc desc{};
 				desc.width = width;
 				desc.height = height;
-				desc.format = DXGI_FORMAT_R8_UNORM;
+				desc.format = EFormat::R8_UNORM;
 				builder.DeclareTexture(RG_RES_NAME_IDX(RayTracedShadows, light_id), desc);
 
 				data.shadow = builder.WriteTexture(RG_RES_NAME_IDX(RayTracedShadows, light_id));
@@ -243,7 +243,7 @@ namespace adria
 				RGTextureDesc desc{};
 				desc.width = width;
 				desc.height = height;
-				desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				desc.format = EFormat::R8G8B8A8_UNORM;
 				builder.DeclareTexture(RG_RES_NAME(RTR_Output), desc);
 
 				data.output = builder.WriteTexture(RG_RES_NAME(RTR_Output));
@@ -317,7 +317,7 @@ namespace adria
 				RGTextureDesc desc{};
 				desc.width = width;
 				desc.height = height;
-				desc.format = DXGI_FORMAT_R8_UNORM;
+				desc.format = EFormat::R8_UNORM;
 				builder.DeclareTexture(RG_RES_NAME(RTAO_Output), desc);
 
 				data.output = builder.WriteTexture(RG_RES_NAME(RTAO_Output));

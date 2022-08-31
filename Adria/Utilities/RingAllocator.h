@@ -4,7 +4,6 @@
 
 namespace adria
 {
-
 	class RingAllocator
 	{
 	public:

@@ -143,7 +143,7 @@ namespace adria
 	D3D12_RASTERIZER_DESC ConvertRasterizerDesc(RasterizerState);
 	D3D12_DEPTH_STENCIL_DESC ConvertDepthStencilDesc(DepthStencilState);
 	D3D12_BLEND_DESC ConvertBlendDesc(BlendState);
-	inline constexpr D3D_PRIMITIVE_TOPOLOGY ConvertPrimitiveTopology(EPrimitiveTopology topology, uint32_t controlPoints = 0)
+	inline constexpr D3D_PRIMITIVE_TOPOLOGY ConvertPrimitiveTopology(EPrimitiveTopology topology, uint32_t control_points = 0)
 	{
 		switch (topology)
 		{
@@ -158,11 +158,10 @@ namespace adria
 		case EPrimitiveTopology::TriangleStrip:
 			return D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
 		case EPrimitiveTopology::PatchList:
-			if (controlPoints == 0 || controlPoints > 32) return D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
-			else return D3D_PRIMITIVE_TOPOLOGY(D3D_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST + (controlPoints - 1));
+			if (control_points == 0 || control_points > 32) return D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
+			else return D3D_PRIMITIVE_TOPOLOGY(D3D_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST + (control_points - 1));
 		default:
 			return D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
 		}
 	}
-
 }

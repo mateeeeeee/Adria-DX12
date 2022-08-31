@@ -98,7 +98,7 @@ namespace adria
 				.size = indices.size() * sizeof(uint32),
 				.bind_flags = EBindFlag::None,
 				.stride = sizeof(uint32),
-				.format = DXGI_FORMAT_R32_UINT
+				.format = EFormat::R32_UINT
 			};
 
 			Mesh mesh{};
@@ -187,7 +187,7 @@ namespace adria
 				.size = indices.size() * sizeof(uint32),
 				.bind_flags = EBindFlag::None,
 				.stride = sizeof(uint32),
-				.format = DXGI_FORMAT_R32_UINT
+				.format = EFormat::R32_UINT
 			};
 
 			std::shared_ptr<Buffer> vb = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());
@@ -302,7 +302,7 @@ namespace adria
 			.size = indices.size() * sizeof(uint32),
 			.bind_flags = EBindFlag::None,
 			.stride = sizeof(uint32),
-			.format = DXGI_FORMAT_R32_UINT
+			.format = EFormat::R32_UINT
 		};
 
 		std::shared_ptr<Buffer> vb = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());
@@ -378,7 +378,7 @@ namespace adria
 				.size = indices.size() * sizeof(uint16),
 				.bind_flags = EBindFlag::None,
 				.stride = sizeof(uint16),
-				.format = DXGI_FORMAT_R16_UINT };
+				.format = EFormat::R16_UINT };
 
             Mesh mesh{};
             mesh.vertex_buffer = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());

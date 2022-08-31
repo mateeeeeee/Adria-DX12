@@ -113,7 +113,7 @@ namespace adria
 		generate_mips_pass.OnResize(w, h);
 
 		TextureDesc render_target_desc{};
-		render_target_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		render_target_desc.format = EFormat::R16G16B16A16_FLOAT;
 		render_target_desc.width = width;
 		render_target_desc.height = height;
 		render_target_desc.bind_flags = EBindFlag::ShaderResource;
@@ -141,7 +141,7 @@ namespace adria
 		cross_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Cross.dds");
 
 		TextureDesc render_target_desc{};
-		render_target_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		render_target_desc.format = EFormat::R16G16B16A16_FLOAT;
 		render_target_desc.width = width;
 		render_target_desc.height = height;
 		render_target_desc.bind_flags = EBindFlag::ShaderResource;
@@ -191,7 +191,7 @@ namespace adria
 				RGTextureDesc postprocess_desc{};
 				postprocess_desc.width = width;
 				postprocess_desc.height = height;
-				postprocess_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				postprocess_desc.format = EFormat::R16G16B16A16_FLOAT;
 
 				builder.DeclareTexture(RG_RES_NAME(PostprocessMain), postprocess_desc);
 				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(PostprocessMain));
@@ -218,7 +218,7 @@ namespace adria
 				RGTextureDesc velocity_buffer_desc{};
 				velocity_buffer_desc.width = width;
 				velocity_buffer_desc.height = height;
-				velocity_buffer_desc.format = DXGI_FORMAT_R16G16_FLOAT;
+				velocity_buffer_desc.format = EFormat::R16G16_FLOAT;
 
 				builder.SetViewport(width, height);
 				builder.DeclareTexture(RG_RES_NAME(VelocityBuffer), velocity_buffer_desc);
@@ -261,7 +261,7 @@ namespace adria
 				clouds_output_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 				clouds_output_desc.width = width;
 				clouds_output_desc.height = height;
-				clouds_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				clouds_output_desc.format = EFormat::R16G16B16A16_FLOAT;
 
 				builder.DeclareTexture(RG_RES_NAME(CloudsOutput), clouds_output_desc);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
@@ -313,7 +313,7 @@ namespace adria
 				RGTextureDesc ssr_output_desc{};
 				ssr_output_desc.width = width;
 				ssr_output_desc.height = height;
-				ssr_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				ssr_output_desc.format = EFormat::R16G16B16A16_FLOAT;
 
 				builder.DeclareTexture(RG_RES_NAME(SSR_Output), ssr_output_desc);
 				builder.WriteRenderTarget(RG_RES_NAME(SSR_Output), ERGLoadStoreAccessOp::Discard_Preserve);
@@ -365,7 +365,7 @@ namespace adria
 				fog_output_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 				fog_output_desc.width = width;
 				fog_output_desc.height = height;
-				fog_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				fog_output_desc.format = EFormat::R16G16B16A16_FLOAT;
 
 				builder.DeclareTexture(RG_RES_NAME(FogOutput), fog_output_desc);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
@@ -417,7 +417,7 @@ namespace adria
 				bloom_extract_desc.width = width;
 				bloom_extract_desc.height = height;
 				bloom_extract_desc.mip_levels = 5;
-				bloom_extract_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				bloom_extract_desc.format = EFormat::R16G16B16A16_FLOAT;
 
 				builder.DeclareTexture(RG_RES_NAME(BloomExtract), bloom_extract_desc);
 				data.extract = builder.WriteTexture(RG_RES_NAME(BloomExtract));
@@ -463,7 +463,7 @@ namespace adria
 				RGTextureDesc bloom_output_desc{};
 				bloom_output_desc.width = width;
 				bloom_output_desc.height = height;
-				bloom_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				bloom_output_desc.format = EFormat::R16G16B16A16_FLOAT;
 				
 				builder.DeclareTexture(RG_RES_NAME(BloomOutput), bloom_output_desc);
 				data.output = builder.WriteTexture(RG_RES_NAME(BloomOutput));
@@ -508,7 +508,7 @@ namespace adria
 			[=](RenderGraphBuilder& builder)
 			{
 				RGTextureDesc sun_output_desc{};
-				sun_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				sun_output_desc.format = EFormat::R16G16B16A16_FLOAT;
 				sun_output_desc.width = width;
 				sun_output_desc.height = height;
 				sun_output_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
@@ -570,7 +570,7 @@ namespace adria
 			[=](GodRaysPassData& data, RenderGraphBuilder& builder)
 			{
 				RGTextureDesc god_rays_desc{};
-				god_rays_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				god_rays_desc.format = EFormat::R16G16B16A16_FLOAT;
 				god_rays_desc.width = width;
 				god_rays_desc.height = height;
 				god_rays_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
@@ -717,7 +717,7 @@ namespace adria
 				RGTextureDesc dof_output_desc{};
 				dof_output_desc.width = width;
 				dof_output_desc.height = height;
-				dof_output_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				dof_output_desc.format = EFormat::R16G16B16A16_FLOAT;
 				
 				builder.DeclareTexture(RG_RES_NAME(DepthOfFieldOutput), dof_output_desc);
 				builder.WriteRenderTarget(RG_RES_NAME(DepthOfFieldOutput), ERGLoadStoreAccessOp::Discard_Preserve);
@@ -768,7 +768,7 @@ namespace adria
 				RGTextureDesc motion_blur_desc{};
 				motion_blur_desc.width = width;
 				motion_blur_desc.height = height;
-				motion_blur_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				motion_blur_desc.format = EFormat::R16G16B16A16_FLOAT;
 
 				builder.SetViewport(width, height);
 				builder.DeclareTexture(RG_RES_NAME(MotionBlurOutput), motion_blur_desc);
@@ -820,7 +820,7 @@ namespace adria
 				RGTextureDesc history_desc{};
 				history_desc.width = width;
 				history_desc.height = height;
-				history_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				history_desc.format = EFormat::R16G16B16A16_FLOAT;
 
 				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(HistoryBuffer));
 				data.copy_src = builder.ReadCopySrcTexture(last_resource);
@@ -852,7 +852,7 @@ namespace adria
 				RGTextureDesc taa_desc{};
 				taa_desc.width = width;
 				taa_desc.height = height;
-				taa_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				taa_desc.format = EFormat::R16G16B16A16_FLOAT;
 
 				builder.SetViewport(width, height);
 				builder.DeclareTexture(RG_RES_NAME(TAAOutput), taa_desc);

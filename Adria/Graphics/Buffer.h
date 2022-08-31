@@ -11,7 +11,7 @@ namespace adria
 		EBindFlag bind_flags = EBindFlag::None;
 		EBufferMiscFlag misc_flags = EBufferMiscFlag::None;
 		uint32 stride = 0; //structured buffers, (vertex buffers, index buffers, needed for count calculation not for srv as structured buffers)
-		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN; //typed buffers, index buffers
+		EFormat format = EFormat::UNKNOWN; //typed buffers, index buffers
 		std::strong_ordering operator<=>(BufferDesc const& other) const = default;
 	};
 
@@ -31,7 +31,7 @@ namespace adria
 		desc.resource_usage = EResourceUsage::Default;
 		desc.stride = small_indices ? 2 : 4;
 		desc.size = index_count * desc.stride;
-		desc.format = small_indices ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
+		desc.format = small_indices ? EFormat::R16_UINT : EFormat::R32_UINT;
 		return desc;
 	}
 	static BufferDesc ReadBackBufferDesc(uint64 size)
@@ -318,7 +318,7 @@ namespace adria
 		{
 			if (uav_counter) ADRIA_ASSERT(view_type == SubresourceType_UAV);
 
-			DXGI_FORMAT format = desc.format;
+			EFormat format = desc.format;
 			
 			D3D12_CPU_DESCRIPTOR_HANDLE heap_descriptor = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			switch (view_type)
@@ -328,7 +328,7 @@ namespace adria
 				D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
 				srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 				srv_desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-				if (format == DXGI_FORMAT_UNKNOWN)
+				if (format == EFormat::UNKNOWN)
 				{
 					if (HasAllFlags(desc.misc_flags, EBufferMiscFlag::BufferRaw))
 					{
@@ -351,7 +351,7 @@ namespace adria
 				{
 					// This is a Typed Buffer
 					uint32_t stride = GetFormatStride(format);
-					srv_desc.Format = format;
+					srv_desc.Format = ConvertFormat(format);
 					srv_desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
 					srv_desc.Buffer.FirstElement = view_desc.offset / stride;
 					srv_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / stride;
@@ -371,7 +371,7 @@ namespace adria
 				uav_desc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
 				uav_desc.Buffer.FirstElement = 0;
 
-				if (format == DXGI_FORMAT_UNKNOWN)
+				if (format == EFormat::UNKNOWN)
 				{
 					if (HasAllFlags(desc.misc_flags, EBufferMiscFlag::BufferRaw))
 					{
@@ -398,7 +398,7 @@ namespace adria
 				else
 				{
 					uint32 stride = GetFormatStride(format);
-					uav_desc.Format = format;
+					uav_desc.Format = ConvertFormat(format);
 					uav_desc.Buffer.FirstElement = (UINT)view_desc.offset / stride;
 					uav_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / stride;
 				}
@@ -450,7 +450,7 @@ namespace adria
 	{
 		D3D12_INDEX_BUFFER_VIEW ib_view{};
 		ib_view.BufferLocation = index_buffer->GetGPUAddress();
-		ib_view.Format = index_buffer->GetDesc().format;
+		ib_view.Format = ConvertFormat(index_buffer->GetDesc().format);
 		ib_view.SizeInBytes = (UINT)index_buffer->GetDesc().size;
 		cmd_list->IASetIndexBuffer(&ib_view);
 	}

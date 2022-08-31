@@ -116,7 +116,7 @@ namespace adria
 		TextureDesc noise_desc{};
 		noise_desc.width = 1024;
 		noise_desc.height = 1024;
-		noise_desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+		noise_desc.format = EFormat::R32G32B32A32_FLOAT;
 		noise_desc.bind_flags = EBindFlag::ShaderResource;
 		noise_desc.initial_state = EResourceState::CopyDest;
 		random_texture = std::make_unique<Texture>(gfx, noise_desc, &initial_data);
@@ -145,7 +145,7 @@ namespace adria
 		ib_desc.misc_flags = EBufferMiscFlag::IndexBuffer;
 		ib_desc.size = indices.size() * sizeof(uint32);
 		ib_desc.stride = sizeof(uint32);
-		ib_desc.format = DXGI_FORMAT_R32_UINT;
+		ib_desc.format = EFormat::R32_UINT;
 		index_buffer = std::make_unique<Buffer>(gfx, ib_desc, ib_initial_data);
 
 		BufferDesc reset_buffer_desc{};
