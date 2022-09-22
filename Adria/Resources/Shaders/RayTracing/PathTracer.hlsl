@@ -33,11 +33,21 @@ void PT_RayGen()
     float2 offset = float2(NextRand(randSeed), NextRand(randSeed));
     pixel += lerp(-0.5f.xx, 0.5f.xx, offset);
     
+    float2 ncdXY = (pixel / (resolution * 0.5f)) - 1.0f;
+    ncdXY.y *= -1.0f;
+    float4 rayStart = mul(float4(ncdXY, 0.0f, 1.0f), frame_cbuf.inverse_view_projection);
+    float4 rayEnd = mul(float4(ncdXY, 1.0f, 1.0f), frame_cbuf.inverse_view_projection);
+
+    rayStart.xyz /= rayStart.w;
+    rayEnd.xyz /= rayEnd.w;
+    float3 rayDir = normalize(rayEnd.xyz - rayStart.xyz);
+    float rayLength = length(rayEnd.xyz - rayStart.xyz);
+    
     float3 o, d;
     GenerateCameraRay(pixel, o, d);
     RayDesc ray;
-    ray.Origin = o;
-    ray.Direction = d;
+    ray.Origin = rayStart;
+    ray.Direction = rayDir;
     ray.TMin = 0.0f;
     ray.TMax = FLT_MAX;
 
@@ -46,7 +56,6 @@ void PT_RayGen()
     for (int i = 0; i < 1; ++i) //ray_tracing_cbuf.bounce_count
     {
         PT_Payload payload_data;
-        payload_data.is_hit = false;
         TraceRay(rt_scene,
 		 RAY_FLAG_FORCE_OPAQUE,
 		 0xFF, 0, 0, 0, ray, payload_data);
@@ -56,7 +65,7 @@ void PT_RayGen()
             radiance += throughput * env_map.SampleLevel(linear_wrap_sampler, ray.Direction, 0).rgb;
             break;
         }
-        
+
         uint geo_id = payload_data.geo_id;
         uint triangle_id = payload_data.triangle_id;
         float2 barycentrics = payload_data.barycentrics;
@@ -92,12 +101,12 @@ void PT_RayGen()
     }
 
     // Accumulation and output
-    if (ray_tracing_cbuf.accumulated_frames > 1)
-    {
-        radiance += previousColor;
-    }
-    pt_accumulation[DispatchRaysIndex().xy] = float4(radiance, 1);
-    pt_output[DispatchRaysIndex().xy] = float4(radiance, 1.0f) / ray_tracing_cbuf.accumulated_frames;
+    //if (ray_tracing_cbuf.accumulated_frames > 1)
+    //{
+    //    radiance += previousColor;
+    //}
+    pt_accumulation[DispatchRaysIndex().xy] = float4(radiance, 1.0f);
+    pt_output[DispatchRaysIndex().xy] = float4(radiance, 1.0f);// / ray_tracing_cbuf.accumulated_frames;
 }
 
 [shader("miss")]

@@ -16,15 +16,25 @@ static float3 GetPositionVS(float2 texcoord, float depth)
     float4 homogenousLocation = mul(clipSpaceLocation, frame_cbuf.inverse_projection);
     return homogenousLocation.xyz / homogenousLocation.w;
 }
-static void GenerateCameraRay(uint2 index, out float3 origin, out float3 direction)
+static void GenerateCameraRay(float2 pixel, out float3 origin, out float3 direction)
 {
-    float2 xy = index + 0.5;
-    float2 screenPos = xy / frame_cbuf.screen_resolution * 2.0 - 1.0;
-    screenPos.y = -screenPos.y;
-    float4 unprojected = mul(float4(screenPos, 0, 1), frame_cbuf.inverse_view);
-    float3 world = unprojected.xyz / unprojected.w;
-    origin = frame_cbuf.camera_position.xyz;
-    direction = normalize(world - origin);
+    matrix inverse_view = transpose(frame_cbuf.inverse_view);
+    matrix projection = transpose(frame_cbuf.projection);
+    
+    //matrix inverse_view = frame_cbuf.inverse_view;
+    //matrix projection = frame_cbuf.projection;
+    
+    // Set up the ray.
+    origin = inverse_view[3].xyz;
+	// Extract the aspect ratio and fov from the projection matrix.
+    float aspect = projection[1][1] / projection[0][0];
+    float tanHalfFovY = 1.f / projection[1][1];
+
+	// Compute the ray direction.
+    direction = normalize(
+		(pixel.x * inverse_view[0].xyz * tanHalfFovY * aspect) -
+		(pixel.y * inverse_view[1].xyz * tanHalfFovY) +
+		inverse_view[2].xyz);
 }
 
 struct GeoInfo
