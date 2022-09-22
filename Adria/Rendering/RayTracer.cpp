@@ -144,7 +144,7 @@ namespace adria
 		ray_tracing_cbuf_data.frame_count = gfx->FrameIndex();
 		ray_tracing_cbuf_data.rtao_radius = params.ao_radius;
 		ray_tracing_cbuf_data.accumulated_frames = accumulated_frames;
-		ray_tracing_cbuf_data.bounce_count = params.bounce_count;
+		ray_tracing_cbuf_data.bounce_count = params.bounces;
 		ray_tracing_cbuffer.Update(ray_tracing_cbuf_data, gfx->BackbufferIndex());
 	}
 
@@ -395,7 +395,14 @@ namespace adria
 		rg.AddPass<PathTracingPassData>("Path Tracing Pass",
 			[=](PathTracingPassData& data, RGBuilder& builder)
 			{
-				data.output = builder.WriteTexture(RG_RES_NAME(HDR_RenderTarget));
+				RGTextureDesc render_target_desc{};
+				render_target_desc.format = EFormat::R16G16B16A16_FLOAT;
+				render_target_desc.width = width;
+				render_target_desc.height = height;
+				render_target_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
+				builder.DeclareTexture(RG_RES_NAME(PT_RenderTarget), render_target_desc);
+
+				data.output = builder.WriteTexture(RG_RES_NAME(PT_RenderTarget));
 				data.accumulation = builder.WriteTexture(RG_RES_NAME(AccumulationTexture));
 
 				data.vb = builder.ReadBuffer(RG_RES_NAME(BigVertexBuffer));
@@ -413,7 +420,7 @@ namespace adria
 				DynamicAllocation light_allocation = dynamic_allocator->Allocate(GetCBufferSize<LightCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 				light_allocation.Update(light_cbuf_data);
 
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::RayTracedShadows));
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::PathTracing));
 
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRootConstantBufferView(1, light_allocation.gpu_address);

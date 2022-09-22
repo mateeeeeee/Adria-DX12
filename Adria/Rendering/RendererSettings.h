@@ -31,7 +31,7 @@ namespace adria
 		float32 ssr_ray_hit_threshold = 2.00f;
 
 		bool dof = false;
-		float32 dof_near_blur = 000.0f;
+		float32 dof_near_blur = 0.0f;
 		float32 dof_near = 200.0f;
 		float32 dof_far = 400.0f;
 		float32 dof_far_blur = 600.0f;

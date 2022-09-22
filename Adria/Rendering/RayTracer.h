@@ -29,7 +29,7 @@ namespace adria
 	{
 		float32 dt;
 		float32 ao_radius;
-		int32	bounce_count;
+		int32	bounces;
 	};
 
 	enum class ERayTracingFeature : uint8 
@@ -68,6 +68,7 @@ namespace adria
 		void OnResize(uint32 width, uint32 height);
 		void OnSceneInitialized();
 
+		void ResetPathTracer() { accumulated_frames = 0; }
 		void Update(RayTracingSettings const&);
 
 		void AddRayTracedShadowsPass(RenderGraph&, Light const&, size_t);

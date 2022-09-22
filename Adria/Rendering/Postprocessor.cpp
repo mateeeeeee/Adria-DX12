@@ -27,6 +27,7 @@ namespace adria
 
 		AddCopyHDRPass(rg);
 		final_resource = RG_RES_NAME(PostprocessMain);
+
 		for (entt::entity light : lights)
 		{
 			auto const& light_data = lights.get<Light>(light);

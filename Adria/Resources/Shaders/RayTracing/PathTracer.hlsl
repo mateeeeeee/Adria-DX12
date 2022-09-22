@@ -53,7 +53,7 @@ void PT_RayGen()
         
         if (!payload_data.is_hit)
         {
-            radiance += throughput * env_map.SampleLevel(linear_wrap_sampler, WorldRayDirection(), 0).rgb;
+            radiance += throughput * env_map.SampleLevel(linear_wrap_sampler, ray.Direction, 0).rgb;
             break;
         }
         
@@ -83,7 +83,10 @@ void PT_RayGen()
         Texture2D txEmissive = Tex2DArray[geo_info.emissive_idx];
         radiance += throughput * txEmissive.SampleLevel(linear_wrap_sampler, uv, 0).rgb;
         
-        radiance += float3(1, 0, 0);
+        Texture2D txAlbedo = Tex2DArray[geo_info.albedo_idx];
+        radiance += throughput * txAlbedo.SampleLevel(linear_wrap_sampler, uv, 0).rgb;
+        
+        //radiance += float3(1, 0, 0);
         
         Light light = light_cbuf.current_light;
     }
