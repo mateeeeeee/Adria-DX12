@@ -1339,7 +1339,7 @@ namespace adria
 				//reflections
 				{
 					static const char* reflection_types[] = { "None", "SSR", "RTR" };
-					static int current_reflection_type = 0;
+					static int current_reflection_type = (int)renderer_settings.postprocessor.reflections;
 					const char* combo_label = reflection_types[current_reflection_type];
 					if (ImGui::BeginCombo("Reflections", combo_label, 0))
 					{
