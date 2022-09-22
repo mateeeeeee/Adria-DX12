@@ -96,6 +96,7 @@ namespace adria
 		LIB_SoftShadows,
 		LIB_AmbientOcclusion,
 		LIB_Reflections,
+		LIB_PathTracing,
 		EShader_Count
 	};
 
@@ -153,7 +154,8 @@ namespace adria
 		Decals,
 		RayTracedShadows,
 		RayTracedAmbientOcclusion,
-		RayTracedReflections
+		RayTracedReflections,
+		PathTracing
 	};
 
 	enum class EPipelineState : uint8

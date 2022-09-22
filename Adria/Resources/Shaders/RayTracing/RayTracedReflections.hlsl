@@ -4,43 +4,9 @@
 
 Texture2D depth_tx : register(t1);
 TextureCube env_map : register(t2);
-
 RWTexture2D<float4> rtr_output : register(u0);
 
-//move this to globalsrt.hlsli later
-struct GeoInfo
-{
-    uint vertex_offset;
-    uint index_offset;
-    
-    int albedo_idx;
-    int normal_idx;
-    int metallic_roughness_idx;
-    int emissive_idx;
-};
-
-struct Vertex
-{
-    float3 pos;
-    float2 uv;
-    float3 nor;
-    float3 tan;
-    float3 bin;
-};
-
-
-static float3 Interpolate(in float3 x0, in float3 x1, in float3 x2, float2 bary)
-{
-    return x0 * (1.0f - bary.x - bary.y) + bary.x * x1 + bary.y * x2;
-}
-
-static float2 Interpolate(in float2 x0, in float2 x1, in float2 x2, float2 bary)
-{
-    return x0 * (1.0f - bary.x - bary.y) + bary.x * x1 + bary.y * x2;
-}
-
 Texture2D Tex2DArray[] : register(t0, space1);
-
 StructuredBuffer<Vertex> vertices : register(t0, space2);
 StructuredBuffer<uint> indices : register(t1, space2);
 StructuredBuffer<GeoInfo> geo_infos : register(t2, space2);

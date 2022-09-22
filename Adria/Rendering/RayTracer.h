@@ -29,13 +29,15 @@ namespace adria
 	{
 		float32 dt;
 		float32 ao_radius;
+		int32	bounce_count;
 	};
 
 	enum class ERayTracingFeature : uint8 
 	{
 		Shadows,
 		Reflections,
-		AmbientOcclusion
+		AmbientOcclusion,
+		PathTracing
 	};
 
 	class RayTracer
@@ -71,7 +73,7 @@ namespace adria
 		void AddRayTracedShadowsPass(RenderGraph&, Light const&, size_t);
 		void AddRayTracedReflectionsPass(RenderGraph&, D3D12_CPU_DESCRIPTOR_HANDLE);
 		void AddRayTracedAmbientOcclusionPass(RenderGraph&);
-
+		void AddPathTracingPass(RenderGraph&, D3D12_CPU_DESCRIPTOR_HANDLE);
 #ifdef _DEBUG
 		Texture const* GetRTAODebugTexture() const
 		{
@@ -102,9 +104,12 @@ namespace adria
 		RayTracingProgram ray_traced_shadows;
 		RayTracingProgram ray_traced_ambient_occlusion;
 		RayTracingProgram ray_traced_reflections;
+		RayTracingProgram path_tracing;
+
+		std::unique_ptr<Texture> accumulation_texture;
+		int32 accumulated_frames = 1;
 
 		BlurPass blur_pass;
-
 #ifdef _DEBUG
 		std::unique_ptr<Texture> rtao_debug_texture;
 		std::unique_ptr<Texture> rts_debug_texture;

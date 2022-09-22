@@ -164,4 +164,6 @@ struct RayTracingCBuffer
 {
     float rtao_radius;
     int   frame_count;
+    int   accumulated_frames;
+    int   bounce_count;
 };

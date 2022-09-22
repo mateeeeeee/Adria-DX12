@@ -77,6 +77,8 @@ namespace adria
 		bool visualize_tiled = false;
 		int32 visualize_max_lights = 16;
 		bool use_clustered_deferred = false;
+		bool use_path_tracing = false;
+		int32 bounces = 3;
 		bool ibl = false;
 		ESkyType sky_type = ESkyType::Skybox;
 		float32 sky_color[3] = { 0.53f, 0.81f, 0.92f };

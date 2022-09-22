@@ -26,3 +26,32 @@ static void GenerateCameraRay(uint2 index, out float3 origin, out float3 directi
     origin = frame_cbuf.camera_position.xyz;
     direction = normalize(world - origin);
 }
+
+struct GeoInfo
+{
+    uint vertex_offset;
+    uint index_offset;
+    
+    int albedo_idx;
+    int normal_idx;
+    int metallic_roughness_idx;
+    int emissive_idx;
+};
+
+struct Vertex
+{
+    float3 pos;
+    float2 uv;
+    float3 nor;
+    float3 tan;
+    float3 bin;
+};
+
+static float3 Interpolate(in float3 x0, in float3 x1, in float3 x2, float2 bary)
+{
+    return x0 * (1.0f - bary.x - bary.y) + bary.x * x1 + bary.y * x2;
+}
+static float2 Interpolate(in float2 x0, in float2 x1, in float2 x2, float2 bary)
+{
+    return x0 * (1.0f - bary.x - bary.y) + bary.x * x1 + bary.y * x2;
+}

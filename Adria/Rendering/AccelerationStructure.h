@@ -5,12 +5,10 @@
 
 namespace adria
 {
-
 	class AccelerationStructure
 	{
 	public:
-		AccelerationStructure(GraphicsDevice* gfx) : gfx(gfx)
-		{}
+		explicit AccelerationStructure(GraphicsDevice* gfx) : gfx(gfx){}
 
 		void AddInstance(Mesh const& mesh, Transform const& transform, bool is_transparent = false)
 		{

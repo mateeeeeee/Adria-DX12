@@ -204,6 +204,8 @@ namespace adria
 	{
 		float32 rtao_radius;
 		int32 frame_count;
+		int32 accumulated_frames;
+		int32 bounce_count;
 	};
 
 

@@ -336,11 +336,8 @@ namespace adria
 
 		if (gizmo_enabled && gui->IsVisible())
 		{
-
 			if (engine->input.IsKeyDown(EKeyCode::T)) gizmo_op = ImGuizmo::TRANSLATE;
-
 			if (engine->input.IsKeyDown(EKeyCode::R)) gizmo_op = ImGuizmo::ROTATE;
-
 			if (engine->input.IsKeyDown(EKeyCode::E)) gizmo_op = ImGuizmo::SCALE;
 		}
 
@@ -1263,24 +1260,25 @@ namespace adria
 	{
 		ImGui::Begin("Renderer Settings");
 		{
-			if (ImGui::TreeNode("Deferred Settings"))
+			if (ImGui::TreeNode("Render Path Settings"))
 			{
-				static const char* deferred_types[] = { "Regular", "Tiled", "Clustered" };
-				static int current_deferred_type = 0;
-				const char* combo_label = deferred_types[current_deferred_type];
-				if (ImGui::BeginCombo("Deferred Type", combo_label, 0))
+				static const char* render_path_types[] = { "Regular", "Tiled", "Clustered", "Path Tracer" };
+				static int current_render_path_type = 0;
+				const char* combo_label = render_path_types[current_render_path_type];
+				if (ImGui::BeginCombo("Render Path", combo_label, 0))
 				{
-					for (int n = 0; n < IM_ARRAYSIZE(deferred_types); n++)
+					for (int n = 0; n < IM_ARRAYSIZE(render_path_types); n++)
 					{
-						const bool is_selected = (current_deferred_type == n);
-						if (ImGui::Selectable(deferred_types[n], is_selected)) current_deferred_type = n;
+						const bool is_selected = (current_render_path_type == n);
+						if (ImGui::Selectable(render_path_types[n], is_selected)) current_render_path_type = n;
 						if (is_selected) ImGui::SetItemDefaultFocus();
 					}
 					ImGui::EndCombo();
 				}
 
-				renderer_settings.use_tiled_deferred = (current_deferred_type == 1);
-				renderer_settings.use_clustered_deferred = (current_deferred_type == 2);
+				renderer_settings.use_tiled_deferred = (current_render_path_type == 1);
+				renderer_settings.use_clustered_deferred = (current_render_path_type == 2);
+				renderer_settings.use_path_tracing = (current_render_path_type == 3);
 
 				if (renderer_settings.use_tiled_deferred && ImGui::TreeNodeEx("Tiled Deferred", ImGuiTreeNodeFlags_OpenOnDoubleClick))
 				{
@@ -1289,6 +1287,10 @@ namespace adria
 
 					ImGui::TreePop();
 					ImGui::Separator();
+				}
+				if (renderer_settings.use_path_tracing && ImGui::TreeNodeEx("Path Tracing", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+				{
+					ImGui::SliderInt("Bounces", &renderer_settings.bounces, 1, 16);
 				}
 				ImGui::TreePop();
 			}
