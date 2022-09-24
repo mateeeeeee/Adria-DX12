@@ -16,7 +16,7 @@ using namespace DirectX;
 
 namespace adria
 {
-	//heavily based of AMD Cauldron code
+	//heavily based on AMD Cauldron code
 	struct ProfilerState
 	{
 		bool  show_average;
@@ -429,7 +429,8 @@ namespace adria
 
 	void Editor::ParticleSettings()
 	{
-		ImGui::Begin("Particles");
+		if (!window_flags[Flag_Particles]) return;
+		if (ImGui::Begin("Particles", &window_flags[Flag_Particles]))
 		{
 			static EmitterParameters params{};
 			static char NAME_BUFFER[128];
@@ -474,7 +475,8 @@ namespace adria
 
 	void Editor::DecalSettings()
 	{
-		ImGui::Begin("Decals");
+		if (!window_flags[Flag_Decal]) return;
+		if (ImGui::Begin("Decals", &window_flags[Flag_Decal]))
 		{
 			static DecalParameters params{};
 			static char NAME_BUFFER[128];
@@ -538,7 +540,8 @@ namespace adria
 
 	void Editor::AddEntities()
 	{
-		ImGui::Begin("Add Entities");
+		if (!window_flags[Flag_AddEntities]) return;
+		if (ImGui::Begin("Add Entities", &window_flags[Flag_AddEntities]))
 		{
 			//random lights
 			{
@@ -572,7 +575,8 @@ namespace adria
 
 	void Editor::SkySettings()
 	{
-		ImGui::Begin("Sky");
+		if (!window_flags[Flag_Sky]) return;
+		if (ImGui::Begin("Sky", &window_flags[Flag_Sky]))
 		{
 			static int current_sky_type = 0;
 			const char* sky_types[] = { "Skybox", "Uniform Color", "Hosek-Wilkie" };
@@ -633,8 +637,9 @@ namespace adria
 
 	void Editor::ListEntities()
 	{
+		if (!window_flags[Flag_Entities]) return;
 		auto all_entities = engine->reg.view<Tag>();
-		ImGui::Begin("Entities");
+		if (ImGui::Begin("Entities", &window_flags[Flag_Entities]))
 		{
 			std::vector<entt::entity> deleted_entities{};
 			std::function<void(entt::entity, bool)> ShowEntity;
@@ -673,7 +678,8 @@ namespace adria
 
 	void Editor::Properties()
 	{
-		ImGui::Begin("Properties");
+		if (!window_flags[Flag_Entities]) return;
+		if (ImGui::Begin("Properties", &window_flags[Flag_Entities]))
 		{
 			if (selected_entity != entt::null)
 			{
@@ -1115,30 +1121,23 @@ namespace adria
 
 	void Editor::Camera()
 	{
+		if (!window_flags[Flag_Camera]) return;
+		
 		auto& camera = engine->camera_manager.GetActiveCamera();
-
-		static bool is_open = true;
-		if (is_open)
+		if (ImGui::Begin("Camera", &window_flags[Flag_Camera]))
 		{
-			if (!ImGui::Begin("Camera", &is_open))
-			{
-				ImGui::End();
-			}
-			else
-			{
-				float32 pos[3] = { camera.Position().m128_f32[0],camera.Position().m128_f32[1], camera.Position().m128_f32[2] };
-				ImGui::SliderFloat3("Position", pos, 0.0f, 2000.0f);
-				camera.SetPosition(DirectX::XMFLOAT3(pos));
-				float32 near_plane = camera.Near(), far_plane = camera.Far();
-				float32 _fov = camera.Fov(), _ar = camera.AspectRatio();
-				ImGui::SliderFloat("Near Plane", &near_plane, 0.0f, 2.0f);
-				ImGui::SliderFloat("Far Plane", &far_plane, 10.0f, 3000.0f);
-				ImGui::SliderFloat("FOV", &_fov, 0.01f, 1.5707f);
-				camera.SetNearAndFar(near_plane, far_plane);
-				camera.SetFov(_fov);
-				ImGui::End();
-			}
+			float32 pos[3] = { camera.Position().m128_f32[0],camera.Position().m128_f32[1], camera.Position().m128_f32[2] };
+			ImGui::SliderFloat3("Position", pos, 0.0f, 2000.0f);
+			camera.SetPosition(DirectX::XMFLOAT3(pos));
+			float32 near_plane = camera.Near(), far_plane = camera.Far();
+			float32 _fov = camera.Fov(), _ar = camera.AspectRatio();
+			ImGui::SliderFloat("Near Plane", &near_plane, 0.0f, 2.0f);
+			ImGui::SliderFloat("Far Plane", &far_plane, 10.0f, 3000.0f);
+			ImGui::SliderFloat("FOV", &_fov, 0.01f, 1.5707f);
+			camera.SetNearAndFar(near_plane, far_plane);
+			camera.SetFov(_fov);
 		}
+		ImGui::End();
 	}
 
 	void Editor::Scene()
@@ -1234,7 +1233,8 @@ namespace adria
 
 	void Editor::Log()
 	{
-		ImGui::Begin("Log");
+		if (!window_flags[Flag_Log]) return;
+		if(ImGui::Begin("Log", &window_flags[Flag_Log]))
 		{
 			editor_log->Draw("Log");
 		}
@@ -1243,7 +1243,8 @@ namespace adria
 
 	void Editor::RendererSettings()
 	{
-		ImGui::Begin("Renderer Settings");
+		if (!window_flags[Flag_Renderer]) return;
+		if (ImGui::Begin("Renderer Settings", &window_flags[Flag_Renderer]))
 		{
 			if (ImGui::TreeNode("Deferred Settings"))
 			{
@@ -1474,7 +1475,8 @@ namespace adria
 
 	void Editor::Profiling()
 	{
-		if (ImGui::Begin("Profiling"))
+		if (!window_flags[Flag_Profiler]) return;
+		if (ImGui::Begin("Profiling", &window_flags[Flag_Profiler]))
 		{
 			ImGuiIO io = ImGui::GetIO();
 			static bool enable_profiling = false;
@@ -1611,7 +1613,8 @@ namespace adria
 
 	void Editor::ShaderHotReload()
 	{
-		if (ImGui::Begin("Shader Hot Reload"))
+		if (!window_flags[Flag_HotReload]) return;
+		if (ImGui::Begin("Shader Hot Reload", &window_flags[Flag_HotReload]))
 		{
 			if (ImGui::Button("Compile Changed Shaders"))
 			{
@@ -1624,6 +1627,9 @@ namespace adria
 	void Editor::RayTracingDebug()
 	{
 #ifdef _DEBUG
+
+		if (!window_flags[Flag_RTDebug]) return;
+
 		auto device = engine->gfx->GetDevice();
 		auto descriptor_allocator = gui->DescriptorAllocator();
 		ImVec2 v_min = ImGui::GetWindowContentRegionMin();
@@ -1634,7 +1640,7 @@ namespace adria
 		v_max.y += ImGui::GetWindowPos().y;
 		ImVec2 size(v_max.x - v_min.x, v_max.y - v_min.y);
 
-		ImGui::Begin("Ray Tracing Debug");
+		if(ImGui::Begin("Ray Tracing Debug", &window_flags[Flag_RTDebug]))
 		{
 			static const char* rt_types[] = { "Shadows", "Ambient Occlusion", "Reflections" };
 			static int current_rt_type = 0;

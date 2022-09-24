@@ -22,7 +22,6 @@ namespace adria
 		rendergraph.AddPass<void>("GBuffer Pass",
 			[=](RenderGraphBuilder& builder)
 			{
-				//later inside RGTextureDesc, keep width, height, format, clear state and deduce bind flags and initial state from usage
 				RGTextureDesc gbuffer_desc{};
 				gbuffer_desc.width = width;
 				gbuffer_desc.height = height;
@@ -47,7 +46,7 @@ namespace adria
 			},
 			[=](RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
-				SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(gpu_profiler, cmd_list, EProfilerBlock::GBufferPass, profile_pass);
+				//SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(gpu_profiler, cmd_list, EProfilerBlock::GBufferPass, profile_pass);
 
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
