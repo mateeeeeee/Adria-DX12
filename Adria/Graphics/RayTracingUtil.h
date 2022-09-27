@@ -62,7 +62,6 @@ namespace adria
 			return result;
 		}
 
-
 	private:
 		std::vector<ShaderRecord> shader_records;
 		uint32 shader_record_size;
