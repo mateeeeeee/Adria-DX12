@@ -23,15 +23,15 @@ namespace adria
 		OffsetType offset = 0;
 		OffsetType size = 0;
 
-		void Update(void const* data, size_t size)
+		void Update(void const* data, size_t size, size_t offset = 0)
 		{
-			memcpy(cpu_address, data, size);
+			memcpy((uint8*)cpu_address + offset, data, size);
 		}
 
 		template<typename T>
-		void Update(T const& data)
+		void Update(T const& data, size_t offset = 0)
 		{
-			memcpy(cpu_address, &data, sizeof(T));
+			memcpy((uint8*)cpu_address + offset, &data, sizeof(T));
 		}
 	};
 

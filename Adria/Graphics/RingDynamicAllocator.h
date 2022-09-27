@@ -6,10 +6,10 @@
 namespace adria
 {
 
-	class RingUploadBuffer
+	class RingDynamicAllocator
 	{
 	public:
-		RingUploadBuffer(ID3D12Device* device, SIZE_T max_size_in_bytes);
+		RingDynamicAllocator(ID3D12Device* device, SIZE_T max_size_in_bytes);
 
 		DynamicAllocation Allocate(SIZE_T size_in_bytes, SIZE_T alignment);
 

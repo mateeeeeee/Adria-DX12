@@ -134,7 +134,7 @@
     <ClCompile Include="Graphics\LinearDynamicAllocator.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\RingUploadBuffer.cpp">
+    <ClCompile Include="Graphics\RingDynamicAllocator.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\AdriaException.cpp">
@@ -391,7 +391,7 @@
     <ClInclude Include="Graphics\VertexTypes.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\RingUploadBuffer.h">
+    <ClInclude Include="Graphics\RingDynamicAllocator.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\RingOnlineDescriptorAllocator.h">

@@ -33,7 +33,6 @@ namespace adria
 		}
 		OnResize(width, height);
 		CreateStateObjects();
-		CreateShaderTables();
 		ShaderManager::GetLibraryRecompiledEvent().AddMember(&RayTracer::OnLibraryRecompiled, *this);
 	}
 
@@ -200,15 +199,18 @@ namespace adria
 				dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 				device->CopyDescriptorsSimple(1, dst_descriptor, ctx.GetReadWriteTexture(data.shadow), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				cmd_list->SetComputeRootDescriptorTable(5, dst_descriptor);
-				cmd_list->SetPipelineState1(ray_traced_shadows.state_object.Get());
+				cmd_list->SetPipelineState1(ray_traced_shadows.Get());
 
 				D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
-				dispatch_desc.HitGroupTable = ray_traced_shadows.shader_table_hit->GetRangeAndStride();
-				dispatch_desc.MissShaderTable = ray_traced_shadows.shader_table_miss->GetRangeAndStride();
-				dispatch_desc.RayGenerationShaderRecord = ray_traced_shadows.shader_table_raygen->GetRange(static_cast<UINT>(light.soft_rts));
 				dispatch_desc.Width = width;
 				dispatch_desc.Height = height;
 				dispatch_desc.Depth = 1;
+
+				RayTracingShaderTable table(ray_traced_shadows.Get());
+				table.SetRayGenShader("RTS_RayGen_Hard");
+				table.AddMissShader("RTS_Miss", 0);
+				table.AddHitGroup("ShadowAnyHitGroup", 0);
+				table.Commit(*gfx->GetDynamicAllocator(), dispatch_desc);
 
 				cmd_list->DispatchRays(&dispatch_desc);
 
@@ -283,16 +285,19 @@ namespace adria
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 2), ctx.GetReadOnlyBuffer(data.geo), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				cmd_list->SetComputeRootDescriptorTable(6, dst_descriptor);
 
-				cmd_list->SetPipelineState1(ray_traced_reflections.state_object.Get());
+				cmd_list->SetPipelineState1(ray_traced_reflections.Get());
 
 				D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
-				dispatch_desc.HitGroupTable = ray_traced_reflections.shader_table_hit->GetRangeAndStride();
-				dispatch_desc.MissShaderTable = ray_traced_reflections.shader_table_miss->GetRangeAndStride();
-				dispatch_desc.RayGenerationShaderRecord = ray_traced_reflections.shader_table_raygen->GetRange(0);
 				dispatch_desc.Width = width;
 				dispatch_desc.Height = height;
 				dispatch_desc.Depth = 1;
 
+				RayTracingShaderTable table(ray_traced_reflections.Get());
+				table.SetRayGenShader("RTR_RayGen");
+				table.AddMissShader("RTR_Miss", 0);
+				table.AddHitGroup("RTRClosestHitGroupPrimaryRay", 0);
+				table.AddHitGroup("RTRClosestHitGroupReflectionRay", 1);
+				table.Commit(*gfx->GetDynamicAllocator(), dispatch_desc);
 				cmd_list->DispatchRays(&dispatch_desc);
 			}, ERGPassType::Compute, ERGPassFlags::None);
 #ifdef _DEBUG
@@ -345,16 +350,18 @@ namespace adria
 				dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 				device->CopyDescriptorsSimple(1, dst_descriptor, ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				cmd_list->SetComputeRootDescriptorTable(4, dst_descriptor);
-				cmd_list->SetPipelineState1(ray_traced_ambient_occlusion.state_object.Get());
+				cmd_list->SetPipelineState1(ray_traced_ambient_occlusion.Get());
 
 				D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
-				dispatch_desc.HitGroupTable = ray_traced_ambient_occlusion.shader_table_hit->GetRangeAndStride();
-				dispatch_desc.MissShaderTable = ray_traced_ambient_occlusion.shader_table_miss->GetRangeAndStride();
-				dispatch_desc.RayGenerationShaderRecord = ray_traced_ambient_occlusion.shader_table_raygen->GetRange(0);
 				dispatch_desc.Width = width;
 				dispatch_desc.Height = height;
 				dispatch_desc.Depth = 1;
 
+				RayTracingShaderTable table(ray_traced_ambient_occlusion.Get());
+				table.SetRayGenShader("RTAO_RayGen");
+				table.AddMissShader("RTAO_Miss", 0);
+				table.AddHitGroup("RTAOAnyHitGroup", 0);
+				table.Commit(*gfx->GetDynamicAllocator(), dispatch_desc);
 				cmd_list->DispatchRays(&dispatch_desc);
 			}, ERGPassType::Compute, ERGPassFlags::None);
 #ifdef _DEBUG
@@ -484,7 +491,7 @@ namespace adria
 			anyhit_group.HitGroupExport = L"ShadowAnyHitGroup";
 			rt_shadows_state_object_builder.AddSubObject(anyhit_group);
 
-			ray_traced_shadows.state_object = rt_shadows_state_object_builder.CreateStateObject(device);
+			ray_traced_shadows = rt_shadows_state_object_builder.CreateStateObject(device);
 		}
 
 		StateObjectBuilder rtao_state_object_builder(5);
@@ -516,7 +523,7 @@ namespace adria
 			anyhit_group.HitGroupExport = L"RTAOAnyHitGroup";
 			rtao_state_object_builder.AddSubObject(anyhit_group);
 
-			ray_traced_ambient_occlusion.state_object = rtao_state_object_builder.CreateStateObject(device);
+			ray_traced_ambient_occlusion = rtao_state_object_builder.CreateStateObject(device);
 		}
 
 		StateObjectBuilder rtr_state_object_builder(6);
@@ -552,72 +559,12 @@ namespace adria
 			closesthit_group.HitGroupExport = L"RTRClosestHitGroupReflectionRay";
 			rtr_state_object_builder.AddSubObject(closesthit_group);
 
-			ray_traced_reflections.state_object = rtr_state_object_builder.CreateStateObject(device);
-		}
-	}
-	void RayTracer::CreateShaderTables()
-	{
-		ID3D12Device5* device = gfx->GetDevice();
-		{
-			Microsoft::WRL::ComPtr<ID3D12StateObjectProperties> pso_info = nullptr;
-			BREAK_IF_FAILED(ray_traced_shadows.state_object->QueryInterface(IID_PPV_ARGS(&pso_info)));
-
-			void const* rts_ray_gen_hard_id = pso_info->GetShaderIdentifier(L"RTS_RayGen_Hard");
-			void const* rts_ray_gen_soft_id = pso_info->GetShaderIdentifier(L"RTS_RayGen_Soft");
-			void const* rts_anyhit_id = pso_info->GetShaderIdentifier(L"ShadowAnyHitGroup");
-			void const* rts_miss_id = pso_info->GetShaderIdentifier(L"RTS_Miss");
-
-			ray_traced_shadows.shader_table_raygen = std::make_unique<ShaderTable>(device, 2);
-			ray_traced_shadows.shader_table_raygen->EmplaceShaderRecord(rts_ray_gen_hard_id);
-			ray_traced_shadows.shader_table_raygen->EmplaceShaderRecord(rts_ray_gen_soft_id);
-
-			ray_traced_shadows.shader_table_hit = std::make_unique<ShaderTable>(device, 1);
-			ray_traced_shadows.shader_table_hit->EmplaceShaderRecord(rts_anyhit_id);
-
-			ray_traced_shadows.shader_table_miss = std::make_unique<ShaderTable>(device, 1);
-			ray_traced_shadows.shader_table_miss->EmplaceShaderRecord(rts_miss_id);
-		}
-		{
-			Microsoft::WRL::ComPtr<ID3D12StateObjectProperties> pso_info = nullptr;
-			BREAK_IF_FAILED(ray_traced_ambient_occlusion.state_object->QueryInterface(IID_PPV_ARGS(&pso_info)));
-
-			void const* rtao_ray_gen_id = pso_info->GetShaderIdentifier(L"RTAO_RayGen");
-			void const* rtao_anyhit_id = pso_info->GetShaderIdentifier(L"RTAOAnyHitGroup");
-			void const* rtao_miss_id = pso_info->GetShaderIdentifier(L"RTAO_Miss");
-
-			ray_traced_ambient_occlusion.shader_table_raygen = std::make_unique<ShaderTable>(device, 1);
-			ray_traced_ambient_occlusion.shader_table_raygen->EmplaceShaderRecord(rtao_ray_gen_id);
-
-			ray_traced_ambient_occlusion.shader_table_hit = std::make_unique<ShaderTable>(device, 1);
-			ray_traced_ambient_occlusion.shader_table_hit->EmplaceShaderRecord(rtao_anyhit_id);
-
-			ray_traced_ambient_occlusion.shader_table_miss = std::make_unique<ShaderTable>(device, 1);
-			ray_traced_ambient_occlusion.shader_table_miss->EmplaceShaderRecord(rtao_miss_id);
-		}
-		{
-			Microsoft::WRL::ComPtr<ID3D12StateObjectProperties> pso_info = nullptr;
-			BREAK_IF_FAILED(ray_traced_reflections.state_object->QueryInterface(IID_PPV_ARGS(&pso_info)));
-
-			void const* rtr_ray_gen_id = pso_info->GetShaderIdentifier(L"RTR_RayGen");
-			void const* rtr_closesthit_primary_ray_id = pso_info->GetShaderIdentifier(L"RTRClosestHitGroupPrimaryRay");
-			void const* rtr_closesthit_reflection_ray_id = pso_info->GetShaderIdentifier(L"RTRClosestHitGroupReflectionRay");
-			void const* rtr_miss_id = pso_info->GetShaderIdentifier(L"RTR_Miss");
-
-			ray_traced_reflections.shader_table_raygen = std::make_unique<ShaderTable>(device, 1);
-			ray_traced_reflections.shader_table_raygen->EmplaceShaderRecord(rtr_ray_gen_id);
-
-			ray_traced_reflections.shader_table_hit = std::make_unique<ShaderTable>(device, 2);
-			ray_traced_reflections.shader_table_hit->EmplaceShaderRecord(rtr_closesthit_primary_ray_id);
-			ray_traced_reflections.shader_table_hit->EmplaceShaderRecord(rtr_closesthit_reflection_ray_id);
-
-			ray_traced_reflections.shader_table_miss = std::make_unique<ShaderTable>(device, 1);
-			ray_traced_reflections.shader_table_miss->EmplaceShaderRecord(rtr_miss_id);
+			ray_traced_reflections = rtr_state_object_builder.CreateStateObject(device);
 		}
 	}
 	void RayTracer::OnLibraryRecompiled(EShader shader)
 	{
 		CreateStateObjects();
-		CreateShaderTables();
 	}
 
 }

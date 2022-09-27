@@ -1,10 +1,10 @@
-#include "RingUploadBuffer.h"
+#include "RingDynamicAllocator.h"
 
 
 
 namespace adria
 {
-	RingUploadBuffer::RingUploadBuffer(ID3D12Device* device, SIZE_T max_size_in_bytes)
+	RingDynamicAllocator::RingDynamicAllocator(ID3D12Device* device, SIZE_T max_size_in_bytes)
 		: ring_allocator(max_size_in_bytes)
 	{
 		auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
@@ -21,7 +21,7 @@ namespace adria
 		BREAK_IF_FAILED(buffer->Map(0, &read_range, reinterpret_cast<void**>(&cpu_address)));
 		gpu_address = buffer->GetGPUVirtualAddress();
 	}
-	DynamicAllocation RingUploadBuffer::Allocate(SIZE_T size_in_bytes, SIZE_T alignment)
+	DynamicAllocation RingDynamicAllocator::Allocate(SIZE_T size_in_bytes, SIZE_T alignment)
 	{
 
 		OffsetType offset = INVALID_OFFSET;
@@ -46,12 +46,12 @@ namespace adria
 			return DynamicAllocation{};
 		}
 	}
-	void RingUploadBuffer::FinishCurrentFrame(uint64 frame)
+	void RingDynamicAllocator::FinishCurrentFrame(uint64 frame)
 	{
 		std::lock_guard<std::mutex> guard(alloc_mutex);
 		ring_allocator.FinishCurrentFrame(frame);
 	}
-	void RingUploadBuffer::ReleaseCompletedFrames(uint64 completed_frame)
+	void RingDynamicAllocator::ReleaseCompletedFrames(uint64 completed_frame)
 	{
 		std::lock_guard<std::mutex> guard(alloc_mutex);
 		ring_allocator.ReleaseCompletedFrames(completed_frame);
