@@ -18,10 +18,6 @@ namespace adria
 			using ShaderIdentifier = uint8[D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES];
 
 			ShaderRecord() = default;
-			explicit ShaderRecord(void const* _shader_id, void* _local_root_args = nullptr, uint32 _local_root_args_size = 0)
-			{
-				Init(_shader_id, _local_root_args, _local_root_args_size);
-			}
 			void Init(void const* _shader_id, void* _local_root_args = nullptr, uint32 _local_root_args_size = 0)
 			{
 				local_root_args_size = _local_root_args_size;
@@ -71,11 +67,11 @@ namespace adria
 
 		void Commit(LinearDynamicAllocator& allocator, D3D12_DISPATCH_RAYS_DESC& desc)
 		{
-			FillDispatchDescImpl(allocator, desc);
+			CommitImpl(allocator, desc);
 		}
 		void Commit(RingDynamicAllocator& allocator, D3D12_DISPATCH_RAYS_DESC& desc)
 		{
-			FillDispatchDescImpl(allocator, desc);
+			CommitImpl(allocator, desc);
 		}
 
 	private:
@@ -91,7 +87,7 @@ namespace adria
 	private:
 
 		template<typename TAllocator>
-		void FillDispatchDescImpl(TAllocator& allocator, D3D12_DISPATCH_RAYS_DESC& desc)
+		void CommitImpl(TAllocator& allocator, D3D12_DISPATCH_RAYS_DESC& desc)
 		{
 			uint32 total_size = 0;
 			uint32 rg_section = ray_gen_record_size;
@@ -104,28 +100,27 @@ namespace adria
 
 			DynamicAllocation allocation = allocator.Allocate(total_size, D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT);
 
-			uint8* pStart = (uint8*)allocation.cpu_address;
-			uint8* pData = pStart;
+			uint8* p_start = (uint8*)allocation.cpu_address;
+			uint8* p_data = p_start;
 
-			memcpy(pData, ray_gen_record.shader_id, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
-			memcpy(pData + D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES, ray_gen_record.local_root_args.get(), ray_gen_record.local_root_args_size);
-			pData += ray_gen_record_size;
-			pData = pStart + rg_section_aligned;
+			memcpy(p_data, ray_gen_record.shader_id, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+			memcpy(p_data + D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES, ray_gen_record.local_root_args.get(), ray_gen_record.local_root_args_size);
+			p_data += ray_gen_record_size;
+			p_data = p_start + rg_section_aligned;
 
 			for (auto const& r : miss_shader_records)
 			{
-				memcpy(pData, r.shader_id, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
-				memcpy(pData + D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES, r.local_root_args.get(), r.local_root_args_size);
-				pData += miss_shader_record_size;
+				memcpy(p_data, r.shader_id, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+				memcpy(p_data + D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES, r.local_root_args.get(), r.local_root_args_size);
+				p_data += miss_shader_record_size;
 			}
-			pData = pStart + rg_section_aligned + miss_section_aligned;
+			p_data = p_start + rg_section_aligned + miss_section_aligned;
 
-			// Hit
 			for (auto const& r : hit_group_records)
 			{
-				memcpy(pData, r.shader_id, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
-				memcpy(pData + D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES, r.local_root_args.get(), r.local_root_args_size);
-				pData += hit_group_record_size;
+				memcpy(p_data, r.shader_id, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+				memcpy(p_data + D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES, r.local_root_args.get(), r.local_root_args_size);
+				p_data += hit_group_record_size;
 			}
 
 			desc.RayGenerationShaderRecord.StartAddress = allocation.gpu_address;
