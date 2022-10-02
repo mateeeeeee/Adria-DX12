@@ -26,7 +26,7 @@ namespace adria
 		float32   hbao_radius = 2.0f;
 		float32   rtao_radius = 2.0f;
 
-		EReflections reflections = EReflections::None;
+		EReflections reflections = EReflections::SSR;
 		float32 ssr_ray_step = 1.60f;
 		float32 ssr_ray_hit_threshold = 2.00f;
 
@@ -68,7 +68,7 @@ namespace adria
 		bool gui_visible = false;
 		//user settings
 		float32 blur_sigma = 6.0f;
-		float32 ambient_color[3] = { 60.0f / 255.0f, 60.0f / 255.0f, 60.0f / 255.0f };
+		float32 ambient_color[3] = { 6.0f / 255.0f, 6.0f / 255.0f, 6.0f / 255.0f };
 		float32 wind_direction[2] = { 10.0f, 10.0f };
 		float32 shadow_softness = 1.0f;
 		bool shadow_transparent = false;

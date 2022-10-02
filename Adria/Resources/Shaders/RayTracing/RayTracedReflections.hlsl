@@ -93,7 +93,7 @@ void RTR_ClosestHitPrimaryRay(inout RTR_Payload payload_data, in HitAttributes a
 		 RAY_FLAG_FORCE_OPAQUE,
 		 0xFF, 1, 0, 0, reflection_ray, payload_data);
     
-    payload_data.reflectivity = roughness_metallic.y * (1.0f - roughness_metallic.x) * (pos.y < 2.0f);
+    payload_data.reflectivity = roughness_metallic.y * (1.0f - roughness_metallic.x);
 }
 
 [shader("closesthit")]
@@ -116,6 +116,6 @@ void RTR_ClosestHitReflectionRay(inout RTR_Payload payload_data, in HitAttribute
     
     float2 uv = Interpolate(v0.uv, v1.uv, v2.uv, attribs.barycentrics); uv.y = 1.0f - uv.y;
     Texture2D txAlbedo = Tex2DArray[geo_info.albedo_idx];
-    float3 albedo = txAlbedo.SampleLevel(linear_wrap_sampler, uv, 0).rgb;
+    float3 albedo = txAlbedo.SampleLevel(linear_wrap_sampler, uv, 2).rgb;
     payload_data.reflection_color = albedo;
 }

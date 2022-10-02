@@ -16,7 +16,7 @@ using namespace DirectX;
 
 namespace adria
 {
-	//heavily based of AMD Cauldron code
+	//heavily based on AMD Cauldron code
 	struct ProfilerState
 	{
 		bool  show_average;
@@ -233,114 +233,84 @@ namespace adria
 
 	void Editor::SetStyle()
 	{
-		constexpr auto ColorFromBytes = [](uint8_t r, uint8_t g, uint8_t b)
-		{
-			return ImVec4((float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f, 1.0f);
-		};
+		ImGuiStyle& style = ImGui::GetStyle();
 
-		auto& style = ImGui::GetStyle();
-		ImVec4* colors = style.Colors;
-
-		const ImVec4 bgColor = ColorFromBytes(37, 37, 38);
-		const ImVec4 lightBgColor = ColorFromBytes(82, 82, 85);
-		const ImVec4 veryLightBgColor = ColorFromBytes(90, 90, 95);
-
-		const ImVec4 panelColor = ColorFromBytes(51, 51, 55);
-		const ImVec4 panelHoverColor = ColorFromBytes(29, 151, 236);
-		const ImVec4 panelActiveColor = ColorFromBytes(0, 119, 200);
-
-		const ImVec4 textColor = ColorFromBytes(255, 255, 255);
-		const ImVec4 textDisabledColor = ColorFromBytes(151, 151, 151);
-		const ImVec4 borderColor = ColorFromBytes(78, 78, 78);
-
-		colors[ImGuiCol_Text] = textColor;
-		colors[ImGuiCol_TextDisabled] = textDisabledColor;
-		colors[ImGuiCol_TextSelectedBg] = panelActiveColor;
-		colors[ImGuiCol_WindowBg] = bgColor;
-		colors[ImGuiCol_ChildBg] = bgColor;
-		colors[ImGuiCol_PopupBg] = bgColor;
-		colors[ImGuiCol_Border] = borderColor;
-		colors[ImGuiCol_BorderShadow] = borderColor;
-		colors[ImGuiCol_FrameBg] = panelColor;
-		colors[ImGuiCol_FrameBgHovered] = panelHoverColor;
-		colors[ImGuiCol_FrameBgActive] = panelActiveColor;
-		colors[ImGuiCol_TitleBg] = bgColor;
-		colors[ImGuiCol_TitleBgActive] = bgColor;
-		colors[ImGuiCol_TitleBgCollapsed] = bgColor;
-		colors[ImGuiCol_MenuBarBg] = panelColor;
-		colors[ImGuiCol_ScrollbarBg] = panelColor;
-		colors[ImGuiCol_ScrollbarGrab] = lightBgColor;
-		colors[ImGuiCol_ScrollbarGrabHovered] = veryLightBgColor;
-		colors[ImGuiCol_ScrollbarGrabActive] = veryLightBgColor;
-		colors[ImGuiCol_CheckMark] = panelActiveColor;
-		colors[ImGuiCol_SliderGrab] = panelHoverColor;
-		colors[ImGuiCol_SliderGrabActive] = panelActiveColor;
-		colors[ImGuiCol_Button] = panelColor;
-		colors[ImGuiCol_ButtonHovered] = panelHoverColor;
-		colors[ImGuiCol_ButtonActive] = panelHoverColor;
-		colors[ImGuiCol_Header] = panelColor;
-		colors[ImGuiCol_HeaderHovered] = panelHoverColor;
-		colors[ImGuiCol_HeaderActive] = panelActiveColor;
-		colors[ImGuiCol_Separator] = borderColor;
-		colors[ImGuiCol_SeparatorHovered] = borderColor;
-		colors[ImGuiCol_SeparatorActive] = borderColor;
-		colors[ImGuiCol_ResizeGrip] = bgColor;
-		colors[ImGuiCol_ResizeGripHovered] = panelColor;
-		colors[ImGuiCol_ResizeGripActive] = lightBgColor;
-		colors[ImGuiCol_PlotLines] = panelActiveColor;
-		colors[ImGuiCol_PlotLinesHovered] = panelHoverColor;
-		colors[ImGuiCol_PlotHistogram] = panelActiveColor;
-		colors[ImGuiCol_PlotHistogramHovered] = panelHoverColor;
-		colors[ImGuiCol_DragDropTarget] = bgColor;
-		colors[ImGuiCol_NavHighlight] = bgColor;
-		colors[ImGuiCol_DockingPreview] = panelActiveColor;
-		colors[ImGuiCol_Tab] = bgColor;
-		colors[ImGuiCol_TabActive] = panelActiveColor;
-		colors[ImGuiCol_TabUnfocused] = bgColor;
-		colors[ImGuiCol_TabUnfocusedActive] = panelActiveColor;
-		colors[ImGuiCol_TabHovered] = panelHoverColor;
-
-		style.WindowRounding = 0.0f;
-		style.ChildRounding = 0.0f;
 		style.FrameRounding = 0.0f;
-		style.GrabRounding = 0.0f;
-		style.PopupRounding = 0.0f;
-		style.ScrollbarRounding = 0.0f;
-		style.TabRounding = 0.0f;
+		style.GrabRounding = 1.0f;
+		style.WindowRounding = 0.0f;
+		style.IndentSpacing = 10.0f;
+		style.ScrollbarSize = 16.0f;
+		style.WindowPadding = ImVec2(5, 5);
+		style.FramePadding = ImVec2(2, 2);
 
-#ifdef IMGUI_HAS_DOCK 
-		style.TabBorderSize = true;
-		style.TabRounding = 3;
-
-		colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.38f, 0.38f, 0.38f, 1.00f);
-		colors[ImGuiCol_Tab] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
-		colors[ImGuiCol_TabHovered] = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
-		colors[ImGuiCol_TabActive] = ImVec4(0.33f, 0.33f, 0.33f, 1.00f);
-		colors[ImGuiCol_TabUnfocused] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
-		colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.33f, 0.33f, 0.33f, 1.00f);
-		colors[ImGuiCol_DockingPreview] = ImVec4(0.85f, 0.85f, 0.85f, 0.28f);
-
-		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
-			style.WindowRounding = 0.0f;
-			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-		}
-#endif
+		ImVec4* colors = ImGui::GetStyle().Colors;
+		colors[ImGuiCol_Text] = ImVec4(0.95f, 0.95f, 0.95f, 1.00f);
+		colors[ImGuiCol_TextDisabled] = ImVec4(0.36f, 0.42f, 0.47f, 1.00f);
+		colors[ImGuiCol_WindowBg] = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
+		colors[ImGuiCol_ChildBg] = ImVec4(0.11f, 0.11f, 0.11f, 1.00f);
+		colors[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.08f, 0.94f);
+		colors[ImGuiCol_Border] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
+		colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+		colors[ImGuiCol_FrameBg] = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
+		colors[ImGuiCol_FrameBgHovered] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+		colors[ImGuiCol_FrameBgActive] = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
+		colors[ImGuiCol_TitleBg] = ImVec4(0.07f, 0.07f, 0.07f, 1.00f);
+		colors[ImGuiCol_TitleBgActive] = ImVec4(0.04f, 0.04f, 0.04f, 1.00f);
+		colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 0.36f);
+		colors[ImGuiCol_MenuBarBg] = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
+		colors[ImGuiCol_ScrollbarBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.39f);
+		colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.27f, 0.27f, 0.27f, 1.00f);
+		colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.33f, 0.33f, 0.33f, 1.00f);
+		colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+		colors[ImGuiCol_CheckMark] = ImVec4(0.14f, 0.71f, 0.83f, 0.95f);
+		colors[ImGuiCol_SliderGrab] = ImVec4(0.26f, 0.67f, 0.82f, 0.83f);
+		colors[ImGuiCol_SliderGrabActive] = ImVec4(0.42f, 0.80f, 0.96f, 1.00f);
+		colors[ImGuiCol_Button] = ImVec4(0.04f, 0.04f, 0.04f, 1.00f);
+		colors[ImGuiCol_ButtonHovered] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+		colors[ImGuiCol_ButtonActive] = ImVec4(0.37f, 0.37f, 0.37f, 1.00f);
+		colors[ImGuiCol_Header] = ImVec4(0.17f, 0.17f, 0.17f, 1.00f);
+		colors[ImGuiCol_HeaderHovered] = ImVec4(0.35f, 0.35f, 0.35f, 0.58f);
+		colors[ImGuiCol_HeaderActive] = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
+		colors[ImGuiCol_Separator] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
+		colors[ImGuiCol_SeparatorHovered] = ImVec4(0.10f, 0.40f, 0.75f, 0.78f);
+		colors[ImGuiCol_SeparatorActive] = ImVec4(0.10f, 0.40f, 0.75f, 1.00f);
+		colors[ImGuiCol_ResizeGrip] = ImVec4(1.00f, 1.00f, 1.00f, 0.23f);
+		colors[ImGuiCol_ResizeGripHovered] = ImVec4(1.00f, 1.00f, 1.00f, 0.67f);
+		colors[ImGuiCol_ResizeGripActive] = ImVec4(1.00f, 1.00f, 1.00f, 0.95f);
+		colors[ImGuiCol_Tab] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
+		colors[ImGuiCol_TabHovered] = ImVec4(0.37f, 0.37f, 0.37f, 0.80f);
+		colors[ImGuiCol_TabActive] = ImVec4(0.22f, 0.22f, 0.22f, 1.00f);
+		colors[ImGuiCol_TabUnfocused] = ImVec4(0.11f, 0.15f, 0.17f, 1.00f);
+		colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.11f, 0.15f, 0.17f, 1.00f);
+		colors[ImGuiCol_DockingPreview] = ImVec4(0.26f, 0.59f, 0.98f, 0.70f);
+		colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+		colors[ImGuiCol_PlotLines] = ImVec4(0.73f, 0.29f, 0.29f, 1.00f);
+		colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
+		colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
+		colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
+		colors[ImGuiCol_TableHeaderBg] = ImVec4(0.19f, 0.19f, 0.20f, 1.00f);
+		colors[ImGuiCol_TableBorderStrong] = ImVec4(0.31f, 0.31f, 0.35f, 1.00f);
+		colors[ImGuiCol_TableBorderLight] = ImVec4(0.23f, 0.23f, 0.25f, 1.00f);
+		colors[ImGuiCol_TableRowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+		colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
+		colors[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
+		colors[ImGuiCol_DragDropTarget] = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
+		colors[ImGuiCol_NavHighlight] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+		colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
+		colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
+		colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 	}
 
 	void Editor::HandleInput()
 	{
 		if (scene_focused && engine->input.IsKeyDown(EKeyCode::I)) gui->ToggleVisibility();
-
 		if (scene_focused && engine->input.IsKeyDown(EKeyCode::G)) gizmo_enabled = !gizmo_enabled;
-
 		if (gizmo_enabled && gui->IsVisible())
 		{
 			if (engine->input.IsKeyDown(EKeyCode::T)) gizmo_op = ImGuizmo::TRANSLATE;
 			if (engine->input.IsKeyDown(EKeyCode::R)) gizmo_op = ImGuizmo::ROTATE;
 			if (engine->input.IsKeyDown(EKeyCode::E)) gizmo_op = ImGuizmo::SCALE;
 		}
-
 		engine->camera_manager.ShouldUpdate(scene_focused);
 	}
 
@@ -371,6 +341,23 @@ namespace adria
 				}
 				ImGui::EndMenu();
 			}
+			if (ImGui::BeginMenu("Windows"))
+			{
+				if (ImGui::MenuItem("Profiler", 0, window_flags[Flag_Profiler]))			 window_flags[Flag_Profiler] = !window_flags[Flag_Profiler];
+				if (ImGui::MenuItem("Log", 0, window_flags[Flag_Log]))						 window_flags[Flag_Log] = !window_flags[Flag_Log];
+				if (ImGui::MenuItem("Camera", 0, window_flags[Flag_Camera]))				 window_flags[Flag_Camera] = !window_flags[Flag_Camera];
+				if (ImGui::MenuItem("Entities", 0, window_flags[Flag_Entities]))			 window_flags[Flag_Entities] = !window_flags[Flag_Entities];
+				if (ImGui::MenuItem("Hot Reload", 0, window_flags[Flag_HotReload]))			 window_flags[Flag_HotReload] = !window_flags[Flag_HotReload];
+				if (ImGui::MenuItem("Renderer Settings", 0, window_flags[Flag_Renderer]))	 window_flags[Flag_Renderer] = !window_flags[Flag_Renderer];
+				if (ImGui::MenuItem("Ray Tracing Debug", 0, window_flags[Flag_RTDebug]))	 window_flags[Flag_RTDebug] = !window_flags[Flag_RTDebug];
+				if (ImGui::MenuItem("Ocean", 0, window_flags[Flag_Ocean]))					 window_flags[Flag_Ocean] = !window_flags[Flag_Ocean];
+				if (ImGui::MenuItem("Decals", 0, window_flags[Flag_Decal]))					 window_flags[Flag_Decal] = !window_flags[Flag_Decal];
+				if (ImGui::MenuItem("Particles", 0, window_flags[Flag_Particles]))			 window_flags[Flag_Particles] = !window_flags[Flag_Particles];
+				if (ImGui::MenuItem("Sky", 0, window_flags[Flag_Sky]))						 window_flags[Flag_Sky] = !window_flags[Flag_Sky];
+				if (ImGui::MenuItem("Add Entities", 0, window_flags[Flag_AddEntities]))		 window_flags[Flag_AddEntities] = !window_flags[Flag_AddEntities];
+
+				ImGui::EndMenu();
+			}
 			if (ImGui::BeginMenu("Help"))
 			{
 				ImGui::Text("Controls\n");
@@ -388,14 +375,15 @@ namespace adria
 
 				ImGui::EndMenu();
 			}
-
 			ImGui::EndMainMenuBar();
 		}
 	}
 
 	void Editor::OceanSettings()
 	{
-		ImGui::Begin("Ocean");
+		if (!window_flags[Flag_Ocean]) return;
+
+		if(ImGui::Begin("Ocean", &window_flags[Flag_Ocean]))
 		{
 			static GridParameters ocean_params{};
 			static int32 tile_count[2] = { 512, 512 };
@@ -441,7 +429,8 @@ namespace adria
 
 	void Editor::ParticleSettings()
 	{
-		ImGui::Begin("Particles");
+		if (!window_flags[Flag_Particles]) return;
+		if (ImGui::Begin("Particles", &window_flags[Flag_Particles]))
 		{
 			static EmitterParameters params{};
 			static char NAME_BUFFER[128];
@@ -486,7 +475,8 @@ namespace adria
 
 	void Editor::DecalSettings()
 	{
-		ImGui::Begin("Decals");
+		if (!window_flags[Flag_Decal]) return;
+		if (ImGui::Begin("Decals", &window_flags[Flag_Decal]))
 		{
 			static DecalParameters params{};
 			static char NAME_BUFFER[128];
@@ -550,14 +540,14 @@ namespace adria
 
 	void Editor::AddEntities()
 	{
-		ImGui::Begin("Add Entities");
+		if (!window_flags[Flag_AddEntities]) return;
+		if (ImGui::Begin("Add Entities", &window_flags[Flag_AddEntities]))
 		{
 			//random lights
 			{
 				ImGui::Text("For Easy Demonstration of Tiled Deferred Rendering");
 				static int light_count_to_add = 1;
 				ImGui::SliderInt("Light Count", &light_count_to_add, 1, 128);
-
 				if (ImGui::Button("Create Random Lights"))
 				{
 					static RealRandomGenerator real(0.0f, 1.0f);
@@ -578,19 +568,18 @@ namespace adria
 						engine->entity_loader->LoadLight(light_params);
 					}
 				}
-
 			}
-
 		}
 		ImGui::End();
 	}
 
 	void Editor::SkySettings()
 	{
-		ImGui::Begin("Sky");
+		if (!window_flags[Flag_Sky]) return;
+		if (ImGui::Begin("Sky", &window_flags[Flag_Sky]))
 		{
-			const char* sky_types[] = { "Skybox", "Uniform Color", "Hosek-Wilkie" };
 			static int current_sky_type = 0;
+			const char* sky_types[] = { "Skybox", "Uniform Color", "Hosek-Wilkie" };
 			const char* combo_label = sky_types[current_sky_type];
 			if (ImGui::BeginCombo("Sky Type", combo_label, 0))
 			{
@@ -648,8 +637,9 @@ namespace adria
 
 	void Editor::ListEntities()
 	{
+		if (!window_flags[Flag_Entities]) return;
 		auto all_entities = engine->reg.view<Tag>();
-		ImGui::Begin("Entities");
+		if (ImGui::Begin("Entities", &window_flags[Flag_Entities]))
 		{
 			std::vector<entt::entity> deleted_entities{};
 			std::function<void(entt::entity, bool)> ShowEntity;
@@ -688,7 +678,8 @@ namespace adria
 
 	void Editor::Properties()
 	{
-		ImGui::Begin("Properties");
+		if (!window_flags[Flag_Entities]) return;
+		if (ImGui::Begin("Properties", &window_flags[Flag_Entities]))
 		{
 			if (selected_entity != entt::null)
 			{
@@ -1130,30 +1121,23 @@ namespace adria
 
 	void Editor::Camera()
 	{
+		if (!window_flags[Flag_Camera]) return;
+		
 		auto& camera = engine->camera_manager.GetActiveCamera();
-
-		static bool is_open = true;
-		if (is_open)
+		if (ImGui::Begin("Camera", &window_flags[Flag_Camera]))
 		{
-			if (!ImGui::Begin("Camera", &is_open))
-			{
-				ImGui::End();
-			}
-			else
-			{
-				float32 pos[3] = { camera.Position().m128_f32[0],camera.Position().m128_f32[1], camera.Position().m128_f32[2] };
-				ImGui::SliderFloat3("Position", pos, 0.0f, 2000.0f);
-				camera.SetPosition(DirectX::XMFLOAT3(pos));
-				float32 near_plane = camera.Near(), far_plane = camera.Far();
-				float32 _fov = camera.Fov(), _ar = camera.AspectRatio();
-				ImGui::SliderFloat("Near Plane", &near_plane, 0.0f, 2.0f);
-				ImGui::SliderFloat("Far Plane", &far_plane, 10.0f, 3000.0f);
-				ImGui::SliderFloat("FOV", &_fov, 0.01f, 1.5707f);
-				camera.SetNearAndFar(near_plane, far_plane);
-				camera.SetFov(_fov);
-				ImGui::End();
-			}
+			float32 pos[3] = { camera.Position().m128_f32[0],camera.Position().m128_f32[1], camera.Position().m128_f32[2] };
+			ImGui::SliderFloat3("Position", pos, 0.0f, 2000.0f);
+			camera.SetPosition(DirectX::XMFLOAT3(pos));
+			float32 near_plane = camera.Near(), far_plane = camera.Far();
+			float32 _fov = camera.Fov(), _ar = camera.AspectRatio();
+			ImGui::SliderFloat("Near Plane", &near_plane, 0.0f, 2.0f);
+			ImGui::SliderFloat("Far Plane", &far_plane, 10.0f, 3000.0f);
+			ImGui::SliderFloat("FOV", &_fov, 0.01f, 1.5707f);
+			camera.SetNearAndFar(near_plane, far_plane);
+			camera.SetFov(_fov);
 		}
+		ImGui::End();
 	}
 
 	void Editor::Scene()
@@ -1249,7 +1233,8 @@ namespace adria
 
 	void Editor::Log()
 	{
-		ImGui::Begin("Log");
+		if (!window_flags[Flag_Log]) return;
+		if(ImGui::Begin("Log", &window_flags[Flag_Log]))
 		{
 			editor_log->Draw("Log");
 		}
@@ -1258,7 +1243,8 @@ namespace adria
 
 	void Editor::RendererSettings()
 	{
-		ImGui::Begin("Renderer Settings");
+		if (!window_flags[Flag_Renderer]) return;
+		if (ImGui::Begin("Renderer Settings", &window_flags[Flag_Renderer]))
 		{
 			if (ImGui::TreeNode("Render Path Settings"))
 			{
@@ -1341,7 +1327,7 @@ namespace adria
 				//reflections
 				{
 					static const char* reflection_types[] = { "None", "SSR", "RTR" };
-					static int current_reflection_type = 0;
+					static int current_reflection_type = (int)renderer_settings.postprocessor.reflections;
 					const char* combo_label = reflection_types[current_reflection_type];
 					if (ImGui::BeginCombo("Reflections", combo_label, 0))
 					{
@@ -1494,7 +1480,8 @@ namespace adria
 
 	void Editor::Profiling()
 	{
-		if (ImGui::Begin("Profiling"))
+		if (!window_flags[Flag_Profiler]) return;
+		if (ImGui::Begin("Profiling", &window_flags[Flag_Profiler]))
 		{
 			ImGuiIO io = ImGui::GetIO();
 			static bool enable_profiling = false;
@@ -1631,7 +1618,8 @@ namespace adria
 
 	void Editor::ShaderHotReload()
 	{
-		if (ImGui::Begin("Shader Hot Reload"))
+		if (!window_flags[Flag_HotReload]) return;
+		if (ImGui::Begin("Shader Hot Reload", &window_flags[Flag_HotReload]))
 		{
 			if (ImGui::Button("Compile Changed Shaders"))
 			{
@@ -1644,6 +1632,9 @@ namespace adria
 	void Editor::RayTracingDebug()
 	{
 #ifdef _DEBUG
+
+		if (!window_flags[Flag_RTDebug]) return;
+
 		auto device = engine->gfx->GetDevice();
 		auto descriptor_allocator = gui->DescriptorAllocator();
 		ImVec2 v_min = ImGui::GetWindowContentRegionMin();
@@ -1654,7 +1645,7 @@ namespace adria
 		v_max.y += ImGui::GetWindowPos().y;
 		ImVec2 size(v_max.x - v_min.x, v_max.y - v_min.y);
 
-		ImGui::Begin("Ray Tracing Debug");
+		if(ImGui::Begin("Ray Tracing Debug", &window_flags[Flag_RTDebug]))
 		{
 			static const char* rt_types[] = { "Shadows", "Ambient Occlusion", "Reflections" };
 			static int current_rt_type = 0;

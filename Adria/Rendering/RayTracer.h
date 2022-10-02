@@ -52,14 +52,6 @@ namespace adria
 			int32	emissive_idx;
 		};
 
-		struct RayTracingProgram
-		{
-			Microsoft::WRL::ComPtr<ID3D12StateObject> state_object = nullptr;
-			std::unique_ptr<ShaderTable> shader_table_raygen = nullptr;
-			std::unique_ptr<ShaderTable> shader_table_miss = nullptr;
-			std::unique_ptr<ShaderTable> shader_table_hit = nullptr;
-		};
-
 	public:
 		RayTracer(entt::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height);
 		bool IsSupported() const;
@@ -102,11 +94,11 @@ namespace adria
 		std::unique_ptr<Buffer> global_ib = nullptr;
 		std::unique_ptr<Buffer> geo_buffer = nullptr;
 
-		RayTracingProgram ray_traced_shadows;
-		RayTracingProgram ray_traced_ambient_occlusion;
-		RayTracingProgram ray_traced_reflections;
-		RayTracingProgram path_tracing;
+		Microsoft::WRL::ComPtr<ID3D12StateObject> ray_traced_shadows;
+		Microsoft::WRL::ComPtr<ID3D12StateObject> ray_traced_ambient_occlusion;
+		Microsoft::WRL::ComPtr<ID3D12StateObject> ray_traced_reflections;
 
+		Microsoft::WRL::ComPtr<ID3D12StateObject> path_tracing;
 		std::unique_ptr<Texture> accumulation_texture;
 		int32 accumulated_frames = 1;
 
@@ -119,7 +111,6 @@ namespace adria
 		
 	private:
 		void CreateStateObjects();
-		void CreateShaderTables();
 		void OnLibraryRecompiled(EShader shader);
 
 #ifdef _DEBUG

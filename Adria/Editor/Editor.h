@@ -24,6 +24,22 @@ namespace adria
 
 	class Editor
 	{
+		enum
+		{
+			Flag_Profiler,
+			Flag_Camera,
+			Flag_Log,
+			Flag_Entities,
+			Flag_HotReload,
+			Flag_RTDebug,
+			Flag_Renderer,
+			Flag_Ocean,
+			Flag_Decal,
+			Flag_Particles,
+			Flag_Sky,
+			Flag_AddEntities,
+			Flag_Count
+		};
 	public:
 		explicit Editor(EditorInit const& init);
 		~Editor();
@@ -44,7 +60,7 @@ namespace adria
 		EditorEvents editor_events;
 		bool reload_shaders = false;
 		std::queue<AABB*> aabb_updates;
-
+		std::array<bool, Flag_Count> window_flags = { false };
 	private:
 		void SetStyle();
 		void HandleInput();
