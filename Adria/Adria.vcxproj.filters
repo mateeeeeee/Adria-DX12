@@ -712,10 +712,10 @@
     <FxCompile Include="Resources\Shaders\Deferred\AmbientPBR_PS.hlsl">
       <Filter>Shaders\Deferred</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Deferred\GeometryPassPBR_PS.hlsl">
+    <FxCompile Include="Resources\Shaders\Deferred\GBuffer_PS.hlsl">
       <Filter>Shaders\Deferred</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Deferred\GeometryPassPBR_VS.hlsl">
+    <FxCompile Include="Resources\Shaders\Deferred\GBuffer_VS.hlsl">
       <Filter>Shaders\Deferred</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Deferred\LightingPBR_PS.hlsl">

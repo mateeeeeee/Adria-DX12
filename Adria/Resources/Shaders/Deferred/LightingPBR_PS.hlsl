@@ -95,23 +95,16 @@ float SSCS(float3 pos_vs)
 [RootSignature(LightingPBR_RS)]
 float4 main(VertexOut pin) : SV_TARGET
 {
-
-    //unpack gbuffer
     float4 NormalMetallic = normalMetallicTx.Sample(linear_wrap_sampler, pin.Tex);
     float3 Normal = 2 * NormalMetallic.rgb - 1.0;
-    
-    float metallic = NormalMetallic.a;
-    
+    float metallic = NormalMetallic.a; 
     float depth = depthTx.Sample(linear_wrap_sampler, pin.Tex);
     
     float3 Position = GetPositionVS(pin.Tex, depth);
-    
     float4 AlbedoRoughness = diffuseRoughnessTx.Sample(linear_wrap_sampler, pin.Tex);
 
     float3 V = normalize(0.0f.xxx - Position);
-    
     float roughness = AlbedoRoughness.a;
-
     float3 Lo = float3(0.0f, 0.0f, 0.0f);
     switch (light_cbuf.current_light.type)
     {
@@ -131,7 +124,6 @@ float4 main(VertexOut pin) : SV_TARGET
 #ifndef RAY_TRACED_SHADOWS
     if (light_cbuf.current_light.casts_shadows)
     {
-
         float shadow_factor = 1.0f;
         if (light_cbuf.current_light.type == POINT_LIGHT)
         {
@@ -152,19 +144,15 @@ float4 main(VertexOut pin) : SV_TARGET
             float viewDepth = Position.z;
             for (uint i = 0; i < 4; ++i)
             {
-                matrix light_space_matrix = i == 0 ? shadow_cbuf.shadow_matrix1 : i == 1 ? shadow_cbuf.shadow_matrix2 : i == 2 ? shadow_cbuf.shadow_matrix3 : shadow_cbuf.shadow_matrix4;
-                    
+                matrix light_space_matrix = i == 0 ? shadow_cbuf.shadow_matrix1 : i == 1 ? shadow_cbuf.shadow_matrix2 : i == 2 ? shadow_cbuf.shadow_matrix3 : shadow_cbuf.shadow_matrix4;  
                 float4 posShadowMap = mul(float4(Position, 1.0), light_space_matrix);
-        
                 float3 UVD = posShadowMap.xyz / posShadowMap.w;
-
                 UVD.xy = 0.5 * UVD.xy + 0.5;
                 UVD.y = 1.0 - UVD.y;
 
                 if (viewDepth < shadow_cbuf.splits[i])
                 {
                     shadow_factor = CSMCalcShadowFactor_PCF3x3(shadow_sampler, cascadeDepthMap, i, UVD, shadow_cbuf.shadow_map_size, shadow_cbuf.softness);
-                      
                     break;
                 }
             }    
@@ -173,10 +161,8 @@ float4 main(VertexOut pin) : SV_TARGET
         {
             float4 posShadowMap = mul(float4(Position, 1.0), shadow_cbuf.shadow_matrix1);
             float3 UVD = posShadowMap.xyz / posShadowMap.w;
-
             UVD.xy = 0.5 * UVD.xy + 0.5;
             UVD.y = 1.0 - UVD.y;
-                
             shadow_factor = CalcShadowFactor_PCF3x3(shadow_sampler, shadowDepthMap, UVD, shadow_cbuf.shadow_map_size, shadow_cbuf.softness);
         }
         Lo = Lo * shadow_factor;

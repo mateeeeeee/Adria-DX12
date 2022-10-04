@@ -155,10 +155,10 @@ namespace adria
 			case PS_Decals_ModifyNormals:
 				return "Misc/DecalPS.hlsl";
 			case VS_GBufferPBR:
-				return "Deferred/GeometryPassPBR_VS.hlsl";
+				return "Deferred/GBuffer_VS.hlsl";
 			case PS_GBufferPBR:
 			case PS_GBufferPBR_Mask:
-				return "Deferred/GeometryPassPBR_PS.hlsl";
+				return "Deferred/GBuffer_PS.hlsl";
 			case VS_ScreenQuad:
 				return "Postprocess/ScreenQuadVS.hlsl";
 			case PS_AmbientPBR:
