@@ -25,7 +25,7 @@ namespace adria
 		static constexpr uint32 SHADOW_MAP_SIZE = 2048;
 		static constexpr uint32 SHADOW_CUBE_SIZE = 512;
 		static constexpr uint32 SHADOW_CASCADE_MAP_SIZE = 1024;
-		static constexpr uint32 SHADOW_CASCADE_COUNT = 3;
+		static constexpr uint32 SHADOW_CASCADE_COUNT = 4;
 
 	public:
 		ShadowPass(entt::registry& reg, TextureManager& texture_manager);

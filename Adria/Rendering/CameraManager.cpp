@@ -52,7 +52,6 @@ namespace adria
 			camera.Pitch((int64)dy);
 			camera.Yaw((int64)dx);
 		}
-
 		camera.UpdateViewMatrix();
 	}
 	Camera const& CameraManager::GetActiveCamera() const

@@ -57,7 +57,8 @@ struct ShadowCBuffer
     row_major matrix  shadow_matrix1;
     row_major matrix  shadow_matrix2;
     row_major matrix shadow_matrix3; //for cascades three 
-    float3 splits;
+    row_major matrix shadow_matrix4; //for cascades three 
+    float4 splits;
     float softness;
     int shadow_map_size;
     int visualize;

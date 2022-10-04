@@ -88,9 +88,11 @@ namespace adria
 		DirectX::XMMATRIX shadow_matrix1;
 		DirectX::XMMATRIX shadow_matrix2;
 		DirectX::XMMATRIX shadow_matrix3; //for cascades three 
+		DirectX::XMMATRIX shadow_matrix4; 
 		float32 split0;
 		float32 split1;
 		float32 split2;
+		float32 split3;
 		float32 softness;
 		int32 shadow_map_size;
 		int32 visualize;

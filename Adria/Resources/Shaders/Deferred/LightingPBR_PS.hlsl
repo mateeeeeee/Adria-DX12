@@ -150,9 +150,9 @@ float4 main(VertexOut pin) : SV_TARGET
         else if (light_cbuf.current_light.type == DIRECTIONAL_LIGHT && light_cbuf.current_light.use_cascades)
         {
             float viewDepth = Position.z;
-            for (uint i = 0; i < 3; ++i)
+            for (uint i = 0; i < 4; ++i)
             {
-                matrix light_space_matrix = i == 0 ? shadow_cbuf.shadow_matrix1 : i == 1 ? shadow_cbuf.shadow_matrix2 : shadow_cbuf.shadow_matrix3;
+                matrix light_space_matrix = i == 0 ? shadow_cbuf.shadow_matrix1 : i == 1 ? shadow_cbuf.shadow_matrix2 : i == 2 ? shadow_cbuf.shadow_matrix3 : shadow_cbuf.shadow_matrix4;
                     
                 float4 posShadowMap = mul(float4(Position, 1.0), light_space_matrix);
         

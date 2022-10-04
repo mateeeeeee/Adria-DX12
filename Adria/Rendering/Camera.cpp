@@ -119,7 +119,6 @@ namespace adria
 		XMVECTOR l = XMLoadFloat3(&look_vector);
 		XMVECTOR p = XMLoadFloat3(&position);
 		XMStoreFloat3(&position, XMVectorMultiplyAdd(s, l, p));
-
 	}
 
 	void Camera::Jump(float32 dt)

@@ -441,9 +441,11 @@ namespace adria
 						shadow_cbuf_data.shadow_matrix1 = DirectX::XMMatrixInverse(nullptr, camera->View()) * light_view_projections[0];
 						shadow_cbuf_data.shadow_matrix2 = DirectX::XMMatrixInverse(nullptr, camera->View()) * light_view_projections[1];
 						shadow_cbuf_data.shadow_matrix3 = DirectX::XMMatrixInverse(nullptr, camera->View()) * light_view_projections[2];
+						shadow_cbuf_data.shadow_matrix4 = DirectX::XMMatrixInverse(nullptr, camera->View()) * light_view_projections[3];
 						shadow_cbuf_data.split0 = split_distances[0];
 						shadow_cbuf_data.split1 = split_distances[1];
 						shadow_cbuf_data.split2 = split_distances[2];
+						shadow_cbuf_data.split3 = split_distances[3];
 						shadow_cbuf_data.softness = 1.0f;
 						shadow_cbuf_data.visualize = static_cast<int>(false);
 
