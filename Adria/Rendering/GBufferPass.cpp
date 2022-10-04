@@ -26,12 +26,13 @@ namespace adria
 				gbuffer_desc.width = width;
 				gbuffer_desc.height = height;
 				gbuffer_desc.format = EFormat::R8G8B8A8_UNORM;
+				gbuffer_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 				
 				builder.DeclareTexture(RG_RES_NAME(GBufferNormal), gbuffer_desc);
 				builder.DeclareTexture(RG_RES_NAME(GBufferAlbedo), gbuffer_desc);
 				builder.DeclareTexture(RG_RES_NAME(GBufferEmissive), gbuffer_desc);
 
-				builder.WriteRenderTarget(RG_RES_NAME(GBufferNormal), ERGLoadStoreAccessOp::Discard_Preserve);
+				builder.WriteRenderTarget(RG_RES_NAME(GBufferNormal), ERGLoadStoreAccessOp::Clear_Preserve);
 				builder.WriteRenderTarget(RG_RES_NAME(GBufferAlbedo), ERGLoadStoreAccessOp::Discard_Preserve);
 				builder.WriteRenderTarget(RG_RES_NAME(GBufferEmissive), ERGLoadStoreAccessOp::Discard_Preserve);
 				
