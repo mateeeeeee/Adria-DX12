@@ -8,7 +8,7 @@ namespace adria
     void Window::Initialize(WindowInit const& init)
     {
         _instance = init.instance;
-        const std::wstring window_title = ConvertToWide(init.title);
+        const std::wstring window_title = ToWideString(init.title);
         const uint32 window_width = init.width;
         const uint32 window_height = init.height;
         const LPCWSTR class_name = L"MyWindowClass";

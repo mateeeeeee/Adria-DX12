@@ -137,7 +137,7 @@ namespace adria
 					light.mesh_type = ELightMesh::Quad;
 				}
 				light.mesh_size = light_params.FindOr<uint32>("size", 100u);
-				light.light_texture = ConvertToWide(light_params.FindOr<std::string>("texture", ""));
+				light.light_texture = ToWideString(light_params.FindOr<std::string>("texture", ""));
 				if (light.light_texture.has_value() && light.light_texture->empty()) light.light_texture = std::nullopt;
 
 				if (type == "directional")
@@ -181,7 +181,7 @@ namespace adria
 			std::string cubemap[1];
 			if (skybox_params.FindArray("texture", cubemap))
 			{
-				config.skybox_params.cubemap = ConvertToWide(cubemap[0]);
+				config.skybox_params.cubemap = ToWideString(cubemap[0]);
 			}
 			else
 			{
@@ -190,7 +190,7 @@ namespace adria
 				{
 					std::wstring w_cubemap[6];
 					std::transform(std::begin(cubemap), std::end(cubemap), std::begin(w_cubemap), [](std::string const& s) {
-						return ConvertToWide(s); });
+						return ToWideString(s); });
 					config.skybox_params.cubemap_textures = std::to_array(w_cubemap);
 				}
 				else

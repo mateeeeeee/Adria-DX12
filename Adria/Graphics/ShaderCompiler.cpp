@@ -25,7 +25,7 @@ namespace adria
 		HRESULT STDMETHODCALLTYPE LoadSource(_In_ LPCWSTR pFilename, _COM_Outptr_result_maybenull_ IDxcBlob** ppIncludeSource) override
 		{
 			Microsoft::WRL::ComPtr<IDxcBlobEncoding> pEncoding;
-			std::string path = ConvertToNarrow(pFilename);
+			std::string path = ToString(pFilename);
 			HRESULT hr = utils->LoadFile(pFilename, nullptr, pEncoding.GetAddressOf());
 			if (SUCCEEDED(hr))
 			{
@@ -107,7 +107,7 @@ namespace adria
 			uint32_t codePage = CP_UTF8; 
 			Microsoft::WRL::ComPtr<IDxcBlobEncoding> sourceBlob;
 
-			std::wstring shader_source = ConvertToWide(input.source_file);
+			std::wstring shader_source = ToWideString(input.source_file);
 			HRESULT hr = library->CreateBlobFromFile(shader_source.data(), &codePage, &sourceBlob);
 			BREAK_IF_FAILED(hr);
 
@@ -157,7 +157,7 @@ namespace adria
 				ADRIA_ASSERT(false && "Invalid Shader Stage");
 			}
 
-			if (!input.entrypoint.empty()) entry_point = ConvertToWide(input.entrypoint);
+			if (!input.entrypoint.empty()) entry_point = ToWideString(input.entrypoint);
 			std::vector<DxcDefine> sm6_defines{};
 			for (auto const& define : input.macros)
 			{

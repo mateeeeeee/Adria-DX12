@@ -2,7 +2,6 @@
 #define POINT_LIGHT 1
 #define SPOT_LIGHT 2
 
-
 struct Light
 {
     float4 ss_position;
@@ -29,7 +28,6 @@ struct Light
     float sscs_max_ray_distance;
     float sscs_max_depth_distance;
 };  
-
 struct StructuredLight
 {
     float4 position;
@@ -44,8 +42,7 @@ struct StructuredLight
     int use_cascades;
     int padd;
 };
-
-Light CreateLightFromStructured(in StructuredLight structured_light)
+static Light CreateLightFromStructured(in StructuredLight structured_light)
 {
     Light l = (Light) 0;
     l.casts_shadows = structured_light.casts_shadows;
@@ -69,20 +66,17 @@ Light CreateLightFromStructured(in StructuredLight structured_light)
     return l;
 }
 
-
-float DoAttenuation(float distance, float range)
+static float DoAttenuation(float distance, float range)
 {
     float att = saturate(1.0f - (distance * distance / (range * range)));
     return att * att;
 }
-
-float4 DoDiffuse(Light light, float3 L, float3 N)
+static float4 DoDiffuse(Light light, float3 L, float3 N)
 {
     float NdotL = max(0, dot(N, L));
     return light.color * NdotL;
 }
-
-float4 DoSpecular(Light light, float shininess, float3 L, float3 N, float3 V)
+static float4 DoSpecular(Light light, float shininess, float3 L, float3 N, float3 V)
 {
     // Phong lighting.
     float3 R = normalize(reflect(-L, N));
@@ -94,14 +88,13 @@ float4 DoSpecular(Light light, float shininess, float3 L, float3 N, float3 V)
  
     return light.color * pow(RdotV, shininess);
 }
-
 struct LightingResult
 {
     float4 Diffuse;
     float4 Specular;
 };
  
-LightingResult DoPointLight(Light light, float shininess, float3 V, float3 P, float3 N)
+static LightingResult DoPointLight(Light light, float shininess, float3 V, float3 P, float3 N)
 {
     LightingResult result;
     light.position.xyz /= light.position.w;
@@ -119,8 +112,7 @@ LightingResult DoPointLight(Light light, float shininess, float3 V, float3 P, fl
  
     return result;
 }
-
-LightingResult DoDirectionalLight(Light light, float shininess, float3 V, float3 N)
+static LightingResult DoDirectionalLight(Light light, float shininess, float3 V, float3 N)
 {
     LightingResult result;
     
@@ -134,9 +126,7 @@ LightingResult DoDirectionalLight(Light light, float shininess, float3 V, float3
  
     return result;
 }
-
-
-LightingResult DoSpotLight(Light light, float shininess, float3 V, float3 P, float3 N)
+static LightingResult DoSpotLight(Light light, float shininess, float3 V, float3 P, float3 N)
 {
     LightingResult result;
     
@@ -163,15 +153,14 @@ LightingResult DoSpotLight(Light light, float shininess, float3 V, float3 P, flo
     return result;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////7
+/////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-                    //PBR
+//PBR
 
 static const float PI = 3.14159265359;
-// ----------------------------------------------------------------------------
-float DistributionGGX(float3 N, float3 H, float roughness)
+static float DistributionGGX(float3 N, float3 H, float roughness)
 {
     float a = roughness * roughness;
     float a2 = a * a;
@@ -184,8 +173,7 @@ float DistributionGGX(float3 N, float3 H, float roughness)
 
     return nom / max(denom, 0.0000001); // prevent divide by zero for roughness=0.0 and NdotH=1.0
 }
-// ----------------------------------------------------------------------------
-float GeometrySchlickGGX(float NdotV, float roughness)
+static float GeometrySchlickGGX(float NdotV, float roughness)
 {
     float r = (roughness + 1.0);
     float k = (r * r) / 8.0;
@@ -195,8 +183,7 @@ float GeometrySchlickGGX(float NdotV, float roughness)
 
     return nom / denom;
 }
-// ----------------------------------------------------------------------------
-float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
+static float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
 {
     float NdotV = max(dot(N, V), 0.0);
     float NdotL = max(dot(N, L), 0.0);
@@ -205,18 +192,16 @@ float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
 
     return ggx1 * ggx2;
 }
-// ----------------------------------------------------------------------------
-float3 fresnelSchlick(float cosTheta, float3 F0)
+static float3 fresnelSchlick(float cosTheta, float3 F0)
 {
     return F0 + (1.0 - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
 }
-
-float3 fresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
+static float3 fresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
 {
     return F0 + (max(float3(1.0 - roughness, 1.0 - roughness, 1.0 - roughness), F0) - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
 }
 
-float3 DoSpotLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V, float3 albedo, float metallic, float roughness)
+static float3 DoSpotLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V, float3 albedo, float metallic, float roughness)
 {
    
     /*
@@ -266,8 +251,7 @@ float3 DoSpotLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V,
     
     return Lo;
 }
-
-float3 DoPointLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V, float3 albedo, float metallic, float roughness)
+static float3 DoPointLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V, float3 albedo, float metallic, float roughness)
 {
     float3 F0 = float3(0.04, 0.04, 0.04);
     F0 = lerp(F0, albedo, metallic);
@@ -308,8 +292,7 @@ float3 DoPointLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V
     
     return Lo;
 }
-
-float3 DoDirectionalLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V, float3 albedo, float metallic, float roughness)
+static float3 DoDirectionalLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V, float3 albedo, float metallic, float roughness)
 {
     float3 F0 = float3(0.04, 0.04, 0.04);
     F0 = lerp(F0, albedo, metallic);

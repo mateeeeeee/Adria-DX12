@@ -68,7 +68,7 @@ namespace adria
 
         TextureFormat GetTextureFormat(std::wstring const& path)
         {
-            return GetTextureFormat(ConvertToNarrow(path));
+            return GetTextureFormat(ToString(path));
         }
 
         void CreateTextureSRV(ID3D12Device* device, ID3D12Resource* tex, D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle)
@@ -191,7 +191,7 @@ namespace adria
         case TextureFormat::eTGA:
         case TextureFormat::eHDR:
         case TextureFormat::ePIC:
-            return LoadTexture_HDR_TGA_PIC(ConvertToNarrow(name));
+            return LoadTexture_HDR_TGA_PIC(ToString(name));
         case TextureFormat::eNotSupported:
         default:
             ADRIA_ASSERT(false && "Unsupported Texture Format!");
@@ -269,7 +269,7 @@ namespace adria
             {
                 auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
                 loaded_textures.insert({ name, handle });
-                Image equirect_hdr_image(ConvertToNarrow(name));
+                Image equirect_hdr_image(ToString(name));
                 Microsoft::WRL::ComPtr<ID3D12Resource> cubemap_tex = nullptr;
                 D3D12_RESOURCE_DESC desc{};
                 desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -427,7 +427,7 @@ namespace adria
         std::vector<D3D12_SUBRESOURCE_DATA> subresources;
         for (UINT i = 0; i < cubemap_textures.size(); ++i)
         {
-            images.emplace_back(ConvertToNarrow(cubemap_textures[i]), 4);
+            images.emplace_back(ToString(cubemap_textures[i]), 4);
             D3D12_SUBRESOURCE_DATA subresource_data{};
             subresource_data.pData = images.back().Data<void>();
             subresource_data.RowPitch = images.back().Pitch();

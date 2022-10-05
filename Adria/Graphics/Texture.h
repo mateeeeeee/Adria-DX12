@@ -449,7 +449,7 @@ namespace adria
 
 		void SetName(char const* name)
 		{
-			resource->SetName(ConvertToWide(name).c_str());
+			resource->SetName(ToWideString(name).c_str());
 		}
 	private:
 		GraphicsDevice* gfx;

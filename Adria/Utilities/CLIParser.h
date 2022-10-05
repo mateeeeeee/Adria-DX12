@@ -113,12 +113,12 @@ namespace adria
 				{
 					for (auto const& prefix : arg.prefixes) 
 					{
-						bool prefix_found = cmdline[i] == ConvertToWide(prefix);
+						bool prefix_found = cmdline[i] == ToWideString(prefix);
 						if (prefix_found)
 						{
 							found = true;
 							arg.SetIsPresent();
-							if (arg.has_value) arg.SetValue(ConvertToNarrow(cmdline[++i]));
+							if (arg.has_value) arg.SetValue(ToString(cmdline[++i]));
 							break;
 						}
 					}

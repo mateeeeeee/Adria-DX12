@@ -2,13 +2,9 @@
 
 #include <string>
 
-
-
 namespace adria
 {
-
-
-	inline std::wstring ConvertToWide(std::string const& in)
+	inline std::wstring ToWideString(std::string const& in)
 	{
 		std::wstring out{};
 		out.reserve(in.length());
@@ -17,7 +13,8 @@ namespace adria
 
 		mbstate_t state{};
 		wchar_t wc;
-		while (size_t len = mbrtowc(&wc, ptr, end - ptr, &state)) {
+		while (size_t len = mbrtowc(&wc, ptr, end - ptr, &state)) 
+		{
 			if (len == static_cast<size_t>(-1)) // bad encoding
 				return std::wstring{};
 			if (len == static_cast<size_t>(-2))
@@ -27,8 +24,7 @@ namespace adria
 		}
 		return out;
 	}
-
-	inline std::string ConvertToNarrow(std::wstring const& in)
+	inline std::string ToString(std::wstring const& in)
 	{
 		std::string out{};
 		out.reserve(MB_CUR_MAX * in.length());
@@ -42,5 +38,4 @@ namespace adria
 		}
 		return out;
 	}
-
 }

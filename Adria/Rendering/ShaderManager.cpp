@@ -335,9 +335,9 @@ namespace adria
 			ShaderCompileInput shader_info{ .entrypoint = "main" };
 			shader_info.flags =
 #if _DEBUG
-				ShaderCompileInput::FlagDebug | ShaderCompileInput::FlagDisableOptimization;
+			ShaderCompileInput::FlagDebug | ShaderCompileInput::FlagDisableOptimization;
 #else
-				ShaderCompileInput::FlagNone;
+			ShaderCompileInput::FlagNone;
 #endif
 			shader_info.source_file = std::string(shaders_directory) + GetShaderSource(shader);
 			shader_info.stage = GetStage(shader);

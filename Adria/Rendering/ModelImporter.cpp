@@ -496,8 +496,8 @@ namespace adria
 	{
 		Decal decal{};
 		texture_manager.SetMipMaps(false);
-		if (!params.albedo_texture_path.empty()) decal.albedo_decal_texture = texture_manager.LoadTexture(ConvertToWide(params.albedo_texture_path));
-		if (!params.normal_texture_path.empty()) decal.normal_decal_texture = texture_manager.LoadTexture(ConvertToWide(params.normal_texture_path));
+		if (!params.albedo_texture_path.empty()) decal.albedo_decal_texture = texture_manager.LoadTexture(ToWideString(params.albedo_texture_path));
+		if (!params.normal_texture_path.empty()) decal.normal_decal_texture = texture_manager.LoadTexture(ToWideString(params.normal_texture_path));
 		texture_manager.SetMipMaps(true);
 
 		XMVECTOR P = XMLoadFloat4(&params.position);
@@ -581,7 +581,7 @@ namespace adria
 					tinygltf::Texture const& base_texture = model.textures[pbr_metallic_roughness.baseColorTexture.index];
 					tinygltf::Image const& base_image = model.images[base_texture.source];
 					std::string texbase = params.textures_path + base_image.uri;
-					material.albedo_texture = texture_manager.LoadTexture(ConvertToWide(texbase));
+					material.albedo_texture = texture_manager.LoadTexture(ToWideString(texbase));
 					material.albedo_factor = (float32)pbr_metallic_roughness.baseColorFactor[0];
 				}
 				if (pbr_metallic_roughness.metallicRoughnessTexture.index >= 0)
@@ -589,7 +589,7 @@ namespace adria
 					tinygltf::Texture const& metallic_roughness_texture = model.textures[pbr_metallic_roughness.metallicRoughnessTexture.index];
 					tinygltf::Image const& metallic_roughness_image = model.images[metallic_roughness_texture.source];
 					std::string texmetallicroughness = params.textures_path + metallic_roughness_image.uri;
-					material.metallic_roughness_texture = texture_manager.LoadTexture(ConvertToWide(texmetallicroughness));
+					material.metallic_roughness_texture = texture_manager.LoadTexture(ToWideString(texmetallicroughness));
 					material.metallic_factor = (float32)pbr_metallic_roughness.metallicFactor;
 					material.roughness_factor = (float32)pbr_metallic_roughness.roughnessFactor;
 				}
@@ -598,14 +598,14 @@ namespace adria
 					tinygltf::Texture const& normal_texture = model.textures[gltf_material.normalTexture.index];
 					tinygltf::Image const& normal_image = model.images[normal_texture.source];
 					std::string texnormal = params.textures_path + normal_image.uri;
-					material.normal_texture = texture_manager.LoadTexture(ConvertToWide(texnormal));
+					material.normal_texture = texture_manager.LoadTexture(ToWideString(texnormal));
 				}
 				if (gltf_material.emissiveTexture.index >= 0)
 				{
 					tinygltf::Texture const& emissive_texture = model.textures[gltf_material.emissiveTexture.index];
 					tinygltf::Image const& emissive_image = model.images[emissive_texture.source];
 					std::string texemissive = params.textures_path + emissive_image.uri;
-					material.emissive_texture = texture_manager.LoadTexture(ConvertToWide(texemissive));
+					material.emissive_texture = texture_manager.LoadTexture(ToWideString(texemissive));
 					material.emissive_factor = (float32)gltf_material.emissiveFactor[0];
 				}
 				material.pso = EPipelineState::GBufferPBR;

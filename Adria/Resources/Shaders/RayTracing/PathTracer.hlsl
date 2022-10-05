@@ -100,11 +100,11 @@ void PT_RayGen()
         Light light = light_cbuf.current_light;
     }
 
-    // Accumulation and output
-    //if (ray_tracing_cbuf.accumulated_frames > 1)
-    //{
-    //    radiance += previousColor;
-    //}
+    //Accumulation and output
+    if (ray_tracing_cbuf.accumulated_frames > 1)
+    {
+        radiance += previousColor;
+    }
     pt_accumulation[DispatchRaysIndex().xy] = float4(radiance, 1.0f);
     pt_output[DispatchRaysIndex().xy] = float4(radiance, 1.0f);// / ray_tracing_cbuf.accumulated_frames;
 }
