@@ -47,9 +47,9 @@ float4 main(VertexOut input) : SV_TARGET
     for (uint j = 0; j < sampleCount; ++j)
     {
         bool valid = false;
-        for (uint cascade = 0; cascade < 3; ++cascade)
+        for (uint cascade = 0; cascade < 4; ++cascade)
         {
-            matrix light_space_matrix = cascade == 0 ? shadow_cbuf.shadow_matrix1 : cascade == 1 ? shadow_cbuf.shadow_matrix2 : shadow_cbuf.shadow_matrix3;
+            matrix light_space_matrix = shadow_cbuf.shadow_matrices[cascade];
                     
             float4 posShadowMap = mul(float4(P, 1.0), light_space_matrix);
         

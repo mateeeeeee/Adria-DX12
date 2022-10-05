@@ -54,10 +54,7 @@ struct ShadowCBuffer
 {
     row_major matrix  lightviewprojection;
     row_major matrix  lightview;
-    row_major matrix  shadow_matrix1;
-    row_major matrix  shadow_matrix2;
-    row_major matrix shadow_matrix3; //for cascades three 
-    row_major matrix shadow_matrix4; //for cascades three 
+    row_major matrix  shadow_matrices[4];
     float4 splits;
     float softness;
     int shadow_map_size;

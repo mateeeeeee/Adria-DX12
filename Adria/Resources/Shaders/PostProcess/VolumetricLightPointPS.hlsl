@@ -50,7 +50,6 @@ float4 main(VertexOut input) : SV_TARGET
 
         float SpotFactor = dot(L, normalize(-light_cbuf.current_light.direction.xyz));
         float spotCutOff = light_cbuf.current_light.outer_cosine;
-
         float attenuation = DoAttenuation(dist, light_cbuf.current_light.range);
 
 		[branch]
@@ -69,16 +68,12 @@ float4 main(VertexOut input) : SV_TARGET
             float shadow_factor = depthCubeMap.SampleCmpLevelZero(shadow_sampler, normalize(light_to_pixelWS.xyz), fragment_depth);
             attenuation *= shadow_factor;
         }
-        
         //attenuation *= ExponentialFog(cameraDistance - marchedDistance);
-
         accumulation += attenuation;
-
         marchedDistance += stepSize;
         P = P + V * stepSize;
     }
 
     accumulation /= sampleCount;
-
     return max(0, float4(accumulation * light_cbuf.current_light.color.rgb * light_cbuf.current_light.volumetric_strength, 1));
 }
