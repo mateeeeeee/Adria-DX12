@@ -7,6 +7,7 @@ struct ExposureConstants
 	float exposureCompensation;
 	float frameTime;
 };
+
 ConstantBuffer<ExposureConstants> ExposureCB : register(b0);
 RWTexture2D<float> 			PreviousEV100		: register(u0);
 RWTexture2D<float>			Exposure			: register(u1);

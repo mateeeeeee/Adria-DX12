@@ -28,9 +28,9 @@ namespace adria
 		AddCopyHDRPass(rg);
 		final_resource = RG_RES_NAME(PostprocessMain);
 
-		if (true || settings.automatic_exposure)
+		if (settings.automatic_exposure)
 		{
-			automatic_exposure_pass.AddPass(rg, final_resource);
+			automatic_exposure_pass.AddPasses(rg, final_resource);
 		}
 
 		for (entt::entity light : lights)

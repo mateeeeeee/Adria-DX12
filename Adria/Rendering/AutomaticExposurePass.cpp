@@ -191,12 +191,36 @@ namespace adria
 					invalid_history = false;
 				}
 
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Exposure));
+				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Exposure));
 
+				struct ExposureConstants
+				{
+					float32 adaption_speed;
+					float32 exposure_compensation;
+					float32 frame_time;
+				} constants{.adaption_speed = 1.5f, .exposure_compensation = 0.75f, .frame_time = 0.166f};
 
+				cmd_list->SetComputeRoot32BitConstants(0, 3, &constants, 0);
 
+				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
+				DescriptorHandle avgluminance_srv = descriptor_allocator->GetHandle(descriptor_index);
+				device->CopyDescriptorsSimple(1, avgluminance_srv, context.GetReadOnlyTexture(data.avg_luminance),
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				cmd_list->SetComputeRootDescriptorTable(1, avgluminance_srv);
+
+				DescriptorHandle previous_uav = descriptor_allocator->GetHandle(descriptor_index + 1);
+				device->CopyDescriptorsSimple(1, previous_uav, previous_ev100->GetUAV(),
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+				DescriptorHandle exposure_uav = descriptor_allocator->GetHandle(descriptor_index + 2);
+				device->CopyDescriptorsSimple(1, exposure_uav, context.GetReadWriteTexture(data.exposure),
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+				cmd_list->SetComputeRootDescriptorTable(2, previous_uav);
+
+				cmd_list->Dispatch(1, 1, 1);
 			}, ERGPassType::Compute, ERGPassFlags::ForceNoCull);
-
-		
 	}
 
 	void AutomaticExposurePass::OnResize(uint32 w, uint32 h)

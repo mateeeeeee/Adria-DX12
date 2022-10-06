@@ -157,18 +157,18 @@ namespace adria
 
 				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_Exposure).GetPointer(), GetShader(CS_Exposure).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::Exposure].GetAddressOf())));
-				//ID3D12VersionedRootSignatureDeserializer* drs = nullptr;
-				//D3D12CreateVersionedRootSignatureDeserializer(GetShader(PS_Add).GetPointer(), shader_map[PS_Add].GetLength(), IID_PPV_ARGS(&drs));
-				//D3D12_VERSIONED_ROOT_SIGNATURE_DESC const* desc = drs->GetUnconvertedRootSignatureDesc();
+
+				/*ID3D12VersionedRootSignatureDeserializer* drs = nullptr;
+				D3D12CreateVersionedRootSignatureDeserializer(GetShader(PS_Add).GetPointer(), shader_map[PS_Add].GetLength(), IID_PPV_ARGS(&drs));
+				D3D12_VERSIONED_ROOT_SIGNATURE_DESC const* desc = drs->GetUnconvertedRootSignatureDesc();*/
 			}
 
 			D3D12_FEATURE_DATA_ROOT_SIGNATURE feature_data{};
 			feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
 			if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &feature_data, sizeof(feature_data))))
 				feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
-			
+
 			{
-				{
 					std::array<CD3DX12_ROOT_PARAMETER1, 3> root_parameters{};
 					CD3DX12_ROOT_PARAMETER1 root_parameter{};
 
@@ -213,7 +213,7 @@ namespace adria
 					BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::AO])));
 				}
 
-				{
+			{
 					std::array<CD3DX12_ROOT_PARAMETER1, 3> root_parameters{};
 					CD3DX12_ROOT_PARAMETER1 root_parameter{};
 
@@ -238,7 +238,7 @@ namespace adria
 					BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::Blur])));
 				}
 
-				{
+			{
 					rs_map[ERootSignature::BloomExtract] = rs_map[ERootSignature::Blur];
 
 					std::array<CD3DX12_ROOT_PARAMETER1, 2> root_parameters{};
@@ -266,7 +266,7 @@ namespace adria
 					BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::BloomCombine])));
 				}
 
-				{
+			{
 					D3D12_FEATURE_DATA_ROOT_SIGNATURE feature_data = {};
 
 					feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
@@ -312,7 +312,7 @@ namespace adria
 					BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::GenerateMips])));
 				}
 
-				{
+			{
 					std::array<CD3DX12_ROOT_PARAMETER1, 6> root_parameters{};
 					root_parameters[0].InitAsConstantBufferView(0);
 					root_parameters[1].InitAsConstantBufferView(2);
@@ -348,7 +348,7 @@ namespace adria
 					BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::RayTracedShadows])));
 				}
 
-				{
+			{
 					std::array<CD3DX12_ROOT_PARAMETER1, 5> root_parameters{};
 					root_parameters[0].InitAsConstantBufferView(0);
 					root_parameters[1].InitAsConstantBufferView(10);
@@ -383,7 +383,7 @@ namespace adria
 					BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::RayTracedAmbientOcclusion])));
 				}
 
-				{
+			{
 					std::array<CD3DX12_ROOT_PARAMETER1, 7> root_parameters{};
 					root_parameters[0].InitAsConstantBufferView(0);
 					root_parameters[1].InitAsConstantBufferView(10);
@@ -438,7 +438,7 @@ namespace adria
 					BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::RayTracedReflections])));
 				}
 
-				{
+			{
 					std::array<CD3DX12_ROOT_PARAMETER1, 8> root_parameters{};
 					root_parameters[0].InitAsConstantBufferView(0);
 					root_parameters[1].InitAsConstantBufferView(2);
@@ -493,7 +493,6 @@ namespace adria
 					}
 					BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::PathTracing])));
 				}
-			}
 		}
 	}
 
