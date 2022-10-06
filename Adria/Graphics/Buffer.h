@@ -195,20 +195,20 @@ namespace adria
 			for (auto& uav : uavs) gfx->FreeOfflineDescriptor(uav, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		}
 
-		D3D12_CPU_DESCRIPTOR_HANDLE GetSubresource_SRV(size_t i = 0) const { return GetSubresource(SubresourceType_SRV, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE GetSubresource_UAV(size_t i = 0) const { return GetSubresource(SubresourceType_UAV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE GetSRV(size_t i = 0) const { return GetSubresource(SubresourceType_SRV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE GetUAV(size_t i = 0) const { return GetSubresource(SubresourceType_UAV, i); }
 
-		[[maybe_unused]] size_t CreateSubresource_SRV(BufferSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateSRV(BufferSubresourceDesc const* desc = nullptr)
 		{
 			BufferSubresourceDesc _desc = desc ? *desc : BufferSubresourceDesc{};
 			return CreateSubresource(SubresourceType_SRV, _desc, nullptr);
 		}
-		[[maybe_unused]] size_t CreateSubresource_UAV(ID3D12Resource* uav_counter = nullptr, BufferSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateUAV(ID3D12Resource* uav_counter = nullptr, BufferSubresourceDesc const* desc = nullptr)
 		{
 			BufferSubresourceDesc _desc = desc ? *desc : BufferSubresourceDesc{};
 			return CreateSubresource(SubresourceType_UAV, _desc, uav_counter);
 		}
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeSubresource_SRV(BufferSubresourceDesc const* desc = nullptr)
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeSRV(BufferSubresourceDesc const* desc = nullptr)
 		{
 			BufferSubresourceDesc _desc = desc ? *desc : BufferSubresourceDesc{};
 			size_t i = CreateSubresource(SubresourceType_SRV, _desc);
@@ -217,7 +217,7 @@ namespace adria
 			srvs.pop_back();
 			return srv;
 		}
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeSubresource_UAV(BufferSubresourceDesc const* desc = nullptr, ID3D12Resource* uav_counter = nullptr)
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeUAV(BufferSubresourceDesc const* desc = nullptr, ID3D12Resource* uav_counter = nullptr)
 		{
 			BufferSubresourceDesc _desc = desc ? *desc : BufferSubresourceDesc{};
 			size_t i = CreateSubresource(SubresourceType_UAV, _desc, uav_counter);

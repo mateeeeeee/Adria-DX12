@@ -399,6 +399,10 @@
                                     "DescriptorTable(SRV(t0, numDescriptors = 1), visibility=SHADER_VISIBILITY_ALL), " \
                                     "DescriptorTable(UAV(u0, numDescriptors = 1), visibility = SHADER_VISIBILITY_ALL)"
 
+#define Exposure_RS                 "RootConstants(num32BitConstants=3, b0), " \
+                                    "DescriptorTable(SRV(t0, numDescriptors = 1), visibility=SHADER_VISIBILITY_ALL), " \
+                                    "DescriptorTable(UAV(u0, numDescriptors = 2), visibility = SHADER_VISIBILITY_ALL)"
+
 
 
                                  

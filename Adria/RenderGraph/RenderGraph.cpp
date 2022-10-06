@@ -567,16 +567,16 @@ namespace adria
 			switch (type)
 			{
 			case ERGDescriptorType::RenderTarget:
-				view = texture->TakeSubresource_RTV(&view_desc);
+				view = texture->TakeRTV(&view_desc);
 				break;
 			case ERGDescriptorType::DepthStencil:
-				view = texture->TakeSubresource_DSV(&view_desc);
+				view = texture->TakeDSV(&view_desc);
 				break;
 			case ERGDescriptorType::ReadOnly:
-				view = texture->TakeSubresource_SRV(&view_desc);
+				view = texture->TakeSRV(&view_desc);
 				break;
 			case ERGDescriptorType::ReadWrite:
-				view = texture->TakeSubresource_UAV(&view_desc);
+				view = texture->TakeUAV(&view_desc);
 				break;
 			default:
 				ADRIA_ASSERT(false && "invalid resource view type for texture");
@@ -598,7 +598,7 @@ namespace adria
 			{
 			case ERGDescriptorType::ReadOnly:
 			{
-				view = buffer->TakeSubresource_SRV(&view_desc);
+				view = buffer->TakeSRV(&view_desc);
 				break;
 			}
 			case ERGDescriptorType::ReadWrite:
@@ -607,9 +607,9 @@ namespace adria
 				if (buffer_uav_counter_map.contains(rw_id))
 				{
 					RGBuffer* counter_buffer = GetRGBuffer(buffer_uav_counter_map[rw_id]);
-					view = buffer->TakeSubresource_UAV(&view_desc, counter_buffer->resource->GetNative());
+					view = buffer->TakeUAV(&view_desc, counter_buffer->resource->GetNative());
 				}
-				else view = buffer->TakeSubresource_UAV(&view_desc);
+				else view = buffer->TakeUAV(&view_desc);
 				break;
 			}
 			case ERGDescriptorType::RenderTarget:

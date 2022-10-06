@@ -12,8 +12,8 @@ struct FrameCBuffer
     row_major matrix prev_view_projection;
     float4 camera_position;
     float4 camera_forward;
-    float camera_near;
-    float camera_far;
+	float  camera_near;
+	float  camera_far;
     float2 screen_resolution;
     float2 mouse_normalized_coords;
 };

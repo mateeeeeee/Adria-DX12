@@ -111,6 +111,7 @@ namespace adria
 			case CS_GenerateMips:
 			case CS_BuildHistogram:
 			case CS_HistogramReduction:
+			case CS_Exposure:
 				return EShaderStage::CS;
 			case HS_OceanLOD:
 				return EShaderStage::HS;
@@ -292,6 +293,8 @@ namespace adria
 				return "Exposure/BuildHistogramCS.hlsl";
 			case CS_HistogramReduction:
 				return "Exposure/HistogramReductionCS.hlsl";
+			case CS_Exposure:
+				return "Exposure/ExposureCS.hlsl";
 			case LIB_Shadows:
 			case LIB_SoftShadows:
 				return "RayTracing/RayTracedShadows.hlsl";

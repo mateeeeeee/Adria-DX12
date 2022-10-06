@@ -99,6 +99,7 @@ namespace adria
 		LIB_PathTracing,
 		CS_BuildHistogram,
 		CS_HistogramReduction,
+		CS_Exposure,
 		EShader_Count
 	};
 
@@ -159,7 +160,8 @@ namespace adria
 		RayTracedReflections,
 		PathTracing,
 		BuildHistogram,
-		HistogramReduction
+		HistogramReduction,
+		Exposure
 	};
 
 	enum class EPipelineState : uint8
@@ -243,6 +245,7 @@ namespace adria
 		Solid_Wireframe,
 		BuildHistogram,
 		HistogramReduction,
+		Exposure,
         Unknown
 	};
 

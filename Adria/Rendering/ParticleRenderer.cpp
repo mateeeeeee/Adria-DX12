@@ -120,7 +120,7 @@ namespace adria
 		noise_desc.bind_flags = EBindFlag::ShaderResource;
 		noise_desc.initial_state = EResourceState::CopyDest;
 		random_texture = std::make_unique<Texture>(gfx, noise_desc, &initial_data);
-		random_texture->CreateSubresource_SRV();
+		random_texture->CreateSRV();
 
 		std::vector<uint32> indices(MAX_PARTICLES * 6);
 		uint32 base = 0;
@@ -341,7 +341,7 @@ namespace adria
 
 					descriptor_index = descriptor_allocator->Allocate();
 					descriptor = descriptor_allocator->GetHandle(descriptor_index);
-					device->CopyDescriptorsSimple(1, descriptor, random_texture->GetSubresource_SRV(),
+					device->CopyDescriptorsSimple(1, descriptor, random_texture->GetSRV(),
 						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 					cmd_list->SetComputeRootDescriptorTable(1, descriptor);
 

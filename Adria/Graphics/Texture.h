@@ -349,27 +349,27 @@ namespace adria
 			for (auto& dsv : dsvs) gfx->FreeOfflineDescriptor(dsv, D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 		}
 
-		[[maybe_unused]] size_t CreateSubresource_SRV(TextureSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateSRV(TextureSubresourceDesc const* desc = nullptr)
 		{
 			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
 			return CreateSubresource(SubresourceType_SRV, _desc);
 		}
-		[[maybe_unused]] size_t CreateSubresource_UAV(TextureSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateUAV(TextureSubresourceDesc const* desc = nullptr)
 		{
 			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
 			return CreateSubresource(SubresourceType_UAV, _desc);
 		}
-		[[maybe_unused]] size_t CreateSubresource_RTV(TextureSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateRTV(TextureSubresourceDesc const* desc = nullptr)
 		{
 			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
 			return CreateSubresource(SubresourceType_RTV, _desc);
 		}
-		[[maybe_unused]] size_t CreateSubresource_DSV(TextureSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateDSV(TextureSubresourceDesc const* desc = nullptr)
 		{
 			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
 			return CreateSubresource(SubresourceType_DSV, _desc);
 		}
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeSubresource_SRV(TextureSubresourceDesc const* desc = nullptr)
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeSRV(TextureSubresourceDesc const* desc = nullptr)
 		{
 			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
 			size_t i = CreateSubresource(SubresourceType_SRV, _desc);
@@ -378,7 +378,7 @@ namespace adria
 			srvs.pop_back();
 			return srv;
 		}
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeSubresource_UAV(TextureSubresourceDesc const* desc = nullptr)
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeUAV(TextureSubresourceDesc const* desc = nullptr)
 		{
 			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
 			size_t i = CreateSubresource(SubresourceType_UAV, _desc);
@@ -387,7 +387,7 @@ namespace adria
 			uavs.pop_back();
 			return uav;
 		}
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeSubresource_RTV(TextureSubresourceDesc const* desc = nullptr)
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeRTV(TextureSubresourceDesc const* desc = nullptr)
 		{
 			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
 			size_t i = CreateSubresource(SubresourceType_RTV, _desc);
@@ -396,7 +396,7 @@ namespace adria
 			rtvs.pop_back();
 			return rtv;
 		}
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeSubresource_DSV(TextureSubresourceDesc const* desc = nullptr)
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeDSV(TextureSubresourceDesc const* desc = nullptr)
 		{
 			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
 			size_t i = CreateSubresource(SubresourceType_DSV, _desc);
@@ -405,10 +405,10 @@ namespace adria
 			dsvs.pop_back();
 			return dsv;
 		}
-		D3D12_CPU_DESCRIPTOR_HANDLE GetSubresource_SRV(size_t i = 0) const { return GetSubresource(SubresourceType_SRV, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE GetSubresource_UAV(size_t i = 0) const { return GetSubresource(SubresourceType_UAV, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE GetSubresource_RTV(size_t i = 0) const { return GetSubresource(SubresourceType_RTV, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE GetSubresource_DSV(size_t i = 0) const { return GetSubresource(SubresourceType_DSV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE GetSRV(size_t i = 0) const { return GetSubresource(SubresourceType_SRV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE GetUAV(size_t i = 0) const { return GetSubresource(SubresourceType_UAV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE GetRTV(size_t i = 0) const { return GetSubresource(SubresourceType_RTV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE GetDSV(size_t i = 0) const { return GetSubresource(SubresourceType_DSV, i); }
 
 		uint32 GetMappedRowPitch() const { return mapped_rowpitch; }
 		D3D12_GPU_VIRTUAL_ADDRESS GetGPUAddress() const { return resource->GetGPUVirtualAddress(); }
@@ -826,6 +826,5 @@ namespace adria
 			}
 			return { .ptr = NULL };
 		}
-
 	};
 }

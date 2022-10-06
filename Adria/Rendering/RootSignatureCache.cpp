@@ -154,6 +154,9 @@ namespace adria
 
 				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_HistogramReduction).GetPointer(), GetShader(CS_HistogramReduction).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::HistogramReduction].GetAddressOf())));
+
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_Exposure).GetPointer(), GetShader(CS_Exposure).GetLength(),
+					IID_PPV_ARGS(rs_map[ERootSignature::Exposure].GetAddressOf())));
 				//ID3D12VersionedRootSignatureDeserializer* drs = nullptr;
 				//D3D12CreateVersionedRootSignatureDeserializer(GetShader(PS_Add).GetPointer(), shader_map[PS_Add].GetLength(), IID_PPV_ARGS(&drs));
 				//D3D12_VERSIONED_ROOT_SIGNATURE_DESC const* desc = drs->GetUnconvertedRootSignatureDesc();

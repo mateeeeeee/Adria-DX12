@@ -1,8 +1,3 @@
-static float ComputeEV100(float aperture, float shutterSpeed, float ISO)
-{
-	// https://en.wikipedia.org/wiki/Exposure_value
-	return log2((aperture * aperture / shutterSpeed) * (100.0 / ISO));
-}
 static float ComputeEV100(float avgLuminance)
 {
 	const float K = 12.5;
@@ -16,30 +11,6 @@ static float ComputeExposure(float EV100)
 	float maxLuminance = lensImperfectionExposureScale * pow(2.0, EV100);
 	return 1.0 / maxLuminance;
 }
-static float ComputeExposure(float aperture, float shutterSpeed, float ISO)
-{
-	float maxLuminance = (7800.0 / 65.0) * (aperture * aperture) / (shutterSpeed * ISO);
-	return 1.0 / maxLuminance;
-}
-static float GetMeteringWeight(float2 screenPos, float2 screenSize)
-{
-#if METERING_MODE_SPOT
-	const float screenDiagonal = 0.5f * (screenSize.x + screenSize.y);
-	const float radius = 0.075 * screenDiagonal;
-	const float2 center = screenSize * 0.5f;
-	float d = length(center - screenPos) - radius;
-	return 1.0 - saturate(d);
-#elif METERING_MODE_CENTER_WEIGHTED
-	const float screenDiagonal = 0.5f * (screenSize.x + screenSize.y);
-	const float2 center = screenSize * 0.5f;
-	//return 1.0 - saturate(pow(length(center - screenPos) * 2 / screenDiagonal, 0.5));
-	return smoothstep(1.0, 0.0, length(center - screenPos) / (max(screenSize.x, screenSize.y) * 0.5));
-#else //METERING_MODE_AVERAGE
-	return 1.0;
-#endif
-}
-
-
 
 #define GROUP_SIZE_X 16
 #define GROUP_SIZE_Y 16

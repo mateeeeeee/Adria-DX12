@@ -300,7 +300,7 @@ namespace adria
 		ldr_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 
 		final_texture = std::make_unique<Texture>(gfx, ldr_desc);
-		final_texture->CreateSubresource_SRV();
+		final_texture->CreateSRV();
 	}
 
 	void Renderer::GenerateIBLTextures()
@@ -358,7 +358,7 @@ namespace adria
 		env_desc.misc_flags = ETextureMiscFlag::TextureCube;
 		env_texture = std::make_unique<Texture>(gfx, env_desc);
 		env_texture->SetName("Env Map");
-		env_texture->CreateSubresource_SRV();
+		env_texture->CreateSRV();
 
 		// Compute pre-filtered specular environment map.
 		{
@@ -478,7 +478,7 @@ namespace adria
 			cmd_list->SetDescriptorHeaps(ARRAYSIZE(pp_heaps), pp_heaps);
 
 			device->CopyDescriptorsSimple(1,
-				descriptor_allocator->GetHandle(descriptor_index + 1), env_texture->GetSubresource_SRV(),
+				descriptor_allocator->GetHandle(descriptor_index + 1), env_texture->GetSRV(),
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 			cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetHandle(descriptor_index + 1));

@@ -51,7 +51,7 @@ namespace adria
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 				auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { context.GetReadOnlyTexture(data.gbuffer_normal_srv), context.GetReadOnlyTexture(data.depth_stencil_srv), ssao_random_texture->GetSubresource_SRV() };
+				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { context.GetReadOnlyTexture(data.gbuffer_normal_srv), context.GetReadOnlyTexture(data.depth_stencil_srv), ssao_random_texture->GetSRV() };
 				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor };
 				UINT src_range_sizes[] = { 1, 1, 1 };
 				UINT dst_range_sizes[] = { 3 };
@@ -99,7 +99,7 @@ namespace adria
 		noise_desc.bind_flags = EBindFlag::ShaderResource;
 
 		ssao_random_texture = std::make_unique<Texture>(gfx, noise_desc, &data);
-		ssao_random_texture->CreateSubresource_SRV();
+		ssao_random_texture->CreateSRV();
 		ssao_random_texture->GetNative()->SetName(L"SSAO Random Texture");
 	}
 

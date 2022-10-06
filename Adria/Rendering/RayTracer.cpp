@@ -66,8 +66,8 @@ namespace adria
 		accumulation_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::ShaderResource;
 		accumulation_desc.initial_state = EResourceState::UnorderedAccess;
 		accumulation_texture = std::make_unique<Texture>(gfx, accumulation_desc);
-		accumulation_texture->CreateSubresource_SRV();
-		accumulation_texture->CreateSubresource_UAV();
+		accumulation_texture->CreateSRV();
+		accumulation_texture->CreateUAV();
 
 #ifdef _DEBUG
 		TextureDesc debug_desc{};
@@ -79,14 +79,14 @@ namespace adria
 		debug_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 
 		rtao_debug_texture = std::make_unique<Texture>(gfx, debug_desc);
-		rtao_debug_texture->CreateSubresource_SRV();
+		rtao_debug_texture->CreateSRV();
 
 		rts_debug_texture = std::make_unique<Texture>(gfx, debug_desc);
-		rts_debug_texture->CreateSubresource_SRV();
+		rts_debug_texture->CreateSRV();
 
 		debug_desc.format = EFormat::R8G8B8A8_UNORM;
 		rtr_debug_texture = std::make_unique<Texture>(gfx, debug_desc);
-		rtr_debug_texture->CreateSubresource_SRV();
+		rtr_debug_texture->CreateSRV();
 #endif
 	}
 	void RayTracer::OnSceneInitialized()

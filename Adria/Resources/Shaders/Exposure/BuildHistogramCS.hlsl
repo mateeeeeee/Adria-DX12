@@ -33,7 +33,7 @@ void main(uint groupIndex : SV_GroupIndex, uint3 dispatchThreadID : SV_DispatchT
 
 		float luminance = clamp(Luminance(color), BuildHistogramCB.minLuminance, BuildHistogramCB.maxLuminance);
 		uint bin = GetHistogramBin(luminance, BuildHistogramCB.minLuminance, BuildHistogramCB.maxLuminance);
-		float weight = GetMeteringWeight(screenPos, float2(BuildHistogramCB.width, BuildHistogramCB.height));
+		float const weight = 1.0f;
 
 		InterlockedAdd(HistogramBins[bin], uint(weight * 1024.0));
 	}

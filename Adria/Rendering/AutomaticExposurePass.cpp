@@ -25,6 +25,7 @@ namespace adria
 		desc.format = EFormat::R16_FLOAT;
 
 		previous_ev100 = std::make_unique<Texture>(gfx, desc);
+		previous_ev100->CreateUAV();
 	}
 
 	void AutomaticExposurePass::AddPass(RenderGraph& rg, RGResourceName input)
@@ -178,17 +179,19 @@ namespace adria
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
-				//if (invalid_history)
-				//{
-				//	DescriptorCPU cpu_descriptor = previous_ev100->GetSubresource_UAV();
-				//	OffsetType descriptor_index = descriptor_allocator->Allocate();
-				//	DescriptorHandle gpu_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				//	device->CopyDescriptorsSimple(1, gpu_descriptor, cpu_descriptor, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				//
-				//	float32 clear_value[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-				//	cmd_list->ClearUnorderedAccessViewFloat(gpu_descriptor, cpu_descriptor, previous_ev100->GetNative(), clear_value, 0, nullptr);
-				//	invalid_history = false;
-				//}
+				if (invalid_history)
+				{
+					DescriptorCPU cpu_descriptor = previous_ev100->GetUAV();
+					OffsetType descriptor_index = descriptor_allocator->Allocate();
+					DescriptorHandle gpu_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+					device->CopyDescriptorsSimple(1, gpu_descriptor, cpu_descriptor, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+					float32 clear_value[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+					cmd_list->ClearUnorderedAccessViewFloat(gpu_descriptor, cpu_descriptor, previous_ev100->GetNative(), clear_value, 0, nullptr);
+					invalid_history = false;
+				}
+
+
 
 
 			}, ERGPassType::Compute, ERGPassFlags::ForceNoCull);
