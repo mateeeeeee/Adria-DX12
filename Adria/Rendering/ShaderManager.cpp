@@ -109,6 +109,8 @@ namespace adria
 			case CS_ParticleInitSortDispatchArgs:
 			case CS_Picker:
 			case CS_GenerateMips:
+			case CS_BuildHistogram:
+			case CS_HistogramReduction:
 				return EShaderStage::CS;
 			case HS_OceanLOD:
 				return EShaderStage::HS;
@@ -286,6 +288,10 @@ namespace adria
 				return "Particles/InitSortDispatchArgsCS.hlsl";
 			case CS_GenerateMips:
 				return "Misc/GenerateMipsCS.hlsl";
+			case CS_BuildHistogram:
+				return "Exposure/BuildHistogramCS.hlsl";
+			case CS_HistogramReduction:
+				return "Exposure/HistogramReductionCS.hlsl";
 			case LIB_Shadows:
 			case LIB_SoftShadows:
 				return "RayTracing/RayTracedShadows.hlsl";
@@ -349,8 +355,7 @@ namespace adria
 			dependent_files_map[shader].insert(output.dependent_files.begin(), output.dependent_files.end());
 			
 			shader_info.stage == EShaderStage::LIB ?
-				library_recompiled_event.Broadcast(shader) :
-				shader_recompiled_event.Broadcast(shader);
+				library_recompiled_event.Broadcast(shader) : shader_recompiled_event.Broadcast(shader);
 		}
 		void CompileAllShaders()
 		{

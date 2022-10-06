@@ -325,7 +325,7 @@ namespace adria
 					}
 				}
 
-				Descriptor displacement_handle = context.GetReadOnlyTexture(data.spectrum_srv);
+				DescriptorCPU displacement_handle = context.GetReadOnlyTexture(data.spectrum_srv);
 				if (tesselated)
 				{
 					cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::OceanLOD));

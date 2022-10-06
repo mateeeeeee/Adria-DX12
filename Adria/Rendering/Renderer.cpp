@@ -102,80 +102,73 @@ namespace adria
 			}
 		}
 
-		if (!renderer_settings.use_path_tracing)
+		if (renderer_settings.ibl)
 		{
-			if (renderer_settings.ibl)
-			{
-				if (!ibl_generated) GenerateIBLTextures();
-				render_graph.ImportTexture(RG_RES_NAME(EnvTexture), env_texture.get());
-				render_graph.ImportTexture(RG_RES_NAME(IrmapTexture), irmap_texture.get());
-				render_graph.ImportTexture(RG_RES_NAME(BrdfTexture), brdf_lut_texture.get());
-			}
-
-			gbuffer_pass.AddPass(render_graph, profiler_settings.profile_gbuffer_pass);
-			decals_pass.AddPass(render_graph);
-			switch (renderer_settings.postprocessor.ambient_occlusion)
-			{
-			case EAmbientOcclusion::SSAO:
-			{
-				ssao_pass.AddPass(render_graph);
-				break;
-			}
-			case EAmbientOcclusion::HBAO:
-			{
-				hbao_pass.AddPass(render_graph);
-				break;
-			}
-			case EAmbientOcclusion::RTAO:
-			{
-				ray_tracer.AddRayTracedAmbientOcclusionPass(render_graph);
-				break;
-			}
-			case EAmbientOcclusion::None:
-			default:
-				break;
-			}
-			ambient_pass.AddPass(render_graph);
-
-			auto light_entities = reg.view<Light>();
-			for (entt::entity light_entity : light_entities)
-			{
-				auto const& light = light_entities.get<Light>(light_entity);
-				size_t light_id = entt::to_integral(light_entity);
-				if (!light.active) continue;
-				if ((renderer_settings.use_tiled_deferred || renderer_settings.use_clustered_deferred) && !light.casts_shadows) continue;  //tiled/clustered deferred takes care of noncasting lights
-
-				if (light.casts_shadows) shadow_pass.AddPass(render_graph, light, light_id);
-				else if (light.ray_traced_shadows) ray_tracer.AddRayTracedShadowsPass(render_graph, light, light_id);
-
-				lighting_pass.AddPass(render_graph, light, light_id);
-			}
-
-			if (renderer_settings.use_tiled_deferred)
-			{
-				tiled_lighting_pass.AddPass(render_graph);
-				if (renderer_settings.visualize_tiled)  add_textures_pass.AddPass(render_graph, RG_RES_NAME(HDR_RenderTarget), RG_RES_NAME(TiledTarget), RG_RES_NAME(TiledDebugTarget), EBlendMode::AlphaBlend);
-				else copy_to_texture_pass.AddPass(render_graph, RG_RES_NAME(HDR_RenderTarget), RG_RES_NAME(TiledTarget), EBlendMode::AdditiveBlend);
-			}
-			else if (renderer_settings.use_clustered_deferred)
-			{
-				clustered_lighting_pass.AddPass(render_graph, true);
-			}
-
-			aabb_pass.AddPass(render_graph);
-			ocean_renderer.UpdateOceanColor(renderer_settings.ocean_color);
-			ocean_renderer.AddPasses(render_graph, renderer_settings.recreate_initial_spectrum,
-				renderer_settings.ocean_tesselation, renderer_settings.ocean_wireframe);
-			sky_pass.AddPass(render_graph, renderer_settings.sky_type);
-			picking_pass.AddPass(render_graph);
-			particle_renderer.AddPasses(render_graph);
-			ray_tracer.AddRayTracedReflectionsPass(render_graph, skybox_handle);
-			postprocessor.AddPasses(render_graph, renderer_settings.postprocessor);
+			if (!ibl_generated) GenerateIBLTextures();
+			render_graph.ImportTexture(RG_RES_NAME(EnvTexture), env_texture.get());
+			render_graph.ImportTexture(RG_RES_NAME(IrmapTexture), irmap_texture.get());
+			render_graph.ImportTexture(RG_RES_NAME(BrdfTexture), brdf_lut_texture.get());
 		}
-		else
+
+		gbuffer_pass.AddPass(render_graph, profiler_settings.profile_gbuffer_pass);
+		decals_pass.AddPass(render_graph);
+		switch (renderer_settings.postprocessor.ambient_occlusion)
 		{
-			ray_tracer.AddPathTracingPass(render_graph, skybox_handle);
+		case EAmbientOcclusion::SSAO:
+		{
+			ssao_pass.AddPass(render_graph);
+			break;
 		}
+		case EAmbientOcclusion::HBAO:
+		{
+			hbao_pass.AddPass(render_graph);
+			break;
+		}
+		case EAmbientOcclusion::RTAO:
+		{
+			ray_tracer.AddRayTracedAmbientOcclusionPass(render_graph);
+			break;
+		}
+		case EAmbientOcclusion::None:
+		default:
+			break;
+		}
+		ambient_pass.AddPass(render_graph);
+
+		auto light_entities = reg.view<Light>();
+		for (entt::entity light_entity : light_entities)
+		{
+			auto const& light = light_entities.get<Light>(light_entity);
+			size_t light_id = entt::to_integral(light_entity);
+			if (!light.active) continue;
+			if ((renderer_settings.use_tiled_deferred || renderer_settings.use_clustered_deferred) && !light.casts_shadows) continue;  //tiled/clustered deferred takes care of noncasting lights
+
+			if (light.casts_shadows) shadow_pass.AddPass(render_graph, light, light_id);
+			else if (light.ray_traced_shadows) ray_tracer.AddRayTracedShadowsPass(render_graph, light, light_id);
+
+			lighting_pass.AddPass(render_graph, light, light_id);
+		}
+
+		if (renderer_settings.use_tiled_deferred)
+		{
+			tiled_lighting_pass.AddPass(render_graph);
+			if (renderer_settings.visualize_tiled)  add_textures_pass.AddPass(render_graph, RG_RES_NAME(HDR_RenderTarget), RG_RES_NAME(TiledTarget), RG_RES_NAME(TiledDebugTarget), EBlendMode::AlphaBlend);
+			else copy_to_texture_pass.AddPass(render_graph, RG_RES_NAME(HDR_RenderTarget), RG_RES_NAME(TiledTarget), EBlendMode::AdditiveBlend);
+		}
+		else if (renderer_settings.use_clustered_deferred)
+		{
+			clustered_lighting_pass.AddPass(render_graph, true);
+		}
+
+		aabb_pass.AddPass(render_graph);
+		ocean_renderer.UpdateOceanColor(renderer_settings.ocean_color);
+		ocean_renderer.AddPasses(render_graph, renderer_settings.recreate_initial_spectrum,
+			renderer_settings.ocean_tesselation, renderer_settings.ocean_wireframe);
+		sky_pass.AddPass(render_graph, renderer_settings.sky_type);
+		picking_pass.AddPass(render_graph);
+		particle_renderer.AddPasses(render_graph);
+		ray_tracer.AddRayTracedReflectionsPass(render_graph, skybox_handle);
+		postprocessor.AddPasses(render_graph, renderer_settings.postprocessor);
 		
 		if (renderer_settings.gui_visible)
 		{
@@ -560,30 +553,6 @@ namespace adria
 	void Renderer::UpdatePersistentConstantBuffers(float32 dt)
 	{
 		static FrameCBuffer frame_cbuf_data{};
-
-		auto CompareMatrices = [](XMMATRIX vp, XMMATRIX prev_vp)
-		{
-			using namespace DirectX;
-			XMVECTOR x1 = vp.r[0];
-			XMVECTOR x2 = vp.r[1];
-			XMVECTOR x3 = vp.r[2];
-			XMVECTOR x4 = vp.r[3];
-
-			XMVECTOR y1 = prev_vp.r[0];
-			XMVECTOR y2 = prev_vp.r[1];
-			XMVECTOR y3 = prev_vp.r[2];
-			XMVECTOR y4 = prev_vp.r[3];
-
-			return (XMVector4Equal(x1, y1)
-				 && XMVector4Equal(x2, y2)
-				 && XMVector4Equal(x3, y3)
-				 && XMVector4Equal(x4, y4));
-		};
-		if (!CompareMatrices(camera->ViewProj(), frame_cbuf_data.view_projection))
-		{
-			ray_tracer.ResetPathTracer();
-		}
-
 		//frame
 		{
 			frame_cbuf_data.global_ambient = XMVectorSet(renderer_settings.ambient_color[0], renderer_settings.ambient_color[1], renderer_settings.ambient_color[2], 1);
@@ -604,10 +573,7 @@ namespace adria
 
 			frame_cbuffer.Update(frame_cbuf_data, backbuffer_index);
 			frame_cbuf_data.prev_view_projection = camera->ViewProj();
-
-			
 		}
-		
 		//postprocess
 		{
 			PostprocessSettings const& settings = renderer_settings.postprocessor;
@@ -631,7 +597,6 @@ namespace adria
 			postprocess_cbuf_data.hbao_radius_to_screen = settings.hbao_radius * 0.5f * float32(height) / (tanf(camera->Fov() * 0.5f) * 2.0f);
 			postprocess_cbuf_data.hbao_power = settings.hbao_power;
 			postprocess_cbuffer.Update(postprocess_cbuf_data, backbuffer_index);
-
 		}
 		
 		//weather

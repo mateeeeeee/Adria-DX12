@@ -72,7 +72,7 @@ namespace adria
 	};
 	using RGTexture = TypedRenderGraphResource<ERGResourceType::Texture>;
 	using RGBuffer = TypedRenderGraphResource<ERGResourceType::Buffer>;
-	using Descriptor = D3D12_CPU_DESCRIPTOR_HANDLE;
+	using DescriptorCPU = D3D12_CPU_DESCRIPTOR_HANDLE;
 	using CommandList = ID3D12GraphicsCommandList4;
 
 	class RenderGraphContext
@@ -97,13 +97,13 @@ namespace adria
 		Buffer  const& GetIndexBuffer(RGBufferIndexId res_id) const;
 		Buffer  const& GetConstantBuffer(RGBufferConstantId res_id) const;
 
-		Descriptor GetRenderTarget(RGRenderTargetId res_id) const;
-		Descriptor GetDepthStencil(RGDepthStencilId res_id) const;
-		Descriptor GetReadOnlyTexture(RGTextureReadOnlyId res_id) const;
-		Descriptor GetReadWriteTexture(RGTextureReadWriteId res_id) const;
+		DescriptorCPU GetRenderTarget(RGRenderTargetId res_id) const;
+		DescriptorCPU GetDepthStencil(RGDepthStencilId res_id) const;
+		DescriptorCPU GetReadOnlyTexture(RGTextureReadOnlyId res_id) const;
+		DescriptorCPU GetReadWriteTexture(RGTextureReadWriteId res_id) const;
 
-		Descriptor GetReadOnlyBuffer(RGBufferReadOnlyId res_id) const;
-		Descriptor GetReadWriteBuffer(RGBufferReadWriteId res_id) const;
+		DescriptorCPU GetReadOnlyBuffer(RGBufferReadOnlyId res_id) const;
+		DescriptorCPU GetReadWriteBuffer(RGBufferReadWriteId res_id) const;
 
 		DynamicAllocation& GetAllocation(RGAllocationId);
 	private:

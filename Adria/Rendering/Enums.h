@@ -97,6 +97,8 @@ namespace adria
 		LIB_AmbientOcclusion,
 		LIB_Reflections,
 		LIB_PathTracing,
+		CS_BuildHistogram,
+		CS_HistogramReduction,
 		EShader_Count
 	};
 
@@ -155,7 +157,9 @@ namespace adria
 		RayTracedShadows,
 		RayTracedAmbientOcclusion,
 		RayTracedReflections,
-		PathTracing
+		PathTracing,
+		BuildHistogram,
+		HistogramReduction
 	};
 
 	enum class EPipelineState : uint8
@@ -237,6 +241,8 @@ namespace adria
 		Decals,
 		Decals_ModifyNormals,
 		Solid_Wireframe,
+		BuildHistogram,
+		HistogramReduction,
         Unknown
 	};
 

@@ -483,7 +483,6 @@ namespace adria
 				compute_pso_desc.CS = CS_BloomCombine;
 				compute_pso_map[EPipelineState::BloomCombine] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-
 				compute_pso_desc.root_signature = ERootSignature::GenerateMips;
 				compute_pso_desc.CS = CS_GenerateMips;
 				compute_pso_map[EPipelineState::GenerateMips] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
@@ -518,6 +517,14 @@ namespace adria
 				compute_pso_desc.root_signature = ERootSignature::Spectrum;
 				compute_pso_desc.CS = CS_Spectrum;
 				compute_pso_map[EPipelineState::Spectrum] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.root_signature = ERootSignature::BuildHistogram;
+				compute_pso_desc.CS = CS_BuildHistogram;
+				compute_pso_map[EPipelineState::BuildHistogram] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.root_signature = ERootSignature::HistogramReduction;
+				compute_pso_desc.CS = CS_HistogramReduction;
+				compute_pso_map[EPipelineState::HistogramReduction] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 			}
 		}
 	}

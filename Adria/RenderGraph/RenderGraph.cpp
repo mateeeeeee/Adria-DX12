@@ -563,7 +563,7 @@ namespace adria
 		for (auto const& [view_desc, type] : view_descs)
 		{
 			Texture* texture = GetTexture(res_id);
-			Descriptor view;
+			DescriptorCPU view;
 			switch (type)
 			{
 			case ERGDescriptorType::RenderTarget:
@@ -593,7 +593,7 @@ namespace adria
 			auto const& [view_desc, type] = view_descs[i];
 			Buffer* buffer = GetBuffer(res_id);
 			
-			Descriptor view;
+			DescriptorCPU view;
 			switch (type)
 			{
 			case ERGDescriptorType::ReadOnly:
@@ -918,42 +918,42 @@ namespace adria
 		return *GetBuffer(RGBufferId(res_id));
 	}
 
-	Descriptor RenderGraph::GetRenderTarget(RGRenderTargetId res_id) const
+	DescriptorCPU RenderGraph::GetRenderTarget(RGRenderTargetId res_id) const
 	{
 		RGTextureId tex_id = res_id.GetResourceId();
 		auto const& views = texture_view_map[tex_id];
 		return views[res_id.GetViewId()].first;
 	}
 
-	Descriptor RenderGraph::GetDepthStencil(RGDepthStencilId res_id) const
+	DescriptorCPU RenderGraph::GetDepthStencil(RGDepthStencilId res_id) const
 	{
 		RGTextureId tex_id = res_id.GetResourceId();
 		auto const& views = texture_view_map[tex_id];
 		return views[res_id.GetViewId()].first;
 	}
 
-	Descriptor RenderGraph::GetReadOnlyTexture(RGTextureReadOnlyId res_id) const
+	DescriptorCPU RenderGraph::GetReadOnlyTexture(RGTextureReadOnlyId res_id) const
 	{
 		RGTextureId tex_id = res_id.GetResourceId();
 		auto const& views = texture_view_map[tex_id];
 		return views[res_id.GetViewId()].first;
 	}
 
-	Descriptor RenderGraph::GetReadWriteTexture(RGTextureReadWriteId res_id) const
+	DescriptorCPU RenderGraph::GetReadWriteTexture(RGTextureReadWriteId res_id) const
 	{
 		RGTextureId tex_id = res_id.GetResourceId();
 		auto const& views = texture_view_map[tex_id];
 		return views[res_id.GetViewId()].first;
 	}
 
-	Descriptor RenderGraph::GetReadOnlyBuffer(RGBufferReadOnlyId res_id) const
+	DescriptorCPU RenderGraph::GetReadOnlyBuffer(RGBufferReadOnlyId res_id) const
 	{
 		RGBufferId buf_id = res_id.GetResourceId();
 		auto const& views = buffer_view_map[buf_id];
 		return views[res_id.GetViewId()].first;
 	}
 
-	Descriptor RenderGraph::GetReadWriteBuffer(RGBufferReadWriteId res_id) const
+	DescriptorCPU RenderGraph::GetReadWriteBuffer(RGBufferReadWriteId res_id) const
 	{
 		RGBufferId buf_id = res_id.GetResourceId();
 		auto const& views = buffer_view_map[buf_id];

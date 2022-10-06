@@ -91,7 +91,7 @@ namespace adria
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
 
-				Descriptor cpu_descriptor = context.GetReadOnlyTexture(data.src_texture);
+				DescriptorCPU cpu_descriptor = context.GetReadOnlyTexture(data.src_texture);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));

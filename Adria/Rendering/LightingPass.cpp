@@ -109,7 +109,7 @@ namespace adria
 				}
 
 				{
-					Descriptor shadow_cpu_handles[] =
+					DescriptorCPU shadow_cpu_handles[] =
 					{
 						global_data.null_srv_texture2d,
 						global_data.null_srv_texturecube,
@@ -119,13 +119,13 @@ namespace adria
 
 					if (light.ray_traced_shadows)
 					{
-						Descriptor ray_traced_shadows = context.GetReadOnlyTexture(data.ray_traced_shadows);
+						DescriptorCPU ray_traced_shadows = context.GetReadOnlyTexture(data.ray_traced_shadows);
 						shadow_cpu_handles[3] = ray_traced_shadows;
 					}
 					else if (light.casts_shadows)
 					{
 						ADRIA_ASSERT(data.shadow_map.IsValid());
-						Descriptor shadow_map = context.GetReadOnlyTexture(data.shadow_map);
+						DescriptorCPU shadow_map = context.GetReadOnlyTexture(data.shadow_map);
 						switch (light.type)
 						{
 						case ELightType::Directional:
@@ -173,7 +173,7 @@ namespace adria
 					if (light.casts_shadows) cmd_list->SetGraphicsRootConstantBufferView(2, context.GetAllocation(data.shadow_alloc).gpu_address);
 					cmd_list->SetGraphicsRootConstantBufferView(3, global_data.postprocess_cbuffer_address);
 
-					Descriptor cpu_handles[] = { context.GetReadOnlyTexture(data.depth), {} };
+					DescriptorCPU cpu_handles[] = { context.GetReadOnlyTexture(data.depth), {} };
 					uint32 src_range_sizes[] = { 1,1 };
 
 					OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));

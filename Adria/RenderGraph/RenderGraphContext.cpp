@@ -63,32 +63,32 @@ namespace adria
 		return rg.GetConstantBuffer(res_id);
 	}
 
-	Descriptor RenderGraphContext::GetRenderTarget(RGRenderTargetId res_id) const
+	DescriptorCPU RenderGraphContext::GetRenderTarget(RGRenderTargetId res_id) const
 	{
 		return rg.GetRenderTarget(res_id);
 	}
 
-	Descriptor RenderGraphContext::GetDepthStencil(RGDepthStencilId res_id) const
+	DescriptorCPU RenderGraphContext::GetDepthStencil(RGDepthStencilId res_id) const
 	{
 		return rg.GetDepthStencil(res_id);
 	}
 
-	Descriptor RenderGraphContext::GetReadOnlyTexture(RGTextureReadOnlyId res_id) const
+	DescriptorCPU RenderGraphContext::GetReadOnlyTexture(RGTextureReadOnlyId res_id) const
 	{
 		return rg.GetReadOnlyTexture(res_id);
 	}
 
-	Descriptor RenderGraphContext::GetReadWriteTexture(RGTextureReadWriteId res_id) const
+	DescriptorCPU RenderGraphContext::GetReadWriteTexture(RGTextureReadWriteId res_id) const
 	{
 		return rg.GetReadWriteTexture(res_id);
 	}
 
-	Descriptor RenderGraphContext::GetReadOnlyBuffer(RGBufferReadOnlyId res_id) const
+	DescriptorCPU RenderGraphContext::GetReadOnlyBuffer(RGBufferReadOnlyId res_id) const
 	{
 		return rg.GetReadOnlyBuffer(res_id);
 	}
 
-	Descriptor RenderGraphContext::GetReadWriteBuffer(RGBufferReadWriteId res_id) const
+	DescriptorCPU RenderGraphContext::GetReadWriteBuffer(RGBufferReadWriteId res_id) const
 	{
 		return rg.GetReadWriteBuffer(res_id);
 	}

@@ -634,8 +634,8 @@ namespace adria
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
 				auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				Descriptor src_ranges1[] = { ctx.GetReadOnlyBuffer(data.particle_bufferA), ctx.GetReadOnlyBuffer(data.vs_positions), ctx.GetReadOnlyBuffer(data.alive_index) };
-				Descriptor dst_ranges1[] = { descriptor };
+				DescriptorCPU src_ranges1[] = { ctx.GetReadOnlyBuffer(data.particle_bufferA), ctx.GetReadOnlyBuffer(data.vs_positions), ctx.GetReadOnlyBuffer(data.alive_index) };
+				DescriptorCPU dst_ranges1[] = { descriptor };
 				uint32 src_range_sizes1[] = { 1, 1, 1 };
 				uint32 dst_range_sizes1[] = { 3 };
 				device->CopyDescriptors(ARRAYSIZE(dst_ranges1), dst_ranges1, dst_range_sizes1, ARRAYSIZE(src_ranges1), src_ranges1, src_range_sizes1,
@@ -644,10 +644,10 @@ namespace adria
 
 				descriptor_index = descriptor_allocator->AllocateRange(2);
 				descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				Descriptor particle_texture = texture_manager.CpuDescriptorHandle(emitter_params.particle_texture);
-				Descriptor depth_texture = ctx.GetReadOnlyTexture(data.depth);
-				Descriptor src_ranges2[] = { particle_texture, depth_texture };
-				Descriptor dst_ranges2[] = { descriptor };
+				DescriptorCPU particle_texture = texture_manager.CpuDescriptorHandle(emitter_params.particle_texture);
+				DescriptorCPU depth_texture = ctx.GetReadOnlyTexture(data.depth);
+				DescriptorCPU src_ranges2[] = { particle_texture, depth_texture };
+				DescriptorCPU dst_ranges2[] = { descriptor };
 				uint32 src_range_sizes2[] = { 1, 1 };
 				uint32 dst_range_sizes2[] = { 2 };
 				device->CopyDescriptors(ARRAYSIZE(dst_ranges2), dst_ranges2, dst_range_sizes2, ARRAYSIZE(src_ranges2), src_ranges2, src_range_sizes2,

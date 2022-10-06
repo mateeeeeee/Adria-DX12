@@ -53,12 +53,9 @@ namespace adria
 		{
 			pBytecode = const_cast<void*>(pShaderBytecode);
 		}
-
 		virtual ~ReflectionBlob() { /*non owning blob -> empty destructor*/ }
-
 		virtual LPVOID STDMETHODCALLTYPE GetBufferPointer(void) override { return pBytecode; }
 		virtual SIZE_T STDMETHODCALLTYPE GetBufferSize(void) override { return bytecodeSize; }
-
 		virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, _COM_Outptr_ void __RPC_FAR* __RPC_FAR* ppv) override
 		{
 			if (ppv == NULL) return E_POINTER;
@@ -76,9 +73,7 @@ namespace adria
 			return S_OK;
 
 		}
-
 		virtual ULONG STDMETHODCALLTYPE AddRef(void) override { return 1; }
-
 		virtual ULONG STDMETHODCALLTYPE Release(void) override { return 1; }
 	private:
 		LPVOID pBytecode = nullptr;
@@ -127,27 +122,27 @@ namespace adria
 			switch (input.stage)
 			{
 			case EShaderStage::VS:
-				p_target = L"vs_6_0";
+				p_target = L"vs_6_6";
 				entry_point = L"vs_main";
 				break;
 			case EShaderStage::PS:
-				p_target = L"ps_6_0";
+				p_target = L"ps_6_6";
 				entry_point = L"ps_main";
 				break;
 			case EShaderStage::CS:
-				p_target = L"cs_6_0";
+				p_target = L"cs_6_6";
 				entry_point = L"cs_main";
 				break;
 			case EShaderStage::GS:
-				p_target = L"gs_6_0";
+				p_target = L"gs_6_6";
 				entry_point = L"gs_main";
 				break;
 			case EShaderStage::HS:
-				p_target = L"hs_6_0";
+				p_target = L"hs_6_6";
 				entry_point = L"hs_main";
 				break;
 			case EShaderStage::DS:
-				p_target = L"ds_6_0";
+				p_target = L"ds_6_6";
 				entry_point = L"ds_main";
 				break;
 			case EShaderStage::LIB:

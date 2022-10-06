@@ -17,7 +17,6 @@ namespace adria
 		}
 		void CreateAllRootSignatures(ID3D12Device* device)
 		{
-			//HLSL
 			{
 				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Skybox).GetPointer(), GetShader(PS_Skybox).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::Skybox].GetAddressOf())));
@@ -150,6 +149,11 @@ namespace adria
 				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_ParticleSort512).GetPointer(), GetShader(CS_ParticleSort512).GetLength(),
 					IID_PPV_ARGS(rs_map[ERootSignature::Particles_Sort].GetAddressOf())));
 
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_BuildHistogram).GetPointer(), GetShader(CS_BuildHistogram).GetLength(),
+					IID_PPV_ARGS(rs_map[ERootSignature::BuildHistogram].GetAddressOf())));
+
+				BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_HistogramReduction).GetPointer(), GetShader(CS_HistogramReduction).GetLength(),
+					IID_PPV_ARGS(rs_map[ERootSignature::HistogramReduction].GetAddressOf())));
 				//ID3D12VersionedRootSignatureDeserializer* drs = nullptr;
 				//D3D12CreateVersionedRootSignatureDeserializer(GetShader(PS_Add).GetPointer(), shader_map[PS_Add].GetLength(), IID_PPV_ARGS(&drs));
 				//D3D12_VERSIONED_ROOT_SIGNATURE_DESC const* desc = drs->GetUnconvertedRootSignatureDesc();
@@ -159,9 +163,8 @@ namespace adria
 			feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
 			if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &feature_data, sizeof(feature_data))))
 				feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
-			//C++
+			
 			{
-				//ao
 				{
 					std::array<CD3DX12_ROOT_PARAMETER1, 3> root_parameters{};
 					CD3DX12_ROOT_PARAMETER1 root_parameter{};
@@ -207,7 +210,6 @@ namespace adria
 					BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::AO])));
 				}
 
-				//blur
 				{
 					std::array<CD3DX12_ROOT_PARAMETER1, 3> root_parameters{};
 					CD3DX12_ROOT_PARAMETER1 root_parameter{};
@@ -233,7 +235,6 @@ namespace adria
 					BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::Blur])));
 				}
 
-				//bloom 
 				{
 					rs_map[ERootSignature::BloomExtract] = rs_map[ERootSignature::Blur];
 
@@ -262,7 +263,6 @@ namespace adria
 					BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::BloomCombine])));
 				}
 
-				//mips
 				{
 					D3D12_FEATURE_DATA_ROOT_SIGNATURE feature_data = {};
 
@@ -309,7 +309,6 @@ namespace adria
 					BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::GenerateMips])));
 				}
 
-				//RTS
 				{
 					std::array<CD3DX12_ROOT_PARAMETER1, 6> root_parameters{};
 					root_parameters[0].InitAsConstantBufferView(0);
@@ -346,7 +345,6 @@ namespace adria
 					BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::RayTracedShadows])));
 				}
 
-				//RTAO
 				{
 					std::array<CD3DX12_ROOT_PARAMETER1, 5> root_parameters{};
 					root_parameters[0].InitAsConstantBufferView(0);
@@ -382,7 +380,6 @@ namespace adria
 					BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::RayTracedAmbientOcclusion])));
 				}
 
-				//RTR
 				{
 					std::array<CD3DX12_ROOT_PARAMETER1, 7> root_parameters{};
 					root_parameters[0].InitAsConstantBufferView(0);
@@ -438,7 +435,6 @@ namespace adria
 					BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::RayTracedReflections])));
 				}
 
-				//Path Tracing
 				{
 					std::array<CD3DX12_ROOT_PARAMETER1, 8> root_parameters{};
 					root_parameters[0].InitAsConstantBufferView(0);

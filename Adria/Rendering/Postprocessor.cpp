@@ -16,7 +16,7 @@ namespace adria
 	Postprocessor::Postprocessor(entt::registry& reg, TextureManager& texture_manager, uint32 width, uint32 height)
 		: reg(reg), texture_manager(texture_manager), width(width), height(height),
 		  blur_pass(width, height), copy_to_texture_pass(width, height), generate_mips_pass(width, height),
-		  add_textures_pass(width, height)
+		  add_textures_pass(width, height), automatic_exposure_pass(width, height)
 	{}
 
 	void Postprocessor::AddPasses(RenderGraph& rg, PostprocessSettings const& _settings)
@@ -27,6 +27,11 @@ namespace adria
 
 		AddCopyHDRPass(rg);
 		final_resource = RG_RES_NAME(PostprocessMain);
+
+		if (true || settings.automatic_exposure)
+		{
+			automatic_exposure_pass.AddPass(rg, final_resource);
+		}
 
 		for (entt::entity light : lights)
 		{
@@ -171,6 +176,8 @@ namespace adria
 		command_signature_desc.pArgumentDescs = args;
 		command_signature_desc.ByteStride = sizeof(D3D12_DRAW_ARGUMENTS);
 		BREAK_IF_FAILED(gfx->GetDevice()->CreateCommandSignature(&command_signature_desc, nullptr, IID_PPV_ARGS(&bokeh_command_signature)));
+
+		automatic_exposure_pass.CreateResources(gfx);
 	}
 
 	RGResourceName Postprocessor::GetFinalResource() const

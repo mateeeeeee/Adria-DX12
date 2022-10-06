@@ -178,12 +178,12 @@ namespace adria
 		Buffer const& GetIndexBuffer(RGBufferIndexId) const;
 		Buffer const& GetConstantBuffer(RGBufferConstantId) const;
 
-		Descriptor GetRenderTarget(RGRenderTargetId) const;
-		Descriptor GetDepthStencil(RGDepthStencilId) const;
-		Descriptor GetReadOnlyTexture(RGTextureReadOnlyId) const;
-		Descriptor GetReadWriteTexture(RGTextureReadWriteId) const;
-		Descriptor GetReadOnlyBuffer(RGBufferReadOnlyId) const;
-		Descriptor GetReadWriteBuffer(RGBufferReadWriteId) const;
+		DescriptorCPU GetRenderTarget(RGRenderTargetId) const;
+		DescriptorCPU GetDepthStencil(RGDepthStencilId) const;
+		DescriptorCPU GetReadOnlyTexture(RGTextureReadOnlyId) const;
+		DescriptorCPU GetReadWriteTexture(RGTextureReadWriteId) const;
+		DescriptorCPU GetReadOnlyBuffer(RGBufferReadOnlyId) const;
+		DescriptorCPU GetReadWriteBuffer(RGBufferReadWriteId) const;
 
 		DynamicAllocation& GetAllocation(RGAllocationId);
 		Texture* GetTexture(RGTextureId) const;

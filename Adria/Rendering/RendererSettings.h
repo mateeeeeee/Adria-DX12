@@ -61,6 +61,8 @@ namespace adria
 
 		bool motion_blur = false;
 		float32 velocity_buffer_scale = 64.0f;
+
+		bool automatic_exposure = false;
 	};
 
 	struct RendererSettings

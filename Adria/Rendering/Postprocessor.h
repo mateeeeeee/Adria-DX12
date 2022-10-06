@@ -8,6 +8,7 @@
 #include "CopyToTexturePass.h"
 #include "AddTexturesPass.h"
 #include "GenerateMipsPass.h"
+#include "AutomaticExposurePass.h"
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
 #include "entt/entity/entity.hpp"
@@ -62,6 +63,7 @@ namespace adria
 		CopyToTexturePass copy_to_texture_pass;
 		AddTexturesPass add_textures_pass;
 		GenerateMipsPass generate_mips_pass;
+		AutomaticExposurePass automatic_exposure_pass;
 	private:
 		void AddCopyHDRPass(RenderGraph& rg);
 		void AddVelocityBufferPass(RenderGraph& rg);

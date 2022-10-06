@@ -1,0 +1,3 @@
+C:/Users/mateb/OneDrive/Desktop/Adria/Utilities/dxc/include/dxc/Tracing/out/build/x64-Debug/CMakeFiles/edit_cache.dir
+C:/Users/mateb/OneDrive/Desktop/Adria/Utilities/dxc/include/dxc/Tracing/out/build/x64-Debug/CMakeFiles/DxcEtw.dir
+C:/Users/mateb/OneDrive/Desktop/Adria/Utilities/dxc/include/dxc/Tracing/out/build/x64-Debug/CMakeFiles/rebuild_cache.dir

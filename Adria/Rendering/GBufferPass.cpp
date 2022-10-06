@@ -47,8 +47,6 @@ namespace adria
 			},
 			[=](RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
-				//SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(gpu_profiler, cmd_list, EProfilerBlock::GBufferPass, profile_pass);
-
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
