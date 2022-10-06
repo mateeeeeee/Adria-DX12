@@ -14,7 +14,7 @@ namespace adria
 	public:
 		AutomaticExposurePass(uint32 w, uint32 h);
 		void CreateResources(GraphicsDevice* gfx);
-		void AddPass(RenderGraph& rg, RGResourceName input);
+		void AddPasses(RenderGraph& rg, RGResourceName input);
 		void OnResize(uint32 w, uint32 h);
 	private:
 		uint32 width, height;

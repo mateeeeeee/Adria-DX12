@@ -28,7 +28,7 @@ namespace adria
 		previous_ev100->CreateUAV();
 	}
 
-	void AutomaticExposurePass::AddPass(RenderGraph& rg, RGResourceName input)
+	void AutomaticExposurePass::AddPasses(RenderGraph& rg, RGResourceName input)
 	{
 		struct BuildHistogramData
 		{

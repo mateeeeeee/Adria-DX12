@@ -50,7 +50,6 @@ namespace adria
 		if (settings.reflections == EReflections::SSR)
 		{
 			AddSSRPass(rg);
-			final_resource = RG_RES_NAME(SSR_Output);
 		}
 		else if (settings.reflections == EReflections::RTR)
 		{
@@ -60,7 +59,6 @@ namespace adria
 		if (settings.fog)
 		{
 			AddFogPass(rg);
-			final_resource = RG_RES_NAME(FogOutput);
 		}
 		if (settings.dof)
 		{
@@ -71,17 +69,14 @@ namespace adria
 				AddDrawBokehPass(rg);
 			}
 			AddDepthOfFieldPass(rg);
-			final_resource = RG_RES_NAME(DepthOfFieldOutput);
 		}
 		if (settings.motion_blur)
 		{
 			AddMotionBlurPass(rg);
-			final_resource = RG_RES_NAME(MotionBlurOutput);
 		}
 		if (settings.bloom)
 		{
 			AddBloomPass(rg);
-			final_resource = RG_RES_NAME(BloomOutput);
 		}
 		for (entt::entity light_entity : lights)
 		{
@@ -106,7 +101,6 @@ namespace adria
 		if (HasAnyFlag(settings.anti_aliasing, AntiAliasing_TAA))
 		{
 			AddTAAPass(rg);
-			final_resource = RG_RES_NAME(TAAOutput);
 			AddHistoryCopyPass(rg);
 		}
 	}
@@ -354,6 +348,8 @@ namespace adria
 				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 				cmd_list->DrawInstanced(4, 1, 0, 0);
 			}, ERGPassType::Graphics, ERGPassFlags::None);
+
+		final_resource = RG_RES_NAME(SSR_Output);
 	}
 
 	void Postprocessor::AddFogPass(RenderGraph& rg)
@@ -406,6 +402,8 @@ namespace adria
 				cmd_list->DrawInstanced(4, 1, 0, 0);
 
 			}, ERGPassType::Graphics, ERGPassFlags::None);
+		
+		final_resource = RG_RES_NAME(FogOutput);
 	}
 
 	void Postprocessor::AddBloomPass(RenderGraph& rg)
@@ -505,6 +503,7 @@ namespace adria
 				cmd_list->Dispatch((uint32)std::ceil(width / 32.0f),(uint32)std::ceil(height / 32.0f), 1);
 			}, ERGPassType::Compute, ERGPassFlags::None);
 
+		final_resource = RG_RES_NAME(BloomOutput);
 	}
 
 	void Postprocessor::AddSunPass(RenderGraph& rg, entt::entity sun)
@@ -759,6 +758,8 @@ namespace adria
 				cmd_list->DrawInstanced(4, 1, 0, 0);
 
 			}, ERGPassType::Graphics, ERGPassFlags::None);
+		
+		final_resource = RG_RES_NAME(DepthOfFieldOutput);
 	}
 
 	void Postprocessor::AddMotionBlurPass(RenderGraph& rg)
@@ -811,6 +812,7 @@ namespace adria
 
 			}, ERGPassType::Graphics, ERGPassFlags::None);
 
+		final_resource = RG_RES_NAME(MotionBlurOutput);
 	}
 
 	void Postprocessor::AddHistoryCopyPass(RenderGraph& rg)
@@ -891,6 +893,7 @@ namespace adria
 
 			}, ERGPassType::Graphics, ERGPassFlags::None);
 
+		final_resource = RG_RES_NAME(TAAOutput);
 	}
 
 	void Postprocessor::AddGenerateBokehPass(RenderGraph& rg)
