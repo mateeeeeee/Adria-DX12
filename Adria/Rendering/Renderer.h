@@ -124,6 +124,7 @@ namespace adria
 
 		//resources
 		std::unique_ptr<Texture> final_texture;
+		std::unique_ptr<Texture> white_default_texture;
 
 		//Persistent constant buffers
 		ConstantBuffer<FrameCBuffer> frame_cbuffer;

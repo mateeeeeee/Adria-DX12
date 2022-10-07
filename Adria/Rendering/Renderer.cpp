@@ -75,6 +75,7 @@ namespace adria
 			global_data.null_uav_texture2d = null_heap->GetHandle(NULL_HEAP_SLOT_RWTEXTURE2D);
 			global_data.null_srv_texture2darray = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURE2DARRAY);
 			global_data.null_srv_texturecube = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURECUBE);
+			global_data.white_srv_texture2d = white_default_texture->GetSRV();
 		}
 		rg_blackboard.Add<GlobalBlackboardData>(std::move(global_data));
 
@@ -85,7 +86,7 @@ namespace adria
 		}
 
 		D3D12_CPU_DESCRIPTOR_HANDLE skybox_handle = global_data.null_srv_texturecube;
-		if (renderer_settings.postprocessor.reflections == EReflections::RTR || renderer_settings.use_path_tracing)
+		if (renderer_settings.postprocessor.reflections == EReflections::RTR)
 		{
 			if (renderer_settings.sky_type == ESkyType::Skybox)
 			{
@@ -248,6 +249,22 @@ namespace adria
 			offset *= rand_float();
 			ssao_kernel[i] = offset;
 		}
+
+		TextureDesc desc{};
+		desc.width = 1;
+		desc.height = 1;
+		desc.format = EFormat::R32_FLOAT;
+		desc.bind_flags = EBindFlag::ShaderResource;
+		desc.initial_state = EResourceState::PixelShaderResource;
+		desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
+
+		float32 v = 1.0f;
+		TextureInitialData init_data{};
+		init_data.pData = &v;
+		init_data.RowPitch = sizeof(float32);
+		init_data.SlicePitch = 0;
+		white_default_texture = std::make_unique<Texture>(gfx, desc, &init_data);
+		white_default_texture->CreateSRV();
 	}
 	void Renderer::OnRightMouseClicked(int32 x, int32 y)
 	{
@@ -700,7 +717,7 @@ namespace adria
 
 	void Renderer::ResolveToBackbuffer(RenderGraph& rg)
 	{
-		RGResourceName final_texture = renderer_settings.use_path_tracing ? RG_RES_NAME(PT_RenderTarget) : postprocessor.GetFinalResource();
+		RGResourceName final_texture = postprocessor.GetFinalResource();
 		if (HasAnyFlag(renderer_settings.postprocessor.anti_aliasing, AntiAliasing_FXAA))
 		{
 			tonemap_pass.AddPass(rg, final_texture, RG_RES_NAME(FXAAInput));
@@ -713,7 +730,7 @@ namespace adria
 	}
 	void Renderer::ResolveToTexture(RenderGraph& rg)
 	{
-		RGResourceName final_texture = renderer_settings.use_path_tracing ? RG_RES_NAME(PT_RenderTarget) : postprocessor.GetFinalResource();
+		RGResourceName final_texture = postprocessor.GetFinalResource();
 		if (HasAnyFlag(renderer_settings.postprocessor.anti_aliasing, AntiAliasing_FXAA))
 		{
 			tonemap_pass.AddPass(rg, final_texture, RG_RES_NAME(FXAAInput));

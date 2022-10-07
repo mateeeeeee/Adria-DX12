@@ -110,7 +110,7 @@ namespace adria
 		EResourceUsage heap_type = EResourceUsage::Default;
 		EBindFlag bind_flags = EBindFlag::None;
 		ETextureMiscFlag misc_flags = ETextureMiscFlag::None;
-		EResourceState initial_state = EResourceState::PixelShaderResource | EResourceState::NonPixelShaderResource;//D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+		EResourceState initial_state = EResourceState::PixelShaderResource | EResourceState::NonPixelShaderResource;
 		ClearValue clear_value{};
 		EFormat format = EFormat::UNKNOWN;
 

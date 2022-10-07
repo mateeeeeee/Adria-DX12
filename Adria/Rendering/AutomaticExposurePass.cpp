@@ -28,7 +28,7 @@ namespace adria
 		previous_ev100->CreateUAV();
 	}
 
-	void AutomaticExposurePass::AddPasses(RenderGraph& rg, RGResourceName input)
+	void AutomaticExposurePass::AddPasses(RenderGraph& rg, RGResourceName input, AutomaticExposureParameters const& params)
 	{
 		struct BuildHistogramData
 		{
@@ -88,7 +88,7 @@ namespace adria
 					float32 max_luminance;
 				} constants = {	.width = half_width, .height = half_height, 
 								.rcp_width = 1.0f / half_width, .rcp_height = 1.0f / half_height,
-								.min_luminance = min_luminance, .max_luminance = max_luminance};
+								.min_luminance = params.min_luminance, .max_luminance = params.max_luminance};
 
 				DynamicAllocation cb_alloc = dynamic_allocator->Allocate(sizeof(BuildHistogramConstants), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 				cb_alloc.Update(constants);
@@ -140,8 +140,8 @@ namespace adria
 					float32 max_luminance;
 					float32 low_percentile;
 					float32 high_percentile;
-				} constants = { .min_luminance = min_luminance, .max_luminance = max_luminance,
-								.low_percentile = low_percentile, .high_percentile = high_percentile };
+				} constants = { .min_luminance = params.min_luminance, .max_luminance = params.max_luminance,
+								.low_percentile = params.low_percentile, .high_percentile = params.high_percentile };
 				cmd_list->SetComputeRoot32BitConstants(0, 4, &constants, 0);
 				
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
@@ -199,7 +199,7 @@ namespace adria
 					float32 adaption_speed;
 					float32 exposure_compensation;
 					float32 frame_time;
-				} constants{.adaption_speed = 1.5f, .exposure_compensation = 0.75f, .frame_time = 0.166f};
+				} constants{.adaption_speed = params.adaption_speed, .exposure_compensation = params.exposure_compensation, .frame_time = 0.166f};
 
 				cmd_list->SetComputeRoot32BitConstants(0, 3, &constants, 0);
 

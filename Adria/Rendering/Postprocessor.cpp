@@ -30,7 +30,14 @@ namespace adria
 
 		if (settings.automatic_exposure)
 		{
-			automatic_exposure_pass.AddPasses(rg, final_resource);
+			AutomaticExposureParameters params;
+			params.adaption_speed = settings.adaption_speed;
+			params.exposure_compensation = settings.exposure_compensation;
+			params.min_luminance = settings.min_luminance;
+			params.max_luminance = settings.max_luminance;
+			params.low_percentile = settings.low_percentile;
+			params.high_percentile = settings.high_percentile;
+			automatic_exposure_pass.AddPasses(rg, final_resource, params);
 		}
 
 		for (entt::entity light : lights)

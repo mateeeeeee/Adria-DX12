@@ -19,12 +19,16 @@ namespace adria
 		{
 			RGRenderTargetId	target;
 			RGTextureReadOnlyId hdr_srv;
+			RGTextureReadOnlyId exposure;
 		};
 
 		rg.AddPass<ToneMapPassData>("ToneMap Pass",
 			[=](ToneMapPassData& data, RenderGraphBuilder& builder)
 			{
 				data.hdr_srv = builder.ReadTexture(hdr_src, ReadAccess_PixelShader);
+				if (builder.IsTextureDeclared(RG_RES_NAME(Exposure))) data.exposure = builder.ReadTexture(RG_RES_NAME(Exposure), ReadAccess_PixelShader);
+				else data.exposure.Invalidate();
+				
 				if (!render_to_backbuffer)
 				{
 					ADRIA_ASSERT(builder.IsTextureDeclared(RG_RES_NAME(FinalTexture)));
@@ -62,10 +66,20 @@ namespace adria
 
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.postprocess_cbuffer_address);
 
-				OffsetType descriptor_index = descriptor_allocator->Allocate();
+				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
 				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = context.GetReadOnlyTexture(data.hdr_srv);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				if (data.exposure.IsValid())
+				{
+					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), context.GetReadOnlyTexture(data.exposure),
+						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				}
+				else
+				{
+					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), global_data.white_srv_texture2d,
+						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				}
 				cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
 				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 				cmd_list->DrawInstanced(4, 1, 0, 0);
@@ -81,6 +95,7 @@ namespace adria
 		{
 			RGRenderTargetId	target;
 			RGTextureReadOnlyId hdr_srv;
+			RGTextureReadOnlyId exposure;
 		};
 
 		rg.AddPass<ToneMapPassData>("ToneMap Pass",
@@ -93,6 +108,9 @@ namespace adria
 				builder.DeclareTexture(fxaa_input, fxaa_input_desc);
 
 				data.hdr_srv = builder.ReadTexture(hdr_src, ReadAccess_PixelShader);
+				if (builder.IsTextureDeclared(RG_RES_NAME(Exposure))) data.exposure = builder.ReadTexture(RG_RES_NAME(Exposure), ReadAccess_PixelShader);
+				else data.exposure.Invalidate();
+
 				data.target = builder.WriteRenderTarget(fxaa_input, ERGLoadStoreAccessOp::Discard_Preserve);
 				builder.SetViewport(width, height);
 			},
@@ -106,10 +124,20 @@ namespace adria
 
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.postprocess_cbuffer_address);
 
-				OffsetType descriptor_index = descriptor_allocator->Allocate();
+				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
 				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = context.GetReadOnlyTexture(data.hdr_srv);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				if (data.exposure.IsValid())
+				{
+					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), context.GetReadOnlyTexture(data.exposure),
+						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				}
+				else
+				{
+					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), global_data.white_srv_texture2d,
+						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				}
 				cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
 				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 				cmd_list->DrawInstanced(4, 1, 0, 0);

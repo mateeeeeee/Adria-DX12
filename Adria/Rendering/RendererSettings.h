@@ -63,6 +63,12 @@ namespace adria
 		float32 velocity_buffer_scale = 64.0f;
 
 		bool automatic_exposure = false;
+		float32 min_luminance = 0.0f;
+		float32 max_luminance = 10.0f;
+		float32 adaption_speed = 1.5f;
+		float32 exposure_compensation = 0.75f;
+		float32 low_percentile = 0.1f;
+		float32 high_percentile = 0.9f;
 	};
 
 	struct RendererSettings
@@ -79,7 +85,6 @@ namespace adria
 		bool visualize_tiled = false;
 		int32 visualize_max_lights = 16;
 		bool use_clustered_deferred = false;
-		bool use_path_tracing = false;
 		int32 bounces = 3;
 		bool ibl = false;
 		ESkyType sky_type = ESkyType::Skybox;

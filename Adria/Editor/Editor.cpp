@@ -1248,7 +1248,7 @@ namespace adria
 		{
 			if (ImGui::TreeNode("Render Path Settings"))
 			{
-				static const char* render_path_types[] = { "Regular", "Tiled", "Clustered", "Path Tracer" };
+				static const char* render_path_types[] = { "Regular", "Tiled", "Clustered" };
 				static int current_render_path_type = 0;
 				const char* combo_label = render_path_types[current_render_path_type];
 				if (ImGui::BeginCombo("Render Path", combo_label, 0))
@@ -1264,7 +1264,6 @@ namespace adria
 
 				renderer_settings.use_tiled_deferred = (current_render_path_type == 1);
 				renderer_settings.use_clustered_deferred = (current_render_path_type == 2);
-				renderer_settings.use_path_tracing = (current_render_path_type == 3);
 
 				if (renderer_settings.use_tiled_deferred && ImGui::TreeNodeEx("Tiled Deferred", ImGuiTreeNodeFlags_OpenOnDoubleClick))
 				{
@@ -1273,10 +1272,6 @@ namespace adria
 
 					ImGui::TreePop();
 					ImGui::Separator();
-				}
-				if (renderer_settings.use_path_tracing && ImGui::TreeNodeEx("Path Tracing", ImGuiTreeNodeFlags_OpenOnDoubleClick))
-				{
-					ImGui::SliderInt("Bounces", &renderer_settings.bounces, 1, 16);
 				}
 				ImGui::TreePop();
 			}
@@ -1350,6 +1345,7 @@ namespace adria
 						ImGui::Separator();
 					}
 				}
+				ImGui::Checkbox("Automatic Exposure", &renderer_settings.postprocessor.automatic_exposure);
 				ImGui::Checkbox("Volumetric Clouds", &renderer_settings.postprocessor.clouds);
 				ImGui::Checkbox("DoF", &renderer_settings.postprocessor.dof);
 				ImGui::Checkbox("Bloom", &renderer_settings.postprocessor.bloom);
@@ -1386,7 +1382,6 @@ namespace adria
 
 				if (renderer_settings.postprocessor.dof && ImGui::TreeNodeEx("Depth Of Field", 0))
 				{
-
 					ImGui::SliderFloat("DoF Near Blur", &renderer_settings.postprocessor.dof_near_blur, 0.0f, 200.0f);
 					ImGui::SliderFloat("DoF Near", &renderer_settings.postprocessor.dof_near, renderer_settings.postprocessor.dof_near_blur, 500.0f);
 					ImGui::SliderFloat("DoF Far", &renderer_settings.postprocessor.dof_far, renderer_settings.postprocessor.dof_near, 1000.0f);
@@ -1449,6 +1444,15 @@ namespace adria
 
 					ImGui::TreePop();
 					ImGui::Separator();
+				}
+				if (renderer_settings.postprocessor.automatic_exposure && ImGui::TreeNodeEx("Automatic Exposure", 0))
+				{
+					ImGui::SliderFloat("Min Luminance", &renderer_settings.postprocessor.dof_near_blur, 0.0f, 1.0f);
+					ImGui::SliderFloat("Max Luminance", &renderer_settings.postprocessor.dof_near, 0.3f, 20.0f);
+					ImGui::SliderFloat("Adaption Speed", &renderer_settings.postprocessor.dof_far, 0.01, 5.0f);
+					ImGui::SliderFloat("Low Percentile", &renderer_settings.postprocessor.dof_far_blur, 0.0f, 0.49f);
+					ImGui::SliderFloat("High Percentile", &renderer_settings.postprocessor.dof_far_blur, 0.51, 1.0f);
+					ImGui::TreePop();
 				}
 				if (ImGui::TreeNodeEx("Tone Mapping", 0))
 				{

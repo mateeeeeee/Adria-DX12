@@ -19,5 +19,6 @@ namespace adria
 		D3D12_CPU_DESCRIPTOR_HANDLE null_uav_texture2d;
 		D3D12_CPU_DESCRIPTOR_HANDLE null_srv_texturecube;
 		D3D12_CPU_DESCRIPTOR_HANDLE null_srv_texture2darray;
+		D3D12_CPU_DESCRIPTOR_HANDLE white_srv_texture2d;
 	};
 }

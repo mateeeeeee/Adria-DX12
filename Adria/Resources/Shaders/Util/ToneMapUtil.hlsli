@@ -34,7 +34,9 @@ float3 ACESFilmicToneMapping(float3 color)
     float c = 2.43f;
     float d = 0.59f;
     float e = 0.14f;
-    return clamp((color * (a * color + b)) / (color * (c * color + d) + e), 0.0f, 1.0f);
+    color = (color * (a * color + b)) / (color * (c * color + d) + e);
+    color = pow(color, 1. / gamma);
+    return clamp(color, 0.0f, 1.0f);
 }
 
 float3 HableToneMapping(float3 color)
