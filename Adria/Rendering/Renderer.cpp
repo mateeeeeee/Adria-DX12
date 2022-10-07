@@ -167,7 +167,10 @@ namespace adria
 		sky_pass.AddPass(render_graph, renderer_settings.sky_type);
 		picking_pass.AddPass(render_graph);
 		particle_renderer.AddPasses(render_graph);
-		ray_tracer.AddRayTracedReflectionsPass(render_graph, skybox_handle);
+		if (renderer_settings.postprocessor.reflections == EReflections::RTR)
+		{
+			ray_tracer.AddRayTracedReflectionsPass(render_graph, skybox_handle);
+		}
 		postprocessor.AddPasses(render_graph, renderer_settings.postprocessor);
 		
 		if (renderer_settings.gui_visible)

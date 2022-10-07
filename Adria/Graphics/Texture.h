@@ -252,10 +252,10 @@ namespace adria
 			auto device = gfx->GetDevice();
 			if (desc.heap_type == EResourceUsage::Readback || desc.heap_type == EResourceUsage::Upload)
 			{
-				UINT64 RequiredSize = 0;
-				device->GetCopyableFootprints(&resource_desc, 0, 1, 0, &footprint, nullptr, nullptr, &RequiredSize);
+				UINT64 required_size = 0;
+				device->GetCopyableFootprints(&resource_desc, 0, 1, 0, &footprint, nullptr, nullptr, &required_size);
 				resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-				resource_desc.Width = RequiredSize;
+				resource_desc.Width = required_size;
 				resource_desc.Height = 1;
 				resource_desc.DepthOrArraySize = 1;
 				resource_desc.MipLevels = 1;

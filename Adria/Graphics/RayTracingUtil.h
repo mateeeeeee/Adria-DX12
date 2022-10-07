@@ -26,7 +26,7 @@ namespace adria
 				memcpy(local_root_args.get(), _local_root_args, local_root_args_size);
 			}
 
-			ShaderIdentifier shader_id;
+			ShaderIdentifier shader_id = {};
 			std::unique_ptr<uint8[]> local_root_args = nullptr;
 			uint32 local_root_args_size = 0;
 		};
@@ -35,7 +35,7 @@ namespace adria
 		explicit RayTracingShaderTable(ID3D12StateObject* state_object)
 			: state_object(state_object)
 		{
-			BREAK_IF_FAILED(state_object->QueryInterface(IID_PPV_ARGS(&pso_info)));
+			BREAK_IF_FAILED(state_object->QueryInterface(IID_PPV_ARGS(pso_info.GetAddressOf())));
 		}
 
 		void SetRayGenShader(char const* name, void* local_data = nullptr, uint32 data_size = 0)

@@ -3,8 +3,8 @@
 
 struct BuildHistogramConstants
 {
-	uint width;
-	uint height;
+	uint  width;
+	uint  height;
 	float rcpWidth;
 	float rcpHeight;
 	float minLuminance;

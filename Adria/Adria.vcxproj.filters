@@ -80,6 +80,9 @@
     <Filter Include="Rendering\Passes">
       <UniqueIdentifier>{446d9ca2-5cd9-4492-b4d3-0f129c97eb27}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Exposure">
+      <UniqueIdentifier>{10495589-dc92-4eb8-a600-b5b0ff0e9517}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -282,6 +285,9 @@
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\AABBPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\AutomaticExposurePass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
   </ItemGroup>
@@ -679,6 +685,9 @@
     <ClInclude Include="Utilities\CLIParser.h">
       <Filter>Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\AutomaticExposurePass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
@@ -946,6 +955,15 @@
     <FxCompile Include="Resources\Shaders\RayTracing\PathTracer.hlsl">
       <Filter>Shaders\RayTracing</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\Exposure\BuildHistogramCS.hlsl">
+      <Filter>Shaders\Exposure</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Exposure\ExposureCS.hlsl">
+      <Filter>Shaders\Exposure</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Exposure\HistogramReductionCS.hlsl">
+      <Filter>Shaders\Exposure</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Shaders\Globals\GlobalsCS.hlsli">
@@ -995,5 +1013,8 @@
     </None>
     <None Include="scene.json" />
     <None Include="packages.config" />
+    <None Include="Resources\Shaders\Exposure\ExposureUtil.hlsli">
+      <Filter>Shaders\Exposure</Filter>
+    </None>
   </ItemGroup>
 </Project>

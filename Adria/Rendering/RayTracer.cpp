@@ -539,11 +539,11 @@ namespace adria
 	{
 		ID3D12Device5* device = gfx->GetDevice();
 
-		ShaderBlob rt_shadows_blob = ShaderManager::GetShader(LIB_Shadows);
-		ShaderBlob rt_soft_shadows_blob = ShaderManager::GetShader(LIB_SoftShadows);
-		ShaderBlob rtao_blob = ShaderManager::GetShader(LIB_AmbientOcclusion);
-		ShaderBlob rtr_blob = ShaderManager::GetShader(LIB_Reflections);
-		ShaderBlob pt_blob = ShaderManager::GetShader(LIB_PathTracing);
+		ShaderBlob const& rt_shadows_blob = ShaderManager::GetShader(LIB_Shadows);
+		ShaderBlob const& rt_soft_shadows_blob = ShaderManager::GetShader(LIB_SoftShadows);
+		ShaderBlob const& rtao_blob = ShaderManager::GetShader(LIB_AmbientOcclusion);
+		ShaderBlob const& rtr_blob = ShaderManager::GetShader(LIB_Reflections);
+		ShaderBlob const& pt_blob = ShaderManager::GetShader(LIB_PathTracing);
 
 		StateObjectBuilder rt_shadows_state_object_builder(6);
 		{
@@ -592,7 +592,7 @@ namespace adria
 			anyhit_group.HitGroupExport = L"ShadowAnyHitGroup";
 			rt_shadows_state_object_builder.AddSubObject(anyhit_group);
 
-			ray_traced_shadows = rt_shadows_state_object_builder.CreateStateObject(device);
+			ray_traced_shadows.Attach(rt_shadows_state_object_builder.CreateStateObject(device));
 		}
 
 		StateObjectBuilder rtao_state_object_builder(5);
@@ -624,7 +624,7 @@ namespace adria
 			anyhit_group.HitGroupExport = L"RTAOAnyHitGroup";
 			rtao_state_object_builder.AddSubObject(anyhit_group);
 
-			ray_traced_ambient_occlusion = rtao_state_object_builder.CreateStateObject(device);
+			ray_traced_ambient_occlusion.Attach(rtao_state_object_builder.CreateStateObject(device));
 		}
 
 		StateObjectBuilder rtr_state_object_builder(6);
@@ -660,7 +660,7 @@ namespace adria
 			closesthit_group.HitGroupExport = L"RTRClosestHitGroupReflectionRay";
 			rtr_state_object_builder.AddSubObject(closesthit_group);
 
-			ray_traced_reflections = rtr_state_object_builder.CreateStateObject(device);
+			ray_traced_reflections.Attach(rtr_state_object_builder.CreateStateObject(device));
 		}
 
 		StateObjectBuilder pt_state_object_builder(5);
@@ -692,7 +692,7 @@ namespace adria
 			closesthit_group.HitGroupExport = L"PT_HitGroup";
 			pt_state_object_builder.AddSubObject(closesthit_group);
 
-			path_tracing = pt_state_object_builder.CreateStateObject(device);
+			path_tracing.Attach(pt_state_object_builder.CreateStateObject(device));
 		}
 	}
 	void RayTracer::OnLibraryRecompiled(EShader shader)
