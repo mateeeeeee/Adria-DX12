@@ -114,7 +114,7 @@ namespace adria
 				{
 					uint64 alloc_size = sizeof(StructuredLight) * structured_lights.size();
 					DynamicAllocation dynamic_alloc = dynamic_allocator->Allocate(alloc_size, sizeof(StructuredLight));
-					dynamic_alloc.Update((void const*)structured_lights.data(), alloc_size);
+					dynamic_alloc.Update(structured_lights.data(), alloc_size);
 
 					auto i = descriptor_allocator->Allocate();
 

@@ -8,6 +8,8 @@
 
 namespace adria
 {
+	template<typename T>
+	concept NotPointer = !std::is_pointer_v<T>;
 
 	template<typename CBuffer>
 	inline constexpr uint32 GetCBufferSize()
@@ -28,19 +30,16 @@ namespace adria
 			memcpy((uint8*)cpu_address + offset, data, size);
 		}
 
-		template<typename T>
-		void Update(T const& data, size_t offset = 0)
+		template<typename T> 
+		void Update(T const& data)
 		{
-			memcpy((uint8*)cpu_address + offset, &data, sizeof(T));
+			memcpy(cpu_address, &data, sizeof(T));
 		}
 	};
-
 
 	struct AllocDesc
 	{
 		size_t size_in_bytes;
 		size_t alignment;
 	};
-
-
 }

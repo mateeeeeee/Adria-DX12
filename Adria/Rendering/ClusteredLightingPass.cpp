@@ -104,7 +104,7 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				DynamicAllocation& dynamic_alloc = context.GetAllocation(data.alloc_id);
-				dynamic_alloc.Update((void const*)structured_lights.data(), dynamic_alloc.size);
+				dynamic_alloc.Update(structured_lights.data(), dynamic_alloc.size);
 
 				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::ClusterCulling));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ClusterCulling));
