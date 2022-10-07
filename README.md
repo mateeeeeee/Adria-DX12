@@ -23,6 +23,7 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
     - Directional Lights with Cascade Shadow Maps
     - Point and Spot Lights 
 * HDR and Tone Mapping
+* Automatic Exposure
 * Bloom
 * Depth Of Field
 * Bokeh

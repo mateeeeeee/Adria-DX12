@@ -1447,11 +1447,12 @@ namespace adria
 				}
 				if (renderer_settings.postprocessor.automatic_exposure && ImGui::TreeNodeEx("Automatic Exposure", 0))
 				{
-					ImGui::SliderFloat("Min Luminance", &renderer_settings.postprocessor.dof_near_blur, 0.0f, 1.0f);
-					ImGui::SliderFloat("Max Luminance", &renderer_settings.postprocessor.dof_near, 0.3f, 20.0f);
-					ImGui::SliderFloat("Adaption Speed", &renderer_settings.postprocessor.dof_far, 0.01, 5.0f);
-					ImGui::SliderFloat("Low Percentile", &renderer_settings.postprocessor.dof_far_blur, 0.0f, 0.49f);
-					ImGui::SliderFloat("High Percentile", &renderer_settings.postprocessor.dof_far_blur, 0.51, 1.0f);
+					ImGui::SliderFloat("Min Luminance", &renderer_settings.postprocessor.min_luminance, 0.0f, 1.0f);
+					ImGui::SliderFloat("Max Luminance", &renderer_settings.postprocessor.max_luminance, 0.3f, 20.0f);
+					ImGui::SliderFloat("Adaption Speed", &renderer_settings.postprocessor.adaption_speed, 0.01, 5.0f);
+					ImGui::SliderFloat("Exposure Compensation", &renderer_settings.postprocessor.exposure_compensation, -5.0f, 5.0f);
+					ImGui::SliderFloat("Low Percentile", &renderer_settings.postprocessor.low_percentile, 0.0f, 0.49f);
+					ImGui::SliderFloat("High Percentile", &renderer_settings.postprocessor.high_percentile, 0.51, 1.0f);
 					ImGui::TreePop();
 				}
 				if (ImGui::TreeNodeEx("Tone Mapping", 0))
