@@ -8,9 +8,6 @@
 
 namespace adria
 {
-	template<typename T>
-	concept NotPointer = !std::is_pointer_v<T>;
-
 	template<typename CBuffer>
 	inline constexpr uint32 GetCBufferSize()
 	{
