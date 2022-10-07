@@ -50,7 +50,7 @@ void RTR_RayGen()
 [shader("miss")]
 void RTR_Miss(inout RTR_Payload payload_data)
 {
-    payload_data.reflection_color = env_map.SampleLevel(linear_wrap_sampler, WorldRayDirection(), 0);
+    payload_data.reflection_color = env_map.SampleLevel(linear_wrap_sampler, WorldRayDirection(), 0).rgb;
 }
 
 

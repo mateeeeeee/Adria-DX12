@@ -12,9 +12,9 @@ namespace fs = std::filesystem;
 
 namespace adria
 {
+	char const* shaders_directory = "Resources/Shaders/";
 	namespace
 	{
-		constexpr char const* shaders_directory = "Resources/Shaders/";
 		std::unique_ptr<FileWatcher> file_watcher;
 		ShaderRecompiledEvent shader_recompiled_event;
 		LibraryRecompiledEvent library_recompiled_event;

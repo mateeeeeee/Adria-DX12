@@ -165,13 +165,9 @@ void main(uint3 groupId : SV_GroupID,
             }
         }
     }
-    
-    
-    float4 shading_color = outputTexture.Load(int3(int2(dispatchThreadId.xy), 0)) + float4(Lo, 1.0f);
-    
+
+    float4 shading_color = outputTexture[dispatchThreadId.xy] + float4(Lo, 1.0f);
     outputTexture[dispatchThreadId.xy] = shading_color;
-    
-    
     if (compute_cbuf.visualize_tiled)
     {
         const float3 heat_map[] =

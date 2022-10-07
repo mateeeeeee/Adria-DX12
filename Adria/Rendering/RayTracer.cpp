@@ -539,11 +539,11 @@ namespace adria
 	{
 		ID3D12Device5* device = gfx->GetDevice();
 
-		ShaderBlob const& rt_shadows_blob = ShaderManager::GetShader(LIB_Shadows);
-		ShaderBlob const& rt_soft_shadows_blob = ShaderManager::GetShader(LIB_SoftShadows);
-		ShaderBlob const& rtao_blob = ShaderManager::GetShader(LIB_AmbientOcclusion);
-		ShaderBlob const& rtr_blob = ShaderManager::GetShader(LIB_Reflections);
-		ShaderBlob const& pt_blob = ShaderManager::GetShader(LIB_PathTracing);
+		ShaderBlob const& rt_shadows_blob		= ShaderManager::GetShader(LIB_Shadows);
+		ShaderBlob const& rt_soft_shadows_blob	= ShaderManager::GetShader(LIB_SoftShadows);
+		ShaderBlob const& rtao_blob				= ShaderManager::GetShader(LIB_AmbientOcclusion);
+		ShaderBlob const& rtr_blob				= ShaderManager::GetShader(LIB_Reflections);
+		ShaderBlob const& pt_blob				= ShaderManager::GetShader(LIB_PathTracing);
 
 		StateObjectBuilder rt_shadows_state_object_builder(6);
 		{

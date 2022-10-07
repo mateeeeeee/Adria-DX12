@@ -14,9 +14,9 @@ void main(uint3 groupID : SV_GroupID, uint3 groupThreadID : SV_GroupThreadID, ui
     uint3 dims;
     bloomTexture.GetDimensions(0, dims.x, dims.y, dims.z);
 
-    float3 bloom = bloomTexture.SampleLevel(linear_clamp_sampler, dispatchID.xy * 1.0f / dims.xy, 1.5f);
-    bloom += bloomTexture.SampleLevel(linear_clamp_sampler, dispatchID.xy * 1.0f / dims.xy, 2.5f);
-    bloom += bloomTexture.SampleLevel(linear_clamp_sampler, dispatchID.xy * 1.0f / dims.xy, 3.5f);
+    float3 bloom = bloomTexture.SampleLevel(linear_clamp_sampler, dispatchID.xy * 1.0f / dims.xy, 1.5f).xyz;
+    bloom += bloomTexture.SampleLevel(linear_clamp_sampler, dispatchID.xy * 1.0f / dims.xy, 2.5f).xyz;
+    bloom += bloomTexture.SampleLevel(linear_clamp_sampler, dispatchID.xy * 1.0f / dims.xy, 3.5f).xyz;
     bloom /= 3;
 
     outputTexture[dispatchID.xy] = inputTexture[dispatchID.xy] + float4(bloom, 0.0f);

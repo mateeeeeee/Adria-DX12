@@ -111,7 +111,7 @@ float GetDensityForCloud(float heightFraction, float cloudType)
 float SampleCloudDensity(float3 p, bool useHighFreq, float lod)
 {
     float heightFraction = GetHeightFraction(p);
-    float3 scroll = weather_cbuf.wind_dir * (heightFraction * 750.0f + weather_cbuf.time * weather_cbuf.wind_speed);
+    float3 scroll = weather_cbuf.wind_dir.xyz * (heightFraction * 750.0f + weather_cbuf.time * weather_cbuf.wind_speed);
     
     float2 UV = GetUVProjection(p);
     float2 dynamicUV = GetUVProjection(p + scroll);

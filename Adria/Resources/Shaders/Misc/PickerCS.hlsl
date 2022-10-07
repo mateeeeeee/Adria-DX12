@@ -1,4 +1,5 @@
 #include "../Globals/GlobalsCS.hlsli"
+#include "../Util/RootSignatures.hlsli"
 
 struct PickingData
 {
@@ -10,7 +11,7 @@ Texture2D<float> depthTx   : register(t0);
 Texture2D<float4> normalTx : register(t1);
 RWStructuredBuffer<PickingData> PickingBuffer : register(u0);
 
-#include "../Util/RootSignatures.hlsli"
+
 [RootSignature(Picker_RS)]
 [numthreads(1, 1, 1)]
 void main( )
@@ -20,7 +21,7 @@ void main( )
 
     uint2 mouse_coords = uint2(frame_cbuf.mouse_normalized_coords * frame_cbuf.screen_resolution);
 
-    float zw = depthTx[mouse_coords].xx;
+    float zw = depthTx[mouse_coords].x;
     float2 uv = (mouse_coords + 0.5f) / frame_cbuf.screen_resolution;
     uv = uv * 2.0f - 1.0f;
     uv.y *= -1.0f;

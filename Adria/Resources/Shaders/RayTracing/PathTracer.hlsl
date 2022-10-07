@@ -46,7 +46,7 @@ void PT_RayGen()
     float3 o, d;
     GenerateCameraRay(pixel, o, d);
     RayDesc ray;
-    ray.Origin = rayStart;
+    ray.Origin = rayStart.xyz;
     ray.Direction = rayDir;
     ray.TMin = 0.0f;
     ray.TMax = FLT_MAX;

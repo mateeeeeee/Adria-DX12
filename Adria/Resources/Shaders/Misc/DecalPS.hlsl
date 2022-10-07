@@ -82,7 +82,7 @@ PS_DECAL_OUT main(PS_INPUT input)
 
     float3x3 TBN = float3x3(tangent, binormal, normal);
 
-    float3 DecalNormal = txNormalDecal.Sample(linear_wrap_sampler, tex_coords);
+    float3 DecalNormal = txNormalDecal.Sample(linear_wrap_sampler, tex_coords).xyz;
     DecalNormal = 2.0f * DecalNormal - 1.0f;
     DecalNormal = mul(DecalNormal, TBN);
     float3 DecalNormalVS = normalize(mul(DecalNormal, (float3x3)frame_cbuf.view));

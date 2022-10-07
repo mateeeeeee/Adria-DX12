@@ -78,7 +78,7 @@ void main( uint3 id : SV_DispatchThreadID )
 
 					float3 viewSpaceNormal = normalize(cross(p2 - p0, p1 - p0));
 
-                    surfaceNormal = normalize(mul(-viewSpaceNormal, frame_cbuf.inverse_view).xyz);
+                    surfaceNormal = normalize(mul(-viewSpaceNormal, (float3x4)frame_cbuf.inverse_view).xyz);
 
 					float3 newVelocity = reflect(pb.Velocity, surfaceNormal);
 

@@ -1,7 +1,7 @@
 #include "../Globals/GlobalsPS.hlsli"
 #include "../Util/RootSignatures.hlsli"
 
-Texture2D<float4> depth_texture : register(t0);
+Texture2D<float> depth_texture : register(t0);
 
 SamplerState linear_wrap_sampler : register(s0);
 

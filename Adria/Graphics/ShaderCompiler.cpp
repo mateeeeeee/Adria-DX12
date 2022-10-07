@@ -4,15 +4,17 @@
 #include <d3dcompiler.h> 
 #include "dxc/dxcapi.h" 
 #include "../Utilities/StringUtil.h"
+#include "../Utilities/FilesUtil.h"
 #include "../Logging/Logger.h"
 
 
 namespace adria
 {
+	extern char const* shaders_directory;
 	namespace
 	{
 		Microsoft::WRL::ComPtr<IDxcLibrary> library = nullptr;
-		Microsoft::WRL::ComPtr<IDxcCompiler> compiler = nullptr;
+		Microsoft::WRL::ComPtr<IDxcCompiler3> compiler = nullptr;
 		Microsoft::WRL::ComPtr<IDxcUtils> utils = nullptr;
 		Microsoft::WRL::ComPtr<IDxcIncludeHandler> include_handler = nullptr;
 	}
@@ -24,16 +26,23 @@ namespace adria
 
 		HRESULT STDMETHODCALLTYPE LoadSource(_In_ LPCWSTR pFilename, _COM_Outptr_result_maybenull_ IDxcBlob** ppIncludeSource) override
 		{
-			Microsoft::WRL::ComPtr<IDxcBlobEncoding> pEncoding;
-			std::string path = ToString(pFilename);
-			HRESULT hr = utils->LoadFile(pFilename, nullptr, pEncoding.GetAddressOf());
+			Microsoft::WRL::ComPtr<IDxcBlobEncoding> encoding;
+			std::string include_file = NormalizePath(ToString(pFilename));
+			if (!FileExists(include_file))
+			{
+				*ppIncludeSource = nullptr;
+				return E_FAIL;
+			}
+			std::wstring winclude_file = ToWideString(include_file);
+			HRESULT hr = utils->LoadFile(winclude_file.c_str(), nullptr, encoding.GetAddressOf());
 			if (SUCCEEDED(hr))
 			{
-				include_files.push_back(path);
-				*ppIncludeSource = pEncoding.Detach();
+				include_files.push_back(include_file);
+				*ppIncludeSource = encoding.Detach();
+				return S_OK;
 			}
 			else *ppIncludeSource = nullptr;
-			return hr;
+			return E_FAIL;
 		}
 		HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, _COM_Outptr_ void __RPC_FAR* __RPC_FAR* ppvObject) override
 		{
@@ -84,9 +93,9 @@ namespace adria
 	{
 		void Initialize()
 		{
-			BREAK_IF_FAILED(DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&library)));
-			BREAK_IF_FAILED(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&compiler)));
-			BREAK_IF_FAILED(library->CreateIncludeHandler(&include_handler));
+			BREAK_IF_FAILED(DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(library.GetAddressOf())));
+			BREAK_IF_FAILED(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(compiler.GetAddressOf())));
+			BREAK_IF_FAILED(library->CreateIncludeHandler(include_handler.GetAddressOf()));
 			BREAK_IF_FAILED(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(utils.GetAddressOf())));
 		}
 		void Destroy()
@@ -98,27 +107,19 @@ namespace adria
 		}
 		void CompileShader(ShaderCompileInput const& input, ShaderCompileOutput& output)
 		{
-			Microsoft::WRL::ComPtr<IDxcBlob> _blob;
-			uint32_t codePage = CP_UTF8; 
-			Microsoft::WRL::ComPtr<IDxcBlobEncoding> sourceBlob;
+			uint32_t code_page = CP_UTF8; 
+			Microsoft::WRL::ComPtr<IDxcBlobEncoding> source_blob;
 
 			std::wstring shader_source = ToWideString(input.source_file);
-			HRESULT hr = library->CreateBlobFromFile(shader_source.data(), &codePage, &sourceBlob);
+			HRESULT hr = library->CreateBlobFromFile(shader_source.data(), &code_page, &source_blob);
 			BREAK_IF_FAILED(hr);
 
-			std::vector<wchar_t const*> flags{};
-			if (input.flags & ShaderCompileInput::FlagDebug)
-			{
-				flags.push_back(L"-Zi");			//Debug info
-				flags.push_back(L"-Qembed_debug");	//Embed debug info into the shader
-			}
-			if (input.flags & ShaderCompileInput::FlagDisableOptimization)
-				flags.push_back(L"-Od");
-			else flags.push_back(L"-O3");
-
+			std::wstring name = ToWideString(GetFilenameWithoutExtension(input.source_file));
+			std::wstring dir = ToWideString(shaders_directory);
+			std::wstring path = ToWideString(GetParentPath(input.source_file));
+			
 			std::wstring p_target = L"";
 			std::wstring entry_point = L"";
-
 			switch (input.stage)
 			{
 			case EShaderStage::VS:
@@ -153,38 +154,78 @@ namespace adria
 			}
 
 			if (!input.entrypoint.empty()) entry_point = ToWideString(input.entrypoint);
-			std::vector<DxcDefine> sm6_defines{};
+
+			std::vector<wchar_t const*> compile_args{};
+			compile_args.push_back(name.c_str());
+			if (input.flags & ShaderCompileInput::FlagDebug)
+			{
+				compile_args.push_back(DXC_ARG_DEBUG);
+				compile_args.push_back(L"-Qembed_debug");
+			}
+			else
+			{
+				compile_args.push_back(L"-Qstrip_debug");
+				compile_args.push_back(L"-Qstrip_reflect");
+			}
+
+			if (input.flags & ShaderCompileInput::FlagDisableOptimization)
+			{
+				compile_args.push_back(DXC_ARG_SKIP_OPTIMIZATIONS);
+			}
+			else
+			{
+				compile_args.push_back(DXC_ARG_OPTIMIZATION_LEVEL3);
+			}
+
+			compile_args.push_back(L"-E");
+			compile_args.push_back(entry_point.c_str());
+			compile_args.push_back(L"-T");
+			compile_args.push_back(p_target.c_str());
+
+			compile_args.push_back(L"-I");
+			compile_args.push_back(dir.c_str());
+			compile_args.push_back(L"-I");
+			compile_args.push_back(path.c_str());
+
+			std::vector<std::wstring> macros;
+			macros.reserve(input.macros.size());
 			for (auto const& define : input.macros)
 			{
-				DxcDefine sm6_define{};
-				sm6_define.Name = define.name.c_str();
-				sm6_define.Value = define.value.c_str();
-				sm6_defines.push_back(sm6_define);
+				compile_args.push_back(L"-D");
+				if (define.value.empty()) macros.push_back(define.name + L"=1");
+				else macros.push_back(define.name + L"=" + define.value);
+				compile_args.push_back(macros.back().c_str());
 			}
 
 			CustomIncludeHandler custom_include_handler{};
-			Microsoft::WRL::ComPtr<IDxcOperationResult> result;
+
+			DxcBuffer source_buffer;
+			source_buffer.Ptr = source_blob->GetBufferPointer();
+			source_buffer.Size = source_blob->GetBufferSize();
+			source_buffer.Encoding = 0;
+			Microsoft::WRL::ComPtr<IDxcResult> result;
 			hr = compiler->Compile(
-				sourceBlob.Get(),									// pSource
-				shader_source.data(),								// pSourceName
-				entry_point.c_str(),								// pEntryPoint
-				p_target.c_str(),									// pTargetProfile
-				flags.data(), (UINT32)flags.size(),					// pArguments, argCount
-				sm6_defines.data(), (UINT32)sm6_defines.size(),		// pDefines, defineCount
-				&custom_include_handler,								// pIncludeHandler
-				&result);											// ppResult
+				&source_buffer,										// buffer 
+				compile_args.data(), (uint32)compile_args.size(),	//args
+				&custom_include_handler,							// pIncludeHandler
+				IID_PPV_ARGS(result.GetAddressOf()));				// ppResult
 
-			if (SUCCEEDED(hr)) result->GetStatus(&hr);
-
-			if (FAILED(hr) && result)
+			Microsoft::WRL::ComPtr<IDxcBlobUtf8> errors;
+			if (SUCCEEDED(result->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(errors.GetAddressOf()), nullptr)))
 			{
-				Microsoft::WRL::ComPtr<IDxcBlobEncoding> errorsBlob;
-				hr = result->GetErrorBuffer(&errorsBlob);
-				if (SUCCEEDED(hr) && errorsBlob)
-					ADRIA_LOG(ERROR, "Compilation failed with errors:\n%hs\n", (const char*)errorsBlob->GetBufferPointer());
+				if (errors && errors->GetStringLength() > 0)
+				{
+					std::string a = errors->GetStringPointer();
+					ADRIA_LOG(DEBUG, "%s", errors->GetStringPointer());
+					return;
+				}
 			}
-
-			result->GetResult(_blob.GetAddressOf());
+			Microsoft::WRL::ComPtr<IDxcBlob> _blob;
+			BREAK_IF_FAILED(result->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(_blob.GetAddressOf()), nullptr));
+			if (_blob->GetBufferSize() == 0)
+			{
+				int x = 5;
+			}
 			output.blob.bytecode.resize(_blob->GetBufferSize());
 			memcpy(output.blob.GetPointer(), _blob->GetBufferPointer(), _blob->GetBufferSize());
 			output.dependent_files = custom_include_handler.include_files;
