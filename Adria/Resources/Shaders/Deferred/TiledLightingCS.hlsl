@@ -5,9 +5,6 @@
 #define TILED_LIGHTING_GROUP_SIZE 16
 
 
-
-
-
 Texture2D normalMetallicTx                      : register(t0);
 Texture2D diffuseRoughnessTx                    : register(t1);
 Texture2D<float> depthTx                        : register(t2);
@@ -38,15 +35,13 @@ void main(uint3 groupId : SV_GroupID,
     float max_z_pixel = frame_cbuf.camera_near;
     
     float2 tex = dispatchThreadId.xy / frame_cbuf.screen_resolution;
-    
-   
+
     float depth = depthTx.Load(int3(dispatchThreadId.xy, 0));
     float view_depth = ConvertZToLinearDepth(depth);
-   
-    
+
     bool validPixel = view_depth >= frame_cbuf.camera_near && view_depth < frame_cbuf.camera_far;
     
-        [flatten]
+    [flatten]
     if (validPixel)
     {
         min_z_pixel = min(min_z_pixel, view_depth);
