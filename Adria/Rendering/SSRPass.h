@@ -6,8 +6,6 @@
 namespace adria
 {
 	class RenderGraph;
-	class GraphicsDevice;
-	class TextureManager;
 
 	struct SSRParameters
 	{

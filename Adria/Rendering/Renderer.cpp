@@ -596,6 +596,7 @@ namespace adria
 			PostprocessSettings const& settings = renderer_settings.postprocessor;
 			SSRParameters ssr_params = postprocessor.GetSSRParams();
 			FogParameters fog_params = postprocessor.GetFogParams();
+			DoFParameters dof_params = postprocessor.GetDoFParams();
 			
 			postprocess_cbuf_data.tone_map_exposure = settings.tonemap_exposure;
 			postprocess_cbuf_data.tone_map_operator = static_cast<int>(settings.tone_map_op);
@@ -605,7 +606,7 @@ namespace adria
 			for (uint32 i = 0; i < SSAO_KERNEL_SIZE; ++i) postprocess_cbuf_data.samples[i] = ssao_kernel[i];
 			postprocess_cbuf_data.ssr_ray_step = ssr_params.ssr_ray_step;
 			postprocess_cbuf_data.ssr_ray_hit_threshold = ssr_params.ssr_ray_hit_threshold;
-			postprocess_cbuf_data.dof_params = XMVectorSet(settings.dof_near_blur, settings.dof_near, settings.dof_far, settings.dof_far_blur);
+			postprocess_cbuf_data.dof_params = XMVectorSet(dof_params.dof_near_blur, dof_params.dof_near, dof_params.dof_far, dof_params.dof_far_blur);
 			postprocess_cbuf_data.velocity_buffer_scale = settings.velocity_buffer_scale;
 			postprocess_cbuf_data.fog_falloff = fog_params.fog_falloff;
 			postprocess_cbuf_data.fog_density = fog_params.fog_density;
@@ -673,6 +674,8 @@ namespace adria
 
 		//compute 
 		{
+			DoFParameters dof_params = postprocessor.GetDoFParams();
+
 			std::array<float32, 9> coeffs{};
 			coeffs.fill(1.0f / 9);
 			static ComputeCBuffer compute_cbuf_data{};
@@ -691,7 +694,7 @@ namespace adria
 			compute_cbuf_data.visualize_max_lights = tiled_lighting_pass.MaxLightsForVisualization();
 			compute_cbuf_data.bokeh_blur_threshold = renderer_settings.postprocessor.bokeh_blur_threshold;
 			compute_cbuf_data.bokeh_lum_threshold = renderer_settings.postprocessor.bokeh_lum_threshold;
-			compute_cbuf_data.dof_params = XMVectorSet(renderer_settings.postprocessor.dof_near_blur, renderer_settings.postprocessor.dof_near, renderer_settings.postprocessor.dof_far, renderer_settings.postprocessor.dof_far_blur);
+			compute_cbuf_data.dof_params = XMVectorSet(dof_params.dof_near_blur, dof_params.dof_near, dof_params.dof_far, dof_params.dof_far_blur);
 			compute_cbuf_data.bokeh_radius_scale = renderer_settings.postprocessor.bokeh_radius_scale;
 			compute_cbuf_data.bokeh_color_scale = renderer_settings.postprocessor.bokeh_color_scale;
 			compute_cbuf_data.bokeh_fallout = renderer_settings.postprocessor.bokeh_fallout;

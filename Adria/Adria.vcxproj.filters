@@ -302,6 +302,7 @@
     <ClCompile Include="Rendering\FogPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\DepthOfFieldPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -710,6 +711,9 @@
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\FogPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\DepthOfFieldPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
   </ItemGroup>

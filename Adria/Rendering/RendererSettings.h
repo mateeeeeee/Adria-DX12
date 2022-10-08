@@ -23,11 +23,6 @@ namespace adria
 
 		EReflections reflections = EReflections::SSR;
 		bool dof = false;
-		float32 dof_near_blur = 0.0f;
-		float32 dof_near = 200.0f;
-		float32 dof_far = 400.0f;
-		float32 dof_far_blur = 600.0f;
-
 		bool bokeh = false;
 		float32 bokeh_blur_threshold = 0.9f;
 		float32 bokeh_lum_threshold = 1.0f;

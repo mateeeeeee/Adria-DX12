@@ -13,6 +13,7 @@
 #include "VolumetricCloudsPass.h"
 #include "SSRPass.h"
 #include "FogPass.h"
+#include "DepthOfFieldPass.h"
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
 #include "entt/entity/entity.hpp"
@@ -43,8 +44,9 @@ namespace adria
 		RGResourceName GetFinalResource() const;
 
 		CloudParameters const& GetCloudParams() const { return clouds_pass.GetParams(); }
-		SSRParameters const& GetSSRParams() const { return ssr_pass.GetParams(); }
-		FogParameters const& GetFogParams() const { return fog_pass.GetParams(); }
+		SSRParameters   const& GetSSRParams() const { return ssr_pass.GetParams(); }
+		FogParameters   const& GetFogParams() const { return fog_pass.GetParams(); }
+		DoFParameters   const& GetDoFParams() const { return dof_pass.GetParams(); }
 
 	private:
 		entt::registry& reg;
@@ -73,6 +75,8 @@ namespace adria
 		VolumetricCloudsPass clouds_pass;
 		SSRPass ssr_pass;
 		FogPass fog_pass;
+		DepthOfFieldPass dof_pass;
+
 	private:
 		void AddCopyHDRPass(RenderGraph& rg);
 		void AddVelocityBufferPass(RenderGraph& rg);
@@ -80,7 +84,6 @@ namespace adria
 		void AddBloomPass(RenderGraph& rg);
 		void AddSunPass(RenderGraph& rg, entt::entity sun);
 		void AddGodRaysPass(RenderGraph& rg, Light const& light);
-		void AddDepthOfFieldPass(RenderGraph& rg);	
 		void AddMotionBlurPass(RenderGraph& rg);
 		void AddHistoryCopyPass(RenderGraph& rg);
 		void AddTAAPass(RenderGraph& rg);

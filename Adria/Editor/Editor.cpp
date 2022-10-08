@@ -1203,6 +1203,10 @@ namespace adria
 			ImGui::Checkbox("Automatic Exposure", &renderer_settings.postprocessor.automatic_exposure);
 			ImGui::Checkbox("Volumetric Clouds", &renderer_settings.postprocessor.clouds);
 			ImGui::Checkbox("DoF", &renderer_settings.postprocessor.dof);
+			if (renderer_settings.postprocessor.dof)
+			{
+				ImGui::Checkbox("Bokeh", &renderer_settings.postprocessor.bokeh);
+			}
 			ImGui::Checkbox("Bloom", &renderer_settings.postprocessor.bloom);
 			ImGui::Checkbox("Motion Blur", &renderer_settings.postprocessor.motion_blur);
 			ImGui::Checkbox("Fog", &renderer_settings.postprocessor.fog);
