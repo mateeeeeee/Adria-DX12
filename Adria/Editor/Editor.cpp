@@ -157,7 +157,6 @@ namespace adria
 
 	Editor::Editor() = default;
 	Editor::~Editor() = default;
-
 	void Editor::Init(EditorInit&& init)
 	{
 		editor_log = std::make_unique<ImGuiLogger>();
@@ -174,7 +173,6 @@ namespace adria
 		engine.reset();
 		editor_log.reset();
 	}
-
 	void Editor::HandleWindowMessage(WindowMessage const& msg_data)
 	{
 		engine->HandleWindowMessage(msg_data);
@@ -233,6 +231,10 @@ namespace adria
 			ShaderManager::CheckIfShadersHaveChanged();
 			reload_shaders = false;
 		}
+	}
+	void Editor::AddCommand(GUICommand&& command)
+	{
+		commands.emplace_back(std::move(command));
 	}
 
 	void Editor::SetStyle()
@@ -304,7 +306,6 @@ namespace adria
 		colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
 		colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 	}
-
 	void Editor::HandleInput()
 	{
 		if (scene_focused && Input::GetInstance().IsKeyDown(EKeyCode::I)) gui->ToggleVisibility();
@@ -317,7 +318,6 @@ namespace adria
 		}
 		engine->camera->Enable(scene_focused);
 	}
-
 	void Editor::MenuBar()
 	{
 		if (ImGui::BeginMainMenuBar())
@@ -417,7 +417,6 @@ namespace adria
 		}
 		ImGui::End();
 	}
-
 	void Editor::ListEntities()
 	{
 		if (!window_flags[Flag_Entities]) return;
@@ -458,7 +457,6 @@ namespace adria
 		}
 		ImGui::End();
 	}
-
 	void Editor::Properties()
 	{
 		if (!window_flags[Flag_Entities]) return;
@@ -901,7 +899,6 @@ namespace adria
 		}
 		ImGui::End();
 	}
-
 	void Editor::Camera()
 	{
 		if (!window_flags[Flag_Camera]) return;
@@ -924,7 +921,6 @@ namespace adria
 		}
 		ImGui::End();
 	}
-
 	void Editor::Scene()
 	{
 		ImGui::Begin("Scene");
@@ -1015,7 +1011,6 @@ namespace adria
 
 		ImGui::End();
 	}
-
 	void Editor::Log()
 	{
 		if (!window_flags[Flag_Log]) return;
@@ -1025,7 +1020,6 @@ namespace adria
 		}
 		ImGui::End();
 	}
-
 	void Editor::Settings()
 	{
 		if (!window_flags[Flag_Settings]) return;
@@ -1101,7 +1095,6 @@ namespace adria
 		}
 		ImGui::End();
 	}
-
 	void Editor::Profiling()
 	{
 		if (!window_flags[Flag_Profiler]) return;
@@ -1239,7 +1232,6 @@ namespace adria
 		}
 		ImGui::End();
 	}
-
 	void Editor::ShaderHotReload()
 	{
 		if (!window_flags[Flag_HotReload]) return;
@@ -1252,7 +1244,6 @@ namespace adria
 		}
 		ImGui::End();
 	}
-
 	void Editor::RayTracingDebug()
 	{
 #ifdef _DEBUG

@@ -153,8 +153,6 @@ namespace adria
 		if (renderer_settings.use_tiled_deferred)
 		{
 			tiled_lighting_pass.AddPass(render_graph);
-			if (renderer_settings.visualize_tiled)  add_textures_pass.AddPass(render_graph, RG_RES_NAME(HDR_RenderTarget), RG_RES_NAME(TiledTarget), RG_RES_NAME(TiledDebugTarget), EBlendMode::AlphaBlend);
-			else copy_to_texture_pass.AddPass(render_graph, RG_RES_NAME(HDR_RenderTarget), RG_RES_NAME(TiledTarget), EBlendMode::AdditiveBlend);
 		}
 		else if (renderer_settings.use_clustered_deferred)
 		{
@@ -685,8 +683,8 @@ namespace adria
 			compute_cbuf_data.gauss_coeff9 = coeffs[8];
 			compute_cbuf_data.bloom_scale = renderer_settings.postprocessor.bloom_scale;
 			compute_cbuf_data.threshold = renderer_settings.postprocessor.bloom_threshold;
-			compute_cbuf_data.visualize_tiled = renderer_settings.visualize_tiled;
-			compute_cbuf_data.visualize_max_lights = renderer_settings.visualize_max_lights;
+			compute_cbuf_data.visualize_tiled = tiled_lighting_pass.IsVisualized();
+			compute_cbuf_data.visualize_max_lights = tiled_lighting_pass.MaxLightsForVisualization();
 			compute_cbuf_data.bokeh_blur_threshold = renderer_settings.postprocessor.bokeh_blur_threshold;
 			compute_cbuf_data.bokeh_lum_threshold = renderer_settings.postprocessor.bokeh_lum_threshold;
 			compute_cbuf_data.dof_params = XMVectorSet(renderer_settings.postprocessor.dof_near_blur, renderer_settings.postprocessor.dof_near, renderer_settings.postprocessor.dof_far, renderer_settings.postprocessor.dof_far_blur);

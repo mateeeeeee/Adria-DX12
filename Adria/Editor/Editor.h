@@ -51,10 +51,7 @@ namespace adria
 		void Destroy();
 		void HandleWindowMessage(WindowMessage const& msg_data);
 		void Run();
-		void AddCommand(GUICommand&& command)
-		{
-			commands.emplace_back(std::move(command));
-		}
+		void AddCommand(GUICommand&& command);
 	private:
 		std::unique_ptr<Engine> engine;
 		std::unique_ptr<GUI> gui;
