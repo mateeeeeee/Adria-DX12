@@ -8,7 +8,6 @@ namespace adria
 	struct PostprocessSettings
 	{
 		bool fog = false;
-
 		EAntiAliasing anti_aliasing = AntiAliasing_None;
 
 		EToneMap tone_map_op = EToneMap::Reinhard;
@@ -24,6 +23,7 @@ namespace adria
 		EReflections reflections = EReflections::SSR;
 		bool dof = false;
 		bool bokeh = false;
+
 		float32 bokeh_blur_threshold = 0.9f;
 		float32 bokeh_lum_threshold = 1.0f;
 		float32 bokeh_radius_scale = 25.0f;
@@ -32,10 +32,8 @@ namespace adria
 		EBokehType bokeh_type = EBokehType::Hex;
 
 		bool bloom = false;
-
 		bool clouds = false;
 		bool motion_blur = false;
-		float32 velocity_buffer_scale = 64.0f;
 		bool automatic_exposure = false;
 	};
 

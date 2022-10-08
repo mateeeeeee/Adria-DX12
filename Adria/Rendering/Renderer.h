@@ -85,18 +85,15 @@ namespace adria
 		}
 
 		bool IsRayTracingSupported() const { return ray_tracer.IsSupported(); }
-
 #ifdef _DEBUG
 		Texture const* GetRTAODebugTexture() const 
 		{
 			return ray_tracer.GetRTAODebugTexture();
 		}
-
 		Texture const* GetRTSDebugTexture() const
 		{
 			return ray_tracer.GetRTSDebugTexture();
 		}
-
 		Texture const* GetRTRDebugTexture() const
 		{
 			return ray_tracer.GetRTRDebugTexture();
@@ -159,9 +156,9 @@ namespace adria
 		OceanRenderer  ocean_renderer;
 		ParticleRenderer particle_renderer;
 		RayTracer ray_tracer;
-		Postprocessor postprocessor;
 		AABBPass aabb_pass;
-
+		Postprocessor postprocessor;
+		
 		ViewportData viewport_data;
 	private:
 		void CreateNullHeap();

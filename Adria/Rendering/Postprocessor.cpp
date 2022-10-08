@@ -19,17 +19,18 @@ namespace adria
 		add_textures_pass(width, height), automatic_exposure_pass(width, height),
 		lens_flare_pass(texture_manager, width, height),
 		clouds_pass(texture_manager, width, height), ssr_pass(width, height), fog_pass(width, height),
-		dof_pass(width, height), bloom_pass(width, height)
+		dof_pass(width, height), bloom_pass(width, height), velocity_buffer_pass(width, height)
 	{}
 
 	void Postprocessor::AddPasses(RenderGraph& rg, PostprocessSettings const& _settings)
 	{
 		settings = _settings;
 		auto lights = reg.view<Light>();
-		AddVelocityBufferPass(rg);
-
-		AddCopyHDRPass(rg);
-		final_resource = RG_RES_NAME(PostprocessMain);
+		if (settings.motion_blur || HasAnyFlag(settings.anti_aliasing, AntiAliasing_TAA))
+		{
+			velocity_buffer_pass.AddPass(rg);
+		}
+		final_resource = AddHDRCopyPass(rg);
 
 		if (settings.automatic_exposure)
 		{
@@ -180,7 +181,7 @@ namespace adria
 		return final_resource;
 	}
 
-	void Postprocessor::AddCopyHDRPass(RenderGraph& rg)
+	RGResourceName Postprocessor::AddHDRCopyPass(RenderGraph& rg)
 	{
 		struct CopyPassData
 		{
@@ -206,48 +207,8 @@ namespace adria
 				Texture const& dst_texture = context.GetCopyDstTexture(data.copy_dst);
 				cmd_list->CopyResource(dst_texture.GetNative(), src_texture.GetNative());
 			}, ERGPassType::Copy, ERGPassFlags::None);
-	}
 
-	void Postprocessor::AddVelocityBufferPass(RenderGraph& rg)
-	{
-		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
-		struct VelocityBufferPassData
-		{
-			RGTextureReadOnlyId depth_srv;
-		};
-		rg.AddPass<VelocityBufferPassData>("Velocity Buffer Pass",
-			[=](VelocityBufferPassData& data, RenderGraphBuilder& builder)
-			{
-				RGTextureDesc velocity_buffer_desc{};
-				velocity_buffer_desc.width = width;
-				velocity_buffer_desc.height = height;
-				velocity_buffer_desc.format = EFormat::R16G16_FLOAT;
-
-				builder.SetViewport(width, height);
-				builder.DeclareTexture(RG_RES_NAME(VelocityBuffer), velocity_buffer_desc);
-				builder.WriteRenderTarget(RG_RES_NAME(VelocityBuffer), ERGLoadStoreAccessOp::Discard_Preserve);
-				data.depth_srv = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
-			},
-			[=](VelocityBufferPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
-			{
-				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
-
-				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::VelocityBuffer));
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::VelocityBuffer));
-
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetGraphicsRootConstantBufferView(1, global_data.postprocess_cbuffer_address);
-
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(1);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index),
-					context.GetReadOnlyTexture(data.depth_srv), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-				cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
-				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-				cmd_list->DrawInstanced(4, 1, 0, 0);
-
-			}, ERGPassType::Graphics, ERGPassFlags::None);
+		return RG_RES_NAME(PostprocessMain);
 	}
 
 	void Postprocessor::AddSunPass(RenderGraph& rg, entt::entity sun)

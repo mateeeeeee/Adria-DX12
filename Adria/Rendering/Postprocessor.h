@@ -15,6 +15,7 @@
 #include "FogPass.h"
 #include "DepthOfFieldPass.h"
 #include "BloomPass.h"
+#include "VelocityBufferPass.h"
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
 #include "entt/entity/entity.hpp"
@@ -49,6 +50,7 @@ namespace adria
 		FogParameters   const& GetFogParams() const { return fog_pass.GetParams(); }
 		DoFParameters   const& GetDoFParams() const { return dof_pass.GetParams(); }
 		BloomParameters const& GetBloomParams() const { return bloom_pass.GetParams(); }
+		VelocityBufferParams const& GetVelocityBufferParams() const { return velocity_buffer_pass.GetParams(); }
 
 	private:
 		entt::registry& reg;
@@ -79,14 +81,14 @@ namespace adria
 		FogPass fog_pass;
 		DepthOfFieldPass dof_pass;
 		BloomPass bloom_pass;
+		VelocityBufferPass velocity_buffer_pass;
 	private:
-		void AddCopyHDRPass(RenderGraph& rg);
-		void AddVelocityBufferPass(RenderGraph& rg);
+		RGResourceName AddHDRCopyPass(RenderGraph& rg);
+		void AddHistoryCopyPass(RenderGraph& rg);
 
 		void AddSunPass(RenderGraph& rg, entt::entity sun);
 		void AddGodRaysPass(RenderGraph& rg, Light const& light);
 		void AddMotionBlurPass(RenderGraph& rg);
-		void AddHistoryCopyPass(RenderGraph& rg);
 		void AddTAAPass(RenderGraph& rg);
 
 		void AddGenerateBokehPass(RenderGraph& rg);

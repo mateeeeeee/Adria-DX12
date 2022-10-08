@@ -236,6 +236,7 @@
     <ClCompile Include="Rendering\SSRPass.cpp" />
     <ClCompile Include="Rendering\TiledLightingPass.cpp" />
     <ClCompile Include="Rendering\ToneMapPass.cpp" />
+    <ClCompile Include="Rendering\VelocityBufferPass.cpp" />
     <ClCompile Include="Rendering\VolumetricCloudsPass.cpp" />
     <ClCompile Include="Utilities\AdriaException.cpp" />
     <ClCompile Include="Utilities\CPUProfiler.cpp" />
@@ -355,6 +356,7 @@
     <ClInclude Include="Rendering\RootSignatureCache.h" />
     <ClInclude Include="Rendering\ShaderManager.h" />
     <ClInclude Include="Rendering\SSRPass.h" />
+    <ClInclude Include="Rendering\VelocityBufferPass.h" />
     <ClInclude Include="Rendering\ViewportData.h" />
     <ClInclude Include="Rendering\ShadowPass.h" />
     <ClInclude Include="Rendering\SkyModel.h" />
