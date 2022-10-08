@@ -33,10 +33,6 @@ namespace adria
 			Flag_HotReload,
 			Flag_RTDebug,
 			Flag_Settings,
-			Flag_Ocean,
-			Flag_Decal,
-			Flag_Particles,
-			Flag_Sky,
 			Flag_AddEntities,
 			Flag_Count
 		};

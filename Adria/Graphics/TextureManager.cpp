@@ -157,8 +157,7 @@ namespace adria
             }
             BREAK_IF_FAILED(gfx->GetDevice()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&equirect_root_signature)));
         }
-        
-        
+
         {
             ShaderBlob equirect_cs_shader;
             ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/Equirect2cubeCS.cso", equirect_cs_shader);
@@ -168,8 +167,6 @@ namespace adria
             pso_desc.CS = equirect_cs_shader;
             BREAK_IF_FAILED(gfx->GetDevice()->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&equirect_pso)));
         }
-
-        
     }
 
     [[nodiscard]]
@@ -220,14 +217,14 @@ namespace adria
                 ADRIA_ASSERT(texture_srv_heap->Count() > handle && "Not enough space for descriptors in Texture Cache");
                 loaded_textures.insert({ name, handle });
                 Microsoft::WRL::ComPtr<ID3D12Resource> cubemap = nullptr;
-                std::unique_ptr<uint8_t[]> decodedData;
+                std::unique_ptr<uint8_t[]> decoded_data;
 
                 std::vector<D3D12_SUBRESOURCE_DATA> subresources;
 
                 bool is_cubemap;
                 BREAK_IF_FAILED(
                     DirectX::LoadDDSTextureFromFile(device, name.c_str(), cubemap.GetAddressOf(),
-                        decodedData, subresources, 0, nullptr, &is_cubemap));
+                        decoded_data, subresources, 0, nullptr, &is_cubemap));
 
                 ADRIA_ASSERT(is_cubemap);
                 const UINT64 upload_buffer_size = GetRequiredIntermediateSize(cubemap.Get(), 0,

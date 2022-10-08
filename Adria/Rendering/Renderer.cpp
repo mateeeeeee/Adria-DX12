@@ -102,7 +102,6 @@ namespace adria
 				}
 			}
 		}
-		//ibl is broken
 		if (renderer_settings.ibl)
 		{
 			if (!ibl_generated) GenerateIBLTextures();

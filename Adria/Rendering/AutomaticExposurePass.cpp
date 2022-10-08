@@ -4,16 +4,16 @@
 #include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/Texture.h"
+#include "../Editor/GUICommand.h"
 
 namespace adria
 {
 
 	AutomaticExposurePass::AutomaticExposurePass(uint32 w, uint32 h)
 		: width(w), height(h)
-	{
-	}
+	{}
 
-	void AutomaticExposurePass::CreateResources(GraphicsDevice* gfx)
+	void AutomaticExposurePass::OnSceneInitialized(GraphicsDevice* gfx)
 	{
 		TextureDesc desc{};
 		desc.width = 1;
@@ -28,7 +28,7 @@ namespace adria
 		previous_ev100->CreateUAV();
 	}
 
-	void AutomaticExposurePass::AddPasses(RenderGraph& rg, RGResourceName input, AutomaticExposureParameters const& params)
+	void AutomaticExposurePass::AddPasses(RenderGraph& rg, RGResourceName input)
 	{
 		struct BuildHistogramData
 		{
@@ -88,7 +88,7 @@ namespace adria
 					float32 max_luminance;
 				} constants = {	.width = half_width, .height = half_height, 
 								.rcp_width = 1.0f / half_width, .rcp_height = 1.0f / half_height,
-								.min_luminance = params.min_luminance, .max_luminance = params.max_luminance};
+								.min_luminance = min_luminance, .max_luminance = max_luminance};
 
 				DynamicAllocation cb_alloc = dynamic_allocator->Allocate(sizeof(BuildHistogramConstants), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 				cb_alloc.Update(constants);
@@ -107,7 +107,7 @@ namespace adria
 					return (a + b - 1) / b;
 				};
 				cmd_list->Dispatch(DivideRoudingUp(half_width, 16), DivideRoudingUp(half_height, 16), 1);
-			}, ERGPassType::Compute, ERGPassFlags::ForceNoCull);
+			}, ERGPassType::Compute, ERGPassFlags::None);
 
 		struct HistogramReductionData
 		{
@@ -140,8 +140,8 @@ namespace adria
 					float32 max_luminance;
 					float32 low_percentile;
 					float32 high_percentile;
-				} constants = { .min_luminance = params.min_luminance, .max_luminance = params.max_luminance,
-								.low_percentile = params.low_percentile, .high_percentile = params.high_percentile };
+				} constants = { .min_luminance = min_luminance, .max_luminance = max_luminance,
+								.low_percentile = low_percentile, .high_percentile = high_percentile };
 				cmd_list->SetComputeRoot32BitConstants(0, 4, &constants, 0);
 				
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
@@ -155,7 +155,7 @@ namespace adria
 				cmd_list->SetComputeRootDescriptorTable(2, avgluminance_uav);
 
 				cmd_list->Dispatch(1, 1, 1);
-			}, ERGPassType::Compute, ERGPassFlags::ForceNoCull);
+			}, ERGPassType::Compute, ERGPassFlags::None);
 
 		struct ExposureData
 		{
@@ -199,7 +199,7 @@ namespace adria
 					float32 adaption_speed;
 					float32 exposure_compensation;
 					float32 frame_time;
-				} constants{.adaption_speed = params.adaption_speed, .exposure_compensation = params.exposure_compensation, .frame_time = 0.166f};
+				} constants{.adaption_speed = adaption_speed, .exposure_compensation = exposure_compensation, .frame_time = 0.166f};
 
 				cmd_list->SetComputeRoot32BitConstants(0, 3, &constants, 0);
 
@@ -220,7 +220,22 @@ namespace adria
 				cmd_list->SetComputeRootDescriptorTable(2, previous_uav);
 
 				cmd_list->Dispatch(1, 1, 1);
-			}, ERGPassType::Compute, ERGPassFlags::ForceNoCull);
+			}, ERGPassType::Compute, ERGPassFlags::None);
+	
+		AddGUI([&]() 
+			{
+				if (ImGui::TreeNodeEx("Automatic Exposure", 0))
+				{
+					ImGui::SliderFloat("Min Luminance", &min_luminance, 0.0f, 1.0f);
+					ImGui::SliderFloat("Max Luminance", &max_luminance, 0.3f, 20.0f);
+					ImGui::SliderFloat("Adaption Speed", &adaption_speed, 0.01, 5.0f);
+					ImGui::SliderFloat("Exposure Compensation", &exposure_compensation, -5.0f, 5.0f);
+					ImGui::SliderFloat("Low Percentile", &low_percentile, 0.0f, 0.49f);
+					ImGui::SliderFloat("High Percentile", &high_percentile, 0.51, 1.0f);
+					ImGui::TreePop();
+				}
+			}
+		);
 	}
 
 	void AutomaticExposurePass::OnResize(uint32 w, uint32 h)

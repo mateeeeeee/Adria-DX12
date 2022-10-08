@@ -353,10 +353,6 @@ namespace adria
 				if (ImGui::MenuItem("Hot Reload", 0, window_flags[Flag_HotReload]))			 window_flags[Flag_HotReload] = !window_flags[Flag_HotReload];
 				if (ImGui::MenuItem("Settings", 0, window_flags[Flag_Settings]))	 window_flags[Flag_Settings] = !window_flags[Flag_Settings];
 				if (ImGui::MenuItem("Ray Tracing Debug", 0, window_flags[Flag_RTDebug]))	 window_flags[Flag_RTDebug] = !window_flags[Flag_RTDebug];
-				if (ImGui::MenuItem("Ocean", 0, window_flags[Flag_Ocean]))					 window_flags[Flag_Ocean] = !window_flags[Flag_Ocean];
-				if (ImGui::MenuItem("Decals", 0, window_flags[Flag_Decal]))					 window_flags[Flag_Decal] = !window_flags[Flag_Decal];
-				if (ImGui::MenuItem("Particles", 0, window_flags[Flag_Particles]))			 window_flags[Flag_Particles] = !window_flags[Flag_Particles];
-				if (ImGui::MenuItem("Sky", 0, window_flags[Flag_Sky]))						 window_flags[Flag_Sky] = !window_flags[Flag_Sky];
 				if (ImGui::MenuItem("Add Entities", 0, window_flags[Flag_AddEntities]))		 window_flags[Flag_AddEntities] = !window_flags[Flag_AddEntities];
 
 				ImGui::EndMenu();
@@ -447,7 +443,107 @@ namespace adria
 				ImGui::TreePop();
 				ImGui::Separator();
 			}
+			if (ImGui::TreeNodeEx("Decals", 0))
+			{
+				static DecalParameters params{};
+				static char NAME_BUFFER[128];
+				ImGui::InputText("Name", NAME_BUFFER, sizeof(NAME_BUFFER));
+				params.name = std::string(NAME_BUFFER);
+				ImGui::PushID(6);
+				if (ImGui::Button("Select Albedo Texture"))
+				{
+					nfdchar_t* file_path = NULL;
+					nfdchar_t const* filter_list = "jpg,jpeg,tga,dds,png";
+					nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
+					if (result == NFD_OKAY)
+					{
+						std::string texture_path = file_path;
+						params.albedo_texture_path = texture_path;
+						free(file_path);
+					}
+				}
+				ImGui::PopID();
+				ImGui::Text(params.albedo_texture_path.c_str());
 
+				ImGui::PushID(7);
+				if (ImGui::Button("Select Normal Texture"))
+				{
+					nfdchar_t* file_path = NULL;
+					nfdchar_t const* filter_list = "jpg,jpeg,tga,dds,png";
+					nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
+					if (result == NFD_OKAY)
+					{
+						std::string texture_path = file_path;
+						params.normal_texture_path = texture_path;
+						free(file_path);
+					}
+				}
+
+				ImGui::PopID();
+				ImGui::Text(params.normal_texture_path.c_str());
+
+				ImGui::DragFloat("Size", &params.size, 2.0f, 10.0f, 200.0f);
+				ImGui::DragFloat("Rotation", &params.rotation, 1.0f, -180.0f, 180.0f);
+				ImGui::Checkbox("Modify GBuffer Normals", &params.modify_gbuffer_normals);
+
+				auto picking_data = engine->renderer->GetPickingData();
+				ImGui::Text("Picked Position: %f %f %f", picking_data.position.x, picking_data.position.y, picking_data.position.z);
+				ImGui::Text("Picked Normal: %f %f %f", picking_data.normal.x, picking_data.normal.y, picking_data.normal.z);
+				if (ImGui::Button("Load Decal"))
+				{
+					params.position = picking_data.position;
+					params.normal = picking_data.normal;
+					params.rotation = XMConvertToRadians(params.rotation);
+
+					engine->entity_loader->LoadDecal(params);
+				}
+				if (ImGui::Button("Clear Decals"))
+				{
+					for (auto e : engine->reg.view<Decal>()) engine->reg.destroy(e);
+				}
+				ImGui::TreePop();
+				ImGui::Separator();
+			}
+			if (ImGui::TreeNodeEx("Particles", 0))
+			{
+				static EmitterParameters params{};
+				static char NAME_BUFFER[128];
+				ImGui::InputText("Name", NAME_BUFFER, sizeof(NAME_BUFFER));
+				params.name = std::string(NAME_BUFFER);
+				if (ImGui::Button("Select Texture"))
+				{
+					nfdchar_t* file_path = NULL;
+					nfdchar_t const* filter_list = "jpg,jpeg,tga,dds,png";
+					nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
+					if (result == NFD_OKAY)
+					{
+						std::wstring texture_path = ToWideString(file_path);
+						params.texture_path = texture_path;
+						free(file_path);
+					}
+				}
+
+				ImGui::Text(ToString(params.texture_path).c_str());
+				ImGui::SliderFloat3("Position", params.position, -500.0f, 500.0f);
+				ImGui::SliderFloat3("Velocity", params.velocity, -50.0f, 50.0f);
+				ImGui::SliderFloat3("Position Variance", params.position_variance, -50.0f, 50.0f);
+				ImGui::SliderFloat("Velocity Variance", &params.velocity_variance, -10.0f, 10.0f);
+				ImGui::SliderFloat("Lifespan", &params.lifespan, 0.0f, 50.0f);
+				ImGui::SliderFloat("Start Size", &params.start_size, 0.0f, 50.0f);
+				ImGui::SliderFloat("End Size", &params.end_size, 0.0f, 10.0f);
+				ImGui::SliderFloat("Mass", &params.mass, 0.0f, 10.0f);
+				ImGui::SliderFloat("Particles Per Second", &params.particles_per_second, 1.0f, 1000.0f);
+				ImGui::Checkbox("Alpha Blend", &params.blend);
+				ImGui::Checkbox("Collisions", &params.collisions);
+				ImGui::Checkbox("Sort", &params.sort);
+				if (params.collisions) ImGui::SliderInt("Collision Thickness", &params.collision_thickness, 0, 40);
+
+				if (ImGui::Button("Load Emitter"))
+				{
+					entt::entity e = engine->entity_loader->LoadEmitter(params);
+					editor_events.particle_emitter_added.Broadcast(entt::to_integral(e));
+				}
+			}
 		}
 		ImGui::End();
 	}
@@ -1126,6 +1222,18 @@ namespace adria
 
 			for (auto&& command : commands) command.callback();
 			commands.clear();
+
+			if (ImGui::TreeNode("Misc"))
+			{
+				ImGui::ColorEdit3("Ambient Color", renderer_settings.ambient_color);
+				ImGui::Checkbox("IBL", &renderer_settings.ibl);
+				if (renderer_settings.ibl)
+				{
+					renderer_settings.ibl = false;
+					ADRIA_LOG(INFO, "IBL is currently broken!");
+				}
+				ImGui::TreePop();
+			}
 		}
 		ImGui::End();
 	}

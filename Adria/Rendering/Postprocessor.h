@@ -8,6 +8,7 @@
 #include "CopyToTexturePass.h"
 #include "AddTexturesPass.h"
 #include "GenerateMipsPass.h"
+#include "LensFlarePass.h"
 #include "AutomaticExposurePass.h"
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
@@ -33,7 +34,6 @@ namespace adria
 
 	public:
 		Postprocessor(entt::registry& reg, TextureManager& texture_manager, uint32 width, uint32 height);
-
 		void AddPasses(RenderGraph& rg, PostprocessSettings const& settings);
 
 		void OnResize(GraphicsDevice* gfx, uint32 w, uint32 h);
@@ -47,7 +47,6 @@ namespace adria
 		PostprocessSettings settings;
 
 		std::vector<size_t> cloud_textures;
-		std::vector<size_t> lens_flare_textures;
 		size_t hex_bokeh_handle = -1;
 		size_t oct_bokeh_handle = -1;
 		size_t circle_bokeh_handle = -1;
@@ -58,12 +57,14 @@ namespace adria
 		std::unique_ptr<Buffer> counter_reset_buffer;
 		std::unique_ptr<Buffer> bokeh_indirect_buffer;
 		Microsoft::WRL::ComPtr<ID3D12CommandSignature> bokeh_command_signature;
-		//helper passes
+		
 		BlurPass blur_pass;
 		CopyToTexturePass copy_to_texture_pass;
 		AddTexturesPass add_textures_pass;
 		GenerateMipsPass generate_mips_pass;
 		AutomaticExposurePass automatic_exposure_pass;
+		LensFlarePass lens_flare_pass;
+
 	private:
 		void AddCopyHDRPass(RenderGraph& rg);
 		void AddVelocityBufferPass(RenderGraph& rg);
@@ -73,7 +74,6 @@ namespace adria
 		void AddBloomPass(RenderGraph& rg);
 		void AddSunPass(RenderGraph& rg, entt::entity sun);
 		void AddGodRaysPass(RenderGraph& rg, Light const& light);
-		void AddLensFlarePass(RenderGraph& rg, Light const& light);
 		void AddDepthOfFieldPass(RenderGraph& rg);	
 		void AddMotionBlurPass(RenderGraph& rg);
 		void AddHistoryCopyPass(RenderGraph& rg);

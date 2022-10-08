@@ -61,26 +61,12 @@ namespace adria
 
 		bool motion_blur = false;
 		float32 velocity_buffer_scale = 64.0f;
-
 		bool automatic_exposure = false;
-		float32 min_luminance = 0.0f;
-		float32 max_luminance = 10.0f;
-		float32 adaption_speed = 1.5f;
-		float32 exposure_compensation = 0.75f;
-		float32 low_percentile = 0.1f;
-		float32 high_percentile = 0.9f;
 	};
 
 	struct RendererSettings
 	{
-		//user settings
-		float32 blur_sigma = 6.0f;
 		float32 ambient_color[3] = { 15.0f / 255.0f, 15.0f / 255.0f, 15.0f / 255.0f };
-		
-		float32 shadow_softness = 1.0f;
-		bool shadow_transparent = false;
-		float32 split_lambda = 0.5f;
-
 		bool ibl = false;
 		bool gui_visible = false;
 		bool use_tiled_deferred = false;

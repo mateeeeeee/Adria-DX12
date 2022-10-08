@@ -290,6 +290,9 @@
     <ClCompile Include="Editor\GUICommand.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\LensFlarePass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -687,6 +690,9 @@
     </ClInclude>
     <ClInclude Include="Editor\GUICommand.h">
       <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\LensFlarePass.h">
+      <Filter>Rendering\Passes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
