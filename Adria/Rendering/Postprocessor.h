@@ -12,6 +12,7 @@
 #include "LensFlarePass.h"
 #include "VolumetricCloudsPass.h"
 #include "SSRPass.h"
+#include "FogPass.h"
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
 #include "entt/entity/entity.hpp"
@@ -33,7 +34,6 @@ namespace adria
 
 	class Postprocessor
 	{
-
 	public:
 		Postprocessor(entt::registry& reg, TextureManager& texture_manager, uint32 width, uint32 height);
 		void AddPasses(RenderGraph& rg, PostprocessSettings const& settings);
@@ -44,6 +44,8 @@ namespace adria
 
 		CloudParameters const& GetCloudParams() const { return clouds_pass.GetParams(); }
 		SSRParameters const& GetSSRParams() const { return ssr_pass.GetParams(); }
+		FogParameters const& GetFogParams() const { return fog_pass.GetParams(); }
+
 	private:
 		entt::registry& reg;
 		TextureManager& texture_manager;
@@ -70,12 +72,11 @@ namespace adria
 		LensFlarePass lens_flare_pass;
 		VolumetricCloudsPass clouds_pass;
 		SSRPass ssr_pass;
-
+		FogPass fog_pass;
 	private:
 		void AddCopyHDRPass(RenderGraph& rg);
 		void AddVelocityBufferPass(RenderGraph& rg);
-		
-		void AddFogPass(RenderGraph& rg);
+
 		void AddBloomPass(RenderGraph& rg);
 		void AddSunPass(RenderGraph& rg, entt::entity sun);
 		void AddGodRaysPass(RenderGraph& rg, Light const& light);

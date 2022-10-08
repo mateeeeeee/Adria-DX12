@@ -595,6 +595,7 @@ namespace adria
 
 			PostprocessSettings const& settings = renderer_settings.postprocessor;
 			SSRParameters ssr_params = postprocessor.GetSSRParams();
+			FogParameters fog_params = postprocessor.GetFogParams();
 			
 			postprocess_cbuf_data.tone_map_exposure = settings.tonemap_exposure;
 			postprocess_cbuf_data.tone_map_operator = static_cast<int>(settings.tone_map_op);
@@ -606,11 +607,12 @@ namespace adria
 			postprocess_cbuf_data.ssr_ray_hit_threshold = ssr_params.ssr_ray_hit_threshold;
 			postprocess_cbuf_data.dof_params = XMVectorSet(settings.dof_near_blur, settings.dof_near, settings.dof_far, settings.dof_far_blur);
 			postprocess_cbuf_data.velocity_buffer_scale = settings.velocity_buffer_scale;
-			postprocess_cbuf_data.fog_falloff = settings.fog_falloff;
-			postprocess_cbuf_data.fog_density = settings.fog_density;
-			postprocess_cbuf_data.fog_type = static_cast<int32>(settings.fog_type);
-			postprocess_cbuf_data.fog_start = settings.fog_start;
-			postprocess_cbuf_data.fog_color = XMVectorSet(settings.fog_color[0], settings.fog_color[1], settings.fog_color[2], 1);
+			postprocess_cbuf_data.fog_falloff = fog_params.fog_falloff;
+			postprocess_cbuf_data.fog_density = fog_params.fog_density;
+			postprocess_cbuf_data.fog_type = static_cast<int32>(fog_params.fog_type);
+			postprocess_cbuf_data.fog_start = fog_params.fog_start;
+			XMFLOAT3 fog_color(fog_params.fog_color);
+			postprocess_cbuf_data.fog_color = XMLoadFloat3(&fog_color);
 			postprocess_cbuf_data.hbao_r2 = settings.hbao_radius * settings.hbao_radius;
 			postprocess_cbuf_data.hbao_radius_to_screen = settings.hbao_radius * 0.5f * float32(height) / (tanf(camera->Fov() * 0.5f) * 2.0f);
 			postprocess_cbuf_data.hbao_power = settings.hbao_power;
