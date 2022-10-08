@@ -230,14 +230,14 @@ namespace adria
                         decodedData, subresources, 0, nullptr, &is_cubemap));
 
                 ADRIA_ASSERT(is_cubemap);
-                const UINT64 uploadBufferSize = GetRequiredIntermediateSize(cubemap.Get(), 0,
+                const UINT64 upload_buffer_size = GetRequiredIntermediateSize(cubemap.Get(), 0,
 					static_cast<UINT>(subresources.size()));
                 D3D12MA::ALLOCATION_DESC texture_upload_alloc_desc{};
                 texture_upload_alloc_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
                 D3D12_RESOURCE_DESC texture_upload_resource_desc{};
                 texture_upload_resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
                 texture_upload_resource_desc.Alignment = 0;
-                texture_upload_resource_desc.Width = uploadBufferSize;
+                texture_upload_resource_desc.Width = upload_buffer_size;
                 texture_upload_resource_desc.Height = 1;
                 texture_upload_resource_desc.DepthOrArraySize = 1;
                 texture_upload_resource_desc.MipLevels = 1;
@@ -495,7 +495,7 @@ namespace adria
             texture_srv_heap->GetFirstHandle();
     }
 
-    void TextureManager::SetMipMaps(bool mips)
+    void TextureManager::SetMipMapsEnabled(bool mips)
     {
         mipmaps = mips;
     }

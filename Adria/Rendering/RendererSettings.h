@@ -76,23 +76,15 @@ namespace adria
 		//user settings
 		float32 blur_sigma = 6.0f;
 		float32 ambient_color[3] = { 15.0f / 255.0f, 15.0f / 255.0f, 15.0f / 255.0f };
-		float32 wind_direction[2] = { 10.0f, 10.0f };
+		
 		float32 shadow_softness = 1.0f;
 		bool shadow_transparent = false;
 		float32 split_lambda = 0.5f;
-		bool ibl = false;
 
+		bool ibl = false;
 		bool gui_visible = false;
 		bool use_tiled_deferred = false;
 		bool use_clustered_deferred = false;
-
-		//move all to ocean_pass
-		bool ocean_wireframe = false;
-		bool ocean_tesselation = false;
-		float32 ocean_color[3] = { 0.0123f, 0.3613f, 0.6867f };
-		float32 ocean_choppiness = 1.2f;
-		bool ocean_color_changed = false;
-		bool recreate_initial_spectrum = true;
 		PostprocessSettings postprocessor{};
 	};
 

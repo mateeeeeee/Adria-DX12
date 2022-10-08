@@ -18,14 +18,14 @@ namespace adria
 	public:
 		OceanRenderer(entt::registry& reg, TextureManager& texture_manager, uint32 w, uint32 h);
 
-		void UpdateOceanColor(float32(&color)[3]);
-
-		void AddPasses(RenderGraph& rendergraph, bool recreate_spectrum, bool tesselated, bool wireframe);
+		void AddPasses(RenderGraph& rendergraph);
 
 		void OnResize(uint32 w, uint32 h);
 
 		void OnSceneInitialized(GraphicsDevice* gfx);
 
+		float32 const* GetWindDirection() const { return wind_direction; }
+		float32 GetChoppiness() const { return ocean_choppiness; }
 	private:
 		entt::registry& reg;
 		TextureManager& texture_manager;
@@ -37,5 +37,14 @@ namespace adria
 		bool pong_phase = false;
 		std::unique_ptr<Texture> ping_pong_spectrum_textures[2];
 		bool pong_spectrum = false;
+
+		//settings
+		bool ocean_wireframe = false;
+		bool ocean_tesselation = false;
+		float32 ocean_color[3] = { 0.0123f, 0.3613f, 0.6867f };
+		float32 ocean_choppiness = 1.2f;
+		bool ocean_color_changed = false;
+		bool recreate_initial_spectrum = true;
+		float32 wind_direction[2] = { 10.0f, 10.0f };
 	};
 }

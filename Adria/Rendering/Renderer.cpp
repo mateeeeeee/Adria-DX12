@@ -102,6 +102,7 @@ namespace adria
 				}
 			}
 		}
+		//ibl is broken
 		if (renderer_settings.ibl)
 		{
 			if (!ibl_generated) GenerateIBLTextures();
@@ -159,9 +160,7 @@ namespace adria
 		}
 
 		aabb_pass.AddPass(render_graph);
-		ocean_renderer.UpdateOceanColor(renderer_settings.ocean_color);
-		ocean_renderer.AddPasses(render_graph, renderer_settings.recreate_initial_spectrum,
-			renderer_settings.ocean_tesselation, renderer_settings.ocean_wireframe);
+		ocean_renderer.AddPasses(render_graph);
 		sky_pass.AddPass(render_graph);
 		picking_pass.AddPass(render_graph);
 		particle_renderer.AddPasses(render_graph);
@@ -634,10 +633,11 @@ namespace adria
 				}
 			}
 			XMFLOAT3 sky_color(sky_pass.GetSkyColor());
-			
+			XMFLOAT2 wind_dir(ocean_renderer.GetWindDirection());
+
 			weather_cbuf_data.sky_color = XMLoadFloat3(&sky_color);
 			weather_cbuf_data.ambient_color = XMVECTOR{ renderer_settings.ambient_color[0], renderer_settings.ambient_color[1], renderer_settings.ambient_color[2], 1.0f };
-			weather_cbuf_data.wind_dir = XMVECTOR{ renderer_settings.wind_direction[0], 0.0f, renderer_settings.wind_direction[1], 0.0f };
+			weather_cbuf_data.wind_dir = XMVECTOR{ wind_dir.x, 0.0f, wind_dir.y, 0.0f };
 			weather_cbuf_data.wind_speed = renderer_settings.postprocessor.wind_speed;
 			weather_cbuf_data.time = total_time;
 			weather_cbuf_data.crispiness = renderer_settings.postprocessor.crispiness;
@@ -691,11 +691,12 @@ namespace adria
 			compute_cbuf_data.bokeh_color_scale = renderer_settings.postprocessor.bokeh_color_scale;
 			compute_cbuf_data.bokeh_fallout = renderer_settings.postprocessor.bokeh_fallout;
 
-			compute_cbuf_data.ocean_choppiness = renderer_settings.ocean_choppiness;
+			XMFLOAT2 wind_dir(ocean_renderer.GetWindDirection());
+			compute_cbuf_data.ocean_choppiness = ocean_renderer.GetChoppiness();
 			compute_cbuf_data.ocean_size = 512;
 			compute_cbuf_data.resolution = 512; //fft resolution
-			compute_cbuf_data.wind_direction_x = renderer_settings.wind_direction[0];
-			compute_cbuf_data.wind_direction_y = renderer_settings.wind_direction[1];
+			compute_cbuf_data.wind_direction_x = wind_dir.x;
+			compute_cbuf_data.wind_direction_y = wind_dir.y;
 			compute_cbuf_data.delta_time = dt;
 
 			compute_cbuffer.Update(compute_cbuf_data, backbuffer_index);

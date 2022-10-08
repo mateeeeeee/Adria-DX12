@@ -7,9 +7,10 @@
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/Texture.h"
 #include "../Graphics/TextureManager.h"
-#include "entt/entity/registry.hpp"
+#include "../Editor/GUICommand.h"
 #include "../Utilities/Random.h"
 #include "../Math/Constants.h"
+#include "entt/entity/registry.hpp"
 
 using namespace DirectX;
 
@@ -20,22 +21,20 @@ namespace adria
 		: reg{ reg }, texture_manager{ texture_manager }, width{ w }, height{ h }
 	{}
 
-	void OceanRenderer::UpdateOceanColor(float32(&color)[3])
-	{
-		if (reg.view<Ocean>().size() == 0) return;
-
-		auto ocean_view = reg.view<Ocean, Material>();
-		for (auto e : ocean_view)
-		{
-			auto& material = ocean_view.get<Material>(e);
-			material.diffuse = XMFLOAT3(color);
-		}
-	}
-
-	void OceanRenderer::AddPasses(RenderGraph& rendergraph, bool recreate_spectrum, bool tesselated, bool wireframe)
+	void OceanRenderer::AddPasses(RenderGraph& rendergraph)
 	{
 		if (reg.view<Ocean>().size() == 0) return;
 		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
+
+		if (ocean_color_changed)
+		{
+			auto ocean_view = reg.view<Ocean, Material>();
+			for (auto e : ocean_view)
+			{
+				auto& material = ocean_view.get<Material>(e);
+				material.diffuse = XMFLOAT3(ocean_color);
+			}
+		}
 
 		rendergraph.ImportTexture(RG_RES_NAME(InitialSpectrum), initial_spectrum.get());
 		rendergraph.ImportTexture(RG_RES_NAME(PongPhase), ping_pong_phase_textures[pong_phase].get());
@@ -43,7 +42,7 @@ namespace adria
 		rendergraph.ImportTexture(RG_RES_NAME(PongSpectrum), ping_pong_spectrum_textures[pong_spectrum].get());
 		rendergraph.ImportTexture(RG_RES_NAME(PingSpectrum), ping_pong_spectrum_textures[!pong_spectrum].get());
 
-		if (recreate_spectrum)
+		if (recreate_initial_spectrum)
 		{
 			struct InitialSpectrumPassData
 			{
@@ -326,18 +325,18 @@ namespace adria
 				}
 
 				DescriptorCPU displacement_handle = context.GetReadOnlyTexture(data.spectrum_srv);
-				if (tesselated)
+				if (ocean_tesselation)
 				{
 					cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::OceanLOD));
 					cmd_list->SetPipelineState(
-						wireframe ? PSOCache::Get(EPipelineState::OceanLOD_Wireframe) :
+						ocean_tesselation ? PSOCache::Get(EPipelineState::OceanLOD_Wireframe) :
 						PSOCache::Get(EPipelineState::OceanLOD));
 				}
 				else
 				{
 					cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Ocean));
 					cmd_list->SetPipelineState(
-						wireframe ? PSOCache::Get(EPipelineState::Ocean_Wireframe) :
+						ocean_wireframe ? PSOCache::Get(EPipelineState::Ocean_Wireframe) :
 						PSOCache::Get(EPipelineState::Ocean));
 				}
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
@@ -379,11 +378,26 @@ namespace adria
 							D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 						cmd_list->SetGraphicsRootDescriptorTable(5, dst_descriptor);
 
-						tesselated ? mesh.Draw(cmd_list, D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST) : mesh.Draw(cmd_list);
+						ocean_tesselation ? mesh.Draw(cmd_list, D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST) : mesh.Draw(cmd_list);
 					}
 				}
 			}, 
 			ERGPassType::Graphics, ERGPassFlags::None);
+
+		AddGUI([&]()
+			{
+				if (ImGui::TreeNodeEx("Ocean Settings", 0))
+				{
+					ImGui::Checkbox("Tessellation", &ocean_tesselation);
+					ImGui::Checkbox("Wireframe", &ocean_wireframe);
+
+					ImGui::SliderFloat("Choppiness", &ocean_choppiness, 0.0f, 10.0f);
+					ocean_color_changed = ImGui::ColorEdit3("Ocean Color", ocean_color);
+					recreate_initial_spectrum = ImGui::SliderFloat2("Wind Direction", wind_direction, 0.0f, 50.0f);
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
+			});
 	}
 
 	void OceanRenderer::OnResize(uint32 w, uint32 h)

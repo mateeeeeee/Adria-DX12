@@ -20,17 +20,13 @@ namespace adria
 	class TextureManager
 	{
 		friend class Renderer;
-		friend class Renderer;
 
 	public:
 		TextureManager(GraphicsDevice* gfx, UINT max_textures);
 
 		[[nodiscard]] TextureHandle LoadTexture(std::wstring const& name);
-
 		[[nodiscard]] TextureHandle LoadCubemap(std::wstring const& name);
-
 		[[nodiscard]] TextureHandle LoadCubemap(std::array<std::wstring, 6> const& cubemap_textures);
-
 		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE CpuDescriptorHandle(TextureHandle tex_handle);
 
 		ID3D12Resource* Resource(TextureHandle handle) const
@@ -39,9 +35,7 @@ namespace adria
 			else if (auto it = texture_map.find(handle); it != texture_map.end()) return it->second.Get();
 			else return nullptr;
 		}
-
-		void SetMipMaps(bool);
-
+		void SetMipMapsEnabled(bool);
 		void GenerateAllMips()
 		{
 			mips_generator->Generate(gfx->GetDefaultCommandList());
@@ -61,9 +55,7 @@ namespace adria
 	private:
 
 		TextureHandle LoadDDSTexture(std::wstring const& texture_path);
-
 		TextureHandle LoadWICTexture(std::wstring const& texture_path);
-
 		TextureHandle LoadTexture_HDR_TGA_PIC(std::string const& texture_path);
 	};
 }

@@ -224,7 +224,6 @@ namespace adria
 			engine->Present();
 		}
 
-
 		if (reload_shaders)
 		{
 			engine->gfx->WaitForGPU();
@@ -388,7 +387,7 @@ namespace adria
 		if (!window_flags[Flag_AddEntities]) return;
 		if (ImGui::Begin("Add Entities", &window_flags[Flag_AddEntities]))
 		{
-			//random lights
+			if (ImGui::TreeNodeEx("Point Lights", 0))
 			{
 				ImGui::Text("For Easy Demonstration of Tiled Deferred Rendering");
 				static int light_count_to_add = 1;
@@ -413,7 +412,42 @@ namespace adria
 						engine->entity_loader->LoadLight(light_params);
 					}
 				}
+				ImGui::TreePop();
+				ImGui::Separator();
 			}
+			if (ImGui::TreeNodeEx("Ocean", 0))
+			{
+				static GridParameters ocean_params{};
+				static int32 tile_count[2] = { 512, 512 };
+				static float32 tile_size[2] = { 40.0f, 40.0f };
+				static float32 texture_scale[2] = { 20.0f, 20.0f };
+
+				ImGui::SliderInt2("Tile Count", tile_count, 32, 1024);
+				ImGui::SliderFloat2("Tile Size", tile_size, 1.0, 100.0f);
+				ImGui::SliderFloat2("Texture Scale", texture_scale, 0.1f, 10.0f);
+
+				ocean_params.tile_count_x = tile_count[0];
+				ocean_params.tile_count_z = tile_count[1];
+				ocean_params.tile_size_x = tile_size[0];
+				ocean_params.tile_size_z = tile_size[1];
+				ocean_params.texture_scale_x = texture_scale[0];
+				ocean_params.texture_scale_z = texture_scale[1];
+
+				if (ImGui::Button("Load Ocean"))
+				{
+					OceanParameters params{};
+					params.ocean_grid = std::move(ocean_params);
+					engine->entity_loader->LoadOcean(params);
+				}
+
+				if (ImGui::Button("Clear"))
+				{
+					engine->reg.clear<Ocean>();
+				}
+				ImGui::TreePop();
+				ImGui::Separator();
+			}
+
 		}
 		ImGui::End();
 	}
