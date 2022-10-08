@@ -42,7 +42,6 @@ namespace adria
 	DECLARE_EVENT(RightMouseClickedEvent, Input, int32, int32);
 	DECLARE_EVENT(MiddleMouseScrolledEvent, Input, int32);
 	DECLARE_EVENT(F5PressedEvent, Input);
-
 	struct InputEvents
 	{
 		MiddleMouseScrolledEvent scroll_mouse_event;
@@ -54,17 +53,19 @@ namespace adria
 	class Input
 	{
 	public:
-		Input();
-
+		static Input& GetInstance()
+		{
+			static Input input;
+			return input;
+		}
+		InputEvents& GetInputEvents() { return input_events; }
 		void NewFrame();
-
 		void HandleWindowMessage(WindowMessage const&);
 
 		bool GetKey(EKeyCode key)    /*const*/ { return keys[key]; }
 		bool IsKeyDown(EKeyCode key) /*const*/ { return GetKey(key) && !prev_keys[key]; }
 		bool IsKeyUp(EKeyCode key)   /*const*/ { return !GetKey(key) && prev_keys[key]; }
 
-		// Mouse
 		void SetMouseVisible(bool visible);
 		void SetMousePosition(float32 xpos, float32 ypos);
 
@@ -74,8 +75,6 @@ namespace adria
 		float32 GetMouseDeltaX()     const { return mouse_position_x - prev_mouse_position_x;/*return mouse_delta_x;*/ }
 		float32 GetMouseDeltaY()     const { return mouse_position_y - prev_mouse_position_y;/*return mouse_delta_y;*/ }
 		float32 GetMouseWheelDelta() const { return m_mouse_wheel_delta; }
-
-		InputEvents& GetInputEvents() { return input_events; }
 
 	private:
 		InputEvents input_events;
@@ -91,5 +90,8 @@ namespace adria
 
 		bool new_frame = false;
 		bool resizing = false;
+
+	private:
+		Input();
 	};
 }

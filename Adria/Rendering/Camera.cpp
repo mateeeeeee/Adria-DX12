@@ -1,4 +1,5 @@
 #include "Camera.h"
+#include "../Input/Input.h"
 #include "../Math/Constants.h"
 #include <algorithm>
 
@@ -15,69 +16,104 @@ namespace adria
 		SetLens(fov, aspect_ratio, near_plane, far_plane);
 	}
 
-	XMVECTOR Camera::Position() const
-	{
-		return XMLoadFloat3(&position);
-	}
-
 	float32 Camera::Near() const
 	{
 		return near_plane;
 	}
-
 	float32 Camera::Far() const
 	{
 		return far_plane;
 	}
-
-
-	void Camera::SetLens(float32 fov, float32 aspect, float32 zn, float32 zf)
-	{
-		XMMATRIX P = XMMatrixPerspectiveFovLH(fov, aspect, zn, zf);
-		XMStoreFloat4x4(&projection_matrix, P);
-	}
-
-	void Camera::SetView()
-	{
-		XMVECTOR pos = XMLoadFloat3(&position);
-		XMVECTOR look = XMLoadFloat3(&look_vector);
-		XMVECTOR up = XMLoadFloat3(&up_vector);
-		XMMATRIX view = XMMatrixLookToLH(pos, look, up);
-		XMStoreFloat4x4(&view_matrix, view);
-	}
-
-	XMMATRIX Camera::ViewProj() const
-	{
-		return XMMatrixMultiply(View(), Proj());
-	}
-
-	BoundingFrustum Camera::Frustum() const
-	{
-		BoundingFrustum frustum(Proj());
-		frustum.Transform(frustum, XMMatrixInverse(nullptr, View()));
-		return frustum;
-	}
-
 	float32 Camera::Fov() const
 	{
 		return fov;
 	}
-
 	float32 Camera::AspectRatio() const
 	{
 		return aspect_ratio;
 	}
 
+	void Camera::Tick(float32 dt)
+	{
+		if (!enabled) return;
+		Input& input = Input::GetInstance();
+		if (input.GetKey(EKeyCode::Space)) return;
+
+		float speed_factor = 1.0f;
+
+		if (input.GetKey(EKeyCode::ShiftLeft)) speed_factor *= 5.0f;
+		if (input.GetKey(EKeyCode::CtrlLeft))  speed_factor *= 0.2f;
+
+		if (input.GetKey(EKeyCode::W)) Walk(speed_factor * dt);
+
+		if (input.GetKey(EKeyCode::S)) Walk(-speed_factor * dt);
+
+		if (input.GetKey(EKeyCode::A)) Strafe(-speed_factor * dt);
+
+		if (input.GetKey(EKeyCode::D)) Strafe(speed_factor * dt);
+
+		if (input.GetKey(EKeyCode::Q)) Jump(speed_factor * dt);
+
+		if (input.GetKey(EKeyCode::E)) Jump(-speed_factor * dt);
+
+		if (input.GetKey(EKeyCode::MouseRight))
+		{
+			float32 dx = input.GetMouseDeltaX();
+			float32 dy = input.GetMouseDeltaY();
+			Pitch((int64)dy);
+			Yaw((int64)dx);
+		}
+		UpdateViewMatrix();
+	}
+	void Camera::Zoom(int32 increment)
+	{
+		fov -= XMConvertToRadians(increment);
+		fov = std::clamp(fov, 0.00005f, pi_div_2<float32>);
+		SetLens(fov, aspect_ratio, near_plane, far_plane);
+	}
+	void Camera::OnResize(uint32 w, uint32 h)
+	{
+		SetAspectRatio(static_cast<float32>(w) / h);
+	}
+
+	void Camera::SetAspectRatio(float32 ar)
+	{
+		aspect_ratio = ar;
+		SetLens(fov, aspect_ratio, near_plane, far_plane);
+	}
+	void Camera::SetFov(float32 _fov)
+	{
+		fov = _fov;
+		SetLens(fov, aspect_ratio, near_plane, far_plane);
+	}
+	void Camera::SetNearAndFar(float32 n, float32 f)
+	{
+		near_plane = n;
+		far_plane = f;
+		SetLens(fov, aspect_ratio, near_plane, far_plane);
+	}
 	void Camera::SetPosition(XMFLOAT3 pos)
 	{
 		position = pos;
 	}
 
-	void Camera::SetNearAndFar(float32 near, float32 far)
+	XMMATRIX Camera::View() const
 	{
-		near_plane = near;
-		far_plane = far;
-		SetLens(fov, aspect_ratio, near_plane, far_plane);
+		return XMLoadFloat4x4(&view_matrix);
+	}
+	XMMATRIX Camera::Proj() const
+	{
+		return XMLoadFloat4x4(&projection_matrix);
+	}
+	XMMATRIX Camera::ViewProj() const
+	{
+		return XMMatrixMultiply(View(), Proj());
+	}
+	BoundingFrustum Camera::Frustum() const
+	{
+		BoundingFrustum frustum(Proj());
+		frustum.Transform(frustum, XMMatrixInverse(nullptr, View()));
+		return frustum;
 	}
 
 	void Camera::UpdateViewMatrix()
@@ -111,7 +147,6 @@ namespace adria
 		XMVECTOR p = XMLoadFloat3(&position);
 		XMStoreFloat3(&position, XMVectorMultiplyAdd(s, r, p));
 	}
-
 	void Camera::Walk(float32 dt)
 	{
 		// mPosition += d*mLook
@@ -120,7 +155,6 @@ namespace adria
 		XMVECTOR p = XMLoadFloat3(&position);
 		XMStoreFloat3(&position, XMVectorMultiplyAdd(s, l, p));
 	}
-
 	void Camera::Jump(float32 dt)
 	{
 		// mPosition += d*Up
@@ -129,7 +163,6 @@ namespace adria
 		XMVECTOR p = XMLoadFloat3(&position);
 		XMStoreFloat3(&position, XMVectorMultiplyAdd(s, l, p));
 	}
-
 	void Camera::Pitch(int64 dy)
 	{
 		// Rotate up and look vector about the right vector.
@@ -137,7 +170,6 @@ namespace adria
 		XMStoreFloat3(&up_vector, XMVector3TransformNormal(XMLoadFloat3(&up_vector), R));
 		XMStoreFloat3(&look_vector, XMVector3TransformNormal(XMLoadFloat3(&look_vector), R));
 	}
-
 	void Camera::Yaw(int64 dx)
 	{
 		// Rotate the basis vectors about the world y-axis.
@@ -148,41 +180,17 @@ namespace adria
 		XMStoreFloat3(&up_vector, XMVector3TransformNormal(XMLoadFloat3(&up_vector), R));
 		XMStoreFloat3(&look_vector, XMVector3TransformNormal(XMLoadFloat3(&look_vector), R));
 	}
-
-	void Camera::Zoom(float32 increment)
+	void Camera::SetLens(float32 fov, float32 aspect, float32 zn, float32 zf)
 	{
-		fov -= XMConvertToRadians(increment);
-		fov = std::clamp(fov, 0.00005f, pi_div_2<float32>);
-		SetLens(fov, aspect_ratio, near_plane, far_plane);
+		XMMATRIX P = XMMatrixPerspectiveFovLH(fov, aspect, zn, zf);
+		XMStoreFloat4x4(&projection_matrix, P);
 	}
-
-	void Camera::SetAspectRatio(float32 ar)
+	void Camera::SetView()
 	{
-		aspect_ratio = ar;
-		SetLens(fov, aspect_ratio, near_plane, far_plane);
+		XMVECTOR pos = XMLoadFloat3(&position);
+		XMVECTOR look = XMLoadFloat3(&look_vector);
+		XMVECTOR up = XMLoadFloat3(&up_vector);
+		XMMATRIX view = XMMatrixLookToLH(pos, look, up);
+		XMStoreFloat4x4(&view_matrix, view);
 	}
-
-	void Camera::SetFov(float32 _fov)
-	{
-		fov = _fov;
-		SetLens(fov, aspect_ratio, near_plane, far_plane);
-	}
-
-	
-	void Camera::OnResize(uint32 w, uint32 h)
-	{
-		SetAspectRatio(static_cast<float32>(w) / h);
-	}
-
-	XMMATRIX Camera::View() const
-	{
-		return XMLoadFloat4x4(&view_matrix);
-	}
-
-	XMMATRIX Camera::Proj() const
-	{
-		return XMLoadFloat4x4(&projection_matrix);
-	}
-
-
 }

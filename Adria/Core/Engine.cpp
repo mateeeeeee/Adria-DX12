@@ -207,7 +207,7 @@ namespace adria
 		}
 	}
 
-	Engine::Engine(EngineInit const& init) : vsync{ init.vsync }, input{}, camera_manager{ input }
+	Engine::Engine(EngineInit const& init) : vsync{ init.vsync }
 	{
 		TaskSystem::Initialize();
 		ShaderCompiler::Initialize();
@@ -220,17 +220,18 @@ namespace adria
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
 		entity_loader = std::make_unique<ModelImporter>(reg, gfx.get(), renderer->GetTextureManager());
 
-		InputEvents& input_events = input.GetInputEvents();
-		input_events.window_resized_event.AddMember(&CameraManager::OnResize, camera_manager);
+		InputEvents& input_events = Input::GetInstance().GetInputEvents();
 		input_events.window_resized_event.AddMember(&GraphicsDevice::ResizeBackbuffer, *gfx);
 		input_events.window_resized_event.AddMember(&Renderer::OnResize, *renderer);
-		input_events.scroll_mouse_event.AddMember(&CameraManager::OnScroll, camera_manager);
 		input_events.right_mouse_clicked.AddMember(&Renderer::OnRightMouseClicked, *renderer);
 		std::ignore = input_events.f5_pressed_event.Add(ShaderManager::CheckIfShadersHaveChanged);
 
 		std::optional<SceneConfig> scene_config = ParseSceneConfig(init.scene_file);
 		if (scene_config.has_value()) InitializeScene(scene_config.value());
 		else Window::Quit(1);
+
+		input_events.window_resized_event.AddMember(&Camera::OnResize, *camera);
+		input_events.scroll_mouse_event.AddMember(&Camera::Zoom, *camera);
 	}
 
 	Engine::~Engine()
@@ -244,22 +245,18 @@ namespace adria
 
 	void Engine::HandleWindowMessage(WindowMessage const& msg_data)
 	{
-		input.HandleWindowMessage(msg_data);
+		Input::GetInstance().HandleWindowMessage(msg_data);
 	}
 
 	void Engine::Run(RendererSettings const& settings)
 	{
 		static AdriaTimer timer;
 		float32 const dt = timer.MarkInSeconds();
-		if (Window::IsActive() || true) //crash when window is hidden, temp fix
-		{
-			input.NewFrame();
+		Input::GetInstance().NewFrame();
+		if (true || Window::IsActive()) //crash when window is hidden, temp fix
+		{	
 			Update(dt);
 			Render(settings);
-		}
-		else
-		{
-			input.NewFrame();
 		}
 	}
 
@@ -270,9 +267,8 @@ namespace adria
 
 	void Engine::Update(float32 dt)
 	{
-		camera_manager.Update(dt);
-		auto const& camera = camera_manager.GetActiveCamera();
-		renderer->NewFrame(&camera);
+		camera->Tick(dt);
+		renderer->NewFrame(camera.get());
 		renderer->Update(dt);
 	}
 
@@ -291,8 +287,8 @@ namespace adria
 		else
 		{
 			viewport_data.scene_viewport_focused = true;
-			viewport_data.mouse_position_x = input.GetMousePositionX();
-			viewport_data.mouse_position_y = input.GetMousePositionY();
+			viewport_data.mouse_position_x = Input::GetInstance().GetMousePositionX();
+			viewport_data.mouse_position_y = Input::GetInstance().GetMousePositionY();
 
 			auto [pos_x, pos_y] = Window::Position();
 			viewport_data.scene_viewport_pos_x = static_cast<float32>(pos_x);
@@ -314,7 +310,7 @@ namespace adria
 		gfx->ResetDefaultCommandList();
 
 		const_cast<SceneConfig&>(config).camera_params.aspect_ratio = static_cast<float32>(Window::Width()) / Window::Height();
-		camera_manager.AddCamera(config.camera_params);		
+		camera = std::make_unique<Camera>(config.camera_params);
 		entity_loader->LoadSkybox(config.skybox_params);
 
 		for(auto&& model : config.scene_models) entity_loader->ImportModel_GLTF(model);

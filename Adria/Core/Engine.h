@@ -4,7 +4,7 @@
 #include "../Events/EventQueue.h"
 #include "../Input/Input.h"
 #include "entt/entity/registry.hpp"
-#include "../Rendering/CameraManager.h"
+#include "../Rendering/Camera.h"
 #include "../Rendering/RendererSettings.h"
 #include "../Rendering/ViewportData.h"
 
@@ -45,9 +45,8 @@ namespace adria
 
 	private:
 		bool vsync;
-		Input input;
 		entt::registry reg;
-		CameraManager camera_manager;
+		std::unique_ptr<Camera> camera;
 	
 		std::unique_ptr<GraphicsDevice> gfx;
 		std::unique_ptr<Renderer> renderer;

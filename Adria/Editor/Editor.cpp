@@ -28,8 +28,7 @@ namespace adria
 
 			AccumulatedTimeStamp()
 				: sum(0.0f), minimum(FLT_MAX), maximum(0)
-			{
-			}
+			{}
 		};
 
 		std::vector<AccumulatedTimeStamp> displayed_timestamps;
@@ -163,7 +162,6 @@ namespace adria
 		engine->RegisterEditorEventCallbacks(editor_events);
 		SetStyle();
 	}
-
 	Editor::~Editor() = default;
 
 	void Editor::HandleWindowMessage(WindowMessage const& msg_data)
@@ -171,7 +169,6 @@ namespace adria
 		engine->HandleWindowMessage(msg_data);
 		gui->HandleWindowMessage(msg_data);
 	}
-
 	void Editor::Run()
 	{
 		HandleInput();
@@ -303,15 +300,15 @@ namespace adria
 
 	void Editor::HandleInput()
 	{
-		if (scene_focused && engine->input.IsKeyDown(EKeyCode::I)) gui->ToggleVisibility();
-		if (scene_focused && engine->input.IsKeyDown(EKeyCode::G)) gizmo_enabled = !gizmo_enabled;
+		if (scene_focused && Input::GetInstance().IsKeyDown(EKeyCode::I)) gui->ToggleVisibility();
+		if (scene_focused && Input::GetInstance().IsKeyDown(EKeyCode::G)) gizmo_enabled = !gizmo_enabled;
 		if (gizmo_enabled && gui->IsVisible())
 		{
-			if (engine->input.IsKeyDown(EKeyCode::T)) gizmo_op = ImGuizmo::TRANSLATE;
-			if (engine->input.IsKeyDown(EKeyCode::R)) gizmo_op = ImGuizmo::ROTATE;
-			if (engine->input.IsKeyDown(EKeyCode::E)) gizmo_op = ImGuizmo::SCALE;
+			if (Input::GetInstance().IsKeyDown(EKeyCode::T)) gizmo_op = ImGuizmo::TRANSLATE;
+			if (Input::GetInstance().IsKeyDown(EKeyCode::R)) gizmo_op = ImGuizmo::ROTATE;
+			if (Input::GetInstance().IsKeyDown(EKeyCode::E)) gizmo_op = ImGuizmo::SCALE;
 		}
-		engine->camera_manager.ShouldUpdate(scene_focused);
+		engine->camera->Enable(scene_focused);
 	}
 
 	void Editor::MenuBar()
@@ -1123,7 +1120,7 @@ namespace adria
 	{
 		if (!window_flags[Flag_Camera]) return;
 		
-		auto& camera = engine->camera_manager.GetActiveCamera();
+		auto& camera = *engine->camera;
 		if (ImGui::Begin("Camera", &window_flags[Flag_Camera]))
 		{
 			float32 pos[3] = { camera.Position().m128_f32[0],camera.Position().m128_f32[1], camera.Position().m128_f32[2] };
@@ -1183,7 +1180,7 @@ namespace adria
 			ImGuizmo::SetRect(window_pos.x, window_pos.y,
 				window_size.x, window_size.y);
 
-			auto& camera = engine->camera_manager.GetActiveCamera();
+			auto& camera = *engine->camera;
 
 			auto camera_view = camera.View();
 			auto camera_proj = camera.Proj();
