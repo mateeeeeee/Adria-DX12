@@ -10,9 +10,6 @@ namespace adria
 		bool fog = false;
 		EAntiAliasing anti_aliasing = AntiAliasing_None;
 
-		EToneMap tone_map_op = EToneMap::Reinhard;
-		float32 tonemap_exposure = 1.0f;
-
 		EAmbientOcclusion ambient_occlusion = EAmbientOcclusion::None;
 		float32   ssao_power = 4.0f;
 		float32   ssao_radius = 1.0f;

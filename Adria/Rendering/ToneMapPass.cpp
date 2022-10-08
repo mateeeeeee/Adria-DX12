@@ -2,6 +2,7 @@
 #include "GlobalBlackboardData.h"
 #include "PSOCache.h" 
 #include "RootSignatureCache.h"
+#include "../Editor/GUICommand.h"
 #include "../RenderGraph/RenderGraph.h"
 
 namespace adria
@@ -84,6 +85,7 @@ namespace adria
 				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 				cmd_list->DrawInstanced(4, 1, 0, 0);
 			}, ERGPassType::Graphics, flags);
+		GUI();
 	}
 
 	void ToneMapPass::AddPass(RenderGraph& rg, RGResourceName hdr_src, RGResourceName fxaa_input)
@@ -142,11 +144,29 @@ namespace adria
 				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 				cmd_list->DrawInstanced(4, 1, 0, 0);
 			});
+		GUI();
 	}
 
 	void ToneMapPass::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
+	}
+
+	void ToneMapPass::GUI()
+	{
+		AddGUI([&]() 
+			{
+				if (ImGui::TreeNodeEx("Tone Mapping", 0))
+				{
+					ImGui::SliderFloat("Exposure", &params.tonemap_exposure, 0.01f, 10.0f);
+					static char const* const operators[] = { "REINHARD", "HABLE", "LINEAR" };
+					static int tone_map_operator = static_cast<int>(params.tone_map_op);
+					ImGui::ListBox("Tone Map Operator", &tone_map_operator, operators, IM_ARRAYSIZE(operators));
+					params.tone_map_op = static_cast<EToneMap>(tone_map_operator);
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
+			});
 	}
 
 }

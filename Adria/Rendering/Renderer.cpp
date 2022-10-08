@@ -600,9 +600,10 @@ namespace adria
 			FogParameters fog_params = postprocessor.GetFogParams();
 			DoFParameters dof_params = postprocessor.GetDoFParams();
 			VelocityBufferParams velocity_params = postprocessor.GetVelocityBufferParams();
+			TonemapParams tonemap_params = tonemap_pass.GetParams();
 			
-			postprocess_cbuf_data.tone_map_exposure = settings.tonemap_exposure;
-			postprocess_cbuf_data.tone_map_operator = static_cast<int>(settings.tone_map_op);
+			postprocess_cbuf_data.tone_map_exposure = tonemap_params.tonemap_exposure;
+			postprocess_cbuf_data.tone_map_operator = static_cast<int>(tonemap_params.tone_map_op);
 			postprocess_cbuf_data.noise_scale = XMFLOAT2((float32)width / 8, (float32)height / 8);
 			postprocess_cbuf_data.ssao_power = settings.ssao_power;
 			postprocess_cbuf_data.ssao_radius = settings.ssao_radius;
