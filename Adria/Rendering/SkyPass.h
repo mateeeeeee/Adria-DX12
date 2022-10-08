@@ -1,5 +1,7 @@
 #pragma once
 #include <memory>
+#include "SkyModel.h"
+#include "../Graphics/DescriptorHeap.h"
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
 #include "entt/entity/fwd.hpp"
@@ -18,16 +20,28 @@ namespace adria
 	{
 	public:
 		SkyPass(entt::registry& reg, TextureManager& texture_manager, uint32 w, uint32 h);
-		void AddPass(RenderGraph& rg, ESkyType sky_type);
+		void AddPass(RenderGraph& rg);
 
 		void OnSceneInitialized(GraphicsDevice* gfx);
 		void OnResize(uint32 w, uint32 h);
+
+		ESkyType GetSkyType() const { return sky_type; }
+		SkyParameters GetSkyParameters(DirectX::XMFLOAT3 dir) const
+		{
+			return CalculateSkyParameters(turbidity, ground_albedo, dir);
+		}
+		float32 const* GetSkyColor() const { return sky_color; }
 	private:
 		entt::registry& reg;
 		TextureManager& texture_manager;
 		uint32 width, height;
 		std::unique_ptr<Buffer>	cube_vb = nullptr;
 		std::unique_ptr<Buffer>	cube_ib = nullptr;
+
+		ESkyType sky_type;
+		float32 sky_color[3] = { 0.53f, 0.81f, 0.92f };
+		float32 turbidity = 2.0f;
+		float32 ground_albedo = 0.1f;
 
 	private:
 		void CreateCubeBuffers(GraphicsDevice* gfx);

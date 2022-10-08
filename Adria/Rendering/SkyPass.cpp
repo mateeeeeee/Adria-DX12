@@ -7,6 +7,7 @@
 #include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/GPUProfiler.h"
+#include "../Editor/GUICommand.h"
 #include "entt/entity/registry.hpp"
 
 using namespace DirectX;
@@ -18,7 +19,7 @@ namespace adria
 		: reg(reg), texture_manager(texture_manager), width(w), height(h)
 	{}
 
-	void SkyPass::AddPass(RenderGraph& rg, ESkyType sky_type)
+	void SkyPass::AddPass(RenderGraph& rg)
 	{
 		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
 		rg.AddPass<void>("Sky Pass",
@@ -94,6 +95,68 @@ namespace adria
 				BindIndexBuffer(cmd_list, cube_ib.get());
 				cmd_list->DrawIndexedInstanced(cube_ib->GetCount(), 1, 0, 0, 0);
 			}, ERGPassType::Graphics, ERGPassFlags::None);
+		
+		AddGUI([&]()
+			{
+				if (ImGui::TreeNodeEx("Sky", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+				{
+					static int current_sky_type = 0;
+					const char* sky_types[] = { "Skybox", "Uniform Color", "Hosek-Wilkie" };
+					const char* combo_label = sky_types[current_sky_type];
+					if (ImGui::BeginCombo("Sky Type", combo_label, 0))
+					{
+						for (int n = 0; n < IM_ARRAYSIZE(sky_types); n++)
+						{
+							const bool is_selected = (current_sky_type == n);
+							if (ImGui::Selectable(sky_types[n], is_selected)) current_sky_type = n;
+							if (is_selected) ImGui::SetItemDefaultFocus();
+						}
+						ImGui::EndCombo();
+					}
+
+					if (current_sky_type == 0) sky_type = ESkyType::Skybox;
+					else if (current_sky_type == 1)
+					{
+						sky_type = ESkyType::UniformColor;
+						static char const* const sky_colors[] = { "Deep Sky Blue", "Sky Blue", "Light Sky Blue" };
+						static int current_sky_color = 0;
+						ImGui::ListBox("Tone Map Operator", &current_sky_color, sky_colors, IM_ARRAYSIZE(sky_colors));
+
+						switch (current_sky_color)
+						{
+						case 0:
+						{
+							static float32 deep_sky_blue[3] = { 0.0f, 0.75f, 1.0f };
+							memcpy(sky_color, deep_sky_blue, sizeof(deep_sky_blue));
+							break;
+						}
+						case 1:
+						{
+							static float32 sky_blue[3] = { 0.53f, 0.81f, 0.92f };
+							memcpy(sky_color, sky_blue, sizeof(sky_blue));
+							break;
+						}
+						case 2:
+						{
+							static float32 light_sky_blue[3] = { 0.53f, 0.81f, 0.98f };
+							memcpy(sky_color, light_sky_blue, sizeof(light_sky_blue));
+							break;
+						}
+						default:
+							ADRIA_ASSERT(false);
+						}
+					}
+					else if (current_sky_type == 2)
+					{
+						sky_type = ESkyType::HosekWilkie;
+						ImGui::SliderFloat("Turbidity", &turbidity, 2.0f, 30.0f);
+						ImGui::SliderFloat("Ground Albedo", &ground_albedo, 0.0f, 1.0f);
+					}
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
+			}
+		);
 	}
 
 	void SkyPass::OnSceneInitialized(GraphicsDevice* gfx)

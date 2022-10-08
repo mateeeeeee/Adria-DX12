@@ -105,6 +105,7 @@ namespace adria
 	private:
 		entt::registry& reg;
 		GraphicsDevice* gfx;
+		TextureManager texture_manager;
 		RGResourcePool resource_pool;
 
 		CPUProfiler cpu_profiler;
@@ -112,9 +113,6 @@ namespace adria
 
 		RendererSettings renderer_settings;
 		ProfilerSettings profiler_settings = NO_PROFILING;
-		ViewportData viewport_data;
-
-		TextureManager texture_manager;
 		Camera const* camera;
 
 		uint32 const backbuffer_count;
@@ -163,6 +161,8 @@ namespace adria
 		RayTracer ray_tracer;
 		Postprocessor postprocessor;
 		AABBPass aabb_pass;
+
+		ViewportData viewport_data;
 	private:
 		void CreateNullHeap();
 		void CreateSizeDependentResources();

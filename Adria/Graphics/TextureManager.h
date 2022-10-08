@@ -51,15 +51,13 @@ namespace adria
 		GraphicsDevice* gfx;
 		std::unique_ptr<DescriptorHeap> texture_srv_heap = nullptr;
 		std::unique_ptr<MipsGenerator> mips_generator = nullptr;
-
+		Microsoft::WRL::ComPtr<ID3D12RootSignature> equirect_root_signature;
+		Microsoft::WRL::ComPtr<ID3D12PipelineState> equirect_pso;
 		TextureHandle handle = 0;
 		HashMap<TextureHandle, Microsoft::WRL::ComPtr<ID3D12Resource>> texture_map{};
 		HashMap<std::variant<std::wstring, std::string>, TextureHandle> loaded_textures{};
 		bool mipmaps = true;
 
-		Microsoft::WRL::ComPtr<ID3D12RootSignature> equirect_root_signature;
-		Microsoft::WRL::ComPtr<ID3D12PipelineState> equirect_pso;
-		
 	private:
 
 		TextureHandle LoadDDSTexture(std::wstring const& texture_path);

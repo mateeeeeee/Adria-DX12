@@ -73,7 +73,6 @@ namespace adria
 
 	struct RendererSettings
 	{
-		bool gui_visible = false;
 		//user settings
 		float32 blur_sigma = 6.0f;
 		float32 ambient_color[3] = { 15.0f / 255.0f, 15.0f / 255.0f, 15.0f / 255.0f };
@@ -81,16 +80,13 @@ namespace adria
 		float32 shadow_softness = 1.0f;
 		bool shadow_transparent = false;
 		float32 split_lambda = 0.5f;
-		bool use_tiled_deferred = false;
-		bool visualize_tiled = false;
-		int32 visualize_max_lights = 16;
-		bool use_clustered_deferred = false;
-		int32 bounces = 3;
 		bool ibl = false;
-		ESkyType sky_type = ESkyType::Skybox;
-		float32 sky_color[3] = { 0.53f, 0.81f, 0.92f };
-		float32 turbidity = 2.0f;
-		float32 ground_albedo = 0.1f;
+
+		bool gui_visible = false;
+		bool use_tiled_deferred = false;
+		bool use_clustered_deferred = false;
+
+		//move all to ocean_pass
 		bool ocean_wireframe = false;
 		bool ocean_tesselation = false;
 		float32 ocean_color[3] = { 0.0123f, 0.3613f, 0.6867f };

@@ -52,7 +52,7 @@ namespace adria
 		CameraFrustumCulling();
 		particle_renderer.Update(dt);
 		ray_tracer.Update(RayTracingSettings{ 
-			.dt = dt, .ao_radius = renderer_settings.postprocessor.rtao_radius, .bounces = renderer_settings.bounces}
+			.dt = dt, .ao_radius = renderer_settings.postprocessor.rtao_radius, .bounces = 1}
 		);
 	}
 	void Renderer::Render(RendererSettings const& _settings)
@@ -88,7 +88,7 @@ namespace adria
 		D3D12_CPU_DESCRIPTOR_HANDLE skybox_handle = global_data.null_srv_texturecube;
 		if (renderer_settings.postprocessor.reflections == EReflections::RTR)
 		{
-			if (renderer_settings.sky_type == ESkyType::Skybox)
+			if (sky_pass.GetSkyType() == ESkyType::Skybox)
 			{
 				auto skybox_entities = reg.view<Skybox>();
 				for (auto e : skybox_entities)
@@ -102,7 +102,6 @@ namespace adria
 				}
 			}
 		}
-
 		if (renderer_settings.ibl)
 		{
 			if (!ibl_generated) GenerateIBLTextures();
@@ -163,7 +162,7 @@ namespace adria
 		ocean_renderer.UpdateOceanColor(renderer_settings.ocean_color);
 		ocean_renderer.AddPasses(render_graph, renderer_settings.recreate_initial_spectrum,
 			renderer_settings.ocean_tesselation, renderer_settings.ocean_wireframe);
-		sky_pass.AddPass(render_graph, renderer_settings.sky_type);
+		sky_pass.AddPass(render_graph);
 		picking_pass.AddPass(render_graph);
 		particle_renderer.AddPasses(render_graph);
 		if (renderer_settings.postprocessor.reflections == EReflections::RTR)
@@ -360,8 +359,8 @@ namespace adria
 			BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&root_signature)));
 		}
 
-		ID3D12Resource* unfiltered_env_resource = texture_manager.Resource(unfiltered_env);
-		ADRIA_ASSERT(unfiltered_env_resource);
+		ID3D12Resource* unfiltered_env_resource = nullptr; // texture_manager.Resource(unfiltered_env);
+		//ADRIA_ASSERT(unfiltered_env_resource);
 		D3D12_RESOURCE_DESC unfiltered_env_desc = unfiltered_env_resource->GetDesc();
 
 
@@ -634,8 +633,9 @@ namespace adria
 					break;
 				}
 			}
-
-			weather_cbuf_data.sky_color = XMVECTOR{ renderer_settings.sky_color[0], renderer_settings.sky_color[1],renderer_settings.sky_color[2], 1.0f };
+			XMFLOAT3 sky_color(sky_pass.GetSkyColor());
+			
+			weather_cbuf_data.sky_color = XMLoadFloat3(&sky_color);
 			weather_cbuf_data.ambient_color = XMVECTOR{ renderer_settings.ambient_color[0], renderer_settings.ambient_color[1], renderer_settings.ambient_color[2], 1.0f };
 			weather_cbuf_data.wind_dir = XMVECTOR{ renderer_settings.wind_direction[0], 0.0f, renderer_settings.wind_direction[1], 0.0f };
 			weather_cbuf_data.wind_speed = renderer_settings.postprocessor.wind_speed;
@@ -651,8 +651,7 @@ namespace adria
 
 			XMFLOAT3 sun_dir;
 			XMStoreFloat3(&sun_dir, XMVector3Normalize(weather_cbuf_data.light_dir));
-			SkyParameters sky_params = CalculateSkyParameters(renderer_settings.turbidity, renderer_settings.ground_albedo, sun_dir);
-
+			SkyParameters sky_params = sky_pass.GetSkyParameters(sun_dir);
 			weather_cbuf_data.A = sky_params[ESkyParam_A];
 			weather_cbuf_data.B = sky_params[ESkyParam_B];
 			weather_cbuf_data.C = sky_params[ESkyParam_C];
