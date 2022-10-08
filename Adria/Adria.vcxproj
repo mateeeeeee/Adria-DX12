@@ -252,6 +252,7 @@
     <ClInclude Include="Editor\Editor.h" />
     <ClInclude Include="Editor\EditorEvents.h" />
     <ClInclude Include="Editor\GUI.h" />
+    <ClInclude Include="Editor\GUICommand.h" />
     <ClInclude Include="Events\Delegate.h" />
     <ClInclude Include="Events\EventQueue.h" />
     <ClInclude Include="Events\IEvent.h" />

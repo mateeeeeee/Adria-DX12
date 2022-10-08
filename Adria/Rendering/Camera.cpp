@@ -45,17 +45,11 @@ namespace adria
 		if (input.GetKey(EKeyCode::CtrlLeft))  speed_factor *= 0.2f;
 
 		if (input.GetKey(EKeyCode::W)) Walk(speed_factor * dt);
-
 		if (input.GetKey(EKeyCode::S)) Walk(-speed_factor * dt);
-
 		if (input.GetKey(EKeyCode::A)) Strafe(-speed_factor * dt);
-
 		if (input.GetKey(EKeyCode::D)) Strafe(speed_factor * dt);
-
 		if (input.GetKey(EKeyCode::Q)) Jump(speed_factor * dt);
-
 		if (input.GetKey(EKeyCode::E)) Jump(-speed_factor * dt);
-
 		if (input.GetKey(EKeyCode::MouseRight))
 		{
 			float32 dx = input.GetMouseDeltaX();
@@ -140,7 +134,6 @@ namespace adria
 
 	void Camera::Strafe(float32 dt)
 	{
-
 		// mPosition += d*mRight
 		XMVECTOR s = XMVectorReplicate(dt * speed);
 		XMVECTOR r = XMLoadFloat3(&right_vector);

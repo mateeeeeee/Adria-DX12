@@ -154,15 +154,25 @@ namespace adria
 		ELogLevel logger_level;
 	};
 
-	Editor::Editor(EditorInit const& init) : engine(), editor_log(new ImGuiLogger{})
+	Editor::Editor() = default;
+	Editor::~Editor() = default;
+
+	void Editor::Init(EditorInit&& init)
 	{
+		editor_log = std::make_unique<ImGuiLogger>();
 		engine = std::make_unique<Engine>(init.engine_init);
 		gui = std::make_unique<GUI>(engine->gfx.get());
 		ADRIA_REGISTER_LOGGER(new EditorLogger(editor_log.get()));
 		engine->RegisterEditorEventCallbacks(editor_events);
 		SetStyle();
 	}
-	Editor::~Editor() = default;
+	void Editor::Destroy()
+	{
+		while (!aabb_updates.empty()) aabb_updates.pop();
+		gui.reset();
+		engine.reset();
+		editor_log.reset();
+	}
 
 	void Editor::HandleWindowMessage(WindowMessage const& msg_data)
 	{
@@ -1123,7 +1133,9 @@ namespace adria
 		auto& camera = *engine->camera;
 		if (ImGui::Begin("Camera", &window_flags[Flag_Camera]))
 		{
-			float32 pos[3] = { camera.Position().m128_f32[0],camera.Position().m128_f32[1], camera.Position().m128_f32[2] };
+			XMFLOAT3 cam_pos;
+			XMStoreFloat3(&cam_pos, camera.Position());
+			float32 pos[3] = { cam_pos.x , cam_pos.y, cam_pos.z };
 			ImGui::SliderFloat3("Position", pos, 0.0f, 2000.0f);
 			camera.SetPosition(DirectX::XMFLOAT3(pos));
 			float32 near_plane = camera.Near(), far_plane = camera.Far();
@@ -1513,10 +1525,10 @@ namespace adria
 				FRAME_TIME_ARRAY[NUM_FRAMES - 1] = 1000.0f / io.Framerate;
 				for (uint32 i = 0; i < NUM_FRAMES - 1; i++) FRAME_TIME_ARRAY[i] = FRAME_TIME_ARRAY[i + 1];
 				RECENT_HIGHEST_FRAME_TIME = std::max(RECENT_HIGHEST_FRAME_TIME, FRAME_TIME_ARRAY[NUM_FRAMES - 1]);
-				float32 frameTime_ms = FRAME_TIME_ARRAY[NUM_FRAMES - 1];
-				const int32 fps = static_cast<int32>(1000.0f / frameTime_ms);
+				float32 frame_time_ms = FRAME_TIME_ARRAY[NUM_FRAMES - 1];
+				const int32 fps = static_cast<int32>(1000.0f / frame_time_ms);
 
-				ImGui::Text("FPS        : %d (%.2f ms)", fps, frameTime_ms);
+				ImGui::Text("FPS        : %d (%.2f ms)", fps, frame_time_ms);
 				if (ImGui::CollapsingHeader("Timings", ImGuiTreeNodeFlags_DefaultOpen))
 				{
 					ImGui::Checkbox("Show Avg/Min/Max", &state.show_average);

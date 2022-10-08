@@ -2,14 +2,14 @@
 #include <memory>
 #include "GUI.h"
 #include "EditorEvents.h"
+#include "GUICommand.h"
 #include "../Core/Engine.h"
-#include "entt/entity/registry.hpp"
 #include "../Rendering/RendererSettings.h"
 #include "../Rendering/ViewportData.h"
 #include "../Graphics/ProfilerSettings.h"
 #include "../ImGui/imgui_internal.h"
 #include "../ImGui/ImGuizmo.h"
-
+#include "entt/entity/registry.hpp"
 
 namespace adria
 {
@@ -41,11 +41,15 @@ namespace adria
 			Flag_Count
 		};
 	public:
-		explicit Editor(EditorInit const& init);
-		~Editor();
+		static Editor& GetInstance()
+		{
+			static Editor editor;
+			return editor;
+		}
+		void Init(EditorInit&& init);
+		void Destroy();
 		void HandleWindowMessage(WindowMessage const& msg_data);
 		void Run();
-
 	private:
 		std::unique_ptr<Engine> engine;
 		std::unique_ptr<GUI> gui;
@@ -61,7 +65,11 @@ namespace adria
 		bool reload_shaders = false;
 		std::queue<AABB*> aabb_updates;
 		std::array<bool, Flag_Count> window_flags = { false };
+
 	private:
+		Editor();
+		~Editor();
+
 		void SetStyle();
 		void HandleInput();
 		void MenuBar();

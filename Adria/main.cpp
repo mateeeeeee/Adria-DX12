@@ -65,14 +65,13 @@ int APIENTRY wWinMain(
         EditorInit editor_init{};
         editor_init.engine_init = std::move(engine_init);
 
-        Editor editor{ editor_init };
-
-        Window::SetCallback([&editor](WindowMessage const& msg_data) {editor.HandleWindowMessage(msg_data); });
-
+        Editor::GetInstance().Init(std::move(editor_init));
+        Window::SetCallback([](WindowMessage const& msg_data) {Editor::GetInstance().HandleWindowMessage(msg_data); });
         while (Window::Loop())
         {
-            editor.Run();
+            Editor::GetInstance().Run();
         }
+        Editor::GetInstance().Destroy();
         Window::Destroy();   
     }
 }
