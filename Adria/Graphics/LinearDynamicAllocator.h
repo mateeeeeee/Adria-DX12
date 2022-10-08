@@ -1,29 +1,27 @@
 #pragma once
+#include <mutex>
 #include "DynamicAllocation.h"
 #include "../Utilities/LinearAllocator.h"
-#include <mutex>
 
 namespace adria
 {
-
+	class Buffer;
+	class GraphicsDevice;
 	
 	class LinearDynamicAllocator
 	{
 	public:
-		LinearDynamicAllocator(ID3D12Device* device, SIZE_T max_size_in_bytes);
-
+		LinearDynamicAllocator(GraphicsDevice* gfx, SIZE_T max_size_in_bytes);
+		~LinearDynamicAllocator();
 		DynamicAllocation Allocate(SIZE_T size_in_bytes, SIZE_T alignment = 0);
 
 		void Clear();
 
-		D3D12_GPU_VIRTUAL_ADDRESS GPUAddress() const;
-
 	private:
 		LinearAllocator linear_allocator;
 		std::mutex alloc_mutex;
-		Microsoft::WRL::ComPtr<ID3D12Resource> buffer = nullptr;
-		BYTE* cpu_address = nullptr;
-		D3D12_GPU_VIRTUAL_ADDRESS gpu_address = 0;
+		std::unique_ptr<Buffer> buffer;
+		void* cpu_address;
 	};
 
 

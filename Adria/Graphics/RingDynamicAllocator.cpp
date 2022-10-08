@@ -1,29 +1,25 @@
 #include "RingDynamicAllocator.h"
-
+#include "Buffer.h"
 
 
 namespace adria
 {
-	RingDynamicAllocator::RingDynamicAllocator(ID3D12Device* device, SIZE_T max_size_in_bytes)
+	RingDynamicAllocator::RingDynamicAllocator(GraphicsDevice* gfx, SIZE_T max_size_in_bytes)
 		: ring_allocator(max_size_in_bytes)
 	{
-		auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-		auto buffer_desc = CD3DX12_RESOURCE_DESC::Buffer(max_size_in_bytes);
-		BREAK_IF_FAILED(device->CreateCommittedResource(
-			&heap_properties,
-			D3D12_HEAP_FLAG_NONE,
-			&buffer_desc,
-			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr,
-			IID_PPV_ARGS(&buffer)));
+		BufferDesc desc{};
+		desc.size = max_size_in_bytes;
+		desc.resource_usage = EResourceUsage::Upload;
 
-		CD3DX12_RANGE read_range(0, 0);
-		BREAK_IF_FAILED(buffer->Map(0, &read_range, reinterpret_cast<void**>(&cpu_address)));
-		gpu_address = buffer->GetGPUVirtualAddress();
+		buffer = std::make_unique<Buffer>(gfx, desc);
+		ADRIA_ASSERT(buffer->IsMapped());
+		cpu_address = buffer->GetMappedData();
 	}
+
+	RingDynamicAllocator::~RingDynamicAllocator() = default;
+
 	DynamicAllocation RingDynamicAllocator::Allocate(SIZE_T size_in_bytes, SIZE_T alignment)
 	{
-
 		OffsetType offset = INVALID_OFFSET;
 		{
 			std::lock_guard<std::mutex> guard(alloc_mutex);
@@ -33,9 +29,9 @@ namespace adria
 		if (offset != INVALID_OFFSET)
 		{
 			DynamicAllocation allocation{}; 
-			allocation.buffer = buffer.Get();
+			allocation.buffer = buffer->GetNative();
 			allocation.cpu_address = reinterpret_cast<uint8*>(cpu_address) + offset;
-			allocation.gpu_address = gpu_address + offset;
+			allocation.gpu_address = buffer->GetGPUAddress() + offset;
 			allocation.offset = offset;
 			allocation.size = size_in_bytes;
 			return allocation;
