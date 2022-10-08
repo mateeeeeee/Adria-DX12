@@ -8,8 +8,9 @@
 #include "CopyToTexturePass.h"
 #include "AddTexturesPass.h"
 #include "GenerateMipsPass.h"
-#include "LensFlarePass.h"
 #include "AutomaticExposurePass.h"
+#include "LensFlarePass.h"
+#include "VolumetricCloudsPass.h"
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
 #include "entt/entity/entity.hpp"
@@ -38,8 +39,9 @@ namespace adria
 
 		void OnResize(GraphicsDevice* gfx, uint32 w, uint32 h);
 		void OnSceneInitialized(GraphicsDevice* gfx);
-
 		RGResourceName GetFinalResource() const;
+
+		CloudParameters const& GetCloudParams() const { return clouds_pass.GetParams(); }
 	private:
 		entt::registry& reg;
 		TextureManager& texture_manager;
@@ -64,11 +66,11 @@ namespace adria
 		GenerateMipsPass generate_mips_pass;
 		AutomaticExposurePass automatic_exposure_pass;
 		LensFlarePass lens_flare_pass;
-
+		VolumetricCloudsPass clouds_pass;
 	private:
 		void AddCopyHDRPass(RenderGraph& rg);
 		void AddVelocityBufferPass(RenderGraph& rg);
-		void AddVolumetricCloudsPass(RenderGraph& rg);
+		
 		void AddSSRPass(RenderGraph& rg);
 		void AddFogPass(RenderGraph& rg);
 		void AddBloomPass(RenderGraph& rg);

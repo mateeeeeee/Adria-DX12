@@ -634,19 +634,20 @@ namespace adria
 			XMFLOAT3 sky_color(sky_pass.GetSkyColor());
 			XMFLOAT2 wind_dir(ocean_renderer.GetWindDirection());
 
+			CloudParameters cloud_params = postprocessor.GetCloudParams();
 			weather_cbuf_data.sky_color = XMLoadFloat3(&sky_color);
 			weather_cbuf_data.ambient_color = XMVECTOR{ renderer_settings.ambient_color[0], renderer_settings.ambient_color[1], renderer_settings.ambient_color[2], 1.0f };
 			weather_cbuf_data.wind_dir = XMVECTOR{ wind_dir.x, 0.0f, wind_dir.y, 0.0f };
-			weather_cbuf_data.wind_speed = renderer_settings.postprocessor.wind_speed;
+			weather_cbuf_data.wind_speed = cloud_params.wind_speed;
 			weather_cbuf_data.time = total_time;
-			weather_cbuf_data.crispiness = renderer_settings.postprocessor.crispiness;
-			weather_cbuf_data.curliness = renderer_settings.postprocessor.curliness;
-			weather_cbuf_data.coverage = renderer_settings.postprocessor.coverage;
-			weather_cbuf_data.absorption = renderer_settings.postprocessor.light_absorption;
-			weather_cbuf_data.clouds_bottom_height = renderer_settings.postprocessor.clouds_bottom_height;
-			weather_cbuf_data.clouds_top_height = renderer_settings.postprocessor.clouds_top_height;
-			weather_cbuf_data.density_factor = renderer_settings.postprocessor.density_factor;
-			weather_cbuf_data.cloud_type = renderer_settings.postprocessor.cloud_type;
+			weather_cbuf_data.crispiness = cloud_params.crispiness;
+			weather_cbuf_data.curliness = cloud_params.curliness;
+			weather_cbuf_data.coverage = cloud_params.coverage;
+			weather_cbuf_data.absorption = cloud_params.light_absorption;
+			weather_cbuf_data.clouds_bottom_height = cloud_params.clouds_bottom_height;
+			weather_cbuf_data.clouds_top_height = cloud_params.clouds_top_height;
+			weather_cbuf_data.density_factor = cloud_params.density_factor;
+			weather_cbuf_data.cloud_type = cloud_params.cloud_type;
 
 			XMFLOAT3 sun_dir;
 			XMStoreFloat3(&sun_dir, XMVector3Normalize(weather_cbuf_data.light_dir));

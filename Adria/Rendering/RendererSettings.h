@@ -49,16 +49,6 @@ namespace adria
 		float32 bloom_scale = 2.0f;
 
 		bool clouds = false;
-		float32 crispiness = 43.0f;
-		float32 curliness = 3.6f;
-		float32 coverage = 0.505f;
-		float32 wind_speed = 5.0f;
-		float32 light_absorption = 0.003f;
-		float32 clouds_bottom_height = 3000.0f;
-		float32 clouds_top_height = 10000.0f;
-		float32 density_factor = 0.015f;
-		float32 cloud_type = 1.0f;
-
 		bool motion_blur = false;
 		float32 velocity_buffer_scale = 64.0f;
 		bool automatic_exposure = false;

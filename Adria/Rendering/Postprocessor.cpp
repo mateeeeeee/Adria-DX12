@@ -17,7 +17,8 @@ namespace adria
 		: reg(reg), texture_manager(texture_manager), width(width), height(height),
 		  blur_pass(width, height), copy_to_texture_pass(width, height), generate_mips_pass(width, height),
 		  add_textures_pass(width, height), automatic_exposure_pass(width, height),
-		  lens_flare_pass(texture_manager, width, height)
+		  lens_flare_pass(texture_manager, width, height),
+		  clouds_pass(texture_manager, width, height)
 	{}
 
 	void Postprocessor::AddPasses(RenderGraph& rg, PostprocessSettings const& _settings)
@@ -43,7 +44,7 @@ namespace adria
 
 		if (settings.clouds)
 		{
-			AddVolumetricCloudsPass(rg);
+			clouds_pass.AddPass(rg);
 			blur_pass.AddPass(rg, RG_RES_NAME(CloudsOutput), RG_RES_NAME(BlurredCloudsOutput), "Volumetric Clouds");
 			copy_to_texture_pass.AddPass(rg, RG_RES_NAME(PostprocessMain), RG_RES_NAME(BlurredCloudsOutput), EBlendMode::AlphaBlend);
 		}
@@ -109,9 +110,13 @@ namespace adria
 	void Postprocessor::OnResize(GraphicsDevice* gfx, uint32 w, uint32 h)
 	{
 		width = w, height = h;
-		blur_pass.OnResize(width, height);
-		copy_to_texture_pass.OnResize(width, height);
+		blur_pass.OnResize(w, h);
+		add_textures_pass.OnResize(w, h);
+		copy_to_texture_pass.OnResize(w, h);
 		generate_mips_pass.OnResize(w, h);
+		automatic_exposure_pass.OnResize(w, h);
+		lens_flare_pass.OnResize(w, h);
+		clouds_pass.OnResize(w, h);
 
 		TextureDesc render_target_desc{};
 		render_target_desc.format = EFormat::R16G16B16A16_FLOAT;
@@ -124,11 +129,9 @@ namespace adria
 
 	void Postprocessor::OnSceneInitialized(GraphicsDevice* gfx)
 	{
-		cloud_textures.push_back(texture_manager.LoadTexture(L"Resources\\Textures\\clouds\\weather.dds"));
-		cloud_textures.push_back(texture_manager.LoadTexture(L"Resources\\Textures\\clouds\\cloud.dds"));
-		cloud_textures.push_back(texture_manager.LoadTexture(L"Resources\\Textures\\clouds\\worley.dds"));
-
+		automatic_exposure_pass.OnSceneInitialized(gfx);
 		lens_flare_pass.OnSceneInitialized(gfx);
+		clouds_pass.OnSceneInitialized(gfx);
 
 		hex_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Hex.dds");
 		oct_bokeh_handle = texture_manager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Oct.dds");
@@ -165,8 +168,6 @@ namespace adria
 		command_signature_desc.pArgumentDescs = args;
 		command_signature_desc.ByteStride = sizeof(D3D12_DRAW_ARGUMENTS);
 		BREAK_IF_FAILED(gfx->GetDevice()->CreateCommandSignature(&command_signature_desc, nullptr, IID_PPV_ARGS(&bokeh_command_signature)));
-
-		automatic_exposure_pass.OnSceneInitialized(gfx);
 	}
 
 	RGResourceName Postprocessor::GetFinalResource() const
@@ -236,55 +237,6 @@ namespace adria
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(1);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index),
 					context.GetReadOnlyTexture(data.depth_srv), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-				cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
-				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-				cmd_list->DrawInstanced(4, 1, 0, 0);
-
-			}, ERGPassType::Graphics, ERGPassFlags::None);
-	}
-
-	void Postprocessor::AddVolumetricCloudsPass(RenderGraph& rg)
-	{
-		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
-		struct VolumetricCloudsPassData
-		{
-			RGTextureReadOnlyId depth;
-		};
-		rg.AddPass<VolumetricCloudsPassData>("Volumetric Clouds Pass",
-			[=](VolumetricCloudsPassData& data, RenderGraphBuilder& builder)
-			{
-				RGTextureDesc clouds_output_desc{};
-				clouds_output_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
-				clouds_output_desc.width = width;
-				clouds_output_desc.height = height;
-				clouds_output_desc.format = EFormat::R16G16B16A16_FLOAT;
-
-				builder.DeclareTexture(RG_RES_NAME(CloudsOutput), clouds_output_desc);
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
-				builder.WriteRenderTarget(RG_RES_NAME(CloudsOutput), ERGLoadStoreAccessOp::Clear_Preserve);
-				builder.SetViewport(width, height);
-			},
-			[=](VolumetricCloudsPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
-			{
-				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
-
-				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Clouds));
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Clouds));
-
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetGraphicsRootConstantBufferView(1, global_data.weather_cbuffer_address);
-
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(4);
-				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { texture_manager.CpuDescriptorHandle(cloud_textures[0]),  texture_manager.CpuDescriptorHandle(cloud_textures[1]),
-															 texture_manager.CpuDescriptorHandle(cloud_textures[2]), context.GetReadOnlyTexture(data.depth) };
-				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
-				uint32 src_range_sizes[] = { 1, 1, 1, 1 };
-				uint32 dst_range_sizes[] = { 4 };
-
-				device->CopyDescriptors(ARRAYSIZE(dst_ranges), dst_ranges, dst_range_sizes, ARRAYSIZE(src_ranges), src_ranges, src_range_sizes,
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 				cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
 				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);

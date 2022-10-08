@@ -193,11 +193,11 @@ namespace adria
 				gui->Begin();
 				MenuBar();
 				ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
+				Scene();
 				ListEntities();
 				AddEntities();
-				Camera();
-				Scene();
 				Settings();
+				Camera();
 				Properties();
 				Log();
 				Profiling();

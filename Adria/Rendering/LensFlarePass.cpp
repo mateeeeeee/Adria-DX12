@@ -7,7 +7,6 @@
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/TextureManager.h"
 #include "../Logging/Logger.h"
-#include "entt/entity/registry.hpp"
 
 using namespace DirectX;
 
@@ -15,7 +14,7 @@ namespace adria
 {
 
 	LensFlarePass::LensFlarePass(TextureManager& texture_manager, uint32 w, uint32 h)
-		:texture_manager{ texture_manager}, width{ w }, height{ h }
+		: texture_manager{ texture_manager}, width{ w }, height{ h }
 	{}
 
 	void LensFlarePass::AddPass(RenderGraph& rg, Light const& light)

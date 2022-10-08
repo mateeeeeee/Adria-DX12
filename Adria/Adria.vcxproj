@@ -232,6 +232,7 @@
     <ClCompile Include="Rendering\SSAOPass.cpp" />
     <ClCompile Include="Rendering\TiledLightingPass.cpp" />
     <ClCompile Include="Rendering\ToneMapPass.cpp" />
+    <ClCompile Include="Rendering\VolumetricCloudsPass.cpp" />
     <ClCompile Include="Utilities\AdriaException.cpp" />
     <ClCompile Include="Utilities\CPUProfiler.cpp" />
     <ClCompile Include="Utilities\Heightmap.cpp" />
@@ -353,6 +354,7 @@
     <ClInclude Include="Rendering\SSAOPass.h" />
     <ClInclude Include="Rendering\TiledLightingPass.h" />
     <ClInclude Include="Rendering\ToneMapPass.h" />
+    <ClInclude Include="Rendering\VolumetricCloudsPass.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Tasks\Task.h" />
     <ClInclude Include="Tasks\TaskManager.h" />
