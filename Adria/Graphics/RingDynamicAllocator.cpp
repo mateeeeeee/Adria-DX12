@@ -10,6 +10,7 @@ namespace adria
 		BufferDesc desc{};
 		desc.size = max_size_in_bytes;
 		desc.resource_usage = EResourceUsage::Upload;
+		desc.bind_flags = EBindFlag::ShaderResource;
 
 		buffer = std::make_unique<Buffer>(gfx, desc);
 		ADRIA_ASSERT(buffer->IsMapped());

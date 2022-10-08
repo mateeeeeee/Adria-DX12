@@ -1,4 +1,5 @@
 #include "Editor.h"
+#include "GUICommand.h"
 #include "nfd.h"
 #include "../Rendering/Renderer.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
@@ -195,14 +196,10 @@ namespace adria
 				MenuBar();
 				ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 				ListEntities();
-				OceanSettings();
-				ParticleSettings();
-				DecalSettings();
-				SkySettings();
 				AddEntities();
 				Camera();
 				Scene();
-				RendererSettings();
+				Settings();
 				Properties();
 				Log();
 				Profiling();
@@ -355,7 +352,7 @@ namespace adria
 				if (ImGui::MenuItem("Camera", 0, window_flags[Flag_Camera]))				 window_flags[Flag_Camera] = !window_flags[Flag_Camera];
 				if (ImGui::MenuItem("Entities", 0, window_flags[Flag_Entities]))			 window_flags[Flag_Entities] = !window_flags[Flag_Entities];
 				if (ImGui::MenuItem("Hot Reload", 0, window_flags[Flag_HotReload]))			 window_flags[Flag_HotReload] = !window_flags[Flag_HotReload];
-				if (ImGui::MenuItem("Renderer Settings", 0, window_flags[Flag_Renderer]))	 window_flags[Flag_Renderer] = !window_flags[Flag_Renderer];
+				if (ImGui::MenuItem("Settings", 0, window_flags[Flag_Settings]))	 window_flags[Flag_Settings] = !window_flags[Flag_Settings];
 				if (ImGui::MenuItem("Ray Tracing Debug", 0, window_flags[Flag_RTDebug]))	 window_flags[Flag_RTDebug] = !window_flags[Flag_RTDebug];
 				if (ImGui::MenuItem("Ocean", 0, window_flags[Flag_Ocean]))					 window_flags[Flag_Ocean] = !window_flags[Flag_Ocean];
 				if (ImGui::MenuItem("Decals", 0, window_flags[Flag_Decal]))					 window_flags[Flag_Decal] = !window_flags[Flag_Decal];
@@ -384,165 +381,6 @@ namespace adria
 			}
 			ImGui::EndMainMenuBar();
 		}
-	}
-
-	void Editor::OceanSettings()
-	{
-		if (!window_flags[Flag_Ocean]) return;
-
-		if(ImGui::Begin("Ocean", &window_flags[Flag_Ocean]))
-		{
-			static GridParameters ocean_params{};
-			static int32 tile_count[2] = { 512, 512 };
-			static float32 tile_size[2] = { 40.0f, 40.0f };
-			static float32 texture_scale[2] = { 20.0f, 20.0f };
-
-			ImGui::SliderInt2("Tile Count", tile_count, 32, 1024);
-			ImGui::SliderFloat2("Tile Size", tile_size, 1.0, 100.0f);
-			ImGui::SliderFloat2("Texture Scale", texture_scale, 0.1f, 10.0f);
-
-			ocean_params.tile_count_x = tile_count[0];
-			ocean_params.tile_count_z = tile_count[1];
-			ocean_params.tile_size_x = tile_size[0];
-			ocean_params.tile_size_z = tile_size[1];
-			ocean_params.texture_scale_x = texture_scale[0];
-			ocean_params.texture_scale_z = texture_scale[1];
-
-			if (ImGui::Button("Load Ocean"))
-			{
-				OceanParameters params{};
-				params.ocean_grid = std::move(ocean_params);
-				engine->entity_loader->LoadOcean(params);
-			}
-
-			if (ImGui::Button("Clear"))
-			{
-				engine->reg.clear<Ocean>();
-			}
-
-			if (ImGui::TreeNodeEx("Ocean Settings", 0))
-			{
-				ImGui::Checkbox("Tessellation", &renderer_settings.ocean_tesselation);
-				ImGui::Checkbox("Wireframe", &renderer_settings.ocean_wireframe);
-
-				ImGui::SliderFloat("Choppiness", &renderer_settings.ocean_choppiness, 0.0f, 10.0f);
-				renderer_settings.ocean_color_changed = ImGui::ColorEdit3("Ocean Color", renderer_settings.ocean_color);
-				ImGui::TreePop();
-				ImGui::Separator();
-			}
-		}
-		ImGui::End();
-	}
-
-	void Editor::ParticleSettings()
-	{
-		if (!window_flags[Flag_Particles]) return;
-		if (ImGui::Begin("Particles", &window_flags[Flag_Particles]))
-		{
-			static EmitterParameters params{};
-			static char NAME_BUFFER[128];
-			ImGui::InputText("Name", NAME_BUFFER, sizeof(NAME_BUFFER));
-			params.name = std::string(NAME_BUFFER);
-			if (ImGui::Button("Select Texture"))
-			{
-				nfdchar_t* file_path = NULL;
-				nfdchar_t const* filter_list = "jpg,jpeg,tga,dds,png";
-				nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
-				if (result == NFD_OKAY)
-				{
-					std::wstring texture_path = ToWideString(file_path);
-					params.texture_path = texture_path;
-					free(file_path);
-				}
-			}
-
-			ImGui::Text(ToString(params.texture_path).c_str());
-			ImGui::SliderFloat3("Position", params.position, -500.0f, 500.0f);
-			ImGui::SliderFloat3("Velocity", params.velocity, -50.0f, 50.0f);
-			ImGui::SliderFloat3("Position Variance", params.position_variance, -50.0f, 50.0f);
-			ImGui::SliderFloat("Velocity Variance", &params.velocity_variance, -10.0f, 10.0f);
-			ImGui::SliderFloat("Lifespan", &params.lifespan, 0.0f, 50.0f);
-			ImGui::SliderFloat("Start Size", &params.start_size, 0.0f, 50.0f);
-			ImGui::SliderFloat("End Size", &params.end_size, 0.0f, 10.0f);
-			ImGui::SliderFloat("Mass", &params.mass, 0.0f, 10.0f);
-			ImGui::SliderFloat("Particles Per Second", &params.particles_per_second, 1.0f, 1000.0f);
-			ImGui::Checkbox("Alpha Blend", &params.blend);
-			ImGui::Checkbox("Collisions", &params.collisions);
-			ImGui::Checkbox("Sort", &params.sort);
-			if (params.collisions) ImGui::SliderInt("Collision Thickness", &params.collision_thickness, 0, 40);
-
-			if (ImGui::Button("Load Emitter"))
-			{
-				entt::entity e = engine->entity_loader->LoadEmitter(params);
-				editor_events.particle_emitter_added.Broadcast(entt::to_integral(e));
-			}
-		}
-		ImGui::End();
-	}
-
-	void Editor::DecalSettings()
-	{
-		if (!window_flags[Flag_Decal]) return;
-		if (ImGui::Begin("Decals", &window_flags[Flag_Decal]))
-		{
-			static DecalParameters params{};
-			static char NAME_BUFFER[128];
-			ImGui::InputText("Name", NAME_BUFFER, sizeof(NAME_BUFFER));
-			params.name = std::string(NAME_BUFFER);
-			ImGui::PushID(6);
-			if (ImGui::Button("Select Albedo Texture"))
-			{
-				nfdchar_t* file_path = NULL;
-				nfdchar_t const* filter_list = "jpg,jpeg,tga,dds,png";
-				nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
-				if (result == NFD_OKAY)
-				{
-					std::string texture_path = file_path;
-					params.albedo_texture_path = texture_path;
-					free(file_path);
-				}
-			}
-			ImGui::PopID();
-			ImGui::Text(params.albedo_texture_path.c_str());
-
-			ImGui::PushID(7);
-			if (ImGui::Button("Select Normal Texture"))
-			{
-				nfdchar_t* file_path = NULL;
-				nfdchar_t const* filter_list = "jpg,jpeg,tga,dds,png";
-				nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
-				if (result == NFD_OKAY)
-				{
-					std::string texture_path = file_path;
-					params.normal_texture_path = texture_path;
-					free(file_path);
-				}
-			}
-
-			ImGui::PopID();
-			ImGui::Text(params.normal_texture_path.c_str());
-
-			ImGui::DragFloat("Size", &params.size, 2.0f, 10.0f, 200.0f);
-			ImGui::DragFloat("Rotation", &params.rotation, 1.0f, -180.0f, 180.0f);
-			ImGui::Checkbox("Modify GBuffer Normals", &params.modify_gbuffer_normals);
-
-			auto picking_data = engine->renderer->GetPickingData();
-			ImGui::Text("Picked Position: %f %f %f", picking_data.position.x, picking_data.position.y, picking_data.position.z);
-			ImGui::Text("Picked Normal: %f %f %f", picking_data.normal.x, picking_data.normal.y, picking_data.normal.z);
-			if (ImGui::Button("Load Decal"))
-			{
-				params.position = picking_data.position;
-				params.normal = picking_data.normal;
-				params.rotation = XMConvertToRadians(params.rotation);
-
-				engine->entity_loader->LoadDecal(params);
-			}
-			if (ImGui::Button("Clear Decals"))
-			{
-				for(auto e : engine->reg.view<Decal>()) engine->reg.destroy(e);
-			}
-		}
-		ImGui::End();
 	}
 
 	void Editor::AddEntities()
@@ -576,68 +414,6 @@ namespace adria
 					}
 				}
 			}
-		}
-		ImGui::End();
-	}
-
-	void Editor::SkySettings()
-	{
-		if (!window_flags[Flag_Sky]) return;
-		if (ImGui::Begin("Sky", &window_flags[Flag_Sky]))
-		{
-			static int current_sky_type = 0;
-			const char* sky_types[] = { "Skybox", "Uniform Color", "Hosek-Wilkie" };
-			const char* combo_label = sky_types[current_sky_type];
-			if (ImGui::BeginCombo("Sky Type", combo_label, 0))
-			{
-				for (int n = 0; n < IM_ARRAYSIZE(sky_types); n++)
-				{
-					const bool is_selected = (current_sky_type == n);
-					if (ImGui::Selectable(sky_types[n], is_selected)) current_sky_type = n;
-					if (is_selected) ImGui::SetItemDefaultFocus();
-				}
-				ImGui::EndCombo();
-			}
-
-			if (current_sky_type == 0) renderer_settings.sky_type = ESkyType::Skybox;
-			else if (current_sky_type == 1)
-			{
-				renderer_settings.sky_type = ESkyType::UniformColor;
-				static char const* const sky_colors[] = { "Deep Sky Blue", "Sky Blue", "Light Sky Blue" };
-				static int current_sky_color = 0;
-				ImGui::ListBox("Tone Map Operator", &current_sky_color, sky_colors, IM_ARRAYSIZE(sky_colors));
-
-				switch (current_sky_color)
-				{
-				case 0:
-				{
-					static float32 deep_sky_blue[3] = { 0.0f, 0.75f, 1.0f };
-					memcpy(renderer_settings.sky_color, deep_sky_blue, sizeof(deep_sky_blue));
-					break;
-				}
-				case 1:
-				{
-					static float32 sky_blue[3] = { 0.53f, 0.81f, 0.92f };
-					memcpy(renderer_settings.sky_color, sky_blue, sizeof(sky_blue));
-					break;
-				}
-				case 2:
-				{
-					static float32 light_sky_blue[3] = { 0.53f, 0.81f, 0.98f };
-					memcpy(renderer_settings.sky_color, light_sky_blue, sizeof(light_sky_blue));
-					break;
-				}
-				default:
-					ADRIA_ASSERT(false);
-				}
-			}
-			else if (current_sky_type == 2)
-			{
-				renderer_settings.sky_type = ESkyType::HosekWilkie;
-				ImGui::SliderFloat("Turbidity", &renderer_settings.turbidity, 2.0f, 30.0f);
-				ImGui::SliderFloat("Ground Albedo", &renderer_settings.ground_albedo, 0.0f, 1.0f);
-			}
-
 		}
 		ImGui::End();
 	}
@@ -1250,244 +1026,78 @@ namespace adria
 		ImGui::End();
 	}
 
-	void Editor::RendererSettings()
+	void Editor::Settings()
 	{
-		if (!window_flags[Flag_Renderer]) return;
-		if (ImGui::Begin("Renderer Settings", &window_flags[Flag_Renderer]))
+		if (!window_flags[Flag_Settings]) return;
+		if (ImGui::Begin("Settings", &window_flags[Flag_Settings]))
 		{
-			if (ImGui::TreeNode("Render Path Settings"))
+			static const char* render_path_types[] = { "Regular", "Tiled", "Clustered" };
+			static int current_render_path_type = 0;
+			const char* render_path_combo_label = render_path_types[current_render_path_type];
+			if (ImGui::BeginCombo("Render Path", render_path_combo_label, 0))
 			{
-				static const char* render_path_types[] = { "Regular", "Tiled", "Clustered" };
-				static int current_render_path_type = 0;
-				const char* combo_label = render_path_types[current_render_path_type];
-				if (ImGui::BeginCombo("Render Path", combo_label, 0))
+				for (int n = 0; n < IM_ARRAYSIZE(render_path_types); n++)
 				{
-					for (int n = 0; n < IM_ARRAYSIZE(render_path_types); n++)
-					{
-						const bool is_selected = (current_render_path_type == n);
-						if (ImGui::Selectable(render_path_types[n], is_selected)) current_render_path_type = n;
-						if (is_selected) ImGui::SetItemDefaultFocus();
-					}
-					ImGui::EndCombo();
+					const bool is_selected = (current_render_path_type == n);
+					if (ImGui::Selectable(render_path_types[n], is_selected)) current_render_path_type = n;
+					if (is_selected) ImGui::SetItemDefaultFocus();
 				}
+				ImGui::EndCombo();
+			}
+			renderer_settings.use_tiled_deferred = (current_render_path_type == 1);
+			renderer_settings.use_clustered_deferred = (current_render_path_type == 2);
 
-				renderer_settings.use_tiled_deferred = (current_render_path_type == 1);
-				renderer_settings.use_clustered_deferred = (current_render_path_type == 2);
-
-				if (renderer_settings.use_tiled_deferred && ImGui::TreeNodeEx("Tiled Deferred", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+			static const char* ao_types[] = { "None", "SSAO", "HBAO", "RTAO" };
+			static int current_ao_type = 0;
+			const char* ao_combo_label = ao_types[current_ao_type];
+			if (ImGui::BeginCombo("Ambient Occlusion", ao_combo_label, 0))
+			{
+				for (int n = 0; n < IM_ARRAYSIZE(ao_types); n++)
 				{
-					ImGui::Checkbox("Visualize Tiles", &renderer_settings.visualize_tiled);
-					if (renderer_settings.visualize_tiled) ImGui::SliderInt("Visualize Scale", &renderer_settings.visualize_max_lights, 1, 32);
-
-					ImGui::TreePop();
-					ImGui::Separator();
+					const bool is_selected = (current_ao_type == n);
+					if (ImGui::Selectable(ao_types[n], is_selected)) current_ao_type = n;
+					if (is_selected) ImGui::SetItemDefaultFocus();
 				}
+				ImGui::EndCombo();
+			}
+			renderer_settings.postprocessor.ambient_occlusion = static_cast<EAmbientOcclusion>(current_ao_type);
+			
+			static const char* reflection_types[] = { "None", "SSR", "RTR" };
+			static int current_reflection_type = (int)renderer_settings.postprocessor.reflections;
+			const char* reflection_combo_label = reflection_types[current_reflection_type];
+			if (ImGui::BeginCombo("Reflections", reflection_combo_label, 0))
+			{
+				for (int n = 0; n < IM_ARRAYSIZE(reflection_types); n++)
+				{
+					const bool is_selected = (current_reflection_type == n);
+					if (ImGui::Selectable(reflection_types[n], is_selected)) current_reflection_type = n;
+					if (is_selected) ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+			renderer_settings.postprocessor.reflections = static_cast<EReflections>(current_reflection_type);
+			ImGui::Checkbox("Automatic Exposure", &renderer_settings.postprocessor.automatic_exposure);
+			ImGui::Checkbox("Volumetric Clouds", &renderer_settings.postprocessor.clouds);
+			ImGui::Checkbox("DoF", &renderer_settings.postprocessor.dof);
+			ImGui::Checkbox("Bloom", &renderer_settings.postprocessor.bloom);
+			ImGui::Checkbox("Motion Blur", &renderer_settings.postprocessor.motion_blur);
+			ImGui::Checkbox("Fog", &renderer_settings.postprocessor.fog);
+			if (ImGui::TreeNode("Anti-Aliasing"))
+			{
+				static bool fxaa = false, taa = false;
+				ImGui::Checkbox("FXAA", &fxaa);
+				ImGui::Checkbox("TAA", &taa);
+				if (fxaa) renderer_settings.postprocessor.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocessor.anti_aliasing | AntiAliasing_FXAA);
+				else renderer_settings.postprocessor.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocessor.anti_aliasing & (~AntiAliasing_FXAA));
+
+				if (taa) renderer_settings.postprocessor.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocessor.anti_aliasing | AntiAliasing_TAA);
+				else renderer_settings.postprocessor.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocessor.anti_aliasing & (~AntiAliasing_TAA));
+
 				ImGui::TreePop();
 			}
 
-			if (ImGui::TreeNode("Postprocessing"))
-			{
-				//ambient oclussion
-				{
-					static const char* ao_types[] = { "None", "SSAO", "HBAO", "RTAO" };
-					static int current_ao_type = 0;
-					const char* combo_label = ao_types[current_ao_type];
-					if (ImGui::BeginCombo("Ambient Occlusion", combo_label, 0))
-					{
-						for (int n = 0; n < IM_ARRAYSIZE(ao_types); n++)
-						{
-							const bool is_selected = (current_ao_type == n);
-							if (ImGui::Selectable(ao_types[n], is_selected)) current_ao_type = n;
-							if (is_selected) ImGui::SetItemDefaultFocus();
-						}
-						ImGui::EndCombo();
-					}
-
-					renderer_settings.postprocessor.ambient_occlusion = static_cast<EAmbientOcclusion>(current_ao_type);
-					if (renderer_settings.postprocessor.ambient_occlusion == EAmbientOcclusion::SSAO && ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
-					{
-						ImGui::SliderFloat("Power", &renderer_settings.postprocessor.ssao_power, 1.0f, 16.0f);
-						ImGui::SliderFloat("Radius", &renderer_settings.postprocessor.ssao_radius, 0.5f, 4.0f);
-
-						ImGui::TreePop();
-						ImGui::Separator();
-					}
-					else if (renderer_settings.postprocessor.ambient_occlusion == EAmbientOcclusion::HBAO && ImGui::TreeNodeEx("HBAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
-					{
-						ImGui::SliderFloat("Power", &renderer_settings.postprocessor.hbao_power, 1.0f, 16.0f);
-						ImGui::SliderFloat("Radius", &renderer_settings.postprocessor.hbao_radius, 0.25f, 8.0f);
-
-						ImGui::TreePop();
-						ImGui::Separator();
-					}
-					else if (renderer_settings.postprocessor.ambient_occlusion == EAmbientOcclusion::RTAO && ImGui::TreeNodeEx("RTAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
-					{
-						ImGui::SliderFloat("Radius", &renderer_settings.postprocessor.rtao_radius, 0.25f, 8.0f);
-
-						ImGui::TreePop();
-						ImGui::Separator();
-					}
-				}
-				//reflections
-				{
-					static const char* reflection_types[] = { "None", "SSR", "RTR" };
-					static int current_reflection_type = (int)renderer_settings.postprocessor.reflections;
-					const char* combo_label = reflection_types[current_reflection_type];
-					if (ImGui::BeginCombo("Reflections", combo_label, 0))
-					{
-						for (int n = 0; n < IM_ARRAYSIZE(reflection_types); n++)
-						{
-							const bool is_selected = (current_reflection_type == n);
-							if (ImGui::Selectable(reflection_types[n], is_selected)) current_reflection_type = n;
-							if (is_selected) ImGui::SetItemDefaultFocus();
-						}
-						ImGui::EndCombo();
-					}
-
-					renderer_settings.postprocessor.reflections = static_cast<EReflections>(current_reflection_type);
-					if (renderer_settings.postprocessor.reflections == EReflections::SSR && ImGui::TreeNodeEx("Screen-Space Reflections", 0))
-					{
-						ImGui::SliderFloat("Ray Step", &renderer_settings.postprocessor.ssr_ray_step, 1.0f, 3.0f);
-						ImGui::SliderFloat("Ray Hit Threshold", &renderer_settings.postprocessor.ssr_ray_hit_threshold, 0.25f, 5.0f);
-
-						ImGui::TreePop();
-						ImGui::Separator();
-					}
-				}
-				ImGui::Checkbox("Automatic Exposure", &renderer_settings.postprocessor.automatic_exposure);
-				ImGui::Checkbox("Volumetric Clouds", &renderer_settings.postprocessor.clouds);
-				ImGui::Checkbox("DoF", &renderer_settings.postprocessor.dof);
-				ImGui::Checkbox("Bloom", &renderer_settings.postprocessor.bloom);
-				ImGui::Checkbox("Motion Blur", &renderer_settings.postprocessor.motion_blur);
-				ImGui::Checkbox("Fog", &renderer_settings.postprocessor.fog);
-
-				if (ImGui::TreeNode("Anti-Aliasing"))
-				{
-					static bool fxaa = false, taa = false;
-					ImGui::Checkbox("FXAA", &fxaa);
-					ImGui::Checkbox("TAA", &taa);
-					if (fxaa) renderer_settings.postprocessor.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocessor.anti_aliasing | AntiAliasing_FXAA);
-					else renderer_settings.postprocessor.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocessor.anti_aliasing & (~AntiAliasing_FXAA));
-
-					if (taa) renderer_settings.postprocessor.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocessor.anti_aliasing | AntiAliasing_TAA);
-					else renderer_settings.postprocessor.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocessor.anti_aliasing & (~AntiAliasing_TAA));
-
-					ImGui::TreePop();
-				}
-				if (renderer_settings.postprocessor.clouds && ImGui::TreeNodeEx("Volumetric Clouds", 0))
-				{
-					ImGui::SliderFloat("Sun light absorption", &renderer_settings.postprocessor.light_absorption, 0.0f, 0.015f);
-					ImGui::SliderFloat("Clouds bottom height", &renderer_settings.postprocessor.clouds_bottom_height, 1000.0f, 10000.0f);
-					ImGui::SliderFloat("Clouds top height", &renderer_settings.postprocessor.clouds_top_height, 10000.0f, 50000.0f);
-					ImGui::SliderFloat("Density", &renderer_settings.postprocessor.density_factor, 0.0f, 1.0f);
-					ImGui::SliderFloat("Crispiness", &renderer_settings.postprocessor.crispiness, 0.0f, 100.0f);
-					ImGui::SliderFloat("Curliness", &renderer_settings.postprocessor.curliness, 0.0f, 5.0f);
-					ImGui::SliderFloat("Coverage", &renderer_settings.postprocessor.coverage, 0.0f, 1.0f);
-					ImGui::SliderFloat("Wind speed factor", &renderer_settings.postprocessor.wind_speed, 0.0f, 100.0f);
-					ImGui::SliderFloat("Cloud Type", &renderer_settings.postprocessor.cloud_type, 0.0f, 1.0f);
-					ImGui::TreePop();
-					ImGui::Separator();
-				}
-
-				if (renderer_settings.postprocessor.dof && ImGui::TreeNodeEx("Depth Of Field", 0))
-				{
-					ImGui::SliderFloat("DoF Near Blur", &renderer_settings.postprocessor.dof_near_blur, 0.0f, 200.0f);
-					ImGui::SliderFloat("DoF Near", &renderer_settings.postprocessor.dof_near, renderer_settings.postprocessor.dof_near_blur, 500.0f);
-					ImGui::SliderFloat("DoF Far", &renderer_settings.postprocessor.dof_far, renderer_settings.postprocessor.dof_near, 1000.0f);
-					ImGui::SliderFloat("DoF Far Blur", &renderer_settings.postprocessor.dof_far_blur, renderer_settings.postprocessor.dof_far, 1500.0f);
-					ImGui::Checkbox("Bokeh", &renderer_settings.postprocessor.bokeh);
-
-					if (renderer_settings.postprocessor.bokeh)
-					{
-						static char const* const bokeh_types[] = { "HEXAGON", "OCTAGON", "CIRCLE", "CROSS" };
-						static int bokeh_type_i = static_cast<int>(renderer_settings.postprocessor.bokeh_type);
-						ImGui::ListBox("Bokeh Type", &bokeh_type_i, bokeh_types, IM_ARRAYSIZE(bokeh_types));
-						renderer_settings.postprocessor.bokeh_type = static_cast<EBokehType>(bokeh_type_i);
-
-						ImGui::SliderFloat("Bokeh Blur Threshold", &renderer_settings.postprocessor.bokeh_blur_threshold, 0.0f, 1.0f);
-						ImGui::SliderFloat("Bokeh Lum Threshold", &renderer_settings.postprocessor.bokeh_lum_threshold, 0.0f, 10.0f);
-						ImGui::SliderFloat("Bokeh Color Scale", &renderer_settings.postprocessor.bokeh_color_scale, 0.1f, 10.0f);
-						ImGui::SliderFloat("Bokeh Max Size", &renderer_settings.postprocessor.bokeh_radius_scale, 0.0f, 100.0f);
-						ImGui::SliderFloat("Bokeh Fallout", &renderer_settings.postprocessor.bokeh_fallout, 0.0f, 2.0f);
-					}
-
-					ImGui::TreePop();
-					ImGui::Separator();
-
-				}
-				if (renderer_settings.postprocessor.bloom && ImGui::TreeNodeEx("Bloom", 0))
-				{
-					ImGui::SliderFloat("Threshold", &renderer_settings.postprocessor.bloom_threshold, 0.1f, 2.0f);
-					ImGui::SliderFloat("Bloom Scale", &renderer_settings.postprocessor.bloom_scale, 0.1f, 5.0f);
-					ImGui::TreePop();
-					ImGui::Separator();
-				}
-				if ((renderer_settings.postprocessor.motion_blur || (renderer_settings.postprocessor.anti_aliasing & AntiAliasing_TAA)) && ImGui::TreeNodeEx("Velocity Buffer", 0))
-				{
-					ImGui::SliderFloat("Velocity Buffer Scale", &renderer_settings.postprocessor.velocity_buffer_scale, 32.0f, 128.0f);
-					ImGui::TreePop();
-					ImGui::Separator();
-				}
-				if (renderer_settings.postprocessor.fog && ImGui::TreeNodeEx("Fog", 0))
-				{
-					static const char* fog_types[] = { "Exponential", "Exponential Height" };
-					static int current_fog_type = 0; // Here we store our selection data as an index.
-					const char* combo_label = fog_types[current_fog_type];  // Label to preview before opening the combo (technically it could be anything)
-					if (ImGui::BeginCombo("Fog Type", combo_label, 0))
-					{
-						for (int n = 0; n < IM_ARRAYSIZE(fog_types); n++)
-						{
-							const bool is_selected = (current_fog_type == n);
-							if (ImGui::Selectable(fog_types[n], is_selected)) current_fog_type = n;
-							if (is_selected) ImGui::SetItemDefaultFocus();
-						}
-						ImGui::EndCombo();
-					}
-
-					renderer_settings.postprocessor.fog_type = static_cast<EFogType>(current_fog_type);
-
-					ImGui::SliderFloat("Fog Falloff", &renderer_settings.postprocessor.fog_falloff, 0.0001f, 0.01f);
-					ImGui::SliderFloat("Fog Density", &renderer_settings.postprocessor.fog_density, 0.0001f, 0.01f);
-					ImGui::SliderFloat("Fog Start", &renderer_settings.postprocessor.fog_start, 0.1f, 10000.0f);
-					ImGui::ColorEdit3("Fog Color", renderer_settings.postprocessor.fog_color);
-
-					ImGui::TreePop();
-					ImGui::Separator();
-				}
-				if (renderer_settings.postprocessor.automatic_exposure && ImGui::TreeNodeEx("Automatic Exposure", 0))
-				{
-					ImGui::SliderFloat("Min Luminance", &renderer_settings.postprocessor.min_luminance, 0.0f, 1.0f);
-					ImGui::SliderFloat("Max Luminance", &renderer_settings.postprocessor.max_luminance, 0.3f, 20.0f);
-					ImGui::SliderFloat("Adaption Speed", &renderer_settings.postprocessor.adaption_speed, 0.01, 5.0f);
-					ImGui::SliderFloat("Exposure Compensation", &renderer_settings.postprocessor.exposure_compensation, -5.0f, 5.0f);
-					ImGui::SliderFloat("Low Percentile", &renderer_settings.postprocessor.low_percentile, 0.0f, 0.49f);
-					ImGui::SliderFloat("High Percentile", &renderer_settings.postprocessor.high_percentile, 0.51, 1.0f);
-					ImGui::TreePop();
-				}
-				if (ImGui::TreeNodeEx("Tone Mapping", 0))
-				{
-					ImGui::SliderFloat("Exposure", &renderer_settings.postprocessor.tonemap_exposure, 0.01f, 10.0f);
-					static char const* const operators[] = { "REINHARD", "HABLE", "LINEAR" };
-					static int tone_map_operator = static_cast<int>(renderer_settings.postprocessor.tone_map_op);
-					ImGui::ListBox("Tone Map Operator", &tone_map_operator, operators, IM_ARRAYSIZE(operators));
-					renderer_settings.postprocessor.tone_map_op = static_cast<EToneMap>(tone_map_operator);
-					ImGui::TreePop();
-					ImGui::Separator();
-				}
-				ImGui::TreePop();
-			}
-
-			if (ImGui::TreeNode("Misc"))
-			{
-				renderer_settings.recreate_initial_spectrum = ImGui::SliderFloat2("Wind Direction", renderer_settings.wind_direction, 0.0f, 50.0f);
-				ImGui::SliderFloat("Wind speed factor", &renderer_settings.postprocessor.wind_speed, 0.0f, 100.0f);
-				ImGui::ColorEdit3("Ambient Color", renderer_settings.ambient_color);
-				ImGui::SliderFloat("Blur Sigma", &renderer_settings.blur_sigma, 0.1f, 10.0f);
-				ImGui::SliderFloat("Shadow Softness", &renderer_settings.shadow_softness, 0.01f, 5.0f);
-				ImGui::Checkbox("Transparent Shadows", &renderer_settings.shadow_transparent);
-				ImGui::Checkbox("IBL", &renderer_settings.ibl);
-				ImGui::TreePop();
-			}
+			for (auto&& command : commands) command.callback();
+			commands.clear();
 		}
 		ImGui::End();
 	}

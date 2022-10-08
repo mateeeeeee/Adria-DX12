@@ -1,17 +1,12 @@
 #pragma once
 #include <functional>
-#include <stdarg.h>
+#include "GUI.h"
 
 namespace adria
 {
 	struct GUICommand
 	{
-		std::function<void()> gui_callback;
+		std::function<void()> callback;
 	};
-
-	inline void AddGUI(int x)
-	{
-		
-	}
-	
+	void AddGUI(std::function<void()>&& cb);
 }

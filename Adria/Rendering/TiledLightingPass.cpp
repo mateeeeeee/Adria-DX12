@@ -5,8 +5,9 @@
 #include "PSOCache.h" 
 #include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
-#include "entt/entity/registry.hpp"
 #include "../Logging/Logger.h"
+#include "../Editor/GUICommand.h"
+#include "entt/entity/registry.hpp"
 
 using namespace DirectX;
 
@@ -37,7 +38,7 @@ namespace adria
 				tiled_desc.width = width;
 				tiled_desc.height = height;
 				tiled_desc.format = EFormat::R16G16B16A16_FLOAT;
-				
+
 				builder.DeclareTexture(RG_RES_NAME(TiledTarget), tiled_desc);
 				builder.DeclareTexture(RG_RES_NAME(TiledDebugTarget), tiled_desc);
 
@@ -142,7 +143,21 @@ namespace adria
 					black, 0, nullptr);
 				cmd_list->Dispatch(std::ceil(width / 16.0f), std::ceil(height / 16.0f), 1);
 			}, ERGPassType::Compute, ERGPassFlags::None);
-	}
+
+		AddGUI([&]()
+			{
+				if (ImGui::TreeNodeEx("Tiled Deferred", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+				{
+					ImGui::Checkbox("Visualize Tiles", &visualize_tiled);
+					if (visualize_tiled) ImGui::SliderInt("Visualize Scale", &visualize_max_lights, 1, 32);
+
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
+			}
+		);
+
+}
 
 }
 

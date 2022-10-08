@@ -171,6 +171,7 @@
     <ClCompile Include="Core\Window.cpp" />
     <ClCompile Include="Editor\Editor.cpp" />
     <ClCompile Include="Editor\GUI.cpp" />
+    <ClCompile Include="Editor\GUICommand.cpp" />
     <ClCompile Include="Events\EventQueue.cpp" />
     <ClCompile Include="Graphics\D3D12MemAlloc.cpp" />
     <ClCompile Include="Graphics\DDSTextureLoader12.cpp" />

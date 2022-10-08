@@ -1,8 +1,8 @@
 #pragma once
 #include <memory>
 #include "GUI.h"
-#include "EditorEvents.h"
 #include "GUICommand.h"
+#include "EditorEvents.h"
 #include "../Core/Engine.h"
 #include "../Rendering/RendererSettings.h"
 #include "../Rendering/ViewportData.h"
@@ -21,7 +21,7 @@ namespace adria
 	{
 		EngineInit engine_init;
 	};
-
+	
 	class Editor
 	{
 		enum
@@ -32,7 +32,7 @@ namespace adria
 			Flag_Entities,
 			Flag_HotReload,
 			Flag_RTDebug,
-			Flag_Renderer,
+			Flag_Settings,
 			Flag_Ocean,
 			Flag_Decal,
 			Flag_Particles,
@@ -40,6 +40,7 @@ namespace adria
 			Flag_AddEntities,
 			Flag_Count
 		};
+
 	public:
 		static Editor& GetInstance()
 		{
@@ -50,6 +51,10 @@ namespace adria
 		void Destroy();
 		void HandleWindowMessage(WindowMessage const& msg_data);
 		void Run();
+		void AddCommand(GUICommand&& command)
+		{
+			commands.emplace_back(std::move(command));
+		}
 	private:
 		std::unique_ptr<Engine> engine;
 		std::unique_ptr<GUI> gui;
@@ -65,7 +70,7 @@ namespace adria
 		bool reload_shaders = false;
 		std::queue<AABB*> aabb_updates;
 		std::array<bool, Flag_Count> window_flags = { false };
-
+		std::vector<GUICommand> commands;
 	private:
 		Editor();
 		~Editor();
@@ -73,17 +78,13 @@ namespace adria
 		void SetStyle();
 		void HandleInput();
 		void MenuBar();
-		void OceanSettings();
-		void ParticleSettings();
-		void DecalSettings();
-		void SkySettings();
 		void AddEntities();
 		void ListEntities();
 		void Properties();
 		void Camera();
 		void Scene();
 		void Log();
-		void RendererSettings();
+		void Settings(); 
 		void Profiling();
 		void ShaderHotReload();
 		void RayTracingDebug();

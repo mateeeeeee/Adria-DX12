@@ -27,6 +27,9 @@ namespace adria
 	private:
 		entt::registry& reg;
 		uint32 width, height;
+
+		bool visualize_tiled = false;
+		int32 visualize_max_lights = 16;
 	};
 
 }

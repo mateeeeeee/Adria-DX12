@@ -287,6 +287,9 @@
     <ClCompile Include="Rendering\AutomaticExposurePass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
+    <ClCompile Include="Editor\GUICommand.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
