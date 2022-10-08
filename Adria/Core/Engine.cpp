@@ -296,7 +296,7 @@ namespace adria
 			viewport_data.scene_viewport_size_x = static_cast<float32>(Window::Width());
 			viewport_data.scene_viewport_size_y = static_cast<float32>(Window::Height());
 		}
-		renderer->SetViewportData(std::move(viewport_data));
+		renderer->SetViewportData(viewport_data);
 	}
 
 	void Engine::RegisterEditorEventCallbacks(EditorEvents& events)

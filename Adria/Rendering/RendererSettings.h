@@ -32,8 +32,6 @@ namespace adria
 		EBokehType bokeh_type = EBokehType::Hex;
 
 		bool bloom = false;
-		float32 bloom_threshold = 0.25f;
-		float32 bloom_scale = 2.0f;
 
 		bool clouds = false;
 		bool motion_blur = false;

@@ -12,6 +12,8 @@
 #include "../RenderGraph/RenderGraph.h"
 #include "../Utilities/Random.h"
 
+#include "../Utilities/hwbp.h"
+
 using namespace DirectX;
 
 namespace adria
@@ -675,6 +677,7 @@ namespace adria
 		//compute 
 		{
 			DoFParameters dof_params = postprocessor.GetDoFParams();
+			BloomParameters bloom_parameters = postprocessor.GetBloomParams();
 
 			std::array<float32, 9> coeffs{};
 			coeffs.fill(1.0f / 9);
@@ -688,8 +691,8 @@ namespace adria
 			compute_cbuf_data.gauss_coeff7 = coeffs[6];
 			compute_cbuf_data.gauss_coeff8 = coeffs[7];
 			compute_cbuf_data.gauss_coeff9 = coeffs[8];
-			compute_cbuf_data.bloom_scale = renderer_settings.postprocessor.bloom_scale;
-			compute_cbuf_data.threshold = renderer_settings.postprocessor.bloom_threshold;
+			compute_cbuf_data.bloom_scale = bloom_parameters.bloom_scale;
+			compute_cbuf_data.threshold = bloom_parameters.bloom_threshold;
 			compute_cbuf_data.visualize_tiled = tiled_lighting_pass.IsVisualized();
 			compute_cbuf_data.visualize_max_lights = tiled_lighting_pass.MaxLightsForVisualization();
 			compute_cbuf_data.bokeh_blur_threshold = renderer_settings.postprocessor.bokeh_blur_threshold;

@@ -204,6 +204,7 @@
     <ClCompile Include="Rendering\AddTexturesPass.cpp" />
     <ClCompile Include="Rendering\AmbientPass.cpp" />
     <ClCompile Include="Rendering\AutomaticExposurePass.cpp" />
+    <ClCompile Include="Rendering\BloomPass.cpp" />
     <ClCompile Include="Rendering\BlurPass.cpp" />
     <ClCompile Include="Rendering\Camera.cpp" />
     <ClCompile Include="Rendering\ClusteredLightingPass.cpp" />
@@ -323,6 +324,7 @@
     <ClInclude Include="Rendering\AddTexturesPass.h" />
     <ClInclude Include="Rendering\AmbientPass.h" />
     <ClInclude Include="Rendering\AutomaticExposurePass.h" />
+    <ClInclude Include="Rendering\BloomPass.h" />
     <ClInclude Include="Rendering\BlurPass.h" />
     <ClInclude Include="Rendering\Camera.h" />
     <ClInclude Include="Rendering\ClusteredLightingPass.h" />
@@ -376,6 +378,7 @@
     <ClInclude Include="Utilities\HashSet.h" />
     <ClInclude Include="Utilities\Heightmap.h" />
     <ClInclude Include="Utilities\HosekDataRGB.h" />
+    <ClInclude Include="Utilities\hwbp.h" />
     <ClInclude Include="Utilities\JsonUtil.h" />
     <ClInclude Include="Utilities\LinearAllocator.h" />
     <ClInclude Include="Utilities\RingAllocator.h" />

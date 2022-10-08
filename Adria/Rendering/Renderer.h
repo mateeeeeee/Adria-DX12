@@ -62,9 +62,9 @@ namespace adria
 		void Render(RendererSettings const&);
 
 		void SetProfilerSettings(ProfilerSettings const&);
-		void SetViewportData(ViewportData&& vp)
+		void SetViewportData(ViewportData const& vp)
 		{
-			viewport_data = std::move(vp);
+			viewport_data = vp;
 		}
 
 		void OnResize(uint32 w, uint32 h);
