@@ -230,6 +230,7 @@
     <ClCompile Include="Rendering\SkyModel.cpp" />
     <ClCompile Include="Rendering\SkyPass.cpp" />
     <ClCompile Include="Rendering\SSAOPass.cpp" />
+    <ClCompile Include="Rendering\SSRPass.cpp" />
     <ClCompile Include="Rendering\TiledLightingPass.cpp" />
     <ClCompile Include="Rendering\ToneMapPass.cpp" />
     <ClCompile Include="Rendering\VolumetricCloudsPass.cpp" />
@@ -347,6 +348,7 @@
     <ClInclude Include="Rendering\PipelineState.h" />
     <ClInclude Include="Rendering\RootSignatureCache.h" />
     <ClInclude Include="Rendering\ShaderManager.h" />
+    <ClInclude Include="Rendering\SSRPass.h" />
     <ClInclude Include="Rendering\ViewportData.h" />
     <ClInclude Include="Rendering\ShadowPass.h" />
     <ClInclude Include="Rendering\SkyModel.h" />

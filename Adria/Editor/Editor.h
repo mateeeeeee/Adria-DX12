@@ -52,18 +52,23 @@ namespace adria
 		std::unique_ptr<Engine> engine;
 		std::unique_ptr<GUI> gui;
 		std::unique_ptr<ImGuiLogger> editor_log;
+
 		entt::entity selected_entity = entt::null;
 		bool gizmo_enabled = false;
 		bool scene_focused = false;
 		ImGuizmo::OPERATION gizmo_op = ImGuizmo::TRANSLATE;
+
 		RendererSettings renderer_settings{};
 		ProfilerSettings profiler_settings{};
-		ViewportData viewport_data;
-		EditorEvents editor_events;
+
 		bool reload_shaders = false;
 		std::queue<AABB*> aabb_updates;
 		std::array<bool, Flag_Count> window_flags = { false };
 		std::vector<GUICommand> commands;
+
+		EditorEvents editor_events;
+		ViewportData viewport_data;
+
 	private:
 		Editor();
 		~Editor();

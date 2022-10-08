@@ -27,9 +27,6 @@ namespace adria
 		float32   rtao_radius = 2.0f;
 
 		EReflections reflections = EReflections::SSR;
-		float32 ssr_ray_step = 1.60f;
-		float32 ssr_ray_hit_threshold = 2.00f;
-
 		bool dof = false;
 		float32 dof_near_blur = 0.0f;
 		float32 dof_near = 200.0f;

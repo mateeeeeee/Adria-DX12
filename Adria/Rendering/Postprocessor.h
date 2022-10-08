@@ -11,6 +11,7 @@
 #include "AutomaticExposurePass.h"
 #include "LensFlarePass.h"
 #include "VolumetricCloudsPass.h"
+#include "SSRPass.h"
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
 #include "entt/entity/entity.hpp"
@@ -42,6 +43,7 @@ namespace adria
 		RGResourceName GetFinalResource() const;
 
 		CloudParameters const& GetCloudParams() const { return clouds_pass.GetParams(); }
+		SSRParameters const& GetSSRParams() const { return ssr_pass.GetParams(); }
 	private:
 		entt::registry& reg;
 		TextureManager& texture_manager;
@@ -67,11 +69,12 @@ namespace adria
 		AutomaticExposurePass automatic_exposure_pass;
 		LensFlarePass lens_flare_pass;
 		VolumetricCloudsPass clouds_pass;
+		SSRPass ssr_pass;
+
 	private:
 		void AddCopyHDRPass(RenderGraph& rg);
 		void AddVelocityBufferPass(RenderGraph& rg);
 		
-		void AddSSRPass(RenderGraph& rg);
 		void AddFogPass(RenderGraph& rg);
 		void AddBloomPass(RenderGraph& rg);
 		void AddSunPass(RenderGraph& rg, entt::entity sun);

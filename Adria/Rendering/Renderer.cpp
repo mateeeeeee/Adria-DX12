@@ -591,16 +591,19 @@ namespace adria
 		}
 		//postprocess
 		{
-			PostprocessSettings const& settings = renderer_settings.postprocessor;
 			static PostprocessCBuffer postprocess_cbuf_data{};
+
+			PostprocessSettings const& settings = renderer_settings.postprocessor;
+			SSRParameters ssr_params = postprocessor.GetSSRParams();
+			
 			postprocess_cbuf_data.tone_map_exposure = settings.tonemap_exposure;
 			postprocess_cbuf_data.tone_map_operator = static_cast<int>(settings.tone_map_op);
 			postprocess_cbuf_data.noise_scale = XMFLOAT2((float32)width / 8, (float32)height / 8);
 			postprocess_cbuf_data.ssao_power = settings.ssao_power;
 			postprocess_cbuf_data.ssao_radius = settings.ssao_radius;
 			for (uint32 i = 0; i < SSAO_KERNEL_SIZE; ++i) postprocess_cbuf_data.samples[i] = ssao_kernel[i];
-			postprocess_cbuf_data.ssr_ray_step = settings.ssr_ray_step;
-			postprocess_cbuf_data.ssr_ray_hit_threshold = settings.ssr_ray_hit_threshold;
+			postprocess_cbuf_data.ssr_ray_step = ssr_params.ssr_ray_step;
+			postprocess_cbuf_data.ssr_ray_hit_threshold = ssr_params.ssr_ray_hit_threshold;
 			postprocess_cbuf_data.dof_params = XMVectorSet(settings.dof_near_blur, settings.dof_near, settings.dof_far, settings.dof_far_blur);
 			postprocess_cbuf_data.velocity_buffer_scale = settings.velocity_buffer_scale;
 			postprocess_cbuf_data.fog_falloff = settings.fog_falloff;
