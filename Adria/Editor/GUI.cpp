@@ -1,4 +1,5 @@
 #include "GUI.h"
+#include "IconsFontAwesome4.h"
 #include "../Core/Window.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
 #include "../ImGui/ImGuizmo.h"
@@ -20,12 +21,14 @@ namespace adria
 		io.ConfigWindowsResizeFromEdges = true;
 		io.ConfigViewportsNoTaskBarIcon = true;
 
-		D3D12_DESCRIPTOR_HEAP_DESC desc{};
-		desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-		desc.NumDescriptors = 30;
-		desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-		
-		imgui_allocator = std::make_unique<RingOnlineDescriptorAllocator>(gfx->GetDevice(), desc, 1); //reserve first for fonts
+		ImFontConfig font_config{};
+		io.Fonts->AddFontFromFileTTF("Resources/Fonts/NotoSans-Regular.ttf", 20.0f, &font_config);
+		font_config.MergeMode = true;
+		ImWchar const icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+		io.Fonts->AddFontFromFileTTF("Resources/Fonts/" FONT_ICON_FILE_NAME_FA, 15.0f, &font_config, icon_ranges);
+
+		imgui_allocator = std::make_unique<RingOnlineDescriptorAllocator>(gfx->GetDevice(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 
+																		  D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 30, 1); //reserve first one for fonts
 		ImGui_ImplWin32_Init(Window::Handle());
 		
 		DescriptorHandle handle = imgui_allocator->GetFirstHandle();

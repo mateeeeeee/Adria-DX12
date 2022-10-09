@@ -83,6 +83,9 @@
     <Filter Include="Shaders\Exposure">
       <UniqueIdentifier>{10495589-dc92-4eb8-a600-b5b0ff0e9517}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Font">
+      <UniqueIdentifier>{4bcac2f2-2236-4e3b-8891-7ec43621b7d1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -756,6 +759,9 @@
     </ClInclude>
     <ClInclude Include="Rendering\BokehPass.h">
       <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\FontAwesome\IconsFontAwesome4.h">
+      <Filter>Font</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
