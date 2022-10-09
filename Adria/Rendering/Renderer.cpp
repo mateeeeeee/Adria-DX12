@@ -96,7 +96,7 @@ namespace adria
 					Skybox skybox = skybox_entities.get<Skybox>(e);
 					if (skybox.active && skybox.used_in_rt)
 					{
-						skybox_handle = texture_manager.CpuDescriptorHandle(skybox.cubemap_texture);
+						skybox_handle = texture_manager.GetSRV(skybox.cubemap_texture);
 						break;
 					}
 				}
@@ -214,16 +214,6 @@ namespace adria
 	}
 	void Renderer::OnSceneInitialized()
 	{
-		UINT tex2darray_size = (UINT)texture_manager.handle;
-		gfx->ReserveOnlineDescriptors(tex2darray_size);
-
-		ID3D12Device* device = gfx->GetDevice();
-		RingOnlineDescriptorAllocator* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
-
-		device->CopyDescriptorsSimple(tex2darray_size, descriptor_allocator->GetFirstHandle(),
-			texture_manager.texture_srv_heap->GetFirstHandle(),
-			D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
 		sky_pass.OnSceneInitialized(gfx);
 		decals_pass.OnSceneInitialized(gfx);
 		ssao_pass.OnSceneInitialized(gfx);
@@ -260,6 +250,8 @@ namespace adria
 		init_data.SlicePitch = 0;
 		white_default_texture = std::make_unique<Texture>(gfx, desc, &init_data);
 		white_default_texture->CreateSRV();
+
+		texture_manager.OnSceneInitialized();
 	}
 	void Renderer::OnRightMouseClicked(int32 x, int32 y)
 	{
@@ -409,7 +401,7 @@ namespace adria
 			cmd_list->SetPipelineState(pipeline_state.Get());
 			cmd_list->SetComputeRootSignature(root_signature.Get());
 
-			auto unfiltered_env_descriptor = texture_manager.CpuDescriptorHandle(unfiltered_env);
+			auto unfiltered_env_descriptor = texture_manager.GetSRV(unfiltered_env);
 			OffsetType descriptor_index = descriptor_allocator->Allocate();
 			device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), unfiltered_env_descriptor,
 				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);

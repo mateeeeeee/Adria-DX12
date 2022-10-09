@@ -319,7 +319,7 @@ namespace adria
 					auto const& _skybox = skyboxes.get<Skybox>(skybox);
 					if (_skybox.active)
 					{
-						skybox_handle = texture_manager.CpuDescriptorHandle(_skybox.cubemap_texture);
+						skybox_handle = texture_manager.GetSRV(_skybox.cubemap_texture);
 						break;
 					}
 				}
@@ -370,7 +370,7 @@ namespace adria
 
 						descriptor_index = descriptor_allocator->AllocateRange(3);
 						dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-						D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { context.GetReadOnlyTexture(data.normals_srv), skybox_handle, texture_manager.CpuDescriptorHandle(foam_handle) };
+						D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { context.GetReadOnlyTexture(data.normals_srv), skybox_handle, texture_manager.GetSRV(foam_handle) };
 						D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { dst_descriptor };
 						UINT src_range_sizes[] = { 1, 1, 1 };
 						UINT dst_range_sizes[] = { 3 };

@@ -9,9 +9,7 @@ namespace adria
 	public:
 
 		MipsGenerator(ID3D12Device* device, UINT max_textures);
-
 		void Add(ID3D12Resource* texture);
-
 		void Generate(ID3D12GraphicsCommandList* command_list);
 
 	private:

@@ -743,7 +743,7 @@ namespace adria
 					RingOnlineDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
 
 					ImGui::Text("Albedo Texture");
-					D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(material->albedo_texture);
+					D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetTextureManager().GetSRV(material->albedo_texture);
 					OffsetType descriptor_index = descriptor_allocator->Allocate();
 					auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -767,7 +767,7 @@ namespace adria
 					ImGui::PopID();
 
 					ImGui::Text("Metallic-Roughness Texture");
-					tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(material->metallic_roughness_texture);
+					tex_handle = engine->renderer->GetTextureManager().GetSRV(material->metallic_roughness_texture);
 					descriptor_index = descriptor_allocator->Allocate();
 					dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -791,7 +791,7 @@ namespace adria
 					ImGui::PopID();
 
 					ImGui::Text("Emissive Texture");
-					tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(material->emissive_texture);
+					tex_handle = engine->renderer->GetTextureManager().GetSRV(material->emissive_texture);
 					descriptor_index = descriptor_allocator->Allocate();
 					dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -881,7 +881,7 @@ namespace adria
 					RingOnlineDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
 
 					ImGui::Text("Particle Texture");
-					D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(emitter->particle_texture);
+					D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetTextureManager().GetSRV(emitter->particle_texture);
 					OffsetType descriptor_index = descriptor_allocator->Allocate();
 					auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -948,7 +948,7 @@ namespace adria
 					RingOnlineDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
 
 					ImGui::Text("Decal Albedo Texture");
-					D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(decal->albedo_decal_texture);
+					D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetTextureManager().GetSRV(decal->albedo_decal_texture);
 					OffsetType descriptor_index = descriptor_allocator->Allocate();
 					auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -972,7 +972,7 @@ namespace adria
 					ImGui::PopID();
 
 					ImGui::Text("Decal Normal Texture");
-					tex_handle = engine->renderer->GetTextureManager().CpuDescriptorHandle(decal->normal_decal_texture);
+					tex_handle = engine->renderer->GetTextureManager().GetSRV(decal->normal_decal_texture);
 					descriptor_index = descriptor_allocator->Allocate();
 					dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);

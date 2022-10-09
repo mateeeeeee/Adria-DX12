@@ -85,204 +85,409 @@ namespace adria
 		{
 		case EFormat::UNKNOWN:
 			return DXGI_FORMAT_UNKNOWN;
-			break;
+
 		case EFormat::R32G32B32A32_FLOAT:
 			return DXGI_FORMAT_R32G32B32A32_FLOAT;
-			break;
+
 		case EFormat::R32G32B32A32_UINT:
 			return DXGI_FORMAT_R32G32B32A32_UINT;
-			break;
+
 		case EFormat::R32G32B32A32_SINT:
 			return DXGI_FORMAT_R32G32B32A32_SINT;
-			break;
+
 		case EFormat::R32G32B32_FLOAT:
 			return DXGI_FORMAT_R32G32B32_FLOAT;
-			break;
+
 		case EFormat::R32G32B32_UINT:
 			return DXGI_FORMAT_R32G32B32_UINT;
-			break;
+
 		case EFormat::R32G32B32_SINT:
 			return DXGI_FORMAT_R32G32B32_SINT;
-			break;
+
 		case EFormat::R16G16B16A16_FLOAT:
 			return DXGI_FORMAT_R16G16B16A16_FLOAT;
-			break;
+
 		case EFormat::R16G16B16A16_UNORM:
 			return DXGI_FORMAT_R16G16B16A16_UNORM;
-			break;
+
 		case EFormat::R16G16B16A16_UINT:
 			return DXGI_FORMAT_R16G16B16A16_UINT;
-			break;
+
 		case EFormat::R16G16B16A16_SNORM:
 			return DXGI_FORMAT_R16G16B16A16_SNORM;
-			break;
+
 		case EFormat::R16G16B16A16_SINT:
 			return DXGI_FORMAT_R16G16B16A16_SINT;
-			break;
+
 		case EFormat::R32G32_FLOAT:
 			return DXGI_FORMAT_R32G32_FLOAT;
-			break;
+
 		case EFormat::R32G32_UINT:
 			return DXGI_FORMAT_R32G32_UINT;
-			break;
+
 		case EFormat::R32G32_SINT:
 			return DXGI_FORMAT_R32G32_SINT;
-			break;
+
 		case EFormat::R32G8X24_TYPELESS:
 			return DXGI_FORMAT_R32G8X24_TYPELESS;
-			break;
+
 		case EFormat::D32_FLOAT_S8X24_UINT:
 			return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
-			break;
+
 		case EFormat::R10G10B10A2_UNORM:
 			return DXGI_FORMAT_R10G10B10A2_UNORM;
-			break;
+
 		case EFormat::R10G10B10A2_UINT:
 			return DXGI_FORMAT_R10G10B10A2_UINT;
-			break;
+
 		case EFormat::R11G11B10_FLOAT:
 			return DXGI_FORMAT_R11G11B10_FLOAT;
-			break;
+
 		case EFormat::R8G8B8A8_UNORM:
 			return DXGI_FORMAT_R8G8B8A8_UNORM;
-			break;
+
 		case EFormat::R8G8B8A8_UNORM_SRGB:
 			return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-			break;
+
 		case EFormat::R8G8B8A8_UINT:
 			return DXGI_FORMAT_R8G8B8A8_UINT;
-			break;
+
 		case EFormat::R8G8B8A8_SNORM:
 			return DXGI_FORMAT_R8G8B8A8_SNORM;
-			break;
+
 		case EFormat::R8G8B8A8_SINT:
 			return DXGI_FORMAT_R8G8B8A8_SINT;
-			break;
+
 		case EFormat::R16G16_FLOAT:
 			return DXGI_FORMAT_R16G16_FLOAT;
-			break;
+
 		case EFormat::R16G16_UNORM:
 			return DXGI_FORMAT_R16G16_UNORM;
-			break;
+
 		case EFormat::R16G16_UINT:
 			return DXGI_FORMAT_R16G16_UINT;
-			break;
+
 		case EFormat::R16G16_SNORM:
 			return DXGI_FORMAT_R16G16_SNORM;
-			break;
+
 		case EFormat::R16G16_SINT:
 			return DXGI_FORMAT_R16G16_SINT;
-			break;
+
 		case EFormat::R32_TYPELESS:
 			return DXGI_FORMAT_R32_TYPELESS;
-			break;
+
 		case EFormat::D32_FLOAT:
 			return DXGI_FORMAT_D32_FLOAT;
-			break;
+
 		case EFormat::R32_FLOAT:
 			return DXGI_FORMAT_R32_FLOAT;
-			break;
+
 		case EFormat::R32_UINT:
 			return DXGI_FORMAT_R32_UINT;
-			break;
+
 		case EFormat::R32_SINT:
 			return DXGI_FORMAT_R32_SINT;
-			break;
+
 		case EFormat::R8G8_UNORM:
 			return DXGI_FORMAT_R8G8_UNORM;
-			break;
+
 		case EFormat::R8G8_UINT:
 			return DXGI_FORMAT_R8G8_UINT;
-			break;
+
 		case EFormat::R8G8_SNORM:
 			return DXGI_FORMAT_R8G8_SNORM;
-			break;
+
 		case EFormat::R8G8_SINT:
 			return DXGI_FORMAT_R8G8_SINT;
-			break;
+
 		case EFormat::R16_TYPELESS:
 			return DXGI_FORMAT_R16_TYPELESS;
-			break;
+
 		case EFormat::R16_FLOAT:
 			return DXGI_FORMAT_R16_FLOAT;
-			break;
+
 		case EFormat::D16_UNORM:
 			return DXGI_FORMAT_D16_UNORM;
-			break;
+
 		case EFormat::R16_UNORM:
 			return DXGI_FORMAT_R16_UNORM;
-			break;
+
 		case EFormat::R16_UINT:
 			return DXGI_FORMAT_R16_UINT;
-			break;
+
 		case EFormat::R16_SNORM:
 			return DXGI_FORMAT_R16_SNORM;
-			break;
+
 		case EFormat::R16_SINT:
 			return DXGI_FORMAT_R16_SINT;
-			break;
+
 		case EFormat::R8_UNORM:
 			return DXGI_FORMAT_R8_UNORM;
-			break;
+
 		case EFormat::R8_UINT:
 			return DXGI_FORMAT_R8_UINT;
-			break;
+
 		case EFormat::R8_SNORM:
 			return DXGI_FORMAT_R8_SNORM;
-			break;
+
 		case EFormat::R8_SINT:
 			return DXGI_FORMAT_R8_SINT;
-			break;
+
 		case EFormat::BC1_UNORM:
 			return DXGI_FORMAT_BC1_UNORM;
-			break;
+
 		case EFormat::BC1_UNORM_SRGB:
 			return DXGI_FORMAT_BC1_UNORM_SRGB;
-			break;
+
 		case EFormat::BC2_UNORM:
 			return DXGI_FORMAT_BC2_UNORM;
-			break;
+
 		case EFormat::BC2_UNORM_SRGB:
 			return DXGI_FORMAT_BC2_UNORM_SRGB;
-			break;
+
 		case EFormat::BC3_UNORM:
 			return DXGI_FORMAT_BC3_UNORM;
-			break;
+
 		case EFormat::BC3_UNORM_SRGB:
 			return DXGI_FORMAT_BC3_UNORM_SRGB;
-			break;
+
 		case EFormat::BC4_UNORM:
 			return DXGI_FORMAT_BC4_UNORM;
-			break;
+
 		case EFormat::BC4_SNORM:
 			return DXGI_FORMAT_BC4_SNORM;
-			break;
+
 		case EFormat::BC5_UNORM:
 			return DXGI_FORMAT_BC5_UNORM;
-			break;
+
 		case EFormat::BC5_SNORM:
 			return DXGI_FORMAT_BC5_SNORM;
-			break;
+
 		case EFormat::B8G8R8A8_UNORM:
 			return DXGI_FORMAT_B8G8R8A8_UNORM;
-			break;
+
 		case EFormat::B8G8R8A8_UNORM_SRGB:
 			return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
-			break;
+
 		case EFormat::BC6H_UF16:
 			return DXGI_FORMAT_BC6H_UF16;
-			break;
+
 		case EFormat::BC6H_SF16:
 			return DXGI_FORMAT_BC6H_SF16;
-			break;
+
 		case EFormat::BC7_UNORM:
 			return DXGI_FORMAT_BC7_UNORM;
-			break;
+
 		case EFormat::BC7_UNORM_SRGB:
 			return DXGI_FORMAT_BC7_UNORM_SRGB;
-			break;
+
 		}
 		return DXGI_FORMAT_UNKNOWN;
+	}
+	inline constexpr EFormat ConvertDXGIFormat(DXGI_FORMAT _format)
+	{
+		switch (_format)
+		{
+		case DXGI_FORMAT_UNKNOWN:
+			return EFormat::UNKNOWN;
+
+		case DXGI_FORMAT_R32G32B32A32_FLOAT:
+			return EFormat::R32G32B32A32_FLOAT;
+
+		case DXGI_FORMAT_R32G32B32A32_UINT:
+			return EFormat::R32G32B32A32_UINT;
+
+		case DXGI_FORMAT_R32G32B32A32_SINT:
+			return EFormat::R32G32B32A32_SINT;
+
+		case DXGI_FORMAT_R32G32B32_FLOAT:
+			return EFormat::R32G32B32_FLOAT;
+
+		case DXGI_FORMAT_R32G32B32_UINT:
+			return EFormat::R32G32B32_UINT;
+
+		case DXGI_FORMAT_R32G32B32_SINT:
+			return EFormat::R32G32B32_SINT;
+
+		case DXGI_FORMAT_R16G16B16A16_FLOAT:
+			return EFormat::R16G16B16A16_FLOAT;
+
+		case DXGI_FORMAT_R16G16B16A16_UNORM:
+			return EFormat::R16G16B16A16_UNORM;
+
+		case DXGI_FORMAT_R16G16B16A16_UINT:
+			return EFormat::R16G16B16A16_UINT;
+
+		case DXGI_FORMAT_R16G16B16A16_SNORM:
+			return EFormat::R16G16B16A16_SNORM;
+
+		case DXGI_FORMAT_R16G16B16A16_SINT:
+			return EFormat::R16G16B16A16_SINT;
+
+		case DXGI_FORMAT_R32G32_FLOAT:
+			return EFormat::R32G32_FLOAT;
+
+		case DXGI_FORMAT_R32G32_UINT:
+			return EFormat::R32G32_UINT;
+
+		case DXGI_FORMAT_R32G32_SINT:
+			return EFormat::R32G32_SINT;
+
+		case DXGI_FORMAT_R32G8X24_TYPELESS:
+			return EFormat::R32G8X24_TYPELESS;
+
+		case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
+			return EFormat::D32_FLOAT_S8X24_UINT;
+
+		case DXGI_FORMAT_R10G10B10A2_UNORM:
+			return EFormat::R10G10B10A2_UNORM;
+
+		case DXGI_FORMAT_R10G10B10A2_UINT:
+			return EFormat::R10G10B10A2_UINT;
+
+		case DXGI_FORMAT_R11G11B10_FLOAT:
+			return EFormat::R11G11B10_FLOAT;
+
+		case DXGI_FORMAT_R8G8B8A8_UNORM:
+			return EFormat::R8G8B8A8_UNORM;
+
+		case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+			return EFormat::R8G8B8A8_UNORM_SRGB;
+
+		case DXGI_FORMAT_R8G8B8A8_UINT:
+			return EFormat::R8G8B8A8_UINT;
+
+		case DXGI_FORMAT_R8G8B8A8_SNORM:
+			return EFormat::R8G8B8A8_SNORM;
+
+		case DXGI_FORMAT_R8G8B8A8_SINT:
+			return EFormat::R8G8B8A8_SINT;
+
+		case DXGI_FORMAT_R16G16_FLOAT:
+			return EFormat::R16G16_FLOAT;
+
+		case DXGI_FORMAT_R16G16_UNORM:
+			return EFormat::R16G16_UNORM;
+
+		case DXGI_FORMAT_R16G16_UINT:
+			return EFormat::R16G16_UINT;
+
+		case DXGI_FORMAT_R16G16_SNORM:
+			return EFormat::R16G16_SNORM;
+
+		case DXGI_FORMAT_R16G16_SINT:
+			return EFormat::R16G16_SINT;
+
+		case DXGI_FORMAT_R32_TYPELESS:
+			return EFormat::R32_TYPELESS;
+
+		case DXGI_FORMAT_D32_FLOAT:
+			return EFormat::D32_FLOAT;
+
+		case DXGI_FORMAT_R32_FLOAT:
+			return EFormat::R32_FLOAT;
+
+		case DXGI_FORMAT_R32_UINT:
+			return EFormat::R32_UINT;
+
+		case DXGI_FORMAT_R32_SINT:
+			return EFormat::R32_SINT;
+
+		case DXGI_FORMAT_R8G8_UNORM:
+			return EFormat::R8G8_UNORM;
+
+		case DXGI_FORMAT_R8G8_UINT:
+			return EFormat::R8G8_UINT;
+
+		case DXGI_FORMAT_R8G8_SNORM:
+			return EFormat::R8G8_SNORM;
+
+		case DXGI_FORMAT_R8G8_SINT:
+			return EFormat::R8G8_SINT;
+
+		case DXGI_FORMAT_R16_TYPELESS:
+			return EFormat::R16_TYPELESS;
+
+		case DXGI_FORMAT_R16_FLOAT:
+			return EFormat::R16_FLOAT;
+
+		case DXGI_FORMAT_D16_UNORM:
+			return EFormat::D16_UNORM;
+
+		case DXGI_FORMAT_R16_UNORM:
+			return EFormat::R16_UNORM;
+
+		case DXGI_FORMAT_R16_UINT:
+			return EFormat::R16_UINT;
+
+		case DXGI_FORMAT_R16_SNORM:
+			return EFormat::R16_SNORM;
+
+		case DXGI_FORMAT_R16_SINT:
+			return EFormat::R16_SINT;
+
+		case DXGI_FORMAT_R8_UNORM:
+			return EFormat::R8_UNORM;
+
+		case DXGI_FORMAT_R8_UINT:
+			return EFormat::R8_UINT;
+
+		case DXGI_FORMAT_R8_SNORM:
+			return EFormat::R8_SNORM;
+
+		case DXGI_FORMAT_R8_SINT:
+			return EFormat::R8_SINT;
+
+		case DXGI_FORMAT_BC1_UNORM:
+			return EFormat::BC1_UNORM;
+
+		case DXGI_FORMAT_BC1_UNORM_SRGB:
+			return EFormat::BC1_UNORM_SRGB;
+
+		case DXGI_FORMAT_BC2_UNORM:
+			return EFormat::BC2_UNORM;
+
+		case DXGI_FORMAT_BC2_UNORM_SRGB:
+			return EFormat::BC2_UNORM_SRGB;
+
+		case DXGI_FORMAT_BC3_UNORM:
+			return EFormat::BC3_UNORM;
+
+		case DXGI_FORMAT_BC3_UNORM_SRGB:
+			return EFormat::BC3_UNORM_SRGB;
+
+		case DXGI_FORMAT_BC4_UNORM:
+			return EFormat::BC4_UNORM;
+
+		case DXGI_FORMAT_BC4_SNORM:
+			return EFormat::BC4_SNORM;
+
+		case DXGI_FORMAT_BC5_UNORM:
+			return EFormat::BC5_UNORM;
+
+		case DXGI_FORMAT_BC5_SNORM:
+			return EFormat::BC5_SNORM;
+
+		case DXGI_FORMAT_B8G8R8A8_UNORM:
+			return EFormat::B8G8R8A8_UNORM;
+
+		case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+			return EFormat::B8G8R8A8_UNORM_SRGB;
+
+		case DXGI_FORMAT_BC6H_UF16:
+			return EFormat::BC6H_UF16;
+
+		case DXGI_FORMAT_BC6H_SF16:
+			return EFormat::BC6H_SF16;
+
+		case DXGI_FORMAT_BC7_UNORM:
+			return EFormat::BC7_UNORM;
+
+		case DXGI_FORMAT_BC7_UNORM_SRGB:
+			return EFormat::BC7_UNORM_SRGB;
+
+		}
+		return EFormat::UNKNOWN;
 	}
 	inline constexpr uint32_t GetFormatStride(EFormat _format)
 	{
@@ -429,6 +634,7 @@ namespace adria
 		DepthRead = 0x20,
 		NonPixelShaderResource = 0x40,
 		PixelShaderResource = 0x80,
+		AllShaderResource = PixelShaderResource | NonPixelShaderResource,
 		IndirectArgument = 0x100,
 		CopyDest = 0x200,
 		CopySource = 0x400,
@@ -447,7 +653,7 @@ namespace adria
 	}
 	inline constexpr bool IsValidState(EResourceState state)
 	{
-		return true; //todo
+		return true;
 	}
 	inline constexpr D3D12_RESOURCE_STATES ConvertToD3D12ResourceState(EResourceState state)
 	{

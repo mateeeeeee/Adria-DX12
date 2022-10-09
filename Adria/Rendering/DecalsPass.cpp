@@ -69,8 +69,8 @@ namespace adria
 						std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> texture_handles{};
 						std::vector<uint32> src_range_sizes{};
 
-						texture_handles.push_back(texture_manager.CpuDescriptorHandle(decal.albedo_decal_texture));
-						texture_handles.push_back(texture_manager.CpuDescriptorHandle(decal.normal_decal_texture));
+						texture_handles.push_back(texture_manager.GetSRV(decal.albedo_decal_texture));
+						texture_handles.push_back(texture_manager.GetSRV(decal.normal_decal_texture));
 						texture_handles.push_back(context.GetReadOnlyTexture(data.depth_srv));
 						src_range_sizes.assign(texture_handles.size(), 1u);
 

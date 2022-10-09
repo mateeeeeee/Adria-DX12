@@ -316,16 +316,10 @@ namespace adria
 
 		//create upload and descriptor allocators
 		{
-			D3D12_DESCRIPTOR_HEAP_DESC shader_visible_desc{};
-			shader_visible_desc.NumDescriptors = 10000;
-			shader_visible_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-			shader_visible_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-			descriptor_allocator = std::make_unique<RingOnlineDescriptorAllocator>(device.Get(), shader_visible_desc);
 			for (size_t i = 0; i < offline_descriptor_allocators.size(); ++i)
 			{
 				offline_descriptor_allocators[i] = std::make_unique<OfflineDescriptorAllocator>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE(i), D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 250);
 			}
-
 			for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
 			{
 				dynamic_allocators.emplace_back(new LinearDynamicAllocator(this, 50'000'000));
@@ -588,7 +582,7 @@ namespace adria
 		if (rendering_not_started) [[unlikely]]
 		{
 			rendering_not_started = FALSE;
-			dynamic_allocator_before_rendering = nullptr;
+			dynamic_allocator_before_rendering.reset();
 		}
 
 		descriptor_allocator->ReleaseCompletedFrames(frame_index);

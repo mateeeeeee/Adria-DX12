@@ -198,16 +198,16 @@ namespace adria
 				switch (params.bokeh_type)
 				{
 				case EBokehType::Hex:
-					bokeh_descriptor = texture_manager.CpuDescriptorHandle(hex_bokeh_handle);
+					bokeh_descriptor = texture_manager.GetSRV(hex_bokeh_handle);
 					break;
 				case EBokehType::Oct:
-					bokeh_descriptor = texture_manager.CpuDescriptorHandle(oct_bokeh_handle);
+					bokeh_descriptor = texture_manager.GetSRV(oct_bokeh_handle);
 					break;
 				case EBokehType::Circle:
-					bokeh_descriptor = texture_manager.CpuDescriptorHandle(circle_bokeh_handle);
+					bokeh_descriptor = texture_manager.GetSRV(circle_bokeh_handle);
 					break;
 				case EBokehType::Cross:
-					bokeh_descriptor = texture_manager.CpuDescriptorHandle(cross_bokeh_handle);
+					bokeh_descriptor = texture_manager.GetSRV(cross_bokeh_handle);
 					break;
 				default:
 					ADRIA_ASSERT(false && "Invalid Bokeh Type");

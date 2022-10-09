@@ -51,7 +51,6 @@ namespace adria
 			if (range.begin.ptr == range.end.ptr) free_descriptor_ranges.pop_front();
 			return handle;
 		}
-
 		void FreeDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE handle)
 		{
 			DescriptorRange rng{

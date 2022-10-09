@@ -47,7 +47,7 @@ namespace adria
 
 				std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> lens_flare_descriptors{};
 				for (size_t i = 0; i < lens_flare_textures.size(); ++i)
-					lens_flare_descriptors.push_back(texture_manager.CpuDescriptorHandle(lens_flare_textures[i]));
+					lens_flare_descriptors.push_back(texture_manager.GetSRV(lens_flare_textures[i]));
 
 				lens_flare_descriptors.push_back(context.GetReadOnlyTexture(data.depth));
 

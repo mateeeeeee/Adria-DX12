@@ -58,7 +58,7 @@ namespace adria
 
 						OffsetType descriptor_index = descriptor_allocator->Allocate();
 						ADRIA_ASSERT(skybox.cubemap_texture != INVALID_TEXTURE_HANDLE);
-						D3D12_CPU_DESCRIPTOR_HANDLE texture_handle = texture_manager.CpuDescriptorHandle(skybox.cubemap_texture);
+						D3D12_CPU_DESCRIPTOR_HANDLE texture_handle = texture_manager.GetSRV(skybox.cubemap_texture);
 
 						auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 						device->CopyDescriptorsSimple(1, dst_descriptor, texture_handle,

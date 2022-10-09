@@ -94,11 +94,8 @@ namespace adria
 			BREAK_IF_FAILED(pDevice->CreateDescriptorHeap(
 				&desc,
 				IID_PPV_ARGS(heap.ReleaseAndGetAddressOf())));
-
 			heap->SetName(L"DescriptorHeap");
-
 			hCPU = heap->GetCPUDescriptorHandleForHeapStart();
-
 			if (desc.Flags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE)
 				hGPU = heap->GetGPUDescriptorHandleForHeapStart();
 

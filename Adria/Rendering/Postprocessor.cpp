@@ -243,7 +243,7 @@ namespace adria
 				material_allocation.Update(material_cbuf_data);
 				cmd_list->SetGraphicsRootConstantBufferView(2, material_allocation.gpu_address);
 
-				D3D12_CPU_DESCRIPTOR_HANDLE diffuse_handle = texture_manager.CpuDescriptorHandle(material.albedo_texture);
+				D3D12_CPU_DESCRIPTOR_HANDLE diffuse_handle = texture_manager.GetSRV(material.albedo_texture);
 				uint32 src_range_size = 1;
 
 				OffsetType descriptor_index = descriptor_allocator->Allocate();

@@ -157,7 +157,7 @@ namespace adria
 		HANDLE		 wait_event = nullptr;
 		UINT64       wait_fence_value = 0;
 
-		std::array< std::unique_ptr<OfflineDescriptorAllocator>, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES> offline_descriptor_allocators;
+		std::array<std::unique_ptr<OfflineDescriptorAllocator>, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES> offline_descriptor_allocators;
 
 		std::unique_ptr<RingOnlineDescriptorAllocator> descriptor_allocator;
 		std::vector<std::unique_ptr<LinearDynamicAllocator>> dynamic_allocators;

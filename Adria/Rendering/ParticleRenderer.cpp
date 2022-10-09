@@ -644,7 +644,7 @@ namespace adria
 
 				descriptor_index = descriptor_allocator->AllocateRange(2);
 				descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				DescriptorCPU particle_texture = texture_manager.CpuDescriptorHandle(emitter_params.particle_texture);
+				DescriptorCPU particle_texture = texture_manager.GetSRV(emitter_params.particle_texture);
 				DescriptorCPU depth_texture = ctx.GetReadOnlyTexture(data.depth);
 				DescriptorCPU src_ranges2[] = { particle_texture, depth_texture };
 				DescriptorCPU dst_ranges2[] = { descriptor };

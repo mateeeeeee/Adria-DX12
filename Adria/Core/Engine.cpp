@@ -316,9 +316,7 @@ namespace adria
 		for(auto&& model : config.scene_models) entity_loader->ImportModel_GLTF(model);
 		for (auto&& light : config.scene_lights) entity_loader->LoadLight(light);
 
-		renderer->GetTextureManager().GenerateAllMips();
 		renderer->OnSceneInitialized();
-
 		gfx->ExecuteDefaultCommandList();
 		gfx->WaitForGPU();
 	}

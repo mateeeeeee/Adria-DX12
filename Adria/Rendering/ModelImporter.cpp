@@ -337,9 +337,7 @@ namespace adria
         else sky.cubemap_texture = texture_manager.LoadCubemap(params.cubemap_textures);
 
         reg.emplace<Skybox>(skybox, sky);
-
         reg.emplace<Tag>(skybox, "Skybox");
-
         return skybox;
 
     }

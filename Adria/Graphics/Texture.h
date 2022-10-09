@@ -97,6 +97,25 @@ namespace adria
 		TextureType_2D,
 		TextureType_3D
 	};
+
+	inline constexpr ETextureType ConvertTextureType(D3D12_RESOURCE_DIMENSION dimension)
+	{
+		switch (dimension)
+		{
+		case D3D12_RESOURCE_DIMENSION_TEXTURE1D:
+			return TextureType_1D;
+		case D3D12_RESOURCE_DIMENSION_TEXTURE2D:
+			return TextureType_2D;
+		case D3D12_RESOURCE_DIMENSION_TEXTURE3D:
+			return TextureType_3D;
+		case D3D12_RESOURCE_DIMENSION_BUFFER:
+		case D3D12_RESOURCE_DIMENSION_UNKNOWN:
+		default:
+			ADRIA_UNREACHABLE();
+			return TextureType_1D;
+		}
+		return TextureType_1D;
+	}
 	
 	struct TextureDesc
 	{
@@ -138,7 +157,7 @@ namespace adria
 	class Texture
 	{
 	public:
-		Texture(GraphicsDevice* gfx, TextureDesc const& desc, TextureInitialData* initial_data = nullptr)
+		Texture(GraphicsDevice* gfx, TextureDesc const& desc, TextureInitialData* initial_data = nullptr, size_t data_count = -1)
 			: gfx(gfx), desc(desc)
 		{
 			HRESULT hr = E_FAIL;
@@ -310,12 +329,15 @@ namespace adria
 			auto cmd_list = gfx->GetDefaultCommandList();
 			if (initial_data != nullptr)
 			{
-				uint32 data_count = desc.array_size * std::max<uint32>(1u, desc.mip_levels);
+				if (data_count == static_cast<size_t>(-1))
+				{
+					data_count = desc.array_size * std::max<uint32>(1u, desc.mip_levels);
+				}
 				UINT64 required_size;
-				device->GetCopyableFootprints(&resource_desc, 0, data_count, 0, nullptr, nullptr, nullptr, &required_size);
+				device->GetCopyableFootprints(&resource_desc, 0, (UINT)data_count, 0, nullptr, nullptr, nullptr, &required_size);
 				DynamicAllocation dyn_alloc = upload_buffer->Allocate(required_size, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
 				UpdateSubresources(cmd_list, resource.Get(), dyn_alloc.buffer,
-					dyn_alloc.offset, 0, data_count, initial_data);
+					dyn_alloc.offset, 0, (UINT)data_count, initial_data);
 
 				if (desc.initial_state != EResourceState::CopyDest)
 				{

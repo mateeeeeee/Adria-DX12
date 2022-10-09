@@ -12,46 +12,37 @@
 namespace adria
 {
 	class GraphicsDevice;
+	class Texture;
 	class DescriptorHeap;
 	
 	using TextureHandle = size_t;
-	inline constexpr TextureHandle INVALID_TEXTURE_HANDLE = TextureHandle(-1);
+	inline constexpr TextureHandle INVALID_TEXTURE_HANDLE = TextureHandle(0);
 
 	class TextureManager
 	{
-		friend class Renderer;
-
+		using TextureName = std::variant<std::wstring, std::string>;
 	public:
 		TextureManager(GraphicsDevice* gfx, UINT max_textures);
 
 		[[nodiscard]] TextureHandle LoadTexture(std::wstring const& name);
 		[[nodiscard]] TextureHandle LoadCubemap(std::wstring const& name);
 		[[nodiscard]] TextureHandle LoadCubemap(std::array<std::wstring, 6> const& cubemap_textures);
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE CpuDescriptorHandle(TextureHandle tex_handle);
-
-		ID3D12Resource* Resource(TextureHandle handle) const
-		{
-			if (handle == INVALID_TEXTURE_HANDLE) return nullptr;
-			else if (auto it = texture_map.find(handle); it != texture_map.end()) return it->second.Get();
-			else return nullptr;
-		}
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE GetSRV(TextureHandle tex_handle);
+		Texture* GetTexture(TextureHandle handle) const;
 		void SetMipMapsEnabled(bool);
-		void GenerateAllMips()
-		{
-			mips_generator->Generate(gfx->GetDefaultCommandList());
-		}
+		void OnSceneInitialized();
 
 	private:
 		GraphicsDevice* gfx;
-		std::unique_ptr<DescriptorHeap> texture_srv_heap = nullptr;
 		std::unique_ptr<MipsGenerator> mips_generator = nullptr;
-		Microsoft::WRL::ComPtr<ID3D12RootSignature> equirect_root_signature;
-		Microsoft::WRL::ComPtr<ID3D12PipelineState> equirect_pso;
+
+		HashMap<TextureName, TextureHandle> loaded_textures{};
+		HashMap<TextureHandle, std::unique_ptr<Texture>> texture_map{};
 		TextureHandle handle = 0;
-		HashMap<TextureHandle, Microsoft::WRL::ComPtr<ID3D12Resource>> texture_map{};
-		HashMap<std::variant<std::wstring, std::string>, TextureHandle> loaded_textures{};
 		bool mipmaps = true;
 
+		Microsoft::WRL::ComPtr<ID3D12RootSignature> equirect_root_signature;
+		Microsoft::WRL::ComPtr<ID3D12PipelineState> equirect_pso;
 	private:
 
 		TextureHandle LoadDDSTexture(std::wstring const& texture_path);

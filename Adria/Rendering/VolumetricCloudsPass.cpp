@@ -49,8 +49,8 @@ namespace adria
 				cmd_list->SetGraphicsRootConstantBufferView(1, global_data.weather_cbuffer_address);
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(4);
-				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { texture_manager.CpuDescriptorHandle(cloud_textures[0]),  texture_manager.CpuDescriptorHandle(cloud_textures[1]),
-															 texture_manager.CpuDescriptorHandle(cloud_textures[2]), context.GetReadOnlyTexture(data.depth) };
+				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { texture_manager.GetSRV(cloud_textures[0]),  texture_manager.GetSRV(cloud_textures[1]),
+															 texture_manager.GetSRV(cloud_textures[2]), context.GetReadOnlyTexture(data.depth) };
 				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
 				uint32 src_range_sizes[] = { 1, 1, 1, 1 };
 				uint32 dst_range_sizes[] = { 4 };
