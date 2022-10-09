@@ -16,6 +16,7 @@
 #include "DepthOfFieldPass.h"
 #include "BloomPass.h"
 #include "VelocityBufferPass.h"
+#include "MotionBlurPass.h"
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
 #include "entt/entity/entity.hpp"
@@ -82,13 +83,14 @@ namespace adria
 		DepthOfFieldPass dof_pass;
 		BloomPass bloom_pass;
 		VelocityBufferPass velocity_buffer_pass;
+		MotionBlurPass motion_blur_pass;
+
 	private:
 		RGResourceName AddHDRCopyPass(RenderGraph& rg);
 		void AddHistoryCopyPass(RenderGraph& rg);
 
 		void AddSunPass(RenderGraph& rg, entt::entity sun);
 		void AddGodRaysPass(RenderGraph& rg, Light const& light);
-		void AddMotionBlurPass(RenderGraph& rg);
 		void AddTAAPass(RenderGraph& rg);
 
 		void AddGenerateBokehPass(RenderGraph& rg);

@@ -19,7 +19,8 @@ namespace adria
 		add_textures_pass(width, height), automatic_exposure_pass(width, height),
 		lens_flare_pass(texture_manager, width, height),
 		clouds_pass(texture_manager, width, height), ssr_pass(width, height), fog_pass(width, height),
-		dof_pass(width, height), bloom_pass(width, height), velocity_buffer_pass(width, height)
+		dof_pass(width, height), bloom_pass(width, height), velocity_buffer_pass(width, height),
+		motion_blur_pass(width, height)
 	{}
 
 	void Postprocessor::AddPasses(RenderGraph& rg, PostprocessSettings const& _settings)
@@ -76,7 +77,7 @@ namespace adria
 		}
 		if (settings.motion_blur)
 		{
-			AddMotionBlurPass(rg);
+			final_resource = motion_blur_pass.AddPass(rg, final_resource);
 		}
 		if (settings.bloom)
 		{
@@ -123,6 +124,8 @@ namespace adria
 		fog_pass.OnResize(w, h);
 		dof_pass.OnResize(w, h);
 		bloom_pass.OnResize(w, h);
+		velocity_buffer_pass.OnResize(w, h);
+		motion_blur_pass.OnResize(w, h);
 
 		TextureDesc render_target_desc{};
 		render_target_desc.format = EFormat::R16G16B16A16_FLOAT;
@@ -209,6 +212,34 @@ namespace adria
 			}, ERGPassType::Copy, ERGPassFlags::None);
 
 		return RG_RES_NAME(PostprocessMain);
+	}
+
+	void Postprocessor::AddHistoryCopyPass(RenderGraph& rg)
+	{
+		struct CopyPassData
+		{
+			RGTextureCopySrcId copy_src;
+			RGTextureCopyDstId copy_dst;
+		};
+		RGResourceName last_resource = final_resource;
+
+		rg.AddPass<CopyPassData>("History Copy Pass",
+			[=](CopyPassData& data, RenderGraphBuilder& builder)
+			{
+				RGTextureDesc history_desc{};
+				history_desc.width = width;
+				history_desc.height = height;
+				history_desc.format = EFormat::R16G16B16A16_FLOAT;
+
+				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(HistoryBuffer));
+				data.copy_src = builder.ReadCopySrcTexture(last_resource);
+			},
+			[=](CopyPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			{
+				Texture const& src_texture = context.GetCopySrcTexture(data.copy_src);
+				Texture const& dst_texture = context.GetCopyDstTexture(data.copy_dst);
+				cmd_list->CopyResource(dst_texture.GetNative(), src_texture.GetNative());
+			}, ERGPassType::Copy, ERGPassFlags::None);
 	}
 
 	void Postprocessor::AddSunPass(RenderGraph& rg, entt::entity sun)
@@ -344,87 +375,6 @@ namespace adria
 				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 				cmd_list->DrawInstanced(4, 1, 0, 0);
 			}, ERGPassType::Graphics, ERGPassFlags::None);
-	}
-
-	void Postprocessor::AddMotionBlurPass(RenderGraph& rg)
-	{
-		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
-		RGResourceName last_resource = final_resource;
-		struct MotionBlurPassData
-		{
-			RGTextureReadOnlyId input_srv;
-			RGTextureReadOnlyId velocity_srv;
-		};
-		rg.AddPass<MotionBlurPassData>("Motion Blur Pass",
-			[=](MotionBlurPassData& data, RenderGraphBuilder& builder)
-			{
-				RGTextureDesc motion_blur_desc{};
-				motion_blur_desc.width = width;
-				motion_blur_desc.height = height;
-				motion_blur_desc.format = EFormat::R16G16B16A16_FLOAT;
-
-				builder.SetViewport(width, height);
-				builder.DeclareTexture(RG_RES_NAME(MotionBlurOutput), motion_blur_desc);
-				builder.WriteRenderTarget(RG_RES_NAME(MotionBlurOutput), ERGLoadStoreAccessOp::Discard_Preserve);
-				data.input_srv = builder.ReadTexture(last_resource, ReadAccess_PixelShader);
-				data.velocity_srv = builder.ReadTexture(RG_RES_NAME(VelocityBuffer), ReadAccess_PixelShader);
-			},
-			[=](MotionBlurPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
-			{
-				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
-
-				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::MotionBlur));
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::MotionBlur));
-
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetGraphicsRootConstantBufferView(1, global_data.postprocess_cbuffer_address);
-
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
-
-				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { context.GetReadOnlyTexture(data.input_srv), context.GetReadOnlyTexture(data.velocity_srv) };
-				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
-				uint32 src_range_sizes[] = { 1, 1 };
-				uint32 dst_range_sizes[] = { 2 };
-
-				device->CopyDescriptors(ARRAYSIZE(dst_ranges), dst_ranges, dst_range_sizes, ARRAYSIZE(src_ranges), src_ranges, src_range_sizes,
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-				cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
-				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-				cmd_list->DrawInstanced(4, 1, 0, 0); 
-
-			}, ERGPassType::Graphics, ERGPassFlags::None);
-
-		final_resource = RG_RES_NAME(MotionBlurOutput);
-	}
-
-	void Postprocessor::AddHistoryCopyPass(RenderGraph& rg)
-	{
-		struct CopyPassData
-		{
-			RGTextureCopySrcId copy_src;
-			RGTextureCopyDstId copy_dst;
-		};
-		RGResourceName last_resource = final_resource;
-
-		rg.AddPass<CopyPassData>("History Copy Pass",
-			[=](CopyPassData& data, RenderGraphBuilder& builder)
-			{
-				RGTextureDesc history_desc{};
-				history_desc.width = width;
-				history_desc.height = height;
-				history_desc.format = EFormat::R16G16B16A16_FLOAT;
-
-				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(HistoryBuffer));
-				data.copy_src = builder.ReadCopySrcTexture(last_resource);
-			},
-			[=](CopyPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
-			{
-				Texture const& src_texture = context.GetCopySrcTexture(data.copy_src);
-				Texture const& dst_texture = context.GetCopyDstTexture(data.copy_dst);
-				cmd_list->CopyResource(dst_texture.GetNative(), src_texture.GetNative());
-			}, ERGPassType::Copy, ERGPassFlags::None);
 	}
 
 	void Postprocessor::AddTAAPass(RenderGraph& rg)

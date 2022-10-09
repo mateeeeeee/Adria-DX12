@@ -311,6 +311,7 @@
     <ClCompile Include="Rendering\VelocityBufferPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\MotionBlurPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -731,6 +732,9 @@
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\VelocityBufferPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\MotionBlurPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
   </ItemGroup>
