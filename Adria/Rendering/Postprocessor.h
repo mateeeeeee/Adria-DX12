@@ -18,6 +18,7 @@
 #include "VelocityBufferPass.h"
 #include "MotionBlurPass.h"
 #include "TAAPass.h"
+#include "GodRaysPass.h"
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
 #include "entt/entity/entity.hpp"
@@ -86,12 +87,11 @@ namespace adria
 		VelocityBufferPass velocity_buffer_pass;
 		MotionBlurPass motion_blur_pass;
 		TAAPass taa_pass;
+		GodRaysPass god_rays_pass;
 	private:
 		RGResourceName AddHDRCopyPass(RenderGraph& rg);
 		void AddHistoryCopyPass(RenderGraph& rg);
-
 		void AddSunPass(RenderGraph& rg, entt::entity sun);
-		void AddGodRaysPass(RenderGraph& rg, Light const& light);
 
 		void AddGenerateBokehPass(RenderGraph& rg);
 		void AddDrawBokehPass(RenderGraph& rg);

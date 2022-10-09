@@ -313,6 +313,7 @@
     </ClCompile>
     <ClCompile Include="Rendering\MotionBlurPass.cpp" />
     <ClCompile Include="Rendering\TAAPass.cpp" />
+    <ClCompile Include="Rendering\GodRaysPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -739,6 +740,9 @@
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\TAAPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\GodRaysPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
   </ItemGroup>
