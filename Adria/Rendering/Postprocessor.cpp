@@ -9,6 +9,7 @@
 #include "entt/entity/registry.hpp"
 #include "../Logging/Logger.h"
 
+
 using namespace DirectX;
 
 namespace adria
@@ -20,7 +21,7 @@ namespace adria
 		lens_flare_pass(texture_manager, width, height),
 		clouds_pass(texture_manager, width, height), ssr_pass(width, height), fog_pass(width, height),
 		dof_pass(width, height), bloom_pass(width, height), velocity_buffer_pass(width, height),
-		motion_blur_pass(width, height)
+		motion_blur_pass(width, height), taa_pass(width, height)
 	{}
 
 	void Postprocessor::AddPasses(RenderGraph& rg, PostprocessSettings const& _settings)
@@ -105,7 +106,8 @@ namespace adria
 		}
 		if (HasAnyFlag(settings.anti_aliasing, AntiAliasing_TAA))
 		{
-			AddTAAPass(rg);
+			rg.ImportTexture(RG_RES_NAME(HistoryBuffer), history_buffer.get());
+			final_resource = taa_pass.AddPass(rg, final_resource, RG_RES_NAME(HistoryBuffer));
 			AddHistoryCopyPass(rg);
 		}
 	}
@@ -126,6 +128,7 @@ namespace adria
 		bloom_pass.OnResize(w, h);
 		velocity_buffer_pass.OnResize(w, h);
 		motion_blur_pass.OnResize(w, h);
+		taa_pass.OnResize(w, h);
 
 		TextureDesc render_target_desc{};
 		render_target_desc.format = EFormat::R16G16B16A16_FLOAT;
@@ -375,59 +378,6 @@ namespace adria
 				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 				cmd_list->DrawInstanced(4, 1, 0, 0);
 			}, ERGPassType::Graphics, ERGPassFlags::None);
-	}
-
-	void Postprocessor::AddTAAPass(RenderGraph& rg)
-	{
-		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
-		RGResourceName last_resource = final_resource;
-
-		struct TAAPassData
-		{
-			RGTextureReadOnlyId input_srv;
-			RGTextureReadOnlyId history_srv;
-			RGTextureReadOnlyId velocity_srv;
-		};
-
-		rg.ImportTexture(RG_RES_NAME(HistoryBuffer), history_buffer.get());
-		rg.AddPass<TAAPassData>("TAA Pass",
-			[=](TAAPassData& data, RenderGraphBuilder& builder)
-			{
-				RGTextureDesc taa_desc{};
-				taa_desc.width = width;
-				taa_desc.height = height;
-				taa_desc.format = EFormat::R16G16B16A16_FLOAT;
-
-				builder.SetViewport(width, height);
-				builder.DeclareTexture(RG_RES_NAME(TAAOutput), taa_desc);
-				builder.WriteRenderTarget(RG_RES_NAME(TAAOutput), ERGLoadStoreAccessOp::Discard_Preserve);
-				data.input_srv = builder.ReadTexture(last_resource, ReadAccess_PixelShader);
-				data.history_srv = builder.ReadTexture(RG_RES_NAME(HistoryBuffer), ReadAccess_PixelShader);
-				data.velocity_srv = builder.ReadTexture(RG_RES_NAME(VelocityBuffer), ReadAccess_PixelShader);
-			},
-			[=](TAAPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
-			{
-				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
-
-				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::TAA));
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::TAA));
-
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), context.GetReadOnlyTexture(data.input_srv),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), context.GetReadOnlyTexture(data.history_srv),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 2), context.GetReadOnlyTexture(data.velocity_srv),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-				cmd_list->SetGraphicsRootDescriptorTable(0, descriptor_allocator->GetHandle(descriptor_index));
-				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-				cmd_list->DrawInstanced(4, 1, 0, 0);
-
-			}, ERGPassType::Graphics, ERGPassFlags::None);
-
-		final_resource = RG_RES_NAME(TAAOutput);
 	}
 
 	void Postprocessor::AddGenerateBokehPass(RenderGraph& rg)
