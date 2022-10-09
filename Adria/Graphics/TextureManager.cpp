@@ -125,8 +125,6 @@ namespace adria
         default:
             ADRIA_ASSERT(false && "Unsupported Texture Format!");
         }
-
-       
         return INVALID_TEXTURE_HANDLE;
     }
 
@@ -147,7 +145,7 @@ namespace adria
                 loaded_textures.insert({ name, handle });
                 Microsoft::WRL::ComPtr<ID3D12Resource> cubemap = nullptr;
                 std::unique_ptr<uint8_t[]> decoded_data;
-                std::vector<D3D12_SUBRESOURCE_DATA> subresources;
+                std::vector<TextureInitialData> subresources;
 
                 bool is_cubemap;
                 BREAK_IF_FAILED(
@@ -203,7 +201,7 @@ namespace adria
                 equirect_desc.bind_flags = EBindFlag::ShaderResource;
                 equirect_desc.initial_state = EResourceState::CopyDest;
 
-                D3D12_SUBRESOURCE_DATA subresource_data{};
+                TextureInitialData subresource_data{};
                 subresource_data.pData = equirect_hdr_image.Data<void>();
                 subresource_data.RowPitch = equirect_hdr_image.Pitch();
 
@@ -257,11 +255,11 @@ namespace adria
         desc.bind_flags = EBindFlag::ShaderResource;
 
         std::vector<Image> images{};
-        std::vector<D3D12_SUBRESOURCE_DATA> subresources;
+        std::vector<TextureInitialData> subresources;
         for (UINT i = 0; i < cubemap_textures.size(); ++i)
         {
             images.emplace_back(ToString(cubemap_textures[i]), 4);
-            D3D12_SUBRESOURCE_DATA subresource_data{};
+            TextureInitialData subresource_data{};
             subresource_data.pData = images.back().Data<void>();
             subresource_data.RowPitch = images.back().Pitch();
             subresources.push_back(subresource_data);
@@ -339,18 +337,11 @@ namespace adria
 
             Microsoft::WRL::ComPtr<ID3D12Resource> tex2d = nullptr;
             std::unique_ptr<uint8_t[]> decoded_data;
-            std::vector<D3D12_SUBRESOURCE_DATA> subresources;
-            if (false && mipmaps)
-            {
-                BREAK_IF_FAILED(DirectX::LoadDDSTextureFromFileEx(device, texture_path.data(), 0, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, DirectX::DDS_LOADER_MIP_RESERVE, &tex2d,
-                        decoded_data, subresources));
-            }
-            else
-            {
-                BREAK_IF_FAILED(
-                    DirectX::LoadDDSTextureFromFile(device, texture_path.data(), tex2d.GetAddressOf(),
-                        decoded_data, subresources));
-            }
+            std::vector<TextureInitialData> subresources;
+			BREAK_IF_FAILED(
+				DirectX::LoadDDSTextureFromFile(device, texture_path.data(), tex2d.GetAddressOf(),
+					decoded_data, subresources));
+
             D3D12_RESOURCE_DESC _desc = tex2d->GetDesc();
             TextureDesc desc{};
             desc.type = ConvertTextureType(_desc.Dimension);
@@ -384,21 +375,21 @@ namespace adria
             ++handle;
             loaded_textures.insert({ texture_path, handle });
 
-            Microsoft::WRL::ComPtr<ID3D12Resource> tex2d = nullptr;
+            Microsoft::WRL::ComPtr<ID3D12Resource> d3d12_tex = nullptr;
             std::unique_ptr<uint8_t[]> decoded_data;
-            D3D12_SUBRESOURCE_DATA subresource{};
+            TextureInitialData subresource{};
             if (mipmaps)
             {
                 BREAK_IF_FAILED(DirectX::LoadWICTextureFromFileEx(device, texture_path.data(), 0, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
-                    DirectX::WIC_LOADER_MIP_RESERVE | DirectX::WIC_LOADER_IGNORE_SRGB | DirectX::WIC_LOADER_FORCE_RGBA32, &tex2d,
+                    DirectX::WIC_LOADER_MIP_RESERVE | DirectX::WIC_LOADER_IGNORE_SRGB | DirectX::WIC_LOADER_FORCE_RGBA32, &d3d12_tex,
                     decoded_data, subresource));
             }
             else
             {
-                BREAK_IF_FAILED(DirectX::LoadWICTextureFromFile(device, texture_path.data(), tex2d.GetAddressOf(),
+                BREAK_IF_FAILED(DirectX::LoadWICTextureFromFile(device, texture_path.data(), d3d12_tex.GetAddressOf(),
                     decoded_data, subresource));
             }
-			D3D12_RESOURCE_DESC _desc = tex2d->GetDesc();
+			D3D12_RESOURCE_DESC _desc = d3d12_tex->GetDesc();
 			TextureDesc desc{};
 			desc.type = TextureType_2D;
 			desc.misc_flags = ETextureMiscFlag::None;
@@ -452,7 +443,7 @@ namespace adria
 			desc.heap_type = EResourceUsage::Default;
 			desc.mip_levels = mipmaps ? 0 : 1;
 
-			D3D12_SUBRESOURCE_DATA data{};
+			TextureInitialData data{};
 			data.pData = img.Data<void>();
 			data.RowPitch = img.Pitch();
 
