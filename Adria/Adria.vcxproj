@@ -206,6 +206,7 @@
     <ClCompile Include="Rendering\AutomaticExposurePass.cpp" />
     <ClCompile Include="Rendering\BloomPass.cpp" />
     <ClCompile Include="Rendering\BlurPass.cpp" />
+    <ClCompile Include="Rendering\BokehPass.cpp" />
     <ClCompile Include="Rendering\Camera.cpp" />
     <ClCompile Include="Rendering\ClusteredLightingPass.cpp" />
     <ClCompile Include="Rendering\CopyToTexturePass.cpp" />
@@ -330,6 +331,7 @@
     <ClInclude Include="Rendering\AutomaticExposurePass.h" />
     <ClInclude Include="Rendering\BloomPass.h" />
     <ClInclude Include="Rendering\BlurPass.h" />
+    <ClInclude Include="Rendering\BokehPass.h" />
     <ClInclude Include="Rendering\Camera.h" />
     <ClInclude Include="Rendering\ClusteredLightingPass.h" />
     <ClInclude Include="Rendering\Components.h" />

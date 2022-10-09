@@ -6,9 +6,7 @@
 #include "PSOCache.h" 
 #include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
-#include "../Graphics/TextureManager.h"
-#include "../Logging/Logger.h"
-#include "../Editor/GUICommand.h"
+
 
 using namespace DirectX;
 

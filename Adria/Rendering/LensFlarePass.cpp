@@ -6,7 +6,6 @@
 #include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/TextureManager.h"
-#include "../Logging/Logger.h"
 
 using namespace DirectX;
 

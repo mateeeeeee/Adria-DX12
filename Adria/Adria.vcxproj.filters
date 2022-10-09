@@ -311,9 +311,18 @@
     <ClCompile Include="Rendering\VelocityBufferPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\MotionBlurPass.cpp" />
-    <ClCompile Include="Rendering\TAAPass.cpp" />
-    <ClCompile Include="Rendering\GodRaysPass.cpp" />
+    <ClCompile Include="Rendering\GodRaysPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\BokehPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\MotionBlurPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\TAAPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -743,6 +752,9 @@
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\GodRaysPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\BokehPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
   </ItemGroup>
