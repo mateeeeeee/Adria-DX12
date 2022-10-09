@@ -19,6 +19,7 @@
 #include "MotionBlurPass.h"
 #include "TAAPass.h"
 #include "GodRaysPass.h"
+#include "BokehPass.h"
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
 #include "entt/entity/entity.hpp"
@@ -54,6 +55,7 @@ namespace adria
 		DoFParameters   const& GetDoFParams() const { return dof_pass.GetParams(); }
 		BloomParameters const& GetBloomParams() const { return bloom_pass.GetParams(); }
 		VelocityBufferParams const& GetVelocityBufferParams() const { return velocity_buffer_pass.GetParams(); }
+		BokehParameters const& GetBokehParams() const { return bokeh_pass.GetParams(); }
 
 	private:
 		entt::registry& reg;
@@ -61,17 +63,8 @@ namespace adria
 		uint32 width, height;
 		PostprocessSettings settings;
 
-		std::vector<size_t> cloud_textures;
-		size_t hex_bokeh_handle = -1;
-		size_t oct_bokeh_handle = -1;
-		size_t circle_bokeh_handle = -1;
-		size_t cross_bokeh_handle = -1;
-
 		RGResourceName final_resource;
 		std::unique_ptr<Texture> history_buffer;
-		std::unique_ptr<Buffer> counter_reset_buffer;
-		std::unique_ptr<Buffer> bokeh_indirect_buffer;
-		Microsoft::WRL::ComPtr<ID3D12CommandSignature> bokeh_command_signature;
 		
 		BlurPass blur_pass;
 		CopyToTexturePass copy_to_texture_pass;
@@ -88,12 +81,10 @@ namespace adria
 		MotionBlurPass motion_blur_pass;
 		TAAPass taa_pass;
 		GodRaysPass god_rays_pass;
+		BokehPass bokeh_pass;
 	private:
 		RGResourceName AddHDRCopyPass(RenderGraph& rg);
 		void AddHistoryCopyPass(RenderGraph& rg);
 		void AddSunPass(RenderGraph& rg, entt::entity sun);
-
-		void AddGenerateBokehPass(RenderGraph& rg);
-		void AddDrawBokehPass(RenderGraph& rg);
 	};
 }

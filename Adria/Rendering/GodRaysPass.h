@@ -15,7 +15,7 @@ namespace adria
 	public:
 		GodRaysPass(uint32 w, uint32 h);
 
-		RGResourceName AddPass(RenderGraph& rendergraph, Light const& light);
+		void AddPass(RenderGraph& rendergraph, Light const& light);
 		void OnResize(uint32 w, uint32 h);
 	private:
 		uint32 width, height;

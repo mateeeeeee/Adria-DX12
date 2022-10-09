@@ -20,14 +20,6 @@ namespace adria
 		EReflections reflections = EReflections::SSR;
 		bool dof = false;
 		bool bokeh = false;
-
-		float32 bokeh_blur_threshold = 0.9f;
-		float32 bokeh_lum_threshold = 1.0f;
-		float32 bokeh_radius_scale = 25.0f;
-		float32 bokeh_color_scale = 1.0f;
-		float32 bokeh_fallout = 0.9f;
-		EBokehType bokeh_type = EBokehType::Hex;
-
 		bool bloom = false;
 		bool clouds = false;
 		bool motion_blur = false;

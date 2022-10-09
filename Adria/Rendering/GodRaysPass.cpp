@@ -6,6 +6,7 @@
 #include "PSOCache.h" 
 #include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
+#include "../Logging/Logger.h"
 
 
 using namespace DirectX;
@@ -16,7 +17,7 @@ namespace adria
 	GodRaysPass::GodRaysPass(uint32 w, uint32 h) : width(w), height(h)
 	{}
 
-	RGResourceName GodRaysPass::AddPass(RenderGraph& rg, Light const& light)
+	void GodRaysPass::AddPass(RenderGraph& rg, Light const& light)
 	{
 		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
 
