@@ -24,13 +24,6 @@ namespace adria
 	class Texture;
 	class Buffer;
 	struct Light;
-	
-	struct RayTracingSettings
-	{
-		float32 dt;
-		float32 ao_radius;
-		int32	bounces;
-	};
 
 	enum class ERayTracingFeature : uint8 
 	{
@@ -61,7 +54,7 @@ namespace adria
 		void OnSceneInitialized();
 
 		void ResetPathTracer() { accumulated_frames = 0; }
-		void Update(RayTracingSettings const&);
+		void Update(float32 dt);
 
 		void AddRayTracedShadowsPass(RenderGraph&, Light const&, size_t);
 		void AddRayTracedReflectionsPass(RenderGraph&, D3D12_CPU_DESCRIPTOR_HANDLE);

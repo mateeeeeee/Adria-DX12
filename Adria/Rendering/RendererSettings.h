@@ -9,14 +9,7 @@ namespace adria
 	{
 		bool fog = false;
 		EAntiAliasing anti_aliasing = AntiAliasing_None;
-
 		EAmbientOcclusion ambient_occlusion = EAmbientOcclusion::None;
-		float32   ssao_power = 4.0f;
-		float32   ssao_radius = 1.0f;
-		float32   hbao_power = 1.5f;
-		float32   hbao_radius = 2.0f;
-		float32   rtao_radius = 2.0f;
-
 		EReflections reflections = EReflections::SSR;
 		bool dof = false;
 		bool bokeh = false;

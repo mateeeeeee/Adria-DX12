@@ -5,6 +5,7 @@
 #include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Utilities/Random.h"
+#include "../Editor/GUICommand.h"
 
 namespace adria
 {
@@ -13,7 +14,6 @@ namespace adria
 		blur_pass(w, h)
 	{
 	}
-
 	void SSAOPass::AddPass(RenderGraph& rendergraph)
 	{
 		struct SSAOPassData
@@ -66,6 +66,18 @@ namespace adria
 			);
 
 		blur_pass.AddPass(rendergraph, RG_RES_NAME(SSAO_Output), RG_RES_NAME(AmbientOcclusion), " SSAO");
+		AddGUI([&]() 
+			{
+				if (ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+				{
+					ImGui::SliderFloat("Power", &params.ssao_power, 1.0f, 16.0f);
+					ImGui::SliderFloat("Radius", &params.ssao_radius, 0.5f, 4.0f);
+
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
+			}
+		);
 	}
 
 	void SSAOPass::OnResize(uint32 w, uint32 h)

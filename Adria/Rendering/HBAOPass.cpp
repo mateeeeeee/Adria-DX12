@@ -5,6 +5,7 @@
 #include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Utilities/Random.h"
+#include "../Editor/GUICommand.h"
 
 namespace adria
 {
@@ -64,6 +65,19 @@ namespace adria
 			}
 			);
 		blur_pass.AddPass(rendergraph, RG_RES_NAME(HBAO_Output), RG_RES_NAME(AmbientOcclusion), " HBAO");
+		
+		AddGUI([&]()
+			{
+				if (ImGui::TreeNodeEx("HBAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+				{
+					ImGui::SliderFloat("Power", &params.hbao_power, 1.0f, 16.0f);
+					ImGui::SliderFloat("Radius", &params.hbao_radius, 0.25f, 8.0f);
+
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
+			}
+		);
 	}
 
 	void HBAOPass::OnResize(uint32 w, uint32 h)

@@ -53,9 +53,7 @@ namespace adria
 		UpdatePersistentConstantBuffers(dt);
 		CameraFrustumCulling();
 		particle_renderer.Update(dt);
-		ray_tracer.Update(RayTracingSettings{ 
-			.dt = dt, .ao_radius = renderer_settings.postprocessor.rtao_radius, .bounces = 1}
-		);
+		ray_tracer.Update(dt);
 	}
 	void Renderer::Render(RendererSettings const& _settings)
 	{
@@ -601,12 +599,14 @@ namespace adria
 			DoFParameters dof_params = postprocessor.GetDoFParams();
 			VelocityBufferParams velocity_params = postprocessor.GetVelocityBufferParams();
 			TonemapParams tonemap_params = tonemap_pass.GetParams();
+			SSAOParams ssao_params = ssao_pass.GetParams();
+			HBAOParams hbao_params = hbao_pass.GetParams();
 			
 			postprocess_cbuf_data.tone_map_exposure = tonemap_params.tonemap_exposure;
 			postprocess_cbuf_data.tone_map_operator = static_cast<int>(tonemap_params.tone_map_op);
 			postprocess_cbuf_data.noise_scale = XMFLOAT2((float32)width / 8, (float32)height / 8);
-			postprocess_cbuf_data.ssao_power = settings.ssao_power;
-			postprocess_cbuf_data.ssao_radius = settings.ssao_radius;
+			postprocess_cbuf_data.ssao_power = ssao_params.ssao_power;
+			postprocess_cbuf_data.ssao_radius = ssao_params.ssao_radius;
 			for (uint32 i = 0; i < SSAO_KERNEL_SIZE; ++i) postprocess_cbuf_data.samples[i] = ssao_kernel[i];
 			postprocess_cbuf_data.ssr_ray_step = ssr_params.ssr_ray_step;
 			postprocess_cbuf_data.ssr_ray_hit_threshold = ssr_params.ssr_ray_hit_threshold;
@@ -618,9 +618,9 @@ namespace adria
 			postprocess_cbuf_data.fog_start = fog_params.fog_start;
 			XMFLOAT3 fog_color(fog_params.fog_color);
 			postprocess_cbuf_data.fog_color = XMLoadFloat3(&fog_color);
-			postprocess_cbuf_data.hbao_r2 = settings.hbao_radius * settings.hbao_radius;
-			postprocess_cbuf_data.hbao_radius_to_screen = settings.hbao_radius * 0.5f * float32(height) / (tanf(camera->Fov() * 0.5f) * 2.0f);
-			postprocess_cbuf_data.hbao_power = settings.hbao_power;
+			postprocess_cbuf_data.hbao_r2 = hbao_params.hbao_radius * hbao_params.hbao_radius;
+			postprocess_cbuf_data.hbao_radius_to_screen = hbao_params.hbao_radius * 0.5f * float32(height) / (tanf(camera->Fov() * 0.5f) * 2.0f);
+			postprocess_cbuf_data.hbao_power = hbao_params.hbao_power;
 			postprocess_cbuffer.Update(postprocess_cbuf_data, backbuffer_index);
 		}
 		

@@ -136,14 +136,14 @@ namespace adria
 		global_vb = std::make_unique<Buffer>(gfx, vb_desc, RayTracing::rt_vertices.data());
 		global_ib = std::make_unique<Buffer>(gfx, ib_desc, RayTracing::rt_indices.data());
 	}
-	void RayTracer::Update(RayTracingSettings const& params)
+	void RayTracer::Update(float32 dt)
 	{
 		if (!IsSupported()) return;
 		RayTracingCBuffer ray_tracing_cbuf_data{};
 		ray_tracing_cbuf_data.frame_count = gfx->FrameIndex();
-		ray_tracing_cbuf_data.rtao_radius = params.ao_radius;
+		ray_tracing_cbuf_data.rtao_radius = 2.0f;
 		ray_tracing_cbuf_data.accumulated_frames = accumulated_frames;
-		ray_tracing_cbuf_data.bounce_count = params.bounces;
+		ray_tracing_cbuf_data.bounce_count = 1;
 		ray_tracing_cbuffer.Update(ray_tracing_cbuf_data, gfx->BackbufferIndex());
 	}
 
