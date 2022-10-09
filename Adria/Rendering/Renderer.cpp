@@ -86,7 +86,7 @@ namespace adria
 		}
 
 		D3D12_CPU_DESCRIPTOR_HANDLE skybox_handle = global_data.null_srv_texturecube;
-		if (renderer_settings.postprocessor.reflections == EReflections::RTR)
+		if (renderer_settings.postprocess.reflections == EReflections::RTR)
 		{
 			if (sky_pass.GetSkyType() == ESkyType::Skybox)
 			{
@@ -112,7 +112,7 @@ namespace adria
 
 		gbuffer_pass.AddPass(render_graph, profiler_settings.profile_gbuffer_pass);
 		decals_pass.AddPass(render_graph);
-		switch (renderer_settings.postprocessor.ambient_occlusion)
+		switch (renderer_settings.postprocess.ambient_occlusion)
 		{
 		case EAmbientOcclusion::SSAO:
 		{
@@ -163,11 +163,11 @@ namespace adria
 		sky_pass.AddPass(render_graph);
 		picking_pass.AddPass(render_graph);
 		particle_renderer.AddPasses(render_graph);
-		if (renderer_settings.postprocessor.reflections == EReflections::RTR)
+		if (renderer_settings.postprocess.reflections == EReflections::RTR)
 		{
 			ray_tracer.AddRayTracedReflectionsPass(render_graph, skybox_handle);
 		}
-		postprocessor.AddPasses(render_graph, renderer_settings.postprocessor);
+		postprocessor.AddPasses(render_graph, renderer_settings.postprocess);
 		
 		if (renderer_settings.gui_visible)
 		{
@@ -593,7 +593,7 @@ namespace adria
 		{
 			static PostprocessCBuffer postprocess_cbuf_data{};
 
-			PostprocessSettings const& settings = renderer_settings.postprocessor;
+			PostprocessSettings const& settings = renderer_settings.postprocess;
 			SSRParameters ssr_params = postprocessor.GetSSRParams();
 			FogParameters fog_params = postprocessor.GetFogParams();
 			DoFParameters dof_params = postprocessor.GetDoFParams();
@@ -730,7 +730,7 @@ namespace adria
 	void Renderer::ResolveToBackbuffer(RenderGraph& rg)
 	{
 		RGResourceName final_texture = postprocessor.GetFinalResource();
-		if (HasAnyFlag(renderer_settings.postprocessor.anti_aliasing, AntiAliasing_FXAA))
+		if (HasAnyFlag(renderer_settings.postprocess.anti_aliasing, AntiAliasing_FXAA))
 		{
 			tonemap_pass.AddPass(rg, final_texture, RG_RES_NAME(FXAAInput));
 			fxaa_pass.AddPass(rg, RG_RES_NAME(FXAAInput), true);
@@ -743,7 +743,7 @@ namespace adria
 	void Renderer::ResolveToTexture(RenderGraph& rg)
 	{
 		RGResourceName final_texture = postprocessor.GetFinalResource();
-		if (HasAnyFlag(renderer_settings.postprocessor.anti_aliasing, AntiAliasing_FXAA))
+		if (HasAnyFlag(renderer_settings.postprocess.anti_aliasing, AntiAliasing_FXAA))
 		{
 			tonemap_pass.AddPass(rg, final_texture, RG_RES_NAME(FXAAInput));
 			fxaa_pass.AddPass(rg, RG_RES_NAME(FXAAInput), false);

@@ -34,8 +34,7 @@ namespace adria
 			velocity_buffer_pass.AddPass(rg);
 		}
 		final_resource = AddHDRCopyPass(rg);
-		if (settings.automatic_exposure) automatic_exposure_pass.AddPasses(rg, final_resource);
-
+		
 		for (entt::entity light : lights)
 		{
 			auto const& light_data = lights.get<Light>(light);
@@ -49,6 +48,7 @@ namespace adria
 			blur_pass.AddPass(rg, RG_RES_NAME(CloudsOutput), RG_RES_NAME(BlurredCloudsOutput), "Volumetric Clouds");
 			copy_to_texture_pass.AddPass(rg, RG_RES_NAME(PostprocessMain), RG_RES_NAME(BlurredCloudsOutput), EBlendMode::AlphaBlend);
 		}
+		if (settings.automatic_exposure) automatic_exposure_pass.AddPasses(rg, final_resource);
 
 		if (settings.reflections == EReflections::SSR) final_resource = ssr_pass.AddPass(rg, final_resource);
 		else if (settings.reflections == EReflections::RTR)

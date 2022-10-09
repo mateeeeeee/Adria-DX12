@@ -1184,10 +1184,10 @@ namespace adria
 				}
 				ImGui::EndCombo();
 			}
-			renderer_settings.postprocessor.ambient_occlusion = static_cast<EAmbientOcclusion>(current_ao_type);
+			renderer_settings.postprocess.ambient_occlusion = static_cast<EAmbientOcclusion>(current_ao_type);
 			
 			static const char* reflection_types[] = { "None", "SSR", "RTR" };
-			static int current_reflection_type = (int)renderer_settings.postprocessor.reflections;
+			static int current_reflection_type = (int)renderer_settings.postprocess.reflections;
 			const char* reflection_combo_label = reflection_types[current_reflection_type];
 			if (ImGui::BeginCombo("Reflections", reflection_combo_label, 0))
 			{
@@ -1199,27 +1199,27 @@ namespace adria
 				}
 				ImGui::EndCombo();
 			}
-			renderer_settings.postprocessor.reflections = static_cast<EReflections>(current_reflection_type);
-			ImGui::Checkbox("Automatic Exposure", &renderer_settings.postprocessor.automatic_exposure);
-			ImGui::Checkbox("Volumetric Clouds", &renderer_settings.postprocessor.clouds);
-			ImGui::Checkbox("DoF", &renderer_settings.postprocessor.dof);
-			if (renderer_settings.postprocessor.dof)
+			renderer_settings.postprocess.reflections = static_cast<EReflections>(current_reflection_type);
+			ImGui::Checkbox("Automatic Exposure", &renderer_settings.postprocess.automatic_exposure);
+			ImGui::Checkbox("Volumetric Clouds", &renderer_settings.postprocess.clouds);
+			ImGui::Checkbox("DoF", &renderer_settings.postprocess.dof);
+			if (renderer_settings.postprocess.dof)
 			{
-				ImGui::Checkbox("Bokeh", &renderer_settings.postprocessor.bokeh);
+				ImGui::Checkbox("Bokeh", &renderer_settings.postprocess.bokeh);
 			}
-			ImGui::Checkbox("Bloom", &renderer_settings.postprocessor.bloom);
-			ImGui::Checkbox("Motion Blur", &renderer_settings.postprocessor.motion_blur);
-			ImGui::Checkbox("Fog", &renderer_settings.postprocessor.fog);
+			ImGui::Checkbox("Bloom", &renderer_settings.postprocess.bloom);
+			ImGui::Checkbox("Motion Blur", &renderer_settings.postprocess.motion_blur);
+			ImGui::Checkbox("Fog", &renderer_settings.postprocess.fog);
 			if (ImGui::TreeNode("Anti-Aliasing"))
 			{
 				static bool fxaa = false, taa = false;
 				ImGui::Checkbox("FXAA", &fxaa);
 				ImGui::Checkbox("TAA", &taa);
-				if (fxaa) renderer_settings.postprocessor.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocessor.anti_aliasing | AntiAliasing_FXAA);
-				else renderer_settings.postprocessor.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocessor.anti_aliasing & (~AntiAliasing_FXAA));
+				if (fxaa) renderer_settings.postprocess.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocess.anti_aliasing | AntiAliasing_FXAA);
+				else renderer_settings.postprocess.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocess.anti_aliasing & (~AntiAliasing_FXAA));
 
-				if (taa) renderer_settings.postprocessor.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocessor.anti_aliasing | AntiAliasing_TAA);
-				else renderer_settings.postprocessor.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocessor.anti_aliasing & (~AntiAliasing_TAA));
+				if (taa) renderer_settings.postprocess.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocess.anti_aliasing | AntiAliasing_TAA);
+				else renderer_settings.postprocess.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocess.anti_aliasing & (~AntiAliasing_TAA));
 
 				ImGui::TreePop();
 			}

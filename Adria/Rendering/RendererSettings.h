@@ -26,7 +26,7 @@ namespace adria
 		bool gui_visible = false;
 		bool use_tiled_deferred = false;
 		bool use_clustered_deferred = false;
-		PostprocessSettings postprocessor{};
+		PostprocessSettings postprocess{};
 	};
 
 }
