@@ -11,13 +11,10 @@
 #include "Utilities/MemoryDebugger.h"
 #include "Utilities/CLIParser.h"
 
-using namespace adria;
+extern "C" { __declspec(dllexport) extern const UINT D3D12SDKVersion = 602; }
+extern "C" { __declspec(dllexport) extern const char* D3D12SDKPath = ".\\D3D12\\"; }
 
-int MemoryAllocHook(int allocType, void* userData, std::size_t size, int blockType, long requestNumber,
-	const unsigned char* filename, int lineNumber)
-{
-    return 1;
-}
+using namespace adria;
 
 int APIENTRY wWinMain(
     _In_ HINSTANCE hInstance,

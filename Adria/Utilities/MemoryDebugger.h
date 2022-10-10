@@ -9,7 +9,13 @@
 namespace adria
 {
 	typedef int (__CRTDECL* AllocHook)(int, void*, size_t, int, long, unsigned char const*, int);
-	
+
+	static int MemoryAllocHook(int allocType, void* userData, std::size_t size, int blockType, long requestNumber,
+		const unsigned char* filename, int lineNumber)
+	{
+		return 1;
+	}
+
 	class MemoryDebugger
 	{
 	public:

@@ -123,31 +123,31 @@ namespace adria
 			switch (input.stage)
 			{
 			case EShaderStage::VS:
-				p_target = L"vs_6_5";
+				p_target = L"vs_6_6";
 				entry_point = L"vs_main";
 				break;
 			case EShaderStage::PS:
-				p_target = L"ps_6_5";
+				p_target = L"ps_6_6";
 				entry_point = L"ps_main";
 				break;
 			case EShaderStage::CS:
-				p_target = L"cs_6_5";
+				p_target = L"cs_6_6";
 				entry_point = L"cs_main";
 				break;
 			case EShaderStage::GS:
-				p_target = L"gs_6_5";
+				p_target = L"gs_6_6";
 				entry_point = L"gs_main";
 				break;
 			case EShaderStage::HS:
-				p_target = L"hs_6_5";
+				p_target = L"hs_6_6";
 				entry_point = L"hs_main";
 				break;
 			case EShaderStage::DS:
-				p_target = L"ds_6_5";
+				p_target = L"ds_6_6";
 				entry_point = L"ds_main";
 				break;
 			case EShaderStage::LIB:
-				p_target = L"lib_6_5";
+				p_target = L"lib_6_6";
 				break;
 			default:
 				ADRIA_ASSERT(false && "Invalid Shader Stage");
