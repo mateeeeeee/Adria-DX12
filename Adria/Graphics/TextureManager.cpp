@@ -285,7 +285,7 @@ namespace adria
 		else return nullptr;
 	}
 
-	void TextureManager::SetMipMapsEnabled(bool mips)
+	void TextureManager::EnableMipMaps(bool mips)
     {
         mipmaps = mips;
     }

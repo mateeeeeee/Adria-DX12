@@ -29,7 +29,7 @@ namespace adria
 		[[nodiscard]] TextureHandle LoadCubemap(std::array<std::wstring, 6> const& cubemap_textures);
 		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE GetSRV(TextureHandle tex_handle);
 		Texture* GetTexture(TextureHandle handle) const;
-		void SetMipMapsEnabled(bool);
+		void EnableMipMaps(bool);
 		void OnSceneInitialized();
 
 	private:

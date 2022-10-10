@@ -493,10 +493,10 @@ namespace adria
 	entt::entity ModelImporter::LoadDecal(DecalParameters const& params)
 	{
 		Decal decal{};
-		texture_manager.SetMipMapsEnabled(false);
+		texture_manager.EnableMipMaps(false);
 		if (!params.albedo_texture_path.empty()) decal.albedo_decal_texture = texture_manager.LoadTexture(ToWideString(params.albedo_texture_path));
 		if (!params.normal_texture_path.empty()) decal.normal_decal_texture = texture_manager.LoadTexture(ToWideString(params.normal_texture_path));
-		texture_manager.SetMipMapsEnabled(true);
+		texture_manager.EnableMipMaps(true);
 
 		XMVECTOR P = XMLoadFloat4(&params.position);
 		XMVECTOR N = XMLoadFloat4(&params.normal);
