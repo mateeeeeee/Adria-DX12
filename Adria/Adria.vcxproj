@@ -290,6 +290,7 @@
     <ClInclude Include="Graphics\RenderPass.h" />
     <ClInclude Include="Graphics\ResourceBarrierBatch.h" />
     <ClInclude Include="Graphics\ResourceCommon.h" />
+    <ClInclude Include="Graphics\RootSignature.h" />
     <ClInclude Include="Graphics\Shader.h" />
     <ClInclude Include="Graphics\Texture.h" />
     <ClInclude Include="Graphics\TextureManager.h" />

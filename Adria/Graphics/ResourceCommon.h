@@ -598,9 +598,9 @@ namespace adria
 
 	enum class EResourceUsage : uint8
 	{
-		Default,	// CPU no access, GPU read/write
-		Upload,	    // CPU write, GPU read
-		Readback,	// CPU read, GPU write
+		Default,
+		Upload,	   
+		Readback
 	};
 
 	enum class ETextureMiscFlag : uint32
