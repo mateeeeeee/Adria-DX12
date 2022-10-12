@@ -163,9 +163,8 @@ namespace adria
 		std::vector<std::unique_ptr<LinearDynamicAllocator>> dynamic_allocators;
 		std::unique_ptr<LinearDynamicAllocator> dynamic_allocator_before_rendering;
 
-		Microsoft::WRL::ComPtr<ID3D12Fence> dred_fence = nullptr;
-		HANDLE device_removed_event = nullptr;
-		HANDLE wait_handle = nullptr;
+		//Microsoft::WRL::ComPtr<ID3D12Fence> dred_fence = nullptr;
+		//HANDLE device_removed_event = nullptr;
 
 		BOOL rendering_not_started = TRUE;
 	private:

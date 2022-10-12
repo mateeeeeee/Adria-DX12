@@ -450,15 +450,15 @@ namespace adria
 		}
 		std::atexit(ReportLiveObjects);
 		
-		hr = device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&dred_fence));
-		device_removed_event = ::CreateEvent(nullptr, false, false, nullptr);
-		hr = dred_fence->SetEventOnCompletion(UINT64_MAX, device_removed_event);
-		if (FAILED(hr) || device_removed_event == nullptr)
-		{
-			ADRIA_LOG(WARNING, "Failed to set device removed completion event!");
-			return;
-		}
-		RegisterWaitForSingleObject(&wait_handle, device_removed_event, DeviceRemovedHandler, device.Get(), INFINITE, 0);
+		//hr = device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(dred_fence.GetAddressOf()));
+		//device_removed_event = ::CreateEvent(nullptr, false, false, nullptr);
+		//hr = dred_fence->SetEventOnCompletion(UINT64_MAX, device_removed_event);
+		//if (FAILED(hr) || device_removed_event == nullptr)
+		//{
+		//	ADRIA_LOG(WARNING, "Failed to set device removed completion event!");
+		//	return;
+		//}
+		//RegisterWaitForSingleObject(&device_removed_event, device_removed_event, DeviceRemovedHandler, device.Get(), INFINITE, 0);
 	}
 
 	GraphicsDevice::~GraphicsDevice()
@@ -466,8 +466,8 @@ namespace adria
 		WaitForGPU();
 		ProcessReleaseQueue();
 
-		ADRIA_ASSERT(UnregisterWaitEx(wait_handle, INVALID_HANDLE_VALUE));
-		CloseHandle(device_removed_event);
+		//ADRIA_ASSERT(UnregisterWaitEx(device_removed_event, INVALID_HANDLE_VALUE));
+		//CloseHandle(device_removed_event);
 
 		for (size_t i = 0; i < BACKBUFFER_COUNT; ++i)
 		{
