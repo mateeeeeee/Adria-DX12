@@ -355,7 +355,7 @@ namespace adria
 
 
 		TextureDesc env_desc{};
-		env_desc.width = unfiltered_env_desc.Width;
+		env_desc.width = (uint32)unfiltered_env_desc.Width;
 		env_desc.height = unfiltered_env_desc.Height;
 		env_desc.array_size = 6;
 		env_desc.mip_levels = 0;
@@ -371,12 +371,12 @@ namespace adria
 		{
 			Microsoft::WRL::ComPtr<ID3D12PipelineState> pipeline_state;
 
-			Shader spmap_shader;
-			ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SpmapCS.cso", spmap_shader);
+			ShaderBlob spmap_shader;
+			ShaderCompiler::ReadBlobFromFile(L"Resources/Compiled Shaders/SpmapCS.cso", spmap_shader);
 
 			D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc = {};
 			pso_desc.pRootSignature = root_signature.Get();
-			pso_desc.CS = spmap_shader;
+			pso_desc.CS = D3D12_SHADER_BYTECODE{ .pShaderBytecode = spmap_shader.data(), .BytecodeLength = spmap_shader.size() };
 			BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pipeline_state)));
 
 			ResourceBarrierBatch precopy_barriers{};
@@ -455,12 +455,12 @@ namespace adria
 		// Compute diffuse irradiance cubemap.
 		{
 			Microsoft::WRL::ComPtr<ID3D12PipelineState> pipeline_state;
-			Shader irmap_shader;
-			ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/IrmapCS.cso", irmap_shader);
+			ShaderBlob irmap_shader;
+			ShaderCompiler::ReadBlobFromFile(L"Resources/Compiled Shaders/IrmapCS.cso", irmap_shader);
 
 			D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc{};
 			pso_desc.pRootSignature = root_signature.Get();
-			pso_desc.CS = irmap_shader;
+			pso_desc.CS = D3D12_SHADER_BYTECODE{ .pShaderBytecode = irmap_shader.data(), .BytecodeLength = irmap_shader.size() };
 			BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pipeline_state)));
 
 			TextureDesc desc = irmap_texture->GetDesc();
@@ -527,12 +527,12 @@ namespace adria
 				descriptor_allocator->GetHandle(descriptor_index));
 
 			Microsoft::WRL::ComPtr<ID3D12PipelineState> pipeline_state;
-			Shader BRDFShader;
-			ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SpbrdfCS.cso", BRDFShader);
+			ShaderBlob brdf_shader;
+			ShaderCompiler::ReadBlobFromFile(L"Resources/Compiled Shaders/SpbrdfCS.cso", brdf_shader);
 
 			D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc = {};
 			pso_desc.pRootSignature = root_signature.Get();
-			pso_desc.CS = BRDFShader;
+			pso_desc.CS = D3D12_SHADER_BYTECODE{ .pShaderBytecode = brdf_shader.data(), .BytecodeLength = brdf_shader.size() };
 			BREAK_IF_FAILED(device->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&pipeline_state)));
 
 			auto brdf_barrier = CD3DX12_RESOURCE_BARRIER::Transition(brdf_lut_texture->GetNative(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);

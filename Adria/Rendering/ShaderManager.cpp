@@ -21,7 +21,7 @@ namespace adria
 		HashMap<EShader, Shader> shader_map;
 		HashMap<EShader, HashSet<fs::path>> dependent_files_map;
 
-		constexpr EShaderStage GetStage(EShader shader)
+		constexpr EShaderStage GetShaderStage(EShader shader)
 		{
 			switch (shader)
 			{
@@ -341,23 +341,24 @@ namespace adria
 		{
 			if (shader == EShader_Invalid) return;
 
-			ShaderCompileInput shader_info{ .entrypoint = "main" };
-			shader_info.flags =
+			ShaderDesc shader_desc{};
+			shader_desc.file = std::string(shaders_directory) + GetShaderSource(shader);
+			shader_desc.entry_point = "main";
+			shader_desc.stage = GetShaderStage(shader);
+			shader_desc.model = SM_6_6;
+			shader_desc.macros = GetShaderMacros(shader);
 #if _DEBUG
-			ShaderCompileInput::FlagDebug | ShaderCompileInput::FlagDisableOptimization;
+			shader_desc.flags = ShaderCompilerFlag_DisableOptimization | ShaderCompilerFlag_Debug;
 #else
-			ShaderCompileInput::FlagNone;
+			shader_desc.flags = ShaderCompilerFlag_None;
 #endif
-			shader_info.source_file = std::string(shaders_directory) + GetShaderSource(shader);
-			shader_info.stage = GetStage(shader);
-			shader_info.macros = GetShaderMacros(shader);
 			ShaderCompileOutput output;
-			ShaderCompiler::CompileShader(shader_info, output);
-			shader_map[shader] = std::move(output.blob);
+			ShaderCompiler::CompileShader(shader_desc, output);
+			shader_map[shader] = std::move(output.shader);
 			dependent_files_map[shader].clear();
 			dependent_files_map[shader].insert(output.dependent_files.begin(), output.dependent_files.end());
 			
-			shader_info.stage == EShaderStage::LIB ?
+			shader_desc.stage == EShaderStage::LIB ?
 				library_recompiled_event.Broadcast(shader) : shader_recompiled_event.Broadcast(shader);
 		}
 		void CompileAllShaders()
@@ -386,7 +387,7 @@ namespace adria
 		}
 	}
 
-	void ShaderManager::Initialize()
+	void ShaderCache::Initialize()
 	{
 		file_watcher = std::make_unique<FileWatcher>();
 		file_watcher->AddPathToWatch(shaders_directory);
@@ -394,29 +395,29 @@ namespace adria
 		CompileAllShaders();
 	}
 
-	void ShaderManager::Destroy()
+	void ShaderCache::Destroy()
 	{
 		file_watcher = nullptr;
 		shader_map.clear();
 		dependent_files_map.clear();
 	}
 
-	void ShaderManager::CheckIfShadersHaveChanged()
+	void ShaderCache::CheckIfShadersHaveChanged()
 	{
 		file_watcher->CheckWatchedFiles();
 	}
 
-	Shader const& ShaderManager::GetShader(EShader shader)
+	Shader const& ShaderCache::GetShader(EShader shader)
 	{
 		return shader_map[shader];
 	}
 
-	ShaderRecompiledEvent& ShaderManager::GetShaderRecompiledEvent()
+	ShaderRecompiledEvent& ShaderCache::GetShaderRecompiledEvent()
 	{
 		return shader_recompiled_event;
 	}
 
-	LibraryRecompiledEvent& ShaderManager::GetLibraryRecompiledEvent()
+	LibraryRecompiledEvent& ShaderCache::GetLibraryRecompiledEvent()
 	{
 		return library_recompiled_event;
 	}

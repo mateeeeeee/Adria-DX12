@@ -211,7 +211,7 @@ namespace adria
 	{
 		TaskSystem::Initialize();
 		ShaderCompiler::Initialize();
-		ShaderManager::Initialize();
+		ShaderCache::Initialize();
 		gfx = std::make_unique<GraphicsDevice>(GraphicsOptions{.debug_layer = init.debug_layer,
 															   .dred = init.dred,
 															   .gpu_validation = init.gpu_validation});
@@ -224,7 +224,7 @@ namespace adria
 		input_events.window_resized_event.AddMember(&GraphicsDevice::ResizeBackbuffer, *gfx);
 		input_events.window_resized_event.AddMember(&Renderer::OnResize, *renderer);
 		input_events.right_mouse_clicked.AddMember(&Renderer::OnRightMouseClicked, *renderer);
-		std::ignore = input_events.f5_pressed_event.Add(ShaderManager::CheckIfShadersHaveChanged);
+		std::ignore = input_events.f5_pressed_event.Add(ShaderCache::CheckIfShadersHaveChanged);
 
 		std::optional<SceneConfig> scene_config = ParseSceneConfig(init.scene_file);
 		if (scene_config.has_value()) InitializeScene(scene_config.value());
@@ -238,7 +238,7 @@ namespace adria
 	{
 		PSOCache::Destroy();
 		RootSignatureCache::Destroy();
-		ShaderManager::Destroy();
+		ShaderCache::Destroy();
 		ShaderCompiler::Destroy();
 		TaskSystem::Destroy();
 	}

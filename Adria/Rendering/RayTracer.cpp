@@ -33,7 +33,7 @@ namespace adria
 		}
 		OnResize(width, height);
 		CreateStateObjects();
-		ShaderManager::GetLibraryRecompiledEvent().AddMember(&RayTracer::OnLibraryRecompiled, *this);
+		ShaderCache::GetLibraryRecompiledEvent().AddMember(&RayTracer::OnLibraryRecompiled, *this);
 	}
 
 	bool RayTracer::IsSupported() const
@@ -539,11 +539,11 @@ namespace adria
 	{
 		ID3D12Device5* device = gfx->GetDevice();
 
-		Shader const& rt_shadows_blob		= ShaderManager::GetShader(LIB_Shadows);
-		Shader const& rt_soft_shadows_blob	= ShaderManager::GetShader(LIB_SoftShadows);
-		Shader const& rtao_blob				= ShaderManager::GetShader(LIB_AmbientOcclusion);
-		Shader const& rtr_blob				= ShaderManager::GetShader(LIB_Reflections);
-		Shader const& pt_blob				= ShaderManager::GetShader(LIB_PathTracing);
+		Shader const& rt_shadows_blob		= ShaderCache::GetShader(LIB_Shadows);
+		Shader const& rt_soft_shadows_blob	= ShaderCache::GetShader(LIB_SoftShadows);
+		Shader const& rtao_blob				= ShaderCache::GetShader(LIB_AmbientOcclusion);
+		Shader const& rtr_blob				= ShaderCache::GetShader(LIB_Reflections);
+		Shader const& pt_blob				= ShaderCache::GetShader(LIB_PathTracing);
 
 		StateObjectBuilder rt_shadows_state_object_builder(6);
 		{

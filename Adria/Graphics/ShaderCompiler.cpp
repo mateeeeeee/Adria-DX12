@@ -7,18 +7,17 @@
 #include "../Utilities/FilesUtil.h"
 #include "../Logging/Logger.h"
 
+using namespace Microsoft::WRL;
 
 namespace adria
 {
-	extern char const* shaders_directory;
 	namespace
 	{
-		Microsoft::WRL::ComPtr<IDxcLibrary> library = nullptr;
-		Microsoft::WRL::ComPtr<IDxcCompiler3> compiler = nullptr;
-		Microsoft::WRL::ComPtr<IDxcUtils> utils = nullptr;
-		Microsoft::WRL::ComPtr<IDxcIncludeHandler> include_handler = nullptr;
+		ComPtr<IDxcLibrary> library = nullptr;
+		ComPtr<IDxcCompiler3> compiler = nullptr;
+		ComPtr<IDxcUtils> utils = nullptr;
+		ComPtr<IDxcIncludeHandler> include_handler = nullptr;
 	}
-
 	class CustomIncludeHandler : public IDxcIncludeHandler
 	{
 	public:
@@ -26,7 +25,7 @@ namespace adria
 
 		HRESULT STDMETHODCALLTYPE LoadSource(_In_ LPCWSTR pFilename, _COM_Outptr_result_maybenull_ IDxcBlob** ppIncludeSource) override
 		{
-			Microsoft::WRL::ComPtr<IDxcBlobEncoding> encoding;
+			ComPtr<IDxcBlobEncoding> encoding;
 			std::string include_file = NormalizePath(ToString(pFilename));
 			if (!FileExists(include_file))
 			{
@@ -54,7 +53,6 @@ namespace adria
 
 		std::vector<std::string> include_files;
 	};
-
 	class ReflectionBlob : public IDxcBlob
 	{
 	public:
@@ -89,6 +87,71 @@ namespace adria
 		SIZE_T bytecodeSize = 0;
 	};
 
+	extern char const* shaders_directory;
+	inline constexpr std::wstring GetTarget(EShaderStage stage, EShaderModel model)
+	{
+		std::wstring target = L"";
+		switch (stage)
+		{
+		case EShaderStage::VS:
+			target += L"vs_";
+			break;
+		case EShaderStage::PS:
+			target += L"ps_";
+			break;
+		case EShaderStage::CS:
+			target += L"cs_";
+			break;
+		case EShaderStage::GS:
+			target += L"gs_";
+			break;
+		case EShaderStage::HS:
+			target += L"hs_";
+			break;
+		case EShaderStage::DS:
+			target += L"ds_";
+			break;
+		case EShaderStage::LIB:
+			target += L"lib_";
+			break;
+		case EShaderStage::MS:
+			target += L"ms_";
+			break;
+		case EShaderStage::AS:
+			target += L"as_";
+			break;
+		default:
+			ADRIA_ASSERT(false && "Invalid Shader Stage");
+		}
+		switch (model)
+		{
+		case SM_6_0:
+			target += L"6_0";
+			break;
+		case SM_6_1:
+			target += L"6_1";
+			break;
+		case SM_6_2:
+			target += L"6_2";
+			break;
+		case SM_6_3:
+			target += L"6_3";
+			break;
+		case SM_6_4:
+			target += L"6_4";
+			break;
+		case SM_6_5:
+			target += L"6_5";
+			break;
+		case SM_6_6:
+			target += L"6_6";
+			break;
+		default:
+			break;
+		}
+		return target;
+	}
+
 	namespace ShaderCompiler
 	{
 		void Initialize()
@@ -105,61 +168,26 @@ namespace adria
 			library.Reset();
 			utils.Reset();
 		}
-		void CompileShader(ShaderCompileInput const& input, ShaderCompileOutput& output)
+		bool CompileShader(ShaderDesc const& desc, ShaderCompileOutput& output)
 		{
 			uint32_t code_page = CP_UTF8; 
-			Microsoft::WRL::ComPtr<IDxcBlobEncoding> source_blob;
+			ComPtr<IDxcBlobEncoding> source_blob;
 
-			std::wstring shader_source = ToWideString(input.source_file);
+			std::wstring shader_source = ToWideString(desc.file);
 			HRESULT hr = library->CreateBlobFromFile(shader_source.data(), &code_page, &source_blob);
 			BREAK_IF_FAILED(hr);
 
-			std::wstring name = ToWideString(GetFilenameWithoutExtension(input.source_file));
+			std::wstring name = ToWideString(GetFilenameWithoutExtension(desc.file));
 			std::wstring dir  = ToWideString(shaders_directory);
-			std::wstring path = ToWideString(GetParentPath(input.source_file));
+			std::wstring path = ToWideString(GetParentPath(desc.file));
 			
-			std::wstring p_target = L"";
-			std::wstring entry_point = L"";
-			switch (input.stage)
-			{
-			case EShaderStage::VS:
-				p_target = L"vs_6_6";
-				entry_point = L"vs_main";
-				break;
-			case EShaderStage::PS:
-				p_target = L"ps_6_6";
-				entry_point = L"ps_main";
-				break;
-			case EShaderStage::CS:
-				p_target = L"cs_6_6";
-				entry_point = L"cs_main";
-				break;
-			case EShaderStage::GS:
-				p_target = L"gs_6_6";
-				entry_point = L"gs_main";
-				break;
-			case EShaderStage::HS:
-				p_target = L"hs_6_6";
-				entry_point = L"hs_main";
-				break;
-			case EShaderStage::DS:
-				p_target = L"ds_6_6";
-				entry_point = L"ds_main";
-				break;
-			case EShaderStage::LIB:
-				p_target = L"lib_6_6";
-				break;
-			case EShaderStage::MS:
-			case EShaderStage::AS:
-			default:
-				ADRIA_ASSERT(false && "Invalid Shader Stage");
-			}
-
-			if (!input.entrypoint.empty()) entry_point = ToWideString(input.entrypoint);
+			std::wstring target = GetTarget(desc.stage, desc.model);
+			std::wstring entry_point = ToWideString(desc.entry_point);
+			if (entry_point.empty()) entry_point = L"main";
 
 			std::vector<wchar_t const*> compile_args{};
 			compile_args.push_back(name.c_str());
-			if (input.flags & ShaderCompileInput::FlagDebug)
+			if (desc.flags & ShaderCompilerFlag_Debug)
 			{
 				compile_args.push_back(DXC_ARG_DEBUG);
 				compile_args.push_back(L"-Qembed_debug");
@@ -170,7 +198,7 @@ namespace adria
 				compile_args.push_back(L"-Qstrip_reflect");
 			}
 
-			if (input.flags & ShaderCompileInput::FlagDisableOptimization)
+			if (desc.flags & ShaderCompilerFlag_DisableOptimization)
 			{
 				compile_args.push_back(DXC_ARG_SKIP_OPTIMIZATIONS);
 			}
@@ -182,7 +210,7 @@ namespace adria
 			compile_args.push_back(L"-E");
 			compile_args.push_back(entry_point.c_str());
 			compile_args.push_back(L"-T");
-			compile_args.push_back(p_target.c_str());
+			compile_args.push_back(target.c_str());
 
 			compile_args.push_back(L"-I");
 			compile_args.push_back(dir.c_str());
@@ -190,8 +218,8 @@ namespace adria
 			compile_args.push_back(path.c_str());
 
 			std::vector<std::wstring> macros;
-			macros.reserve(input.macros.size());
-			for (auto const& define : input.macros)
+			macros.reserve(desc.macros.size());
+			for (auto const& define : desc.macros)
 			{
 				compile_args.push_back(L"-D");
 				if (define.value.empty()) macros.push_back(define.name + L"=1");
@@ -204,43 +232,42 @@ namespace adria
 			source_buffer.Ptr = source_blob->GetBufferPointer();
 			source_buffer.Size = source_blob->GetBufferSize();
 			source_buffer.Encoding = 0;
-			Microsoft::WRL::ComPtr<IDxcResult> result;
+			ComPtr<IDxcResult> result;
 			hr = compiler->Compile(
-				&source_buffer,										// buffer 
-				compile_args.data(), (uint32)compile_args.size(),	//args
-				&custom_include_handler,							// pIncludeHandler
-				IID_PPV_ARGS(result.GetAddressOf()));				// ppResult
+				&source_buffer,
+				compile_args.data(), (uint32)compile_args.size(),
+				&custom_include_handler,
+				IID_PPV_ARGS(result.GetAddressOf()));
 
-			Microsoft::WRL::ComPtr<IDxcBlobUtf8> errors;
+			ComPtr<IDxcBlobUtf8> errors;
 			if (SUCCEEDED(result->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(errors.GetAddressOf()), nullptr)))
 			{
 				if (errors && errors->GetStringLength() > 0)
 				{
-					std::string a = errors->GetStringPointer();
 					ADRIA_LOG(DEBUG, "%s", errors->GetStringPointer());
-					return;
+					return false;
 				}
 			}
-			Microsoft::WRL::ComPtr<IDxcBlob> _blob;
+			ComPtr<IDxcBlob> _blob;
 			BREAK_IF_FAILED(result->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(_blob.GetAddressOf()), nullptr));
-			output.blob.bytecode.resize(_blob->GetBufferSize());
-			memcpy(output.blob.GetPointer(), _blob->GetBufferPointer(), _blob->GetBufferSize());
-			output.dependent_files = custom_include_handler.include_files;
-			output.dependent_files.push_back(input.source_file);
+			output.shader.SetDesc(desc);
+			output.shader.SetBytecode(_blob->GetBufferPointer(), _blob->GetBufferSize());
+			output.dependent_files = std::move(custom_include_handler.include_files);
+			output.dependent_files.push_back(desc.file);
+			return true;
 		}
-		void GetBlobFromCompiledShader(std::wstring_view filename, Shader& blob)
+		void ReadBlobFromFile(std::wstring_view filename, ShaderBlob& blob)
 		{
 			uint32_t code_page = CP_UTF8;
-			Microsoft::WRL::ComPtr<IDxcBlobEncoding> source_blob;
+			ComPtr<IDxcBlobEncoding> source_blob;
 			HRESULT hr = library->CreateBlobFromFile(filename.data(), &code_page, &source_blob);
 			BREAK_IF_FAILED(hr);
-
-			blob.bytecode.resize(source_blob->GetBufferSize());
-			memcpy(blob.GetPointer(), source_blob->GetBufferPointer(), source_blob->GetBufferSize());
+			blob.resize(source_blob->GetBufferSize());
+			memcpy(blob.data(), source_blob->GetBufferPointer(), source_blob->GetBufferSize());
 		}
 		void CreateInputLayout(Shader const& vs_blob, InputLayout& input_layout)
 		{
-			Microsoft::WRL::ComPtr<IDxcContainerReflection> reflection;
+			ComPtr<IDxcContainerReflection> reflection;
 			HRESULT hr = DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(reflection.GetAddressOf()));
 			ReflectionBlob my_blob{ vs_blob.GetPointer() , vs_blob.GetLength() };
 			BREAK_IF_FAILED(hr);
@@ -253,7 +280,7 @@ namespace adria
 			BREAK_IF_FAILED(reflection->FindFirstPartKind(MAKEFOURCC('D', 'X', 'I', 'L'), &part_index));
 #undef MAKEFOURCC
 
-			Microsoft::WRL::ComPtr<ID3D12ShaderReflection> vertex_shader_reflection;
+			ComPtr<ID3D12ShaderReflection> vertex_shader_reflection;
 			BREAK_IF_FAILED(reflection->GetPartReflection(part_index, IID_PPV_ARGS(vertex_shader_reflection.GetAddressOf())));
 
 			D3D12_SHADER_DESC shader_desc;

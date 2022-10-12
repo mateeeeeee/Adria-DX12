@@ -92,12 +92,12 @@ namespace adria
 		if (error) ADRIA_LOG(ERROR, (char const*)error->GetBufferPointer());
 		BREAK_IF_FAILED(gfx->GetDevice()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&equirect_root_signature)));
 
-		Shader equirect_cs_shader;
-		ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/Equirect2cubeCS.cso", equirect_cs_shader);
+		ShaderBlob equirect_cs_shader;
+		ShaderCompiler::ReadBlobFromFile(L"Resources/Compiled Shaders/Equirect2cubeCS.cso", equirect_cs_shader);
 
 		D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc{};
 		pso_desc.pRootSignature = equirect_root_signature.Get();
-		pso_desc.CS = equirect_cs_shader;
+		pso_desc.CS = D3D12_SHADER_BYTECODE{.pShaderBytecode = equirect_cs_shader.data(), .BytecodeLength = equirect_cs_shader.size()};
 		BREAK_IF_FAILED(gfx->GetDevice()->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&equirect_pso)));
     }
 
@@ -157,7 +157,7 @@ namespace adria
 				TextureDesc desc{};
 				desc.type = TextureType_2D;
                 desc.misc_flags = ETextureMiscFlag::TextureCube;
-				desc.width = _desc.Width;
+				desc.width = (uint32)_desc.Width;
 				desc.height = _desc.Height;
 				desc.array_size = 6;
 				desc.bind_flags = EBindFlag::ShaderResource;
@@ -346,7 +346,7 @@ namespace adria
             TextureDesc desc{};
             desc.type = ConvertTextureType(_desc.Dimension);
             desc.misc_flags = ETextureMiscFlag::None;
-            desc.width = _desc.Width;
+            desc.width = (uint32)_desc.Width;
             desc.height = _desc.Height;
             desc.array_size = _desc.DepthOrArraySize;
             desc.depth = _desc.DepthOrArraySize;
@@ -393,7 +393,7 @@ namespace adria
 			TextureDesc desc{};
 			desc.type = TextureType_2D;
 			desc.misc_flags = ETextureMiscFlag::None;
-			desc.width = _desc.Width;
+			desc.width = (uint32)_desc.Width;
 			desc.height = _desc.Height;
 			desc.array_size = _desc.DepthOrArraySize;
 			desc.depth = _desc.DepthOrArraySize;

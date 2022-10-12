@@ -142,7 +142,7 @@ namespace adria
 				Texture const& tiled_debug_target = context.GetTexture(data.tiled_debug_target.GetResourceId());
 				cmd_list->ClearUnorderedAccessViewFloat(uav_debug_for_clear, context.GetReadWriteTexture(data.tiled_debug_target), tiled_debug_target.GetNative(),
 					black, 0, nullptr);
-				cmd_list->Dispatch(std::ceil(width / 16.0f), std::ceil(height / 16.0f), 1);
+				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
 			}, ERGPassType::Compute, ERGPassFlags::None);
 
 		if (visualize_tiled)  add_textures_pass.AddPass(rendergraph, RG_RES_NAME(HDR_RenderTarget), RG_RES_NAME(TiledTarget), RG_RES_NAME(TiledDebugTarget), EBlendMode::AlphaBlend);

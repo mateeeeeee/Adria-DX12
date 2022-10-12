@@ -23,7 +23,7 @@ namespace adria
 
 		inline Shader const& GetShader(EShader shader)
 		{
-			return ShaderManager::GetShader(shader);
+			return ShaderCache::GetShader(shader);
 		}
 		void CreateAllPSOs()
 		{

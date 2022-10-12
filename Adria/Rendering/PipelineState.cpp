@@ -12,12 +12,12 @@ namespace adria
 	GraphicsPipelineState::GraphicsPipelineState(GraphicsDevice* gfx, GraphicsPipelineStateDesc const& desc) : desc(desc), gfx(gfx)
 	{
 		Create(desc);
-		event_handle = ShaderManager::GetShaderRecompiledEvent().AddMember(&GraphicsPipelineState::OnShaderRecompiled, *this);
+		event_handle = ShaderCache::GetShaderRecompiledEvent().AddMember(&GraphicsPipelineState::OnShaderRecompiled, *this);
 	}
 
 	GraphicsPipelineState::~GraphicsPipelineState()
 	{
-		ShaderManager::GetShaderRecompiledEvent().Remove(event_handle);
+		ShaderCache::GetShaderRecompiledEvent().Remove(event_handle);
 	}
 
 	GraphicsPipelineState::operator ID3D12PipelineState* () const
@@ -42,11 +42,11 @@ namespace adria
 	{
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc{};
 		_desc.pRootSignature = RootSignatureCache::Get(desc.root_signature);
-		_desc.VS = ShaderManager::GetShader(desc.VS);
-		_desc.PS = ShaderManager::GetShader(desc.PS);
-		_desc.GS = ShaderManager::GetShader(desc.GS);
-		_desc.HS = ShaderManager::GetShader(desc.HS);
-		_desc.DS = ShaderManager::GetShader(desc.DS);
+		_desc.VS = ShaderCache::GetShader(desc.VS);
+		_desc.PS = ShaderCache::GetShader(desc.PS);
+		_desc.GS = ShaderCache::GetShader(desc.GS);
+		_desc.HS = ShaderCache::GetShader(desc.HS);
+		_desc.DS = ShaderCache::GetShader(desc.DS);
 		std::vector<D3D12_INPUT_ELEMENT_DESC> input_element_descs;
 		ConvertInputLayout(desc.input_layout, input_element_descs);
 		_desc.InputLayout = { .pInputElementDescs = input_element_descs.data(), .NumElements = (UINT)input_element_descs.size() };
@@ -70,12 +70,12 @@ namespace adria
 	ComputePipelineState::ComputePipelineState(GraphicsDevice* gfx, ComputePipelineStateDesc const& desc) : gfx(gfx), desc(desc)
 	{
 		Create(desc);
-		event_handle = ShaderManager::GetShaderRecompiledEvent().AddMember(&ComputePipelineState::OnShaderRecompiled, *this);
+		event_handle = ShaderCache::GetShaderRecompiledEvent().AddMember(&ComputePipelineState::OnShaderRecompiled, *this);
 	}
 
 	ComputePipelineState::~ComputePipelineState()
 	{
-		ShaderManager::GetShaderRecompiledEvent().Remove(event_handle);
+		ShaderCache::GetShaderRecompiledEvent().Remove(event_handle);
 	}
 
 	ComputePipelineState::operator ID3D12PipelineState* () const
@@ -92,7 +92,7 @@ namespace adria
 	{
 		D3D12_COMPUTE_PIPELINE_STATE_DESC _desc{};
 		_desc.pRootSignature = RootSignatureCache::Get(desc.root_signature);
-		_desc.CS = ShaderManager::GetShader(desc.CS);
+		_desc.CS = ShaderCache::GetShader(desc.CS);
 		BREAK_IF_FAILED(gfx->GetDevice()->CreateComputePipelineState(&_desc, IID_PPV_ARGS(pso.ReleaseAndGetAddressOf())));
 	}
 

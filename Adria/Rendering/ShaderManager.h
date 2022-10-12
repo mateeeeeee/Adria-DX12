@@ -5,12 +5,12 @@
 namespace adria
 {
 	class GraphicsDevice;
-	struct Shader;
+	class Shader;
 
 	DECLARE_MULTICAST_DELEGATE(ShaderRecompiledEvent, EShader);
 	DECLARE_MULTICAST_DELEGATE(LibraryRecompiledEvent, EShader);
 
-	class ShaderManager
+	class ShaderCache
 	{
 	public:
 		static void Initialize();

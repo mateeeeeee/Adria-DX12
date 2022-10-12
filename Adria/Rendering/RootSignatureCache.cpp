@@ -13,7 +13,7 @@ namespace adria
 		HashMap<ERootSignature, ComPtr<ID3D12RootSignature>> rs_map;
 		inline Shader const& GetShader(EShader shader)
 		{
-			return ShaderManager::GetShader(shader);
+			return ShaderCache::GetShader(shader);
 		}
 		void CreateAllRootSignatures(ID3D12Device* device)
 		{
