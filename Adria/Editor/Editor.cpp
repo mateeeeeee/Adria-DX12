@@ -160,9 +160,9 @@ namespace adria
 	void Editor::Init(EditorInit&& init)
 	{
 		editor_log = std::make_unique<ImGuiLogger>();
+		ADRIA_REGISTER_LOGGER(new EditorLogger(editor_log.get()));
 		engine = std::make_unique<Engine>(init.engine_init);
 		gui = std::make_unique<GUI>(engine->gfx.get());
-		ADRIA_REGISTER_LOGGER(new EditorLogger(editor_log.get()));
 		engine->RegisterEditorEventCallbacks(editor_events);
 		SetStyle();
 	}

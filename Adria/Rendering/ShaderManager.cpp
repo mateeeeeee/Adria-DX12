@@ -363,6 +363,7 @@ namespace adria
 		}
 		void CompileAllShaders()
 		{
+			Timer t;
 			ADRIA_LOG(INFO, "Compiling all shaders...");
 			using UnderlyingType = std::underlying_type_t<EShader>;
 			std::vector<UnderlyingType> shaders(EShader_Count);
@@ -376,7 +377,7 @@ namespace adria
 					EShader shader = static_cast<EShader>(s);
 					CompileShader(shader);
 				});
-			ADRIA_LOG(INFO, "Compilation done!");
+			ADRIA_LOG(INFO, "Compilation done in %f seconds!", t.ElapsedInSeconds());
 		}
 		void OnShaderFileChanged(std::string const& filename)
 		{
