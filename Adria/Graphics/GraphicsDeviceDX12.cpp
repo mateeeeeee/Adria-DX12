@@ -6,6 +6,9 @@
 #include "../Core/Window.h"
 
 
+extern "C" { __declspec(dllexport) extern const UINT D3D12SDKVersion = D3D12_SDK_VERSION; }
+extern "C" { __declspec(dllexport) extern const char* D3D12SDKPath = ".\\D3D12\\"; }
+
 namespace adria
 {
 	namespace
@@ -269,205 +272,192 @@ namespace adria
 		allocator.reset(_allocator);
 
 		// Create command queues
-		{
-			D3D12_COMMAND_QUEUE_DESC graphics_queue_desc = {};
-			graphics_queue_desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-			graphics_queue_desc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
-			graphics_queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-			graphics_queue_desc.NodeMask = 0;
-			hr = device->CreateCommandQueue(&graphics_queue_desc, IID_PPV_ARGS(&graphics_queue));
-			BREAK_IF_FAILED(hr);
-			graphics_queue->SetName(L"Graphics Queue");
+		D3D12_COMMAND_QUEUE_DESC graphics_queue_desc = {};
+		graphics_queue_desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+		graphics_queue_desc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
+		graphics_queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+		graphics_queue_desc.NodeMask = 0;
+		hr = device->CreateCommandQueue(&graphics_queue_desc, IID_PPV_ARGS(&graphics_queue));
+		BREAK_IF_FAILED(hr);
+		graphics_queue->SetName(L"Graphics Queue");
 
-			D3D12_COMMAND_QUEUE_DESC compute_queue_desc = {};
-			compute_queue_desc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
-			compute_queue_desc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
-			compute_queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-			compute_queue_desc.NodeMask = 0;
-			hr = device->CreateCommandQueue(&compute_queue_desc, IID_PPV_ARGS(&compute_queue));
-			BREAK_IF_FAILED(hr);
-			compute_queue->SetName(L"Compute Queue");
-		}
+		D3D12_COMMAND_QUEUE_DESC compute_queue_desc = {};
+		compute_queue_desc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
+		compute_queue_desc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
+		compute_queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+		compute_queue_desc.NodeMask = 0;
+		hr = device->CreateCommandQueue(&compute_queue_desc, IID_PPV_ARGS(&compute_queue));
+		BREAK_IF_FAILED(hr);
+		compute_queue->SetName(L"Compute Queue");
 
 		//create swap chain
+
+		IDXGISwapChain1* _swap_chain1 = nullptr;
+		DXGI_SWAP_CHAIN_DESC1 sd{};
+		sd.Width = width;
+		sd.Height = height;
+		sd.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+		sd.Stereo = false;
+		sd.SampleDesc.Count = 1;
+		sd.SampleDesc.Quality = 0;
+		sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		sd.BufferCount = BACKBUFFER_COUNT;
+		sd.Flags = 0;
+		sd.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
+		sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+		sd.Scaling = DXGI_SCALING_NONE;
+		hr = dxgi_factory->CreateSwapChainForHwnd(graphics_queue.Get(), hwnd, &sd, nullptr, nullptr, &_swap_chain1);
+		hr = _swap_chain1->QueryInterface(IID_PPV_ARGS(&swap_chain));
+		BREAK_IF_FAILED(hr);
+		_swap_chain1->Release();
+
+		backbuffer_index = swap_chain->GetCurrentBackBufferIndex();
+		last_backbuffer_index = backbuffer_index;
+
+		for (size_t i = 0; i < offline_descriptor_allocators.size(); ++i)
 		{
-			IDXGISwapChain1* _swapChain = nullptr;
-			DXGI_SWAP_CHAIN_DESC1 sd = {};
-			sd.Width = width;
-			sd.Height = height;
-			sd.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
-			sd.Stereo = false;
-			sd.SampleDesc.Count = 1; // Don't use multi-sampling.
-			sd.SampleDesc.Quality = 0;
-			sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-			sd.BufferCount = BACKBUFFER_COUNT;
-			sd.Flags = 0;
-			sd.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
-			sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
-			sd.Scaling = DXGI_SCALING_NONE;
-			hr = dxgi_factory->CreateSwapChainForHwnd(graphics_queue.Get(), hwnd, &sd, nullptr, nullptr, &_swapChain);
-			hr = _swapChain->QueryInterface(IID_PPV_ARGS(&swap_chain));
+			offline_descriptor_allocators[i] = std::make_unique<OfflineDescriptorAllocator>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE(i), D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 250);
+		}
+		for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
+		{
+			dynamic_allocators.emplace_back(new LinearDynamicAllocator(this, 50'000'000));
+		}
+		dynamic_allocator_before_rendering.reset(new LinearDynamicAllocator(this, 750'000'000));
+
+		release_queue_fence_value = 0;
+		hr = device->CreateFence(release_queue_fence_value, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&release_queue_fence));
+		release_queue_fence_value++;
+		BREAK_IF_FAILED(hr);
+		release_queue_event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		if (release_queue_event == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
+
+		for (UINT fr = 0; fr < BACKBUFFER_COUNT; ++fr)
+		{
+			hr = swap_chain->GetBuffer(fr, IID_PPV_ARGS(&frames[fr].back_buffer));
 			BREAK_IF_FAILED(hr);
-			_swapChain->Release();
+			frames[fr].back_buffer_rtv = offline_descriptor_allocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV]->AllocateDescriptor();
+			device->CreateRenderTargetView(frames[fr].back_buffer.Get(), nullptr, frames[fr].back_buffer_rtv);
 
-			backbuffer_index = swap_chain->GetCurrentBackBufferIndex();
-			last_backbuffer_index = backbuffer_index;
-		}
-
-		//create upload and descriptor allocators
-		{
-			for (size_t i = 0; i < offline_descriptor_allocators.size(); ++i)
-			{
-				offline_descriptor_allocators[i] = std::make_unique<OfflineDescriptorAllocator>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE(i), D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 250);
-			}
-			for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
-			{
-				dynamic_allocators.emplace_back(new LinearDynamicAllocator(this, 50'000'000));
-			}
-			dynamic_allocator_before_rendering.reset(new LinearDynamicAllocator(this, 750'000'000));
-		}
-
-		//release queue
-		{
-			release_queue_fence_value = 0;
-			hr = device->CreateFence(release_queue_fence_value, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&release_queue_fence));
-			release_queue_fence_value++;
+			hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(frames[fr].default_cmd_allocator.GetAddressOf()));
 			BREAK_IF_FAILED(hr);
-			release_queue_event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-			if (release_queue_event == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
-		}
-
-		//frame resources
-		{
-			for (UINT fr = 0; fr < BACKBUFFER_COUNT; ++fr)
-			{
-				hr = swap_chain->GetBuffer(fr, IID_PPV_ARGS(&frames[fr].back_buffer));
-				BREAK_IF_FAILED(hr);
-				frames[fr].back_buffer_rtv = offline_descriptor_allocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV]->AllocateDescriptor();
-				device->CreateRenderTargetView(frames[fr].back_buffer.Get(), nullptr, frames[fr].back_buffer_rtv);
-
-				hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(frames[fr].default_cmd_allocator.GetAddressOf()));
-				BREAK_IF_FAILED(hr);
-				hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, frames[fr].default_cmd_allocator.Get(), nullptr, IID_PPV_ARGS(frames[fr].default_cmd_list.GetAddressOf()));
-				BREAK_IF_FAILED(hr);
-				hr = frames[fr].default_cmd_list->Close();
-				BREAK_IF_FAILED(hr);
-
-				for (UINT i = 0; i < CMD_LIST_COUNT; ++i)
-				{
-					hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(frames[fr].cmd_allocators[i].GetAddressOf()));
-					BREAK_IF_FAILED(hr);
-					hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, frames[fr].cmd_allocators[i].Get(), nullptr, IID_PPV_ARGS(frames[fr].cmd_lists[i].GetAddressOf()));
-					BREAK_IF_FAILED(hr);
-					hr = frames[fr].cmd_lists[i]->Close();
-					BREAK_IF_FAILED(hr);
-
-					hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COMPUTE, IID_PPV_ARGS(frames[fr].compute_cmd_allocators[i].GetAddressOf()));
-					BREAK_IF_FAILED(hr);
-					hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_COMPUTE, frames[fr].compute_cmd_allocators[i].Get(), nullptr, IID_PPV_ARGS(frames[fr].compute_cmd_lists[i].GetAddressOf()));
-					BREAK_IF_FAILED(hr);
-					hr = frames[fr].compute_cmd_lists[i]->Close();
-					BREAK_IF_FAILED(hr);
-				}
-			}
-		}
-
-		//sync objects
-		{
-			for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
-			{
-				hr = device->CreateFence(frame_fence_values[i], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&frame_fences[i]));
-				BREAK_IF_FAILED(hr);
-				frame_fence_events[i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-				if (frame_fence_events[i] == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
-
-				hr = device->CreateFence(graphics_fence_values[i], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&graphics_fences[i]));
-				BREAK_IF_FAILED(hr);
-				graphics_fence_events[i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-				if (graphics_fence_events[i] == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
-
-				hr = device->CreateFence(compute_fence_values[i], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&compute_fences[i]));
-				BREAK_IF_FAILED(hr);
-				compute_fence_events[i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-				if (compute_fence_events[i] == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
-			}
-
-			wait_fence_value = 0;
-			hr = device->CreateFence(wait_fence_value, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&wait_fence));
-			wait_fence_value++;
+			hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, frames[fr].default_cmd_allocator.Get(), nullptr, IID_PPV_ARGS(frames[fr].default_cmd_list.GetAddressOf()));
 			BREAK_IF_FAILED(hr);
-			wait_event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-			if (wait_event == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
+			hr = frames[fr].default_cmd_list->Close();
+			BREAK_IF_FAILED(hr);
+
+			for (UINT i = 0; i < CMD_LIST_COUNT; ++i)
+			{
+				hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(frames[fr].cmd_allocators[i].GetAddressOf()));
+				BREAK_IF_FAILED(hr);
+				hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, frames[fr].cmd_allocators[i].Get(), nullptr, IID_PPV_ARGS(frames[fr].cmd_lists[i].GetAddressOf()));
+				BREAK_IF_FAILED(hr);
+				hr = frames[fr].cmd_lists[i]->Close();
+				BREAK_IF_FAILED(hr);
+
+				hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COMPUTE, IID_PPV_ARGS(frames[fr].compute_cmd_allocators[i].GetAddressOf()));
+				BREAK_IF_FAILED(hr);
+				hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_COMPUTE, frames[fr].compute_cmd_allocators[i].Get(), nullptr, IID_PPV_ARGS(frames[fr].compute_cmd_lists[i].GetAddressOf()));
+				BREAK_IF_FAILED(hr);
+				hr = frames[fr].compute_cmd_lists[i]->Close();
+				BREAK_IF_FAILED(hr);
+			}
 		}
 
-		//Info queue
+		for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
 		{
-			Microsoft::WRL::ComPtr<ID3D12InfoQueue> pInfoQueue;
-			if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(pInfoQueue.GetAddressOf()))))
+			hr = device->CreateFence(frame_fence_values[i], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&frame_fences[i]));
+			BREAK_IF_FAILED(hr);
+			frame_fence_events[i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+			if (frame_fence_events[i] == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
+
+			hr = device->CreateFence(graphics_fence_values[i], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&graphics_fences[i]));
+			BREAK_IF_FAILED(hr);
+			graphics_fence_events[i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+			if (graphics_fence_events[i] == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
+
+			hr = device->CreateFence(compute_fence_values[i], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&compute_fences[i]));
+			BREAK_IF_FAILED(hr);
+			compute_fence_events[i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+			if (compute_fence_events[i] == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
+		}
+
+		wait_fence_value = 0;
+		hr = device->CreateFence(wait_fence_value, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&wait_fence));
+		wait_fence_value++;
+		BREAK_IF_FAILED(hr);
+		wait_event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		if (wait_event == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
+
+		
+		Microsoft::WRL::ComPtr<ID3D12InfoQueue> pInfoQueue;
+		if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(pInfoQueue.GetAddressOf()))))
+		{
+			//D3D12_MESSAGE_CATEGORY Categories[] = {};
+		
+			D3D12_MESSAGE_SEVERITY Severities[] =
 			{
-				//D3D12_MESSAGE_CATEGORY Categories[] = {};
+				D3D12_MESSAGE_SEVERITY_INFO
+			};
 		
-				D3D12_MESSAGE_SEVERITY Severities[] =
-				{
-					D3D12_MESSAGE_SEVERITY_INFO
-				};
+			D3D12_MESSAGE_ID DenyIds[] =
+			{
+				D3D12_MESSAGE_ID_INVALID_DESCRIPTOR_HANDLE,
+			};
 		
-				D3D12_MESSAGE_ID DenyIds[] =
-				{
-					D3D12_MESSAGE_ID_INVALID_DESCRIPTOR_HANDLE,
-				};
-		
-				D3D12_INFO_QUEUE_FILTER NewFilter = {};
-				//NewFilter.DenyList.NumCategories = ARRAYSIZE(Categories);
+			D3D12_INFO_QUEUE_FILTER NewFilter = {};
+			//NewFilter.DenyList.NumCategories = ARRAYSIZE(Categories);
 				//NewFilter.DenyList.pCategoryList = Categories;
-				NewFilter.DenyList.NumSeverities = ARRAYSIZE(Severities);
-				NewFilter.DenyList.pSeverityList = Severities;
-				NewFilter.DenyList.NumIDs = ARRAYSIZE(DenyIds);
-				NewFilter.DenyList.pIDList = DenyIds;
+			NewFilter.DenyList.NumSeverities = ARRAYSIZE(Severities);
+			NewFilter.DenyList.pSeverityList = Severities;
+			NewFilter.DenyList.NumIDs = ARRAYSIZE(DenyIds);
+			NewFilter.DenyList.pIDList = DenyIds;
 		
-				BREAK_IF_FAILED(pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true));
-				BREAK_IF_FAILED(pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true));
-				BREAK_IF_FAILED(pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true));
-				pInfoQueue->PushStorageFilter(&NewFilter);
+			BREAK_IF_FAILED(pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true));
+			BREAK_IF_FAILED(pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true));
+			BREAK_IF_FAILED(pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true));
+			pInfoQueue->PushStorageFilter(&NewFilter);
 		
-				Microsoft::WRL::ComPtr<ID3D12InfoQueue1> pInfoQueue1;
-				pInfoQueue.As(&pInfoQueue1);
-				if (pInfoQueue1)
+			Microsoft::WRL::ComPtr<ID3D12InfoQueue1> pInfoQueue1;
+			pInfoQueue.As(&pInfoQueue1);
+			if (pInfoQueue1)
+			{
+				auto MessageCallback = [](
+					D3D12_MESSAGE_CATEGORY Category,
+					D3D12_MESSAGE_SEVERITY Severity,
+					D3D12_MESSAGE_ID ID,
+					LPCSTR pDescription,
+					void* pContext)
 				{
-					auto MessageCallback = [](
-						D3D12_MESSAGE_CATEGORY Category,
-						D3D12_MESSAGE_SEVERITY Severity,
-						D3D12_MESSAGE_ID ID,
-						LPCSTR pDescription,
-						void* pContext)
-					{
-						ADRIA_LOG(WARNING, "D3D12 Validation Layer: %s", pDescription);
-					};
-					DWORD callbackCookie = 0;
-					BREAK_IF_FAILED(pInfoQueue1->RegisterMessageCallback(MessageCallback, D3D12_MESSAGE_CALLBACK_FLAG_NONE, this, &callbackCookie));
-				}
+					ADRIA_LOG(WARNING, "D3D12 Validation Layer: %s", pDescription);
+				};
+				DWORD callbackCookie = 0;
+				BREAK_IF_FAILED(pInfoQueue1->RegisterMessageCallback(MessageCallback, D3D12_MESSAGE_CALLBACK_FLAG_NONE, this, &callbackCookie));
 			}
 		}
+		
 		std::atexit(ReportLiveObjects);
 		
-		//hr = device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(dred_fence.GetAddressOf()));
-		//device_removed_event = ::CreateEvent(nullptr, false, false, nullptr);
-		//hr = dred_fence->SetEventOnCompletion(UINT64_MAX, device_removed_event);
-		//if (FAILED(hr) || device_removed_event == nullptr)
-		//{
-		//	ADRIA_LOG(WARNING, "Failed to set device removed completion event!");
-		//	return;
-		//}
-		//RegisterWaitForSingleObject(&device_removed_event, device_removed_event, DeviceRemovedHandler, device.Get(), INFINITE, 0);
+		if (options.dred)
+		{
+			hr = device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(dred_fence.GetAddressOf()));
+			BREAK_IF_FAILED(hr);
+			wait_handle = CreateEventA(nullptr, false, false, nullptr);
+			dred_fence->SetEventOnCompletion(UINT64_MAX, wait_handle);
+			ADRIA_ASSERT(RegisterWaitForSingleObject(&wait_handle, wait_handle, DeviceRemovedHandler, device.Get(), INFINITE, 0));
+
+		}
 	}
 
 	GraphicsDevice::~GraphicsDevice()
 	{
 		WaitForGPU();
 		ProcessReleaseQueue();
-
-		//ADRIA_ASSERT(UnregisterWaitEx(device_removed_event, INVALID_HANDLE_VALUE));
-		//CloseHandle(device_removed_event);
+		if (dred_fence)
+		{
+			dred_fence->Signal(UINT64_MAX);
+			ADRIA_ASSERT(UnregisterWaitEx(wait_handle, INVALID_HANDLE_VALUE));
+			CloseHandle(wait_handle);
+		}
 
 		for (size_t i = 0; i < BACKBUFFER_COUNT; ++i)
 		{

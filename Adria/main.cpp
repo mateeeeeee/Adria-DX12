@@ -11,9 +11,6 @@
 #include "Utilities/MemoryDebugger.h"
 #include "Utilities/CLIParser.h"
 
-extern "C" { __declspec(dllexport) extern const UINT D3D12SDKVersion = 602; }
-extern "C" { __declspec(dllexport) extern const char* D3D12SDKPath = ".\\D3D12\\"; }
-
 using namespace adria;
 
 int APIENTRY wWinMain(
@@ -51,7 +48,7 @@ int APIENTRY wWinMain(
         window_init.title = title.AsStringOr("Adria");
         window_init.maximize = maximize;
         Window::Initialize(window_init);
-
+         
         EngineInit engine_init{};
         engine_init.vsync = vsync;
         engine_init.debug_layer = debug_layer;

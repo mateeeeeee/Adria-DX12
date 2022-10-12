@@ -48,7 +48,6 @@ namespace adria
 	{
 		static constexpr UINT BACKBUFFER_COUNT = 3;
 		static constexpr UINT CMD_LIST_COUNT = 32;
-
 		struct FrameResources
 		{
 			Microsoft::WRL::ComPtr<ID3D12Resource>	back_buffer = nullptr;
@@ -163,8 +162,8 @@ namespace adria
 		std::vector<std::unique_ptr<LinearDynamicAllocator>> dynamic_allocators;
 		std::unique_ptr<LinearDynamicAllocator> dynamic_allocator_before_rendering;
 
-		//Microsoft::WRL::ComPtr<ID3D12Fence> dred_fence = nullptr;
-		//HANDLE device_removed_event = nullptr;
+		Microsoft::WRL::ComPtr<ID3D12Fence> dred_fence = nullptr;
+		HANDLE wait_handle = nullptr;
 
 		BOOL rendering_not_started = TRUE;
 	private:
