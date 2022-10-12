@@ -200,7 +200,6 @@ namespace adria
 			}
 
 			CustomIncludeHandler custom_include_handler{};
-
 			DxcBuffer source_buffer;
 			source_buffer.Ptr = source_blob->GetBufferPointer();
 			source_buffer.Size = source_blob->GetBufferSize();
@@ -229,45 +228,45 @@ namespace adria
 			output.dependent_files = custom_include_handler.include_files;
 			output.dependent_files.push_back(input.source_file);
 		}
-		void GetBlobFromCompiledShader(std::wstring_view filename, ShaderBlob& blob)
+		void GetBlobFromCompiledShader(std::wstring_view filename, Shader& blob)
 		{
-			uint32_t codePage = CP_UTF8;
-			Microsoft::WRL::ComPtr<IDxcBlobEncoding> sourceBlob;
-			HRESULT hr = library->CreateBlobFromFile(filename.data(), &codePage, &sourceBlob);
+			uint32_t code_page = CP_UTF8;
+			Microsoft::WRL::ComPtr<IDxcBlobEncoding> source_blob;
+			HRESULT hr = library->CreateBlobFromFile(filename.data(), &code_page, &source_blob);
 			BREAK_IF_FAILED(hr);
 
-			blob.bytecode.resize(sourceBlob->GetBufferSize());
-			memcpy(blob.GetPointer(), sourceBlob->GetBufferPointer(), sourceBlob->GetBufferSize());
+			blob.bytecode.resize(source_blob->GetBufferSize());
+			memcpy(blob.GetPointer(), source_blob->GetBufferPointer(), source_blob->GetBufferSize());
 		}
-		void CreateInputLayoutWithReflection(ShaderBlob const& vs_blob, InputLayout& input_layout)
+		void CreateInputLayout(Shader const& vs_blob, InputLayout& input_layout)
 		{
-			Microsoft::WRL::ComPtr<IDxcContainerReflection> pReflection;
-			HRESULT hr = DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(pReflection.GetAddressOf()));
+			Microsoft::WRL::ComPtr<IDxcContainerReflection> reflection;
+			HRESULT hr = DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(reflection.GetAddressOf()));
 			ReflectionBlob my_blob{ vs_blob.GetPointer() , vs_blob.GetLength() };
 			BREAK_IF_FAILED(hr);
-			hr = pReflection->Load(&my_blob);
+			hr = reflection->Load(&my_blob);
 			BREAK_IF_FAILED(hr);
-			uint32_t partIndex;
+			uint32_t part_index;
 #ifndef MAKEFOURCC
 #define MAKEFOURCC(a, b, c, d) (unsigned int)((unsigned char)(a) | (unsigned char)(b) << 8 | (unsigned char)(c) << 16 | (unsigned char)(d) << 24)
 #endif
-			BREAK_IF_FAILED(pReflection->FindFirstPartKind(MAKEFOURCC('D', 'X', 'I', 'L'), &partIndex));
+			BREAK_IF_FAILED(reflection->FindFirstPartKind(MAKEFOURCC('D', 'X', 'I', 'L'), &part_index));
 #undef MAKEFOURCC
 
-			Microsoft::WRL::ComPtr<ID3D12ShaderReflection> pVertexShaderReflection;
-			BREAK_IF_FAILED(pReflection->GetPartReflection(partIndex, IID_PPV_ARGS(pVertexShaderReflection.GetAddressOf())));
+			Microsoft::WRL::ComPtr<ID3D12ShaderReflection> vertex_shader_reflection;
+			BREAK_IF_FAILED(reflection->GetPartReflection(part_index, IID_PPV_ARGS(vertex_shader_reflection.GetAddressOf())));
 
-			D3D12_SHADER_DESC shaderDesc;
-			BREAK_IF_FAILED(pVertexShaderReflection->GetDesc(&shaderDesc));
+			D3D12_SHADER_DESC shader_desc;
+			BREAK_IF_FAILED(vertex_shader_reflection->GetDesc(&shader_desc));
 
 			D3D12_SIGNATURE_PARAMETER_DESC param_desc{};
 			D3D12_INPUT_ELEMENT_DESC d3d12element_desc{};
 
 			input_layout.elements.clear();
-			input_layout.elements.resize(shaderDesc.InputParameters);
-			for (uint32_t i = 0; i < shaderDesc.InputParameters; i++)
+			input_layout.elements.resize(shader_desc.InputParameters);
+			for (uint32_t i = 0; i < shader_desc.InputParameters; i++)
 			{
-				pVertexShaderReflection->GetInputParameterDesc(i, &param_desc);
+				vertex_shader_reflection->GetInputParameterDesc(i, &param_desc);
 				input_layout.elements[i].semantic_name = std::string(param_desc.SemanticName);
 				input_layout.elements[i].semantic_index = param_desc.SemanticIndex;
 				input_layout.elements[i].aligned_byte_offset = InputLayout::APPEND_ALIGNED_ELEMENT;

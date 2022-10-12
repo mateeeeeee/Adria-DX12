@@ -92,7 +92,7 @@ namespace adria
 		if (error) ADRIA_LOG(ERROR, (char const*)error->GetBufferPointer());
 		BREAK_IF_FAILED(gfx->GetDevice()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&equirect_root_signature)));
 
-		ShaderBlob equirect_cs_shader;
+		Shader equirect_cs_shader;
 		ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/Equirect2cubeCS.cso", equirect_cs_shader);
 
 		D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc{};

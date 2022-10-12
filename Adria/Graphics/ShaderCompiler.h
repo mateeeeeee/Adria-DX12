@@ -1,5 +1,6 @@
 #pragma once
 #include "Shader.h"
+#include "InputLayout.h"
 
 namespace adria
 {
@@ -21,7 +22,7 @@ namespace adria
 
 	struct ShaderCompileOutput
 	{
-		ShaderBlob blob;
+		Shader blob;
 		std::vector<std::string> dependent_files;
 	};
 
@@ -30,7 +31,7 @@ namespace adria
 		void Initialize();
 		void Destroy();
 		void CompileShader(ShaderCompileInput const& input, ShaderCompileOutput& blob);
-		void GetBlobFromCompiledShader(std::wstring_view filename, ShaderBlob& blob);
-		void CreateInputLayoutWithReflection(ShaderBlob const& vs_blob, InputLayout& input_layout);
+		void GetBlobFromCompiledShader(std::wstring_view filename, Shader& blob);
+		void CreateInputLayout(Shader const& vs_blob, InputLayout& input_layout);
 	}
 }

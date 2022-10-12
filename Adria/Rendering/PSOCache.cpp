@@ -21,7 +21,7 @@ namespace adria
 			Compute
 		};
 
-		inline ShaderBlob const& GetShader(EShader shader)
+		inline Shader const& GetShader(EShader shader)
 		{
 			return ShaderManager::GetShader(shader);
 		}
@@ -39,11 +39,11 @@ namespace adria
 				gfx_pso_desc.blend_state.render_target[0].blend_op = EBlendOp::Add;
 				gfx_pso_desc.depth_state.depth_enable = false;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
 				gfx_pso_map[EPipelineState::Particles_Shading] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				ShaderCompiler::CreateInputLayoutWithReflection(GetShader(VS_Skybox), gfx_pso_desc.input_layout);
+				ShaderCompiler::CreateInputLayout(GetShader(VS_Skybox), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = ERootSignature::Skybox;
 				gfx_pso_desc.VS = VS_Skybox;
 				gfx_pso_desc.PS = PS_Skybox;
@@ -52,8 +52,8 @@ namespace adria
 				gfx_pso_desc.depth_state.depth_write_mask = EDepthWriteMask::Zero;
 				gfx_pso_desc.depth_state.depth_func = EComparisonFunc::LessEqual;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				gfx_pso_desc.dsv_format = DXGI_FORMAT_D32_FLOAT;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
+				gfx_pso_desc.dsv_format = EFormat::D32_FLOAT;
 				gfx_pso_map[EPipelineState::Skybox] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc.root_signature = ERootSignature::Sky;
@@ -69,7 +69,7 @@ namespace adria
 				gfx_pso_desc.VS = VS_ScreenQuad;
 				gfx_pso_desc.PS = PS_ToneMap;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R10G10B10A2_UNORM;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R10G10B10A2_UNORM;
 				gfx_pso_desc.depth_state.depth_enable = false;
 				gfx_pso_map[EPipelineState::ToneMap] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
@@ -82,11 +82,11 @@ namespace adria
 				gfx_pso_desc.VS = VS_ScreenQuad;
 				gfx_pso_desc.PS = PS_Taa;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
 				gfx_pso_map[EPipelineState::TAA] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				ShaderCompiler::CreateInputLayoutWithReflection(GetShader(VS_GBufferPBR), gfx_pso_desc.input_layout);
+				ShaderCompiler::CreateInputLayout(GetShader(VS_GBufferPBR), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = ERootSignature::GbufferPBR;
 				gfx_pso_desc.VS = VS_GBufferPBR;
 				gfx_pso_desc.PS = PS_GBufferPBR;
@@ -94,10 +94,10 @@ namespace adria
 				gfx_pso_desc.depth_state.depth_write_mask = EDepthWriteMask::All;
 				gfx_pso_desc.depth_state.depth_func = EComparisonFunc::LessEqual;
 				gfx_pso_desc.num_render_targets = 3u;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-				gfx_pso_desc.rtv_formats[1] = DXGI_FORMAT_R8G8B8A8_UNORM;
-				gfx_pso_desc.rtv_formats[2] = DXGI_FORMAT_R8G8B8A8_UNORM;
-				gfx_pso_desc.dsv_format = DXGI_FORMAT_D32_FLOAT;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R8G8B8A8_UNORM;
+				gfx_pso_desc.rtv_formats[1] = EFormat::R8G8B8A8_UNORM;
+				gfx_pso_desc.rtv_formats[2] = EFormat::R8G8B8A8_UNORM;
+				gfx_pso_desc.dsv_format = EFormat::D32_FLOAT;
 				gfx_pso_map[EPipelineState::GBufferPBR] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc.PS = PS_GBufferPBR_Mask;
@@ -115,7 +115,7 @@ namespace adria
 				gfx_pso_desc.PS = PS_AmbientPBR;
 				gfx_pso_desc.depth_state.depth_enable = FALSE;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
 				gfx_pso_map[EPipelineState::AmbientPBR] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc.PS = PS_AmbientPBR_AO;
@@ -137,7 +137,7 @@ namespace adria
 				gfx_pso_desc.blend_state.render_target[0].dest_blend = EBlend::One;
 				gfx_pso_desc.depth_state.depth_enable = false;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
 				gfx_pso_map[EPipelineState::LightingPBR] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc.PS = PS_LightingPBR_RayTracedShadows;
@@ -148,7 +148,7 @@ namespace adria
 				gfx_pso_map[EPipelineState::ClusteredLightingPBR] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				ShaderCompiler::CreateInputLayoutWithReflection(GetShader(VS_DepthMap), gfx_pso_desc.input_layout);
+				ShaderCompiler::CreateInputLayout(GetShader(VS_DepthMap), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = ERootSignature::DepthMap;
 				gfx_pso_desc.VS = VS_DepthMap;
 				gfx_pso_desc.PS = PS_DepthMap;
@@ -160,10 +160,10 @@ namespace adria
 				gfx_pso_desc.depth_state.depth_enable = true;
 				gfx_pso_desc.depth_state.depth_write_mask = EDepthWriteMask::All;
 				gfx_pso_desc.depth_state.depth_func = EComparisonFunc::LessEqual;
-				gfx_pso_desc.dsv_format = DXGI_FORMAT_D32_FLOAT;
+				gfx_pso_desc.dsv_format = EFormat::D32_FLOAT;
 				gfx_pso_map[EPipelineState::DepthMap] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
-				ShaderCompiler::CreateInputLayoutWithReflection(GetShader(VS_DepthMap_Transparent), gfx_pso_desc.input_layout);
+				ShaderCompiler::CreateInputLayout(GetShader(VS_DepthMap_Transparent), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = ERootSignature::DepthMap_Transparent;
 				gfx_pso_desc.VS = VS_DepthMap_Transparent;
 				gfx_pso_desc.PS = PS_DepthMap_Transparent;
@@ -179,7 +179,7 @@ namespace adria
 				gfx_pso_desc.blend_state.render_target[0].dest_blend = EBlend::One;
 				gfx_pso_desc.depth_state.depth_enable = false;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
 				gfx_pso_map[EPipelineState::Volumetric_Directional] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc.PS = PS_Volumetric_DirectionalCascades;
@@ -192,7 +192,7 @@ namespace adria
 				gfx_pso_map[EPipelineState::Volumetric_Point] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				ShaderCompiler::CreateInputLayoutWithReflection(GetShader(VS_Sun), gfx_pso_desc.input_layout);
+				ShaderCompiler::CreateInputLayout(GetShader(VS_Sun), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = ERootSignature::Forward;
 				gfx_pso_desc.VS = VS_Sun;
 				gfx_pso_desc.PS = PS_Texture;
@@ -204,8 +204,8 @@ namespace adria
 				gfx_pso_desc.depth_state.depth_write_mask = EDepthWriteMask::Zero;
 				gfx_pso_desc.depth_state.depth_func = EComparisonFunc::LessEqual;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				gfx_pso_desc.dsv_format = DXGI_FORMAT_D32_FLOAT;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
+				gfx_pso_desc.dsv_format = EFormat::D32_FLOAT;
 				gfx_pso_map[EPipelineState::Sun] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
@@ -213,7 +213,7 @@ namespace adria
 				gfx_pso_desc.VS = VS_ScreenQuad;
 				gfx_pso_desc.PS = PS_Ssao;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R8_UNORM;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R8_UNORM;
 				gfx_pso_desc.depth_state.depth_enable = false;
 				gfx_pso_map[EPipelineState::SSAO] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 				
@@ -225,13 +225,13 @@ namespace adria
 				gfx_pso_desc.VS = VS_ScreenQuad;
 				gfx_pso_desc.PS = PS_Ssr;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
 				gfx_pso_desc.depth_state.depth_enable = false;
 				gfx_pso_map[EPipelineState::SSR] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 				
 
 				gfx_pso_desc = {};
-				ShaderCompiler::CreateInputLayoutWithReflection(GetShader(VS_ScreenQuad), gfx_pso_desc.input_layout);
+				ShaderCompiler::CreateInputLayout(GetShader(VS_ScreenQuad), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = ERootSignature::GodRays;
 				gfx_pso_desc.VS = VS_ScreenQuad;
 				gfx_pso_desc.PS = PS_GodRays;
@@ -240,7 +240,7 @@ namespace adria
 				gfx_pso_desc.blend_state.render_target[0].dest_blend = EBlend::One;
 				gfx_pso_desc.blend_state.render_target[0].blend_op = EBlendOp::Add;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
 				gfx_pso_map[EPipelineState::GodRays] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
@@ -255,7 +255,7 @@ namespace adria
 				
 				gfx_pso_desc.topology_type = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
 
 				gfx_pso_map[EPipelineState::LensFlare] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 				
@@ -264,7 +264,7 @@ namespace adria
 				gfx_pso_desc.VS = VS_ScreenQuad;
 				gfx_pso_desc.PS = PS_Copy;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
 
 				gfx_pso_map[EPipelineState::Copy] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
@@ -285,7 +285,7 @@ namespace adria
 				gfx_pso_desc.VS = VS_ScreenQuad;
 				gfx_pso_desc.PS = PS_Add;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
 				gfx_pso_map[EPipelineState::Add] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
@@ -305,7 +305,7 @@ namespace adria
 				gfx_pso_desc.VS = VS_ScreenQuad;
 				gfx_pso_desc.PS = PS_Fog;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
 				gfx_pso_map[EPipelineState::Fog] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
@@ -313,7 +313,7 @@ namespace adria
 				gfx_pso_desc.VS = VS_ScreenQuad;
 				gfx_pso_desc.PS = PS_Dof;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
 				gfx_pso_map[EPipelineState::DOF] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};	
@@ -328,7 +328,7 @@ namespace adria
 				
 				gfx_pso_desc.topology_type = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
 				gfx_pso_map[EPipelineState::Bokeh] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 				
 				gfx_pso_desc = {};
@@ -336,7 +336,7 @@ namespace adria
 				gfx_pso_desc.VS = VS_ScreenQuad;
 				gfx_pso_desc.PS = PS_VolumetricClouds;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
 				gfx_pso_map[EPipelineState::Clouds] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
@@ -344,7 +344,7 @@ namespace adria
 				gfx_pso_desc.VS = VS_ScreenQuad;
 				gfx_pso_desc.PS = PS_MotionBlur;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
 				gfx_pso_map[EPipelineState::MotionBlur] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
@@ -352,11 +352,11 @@ namespace adria
 				gfx_pso_desc.VS = VS_ScreenQuad;
 				gfx_pso_desc.PS = PS_VelocityBuffer;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R16G16_FLOAT;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16_FLOAT;
 				gfx_pso_map[EPipelineState::VelocityBuffer] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				ShaderCompiler::CreateInputLayoutWithReflection(GetShader(VS_Ocean), gfx_pso_desc.input_layout);
+				ShaderCompiler::CreateInputLayout(GetShader(VS_Ocean), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = ERootSignature::Ocean;
 				gfx_pso_desc.VS = VS_Ocean;
 				gfx_pso_desc.PS = PS_Ocean;
@@ -364,8 +364,8 @@ namespace adria
 				gfx_pso_desc.depth_state.depth_write_mask = EDepthWriteMask::All;
 				gfx_pso_desc.depth_state.depth_func = EComparisonFunc::LessEqual;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				gfx_pso_desc.dsv_format = DXGI_FORMAT_D32_FLOAT;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
+				gfx_pso_desc.dsv_format = EFormat::D32_FLOAT;
 				gfx_pso_map[EPipelineState::Ocean] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc.rasterizer_state.fill_mode = EFillMode::Wireframe;
@@ -382,28 +382,28 @@ namespace adria
 				gfx_pso_map[EPipelineState::OceanLOD] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				ShaderCompiler::CreateInputLayoutWithReflection(GetShader(VS_Decals), gfx_pso_desc.input_layout);
+				ShaderCompiler::CreateInputLayout(GetShader(VS_Decals), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = ERootSignature::Decals;
 				gfx_pso_desc.VS = VS_Decals;
 				gfx_pso_desc.PS = PS_Decals;
 				gfx_pso_desc.rasterizer_state.cull_mode = ECullMode::None;
 				gfx_pso_desc.depth_state.depth_enable = FALSE;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R8G8B8A8_UNORM;
 				gfx_pso_map[EPipelineState::Decals] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc.PS = PS_Decals_ModifyNormals;
 				gfx_pso_desc.num_render_targets = 2;
-				gfx_pso_desc.rtv_formats[1] = DXGI_FORMAT_R8G8B8A8_UNORM;
+				gfx_pso_desc.rtv_formats[1] = EFormat::R8G8B8A8_UNORM;
 				gfx_pso_map[EPipelineState::Decals_ModifyNormals] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				ShaderCompiler::CreateInputLayoutWithReflection(GetShader(VS_Solid), gfx_pso_desc.input_layout);
+				ShaderCompiler::CreateInputLayout(GetShader(VS_Solid), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = ERootSignature::Forward;
 				gfx_pso_desc.VS = VS_Solid;
 				gfx_pso_desc.PS = PS_Solid;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
 				gfx_pso_map[EPipelineState::Solid] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc.depth_state.depth_enable = false;
@@ -412,12 +412,12 @@ namespace adria
 				gfx_pso_map[EPipelineState::Solid_Wireframe] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				ShaderCompiler::CreateInputLayoutWithReflection(GetShader(VS_Texture), gfx_pso_desc.input_layout);
+				ShaderCompiler::CreateInputLayout(GetShader(VS_Texture), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = ERootSignature::Forward;
 				gfx_pso_desc.VS = VS_Texture;
 				gfx_pso_desc.PS = PS_Texture;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
 				gfx_pso_map[EPipelineState::Texture] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 			}
 

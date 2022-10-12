@@ -54,11 +54,11 @@ namespace adria
 		_desc.RasterizerState = ConvertRasterizerDesc(desc.rasterizer_state);
 		_desc.DepthStencilState = ConvertDepthStencilDesc(desc.depth_state);
 		_desc.SampleDesc = DXGI_SAMPLE_DESC{ .Count = 1, .Quality = 0 };
-		_desc.DSVFormat = desc.dsv_format;
+		_desc.DSVFormat = ConvertFormat(desc.dsv_format);
 		_desc.NumRenderTargets = desc.num_render_targets;
 		for (size_t i = 0; i < ARRAYSIZE(_desc.RTVFormats); ++i)
 		{
-			_desc.RTVFormats[i] = desc.rtv_formats[i];
+			_desc.RTVFormats[i] = ConvertFormat(desc.rtv_formats[i]);
 		}
 		_desc.PrimitiveTopologyType = desc.topology_type;
 		_desc.SampleMask = desc.sample_mask;

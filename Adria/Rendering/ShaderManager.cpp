@@ -18,7 +18,7 @@ namespace adria
 		std::unique_ptr<FileWatcher> file_watcher;
 		ShaderRecompiledEvent shader_recompiled_event;
 		LibraryRecompiledEvent library_recompiled_event;
-		HashMap<EShader, ShaderBlob> shader_map;
+		HashMap<EShader, Shader> shader_map;
 		HashMap<EShader, HashSet<fs::path>> dependent_files_map;
 
 		constexpr EShaderStage GetStage(EShader shader)
@@ -406,7 +406,7 @@ namespace adria
 		file_watcher->CheckWatchedFiles();
 	}
 
-	ShaderBlob const& ShaderManager::GetShader(EShader shader)
+	Shader const& ShaderManager::GetShader(EShader shader)
 	{
 		return shader_map[shader];
 	}

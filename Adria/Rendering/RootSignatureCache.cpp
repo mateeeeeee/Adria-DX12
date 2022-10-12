@@ -11,7 +11,7 @@ namespace adria
 	namespace
 	{
 		HashMap<ERootSignature, ComPtr<ID3D12RootSignature>> rs_map;
-		inline ShaderBlob const& GetShader(EShader shader)
+		inline Shader const& GetShader(EShader shader)
 		{
 			return ShaderManager::GetShader(shader);
 		}

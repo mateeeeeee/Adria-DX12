@@ -280,6 +280,7 @@
     <ClInclude Include="Graphics\GraphicsDeviceDX12.h" />
     <ClInclude Include="Graphics\GraphicsStates.h" />
     <ClInclude Include="Graphics\Heap.h" />
+    <ClInclude Include="Graphics\InputLayout.h" />
     <ClInclude Include="Graphics\MipsGenerator.h" />
     <ClInclude Include="Graphics\LinearDynamicAllocator.h" />
     <ClInclude Include="Graphics\GPUProfiler.h" />

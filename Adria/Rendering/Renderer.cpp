@@ -371,7 +371,7 @@ namespace adria
 		{
 			Microsoft::WRL::ComPtr<ID3D12PipelineState> pipeline_state;
 
-			ShaderBlob spmap_shader;
+			Shader spmap_shader;
 			ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SpmapCS.cso", spmap_shader);
 
 			D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc = {};
@@ -455,7 +455,7 @@ namespace adria
 		// Compute diffuse irradiance cubemap.
 		{
 			Microsoft::WRL::ComPtr<ID3D12PipelineState> pipeline_state;
-			ShaderBlob irmap_shader;
+			Shader irmap_shader;
 			ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/IrmapCS.cso", irmap_shader);
 
 			D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc{};
@@ -527,7 +527,7 @@ namespace adria
 				descriptor_allocator->GetHandle(descriptor_index));
 
 			Microsoft::WRL::ComPtr<ID3D12PipelineState> pipeline_state;
-			ShaderBlob BRDFShader;
+			Shader BRDFShader;
 			ShaderCompiler::GetBlobFromCompiledShader(L"Resources/Compiled Shaders/SpbrdfCS.cso", BRDFShader);
 
 			D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc = {};
