@@ -29,7 +29,7 @@ namespace adria
 	struct IndirectCommandTraits<EIndirectCommandType::Dispatch>
 	{
 		static constexpr D3D12_INDIRECT_ARGUMENT_TYPE ArgumentType = D3D12_INDIRECT_ARGUMENT_TYPE_DISPATCH;
-		static constexpr UINT Stride = sizeof(D3D12_INDIRECT_ARGUMENT_TYPE_DISPATCH);
+		static constexpr UINT Stride = sizeof(D3D12_DISPATCH_ARGUMENTS);
 	};
 
 	template<EIndirectCommandType type>

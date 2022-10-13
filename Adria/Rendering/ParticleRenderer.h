@@ -6,6 +6,7 @@
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
 #include "../Utilities/HashMap.h"
+#include "../Graphics/CommandSignature.h"
 #include "entt/entity/fwd.hpp"
 
 namespace adria
@@ -86,8 +87,8 @@ namespace adria
 		TextureManager& texture_manager;
 		uint32 width, height;
 
-		Microsoft::WRL::ComPtr<ID3D12CommandSignature>  indirect_render_args_signature;
-		Microsoft::WRL::ComPtr<ID3D12CommandSignature>  indirect_sort_args_signature;
+		std::unique_ptr<DrawIndexedIndirectSignature>   indirect_render_args_signature;
+		std::unique_ptr<DispatchIndirectSignature>		indirect_sort_args_signature;
 		std::unique_ptr<Texture> random_texture;
 		std::unique_ptr<Buffer> index_buffer;
 		std::unique_ptr<Buffer> counter_reset_buffer;

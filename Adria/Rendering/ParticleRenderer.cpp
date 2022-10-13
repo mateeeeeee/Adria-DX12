@@ -86,20 +86,8 @@ namespace adria
 
 	void ParticleRenderer::OnSceneInitialized()
 	{
-		ID3D12Device* device = gfx->GetDevice();
-
-		D3D12_INDIRECT_ARGUMENT_DESC args[1] = {};
-		args[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED;
-
-		D3D12_COMMAND_SIGNATURE_DESC command_signature_desc{};
-		command_signature_desc.NumArgumentDescs = 1;
-		command_signature_desc.pArgumentDescs = args;
-		command_signature_desc.ByteStride = sizeof(D3D12_DRAW_INDEXED_ARGUMENTS);
-		BREAK_IF_FAILED(device->CreateCommandSignature(&command_signature_desc, nullptr, IID_PPV_ARGS(&indirect_render_args_signature)));
-
-		args[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DISPATCH;
-		command_signature_desc.ByteStride = sizeof(D3D12_DISPATCH_ARGUMENTS);
-		BREAK_IF_FAILED(device->CreateCommandSignature(&command_signature_desc, nullptr, IID_PPV_ARGS(&indirect_sort_args_signature)));
+		indirect_render_args_signature	= std::make_unique<DrawIndexedIndirectSignature>(gfx);
+		indirect_sort_args_signature	= std::make_unique<DispatchIndirectSignature>(gfx);
 
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
 		std::vector<float32> random_texture_data(1024 * 1024 * 4);
@@ -510,7 +498,7 @@ namespace adria
 				cmd_list->SetComputeRootConstantBufferView(2, sort_dispatch_info_allocation.gpu_address);
 
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Particles_Sort512));
-				cmd_list->ExecuteIndirect(indirect_sort_args_signature.Get(), 1, ctx.GetIndirectArgsBuffer(data.indirect_args).GetNative(), 0, nullptr, 0);
+				cmd_list->ExecuteIndirect(*indirect_sort_args_signature, 1, ctx.GetIndirectArgsBuffer(data.indirect_args).GetNative(), 0, nullptr, 0);
 				
 				D3D12_RESOURCE_BARRIER uav_barrier = CD3DX12_RESOURCE_BARRIER::UAV(ctx.GetBuffer(data.alive_index.GetResourceId()).GetNative());
 				cmd_list->ResourceBarrier(1, &uav_barrier);
@@ -660,7 +648,7 @@ namespace adria
 				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 				cmd_list->IASetVertexBuffers(0, 0, nullptr);
 				BindIndexBuffer(cmd_list, index_buffer.get());
-				cmd_list->ExecuteIndirect(indirect_render_args_signature.Get(), 1, ctx.GetIndirectArgsBuffer(data.indirect_render_args).GetNative(), 0, nullptr, 0);
+				cmd_list->ExecuteIndirect(*indirect_render_args_signature, 1, ctx.GetIndirectArgsBuffer(data.indirect_render_args).GetNative(), 0, nullptr, 0);
 			}, ERGPassType::Graphics, ERGPassFlags::None);
 	}
 
