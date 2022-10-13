@@ -489,7 +489,6 @@ namespace adria
 	}
 
 #ifdef _DEBUG
-
 	void RayTracer::AddGUI_Debug_Common(std::string const& name, Texture* texture, void* args)
 	{
 		if (ImGui::TreeNodeEx(name.c_str(), ImGuiTreeNodeFlags_OpenOnDoubleClick))

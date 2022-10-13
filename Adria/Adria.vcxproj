@@ -270,6 +270,7 @@
     <ClInclude Include="Events\EventQueue.h" />
     <ClInclude Include="Events\IEvent.h" />
     <ClInclude Include="Graphics\Buffer.h" />
+    <ClInclude Include="Graphics\CommandSignature.h" />
     <ClInclude Include="Graphics\ConstantBuffer.h" />
     <ClInclude Include="Graphics\D3D12MemAlloc.h" />
     <ClInclude Include="Graphics\d3dx12.h" />
@@ -279,7 +280,6 @@
     <ClInclude Include="Graphics\DynamicAllocation.h" />
     <ClInclude Include="Graphics\GraphicsDeviceDX12.h" />
     <ClInclude Include="Graphics\GraphicsStates.h" />
-    <ClInclude Include="Graphics\Heap.h" />
     <ClInclude Include="Graphics\InputLayout.h" />
     <ClInclude Include="Graphics\MipsGenerator.h" />
     <ClInclude Include="Graphics\LinearDynamicAllocator.h" />
@@ -291,7 +291,6 @@
     <ClInclude Include="Graphics\RenderPass.h" />
     <ClInclude Include="Graphics\ResourceBarrierBatch.h" />
     <ClInclude Include="Graphics\ResourceCommon.h" />
-    <ClInclude Include="Graphics\RootSignature.h" />
     <ClInclude Include="Graphics\Shader.h" />
     <ClInclude Include="Graphics\Texture.h" />
     <ClInclude Include="Graphics\TextureManager.h" />

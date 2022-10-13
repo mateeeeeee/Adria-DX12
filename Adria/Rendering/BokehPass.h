@@ -1,10 +1,8 @@
 #pragma once
-#include <d3d12.h>
-#include <wrl.h>
 #include "Enums.h"
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceName.h"
-
+#include "../Graphics/CommandSignature.h"
 
 namespace adria
 {
@@ -43,8 +41,8 @@ namespace adria
 		size_t cross_bokeh_handle = -1;
 		std::unique_ptr<Buffer> counter_reset_buffer;
 		std::unique_ptr<Buffer> bokeh_indirect_buffer;
-		Microsoft::WRL::ComPtr<ID3D12CommandSignature> bokeh_command_signature;
-
+		std::unique_ptr<DrawIndirectSignature> bokeh_command_signature;
+		
 	private:
 		void AddGenerateBokehPass(RenderGraph& rg, RGResourceName input);
 		void AddDrawBokehPass(RenderGraph& rg, RGResourceName input);

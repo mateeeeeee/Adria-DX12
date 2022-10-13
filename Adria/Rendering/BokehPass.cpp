@@ -66,14 +66,7 @@ namespace adria
 
 		uint32 init_data[] = { 0,1,0,0 };
 		bokeh_indirect_buffer = std::make_unique<Buffer>(gfx, buffer_desc, init_data);
-
-		D3D12_INDIRECT_ARGUMENT_DESC args[1];
-		args[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW;
-		D3D12_COMMAND_SIGNATURE_DESC command_signature_desc{};
-		command_signature_desc.NumArgumentDescs = 1;
-		command_signature_desc.pArgumentDescs = args;
-		command_signature_desc.ByteStride = sizeof(D3D12_DRAW_ARGUMENTS);
-		BREAK_IF_FAILED(gfx->GetDevice()->CreateCommandSignature(&command_signature_desc, nullptr, IID_PPV_ARGS(&bokeh_command_signature)));
+		bokeh_command_signature = std::make_unique<DrawIndirectSignature>(gfx);
 	}
 
 
@@ -231,7 +224,7 @@ namespace adria
 				cmd_list->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 
 				Buffer const& indirect_args_buffer = context.GetIndirectArgsBuffer(data.bokeh_indirect_args);
-				cmd_list->ExecuteIndirect(bokeh_command_signature.Get(), 1, indirect_args_buffer.GetNative(), 0,
+				cmd_list->ExecuteIndirect(*bokeh_command_signature, 1, indirect_args_buffer.GetNative(), 0,
 					nullptr, 0);
 			}, ERGPassType::Graphics, ERGPassFlags::None);
 

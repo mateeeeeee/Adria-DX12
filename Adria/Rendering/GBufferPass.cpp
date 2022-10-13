@@ -7,6 +7,7 @@
 #include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/GPUProfiler.h"
+#include "../Editor/GUICommand.h"
 #include "entt/entity/registry.hpp"
 
 namespace adria

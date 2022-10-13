@@ -574,9 +574,6 @@
     <ClInclude Include="RenderGraph\RenderGraph.h">
       <Filter>RenderGraph</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\Heap.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="RenderGraph\RenderGraphPass.h">
       <Filter>RenderGraph</Filter>
     </ClInclude>
@@ -763,7 +760,9 @@
     <ClInclude Include="..\ThirdParty\FontAwesome\IconsFontAwesome4.h">
       <Filter>Font</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\RootSignature.h" />
+    <ClInclude Include="Graphics\CommandSignature.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
     <ClInclude Include="Graphics\InputLayout.h">
       <Filter>Graphics</Filter>
     </ClInclude>
