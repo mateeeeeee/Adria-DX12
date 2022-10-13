@@ -5,6 +5,7 @@
 #include "RootSignatureCache.h"
 #include "entt/entity/registry.hpp"
 #include "../RenderGraph/RenderGraph.h"
+#include "../Editor/GUICommand.h"
 #include "../Graphics/Shader.h"
 #include "../Logging/Logger.h"
 
@@ -227,6 +228,12 @@ namespace adria
 			}, ERGPassType::Compute, ERGPassFlags::None);
 #ifdef _DEBUG
 		AddRayTracedShadowsDebugPass(rg, light_id);
+		AddGUI_Debug([&](void* args)
+			{
+				std::string name = "Ray Traced Shadows " + std::to_string(light_id);
+				AddGUI_Debug_Common(name, rts_debug_texture.get(), args);
+			}
+		);
 #endif
 	}
 	void RayTracer::AddRayTracedReflectionsPass(RenderGraph& rg, D3D12_CPU_DESCRIPTOR_HANDLE envmap)
@@ -312,6 +319,12 @@ namespace adria
 			}, ERGPassType::Compute, ERGPassFlags::None);
 #ifdef _DEBUG
 		AddRayTracedReflectionsDebugPass(rg);
+		AddGUI_Debug([&](void* args)
+			{
+				std::string name = "Ray Traced Reflections";
+				AddGUI_Debug_Common(name, rtr_debug_texture.get(), args);
+			}
+		);
 #endif
 	}
 	void RayTracer::AddRayTracedAmbientOcclusionPass(RenderGraph& rg)
@@ -376,6 +389,12 @@ namespace adria
 			}, ERGPassType::Compute, ERGPassFlags::None);
 #ifdef _DEBUG
 		AddRayTracedAmbientOcclusionDebugPass(rg);
+		AddGUI_Debug([&](void* args)
+			{
+				std::string name = "Ray Traced AO";
+				AddGUI_Debug_Common(name, rtao_debug_texture.get(), args);
+			}
+		);
 #endif
 		blur_pass.AddPass(rg, RG_RES_NAME(RTAO_Output), RG_RES_NAME(AmbientOcclusion));
 	}
@@ -470,6 +489,29 @@ namespace adria
 	}
 
 #ifdef _DEBUG
+
+	void RayTracer::AddGUI_Debug_Common(std::string const& name, Texture* texture, void* args)
+	{
+		if (ImGui::TreeNodeEx(name.c_str(), ImGuiTreeNodeFlags_OpenOnDoubleClick))
+		{
+			auto descriptor_allocator = static_cast<RingOnlineDescriptorAllocator*>(args);
+			ImVec2 v_min = ImGui::GetWindowContentRegionMin();
+			ImVec2 v_max = ImGui::GetWindowContentRegionMax();
+			v_min.x += ImGui::GetWindowPos().x;
+			v_min.y += ImGui::GetWindowPos().y;
+			v_max.x += ImGui::GetWindowPos().x;
+			v_max.y += ImGui::GetWindowPos().y;
+			ImVec2 size(v_max.x - v_min.x, v_max.y - v_min.y);
+
+			D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = texture->GetSRV();
+			OffsetType descriptor_index = descriptor_allocator->Allocate();
+			auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+			gfx->GetDevice()->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, size);
+			ImGui::TreePop();
+			ImGui::Separator();
+		}
+	}
 	void RayTracer::AddRayTracedAmbientOcclusionDebugPass(RenderGraph& rg)
 	{
 		struct CopyPassData
@@ -699,6 +741,4 @@ namespace adria
 	{
 		CreateStateObjects();
 	}
-
 }
-

@@ -763,6 +763,10 @@
     <ClInclude Include="..\ThirdParty\FontAwesome\IconsFontAwesome4.h">
       <Filter>Font</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\RootSignature.h" />
+    <ClInclude Include="Graphics\InputLayout.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

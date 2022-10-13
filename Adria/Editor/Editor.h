@@ -31,7 +31,7 @@ namespace adria
 			Flag_Log,
 			Flag_Entities,
 			Flag_HotReload,
-			Flag_RTDebug,
+			Flag_Debug,
 			Flag_Settings,
 			Flag_AddEntities,
 			Flag_Count
@@ -47,7 +47,9 @@ namespace adria
 		void Destroy();
 		void HandleWindowMessage(WindowMessage const& msg_data);
 		void Run();
+
 		void AddCommand(GUICommand&& command);
+		void AddDebugCommand(GUICommand_Debug&& command);
 	private:
 		std::unique_ptr<Engine> engine;
 		std::unique_ptr<GUI> gui;
@@ -65,6 +67,7 @@ namespace adria
 		std::queue<AABB*> aabb_updates;
 		std::array<bool, Flag_Count> window_flags = { false };
 		std::vector<GUICommand> commands;
+		std::vector<GUICommand_Debug> debug_commands;
 
 		EditorEvents editor_events;
 		ViewportData viewport_data;
@@ -85,7 +88,7 @@ namespace adria
 		void Settings(); 
 		void Profiling();
 		void ShaderHotReload();
-		void RayTracingDebug();
+		void Debug();
 	};
 }
 

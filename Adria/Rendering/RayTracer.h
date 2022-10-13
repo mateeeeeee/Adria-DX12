@@ -60,20 +60,7 @@ namespace adria
 		void AddRayTracedReflectionsPass(RenderGraph&, D3D12_CPU_DESCRIPTOR_HANDLE);
 		void AddRayTracedAmbientOcclusionPass(RenderGraph&);
 		void AddPathTracingPass(RenderGraph&, D3D12_CPU_DESCRIPTOR_HANDLE);
-#ifdef _DEBUG
-		Texture const* GetRTAODebugTexture() const
-		{
-			return rtao_debug_texture.get();
-		}
-		Texture const* GetRTSDebugTexture() const
-		{
-			return rts_debug_texture.get();
-		}
-		Texture const* GetRTRDebugTexture() const
-		{
-			return rtr_debug_texture.get();
-		}
-#endif
+
 	private:
 		uint32 width, height;
 		entt::registry& reg;
@@ -107,6 +94,7 @@ namespace adria
 		void OnLibraryRecompiled(EShaderId shader);
 
 #ifdef _DEBUG
+		void AddGUI_Debug_Common(std::string const& name, Texture* texture, void* args);
 		void AddRayTracedAmbientOcclusionDebugPass(RenderGraph&);
 		void AddRayTracedShadowsDebugPass(RenderGraph&, size_t);
 		void AddRayTracedReflectionsDebugPass(RenderGraph&);

@@ -85,20 +85,6 @@ namespace adria
 		}
 
 		bool IsRayTracingSupported() const { return ray_tracer.IsSupported(); }
-#ifdef _DEBUG
-		Texture const* GetRTAODebugTexture() const 
-		{
-			return ray_tracer.GetRTAODebugTexture();
-		}
-		Texture const* GetRTSDebugTexture() const
-		{
-			return ray_tracer.GetRTSDebugTexture();
-		}
-		Texture const* GetRTRDebugTexture() const
-		{
-			return ray_tracer.GetRTRDebugTexture();
-		}
-#endif
 	private:
 		entt::registry& reg;
 		GraphicsDevice* gfx;

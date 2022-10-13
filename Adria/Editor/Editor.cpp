@@ -202,7 +202,7 @@ namespace adria
 				Log();
 				Profiling();
 				ShaderHotReload();
-				if (engine->renderer->IsRayTracingSupported()) RayTracingDebug();
+				if (engine->renderer->IsRayTracingSupported()) Debug();
 				gui->End(gui_cmd_list);
 			}
 			if (!aabb_updates.empty())
@@ -234,6 +234,11 @@ namespace adria
 	void Editor::AddCommand(GUICommand&& command)
 	{
 		commands.emplace_back(std::move(command));
+	}
+
+	void Editor::AddDebugCommand(GUICommand_Debug&& command)
+	{
+		debug_commands.emplace_back(std::move(command));
 	}
 
 	void Editor::SetStyle()
@@ -351,8 +356,8 @@ namespace adria
 				if (ImGui::MenuItem("Camera", 0, window_flags[Flag_Camera]))				 window_flags[Flag_Camera] = !window_flags[Flag_Camera];
 				if (ImGui::MenuItem("Entities", 0, window_flags[Flag_Entities]))			 window_flags[Flag_Entities] = !window_flags[Flag_Entities];
 				if (ImGui::MenuItem("Hot Reload", 0, window_flags[Flag_HotReload]))			 window_flags[Flag_HotReload] = !window_flags[Flag_HotReload];
-				if (ImGui::MenuItem("Settings", 0, window_flags[Flag_Settings]))	 window_flags[Flag_Settings] = !window_flags[Flag_Settings];
-				if (ImGui::MenuItem("Ray Tracing Debug", 0, window_flags[Flag_RTDebug]))	 window_flags[Flag_RTDebug] = !window_flags[Flag_RTDebug];
+				if (ImGui::MenuItem("Settings", 0, window_flags[Flag_Settings]))			 window_flags[Flag_Settings] = !window_flags[Flag_Settings];
+				if (ImGui::MenuItem("Debug", 0, window_flags[Flag_Debug]))					 window_flags[Flag_Debug] = !window_flags[Flag_Debug];
 				if (ImGui::MenuItem("Add Entities", 0, window_flags[Flag_AddEntities]))		 window_flags[Flag_AddEntities] = !window_flags[Flag_AddEntities];
 
 				ImGui::EndMenu();
@@ -1224,7 +1229,7 @@ namespace adria
 				ImGui::TreePop();
 			}
 
-			for (auto&& command : commands) command.callback();
+			for (auto&& cmd : commands) cmd.callback();
 			commands.clear();
 
 			if (ImGui::TreeNode("Misc"))
@@ -1390,11 +1395,9 @@ namespace adria
 		}
 		ImGui::End();
 	}
-	void Editor::RayTracingDebug()
+	void Editor::Debug()
 	{
-#ifdef _DEBUG
-
-		if (!window_flags[Flag_RTDebug]) return;
+		if (!window_flags[Flag_Debug]) return;
 
 		auto device = engine->gfx->GetDevice();
 		auto descriptor_allocator = gui->DescriptorAllocator();
@@ -1406,52 +1409,11 @@ namespace adria
 		v_max.y += ImGui::GetWindowPos().y;
 		ImVec2 size(v_max.x - v_min.x, v_max.y - v_min.y);
 
-		if(ImGui::Begin("Ray Tracing Debug", &window_flags[Flag_RTDebug]))
+		if(ImGui::Begin("Debug", &window_flags[Flag_Debug]))
 		{
-			static const char* rt_types[] = { "Shadows", "Ambient Occlusion", "Reflections" };
-			static int current_rt_type = 0;
-			const char* combo_label = rt_types[current_rt_type];
-			if (ImGui::BeginCombo("RT Texture Type", combo_label, 0))
-			{
-				for (int n = 0; n < IM_ARRAYSIZE(rt_types); n++)
-				{
-					const bool is_selected = (current_rt_type == n);
-					if (ImGui::Selectable(rt_types[n], is_selected)) current_rt_type = n;
-					if (is_selected) ImGui::SetItemDefaultFocus();
-				}
-				ImGui::EndCombo();
-			}
-
-			if (current_rt_type == 0)
-			{
-				D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetRTSDebugTexture()->GetSRV();
-				OffsetType descriptor_index = descriptor_allocator->Allocate();
-				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, size);
-				ImGui::Text("Ray Tracing Shadows Image");
-			}
-			else if (current_rt_type == 1)
-			{
-				D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetRTAODebugTexture()->GetSRV();
-				OffsetType descriptor_index = descriptor_allocator->Allocate();
-				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, size);
-				ImGui::Text("Ray Tracing AO Image");
-			}
-			else if (current_rt_type == 2)
-			{
-				D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetRTRDebugTexture()->GetSRV();
-				OffsetType descriptor_index = descriptor_allocator->Allocate();
-				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, size);
-				ImGui::Text("Ray Tracing Reflections Image");
-			}
-
+			for (auto& cmd : debug_commands) cmd.callback(descriptor_allocator);
+			debug_commands.clear();
 		}
 		ImGui::End();
-#endif
 	}
 }
