@@ -202,7 +202,7 @@ namespace adria
 				Log();
 				Profiling();
 				ShaderHotReload();
-				if (engine->renderer->IsRayTracingSupported()) Debug();
+				Debug();
 				gui->End(gui_cmd_list);
 			}
 			if (!aabb_updates.empty())
