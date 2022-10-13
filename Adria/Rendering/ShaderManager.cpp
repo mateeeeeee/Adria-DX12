@@ -18,10 +18,19 @@ namespace adria
 		std::unique_ptr<FileWatcher> file_watcher;
 		ShaderRecompiledEvent shader_recompiled_event;
 		LibraryRecompiledEvent library_recompiled_event;
-		HashMap<EShader, Shader> shader_map;
-		HashMap<EShader, HashSet<fs::path>> dependent_files_map;
+		HashMap<EShaderId, Shader> shader_map;
+		HashMap<EShaderId, HashSet<fs::path>> dependent_files_map;
 
-		constexpr EShaderStage GetShaderStage(EShader shader)
+		constexpr std::string GetEntrypoint(EShaderId shader)
+		{
+			switch (shader)
+			{
+			default:
+				return "main";
+			}
+			return "main";
+		}
+		constexpr EShaderStage GetShaderStage(EShaderId shader)
 		{
 			switch (shader)
 			{
@@ -123,12 +132,12 @@ namespace adria
 			case LIB_Reflections:
 			case LIB_PathTracing:
 				return EShaderStage::LIB;
-			case EShader_Count:
+			case ShaderId_Count:
 			default:
 				return EShaderStage::ShaderCount;
 			}
 		}
-		constexpr std::string GetShaderSource(EShader shader)
+		constexpr std::string GetShaderSource(EShaderId shader)
 		{
 			switch (shader)
 			{
@@ -304,12 +313,12 @@ namespace adria
 				return "RayTracing/RayTracedReflections.hlsl";
 			case LIB_PathTracing:
 				return "RayTracing/PathTracer.hlsl";
-			case EShader_Count:
+			case ShaderId_Count:
 			default:
 				return "";
 			}
 		}
-		constexpr std::vector<ShaderMacro> GetShaderMacros(EShader shader)
+		constexpr std::vector<ShaderMacro> GetShaderMacros(EShaderId shader)
 		{
 			switch (shader)
 			{
@@ -337,13 +346,13 @@ namespace adria
 			}
 		}
 
-		void CompileShader(EShader shader)
+		void CompileShader(EShaderId shader)
 		{
-			if (shader == EShader_Invalid) return;
+			if (shader == ShaderId_Invalid) return;
 
 			ShaderDesc shader_desc{};
 			shader_desc.file = std::string(shaders_directory) + GetShaderSource(shader);
-			shader_desc.entry_point = "main";
+			shader_desc.entry_point = GetEntrypoint(shader);
 			shader_desc.stage = GetShaderStage(shader);
 			shader_desc.model = SM_6_6;
 			shader_desc.macros = GetShaderMacros(shader);
@@ -365,8 +374,8 @@ namespace adria
 		{
 			Timer t;
 			ADRIA_LOG(INFO, "Compiling all shaders...");
-			using UnderlyingType = std::underlying_type_t<EShader>;
-			std::vector<UnderlyingType> shaders(EShader_Count);
+			using UnderlyingType = std::underlying_type_t<EShaderId>;
+			std::vector<UnderlyingType> shaders(ShaderId_Count);
 			std::iota(std::begin(shaders), std::end(shaders), 0);
 			std::for_each(
 				std::execution::seq,
@@ -374,7 +383,7 @@ namespace adria
 				std::end(shaders),
 				[](UnderlyingType s)
 				{
-					EShader shader = static_cast<EShader>(s);
+					EShaderId shader = static_cast<EShaderId>(s);
 					CompileShader(shader);
 				});
 			ADRIA_LOG(INFO, "Compilation done in %f seconds!", t.ElapsedInSeconds());
@@ -408,7 +417,7 @@ namespace adria
 		file_watcher->CheckWatchedFiles();
 	}
 
-	Shader const& ShaderCache::GetShader(EShader shader)
+	Shader const& ShaderCache::GetShader(EShaderId shader)
 	{
 		return shader_map[shader];
 	}

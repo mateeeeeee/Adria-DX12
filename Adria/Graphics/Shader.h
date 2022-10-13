@@ -46,14 +46,14 @@ namespace adria
 	struct ShaderDesc
 	{
 		EShaderStage stage = EShaderStage::ShaderCount;
-		EShaderModel model;
+		EShaderModel model = SM_6_6;
 		std::string file = "";
 		std::string entry_point = "";
-		std::vector<ShaderMacro> macros;
+		std::vector<ShaderMacro> macros{};
 		ShaderCompilerFlags flags = ShaderCompilerFlag_None;
 	};
-	using ShaderBlob = std::vector<uint8>;
 
+	using ShaderBlob = std::vector<uint8>;
 	class Shader
 	{
 	public:

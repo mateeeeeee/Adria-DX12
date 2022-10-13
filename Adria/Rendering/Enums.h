@@ -6,9 +6,9 @@
 namespace adria
 {
 	
-	enum EShader : uint8
+	enum EShaderId : uint8
 	{
-		EShader_Invalid,
+		ShaderId_Invalid,
 		VS_Skybox,
 		PS_Skybox,
 		PS_UniformColorSky,
@@ -100,7 +100,7 @@ namespace adria
 		CS_BuildHistogram,
 		CS_HistogramReduction,
 		CS_Exposure,
-		EShader_Count
+		ShaderId_Count
 	};
 
 	enum class ERootSignature : uint8

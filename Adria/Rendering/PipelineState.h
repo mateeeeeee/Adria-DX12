@@ -34,11 +34,11 @@ namespace adria
 		EFormat dsv_format = EFormat::UNKNOWN;
 		InputLayout input_layout;
 		ERootSignature root_signature = ERootSignature::Invalid;
-		EShader VS = EShader_Invalid;
-		EShader PS = EShader_Invalid;
-		EShader DS = EShader_Invalid;
-		EShader HS = EShader_Invalid;
-		EShader GS = EShader_Invalid;
+		EShaderId VS = ShaderId_Invalid;
+		EShaderId PS = ShaderId_Invalid;
+		EShaderId DS = ShaderId_Invalid;
+		EShaderId HS = ShaderId_Invalid;
+		EShaderId GS = ShaderId_Invalid;
 		UINT sample_mask = UINT_MAX;
 	};
 
@@ -56,14 +56,14 @@ namespace adria
 		GraphicsPipelineStateDesc desc;
 		DelegateHandle event_handle;
 	private:
-		void OnShaderRecompiled(EShader s);
+		void OnShaderRecompiled(EShaderId s);
 		void Create(GraphicsPipelineStateDesc const& desc);
 	};
 
 	struct ComputePipelineStateDesc
 	{
 		ERootSignature root_signature;
-		EShader CS;
+		EShaderId CS;
 	};
 
 	class ComputePipelineState
@@ -81,7 +81,7 @@ namespace adria
 		DelegateHandle event_handle;
 
 	private:
-		void OnShaderRecompiled(EShader s);
+		void OnShaderRecompiled(EShaderId s);
 		void Create(ComputePipelineStateDesc const& desc);
 	};
 }

@@ -104,7 +104,7 @@ namespace adria
 		
 	private:
 		void CreateStateObjects();
-		void OnLibraryRecompiled(EShader shader);
+		void OnLibraryRecompiled(EShaderId shader);
 
 #ifdef _DEBUG
 		void AddRayTracedAmbientOcclusionDebugPass(RenderGraph&);

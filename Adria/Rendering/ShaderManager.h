@@ -7,8 +7,8 @@ namespace adria
 	class GraphicsDevice;
 	class Shader;
 
-	DECLARE_MULTICAST_DELEGATE(ShaderRecompiledEvent, EShader);
-	DECLARE_MULTICAST_DELEGATE(LibraryRecompiledEvent, EShader);
+	DECLARE_MULTICAST_DELEGATE(ShaderRecompiledEvent, EShaderId);
+	DECLARE_MULTICAST_DELEGATE(LibraryRecompiledEvent, EShaderId);
 
 	class ShaderCache
 	{
@@ -18,6 +18,6 @@ namespace adria
 		static void CheckIfShadersHaveChanged();
 		static ShaderRecompiledEvent& GetShaderRecompiledEvent();
 		static LibraryRecompiledEvent& GetLibraryRecompiledEvent();
-		static Shader const& GetShader(EShader shader);
+		static Shader const& GetShader(EShaderId shader);
 	};
 }

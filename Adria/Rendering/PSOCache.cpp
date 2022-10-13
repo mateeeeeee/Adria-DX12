@@ -21,7 +21,7 @@ namespace adria
 			Compute
 		};
 
-		inline Shader const& GetShader(EShader shader)
+		inline Shader const& GetShader(EShaderId shader)
 		{
 			return ShaderCache::GetShader(shader);
 		}

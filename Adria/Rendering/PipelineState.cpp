@@ -25,9 +25,9 @@ namespace adria
 		return pso.Get();
 	}
 
-	void GraphicsPipelineState::OnShaderRecompiled(EShader s)
+	void GraphicsPipelineState::OnShaderRecompiled(EShaderId s)
 	{
-		EShader shaders[] = { desc.VS, desc.PS, desc.GS, desc.HS, desc.DS };
+		EShaderId shaders[] = { desc.VS, desc.PS, desc.GS, desc.HS, desc.DS };
 		for (size_t i = 0; i < ARRAYSIZE(shaders); ++i)
 		{
 			if (s == shaders[i])
@@ -83,7 +83,7 @@ namespace adria
 		return pso.Get();
 	}
 
-	void ComputePipelineState::OnShaderRecompiled(EShader s)
+	void ComputePipelineState::OnShaderRecompiled(EShaderId s)
 	{
 		if (s == desc.CS) Create(desc);
 	}

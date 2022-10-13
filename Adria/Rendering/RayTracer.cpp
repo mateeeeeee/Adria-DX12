@@ -695,7 +695,7 @@ namespace adria
 			path_tracing.Attach(pt_state_object_builder.CreateStateObject(device));
 		}
 	}
-	void RayTracer::OnLibraryRecompiled(EShader shader)
+	void RayTracer::OnLibraryRecompiled(EShaderId shader)
 	{
 		CreateStateObjects();
 	}
