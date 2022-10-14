@@ -13,6 +13,7 @@ namespace fs = std::filesystem;
 namespace adria
 {
 	char const* shaders_directory = "Resources/Shaders/";
+	char const* new_shaders_directory = "Resources/NewShaders/";
 	namespace
 	{
 		std::unique_ptr<FileWatcher> file_watcher;
@@ -25,6 +26,8 @@ namespace adria
 		{
 			switch (shader)
 			{
+			case CS_BuildHistogram:
+				return "BuildHistogramCS";
 			default:
 				return "main";
 			}
@@ -351,11 +354,13 @@ namespace adria
 			if (shader == ShaderId_Invalid) return;
 
 			ShaderDesc shader_desc{};
-			shader_desc.file = std::string(shaders_directory) + GetShaderSource(shader);
 			shader_desc.entry_point = GetEntrypoint(shader);
 			shader_desc.stage = GetShaderStage(shader);
-			shader_desc.model = SM_6_6;
 			shader_desc.macros = GetShaderMacros(shader);
+			shader_desc.model = SM_6_6;
+			shader_desc.file = shader_desc.entry_point == "main" ?  //temporary
+				std::string(shaders_directory) + GetShaderSource(shader) : 
+				std::string(new_shaders_directory) + GetShaderSource(shader);
 #if _DEBUG
 			shader_desc.flags = ShaderCompilerFlag_DisableOptimization | ShaderCompilerFlag_Debug;
 #else

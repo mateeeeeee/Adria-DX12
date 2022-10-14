@@ -10,16 +10,6 @@ namespace adria
 	class Buffer;
 	class GraphicsDevice;
 
-	struct AutomaticExposureParameters
-	{
-		float32 min_luminance;
-		float32 max_luminance;
-		float32 adaption_speed;
-		float32 exposure_compensation;
-		float32 low_percentile;
-		float32 high_percentile;
-	};
-
 	class AutomaticExposurePass
 	{
 	public:

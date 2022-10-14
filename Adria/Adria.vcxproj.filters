@@ -86,6 +86,12 @@
     <Filter Include="Font">
       <UniqueIdentifier>{4bcac2f2-2236-4e3b-8891-7ec43621b7d1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="NewShaders">
+      <UniqueIdentifier>{1e5e0278-a230-4a83-80fb-55d749bd8fad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NewShaders\Exposure">
+      <UniqueIdentifier>{05207fd7-a901-482a-b171-773d2515c224}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -1042,6 +1048,9 @@
     <FxCompile Include="Resources\Shaders\Exposure\HistogramReductionCS.hlsl">
       <Filter>Shaders\Exposure</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Exposure\BuildHistogramCS.hlsl">
+      <Filter>NewShaders\Exposure</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Shaders\Globals\GlobalsCS.hlsli">
@@ -1093,6 +1102,15 @@
     <None Include="packages.config" />
     <None Include="Resources\Shaders\Exposure\ExposureUtil.hlsli">
       <Filter>Shaders\Exposure</Filter>
+    </None>
+    <None Include="Resources\NewShaders\Exposure\ExposureUtil.hlsli">
+      <Filter>NewShaders\Exposure</Filter>
+    </None>
+    <None Include="Resources\NewShaders\CommonUtil.hlsli">
+      <Filter>NewShaders</Filter>
+    </None>
+    <None Include="Resources\NewShaders\CommonResources.hlsli">
+      <Filter>NewShaders</Filter>
     </None>
   </ItemGroup>
 </Project>

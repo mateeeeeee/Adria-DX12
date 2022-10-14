@@ -518,7 +518,7 @@ namespace adria
 				compute_pso_desc.CS = CS_Spectrum;
 				compute_pso_map[EPipelineState::Spectrum] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::BuildHistogram;
+				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_BuildHistogram;
 				compute_pso_map[EPipelineState::BuildHistogram] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 

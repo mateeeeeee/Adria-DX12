@@ -69,13 +69,14 @@ namespace adria
 
 				DescriptorCPU buffer_uav_cpu = context.GetReadWriteBuffer(data.histogram_buffer);
 				OffsetType descriptor_index = descriptor_allocator->Allocate();
-				
 				DescriptorHandle buffer_gpu = descriptor_allocator->GetHandle(descriptor_index);
-				device->CopyDescriptorsSimple(1, buffer_gpu, buffer_uav_cpu,
+				device->CopyDescriptorsSimple(1, buffer_gpu, buffer_uav_cpu, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				descriptor_index = descriptor_allocator->Allocate();
+				DescriptorHandle scene_srv = descriptor_allocator->GetHandle(descriptor_index);
+				device->CopyDescriptorsSimple(1, scene_srv, context.GetReadOnlyTexture(data.scene_texture),
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 				Buffer const& histogram_buffer = context.GetBuffer(data.histogram_buffer.GetResourceId());
-
 				uint32 clear_value[4] = { 0, 0, 0, 0 };
 				cmd_list->ClearUnorderedAccessViewUint(buffer_gpu, buffer_uav_cpu, histogram_buffer.GetNative(), clear_value, 0, nullptr);
 
@@ -84,7 +85,7 @@ namespace adria
 				buffer_uav_barrier.UAV.pResource = histogram_buffer.GetNative();
 				cmd_list->ResourceBarrier(1, &buffer_uav_barrier);
 
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::BuildHistogram));
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::BuildHistogram)); 
 				uint32 half_width = (width + 1) / 2;
 				uint32 half_height = (height + 1) / 2;
@@ -97,21 +98,13 @@ namespace adria
 					float32 rcp_height;
 					float32 min_luminance;
 					float32 max_luminance;
+					uint32  scene_idx;
+					uint32  histogram_idx;
 				} constants = {	.width = half_width, .height = half_height, 
 								.rcp_width = 1.0f / half_width, .rcp_height = 1.0f / half_height,
-								.min_luminance = min_luminance, .max_luminance = max_luminance};
-
-				DynamicAllocation cb_alloc = dynamic_allocator->Allocate(sizeof(BuildHistogramConstants), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-				cb_alloc.Update(constants);
-
-				descriptor_index = descriptor_allocator->Allocate();
-				DescriptorHandle scene_srv = descriptor_allocator->GetHandle(descriptor_index);
-				device->CopyDescriptorsSimple(1, scene_srv, context.GetReadOnlyTexture(data.scene_texture),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-				cmd_list->SetComputeRootDescriptorTable(0, buffer_gpu);
-				cmd_list->SetComputeRootDescriptorTable(1, scene_srv);
-				cmd_list->SetComputeRootConstantBufferView(2, cb_alloc.gpu_address);
+								.min_luminance = min_luminance, .max_luminance = max_luminance,
+								.scene_idx = (uint32)scene_srv.GetHeapOffset(), .histogram_idx = (uint32)buffer_gpu.GetHeapOffset()};
+				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
 
 				auto DivideRoudingUp = [](uint32 a, uint32 b)
 				{

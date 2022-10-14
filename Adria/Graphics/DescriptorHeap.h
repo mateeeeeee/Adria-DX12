@@ -32,7 +32,8 @@ namespace adria
 		SIZE_T offset_in_heap = -1;
 
 	private:
-		explicit DescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE cpu_pointer, D3D12_GPU_DESCRIPTOR_HANDLE gpu_pointer = { NULL }, SIZE_T offset_in_heap = -1) : cpu_pointer(cpu_pointer), gpu_pointer(gpu_pointer)
+		explicit DescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE cpu, D3D12_GPU_DESCRIPTOR_HANDLE gpu = { NULL }, SIZE_T offset = -1) 
+			: cpu_pointer(cpu), gpu_pointer(gpu), offset_in_heap(offset)
 		{}
 	};
 
