@@ -22,7 +22,7 @@ namespace adria
 		HashMap<EShaderId, Shader> shader_map;
 		HashMap<EShaderId, HashSet<fs::path>> dependent_files_map;
 
-		constexpr std::string GetEntrypoint(EShaderId shader)
+		constexpr std::string GetEntryPoint(EShaderId shader)
 		{
 			switch (shader)
 			{
@@ -306,11 +306,11 @@ namespace adria
 			case CS_GenerateMips:
 				return "Misc/GenerateMipsCS.hlsl";
 			case CS_BuildHistogram:
-				return "Exposure/BuildHistogramCS.hlsl";
+				return "Exposure/BuildHistogram.hlsl";
 			case CS_HistogramReduction:
-				return "Exposure/HistogramReductionCS.hlsl";
+				return "Exposure/HistogramReduction.hlsl";
 			case CS_Exposure:
-				return "Exposure/ExposureCS.hlsl";
+				return "Exposure/Exposure.hlsl";
 			case LIB_Shadows:
 			case LIB_SoftShadows:
 				return "RayTracing/RayTracedShadows.hlsl";
@@ -358,7 +358,7 @@ namespace adria
 			if (shader == ShaderId_Invalid) return;
 
 			ShaderDesc shader_desc{};
-			shader_desc.entry_point = GetEntrypoint(shader);
+			shader_desc.entry_point = GetEntryPoint(shader);
 			shader_desc.stage = GetShaderStage(shader);
 			shader_desc.macros = GetShaderMacros(shader);
 			shader_desc.model = SM_6_6;
@@ -413,14 +413,12 @@ namespace adria
 		std::ignore = file_watcher->GetFileModifiedEvent().Add(OnShaderFileChanged);
 		CompileAllShaders();
 	}
-
 	void ShaderCache::Destroy()
 	{
 		file_watcher = nullptr;
 		shader_map.clear();
 		dependent_files_map.clear();
 	}
-
 	void ShaderCache::CheckIfShadersHaveChanged()
 	{
 		file_watcher->CheckWatchedFiles();
@@ -430,16 +428,13 @@ namespace adria
 	{
 		return shader_map[shader];
 	}
-
 	ShaderRecompiledEvent& ShaderCache::GetShaderRecompiledEvent()
 	{
 		return shader_recompiled_event;
 	}
-
 	LibraryRecompiledEvent& ShaderCache::GetLibraryRecompiledEvent()
 	{
 		return library_recompiled_event;
 	}
-
 }
 

@@ -53,6 +53,7 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 * DirectX12 Render Passes
 
 ## TODO
+* Move to Ultimate Bindless (wip)
 * Improve DXR features
 * Add DXR Global Illumination
 

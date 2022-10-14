@@ -80,9 +80,6 @@
     <Filter Include="Rendering\Passes">
       <UniqueIdentifier>{446d9ca2-5cd9-4492-b4d3-0f129c97eb27}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shaders\Exposure">
-      <UniqueIdentifier>{10495589-dc92-4eb8-a600-b5b0ff0e9517}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Font">
       <UniqueIdentifier>{4bcac2f2-2236-4e3b-8891-7ec43621b7d1}</UniqueIdentifier>
     </Filter>
@@ -91,6 +88,9 @@
     </Filter>
     <Filter Include="NewShaders\Exposure">
       <UniqueIdentifier>{05207fd7-a901-482a-b171-773d2515c224}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NewShaders\Other">
+      <UniqueIdentifier>{d9d0175a-61a6-406d-bb58-8324f78457ad}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -1039,23 +1039,17 @@
     <FxCompile Include="Resources\Shaders\RayTracing\PathTracer.hlsl">
       <Filter>Shaders\RayTracing</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Exposure\BuildHistogramCS.hlsl">
-      <Filter>Shaders\Exposure</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Exposure\ExposureCS.hlsl">
-      <Filter>Shaders\Exposure</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Exposure\HistogramReductionCS.hlsl">
-      <Filter>Shaders\Exposure</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Exposure\BuildHistogramCS.hlsl">
+    <FxCompile Include="Resources\NewShaders\Exposure\BuildHistogram.hlsl">
       <Filter>NewShaders\Exposure</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Exposure\HistogramReductionCS.hlsl">
+    <FxCompile Include="Resources\NewShaders\Exposure\HistogramReduction.hlsl">
       <Filter>NewShaders\Exposure</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Exposure\ExposureCS.hlsl">
+    <FxCompile Include="Resources\NewShaders\Exposure\Exposure.hlsl">
       <Filter>NewShaders\Exposure</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Other\ZPass.hlsl">
+      <Filter>NewShaders\Other</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1106,9 +1100,6 @@
     </None>
     <None Include="scene.json" />
     <None Include="packages.config" />
-    <None Include="Resources\Shaders\Exposure\ExposureUtil.hlsli">
-      <Filter>Shaders\Exposure</Filter>
-    </None>
     <None Include="Resources\NewShaders\Exposure\ExposureUtil.hlsli">
       <Filter>NewShaders\Exposure</Filter>
     </None>
@@ -1118,5 +1109,6 @@
     <None Include="Resources\NewShaders\CommonResources.hlsli">
       <Filter>NewShaders</Filter>
     </None>
+    <None Include="..\README.md" />
   </ItemGroup>
 </Project>
