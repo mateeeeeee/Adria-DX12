@@ -28,6 +28,8 @@ namespace adria
 			{
 			case CS_BuildHistogram:
 				return "BuildHistogramCS";
+			case CS_HistogramReduction:
+				return "HistogramReductionCS";
 			default:
 				return "main";
 			}

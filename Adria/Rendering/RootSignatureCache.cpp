@@ -149,9 +149,6 @@ namespace adria
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_ParticleSort512).GetPointer(), GetShader(CS_ParticleSort512).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::Particles_Sort].GetAddressOf())));
 
-			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_HistogramReduction).GetPointer(), GetShader(CS_HistogramReduction).GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::HistogramReduction].GetAddressOf())));
-
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_Exposure).GetPointer(), GetShader(CS_Exposure).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::Exposure].GetAddressOf())));
 

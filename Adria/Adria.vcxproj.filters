@@ -1051,6 +1051,9 @@
     <FxCompile Include="Resources\NewShaders\Exposure\BuildHistogramCS.hlsl">
       <Filter>NewShaders\Exposure</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Exposure\HistogramReductionCS.hlsl">
+      <Filter>NewShaders\Exposure</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Shaders\Globals\GlobalsCS.hlsli">

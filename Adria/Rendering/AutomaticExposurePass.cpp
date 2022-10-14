@@ -135,8 +135,16 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::HistogramReduction));
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::HistogramReduction));
+
+				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
+				DescriptorHandle buffer_srv = descriptor_allocator->GetHandle(descriptor_index);
+				device->CopyDescriptorsSimple(1, buffer_srv, context.GetReadOnlyBuffer(data.histogram_buffer),
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				DescriptorHandle avgluminance_uav = descriptor_allocator->GetHandle(descriptor_index + 1);
+				device->CopyDescriptorsSimple(1, avgluminance_uav, context.GetReadWriteTexture(data.avg_luminance),
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 				struct HistogramReductionConstants 
 				{
@@ -144,19 +152,12 @@ namespace adria
 					float32 max_luminance;
 					float32 low_percentile;
 					float32 high_percentile;
+					uint32  histogram_idx;
+					uint32  luminance_idx;
 				} constants = { .min_luminance = min_luminance, .max_luminance = max_luminance,
-								.low_percentile = low_percentile, .high_percentile = high_percentile };
-				cmd_list->SetComputeRoot32BitConstants(0, 4, &constants, 0);
-				
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
-				DescriptorHandle buffer_srv = descriptor_allocator->GetHandle(descriptor_index);
-				device->CopyDescriptorsSimple(1, buffer_srv, context.GetReadOnlyBuffer(data.histogram_buffer),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetComputeRootDescriptorTable(1, buffer_srv);
-				DescriptorHandle avgluminance_uav = descriptor_allocator->GetHandle(descriptor_index + 1);
-				device->CopyDescriptorsSimple(1, avgluminance_uav, context.GetReadWriteTexture(data.avg_luminance),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetComputeRootDescriptorTable(2, avgluminance_uav);
+								.low_percentile = low_percentile, .high_percentile = high_percentile,
+								.histogram_idx = (uint32)buffer_srv.GetHeapOffset(), .luminance_idx = (uint32)avgluminance_uav.GetHeapOffset()};
+				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);
 
 				cmd_list->Dispatch(1, 1, 1);
 			}, ERGPassType::Compute, ERGPassFlags::None);
