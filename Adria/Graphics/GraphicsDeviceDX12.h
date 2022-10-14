@@ -30,14 +30,12 @@ namespace adria
 		Graphics,
 		Compute,
 	};
-
 	struct GraphicsOptions
 	{
 		bool debug_layer = false;
 		bool dred = false;
 		bool gpu_validation = false;
 	};
-
 	struct GPUMemoryUsage
 	{
 		UINT64 usage;

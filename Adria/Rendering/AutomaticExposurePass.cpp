@@ -238,7 +238,6 @@ namespace adria
 			struct HistogramCopyData
 			{
 				RGBufferCopySrcId histogram;
-				RGBufferCopyDstId histogram_copy;
 			};
 			rg.AddPass<HistogramCopyData>("Histogram Copy Pass",
 				[&](HistogramCopyData& data, RenderGraphBuilder& builder)

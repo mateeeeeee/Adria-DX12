@@ -50,7 +50,6 @@ namespace adria
 		style.ScrollbarRounding = 2.0f;
 		style.Alpha = 1.0f;
 	}
-
 	GUI::~GUI()
 	{
 		gfx->WaitForGPU();
@@ -68,11 +67,9 @@ namespace adria
 
 		imgui_allocator->ReleaseCompletedFrames(frame_count);
 	}
-
 	void GUI::End(ID3D12GraphicsCommandList* cmd_list) const
 	{
 		ImGui::Render();
-
 		if (visible)
 		{
 			ID3D12DescriptorHeap* pp_heaps[] = { imgui_allocator->Heap() };
@@ -85,11 +82,8 @@ namespace adria
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();
 		}
-
 		imgui_allocator->FinishCurrentFrame(frame_count);
-
 		++frame_count;
-
 	}
 	void GUI::HandleWindowMessage(WindowMessage const& msg_data) const
 	{
@@ -97,12 +91,10 @@ namespace adria
 			msg_data.msg, msg_data.wparam, msg_data.lparam);
 	}
 
-
 	void GUI::ToggleVisibility()
 	{
 		visible = !visible;
 	}
-
 	bool GUI::IsVisible() const
 	{
 		return visible;

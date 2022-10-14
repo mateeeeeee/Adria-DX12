@@ -170,6 +170,30 @@ namespace adria
 				feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
 
 			{
+				CD3DX12_ROOT_PARAMETER1 root_parameters[3] = {};
+				root_parameters[0].InitAsConstants(5, 0);
+				root_parameters[1].InitAsConstantBufferView(1);
+				root_parameters[2].InitAsConstantBufferView(2);
+
+				D3D12_ROOT_SIGNATURE_FLAGS flags =
+					D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+					D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+					D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+					D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
+					D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED;
+
+				CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC desc{};
+				desc.Init_1_1(_countof(root_parameters), root_parameters, 0, nullptr, flags);
+
+				ComPtr<ID3DBlob> signature;
+				ComPtr<ID3DBlob> error;
+				HRESULT hr = D3DX12SerializeVersionedRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1_1, &signature, &error);
+				BREAK_IF_FAILED(hr);
+				hr = device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::Common]));
+				BREAK_IF_FAILED(hr);
+			}
+
+			{
 				std::array<CD3DX12_ROOT_PARAMETER1, 3> root_parameters{};
 				CD3DX12_ROOT_PARAMETER1 root_parameter{};
 
@@ -268,15 +292,6 @@ namespace adria
 			}
 
 			{
-				D3D12_FEATURE_DATA_ROOT_SIGNATURE feature_data = {};
-
-				feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
-
-				if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &feature_data, sizeof(feature_data))))
-				{
-					feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
-				}
-
 				CD3DX12_DESCRIPTOR_RANGE1 srv_uav_ranges[2] = {};
 				CD3DX12_ROOT_PARAMETER1 root_parameters[3] = {};
 				srv_uav_ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
@@ -498,41 +513,6 @@ namespace adria
 
 		void CreateAllRootSignatures(ID3D12Device* device)
 		{
-			/*
-			//AMD : Try to stay below 13 DWORDs https://gpuopen.com/performance/
-			//5 root constants + 4 root CBVs == 13 DWORDs, everything else is bindless
-
-			CD3DX12_ROOT_PARAMETER1 root_parameters[5] = {};
-			root_parameters[0].InitAsConstants(5, 0);
-			root_parameters[1].InitAsConstantBufferView(1);
-			root_parameters[2].InitAsConstantBufferView(2);
-			root_parameters[3].InitAsConstantBufferView(3);
-			root_parameters[4].InitAsConstantBufferView(4);
-
-			D3D12_ROOT_SIGNATURE_FLAGS flags =
-				D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-				D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-				D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
-				D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED |
-				D3D12_ROOT_SIGNATURE_FLAG_SAMPLER_HEAP_DIRECTLY_INDEXED;
-
-			CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC desc;
-			desc.Init_1_1(_countof(root_parameters), root_parameters, 0, nullptr, flags);
-
-			ID3DBlob* signature = nullptr;
-			ID3DBlob* error = nullptr;
-			HRESULT hr = D3DX12SerializeVersionedRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1_1, &signature, &error);
-			RE_ASSERT(SUCCEEDED(hr));
-
-			hr = m_pDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_pRootSignature));
-			RE_ASSERT(SUCCEEDED(hr));
-
-			SAFE_RELEASE(signature);
-			SAFE_RELEASE(error);
-
-			m_pRootSignature->SetName(L"D3D12Device::m_pRootSignature");
-			*/
-
 			CreateRootSignaturesFromHLSL(device);
 			CreateRootSignaturesFromCpp(device);
 		}
