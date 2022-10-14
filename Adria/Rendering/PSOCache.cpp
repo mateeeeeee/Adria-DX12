@@ -526,7 +526,7 @@ namespace adria
 				compute_pso_desc.CS = CS_HistogramReduction;
 				compute_pso_map[EPipelineState::HistogramReduction] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Exposure;
+				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_Exposure;
 				compute_pso_map[EPipelineState::Exposure] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 			}

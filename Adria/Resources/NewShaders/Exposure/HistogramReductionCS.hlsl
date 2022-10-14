@@ -2,7 +2,7 @@
 #include "ExposureUtil.hlsli"
 
 
-struct ReduceHistogramConstants
+struct HistogramReductionConstants
 {
 	float minLuminance;
 	float maxLuminance;
@@ -11,7 +11,7 @@ struct ReduceHistogramConstants
 	uint  histogramIdx;
 	uint  luminanceIdx;
 };
-ConstantBuffer<ReduceHistogramConstants> PassCB : register(b1);
+ConstantBuffer<HistogramReductionConstants> PassCB : register(b1);
 
 groupshared float Values[HISTOGRAM_BIN_NUM];
 groupshared float IntermediateValues[HISTOGRAM_BIN_NUM];

@@ -1,7 +1,7 @@
 #include "CommonUtil.hlsli"
 #include "ExposureUtil.hlsli"
 
-struct PassConstants
+struct BuildHistogramConstants
 {
 	uint  width;
 	uint  height;
@@ -12,7 +12,7 @@ struct PassConstants
 	uint  sceneIdx;
 	uint  histogramIdx;
 };
-ConstantBuffer<PassConstants> PassCB : register(b1);
+ConstantBuffer<BuildHistogramConstants> PassCB : register(b1);
 
 SamplerState				  LinearClampSampler : register(s1);
 groupshared uint			  HistogramBins[HISTOGRAM_BIN_NUM];

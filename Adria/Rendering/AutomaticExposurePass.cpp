@@ -67,18 +67,18 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
-				DescriptorCPU buffer_uav_cpu = context.GetReadWriteBuffer(data.histogram_buffer);
-				OffsetType descriptor_index = descriptor_allocator->Allocate();
-				DescriptorHandle buffer_gpu = descriptor_allocator->GetHandle(descriptor_index);
-				device->CopyDescriptorsSimple(1, buffer_gpu, buffer_uav_cpu, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				descriptor_index = descriptor_allocator->Allocate();
+				uint32 descriptor_index = (uint32)descriptor_allocator->AllocateRange(2);
+
 				DescriptorHandle scene_srv = descriptor_allocator->GetHandle(descriptor_index);
 				device->CopyDescriptorsSimple(1, scene_srv, context.GetReadOnlyTexture(data.scene_texture),
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
+				DescriptorHandle buffer_gpu = descriptor_allocator->GetHandle(descriptor_index + 1);
+				device->CopyDescriptorsSimple(1, buffer_gpu, context.GetReadWriteBuffer(data.histogram_buffer), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	
 				Buffer const& histogram_buffer = context.GetBuffer(data.histogram_buffer.GetResourceId());
 				uint32 clear_value[4] = { 0, 0, 0, 0 };
-				cmd_list->ClearUnorderedAccessViewUint(buffer_gpu, buffer_uav_cpu, histogram_buffer.GetNative(), clear_value, 0, nullptr);
+				cmd_list->ClearUnorderedAccessViewUint(buffer_gpu, context.GetReadWriteBuffer(data.histogram_buffer), histogram_buffer.GetNative(), clear_value, 0, nullptr);
 
 				D3D12_RESOURCE_BARRIER buffer_uav_barrier{};
 				buffer_uav_barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
@@ -103,7 +103,7 @@ namespace adria
 				} constants = {	.width = half_width, .height = half_height, 
 								.rcp_width = 1.0f / half_width, .rcp_height = 1.0f / half_height,
 								.min_luminance = min_luminance, .max_luminance = max_luminance,
-								.scene_idx = (uint32)scene_srv.GetHeapOffset(), .histogram_idx = (uint32)buffer_gpu.GetHeapOffset()};
+								.scene_idx = descriptor_index, .histogram_idx = descriptor_index + 1 };
 				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
 
 				auto DivideRoudingUp = [](uint32 a, uint32 b)
@@ -138,7 +138,8 @@ namespace adria
 				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::HistogramReduction));
 
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
+				uint32 descriptor_index = (uint32)descriptor_allocator->AllocateRange(2);
+
 				DescriptorHandle buffer_srv = descriptor_allocator->GetHandle(descriptor_index);
 				device->CopyDescriptorsSimple(1, buffer_srv, context.GetReadOnlyBuffer(data.histogram_buffer),
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -156,7 +157,7 @@ namespace adria
 					uint32  luminance_idx;
 				} constants = { .min_luminance = min_luminance, .max_luminance = max_luminance,
 								.low_percentile = low_percentile, .high_percentile = high_percentile,
-								.histogram_idx = (uint32)buffer_srv.GetHeapOffset(), .luminance_idx = (uint32)avgluminance_uav.GetHeapOffset()};
+								.histogram_idx = descriptor_index, .luminance_idx = descriptor_index + 1 };
 				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);
 
 				cmd_list->Dispatch(1, 1, 1);
@@ -195,35 +196,35 @@ namespace adria
 					cmd_list->ClearUnorderedAccessViewFloat(gpu_descriptor, cpu_descriptor, previous_ev100->GetNative(), clear_value, 0, nullptr);
 					invalid_history = false;
 				}
-
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Exposure));
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Exposure));
+
+				uint32 descriptor_index = (uint32)descriptor_allocator->AllocateRange(3);
+				
+				DescriptorHandle previous_uav = descriptor_allocator->GetHandle(descriptor_index);
+				device->CopyDescriptorsSimple(1, previous_uav, previous_ev100->GetUAV(),
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+				DescriptorHandle exposure_uav = descriptor_allocator->GetHandle(descriptor_index + 1);
+				device->CopyDescriptorsSimple(1, exposure_uav, context.GetReadWriteTexture(data.exposure),
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+				DescriptorHandle avgluminance_srv = descriptor_allocator->GetHandle(descriptor_index + 2);
+				device->CopyDescriptorsSimple(1, avgluminance_srv, context.GetReadOnlyTexture(data.avg_luminance),
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 				struct ExposureConstants
 				{
 					float32 adaption_speed;
 					float32 exposure_compensation;
 					float32 frame_time;
-				} constants{.adaption_speed = adaption_speed, .exposure_compensation = exposure_compensation, .frame_time = 0.166f};
+					uint32  previous_ev_idx;
+					uint32  exposure_idx;
+					uint32  luminance_idx;
+				} constants{.adaption_speed = adaption_speed, .exposure_compensation = exposure_compensation, .frame_time = 0.166f,
+						.previous_ev_idx = descriptor_index, .exposure_idx = descriptor_index + 1, .luminance_idx  = descriptor_index + 2};
 
-				cmd_list->SetComputeRoot32BitConstants(0, 3, &constants, 0);
-
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
-				DescriptorHandle avgluminance_srv = descriptor_allocator->GetHandle(descriptor_index);
-				device->CopyDescriptorsSimple(1, avgluminance_srv, context.GetReadOnlyTexture(data.avg_luminance),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetComputeRootDescriptorTable(1, avgluminance_srv);
-
-				DescriptorHandle previous_uav = descriptor_allocator->GetHandle(descriptor_index + 1);
-				device->CopyDescriptorsSimple(1, previous_uav, previous_ev100->GetUAV(),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-				DescriptorHandle exposure_uav = descriptor_allocator->GetHandle(descriptor_index + 2);
-				device->CopyDescriptorsSimple(1, exposure_uav, context.GetReadWriteTexture(data.exposure),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-				cmd_list->SetComputeRootDescriptorTable(2, previous_uav);
-
+				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);
 				cmd_list->Dispatch(1, 1, 1);
 			}, ERGPassType::Compute, ERGPassFlags::None);
 	
