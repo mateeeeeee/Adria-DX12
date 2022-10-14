@@ -4,7 +4,10 @@
 #include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/Texture.h"
+#include "../Graphics/Buffer.h"
 #include "../Editor/GUICommand.h"
+
+#include <algorithm> // remove this later
 
 namespace adria
 {
@@ -26,6 +29,14 @@ namespace adria
 
 		previous_ev100 = std::make_unique<Texture>(gfx, desc);
 		previous_ev100->CreateUAV();
+
+		BufferDesc hist_desc{};
+		hist_desc.stride = sizeof(uint32);
+		hist_desc.size = hist_desc.stride * 256;
+		hist_desc.format = EFormat::R32_FLOAT;
+		hist_desc.misc_flags = EBufferMiscFlag::BufferRaw;
+		hist_desc.resource_usage = EResourceUsage::Readback;
+		histogram_copy = std::make_unique<Buffer>(gfx, hist_desc);
 	}
 
 	void AutomaticExposurePass::AddPasses(RenderGraph& rg, RGResourceName input)
@@ -222,6 +233,25 @@ namespace adria
 				cmd_list->Dispatch(1, 1, 1);
 			}, ERGPassType::Compute, ERGPassFlags::None);
 	
+		if (show_histogram)
+		{
+			struct HistogramCopyData
+			{
+				RGBufferCopySrcId histogram;
+				RGBufferCopyDstId histogram_copy;
+			};
+			rg.AddPass<HistogramCopyData>("Histogram Copy Pass",
+				[&](HistogramCopyData& data, RenderGraphBuilder& builder)
+				{
+					ADRIA_ASSERT(builder.IsBufferDeclared(RG_RES_NAME(HistogramBuffer)));
+					data.histogram = builder.ReadCopySrcBuffer(RG_RES_NAME(HistogramBuffer));
+				},
+				[=](HistogramCopyData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+				{
+					cmd_list->CopyResource(histogram_copy->GetNative(), context.GetBuffer(data.histogram).GetNative());
+				}, ERGPassType::Compute, ERGPassFlags::ForceNoCull);
+		}
+
 		AddGUI([&]() 
 			{
 				if (ImGui::TreeNodeEx("Automatic Exposure", 0))
@@ -232,6 +262,19 @@ namespace adria
 					ImGui::SliderFloat("Exposure Compensation", &exposure_compensation, -5.0f, 5.0f);
 					ImGui::SliderFloat("Low Percentile", &low_percentile, 0.0f, 0.49f);
 					ImGui::SliderFloat("High Percentile", &high_percentile, 0.51, 1.0f);
+					ImGui::Checkbox("Histogram", &show_histogram);
+					if (show_histogram)
+					{
+						ADRIA_ASSERT(histogram_copy->IsMapped());
+						size_t histogram_size = histogram_copy->GetDesc().size / sizeof(int);
+						int* hist_data = histogram_copy->GetMappedData<int>();
+						int max_value = *std::max_element(hist_data, hist_data + histogram_size);
+						auto converter = [](void* data, int idx)-> float
+						{
+							return static_cast<float>(*(((int*)data) + idx));
+						};
+						ImGui::PlotHistogram("Luminance Histogram", converter, hist_data, (int)histogram_size, 0, NULL, 0.0f, max_value, ImVec2(0, 80));
+					}
 					ImGui::TreePop();
 				}
 			}

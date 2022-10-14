@@ -290,8 +290,6 @@ namespace adria
 		BREAK_IF_FAILED(hr);
 		compute_queue->SetName(L"Compute Queue");
 
-		//create swap chain
-
 		IDXGISwapChain1* _swap_chain1 = nullptr;
 		DXGI_SWAP_CHAIN_DESC1 sd{};
 		sd.Width = width;
@@ -389,11 +387,10 @@ namespace adria
 		if (wait_event == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
 
 		
-		Microsoft::WRL::ComPtr<ID3D12InfoQueue> pInfoQueue;
-		if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(pInfoQueue.GetAddressOf()))))
+		Microsoft::WRL::ComPtr<ID3D12InfoQueue> info_queue;
+		if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(info_queue.GetAddressOf()))))
 		{
-			//D3D12_MESSAGE_CATEGORY Categories[] = {};
-		
+			//D3D12_MESSAGE_CATEGORY Categories[0] = {};
 			D3D12_MESSAGE_SEVERITY Severities[] =
 			{
 				D3D12_MESSAGE_SEVERITY_INFO
@@ -402,24 +399,25 @@ namespace adria
 			D3D12_MESSAGE_ID DenyIds[] =
 			{
 				D3D12_MESSAGE_ID_INVALID_DESCRIPTOR_HANDLE,
+				D3D12_MESSAGE_ID_COMMAND_ALLOCATOR_SYNC 
 			};
 		
-			D3D12_INFO_QUEUE_FILTER NewFilter = {};
-			//NewFilter.DenyList.NumCategories = ARRAYSIZE(Categories);
-				//NewFilter.DenyList.pCategoryList = Categories;
+			D3D12_INFO_QUEUE_FILTER NewFilter{};
+			NewFilter.DenyList.NumCategories = 0;
+			NewFilter.DenyList.pCategoryList = NULL;
 			NewFilter.DenyList.NumSeverities = ARRAYSIZE(Severities);
 			NewFilter.DenyList.pSeverityList = Severities;
 			NewFilter.DenyList.NumIDs = ARRAYSIZE(DenyIds);
 			NewFilter.DenyList.pIDList = DenyIds;
 		
-			BREAK_IF_FAILED(pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true));
-			BREAK_IF_FAILED(pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true));
-			BREAK_IF_FAILED(pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true));
-			pInfoQueue->PushStorageFilter(&NewFilter);
+			BREAK_IF_FAILED(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true));
+			BREAK_IF_FAILED(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, false));
+			BREAK_IF_FAILED(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true));
+			info_queue->PushStorageFilter(&NewFilter);
 		
-			Microsoft::WRL::ComPtr<ID3D12InfoQueue1> pInfoQueue1;
-			pInfoQueue.As(&pInfoQueue1);
-			if (pInfoQueue1)
+			Microsoft::WRL::ComPtr<ID3D12InfoQueue1> info_queue1;
+			info_queue.As(&info_queue1);
+			if (info_queue1)
 			{
 				auto MessageCallback = [](
 					D3D12_MESSAGE_CATEGORY Category,
@@ -431,7 +429,7 @@ namespace adria
 					ADRIA_LOG(WARNING, "D3D12 Validation Layer: %s", pDescription);
 				};
 				DWORD callbackCookie = 0;
-				BREAK_IF_FAILED(pInfoQueue1->RegisterMessageCallback(MessageCallback, D3D12_MESSAGE_CALLBACK_FLAG_NONE, this, &callbackCookie));
+				BREAK_IF_FAILED(info_queue1->RegisterMessageCallback(MessageCallback, D3D12_MESSAGE_CALLBACK_FLAG_NONE, this, &callbackCookie));
 			}
 		}
 		

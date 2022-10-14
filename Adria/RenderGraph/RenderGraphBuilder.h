@@ -64,6 +64,7 @@ namespace adria
 		RenderGraphBuilder& operator=(RenderGraphBuilder const&) = delete;
 
 		bool IsTextureDeclared(RGResourceName name);
+		bool IsBufferDeclared(RGResourceName name);
 		void DeclareTexture(RGResourceName name, RGTextureDesc const& desc);
 		void DeclareBuffer(RGResourceName name, RGBufferDesc const& desc);
 		void DeclareAllocation(RGResourceName name, AllocDesc const& desc);

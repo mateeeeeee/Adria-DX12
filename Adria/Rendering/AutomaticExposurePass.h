@@ -7,6 +7,7 @@ namespace adria
 {
 	class RenderGraph;
 	class Texture;
+	class Buffer;
 	class GraphicsDevice;
 
 	struct AutomaticExposureParameters
@@ -29,6 +30,7 @@ namespace adria
 	private:
 		uint32 width, height;
 		std::unique_ptr<Texture> previous_ev100;
+		std::unique_ptr<Buffer> histogram_copy;
 		bool invalid_history = true;
 
 		float32 min_luminance = 0.0f;
@@ -37,6 +39,7 @@ namespace adria
 		float32 exposure_compensation = 0.75f;
 		float32 low_percentile = 0.1f;
 		float32 high_percentile = 0.9f;
+		bool show_histogram = false;
 	};
 }
 
