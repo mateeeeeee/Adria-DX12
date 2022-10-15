@@ -1048,9 +1048,6 @@
     <FxCompile Include="Resources\NewShaders\Exposure\Exposure.hlsl">
       <Filter>NewShaders\Exposure</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Other\ZPass.hlsl">
-      <Filter>NewShaders\Other</Filter>
-    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Shaders\Globals\GlobalsCS.hlsli">

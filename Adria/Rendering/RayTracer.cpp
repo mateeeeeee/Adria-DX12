@@ -228,10 +228,10 @@ namespace adria
 			}, ERGPassType::Compute, ERGPassFlags::None);
 #ifdef _DEBUG
 		AddRayTracedShadowsDebugPass(rg, light_id);
-		AddGUI_Debug([&](void* args)
+		AddGUI_Debug([&](void* gui_descriptor_allocator)
 			{
 				std::string name = "Ray Traced Shadows " + std::to_string(light_id);
-				AddGUI_Debug_Common(name, rts_debug_texture.get(), args);
+				AddGUI_Debug_Common(name, rts_debug_texture.get(), gui_descriptor_allocator);
 			}
 		);
 #endif
@@ -489,11 +489,11 @@ namespace adria
 	}
 
 #ifdef _DEBUG
-	void RayTracer::AddGUI_Debug_Common(std::string const& name, Texture* texture, void* args)
+	void RayTracer::AddGUI_Debug_Common(std::string const& name, Texture* texture, void* gui_descriptor_allocator)
 	{
 		if (ImGui::TreeNodeEx(name.c_str(), ImGuiTreeNodeFlags_OpenOnDoubleClick))
 		{
-			auto descriptor_allocator = static_cast<RingOnlineDescriptorAllocator*>(args);
+			auto descriptor_allocator = static_cast<RingOnlineDescriptorAllocator*>(gui_descriptor_allocator);
 			ImVec2 v_min = ImGui::GetWindowContentRegionMin();
 			ImVec2 v_max = ImGui::GetWindowContentRegionMax();
 			v_min.x += ImGui::GetWindowPos().x;
@@ -596,8 +596,7 @@ namespace adria
 			};
 
 			D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc{};
-			dxil_lib_desc.DXILLibrary.BytecodeLength = rt_shadows_blob.GetLength();
-			dxil_lib_desc.DXILLibrary.pShaderBytecode = rt_shadows_blob.GetPointer();
+			dxil_lib_desc.DXILLibrary = rt_shadows_blob;
 			dxil_lib_desc.NumExports = ARRAYSIZE(export_descs);
 			dxil_lib_desc.pExports = export_descs;
 			rt_shadows_state_object_builder.AddSubObject(dxil_lib_desc);
@@ -606,8 +605,7 @@ namespace adria
 			D3D12_EXPORT_DESC export_desc2{};
 			export_desc2.ExportToRename = L"RTS_RayGen";
 			export_desc2.Name = L"RTS_RayGen_Soft";
-			dxil_lib_desc2.DXILLibrary.BytecodeLength = rt_soft_shadows_blob.GetLength();
-			dxil_lib_desc2.DXILLibrary.pShaderBytecode = rt_soft_shadows_blob.GetPointer();
+			dxil_lib_desc2.DXILLibrary = rt_soft_shadows_blob;
 			dxil_lib_desc2.NumExports = 1;
 			dxil_lib_desc2.pExports = &export_desc2;
 			rt_shadows_state_object_builder.AddSubObject(dxil_lib_desc2);
@@ -639,8 +637,7 @@ namespace adria
 		StateObjectBuilder rtao_state_object_builder(5);
 		{
 			D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc{};
-			dxil_lib_desc.DXILLibrary.BytecodeLength = rtao_blob.GetLength();
-			dxil_lib_desc.DXILLibrary.pShaderBytecode = rtao_blob.GetPointer();
+			dxil_lib_desc.DXILLibrary = rtao_blob;
 			dxil_lib_desc.NumExports = 0;
 			dxil_lib_desc.pExports = nullptr;
 			rtao_state_object_builder.AddSubObject(dxil_lib_desc);
@@ -671,8 +668,7 @@ namespace adria
 		StateObjectBuilder rtr_state_object_builder(6);
 		{
 			D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc{};
-			dxil_lib_desc.DXILLibrary.BytecodeLength = rtr_blob.GetLength();
-			dxil_lib_desc.DXILLibrary.pShaderBytecode = rtr_blob.GetPointer();
+			dxil_lib_desc.DXILLibrary = rtr_blob;
 			dxil_lib_desc.NumExports = 0;
 			dxil_lib_desc.pExports = nullptr;
 			rtr_state_object_builder.AddSubObject(dxil_lib_desc);
@@ -707,8 +703,7 @@ namespace adria
 		StateObjectBuilder pt_state_object_builder(5);
 		{
 			D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc{};
-			dxil_lib_desc.DXILLibrary.BytecodeLength = pt_blob.GetLength();
-			dxil_lib_desc.DXILLibrary.pShaderBytecode = pt_blob.GetPointer();
+			dxil_lib_desc.DXILLibrary = pt_blob;
 			dxil_lib_desc.NumExports = 0;
 			dxil_lib_desc.pExports = nullptr;
 			pt_state_object_builder.AddSubObject(dxil_lib_desc);
