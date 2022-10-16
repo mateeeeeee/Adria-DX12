@@ -340,7 +340,6 @@ namespace adria
 		dynamic_alloc.Update(structured_lights.data(), alloc_size);
 
 		auto i = descriptor_allocator->Allocate();
-		//change this to CreateSRV call!
 		D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
 		desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
 		desc.Format = DXGI_FORMAT_UNKNOWN;

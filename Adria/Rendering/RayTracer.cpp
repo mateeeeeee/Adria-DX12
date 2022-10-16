@@ -181,7 +181,7 @@ namespace adria
 				} constants = 
 				{
 					.accel_struct_idx = i, .depth_idx = i + 1, .output_idx = i + 2,
-					.light_idx = 0 //change this
+					.light_idx = 0 //todo: change this later
 				};
 				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState1(ray_traced_shadows.Get());
