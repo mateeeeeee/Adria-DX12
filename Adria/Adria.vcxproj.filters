@@ -32,9 +32,6 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{0a9b30a0-b2ef-4b72-b960-2c527af5b0d3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tecs">
-      <UniqueIdentifier>{ef6b7c25-33a2-4670-acc7-6339c48baeb9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shaders\Misc">
       <UniqueIdentifier>{5870de78-f0ca-46df-a164-87ccc0682c2d}</UniqueIdentifier>
     </Filter>
@@ -91,6 +88,9 @@
     </Filter>
     <Filter Include="NewShaders\Other">
       <UniqueIdentifier>{d9d0175a-61a6-406d-bb58-8324f78457ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NewShaders\RayTracing">
+      <UniqueIdentifier>{0de20b01-23d1-4d62-866a-ecfbf857f686}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -1036,9 +1036,6 @@
     <FxCompile Include="Resources\Shaders\RayTracing\RayTracedReflections.hlsl">
       <Filter>Shaders\RayTracing</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\RayTracing\PathTracer.hlsl">
-      <Filter>Shaders\RayTracing</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\NewShaders\Exposure\BuildHistogram.hlsl">
       <Filter>NewShaders\Exposure</Filter>
     </FxCompile>
@@ -1048,8 +1045,14 @@
     <FxCompile Include="Resources\NewShaders\Exposure\Exposure.hlsl">
       <Filter>NewShaders\Exposure</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Other\ZPass.hlsl">
-      <Filter>NewShaders\Other</Filter>
+    <FxCompile Include="Resources\NewShaders\RayTracing\RayTracedReflections.hlsl">
+      <Filter>NewShaders\RayTracing</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\RayTracing\RayTracedAmbientOcclusion.hlsl">
+      <Filter>NewShaders\RayTracing</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\RayTracing\RayTracedShadows.hlsl">
+      <Filter>NewShaders\RayTracing</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1103,12 +1106,24 @@
     <None Include="Resources\NewShaders\Exposure\ExposureUtil.hlsli">
       <Filter>NewShaders\Exposure</Filter>
     </None>
-    <None Include="Resources\NewShaders\CommonUtil.hlsli">
+    <None Include="Resources\NewShaders\Common.hlsli">
       <Filter>NewShaders</Filter>
     </None>
     <None Include="Resources\NewShaders\CommonResources.hlsli">
       <Filter>NewShaders</Filter>
     </None>
     <None Include="..\README.md" />
+    <None Include="Resources\NewShaders\RayTracing\RayTracingUtil.hlsli">
+      <Filter>NewShaders\RayTracing</Filter>
+    </None>
+    <None Include="Resources\NewShaders\Random.hlsli">
+      <Filter>NewShaders</Filter>
+    </None>
+    <None Include="Resources\NewShaders\Tonemapping.hlsli">
+      <Filter>NewShaders</Filter>
+    </None>
+    <None Include="Resources\NewShaders\Lighting.hlsli">
+      <Filter>NewShaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

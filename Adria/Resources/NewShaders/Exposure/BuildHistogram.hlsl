@@ -1,4 +1,4 @@
-#include "CommonUtil.hlsli"
+#include "Common.hlsli"
 #include "ExposureUtil.hlsli"
 
 struct BuildHistogramConstants

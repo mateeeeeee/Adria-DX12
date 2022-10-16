@@ -108,10 +108,12 @@ namespace adria
 		std::unique_ptr<Texture> white_default_texture;
 
 		//Persistent constant buffers
+		ConstantBuffer<NewFrameCBuffer> new_frame_cbuffer;
 		ConstantBuffer<FrameCBuffer> frame_cbuffer;
 		ConstantBuffer<PostprocessCBuffer> postprocess_cbuffer;
 		ConstantBuffer<ComputeCBuffer> compute_cbuffer;
 		ConstantBuffer<WeatherCBuffer> weather_cbuffer;
+
 		//misc
 		std::unique_ptr<DescriptorHeap> null_heap;
 		std::array<DirectX::XMVECTOR, SSAO_KERNEL_SIZE> ssao_kernel{};

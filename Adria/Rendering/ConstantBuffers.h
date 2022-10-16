@@ -8,6 +8,31 @@
 
 namespace adria
 {
+	DECLSPEC_ALIGN(16) struct NewFrameCBuffer
+	{
+		DirectX::XMMATRIX view;
+		DirectX::XMMATRIX projection;
+		DirectX::XMMATRIX view_projection;
+		DirectX::XMMATRIX inverse_view;
+		DirectX::XMMATRIX inverse_projection;
+		DirectX::XMMATRIX inverse_view_projection;
+		DirectX::XMMATRIX prev_view_projection;
+		DirectX::XMVECTOR camera_position;
+		DirectX::XMVECTOR camera_forward;
+		float32  camera_near;
+		float32  camera_far;
+		float32  screen_resolution_x;
+		float32  screen_resolution_y;
+
+		float32  delta_time;
+		float32  frame_count;
+
+		float32  mouse_normalized_coords_x;
+		float32  mouse_normalized_coords_y;
+
+		int32    lights_idx;
+	};
+
 	DECLSPEC_ALIGN(16) struct FrameCBuffer
 	{
 		DirectX::XMVECTOR global_ambient;
@@ -206,7 +231,6 @@ namespace adria
 		int32 accumulated_frames;
 		int32 bounce_count;
 	};
-
 
 	struct StructuredLight
 	{

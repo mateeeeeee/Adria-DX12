@@ -84,7 +84,7 @@ float4 main(VertexOut pin) : SV_TARGET
 		// Since we use pre-filtered cubemap(s) and irradiance is coming from many directions
 		// use cosLo instead of angle with light's half-vector (cosLh above).
 		// See: https://seblagarde.wordpress.com/2011/08/17/hello-world/
-        float3 F = fresnelSchlickRoughness(cosLo, F0, roughness);
+        float3 F = FresnelSchlickRoughness(cosLo, F0, roughness);
         //
 		//// Get diffuse contribution factor (as with direct lighting).
         float3 kd = 1.0 - F;

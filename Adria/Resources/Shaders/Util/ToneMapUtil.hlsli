@@ -1,12 +1,10 @@
 
 static const float gamma = 2.2;
 
-
 float ColorToLuminance(float3 color)
 {
     return dot(color, float3(0.2126f, 0.7152f, 0.0722f));
 }
-
 
 float3 LinearToneMapping(float3 color)
 {
@@ -14,7 +12,6 @@ float3 LinearToneMapping(float3 color)
     color = pow(color, 1. / gamma);
     return color;
 }
-
 float3 ReinhardToneMapping(float3 color)
 {
     float luma = ColorToLuminance(color);
@@ -25,7 +22,6 @@ float3 ReinhardToneMapping(float3 color)
     color = pow(color, 1. / gamma);
     return color;
 }
-
 float3 ACESFilmicToneMapping(float3 color)
 {
     color *= 0.6f;
@@ -38,7 +34,6 @@ float3 ACESFilmicToneMapping(float3 color)
     color = pow(color, 1. / gamma);
     return clamp(color, 0.0f, 1.0f);
 }
-
 float3 HableToneMapping(float3 color)
 {
     float A = 0.15;

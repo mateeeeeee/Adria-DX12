@@ -317,9 +317,7 @@ namespace adria
 			ID3D12Resource* uav_counter = nullptr)
 		{
 			if (uav_counter) ADRIA_ASSERT(view_type == SubresourceType_UAV);
-
 			EFormat format = desc.format;
-			
 			D3D12_CPU_DESCRIPTOR_HANDLE heap_descriptor = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			switch (view_type)
 			{

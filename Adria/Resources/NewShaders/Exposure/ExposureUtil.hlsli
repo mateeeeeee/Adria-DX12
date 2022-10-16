@@ -1,3 +1,5 @@
+#include "../Tonemapping.hlsli"
+
 #define GROUP_SIZE_X 16
 #define GROUP_SIZE_Y 16
 #define HISTOGRAM_BIN_NUM (GROUP_SIZE_X * GROUP_SIZE_Y)

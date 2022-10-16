@@ -53,13 +53,11 @@ namespace adria
 		void OnResize(uint32 width, uint32 height);
 		void OnSceneInitialized();
 
-		void ResetPathTracer() { accumulated_frames = 0; }
 		void Update(float32 dt);
 
 		void AddRayTracedShadowsPass(RenderGraph&, Light const&, size_t);
 		void AddRayTracedReflectionsPass(RenderGraph&, D3D12_CPU_DESCRIPTOR_HANDLE);
 		void AddRayTracedAmbientOcclusionPass(RenderGraph&);
-		void AddPathTracingPass(RenderGraph&, D3D12_CPU_DESCRIPTOR_HANDLE);
 
 	private:
 		uint32 width, height;
@@ -77,10 +75,6 @@ namespace adria
 		Microsoft::WRL::ComPtr<ID3D12StateObject> ray_traced_shadows;
 		Microsoft::WRL::ComPtr<ID3D12StateObject> ray_traced_ambient_occlusion;
 		Microsoft::WRL::ComPtr<ID3D12StateObject> ray_traced_reflections;
-
-		Microsoft::WRL::ComPtr<ID3D12StateObject> path_tracing;
-		std::unique_ptr<Texture> accumulation_texture;
-		int32 accumulated_frames = 1;
 
 		BlurPass blur_pass;
 #ifdef _DEBUG

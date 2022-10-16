@@ -137,7 +137,6 @@ namespace adria
 			case LIB_SoftShadows:
 			case LIB_AmbientOcclusion:
 			case LIB_Reflections:
-			case LIB_PathTracing:
 				return EShaderStage::LIB;
 			case ShaderId_Count:
 			default:
@@ -318,8 +317,6 @@ namespace adria
 				return "RayTracing/RayTracedAmbientOcclusion.hlsl";
 			case LIB_Reflections:
 				return "RayTracing/RayTracedReflections.hlsl";
-			case LIB_PathTracing:
-				return "RayTracing/PathTracer.hlsl";
 			case ShaderId_Count:
 			default:
 				return "";
@@ -362,7 +359,7 @@ namespace adria
 			shader_desc.stage = GetShaderStage(shader);
 			shader_desc.macros = GetShaderMacros(shader);
 			shader_desc.model = SM_6_6;
-			shader_desc.file = shader_desc.entry_point == "main" ?  //temporary
+			shader_desc.file = shader_desc.entry_point == "main" || shader_desc.stage == EShaderStage::LIB ?
 				std::string(shaders_directory) + GetShaderSource(shader) : 
 				std::string(new_shaders_directory) + GetShaderSource(shader);
 #if _DEBUG
