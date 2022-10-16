@@ -167,7 +167,7 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
-				OffsetType i = descriptor_allocator->AllocateRange(3);
+				uint32 i = (uint32)descriptor_allocator->AllocateRange(3);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), accel_structure.GetTLAS()->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadOnlyTexture(data.depth), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadWriteTexture(data.shadow), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -253,7 +253,7 @@ namespace adria
 				auto device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				OffsetType i = descriptor_allocator->AllocateRange(7); //pack this in one CopyDescriptors call
+				uint32 i = (uint32)descriptor_allocator->AllocateRange(7); //pack this in one CopyDescriptors call
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), accel_structure.GetTLAS()->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadOnlyTexture(data.depth), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), envmap, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -335,7 +335,7 @@ namespace adria
 				auto device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				OffsetType i = descriptor_allocator->AllocateRange(4);
+				uint32 i = (uint32)descriptor_allocator->AllocateRange(4);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), accel_structure.GetTLAS()->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadOnlyTexture(data.depth), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadOnlyTexture(data.normal), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);

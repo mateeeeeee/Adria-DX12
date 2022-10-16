@@ -1125,5 +1125,8 @@
     <None Include="Resources\NewShaders\Lighting.hlsli">
       <Filter>NewShaders</Filter>
     </None>
+    <None Include="Resources\NewShaders\Constants.hlsli">
+      <Filter>NewShaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

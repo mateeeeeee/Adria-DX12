@@ -359,9 +359,9 @@ namespace adria
 			shader_desc.stage = GetShaderStage(shader);
 			shader_desc.macros = GetShaderMacros(shader);
 			shader_desc.model = SM_6_6;
-			shader_desc.file = shader_desc.entry_point == "main" || shader_desc.stage == EShaderStage::LIB ?
-				std::string(shaders_directory) + GetShaderSource(shader) : 
-				std::string(new_shaders_directory) + GetShaderSource(shader);
+			shader_desc.file = shader_desc.entry_point != "main" || shader_desc.stage == EShaderStage::LIB ?
+				std::string(new_shaders_directory) + GetShaderSource(shader) :
+				std::string(shaders_directory) + GetShaderSource(shader);
 #if _DEBUG
 			shader_desc.flags = ShaderCompilerFlag_DisableOptimization | ShaderCompilerFlag_Debug;
 #else

@@ -1,4 +1,4 @@
-#include "CommonResources.hlsli"
+#include "../CommonResources.hlsli"
 #include "RayTracingUtil.hlsli"
 
 struct RayTracedAmbientOcclusionConstants
@@ -9,6 +9,7 @@ struct RayTracedAmbientOcclusionConstants
 	uint  outputIdx;
 	float aoRadius;
 };
+
 ConstantBuffer<RayTracedAmbientOcclusionConstants> PassCB : register(b1);
 
 

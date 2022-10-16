@@ -1,4 +1,5 @@
-#include "CommonResources.hlsli"
+#include "../CommonResources.hlsli"
+#include "../Lighting.hlsli"
 #include "RayTracingUtil.hlsli"
 
 struct RayTracedShadowsConstants
@@ -80,7 +81,7 @@ void RTS_RayGen()
 	for (int i = 0; i < RAY_COUNT; i++)
 	{
 		RayDesc ray;
-		ray.Origin = posWorld.xyz;
+		ray.Origin = worldPos.xyz;
 		ray.Direction = normalize(GetConeSample(randSeed, direction, DegreesToRadians(softness)));
 		ray.TMin = 0.2f;
 		ray.TMax = maxT;

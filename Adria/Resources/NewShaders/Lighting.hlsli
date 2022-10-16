@@ -1,4 +1,5 @@
-#include "Common.hlsli"
+#pragma once
+#include "Constants.hlsli"
 
 #define DIRECTIONAL_LIGHT 0
 #define POINT_LIGHT 1
@@ -73,14 +74,9 @@ static float3 FresnelSchlickRoughness(float cosTheta, float3 F0, float roughness
 
 static float3 SpotLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V, float3 albedo, float metallic, float roughness)
 {
-
-	/*
-	*/
 	float3 F0 = float3(0.04, 0.04, 0.04);
 	F0 = lerp(F0, albedo, metallic);
 
-
-	// calculate per-light radiance
 	float3 L = normalize(light.position.xyz - positionVS);
 	float3 H = normalize(V + L);
 	float distance = length(light.position.xyz - positionVS);
@@ -93,7 +89,6 @@ static float3 SpotLightPBR(Light light, float3 positionVS, float3 normalVS, floa
 
 	float3 radiance = light.color.xyz * attenuation * conAtt;
 
-	// Cook-Torrance BRDF
 	float NDF = DistributionGGX(normalVS, H, roughness);
 	float G = GeometrySmith(normalVS, V, L, roughness);
 	float3 F = FresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
@@ -102,32 +97,17 @@ static float3 SpotLightPBR(Light light, float3 positionVS, float3 normalVS, floa
 	float denominator = 4 * max(dot(normalVS, V), 0.0) * max(dot(normalVS, L), 0.0);
 	float3 specular = nominator / max(denominator, 0.001); // prevent divide by zero for NdotV=0.0 or NdotL=0.0
 
-	// kS is equal to Fresnel
 	float3 kS = F;
-	// for energy conservation, the diffuse and specular light can't
-	// be above 1.0 (unless the surface emits light); to preserve this
-	// relationship the diffuse component (kD) should equal 1.0 - kS.
 	float3 kD = float3(1.0, 1.0, 1.0) - kS;
-	// multiply kD by the inverse metalness such that only non-metals 
-	// have diffuse lighting, or a linear blend if partly metal (pure metals
-	// have no diffuse light).
 	kD *= 1.0 - metallic;
-
-	// scale light by NdotL
 	float NdotL = max(dot(normalVS, L), 0.0);
-
-	// add to outgoing radiance Lo
 	float3 Lo = (kD * albedo / M_PI + specular) * radiance * NdotL;
-
 	return Lo;
 }
 static float3 PointLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V, float3 albedo, float metallic, float roughness)
 {
 	float3 F0 = float3(0.04, 0.04, 0.04);
 	F0 = lerp(F0, albedo, metallic);
-
-
-	// calculate per-light radiance
 	float3 L = normalize(light.position.xyz - positionVS);
 	float3 H = normalize(V + L);
 	float distance = length(light.position.xyz - positionVS);
@@ -142,24 +122,11 @@ static float3 PointLightPBR(Light light, float3 positionVS, float3 normalVS, flo
 	float3 nominator = NDF * G * F;
 	float denominator = 4 * max(dot(normalVS, V), 0.0) * max(dot(normalVS, L), 0.0);
 	float3 specular = nominator / max(denominator, 0.001); // prevent divide by zero for NdotV=0.0 or NdotL=0.0
-
-	// kS is equal to Fresnel
-	float3 kS = F;
-	// for energy conservation, the diffuse and specular light can't
-	// be above 1.0 (unless the surface emits light); to preserve this
-	// relationship the diffuse component (kD) should equal 1.0 - kS.
+    float3 kS = F;
 	float3 kD = float3(1.0, 1.0, 1.0) - kS;
-	// multiply kD by the inverse metalness such that only non-metals 
-	// have diffuse lighting, or a linear blend if partly metal (pure metals
-	// have no diffuse light).
 	kD *= 1.0 - metallic;
-
-	// scale light by NdotL
 	float NdotL = max(dot(normalVS, L), 0.0);
-
-	// add to outgoing radiance Lo
-	float3 Lo = (kD * albedo / M_PI + specular) * radiance * NdotL;
-
+    float3 Lo = (kD * albedo / M_PI + specular) * radiance * NdotL;
 	return Lo;
 }
 static float3 DirectionalLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V, float3 albedo, float metallic, float roughness)
@@ -171,8 +138,6 @@ static float3 DirectionalLightPBR(Light light, float3 positionVS, float3 normalV
     float3 H = normalize(V + L);
 
     float3 radiance = light.color.xyz;
-
-    // Cook-Torrance BRDF
     float NDF = DistributionGGX(normalVS, H, roughness);
     float G = GeometrySmith(normalVS, V, L, roughness);
     float3 F = FresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
@@ -181,21 +146,10 @@ static float3 DirectionalLightPBR(Light light, float3 positionVS, float3 normalV
     float denominator = 4 * max(dot(normalVS, V), 0.0) * max(dot(normalVS, L), 0.0);
     float3 specular = nominator / max(denominator, 0.001); // prevent divide by zero for NdotV=0.0 or NdotL=0.0
 
-    // kS is equal to Fresnel
     float3 kS = F;
-    // for energy conservation, the diffuse and specular light can't
-    // be above 1.0 (unless the surface emits light); to preserve this
-    // relationship the diffuse component (kD) should equal 1.0 - kS.
     float3 kD = float3(1.0, 1.0, 1.0) - kS;
-    // multiply kD by the inverse metalness such that only non-metals 
-    // have diffuse lighting, or a linear blend if partly metal (pure metals
-    // have no diffuse light).
     kD *= 1.0 - metallic;
-
-    // scale light by NdotL
     float NdotL = max(dot(normalVS, L), 0.0);
-
-    // add to outgoing radiance Lo
     float3 Lo = (kD * albedo / M_PI + specular) * radiance * NdotL;
 
     return Lo;

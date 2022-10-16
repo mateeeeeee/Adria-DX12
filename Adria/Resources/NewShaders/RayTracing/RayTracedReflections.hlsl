@@ -1,5 +1,7 @@
+#include "../Constants.hlsli"
+#include "../CommonResources.hlsli"
 #include "RayTracingUtil.hlsli"
-#include "CommonResources.hlsli"
+
 
 struct RayTracedReflectionsConstants
 {
@@ -45,15 +47,15 @@ void RTR_RayGen()
 		RAY_FLAG_FORCE_OPAQUE,
 		0xFF, 0, 0, 0, ray, payloadData);
 
-	Texture2D<float> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
+	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
 	outputTx[launchIndex.xy] = float4(payloadData.reflectivity * payloadData.reflectionColor, 1.0f);
 }
 
 [shader("miss")]
 void RTR_Miss(inout RTR_Payload payloadData)
 {
-	Texture2D<float> envMap = ResourceDescriptorHeap[PassCB.envMapIdx];
-	payloadData.reflectionColor = envMap.SampleLevel(linear_wrap_sampler, WorldRayDirection(), 0).rgb;
+	TextureCube envMap = ResourceDescriptorHeap[PassCB.envMapIdx];
+	payloadData.reflectionColor = envMap.SampleLevel(LinearWrapSampler, WorldRayDirection(), 0).rgb;
 }
 
 [shader("closesthit")]
@@ -100,7 +102,7 @@ void RTR_ClosestHitPrimaryRay(inout RTR_Payload payloadData, in HitAttributes at
 		RAY_FLAG_FORCE_OPAQUE,
 		0xFF, 1, 0, 0, reflectionRay, payloadData);
 
-	payloadData.reflectivity = roughness_metallic.y * (1.0f - roughness_metallic.x);
+    payloadData.reflectivity = roughnessMetallic.y * (1.0f - roughnessMetallic.x);
 }
 
 [shader("closesthit")]
@@ -127,6 +129,6 @@ void RTR_ClosestHitReflectionRay(inout RTR_Payload payload_data, in HitAttribute
 
 	float2 uv = Interpolate(v0.uv, v1.uv, v2.uv, attribs.barycentrics); uv.y = 1.0f - uv.y;
 	Texture2D txAlbedo = ResourceDescriptorHeap[geoInfo.albedoIdx];
-	float3 albedo = txAlbedo.SampleLevel(linear_wrap_sampler, uv, 2).rgb;
+    float3 albedo = txAlbedo.SampleLevel(LinearWrapSampler, uv, 2).rgb;
 	payload_data.reflectionColor = albedo;
 }

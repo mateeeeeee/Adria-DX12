@@ -82,6 +82,7 @@ namespace adria
 			result_buffer_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::ShaderResource;
 			result_buffer_desc.size = bl_prebuild_info.ResultDataMaxSizeInBytes;
 			result_buffer_desc.misc_flags = EBufferMiscFlag::AccelStruct;
+			result_buffer_desc.stride = 4;
 			blas_buffers.result_buffer = std::make_unique<Buffer>(gfx, result_buffer_desc);
 			
 			// Create the bottom-level AS
@@ -152,7 +153,6 @@ namespace adria
 			uav_barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
 			uav_barrier.UAV.pResource = tlas_buffers.result_buffer->GetNative();
 			cmd_list->ResourceBarrier(1, &uav_barrier);
-
 			tlas = std::move(tlas_buffers.result_buffer);
 			tlas->CreateSRV();
 		}

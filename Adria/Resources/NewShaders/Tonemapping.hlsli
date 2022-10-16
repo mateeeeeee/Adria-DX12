@@ -1,3 +1,4 @@
+#pragma once
 
 static const float gamma = 2.2;
 

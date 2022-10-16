@@ -326,6 +326,7 @@ namespace adria
 				D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
 				srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 				srv_desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+				bool is_accel_struct = false;
 				if (format == EFormat::UNKNOWN)
 				{
 					if (HasAllFlags(desc.misc_flags, EBufferMiscFlag::BufferRaw))
@@ -344,6 +345,12 @@ namespace adria
 						srv_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / desc.stride;
 						srv_desc.Buffer.StructureByteStride = desc.stride;
 					}
+					else if (HasAllFlags(desc.misc_flags, EBufferMiscFlag::AccelStruct))
+					{
+						is_accel_struct = true;
+						srv_desc.ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
+						srv_desc.RaytracingAccelerationStructure.Location = GetGPUAddress();
+					}
 				}
 				else
 				{
@@ -358,7 +365,7 @@ namespace adria
 				Microsoft::WRL::ComPtr<ID3D12Device> device;
 				resource->GetDevice(IID_PPV_ARGS(device.GetAddressOf()));
 
-				device->CreateShaderResourceView(resource.Get(), &srv_desc, heap_descriptor);
+				device->CreateShaderResourceView(!is_accel_struct ? resource.Get() : nullptr, &srv_desc, heap_descriptor);
 				srvs.push_back(heap_descriptor);
 				return srvs.size() - 1;
 			}

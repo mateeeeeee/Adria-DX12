@@ -321,8 +321,8 @@ namespace adria
 			StructuredLight structured_light{};
 			auto& light = light_view.get<Light>(e);
 			structured_light.color = light.color * light.energy;
-			structured_light.position = XMVector4Transform(light.position, global_data.camera_view);
-			structured_light.direction = XMVector4Transform(light.direction, global_data.camera_view);
+			structured_light.position = XMVector4Transform(light.position, camera->View());
+			structured_light.direction = XMVector4Transform(light.direction, camera->View());
 			structured_light.range = light.range;
 			structured_light.type = static_cast<int>(light.type);
 			structured_light.inner_cosine = light.inner_cosine;
