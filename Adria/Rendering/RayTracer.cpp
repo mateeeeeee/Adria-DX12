@@ -167,41 +167,27 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
-				LightCBuffer light_cbuf_data{};
-				light_cbuf_data.active = light.active;
-				light_cbuf_data.color = light.color * light.energy;
-				light_cbuf_data.direction = light.direction;
-				light_cbuf_data.inner_cosine = light.inner_cosine;
-				light_cbuf_data.outer_cosine = light.outer_cosine;
-				light_cbuf_data.position = light.position;
-				light_cbuf_data.range = light.range;
-				light_cbuf_data.type = static_cast<int32>(light.type);
-				XMMATRIX camera_view = global_data.camera_view;
-				light_cbuf_data.position = XMVector4Transform(light_cbuf_data.position, camera_view);
-				light_cbuf_data.direction = XMVector4Transform(light_cbuf_data.direction, camera_view);
+				OffsetType i = descriptor_allocator->AllocateRange(3);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), accel_structure.GetTLAS()->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadOnlyTexture(data.depth), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadWriteTexture(data.shadow), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-				DynamicAllocation light_allocation = dynamic_allocator->Allocate(GetCBufferSize<LightCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-				light_allocation.Update(light_cbuf_data);
-
+				struct RayTracedShadowsConstants
+				{
+					uint32  accel_struct_idx;
+					uint32  depth_idx;
+					uint32  output_idx;
+					uint32  light_idx;
+				} constants = 
+				{
+					.accel_struct_idx = i, .depth_idx = i + 1, .output_idx = i + 2,
+					.light_idx = 0 //change this
+				};
 				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
-
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRootConstantBufferView(1, light_allocation.gpu_address);
-				cmd_list->SetComputeRootConstantBufferView(2, ray_tracing_cbuffer.View(gfx->BackbufferIndex()).BufferLocation);
-				cmd_list->SetComputeRootShaderResourceView(3, accel_structure.GetTLAS()->GetGPUAddress());
-
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(1);
-				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				device->CopyDescriptorsSimple(1, dst_descriptor, ctx.GetReadOnlyTexture(data.depth),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetComputeRootDescriptorTable(4, dst_descriptor);
-
-				descriptor_index = descriptor_allocator->AllocateRange(1);
-				dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				device->CopyDescriptorsSimple(1, dst_descriptor, ctx.GetReadWriteTexture(data.shadow), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetComputeRootDescriptorTable(5, dst_descriptor);
 				cmd_list->SetPipelineState1(ray_traced_shadows.Get());
 
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRoot32BitConstants(1, 4, &constants, 0);
 				D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
 				dispatch_desc.Width = width;
 				dispatch_desc.Height = height;
@@ -212,7 +198,6 @@ namespace adria
 				table.AddMissShader("RTS_Miss", 0);
 				table.AddHitGroup("ShadowAnyHitGroup", 0);
 				table.Commit(*gfx->GetDynamicAllocator(), dispatch_desc);
-
 				cmd_list->DispatchRays(&dispatch_desc);
 
 			}, ERGPassType::Compute, ERGPassFlags::None);
@@ -268,30 +253,33 @@ namespace adria
 				auto device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
+				OffsetType i = descriptor_allocator->AllocateRange(7); //pack this in one CopyDescriptors call
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), accel_structure.GetTLAS()->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadOnlyTexture(data.depth), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), envmap, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 3), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 4), ctx.GetReadOnlyBuffer(data.vb), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 5), ctx.GetReadOnlyBuffer(data.ib), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 6), ctx.GetReadOnlyBuffer(data.geo), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+				struct RayTracedReflectionsConstants
+				{
+					uint32  accel_struct_idx;
+					uint32  depth_idx;
+					uint32  env_map_idx;
+					uint32  output_idx;
+					uint32  vertices_idx;
+					uint32  indices_idx;
+					uint32  geo_infos_idx;
+				} constants = 
+				{
+					.accel_struct_idx = i, .depth_idx = i + 1, .env_map_idx = i + 2, .output_idx = i + 3,
+					.vertices_idx = i + 4, .indices_idx = i + 5, .geo_infos_idx = i + 6
+				};
+
 				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRootConstantBufferView(1, ray_tracing_cbuffer.View(gfx->BackbufferIndex()).BufferLocation);
-				cmd_list->SetComputeRootShaderResourceView(2, accel_structure.GetTLAS()->GetGPUAddress());
-
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
-				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				device->CopyDescriptorsSimple(1, dst_descriptor, ctx.GetReadOnlyTexture(data.depth), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), envmap, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetComputeRootDescriptorTable(3, dst_descriptor);
-
-				descriptor_index = descriptor_allocator->AllocateRange(1);
-				dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				device->CopyDescriptorsSimple(1, dst_descriptor, ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetComputeRootDescriptorTable(4, dst_descriptor);
-				cmd_list->SetComputeRootDescriptorTable(5, descriptor_allocator->GetFirstHandle());
-
-				descriptor_index = descriptor_allocator->AllocateRange(3);
-				dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 0), ctx.GetReadOnlyBuffer(data.vb), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), ctx.GetReadOnlyBuffer(data.ib), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 2), ctx.GetReadOnlyBuffer(data.geo), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetComputeRootDescriptorTable(6, dst_descriptor);
-
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRoot32BitConstants(1, 7, &constants, 0);
 				cmd_list->SetPipelineState1(ray_traced_reflections.Get());
 
 				D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
@@ -347,23 +335,29 @@ namespace adria
 				auto device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
+				OffsetType i = descriptor_allocator->AllocateRange(4);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), accel_structure.GetTLAS()->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadOnlyTexture(data.depth), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadOnlyTexture(data.normal), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 3), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+				struct RayTracedAmbientOcclusionConstants
+				{
+					uint32  accel_struct_idx;
+					uint32  depth_idx;
+					uint32  gbuf_normals_idx;
+					uint32  output_idx;
+					float32 ao_radius;
+				} constants = 
+				{
+					.accel_struct_idx = i, .depth_idx = i + 1, .gbuf_normals_idx = i + 2, .output_idx = i + 3,
+					.ao_radius = ao_radius
+				};
 				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
-
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRootConstantBufferView(1, ray_tracing_cbuffer.View(gfx->BackbufferIndex()).BufferLocation);
-				cmd_list->SetComputeRootShaderResourceView(2, accel_structure.GetTLAS()->GetGPUAddress());
-
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
-				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				device->CopyDescriptorsSimple(1, dst_descriptor, ctx.GetReadOnlyTexture(data.depth), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), ctx.GetReadOnlyTexture(data.normal), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetComputeRootDescriptorTable(3, dst_descriptor);
-
-				descriptor_index = descriptor_allocator->AllocateRange(1);
-				dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				device->CopyDescriptorsSimple(1, dst_descriptor, ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetComputeRootDescriptorTable(4, dst_descriptor);
 				cmd_list->SetPipelineState1(ray_traced_ambient_occlusion.Get());
+
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRoot32BitConstants(1, 5, &constants, 0);
 
 				D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
 				dispatch_desc.Width = width;
@@ -387,6 +381,17 @@ namespace adria
 		);
 #endif
 		blur_pass.AddPass(rg, RG_RES_NAME(RTAO_Output), RG_RES_NAME(AmbientOcclusion));
+
+		AddGUI([&]() 
+			{
+				if (ImGui::TreeNodeEx("RTAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+				{
+					ImGui::SliderFloat("Radius", &ao_radius, 1.0f, 16.0f);
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
+			}
+		);
 	}
 
 #ifdef _DEBUG

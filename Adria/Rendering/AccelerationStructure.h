@@ -154,6 +154,7 @@ namespace adria
 			cmd_list->ResourceBarrier(1, &uav_barrier);
 
 			tlas = std::move(tlas_buffers.result_buffer);
+			tlas->CreateSRV();
 		}
 	};
 }

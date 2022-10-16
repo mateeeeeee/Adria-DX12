@@ -51,6 +51,7 @@ namespace adria
 	}
 	void Renderer::Update(float32 dt)
 	{
+		UpdateLights();
 		UpdatePersistentConstantBuffers(dt);
 		CameraFrustumCulling();
 		particle_renderer.Update(dt);
@@ -78,48 +79,7 @@ namespace adria
 			global_data.null_srv_texture2darray = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURE2DARRAY);
 			global_data.null_srv_texturecube = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURECUBE);
 			global_data.white_srv_texture2d = white_default_texture->GetSRV();
-
-			{
-				auto light_view = reg.view<Light>();
-				std::vector<StructuredLight> structured_lights{};
-				for (auto e : light_view)
-				{
-					StructuredLight structured_light{};
-					auto& light = light_view.get<Light>(e);
-					structured_light.color = light.color * light.energy;
-					structured_light.position = XMVector4Transform(light.position, global_data.camera_view);
-					structured_light.direction = XMVector4Transform(light.direction, global_data.camera_view);
-					structured_light.range = light.range;
-					structured_light.type = static_cast<int>(light.type);
-					structured_light.inner_cosine = light.inner_cosine;
-					structured_light.outer_cosine = light.outer_cosine;
-					structured_light.active = light.active;
-					structured_light.casts_shadows = light.casts_shadows;
-					structured_lights.push_back(structured_light);
-				}
-				auto device = gfx->GetDevice();
-				auto dynamic_allocator = gfx->GetDynamicAllocator();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
-
-				uint64 alloc_size = sizeof(StructuredLight) * structured_lights.size();
-				DynamicAllocation dynamic_alloc = dynamic_allocator->Allocate(alloc_size, sizeof(StructuredLight));
-				dynamic_alloc.Update(structured_lights.data(), alloc_size);
-
-				auto i = descriptor_allocator->Allocate();
-				//change this to CreateSRV call!
-				D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
-				desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-				desc.Format = DXGI_FORMAT_UNKNOWN;
-				desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-				desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-				desc.Buffer.StructureByteStride = sizeof(StructuredLight);
-				desc.Buffer.NumElements = static_cast<uint32>(dynamic_alloc.size / desc.Buffer.StructureByteStride);
-				desc.Buffer.FirstElement = dynamic_alloc.offset / desc.Buffer.StructureByteStride;
-
-				auto handle = descriptor_allocator->GetHandle(i);
-				device->CreateShaderResourceView(dynamic_alloc.buffer, &desc, handle);
-				global_data.lights_array_srv_buffer = handle;
-			}
+			global_data.lights_array_srv_buffer = light_array_srv;
 		}
 		rg_blackboard.Add<GlobalBlackboardData>(std::move(global_data));
 
@@ -350,6 +310,48 @@ namespace adria
 
 		final_texture = std::make_unique<Texture>(gfx, ldr_desc);
 		final_texture->CreateSRV();
+	}
+
+	void Renderer::UpdateLights()
+	{
+		auto light_view = reg.view<Light>();
+		std::vector<StructuredLight> structured_lights{};
+		for (auto e : light_view)
+		{
+			StructuredLight structured_light{};
+			auto& light = light_view.get<Light>(e);
+			structured_light.color = light.color * light.energy;
+			structured_light.position = XMVector4Transform(light.position, global_data.camera_view);
+			structured_light.direction = XMVector4Transform(light.direction, global_data.camera_view);
+			structured_light.range = light.range;
+			structured_light.type = static_cast<int>(light.type);
+			structured_light.inner_cosine = light.inner_cosine;
+			structured_light.outer_cosine = light.outer_cosine;
+			structured_light.active = light.active;
+			structured_light.casts_shadows = light.casts_shadows;
+			structured_lights.push_back(structured_light);
+		}
+		auto device = gfx->GetDevice();
+		auto dynamic_allocator = gfx->GetDynamicAllocator();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+
+		uint64 alloc_size = sizeof(StructuredLight) * structured_lights.size();
+		DynamicAllocation dynamic_alloc = dynamic_allocator->Allocate(alloc_size, sizeof(StructuredLight));
+		dynamic_alloc.Update(structured_lights.data(), alloc_size);
+
+		auto i = descriptor_allocator->Allocate();
+		//change this to CreateSRV call!
+		D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
+		desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+		desc.Format = DXGI_FORMAT_UNKNOWN;
+		desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+		desc.Buffer.StructureByteStride = sizeof(StructuredLight);
+		desc.Buffer.NumElements = static_cast<uint32>(dynamic_alloc.size / desc.Buffer.StructureByteStride);
+		desc.Buffer.FirstElement = dynamic_alloc.offset / desc.Buffer.StructureByteStride;
+
+		light_array_srv = descriptor_allocator->GetHandle(i);
+		device->CreateShaderResourceView(dynamic_alloc.buffer, &desc, light_array_srv);
 	}
 
 	void Renderer::GenerateIBLTextures()
@@ -616,8 +618,11 @@ namespace adria
 			new_frame_cbuf_data.inverse_view_projection = DirectX::XMMatrixInverse(nullptr, camera->ViewProj());
 			new_frame_cbuf_data.screen_resolution_x = (float32)width;
 			new_frame_cbuf_data.screen_resolution_y = (float32)height;
+			new_frame_cbuf_data.delta_time = dt;
+			new_frame_cbuf_data.frame_count = gfx->FrameIndex();
 			new_frame_cbuf_data.mouse_normalized_coords_x = (viewport_data.mouse_position_x - viewport_data.scene_viewport_pos_x) / viewport_data.scene_viewport_size_x;
 			new_frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
+			new_frame_cbuf_data.lights_idx = light_array_srv.GetHeapOffset();
 
 			new_frame_cbuffer.Update(new_frame_cbuf_data, backbuffer_index);
 			new_frame_cbuf_data.prev_view_projection = camera->ViewProj();

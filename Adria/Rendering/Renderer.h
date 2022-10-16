@@ -106,6 +106,7 @@ namespace adria
 		//resources
 		std::unique_ptr<Texture> final_texture;
 		std::unique_ptr<Texture> white_default_texture;
+		DescriptorHandle		 light_array_srv;
 
 		//Persistent constant buffers
 		ConstantBuffer<NewFrameCBuffer> new_frame_cbuffer;
@@ -151,6 +152,8 @@ namespace adria
 	private:
 		void CreateNullHeap();
 		void CreateSizeDependentResources();
+
+		void UpdateLights();
 		void UpdatePersistentConstantBuffers(float32 dt);
 		void CameraFrustumCulling();
 		void GenerateIBLTextures();

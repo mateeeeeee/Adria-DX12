@@ -1,14 +1,14 @@
 #include "CommonResources.hlsli"
 #include "RayTracingUtil.hlsli"
 
-struct RayTracedAmbientOcclusionConstants
+struct RayTracedShadowsConstants
 {
 	uint  accelStructIdx;
 	uint  depthIdx;
 	uint  outputIdx;
 	uint  lightIdx;
 };
-ConstantBuffer<RayTracedAmbientOcclusionConstants> PassCB : register(b1);
+ConstantBuffer<RayTracedShadowsConstants> PassCB : register(b1);
 
 struct ShadowRayData
 {
@@ -66,7 +66,7 @@ void RTS_RayGen()
 
 	ShadowRayData payload;
 	payload.hit = true;
-	TraceRay(rt_scene, (RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES),
+	TraceRay(scene, (RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES),
 		0xFF, 0, 0, 0, ray, payload);
 	outputTx[launchIndex.xy] = payload.hit ? 0.0f : 1.0f;
 
@@ -87,7 +87,7 @@ void RTS_RayGen()
 
 		ShadowRayData payload;
 		payload.hit = true;
-		TraceRay(rt_scene, (RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES),
+		TraceRay(scene, (RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES),
 			0xFF, 0, 0, 0, ray, payload);
 		shadowFactor += payload.hit ? 0.0f : 1.0f;
 	}
