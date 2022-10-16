@@ -118,7 +118,6 @@ namespace adria
 
 				auto handle = descriptor_allocator->GetHandle(i);
 				device->CreateShaderResourceView(dynamic_alloc.buffer, &desc, handle);
-
 				global_data.lights_array_srv_buffer = handle;
 			}
 		}
@@ -189,7 +188,6 @@ namespace adria
 			if ((renderer_settings.use_tiled_deferred || renderer_settings.use_clustered_deferred) && !light.casts_shadows) continue;  
 			if (light.casts_shadows) shadow_pass.AddPass(render_graph, light, light_id);
 			else if (light.ray_traced_shadows) ray_tracer.AddRayTracedShadowsPass(render_graph, light, light_id);
-
 			lighting_pass.AddPass(render_graph, light, light_id);
 		}
 

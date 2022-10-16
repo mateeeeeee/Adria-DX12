@@ -55,25 +55,6 @@ namespace adria
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				auto light_view = reg.view<Light>();
-				std::vector<StructuredLight> structured_lights{};
-				for (auto e : light_view)
-				{
-					StructuredLight structured_light{};
-					auto& light = light_view.get<Light>(e);
-					structured_light.color = light.color * light.energy;
-					structured_light.position = XMVector4Transform(light.position, global_data.camera_view);
-					structured_light.direction = XMVector4Transform(light.direction, global_data.camera_view);
-					structured_light.range = light.range;
-					structured_light.type = static_cast<int>(light.type);
-					structured_light.inner_cosine = light.inner_cosine;
-					structured_light.outer_cosine = light.outer_cosine;
-					structured_light.active = light.active;
-					structured_light.casts_shadows = light.casts_shadows;
-
-					structured_lights.push_back(structured_light);
-				}
-
 				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::TiledLighting));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::TiledLighting));
 
@@ -112,27 +93,7 @@ namespace adria
 					uav_target_for_clear = descriptor_allocator->GetHandle(descriptor_index);
 					uav_debug_for_clear = descriptor_allocator->GetHandle(descriptor_index + 1);
 				}
-
-				{
-					uint64 alloc_size = sizeof(StructuredLight) * structured_lights.size();
-					DynamicAllocation dynamic_alloc = dynamic_allocator->Allocate(alloc_size, sizeof(StructuredLight));
-					dynamic_alloc.Update(structured_lights.data(), alloc_size);
-
-					auto i = descriptor_allocator->Allocate();
-
-					D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
-					desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-					desc.Format = DXGI_FORMAT_UNKNOWN;
-					desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-					desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-					desc.Buffer.StructureByteStride = sizeof(StructuredLight);
-					desc.Buffer.NumElements = static_cast<uint32>(dynamic_alloc.size / desc.Buffer.StructureByteStride);
-					desc.Buffer.FirstElement = dynamic_alloc.offset / desc.Buffer.StructureByteStride;
-
-					auto handle = descriptor_allocator->GetHandle(i);
-					device->CreateShaderResourceView(dynamic_alloc.buffer, &desc, handle);
-					cmd_list->SetComputeRootDescriptorTable(4, handle);
-				}
+				cmd_list->SetComputeRootDescriptorTable(4, global_data.lights_array_srv_buffer);
 
 				static constexpr float32 black[4] = { 0.0f,0.0f,0.0f,0.0f };
 
