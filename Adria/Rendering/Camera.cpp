@@ -117,18 +117,14 @@ namespace adria
 		XMVECTOR L = XMLoadFloat3(&look_vector);
 		XMVECTOR P = XMLoadFloat3(&position);
 
-		// Keep camera's axes orthogonal to each other and of unit length.
 		L = XMVector3Normalize(L);
 		U = XMVector3Normalize(XMVector3Cross(L, R));
 
-		// U, L already ortho-normal, so no need to normalize cross product.
 		R = XMVector3Cross(U, L);
 
-		// Fill in the view matrix entries.
 		XMStoreFloat3(&right_vector, R);
 		XMStoreFloat3(&up_vector, U);
 		XMStoreFloat3(&look_vector, L);
-
 		SetView();
 	}
 

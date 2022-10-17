@@ -4,7 +4,7 @@
 #include "Components.h"
 #include "PSOCache.h" 
 #include "RootSignatureCache.h"
-#include "ShaderManager.h"
+#include "ShaderCache.h"
 #include "SkyModel.h"
 #include "entt/entity/registry.hpp"
 #include "../Graphics/Buffer.h"
@@ -23,9 +23,10 @@ namespace adria
 		texture_manager(gfx, 1000), gpu_profiler(gfx), camera(nullptr), width(width), height(height), 
 		backbuffer_count(gfx->BackbufferCount()), backbuffer_index(gfx->BackbufferIndex()), final_texture(nullptr),
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count), postprocess_cbuffer(gfx->GetDevice(), backbuffer_count),
-		weather_cbuffer(gfx->GetDevice(), backbuffer_count), compute_cbuffer(gfx->GetDevice(), backbuffer_count)
-		,gbuffer_pass(reg, gpu_profiler, width, height), ambient_pass(width, height), tonemap_pass(width, height)
-		,sky_pass(reg, texture_manager, width, height), lighting_pass(width, height), shadow_pass(reg, texture_manager),
+		weather_cbuffer(gfx->GetDevice(), backbuffer_count), compute_cbuffer(gfx->GetDevice(), backbuffer_count),
+		new_frame_cbuffer(gfx->GetDevice(), backbuffer_count),
+		gbuffer_pass(reg, gpu_profiler, width, height), ambient_pass(width, height), tonemap_pass(width, height),
+		sky_pass(reg, texture_manager, width, height), lighting_pass(width, height), shadow_pass(reg, texture_manager),
 		tiled_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
 		postprocessor(reg, texture_manager, width, height), fxaa_pass(width, height), picking_pass(gfx, width, height),
 		clustered_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height),
@@ -50,10 +51,10 @@ namespace adria
 	}
 	void Renderer::Update(float32 dt)
 	{
+		UpdateLights();
 		UpdatePersistentConstantBuffers(dt);
 		CameraFrustumCulling();
 		particle_renderer.Update(dt);
-		ray_tracer.Update(dt);
 	}
 	void Renderer::Render(RendererSettings const& _settings)
 	{
@@ -67,6 +68,7 @@ namespace adria
 			global_data.camera_view = camera->View();
 			global_data.camera_proj = camera->Proj();
 			global_data.camera_viewproj = camera->ViewProj();
+			global_data.new_frame_cbuffer_address = new_frame_cbuffer.BufferLocation(backbuffer_index);
 			global_data.frame_cbuffer_address = frame_cbuffer.BufferLocation(backbuffer_index);
 			global_data.postprocess_cbuffer_address = postprocess_cbuffer.BufferLocation(backbuffer_index);
 			global_data.compute_cbuffer_address = compute_cbuffer.BufferLocation(backbuffer_index);
@@ -76,6 +78,8 @@ namespace adria
 			global_data.null_srv_texture2darray = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURE2DARRAY);
 			global_data.null_srv_texturecube = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURECUBE);
 			global_data.white_srv_texture2d = white_default_texture->GetSRV();
+			global_data.lights_buffer_gpu_srv = light_array_srv;
+			global_data.lights_buffer_cpu_srv = lights_buffer->GetSRV();
 		}
 		rg_blackboard.Add<GlobalBlackboardData>(std::move(global_data));
 
@@ -141,11 +145,9 @@ namespace adria
 			auto const& light = light_entities.get<Light>(light_entity);
 			size_t light_id = entt::to_integral(light_entity);
 			if (!light.active) continue;
-			if ((renderer_settings.use_tiled_deferred || renderer_settings.use_clustered_deferred) && !light.casts_shadows) continue;  //tiled/clustered deferred takes care of noncasting lights
-
+			if ((renderer_settings.use_tiled_deferred || renderer_settings.use_clustered_deferred) && !light.casts_shadows) continue;  
 			if (light.casts_shadows) shadow_pass.AddPass(render_graph, light, light_id);
 			else if (light.ray_traced_shadows) ray_tracer.AddRayTracedShadowsPass(render_graph, light, light_id);
-
 			lighting_pass.AddPass(render_graph, light, light_id);
 		}
 
@@ -308,6 +310,45 @@ namespace adria
 
 		final_texture = std::make_unique<Texture>(gfx, ldr_desc);
 		final_texture->CreateSRV();
+	}
+
+	void Renderer::UpdateLights()
+	{
+		auto light_view = reg.view<Light>();
+		static size_t light_count = 0;
+		if (light_count != light_view.size())
+		{
+			gfx->WaitForGPU();
+			light_count = light_view.size();
+			lights_buffer = std::make_unique<Buffer>(gfx, StructuredBufferDesc<StructuredLight>(light_count, false, true));
+			lights_buffer->CreateSRV();
+		}
+
+		std::vector<StructuredLight> structured_lights{};
+		structured_lights.reserve(light_view.size());
+		for (auto e : light_view)
+		{
+			StructuredLight structured_light{};
+			auto& light = light_view.get<Light>(e);
+			structured_light.color = light.color * light.energy;
+			structured_light.position = XMVector4Transform(light.position, camera->View());
+			structured_light.direction = XMVector4Transform(light.direction, camera->View());
+			structured_light.range = light.range;
+			structured_light.type = static_cast<int>(light.type);
+			structured_light.inner_cosine = light.inner_cosine;
+			structured_light.outer_cosine = light.outer_cosine;
+			structured_light.active = light.active;
+			structured_light.casts_shadows = light.casts_shadows;
+			structured_lights.push_back(structured_light);
+		}
+		lights_buffer->Update(structured_lights.data(), structured_lights.size() * sizeof(StructuredLight));
+
+		ID3D12Device* device = gfx->GetDevice();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+		OffsetType i = descriptor_allocator->Allocate();
+		auto dst_descriptor = descriptor_allocator->GetHandle(i);
+		device->CopyDescriptorsSimple(1, dst_descriptor, lights_buffer->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		light_array_srv = dst_descriptor;
 	}
 
 	void Renderer::GenerateIBLTextures()
@@ -559,6 +600,31 @@ namespace adria
 
 	void Renderer::UpdatePersistentConstantBuffers(float32 dt)
 	{
+		static NewFrameCBuffer new_frame_cbuf_data{};
+		//new frame
+		{
+			new_frame_cbuf_data.camera_near = camera->Near();
+			new_frame_cbuf_data.camera_far = camera->Far();
+			new_frame_cbuf_data.camera_position = camera->Position();
+			new_frame_cbuf_data.camera_forward = camera->Forward();
+			new_frame_cbuf_data.view = camera->View();
+			new_frame_cbuf_data.projection = camera->Proj();
+			new_frame_cbuf_data.view_projection = camera->ViewProj();
+			new_frame_cbuf_data.inverse_view = DirectX::XMMatrixInverse(nullptr, camera->View());
+			new_frame_cbuf_data.inverse_projection = DirectX::XMMatrixInverse(nullptr, camera->Proj());
+			new_frame_cbuf_data.inverse_view_projection = DirectX::XMMatrixInverse(nullptr, camera->ViewProj());
+			new_frame_cbuf_data.screen_resolution_x = (float32)width;
+			new_frame_cbuf_data.screen_resolution_y = (float32)height;
+			new_frame_cbuf_data.delta_time = dt;
+			new_frame_cbuf_data.frame_count = gfx->FrameIndex();
+			new_frame_cbuf_data.mouse_normalized_coords_x = (viewport_data.mouse_position_x - viewport_data.scene_viewport_pos_x) / viewport_data.scene_viewport_size_x;
+			new_frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
+			new_frame_cbuf_data.lights_idx = light_array_srv.GetHeapOffset();
+
+			new_frame_cbuffer.Update(new_frame_cbuf_data, backbuffer_index);
+			new_frame_cbuf_data.prev_view_projection = camera->ViewProj();
+		}
+
 		static FrameCBuffer frame_cbuf_data{};
 		//frame
 		{

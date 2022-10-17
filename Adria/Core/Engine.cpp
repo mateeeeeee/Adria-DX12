@@ -7,7 +7,7 @@
 #include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Rendering/Renderer.h"
 #include "../Rendering/ModelImporter.h"
-#include "../Rendering/ShaderManager.h"
+#include "../Rendering/ShaderCache.h"
 #include "../Rendering/RootSignatureCache.h"
 #include "../Rendering/PSOCache.h"
 #include "../Utilities/Random.h"

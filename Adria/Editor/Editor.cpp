@@ -5,7 +5,7 @@
 #include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Rendering/ModelImporter.h"
 #include "../Rendering/PipelineState.h"
-#include "../Rendering/ShaderManager.h"
+#include "../Rendering/ShaderCache.h"
 #include "../Logging/Logger.h"
 #include "../Utilities/FilesUtil.h"
 #include "../Utilities/StringUtil.h"
@@ -1048,8 +1048,8 @@ namespace adria
 			camera.SetPosition(DirectX::XMFLOAT3(pos));
 			float32 near_plane = camera.Near(), far_plane = camera.Far();
 			float32 _fov = camera.Fov(), _ar = camera.AspectRatio();
-			ImGui::SliderFloat("Near Plane", &near_plane, 0.0f, 2.0f);
-			ImGui::SliderFloat("Far Plane", &far_plane, 10.0f, 3000.0f);
+			ImGui::SliderFloat("Near", &near_plane, 0.0f, 2.0f);
+			ImGui::SliderFloat("Far", &far_plane, 10.0f, 3000.0f);
 			ImGui::SliderFloat("FOV", &_fov, 0.01f, 1.5707f);
 			camera.SetNearAndFar(near_plane, far_plane);
 			camera.SetFov(_fov);

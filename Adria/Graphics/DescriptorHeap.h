@@ -14,10 +14,10 @@ namespace adria
 
 	public:
 		DescriptorHandle() = default;
-		DescriptorHandle(DescriptorHandle const&) = delete;
+		DescriptorHandle(DescriptorHandle const&) = default;
 		DescriptorHandle(DescriptorHandle&&) noexcept = default;
 
-		DescriptorHandle& operator=(DescriptorHandle const&) = delete;
+		DescriptorHandle& operator=(DescriptorHandle const&) = default;
 		DescriptorHandle& operator=(DescriptorHandle&&) noexcept = default;
 
 		operator D3D12_CPU_DESCRIPTOR_HANDLE const() const { return cpu_pointer; }

@@ -96,7 +96,6 @@ namespace adria
 		LIB_SoftShadows,
 		LIB_AmbientOcclusion,
 		LIB_Reflections,
-		LIB_PathTracing,
 		CS_BuildHistogram,
 		CS_HistogramReduction,
 		CS_Exposure,
@@ -155,14 +154,7 @@ namespace adria
 		Particles_InitSortDispatchArgs,
 		Particles_Sort,
 		Picker,
-		Decals,
-		RayTracedShadows,
-		RayTracedAmbientOcclusion,
-		RayTracedReflections,
-		PathTracing,
-		BuildHistogram,
-		HistogramReduction,
-		Exposure
+		Decals
 	};
 
 	enum class EPipelineState : uint8

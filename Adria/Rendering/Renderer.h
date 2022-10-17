@@ -106,12 +106,16 @@ namespace adria
 		//resources
 		std::unique_ptr<Texture> final_texture;
 		std::unique_ptr<Texture> white_default_texture;
+		std::unique_ptr<Buffer>  lights_buffer;
+		DescriptorHandle		 light_array_srv;
 
 		//Persistent constant buffers
+		ConstantBuffer<NewFrameCBuffer> new_frame_cbuffer;
 		ConstantBuffer<FrameCBuffer> frame_cbuffer;
 		ConstantBuffer<PostprocessCBuffer> postprocess_cbuffer;
 		ConstantBuffer<ComputeCBuffer> compute_cbuffer;
 		ConstantBuffer<WeatherCBuffer> weather_cbuffer;
+
 		//misc
 		std::unique_ptr<DescriptorHeap> null_heap;
 		std::array<DirectX::XMVECTOR, SSAO_KERNEL_SIZE> ssao_kernel{};
@@ -149,6 +153,8 @@ namespace adria
 	private:
 		void CreateNullHeap();
 		void CreateSizeDependentResources();
+
+		void UpdateLights();
 		void UpdatePersistentConstantBuffers(float32 dt);
 		void CameraFrustumCulling();
 		void GenerateIBLTextures();

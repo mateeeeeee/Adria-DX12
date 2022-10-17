@@ -192,11 +192,11 @@ static float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
 
     return ggx1 * ggx2;
 }
-static float3 fresnelSchlick(float cosTheta, float3 F0)
+static float3 FresnelSchlick(float cosTheta, float3 F0)
 {
     return F0 + (1.0 - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
 }
-static float3 fresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
+static float3 FresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
 {
     return F0 + (max(float3(1.0 - roughness, 1.0 - roughness, 1.0 - roughness), F0) - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
 }
@@ -226,7 +226,7 @@ static float3 DoSpotLightPBR(Light light, float3 positionVS, float3 normalVS, fl
     // Cook-Torrance BRDF
     float NDF = DistributionGGX(normalVS, H, roughness);
     float G = GeometrySmith(normalVS, V, L, roughness);
-    float3 F = fresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
+    float3 F = FresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
            
     float3 nominator = NDF * G * F;
     float denominator = 4 * max(dot(normalVS, V), 0.0) * max(dot(normalVS, L), 0.0);
@@ -267,7 +267,7 @@ static float3 DoPointLightPBR(Light light, float3 positionVS, float3 normalVS, f
     // Cook-Torrance BRDF
     float NDF = DistributionGGX(normalVS, H, roughness);
     float G = GeometrySmith(normalVS, V, L, roughness);
-    float3 F = fresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
+    float3 F = FresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
            
     float3 nominator = NDF * G * F;
     float denominator = 4 * max(dot(normalVS, V), 0.0) * max(dot(normalVS, L), 0.0);
@@ -308,7 +308,7 @@ static float3 DoDirectionalLightPBR(Light light, float3 positionVS, float3 norma
     // Cook-Torrance BRDF
     float NDF = DistributionGGX(normalVS, H, roughness);
     float G = GeometrySmith(normalVS, V, L, roughness);
-    float3 F = fresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
+    float3 F = FresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
            
     float3 nominator = NDF * G * F;
     float denominator = 4 * max(dot(normalVS, V), 0.0) * max(dot(normalVS, L), 0.0);
