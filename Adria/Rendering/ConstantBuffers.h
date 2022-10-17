@@ -122,12 +122,6 @@ namespace adria
 
 	DECLSPEC_ALIGN(16) struct PostprocessCBuffer
 	{
-		DirectX::XMFLOAT2 noise_scale;
-		float32 ssao_radius;
-		float32 ssao_power;
-
-		DirectX::XMVECTOR samples[16];
-
 		float32 ssr_ray_step;
 		float32 ssr_ray_hit_threshold;
 		float32 velocity_buffer_scale;

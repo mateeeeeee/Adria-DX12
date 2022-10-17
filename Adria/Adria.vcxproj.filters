@@ -1057,6 +1057,9 @@
     <FxCompile Include="Resources\NewShaders\RayTracing\RayTracedShadows.hlsl">
       <Filter>NewShaders\RayTracing</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Postprocess\SSAO.hlsl">
+      <Filter>NewShaders\Postprocess</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Shaders\Globals\GlobalsCS.hlsli">

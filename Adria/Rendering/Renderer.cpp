@@ -226,17 +226,6 @@ namespace adria
 		particle_renderer.OnSceneInitialized();
 		ray_tracer.OnSceneInitialized();
 
-		RealRandomGenerator rand_float{ 0.0f, 1.0f };
-		for (uint32 i = 0; i < SSAO_KERNEL_SIZE; i++)
-		{
-			DirectX::XMFLOAT4 _offset = DirectX::XMFLOAT4(2 * rand_float() - 1, 2 * rand_float() - 1, rand_float(), 0.0f);
-			DirectX::XMVECTOR offset = DirectX::XMLoadFloat4(&_offset);
-			offset = DirectX::XMVector4Normalize(offset);
-
-			offset *= rand_float();
-			ssao_kernel[i] = offset;
-		}
-
 		TextureDesc desc{};
 		desc.width = 1;
 		desc.height = 1;
@@ -657,15 +646,10 @@ namespace adria
 			DoFParameters dof_params = postprocessor.GetDoFParams();
 			VelocityBufferParams velocity_params = postprocessor.GetVelocityBufferParams();
 			TonemapParams tonemap_params = tonemap_pass.GetParams();
-			SSAOParams ssao_params = ssao_pass.GetParams();
 			HBAOParams hbao_params = hbao_pass.GetParams();
 			
 			postprocess_cbuf_data.tone_map_exposure = tonemap_params.tonemap_exposure;
 			postprocess_cbuf_data.tone_map_operator = static_cast<int>(tonemap_params.tone_map_op);
-			postprocess_cbuf_data.noise_scale = XMFLOAT2((float32)width / 8, (float32)height / 8);
-			postprocess_cbuf_data.ssao_power = ssao_params.ssao_power;
-			postprocess_cbuf_data.ssao_radius = ssao_params.ssao_radius;
-			for (uint32 i = 0; i < SSAO_KERNEL_SIZE; ++i) postprocess_cbuf_data.samples[i] = ssao_kernel[i];
 			postprocess_cbuf_data.ssr_ray_step = ssr_params.ssr_ray_step;
 			postprocess_cbuf_data.ssr_ray_hit_threshold = ssr_params.ssr_ray_hit_threshold;
 			postprocess_cbuf_data.dof_params = XMVectorSet(dof_params.dof_near_blur, dof_params.dof_near, dof_params.dof_far, dof_params.dof_far_blur);

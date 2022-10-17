@@ -90,17 +90,16 @@ float main(VertexOut pin) : SV_TARGET
     
     float3 pos_vs = GetPositionVS(pin.Tex, depth);
 
-    float3 normal_vs_encoded = normalTx.Sample(linear_border_sampler, pin.Tex).rgb; //zamijeni kasnije sa pointSamplerom
+    float3 normal_vs_encoded = normalTx.Sample(linear_border_sampler, pin.Tex).rgb; 
     float3 normal_vs = 2 * normal_vs_encoded - 1.0;
     normal_vs = normalize(normal_vs);
    
     // Compute projection of disk of radius control.R into screen space
     float radius_in_pixels = postprocess_cbuf.hbao_radius_to_screen / pos_vs.z;
     
-    float3 rand = noiseTx.Sample(point_wrap_sampler, pin.Tex * postprocess_cbuf.noise_scale).xyz; //use wrap sampler
+    float3 rand = noiseTx.Sample(point_wrap_sampler, pin.Tex * float2(200, 200)).xyz; 
 
     float AO = ComputeCoarseAO(pin.Tex, radius_in_pixels, rand, pos_vs, normal_vs);
-    
     return pow(AO, postprocess_cbuf.hbao_power);
 
 }

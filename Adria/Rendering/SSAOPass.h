@@ -1,4 +1,5 @@
 #pragma once
+#include <DirectXMath.h>
 #include "BlurPass.h"
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
@@ -10,14 +11,14 @@ namespace adria
 	class GraphicsDevice;
 	class Texture;
 
-	struct SSAOParams
-	{
-		float32   ssao_power = 4.0f;
-		float32   ssao_radius = 1.0f;
-	};
 
 	class SSAOPass
 	{
+		struct SSAOParams
+		{
+			float32   ssao_power = 4.0f;
+			float32   ssao_radius = 1.0f;
+		};
 	public:
 		static constexpr uint32 NOISE_DIM = 8;
 		static constexpr uint32 KERNEL_SIZE = 16;
@@ -27,11 +28,10 @@ namespace adria
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h);
 		void OnSceneInitialized(GraphicsDevice* gfx);
-
-		SSAOParams const& GetParams() const { return params; }
 	private:
 		uint32 width, height;
 		SSAOParams params{};
+		DirectX::XMVECTOR ssao_kernel[KERNEL_SIZE] = {};
 		std::unique_ptr<Texture> ssao_random_texture;
 		BlurPass blur_pass;
 	};
