@@ -350,6 +350,24 @@ namespace adria
 			}
 		}
 
+		constexpr bool UseNewShadersDirectory(EShaderId shader)
+		{
+			switch (shader)
+			{
+			case CS_BuildHistogram:
+			case CS_HistogramReduction:
+			case CS_Exposure:
+			case LIB_AmbientOcclusion:
+			case LIB_Reflections:
+			case LIB_Shadows:
+			case LIB_SoftShadows:
+				return true;
+			default:
+				return false;
+			}
+			return false;
+		}
+
 		void CompileShader(EShaderId shader)
 		{
 			if (shader == ShaderId_Invalid) return;
@@ -359,7 +377,7 @@ namespace adria
 			shader_desc.stage = GetShaderStage(shader);
 			shader_desc.macros = GetShaderMacros(shader);
 			shader_desc.model = SM_6_6;
-			shader_desc.file = shader_desc.entry_point != "main" || shader_desc.stage == EShaderStage::LIB ?
+			shader_desc.file = UseNewShadersDirectory(shader) ?
 				std::string(new_shaders_directory) + GetShaderSource(shader) :
 				std::string(shaders_directory) + GetShaderSource(shader);
 #if _DEBUG

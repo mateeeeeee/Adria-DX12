@@ -92,6 +92,9 @@
     <Filter Include="NewShaders\RayTracing">
       <UniqueIdentifier>{0de20b01-23d1-4d62-866a-ecfbf857f686}</UniqueIdentifier>
     </Filter>
+    <Filter Include="NewShaders\Postprocess">
+      <UniqueIdentifier>{04bf1695-6a82-4e87-b105-ba18b81fde09}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
