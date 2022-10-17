@@ -33,14 +33,14 @@ void RTS_RayGen()
 	float3 worldPos = GetWorldPosition(texCoords, depth);
 
 	Light light = lights[PassCB.lightIdx];
-	float3 direction;
-	float maxT;
 
 	light.direction.xyz = mul(light.direction.xyz, (float3x3) FrameCB.inverseView);
 	light.position = mul(float4(light.position.xyz, 1.0f), FrameCB.inverseView);
 	light.position.xyz /= light.position.w;
 
 	float softness = 0.0f;
+    float3 direction;
+    float maxT;
 	switch (light.type)
 	{
 	case POINT_LIGHT:
@@ -49,7 +49,7 @@ void RTS_RayGen()
 		break;
 	case DIRECTIONAL_LIGHT:
 		direction = -light.direction.xyz;
-		maxT = 1e9;
+		maxT = FLT_MAX;
 		softness = 0.5f;
 		break;
 	case SPOT_LIGHT:

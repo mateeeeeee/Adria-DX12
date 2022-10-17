@@ -278,7 +278,7 @@
     <ClCompile Include="Rendering\RootSignatureCache.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\ShaderManager.cpp">
+    <ClCompile Include="Rendering\ShaderCache.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\PSOCache.cpp">
@@ -700,7 +700,7 @@
     <ClInclude Include="Utilities\FileWatcher.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\ShaderManager.h">
+    <ClInclude Include="Rendering\ShaderCache.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\RootSignatureCache.h">

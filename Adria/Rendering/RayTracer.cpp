@@ -1,7 +1,7 @@
 #include "RayTracer.h"
 #include "Components.h"
 #include "GlobalBlackboardData.h"
-#include "ShaderManager.h"
+#include "ShaderCache.h"
 #include "RootSignatureCache.h"
 #include "entt/entity/registry.hpp"
 #include "../RenderGraph/RenderGraph.h"
@@ -127,16 +127,6 @@ namespace adria
 		global_vb = std::make_unique<Buffer>(gfx, vb_desc, RayTracing::rt_vertices.data());
 		global_ib = std::make_unique<Buffer>(gfx, ib_desc, RayTracing::rt_indices.data());
 	}
-	void RayTracer::Update(float32 dt)
-	{
-		if (!IsSupported()) return;
-		RayTracingCBuffer ray_tracing_cbuf_data{};
-		ray_tracing_cbuf_data.frame_count = gfx->FrameIndex();
-		ray_tracing_cbuf_data.rtao_radius = 2.0f;
-		ray_tracing_cbuf_data.accumulated_frames = 1;
-		ray_tracing_cbuf_data.bounce_count = 1;
-		ray_tracing_cbuffer.Update(ray_tracing_cbuf_data, gfx->BackbufferIndex());
-	}
 
 	void RayTracer::AddRayTracedShadowsPass(RenderGraph& rg, Light const& light, size_t light_id)
 	{
@@ -188,6 +178,7 @@ namespace adria
 
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 4, &constants, 0);
+				
 				D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
 				dispatch_desc.Width = width;
 				dispatch_desc.Height = height;

@@ -21,6 +21,7 @@ namespace adria
 		D3D12_CPU_DESCRIPTOR_HANDLE null_srv_texturecube;
 		D3D12_CPU_DESCRIPTOR_HANDLE null_srv_texture2darray;
 		D3D12_CPU_DESCRIPTOR_HANDLE white_srv_texture2d;
-		D3D12_GPU_DESCRIPTOR_HANDLE lights_array_srv_buffer;
+		D3D12_CPU_DESCRIPTOR_HANDLE lights_buffer_cpu_srv;
+		D3D12_GPU_DESCRIPTOR_HANDLE lights_buffer_gpu_srv;
 	};
 }

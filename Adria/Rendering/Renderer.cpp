@@ -4,7 +4,7 @@
 #include "Components.h"
 #include "PSOCache.h" 
 #include "RootSignatureCache.h"
-#include "ShaderManager.h"
+#include "ShaderCache.h"
 #include "SkyModel.h"
 #include "entt/entity/registry.hpp"
 #include "../Graphics/Buffer.h"
@@ -55,7 +55,6 @@ namespace adria
 		UpdatePersistentConstantBuffers(dt);
 		CameraFrustumCulling();
 		particle_renderer.Update(dt);
-		ray_tracer.Update(dt);
 	}
 	void Renderer::Render(RendererSettings const& _settings)
 	{
@@ -79,7 +78,8 @@ namespace adria
 			global_data.null_srv_texture2darray = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURE2DARRAY);
 			global_data.null_srv_texturecube = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURECUBE);
 			global_data.white_srv_texture2d = white_default_texture->GetSRV();
-			global_data.lights_array_srv_buffer = light_array_srv;
+			global_data.lights_buffer_gpu_srv = light_array_srv;
+			global_data.lights_buffer_cpu_srv = lights_buffer->GetSRV();
 		}
 		rg_blackboard.Add<GlobalBlackboardData>(std::move(global_data));
 
@@ -315,7 +315,17 @@ namespace adria
 	void Renderer::UpdateLights()
 	{
 		auto light_view = reg.view<Light>();
+		static size_t light_count = 0;
+		if (light_count != light_view.size())
+		{
+			gfx->WaitForGPU();
+			light_count = light_view.size();
+			lights_buffer = std::make_unique<Buffer>(gfx, StructuredBufferDesc<StructuredLight>(light_count, false, true));
+			lights_buffer->CreateSRV();
+		}
+
 		std::vector<StructuredLight> structured_lights{};
+		structured_lights.reserve(light_view.size());
 		for (auto e : light_view)
 		{
 			StructuredLight structured_light{};
@@ -331,26 +341,14 @@ namespace adria
 			structured_light.casts_shadows = light.casts_shadows;
 			structured_lights.push_back(structured_light);
 		}
-		auto device = gfx->GetDevice();
-		auto dynamic_allocator = gfx->GetDynamicAllocator();
+		lights_buffer->Update(structured_lights.data(), structured_lights.size() * sizeof(StructuredLight));
+
+		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
-
-		uint64 alloc_size = sizeof(StructuredLight) * structured_lights.size();
-		DynamicAllocation dynamic_alloc = dynamic_allocator->Allocate(alloc_size, sizeof(StructuredLight));
-		dynamic_alloc.Update(structured_lights.data(), alloc_size);
-
-		auto i = descriptor_allocator->Allocate();
-		D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
-		desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-		desc.Format = DXGI_FORMAT_UNKNOWN;
-		desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-		desc.Buffer.StructureByteStride = sizeof(StructuredLight);
-		desc.Buffer.NumElements = static_cast<uint32>(dynamic_alloc.size / desc.Buffer.StructureByteStride);
-		desc.Buffer.FirstElement = dynamic_alloc.offset / desc.Buffer.StructureByteStride;
-
-		light_array_srv = descriptor_allocator->GetHandle(i);
-		device->CreateShaderResourceView(dynamic_alloc.buffer, &desc, light_array_srv);
+		OffsetType i = descriptor_allocator->Allocate();
+		auto dst_descriptor = descriptor_allocator->GetHandle(i);
+		device->CopyDescriptorsSimple(1, dst_descriptor, lights_buffer->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		light_array_srv = dst_descriptor;
 	}
 
 	void Renderer::GenerateIBLTextures()

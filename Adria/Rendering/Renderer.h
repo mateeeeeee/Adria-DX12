@@ -106,6 +106,7 @@ namespace adria
 		//resources
 		std::unique_ptr<Texture> final_texture;
 		std::unique_ptr<Texture> white_default_texture;
+		std::unique_ptr<Buffer>  lights_buffer;
 		DescriptorHandle		 light_array_srv;
 
 		//Persistent constant buffers

@@ -60,24 +60,6 @@ namespace adria
 				}, ERGPassType::Compute, ERGPassFlags::None);
 		}
 
-		auto light_view = reg.view<Light>();
-		std::vector<StructuredLight> structured_lights{};
-		for (auto e : light_view)
-		{
-			StructuredLight structured_light{};
-			auto& light = light_view.get<Light>(e);
-			structured_light.color = light.color * light.energy;
-			structured_light.position = XMVector4Transform(light.position, global_data.camera_view);
-			structured_light.direction = XMVector4Transform(light.direction, global_data.camera_view);
-			structured_light.range = light.range;
-			structured_light.type = static_cast<int>(light.type);
-			structured_light.inner_cosine = light.inner_cosine;
-			structured_light.outer_cosine = light.outer_cosine;
-			structured_light.active = light.active;
-			structured_light.casts_shadows = light.casts_shadows;
-			structured_lights.push_back(structured_light);
-		}
-
 		struct ClusterCullingPassData
 		{
 			RGAllocationId alloc_id;
@@ -89,9 +71,6 @@ namespace adria
 		rendergraph.AddPass<ClusterCullingPassData>("Cluster Culling Pass",
 			[=](ClusterCullingPassData& data, RenderGraphBuilder& builder)
 			{
-				uint64 alloc_size = sizeof(StructuredLight) * structured_lights.size();
-				builder.DeclareAllocation(RG_RES_NAME(ClusterAllocation), AllocDesc{.size_in_bytes = alloc_size, .alignment = sizeof(StructuredLight) });
-				data.alloc_id = builder.UseAllocation(RG_RES_NAME(ClusterAllocation));
 				data.clusters_srv = builder.ReadBuffer(RG_RES_NAME(ClustersBuffer), ReadAccess_NonPixelShader);
 				data.light_counter_uav = builder.WriteBuffer(RG_RES_NAME(LightCounter));
 				data.light_grid_uav = builder.WriteBuffer(RG_RES_NAME(LightGrid));
@@ -103,26 +82,13 @@ namespace adria
 				auto upload_buffer = gfx->GetDynamicAllocator();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				DynamicAllocation& dynamic_alloc = context.GetAllocation(data.alloc_id);
-				dynamic_alloc.Update(structured_lights.data(), dynamic_alloc.size);
-
 				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::ClusterCulling));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ClusterCulling));
 
 				OffsetType i = descriptor_allocator->AllocateRange(2);
 				auto dst_descriptor = descriptor_allocator->GetHandle(i);
-				device->CopyDescriptorsSimple(1, dst_descriptor, context.GetReadOnlyBuffer(data.clusters_srv), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-				D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
-				desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-				desc.Format = DXGI_FORMAT_UNKNOWN;
-				desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-				desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-				desc.Buffer.StructureByteStride = sizeof(StructuredLight);
-				desc.Buffer.NumElements = static_cast<uint32>(dynamic_alloc.size / desc.Buffer.StructureByteStride);
-				desc.Buffer.FirstElement = dynamic_alloc.offset / desc.Buffer.StructureByteStride;
-				device->CreateShaderResourceView(dynamic_alloc.buffer, &desc, descriptor_allocator->GetHandle(i + 1));
-
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyBuffer(data.clusters_srv), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), global_data.lights_buffer_cpu_srv, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				cmd_list->SetComputeRootDescriptorTable(0, dst_descriptor);
 
 				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = {	context.GetReadWriteBuffer(data.light_counter_uav),
@@ -152,7 +118,6 @@ namespace adria
 		rendergraph.AddPass<ClusterLightingPassData>("Cluster Lighting Pass",
 			[=](ClusterLightingPassData& data, RenderGraphBuilder& builder)
 			{
-				data.alloc_id = builder.UseAllocation(RG_RES_NAME(ClusterAllocation));
 				data.gbuffer_normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_PixelShader);
 				data.gbuffer_albedo = builder.ReadTexture(RG_RES_NAME(GBufferAlbedo), ReadAccess_PixelShader);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
@@ -194,18 +159,7 @@ namespace adria
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 				dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-
-				DynamicAllocation& dynamic_alloc = context.GetAllocation(data.alloc_id);
-				D3D12_SHADER_RESOURCE_VIEW_DESC desc{};
-				desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-				desc.Format = DXGI_FORMAT_UNKNOWN;
-				desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-				desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-				desc.Buffer.StructureByteStride = sizeof(StructuredLight);
-				desc.Buffer.NumElements = static_cast<uint32>(dynamic_alloc.size / desc.Buffer.StructureByteStride);
-				desc.Buffer.FirstElement = dynamic_alloc.offset / desc.Buffer.StructureByteStride;
-				device->CreateShaderResourceView(dynamic_alloc.buffer, &desc, dst_descriptor);
-
+				device->CopyDescriptorsSimple(1, dst_descriptor, global_data.lights_buffer_cpu_srv, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				cmd_list->SetGraphicsRootDescriptorTable(2, dst_descriptor);
 				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 				cmd_list->DrawInstanced(4, 1, 0, 0);

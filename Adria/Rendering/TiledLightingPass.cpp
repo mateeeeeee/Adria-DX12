@@ -16,8 +16,7 @@ namespace adria
 
 	TiledLightingPass::TiledLightingPass(entt::registry& reg, uint32 w, uint32 h) : reg(reg), width(w), height(h), 
 		add_textures_pass(width, height), copy_to_texture_pass(width, height)
-	{
-	}
+	{}
 
 	void TiledLightingPass::AddPass(RenderGraph& rendergraph)
 	{
@@ -93,7 +92,7 @@ namespace adria
 					uav_target_for_clear = descriptor_allocator->GetHandle(descriptor_index);
 					uav_debug_for_clear = descriptor_allocator->GetHandle(descriptor_index + 1);
 				}
-				cmd_list->SetComputeRootDescriptorTable(4, global_data.lights_array_srv_buffer);
+				cmd_list->SetComputeRootDescriptorTable(4, global_data.lights_buffer_gpu_srv);
 
 				static constexpr float32 black[4] = { 0.0f,0.0f,0.0f,0.0f };
 

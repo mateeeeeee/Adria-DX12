@@ -53,8 +53,6 @@ namespace adria
 		void OnResize(uint32 width, uint32 height);
 		void OnSceneInitialized();
 
-		void Update(float32 dt);
-
 		void AddRayTracedShadowsPass(RenderGraph&, Light const&, size_t);
 		void AddRayTracedReflectionsPass(RenderGraph&, D3D12_CPU_DESCRIPTOR_HANDLE);
 		void AddRayTracedAmbientOcclusionPass(RenderGraph&);
