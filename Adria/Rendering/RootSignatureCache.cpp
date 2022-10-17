@@ -200,51 +200,6 @@ namespace adria
 				std::array<CD3DX12_ROOT_PARAMETER1, 3> root_parameters{};
 				CD3DX12_ROOT_PARAMETER1 root_parameter{};
 
-				root_parameters[0].InitAsConstantBufferView(0, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL);
-				root_parameters[1].InitAsConstantBufferView(5, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL);
-
-				CD3DX12_DESCRIPTOR_RANGE1 range{};
-				range.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 1, 0);
-				root_parameters[2].InitAsDescriptorTable(1, &range, D3D12_SHADER_VISIBILITY_PIXEL);
-
-				std::array<D3D12_STATIC_SAMPLER_DESC, 2> samplers{};
-				D3D12_STATIC_SAMPLER_DESC sampler{};
-				sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
-				sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-				sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-				sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-				sampler.MipLODBias = 0;
-				sampler.MaxAnisotropy = 0;
-				sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
-				sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
-				sampler.MinLOD = 0.0f;
-				sampler.MaxLOD = D3D12_FLOAT32_MAX;
-				sampler.ShaderRegister = 1;
-				sampler.RegisterSpace = 0;
-				sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-				samplers[0] = sampler;
-
-				sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-				sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-				sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-				sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-				sampler.ShaderRegister = 0;
-				samplers[1] = sampler;
-
-				CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc{};
-				rootSignatureDesc.Init_1_1((uint32)root_parameters.size(), root_parameters.data(), (uint32)samplers.size(), samplers.data(), D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
-				ComPtr<ID3DBlob> signature;
-				ComPtr<ID3DBlob> error;
-				D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, feature_data.HighestVersion, &signature, &error);
-				if (error) OutputDebugStringA((char*)error->GetBufferPointer());
-				BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::AO])));
-			}
-
-			{
-				std::array<CD3DX12_ROOT_PARAMETER1, 3> root_parameters{};
-				CD3DX12_ROOT_PARAMETER1 root_parameter{};
-
 				root_parameters[0].InitAsConstantBufferView(6, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
 
 				CD3DX12_DESCRIPTOR_RANGE1 srv_range{};

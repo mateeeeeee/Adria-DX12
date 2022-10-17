@@ -42,13 +42,11 @@ namespace adria
 				ssao_desc.format = EFormat::R8_UNORM;
 				ssao_desc.width = width;
 				ssao_desc.height = height;
-				ssao_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 
 				builder.DeclareTexture(RG_RES_NAME(SSAO_Output), ssao_desc);
 				data.output_uav = builder.WriteTexture(RG_RES_NAME(SSAO_Output));
-				data.gbuffer_normal_srv = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_PixelShader);
-				data.depth_stencil_srv = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
-				builder.SetViewport(width, height);
+				data.gbuffer_normal_srv = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
+				data.depth_stencil_srv = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
 			[&](SSAOPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
 			{

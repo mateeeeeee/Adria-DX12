@@ -11,9 +11,7 @@ namespace adria
 {
 
 	HBAOPass::HBAOPass(uint32 w, uint32 h) : width(w), height(h), hbao_random_texture(nullptr),
-		blur_pass(w, h)
-	{
-	}
+		blur_pass(w, h){}
 
 	void HBAOPass::AddPass(RenderGraph& rendergraph)
 	{
@@ -21,49 +19,62 @@ namespace adria
 		{
 			RGTextureReadOnlyId gbuffer_normal_srv;
 			RGTextureReadOnlyId depth_stencil_srv;
+			RGTextureReadWriteId output_uav;
 		};
 
 		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
 		rendergraph.AddPass<HBAOPassData>("HBAO Pass",
 			[=](HBAOPassData& data, RenderGraphBuilder& builder)
 			{
-				RGTextureDesc render_target_desc{};
-				render_target_desc.format = EFormat::R8_UNORM;
-				render_target_desc.width = width;
-				render_target_desc.height = height;
-				render_target_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
+				RGTextureDesc hbao_desc{};
+				hbao_desc.format = EFormat::R8_UNORM;
+				hbao_desc.width = width;
+				hbao_desc.height = height;
 
-				builder.DeclareTexture(RG_RES_NAME(HBAO_Output), render_target_desc);
-				builder.WriteRenderTarget(RG_RES_NAME(HBAO_Output), ERGLoadStoreAccessOp::Discard_Preserve);
-				data.gbuffer_normal_srv = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_PixelShader);
-				data.depth_stencil_srv = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
-				builder.SetViewport(width, height);
+				builder.DeclareTexture(RG_RES_NAME(HBAO_Output), hbao_desc);
+				data.output_uav = builder.WriteTexture(RG_RES_NAME(HBAO_Output));
+				data.gbuffer_normal_srv = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
+				data.depth_stencil_srv = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
-			[&](HBAOPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[&](HBAOPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
-				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::AO));
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::HBAO));
 
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetGraphicsRootConstantBufferView(1, global_data.postprocess_cbuffer_address);
+				uint32 i = (uint32)descriptor_allocator->AllocateRange(4);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.depth_stencil_srv), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadOnlyTexture(data.gbuffer_normal_srv), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), hbao_random_texture->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 3), ctx.GetReadWriteTexture(data.output_uav), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
-				auto descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { context.GetReadOnlyTexture(data.gbuffer_normal_srv), context.GetReadOnlyTexture(data.depth_stencil_srv), hbao_random_texture->GetSRV() };
-				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor };
-				UINT src_range_sizes[] = { 1, 1, 1 };
-				UINT dst_range_sizes[] = { 3 };
-				device->CopyDescriptors(1, dst_ranges, dst_range_sizes, 3, src_ranges, src_range_sizes,
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetGraphicsRootDescriptorTable(2, descriptor);
+				struct HBAOConstants
+				{
+					float32  r2;
+					float32  radius_to_screen;
+					float32  power;
+					float32  noise_scale;
 
-				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-				cmd_list->DrawInstanced(4, 1, 0, 0);
-			}
-			);
+					uint32   depth_idx;
+					uint32   normal_idx;
+					uint32   noise_idx;
+					uint32   output_idx;
+				} constants =
+				{
+					.r2 = params.hbao_radius * params.hbao_radius, .radius_to_screen = params.hbao_radius * 0.5f * float32(height) / (tanf(global_data.camera_fov * 0.5f) * 2.0f),
+					.power = params.hbao_power,
+					.noise_scale = std::max(width * 1.0f / NOISE_DIM,height * 1.0f / NOISE_DIM),
+					.depth_idx = i, .normal_idx = i + 1, .noise_idx = i + 2, .output_idx = i + 3
+				};
+
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
+				cmd_list->Dispatch((UINT)std::ceil(width / 16), (UINT)std::ceil(height / 16), 1);
+			}, ERGPassType::Compute);
+
 		blur_pass.AddPass(rendergraph, RG_RES_NAME(HBAO_Output), RG_RES_NAME(AmbientOcclusion), " HBAO");
 		
 		AddGUI([&]()

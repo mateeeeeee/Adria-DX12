@@ -78,7 +78,6 @@ namespace adria
 			case PS_Taa:
 			case PS_Copy:
 			case PS_Add:
-			case PS_Hbao:
 			case PS_Ssr:
 			case PS_LensFlare:
 			case PS_GodRays:
@@ -128,6 +127,7 @@ namespace adria
 			case CS_HistogramReduction:
 			case CS_Exposure:
 			case CS_Ssao:
+			case CS_Hbao:
 				return EShaderStage::CS;
 			case HS_OceanLOD:
 				return EShaderStage::HS;
@@ -199,8 +199,6 @@ namespace adria
 				return "Postprocess/CopyPS.hlsl";
 			case PS_Add:
 				return "Postprocess/AddPS.hlsl";
-			case PS_Hbao:
-				return "Postprocess/HBAO_PS.hlsl";
 			case PS_Ssr:
 				return "Postprocess/SSR_PS.hlsl";
 			case VS_LensFlare:
@@ -310,6 +308,8 @@ namespace adria
 				return "Exposure/Exposure.hlsl";
 			case CS_Ssao:
 				return "Postprocess/SSAO.hlsl";
+			case CS_Hbao:
+				return "Postprocess/HBAO.hlsl";
 			case LIB_Shadows:
 			case LIB_SoftShadows:
 				return "RayTracing/RayTracedShadows.hlsl";
@@ -358,6 +358,7 @@ namespace adria
 			case CS_HistogramReduction:
 			case CS_Exposure:
 			case CS_Ssao:
+			case CS_Hbao:
 			case LIB_AmbientOcclusion:
 			case LIB_Reflections:
 			case LIB_Shadows:

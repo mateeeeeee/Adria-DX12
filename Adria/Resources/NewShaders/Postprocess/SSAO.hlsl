@@ -39,17 +39,17 @@ void main(CS_INPUT input)
     RWTexture2D<float> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
     
     float2 uv = ((float2)input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
-    float3 normal = normalTx.Sample(LinearBorderSampler, uv).rgb; 
-    normal = 2.0f * normal - 1.0f;
-    normal = normalize(normal);
+    float3 viewNormal = normalTx.Sample(LinearBorderSampler, uv).rgb;
+    viewNormal = 2.0f * viewNormal - 1.0f;
+    viewNormal = normalize(viewNormal);
     
     float depth = depthTx.Sample(LinearBorderSampler, uv);
     float3 viewPosition = GetViewPosition(uv, depth);
     float3 randomVector = normalize(2 * noiseTx.Sample(PointWrapSampler, uv * PassCB.noiseScale).xyz - 1);
 
-    float3 tangent = normalize(randomVector - normal * dot(randomVector, normal));
-    float3 bitangent = cross(normal, tangent);
-    float3x3 TBN = float3x3(tangent, bitangent, normal);
+    float3 tangent = normalize(randomVector - viewNormal * dot(randomVector, viewNormal));
+    float3 bitangent = cross(viewNormal, tangent);
+    float3x3 TBN = float3x3(tangent, bitangent, viewNormal);
     
     float occlusion = 0.0;
     [unroll(SSAO_KERNEL_SIZE)]

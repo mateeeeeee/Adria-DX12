@@ -68,6 +68,7 @@ namespace adria
 			global_data.camera_view = camera->View();
 			global_data.camera_proj = camera->Proj();
 			global_data.camera_viewproj = camera->ViewProj();
+			global_data.camera_fov = camera->Fov();
 			global_data.new_frame_cbuffer_address = new_frame_cbuffer.BufferLocation(backbuffer_index);
 			global_data.frame_cbuffer_address = frame_cbuffer.BufferLocation(backbuffer_index);
 			global_data.postprocess_cbuffer_address = postprocess_cbuffer.BufferLocation(backbuffer_index);
@@ -646,8 +647,7 @@ namespace adria
 			DoFParameters dof_params = postprocessor.GetDoFParams();
 			VelocityBufferParams velocity_params = postprocessor.GetVelocityBufferParams();
 			TonemapParams tonemap_params = tonemap_pass.GetParams();
-			HBAOParams hbao_params = hbao_pass.GetParams();
-			
+
 			postprocess_cbuf_data.tone_map_exposure = tonemap_params.tonemap_exposure;
 			postprocess_cbuf_data.tone_map_operator = static_cast<int>(tonemap_params.tone_map_op);
 			postprocess_cbuf_data.ssr_ray_step = ssr_params.ssr_ray_step;
@@ -660,9 +660,6 @@ namespace adria
 			postprocess_cbuf_data.fog_start = fog_params.fog_start;
 			XMFLOAT3 fog_color(fog_params.fog_color);
 			postprocess_cbuf_data.fog_color = XMLoadFloat3(&fog_color);
-			postprocess_cbuf_data.hbao_r2 = hbao_params.hbao_radius * hbao_params.hbao_radius;
-			postprocess_cbuf_data.hbao_radius_to_screen = hbao_params.hbao_radius * 0.5f * float32(height) / (tanf(camera->Fov() * 0.5f) * 2.0f);
-			postprocess_cbuf_data.hbao_power = hbao_params.hbao_power;
 			postprocess_cbuffer.Update(postprocess_cbuf_data, backbuffer_index);
 		}
 		

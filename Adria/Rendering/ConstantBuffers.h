@@ -135,9 +135,6 @@ namespace adria
 		float32 fog_start;
 		int32 fog_type;
 
-		float32   hbao_r2;
-		float32   hbao_radius_to_screen;
-		float32   hbao_power;
 		int32	  tone_map_operator;
 	};
 

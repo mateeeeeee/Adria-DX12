@@ -859,9 +859,6 @@
     <FxCompile Include="Resources\Shaders\Misc\TextureVS.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\PostProcess\SSAO_PS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\PostProcess\BlurCS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
@@ -1058,6 +1055,9 @@
       <Filter>NewShaders\RayTracing</Filter>
     </FxCompile>
     <FxCompile Include="Resources\NewShaders\Postprocess\SSAO.hlsl">
+      <Filter>NewShaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Postprocess\HBAO.hlsl">
       <Filter>NewShaders\Postprocess</Filter>
     </FxCompile>
   </ItemGroup>
