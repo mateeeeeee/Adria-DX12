@@ -2,54 +2,51 @@
 
 Graphics engine written in C++ using DirectX12/DXR. For successful build you will need textures that you can find [here](https://github.com/mateeeeeee/Adria-DX11/releases/tag/1.0).
 ## Features
-* Render Graph
-	- Automatic Resource Barriers
-	- Resource Reuse using Resource Pool
-	- Automatic Resource Bind Flags and Initial State Deduction
-	- Pass Culling
-	- Optional Multithreaded Command List Building
-* Tiled Deferred Rendering 
-* Clustered Deferred Rendering
-* Deferred + Forward Rendering 
-* Physically Based Shading
-* Image Based Lighting
-* Normal Mapping
-* Ray Traced Shadows (DXR)
+* Render graph
+	- Automatic resource barriers
+	- Resource reuse using resource pool
+	- Automatic resource bind flags and initial state deduction
+	- Pass culling
+	- Optional multithreaded command list building
+* Tiled deferred rendering 
+* Clustered deferred rendering
+* Deferred + forward rendering 
+* Physically based shading
+* Image based lighting
+* Normal mapping
+* Ray traced shadows (DXR)
 * Shadows
-    - PCF Shadows for Directional, Spot and Point lights
-    - Cascade Shadow Maps for Directional Lights
-* Volumetric Lighting
-    - Directional Lights with Shadow Maps
-    - Directional Lights with Cascade Shadow Maps
-    - Point and Spot Lights 
-* HDR and Tone Mapping
-* Automatic Exposure
+    - PCF shadows for directional, spot and point lights
+    - Cascade shadow maps for directional lights
+* Volumetric lighting
+    - Directional lights with shadow maps
+    - Directional lights with cascade shadow maps
+    - Point and spot lights 
+* HDR and tone mapping
+* Automatic exposure
 * Bloom
-* Depth Of Field
+* Depth of field
 * Bokeh
-* Ambient Occlusion: SSAO, HBAO, RTAO (DXR)
+* Ambient occlusion: SSAO, HBAO, RTAO (DXR)
 * Reflections: SSR, RTR (DXR)
 * SSCS
-* Deferred Decals
+* Deferred decals
 * FXAA
 * TAA
-* God Rays
-* Lens Flare
-* Motion Blur
+* God rays
+* Lens flare
+* Motion blur
 * Fog
-* Volumetric Clouds
-* Hosek-Wilkie Sky
+* Volumetric clouds
+* Hosek-Wilkie sky
 * Ocean FFT
-    - Adaptive Tesselation
+    - Adaptive tesselation
     - Foam
 * Particles
 * ImGui Editor
 * Profiler
 * Model Loading with tinygltf
-* Shader Hot Reload
-* Entity-Component System
-* Camera and Light Frustum Culling
-* Bindless Texturing 
+* Shader hot reload
 * DirectX12 Render Passes
 
 ## TODO
