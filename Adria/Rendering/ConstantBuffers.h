@@ -122,8 +122,6 @@ namespace adria
 
 	DECLSPEC_ALIGN(16) struct PostprocessCBuffer
 	{
-		float32 ssr_ray_step;
-		float32 ssr_ray_hit_threshold;
 		float32 velocity_buffer_scale;
 		float32 tone_map_exposure;
 

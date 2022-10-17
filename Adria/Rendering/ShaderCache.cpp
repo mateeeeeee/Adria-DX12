@@ -36,6 +36,8 @@ namespace adria
 				return "SSAO";
 			case CS_Hbao:
 				return "HBAO";
+			case CS_Ssr:
+				return "SSR";
 			default:
 				return "main";
 			}
@@ -82,7 +84,6 @@ namespace adria
 			case PS_Taa:
 			case PS_Copy:
 			case PS_Add:
-			case PS_Ssr:
 			case PS_LensFlare:
 			case PS_GodRays:
 			case PS_Dof:
@@ -132,6 +133,7 @@ namespace adria
 			case CS_Exposure:
 			case CS_Ssao:
 			case CS_Hbao:
+			case CS_Ssr:
 				return EShaderStage::CS;
 			case HS_OceanLOD:
 				return EShaderStage::HS;
@@ -203,8 +205,6 @@ namespace adria
 				return "Postprocess/CopyPS.hlsl";
 			case PS_Add:
 				return "Postprocess/AddPS.hlsl";
-			case PS_Ssr:
-				return "Postprocess/SSR_PS.hlsl";
 			case VS_LensFlare:
 				return "Postprocess/LensFlareVS.hlsl";
 			case GS_LensFlare:
@@ -314,6 +314,8 @@ namespace adria
 				return "Postprocess/SSAO.hlsl";
 			case CS_Hbao:
 				return "Postprocess/HBAO.hlsl";
+			case CS_Ssr:
+				return "Postprocess/SSR.hlsl";
 			case LIB_Shadows:
 			case LIB_SoftShadows:
 				return "RayTracing/RayTracedShadows.hlsl";
@@ -363,6 +365,7 @@ namespace adria
 			case CS_Exposure:
 			case CS_Ssao:
 			case CS_Hbao:
+			case CS_Ssr:
 			case LIB_AmbientOcclusion:
 			case LIB_Reflections:
 			case LIB_Shadows:

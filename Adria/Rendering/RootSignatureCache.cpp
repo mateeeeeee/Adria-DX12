@@ -57,9 +57,6 @@ namespace adria
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Texture).GetPointer(), GetShader(PS_Texture).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::Forward].GetAddressOf())));
 
-			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Ssr).GetPointer(), GetShader(PS_Ssr).GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::SSR].GetAddressOf())));
-
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_GodRays).GetPointer(), GetShader(PS_GodRays).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::GodRays].GetAddressOf())));
 
@@ -302,7 +299,7 @@ namespace adria
 		}
 		void Destroy()
 		{
-			auto FreeContainer = []<typename T>(T & container)
+			auto FreeContainer = []<typename T>(T& container)
 			{
 				container.clear();
 				T empty;

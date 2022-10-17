@@ -47,12 +47,12 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 * Profiler
 * Model Loading with tinygltf
 * Shader hot reload
-* DirectX12 Render Passes
+* DirectX12 render passes
 
 ## TODO
 * Move to Ultimate Bindless (wip)
 * Improve DXR features
-* Add DXR Global Illumination
+* Add DXR GI
 
 ## Dependencies
 [tinygltf](https://github.com/syoyo/tinygltf)

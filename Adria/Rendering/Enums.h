@@ -35,7 +35,6 @@ namespace adria
 		PS_Volumetric_Directional,
 		PS_Volumetric_Spot,
 		PS_Volumetric_Point,
-		PS_Ssr,
 		PS_GodRays,
 		PS_Dof,
 		PS_VolumetricClouds,
@@ -99,6 +98,7 @@ namespace adria
 		CS_Exposure,
 		CS_Ssao,
 		CS_Hbao,
+		CS_Ssr,
 		ShaderId_Count
 	};
 
@@ -119,7 +119,6 @@ namespace adria
 		DepthMap_Transparent,
 		Volumetric,
 		Forward,
-		SSR,
 		DOF,
 		Bokeh,
 		BokehGenerate,

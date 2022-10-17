@@ -642,7 +642,6 @@ namespace adria
 			static PostprocessCBuffer postprocess_cbuf_data{};
 
 			PostprocessSettings const& settings = renderer_settings.postprocess;
-			SSRParameters ssr_params = postprocessor.GetSSRParams();
 			FogParameters fog_params = postprocessor.GetFogParams();
 			DoFParameters dof_params = postprocessor.GetDoFParams();
 			VelocityBufferParams velocity_params = postprocessor.GetVelocityBufferParams();
@@ -650,8 +649,6 @@ namespace adria
 
 			postprocess_cbuf_data.tone_map_exposure = tonemap_params.tonemap_exposure;
 			postprocess_cbuf_data.tone_map_operator = static_cast<int>(tonemap_params.tone_map_op);
-			postprocess_cbuf_data.ssr_ray_step = ssr_params.ssr_ray_step;
-			postprocess_cbuf_data.ssr_ray_hit_threshold = ssr_params.ssr_ray_hit_threshold;
 			postprocess_cbuf_data.dof_params = XMVectorSet(dof_params.dof_near_blur, dof_params.dof_near, dof_params.dof_far, dof_params.dof_far_blur);
 			postprocess_cbuf_data.velocity_buffer_scale = velocity_params.velocity_buffer_scale;
 			postprocess_cbuf_data.fog_falloff = fog_params.fog_falloff;

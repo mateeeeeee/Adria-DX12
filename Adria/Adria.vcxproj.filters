@@ -1045,6 +1045,9 @@
     <FxCompile Include="Resources\NewShaders\Postprocess\HBAO.hlsl">
       <Filter>NewShaders\Postprocess</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Postprocess\SSR.hlsl">
+      <Filter>NewShaders\Postprocess</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Shaders\Globals\GlobalsCS.hlsli">

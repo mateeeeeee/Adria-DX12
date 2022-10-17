@@ -68,8 +68,6 @@ struct ShadowCBuffer
 
 struct PostprocessCBuffer
 {
-    float ssr_ray_step;
-    float ssr_ray_hit_threshold;
     float velocity_buffer_scale;
     float tone_map_exposure;
     
