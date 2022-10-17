@@ -68,6 +68,7 @@ namespace adria
 			global_data.camera_view = camera->View();
 			global_data.camera_proj = camera->Proj();
 			global_data.camera_viewproj = camera->ViewProj();
+			global_data.camera_fov = camera->Fov();
 			global_data.new_frame_cbuffer_address = new_frame_cbuffer.BufferLocation(backbuffer_index);
 			global_data.frame_cbuffer_address = frame_cbuffer.BufferLocation(backbuffer_index);
 			global_data.postprocess_cbuffer_address = postprocess_cbuffer.BufferLocation(backbuffer_index);
@@ -225,17 +226,6 @@ namespace adria
 		aabb_pass.OnSceneInitialized(gfx);
 		particle_renderer.OnSceneInitialized();
 		ray_tracer.OnSceneInitialized();
-
-		RealRandomGenerator rand_float{ 0.0f, 1.0f };
-		for (uint32 i = 0; i < SSAO_KERNEL_SIZE; i++)
-		{
-			DirectX::XMFLOAT4 _offset = DirectX::XMFLOAT4(2 * rand_float() - 1, 2 * rand_float() - 1, rand_float(), 0.0f);
-			DirectX::XMVECTOR offset = DirectX::XMLoadFloat4(&_offset);
-			offset = DirectX::XMVector4Normalize(offset);
-
-			offset *= rand_float();
-			ssao_kernel[i] = offset;
-		}
 
 		TextureDesc desc{};
 		desc.width = 1;
@@ -657,15 +647,9 @@ namespace adria
 			DoFParameters dof_params = postprocessor.GetDoFParams();
 			VelocityBufferParams velocity_params = postprocessor.GetVelocityBufferParams();
 			TonemapParams tonemap_params = tonemap_pass.GetParams();
-			SSAOParams ssao_params = ssao_pass.GetParams();
-			HBAOParams hbao_params = hbao_pass.GetParams();
-			
+
 			postprocess_cbuf_data.tone_map_exposure = tonemap_params.tonemap_exposure;
 			postprocess_cbuf_data.tone_map_operator = static_cast<int>(tonemap_params.tone_map_op);
-			postprocess_cbuf_data.noise_scale = XMFLOAT2((float32)width / 8, (float32)height / 8);
-			postprocess_cbuf_data.ssao_power = ssao_params.ssao_power;
-			postprocess_cbuf_data.ssao_radius = ssao_params.ssao_radius;
-			for (uint32 i = 0; i < SSAO_KERNEL_SIZE; ++i) postprocess_cbuf_data.samples[i] = ssao_kernel[i];
 			postprocess_cbuf_data.ssr_ray_step = ssr_params.ssr_ray_step;
 			postprocess_cbuf_data.ssr_ray_hit_threshold = ssr_params.ssr_ray_hit_threshold;
 			postprocess_cbuf_data.dof_params = XMVectorSet(dof_params.dof_near_blur, dof_params.dof_near, dof_params.dof_far, dof_params.dof_far_blur);
@@ -676,9 +660,6 @@ namespace adria
 			postprocess_cbuf_data.fog_start = fog_params.fog_start;
 			XMFLOAT3 fog_color(fog_params.fog_color);
 			postprocess_cbuf_data.fog_color = XMLoadFloat3(&fog_color);
-			postprocess_cbuf_data.hbao_r2 = hbao_params.hbao_radius * hbao_params.hbao_radius;
-			postprocess_cbuf_data.hbao_radius_to_screen = hbao_params.hbao_radius * 0.5f * float32(height) / (tanf(camera->Fov() * 0.5f) * 2.0f);
-			postprocess_cbuf_data.hbao_power = hbao_params.hbao_power;
 			postprocess_cbuffer.Update(postprocess_cbuf_data, backbuffer_index);
 		}
 		

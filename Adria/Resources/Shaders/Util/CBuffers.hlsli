@@ -68,12 +68,6 @@ struct ShadowCBuffer
 
 struct PostprocessCBuffer
 {
-    float2 noise_scale;
-    float ssao_radius;
-    float ssao_power;
-    
-    float4 samples[16];
-    
     float ssr_ray_step;
     float ssr_ray_hit_threshold;
     float velocity_buffer_scale;
@@ -91,7 +85,6 @@ struct PostprocessCBuffer
     float hbao_radius_to_screen;
     float hbao_power;
     int tone_map_op;
-
 };
 
 

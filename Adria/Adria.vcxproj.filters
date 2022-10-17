@@ -92,6 +92,9 @@
     <Filter Include="NewShaders\RayTracing">
       <UniqueIdentifier>{0de20b01-23d1-4d62-866a-ecfbf857f686}</UniqueIdentifier>
     </Filter>
+    <Filter Include="NewShaders\Postprocess">
+      <UniqueIdentifier>{04bf1695-6a82-4e87-b105-ba18b81fde09}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -856,9 +859,6 @@
     <FxCompile Include="Resources\Shaders\Misc\TextureVS.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\PostProcess\SSAO_PS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\PostProcess\BlurCS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
@@ -1053,6 +1053,12 @@
     </FxCompile>
     <FxCompile Include="Resources\NewShaders\RayTracing\RayTracedShadows.hlsl">
       <Filter>NewShaders\RayTracing</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Postprocess\SSAO.hlsl">
+      <Filter>NewShaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Postprocess\HBAO.hlsl">
+      <Filter>NewShaders\Postprocess</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

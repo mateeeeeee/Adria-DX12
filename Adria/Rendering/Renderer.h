@@ -50,8 +50,7 @@ namespace adria
 			NULL_HEAP_SLOT_RWTEXTURE2D,
 			NULL_HEAP_SIZE
 		};
-		static constexpr uint32 SSAO_KERNEL_SIZE = SSAOPass::KERNEL_SIZE;
-
+		
 	public:
 
 		Renderer(entt::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height);
@@ -118,7 +117,6 @@ namespace adria
 
 		//misc
 		std::unique_ptr<DescriptorHeap> null_heap;
-		std::array<DirectX::XMVECTOR, SSAO_KERNEL_SIZE> ssao_kernel{};
 		bool update_picking_data = false;
 		PickingData picking_data;
 

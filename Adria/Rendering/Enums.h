@@ -35,8 +35,6 @@ namespace adria
 		PS_Volumetric_Directional,
 		PS_Volumetric_Spot,
 		PS_Volumetric_Point,
-		PS_Ssao,
-		PS_Hbao,
 		PS_Ssr,
 		PS_GodRays,
 		PS_Dof,
@@ -99,6 +97,8 @@ namespace adria
 		CS_BuildHistogram,
 		CS_HistogramReduction,
 		CS_Exposure,
+		CS_Ssao,
+		CS_Hbao,
 		ShaderId_Count
 	};
 
@@ -119,7 +119,6 @@ namespace adria
 		DepthMap_Transparent,
 		Volumetric,
 		Forward,
-		AO,
 		SSR,
 		DOF,
 		Bokeh,

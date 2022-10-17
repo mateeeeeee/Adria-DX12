@@ -11,6 +11,7 @@ namespace adria
 		DirectX::XMMATRIX			camera_view;
 		DirectX::XMMATRIX			camera_proj;
 		DirectX::XMMATRIX			camera_viewproj;
+		float32						camera_fov;
 		D3D12_GPU_VIRTUAL_ADDRESS   new_frame_cbuffer_address;
 		D3D12_GPU_VIRTUAL_ADDRESS   frame_cbuffer_address;
 		D3D12_GPU_VIRTUAL_ADDRESS   postprocess_cbuffer_address;

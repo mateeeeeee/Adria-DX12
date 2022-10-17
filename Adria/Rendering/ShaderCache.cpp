@@ -78,8 +78,6 @@ namespace adria
 			case PS_Taa:
 			case PS_Copy:
 			case PS_Add:
-			case PS_Ssao:
-			case PS_Hbao:
 			case PS_Ssr:
 			case PS_LensFlare:
 			case PS_GodRays:
@@ -128,6 +126,8 @@ namespace adria
 			case CS_BuildHistogram:
 			case CS_HistogramReduction:
 			case CS_Exposure:
+			case CS_Ssao:
+			case CS_Hbao:
 				return EShaderStage::CS;
 			case HS_OceanLOD:
 				return EShaderStage::HS;
@@ -199,10 +199,6 @@ namespace adria
 				return "Postprocess/CopyPS.hlsl";
 			case PS_Add:
 				return "Postprocess/AddPS.hlsl";
-			case PS_Ssao:
-				return "Postprocess/SSAO_PS.hlsl";
-			case PS_Hbao:
-				return "Postprocess/HBAO_PS.hlsl";
 			case PS_Ssr:
 				return "Postprocess/SSR_PS.hlsl";
 			case VS_LensFlare:
@@ -310,6 +306,10 @@ namespace adria
 				return "Exposure/HistogramReduction.hlsl";
 			case CS_Exposure:
 				return "Exposure/Exposure.hlsl";
+			case CS_Ssao:
+				return "Postprocess/SSAO.hlsl";
+			case CS_Hbao:
+				return "Postprocess/HBAO.hlsl";
 			case LIB_Shadows:
 			case LIB_SoftShadows:
 				return "RayTracing/RayTracedShadows.hlsl";
@@ -350,6 +350,26 @@ namespace adria
 			}
 		}
 
+		constexpr bool UseNewShadersDirectory(EShaderId shader)
+		{
+			switch (shader)
+			{
+			case CS_BuildHistogram:
+			case CS_HistogramReduction:
+			case CS_Exposure:
+			case CS_Ssao:
+			case CS_Hbao:
+			case LIB_AmbientOcclusion:
+			case LIB_Reflections:
+			case LIB_Shadows:
+			case LIB_SoftShadows:
+				return true;
+			default:
+				return false;
+			}
+			return false;
+		}
+
 		void CompileShader(EShaderId shader)
 		{
 			if (shader == ShaderId_Invalid) return;
@@ -359,7 +379,7 @@ namespace adria
 			shader_desc.stage = GetShaderStage(shader);
 			shader_desc.macros = GetShaderMacros(shader);
 			shader_desc.model = SM_6_6;
-			shader_desc.file = shader_desc.entry_point != "main" || shader_desc.stage == EShaderStage::LIB ?
+			shader_desc.file = UseNewShadersDirectory(shader) ?
 				std::string(new_shaders_directory) + GetShaderSource(shader) :
 				std::string(shaders_directory) + GetShaderSource(shader);
 #if _DEBUG
