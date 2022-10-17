@@ -96,7 +96,7 @@ bool bInsideScreen(in float2 vCoord)
 [RootSignature(Ssr_RS)]
 float4 main(VertexOut pin) : SV_TARGET
 {
-    float4 NormalMetallic = normalMetallicTx.Sample(linear_border_sampler, pin.Tex); //zamijeni kasnije sa pointSamplerom
+    float4 NormalMetallic = normalMetallicTx.Sample(linear_border_sampler, pin.Tex);
     float metallic = NormalMetallic.a;
     float4 scene_color = sceneTx.SampleLevel(linear_clamp_sampler, pin.Tex, 0);
     if (metallic < 0.01f) return scene_color;

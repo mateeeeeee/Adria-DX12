@@ -59,9 +59,6 @@
     <Filter Include="Shaders\Deferred\IBL">
       <UniqueIdentifier>{216dadbc-ae69-4a54-ae61-1e6776bc1f0c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shaders\RayTracing">
-      <UniqueIdentifier>{b0c1741c-fed3-4183-a633-dfa94a466da2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Tasks">
       <UniqueIdentifier>{6e93feed-a08b-471a-870c-bc433d3c1b4d}</UniqueIdentifier>
     </Filter>
@@ -937,17 +934,8 @@
     <FxCompile Include="Resources\Shaders\PostProcess\BokehVS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\PostProcess\HBAO_PS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\PostProcess\BloomCombineCS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\RayTracing\RayTracedShadows.hlsl">
-      <Filter>Shaders\RayTracing</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\RayTracing\RayTracedAmbientOcclusion.hlsl">
-      <Filter>Shaders\RayTracing</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\PostProcess\VelocityBufferPS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
@@ -1032,9 +1020,6 @@
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Misc\PickerCS.hlsl">
       <Filter>Shaders\Misc</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\RayTracing\RayTracedReflections.hlsl">
-      <Filter>Shaders\RayTracing</Filter>
     </FxCompile>
     <FxCompile Include="Resources\NewShaders\Exposure\BuildHistogram.hlsl">
       <Filter>NewShaders\Exposure</Filter>

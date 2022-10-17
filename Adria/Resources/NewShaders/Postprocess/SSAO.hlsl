@@ -31,7 +31,7 @@ struct CS_INPUT
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void main(CS_INPUT input)
+void SSAO(CS_INPUT input)
 {
     Texture2D normalTx = ResourceDescriptorHeap[PassCB.normalIdx];
     Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];

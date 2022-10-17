@@ -32,6 +32,10 @@ namespace adria
 				return "HistogramReductionCS";
 			case CS_Exposure:
 				return "ExposureCS";
+			case CS_Ssao:
+				return "SSAO";
+			case CS_Hbao:
+				return "HBAO";
 			default:
 				return "main";
 			}
