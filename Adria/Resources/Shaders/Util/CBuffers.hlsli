@@ -23,13 +23,11 @@ struct LightCBuffer
     Light current_light;
 };
 
-
 struct ObjectCBuffer
 {
     row_major matrix model;
     row_major matrix inverse_transposed_model;
 };
-
 
 struct MaterialCBuffer
 {
@@ -61,27 +59,11 @@ struct ShadowCBuffer
     int visualize;
 };
 
-#define EXPONENTIAL_FOG 0
-#define EXPONENTIAL_HEIGHT_FOG 1
-
-
-
 struct PostprocessCBuffer
 {
     float velocity_buffer_scale;
     float tone_map_exposure;
-    
     float4 dof_params;
-    float4 fog_color;
-    
-    float fog_falloff;
-    float fog_density;
-    float fog_start;
-    int fog_type;
-    
-    float hbao_r2;
-    float hbao_radius_to_screen;
-    float hbao_power;
     int tone_map_op;
 };
 
@@ -147,12 +129,4 @@ struct WeatherCBuffer
     float3 H;
     float3 I;
     float3 Z;
-};
-
-struct RayTracingCBuffer
-{
-    float rtao_radius;
-    int   frame_count;
-    int   accumulated_frames;
-    int   bounce_count;
 };

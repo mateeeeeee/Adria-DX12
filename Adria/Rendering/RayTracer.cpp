@@ -15,8 +15,7 @@ namespace adria
 {
 
 	RayTracer::RayTracer(entt::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height)
-		: reg(reg), gfx(gfx), width(width), height(height), accel_structure(gfx),
-		ray_tracing_cbuffer(gfx->GetDevice(), gfx->BackbufferCount()), blur_pass(width, height)
+		: reg(reg), gfx(gfx), width(width), height(height), accel_structure(gfx), blur_pass(width, height)
 	{
 		ID3D12Device* device = gfx->GetDevice();
 		D3D12_FEATURE_DATA_D3D12_OPTIONS5 features5{};

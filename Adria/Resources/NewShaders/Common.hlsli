@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 static float3x3 AngleAxis3x3(float angle, float3 axis)
 {
 	// Rotation with angle (in radians) and axis
@@ -31,4 +29,23 @@ static float3 GetPerpendicularVector(float3 u)
 	return cross(u, float3(xm, ym, zm));
 }
 
+static bool IsSaturated(float value)
+{
+    return value == saturate(value);
+}
+
+static bool IsSaturated(float2 value)
+{
+    return IsSaturated(value.x) && IsSaturated(value.y);
+}
+
+static bool IsSaturated(float3 value)
+{
+    return IsSaturated(value.x) && IsSaturated(value.y) && IsSaturated(value.z);
+}
+
+static bool IsSaturated(float4 value)
+{
+    return IsSaturated(value.x) && IsSaturated(value.y) && IsSaturated(value.z) && IsSaturated(value.w);
+}
 

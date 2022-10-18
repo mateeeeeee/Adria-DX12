@@ -46,7 +46,6 @@ namespace adria
 		PS_Bokeh,
 		PS_VelocityBuffer,
 		PS_MotionBlur,
-		PS_Fog,
 		PS_Copy,
 		PS_Add,
 		VS_Solid,
@@ -99,6 +98,7 @@ namespace adria
 		CS_Ssao,
 		CS_Hbao,
 		CS_Ssr,
+		CS_Fog,
 		ShaderId_Count
 	};
 
@@ -131,7 +131,6 @@ namespace adria
 		Add,
 		Clouds,
 		MotionBlur,
-		Fog,
 		TiledLighting,
 		ClusterBuilding,
 		ClusterCulling,

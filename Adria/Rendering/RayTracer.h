@@ -64,7 +64,6 @@ namespace adria
 		D3D12_RAYTRACING_TIER ray_tracing_tier;
 
 		AccelerationStructure accel_structure;
-		ConstantBuffer<RayTracingCBuffer> ray_tracing_cbuffer;
 
 		std::unique_ptr<Buffer> global_vb = nullptr;
 		std::unique_ptr<Buffer> global_ib = nullptr;

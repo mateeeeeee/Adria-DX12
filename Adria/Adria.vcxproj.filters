@@ -772,6 +772,9 @@
     <ClInclude Include="Graphics\InputLayout.h">
       <Filter>Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Math\Packing.h">
+      <Filter>Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
@@ -903,9 +906,6 @@
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Deferred\ClusterLightingPBR_PS.hlsl">
       <Filter>Shaders\Deferred</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\PostProcess\FogPS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\PostProcess\TAA_PS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
@@ -1048,6 +1048,9 @@
     <FxCompile Include="Resources\NewShaders\Postprocess\SSR.hlsl">
       <Filter>NewShaders\Postprocess</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Postprocess\Fog.hlsl">
+      <Filter>NewShaders\Postprocess</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Shaders\Globals\GlobalsCS.hlsli">
@@ -1120,6 +1123,9 @@
       <Filter>NewShaders</Filter>
     </None>
     <None Include="Resources\NewShaders\Constants.hlsli">
+      <Filter>NewShaders</Filter>
+    </None>
+    <None Include="Resources\NewShaders\Packing.hlsli">
       <Filter>NewShaders</Filter>
     </None>
   </ItemGroup>

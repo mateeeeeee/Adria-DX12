@@ -279,14 +279,6 @@ namespace adria
 				gfx_pso_map[EPipelineState::Add_AdditiveBlend] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				gfx_pso_desc.root_signature = ERootSignature::Fog;
-				gfx_pso_desc.VS = VS_ScreenQuad;
-				gfx_pso_desc.PS = PS_Fog;
-				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
-				gfx_pso_map[EPipelineState::Fog] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
-
-				gfx_pso_desc = {};
 				gfx_pso_desc.root_signature = ERootSignature::DOF;
 				gfx_pso_desc.VS = VS_ScreenQuad;
 				gfx_pso_desc.PS = PS_Dof;
@@ -519,6 +511,10 @@ namespace adria
 				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_Ssr;
 				compute_pso_map[EPipelineState::SSR] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.root_signature = ERootSignature::Common;
+				compute_pso_desc.CS = CS_Fog;
+				compute_pso_map[EPipelineState::Fog] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 			}
 		}
 	}

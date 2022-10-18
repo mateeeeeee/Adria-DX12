@@ -69,7 +69,6 @@ namespace adria
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);
 				cmd_list->Dispatch((UINT)std::ceil(width / 16), (UINT)std::ceil(height / 16), 1);
-				
 			}, ERGPassType::Compute);
 
 		AddGUI([&]() {

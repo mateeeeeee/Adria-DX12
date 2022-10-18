@@ -38,6 +38,8 @@ namespace adria
 				return "HBAO";
 			case CS_Ssr:
 				return "SSR";
+			case CS_Fog:
+				return "Fog";
 			default:
 				return "main";
 			}
@@ -91,7 +93,6 @@ namespace adria
 			case PS_VolumetricClouds:
 			case PS_VelocityBuffer:
 			case PS_MotionBlur:
-			case PS_Fog:
 			case PS_DepthMap:
 			case PS_DepthMap_Transparent:
 			case PS_Volumetric_Directional:
@@ -134,6 +135,7 @@ namespace adria
 			case CS_Ssao:
 			case CS_Hbao:
 			case CS_Ssr:
+			case CS_Fog:
 				return EShaderStage::CS;
 			case HS_OceanLOD:
 				return EShaderStage::HS;
@@ -227,8 +229,6 @@ namespace adria
 				return "Postprocess/VelocityBufferPS.hlsl";
 			case PS_MotionBlur:
 				return "Postprocess/MotionBlurPS.hlsl";
-			case PS_Fog:
-				return "Postprocess/FogPS.hlsl";
 			case VS_DepthMap:
 			case VS_DepthMap_Transparent:
 				return "Shadows/DepthMapVS.hlsl";
@@ -316,6 +316,8 @@ namespace adria
 				return "Postprocess/HBAO.hlsl";
 			case CS_Ssr:
 				return "Postprocess/SSR.hlsl";
+			case CS_Fog:
+				return "Postprocess/Fog.hlsl";
 			case LIB_Shadows:
 			case LIB_SoftShadows:
 				return "RayTracing/RayTracedShadows.hlsl";
@@ -366,6 +368,7 @@ namespace adria
 			case CS_Ssao:
 			case CS_Hbao:
 			case CS_Ssr:
+			case CS_Fog:
 			case LIB_AmbientOcclusion:
 			case LIB_Reflections:
 			case LIB_Shadows:

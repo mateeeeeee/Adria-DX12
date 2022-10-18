@@ -642,7 +642,6 @@ namespace adria
 			static PostprocessCBuffer postprocess_cbuf_data{};
 
 			PostprocessSettings const& settings = renderer_settings.postprocess;
-			FogParameters fog_params = postprocessor.GetFogParams();
 			DoFParameters dof_params = postprocessor.GetDoFParams();
 			VelocityBufferParams velocity_params = postprocessor.GetVelocityBufferParams();
 			TonemapParams tonemap_params = tonemap_pass.GetParams();
@@ -651,12 +650,6 @@ namespace adria
 			postprocess_cbuf_data.tone_map_operator = static_cast<int>(tonemap_params.tone_map_op);
 			postprocess_cbuf_data.dof_params = XMVectorSet(dof_params.dof_near_blur, dof_params.dof_near, dof_params.dof_far, dof_params.dof_far_blur);
 			postprocess_cbuf_data.velocity_buffer_scale = velocity_params.velocity_buffer_scale;
-			postprocess_cbuf_data.fog_falloff = fog_params.fog_falloff;
-			postprocess_cbuf_data.fog_density = fog_params.fog_density;
-			postprocess_cbuf_data.fog_type = static_cast<int32>(fog_params.fog_type);
-			postprocess_cbuf_data.fog_start = fog_params.fog_start;
-			XMFLOAT3 fog_color(fog_params.fog_color);
-			postprocess_cbuf_data.fog_color = XMLoadFloat3(&fog_color);
 			postprocess_cbuffer.Update(postprocess_cbuf_data, backbuffer_index);
 		}
 		

@@ -50,7 +50,6 @@ namespace adria
 		RGResourceName GetFinalResource() const;
 
 		CloudParameters const& GetCloudParams() const { return clouds_pass.GetParams(); }
-		FogParameters   const& GetFogParams() const { return fog_pass.GetParams(); }
 		DoFParameters   const& GetDoFParams() const { return dof_pass.GetParams(); }
 		BloomParameters const& GetBloomParams() const { return bloom_pass.GetParams(); }
 		VelocityBufferParams const& GetVelocityBufferParams() const { return velocity_buffer_pass.GetParams(); }

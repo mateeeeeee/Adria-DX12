@@ -25,11 +25,9 @@ namespace adria
 	{
 		ID3D12DescriptorHeap* pp_heaps[] = { descriptor_allocator->Heap() };
 		command_list->SetDescriptorHeaps(1, pp_heaps);
-
 		//Set root signature, pso and descriptor heap
 		command_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::GenerateMips));
 		command_list->SetPipelineState(PSOCache::Get(EPipelineState::GenerateMips));
-
 		for (auto texture : resources)
 		{
 			//Prepare the shader resource view description for the source texture

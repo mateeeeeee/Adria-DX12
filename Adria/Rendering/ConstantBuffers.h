@@ -124,15 +124,7 @@ namespace adria
 	{
 		float32 velocity_buffer_scale;
 		float32 tone_map_exposure;
-
 		DirectX::XMVECTOR dof_params;
-		DirectX::XMVECTOR fog_color;
-		
-		float32 fog_falloff;
-		float32 fog_density;
-		float32 fog_start;
-		int32 fog_type;
-
 		int32	  tone_map_operator;
 	};
 
@@ -211,14 +203,6 @@ namespace adria
 		float32 _paddI;
 		DirectX::XMFLOAT3 Z;
 		float32 _paddZ;
-	};
-
-	DECLSPEC_ALIGN(16) struct RayTracingCBuffer
-	{
-		float32 rtao_radius;
-		int32 frame_count;
-		int32 accumulated_frames;
-		int32 bounce_count;
 	};
 
 	struct StructuredLight
