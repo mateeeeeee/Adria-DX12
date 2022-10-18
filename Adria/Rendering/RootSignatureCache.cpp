@@ -24,9 +24,6 @@ namespace adria
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_HosekWilkieSky).GetPointer(), GetShader(PS_HosekWilkieSky).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::Sky].GetAddressOf())));
 
-			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_ToneMap).GetPointer(), GetShader(PS_ToneMap).GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::ToneMap].GetAddressOf())));
-
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Fxaa).GetPointer(), GetShader(PS_Fxaa).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::FXAA].GetAddressOf())));
 

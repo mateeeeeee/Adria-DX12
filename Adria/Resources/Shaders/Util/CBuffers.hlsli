@@ -61,10 +61,8 @@ struct ShadowCBuffer
 
 struct PostprocessCBuffer
 {
-    float velocity_buffer_scale;
-    float tone_map_exposure;
     float4 dof_params;
-    int tone_map_op;
+    float  velocity_buffer_scale;
 };
 
 

@@ -122,10 +122,8 @@ namespace adria
 
 	DECLSPEC_ALIGN(16) struct PostprocessCBuffer
 	{
-		float32 velocity_buffer_scale;
-		float32 tone_map_exposure;
 		DirectX::XMVECTOR dof_params;
-		int32	  tone_map_operator;
+		float32 velocity_buffer_scale;
 	};
 
 	DECLSPEC_ALIGN(16) struct ComputeCBuffer

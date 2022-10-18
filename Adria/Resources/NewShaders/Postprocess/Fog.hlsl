@@ -76,16 +76,16 @@ void Fog(CS_INPUT input)
     
     float4 mainColor = sceneTx.Sample(LinearWrapSampler, uv);
     float depth = depthTx.Sample(LinearWrapSampler, uv);
-    float3 pos_vs = GetViewPosition(uv, depth);
+    float3 viewPosition = GetViewPosition(uv, depth);
 
     float fog = 0.0f;
     if (PassCB.fogType == EXPONENTIAL_FOG)
     {
-        fog = ExponentialFog(float4(pos_vs, 1.0f));
+        fog = ExponentialFog(float4(viewPosition, 1.0f));
     }
     else if (PassCB.fogType == EXPONENTIAL_HEIGHT_FOG)
     {
-        fog = ExponentialHeightFog(float4(pos_vs, 1.0f));
+        fog = ExponentialHeightFog(float4(viewPosition, 1.0f));
     }
     outputTx[input.DispatchThreadId.xy] = lerp(mainColor, UnpackUintColor(PassCB.fogColor), fog);
 }

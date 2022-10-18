@@ -40,6 +40,8 @@ namespace adria
 				return "SSR";
 			case CS_Fog:
 				return "Fog";
+			case CS_Tonemap:
+				return "Tonemap";
 			default:
 				return "main";
 			}
@@ -81,7 +83,6 @@ namespace adria
 			case PS_LightingPBR:
 			case PS_LightingPBR_RayTracedShadows:
 			case PS_ClusteredLightingPBR:
-			case PS_ToneMap:
 			case PS_Fxaa:
 			case PS_Taa:
 			case PS_Copy:
@@ -136,6 +137,7 @@ namespace adria
 			case CS_Hbao:
 			case CS_Ssr:
 			case CS_Fog:
+			case CS_Tonemap:
 				return EShaderStage::CS;
 			case HS_OceanLOD:
 				return EShaderStage::HS;
@@ -197,8 +199,6 @@ namespace adria
 				return "Deferred/LightingPBR_PS.hlsl";
 			case PS_ClusteredLightingPBR:
 				return "Deferred/ClusterLightingPBR_PS.hlsl";
-			case PS_ToneMap:
-				return "Postprocess/ToneMapPS.hlsl";
 			case PS_Fxaa:
 				return "Postprocess/FXAA_PS.hlsl";
 			case PS_Taa:
@@ -318,6 +318,8 @@ namespace adria
 				return "Postprocess/SSR.hlsl";
 			case CS_Fog:
 				return "Postprocess/Fog.hlsl";
+			case CS_Tonemap:
+				return "Postprocess/Tonemap.hlsl";
 			case LIB_Shadows:
 			case LIB_SoftShadows:
 				return "RayTracing/RayTracedShadows.hlsl";
@@ -369,6 +371,7 @@ namespace adria
 			case CS_Hbao:
 			case CS_Ssr:
 			case CS_Fog:
+			case CS_Tonemap:
 			case LIB_AmbientOcclusion:
 			case LIB_Reflections:
 			case LIB_Shadows:

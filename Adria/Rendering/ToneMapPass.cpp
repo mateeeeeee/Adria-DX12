@@ -11,139 +11,111 @@ namespace adria
 	ToneMapPass::ToneMapPass(uint32 w, uint32 h) : width(w), height(h)
 	{}
 
-	void ToneMapPass::AddPass(RenderGraph& rg, RGResourceName hdr_src, bool render_to_backbuffer)
+	void ToneMapPass::AddPass(RenderGraph& rg, RGResourceName hdr_src)
 	{
 		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
-		ERGPassFlags flags = render_to_backbuffer ? ERGPassFlags::ForceNoCull | ERGPassFlags::SkipAutoRenderPass : ERGPassFlags::None;
-
 		struct ToneMapPassData
 		{
-			RGRenderTargetId	target;
-			RGTextureReadOnlyId hdr_srv;
-			RGTextureReadOnlyId exposure;
+			RGTextureReadOnlyId  hdr_input;
+			RGTextureReadOnlyId  exposure;
+			RGTextureReadWriteId output;
 		};
 
-		rg.AddPass<ToneMapPassData>("ToneMap Pass",
+		rg.AddPass<ToneMapPassData>("Tonemap Pass",
 			[=](ToneMapPassData& data, RenderGraphBuilder& builder)
 			{
-				data.hdr_srv = builder.ReadTexture(hdr_src, ReadAccess_PixelShader);
-				if (builder.IsTextureDeclared(RG_RES_NAME(Exposure))) data.exposure = builder.ReadTexture(RG_RES_NAME(Exposure), ReadAccess_PixelShader);
+				data.hdr_input = builder.ReadTexture(hdr_src, ReadAccess_NonPixelShader);
+				if (builder.IsTextureDeclared(RG_RES_NAME(Exposure))) data.exposure = builder.ReadTexture(RG_RES_NAME(Exposure), ReadAccess_NonPixelShader);
 				else data.exposure.Invalidate();
-				
-				if (!render_to_backbuffer)
-				{
-					ADRIA_ASSERT(builder.IsTextureDeclared(RG_RES_NAME(FinalTexture)));
-					data.target = builder.WriteRenderTarget(RG_RES_NAME(FinalTexture), ERGLoadStoreAccessOp::Discard_Preserve);
-				}
-				else data.target = RGRenderTargetId();
-				builder.SetViewport(width, height);
+				ADRIA_ASSERT(builder.IsTextureDeclared(RG_RES_NAME(FinalTexture)));
+				data.output = builder.WriteTexture(RG_RES_NAME(FinalTexture));
 			},
-			[=](ToneMapPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](ToneMapPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
-				if (!data.target.IsValid())
-				{
-					D3D12_VIEWPORT vp{};
-					vp.Width = (float32)width;
-					vp.Height = (float32)height;
-					vp.MinDepth = 0.0f;
-					vp.MaxDepth = 1.0f;
-					vp.TopLeftX = 0;
-					vp.TopLeftY = 0;
-					cmd_list->RSSetViewports(1, &vp);
-					D3D12_RECT rect{};
-					rect.bottom = (int64)height;
-					rect.left = 0;
-					rect.right = (int64)width;
-					rect.top = 0;
-					cmd_list->RSSetScissorRects(1, &rect);
-					gfx->SetBackbuffer(cmd_list);
-				}
-
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::ToneMap));
+				uint32 i = (uint32)descriptor_allocator->AllocateRange(3);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.hdr_input), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), data.exposure.IsValid() ? ctx.GetReadOnlyTexture(data.exposure) : global_data.white_srv_texture2d, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				struct TonemapConstants
+				{
+					float32  tonemap_exposure;
+					uint32   tonemap_operator;
+					uint32   hdr_idx;
+					uint32   exposure_idx;
+					uint32   output_idx;
+				} constants = 
+				{
+					.tonemap_exposure = params.tonemap_exposure, .tonemap_operator = static_cast<uint32>(params.tone_map_op),
+					.hdr_idx = i, .exposure_idx = i + 1, .output_idx = i + 2
+				};
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ToneMap));
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRoot32BitConstants(1, 5, &constants, 0);
+				cmd_list->Dispatch((UINT)std::ceil(width / 16), (UINT)std::ceil(height / 16), 1);
+			}, ERGPassType::Compute, ERGPassFlags::None);
 
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.postprocess_cbuffer_address);
-
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = context.GetReadOnlyTexture(data.hdr_srv);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				if (data.exposure.IsValid())
-				{
-					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), context.GetReadOnlyTexture(data.exposure),
-						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				}
-				else
-				{
-					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), global_data.white_srv_texture2d,
-						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				}
-				cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
-				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-				cmd_list->DrawInstanced(4, 1, 0, 0);
-			}, ERGPassType::Graphics, flags);
 		GUI();
 	}
 
-	void ToneMapPass::AddPass(RenderGraph& rg, RGResourceName hdr_src, RGResourceName fxaa_input)
+	void ToneMapPass::AddPass(RenderGraph& rg, RGResourceName hdr_src, RGResourceName output)
 	{
 		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
 		ERGPassFlags flags = ERGPassFlags::None;
 
 		struct ToneMapPassData
 		{
-			RGRenderTargetId	target;
-			RGTextureReadOnlyId hdr_srv;
-			RGTextureReadOnlyId exposure;
+			RGTextureReadOnlyId  hdr_input;
+			RGTextureReadOnlyId  exposure;
+			RGTextureReadWriteId output;
 		};
 
-		rg.AddPass<ToneMapPassData>("ToneMap Pass",
+		rg.AddPass<ToneMapPassData>("Tonemap Pass",
 			[=](ToneMapPassData& data, RenderGraphBuilder& builder)
 			{
 				RGTextureDesc fxaa_input_desc{};
 				fxaa_input_desc.width = width;
 				fxaa_input_desc.height = height;
 				fxaa_input_desc.format = EFormat::R10G10B10A2_UNORM;
-				builder.DeclareTexture(fxaa_input, fxaa_input_desc);
+				builder.DeclareTexture(output, fxaa_input_desc);
 
-				data.hdr_srv = builder.ReadTexture(hdr_src, ReadAccess_PixelShader);
-				if (builder.IsTextureDeclared(RG_RES_NAME(Exposure))) data.exposure = builder.ReadTexture(RG_RES_NAME(Exposure), ReadAccess_PixelShader);
+				data.hdr_input = builder.ReadTexture(hdr_src, ReadAccess_NonPixelShader);
+				if (builder.IsTextureDeclared(RG_RES_NAME(Exposure))) data.exposure = builder.ReadTexture(RG_RES_NAME(Exposure), ReadAccess_NonPixelShader);
 				else data.exposure.Invalidate();
-
-				data.target = builder.WriteRenderTarget(fxaa_input, ERGLoadStoreAccessOp::Discard_Preserve);
+				data.output = builder.WriteTexture(output);
 				builder.SetViewport(width, height);
 			},
-			[=](ToneMapPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](ToneMapPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::ToneMap));
+				uint32 i = (uint32)descriptor_allocator->AllocateRange(3);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.hdr_input), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), data.exposure.IsValid() ? ctx.GetReadOnlyTexture(data.exposure) : global_data.white_srv_texture2d, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				struct TonemapConstants
+				{
+					float32  tonemap_exposure;
+					uint32   tonemap_operator;
+					uint32   hdr_idx;
+					uint32   exposure_idx;
+					uint32   output_idx;
+				} constants =
+				{
+					.tonemap_exposure = params.tonemap_exposure, .tonemap_operator = static_cast<uint32>(params.tone_map_op),
+					.hdr_idx = i,  .exposure_idx = i + 1, .output_idx = i + 2
+				};
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ToneMap));
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRoot32BitConstants(1, 5, &constants, 0);
+				cmd_list->Dispatch((UINT)std::ceil(width / 16), (UINT)std::ceil(height / 16), 1);
+			}, ERGPassType::Compute, flags);
 
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.postprocess_cbuffer_address);
-
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = context.GetReadOnlyTexture(data.hdr_srv);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				if (data.exposure.IsValid())
-				{
-					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), context.GetReadOnlyTexture(data.exposure),
-						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				}
-				else
-				{
-					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), global_data.white_srv_texture2d,
-						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				}
-				cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
-				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-				cmd_list->DrawInstanced(4, 1, 0, 0);
-			});
 		GUI();
 	}
 
@@ -168,5 +140,4 @@ namespace adria
 				}
 			});
 	}
-
 }

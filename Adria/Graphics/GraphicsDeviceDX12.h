@@ -77,7 +77,7 @@ namespace adria
 		void ResizeBackbuffer(UINT w, UINT h);
 		UINT BackbufferIndex() const;
 		UINT FrameIndex() const;
-		void SetBackbuffer(ID3D12GraphicsCommandList* cmd_list = nullptr);
+		void SetBackbuffer(ID3D12GraphicsCommandList* cmd_list = nullptr); //todo: remove
 		void ClearBackbuffer();
 		void SwapBuffers(bool vsync = false);
 
@@ -87,6 +87,7 @@ namespace adria
 		ID3D12GraphicsCommandList4* GetLastGraphicsCommandList() const;
 		ID3D12GraphicsCommandList4* GetNewComputeCommandList() const;
 		ID3D12GraphicsCommandList4* GetLastComputeCommandList() const;
+		ID3D12Resource* GetBackbuffer() const;
 
 		void ResetDefaultCommandList();
 		void ExecuteDefaultCommandList();

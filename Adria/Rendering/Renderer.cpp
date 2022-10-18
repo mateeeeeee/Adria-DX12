@@ -172,13 +172,9 @@ namespace adria
 		}
 		postprocessor.AddPasses(render_graph, renderer_settings.postprocess);
 		
-		if (renderer_settings.gui_visible)
-		{
-			render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
-			ResolveToTexture(render_graph);
-		}
-		else ResolveToBackbuffer(render_graph);
-		
+		render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
+		ResolveToFinalTexture(render_graph);
+		if (!renderer_settings.gui_visible) CopyToBackbuffer(render_graph);
 		render_graph.Build();
 		render_graph.Execute();
 	}
@@ -294,9 +290,8 @@ namespace adria
 		ldr_desc.width = width;
 		ldr_desc.height = height;
 		ldr_desc.format = EFormat::R10G10B10A2_UNORM;
-		ldr_desc.bind_flags = EBindFlag::RenderTarget | EBindFlag::ShaderResource;
-		ldr_desc.initial_state = EResourceState::RenderTarget;
-		ldr_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
+		ldr_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::ShaderResource | EBindFlag::RenderTarget;
+		ldr_desc.initial_state = EResourceState::UnorderedAccess;
 
 		final_texture = std::make_unique<Texture>(gfx, ldr_desc);
 		final_texture->CreateSRV();
@@ -644,10 +639,6 @@ namespace adria
 			PostprocessSettings const& settings = renderer_settings.postprocess;
 			DoFParameters dof_params = postprocessor.GetDoFParams();
 			VelocityBufferParams velocity_params = postprocessor.GetVelocityBufferParams();
-			TonemapParams tonemap_params = tonemap_pass.GetParams();
-
-			postprocess_cbuf_data.tone_map_exposure = tonemap_params.tonemap_exposure;
-			postprocess_cbuf_data.tone_map_operator = static_cast<int>(tonemap_params.tone_map_op);
 			postprocess_cbuf_data.dof_params = XMVectorSet(dof_params.dof_near_blur, dof_params.dof_near, dof_params.dof_far, dof_params.dof_far_blur);
 			postprocess_cbuf_data.velocity_buffer_scale = velocity_params.velocity_buffer_scale;
 			postprocess_cbuffer.Update(postprocess_cbuf_data, backbuffer_index);
@@ -756,30 +747,43 @@ namespace adria
 		}
 	}
 
-	void Renderer::ResolveToBackbuffer(RenderGraph& rg)
+	void Renderer::CopyToBackbuffer(RenderGraph& rg)
 	{
-		RGResourceName final_texture = postprocessor.GetFinalResource();
-		if (HasAnyFlag(renderer_settings.postprocess.anti_aliasing, AntiAliasing_FXAA))
+		struct CopyToBackbufferPassData
 		{
-			tonemap_pass.AddPass(rg, final_texture, RG_RES_NAME(FXAAInput));
-			fxaa_pass.AddPass(rg, RG_RES_NAME(FXAAInput), true);
-		}
-		else
-		{
-			tonemap_pass.AddPass(rg, final_texture, true);
-		}
+			RGTextureCopyDstId dst;
+			RGTextureCopySrcId src;
+		};
+
+		rg.AddPass<CopyToBackbufferPassData>("Copy to Backbuffer Pass",
+			[=](CopyToBackbufferPassData& data, RenderGraphBuilder& builder)
+			{
+				data.src = builder.ReadCopySrcTexture(RG_RES_NAME(FinalTexture));
+			},
+			[=](CopyToBackbufferPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			{
+				ResourceBarrierBatch barrier;
+				barrier.AddTransition(gfx->GetBackbuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_DEST);
+				barrier.Submit(cmd_list);
+
+				Texture const& src_texture = ctx.GetCopySrcTexture(data.src);
+				cmd_list->CopyResource(gfx->GetBackbuffer(), src_texture.GetNative());
+
+				barrier.ReverseTransitions();
+				barrier.Submit(cmd_list);
+			}, ERGPassType::Copy, ERGPassFlags::ForceNoCull);
 	}
-	void Renderer::ResolveToTexture(RenderGraph& rg)
+	void Renderer::ResolveToFinalTexture(RenderGraph& rg)
 	{
 		RGResourceName final_texture = postprocessor.GetFinalResource();
 		if (HasAnyFlag(renderer_settings.postprocess.anti_aliasing, AntiAliasing_FXAA))
 		{
-			tonemap_pass.AddPass(rg, final_texture, RG_RES_NAME(FXAAInput));
-			fxaa_pass.AddPass(rg, RG_RES_NAME(FXAAInput), false);
+			tonemap_pass.AddPass(rg, final_texture, RG_RES_NAME(TonemapOutput));
+			fxaa_pass.AddPass(rg, RG_RES_NAME(TonemapOutput));
 		}
 		else
 		{
-			tonemap_pass.AddPass(rg, final_texture, false);
+			tonemap_pass.AddPass(rg, final_texture);
 		}
 	}
 

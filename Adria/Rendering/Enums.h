@@ -14,7 +14,6 @@ namespace adria
 		PS_UniformColorSky,
 		PS_HosekWilkieSky,
 		VS_ScreenQuad,
-		PS_ToneMap,
 		PS_Fxaa,
 		PS_Taa,
 		VS_GBufferPBR,
@@ -99,6 +98,7 @@ namespace adria
 		CS_Hbao,
 		CS_Ssr,
 		CS_Fog,
+		CS_Tonemap,
 		ShaderId_Count
 	};
 
@@ -108,7 +108,6 @@ namespace adria
 		Common,
 		Skybox,
 		Sky,
-		ToneMap,
 		FXAA,
 		TAA,
 		GbufferPBR,

@@ -591,8 +591,8 @@ namespace adria
 		FLOAT const clear_color[] = { 0,0,0,0 };
 		frame_resources.default_cmd_list->ClearRenderTargetView(frame_resources.back_buffer_rtv, clear_color, 0, nullptr);
 		frame_resources.default_cmd_list->SetGraphicsRootSignature(nullptr);
-		ID3D12DescriptorHeap* ppHeaps[] = { descriptor_allocator->Heap() };
-		frame_resources.default_cmd_list->SetDescriptorHeaps(1, ppHeaps);
+		ID3D12DescriptorHeap* heaps[] = { descriptor_allocator->Heap() };
+		frame_resources.default_cmd_list->SetDescriptorHeaps(1, heaps);
 	}
 
 	void GraphicsDevice::SwapBuffers(bool vsync /*= false*/)
@@ -690,6 +690,11 @@ namespace adria
 		auto& frame_resources = GetFrameResources();
 		unsigned int i = frame_resources.compute_cmd_list_index.load();
 		return i > 0 ? frame_resources.compute_cmd_lists[i - 1].Get() : frame_resources.default_cmd_list.Get();
+	}
+
+	ID3D12Resource* GraphicsDevice::GetBackbuffer() const
+	{
+		return GetFrameResources().back_buffer.Get();
 	}
 
 	void GraphicsDevice::ResetDefaultCommandList()

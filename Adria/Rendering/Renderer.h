@@ -157,7 +157,7 @@ namespace adria
 		void CameraFrustumCulling();
 		void GenerateIBLTextures();
 
-		void ResolveToBackbuffer(RenderGraph& rg);
-		void ResolveToTexture(RenderGraph& rg);
+		void CopyToBackbuffer(RenderGraph& rg);
+		void ResolveToFinalTexture(RenderGraph& rg);
 	};
 }

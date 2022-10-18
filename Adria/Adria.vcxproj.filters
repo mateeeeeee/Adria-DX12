@@ -1054,6 +1054,9 @@
     <FxCompile Include="Resources\NewShaders\Postprocess\Fog.hlsl">
       <Filter>NewShaders\Postprocess</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Postprocess\Tonemap.hlsl">
+      <Filter>NewShaders\Postprocess</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Shaders\Globals\GlobalsCS.hlsli">

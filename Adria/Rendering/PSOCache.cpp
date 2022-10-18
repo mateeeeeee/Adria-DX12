@@ -64,18 +64,11 @@ namespace adria
 				gfx_pso_desc.PS = PS_HosekWilkieSky;
 				gfx_pso_map[EPipelineState::HosekWilkieSky] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
-				gfx_pso_desc = {};
-				gfx_pso_desc.root_signature = ERootSignature::ToneMap;
-				gfx_pso_desc.VS = VS_ScreenQuad;
-				gfx_pso_desc.PS = PS_ToneMap;
-				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = EFormat::R10G10B10A2_UNORM;
-				gfx_pso_desc.depth_state.depth_enable = false;
-				gfx_pso_map[EPipelineState::ToneMap] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
-
 				gfx_pso_desc.root_signature = ERootSignature::FXAA;
 				gfx_pso_desc.VS = VS_ScreenQuad;
 				gfx_pso_desc.PS = PS_Fxaa;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R10G10B10A2_UNORM;
+				gfx_pso_desc.dsv_format = EFormat::UNKNOWN;
 				gfx_pso_map[EPipelineState::FXAA] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc.root_signature = ERootSignature::TAA;
@@ -515,6 +508,10 @@ namespace adria
 				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_Fog;
 				compute_pso_map[EPipelineState::Fog] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.root_signature = ERootSignature::Common;
+				compute_pso_desc.CS = CS_Tonemap;
+				compute_pso_map[EPipelineState::ToneMap] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 			}
 		}
 	}
