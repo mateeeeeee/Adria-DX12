@@ -31,7 +31,7 @@ namespace adria
 
 				builder.DeclareTexture(RG_RES_NAME(VelocityBuffer), velocity_buffer_desc);
 				data.velocity = builder.WriteTexture(RG_RES_NAME(VelocityBuffer));
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
+				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
 			[=](MotionVectorsPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
 			{

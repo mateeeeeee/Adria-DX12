@@ -880,9 +880,6 @@
     <FxCompile Include="Resources\Shaders\PostProcess\LensFlareVS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\PostProcess\DOF_PS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\PostProcess\AddPS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
@@ -1055,6 +1052,9 @@
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\NewShaders\Postprocess\DepthOfField.hlsl">
+      <Filter>NewShaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Postprocess\MotionBlur.hlsl">
       <Filter>NewShaders\Postprocess</Filter>
     </FxCompile>
   </ItemGroup>

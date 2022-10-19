@@ -9,8 +9,7 @@
 namespace adria
 {
 
-	MotionBlurPass::MotionBlurPass(uint32 w, uint32 h) : width(w), height(h)
-	{}
+	MotionBlurPass::MotionBlurPass(uint32 w, uint32 h) : width(w), height(h) {}
 
 	RGResourceName MotionBlurPass::AddPass(RenderGraph& rg, RGResourceName input)
 	{
@@ -18,8 +17,9 @@ namespace adria
 		RGResourceName last_resource = input;
 		struct MotionBlurPassData
 		{
-			RGTextureReadOnlyId input_srv;
-			RGTextureReadOnlyId velocity_srv;
+			RGTextureReadOnlyId input;
+			RGTextureReadOnlyId velocity;
+			RGTextureReadWriteId output;
 		};
 		rg.AddPass<MotionBlurPassData>("Motion Blur Pass",
 			[=](MotionBlurPassData& data, RenderGraphBuilder& builder)
@@ -29,37 +29,37 @@ namespace adria
 				motion_blur_desc.height = height;
 				motion_blur_desc.format = EFormat::R16G16B16A16_FLOAT;
 
-				builder.SetViewport(width, height);
 				builder.DeclareTexture(RG_RES_NAME(MotionBlurOutput), motion_blur_desc);
-				builder.WriteRenderTarget(RG_RES_NAME(MotionBlurOutput), ERGLoadStoreAccessOp::Discard_Preserve);
-				data.input_srv = builder.ReadTexture(last_resource, ReadAccess_PixelShader);
-				data.velocity_srv = builder.ReadTexture(RG_RES_NAME(VelocityBuffer), ReadAccess_PixelShader);
+				data.output = builder.WriteTexture(RG_RES_NAME(MotionBlurOutput));
+				data.input = builder.ReadTexture(last_resource, ReadAccess_NonPixelShader);
+				data.velocity = builder.ReadTexture(RG_RES_NAME(VelocityBuffer), ReadAccess_NonPixelShader);
 			},
-			[=](MotionBlurPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](MotionBlurPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::MotionBlur));
+				uint32 i = (uint32)descriptor_allocator->AllocateRange(3);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.input), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadOnlyTexture(data.velocity), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				
+				struct MotionBlurConstants
+				{
+					uint32 scene_idx;
+					uint32 velocity_idx;
+					uint32 output_idx;
+				} constants =
+				{
+					.scene_idx = i, .velocity_idx = i + 1, .output_idx = i + 2
+				};
+
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::MotionBlur));
-
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
-
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
-
-				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { context.GetReadOnlyTexture(data.input_srv), context.GetReadOnlyTexture(data.velocity_srv) };
-				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
-				uint32 src_range_sizes[] = { 1, 1 };
-				uint32 dst_range_sizes[] = { 2 };
-
-				device->CopyDescriptors(ARRAYSIZE(dst_ranges), dst_ranges, dst_range_sizes, ARRAYSIZE(src_ranges), src_ranges, src_range_sizes,
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-				cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
-				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-				cmd_list->DrawInstanced(4, 1, 0, 0);
-
-			}, ERGPassType::Graphics, ERGPassFlags::None);
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRoot32BitConstants(1, 3, &constants, 0);
+				cmd_list->Dispatch((UINT)std::ceil(width / 16), (UINT)std::ceil(height / 16), 1);
+			}, ERGPassType::Compute, ERGPassFlags::None);
 
 		return RG_RES_NAME(MotionBlurOutput);
 	}
