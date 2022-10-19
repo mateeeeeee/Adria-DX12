@@ -43,7 +43,6 @@ namespace adria
 		VS_Bokeh,
 		GS_Bokeh,
 		PS_Bokeh,
-		PS_VelocityBuffer,
 		PS_MotionBlur,
 		PS_Copy,
 		PS_Add,
@@ -99,6 +98,7 @@ namespace adria
 		CS_Ssr,
 		CS_Fog,
 		CS_Tonemap,
+		CS_MotionVectors,
 		ShaderId_Count
 	};
 
@@ -134,7 +134,6 @@ namespace adria
 		ClusterBuilding,
 		ClusterCulling,
 		GenerateMips,
-		VelocityBuffer,
 		FFT,
 		InitialSpectrum,
 		OceanNormalMap,
@@ -208,7 +207,7 @@ namespace adria
 		BokehGenerate,
 		Bokeh,
 		GenerateMips,
-		VelocityBuffer,
+		MotionVectors,
 		FFT_Horizontal,
 		FFT_Vertical,
 		InitialSpectrum,

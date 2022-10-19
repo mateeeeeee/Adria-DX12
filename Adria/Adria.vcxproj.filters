@@ -317,7 +317,7 @@
     <ClCompile Include="Rendering\BloomPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\VelocityBufferPass.cpp">
+    <ClCompile Include="Rendering\MotionVectorsPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\GodRaysPass.cpp">
@@ -751,7 +751,7 @@
     <ClInclude Include="Utilities\hwbp.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\VelocityBufferPass.h">
+    <ClInclude Include="Rendering\MotionVectorsPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\MotionBlurPass.h">
@@ -940,9 +940,6 @@
     <FxCompile Include="Resources\Shaders\PostProcess\BloomCombineCS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\PostProcess\VelocityBufferPS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\Misc\HosekWilkieSkyPS.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
@@ -1055,6 +1052,9 @@
       <Filter>NewShaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\NewShaders\Postprocess\Tonemap.hlsl">
+      <Filter>NewShaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Postprocess\MotionVectors.hlsl">
       <Filter>NewShaders\Postprocess</Filter>
     </FxCompile>
   </ItemGroup>

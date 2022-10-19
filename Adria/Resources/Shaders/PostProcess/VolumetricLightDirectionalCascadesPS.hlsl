@@ -17,7 +17,6 @@ struct VertexOut
     float2 Tex : TEX;
 };
 
-
 [RootSignature(Volumetric_RS)]
 float4 main(VertexOut input) : SV_TARGET
 {

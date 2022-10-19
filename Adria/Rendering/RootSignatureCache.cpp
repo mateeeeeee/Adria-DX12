@@ -87,9 +87,6 @@ namespace adria
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_BokehGenerate).GetPointer(), GetShader(CS_BokehGenerate).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::BokehGenerate].GetAddressOf())));
 
-			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_VelocityBuffer).GetPointer(), GetShader(PS_VelocityBuffer).GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::VelocityBuffer].GetAddressOf())));
-
 			rs_map[ERootSignature::Copy] = rs_map[ERootSignature::FXAA];
 
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_FFT_Horizontal).GetPointer(), GetShader(CS_FFT_Horizontal).GetLength(),

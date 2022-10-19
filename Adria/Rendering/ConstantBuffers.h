@@ -17,6 +17,7 @@ namespace adria
 		DirectX::XMMATRIX inverse_projection;
 		DirectX::XMMATRIX inverse_view_projection;
 		DirectX::XMMATRIX prev_view_projection;
+		DirectX::XMMATRIX reprojection;
 		DirectX::XMVECTOR camera_position;
 		DirectX::XMVECTOR camera_forward;
 		float32  camera_near;
@@ -123,7 +124,6 @@ namespace adria
 	DECLSPEC_ALIGN(16) struct PostprocessCBuffer
 	{
 		DirectX::XMVECTOR dof_params;
-		float32 velocity_buffer_scale;
 	};
 
 	DECLSPEC_ALIGN(16) struct ComputeCBuffer

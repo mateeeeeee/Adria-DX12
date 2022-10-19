@@ -336,6 +336,209 @@ namespace adria
 		light_array_srv = dst_descriptor;
 	}
 
+	void Renderer::UpdatePersistentConstantBuffers(float32 dt)
+	{
+		static NewFrameCBuffer new_frame_cbuf_data{};
+		//new frame
+		{
+			new_frame_cbuf_data.camera_near = camera->Near();
+			new_frame_cbuf_data.camera_far = camera->Far();
+			new_frame_cbuf_data.camera_position = camera->Position();
+			new_frame_cbuf_data.camera_forward = camera->Forward();
+			new_frame_cbuf_data.view = camera->View();
+			new_frame_cbuf_data.projection = camera->Proj();
+			new_frame_cbuf_data.view_projection = camera->ViewProj();
+			new_frame_cbuf_data.inverse_view = XMMatrixInverse(nullptr, camera->View());
+			new_frame_cbuf_data.inverse_projection = XMMatrixInverse(nullptr, camera->Proj());
+			new_frame_cbuf_data.inverse_view_projection = XMMatrixInverse(nullptr, camera->ViewProj());
+			new_frame_cbuf_data.reprojection = new_frame_cbuf_data.inverse_view_projection * new_frame_cbuf_data.prev_view_projection;
+			new_frame_cbuf_data.screen_resolution_x = (float32)width;
+			new_frame_cbuf_data.screen_resolution_y = (float32)height;
+			new_frame_cbuf_data.delta_time = dt;
+			new_frame_cbuf_data.frame_count = gfx->FrameIndex();
+			new_frame_cbuf_data.mouse_normalized_coords_x = (viewport_data.mouse_position_x - viewport_data.scene_viewport_pos_x) / viewport_data.scene_viewport_size_x;
+			new_frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
+			new_frame_cbuf_data.lights_idx = light_array_srv.GetHeapOffset();
+
+			new_frame_cbuffer.Update(new_frame_cbuf_data, backbuffer_index);
+			new_frame_cbuf_data.prev_view_projection = camera->ViewProj();
+		}
+
+		static FrameCBuffer frame_cbuf_data{};
+		//frame
+		{
+			frame_cbuf_data.global_ambient = XMVectorSet(renderer_settings.ambient_color[0], renderer_settings.ambient_color[1], renderer_settings.ambient_color[2], 1);
+			frame_cbuf_data.camera_near = camera->Near();
+			frame_cbuf_data.camera_far = camera->Far();
+			frame_cbuf_data.camera_position = camera->Position();
+			frame_cbuf_data.camera_forward = camera->Forward();
+			frame_cbuf_data.view = camera->View();
+			frame_cbuf_data.projection = camera->Proj();
+			frame_cbuf_data.view_projection = camera->ViewProj();
+			frame_cbuf_data.inverse_view = DirectX::XMMatrixInverse(nullptr, camera->View());
+			frame_cbuf_data.inverse_projection = DirectX::XMMatrixInverse(nullptr, camera->Proj());
+			frame_cbuf_data.inverse_view_projection = DirectX::XMMatrixInverse(nullptr, camera->ViewProj());
+			frame_cbuf_data.screen_resolution_x = (float32)width;
+			frame_cbuf_data.screen_resolution_y = (float32)height;
+			frame_cbuf_data.mouse_normalized_coords_x = (viewport_data.mouse_position_x - viewport_data.scene_viewport_pos_x) / viewport_data.scene_viewport_size_x;
+			frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
+
+			frame_cbuffer.Update(frame_cbuf_data, backbuffer_index);
+			frame_cbuf_data.prev_view_projection = camera->ViewProj();
+		}
+		//postprocess
+		{
+			static PostprocessCBuffer postprocess_cbuf_data{};
+
+			PostprocessSettings const& settings = renderer_settings.postprocess;
+			DoFParameters dof_params = postprocessor.GetDoFParams();
+			postprocess_cbuf_data.dof_params = XMVectorSet(dof_params.dof_near_blur, dof_params.dof_near, dof_params.dof_far, dof_params.dof_far_blur);
+			postprocess_cbuffer.Update(postprocess_cbuf_data, backbuffer_index);
+		}
+		
+		//weather
+		{
+			static WeatherCBuffer weather_cbuf_data{};
+			static float32 total_time = 0.0f;
+			total_time += dt;
+
+			auto lights = reg.view<Light>();
+			for (auto light : lights)
+			{
+				auto const& light_data = lights.get<Light>(light);
+				if (light_data.type == ELightType::Directional && light_data.active)
+				{
+					weather_cbuf_data.light_dir = XMVector3Normalize(-light_data.direction);
+					weather_cbuf_data.light_color = light_data.color * light_data.energy;
+					break;
+				}
+			}
+			XMFLOAT3 sky_color(sky_pass.GetSkyColor());
+			XMFLOAT2 wind_dir(ocean_renderer.GetWindDirection());
+
+			CloudParameters cloud_params = postprocessor.GetCloudParams();
+			weather_cbuf_data.sky_color = XMLoadFloat3(&sky_color);
+			weather_cbuf_data.ambient_color = XMVECTOR{ renderer_settings.ambient_color[0], renderer_settings.ambient_color[1], renderer_settings.ambient_color[2], 1.0f };
+			weather_cbuf_data.wind_dir = XMVECTOR{ wind_dir.x, 0.0f, wind_dir.y, 0.0f };
+			weather_cbuf_data.wind_speed = cloud_params.wind_speed;
+			weather_cbuf_data.time = total_time;
+			weather_cbuf_data.crispiness = cloud_params.crispiness;
+			weather_cbuf_data.curliness = cloud_params.curliness;
+			weather_cbuf_data.coverage = cloud_params.coverage;
+			weather_cbuf_data.absorption = cloud_params.light_absorption;
+			weather_cbuf_data.clouds_bottom_height = cloud_params.clouds_bottom_height;
+			weather_cbuf_data.clouds_top_height = cloud_params.clouds_top_height;
+			weather_cbuf_data.density_factor = cloud_params.density_factor;
+			weather_cbuf_data.cloud_type = cloud_params.cloud_type;
+
+			XMFLOAT3 sun_dir;
+			XMStoreFloat3(&sun_dir, XMVector3Normalize(weather_cbuf_data.light_dir));
+			SkyParameters sky_params = sky_pass.GetSkyParameters(sun_dir);
+			weather_cbuf_data.A = sky_params[ESkyParam_A];
+			weather_cbuf_data.B = sky_params[ESkyParam_B];
+			weather_cbuf_data.C = sky_params[ESkyParam_C];
+			weather_cbuf_data.D = sky_params[ESkyParam_D];
+			weather_cbuf_data.E = sky_params[ESkyParam_E];
+			weather_cbuf_data.F = sky_params[ESkyParam_F];
+			weather_cbuf_data.G = sky_params[ESkyParam_G];
+			weather_cbuf_data.H = sky_params[ESkyParam_H];
+			weather_cbuf_data.I = sky_params[ESkyParam_I];
+			weather_cbuf_data.Z = sky_params[ESkyParam_Z];
+
+			weather_cbuffer.Update(weather_cbuf_data, backbuffer_index);
+		}
+
+		//compute 
+		{
+			DoFParameters dof_params = postprocessor.GetDoFParams();
+			BloomParameters bloom_params = postprocessor.GetBloomParams();
+			BokehParameters bokeh_params = postprocessor.GetBokehParams();
+
+			std::array<float32, 9> coeffs{};
+			coeffs.fill(1.0f / 9);
+			static ComputeCBuffer compute_cbuf_data{};
+			compute_cbuf_data.gauss_coeff1 = coeffs[0];
+			compute_cbuf_data.gauss_coeff2 = coeffs[1];
+			compute_cbuf_data.gauss_coeff3 = coeffs[2];
+			compute_cbuf_data.gauss_coeff4 = coeffs[3];
+			compute_cbuf_data.gauss_coeff5 = coeffs[4];
+			compute_cbuf_data.gauss_coeff6 = coeffs[5];
+			compute_cbuf_data.gauss_coeff7 = coeffs[6];
+			compute_cbuf_data.gauss_coeff8 = coeffs[7];
+			compute_cbuf_data.gauss_coeff9 = coeffs[8];
+			compute_cbuf_data.bloom_scale = bloom_params.bloom_scale;
+			compute_cbuf_data.threshold = bloom_params.bloom_threshold;
+			compute_cbuf_data.visualize_tiled = tiled_lighting_pass.IsVisualized();
+			compute_cbuf_data.visualize_max_lights = tiled_lighting_pass.MaxLightsForVisualization();
+			compute_cbuf_data.bokeh_blur_threshold = bokeh_params.bokeh_blur_threshold;
+			compute_cbuf_data.bokeh_lum_threshold = bokeh_params.bokeh_lum_threshold;
+			compute_cbuf_data.dof_params = XMVectorSet(dof_params.dof_near_blur, dof_params.dof_near, dof_params.dof_far, dof_params.dof_far_blur);
+			compute_cbuf_data.bokeh_radius_scale = bokeh_params.bokeh_radius_scale;
+			compute_cbuf_data.bokeh_color_scale = bokeh_params.bokeh_color_scale;
+			compute_cbuf_data.bokeh_fallout = bokeh_params.bokeh_fallout;
+
+			XMFLOAT2 wind_dir(ocean_renderer.GetWindDirection());
+			compute_cbuf_data.ocean_choppiness = ocean_renderer.GetChoppiness();
+			compute_cbuf_data.ocean_size = 512;
+			compute_cbuf_data.resolution = 512; //fft resolution
+			compute_cbuf_data.wind_direction_x = wind_dir.x;
+			compute_cbuf_data.wind_direction_y = wind_dir.y;
+			compute_cbuf_data.delta_time = dt;
+
+			compute_cbuffer.Update(compute_cbuf_data, backbuffer_index);
+		}
+	}
+	void Renderer::CameraFrustumCulling()
+	{
+		BoundingFrustum camera_frustum = camera->Frustum();
+		auto aabb_view = reg.view<AABB>();
+		for (auto e : aabb_view)
+		{
+			auto& aabb = aabb_view.get<AABB>(e);
+			aabb.camera_visible = camera_frustum.Intersects(aabb.bounding_box) || reg.all_of<Light>(e); //dont cull lights for now
+		}
+	}
+
+	void Renderer::CopyToBackbuffer(RenderGraph& rg)
+	{
+		struct CopyToBackbufferPassData
+		{
+			RGTextureCopyDstId dst;
+			RGTextureCopySrcId src;
+		};
+
+		rg.AddPass<CopyToBackbufferPassData>("Copy to Backbuffer Pass",
+			[=](CopyToBackbufferPassData& data, RenderGraphBuilder& builder)
+			{
+				data.src = builder.ReadCopySrcTexture(RG_RES_NAME(FinalTexture));
+			},
+			[=](CopyToBackbufferPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			{
+				ResourceBarrierBatch barrier;
+				barrier.AddTransition(gfx->GetBackbuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_DEST);
+				barrier.Submit(cmd_list);
+
+				Texture const& src_texture = ctx.GetCopySrcTexture(data.src);
+				cmd_list->CopyResource(gfx->GetBackbuffer(), src_texture.GetNative());
+
+				barrier.ReverseTransitions();
+				barrier.Submit(cmd_list);
+			}, ERGPassType::Copy, ERGPassFlags::ForceNoCull);
+	}
+	void Renderer::ResolveToFinalTexture(RenderGraph& rg)
+	{
+		RGResourceName final_texture = postprocessor.GetFinalResource();
+		if (HasAnyFlag(renderer_settings.postprocess.anti_aliasing, AntiAliasing_FXAA))
+		{
+			tonemap_pass.AddPass(rg, final_texture, RG_RES_NAME(TonemapOutput));
+			fxaa_pass.AddPass(rg, RG_RES_NAME(TonemapOutput));
+		}
+		else
+		{
+			tonemap_pass.AddPass(rg, final_texture);
+		}
+	}
+
 	void Renderer::GenerateIBLTextures()
 	{
 		ID3D12Device* device = gfx->GetDevice();
@@ -582,210 +785,5 @@ namespace adria
 
 		ibl_generated = true;
 	}
-
-	void Renderer::UpdatePersistentConstantBuffers(float32 dt)
-	{
-		static NewFrameCBuffer new_frame_cbuf_data{};
-		//new frame
-		{
-			new_frame_cbuf_data.camera_near = camera->Near();
-			new_frame_cbuf_data.camera_far = camera->Far();
-			new_frame_cbuf_data.camera_position = camera->Position();
-			new_frame_cbuf_data.camera_forward = camera->Forward();
-			new_frame_cbuf_data.view = camera->View();
-			new_frame_cbuf_data.projection = camera->Proj();
-			new_frame_cbuf_data.view_projection = camera->ViewProj();
-			new_frame_cbuf_data.inverse_view = DirectX::XMMatrixInverse(nullptr, camera->View());
-			new_frame_cbuf_data.inverse_projection = DirectX::XMMatrixInverse(nullptr, camera->Proj());
-			new_frame_cbuf_data.inverse_view_projection = DirectX::XMMatrixInverse(nullptr, camera->ViewProj());
-			new_frame_cbuf_data.screen_resolution_x = (float32)width;
-			new_frame_cbuf_data.screen_resolution_y = (float32)height;
-			new_frame_cbuf_data.delta_time = dt;
-			new_frame_cbuf_data.frame_count = gfx->FrameIndex();
-			new_frame_cbuf_data.mouse_normalized_coords_x = (viewport_data.mouse_position_x - viewport_data.scene_viewport_pos_x) / viewport_data.scene_viewport_size_x;
-			new_frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
-			new_frame_cbuf_data.lights_idx = light_array_srv.GetHeapOffset();
-
-			new_frame_cbuffer.Update(new_frame_cbuf_data, backbuffer_index);
-			new_frame_cbuf_data.prev_view_projection = camera->ViewProj();
-		}
-
-		static FrameCBuffer frame_cbuf_data{};
-		//frame
-		{
-			frame_cbuf_data.global_ambient = XMVectorSet(renderer_settings.ambient_color[0], renderer_settings.ambient_color[1], renderer_settings.ambient_color[2], 1);
-			frame_cbuf_data.camera_near = camera->Near();
-			frame_cbuf_data.camera_far = camera->Far();
-			frame_cbuf_data.camera_position = camera->Position();
-			frame_cbuf_data.camera_forward = camera->Forward();
-			frame_cbuf_data.view = camera->View();
-			frame_cbuf_data.projection = camera->Proj();
-			frame_cbuf_data.view_projection = camera->ViewProj();
-			frame_cbuf_data.inverse_view = DirectX::XMMatrixInverse(nullptr, camera->View());
-			frame_cbuf_data.inverse_projection = DirectX::XMMatrixInverse(nullptr, camera->Proj());
-			frame_cbuf_data.inverse_view_projection = DirectX::XMMatrixInverse(nullptr, camera->ViewProj());
-			frame_cbuf_data.screen_resolution_x = (float32)width;
-			frame_cbuf_data.screen_resolution_y = (float32)height;
-			frame_cbuf_data.mouse_normalized_coords_x = (viewport_data.mouse_position_x - viewport_data.scene_viewport_pos_x) / viewport_data.scene_viewport_size_x;
-			frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
-
-			frame_cbuffer.Update(frame_cbuf_data, backbuffer_index);
-			frame_cbuf_data.prev_view_projection = camera->ViewProj();
-		}
-		//postprocess
-		{
-			static PostprocessCBuffer postprocess_cbuf_data{};
-
-			PostprocessSettings const& settings = renderer_settings.postprocess;
-			DoFParameters dof_params = postprocessor.GetDoFParams();
-			VelocityBufferParams velocity_params = postprocessor.GetVelocityBufferParams();
-			postprocess_cbuf_data.dof_params = XMVectorSet(dof_params.dof_near_blur, dof_params.dof_near, dof_params.dof_far, dof_params.dof_far_blur);
-			postprocess_cbuf_data.velocity_buffer_scale = velocity_params.velocity_buffer_scale;
-			postprocess_cbuffer.Update(postprocess_cbuf_data, backbuffer_index);
-		}
-		
-		//weather
-		{
-			static WeatherCBuffer weather_cbuf_data{};
-			static float32 total_time = 0.0f;
-			total_time += dt;
-
-			auto lights = reg.view<Light>();
-			for (auto light : lights)
-			{
-				auto const& light_data = lights.get<Light>(light);
-				if (light_data.type == ELightType::Directional && light_data.active)
-				{
-					weather_cbuf_data.light_dir = XMVector3Normalize(-light_data.direction);
-					weather_cbuf_data.light_color = light_data.color * light_data.energy;
-					break;
-				}
-			}
-			XMFLOAT3 sky_color(sky_pass.GetSkyColor());
-			XMFLOAT2 wind_dir(ocean_renderer.GetWindDirection());
-
-			CloudParameters cloud_params = postprocessor.GetCloudParams();
-			weather_cbuf_data.sky_color = XMLoadFloat3(&sky_color);
-			weather_cbuf_data.ambient_color = XMVECTOR{ renderer_settings.ambient_color[0], renderer_settings.ambient_color[1], renderer_settings.ambient_color[2], 1.0f };
-			weather_cbuf_data.wind_dir = XMVECTOR{ wind_dir.x, 0.0f, wind_dir.y, 0.0f };
-			weather_cbuf_data.wind_speed = cloud_params.wind_speed;
-			weather_cbuf_data.time = total_time;
-			weather_cbuf_data.crispiness = cloud_params.crispiness;
-			weather_cbuf_data.curliness = cloud_params.curliness;
-			weather_cbuf_data.coverage = cloud_params.coverage;
-			weather_cbuf_data.absorption = cloud_params.light_absorption;
-			weather_cbuf_data.clouds_bottom_height = cloud_params.clouds_bottom_height;
-			weather_cbuf_data.clouds_top_height = cloud_params.clouds_top_height;
-			weather_cbuf_data.density_factor = cloud_params.density_factor;
-			weather_cbuf_data.cloud_type = cloud_params.cloud_type;
-
-			XMFLOAT3 sun_dir;
-			XMStoreFloat3(&sun_dir, XMVector3Normalize(weather_cbuf_data.light_dir));
-			SkyParameters sky_params = sky_pass.GetSkyParameters(sun_dir);
-			weather_cbuf_data.A = sky_params[ESkyParam_A];
-			weather_cbuf_data.B = sky_params[ESkyParam_B];
-			weather_cbuf_data.C = sky_params[ESkyParam_C];
-			weather_cbuf_data.D = sky_params[ESkyParam_D];
-			weather_cbuf_data.E = sky_params[ESkyParam_E];
-			weather_cbuf_data.F = sky_params[ESkyParam_F];
-			weather_cbuf_data.G = sky_params[ESkyParam_G];
-			weather_cbuf_data.H = sky_params[ESkyParam_H];
-			weather_cbuf_data.I = sky_params[ESkyParam_I];
-			weather_cbuf_data.Z = sky_params[ESkyParam_Z];
-
-			weather_cbuffer.Update(weather_cbuf_data, backbuffer_index);
-		}
-
-		//compute 
-		{
-			DoFParameters dof_params = postprocessor.GetDoFParams();
-			BloomParameters bloom_params = postprocessor.GetBloomParams();
-			BokehParameters bokeh_params = postprocessor.GetBokehParams();
-
-			std::array<float32, 9> coeffs{};
-			coeffs.fill(1.0f / 9);
-			static ComputeCBuffer compute_cbuf_data{};
-			compute_cbuf_data.gauss_coeff1 = coeffs[0];
-			compute_cbuf_data.gauss_coeff2 = coeffs[1];
-			compute_cbuf_data.gauss_coeff3 = coeffs[2];
-			compute_cbuf_data.gauss_coeff4 = coeffs[3];
-			compute_cbuf_data.gauss_coeff5 = coeffs[4];
-			compute_cbuf_data.gauss_coeff6 = coeffs[5];
-			compute_cbuf_data.gauss_coeff7 = coeffs[6];
-			compute_cbuf_data.gauss_coeff8 = coeffs[7];
-			compute_cbuf_data.gauss_coeff9 = coeffs[8];
-			compute_cbuf_data.bloom_scale = bloom_params.bloom_scale;
-			compute_cbuf_data.threshold = bloom_params.bloom_threshold;
-			compute_cbuf_data.visualize_tiled = tiled_lighting_pass.IsVisualized();
-			compute_cbuf_data.visualize_max_lights = tiled_lighting_pass.MaxLightsForVisualization();
-			compute_cbuf_data.bokeh_blur_threshold = bokeh_params.bokeh_blur_threshold;
-			compute_cbuf_data.bokeh_lum_threshold = bokeh_params.bokeh_lum_threshold;
-			compute_cbuf_data.dof_params = XMVectorSet(dof_params.dof_near_blur, dof_params.dof_near, dof_params.dof_far, dof_params.dof_far_blur);
-			compute_cbuf_data.bokeh_radius_scale = bokeh_params.bokeh_radius_scale;
-			compute_cbuf_data.bokeh_color_scale = bokeh_params.bokeh_color_scale;
-			compute_cbuf_data.bokeh_fallout = bokeh_params.bokeh_fallout;
-
-			XMFLOAT2 wind_dir(ocean_renderer.GetWindDirection());
-			compute_cbuf_data.ocean_choppiness = ocean_renderer.GetChoppiness();
-			compute_cbuf_data.ocean_size = 512;
-			compute_cbuf_data.resolution = 512; //fft resolution
-			compute_cbuf_data.wind_direction_x = wind_dir.x;
-			compute_cbuf_data.wind_direction_y = wind_dir.y;
-			compute_cbuf_data.delta_time = dt;
-
-			compute_cbuffer.Update(compute_cbuf_data, backbuffer_index);
-		}
-	}
-	void Renderer::CameraFrustumCulling()
-	{
-		BoundingFrustum camera_frustum = camera->Frustum();
-		auto aabb_view = reg.view<AABB>();
-		for (auto e : aabb_view)
-		{
-			auto& aabb = aabb_view.get<AABB>(e);
-			aabb.camera_visible = camera_frustum.Intersects(aabb.bounding_box) || reg.all_of<Light>(e); //dont cull lights for now
-		}
-	}
-
-	void Renderer::CopyToBackbuffer(RenderGraph& rg)
-	{
-		struct CopyToBackbufferPassData
-		{
-			RGTextureCopyDstId dst;
-			RGTextureCopySrcId src;
-		};
-
-		rg.AddPass<CopyToBackbufferPassData>("Copy to Backbuffer Pass",
-			[=](CopyToBackbufferPassData& data, RenderGraphBuilder& builder)
-			{
-				data.src = builder.ReadCopySrcTexture(RG_RES_NAME(FinalTexture));
-			},
-			[=](CopyToBackbufferPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
-			{
-				ResourceBarrierBatch barrier;
-				barrier.AddTransition(gfx->GetBackbuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_DEST);
-				barrier.Submit(cmd_list);
-
-				Texture const& src_texture = ctx.GetCopySrcTexture(data.src);
-				cmd_list->CopyResource(gfx->GetBackbuffer(), src_texture.GetNative());
-
-				barrier.ReverseTransitions();
-				barrier.Submit(cmd_list);
-			}, ERGPassType::Copy, ERGPassFlags::ForceNoCull);
-	}
-	void Renderer::ResolveToFinalTexture(RenderGraph& rg)
-	{
-		RGResourceName final_texture = postprocessor.GetFinalResource();
-		if (HasAnyFlag(renderer_settings.postprocess.anti_aliasing, AntiAliasing_FXAA))
-		{
-			tonemap_pass.AddPass(rg, final_texture, RG_RES_NAME(TonemapOutput));
-			fxaa_pass.AddPass(rg, RG_RES_NAME(TonemapOutput));
-		}
-		else
-		{
-			tonemap_pass.AddPass(rg, final_texture);
-		}
-	}
-
 }
 

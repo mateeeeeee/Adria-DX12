@@ -15,7 +15,7 @@
 #include "FogPass.h"
 #include "DepthOfFieldPass.h"
 #include "BloomPass.h"
-#include "VelocityBufferPass.h"
+#include "MotionVectorsPass.h"
 #include "MotionBlurPass.h"
 #include "TAAPass.h"
 #include "GodRaysPass.h"
@@ -52,7 +52,6 @@ namespace adria
 		CloudParameters const& GetCloudParams() const { return clouds_pass.GetParams(); }
 		DoFParameters   const& GetDoFParams() const { return dof_pass.GetParams(); }
 		BloomParameters const& GetBloomParams() const { return bloom_pass.GetParams(); }
-		VelocityBufferParams const& GetVelocityBufferParams() const { return velocity_buffer_pass.GetParams(); }
 		BokehParameters const& GetBokehParams() const { return bokeh_pass.GetParams(); }
 
 	private:
@@ -75,7 +74,7 @@ namespace adria
 		FogPass fog_pass;
 		DepthOfFieldPass dof_pass;
 		BloomPass bloom_pass;
-		VelocityBufferPass velocity_buffer_pass;
+		MotionVectorsPass velocity_buffer_pass;
 		MotionBlurPass motion_blur_pass;
 		TAAPass taa_pass;
 		GodRaysPass god_rays_pass;
