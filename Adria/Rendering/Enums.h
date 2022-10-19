@@ -14,7 +14,6 @@ namespace adria
 		PS_UniformColorSky,
 		PS_HosekWilkieSky,
 		VS_ScreenQuad,
-		PS_Fxaa,
 		PS_Taa,
 		VS_GBufferPBR,
 		PS_GBufferPBR,
@@ -99,6 +98,7 @@ namespace adria
 		CS_MotionVectors,
 		CS_MotionBlur,
 		CS_Dof,
+		CS_Fxaa,
 		ShaderId_Count
 	};
 
@@ -108,7 +108,6 @@ namespace adria
 		Common,
 		Skybox,
 		Sky,
-		FXAA,
 		TAA,
 		GbufferPBR,
 		AmbientPBR,

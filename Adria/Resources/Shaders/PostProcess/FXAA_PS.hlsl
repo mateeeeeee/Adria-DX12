@@ -19,9 +19,9 @@ float4 main(VertexOut pin) : SV_TARGET
     ldr_scene.GetDimensions(0, width, height, levels); 
     float2 resolution = float2(width, height);
 
-    float FXAA_SPAN_MAX = 8.0;
-    float FXAA_REDUCE_MUL = 1.0 / 8.0;
-    float FXAA_REDUCE_MIN = 1.0 / 128.0;
+    const float FXAA_SPAN_MAX = 8.0;
+    const float FXAA_REDUCE_MUL = 1.0 / 8.0;
+    const float FXAA_REDUCE_MIN = 1.0 / 128.0;
     
     float3 rgbNW = ldr_scene.Sample(linearSampler, texCoord + float2(-1.0, -1.0) / resolution, 0).rgb;
     float3 rgbNE = ldr_scene.Sample(linearSampler, texCoord + float2(1.0, -1.0) / resolution, 0).rgb;

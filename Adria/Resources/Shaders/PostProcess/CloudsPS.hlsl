@@ -145,12 +145,10 @@ float SampleCloudDensity(float3 p, bool useHighFreq, float lod)
     return clamp(cloudSampleWithCoverage, 0.0f, 1.0f);
 }
 
-
 float LightEnergy(float d, float cos_angle)
 {
     return 5.0 * BeerLaw(d) * SugarPowder(d) * HenyeyGreenstein(cos_angle, 0.2f);
 }
-
 
 float RaymarchToLight(float3 origin, float stepSize, float3 lightDir, float originalDensity, float lightDotEye)
 {
@@ -194,7 +192,6 @@ float RaymarchToLight(float3 origin, float stepSize, float3 lightDir, float orig
     }
     return LightEnergy(coneDensity, lightDotEye);
 }
-
 
 float4 RaymarchToCloud(float2 texCoord, float3 startPos, float3 endPos, float3 skyColor, out float4 cloudPos)
 {

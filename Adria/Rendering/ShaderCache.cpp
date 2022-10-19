@@ -48,6 +48,8 @@ namespace adria
 				return "MotionBlur";
 			case CS_Dof:
 				return "DepthOfField";
+			case CS_Fxaa:
+				return "FXAA";
 			default:
 				return "main";
 			}
@@ -89,7 +91,6 @@ namespace adria
 			case PS_LightingPBR:
 			case PS_LightingPBR_RayTracedShadows:
 			case PS_ClusteredLightingPBR:
-			case PS_Fxaa:
 			case PS_Taa:
 			case PS_Copy:
 			case PS_Add:
@@ -144,6 +145,7 @@ namespace adria
 			case CS_MotionVectors:
 			case CS_MotionBlur:
 			case CS_Dof:
+			case CS_Fxaa:
 				return EShaderStage::CS;
 			case HS_OceanLOD:
 				return EShaderStage::HS;
@@ -205,8 +207,6 @@ namespace adria
 				return "Deferred/LightingPBR_PS.hlsl";
 			case PS_ClusteredLightingPBR:
 				return "Deferred/ClusterLightingPBR_PS.hlsl";
-			case PS_Fxaa:
-				return "Postprocess/FXAA_PS.hlsl";
 			case PS_Taa:
 				return "Postprocess/TAA_PS.hlsl";
 			case PS_Copy:
@@ -326,6 +326,8 @@ namespace adria
 				return "Postprocess/MotionBlur.hlsl";
 			case CS_Dof:
 				return "Postprocess/DepthOfField.hlsl";
+			case CS_Fxaa:
+				return "Postprocess/FXAA.hlsl";
 			case LIB_Shadows:
 			case LIB_SoftShadows:
 				return "RayTracing/RayTracedShadows.hlsl";
@@ -365,7 +367,6 @@ namespace adria
 				return {};
 			}
 		}
-
 		constexpr bool UseNewShadersDirectory(EShaderId shader)
 		{
 			switch (shader)
@@ -381,6 +382,7 @@ namespace adria
 			case CS_MotionVectors:
 			case CS_MotionBlur:
 			case CS_Dof:
+			case CS_Fxaa:
 			case LIB_AmbientOcclusion:
 			case LIB_Reflections:
 			case LIB_Shadows:

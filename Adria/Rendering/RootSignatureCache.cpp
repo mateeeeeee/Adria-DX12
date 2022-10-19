@@ -24,9 +24,6 @@ namespace adria
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_HosekWilkieSky).GetPointer(), GetShader(PS_HosekWilkieSky).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::Sky].GetAddressOf())));
 
-			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Fxaa).GetPointer(), GetShader(PS_Fxaa).GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::FXAA].GetAddressOf())));
-
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Taa).GetPointer(), GetShader(PS_Taa).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::TAA].GetAddressOf())));
 
@@ -81,7 +78,8 @@ namespace adria
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_BokehGenerate).GetPointer(), GetShader(CS_BokehGenerate).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::BokehGenerate].GetAddressOf())));
 
-			rs_map[ERootSignature::Copy] = rs_map[ERootSignature::FXAA];
+			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Copy).GetPointer(), GetShader(PS_Copy).GetLength(),
+				IID_PPV_ARGS(rs_map[ERootSignature::Copy].GetAddressOf())));
 
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_FFT_Horizontal).GetPointer(), GetShader(CS_FFT_Horizontal).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::FFT].GetAddressOf())));

@@ -1048,13 +1048,13 @@
     <FxCompile Include="Resources\NewShaders\Postprocess\MotionVectors.hlsl">
       <Filter>NewShaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\MotionBlurPS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\NewShaders\Postprocess\DepthOfField.hlsl">
       <Filter>NewShaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\NewShaders\Postprocess\MotionBlur.hlsl">
+      <Filter>NewShaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Postprocess\FXAA.hlsl">
       <Filter>NewShaders\Postprocess</Filter>
     </FxCompile>
   </ItemGroup>
