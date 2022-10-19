@@ -868,9 +868,6 @@
     <FxCompile Include="Resources\Shaders\PostProcess\CopyPS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\PostProcess\SSR_PS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\PostProcess\GodRaysPS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
@@ -893,9 +890,6 @@
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\PostProcess\CloudsPS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\PostProcess\MotionBlurPS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Deferred\TiledLightingCS.hlsl">
@@ -1055,6 +1049,12 @@
       <Filter>NewShaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\NewShaders\Postprocess\MotionVectors.hlsl">
+      <Filter>NewShaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\MotionBlurPS.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Postprocess\DepthOfField.hlsl">
       <Filter>NewShaders\Postprocess</Filter>
     </FxCompile>
   </ItemGroup>

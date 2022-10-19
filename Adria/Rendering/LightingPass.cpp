@@ -171,7 +171,6 @@ namespace adria
 					cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 					cmd_list->SetGraphicsRootConstantBufferView(1, light_allocation.gpu_address);
 					if (light.casts_shadows) cmd_list->SetGraphicsRootConstantBufferView(2, context.GetAllocation(data.shadow_alloc).gpu_address);
-					cmd_list->SetGraphicsRootConstantBufferView(3, global_data.postprocess_cbuffer_address);
 
 					DescriptorCPU cpu_handles[] = { context.GetReadOnlyTexture(data.depth), {} };
 					uint32 src_range_sizes[] = { 1,1 };

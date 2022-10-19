@@ -44,7 +44,6 @@ namespace adria
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::MotionBlur));
 
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetGraphicsRootConstantBufferView(1, global_data.postprocess_cbuffer_address);
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
 

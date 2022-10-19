@@ -122,7 +122,7 @@ namespace adria
 				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::BokehGenerate));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::BokehGenerate));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRootConstantBufferView(1, global_data.postprocess_cbuffer_address);
+				cmd_list->SetComputeRootConstantBufferView(1, global_data.compute_cbuffer_address);
 				cmd_list->SetComputeRootConstantBufferView(2, global_data.compute_cbuffer_address);
 
 				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);

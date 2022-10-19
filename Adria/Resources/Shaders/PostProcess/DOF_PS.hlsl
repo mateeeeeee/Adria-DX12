@@ -25,7 +25,6 @@ float BlurFactor2(in float depth, in float2 DOF)
     return saturate((depth - DOF.x) / (DOF.y - DOF.x));
 }
 
-
 float3 DistanceDOF(float3 colorFocus, float3 colorBlurred, float depth)
 {
     float blurFactor = BlurFactor(depth, postprocess_cbuf.dof_params);

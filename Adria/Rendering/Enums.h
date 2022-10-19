@@ -35,7 +35,6 @@ namespace adria
 		PS_Volumetric_Spot,
 		PS_Volumetric_Point,
 		PS_GodRays,
-		PS_Dof,
 		PS_VolumetricClouds,
 		VS_LensFlare,
 		GS_LensFlare,
@@ -99,6 +98,7 @@ namespace adria
 		CS_Fog,
 		CS_Tonemap,
 		CS_MotionVectors,
+		CS_Dof,
 		ShaderId_Count
 	};
 
@@ -118,7 +118,6 @@ namespace adria
 		DepthMap_Transparent,
 		Volumetric,
 		Forward,
-		DOF,
 		Bokeh,
 		BokehGenerate,
 		GodRays,

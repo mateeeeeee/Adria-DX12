@@ -22,7 +22,7 @@ namespace adria
 	Renderer::Renderer(entt::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx), 
 		texture_manager(gfx, 1000), gpu_profiler(gfx), camera(nullptr), width(width), height(height), 
 		backbuffer_count(gfx->BackbufferCount()), backbuffer_index(gfx->BackbufferIndex()), final_texture(nullptr),
-		frame_cbuffer(gfx->GetDevice(), backbuffer_count), postprocess_cbuffer(gfx->GetDevice(), backbuffer_count),
+		frame_cbuffer(gfx->GetDevice(), backbuffer_count), 
 		weather_cbuffer(gfx->GetDevice(), backbuffer_count), compute_cbuffer(gfx->GetDevice(), backbuffer_count),
 		new_frame_cbuffer(gfx->GetDevice(), backbuffer_count),
 		gbuffer_pass(reg, gpu_profiler, width, height), ambient_pass(width, height), tonemap_pass(width, height),
@@ -71,7 +71,6 @@ namespace adria
 			global_data.camera_fov = camera->Fov();
 			global_data.new_frame_cbuffer_address = new_frame_cbuffer.BufferLocation(backbuffer_index);
 			global_data.frame_cbuffer_address = frame_cbuffer.BufferLocation(backbuffer_index);
-			global_data.postprocess_cbuffer_address = postprocess_cbuffer.BufferLocation(backbuffer_index);
 			global_data.compute_cbuffer_address = compute_cbuffer.BufferLocation(backbuffer_index);
 			global_data.weather_cbuffer_address = weather_cbuffer.BufferLocation(backbuffer_index);
 			global_data.null_srv_texture2d = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURE2D);
@@ -338,6 +337,9 @@ namespace adria
 
 	void Renderer::UpdatePersistentConstantBuffers(float32 dt)
 	{
+		static float32 total_time = 0.0f;
+		total_time += dt;
+
 		static NewFrameCBuffer new_frame_cbuf_data{};
 		//new frame
 		{
@@ -386,22 +388,10 @@ namespace adria
 			frame_cbuffer.Update(frame_cbuf_data, backbuffer_index);
 			frame_cbuf_data.prev_view_projection = camera->ViewProj();
 		}
-		//postprocess
-		{
-			static PostprocessCBuffer postprocess_cbuf_data{};
 
-			PostprocessSettings const& settings = renderer_settings.postprocess;
-			DoFParameters dof_params = postprocessor.GetDoFParams();
-			postprocess_cbuf_data.dof_params = XMVectorSet(dof_params.dof_near_blur, dof_params.dof_near, dof_params.dof_far, dof_params.dof_far_blur);
-			postprocess_cbuffer.Update(postprocess_cbuf_data, backbuffer_index);
-		}
-		
 		//weather
 		{
 			static WeatherCBuffer weather_cbuf_data{};
-			static float32 total_time = 0.0f;
-			total_time += dt;
-
 			auto lights = reg.view<Light>();
 			for (auto light : lights)
 			{
@@ -450,7 +440,6 @@ namespace adria
 
 		//compute 
 		{
-			DoFParameters dof_params = postprocessor.GetDoFParams();
 			BloomParameters bloom_params = postprocessor.GetBloomParams();
 			BokehParameters bokeh_params = postprocessor.GetBokehParams();
 
@@ -472,7 +461,7 @@ namespace adria
 			compute_cbuf_data.visualize_max_lights = tiled_lighting_pass.MaxLightsForVisualization();
 			compute_cbuf_data.bokeh_blur_threshold = bokeh_params.bokeh_blur_threshold;
 			compute_cbuf_data.bokeh_lum_threshold = bokeh_params.bokeh_lum_threshold;
-			compute_cbuf_data.dof_params = XMVectorSet(dof_params.dof_near_blur, dof_params.dof_near, dof_params.dof_far, dof_params.dof_far_blur);
+			compute_cbuf_data.dof_params = XMVectorSet(0, 200, 400, 600); //for now hardcoded
 			compute_cbuf_data.bokeh_radius_scale = bokeh_params.bokeh_radius_scale;
 			compute_cbuf_data.bokeh_color_scale = bokeh_params.bokeh_color_scale;
 			compute_cbuf_data.bokeh_fallout = bokeh_params.bokeh_fallout;

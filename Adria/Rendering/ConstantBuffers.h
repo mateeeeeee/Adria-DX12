@@ -121,11 +121,6 @@ namespace adria
 		int32 visualize;
 	};
 
-	DECLSPEC_ALIGN(16) struct PostprocessCBuffer
-	{
-		DirectX::XMVECTOR dof_params;
-	};
-
 	DECLSPEC_ALIGN(16) struct ComputeCBuffer
 	{
 		float32 bloom_scale;  //bloom

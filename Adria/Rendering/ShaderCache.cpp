@@ -44,6 +44,8 @@ namespace adria
 				return "Tonemap";
 			case CS_MotionVectors:
 				return "MotionVectors";
+			case CS_Dof:
+				return "DepthOfField";
 			default:
 				return "main";
 			}
@@ -91,7 +93,6 @@ namespace adria
 			case PS_Add:
 			case PS_LensFlare:
 			case PS_GodRays:
-			case PS_Dof:
 			case PS_Bokeh:
 			case PS_VolumetricClouds:
 			case PS_MotionBlur:
@@ -140,6 +141,7 @@ namespace adria
 			case CS_Fog:
 			case CS_Tonemap:
 			case CS_MotionVectors:
+			case CS_Dof:
 				return EShaderStage::CS;
 			case HS_OceanLOD:
 				return EShaderStage::HS;
@@ -217,8 +219,6 @@ namespace adria
 				return "Postprocess/LensFlarePS.hlsl";
 			case PS_GodRays:
 				return "Postprocess/GodRaysPS.hlsl";
-			case PS_Dof:
-				return "Postprocess/DOF_PS.hlsl";
 			case VS_Bokeh:
 				return "Postprocess/BokehVS.hlsl";
 			case GS_Bokeh:
@@ -322,6 +322,8 @@ namespace adria
 				return "Postprocess/Tonemap.hlsl";
 			case CS_MotionVectors:
 				return "Postprocess/MotionVectors.hlsl";
+			case CS_Dof:
+				return "Postprocess/DepthOfField.hlsl";
 			case LIB_Shadows:
 			case LIB_SoftShadows:
 				return "RayTracing/RayTracedShadows.hlsl";
@@ -375,6 +377,7 @@ namespace adria
 			case CS_Fog:
 			case CS_Tonemap:
 			case CS_MotionVectors:
+			case CS_Dof:
 			case LIB_AmbientOcclusion:
 			case LIB_Reflections:
 			case LIB_Shadows:
