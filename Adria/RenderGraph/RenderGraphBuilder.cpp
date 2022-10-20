@@ -81,19 +81,26 @@ namespace adria
 		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
 		RGTextureReadOnlyId read_only_id = rg.ReadTexture(name, desc);
 		RGTextureId res_id = read_only_id.GetResourceId();
-		switch (read_access)
+		if (rg_pass.type == ERGPassType::Graphics)
 		{
-		case ReadAccess_PixelShader:
-			rg_pass.texture_state_map[res_id] = EResourceState::PixelShaderResource;
-			break;
-		case ReadAccess_NonPixelShader:
+			switch (read_access)
+			{
+			case ReadAccess_PixelShader:
+				rg_pass.texture_state_map[res_id] = EResourceState::PixelShaderResource;
+				break;
+			case ReadAccess_NonPixelShader:
+				rg_pass.texture_state_map[res_id] = EResourceState::NonPixelShaderResource;
+				break;
+			case ReadAccess_AllShader:
+				rg_pass.texture_state_map[res_id] = EResourceState::AllShaderResource;
+				break;
+			default:
+				ADRIA_ASSERT(false && "Invalid Read Flag!");
+			}
+		}
+		else if(rg_pass.type == ERGPassType::Compute)
+		{
 			rg_pass.texture_state_map[res_id] = EResourceState::NonPixelShaderResource;
-			break;
-		case ReadAccess_AllShader:
-			rg_pass.texture_state_map[res_id] = EResourceState::PixelShaderResource | EResourceState::NonPixelShaderResource;
-			break;
-		default:
-			ADRIA_ASSERT(false && "Invalid Read Flag!");
 		}
 		
 		rg_pass.texture_reads.insert(res_id);
@@ -232,21 +239,27 @@ namespace adria
 		if (rg_pass.type == ERGPassType::Compute) read_access = ReadAccess_NonPixelShader;
 
 		RGBufferId res_id = read_only_id.GetResourceId();
-		switch (read_access)
+		if (rg_pass.type == ERGPassType::Graphics)
 		{
-		case ReadAccess_PixelShader:
-			rg_pass.buffer_state_map[res_id] = EResourceState::PixelShaderResource;
-			break;
-		case ReadAccess_NonPixelShader:
-			rg_pass.buffer_state_map[res_id] = EResourceState::NonPixelShaderResource;
-			break;
-		case ReadAccess_AllShader:
-			rg_pass.buffer_state_map[res_id] = EResourceState::NonPixelShaderResource | EResourceState::PixelShaderResource;
-			break;
-		default:
-			ADRIA_ASSERT(false && "Invalid Read Flag!");
+			switch (read_access)
+			{
+			case ReadAccess_PixelShader:
+				rg_pass.buffer_state_map[res_id] = EResourceState::PixelShaderResource;
+				break;
+			case ReadAccess_NonPixelShader:
+				rg_pass.buffer_state_map[res_id] = EResourceState::NonPixelShaderResource;
+				break;
+			case ReadAccess_AllShader:
+				rg_pass.buffer_state_map[res_id] = EResourceState::AllShaderResource;
+				break;
+			default:
+				ADRIA_ASSERT(false && "Invalid Read Flag!");
+			}
 		}
-
+		else if (rg_pass.type == ERGPassType::Compute)
+		{
+			rg_pass.buffer_state_map[res_id] = EResourceState::NonPixelShaderResource;
+		}
 		rg_pass.buffer_reads.insert(res_id);
 		return read_only_id;
 	}
