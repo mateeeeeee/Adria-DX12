@@ -6,7 +6,6 @@
 #include "PSOCache.h" 
 #include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
-#include "../Graphics/GPUProfiler.h"
 #include "../Graphics/TextureManager.h"
 #include "../Graphics/Texture.h"
 #include "entt/entity/registry.hpp"

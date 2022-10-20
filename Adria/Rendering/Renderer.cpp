@@ -18,14 +18,22 @@ using namespace DirectX;
 
 namespace adria
 {
+	enum ENullHeapSlot
+	{
+		NULL_HEAP_SLOT_TEXTURE2D,
+		NULL_HEAP_SLOT_TEXTURECUBE,
+		NULL_HEAP_SLOT_TEXTURE2DARRAY,
+		NULL_HEAP_SLOT_RWTEXTURE2D,
+		NULL_HEAP_SIZE
+	};
 
 	Renderer::Renderer(entt::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx), 
-		texture_manager(gfx, 1000), gpu_profiler(gfx), camera(nullptr), width(width), height(height), 
+		texture_manager(gfx, 1000), camera(nullptr), width(width), height(height), 
 		backbuffer_count(gfx->BackbufferCount()), backbuffer_index(gfx->BackbufferIndex()), final_texture(nullptr),
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count), postprocess_cbuffer(gfx->GetDevice(), backbuffer_count),
 		weather_cbuffer(gfx->GetDevice(), backbuffer_count), compute_cbuffer(gfx->GetDevice(), backbuffer_count),
 		new_frame_cbuffer(gfx->GetDevice(), backbuffer_count),
-		gbuffer_pass(reg, gpu_profiler, width, height), ambient_pass(width, height), tonemap_pass(width, height),
+		gbuffer_pass(reg, width, height), ambient_pass(width, height), tonemap_pass(width, height),
 		sky_pass(reg, texture_manager, width, height), lighting_pass(width, height), shadow_pass(reg, texture_manager),
 		tiled_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
 		postprocessor(reg, texture_manager, width, height), fxaa_pass(width, height), picking_pass(gfx, width, height),
@@ -33,12 +41,14 @@ namespace adria
 		decals_pass(reg, texture_manager, width, height), ocean_renderer(reg, texture_manager, width, height),
 		particle_renderer(reg, gfx, texture_manager, width, height), ray_tracer(reg, gfx, width, height), aabb_pass(reg, width, height)
 	{
+		GPUProfiler::Get().Init(gfx);
 		CreateNullHeap();
 		CreateSizeDependentResources();
 	}
 
 	Renderer::~Renderer()
 	{
+		GPUProfiler::Get().Destroy();
 		gfx->WaitForGPU();
 		reg.clear();
 	}
@@ -48,6 +58,7 @@ namespace adria
 		camera = _camera;
 		backbuffer_index = gfx->BackbufferIndex();
 		shadow_pass.SetCamera(camera);
+		GPUProfiler::Get().NewFrame();
 	}
 	void Renderer::Update(float32 dt)
 	{
@@ -115,7 +126,7 @@ namespace adria
 			render_graph.ImportTexture(RG_RES_NAME(BrdfTexture), brdf_lut_texture.get());
 		}
 
-		gbuffer_pass.AddPass(render_graph, profiler_settings.profile_gbuffer_pass);
+		gbuffer_pass.AddPass(render_graph);
 		decals_pass.AddPass(render_graph);
 		switch (renderer_settings.postprocess.ambient_occlusion)
 		{
@@ -177,11 +188,6 @@ namespace adria
 		if (!renderer_settings.gui_visible) CopyToBackbuffer(render_graph);
 		render_graph.Build();
 		render_graph.Execute();
-	}
-
-	void Renderer::SetProfilerSettings(ProfilerSettings const& _profiler_settings)
-	{
-		profiler_settings = _profiler_settings;
 	}
 
 	void Renderer::OnResize(uint32 w, uint32 h)

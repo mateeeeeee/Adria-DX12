@@ -1252,22 +1252,11 @@ namespace adria
 		if (ImGui::Begin("Profiling", &window_flags[Flag_Profiler]))
 		{
 			ImGuiIO io = ImGui::GetIO();
-			static bool enable_profiling = false;
-			ImGui::Checkbox("Enable Profiling", &enable_profiling);
-			if (enable_profiling)
+			static bool show_profiling = false;
+			ImGui::Checkbox("Show Profiling Results", &show_profiling);
+			if (show_profiling)
 			{
 				static ProfilerState state;
-				if (ImGui::CollapsingHeader("Profiler Settings", ImGuiTreeNodeFlags_DefaultOpen))
-				{
-					ImGui::Checkbox("Profile GBuffer Pass", &profiler_settings.profile_gbuffer_pass);
-					ImGui::Checkbox("Profile Decal Pass", &profiler_settings.profile_decal_pass);
-					ImGui::Checkbox("Profile Deferred Pass", &profiler_settings.profile_deferred_pass);
-					ImGui::Checkbox("Profile Forward Pass", &profiler_settings.profile_forward_pass);
-					ImGui::Checkbox("Profile Particles Pass", &profiler_settings.profile_particles_pass);
-					ImGui::Checkbox("Profile Postprocessing", &profiler_settings.profile_postprocessing);
-				}
-				engine->renderer->SetProfilerSettings(profiler_settings);
-
 				static constexpr uint64 NUM_FRAMES = 128;
 				static float32 FRAME_TIME_ARRAY[NUM_FRAMES] = { 0 };
 				static float32 RECENT_HIGHEST_FRAME_TIME = 0.0f;
@@ -1275,7 +1264,7 @@ namespace adria
 				static float32 FRAME_TIME_GRAPH_MAX_VALUES[ARRAYSIZE(FRAME_TIME_GRAPH_MAX_FPS)] = { 0 };
 				for (uint64 i = 0; i < ARRAYSIZE(FRAME_TIME_GRAPH_MAX_FPS); ++i) { FRAME_TIME_GRAPH_MAX_VALUES[i] = 1000.f / FRAME_TIME_GRAPH_MAX_FPS[i]; }
 
-				std::vector<Timestamp> time_stamps = engine->renderer->GetProfilerResults();
+				std::vector<Timestamp> time_stamps = GPUProfiler::Get().GetProfilerResults(engine->gfx->GetLastGraphicsCommandList());
 				FRAME_TIME_ARRAY[NUM_FRAMES - 1] = 1000.0f / io.Framerate;
 				for (uint32 i = 0; i < NUM_FRAMES - 1; i++) FRAME_TIME_ARRAY[i] = FRAME_TIME_ARRAY[i + 1];
 				RECENT_HIGHEST_FRAME_TIME = std::max(RECENT_HIGHEST_FRAME_TIME, FRAME_TIME_ARRAY[NUM_FRAMES - 1]);
@@ -1362,10 +1351,6 @@ namespace adria
 					}
 					state.accumulating_frame_count++;
 				}
-			}
-			else
-			{
-				engine->renderer->SetProfilerSettings(NO_PROFILING);
 			}
 			static bool display_vram_usage = false;
 			ImGui::Checkbox("Display VRAM Usage", &display_vram_usage);

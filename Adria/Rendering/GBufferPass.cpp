@@ -6,18 +6,17 @@
 #include "PSOCache.h" 
 #include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
-#include "../Graphics/GPUProfiler.h"
 #include "../Editor/GUICommand.h"
 #include "entt/entity/registry.hpp"
 
 namespace adria
 {
 
-	GBufferPass::GBufferPass(entt::registry& reg, GPUProfiler& gpu_profiler, uint32 w, uint32 h) :
-		reg{ reg }, gpu_profiler{ gpu_profiler }, width{ w }, height{ h }
+	GBufferPass::GBufferPass(entt::registry& reg, uint32 w, uint32 h) :
+		reg{ reg }, width{ w }, height{ h }
 	{}
 
-	void GBufferPass::AddPass(RenderGraph& rendergraph, bool profile_pass)
+	void GBufferPass::AddPass(RenderGraph& rendergraph)
 	{
 		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
 		rendergraph.AddPass<void>("GBuffer Pass",

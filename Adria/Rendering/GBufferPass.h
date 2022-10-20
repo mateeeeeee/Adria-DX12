@@ -10,21 +10,18 @@ namespace adria
 		class registry;
 	}
 	class RenderGraph;
-	class GPUProfiler;
-
 
 	class GBufferPass
 	{
 	public:
-		GBufferPass(entt::registry& reg, GPUProfiler& gpu_profiler, uint32 w, uint32 h);
+		GBufferPass(entt::registry& reg, uint32 w, uint32 h);
 
-		void AddPass(RenderGraph& rendergraph, bool profile_pass);
+		void AddPass(RenderGraph& rendergraph);
 
 		void OnResize(uint32 w, uint32 h);
 
 	private:
 		entt::registry& reg;
-		GPUProfiler& gpu_profiler;
 		uint32 width, height;
 	};
 }

@@ -1,15 +1,19 @@
 #include "RenderGraph.h"
+#include "../Graphics/GPUProfiler.h"
 #include "../Graphics/RenderPass.h"
 #include "../Graphics/ResourceBarrierBatch.h"
 #include "../Tasks/TaskSystem.h"
 #include "../Utilities/StringUtil.h"
-
 #include <algorithm>
 #include <d3d12.h>
 #include <wrl.h> 
 #include "pix3.h"
 
-//#define RG_MULTITHREADED
+#if GPU_MULTITHREADED
+#define RG_MULTITHREADED 1
+#else 
+#define RG_MULTITHREADED 0
+#endif
 
 namespace adria
 {
@@ -119,7 +123,7 @@ namespace adria
 
 	void RenderGraph::Execute()
 	{
-#ifdef RG_MULTITHREADED
+#if RG_MULTITHREADED
 		Execute_Multithreaded();
 #else
 		Execute_Singlethreaded();
@@ -1155,7 +1159,9 @@ namespace adria
 				render_pass_desc.width = pass->viewport_width;
 				render_pass_desc.height = pass->viewport_height;
 				RenderPass render_pass(render_pass_desc);
+
 				PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, pass->name.c_str());
+				GPU_PROFILE_SCOPE(cmd_list, pass->name.c_str());
 				render_pass.Begin(cmd_list, pass->UseLegacyRenderPasses());
 				pass->Execute(rg_resources, gfx, cmd_list);
 				render_pass.End(cmd_list, pass->UseLegacyRenderPasses());
@@ -1163,6 +1169,7 @@ namespace adria
 			else
 			{
 				PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, pass->name.c_str());
+				GPU_PROFILE_SCOPE(cmd_list, pass->name.c_str());
 				pass->Execute(rg_resources, gfx, cmd_list);
 			}
 		}

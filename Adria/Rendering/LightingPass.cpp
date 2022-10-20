@@ -1,12 +1,10 @@
 #include "LightingPass.h"
-//#include "ShadowPass.h"
 #include "ConstantBuffers.h"
 #include "Components.h"
 #include "GlobalBlackboardData.h"
 #include "PSOCache.h" 
 #include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
-#include "../Graphics/GPUProfiler.h"
 #include "../Logging/Logger.h"
 #include "pix3.h"
 
