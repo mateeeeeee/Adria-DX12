@@ -98,7 +98,7 @@ namespace adria
 				ADRIA_ASSERT(false && "Invalid Read Flag!");
 			}
 		}
-		else if(rg_pass.type == ERGPassType::Compute)
+		else if(rg_pass.type == ERGPassType::Compute || rg_pass.type == ERGPassType::ComputeAsync)
 		{
 			rg_pass.texture_state_map[res_id] = EResourceState::NonPixelShaderResource;
 		}
@@ -256,7 +256,7 @@ namespace adria
 				ADRIA_ASSERT(false && "Invalid Read Flag!");
 			}
 		}
-		else if (rg_pass.type == ERGPassType::Compute)
+		else if (rg_pass.type == ERGPassType::Compute || rg_pass.type == ERGPassType::ComputeAsync)
 		{
 			rg_pass.buffer_state_map[res_id] = EResourceState::NonPixelShaderResource;
 		}
