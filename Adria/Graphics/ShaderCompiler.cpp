@@ -206,6 +206,7 @@ namespace adria
 			{
 				compile_args.push_back(DXC_ARG_OPTIMIZATION_LEVEL3);
 			}
+			compile_args.push_back(L"-HV 2021");
 
 			compile_args.push_back(L"-E");
 			compile_args.push_back(entry_point.c_str());
