@@ -1319,6 +1319,7 @@ namespace adria
 					render_pass_desc.height = pass->viewport_height;
 					RenderPass render_pass(render_pass_desc);
 					PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, pass->name.c_str());
+					GPU_PROFILE_SCOPE(cmd_list, pass->name.c_str());
 					render_pass.Begin(cmd_list, pass->UseLegacyRenderPasses());
 					pass->Execute(rg_resources, gfx, cmd_list);
 					render_pass.End(cmd_list, pass->UseLegacyRenderPasses());
@@ -1326,6 +1327,7 @@ namespace adria
 				else
 				{
 					PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, pass->name.c_str());
+					GPU_PROFILE_SCOPE(cmd_list, pass->name.c_str());
 					pass->Execute(rg_resources, gfx, cmd_list);
 				}
 				}, k));
