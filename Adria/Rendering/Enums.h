@@ -5,7 +5,6 @@
 
 namespace adria
 {
-	
 	enum EShaderId : uint8
 	{
 		ShaderId_Invalid,
@@ -33,7 +32,6 @@ namespace adria
 		PS_Volumetric_Directional,
 		PS_Volumetric_Spot,
 		PS_Volumetric_Point,
-		PS_GodRays,
 		PS_VolumetricClouds,
 		VS_LensFlare,
 		GS_LensFlare,
@@ -99,6 +97,7 @@ namespace adria
 		CS_MotionBlur,
 		CS_Dof,
 		CS_Fxaa,
+		CS_GodRays,
 		ShaderId_Count
 	};
 
@@ -119,7 +118,6 @@ namespace adria
 		Forward,
 		Bokeh,
 		BokehGenerate,
-		GodRays,
 		LensFlare,
 		Blur,
 		BloomExtract,

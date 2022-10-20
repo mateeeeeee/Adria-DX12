@@ -48,6 +48,8 @@ namespace adria
 				return "MotionBlur";
 			case CS_Dof:
 				return "DepthOfField";
+			case CS_GodRays:
+				return "GodRays";
 			case CS_Fxaa:
 				return "FXAA";
 			default:
@@ -95,7 +97,6 @@ namespace adria
 			case PS_Copy:
 			case PS_Add:
 			case PS_LensFlare:
-			case PS_GodRays:
 			case PS_Bokeh:
 			case PS_VolumetricClouds:
 			case PS_DepthMap:
@@ -145,6 +146,7 @@ namespace adria
 			case CS_MotionVectors:
 			case CS_MotionBlur:
 			case CS_Dof:
+			case CS_GodRays:
 			case CS_Fxaa:
 				return EShaderStage::CS;
 			case HS_OceanLOD:
@@ -219,8 +221,6 @@ namespace adria
 				return "Postprocess/LensFlareGS.hlsl";
 			case PS_LensFlare:
 				return "Postprocess/LensFlarePS.hlsl";
-			case PS_GodRays:
-				return "Postprocess/GodRaysPS.hlsl";
 			case VS_Bokeh:
 				return "Postprocess/BokehVS.hlsl";
 			case GS_Bokeh:
@@ -326,6 +326,8 @@ namespace adria
 				return "Postprocess/MotionBlur.hlsl";
 			case CS_Dof:
 				return "Postprocess/DepthOfField.hlsl";
+			case CS_GodRays:
+				return "Postprocess/GodRays.hlsl";
 			case CS_Fxaa:
 				return "Postprocess/FXAA.hlsl";
 			case LIB_Shadows:
@@ -382,6 +384,7 @@ namespace adria
 			case CS_MotionVectors:
 			case CS_MotionBlur:
 			case CS_Dof:
+			case CS_GodRays:
 			case CS_Fxaa:
 			case LIB_AmbientOcclusion:
 			case LIB_Reflections:

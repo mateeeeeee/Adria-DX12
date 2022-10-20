@@ -51,9 +51,6 @@ namespace adria
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Texture).GetPointer(), GetShader(PS_Texture).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::Forward].GetAddressOf())));
 
-			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_GodRays).GetPointer(), GetShader(PS_GodRays).GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::GodRays].GetAddressOf())));
-
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_LensFlare).GetPointer(), GetShader(PS_LensFlare).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::LensFlare].GetAddressOf())));
 
