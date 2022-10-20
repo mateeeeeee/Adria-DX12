@@ -532,9 +532,6 @@
     <ClInclude Include="Graphics\GPUProfiler.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\ProfilerSettings.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Utilities\EnumUtil.h">
       <Filter>Utilities</Filter>
     </ClInclude>
@@ -777,6 +774,9 @@
     </ClInclude>
     <ClInclude Include="Math\Packing.h">
       <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GpuMacros.h">
+      <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

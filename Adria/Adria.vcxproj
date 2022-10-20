@@ -279,6 +279,7 @@
     <ClInclude Include="Graphics\DescriptorHeap.h" />
     <ClInclude Include="Graphics\DWParam.h" />
     <ClInclude Include="Graphics\DynamicAllocation.h" />
+    <ClInclude Include="Graphics\GpuMacros.h" />
     <ClInclude Include="Graphics\GraphicsDeviceDX12.h" />
     <ClInclude Include="Graphics\GraphicsStates.h" />
     <ClInclude Include="Graphics\InputLayout.h" />
@@ -286,7 +287,6 @@
     <ClInclude Include="Graphics\LinearDynamicAllocator.h" />
     <ClInclude Include="Graphics\GPUProfiler.h" />
     <ClInclude Include="Graphics\OfflineDescriptorAllocator.h" />
-    <ClInclude Include="Graphics\ProfilerSettings.h" />
     <ClInclude Include="Graphics\RayTracingUtil.h" />
     <ClInclude Include="Graphics\Releasable.h" />
     <ClInclude Include="Graphics\RenderPass.h" />

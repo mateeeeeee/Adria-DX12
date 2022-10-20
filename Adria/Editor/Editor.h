@@ -6,7 +6,6 @@
 #include "../Core/Engine.h"
 #include "../Rendering/RendererSettings.h"
 #include "../Rendering/ViewportData.h"
-#include "../Graphics/ProfilerSettings.h"
 #include "../ImGui/imgui_internal.h"
 #include "../ImGui/ImGuizmo.h"
 #include "entt/entity/registry.hpp"
@@ -61,8 +60,7 @@ namespace adria
 		ImGuizmo::OPERATION gizmo_op = ImGuizmo::TRANSLATE;
 
 		RendererSettings renderer_settings{};
-		ProfilerSettings profiler_settings{};
-
+		
 		bool reload_shaders = false;
 		std::queue<AABB*> aabb_updates;
 		std::array<bool, Flag_Count> window_flags = { false };

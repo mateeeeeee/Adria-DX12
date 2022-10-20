@@ -42,15 +42,6 @@ namespace adria
 
 	class Renderer
 	{
-		enum ENullHeapSlot
-		{
-			NULL_HEAP_SLOT_TEXTURE2D,
-			NULL_HEAP_SLOT_TEXTURECUBE,
-			NULL_HEAP_SLOT_TEXTURE2DARRAY,
-			NULL_HEAP_SLOT_RWTEXTURE2D,
-			NULL_HEAP_SIZE
-		};
-		
 	public:
 
 		Renderer(entt::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height);
@@ -60,7 +51,6 @@ namespace adria
 		void Update(float32 dt);
 		void Render(RendererSettings const&);
 
-		void SetProfilerSettings(ProfilerSettings const&);
 		void SetViewportData(ViewportData const& vp)
 		{
 			viewport_data = vp;
@@ -78,11 +68,6 @@ namespace adria
 		}
 		TextureManager& GetTextureManager();
 		PickingData const& GetPickingData() const { return picking_data; }
-		std::vector<Timestamp> GetProfilerResults() const
-		{
-			return gpu_profiler.GetProfilerResults(gfx->GetDefaultCommandList());
-		}
-
 		bool IsRayTracingSupported() const { return ray_tracer.IsSupported(); }
 	private:
 		entt::registry& reg;
@@ -91,10 +76,7 @@ namespace adria
 		RGResourcePool resource_pool;
 
 		CPUProfiler cpu_profiler;
-		GPUProfiler gpu_profiler;
-
 		RendererSettings renderer_settings;
-		ProfilerSettings profiler_settings = NO_PROFILING;
 		Camera const* camera;
 
 		uint32 const backbuffer_count;

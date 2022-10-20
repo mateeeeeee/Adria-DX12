@@ -53,31 +53,7 @@ namespace adria
 		RenderGraph(RenderGraph&&) = default;
 		RenderGraph& operator=(RenderGraph const&) = delete;
 		RenderGraph& operator=(RenderGraph&&) = default;
-		~RenderGraph()
-		{
-			for (auto& [tex_id, view_vector] : texture_view_map)
-			{
-				for (auto [view, type] : view_vector)
-				{
-					switch (type)
-					{
-					case ERGDescriptorType::RenderTarget:
-						gfx->FreeOfflineDescriptor(view, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-						continue;
-					case ERGDescriptorType::DepthStencil:
-						gfx->FreeOfflineDescriptor(view, D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-						continue;
-					default:
-						gfx->FreeOfflineDescriptor(view, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-					}
-				}
-			}
-
-			for (auto& [buf_id, view_vector] : buffer_view_map)
-			{
-				for (auto [view, type] : view_vector) gfx->FreeOfflineDescriptor(view, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			}
-		}
+		~RenderGraph();
 
 		template<typename PassData, typename... Args> requires std::is_constructible_v<RenderGraphPass<PassData>, Args...>
 		[[maybe_unused]] decltype(auto) AddPass(Args&&... args)
