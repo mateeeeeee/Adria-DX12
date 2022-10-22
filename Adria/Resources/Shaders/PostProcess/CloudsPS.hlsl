@@ -19,8 +19,6 @@ Texture2D depthTex : register(t3);
 SamplerState linear_wrap_sampler : register(s0);
 SamplerState point_wrap_sampler  : register(s1);
 
-
-
 // Cloud types height density gradients
 #define STRATUS_GRADIENT        float4(0.0f, 0.1f, 0.2f, 0.3f)
 #define STRATOCUMULUS_GRADIENT  float4(0.02f, 0.2f, 0.48f, 0.625f)

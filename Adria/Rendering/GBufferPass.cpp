@@ -33,8 +33,8 @@ namespace adria
 				builder.DeclareTexture(RG_RES_NAME(GBufferEmissive), gbuffer_desc);
 
 				builder.WriteRenderTarget(RG_RES_NAME(GBufferNormal), ERGLoadStoreAccessOp::Clear_Preserve);
-				builder.WriteRenderTarget(RG_RES_NAME(GBufferAlbedo), ERGLoadStoreAccessOp::Discard_Preserve);
-				builder.WriteRenderTarget(RG_RES_NAME(GBufferEmissive), ERGLoadStoreAccessOp::Discard_Preserve);
+				builder.WriteRenderTarget(RG_RES_NAME(GBufferAlbedo), ERGLoadStoreAccessOp::Clear_Preserve);
+				builder.WriteRenderTarget(RG_RES_NAME(GBufferEmissive), ERGLoadStoreAccessOp::Clear_Preserve);
 				
 				RGTextureDesc depth_desc{};
 				depth_desc.width = width;
@@ -102,10 +102,10 @@ namespace adria
 						material_cbuf_data.roughness_factor = material.roughness_factor;
 						material_cbuf_data.emissive_factor = material.emissive_factor;
 						material_cbuf_data.alpha_cutoff = material.alpha_cutoff;
-						material_cbuf_data.albedo_idx = material.albedo_texture != INVALID_TEXTURE_HANDLE ? static_cast<int32>(material.albedo_texture) : 0;
-						material_cbuf_data.normal_idx = material.normal_texture != INVALID_TEXTURE_HANDLE ? static_cast<int32>(material.normal_texture) : 0;
-						material_cbuf_data.metallic_roughness_idx = material.metallic_roughness_texture != INVALID_TEXTURE_HANDLE ? static_cast<int32>(material.metallic_roughness_texture) : 0;
-						material_cbuf_data.emissive_idx = material.emissive_texture != INVALID_TEXTURE_HANDLE ? static_cast<int32>(material.emissive_texture) : 0;
+						material_cbuf_data.albedo_idx = static_cast<int32>(material.albedo_texture);
+						material_cbuf_data.normal_idx = static_cast<int32>(material.normal_texture);
+						material_cbuf_data.metallic_roughness_idx = static_cast<int32>(material.metallic_roughness_texture);
+						material_cbuf_data.emissive_idx = static_cast<int32>(material.emissive_texture);
 
 						DynamicAllocation material_allocation = dynamic_allocator->Allocate(GetCBufferSize<MaterialCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 						material_allocation.Update(material_cbuf_data);

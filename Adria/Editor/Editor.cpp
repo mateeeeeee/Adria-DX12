@@ -1231,18 +1231,6 @@ namespace adria
 
 			for (auto&& cmd : commands) cmd.callback();
 			commands.clear();
-
-			if (ImGui::TreeNode("Misc"))
-			{
-				ImGui::ColorEdit3("Ambient Color", renderer_settings.ambient_color);
-				ImGui::Checkbox("IBL", &renderer_settings.ibl);
-				if (renderer_settings.ibl)
-				{
-					renderer_settings.ibl = false;
-					ADRIA_LOG(INFO, "IBL is currently broken!");
-				}
-				ImGui::TreePop();
-			}
 		}
 		ImGui::End();
 	}
@@ -1383,20 +1371,9 @@ namespace adria
 	void Editor::Debug()
 	{
 		if (!window_flags[Flag_Debug]) return;
-
-		auto device = engine->gfx->GetDevice();
-		auto descriptor_allocator = gui->DescriptorAllocator();
-		ImVec2 v_min = ImGui::GetWindowContentRegionMin();
-		ImVec2 v_max = ImGui::GetWindowContentRegionMax();
-		v_min.x += ImGui::GetWindowPos().x;
-		v_min.y += ImGui::GetWindowPos().y;
-		v_max.x += ImGui::GetWindowPos().x;
-		v_max.y += ImGui::GetWindowPos().y;
-		ImVec2 size(v_max.x - v_min.x, v_max.y - v_min.y);
-
 		if(ImGui::Begin("Debug", &window_flags[Flag_Debug]))
 		{
-			for (auto& cmd : debug_commands) cmd.callback(descriptor_allocator);
+			for (auto& cmd : debug_commands) cmd.callback(gui->DescriptorAllocator());
 			debug_commands.clear();
 		}
 		ImGui::End();

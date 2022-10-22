@@ -136,7 +136,6 @@ namespace adria
 		void UpdateLights();
 		void UpdatePersistentConstantBuffers(float32 dt);
 		void CameraFrustumCulling();
-		void GenerateIBLTextures();
 
 		void CopyToBackbuffer(RenderGraph& rg);
 		void ResolveToFinalTexture(RenderGraph& rg);

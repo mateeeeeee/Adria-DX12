@@ -4,10 +4,11 @@
 #include "PSOCache.h" 
 #include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"
+#include "../Math/Packing.h"
+#include "../Editor/GUICommand.h"
 
 namespace adria
 {
-
 	AmbientPass::AmbientPass(uint32 w, uint32 h)
 		: width(w), height(h)
 	{}
@@ -16,95 +17,92 @@ namespace adria
 	{
 		struct AmbientPassData
 		{
-			RGTextureReadOnlyId gbuffer_normal_srv;
-			RGTextureReadOnlyId gbuffer_albedo_srv;
-			RGTextureReadOnlyId gbuffer_emissive_srv;
-			RGTextureReadOnlyId depth_stencil_srv;
+			RGTextureReadOnlyId gbuffer_normal;
+			RGTextureReadOnlyId gbuffer_albedo;
+			RGTextureReadOnlyId gbuffer_emissive;
+			RGTextureReadOnlyId depth_stencil;
 
-			RGTextureReadOnlyId ambient_occlusion_srv;
-			RGTextureReadOnlyId env_srv;
-			RGTextureReadOnlyId irmap_srv;
-			RGTextureReadOnlyId brdf_srv;
+			RGTextureReadOnlyId ambient_occlusion;
+			RGTextureReadWriteId output;
 		};
 
 		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
 		rendergraph.AddPass<AmbientPassData>("Ambient Pass",
 			[=](AmbientPassData& data, RenderGraphBuilder& builder)
 			{
-				RGTextureDesc render_target_desc{};
-				render_target_desc.format = EFormat::R16G16B16A16_FLOAT;
-				render_target_desc.width = width;
-				render_target_desc.height = height;
-				render_target_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
-				
-				builder.DeclareTexture(RG_RES_NAME(HDR_RenderTarget), render_target_desc);
-				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), ERGLoadStoreAccessOp::Clear_Preserve);
-				data.gbuffer_normal_srv = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_PixelShader);
-				data.gbuffer_albedo_srv = builder.ReadTexture(RG_RES_NAME(GBufferAlbedo), ReadAccess_PixelShader);
-				data.gbuffer_emissive_srv = builder.ReadTexture(RG_RES_NAME(GBufferEmissive), ReadAccess_PixelShader);
-				data.depth_stencil_srv = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
-				if (builder.IsTextureDeclared(RG_RES_NAME(AmbientOcclusion)))
-				{
-					data.ambient_occlusion_srv = builder.ReadTexture(RG_RES_NAME(AmbientOcclusion), ReadAccess_PixelShader);
-				}
-				if (builder.IsTextureDeclared(RG_RES_NAME(EnvTexture)) && 
-					builder.IsTextureDeclared(RG_RES_NAME(IrmapTexture)) &&
-					builder.IsTextureDeclared(RG_RES_NAME(BrdfTexture)))
-				{
-					data.env_srv = builder.ReadTexture(RG_RES_NAME(EnvTexture), ReadAccess_PixelShader);
-					data.irmap_srv = builder.ReadTexture(RG_RES_NAME(IrmapTexture), ReadAccess_PixelShader);
-					data.brdf_srv = builder.ReadTexture(RG_RES_NAME(BrdfTexture), ReadAccess_PixelShader);
-				}
+				RGTextureDesc hdr_desc{};
+				hdr_desc.format = EFormat::R16G16B16A16_FLOAT;
+				hdr_desc.width = width;
+				hdr_desc.height = height;
+				hdr_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
+				builder.DeclareTexture(RG_RES_NAME(HDR_RenderTarget), hdr_desc);
 
-				builder.SetViewport(width, height);
+				data.output = builder.WriteTexture(RG_RES_NAME(HDR_RenderTarget));
+				data.gbuffer_normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
+				data.gbuffer_albedo = builder.ReadTexture(RG_RES_NAME(GBufferAlbedo), ReadAccess_NonPixelShader);
+				data.gbuffer_emissive = builder.ReadTexture(RG_RES_NAME(GBufferEmissive), ReadAccess_NonPixelShader);
+				data.depth_stencil = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				if (builder.IsTextureDeclared(RG_RES_NAME(AmbientOcclusion)))
+					data.ambient_occlusion = builder.ReadTexture(RG_RES_NAME(AmbientOcclusion), ReadAccess_NonPixelShader);
+				else 
+					data.ambient_occlusion.Invalidate();
 			},
 			[&](AmbientPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::AmbientPBR));
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
-
-				bool has_ao = data.ambient_occlusion_srv.IsValid();
-				bool has_ibl = data.env_srv.IsValid() && data.irmap_srv.IsValid() && data.brdf_srv.IsValid();
-				if (has_ao && has_ibl) cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::AmbientPBR_AO_IBL));
-				else if (has_ao && !has_ibl) cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::AmbientPBR_AO));
-				else if (!has_ao && has_ibl) cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::AmbientPBR_IBL));
-				else cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::AmbientPBR));
-
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { context.GetReadOnlyTexture(data.gbuffer_normal_srv),
-					context.GetReadOnlyTexture(data.gbuffer_albedo_srv), context.GetReadOnlyTexture(data.gbuffer_emissive_srv), context.GetReadOnlyTexture(data.depth_stencil_srv) };
-				uint32 src_range_sizes[] = { 1,1,1,1 };
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
-				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { context.GetReadOnlyTexture(data.gbuffer_normal),
+					context.GetReadOnlyTexture(data.gbuffer_albedo), context.GetReadOnlyTexture(data.gbuffer_emissive), context.GetReadOnlyTexture(data.depth_stencil),
+					data.ambient_occlusion.IsValid() ? context.GetReadOnlyTexture(data.ambient_occlusion) : global_data.null_srv_texture2d,
+					context.GetReadWriteTexture(data.output)};
+				uint32 src_range_sizes[] = { 1,1,1,1,1,1 };
+				uint32 i = (uint32)descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
+				auto dst = descriptor_allocator->GetHandle(i);
 				uint32 dst_range_sizes[] = { (uint32)ARRAYSIZE(cpu_handles) };
-				device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes, ARRAYSIZE(cpu_handles), cpu_handles, src_range_sizes,
+				device->CopyDescriptors(1, dst.GetCPUAddress(), dst_range_sizes, ARRAYSIZE(cpu_handles), cpu_handles, src_range_sizes,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetGraphicsRootDescriptorTable(1, dst_descriptor);
 
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles2[] = { global_data.null_srv_texture2d, global_data.null_srv_texturecube,
-															   global_data.null_srv_texturecube, global_data.null_srv_texture2d };
-				uint32 src_range_sizes2[] = { 1,1,1,1 };
+				FLOAT clear[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+				cmd_list->ClearUnorderedAccessViewFloat(descriptor_allocator->GetHandle(i + 5), context.GetReadWriteTexture(data.output),
+					context.GetTexture(data.output.GetResourceId()).GetNative(), clear, 0, nullptr);
 
-				if (has_ao) cpu_handles2[0] = context.GetReadOnlyTexture(data.ambient_occlusion_srv);
-				if (has_ibl)
+				struct AmbientConstants
 				{
-					cpu_handles2[1] = context.GetReadOnlyTexture(data.env_srv);
-					cpu_handles2[2] = context.GetReadOnlyTexture(data.irmap_srv);
-					cpu_handles2[3] = context.GetReadOnlyTexture(data.brdf_srv);
+					uint32  color;
+
+					uint32  normal_idx;
+					uint32  diffuse_idx;
+					uint32  emissive_idx;
+					uint32  depth_idx;
+					int32   ao_idx;
+					uint32  output_idx;
+				} constants =
+				{
+					.color = PackToUint(ambient_color),
+					.normal_idx = i, .diffuse_idx = i + 1, .emissive_idx = i + 2,
+					.depth_idx = i + 3, .ao_idx = -1, .output_idx = i + 5
+				};
+				if (data.ambient_occlusion.IsValid()) constants.ao_idx = static_cast<int32>(i + 4);
+
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Ambient));
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRoot32BitConstants(1, 7, &constants, 0);
+				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
+			}, ERGPassType::Compute);
+
+		AddGUI([&]()
+			{
+				if (ImGui::TreeNode("Ambient"))
+				{
+					ImGui::ColorEdit3("Ambient Color", ambient_color);
+					ImGui::Checkbox("IBL", &ibl);
+					if (ibl) ibl = false;
+					ImGui::TreePop();
 				}
-
-				descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles2));
-				dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				uint32 dst_range_sizes2[] = { (uint32)ARRAYSIZE(cpu_handles2) };
-				device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes2, ARRAYSIZE(cpu_handles2), cpu_handles2, src_range_sizes2,
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetGraphicsRootDescriptorTable(2, dst_descriptor);
-
-				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-				cmd_list->DrawInstanced(4, 1, 0, 0);
-			});
+			}
+		);
 	}
 
 	void AmbientPass::OnResize(uint32 w, uint32 h)

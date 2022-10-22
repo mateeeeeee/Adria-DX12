@@ -270,7 +270,7 @@ namespace adria
 		{
 			ComPtr<IDxcContainerReflection> reflection;
 			HRESULT hr = DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(reflection.GetAddressOf()));
-			ReflectionBlob my_blob{ vs_blob.GetPointer() , vs_blob.GetLength() };
+			ReflectionBlob my_blob{ vs_blob.GetPointer(), vs_blob.GetLength() };
 			BREAK_IF_FAILED(hr);
 			hr = reflection->Load(&my_blob);
 			BREAK_IF_FAILED(hr);

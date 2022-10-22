@@ -55,7 +55,7 @@ namespace adria
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ToneMap));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 5, &constants, 0);
-				cmd_list->Dispatch((UINT)std::ceil(width / 16), (UINT)std::ceil(height / 16), 1);
+				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
 			}, ERGPassType::Compute, ERGPassFlags::None);
 
 		GUI();
@@ -113,7 +113,7 @@ namespace adria
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ToneMap));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 5, &constants, 0);
-				cmd_list->Dispatch((UINT)std::ceil(width / 16), (UINT)std::ceil(height / 16), 1);
+				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
 			}, ERGPassType::Compute, flags);
 
 		GUI();

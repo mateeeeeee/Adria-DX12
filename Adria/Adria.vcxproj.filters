@@ -92,6 +92,9 @@
     <Filter Include="NewShaders\Postprocess">
       <UniqueIdentifier>{04bf1695-6a82-4e87-b105-ba18b81fde09}</UniqueIdentifier>
     </Filter>
+    <Filter Include="NewShaders\Lighting">
+      <UniqueIdentifier>{eae617e6-2b56-4bf3-8c7b-94a731f182b4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -799,13 +802,7 @@
     <FxCompile Include="Resources\Shaders\Misc\GenerateMipsCS.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\PostProcess\ToneMapPS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\PostProcess\ScreenQuadVS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\PostProcess\FXAA_PS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Deferred\AmbientPBR_PS.hlsl">
@@ -866,9 +863,6 @@
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\PostProcess\CopyPS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\PostProcess\GodRaysPS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\PostProcess\LensFlareGS.hlsl">
@@ -1057,6 +1051,12 @@
     <FxCompile Include="Resources\NewShaders\Postprocess\FXAA.hlsl">
       <Filter>NewShaders\Postprocess</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Postprocess\GodRays.hlsl">
+      <Filter>NewShaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Lighting\Ambient.hlsl">
+      <Filter>NewShaders\Lighting</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Shaders\Globals\GlobalsCS.hlsli">
@@ -1077,9 +1077,6 @@
     <None Include="Resources\Shaders\Globals\GlobalsVS.hlsli">
       <Filter>Shaders\Globals</Filter>
     </None>
-    <None Include="Resources\Shaders\Util\DitherUtil.hlsli">
-      <Filter>Shaders\Util</Filter>
-    </None>
     <None Include="Resources\Shaders\Util\LightUtil.hlsli">
       <Filter>Shaders\Util</Filter>
     </None>
@@ -1089,17 +1086,8 @@
     <None Include="Resources\Shaders\Util\ShadowUtil.hlsli">
       <Filter>Shaders\Util</Filter>
     </None>
-    <None Include="Resources\Shaders\Util\ToneMapUtil.hlsli">
-      <Filter>Shaders\Util</Filter>
-    </None>
     <None Include="Resources\Shaders\Util\CBuffers.hlsli">
       <Filter>Shaders\Util</Filter>
-    </None>
-    <None Include="Resources\Shaders\Util\RayTracingUtil.hlsli">
-      <Filter>Shaders\Util</Filter>
-    </None>
-    <None Include="Resources\Shaders\Globals\GlobalsRT.hlsli">
-      <Filter>Shaders\Globals</Filter>
     </None>
     <None Include="Resources\Shaders\Particles\ParticleGlobals.hlsli">
       <Filter>Shaders\Particles</Filter>

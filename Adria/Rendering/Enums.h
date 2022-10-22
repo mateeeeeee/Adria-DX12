@@ -2,7 +2,6 @@
 #include "../Core/Definitions.h"
 
 
-
 namespace adria
 {
 	enum EShaderId : uint8
@@ -17,10 +16,6 @@ namespace adria
 		VS_GBufferPBR,
 		PS_GBufferPBR,
 		PS_GBufferPBR_Mask,
-		PS_AmbientPBR,
-		PS_AmbientPBR_AO,
-		PS_AmbientPBR_IBL,
-		PS_AmbientPBR_AO_IBL,
 		PS_LightingPBR,
 		PS_LightingPBR_RayTracedShadows,
 		PS_ClusteredLightingPBR,
@@ -98,6 +93,7 @@ namespace adria
 		CS_Dof,
 		CS_Fxaa,
 		CS_GodRays,
+		CS_Ambient,
 		ShaderId_Count
 	};
 
@@ -109,7 +105,6 @@ namespace adria
 		Sky,
 		TAA,
 		GbufferPBR,
-		AmbientPBR,
 		LightingPBR,
 		ClusteredLightingPBR,
 		DepthMap,
@@ -160,10 +155,7 @@ namespace adria
 		GBufferPBR_NoCull,
 		GBufferPBR_Mask,
 		GBufferPBR_Mask_NoCull,
-		AmbientPBR,
-		AmbientPBR_AO,
-		AmbientPBR_IBL,
-		AmbientPBR_AO_IBL,
+		Ambient,
 		LightingPBR,
 		LightingPBR_RayTracedShadows,
 		ClusteredLightingPBR,

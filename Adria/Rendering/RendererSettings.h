@@ -21,8 +21,6 @@ namespace adria
 
 	struct RendererSettings
 	{
-		float32 ambient_color[3] = { 15.0f / 255.0f, 15.0f / 255.0f, 15.0f / 255.0f };
-		bool ibl = false;
 		bool gui_visible = false;
 		bool use_tiled_deferred = false;
 		bool use_clustered_deferred = false;

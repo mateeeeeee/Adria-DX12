@@ -72,7 +72,7 @@ namespace adria
 
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
-				cmd_list->Dispatch((UINT)std::ceil(width / 16), (UINT)std::ceil(height / 16), 1);
+				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
 			}, ERGPassType::Compute);
 
 		blur_pass.AddPass(rendergraph, RG_RES_NAME(HBAO_Output), RG_RES_NAME(AmbientOcclusion), " HBAO");

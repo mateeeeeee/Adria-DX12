@@ -304,8 +304,8 @@ namespace adria
 		init_data.pData = &v;
 		init_data.RowPitch = sizeof(float32);
 		init_data.SlicePitch = 0;
-		std::unique_ptr<Texture> white_default_texture = std::make_unique<Texture>(gfx, desc, &init_data);
-		texture_map[INVALID_TEXTURE_HANDLE] = std::move(white_default_texture);
+		std::unique_ptr<Texture> black_default_texture = std::make_unique<Texture>(gfx, desc, &init_data);
+		texture_map[INVALID_TEXTURE_HANDLE] = std::move(black_default_texture);
 
 		mips_generator->Generate(gfx->GetDefaultCommandList());
 

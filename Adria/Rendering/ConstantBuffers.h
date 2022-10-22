@@ -26,7 +26,7 @@ namespace adria
 		float32  screen_resolution_y;
 
 		float32  delta_time;
-		float32  frame_count;
+		uint32   frame_count;
 
 		float32  mouse_normalized_coords_x;
 		float32  mouse_normalized_coords_y;
@@ -36,7 +36,6 @@ namespace adria
 
 	DECLSPEC_ALIGN(16) struct FrameCBuffer
 	{
-		DirectX::XMVECTOR global_ambient;
 		DirectX::XMMATRIX view;
 		DirectX::XMMATRIX projection;
 		DirectX::XMMATRIX view_projection;

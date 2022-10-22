@@ -17,6 +17,8 @@ namespace adria
 
 	private:
 		uint32 width, height;
+		float32 ambient_color[3] = { 15.0f / 255.0f, 15.0f / 255.0f, 15.0f / 255.0f };
+		bool ibl = false;
 	};
 
 }

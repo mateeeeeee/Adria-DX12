@@ -52,6 +52,8 @@ namespace adria
 				return "GodRays";
 			case CS_Fxaa:
 				return "FXAA";
+			case CS_Ambient:
+				return "Ambient";
 			default:
 				return "main";
 			}
@@ -86,10 +88,6 @@ namespace adria
 			case PS_Decals_ModifyNormals:
 			case PS_GBufferPBR:
 			case PS_GBufferPBR_Mask:
-			case PS_AmbientPBR:
-			case PS_AmbientPBR_AO:
-			case PS_AmbientPBR_IBL:
-			case PS_AmbientPBR_AO_IBL:
 			case PS_LightingPBR:
 			case PS_LightingPBR_RayTracedShadows:
 			case PS_ClusteredLightingPBR:
@@ -148,6 +146,7 @@ namespace adria
 			case CS_Dof:
 			case CS_GodRays:
 			case CS_Fxaa:
+			case CS_Ambient:
 				return EShaderStage::CS;
 			case HS_OceanLOD:
 				return EShaderStage::HS;
@@ -199,11 +198,6 @@ namespace adria
 				return "Deferred/GBuffer_PS.hlsl";
 			case VS_ScreenQuad:
 				return "Postprocess/ScreenQuadVS.hlsl";
-			case PS_AmbientPBR:
-			case PS_AmbientPBR_AO:
-			case PS_AmbientPBR_IBL:
-			case PS_AmbientPBR_AO_IBL:
-				return "Deferred/AmbientPBR_PS.hlsl";
 			case PS_LightingPBR:
 			case PS_LightingPBR_RayTracedShadows:
 				return "Deferred/LightingPBR_PS.hlsl";
@@ -330,6 +324,8 @@ namespace adria
 				return "Postprocess/GodRays.hlsl";
 			case CS_Fxaa:
 				return "Postprocess/FXAA.hlsl";
+			case CS_Ambient:
+				return "Lighting/Ambient.hlsl";
 			case LIB_Shadows:
 			case LIB_SoftShadows:
 				return "RayTracing/RayTracedShadows.hlsl";
@@ -348,12 +344,6 @@ namespace adria
 			{
 			case PS_Decals_ModifyNormals:
 				return { {L"DECAL_MODIFY_NORMALS", L""} };
-			case PS_AmbientPBR_AO:
-				return { {L"SSAO", L"1"} };
-			case PS_AmbientPBR_IBL:
-				return { {L"IBL", L"1"} };
-			case PS_AmbientPBR_AO_IBL:
-				return { {L"SSAO", L"1"}, {L"IBL", L"1"} };
 			case VS_DepthMap_Transparent:
 			case PS_DepthMap_Transparent:
 				return { {L"TRANSPARENT", L"1"} };
@@ -386,6 +376,7 @@ namespace adria
 			case CS_Dof:
 			case CS_GodRays:
 			case CS_Fxaa:
+			case CS_Ambient:
 			case LIB_AmbientOcclusion:
 			case LIB_Reflections:
 			case LIB_Shadows:

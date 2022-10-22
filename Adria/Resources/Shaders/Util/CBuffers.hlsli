@@ -2,7 +2,6 @@
 
 struct FrameCBuffer
 {
-    float4 global_ambient;
     row_major matrix view;
     row_major matrix projection;
     row_major matrix viewprojection;
