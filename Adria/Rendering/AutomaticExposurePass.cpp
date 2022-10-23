@@ -1,5 +1,5 @@
 #include "AutomaticExposurePass.h"
-#include "GlobalBlackboardData.h"
+#include "BlackboardData.h"
 #include "PSOCache.h" 
 #include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"

@@ -607,7 +607,7 @@
     <ClInclude Include="RenderGraph\RenderGraphResourcePool.h">
       <Filter>RenderGraph</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\GlobalBlackboardData.h">
+    <ClInclude Include="Rendering\BlackboardData.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="RenderGraph\RenderGraphResourceName.h">
@@ -804,9 +804,6 @@
     </FxCompile>
     <FxCompile Include="Resources\Shaders\PostProcess\ScreenQuadVS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Deferred\AmbientPBR_PS.hlsl">
-      <Filter>Shaders\Deferred</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Deferred\GBuffer_PS.hlsl">
       <Filter>Shaders\Deferred</Filter>

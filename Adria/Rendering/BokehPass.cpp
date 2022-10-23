@@ -1,7 +1,7 @@
 #include "BokehPass.h"
 #include "ConstantBuffers.h"
 #include "Components.h"
-#include "GlobalBlackboardData.h"
+#include "BlackboardData.h"
 #include "PSOCache.h" 
 #include "RootSignatureCache.h"
 #include "../RenderGraph/RenderGraph.h"

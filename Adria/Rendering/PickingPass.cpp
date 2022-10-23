@@ -1,7 +1,7 @@
 #include "PickingPass.h"
 #include "PSOCache.h" 
 #include "RootSignatureCache.h"
-#include "GlobalBlackboardData.h"
+#include "BlackboardData.h"
 #include "../Logging/Logger.h"
 #include "../RenderGraph/RenderGraph.h"
 

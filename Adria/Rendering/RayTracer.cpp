@@ -1,6 +1,6 @@
 #include "RayTracer.h"
 #include "Components.h"
-#include "GlobalBlackboardData.h"
+#include "BlackboardData.h"
 #include "ShaderCache.h"
 #include "RootSignatureCache.h"
 #include "entt/entity/registry.hpp"

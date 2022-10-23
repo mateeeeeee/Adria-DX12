@@ -18,7 +18,8 @@ struct FrameCBuffer
 	float2 screenResolution;
 
 	float  deltaTime;
-	uint  frameCount;
+	float  totalTime;
+	uint   frameCount;
 
 	float2 mouseNormalizedCoords;
 

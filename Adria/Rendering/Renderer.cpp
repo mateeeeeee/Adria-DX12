@@ -1,5 +1,5 @@
 #include "Renderer.h"
-#include "GlobalBlackboardData.h"
+#include "BlackboardData.h"
 #include "Camera.h"
 #include "Components.h"
 #include "PSOCache.h" 
@@ -356,6 +356,7 @@ namespace adria
 			new_frame_cbuf_data.screen_resolution_x = (float32)width;
 			new_frame_cbuf_data.screen_resolution_y = (float32)height;
 			new_frame_cbuf_data.delta_time = dt;
+			new_frame_cbuf_data.total_time = total_time;
 			new_frame_cbuf_data.frame_count = gfx->FrameIndex();
 			new_frame_cbuf_data.mouse_normalized_coords_x = (viewport_data.mouse_position_x - viewport_data.scene_viewport_pos_x) / viewport_data.scene_viewport_size_x;
 			new_frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
@@ -459,6 +460,7 @@ namespace adria
 			compute_cbuf_data.visualize_max_lights = tiled_lighting_pass.MaxLightsForVisualization();
 			compute_cbuf_data.bokeh_blur_threshold = bokeh_params.bokeh_blur_threshold;
 			compute_cbuf_data.bokeh_lum_threshold = bokeh_params.bokeh_lum_threshold;
+
 			compute_cbuf_data.dof_params = XMVectorSet(0, 200, 400, 600); //for now hardcoded
 			compute_cbuf_data.bokeh_radius_scale = bokeh_params.bokeh_radius_scale;
 			compute_cbuf_data.bokeh_color_scale = bokeh_params.bokeh_color_scale;

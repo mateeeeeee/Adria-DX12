@@ -26,6 +26,7 @@ namespace adria
 		float32  screen_resolution_y;
 
 		float32  delta_time;
+		float32  total_time;
 		uint32   frame_count;
 
 		float32  mouse_normalized_coords_x;

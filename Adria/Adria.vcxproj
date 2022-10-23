@@ -351,7 +351,7 @@
     <ClInclude Include="Rendering\FXAAPass.h" />
     <ClInclude Include="Rendering\GBufferPass.h" />
     <ClInclude Include="Rendering\GenerateMipsPass.h" />
-    <ClInclude Include="Rendering\GlobalBlackboardData.h" />
+    <ClInclude Include="Rendering\BlackboardData.h" />
     <ClInclude Include="Rendering\HBAOPass.h" />
     <ClInclude Include="Rendering\LightingPass.h" />
     <ClInclude Include="Rendering\MotionBlurPass.h" />
@@ -622,18 +622,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Adria\Resources\NewShaders;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Adria\Resources\NewShaders;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Deferred\AmbientPBR_PS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
-      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Resources\Compiled Shaders\%(Filename).cso</ObjectFileOutput>
-      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Resources\Compiled Shaders\%(Filename).cso</ObjectFileOutput>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Deferred\ClusterBuildingCS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
