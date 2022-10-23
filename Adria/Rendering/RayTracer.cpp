@@ -337,7 +337,7 @@ namespace adria
 					uint32  depth_idx;
 					uint32  gbuf_normals_idx;
 					uint32  output_idx;
-					float32 ao_radius;
+					float ao_radius;
 				} constants = 
 				{
 					.accel_struct_idx = i, .depth_idx = i + 1, .gbuf_normals_idx = i + 2, .output_idx = i + 3,
@@ -573,7 +573,7 @@ namespace adria
 			rtr_state_object_builder.AddSubObject(dxil_lib_desc);
 
 			D3D12_RAYTRACING_SHADER_CONFIG rtr_shader_config{};
-			rtr_shader_config.MaxPayloadSizeInBytes = sizeof(float32) * 4;
+			rtr_shader_config.MaxPayloadSizeInBytes = sizeof(float) * 4;
 			rtr_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
 			rtr_state_object_builder.AddSubObject(rtr_shader_config);
 

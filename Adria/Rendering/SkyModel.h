@@ -23,5 +23,5 @@ namespace adria
 
 	using SkyParameters = std::array<DirectX::XMFLOAT3, ESkyParam_Count>;
 
-	SkyParameters CalculateSkyParameters(float32 turbidity, float32 albedo, DirectX::XMFLOAT3 sun_direction);
+	SkyParameters CalculateSkyParameters(float turbidity, float albedo, DirectX::XMFLOAT3 sun_direction);
 }

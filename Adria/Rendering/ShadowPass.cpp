@@ -59,13 +59,13 @@ namespace adria
 			{
 				frustumCenter = frustumCenter + XMLoadFloat3(&corners[i]);
 			}
-			frustumCenter /= static_cast<float32>(corners.size());
+			frustumCenter /= static_cast<float>(corners.size());
 
-			float32 radius = 0.0f;
+			float radius = 0.0f;
 
 			for (uint32 i = 0; i < corners.size(); ++i)
 			{
-				float32 dist = DirectX::XMVectorGetX(XMVector3Length(DirectX::XMLoadFloat3(&corners[i]) - frustumCenter));
+				float dist = DirectX::XMVectorGetX(XMVector3Length(DirectX::XMLoadFloat3(&corners[i]) - frustumCenter));
 				radius = (std::max)(radius, dist);
 			}
 			radius = std::ceil(radius * 8.0f) / 8.0f;
@@ -85,12 +85,12 @@ namespace adria
 			XMStoreFloat3(&maxE, maxExtents);
 			XMStoreFloat3(&cascadeE, cascadeExtents);
 
-			float32 l = minE.x;
-			float32 b = minE.y;
-			float32 n = minE.z; // -farFactor * radius;
-			float32 r = maxE.x;
-			float32 t = maxE.y;
-			float32 f = maxE.z * 1.5f;
+			float l = minE.x;
+			float b = minE.y;
+			float n = minE.z; // -farFactor * radius;
+			float r = maxE.x;
+			float t = maxE.y;
+			float f = maxE.z * 1.5f;
 
 			XMMATRIX P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
 
@@ -130,9 +130,9 @@ namespace adria
 
 			XMMATRIX V = XMMatrixLookAtLH(light_pos, target_pos, up);
 
-			static const float32 shadow_near = 0.5f;
+			static const float shadow_near = 0.5f;
 
-			float32 fov_angle = 2.0f * acos(light.outer_cosine);
+			float fov_angle = 2.0f * acos(light.outer_cosine);
 
 			XMMATRIX P = XMMatrixPerspectiveFovLH(fov_angle, 1.0f, shadow_near, light.range);
 
@@ -145,7 +145,7 @@ namespace adria
 		std::pair<DirectX::XMMATRIX, DirectX::XMMATRIX> LightViewProjection_Point(Light const& light, uint32 face_index,
 			BoundingFrustum& cull_frustum)
 		{
-			static float32 const shadow_near = 0.5f;
+			static float const shadow_near = 0.5f;
 			XMMATRIX P = XMMatrixPerspectiveFovLH(XMConvertToRadians(90.0f), 1.0f, shadow_near, light.range);
 
 			XMVECTOR light_pos = light.position;
@@ -195,20 +195,20 @@ namespace adria
 			return { V,P };
 		}
 
-		std::array<XMMATRIX, ShadowPass::SHADOW_CASCADE_COUNT> RecalculateProjectionMatrices(Camera const& camera, float32 split_lambda, std::array<float32, ShadowPass::SHADOW_CASCADE_COUNT>& split_distances)
+		std::array<XMMATRIX, ShadowPass::SHADOW_CASCADE_COUNT> RecalculateProjectionMatrices(Camera const& camera, float split_lambda, std::array<float, ShadowPass::SHADOW_CASCADE_COUNT>& split_distances)
 		{
-			float32 camera_near = camera.Near();
-			float32 camera_far = camera.Far();
-			float32 fov = camera.Fov();
-			float32 ar = camera.AspectRatio();
+			float camera_near = camera.Near();
+			float camera_far = camera.Far();
+			float fov = camera.Fov();
+			float ar = camera.AspectRatio();
 
-			float32 f = 1.0f / ShadowPass::SHADOW_CASCADE_COUNT;
+			float f = 1.0f / ShadowPass::SHADOW_CASCADE_COUNT;
 
 			for (uint32 i = 0; i < split_distances.size(); i++)
 			{
-				float32 fi = (i + 1) * f;
-				float32 l = camera_near * pow(camera_far / camera_near, fi);
-				float32 u = camera_near + (camera_far - camera_near) * fi;
+				float fi = (i + 1) * f;
+				float l = camera_near * pow(camera_far / camera_near, fi);
+				float u = camera_near + (camera_far - camera_near) * fi;
 				split_distances[i] = l * split_lambda + u * (1.0f - split_lambda);
 			}
 
@@ -224,8 +224,8 @@ namespace adria
 			XMMATRIX projection_matrix,
 			BoundingBox& cull_box)
 		{
-			static float32 const farFactor = 1.5f;
-			static float32 const lightDistanceFactor = 1.0f;
+			static float const farFactor = 1.5f;
+			static float const lightDistanceFactor = 1.0f;
 
 			std::array<XMMATRIX, ShadowPass::SHADOW_CASCADE_COUNT> lightViewProjectionMatrices{};
 
@@ -241,13 +241,13 @@ namespace adria
 			{
 				frustumCenter = frustumCenter + XMLoadFloat3(&corners[i]);
 			}
-			frustumCenter /= static_cast<float32>(corners.size());
+			frustumCenter /= static_cast<float>(corners.size());
 
-			float32 radius = 0.0f;
+			float radius = 0.0f;
 
 			for (uint32 i = 0; i < corners.size(); ++i)
 			{
-				float32 dist = XMVectorGetX(XMVector3Length(XMLoadFloat3(&corners[i]) - frustumCenter));
+				float dist = XMVectorGetX(XMVector3Length(XMLoadFloat3(&corners[i]) - frustumCenter));
 				radius = (std::max)(radius, dist);
 			}
 			radius = std::ceil(radius * 8.0f) / 8.0f;
@@ -267,12 +267,12 @@ namespace adria
 			XMStoreFloat3(&maxE, maxExtents);
 			XMStoreFloat3(&cascadeE, cascadeExtents);
 
-			float32 l = minE.x;
-			float32 b = minE.y;
-			float32 n = minE.z - farFactor * radius;
-			float32 r = maxE.x;
-			float32 t = maxE.y;
-			float32 f = maxE.z * farFactor;
+			float l = minE.x;
+			float b = minE.y;
+			float n = minE.z - farFactor * radius;
+			float r = maxE.x;
+			float t = maxE.y;
+			float f = maxE.z * farFactor;
 
 			XMMATRIX P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
 
@@ -384,7 +384,7 @@ namespace adria
 			RGAllocationId alloc_id;
 		};
 
-		std::array<float32, SHADOW_CASCADE_COUNT> split_distances;
+		std::array<float, SHADOW_CASCADE_COUNT> split_distances;
 		std::array<XMMATRIX, SHADOW_CASCADE_COUNT> proj_matrices = RecalculateProjectionMatrices(*camera, 0.5f, split_distances);
 		std::array<XMMATRIX, SHADOW_CASCADE_COUNT> light_view_projections{};
 		std::array<XMMATRIX, SHADOW_CASCADE_COUNT> light_views{};

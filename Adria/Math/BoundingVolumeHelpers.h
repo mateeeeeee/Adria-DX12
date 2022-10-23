@@ -10,9 +10,9 @@ namespace adria
     template<typename V>
     concept HasPosition = requires (V v)
     {
-        {v.position.x} -> std::convertible_to<float32>;
-        {v.position.y} -> std::convertible_to<float32>;
-        {v.position.z} -> std::convertible_to<float32>;
+        {v.position.x} -> std::convertible_to<float>;
+        {v.position.y} -> std::convertible_to<float>;
+        {v.position.z} -> std::convertible_to<float>;
     };
 
     template<typename Iterator> requires HasPosition<std::iter_value_t<Iterator>>

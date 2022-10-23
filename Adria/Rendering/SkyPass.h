@@ -30,7 +30,7 @@ namespace adria
 		{
 			return CalculateSkyParameters(turbidity, ground_albedo, dir);
 		}
-		float32 const* GetSkyColor() const { return sky_color; }
+		float const* GetSkyColor() const { return sky_color; }
 	private:
 		entt::registry& reg;
 		TextureManager& texture_manager;
@@ -39,9 +39,9 @@ namespace adria
 		std::unique_ptr<Buffer>	cube_ib = nullptr;
 
 		ESkyType sky_type;
-		float32 sky_color[3] = { 0.53f, 0.81f, 0.92f };
-		float32 turbidity = 2.0f;
-		float32 ground_albedo = 0.1f;
+		float sky_color[3] = { 0.53f, 0.81f, 0.92f };
+		float turbidity = 2.0f;
+		float ground_albedo = 0.1f;
 
 	private:
 		void CreateCubeBuffers(GraphicsDevice* gfx);

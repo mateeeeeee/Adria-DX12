@@ -11,8 +11,8 @@ namespace adria
 
 	struct BloomParameters
 	{
-		float32 bloom_threshold = 0.25f;
-		float32 bloom_scale = 2.0f;
+		float bloom_threshold = 0.25f;
+		float bloom_scale = 2.0f;
 	};
 
 	class BloomPass

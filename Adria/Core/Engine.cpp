@@ -63,16 +63,16 @@ namespace adria
 				}
 				std::string tex_path = model_params.FindOr<std::string>("tex_path", GetParentPath(path) + "\\");
 
-				float32 position[3] = { 0.0f, 0.0f, 0.0f };
+				float position[3] = { 0.0f, 0.0f, 0.0f };
 				model_params.FindArray("translation", position);
 				XMMATRIX translation = XMMatrixTranslation(position[0], position[1], position[2]);
 
-				float32 angles[3] = { 0.0f, 0.0f, 0.0f };
+				float angles[3] = { 0.0f, 0.0f, 0.0f };
 				model_params.FindArray("rotation", angles);
 				std::transform(std::begin(angles), std::end(angles), std::begin(angles), XMConvertToRadians);
 				XMMATRIX rotation = XMMatrixRotationX(angles[0]) * XMMatrixRotationY(angles[1]) * XMMatrixRotationZ(angles[2]);
 
-				float32 scale_factors[3] = { 1.0f, 1.0f, 1.0f };
+				float scale_factors[3] = { 1.0f, 1.0f, 1.0f };
 				model_params.FindArray("scale", scale_factors);
 				XMMATRIX scale = XMMatrixScaling(scale_factors[0], scale_factors[1], scale_factors[2]);
 				XMMATRIX transform = rotation * scale * translation;
@@ -92,23 +92,23 @@ namespace adria
 				}
 
 				LightParameters light{};
-				float32 position[3] = { 0.0f, 0.0f, 0.0f };
+				float position[3] = { 0.0f, 0.0f, 0.0f };
 				light_params.FindArray("position", position);
 				light.light_data.position = XMVectorSet(position[0], position[1], position[2], 1.0f);
 
-				float32 direction[3] = { 0.0f, -1.0f, 0.0f };
+				float direction[3] = { 0.0f, -1.0f, 0.0f };
 				light_params.FindArray("direction", direction);
 				light.light_data.direction = XMVectorSet(direction[0], direction[1], direction[2], 0.0f);
 
-				float32 color[3] = { 1.0f, 1.0f, 1.0f };
+				float color[3] = { 1.0f, 1.0f, 1.0f };
 				light_params.FindArray("color", color);
 				light.light_data.color = XMVectorSet(color[0], color[1], color[2], 1.0f);
 
-				light.light_data.energy = light_params.FindOr<float32>("energy", 1.0f);
-				light.light_data.range = light_params.FindOr<float32>("range", 100.0f);
+				light.light_data.energy = light_params.FindOr<float>("energy", 1.0f);
+				light.light_data.range = light_params.FindOr<float>("range", 100.0f);
 
-				light.light_data.outer_cosine = std::cos(XMConvertToRadians(light_params.FindOr<float32>("outer_angle", 45.0f)));
-				light.light_data.inner_cosine = std::cos(XMConvertToRadians(light_params.FindOr<float32>("outer_angle", 22.5f)));
+				light.light_data.outer_cosine = std::cos(XMConvertToRadians(light_params.FindOr<float>("outer_angle", 45.0f)));
+				light.light_data.inner_cosine = std::cos(XMConvertToRadians(light_params.FindOr<float>("outer_angle", 22.5f)));
 
 				light.light_data.casts_shadows = light_params.FindOr<bool>("shadows", true);
 				light.light_data.use_cascades = light_params.FindOr<bool>("cascades", false);
@@ -116,15 +116,15 @@ namespace adria
 
 				light.light_data.active = light_params.FindOr<bool>("active", true);
 				light.light_data.volumetric = light_params.FindOr<bool>("volumetric", false);
-				light.light_data.volumetric_strength = light_params.FindOr<float32>("volumetric_strength", 1.0f);
+				light.light_data.volumetric_strength = light_params.FindOr<float>("volumetric_strength", 1.0f);
 
 				light.light_data.lens_flare = light_params.FindOr<bool>("lens_flare", false);
 				light.light_data.god_rays = light_params.FindOr<bool>("god_rays", false);
 
-				light.light_data.godrays_decay = light_params.FindOr<float32>("godrays_decay", 0.825f);
-				light.light_data.godrays_exposure = light_params.FindOr<float32>("godrays_exposure", 2.0f);
-				light.light_data.godrays_density = light_params.FindOr<float32>("godrays_density", 0.975f);
-				light.light_data.godrays_weight = light_params.FindOr<float32>("godrays_weight", 0.25f);
+				light.light_data.godrays_decay = light_params.FindOr<float>("godrays_decay", 0.825f);
+				light.light_data.godrays_exposure = light_params.FindOr<float>("godrays_exposure", 2.0f);
+				light.light_data.godrays_density = light_params.FindOr<float>("godrays_density", 0.975f);
+				light.light_data.godrays_weight = light_params.FindOr<float>("godrays_weight", 0.25f);
 
 				light.mesh_type = ELightMesh::NoMesh;
 				std::string mesh = light_params.FindOr<std::string>("mesh", "");
@@ -161,17 +161,17 @@ namespace adria
 			}
 
 			JsonParams camera_params(camera);
-			config.camera_params.near_plane = camera_params.FindOr<float32>("near", 1.0f);
-			config.camera_params.far_plane = camera_params.FindOr<float32>("far", 3000.0f);
-			config.camera_params.fov = XMConvertToRadians(camera_params.FindOr<float32>("fov", 90.0f));
-			config.camera_params.sensitivity = camera_params.FindOr<float32>("sensitivity", 0.3f);
-			config.camera_params.speed = camera_params.FindOr<float32>("speed", 25.0f);
+			config.camera_params.near_plane = camera_params.FindOr<float>("near", 1.0f);
+			config.camera_params.far_plane = camera_params.FindOr<float>("far", 3000.0f);
+			config.camera_params.fov = XMConvertToRadians(camera_params.FindOr<float>("fov", 90.0f));
+			config.camera_params.sensitivity = camera_params.FindOr<float>("sensitivity", 0.3f);
+			config.camera_params.speed = camera_params.FindOr<float>("speed", 25.0f);
 
-			float32 position[3] = { 0.0f, 0.0f, 0.0f };
+			float position[3] = { 0.0f, 0.0f, 0.0f };
 			camera_params.FindArray("position", position);
 			config.camera_params.position = XMFLOAT3(position);
 
-			float32 look_at[3] = { 0.0f, 0.0f, 10.0f };
+			float look_at[3] = { 0.0f, 0.0f, 10.0f };
 			camera_params.FindArray("look_at", look_at);
 			config.camera_params.look_at = XMFLOAT3(look_at);
 
@@ -251,7 +251,7 @@ namespace adria
 	void Engine::Run(RendererSettings const& settings)
 	{
 		static AdriaTimer timer;
-		float32 const dt = timer.MarkInSeconds();
+		float const dt = timer.MarkInSeconds();
 		Input::GetInstance().NewFrame();
 		if (true || Window::IsActive()) //crash when window is hidden, temp fix
 		{	
@@ -265,7 +265,7 @@ namespace adria
 		gfx->SwapBuffers(vsync);
 	}
 
-	void Engine::Update(float32 dt)
+	void Engine::Update(float dt)
 	{
 		camera->Tick(dt);
 		renderer->NewFrame(camera.get());
@@ -291,10 +291,10 @@ namespace adria
 			viewport_data.mouse_position_y = Input::GetInstance().GetMousePositionY();
 
 			auto [pos_x, pos_y] = Window::Position();
-			viewport_data.scene_viewport_pos_x = static_cast<float32>(pos_x);
-			viewport_data.scene_viewport_pos_y = static_cast<float32>(pos_y);
-			viewport_data.scene_viewport_size_x = static_cast<float32>(Window::Width());
-			viewport_data.scene_viewport_size_y = static_cast<float32>(Window::Height());
+			viewport_data.scene_viewport_pos_x = static_cast<float>(pos_x);
+			viewport_data.scene_viewport_pos_y = static_cast<float>(pos_y);
+			viewport_data.scene_viewport_size_x = static_cast<float>(Window::Width());
+			viewport_data.scene_viewport_size_y = static_cast<float>(Window::Height());
 		}
 		renderer->SetViewportData(viewport_data);
 	}
@@ -309,7 +309,7 @@ namespace adria
 	{
 		gfx->ResetDefaultCommandList();
 
-		const_cast<SceneConfig&>(config).camera_params.aspect_ratio = static_cast<float32>(Window::Width()) / Window::Height();
+		const_cast<SceneConfig&>(config).camera_params.aspect_ratio = static_cast<float>(Window::Width()) / Window::Height();
 		camera = std::make_unique<Camera>(config.camera_params);
 		entity_loader->LoadSkybox(config.skybox_params);
 

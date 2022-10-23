@@ -92,8 +92,8 @@ namespace adria
         window_data.msg = static_cast<uint32>(msg);
         window_data.wparam = static_cast<uint64>(wParam);
         window_data.lparam = static_cast<int64>(lParam);
-        window_data.width = static_cast<float32>(Width());
-        window_data.height = static_cast<float32>(Height());
+        window_data.width = static_cast<float>(Width());
+        window_data.height = static_cast<float>(Height());
 
         if (msg == WM_CLOSE || msg == WM_DESTROY)
         {

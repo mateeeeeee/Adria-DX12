@@ -22,7 +22,7 @@ namespace adria
 	{
 	}
 
-	void ParticleRenderer::Update(float32 dt)
+	void ParticleRenderer::Update(float dt)
 	{
 		auto emitters = reg.view<Emitter>();
 		for (auto emitter : emitters)
@@ -35,8 +35,8 @@ namespace adria
 
 				if (emitter_params.accumulation > 1.0f)
 				{
-					float64 integer_part = 0.0;
-					float32 fraction = (float32)modf(emitter_params.accumulation, &integer_part);
+					double integer_part = 0.0;
+					float fraction = (float)modf(emitter_params.accumulation, &integer_part);
 
 					emitter_params.number_to_emit = (int32)integer_part;
 					emitter_params.accumulation = fraction;
@@ -90,7 +90,7 @@ namespace adria
 		indirect_sort_args_signature	= std::make_unique<DispatchIndirectSignature>(gfx);
 
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
-		std::vector<float32> random_texture_data(1024 * 1024 * 4);
+		std::vector<float> random_texture_data(1024 * 1024 * 4);
 		for (uint32 i = 0; i < random_texture_data.size(); i++)
 		{
 			random_texture_data[i] = 2.0f * rand_float() - 1.0f;
@@ -98,7 +98,7 @@ namespace adria
 
 		D3D12_SUBRESOURCE_DATA initial_data{};
 		initial_data.pData = random_texture_data.data();
-		initial_data.RowPitch = 1024 * 4 * sizeof(float32);
+		initial_data.RowPitch = 1024 * 4 * sizeof(float);
 		initial_data.SlicePitch = 0;
 
 		TextureDesc noise_desc{};

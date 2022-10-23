@@ -60,7 +60,7 @@ namespace adria
 		shadow_pass.SetCamera(camera);
 		GPUProfiler::Get().NewFrame();
 	}
-	void Renderer::Update(float32 dt)
+	void Renderer::Update(float dt)
 	{
 		UpdateLights();
 		UpdatePersistentConstantBuffers(dt);
@@ -229,10 +229,10 @@ namespace adria
 		desc.initial_state = EResourceState::PixelShaderResource;
 		desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 
-		float32 v = 1.0f;
+		float v = 1.0f;
 		TextureInitialData init_data{};
 		init_data.pData = &v;
-		init_data.RowPitch = sizeof(float32);
+		init_data.RowPitch = sizeof(float);
 		init_data.SlicePitch = 0;
 		white_default_texture = std::make_unique<Texture>(gfx, desc, &init_data);
 		white_default_texture->CreateSRV();
@@ -334,9 +334,9 @@ namespace adria
 		light_array_srv = dst_descriptor;
 	}
 
-	void Renderer::UpdatePersistentConstantBuffers(float32 dt)
+	void Renderer::UpdatePersistentConstantBuffers(float dt)
 	{
-		static float32 total_time = 0.0f;
+		static float total_time = 0.0f;
 		total_time += dt;
 
 		static NewFrameCBuffer new_frame_cbuf_data{};
@@ -353,8 +353,8 @@ namespace adria
 			new_frame_cbuf_data.inverse_projection = XMMatrixInverse(nullptr, camera->Proj());
 			new_frame_cbuf_data.inverse_view_projection = XMMatrixInverse(nullptr, camera->ViewProj());
 			new_frame_cbuf_data.reprojection = new_frame_cbuf_data.inverse_view_projection * new_frame_cbuf_data.prev_view_projection;
-			new_frame_cbuf_data.screen_resolution_x = (float32)width;
-			new_frame_cbuf_data.screen_resolution_y = (float32)height;
+			new_frame_cbuf_data.screen_resolution_x = (float)width;
+			new_frame_cbuf_data.screen_resolution_y = (float)height;
 			new_frame_cbuf_data.delta_time = dt;
 			new_frame_cbuf_data.total_time = total_time;
 			new_frame_cbuf_data.frame_count = gfx->FrameIndex();
@@ -379,8 +379,8 @@ namespace adria
 			frame_cbuf_data.inverse_view = DirectX::XMMatrixInverse(nullptr, camera->View());
 			frame_cbuf_data.inverse_projection = DirectX::XMMatrixInverse(nullptr, camera->Proj());
 			frame_cbuf_data.inverse_view_projection = DirectX::XMMatrixInverse(nullptr, camera->ViewProj());
-			frame_cbuf_data.screen_resolution_x = (float32)width;
-			frame_cbuf_data.screen_resolution_y = (float32)height;
+			frame_cbuf_data.screen_resolution_x = (float)width;
+			frame_cbuf_data.screen_resolution_y = (float)height;
 			frame_cbuf_data.mouse_normalized_coords_x = (viewport_data.mouse_position_x - viewport_data.scene_viewport_pos_x) / viewport_data.scene_viewport_size_x;
 			frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
 
@@ -442,7 +442,7 @@ namespace adria
 			BloomParameters bloom_params = postprocessor.GetBloomParams();
 			BokehParameters bokeh_params = postprocessor.GetBokehParams();
 
-			std::array<float32, 9> coeffs{};
+			std::array<float, 9> coeffs{};
 			coeffs.fill(1.0f / 9);
 			static ComputeCBuffer compute_cbuf_data{};
 			compute_cbuf_data.gauss_coeff1 = coeffs[0];

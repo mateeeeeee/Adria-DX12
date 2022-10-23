@@ -65,10 +65,10 @@ namespace adria
 
 				struct SSAOConstants
 				{
-					float32  radius;
-					float32  power;
-					float32  noise_scale_x;
-					float32  noise_scale_y;
+					float  radius;
+					float  power;
+					float  noise_scale_x;
+					float  noise_scale_y;
 		
 					uint32   depth_idx;
 					uint32   normal_idx;
@@ -113,7 +113,7 @@ namespace adria
 	void SSAOPass::OnSceneInitialized(GraphicsDevice* gfx)
 	{
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
-		std::vector<float32> random_texture_data;
+		std::vector<float> random_texture_data;
 		for (int32 i = 0; i < 8 * 8; i++)
 		{
 			random_texture_data.push_back(rand_float()); 
@@ -124,7 +124,7 @@ namespace adria
 
 		TextureInitialData data{};
 		data.pData = random_texture_data.data();
-		data.RowPitch = 8 * 4 * sizeof(float32);
+		data.RowPitch = 8 * 4 * sizeof(float);
 		data.SlicePitch = 0;
 
 		TextureDesc noise_desc{};

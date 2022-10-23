@@ -13,11 +13,11 @@ namespace adria
 		};
 		struct ClearColor
 		{
-			ClearColor(float32 r = 0.0f, float32 g = 0.0f, float32 b = 0.0f, float32 a = 0.0f)
+			ClearColor(float r = 0.0f, float g = 0.0f, float b = 0.0f, float a = 0.0f)
 				: color{ r, g, b, a }
 			{
 			}
-			ClearColor(float32(&_color)[4])
+			ClearColor(float(&_color)[4])
 				: color{ _color[0], _color[1], _color[2], _color[3] }
 			{
 			}
@@ -31,25 +31,25 @@ namespace adria
 				return memcmp(color, other.color, sizeof(color)) == 0;
 			}
 
-			float32 color[4];
+			float color[4];
 		};
 		struct ClearDepthStencil
 		{
-			ClearDepthStencil(float32 depth = 0.0f, uint8 stencil = 1)
+			ClearDepthStencil(float depth = 0.0f, uint8 stencil = 1)
 				: depth(depth), stencil(stencil)
 			{}
-			float32 depth;
+			float depth;
 			uint8 stencil;
 		};
 
 		ClearValue() : active_member(ActiveMember::None), depth_stencil{} {}
 
-		ClearValue(float32 r, float32 g, float32 b, float32 a)
+		ClearValue(float r, float g, float b, float a)
 			: active_member(ActiveMember::Color), color(r, g, b, a)
 		{
 		}
 
-		ClearValue(float32(&_color)[4])
+		ClearValue(float(&_color)[4])
 			: active_member(ActiveMember::Color), color{_color }
 		{
 		}
@@ -58,7 +58,7 @@ namespace adria
 			: active_member(ActiveMember::Color), color(color)
 		{}
 
-		ClearValue(float32 depth, uint8 stencil)
+		ClearValue(float depth, uint8 stencil)
 			: active_member(ActiveMember::DepthStencil), depth_stencil(depth, stencil)
 		{}
 		ClearValue(ClearDepthStencil const& depth_stencil)

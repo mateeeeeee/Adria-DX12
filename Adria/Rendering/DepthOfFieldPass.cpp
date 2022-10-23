@@ -18,7 +18,7 @@ namespace adria
 	RGResourceName DepthOfFieldPass::AddPass(RenderGraph& rg, RGResourceName input)
 	{
 		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
-		rg.GetBlackboard().Create<DoFData>(params.dof_near_blur, params.dof_near, params.dof_far, params.dof_far_blur);
+		rg.GetBlackboard().Create<DoFBlackboardData>(params.dof_near_blur, params.dof_near, params.dof_far, params.dof_far_blur);
 
 		RGResourceName last_resource = input;
 		struct DepthOfFieldPassData

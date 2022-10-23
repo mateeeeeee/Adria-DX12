@@ -42,7 +42,7 @@ namespace adria
 			{
 				TexturedNormalVertex vertex{};
 
-				float32 height = params.heightmap ? params.heightmap->HeightAt(i, j) : 0.0f;
+				float height = params.heightmap ? params.heightmap->HeightAt(i, j) : 0.0f;
 
 				vertex.position = XMFLOAT3(i * params.tile_size_x, height, j * params.tile_size_z);
 				vertex.uv = XMFLOAT2(i * 1.0f * params.texture_scale_x / (params.tile_count_x - 1), j * 1.0f * params.texture_scale_z / (params.tile_count_z - 1));
@@ -580,7 +580,7 @@ namespace adria
 					tinygltf::Image const& base_image = model.images[base_texture.source];
 					std::string texbase = params.textures_path + base_image.uri;
 					material.albedo_texture = texture_manager.LoadTexture(ToWideString(texbase));
-					material.albedo_factor = (float32)pbr_metallic_roughness.baseColorFactor[0];
+					material.albedo_factor = (float)pbr_metallic_roughness.baseColorFactor[0];
 				}
 				if (pbr_metallic_roughness.metallicRoughnessTexture.index >= 0)
 				{
@@ -588,8 +588,8 @@ namespace adria
 					tinygltf::Image const& metallic_roughness_image = model.images[metallic_roughness_texture.source];
 					std::string texmetallicroughness = params.textures_path + metallic_roughness_image.uri;
 					material.metallic_roughness_texture = texture_manager.LoadTexture(ToWideString(texmetallicroughness));
-					material.metallic_factor = (float32)pbr_metallic_roughness.metallicFactor;
-					material.roughness_factor = (float32)pbr_metallic_roughness.roughnessFactor;
+					material.metallic_factor = (float)pbr_metallic_roughness.metallicFactor;
+					material.roughness_factor = (float)pbr_metallic_roughness.roughnessFactor;
 				}
 				if (gltf_material.normalTexture.index >= 0)
 				{
@@ -604,7 +604,7 @@ namespace adria
 					tinygltf::Image const& emissive_image = model.images[emissive_texture.source];
 					std::string texemissive = params.textures_path + emissive_image.uri;
 					material.emissive_texture = texture_manager.LoadTexture(ToWideString(texemissive));
-					material.emissive_factor = (float32)gltf_material.emissiveFactor[0];
+					material.emissive_factor = (float)gltf_material.emissiveFactor[0];
 				}
 				material.pso = EPipelineState::GBufferPBR;
 				material.alpha_cutoff = gltf_material.alphaCutoff;

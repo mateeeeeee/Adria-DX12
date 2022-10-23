@@ -125,19 +125,19 @@ namespace adria
 						{
 						case 0:
 						{
-							static float32 deep_sky_blue[3] = { 0.0f, 0.75f, 1.0f };
+							static float deep_sky_blue[3] = { 0.0f, 0.75f, 1.0f };
 							memcpy(sky_color, deep_sky_blue, sizeof(deep_sky_blue));
 							break;
 						}
 						case 1:
 						{
-							static float32 sky_blue[3] = { 0.53f, 0.81f, 0.92f };
+							static float sky_blue[3] = { 0.53f, 0.81f, 0.92f };
 							memcpy(sky_color, sky_blue, sizeof(sky_blue));
 							break;
 						}
 						case 2:
 						{
-							static float32 light_sky_blue[3] = { 0.53f, 0.81f, 0.98f };
+							static float light_sky_blue[3] = { 0.53f, 0.81f, 0.98f };
 							memcpy(sky_color, light_sky_blue, sizeof(light_sky_blue));
 							break;
 						}

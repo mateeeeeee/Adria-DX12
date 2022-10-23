@@ -51,8 +51,8 @@ namespace adria
 
 				struct SSRConstants
 				{
-					float32 ssr_ray_step;
-					float32 ssr_ray_hit_threshold;
+					float ssr_ray_step;
+					float ssr_ray_hit_threshold;
 
 					uint32 depth_idx;
 					uint32 normal_idx;

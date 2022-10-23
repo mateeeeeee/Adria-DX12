@@ -418,13 +418,13 @@ namespace adria
 		ocean_texture_desc.initial_state = EResourceState::UnorderedAccess;
 		initial_spectrum = std::make_unique<Texture>(gfx, ocean_texture_desc);
 
-		std::vector<float32> ping_array(FFT_RESOLUTION * FFT_RESOLUTION);
-		RealRandomGenerator rand_float{ 0.0f,  2.0f * pi<float32> };
+		std::vector<float> ping_array(FFT_RESOLUTION * FFT_RESOLUTION);
+		RealRandomGenerator rand_float{ 0.0f,  2.0f * pi<float> };
 		for (size_t i = 0; i < ping_array.size(); ++i) ping_array[i] = rand_float();
 
 		TextureInitialData data{};
 		data.pData = ping_array.data();
-		data.RowPitch = sizeof(float32) * FFT_RESOLUTION;
+		data.RowPitch = sizeof(float) * FFT_RESOLUTION;
 		data.SlicePitch = 0;
 
 		ping_pong_phase_textures[pong_phase] = std::make_unique<Texture>(gfx, ocean_texture_desc, &data);

@@ -11,8 +11,8 @@ namespace adria
 	{
 		struct SSRParameters
 		{
-			float32 ssr_ray_step = 1.60f;
-			float32 ssr_ray_hit_threshold = 2.00f;
+			float ssr_ray_step = 1.60f;
+			float ssr_ray_hit_threshold = 2.00f;
 		};
 	public:
 		SSRPass(uint32 w, uint32 h);

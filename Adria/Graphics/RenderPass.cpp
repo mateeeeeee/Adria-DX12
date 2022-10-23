@@ -60,8 +60,8 @@ namespace adria
 		}
 
 		D3D12_VIEWPORT vp = {};
-		vp.Width = (float32)width;
-		vp.Height = (float32)height;
+		vp.Width = (float)width;
+		vp.Height = (float)height;
 		vp.MinDepth = 0.0f;
 		vp.MaxDepth = 1.0f;
 		vp.TopLeftX = 0;

@@ -24,8 +24,8 @@ namespace adria
 
 		void OnSceneInitialized(GraphicsDevice* gfx);
 
-		float32 const* GetWindDirection() const { return wind_direction; }
-		float32 GetChoppiness() const { return ocean_choppiness; }
+		float const* GetWindDirection() const { return wind_direction; }
+		float GetChoppiness() const { return ocean_choppiness; }
 	private:
 		entt::registry& reg;
 		TextureManager& texture_manager;
@@ -41,10 +41,10 @@ namespace adria
 		//settings
 		bool ocean_wireframe = false;
 		bool ocean_tesselation = false;
-		float32 ocean_color[3] = { 0.0123f, 0.3613f, 0.6867f };
-		float32 ocean_choppiness = 1.2f;
+		float ocean_color[3] = { 0.0123f, 0.3613f, 0.6867f };
+		float ocean_choppiness = 1.2f;
 		bool ocean_color_changed = false;
 		bool recreate_initial_spectrum = true;
-		float32 wind_direction[2] = { 10.0f, 10.0f };
+		float wind_direction[2] = { 10.0f, 10.0f };
 	};
 }

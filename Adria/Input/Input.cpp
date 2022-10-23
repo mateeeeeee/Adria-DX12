@@ -23,8 +23,8 @@ namespace adria
 		POINT mouse_screen_pos;
 		if (::GetCursorPos(&mouse_screen_pos))
 		{
-			mouse_position_x = static_cast<float32>(mouse_screen_pos.x);
-			mouse_position_y = static_cast<float32>(mouse_screen_pos.y);
+			mouse_position_x = static_cast<float>(mouse_screen_pos.x);
+			mouse_position_y = static_cast<float>(mouse_screen_pos.y);
 		}
 	}
 
@@ -40,8 +40,8 @@ namespace adria
 			POINT mouse_screen_pos;
 			if (::GetCursorPos(&mouse_screen_pos))
 			{
-				mouse_position_x = static_cast<float32>(mouse_screen_pos.x);
-				mouse_position_y = static_cast<float32>(mouse_screen_pos.y);
+				mouse_position_x = static_cast<float>(mouse_screen_pos.x);
+				mouse_position_y = static_cast<float>(mouse_screen_pos.y);
 			}
 
 			//mouse 
@@ -175,14 +175,14 @@ namespace adria
 				break;
 			}
 		}
-		m_mouse_wheel_delta = (float32)GET_WHEEL_DELTA_WPARAM(data.wparam) / (float32)WHEEL_DELTA;
+		m_mouse_wheel_delta = (float)GET_WHEEL_DELTA_WPARAM(data.wparam) / (float)WHEEL_DELTA;
 
 	}
 	void Input::SetMouseVisible(bool visible)
 	{
 		::ShowCursor(visible);
 	}
-	void Input::SetMousePosition(float32 xpos, float32 ypos)
+	void Input::SetMousePosition(float xpos, float ypos)
 	{
 		HWND handle = static_cast<HWND>(Window::Handle());
 		if (handle == ::GetActiveWindow())

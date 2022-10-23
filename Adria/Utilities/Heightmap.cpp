@@ -63,10 +63,10 @@ namespace adria
 			for (uint32 x = 0; x < desc.width; x++)
 			{
 
-				float32 xf = x * desc.noise_scale / desc.width; // - desc.width / 2;
-				float32 zf = z * desc.noise_scale / desc.depth; // - desc.depth / 2;
+				float xf = x * desc.noise_scale / desc.width; // - desc.width / 2;
+				float zf = z * desc.noise_scale / desc.depth; // - desc.depth / 2;
 
-				float32 total = noise.GetNoise(xf, zf);
+				float total = noise.GetNoise(xf, zf);
 
 				hm[z][x] = total * desc.max_height;
 			}
@@ -76,7 +76,7 @@ namespace adria
 	{
 		//todo
 	}
-	float32 Heightmap::HeightAt(uint64 x, uint64 z)
+	float Heightmap::HeightAt(uint64 x, uint64 z)
 	{
 		return hm[z][x];
 	}

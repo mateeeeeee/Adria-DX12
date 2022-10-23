@@ -94,10 +94,10 @@ namespace adria
 				{
 					uint32  width;
 					uint32  height;
-					float32 rcp_width;
-					float32 rcp_height;
-					float32 min_luminance;
-					float32 max_luminance;
+					float rcp_width;
+					float rcp_height;
+					float min_luminance;
+					float max_luminance;
 					uint32  scene_idx;
 					uint32  histogram_idx;
 				} constants = {	.width = half_width, .height = half_height, 
@@ -149,10 +149,10 @@ namespace adria
 
 				struct HistogramReductionConstants 
 				{
-					float32 min_luminance;
-					float32 max_luminance;
-					float32 low_percentile;
-					float32 high_percentile;
+					float min_luminance;
+					float max_luminance;
+					float low_percentile;
+					float high_percentile;
 					uint32  histogram_idx;
 					uint32  luminance_idx;
 				} constants = { .min_luminance = min_luminance, .max_luminance = max_luminance,
@@ -192,7 +192,7 @@ namespace adria
 					DescriptorHandle gpu_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 					device->CopyDescriptorsSimple(1, gpu_descriptor, cpu_descriptor, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-					float32 clear_value[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+					float clear_value[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 					cmd_list->ClearUnorderedAccessViewFloat(gpu_descriptor, cpu_descriptor, previous_ev100->GetNative(), clear_value, 0, nullptr);
 					invalid_history = false;
 				}
@@ -215,9 +215,9 @@ namespace adria
 
 				struct ExposureConstants
 				{
-					float32 adaption_speed;
-					float32 exposure_compensation;
-					float32 frame_time;
+					float adaption_speed;
+					float exposure_compensation;
+					float frame_time;
 					uint32  previous_ev_idx;
 					uint32  exposure_idx;
 					uint32  luminance_idx;

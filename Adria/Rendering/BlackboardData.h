@@ -11,7 +11,7 @@ namespace adria
 		DirectX::XMMATRIX			camera_view;
 		DirectX::XMMATRIX			camera_proj;
 		DirectX::XMMATRIX			camera_viewproj;
-		float32						camera_fov;
+		float						camera_fov;
 		D3D12_GPU_VIRTUAL_ADDRESS   new_frame_cbuffer_address;
 		D3D12_GPU_VIRTUAL_ADDRESS   frame_cbuffer_address;
 		D3D12_GPU_VIRTUAL_ADDRESS   weather_cbuffer_address;
@@ -25,11 +25,11 @@ namespace adria
 		D3D12_GPU_DESCRIPTOR_HANDLE lights_buffer_gpu_srv;
 	};
 
-	struct DoFData
+	struct DoFBlackboardData
 	{
-		float32 dof_params_x;
-		float32 dof_params_y;
-		float32 dof_params_z;
-		float32 dof_params_w;
+		float dof_params_x;
+		float dof_params_y;
+		float dof_params_z;
+		float dof_params_w;
 	};
 }

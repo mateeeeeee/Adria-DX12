@@ -67,26 +67,26 @@ namespace adria
 		bool IsKeyUp(EKeyCode key)   /*const*/ { return !GetKey(key) && prev_keys[key]; }
 
 		void SetMouseVisible(bool visible);
-		void SetMousePosition(float32 xpos, float32 ypos);
+		void SetMousePosition(float xpos, float ypos);
 
-		float32 GetMousePositionX()  const { return mouse_position_x; }
-		float32 GetMousePositionY()  const { return mouse_position_y; }
+		float GetMousePositionX()  const { return mouse_position_x; }
+		float GetMousePositionY()  const { return mouse_position_y; }
 
-		float32 GetMouseDeltaX()     const { return mouse_position_x - prev_mouse_position_x;/*return mouse_delta_x;*/ }
-		float32 GetMouseDeltaY()     const { return mouse_position_y - prev_mouse_position_y;/*return mouse_delta_y;*/ }
-		float32 GetMouseWheelDelta() const { return m_mouse_wheel_delta; }
+		float GetMouseDeltaX()     const { return mouse_position_x - prev_mouse_position_x;/*return mouse_delta_x;*/ }
+		float GetMouseDeltaY()     const { return mouse_position_y - prev_mouse_position_y;/*return mouse_delta_y;*/ }
+		float GetMouseWheelDelta() const { return m_mouse_wheel_delta; }
 
 	private:
 		InputEvents input_events;
 		HashMap<EKeyCode, bool> keys;
 		HashMap<EKeyCode, bool> prev_keys;
 		// Mouse
-		float32 mouse_position_x = 0.0f;
-		float32 mouse_position_y = 0.0f;
+		float mouse_position_x = 0.0f;
+		float mouse_position_y = 0.0f;
 
-		float32 prev_mouse_position_x = 0.0f;
-		float32 prev_mouse_position_y = 0.0f;
-		float32 m_mouse_wheel_delta = 0.0f;
+		float prev_mouse_position_x = 0.0f;
+		float prev_mouse_position_y = 0.0f;
+		float m_mouse_wheel_delta = 0.0f;
 
 		bool new_frame = false;
 		bool resizing = false;

@@ -34,7 +34,7 @@ namespace adria
 
 		std::vector<AccumulatedTimeStamp> displayed_timestamps;
 		std::vector<AccumulatedTimeStamp> accumulating_timestamps;
-		float64 last_reset_time;
+		double last_reset_time;
 		uint32 accumulating_frame_count;
 	};
 	struct ImGuiLogger
@@ -420,8 +420,8 @@ namespace adria
 			{
 				static GridParameters ocean_params{};
 				static int32 tile_count[2] = { 512, 512 };
-				static float32 tile_size[2] = { 40.0f, 40.0f };
-				static float32 texture_scale[2] = { 20.0f, 20.0f };
+				static float tile_size[2] = { 40.0f, 40.0f };
+				static float texture_scale[2] = { 20.0f, 20.0f };
 
 				ImGui::SliderInt2("Tile Count", tile_count, 32, 1024);
 				ImGui::SliderFloat2("Tile Size", tile_size, 1.0, 100.0f);
@@ -621,7 +621,7 @@ namespace adria
 					XMStoreFloat4(&light_direction, light->direction);
 					XMStoreFloat4(&light_position, light->position);
 
-					float32 color[3] = { light_color.x, light_color.y, light_color.z };
+					float color[3] = { light_color.x, light_color.y, light_color.z };
 					ImGui::ColorEdit3("Light Color", color);
 					light->color = XMVectorSet(color[0], color[1], color[2], 1.0f);
 
@@ -635,7 +635,7 @@ namespace adria
 
 					if (light->type == ELightType::Directional || light->type == ELightType::Spot)
 					{
-						float32 direction[3] = { light_direction.x, light_direction.y, light_direction.z };
+						float direction[3] = { light_direction.x, light_direction.y, light_direction.z };
 
 						ImGui::SliderFloat3("Light direction", direction, -1.0f, 1.0f);
 
@@ -649,7 +649,7 @@ namespace adria
 
 					if (light->type == ELightType::Spot)
 					{
-						float32 inner_angle = XMConvertToDegrees(acos(light->inner_cosine))
+						float inner_angle = XMConvertToDegrees(acos(light->inner_cosine))
 							, outer_angle = XMConvertToDegrees(acos(light->outer_cosine));
 						ImGui::SliderFloat("Inner Spot Angle", &inner_angle, 0.0f, 90.0f);
 						ImGui::SliderFloat("Outer Spot Angle", &outer_angle, inner_angle, 90.0f);
@@ -660,7 +660,7 @@ namespace adria
 
 					if (light->type == ELightType::Point || light->type == ELightType::Spot)
 					{
-						float32 position[3] = { light_position.x, light_position.y, light_position.z };
+						float position[3] = { light_position.x, light_position.y, light_position.z };
 
 						ImGui::SliderFloat3("Light position", position, -300.0f, 500.0f);
 
@@ -909,7 +909,7 @@ namespace adria
 					}
 					ImGui::PopID();
 
-					float32 pos[3] = { emitter->position.x, emitter->position.y, emitter->position.z },
+					float pos[3] = { emitter->position.x, emitter->position.y, emitter->position.z },
 						vel[3] = { emitter->velocity.x, emitter->velocity.y, emitter->velocity.z },
 						pos_var[3] = { emitter->position_variance.x, emitter->position_variance.y, emitter->position_variance.z };
 
@@ -924,7 +924,7 @@ namespace adria
 					{
 						XMFLOAT4X4 tr;
 						XMStoreFloat4x4(&tr, transform->current_transform);
-						float32 translation[3], rotation[3], scale[3];
+						float translation[3], rotation[3], scale[3];
 						ImGuizmo::DecomposeMatrixToComponents(tr.m[0], translation, rotation, scale);
 						ImGuizmo::RecomposeMatrixFromComponents(pos, rotation, scale, tr.m[0]);
 						transform->current_transform = DirectX::XMLoadFloat4x4(&tr);
@@ -1043,11 +1043,11 @@ namespace adria
 		{
 			XMFLOAT3 cam_pos;
 			XMStoreFloat3(&cam_pos, camera.Position());
-			float32 pos[3] = { cam_pos.x , cam_pos.y, cam_pos.z };
+			float pos[3] = { cam_pos.x , cam_pos.y, cam_pos.z };
 			ImGui::SliderFloat3("Position", pos, 0.0f, 2000.0f);
 			camera.SetPosition(DirectX::XMFLOAT3(pos));
-			float32 near_plane = camera.Near(), far_plane = camera.Far();
-			float32 _fov = camera.Fov(), _ar = camera.AspectRatio();
+			float near_plane = camera.Near(), far_plane = camera.Far();
+			float _fov = camera.Fov(), _ar = camera.AspectRatio();
 			ImGui::SliderFloat("Near", &near_plane, 0.0f, 2.0f);
 			ImGui::SliderFloat("Far", &far_plane, 10.0f, 3000.0f);
 			ImGui::SliderFloat("FOV", &_fov, 0.01f, 1.5707f);
@@ -1246,17 +1246,17 @@ namespace adria
 			{
 				static ProfilerState state;
 				static constexpr uint64 NUM_FRAMES = 128;
-				static float32 FRAME_TIME_ARRAY[NUM_FRAMES] = { 0 };
-				static float32 RECENT_HIGHEST_FRAME_TIME = 0.0f;
+				static float FRAME_TIME_ARRAY[NUM_FRAMES] = { 0 };
+				static float RECENT_HIGHEST_FRAME_TIME = 0.0f;
 				static constexpr int32 FRAME_TIME_GRAPH_MAX_FPS[] = { 800, 240, 120, 90, 65, 45, 30, 15, 10, 5, 4, 3, 2, 1 };
-				static float32 FRAME_TIME_GRAPH_MAX_VALUES[ARRAYSIZE(FRAME_TIME_GRAPH_MAX_FPS)] = { 0 };
+				static float FRAME_TIME_GRAPH_MAX_VALUES[ARRAYSIZE(FRAME_TIME_GRAPH_MAX_FPS)] = { 0 };
 				for (uint64 i = 0; i < ARRAYSIZE(FRAME_TIME_GRAPH_MAX_FPS); ++i) { FRAME_TIME_GRAPH_MAX_VALUES[i] = 1000.f / FRAME_TIME_GRAPH_MAX_FPS[i]; }
 
 				std::vector<Timestamp> time_stamps = GPUProfiler::Get().GetProfilerResults(engine->gfx->GetLastGraphicsCommandList());
 				FRAME_TIME_ARRAY[NUM_FRAMES - 1] = 1000.0f / io.Framerate;
 				for (uint32 i = 0; i < NUM_FRAMES - 1; i++) FRAME_TIME_ARRAY[i] = FRAME_TIME_ARRAY[i + 1];
 				RECENT_HIGHEST_FRAME_TIME = std::max(RECENT_HIGHEST_FRAME_TIME, FRAME_TIME_ARRAY[NUM_FRAMES - 1]);
-				float32 frame_time_ms = FRAME_TIME_ARRAY[NUM_FRAMES - 1];
+				float frame_time_ms = FRAME_TIME_ARRAY[NUM_FRAMES - 1];
 				const int32 fps = static_cast<int32>(1000.0f / frame_time_ms);
 
 				ImGui::Text("FPS        : %d (%.2f ms)", fps, frame_time_ms);
@@ -1316,7 +1316,7 @@ namespace adria
 
 					for (uint64 i = 0; i < time_stamps.size(); i++)
 					{
-						float32 value = time_stamps[i].time_in_ms;
+						float value = time_stamps[i].time_in_ms;
 						char const* pStrUnit = "ms";
 						ImGui::Text("%-18s: %7.2f %s", time_stamps[i].name.c_str(), value, pStrUnit);
 						if (state.show_average)

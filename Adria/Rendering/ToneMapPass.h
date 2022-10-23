@@ -14,7 +14,7 @@ namespace adria
 		struct TonemapParams
 		{
 			EToneMap tone_map_op = EToneMap::Reinhard;
-			float32 tonemap_exposure = 1.0f;
+			float tonemap_exposure = 1.0f;
 		};
 	public:
 		ToneMapPass(uint32 w, uint32 h);

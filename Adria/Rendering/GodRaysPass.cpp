@@ -62,12 +62,12 @@ namespace adria
 				XMStoreFloat4(&light_pos, LightPos);
 				struct GodRaysConstants
 				{
-					float32  light_screen_space_position_x;
-					float32  light_screen_space_position_y;
-					float32  density;
-					float32  weight;
-					float32  decay;
-					float32  exposure;
+					float  light_screen_space_position_x;
+					float  light_screen_space_position_y;
+					float  density;
+					float  weight;
+					float  decay;
+					float  exposure;
 
 					uint32   sun_idx;
 					uint32   output_idx;

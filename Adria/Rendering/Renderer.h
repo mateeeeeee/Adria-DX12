@@ -48,7 +48,7 @@ namespace adria
 		~Renderer();
 
 		void NewFrame(Camera const* camera);
-		void Update(float32 dt);
+		void Update(float dt);
 		void Render(RendererSettings const&);
 
 		void SetViewportData(ViewportData const& vp)
@@ -134,7 +134,7 @@ namespace adria
 		void CreateSizeDependentResources();
 
 		void UpdateLights();
-		void UpdatePersistentConstantBuffers(float32 dt);
+		void UpdatePersistentConstantBuffers(float dt);
 		void CameraFrustumCulling();
 
 		void CopyToBackbuffer(RenderGraph& rg);

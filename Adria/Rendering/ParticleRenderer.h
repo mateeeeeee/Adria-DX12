@@ -25,21 +25,21 @@ namespace adria
 		struct GPUParticleA
 		{
 			DirectX::XMFLOAT4	TintAndAlpha;		// The color and opacity
-			float32		Rotation;					// The rotation angle
+			float		Rotation;					// The rotation angle
 			uint32		IsSleeping;					// Whether or not the particle is sleeping (ie, don't update position)
 		};
 		struct GPUParticleB
 		{
 			DirectX::XMFLOAT3	Position;		// World space position
-			float32		Mass;						// Mass of particle
+			float		Mass;						// Mass of particle
 
 			DirectX::XMFLOAT3	Velocity;		// World space velocity
-			float32		Lifespan;					// Lifespan of the particle.
+			float		Lifespan;					// Lifespan of the particle.
 
-			float32		DistanceToEye;				// The distance from the particle to the eye
-			float32		Age;						// The current age counting down from lifespan to zero
-			float32		StartSize;					// The size at spawn time
-			float32		EndSize;					// The time at maximum age
+			float		DistanceToEye;				// The distance from the particle to the eye
+			float		Age;						// The current age counting down from lifespan to zero
+			float		StartSize;					// The size at spawn time
+			float		EndSize;					// The time at maximum age
 		};
 		struct EmitterCBuffer
 		{
@@ -48,26 +48,26 @@ namespace adria
 			DirectX::XMFLOAT4	PositionVariance;
 
 			int32	MaxParticlesThisFrame;
-			float32	ParticleLifeSpan;
-			float32	StartSize;
-			float32	EndSize;
+			float	ParticleLifeSpan;
+			float	StartSize;
+			float	EndSize;
 
-			float32	VelocityVariance;
-			float32	Mass;
-			float32	ElapsedTime;
+			float	VelocityVariance;
+			float	Mass;
+			float	ElapsedTime;
 			int32 Collisions;
 
 			int32 CollisionThickness;
 		};
 		struct IndexBufferElement
 		{
-			float32	distance;
-			float32	index;
+			float	distance;
+			float	index;
 		};
 		struct ViewSpacePositionRadius
 		{
 			DirectX::XMFLOAT3 viewspace_position;
-			float32 radius;
+			float radius;
 		};
 		struct SortDispatchInfo
 		{
@@ -75,7 +75,7 @@ namespace adria
 		};
 	public:
 		ParticleRenderer(entt::registry& reg, GraphicsDevice* gfx, TextureManager& texture_manager, uint32 w, uint32 h);
-		void Update(float32 dt);
+		void Update(float dt);
 		void AddPasses(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h);
 		void OnSceneInitialized();

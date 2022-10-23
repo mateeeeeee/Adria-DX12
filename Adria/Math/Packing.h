@@ -9,9 +9,9 @@ namespace adria
 		return value > max ? max : (value < min ? min : value);
 	}
 
-	uint32 PackToUint(float32 r, float32 g, float32 b, float32 a = 1.0f);
-	uint32 PackToUint(float32(&arr)[3]);
+	uint32 PackToUint(float r, float g, float b, float a = 1.0f);
+	uint32 PackToUint(float(&arr)[3]);
 
-	uint32 PackTwoFloatsToUint32(float32 x, float32 y);
-	uint64 PackFourFloatsToUint64(float32 x, float32 y, float32 z, float32 w);
+	uint32 PackTwoFloatsToUint32(float x, float y);
+	uint64 PackFourFloatsToUint64(float x, float y, float z, float w);
 }

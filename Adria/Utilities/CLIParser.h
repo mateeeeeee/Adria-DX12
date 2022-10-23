@@ -41,12 +41,12 @@ namespace adria
 			else return def;
 		}
 
-		float32 AsFloat() const
+		float AsFloat() const
 		{
 			ADRIA_ASSERT(has_value);
-			return (float32)std::strtod(value.c_str(), nullptr);
+			return (float)std::strtod(value.c_str(), nullptr);
 		}
-		float32 AsFloatOr(float32 def) const
+		float AsFloatOr(float def) const
 		{
 			if (IsPresent()) return AsFloat();
 			else return def;

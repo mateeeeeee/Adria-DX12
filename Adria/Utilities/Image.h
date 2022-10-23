@@ -16,7 +16,7 @@ namespace adria
 
 			if (is_hdr = static_cast<bool>(stbi_is_hdr(image_file.data())); is_hdr)
 			{
-				float32* pixels = stbi_loadf(image_file.data(), &width, &height, &channels, desired_channels);
+				float* pixels = stbi_loadf(image_file.data(), &width, &height, &channels, desired_channels);
 				if (!pixels)
 				{
 					ADRIA_LOG(ERROR, "Loading Image File %s unsuccessful", image_file.data());
@@ -62,7 +62,7 @@ namespace adria
 
 		uint32 BytesPerPixel() const
 		{
-			return _channels * (is_hdr ? sizeof(float32) : sizeof(uint8));
+			return _channels * (is_hdr ? sizeof(float) : sizeof(uint8));
 		}
 
 		uint32 Pitch() const

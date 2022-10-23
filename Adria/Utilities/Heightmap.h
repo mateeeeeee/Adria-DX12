@@ -29,10 +29,10 @@ namespace adria
 		EFractalType fractal_type = EFractalType::None;
 		ENoiseType noise_type = ENoiseType::Perlin;
 		int32 seed = 1337;
-		float32 persistence = 0.5f;
-		float32 lacunarity = 2.0f;
+		float persistence = 0.5f;
+		float lacunarity = 2.0f;
 		int32 octaves = 3;
-		float32 noise_scale = 10;
+		float noise_scale = 10;
 	};
 
 	
@@ -45,14 +45,14 @@ namespace adria
 
 		Heightmap(std::string_view heightmap_path);
 
-		float32 HeightAt(uint64 x, uint64 z);
+		float HeightAt(uint64 x, uint64 z);
 
 		uint64 Width() const;
 
 		uint64 Depth() const;
 
 	private:
-		std::vector<std::vector<float32>> hm;
+		std::vector<std::vector<float>> hm;
 	};
 }
 

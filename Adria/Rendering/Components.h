@@ -78,13 +78,13 @@ namespace adria
 		TextureHandle metallic_roughness_texture  = INVALID_TEXTURE_HANDLE;
 		TextureHandle emissive_texture			  = INVALID_TEXTURE_HANDLE;
 
-		float32 albedo_factor		= 1.0f;
-		float32 metallic_factor		= 1.0f;
-		float32 roughness_factor	= 1.0f;
-		float32 emissive_factor		= 1.0f;
+		float albedo_factor		= 1.0f;
+		float metallic_factor		= 1.0f;
+		float roughness_factor	= 1.0f;
+		float emissive_factor		= 1.0f;
 
 		EMaterialAlphaMode alpha_mode = EMaterialAlphaMode::Opaque;
-		float32 alpha_cutoff		= 0.5f;
+		float alpha_cutoff		= 0.5f;
 		bool    double_sided		= false;
 
 		DirectX::XMFLOAT3 diffuse = DirectX::XMFLOAT3(1, 1, 1);
@@ -96,28 +96,28 @@ namespace adria
 		DirectX::XMVECTOR position	= DirectX::XMVectorSet(0, 0, 0, 1);
 		DirectX::XMVECTOR direction	= DirectX::XMVectorSet(0, -1, 0, 0);
 		DirectX::XMVECTOR color		= DirectX::XMVectorSet(1, 1, 1, 1);
-		float32 range = 100.0f;
-		float32 energy = 1.0f;
+		float range = 100.0f;
+		float energy = 1.0f;
 		ELightType type = ELightType::Directional;
-		float32 outer_cosine;
-		float32 inner_cosine;
+		float outer_cosine;
+		float inner_cosine;
 		bool casts_shadows = false;
 		bool use_cascades = false;
 		bool ray_traced_shadows = false;
 		bool soft_rts = false;
 		bool active = true;
-		float32 volumetric_strength = 1.0f;
+		float volumetric_strength = 1.0f;
 		bool volumetric = false;
 		bool lens_flare = false;
 		bool god_rays = false;
-		float32 godrays_decay = 0.825f;
-		float32 godrays_weight = 0.25f;
-		float32 godrays_density = 0.975f;
-		float32 godrays_exposure = 2.0f;
+		float godrays_decay = 0.825f;
+		float godrays_weight = 0.25f;
+		float godrays_density = 0.975f;
+		float godrays_exposure = 2.0f;
 		bool	sscs = false;
-		float32 sscs_thickness = 0.5f;
-		float32 sscs_max_ray_distance = 0.05f;
-		float32 sscs_max_depth_distance = 200.0f;
+		float sscs_thickness = 0.5f;
+		float sscs_max_ray_distance = 0.05f;
+		float sscs_max_depth_distance = 200.0f;
 	};
 
 	struct COMPONENT AABB
@@ -170,14 +170,14 @@ namespace adria
 		DirectX::XMFLOAT4	velocity = DirectX::XMFLOAT4(0, 5, 0, 0);
 		DirectX::XMFLOAT4	position_variance = DirectX::XMFLOAT4(0, 0, 0, 0);
 		int32				number_to_emit = 0;
-		float32				particle_lifespan = 5.0f;
-		float32				start_size = 10.0f;
-		float32				end_size = 1.0f;
-		float32				mass = 1.0f;
-		float32				velocity_variance = 1.0f;
-		float32				particles_per_second = 100;
-		float32				accumulation = 0.0f;
-		float32				elapsed_time = 0.0f;
+		float				particle_lifespan = 5.0f;
+		float				start_size = 10.0f;
+		float				end_size = 1.0f;
+		float				mass = 1.0f;
+		float				velocity_variance = 1.0f;
+		float				particles_per_second = 100;
+		float				accumulation = 0.0f;
+		float				elapsed_time = 0.0f;
 		bool				collisions_enabled = false;
 		int32				collision_thickness = 40;
 		bool				alpha_blended = true;

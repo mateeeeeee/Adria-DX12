@@ -12,15 +12,15 @@ namespace adria
 
 	struct CloudParameters
 	{
-		float32 crispiness = 43.0f;
-		float32 curliness = 3.6f;
-		float32 coverage = 0.505f;
-		float32 wind_speed = 5.0f;
-		float32 light_absorption = 0.003f;
-		float32 clouds_bottom_height = 3000.0f;
-		float32 clouds_top_height = 10000.0f;
-		float32 density_factor = 0.015f;
-		float32 cloud_type = 1.0f;
+		float crispiness = 43.0f;
+		float curliness = 3.6f;
+		float coverage = 0.505f;
+		float wind_speed = 5.0f;
+		float light_absorption = 0.003f;
+		float clouds_bottom_height = 3000.0f;
+		float clouds_top_height = 10000.0f;
+		float density_factor = 0.015f;
+		float cloud_type = 1.0f;
 	};
 
 	class VolumetricCloudsPass

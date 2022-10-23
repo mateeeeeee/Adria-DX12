@@ -80,7 +80,7 @@ namespace adria
 		std::unique_ptr<Texture> rtr_debug_texture;
 #endif
 
-		float32 ao_radius = 2.0f;
+		float ao_radius = 2.0f;
 		
 	private:
 		void CreateStateObjects();

@@ -94,7 +94,7 @@ namespace adria
 				}
 				cmd_list->SetComputeRootDescriptorTable(4, global_data.lights_buffer_gpu_srv);
 
-				static constexpr float32 black[4] = { 0.0f,0.0f,0.0f,0.0f };
+				static constexpr float black[4] = { 0.0f,0.0f,0.0f,0.0f };
 
 				Texture const& tiled_target = context.GetTexture(data.tiled_target.GetResourceId());
 				cmd_list->ClearUnorderedAccessViewFloat(uav_target_for_clear, context.GetReadWriteTexture(data.tiled_target), tiled_target.GetNative(),

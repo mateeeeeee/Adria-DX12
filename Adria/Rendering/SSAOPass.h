@@ -16,8 +16,8 @@ namespace adria
 	{
 		struct SSAOParams
 		{
-			float32   ssao_power = 4.0f;
-			float32   ssao_radius = 1.0f;
+			float   ssao_power = 4.0f;
+			float   ssao_radius = 1.0f;
 		};
 	public:
 		static constexpr uint32 NOISE_DIM = 8;

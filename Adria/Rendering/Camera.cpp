@@ -16,24 +16,24 @@ namespace adria
 		SetLens(fov, aspect_ratio, near_plane, far_plane);
 	}
 
-	float32 Camera::Near() const
+	float Camera::Near() const
 	{
 		return near_plane;
 	}
-	float32 Camera::Far() const
+	float Camera::Far() const
 	{
 		return far_plane;
 	}
-	float32 Camera::Fov() const
+	float Camera::Fov() const
 	{
 		return fov;
 	}
-	float32 Camera::AspectRatio() const
+	float Camera::AspectRatio() const
 	{
 		return aspect_ratio;
 	}
 
-	void Camera::Tick(float32 dt)
+	void Camera::Tick(float dt)
 	{
 		if (!enabled) return;
 		Input& input = Input::GetInstance();
@@ -52,8 +52,8 @@ namespace adria
 		if (input.GetKey(EKeyCode::E)) Jump(-speed_factor * dt);
 		if (input.GetKey(EKeyCode::MouseRight))
 		{
-			float32 dx = input.GetMouseDeltaX();
-			float32 dy = input.GetMouseDeltaY();
+			float dx = input.GetMouseDeltaX();
+			float dy = input.GetMouseDeltaY();
 			Pitch((int64)dy);
 			Yaw((int64)dx);
 		}
@@ -62,25 +62,25 @@ namespace adria
 	void Camera::Zoom(int32 increment)
 	{
 		fov -= XMConvertToRadians(increment);
-		fov = std::clamp(fov, 0.00005f, pi_div_2<float32>);
+		fov = std::clamp(fov, 0.00005f, pi_div_2<float>);
 		SetLens(fov, aspect_ratio, near_plane, far_plane);
 	}
 	void Camera::OnResize(uint32 w, uint32 h)
 	{
-		SetAspectRatio(static_cast<float32>(w) / h);
+		SetAspectRatio(static_cast<float>(w) / h);
 	}
 
-	void Camera::SetAspectRatio(float32 ar)
+	void Camera::SetAspectRatio(float ar)
 	{
 		aspect_ratio = ar;
 		SetLens(fov, aspect_ratio, near_plane, far_plane);
 	}
-	void Camera::SetFov(float32 _fov)
+	void Camera::SetFov(float _fov)
 	{
 		fov = _fov;
 		SetLens(fov, aspect_ratio, near_plane, far_plane);
 	}
-	void Camera::SetNearAndFar(float32 n, float32 f)
+	void Camera::SetNearAndFar(float n, float f)
 	{
 		near_plane = n;
 		far_plane = f;
@@ -128,7 +128,7 @@ namespace adria
 		SetView();
 	}
 
-	void Camera::Strafe(float32 dt)
+	void Camera::Strafe(float dt)
 	{
 		// mPosition += d*mRight
 		XMVECTOR s = XMVectorReplicate(dt * speed);
@@ -136,7 +136,7 @@ namespace adria
 		XMVECTOR p = XMLoadFloat3(&position);
 		XMStoreFloat3(&position, XMVectorMultiplyAdd(s, r, p));
 	}
-	void Camera::Walk(float32 dt)
+	void Camera::Walk(float dt)
 	{
 		// mPosition += d*mLook
 		XMVECTOR s = XMVectorReplicate(dt * speed);
@@ -144,7 +144,7 @@ namespace adria
 		XMVECTOR p = XMLoadFloat3(&position);
 		XMStoreFloat3(&position, XMVectorMultiplyAdd(s, l, p));
 	}
-	void Camera::Jump(float32 dt)
+	void Camera::Jump(float dt)
 	{
 		// mPosition += d*Up
 		XMVECTOR s = XMVectorReplicate(dt * speed);
@@ -155,7 +155,7 @@ namespace adria
 	void Camera::Pitch(int64 dy)
 	{
 		// Rotate up and look vector about the right vector.
-		XMMATRIX R = XMMatrixRotationAxis(XMLoadFloat3(&right_vector), sensitivity * XMConvertToRadians((float32)dy));
+		XMMATRIX R = XMMatrixRotationAxis(XMLoadFloat3(&right_vector), sensitivity * XMConvertToRadians((float)dy));
 		XMStoreFloat3(&up_vector, XMVector3TransformNormal(XMLoadFloat3(&up_vector), R));
 		XMStoreFloat3(&look_vector, XMVector3TransformNormal(XMLoadFloat3(&look_vector), R));
 	}
@@ -163,13 +163,13 @@ namespace adria
 	{
 		// Rotate the basis vectors about the world y-axis.
 
-		XMMATRIX R = XMMatrixRotationY(sensitivity * XMConvertToRadians((float32)dx));
+		XMMATRIX R = XMMatrixRotationY(sensitivity * XMConvertToRadians((float)dx));
 
 		XMStoreFloat3(&right_vector, XMVector3TransformNormal(XMLoadFloat3(&right_vector), R));
 		XMStoreFloat3(&up_vector, XMVector3TransformNormal(XMLoadFloat3(&up_vector), R));
 		XMStoreFloat3(&look_vector, XMVector3TransformNormal(XMLoadFloat3(&look_vector), R));
 	}
-	void Camera::SetLens(float32 fov, float32 aspect, float32 zn, float32 zf)
+	void Camera::SetLens(float fov, float aspect, float zn, float zf)
 	{
 		XMMATRIX P = XMMatrixPerspectiveFovLH(fov, aspect, zn, zf);
 		XMStoreFloat4x4(&projection_matrix, P);

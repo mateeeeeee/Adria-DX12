@@ -41,7 +41,7 @@ namespace adria
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				struct TonemapConstants
 				{
-					float32  tonemap_exposure;
+					float  tonemap_exposure;
 					uint32   tonemap_operator;
 					uint32   hdr_idx;
 					uint32   exposure_idx;
@@ -99,7 +99,7 @@ namespace adria
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				struct TonemapConstants
 				{
-					float32  tonemap_exposure;
+					float  tonemap_exposure;
 					uint32   tonemap_operator;
 					uint32   hdr_idx;
 					uint32   exposure_idx;

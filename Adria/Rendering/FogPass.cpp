@@ -52,9 +52,9 @@ namespace adria
 
 				struct FogConstants
 				{
-					float32 fog_falloff;
-					float32 fog_density;
-					float32 fog_start;
+					float fog_falloff;
+					float fog_density;
+					float fog_start;
 					uint32  fog_color;
 					uint32  fog_type;
 

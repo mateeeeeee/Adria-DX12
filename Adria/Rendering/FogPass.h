@@ -13,10 +13,10 @@ namespace adria
 		struct FogParameters
 		{
 			EFogType fog_type = EFogType::Exponential;
-			float32  fog_falloff = 0.005f;
-			float32  fog_density = 0.002f;
-			float32  fog_start = 100.0f;
-			float32  fog_color[3] = { 0.5f,0.6f,0.7f };
+			float  fog_falloff = 0.005f;
+			float  fog_density = 0.002f;
+			float  fog_start = 100.0f;
+			float  fog_color[3] = { 0.5f,0.6f,0.7f };
 		};
 
 	public:
