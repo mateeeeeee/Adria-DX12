@@ -441,7 +441,6 @@ namespace adria
 
 		//compute 
 		{
-			BloomParameters bloom_params = postprocessor.GetBloomParams();
 			BokehParameters bokeh_params = postprocessor.GetBokehParams();
 
 			std::array<float, 9> coeffs{};
@@ -456,8 +455,6 @@ namespace adria
 			compute_cbuf_data.gauss_coeff7 = coeffs[6];
 			compute_cbuf_data.gauss_coeff8 = coeffs[7];
 			compute_cbuf_data.gauss_coeff9 = coeffs[8];
-			compute_cbuf_data.bloom_scale = bloom_params.bloom_scale;
-			compute_cbuf_data.threshold = bloom_params.bloom_threshold;
 			compute_cbuf_data.visualize_tiled = tiled_lighting_pass.IsVisualized();
 			compute_cbuf_data.visualize_max_lights = tiled_lighting_pass.MaxLightsForVisualization();
 			compute_cbuf_data.bokeh_blur_threshold = bokeh_params.bokeh_blur_threshold;

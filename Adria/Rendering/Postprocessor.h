@@ -49,7 +49,6 @@ namespace adria
 		void OnSceneInitialized(GraphicsDevice* gfx);
 		RGResourceName GetFinalResource() const;
 
-		BloomParameters const& GetBloomParams() const { return bloom_pass.GetParams(); }
 		BokehParameters const& GetBokehParams() const { return bokeh_pass.GetParams(); }
 
 	private:

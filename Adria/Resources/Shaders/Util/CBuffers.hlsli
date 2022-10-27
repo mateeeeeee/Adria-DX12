@@ -67,9 +67,6 @@ struct PostprocessCBuffer
 
 struct ComputeCBuffer
 {
-    float bloom_scale;  //bloom
-    float threshold;    //bloom
-
     float gauss_coeff1; //blur coefficients
     float gauss_coeff2; //blur coefficients
     float gauss_coeff3; //blur coefficients
