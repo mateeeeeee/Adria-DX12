@@ -607,7 +607,7 @@ namespace adria
 					material.emissive_factor = (float)gltf_material.emissiveFactor[0];
 				}
 				material.pso = EPipelineState::GBufferPBR;
-				material.alpha_cutoff = gltf_material.alphaCutoff;
+				material.alpha_cutoff = (float)gltf_material.alphaCutoff;
 				material.double_sided = gltf_material.doubleSided;
 				if (gltf_material.alphaMode == "OPAQUE")
 				{
@@ -781,7 +781,7 @@ namespace adria
 				if (tangents.size() != vertex_count) tangents.resize(vertex_count);
 				if (bitangents.size() != vertex_count) bitangents.resize(vertex_count);
 
-				mesh_component.vertex_count = vertex_count;
+				mesh_component.vertex_count = (uint32)vertex_count;
 				reg.emplace<Mesh>(e, mesh_component);
 				if (has_tangents)
 				{

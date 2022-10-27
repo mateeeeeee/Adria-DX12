@@ -267,7 +267,7 @@ namespace adria
 						{
 							return static_cast<float>(*(((int*)data) + idx));
 						};
-						ImGui::PlotHistogram("Luminance Histogram", converter, hist_data, (int)histogram_size, 0, NULL, 0.0f, max_value, ImVec2(0, 80));
+						ImGui::PlotHistogram("Luminance Histogram", converter, hist_data, (int)histogram_size, 0, NULL, 0.0f, (float)max_value, ImVec2(0, 80));
 					}
 					ImGui::TreePop();
 				}

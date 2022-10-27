@@ -56,7 +56,7 @@ namespace adria
 		tp t1;  
 	private:
 
-		static constexpr float DurationSecondRatio = std::chrono::seconds(1) / Duration(1);
+		static constexpr float DurationSecondRatio = std::chrono::seconds(1) * 1.0f / Duration(1);
 	};
 
 	using AdriaTimer = Timer<>;

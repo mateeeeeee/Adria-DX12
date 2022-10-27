@@ -356,7 +356,7 @@ namespace adria
 				}
 			}
 
-			uint32 cmd_list_count = dependency_level.GetSize();
+			uint32 cmd_list_count = (uint32)dependency_level.GetSize();
 			std::vector<CommandList*> cmd_lists; cmd_lists.reserve(cmd_list_count);
 			for (size_t i = 0; i < cmd_list_count; ++i) cmd_lists.push_back(gfx->GetNewGraphicsCommandList());
 

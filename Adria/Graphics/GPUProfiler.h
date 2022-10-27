@@ -54,7 +54,7 @@ namespace adria
 		std::unique_ptr<Buffer> query_readback_buffer;
 
 		std::array<QueryData, MAX_PROFILES> query_data;
-		HashMap<std::string, size_t> name_to_index_map;
+		HashMap<std::string, uint32> name_to_index_map;
 #if GPU_MULTITHREADED
 		mutable std::mutex map_mutex;
 		std::atomic_uint scope_counter = 0;

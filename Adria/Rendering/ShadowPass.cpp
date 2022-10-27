@@ -396,7 +396,7 @@ namespace adria
 			light_view_projections[i] = V * P;
 		}
 
-		for (size_t i = 0; i < SHADOW_CASCADE_COUNT; ++i)
+		for (uint32 i = 0; i < SHADOW_CASCADE_COUNT; ++i)
 		{
 			std::string name = "Shadow Map Cascade Pass " + std::to_string(i);
 			rg.AddPass<ShadowPassData>(name.c_str(),
@@ -465,7 +465,7 @@ namespace adria
 			RGAllocationId alloc_id;
 		};
 
-		for (size_t i = 0; i < 6; ++i)
+		for (uint32 i = 0; i < 6; ++i)
 		{
 			std::string name = "Shadow Map Point Pass " + std::to_string(i);
 			rg.AddPass<ShadowPassData>(name.c_str(),

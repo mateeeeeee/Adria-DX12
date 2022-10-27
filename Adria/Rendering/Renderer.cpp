@@ -360,7 +360,7 @@ namespace adria
 			new_frame_cbuf_data.frame_count = gfx->FrameIndex();
 			new_frame_cbuf_data.mouse_normalized_coords_x = (viewport_data.mouse_position_x - viewport_data.scene_viewport_pos_x) / viewport_data.scene_viewport_size_x;
 			new_frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
-			new_frame_cbuf_data.lights_idx = light_array_srv.GetHeapOffset();
+			new_frame_cbuf_data.lights_idx = (int32)light_array_srv.GetHeapOffset();
 
 			new_frame_cbuffer.Update(new_frame_cbuf_data, backbuffer_index);
 			new_frame_cbuf_data.prev_view_projection = camera->ViewProj();

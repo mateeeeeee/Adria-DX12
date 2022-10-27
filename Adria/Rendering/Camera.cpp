@@ -61,7 +61,7 @@ namespace adria
 	}
 	void Camera::Zoom(int32 increment)
 	{
-		fov -= XMConvertToRadians(increment);
+		fov -= XMConvertToRadians(increment * 1.0f);
 		fov = std::clamp(fov, 0.00005f, pi_div_2<float>);
 		SetLens(fov, aspect_ratio, near_plane, far_plane);
 	}
