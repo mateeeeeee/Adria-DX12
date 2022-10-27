@@ -25,14 +25,17 @@ namespace adria
 		float  screen_resolution_x;
 		float  screen_resolution_y;
 
+		DirectX::XMVECTOR wind_params;
+		DirectX::XMVECTOR sun_direction;
+		DirectX::XMVECTOR sun_color;
+
 		float  delta_time;
 		float  total_time;
-		uint32   frame_count;
+		uint32 frame_count;
 
 		float  mouse_normalized_coords_x;
 		float  mouse_normalized_coords_y;
-
-		int32    lights_idx;
+		int32  lights_idx;
 	};
 
 	DECLSPEC_ALIGN(16) struct FrameCBuffer
@@ -161,23 +164,8 @@ namespace adria
 		DirectX::XMVECTOR ambient_color;
 		DirectX::XMVECTOR wind_dir;
 
-		float wind_speed;
-		float time;
-		float crispiness;
-		float curliness;
-
-		float coverage;
-		float absorption;
-		float clouds_bottom_height;
-		float clouds_top_height;
-
-		float density_factor;
-		float cloud_type;
-		float _padd[2];
-
-		//sky parameters
 		DirectX::XMFLOAT3 A;
-		float _paddA;
+		float time;
 		DirectX::XMFLOAT3 B;
 		float _paddB;
 		DirectX::XMFLOAT3 C;

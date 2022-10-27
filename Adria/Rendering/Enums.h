@@ -27,7 +27,6 @@ namespace adria
 		PS_Volumetric_Directional,
 		PS_Volumetric_Spot,
 		PS_Volumetric_Point,
-		PS_VolumetricClouds,
 		VS_LensFlare,
 		GS_LensFlare,
 		PS_LensFlare,
@@ -94,6 +93,7 @@ namespace adria
 		CS_Fxaa,
 		CS_GodRays,
 		CS_Ambient,
+		CS_Clouds,
 		ShaderId_Count
 	};
 
@@ -117,7 +117,6 @@ namespace adria
 		BloomCombine,
 		Copy,
 		Add,
-		Clouds,
 		TiledLighting,
 		ClusterBuilding,
 		ClusterCulling,

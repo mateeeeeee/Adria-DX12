@@ -244,14 +244,6 @@ namespace adria
 				gfx_pso_desc.num_render_targets = 1;
 				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
 				gfx_pso_map[EPipelineState::Bokeh] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
-				
-				gfx_pso_desc = {};
-				gfx_pso_desc.root_signature = ERootSignature::Clouds;
-				gfx_pso_desc.VS = VS_ScreenQuad;
-				gfx_pso_desc.PS = PS_VolumetricClouds;
-				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
-				gfx_pso_map[EPipelineState::Clouds] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
 				ShaderCompiler::CreateInputLayout(GetShader(VS_Ocean), gfx_pso_desc.input_layout);
@@ -471,6 +463,10 @@ namespace adria
 				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_Ambient;
 				compute_pso_map[EPipelineState::Ambient] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.root_signature = ERootSignature::Common;
+				compute_pso_desc.CS = CS_Clouds;
+				compute_pso_map[EPipelineState::Clouds] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 			}
 		}
 	}

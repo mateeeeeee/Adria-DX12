@@ -362,6 +362,18 @@ namespace adria
 			new_frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
 			new_frame_cbuf_data.lights_idx = (int32)light_array_srv.GetHeapOffset();
 
+			auto lights = reg.view<Light>();
+			for (auto light : lights)
+			{
+				auto const& light_data = lights.get<Light>(light);
+				if (light_data.type == ELightType::Directional && light_data.active)
+				{
+					new_frame_cbuf_data.sun_direction = -light_data.direction;
+					new_frame_cbuf_data.sun_color = light_data.color;
+					break;
+				}
+			}
+			new_frame_cbuf_data.wind_params = XMVectorSet(renderer_settings.wind_dir[0], renderer_settings.wind_dir[1], renderer_settings.wind_dir[2], renderer_settings.wind_speed);
 			new_frame_cbuffer.Update(new_frame_cbuf_data, backbuffer_index);
 			new_frame_cbuf_data.prev_view_projection = camera->ViewProj();
 		}
@@ -405,20 +417,10 @@ namespace adria
 			XMFLOAT3 sky_color(sky_pass.GetSkyColor());
 			XMFLOAT2 wind_dir(ocean_renderer.GetWindDirection());
 
-			CloudParameters cloud_params = postprocessor.GetCloudParams();
 			weather_cbuf_data.sky_color = XMLoadFloat3(&sky_color);
 			weather_cbuf_data.ambient_color = XMVECTOR{ 0.1f, 0.1f, 0.1f, 1.0f };
 			weather_cbuf_data.wind_dir = XMVECTOR{ wind_dir.x, 0.0f, wind_dir.y, 0.0f };
-			weather_cbuf_data.wind_speed = cloud_params.wind_speed;
 			weather_cbuf_data.time = total_time;
-			weather_cbuf_data.crispiness = cloud_params.crispiness;
-			weather_cbuf_data.curliness = cloud_params.curliness;
-			weather_cbuf_data.coverage = cloud_params.coverage;
-			weather_cbuf_data.absorption = cloud_params.light_absorption;
-			weather_cbuf_data.clouds_bottom_height = cloud_params.clouds_bottom_height;
-			weather_cbuf_data.clouds_top_height = cloud_params.clouds_top_height;
-			weather_cbuf_data.density_factor = cloud_params.density_factor;
-			weather_cbuf_data.cloud_type = cloud_params.cloud_type;
 
 			XMFLOAT3 sun_dir;
 			XMStoreFloat3(&sun_dir, XMVector3Normalize(weather_cbuf_data.light_dir));

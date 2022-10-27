@@ -22,6 +22,7 @@ namespace adria
 		struct VolumetricCloudsPassData
 		{
 			RGTextureReadOnlyId depth;
+			RGTextureReadWriteId output;
 		};
 		rg.AddPass<VolumetricCloudsPassData>("Volumetric Clouds Pass",
 			[=](VolumetricCloudsPassData& data, RenderGraphBuilder& builder)
@@ -33,36 +34,72 @@ namespace adria
 				clouds_output_desc.format = EFormat::R16G16B16A16_FLOAT;
 
 				builder.DeclareTexture(RG_RES_NAME(CloudsOutput), clouds_output_desc);
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
-				builder.WriteRenderTarget(RG_RES_NAME(CloudsOutput), ERGLoadStoreAccessOp::Clear_Preserve);
-				builder.SetViewport(width, height);
+				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				data.output = builder.WriteTexture(RG_RES_NAME(CloudsOutput));
 			},
 			[=](VolumetricCloudsPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
-				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Clouds));
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Clouds));
-
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetGraphicsRootConstantBufferView(1, global_data.weather_cbuffer_address);
-
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(4);
+				uint32 i = (uint32)descriptor_allocator->AllocateRange(5);
 				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { texture_manager.GetSRV(cloud_textures[0]),  texture_manager.GetSRV(cloud_textures[1]),
-															 texture_manager.GetSRV(cloud_textures[2]), context.GetReadOnlyTexture(data.depth) };
-				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
-				uint32 src_range_sizes[] = { 1, 1, 1, 1 };
-				uint32 dst_range_sizes[] = { 4 };
+															 texture_manager.GetSRV(cloud_textures[2]), context.GetReadOnlyTexture(data.depth),
+															context.GetReadWriteTexture(data.output) };
+				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(i) };
+				uint32 src_range_sizes[] = { 1, 1, 1, 1, 1 };
+				uint32 dst_range_sizes[] = { 5 };
 
 				device->CopyDescriptors(ARRAYSIZE(dst_ranges), dst_ranges, dst_range_sizes, ARRAYSIZE(src_ranges), src_ranges, src_range_sizes,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-				cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
-				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-				cmd_list->DrawInstanced(4, 1, 0, 0);
+				struct CloudsConstants
+				{
+					float clouds_bottom_height;
+					float clouds_top_height;
+					float crispiness;
+					float curliness;
+					float coverage;
+					float cloud_type;
+					float absorption;
+					float density_factor;
+				} constants =
+				{
+					.clouds_bottom_height = params.clouds_bottom_height,
+					.clouds_top_height = params.clouds_top_height,
+					.crispiness = params.crispiness,
+					.curliness = params.curliness,
+					.coverage = params.coverage,
+					.cloud_type = params.cloud_type,
+					.absorption = params.light_absorption,
+					.density_factor = params.density_factor
+				};
 
-			}, ERGPassType::Graphics, ERGPassFlags::None);
+				struct TextureIndices
+				{
+					uint32 weather_idx;
+					uint32 cloud_idx;
+					uint32 worley_idx;
+					uint32 depth_idx;
+					uint32 output_idx;
+				} indices =
+				{
+					.weather_idx = i, .cloud_idx = i + 1, .worley_idx = i + 2,
+					.depth_idx = i + 3,.output_idx = i + 4
+				};
+
+				DynamicAllocation allocation = dynamic_allocator->Allocate(GetCBufferSize<TextureIndices>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				allocation.Update(indices);
+
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Clouds));
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
+				cmd_list->SetComputeRootConstantBufferView(2, allocation.gpu_address);
+				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
+
+			}, ERGPassType::Compute, ERGPassFlags::None);
 	
 		AddGUI([&]() 
 			{
@@ -75,7 +112,6 @@ namespace adria
 					ImGui::SliderFloat("Crispiness", &params.crispiness, 0.0f, 100.0f);
 					ImGui::SliderFloat("Curliness", &params.curliness, 0.0f, 5.0f);
 					ImGui::SliderFloat("Coverage", &params.coverage, 0.0f, 1.0f);
-					ImGui::SliderFloat("Wind speed factor", &params.wind_speed, 0.0f, 100.0f);
 					ImGui::SliderFloat("Cloud Type", &params.cloud_type, 0.0f, 1.0f);
 					ImGui::TreePop();
 					ImGui::Separator();

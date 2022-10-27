@@ -16,13 +16,16 @@ struct FrameCBuffer
 	float  cameraNear;
 	float  cameraFar;
 	float2 screenResolution;
-
+	
+    float4 windParams;
+    float4 sunDirection;
+    float4 sunColor;
+	
 	float  deltaTime;
 	float  totalTime;
 	uint   frameCount;
 
 	float2 mouseNormalizedCoords;
-
 	int    lightsIdx;
 };
 ConstantBuffer<FrameCBuffer> FrameCB  : register(b0);

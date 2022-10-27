@@ -1231,6 +1231,13 @@ namespace adria
 
 			for (auto&& cmd : commands) cmd.callback();
 			commands.clear();
+
+			if (ImGui::TreeNode("Misc"))
+			{
+				ImGui::SliderFloat3("Wind direction", renderer_settings.wind_dir, 0.0f, 1.0f);
+				ImGui::SliderFloat("Wind speed", &renderer_settings.wind_speed, 0.0f, 10.0f);
+				ImGui::TreePop();
+			}
 		}
 		ImGui::End();
 	}

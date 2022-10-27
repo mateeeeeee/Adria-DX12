@@ -65,6 +65,8 @@ namespace adria
 				return "LensFlareGS";
 			case PS_LensFlare:
 				return "LensFlarePS";
+			case CS_Clouds:
+				return "Clouds";
 			default:
 				return "main";
 			}
@@ -107,7 +109,6 @@ namespace adria
 			case PS_Add:
 			case PS_LensFlare:
 			case PS_Bokeh:
-			case PS_VolumetricClouds:
 			case PS_DepthMap:
 			case PS_DepthMap_Transparent:
 			case PS_Volumetric_Directional:
@@ -158,6 +159,7 @@ namespace adria
 			case CS_GodRays:
 			case CS_Fxaa:
 			case CS_Ambient:
+			case CS_Clouds:
 				return EShaderStage::CS;
 			case HS_OceanLOD:
 				return EShaderStage::HS;
@@ -229,8 +231,8 @@ namespace adria
 				return "Postprocess/BokehGS.hlsl";
 			case PS_Bokeh:
 				return "Postprocess/BokehPS.hlsl";
-			case PS_VolumetricClouds:
-				return "Postprocess/CloudsPS.hlsl";
+			case CS_Clouds:
+				return "Postprocess/Clouds.hlsl";
 			case VS_DepthMap:
 			case VS_DepthMap_Transparent:
 				return "Shadows/DepthMapVS.hlsl";
@@ -395,6 +397,7 @@ namespace adria
 			case VS_LensFlare:
 			case GS_LensFlare:
 			case PS_LensFlare:
+			case CS_Clouds:
 				return true;
 			default:
 				return false;
