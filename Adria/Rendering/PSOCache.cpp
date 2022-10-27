@@ -174,7 +174,7 @@ namespace adria
 				gfx_pso_map[EPipelineState::Sun] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				gfx_pso_desc.root_signature = ERootSignature::LensFlare;
+				gfx_pso_desc.root_signature = ERootSignature::Common;
 				gfx_pso_desc.VS = VS_LensFlare;
 				gfx_pso_desc.GS = GS_LensFlare;
 				gfx_pso_desc.PS = PS_LensFlare;

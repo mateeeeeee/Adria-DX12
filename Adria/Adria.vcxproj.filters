@@ -856,15 +856,6 @@
     <FxCompile Include="Resources\Shaders\PostProcess\CopyPS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\PostProcess\LensFlareGS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\PostProcess\LensFlarePS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\PostProcess\LensFlareVS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\PostProcess\AddPS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
@@ -1050,6 +1041,9 @@
     </FxCompile>
     <FxCompile Include="Resources\NewShaders\Lighting\GBuffer.hlsl">
       <Filter>NewShaders\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Postprocess\LensFlare.hlsl">
+      <Filter>NewShaders\Postprocess</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

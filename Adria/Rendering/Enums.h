@@ -112,7 +112,6 @@ namespace adria
 		Forward,
 		Bokeh,
 		BokehGenerate,
-		LensFlare,
 		Blur,
 		BloomExtract,
 		BloomCombine,

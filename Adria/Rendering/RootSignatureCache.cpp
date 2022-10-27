@@ -45,9 +45,6 @@ namespace adria
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Texture).GetPointer(), GetShader(PS_Texture).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::Forward].GetAddressOf())));
 
-			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_LensFlare).GetPointer(), GetShader(PS_LensFlare).GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::LensFlare].GetAddressOf())));
-
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Add).GetPointer(), GetShader(PS_Add).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::Add].GetAddressOf())));
 
@@ -141,7 +138,6 @@ namespace adria
 					D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
 					D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
 					D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-					D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
 					D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED;
 
 				CD3DX12_STATIC_SAMPLER_DESC static_samplers[8] = {};

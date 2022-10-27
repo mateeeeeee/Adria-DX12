@@ -121,7 +121,7 @@ PS_OUTPUT GBufferPS(PS_INPUT In)
 
     float3 aoRoughnessMetallic = txMetallicRoughness.Sample(LinearWrapSampler, In.Uvs).rgb;
 
-    float3 EmissiveColor = txEmissive.Sample(LinearWrapSampler, In.Uvs).rgb;
-    return PackGBuffer(albedoColor.xyz, normalize(In.NormalVS), float4(EmissiveColor, ModelCB.emissiveFactor),
+    float3 emissiveColor = txEmissive.Sample(LinearWrapSampler, In.Uvs).rgb;
+    return PackGBuffer(albedoColor.xyz, normalize(In.NormalVS), float4(emissiveColor, ModelCB.emissiveFactor),
     aoRoughnessMetallic.g * ModelCB.roughnessFactor, aoRoughnessMetallic.b * ModelCB.metallicFactor);
 }

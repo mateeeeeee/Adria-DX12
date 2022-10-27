@@ -59,6 +59,12 @@ namespace adria
 			case PS_GBuffer:
 			case PS_GBuffer_Mask:
 				return "GBufferPS";
+			case VS_LensFlare:
+				return "LensFlareVS";
+			case GS_LensFlare:
+				return "LensFlareGS";
+			case PS_LensFlare:
+				return "LensFlarePS";
 			default:
 				return "main";
 			}
@@ -214,11 +220,9 @@ namespace adria
 			case PS_Add:
 				return "Postprocess/AddPS.hlsl";
 			case VS_LensFlare:
-				return "Postprocess/LensFlareVS.hlsl";
 			case GS_LensFlare:
-				return "Postprocess/LensFlareGS.hlsl";
 			case PS_LensFlare:
-				return "Postprocess/LensFlarePS.hlsl";
+				return "Postprocess/LensFlare.hlsl";
 			case VS_Bokeh:
 				return "Postprocess/BokehVS.hlsl";
 			case GS_Bokeh:
@@ -388,6 +392,9 @@ namespace adria
 			case VS_GBuffer:
 			case PS_GBuffer:
 			case PS_GBuffer_Mask:
+			case VS_LensFlare:
+			case GS_LensFlare:
+			case PS_LensFlare:
 				return true;
 			default:
 				return false;
