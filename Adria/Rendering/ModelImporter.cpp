@@ -606,13 +606,13 @@ namespace adria
 					material.emissive_texture = texture_manager.LoadTexture(ToWideString(texemissive));
 					material.emissive_factor = (float)gltf_material.emissiveFactor[0];
 				}
-				material.pso = EPipelineState::GBufferPBR;
+				material.pso = EPipelineState::GBuffer;
 				material.alpha_cutoff = (float)gltf_material.alphaCutoff;
 				material.double_sided = gltf_material.doubleSided;
 				if (gltf_material.alphaMode == "OPAQUE")
 				{
 					material.alpha_mode = EMaterialAlphaMode::Opaque;
-					material.pso = material.double_sided ? EPipelineState::GBufferPBR_NoCull : EPipelineState::GBufferPBR;
+					material.pso = material.double_sided ? EPipelineState::GBuffer_NoCull : EPipelineState::GBuffer;
 				}
 				else if (gltf_material.alphaMode == "BLEND")
 				{
@@ -621,7 +621,7 @@ namespace adria
 				else if (gltf_material.alphaMode == "MASK")
 				{
 					material.alpha_mode = EMaterialAlphaMode::Mask;
-					material.pso = material.double_sided ? EPipelineState::GBufferPBR_Mask_NoCull : EPipelineState::GBufferPBR_Mask;
+					material.pso = material.double_sided ? EPipelineState::GBuffer_Mask_NoCull : EPipelineState::GBuffer_Mask;
 				}
 				reg.emplace<Material>(e, material);
 				reg.emplace<Deferred>(e);

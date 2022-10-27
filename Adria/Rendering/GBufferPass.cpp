@@ -9,6 +9,8 @@
 #include "../Editor/GUICommand.h"
 #include "entt/entity/registry.hpp"
 
+using namespace DirectX;
+
 namespace adria
 {
 
@@ -69,9 +71,8 @@ namespace adria
 					batched_entities[params].push_back(e);
 				}
 
-				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::GbufferPBR));
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetGraphicsRootDescriptorTable(3, descriptor_allocator->GetFirstHandle());
+				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
 
 				for (auto const& [params, entities] : batched_entities)
 				{
@@ -79,7 +80,6 @@ namespace adria
 					for (auto e : entities)
 					{
 						auto [mesh, transform, material, aabb] = gbuffer_view.get<Mesh, Transform, Material, AABB>(e);
-
 						if (!aabb.camera_visible) continue;
 
 						DirectX::XMMATRIX parent_transform = DirectX::XMMatrixIdentity();
@@ -88,32 +88,49 @@ namespace adria
 							if (auto* root_transform = reg.try_get<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
 						}
 
-						ObjectCBuffer object_cbuf_data{};
-						object_cbuf_data.model = transform.current_transform * parent_transform;
-						object_cbuf_data.inverse_transposed_model = DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, object_cbuf_data.model));
+						struct ModelCBuffer
+						{
+							XMMATRIX model_matrix;
+							XMMATRIX transposed_inverse_model_matrix;
 
-						DynamicAllocation object_allocation = dynamic_allocator->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-						object_allocation.Update(object_cbuf_data);
-						cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
+							uint32 albedo_idx;
+							uint32 normal_idx;
+							uint32 metallic_roughness_idx;
+							uint32 emissive_idx;
 
-						MaterialCBuffer material_cbuf_data{};
-						material_cbuf_data.albedo_factor = material.albedo_factor;
-						material_cbuf_data.metallic_factor = material.metallic_factor;
-						material_cbuf_data.roughness_factor = material.roughness_factor;
-						material_cbuf_data.emissive_factor = material.emissive_factor;
-						material_cbuf_data.alpha_cutoff = material.alpha_cutoff;
-						material_cbuf_data.albedo_idx = static_cast<int32>(material.albedo_texture);
-						material_cbuf_data.normal_idx = static_cast<int32>(material.normal_texture);
-						material_cbuf_data.metallic_roughness_idx = static_cast<int32>(material.metallic_roughness_texture);
-						material_cbuf_data.emissive_idx = static_cast<int32>(material.emissive_texture);
+							//later add uint materialIdx and remove these parameters -> index to material array buffer with these params
+							XMFLOAT3 ambient;
+							XMFLOAT3 diffuse;
+							float  alpha_cutoff;
+							XMFLOAT3 specular;
+							float  shininess;
+							float  albedo_factor;
+							float  metallic_factor;
+							float  roughness_factor;
+							float  emissive_factor;
+						} model_cbuf_data = {};
 
-						DynamicAllocation material_allocation = dynamic_allocator->Allocate(GetCBufferSize<MaterialCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-						material_allocation.Update(material_cbuf_data);
-						cmd_list->SetGraphicsRootConstantBufferView(2, material_allocation.gpu_address);
+						model_cbuf_data.model_matrix = transform.current_transform * parent_transform;
+						model_cbuf_data.transposed_inverse_model_matrix = XMMatrixTranspose(XMMatrixInverse(nullptr, model_cbuf_data.model_matrix));
+						model_cbuf_data.diffuse = material.diffuse;
+						model_cbuf_data.albedo_factor = material.albedo_factor;
+						model_cbuf_data.metallic_factor = material.metallic_factor;
+						model_cbuf_data.roughness_factor = material.roughness_factor;
+						model_cbuf_data.emissive_factor = material.emissive_factor;
+						model_cbuf_data.alpha_cutoff = material.alpha_cutoff;
+						model_cbuf_data.albedo_idx = static_cast<int32>(material.albedo_texture);
+						model_cbuf_data.normal_idx = static_cast<int32>(material.normal_texture);
+						model_cbuf_data.metallic_roughness_idx = static_cast<int32>(material.metallic_roughness_texture);
+						model_cbuf_data.emissive_idx = static_cast<int32>(material.emissive_texture);
+
+						DynamicAllocation object_allocation = dynamic_allocator->Allocate(GetCBufferSize<ModelCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+						object_allocation.Update(model_cbuf_data);
+						cmd_list->SetGraphicsRootConstantBufferView(2, object_allocation.gpu_address);
+
 						mesh.Draw(cmd_list);
 					}
 				}
-			});
+			}, ERGPassType::Graphics, ERGPassFlags::None);
 	}
 
 	void GBufferPass::OnResize(uint32 w, uint32 h)

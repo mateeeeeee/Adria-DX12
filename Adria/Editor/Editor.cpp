@@ -834,7 +834,7 @@ namespace adria
 					}
 					else
 					{
-						material->pso = EPipelineState::GBufferPBR;
+						material->pso = EPipelineState::GBuffer;
 					}
 				}
 

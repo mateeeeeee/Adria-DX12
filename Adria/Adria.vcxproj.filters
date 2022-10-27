@@ -805,12 +805,6 @@
     <FxCompile Include="Resources\Shaders\PostProcess\ScreenQuadVS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Deferred\GBuffer_PS.hlsl">
-      <Filter>Shaders\Deferred</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Deferred\GBuffer_VS.hlsl">
-      <Filter>Shaders\Deferred</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\Deferred\LightingPBR_PS.hlsl">
       <Filter>Shaders\Deferred</Filter>
     </FxCompile>
@@ -1052,6 +1046,9 @@
       <Filter>NewShaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\NewShaders\Lighting\Ambient.hlsl">
+      <Filter>NewShaders\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Lighting\GBuffer.hlsl">
       <Filter>NewShaders\Lighting</Filter>
     </FxCompile>
   </ItemGroup>

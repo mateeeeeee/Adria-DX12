@@ -54,6 +54,11 @@ namespace adria
 				return "FXAA";
 			case CS_Ambient:
 				return "Ambient";
+			case VS_GBuffer:
+				return "GBufferVS";
+			case PS_GBuffer:
+			case PS_GBuffer_Mask:
+				return "GBufferPS";
 			default:
 				return "main";
 			}
@@ -69,7 +74,7 @@ namespace adria
 			case VS_Billboard:
 			case VS_Sun:
 			case VS_Decals:
-			case VS_GBufferPBR:
+			case VS_GBuffer:
 			case VS_ScreenQuad:
 			case VS_LensFlare:
 			case VS_Bokeh:
@@ -86,8 +91,8 @@ namespace adria
 			case PS_Solid:
 			case PS_Decals:
 			case PS_Decals_ModifyNormals:
-			case PS_GBufferPBR:
-			case PS_GBufferPBR_Mask:
+			case PS_GBuffer:
+			case PS_GBuffer_Mask:
 			case PS_LightingPBR:
 			case PS_LightingPBR_RayTracedShadows:
 			case PS_ClusteredLightingPBR:
@@ -191,11 +196,10 @@ namespace adria
 			case PS_Decals:
 			case PS_Decals_ModifyNormals:
 				return "Misc/DecalPS.hlsl";
-			case VS_GBufferPBR:
-				return "Deferred/GBuffer_VS.hlsl";
-			case PS_GBufferPBR:
-			case PS_GBufferPBR_Mask:
-				return "Deferred/GBuffer_PS.hlsl";
+			case VS_GBuffer:
+			case PS_GBuffer:
+			case PS_GBuffer_Mask:
+				return "Lighting/GBuffer.hlsl";
 			case VS_ScreenQuad:
 				return "Postprocess/ScreenQuadVS.hlsl";
 			case PS_LightingPBR:
@@ -353,7 +357,7 @@ namespace adria
 				return { { L"RAY_TRACED_SHADOWS", L"" } };
 			case LIB_SoftShadows:
 				return { { L"SOFT_SHADOWS", L"" } };
-			case PS_GBufferPBR_Mask:
+			case PS_GBuffer_Mask:
 				return { { L"MASK", L"1" } };
 			default:
 				return {};
@@ -381,6 +385,9 @@ namespace adria
 			case LIB_Reflections:
 			case LIB_Shadows:
 			case LIB_SoftShadows:
+			case VS_GBuffer:
+			case PS_GBuffer:
+			case PS_GBuffer_Mask:
 				return true;
 			default:
 				return false;

@@ -72,10 +72,10 @@ namespace adria
 				gfx_pso_map[EPipelineState::TAA] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				ShaderCompiler::CreateInputLayout(GetShader(VS_GBufferPBR), gfx_pso_desc.input_layout);
-				gfx_pso_desc.root_signature = ERootSignature::GbufferPBR;
-				gfx_pso_desc.VS = VS_GBufferPBR;
-				gfx_pso_desc.PS = PS_GBufferPBR;
+				ShaderCompiler::CreateInputLayout(GetShader(VS_GBuffer), gfx_pso_desc.input_layout);
+				gfx_pso_desc.root_signature = ERootSignature::Common;
+				gfx_pso_desc.VS = VS_GBuffer;
+				gfx_pso_desc.PS = PS_GBuffer;
 				gfx_pso_desc.depth_state.depth_enable = true;
 				gfx_pso_desc.depth_state.depth_write_mask = EDepthWriteMask::All;
 				gfx_pso_desc.depth_state.depth_func = EComparisonFunc::LessEqual;
@@ -84,16 +84,13 @@ namespace adria
 				gfx_pso_desc.rtv_formats[1] = EFormat::R8G8B8A8_UNORM;
 				gfx_pso_desc.rtv_formats[2] = EFormat::R8G8B8A8_UNORM;
 				gfx_pso_desc.dsv_format = EFormat::D32_FLOAT;
-				gfx_pso_map[EPipelineState::GBufferPBR] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
-
-				gfx_pso_desc.PS = PS_GBufferPBR_Mask;
-				gfx_pso_map[EPipelineState::GBufferPBR_Mask] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
-
+				gfx_pso_map[EPipelineState::GBuffer] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
+				gfx_pso_desc.PS = PS_GBuffer_Mask;
+				gfx_pso_map[EPipelineState::GBuffer_Mask] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 				gfx_pso_desc.rasterizer_state.cull_mode = ECullMode::None;
-				gfx_pso_map[EPipelineState::GBufferPBR_Mask_NoCull] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
-
-				gfx_pso_desc.PS = PS_GBufferPBR;
-				gfx_pso_map[EPipelineState::GBufferPBR_NoCull] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
+				gfx_pso_map[EPipelineState::GBuffer_Mask_NoCull] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
+				gfx_pso_desc.PS = PS_GBuffer;
+				gfx_pso_map[EPipelineState::GBuffer_NoCull] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
 				gfx_pso_desc.root_signature = ERootSignature::LightingPBR;
