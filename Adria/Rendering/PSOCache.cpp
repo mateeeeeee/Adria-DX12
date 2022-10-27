@@ -365,11 +365,11 @@ namespace adria
 				compute_pso_desc.CS = CS_Blur_Vertical;
 				compute_pso_map[EPipelineState::Blur_Vertical] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::BloomExtract;
+				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_BloomExtract;
 				compute_pso_map[EPipelineState::BloomExtract] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::BloomCombine;
+				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_BloomCombine;
 				compute_pso_map[EPipelineState::BloomCombine] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 

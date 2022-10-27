@@ -18,7 +18,7 @@ namespace adria
 		RGResourceName last_resource = input;
 		struct BloomExtractPassData
 		{
-			RGTextureReadWriteId extract;
+			RGTextureReadWriteId output;
 			RGTextureReadOnlyId input;
 		};
 
@@ -32,33 +32,36 @@ namespace adria
 				bloom_extract_desc.format = EFormat::R16G16B16A16_FLOAT;
 
 				builder.DeclareTexture(RG_RES_NAME(BloomExtract), bloom_extract_desc);
-				data.extract = builder.WriteTexture(RG_RES_NAME(BloomExtract));
+				data.output = builder.WriteTexture(RG_RES_NAME(BloomExtract));
 				data.input = builder.ReadTexture(last_resource, ReadAccess_NonPixelShader);
 			},
-			[=](BloomExtractPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](BloomExtractPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::BloomExtract));
+				uint32 i = (uint32)descriptor_allocator->AllocateRange(2);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.input), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+				struct BloomExtractConstants
+				{
+					uint32 input_idx;
+					uint32 output_idx;
+
+					float threshold;
+					float scale;
+				} constants =
+				{
+					.input_idx = i, .output_idx = i + 1,
+					.threshold = params.bloom_threshold, .scale = params.bloom_scale
+				};
+
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::BloomExtract));
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.compute_cbuffer_address);
-
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = context.GetReadOnlyTexture(data.input);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
-
-				++descriptor_index;
-				cpu_descriptor = context.GetReadWriteTexture(data.extract);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
-
-				cmd_list->Dispatch((uint32)std::ceil(width / 32.0f),
-					(uint32)std::ceil(height / 32.0f), 1);
-
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRoot32BitConstants(1, 4, &constants, 0);
+				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 			}, ERGPassType::Compute, ERGPassFlags::None);
 
 		generate_mips_pass.AddPass(rg, RG_RES_NAME(BloomExtract));
@@ -82,31 +85,31 @@ namespace adria
 				data.extract = builder.ReadTexture(RG_RES_NAME(BloomExtract), ReadAccess_NonPixelShader);
 				data.input = builder.ReadTexture(last_resource, ReadAccess_NonPixelShader);
 			},
-			[=](BloomCombinePassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](BloomCombinePassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::BloomCombine));
+				uint32 i = (uint32)descriptor_allocator->AllocateRange(3);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.input), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadOnlyTexture(data.extract), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+				struct BloomCombineConstants
+				{
+					uint32 input_idx;
+					uint32 output_idx;
+					uint32 bloom_idx;
+				} constants =
+				{
+					.input_idx = i, .output_idx = i + 1, .bloom_idx = i + 2
+				};
+
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::BloomCombine));
-
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor = context.GetReadOnlyTexture(data.input);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-				cpu_descriptor = context.GetReadOnlyTexture(data.extract);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), cpu_descriptor,
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetHandle(descriptor_index));
-
-				descriptor_index += 2;
-				cpu_descriptor = context.GetReadWriteTexture(data.output);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), cpu_descriptor,
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-				cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
-				cmd_list->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRoot32BitConstants(1, 3, &constants, 0);
+				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 			}, ERGPassType::Compute, ERGPassFlags::None);
 
 		AddGUI([&]() 

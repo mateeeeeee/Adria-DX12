@@ -67,6 +67,10 @@ namespace adria
 				return "LensFlarePS";
 			case CS_Clouds:
 				return "Clouds";
+			case CS_BloomExtract:
+				return "BloomExtract";
+			case CS_BloomCombine:
+				return "BloomCombine";
 			default:
 				return "main";
 			}
@@ -253,9 +257,8 @@ namespace adria
 			case CS_BokehGenerate:
 				return "Postprocess/BokehCS.hlsl";
 			case CS_BloomExtract:
-				return "Postprocess/BloomExtractCS.hlsl";
 			case CS_BloomCombine:
-				return "Postprocess/BloomCombineCS.hlsl";
+				return "Postprocess/Bloom.hlsl";
 			case CS_InitialSpectrum:
 				return "Ocean/InitialSpectrumCS.hlsl";
 			case CS_Phase:
@@ -398,6 +401,8 @@ namespace adria
 			case GS_LensFlare:
 			case PS_LensFlare:
 			case CS_Clouds:
+			case CS_BloomExtract:
+			case CS_BloomCombine:
 				return true;
 			default:
 				return false;

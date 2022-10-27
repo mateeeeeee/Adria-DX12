@@ -186,34 +186,6 @@ namespace adria
 			}
 
 			{
-				rs_map[ERootSignature::BloomExtract] = rs_map[ERootSignature::Blur];
-
-				std::array<CD3DX12_ROOT_PARAMETER1, 2> root_parameters{};
-				CD3DX12_ROOT_PARAMETER1 root_parameter{};
-
-				CD3DX12_DESCRIPTOR_RANGE1 srv_range{};
-				srv_range.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE);
-				root_parameters[0].InitAsDescriptorTable(1, &srv_range, D3D12_SHADER_VISIBILITY_ALL);
-
-				CD3DX12_DESCRIPTOR_RANGE1 uav_range{};
-				uav_range.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0);
-				root_parameters[1].InitAsDescriptorTable(1, &uav_range, D3D12_SHADER_VISIBILITY_ALL);
-
-				D3D12_STATIC_SAMPLER_DESC linear_clamp_sampler = CD3DX12_STATIC_SAMPLER_DESC(0, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
-					D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
-
-				CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_desc{};
-				root_signature_desc.Init_1_1((uint32)root_parameters.size(), root_parameters.data(), 1, &linear_clamp_sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
-				ComPtr<ID3DBlob> signature;
-				ComPtr<ID3DBlob> error;
-				HRESULT hr = D3DX12SerializeVersionedRootSignature(&root_signature_desc, feature_data.HighestVersion, &signature, &error);
-				if (error) OutputDebugStringA((char*)error->GetBufferPointer());
-
-				BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::BloomCombine])));
-			}
-
-			{
 				CD3DX12_DESCRIPTOR_RANGE1 srv_uav_ranges[2] = {};
 				CD3DX12_ROOT_PARAMETER1 root_parameters[3] = {};
 				srv_uav_ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);

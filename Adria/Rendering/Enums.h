@@ -113,8 +113,6 @@ namespace adria
 		Bokeh,
 		BokehGenerate,
 		Blur,
-		BloomExtract,
-		BloomCombine,
 		Copy,
 		Add,
 		TiledLighting,
