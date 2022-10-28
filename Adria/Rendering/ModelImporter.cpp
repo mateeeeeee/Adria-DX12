@@ -395,11 +395,9 @@ namespace adria
 
             if (params.light_data.type == ELightType::Directional)
                 material.pso = EPipelineState::Sun;
-            else if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
-                material.pso = EPipelineState::Billboard;
 			else 
 			{ 
-				ADRIA_LOG(ERROR, "Light with quad mesh needs diffuse texture!"); 
+				ADRIA_LOG(ERROR, "Light with quad mesh needs to be directional!"); 
 			}
 
             reg.emplace<Material>(light, material);

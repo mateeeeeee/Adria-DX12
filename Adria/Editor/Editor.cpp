@@ -825,17 +825,7 @@ namespace adria
 					ImGui::SliderFloat("Roughness Factor", &material->roughness_factor, 0.0f, 1.0f);
 					ImGui::SliderFloat("Emissive Factor", &material->emissive_factor, 0.0f, 32.0f);
 
-					//add shader changing
-					if (engine->reg.all_of<Forward>(selected_entity))
-					{
-						if (material->albedo_texture != INVALID_TEXTURE_HANDLE)
-							material->pso = EPipelineState::Texture;
-						else material->pso = EPipelineState::Solid;
-					}
-					else
-					{
-						material->pso = EPipelineState::GBuffer;
-					}
+					material->pso = EPipelineState::GBuffer;
 				}
 
 				auto transform = engine->reg.try_get<Transform>(selected_entity);

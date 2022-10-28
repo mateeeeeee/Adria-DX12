@@ -287,15 +287,6 @@ namespace adria
 				gfx_pso_desc.rtv_formats[1] = EFormat::R8G8B8A8_UNORM;
 				gfx_pso_map[EPipelineState::Decals_ModifyNormals] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
-				gfx_pso_desc = {};
-				ShaderCompiler::CreateInputLayout(GetShader(VS_Solid), gfx_pso_desc.input_layout);
-				gfx_pso_desc.root_signature = ERootSignature::Forward;
-				gfx_pso_desc.VS = VS_Solid;
-				gfx_pso_desc.PS = PS_Solid;
-				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
-				gfx_pso_map[EPipelineState::Solid] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
-
 				gfx_pso_desc.depth_state.depth_enable = false;
 				gfx_pso_desc.rasterizer_state.fill_mode = EFillMode::Wireframe;
 				gfx_pso_desc.topology_type = D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;

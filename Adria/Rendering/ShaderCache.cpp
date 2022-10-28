@@ -106,8 +106,6 @@ namespace adria
 			{
 			case VS_Skybox:
 			case VS_Texture:
-			case VS_Solid:
-			case VS_Billboard:
 			case VS_Sun:
 			case VS_Decals:
 			case VS_GBuffer:
@@ -124,7 +122,6 @@ namespace adria
 			case PS_HosekWilkieSky:
 			case PS_UniformColorSky:
 			case PS_Texture:
-			case PS_Solid:
 			case PS_Decals:
 			case PS_Decals_ModifyNormals:
 			case PS_GBuffer:
@@ -219,14 +216,8 @@ namespace adria
 				return "Misc/TextureVS.hlsl";
 			case PS_Texture:
 				return "Misc/TexturePS.hlsl";
-			case VS_Solid:
-				return "Misc/SolidVS.hlsl";
-			case PS_Solid:
-				return "Misc/SolidPS.hlsl";
 			case VS_Sun:
 				return "Misc/SunVS.hlsl";
-			case VS_Billboard:
-				return "Misc/BillboardVS.hlsl";
 			case VS_Decals:
 				return "Misc/DecalVS.hlsl";
 			case PS_Decals:
