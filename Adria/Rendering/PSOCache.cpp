@@ -247,7 +247,7 @@ namespace adria
 
 				gfx_pso_desc = {};
 				ShaderCompiler::CreateInputLayout(GetShader(VS_Ocean), gfx_pso_desc.input_layout);
-				gfx_pso_desc.root_signature = ERootSignature::Ocean;
+				gfx_pso_desc.root_signature = ERootSignature::Common;
 				gfx_pso_desc.VS = VS_Ocean;
 				gfx_pso_desc.PS = PS_Ocean;
 				gfx_pso_desc.depth_state.depth_enable = true;
@@ -261,7 +261,7 @@ namespace adria
 				gfx_pso_desc.rasterizer_state.fill_mode = EFillMode::Wireframe;
 				gfx_pso_map[EPipelineState::Ocean_Wireframe] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
-				gfx_pso_desc.root_signature = ERootSignature::OceanLOD;
+				gfx_pso_desc.root_signature = ERootSignature::Common;
 				gfx_pso_desc.VS = VS_OceanLOD;
 				gfx_pso_desc.DS = DS_OceanLOD;
 				gfx_pso_desc.HS = HS_OceanLOD;

@@ -121,8 +121,6 @@ namespace adria
 		OceanNormalMap,
 		Phase,
 		Spectrum,
-		Ocean,
-		OceanLOD,
 		Particles_Shading,
 		Particles_InitDeadList,
 		Particles_Reset,

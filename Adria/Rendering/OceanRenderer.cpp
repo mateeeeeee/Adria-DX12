@@ -292,16 +292,16 @@ namespace adria
 
 		struct OceanDrawPass
 		{
-			RGTextureReadOnlyId normals_srv;
-			RGTextureReadOnlyId spectrum_srv;
+			RGTextureReadOnlyId normals;
+			RGTextureReadOnlyId displacement;
 		};
 
 		rendergraph.AddPass<OceanDrawPass>("Ocean Draw Pass",
 			[=](OceanDrawPass& data, RenderGraphBuilder& builder)
 			{
 				RGResourceName ping_spectrum_texture = !pong_spectrum ? RG_RES_NAME(PingSpectrum) : RG_RES_NAME(PongSpectrum);
-				data.spectrum_srv = builder.ReadTexture(ping_spectrum_texture, ReadAccess_NonPixelShader);
-				data.normals_srv = builder.ReadTexture(RG_RES_NAME(OceanNormals), ReadAccess_PixelShader);
+				data.displacement = builder.ReadTexture(ping_spectrum_texture, ReadAccess_NonPixelShader);
+				data.normals = builder.ReadTexture(RG_RES_NAME(OceanNormals), ReadAccess_PixelShader);
 				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), ERGLoadStoreAccessOp::Preserve_Preserve);
 				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), ERGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);
@@ -323,61 +323,63 @@ namespace adria
 						break;
 					}
 				}
-
-				DescriptorCPU displacement_handle = context.GetReadOnlyTexture(data.spectrum_srv);
+				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				if (ocean_tesselation)
 				{
-					cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::OceanLOD));
 					cmd_list->SetPipelineState(
 						ocean_tesselation ? PSOCache::Get(EPipelineState::OceanLOD_Wireframe) :
 						PSOCache::Get(EPipelineState::OceanLOD));
 				}
 				else
 				{
-					cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Ocean));
 					cmd_list->SetPipelineState(
 						ocean_wireframe ? PSOCache::Get(EPipelineState::Ocean_Wireframe) :
 						PSOCache::Get(EPipelineState::Ocean));
 				}
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetGraphicsRootConstantBufferView(3, global_data.weather_cbuffer_address);
+				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
 
-				auto ocean_chunk_view = reg.view<Mesh, Material, Transform, AABB, Ocean>();
-				ObjectCBuffer object_cbuf_data{};
-				MaterialCBuffer material_cbuf_data{};
+				auto ocean_chunk_view = reg.view<Mesh, Material, Transform, AABB, Ocean>();				
 				for (auto ocean_chunk : ocean_chunk_view)
 				{
 					auto const& [mesh, material, transform, aabb] = ocean_chunk_view.get<const Mesh, const Material, const Transform, const AABB>(ocean_chunk);
 
 					if (aabb.camera_visible)
 					{
-						object_cbuf_data.model = transform.current_transform;
-						object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
-						DynamicAllocation object_allocation = dynamic_allocator->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-						object_allocation.Update(object_cbuf_data);
-						cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
-
-						material_cbuf_data.diffuse = material.diffuse;
-						DynamicAllocation material_allocation = dynamic_allocator->Allocate(GetCBufferSize<MaterialCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-						material_allocation.Update(material_cbuf_data);
-						cmd_list->SetGraphicsRootConstantBufferView(2, material_allocation.gpu_address);
-
-						OffsetType descriptor_index = descriptor_allocator->Allocate();
-						auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-						device->CopyDescriptorsSimple(1, dst_descriptor, displacement_handle,
-							D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-						cmd_list->SetGraphicsRootDescriptorTable(4, dst_descriptor);
-
-						descriptor_index = descriptor_allocator->AllocateRange(3);
-						dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-						D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { context.GetReadOnlyTexture(data.normals_srv), skybox_handle, texture_manager.GetSRV(foam_handle) };
+						uint32 i = (uint32)descriptor_allocator->AllocateRange(4);
+						auto dst_descriptor = descriptor_allocator->GetHandle(i);
+						D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { context.GetReadOnlyTexture(data.displacement), context.GetReadOnlyTexture(data.normals), skybox_handle, texture_manager.GetSRV(foam_handle) };
 						D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { dst_descriptor };
-						UINT src_range_sizes[] = { 1, 1, 1 };
-						UINT dst_range_sizes[] = { 3 };
-						device->CopyDescriptors(1, dst_ranges, dst_range_sizes, 3, src_ranges, src_range_sizes,
+						UINT src_range_sizes[] = { 1, 1, 1, 1 };
+						UINT dst_range_sizes[] = { ARRAYSIZE(src_ranges) };
+						device->CopyDescriptors(1, dst_ranges, dst_range_sizes, ARRAYSIZE(src_ranges), src_ranges, src_range_sizes,
 							D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-						cmd_list->SetGraphicsRootDescriptorTable(5, dst_descriptor);
 
+						struct OceanIndices
+						{
+							uint32 displacement_idx;
+							uint32 normal_idx;
+							uint32 sky_idx;
+							uint32 foam_idx;
+						} indices = 
+						{
+							.displacement_idx = i, .normal_idx = i + 1,
+							.sky_idx = i + 2, .foam_idx = i + 3
+						};
+
+						struct OceanConstants
+						{
+							XMMATRIX ocean_model_matrix;
+							XMFLOAT3 ocean_color;
+						} constants = 
+						{
+							.ocean_model_matrix = transform.current_transform,
+							.ocean_color = material.diffuse
+						};
+						DynamicAllocation allocation = dynamic_allocator->Allocate(GetCBufferSize<OceanConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+						allocation.Update(constants);
+
+						cmd_list->SetGraphicsRoot32BitConstants(1, 4, &indices, 0);
+						cmd_list->SetGraphicsRootConstantBufferView(2, allocation.gpu_address);
 						ocean_tesselation ? mesh.Draw(cmd_list, D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST) : mesh.Draw(cmd_list);
 					}
 				}

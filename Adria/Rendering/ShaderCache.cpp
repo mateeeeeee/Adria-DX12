@@ -85,6 +85,16 @@ namespace adria
 				return "BlurVertical";
 			case CS_Picking:
 				return "Picking";
+			case VS_Ocean:
+				return "OceanVS";
+			case PS_Ocean:
+				return "OceanPS";
+			case VS_OceanLOD:
+				return "OceanLOD_VS";
+			case DS_OceanLOD:
+				return "OceanLOD_DS";
+			case HS_OceanLOD:
+				return "OceanLOD_HS";
 			default:
 				return "main";
 			}
@@ -290,15 +300,12 @@ namespace adria
 			case CS_ClusterCulling:
 				return "Deferred/ClusterCullingCS.hlsl";
 			case VS_Ocean:
-				return "Ocean/OceanVS.hlsl";
-			case PS_Ocean:
-				return "Ocean/OceanPS.hlsl";
+		    case PS_Ocean:
+				return "Ocean/Ocean.hlsl";
 			case VS_OceanLOD:
-				return "Ocean/OceanLodVS.hlsl";
 			case HS_OceanLOD:
-				return "Ocean/OceanLodHS.hlsl";
 			case DS_OceanLOD:
-				return "Ocean/OceanLodDS.hlsl";
+				return "Ocean/OceanLOD.hlsl";
 			case CS_Picking:
 				return "Other/Picking.hlsl";
 			case VS_Particles:
@@ -420,6 +427,11 @@ namespace adria
 			case CS_Blur_Horizontal:
 			case CS_Blur_Vertical:
 			case CS_Picking:
+			case VS_Ocean:
+			case PS_Ocean:
+			case VS_OceanLOD:
+			case HS_OceanLOD:
+			case DS_OceanLOD:
 				return true;
 			default:
 				return false;

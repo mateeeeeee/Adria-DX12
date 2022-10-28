@@ -75,12 +75,6 @@ namespace adria
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_Spectrum).GetPointer(), GetShader(CS_Spectrum).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::Spectrum].GetAddressOf())));
 
-			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(VS_Ocean).GetPointer(), GetShader(VS_Ocean).GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::Ocean].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(VS_OceanLOD).GetPointer(), GetShader(VS_OceanLOD).GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::OceanLOD].GetAddressOf())));
-
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Decals).GetPointer(), GetShader(PS_Decals).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::Decals].GetAddressOf())));
 
@@ -124,8 +118,6 @@ namespace adria
 
 				D3D12_ROOT_SIGNATURE_FLAGS flags =
 					D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-					D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-					D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
 					D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED;
 
 				CD3DX12_STATIC_SAMPLER_DESC static_samplers[8] = {};
