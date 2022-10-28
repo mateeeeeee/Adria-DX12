@@ -60,9 +60,6 @@ namespace adria
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Copy).GetPointer(), GetShader(PS_Copy).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::Copy].GetAddressOf())));
 
-			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_FFT_Horizontal).GetPointer(), GetShader(CS_FFT_Horizontal).GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::FFT].GetAddressOf())));
-
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_InitialSpectrum).GetPointer(), GetShader(CS_InitialSpectrum).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::InitialSpectrum].GetAddressOf())));
 

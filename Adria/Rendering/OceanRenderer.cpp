@@ -147,13 +147,14 @@ namespace adria
 
 			}, ERGPassType::Compute, ERGPassFlags::None);
 
-		DECLSPEC_ALIGN(16) struct FFTCBuffer
+		struct FFTConstants
 		{
+			uint32 input_idx;
+			uint32 output_idx;
 			uint32 seq_count;
 			uint32 subseq_count;
 		};
 
-		//Add Horizontal FFT
 		for (uint32 p = 1; p < FFT_RESOLUTION; p <<= 1)
 		{
 			struct FFTHorizontalPassData
@@ -170,31 +171,25 @@ namespace adria
 					data.spectrum_srv = builder.ReadTexture(pong_spectrum_texture, ReadAccess_NonPixelShader);
 					data.spectrum_uav = builder.WriteTexture(ping_spectrum_texture);
 				},
-				[=](FFTHorizontalPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+				[=](FFTHorizontalPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
 				{
 					auto device = gfx->GetDevice();
 					auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
-					auto dynamic_allocator = gfx->GetDynamicAllocator();
 
-					cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::FFT));
+					cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::FFT_Horizontal));
 
-					FFTCBuffer fft_cbuf_data{ .seq_count = FFT_RESOLUTION };
-					fft_cbuf_data.subseq_count = p;
-					DynamicAllocation fft_cbuffer_allocation = dynamic_allocator->Allocate(GetCBufferSize<FFTCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-					fft_cbuffer_allocation.Update(fft_cbuf_data);
-					cmd_list->SetComputeRootConstantBufferView(0, fft_cbuffer_allocation.gpu_address);
+					uint32 i = (uint32)descriptor_allocator->AllocateRange(2);
+					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i), ctx.GetReadOnlyTexture(data.spectrum_srv), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.spectrum_uav), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					
+					FFTConstants fft_constants{};
+					fft_constants.seq_count = FFT_RESOLUTION;
+					fft_constants.subseq_count = p;
+					fft_constants.input_idx = i;
+					fft_constants.output_idx = i + 1;
 
-					OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
-					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index),
-						context.GetReadOnlyTexture(data.spectrum_srv),
-						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-					cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
-
-					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1),
-						context.GetReadWriteTexture(data.spectrum_uav),
-						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-					cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index + 1));
+					cmd_list->SetComputeRoot32BitConstants(1, 4, &fft_constants, 0);
 					cmd_list->Dispatch(FFT_RESOLUTION, 1, 1);
 
 				}, ERGPassType::Compute, ERGPassFlags::None);
@@ -218,31 +213,25 @@ namespace adria
 					data.spectrum_srv = builder.ReadTexture(pong_spectrum_texture, ReadAccess_NonPixelShader);
 					data.spectrum_uav = builder.WriteTexture(ping_spectrum_texture);
 				},
-				[=](FFTVerticalPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+				[=](FFTVerticalPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
 				{
 					auto device = gfx->GetDevice();
 					auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
-					auto dynamic_allocator = gfx->GetDynamicAllocator();
 
-					cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::FFT));
+					cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::FFT_Vertical));
 
-					FFTCBuffer fft_cbuf_data{ .seq_count = FFT_RESOLUTION };
-					fft_cbuf_data.subseq_count = p;
-					DynamicAllocation fft_cbuffer_allocation = dynamic_allocator->Allocate(GetCBufferSize<FFTCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-					fft_cbuffer_allocation.Update(fft_cbuf_data);
-					cmd_list->SetComputeRootConstantBufferView(0, fft_cbuffer_allocation.gpu_address);
+					uint32 i = (uint32)descriptor_allocator->AllocateRange(2);
+					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i), ctx.GetReadOnlyTexture(data.spectrum_srv), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.spectrum_uav), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-					OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
-					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index),
-						context.GetReadOnlyTexture(data.spectrum_srv),
-						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-					cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
+					FFTConstants fft_constants{};
+					fft_constants.seq_count = FFT_RESOLUTION;
+					fft_constants.subseq_count = p;
+					fft_constants.input_idx = i;
+					fft_constants.output_idx = i + 1;
 
-					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1),
-						context.GetReadWriteTexture(data.spectrum_uav),
-						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-					cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index + 1));
+					cmd_list->SetComputeRoot32BitConstants(1, 4, &fft_constants, 0);
 					cmd_list->Dispatch(FFT_RESOLUTION, 1, 1);
 
 				}, ERGPassType::Compute, ERGPassFlags::None);

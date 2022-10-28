@@ -113,7 +113,6 @@ namespace adria
 		ClusterBuilding,
 		ClusterCulling,
 		GenerateMips,
-		FFT,
 		InitialSpectrum,
 		OceanNormalMap,
 		Phase,

@@ -25,7 +25,7 @@ struct CS_INPUT
 };
 
 [numthreads(BLOCK_SIZE, 1, 1)]
-void BlurHorizontal(CS_INPUT input)
+void Blur_Horizontal(CS_INPUT input)
 {
 	uint3 globalCoords = input.DispatchThreadId;
 	uint groupIndex = input.GroupIndex;
@@ -60,7 +60,7 @@ void BlurHorizontal(CS_INPUT input)
 }
 
 [numthreads(1, BLOCK_SIZE, 1)]
-void BlurVertical(CS_INPUT input)
+void Blur_Vertical(CS_INPUT input)
 {
 	uint3 globalCoords = input.DispatchThreadId;
 	uint groupIndex = input.GroupIndex;

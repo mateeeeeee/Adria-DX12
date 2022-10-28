@@ -372,10 +372,9 @@ namespace adria
 				compute_pso_desc.CS = CS_BokehGeneration;
 				compute_pso_map[EPipelineState::BokehGenerate] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::FFT;
+				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_FFT_Horizontal;
 				compute_pso_map[EPipelineState::FFT_Horizontal] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
-
 				compute_pso_desc.CS = CS_FFT_Vertical;
 				compute_pso_map[EPipelineState::FFT_Vertical] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 

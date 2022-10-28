@@ -38,7 +38,7 @@ struct VS_CONTROL_POINT_OUTPUT
 	float2 TexCoord : TEX;
 };
 
-VS_CONTROL_POINT_OUTPUT OceanLOD_VS(VS_INPUT vin)
+VS_CONTROL_POINT_OUTPUT OceanVS_LOD(VS_INPUT vin)
 {
 	VS_CONTROL_POINT_OUTPUT vout;
 	vout.WorldPos = mul(float4(vin.Pos, 1.0), PassCB.oceanModelMatrix);
@@ -90,7 +90,7 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
 [outputtopology("triangle_cw")]
 [outputcontrolpoints(3)]
 [patchconstantfunc("CalcHSPatchConstants")]
-HS_CONTROL_POINT_OUTPUT OceanLOD_HS(
+HS_CONTROL_POINT_OUTPUT OceanHS_LOD(
 	InputPatch<VS_CONTROL_POINT_OUTPUT, NUM_CONTROL_POINTS> ip,
 	uint i : SV_OutputControlPointID,
 	uint PatchID : SV_PrimitiveID)
@@ -109,7 +109,7 @@ struct DS_OUTPUT
 };
 
 [domain("tri")]
-DS_OUTPUT OceanLOD_DS(
+DS_OUTPUT OceanDS_LOD(
 	HS_CONSTANT_DATA_OUTPUT input,
 	float3 domain : SV_DomainLocation,
 	const OutputPatch<HS_CONTROL_POINT_OUTPUT, NUM_CONTROL_POINTS> patch)

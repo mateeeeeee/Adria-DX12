@@ -80,9 +80,9 @@ namespace adria
 			case PS_Bokeh:
 				return "BokehPS";
 			case CS_Blur_Horizontal:
-				return "BlurHorizontal";
+				return "Blur_Horizontal";
 			case CS_Blur_Vertical:
-				return "BlurVertical";
+				return "Blur_Vertical";
 			case CS_Picking:
 				return "Picking";
 			case VS_Ocean:
@@ -90,11 +90,15 @@ namespace adria
 			case PS_Ocean:
 				return "OceanPS";
 			case VS_OceanLOD:
-				return "OceanLOD_VS";
+				return "OceanVS_LOD";
 			case DS_OceanLOD:
-				return "OceanLOD_DS";
+				return "OceanDS_LOD";
 			case HS_OceanLOD:
-				return "OceanLOD_HS";
+				return "OceanHS_LOD";
+			case CS_FFT_Horizontal:
+				return "FFT_Horizontal";
+			case CS_FFT_Vertical:
+				return "FFT_Vertical";
 			default:
 				return "main";
 			}
@@ -279,9 +283,8 @@ namespace adria
 			case CS_Spectrum:
 				return "Ocean/SpectrumCS.hlsl";
 			case CS_FFT_Horizontal:
-				return "Ocean/FFT_horizontalCS.hlsl";
 			case CS_FFT_Vertical:
-				return "Ocean/FFT_verticalCS.hlsl";
+				return "Ocean/FFT.hlsl";
 			case CS_OceanNormalMap:
 				return "Ocean/NormalMapCS.hlsl";
 			case CS_TiledLighting:
@@ -423,6 +426,8 @@ namespace adria
 			case VS_OceanLOD:
 			case HS_OceanLOD:
 			case DS_OceanLOD:
+			case CS_FFT_Horizontal:
+			case CS_FFT_Vertical:
 				return true;
 			default:
 				return false;
