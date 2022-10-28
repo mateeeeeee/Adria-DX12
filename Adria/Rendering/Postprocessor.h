@@ -49,8 +49,6 @@ namespace adria
 		void OnSceneInitialized(GraphicsDevice* gfx);
 		RGResourceName GetFinalResource() const;
 
-		BokehParameters const& GetBokehParams() const { return bokeh_pass.GetParams(); }
-
 	private:
 		entt::registry& reg;
 		TextureManager& texture_manager;

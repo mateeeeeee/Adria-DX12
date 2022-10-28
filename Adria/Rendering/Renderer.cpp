@@ -441,30 +441,9 @@ namespace adria
 
 		//compute 
 		{
-			BokehParameters bokeh_params = postprocessor.GetBokehParams();
-
-			std::array<float, 9> coeffs{};
-			coeffs.fill(1.0f / 9);
 			static ComputeCBuffer compute_cbuf_data{};
-			compute_cbuf_data.gauss_coeff1 = coeffs[0];
-			compute_cbuf_data.gauss_coeff2 = coeffs[1];
-			compute_cbuf_data.gauss_coeff3 = coeffs[2];
-			compute_cbuf_data.gauss_coeff4 = coeffs[3];
-			compute_cbuf_data.gauss_coeff5 = coeffs[4];
-			compute_cbuf_data.gauss_coeff6 = coeffs[5];
-			compute_cbuf_data.gauss_coeff7 = coeffs[6];
-			compute_cbuf_data.gauss_coeff8 = coeffs[7];
-			compute_cbuf_data.gauss_coeff9 = coeffs[8];
 			compute_cbuf_data.visualize_tiled = tiled_lighting_pass.IsVisualized();
 			compute_cbuf_data.visualize_max_lights = tiled_lighting_pass.MaxLightsForVisualization();
-			compute_cbuf_data.bokeh_blur_threshold = bokeh_params.bokeh_blur_threshold;
-			compute_cbuf_data.bokeh_lum_threshold = bokeh_params.bokeh_lum_threshold;
-
-			compute_cbuf_data.dof_params = XMVectorSet(0, 200, 400, 600); //for now hardcoded
-			compute_cbuf_data.bokeh_radius_scale = bokeh_params.bokeh_radius_scale;
-			compute_cbuf_data.bokeh_color_scale = bokeh_params.bokeh_color_scale;
-			compute_cbuf_data.bokeh_fallout = bokeh_params.bokeh_fallout;
-
 			XMFLOAT2 wind_dir(ocean_renderer.GetWindDirection());
 			compute_cbuf_data.ocean_choppiness = ocean_renderer.GetChoppiness();
 			compute_cbuf_data.ocean_size = 512;

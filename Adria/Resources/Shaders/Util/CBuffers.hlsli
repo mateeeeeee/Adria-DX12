@@ -58,32 +58,8 @@ struct ShadowCBuffer
     int visualize;
 };
 
-struct PostprocessCBuffer
-{
-    float4 dof_params;
-    float  velocity_buffer_scale;
-};
-
-
 struct ComputeCBuffer
 {
-    float gauss_coeff1; //blur coefficients
-    float gauss_coeff2; //blur coefficients
-    float gauss_coeff3; //blur coefficients
-    float gauss_coeff4; //blur coefficients
-    float gauss_coeff5; //blur coefficients
-    float gauss_coeff6; //blur coefficients
-    float gauss_coeff7; //blur coefficients
-    float gauss_coeff8; //blur coefficients
-    float gauss_coeff9; //blur coefficients
-
-    float bokeh_fallout;        //bokeh
-    float4 dof_params;          //bokeh
-    float bokeh_radius_scale;   //bokeh
-    float bokeh_color_scale;    //bokeh
-    float bokeh_blur_threshold; //bokeh
-    float bokeh_lum_threshold;  //bokeh	
-
     int ocean_size;             //ocean
     int resolution;             //ocean
     float ocean_choppiness;     //ocean								

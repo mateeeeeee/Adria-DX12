@@ -71,6 +71,20 @@ namespace adria
 				return "BloomExtract";
 			case CS_BloomCombine:
 				return "BloomCombine";
+			case CS_BokehGeneration:
+				return "BokehGeneration";
+			case VS_Bokeh:
+				return "BokehVS";
+			case GS_Bokeh:
+				return "BokehGS";
+			case PS_Bokeh:
+				return "BokehPS";
+			case CS_Blur_Horizontal:
+				return "BlurHorizontal";
+			case CS_Blur_Vertical:
+				return "BlurVertical";
+			case CS_Picking:
+				return "Picking";
 			default:
 				return "main";
 			}
@@ -127,7 +141,7 @@ namespace adria
 				return EShaderStage::GS;
 			case CS_Blur_Horizontal:
 			case CS_Blur_Vertical:
-			case CS_BokehGenerate:
+			case CS_BokehGeneration:
 			case CS_BloomExtract:
 			case CS_BloomCombine:
 			case CS_InitialSpectrum:
@@ -147,7 +161,7 @@ namespace adria
 			case CS_ParticleSort512:
 			case CS_ParticleSortInner512:
 			case CS_ParticleInitSortDispatchArgs:
-			case CS_Picker:
+			case CS_Picking:
 			case CS_GenerateMips:
 			case CS_BuildHistogram:
 			case CS_HistogramReduction:
@@ -230,11 +244,9 @@ namespace adria
 			case PS_LensFlare:
 				return "Postprocess/LensFlare.hlsl";
 			case VS_Bokeh:
-				return "Postprocess/BokehVS.hlsl";
 			case GS_Bokeh:
-				return "Postprocess/BokehGS.hlsl";
 			case PS_Bokeh:
-				return "Postprocess/BokehPS.hlsl";
+				return "Postprocess/Bokeh.hlsl";
 			case CS_Clouds:
 				return "Postprocess/Clouds.hlsl";
 			case VS_DepthMap:
@@ -253,9 +265,9 @@ namespace adria
 				return "Postprocess/VolumetricLightPointPS.hlsl";
 			case CS_Blur_Horizontal:
 			case CS_Blur_Vertical:
-				return "Postprocess/BlurCS.hlsl";
-			case CS_BokehGenerate:
-				return "Postprocess/BokehCS.hlsl";
+				return "Postprocess/Blur.hlsl";
+			case CS_BokehGeneration:
+				return "Postprocess/BokehGeneration.hlsl";
 			case CS_BloomExtract:
 			case CS_BloomCombine:
 				return "Postprocess/Bloom.hlsl";
@@ -287,8 +299,8 @@ namespace adria
 				return "Ocean/OceanLodHS.hlsl";
 			case DS_OceanLOD:
 				return "Ocean/OceanLodDS.hlsl";
-			case CS_Picker:
-				return "Misc/PickerCS.hlsl";
+			case CS_Picking:
+				return "Other/Picking.hlsl";
 			case VS_Particles:
 				return "Particles/ParticleVS.hlsl";
 			case PS_Particles:
@@ -360,8 +372,6 @@ namespace adria
 			case VS_DepthMap_Transparent:
 			case PS_DepthMap_Transparent:
 				return { {L"TRANSPARENT", L"1"} };
-			case CS_Blur_Vertical:
-				return { { L"VERTICAL", L"1" } };
 			case PS_LightingPBR_RayTracedShadows:
 				return { { L"RAY_TRACED_SHADOWS", L"" } };
 			case LIB_SoftShadows:
@@ -400,9 +410,16 @@ namespace adria
 			case VS_LensFlare:
 			case GS_LensFlare:
 			case PS_LensFlare:
+			case VS_Bokeh:
+			case GS_Bokeh:
+			case PS_Bokeh:
+			case CS_BokehGeneration:
 			case CS_Clouds:
 			case CS_BloomExtract:
 			case CS_BloomCombine:
+			case CS_Blur_Horizontal:
+			case CS_Blur_Vertical:
+			case CS_Picking:
 				return true;
 			default:
 				return false;

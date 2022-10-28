@@ -859,12 +859,6 @@
     <FxCompile Include="Resources\Shaders\PostProcess\AddPS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\PostProcess\BloomExtractCS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\PostProcess\CloudsPS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\Deferred\TiledLightingCS.hlsl">
       <Filter>Shaders\Deferred</Filter>
     </FxCompile>
@@ -902,9 +896,6 @@
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\PostProcess\BokehVS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\PostProcess\BloomCombineCS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Misc\HosekWilkieSkyPS.hlsl">
@@ -1043,6 +1034,15 @@
       <Filter>NewShaders\Lighting</Filter>
     </FxCompile>
     <FxCompile Include="Resources\NewShaders\Postprocess\LensFlare.hlsl">
+      <Filter>NewShaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Postprocess\BokehGeneration.hlsl">
+      <Filter>NewShaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Postprocess\Bloom.hlsl">
+      <Filter>NewShaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Postprocess\Bokeh.hlsl">
       <Filter>NewShaders\Postprocess</Filter>
     </FxCompile>
   </ItemGroup>

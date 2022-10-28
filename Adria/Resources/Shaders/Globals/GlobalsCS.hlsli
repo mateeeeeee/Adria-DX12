@@ -1,7 +1,6 @@
 #include "../Util/CBuffers.hlsli"
 
 ConstantBuffer<FrameCBuffer>    frame_cbuf   : register(b0);
-ConstantBuffer<PostprocessCBuffer> postprocess_cbuf : register(b5);
 ConstantBuffer<ComputeCBuffer> compute_cbuf : register(b6);
 
 float ConvertZToLinearDepth(float depth)

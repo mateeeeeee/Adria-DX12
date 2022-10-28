@@ -8,6 +8,8 @@
 #include "../Graphics/TextureManager.h"
 #include "../Editor/GUICommand.h"
 
+using namespace DirectX;
+
 namespace adria
 {
 
@@ -96,9 +98,9 @@ namespace adria
 
 		struct BokehGeneratePassData
 		{
-			RGTextureReadOnlyId input_srv;
-			RGTextureReadOnlyId depth_srv;
-			RGBufferReadWriteId bokeh_uav;
+			RGTextureReadOnlyId input;
+			RGTextureReadOnlyId depth;
+			RGBufferReadWriteId bokeh;
 		};
 
 		rg.AddPass<BokehGeneratePassData>("Bokeh Generate Pass",
@@ -110,38 +112,57 @@ namespace adria
 				bokeh_desc.stride = sizeof(Bokeh);
 				bokeh_desc.size = bokeh_desc.stride * width * height;
 				builder.DeclareBuffer(RG_RES_NAME(Bokeh), bokeh_desc);
-				data.bokeh_uav = builder.WriteBuffer(RG_RES_NAME(Bokeh), RG_RES_NAME(BokehCounter));
-				data.input_srv = builder.ReadTexture(last_resource, ReadAccess_NonPixelShader);
-				data.depth_srv = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				data.bokeh = builder.WriteBuffer(RG_RES_NAME(Bokeh), RG_RES_NAME(BokehCounter));
+				data.input = builder.ReadTexture(last_resource, ReadAccess_NonPixelShader);
+				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
 			[=](BokehGeneratePassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::BokehGenerate));
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::BokehGenerate));
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRootConstantBufferView(1, global_data.compute_cbuffer_address);
-				cmd_list->SetComputeRootConstantBufferView(2, global_data.compute_cbuffer_address);
-
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
-
-				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { context.GetReadOnlyTexture(data.input_srv), context.GetReadOnlyTexture(data.depth_srv) };
-				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(descriptor_index) };
-				uint32 src_range_sizes[] = { 1, 1 };
-				uint32 dst_range_sizes[] = { 2 };
+				uint32 i = (uint32)descriptor_allocator->AllocateRange(3);
+				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { context.GetReadOnlyTexture(data.input), context.GetReadOnlyTexture(data.depth), context.GetReadWriteBuffer(data.bokeh) };
+				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(i) };
+				uint32 src_range_sizes[] = { 1, 1, 1 };
+				uint32 dst_range_sizes[] = { 3 };
 				device->CopyDescriptors(ARRAYSIZE(dst_ranges), dst_ranges, dst_range_sizes, ARRAYSIZE(src_ranges), src_ranges, src_range_sizes,
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetComputeRootDescriptorTable(3, descriptor_allocator->GetHandle(descriptor_index));
 
-				D3D12_CPU_DESCRIPTOR_HANDLE bokeh_uav = context.GetReadWriteBuffer(data.bokeh_uav);
-				descriptor_index = descriptor_allocator->Allocate();
+				struct BokehGenerationIndices
+				{
+					uint32 hdr_idx;
+					uint32 depth_idx;
+					uint32 bokeh_stack_idx;
+				} indices =
+				{
+					.hdr_idx = i, .depth_idx = i + 1, .bokeh_stack_idx = i + 2
+				};
+				DynamicAllocation allocation = dynamic_allocator->Allocate(GetCBufferSize<BokehGenerationIndices>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				allocation.Update(indices);
 
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), bokeh_uav, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				DoFBlackboardData const& dof_data = context.GetBlackboard().GetChecked<DoFBlackboardData>();
+				struct BokehGenerationConstants
+				{
+					XMFLOAT4 dof_params;
+					float  bokeh_lum_threshold;
+					float  bokeh_blur_threshold;
+					float  bokeh_scale;
+					float  bokeh_fallout;
+				} constants =
+				{
+					.dof_params = XMFLOAT4(dof_data.dof_params_x, dof_data.dof_params_y, dof_data.dof_params_z, dof_data.dof_params_w),
+					.bokeh_lum_threshold = params.bokeh_lum_threshold, .bokeh_blur_threshold = params.bokeh_blur_threshold,
+					.bokeh_scale = params.bokeh_radius_scale, .bokeh_fallout = params.bokeh_fallout
+				};
 
-				cmd_list->SetComputeRootDescriptorTable(4, descriptor_allocator->GetHandle(descriptor_index));
-				cmd_list->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::BokehGenerate));
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
+				cmd_list->SetComputeRootConstantBufferView(2, allocation.gpu_address);
+				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 
 			}, ERGPassType::Compute, ERGPassFlags::None);
 
@@ -170,7 +191,7 @@ namespace adria
 		RGResourceName last_resource = input;
 		struct BokehDrawPassData
 		{
-			RGBufferReadOnlyId bokeh_srv;
+			RGBufferReadOnlyId bokeh_stack;
 			RGBufferIndirectArgsId bokeh_indirect_args;
 		};
 
@@ -178,7 +199,7 @@ namespace adria
 			[=](BokehDrawPassData& data, RenderGraphBuilder& builder)
 			{
 				builder.WriteRenderTarget(last_resource, ERGLoadStoreAccessOp::Preserve_Preserve);
-				data.bokeh_srv = builder.ReadBuffer(RG_RES_NAME(Bokeh), ReadAccess_PixelShader);
+				data.bokeh_stack = builder.ReadBuffer(RG_RES_NAME(Bokeh), ReadAccess_PixelShader);
 				data.bokeh_indirect_args = builder.ReadIndirectArgsBuffer(RG_RES_NAME(BokehIndirectDraw));
 				builder.SetViewport(width, height);
 			},
@@ -206,26 +227,30 @@ namespace adria
 					ADRIA_ASSERT(false && "Invalid Bokeh Type");
 				}
 
-				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Bokeh));
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Bokeh));
-
-				OffsetType i = descriptor_allocator->AllocateRange(2);
+				uint32 i = (uint32)descriptor_allocator->AllocateRange(2);
 
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i),
-					context.GetReadOnlyBuffer(data.bokeh_srv), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1),
 					bokeh_descriptor, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1),
+					context.GetReadOnlyBuffer(data.bokeh_stack), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-				cmd_list->SetGraphicsRootDescriptorTable(0, descriptor_allocator->GetHandle(i));
-				cmd_list->SetGraphicsRootDescriptorTable(1, descriptor_allocator->GetHandle(i + 1));
-
+				struct BokehConstants
+				{
+					uint32 bokeh_tex_idx;
+					uint32 bokeh_stack_idx;
+				} constants = 
+				{
+					.bokeh_tex_idx = i, .bokeh_stack_idx = i + 1
+				};
+				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Bokeh));
+				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetGraphicsRoot32BitConstants(1, 2, &constants, 0);
 				cmd_list->IASetVertexBuffers(0, 0, nullptr);
 				cmd_list->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 
 				Buffer const& indirect_args_buffer = context.GetIndirectArgsBuffer(data.bokeh_indirect_args);
-				cmd_list->ExecuteIndirect(*bokeh_command_signature, 1, indirect_args_buffer.GetNative(), 0,
-					nullptr, 0);
+				cmd_list->ExecuteIndirect(*bokeh_command_signature, 1, indirect_args_buffer.GetNative(), 0, nullptr, 0);
 			}, ERGPassType::Graphics, ERGPassFlags::None);
 
 	}

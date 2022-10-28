@@ -27,6 +27,7 @@ namespace adria
 		template<typename T, typename... Args> requires std::is_constructible_v<T, Args...>
 		T& Create(Args&&... args)
 		{
+			static_assert(std::is_trivial_v<T> && std::is_standard_layout_v<T>);
 			ADRIA_ASSERT(board_data.find(typeid(T)) == board_data.end() && "Cannot create same type more than once in blackboard!");
 			board_data[typeid(T)] = std::make_unique<uint8[]>(sizeof(T));
 			T* data_entry = reinterpret_cast<T*>(board_data[typeid(T)].get());

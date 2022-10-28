@@ -48,9 +48,6 @@ namespace adria
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Add).GetPointer(), GetShader(PS_Add).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::Add].GetAddressOf())));
 
-			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Bokeh).GetPointer(), GetShader(PS_Bokeh).GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::Bokeh].GetAddressOf())));
-
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_TiledLighting).GetPointer(), GetShader(CS_TiledLighting).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::TiledLighting].GetAddressOf())));
 
@@ -59,9 +56,6 @@ namespace adria
 
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_ClusterCulling).GetPointer(), GetShader(CS_ClusterCulling).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::ClusterCulling].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_BokehGenerate).GetPointer(), GetShader(CS_BokehGenerate).GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::BokehGenerate].GetAddressOf())));
 
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Copy).GetPointer(), GetShader(PS_Copy).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::Copy].GetAddressOf())));
@@ -89,9 +83,6 @@ namespace adria
 
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Decals).GetPointer(), GetShader(PS_Decals).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::Decals].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_Picker).GetPointer(), GetShader(CS_Picker).GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::Picker].GetAddressOf())));
 
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_ParticleInitDeadList).GetPointer(), GetShader(CS_ParticleInitDeadList).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::Particles_InitDeadList].GetAddressOf())));
@@ -158,31 +149,6 @@ namespace adria
 				BREAK_IF_FAILED(hr);
 				hr = device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::Common]));
 				BREAK_IF_FAILED(hr);
-			}
-
-			{
-				std::array<CD3DX12_ROOT_PARAMETER1, 3> root_parameters{};
-				CD3DX12_ROOT_PARAMETER1 root_parameter{};
-
-				root_parameters[0].InitAsConstantBufferView(6, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
-
-				CD3DX12_DESCRIPTOR_RANGE1 srv_range{};
-				srv_range.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE);
-				root_parameters[1].InitAsDescriptorTable(1, &srv_range, D3D12_SHADER_VISIBILITY_ALL);
-
-				CD3DX12_DESCRIPTOR_RANGE1 uav_range{};
-				uav_range.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0);
-				root_parameters[2].InitAsDescriptorTable(1, &uav_range, D3D12_SHADER_VISIBILITY_ALL);
-
-				CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc{};
-				rootSignatureDesc.Init_1_1((uint32)root_parameters.size(), root_parameters.data(), 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
-				ComPtr<ID3DBlob> signature;
-				ComPtr<ID3DBlob> error;
-				HRESULT hr = D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, feature_data.HighestVersion, &signature, &error);
-				if (error) OutputDebugStringA((char*)error->GetBufferPointer());
-
-				BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::Blur])));
 			}
 
 			{

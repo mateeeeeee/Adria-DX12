@@ -126,28 +126,11 @@ namespace adria
 
 	DECLSPEC_ALIGN(16) struct ComputeCBuffer
 	{
-		float gauss_coeff1; //blur coefficients
-		float gauss_coeff2; //blur coefficients
-		float gauss_coeff3; //blur coefficients
-		float gauss_coeff4; //blur coefficients
-		float gauss_coeff5; //blur coefficients
-		float gauss_coeff6; //blur coefficients
-		float gauss_coeff7; //blur coefficients
-		float gauss_coeff8; //blur coefficients
-		float gauss_coeff9; //blur coefficients
-
-		float bokeh_fallout;				//bokeh
-		DirectX::XMVECTOR dof_params;		//bokeh
-		float bokeh_radius_scale;			//bokeh
-		float bokeh_color_scale;			//bokeh
-		float bokeh_blur_threshold;		//bokeh
-		float bokeh_lum_threshold;		//bokeh	
-
 		int32 ocean_size;					//ocean
 		int32 resolution;					//ocean
-		float ocean_choppiness;			//ocean								
-		float wind_direction_x;			//ocean
-		float wind_direction_y;			//ocean
+		float ocean_choppiness;			    //ocean								
+		float wind_direction_x;			    //ocean
+		float wind_direction_y;			    //ocean
 		float delta_time;					//ocean
 		int32 visualize_tiled;				//tiled deferred
 		int32 visualize_max_lights;			//tiled deferred

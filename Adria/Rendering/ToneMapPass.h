@@ -11,6 +11,13 @@ namespace adria
 
 	class ToneMapPass
 	{
+		enum class EToneMap : uint8
+		{
+			Reinhard,
+			Hable,
+			Linear
+		};
+
 		struct TonemapParams
 		{
 			EToneMap tone_map_op = EToneMap::Reinhard;

@@ -48,7 +48,7 @@ namespace adria
 		CS_TiledLighting,
 		CS_ClusterBuilding,
 		CS_ClusterCulling,
-		CS_BokehGenerate,
+		CS_BokehGeneration,
 		CS_GenerateMips,
 		CS_FFT_Horizontal,
 		CS_FFT_Vertical,
@@ -74,7 +74,7 @@ namespace adria
 		CS_ParticleSort512,
 		CS_ParticleSortInner512,
 		CS_ParticleInitSortDispatchArgs,
-		CS_Picker,
+		CS_Picking,
 		LIB_Shadows,
 		LIB_SoftShadows,
 		LIB_AmbientOcclusion,
@@ -110,9 +110,6 @@ namespace adria
 		DepthMap_Transparent,
 		Volumetric,
 		Forward,
-		Bokeh,
-		BokehGenerate,
-		Blur,
 		Copy,
 		Add,
 		TiledLighting,
@@ -133,7 +130,6 @@ namespace adria
 		Particles_Simulate,
 		Particles_InitSortDispatchArgs,
 		Particles_Sort,
-		Picker,
 		Decals
 	};
 
@@ -209,7 +205,7 @@ namespace adria
 		Particles_BitonicSortStep,
 		Particles_Sort512,
 		Particles_SortInner512,
-		Picker,
+		Picking,
 		Decals,
 		Decals_ModifyNormals,
 		Solid_Wireframe,
@@ -217,13 +213,6 @@ namespace adria
 		HistogramReduction,
 		Exposure,
         Unknown
-	};
-
-	enum class EToneMap : uint8
-	{
-		Reinhard,
-		Hable,
-		Linear
 	};
 
 	enum class ELightType : int32
@@ -240,25 +229,11 @@ namespace adria
 		HosekWilkie
 	};
 
-	enum class EBokehType : uint8
-	{
-		Hex,
-		Oct,
-		Circle,
-		Cross
-	};
-
 	enum class EBlendMode : uint8
 	{
 		None,
 		AlphaBlend,
 		AdditiveBlend
-	};
-
-	enum class EFogType : int32
-	{
-		Exponential,
-		ExponentialHeight
 	};
 
 	enum class EAmbientOcclusion : uint8

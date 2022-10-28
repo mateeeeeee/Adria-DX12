@@ -231,7 +231,7 @@ namespace adria
 				gfx_pso_map[EPipelineState::Add_AdditiveBlend] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};	
-				gfx_pso_desc.root_signature = ERootSignature::Bokeh;
+				gfx_pso_desc.root_signature = ERootSignature::Common;
 				gfx_pso_desc.VS = VS_Bokeh;
 				gfx_pso_desc.GS = GS_Bokeh;
 				gfx_pso_desc.PS = PS_Bokeh;
@@ -313,9 +313,9 @@ namespace adria
 
 			ComputePipelineStateDesc compute_pso_desc{};
 			{
-				compute_pso_desc.root_signature = ERootSignature::Picker;
-				compute_pso_desc.CS = CS_Picker;
-				compute_pso_map[EPipelineState::Picker] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+				compute_pso_desc.root_signature = ERootSignature::Common;
+				compute_pso_desc.CS = CS_Picking;
+				compute_pso_map[EPipelineState::Picking] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
 				compute_pso_desc.root_signature = ERootSignature::Particles_InitDeadList;
 				compute_pso_desc.CS = CS_ParticleInitDeadList;
@@ -358,7 +358,7 @@ namespace adria
 				compute_pso_desc.CS = CS_TiledLighting;
 				compute_pso_map[EPipelineState::TiledLighting] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Blur;
+				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_Blur_Horizontal;
 				compute_pso_map[EPipelineState::Blur_Horizontal] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
@@ -377,8 +377,8 @@ namespace adria
 				compute_pso_desc.CS = CS_GenerateMips;
 				compute_pso_map[EPipelineState::GenerateMips] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::BokehGenerate;
-				compute_pso_desc.CS = CS_BokehGenerate;
+				compute_pso_desc.root_signature = ERootSignature::Common;
+				compute_pso_desc.CS = CS_BokehGeneration;
 				compute_pso_map[EPipelineState::BokehGenerate] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
 				compute_pso_desc.root_signature = ERootSignature::FFT;

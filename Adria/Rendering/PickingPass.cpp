@@ -28,9 +28,9 @@ namespace adria
 
 		struct PickingPassDispatchData
 		{
-			RGBufferReadWriteId pick_buffer_uav;
-			RGTextureReadOnlyId depth_srv;
-			RGTextureReadOnlyId normal_srv;
+			RGBufferReadWriteId pick_buffer;
+			RGTextureReadOnlyId depth;
+			RGTextureReadOnlyId normal;
 		};
 
 		rg.AddPass<PickingPassDispatchData>("Picking Pass Dispatch",
@@ -43,35 +43,35 @@ namespace adria
 				pick_buffer_desc.size = pick_buffer_desc.stride;
 				builder.DeclareBuffer(RG_RES_NAME(PickBuffer), pick_buffer_desc);
 
-				data.pick_buffer_uav = builder.WriteBuffer(RG_RES_NAME(PickBuffer));
-				data.depth_srv = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
-				data.normal_srv = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
+				data.pick_buffer = builder.WriteBuffer(RG_RES_NAME(PickBuffer));
+				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				data.normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
 			},
-			[=](PickingPassDispatchData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](PickingPassDispatchData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				RingOnlineDescriptorAllocator* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
-				UINT backbuffer_index = gfx->BackbufferIndex();
+				
+				uint32 i = (uint32)descriptor_allocator->AllocateRange(3);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.depth), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadOnlyTexture(data.normal), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadWriteBuffer(data.pick_buffer), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				
+				struct PickingConstants
+				{
+					uint32 depth_idx;
+					uint32 normal_idx;
+					uint32 buffer_idx;
+				} constants =
+				{
+					.depth_idx = i, .normal_idx = i + 1, .buffer_idx = i + 2
+				};
 
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Picker));
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Picker));
-
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { context.GetReadOnlyTexture(data.depth_srv), context.GetReadOnlyTexture(data.normal_srv) };
-				uint32 src_range_sizes[] = { 1,1 };
-
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(_countof(cpu_handles));
-				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				uint32 dst_range_sizes[] = { (uint32)_countof(cpu_handles) };
-				device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes, _countof(cpu_handles), cpu_handles, src_range_sizes,
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetComputeRootDescriptorTable(1, dst_descriptor);
-
-				descriptor_index = descriptor_allocator->Allocate();
-				dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				device->CopyDescriptorsSimple(1, dst_descriptor, context.GetReadWriteBuffer(data.pick_buffer_uav), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetComputeRootDescriptorTable(2, dst_descriptor);
-
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Picking));
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRoot32BitConstants(1, 3, &constants, 0);
+				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 				cmd_list->Dispatch(1, 1, 1);
 			}, ERGPassType::Compute, ERGPassFlags::ForceNoCull);
 

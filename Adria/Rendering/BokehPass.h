@@ -11,25 +11,33 @@ namespace adria
 	class GraphicsDevice;
 	class Buffer;
 
-	struct BokehParameters
-	{
-		float bokeh_blur_threshold = 0.9f;
-		float bokeh_lum_threshold = 1.0f;
-		float bokeh_radius_scale = 25.0f;
-		float bokeh_color_scale = 1.0f;
-		float bokeh_fallout = 0.9f;
-		EBokehType bokeh_type = EBokehType::Hex;
-	};
-
 	class BokehPass
 	{
+
+		enum class EBokehType : uint8
+		{
+			Hex,
+			Oct,
+			Circle,
+			Cross
+		};
+
+		struct BokehParameters
+		{
+			float bokeh_blur_threshold = 0.9f;
+			float bokeh_lum_threshold = 1.0f;
+			float bokeh_radius_scale = 25.0f;
+			float bokeh_color_scale = 1.0f;
+			float bokeh_fallout = 0.9f;
+			EBokehType bokeh_type = EBokehType::Hex;
+		};
+
 	public:
 		BokehPass(TextureManager& texture_manager, uint32 w, uint32 h);
 
 		void AddPass(RenderGraph& rendergraph, RGResourceName input);
 		void OnResize(uint32 w, uint32 h);
 		void OnSceneInitialized(GraphicsDevice* gfx);
-		BokehParameters const& GetParams() const { return params; }
 
 	private:
 		TextureManager& texture_manager;
