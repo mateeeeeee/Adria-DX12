@@ -12,24 +12,13 @@ namespace adria
 {
 	class GraphicsDevice;
 
-	/*
-	typedef
-	enum D3D12_PRIMITIVE_TOPOLOGY_TYPE
-	{
-		D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED	= 0,
-		D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT	= 1,
-		D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE	= 2,
-		D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE	= 3,
-		D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH	= 4
-	} 	D3D12_PRIMITIVE_TOPOLOGY_TYPE;
-	*/
 	struct GraphicsPipelineStateDesc
 	{
 		RasterizerState rasterizer_state{};
 		BlendState blend_state{};
 		DepthStencilState depth_state{};
-		D3D12_PRIMITIVE_TOPOLOGY_TYPE topology_type = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-		UINT num_render_targets = 0;
+		EPrimitiveTopologyType topology_type = EPrimitiveTopologyType::Triangle;
+		uint32 num_render_targets = 0;
 		EFormat rtv_formats[8];
 		EFormat dsv_format = EFormat::UNKNOWN;
 		InputLayout input_layout;
@@ -39,7 +28,7 @@ namespace adria
 		EShaderId DS = ShaderId_Invalid;
 		EShaderId HS = ShaderId_Invalid;
 		EShaderId GS = ShaderId_Invalid;
-		UINT sample_mask = UINT_MAX;
+		uint32 sample_mask = UINT_MAX;
 	};
 
 	class GraphicsPipelineState

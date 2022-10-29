@@ -793,9 +793,6 @@
     <FxCompile Include="Resources\Shaders\Misc\GenerateMipsCS.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\PostProcess\ScreenQuadVS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\Deferred\LightingPBR_PS.hlsl">
       <Filter>Shaders\Deferred</Filter>
     </FxCompile>
@@ -872,9 +869,6 @@
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Misc\DecalVS.hlsl">
-      <Filter>Shaders\Misc</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\PickerCS.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
     <FxCompile Include="Resources\NewShaders\Exposure\BuildHistogram.hlsl">
@@ -969,6 +963,9 @@
     </FxCompile>
     <FxCompile Include="Resources\NewShaders\Ocean\OceanNormals.hlsl">
       <Filter>NewShaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Other\FullscreenQuad.hlsl">
+      <Filter>NewShaders\Other</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

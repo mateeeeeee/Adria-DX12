@@ -60,10 +60,9 @@ namespace adria
 		{
 			_desc.RTVFormats[i] = ConvertFormat(desc.rtv_formats[i]);
 		}
-		_desc.PrimitiveTopologyType = desc.topology_type;
+		_desc.PrimitiveTopologyType = ConvertPrimitiveTopologyType(desc.topology_type);
 		_desc.SampleMask = desc.sample_mask;
 		if (_desc.DSVFormat == DXGI_FORMAT_UNKNOWN) _desc.DepthStencilState.DepthEnable = false;
-
 		BREAK_IF_FAILED(gfx->GetDevice()->CreateGraphicsPipelineState(&_desc, IID_PPV_ARGS(pso.ReleaseAndGetAddressOf())));
 	}
 

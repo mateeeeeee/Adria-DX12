@@ -51,7 +51,7 @@ namespace adria
 				gfx_pso_map[EPipelineState::HosekWilkieSky] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc.root_signature = ERootSignature::TAA;
-				gfx_pso_desc.VS = VS_ScreenQuad;
+				gfx_pso_desc.VS = VS_FullscreenQuad;
 				gfx_pso_desc.PS = PS_Taa;
 				gfx_pso_desc.num_render_targets = 1;
 				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
@@ -80,7 +80,7 @@ namespace adria
 
 				gfx_pso_desc = {};
 				gfx_pso_desc.root_signature = ERootSignature::LightingPBR;
-				gfx_pso_desc.VS = VS_ScreenQuad;
+				gfx_pso_desc.VS = VS_FullscreenQuad;
 				gfx_pso_desc.PS = PS_LightingPBR;
 				gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
 				gfx_pso_desc.blend_state.render_target[0].blend_op = EBlendOp::Add;
@@ -122,7 +122,7 @@ namespace adria
 
 				gfx_pso_desc = {};
 				gfx_pso_desc.root_signature = ERootSignature::Volumetric;
-				gfx_pso_desc.VS = VS_ScreenQuad;
+				gfx_pso_desc.VS = VS_FullscreenQuad;
 				gfx_pso_desc.PS = PS_Volumetric_Directional;
 				gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
 				gfx_pso_desc.blend_state.render_target[0].blend_op = EBlendOp::Add;
@@ -169,7 +169,7 @@ namespace adria
 				gfx_pso_desc.blend_state.render_target[0].dest_blend = EBlend::One;
 				gfx_pso_desc.blend_state.render_target[0].blend_op = EBlendOp::Add;
 				
-				gfx_pso_desc.topology_type = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
+				gfx_pso_desc.topology_type = EPrimitiveTopologyType::Point;
 				gfx_pso_desc.num_render_targets = 1;
 				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
 
@@ -177,7 +177,7 @@ namespace adria
 				
 				gfx_pso_desc = {};
 				gfx_pso_desc.root_signature = ERootSignature::Copy;
-				gfx_pso_desc.VS = VS_ScreenQuad;
+				gfx_pso_desc.VS = VS_FullscreenQuad;
 				gfx_pso_desc.PS = PS_Copy;
 				gfx_pso_desc.num_render_targets = 1;
 				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
@@ -198,7 +198,7 @@ namespace adria
 				
 				gfx_pso_desc = {};
 				gfx_pso_desc.root_signature = ERootSignature::Add;
-				gfx_pso_desc.VS = VS_ScreenQuad;
+				gfx_pso_desc.VS = VS_FullscreenQuad;
 				gfx_pso_desc.PS = PS_Add;
 				gfx_pso_desc.num_render_targets = 1;
 				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
@@ -226,7 +226,7 @@ namespace adria
 				gfx_pso_desc.blend_state.render_target[0].dest_blend = EBlend::One;
 				gfx_pso_desc.blend_state.render_target[0].blend_op = EBlendOp::Add;
 				
-				gfx_pso_desc.topology_type = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
+				gfx_pso_desc.topology_type = EPrimitiveTopologyType::Point;
 				gfx_pso_desc.num_render_targets = 1;
 				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
 				gfx_pso_map[EPipelineState::Bokeh] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
@@ -251,7 +251,7 @@ namespace adria
 				gfx_pso_desc.VS = VS_OceanLOD;
 				gfx_pso_desc.DS = DS_OceanLOD;
 				gfx_pso_desc.HS = HS_OceanLOD;
-				gfx_pso_desc.topology_type = D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
+				gfx_pso_desc.topology_type = EPrimitiveTopologyType::Patch;
 				gfx_pso_map[EPipelineState::OceanLOD_Wireframe] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc.rasterizer_state.fill_mode = EFillMode::Solid;
@@ -275,7 +275,7 @@ namespace adria
 
 				gfx_pso_desc.depth_state.depth_enable = false;
 				gfx_pso_desc.rasterizer_state.fill_mode = EFillMode::Wireframe;
-				gfx_pso_desc.topology_type = D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
+				gfx_pso_desc.topology_type = EPrimitiveTopologyType::Line;
 				gfx_pso_map[EPipelineState::Solid_Wireframe] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};

@@ -11,7 +11,7 @@ namespace adria
 		PS_Skybox,
 		PS_UniformColorSky,
 		PS_HosekWilkieSky,
-		VS_ScreenQuad,
+		VS_FullscreenQuad,
 		PS_Taa,
 		VS_GBuffer,
 		PS_GBuffer,

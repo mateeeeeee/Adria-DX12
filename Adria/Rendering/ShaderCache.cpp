@@ -107,6 +107,8 @@ namespace adria
 				return "Phase";
 			case CS_OceanNormals:
 				return "OceanNormals";
+			case VS_FullscreenQuad:
+				return "FullscreenQuad";
 			default:
 				return "main";
 			}
@@ -121,7 +123,7 @@ namespace adria
 			case VS_Sun:
 			case VS_Decals:
 			case VS_GBuffer:
-			case VS_ScreenQuad:
+			case VS_FullscreenQuad:
 			case VS_LensFlare:
 			case VS_Bokeh:
 			case VS_DepthMap:
@@ -229,8 +231,8 @@ namespace adria
 			case PS_GBuffer:
 			case PS_GBuffer_Mask:
 				return "Lighting/GBuffer.hlsl";
-			case VS_ScreenQuad:
-				return "Postprocess/ScreenQuadVS.hlsl";
+			case VS_FullscreenQuad:
+				return "Other/FullscreenQuad.hlsl";
 			case PS_LightingPBR:
 			case PS_LightingPBR_RayTracedShadows:
 				return "Deferred/LightingPBR_PS.hlsl";
@@ -410,6 +412,7 @@ namespace adria
 			case CS_Spectrum:
 			case CS_Phase:
 			case CS_OceanNormals:
+			case VS_FullscreenQuad:
 				return true;
 			default:
 				return false;

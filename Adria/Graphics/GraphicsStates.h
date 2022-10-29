@@ -4,6 +4,15 @@
 
 namespace adria
 {
+
+	enum class EPrimitiveTopologyType : uint8
+	{
+		Undefined,
+		Point,
+		Line,
+		Triangle,
+		Patch
+	};
 	enum class EPrimitiveTopology : uint8
 	{
 		Undefined,
@@ -143,6 +152,25 @@ namespace adria
 	D3D12_RASTERIZER_DESC ConvertRasterizerDesc(RasterizerState);
 	D3D12_DEPTH_STENCIL_DESC ConvertDepthStencilDesc(DepthStencilState);
 	D3D12_BLEND_DESC ConvertBlendDesc(BlendState);
+	inline constexpr D3D12_PRIMITIVE_TOPOLOGY_TYPE ConvertPrimitiveTopologyType(EPrimitiveTopologyType topology_type)
+	{
+		switch (topology_type)
+		{
+		case EPrimitiveTopologyType::Undefined:
+			return D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
+		case EPrimitiveTopologyType::Point:
+			return D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
+		case EPrimitiveTopologyType::Line:
+			return D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
+		case EPrimitiveTopologyType::Triangle:
+			return D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		case EPrimitiveTopologyType::Patch:
+			return D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
+		default:
+			break;
+		}
+		return D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
+	}
 	inline constexpr D3D_PRIMITIVE_TOPOLOGY ConvertPrimitiveTopology(EPrimitiveTopology topology, uint32_t control_points = 0)
 	{
 		switch (topology)
