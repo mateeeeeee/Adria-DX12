@@ -14,7 +14,6 @@ namespace adria
 		float						camera_fov;
 		D3D12_GPU_VIRTUAL_ADDRESS   new_frame_cbuffer_address;
 		D3D12_GPU_VIRTUAL_ADDRESS   frame_cbuffer_address;
-		D3D12_GPU_VIRTUAL_ADDRESS   weather_cbuffer_address;
 		D3D12_GPU_VIRTUAL_ADDRESS   compute_cbuffer_address;
 		D3D12_CPU_DESCRIPTOR_HANDLE null_srv_texture2d;
 		D3D12_CPU_DESCRIPTOR_HANDLE null_uav_texture2d;

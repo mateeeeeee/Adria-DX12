@@ -130,36 +130,6 @@ namespace adria
 		int32 visualize_max_lights;			//tiled deferred
 	};
 
-	DECLSPEC_ALIGN(16) struct WeatherCBuffer
-	{
-		DirectX::XMVECTOR light_dir;
-		DirectX::XMVECTOR light_color;
-		DirectX::XMVECTOR sky_color;
-		DirectX::XMVECTOR ambient_color;
-		DirectX::XMVECTOR wind_dir;
-
-		DirectX::XMFLOAT3 A;
-		float time;
-		DirectX::XMFLOAT3 B;
-		float _paddB;
-		DirectX::XMFLOAT3 C;
-		float _paddC;
-		DirectX::XMFLOAT3 D;
-		float _paddD;
-		DirectX::XMFLOAT3 E;
-		float _paddE;
-		DirectX::XMFLOAT3 F;
-		float _paddF;
-		DirectX::XMFLOAT3 G;
-		float _paddG;
-		DirectX::XMFLOAT3 H;
-		float _paddH;
-		DirectX::XMFLOAT3 I;
-		float _paddI;
-		DirectX::XMFLOAT3 Z;
-		float _paddZ;
-	};
-
 	struct StructuredLight
 	{
 		DirectX::XMVECTOR position;

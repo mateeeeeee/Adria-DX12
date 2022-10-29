@@ -63,25 +63,3 @@ struct ComputeCBuffer
     int visualize_tiled;         //tiled deferred
     int visualize_max_lights;    //tiled deferred
 };
-
-struct WeatherCBuffer
-{
-    float4 light_dir;
-    float4 light_color;
-    float4 sky_color;
-    float4 ambient_color;
-    float4 wind_dir;
-
-    float3 A;
-    float time;
-    
-    float3 B;
-    float3 C;
-    float3 D;
-    float3 E;
-    float3 F;
-    float3 G;
-    float3 H;
-    float3 I;
-    float3 Z;
-};

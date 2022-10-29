@@ -7,7 +7,7 @@ namespace adria
 	enum EShaderId : uint8
 	{
 		ShaderId_Invalid,
-		VS_Skybox,
+		VS_Sky,
 		PS_Skybox,
 		PS_UniformColorSky,
 		PS_HosekWilkieSky,
@@ -88,8 +88,6 @@ namespace adria
 	{
 		Invalid,
 		Common,
-		Skybox,
-		Sky,
 		TAA,
 		LightingPBR,
 		ClusteredLightingPBR,

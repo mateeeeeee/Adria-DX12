@@ -15,10 +15,10 @@ namespace adria
 {
 
 	SkyPass::SkyPass(entt::registry& reg, TextureManager& texture_manager, uint32 w, uint32 h)
-		: reg(reg), texture_manager(texture_manager), width(w), height(h)
+		: reg(reg), texture_manager(texture_manager), width(w), height(h), sky_type(ESkyType::Skybox)
 	{}
 
-	void SkyPass::AddPass(RenderGraph& rg)
+	void SkyPass::AddPass(RenderGraph& rg, DirectX::XMFLOAT3 const& dir)
 	{
 		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
 		rg.AddPass<void>("Sky Pass",
@@ -34,55 +34,86 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				auto upload_buffer = gfx->GetDynamicAllocator();
 
-				ObjectCBuffer object_cbuf_data{};
-				object_cbuf_data.model = DirectX::XMMatrixTranslationFromVector(global_data.camera_position);
-				DynamicAllocation object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-				object_allocation.Update(object_cbuf_data);
+				struct SkyConstants
+				{
+					XMMATRIX model_matrix;
+				} constants = 
+				{
+					.model_matrix = XMMatrixTranslationFromVector(global_data.camera_position)
+				};
+				DynamicAllocation allocation = upload_buffer->Allocate(GetCBufferSize<SkyConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				allocation.Update(constants);
+
+				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetGraphicsRootConstantBufferView(2, allocation.gpu_address);
 
 				switch (sky_type)
 				{
 				case ESkyType::Skybox:
 				{
-					cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Skybox));
 					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Skybox));
-
-					cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
-					cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
-
 					auto skybox_view = reg.view<Skybox>();
 					for (auto e : skybox_view)
 					{
 						auto const& skybox = skybox_view.get<Skybox>(e);
 						if (!skybox.active) continue;
 
-						OffsetType descriptor_index = descriptor_allocator->Allocate();
 						ADRIA_ASSERT(skybox.cubemap_texture != INVALID_TEXTURE_HANDLE);
 						D3D12_CPU_DESCRIPTOR_HANDLE texture_handle = texture_manager.GetSRV(skybox.cubemap_texture);
-
-						auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+						OffsetType i = descriptor_allocator->Allocate();
+						auto dst_descriptor = descriptor_allocator->GetHandle(i);
 						device->CopyDescriptorsSimple(1, dst_descriptor, texture_handle,
 							D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-						cmd_list->SetGraphicsRootDescriptorTable(2, dst_descriptor);
+						cmd_list->SetGraphicsRoot32BitConstant(1, (uint32)i, 0);
 					}
 					break;
 				}
 				case ESkyType::UniformColor:
 				{
-					cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Sky));
 					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::UniformColorSky));
-					cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
-					cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
-					cmd_list->SetGraphicsRootConstantBufferView(2, global_data.weather_cbuffer_address);
+					struct UniformColorSkyConstants
+					{
+						XMFLOAT3 sky_color;
+					} constants = 
+					{
+						.sky_color = XMFLOAT3(sky_color)
+					};
+					cmd_list->SetGraphicsRoot32BitConstants(1, 3, &constants, 0);
 					break;
 				}
 				case ESkyType::HosekWilkie:
 				{
-					cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Sky));
 					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::HosekWilkieSky));
-					cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
-					cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
-					cmd_list->SetGraphicsRootConstantBufferView(2, global_data.weather_cbuffer_address);
+					SkyParameters parameters = CalculateSkyParameters(turbidity, ground_albedo, dir);
+					DECLSPEC_ALIGN(16) struct HosekWilkieConstants
+					{
+						DECLSPEC_ALIGN(16) XMFLOAT3 A;
+						DECLSPEC_ALIGN(16) XMFLOAT3 B;
+						DECLSPEC_ALIGN(16) XMFLOAT3 C;
+						DECLSPEC_ALIGN(16) XMFLOAT3 D;
+						DECLSPEC_ALIGN(16) XMFLOAT3 E;
+						DECLSPEC_ALIGN(16) XMFLOAT3 F;
+						DECLSPEC_ALIGN(16) XMFLOAT3 G;
+						DECLSPEC_ALIGN(16) XMFLOAT3 H;
+						DECLSPEC_ALIGN(16) XMFLOAT3 I;
+						DECLSPEC_ALIGN(16) XMFLOAT3 Z;
+					} constants = 
+					{
+						.A = parameters[ESkyParam_A],
+						.B = parameters[ESkyParam_B],
+						.C = parameters[ESkyParam_C],
+						.D = parameters[ESkyParam_D],
+						.E = parameters[ESkyParam_E],
+						.F = parameters[ESkyParam_F],
+						.G = parameters[ESkyParam_G],
+						.H = parameters[ESkyParam_H],
+						.I = parameters[ESkyParam_I],
+						.Z = parameters[ESkyParam_Z],
+					};
+					DynamicAllocation hosek_allocation = upload_buffer->Allocate(GetCBufferSize<HosekWilkieConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+					hosek_allocation.Update(constants);
+					cmd_list->SetGraphicsRootConstantBufferView(3, hosek_allocation.gpu_address);
 					break;
 				}
 				default:

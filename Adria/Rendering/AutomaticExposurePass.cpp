@@ -255,7 +255,7 @@ namespace adria
 					ImGui::SliderFloat("Adaption Speed", &adaption_speed, 0.01, 5.0f);
 					ImGui::SliderFloat("Exposure Compensation", &exposure_compensation, -5.0f, 5.0f);
 					ImGui::SliderFloat("Low Percentile", &low_percentile, 0.0f, 0.49f);
-					ImGui::SliderFloat("High Percentile", &high_percentile, 0.51, 1.0f);
+					ImGui::SliderFloat("High Percentile", &high_percentile, 0.51f, 1.0f);
 					ImGui::Checkbox("Histogram", &show_histogram);
 					if (show_histogram)
 					{

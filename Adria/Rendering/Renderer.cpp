@@ -31,7 +31,7 @@ namespace adria
 		texture_manager(gfx, 1000), camera(nullptr), width(width), height(height), 
 		backbuffer_count(gfx->BackbufferCount()), backbuffer_index(gfx->BackbufferIndex()), final_texture(nullptr),
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count), 
-		weather_cbuffer(gfx->GetDevice(), backbuffer_count), compute_cbuffer(gfx->GetDevice(), backbuffer_count),
+		compute_cbuffer(gfx->GetDevice(), backbuffer_count),
 		new_frame_cbuffer(gfx->GetDevice(), backbuffer_count),
 		gbuffer_pass(reg, width, height), ambient_pass(width, height), tonemap_pass(width, height),
 		sky_pass(reg, texture_manager, width, height), lighting_pass(width, height), shadow_pass(reg, texture_manager),
@@ -82,7 +82,6 @@ namespace adria
 			global_data.new_frame_cbuffer_address = new_frame_cbuffer.BufferLocation(backbuffer_index);
 			global_data.frame_cbuffer_address = frame_cbuffer.BufferLocation(backbuffer_index);
 			global_data.compute_cbuffer_address = compute_cbuffer.BufferLocation(backbuffer_index);
-			global_data.weather_cbuffer_address = weather_cbuffer.BufferLocation(backbuffer_index);
 			global_data.null_srv_texture2d = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURE2D);
 			global_data.null_uav_texture2d = null_heap->GetHandle(NULL_HEAP_SLOT_RWTEXTURE2D);
 			global_data.null_srv_texture2darray = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURE2DARRAY);
@@ -165,7 +164,7 @@ namespace adria
 
 		aabb_pass.AddPass(render_graph);
 		ocean_renderer.AddPasses(render_graph);
-		sky_pass.AddPass(render_graph);
+		sky_pass.AddPass(render_graph, sun_direction);
 		picking_pass.AddPass(render_graph);
 		if (renderer_settings.postprocess.reflections == EReflections::RTR)
 		{
@@ -357,6 +356,7 @@ namespace adria
 				{
 					new_frame_cbuf_data.sun_direction = -light_data.direction;
 					new_frame_cbuf_data.sun_color = light_data.color;
+					XMStoreFloat3(&sun_direction, -light_data.direction);
 					break;
 				}
 			}
@@ -385,43 +385,6 @@ namespace adria
 
 			frame_cbuffer.Update(frame_cbuf_data, backbuffer_index);
 			frame_cbuf_data.prev_view_projection = camera->ViewProj();
-		}
-
-		//weather
-		{
-			static WeatherCBuffer weather_cbuf_data{};
-			auto lights = reg.view<Light>();
-			for (auto light : lights)
-			{
-				auto const& light_data = lights.get<Light>(light);
-				if (light_data.type == ELightType::Directional && light_data.active)
-				{
-					weather_cbuf_data.light_dir = XMVector3Normalize(-light_data.direction);
-					weather_cbuf_data.light_color = light_data.color * light_data.energy;
-					break;
-				}
-			}
-			XMFLOAT3 sky_color(sky_pass.GetSkyColor());
-			weather_cbuf_data.sky_color = XMLoadFloat3(&sky_color);
-			weather_cbuf_data.ambient_color = XMVectorSet(0.1f, 0.1f, 0.1f, 1.0f);
-			weather_cbuf_data.wind_dir = XMVectorSet(renderer_settings.wind_dir[0], renderer_settings.wind_dir[1], renderer_settings.wind_dir[2],  renderer_settings.wind_speed);
-			weather_cbuf_data.time = total_time;
-
-			XMFLOAT3 sun_dir;
-			XMStoreFloat3(&sun_dir, XMVector3Normalize(weather_cbuf_data.light_dir));
-			SkyParameters sky_params = sky_pass.GetSkyParameters(sun_dir);
-			weather_cbuf_data.A = sky_params[ESkyParam_A];
-			weather_cbuf_data.B = sky_params[ESkyParam_B];
-			weather_cbuf_data.C = sky_params[ESkyParam_C];
-			weather_cbuf_data.D = sky_params[ESkyParam_D];
-			weather_cbuf_data.E = sky_params[ESkyParam_E];
-			weather_cbuf_data.F = sky_params[ESkyParam_F];
-			weather_cbuf_data.G = sky_params[ESkyParam_G];
-			weather_cbuf_data.H = sky_params[ESkyParam_H];
-			weather_cbuf_data.I = sky_params[ESkyParam_I];
-			weather_cbuf_data.Z = sky_params[ESkyParam_Z];
-
-			weather_cbuffer.Update(weather_cbuf_data, backbuffer_index);
 		}
 
 		//compute 

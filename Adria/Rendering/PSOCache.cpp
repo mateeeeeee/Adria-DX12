@@ -29,12 +29,12 @@ namespace adria
 		{
 			GraphicsPipelineStateDesc gfx_pso_desc{};
 			{
-				ShaderCompiler::CreateInputLayout(GetShader(VS_Skybox), gfx_pso_desc.input_layout);
-				gfx_pso_desc.root_signature = ERootSignature::Skybox;
-				gfx_pso_desc.VS = VS_Skybox;
+				ShaderCompiler::CreateInputLayout(GetShader(VS_Sky), gfx_pso_desc.input_layout);
+				gfx_pso_desc.root_signature = ERootSignature::Common;
+				gfx_pso_desc.VS = VS_Sky;
 				gfx_pso_desc.PS = PS_Skybox;
 				gfx_pso_desc.rasterizer_state.cull_mode = ECullMode::None;
-				gfx_pso_desc.depth_state.depth_enable = TRUE;
+				gfx_pso_desc.depth_state.depth_enable = true;
 				gfx_pso_desc.depth_state.depth_write_mask = EDepthWriteMask::Zero;
 				gfx_pso_desc.depth_state.depth_func = EComparisonFunc::LessEqual;
 				gfx_pso_desc.num_render_targets = 1;
@@ -42,11 +42,9 @@ namespace adria
 				gfx_pso_desc.dsv_format = EFormat::D32_FLOAT;
 				gfx_pso_map[EPipelineState::Skybox] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
-				gfx_pso_desc.root_signature = ERootSignature::Sky;
 				gfx_pso_desc.PS = PS_UniformColorSky;
 				gfx_pso_map[EPipelineState::UniformColorSky] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
-				
-				gfx_pso_desc.root_signature = ERootSignature::Sky;
+
 				gfx_pso_desc.PS = PS_HosekWilkieSky;
 				gfx_pso_map[EPipelineState::HosekWilkieSky] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 

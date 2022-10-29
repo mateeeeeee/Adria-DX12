@@ -86,12 +86,12 @@ namespace adria
 		std::unique_ptr<Texture> white_default_texture;
 		std::unique_ptr<Buffer>  lights_buffer;
 		DescriptorHandle		 light_array_srv;
+		DirectX::XMFLOAT3        sun_direction;
 
 		//Persistent constant buffers
 		ConstantBuffer<NewFrameCBuffer> new_frame_cbuffer;
 		ConstantBuffer<FrameCBuffer> frame_cbuffer;
 		ConstantBuffer<ComputeCBuffer> compute_cbuffer;
-		ConstantBuffer<WeatherCBuffer> weather_cbuffer;
 
 		//misc
 		std::unique_ptr<DescriptorHeap> null_heap;

@@ -784,12 +784,6 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Resources\Shaders\Misc\SkyboxVS.hlsl">
-      <Filter>Shaders\Misc</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\SkyboxPS.hlsl">
-      <Filter>Shaders\Misc</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\Misc\GenerateMipsCS.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
@@ -852,12 +846,6 @@
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Deferred\IrmapCS.hlsl">
       <Filter>Shaders\Deferred\IBL</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\HosekWilkieSkyPS.hlsl">
-      <Filter>Shaders\Misc</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\UniformColorSkyPS.hlsl">
-      <Filter>Shaders\Misc</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Misc\DecalPS.hlsl">
       <Filter>Shaders\Misc</Filter>
@@ -965,6 +953,9 @@
       <Filter>NewShaders\Other</Filter>
     </FxCompile>
     <FxCompile Include="Resources\NewShaders\Other\CopyTexture.hlsl">
+      <Filter>NewShaders\Other</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Other\Sky.hlsl">
       <Filter>NewShaders\Other</Filter>
     </FxCompile>
   </ItemGroup>

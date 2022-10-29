@@ -20,17 +20,12 @@ namespace adria
 	{
 	public:
 		SkyPass(entt::registry& reg, TextureManager& texture_manager, uint32 w, uint32 h);
-		void AddPass(RenderGraph& rg);
+		void AddPass(RenderGraph& rg, DirectX::XMFLOAT3 const& dir);
 
 		void OnSceneInitialized(GraphicsDevice* gfx);
 		void OnResize(uint32 w, uint32 h);
 
 		ESkyType GetSkyType() const { return sky_type; }
-		SkyParameters GetSkyParameters(DirectX::XMFLOAT3 dir) const
-		{
-			return CalculateSkyParameters(turbidity, ground_albedo, dir);
-		}
-		float const* GetSkyColor() const { return sky_color; }
 	private:
 		entt::registry& reg;
 		TextureManager& texture_manager;
@@ -42,7 +37,6 @@ namespace adria
 		float sky_color[3] = { 0.53f, 0.81f, 0.92f };
 		float turbidity = 2.0f;
 		float ground_albedo = 0.1f;
-
 	private:
 		void CreateCubeBuffers(GraphicsDevice* gfx);
 	};

@@ -18,12 +18,6 @@ namespace adria
 
 		void CreateRootSignaturesFromHLSL(ID3D12Device* device)
 		{
-			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Skybox).GetPointer(), GetShader(PS_Skybox).GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::Skybox].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_HosekWilkieSky).GetPointer(), GetShader(PS_HosekWilkieSky).GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::Sky].GetAddressOf())));
-
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Taa).GetPointer(), GetShader(PS_Taa).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::TAA].GetAddressOf())));
 
@@ -68,10 +62,11 @@ namespace adria
 				feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
 
 			{
-				CD3DX12_ROOT_PARAMETER1 root_parameters[3] = {};
+				CD3DX12_ROOT_PARAMETER1 root_parameters[4] = {}; //14 DWORDS = 8 * 1 DWORD for root constants + 3 * 2 DWORDS for CBVs
 				root_parameters[0].InitAsConstantBufferView(0);
 				root_parameters[1].InitAsConstants(8, 1);
 				root_parameters[2].InitAsConstantBufferView(2);
+				root_parameters[3].InitAsConstantBufferView(3);
 
 				D3D12_ROOT_SIGNATURE_FLAGS flags =
 					D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |

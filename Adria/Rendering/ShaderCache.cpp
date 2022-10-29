@@ -113,6 +113,14 @@ namespace adria
 				return "AddTextures";
 			case PS_Copy:
 				return "CopyTexture";
+			case VS_Sky:
+				return "SkyVS";
+			case PS_Skybox:
+				return "SkyboxPS";
+			case PS_HosekWilkieSky:
+				return "HosekWilkieSkyPS";
+			case PS_UniformColorSky:
+				return "UniformColorSkyPS";
 			default:
 				return "main";
 			}
@@ -122,7 +130,7 @@ namespace adria
 		{
 			switch (shader)
 			{
-			case VS_Skybox:
+			case VS_Sky:
 			case VS_Texture:
 			case VS_Sun:
 			case VS_Decals:
@@ -212,14 +220,11 @@ namespace adria
 		{
 			switch (shader)
 			{
-			case VS_Skybox:
-				return "Misc/SkyboxVS.hlsl";
+			case VS_Sky:
 			case PS_Skybox:
-				return "Misc/SkyboxPS.hlsl";
 			case PS_HosekWilkieSky:
-				return "Misc/HosekWilkieSkyPS.hlsl";
 			case PS_UniformColorSky:
-				return "Misc/UniformColorSkyPS.hlsl";
+				return "Other/Sky.hlsl";
 			case VS_Texture:
 				return "Misc/TextureVS.hlsl";
 			case PS_Texture:
@@ -419,6 +424,10 @@ namespace adria
 			case VS_FullscreenQuad:
 			case PS_Copy:
 			case PS_Add:
+			case VS_Sky:
+			case PS_Skybox:
+			case PS_HosekWilkieSky:
+			case PS_UniformColorSky:
 				return true;
 			default:
 				return false;

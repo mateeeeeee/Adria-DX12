@@ -4,12 +4,6 @@ ConstantBuffer<FrameCBuffer>        frame_cbuf          : register(b0);
 ConstantBuffer<LightCBuffer>        light_cbuf          : register(b2);
 ConstantBuffer<ShadowCBuffer>       shadow_cbuf         : register(b3);
 ConstantBuffer<MaterialCBuffer>     material_cbuf       : register(b4);
-ConstantBuffer<WeatherCBuffer>      weather_cbuf        : register(b7);
-
-static const int SSAO_KERNEL_SIZE = 16;
-static const int HBAO_NUM_STEPS = 4;
-static const int HBAO_NUM_DIRECTIONS = 8;
-
 
 float3 GetPositionVS(float2 texcoord, float depth)
 {

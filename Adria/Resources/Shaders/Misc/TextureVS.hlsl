@@ -14,8 +14,6 @@ struct VS_OUTPUT
     float2 TexCoord : TEX;
 };
 
-
-
 VS_OUTPUT main(VS_INPUT vin)
 {
     VS_OUTPUT vout;
