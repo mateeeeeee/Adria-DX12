@@ -97,8 +97,6 @@ namespace adria
 		DepthMap_Transparent,
 		Volumetric,
 		Forward,
-		Copy,
-		Add,
 		TiledLighting,
 		ClusterBuilding,
 		ClusterCulling,

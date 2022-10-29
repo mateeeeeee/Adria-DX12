@@ -31,8 +31,7 @@ namespace adria
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Add));
-
+				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				switch (mode)
 				{
 				case EBlendMode::None:
@@ -48,13 +47,14 @@ namespace adria
 					ADRIA_ASSERT(false && "Invalid Copy Mode in CopyTexture");
 				}
 
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(2);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), context.GetReadOnlyTexture(data.texture_src1),
+				uint32 i = (uint32)descriptor_allocator->AllocateRange(2);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.texture_src1),
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), context.GetReadOnlyTexture(data.texture_src2),
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), context.GetReadOnlyTexture(data.texture_src2),
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-				cmd_list->SetGraphicsRootDescriptorTable(0, descriptor_allocator->GetHandle(descriptor_index));
+				cmd_list->SetGraphicsRoot32BitConstant(1, i, 0);
+				cmd_list->SetGraphicsRoot32BitConstant(1, i + 1, 1);
 				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 				cmd_list->DrawInstanced(4, 1, 0, 0);
 			}, ERGPassType::Graphics, ERGPassFlags::None);

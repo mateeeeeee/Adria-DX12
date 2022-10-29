@@ -176,7 +176,7 @@ namespace adria
 				gfx_pso_map[EPipelineState::LensFlare] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 				
 				gfx_pso_desc = {};
-				gfx_pso_desc.root_signature = ERootSignature::Copy;
+				gfx_pso_desc.root_signature = ERootSignature::Common;
 				gfx_pso_desc.VS = VS_FullscreenQuad;
 				gfx_pso_desc.PS = PS_Copy;
 				gfx_pso_desc.num_render_targets = 1;
@@ -197,7 +197,7 @@ namespace adria
 				gfx_pso_map[EPipelineState::Copy_AdditiveBlend] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 				
 				gfx_pso_desc = {};
-				gfx_pso_desc.root_signature = ERootSignature::Add;
+				gfx_pso_desc.root_signature = ERootSignature::Common;
 				gfx_pso_desc.VS = VS_FullscreenQuad;
 				gfx_pso_desc.PS = PS_Add;
 				gfx_pso_desc.num_render_targets = 1;

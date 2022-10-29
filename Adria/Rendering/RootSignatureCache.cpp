@@ -45,9 +45,6 @@ namespace adria
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Texture).GetPointer(), GetShader(PS_Texture).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::Forward].GetAddressOf())));
 
-			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Add).GetPointer(), GetShader(PS_Add).GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::Add].GetAddressOf())));
-
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_TiledLighting).GetPointer(), GetShader(CS_TiledLighting).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::TiledLighting].GetAddressOf())));
 
@@ -56,9 +53,6 @@ namespace adria
 
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_ClusterCulling).GetPointer(), GetShader(CS_ClusterCulling).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::ClusterCulling].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Copy).GetPointer(), GetShader(PS_Copy).GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::Copy].GetAddressOf())));
 
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Decals).GetPointer(), GetShader(PS_Decals).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::Decals].GetAddressOf())));

@@ -109,6 +109,10 @@ namespace adria
 				return "OceanNormals";
 			case VS_FullscreenQuad:
 				return "FullscreenQuad";
+			case PS_Add:
+				return "AddTextures";
+			case PS_Copy:
+				return "CopyTexture";
 			default:
 				return "main";
 			}
@@ -241,9 +245,9 @@ namespace adria
 			case PS_Taa:
 				return "Postprocess/TAA_PS.hlsl";
 			case PS_Copy:
-				return "Postprocess/CopyPS.hlsl";
+				return "Other/CopyTexture.hlsl";
 			case PS_Add:
-				return "Postprocess/AddPS.hlsl";
+				return "Other/AddTextures.hlsl";
 			case VS_LensFlare:
 			case GS_LensFlare:
 			case PS_LensFlare:
@@ -413,6 +417,8 @@ namespace adria
 			case CS_Phase:
 			case CS_OceanNormals:
 			case VS_FullscreenQuad:
+			case PS_Copy:
+			case PS_Add:
 				return true;
 			default:
 				return false;
