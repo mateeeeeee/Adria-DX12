@@ -126,12 +126,6 @@ namespace adria
 
 	DECLSPEC_ALIGN(16) struct ComputeCBuffer
 	{
-		int32 ocean_size;					//ocean
-		int32 resolution;					//ocean
-		float ocean_choppiness;			    //ocean								
-		float wind_direction_x;			    //ocean
-		float wind_direction_y;			    //ocean
-		float delta_time;					//ocean
 		int32 visualize_tiled;				//tiled deferred
 		int32 visualize_max_lights;			//tiled deferred
 	};

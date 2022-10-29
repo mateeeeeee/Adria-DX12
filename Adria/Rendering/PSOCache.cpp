@@ -29,20 +29,6 @@ namespace adria
 		{
 			GraphicsPipelineStateDesc gfx_pso_desc{};
 			{
-				gfx_pso_desc.root_signature = ERootSignature::Particles_Shading;
-				gfx_pso_desc.VS = VS_Particles;
-				gfx_pso_desc.PS = PS_Particles;
-				gfx_pso_desc.rasterizer_state.cull_mode = ECullMode::None;
-				gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
-				gfx_pso_desc.blend_state.render_target[0].src_blend = EBlend::SrcAlpha;
-				gfx_pso_desc.blend_state.render_target[0].dest_blend = EBlend::InvSrcAlpha;
-				gfx_pso_desc.blend_state.render_target[0].blend_op = EBlendOp::Add;
-				gfx_pso_desc.depth_state.depth_enable = false;
-				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
-				gfx_pso_map[EPipelineState::Particles_Shading] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
-
-				gfx_pso_desc = {};
 				ShaderCompiler::CreateInputLayout(GetShader(VS_Skybox), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = ERootSignature::Skybox;
 				gfx_pso_desc.VS = VS_Skybox;
@@ -308,35 +294,6 @@ namespace adria
 				compute_pso_desc.CS = CS_Picking;
 				compute_pso_map[EPipelineState::Picking] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Particles_InitDeadList;
-				compute_pso_desc.CS = CS_ParticleInitDeadList;
-				compute_pso_map[EPipelineState::Particles_InitDeadList] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
-
-				compute_pso_desc.root_signature = ERootSignature::Particles_Reset;
-				compute_pso_desc.CS = CS_ParticleReset;
-
-				compute_pso_desc.root_signature = ERootSignature::Particles_Simulate;
-				compute_pso_desc.CS = CS_ParticleSimulate;
-				compute_pso_map[EPipelineState::Particles_Simulate] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
-
-				compute_pso_desc.root_signature = ERootSignature::Particles_Emit;
-				compute_pso_desc.CS = CS_ParticleEmit;
-				compute_pso_map[EPipelineState::Particles_Emit] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
-
-				compute_pso_desc.root_signature = ERootSignature::Particles_InitSortDispatchArgs;
-				compute_pso_desc.CS = CS_ParticleInitSortDispatchArgs;
-				compute_pso_map[EPipelineState::Particles_InitSortDispatchArgs] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
-
-				compute_pso_desc.root_signature = ERootSignature::Particles_Sort;
-				compute_pso_desc.CS = CS_ParticleBitonicSortStep;
-				compute_pso_map[EPipelineState::Particles_BitonicSortStep] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
-
-				compute_pso_desc.CS = CS_ParticleSort512;
-				compute_pso_map[EPipelineState::Particles_Sort512] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
-
-				compute_pso_desc.CS = CS_ParticleSortInner512;
-				compute_pso_map[EPipelineState::Particles_SortInner512] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
-
 				compute_pso_desc.root_signature = ERootSignature::ClusterBuilding;
 				compute_pso_desc.CS = CS_ClusterBuilding;
 				compute_pso_map[EPipelineState::ClusterBuilding] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
@@ -378,23 +335,19 @@ namespace adria
 				compute_pso_desc.CS = CS_FFT_Vertical;
 				compute_pso_map[EPipelineState::FFT_Vertical] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::InitialSpectrum;
+				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_InitialSpectrum;
 				compute_pso_map[EPipelineState::InitialSpectrum] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::InitialSpectrum;
-				compute_pso_desc.CS = CS_InitialSpectrum;
-				compute_pso_map[EPipelineState::InitialSpectrum] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+				compute_pso_desc.root_signature = ERootSignature::Common;
+				compute_pso_desc.CS = CS_OceanNormals;
+				compute_pso_map[EPipelineState::OceanNormals] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::OceanNormalMap;
-				compute_pso_desc.CS = CS_OceanNormalMap;
-				compute_pso_map[EPipelineState::OceanNormalMap] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
-
-				compute_pso_desc.root_signature = ERootSignature::Phase;
+				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_Phase;
 				compute_pso_map[EPipelineState::Phase] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Spectrum;
+				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_Spectrum;
 				compute_pso_map[EPipelineState::Spectrum] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 

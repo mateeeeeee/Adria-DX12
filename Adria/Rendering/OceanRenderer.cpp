@@ -43,31 +43,39 @@ namespace adria
 		rendergraph.ImportTexture(RG_RES_NAME(PingSpectrum), ping_pong_spectrum_textures[!pong_spectrum].get());
 
 		if (recreate_initial_spectrum)
-		{
+		{ 
 			struct InitialSpectrumPassData
 			{
-				RGTextureReadWriteId initial_spectrum_uav;
+				RGTextureReadWriteId initial_spectrum;
 			};
 			rendergraph.AddPass<InitialSpectrumPassData>("Spectrum Creation Pass",
 				[=](InitialSpectrumPassData& data, RenderGraphBuilder& builder)
 				{
-					data.initial_spectrum_uav = builder.WriteTexture(RG_RES_NAME(InitialSpectrum));
+					data.initial_spectrum = builder.WriteTexture(RG_RES_NAME(InitialSpectrum));
 				},
 				[=](InitialSpectrumPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 				{
 					auto device = gfx->GetDevice();
 					auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
-
-					cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::InitialSpectrum));
-					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::InitialSpectrum));
-					cmd_list->SetComputeRootConstantBufferView(0, global_data.compute_cbuffer_address);
-
-					OffsetType descriptor_index = descriptor_allocator->Allocate();
-					D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-					device->CopyDescriptorsSimple(1, dst_descriptor, context.GetReadWriteTexture(data.initial_spectrum_uav),
+					uint32 i = (uint32)descriptor_allocator->Allocate();
+					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i), context.GetReadWriteTexture(data.initial_spectrum),
 						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-					cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
-					cmd_list->Dispatch(FFT_RESOLUTION / 32, FFT_RESOLUTION / 32, 1);
+
+					struct InitialSpectrumConstants
+					{
+						float   fft_resolution;
+						float   ocean_size;
+						uint32  output_idx;
+					} constants = 
+					{
+						.fft_resolution = FFT_RESOLUTION, .ocean_size = FFT_RESOLUTION, .output_idx = i
+					};
+
+					cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::InitialSpectrum));
+					cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+					cmd_list->SetComputeRoot32BitConstants(1, 3, &constants, 0);
+					cmd_list->Dispatch(FFT_RESOLUTION / 16, FFT_RESOLUTION / 16, 1);
 				}, ERGPassType::Compute, ERGPassFlags::None);
 		}
 		
@@ -86,22 +94,30 @@ namespace adria
 			{
 				auto device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				uint32 i = (uint32)descriptor_allocator->AllocateRange(2);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.phase_srv),
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), context.GetReadWriteTexture(data.phase_uav),
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Phase));
+				struct PhaseConstants
+				{
+					float   fft_resolution;
+					float   ocean_size;
+					float   ocean_choppiness;
+					uint32  phases_idx;
+					uint32  output_idx;
+				} constants =
+				{
+					.fft_resolution = FFT_RESOLUTION, .ocean_size = FFT_RESOLUTION, .ocean_choppiness = ocean_choppiness,
+					.phases_idx = i, .output_idx = i + 1
+				};
+
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Phase));
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.compute_cbuffer_address);
-				OffsetType descriptor_index = descriptor_allocator->Allocate();
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index),
-					context.GetReadOnlyTexture(data.phase_srv),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
-
-				descriptor_index = descriptor_allocator->Allocate();
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index),
-					context.GetReadWriteTexture(data.phase_uav),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
-				cmd_list->Dispatch(FFT_RESOLUTION / 32, FFT_RESOLUTION / 32, 1);
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRoot32BitConstants(1, 5, &constants, 0);
+				cmd_list->Dispatch(FFT_RESOLUTION / 16, FFT_RESOLUTION / 16, 1);
 			}, ERGPassType::Compute, ERGPassFlags::None);
 		pong_phase = !pong_phase;
 
@@ -122,28 +138,33 @@ namespace adria
 			{
 				auto device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				uint32 i = (uint32)descriptor_allocator->AllocateRange(3);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.initial_spectrum_srv),
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), context.GetReadOnlyTexture(data.phase_srv),
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), context.GetReadWriteTexture(data.spectrum_uav),
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Spectrum));
+				struct SpectrumConstants
+				{
+					float   fft_resolution;
+					float   ocean_size;
+					float   ocean_choppiness;
+					uint32  initial_spectrum_idx;
+					uint32  phases_idx;
+					uint32  output_idx;
+				} constants =
+				{
+					.fft_resolution = FFT_RESOLUTION, .ocean_size = FFT_RESOLUTION, .ocean_choppiness = ocean_choppiness,
+					.initial_spectrum_idx = i, .phases_idx = i + 1, .output_idx = i + 2
+				};
+
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Spectrum));
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.compute_cbuffer_address);
-
-				D3D12_CPU_DESCRIPTOR_HANDLE srvs[] = { context.GetReadOnlyTexture(data.phase_srv), context.GetReadOnlyTexture(data.initial_spectrum_srv)};
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(srvs));
-				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-				uint32 dst_range_sizes[] = { ARRAYSIZE(srvs) };
-				uint32 src_range_sizes[] = { 1, 1 };
-				device->CopyDescriptors(ARRAYSIZE(dst_range_sizes), dst_descriptor.GetCPUAddress(), dst_range_sizes, ARRAYSIZE(src_range_sizes), srvs, src_range_sizes,
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-				cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
-
-				descriptor_index = descriptor_allocator->Allocate();
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index),
-					context.GetReadWriteTexture(data.spectrum_uav),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
-
-				cmd_list->Dispatch(FFT_RESOLUTION / 32, FFT_RESOLUTION / 32, 1);
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);
+				cmd_list->Dispatch(FFT_RESOLUTION / 16, FFT_RESOLUTION / 16, 1);
 
 			}, ERGPassType::Compute, ERGPassFlags::None);
 
@@ -260,23 +281,30 @@ namespace adria
 			{
 				auto device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
-
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::OceanNormalMap));
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::OceanNormalMap));
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.compute_cbuffer_address);
-
-				OffsetType descriptor_index = descriptor_allocator->Allocate();
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index),
-					context.GetReadOnlyTexture(data.spectrum_srv),
+				uint32 i = (uint32)descriptor_allocator->AllocateRange(2);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.spectrum_srv),
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(descriptor_index));
-
-				descriptor_index = descriptor_allocator->Allocate();
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index),
-					context.GetReadWriteTexture(data.normals_uav),
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), context.GetReadWriteTexture(data.normals_uav),
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetComputeRootDescriptorTable(2, descriptor_allocator->GetHandle(descriptor_index));
-				cmd_list->Dispatch(FFT_RESOLUTION / 32, FFT_RESOLUTION / 32, 1);
+
+				struct OceanNormalsConstants
+				{
+					float   fft_resolution;
+					float   ocean_size;
+					float   ocean_choppiness;
+					uint32  displacement_idx;
+					uint32  output_idx;
+				} constants =
+				{
+					.fft_resolution = FFT_RESOLUTION, .ocean_size = FFT_RESOLUTION, .ocean_choppiness = ocean_choppiness,
+					.displacement_idx = i, .output_idx = i + 1
+				};
+
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::OceanNormals));
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRoot32BitConstants(1, 5, &constants, 0);
+				cmd_list->Dispatch(FFT_RESOLUTION / 16, FFT_RESOLUTION / 16, 1);
 			}, ERGPassType::Compute, ERGPassFlags::None);
 
 		struct OceanDrawPass

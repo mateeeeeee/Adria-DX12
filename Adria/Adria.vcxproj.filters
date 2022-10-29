@@ -62,12 +62,6 @@
     <Filter Include="Tasks">
       <UniqueIdentifier>{6e93feed-a08b-471a-870c-bc433d3c1b4d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shaders\Ocean">
-      <UniqueIdentifier>{1ad09a65-102a-469e-8203-a87e4c270feb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shaders\Particles">
-      <UniqueIdentifier>{cce0a1aa-c48a-46e6-a52f-cda90620fbec}</UniqueIdentifier>
-    </Filter>
     <Filter Include="RenderGraph">
       <UniqueIdentifier>{ae8ff9af-e5a9-4001-bb0b-49fa7b006160}</UniqueIdentifier>
     </Filter>
@@ -94,6 +88,9 @@
     </Filter>
     <Filter Include="NewShaders\Lighting">
       <UniqueIdentifier>{eae617e6-2b56-4bf3-8c7b-94a731f182b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NewShaders\Ocean">
+      <UniqueIdentifier>{18ba23cf-78ca-4fd9-a2f4-3ee43a42e85e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -270,9 +267,6 @@
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\OceanRenderer.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\ParticleRenderer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\RayTracer.cpp">
@@ -685,9 +679,6 @@
     <ClInclude Include="Rendering\OceanRenderer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\ParticleRenderer.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Editor\EditorEvents.h">
       <Filter>Editor</Filter>
     </ClInclude>
@@ -826,18 +817,6 @@
     <FxCompile Include="Resources\Shaders\PostProcess\VolumetricLightSpotPS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\BillboardPS.hlsl">
-      <Filter>Shaders\Misc</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\BillboardVS.hlsl">
-      <Filter>Shaders\Misc</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\SolidPS.hlsl">
-      <Filter>Shaders\Misc</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\SolidVS.hlsl">
-      <Filter>Shaders\Misc</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\Misc\SunPS.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
@@ -849,9 +828,6 @@
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Misc\TextureVS.hlsl">
       <Filter>Shaders\Misc</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\PostProcess\BlurCS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\PostProcess\CopyPS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
@@ -886,89 +862,11 @@
     <FxCompile Include="Resources\Shaders\Deferred\IrmapCS.hlsl">
       <Filter>Shaders\Deferred\IBL</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\PostProcess\BokehCS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\PostProcess\BokehGS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\PostProcess\BokehPS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\PostProcess\BokehVS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\Misc\HosekWilkieSkyPS.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Misc\UniformColorSkyPS.hlsl">
       <Filter>Shaders\Misc</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Ocean\FFT_horizontalCS.hlsl">
-      <Filter>Shaders\Ocean</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Ocean\FFT_verticalCS.hlsl">
-      <Filter>Shaders\Ocean</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Ocean\InitialSpectrumCS.hlsl">
-      <Filter>Shaders\Ocean</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Ocean\NormalMapCS.hlsl">
-      <Filter>Shaders\Ocean</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Ocean\OceanLodDS.hlsl">
-      <Filter>Shaders\Ocean</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Ocean\OceanLodHS.hlsl">
-      <Filter>Shaders\Ocean</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Ocean\OceanLodPS.hlsl">
-      <Filter>Shaders\Ocean</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Ocean\OceanLodVS.hlsl">
-      <Filter>Shaders\Ocean</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Ocean\OceanPS.hlsl">
-      <Filter>Shaders\Ocean</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Ocean\OceanVS.hlsl">
-      <Filter>Shaders\Ocean</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Ocean\PhaseCS.hlsl">
-      <Filter>Shaders\Ocean</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Ocean\SpectrumCS.hlsl">
-      <Filter>Shaders\Ocean</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Particles\BitonicSortStepCS.hlsl">
-      <Filter>Shaders\Particles</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Particles\InitDeadListCS.hlsl">
-      <Filter>Shaders\Particles</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Particles\InitSortDispatchArgsCS.hlsl">
-      <Filter>Shaders\Particles</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Particles\ParticleEmitCS.hlsl">
-      <Filter>Shaders\Particles</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Particles\ParticlePS.hlsl">
-      <Filter>Shaders\Particles</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Particles\ParticleResetCS.hlsl">
-      <Filter>Shaders\Particles</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Particles\ParticleSimulateCS.hlsl">
-      <Filter>Shaders\Particles</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Particles\ParticleVS.hlsl">
-      <Filter>Shaders\Particles</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Particles\Sort512CS.hlsl">
-      <Filter>Shaders\Particles</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Particles\SortInner512CS.hlsl">
-      <Filter>Shaders\Particles</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Misc\DecalPS.hlsl">
       <Filter>Shaders\Misc</Filter>
@@ -1045,6 +943,33 @@
     <FxCompile Include="Resources\NewShaders\Postprocess\Bokeh.hlsl">
       <Filter>NewShaders\Postprocess</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Postprocess\Blur.hlsl">
+      <Filter>NewShaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Other\Picking.hlsl">
+      <Filter>NewShaders\Other</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Ocean\OceanLOD.hlsl">
+      <Filter>NewShaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Ocean\Ocean.hlsl">
+      <Filter>NewShaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Ocean\FFT.hlsl">
+      <Filter>NewShaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Ocean\InitialSpectrum.hlsl">
+      <Filter>NewShaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Ocean\Spectrum.hlsl">
+      <Filter>NewShaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Ocean\Phase.hlsl">
+      <Filter>NewShaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Ocean\OceanNormals.hlsl">
+      <Filter>NewShaders\Ocean</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Shaders\Globals\GlobalsCS.hlsli">
@@ -1076,9 +1001,6 @@
     </None>
     <None Include="Resources\Shaders\Util\CBuffers.hlsli">
       <Filter>Shaders\Util</Filter>
-    </None>
-    <None Include="Resources\Shaders\Particles\ParticleGlobals.hlsli">
-      <Filter>Shaders\Particles</Filter>
     </None>
     <None Include="scene.json" />
     <None Include="packages.config" />

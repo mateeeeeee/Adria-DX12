@@ -60,13 +60,6 @@ struct ShadowCBuffer
 
 struct ComputeCBuffer
 {
-    int ocean_size;             //ocean
-    int resolution;             //ocean
-    float ocean_choppiness;     //ocean								
-    float wind_direction_x;     //ocean
-    float wind_direction_y;     //ocean
-    float delta_time;           //ocean
-
     int visualize_tiled;         //tiled deferred
     int visualize_max_lights;    //tiled deferred
 };

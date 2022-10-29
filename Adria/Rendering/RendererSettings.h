@@ -26,8 +26,8 @@ namespace adria
 		bool use_clustered_deferred = false;
 		PostprocessSettings postprocess{};
 
-		float wind_dir[3] = {0.0f, 0.0f, 1.0f};
-		float wind_speed = 1.0f;
+		float wind_dir[3] = {1.0f, 0.0f, 1.0f};
+		float wind_speed = 10.0f;
 	};
 
 }

@@ -509,46 +509,6 @@ namespace adria
 				ImGui::TreePop();
 				ImGui::Separator();
 			}
-			if (ImGui::TreeNodeEx("Particles", 0))
-			{
-				static EmitterParameters params{};
-				static char NAME_BUFFER[128];
-				ImGui::InputText("Name", NAME_BUFFER, sizeof(NAME_BUFFER));
-				params.name = std::string(NAME_BUFFER);
-				if (ImGui::Button("Select Texture"))
-				{
-					nfdchar_t* file_path = NULL;
-					nfdchar_t const* filter_list = "jpg,jpeg,tga,dds,png";
-					nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
-					if (result == NFD_OKAY)
-					{
-						std::wstring texture_path = ToWideString(file_path);
-						params.texture_path = texture_path;
-						free(file_path);
-					}
-				}
-
-				ImGui::Text(ToString(params.texture_path).c_str());
-				ImGui::SliderFloat3("Position", params.position, -500.0f, 500.0f);
-				ImGui::SliderFloat3("Velocity", params.velocity, -50.0f, 50.0f);
-				ImGui::SliderFloat3("Position Variance", params.position_variance, -50.0f, 50.0f);
-				ImGui::SliderFloat("Velocity Variance", &params.velocity_variance, -10.0f, 10.0f);
-				ImGui::SliderFloat("Lifespan", &params.lifespan, 0.0f, 50.0f);
-				ImGui::SliderFloat("Start Size", &params.start_size, 0.0f, 50.0f);
-				ImGui::SliderFloat("End Size", &params.end_size, 0.0f, 10.0f);
-				ImGui::SliderFloat("Mass", &params.mass, 0.0f, 10.0f);
-				ImGui::SliderFloat("Particles Per Second", &params.particles_per_second, 1.0f, 1000.0f);
-				ImGui::Checkbox("Alpha Blend", &params.blend);
-				ImGui::Checkbox("Collisions", &params.collisions);
-				ImGui::Checkbox("Sort", &params.sort);
-				if (params.collisions) ImGui::SliderInt("Collision Thickness", &params.collision_thickness, 0, 40);
-
-				if (ImGui::Button("Load Emitter"))
-				{
-					entt::entity e = engine->entity_loader->LoadEmitter(params);
-					editor_events.particle_emitter_added.Broadcast(entt::to_integral(e));
-				}
-			}
 		}
 		ImGui::End();
 	}

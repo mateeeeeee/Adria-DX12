@@ -39,7 +39,7 @@ namespace adria
 		postprocessor(reg, texture_manager, width, height), fxaa_pass(width, height), picking_pass(gfx, width, height),
 		clustered_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height),
 		decals_pass(reg, texture_manager, width, height), ocean_renderer(reg, texture_manager, width, height),
-		particle_renderer(reg, gfx, texture_manager, width, height), ray_tracer(reg, gfx, width, height), aabb_pass(reg, width, height)
+		ray_tracer(reg, gfx, width, height), aabb_pass(reg, width, height)
 	{
 		GPUProfiler::Get().Init(gfx);
 		CreateNullHeap();
@@ -65,7 +65,6 @@ namespace adria
 		UpdateLights();
 		UpdatePersistentConstantBuffers(dt);
 		CameraFrustumCulling();
-		particle_renderer.Update(dt);
 	}
 	void Renderer::Render(RendererSettings const& _settings)
 	{
@@ -168,7 +167,6 @@ namespace adria
 		ocean_renderer.AddPasses(render_graph);
 		sky_pass.AddPass(render_graph);
 		picking_pass.AddPass(render_graph);
-		particle_renderer.AddPasses(render_graph);
 		if (renderer_settings.postprocess.reflections == EReflections::RTR)
 		{
 			ray_tracer.AddRayTracedReflectionsPass(render_graph, skybox_handle);
@@ -204,7 +202,6 @@ namespace adria
 			picking_pass.OnResize(w, h);
 			decals_pass.OnResize(w, h);
 			ocean_renderer.OnResize(w, h);
-			particle_renderer.OnResize(w, h);
 			ray_tracer.OnResize(w, h);
 			aabb_pass.OnResize(w, h);
 		}
@@ -218,7 +215,6 @@ namespace adria
 		postprocessor.OnSceneInitialized(gfx);
 		ocean_renderer.OnSceneInitialized(gfx);
 		aabb_pass.OnSceneInitialized(gfx);
-		particle_renderer.OnSceneInitialized();
 		ray_tracer.OnSceneInitialized();
 
 		TextureDesc desc{};
@@ -242,15 +238,6 @@ namespace adria
 	void Renderer::OnRightMouseClicked(int32 x, int32 y)
 	{
 		update_picking_data = true;
-	}
-
-	void Renderer::OnParticleEmitterAdded(size_t emitter_id)
-	{
-		particle_renderer.OnEmitterAdded(emitter_id);
-	}
-	void Renderer::OnParticleEmitterRemoved(size_t emitter_id)
-	{
-		particle_renderer.OnEmitterRemoved(emitter_id);
 	}
 
 	TextureManager& Renderer::GetTextureManager()
@@ -415,11 +402,9 @@ namespace adria
 				}
 			}
 			XMFLOAT3 sky_color(sky_pass.GetSkyColor());
-			XMFLOAT2 wind_dir(ocean_renderer.GetWindDirection());
-
 			weather_cbuf_data.sky_color = XMLoadFloat3(&sky_color);
-			weather_cbuf_data.ambient_color = XMVECTOR{ 0.1f, 0.1f, 0.1f, 1.0f };
-			weather_cbuf_data.wind_dir = XMVECTOR{ wind_dir.x, 0.0f, wind_dir.y, 0.0f };
+			weather_cbuf_data.ambient_color = XMVectorSet(0.1f, 0.1f, 0.1f, 1.0f);
+			weather_cbuf_data.wind_dir = XMVectorSet(renderer_settings.wind_dir[0], renderer_settings.wind_dir[1], renderer_settings.wind_dir[2],  renderer_settings.wind_speed);
 			weather_cbuf_data.time = total_time;
 
 			XMFLOAT3 sun_dir;
@@ -444,14 +429,6 @@ namespace adria
 			static ComputeCBuffer compute_cbuf_data{};
 			compute_cbuf_data.visualize_tiled = tiled_lighting_pass.IsVisualized();
 			compute_cbuf_data.visualize_max_lights = tiled_lighting_pass.MaxLightsForVisualization();
-			XMFLOAT2 wind_dir(ocean_renderer.GetWindDirection());
-			compute_cbuf_data.ocean_choppiness = ocean_renderer.GetChoppiness();
-			compute_cbuf_data.ocean_size = 512;
-			compute_cbuf_data.resolution = 512; //fft resolution
-			compute_cbuf_data.wind_direction_x = wind_dir.x;
-			compute_cbuf_data.wind_direction_y = wind_dir.y;
-			compute_cbuf_data.delta_time = dt;
-
 			compute_cbuffer.Update(compute_cbuf_data, backbuffer_index);
 		}
 	}

@@ -301,8 +301,7 @@ namespace adria
 
 	void Engine::RegisterEditorEventCallbacks(EditorEvents& events)
 	{
-		events.particle_emitter_added.AddMember(&Renderer::OnParticleEmitterAdded, *renderer);
-		events.particle_emitter_removed.AddMember(&Renderer::OnParticleEmitterRemoved, *renderer);
+		
 	}
 
 	void Engine::InitializeScene(SceneConfig const& config)

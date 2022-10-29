@@ -22,7 +22,7 @@ namespace adria
 		HashMap<EShaderId, Shader> shader_map;
 		HashMap<EShaderId, HashSet<fs::path>> dependent_files_map;
 
-		constexpr std::string GetEntryPoint(EShaderId shader)
+		constexpr std::string  GetEntryPoint(EShaderId shader)
 		{
 			switch (shader)
 			{
@@ -99,6 +99,14 @@ namespace adria
 				return "FFT_Horizontal";
 			case CS_FFT_Vertical:
 				return "FFT_Vertical";
+			case CS_InitialSpectrum:
+				return "InitialSpectrum";
+			case CS_Spectrum:
+				return "Spectrum";
+			case CS_Phase:
+				return "Phase";
+			case CS_OceanNormals:
+				return "OceanNormals";
 			default:
 				return "main";
 			}
@@ -120,7 +128,6 @@ namespace adria
 			case VS_DepthMap_Transparent:
 			case VS_Ocean:
 			case VS_OceanLOD:
-			case VS_Particles:
 				return EShaderStage::VS;
 			case PS_Skybox:
 			case PS_HosekWilkieSky:
@@ -145,7 +152,6 @@ namespace adria
 			case PS_Volumetric_Point:
 			case PS_Volumetric_DirectionalCascades:
 			case PS_Ocean:
-			case PS_Particles:
 				return EShaderStage::PS;
 			case GS_LensFlare:
 			case GS_Bokeh:
@@ -160,18 +166,10 @@ namespace adria
 			case CS_Spectrum:
 			case CS_FFT_Horizontal:
 			case CS_FFT_Vertical:
-			case CS_OceanNormalMap:
+			case CS_OceanNormals:
 			case CS_TiledLighting:
 			case CS_ClusterBuilding:
 			case CS_ClusterCulling:
-			case CS_ParticleInitDeadList:
-			case CS_ParticleReset:
-			case CS_ParticleEmit:
-			case CS_ParticleSimulate:
-			case CS_ParticleBitonicSortStep:
-			case CS_ParticleSort512:
-			case CS_ParticleSortInner512:
-			case CS_ParticleInitSortDispatchArgs:
 			case CS_Picking:
 			case CS_GenerateMips:
 			case CS_BuildHistogram:
@@ -204,7 +202,7 @@ namespace adria
 				return EShaderStage::ShaderCount;
 			}
 		}
-		constexpr std::string GetShaderSource(EShaderId shader)
+		constexpr std::string  GetShaderSource(EShaderId shader)
 		{
 			switch (shader)
 			{
@@ -277,16 +275,16 @@ namespace adria
 			case CS_BloomCombine:
 				return "Postprocess/Bloom.hlsl";
 			case CS_InitialSpectrum:
-				return "Ocean/InitialSpectrumCS.hlsl";
+				return "Ocean/InitialSpectrum.hlsl";
 			case CS_Phase:
-				return "Ocean/PhaseCS.hlsl";
+				return "Ocean/Phase.hlsl";
 			case CS_Spectrum:
-				return "Ocean/SpectrumCS.hlsl";
+				return "Ocean/Spectrum.hlsl";
 			case CS_FFT_Horizontal:
 			case CS_FFT_Vertical:
 				return "Ocean/FFT.hlsl";
-			case CS_OceanNormalMap:
-				return "Ocean/NormalMapCS.hlsl";
+			case CS_OceanNormals:
+				return "Ocean/OceanNormals.hlsl";
 			case CS_TiledLighting:
 				return "Deferred/TiledLightingCS.hlsl";
 			case CS_ClusterBuilding:
@@ -302,26 +300,6 @@ namespace adria
 				return "Ocean/OceanLOD.hlsl";
 			case CS_Picking:
 				return "Other/Picking.hlsl";
-			case VS_Particles:
-				return "Particles/ParticleVS.hlsl";
-			case PS_Particles:
-				return "Particles/ParticlePS.hlsl";
-			case CS_ParticleInitDeadList:
-				return "Particles/InitDeadListCS.hlsl";
-			case CS_ParticleReset:
-				return "Particles/ParticleResetCS.hlsl";
-			case CS_ParticleEmit:
-				return "Particles/ParticleEmitCS.hlsl";
-			case CS_ParticleSimulate:
-				return "Particles/ParticleSimulateCS.hlsl";
-			case CS_ParticleBitonicSortStep:
-				return "Particles/BitonicSortStepCS.hlsl";
-			case CS_ParticleSort512:
-				return "Particles/Sort512CS.hlsl";
-			case CS_ParticleSortInner512:
-				return "Particles/SortInner512CS.hlsl";
-			case CS_ParticleInitSortDispatchArgs:
-				return "Particles/InitSortDispatchArgsCS.hlsl";
 			case CS_GenerateMips:
 				return "Misc/GenerateMipsCS.hlsl";
 			case CS_BuildHistogram:
@@ -428,6 +406,10 @@ namespace adria
 			case DS_OceanLOD:
 			case CS_FFT_Horizontal:
 			case CS_FFT_Vertical:
+			case CS_InitialSpectrum:
+			case CS_Spectrum:
+			case CS_Phase:
+			case CS_OceanNormals:
 				return true;
 			default:
 				return false;

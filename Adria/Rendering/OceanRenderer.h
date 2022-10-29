@@ -21,11 +21,8 @@ namespace adria
 		void AddPasses(RenderGraph& rendergraph);
 
 		void OnResize(uint32 w, uint32 h);
-
 		void OnSceneInitialized(GraphicsDevice* gfx);
 
-		float const* GetWindDirection() const { return wind_direction; }
-		float GetChoppiness() const { return ocean_choppiness; }
 	private:
 		entt::registry& reg;
 		TextureManager& texture_manager;

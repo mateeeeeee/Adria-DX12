@@ -10,10 +10,7 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 	- Optional multithreaded command list building
 * Tiled deferred rendering 
 * Clustered deferred rendering
-* Deferred + forward rendering 
 * Physically based shading
-* Image based lighting
-* Normal mapping
 * Ray traced shadows (DXR)
 * Shadows
     - PCF shadows for directional, spot and point lights
@@ -42,15 +39,13 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 * Ocean FFT
     - Adaptive tesselation
     - Foam
-* Particles
 * ImGui Editor
 * Profiler
-* Model Loading with tinygltf
 * Shader hot reload
-* DirectX12 render passes
+* Ultimate Bindless (wip)
+* Model Loading with tinygltf
 
 ## TODO
-* Move to Ultimate Bindless (wip)
 * Improve DXR features
 * Add DXR GI
 

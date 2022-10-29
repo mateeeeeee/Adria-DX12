@@ -107,8 +107,7 @@ void SSR(CS_INPUT input)
     float depth = depthTx.Sample(LinearClampSampler, uv);
     float3 viewPosition = GetViewPosition(uv, depth);
     float3 reflectDir = normalize(reflect(viewPosition, viewNormal));
-	
-	//Raycast
+
     float3 HitPos = viewPosition;
     float4 coords = SSRRayMarch(depthTx, reflectDir, viewPosition);
     float2 coordsEdgeFactors = float2(1, 1) - pow(saturate(abs(coords.xy - float2(0.5f, 0.5f)) * 2), 8);
