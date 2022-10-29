@@ -84,7 +84,7 @@ float3 HosekWilkieSky(float3 v, float3 sunDir)
 float4 HosekWilkieSkyPS(VertexOut input) : SV_TARGET
 {
 	float3 dir = normalize(input.PosL);
-	float3 col = HosekWilkieSky(dir, FrameCB.sunDirection.xyz);
+	float3 col = HosekWilkieSky(dir, normalize(FrameCB.sunDirection.xyz));
 	return float4(col, 1.0);
 }
 
