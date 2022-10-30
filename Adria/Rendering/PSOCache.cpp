@@ -142,7 +142,7 @@ namespace adria
 
 				gfx_pso_desc = {};
 				ShaderCompiler::CreateInputLayout(GetShader(VS_Sun), gfx_pso_desc.input_layout);
-				gfx_pso_desc.root_signature = ERootSignature::Forward;
+				gfx_pso_desc.root_signature = ERootSignature::Common;
 				gfx_pso_desc.VS = VS_Sun;
 				gfx_pso_desc.PS = PS_Texture;
 				gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
@@ -271,19 +271,26 @@ namespace adria
 				gfx_pso_desc.rtv_formats[1] = EFormat::R8G8B8A8_UNORM;
 				gfx_pso_map[EPipelineState::Decals_ModifyNormals] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
-				gfx_pso_desc.depth_state.depth_enable = false;
-				gfx_pso_desc.rasterizer_state.fill_mode = EFillMode::Wireframe;
-				gfx_pso_desc.topology_type = EPrimitiveTopologyType::Line;
-				gfx_pso_map[EPipelineState::Solid_Wireframe] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
-
 				gfx_pso_desc = {};
-				ShaderCompiler::CreateInputLayout(GetShader(VS_Texture), gfx_pso_desc.input_layout);
-				gfx_pso_desc.root_signature = ERootSignature::Forward;
-				gfx_pso_desc.VS = VS_Texture;
+				ShaderCompiler::CreateInputLayout(GetShader(VS_Simple), gfx_pso_desc.input_layout);
+				gfx_pso_desc.root_signature = ERootSignature::Common;
+				gfx_pso_desc.VS = VS_Simple;
 				gfx_pso_desc.PS = PS_Texture;
 				gfx_pso_desc.num_render_targets = 1;
 				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
 				gfx_pso_map[EPipelineState::Texture] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
+
+				gfx_pso_desc = {};
+				ShaderCompiler::CreateInputLayout(GetShader(VS_Simple), gfx_pso_desc.input_layout);
+				gfx_pso_desc.root_signature = ERootSignature::Common;
+				gfx_pso_desc.VS = VS_Simple;
+				gfx_pso_desc.PS = PS_Solid;
+				gfx_pso_desc.num_render_targets = 1;
+				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
+				gfx_pso_desc.depth_state.depth_enable = false;
+				gfx_pso_desc.rasterizer_state.fill_mode = EFillMode::Wireframe;
+				gfx_pso_desc.topology_type = EPrimitiveTopologyType::Line;
+				gfx_pso_map[EPipelineState::Solid_Wireframe] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 			}
 
 			ComputePipelineStateDesc compute_pso_desc{};

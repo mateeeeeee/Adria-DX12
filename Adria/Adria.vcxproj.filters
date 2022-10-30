@@ -808,18 +808,6 @@
     <FxCompile Include="Resources\Shaders\PostProcess\VolumetricLightSpotPS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\SunPS.hlsl">
-      <Filter>Shaders\Misc</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\SunVS.hlsl">
-      <Filter>Shaders\Misc</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\TexturePS.hlsl">
-      <Filter>Shaders\Misc</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\TextureVS.hlsl">
-      <Filter>Shaders\Misc</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\Deferred\TiledLightingCS.hlsl">
       <Filter>Shaders\Deferred</Filter>
     </FxCompile>
@@ -956,6 +944,9 @@
       <Filter>NewShaders\Other</Filter>
     </FxCompile>
     <FxCompile Include="Resources\NewShaders\Other\Sky.hlsl">
+      <Filter>NewShaders\Other</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Other\Simple.hlsl">
       <Filter>NewShaders\Other</Filter>
     </FxCompile>
   </ItemGroup>

@@ -222,34 +222,25 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
-				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Forward));
+				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Sun));
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				
+				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
 				auto [transform, mesh, material] = reg.get<Transform, Mesh, Material>(sun);
 
-				ObjectCBuffer object_cbuf_data{};
-				object_cbuf_data.model = transform.current_transform;
-				object_cbuf_data.inverse_transposed_model = DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, object_cbuf_data.model));
-
-				DynamicAllocation object_allocation = dynamic_allocator->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-				object_allocation.Update(object_cbuf_data);
-				cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
-
-				MaterialCBuffer material_cbuf_data{};
-				material_cbuf_data.diffuse = material.diffuse;
-				DynamicAllocation material_allocation = dynamic_allocator->Allocate(GetCBufferSize<MaterialCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-				material_allocation.Update(material_cbuf_data);
-				cmd_list->SetGraphicsRootConstantBufferView(2, material_allocation.gpu_address);
-
-				D3D12_CPU_DESCRIPTOR_HANDLE diffuse_handle = texture_manager.GetSRV(material.albedo_texture);
-				uint32 src_range_size = 1;
-
-				OffsetType descriptor_index = descriptor_allocator->Allocate();
-				D3D12_CPU_DESCRIPTOR_HANDLE dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-
-				device->CopyDescriptorsSimple(1, dst_descriptor, diffuse_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				cmd_list->SetGraphicsRootDescriptorTable(3, descriptor_allocator->GetHandle(descriptor_index));
+				struct Constants
+				{
+					XMMATRIX model_matrix;
+					XMFLOAT3 diffuse_color;
+					uint32   diffuse_idx;
+				} constants =
+				{
+					.model_matrix = transform.current_transform,
+					.diffuse_color = material.diffuse,
+					.diffuse_idx = (uint32)material.albedo_texture
+				};
+				DynamicAllocation allocation = dynamic_allocator->Allocate(GetCBufferSize<Constants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				allocation.Update(constants);
+				cmd_list->SetGraphicsRootConstantBufferView(2, allocation.gpu_address);
 				mesh.Draw(cmd_list);
 
 			}, ERGPassType::Graphics, ERGPassFlags::None);

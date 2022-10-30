@@ -121,6 +121,14 @@ namespace adria
 				return "HosekWilkieSkyPS";
 			case PS_UniformColorSky:
 				return "UniformColorSkyPS";
+			case VS_Simple:
+				return "SimpleVS";
+			case VS_Sun:
+				return "SunVS";
+			case PS_Texture:
+				return "TexturePS";
+			case PS_Solid:
+				return "SolidPS";
 			default:
 				return "main";
 			}
@@ -131,7 +139,7 @@ namespace adria
 			switch (shader)
 			{
 			case VS_Sky:
-			case VS_Texture:
+			case VS_Simple:
 			case VS_Sun:
 			case VS_Decals:
 			case VS_GBuffer:
@@ -147,6 +155,7 @@ namespace adria
 			case PS_HosekWilkieSky:
 			case PS_UniformColorSky:
 			case PS_Texture:
+			case PS_Solid:
 			case PS_Decals:
 			case PS_Decals_ModifyNormals:
 			case PS_GBuffer:
@@ -225,12 +234,11 @@ namespace adria
 			case PS_HosekWilkieSky:
 			case PS_UniformColorSky:
 				return "Other/Sky.hlsl";
-			case VS_Texture:
-				return "Misc/TextureVS.hlsl";
-			case PS_Texture:
-				return "Misc/TexturePS.hlsl";
+			case VS_Simple:
 			case VS_Sun:
-				return "Misc/SunVS.hlsl";
+			case PS_Texture:
+			case PS_Solid:
+				return "Other/Simple.hlsl";
 			case VS_Decals:
 				return "Misc/DecalVS.hlsl";
 			case PS_Decals:
@@ -428,6 +436,10 @@ namespace adria
 			case PS_Skybox:
 			case PS_HosekWilkieSky:
 			case PS_UniformColorSky:
+			case VS_Simple:
+			case VS_Sun:
+			case PS_Texture:
+			case PS_Solid:
 				return true;
 			default:
 				return false;
