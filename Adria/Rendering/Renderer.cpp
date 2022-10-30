@@ -69,9 +69,10 @@ namespace adria
 	void Renderer::Render(RendererSettings const& _settings)
 	{
 		renderer_settings = _settings;
+		texture_manager.Tick();
+
 		RenderGraph render_graph(resource_pool);
 		RGBlackboard& rg_blackboard = render_graph.GetBlackboard();
-
 		GlobalBlackboardData global_data{};
 		{
 			global_data.camera_position = camera->Position();

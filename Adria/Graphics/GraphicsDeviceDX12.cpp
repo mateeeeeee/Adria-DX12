@@ -747,7 +747,7 @@ namespace adria
 	void GraphicsDevice::ReserveOnlineDescriptors(size_t reserve)
 	{
 		D3D12_DESCRIPTOR_HEAP_DESC shader_visible_desc{};
-		shader_visible_desc.NumDescriptors = 10000;
+		shader_visible_desc.NumDescriptors = 32767;
 		shader_visible_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		shader_visible_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 		descriptor_allocator = std::make_unique<RingOnlineDescriptorAllocator>(device.Get(), shader_visible_desc, reserve);

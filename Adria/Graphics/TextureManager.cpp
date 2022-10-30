@@ -99,7 +99,12 @@ namespace adria
 		pso_desc.pRootSignature = equirect_root_signature.Get();
 		pso_desc.CS = D3D12_SHADER_BYTECODE{.pShaderBytecode = equirect_cs_shader.data(), .BytecodeLength = equirect_cs_shader.size()};
 		BREAK_IF_FAILED(gfx->GetDevice()->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&equirect_pso)));
-    }
+	}
+
+	void TextureManager::Tick()
+	{
+		mips_generator->Generate(gfx->GetDefaultCommandList());
+	}
 
     [[nodiscard]]
     TextureHandle TextureManager::LoadTexture(std::wstring const& name)
@@ -168,6 +173,7 @@ namespace adria
 
 				std::unique_ptr<Texture> tex = std::make_unique<Texture>(gfx, desc, subresources.data());
                 texture_map.insert({ handle, std::move(tex)});
+                CreateViewForTexture(handle);
             }
             else //format == TextureFormat::eHDR
             {
@@ -228,6 +234,7 @@ namespace adria
                 cmd_list->ResourceBarrier(1, &barrier);
 
                 texture_map.insert({ handle, std::move(cubemap_tex)});
+                CreateViewForTexture(handle);
             }
 
             return handle;
@@ -269,6 +276,7 @@ namespace adria
         desc.format = images[0].IsHDR() ? EFormat::R32G32B32A32_FLOAT : EFormat::R8G8B8A8_UNORM;
         std::unique_ptr<Texture> cubemap = std::make_unique<Texture>(gfx, desc, subresources.data());
         texture_map.insert({ handle, std::move(cubemap)});
+        CreateViewForTexture(handle);
         return handle;
     }
 
@@ -309,7 +317,7 @@ namespace adria
 
 		mips_generator->Generate(gfx->GetDefaultCommandList());
 
-		gfx->ReserveOnlineDescriptors(handle + 1);
+		gfx->ReserveOnlineDescriptors(1024);
 		ID3D12Device* device = gfx->GetDevice();
 		RingOnlineDescriptorAllocator* online_descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
         for (size_t i = 0; i <= handle; ++i)
@@ -322,6 +330,7 @@ namespace adria
                                               texture->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
             }
         }
+        is_scene_initialized = true;
 	}
 
 	TextureHandle TextureManager::LoadDDSTexture(std::wstring const& texture_path)
@@ -359,6 +368,7 @@ namespace adria
             std::unique_ptr<Texture> tex = std::make_unique<Texture>(gfx, desc, subresources.data(), subresources.size());
             
             texture_map.insert({ handle, std::move(tex)});
+            CreateViewForTexture(handle);
             return handle;
         }
         else return it->second;
@@ -410,6 +420,7 @@ namespace adria
 
             texture_map.insert({ handle, std::move(tex)});
             if (mipmaps) mips_generator->Add(texture_map[handle]->GetNative());
+            CreateViewForTexture(handle);
             return handle;
         }
         else return it->second;
@@ -450,10 +461,24 @@ namespace adria
 			std::unique_ptr<Texture> tex = std::make_unique<Texture>(gfx, desc, &data);
             texture_map.insert({ handle, std::move(tex)});
             if (mipmaps) mips_generator->Add(texture_map[handle]->GetNative());
+            CreateViewForTexture(handle);
             return handle;
         }
         else return it->second;
 
     }
+
+	void TextureManager::CreateViewForTexture(TextureHandle handle)
+	{
+        if (!is_scene_initialized) return;
+
+		ID3D12Device* device = gfx->GetDevice();
+		RingOnlineDescriptorAllocator* online_descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+		Texture* texture = texture_map[handle].get();
+		ADRIA_ASSERT(texture);
+		texture->CreateSRV();
+		device->CopyDescriptorsSimple(1, online_descriptor_allocator->GetHandle((size_t)handle),
+			texture->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	}
 
 }

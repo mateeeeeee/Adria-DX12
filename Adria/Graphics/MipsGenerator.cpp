@@ -23,19 +23,18 @@ namespace adria
 
 	void MipsGenerator::Generate(ID3D12GraphicsCommandList* command_list)
 	{
+		if (resources.empty()) return;
+
 		ID3D12DescriptorHeap* pp_heaps[] = { descriptor_allocator->Heap() };
 		command_list->SetDescriptorHeaps(1, pp_heaps);
-		//Set root signature, pso and descriptor heap
 		command_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::GenerateMips));
 		command_list->SetPipelineState(PSOCache::Get(EPipelineState::GenerateMips));
 		for (auto texture : resources)
 		{
-			//Prepare the shader resource view description for the source texture
 			D3D12_SHADER_RESOURCE_VIEW_DESC src_srv_desc = {};
 			src_srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 			src_srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 
-			//Prepare the unordered access view description for the destination texture
 			D3D12_UNORDERED_ACCESS_VIEW_DESC dst_uav_desc = {};
 			dst_uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
 
@@ -61,32 +60,27 @@ namespace adria
 				dst_uav_desc.Format = tex_desc.Format;
 				dst_uav_desc.Texture2D.MipSlice = top_mip + 1;
 				device->CreateUnorderedAccessView(texture, nullptr, &dst_uav_desc, handle2);
-				//Pass the destination texture pixel size to the shader as constants
 				command_list->SetComputeRoot32BitConstant(0, DWParam(1.0f / dst_width).Uint, 0);
 				command_list->SetComputeRoot32BitConstant(0, DWParam(1.0f / dst_height).Uint, 1);
 				command_list->SetComputeRootDescriptorTable(1, handle1);
 				command_list->SetComputeRootDescriptorTable(2, handle2);
 
-				//Dispatch the compute shader with one thread per 8x8 pixels
 				command_list->Dispatch((std::max)(dst_width / 8u, 1u), (std::max)(dst_height / 8u, 1u), 1);
 
-				//Wait for all accesses to the destination texture UAV to be finished before generating the next mipmap, as it will be the source texture for the next mipmap
 				auto uav_barrier = CD3DX12_RESOURCE_BARRIER::UAV(texture);
 				command_list->ResourceBarrier(1, &uav_barrier);
 			}
 		}
-
 		resources.clear();
 		descriptor_allocator->Clear();
 	}
 
-	void MipsGenerator::CreateHeap(UINT max_textures) //approximate number of descriptors as : ~ max_textures * 2 * 10 (avg mip levels)
+	void MipsGenerator::CreateHeap(UINT max_textures) 
 	{
 		D3D12_DESCRIPTOR_HEAP_DESC shader_visible_desc = {};
-		shader_visible_desc.NumDescriptors = 20 * max_textures + 200;
+		shader_visible_desc.NumDescriptors = 20 * max_textures + 200; //approximate number of descriptors as : ~ max_textures * 2 * 10 (avg mip levels)
 		shader_visible_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		shader_visible_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-
 		descriptor_allocator = std::make_unique<LinearOnlineDescriptorAllocator>(device, shader_visible_desc);
 	}
 
