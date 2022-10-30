@@ -97,8 +97,7 @@ namespace adria
 		Volumetric,
 		TiledLighting,
 		ClusterBuilding,
-		ClusterCulling,
-		GenerateMips,
+		ClusterCulling
 	};
 
 	enum class EPipelineState : uint8

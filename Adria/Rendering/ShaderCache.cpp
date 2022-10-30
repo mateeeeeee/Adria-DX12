@@ -12,7 +12,7 @@ namespace fs = std::filesystem;
 
 namespace adria
 {
-	char const* shaders_directory = "Resources/Shaders/";
+	char const* old_shaders_directory = "Resources/OldShaders/";
 	char const* new_shaders_directory = "Resources/NewShaders/";
 	namespace
 	{
@@ -134,6 +134,8 @@ namespace adria
 			case PS_Decals:
 			case PS_Decals_ModifyNormals:
 				return "DecalsPS";
+			case CS_GenerateMips:
+				return "GenerateMips";
 			default:
 				return "main";
 			}
@@ -277,10 +279,10 @@ namespace adria
 				return "Postprocess/Clouds.hlsl";
 			case VS_DepthMap:
 			case VS_DepthMap_Transparent:
-				return "Shadows/DepthMapVS.hlsl";
+				return "Deferred/DepthMapVS.hlsl";
 			case PS_DepthMap:
 			case PS_DepthMap_Transparent:
-				return "Shadows/DepthMapPS.hlsl";
+				return "Deferred/DepthMapPS.hlsl";
 			case PS_Volumetric_Directional:
 				return "Postprocess/VolumetricLightDirectionalPS.hlsl";
 			case PS_Volumetric_DirectionalCascades:
@@ -324,7 +326,7 @@ namespace adria
 			case CS_Picking:
 				return "Other/Picking.hlsl";
 			case CS_GenerateMips:
-				return "Misc/GenerateMipsCS.hlsl";
+				return "Other/GenerateMips.hlsl";
 			case CS_BuildHistogram:
 				return "Exposure/BuildHistogram.hlsl";
 			case CS_HistogramReduction:
@@ -447,6 +449,7 @@ namespace adria
 			case VS_Decals:
 			case PS_Decals:
 			case PS_Decals_ModifyNormals:
+			case CS_GenerateMips:
 				return true;
 			default:
 				return false;
@@ -465,7 +468,7 @@ namespace adria
 			shader_desc.model = SM_6_6;
 			shader_desc.file = UseNewShadersDirectory(shader) ?
 				std::string(new_shaders_directory) + GetShaderSource(shader) :
-				std::string(shaders_directory) + GetShaderSource(shader);
+				std::string(old_shaders_directory) + GetShaderSource(shader);
 #if _DEBUG
 			shader_desc.flags = ShaderCompilerFlag_DisableOptimization | ShaderCompilerFlag_Debug;
 #else
@@ -510,7 +513,7 @@ namespace adria
 	void ShaderCache::Initialize()
 	{
 		file_watcher = std::make_unique<FileWatcher>();
-		file_watcher->AddPathToWatch(shaders_directory);
+		file_watcher->AddPathToWatch(old_shaders_directory);
 		file_watcher->AddPathToWatch(new_shaders_directory);
 		std::ignore = file_watcher->GetFileModifiedEvent().Add(OnShaderFileChanged);
 		CompileAllShaders();

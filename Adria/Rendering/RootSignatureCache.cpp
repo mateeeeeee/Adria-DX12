@@ -89,43 +89,6 @@ namespace adria
 				hr = device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::Common]));
 				BREAK_IF_FAILED(hr);
 			}
-
-			{
-				CD3DX12_DESCRIPTOR_RANGE1 srv_uav_ranges[2] = {};
-				CD3DX12_ROOT_PARAMETER1 root_parameters[3] = {};
-				srv_uav_ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
-				srv_uav_ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0);
-				root_parameters[0].InitAsConstants(2, 0);
-				root_parameters[1].InitAsDescriptorTable(1, &srv_uav_ranges[0]);
-				root_parameters[2].InitAsDescriptorTable(1, &srv_uav_ranges[1]);
-
-				D3D12_ROOT_SIGNATURE_FLAGS root_signature_flags =
-					D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
-
-				D3D12_STATIC_SAMPLER_DESC sampler = {};
-				sampler.Filter = D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
-				sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-				sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-				sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-				sampler.MipLODBias = 0.0f;
-				sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
-				sampler.MinLOD = 0.0f;
-				sampler.MaxLOD = D3D12_FLOAT32_MAX;
-				sampler.MaxAnisotropy = 0;
-				sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
-				sampler.ShaderRegister = 0;
-				sampler.RegisterSpace = 0;
-				sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-
-				CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_desc{};
-				root_signature_desc.Init_1_1(ARRAYSIZE(root_parameters), root_parameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
-				Microsoft::WRL::ComPtr<ID3DBlob> signature;
-				Microsoft::WRL::ComPtr<ID3DBlob> error;
-
-				BREAK_IF_FAILED(D3DX12SerializeVersionedRootSignature(&root_signature_desc, feature_data.HighestVersion, &signature, &error));
-				BREAK_IF_FAILED(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rs_map[ERootSignature::GenerateMips])));
-			}
 		}
 
 		void CreateAllRootSignatures(ID3D12Device* device)

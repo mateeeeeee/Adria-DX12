@@ -295,10 +295,6 @@ namespace adria
 
 			ComputePipelineStateDesc compute_pso_desc{};
 			{
-				compute_pso_desc.root_signature = ERootSignature::Common;
-				compute_pso_desc.CS = CS_Picking;
-				compute_pso_map[EPipelineState::Picking] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
-
 				compute_pso_desc.root_signature = ERootSignature::ClusterBuilding;
 				compute_pso_desc.CS = CS_ClusterBuilding;
 				compute_pso_map[EPipelineState::ClusterBuilding] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
@@ -312,107 +308,86 @@ namespace adria
 				compute_pso_map[EPipelineState::TiledLighting] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
 				compute_pso_desc.root_signature = ERootSignature::Common;
+				compute_pso_desc.CS = CS_Picking;
+				compute_pso_map[EPipelineState::Picking] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
 				compute_pso_desc.CS = CS_Blur_Horizontal;
 				compute_pso_map[EPipelineState::Blur_Horizontal] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
 				compute_pso_desc.CS = CS_Blur_Vertical;
 				compute_pso_map[EPipelineState::Blur_Vertical] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_BloomExtract;
 				compute_pso_map[EPipelineState::BloomExtract] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_BloomCombine;
 				compute_pso_map[EPipelineState::BloomCombine] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::GenerateMips;
 				compute_pso_desc.CS = CS_GenerateMips;
 				compute_pso_map[EPipelineState::GenerateMips] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_BokehGeneration;
 				compute_pso_map[EPipelineState::BokehGenerate] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_FFT_Horizontal;
 				compute_pso_map[EPipelineState::FFT_Horizontal] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 				compute_pso_desc.CS = CS_FFT_Vertical;
 				compute_pso_map[EPipelineState::FFT_Vertical] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_InitialSpectrum;
 				compute_pso_map[EPipelineState::InitialSpectrum] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_OceanNormals;
 				compute_pso_map[EPipelineState::OceanNormals] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_Phase;
 				compute_pso_map[EPipelineState::Phase] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_Spectrum;
 				compute_pso_map[EPipelineState::Spectrum] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_BuildHistogram;
 				compute_pso_map[EPipelineState::BuildHistogram] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_HistogramReduction;
 				compute_pso_map[EPipelineState::HistogramReduction] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_Exposure;
 				compute_pso_map[EPipelineState::Exposure] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_Ssao;
 				compute_pso_map[EPipelineState::SSAO] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_Hbao;
 				compute_pso_map[EPipelineState::HBAO] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_Ssr;
 				compute_pso_map[EPipelineState::SSR] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_Fog;
 				compute_pso_map[EPipelineState::Fog] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_Tonemap;
 				compute_pso_map[EPipelineState::ToneMap] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_MotionVectors;
 				compute_pso_map[EPipelineState::MotionVectors] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_MotionBlur;
 				compute_pso_map[EPipelineState::MotionBlur] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_Dof;
 				compute_pso_map[EPipelineState::DOF] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_GodRays;
 				compute_pso_map[EPipelineState::GodRays] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_Fxaa;
 				compute_pso_map[EPipelineState::FXAA] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_Ambient;
 				compute_pso_map[EPipelineState::Ambient] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_Clouds;
 				compute_pso_map[EPipelineState::Clouds] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 			}
