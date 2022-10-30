@@ -835,12 +835,6 @@
     <FxCompile Include="Resources\Shaders\Deferred\IrmapCS.hlsl">
       <Filter>Shaders\Deferred\IBL</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\DecalPS.hlsl">
-      <Filter>Shaders\Misc</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\DecalVS.hlsl">
-      <Filter>Shaders\Misc</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\NewShaders\Exposure\BuildHistogram.hlsl">
       <Filter>NewShaders\Exposure</Filter>
     </FxCompile>
@@ -947,6 +941,9 @@
       <Filter>NewShaders\Other</Filter>
     </FxCompile>
     <FxCompile Include="Resources\NewShaders\Other\Simple.hlsl">
+      <Filter>NewShaders\Other</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Other\Decals.hlsl">
       <Filter>NewShaders\Other</Filter>
     </FxCompile>
   </ItemGroup>

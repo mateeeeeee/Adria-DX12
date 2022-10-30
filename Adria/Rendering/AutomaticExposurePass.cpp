@@ -252,7 +252,7 @@ namespace adria
 				{
 					ImGui::SliderFloat("Min Luminance", &min_luminance, 0.0f, 1.0f);
 					ImGui::SliderFloat("Max Luminance", &max_luminance, 0.3f, 20.0f);
-					ImGui::SliderFloat("Adaption Speed", &adaption_speed, 0.01, 5.0f);
+					ImGui::SliderFloat("Adaption Speed", &adaption_speed, 0.01f, 5.0f);
 					ImGui::SliderFloat("Exposure Compensation", &exposure_compensation, -5.0f, 5.0f);
 					ImGui::SliderFloat("Low Percentile", &low_percentile, 0.0f, 0.49f);
 					ImGui::SliderFloat("High Percentile", &high_percentile, 0.51f, 1.0f);

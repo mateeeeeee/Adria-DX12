@@ -40,15 +40,25 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				auto upload_buffer = gfx->GetDynamicAllocator();
 
-				struct DecalCBuffer
-				{
-					int32 decal_type;
-				};
-				DecalCBuffer decal_cbuf_data{};
-				ObjectCBuffer object_cbuf_data{};
+				uint32 depth_idx = (uint32)descriptor_allocator->Allocate();
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(depth_idx), context.GetReadOnlyTexture(data.depth_srv),
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Decals));
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
+				struct DecalsConstants
+				{
+					XMMATRIX model_matrix;
+					XMMATRIX transposed_inverse_model;
+					uint32 decal_type;
+					uint32 decal_albedo_idx;
+					uint32 decal_normal_idx;
+					uint32 depth_idx;
+				} constants = 
+				{
+					.depth_idx = depth_idx
+				};
+
+				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
 				auto decal_view = reg.view<Decal>();
 
 				auto decal_pass_lambda = [&](bool modify_normals)
@@ -59,28 +69,14 @@ namespace adria
 						Decal& decal = decal_view.get<Decal>(e);
 						if (decal.modify_gbuffer_normals != modify_normals) continue;
 
-						object_cbuf_data.model = decal.decal_model_matrix;
-						object_cbuf_data.inverse_transposed_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
-						DynamicAllocation object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-						object_allocation.Update(object_cbuf_data);
-						cmd_list->SetGraphicsRootConstantBufferView(1, object_allocation.gpu_address);
-						cmd_list->SetGraphicsRoot32BitConstant(2, static_cast<UINT>(decal.decal_type), 0);
-
-						std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> texture_handles{};
-						std::vector<uint32> src_range_sizes{};
-
-						texture_handles.push_back(texture_manager.GetSRV(decal.albedo_decal_texture));
-						texture_handles.push_back(texture_manager.GetSRV(decal.normal_decal_texture));
-						texture_handles.push_back(context.GetReadOnlyTexture(data.depth_srv));
-						src_range_sizes.assign(texture_handles.size(), 1u);
-
-						OffsetType descriptor_index = descriptor_allocator->AllocateRange(texture_handles.size());
-						auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-						uint32 dst_range_sizes[] = { (uint32)texture_handles.size() };
-						device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes, (uint32)texture_handles.size(), texture_handles.data(), src_range_sizes.data(),
-							D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-						cmd_list->SetGraphicsRootDescriptorTable(3, dst_descriptor);
-
+						constants.model_matrix = decal.decal_model_matrix;
+						constants.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, decal.decal_model_matrix));
+						constants.decal_type = static_cast<uint32>(decal.decal_type);
+						constants.decal_albedo_idx = (uint32)decal.albedo_decal_texture;
+						constants.decal_normal_idx = (uint32)decal.normal_decal_texture;
+						DynamicAllocation allocation = upload_buffer->Allocate(GetCBufferSize<DecalsConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+						allocation.Update(constants);
+						cmd_list->SetGraphicsRootConstantBufferView(2, allocation.gpu_address);
 						cmd_list->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 						BindVertexBuffer(cmd_list, cube_vb.get());
 						BindIndexBuffer(cmd_list, cube_ib.get());

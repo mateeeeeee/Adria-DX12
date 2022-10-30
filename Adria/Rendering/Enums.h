@@ -99,7 +99,6 @@ namespace adria
 		ClusterBuilding,
 		ClusterCulling,
 		GenerateMips,
-		Decals
 	};
 
 	enum class EPipelineState : uint8

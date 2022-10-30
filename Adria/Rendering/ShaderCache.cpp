@@ -129,6 +129,11 @@ namespace adria
 				return "TexturePS";
 			case PS_Solid:
 				return "SolidPS";
+			case VS_Decals:
+				return "DecalsVS";
+			case PS_Decals:
+			case PS_Decals_ModifyNormals:
+				return "DecalsPS";
 			default:
 				return "main";
 			}
@@ -240,10 +245,9 @@ namespace adria
 			case PS_Solid:
 				return "Other/Simple.hlsl";
 			case VS_Decals:
-				return "Misc/DecalVS.hlsl";
 			case PS_Decals:
 			case PS_Decals_ModifyNormals:
-				return "Misc/DecalPS.hlsl";
+				return "Other/Decals.hlsl";
 			case VS_GBuffer:
 			case PS_GBuffer:
 			case PS_GBuffer_Mask:
@@ -440,6 +444,9 @@ namespace adria
 			case VS_Sun:
 			case PS_Texture:
 			case PS_Solid:
+			case VS_Decals:
+			case PS_Decals:
+			case PS_Decals_ModifyNormals:
 				return true;
 			default:
 				return false;

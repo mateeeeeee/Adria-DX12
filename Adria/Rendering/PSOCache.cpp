@@ -257,7 +257,7 @@ namespace adria
 
 				gfx_pso_desc = {};
 				ShaderCompiler::CreateInputLayout(GetShader(VS_Decals), gfx_pso_desc.input_layout);
-				gfx_pso_desc.root_signature = ERootSignature::Decals;
+				gfx_pso_desc.root_signature = ERootSignature::Common;
 				gfx_pso_desc.VS = VS_Decals;
 				gfx_pso_desc.PS = PS_Decals;
 				gfx_pso_desc.rasterizer_state.cull_mode = ECullMode::None;
