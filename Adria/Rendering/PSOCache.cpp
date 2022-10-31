@@ -48,13 +48,6 @@ namespace adria
 				gfx_pso_desc.PS = PS_HosekWilkieSky;
 				gfx_pso_map[EPipelineState::HosekWilkieSky] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
-				gfx_pso_desc.root_signature = ERootSignature::TAA;
-				gfx_pso_desc.VS = VS_FullscreenQuad;
-				gfx_pso_desc.PS = PS_Taa;
-				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
-				gfx_pso_map[EPipelineState::TAA] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
-
 				gfx_pso_desc = {};
 				ShaderCompiler::CreateInputLayout(GetShader(VS_GBuffer), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = ERootSignature::Common;
@@ -390,6 +383,9 @@ namespace adria
 
 				compute_pso_desc.CS = CS_Clouds;
 				compute_pso_map[EPipelineState::Clouds] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.CS = CS_Taa;
+				compute_pso_map[EPipelineState::TAA] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 			}
 		}
 	}

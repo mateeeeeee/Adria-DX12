@@ -19,11 +19,11 @@ static const float gAlpha = 0.1f;
 static const float gColorBoxSigma = 1.0f;
 
 // Catmull-Rom filtering code from http://vec3.ca/bicubic-filtering-in-fewer-taps/
-float3 BicubicSampleCatmullRom(Texture2D tex, float2 sample_pos, float2 tex_dim)
+float3 BicubicSampleCatmullRom(Texture2D tex, float2 samplePos, float2 tex_dim)
 {
     float2 tex_dim_inv = 1.0 / tex_dim;
-    float2 tc = floor(sample_pos - 0.5) + 0.5;
-    float2 f = sample_pos - tc;
+    float2 tc = floor(samplePos - 0.5) + 0.5;
+    float2 f = samplePos - tc;
     float2 f2 = f * f;
     float2 f3 = f2 * f;
 
@@ -85,10 +85,10 @@ float4 main(VertexOut pin) : SV_TARGET
         int2(1, 0), int2(0, -1),
         int2(0, 1), int2(-1, 0),
     };
-    
-    uint2 tex_dim;
-    uint levels;
-    hdr_scene.GetDimensions(0, tex_dim.x, tex_dim.y, levels);
+
+uint2 tex_dim;
+uint levels;
+hdr_scene.GetDimensions(0, tex_dim.x, tex_dim.y, levels);
 
     float2 pos = pin.Tex * tex_dim;
     int2 ipos = int2(pos);

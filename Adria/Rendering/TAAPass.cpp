@@ -19,9 +19,10 @@ namespace adria
 
 		struct TAAPassData
 		{
-			RGTextureReadOnlyId input_srv;
-			RGTextureReadOnlyId history_srv;
-			RGTextureReadOnlyId velocity_srv;
+			RGTextureReadOnlyId input;
+			RGTextureReadOnlyId history;
+			RGTextureReadOnlyId velocity;
+			RGTextureReadWriteId output;
 		};
 
 		rg.AddPass<TAAPassData>("TAA Pass",
@@ -32,34 +33,40 @@ namespace adria
 				taa_desc.height = height;
 				taa_desc.format = EFormat::R16G16B16A16_FLOAT;
 
-				builder.SetViewport(width, height);
 				builder.DeclareTexture(RG_RES_NAME(TAAOutput), taa_desc);
-				builder.WriteRenderTarget(RG_RES_NAME(TAAOutput), ERGLoadStoreAccessOp::Discard_Preserve);
-				data.input_srv = builder.ReadTexture(last_resource, ReadAccess_PixelShader);
-				data.history_srv = builder.ReadTexture(RG_RES_NAME(HistoryBuffer), ReadAccess_PixelShader);
-				data.velocity_srv = builder.ReadTexture(RG_RES_NAME(VelocityBuffer), ReadAccess_PixelShader);
+				data.output = builder.WriteTexture(RG_RES_NAME(TAAOutput));
+				data.input = builder.ReadTexture(last_resource, ReadAccess_PixelShader);
+				data.history = builder.ReadTexture(RG_RES_NAME(HistoryBuffer), ReadAccess_PixelShader);
+				data.velocity = builder.ReadTexture(RG_RES_NAME(VelocityBuffer), ReadAccess_PixelShader);
 			},
-			[=](TAAPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](TAAPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::TAA));
+				uint32 i = (uint32)descriptor_allocator->AllocateRange(4);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.input), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadOnlyTexture(data.history), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadOnlyTexture(data.velocity), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 3), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+				struct TAAConstants
+				{
+					uint32 scene_idx;
+					uint32 prev_scene_idx;
+					uint32 velocity_idx;
+					uint32 output_idx;
+				} constants =
+				{
+					.scene_idx = i, .prev_scene_idx = i + 1, .velocity_idx = i + 2, .output_idx = i + 3
+				};
+
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::TAA));
-
-				OffsetType descriptor_index = descriptor_allocator->AllocateRange(3);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), context.GetReadOnlyTexture(data.input_srv),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), context.GetReadOnlyTexture(data.history_srv),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 2), context.GetReadOnlyTexture(data.velocity_srv),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-				cmd_list->SetGraphicsRootDescriptorTable(0, descriptor_allocator->GetHandle(descriptor_index));
-				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-				cmd_list->DrawInstanced(4, 1, 0, 0);
-
-			}, ERGPassType::Graphics, ERGPassFlags::None);
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRoot32BitConstants(1, 4, &constants, 0);
+				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
+			}, ERGPassType::Compute, ERGPassFlags::None);
 
 		return RG_RES_NAME(TAAOutput);
 	}

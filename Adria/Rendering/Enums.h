@@ -12,7 +12,6 @@ namespace adria
 		PS_UniformColorSky,
 		PS_HosekWilkieSky,
 		VS_FullscreenQuad,
-		PS_Taa,
 		VS_GBuffer,
 		PS_GBuffer,
 		PS_GBuffer_Mask,
@@ -78,6 +77,7 @@ namespace adria
 		CS_GodRays,
 		CS_Ambient,
 		CS_Clouds,
+		CS_Taa,
 		LIB_Shadows,
 		LIB_SoftShadows,
 		LIB_AmbientOcclusion,
@@ -89,7 +89,6 @@ namespace adria
 	{
 		Invalid,
 		Common,
-		TAA,
 		LightingPBR,
 		ClusteredLightingPBR,
 		DepthMap,

@@ -136,6 +136,8 @@ namespace adria
 				return "DecalsPS";
 			case CS_GenerateMips:
 				return "GenerateMips";
+			case CS_Taa:
+				return "TAA";
 			default:
 				return "main";
 			}
@@ -170,7 +172,6 @@ namespace adria
 			case PS_LightingPBR:
 			case PS_LightingPBR_RayTracedShadows:
 			case PS_ClusteredLightingPBR:
-			case PS_Taa:
 			case PS_Copy:
 			case PS_Add:
 			case PS_LensFlare:
@@ -217,6 +218,7 @@ namespace adria
 			case CS_Fxaa:
 			case CS_Ambient:
 			case CS_Clouds:
+			case CS_Taa:
 				return EShaderStage::CS;
 			case HS_OceanLOD:
 				return EShaderStage::HS;
@@ -261,8 +263,6 @@ namespace adria
 				return "Deferred/LightingPBR_PS.hlsl";
 			case PS_ClusteredLightingPBR:
 				return "Deferred/ClusterLightingPBR_PS.hlsl";
-			case PS_Taa:
-				return "Postprocess/TAA_PS.hlsl";
 			case PS_Copy:
 				return "Other/CopyTexture.hlsl";
 			case PS_Add:
@@ -353,6 +353,8 @@ namespace adria
 				return "Postprocess/GodRays.hlsl";
 			case CS_Fxaa:
 				return "Postprocess/FXAA.hlsl";
+			case CS_Taa:
+				return "Postprocess/TAA.hlsl";
 			case CS_Ambient:
 				return "Lighting/Ambient.hlsl";
 			case LIB_Shadows:
@@ -450,6 +452,7 @@ namespace adria
 			case PS_Decals:
 			case PS_Decals_ModifyNormals:
 			case CS_GenerateMips:
+			case CS_Taa:
 				return true;
 			default:
 				return false;

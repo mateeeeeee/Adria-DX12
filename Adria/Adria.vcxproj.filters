@@ -928,6 +928,9 @@
     <FxCompile Include="Resources\OldShaders\Postprocess\VolumetricLightSpotPS.hlsl">
       <Filter>OldShaders\Postprocess</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Postprocess\TAA.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="scene.json" />
