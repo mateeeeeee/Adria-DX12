@@ -130,7 +130,7 @@ namespace adria
 		int32 visualize_max_lights;			//tiled deferred
 	};
 
-	struct StructuredLight
+	struct LightHLSL
 	{
 		DirectX::XMVECTOR position;
 		DirectX::XMVECTOR direction;
@@ -140,6 +140,7 @@ namespace adria
 		int32 type;
 		float outer_cosine;
 		float inner_cosine;
+
 		int32 casts_shadows;
 		int32 use_cascades;
 		int32 padd;

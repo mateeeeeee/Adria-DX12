@@ -290,28 +290,31 @@ namespace adria
 		{
 			gfx->WaitForGPU();
 			light_count = light_view.size();
-			lights_buffer = std::make_unique<Buffer>(gfx, StructuredBufferDesc<StructuredLight>(light_count, false, true));
+			lights_buffer = std::make_unique<Buffer>(gfx, StructuredBufferDesc<LightHLSL>(light_count, false, true));
 			lights_buffer->CreateSRV();
 		}
 
-		std::vector<StructuredLight> structured_lights{};
-		structured_lights.reserve(light_view.size());
+		static size_t shadow_lights_count = 0;
+		size_t current_shadow_lights_count = 0;
+
+		std::vector<LightHLSL> hlsl_lights{};
+		hlsl_lights.reserve(light_view.size());
 		for (auto e : light_view)
 		{
-			StructuredLight structured_light{};
+			LightHLSL hlsl_light{};
 			auto& light = light_view.get<Light>(e);
-			structured_light.color = light.color * light.energy;
-			structured_light.position = XMVector4Transform(light.position, camera->View());
-			structured_light.direction = XMVector4Transform(light.direction, camera->View());
-			structured_light.range = light.range;
-			structured_light.type = static_cast<int>(light.type);
-			structured_light.inner_cosine = light.inner_cosine;
-			structured_light.outer_cosine = light.outer_cosine;
-			structured_light.active = light.active;
-			structured_light.casts_shadows = light.casts_shadows;
-			structured_lights.push_back(structured_light);
+			hlsl_light.color = light.color * light.energy;
+			hlsl_light.position = XMVector4Transform(light.position, camera->View());
+			hlsl_light.direction = XMVector4Transform(light.direction, camera->View());
+			hlsl_light.range = light.range;
+			hlsl_light.type = static_cast<int>(light.type);
+			hlsl_light.inner_cosine = light.inner_cosine;
+			hlsl_light.outer_cosine = light.outer_cosine;
+			hlsl_light.active = light.active;
+			hlsl_light.casts_shadows = light.casts_shadows;
+			hlsl_lights.push_back(hlsl_light);
 		}
-		lights_buffer->Update(structured_lights.data(), structured_lights.size() * sizeof(StructuredLight));
+		lights_buffer->Update(hlsl_lights.data(), hlsl_lights.size() * sizeof(LightHLSL));
 
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();

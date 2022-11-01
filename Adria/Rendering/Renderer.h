@@ -85,6 +85,7 @@ namespace adria
 		std::unique_ptr<Texture> final_texture;
 		std::unique_ptr<Texture> white_default_texture;
 		std::unique_ptr<Buffer>  lights_buffer;
+		std::unique_ptr<Buffer>  lights_projections_buffer;
 		DescriptorHandle		 light_array_srv;
 		DirectX::XMFLOAT3        sun_direction;
 
