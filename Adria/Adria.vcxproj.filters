@@ -215,9 +215,6 @@
     <ClCompile Include="Rendering\SkyPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\LightingPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\ShadowPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
@@ -322,6 +319,9 @@
     </ClCompile>
     <ClCompile Include="Math\Packing.cpp">
       <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\DeferredLightingPass.cpp">
+      <Filter>Rendering\Passes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -619,9 +619,6 @@
     <ClInclude Include="Rendering\SkyPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\LightingPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\ShadowPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
@@ -762,6 +759,9 @@
     </ClInclude>
     <ClInclude Include="Graphics\GpuMacros.h">
       <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\DeferredLightingPass.h">
+      <Filter>Rendering\Passes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -930,6 +930,9 @@
     </FxCompile>
     <FxCompile Include="Resources\NewShaders\Postprocess\TAA.hlsl">
       <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Lighting\Shadow.hlsl">
+      <Filter>Shaders\Lighting</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
