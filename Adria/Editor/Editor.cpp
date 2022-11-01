@@ -801,11 +801,6 @@ namespace adria
 					change &= ImGui::InputFloat3("Scale", scale);
 					ImGuizmo::RecomposeMatrixFromComponents(translation, rotation, scale, tr.m[0]);
 
-					if (Emitter* emitter = engine->reg.try_get<Emitter>(selected_entity))
-					{
-						emitter->position = XMFLOAT4(translation[0], translation[1], translation[2], 1.0f);
-					}
-
 					if (AABB* aabb = engine->reg.try_get<AABB>(selected_entity))
 					{
 						aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, transform->current_transform));
@@ -827,73 +822,6 @@ namespace adria
 						}
 					}
 					transform->current_transform = DirectX::XMLoadFloat4x4(&tr);
-				}
-
-				auto emitter = engine->reg.try_get<Emitter>(selected_entity);
-				if (emitter && ImGui::CollapsingHeader("Emitter"))
-				{
-					ID3D12Device5* device = engine->gfx->GetDevice();
-					RingOnlineDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
-
-					ImGui::Text("Particle Texture");
-					D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetTextureManager().GetSRV(emitter->particle_texture);
-					OffsetType descriptor_index = descriptor_allocator->Allocate();
-					auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
-						ImVec2(48.0f, 48.0f));
-
-					ImGui::PushID(3);
-					if (ImGui::Button("Remove")) emitter->particle_texture = INVALID_TEXTURE_HANDLE;
-					if (ImGui::Button("Select"))
-					{
-						nfdchar_t* file_path = NULL;
-						nfdchar_t const* filter_list = "jpg,jpeg,tga,dds,png";
-						nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
-						if (result == NFD_OKAY)
-						{
-							std::wstring texture_path = ToWideString(file_path);
-							emitter->particle_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
-							free(file_path);
-						}
-					}
-					ImGui::PopID();
-
-					float pos[3] = { emitter->position.x, emitter->position.y, emitter->position.z },
-						vel[3] = { emitter->velocity.x, emitter->velocity.y, emitter->velocity.z },
-						pos_var[3] = { emitter->position_variance.x, emitter->position_variance.y, emitter->position_variance.z };
-
-					ImGui::SliderFloat3("Position", pos, -500.0f, 500.0f);
-					ImGui::SliderFloat3("Velocity", vel, -50.0f, 50.0f);
-					ImGui::SliderFloat3("Position Variance", pos_var, -50.0f, 50.0f);
-					emitter->position = DirectX::XMFLOAT4(pos[0], pos[1], pos[2], 1.0f);
-					emitter->velocity = DirectX::XMFLOAT4(vel[0], vel[1], vel[2], 1.0f);
-					emitter->position_variance = DirectX::XMFLOAT4(pos_var[0], pos_var[1], pos_var[2], 1.0f);
-
-					if (transform)
-					{
-						XMFLOAT4X4 tr;
-						XMStoreFloat4x4(&tr, transform->current_transform);
-						float translation[3], rotation[3], scale[3];
-						ImGuizmo::DecomposeMatrixToComponents(tr.m[0], translation, rotation, scale);
-						ImGuizmo::RecomposeMatrixFromComponents(pos, rotation, scale, tr.m[0]);
-						transform->current_transform = DirectX::XMLoadFloat4x4(&tr);
-					}
-
-					ImGui::SliderFloat("Velocity Variance", &emitter->velocity_variance, -10.0f, 10.0f);
-					ImGui::SliderFloat("Lifespan", &emitter->particle_lifespan, 0.0f, 50.0f);
-					ImGui::SliderFloat("Start Size", &emitter->start_size, 0.0f, 50.0f);
-					ImGui::SliderFloat("End Size", &emitter->end_size, 0.0f, 10.0f);
-					ImGui::SliderFloat("Mass", &emitter->mass, 0.0f, 10.0f);
-					ImGui::SliderFloat("Particles Per Second", &emitter->particles_per_second, 1.0f, 1000.0f);
-
-					ImGui::Checkbox("Alpha Blend", &emitter->alpha_blended);
-					ImGui::Checkbox("Collisions", &emitter->collisions_enabled);
-					if (emitter->collisions_enabled) ImGui::SliderInt("Collision Thickness", &emitter->collision_thickness, 0, 40);
-
-					ImGui::Checkbox("Sort", &emitter->sort);
-					ImGui::Checkbox("Pause", &emitter->pause);
-					if (ImGui::Button("Reset")) emitter->reset_emitter = true;
 				}
 
 				auto decal = engine->reg.try_get<Decal>(selected_entity);

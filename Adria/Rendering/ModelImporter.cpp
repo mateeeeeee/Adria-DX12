@@ -462,32 +462,6 @@ namespace adria
 		return ocean_chunks;
 	}
 
-	entt::entity ModelImporter::LoadEmitter(EmitterParameters const& params)
-	{
-		Emitter emitter{};
-		emitter.position = DirectX::XMFLOAT4(params.position[0], params.position[1], params.position[2], 1);
-		emitter.velocity = DirectX::XMFLOAT4(params.velocity[0], params.velocity[1], params.velocity[2], 0);
-		emitter.position_variance = DirectX::XMFLOAT4(params.position_variance[0], params.position_variance[1], params.position_variance[2], 1);
-		emitter.velocity_variance = params.velocity_variance;
-		emitter.number_to_emit = 0;
-		emitter.particle_lifespan = params.lifespan;
-		emitter.start_size = params.start_size;
-		emitter.end_size = params.end_size;
-		emitter.mass = params.mass;
-		emitter.particles_per_second = params.particles_per_second;
-		emitter.sort = params.sort;
-		emitter.collisions_enabled = params.collisions;
-		emitter.particle_texture = texture_manager.LoadTexture(params.texture_path);
-
-		entt::entity emitter_entity = reg.create();
-		reg.emplace<Emitter>(emitter_entity, emitter);
-
-		if (params.name.empty()) reg.emplace<Tag>(emitter_entity);
-		else reg.emplace<Tag>(emitter_entity, params.name);
-
-		return emitter_entity;
-	}
-
 	entt::entity ModelImporter::LoadDecal(DecalParameters const& params)
 	{
 		Decal decal{};
@@ -501,9 +475,9 @@ namespace adria
 
 		XMVECTOR ProjectorDirection = XMVectorNegate(N);
 		XMMATRIX RotationMatrix = XMMatrixRotationAxis(ProjectorDirection, params.rotation);
-		XMMATRIX model_matrix = XMMatrixScaling(params.size, params.size, params.size) * RotationMatrix * XMMatrixTranslationFromVector(P);
+		XMMATRIX ModelMatrix = XMMatrixScaling(params.size, params.size, params.size) * RotationMatrix * XMMatrixTranslationFromVector(P);
 
-		decal.decal_model_matrix = model_matrix;
+		decal.decal_model_matrix = ModelMatrix;
 		decal.modify_gbuffer_normals = params.modify_gbuffer_normals;
 
 		XMFLOAT3 abs_normal;

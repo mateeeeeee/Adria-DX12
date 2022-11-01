@@ -30,11 +30,11 @@ namespace adria
 	Renderer::Renderer(entt::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx), 
 		texture_manager(gfx, 1000), camera(nullptr), width(width), height(height), 
 		backbuffer_count(gfx->BackbufferCount()), backbuffer_index(gfx->BackbufferIndex()), final_texture(nullptr),
-		frame_cbuffer(gfx->GetDevice(), backbuffer_count), 
+		old_frame_cbuffer(gfx->GetDevice(), backbuffer_count), 
 		compute_cbuffer(gfx->GetDevice(), backbuffer_count),
-		new_frame_cbuffer(gfx->GetDevice(), backbuffer_count),
+		frame_cbuffer(gfx->GetDevice(), backbuffer_count),
 		gbuffer_pass(reg, width, height), ambient_pass(width, height), tonemap_pass(width, height),
-		sky_pass(reg, texture_manager, width, height), lighting_pass(width, height), shadow_pass(reg, texture_manager),
+		sky_pass(reg, texture_manager, width, height), deferred_lighting_pass(width, height), shadow_pass(reg, texture_manager),
 		tiled_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
 		postprocessor(reg, texture_manager, width, height), fxaa_pass(width, height), picking_pass(gfx, width, height),
 		clustered_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height),
@@ -80,8 +80,8 @@ namespace adria
 			global_data.camera_proj = camera->Proj();
 			global_data.camera_viewproj = camera->ViewProj();
 			global_data.camera_fov = camera->Fov();
-			global_data.new_frame_cbuffer_address = new_frame_cbuffer.BufferLocation(backbuffer_index);
-			global_data.frame_cbuffer_address = frame_cbuffer.BufferLocation(backbuffer_index);
+			global_data.new_frame_cbuffer_address = frame_cbuffer.BufferLocation(backbuffer_index);
+			global_data.frame_cbuffer_address = old_frame_cbuffer.BufferLocation(backbuffer_index);
 			global_data.compute_cbuffer_address = compute_cbuffer.BufferLocation(backbuffer_index);
 			global_data.null_srv_texture2d = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURE2D);
 			global_data.null_uav_texture2d = null_heap->GetHandle(NULL_HEAP_SLOT_RWTEXTURE2D);
@@ -148,20 +148,20 @@ namespace adria
 			auto const& light = light_entities.get<Light>(light_entity);
 			size_t light_id = entt::to_integral(light_entity);
 			if (!light.active) continue;
-			if ((renderer_settings.use_tiled_deferred || renderer_settings.use_clustered_deferred) && !light.casts_shadows) continue;  
+			//if ((renderer_settings.use_tiled_deferred || renderer_settings.use_clustered_deferred) && !light.casts_shadows) continue;  
 			if (light.casts_shadows) shadow_pass.AddPass(render_graph, light, light_id);
 			else if (light.ray_traced_shadows) ray_tracer.AddRayTracedShadowsPass(render_graph, light, light_id);
-			lighting_pass.AddPass(render_graph, light, light_id);
+			deferred_lighting_pass.AddPass(render_graph, light, light_id);
 		}
 
-		if (renderer_settings.use_tiled_deferred)
-		{
-			tiled_lighting_pass.AddPass(render_graph);
-		}
-		else if (renderer_settings.use_clustered_deferred)
-		{
-			clustered_lighting_pass.AddPass(render_graph, true);
-		}
+		//if (renderer_settings.use_tiled_deferred)
+		//{
+		//	tiled_lighting_pass.AddPass(render_graph);
+		//}
+		//else if (renderer_settings.use_clustered_deferred)
+		//{
+		//	clustered_lighting_pass.AddPass(render_graph, true);
+		//}
 
 		aabb_pass.AddPass(render_graph);
 		ocean_renderer.AddPasses(render_graph);
@@ -191,7 +191,7 @@ namespace adria
 			ssao_pass.OnResize(w, h);
 			hbao_pass.OnResize(w, h);
 			sky_pass.OnResize(w, h);
-			lighting_pass.OnResize(w, h);
+			deferred_lighting_pass.OnResize(w, h);
 			tiled_lighting_pass.OnResize(w, h);
 			clustered_lighting_pass.OnResize(w, h);
 			copy_to_texture_pass.OnResize(w, h);
@@ -326,7 +326,7 @@ namespace adria
 		static float total_time = 0.0f;
 		total_time += dt;
 
-		static NewFrameCBuffer new_frame_cbuf_data{};
+		static FrameCBuffer new_frame_cbuf_data{};
 		//new frame
 		{
 			new_frame_cbuf_data.camera_near = camera->Near();
@@ -362,11 +362,11 @@ namespace adria
 				}
 			}
 			new_frame_cbuf_data.wind_params = XMVectorSet(renderer_settings.wind_dir[0], renderer_settings.wind_dir[1], renderer_settings.wind_dir[2], renderer_settings.wind_speed);
-			new_frame_cbuffer.Update(new_frame_cbuf_data, backbuffer_index);
+			frame_cbuffer.Update(new_frame_cbuf_data, backbuffer_index);
 			new_frame_cbuf_data.prev_view_projection = camera->ViewProj();
 		}
 
-		static FrameCBuffer frame_cbuf_data{};
+		static OldFrameCBuffer frame_cbuf_data{};
 		//frame
 		{
 			frame_cbuf_data.camera_near = camera->Near();
@@ -384,7 +384,7 @@ namespace adria
 			frame_cbuf_data.mouse_normalized_coords_x = (viewport_data.mouse_position_x - viewport_data.scene_viewport_pos_x) / viewport_data.scene_viewport_size_x;
 			frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
 
-			frame_cbuffer.Update(frame_cbuf_data, backbuffer_index);
+			old_frame_cbuffer.Update(frame_cbuf_data, backbuffer_index);
 			frame_cbuf_data.prev_view_projection = camera->ViewProj();
 		}
 

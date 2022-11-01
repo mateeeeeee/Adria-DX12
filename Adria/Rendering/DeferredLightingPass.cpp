@@ -1,4 +1,4 @@
-#include "LightingPass.h"
+#include "DeferredLightingPass.h"
 #include "ConstantBuffers.h"
 #include "Components.h"
 #include "BlackboardData.h"
@@ -13,7 +13,7 @@ using namespace DirectX;
 namespace adria
 {
 
-	void LightingPass::AddPass(RenderGraph& rendergraph, Light const& light, size_t light_id)
+	void DeferredLightingPass::AddPass(RenderGraph& rendergraph, Light const& light, size_t light_id)
 	{
 		struct LightingPassData
 		{

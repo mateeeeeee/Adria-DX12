@@ -6,7 +6,7 @@
 #include "GBufferPass.h"
 #include "AmbientPass.h"
 #include "SkyPass.h"
-#include "LightingPass.h"
+#include "DeferredLightingPass.h"
 #include "TiledLightingPass.h"
 #include "ClusteredLightingPass.h"
 #include "ShadowPass.h"
@@ -89,8 +89,8 @@ namespace adria
 		DirectX::XMFLOAT3        sun_direction;
 
 		//Persistent constant buffers
-		ConstantBuffer<NewFrameCBuffer> new_frame_cbuffer;
 		ConstantBuffer<FrameCBuffer> frame_cbuffer;
+		ConstantBuffer<OldFrameCBuffer> old_frame_cbuffer;
 		ConstantBuffer<ComputeCBuffer> compute_cbuffer;
 
 		//misc
@@ -111,7 +111,7 @@ namespace adria
 		ToneMapPass  tonemap_pass;
 		FXAAPass	 fxaa_pass;
 		SkyPass		 sky_pass;
-		LightingPass lighting_pass;
+		DeferredLightingPass deferred_lighting_pass;
 		TiledLightingPass tiled_lighting_pass;
 		ClusteredLightingPass clustered_lighting_pass;
 		CopyToTexturePass copy_to_texture_pass;

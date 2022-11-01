@@ -8,7 +8,7 @@
 
 namespace adria
 {
-	DECLSPEC_ALIGN(16) struct NewFrameCBuffer
+	DECLSPEC_ALIGN(16) struct FrameCBuffer
 	{
 		DirectX::XMMATRIX view;
 		DirectX::XMMATRIX projection;
@@ -38,7 +38,7 @@ namespace adria
 		int32  lights_idx;
 	};
 
-	DECLSPEC_ALIGN(16) struct FrameCBuffer
+	DECLSPEC_ALIGN(16) struct OldFrameCBuffer
 	{
 		DirectX::XMMATRIX view;
 		DirectX::XMMATRIX projection;

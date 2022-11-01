@@ -79,9 +79,9 @@ namespace adria
 		TextureHandle emissive_texture			  = INVALID_TEXTURE_HANDLE;
 
 		float albedo_factor		= 1.0f;
-		float metallic_factor		= 1.0f;
+		float metallic_factor	= 1.0f;
 		float roughness_factor	= 1.0f;
-		float emissive_factor		= 1.0f;
+		float emissive_factor	= 1.0f;
 
 		EMaterialAlphaMode alpha_mode = EMaterialAlphaMode::Opaque;
 		float alpha_cutoff		= 0.5f;
@@ -161,29 +161,6 @@ namespace adria
 		TextureHandle cubemap_texture;
 		bool active;
 		bool used_in_rt;
-	};
-
-	struct COMPONENT Emitter
-	{
-		TextureHandle		particle_texture = INVALID_TEXTURE_HANDLE;
-		DirectX::XMFLOAT4	position = DirectX::XMFLOAT4(0, 0, 0, 0);
-		DirectX::XMFLOAT4	velocity = DirectX::XMFLOAT4(0, 5, 0, 0);
-		DirectX::XMFLOAT4	position_variance = DirectX::XMFLOAT4(0, 0, 0, 0);
-		int32				number_to_emit = 0;
-		float				particle_lifespan = 5.0f;
-		float				start_size = 10.0f;
-		float				end_size = 1.0f;
-		float				mass = 1.0f;
-		float				velocity_variance = 1.0f;
-		float				particles_per_second = 100;
-		float				accumulation = 0.0f;
-		float				elapsed_time = 0.0f;
-		bool				collisions_enabled = false;
-		int32				collision_thickness = 40;
-		bool				alpha_blended = true;
-		bool				pause = false;
-		bool				sort = false;
-		mutable bool		reset_emitter = true;
 	};
 
 	struct COMPONENT Decal

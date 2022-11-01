@@ -55,24 +55,7 @@ namespace adria
 	{
 		GridParameters ocean_grid;
 	};
-	struct EmitterParameters
-	{
-		std::string name = "Emitter";
-		float position[3] = { 50.0f, 10.0f, 0.0f };
-		float velocity[3] = { 0.0f, 7.0f, 0.0f };
-		float position_variance[3] = { 4.0f, 0.0f, 4.0f };
-		float velocity_variance = { 0.6f };
-		float lifespan = 50.0f;
-		float start_size = 22.0f;
-		float end_size = 5.0f;
-		float mass = 0.0003f;
-		float particles_per_second = 100.0f;
-		std::wstring texture_path = L"Resources/Textures/Particles/fire.png";
-		bool blend = true;
-		bool collisions = false;
-		int32 collision_thickness = 40;
-		bool sort = false;
-	};
+
     struct LightParameters
     {
         Light light_data;
@@ -106,7 +89,6 @@ namespace adria
 		[[maybe_unused]] entt::entity LoadSkybox(SkyboxParameters const&);
         [[maybe_unused]] entt::entity LoadLight(LightParameters const&);
 		[[maybe_unused]] std::vector<entt::entity> LoadOcean(OceanParameters const&);
-		[[maybe_unused]] entt::entity LoadEmitter(EmitterParameters const&);
 		[[maybe_unused]] entt::entity LoadDecal(DecalParameters const&);
 
 		[[maybe_unused]] std::vector<entt::entity> ImportModel_GLTF(ModelParameters const&);
