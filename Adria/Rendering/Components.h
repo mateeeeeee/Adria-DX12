@@ -101,11 +101,15 @@ namespace adria
 		ELightType type = ELightType::Directional;
 		float outer_cosine;
 		float inner_cosine;
+		bool active = true;
+
 		bool casts_shadows = false;
 		bool use_cascades = false;
 		bool ray_traced_shadows = false;
 		bool soft_rts = false;
-		bool active = true;
+		int32 shadow_texture_index = -1;
+		int32 shadow_matrix_index = -1;
+
 		float volumetric_strength = 1.0f;
 		bool volumetric = false;
 		bool lens_flare = false;
@@ -114,7 +118,7 @@ namespace adria
 		float godrays_weight = 0.25f;
 		float godrays_density = 0.975f;
 		float godrays_exposure = 2.0f;
-		bool	sscs = false;
+		bool  sscs = false;
 		float sscs_thickness = 0.5f;
 		float sscs_max_ray_distance = 0.05f;
 		float sscs_max_depth_distance = 200.0f;

@@ -18,6 +18,221 @@ using namespace DirectX;
 
 namespace adria
 {
+	namespace shadows
+	{
+		static constexpr uint32 SHADOW_MAP_SIZE = 1024;
+		static constexpr uint32 SHADOW_CUBE_SIZE = 512;
+		static constexpr uint32 SHADOW_CASCADE_MAP_SIZE = 2048;
+		static constexpr uint32 SHADOW_CASCADE_COUNT = 4;
+
+		std::array<XMMATRIX, SHADOW_CASCADE_COUNT> RecalculateProjectionMatrices(Camera const& camera, float split_lambda, std::array<float, SHADOW_CASCADE_COUNT>& split_distances)
+		{
+			float camera_near = camera.Near();
+			float camera_far = camera.Far();
+			float fov = camera.Fov();
+			float ar = camera.AspectRatio();
+
+			float f = 1.0f / SHADOW_CASCADE_COUNT;
+			for (uint32 i = 0; i < split_distances.size(); i++)
+			{
+				float fi = (i + 1) * f;
+				float l = camera_near * pow(camera_far / camera_near, fi);
+				float u = camera_near + (camera_far - camera_near) * fi;
+				split_distances[i] = l * split_lambda + u * (1.0f - split_lambda);
+			}
+
+			std::array<XMMATRIX, SHADOW_CASCADE_COUNT> projection_matrices{};
+			projection_matrices[0] = XMMatrixPerspectiveFovLH(fov, ar, camera_near, split_distances[0]);
+			for (uint32 i = 1; i < projection_matrices.size(); ++i)
+				projection_matrices[i] = XMMatrixPerspectiveFovLH(fov, ar, split_distances[i - 1], split_distances[i]);
+			return projection_matrices;
+		}
+
+		std::pair<XMMATRIX, XMMATRIX> LightViewProjection_Directional(Light const& light, Camera const& camera)
+		{
+			BoundingFrustum frustum = camera.Frustum();
+			std::array<XMFLOAT3, frustum.CORNER_COUNT> corners = {};
+			frustum.GetCorners(corners.data());
+
+			BoundingSphere frustum_sphere;
+			BoundingSphere::CreateFromFrustum(frustum_sphere, frustum);
+
+			XMVECTOR frustum_center = XMVectorSet(0, 0, 0, 0);
+			for (uint32 i = 0; i < corners.size(); ++i)
+			{
+				frustum_center = frustum_center + XMLoadFloat3(&corners[i]);
+			}
+			frustum_center /= static_cast<float>(corners.size());
+
+			float radius = 0.0f;
+			for (uint32 i = 0; i < corners.size(); ++i)
+			{
+				float dist = DirectX::XMVectorGetX(XMVector3Length(DirectX::XMLoadFloat3(&corners[i]) - frustum_center));
+				radius = (std::max)(radius, dist);
+			}
+			radius = std::ceil(radius * 8.0f) / 8.0f;
+
+			XMVECTOR const max_extents = XMVectorSet(radius, radius, radius, 0);
+			XMVECTOR const min_extents = -max_extents;
+			XMVECTOR const cascade_extents = max_extents - min_extents;
+
+			XMVECTOR light_dir = XMVector3Normalize(light.direction);
+			static const XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+
+			XMMATRIX V = XMMatrixLookAtLH(frustum_center, frustum_center + 1.0f * light_dir * radius, up);
+
+			XMFLOAT3 min_e, max_e, cascade_e;
+			XMStoreFloat3(&min_e, min_extents);
+			XMStoreFloat3(&max_e, max_extents);
+			XMStoreFloat3(&cascade_e, cascade_extents);
+
+			float l = min_e.x;
+			float b = min_e.y;
+			float n = min_e.z; 
+			float r = max_e.x;
+			float t = max_e.y;
+			float f = max_e.z * 1.5f;
+
+			XMMATRIX P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
+			XMMATRIX VP = V * P;
+			XMFLOAT3 so(0, 0, 0);
+			XMVECTOR shadow_origin = XMLoadFloat3(&so);
+			shadow_origin = XMVector3Transform(shadow_origin, VP); //sOrigin * P;
+			shadow_origin *= (ShadowPass::SHADOW_MAP_SIZE / 2.0f);
+
+			XMVECTOR rounded_origin = XMVectorRound(shadow_origin);
+			XMVECTOR rounded_offset = rounded_origin - shadow_origin;
+			rounded_offset *= (2.0f / ShadowPass::SHADOW_MAP_SIZE);
+			rounded_offset *= XMVectorSet(1.0, 1.0, 0.0, 0.0);
+
+			P.r[3] += rounded_offset;
+			return { V,P };
+		}
+		std::pair<XMMATRIX, XMMATRIX> LightViewProjection_Spot(Light const& light)
+		{
+			ADRIA_ASSERT(light.type == ELightType::Spot);
+
+			XMVECTOR light_dir = XMVector3Normalize(light.direction);
+			XMVECTOR light_pos = light.position;
+			XMVECTOR target_pos = light_pos + light_dir * light.range;
+
+			static const XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+			XMMATRIX V = XMMatrixLookAtLH(light_pos, target_pos, up);
+			static const float shadow_near = 0.5f;
+			float fov_angle = 2.0f * acos(light.outer_cosine);
+			XMMATRIX P = XMMatrixPerspectiveFovLH(fov_angle, 1.0f, shadow_near, light.range);
+			return { V,P };
+		}
+		std::pair<XMMATRIX, XMMATRIX> LightViewProjection_Point(Light const& light, uint32 face_index)
+		{
+			static float const shadow_near = 0.5f;
+			XMMATRIX P = XMMatrixPerspectiveFovLH(XMConvertToRadians(90.0f), 1.0f, shadow_near, light.range);
+
+			XMVECTOR light_pos = light.position;
+			XMMATRIX V{};
+			XMVECTOR target{};
+			XMVECTOR up{};
+			switch (face_index)
+			{
+			case 0: 
+				target = XMVectorAdd(light_pos, XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f));
+				up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+				V = XMMatrixLookAtLH(light_pos, target, up);
+				break;
+			case 1: 
+				target = XMVectorAdd(light_pos, XMVectorSet(-1.0f, 0.0f, 0.0f, 0.0f));
+				up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+				V = XMMatrixLookAtLH(light_pos, target, up);
+				break;
+			case 2:	 
+				target = XMVectorAdd(light_pos, XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
+				up = XMVectorSet(0.0f, 0.0f, -1.0f, 0.0f);
+				V = XMMatrixLookAtLH(light_pos, target, up);
+				break;
+			case 3:  
+				target = XMVectorAdd(light_pos, XMVectorSet(0.0f, -1.0f, 0.0f, 0.0f));
+				up = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+				V = XMMatrixLookAtLH(light_pos, target, up);
+				break;
+			case 4: 
+				target = XMVectorAdd(light_pos, XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f));
+				up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+				V = XMMatrixLookAtLH(light_pos, target, up);
+				break;
+			case 5:  
+				target = XMVectorAdd(light_pos, XMVectorSet(0.0f, 0.0f, -1.0f, 0.0f));
+				up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+				V = XMMatrixLookAtLH(light_pos, target, up);
+				break;
+			default:
+				ADRIA_ASSERT(false && "Invalid face index!");
+			}
+			return { V,P };
+		}
+		std::pair<XMMATRIX, XMMATRIX> LightViewProjection_Cascades(Light const& light, Camera const& camera, XMMATRIX projection_matrix)
+		{
+			static float const far_factor = 1.5f;
+			static float const light_distance_factor = 1.0f;
+
+			BoundingFrustum frustum(projection_matrix);
+			frustum.Transform(frustum, XMMatrixInverse(nullptr, camera.View()));
+			std::array<XMFLOAT3, frustum.CORNER_COUNT> corners{};
+			frustum.GetCorners(corners.data());
+
+			XMVECTOR frustum_center = XMVectorSet(0, 0, 0, 0);
+			for (uint32 i = 0; i < corners.size(); ++i)
+			{
+				frustum_center = frustum_center + XMLoadFloat3(&corners[i]);
+			}
+			frustum_center /= static_cast<float>(corners.size());
+
+			float radius = 0.0f;
+			for (uint32 i = 0; i < corners.size(); ++i)
+			{
+				float dist = XMVectorGetX(XMVector3Length(XMLoadFloat3(&corners[i]) - frustum_center));
+				radius = (std::max)(radius, dist);
+			}
+			radius = std::ceil(radius * 8.0f) / 8.0f;
+
+			XMVECTOR const max_extents = XMVectorSet(radius, radius, radius, 0);
+			XMVECTOR const min_extents = -max_extents;
+			XMVECTOR const cascade_extents = max_extents - min_extents;
+
+			XMVECTOR light_dir = light.direction;
+			static const XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+
+			XMMATRIX V = XMMatrixLookAtLH(frustum_center, frustum_center + light_distance_factor * light_dir * radius, up);
+			XMFLOAT3 min_e, max_e, cascade_e;
+
+			XMStoreFloat3(&min_e, min_extents);
+			XMStoreFloat3(&max_e, max_extents);
+			XMStoreFloat3(&cascade_e, cascade_extents);
+
+			float l = min_e.x;
+			float b = min_e.y;
+			float n = min_e.z - far_factor * radius;
+			float r = max_e.x;
+			float t = max_e.y;
+			float f = max_e.z * far_factor;
+
+			XMMATRIX P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
+			XMMATRIX VP = V * P;
+			XMFLOAT3 so(0, 0, 0);
+
+			XMVECTOR shadow_origin = XMLoadFloat3(&so);
+			shadow_origin = XMVector3Transform(shadow_origin, VP); 
+			shadow_origin *= (SHADOW_CASCADE_MAP_SIZE / 2.0f);
+
+			XMVECTOR rounded_origin = XMVectorRound(shadow_origin);
+			XMVECTOR round_offset = rounded_origin - shadow_origin;
+
+			round_offset *= (2.0f / SHADOW_CASCADE_MAP_SIZE);
+			round_offset *= XMVectorSet(1.0, 1.0, 0.0, 0.0);
+			P.r[3] += round_offset;
+			return { V,P };
+		}
+	}
+
 	enum ENullHeapSlot
 	{
 		NULL_HEAP_SLOT_TEXTURE2D,
@@ -62,6 +277,7 @@ namespace adria
 	}
 	void Renderer::Update(float dt)
 	{
+		SetupShadows();
 		UpdateLights();
 		UpdatePersistentConstantBuffers(dt);
 		CameraFrustumCulling();
@@ -282,6 +498,80 @@ namespace adria
 		final_texture->CreateSRV();
 	}
 
+	void Renderer::SetupShadows()
+	{
+		static size_t light_projections_count = 0;
+		size_t current_light_projections_count = 0;
+
+		auto light_view = reg.view<Light>();
+		for (auto e : light_view)
+		{
+			auto& light = light_view.get<Light>(e);
+			if (light.casts_shadows)
+			{
+				if (light.type == ELightType::Directional && light.use_cascades) current_light_projections_count += shadows::SHADOW_CASCADE_COUNT;
+				else if (light.type == ELightType::Point) current_light_projections_count += 6;
+				else current_light_projections_count++;
+			}
+		}
+		if (current_light_projections_count != light_projections_count)
+		{
+			gfx->WaitForGPU();
+			light_projections_count = current_light_projections_count;
+			lights_projections_buffer = std::make_unique<Buffer>(gfx, StructuredBufferDesc<XMMATRIX>(light_projections_count, false, true));
+			lights_projections_buffer->CreateSRV();
+		}
+		std::vector<XMMATRIX> light_projections{};
+		light_projections.reserve(light_projections_count);
+		for (auto e : light_view)
+		{
+			auto& light = light_view.get<Light>(e);
+			if (light.casts_shadows)
+			{
+				if (light.ray_traced_shadows) continue;
+				light.shadow_matrix_index = (uint32)light_projections.size();
+				if (light.type == ELightType::Directional)
+				{
+					if (light.use_cascades)
+					{
+						std::array<XMMATRIX, shadows::SHADOW_CASCADE_COUNT> proj_matrices = shadows::RecalculateProjectionMatrices(*camera, cascades_split_lambda, split_distances);
+						for (uint32 i = 0; i < shadows::SHADOW_CASCADE_COUNT; ++i)
+						{
+							auto const& [V, P] = shadows::LightViewProjection_Cascades(light, *camera, proj_matrices[i]);
+							light_projections.push_back(V * P);
+						}
+					}
+					else
+					{
+						auto const& [V, P] = shadows::LightViewProjection_Directional(light, *camera);
+						light_projections.push_back(V * P);
+					}
+					
+				}
+				else if (light.type == ELightType::Point)
+				{
+					for (uint32 i = 0; i < 6; ++i)
+					{
+						auto const& [V, P] = shadows::LightViewProjection_Point(light, i);
+						light_projections.push_back(V * P);
+					}
+				}
+				else if (light.type == ELightType::Spot)
+				{
+					auto const& [V, P] = shadows::LightViewProjection_Spot(light);
+					light_projections.push_back(V * P);
+				}
+			}
+		}
+		lights_projections_buffer->Update(light_projections.data(), light_projections.size() * sizeof(XMMATRIX));
+
+		ID3D12Device* device = gfx->GetDevice();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+		OffsetType i = descriptor_allocator->Allocate();
+		auto dst_descriptor = descriptor_allocator->GetHandle(i);
+		device->CopyDescriptorsSimple(1, dst_descriptor, lights_projections_buffer->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		light_projections_srv = dst_descriptor;
+	}
 	void Renderer::UpdateLights()
 	{
 		auto light_view = reg.view<Light>();
@@ -293,9 +583,6 @@ namespace adria
 			lights_buffer = std::make_unique<Buffer>(gfx, StructuredBufferDesc<LightHLSL>(light_count, false, true));
 			lights_buffer->CreateSRV();
 		}
-
-		static size_t shadow_lights_count = 0;
-		size_t current_shadow_lights_count = 0;
 
 		std::vector<LightHLSL> hlsl_lights{};
 		hlsl_lights.reserve(light_view.size());
@@ -311,7 +598,9 @@ namespace adria
 			hlsl_light.inner_cosine = light.inner_cosine;
 			hlsl_light.outer_cosine = light.outer_cosine;
 			hlsl_light.active = light.active;
-			hlsl_light.casts_shadows = light.casts_shadows;
+			hlsl_light.shadow_matrix_index = light.shadow_matrix_index;
+			hlsl_light.shadow_texture_index = light.shadow_texture_index;
+			hlsl_light.use_cascades = light.use_cascades;
 			hlsl_lights.push_back(hlsl_light);
 		}
 		lights_buffer->Update(hlsl_lights.data(), hlsl_lights.size() * sizeof(LightHLSL));
@@ -329,48 +618,7 @@ namespace adria
 		static float total_time = 0.0f;
 		total_time += dt;
 
-		static FrameCBuffer new_frame_cbuf_data{};
-		//new frame
-		{
-			new_frame_cbuf_data.camera_near = camera->Near();
-			new_frame_cbuf_data.camera_far = camera->Far();
-			new_frame_cbuf_data.camera_position = camera->Position();
-			new_frame_cbuf_data.camera_forward = camera->Forward();
-			new_frame_cbuf_data.view = camera->View();
-			new_frame_cbuf_data.projection = camera->Proj();
-			new_frame_cbuf_data.view_projection = camera->ViewProj();
-			new_frame_cbuf_data.inverse_view = XMMatrixInverse(nullptr, camera->View());
-			new_frame_cbuf_data.inverse_projection = XMMatrixInverse(nullptr, camera->Proj());
-			new_frame_cbuf_data.inverse_view_projection = XMMatrixInverse(nullptr, camera->ViewProj());
-			new_frame_cbuf_data.reprojection = new_frame_cbuf_data.inverse_view_projection * new_frame_cbuf_data.prev_view_projection;
-			new_frame_cbuf_data.screen_resolution_x = (float)width;
-			new_frame_cbuf_data.screen_resolution_y = (float)height;
-			new_frame_cbuf_data.delta_time = dt;
-			new_frame_cbuf_data.total_time = total_time;
-			new_frame_cbuf_data.frame_count = gfx->FrameIndex();
-			new_frame_cbuf_data.mouse_normalized_coords_x = (viewport_data.mouse_position_x - viewport_data.scene_viewport_pos_x) / viewport_data.scene_viewport_size_x;
-			new_frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
-			new_frame_cbuf_data.lights_idx = (int32)light_array_srv.GetHeapOffset();
-
-			auto lights = reg.view<Light>();
-			for (auto light : lights)
-			{
-				auto const& light_data = lights.get<Light>(light);
-				if (light_data.type == ELightType::Directional && light_data.active)
-				{
-					new_frame_cbuf_data.sun_direction = -light_data.direction;
-					new_frame_cbuf_data.sun_color = light_data.color;
-					XMStoreFloat3(&sun_direction, -light_data.direction);
-					break;
-				}
-			}
-			new_frame_cbuf_data.wind_params = XMVectorSet(renderer_settings.wind_dir[0], renderer_settings.wind_dir[1], renderer_settings.wind_dir[2], renderer_settings.wind_speed);
-			frame_cbuffer.Update(new_frame_cbuf_data, backbuffer_index);
-			new_frame_cbuf_data.prev_view_projection = camera->ViewProj();
-		}
-
-		static OldFrameCBuffer frame_cbuf_data{};
-		//frame
+		static FrameCBuffer frame_cbuf_data{};
 		{
 			frame_cbuf_data.camera_near = camera->Near();
 			frame_cbuf_data.camera_far = camera->Far();
@@ -379,16 +627,57 @@ namespace adria
 			frame_cbuf_data.view = camera->View();
 			frame_cbuf_data.projection = camera->Proj();
 			frame_cbuf_data.view_projection = camera->ViewProj();
-			frame_cbuf_data.inverse_view = DirectX::XMMatrixInverse(nullptr, camera->View());
-			frame_cbuf_data.inverse_projection = DirectX::XMMatrixInverse(nullptr, camera->Proj());
-			frame_cbuf_data.inverse_view_projection = DirectX::XMMatrixInverse(nullptr, camera->ViewProj());
+			frame_cbuf_data.inverse_view = XMMatrixInverse(nullptr, camera->View());
+			frame_cbuf_data.inverse_projection = XMMatrixInverse(nullptr, camera->Proj());
+			frame_cbuf_data.inverse_view_projection = XMMatrixInverse(nullptr, camera->ViewProj());
+			frame_cbuf_data.reprojection = frame_cbuf_data.inverse_view_projection * frame_cbuf_data.prev_view_projection;
 			frame_cbuf_data.screen_resolution_x = (float)width;
 			frame_cbuf_data.screen_resolution_y = (float)height;
+			frame_cbuf_data.delta_time = dt;
+			frame_cbuf_data.total_time = total_time;
+			frame_cbuf_data.frame_count = gfx->FrameIndex();
 			frame_cbuf_data.mouse_normalized_coords_x = (viewport_data.mouse_position_x - viewport_data.scene_viewport_pos_x) / viewport_data.scene_viewport_size_x;
 			frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
+			frame_cbuf_data.lights_idx = (int32)light_array_srv.GetHeapOffset();
+			frame_cbuf_data.lights_projections_idx = (int32)light_projections_srv.GetHeapOffset();
 
-			old_frame_cbuffer.Update(frame_cbuf_data, backbuffer_index);
+			auto lights = reg.view<Light>();
+			for (auto light : lights)
+			{
+				auto const& light_data = lights.get<Light>(light);
+				if (light_data.type == ELightType::Directional && light_data.active)
+				{
+					frame_cbuf_data.sun_direction = -light_data.direction;
+					frame_cbuf_data.sun_color = light_data.color;
+					XMStoreFloat3(&sun_direction, -light_data.direction);
+					break;
+				}
+			}
+			frame_cbuf_data.wind_params = XMVectorSet(renderer_settings.wind_dir[0], renderer_settings.wind_dir[1], renderer_settings.wind_dir[2], renderer_settings.wind_speed);
+			frame_cbuffer.Update(frame_cbuf_data, backbuffer_index);
 			frame_cbuf_data.prev_view_projection = camera->ViewProj();
+		}
+
+		static OldFrameCBuffer old_frame_cbuf_data{};
+		//frame
+		{
+			old_frame_cbuf_data.camera_near = camera->Near();
+			old_frame_cbuf_data.camera_far = camera->Far();
+			old_frame_cbuf_data.camera_position = camera->Position();
+			old_frame_cbuf_data.camera_forward = camera->Forward();
+			old_frame_cbuf_data.view = camera->View();
+			old_frame_cbuf_data.projection = camera->Proj();
+			old_frame_cbuf_data.view_projection = camera->ViewProj();
+			old_frame_cbuf_data.inverse_view = DirectX::XMMatrixInverse(nullptr, camera->View());
+			old_frame_cbuf_data.inverse_projection = DirectX::XMMatrixInverse(nullptr, camera->Proj());
+			old_frame_cbuf_data.inverse_view_projection = DirectX::XMMatrixInverse(nullptr, camera->ViewProj());
+			old_frame_cbuf_data.screen_resolution_x = (float)width;
+			old_frame_cbuf_data.screen_resolution_y = (float)height;
+			old_frame_cbuf_data.mouse_normalized_coords_x = (viewport_data.mouse_position_x - viewport_data.scene_viewport_pos_x) / viewport_data.scene_viewport_size_x;
+			old_frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
+
+			old_frame_cbuffer.Update(old_frame_cbuf_data, backbuffer_index);
+			old_frame_cbuf_data.prev_view_projection = camera->ViewProj();
 		}
 
 		//compute 

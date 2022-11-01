@@ -84,10 +84,14 @@ namespace adria
 		//resources
 		std::unique_ptr<Texture> final_texture;
 		std::unique_ptr<Texture> white_default_texture;
+
+		//lights and shadows
 		std::unique_ptr<Buffer>  lights_buffer;
 		std::unique_ptr<Buffer>  lights_projections_buffer;
-		DescriptorHandle		 light_array_srv;
-		DirectX::XMFLOAT3        sun_direction;
+		DescriptorHandle		 light_array_srv; 
+		DescriptorHandle		 light_projections_srv; 
+		float					 cascades_split_lambda  = 0.5f;
+		std::array<float, 4>	 split_distances;
 
 		//Persistent constant buffers
 		ConstantBuffer<FrameCBuffer> frame_cbuffer;
@@ -95,6 +99,7 @@ namespace adria
 		ConstantBuffer<ComputeCBuffer> compute_cbuffer;
 
 		//misc
+		DirectX::XMFLOAT3        sun_direction;
 		std::unique_ptr<DescriptorHeap> null_heap;
 		bool update_picking_data = false;
 		PickingData picking_data;
@@ -130,6 +135,7 @@ namespace adria
 		void CreateNullHeap();
 		void CreateSizeDependentResources();
 
+		void SetupShadows();
 		void UpdateLights();
 		void UpdatePersistentConstantBuffers(float dt);
 		void CameraFrustumCulling();

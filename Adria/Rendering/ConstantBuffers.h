@@ -32,10 +32,10 @@ namespace adria
 		float  delta_time;
 		float  total_time;
 		uint32 frame_count;
-
+		int32  lights_idx;
+		int32  lights_projections_idx;
 		float  mouse_normalized_coords_x;
 		float  mouse_normalized_coords_y;
-		int32  lights_idx;
 	};
 
 	DECLSPEC_ALIGN(16) struct OldFrameCBuffer
@@ -140,10 +140,10 @@ namespace adria
 		int32 type;
 		float outer_cosine;
 		float inner_cosine;
-
-		int32 casts_shadows;
+		
 		int32 use_cascades;
-		int32 padd;
+		int32 shadow_texture_index;
+		int32 shadow_matrix_index;
 	};
 
 	struct ClusterAABB

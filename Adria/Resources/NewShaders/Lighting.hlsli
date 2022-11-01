@@ -15,9 +15,10 @@ struct Light
 	int		type;
 	float	outerCosine;
 	float	innerCosine;
-	int		castsShadows;
-	int		useCascades;
-	int		padd;
+	
+	int     useCascades;
+	int     shadowTextureIndex;
+	int     shadowMatrixIndex;
 };
 
 struct LightingResult
