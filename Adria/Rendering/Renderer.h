@@ -9,7 +9,6 @@
 #include "DeferredLightingPass.h"
 #include "TiledLightingPass.h"
 #include "ClusteredLightingPass.h"
-#include "ShadowPass.h"
 #include "ToneMapPass.h"
 #include "FXAAPass.h"
 #include "SSAOPass.h"
@@ -125,7 +124,6 @@ namespace adria
 		ClusteredLightingPass clustered_lighting_pass;
 		CopyToTexturePass copy_to_texture_pass;
 		AddTexturesPass add_textures_pass;
-		ShadowPass    shadow_pass;
 		PickingPass picking_pass;
 		DecalsPass decals_pass;
 		OceanRenderer  ocean_renderer;

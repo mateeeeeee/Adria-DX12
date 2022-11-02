@@ -18,17 +18,8 @@ namespace adria
 
 		void CreateRootSignaturesFromHLSL(ID3D12Device* device)
 		{
-			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_LightingPBR).GetPointer(), GetShader(PS_LightingPBR).GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::LightingPBR].GetAddressOf())));
-
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_ClusteredLightingPBR).GetPointer(), GetShader(PS_ClusteredLightingPBR).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::ClusteredLightingPBR].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_DepthMap).GetPointer(), GetShader(PS_DepthMap).GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::DepthMap].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_DepthMap_Transparent).GetPointer(), GetShader(PS_DepthMap_Transparent).GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::DepthMap_Transparent].GetAddressOf())));
 
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Volumetric_Directional).GetPointer(), GetShader(PS_Volumetric_Directional).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::Volumetric].GetAddressOf())));

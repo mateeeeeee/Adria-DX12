@@ -232,7 +232,6 @@
     <ClCompile Include="Rendering\Renderer.cpp" />
     <ClCompile Include="Rendering\RootSignatureCache.cpp" />
     <ClCompile Include="Rendering\ShaderCache.cpp" />
-    <ClCompile Include="Rendering\ShadowPass.cpp" />
     <ClCompile Include="Rendering\SkyModel.cpp" />
     <ClCompile Include="Rendering\SkyPass.cpp" />
     <ClCompile Include="Rendering\SSAOPass.cpp" />
@@ -368,7 +367,6 @@
     <ClInclude Include="Rendering\TAAPass.h" />
     <ClInclude Include="Rendering\MotionVectorsPass.h" />
     <ClInclude Include="Rendering\ViewportData.h" />
-    <ClInclude Include="Rendering\ShadowPass.h" />
     <ClInclude Include="Rendering\SkyModel.h" />
     <ClInclude Include="Rendering\SkyPass.h" />
     <ClInclude Include="Rendering\SSAOPass.h" />
@@ -464,6 +462,10 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Lighting\DeferredLighting.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
@@ -862,14 +864,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Resources\OldShaders\Deferred\ClusterLightingPBR_PS.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="Resources\OldShaders\Deferred\DepthMapPS.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="Resources\OldShaders\Deferred\DepthMapVS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>

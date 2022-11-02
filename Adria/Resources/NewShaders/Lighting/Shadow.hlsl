@@ -52,7 +52,7 @@ VS_OUTPUT ShadowVS(VS_INPUT input)
 
 void ShadowPS(VS_OUTPUT input)
 {
-#if TRANSPARENT 
+#if ALPHA_TEST 
 	Texture2D albedoTx = ResourceDescriptorHeap[ModelCB.albedoIdx];
 	if (albedoTx.Sample(LinearWrapSampler, input.TexCoords).a < 0.1) discard;
 #endif

@@ -138,6 +138,14 @@ namespace adria
 				return "GenerateMips";
 			case CS_Taa:
 				return "TAA";
+			case CS_DeferredLighting:
+				return "DeferredLighting";
+			case VS_Shadow:
+			case VS_Shadow_Transparent:
+				return "ShadowVS";
+			case PS_Shadow:
+			case PS_Shadow_Transparent:
+				return "ShadowPS";
 			default:
 				return "main";
 			}
@@ -155,8 +163,8 @@ namespace adria
 			case VS_FullscreenQuad:
 			case VS_LensFlare:
 			case VS_Bokeh:
-			case VS_DepthMap:
-			case VS_DepthMap_Transparent:
+			case VS_Shadow:
+			case VS_Shadow_Transparent:
 			case VS_Ocean:
 			case VS_OceanLOD:
 				return EShaderStage::VS;
@@ -169,15 +177,13 @@ namespace adria
 			case PS_Decals_ModifyNormals:
 			case PS_GBuffer:
 			case PS_GBuffer_Mask:
-			case PS_LightingPBR:
-			case PS_LightingPBR_RayTracedShadows:
 			case PS_ClusteredLightingPBR:
 			case PS_Copy:
 			case PS_Add:
 			case PS_LensFlare:
 			case PS_Bokeh:
-			case PS_DepthMap:
-			case PS_DepthMap_Transparent:
+			case PS_Shadow:
+			case PS_Shadow_Transparent:
 			case PS_Volumetric_Directional:
 			case PS_Volumetric_Spot:
 			case PS_Volumetric_Point:
@@ -219,6 +225,7 @@ namespace adria
 			case CS_Ambient:
 			case CS_Clouds:
 			case CS_Taa:
+			case CS_DeferredLighting:
 				return EShaderStage::CS;
 			case HS_OceanLOD:
 				return EShaderStage::HS;
@@ -258,9 +265,6 @@ namespace adria
 				return "Lighting/GBuffer.hlsl";
 			case VS_FullscreenQuad:
 				return "Other/FullscreenQuad.hlsl";
-			case PS_LightingPBR:
-			case PS_LightingPBR_RayTracedShadows:
-				return "Deferred/LightingPBR_PS.hlsl";
 			case PS_ClusteredLightingPBR:
 				return "Deferred/ClusterLightingPBR_PS.hlsl";
 			case PS_Copy:
@@ -277,12 +281,11 @@ namespace adria
 				return "Postprocess/Bokeh.hlsl";
 			case CS_Clouds:
 				return "Postprocess/Clouds.hlsl";
-			case VS_DepthMap:
-			case VS_DepthMap_Transparent:
-				return "Deferred/DepthMapVS.hlsl";
-			case PS_DepthMap:
-			case PS_DepthMap_Transparent:
-				return "Deferred/DepthMapPS.hlsl";
+			case VS_Shadow:
+			case VS_Shadow_Transparent:
+			case PS_Shadow:
+			case PS_Shadow_Transparent:
+				return "Lighting/Shadow.hlsl";
 			case PS_Volumetric_Directional:
 				return "Postprocess/VolumetricLightDirectionalPS.hlsl";
 			case PS_Volumetric_DirectionalCascades:
@@ -357,6 +360,8 @@ namespace adria
 				return "Postprocess/TAA.hlsl";
 			case CS_Ambient:
 				return "Lighting/Ambient.hlsl";
+			case CS_DeferredLighting:
+				return "Lighting/DeferredLighting.hlsl";
 			case LIB_Shadows:
 			case LIB_SoftShadows:
 				return "RayTracing/RayTracedShadows.hlsl";
@@ -375,11 +380,9 @@ namespace adria
 			{
 			case PS_Decals_ModifyNormals:
 				return { {L"DECAL_MODIFY_NORMALS", L""} };
-			case VS_DepthMap_Transparent:
-			case PS_DepthMap_Transparent:
-				return { {L"TRANSPARENT", L"1"} };
-			case PS_LightingPBR_RayTracedShadows:
-				return { { L"RAY_TRACED_SHADOWS", L"" } };
+			case VS_Shadow_Transparent:
+			case PS_Shadow_Transparent:
+				return { {L"ALPHA_TEST", L"1"} };
 			case LIB_SoftShadows:
 				return { { L"SOFT_SHADOWS", L"" } };
 			case PS_GBuffer_Mask:
@@ -453,6 +456,11 @@ namespace adria
 			case PS_Decals_ModifyNormals:
 			case CS_GenerateMips:
 			case CS_Taa:
+			case CS_DeferredLighting:
+			case VS_Shadow:
+			case VS_Shadow_Transparent:
+			case PS_Shadow:
+			case PS_Shadow_Transparent:
 				return true;
 			default:
 				return false;

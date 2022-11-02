@@ -215,9 +215,6 @@
     <ClCompile Include="Rendering\SkyPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\ShadowPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\BlurPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
@@ -619,9 +616,6 @@
     <ClInclude Include="Rendering\SkyPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\ShadowPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\TiledLightingPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
@@ -898,12 +892,6 @@
     <FxCompile Include="Resources\OldShaders\Deferred\ClusterLightingPBR_PS.hlsl">
       <Filter>OldShaders\Deferred</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\OldShaders\Deferred\DepthMapPS.hlsl">
-      <Filter>OldShaders\Deferred</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\OldShaders\Deferred\DepthMapVS.hlsl">
-      <Filter>OldShaders\Deferred</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\OldShaders\Deferred\LightingPBR_PS.hlsl">
       <Filter>OldShaders\Deferred</Filter>
     </FxCompile>
@@ -932,6 +920,9 @@
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\NewShaders\Lighting\Shadow.hlsl">
+      <Filter>Shaders\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Lighting\DeferredLighting.hlsl">
       <Filter>Shaders\Lighting</Filter>
     </FxCompile>
   </ItemGroup>

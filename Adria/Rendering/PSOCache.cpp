@@ -70,9 +70,9 @@ namespace adria
 				gfx_pso_map[EPipelineState::GBuffer_NoCull] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				gfx_pso_desc.root_signature = ERootSignature::LightingPBR;
+				gfx_pso_desc.root_signature = ERootSignature::ClusteredLightingPBR;
 				gfx_pso_desc.VS = VS_FullscreenQuad;
-				gfx_pso_desc.PS = PS_LightingPBR;
+				gfx_pso_desc.PS = PS_ClusteredLightingPBR;
 				gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
 				gfx_pso_desc.blend_state.render_target[0].blend_op = EBlendOp::Add;
 				gfx_pso_desc.blend_state.render_target[0].src_blend = EBlend::One;
@@ -80,20 +80,13 @@ namespace adria
 				gfx_pso_desc.depth_state.depth_enable = false;
 				gfx_pso_desc.num_render_targets = 1;
 				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
-				gfx_pso_map[EPipelineState::LightingPBR] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
-
-				gfx_pso_desc.PS = PS_LightingPBR_RayTracedShadows;
-				gfx_pso_map[EPipelineState::LightingPBR_RayTracedShadows] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
-
-				gfx_pso_desc.root_signature = ERootSignature::ClusteredLightingPBR;
-				gfx_pso_desc.PS = PS_ClusteredLightingPBR;
 				gfx_pso_map[EPipelineState::ClusteredLightingPBR] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				ShaderCompiler::CreateInputLayout(GetShader(VS_DepthMap), gfx_pso_desc.input_layout);
-				gfx_pso_desc.root_signature = ERootSignature::DepthMap;
-				gfx_pso_desc.VS = VS_DepthMap;
-				gfx_pso_desc.PS = PS_DepthMap;
+				ShaderCompiler::CreateInputLayout(GetShader(VS_Shadow), gfx_pso_desc.input_layout);
+				gfx_pso_desc.root_signature = ERootSignature::Common;
+				gfx_pso_desc.VS = VS_Shadow;
+				gfx_pso_desc.PS = PS_Shadow;
 				gfx_pso_desc.rasterizer_state.cull_mode = ECullMode::Front;
 				gfx_pso_desc.rasterizer_state.fill_mode = EFillMode::Solid;
 				gfx_pso_desc.rasterizer_state.depth_bias = 7500;
@@ -103,13 +96,12 @@ namespace adria
 				gfx_pso_desc.depth_state.depth_write_mask = EDepthWriteMask::All;
 				gfx_pso_desc.depth_state.depth_func = EComparisonFunc::LessEqual;
 				gfx_pso_desc.dsv_format = EFormat::D32_FLOAT;
-				gfx_pso_map[EPipelineState::DepthMap] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
+				gfx_pso_map[EPipelineState::Shadow] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
-				ShaderCompiler::CreateInputLayout(GetShader(VS_DepthMap_Transparent), gfx_pso_desc.input_layout);
-				gfx_pso_desc.root_signature = ERootSignature::DepthMap_Transparent;
-				gfx_pso_desc.VS = VS_DepthMap_Transparent;
-				gfx_pso_desc.PS = PS_DepthMap_Transparent;
-				gfx_pso_map[EPipelineState::DepthMap_Transparent] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
+				ShaderCompiler::CreateInputLayout(GetShader(VS_Shadow_Transparent), gfx_pso_desc.input_layout);
+				gfx_pso_desc.VS = VS_Shadow_Transparent;
+				gfx_pso_desc.PS = PS_Shadow_Transparent;
+				gfx_pso_map[EPipelineState::Shadow_Transparent] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
 				gfx_pso_desc.root_signature = ERootSignature::Volumetric;
@@ -386,6 +378,9 @@ namespace adria
 
 				compute_pso_desc.CS = CS_Taa;
 				compute_pso_map[EPipelineState::TAA] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.CS = CS_DeferredLighting;
+				compute_pso_map[EPipelineState::DeferredLighting] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 			}
 		}
 	}

@@ -18,7 +18,7 @@ namespace adria
 	{
 	public:
 		DeferredLightingPass(uint32 w, uint32 h) : width(w), height(h) {}
-		void AddPass(RenderGraph& rendergraph, Light const& light, size_t light_id);
+		void AddPass(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h)
 		{
 			width = w, height = h;

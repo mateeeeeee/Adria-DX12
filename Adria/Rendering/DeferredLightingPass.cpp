@@ -13,42 +13,26 @@ using namespace DirectX;
 namespace adria
 {
 
-	void DeferredLightingPass::AddPass(RenderGraph& rendergraph, Light const& light, size_t light_id)
+	void DeferredLightingPass::AddPass(RenderGraph& rendergraph)
 	{
 		struct LightingPassData
 		{
-			RGTextureReadOnlyId gbuffer_normal;
-			RGTextureReadOnlyId gbuffer_albedo;
-			RGTextureReadOnlyId depth;
-			RGTextureReadOnlyId shadow_map;
-			RGTextureReadOnlyId ray_traced_shadows;
-			RGAllocationId		shadow_alloc;
+			RGTextureReadOnlyId  gbuffer_normal;
+			RGTextureReadOnlyId  gbuffer_albedo;
+			RGTextureReadOnlyId  depth;
+			RGTextureReadWriteId output;
 		};
 
 		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
-		rendergraph.AddPass<LightingPassData>("Lighting Pass",
+		rendergraph.AddPass<LightingPassData>("Deferred Lighting Pass",
 			[=](LightingPassData& data, RenderGraphBuilder& builder)
 			{
-				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), ERGLoadStoreAccessOp::Preserve_Preserve);
-				data.gbuffer_normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_PixelShader);
-				data.gbuffer_albedo = builder.ReadTexture(RG_RES_NAME(GBufferAlbedo), ReadAccess_PixelShader);
-				data.depth			= builder.ReadTexture(RG_RES_NAME(DepthStencil),  ReadAccess_PixelShader);
+				data.output			= builder.WriteTexture(RG_RES_NAME(HDR_RenderTarget));
+				data.gbuffer_normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
+				data.gbuffer_albedo = builder.ReadTexture(RG_RES_NAME(GBufferAlbedo), ReadAccess_NonPixelShader);
+				data.depth			= builder.ReadTexture(RG_RES_NAME(DepthStencil),  ReadAccess_NonPixelShader);
 
-				if (builder.IsTextureDeclared(RG_RES_NAME_IDX(RayTracedShadows, light_id)))
-				{
-					data.ray_traced_shadows = builder.ReadTexture(RG_RES_NAME_IDX(RayTracedShadows, light_id), ReadAccess_PixelShader);
-				}
-				else if (builder.IsTextureDeclared(RG_RES_NAME_IDX(ShadowMap, light_id)))
-				{
-					data.shadow_map = builder.ReadTexture(RG_RES_NAME_IDX(ShadowMap, light_id), ReadAccess_PixelShader);
-					data.shadow_alloc = builder.UseAllocation(RG_RES_NAME_IDX(ShadowAllocation, light_id));
-				}
-				else
-				{
-					data.shadow_map.Invalidate();
-					data.shadow_alloc.Invalidate();
-				}
-				builder.SetViewport(width, height);
+				//add shadow maps/ray traced shadows later
 			},
 			[=](LightingPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
@@ -56,103 +40,35 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
-				LightCBuffer light_cbuf_data{};
-				light_cbuf_data.active = light.active;
-				light_cbuf_data.casts_shadows = light.casts_shadows;
-				light_cbuf_data.color = light.color * light.energy;
-				light_cbuf_data.direction = light.direction;
-				light_cbuf_data.inner_cosine = light.inner_cosine;
-				light_cbuf_data.outer_cosine = light.outer_cosine;
-				light_cbuf_data.position = light.position;
-				light_cbuf_data.range = light.range;
-				light_cbuf_data.type = static_cast<int32>(light.type);
-				light_cbuf_data.use_cascades = light.use_cascades;
-				light_cbuf_data.volumetric = light.volumetric;
-				light_cbuf_data.volumetric_strength = light.volumetric_strength;
-				light_cbuf_data.sscs = light.sscs;
-				light_cbuf_data.sscs_thickness = light.sscs_thickness;
-				light_cbuf_data.sscs_max_ray_distance = light.sscs_max_ray_distance;
-				light_cbuf_data.sscs_max_depth_distance = light.sscs_max_depth_distance;
+				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { context.GetReadOnlyTexture(data.gbuffer_normal), 
+															  context.GetReadOnlyTexture(data.gbuffer_albedo),
+															  context.GetReadOnlyTexture(data.depth),
+															  context.GetReadWriteTexture(data.output) };
+				uint32 src_range_sizes[] = { 1,1,1,1 };
+				uint32 i = (uint32)descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
+				auto dst_descriptor = descriptor_allocator->GetHandle(i);
+				uint32 dst_range_sizes[] = { (uint32)ARRAYSIZE(cpu_handles) };
+				device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes, ARRAYSIZE(cpu_handles), cpu_handles, src_range_sizes,
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-				XMMATRIX camera_view = global_data.camera_view;
-				light_cbuf_data.position = DirectX::XMVector4Transform(light_cbuf_data.position, camera_view);
-				light_cbuf_data.direction = DirectX::XMVector4Transform(light_cbuf_data.direction, camera_view);
-
-				DynamicAllocation light_allocation = dynamic_allocator->Allocate(GetCBufferSize<LightCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-				light_allocation.Update(light_cbuf_data);
-
-				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::LightingPBR));
-				cmd_list->SetPipelineState(light.ray_traced_shadows ?
-					PSOCache::Get(EPipelineState::LightingPBR_RayTracedShadows) :
-					PSOCache::Get(EPipelineState::LightingPBR));
-
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetGraphicsRootConstantBufferView(1, light_allocation.gpu_address);
-				if(light.casts_shadows) cmd_list->SetGraphicsRootConstantBufferView(2, context.GetAllocation(data.shadow_alloc).gpu_address);
-
-				//t0,t1,t2 - gbuffer and depth
+				struct DeferredLightingConstants
 				{
-					D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { context.GetReadOnlyTexture(data.gbuffer_normal), 
-																  context.GetReadOnlyTexture(data.gbuffer_albedo),
-																  context.GetReadOnlyTexture(data.depth) };
-					uint32 src_range_sizes[] = { 1,1,1 };
-
-					OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
-					auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-					uint32 dst_range_sizes[] = { (uint32)ARRAYSIZE(cpu_handles) };
-					device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes, ARRAYSIZE(cpu_handles), cpu_handles, src_range_sizes,
-						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-					cmd_list->SetGraphicsRootDescriptorTable(3, dst_descriptor);
-				}
-
+					uint32 normal_metallic_idx;
+					uint32 diffuse_idx;
+					uint32 depth_idx;
+					uint32 output_idx;
+				} constants =
 				{
-					DescriptorCPU shadow_cpu_handles[] =
-					{
-						global_data.null_srv_texture2d,
-						global_data.null_srv_texturecube,
-						global_data.null_srv_texture2darray,
-						global_data.null_srv_texture2d };
-					uint32 src_range_sizes[] = { 1,1,1,1 };
+					.normal_metallic_idx = i, .diffuse_idx = i + 1, .depth_idx = i + 2, .output_idx = i + 3
+				};
 
-					if (light.ray_traced_shadows)
-					{
-						DescriptorCPU ray_traced_shadows = context.GetReadOnlyTexture(data.ray_traced_shadows);
-						shadow_cpu_handles[3] = ray_traced_shadows;
-					}
-					else if (light.casts_shadows)
-					{
-						ADRIA_ASSERT(data.shadow_map.IsValid());
-						DescriptorCPU shadow_map = context.GetReadOnlyTexture(data.shadow_map);
-						switch (light.type)
-						{
-						case ELightType::Directional:
-							if (light.use_cascades) shadow_cpu_handles[2] = shadow_map;
-							else shadow_cpu_handles[0] = shadow_map;
-							break;
-						case ELightType::Spot:
-							shadow_cpu_handles[0] = shadow_map;
-							break;
-						case ELightType::Point:
-							shadow_cpu_handles[1] = shadow_map;
-							break;
-						default:
-							ADRIA_ASSERT(false);
-						}
-					}
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::DeferredLighting));
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRoot32BitConstants(1, 4, &constants, 0);
+				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
 
-					OffsetType descriptor_index = descriptor_allocator->AllocateRange(ARRAYSIZE(shadow_cpu_handles));
-					auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-					uint32 dst_range_sizes[] = { (uint32)ARRAYSIZE(shadow_cpu_handles) };
-					device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes, ARRAYSIZE(shadow_cpu_handles), shadow_cpu_handles, src_range_sizes,
-						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-					cmd_list->SetGraphicsRootDescriptorTable(4, dst_descriptor);
-				}
-
-				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-				cmd_list->DrawInstanced(4, 1, 0, 0);
-
-				if (light.volumetric)
+				/*if (light.volumetric)
 				{
 					PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, "Volumetric Lighting Pass");
 
@@ -208,8 +124,8 @@ namespace adria
 					cmd_list->SetGraphicsRootDescriptorTable(4, dst_descriptor);
 					cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 					cmd_list->DrawInstanced(4, 1, 0, 0);
-				}
-			});
+				}*/
+			}, ERGPassType::Compute);
 
 	}
 

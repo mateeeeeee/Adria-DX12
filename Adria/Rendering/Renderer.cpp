@@ -98,11 +98,11 @@ namespace adria
 			XMFLOAT3 so(0, 0, 0);
 			XMVECTOR shadow_origin = XMLoadFloat3(&so);
 			shadow_origin = XMVector3Transform(shadow_origin, VP); //sOrigin * P;
-			shadow_origin *= (ShadowPass::SHADOW_MAP_SIZE / 2.0f);
+			shadow_origin *= (SHADOW_MAP_SIZE / 2.0f);
 
 			XMVECTOR rounded_origin = XMVectorRound(shadow_origin);
 			XMVECTOR rounded_offset = rounded_origin - shadow_origin;
-			rounded_offset *= (2.0f / ShadowPass::SHADOW_MAP_SIZE);
+			rounded_offset *= (2.0f / SHADOW_MAP_SIZE);
 			rounded_offset *= XMVectorSet(1.0, 1.0, 0.0, 0.0);
 
 			P.r[3] += rounded_offset;
@@ -249,7 +249,7 @@ namespace adria
 		compute_cbuffer(gfx->GetDevice(), backbuffer_count),
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count),
 		gbuffer_pass(reg, width, height), ambient_pass(width, height), tonemap_pass(width, height),
-		sky_pass(reg, texture_manager, width, height), deferred_lighting_pass(width, height), shadow_pass(reg, texture_manager),
+		sky_pass(reg, texture_manager, width, height), deferred_lighting_pass(width, height), 
 		tiled_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
 		postprocessor(reg, texture_manager, width, height), fxaa_pass(width, height), picking_pass(gfx, width, height),
 		clustered_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height),
@@ -272,7 +272,6 @@ namespace adria
 		ADRIA_ASSERT(_camera);
 		camera = _camera;
 		backbuffer_index = gfx->BackbufferIndex();
-		shadow_pass.SetCamera(camera);
 		GPUProfiler::Get().NewFrame();
 	}
 	void Renderer::Update(float dt)
@@ -357,18 +356,7 @@ namespace adria
 			break;
 		}
 		ambient_pass.AddPass(render_graph);
-
-		auto light_entities = reg.view<Light>();
-		for (entt::entity light_entity : light_entities)
-		{
-			auto const& light = light_entities.get<Light>(light_entity);
-			size_t light_id = entt::to_integral(light_entity);
-			if (!light.active) continue;
-			//if ((renderer_settings.use_tiled_deferred || renderer_settings.use_clustered_deferred) && !light.casts_shadows) continue;  
-			if (light.casts_shadows) shadow_pass.AddPass(render_graph, light, light_id);
-			else if (light.ray_traced_shadows) ray_tracer.AddRayTracedShadowsPass(render_graph, light, light_id);
-			deferred_lighting_pass.AddPass(render_graph, light, light_id);
-		}
+		deferred_lighting_pass.AddPass(render_graph);
 
 		//if (renderer_settings.use_tiled_deferred)
 		//{
@@ -730,7 +718,7 @@ namespace adria
 		}
 	}
 
-	void Renderer::ShadowMapPass_Common(GraphicsDevice* gfx, ID3D12GraphicsCommandList4* cmd_list, bool transparent, size_t light_index, size_t shadow_map_index = 0)
+	void Renderer::ShadowMapPass_Common(GraphicsDevice* gfx, ID3D12GraphicsCommandList4* cmd_list, bool transparent, size_t light_index, size_t shadow_map_index)
 	{
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -742,8 +730,8 @@ namespace adria
 			uint32  matrix_index;
 		} constants = 
 		{
-			.light_index = light_index,
-			.matrix_index = shadow_map_index
+			.light_index = (uint32)light_index,
+			.matrix_index = (uint32)shadow_map_index
 		};
 		cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 		cmd_list->SetGraphicsRoot32BitConstants(1, 2, &constants, 0);
@@ -751,7 +739,7 @@ namespace adria
 		auto shadow_view = reg.view<Mesh, Transform, AABB>();
 		if (!transparent)
 		{
-			cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::DepthMap));
+			cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Shadow));
 			for (auto e : shadow_view)
 			{
 				auto const& transform = shadow_view.get<Transform>(e);
@@ -795,7 +783,7 @@ namespace adria
 				}
 			}
 
-			cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::DepthMap));
+			cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Shadow));
 			for (auto e : not_transparent)
 			{
 				auto const& transform = shadow_view.get<Transform>(e);
@@ -821,7 +809,7 @@ namespace adria
 				mesh.Draw(cmd_list);
 			}
 
-			cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::DepthMap_Transparent));
+			cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Shadow_Transparent));
 			for (auto e : potentially_transparent)
 			{
 				auto& transform = shadow_view.get<Transform>(e);
