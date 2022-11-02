@@ -356,6 +356,8 @@ namespace adria
 			break;
 		}
 		ambient_pass.AddPass(render_graph);
+
+		AddShadowMapPasses(render_graph);
 		deferred_lighting_pass.AddPass(render_graph);
 
 		//if (renderer_settings.use_tiled_deferred)
@@ -552,14 +554,14 @@ namespace adria
 						{
 							AddShadowMap(light, light_projections.size(), shadows::SHADOW_CASCADE_MAP_SIZE, i == 0);
 							auto const& [V, P] = shadows::LightViewProjection_Cascades(light, *camera, proj_matrices[i]);
-							light_projections.push_back(V * P);
+							light_projections.push_back(XMMatrixTranspose(V * P));
 						}
 					}
 					else
 					{
 						AddShadowMap(light, light_projections.size(), shadows::SHADOW_MAP_SIZE, true);
 						auto const& [V, P] = shadows::LightViewProjection_Directional(light, *camera);
-						light_projections.push_back(V * P);
+						light_projections.push_back(XMMatrixTranspose(V * P));
 					}
 					
 				}
@@ -569,14 +571,14 @@ namespace adria
 					{
 						AddShadowMap(light, light_projections.size(), shadows::SHADOW_CUBE_SIZE, i == 0);
 						auto const& [V, P] = shadows::LightViewProjection_Point(light, i);
-						light_projections.push_back(V * P);
+						light_projections.push_back(XMMatrixTranspose(V * P));
 					}
 				}
 				else if (light.type == ELightType::Spot)
 				{
 					AddShadowMap(light, light_projections.size(), shadows::SHADOW_MAP_SIZE, true);
 					auto const& [V, P] = shadows::LightViewProjection_Spot(light);
-					light_projections.push_back(V * P);
+					light_projections.push_back(XMMatrixTranspose(V * P));
 				}
 			}
 			else light.shadow_texture_index = -1;
@@ -614,12 +616,12 @@ namespace adria
 			hlsl_light.position = XMVector4Transform(light.position, camera->View());
 			hlsl_light.direction = XMVector4Transform(light.direction, camera->View());
 			hlsl_light.range = light.range;
-			hlsl_light.type = static_cast<int>(light.type);
+			hlsl_light.type = static_cast<int32>(light.type);
 			hlsl_light.inner_cosine = light.inner_cosine;
 			hlsl_light.outer_cosine = light.outer_cosine;
 			hlsl_light.active = light.active;
-			hlsl_light.shadow_matrix_index = light.shadow_matrix_index;
-			hlsl_light.shadow_texture_index = light.shadow_texture_index;
+			hlsl_light.shadow_matrix_index = light.casts_shadows ? light.shadow_matrix_index : - 1;
+			hlsl_light.shadow_texture_index = light.casts_shadows ? light.shadow_texture_index : -1;
 			hlsl_light.use_cascades = light.use_cascades;
 			hlsl_lights.push_back(hlsl_light);
 		}
@@ -659,7 +661,7 @@ namespace adria
 			frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
 			frame_cbuf_data.lights_idx = (int32)light_array_srv.GetHeapOffset();
 			frame_cbuf_data.lights_matrices_idx = (int32)light_matrices_srv.GetHeapOffset();
-
+			frame_cbuf_data.cascade_splits = XMVectorSet(split_distances[0], split_distances[1], split_distances[2], split_distances[3]);
 			auto lights = reg.view<Light>();
 			for (auto light : lights)
 			{

@@ -30,6 +30,7 @@ void DeferredLighting(CS_INPUT input)
 	Texture2D               diffuseTx		 = ResourceDescriptorHeap[PassCB.diffuseIdx];
 	Texture2D<float>        depthTx			 = ResourceDescriptorHeap[PassCB.depthIdx];
 	StructuredBuffer<Light> lights		     = ResourceDescriptorHeap[FrameCB.lightsIdx];
+	StructuredBuffer<float4x4> lightViewProjections = ResourceDescriptorHeap[FrameCB.lightsMatricesIdx];
 
 	uint lightCount, _unused;
 	lights.GetDimensions(lightCount, _unused);
@@ -64,6 +65,39 @@ void DeferredLighting(CS_INPUT input)
 		case SPOT_LIGHT:
 			lightRadiance = SpotLightPBR(light, viewPosition, normal, V, albedoRoughness.rgb, metallic, roughness);
 			break;
+		}
+		bool castsShadows = light.shadowTextureIndex >= 0;
+		if (castsShadows)
+		{
+			float shadowFactor = 1.0f;
+			switch (light.type)
+			{
+			case DIRECTIONAL_LIGHT:
+				if (light.useCascades)
+				{
+
+				}
+				else
+				{
+					float4 worldPosition = mul(float4(viewPosition, 1.0f), FrameCB.inverseView);
+					worldPosition /= worldPosition.w;
+					float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex];
+					float4 shadowMapPosition = mul(worldPosition, lightViewProjection);
+					float3 UVD = shadowMapPosition.xyz / shadowMapPosition.w;
+					UVD.xy = 0.5 * UVD.xy + 0.5;
+					UVD.y = 1.0 - UVD.y;
+					Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex)];
+					shadowFactor = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 1024);
+				}
+				break;
+			case POINT_LIGHT:
+				
+				break;
+			case SPOT_LIGHT:
+				
+				break;
+			}
+			lightRadiance *= shadowFactor;
 		}
 
 		//do shadows if necessary, shadow maps/ray traced maps and/or sscs

@@ -28,6 +28,7 @@ namespace adria
 		DirectX::XMVECTOR wind_params;
 		DirectX::XMVECTOR sun_direction;
 		DirectX::XMVECTOR sun_color;
+		DirectX::XMVECTOR cascade_splits;
 
 		float  delta_time;
 		float  total_time;

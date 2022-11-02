@@ -20,6 +20,7 @@ struct FrameCBuffer
     float4 windParams;
     float4 sunDirection;
     float4 sunColor;
+	float4 cascadeSplits;
 	
 	float  deltaTime;
 	float  totalTime;
@@ -40,7 +41,6 @@ SamplerState PointBorderSampler : register(s5);
 
 SamplerComparisonState ShadowClampSampler : register(s6);
 SamplerComparisonState ShadowWrapSampler : register(s7);
-
 
 static float3 GetViewPosition(float2 texcoord, float depth)
 {
