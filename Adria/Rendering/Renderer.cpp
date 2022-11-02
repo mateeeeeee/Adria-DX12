@@ -730,42 +730,51 @@ namespace adria
 		}
 	}
 
-	void Renderer::ShadowMapPass_Common(GraphicsDevice* gfx, ID3D12GraphicsCommandList4* cmd_list, size_t light_index, bool transparent)
+	void Renderer::ShadowMapPass_Common(GraphicsDevice* gfx, ID3D12GraphicsCommandList4* cmd_list, bool transparent, size_t light_index, size_t shadow_map_index = 0)
 	{
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 		auto upload_buffer = gfx->GetDynamicAllocator();
 
+		struct ShadowConstants
+		{
+			uint32  light_index;
+			uint32  matrix_index;
+		} constants = 
+		{
+			.light_index = light_index,
+			.matrix_index = shadow_map_index
+		};
+		cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+		cmd_list->SetGraphicsRoot32BitConstants(1, 2, &constants, 0);
+
 		auto shadow_view = reg.view<Mesh, Transform, AABB>();
 		if (!transparent)
 		{
-			cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 			cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::DepthMap));
-
 			for (auto e : shadow_view)
 			{
-				auto const& aabb = shadow_view.get<AABB>(e);
-				if (aabb.light_visible)
+				auto const& transform = shadow_view.get<Transform>(e);
+				auto const& mesh = shadow_view.get<Mesh>(e);
+
+				XMMATRIX parent_transform = XMMatrixIdentity();
+				if (Relationship* relationship = reg.try_get<Relationship>(e))
 				{
-					auto const& transform = shadow_view.get<Transform>(e);
-					auto const& mesh = shadow_view.get<Mesh>(e);
-
-					DirectX::XMMATRIX parent_transform = DirectX::XMMatrixIdentity();
-					if (Relationship* relationship = reg.try_get<Relationship>(e))
-					{
-						if (auto* root_transform = reg.try_get<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
-					}
-
-					ObjectCBuffer object_cbuf_data{};
-					object_cbuf_data.model = transform.current_transform * parent_transform;
-					object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
-
-					DynamicAllocation object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-					object_allocation.Update(object_cbuf_data);
-					cmd_list->SetGraphicsRootConstantBufferView(0, object_allocation.gpu_address);
-
-					mesh.Draw(cmd_list);
+					if (auto* root_transform = reg.try_get<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
 				}
+				struct ModelConstants
+				{
+					XMMATRIX model_matrix;
+					uint32  _unused;
+				} model_constants =
+				{
+					.model_matrix = transform.current_transform * parent_transform,
+					._unused = 0
+				};
+				DynamicAllocation model_allocation = upload_buffer->Allocate(GetCBufferSize<ModelConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				model_allocation.Update(model_constants);
+				cmd_list->SetGraphicsRootConstantBufferView(2, model_allocation.gpu_address);
+				mesh.Draw(cmd_list);
 			}
 		}
 		else
@@ -786,32 +795,33 @@ namespace adria
 				}
 			}
 
-			cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 			cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::DepthMap));
 			for (auto e : not_transparent)
 			{
-				auto& transform = shadow_view.get<Transform>(e);
-				auto& mesh = shadow_view.get<Mesh>(e);
+				auto const& transform = shadow_view.get<Transform>(e);
+				auto const& mesh = shadow_view.get<Mesh>(e);
 
-				DirectX::XMMATRIX parent_transform = DirectX::XMMatrixIdentity();
+				XMMATRIX parent_transform = XMMatrixIdentity();
 				if (Relationship* relationship = reg.try_get<Relationship>(e))
 				{
 					if (auto* root_transform = reg.try_get<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
 				}
-
-				ObjectCBuffer object_cbuf_data{};
-				object_cbuf_data.model = transform.current_transform * parent_transform;
-				object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
-
-				DynamicAllocation object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-				object_allocation.Update(object_cbuf_data);
-				cmd_list->SetGraphicsRootConstantBufferView(0, object_allocation.gpu_address);
+				struct ModelConstants
+				{
+					XMMATRIX model_matrix;
+					uint32  _unused;
+				} model_constants =
+				{
+					.model_matrix = transform.current_transform * parent_transform,
+					._unused = 0
+				};
+				DynamicAllocation model_allocation = upload_buffer->Allocate(GetCBufferSize<ModelConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				model_allocation.Update(model_constants);
+				cmd_list->SetGraphicsRootConstantBufferView(2, model_allocation.gpu_address);
 				mesh.Draw(cmd_list);
 			}
 
-			cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 			cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::DepthMap_Transparent));
-			
 			for (auto e : potentially_transparent)
 			{
 				auto& transform = shadow_view.get<Transform>(e);
@@ -820,27 +830,23 @@ namespace adria
 				ADRIA_ASSERT(material != nullptr);
 				ADRIA_ASSERT(material->albedo_texture != INVALID_TEXTURE_HANDLE);
 
-				DirectX::XMMATRIX parent_transform = DirectX::XMMatrixIdentity();
+				XMMATRIX parent_transform = XMMatrixIdentity();
 				if (Relationship* relationship = reg.try_get<Relationship>(e))
 				{
 					if (auto* root_transform = reg.try_get<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
 				}
-				ObjectCBuffer object_cbuf_data{};
-				object_cbuf_data.model = transform.current_transform * parent_transform;
-				object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
-
-				DynamicAllocation object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-				object_allocation.Update(object_cbuf_data);
-				cmd_list->SetGraphicsRootConstantBufferView(0, object_allocation.gpu_address);
-
-				D3D12_CPU_DESCRIPTOR_HANDLE albedo_handle = texture_manager.GetSRV(material->albedo_texture);
-				OffsetType i = descriptor_allocator->Allocate();
-
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i),
-					albedo_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-				cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetHandle(i));
-
+				struct ModelConstants
+				{
+					XMMATRIX model_matrix;
+					uint32   albedo_idx;
+				} model_constants =
+				{
+					.model_matrix = transform.current_transform * parent_transform,
+					.albedo_idx = (uint32)material->albedo_texture
+				};
+				DynamicAllocation model_allocation = upload_buffer->Allocate(GetCBufferSize<ModelConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				model_allocation.Update(model_constants);
+				cmd_list->SetGraphicsRootConstantBufferView(2, model_allocation.gpu_address);
 				mesh.Draw(cmd_list);
 			}
 		}
@@ -871,7 +877,7 @@ namespace adria
 						},
 						[=](RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 						{
-							ShadowMapPass_Common(gfx, cmd_list, light_index, false);
+							ShadowMapPass_Common(gfx, cmd_list, false, light_index, i);
 						}, ERGPassType::Graphics);
 					}
 				}
@@ -887,7 +893,7 @@ namespace adria
 					},
 					[=](RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 					{
-						ShadowMapPass_Common(gfx, cmd_list, light_index, false);
+						ShadowMapPass_Common(gfx, cmd_list, false, light_index);
 					}, ERGPassType::Graphics);
 				}
 			}
@@ -905,7 +911,7 @@ namespace adria
 						},
 						[=](RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 						{
-							ShadowMapPass_Common(gfx, cmd_list, light_index, false);
+							ShadowMapPass_Common(gfx, cmd_list, false, light_index, i);
 						}, ERGPassType::Graphics);
 				}
 			}
@@ -921,7 +927,7 @@ namespace adria
 					},
 					[=](RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
 					{
-						ShadowMapPass_Common(gfx, cmd_list, light_index, false);
+						ShadowMapPass_Common(gfx, cmd_list, false, light_index);
 					}, ERGPassType::Graphics);
 			}
 		}

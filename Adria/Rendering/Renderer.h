@@ -143,7 +143,7 @@ namespace adria
 		void UpdatePersistentConstantBuffers(float dt);
 		void CameraFrustumCulling();
 
-		void ShadowMapPass_Common(GraphicsDevice* gfx, ID3D12GraphicsCommandList4* cmd_list, size_t light_index, bool transparent);
+		void ShadowMapPass_Common(GraphicsDevice* gfx, ID3D12GraphicsCommandList4* cmd_list, bool transparent, size_t light_index, size_t shadow_map_index = 0);
 		void AddShadowMapPasses(RenderGraph& rg);
 		void CopyToBackbuffer(RenderGraph& rg);
 		void ResolveToFinalTexture(RenderGraph& rg);
