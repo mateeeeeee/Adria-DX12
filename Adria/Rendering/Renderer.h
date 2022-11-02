@@ -87,12 +87,13 @@ namespace adria
 
 		//lights and shadows
 		std::unique_ptr<Buffer>  lights_buffer;
-		std::unique_ptr<Buffer>  lights_projections_buffer;
+		std::unique_ptr<Buffer>  light_matrices_buffer;
 		std::vector<std::unique_ptr<Texture>> light_shadow_maps;
 		DescriptorHandle		 light_array_srv; 
-		DescriptorHandle		 light_projections_srv; 
+		DescriptorHandle		 light_matrices_srv; 
 		float					 cascades_split_lambda  = 0.5f;
 		std::array<float, 4>	 split_distances;
+		bool				     transparent_shadows = false;
 
 		//Persistent constant buffers
 		ConstantBuffer<FrameCBuffer> frame_cbuffer;
@@ -105,6 +106,7 @@ namespace adria
 		bool update_picking_data = false;
 		PickingData picking_data;
 
+		//ibl, broken for now
 		std::unique_ptr<Texture> env_texture;
 		std::unique_ptr<Texture> irmap_texture;
 		std::unique_ptr<Texture> brdf_lut_texture;
@@ -141,7 +143,8 @@ namespace adria
 		void UpdatePersistentConstantBuffers(float dt);
 		void CameraFrustumCulling();
 
-		void AddShadowPasses(RenderGraph& rg);
+		void ShadowMapPass_Common(GraphicsDevice* gfx, ID3D12GraphicsCommandList4* cmd_list, size_t light_index, bool transparent);
+		void AddShadowMapPasses(RenderGraph& rg);
 		void CopyToBackbuffer(RenderGraph& rg);
 		void ResolveToFinalTexture(RenderGraph& rg);
 	};

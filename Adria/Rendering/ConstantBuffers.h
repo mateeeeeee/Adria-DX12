@@ -33,7 +33,7 @@ namespace adria
 		float  total_time;
 		uint32 frame_count;
 		int32  lights_idx;
-		int32  lights_projections_idx;
+		int32  lights_matrices_idx;
 		float  mouse_normalized_coords_x;
 		float  mouse_normalized_coords_y;
 	};

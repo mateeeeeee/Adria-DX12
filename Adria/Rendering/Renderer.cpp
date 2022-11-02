@@ -543,8 +543,8 @@ namespace adria
 		{
 			gfx->WaitForGPU();
 			light_projections_count = current_light_projections_count;
-			lights_projections_buffer = std::make_unique<Buffer>(gfx, StructuredBufferDesc<XMMATRIX>(light_projections_count, false, true));
-			lights_projections_buffer->CreateSRV();
+			light_matrices_buffer = std::make_unique<Buffer>(gfx, StructuredBufferDesc<XMMATRIX>(light_projections_count, false, true));
+			light_matrices_buffer->CreateSRV();
 		}
 		std::vector<XMMATRIX> light_projections{};
 		light_projections.reserve(light_projections_count);
@@ -593,12 +593,12 @@ namespace adria
 			}
 			else light.shadow_texture_index = -1;
 		}
-		lights_projections_buffer->Update(light_projections.data(), light_projections.size() * sizeof(XMMATRIX));
+		light_matrices_buffer->Update(light_projections.data(), light_projections.size() * sizeof(XMMATRIX));
 
 		OffsetType i = descriptor_allocator->Allocate();
 		auto dst_descriptor = descriptor_allocator->GetHandle(i);
-		device->CopyDescriptorsSimple(1, dst_descriptor, lights_projections_buffer->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		light_projections_srv = dst_descriptor;
+		device->CopyDescriptorsSimple(1, dst_descriptor, light_matrices_buffer->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		light_matrices_srv = dst_descriptor;
 	}
 	void Renderer::UpdateLights()
 	{
@@ -614,10 +614,14 @@ namespace adria
 
 		std::vector<LightHLSL> hlsl_lights{};
 		hlsl_lights.reserve(light_view.size());
+		uint32 light_index = 0;
 		for (auto e : light_view)
 		{
-			LightHLSL hlsl_light{};
 			auto& light = light_view.get<Light>(e);
+			light.light_index = light_index;
+			++light_index;
+
+			LightHLSL hlsl_light{};
 			hlsl_light.color = light.color * light.energy;
 			hlsl_light.position = XMVector4Transform(light.position, camera->View());
 			hlsl_light.direction = XMVector4Transform(light.direction, camera->View());
@@ -666,7 +670,7 @@ namespace adria
 			frame_cbuf_data.mouse_normalized_coords_x = (viewport_data.mouse_position_x - viewport_data.scene_viewport_pos_x) / viewport_data.scene_viewport_size_x;
 			frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
 			frame_cbuf_data.lights_idx = (int32)light_array_srv.GetHeapOffset();
-			frame_cbuf_data.lights_projections_idx = (int32)light_projections_srv.GetHeapOffset();
+			frame_cbuf_data.lights_matrices_idx = (int32)light_matrices_srv.GetHeapOffset();
 
 			auto lights = reg.view<Light>();
 			for (auto light : lights)
@@ -726,13 +730,200 @@ namespace adria
 		}
 	}
 
-	void Renderer::AddShadowPasses(RenderGraph& rg)
+	void Renderer::ShadowMapPass_Common(GraphicsDevice* gfx, ID3D12GraphicsCommandList4* cmd_list, size_t light_index, bool transparent)
+	{
+		ID3D12Device* device = gfx->GetDevice();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+		auto upload_buffer = gfx->GetDynamicAllocator();
+
+		auto shadow_view = reg.view<Mesh, Transform, AABB>();
+		if (!transparent)
+		{
+			cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+			cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::DepthMap));
+
+			for (auto e : shadow_view)
+			{
+				auto const& aabb = shadow_view.get<AABB>(e);
+				if (aabb.light_visible)
+				{
+					auto const& transform = shadow_view.get<Transform>(e);
+					auto const& mesh = shadow_view.get<Mesh>(e);
+
+					DirectX::XMMATRIX parent_transform = DirectX::XMMatrixIdentity();
+					if (Relationship* relationship = reg.try_get<Relationship>(e))
+					{
+						if (auto* root_transform = reg.try_get<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
+					}
+
+					ObjectCBuffer object_cbuf_data{};
+					object_cbuf_data.model = transform.current_transform * parent_transform;
+					object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
+
+					DynamicAllocation object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+					object_allocation.Update(object_cbuf_data);
+					cmd_list->SetGraphicsRootConstantBufferView(0, object_allocation.gpu_address);
+
+					mesh.Draw(cmd_list);
+				}
+			}
+		}
+		else
+		{
+			std::vector<entt::entity> potentially_transparent, not_transparent;
+			for (auto e : shadow_view)
+			{
+				auto const& aabb = shadow_view.get<AABB>(e);
+				if (aabb.light_visible)
+				{
+					if (auto* p_material = reg.try_get<Material>(e))
+					{
+						if (p_material->albedo_texture != INVALID_TEXTURE_HANDLE)
+							potentially_transparent.push_back(e);
+						else not_transparent.push_back(e);
+					}
+					else not_transparent.push_back(e);
+				}
+			}
+
+			cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+			cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::DepthMap));
+			for (auto e : not_transparent)
+			{
+				auto& transform = shadow_view.get<Transform>(e);
+				auto& mesh = shadow_view.get<Mesh>(e);
+
+				DirectX::XMMATRIX parent_transform = DirectX::XMMatrixIdentity();
+				if (Relationship* relationship = reg.try_get<Relationship>(e))
+				{
+					if (auto* root_transform = reg.try_get<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
+				}
+
+				ObjectCBuffer object_cbuf_data{};
+				object_cbuf_data.model = transform.current_transform * parent_transform;
+				object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
+
+				DynamicAllocation object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				object_allocation.Update(object_cbuf_data);
+				cmd_list->SetGraphicsRootConstantBufferView(0, object_allocation.gpu_address);
+				mesh.Draw(cmd_list);
+			}
+
+			cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+			cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::DepthMap_Transparent));
+			
+			for (auto e : potentially_transparent)
+			{
+				auto& transform = shadow_view.get<Transform>(e);
+				auto& mesh = shadow_view.get<Mesh>(e);
+				auto* material = reg.try_get<Material>(e);
+				ADRIA_ASSERT(material != nullptr);
+				ADRIA_ASSERT(material->albedo_texture != INVALID_TEXTURE_HANDLE);
+
+				DirectX::XMMATRIX parent_transform = DirectX::XMMatrixIdentity();
+				if (Relationship* relationship = reg.try_get<Relationship>(e))
+				{
+					if (auto* root_transform = reg.try_get<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
+				}
+				ObjectCBuffer object_cbuf_data{};
+				object_cbuf_data.model = transform.current_transform * parent_transform;
+				object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
+
+				DynamicAllocation object_allocation = upload_buffer->Allocate(GetCBufferSize<ObjectCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				object_allocation.Update(object_cbuf_data);
+				cmd_list->SetGraphicsRootConstantBufferView(0, object_allocation.gpu_address);
+
+				D3D12_CPU_DESCRIPTOR_HANDLE albedo_handle = texture_manager.GetSRV(material->albedo_texture);
+				OffsetType i = descriptor_allocator->Allocate();
+
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i),
+					albedo_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+				cmd_list->SetGraphicsRootDescriptorTable(2, descriptor_allocator->GetHandle(i));
+
+				mesh.Draw(cmd_list);
+			}
+		}
+	}
+	void Renderer::AddShadowMapPasses(RenderGraph& rg)
 	{
 		auto light_view = reg.view<Light>();
 		for (auto e : light_view)
 		{
 			auto& light = light_view.get<Light>(e);
-			//add shadow pass
+			if (!light.casts_shadows) continue;
+			int32 light_index = light.light_index;
+			size_t light_id = entt::to_integral(e);
+
+			if (light.type == ELightType::Directional)
+			{
+				if (light.use_cascades)
+				{
+					for (uint32 i = 0; i < shadows::SHADOW_CASCADE_COUNT; ++i)
+					{
+						rg.ImportTexture(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index + i), light_shadow_maps[light.shadow_matrix_index + i].get());
+						std::string name = "Cascade Shadow Pass" + std::to_string(i);
+						rg.AddPass<void>(name.c_str(), 
+						[=](RenderGraphBuilder& builder)
+						{
+							builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index + i), ERGLoadStoreAccessOp::Clear_Preserve);
+							builder.SetViewport(shadows::SHADOW_CASCADE_MAP_SIZE, shadows::SHADOW_CASCADE_MAP_SIZE);
+						},
+						[=](RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+						{
+							ShadowMapPass_Common(gfx, cmd_list, light_index, false);
+						}, ERGPassType::Graphics);
+					}
+				}
+				else
+				{
+					rg.ImportTexture(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index), light_shadow_maps[light.shadow_matrix_index].get());
+					std::string name = "Directional Shadow Pass";
+					rg.AddPass<void>(name.c_str(),
+					[=](RenderGraphBuilder& builder)
+					{
+						builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index), ERGLoadStoreAccessOp::Clear_Preserve);
+						builder.SetViewport(shadows::SHADOW_MAP_SIZE, shadows::SHADOW_MAP_SIZE);
+					},
+					[=](RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+					{
+						ShadowMapPass_Common(gfx, cmd_list, light_index, false);
+					}, ERGPassType::Graphics);
+				}
+			}
+			else if (light.type == ELightType::Point)
+			{
+				for (uint32 i = 0; i < 6; ++i)
+				{
+					rg.ImportTexture(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index + i), light_shadow_maps[light.shadow_matrix_index + i].get());
+					std::string name = "Point Shadow Pass" + std::to_string(i);
+					rg.AddPass<void>(name.c_str(),
+						[=](RenderGraphBuilder& builder)
+						{
+							builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index + i), ERGLoadStoreAccessOp::Clear_Preserve);
+							builder.SetViewport(shadows::SHADOW_CUBE_SIZE, shadows::SHADOW_CUBE_SIZE);
+						},
+						[=](RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+						{
+							ShadowMapPass_Common(gfx, cmd_list, light_index, false);
+						}, ERGPassType::Graphics);
+				}
+			}
+			else if (light.type == ELightType::Spot)
+			{
+				rg.ImportTexture(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index), light_shadow_maps[light.shadow_matrix_index].get());
+				std::string name = "Spot Shadow Pass";
+				rg.AddPass<void>(name.c_str(),
+					[=](RenderGraphBuilder& builder)
+					{
+						builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index), ERGLoadStoreAccessOp::Clear_Preserve);
+						builder.SetViewport(shadows::SHADOW_MAP_SIZE, shadows::SHADOW_MAP_SIZE);
+					},
+					[=](RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+					{
+						ShadowMapPass_Common(gfx, cmd_list, light_index, false);
+					}, ERGPassType::Graphics);
+			}
 		}
 	}
 	void Renderer::CopyToBackbuffer(RenderGraph& rg)

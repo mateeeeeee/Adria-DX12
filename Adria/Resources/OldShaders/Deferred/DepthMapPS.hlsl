@@ -13,9 +13,6 @@ struct VS_OUTPUT
 #endif
 };
 
-
-
-
 #include "../Util/RootSignatures.hlsli"
 #if TRANSPARENT
 [RootSignature(DepthMapTransparent_RS)]
