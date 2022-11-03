@@ -85,7 +85,7 @@ namespace adria
 
 		EMaterialAlphaMode alpha_mode = EMaterialAlphaMode::Opaque;
 		float alpha_cutoff		= 0.5f;
-		bool    double_sided		= false;
+		bool    double_sided	= false;
 
 		DirectX::XMFLOAT3 diffuse = DirectX::XMFLOAT3(1, 1, 1);
 		EPipelineState pso = EPipelineState::Unknown;

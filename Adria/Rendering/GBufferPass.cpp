@@ -123,9 +123,9 @@ namespace adria
 						model_cbuf_data.metallic_roughness_idx = static_cast<int32>(material.metallic_roughness_texture);
 						model_cbuf_data.emissive_idx = static_cast<int32>(material.emissive_texture);
 
-						DynamicAllocation object_allocation = dynamic_allocator->Allocate(GetCBufferSize<ModelCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-						object_allocation.Update(model_cbuf_data);
-						cmd_list->SetGraphicsRootConstantBufferView(2, object_allocation.gpu_address);
+						DynamicAllocation model_allocation = dynamic_allocator->Allocate(GetCBufferSize<ModelCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+						model_allocation.Update(model_cbuf_data);
+						cmd_list->SetGraphicsRootConstantBufferView(2, model_allocation.gpu_address);
 
 						mesh.Draw(cmd_list);
 					}

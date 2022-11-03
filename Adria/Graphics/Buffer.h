@@ -275,18 +275,18 @@ namespace adria
 			mapped_data = nullptr;
 			mapped_rowpitch = 0;
 		}
-		void Update(void const* src_data, size_t data_size)
+		void Update(void const* src_data, size_t data_size, size_t offset = 0)
 		{
 			ADRIA_ASSERT(desc.resource_usage == EResourceUsage::Upload);
 			if (mapped_data)
 			{
-				memcpy(mapped_data, src_data, data_size);
+				memcpy((uint8*)mapped_data + offset, src_data, data_size);
 			}
 			else
 			{
 				Map();
 				ADRIA_ASSERT(mapped_data);
-				memcpy(mapped_data, src_data, data_size);
+				memcpy((uint8*)mapped_data + offset, src_data, data_size);
 			}
 		}
 		template<typename T>

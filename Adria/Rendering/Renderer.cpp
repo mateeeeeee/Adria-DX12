@@ -492,7 +492,7 @@ namespace adria
 	{
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
-		auto AddShadowMap = [&](Light& light, size_t shadow_map_index, uint32 shadow_map_size, bool is_first) 
+		auto AddShadowMap = [&](Light& light, size_t shadow_map_index, uint32 shadow_map_size, bool is_first) //if the directional light changes from cascades to normal then this doesnt work
 		{
 			if (shadow_map_index >= light_shadow_maps.size())
 			{
@@ -515,8 +515,8 @@ namespace adria
 			if(is_first) light.shadow_texture_index = (int32)i;
 		};
 
-		static size_t light_projections_count = 0;
-		size_t current_light_projections_count = 0;
+		static size_t light_matrices_count = 0;
+		size_t current_light_matrices_count = 0;
 
 		auto light_view = reg.view<Light>();
 		for (auto e : light_view)
@@ -524,27 +524,33 @@ namespace adria
 			auto& light = light_view.get<Light>(e);
 			if (light.casts_shadows)
 			{
-				if (light.type == ELightType::Directional && light.use_cascades) current_light_projections_count += shadows::SHADOW_CASCADE_COUNT;
-				else if (light.type == ELightType::Point) current_light_projections_count += 6;
-				else current_light_projections_count++;
+				if (light.type == ELightType::Directional && light.use_cascades) current_light_matrices_count += shadows::SHADOW_CASCADE_COUNT;
+				else if (light.type == ELightType::Point) current_light_matrices_count += 6;
+				else current_light_matrices_count++;
 			}
 		}
-		if (current_light_projections_count != light_projections_count)
+		if (current_light_matrices_count != light_matrices_count)
 		{
 			gfx->WaitForGPU();
-			light_projections_count = current_light_projections_count;
-			light_matrices_buffer = std::make_unique<Buffer>(gfx, StructuredBufferDesc<XMMATRIX>(light_projections_count, false, true));
-			light_matrices_buffer->CreateSRV();
+			light_matrices_count = current_light_matrices_count;
+			light_matrices_buffer = std::make_unique<Buffer>(gfx, StructuredBufferDesc<XMMATRIX>(light_matrices_count * backbuffer_count, false, true));
+			BufferSubresourceDesc srv_desc{};
+			srv_desc.size = light_matrices_count * sizeof(XMMATRIX);
+			for (uint32 i = 0; i < backbuffer_count; ++i)
+			{
+				srv_desc.offset = i * light_matrices_count * sizeof(XMMATRIX);
+				light_matrices_buffer->CreateSRV(&srv_desc);
+			}
 		}
-		std::vector<XMMATRIX> light_projections{};
-		light_projections.reserve(light_projections_count);
+		std::vector<XMMATRIX> light_matrices{};
+		light_matrices.reserve(light_matrices_count);
 		for (auto e : light_view)
 		{
 			auto& light = light_view.get<Light>(e);
 			if (light.casts_shadows)
 			{
 				if (light.ray_traced_shadows) continue;
-				light.shadow_matrix_index = (uint32)light_projections.size();
+				light.shadow_matrix_index = (uint32)light_matrices.size();
 				if (light.type == ELightType::Directional)
 				{
 					if (light.use_cascades)
@@ -552,16 +558,16 @@ namespace adria
 						std::array<XMMATRIX, shadows::SHADOW_CASCADE_COUNT> proj_matrices = shadows::RecalculateProjectionMatrices(*camera, cascades_split_lambda, split_distances);
 						for (uint32 i = 0; i < shadows::SHADOW_CASCADE_COUNT; ++i)
 						{
-							AddShadowMap(light, light_projections.size(), shadows::SHADOW_CASCADE_MAP_SIZE, i == 0);
+							AddShadowMap(light, light_matrices.size(), shadows::SHADOW_CASCADE_MAP_SIZE, i == 0);
 							auto const& [V, P] = shadows::LightViewProjection_Cascades(light, *camera, proj_matrices[i]);
-							light_projections.push_back(XMMatrixTranspose(V * P));
+							light_matrices.push_back(XMMatrixTranspose(V * P));
 						}
 					}
 					else
 					{
-						AddShadowMap(light, light_projections.size(), shadows::SHADOW_MAP_SIZE, true);
+						AddShadowMap(light, light_matrices.size(), shadows::SHADOW_MAP_SIZE, true);
 						auto const& [V, P] = shadows::LightViewProjection_Directional(light, *camera);
-						light_projections.push_back(XMMatrixTranspose(V * P));
+						light_matrices.push_back(XMMatrixTranspose(V * P));
 					}
 					
 				}
@@ -569,25 +575,25 @@ namespace adria
 				{
 					for (uint32 i = 0; i < 6; ++i)
 					{
-						AddShadowMap(light, light_projections.size(), shadows::SHADOW_CUBE_SIZE, i == 0);
+						AddShadowMap(light, light_matrices.size(), shadows::SHADOW_CUBE_SIZE, i == 0);
 						auto const& [V, P] = shadows::LightViewProjection_Point(light, i);
-						light_projections.push_back(XMMatrixTranspose(V * P));
+						light_matrices.push_back(XMMatrixTranspose(V * P));
 					}
 				}
 				else if (light.type == ELightType::Spot)
 				{
-					AddShadowMap(light, light_projections.size(), shadows::SHADOW_MAP_SIZE, true);
+					AddShadowMap(light, light_matrices.size(), shadows::SHADOW_MAP_SIZE, true);
 					auto const& [V, P] = shadows::LightViewProjection_Spot(light);
-					light_projections.push_back(XMMatrixTranspose(V * P));
+					light_matrices.push_back(XMMatrixTranspose(V * P));
 				}
 			}
 			else light.shadow_texture_index = -1;
 		}
-		light_matrices_buffer->Update(light_projections.data(), light_projections.size() * sizeof(XMMATRIX));
+		light_matrices_buffer->Update(light_matrices.data(), light_matrices_count * sizeof(XMMATRIX), light_matrices_count * sizeof(XMMATRIX) * backbuffer_index);
 
 		OffsetType i = descriptor_allocator->Allocate();
 		auto dst_descriptor = descriptor_allocator->GetHandle(i);
-		device->CopyDescriptorsSimple(1, dst_descriptor, light_matrices_buffer->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		device->CopyDescriptorsSimple(1, dst_descriptor, light_matrices_buffer->GetSRV(backbuffer_index), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		light_matrices_srv = dst_descriptor;
 	}
 	void Renderer::UpdateLights()
@@ -597,9 +603,17 @@ namespace adria
 		if (light_count != light_view.size())
 		{
 			gfx->WaitForGPU();
+
 			light_count = light_view.size();
-			lights_buffer = std::make_unique<Buffer>(gfx, StructuredBufferDesc<LightHLSL>(light_count, false, true));
-			lights_buffer->CreateSRV();
+			lights_buffer = std::make_unique<Buffer>(gfx, StructuredBufferDesc<LightHLSL>(light_count * backbuffer_count, false, true));
+
+			BufferSubresourceDesc srv_desc{};
+			srv_desc.size = light_count * sizeof(LightHLSL);
+			for (uint32 i = 0; i < backbuffer_count; ++i)
+			{
+				srv_desc.offset = i * light_count * sizeof(LightHLSL);
+				lights_buffer->CreateSRV(&srv_desc);
+			}
 		}
 
 		std::vector<LightHLSL> hlsl_lights{};
@@ -625,13 +639,13 @@ namespace adria
 			hlsl_light.use_cascades = light.use_cascades;
 			hlsl_lights.push_back(hlsl_light);
 		}
-		lights_buffer->Update(hlsl_lights.data(), hlsl_lights.size() * sizeof(LightHLSL));
+		lights_buffer->Update(hlsl_lights.data(), hlsl_lights.size() * sizeof(LightHLSL), light_count * sizeof(LightHLSL) * backbuffer_index);
 
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 		OffsetType i = descriptor_allocator->Allocate();
 		auto dst_descriptor = descriptor_allocator->GetHandle(i);
-		device->CopyDescriptorsSimple(1, dst_descriptor, lights_buffer->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		device->CopyDescriptorsSimple(1, dst_descriptor, lights_buffer->GetSRV(backbuffer_index), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		light_array_srv = dst_descriptor;
 	}
 	void Renderer::UpdatePersistentConstantBuffers(float dt)
@@ -716,7 +730,7 @@ namespace adria
 		for (auto e : aabb_view)
 		{
 			auto& aabb = aabb_view.get<AABB>(e);
-			aabb.camera_visible = camera_frustum.Intersects(aabb.bounding_box) || reg.all_of<Light>(e); //dont cull lights for now
+			aabb.camera_visible = camera_frustum.Intersects(aabb.bounding_box) || reg.all_of<Light>(e); 
 		}
 	}
 

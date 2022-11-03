@@ -1,4 +1,5 @@
 #include "../CommonResources.hlsli"
+#include "../Common.hlsli"
 #include "../Lighting.hlsli"
 #include "../Packing.hlsli"
 
@@ -73,30 +74,71 @@ void DeferredLighting(CS_INPUT input)
 			switch (light.type)
 			{
 			case DIRECTIONAL_LIGHT:
-				if (light.useCascades)
-				{
+			{
+                if (light.useCascades)
+                {
+                    float viewDepth = viewPosition.z;
+                    for (uint i = 0; i < 4; ++i)
+                    {
+                        float4 worldPosition = mul(float4(viewPosition, 1.0f), FrameCB.inverseView);
+                        worldPosition /= worldPosition.w;
+                        float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex + i];
+                        float4 shadowMapPosition = mul(worldPosition, lightViewProjection);
+                        float3 UVD = shadowMapPosition.xyz / shadowMapPosition.w;
+                        UVD.xy = 0.5 * UVD.xy + 0.5;
+                        UVD.y = 1.0 - UVD.y;
 
-				}
-				else
-				{
-					float4 worldPosition = mul(float4(viewPosition, 1.0f), FrameCB.inverseView);
-					worldPosition /= worldPosition.w;
-					float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex];
-					float4 shadowMapPosition = mul(worldPosition, lightViewProjection);
-					float3 UVD = shadowMapPosition.xyz / shadowMapPosition.w;
-					UVD.xy = 0.5 * UVD.xy + 0.5;
-					UVD.y = 1.0 - UVD.y;
-					Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex)];
-					shadowFactor = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 1024);
-				}
-				break;
+                        if (viewDepth < FrameCB.cascadeSplits[i])
+                        {
+                            Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex + i)];
+                            shadowFactor = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 2048);
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    float4 worldPosition = mul(float4(viewPosition, 1.0f), FrameCB.inverseView);
+                    worldPosition /= worldPosition.w;
+                    float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex];
+                    float4 shadowMapPosition = mul(worldPosition, lightViewProjection);
+                    float3 UVD = shadowMapPosition.xyz / shadowMapPosition.w;
+                    UVD.xy = 0.5 * UVD.xy + 0.5;
+                    UVD.y = 1.0 - UVD.y;
+                    Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex)];
+                    shadowFactor = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 1024);
+                }
+            }
+			break;
 			case POINT_LIGHT:
-				
-				break;
+			{
+                float3 lightToPixelWS = mul(float4(viewPosition - light.position.xyz, 0.0f), FrameCB.inverseView).xyz;
+                uint cubeFaceIndex = GetCubeFaceIndex(lightToPixelWS);
+                float4 worldPosition = mul(float4(viewPosition, 1.0f), FrameCB.inverseView);
+                worldPosition /= worldPosition.w;
+                float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex + cubeFaceIndex];
+                float4 shadowMapPosition = mul(worldPosition, lightViewProjection);
+                float3 UVD = shadowMapPosition.xyz / shadowMapPosition.w;
+                UVD.xy = 0.5 * UVD.xy + 0.5;
+                UVD.y = 1.0 - UVD.y;
+                Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex + cubeFaceIndex)];
+                shadowFactor = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 512);
+            }
+			break;
 			case SPOT_LIGHT:
-				
-				break;
-			}
+			{
+                float4 worldPosition = mul(float4(viewPosition, 1.0f), FrameCB.inverseView);
+                worldPosition /= worldPosition.w;
+                float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex];
+                float4 shadowMapPosition = mul(worldPosition, lightViewProjection);
+                float3 UVD = shadowMapPosition.xyz / shadowMapPosition.w;
+                UVD.xy = 0.5 * UVD.xy + 0.5;
+                UVD.y = 1.0 - UVD.y;
+                Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex)];
+                shadowFactor = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 1024);
+            }
+            break;
+            }
 			lightRadiance *= shadowFactor;
 		}
 
@@ -105,5 +147,5 @@ void DeferredLighting(CS_INPUT input)
 	}
 
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
-	outputTx[input.DispatchThreadId.xy] = float4(totalRadiance, 1.0f);
+	outputTx[input.DispatchThreadId.xy] += float4(totalRadiance, 1.0f);
 }

@@ -52,7 +52,6 @@ struct ModelCBuffer
     uint metallicRoughnessIdx;
     uint emissiveIdx;
     
-    //later add uint materialIdx -> index to material array buffer with these params
     float3 ambient;
     float3 diffuse;
     float  alphaCutoff;
@@ -104,8 +103,8 @@ PS_OUTPUT GBufferPS(PS_INPUT In)
     Texture2D txEmissive            = ResourceDescriptorHeap[ModelCB.emissiveIdx];
     
     float4 albedoColor = txAlbedo.Sample(LinearWrapSampler, In.Uvs) * ModelCB.albedoFactor;
-#ifdef MASK
-    if(albedoColor.a < ModelCB.alphaCutoff) discard;
+#if MASK 
+    if(albedoColor.a < 0.5f) discard;
 #endif
     
     float3 normal = normalize(In.NormalWS);

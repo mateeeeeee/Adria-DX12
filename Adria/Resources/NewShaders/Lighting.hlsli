@@ -177,6 +177,6 @@ float CalcShadowFactor_PCF3x3(SamplerComparisonState shadowSampler,
 		percentLit += shadowMap.SampleCmpLevelZero(shadowSampler,
 			uvd.xy + offsets[i], depth);
 	}
-	return percentLit /= 9.0f;
-
+    percentLit /= 9.0f;
+    return percentLit;
 }

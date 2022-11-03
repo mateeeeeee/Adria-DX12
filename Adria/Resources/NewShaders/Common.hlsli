@@ -29,6 +29,25 @@ static float3 GetPerpendicularVector(float3 u)
 	return cross(u, float3(xm, ym, zm));
 }
 
+uint GetCubeFaceIndex(float3 v)
+{
+    float3 vAbs = abs(v);
+    uint faceIndex = 0;
+    if (vAbs.z >= vAbs.x && vAbs.z >= vAbs.y)
+    {
+        faceIndex = v.z < 0 ? 5 : 4;
+    }
+    else if (vAbs.y >= vAbs.x)
+    {
+        faceIndex = v.y < 0 ? 3 : 2;
+    }
+    else
+    {
+        faceIndex = v.x < 0 ? 1 : 0;
+    }
+    return faceIndex;
+}
+
 static bool IsSaturated(float value)
 {
     return value == saturate(value);
