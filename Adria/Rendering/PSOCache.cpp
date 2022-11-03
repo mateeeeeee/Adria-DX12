@@ -104,28 +104,6 @@ namespace adria
 				gfx_pso_map[EPipelineState::Shadow_Transparent] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				gfx_pso_desc.root_signature = ERootSignature::Volumetric;
-				gfx_pso_desc.VS = VS_FullscreenQuad;
-				gfx_pso_desc.PS = PS_Volumetric_Directional;
-				gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
-				gfx_pso_desc.blend_state.render_target[0].blend_op = EBlendOp::Add;
-				gfx_pso_desc.blend_state.render_target[0].src_blend = EBlend::One;
-				gfx_pso_desc.blend_state.render_target[0].dest_blend = EBlend::One;
-				gfx_pso_desc.depth_state.depth_enable = false;
-				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
-				gfx_pso_map[EPipelineState::Volumetric_Directional] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
-
-				gfx_pso_desc.PS = PS_Volumetric_DirectionalCascades;
-				gfx_pso_map[EPipelineState::Volumetric_DirectionalCascades] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
-
-				gfx_pso_desc.PS = PS_Volumetric_Spot;
-				gfx_pso_map[EPipelineState::Volumetric_Spot] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
-
-				gfx_pso_desc.PS = PS_Volumetric_Point;
-				gfx_pso_map[EPipelineState::Volumetric_Point] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
-
-				gfx_pso_desc = {};
 				ShaderCompiler::CreateInputLayout(GetShader(VS_Sun), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = ERootSignature::Common;
 				gfx_pso_desc.VS = VS_Sun;
@@ -381,6 +359,9 @@ namespace adria
 
 				compute_pso_desc.CS = CS_DeferredLighting;
 				compute_pso_map[EPipelineState::DeferredLighting] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.CS = CS_VolumetricLighting;
+				compute_pso_map[EPipelineState::VolumetricLighting] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 			}
 		}
 	}

@@ -21,9 +21,6 @@ namespace adria
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_ClusteredLightingPBR).GetPointer(), GetShader(PS_ClusteredLightingPBR).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::ClusteredLightingPBR].GetAddressOf())));
 
-			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_Volumetric_Directional).GetPointer(), GetShader(PS_Volumetric_Directional).GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::Volumetric].GetAddressOf())));
-
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_TiledLighting).GetPointer(), GetShader(CS_TiledLighting).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::TiledLighting].GetAddressOf())));
 

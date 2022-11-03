@@ -7,6 +7,7 @@
 #include "AmbientPass.h"
 #include "SkyPass.h"
 #include "DeferredLightingPass.h"
+#include "VolumetricLightingPass.h"
 #include "TiledLightingPass.h"
 #include "ClusteredLightingPass.h"
 #include "ToneMapPass.h"
@@ -120,6 +121,7 @@ namespace adria
 		FXAAPass	 fxaa_pass;
 		SkyPass		 sky_pass;
 		DeferredLightingPass deferred_lighting_pass;
+		VolumetricLightingPass volumetric_lighting_pass;
 		TiledLightingPass tiled_lighting_pass;
 		ClusteredLightingPass clustered_lighting_pass;
 		CopyToTexturePass copy_to_texture_pass;

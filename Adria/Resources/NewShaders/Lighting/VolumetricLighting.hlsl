@@ -50,7 +50,7 @@ void VolumetricLighting(CS_INPUT input)
 		Light light = lights[i];
 		if (!light.active) continue;
 
-		//if(!light.volumetric || light.shadowMapIndex < 0) continue;
+		if(!light.volumetric || light.shadowTextureIndex < 0) continue;
 
 		float3 P = viewPosition;
 		float3 lightAccumulation = 0.0f;
@@ -63,7 +63,7 @@ void VolumetricLighting(CS_INPUT input)
 		}
 
 		lightAccumulation /= sampleCount;
-		totalAccumulation += max(0, float4(lightAccumulation * light.color.rgb * light.volumetric_strength, 1));
+		totalAccumulation += lightAccumulation * light.color.rgb * light.volumetricStrength;
 	}
 
 	outputTx[input.DispatchThreadId.xy] += float4(totalAccumulation, 1.0f);
@@ -81,7 +81,7 @@ float GetAttenuation(Light light, float3 P)
 			float viewDepth = P.z;
 			for (uint i = 0; i < 4; ++i)
 			{
-				float4 worldPosition = mul(float4(viewPosition, 1.0f), FrameCB.inverseView);
+				float4 worldPosition = mul(float4(P, 1.0f), FrameCB.inverseView);
 				worldPosition /= worldPosition.w;
 				float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex + i];
 				float4 shadowMapPosition = mul(worldPosition, lightViewProjection);
@@ -116,9 +116,9 @@ float GetAttenuation(Light light, float3 P)
 	}
 	else if (light.type == POINT_LIGHT)
 	{
-		float3 lightToPixelWS = mul(float4(viewPosition - light.position.xyz, 0.0f), FrameCB.inverseView).xyz;
+		float3 lightToPixelWS = mul(float4(P - light.position.xyz, 0.0f), FrameCB.inverseView).xyz;
 		uint cubeFaceIndex = GetCubeFaceIndex(lightToPixelWS);
-		float4 worldPosition = mul(float4(viewPosition, 1.0f), FrameCB.inverseView);
+		float4 worldPosition = mul(float4(P, 1.0f), FrameCB.inverseView);
 		worldPosition /= worldPosition.w;
 		float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex + cubeFaceIndex];
 		float4 shadowMapPosition = mul(worldPosition, lightViewProjection);
@@ -134,7 +134,7 @@ float GetAttenuation(Light light, float3 P)
 	}
 	else if (light.type == SPOT_LIGHT)
 	{
-		float4 worldPosition = mul(float4(viewPosition, 1.0f), FrameCB.inverseView);
+		float4 worldPosition = mul(float4(P, 1.0f), FrameCB.inverseView);
 		worldPosition /= worldPosition.w;
 		float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex];
 		float4 shadowMapPosition = mul(worldPosition, lightViewProjection);

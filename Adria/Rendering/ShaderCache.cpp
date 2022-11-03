@@ -140,6 +140,8 @@ namespace adria
 				return "TAA";
 			case CS_DeferredLighting:
 				return "DeferredLighting";
+			case CS_VolumetricLighting:
+				return "VolumetricLighting";
 			case VS_Shadow:
 			case VS_Shadow_Transparent:
 				return "ShadowVS";
@@ -184,10 +186,6 @@ namespace adria
 			case PS_Bokeh:
 			case PS_Shadow:
 			case PS_Shadow_Transparent:
-			case PS_Volumetric_Directional:
-			case PS_Volumetric_Spot:
-			case PS_Volumetric_Point:
-			case PS_Volumetric_DirectionalCascades:
 			case PS_Ocean:
 				return EShaderStage::PS;
 			case GS_LensFlare:
@@ -226,6 +224,7 @@ namespace adria
 			case CS_Clouds:
 			case CS_Taa:
 			case CS_DeferredLighting:
+			case CS_VolumetricLighting:
 				return EShaderStage::CS;
 			case HS_OceanLOD:
 				return EShaderStage::HS;
@@ -286,14 +285,6 @@ namespace adria
 			case PS_Shadow:
 			case PS_Shadow_Transparent:
 				return "Lighting/Shadow.hlsl";
-			case PS_Volumetric_Directional:
-				return "Postprocess/VolumetricLightDirectionalPS.hlsl";
-			case PS_Volumetric_DirectionalCascades:
-				return "Postprocess/VolumetricLightDirectionalCascadesPS.hlsl";
-			case PS_Volumetric_Spot:
-				return "Postprocess/VolumetricLightSpotPS.hlsl";
-			case PS_Volumetric_Point:
-				return "Postprocess/VolumetricLightPointPS.hlsl";
 			case CS_Blur_Horizontal:
 			case CS_Blur_Vertical:
 				return "Postprocess/Blur.hlsl";
@@ -362,6 +353,8 @@ namespace adria
 				return "Lighting/Ambient.hlsl";
 			case CS_DeferredLighting:
 				return "Lighting/DeferredLighting.hlsl";
+			case CS_VolumetricLighting:
+				return "Lighting/VolumetricLighting.hlsl";
 			case LIB_Shadows:
 			case LIB_SoftShadows:
 				return "RayTracing/RayTracedShadows.hlsl";
@@ -457,6 +450,7 @@ namespace adria
 			case CS_GenerateMips:
 			case CS_Taa:
 			case CS_DeferredLighting:
+			case CS_VolumetricLighting:
 			case VS_Shadow:
 			case VS_Shadow_Transparent:
 			case PS_Shadow:

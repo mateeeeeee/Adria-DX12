@@ -141,6 +141,9 @@ namespace adria
 		int32 type;
 		float outer_cosine;
 		float inner_cosine;
+
+		int32 volumetric;
+		float volumetric_strength;
 		
 		int32 use_cascades;
 		int32 shadow_texture_index;

@@ -249,7 +249,7 @@ namespace adria
 		compute_cbuffer(gfx->GetDevice(), backbuffer_count),
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count),
 		gbuffer_pass(reg, width, height), ambient_pass(width, height), tonemap_pass(width, height),
-		sky_pass(reg, texture_manager, width, height), deferred_lighting_pass(width, height), 
+		sky_pass(reg, texture_manager, width, height), deferred_lighting_pass(width, height), volumetric_lighting_pass(width, height),
 		tiled_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
 		postprocessor(reg, texture_manager, width, height), fxaa_pass(width, height), picking_pass(gfx, width, height),
 		clustered_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height),
@@ -356,10 +356,9 @@ namespace adria
 			break;
 		}
 		ambient_pass.AddPass(render_graph);
-
 		AddShadowMapPasses(render_graph);
 		deferred_lighting_pass.AddPass(render_graph);
-
+		//volumetric_lighting_pass.AddPass(render_graph);
 		//if (renderer_settings.use_tiled_deferred)
 		//{
 		//	tiled_lighting_pass.AddPass(render_graph);
@@ -398,6 +397,7 @@ namespace adria
 			hbao_pass.OnResize(w, h);
 			sky_pass.OnResize(w, h);
 			deferred_lighting_pass.OnResize(w, h);
+			volumetric_lighting_pass.OnResize(w, h);
 			tiled_lighting_pass.OnResize(w, h);
 			clustered_lighting_pass.OnResize(w, h);
 			copy_to_texture_pass.OnResize(w, h);
@@ -487,7 +487,6 @@ namespace adria
 		final_texture = std::make_unique<Texture>(gfx, ldr_desc);
 		final_texture->CreateSRV();
 	}
-
 	void Renderer::SetupShadows()
 	{
 		ID3D12Device* device = gfx->GetDevice();
@@ -673,6 +672,8 @@ namespace adria
 			hlsl_light.type = static_cast<int32>(light.type);
 			hlsl_light.inner_cosine = light.inner_cosine;
 			hlsl_light.outer_cosine = light.outer_cosine;
+			hlsl_light.volumetric = light.volumetric;
+			hlsl_light.volumetric_strength = light.volumetric_strength;
 			hlsl_light.active = light.active;
 			hlsl_light.shadow_matrix_index = light.casts_shadows ? light.shadow_matrix_index : - 1;
 			hlsl_light.shadow_texture_index = light.casts_shadows ? light.shadow_texture_index : -1;

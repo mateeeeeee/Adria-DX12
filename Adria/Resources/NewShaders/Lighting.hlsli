@@ -15,6 +15,9 @@ struct Light
 	int		type;
 	float	outerCosine;
 	float	innerCosine;
+
+	int     volumetric;
+	float   volumetricStrength;
 	
 	int     useCascades;
 	int     shadowTextureIndex;
