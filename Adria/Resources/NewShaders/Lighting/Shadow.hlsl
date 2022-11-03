@@ -41,7 +41,7 @@ VS_OUTPUT ShadowVS(VS_INPUT input)
 	VS_OUTPUT output;
 	float4 pos = float4(input.Pos, 1.0f);
 	pos = mul(pos, ModelCB.modelMatrix);
-	pos = mul(pos, lightViewProjection); //transpose it?
+	pos = mul(pos, lightViewProjection); 
 	output.Pos = pos;
 
 #if ALPHA_TEST

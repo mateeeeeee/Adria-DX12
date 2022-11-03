@@ -5,7 +5,7 @@
 
 #define BLOCK_SIZE 16
 
-//add SSCS later when you add sscs parameters to hlsl Light struct
+//todo: add SSCS later when you add sscs parameters to hlsl Light struct
 
 struct DeferredLightingConstants
 {

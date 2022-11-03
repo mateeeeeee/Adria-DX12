@@ -119,7 +119,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\dxc\include\;$(SolutionDir)ThirdParty\DirectXTex\Include\;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\robin-map\include;$(SolutionDir)ThirdParty\entt;$(SolutionDir)ThirdParty\nfd\include;$(SolutionDir)ThirdParty\FontAwesome;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\dxc\include\;$(SolutionDir)ThirdParty\DirectXTex\Include\;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\robin-map\include;$(SolutionDir)ThirdParty\entt;$(SolutionDir)ThirdParty\nfd\include;$(SolutionDir)ThirdParty\FontAwesome;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
       <AdditionalOptions>/sdl /w34996 %(AdditionalOptions)</AdditionalOptions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -128,7 +128,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)ThirdParty\dxc\lib;$(SolutionDir)ThirdParty\FMOD\lib\x64;$(SolutionDir)ThirdParty\DirectXTex\Lib;$(SolutionDir)ThirdParty\nfd\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)ThirdParty\dxc\lib;$(SolutionDir)ThirdParty\DirectXTex\Lib;$(SolutionDir)ThirdParty\nfd\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>nfd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -142,7 +142,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\dxc\include\;$(SolutionDir)ThirdParty\DirectXTex\Include\;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\robin-map\include;$(SolutionDir)ThirdParty\entt;$(SolutionDir)ThirdParty\nfd\include;$(SolutionDir)ThirdParty\FontAwesome;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\dxc\include\;$(SolutionDir)ThirdParty\DirectXTex\Include\;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\robin-map\include;$(SolutionDir)ThirdParty\entt;$(SolutionDir)ThirdParty\nfd\include;$(SolutionDir)ThirdParty\FontAwesome;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
       <AdditionalOptions>/sdl /w34996 %(AdditionalOptions)</AdditionalOptions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -153,7 +153,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)ThirdParty\dxc\lib;$(SolutionDir)ThirdParty\FMOD\lib\x64;$(SolutionDir)ThirdParty\DirectXTex\Lib;$(SolutionDir)ThirdParty\nfd\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)ThirdParty\dxc\lib;$(SolutionDir)ThirdParty\DirectXTex\Lib;$(SolutionDir)ThirdParty\nfd\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <AdditionalDependencies>nfd_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -482,6 +482,18 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Lighting\VolumetricLighting.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
@@ -875,26 +887,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="Resources\OldShaders\Postprocess\TAA_PS.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="Resources\OldShaders\Postprocess\VolumetricLightDirectionalCascadesPS.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="Resources\OldShaders\Postprocess\VolumetricLightDirectionalPS.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="Resources\OldShaders\Postprocess\VolumetricLightPointPS.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="Resources\OldShaders\Postprocess\VolumetricLightSpotPS.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />
@@ -902,6 +894,7 @@
     <None Include="Resources\NewShaders\CommonResources.hlsli" />
     <None Include="Resources\NewShaders\Common.hlsli" />
     <None Include="Resources\NewShaders\Constants.hlsli" />
+    <None Include="Resources\NewShaders\DitherUtil.hlsli" />
     <None Include="Resources\NewShaders\Exposure\ExposureUtil.hlsli" />
     <None Include="Resources\NewShaders\Lighting.hlsli" />
     <None Include="Resources\NewShaders\Packing.hlsli" />
