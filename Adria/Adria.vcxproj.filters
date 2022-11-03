@@ -892,9 +892,6 @@
     <FxCompile Include="Resources\OldShaders\Deferred\ClusterLightingPBR_PS.hlsl">
       <Filter>OldShaders\Deferred</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\OldShaders\Deferred\LightingPBR_PS.hlsl">
-      <Filter>OldShaders\Deferred</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\OldShaders\Deferred\ScreenQuad.hlsl">
       <Filter>OldShaders\Deferred</Filter>
     </FxCompile>

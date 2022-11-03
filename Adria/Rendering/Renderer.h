@@ -87,7 +87,7 @@ namespace adria
 		//lights and shadows
 		std::unique_ptr<Buffer>  lights_buffer;
 		std::unique_ptr<Buffer>  light_matrices_buffer;
-		std::vector<std::unique_ptr<Texture>> light_shadow_maps;
+		HashMap<size_t, std::vector<std::unique_ptr<Texture>>> light_shadow_maps;
 		DescriptorHandle		 light_array_srv; 
 		DescriptorHandle		 light_matrices_srv; 
 		float					 cascades_split_lambda  = 0.5f;
