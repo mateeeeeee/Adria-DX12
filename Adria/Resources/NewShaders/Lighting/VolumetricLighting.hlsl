@@ -12,7 +12,7 @@ struct VolumetricLightingConstants
 };
 ConstantBuffer<VolumetricLightingConstants> PassCB : register(b1);
 
-float GetAttenuation(Light light, float3 P, float viewDepth);
+float GetAttenuation(Light light, float3 P);
 
 struct CS_INPUT
 {
@@ -56,7 +56,7 @@ void VolumetricLighting(CS_INPUT input)
 
 		for (uint j = 0; j < sampleCount; ++j)
 		{
-			lightAccumulation += GetAttenuation(light, P, viewPosition.z);
+			lightAccumulation += GetAttenuation(light, P);
 			marchedDistance += stepSize;
 			P = P + V * stepSize;
         }
@@ -69,7 +69,7 @@ void VolumetricLighting(CS_INPUT input)
 }
 
 
-float GetAttenuation(Light light, float3 P, float viewDepth)
+float GetAttenuation(Light light, float3 P)
 {
 	StructuredBuffer<float4x4> lightViewProjections = ResourceDescriptorHeap[FrameCB.lightsMatricesIdx];
 	float attenuation = 0.0f;
@@ -87,7 +87,7 @@ float GetAttenuation(Light light, float3 P, float viewDepth)
 				UVD.xy = 0.5 * UVD.xy + 0.5;
 				UVD.y = 1.0 - UVD.y;
 
-                if (viewDepth < FrameCB.cascadeSplits[i])
+                if (P.z < FrameCB.cascadeSplits[i])
 				{
 					Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex + i)];
 					attenuation = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 2048);
