@@ -6,7 +6,7 @@
 
 struct TiledLightingConstants
 {
-	float maxLightsVisualization;
+	int  maxLightsVisualization;
 	uint normalMetallicIdx;
 	uint diffuseIdx;
 	uint depthIdx;
@@ -97,7 +97,7 @@ void TiledDeferredLighting(CS_INPUT input)
 		frustumPlanes[i] *= rcp(length(frustumPlanes[i].xyz));
 	}
 
-	for (uint lightIndex = groupIndex; lightIndex < totalLights; lightIndex += BLOCK_SIZE * BLOCK_SIZE)
+	for (uint lightIndex = input.GroupIndex; lightIndex < totalLights; lightIndex += BLOCK_SIZE * BLOCK_SIZE)
 	{
 		Light light = lights[lightIndex];
 		if (!light.active) continue;
@@ -127,7 +127,7 @@ void TiledDeferredLighting(CS_INPUT input)
 	float4 normalMetallic = normalMetallicTx.Load(int3(input.DispatchThreadId.xy, 0));
 	float3 normal  = 2.0f * normalMetallic.rgb - 1.0f;
 	float metallic = normalMetallic.a;
-	float4 albedoRoughness = diffuseRoughnessTx.Load(int3(input.DispatchThreadId.xy, 0));
+	float4 albedoRoughness = diffuseTx.Load(int3(input.DispatchThreadId.xy, 0));
 	float3 V = normalize(0.0f.xxx - viewPosition);
 	float3 albedo = albedoRoughness.rgb;
 	float  roughness = albedoRoughness.a;

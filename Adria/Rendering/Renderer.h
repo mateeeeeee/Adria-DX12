@@ -8,8 +8,8 @@
 #include "SkyPass.h"
 #include "DeferredLightingPass.h"
 #include "VolumetricLightingPass.h"
-#include "TiledLightingPass.h"
-#include "ClusteredLightingPass.h"
+#include "TiledDeferredLightingPass.h"
+#include "ClusteredDeferredLightingPass.h"
 #include "ToneMapPass.h"
 #include "FXAAPass.h"
 #include "SSAOPass.h"
@@ -85,32 +85,16 @@ namespace adria
 		std::unique_ptr<Texture> final_texture;
 		std::unique_ptr<Texture> white_default_texture;
 
+		//Persistent constant buffers
+		ConstantBuffer<FrameCBuffer> frame_cbuffer;
+		ConstantBuffer<OldFrameCBuffer> old_frame_cbuffer;
+
 		//lights and shadows
 		std::unique_ptr<Buffer>  lights_buffer;
 		std::unique_ptr<Buffer>  light_matrices_buffer;
 		HashMap<size_t, std::vector<std::unique_ptr<Texture>>> light_shadow_maps;
 		DescriptorHandle		 light_array_srv; 
 		DescriptorHandle		 light_matrices_srv; 
-		float					 cascades_split_lambda  = 0.5f;
-		std::array<float, 4>	 split_distances;
-		bool				     transparent_shadows = false;
-
-		//Persistent constant buffers
-		ConstantBuffer<FrameCBuffer> frame_cbuffer;
-		ConstantBuffer<OldFrameCBuffer> old_frame_cbuffer;
-		ConstantBuffer<ComputeCBuffer> compute_cbuffer;
-
-		//misc
-		DirectX::XMFLOAT3        sun_direction;
-		std::unique_ptr<DescriptorHeap> null_heap;
-		bool update_picking_data = false;
-		PickingData picking_data;
-
-		//ibl, broken for now
-		std::unique_ptr<Texture> env_texture;
-		std::unique_ptr<Texture> irmap_texture;
-		std::unique_ptr<Texture> brdf_lut_texture;
-		bool ibl_generated = false;
 
 		//passes
 		GBufferPass  gbuffer_pass;
@@ -122,8 +106,8 @@ namespace adria
 		SkyPass		 sky_pass;
 		DeferredLightingPass deferred_lighting_pass;
 		VolumetricLightingPass volumetric_lighting_pass;
-		TiledLightingPass tiled_lighting_pass;
-		ClusteredLightingPass clustered_lighting_pass;
+		TiledDeferredLightingPass tiled_deferred_lighting_pass;
+		ClusteredDeferredLightingPass clustered_deferred_lighting_pass;
 		CopyToTexturePass copy_to_texture_pass;
 		AddTexturesPass add_textures_pass;
 		PickingPass picking_pass;
@@ -132,12 +116,27 @@ namespace adria
 		RayTracer ray_tracer;
 		AABBPass aabb_pass;
 		Postprocessor postprocessor;
-		
+
 		ViewportData viewport_data;
+
+		uint32			         volumetric_lights = 0;
+		float					 cascades_split_lambda = 0.5f;
+		bool				     transparent_shadows = false;
+		std::array<float, 4>	 split_distances;
+
+		//misc
+		float wind_dir[3] = { 1.0f, 0.0f, 1.0f };
+		float wind_speed = 10.0f;
+		DirectX::XMFLOAT3 sun_direction;
+		std::unique_ptr<DescriptorHeap> null_heap;
+		bool update_picking_data = false;
+		PickingData picking_data;
+
 	private:
 		void CreateNullHeap();
 		void CreateSizeDependentResources();
 
+		void MiscGUI();
 		void SetupShadows();
 		void UpdateLights();
 		void UpdatePersistentConstantBuffers(float dt);

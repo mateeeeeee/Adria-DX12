@@ -36,7 +36,6 @@ namespace adria
 		CS_Blur_Vertical,
 		CS_BloomExtract,
 		CS_BloomCombine,
-		CS_TiledLighting,
 		CS_ClusterBuilding,
 		CS_ClusterCulling,
 		CS_BokehGeneration,
@@ -74,6 +73,7 @@ namespace adria
 		CS_Taa,
 		CS_DeferredLighting,
 		CS_VolumetricLighting,
+		CS_TiledDeferredLighting,
 		LIB_Shadows,
 		LIB_SoftShadows,
 		LIB_AmbientOcclusion,
@@ -85,8 +85,7 @@ namespace adria
 	{
 		Invalid,
 		Common,
-		ClusteredLightingPBR,
-		TiledLighting,
+		ClusteredDeferredLighting,
 		ClusterBuilding,
 		ClusterCulling
 	};
@@ -106,8 +105,8 @@ namespace adria
 		Ambient,
 		DeferredLighting,
 		VolumetricLighting,
-		ClusteredLightingPBR,
-		TiledLighting,
+		ClusteredDeferredLighting,
+		TiledDeferredLighting,
 		ClusterBuilding,
 		ClusterCulling,
 		ToneMap,
@@ -176,6 +175,13 @@ namespace adria
 		None,
 		AlphaBlend,
 		AdditiveBlend
+	};
+
+	enum class ERenderPathType
+	{
+		RegularDeferred,
+		TiledDeferred,
+		//ClusteredDeferred
 	};
 
 	enum class EAmbientOcclusion : uint8

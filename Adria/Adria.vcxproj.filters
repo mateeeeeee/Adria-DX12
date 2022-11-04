@@ -218,7 +218,7 @@
     <ClCompile Include="Rendering\CopyToTexturePass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\TiledLightingPass.cpp">
+    <ClCompile Include="Rendering\TiledDeferredLightingPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\FXAAPass.cpp">
@@ -233,7 +233,7 @@
     <ClCompile Include="Rendering\Postprocessor.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\ClusteredLightingPass.cpp">
+    <ClCompile Include="Rendering\ClusteredDeferredLightingPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\SSAOPass.cpp">
@@ -616,7 +616,7 @@
     <ClInclude Include="Rendering\SkyPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\TiledLightingPass.h">
+    <ClInclude Include="Rendering\TiledDeferredLightingPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\CopyToTexturePass.h">
@@ -637,7 +637,7 @@
     <ClInclude Include="Rendering\GenerateMipsPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\ClusteredLightingPass.h">
+    <ClInclude Include="Rendering\ClusteredDeferredLightingPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\HashMap.h">

@@ -19,10 +19,7 @@ namespace adria
 		void CreateRootSignaturesFromHLSL(ID3D12Device* device)
 		{
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(PS_ClusteredLightingPBR).GetPointer(), GetShader(PS_ClusteredLightingPBR).GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::ClusteredLightingPBR].GetAddressOf())));
-
-			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_TiledLighting).GetPointer(), GetShader(CS_TiledLighting).GetLength(),
-				IID_PPV_ARGS(rs_map[ERootSignature::TiledLighting].GetAddressOf())));
+				IID_PPV_ARGS(rs_map[ERootSignature::ClusteredDeferredLighting].GetAddressOf())));
 
 			BREAK_IF_FAILED(device->CreateRootSignature(0, GetShader(CS_ClusterBuilding).GetPointer(), GetShader(CS_ClusterBuilding).GetLength(),
 				IID_PPV_ARGS(rs_map[ERootSignature::ClusterBuilding].GetAddressOf())));

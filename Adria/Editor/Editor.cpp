@@ -1079,8 +1079,7 @@ namespace adria
 				}
 				ImGui::EndCombo();
 			}
-			renderer_settings.use_tiled_deferred = (current_render_path_type == 1);
-			renderer_settings.use_clustered_deferred = (current_render_path_type == 2);
+			renderer_settings.render_path = static_cast<ERenderPathType>(current_render_path_type);
 
 			static const char* ao_types[] = { "None", "SSAO", "HBAO", "RTAO" };
 			static int current_ao_type = 0;
@@ -1137,13 +1136,6 @@ namespace adria
 
 			for (auto&& cmd : commands) cmd.callback();
 			commands.clear();
-
-			if (ImGui::TreeNode("Misc"))
-			{
-				ImGui::SliderFloat3("Wind direction", renderer_settings.wind_dir, 0.0f, 1.0f);
-				ImGui::SliderFloat("Wind speed", &renderer_settings.wind_speed, 0.0f, 10.0f);
-				ImGui::TreePop();
-			}
 		}
 		ImGui::End();
 	}

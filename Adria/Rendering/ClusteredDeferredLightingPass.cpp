@@ -1,4 +1,4 @@
-#include "ClusteredLightingPass.h"
+#include "ClusteredDeferredLightingPass.h"
 #include "ConstantBuffers.h"
 #include "Components.h"
 #include "BlackboardData.h"
@@ -13,7 +13,7 @@ using namespace DirectX;
 namespace adria
 {
 
-	ClusteredLightingPass::ClusteredLightingPass(entt::registry& reg, GraphicsDevice* gfx, uint32 w, uint32 h) : reg(reg), width(w), height(h),
+	ClusteredDeferredLightingPass::ClusteredDeferredLightingPass(entt::registry& reg, GraphicsDevice* gfx, uint32 w, uint32 h) : reg(reg), width(w), height(h),
 		clusters(gfx, StructuredBufferDesc<ClusterAABB>(CLUSTER_COUNT)),
 		light_counter(gfx, StructuredBufferDesc<uint32>(1)),
 		light_list(gfx, StructuredBufferDesc<uint32>(CLUSTER_COUNT * CLUSTER_MAX_LIGHTS)),
@@ -21,7 +21,7 @@ namespace adria
 	{
 	}
 
-	void ClusteredLightingPass::AddPass(RenderGraph& rendergraph, bool recreate_clusters)
+	void ClusteredDeferredLightingPass::AddPass(RenderGraph& rendergraph, bool recreate_clusters)
 	{
 		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
 
@@ -132,8 +132,8 @@ namespace adria
 				auto upload_buffer = gfx->GetDynamicAllocator();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::ClusteredLightingPBR));
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ClusteredLightingPBR));
+				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::ClusteredDeferredLighting));
+				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ClusteredDeferredLighting));
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 
 				//gbuffer

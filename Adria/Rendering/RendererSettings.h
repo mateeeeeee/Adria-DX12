@@ -22,12 +22,8 @@ namespace adria
 	struct RendererSettings
 	{
 		bool gui_visible = false;
-		bool use_tiled_deferred = false;
-		bool use_clustered_deferred = false;
+		ERenderPathType		render_path = ERenderPathType::RegularDeferred;
 		PostprocessSettings postprocess{};
-
-		float wind_dir[3] = {1.0f, 0.0f, 1.0f};
-		float wind_speed = 10.0f;
 	};
 
 }

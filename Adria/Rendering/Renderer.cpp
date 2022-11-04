@@ -7,11 +7,11 @@
 #include "ShaderCache.h"
 #include "SkyModel.h"
 #include "entt/entity/registry.hpp"
+#include "../Editor/GUICommand.h"
 #include "../Graphics/Buffer.h"
 #include "../Graphics/Texture.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Utilities/Random.h"
-
 #include "../Utilities/hwbp.h"
 
 using namespace DirectX;
@@ -246,13 +246,12 @@ namespace adria
 		texture_manager(gfx, 1000), camera(nullptr), width(width), height(height), 
 		backbuffer_count(gfx->BackbufferCount()), backbuffer_index(gfx->BackbufferIndex()), final_texture(nullptr),
 		old_frame_cbuffer(gfx->GetDevice(), backbuffer_count), 
-		compute_cbuffer(gfx->GetDevice(), backbuffer_count),
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count),
 		gbuffer_pass(reg, width, height), ambient_pass(width, height), tonemap_pass(width, height),
 		sky_pass(reg, texture_manager, width, height), deferred_lighting_pass(width, height), volumetric_lighting_pass(width, height),
-		tiled_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
+		tiled_deferred_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
 		postprocessor(reg, texture_manager, width, height), fxaa_pass(width, height), picking_pass(gfx, width, height),
-		clustered_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height),
+		clustered_deferred_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height),
 		decals_pass(reg, texture_manager, width, height), ocean_renderer(reg, texture_manager, width, height),
 		ray_tracer(reg, gfx, width, height), aabb_pass(reg, width, height)
 	{
@@ -280,6 +279,7 @@ namespace adria
 		UpdateLights();
 		UpdatePersistentConstantBuffers(dt);
 		CameraFrustumCulling();
+		MiscGUI();
 	}
 	void Renderer::Render(RendererSettings const& _settings)
 	{
@@ -297,13 +297,11 @@ namespace adria
 			global_data.camera_fov = camera->Fov();
 			global_data.new_frame_cbuffer_address = frame_cbuffer.BufferLocation(backbuffer_index);
 			global_data.frame_cbuffer_address = old_frame_cbuffer.BufferLocation(backbuffer_index);
-			global_data.compute_cbuffer_address = compute_cbuffer.BufferLocation(backbuffer_index);
 			global_data.null_srv_texture2d = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURE2D);
 			global_data.null_uav_texture2d = null_heap->GetHandle(NULL_HEAP_SLOT_RWTEXTURE2D);
 			global_data.null_srv_texture2darray = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURE2DARRAY);
 			global_data.null_srv_texturecube = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURECUBE);
 			global_data.white_srv_texture2d = white_default_texture->GetSRV();
-			global_data.lights_buffer_gpu_srv = light_array_srv;
 			global_data.lights_buffer_cpu_srv = lights_buffer->GetSRV();
 		}
 		rg_blackboard.Add<GlobalBlackboardData>(std::move(global_data));
@@ -357,16 +355,17 @@ namespace adria
 		}
 		ambient_pass.AddPass(render_graph);
 		AddShadowMapPasses(render_graph);
-		deferred_lighting_pass.AddPass(render_graph);
-		volumetric_lighting_pass.AddPass(render_graph);
-		//if (renderer_settings.use_tiled_deferred)
-		//{
-		//	tiled_lighting_pass.AddPass(render_graph);
-		//}
-		//else if (renderer_settings.use_clustered_deferred)
-		//{
-		//	clustered_lighting_pass.AddPass(render_graph, true);
-		//}
+		switch (renderer_settings.render_path)
+		{
+		case ERenderPathType::RegularDeferred:
+			deferred_lighting_pass.AddPass(render_graph);
+			break;
+		case ERenderPathType::TiledDeferred:
+			tiled_deferred_lighting_pass.AddPass(render_graph);
+		//case ERenderPathType::ClusteredDeferred:
+		//	clustered_deferred_lighting_pass.AddPass(render_graph, true);
+		}
+		if(volumetric_lights > 0) volumetric_lighting_pass.AddPass(render_graph);
 
 		aabb_pass.AddPass(render_graph);
 		ocean_renderer.AddPasses(render_graph);
@@ -398,8 +397,8 @@ namespace adria
 			sky_pass.OnResize(w, h);
 			deferred_lighting_pass.OnResize(w, h);
 			volumetric_lighting_pass.OnResize(w, h);
-			tiled_lighting_pass.OnResize(w, h);
-			clustered_lighting_pass.OnResize(w, h);
+			tiled_deferred_lighting_pass.OnResize(w, h);
+			clustered_deferred_lighting_pass.OnResize(w, h);
 			copy_to_texture_pass.OnResize(w, h);
 			tonemap_pass.OnResize(w, h);
 			fxaa_pass.OnResize(w, h);
@@ -487,6 +486,20 @@ namespace adria
 		final_texture = std::make_unique<Texture>(gfx, ldr_desc);
 		final_texture->CreateSRV();
 	}
+
+	void Renderer::MiscGUI()
+	{
+		AddGUI([&]() {
+
+			if (ImGui::TreeNode("Misc"))
+			{
+				ImGui::SliderFloat3("Wind direction", wind_dir, 0.0f, 1.0f);
+				ImGui::SliderFloat("Wind speed", &wind_speed, 0.0f, 10.0f);
+				ImGui::TreePop();
+			}
+			});
+	}
+
 	void Renderer::SetupShadows()
 	{
 		ID3D12Device* device = gfx->GetDevice();
@@ -568,10 +581,13 @@ namespace adria
 				else current_light_matrices_count++;
 			}
 		}
+		
 		if (current_light_matrices_count != light_matrices_count)
 		{
 			gfx->WaitForGPU();
 			light_matrices_count = current_light_matrices_count;
+			if (light_matrices_count == 0) return;
+
 			light_matrices_buffer = std::make_unique<Buffer>(gfx, StructuredBufferDesc<XMMATRIX>(light_matrices_count * backbuffer_count, false, true));
 			BufferSubresourceDesc srv_desc{};
 			srv_desc.size = light_matrices_count * sizeof(XMMATRIX);
@@ -637,6 +653,8 @@ namespace adria
 	}
 	void Renderer::UpdateLights()
 	{
+		volumetric_lights = 0;
+
 		auto light_view = reg.view<Light>();
 		static size_t light_count = 0;
 		if (light_count != light_view.size())
@@ -654,7 +672,6 @@ namespace adria
 				lights_buffer->CreateSRV(&srv_desc);
 			}
 		}
-
 		std::vector<LightHLSL> hlsl_lights{};
 		hlsl_lights.reserve(light_view.size());
 		uint32 light_index = 0;
@@ -679,6 +696,8 @@ namespace adria
 			hlsl_light.shadow_texture_index = light.casts_shadows ? light.shadow_texture_index : -1;
 			hlsl_light.use_cascades = light.use_cascades;
 			hlsl_lights.push_back(hlsl_light);
+
+			if (light.volumetric) ++volumetric_lights;
 		}
 		lights_buffer->Update(hlsl_lights.data(), hlsl_lights.size() * sizeof(LightHLSL), light_count * sizeof(LightHLSL) * backbuffer_index);
 
@@ -729,7 +748,7 @@ namespace adria
 					break;
 				}
 			}
-			frame_cbuf_data.wind_params = XMVectorSet(renderer_settings.wind_dir[0], renderer_settings.wind_dir[1], renderer_settings.wind_dir[2], renderer_settings.wind_speed);
+			frame_cbuf_data.wind_params = XMVectorSet(wind_dir[0], wind_dir[1], wind_dir[2], wind_speed);
 			frame_cbuffer.Update(frame_cbuf_data, backbuffer_index);
 			frame_cbuf_data.prev_view_projection = camera->ViewProj();
 		}
@@ -754,14 +773,6 @@ namespace adria
 
 			old_frame_cbuffer.Update(old_frame_cbuf_data, backbuffer_index);
 			old_frame_cbuf_data.prev_view_projection = camera->ViewProj();
-		}
-
-		//compute 
-		{
-			static ComputeCBuffer compute_cbuf_data{};
-			compute_cbuf_data.visualize_tiled = tiled_lighting_pass.IsVisualized();
-			compute_cbuf_data.visualize_max_lights = tiled_lighting_pass.MaxLightsForVisualization();
-			compute_cbuffer.Update(compute_cbuf_data, backbuffer_index);
 		}
 	}
 	void Renderer::CameraFrustumCulling()

@@ -14,7 +14,7 @@ namespace adria
 	class RenderGraph;
 	class GraphicsDevice;
 
-	class ClusteredLightingPass
+	class ClusteredDeferredLightingPass
 	{
 		static constexpr uint32 CLUSTER_SIZE_X = 16;
 		static constexpr uint32 CLUSTER_SIZE_Y = 16;
@@ -23,7 +23,7 @@ namespace adria
 		static constexpr uint32 CLUSTER_MAX_LIGHTS = 128;
 
 	public:
-		ClusteredLightingPass(entt::registry& reg, GraphicsDevice* gfx, uint32 w, uint32 h);
+		ClusteredDeferredLightingPass(entt::registry& reg, GraphicsDevice* gfx, uint32 w, uint32 h);
 
 		void AddPass(RenderGraph& rendergraph, bool recreate_clusters);
 

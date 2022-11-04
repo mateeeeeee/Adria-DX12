@@ -142,6 +142,8 @@ namespace adria
 				return "DeferredLighting";
 			case CS_VolumetricLighting:
 				return "VolumetricLighting";
+			case CS_TiledDeferredLighting:
+				return "TiledDeferredLighting";
 			case VS_Shadow:
 			case VS_Shadow_Transparent:
 				return "ShadowVS";
@@ -202,7 +204,6 @@ namespace adria
 			case CS_FFT_Horizontal:
 			case CS_FFT_Vertical:
 			case CS_OceanNormals:
-			case CS_TiledLighting:
 			case CS_ClusterBuilding:
 			case CS_ClusterCulling:
 			case CS_Picking:
@@ -225,6 +226,7 @@ namespace adria
 			case CS_Taa:
 			case CS_DeferredLighting:
 			case CS_VolumetricLighting:
+			case CS_TiledDeferredLighting:
 				return EShaderStage::CS;
 			case HS_OceanLOD:
 				return EShaderStage::HS;
@@ -304,8 +306,6 @@ namespace adria
 				return "Ocean/FFT.hlsl";
 			case CS_OceanNormals:
 				return "Ocean/OceanNormals.hlsl";
-			case CS_TiledLighting:
-				return "Deferred/TiledLightingCS.hlsl";
 			case CS_ClusterBuilding:
 				return "Deferred/ClusterBuildingCS.hlsl";
 			case CS_ClusterCulling:
@@ -355,6 +355,8 @@ namespace adria
 				return "Lighting/DeferredLighting.hlsl";
 			case CS_VolumetricLighting:
 				return "Lighting/VolumetricLighting.hlsl";
+			case CS_TiledDeferredLighting:
+				return "Lighting/TiledDeferredLighting.hlsl";
 			case LIB_Shadows:
 			case LIB_SoftShadows:
 				return "RayTracing/RayTracedShadows.hlsl";
@@ -451,6 +453,7 @@ namespace adria
 			case CS_Taa:
 			case CS_DeferredLighting:
 			case CS_VolumetricLighting:
+			case CS_TiledDeferredLighting:
 			case VS_Shadow:
 			case VS_Shadow_Transparent:
 			case PS_Shadow:

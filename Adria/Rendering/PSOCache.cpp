@@ -70,7 +70,7 @@ namespace adria
 				gfx_pso_map[EPipelineState::GBuffer_NoCull] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				gfx_pso_desc.root_signature = ERootSignature::ClusteredLightingPBR;
+				gfx_pso_desc.root_signature = ERootSignature::ClusteredDeferredLighting;
 				gfx_pso_desc.VS = VS_FullscreenQuad;
 				gfx_pso_desc.PS = PS_ClusteredLightingPBR;
 				gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
@@ -80,7 +80,7 @@ namespace adria
 				gfx_pso_desc.depth_state.depth_enable = false;
 				gfx_pso_desc.num_render_targets = 1;
 				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
-				gfx_pso_map[EPipelineState::ClusteredLightingPBR] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
+				gfx_pso_map[EPipelineState::ClusteredDeferredLighting] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
 				ShaderCompiler::CreateInputLayout(GetShader(VS_Shadow), gfx_pso_desc.input_layout);
@@ -266,11 +266,10 @@ namespace adria
 				compute_pso_desc.CS = CS_ClusterCulling;
 				compute_pso_map[EPipelineState::ClusterCulling] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::TiledLighting;
-				compute_pso_desc.CS = CS_TiledLighting;
-				compute_pso_map[EPipelineState::TiledLighting] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
-
 				compute_pso_desc.root_signature = ERootSignature::Common;
+				compute_pso_desc.CS = CS_TiledDeferredLighting;
+				compute_pso_map[EPipelineState::TiledDeferredLighting] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
 				compute_pso_desc.CS = CS_Picking;
 				compute_pso_map[EPipelineState::Picking] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 

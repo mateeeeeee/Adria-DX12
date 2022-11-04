@@ -14,10 +14,10 @@ namespace adria
 	}
 	class RenderGraph;
 
-	class TiledLightingPass
+	class TiledDeferredLightingPass
 	{
 	public:
-		TiledLightingPass(entt::registry& reg, uint32 w, uint32 h);
+		TiledDeferredLightingPass(entt::registry& reg, uint32 w, uint32 h);
 
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h)

@@ -14,14 +14,12 @@ namespace adria
 		float						camera_fov;
 		D3D12_GPU_VIRTUAL_ADDRESS   new_frame_cbuffer_address;
 		D3D12_GPU_VIRTUAL_ADDRESS   frame_cbuffer_address;
-		D3D12_GPU_VIRTUAL_ADDRESS   compute_cbuffer_address;
 		D3D12_CPU_DESCRIPTOR_HANDLE null_srv_texture2d;
 		D3D12_CPU_DESCRIPTOR_HANDLE null_uav_texture2d;
 		D3D12_CPU_DESCRIPTOR_HANDLE null_srv_texturecube;
 		D3D12_CPU_DESCRIPTOR_HANDLE null_srv_texture2darray;
 		D3D12_CPU_DESCRIPTOR_HANDLE white_srv_texture2d;
 		D3D12_CPU_DESCRIPTOR_HANDLE lights_buffer_cpu_srv;
-		D3D12_GPU_DESCRIPTOR_HANDLE lights_buffer_gpu_srv;
 	};
 
 	struct DoFBlackboardData
