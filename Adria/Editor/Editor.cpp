@@ -406,7 +406,7 @@ namespace adria
 						light_params.light_data.range = real() * 100.0f + 40.0f;
 						light_params.light_data.active = true;
 						light_params.light_data.volumetric = false;
-						light_params.light_data.volumetric_strength = 1.0f;
+						light_params.light_data.volumetric_strength = 0.3f;
 						engine->entity_loader->LoadLight(light_params);
 					}
 				}
@@ -435,7 +435,7 @@ namespace adria
 						light_params.light_data.range = real() * 100.0f + 40.0f;
 						light_params.light_data.active = true;
 						light_params.light_data.volumetric = false;
-						light_params.light_data.volumetric_strength = 1.0f;
+						light_params.light_data.volumetric_strength = 0.3f;
 						if (light_params.light_data.inner_cosine > light_params.light_data.outer_cosine)
 							std::swap(light_params.light_data.inner_cosine, light_params.light_data.outer_cosine);
 						engine->entity_loader->LoadLight(light_params);

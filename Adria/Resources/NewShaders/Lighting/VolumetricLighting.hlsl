@@ -42,7 +42,7 @@ void VolumetricLighting(CS_INPUT input)
 
 	const uint sampleCount = 16;
 	const float stepSize = cameraDistance / sampleCount;
-	viewPosition = viewPosition + V * stepSize * Dither(uv);
+    viewPosition = viewPosition + V * stepSize * Dither(((float2)input.DispatchThreadId.xy + 0.5f));
 
 	float3 totalAccumulation = 0.0f;
 	for (uint i = 0; i < lightCount; ++i)
@@ -87,7 +87,7 @@ float GetAttenuation(Light light, float3 P, float viewDepth)
 				UVD.xy = 0.5 * UVD.xy + 0.5;
 				UVD.y = 1.0 - UVD.y;
 
-                if (IsSaturated(UVD.xy) && viewDepth < FrameCB.cascadeSplits[i])
+                if (viewDepth < FrameCB.cascadeSplits[i])
 				{
 					Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex + i)];
 					attenuation = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 2048);

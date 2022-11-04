@@ -115,7 +115,7 @@ namespace adria
 
 				light.light_data.active = light_params.FindOr<bool>("active", true);
 				light.light_data.volumetric = light_params.FindOr<bool>("volumetric", false);
-				light.light_data.volumetric_strength = light_params.FindOr<float>("volumetric_strength", 1.0f);
+				light.light_data.volumetric_strength = light_params.FindOr<float>("volumetric_strength", 0.3f);
 
 				light.light_data.lens_flare = light_params.FindOr<bool>("lens_flare", false);
 				light.light_data.god_rays = light_params.FindOr<bool>("god_rays", false);
