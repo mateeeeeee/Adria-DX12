@@ -898,9 +898,6 @@
     <FxCompile Include="Resources\OldShaders\Deferred\ScreenQuad.hlsl">
       <Filter>OldShaders\Deferred</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\OldShaders\Deferred\TiledLightingCS.hlsl">
-      <Filter>OldShaders\Deferred</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\NewShaders\Postprocess\TAA.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
@@ -911,6 +908,9 @@
       <Filter>Shaders\Lighting</Filter>
     </FxCompile>
     <FxCompile Include="Resources\NewShaders\Lighting\VolumetricLighting.hlsl">
+      <Filter>Shaders\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Lighting\TiledDeferredLighting.hlsl">
       <Filter>Shaders\Lighting</Filter>
     </FxCompile>
   </ItemGroup>
@@ -968,6 +968,9 @@
     </None>
     <None Include="Resources\NewShaders\DitherUtil.hlsli">
       <Filter>Shaders</Filter>
+    </None>
+    <None Include="Resources\NewShaders\Lighting\LightRadiance.hlsli">
+      <Filter>Shaders\Lighting</Filter>
     </None>
   </ItemGroup>
 </Project>

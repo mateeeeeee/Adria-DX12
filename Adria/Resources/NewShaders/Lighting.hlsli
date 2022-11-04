@@ -187,6 +187,7 @@ static float CalcShadowFactor_PCF3x3(SamplerComparisonState shadowSampler,
 }
 
 
+//SSCS
 /*
 static const uint SSCS_MAX_STEPS = 16;
 
