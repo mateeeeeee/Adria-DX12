@@ -358,7 +358,7 @@ namespace adria
 		ambient_pass.AddPass(render_graph);
 		AddShadowMapPasses(render_graph);
 		deferred_lighting_pass.AddPass(render_graph);
-		//volumetric_lighting_pass.AddPass(render_graph);
+		volumetric_lighting_pass.AddPass(render_graph);
 		//if (renderer_settings.use_tiled_deferred)
 		//{
 		//	tiled_lighting_pass.AddPass(render_graph);

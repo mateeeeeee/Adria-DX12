@@ -366,14 +366,11 @@ namespace adria
 			{
 				ImGui::Text("Controls\n");
 				ImGui::Text(
-					"Move Camera with W, A, S, D, Q and E. Use Mouse for Rotating Camera. Use Mouse Scroll for Zoom In/Out.\n"
+					"Move Camera with W, A, S, D, Q and E. Hold Right Click and move Mouse for rotating Camera. Use Mouse Scroll for Zoom In/Out.\n"
 					"Press I to toggle between Cinema Mode and Editor Mode. (Scene Window has to be active) \n"
 					"Press G to toggle Gizmo. (Scene Window has to be active) \n"
 					"When Gizmo is enabled, use T, R and E to switch between Translation, Rotation and Scaling Mode.\n"
-					"Left Click on entity to select it. Left click again on selected entity to unselect it.\n"
-					"Right Click on empty area in Entities window to add entity. Right Click on selected entity to delete it.\n"
-					"When placing decals, right click on focused Scene window to pick a point for a decal (it's used only for "
-					"decals currently but that could change in the future)"
+					"To hot-reload shaders, press F5."
 				);
 				ImGui::Spacing();
 
@@ -393,7 +390,7 @@ namespace adria
 				ImGui::Text("For Easy Demonstration of Tiled Deferred Rendering");
 				static int light_count_to_add = 1;
 				ImGui::SliderInt("Light Count", &light_count_to_add, 1, 128);
-				if (ImGui::Button("Create Random Lights"))
+				if (ImGui::Button("Create Random Point Lights"))
 				{
 					static RealRandomGenerator real(0.0f, 1.0f);
 
@@ -410,6 +407,37 @@ namespace adria
 						light_params.light_data.active = true;
 						light_params.light_data.volumetric = false;
 						light_params.light_data.volumetric_strength = 1.0f;
+						engine->entity_loader->LoadLight(light_params);
+					}
+				}
+				ImGui::TreePop();
+				ImGui::Separator();
+			}
+			if (ImGui::TreeNodeEx("Spot Lights", 0))
+			{
+				static int light_count_to_add = 1;
+				ImGui::SliderInt("Light Count", &light_count_to_add, 1, 128);
+				if (ImGui::Button("Create Random Spot Lights"))
+				{
+					static RealRandomGenerator real(0.0f, 1.0f);
+
+					for (int32 i = 0; i < light_count_to_add; ++i)
+					{
+						LightParameters light_params{};
+						light_params.light_data.casts_shadows = false;
+						light_params.light_data.inner_cosine = real();
+						light_params.light_data.outer_cosine = real();
+						light_params.light_data.color = DirectX::XMVectorSet(real() * 2, real() * 2, real() * 2, 1.0f);
+						light_params.light_data.direction = DirectX::XMVectorSet(0.5f, -1.0f, 0.1f, 0.0f);
+						light_params.light_data.position = DirectX::XMVectorSet(real() * 200 - 100, real() * 200.0f, real() * 200 - 100, 1.0f);
+						light_params.light_data.type = ELightType::Spot;
+						light_params.mesh_type = ELightMesh::NoMesh;
+						light_params.light_data.range = real() * 100.0f + 40.0f;
+						light_params.light_data.active = true;
+						light_params.light_data.volumetric = false;
+						light_params.light_data.volumetric_strength = 1.0f;
+						if (light_params.light_data.inner_cosine > light_params.light_data.outer_cosine)
+							std::swap(light_params.light_data.inner_cosine, light_params.light_data.outer_cosine);
 						engine->entity_loader->LoadLight(light_params);
 					}
 				}

@@ -148,6 +148,8 @@ namespace adria
 		int32 use_cascades;
 		int32 shadow_texture_index;
 		int32 shadow_matrix_index;
+
+		int32 padd[2];
 	};
 
 	struct ClusterAABB

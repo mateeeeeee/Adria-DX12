@@ -10,18 +10,20 @@ struct Light
 	float4	position;
 	float4	direction;
 	float4	color;
+	
 	int		active;
 	float	range;
 	int		type;
 	float	outerCosine;
+	
 	float	innerCosine;
-
 	int     volumetric;
 	float   volumetricStrength;
-	
 	int     useCascades;
+	
 	int     shadowTextureIndex;
 	int     shadowMatrixIndex;
+    int2 padd;
 };
 
 struct LightingResult
