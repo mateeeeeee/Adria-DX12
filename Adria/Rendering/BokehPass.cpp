@@ -159,7 +159,7 @@ namespace adria
 
 				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::BokehGenerate));
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
 				cmd_list->SetComputeRootConstantBufferView(2, allocation.gpu_address);
 				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
@@ -244,7 +244,7 @@ namespace adria
 				};
 				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Bokeh));
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetGraphicsRoot32BitConstants(1, 2, &constants, 0);
 				cmd_list->IASetVertexBuffers(0, 0, nullptr);
 				cmd_list->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);

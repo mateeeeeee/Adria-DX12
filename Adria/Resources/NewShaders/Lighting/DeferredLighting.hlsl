@@ -3,8 +3,6 @@
 
 #define BLOCK_SIZE 16
 
-//todo: add SSCS later when you add sscs parameters to hlsl Light struct
-
 struct DeferredLightingConstants
 {
 	uint normalMetallicIdx;

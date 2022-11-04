@@ -100,7 +100,7 @@ namespace adria
 
 				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::LensFlare));
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetGraphicsRoot32BitConstants(1, 8, &constants, 0);
 				cmd_list->SetGraphicsRootConstantBufferView(2, allocation.gpu_address);
 				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);

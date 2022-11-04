@@ -45,7 +45,7 @@ namespace adria
 				allocation.Update(constants);
 
 				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetGraphicsRootConstantBufferView(2, allocation.gpu_address);
 
 				switch (sky_type)

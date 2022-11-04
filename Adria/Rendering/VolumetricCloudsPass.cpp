@@ -94,7 +94,7 @@ namespace adria
 
 				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Clouds));
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
 				cmd_list->SetComputeRootConstantBufferView(2, allocation.gpu_address);
 				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);

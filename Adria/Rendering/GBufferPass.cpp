@@ -72,7 +72,7 @@ namespace adria
 				}
 
 				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 
 				for (auto const& [params, entities] : batched_entities)
 				{

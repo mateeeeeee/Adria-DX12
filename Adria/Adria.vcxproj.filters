@@ -50,12 +50,6 @@
     <Filter Include="OldShaders">
       <UniqueIdentifier>{0a9b30a0-b2ef-4b72-b960-2c527af5b0d3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="OldShaders\Globals">
-      <UniqueIdentifier>{e5e40116-9a4b-4b12-b937-7804121c4def}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="OldShaders\Util">
-      <UniqueIdentifier>{e6199006-4c65-4f92-88f6-5de91fd1234b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="OldShaders\Deferred">
       <UniqueIdentifier>{fdab0aff-a14d-47c6-8aff-e5da9f364cb7}</UniqueIdentifier>
     </Filter>
@@ -886,18 +880,6 @@
     <FxCompile Include="Resources\NewShaders\Other\GenerateMips.hlsl">
       <Filter>Shaders\Other</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\OldShaders\Deferred\ClusterBuildingCS.hlsl">
-      <Filter>OldShaders\Deferred</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\OldShaders\Deferred\ClusterCullingCS.hlsl">
-      <Filter>OldShaders\Deferred</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\OldShaders\Deferred\ClusterLightingPBR_PS.hlsl">
-      <Filter>OldShaders\Deferred</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\OldShaders\Deferred\ScreenQuad.hlsl">
-      <Filter>OldShaders\Deferred</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\NewShaders\Postprocess\TAA.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
@@ -911,6 +893,15 @@
       <Filter>Shaders\Lighting</Filter>
     </FxCompile>
     <FxCompile Include="Resources\NewShaders\Lighting\TiledDeferredLighting.hlsl">
+      <Filter>Shaders\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Lighting\ClusterBuilding.hlsl">
+      <Filter>Shaders\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Lighting\ClusterCulling.hlsl">
+      <Filter>Shaders\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Lighting\ClusteredDeferredLighting.hlsl">
       <Filter>Shaders\Lighting</Filter>
     </FxCompile>
   </ItemGroup>
@@ -944,27 +935,6 @@
     </None>
     <None Include="Resources\NewShaders\Packing.hlsli">
       <Filter>Shaders</Filter>
-    </None>
-    <None Include="Resources\OldShaders\Globals\GlobalsCS.hlsli">
-      <Filter>OldShaders\Globals</Filter>
-    </None>
-    <None Include="Resources\OldShaders\Globals\GlobalsPS.hlsli">
-      <Filter>OldShaders\Globals</Filter>
-    </None>
-    <None Include="Resources\OldShaders\Globals\GlobalsVS.hlsli">
-      <Filter>OldShaders\Globals</Filter>
-    </None>
-    <None Include="Resources\OldShaders\Util\CBuffers.hlsli">
-      <Filter>OldShaders\Util</Filter>
-    </None>
-    <None Include="Resources\OldShaders\Util\LightUtil.hlsli">
-      <Filter>OldShaders\Util</Filter>
-    </None>
-    <None Include="Resources\OldShaders\Util\RootSignatures.hlsli">
-      <Filter>OldShaders\Util</Filter>
-    </None>
-    <None Include="Resources\OldShaders\Util\ShadowUtil.hlsli">
-      <Filter>OldShaders\Util</Filter>
     </None>
     <None Include="Resources\NewShaders\DitherUtil.hlsli">
       <Filter>Shaders</Filter>

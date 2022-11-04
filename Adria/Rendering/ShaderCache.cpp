@@ -144,6 +144,12 @@ namespace adria
 				return "VolumetricLighting";
 			case CS_TiledDeferredLighting:
 				return "TiledDeferredLighting";
+			case CS_ClusteredDeferredLighting:
+				return "ClusteredDeferredLighting";
+			case CS_ClusterBuilding:
+				return "ClusterBuilding";
+			case CS_ClusterCulling:
+				return "ClusterCulling";
 			case VS_Shadow:
 			case VS_Shadow_Transparent:
 				return "ShadowVS";
@@ -181,7 +187,6 @@ namespace adria
 			case PS_Decals_ModifyNormals:
 			case PS_GBuffer:
 			case PS_GBuffer_Mask:
-			case PS_ClusteredLightingPBR:
 			case PS_Copy:
 			case PS_Add:
 			case PS_LensFlare:
@@ -204,8 +209,6 @@ namespace adria
 			case CS_FFT_Horizontal:
 			case CS_FFT_Vertical:
 			case CS_OceanNormals:
-			case CS_ClusterBuilding:
-			case CS_ClusterCulling:
 			case CS_Picking:
 			case CS_GenerateMips:
 			case CS_BuildHistogram:
@@ -227,6 +230,9 @@ namespace adria
 			case CS_DeferredLighting:
 			case CS_VolumetricLighting:
 			case CS_TiledDeferredLighting:
+			case CS_ClusteredDeferredLighting:
+			case CS_ClusterBuilding:
+			case CS_ClusterCulling:
 				return EShaderStage::CS;
 			case HS_OceanLOD:
 				return EShaderStage::HS;
@@ -266,8 +272,6 @@ namespace adria
 				return "Lighting/GBuffer.hlsl";
 			case VS_FullscreenQuad:
 				return "Other/FullscreenQuad.hlsl";
-			case PS_ClusteredLightingPBR:
-				return "Deferred/ClusterLightingPBR_PS.hlsl";
 			case PS_Copy:
 				return "Other/CopyTexture.hlsl";
 			case PS_Add:
@@ -306,10 +310,6 @@ namespace adria
 				return "Ocean/FFT.hlsl";
 			case CS_OceanNormals:
 				return "Ocean/OceanNormals.hlsl";
-			case CS_ClusterBuilding:
-				return "Deferred/ClusterBuildingCS.hlsl";
-			case CS_ClusterCulling:
-				return "Deferred/ClusterCullingCS.hlsl";
 			case VS_Ocean:
 		    case PS_Ocean:
 				return "Ocean/Ocean.hlsl";
@@ -357,6 +357,12 @@ namespace adria
 				return "Lighting/VolumetricLighting.hlsl";
 			case CS_TiledDeferredLighting:
 				return "Lighting/TiledDeferredLighting.hlsl";
+			case CS_ClusteredDeferredLighting:
+				return "Lighting/ClusteredDeferredLighting.hlsl";
+			case CS_ClusterBuilding:
+				return "Lighting/ClusterBuilding.hlsl";
+			case CS_ClusterCulling:
+				return "Lighting/ClusterCulling.hlsl";
 			case LIB_Shadows:
 			case LIB_SoftShadows:
 				return "RayTracing/RayTracedShadows.hlsl";
@@ -458,6 +464,9 @@ namespace adria
 			case VS_Shadow_Transparent:
 			case PS_Shadow:
 			case PS_Shadow_Transparent:
+			case CS_ClusteredDeferredLighting:
+			case CS_ClusterBuilding:
+			case CS_ClusterCulling:
 				return true;
 			default:
 				return false;

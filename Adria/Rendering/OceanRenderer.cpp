@@ -73,7 +73,7 @@ namespace adria
 
 					cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::InitialSpectrum));
-					cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+					cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 					cmd_list->SetComputeRoot32BitConstants(1, 3, &constants, 0);
 					cmd_list->Dispatch(FFT_RESOLUTION / 16, FFT_RESOLUTION / 16, 1);
 				}, ERGPassType::Compute, ERGPassFlags::None);
@@ -115,7 +115,7 @@ namespace adria
 
 				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Phase));
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 5, &constants, 0);
 				cmd_list->Dispatch(FFT_RESOLUTION / 16, FFT_RESOLUTION / 16, 1);
 			}, ERGPassType::Compute, ERGPassFlags::None);
@@ -162,7 +162,7 @@ namespace adria
 
 				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Spectrum));
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);
 				cmd_list->Dispatch(FFT_RESOLUTION / 16, FFT_RESOLUTION / 16, 1);
 
@@ -302,7 +302,7 @@ namespace adria
 
 				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::OceanNormals));
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 5, &constants, 0);
 				cmd_list->Dispatch(FFT_RESOLUTION / 16, FFT_RESOLUTION / 16, 1);
 			}, ERGPassType::Compute, ERGPassFlags::None);
@@ -353,7 +353,7 @@ namespace adria
 						ocean_wireframe ? PSOCache::Get(EPipelineState::Ocean_Wireframe) :
 						PSOCache::Get(EPipelineState::Ocean));
 				}
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 
 				auto ocean_chunk_view = reg.view<Mesh, Material, Transform, AABB, Ocean>();				
 				for (auto ocean_chunk : ocean_chunk_view)

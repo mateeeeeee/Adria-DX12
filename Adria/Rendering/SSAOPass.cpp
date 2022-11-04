@@ -83,7 +83,7 @@ namespace adria
 				DynamicAllocation alloc = dynamic_allocator->Allocate(sizeof(ssao_kernel), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 				alloc.Update(ssao_kernel, alloc.size);
 
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
 				cmd_list->SetComputeRootConstantBufferView(2, alloc.gpu_address);
 				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);

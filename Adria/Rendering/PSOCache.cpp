@@ -70,19 +70,6 @@ namespace adria
 				gfx_pso_map[EPipelineState::GBuffer_NoCull] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				gfx_pso_desc.root_signature = ERootSignature::ClusteredDeferredLighting;
-				gfx_pso_desc.VS = VS_FullscreenQuad;
-				gfx_pso_desc.PS = PS_ClusteredLightingPBR;
-				gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
-				gfx_pso_desc.blend_state.render_target[0].blend_op = EBlendOp::Add;
-				gfx_pso_desc.blend_state.render_target[0].src_blend = EBlend::One;
-				gfx_pso_desc.blend_state.render_target[0].dest_blend = EBlend::One;
-				gfx_pso_desc.depth_state.depth_enable = false;
-				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = EFormat::R16G16B16A16_FLOAT;
-				gfx_pso_map[EPipelineState::ClusteredDeferredLighting] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
-
-				gfx_pso_desc = {};
 				ShaderCompiler::CreateInputLayout(GetShader(VS_Shadow), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = ERootSignature::Common;
 				gfx_pso_desc.VS = VS_Shadow;
@@ -257,16 +244,17 @@ namespace adria
 			}
 
 			ComputePipelineStateDesc compute_pso_desc{};
+			compute_pso_desc.root_signature = ERootSignature::Common;
 			{
-				compute_pso_desc.root_signature = ERootSignature::ClusterBuilding;
+				compute_pso_desc.CS = CS_ClusteredDeferredLighting;
+				compute_pso_map[EPipelineState::ClusteredDeferredLighting] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
 				compute_pso_desc.CS = CS_ClusterBuilding;
 				compute_pso_map[EPipelineState::ClusterBuilding] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::ClusterCulling;
 				compute_pso_desc.CS = CS_ClusterCulling;
 				compute_pso_map[EPipelineState::ClusterCulling] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.root_signature = ERootSignature::Common;
 				compute_pso_desc.CS = CS_TiledDeferredLighting;
 				compute_pso_map[EPipelineState::TiledDeferredLighting] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 

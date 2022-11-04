@@ -15,7 +15,6 @@ namespace adria
 		VS_GBuffer,
 		PS_GBuffer,
 		PS_GBuffer_Mask,
-		PS_ClusteredLightingPBR,
 		VS_Shadow,
 		PS_Shadow,
 		VS_Shadow_Transparent,
@@ -36,8 +35,6 @@ namespace adria
 		CS_Blur_Vertical,
 		CS_BloomExtract,
 		CS_BloomCombine,
-		CS_ClusterBuilding,
-		CS_ClusterCulling,
 		CS_BokehGeneration,
 		CS_GenerateMips,
 		CS_FFT_Horizontal,
@@ -74,6 +71,9 @@ namespace adria
 		CS_DeferredLighting,
 		CS_VolumetricLighting,
 		CS_TiledDeferredLighting,
+		CS_ClusteredDeferredLighting,
+		CS_ClusterBuilding,
+		CS_ClusterCulling,
 		LIB_Shadows,
 		LIB_SoftShadows,
 		LIB_AmbientOcclusion,
@@ -84,10 +84,7 @@ namespace adria
 	enum class ERootSignature : uint8
 	{
 		Invalid,
-		Common,
-		ClusteredDeferredLighting,
-		ClusterBuilding,
-		ClusterCulling
+		Common
 	};
 
 	enum class EPipelineState : uint8
@@ -105,8 +102,8 @@ namespace adria
 		Ambient,
 		DeferredLighting,
 		VolumetricLighting,
-		ClusteredDeferredLighting,
 		TiledDeferredLighting,
+		ClusteredDeferredLighting,
 		ClusterBuilding,
 		ClusterCulling,
 		ToneMap,
@@ -181,7 +178,7 @@ namespace adria
 	{
 		RegularDeferred,
 		TiledDeferred,
-		//ClusteredDeferred
+		ClusteredDeferred
 	};
 
 	enum class EAmbientOcclusion : uint8

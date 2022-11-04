@@ -58,7 +58,7 @@ namespace adria
 				};
 
 				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				auto decal_view = reg.view<Decal>();
 
 				auto decal_pass_lambda = [&](bool modify_normals)

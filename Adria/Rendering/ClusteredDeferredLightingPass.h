@@ -35,7 +35,6 @@ namespace adria
 	private:
 		entt::registry& reg;
 		uint32 width, height;
-		//maybe move to render graph?
 		Buffer clusters;
 		Buffer light_counter;
 		Buffer light_list;

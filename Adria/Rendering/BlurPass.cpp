@@ -59,7 +59,7 @@ namespace adria
 
 				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Blur_Horizontal));
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 2, &constants, 0);
 				cmd_list->Dispatch((uint32)std::ceil(width / 1024.0f), height, 1);
 			}, ERGPassType::Compute, ERGPassFlags::None);
@@ -99,7 +99,7 @@ namespace adria
 
 				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Blur_Vertical));
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 2, &constants, 0);
 				cmd_list->Dispatch(width, (uint32)std::ceil(height / 1024.0f), 1);
 

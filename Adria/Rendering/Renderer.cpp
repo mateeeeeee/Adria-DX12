@@ -245,7 +245,6 @@ namespace adria
 	Renderer::Renderer(entt::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx), 
 		texture_manager(gfx, 1000), camera(nullptr), width(width), height(height), 
 		backbuffer_count(gfx->BackbufferCount()), backbuffer_index(gfx->BackbufferIndex()), final_texture(nullptr),
-		old_frame_cbuffer(gfx->GetDevice(), backbuffer_count), 
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count),
 		gbuffer_pass(reg, width, height), ambient_pass(width, height), tonemap_pass(width, height),
 		sky_pass(reg, texture_manager, width, height), deferred_lighting_pass(width, height), volumetric_lighting_pass(width, height),
@@ -277,7 +276,7 @@ namespace adria
 	{
 		SetupShadows();
 		UpdateLights();
-		UpdatePersistentConstantBuffers(dt);
+		UpdateFrameConstantBuffer(dt);
 		CameraFrustumCulling();
 		MiscGUI();
 	}
@@ -295,8 +294,7 @@ namespace adria
 			global_data.camera_proj = camera->Proj();
 			global_data.camera_viewproj = camera->ViewProj();
 			global_data.camera_fov = camera->Fov();
-			global_data.new_frame_cbuffer_address = frame_cbuffer.BufferLocation(backbuffer_index);
-			global_data.frame_cbuffer_address = old_frame_cbuffer.BufferLocation(backbuffer_index);
+			global_data.frame_cbuffer_address = frame_cbuffer.BufferLocation(backbuffer_index);
 			global_data.null_srv_texture2d = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURE2D);
 			global_data.null_uav_texture2d = null_heap->GetHandle(NULL_HEAP_SLOT_RWTEXTURE2D);
 			global_data.null_srv_texture2darray = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURE2DARRAY);
@@ -362,8 +360,10 @@ namespace adria
 			break;
 		case ERenderPathType::TiledDeferred:
 			tiled_deferred_lighting_pass.AddPass(render_graph);
-		//case ERenderPathType::ClusteredDeferred:
-		//	clustered_deferred_lighting_pass.AddPass(render_graph, true);
+			break;
+		case ERenderPathType::ClusteredDeferred:
+			clustered_deferred_lighting_pass.AddPass(render_graph, true);
+			break;
 		}
 		if(volumetric_lights > 0) volumetric_lighting_pass.AddPass(render_graph);
 
@@ -708,72 +708,48 @@ namespace adria
 		device->CopyDescriptorsSimple(1, dst_descriptor, lights_buffer->GetSRV(backbuffer_index), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		light_array_srv = dst_descriptor;
 	}
-	void Renderer::UpdatePersistentConstantBuffers(float dt)
+	void Renderer::UpdateFrameConstantBuffer(float dt)
 	{
 		static float total_time = 0.0f;
 		total_time += dt;
 
 		static FrameCBuffer frame_cbuf_data{};
+		frame_cbuf_data.camera_near = camera->Near();
+		frame_cbuf_data.camera_far = camera->Far();
+		frame_cbuf_data.camera_position = camera->Position();
+		frame_cbuf_data.camera_forward = camera->Forward();
+		frame_cbuf_data.view = camera->View();
+		frame_cbuf_data.projection = camera->Proj();
+		frame_cbuf_data.view_projection = camera->ViewProj();
+		frame_cbuf_data.inverse_view = XMMatrixInverse(nullptr, camera->View());
+		frame_cbuf_data.inverse_projection = XMMatrixInverse(nullptr, camera->Proj());
+		frame_cbuf_data.inverse_view_projection = XMMatrixInverse(nullptr, camera->ViewProj());
+		frame_cbuf_data.reprojection = frame_cbuf_data.inverse_view_projection * frame_cbuf_data.prev_view_projection;
+		frame_cbuf_data.screen_resolution_x = (float)width;
+		frame_cbuf_data.screen_resolution_y = (float)height;
+		frame_cbuf_data.delta_time = dt;
+		frame_cbuf_data.total_time = total_time;
+		frame_cbuf_data.frame_count = gfx->FrameIndex();
+		frame_cbuf_data.mouse_normalized_coords_x = (viewport_data.mouse_position_x - viewport_data.scene_viewport_pos_x) / viewport_data.scene_viewport_size_x;
+		frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
+		frame_cbuf_data.lights_idx = (int32)light_array_srv.GetHeapOffset();
+		frame_cbuf_data.lights_matrices_idx = (int32)light_matrices_srv.GetHeapOffset();
+		frame_cbuf_data.cascade_splits = XMVectorSet(split_distances[0], split_distances[1], split_distances[2], split_distances[3]);
+		auto lights = reg.view<Light>();
+		for (auto light : lights)
 		{
-			frame_cbuf_data.camera_near = camera->Near();
-			frame_cbuf_data.camera_far = camera->Far();
-			frame_cbuf_data.camera_position = camera->Position();
-			frame_cbuf_data.camera_forward = camera->Forward();
-			frame_cbuf_data.view = camera->View();
-			frame_cbuf_data.projection = camera->Proj();
-			frame_cbuf_data.view_projection = camera->ViewProj();
-			frame_cbuf_data.inverse_view = XMMatrixInverse(nullptr, camera->View());
-			frame_cbuf_data.inverse_projection = XMMatrixInverse(nullptr, camera->Proj());
-			frame_cbuf_data.inverse_view_projection = XMMatrixInverse(nullptr, camera->ViewProj());
-			frame_cbuf_data.reprojection = frame_cbuf_data.inverse_view_projection * frame_cbuf_data.prev_view_projection;
-			frame_cbuf_data.screen_resolution_x = (float)width;
-			frame_cbuf_data.screen_resolution_y = (float)height;
-			frame_cbuf_data.delta_time = dt;
-			frame_cbuf_data.total_time = total_time;
-			frame_cbuf_data.frame_count = gfx->FrameIndex();
-			frame_cbuf_data.mouse_normalized_coords_x = (viewport_data.mouse_position_x - viewport_data.scene_viewport_pos_x) / viewport_data.scene_viewport_size_x;
-			frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
-			frame_cbuf_data.lights_idx = (int32)light_array_srv.GetHeapOffset();
-			frame_cbuf_data.lights_matrices_idx = (int32)light_matrices_srv.GetHeapOffset();
-			frame_cbuf_data.cascade_splits = XMVectorSet(split_distances[0], split_distances[1], split_distances[2], split_distances[3]);
-			auto lights = reg.view<Light>();
-			for (auto light : lights)
+			auto const& light_data = lights.get<Light>(light);
+			if (light_data.type == ELightType::Directional && light_data.active)
 			{
-				auto const& light_data = lights.get<Light>(light);
-				if (light_data.type == ELightType::Directional && light_data.active)
-				{
-					frame_cbuf_data.sun_direction = -light_data.direction;
-					frame_cbuf_data.sun_color = light_data.color;
-					XMStoreFloat3(&sun_direction, -light_data.direction);
-					break;
-				}
+				frame_cbuf_data.sun_direction = -light_data.direction;
+				frame_cbuf_data.sun_color = light_data.color;
+				XMStoreFloat3(&sun_direction, -light_data.direction);
+				break;
 			}
-			frame_cbuf_data.wind_params = XMVectorSet(wind_dir[0], wind_dir[1], wind_dir[2], wind_speed);
-			frame_cbuffer.Update(frame_cbuf_data, backbuffer_index);
-			frame_cbuf_data.prev_view_projection = camera->ViewProj();
 		}
-
-		static OldFrameCBuffer old_frame_cbuf_data{};
-		//frame
-		{
-			old_frame_cbuf_data.camera_near = camera->Near();
-			old_frame_cbuf_data.camera_far = camera->Far();
-			old_frame_cbuf_data.camera_position = camera->Position();
-			old_frame_cbuf_data.camera_forward = camera->Forward();
-			old_frame_cbuf_data.view = camera->View();
-			old_frame_cbuf_data.projection = camera->Proj();
-			old_frame_cbuf_data.view_projection = camera->ViewProj();
-			old_frame_cbuf_data.inverse_view = DirectX::XMMatrixInverse(nullptr, camera->View());
-			old_frame_cbuf_data.inverse_projection = DirectX::XMMatrixInverse(nullptr, camera->Proj());
-			old_frame_cbuf_data.inverse_view_projection = DirectX::XMMatrixInverse(nullptr, camera->ViewProj());
-			old_frame_cbuf_data.screen_resolution_x = (float)width;
-			old_frame_cbuf_data.screen_resolution_y = (float)height;
-			old_frame_cbuf_data.mouse_normalized_coords_x = (viewport_data.mouse_position_x - viewport_data.scene_viewport_pos_x) / viewport_data.scene_viewport_size_x;
-			old_frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
-
-			old_frame_cbuffer.Update(old_frame_cbuf_data, backbuffer_index);
-			old_frame_cbuf_data.prev_view_projection = camera->ViewProj();
-		}
+		frame_cbuf_data.wind_params = XMVectorSet(wind_dir[0], wind_dir[1], wind_dir[2], wind_speed);
+		frame_cbuffer.Update(frame_cbuf_data, backbuffer_index);
+		frame_cbuf_data.prev_view_projection = camera->ViewProj();
 	}
 	void Renderer::CameraFrustumCulling()
 	{

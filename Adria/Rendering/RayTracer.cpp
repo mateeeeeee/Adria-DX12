@@ -175,7 +175,7 @@ namespace adria
 				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState1(ray_traced_shadows.Get());
 
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 4, &constants, 0);
 				
 				D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
@@ -268,7 +268,7 @@ namespace adria
 				};
 
 				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 7, &constants, 0);
 				cmd_list->SetPipelineState1(ray_traced_reflections.Get());
 
@@ -346,7 +346,7 @@ namespace adria
 				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState1(ray_traced_ambient_occlusion.Get());
 
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 5, &constants, 0);
 
 				D3D12_DISPATCH_RAYS_DESC dispatch_desc{};

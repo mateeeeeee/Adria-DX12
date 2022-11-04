@@ -87,7 +87,6 @@ namespace adria
 
 		//Persistent constant buffers
 		ConstantBuffer<FrameCBuffer> frame_cbuffer;
-		ConstantBuffer<OldFrameCBuffer> old_frame_cbuffer;
 
 		//lights and shadows
 		std::unique_ptr<Buffer>  lights_buffer;
@@ -139,7 +138,7 @@ namespace adria
 		void MiscGUI();
 		void SetupShadows();
 		void UpdateLights();
-		void UpdatePersistentConstantBuffers(float dt);
+		void UpdateFrameConstantBuffer(float dt);
 		void CameraFrustumCulling();
 
 		void ShadowMapPass_Common(GraphicsDevice* gfx, ID3D12GraphicsCommandList4* cmd_list, bool transparent, size_t light_index, size_t shadow_map_index = 0);

@@ -53,7 +53,7 @@ namespace adria
 					.depth_idx = i, .output_idx = i + 1
 				};
 				
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.new_frame_cbuffer_address);
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 2, &constants, 0);
 				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
 			}, ERGPassType::Compute, ERGPassFlags::None);
