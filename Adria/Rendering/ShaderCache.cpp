@@ -12,8 +12,7 @@ namespace fs = std::filesystem;
 
 namespace adria
 {
-	char const* old_shaders_directory = "Resources/OldShaders/";
-	char const* new_shaders_directory = "Resources/NewShaders/";
+	char const* shaders_directory = "Resources/NewShaders/";
 	namespace
 	{
 		std::unique_ptr<FileWatcher> file_watcher;
@@ -392,87 +391,6 @@ namespace adria
 				return {};
 			}
 		}
-		constexpr bool UseNewShadersDirectory(EShaderId shader)
-		{
-			switch (shader)
-			{
-			case CS_BuildHistogram:
-			case CS_HistogramReduction:
-			case CS_Exposure:
-			case CS_Ssao:
-			case CS_Hbao:
-			case CS_Ssr:
-			case CS_Fog:
-			case CS_Tonemap:
-			case CS_MotionVectors:
-			case CS_MotionBlur:
-			case CS_Dof:
-			case CS_GodRays:
-			case CS_Fxaa:
-			case CS_Ambient:
-			case LIB_AmbientOcclusion:
-			case LIB_Reflections:
-			case LIB_Shadows:
-			case LIB_SoftShadows:
-			case VS_GBuffer:
-			case PS_GBuffer:
-			case PS_GBuffer_Mask:
-			case VS_LensFlare:
-			case GS_LensFlare:
-			case PS_LensFlare:
-			case VS_Bokeh:
-			case GS_Bokeh:
-			case PS_Bokeh:
-			case CS_BokehGeneration:
-			case CS_Clouds:
-			case CS_BloomExtract:
-			case CS_BloomCombine:
-			case CS_Blur_Horizontal:
-			case CS_Blur_Vertical:
-			case CS_Picking:
-			case VS_Ocean:
-			case PS_Ocean:
-			case VS_OceanLOD:
-			case HS_OceanLOD:
-			case DS_OceanLOD:
-			case CS_FFT_Horizontal:
-			case CS_FFT_Vertical:
-			case CS_InitialSpectrum:
-			case CS_Spectrum:
-			case CS_Phase:
-			case CS_OceanNormals:
-			case VS_FullscreenQuad:
-			case PS_Copy:
-			case PS_Add:
-			case VS_Sky:
-			case PS_Skybox:
-			case PS_HosekWilkieSky:
-			case PS_UniformColorSky:
-			case VS_Simple:
-			case VS_Sun:
-			case PS_Texture:
-			case PS_Solid:
-			case VS_Decals:
-			case PS_Decals:
-			case PS_Decals_ModifyNormals:
-			case CS_GenerateMips:
-			case CS_Taa:
-			case CS_DeferredLighting:
-			case CS_VolumetricLighting:
-			case CS_TiledDeferredLighting:
-			case VS_Shadow:
-			case VS_Shadow_Transparent:
-			case PS_Shadow:
-			case PS_Shadow_Transparent:
-			case CS_ClusteredDeferredLighting:
-			case CS_ClusterBuilding:
-			case CS_ClusterCulling:
-				return true;
-			default:
-				return false;
-			}
-			return false;
-		}
 
 		void CompileShader(EShaderId shader)
 		{
@@ -483,9 +401,7 @@ namespace adria
 			shader_desc.stage = GetShaderStage(shader);
 			shader_desc.macros = GetShaderMacros(shader);
 			shader_desc.model = SM_6_6;
-			shader_desc.file = UseNewShadersDirectory(shader) ?
-				std::string(new_shaders_directory) + GetShaderSource(shader) :
-				std::string(old_shaders_directory) + GetShaderSource(shader);
+			shader_desc.file = std::string(shaders_directory) + GetShaderSource(shader);
 #if _DEBUG
 			shader_desc.flags = ShaderCompilerFlag_DisableOptimization | ShaderCompilerFlag_Debug;
 #else
@@ -530,8 +446,7 @@ namespace adria
 	void ShaderCache::Initialize()
 	{
 		file_watcher = std::make_unique<FileWatcher>();
-		file_watcher->AddPathToWatch(old_shaders_directory);
-		file_watcher->AddPathToWatch(new_shaders_directory);
+		file_watcher->AddPathToWatch(shaders_directory);
 		std::ignore = file_watcher->GetFileModifiedEvent().Add(OnShaderFileChanged);
 		CompileAllShaders();
 	}

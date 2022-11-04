@@ -47,12 +47,6 @@
     <Filter Include="Font">
       <UniqueIdentifier>{4bcac2f2-2236-4e3b-8891-7ec43621b7d1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="OldShaders">
-      <UniqueIdentifier>{0a9b30a0-b2ef-4b72-b960-2c527af5b0d3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="OldShaders\Deferred">
-      <UniqueIdentifier>{fdab0aff-a14d-47c6-8aff-e5da9f364cb7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shaders">
       <UniqueIdentifier>{1e5e0278-a230-4a83-80fb-55d749bd8fad}</UniqueIdentifier>
     </Filter>

@@ -87,7 +87,7 @@ namespace adria
 		SIZE_T bytecodeSize = 0;
 	};
 
-	extern char const* new_shaders_directory;
+	extern char const* shaders_directory;
 	inline constexpr std::wstring GetTarget(EShaderStage stage, EShaderModel model)
 	{
 		std::wstring target = L"";
@@ -178,7 +178,7 @@ namespace adria
 			BREAK_IF_FAILED(hr);
 
 			std::wstring name = ToWideString(GetFilenameWithoutExtension(desc.file));
-			std::wstring dir  = ToWideString(new_shaders_directory);
+			std::wstring dir  = ToWideString(shaders_directory);
 			std::wstring path = ToWideString(GetParentPath(desc.file));
 			
 			std::wstring target = GetTarget(desc.stage, desc.model);
