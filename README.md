@@ -78,9 +78,9 @@ All of DXR screenshots will go here:
      </tr>
   <tr>
     <td><img src="Screenshots/cascades.png"></td>
-    <td><img src="Screenshots/rtshadows.png"></td>
+    <td><img src="Screenshots/raytraced.png"></td>
   </tr>
 </table>
 
-Ray Traced Reflections, RTAO and Depth of Field Bokeh
+Ray Traced Reflections, RTAO and Bokeh
 ![alt text](Screenshots/rtr.png "Ray Traced Reflections") 
