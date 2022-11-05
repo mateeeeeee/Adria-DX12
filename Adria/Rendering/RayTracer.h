@@ -76,12 +76,6 @@ namespace adria
 		Microsoft::WRL::ComPtr<ID3D12StateObject> ray_traced_reflections;
 
 		BlurPass blur_pass;
-#ifdef _DEBUG
-		std::unique_ptr<Texture> rtao_debug_texture;
-		std::unique_ptr<Texture> rts_debug_texture;
-		std::unique_ptr<Texture> rtr_debug_texture;
-#endif
-
 		float ao_radius = 2.0f;
 		
 	private:
