@@ -49,8 +49,8 @@ void DeferredLighting(CS_INPUT input)
 	{
 		Light light = lights[i];
 		if (!light.active) continue;
-		totalRadiance += LightRadiance(light, viewPosition, normal, V, albedo, metallic, roughness);
-	}
+        totalRadiance += LightRadiance(light, viewPosition, normal, V, albedo, metallic, roughness, uv);
+    }
 
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
 	outputTx[input.DispatchThreadId.xy] += float4(totalRadiance, 1.0f);

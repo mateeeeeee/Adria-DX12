@@ -2,7 +2,7 @@
 #include "../CommonResources.hlsli"
 #include "../Common.hlsli"
 
-static float3 LightRadiance(Light light, float3 P, float3 N, float3 V, float3 albedo, float metallic, float roughness)
+static float3 LightRadiance(Light light, float3 P, float3 N, float3 V, float3 albedo, float metallic, float roughness, float2 uv)
 {
 	StructuredBuffer<float4x4> lightViewProjections = ResourceDescriptorHeap[FrameCB.lightsMatricesIdx];
 	float3 lightRadiance = 0.0f;
@@ -92,7 +92,14 @@ static float3 LightRadiance(Light light, float3 P, float3 N, float3 V, float3 al
 		}
 		lightRadiance *= shadowFactor;
 	}
-
+	
+    bool rayTracedShadows = light.shadowMaskIndex >= 0;
+	if(rayTracedShadows)
+    {
+        Texture2D<float> rayTracedMaskTexture = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowMaskIndex)];
+        float maskValue = rayTracedMaskTexture.Sample(LinearWrapSampler, uv).r;
+        lightRadiance *= maskValue;
+    }
 	return lightRadiance;
 }
 

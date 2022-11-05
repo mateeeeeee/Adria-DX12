@@ -139,8 +139,8 @@ void TiledDeferredLighting(CS_INPUT input)
 		{
 			Light light = lights[TileLightIndices[i]];
 			if (!light.active) continue;
-			totalRadiance += LightRadiance(light, viewPosition, normal, V, albedo, metallic, roughness);
-		}
+            totalRadiance += LightRadiance(light, viewPosition, normal, V, albedo, metallic, roughness, uv);
+        }
 	}
 
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];

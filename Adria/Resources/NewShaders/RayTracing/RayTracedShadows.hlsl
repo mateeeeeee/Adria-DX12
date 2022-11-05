@@ -4,7 +4,6 @@
 
 struct RayTracedShadowsConstants
 {
-	uint  accelStructIdx;
 	uint  depthIdx;
 	uint  outputIdx;
 	uint  lightIdx;
@@ -19,7 +18,7 @@ struct ShadowRayData
 [shader("raygeneration")]
 void RTS_RayGen()
 {
-	RaytracingAccelerationStructure scene = ResourceDescriptorHeap[PassCB.accelStructIdx];
+	RaytracingAccelerationStructure scene = ResourceDescriptorHeap[FrameCB.accelStructIdx];
 	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
 	RWTexture2D<float> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
 	StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];

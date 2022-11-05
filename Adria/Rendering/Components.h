@@ -109,6 +109,7 @@ namespace adria
 		bool soft_rts = false;
 		int32 shadow_texture_index = -1;
 		int32 shadow_matrix_index = -1;
+		int32 shadow_mask_index = -1;
 		uint32 light_index = 0;
 
 		float volumetric_strength = 0.3f;

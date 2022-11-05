@@ -119,7 +119,7 @@ namespace adria
 		return i;
 	}
 
-	void RayTracer::AddRayTracedShadowsPass(RenderGraph& rg, Light const& light, size_t light_id)
+	void RayTracer::AddRayTracedShadowsPass(RenderGraph& rg, uint32 light_index, RGResourceName mask_name)
 	{
 		if (!IsFeatureSupported(ERayTracingFeature::Shadows)) return;
 
@@ -127,19 +127,13 @@ namespace adria
 		struct RayTracedShadowsPassData
 		{
 			RGTextureReadOnlyId depth;
-			RGTextureReadWriteId shadow;
+			RGTextureReadWriteId mask;
 		};
 
 		rg.AddPass<RayTracedShadowsPassData>("Ray Traced Shadows Pass",
-			[=](RayTracedShadowsPassData& data, RGBuilder& builder) 
+			[=](RayTracedShadowsPassData& data, RGBuilder& builder)
 			{
-				RGTextureDesc desc{};
-				desc.width = width;
-				desc.height = height;
-				desc.format = EFormat::R8_UNORM;
-				builder.DeclareTexture(RG_RES_NAME_IDX(RayTracedShadows, light_id), desc);
-
-				data.shadow = builder.WriteTexture(RG_RES_NAME_IDX(RayTracedShadows, light_id));
+				data.mask = builder.WriteTexture(mask_name);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
 			[=](RayTracedShadowsPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
@@ -148,28 +142,26 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
-				uint32 i = (uint32)descriptor_allocator->AllocateRange(3);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), accel_structure.GetTLAS()->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadOnlyTexture(data.depth), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadWriteTexture(data.shadow), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				uint32 i = (uint32)descriptor_allocator->AllocateRange(2);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.depth), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.mask), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 				struct RayTracedShadowsConstants
 				{
-					uint32  accel_struct_idx;
 					uint32  depth_idx;
 					uint32  output_idx;
 					uint32  light_idx;
-				} constants = 
+				} constants =
 				{
-					.accel_struct_idx = i, .depth_idx = i + 1, .output_idx = i + 2,
-					.light_idx = 0 //todo: change this later
+					.depth_idx = i + 0, .output_idx = i + 1,
+					.light_idx = light_index 
 				};
 				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetPipelineState1(ray_traced_shadows.Get());
 
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRoot32BitConstants(1, 4, &constants, 0);
-				
+				cmd_list->SetComputeRoot32BitConstants(1, 3, &constants, 0);
+
 				D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
 				dispatch_desc.Width = width;
 				dispatch_desc.Height = height;
@@ -182,8 +174,9 @@ namespace adria
 				table.Commit(*gfx->GetDynamicAllocator(), dispatch_desc);
 				cmd_list->DispatchRays(&dispatch_desc);
 
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, ERGPassType::Compute, ERGPassFlags::ForceNoCull);
 	}
+
 	void RayTracer::AddRayTracedReflectionsPass(RenderGraph& rg, D3D12_CPU_DESCRIPTOR_HANDLE envmap)
 	{
 		if (!IsFeatureSupported(ERayTracingFeature::Reflections)) return;

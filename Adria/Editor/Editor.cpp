@@ -708,7 +708,6 @@ namespace adria
 					else if (light->ray_traced_shadows)
 					{
 						ImGui::Checkbox("Soft Shadows", &light->soft_rts);
-						//add softness
 					}
 
 					ImGui::Checkbox("God Rays", &light->god_rays);

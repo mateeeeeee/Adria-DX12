@@ -23,7 +23,8 @@ struct Light
 	
 	int     shadowTextureIndex;
 	int     shadowMatrixIndex;
-    int2 padd;
+    int     shadowMaskIndex;
+    int     padd;
 };
 
 struct LightingResult

@@ -144,6 +144,7 @@ namespace adria
 
 		void ShadowMapPass_Common(GraphicsDevice* gfx, ID3D12GraphicsCommandList4* cmd_list, bool transparent, size_t light_index, size_t shadow_map_index = 0);
 		void AddShadowMapPasses(RenderGraph& rg);
+		void AddRayTracingShadowPasses(RenderGraph& rg);
 		void CopyToBackbuffer(RenderGraph& rg);
 		void ResolveToFinalTexture(RenderGraph& rg);
 	};

@@ -353,6 +353,7 @@ namespace adria
 		}
 		ambient_pass.AddPass(render_graph);
 		AddShadowMapPasses(render_graph);
+		AddRayTracingShadowPasses(render_graph);
 		switch (renderer_settings.render_path)
 		{
 		case ERenderPathType::RegularDeferred:
@@ -409,6 +410,8 @@ namespace adria
 			ocean_renderer.OnResize(w, h);
 			ray_tracer.OnResize(w, h);
 			aabb_pass.OnResize(w, h);
+
+			light_mask_textures.clear();
 		}
 	}
 	void Renderer::OnSceneInitialized()
@@ -505,6 +508,28 @@ namespace adria
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
+		auto AddShadowMask = [&](Light& light, size_t light_id)
+		{
+			if (light_mask_textures[light_id] == nullptr)
+			{
+				TextureDesc mask_desc{};
+				mask_desc.width = width;
+				mask_desc.height = height;
+				mask_desc.format = EFormat::R8_UNORM;
+				mask_desc.initial_state = EResourceState::UnorderedAccess;
+				mask_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::UnorderedAccess;
+
+				light_mask_textures[light_id] = std::make_unique<Texture>(gfx, mask_desc);
+				light_mask_textures[light_id]->CreateSRV();
+				light_mask_textures[light_id]->CreateUAV();
+			}
+
+			auto srv = light_mask_textures[light_id]->GetSRV();
+			OffsetType i = descriptor_allocator->Allocate();
+			auto dst_descriptor = descriptor_allocator->GetHandle(i);
+			device->CopyDescriptorsSimple(1, dst_descriptor, srv, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			light.shadow_mask_index = (int32)i;
+		};
 		auto AddShadowMap = [&](size_t light_id, uint32 shadow_map_size)
 		{
 			TextureDesc depth_desc{};
@@ -559,10 +584,10 @@ namespace adria
 
 			for (size_t j = 0; j < light_shadow_maps[light_id].size(); ++j)
 			{
-				auto depth_srv = light_shadow_maps[light_id][j]->GetSRV();
+				auto srv = light_shadow_maps[light_id][j]->GetSRV();
 				OffsetType i = descriptor_allocator->Allocate();
 				auto dst_descriptor = descriptor_allocator->GetHandle(i);
-				device->CopyDescriptorsSimple(1, dst_descriptor, depth_srv, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, dst_descriptor, srv, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				if(j == 0) light.shadow_texture_index = (int32)i;
 			}
 		};
@@ -581,20 +606,21 @@ namespace adria
 				else current_light_matrices_count++;
 			}
 		}
-		
+
 		if (current_light_matrices_count != light_matrices_count)
 		{
 			gfx->WaitForGPU();
 			light_matrices_count = current_light_matrices_count;
-			if (light_matrices_count == 0) return;
-
-			light_matrices_buffer = std::make_unique<Buffer>(gfx, StructuredBufferDesc<XMMATRIX>(light_matrices_count * backbuffer_count, false, true));
-			BufferSubresourceDesc srv_desc{};
-			srv_desc.size = light_matrices_count * sizeof(XMMATRIX);
-			for (uint32 i = 0; i < backbuffer_count; ++i)
+			if (light_matrices_count != 0)
 			{
-				srv_desc.offset = i * light_matrices_count * sizeof(XMMATRIX);
-				light_matrices_buffer->CreateSRV(&srv_desc);
+				light_matrices_buffer = std::make_unique<Buffer>(gfx, StructuredBufferDesc<XMMATRIX>(light_matrices_count * backbuffer_count, false, true));
+				BufferSubresourceDesc srv_desc{};
+				srv_desc.size = light_matrices_count * sizeof(XMMATRIX);
+				for (uint32 i = 0; i < backbuffer_count; ++i)
+				{
+					srv_desc.offset = i * light_matrices_count * sizeof(XMMATRIX);
+					light_matrices_buffer->CreateSRV(&srv_desc);
+				}
 			}
 		}
 		std::vector<XMMATRIX> light_matrices{};
@@ -602,6 +628,8 @@ namespace adria
 		for (auto e : light_view)
 		{
 			auto& light = light_view.get<Light>(e);
+			light.shadow_mask_index = -1;
+			light.shadow_texture_index = -1;
 			if (light.casts_shadows)
 			{
 				if (light.ray_traced_shadows) continue;
@@ -642,7 +670,10 @@ namespace adria
 					light_matrices.push_back(XMMatrixTranspose(V * P));
 				}
 			}
-			else light.shadow_texture_index = -1;
+			else if(light.ray_traced_shadows)
+			{
+				AddShadowMask(light, entt::to_integral(e));
+			}
 		}
 		light_matrices_buffer->Update(light_matrices.data(), light_matrices_count * sizeof(XMMATRIX), light_matrices_count * sizeof(XMMATRIX) * backbuffer_index);
 
@@ -694,6 +725,7 @@ namespace adria
 			hlsl_light.active = light.active;
 			hlsl_light.shadow_matrix_index = light.casts_shadows ? light.shadow_matrix_index : - 1;
 			hlsl_light.shadow_texture_index = light.casts_shadows ? light.shadow_texture_index : -1;
+			hlsl_light.shadow_mask_index = light.ray_traced_shadows ? light.shadow_mask_index : -1;
 			hlsl_light.use_cascades = light.use_cascades;
 			hlsl_lights.push_back(hlsl_light);
 
@@ -965,6 +997,22 @@ namespace adria
 			}
 		}
 	}
+
+	void Renderer::AddRayTracingShadowPasses(RenderGraph& rg)
+	{
+		auto light_view = reg.view<Light>();
+		for (auto e : light_view)
+		{
+			auto& light = light_view.get<Light>(e);
+			if (!light.ray_traced_shadows) continue;
+			int32 light_index = light.light_index;
+			size_t light_id = entt::to_integral(e);
+
+			rg.ImportTexture(RG_RES_NAME_IDX(LightMask, light_id), light_mask_textures[light_id].get());
+			ray_tracer.AddRayTracedShadowsPass(rg, light_index, RG_RES_NAME_IDX(LightMask, light_id));
+		}
+	}
+
 	void Renderer::CopyToBackbuffer(RenderGraph& rg)
 	{
 		struct CopyToBackbufferPassData

@@ -8,6 +8,7 @@
 #include "AccelerationStructure.h"
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
+#include "../RenderGraph/RenderGraphResourceName.h"
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/RayTracingUtil.h" 
 
@@ -55,7 +56,7 @@ namespace adria
 
 		uint32 GetAccelStructureHeapIndex() const;
 
-		void AddRayTracedShadowsPass(RenderGraph&, Light const&, size_t);
+		void AddRayTracedShadowsPass(RenderGraph&, uint32, RGResourceName);
 		void AddRayTracedReflectionsPass(RenderGraph&, D3D12_CPU_DESCRIPTOR_HANDLE);
 		void AddRayTracedAmbientOcclusionPass(RenderGraph&);
 

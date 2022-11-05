@@ -49,16 +49,16 @@ namespace adria
 		float range;
 		int32 type;
 		float outer_cosine;
-		float inner_cosine;
 
+		float inner_cosine;
 		int32 volumetric;
 		float volumetric_strength;
-		
 		int32 use_cascades;
+
 		int32 shadow_texture_index;
 		int32 shadow_matrix_index;
-
-		int32 padd[2];
+		int32 shadow_mask_index;
+		int32 padd;
 	};
 
 	struct ClusterAABB

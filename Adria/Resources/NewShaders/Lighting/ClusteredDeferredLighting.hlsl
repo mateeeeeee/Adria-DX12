@@ -70,8 +70,8 @@ void ClusteredDeferredLighting(CS_INPUT input)
 		uint lightIndex = lightIndexList[lightOffset + i];
 		Light light = lights[lightIndex];
 		if (!light.active) continue;
-		totalRadiance += LightRadiance(light, viewPosition, normal, V, albedo, metallic, roughness);
-	}
+        totalRadiance += LightRadiance(light, viewPosition, normal, V, albedo, metallic, roughness, uv);
+    }
 
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
 	outputTx[input.DispatchThreadId.xy] += float4(totalRadiance, 1.0f);
