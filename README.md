@@ -15,10 +15,7 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 * Shadows
     - PCF shadows for directional, spot and point lights
     - Cascade shadow maps for directional lights
-* Volumetric lighting
-    - Directional lights with shadow maps
-    - Directional lights with cascade shadow maps
-    - Point and spot lights 
+* Volumetric lighting for shadow casting lights
 * HDR and tone mapping
 * Automatic exposure
 * Bloom
@@ -42,7 +39,8 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 * ImGui Editor
 * Profiler
 * Shader hot reload
-* Ultimate Bindless (wip)
+* Ultimate Bindless 
+    - Only one root signature 
 * Model Loading with tinygltf
 
 ## TODO
