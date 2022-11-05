@@ -27,6 +27,7 @@ struct FrameCBuffer
 	uint   frameCount;
 	int    lightsIdx;
 	int    lightsMatricesIdx;
+    int	   accelStructIdx;
 	float2 mouseNormalizedCoords;
 };
 ConstantBuffer<FrameCBuffer> FrameCB  : register(b0);

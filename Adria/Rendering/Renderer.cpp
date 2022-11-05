@@ -734,6 +734,7 @@ namespace adria
 		frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
 		frame_cbuf_data.lights_idx = (int32)light_array_srv.GetHeapOffset();
 		frame_cbuf_data.lights_matrices_idx = (int32)light_matrices_srv.GetHeapOffset();
+		frame_cbuf_data.accel_struct_idx = (int32)ray_tracer.GetAccelStructureHeapIndex();
 		frame_cbuf_data.cascade_splits = XMVectorSet(split_distances[0], split_distances[1], split_distances[2], split_distances[3]);
 		auto lights = reg.view<Light>();
 		for (auto light : lights)

@@ -3,7 +3,6 @@
 
 struct RayTracedAmbientOcclusionConstants
 {
-	uint  accelStructIdx;
 	uint  depthIdx;
 	uint  gbufNormals;
 	uint  outputIdx;
@@ -23,7 +22,7 @@ static const int RAY_COUNT = 16;
 [shader("raygeneration")]
 void RTAO_RayGen()
 {
-	RaytracingAccelerationStructure scene = ResourceDescriptorHeap[PassCB.accelStructIdx];
+    RaytracingAccelerationStructure scene = ResourceDescriptorHeap[FrameCB.accelStructIdx];
 	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
 	Texture2D gbufferNormals = ResourceDescriptorHeap[PassCB.gbufNormals];
 	RWTexture2D<float> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];

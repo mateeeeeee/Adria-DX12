@@ -5,7 +5,6 @@
 
 struct RayTracedReflectionsConstants
 {
-	uint  accelStructIdx;
 	uint  depthIdx;
 	uint  envMapIdx;
 	uint  outputIdx;
@@ -24,7 +23,7 @@ struct RTR_Payload
 [shader("raygeneration")]
 void RTR_RayGen()
 {
-	RaytracingAccelerationStructure scene = ResourceDescriptorHeap[PassCB.accelStructIdx];
+	RaytracingAccelerationStructure scene = ResourceDescriptorHeap[FrameCB.accelStructIdx];
 	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
 
 	uint2 launchIndex = DispatchRaysIndex().xy;
@@ -97,7 +96,7 @@ void RTR_ClosestHitPrimaryRay(inout RTR_Payload payloadData, in HitAttributes at
 	reflectionRay.TMin = 0.01f;
 	reflectionRay.TMax = FLT_MAX;
 
-	RaytracingAccelerationStructure scene = ResourceDescriptorHeap[PassCB.accelStructIdx];
+	RaytracingAccelerationStructure scene = ResourceDescriptorHeap[FrameCB.accelStructIdx];
 	TraceRay(scene,
 		RAY_FLAG_FORCE_OPAQUE,
 		0xFF, 1, 0, 0, reflectionRay, payloadData);
