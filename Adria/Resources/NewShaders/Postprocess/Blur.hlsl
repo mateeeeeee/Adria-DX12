@@ -11,9 +11,14 @@ ConstantBuffer<BlurConstants> PassCB : register(b1);
 
 groupshared float4 SharedPoints[4 + BLOCK_SIZE + 4];
 
-static const float GaussFilter[9] =
+static const float UniformFilter[9] =
 {
 	1.0f / 9, 1.0f / 9, 1.0f / 9, 1.0f / 9,  1.0f / 9, 1.0f / 9, 1.0f / 9, 1.0f / 9, 1.0f / 9
+};
+
+static const float GaussFilter[9] =
+{
+    0.0002, 0.0060, 0.0606, 0.2417, 0.3829, 0.2417, 0.0606, 0.0060, 0.0002
 };
 
 struct CS_INPUT

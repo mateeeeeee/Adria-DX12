@@ -15,7 +15,8 @@ namespace adria
 {
 
 	RayTracer::RayTracer(entt::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height)
-		: reg(reg), gfx(gfx), width(width), height(height), accel_structure(gfx), blur_pass(width, height)
+		: reg(reg), gfx(gfx), width(width), height(height), accel_structure(gfx), 
+		blur_pass(width, height)
 	{
 		ID3D12Device* device = gfx->GetDevice();
 		D3D12_FEATURE_DATA_D3D12_OPTIONS5 features5{};
@@ -204,9 +205,9 @@ namespace adria
 				desc.width = width;
 				desc.height = height;
 				desc.format = EFormat::R8G8B8A8_UNORM;
-				builder.DeclareTexture(RG_RES_NAME(RTR_Output), desc);
+				builder.DeclareTexture(RG_RES_NAME(RTR_OutputNoisy), desc);
 
-				data.output = builder.WriteTexture(RG_RES_NAME(RTR_Output));
+				data.output = builder.WriteTexture(RG_RES_NAME(RTR_OutputNoisy));
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil));
 				data.normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal));
 
@@ -261,6 +262,8 @@ namespace adria
 				table.Commit(*gfx->GetDynamicAllocator(), dispatch_desc);
 				cmd_list->DispatchRays(&dispatch_desc);
 			}, ERGPassType::Compute, ERGPassFlags::None);
+
+		blur_pass.AddPass(rg, RG_RES_NAME(RTR_OutputNoisy), RG_RES_NAME(RTR_Output), "RTR Denoise");
 
 		AddGUI([&]()
 			{

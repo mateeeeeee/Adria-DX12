@@ -82,5 +82,5 @@ All of DXR screenshots will go here:
   </tr>
 </table>
 
-Ray Traced Reflections, RTAO and Bokeh
+Ray Traced Reflections
 ![alt text](Screenshots/rtr.png "Ray Traced Reflections") 

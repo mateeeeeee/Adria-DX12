@@ -82,13 +82,6 @@ namespace adria
 	private:
 		void CreateStateObjects();
 		void OnLibraryRecompiled(EShaderId shader);
-
-#ifdef _DEBUG
-		void AddGUI_Debug_Common(std::string const& name, Texture* texture, void* gui_descriptor_allocator);
-		void AddRayTracedAmbientOcclusionDebugPass(RenderGraph&);
-		void AddRayTracedShadowsDebugPass(RenderGraph&, size_t);
-		void AddRayTracedReflectionsDebugPass(RenderGraph&);
-#endif
 	};
 	
 }
