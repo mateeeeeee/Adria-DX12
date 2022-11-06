@@ -47,7 +47,6 @@ namespace adria
 			blur_pass.AddPass(rg, RG_RES_NAME(CloudsOutput), RG_RES_NAME(BlurredCloudsOutput), "Volumetric Clouds");
 			copy_to_texture_pass.AddPass(rg, RG_RES_NAME(PostprocessMain), RG_RES_NAME(BlurredCloudsOutput), EBlendMode::AlphaBlend);
 		}
-		if (settings.automatic_exposure) automatic_exposure_pass.AddPasses(rg, final_resource);
 
 		if (settings.reflections == EReflections::SSR) final_resource = ssr_pass.AddPass(rg, final_resource);
 		else if (settings.reflections == EReflections::RTR)
@@ -85,6 +84,8 @@ namespace adria
 				break;
 			}
 		}
+		if (settings.automatic_exposure) automatic_exposure_pass.AddPasses(rg, final_resource);
+
 		if (HasAnyFlag(settings.anti_aliasing, AntiAliasing_TAA))
 		{
 			rg.ImportTexture(RG_RES_NAME(HistoryBuffer), history_buffer.get());
