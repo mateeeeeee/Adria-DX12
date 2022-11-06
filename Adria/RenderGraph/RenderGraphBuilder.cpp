@@ -27,11 +27,6 @@ namespace adria
 		rg_pass.buffer_creates.insert(rg.DeclareBuffer(name, desc));
 	}
 
-	void RenderGraphBuilder::DeclareAllocation(RGResourceName name, AllocDesc const& desc)
-	{
-		rg.DeclareAllocation(name, desc);
-	}
-
 	void RenderGraphBuilder::DummyWriteTexture(RGResourceName name)
 	{
 		rg_pass.texture_writes.insert(rg.GetTextureId(name));
@@ -300,11 +295,6 @@ namespace adria
 		auto* buffer = rg.GetRGBuffer(res_id);
 		if (buffer->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
 		return read_write_id;
-	}
-
-	RGAllocationId RenderGraphBuilder::UseAllocation(RGResourceName name)
-	{
-		return rg.UseAllocation(name);
 	}
 
 	void RenderGraphBuilder::SetViewport(uint32 width, uint32 height)

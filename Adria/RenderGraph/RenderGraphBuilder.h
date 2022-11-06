@@ -67,14 +67,11 @@ namespace adria
 		bool IsBufferDeclared(RGResourceName name);
 		void DeclareTexture(RGResourceName name, RGTextureDesc const& desc);
 		void DeclareBuffer(RGResourceName name, RGBufferDesc const& desc);
-		void DeclareAllocation(RGResourceName name, AllocDesc const& desc);
 
 		void DummyWriteTexture(RGResourceName name);
 		void DummyReadTexture(RGResourceName name);
 		void DummyReadBuffer(RGResourceName name);
 		void DummyWriteBuffer(RGResourceName name);
-
-		[[nodiscard]] RGAllocationId UseAllocation(RGResourceName name);
 
 		[[nodiscard]] RGTextureCopySrcId ReadCopySrcTexture(RGResourceName name);
 		[[nodiscard]] RGTextureCopyDstId WriteCopyDstTexture(RGResourceName name);

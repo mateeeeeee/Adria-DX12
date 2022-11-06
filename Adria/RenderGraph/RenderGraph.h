@@ -81,7 +81,6 @@ namespace adria
 		std::vector<std::unique_ptr<RGPassBase>> passes;
 		std::vector<std::unique_ptr<RGTexture>> textures;
 		std::vector<std::unique_ptr<RGBuffer>> buffers;
-		std::vector<DynamicAllocation> dynamic_allocations;
 
 		std::vector<std::vector<uint64>> adjacency_lists;
 		std::vector<size_t> topologically_sorted_passes;
@@ -90,7 +89,6 @@ namespace adria
 		HashMap<RGResourceName, RGTextureId> texture_name_id_map;
 		HashMap<RGResourceName, RGBufferId>  buffer_name_id_map;
 		HashMap<RGBufferReadWriteId, RGBufferId> buffer_uav_counter_map;
-		HashMap<RGResourceName, RGAllocationId>  alloc_name_id_map;
 
 		mutable HashMap<RGTextureId, std::vector<std::pair<TextureSubresourceDesc, ERGDescriptorType>>> texture_view_desc_map;
 		mutable HashMap<RGTextureId, std::vector<std::pair<D3D12_CPU_DESCRIPTOR_HANDLE, ERGDescriptorType>>> texture_view_map;
@@ -109,22 +107,18 @@ namespace adria
 
 		RGTextureId DeclareTexture(RGResourceName name, RGTextureDesc const& desc);
 		RGBufferId DeclareBuffer(RGResourceName name, RGBufferDesc const& desc);
-		RGAllocationId DeclareAllocation(RGResourceName name, AllocDesc const& alloc);
 
 		bool IsTextureDeclared(RGResourceName);
 		bool IsBufferDeclared(RGResourceName);
-		bool IsAllocationDeclared(RGResourceName);
 
 		bool IsValidTextureHandle(RGTextureId) const;
 		bool IsValidBufferHandle(RGBufferId) const;
-		bool IsValidAllocHandle(RGAllocationId) const;
 
 		RGTexture* GetRGTexture(RGTextureId) const;
 		RGBuffer* GetRGBuffer(RGBufferId) const;
 
 		RGTextureId GetTextureId(RGResourceName);
 		RGBufferId GetBufferId(RGResourceName);
-		RGAllocationId UseAllocation(RGResourceName);
 		void AddBufferBindFlags(RGResourceName name, EBindFlag flags);
 		void AddTextureBindFlags(RGResourceName name, EBindFlag flags);
 
@@ -161,7 +155,6 @@ namespace adria
 		DescriptorCPU GetReadOnlyBuffer(RGBufferReadOnlyId) const;
 		DescriptorCPU GetReadWriteBuffer(RGBufferReadWriteId) const;
 
-		DynamicAllocation& GetAllocation(RGAllocationId);
 		Texture* GetTexture(RGTextureId) const;
 		Buffer* GetBuffer(RGBufferId) const;
 

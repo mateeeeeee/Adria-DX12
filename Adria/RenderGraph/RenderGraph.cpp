@@ -35,13 +35,6 @@ namespace adria
 		return RGBufferId(buffers.size() - 1);
 	}
 
-	RGAllocationId RenderGraph::DeclareAllocation(RGResourceName name, AllocDesc const& alloc)
-	{
-		dynamic_allocations.emplace_back(gfx->GetDynamicAllocator()->Allocate(alloc.size_in_bytes, alloc.alignment));
-		alloc_name_id_map[name] = RGAllocationId{ dynamic_allocations.size() - 1 };
-		return RGAllocationId{ dynamic_allocations.size() - 1 };
-	}
-
 	bool RenderGraph::IsTextureDeclared(RGResourceName name)
 	{
 		return texture_name_id_map.find(name) != texture_name_id_map.end();
@@ -50,11 +43,6 @@ namespace adria
 	bool RenderGraph::IsBufferDeclared(RGResourceName name)
 	{
 		return buffer_name_id_map.find(name) != buffer_name_id_map.end();
-	}
-
-	bool RenderGraph::IsAllocationDeclared(RGResourceName name)
-	{
-		return alloc_name_id_map.find(name) != alloc_name_id_map.end();
 	}
 
 	void RenderGraph::ImportTexture(RGResourceName name, Texture* texture)
@@ -79,11 +67,6 @@ namespace adria
 	bool RenderGraph::IsValidBufferHandle(RGBufferId handle) const
 	{
 		return handle.IsValid() && handle.id < buffers.size();
-	}
-
-	bool RenderGraph::IsValidAllocHandle(RGAllocationId alloc) const
-	{
-		return alloc.id < dynamic_allocations.size();
 	}
 
 	RenderGraph::~RenderGraph()
@@ -894,18 +877,6 @@ namespace adria
 		RGBufferReadWriteId rw_id = RGBufferReadWriteId(view_id, handle);
 		buffer_uav_counter_map.insert(std::make_pair(rw_id, counter_handle));
 		return rw_id;
-	}
-
-	RGAllocationId RenderGraph::UseAllocation(RGResourceName name)
-	{
-		RGAllocationId alloc = alloc_name_id_map[name];
-		ADRIA_ASSERT(IsValidAllocHandle(alloc) && "Allocation has not been declared!");
-		return alloc;
-	}
-
-	DynamicAllocation& RenderGraph::GetAllocation(RGAllocationId alloc)
-	{
-		return dynamic_allocations[alloc.id];
 	}
 
 	Texture const& RenderGraph::GetCopySrcTexture(RGTextureCopySrcId res_id) const

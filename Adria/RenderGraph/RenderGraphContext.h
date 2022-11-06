@@ -105,8 +105,6 @@ namespace adria
 
 		DescriptorCPU GetReadOnlyBuffer(RGBufferReadOnlyId res_id) const;
 		DescriptorCPU GetReadWriteBuffer(RGBufferReadWriteId res_id) const;
-
-		DynamicAllocation& GetAllocation(RGAllocationId);
 	private:
 		RenderGraph& rg;
 		RenderGraphPassBase& rg_pass;

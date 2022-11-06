@@ -92,11 +92,5 @@ namespace adria
 	{
 		return rg.GetReadWriteBuffer(res_id);
 	}
-
-	DynamicAllocation& RenderGraphContext::GetAllocation(RGAllocationId alloc_id)
-	{
-		return rg.GetAllocation(alloc_id);
-	}
-
 }
 
