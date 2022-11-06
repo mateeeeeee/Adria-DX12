@@ -78,7 +78,7 @@ namespace adria
 
 		BlurPass blur_pass;
 		float ao_radius = 2.0f;
-		
+		float roughness_scale = 0.0f;
 	private:
 		void CreateStateObjects();
 		void OnLibraryRecompiled(EShaderId shader);

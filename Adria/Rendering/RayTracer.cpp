@@ -229,6 +229,7 @@ namespace adria
 
 				struct RayTracedReflectionsConstants
 				{
+					float   roughness_scale;
 					uint32  depth_idx;
 					uint32  env_map_idx;
 					uint32  output_idx;
@@ -236,14 +237,15 @@ namespace adria
 					uint32  indices_idx;
 					uint32  geo_infos_idx;
 				} constants = 
-				{
+				{   
+					.roughness_scale = roughness_scale,
 					.depth_idx = i + 0, .env_map_idx = i + 1, .output_idx = i + 2,
 					.vertices_idx = i + 3, .indices_idx = i + 4, .geo_infos_idx = i + 5
 				};
 
 				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);
+				cmd_list->SetComputeRoot32BitConstants(1, 7, &constants, 0);
 				cmd_list->SetPipelineState1(ray_traced_reflections.Get());
 
 				D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
@@ -259,6 +261,17 @@ namespace adria
 				table.Commit(*gfx->GetDynamicAllocator(), dispatch_desc);
 				cmd_list->DispatchRays(&dispatch_desc);
 			}, ERGPassType::Compute, ERGPassFlags::None);
+
+		AddGUI([&]()
+			{
+				if (ImGui::TreeNodeEx("Ray Traced Reflection", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+				{
+					ImGui::SliderFloat("Roughness scale", &roughness_scale, 0.0f, 0.25f);
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
+			}
+		);
 	}
 	void RayTracer::AddRayTracedAmbientOcclusionPass(RenderGraph& rg)
 	{
@@ -438,7 +451,7 @@ namespace adria
 			rtr_state_object_builder.AddSubObject(dxil_lib_desc);
 
 			D3D12_RAYTRACING_SHADER_CONFIG rtr_shader_config{};
-			rtr_shader_config.MaxPayloadSizeInBytes = sizeof(float) * 4;
+			rtr_shader_config.MaxPayloadSizeInBytes = sizeof(float) * 5;
 			rtr_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
 			rtr_state_object_builder.AddSubObject(rtr_shader_config);
 

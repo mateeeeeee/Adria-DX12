@@ -5,7 +5,8 @@
 
 struct RayTracedReflectionsConstants
 {
-	uint  depthIdx;
+    float roughnessScale;
+    uint  depthIdx;
 	uint  envMapIdx;
 	uint  outputIdx;
 	uint  verticesIdx;
@@ -18,6 +19,7 @@ struct RTR_Payload
 {
 	float3 reflectionColor;
 	float  reflectivity;
+    uint   randSeed;
 };
 
 [shader("raygeneration")]
@@ -39,9 +41,12 @@ void RTR_RayGen()
 	ray.TMin = 0.005f;
 	ray.TMax = FLT_MAX;
 
+    uint randSeed = InitRand(launchIndex.x + launchIndex.y * launchDim.x, 0, 16); 
+    
 	RTR_Payload payloadData;
 	payloadData.reflectivity = 0.0f;
 	payloadData.reflectionColor = 0.0f;
+    payloadData.randSeed = randSeed;
 	TraceRay(scene,
 		RAY_FLAG_FORCE_OPAQUE,
 		0xFF, 0, 0, 0, ray, payloadData);
@@ -89,10 +94,13 @@ void RTR_ClosestHitPrimaryRay(inout RTR_Payload payloadData, in HitAttributes at
 	float2 roughnessMetallic = txMetallicRoughness.SampleLevel(LinearWrapSampler, uv, 0).gb;
 
 	if (roughnessMetallic.y <= 0.01f) return;
+	
+    uint randSeed = payloadData.randSeed;
+    float3 dir = GetConeSample(randSeed, reflect(WorldRayDirection(), worldNormal), roughnessMetallic.x * PassCB.roughnessScale);
 
 	RayDesc reflectionRay;
 	reflectionRay.Origin = WorldRayOrigin() + RayTCurrent() * WorldRayDirection(); //OffsetRay(worldPosition, worldNormal);
-	reflectionRay.Direction = reflect(WorldRayDirection(), worldNormal);
+    reflectionRay.Direction = dir;
 	reflectionRay.TMin = 0.01f;
 	reflectionRay.TMax = FLT_MAX;
 
@@ -101,7 +109,7 @@ void RTR_ClosestHitPrimaryRay(inout RTR_Payload payloadData, in HitAttributes at
 		RAY_FLAG_FORCE_OPAQUE,
 		0xFF, 1, 0, 0, reflectionRay, payloadData);
 
-    payloadData.reflectivity = roughnessMetallic.y * (1.0f - roughnessMetallic.x);
+    payloadData.reflectivity = roughnessMetallic.y * 0.5f;
 }
 
 [shader("closesthit")]
