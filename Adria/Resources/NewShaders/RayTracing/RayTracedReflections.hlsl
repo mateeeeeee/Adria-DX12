@@ -136,6 +136,6 @@ void RTR_ClosestHitReflectionRay(inout RTR_Payload payload_data, in HitAttribute
 
 	float2 uv = Interpolate(v0.uv, v1.uv, v2.uv, attribs.barycentrics); uv.y = 1.0f - uv.y;
 	Texture2D txAlbedo = ResourceDescriptorHeap[geoInfo.albedoIdx];
-    float3 albedo = txAlbedo.SampleLevel(LinearWrapSampler, uv, 2).rgb;
+    float3 albedo = 0.5f * txAlbedo.SampleLevel(LinearWrapSampler, uv, 2).rgb;
 	payload_data.reflectionColor = albedo;
 }
