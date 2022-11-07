@@ -1,6 +1,10 @@
 #include "../Constants.hlsli"
+#include "../Lighting.hlsli"
+#include "../Tonemapping.hlsli"
 #include "../CommonResources.hlsli"
 #include "RayTracingUtil.hlsli"
+
+#define RIS_CANDIDATES_LIGHTS 8
 
 struct PathTracingConstants
 {
@@ -22,6 +26,75 @@ struct PT_Payload
     uint triangleId;
     float2 barycentrics;
 };
+
+
+// From RT Gems 2
+struct Reservoir
+{
+    uint LightSample;
+    uint M;
+    float TotalWeight;
+    float SampleTargetPdf;
+};
+
+void SampleSourceLight(in uint lightCount, inout uint seed, out uint lightIndex, out float sourcePdf)
+{
+    lightIndex = min(uint(NextRand(seed) * lightCount), lightCount - 1);
+    sourcePdf = 1.0f / lightCount;
+}
+bool SampleLightRIS(inout uint seed, float3 position, float3 N, out int lightIndex, out float sampleWeight)
+{
+    StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
+    uint lightCount, _unused;
+    lights.GetDimensions(lightCount, _unused);
+	// [Algorithm]
+	// Pick N random lights from the full set of lights
+	// Compute contribution of each light
+	// If the light's weight is above a random threshold, pick it
+	// Weight the selected light based on the total weight and light count
+
+    if (lightCount <= 0) return false;
+
+    Reservoir reservoir;
+    reservoir.TotalWeight = 0.0f;
+    reservoir.M = RIS_CANDIDATES_LIGHTS;
+
+    for (int i = 0; i < reservoir.M; ++i)
+    {
+        uint candidate = 0;
+        float sourcePdf = 1.0f;
+        SampleSourceLight(lightCount, seed, candidate, sourcePdf);
+
+        Light light = lights[candidate];
+        float3 positionDifference = light.position.xyz - position; //move to same space
+        float distance = length(positionDifference);
+        float3 L = positionDifference / distance;
+        if (light.type == DIRECTIONAL_LIGHT)
+        {
+            L = -normalize(light.direction.xyz);
+        }
+        if (dot(N, L) < 0.0f) //N is world space, L view?
+        {
+            continue;
+        }
+        float targetPdf = Luminance(DoAttenuation(distance, light.range) * light.color.rgb);
+        float risWeight = targetPdf / sourcePdf;
+        reservoir.TotalWeight += risWeight;
+
+        if (NextRand(seed) < (risWeight / reservoir.TotalWeight))
+        {
+            reservoir.LightSample = candidate;
+            reservoir.SampleTargetPdf = targetPdf;
+        }
+    }
+
+    if (reservoir.TotalWeight == 0.0f)
+        return false;
+
+    lightIndex = reservoir.LightSample;
+    sampleWeight = (reservoir.TotalWeight / reservoir.M) / reservoir.SampleTargetPdf;
+    return true;
+}
 
 [shader("raygeneration")]
 void PT_RayGen()
@@ -98,12 +171,14 @@ void PT_RayGen()
         Texture2D emissiveTx = ResourceDescriptorHeap[geoInfo.emissiveIdx];
         radiance += throughput * emissiveTx.SampleLevel(LinearWrapSampler, uv, 0).rgb;
         
-        Texture2D albedoTx = ResourceDescriptorHeap[geoInfo.albedoIdx];
-        radiance += throughput * albedoTx.SampleLevel(LinearWrapSampler, uv, 0).rgb;
-        
-        //radiance += float3(1, 0, 0);
-        
-        //Light light = light_cbuf.current_light;
+       // Direct light evaluation
+        //int lightIndex = 0;
+        //float lightWeight = 0.0f;
+        //if (SampleLightRIS(randSeed, worldPosition, worldNormal, lightIndex, lightWeight))
+        //{
+        //   // LightResult result = EvaluateLight(GetLight(lightIndex), hitLocation, V, N, geometryNormal, brdfData);
+        //   // radiance += throughput * (result.Diffuse + result.Specular) * lightWeight;
+        //}
     }
 
     float3 previousColor = accumTx[DispatchRaysIndex().xy].rgb;
