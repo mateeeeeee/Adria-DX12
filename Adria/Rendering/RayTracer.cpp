@@ -178,11 +178,12 @@ namespace adria
 			}, ERGPassType::Compute, ERGPassFlags::ForceNoCull);
 	}
 
-	void RayTracer::AddRayTracedReflectionsPass(RenderGraph& rg, D3D12_CPU_DESCRIPTOR_HANDLE envmap)
+	void RayTracer::AddRayTracedReflectionsPass(RenderGraph& rg)
 	{
 		if (!IsFeatureSupported(ERayTracingFeature::Reflections)) return;
 
 		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		D3D12_CPU_DESCRIPTOR_HANDLE envmap = global_data.env_map;
 		struct RayTracedReflectionsPassData
 		{
 			RGTextureReadOnlyId depth;

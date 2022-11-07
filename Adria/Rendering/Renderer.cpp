@@ -300,7 +300,7 @@ namespace adria
 			global_data.null_srv_texture2darray = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURE2DARRAY);
 			global_data.null_srv_texturecube = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURECUBE);
 			global_data.white_srv_texture2d = white_default_texture->GetSRV();
-			global_data.lights_buffer_cpu_srv = lights_buffer->GetSRV();
+			global_data.env_map = env_map;
 		}
 		rg_blackboard.Add<GlobalBlackboardData>(std::move(global_data));
 
@@ -308,24 +308,6 @@ namespace adria
 		{
 			picking_data = picking_pass.GetPickingData();
 			update_picking_data = false;
-		}
-
-		D3D12_CPU_DESCRIPTOR_HANDLE skybox_handle = global_data.null_srv_texturecube;
-		if (renderer_settings.postprocess.reflections == EReflections::RTR)
-		{
-			if (sky_pass.GetSkyType() == ESkyType::Skybox)
-			{
-				auto skybox_entities = reg.view<Skybox>();
-				for (auto e : skybox_entities)
-				{
-					Skybox skybox = skybox_entities.get<Skybox>(e);
-					if (skybox.active && skybox.used_in_rt)
-					{
-						skybox_handle = texture_manager.GetSRV(skybox.cubemap_texture);
-						break;
-					}
-				}
-			}
 		}
 
 		gbuffer_pass.AddPass(render_graph);
@@ -374,7 +356,7 @@ namespace adria
 		picking_pass.AddPass(render_graph);
 		if (renderer_settings.postprocess.reflections == EReflections::RTR)
 		{
-			ray_tracer.AddRayTracedReflectionsPass(render_graph, skybox_handle);
+			ray_tracer.AddRayTracedReflectionsPass(render_graph);
 		}
 		postprocessor.AddPasses(render_graph, renderer_settings.postprocess);
 		
@@ -490,19 +472,23 @@ namespace adria
 		final_texture->CreateSRV();
 	}
 
-	void Renderer::MiscGUI()
+	void Renderer::UpdateEnvironmentMap()
 	{
-		AddGUI([&]() {
-
-			if (ImGui::TreeNode("Misc"))
+		env_map = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURECUBE);
+		if (sky_pass.GetSkyType() == ESkyType::Skybox)
+		{
+			auto skybox_entities = reg.view<Skybox>();
+			for (auto e : skybox_entities)
 			{
-				ImGui::SliderFloat3("Wind direction", wind_dir, 0.0f, 1.0f);
-				ImGui::SliderFloat("Wind speed", &wind_speed, 0.0f, 10.0f);
-				ImGui::TreePop();
+				Skybox skybox = skybox_entities.get<Skybox>(e);
+				if (skybox.active && skybox.used_in_rt)
+				{
+					env_map = texture_manager.GetSRV(skybox.cubemap_texture);
+					break;
+				}
 			}
-			});
+		}
 	}
-
 	void Renderer::SetupShadows()
 	{
 		ID3D12Device* device = gfx->GetDevice();
@@ -793,6 +779,18 @@ namespace adria
 			auto& aabb = aabb_view.get<AABB>(e);
 			aabb.camera_visible = camera_frustum.Intersects(aabb.bounding_box) || reg.all_of<Light>(e); 
 		}
+	}
+	void Renderer::MiscGUI()
+	{
+		AddGUI([&]() {
+
+			if (ImGui::TreeNode("Misc"))
+			{
+				ImGui::SliderFloat3("Wind direction", wind_dir, 0.0f, 1.0f);
+				ImGui::SliderFloat("Wind speed", &wind_speed, 0.0f, 10.0f);
+				ImGui::TreePop();
+			}
+			});
 	}
 
 	void Renderer::ShadowMapPass_Common(GraphicsDevice* gfx, ID3D12GraphicsCommandList4* cmd_list, bool transparent, size_t light_index, size_t shadow_map_index)

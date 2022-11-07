@@ -119,16 +119,19 @@ namespace adria
 
 		ViewportData viewport_data;
 
+		//misc
 		uint32			         volumetric_lights = 0;
 		float					 cascades_split_lambda = 0.5f;
 		bool				     transparent_shadows = false;
 		std::array<float, 4>	 split_distances;
 
-		//misc
 		float wind_dir[3] = { 1.0f, 0.0f, 1.0f };
 		float wind_speed = 10.0f;
 		DirectX::XMFLOAT3 sun_direction;
+
 		std::unique_ptr<DescriptorHeap> null_heap;
+		D3D12_CPU_DESCRIPTOR_HANDLE env_map;
+
 		bool update_picking_data = false;
 		PickingData picking_data;
 
@@ -136,6 +139,7 @@ namespace adria
 		void CreateNullHeap();
 		void CreateSizeDependentResources();
 
+		void UpdateEnvironmentMap();
 		void MiscGUI();
 		void SetupShadows();
 		void UpdateLights();

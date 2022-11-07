@@ -57,9 +57,9 @@ namespace adria
 		uint32 GetAccelStructureHeapIndex() const;
 
 		void AddRayTracedShadowsPass(RenderGraph&, uint32, RGResourceName);
-		void AddRayTracedReflectionsPass(RenderGraph&, D3D12_CPU_DESCRIPTOR_HANDLE);
+		void AddRayTracedReflectionsPass(RenderGraph&);
 		void AddRayTracedAmbientOcclusionPass(RenderGraph&);
-
+		
 	private:
 		uint32 width, height;
 		entt::registry& reg;
