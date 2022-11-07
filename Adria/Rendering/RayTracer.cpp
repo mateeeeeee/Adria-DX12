@@ -387,9 +387,9 @@ namespace adria
 				render_target_desc.width = width;
 				render_target_desc.height = height;
 				render_target_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
-				builder.DeclareTexture(RG_RES_NAME(PT_RenderTarget), render_target_desc);
+				builder.DeclareTexture(RG_RES_NAME(PT_Output), render_target_desc);
 
-				data.output = builder.WriteTexture(RG_RES_NAME(PT_RenderTarget));
+				data.output = builder.WriteTexture(RG_RES_NAME(PT_Output));
 				data.accumulation = builder.WriteTexture(RG_RES_NAME(AccumulationTexture));
 
 				data.vb = builder.ReadBuffer(RG_RES_NAME(BigVertexBuffer));

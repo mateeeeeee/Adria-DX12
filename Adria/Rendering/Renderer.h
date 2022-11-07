@@ -145,6 +145,9 @@ namespace adria
 		void UpdateFrameConstantBuffer(float dt);
 		void CameraFrustumCulling();
 
+		void Render_Deferred(RenderGraph& rg);
+		void Render_PathTracing(RenderGraph& rg);
+
 		void ShadowMapPass_Common(GraphicsDevice* gfx, ID3D12GraphicsCommandList4* cmd_list, bool transparent, size_t light_index, size_t shadow_map_index = 0);
 		void AddShadowMapPasses(RenderGraph& rg);
 		void AddRayTracingShadowPasses(RenderGraph& rg);

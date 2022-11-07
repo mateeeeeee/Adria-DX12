@@ -179,7 +179,8 @@ namespace adria
 	{
 		RegularDeferred,
 		TiledDeferred,
-		ClusteredDeferred
+		ClusteredDeferred,
+		PathTracing
 	};
 
 	enum class EAmbientOcclusion : uint8

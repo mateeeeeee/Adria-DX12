@@ -14,6 +14,7 @@
 #include "../Utilities/Random.h"
 #include "../Utilities/hwbp.h"
 
+#include "../Logging/Logger.h"
 using namespace DirectX;
 
 namespace adria
@@ -304,65 +305,9 @@ namespace adria
 		}
 		rg_blackboard.Add<GlobalBlackboardData>(std::move(global_data));
 
-		if (update_picking_data)
-		{
-			picking_data = picking_pass.GetPickingData();
-			update_picking_data = false;
-		}
+		if (renderer_settings.render_path != ERenderPathType::PathTracing) Render_Deferred(render_graph);
+		else Render_PathTracing(render_graph);
 
-		gbuffer_pass.AddPass(render_graph);
-		decals_pass.AddPass(render_graph);
-		switch (renderer_settings.postprocess.ambient_occlusion)
-		{
-		case EAmbientOcclusion::SSAO:
-		{
-			ssao_pass.AddPass(render_graph);
-			break;
-		}
-		case EAmbientOcclusion::HBAO:
-		{
-			hbao_pass.AddPass(render_graph);
-			break;
-		}
-		case EAmbientOcclusion::RTAO:
-		{
-			ray_tracer.AddRayTracedAmbientOcclusionPass(render_graph);
-			break;
-		}
-		case EAmbientOcclusion::None:
-		default:
-			break;
-		}
-		ambient_pass.AddPass(render_graph);
-		AddShadowMapPasses(render_graph);
-		AddRayTracingShadowPasses(render_graph);
-		switch (renderer_settings.render_path)
-		{
-		case ERenderPathType::RegularDeferred:
-			deferred_lighting_pass.AddPass(render_graph);
-			break;
-		case ERenderPathType::TiledDeferred:
-			tiled_deferred_lighting_pass.AddPass(render_graph);
-			break;
-		case ERenderPathType::ClusteredDeferred:
-			clustered_deferred_lighting_pass.AddPass(render_graph, true);
-			break;
-		}
-		if(volumetric_lights > 0) volumetric_lighting_pass.AddPass(render_graph);
-
-		aabb_pass.AddPass(render_graph);
-		ocean_renderer.AddPasses(render_graph);
-		sky_pass.AddPass(render_graph, sun_direction);
-		picking_pass.AddPass(render_graph);
-		if (renderer_settings.postprocess.reflections == EReflections::RTR)
-		{
-			ray_tracer.AddRayTracedReflectionsPass(render_graph);
-		}
-		postprocessor.AddPasses(render_graph, renderer_settings.postprocess);
-		
-		render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
-		ResolveToFinalTexture(render_graph);
-		if (!renderer_settings.gui_visible) CopyToBackbuffer(render_graph);
 		render_graph.Build();
 		render_graph.Execute();
 	}
@@ -738,6 +683,20 @@ namespace adria
 		total_time += dt;
 
 		static FrameCBuffer frame_cbuf_data{};
+
+		auto AreMatricesEqual = [](XMMATRIX m1, XMMATRIX m2) -> bool
+		{
+			XMFLOAT4X4 _m1, _m2;
+			XMStoreFloat4x4(&_m1, m1);
+			XMStoreFloat4x4(&_m2, m2);
+			
+			return !memcmp(_m1.m[0], _m2.m[0], 4 * sizeof(float)) &&
+				   !memcmp(_m1.m[1], _m2.m[1], 4 * sizeof(float)) &&
+				   !memcmp(_m1.m[2], _m2.m[2], 4 * sizeof(float)) &&
+				   !memcmp(_m1.m[3], _m2.m[3], 4 * sizeof(float));
+		};
+		if (!AreMatricesEqual(camera->ViewProj(), frame_cbuf_data.prev_view_projection)) ray_tracer.ResetPathTracer();
+
 		frame_cbuf_data.camera_near = camera->Near();
 		frame_cbuf_data.camera_far = camera->Far();
 		frame_cbuf_data.camera_position = camera->Position();
@@ -787,6 +746,78 @@ namespace adria
 			aabb.camera_visible = camera_frustum.Intersects(aabb.bounding_box) || reg.all_of<Light>(e); 
 		}
 	}
+
+	void Renderer::Render_Deferred(RenderGraph& render_graph)
+	{
+		if (update_picking_data)
+		{
+			picking_data = picking_pass.GetPickingData();
+			update_picking_data = false;
+		}
+
+		gbuffer_pass.AddPass(render_graph);
+		decals_pass.AddPass(render_graph);
+		switch (renderer_settings.postprocess.ambient_occlusion)
+		{
+		case EAmbientOcclusion::SSAO:
+		{
+			ssao_pass.AddPass(render_graph);
+			break;
+		}
+		case EAmbientOcclusion::HBAO:
+		{
+			hbao_pass.AddPass(render_graph);
+			break;
+		}
+		case EAmbientOcclusion::RTAO:
+		{
+			ray_tracer.AddRayTracedAmbientOcclusionPass(render_graph);
+			break;
+		}
+		case EAmbientOcclusion::None:
+		default:
+			break;
+		}
+		ambient_pass.AddPass(render_graph);
+		AddShadowMapPasses(render_graph);
+		AddRayTracingShadowPasses(render_graph);
+		switch (renderer_settings.render_path)
+		{
+		case ERenderPathType::RegularDeferred:
+			deferred_lighting_pass.AddPass(render_graph);
+			break;
+		case ERenderPathType::TiledDeferred:
+			tiled_deferred_lighting_pass.AddPass(render_graph);
+			break;
+		case ERenderPathType::ClusteredDeferred:
+			clustered_deferred_lighting_pass.AddPass(render_graph, true);
+			break;
+		}
+		if (volumetric_lights > 0) volumetric_lighting_pass.AddPass(render_graph);
+
+		aabb_pass.AddPass(render_graph);
+		ocean_renderer.AddPasses(render_graph);
+		sky_pass.AddPass(render_graph, sun_direction);
+		picking_pass.AddPass(render_graph);
+		if (renderer_settings.postprocess.reflections == EReflections::RTR)
+		{
+			ray_tracer.AddRayTracedReflectionsPass(render_graph);
+		}
+		postprocessor.AddPasses(render_graph, renderer_settings.postprocess);
+
+		render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
+		ResolveToFinalTexture(render_graph);
+		if (!renderer_settings.gui_visible) CopyToBackbuffer(render_graph);
+	}
+
+	void Renderer::Render_PathTracing(RenderGraph& render_graph)
+	{
+		ray_tracer.AddPathTracingPass(render_graph);
+		render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
+		tonemap_pass.AddPass(render_graph, RG_RES_NAME(PT_Output));
+		if (!renderer_settings.gui_visible) CopyToBackbuffer(render_graph);
+	}
+
 	void Renderer::MiscGUI()
 	{
 		AddGUI([&]() {

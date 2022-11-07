@@ -37,7 +37,6 @@ void PT_RayGen()
     float2 resolution = float2(DispatchRaysDimensions().xy);
     
     uint randSeed = InitRand(pixel.x + pixel.y * resolution.x, FrameCB.frameCount, 16);
-    float3 previousColor = accumTx[DispatchRaysIndex().xy].rgb;
 
     float2 offset = float2(NextRand(randSeed), NextRand(randSeed));
     pixel += lerp(-0.5f.xx, 0.5f.xx, offset);
@@ -107,7 +106,7 @@ void PT_RayGen()
         //Light light = light_cbuf.current_light;
     }
 
-    // Accumulation and output
+    float3 previousColor = accumTx[DispatchRaysIndex().xy].rgb;
     if (PassCB.accumulatedFrames > 1)
     {
         radiance += previousColor;

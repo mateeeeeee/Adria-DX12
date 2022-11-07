@@ -82,7 +82,7 @@ namespace adria
 		float ao_radius = 2.0f;
 		float roughness_scale = 0.0f;
 		int32 accumulated_frames = 1;
-		int32 max_bounces = 3;
+		int32 max_bounces = 1;
 	private:
 		void CreateStateObjects();
 		void OnLibraryRecompiled(EShaderId shader);

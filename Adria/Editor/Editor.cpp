@@ -1065,7 +1065,7 @@ namespace adria
 		if (!window_flags[Flag_Settings]) return;
 		if (ImGui::Begin("Settings", &window_flags[Flag_Settings]))
 		{
-			static const char* render_path_types[] = { "Regular", "Tiled", "Clustered" };
+			static const char* render_path_types[] = { "Regular Deferred", "Tiled Deferred", "Clustered Deferred", "Path Tracing" };
 			static int current_render_path_type = 0;
 			const char* render_path_combo_label = render_path_types[current_render_path_type];
 			if (ImGui::BeginCombo("Render Path", render_path_combo_label, 0))
