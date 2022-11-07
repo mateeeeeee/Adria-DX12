@@ -95,7 +95,7 @@ namespace adria
 		HashMap<size_t, std::unique_ptr<Texture>> light_mask_textures;
 		DescriptorHandle		 light_array_srv; 
 		DescriptorHandle		 light_matrices_srv; 
-
+		DescriptorHandle         env_map_srv;
 		//passes
 		GBufferPass  gbuffer_pass;
 		SSAOPass	 ssao_pass;
@@ -130,7 +130,6 @@ namespace adria
 		DirectX::XMFLOAT3 sun_direction;
 
 		std::unique_ptr<DescriptorHeap> null_heap;
-		D3D12_CPU_DESCRIPTOR_HANDLE env_map;
 
 		bool update_picking_data = false;
 		PickingData picking_data;

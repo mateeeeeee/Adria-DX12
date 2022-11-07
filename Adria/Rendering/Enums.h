@@ -78,6 +78,7 @@ namespace adria
 		LIB_SoftShadows,
 		LIB_AmbientOcclusion,
 		LIB_Reflections,
+		//LIB_PathTracing,
 		ShaderId_Count
 	};
 

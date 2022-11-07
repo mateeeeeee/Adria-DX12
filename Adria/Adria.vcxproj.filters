@@ -898,6 +898,9 @@
     <FxCompile Include="Resources\NewShaders\Lighting\ClusteredDeferredLighting.hlsl">
       <Filter>Shaders\Lighting</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\NewShaders\RayTracing\PathTracer.hlsl">
+      <Filter>Shaders\RayTracing</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="scene.json" />

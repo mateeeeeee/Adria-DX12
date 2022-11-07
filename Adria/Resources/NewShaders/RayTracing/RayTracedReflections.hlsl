@@ -7,7 +7,6 @@ struct RayTracedReflectionsConstants
 {
     float roughnessScale;
     uint  depthIdx;
-	uint  envMapIdx;
 	uint  outputIdx;
 	uint  verticesIdx;
 	uint  indicesIdx;
@@ -58,8 +57,8 @@ void RTR_RayGen()
 [shader("miss")]
 void RTR_Miss(inout RTR_Payload payloadData)
 {
-	TextureCube envMap = ResourceDescriptorHeap[PassCB.envMapIdx];
-	payloadData.reflectionColor = envMap.SampleLevel(LinearWrapSampler, WorldRayDirection(), 0).rgb;
+    TextureCube envMap = ResourceDescriptorHeap[FrameCB.envMapIdx];
+    payloadData.reflectionColor = envMap.SampleLevel(LinearWrapSampler, WorldRayDirection(), 0).rgb;
 }
 
 [shader("closesthit")]

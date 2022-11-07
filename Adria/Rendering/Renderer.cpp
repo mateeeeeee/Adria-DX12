@@ -276,6 +276,7 @@ namespace adria
 	{
 		SetupShadows();
 		UpdateLights();
+		UpdateEnvironmentMap();
 		UpdateFrameConstantBuffer(dt);
 		CameraFrustumCulling();
 		MiscGUI();
@@ -300,7 +301,6 @@ namespace adria
 			global_data.null_srv_texture2darray = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURE2DARRAY);
 			global_data.null_srv_texturecube = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURECUBE);
 			global_data.white_srv_texture2d = white_default_texture->GetSRV();
-			global_data.env_map = env_map;
 		}
 		rg_blackboard.Add<GlobalBlackboardData>(std::move(global_data));
 
@@ -474,7 +474,7 @@ namespace adria
 
 	void Renderer::UpdateEnvironmentMap()
 	{
-		env_map = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURECUBE);
+		D3D12_CPU_DESCRIPTOR_HANDLE env_map = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURECUBE);
 		if (sky_pass.GetSkyType() == ESkyType::Skybox)
 		{
 			auto skybox_entities = reg.view<Skybox>();
@@ -488,6 +488,12 @@ namespace adria
 				}
 			}
 		}
+		ID3D12Device* device = gfx->GetDevice();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+
+		OffsetType i = descriptor_allocator->Allocate();
+		env_map_srv = descriptor_allocator->GetHandle(i);
+		device->CopyDescriptorsSimple(1, env_map_srv, env_map, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	}
 	void Renderer::SetupShadows()
 	{
@@ -753,6 +759,7 @@ namespace adria
 		frame_cbuf_data.lights_idx = (int32)light_array_srv.GetHeapOffset();
 		frame_cbuf_data.lights_matrices_idx = (int32)light_matrices_srv.GetHeapOffset();
 		frame_cbuf_data.accel_struct_idx = (int32)ray_tracer.GetAccelStructureHeapIndex();
+		frame_cbuf_data.env_map_idx = (int32)env_map_srv.GetHeapOffset();
 		frame_cbuf_data.cascade_splits = XMVectorSet(split_distances[0], split_distances[1], split_distances[2], split_distances[3]);
 		auto lights = reg.view<Light>();
 		for (auto light : lights)

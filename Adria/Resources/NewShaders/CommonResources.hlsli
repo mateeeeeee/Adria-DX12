@@ -21,14 +21,15 @@ struct FrameCBuffer
     float4 sunDirection;
     float4 sunColor;
 	float4 cascadeSplits;
-	
+    float2 mouseNormalizedCoords;
 	float  deltaTime;
 	float  totalTime;
+	
 	uint   frameCount;
 	int    lightsIdx;
 	int    lightsMatricesIdx;
     int	   accelStructIdx;
-	float2 mouseNormalizedCoords;
+    int	   envMapIdx;
 };
 ConstantBuffer<FrameCBuffer> FrameCB  : register(b0);
 

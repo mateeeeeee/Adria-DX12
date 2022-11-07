@@ -30,14 +30,16 @@ namespace adria
 		DirectX::XMVECTOR sun_color;
 		DirectX::XMVECTOR cascade_splits;
 
+		float  mouse_normalized_coords_x;
+		float  mouse_normalized_coords_y;
 		float  delta_time;
 		float  total_time;
+
 		uint32 frame_count;
 		int32  lights_idx;
 		int32  lights_matrices_idx;
 		int32  accel_struct_idx;
-		float  mouse_normalized_coords_x;
-		float  mouse_normalized_coords_y;
+		int32  env_map_idx;
 	};
 
 	struct LightHLSL

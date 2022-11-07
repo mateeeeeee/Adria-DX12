@@ -9,7 +9,6 @@
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
 #include "../RenderGraph/RenderGraphResourceName.h"
-#include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/RayTracingUtil.h" 
 
 namespace adria
@@ -55,11 +54,12 @@ namespace adria
 		void OnSceneInitialized();
 
 		uint32 GetAccelStructureHeapIndex() const;
+		void ResetPathTracer() { accumulated_frames = 0; }
 
 		void AddRayTracedShadowsPass(RenderGraph&, uint32, RGResourceName);
 		void AddRayTracedReflectionsPass(RenderGraph&);
 		void AddRayTracedAmbientOcclusionPass(RenderGraph&);
-		
+		void AddPathTracingPass(RenderGraph&);
 	private:
 		uint32 width, height;
 		entt::registry& reg;
@@ -71,14 +71,18 @@ namespace adria
 		std::unique_ptr<Buffer> global_vb = nullptr;
 		std::unique_ptr<Buffer> global_ib = nullptr;
 		std::unique_ptr<Buffer> geo_buffer = nullptr;
+		std::unique_ptr<Texture> accumulation_texture = nullptr;
 
 		Microsoft::WRL::ComPtr<ID3D12StateObject> ray_traced_shadows;
 		Microsoft::WRL::ComPtr<ID3D12StateObject> ray_traced_ambient_occlusion;
 		Microsoft::WRL::ComPtr<ID3D12StateObject> ray_traced_reflections;
+		Microsoft::WRL::ComPtr<ID3D12StateObject> path_tracing;
 
 		BlurPass blur_pass;
 		float ao_radius = 2.0f;
 		float roughness_scale = 0.0f;
+		int32 accumulated_frames = 1;
+		int32 max_bounces = 3;
 	private:
 		void CreateStateObjects();
 		void OnLibraryRecompiled(EShaderId shader);

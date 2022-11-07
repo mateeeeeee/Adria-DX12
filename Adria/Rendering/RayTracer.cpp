@@ -59,6 +59,14 @@ namespace adria
 	{
 		width = w, height = h;
 		blur_pass.OnResize(w, h);
+
+		TextureDesc accum_desc{};
+		accum_desc.width = width;
+		accum_desc.height = height;
+		accum_desc.format = EFormat::R16G16B16A16_FLOAT;
+		accum_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::UnorderedAccess;
+		accum_desc.initial_state = EResourceState::UnorderedAccess;
+		accumulation_texture = std::make_unique<Texture>(gfx, accum_desc);
 	}
 	void RayTracer::OnSceneInitialized()
 	{
@@ -177,13 +185,11 @@ namespace adria
 
 			}, ERGPassType::Compute, ERGPassFlags::ForceNoCull);
 	}
-
 	void RayTracer::AddRayTracedReflectionsPass(RenderGraph& rg)
 	{
 		if (!IsFeatureSupported(ERayTracingFeature::Reflections)) return;
 
 		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
-		D3D12_CPU_DESCRIPTOR_HANDLE envmap = global_data.env_map;
 		struct RayTracedReflectionsPassData
 		{
 			RGTextureReadOnlyId depth;
@@ -221,19 +227,17 @@ namespace adria
 				auto device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				uint32 i = (uint32)descriptor_allocator->AllocateRange(6); //pack this in one CopyDescriptors call
+				uint32 i = (uint32)descriptor_allocator->AllocateRange(5); 
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.depth), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), envmap, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 3), ctx.GetReadOnlyBuffer(data.vb), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 4), ctx.GetReadOnlyBuffer(data.ib), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 5), ctx.GetReadOnlyBuffer(data.geo), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadOnlyBuffer(data.vb), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 3), ctx.GetReadOnlyBuffer(data.ib), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 4), ctx.GetReadOnlyBuffer(data.geo), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 				struct RayTracedReflectionsConstants
 				{
 					float   roughness_scale;
 					uint32  depth_idx;
-					uint32  env_map_idx;
 					uint32  output_idx;
 					uint32  vertices_idx;
 					uint32  indices_idx;
@@ -241,13 +245,13 @@ namespace adria
 				} constants = 
 				{   
 					.roughness_scale = roughness_scale,
-					.depth_idx = i + 0, .env_map_idx = i + 1, .output_idx = i + 2,
-					.vertices_idx = i + 3, .indices_idx = i + 4, .geo_infos_idx = i + 5
+					.depth_idx = i + 0, .output_idx = i + 1,
+					.vertices_idx = i + 2, .indices_idx = i + 3, .geo_infos_idx = i + 4
 				};
 
 				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRoot32BitConstants(1, 7, &constants, 0);
+				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);
 				cmd_list->SetPipelineState1(ray_traced_reflections.Get());
 
 				D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
@@ -354,6 +358,90 @@ namespace adria
 		}
 		);
 	}
+
+	void RayTracer::AddPathTracingPass(RenderGraph& rg)
+	{
+		/*if (!IsFeatureSupported(ERayTracingFeature::PathTracing)) return;
+
+		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		D3D12_CPU_DESCRIPTOR_HANDLE envmap = global_data.env_map;
+
+		struct PathTracingPassData
+		{
+			RGTextureReadWriteId output;
+			RGTextureReadWriteId accumulation;
+
+			RGBufferReadOnlyId vb;
+			RGBufferReadOnlyId ib;
+			RGBufferReadOnlyId geo;
+		};
+
+		rg.ImportBuffer(RG_RES_NAME(BigVertexBuffer), global_vb.get());
+		rg.ImportBuffer(RG_RES_NAME(BigIndexBuffer), global_ib.get());
+		rg.ImportBuffer(RG_RES_NAME(BigGeometryBuffer), geo_buffer.get());
+		rg.ImportTexture(RG_RES_NAME(AccumulationTexture), accumulation_texture.get());
+
+		rg.AddPass<PathTracingPassData>("Path Tracing Pass",
+			[=](PathTracingPassData& data, RGBuilder& builder)
+			{
+				RGTextureDesc render_target_desc{};
+				render_target_desc.format = EFormat::R16G16B16A16_FLOAT;
+				render_target_desc.width = width;
+				render_target_desc.height = height;
+				render_target_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
+				builder.DeclareTexture(RG_RES_NAME(PT_RenderTarget), render_target_desc);
+
+				data.output = builder.WriteTexture(RG_RES_NAME(PT_RenderTarget));
+				data.accumulation = builder.WriteTexture(RG_RES_NAME(AccumulationTexture));
+
+				data.vb = builder.ReadBuffer(RG_RES_NAME(BigVertexBuffer));
+				data.ib = builder.ReadBuffer(RG_RES_NAME(BigIndexBuffer));
+				data.geo = builder.ReadBuffer(RG_RES_NAME(BigGeometryBuffer));
+			},
+			[=](PathTracingPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			{
+				auto device = gfx->GetDevice();
+				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto dynamic_allocator = gfx->GetDynamicAllocator();
+
+				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
+				
+				OffsetType descriptor_index = descriptor_allocator->AllocateRange(1);
+				auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+				device->CopyDescriptorsSimple(1, dst_descriptor, envmap,
+					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				cmd_list->SetComputeRootDescriptorTable(4, dst_descriptor);
+
+				descriptor_index = descriptor_allocator->AllocateRange(5);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), ctx.GetReadWriteTexture(data.accumulation), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				cmd_list->SetComputeRootDescriptorTable(5, descriptor_allocator->GetHandle(descriptor_index));
+				cmd_list->SetPipelineState1(path_tracing.Get());
+
+				cmd_list->SetComputeRootDescriptorTable(6, descriptor_allocator->GetFirstHandle());
+
+				descriptor_index = descriptor_allocator->AllocateRange(3);
+				dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 0), ctx.GetReadOnlyBuffer(data.vb), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 1), ctx.GetReadOnlyBuffer(data.ib), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(descriptor_index + 2), ctx.GetReadOnlyBuffer(data.geo), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				cmd_list->SetComputeRootDescriptorTable(7, dst_descriptor);
+
+
+				D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
+				dispatch_desc.HitGroupTable = path_tracing.shader_table_hit->GetRangeAndStride();
+				dispatch_desc.MissShaderTable = path_tracing.shader_table_miss->GetRangeAndStride();
+				dispatch_desc.RayGenerationShaderRecord = path_tracing.shader_table_raygen->GetRange(0);
+				dispatch_desc.Width = width;
+				dispatch_desc.Height = height;
+				dispatch_desc.Depth = 1;
+
+				cmd_list->DispatchRays(&dispatch_desc);
+
+			}, ERGPassType::Compute, ERGPassFlags::None); */
+	}
+
 	void RayTracer::CreateStateObjects()
 	{
 		ID3D12Device5* device = gfx->GetDevice();
@@ -362,6 +450,7 @@ namespace adria
 		Shader const& rt_soft_shadows_blob	= ShaderCache::GetShader(LIB_SoftShadows);
 		Shader const& rtao_blob				= ShaderCache::GetShader(LIB_AmbientOcclusion);
 		Shader const& rtr_blob				= ShaderCache::GetShader(LIB_Reflections);
+		//Shader const& pt_blob				= ShaderCache::GetShader(LIB_PathTracing);
 
 		StateObjectBuilder rt_shadows_state_object_builder(6);
 		{
@@ -480,6 +569,38 @@ namespace adria
 
 			ray_traced_reflections.Attach(rtr_state_object_builder.CreateStateObject(device));
 		}
+
+		//StateObjectBuilder pt_state_object_builder(5);
+		//{
+		//	D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc{};
+		//	dxil_lib_desc.DXILLibrary.BytecodeLength = pt_blob.GetLength();
+		//	dxil_lib_desc.DXILLibrary.pShaderBytecode = pt_blob.GetPointer();
+		//	dxil_lib_desc.NumExports = 0;
+		//	dxil_lib_desc.pExports = nullptr;
+		//	pt_state_object_builder.AddSubObject(dxil_lib_desc);
+		//
+		//	D3D12_RAYTRACING_SHADER_CONFIG pt_shader_config{};
+		//	pt_shader_config.MaxPayloadSizeInBytes = sizeof(float) * 5;
+		//	pt_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
+		//	pt_state_object_builder.AddSubObject(pt_shader_config);
+		//
+		//	D3D12_GLOBAL_ROOT_SIGNATURE global_root_sig{};
+		//	global_root_sig.pGlobalRootSignature = RootSignatureCache::Get(ERootSignature::Common);
+		//	pt_state_object_builder.AddSubObject(global_root_sig);
+		//
+		//	// Add a state subobject for the ray tracing pipeline config
+		//	D3D12_RAYTRACING_PIPELINE_CONFIG pipeline_config{};
+		//	pipeline_config.MaxTraceRecursionDepth = 3;
+		//	pt_state_object_builder.AddSubObject(pipeline_config);
+		//
+		//	D3D12_HIT_GROUP_DESC closesthit_group{};
+		//	closesthit_group.Type = D3D12_HIT_GROUP_TYPE_TRIANGLES;
+		//	closesthit_group.ClosestHitShaderImport = L"PT_ClosestHit";
+		//	closesthit_group.HitGroupExport = L"PT_HitGroup";
+		//	pt_state_object_builder.AddSubObject(closesthit_group);
+		//
+		//	path_tracing = pt_state_object_builder.CreateStateObject(device);
+		//}
 	}
 	void RayTracer::OnLibraryRecompiled(EShaderId shader)
 	{
