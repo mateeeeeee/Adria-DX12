@@ -241,6 +241,7 @@ namespace adria
 			case LIB_SoftShadows:
 			case LIB_AmbientOcclusion:
 			case LIB_Reflections:
+			case LIB_PathTracing:
 				return EShaderStage::LIB;
 			case ShaderId_Count:
 			default:
@@ -369,6 +370,8 @@ namespace adria
 				return "RayTracing/RayTracedAmbientOcclusion.hlsl";
 			case LIB_Reflections:
 				return "RayTracing/RayTracedReflections.hlsl";
+			case LIB_PathTracing:
+				return "RayTracing/PathTracer.hlsl";
 			case ShaderId_Count:
 			default:
 				return "";
