@@ -33,12 +33,12 @@ struct LightingResult
 	float4 Specular;
 };
 
-static float DoAttenuation(float distance, float range)
+float DoAttenuation(float distance, float range)
 {
 	float att = saturate(1.0f - (distance * distance / (range * range)));
 	return att * att;
 }
-static float DistributionGGX(float3 N, float3 H, float roughness)
+float DistributionGGX(float3 N, float3 H, float roughness)
 {
     float a = roughness * roughness;
     float a2 = a * a;
@@ -51,7 +51,7 @@ static float DistributionGGX(float3 N, float3 H, float roughness)
 
     return nom / max(denom, 0.0000001); // prevent divide by zero for roughness=0.0 and NdotH=1.0
 }
-static float GeometrySchlickGGX(float NdotV, float roughness)
+float GeometrySchlickGGX(float NdotV, float roughness)
 {
     float r = (roughness + 1.0);
     float k = (r * r) / 8.0;
@@ -61,7 +61,7 @@ static float GeometrySchlickGGX(float NdotV, float roughness)
 
     return nom / denom;
 }
-static float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
+float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
 {
     float NdotV = max(dot(N, V), 0.0);
     float NdotL = max(dot(N, L), 0.0);
@@ -70,16 +70,16 @@ static float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
 
     return ggx1 * ggx2;
 }
-static float3 FresnelSchlick(float cosTheta, float3 F0)
+float3 FresnelSchlick(float cosTheta, float3 F0)
 {
     return F0 + (1.0 - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
 }
-static float3 FresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
+float3 FresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
 {
     return F0 + (max(float3(1.0 - roughness, 1.0 - roughness, 1.0 - roughness), F0) - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
 }
 
-static float3 SpotLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V, float3 albedo, float metallic, float roughness)
+float3 SpotLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V, float3 albedo, float metallic, float roughness)
 {
 	float3 F0 = float3(0.04, 0.04, 0.04);
 	F0 = lerp(F0, albedo, metallic);
@@ -111,7 +111,7 @@ static float3 SpotLightPBR(Light light, float3 positionVS, float3 normalVS, floa
 	float3 Lo = (kD * albedo / M_PI + specular) * radiance * NdotL;
 	return Lo;
 }
-static float3 PointLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V, float3 albedo, float metallic, float roughness)
+float3 PointLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V, float3 albedo, float metallic, float roughness)
 {
 	float3 F0 = float3(0.04, 0.04, 0.04);
 	F0 = lerp(F0, albedo, metallic);
@@ -136,7 +136,7 @@ static float3 PointLightPBR(Light light, float3 positionVS, float3 normalVS, flo
     float3 Lo = (kD * albedo / M_PI + specular) * radiance * NdotL;
 	return Lo;
 }
-static float3 DirectionalLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V, float3 albedo, float metallic, float roughness)
+float3 DirectionalLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V, float3 albedo, float metallic, float roughness)
 {
     float3 F0 = float3(0.04, 0.04, 0.04);
     F0 = lerp(F0, albedo, metallic);
@@ -162,7 +162,7 @@ static float3 DirectionalLightPBR(Light light, float3 positionVS, float3 normalV
     return Lo;
 }
 
-static float CalcShadowFactor_PCF3x3(SamplerComparisonState shadowSampler,
+float CalcShadowFactor_PCF3x3(SamplerComparisonState shadowSampler,
 	Texture2D<float> shadowMap, float3 uvd, int shadowMapSize)
 {
 	if (uvd.z > 1.0f) return 1.0;

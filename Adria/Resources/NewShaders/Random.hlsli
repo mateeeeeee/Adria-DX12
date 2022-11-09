@@ -2,7 +2,7 @@
 
 //https://github.com/chris-wyman/GettingStartedWithRTXRayTracing/blob/master/05-AmbientOcclusion/Data/Tutorial05/hlslUtils.hlsli
 // Generates a seed for a random number generator from 2 inputs plus a backoff
-static uint InitRand(uint val0, uint val1, uint backoff = 16)
+uint InitRand(uint val0, uint val1, uint backoff = 16)
 {
 	uint v0 = val0, v1 = val1, s0 = 0;
 
@@ -16,7 +16,7 @@ static uint InitRand(uint val0, uint val1, uint backoff = 16)
 	return v0;
 }
 // Takes our seed, updates it, and returns a pseudorandom float in [0..1]
-static float NextRand(inout uint s)
+float NextRand(inout uint s)
 {
 	s = (1664525u * s + 1013904223u);
 	return float(s & 0x00FFFFFF) / float(0x01000000);

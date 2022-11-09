@@ -643,6 +643,8 @@ namespace adria
 		std::vector<LightHLSL> hlsl_lights{};
 		hlsl_lights.reserve(light_view.size());
 		uint32 light_index = 0;
+		XMMATRIX light_transform = renderer_settings.render_path == ERenderPathType::PathTracing ?
+								   XMMatrixIdentity() : camera->View();
 		for (auto e : light_view)
 		{
 			auto& light = light_view.get<Light>(e);
@@ -651,8 +653,8 @@ namespace adria
 
 			LightHLSL hlsl_light{};
 			hlsl_light.color = light.color * light.energy;
-			hlsl_light.position = XMVector4Transform(light.position, camera->View());
-			hlsl_light.direction = XMVector4Transform(light.direction, camera->View());
+			hlsl_light.position = XMVector4Transform(light.position, light_transform);
+			hlsl_light.direction = XMVector4Transform(light.direction, light_transform);
 			hlsl_light.range = light.range;
 			hlsl_light.type = static_cast<int32>(light.type);
 			hlsl_light.inner_cosine = light.inner_cosine;

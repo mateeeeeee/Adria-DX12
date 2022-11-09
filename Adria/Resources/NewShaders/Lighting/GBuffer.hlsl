@@ -52,16 +52,11 @@ struct ModelCBuffer
     uint metallicRoughnessIdx;
     uint emissiveIdx;
     
-    float3 ambient;
-    float3 diffuse;
-    float  alphaCutoff;
-    float3 specular;
-    float  shininess;
-    float  albedoFactor;
+    float3 baseColor;
     float  metallicFactor;
     float  roughnessFactor;
     float  emissiveFactor;
-    
+    float alphaCutoff;
 };
 ConstantBuffer<ModelCBuffer> ModelCB : register(b2);
 
@@ -102,7 +97,7 @@ PS_OUTPUT GBufferPS(PS_INPUT In)
     Texture2D txMetallicRoughness   = ResourceDescriptorHeap[ModelCB.metallicRoughnessIdx];
     Texture2D txEmissive            = ResourceDescriptorHeap[ModelCB.emissiveIdx];
     
-    float4 albedoColor = txAlbedo.Sample(LinearWrapSampler, In.Uvs) * ModelCB.albedoFactor;
+    float4 albedoColor = txAlbedo.Sample(LinearWrapSampler, In.Uvs) * float4(ModelCB.baseColor, 1.0f);
 #if MASK 
     if(albedoColor.a < 0.5f) discard;
 #endif

@@ -939,5 +939,8 @@
     <None Include="Resources\NewShaders\Lighting\LightRadiance.hlsli">
       <Filter>Shaders\Lighting</Filter>
     </None>
+    <None Include="Resources\NewShaders\BRDF.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

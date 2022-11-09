@@ -236,7 +236,7 @@ namespace adria
 				} constants =
 				{
 					.model_matrix = transform.current_transform,
-					.diffuse_color = material.diffuse,
+					.diffuse_color = XMFLOAT3(material.base_color),
 					.diffuse_idx = (uint32)material.albedo_texture
 				};
 				DynamicAllocation allocation = dynamic_allocator->Allocate(GetCBufferSize<Constants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);

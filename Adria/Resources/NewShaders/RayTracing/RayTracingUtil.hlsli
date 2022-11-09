@@ -1,7 +1,10 @@
 #include "../Common.hlsli"
 #include "../Random.hlsli"
 
-static float3 GetCosHemisphereSample(inout uint randSeed, float3 hitNorm)
+
+typedef BuiltInTriangleIntersectionAttributes HitAttributes;
+
+float3 GetCosHemisphereSample(inout uint randSeed, float3 hitNorm)
 {
 	// Get a cosine-weighted random vector centered around a specified normal direction.
 	// Get 2 random numbers to select our sample with
@@ -16,8 +19,7 @@ static float3 GetCosHemisphereSample(inout uint randSeed, float3 hitNorm)
 	// Get our cosine-weighted hemisphere lobe sample direction
 	return tangent * (r * cos(phi).x) + bitangent * (r * sin(phi)) + hitNorm.xyz * sqrt(1 - randVal.x);
 }
-
-static float3 GetConeSample(inout uint randSeed, float3 direction, float coneAngle)
+float3 GetConeSample(inout uint randSeed, float3 direction, float coneAngle)
 {
 	//https://medium.com/@alexander.wester/ray-tracing-soft-shadows-in-real-time-a53b836d123b
 	float cosAngle = cos(coneAngle);
@@ -38,8 +40,7 @@ static float3 GetConeSample(inout uint randSeed, float3 direction, float coneAng
 
 	return mul(R, float3(x, y, z));
 }
-
-static float3 OffsetRay(const float3 p, const float3 n)
+float3 OffsetRay(const float3 p, const float3 n)
 {
 	/* A Fast and Robust Method for Avoiding
 	Self-Intersection by Carsten Wächter and Nikolaus Binder
@@ -60,19 +61,6 @@ static float3 OffsetRay(const float3 p, const float3 n)
 		abs(p.z) < origin ? p.z + float_scale * n.z : p_i.z);
 }
 
-typedef BuiltInTriangleIntersectionAttributes HitAttributes;
-
-struct GeoInfo
-{
-	uint vertexOffset;
-	uint indexOffset;
-
-	int albedoIdx;
-	int normalIdx;
-	int metallicRoughnessIdx;
-	int emissiveIdx;
-};
-
 struct Vertex
 {
 	float3 pos;
@@ -90,3 +78,33 @@ static float2 Interpolate(in float2 x0, in float2 x1, in float2 x2, float2 bary)
 {
 	return x0 * (1.0f - bary.x - bary.y) + bary.x * x1 + bary.y * x2;
 }
+
+
+struct MaterialData
+{
+    int albedoIdx;
+    int normalIdx;
+    int metallicRoughnessIdx;
+    int emissiveIdx;
+
+    float3 baseColor;
+    float  metallicFactor;
+    float  roughnessFactor;
+    float  emissiveFactor;
+    float  alphaCutoff;
+};
+
+struct GeoInfo
+{
+    uint vertexOffset;
+    uint indexOffset;
+    MaterialData materialData;
+};
+
+struct BrdfData
+{
+    float3 Diffuse;
+    float3 Specular;
+    float Roughness;
+};
+

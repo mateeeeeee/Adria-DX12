@@ -1,6 +1,25 @@
 #pragma once
 
-static float3x3 AngleAxis3x3(float angle, float3 axis)
+float4 GetRotationToZAxis(float3 input)
+{
+	if (input.z < -0.99999f)
+    {
+        return float4(1.0f, 0.0f, 0.0f, 0.0f);
+    }
+    return normalize(float4(input.y, -input.x, 0.0f, 1.0f + input.z));
+}
+float4 InvertRotation(float4 q)
+{
+    return float4(-q.x, -q.y, -q.z, q.w);
+}
+// Source: https://gamedev.stackexchange.com/questions/28395/rotating-vector3-by-a-quaternion
+float3 RotatePoint(float4 q, float3 v)
+{
+    float3 qAxis = float3(q.x, q.y, q.z);
+    return 2.0f * dot(qAxis, v) * qAxis + (q.w * q.w - dot(qAxis, qAxis)) * v + 2.0f * q.w * cross(qAxis, v);
+}
+
+float3x3 AngleAxis3x3(float angle, float3 axis)
 {
 	// Rotation with angle (in radians) and axis
 	float c, s;
@@ -17,8 +36,7 @@ static float3x3 AngleAxis3x3(float angle, float3 axis)
 		t * x * z - s * y, t * y * z + s * x, t * z * z + c
 		);
 }
-
-static float3 GetPerpendicularVector(float3 u)
+float3 GetPerpendicularVector(float3 u)
 {
 	// Utility function to get a vector perpendicular to an input vector 
 	// (from "Efficient Construction of Perpendicular Vectors Without Branching")
@@ -28,7 +46,6 @@ static float3 GetPerpendicularVector(float3 u)
 	uint zm = 1 ^ (xm | ym);
 	return cross(u, float3(xm, ym, zm));
 }
-
 uint GetCubeFaceIndex(float3 v)
 {
     float3 vAbs = abs(v);
@@ -48,23 +65,32 @@ uint GetCubeFaceIndex(float3 v)
     return faceIndex;
 }
 
-static bool IsSaturated(float value)
+bool IsSaturated(float value)
 {
     return value == saturate(value);
 }
-
-static bool IsSaturated(float2 value)
+bool IsSaturated(float2 value)
 {
     return IsSaturated(value.x) && IsSaturated(value.y);
 }
-
-static bool IsSaturated(float3 value)
+bool IsSaturated(float3 value)
 {
     return IsSaturated(value.x) && IsSaturated(value.y) && IsSaturated(value.z);
 }
-
-static bool IsSaturated(float4 value)
+bool IsSaturated(float4 value)
 {
     return IsSaturated(value.x) && IsSaturated(value.y) && IsSaturated(value.z) && IsSaturated(value.w);
 }
+
+float4 SampleBindless2D(int index, SamplerState s, float2 uv, uint2 offset = 0)
+{
+    Texture2D tex = ResourceDescriptorHeap[index];
+    return tex.Sample(s, uv, offset);
+}
+float4 SampleBindlessLevel2D(int index, SamplerState s, float2 uv, float level, uint2 offset = 0)
+{
+    Texture2D tex = ResourceDescriptorHeap[index];
+    return tex.SampleLevel(s, uv, level, offset);
+}
+
 

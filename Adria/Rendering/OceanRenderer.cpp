@@ -32,7 +32,7 @@ namespace adria
 			for (auto e : ocean_view)
 			{
 				auto& material = ocean_view.get<Material>(e);
-				material.diffuse = XMFLOAT3(ocean_color);
+				memcpy(material.base_color, ocean_color, 3 * sizeof(ocean_color));
 			}
 		}
 
@@ -390,7 +390,7 @@ namespace adria
 						} constants = 
 						{
 							.ocean_model_matrix = transform.current_transform,
-							.ocean_color = material.diffuse
+							.ocean_color = XMFLOAT3(material.base_color)
 						};
 						DynamicAllocation allocation = dynamic_allocator->Allocate(GetCBufferSize<OceanConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 						allocation.Update(constants);

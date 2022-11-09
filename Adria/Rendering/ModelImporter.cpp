@@ -386,7 +386,11 @@ namespace adria
             reg.emplace<Mesh>(light, mesh);
 
             Material material{};
-            XMStoreFloat3(&material.diffuse, params.light_data.color);
+			XMFLOAT3 base_color;
+			XMStoreFloat3(&base_color, params.light_data.color);
+			material.base_color[0] = base_color.x;
+			material.base_color[1] = base_color.y;
+			material.base_color[2] = base_color.z;
 
             if (params.light_texture.has_value())
                 material.albedo_texture = texture_manager.LoadTexture(params.light_texture.value()); //
@@ -448,7 +452,8 @@ namespace adria
 		std::vector<entt::entity> ocean_chunks = ModelImporter::LoadGrid(params.ocean_grid);
 
 		Material ocean_material{};
-		ocean_material.diffuse = XMFLOAT3(0.0123f, 0.3613f, 0.6867f);
+		static float default_ocean_color[] = { 0.0123f, 0.3613f, 0.6867f };
+		memcpy(ocean_material.base_color, default_ocean_color, 3 * sizeof(float));
 		ocean_material.pso = EPipelineState::Unknown;
 		Ocean ocean_component{};
 
@@ -552,7 +557,9 @@ namespace adria
 					tinygltf::Image const& base_image = model.images[base_texture.source];
 					std::string texbase = params.textures_path + base_image.uri;
 					material.albedo_texture = texture_manager.LoadTexture(ToWideString(texbase));
-					material.albedo_factor = (float)pbr_metallic_roughness.baseColorFactor[0];
+					material.base_color[0] = (float)pbr_metallic_roughness.baseColorFactor[0];
+					material.base_color[1] = (float)pbr_metallic_roughness.baseColorFactor[1];
+					material.base_color[2] = (float)pbr_metallic_roughness.baseColorFactor[2];
 				}
 				if (pbr_metallic_roughness.metallicRoughnessTexture.index >= 0)
 				{

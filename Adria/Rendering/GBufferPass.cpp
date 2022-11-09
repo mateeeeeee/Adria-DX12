@@ -98,22 +98,16 @@ namespace adria
 							uint32 metallic_roughness_idx;
 							uint32 emissive_idx;
 
-							//later add uint materialIdx and remove these parameters -> index to material array buffer with these params
-							XMFLOAT3 ambient;
-							XMFLOAT3 diffuse;
-							float  alpha_cutoff;
-							XMFLOAT3 specular;
-							float  shininess;
-							float  albedo_factor;
+							XMFLOAT3 base_color;
 							float  metallic_factor;
 							float  roughness_factor;
 							float  emissive_factor;
+							float  alpha_cutoff;
 						} model_cbuf_data = {};
 
 						model_cbuf_data.model_matrix = transform.current_transform * parent_transform;
 						model_cbuf_data.transposed_inverse_model_matrix = XMMatrixTranspose(XMMatrixInverse(nullptr, model_cbuf_data.model_matrix));
-						model_cbuf_data.diffuse = material.diffuse;
-						model_cbuf_data.albedo_factor = material.albedo_factor;
+						model_cbuf_data.base_color = XMFLOAT3(material.base_color);
 						model_cbuf_data.metallic_factor = material.metallic_factor;
 						model_cbuf_data.roughness_factor = material.roughness_factor;
 						model_cbuf_data.emissive_factor = material.emissive_factor;

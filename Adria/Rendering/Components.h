@@ -78,7 +78,7 @@ namespace adria
 		TextureHandle metallic_roughness_texture  = INVALID_TEXTURE_HANDLE;
 		TextureHandle emissive_texture			  = INVALID_TEXTURE_HANDLE;
 
-		float albedo_factor		= 1.0f;
+		float base_color[3]  = { 1.0f, 1.0f, 1.0f };
 		float metallic_factor	= 1.0f;
 		float roughness_factor	= 1.0f;
 		float emissive_factor	= 1.0f;
@@ -87,7 +87,6 @@ namespace adria
 		float alpha_cutoff		= 0.5f;
 		bool    double_sided	= false;
 
-		DirectX::XMFLOAT3 diffuse = DirectX::XMFLOAT3(1, 1, 1);
 		EPipelineState pso = EPipelineState::Unknown;
 	};
 

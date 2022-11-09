@@ -84,6 +84,11 @@ namespace adria
 				.normal_idx = (int32)material.normal_texture,
 				.metallic_roughness_idx = (int32)material.metallic_roughness_texture,
 				.emissive_idx = (int32)material.emissive_texture,
+				.base_color = XMFLOAT3(material.base_color),
+				.metallic_factor = material.metallic_factor,
+				.roughness_factor = material.roughness_factor,
+				.emissive_factor = material.emissive_factor,
+				.alpha_cutoff = material.alpha_cutoff
 				});
 			accel_structure.AddInstance(mesh, transform);
 		}
@@ -595,7 +600,7 @@ namespace adria
 			pt_state_object_builder.AddSubObject(dxil_lib_desc);
 		
 			D3D12_RAYTRACING_SHADER_CONFIG pt_shader_config{};
-			pt_shader_config.MaxPayloadSizeInBytes = sizeof(float) * 5;
+			pt_shader_config.MaxPayloadSizeInBytes = sizeof(float) * 15;
 			pt_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
 			pt_state_object_builder.AddSubObject(pt_shader_config);
 		

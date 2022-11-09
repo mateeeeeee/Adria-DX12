@@ -43,6 +43,12 @@ namespace adria
 			int32	normal_idx;
 			int32	metallic_roughness_idx;
 			int32	emissive_idx;
+
+			DirectX::XMFLOAT3 base_color;
+			float  metallic_factor;
+			float  roughness_factor;
+			float  emissive_factor;
+			float  alpha_cutoff;
 		};
 
 	public:
@@ -82,7 +88,7 @@ namespace adria
 		float ao_radius = 2.0f;
 		float roughness_scale = 0.0f;
 		int32 accumulated_frames = 1;
-		int32 max_bounces = 1;
+		int32 max_bounces = 3;
 	private:
 		void CreateStateObjects();
 		void OnLibraryRecompiled(EShaderId shader);

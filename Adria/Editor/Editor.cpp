@@ -618,17 +618,14 @@ namespace adria
 					if (engine->reg.all_of<Material>(selected_entity))
 					{
 						auto& material = engine->reg.get<Material>(selected_entity);
-						material.diffuse = XMFLOAT3(color[0], color[1], color[2]);
+						memcpy(material.base_color, color, 3 * sizeof(float));
 					}
 
 					if (light->type == ELightType::Directional || light->type == ELightType::Spot)
 					{
 						float direction[3] = { light_direction.x, light_direction.y, light_direction.z };
-
 						ImGui::SliderFloat3("Light direction", direction, -1.0f, 1.0f);
-
 						light->direction = XMVectorSet(direction[0], direction[1], direction[2], 0.0f);
-
 						if (light->type == ELightType::Directional)
 						{
 							light->position = XMVectorScale(-light->direction, 1e3);
@@ -806,8 +803,7 @@ namespace adria
 					}
 					ImGui::PopID();
 
-					ImGui::ColorEdit3("Albedo Color", &material->diffuse.x);
-					ImGui::SliderFloat("Albedo Factor", &material->albedo_factor, 0.0f, 1.0f);
+					ImGui::ColorEdit3("Base Color", material->base_color);
 					ImGui::SliderFloat("Metallic Factor", &material->metallic_factor, 0.0f, 1.0f);
 					ImGui::SliderFloat("Roughness Factor", &material->roughness_factor, 0.0f, 1.0f);
 					ImGui::SliderFloat("Emissive Factor", &material->emissive_factor, 0.0f, 32.0f);

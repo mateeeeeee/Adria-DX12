@@ -2,7 +2,7 @@
 #include "../CommonResources.hlsli"
 #include "../Common.hlsli"
 
-static float3 LightRadiance(Light light, float3 P, float3 N, float3 V, float3 albedo, float metallic, float roughness, float2 uv)
+float3 LightRadiance(Light light, float3 P, float3 N, float3 V, float3 albedo, float metallic, float roughness, float2 uv)
 {
 	StructuredBuffer<float4x4> lightViewProjections = ResourceDescriptorHeap[FrameCB.lightsMatricesIdx];
 	float3 lightRadiance = 0.0f;

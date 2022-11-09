@@ -933,6 +933,7 @@
   <ItemGroup>
     <None Include="..\README.md" />
     <None Include="packages.config" />
+    <None Include="Resources\NewShaders\BRDF.hlsli" />
     <None Include="Resources\NewShaders\CommonResources.hlsli" />
     <None Include="Resources\NewShaders\Common.hlsli" />
     <None Include="Resources\NewShaders\Constants.hlsli" />

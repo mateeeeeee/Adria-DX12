@@ -89,7 +89,7 @@ void RTR_ClosestHitPrimaryRay(inout RTR_Payload payloadData, in HitAttributes at
 	float3 worldPosition = mul(pos, ObjectToWorld3x4()).xyz;
 	float3 worldNormal = mul(nor, (float3x3) WorldToObject4x3());
 
-	Texture2D txMetallicRoughness = ResourceDescriptorHeap[geoInfo.metallicRoughnessIdx];
+	Texture2D txMetallicRoughness = ResourceDescriptorHeap[geoInfo.materialData.metallicRoughnessIdx];
 	float2 roughnessMetallic = txMetallicRoughness.SampleLevel(LinearWrapSampler, uv, 0).gb;
 
 	if (roughnessMetallic.y <= 0.01f) return;
@@ -134,7 +134,7 @@ void RTR_ClosestHitReflectionRay(inout RTR_Payload payload_data, in HitAttribute
 	Vertex v2 = vertices[vbOffset + i2];
 
 	float2 uv = Interpolate(v0.uv, v1.uv, v2.uv, attribs.barycentrics); uv.y = 1.0f - uv.y;
-	Texture2D txAlbedo = ResourceDescriptorHeap[geoInfo.albedoIdx];
+	Texture2D txAlbedo = ResourceDescriptorHeap[geoInfo.materialData.albedoIdx];
     float3 albedo = 0.5f * txAlbedo.SampleLevel(LinearWrapSampler, uv, 2).rgb;
 	payload_data.reflectionColor = albedo;
 }
