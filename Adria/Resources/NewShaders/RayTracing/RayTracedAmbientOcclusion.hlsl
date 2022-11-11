@@ -1,4 +1,3 @@
-#include "../CommonResources.hlsli"
 #include "RayTracingUtil.hlsli"
 
 struct RayTracedAmbientOcclusionConstants

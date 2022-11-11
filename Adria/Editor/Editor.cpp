@@ -1157,7 +1157,7 @@ namespace adria
 				for (uint32 i = 0; i < NUM_FRAMES - 1; i++) FRAME_TIME_ARRAY[i] = FRAME_TIME_ARRAY[i + 1];
 				RECENT_HIGHEST_FRAME_TIME = std::max(RECENT_HIGHEST_FRAME_TIME, FRAME_TIME_ARRAY[NUM_FRAMES - 1]);
 				float frame_time_ms = FRAME_TIME_ARRAY[NUM_FRAMES - 1];
-				const int32 fps = static_cast<int32>(1000.0f / frame_time_ms);
+				const int32 fps = static_cast<int32>(1.0f / frame_time_ms);
 
 				ImGui::Text("FPS        : %d (%.2f ms)", fps, frame_time_ms);
 				if (ImGui::CollapsingHeader("Timings", ImGuiTreeNodeFlags_DefaultOpen))

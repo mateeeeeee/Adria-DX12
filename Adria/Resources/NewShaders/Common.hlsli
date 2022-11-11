@@ -44,6 +44,17 @@ float3 GetPerpendicularVector(float3 u)
 	uint zm = 1 ^ (xm | ym);
 	return cross(u, float3(xm, ym, zm));
 }
+float3x3 GetTangentBasis(float3 N)
+{
+    const float3 B = GetPerpendicularVector(N);
+    const float3 T = cross(B, N);
+    return float3x3(T, B, N);
+}
+float3 TangentToWorld(float3 v, float3 N)
+{
+    float3x3 tangentBasis = GetTangentBasis(N);
+    return mul(v, tangentBasis);
+}
 
 uint GetCubeFaceIndex(float3 v)
 {

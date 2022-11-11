@@ -32,6 +32,25 @@ namespace adria
 				*ppIncludeSource = nullptr;
 				return E_FAIL;
 			}
+
+			bool already_included = false;
+			for (auto const& included_file : include_files)
+			{
+				if (include_file == included_file)
+				{
+					already_included = true;
+					break;
+				}
+			}
+
+			if (already_included)
+			{
+				static const char nullStr[] = " ";
+				utils->CreateBlob(nullStr, ARRAYSIZE(nullStr), CP_UTF8, encoding.GetAddressOf());
+				*ppIncludeSource = encoding.Detach();
+				return S_OK;
+			}
+
 			std::wstring winclude_file = ToWideString(include_file);
 			HRESULT hr = utils->LoadFile(winclude_file.c_str(), nullptr, encoding.GetAddressOf());
 			if (SUCCEEDED(hr))

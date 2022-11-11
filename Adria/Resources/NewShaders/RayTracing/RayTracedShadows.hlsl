@@ -1,4 +1,3 @@
-#include "../CommonResources.hlsli"
 #include "../Lighting.hlsli"
 #include "RayTracingUtil.hlsli"
 

@@ -1,3 +1,5 @@
+#pragma once
+
 static const float2x2 BayerMatrix2 =
 {
 	1.0 / 5.0, 3.0 / 5.0,

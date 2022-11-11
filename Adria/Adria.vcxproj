@@ -224,11 +224,14 @@
     <ClCompile Include="Rendering\DeferredLightingPass.cpp" />
     <ClCompile Include="Rendering\MotionBlurPass.cpp" />
     <ClCompile Include="Rendering\OceanRenderer.cpp" />
+    <ClCompile Include="Rendering\PathTracingPass.cpp" />
     <ClCompile Include="Rendering\PickingPass.cpp" />
     <ClCompile Include="Rendering\PipelineState.cpp" />
     <ClCompile Include="Rendering\Postprocessor.cpp" />
     <ClCompile Include="Rendering\PSOCache.cpp" />
-    <ClCompile Include="Rendering\RayTracer.cpp" />
+    <ClCompile Include="Rendering\RayTracedAmbientOcclusionPass.cpp" />
+    <ClCompile Include="Rendering\RayTracedReflectionsPass.cpp" />
+    <ClCompile Include="Rendering\RayTracedShadowsPass.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
     <ClCompile Include="Rendering\RootSignatureCache.cpp" />
     <ClCompile Include="Rendering\ShaderCache.cpp" />
@@ -355,10 +358,13 @@
     <ClInclude Include="Rendering\DeferredLightingPass.h" />
     <ClInclude Include="Rendering\MotionBlurPass.h" />
     <ClInclude Include="Rendering\OceanRenderer.h" />
+    <ClInclude Include="Rendering\PathTracingPass.h" />
     <ClInclude Include="Rendering\PickingPass.h" />
     <ClInclude Include="Rendering\Postprocessor.h" />
     <ClInclude Include="Rendering\PSOCache.h" />
-    <ClInclude Include="Rendering\RayTracer.h" />
+    <ClInclude Include="Rendering\RayTracedAmbientOcclusionPass.h" />
+    <ClInclude Include="Rendering\RayTracedReflectionsPass.h" />
+    <ClInclude Include="Rendering\RayTracedShadowsPass.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />
     <ClInclude Include="Rendering\Renderer.h" />
     <ClInclude Include="Rendering\PipelineState.h" />
@@ -943,6 +949,7 @@
     <None Include="Resources\NewShaders\Lighting\LightRadiance.hlsli" />
     <None Include="Resources\NewShaders\Packing.hlsli" />
     <None Include="Resources\NewShaders\Random.hlsli" />
+    <None Include="Resources\NewShaders\RayTracing\PathTracing.hlsli" />
     <None Include="Resources\NewShaders\RayTracing\RayTracingUtil.hlsli">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </None>

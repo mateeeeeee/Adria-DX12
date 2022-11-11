@@ -92,17 +92,15 @@ namespace adria
 		void ProcessLogs();
 	};
 
-	inline std::unique_ptr<LogManager> g_log;
+	inline LogManager g_log{};
 
-#define ADRIA_INIT_LOGGER() g_log = std::make_unique<LogManager>()
-#define ADRIA_DESTROY_LOGGER() g_log.reset(nullptr)
-#define ADRIA_REGISTER_LOGGER(logger) g_log->RegisterLogger(logger)
+#define ADRIA_REGISTER_LOGGER(logger) g_log.RegisterLogger(logger)
 #define ADRIA_LOG(level, ... ) [&]()  \
 { \
 	size_t const size = snprintf(nullptr, 0, __VA_ARGS__) + 1; \
 	std::unique_ptr<char[]> buf = std::make_unique<char[]>(size); \
 	snprintf(buf.get(), size, __VA_ARGS__); \
-	g_log->Log(ELogLevel::LOG_##level, buf.get(), __FILE__, __LINE__);  \
+	g_log.Log(ELogLevel::LOG_##level, buf.get(), __FILE__, __LINE__);  \
 }()
 
 }

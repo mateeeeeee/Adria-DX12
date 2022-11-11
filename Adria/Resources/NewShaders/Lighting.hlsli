@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Constants.hlsli"
 
 #define DIRECTIONAL_LIGHT 0

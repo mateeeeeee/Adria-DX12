@@ -1,5 +1,4 @@
 #include "../Constants.hlsli"
-#include "../CommonResources.hlsli"
 #include "RayTracingUtil.hlsli"
 
 

@@ -20,7 +20,11 @@
 #include "DecalsPass.h"
 #include "AABBPass.h"
 #include "OceanRenderer.h"
-#include "RayTracer.h"
+#include "AccelerationStructure.h"
+#include "RayTracedShadowsPass.h"
+#include "RayTracedAmbientOcclusionPass.h"
+#include "RayTracedReflectionsPass.h"
+#include "PathTracingPass.h"
 #include "../Graphics/ShaderCompiler.h"
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/TextureManager.h"
@@ -34,6 +38,7 @@ namespace adria
 	class Buffer;
 	class Texture;
 	struct Light;
+
 
 	class Renderer
 	{
@@ -61,7 +66,7 @@ namespace adria
 		}
 		TextureManager& GetTextureManager();
 		PickingData const& GetPickingData() const { return picking_data; }
-		bool IsRayTracingSupported() const { return ray_tracer.IsSupported(); }
+		bool IsRayTracingSupported() const { return is_ray_tracing_supported; }
 	private:
 		entt::registry& reg;
 		GraphicsDevice* gfx;
@@ -92,6 +97,7 @@ namespace adria
 		DescriptorHandle		 light_array_srv; 
 		DescriptorHandle		 light_matrices_srv; 
 		DescriptorHandle         env_map_srv;
+
 		//passes
 		GBufferPass  gbuffer_pass;
 		SSAOPass	 ssao_pass;
@@ -100,6 +106,9 @@ namespace adria
 		ToneMapPass  tonemap_pass;
 		FXAAPass	 fxaa_pass;
 		SkyPass		 sky_pass;
+		RayTracedShadowsPass ray_traced_shadows_pass;
+		RayTracedAmbientOcclusionPass rtao_pass;
+		RayTracedReflectionsPass rtr_pass;
 		DeferredLightingPass deferred_lighting_pass;
 		VolumetricLightingPass volumetric_lighting_pass;
 		TiledDeferredLightingPass tiled_deferred_lighting_pass;
@@ -109,30 +118,36 @@ namespace adria
 		PickingPass picking_pass;
 		DecalsPass decals_pass;
 		OceanRenderer  ocean_renderer;
-		RayTracer ray_tracer;
 		AABBPass aabb_pass;
 		Postprocessor postprocessor;
-
-		ViewportData viewport_data;
+		PathTracingPass path_tracer;
+		//ray tracing
+		AccelerationStructure accel_structure;
+		bool is_ray_tracing_supported;
+		std::unique_ptr<Buffer> global_vb = nullptr;
+		std::unique_ptr<Buffer> global_ib = nullptr;
+		std::unique_ptr<Buffer> geo_buffer = nullptr;
 
 		//misc
 		uint32			         volumetric_lights = 0;
 		float					 cascades_split_lambda = 0.5f;
 		bool				     transparent_shadows = false;
 		std::array<float, 4>	 split_distances;
-
-		float wind_dir[3] = { 1.0f, 0.0f, 1.0f };
-		float wind_speed = 10.0f;
-		DirectX::XMFLOAT3 sun_direction;
+		float					 wind_dir[3] = { 1.0f, 0.0f, 1.0f };
+		float					 wind_speed = 10.0f;
+		DirectX::XMFLOAT3		 sun_direction;
 
 		std::unique_ptr<DescriptorHeap> null_heap;
-
 		bool update_picking_data = false;
 		PickingData picking_data;
 
+		ViewportData viewport_data;
+
 	private:
+		void CheckDeviceCapabilities();
 		void CreateNullHeap();
 		void CreateSizeDependentResources();
+		void CreateGlobalBuffers();
 
 		void UpdateEnvironmentMap();
 		void MiscGUI();

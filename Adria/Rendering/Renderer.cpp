@@ -234,6 +234,22 @@ namespace adria
 		}
 	}
 
+	struct GeoInfo
+	{
+		uint32	vertex_offset;
+		uint32	index_offset;
+		int32	albedo_idx;
+		int32	normal_idx;
+		int32	metallic_roughness_idx;
+		int32	emissive_idx;
+
+		DirectX::XMFLOAT3 base_color;
+		float  metallic_factor;
+		float  roughness_factor;
+		float  emissive_factor;
+		float  alpha_cutoff;
+	};
+
 	enum ENullHeapSlot
 	{
 		NULL_HEAP_SLOT_TEXTURE2D,
@@ -244,7 +260,7 @@ namespace adria
 	};
 
 	Renderer::Renderer(entt::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx), 
-		texture_manager(gfx, 1000), camera(nullptr), width(width), height(height), 
+		texture_manager(gfx, 1000), accel_structure(gfx), camera(nullptr), width(width), height(height),
 		backbuffer_count(gfx->BackbufferCount()), backbuffer_index(gfx->BackbufferIndex()), final_texture(nullptr),
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count),
 		gbuffer_pass(reg, width, height), ambient_pass(width, height), tonemap_pass(width, height),
@@ -252,9 +268,11 @@ namespace adria
 		tiled_deferred_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
 		postprocessor(reg, texture_manager, width, height), fxaa_pass(width, height), picking_pass(gfx, width, height),
 		clustered_deferred_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height),
-		decals_pass(reg, texture_manager, width, height), ocean_renderer(reg, texture_manager, width, height),
-		ray_tracer(reg, gfx, width, height), aabb_pass(reg, width, height)
+		decals_pass(reg, texture_manager, width, height), ocean_renderer(reg, texture_manager, width, height), aabb_pass(reg, width, height),
+		ray_traced_shadows_pass(gfx, width, height), rtao_pass(gfx, width, height), rtr_pass(gfx, width, height),
+		path_tracer(gfx, width, height)
 	{
+		CheckDeviceCapabilities();
 		GPUProfiler::Get().Init(gfx);
 		CreateNullHeap();
 		CreateSizeDependentResources();
@@ -305,8 +323,15 @@ namespace adria
 		}
 		rg_blackboard.Add<GlobalBlackboardData>(std::move(global_data));
 
-		if (renderer_settings.render_path != ERenderPathType::PathTracing) Render_Deferred(render_graph);
-		else Render_PathTracing(render_graph);
+		if (is_ray_tracing_supported)
+		{
+			render_graph.ImportBuffer(RG_RES_NAME(BigVertexBuffer), global_vb.get());
+			render_graph.ImportBuffer(RG_RES_NAME(BigIndexBuffer), global_ib.get());
+			render_graph.ImportBuffer(RG_RES_NAME(BigGeometryBuffer), geo_buffer.get());
+		}
+
+		if (renderer_settings.render_path == ERenderPathType::PathTracing) Render_PathTracing(render_graph);
+		else Render_Deferred(render_graph);
 
 		render_graph.Build();
 		render_graph.Execute();
@@ -335,7 +360,10 @@ namespace adria
 			picking_pass.OnResize(w, h);
 			decals_pass.OnResize(w, h);
 			ocean_renderer.OnResize(w, h);
-			ray_tracer.OnResize(w, h);
+			ray_traced_shadows_pass.OnResize(w, h);
+			rtr_pass.OnResize(w, h);
+			path_tracer.OnResize(w, h);
+			rtao_pass.OnResize(w, h);
 			aabb_pass.OnResize(w, h);
 
 			light_mask_textures.clear();
@@ -350,7 +378,7 @@ namespace adria
 		postprocessor.OnSceneInitialized(gfx);
 		ocean_renderer.OnSceneInitialized(gfx);
 		aabb_pass.OnSceneInitialized(gfx);
-		ray_tracer.OnSceneInitialized();
+		CreateGlobalBuffers();
 
 		TextureDesc desc{};
 		desc.width = 1;
@@ -380,6 +408,13 @@ namespace adria
 		return texture_manager;
 	}
 
+	void Renderer::CheckDeviceCapabilities()
+	{
+		ID3D12Device* device = gfx->GetDevice();
+		D3D12_FEATURE_DATA_D3D12_OPTIONS5 features5{};
+		HRESULT hr = device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &features5, sizeof(D3D12_FEATURE_DATA_D3D12_OPTIONS5));
+		is_ray_tracing_supported = features5.RaytracingTier != D3D12_RAYTRACING_TIER_NOT_SUPPORTED;
+	}
 	void Renderer::CreateNullHeap()
 	{
 		ID3D12Device* device = gfx->GetDevice();
@@ -415,6 +450,58 @@ namespace adria
 
 		final_texture = std::make_unique<Texture>(gfx, ldr_desc);
 		final_texture->CreateSRV();
+	}
+	void Renderer::CreateGlobalBuffers()
+	{
+		if (!is_ray_tracing_supported) return;
+
+		auto ray_tracing_view = reg.view<Mesh, Transform, Material, RayTracing>();
+		std::vector<GeoInfo> geo_info{};
+		for (auto entity : ray_tracing_view)
+		{
+			auto const& [mesh, transform, material, ray_tracing] = ray_tracing_view.get<Mesh, Transform, Material, RayTracing>(entity);
+			geo_info.push_back(GeoInfo{
+				.vertex_offset = ray_tracing.vertex_offset,
+				.index_offset = ray_tracing.index_offset,
+				.albedo_idx = (int32)material.albedo_texture,
+				.normal_idx = (int32)material.normal_texture,
+				.metallic_roughness_idx = (int32)material.metallic_roughness_texture,
+				.emissive_idx = (int32)material.emissive_texture,
+				.base_color = XMFLOAT3(material.base_color),
+				.metallic_factor = material.metallic_factor,
+				.roughness_factor = material.roughness_factor,
+				.emissive_factor = material.emissive_factor,
+				.alpha_cutoff = material.alpha_cutoff
+				});
+			accel_structure.AddInstance(mesh, transform);
+		}
+		accel_structure.Build();
+
+		BufferDesc desc = StructuredBufferDesc<GeoInfo>(geo_info.size(), false);
+		geo_buffer = std::make_unique<Buffer>(gfx, desc, geo_info.data());
+
+		ID3D12Device5* device = gfx->GetDevice();
+		if (RayTracing::rt_vertices.empty() || RayTracing::rt_indices.empty())
+		{
+			ADRIA_LOG(WARNING, "Ray tracing buffers are empty. This is expected if the meshes are loaded with ray-tracing support off");
+			return;
+		}
+
+		BufferDesc vb_desc{};
+		vb_desc.bind_flags = EBindFlag::ShaderResource;
+		vb_desc.misc_flags = EBufferMiscFlag::VertexBuffer | EBufferMiscFlag::BufferStructured;
+		vb_desc.size = RayTracing::rt_vertices.size() * sizeof(CompleteVertex);
+		vb_desc.stride = sizeof(CompleteVertex);
+
+		BufferDesc ib_desc{};
+		ib_desc.bind_flags = EBindFlag::ShaderResource;
+		ib_desc.misc_flags = EBufferMiscFlag::IndexBuffer | EBufferMiscFlag::BufferStructured;
+		ib_desc.size = RayTracing::rt_indices.size() * sizeof(uint32);
+		ib_desc.stride = sizeof(uint32);
+		ib_desc.format = EFormat::R32_UINT;
+
+		global_vb = std::make_unique<Buffer>(gfx, vb_desc, RayTracing::rt_vertices.data());
+		global_ib = std::make_unique<Buffer>(gfx, ib_desc, RayTracing::rt_indices.data());
 	}
 
 	void Renderer::UpdateEnvironmentMap()
@@ -681,24 +768,29 @@ namespace adria
 	}
 	void Renderer::UpdateFrameConstantBuffer(float dt)
 	{
-		static float total_time = 0.0f;
-		total_time += dt;
-
-		static FrameCBuffer frame_cbuf_data{};
-
 		auto AreMatricesEqual = [](XMMATRIX m1, XMMATRIX m2) -> bool
 		{
 			XMFLOAT4X4 _m1, _m2;
 			XMStoreFloat4x4(&_m1, m1);
 			XMStoreFloat4x4(&_m2, m2);
-			
-			return !memcmp(_m1.m[0], _m2.m[0], 4 * sizeof(float)) &&
-				   !memcmp(_m1.m[1], _m2.m[1], 4 * sizeof(float)) &&
-				   !memcmp(_m1.m[2], _m2.m[2], 4 * sizeof(float)) &&
-				   !memcmp(_m1.m[3], _m2.m[3], 4 * sizeof(float));
-		};
-		if (!AreMatricesEqual(camera->ViewProj(), frame_cbuf_data.prev_view_projection)) ray_tracer.ResetPathTracer();
 
+			return !memcmp(_m1.m[0], _m2.m[0], 4 * sizeof(float)) &&
+				!memcmp(_m1.m[1], _m2.m[1], 4 * sizeof(float)) &&
+				!memcmp(_m1.m[2], _m2.m[2], 4 * sizeof(float)) &&
+				!memcmp(_m1.m[3], _m2.m[3], 4 * sizeof(float));
+		};
+
+		static float total_time = 0.0f;
+		total_time += dt;
+
+		auto device = gfx->GetDevice();
+		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+
+		uint32 accel_struct_idx = (uint32)descriptor_allocator->Allocate();
+		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(accel_struct_idx), accel_structure.GetTLAS()->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+		static FrameCBuffer frame_cbuf_data{};
+		if (!AreMatricesEqual(camera->ViewProj(), frame_cbuf_data.prev_view_projection)) path_tracer.Reset();
 		frame_cbuf_data.camera_near = camera->Near();
 		frame_cbuf_data.camera_far = camera->Far();
 		frame_cbuf_data.camera_position = camera->Position();
@@ -719,7 +811,7 @@ namespace adria
 		frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
 		frame_cbuf_data.lights_idx = (int32)light_array_srv.GetHeapOffset();
 		frame_cbuf_data.lights_matrices_idx = (int32)light_matrices_srv.GetHeapOffset();
-		frame_cbuf_data.accel_struct_idx = (int32)ray_tracer.GetAccelStructureHeapIndex();
+		frame_cbuf_data.accel_struct_idx = (int32)accel_struct_idx;
 		frame_cbuf_data.env_map_idx = (int32)env_map_srv.GetHeapOffset();
 		frame_cbuf_data.cascade_splits = XMVectorSet(split_distances[0], split_distances[1], split_distances[2], split_distances[3]);
 		auto lights = reg.view<Light>();
@@ -773,7 +865,7 @@ namespace adria
 		}
 		case EAmbientOcclusion::RTAO:
 		{
-			ray_tracer.AddRayTracedAmbientOcclusionPass(render_graph);
+			rtao_pass.AddPass(render_graph);
 			break;
 		}
 		case EAmbientOcclusion::None:
@@ -801,20 +893,16 @@ namespace adria
 		ocean_renderer.AddPasses(render_graph);
 		sky_pass.AddPass(render_graph, sun_direction);
 		picking_pass.AddPass(render_graph);
-		if (renderer_settings.postprocess.reflections == EReflections::RTR)
-		{
-			ray_tracer.AddRayTracedReflectionsPass(render_graph);
-		}
+		if (renderer_settings.postprocess.reflections == EReflections::RTR) rtr_pass.AddPass(render_graph);
 		postprocessor.AddPasses(render_graph, renderer_settings.postprocess);
 
 		render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
 		ResolveToFinalTexture(render_graph);
 		if (!renderer_settings.gui_visible) CopyToBackbuffer(render_graph);
 	}
-
 	void Renderer::Render_PathTracing(RenderGraph& render_graph)
 	{
-		ray_tracer.AddPathTracingPass(render_graph);
+		path_tracer.AddPass(render_graph);
 		render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
 		tonemap_pass.AddPass(render_graph, RG_RES_NAME(PT_Output));
 		if (!renderer_settings.gui_visible) CopyToBackbuffer(render_graph);
@@ -1047,7 +1135,7 @@ namespace adria
 			size_t light_id = entt::to_integral(e);
 
 			rg.ImportTexture(RG_RES_NAME_IDX(LightMask, light_id), light_mask_textures[light_id].get());
-			ray_tracer.AddRayTracedShadowsPass(rg, light_index, RG_RES_NAME_IDX(LightMask, light_id));
+			ray_traced_shadows_pass.AddPass(rg, light_index, RG_RES_NAME_IDX(LightMask, light_id));
 		}
 	}
 

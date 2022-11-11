@@ -194,7 +194,7 @@ namespace adria
 	struct COMPONENT RayTracing
 	{
 		friend class ModelImporter;
-		friend class RayTracer;
+		friend class Renderer;
 
 	public:
 		uint32 vertex_offset; //offset to global raytracing vertex buffer

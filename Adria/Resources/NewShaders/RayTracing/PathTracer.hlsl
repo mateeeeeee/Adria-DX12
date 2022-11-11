@@ -1,17 +1,6 @@
-#include "../Constants.hlsli"
-#include "../Lighting.hlsli"
-#include "../Tonemapping.hlsli"
-#include "../CommonResources.hlsli"
-#include "../BRDF.hlsli"
-#include "RayTracingUtil.hlsli"
+#include "PathTracing.hlsli"
 
 
-#define MIN_BOUNCES 3
-#define RIS_CANDIDATES_LIGHTS 8
-
-#define RAY_INVALID -1
-#define RAY_DIFFUSE 0
-#define RAY_SPECULAR 1
 
 struct PathTracingConstants
 {
@@ -25,74 +14,13 @@ struct PathTracingConstants
 };
 ConstantBuffer<PathTracingConstants> PassCB : register(b1);
 
-
-struct PT_Payload
-{
-    bool   isHit;
-};
-
-
-struct MaterialProperties
-{
-    float3 baseColor;
-    float3 normalTS;
-    float metallic;
-    float3 emissive;
-    float roughness;
-    float opacity;
-    float specular;
-};
-
-MaterialProperties GetMaterialProperties(MaterialData material, float2 UV, int mipLevel)
-{
-    MaterialProperties properties = (MaterialProperties) 0;
-    float4 baseColor = float4(material.baseColor, 1.0f);
-    if (material.albedoIdx >= 0)
-    {
-        baseColor *= SampleBindlessLevel2D(material.albedoIdx, LinearWrapSampler, UV, mipLevel);
-    }
-    properties.baseColor = baseColor.rgb;
-    properties.opacity = baseColor.a;
-    
-    properties.metallic = material.metallicFactor;
-    properties.roughness = material.roughnessFactor;
-    if (material.metallicRoughnessIdx >= 0)
-    {
-        float4 roughnessMetalnessSample = SampleBindlessLevel2D(material.metallicRoughnessIdx, LinearWrapSampler, UV, mipLevel);
-        properties.metallic *= roughnessMetalnessSample.b;
-        properties.roughness *= roughnessMetalnessSample.g;
-    }
-    properties.emissive = material.emissiveFactor.rrr;
-    if (material.emissiveIdx >= 0)
-    {
-        properties.emissive *= SampleBindlessLevel2D(material.emissiveIdx, LinearWrapSampler, UV, mipLevel).rgb;
-    }
-    properties.specular = 0.5f;
-    
-    properties.normalTS = float3(0.5f, 0.5f, 1.0f);
-    if (material.normalIdx >= 0)
-    {
-        properties.normalTS = SampleBindlessLevel2D(material.normalIdx, LinearWrapSampler, UV, mipLevel).rgb;
-    }
-    return properties;
-}
-BrdfData GetBrdfData(MaterialProperties material)
-{
-    BrdfData data;
-    data.Diffuse = material.baseColor * (1.0f - material.metallic);
-    data.Specular = lerp(0.08f * material.specular.xxx, material.baseColor, material.metallic);
-    data.Roughness = material.roughness;
-    return data;
-}
-
-void SampleSourceLight(in uint lightCount, inout uint seed, out uint lightIndex, out float sourcePdf);
-bool SampleLightRIS(inout uint seed, float3 position, float3 N, out int lightIndex, out float sampleWeight);
-LightingResult EvaluateLight(Light light, float3 worldPos, float3 V, float3 N, float3 geometryNormal, BrdfData brdfData);
-
 [shader("raygeneration")]
 void PT_RayGen()
 {
-    RaytracingAccelerationStructure scene = ResourceDescriptorHeap[FrameCB.accelStructIdx];
+    StructuredBuffer<Vertex> vertices = ResourceDescriptorHeap[PassCB.verticesIdx];
+    StructuredBuffer<uint> indices = ResourceDescriptorHeap[PassCB.indicesIdx];
+    StructuredBuffer<GeoInfo> geoInfos = ResourceDescriptorHeap[PassCB.geoInfosIdx];
+    StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
     RWTexture2D<float4> accumTx = ResourceDescriptorHeap[PassCB.accumIdx];
 
     float2 pixel = float2(DispatchRaysIndex().xy);
@@ -121,19 +49,113 @@ void PT_RayGen()
 
     float3 radiance = 0.0f;
     float3 throughput = 1.0f;
+    float pdf = 1.0;
     for (int i = 0; i < PassCB.bounceCount; ++i) 
     {
-        PT_Payload payloadData;
-        TraceRay(scene,
-		 RAY_FLAG_FORCE_OPAQUE,
-		 0xFF, 0, 0, 0, ray, payloadData);
+        HitInfo info;
+        if (TraceRay(ray, info))
+        {
+            uint geoId = info.geometryIndex;
+            uint triangleId = info.primitiveIndex;
+            float2 barycentrics = info.barycentricCoordinates;
+    
+            GeoInfo geoInfo = geoInfos[geoId];
+            uint vbOffset = geoInfo.vertexOffset;
+            uint ibOffset = geoInfo.indexOffset;
+    
+            uint i0 = indices[ibOffset + triangleId * 3 + 0];
+            uint i1 = indices[ibOffset + triangleId * 3 + 1];
+            uint i2 = indices[ibOffset + triangleId * 3 + 2];
+    
+            Vertex v0 = vertices[vbOffset + i0];
+            Vertex v1 = vertices[vbOffset + i1];
+            Vertex v2 = vertices[vbOffset + i2];
+            float3 localPosition = Interpolate(v0.pos, v1.pos, v2.pos, barycentrics);
+            float2 uv = Interpolate(v0.uv, v1.uv, v2.uv, barycentrics);
+            uv.y = 1.0f - uv.y;
+            float3 localNormal = normalize(Interpolate(v0.nor, v1.nor, v2.nor, barycentrics));
+            float3 worldPosition = mul(localPosition, info.objectToWorldMatrix).xyz;
+            float3 worldNormal = mul(localNormal, (float3x3) transpose(info.worldToObjectMatrix));
+            float3 geometryNormal = worldNormal; //for now
+            float3 V = -ray.Direction;
+            MaterialProperties matProperties = GetMaterialProperties(geoInfo.materialData, uv, 0);
+            BrdfData brdfData = GetBrdfData(matProperties);
+                
+            //radiance = matProperties.baseColor;
+            
+            int lightIndex = 0;
+            float lightWeight = 0.0f;
+          //if (SampleLightRIS(randSeed, worldPosition, worldNormal, lightIndex, lightWeight))
+          //{
+            Light light = lights[0];
+            float3 L = normalize(-light.direction.xyz); //not correct for point/spot lights
+            float3 wi = L;
+            RayDesc shadowRay;
+            shadowRay.Origin = worldPosition.xyz;
+            shadowRay.Direction = L;
+            shadowRay.TMin = 0.0f;
+            shadowRay.TMax = FLT_MAX;
+            
+            float visibility = TraceShadowRay(shadowRay) ? 1.0f : 0.0f;  
+            float NdotL = saturate(dot(worldNormal, L));
+            float3 wo = normalize(FrameCB.cameraPosition.xyz - worldPosition);
+            float3 directLighting = DefaultBRDF(wi, wo, worldNormal, brdfData.Diffuse, brdfData.Specular, brdfData.Roughness) * visibility * light.color.rgb * NdotL;
+            radiance += (directLighting + matProperties.emissive) * throughput / pdf;
+          //}
+            
+            if (i == PassCB.bounceCount - 1) break;
+            
+            //indirect light
+            float probDiffuse = ProbabilityToSampleDiffuse(brdfData.Diffuse, brdfData.Specular);
+            bool chooseDiffuse = NextRand(randSeed) < probDiffuse;
+            if (chooseDiffuse)
+            {
+                wi = GetCosHemisphereSample(randSeed, worldNormal);
 
-        if (payloadData.isHit)
-            radiance = float3(1, 0, 0);
+                float3 diffuseBrdf = DiffuseBRDF(brdfData.Diffuse);
+                float NdotL = saturate(dot(worldNormal, wi));
+
+                throughput *= diffuseBrdf * NdotL;
+                pdf *= (NdotL / M_PI) * probDiffuse;
+                pdf = max(pdf, 0.01f);
+            }
+            else
+            {
+                float2 u = float2(NextRand(randSeed), NextRand(randSeed));
+                float3 H = SampleGGX(u, brdfData.Roughness, worldNormal);
+                                
+                float roughness = max(brdfData.Roughness, 0.065);
+
+                wi = reflect(-wo, H);
+
+                float3 F;
+                float3 specularBrdf = SpecularBRDF(worldNormal, wo, wi, brdfData.Specular, roughness, F);
+                float NdotL = saturate(dot(worldNormal, wi));
+
+                throughput *= specularBrdf * NdotL;
+
+                float a = roughness * roughness;
+                float a2 = a * a;
+                float D = D_GGX(worldNormal, H, a);
+                float NdotH = saturate(dot(worldNormal, H));
+                float LdotH = saturate(dot(wi, H));
+                float NdotV = saturate(dot(worldNormal, wo));
+                float samplePDF = D * NdotH / (4 * LdotH);
+                pdf *= samplePDF * (1.0 - probDiffuse);
+                pdf = max(pdf, 0.01f);
+            }
+            
+            ray.Origin = OffsetRay(worldPosition, worldNormal);
+            ray.Direction = wi;
+            ray.TMin = 0.001;
+            ray.TMax = FLT_MAX;
+        }
         else
-            radiance = float3(1, 1, 1);
-        
-        break;
+        {
+            TextureCube envMap = ResourceDescriptorHeap[FrameCB.envMapIdx];
+            radiance += envMap.SampleLevel(LinearWrapSampler, ray.Direction, 0).rgb * throughput / pdf;
+            break;
+        }
     }
 
     float3 previousColor = accumTx[DispatchRaysIndex().xy].rgb;
@@ -141,157 +163,14 @@ void PT_RayGen()
     {
         radiance += previousColor;
     }
+
+    if (any(isnan(radiance)) || any(isinf(radiance)))
+    {
+        radiance = float3(1, 0, 0);
+    }
+    
     RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
-    accumTx[DispatchRaysIndex().xy] = float4(radiance, 1.0f);
+    accumTx[DispatchRaysIndex().xy] = float4(clamp(radiance, 0.0, 65536.0), 1.0);
     outputTx[DispatchRaysIndex().xy] = float4(radiance, 1.0f) / PassCB.accumulatedFrames;
 }
 
-[shader("miss")]
-void PT_Miss(inout PT_Payload payload_data)
-{
-    payload_data.isHit = false;
-}
-
-
-[shader("closesthit")]
-void PT_ClosestHit(inout PT_Payload payloadData, in HitAttributes attribs)
-{
-    payloadData.isHit = true;
-    /*StructuredBuffer<Vertex> vertices = ResourceDescriptorHeap[PassCB.verticesIdx];
-    StructuredBuffer<uint> indices = ResourceDescriptorHeap[PassCB.indicesIdx];
-    StructuredBuffer<GeoInfo> geoInfos = ResourceDescriptorHeap[PassCB.geoInfosIdx];
-    StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
-
-    payloadData.isHit = true;
-    uint geoId = GeometryIndex();
-    uint triangleId = PrimitiveIndex();
-    float2 barycentrics = attribs.barycentrics;
-    
-    GeoInfo geoInfo = geoInfos[geoId];
-    uint vbOffset = geoInfo.vertexOffset;
-    uint ibOffset = geoInfo.indexOffset;
-    
-    uint i0 = indices[ibOffset + triangleId * 3 + 0];
-    uint i1 = indices[ibOffset + triangleId * 3 + 1];
-    uint i2 = indices[ibOffset + triangleId * 3 + 2];
-    
-    Vertex v0 = vertices[vbOffset + i0];
-    Vertex v1 = vertices[vbOffset + i1];
-    Vertex v2 = vertices[vbOffset + i2];
-
-    float3 localPosition = Interpolate(v0.pos, v1.pos, v2.pos, barycentrics);
-    float2 uv = Interpolate(v0.uv, v1.uv, v2.uv, barycentrics);
-    uv.y = 1.0f - uv.y;
-    float3 localNormal = normalize(Interpolate(v0.nor, v1.nor, v2.nor, barycentrics));
-    float3 worldPosition = mul(localPosition, ObjectToWorld3x4()).xyz;
-    float3 worldNormal = mul(localNormal, (float3x3) WorldToObject4x3());
-    float3 geometryNormal = worldNormal;
-    float3 V = -WorldRayDirection();
-
-    MaterialProperties matProperties = GetMaterialProperties(geoInfo.materialData, uv, 0);
-    BrdfData brdfData = GetBrdfData(matProperties);
-        //Direct light evaluation
-    int lightIndex = 0;
-    float lightWeight = 0.0f;
-    if (SampleLightRIS(randSeed, worldPosition, worldNormal, lightIndex, lightWeight))
-    {
-        LightingResult result = EvaluateLight(lights[lightIndex], worldPosition, V, worldNormal, geometryNormal, brdfData);
-        payloadData.radiance += payloadData.throughput * (result.Diffuse + result.Specular).xyz * lightWeight;
-    }
-    */
-
-}
-
-
-struct Reservoir
-{
-    uint LightSample;
-    uint M;
-    float TotalWeight;
-    float SampleTargetPdf;
-};
-
-void SampleSourceLight(in uint lightCount, inout uint seed, out uint lightIndex, out float sourcePdf)
-{
-    lightIndex = min(uint(NextRand(seed) * lightCount), lightCount - 1);
-    sourcePdf = 1.0f / lightCount;
-}
-bool SampleLightRIS(inout uint seed, float3 position, float3 N, out int lightIndex, out float sampleWeight)
-{
-    StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
-    uint lightCount, _unused;
-    lights.GetDimensions(lightCount, _unused);
-
-    if (lightCount <= 0)
-        return false;
-
-    Reservoir reservoir;
-    reservoir.TotalWeight = 0.0f;
-    reservoir.M = RIS_CANDIDATES_LIGHTS;
-
-    for (int i = 0; i < reservoir.M; ++i)
-    {
-        uint candidate = 0;
-        float sourcePdf = 1.0f;
-        SampleSourceLight(lightCount, seed, candidate, sourcePdf);
-
-        Light light = lights[candidate];
-        float3 positionDifference = light.position.xyz - position; //move to same space
-        float distance = length(positionDifference);
-        float3 L = positionDifference / distance;
-        if (light.type == DIRECTIONAL_LIGHT)
-        {
-            L = -normalize(light.direction.xyz);
-        }
-        if (dot(N, L) < 0.0f) //N is world space, L view?
-        {
-            continue;
-        }
-        float targetPdf = Luminance(DoAttenuation(distance, light.range) * light.color.rgb);
-        float risWeight = targetPdf / sourcePdf;
-        reservoir.TotalWeight += risWeight;
-
-        if (NextRand(seed) < (risWeight / reservoir.TotalWeight))
-        {
-            reservoir.LightSample = candidate;
-            reservoir.SampleTargetPdf = targetPdf;
-        }
-    }
-
-    if (reservoir.TotalWeight == 0.0f)
-        return false;
-
-    lightIndex = reservoir.LightSample;
-    sampleWeight = (reservoir.TotalWeight / reservoir.M) / reservoir.SampleTargetPdf;
-    return true;
-}
-LightingResult EvaluateLight(Light light, float3 worldPos, float3 V, float3 N, float3 geometryNormal, BrdfData brdfData)
-{
-    LightingResult result = (LightingResult) 0;
-
-    float3 L = light.position.xyz - worldPos;
-    float attenuation = DoAttenuation(length(L), light.range);
-    if (light.type == DIRECTIONAL_LIGHT)
-    {
-        attenuation = 1.0f;
-        L = -1000000.0f * light.direction.xyz;
-    }
-    //if (attenuation <= 0.0f)
-    //{
-    //    return result;
-    //}
-
-    RayDesc rayDesc;
-    rayDesc.Origin = worldPos;
-    rayDesc.Direction = normalize(L);
-    rayDesc.TMin = 1e-2f;
-    rayDesc.TMax = length(L);
-    //RaytracingAccelerationStructure tlas = ResourceDescriptorHeap[FrameCB.accelStructIdx];
-    //attenuation *= TraceOcclusionRay(rayDesc, tlas);
-
-    L = normalize(L);
-    result.Diffuse = float4(brdfData.Diffuse, 1.0f); //DefaultLitBxDF(brdfData.Specular, brdfData.Roughness, brdfData.Diffuse, N, V, L, attenuation);
-    result.Diffuse *= light.color;
-    result.Specular *= light.color;
-    return result;
-}

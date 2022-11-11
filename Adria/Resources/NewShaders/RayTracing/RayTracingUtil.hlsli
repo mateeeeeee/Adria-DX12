@@ -1,6 +1,8 @@
+#pragma once
+
 #include "../Common.hlsli"
 #include "../Random.hlsli"
-
+#include "../CommonResources.hlsli"
 
 typedef BuiltInTriangleIntersectionAttributes HitAttributes;
 
@@ -50,11 +52,11 @@ float3 OffsetRay(const float3 p, const float3 n)
 	static const float floatScale = 1.0f / 65536.0f;
 	static const float intScale = 256.0f;
 
-    int3 nScaled = int3(intScale * n.x, intScale * n.y, intScale * n.z);
+    int3 of_i = int3(intScale * n.x, intScale * n.y, intScale * n.z);
 	float3 p_i = float3(
-		asfloat(asint(p.x) + ((p.x < 0) ? -nScaled.x : nScaled.x)),
-		asfloat(asint(p.y) + ((p.y < 0) ? -nScaled.y : nScaled.y)),
-		asfloat(asint(p.z) + ((p.z < 0) ? -nScaled.z : nScaled.z)));
+		asfloat(asint(p.x) + ((p.x < 0) ? -of_i.x : of_i.x)),
+		asfloat(asint(p.y) + ((p.y < 0) ? -of_i.y : of_i.y)),
+		asfloat(asint(p.z) + ((p.z < 0) ? -of_i.z : of_i.z)));
 
     return float3(abs(p.x) < origin ? p.x + floatScale * n.x : p_i.x,
 		abs(p.y) < origin ? p.y + floatScale * n.y : p_i.y,
@@ -70,15 +72,14 @@ struct Vertex
 	float3 bin;
 };
 
-static float3 Interpolate(in float3 x0, in float3 x1, in float3 x2, float2 bary)
+float3 Interpolate(in float3 x0, in float3 x1, in float3 x2, float2 bary)
 {
 	return x0 * (1.0f - bary.x - bary.y) + bary.x * x1 + bary.y * x2;
 }
-static float2 Interpolate(in float2 x0, in float2 x1, in float2 x2, float2 bary)
+float2 Interpolate(in float2 x0, in float2 x1, in float2 x2, float2 bary)
 {
 	return x0 * (1.0f - bary.x - bary.y) + bary.x * x1 + bary.y * x2;
 }
-
 
 struct MaterialData
 {
@@ -101,10 +102,57 @@ struct GeoInfo
     MaterialData materialData;
 };
 
-struct BrdfData
+struct HitInfo
 {
-    float3 Diffuse;
-    float3 Specular;
-    float Roughness;
+    float2   barycentricCoordinates;
+    uint     primitiveIndex;
+    uint     geometryIndex;
+    float3x4 objectToWorldMatrix;
+    float3x4 worldToObjectMatrix;
 };
+
+bool TraceRay(RayDesc ray, out HitInfo hitInfo)
+{
+    RaytracingAccelerationStructure raytracingAS = ResourceDescriptorHeap[FrameCB.accelStructIdx];
+    RayQuery<RAY_FLAG_NONE> q;
+    q.TraceRayInline(raytracingAS, RAY_FLAG_NONE, 0xFF, ray);
+
+    while (q.Proceed())
+    {
+        //uint instanceID = q.CandidateInstanceID();
+        //uint primitiveIndex = q.CandidatePrimitiveIndex();
+        //uint geometryIndex = q.CandidateGeometryIndex();
+        //float2 barycentricCoordinates = q.CandidateTriangleBarycentrics();
+        //todo alpha test
+        q.CommitNonOpaqueTriangleHit(); 
+    }
+    if (q.CommittedStatus() == COMMITTED_NOTHING) 
+    {
+        return false;
+    }
+
+    hitInfo.barycentricCoordinates = q.CommittedTriangleBarycentrics();
+    hitInfo.primitiveIndex = q.CommittedPrimitiveIndex();
+    hitInfo.geometryIndex = q.CommittedGeometryIndex();
+    hitInfo.objectToWorldMatrix = q.CommittedObjectToWorld3x4();
+    hitInfo.worldToObjectMatrix = q.CommittedWorldToObject3x4();
+    return true;
+}
+
+bool TraceShadowRay(RayDesc ray)
+{
+    RaytracingAccelerationStructure raytracingAS = ResourceDescriptorHeap[FrameCB.accelStructIdx];
+    
+    RayQuery<RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES> q;
+    q.TraceRayInline(raytracingAS, RAY_FLAG_NONE, 0xFF, ray);
+
+    while (q.Proceed())
+    {
+        //todo alpha test
+        q.CommitNonOpaqueTriangleHit();
+    }
+    return q.CommittedStatus() == COMMITTED_NOTHING;
+}
+
+
 

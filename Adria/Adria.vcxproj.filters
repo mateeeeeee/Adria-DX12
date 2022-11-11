@@ -239,9 +239,6 @@
     <ClCompile Include="Rendering\OceanRenderer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\RayTracer.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\RootSignatureCache.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
@@ -306,6 +303,18 @@
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\VolumetricLightingPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\RayTracedShadowsPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\RayTracedAmbientOcclusionPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\RayTracedReflectionsPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\PathTracingPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
   </ItemGroup>
@@ -652,9 +661,6 @@
     <ClInclude Include="Editor\EditorEvents.h">
       <Filter>Editor</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\RayTracer.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\AccelerationStructure.h">
       <Filter>Rendering</Filter>
     </ClInclude>
@@ -746,6 +752,18 @@
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\VolumetricLightingPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\RayTracedShadowsPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\RayTracedAmbientOcclusionPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\RayTracedReflectionsPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\PathTracingPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
   </ItemGroup>
@@ -941,6 +959,9 @@
     </None>
     <None Include="Resources\NewShaders\BRDF.hlsli">
       <Filter>Shaders</Filter>
+    </None>
+    <None Include="Resources\NewShaders\RayTracing\PathTracing.hlsli">
+      <Filter>Shaders\RayTracing</Filter>
     </None>
   </ItemGroup>
 </Project>

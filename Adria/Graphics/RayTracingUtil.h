@@ -3,10 +3,11 @@
 #include <wrl.h>
 #include <vector>
 #include <memory.h>
-#include "../Core/Macros.h"
-#include "../Core/Definitions.h"
 #include "LinearDynamicAllocator.h"
 #include "RingDynamicAllocator.h"
+#include "../Core/Macros.h"
+#include "../Core/Definitions.h"
+#include "../Utilities/StringUtil.h"
 
 namespace adria
 {
