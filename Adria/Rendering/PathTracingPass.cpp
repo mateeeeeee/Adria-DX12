@@ -122,7 +122,7 @@ namespace adria
 		TextureDesc accum_desc{};
 		accum_desc.width = width;
 		accum_desc.height = height;
-		accum_desc.format = EFormat::R16G16B16A16_FLOAT;
+		accum_desc.format = EFormat::R32G32B32A32_FLOAT;
 		accum_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::UnorderedAccess;
 		accum_desc.initial_state = EResourceState::UnorderedAccess;
 		accumulation_texture = std::make_unique<Texture>(gfx, accum_desc);

@@ -1,7 +1,5 @@
 #include "PathTracing.hlsli"
 
-
-
 struct PathTracingConstants
 {
     int  bounceCount;
@@ -91,9 +89,9 @@ void PT_RayGen()
             float3 L = normalize(-light.direction.xyz); //not correct for point/spot lights
             float3 wi = L;
             RayDesc shadowRay;
-            shadowRay.Origin = worldPosition.xyz;
+            shadowRay.Origin = worldPosition;
             shadowRay.Direction = L;
-            shadowRay.TMin = 0.0f;
+            shadowRay.TMin = 1e-2f;
             shadowRay.TMax = FLT_MAX;
             
             float visibility = TraceShadowRay(shadowRay) ? 1.0f : 0.0f;  
@@ -117,7 +115,6 @@ void PT_RayGen()
 
                 throughput *= diffuseBrdf * NdotL;
                 pdf *= (NdotL / M_PI) * probDiffuse;
-                pdf = max(pdf, 0.01f);
             }
             else
             {
@@ -142,12 +139,11 @@ void PT_RayGen()
                 float NdotV = saturate(dot(worldNormal, wo));
                 float samplePDF = D * NdotH / (4 * LdotH);
                 pdf *= samplePDF * (1.0 - probDiffuse);
-                pdf = max(pdf, 0.01f);
             }
             
             ray.Origin = OffsetRay(worldPosition, worldNormal);
             ray.Direction = wi;
-            ray.TMin = 0.001;
+            ray.TMin = 1e-2f;
             ray.TMax = FLT_MAX;
         }
         else
@@ -166,7 +162,7 @@ void PT_RayGen()
 
     if (any(isnan(radiance)) || any(isinf(radiance)))
     {
-        radiance = float3(1, 0, 0);
+        radiance = float3(0, 0, 0);
     }
     
     RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
