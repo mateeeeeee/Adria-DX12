@@ -12,13 +12,11 @@ float4 InvertRotation(float4 q)
 {
     return float4(-q.x, -q.y, -q.z, q.w);
 }
-// Source: https://gamedev.stackexchange.com/questions/28395/rotating-vector3-by-a-quaternion
 float3 RotatePoint(float4 q, float3 v)
 {
     float3 qAxis = float3(q.x, q.y, q.z);
     return 2.0f * dot(qAxis, v) * qAxis + (q.w * q.w - dot(qAxis, qAxis)) * v + 2.0f * q.w * cross(qAxis, v);
 }
-
 float3x3 AngleAxis3x3(float angle, float3 axis)
 {
 	// Rotation with angle (in radians) and axis
@@ -46,6 +44,7 @@ float3 GetPerpendicularVector(float3 u)
 	uint zm = 1 ^ (xm | ym);
 	return cross(u, float3(xm, ym, zm));
 }
+
 uint GetCubeFaceIndex(float3 v)
 {
     float3 vAbs = abs(v);

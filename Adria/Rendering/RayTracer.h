@@ -13,11 +13,6 @@
 
 namespace adria
 {
-	
-	namespace tecs
-	{
-		class registry;
-	}
 	class RenderGraph;
 	class TextureManager;
 	class GraphicsDevice;
@@ -86,7 +81,7 @@ namespace adria
 
 		BlurPass blur_pass;
 		float ao_radius = 2.0f;
-		float roughness_scale = 0.0f;
+		float reflection_roughness_scale = 0.0f;
 		int32 accumulated_frames = 1;
 		int32 max_bounces = 3;
 	private:

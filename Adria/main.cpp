@@ -38,6 +38,7 @@ int APIENTRY wWinMain(
     {
         std::string log_file = log.AsStringOr("adria.log");
         int32 log_level = loglevel.AsIntOr(0);
+        ADRIA_INIT_LOGGER();
         ADRIA_REGISTER_LOGGER(new FileLogger(log_file.c_str(), static_cast<ELogLevel>(log_level)));
         ADRIA_REGISTER_LOGGER(new OutputDebugStringLogger(static_cast<ELogLevel>(log_level)));
 
@@ -67,6 +68,7 @@ int APIENTRY wWinMain(
         }
         Editor::GetInstance().Destroy();
         Window::Destroy();   
+        ADRIA_DESTROY_LOGGER();
     }
 }
 

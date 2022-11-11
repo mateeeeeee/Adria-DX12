@@ -249,7 +249,7 @@ namespace adria
 					uint32  geo_infos_idx;
 				} constants = 
 				{   
-					.roughness_scale = roughness_scale,
+					.roughness_scale = reflection_roughness_scale,
 					.depth_idx = i + 0, .output_idx = i + 1,
 					.vertices_idx = i + 2, .indices_idx = i + 3, .geo_infos_idx = i + 4
 				};
@@ -279,7 +279,7 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx("Ray Traced Reflection", ImGuiTreeNodeFlags_OpenOnDoubleClick))
 				{
-					ImGui::SliderFloat("Roughness scale", &roughness_scale, 0.0f, 0.25f);
+					ImGui::SliderFloat("Roughness scale", &reflection_roughness_scale, 0.0f, 0.25f);
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
@@ -600,7 +600,7 @@ namespace adria
 			pt_state_object_builder.AddSubObject(dxil_lib_desc);
 		
 			D3D12_RAYTRACING_SHADER_CONFIG pt_shader_config{};
-			pt_shader_config.MaxPayloadSizeInBytes = sizeof(float) * 15;
+			pt_shader_config.MaxPayloadSizeInBytes = sizeof(float) * 1;
 			pt_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
 			pt_state_object_builder.AddSubObject(pt_shader_config);
 		

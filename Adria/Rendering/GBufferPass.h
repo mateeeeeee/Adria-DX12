@@ -5,10 +5,6 @@
 
 namespace adria
 {
-	namespace tecs
-	{
-		class registry;
-	}
 	class RenderGraph;
 
 	class GBufferPass

@@ -30,10 +30,6 @@
 
 namespace adria
 {
-	namespace tecs
-	{
-		class registry;
-	}
 	class Camera;
 	class Buffer;
 	class Texture;

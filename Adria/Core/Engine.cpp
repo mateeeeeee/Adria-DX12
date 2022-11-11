@@ -21,8 +21,6 @@ using json = nlohmann::json;
 
 namespace adria
 {
-	using namespace tecs;
-	
 	struct SceneConfig
 	{
 		std::vector<ModelParameters> scene_models;
