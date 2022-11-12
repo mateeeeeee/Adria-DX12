@@ -15,7 +15,7 @@ namespace adria
 		ID3D12Device* device = gfx->GetDevice();
 		D3D12_FEATURE_DATA_D3D12_OPTIONS5 features5{};
 		HRESULT hr = device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &features5, sizeof(D3D12_FEATURE_DATA_D3D12_OPTIONS5));
-		is_supported = features5.RaytracingTier >= D3D12_RAYTRACING_TIER_1_1;
+		is_supported = features5.RaytracingTier >= D3D12_RAYTRACING_TIER_1_0;
 		CreateStateObject();
 		ShaderCache::GetLibraryRecompiledEvent().AddMember(&RayTracedReflectionsPass::OnLibraryRecompiled, *this);
 	}

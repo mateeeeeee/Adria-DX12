@@ -63,7 +63,7 @@ void RTR_Miss(inout RTR_Payload payloadData)
 [shader("closesthit")]
 void RTR_ClosestHitPrimaryRay(inout RTR_Payload payloadData, in HitAttributes attribs)
 {
-	uint geoId = GeometryIndex();
+    uint geoId = InstanceIndex();
 	uint triangleId = PrimitiveIndex();
 
 	StructuredBuffer<Vertex> vertices	= ResourceDescriptorHeap[PassCB.verticesIdx];
@@ -85,8 +85,8 @@ void RTR_ClosestHitPrimaryRay(inout RTR_Payload payloadData, in HitAttributes at
 	float3 pos = Interpolate(v0.pos, v1.pos, v2.pos, attribs.barycentrics);
 	float2 uv = Interpolate(v0.uv, v1.uv, v2.uv, attribs.barycentrics); uv.y = 1.0f - uv.y;
 	float3 nor = normalize(Interpolate(v0.nor, v1.nor, v2.nor, attribs.barycentrics));
-	float3 worldPosition = mul(pos, ObjectToWorld3x4()).xyz;
-	float3 worldNormal = mul(nor, (float3x3) WorldToObject4x3());
+    float3 worldPosition = pos; //mul(pos, ObjectToWorld3x4()).xyz; why???
+    float3 worldNormal = nor; 
 
 	Texture2D txMetallicRoughness = ResourceDescriptorHeap[geoInfo.materialData.metallicRoughnessIdx];
 	float2 roughnessMetallic = txMetallicRoughness.SampleLevel(LinearWrapSampler, uv, 0).gb;
@@ -97,7 +97,7 @@ void RTR_ClosestHitPrimaryRay(inout RTR_Payload payloadData, in HitAttributes at
     float3 dir = GetConeSample(randSeed, reflect(WorldRayDirection(), worldNormal), roughnessMetallic.x * PassCB.roughnessScale);
 
 	RayDesc reflectionRay;
-	reflectionRay.Origin = WorldRayOrigin() + RayTCurrent() * WorldRayDirection(); //OffsetRay(worldPosition, worldNormal);
+	reflectionRay.Origin = WorldRayOrigin() + RayTCurrent() * WorldRayDirection();
     reflectionRay.Direction = dir;
 	reflectionRay.TMin = 0.01f;
 	reflectionRay.TMax = FLT_MAX;
@@ -113,8 +113,8 @@ void RTR_ClosestHitPrimaryRay(inout RTR_Payload payloadData, in HitAttributes at
 [shader("closesthit")]
 void RTR_ClosestHitReflectionRay(inout RTR_Payload payload_data, in HitAttributes attribs)
 {
-	uint geoId = GeometryIndex();
-	uint triangleId = PrimitiveIndex();
+    uint geoId = InstanceIndex();
+    uint triangleId = PrimitiveIndex();
 
 	StructuredBuffer<Vertex> vertices = ResourceDescriptorHeap[PassCB.verticesIdx];
 	StructuredBuffer<uint> indices = ResourceDescriptorHeap[PassCB.indicesIdx];

@@ -106,7 +106,7 @@ struct HitInfo
 {
     float2   barycentricCoordinates;
     uint     primitiveIndex;
-    uint     geometryIndex;
+    uint     instanceIndex;
     float3x4 objectToWorldMatrix;
     float3x4 worldToObjectMatrix;
 };
@@ -133,7 +133,7 @@ bool TraceRay(RayDesc ray, out HitInfo hitInfo)
 
     hitInfo.barycentricCoordinates = q.CommittedTriangleBarycentrics();
     hitInfo.primitiveIndex = q.CommittedPrimitiveIndex();
-    hitInfo.geometryIndex = q.CommittedGeometryIndex();
+    hitInfo.instanceIndex = q.CommittedInstanceIndex();
     hitInfo.objectToWorldMatrix = q.CommittedObjectToWorld3x4();
     hitInfo.worldToObjectMatrix = q.CommittedWorldToObject3x4();
     return true;

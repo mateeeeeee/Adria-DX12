@@ -53,7 +53,7 @@ void PT_RayGen()
         HitInfo info;
         if (TraceRay(ray, info))
         {
-            uint geoId = info.geometryIndex;
+            uint geoId = info.instanceIndex;
             uint triangleId = info.primitiveIndex;
             float2 barycentrics = info.barycentricCoordinates;
     
@@ -79,8 +79,6 @@ void PT_RayGen()
             MaterialProperties matProperties = GetMaterialProperties(geoInfo.materialData, uv, 0);
             BrdfData brdfData = GetBrdfData(matProperties);
                 
-            //radiance = matProperties.baseColor;
-            
             int lightIndex = 0;
             float lightWeight = 0.0f;
           //if (SampleLightRIS(randSeed, worldPosition, worldNormal, lightIndex, lightWeight))

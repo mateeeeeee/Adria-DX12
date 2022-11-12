@@ -44,6 +44,7 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 * Model Loading with tinygltf
 
 ## TODO
+* Reference path tracer (wip)
 * Improve DXR features
 * Add DXR GI
 
