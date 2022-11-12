@@ -16,9 +16,12 @@ namespace adria
 		D3D12_FEATURE_DATA_D3D12_OPTIONS5 features5{};
 		HRESULT hr = device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &features5, sizeof(D3D12_FEATURE_DATA_D3D12_OPTIONS5));
 		is_supported = features5.RaytracingTier >= D3D12_RAYTRACING_TIER_1_0;
-		CreateStateObject();
-		OnResize(width, height);
-		ShaderCache::GetLibraryRecompiledEvent().AddMember(&PathTracingPass::OnLibraryRecompiled, *this);
+		if (IsSupported())
+		{
+			CreateStateObject();
+			OnResize(width, height);
+			ShaderCache::GetLibraryRecompiledEvent().AddMember(&PathTracingPass::OnLibraryRecompiled, *this);
+		}
 	}
 
 	void PathTracingPass::AddPass(RenderGraph& rg)
@@ -94,8 +97,6 @@ namespace adria
 
 				RayTracingShaderTable table(path_tracing.Get());
 				table.SetRayGenShader("PT_RayGen");
-				//table.AddMissShader("PT_Miss", 0);
-				//table.AddHitGroup("PT_HitGroup", 0);
 				table.Commit(*gfx->GetDynamicAllocator(), dispatch_desc);
 				cmd_list->DispatchRays(&dispatch_desc);
 
@@ -117,6 +118,8 @@ namespace adria
 
 	void PathTracingPass::OnResize(uint32 w, uint32 h)
 	{
+		if (!IsSupported()) return;
+
 		width = w, height = h;
 
 		TextureDesc accum_desc{};

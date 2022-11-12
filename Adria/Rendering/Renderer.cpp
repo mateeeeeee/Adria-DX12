@@ -323,7 +323,7 @@ namespace adria
 		}
 		rg_blackboard.Add<GlobalBlackboardData>(std::move(global_data));
 
-		if (is_ray_tracing_supported)
+		if (IsRayTracingSupported())
 		{
 			render_graph.ImportBuffer(RG_RES_NAME(BigVertexBuffer), global_vb.get());
 			render_graph.ImportBuffer(RG_RES_NAME(BigIndexBuffer), global_ib.get());
@@ -783,11 +783,6 @@ namespace adria
 		static float total_time = 0.0f;
 		total_time += dt;
 
-		auto device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
-
-		uint32 accel_struct_idx = (uint32)descriptor_allocator->Allocate();
-		device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(accel_struct_idx), accel_structure.GetTLAS()->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		static FrameCBuffer frame_cbuf_data{};
 		if (!AreMatricesEqual(camera->ViewProj(), frame_cbuf_data.prev_view_projection)) path_tracer.Reset();
@@ -811,7 +806,6 @@ namespace adria
 		frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
 		frame_cbuf_data.lights_idx = (int32)light_array_srv.GetHeapOffset();
 		frame_cbuf_data.lights_matrices_idx = (int32)light_matrices_srv.GetHeapOffset();
-		frame_cbuf_data.accel_struct_idx = (int32)accel_struct_idx;
 		frame_cbuf_data.env_map_idx = (int32)env_map_srv.GetHeapOffset();
 		frame_cbuf_data.cascade_splits = XMVectorSet(split_distances[0], split_distances[1], split_distances[2], split_distances[3]);
 		auto lights = reg.view<Light>();
@@ -826,6 +820,16 @@ namespace adria
 				break;
 			}
 		}
+
+		if (IsRayTracingSupported())
+		{
+			auto device = gfx->GetDevice();
+			auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+			uint32 accel_struct_idx = (uint32)descriptor_allocator->Allocate();
+			device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(accel_struct_idx), accel_structure.GetTLAS()->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			frame_cbuf_data.accel_struct_idx = (int32)accel_struct_idx;
+		}
+
 		frame_cbuf_data.wind_params = XMVectorSet(wind_dir[0], wind_dir[1], wind_dir[2], wind_speed);
 		frame_cbuffer.Update(frame_cbuf_data, backbuffer_index);
 		frame_cbuf_data.prev_view_projection = camera->ViewProj();

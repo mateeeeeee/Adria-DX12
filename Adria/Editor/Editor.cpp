@@ -678,6 +678,10 @@ namespace adria
 							}
 							ImGui::EndCombo();
 						}
+						if (!engine->renderer->IsRayTracingSupported() && current_shadow_type == 2)
+						{
+							current_shadow_type = 1;
+						}
 						light->casts_shadows = (current_shadow_type == 1);
 						light->ray_traced_shadows = (current_shadow_type == 2);
 					}
@@ -1074,6 +1078,10 @@ namespace adria
 				}
 				ImGui::EndCombo();
 			}
+			if (!engine->renderer->IsRayTracingSupported() && current_render_path_type == 3)
+			{
+				current_render_path_type = 0;
+			}
 			renderer_settings.render_path = static_cast<ERenderPathType>(current_render_path_type);
 
 			static const char* ao_types[] = { "None", "SSAO", "HBAO", "RTAO" };
@@ -1089,6 +1097,10 @@ namespace adria
 				}
 				ImGui::EndCombo();
 			}
+			if (!engine->renderer->IsRayTracingSupported() && current_ao_type == 3)
+			{
+				current_ao_type = 1;
+			}
 			renderer_settings.postprocess.ambient_occlusion = static_cast<EAmbientOcclusion>(current_ao_type);
 			
 			static const char* reflection_types[] = { "None", "SSR", "RTR" };
@@ -1103,6 +1115,10 @@ namespace adria
 					if (is_selected) ImGui::SetItemDefaultFocus();
 				}
 				ImGui::EndCombo();
+			}
+			if (!engine->renderer->IsRayTracingSupported() && current_reflection_type == 2)
+			{
+				current_reflection_type = 1;
 			}
 			renderer_settings.postprocess.reflections = static_cast<EReflections>(current_reflection_type);
 			ImGui::Checkbox("Automatic Exposure", &renderer_settings.postprocess.automatic_exposure);
