@@ -71,10 +71,10 @@ void PT_RayGen()
             float3 localPosition = Interpolate(v0.pos, v1.pos, v2.pos, barycentrics);
             float2 uv = Interpolate(v0.uv, v1.uv, v2.uv, barycentrics);
             uv.y = 1.0f - uv.y;
-            float3 localNormal = normalize(Interpolate(v0.nor, v1.nor, v2.nor, barycentrics));
+            float3 localNormal = Interpolate(v0.nor, v1.nor, v2.nor, barycentrics);
             float3 worldPosition = mul(localPosition, info.objectToWorldMatrix).xyz;
-            float3 worldNormal = mul(localNormal, (float3x3) transpose(info.worldToObjectMatrix));
-            float3 geometryNormal = worldNormal; //for now
+            float3 worldNormal = normalize(mul(localNormal, (float3x3) transpose(info.worldToObjectMatrix)));
+            float3 geometryNormal = worldNormal; //for now, later with cross()
             float3 V = -ray.Direction;
             MaterialProperties matProperties = GetMaterialProperties(geoInfo.materialData, uv, 0);
             BrdfData brdfData = GetBrdfData(matProperties);
@@ -160,11 +160,11 @@ void PT_RayGen()
 
     if (any(isnan(radiance)) || any(isinf(radiance)))
     {
-        radiance = float3(0, 0, 0);
+        radiance = float3(1, 0, 0);
     }
     
     RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
-    accumTx[DispatchRaysIndex().xy] = float4(clamp(radiance, 0.0, 65536.0), 1.0);
-    outputTx[DispatchRaysIndex().xy] = float4(radiance, 1.0f) / PassCB.accumulatedFrames;
+    accumTx[DispatchRaysIndex().xy] = float4(radiance, 1.0);
+    outputTx[DispatchRaysIndex().xy] = float4(radiance / PassCB.accumulatedFrames, 1.0f);
 }
 

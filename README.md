@@ -8,6 +8,7 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 	- Automatic resource bind flags and initial state deduction
 	- Pass culling
 	- Optional multithreaded command list building
+* Reference path tracer 
 * Tiled deferred rendering 
 * Clustered deferred rendering
 * Physically based shading
@@ -44,7 +45,6 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 * Model Loading with tinygltf
 
 ## TODO
-* Reference path tracer (wip)
 * Improve DXR features
 * Add DXR GI
 
@@ -85,3 +85,7 @@ All of DXR screenshots will go here:
 
 Ray Traced Reflections
 ![alt text](Screenshots/rtr.png "Ray Traced Reflections") 
+
+Path Tracer
+![alt text](Screenshots/pathtracing1.png "Path tracing") 
+![alt text](Screenshots/pathtracing2.png "Path tracing") 
