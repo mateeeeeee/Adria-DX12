@@ -20,23 +20,26 @@ namespace adria
 		DirectX::XMMATRIX reprojection;
 		DirectX::XMVECTOR camera_position;
 		DirectX::XMVECTOR camera_forward;
+		float  camera_jitter_x;
+		float  camera_jitter_y;
 		float  camera_near;
 		float  camera_far;
-		float  screen_resolution_x;
-		float  screen_resolution_y;
 
 		DirectX::XMVECTOR wind_params;
 		DirectX::XMVECTOR sun_direction;
 		DirectX::XMVECTOR sun_color;
 		DirectX::XMVECTOR cascade_splits;
 
+		float  screen_resolution_x;
+		float  screen_resolution_y;
 		float  mouse_normalized_coords_x;
 		float  mouse_normalized_coords_y;
+
 		float  delta_time;
 		float  total_time;
-
 		uint32 frame_count;
 		int32  lights_idx;
+
 		int32  lights_matrices_idx;
 		int32  accel_struct_idx;
 		int32  env_map_idx;

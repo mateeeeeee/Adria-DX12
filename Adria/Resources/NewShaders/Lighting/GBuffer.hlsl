@@ -66,6 +66,7 @@ VS_OUTPUT GBufferVS(VS_INPUT input)
     
     float4 pos = mul(float4(input.Position, 1.0), ModelCB.modelMatrix);
     Output.Position = mul(pos, FrameCB.viewProjection);
+    Output.Position.xy += FrameCB.cameraJitter * Output.Position.w;
 
     Output.Uvs = input.Uvs;
 

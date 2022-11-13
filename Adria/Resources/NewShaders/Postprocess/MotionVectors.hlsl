@@ -25,14 +25,9 @@ void MotionVectors(CS_INPUT input)
 	RWTexture2D<float2> velocityTx = ResourceDescriptorHeap[PassCB.outputIdx];
 
 	float2 uv = ((float2)input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
+	float2 currentClip = uv * float2(2, -2) + float2(-1, 1);
 	float depth = depthTx[input.DispatchThreadId.xy];
-	float4 pos = float4(uv, depth, 1);
-
-	float4 posCopy = pos; 
-	posCopy.xy *= 2.0f; posCopy.xy -= 1.0f; posCopy.y *= -1.0f;
-	float4 prevPos = mul(posCopy, FrameCB.reprojection);
-	prevPos.xyz /= prevPos.w;
-	prevPos.xy *= float2(0.5f, -0.5f);
-	prevPos.xy += 0.5f;
-	velocityTx[input.DispatchThreadId.xy] = (prevPos - pos).xy;
+	float4 previousClip = mul(float4(currentClip, depth, 1.0f), FrameCB.reprojection);
+	previousClip.xy /= previousClip.w;
+	velocityTx[input.DispatchThreadId.xy] = (previousClip.xy - currentClip) * float2(0.5f, -0.5f);
 }

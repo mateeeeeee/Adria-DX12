@@ -766,6 +766,9 @@
     <ClInclude Include="Rendering\PathTracingPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
+    <ClInclude Include="Math\Halton.h">
+      <Filter>Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

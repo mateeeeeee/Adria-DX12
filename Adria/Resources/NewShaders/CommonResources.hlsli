@@ -12,21 +12,23 @@ struct FrameCBuffer
 	row_major matrix reprojection;
 	float4 cameraPosition;
 	float4 cameraForward;
-
+	float2 cameraJitter;
 	float  cameraNear;
 	float  cameraFar;
-	float2 screenResolution;
 	
     float4 windParams;
     float4 sunDirection;
     float4 sunColor;
 	float4 cascadeSplits;
+
+	float2 screenResolution;
     float2 mouseNormalizedCoords;
+
 	float  deltaTime;
 	float  totalTime;
-	
 	uint   frameCount;
 	int    lightsIdx;
+
 	int    lightsMatricesIdx;
     int	   accelStructIdx;
     int	   envMapIdx;

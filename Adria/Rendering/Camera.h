@@ -75,7 +75,7 @@ namespace adria
 		float near_plane, far_plane;  
 		float speed;
 		float sensitivity;
-		bool	enabled;
+		bool  enabled;
 	private:
 
 		void UpdateViewMatrix();
