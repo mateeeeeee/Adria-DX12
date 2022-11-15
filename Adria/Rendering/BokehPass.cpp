@@ -12,6 +12,12 @@ using namespace DirectX;
 
 namespace adria
 {
+	struct Bokeh
+	{
+		DirectX::XMFLOAT3 Position;
+		DirectX::XMFLOAT2 Size;
+		DirectX::XMFLOAT3 Color;
+	};
 
 	BokehPass::BokehPass(TextureManager& texture_manager, uint32 w, uint32 h)
 		: texture_manager(texture_manager), width(w), height(h)

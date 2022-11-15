@@ -65,23 +65,4 @@ namespace adria
 		int32 shadow_mask_index;
 		int32 padd;
 	};
-
-	struct ClusterAABB
-	{
-		DirectX::XMVECTOR min_point;
-		DirectX::XMVECTOR max_point;
-	};
-
-	struct LightGrid
-	{
-		uint32 offset;
-		uint32 light_count;
-	};
-
-	struct Bokeh
-	{
-		DirectX::XMFLOAT3 Position;
-		DirectX::XMFLOAT2 Size;
-		DirectX::XMFLOAT3 Color;
-	};
 }

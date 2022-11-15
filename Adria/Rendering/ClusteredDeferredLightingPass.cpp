@@ -12,6 +12,17 @@ using namespace DirectX;
 
 namespace adria
 {
+	struct ClusterAABB
+	{
+		DirectX::XMVECTOR min_point;
+		DirectX::XMVECTOR max_point;
+	};
+
+	struct LightGrid
+	{
+		uint32 offset;
+		uint32 light_count;
+	};
 
 	ClusteredDeferredLightingPass::ClusteredDeferredLightingPass(entt::registry& reg, GraphicsDevice* gfx, uint32 w, uint32 h) : reg(reg), width(w), height(h),
 		clusters(gfx, StructuredBufferDesc<ClusterAABB>(CLUSTER_COUNT)),
