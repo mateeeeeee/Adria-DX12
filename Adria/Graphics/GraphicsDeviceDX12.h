@@ -87,6 +87,7 @@ namespace adria
 		ID3D12GraphicsCommandList4* GetLastGraphicsCommandList() const;
 		ID3D12GraphicsCommandList4* GetNewComputeCommandList() const;
 		ID3D12GraphicsCommandList4* GetLastComputeCommandList() const;
+		ID3D12RootSignature* GetCommonRootSignature() const;
 		ID3D12Resource* GetBackbuffer() const;
 
 		void ResetDefaultCommandList();
@@ -165,7 +166,10 @@ namespace adria
 		HANDLE wait_handle = nullptr;
 
 		BOOL rendering_not_started = TRUE;
+
+		Microsoft::WRL::ComPtr<ID3D12RootSignature> global_root_signature = nullptr;
 	private:
+		void CreateCommonRootSignature();
 
 		FrameResources& GetFrameResources();
 		FrameResources const& GetFrameResources() const;

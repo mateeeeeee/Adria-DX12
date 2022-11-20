@@ -1,7 +1,7 @@
 #include "ToneMapPass.h"
 #include "BlackboardData.h"
 #include "PSOCache.h" 
-#include "RootSignatureCache.h"
+
 #include "../Editor/GUICommand.h"
 #include "../RenderGraph/RenderGraph.h"
 
@@ -51,7 +51,7 @@ namespace adria
 					.tonemap_exposure = params.tonemap_exposure, .tonemap_operator = static_cast<uint32>(params.tone_map_op),
 					.hdr_idx = i, .exposure_idx = i + 1, .output_idx = i + 2
 				};
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ToneMap));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 5, &constants, 0);
@@ -109,7 +109,7 @@ namespace adria
 					.tonemap_exposure = params.tonemap_exposure, .tonemap_operator = static_cast<uint32>(params.tone_map_op),
 					.hdr_idx = i,  .exposure_idx = i + 1, .output_idx = i + 2
 				};
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ToneMap));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 5, &constants, 0);

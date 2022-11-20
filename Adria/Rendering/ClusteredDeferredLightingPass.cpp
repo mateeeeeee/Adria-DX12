@@ -3,7 +3,7 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "PSOCache.h" 
-#include "RootSignatureCache.h"
+
 #include "../RenderGraph/RenderGraph.h"
 #include "entt/entity/registry.hpp"
 #include "../Logging/Logger.h"
@@ -62,7 +62,7 @@ namespace adria
 					auto dst_descriptor = descriptor_allocator->GetHandle(i);
 					device->CopyDescriptorsSimple(1, dst_descriptor, context.GetReadWriteBuffer(data.clusters), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-					cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+					
 					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ClusterBuilding));
 					cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 					cmd_list->SetComputeRoot32BitConstant(1, (uint32)i, 0);
@@ -114,7 +114,7 @@ namespace adria
 					.light_index_list_idx = i + 2, .light_grid_idx = i + 3
 				};
 				
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ClusterCulling));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 4, &constants, 0);
@@ -171,7 +171,7 @@ namespace adria
 					.diffuse_idx = i + 3, .depth_idx = i + 4, .output_idx = i + 5
 				};
 
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ClusteredDeferredLighting));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);

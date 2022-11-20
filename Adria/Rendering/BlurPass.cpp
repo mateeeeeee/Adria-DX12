@@ -3,7 +3,7 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "PSOCache.h"
-#include "RootSignatureCache.h"
+
 #include "../RenderGraph/RenderGraph.h"
 
 
@@ -57,7 +57,7 @@ namespace adria
 					.input_idx = i, .output_idx = i + 1
 				};
 
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Blur_Horizontal));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 2, &constants, 0);
@@ -97,7 +97,7 @@ namespace adria
 					.input_idx = i, .output_idx = i + 1
 				};
 
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Blur_Vertical));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 2, &constants, 0);

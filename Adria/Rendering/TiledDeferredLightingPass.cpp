@@ -3,7 +3,7 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "PSOCache.h" 
-#include "RootSignatureCache.h"
+
 #include "../RenderGraph/RenderGraph.h"
 #include "../Logging/Logger.h"
 #include "../Editor/GUICommand.h"
@@ -89,7 +89,7 @@ namespace adria
 				cmd_list->ClearUnorderedAccessViewFloat(descriptor_allocator->GetHandle(i + 4), context.GetReadWriteTexture(data.debug_output), tiled_debug_target.GetNative(),
 					black, 0, nullptr); 
 
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::TiledDeferredLighting));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);

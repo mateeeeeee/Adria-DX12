@@ -3,7 +3,7 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "PSOCache.h" 
-#include "RootSignatureCache.h"
+
 #include "../RenderGraph/RenderGraph.h"
 #include "../Editor/GUICommand.h"
 
@@ -37,7 +37,7 @@ namespace adria
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::MotionVectors));
 
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(2);

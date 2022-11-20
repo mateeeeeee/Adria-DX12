@@ -3,7 +3,7 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "PSOCache.h" 
-#include "RootSignatureCache.h"
+
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/Texture.h"
 #include "../Graphics/TextureManager.h"
@@ -71,7 +71,7 @@ namespace adria
 						.fft_resolution = FFT_RESOLUTION, .ocean_size = FFT_RESOLUTION, .output_idx = i
 					};
 
-					cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+					
 					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::InitialSpectrum));
 					cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 					cmd_list->SetComputeRoot32BitConstants(1, 3, &constants, 0);
@@ -113,7 +113,7 @@ namespace adria
 					.phases_idx = i, .output_idx = i + 1
 				};
 
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Phase));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 5, &constants, 0);
@@ -160,7 +160,7 @@ namespace adria
 					.initial_spectrum_idx = i, .phases_idx = i + 1, .output_idx = i + 2
 				};
 
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Spectrum));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);
@@ -197,7 +197,7 @@ namespace adria
 					auto device = gfx->GetDevice();
 					auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-					cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+					
 					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::FFT_Horizontal));
 
 					uint32 i = (uint32)descriptor_allocator->AllocateRange(2);
@@ -239,7 +239,7 @@ namespace adria
 					auto device = gfx->GetDevice();
 					auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-					cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+					
 					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::FFT_Vertical));
 
 					uint32 i = (uint32)descriptor_allocator->AllocateRange(2);
@@ -300,7 +300,7 @@ namespace adria
 					.displacement_idx = i, .output_idx = i + 1
 				};
 
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::OceanNormals));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 5, &constants, 0);
@@ -340,7 +340,7 @@ namespace adria
 						break;
 					}
 				}
-				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				
 				if (ocean_tesselation)
 				{
 					cmd_list->SetPipelineState(

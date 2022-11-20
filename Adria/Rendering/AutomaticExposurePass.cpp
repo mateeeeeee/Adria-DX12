@@ -1,7 +1,7 @@
 #include "AutomaticExposurePass.h"
 #include "BlackboardData.h"
 #include "PSOCache.h" 
-#include "RootSignatureCache.h"
+
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/Texture.h"
 #include "../Graphics/Buffer.h"
@@ -85,7 +85,7 @@ namespace adria
 				buffer_uav_barrier.UAV.pResource = histogram_buffer.GetNative();
 				cmd_list->ResourceBarrier(1, &buffer_uav_barrier);
 
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::BuildHistogram)); 
 				uint32 half_width = (width + 1) / 2;
 				uint32 half_height = (height + 1) / 2;
@@ -135,7 +135,7 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::HistogramReduction));
 
 				uint32 descriptor_index = (uint32)descriptor_allocator->AllocateRange(2);
@@ -196,7 +196,7 @@ namespace adria
 					cmd_list->ClearUnorderedAccessViewFloat(gpu_descriptor, cpu_descriptor, previous_ev100->GetNative(), clear_value, 0, nullptr);
 					invalid_history = false;
 				}
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Exposure));
 
 				uint32 descriptor_index = (uint32)descriptor_allocator->AllocateRange(3);

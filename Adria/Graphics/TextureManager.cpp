@@ -72,7 +72,7 @@ namespace adria
 
     TextureManager::TextureManager(GraphicsDevice* gfx, UINT max_textures) : gfx(gfx)
     {
-        mips_generator = std::make_unique<MipsGenerator>(gfx->GetDevice(), max_textures);
+        mips_generator = std::make_unique<MipsGenerator>(gfx, max_textures);
 
 		CD3DX12_DESCRIPTOR_RANGE1 const descriptor_ranges[] =
 		{

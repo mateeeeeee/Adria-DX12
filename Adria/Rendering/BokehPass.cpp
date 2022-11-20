@@ -3,7 +3,7 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "PSOCache.h" 
-#include "RootSignatureCache.h"
+
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/TextureManager.h"
 #include "../Editor/GUICommand.h"
@@ -163,7 +163,7 @@ namespace adria
 					.bokeh_scale = params.bokeh_radius_scale, .bokeh_fallout = params.bokeh_fallout
 				};
 
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::BokehGenerate));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
@@ -248,7 +248,7 @@ namespace adria
 				{
 					.bokeh_tex_idx = i, .bokeh_stack_idx = i + 1
 				};
-				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Bokeh));
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetGraphicsRoot32BitConstants(1, 2, &constants, 0);

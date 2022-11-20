@@ -8,12 +8,12 @@ namespace adria
 	{
 	public:
 
-		MipsGenerator(ID3D12Device* device, UINT max_textures);
+		MipsGenerator(GraphicsDevice* gfx, UINT max_textures);
 		void Add(ID3D12Resource* texture);
 		void Generate(ID3D12GraphicsCommandList* command_list);
 
 	private:
-		ID3D12Device* device;
+		GraphicsDevice* gfx;
 		std::unique_ptr<LinearOnlineDescriptorAllocator> descriptor_allocator;
 		std::vector<ID3D12Resource*> resources;
 	private:

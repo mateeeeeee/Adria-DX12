@@ -2,7 +2,7 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "PSOCache.h" 
-#include "RootSignatureCache.h"
+
 #include "../RenderGraph/RenderGraph.h"
 #include "../Math/Packing.h"
 #include "../Editor/GUICommand.h"
@@ -85,7 +85,7 @@ namespace adria
 				};
 				if (data.ambient_occlusion.IsValid()) constants.ao_idx = static_cast<int32>(i + 4);
 
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Ambient));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 7, &constants, 0);

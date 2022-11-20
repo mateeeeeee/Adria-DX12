@@ -1,5 +1,5 @@
 #include "PipelineState.h"
-#include "RootSignatureCache.h"
+
 #include "ShaderCache.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Graphics/GraphicsStates.h"
@@ -41,7 +41,7 @@ namespace adria
 	void GraphicsPipelineState::Create(GraphicsPipelineStateDesc const& desc)
 	{
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc{};
-		_desc.pRootSignature = RootSignatureCache::Get(desc.root_signature);
+		_desc.pRootSignature = gfx->GetCommonRootSignature();
 		_desc.VS = ShaderCache::GetShader(desc.VS);
 		_desc.PS = ShaderCache::GetShader(desc.PS);
 		_desc.GS = ShaderCache::GetShader(desc.GS);
@@ -90,7 +90,7 @@ namespace adria
 	void ComputePipelineState::Create(ComputePipelineStateDesc const& desc)
 	{
 		D3D12_COMPUTE_PIPELINE_STATE_DESC _desc{};
-		_desc.pRootSignature = RootSignatureCache::Get(desc.root_signature);
+		_desc.pRootSignature = gfx->GetCommonRootSignature();
 		_desc.CS = ShaderCache::GetShader(desc.CS);
 		BREAK_IF_FAILED(gfx->GetDevice()->CreateComputePipelineState(&_desc, IID_PPV_ARGS(pso.ReleaseAndGetAddressOf())));
 	}

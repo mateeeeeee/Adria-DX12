@@ -2,7 +2,7 @@
 #include "BlackboardData.h"
 #include "ShaderCache.h"
 #include "PSOCache.h" 
-#include "RootSignatureCache.h"
+
 #include "../RenderGraph/RenderGraph.h"
 
 namespace adria
@@ -59,7 +59,7 @@ namespace adria
 					.depth_idx = i + 0, .output_idx = i + 1,
 					.light_idx = light_index
 				};
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				
 				cmd_list->SetPipelineState1(ray_traced_shadows.Get());
 
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
@@ -130,7 +130,7 @@ namespace adria
 			rt_shadows_state_object_builder.AddSubObject(rt_shadows_shader_config);
 
 			D3D12_GLOBAL_ROOT_SIGNATURE global_root_sig{};
-			global_root_sig.pGlobalRootSignature = RootSignatureCache::Get(ERootSignature::Common);
+			global_root_sig.pGlobalRootSignature = gfx->GetCommonRootSignature();
 			rt_shadows_state_object_builder.AddSubObject(global_root_sig);
 
 			// Add a state subobject for the ray tracing pipeline config

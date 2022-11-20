@@ -3,7 +3,7 @@
 #include "Camera.h"
 #include "Components.h"
 #include "PSOCache.h" 
-#include "RootSignatureCache.h"
+
 #include "ShaderCache.h"
 #include "SkyModel.h"
 #include "entt/entity/registry.hpp"
@@ -952,7 +952,7 @@ namespace adria
 			.light_index = (uint32)light_index,
 			.matrix_index = (uint32)shadow_map_index
 		};
-		cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+		
 		cmd_list->SetGraphicsRoot32BitConstants(1, 2, &constants, 0);
 
 		auto shadow_view = reg.view<Mesh, Transform, AABB>();

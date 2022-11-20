@@ -233,7 +233,6 @@
     <ClCompile Include="Rendering\RayTracedReflectionsPass.cpp" />
     <ClCompile Include="Rendering\RayTracedShadowsPass.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
-    <ClCompile Include="Rendering\RootSignatureCache.cpp" />
     <ClCompile Include="Rendering\ShaderCache.cpp" />
     <ClCompile Include="Rendering\SkyModel.cpp" />
     <ClCompile Include="Rendering\SkyPass.cpp" />
@@ -369,7 +368,6 @@
     <ClInclude Include="Rendering\RendererSettings.h" />
     <ClInclude Include="Rendering\Renderer.h" />
     <ClInclude Include="Rendering\PipelineState.h" />
-    <ClInclude Include="Rendering\RootSignatureCache.h" />
     <ClInclude Include="Rendering\ShaderCache.h" />
     <ClInclude Include="Rendering\SSRPass.h" />
     <ClInclude Include="Rendering\TAAPass.h" />

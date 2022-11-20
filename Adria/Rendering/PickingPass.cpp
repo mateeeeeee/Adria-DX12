@@ -1,6 +1,6 @@
 #include "PickingPass.h"
 #include "PSOCache.h" 
-#include "RootSignatureCache.h"
+
 #include "BlackboardData.h"
 #include "../Logging/Logger.h"
 #include "../RenderGraph/RenderGraph.h"
@@ -67,7 +67,7 @@ namespace adria
 					.depth_idx = i, .normal_idx = i + 1, .buffer_idx = i + 2
 				};
 
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Picking));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 3, &constants, 0);

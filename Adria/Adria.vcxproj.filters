@@ -239,9 +239,6 @@
     <ClCompile Include="Rendering\OceanRenderer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\RootSignatureCache.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\ShaderCache.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
@@ -671,9 +668,6 @@
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\ShaderCache.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\RootSignatureCache.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\Shader.h">

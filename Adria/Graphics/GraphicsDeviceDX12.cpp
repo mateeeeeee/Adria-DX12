@@ -5,6 +5,7 @@
 #include "../Logging/Logger.h"
 #include "../Core/Window.h"
 
+using namespace Microsoft::WRL;
 
 extern "C" { __declspec(dllexport) extern const UINT D3D12SDKVersion = D3D12_SDK_VERSION; }
 extern "C" { __declspec(dllexport) extern const char* D3D12SDKPath = ".\\D3D12\\"; }
@@ -179,14 +180,14 @@ namespace adria
 			HRESULT removed_reason = device->GetDeviceRemovedReason();
 			ADRIA_LOG(ERROR, "Device removed, reason code: %ld", removed_reason);
 
-			Microsoft::WRL::ComPtr<ID3D12DeviceRemovedExtendedData1> dred;
+			ComPtr<ID3D12DeviceRemovedExtendedData1> dred;
 			if (FAILED(device->QueryInterface(IID_PPV_ARGS(&dred)))) ADRIA_LOG(ERROR, "Failed to get DRED interface");
 			else LogDredInfo(device, dred.Get());
 			std::exit(1);
 		}
 		inline void ReportLiveObjects()
 		{
-			Microsoft::WRL::ComPtr<IDXGIDebug1> dxgi_debug;
+			ComPtr<IDXGIDebug1> dxgi_debug;
 			if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(dxgi_debug.GetAddressOf()))))
 			{
 				dxgi_debug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_DETAIL | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
@@ -207,7 +208,7 @@ namespace adria
 
 		if (options.debug_layer)
 		{
-			Microsoft::WRL::ComPtr<ID3D12Debug> debug_controller = nullptr;
+			ComPtr<ID3D12Debug> debug_controller = nullptr;
 			if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debug_controller))))
 			{
 				debug_controller->EnableDebugLayer();
@@ -222,7 +223,7 @@ namespace adria
 		}
 		if (options.dred)
 		{
-			Microsoft::WRL::ComPtr<ID3D12DeviceRemovedExtendedDataSettings1> dred_settings;
+			ComPtr<ID3D12DeviceRemovedExtendedDataSettings1> dred_settings;
 			hr = D3D12GetDebugInterface(IID_PPV_ARGS(&dred_settings));
 			if (SUCCEEDED(hr) && dred_settings != NULL)
 			{
@@ -239,7 +240,7 @@ namespace adria
 		}
 		if (options.gpu_validation)
 		{
-			Microsoft::WRL::ComPtr<ID3D12Debug1> debug_controller = nullptr;
+			ComPtr<ID3D12Debug1> debug_controller = nullptr;
 			if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debug_controller))))
 			{
 				debug_controller->SetEnableGPUBasedValidation(true);
@@ -251,17 +252,17 @@ namespace adria
 			}
 		}
 
-		Microsoft::WRL::ComPtr<IDXGIFactory4> dxgi_factory = nullptr;
+		ComPtr<IDXGIFactory4> dxgi_factory = nullptr;
 		hr = CreateDXGIFactory1(IID_PPV_ARGS(&dxgi_factory));
 		BREAK_IF_FAILED(hr);
 
-		Microsoft::WRL::ComPtr<IDXGIAdapter> warp_adapter;
+		ComPtr<IDXGIAdapter> warp_adapter;
 		BREAK_IF_FAILED(dxgi_factory->EnumWarpAdapter(IID_PPV_ARGS(&warp_adapter)));
 
 		hr = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device));
 		BREAK_IF_FAILED(hr);
 
-		Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter;
+		ComPtr<IDXGIAdapter1> adapter;
 		dxgi_factory->EnumAdapters1(1, &adapter);
 
 		D3D12MA::ALLOCATOR_DESC allocator_desc{};
@@ -387,7 +388,7 @@ namespace adria
 		if (wait_event == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
 
 		
-		Microsoft::WRL::ComPtr<ID3D12InfoQueue> info_queue;
+		ComPtr<ID3D12InfoQueue> info_queue;
 		if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(info_queue.GetAddressOf()))))
 		{
 			//D3D12_MESSAGE_CATEGORY Categories[0] = {};
@@ -415,7 +416,7 @@ namespace adria
 			BREAK_IF_FAILED(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true));
 			info_queue->PushStorageFilter(&NewFilter);
 		
-			Microsoft::WRL::ComPtr<ID3D12InfoQueue1> info_queue1;
+			ComPtr<ID3D12InfoQueue1> info_queue1;
 			info_queue.As(&info_queue1);
 			if (info_queue1)
 			{
@@ -432,7 +433,7 @@ namespace adria
 				BREAK_IF_FAILED(info_queue1->RegisterMessageCallback(MessageCallback, D3D12_MESSAGE_CALLBACK_FLAG_NONE, this, &callbackCookie));
 			}
 		}
-		
+		CreateCommonRootSignature();
 		std::atexit(ReportLiveObjects);
 		
 		if (options.dred)
@@ -590,9 +591,10 @@ namespace adria
 
 		FLOAT const clear_color[] = { 0,0,0,0 };
 		frame_resources.default_cmd_list->ClearRenderTargetView(frame_resources.back_buffer_rtv, clear_color, 0, nullptr);
-		frame_resources.default_cmd_list->SetGraphicsRootSignature(nullptr);
 		ID3D12DescriptorHeap* heaps[] = { descriptor_allocator->Heap() };
 		frame_resources.default_cmd_list->SetDescriptorHeaps(1, heaps);
+		frame_resources.default_cmd_list->SetGraphicsRootSignature(global_root_signature.Get());
+		frame_resources.default_cmd_list->SetComputeRootSignature(global_root_signature.Get());
 	}
 
 	void GraphicsDevice::SwapBuffers(bool vsync /*= false*/)
@@ -639,11 +641,8 @@ namespace adria
 	ID3D12GraphicsCommandList4* GraphicsDevice::GetNewGraphicsCommandList() const
 	{
 		auto& frame_resources = GetFrameResources();
-
 		unsigned int i = frame_resources.cmd_list_index.load();
-
 		++frame_resources.cmd_list_index;
-
 		ADRIA_ASSERT(i < CMD_LIST_COUNT && "Not enough command lists");
 
 		HRESULT hr = frame_resources.cmd_allocators[i]->Reset();
@@ -653,7 +652,8 @@ namespace adria
 
 		ID3D12DescriptorHeap* ppHeaps[] = { descriptor_allocator->Heap() };
 		frame_resources.cmd_lists[i]->SetDescriptorHeaps(1, ppHeaps);
-
+		frame_resources.cmd_lists[i]->SetGraphicsRootSignature(global_root_signature.Get());
+		frame_resources.cmd_lists[i]->SetComputeRootSignature(global_root_signature.Get());
 		return frame_resources.cmd_lists[i].Get();
 	}
 
@@ -667,11 +667,8 @@ namespace adria
 	ID3D12GraphicsCommandList4* GraphicsDevice::GetNewComputeCommandList() const
 	{
 		auto& frame_resources = GetFrameResources();
-
 		unsigned int i = frame_resources.compute_cmd_list_index.load();
-
 		++frame_resources.compute_cmd_list_index;
-
 		ADRIA_ASSERT(i < CMD_LIST_COUNT && "Not enough command lists");
 
 		HRESULT hr = frame_resources.compute_cmd_allocators[i]->Reset();
@@ -681,7 +678,7 @@ namespace adria
 
 		ID3D12DescriptorHeap* ppHeaps[] = { descriptor_allocator->Heap() };
 		frame_resources.compute_cmd_lists[i]->SetDescriptorHeaps(1, ppHeaps);
-
+		frame_resources.cmd_lists[i]->SetComputeRootSignature(global_root_signature.Get());
 		return frame_resources.compute_cmd_lists[i].Get();
 	}
 
@@ -690,6 +687,11 @@ namespace adria
 		auto& frame_resources = GetFrameResources();
 		unsigned int i = frame_resources.compute_cmd_list_index.load();
 		return i > 0 ? frame_resources.compute_cmd_lists[i - 1].Get() : frame_resources.default_cmd_list.Get();
+	}
+
+	ID3D12RootSignature* GraphicsDevice::GetCommonRootSignature() const
+	{
+		return global_root_signature.Get();
 	}
 
 	ID3D12Resource* GraphicsDevice::GetBackbuffer() const
@@ -830,6 +832,46 @@ namespace adria
 		}
 		BREAK_IF_FAILED(graphics_queue->Signal(release_queue_fence.Get(), release_queue_fence_value));
 		++release_queue_fence_value;
+	}
+
+	void GraphicsDevice::CreateCommonRootSignature()
+	{
+		D3D12_FEATURE_DATA_ROOT_SIGNATURE feature_data{};
+		feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+		if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &feature_data, sizeof(feature_data))))
+			feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
+
+		CD3DX12_ROOT_PARAMETER1 root_parameters[4] = {}; //14 DWORDS = 8 * 1 DWORD for root constants + 3 * 2 DWORDS for CBVs
+		root_parameters[0].InitAsConstantBufferView(0);
+		root_parameters[1].InitAsConstants(8, 1);
+		root_parameters[2].InitAsConstantBufferView(2);
+		root_parameters[3].InitAsConstantBufferView(3);
+
+		D3D12_ROOT_SIGNATURE_FLAGS flags =
+			D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+			D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED;
+
+		CD3DX12_STATIC_SAMPLER_DESC static_samplers[8] = {};
+		static_samplers[0].Init(0, D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
+		static_samplers[1].Init(1, D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
+		static_samplers[2].Init(2, D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_BORDER, D3D12_TEXTURE_ADDRESS_MODE_BORDER, D3D12_TEXTURE_ADDRESS_MODE_BORDER);
+
+		static_samplers[3].Init(3, D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
+		static_samplers[4].Init(4, D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
+		static_samplers[5].Init(5, D3D12_FILTER_MIN_MAG_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_BORDER, D3D12_TEXTURE_ADDRESS_MODE_BORDER, D3D12_TEXTURE_ADDRESS_MODE_BORDER);
+
+		static_samplers[6].Init(6, D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, 0.0f, 16u, D3D12_COMPARISON_FUNC_LESS_EQUAL);
+		static_samplers[7].Init(7, D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT, D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_TEXTURE_ADDRESS_MODE_WRAP, 0.0f, 16u, D3D12_COMPARISON_FUNC_LESS_EQUAL);
+
+		CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC desc{};
+		desc.Init_1_1(ARRAYSIZE(root_parameters), root_parameters, ARRAYSIZE(static_samplers), static_samplers, flags);
+
+		ComPtr<ID3DBlob> signature;
+		ComPtr<ID3DBlob> error;
+		HRESULT hr = D3DX12SerializeVersionedRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1_1, &signature, &error);
+		BREAK_IF_FAILED(hr);
+		hr = device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&global_root_signature));
+		BREAK_IF_FAILED(hr);
 	}
 }
 

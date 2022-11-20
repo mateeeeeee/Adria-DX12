@@ -8,7 +8,6 @@
 #include "../Rendering/Renderer.h"
 #include "../Rendering/ModelImporter.h"
 #include "../Rendering/ShaderCache.h"
-#include "../Rendering/RootSignatureCache.h"
 #include "../Rendering/PSOCache.h"
 #include "../Utilities/Random.h"
 #include "../Utilities/Timer.h"
@@ -212,7 +211,6 @@ namespace adria
 		gfx = std::make_unique<GraphicsDevice>(GraphicsOptions{.debug_layer = init.debug_layer,
 															   .dred = init.dred,
 															   .gpu_validation = init.gpu_validation});
-		RootSignatureCache::Initialize(gfx.get());
 		PSOCache::Initialize(gfx.get());
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
 		entity_loader = std::make_unique<ModelImporter>(reg, gfx.get(), renderer->GetTextureManager());
@@ -234,7 +232,6 @@ namespace adria
 	Engine::~Engine()
 	{
 		PSOCache::Destroy();
-		RootSignatureCache::Destroy();
 		ShaderCache::Destroy();
 		ShaderCompiler::Destroy();
 		TaskSystem::Destroy();

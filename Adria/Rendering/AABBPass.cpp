@@ -4,7 +4,7 @@
 #include "Enums.h"
 #include "BlackboardData.h"
 #include "PSOCache.h" 
-#include "RootSignatureCache.h"
+
 #include "../RenderGraph/RenderGraph.h"
 #include "entt/entity/registry.hpp"
 
@@ -38,7 +38,7 @@ namespace adria
 					auto& aabb = aabb_view.get<AABB>(e);
 					if (aabb.draw_aabb)
 					{
-						cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+						
 						cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Solid_Wireframe));
 						cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 

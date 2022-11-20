@@ -2,7 +2,7 @@
 #include "BlackboardData.h"
 #include "ShaderCache.h"
 #include "PSOCache.h" 
-#include "RootSignatureCache.h"
+
 #include "../RenderGraph/RenderGraph.h"
 #include "../Editor/GUICommand.h"
 
@@ -69,7 +69,7 @@ namespace adria
 					.depth_idx = i + 0, .gbuf_normals_idx = i + 1, .output_idx = i + 2,
 					.ao_radius = ao_radius
 				};
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				
 				cmd_list->SetPipelineState1(ray_traced_ambient_occlusion.Get());
 
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
@@ -134,7 +134,7 @@ namespace adria
 			rtao_state_object_builder.AddSubObject(rtao_shader_config);
 
 			D3D12_GLOBAL_ROOT_SIGNATURE global_root_sig{};
-			global_root_sig.pGlobalRootSignature = RootSignatureCache::Get(ERootSignature::Common);
+			global_root_sig.pGlobalRootSignature = gfx->GetCommonRootSignature();
 			rtao_state_object_builder.AddSubObject(global_root_sig);
 
 			// Add a state subobject for the ray tracing pipeline config

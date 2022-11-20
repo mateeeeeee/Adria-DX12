@@ -3,7 +3,6 @@
 #include "DWParam.h"
 #include "ShaderCompiler.h"
 #include "d3dx12.h"
-#include "../Rendering/RootSignatureCache.h"
 #include "../Rendering/PSOCache.h"
 
 //https://slindev.com/d3d12-texture-mipmap-generation/
@@ -11,7 +10,7 @@
 namespace adria
 {
 
-	MipsGenerator::MipsGenerator(ID3D12Device* device, UINT max_textures) : device(device)
+	MipsGenerator::MipsGenerator(GraphicsDevice* gfx, UINT max_textures) : gfx(gfx)
 	{
 		CreateHeap(max_textures);
 	}
@@ -24,10 +23,11 @@ namespace adria
 	void MipsGenerator::Generate(ID3D12GraphicsCommandList* command_list)
 	{
 		if (resources.empty()) return;
+		ID3D12Device* device = gfx->GetDevice();
 
 		ID3D12DescriptorHeap* pp_heaps[] = { descriptor_allocator->Heap() };
 		command_list->SetDescriptorHeaps(1, pp_heaps);
-		command_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+		command_list->SetComputeRootSignature(gfx->GetCommonRootSignature()); //is this needed?
 		command_list->SetPipelineState(PSOCache::Get(EPipelineState::GenerateMips));
 		for (auto texture : resources)
 		{
@@ -80,7 +80,7 @@ namespace adria
 		shader_visible_desc.NumDescriptors = 20 * max_textures + 200; //approximate number of descriptors as : ~ max_textures * 2 * 10 (avg mip levels)
 		shader_visible_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		shader_visible_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-		descriptor_allocator = std::make_unique<LinearOnlineDescriptorAllocator>(device, shader_visible_desc);
+		descriptor_allocator = std::make_unique<LinearOnlineDescriptorAllocator>(gfx->GetDevice(), shader_visible_desc);
 	}
 
 }

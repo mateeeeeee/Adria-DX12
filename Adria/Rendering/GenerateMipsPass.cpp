@@ -1,7 +1,7 @@
 #include "GenerateMipsPass.h"
 #include "BlackboardData.h"
 #include "PSOCache.h" 
-#include "RootSignatureCache.h"
+
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/DWParam.h"
 
@@ -29,7 +29,7 @@ namespace adria
 
 				Texture const& texture = context.GetTexture(data.texture_src.GetResourceId());
 				
-				cmd_list->SetComputeRootSignature(RootSignatureCache::Get(ERootSignature::Common));
+				
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::GenerateMips));
 
 				D3D12_SHADER_RESOURCE_VIEW_DESC src_srv_desc{};

@@ -4,7 +4,7 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "PSOCache.h" 
-#include "RootSignatureCache.h"
+
 #include "../RenderGraph/RenderGraph.h"
 #include "../Editor/GUICommand.h"
 #include "entt/entity/registry.hpp"
@@ -71,7 +71,6 @@ namespace adria
 					batched_entities[params].push_back(e);
 				}
 
-				cmd_list->SetGraphicsRootSignature(RootSignatureCache::Get(ERootSignature::Common));
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 
 				for (auto const& [params, entities] : batched_entities)
