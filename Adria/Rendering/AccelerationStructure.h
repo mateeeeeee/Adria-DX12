@@ -150,7 +150,7 @@ namespace adria
 				p_instance_desc[i].InstanceID = i;
 				p_instance_desc[i].InstanceContributionToHitGroupIndex = 0;
 				p_instance_desc[i].Flags = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
-				static const auto T = XMMatrixTranspose(geo_transforms[i]); //maybe transpose
+				const auto T = XMMatrixTranspose(geo_transforms[i]); //maybe transpose
 				memcpy(p_instance_desc[i].Transform, &T, sizeof(p_instance_desc->Transform));
 				p_instance_desc[i].AccelerationStructure = blases[i]->GetGPUAddress();
 				p_instance_desc[i].InstanceMask = 0xFF;
