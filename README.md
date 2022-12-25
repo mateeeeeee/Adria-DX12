@@ -45,6 +45,7 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 * Model Loading with tinygltf
 
 ## TODO
+* GPU-Driven Rendering 
 * Improve DXR features
 * Add DXR GI
 
