@@ -1,5 +1,6 @@
 #pragma once
 #include <DirectXMath.h>
+#include <memory>
 #include "BlurPass.h"
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"

@@ -3,7 +3,6 @@
 #include "Windows.h"
 #include <functional>
 
-
 namespace adria
 {
 
@@ -21,7 +20,7 @@ namespace adria
     struct WindowInit
     {
         HINSTANCE instance;
-        std::string title;
+        char const* title;
         uint32 width, height;
         bool maximize;
     };

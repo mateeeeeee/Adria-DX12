@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
 #include "../RenderGraph/RenderGraphResourceName.h"

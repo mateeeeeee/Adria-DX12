@@ -45,7 +45,7 @@ int APIENTRY wWinMain(
         window_init.instance = hInstance;
         window_init.width = width.AsIntOr(1080);
         window_init.height = height.AsIntOr(720);
-        window_init.title = title.AsStringOr("Adria");
+        window_init.title = title.AsStringOr("Adria").c_str();
         window_init.maximize = maximize;
         Window::Initialize(window_init);
          
