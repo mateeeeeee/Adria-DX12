@@ -41,11 +41,12 @@ int APIENTRY wWinMain(
         ADRIA_REGISTER_LOGGER(new FileLogger(log_file.c_str(), static_cast<ELogLevel>(log_level)));
         ADRIA_REGISTER_LOGGER(new OutputDebugStringLogger(static_cast<ELogLevel>(log_level)));
 
+		std::string title_str = title.AsStringOr("Adria").c_str();
         WindowInit window_init{};
         window_init.instance = hInstance;
         window_init.width = width.AsIntOr(1080);
         window_init.height = height.AsIntOr(720);
-        window_init.title = title.AsStringOr("Adria").c_str();
+        window_init.title = title_str.c_str();
         window_init.maximize = maximize;
         Window::Initialize(window_init);
          
