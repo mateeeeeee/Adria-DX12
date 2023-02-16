@@ -98,8 +98,8 @@ namespace adria
 		float range = 100.0f;
 		float energy = 1.0f;
 		ELightType type = ELightType::Directional;
-		float outer_cosine;
-		float inner_cosine;
+		float outer_cosine = 0.0f;
+		float inner_cosine = 0.707f;
 		bool active = true;
 
 		bool casts_shadows = false;

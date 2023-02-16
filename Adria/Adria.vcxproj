@@ -167,6 +167,7 @@
     <ClCompile Include="..\ThirdParty\ImGui\imgui_impl_win32.cpp" />
     <ClCompile Include="..\ThirdParty\ImGui\imgui_tables.cpp" />
     <ClCompile Include="..\ThirdParty\ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="Core\CVar.cpp" />
     <ClCompile Include="Core\Engine.cpp" />
     <ClCompile Include="Core\Window.cpp" />
     <ClCompile Include="Editor\Editor.cpp" />
@@ -247,6 +248,7 @@
     <ClCompile Include="Utilities\AdriaException.cpp" />
     <ClCompile Include="Utilities\CPUProfiler.cpp" />
     <ClCompile Include="Utilities\Heightmap.cpp" />
+    <ClCompile Include="Utilities\StringUtil.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ThirdParty\FontAwesome\IconsFontAwesome4.h" />
@@ -259,6 +261,7 @@
     <ClInclude Include="..\ThirdParty\ImGui\imstb_rectpack.h" />
     <ClInclude Include="..\ThirdParty\ImGui\imstb_textedit.h" />
     <ClInclude Include="..\ThirdParty\ImGui\imstb_truetype.h" />
+    <ClInclude Include="Core\CVar.h" />
     <ClInclude Include="Core\Definitions.h" />
     <ClInclude Include="Core\Engine.h" />
     <ClInclude Include="Core\Macros.h" />

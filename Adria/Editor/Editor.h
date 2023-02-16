@@ -12,7 +12,6 @@
 
 namespace adria
 {
-	struct ImGuiLogger;
 	struct Material;
 	struct AABB;
 
@@ -20,7 +19,6 @@ namespace adria
 	{
 		EngineInit engine_init;
 	};
-	
 	class Editor
 	{
 		enum
@@ -52,7 +50,7 @@ namespace adria
 	private:
 		std::unique_ptr<Engine> engine;
 		std::unique_ptr<GUI> gui;
-		std::unique_ptr<ImGuiLogger> editor_log;
+		std::unique_ptr<struct ImGuiLogger> editor_log;
 
 		entt::entity selected_entity = entt::null;
 		bool gizmo_enabled = false;

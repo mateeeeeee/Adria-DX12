@@ -49,7 +49,7 @@ namespace adria
 		std::vector<Timestamp> GetProfilerResults(ID3D12GraphicsCommandList* cmd_list);
 
 	private:
-		GraphicsDevice* gfx;
+		GraphicsDevice* gfx = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12QueryHeap> query_heap;
 		std::unique_ptr<Buffer> query_readback_buffer;
 

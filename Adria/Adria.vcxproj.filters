@@ -167,9 +167,6 @@
     <ClCompile Include="Graphics\GraphicsDeviceDX12.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Utilities\Heightmap.cpp">
-      <Filter>Utilities</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\SkyModel.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
@@ -313,6 +310,15 @@
     </ClCompile>
     <ClCompile Include="Rendering\PathTracingPass.cpp">
       <Filter>Rendering\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\StringUtil.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\CVar.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\Heightmap.cpp">
+      <Filter>Utilities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -531,9 +537,6 @@
     </ClInclude>
     <ClInclude Include="Tasks\ThreadPool.h">
       <Filter>Tasks</Filter>
-    </ClInclude>
-    <ClInclude Include="Utilities\Heightmap.h">
-      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\HosekDataRGB.h">
       <Filter>Utilities</Filter>
@@ -762,6 +765,12 @@
     </ClInclude>
     <ClInclude Include="Math\Halton.h">
       <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\CVar.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Heightmap.h">
+      <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

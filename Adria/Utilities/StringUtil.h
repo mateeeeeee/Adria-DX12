@@ -1,41 +1,21 @@
 #pragma once
-
 #include <string>
 
 namespace adria
 {
-	inline std::wstring ToWideString(std::string const& in)
-	{
-		std::wstring out{};
-		out.reserve(in.length());
-		const char* ptr = in.data();
-		const char* const end = in.data() + in.length();
+	std::wstring ToWideString(std::string const& in);
+	std::string ToString(std::wstring const& in);
+	
+	std::string ToLower(std::string const& in);
+	std::string ToUpper(std::string const& in);
 
-		mbstate_t state{};
-		wchar_t wc;
-		while (size_t len = mbrtowc(&wc, ptr, end - ptr, &state)) 
-		{
-			if (len == static_cast<size_t>(-1)) // bad encoding
-				return std::wstring{};
-			if (len == static_cast<size_t>(-2))
-				break;                         
-			out.push_back(wc);
-			ptr += len; 
-		}
-		return out;
-	}
-	inline std::string ToString(std::wstring const& in)
-	{
-		std::string out{};
-		out.reserve(MB_CUR_MAX * in.length());
+	bool FromCString(const char* in, int& out);
+	bool FromCString(const char* in, float& out);
+	bool FromCString(const char* in, const char*& out);
+	bool FromCString(const char* in, bool& out);
 
-		mbstate_t state{};
-		for (wchar_t wc : in) 
-		{
-			char mb[8]{}; // ensure null-terminated for UTF-8 (maximum 4 byte)
-			const auto len = wcrtomb(mb, wc, &state);
-			out += std::string_view{ mb, len };
-		}
-		return out;
-	}
+	std::string IntToString(int val);
+	std::string FloatToString(float val);
+	std::string CStrToString(char const* val);
+	std::string BoolToString(bool val);
 }
