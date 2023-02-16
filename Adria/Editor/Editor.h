@@ -26,6 +26,7 @@ namespace adria
 			Flag_Profiler,
 			Flag_Camera,
 			Flag_Log,
+			Flag_Console,
 			Flag_Entities,
 			Flag_HotReload,
 			Flag_Debug,
@@ -50,7 +51,9 @@ namespace adria
 	private:
 		std::unique_ptr<Engine> engine;
 		std::unique_ptr<GUI> gui;
-		std::unique_ptr<struct ImGuiLogger> editor_log;
+
+		std::unique_ptr<class EditorLogger> logger;
+		std::unique_ptr<class EditorConsole> console;
 
 		entt::entity selected_entity = entt::null;
 		bool gizmo_enabled = false;
@@ -81,6 +84,7 @@ namespace adria
 		void Camera();
 		void Scene();
 		void Log();
+		void Console();
 		void Settings(); 
 		void Profiling();
 		void ShaderHotReload();

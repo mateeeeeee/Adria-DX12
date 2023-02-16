@@ -38,8 +38,10 @@ int APIENTRY wWinMain(
     {
         std::string log_file = log.AsStringOr("adria.log");
         int32 log_level = loglevel.AsIntOr(0);
-        ADRIA_REGISTER_LOGGER(new FileLogger(log_file.c_str(), static_cast<ELogLevel>(log_level)));
-        ADRIA_REGISTER_LOGGER(new OutputDebugStringLogger(static_cast<ELogLevel>(log_level)));
+        std::unique_ptr<FileLogger> file_logger(new FileLogger(log_file.c_str(), static_cast<ELogLevel>(log_level)));
+        std::unique_ptr<OutputDebugStringLogger> output_debug_logger(new OutputDebugStringLogger(static_cast<ELogLevel>(log_level)));
+        ADRIA_REGISTER_LOGGER(file_logger.get());
+        ADRIA_REGISTER_LOGGER(output_debug_logger.get());
 
 		std::string title_str = title.AsStringOr("Adria").c_str();
         WindowInit window_init{};

@@ -83,9 +83,9 @@ namespace adria
 		void Log(ELogLevel level, char const* str, std::source_location location = std::source_location::current());
 
 	private:
-		std::vector<std::unique_ptr<ILogger>> loggers;
+		std::vector<ILogger*> loggers;
 		std::thread log_thread;
-		adria::ConcurrentQueue<QueueEntry> log_queue;
+		ConcurrentQueue<QueueEntry> log_queue;
 		std::atomic_bool exit = false;
 
 	private:

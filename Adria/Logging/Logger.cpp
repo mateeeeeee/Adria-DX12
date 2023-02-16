@@ -48,7 +48,7 @@ namespace adria
 
 	void LogManager::RegisterLogger(ILogger* logger)
 	{
-		loggers.emplace_back(logger);
+		loggers.push_back(logger);
 	}
 
 	void LogManager::Log(ELogLevel level, char const* str, char const* filename, uint32_t line)
