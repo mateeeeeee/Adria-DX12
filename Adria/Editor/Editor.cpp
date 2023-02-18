@@ -2,12 +2,12 @@
 #include "Editor.h"
 #include "GUICommand.h"
 #include "EditorUtil.h"
+#include "../Core/CVar.h"
 #include "../Rendering/Renderer.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Rendering/ModelImporter.h"
 #include "../Rendering/PipelineState.h"
 #include "../Rendering/ShaderCache.h"
-#include "../Logging/Logger.h"
 #include "../Utilities/FilesUtil.h"
 #include "../Utilities/StringUtil.h"
 #include "../Utilities/Random.h"
@@ -16,77 +16,15 @@
 
 using namespace DirectX;
 
+
 namespace adria
 {
-	class EditorLogger : public ILogger
+	namespace cvars
 	{
-	public:
-		EditorLogger(ELogLevel logger_level = ELogLevel::LOG_DEBUG) : logger_level{ logger_level } 
-		{
-			ADRIA_REGISTER_LOGGER(this);
-		}
+		static ConsoleVariable ao_cvar("ao", 0);
+		
+	}
 
-		virtual void Log(ELogLevel level, char const* entry, char const* file, uint32_t line) override
-		{
-			if (level < logger_level) return;
-			std::string log_entry = GetLogTime() + LevelToString(level) + std::string(entry) + "\n";
-			imgui_log.AddLog(log_entry.c_str());
-		}
-
-		void Draw(const char* title, bool* p_open = NULL)
-		{
-			imgui_log.Draw(title, p_open);
-		}
-	private:
-		ImGuiLogger imgui_log;
-		ELogLevel logger_level;
-	};
-
-	class EditorConsole : public ImGuiConsole
-	{
-	public:
-		EditorConsole() = default;
-		~EditorConsole() = default;
-
-		virtual void ExecCommand(const char* cmd) override
-		{
-			AddLog("# %s\n", cmd);
-			HistoryPos = -1;
-			for (int i = History.Size - 1; i >= 0; i--)
-				if (Stricmp(History[i], cmd) == 0)
-				{
-					free(History[i]);
-					History.erase(History.begin() + i);
-					break;
-				}
-			History.push_back(Strdup(cmd));
-
-			// Process command
-			if (Stricmp(cmd, "CLEAR") == 0)
-			{
-				ClearLog();
-			}
-			else if (Stricmp(cmd, "HELP") == 0)
-			{
-				AddLog("Commands:");
-				for (int i = 0; i < Commands.Size; i++)
-					AddLog("- %s", Commands[i]);
-			}
-			else if (Stricmp(cmd, "HISTORY") == 0)
-			{
-				int first = History.Size - 10;
-				for (int i = first > 0 ? first : 0; i < History.Size; i++)
-					AddLog("%3d: %s\n", i, History[i]);
-			}
-			else
-			{
-				AddLog("Unknown command: '%s'\n", cmd);
-			}
-
-			ScrollToBottom = true;
-		}
-
-	};
 
 	struct ProfilerState
 	{
@@ -1024,7 +962,7 @@ namespace adria
 		if (!window_flags[Flag_Console]) return;
 		if (ImGui::Begin("Console", &window_flags[Flag_Console]))
 		{
-			console->Draw("Console", &window_flags[Flag_Console]);
+			console->Draw("Console");
 		}
 		ImGui::End();
 	}
@@ -1054,7 +992,7 @@ namespace adria
 			renderer_settings.render_path = static_cast<ERenderPathType>(current_render_path_type);
 
 			static const char* ao_types[] = { "None", "SSAO", "HBAO", "RTAO" };
-			static int current_ao_type = 0;
+			int& current_ao_type = cvars::ao_cvar.Get();
 			const char* ao_combo_label = ao_types[current_ao_type];
 			if (ImGui::BeginCombo("Ambient Occlusion", ao_combo_label, 0))
 			{

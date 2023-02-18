@@ -8,17 +8,28 @@ namespace adria
 {
 	class IConsoleVariable;
 
+	template<typename F>
+	concept CVarCallback = requires(F f, IConsoleVariable* cvar)
+	{
+		{ f(cvar) } -> std::same_as<void>;
+	};
+
 	class ConsoleManager
 	{
+		friend class IConsoleVariable;
 	public:
-		static void Initialize();
+		static bool Execute(char const* cmd);
+		template<CVarCallback F>
+		static void ForEachCVar(F&& pfn)
+		{
+			for (auto&& [name, cvar] : cvars) pfn(cvar);
+		}
 
 	private:
-		friend class IConsoleVariable;
-		static void RegisterConsoleVariable(IConsoleVariable* cvar, char const* name);
+		inline static HashMap<std::string, IConsoleVariable*> cvars{};
 
-		friend class EditorConsole;
-		static bool Execute(char const* cmd);
+	private:
+		static void RegisterConsoleVariable(IConsoleVariable* cvar, char const* name);
 	};
 
 	class IConsoleVariable
@@ -32,6 +43,8 @@ namespace adria
 		virtual ~IConsoleVariable() = default;
 
 		[[maybe_unused]] virtual bool SetValue(const char* pValue) = 0;
+
+		char const* const GetName() const { return name; }
 
 		[[nodiscard]] virtual int AsInt() const = 0;
 		[[nodiscard]] virtual float AsFloat() const = 0;
@@ -152,9 +165,12 @@ namespace adria
 
 		[[nodiscard]] CVarType& Get() { return value; }
 		[[nodiscard]] CVarType  const& Get() const { return value; }
+
+		operator CVarType() const
+		{
+			return value;
+		}
 	private:
 		CVarType value;
 	};
-
-
 }

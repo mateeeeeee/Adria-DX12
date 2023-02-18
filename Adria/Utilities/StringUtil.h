@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 
 namespace adria
 {
@@ -18,4 +19,6 @@ namespace adria
 	std::string FloatToString(float val);
 	std::string CStrToString(char const* val);
 	std::string BoolToString(bool val);
+
+	std::vector<std::string> SplitString(std::string const& text, char delimeter);
 }

@@ -1,18 +1,8 @@
 #include "CVar.h"
-#include "../Utilities/HashMap.h"
+#include "../Utilities/StringUtil.h"
 
 namespace adria
 {
-	namespace
-	{
-		HashMap<std::string, IConsoleVariable*> cvars;
-	}
-
-	void ConsoleManager::Initialize()
-	{
-		//todo 
-	}
-
 	void ConsoleManager::RegisterConsoleVariable(IConsoleVariable* cvar, char const* name)
 	{
 		std::string lower_name = ToLower(name);
@@ -24,9 +14,16 @@ namespace adria
 
 	bool ConsoleManager::Execute(char const* cmd)
 	{
-		//todo
-		return true;
-	}
+		auto args = SplitString(cmd, ' ');
+		if (args.empty()) return false;
 
+		if (auto it = cvars.find(args[0]); it != cvars.end())
+		{
+			auto& [name, cvar] = *it;
+			if (args.size() == 1) return false;
+			return cvar->SetValue(args[1].c_str());
+		}
+		return false;
+	}
 }
 

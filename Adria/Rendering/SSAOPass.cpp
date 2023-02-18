@@ -11,7 +11,6 @@ using namespace DirectX;
 
 namespace adria
 {
-
 	SSAOPass::SSAOPass(uint32 w, uint32 h) : width(w), height(h), ssao_random_texture(nullptr),
 		blur_pass(w, h)
 	{
@@ -138,6 +137,5 @@ namespace adria
 		ssao_random_texture->CreateSRV();
 		ssao_random_texture->GetNative()->SetName(L"SSAO Random Texture");
 	}
-
 }
 
