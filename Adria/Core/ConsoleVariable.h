@@ -1,45 +1,13 @@
 #pragma once
 #include <string>
-#include <type_traits>
-#include "../Utilities/HashMap.h"
 #include "../Utilities/StringUtil.h"
 
 namespace adria
 {
-	class IConsoleVariable;
-
-	template<typename F>
-	concept CVarCallback = requires(F f, IConsoleVariable* cvar)
-	{
-		{ f(cvar) } -> std::same_as<void>;
-	};
-
-	class ConsoleManager
-	{
-		friend class IConsoleVariable;
-	public:
-		static bool Execute(char const* cmd);
-		template<CVarCallback F>
-		static void ForEachCVar(F&& pfn)
-		{
-			for (auto&& [name, cvar] : cvars) pfn(cvar);
-		}
-
-	private:
-		inline static HashMap<std::string, IConsoleVariable*> cvars{};
-
-	private:
-		static void RegisterConsoleVariable(IConsoleVariable* cvar, char const* name);
-	};
-
 	class IConsoleVariable
 	{
 	public:
-		IConsoleVariable(char const* name)
-			: name(name)
-		{
-			ConsoleManager::RegisterConsoleVariable(this, name);
-		}
+		IConsoleVariable(char const* name);
 		virtual ~IConsoleVariable() = default;
 
 		[[maybe_unused]] virtual bool SetValue(const char* pValue) = 0;

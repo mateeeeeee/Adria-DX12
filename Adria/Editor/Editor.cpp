@@ -2,7 +2,7 @@
 #include "Editor.h"
 #include "GUICommand.h"
 #include "EditorUtil.h"
-#include "../Core/CVar.h"
+
 #include "../Rendering/Renderer.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Rendering/ModelImporter.h"
@@ -12,6 +12,10 @@
 #include "../Utilities/StringUtil.h"
 #include "../Utilities/Random.h"
 #include "../Math/BoundingVolumeHelpers.h"
+
+#include "../Core/ConsoleVariable.h"
+#include "../Core/ConsoleCommand.h"
+
 #include "pix3.h"
 
 using namespace DirectX;
@@ -22,9 +26,9 @@ namespace adria
 	namespace cvars
 	{
 		static ConsoleVariable ao_cvar("ao", 0);
-		
+		static ConsoleVariable reflections_cvar("reflections", 1);
+		static ConsoleCommand<char const*> test("test", [](char const* ) {});
 	}
-
 
 	struct ProfilerState
 	{
@@ -1011,7 +1015,7 @@ namespace adria
 			renderer_settings.postprocess.ambient_occlusion = static_cast<EAmbientOcclusion>(current_ao_type);
 			
 			static const char* reflection_types[] = { "None", "SSR", "RTR" };
-			static int current_reflection_type = (int)renderer_settings.postprocess.reflections;
+			int& current_reflection_type = cvars::reflections_cvar.Get();
 			const char* reflection_combo_label = reflection_types[current_reflection_type];
 			if (ImGui::BeginCombo("Reflections", reflection_combo_label, 0))
 			{

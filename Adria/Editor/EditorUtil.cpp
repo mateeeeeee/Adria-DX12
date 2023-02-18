@@ -5,7 +5,9 @@
 #include <stdlib.h>         // NULL, malloc, free, atoi
 #include <stdint.h>         // intptr_t
 #include "EditorUtil.h"
-#include "../Core/CVar.h"
+#include "../Core/ConsoleManager.h"
+#include "../Core/ConsoleVariable.h" //not necessary, add interfaces to different header
+#include "../Core/ConsoleCommand.h"	 //not necessary, add interfaces to different header
 
 namespace adria
 {
@@ -113,7 +115,6 @@ namespace adria
 
 	};
 
-
 	EditorLogger::EditorLogger(ELogLevel logger_level /*= ELogLevel::LOG_DEBUG*/) : logger_level{ logger_level }, imgui_log(new ImGuiLogger{})
 	{
 		ADRIA_REGISTER_LOGGER(this);
@@ -141,11 +142,16 @@ namespace adria
 		Commands.push_back("history");
 		Commands.push_back("clear");
 
-		auto RegisterCommands = [&](IConsoleVariable* cvar)
+		auto RegisterVariables = [&](IConsoleVariable* cvar)
 		{
 			Commands.push_back(cvar->GetName());
 		};
-		ConsoleManager::ForEachCVar(RegisterCommands);
+		ConsoleManager::ForEachCVar(RegisterVariables);
+		auto RegisterCommands = [&](IConsoleCommand* ccmd)
+		{
+			Commands.push_back(ccmd->GetName());
+		};
+		ConsoleManager::ForEachCCmd(RegisterCommands);
 
 		AutoScroll = true;
 		ScrollToBottom = false;
@@ -326,7 +332,7 @@ namespace adria
 				data->InsertChars(data->CursorPos, candidates[0]);
 				data->InsertChars(data->CursorPos, " ");
 			}
-			else
+			else if(candidates.Size != Commands.Size)
 			{
 				int match_len = (int)(word_end - word_start);
 				for (;;)

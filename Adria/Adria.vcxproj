@@ -167,7 +167,9 @@
     <ClCompile Include="..\ThirdParty\ImGui\imgui_impl_win32.cpp" />
     <ClCompile Include="..\ThirdParty\ImGui\imgui_tables.cpp" />
     <ClCompile Include="..\ThirdParty\ImGui\imgui_widgets.cpp" />
-    <ClCompile Include="Core\CVar.cpp" />
+    <ClCompile Include="Core\ConsoleCommand.cpp" />
+    <ClCompile Include="Core\ConsoleManager.cpp" />
+    <ClCompile Include="Core\ConsoleVariable.cpp" />
     <ClCompile Include="Core\Engine.cpp" />
     <ClCompile Include="Core\Window.cpp" />
     <ClCompile Include="Editor\Editor.cpp" />
@@ -262,7 +264,9 @@
     <ClInclude Include="..\ThirdParty\ImGui\imstb_rectpack.h" />
     <ClInclude Include="..\ThirdParty\ImGui\imstb_textedit.h" />
     <ClInclude Include="..\ThirdParty\ImGui\imstb_truetype.h" />
-    <ClInclude Include="Core\CVar.h" />
+    <ClInclude Include="Core\ConsoleCommand.h" />
+    <ClInclude Include="Core\ConsoleManager.h" />
+    <ClInclude Include="Core\ConsoleVariable.h" />
     <ClInclude Include="Core\Definitions.h" />
     <ClInclude Include="Core\Engine.h" />
     <ClInclude Include="Core\Macros.h" />
