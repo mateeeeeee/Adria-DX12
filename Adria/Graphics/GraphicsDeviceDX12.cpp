@@ -1,7 +1,7 @@
 #include <map>
 #include <dxgidebug.h>
-#include "GraphicsDeviceDX12.h"
 #include "pix3.h"
+#include "GraphicsDeviceDX12.h"
 #include "../Logging/Logger.h"
 #include "../Core/Window.h"
 
@@ -445,6 +445,8 @@ namespace adria
 			ADRIA_ASSERT(RegisterWaitForSingleObject(&wait_handle, wait_handle, DeviceRemovedHandler, device.Get(), INFINITE, 0));
 
 		}
+
+		if (options.pix) PIXLoadLatestWinPixGpuCapturerLibrary();
 	}
 
 	GraphicsDevice::~GraphicsDevice()

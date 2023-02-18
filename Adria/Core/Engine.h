@@ -1,10 +1,7 @@
 #pragma once
 #include <memory>
 #include <optional>
-#include "../Events/EventQueue.h"
-#include "../Input/Input.h"
 #include "entt/entity/registry.hpp"
-#include "../Rendering/Camera.h"
 #include "../Rendering/RendererSettings.h"
 #include "../Rendering/ViewportData.h"
 
@@ -17,6 +14,7 @@ namespace adria
 	class ModelImporter;
 	struct EditorEvents;
 	class GUI;
+	class Camera;
 
 	struct EngineInit
 	{
@@ -24,6 +22,7 @@ namespace adria
 		bool debug_layer = false;
 		bool gpu_validation = false;
 		bool dred = false;
+		bool pix = false;
 		std::string scene_file = "scene.json";
 	};
 

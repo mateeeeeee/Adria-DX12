@@ -1,14 +1,13 @@
 #pragma once
 #include <memory>
+#include <queue>
 #include "GUI.h"
 #include "GUICommand.h"
 #include "EditorEvents.h"
 #include "../Core/Engine.h"
 #include "../Rendering/RendererSettings.h"
 #include "../Rendering/ViewportData.h"
-#include "../ImGui/imgui_internal.h"
 #include "../ImGui/ImGuizmo.h"
-#include "entt/entity/registry.hpp"
 
 namespace adria
 {

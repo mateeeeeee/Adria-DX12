@@ -32,6 +32,7 @@ int APIENTRY wWinMain(
 	CLIArg& debug_layer = parser.AddArg(false, "-debug_layer");
 	CLIArg& dred_debug = parser.AddArg(false, "-dred_debug");
 	CLIArg& gpu_validation = parser.AddArg(false, "-gpu_validation");
+	CLIArg& pix = parser.AddArg(false, "-pix");
 
 	parser.Parse(lpCmdLine);
     //MemoryDebugger::SetAllocHook(MemoryAllocHook);
@@ -57,6 +58,7 @@ int APIENTRY wWinMain(
         engine_init.debug_layer = debug_layer;
         engine_init.dred = dred_debug;
         engine_init.gpu_validation = gpu_validation;
+        engine_init.pix = pix;
         engine_init.scene_file = scene.AsStringOr("scene.json");
 
         EditorInit editor_init{};

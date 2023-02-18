@@ -35,6 +35,7 @@ namespace adria
 		bool debug_layer = false;
 		bool dred = false;
 		bool gpu_validation = false;
+		bool pix = false;
 	};
 	struct GPUMemoryUsage
 	{

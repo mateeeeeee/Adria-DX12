@@ -4,8 +4,10 @@
 #include "../Tasks/TaskSystem.h"
 #include "../Math/Constants.h"
 #include "../Logging/Logger.h"
+#include "../Input/Input.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Rendering/Renderer.h"
+#include "../Rendering/Camera.h"
 #include "../Rendering/ModelImporter.h"
 #include "../Rendering/ShaderCache.h"
 #include "../Rendering/PSOCache.h"
@@ -210,7 +212,7 @@ namespace adria
 		ShaderCache::Initialize();
 		gfx = std::make_unique<GraphicsDevice>(GraphicsOptions{.debug_layer = init.debug_layer,
 															   .dred = init.dred,
-															   .gpu_validation = init.gpu_validation});
+															   .gpu_validation = init.gpu_validation, .pix = init.pix });
 		PSOCache::Initialize(gfx.get());
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
 		entity_loader = std::make_unique<ModelImporter>(reg, gfx.get(), renderer->GetTextureManager());

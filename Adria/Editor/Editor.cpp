@@ -1,9 +1,13 @@
 #include "nfd.h"
 #include "Editor.h"
+
 #include "GUICommand.h"
 #include "EditorUtil.h"
 
+#include "../Core/Engine.h"
+#include "../Input/Input.h"
 #include "../Rendering/Renderer.h"
+#include "../Rendering/Camera.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Rendering/ModelImporter.h"
 #include "../Rendering/PipelineState.h"
@@ -16,7 +20,6 @@
 #include "../Core/ConsoleVariable.h"
 #include "../Core/ConsoleCommand.h"
 
-#include "pix3.h"
 
 using namespace DirectX;
 
@@ -86,7 +89,6 @@ namespace adria
 			auto gui_cmd_list = engine->gfx->GetDefaultCommandList();
 			engine->gfx->SetBackbuffer(gui_cmd_list);
 			{
-				PIXScopedEvent(gui_cmd_list, PIX_COLOR_DEFAULT, "GUI Pass");
 				gui->Begin();
 				{
 					ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
