@@ -314,12 +314,13 @@
     <ClCompile Include="Utilities\StringUtil.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Core\CVar.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Utilities\Heightmap.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="Core\ConsoleCommand.cpp" />
+    <ClCompile Include="Core\ConsoleManager.cpp" />
+    <ClCompile Include="Core\ConsoleVariable.cpp" />
+    <ClCompile Include="Editor\EditorUtil.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -766,15 +767,15 @@
     <ClInclude Include="Math\Halton.h">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="Core\CVar.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Utilities\Heightmap.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Editor\EditorUtil.h">
       <Filter>Editor</Filter>
     </ClInclude>
+    <ClInclude Include="Core\ConsoleCommand.h" />
+    <ClInclude Include="Core\ConsoleManager.h" />
+    <ClInclude Include="Core\ConsoleVariable.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
