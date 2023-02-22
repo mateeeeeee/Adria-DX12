@@ -29,8 +29,19 @@ namespace adria
 	namespace cvars
 	{
 		static ConsoleVariable ao_cvar("ao", 0);
-		static ConsoleVariable reflections_cvar("reflections", 1);
-		static ConsoleCommand<char const*> test("test", [](char const* ) {});
+		static ConsoleVariable reflections("reflections", 1);
+		static ConsoleVariable renderpath("renderpath", 0);
+		static ConsoleVariable taa("TAA", false);
+		static ConsoleVariable fxaa("FXAA", false);
+		static ConsoleVariable exposure("exposure", false);
+		static ConsoleVariable clouds("clouds", false);
+		static ConsoleVariable dof("dof", false);
+		static ConsoleVariable bokeh("bokeh", false);
+		static ConsoleVariable bloom("bloom", false);
+		static ConsoleVariable motion_blur("motionblur", false);
+		static ConsoleVariable fog("fog", false);
+
+		ConsoleCommand<char const*> test("test", [](char const*) {});
 	}
 
 	struct ProfilerState
@@ -133,11 +144,11 @@ namespace adria
 			reload_shaders = false;
 		}
 	}
+
 	void Editor::AddCommand(GUICommand&& command)
 	{
 		commands.emplace_back(std::move(command));
 	}
-
 	void Editor::AddDebugCommand(GUICommand_Debug&& command)
 	{
 		debug_commands.emplace_back(std::move(command));
@@ -855,12 +866,12 @@ namespace adria
 			ImGui::SliderFloat3("Position", pos, 0.0f, 2000.0f);
 			camera.SetPosition(DirectX::XMFLOAT3(pos));
 			float near_plane = camera.Near(), far_plane = camera.Far();
-			float _fov = camera.Fov(), _ar = camera.AspectRatio();
+			float fov = camera.Fov(), ar = camera.AspectRatio();
 			ImGui::SliderFloat("Near", &near_plane, 0.0f, 2.0f);
 			ImGui::SliderFloat("Far", &far_plane, 10.0f, 3000.0f);
-			ImGui::SliderFloat("FOV", &_fov, 0.01f, 1.5707f);
+			ImGui::SliderFloat("FOV", &fov, 0.01f, 1.5707f);
 			camera.SetNearAndFar(near_plane, far_plane);
-			camera.SetFov(_fov);
+			camera.SetFov(fov);
 		}
 		ImGui::End();
 	}
@@ -975,11 +986,24 @@ namespace adria
 
 	void Editor::Settings()
 	{
+		int& current_render_path_type = cvars::renderpath.Get();
+		int& current_ao_type = cvars::ao_cvar.Get();
+		int& current_reflection_type = cvars::reflections.Get();
+
+		renderer_settings.render_path = static_cast<ERenderPathType>(current_render_path_type);
+		renderer_settings.postprocess.ambient_occlusion = static_cast<EAmbientOcclusion>(current_ao_type);
+		renderer_settings.postprocess.reflections = static_cast<EReflections>(current_reflection_type);
+		renderer_settings.postprocess.automatic_exposure = cvars::exposure;
+		renderer_settings.postprocess.clouds = cvars::clouds;
+		renderer_settings.postprocess.dof = cvars::dof;
+		renderer_settings.postprocess.bloom = cvars::bloom;
+		renderer_settings.postprocess.motion_blur = cvars::motion_blur;
+		renderer_settings.postprocess.fog = cvars::fog;
+
 		if (!window_flags[Flag_Settings]) return;
 		if (ImGui::Begin("Settings", &window_flags[Flag_Settings]))
 		{
 			static const char* render_path_types[] = { "Regular Deferred", "Tiled Deferred", "Clustered Deferred", "Path Tracing" };
-			static int current_render_path_type = 0;
 			const char* render_path_combo_label = render_path_types[current_render_path_type];
 			if (ImGui::BeginCombo("Render Path", render_path_combo_label, 0))
 			{
@@ -995,10 +1019,8 @@ namespace adria
 			{
 				current_render_path_type = 0;
 			}
-			renderer_settings.render_path = static_cast<ERenderPathType>(current_render_path_type);
 
 			static const char* ao_types[] = { "None", "SSAO", "HBAO", "RTAO" };
-			int& current_ao_type = cvars::ao_cvar.Get();
 			const char* ao_combo_label = ao_types[current_ao_type];
 			if (ImGui::BeginCombo("Ambient Occlusion", ao_combo_label, 0))
 			{
@@ -1014,10 +1036,8 @@ namespace adria
 			{
 				current_ao_type = 1;
 			}
-			renderer_settings.postprocess.ambient_occlusion = static_cast<EAmbientOcclusion>(current_ao_type);
-			
+
 			static const char* reflection_types[] = { "None", "SSR", "RTR" };
-			int& current_reflection_type = cvars::reflections_cvar.Get();
 			const char* reflection_combo_label = reflection_types[current_reflection_type];
 			if (ImGui::BeginCombo("Reflections", reflection_combo_label, 0))
 			{
@@ -1033,20 +1053,21 @@ namespace adria
 			{
 				current_reflection_type = 1;
 			}
-			renderer_settings.postprocess.reflections = static_cast<EReflections>(current_reflection_type);
-			ImGui::Checkbox("Automatic Exposure", &renderer_settings.postprocess.automatic_exposure);
-			ImGui::Checkbox("Volumetric Clouds", &renderer_settings.postprocess.clouds);
-			ImGui::Checkbox("DoF", &renderer_settings.postprocess.dof);
-			if (renderer_settings.postprocess.dof)
+
+			ImGui::Checkbox("Automatic Exposure", &cvars::exposure.Get());
+			ImGui::Checkbox("Volumetric Clouds", &cvars::clouds.Get());
+			ImGui::Checkbox("DoF", &cvars::dof.Get());
+			if (cvars::dof)
 			{
-				ImGui::Checkbox("Bokeh", &renderer_settings.postprocess.bokeh);
+				ImGui::Checkbox("Bokeh", &cvars::bokeh.Get());
 			}
-			ImGui::Checkbox("Bloom", &renderer_settings.postprocess.bloom);
-			ImGui::Checkbox("Motion Blur", &renderer_settings.postprocess.motion_blur);
-			ImGui::Checkbox("Fog", &renderer_settings.postprocess.fog);
+			ImGui::Checkbox("Bloom", &cvars::bloom.Get());
+			ImGui::Checkbox("Motion Blur", &cvars::motion_blur.Get());
+			ImGui::Checkbox("Fog", &cvars::fog.Get());
 			if (ImGui::TreeNode("Anti-Aliasing"))
 			{
-				static bool fxaa = false, taa = false;
+				bool& fxaa = cvars::fxaa.Get();
+				bool& taa  = cvars::taa.Get();
 				ImGui::Checkbox("FXAA", &fxaa);
 				ImGui::Checkbox("TAA", &taa);
 				if (fxaa) renderer_settings.postprocess.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocess.anti_aliasing | AntiAliasing_FXAA);

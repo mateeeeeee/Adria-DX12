@@ -317,10 +317,18 @@
     <ClCompile Include="Utilities\Heightmap.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Core\ConsoleCommand.cpp" />
-    <ClCompile Include="Core\ConsoleManager.cpp" />
-    <ClCompile Include="Core\ConsoleVariable.cpp" />
-    <ClCompile Include="Editor\EditorUtil.cpp" />
+    <ClCompile Include="Core\ConsoleManager.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ConsoleVariable.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ConsoleCommand.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\EditorUtil.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -773,9 +781,15 @@
     <ClInclude Include="Editor\EditorUtil.h">
       <Filter>Editor</Filter>
     </ClInclude>
-    <ClInclude Include="Core\ConsoleCommand.h" />
-    <ClInclude Include="Core\ConsoleManager.h" />
-    <ClInclude Include="Core\ConsoleVariable.h" />
+    <ClInclude Include="Core\ConsoleManager.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ConsoleVariable.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ConsoleCommand.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
