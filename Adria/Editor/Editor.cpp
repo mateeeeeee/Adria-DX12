@@ -986,6 +986,7 @@ namespace adria
 
 	void Editor::Settings()
 	{
+		commands.clear();
 		int& current_render_path_type = cvars::renderpath.Get();
 		int& current_ao_type = cvars::ao_cvar.Get();
 		int& current_reflection_type = cvars::reflections.Get();
@@ -1080,7 +1081,6 @@ namespace adria
 			}
 
 			for (auto&& cmd : commands) cmd.callback();
-			commands.clear();
 		}
 		ImGui::End();
 	}
@@ -1223,11 +1223,11 @@ namespace adria
 	}
 	void Editor::Debug()
 	{
+		debug_commands.clear();
 		if (!window_flags[Flag_Debug]) return;
 		if(ImGui::Begin("Debug", &window_flags[Flag_Debug]))
 		{
 			for (auto& cmd : debug_commands) cmd.callback(gui->DescriptorAllocator());
-			debug_commands.clear();
 		}
 		ImGui::End();
 	}

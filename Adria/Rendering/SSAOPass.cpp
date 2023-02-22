@@ -5,12 +5,19 @@
 
 #include "../RenderGraph/RenderGraph.h"
 #include "../Utilities/Random.h"
+#include "../Core/ConsoleVariable.h"
 #include "../Editor/GUICommand.h"
 
 using namespace DirectX;
 
 namespace adria
 {
+	namespace cvars
+	{
+		static ConsoleVariable ssao_power("ssao.power",   4.0f);
+		static ConsoleVariable ssao_radius("ssao.radius", 1.0f);
+	}
+
 	SSAOPass::SSAOPass(uint32 w, uint32 h) : width(w), height(h), ssao_random_texture(nullptr),
 		blur_pass(w, h)
 	{
@@ -53,7 +60,6 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
-				
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::SSAO));
 
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(4);
@@ -89,12 +95,15 @@ namespace adria
 			}, ERGPassType::Compute);
 
 		blur_pass.AddPass(rendergraph, RG_RES_NAME(SSAO_Output), RG_RES_NAME(AmbientOcclusion), " SSAO");
+		
+		params.ssao_power = std::clamp(cvars::ssao_power.Get(), 1.0f, 16.0f);
+		params.ssao_radius = std::clamp(cvars::ssao_radius.Get(), 0.5f, 4.0f);
 		AddGUI([&]() 
 			{
 				if (ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
 				{
-					ImGui::SliderFloat("Power", &params.ssao_power, 1.0f, 16.0f);
-					ImGui::SliderFloat("Radius", &params.ssao_radius, 0.5f, 4.0f);
+					ImGui::SliderFloat("Power", &cvars::ssao_power.Get(), 1.0f, 16.0f);
+					ImGui::SliderFloat("Radius", &cvars::ssao_radius.Get(), 0.5f, 4.0f);
 
 					ImGui::TreePop();
 					ImGui::Separator();
