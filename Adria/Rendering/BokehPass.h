@@ -7,7 +7,6 @@
 namespace adria
 {
 	class RenderGraph;
-	class TextureManager;
 	class GraphicsDevice;
 	class Buffer;
 
@@ -33,14 +32,13 @@ namespace adria
 		};
 
 	public:
-		BokehPass(TextureManager& texture_manager, uint32 w, uint32 h);
+		BokehPass(uint32 w, uint32 h);
 
 		void AddPass(RenderGraph& rendergraph, RGResourceName input);
 		void OnResize(uint32 w, uint32 h);
 		void OnSceneInitialized(GraphicsDevice* gfx);
 
 	private:
-		TextureManager& texture_manager;
 		uint32 width, height;
 		BokehParameters params{};
 		size_t hex_bokeh_handle = -1;

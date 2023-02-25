@@ -14,8 +14,8 @@ using namespace DirectX;
 namespace adria
 {
 
-	SkyPass::SkyPass(entt::registry& reg, TextureManager& texture_manager, uint32 w, uint32 h)
-		: reg(reg), texture_manager(texture_manager), width(w), height(h), sky_type(ESkyType::Skybox)
+	SkyPass::SkyPass(entt::registry& reg, uint32 w, uint32 h)
+		: reg(reg), width(w), height(h), sky_type(ESkyType::Skybox)
 	{}
 
 	void SkyPass::AddPass(RenderGraph& rg, DirectX::XMFLOAT3 const& dir)
@@ -60,7 +60,7 @@ namespace adria
 						if (!skybox.active) continue;
 
 						ADRIA_ASSERT(skybox.cubemap_texture != INVALID_TEXTURE_HANDLE);
-						D3D12_CPU_DESCRIPTOR_HANDLE texture_handle = texture_manager.GetSRV(skybox.cubemap_texture);
+						D3D12_CPU_DESCRIPTOR_HANDLE texture_handle = TextureManager::Get().GetSRV(skybox.cubemap_texture);
 						OffsetType i = descriptor_allocator->Allocate();
 						auto dst_descriptor = descriptor_allocator->GetHandle(i);
 						device->CopyDescriptorsSimple(1, dst_descriptor, texture_handle,

@@ -13,8 +13,8 @@ using namespace DirectX;
 namespace adria
 {
 
-	DecalsPass::DecalsPass(entt::registry& reg, TextureManager& texture_manager, uint32 w, uint32 h)
-	 : reg{ reg }, texture_manager{ texture_manager }, width{ w }, height{ h }
+	DecalsPass::DecalsPass(entt::registry& reg, uint32 w, uint32 h)
+	 : reg{ reg }, width{ w }, height{ h }
 	{}
 
 	void DecalsPass::AddPass(RenderGraph& rendergraph)
@@ -63,6 +63,7 @@ namespace adria
 
 				auto decal_pass_lambda = [&](bool modify_normals)
 				{
+					if (decal_view.empty()) return;
 					cmd_list->SetPipelineState(PSOCache::Get(modify_normals ? EPipelineState::Decals_ModifyNormals : EPipelineState::Decals));
 					for (auto e : decal_view)
 					{
@@ -77,7 +78,7 @@ namespace adria
 						DynamicAllocation allocation = upload_buffer->Allocate(GetCBufferSize<DecalsConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 						allocation.Update(constants);
 						cmd_list->SetGraphicsRootConstantBufferView(2, allocation.gpu_address);
-						cmd_list->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+						cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 						BindVertexBuffer(cmd_list, cube_vb.get());
 						BindIndexBuffer(cmd_list, cube_ib.get());
 						cmd_list->DrawIndexedInstanced(cube_ib->GetCount(), 1, 0, 0, 0);

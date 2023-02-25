@@ -5,17 +5,15 @@
 #include <vector>
 #include <string>
 #include "Components.h"
-#include "../Core/Definitions.h"
 #include "entt/entity/registry.hpp"
-#include "../Math/ComputeNormals.h"
+#include "../Core/Definitions.h"
 #include "../Utilities/Heightmap.h"
-#include "../Events/Delegate.h"
+#include "../Math/ComputeNormals.h"
 
 struct ID3D12Device;
 
 namespace adria
 {
-
 	enum class ELightMesh
 	{
 		NoMesh,
@@ -49,7 +47,7 @@ namespace adria
 		uint64 chunk_count_z;
 		bool split_to_chunks = false;
 		ENormalCalculation normal_type = ENormalCalculation::None;
-		std::unique_ptr<Heightmap> heightmap = nullptr;
+		std::unique_ptr<Heightmap> heightmap;
 	};
 	struct OceanParameters
 	{
@@ -75,16 +73,15 @@ namespace adria
 		DirectX::XMFLOAT4 normal;
 	};
 
-    class TextureManager;
     class GraphicsDevice;
  
-	class ModelImporter
+	class EntityLoader
 	{
 		[[nodiscard]] std::vector<entt::entity> LoadGrid(GridParameters const&);
 		[[nodiscard]] std::vector<entt::entity> LoadObjMesh(std::string const&);
 	public:
         
-        ModelImporter(entt::registry& reg, GraphicsDevice* device, TextureManager& texture_manager);
+        EntityLoader(entt::registry& reg, GraphicsDevice* device);
 
 		[[maybe_unused]] entt::entity LoadSkybox(SkyboxParameters const&);
         [[maybe_unused]] entt::entity LoadLight(LightParameters const&);
@@ -95,7 +92,6 @@ namespace adria
 	private:
         entt::registry& reg;
         GraphicsDevice* gfx;
-        TextureManager& texture_manager;
 	};
 }
 

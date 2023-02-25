@@ -27,7 +27,6 @@
 #include "PathTracingPass.h"
 #include "../Graphics/ShaderCompiler.h"
 #include "../Graphics/ConstantBuffer.h"
-#include "../Graphics/TextureManager.h"
 #include "../Graphics/GPUProfiler.h"
 #include "../Utilities/CPUProfiler.h" 
 #include "../RenderGraph/RenderGraphResourcePool.h"
@@ -64,13 +63,12 @@ namespace adria
 		{ 
 			return final_texture.get(); 
 		}
-		TextureManager& GetTextureManager();
+		
 		PickingData const& GetPickingData() const { return picking_data; }
 		bool IsRayTracingSupported() const { return is_ray_tracing_supported; }
 	private:
 		entt::registry& reg;
 		GraphicsDevice* gfx;
-		TextureManager texture_manager;
 		RGResourcePool resource_pool;
 
 		CPUProfiler cpu_profiler;

@@ -29,8 +29,6 @@ namespace adria
 {
 	class RenderGraph;
 	class GraphicsDevice;
-	class GPUProfiler;
-	class TextureManager;
 	class Texture;
 	class Buffer;
 	struct Light;
@@ -38,7 +36,7 @@ namespace adria
 	class Postprocessor
 	{
 	public:
-		Postprocessor(entt::registry& reg, TextureManager& texture_manager, uint32 width, uint32 height);
+		Postprocessor(entt::registry& reg, uint32 width, uint32 height);
 		void AddPasses(RenderGraph& rg, PostprocessSettings const& settings);
 
 		void OnResize(GraphicsDevice* gfx, uint32 w, uint32 h);
@@ -47,7 +45,6 @@ namespace adria
 
 	private:
 		entt::registry& reg;
-		TextureManager& texture_manager;
 		uint32 width, height;
 		PostprocessSettings settings;
 

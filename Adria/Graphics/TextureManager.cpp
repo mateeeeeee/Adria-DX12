@@ -12,9 +12,10 @@
 #include "DDSTextureLoader12.h"
 #include "WICTextureLoader12.h"
 #include "ShaderCompiler.h"
+#include "../Core/Macros.h"
+#include "../Logging/Logger.h"
 #include "../Utilities/StringUtil.h"
 #include "../Utilities/Image.h"
-#include "../Core/Macros.h"
 #include "../Utilities/FilesUtil.h"
 
 namespace adria
@@ -70,16 +71,25 @@ namespace adria
         }
 	}
 
-    TextureManager::TextureManager(GraphicsDevice* gfx, UINT max_textures) : gfx(gfx)
-    {
-        mips_generator = std::make_unique<MipsGenerator>(gfx, max_textures);
+    TextureManager::TextureManager() {}
+
+	TextureManager& TextureManager::Get()
+	{
+		static TextureManager tex_manager;
+		return tex_manager;
+	}
+
+	void TextureManager::Initialize(GraphicsDevice* _gfx, UINT max_textures)
+	{
+        gfx = _gfx;
+		mips_generator = std::make_unique<MipsGenerator>(gfx, max_textures);
 
 		CD3DX12_DESCRIPTOR_RANGE1 const descriptor_ranges[] =
 		{
 			{D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC},
 			{D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE},
 		};
-		CD3DX12_ROOT_PARAMETER1 root_parameters[2];
+        CD3DX12_ROOT_PARAMETER1 root_parameters[2] = {};
 		root_parameters[0].InitAsDescriptorTable(1, &descriptor_ranges[0]);
 		root_parameters[1].InitAsDescriptorTable(1, &descriptor_ranges[1]);
 		CD3DX12_STATIC_SAMPLER_DESC sampler_desc{ 0, D3D12_FILTER_MIN_MAG_MIP_LINEAR };
@@ -97,8 +107,18 @@ namespace adria
 
 		D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc{};
 		pso_desc.pRootSignature = equirect_root_signature.Get();
-		pso_desc.CS = D3D12_SHADER_BYTECODE{.pShaderBytecode = equirect_cs_shader.data(), .BytecodeLength = equirect_cs_shader.size()};
+		pso_desc.CS = D3D12_SHADER_BYTECODE{ .pShaderBytecode = equirect_cs_shader.data(), .BytecodeLength = equirect_cs_shader.size() };
 		BREAK_IF_FAILED(gfx->GetDevice()->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&equirect_pso)));
+	}
+
+	void TextureManager::Destroy()
+	{
+        texture_map.clear();
+        loaded_textures.clear();
+        mips_generator.reset();
+        gfx = nullptr;
+        equirect_root_signature = nullptr;
+        equirect_pso = nullptr;
 	}
 
 	void TextureManager::Tick()

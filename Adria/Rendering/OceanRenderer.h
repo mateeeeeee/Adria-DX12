@@ -16,7 +16,7 @@ namespace adria
 		static constexpr uint32 FFT_RESOLUTION = 512;
 
 	public:
-		OceanRenderer(entt::registry& reg, TextureManager& texture_manager, uint32 w, uint32 h);
+		OceanRenderer(entt::registry& reg, uint32 w, uint32 h);
 
 		void AddPasses(RenderGraph& rendergraph);
 
@@ -25,7 +25,6 @@ namespace adria
 
 	private:
 		entt::registry& reg;
-		TextureManager& texture_manager;
 		size_t foam_handle = -1;
 		size_t perlin_handle = -1;
 		uint32 width, height;

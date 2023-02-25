@@ -8,7 +8,7 @@
 #include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Rendering/Renderer.h"
 #include "../Rendering/Camera.h"
-#include "../Rendering/ModelImporter.h"
+#include "../Rendering/EntityLoader.h"
 #include "../Rendering/ShaderCache.h"
 #include "../Rendering/PSOCache.h"
 #include "../Utilities/Random.h"
@@ -214,8 +214,9 @@ namespace adria
 															   .dred = init.dred,
 															   .gpu_validation = init.gpu_validation, .pix = init.pix });
 		PSOCache::Initialize(gfx.get());
+		TextureManager::Get().Initialize(gfx.get(), 1000);
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
-		entity_loader = std::make_unique<ModelImporter>(reg, gfx.get(), renderer->GetTextureManager());
+		entity_loader = std::make_unique<EntityLoader>(reg, gfx.get());
 
 		InputEvents& input_events = Input::GetInstance().GetInputEvents();
 		input_events.window_resized_event.AddMember(&GraphicsDevice::ResizeBackbuffer, *gfx);
@@ -233,6 +234,7 @@ namespace adria
 
 	Engine::~Engine()
 	{
+		TextureManager::Get().Destroy();
 		PSOCache::Destroy();
 		ShaderCache::Destroy();
 		ShaderCompiler::Destroy();

@@ -22,7 +22,11 @@ namespace adria
 	{
 		using TextureName = std::variant<std::wstring, std::string>;
 	public:
-		TextureManager(GraphicsDevice* gfx, UINT max_textures);
+
+		static TextureManager& Get();
+
+		void Initialize(GraphicsDevice* gfx, UINT max_textures);
+		void Destroy();
 		void Tick();
 
 		[[nodiscard]] TextureHandle LoadTexture(std::wstring const& name);
@@ -34,7 +38,7 @@ namespace adria
 		void OnSceneInitialized();
 
 	private:
-		GraphicsDevice* gfx;
+		GraphicsDevice* gfx = nullptr;
 		std::unique_ptr<MipsGenerator> mips_generator = nullptr;
 
 		HashMap<TextureName, TextureHandle> loaded_textures{};
@@ -45,7 +49,10 @@ namespace adria
 
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> equirect_root_signature;
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> equirect_pso;
+
 	private:
+
+		TextureManager();
 
 		TextureHandle LoadDDSTexture(std::wstring const& texture_path);
 		TextureHandle LoadWICTexture(std::wstring const& texture_path);

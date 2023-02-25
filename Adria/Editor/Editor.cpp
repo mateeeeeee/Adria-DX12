@@ -9,7 +9,7 @@
 #include "../Rendering/Renderer.h"
 #include "../Rendering/Camera.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
-#include "../Rendering/ModelImporter.h"
+#include "../Rendering/EntityLoader.h"
 #include "../Rendering/PipelineState.h"
 #include "../Rendering/ShaderCache.h"
 #include "../Utilities/FilesUtil.h"
@@ -650,7 +650,7 @@ namespace adria
 					RingOnlineDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
 
 					ImGui::Text("Albedo Texture");
-					D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetTextureManager().GetSRV(material->albedo_texture);
+					D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = TextureManager::Get().GetSRV(material->albedo_texture);
 					OffsetType descriptor_index = descriptor_allocator->Allocate();
 					auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -667,14 +667,14 @@ namespace adria
 						if (result == NFD_OKAY)
 						{
 							std::wstring texture_path = ToWideString(file_path);
-							material->albedo_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+							material->albedo_texture = TextureManager::Get().LoadTexture(texture_path);
 							free(file_path);
 						}
 					}
 					ImGui::PopID();
 
 					ImGui::Text("Metallic-Roughness Texture");
-					tex_handle = engine->renderer->GetTextureManager().GetSRV(material->metallic_roughness_texture);
+					tex_handle = TextureManager::Get().GetSRV(material->metallic_roughness_texture);
 					descriptor_index = descriptor_allocator->Allocate();
 					dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -691,14 +691,14 @@ namespace adria
 						if (result == NFD_OKAY)
 						{
 							std::wstring texture_path = ToWideString(file_path);
-							material->metallic_roughness_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+							material->metallic_roughness_texture = TextureManager::Get().LoadTexture(texture_path);
 							free(file_path);
 						}
 					}
 					ImGui::PopID();
 
 					ImGui::Text("Emissive Texture");
-					tex_handle = engine->renderer->GetTextureManager().GetSRV(material->emissive_texture);
+					tex_handle = TextureManager::Get().GetSRV(material->emissive_texture);
 					descriptor_index = descriptor_allocator->Allocate();
 					dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -715,7 +715,7 @@ namespace adria
 						if (result == NFD_OKAY)
 						{
 							std::wstring texture_path = ToWideString(file_path);
-							material->emissive_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+							material->emissive_texture = TextureManager::Get().LoadTexture(texture_path);
 							free(file_path);
 						}
 					}
@@ -772,7 +772,7 @@ namespace adria
 					RingOnlineDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
 
 					ImGui::Text("Decal Albedo Texture");
-					D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetTextureManager().GetSRV(decal->albedo_decal_texture);
+					D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = TextureManager::Get().GetSRV(decal->albedo_decal_texture);
 					OffsetType descriptor_index = descriptor_allocator->Allocate();
 					auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -789,14 +789,14 @@ namespace adria
 						if (result == NFD_OKAY)
 						{
 							std::wstring texture_path = ToWideString(file_path);
-							decal->albedo_decal_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+							decal->albedo_decal_texture = TextureManager::Get().LoadTexture(texture_path);
 							free(file_path);
 						}
 					}
 					ImGui::PopID();
 
 					ImGui::Text("Decal Normal Texture");
-					tex_handle = engine->renderer->GetTextureManager().GetSRV(decal->normal_decal_texture);
+					tex_handle = TextureManager::Get().GetSRV(decal->normal_decal_texture);
 					descriptor_index = descriptor_allocator->Allocate();
 					dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
 					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -813,7 +813,7 @@ namespace adria
 						if (result == NFD_OKAY)
 						{
 							std::wstring texture_path = ToWideString(file_path);
-							decal->normal_decal_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+							decal->normal_decal_texture = TextureManager::Get().LoadTexture(texture_path);
 							free(file_path);
 						}
 					}
@@ -833,7 +833,7 @@ namespace adria
 						if (result == NFD_OKAY)
 						{
 							std::wstring texture_path = ToWideString(file_path);
-							skybox->cubemap_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+							skybox->cubemap_texture = TextureManager::Get().LoadTexture(texture_path);
 							free(file_path);
 						}
 					}

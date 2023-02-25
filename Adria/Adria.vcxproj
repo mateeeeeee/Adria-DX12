@@ -220,7 +220,7 @@
     <ClCompile Include="Rendering\FogPass.cpp" />
     <ClCompile Include="Rendering\GodRaysPass.cpp" />
     <ClCompile Include="Rendering\LensFlarePass.cpp" />
-    <ClCompile Include="Rendering\ModelImporter.cpp" />
+    <ClCompile Include="Rendering\EntityLoader.cpp" />
     <ClCompile Include="Rendering\FXAAPass.cpp" />
     <ClCompile Include="Rendering\GBufferPass.cpp" />
     <ClCompile Include="Rendering\GenerateMipsPass.cpp" />
@@ -251,6 +251,7 @@
     <ClCompile Include="Utilities\AdriaException.cpp" />
     <ClCompile Include="Utilities\CPUProfiler.cpp" />
     <ClCompile Include="Utilities\Heightmap.cpp" />
+    <ClCompile Include="Utilities\Image.cpp" />
     <ClCompile Include="Utilities\StringUtil.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -358,7 +359,7 @@
     <ClInclude Include="Rendering\FogPass.h" />
     <ClInclude Include="Rendering\GodRaysPass.h" />
     <ClInclude Include="Rendering\LensFlarePass.h" />
-    <ClInclude Include="Rendering\ModelImporter.h" />
+    <ClInclude Include="Rendering\EntityLoader.h" />
     <ClInclude Include="Rendering\FXAAPass.h" />
     <ClInclude Include="Rendering\GBufferPass.h" />
     <ClInclude Include="Rendering\GenerateMipsPass.h" />

@@ -10,6 +10,7 @@
 #include "../Editor/GUICommand.h"
 #include "../Graphics/Buffer.h"
 #include "../Graphics/Texture.h"
+#include "../Graphics/TextureManager.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Utilities/Random.h"
 #include "../Utilities/hwbp.h"
@@ -260,15 +261,15 @@ namespace adria
 	};
 
 	Renderer::Renderer(entt::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx), 
-		texture_manager(gfx, 1000), accel_structure(gfx), camera(nullptr), width(width), height(height),
+		accel_structure(gfx), camera(nullptr), width(width), height(height),
 		backbuffer_count(gfx->BackbufferCount()), backbuffer_index(gfx->BackbufferIndex()), final_texture(nullptr),
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count),
 		gbuffer_pass(reg, width, height), ambient_pass(width, height), tonemap_pass(width, height),
-		sky_pass(reg, texture_manager, width, height), deferred_lighting_pass(width, height), volumetric_lighting_pass(width, height),
+		sky_pass(reg, width, height), deferred_lighting_pass(width, height), volumetric_lighting_pass(width, height),
 		tiled_deferred_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
-		postprocessor(reg, texture_manager, width, height), fxaa_pass(width, height), picking_pass(gfx, width, height),
+		postprocessor(reg, width, height), fxaa_pass(width, height), picking_pass(gfx, width, height),
 		clustered_deferred_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height),
-		decals_pass(reg, texture_manager, width, height), ocean_renderer(reg, texture_manager, width, height), aabb_pass(reg, width, height),
+		decals_pass(reg, width, height), ocean_renderer(reg, width, height), aabb_pass(reg, width, height),
 		ray_traced_shadows_pass(gfx, width, height), rtao_pass(gfx, width, height), rtr_pass(gfx, width, height),
 		path_tracer(gfx, width, height)
 	{
@@ -303,7 +304,7 @@ namespace adria
 	void Renderer::Render(RendererSettings const& _settings)
 	{
 		renderer_settings = _settings;
-		texture_manager.Tick();
+		TextureManager::Get().Tick();
 
 		RenderGraph render_graph(resource_pool);
 		RGBlackboard& rg_blackboard = render_graph.GetBlackboard();
@@ -396,16 +397,11 @@ namespace adria
 		white_default_texture = std::make_unique<Texture>(gfx, desc, &init_data);
 		white_default_texture->CreateSRV();
 
-		texture_manager.OnSceneInitialized();
+		TextureManager::Get().OnSceneInitialized();
 	}
 	void Renderer::OnRightMouseClicked(int32 x, int32 y)
 	{
 		update_picking_data = true;
-	}
-
-	TextureManager& Renderer::GetTextureManager()
-	{
-		return texture_manager;
 	}
 
 	void Renderer::CheckDeviceCapabilities()
@@ -515,7 +511,7 @@ namespace adria
 				Skybox skybox = skybox_entities.get<Skybox>(e);
 				if (skybox.active && skybox.used_in_rt)
 				{
-					env_map = texture_manager.GetSRV(skybox.cubemap_texture);
+					env_map = TextureManager::Get().GetSRV(skybox.cubemap_texture);
 					break;
 				}
 			}

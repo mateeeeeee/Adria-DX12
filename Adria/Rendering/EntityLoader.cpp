@@ -8,7 +8,7 @@
 #define TINYOBJLOADER_USE_MAPBOX_EARCUT
 #include "tiny_obj_loader.h"
 
-#include "ModelImporter.h"
+#include "EntityLoader.h"
 #include "Components.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Logging/Logger.h"
@@ -18,6 +18,7 @@
 #include "../Utilities/StringUtil.h"
 #include "../Utilities/FilesUtil.h"
 #include "../Utilities/HashMap.h"
+#include "../Utilities/Heightmap.h"
 
 
 using namespace DirectX;
@@ -26,7 +27,7 @@ using namespace DirectX;
 namespace adria
 {
 
-	std::vector<entt::entity> ModelImporter::LoadGrid(GridParameters const& params)
+	std::vector<entt::entity> EntityLoader::LoadGrid(GridParameters const& params)
 	{
 		if (params.heightmap)
 		{
@@ -203,7 +204,7 @@ namespace adria
 		return chunks;
 	}
 
-	std::vector<entt::entity> ModelImporter::LoadObjMesh(std::string const& model_path)
+	std::vector<entt::entity> EntityLoader::LoadObjMesh(std::string const& model_path)
 	{
 		tinyobj::ObjReaderConfig reader_config{};
 		tinyobj::ObjReader reader;
@@ -320,12 +321,12 @@ namespace adria
 		return entities;
 	}
 
-	ModelImporter::ModelImporter(entt::registry& reg, GraphicsDevice* gfx, TextureManager& texture_manager)
-        : reg(reg), gfx(gfx), texture_manager(texture_manager)
+	EntityLoader::EntityLoader(entt::registry& reg, GraphicsDevice* gfx)
+        : reg(reg), gfx(gfx)
     {
     }
 
-	entt::entity ModelImporter::LoadSkybox(SkyboxParameters const& params)
+	entt::entity EntityLoader::LoadSkybox(SkyboxParameters const& params)
     {
         entt::entity skybox = reg.create();
 
@@ -333,8 +334,8 @@ namespace adria
         sky.active = true;
 		sky.used_in_rt = params.used_in_rt;
 
-        if (params.cubemap.has_value()) sky.cubemap_texture = texture_manager.LoadCubemap(params.cubemap.value());
-        else sky.cubemap_texture = texture_manager.LoadCubemap(params.cubemap_textures);
+        if (params.cubemap.has_value()) sky.cubemap_texture = TextureManager::Get().LoadCubemap(params.cubemap.value());
+        else sky.cubemap_texture = TextureManager::Get().LoadCubemap(params.cubemap_textures);
 
         reg.emplace<Skybox>(skybox, sky);
         reg.emplace<Tag>(skybox, "Skybox");
@@ -342,7 +343,7 @@ namespace adria
 
     }
  
-	entt::entity ModelImporter::LoadLight(LightParameters const& params)
+	entt::entity EntityLoader::LoadLight(LightParameters const& params)
     {
         entt::entity light = reg.create();
 
@@ -393,9 +394,9 @@ namespace adria
 			material.base_color[2] = base_color.z;
 
             if (params.light_texture.has_value())
-                material.albedo_texture = texture_manager.LoadTexture(params.light_texture.value()); //
+                material.albedo_texture = TextureManager::Get().LoadTexture(params.light_texture.value()); //
             else if (params.light_data.type == ELightType::Directional)
-                material.albedo_texture = texture_manager.LoadTexture(L"Resources/Textures/sun.png");
+                material.albedo_texture = TextureManager::Get().LoadTexture(L"Resources/Textures/sun.png");
 
             if (params.light_data.type == ELightType::Directional)
                 material.pso = EPipelineState::Sun;
@@ -447,9 +448,9 @@ namespace adria
         return light;
     }
 
-	std::vector<entt::entity> ModelImporter::LoadOcean(OceanParameters const& params)
+	std::vector<entt::entity> EntityLoader::LoadOcean(OceanParameters const& params)
 	{
-		std::vector<entt::entity> ocean_chunks = ModelImporter::LoadGrid(params.ocean_grid);
+		std::vector<entt::entity> ocean_chunks = EntityLoader::LoadGrid(params.ocean_grid);
 
 		Material ocean_material{};
 		static float default_ocean_color[] = { 0.0123f, 0.3613f, 0.6867f };
@@ -467,13 +468,13 @@ namespace adria
 		return ocean_chunks;
 	}
 
-	entt::entity ModelImporter::LoadDecal(DecalParameters const& params)
+	entt::entity EntityLoader::LoadDecal(DecalParameters const& params)
 	{
 		Decal decal{};
-		texture_manager.EnableMipMaps(false);
-		if (!params.albedo_texture_path.empty()) decal.albedo_decal_texture = texture_manager.LoadTexture(ToWideString(params.albedo_texture_path));
-		if (!params.normal_texture_path.empty()) decal.normal_decal_texture = texture_manager.LoadTexture(ToWideString(params.normal_texture_path));
-		texture_manager.EnableMipMaps(true);
+		TextureManager::Get().EnableMipMaps(false);
+		if (!params.albedo_texture_path.empty()) decal.albedo_decal_texture = TextureManager::Get().LoadTexture(ToWideString(params.albedo_texture_path));
+		if (!params.normal_texture_path.empty()) decal.normal_decal_texture = TextureManager::Get().LoadTexture(ToWideString(params.normal_texture_path));
+		TextureManager::Get().EnableMipMaps(true);
 
 		XMVECTOR P = XMLoadFloat4(&params.position);
 		XMVECTOR N = XMLoadFloat4(&params.normal);
@@ -508,7 +509,7 @@ namespace adria
 		return decal_entity;
 	}
 
-	std::vector<entt::entity> ModelImporter::ImportModel_GLTF(ModelParameters const& params)
+	std::vector<entt::entity> EntityLoader::ImportModel_GLTF(ModelParameters const& params)
 	{
 		tinygltf::TinyGLTF loader;
 		tinygltf::Model model;
@@ -556,7 +557,7 @@ namespace adria
 					tinygltf::Texture const& base_texture = model.textures[pbr_metallic_roughness.baseColorTexture.index];
 					tinygltf::Image const& base_image = model.images[base_texture.source];
 					std::string texbase = params.textures_path + base_image.uri;
-					material.albedo_texture = texture_manager.LoadTexture(ToWideString(texbase));
+					material.albedo_texture = TextureManager::Get().LoadTexture(ToWideString(texbase));
 					material.base_color[0] = (float)pbr_metallic_roughness.baseColorFactor[0];
 					material.base_color[1] = (float)pbr_metallic_roughness.baseColorFactor[1];
 					material.base_color[2] = (float)pbr_metallic_roughness.baseColorFactor[2];
@@ -566,7 +567,7 @@ namespace adria
 					tinygltf::Texture const& metallic_roughness_texture = model.textures[pbr_metallic_roughness.metallicRoughnessTexture.index];
 					tinygltf::Image const& metallic_roughness_image = model.images[metallic_roughness_texture.source];
 					std::string texmetallicroughness = params.textures_path + metallic_roughness_image.uri;
-					material.metallic_roughness_texture = texture_manager.LoadTexture(ToWideString(texmetallicroughness));
+					material.metallic_roughness_texture = TextureManager::Get().LoadTexture(ToWideString(texmetallicroughness));
 					material.metallic_factor = (float)pbr_metallic_roughness.metallicFactor;
 					material.roughness_factor = (float)pbr_metallic_roughness.roughnessFactor;
 				}
@@ -575,14 +576,14 @@ namespace adria
 					tinygltf::Texture const& normal_texture = model.textures[gltf_material.normalTexture.index];
 					tinygltf::Image const& normal_image = model.images[normal_texture.source];
 					std::string texnormal = params.textures_path + normal_image.uri;
-					material.normal_texture = texture_manager.LoadTexture(ToWideString(texnormal));
+					material.normal_texture = TextureManager::Get().LoadTexture(ToWideString(texnormal));
 				}
 				if (gltf_material.emissiveTexture.index >= 0)
 				{
 					tinygltf::Texture const& emissive_texture = model.textures[gltf_material.emissiveTexture.index];
 					tinygltf::Image const& emissive_image = model.images[emissive_texture.source];
 					std::string texemissive = params.textures_path + emissive_image.uri;
-					material.emissive_texture = texture_manager.LoadTexture(ToWideString(texemissive));
+					material.emissive_texture = TextureManager::Get().LoadTexture(ToWideString(texemissive));
 					material.emissive_factor = (float)gltf_material.emissiveFactor[0];
 				}
 				material.pso = EPipelineState::GBuffer;

@@ -5,23 +5,22 @@
 #include "PSOCache.h" 
 
 #include "../RenderGraph/RenderGraph.h"
-#include "entt/entity/registry.hpp"
 #include "../Logging/Logger.h"
-
+#include "entt/entity/registry.hpp"
 
 using namespace DirectX;
 
 namespace adria
 {
-	Postprocessor::Postprocessor(entt::registry& reg, TextureManager& texture_manager, uint32 width, uint32 height)
-		: reg(reg), texture_manager(texture_manager), width(width), height(height),
+	Postprocessor::Postprocessor(entt::registry& reg, uint32 width, uint32 height)
+		: reg(reg), width(width), height(height),
 		blur_pass(width, height), copy_to_texture_pass(width, height), generate_mips_pass(width, height),
 		add_textures_pass(width, height), automatic_exposure_pass(width, height),
-		lens_flare_pass(texture_manager, width, height),
-		clouds_pass(texture_manager, width, height), ssr_pass(width, height), fog_pass(width, height),
+		lens_flare_pass(width, height),
+		clouds_pass(width, height), ssr_pass(width, height), fog_pass(width, height),
 		dof_pass(width, height), bloom_pass(width, height), velocity_buffer_pass(width, height),
 		motion_blur_pass(width, height), taa_pass(width, height), god_rays_pass(width, height),
-		bokeh_pass(texture_manager, width, height)
+		bokeh_pass(width, height)
 	{}
 
 	void Postprocessor::AddPasses(RenderGraph& rg, PostprocessSettings const& _settings)

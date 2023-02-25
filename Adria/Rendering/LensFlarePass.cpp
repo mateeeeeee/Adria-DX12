@@ -13,8 +13,8 @@ using namespace DirectX;
 namespace adria
 {
 
-	LensFlarePass::LensFlarePass(TextureManager& texture_manager, uint32 w, uint32 h)
-		: texture_manager{ texture_manager}, width{ w }, height{ h }
+	LensFlarePass::LensFlarePass(uint32 w, uint32 h)
+		: width{ w }, height{ h }
 	{}
 
 	void LensFlarePass::AddPass(RenderGraph& rg, Light const& light)
@@ -59,7 +59,7 @@ namespace adria
 
 				std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> lens_flare_descriptors{};
 				for (size_t i = 0; i < lens_flare_textures.size(); ++i)
-					lens_flare_descriptors.push_back(texture_manager.GetSRV(lens_flare_textures[i]));
+					lens_flare_descriptors.push_back(TextureManager::Get().GetSRV(lens_flare_textures[i]));
 				lens_flare_descriptors.push_back(context.GetReadOnlyTexture(data.depth));
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(8);
 				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(i) };
@@ -116,13 +116,13 @@ namespace adria
 
 	void LensFlarePass::OnSceneInitialized(GraphicsDevice* gfx)
 	{
-		lens_flare_textures.push_back(texture_manager.LoadTexture(L"Resources/Textures/lensflare/flare0.jpg"));
-		lens_flare_textures.push_back(texture_manager.LoadTexture(L"Resources/Textures/lensflare/flare1.jpg"));
-		lens_flare_textures.push_back(texture_manager.LoadTexture(L"Resources/Textures/lensflare/flare2.jpg"));
-		lens_flare_textures.push_back(texture_manager.LoadTexture(L"Resources/Textures/lensflare/flare3.jpg"));
-		lens_flare_textures.push_back(texture_manager.LoadTexture(L"Resources/Textures/lensflare/flare4.jpg"));
-		lens_flare_textures.push_back(texture_manager.LoadTexture(L"Resources/Textures/lensflare/flare5.jpg"));
-		lens_flare_textures.push_back(texture_manager.LoadTexture(L"Resources/Textures/lensflare/flare6.jpg"));
+		lens_flare_textures.push_back(TextureManager::Get().LoadTexture(L"Resources/Textures/lensflare/flare0.jpg"));
+		lens_flare_textures.push_back(TextureManager::Get().LoadTexture(L"Resources/Textures/lensflare/flare1.jpg"));
+		lens_flare_textures.push_back(TextureManager::Get().LoadTexture(L"Resources/Textures/lensflare/flare2.jpg"));
+		lens_flare_textures.push_back(TextureManager::Get().LoadTexture(L"Resources/Textures/lensflare/flare3.jpg"));
+		lens_flare_textures.push_back(TextureManager::Get().LoadTexture(L"Resources/Textures/lensflare/flare4.jpg"));
+		lens_flare_textures.push_back(TextureManager::Get().LoadTexture(L"Resources/Textures/lensflare/flare5.jpg"));
+		lens_flare_textures.push_back(TextureManager::Get().LoadTexture(L"Resources/Textures/lensflare/flare6.jpg"));
 	}
 
 }

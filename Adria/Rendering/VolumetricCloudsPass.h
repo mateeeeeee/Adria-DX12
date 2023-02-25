@@ -8,8 +8,6 @@ namespace adria
 {
 	class RenderGraph;
 	class GraphicsDevice;
-	class TextureManager;
-
 
 	class VolumetricCloudsPass
 	{
@@ -25,14 +23,13 @@ namespace adria
 			float cloud_type = 1.0f;
 		};
 	public:
-		VolumetricCloudsPass(TextureManager& texture_manager, uint32 w, uint32 h);
+		VolumetricCloudsPass(uint32 w, uint32 h);
 
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h);
 		void OnSceneInitialized(GraphicsDevice* gfx);
 
 	private:
-		TextureManager& texture_manager;
 		uint32 width, height;
 		std::vector<size_t> cloud_textures;
 		CloudParameters params{};

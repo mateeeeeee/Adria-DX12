@@ -1,7 +1,5 @@
 #pragma once
 #include <filesystem>
-#include <chrono>
-#include <thread>
 #include "HashMap.h"
 #include "../Core/Definitions.h"
 #include "../Events/Delegate.h"

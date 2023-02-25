@@ -12,8 +12,8 @@
 namespace adria
 {
 
-	VolumetricCloudsPass::VolumetricCloudsPass(TextureManager& texture_manager, uint32 w, uint32 h)
-		: texture_manager{ texture_manager }, width{ w }, height{ h }
+	VolumetricCloudsPass::VolumetricCloudsPass(uint32 w, uint32 h)
+		: width{ w }, height{ h }
 	{}
 
 	void VolumetricCloudsPass::AddPass(RenderGraph& rg)
@@ -44,8 +44,8 @@ namespace adria
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(5);
-				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { texture_manager.GetSRV(cloud_textures[0]),  texture_manager.GetSRV(cloud_textures[1]),
-															 texture_manager.GetSRV(cloud_textures[2]), context.GetReadOnlyTexture(data.depth),
+				D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { TextureManager::Get().GetSRV(cloud_textures[0]),  TextureManager::Get().GetSRV(cloud_textures[1]),
+															 TextureManager::Get().GetSRV(cloud_textures[2]), context.GetReadOnlyTexture(data.depth),
 															context.GetReadWriteTexture(data.output) };
 				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(i) };
 				uint32 src_range_sizes[] = { 1, 1, 1, 1, 1 };
@@ -127,9 +127,9 @@ namespace adria
 
 	void VolumetricCloudsPass::OnSceneInitialized(GraphicsDevice* gfx)
 	{
-		cloud_textures.push_back(texture_manager.LoadTexture(L"Resources\\Textures\\clouds\\weather.dds"));
-		cloud_textures.push_back(texture_manager.LoadTexture(L"Resources\\Textures\\clouds\\cloud.dds"));
-		cloud_textures.push_back(texture_manager.LoadTexture(L"Resources\\Textures\\clouds\\worley.dds"));
+		cloud_textures.push_back(TextureManager::Get().LoadTexture(L"Resources\\Textures\\clouds\\weather.dds"));
+		cloud_textures.push_back(TextureManager::Get().LoadTexture(L"Resources\\Textures\\clouds\\cloud.dds"));
+		cloud_textures.push_back(TextureManager::Get().LoadTexture(L"Resources\\Textures\\clouds\\worley.dds"));
 	}
 
 }

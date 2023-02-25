@@ -7,14 +7,13 @@
 namespace adria
 {
 	class RenderGraph;
-	class TextureManager;
 	class GraphicsDevice;
 	class Buffer;
 
 	class DecalsPass
 	{
 	public:
-		DecalsPass(entt::registry& reg, TextureManager& texture_manager, uint32 w, uint32 h);
+		DecalsPass(entt::registry& reg, uint32 w, uint32 h);
 
 		void AddPass(RenderGraph& rendergraph);
 
@@ -24,7 +23,6 @@ namespace adria
 
 	private:
 		entt::registry& reg;
-		TextureManager& texture_manager;
 		uint32 width, height;
 		std::unique_ptr<Buffer>	cube_vb = nullptr;
 		std::unique_ptr<Buffer>	cube_ib = nullptr;

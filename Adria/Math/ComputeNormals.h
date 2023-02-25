@@ -5,7 +5,6 @@
 #include "../Core/Definitions.h"
 
 
-
 namespace adria
 {
     template<typename V>
@@ -27,8 +26,6 @@ namespace adria
         )
         {
             std::vector<XMVECTOR> normals(vertices.size());
-
-           
             for (size_t face = 0; face < indices.size() / 3; ++face)
             {
                 index_t i0 = indices[face * 3];
@@ -256,14 +253,11 @@ namespace adria
         switch (normal_type)
         {
         case ENormalCalculation::EqualWeight:
-            impl::ComputeNormalsEqualWeight(vertices, indices, cw);
-            return;
+            return impl::ComputeNormalsEqualWeight(vertices, indices, cw);
         case ENormalCalculation::AngleWeight:
-            impl::ComputeNormalsWeightedByAngle(vertices, indices, cw);
-            return;
+            return impl::ComputeNormalsWeightedByAngle(vertices, indices, cw);
         case ENormalCalculation::AreaWeight:
-            impl::ComputeNormalsWeightedByArea(vertices, indices, cw);
-            return;
+            return impl::ComputeNormalsWeightedByArea(vertices, indices, cw);
         case ENormalCalculation::None:
         default:
             return;
