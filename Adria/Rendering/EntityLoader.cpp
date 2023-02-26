@@ -894,16 +894,13 @@ namespace adria
 		entt::entity root = reg.create();
 		reg.emplace<Transform>(root);
 		reg.emplace<Tag>(root, model_name);
-		Relationship relationship;
+		Relationship relationship{};
 		relationship.children_count = entities.size();
-		ADRIA_ASSERT(relationship.children_count <= Relationship::MAX_CHILDREN);
-		for (size_t i = 0; i < relationship.children_count; ++i)
-		{
-			relationship.children[i] = entities[i];
-		}
+		relationship.first = entities.front();
 		reg.emplace<Relationship>(root, relationship);
-		for (entt::entity e : entities)
+		for (size_t i = 0; i < entities.size(); ++i)
 		{
+			entt::entity e = entities[i];
 			auto& mesh = reg.get<Mesh>(e);
 			mesh.vertex_buffer = vb;
 			mesh.index_buffer = ib;
@@ -916,7 +913,12 @@ namespace adria
 				};
 				reg.emplace<RayTracing>(e, rt_component);
 			}
-			reg.emplace<Relationship>(e, root);
+			Relationship relationship{};
+			relationship.parent = root;
+			relationship.children_count = 0;
+			relationship.next = (i == entities.size() - 1) ? entt::null : entities[i + 1];
+			relationship.prev = (i == 0) ? entt::null : entities[i - 1];
+			reg.emplace<Relationship>(e, relationship);
 		}
 		ADRIA_LOG(INFO, "GLTF Mesh %s successfully loaded!", params.model_path.c_str());
 		return entities;

@@ -482,9 +482,9 @@ namespace adria
 				{
 					if (relationship)
 					{
-						for (size_t i = 0; i < relationship->children_count; ++i)
+						for (entt::entity curr = relationship->first; curr != entt::null; curr = engine->reg.get<Relationship>(curr).next)
 						{
-							ShowEntity(relationship->children[i], false);
+							ShowEntity(curr, false);
 						}
 					}
 					ImGui::TreePop();
@@ -751,10 +751,9 @@ namespace adria
 
 					if (Relationship* relationship = engine->reg.try_get<Relationship>(selected_entity))
 					{
-						for (size_t i = 0; i < relationship->children_count; ++i)
+						for (entt::entity curr = relationship->first; curr != entt::null; curr = engine->reg.get<Relationship>(curr).next)
 						{
-							entt::entity child = relationship->children[i];
-							if (AABB* aabb = engine->reg.try_get<AABB>(child))
+							if (AABB* aabb = engine->reg.try_get<AABB>(curr))
 							{
 								aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, transform->current_transform));
 								aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));
@@ -948,10 +947,9 @@ namespace adria
 
 				if (Relationship* relationship = engine->reg.try_get<Relationship>(selected_entity))
 				{
-					for (size_t i = 0; i < relationship->children_count; ++i)
+					for (entt::entity curr = relationship->first; curr != entt::null; curr = engine->reg.get<Relationship>(curr).next)
 					{
-						entt::entity child = relationship->children[i];
-						if (AABB* aabb = engine->reg.try_get<AABB>(child))
+						if (AABB* aabb = engine->reg.try_get<AABB>(curr))
 						{
 							aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, entity_transform.current_transform));
 							aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));

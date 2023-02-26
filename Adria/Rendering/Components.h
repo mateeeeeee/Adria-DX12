@@ -65,10 +65,11 @@ namespace adria
 
 	struct COMPONENT Relationship
 	{
-		static constexpr size_t MAX_CHILDREN = 2048;
-		entt::entity parent = entt::null;
 		size_t children_count = 0;
-		entt::entity children[MAX_CHILDREN] = { entt::null };
+		entt::entity first = entt::null;
+		entt::entity prev = entt::null;
+		entt::entity next = entt::null;
+		entt::entity parent = entt::null;
 	};
 
 	struct COMPONENT Material
