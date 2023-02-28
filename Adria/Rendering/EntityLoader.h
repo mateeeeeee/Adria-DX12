@@ -89,6 +89,7 @@ namespace adria
 		[[maybe_unused]] entt::entity LoadDecal(DecalParameters const&);
 
 		[[maybe_unused]] std::vector<entt::entity> ImportModel_GLTF(ModelParameters const&);
+		[[maybe_unused]] std::vector<entt::entity> ImportModel_GLTF_Optimized(ModelParameters const&);
 	private:
         entt::registry& reg;
         GraphicsDevice* gfx;
