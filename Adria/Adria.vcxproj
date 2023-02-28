@@ -366,6 +366,8 @@
     <ClInclude Include="Rendering\BlackboardData.h" />
     <ClInclude Include="Rendering\HBAOPass.h" />
     <ClInclude Include="Rendering\DeferredLightingPass.h" />
+    <ClInclude Include="Rendering\MeshletStructs.h" />
+    <ClInclude Include="Rendering\MeshManager.h" />
     <ClInclude Include="Rendering\MotionBlurPass.h" />
     <ClInclude Include="Rendering\OceanRenderer.h" />
     <ClInclude Include="Rendering\PathTracingPass.h" />

@@ -10,6 +10,7 @@
 
 #include "EntityLoader.h"
 #include "Components.h"
+#include "MeshletStructs.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Logging/Logger.h"
 #include "../Math/BoundingVolumeHelpers.h"
@@ -516,7 +517,6 @@ namespace adria
 		std::string err;
 		std::string warn;
 		bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, params.model_path);
-
 		std::string model_name = GetFilename(params.model_path);
 		if (!warn.empty())
 		{
@@ -532,85 +532,131 @@ namespace adria
 			ADRIA_LOG(ERROR, "Failed to load model %s", model_name.c_str());
 			return {};
 		}
-
-		std::vector<CompleteVertex> vertices{};
-		std::vector<uint32> indices{};
 		std::vector<entt::entity> entities{};
 		HashMap<std::string, std::vector<entt::entity>> mesh_name_to_entities_map;
-		for (auto& mesh : model.meshes)
+
+		//process the materials
+		std::vector<Material> materials; 
+		materials.reserve(model.materials.size());
+		for (auto const& gltf_material : model.materials)
 		{
-			std::vector<entt::entity>& mesh_entities = mesh_name_to_entities_map[mesh.name];
-			for (auto& primitive : mesh.primitives)
+			Material& material = materials.emplace_back();
+			material.pso = EPipelineState::GBuffer;
+			material.alpha_cutoff = (float)gltf_material.alphaCutoff;
+			material.double_sided = gltf_material.doubleSided;
+			if (gltf_material.alphaMode == "OPAQUE")
 			{
-				ADRIA_ASSERT(primitive.indices >= 0);
-				tinygltf::Accessor const& index_accessor = model.accessors[primitive.indices];
+				material.alpha_mode = EMaterialAlphaMode::Opaque;
+				material.pso = material.double_sided ? EPipelineState::GBuffer_NoCull : EPipelineState::GBuffer;
+			}
+			else if (gltf_material.alphaMode == "BLEND")
+			{
+				material.alpha_mode = EMaterialAlphaMode::Blend;
+			}
+			else if (gltf_material.alphaMode == "MASK")
+			{
+				material.alpha_mode = EMaterialAlphaMode::Mask;
+				material.pso = material.double_sided ? EPipelineState::GBuffer_Mask_NoCull : EPipelineState::GBuffer_Mask;
+			}
+			tinygltf::PbrMetallicRoughness pbr_metallic_roughness = gltf_material.pbrMetallicRoughness;
+			if (pbr_metallic_roughness.baseColorTexture.index >= 0)
+			{
+				tinygltf::Texture const& base_texture = model.textures[pbr_metallic_roughness.baseColorTexture.index];
+				tinygltf::Image const& base_image = model.images[base_texture.source];
+				std::string texbase = params.textures_path + base_image.uri;
+				material.albedo_texture = TextureManager::Get().LoadTexture(ToWideString(texbase));
+				material.base_color[0] = (float)pbr_metallic_roughness.baseColorFactor[0];
+				material.base_color[1] = (float)pbr_metallic_roughness.baseColorFactor[1];
+				material.base_color[2] = (float)pbr_metallic_roughness.baseColorFactor[2];
+			}
+			if (pbr_metallic_roughness.metallicRoughnessTexture.index >= 0)
+			{
+				tinygltf::Texture const& metallic_roughness_texture = model.textures[pbr_metallic_roughness.metallicRoughnessTexture.index];
+				tinygltf::Image const& metallic_roughness_image = model.images[metallic_roughness_texture.source];
+				std::string texmetallicroughness = params.textures_path + metallic_roughness_image.uri;
+				material.metallic_roughness_texture = TextureManager::Get().LoadTexture(ToWideString(texmetallicroughness));
+				material.metallic_factor = (float)pbr_metallic_roughness.metallicFactor;
+				material.roughness_factor = (float)pbr_metallic_roughness.roughnessFactor;
+			}
+			if (gltf_material.normalTexture.index >= 0)
+			{
+				tinygltf::Texture const& normal_texture = model.textures[gltf_material.normalTexture.index];
+				tinygltf::Image const& normal_image = model.images[normal_texture.source];
+				std::string texnormal = params.textures_path + normal_image.uri;
+				material.normal_texture = TextureManager::Get().LoadTexture(ToWideString(texnormal));
+			}
+			if (gltf_material.emissiveTexture.index >= 0)
+			{
+				tinygltf::Texture const& emissive_texture = model.textures[gltf_material.emissiveTexture.index];
+				tinygltf::Image const& emissive_image = model.images[emissive_texture.source];
+				std::string texemissive = params.textures_path + emissive_image.uri;
+				material.emissive_texture = TextureManager::Get().LoadTexture(ToWideString(texemissive));
+				material.emissive_factor = (float)gltf_material.emissiveFactor[0];
+			}
+		}
+
+		struct MeshData
+		{
+			std::vector<XMFLOAT3> positions_stream;
+			std::vector<XMFLOAT3> normals_stream;
+			std::vector<XMFLOAT4> tangents_stream;
+			std::vector<XMFLOAT3> bitangents_stream;
+			std::vector<XMFLOAT2> uvs_stream;
+			std::vector<uint32>   indices;
+		};
+		MeshData mesh_data{};
+
+		for (auto const& gltf_mesh : model.meshes)
+		{
+			std::vector<entt::entity>& mesh_entities = mesh_name_to_entities_map[gltf_mesh.name];
+			for (auto const& gltf_primitive : gltf_mesh.primitives)
+			{
+				ADRIA_ASSERT(gltf_primitive.indices >= 0);
+				tinygltf::Accessor const& index_accessor = model.accessors[gltf_primitive.indices];
+				tinygltf::BufferView const& buffer_view = model.bufferViews[index_accessor.bufferView];
+				tinygltf::Buffer const& buffer = model.buffers[buffer_view.buffer];
 
 				entt::entity e = reg.create();
 				entities.push_back(e);
 				mesh_entities.push_back(e);
 
-				Material material{};
-				tinygltf::Material gltf_material = model.materials[primitive.material];
-				tinygltf::PbrMetallicRoughness pbr_metallic_roughness = gltf_material.pbrMetallicRoughness;
-				if (pbr_metallic_roughness.baseColorTexture.index >= 0)
-				{
-					tinygltf::Texture const& base_texture = model.textures[pbr_metallic_roughness.baseColorTexture.index];
-					tinygltf::Image const& base_image = model.images[base_texture.source];
-					std::string texbase = params.textures_path + base_image.uri;
-					material.albedo_texture = TextureManager::Get().LoadTexture(ToWideString(texbase));
-					material.base_color[0] = (float)pbr_metallic_roughness.baseColorFactor[0];
-					material.base_color[1] = (float)pbr_metallic_roughness.baseColorFactor[1];
-					material.base_color[2] = (float)pbr_metallic_roughness.baseColorFactor[2];
-				}
-				if (pbr_metallic_roughness.metallicRoughnessTexture.index >= 0)
-				{
-					tinygltf::Texture const& metallic_roughness_texture = model.textures[pbr_metallic_roughness.metallicRoughnessTexture.index];
-					tinygltf::Image const& metallic_roughness_image = model.images[metallic_roughness_texture.source];
-					std::string texmetallicroughness = params.textures_path + metallic_roughness_image.uri;
-					material.metallic_roughness_texture = TextureManager::Get().LoadTexture(ToWideString(texmetallicroughness));
-					material.metallic_factor = (float)pbr_metallic_roughness.metallicFactor;
-					material.roughness_factor = (float)pbr_metallic_roughness.roughnessFactor;
-				}
-				if (gltf_material.normalTexture.index >= 0)
-				{
-					tinygltf::Texture const& normal_texture = model.textures[gltf_material.normalTexture.index];
-					tinygltf::Image const& normal_image = model.images[normal_texture.source];
-					std::string texnormal = params.textures_path + normal_image.uri;
-					material.normal_texture = TextureManager::Get().LoadTexture(ToWideString(texnormal));
-				}
-				if (gltf_material.emissiveTexture.index >= 0)
-				{
-					tinygltf::Texture const& emissive_texture = model.textures[gltf_material.emissiveTexture.index];
-					tinygltf::Image const& emissive_image = model.images[emissive_texture.source];
-					std::string texemissive = params.textures_path + emissive_image.uri;
-					material.emissive_texture = TextureManager::Get().LoadTexture(ToWideString(texemissive));
-					material.emissive_factor = (float)gltf_material.emissiveFactor[0];
-				}
-				material.pso = EPipelineState::GBuffer;
-				material.alpha_cutoff = (float)gltf_material.alphaCutoff;
-				material.double_sided = gltf_material.doubleSided;
-				if (gltf_material.alphaMode == "OPAQUE")
-				{
-					material.alpha_mode = EMaterialAlphaMode::Opaque;
-					material.pso = material.double_sided ? EPipelineState::GBuffer_NoCull : EPipelineState::GBuffer;
-				}
-				else if (gltf_material.alphaMode == "BLEND")
-				{
-					material.alpha_mode = EMaterialAlphaMode::Blend;
-				}
-				else if (gltf_material.alphaMode == "MASK")
-				{
-					material.alpha_mode = EMaterialAlphaMode::Mask;
-					material.pso = material.double_sided ? EPipelineState::GBuffer_Mask_NoCull : EPipelineState::GBuffer_Mask;
-				}
+				Material material = gltf_primitive.material < 0 ? Material{} : materials[gltf_primitive.material];
 				reg.emplace<Material>(e, material);
 				reg.emplace<Deferred>(e);
 
 				Mesh mesh_component{};
 				mesh_component.indices_count = static_cast<uint32>(index_accessor.count);
-				mesh_component.start_index_location = static_cast<uint32>(indices.size());
-				mesh_component.base_vertex_location = static_cast<uint32>(vertices.size());
-				switch (primitive.mode)
+				mesh_component.start_index_location = static_cast<uint32>(mesh_data.indices.size());
+				mesh_component.base_vertex_location = static_cast<uint32>(mesh_data.positions_stream.size());
+
+				mesh_data.indices.reserve(mesh_data.indices.size() + index_accessor.count);
+				auto AddIndices =[&]<typename T>() 
+				{
+					T* data = (T*)(buffer.data.data() + index_accessor.byteOffset + buffer_view.byteOffset);
+					for (size_t i = 0; i < index_accessor.count; i += 3)
+					{
+						//change later to meshData.indices
+						mesh_data.indices.push_back(data[i + 0]);
+						mesh_data.indices.push_back(data[i + 1]);
+						mesh_data.indices.push_back(data[i + 2]);
+					}
+				};
+				int stride = index_accessor.ByteStride(buffer_view);
+				switch (stride)
+				{
+				case 1:
+					AddIndices.template operator()<uint8>();
+					break;
+				case 2:
+					AddIndices.template operator()<uint16>();
+					break;
+				case 4:
+					AddIndices.template operator()<uint32>();
+					break;
+				default:
+					ADRIA_ASSERT(false);
+				}
+				switch (gltf_primitive.mode)
 				{
 				case TINYGLTF_MODE_POINTS:
 					mesh_component.topology = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
@@ -628,167 +674,76 @@ namespace adria
 					mesh_component.topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
 					break;
 				default:
-					assert(false);
+					ADRIA_ASSERT(false);
 				}
-				
-				tinygltf::Accessor const& accessor = model.accessors[primitive.indices];
-				tinygltf::BufferView const& bufferView = model.bufferViews[accessor.bufferView];
-				tinygltf::Buffer const& buffer = model.buffers[bufferView.buffer];
 
-				int stride = accessor.ByteStride(bufferView);
-				uint32 vertex_offset = mesh_component.base_vertex_location;
-				uint32 index_count = mesh_component.indices_count;
-				uint32 index_offset = mesh_component.start_index_location;
-				indices.reserve(indices.size() + index_count);
-				unsigned char const* data = buffer.data.data() + accessor.byteOffset + bufferView.byteOffset;
-				if (stride == 1)
-				{
-					for (size_t i = 0; i < index_count; i += 3)
-					{
-						indices.push_back(data[i + 0]);
-						indices.push_back(data[i + 1]);
-						indices.push_back(data[i + 2]);
-					}
-				}
-				else if (stride == 2)
-				{
-					for (size_t i = 0; i < index_count; i += 3)
-					{
-						indices.push_back(((uint16_t*)data)[i + 0]);
-						indices.push_back(((uint16_t*)data)[i + 1]);
-						indices.push_back(((uint16_t*)data)[i + 2]);
-					}
-				}
-				else if (stride == 4)
-				{
-					for (size_t i = 0; i < index_count; i += 3)
-					{
-						indices.push_back(((uint32_t*)data)[i + 0]);
-						indices.push_back(((uint32_t*)data)[i + 1]);
-						indices.push_back(((uint32_t*)data)[i + 2]);
-					}
-				}
-				else ADRIA_ASSERT(false);
-
-				std::vector<XMFLOAT3> positions;
-				std::vector<XMFLOAT3> normals;
-				std::vector<XMFLOAT2> uvs;
-				std::vector<XMFLOAT3> tangents;
-				std::vector<float>    tangent_handness;
-				std::vector<XMFLOAT3> bitangents;
-				for (auto& attr : primitive.attributes)
+				for (auto const& attr : gltf_primitive.attributes)
 				{
 					std::string const& attr_name = attr.first;
 					int attr_data = attr.second;
 
 					const tinygltf::Accessor& accessor = model.accessors[attr_data];
-					const tinygltf::BufferView& bufferView = model.bufferViews[accessor.bufferView];
-					const tinygltf::Buffer& buffer = model.buffers[bufferView.buffer];
+					const tinygltf::BufferView& buffer_view = model.bufferViews[accessor.bufferView];
+					const tinygltf::Buffer& buffer = model.buffers[buffer_view.buffer];
 
-					int stride = accessor.ByteStride(bufferView);
-					size_t vertex_count = accessor.count;
-					const unsigned char* data = buffer.data.data() + accessor.byteOffset + bufferView.byteOffset;
+					int stride = accessor.ByteStride(buffer_view);
+					size_t count = accessor.count;
+					const unsigned char* data = buffer.data.data() + accessor.byteOffset + buffer_view.byteOffset;
 
-					if (!attr_name.compare("POSITION"))
+					auto ReadAttributeData = [&]<typename T>(std::vector<T>& stream, const char* stream_name)
 					{
-						positions.reserve(vertex_count);
-						for (size_t i = 0; i < vertex_count; ++i)
+						if (!attr_name.compare(stream_name))
 						{
-							positions.push_back(*(XMFLOAT3*)((size_t)data + i * stride));
-						}
-					}
-					else if (!attr_name.compare("NORMAL"))
-					{
-						normals.reserve(vertex_count);
-						for (size_t i = 0; i < vertex_count; ++i)
-						{
-							normals.push_back(*(XMFLOAT3*)((size_t)data + i * stride));
-							if (material.double_sided)
+							stream.reserve(count);
+							for (size_t i = 0; i < count; ++i)
 							{
-								normals.back().x *= -1;
-								normals.back().y *= -1;
-								normals.back().z *= -1;
+								stream.push_back(*(T*)((size_t)data + i * stride));
 							}
 						}
-					}
-					else if (!attr_name.compare("TANGENT"))
-					{
-						tangents.reserve(vertex_count);
-						for (size_t i = 0; i < vertex_count; ++i)
-						{
-							XMFLOAT4 tangent = *(XMFLOAT4*)((size_t)data + i * stride);
-							tangents.emplace_back(tangent.x, tangent.y, tangent.z);
-							tangent_handness.push_back(tangent.w);
-						}
-					}
-					else if (!attr_name.compare("TEXCOORD_0"))
-					{
-						uvs.reserve(vertex_count);
-						if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT)
-						{
-							for (size_t i = 0; i < vertex_count; ++i)
-							{
-								XMFLOAT2 tex = *(XMFLOAT2*)((size_t)data + i * stride);
-								tex.y = 1.0f - tex.y;
-								uvs.push_back(tex);
-							}
-						}
-						else if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
-						{
-							for (size_t i = 0; i < vertex_count; ++i)
-							{
-								uint8 const& s = *(uint8*)((size_t)data + i * stride + 0 * sizeof(uint8));
-								uint8 const& t = *(uint8*)((size_t)data + i * stride + 1 * sizeof(uint8));
-								uvs.push_back(XMFLOAT2(s / 255.0f, 1.0f - t / 255.0f));
-							}
-						}
-						else if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
-						{
-							for (size_t i = 0; i < vertex_count; ++i)
-							{
-								uint16_t const& s = *(uint16*)((size_t)data + i * stride + 0 * sizeof(uint16));
-								uint16_t const& t = *(uint16*)((size_t)data + i * stride + 1 * sizeof(uint16));
-								uvs.push_back(XMFLOAT2(s / 65535.0f, 1.0f - t / 65535.0f));
-							}
-						}
-					}
+					};
+					ReadAttributeData(mesh_data.positions_stream, "POSITION");
+					ReadAttributeData(mesh_data.normals_stream, "NORMAL");
+					ReadAttributeData(mesh_data.tangents_stream, "TANGENT");
+					ReadAttributeData(mesh_data.uvs_stream, "TEXCOORD_0");
 				}
-				bool has_tangents = !tangents.empty();
-				ADRIA_ASSERT(tangent_handness.size() == tangents.size());
-				size_t vertex_count = positions.size();
-				if (normals.size() != vertex_count) normals.resize(vertex_count);
-				if (uvs.size() != vertex_count) uvs.resize(vertex_count);
-				if (tangents.size() != vertex_count) tangents.resize(vertex_count);
-				if (bitangents.size() != vertex_count) bitangents.resize(vertex_count);
-
-				mesh_component.vertex_count = (uint32)vertex_count;
+				mesh_component.vertex_count = mesh_data.positions_stream.size() - mesh_component.base_vertex_location;
 				reg.emplace<Mesh>(e, mesh_component);
-				if (has_tangents)
-				{
-					for (size_t i = 0; i < vertex_count; ++i)
-					{
-						float tangent_w = tangent_handness[i];
-						XMVECTOR _bitangent = XMVectorScale(XMVector3Cross(XMLoadFloat3(&normals[i]), XMLoadFloat3(&tangents[i])), tangent_w);
-						XMStoreFloat3(&bitangents[i], XMVector3Normalize(_bitangent));
-					}
-				}
-
-				vertices.reserve(vertices.size() + vertex_count);
-				for (size_t i = 0; i < vertex_count; ++i)
-				{
-					vertices.emplace_back(
-								positions[i],
-								uvs[i],
-								normals[i],
-								XMFLOAT3(tangents[i].x, tangents[i].y, tangents[i].z),
-								bitangents[i]
-						);
-				}
 			}
 		}
 
+		std::vector<CompleteVertex> vertices;
+		std::vector<uint32> const& indices = mesh_data.indices;
+
+		bool has_tangents = !mesh_data.tangents_stream.empty();
+		size_t vertex_count = mesh_data.positions_stream.size();
+		if (mesh_data.normals_stream.size() != vertex_count) mesh_data.normals_stream.resize(vertex_count);
+		if (mesh_data.uvs_stream.size() != vertex_count) mesh_data.uvs_stream.resize(vertex_count);
+		if (mesh_data.tangents_stream.size() != vertex_count) mesh_data.tangents_stream.resize(vertex_count);
+		if (mesh_data.bitangents_stream.size() != vertex_count) mesh_data.bitangents_stream.resize(vertex_count);
+		if (has_tangents)
+		{
+			for (size_t i = 0; i < vertex_count; ++i)
+			{
+				float tangent_handness = mesh_data.tangents_stream[i].w;
+				XMVECTOR bitangent = XMVectorScale(XMVector3Cross(XMLoadFloat3(&mesh_data.normals_stream[i]), XMLoadFloat4(&mesh_data.tangents_stream[i])), tangent_handness);
+				XMStoreFloat3(&mesh_data.bitangents_stream[i], XMVector3Normalize(bitangent));
+			}
+		}
+
+		vertices.reserve(vertex_count);
+		for (size_t i = 0; i < vertex_count; ++i)
+		{
+			vertices.emplace_back(
+				mesh_data.positions_stream[i],
+				XMFLOAT2(mesh_data.uvs_stream[i].x, 1.0f - mesh_data.uvs_stream[i].y),
+				mesh_data.normals_stream[i],
+				XMFLOAT3(mesh_data.tangents_stream[i].x, mesh_data.tangents_stream[i].y, mesh_data.tangents_stream[i].z),
+				mesh_data.bitangents_stream[i]
+			);
+		}
+
 		std::function<void(int, XMMATRIX)> LoadNode;
-		LoadNode = [&](int node_index, XMMATRIX parent_transform) 
+		LoadNode = [&](int node_index, XMMATRIX parent_transform)
 		{
 			if (node_index < 0) return;
 			auto& node = model.nodes[node_index];
@@ -809,7 +764,7 @@ namespace adria
 						XMMATRIX WORLD = XMMatrixScalingFromVector(S_local) *
 							XMMatrixRotationQuaternion(R_local) *
 							XMMatrixTranslationFromVector(T_local);
-							XMStoreFloat4x4(&world, WORLD);
+						XMStoreFloat4x4(&world, WORLD);
 					}
 				}
 			} transforms;
@@ -916,11 +871,12 @@ namespace adria
 			Relationship relationship{};
 			relationship.parent = root;
 			relationship.children_count = 0;
-			relationship.next = (i == entities.size() - 1) ? entt::null : entities[i + 1];
-			relationship.prev = (i == 0) ? entt::null : entities[i - 1];
+			if (i != entities.size() - 1) relationship.next = entities[i + 1];
+			if (i != 0) relationship.prev = entities[i - 1];
 			reg.emplace<Relationship>(e, relationship);
 		}
 		ADRIA_LOG(INFO, "GLTF Mesh %s successfully loaded!", params.model_path.c_str());
 		return entities;
 	}
+
 }

@@ -143,6 +143,8 @@ namespace adria
 			ShaderCache::CheckIfShadersHaveChanged();
 			reload_shaders = false;
 		}
+		commands.clear();
+		debug_commands.clear();
 	}
 
 	void Editor::AddCommand(GUICommand&& command)
@@ -984,7 +986,6 @@ namespace adria
 
 	void Editor::Settings()
 	{
-		commands.clear();
 		int& current_render_path_type = cvars::renderpath.Get();
 		int& current_ao_type = cvars::ao_cvar.Get();
 		int& current_reflection_type = cvars::reflections.Get();
