@@ -968,6 +968,7 @@ namespace adria
 
 		struct MeshData
 		{
+			entt::entity entity = entt::null;
 			std::vector<XMFLOAT3> positions_stream;
 			std::vector<XMFLOAT3> normals_stream;
 			std::vector<XMFLOAT4> tangents_stream;
@@ -975,21 +976,24 @@ namespace adria
 			std::vector<XMFLOAT2> uvs_stream;
 			std::vector<uint32>   indices;
 		};
-		MeshData mesh_data{};
+		std::vector<MeshData> mesh_datas{};
 
 		for (auto const& gltf_mesh : model.meshes)
 		{
 			std::vector<entt::entity>& mesh_entities = mesh_name_to_entities_map[gltf_mesh.name];
 			for (auto const& gltf_primitive : gltf_mesh.primitives)
 			{
+				entt::entity e = reg.create();
+				entities.push_back(e);
+				mesh_entities.push_back(e);
+
 				ADRIA_ASSERT(gltf_primitive.indices >= 0);
 				tinygltf::Accessor const& index_accessor = model.accessors[gltf_primitive.indices];
 				tinygltf::BufferView const& buffer_view = model.bufferViews[index_accessor.bufferView];
 				tinygltf::Buffer const& buffer = model.buffers[buffer_view.buffer];
 
-				entt::entity e = reg.create();
-				entities.push_back(e);
-				mesh_entities.push_back(e);
+				MeshData& mesh_data = mesh_datas.emplace_back();
+				mesh_data.entity = e;
 
 				Material material = gltf_primitive.material < 0 ? Material{} : materials[gltf_primitive.material];
 				reg.emplace<Material>(e, material);
@@ -997,10 +1001,10 @@ namespace adria
 
 				Mesh mesh_component{};
 				mesh_component.indices_count = static_cast<uint32>(index_accessor.count);
-				mesh_component.start_index_location = static_cast<uint32>(mesh_data.indices.size());
-				mesh_component.base_vertex_location = static_cast<uint32>(mesh_data.positions_stream.size());
+				mesh_component.start_index_location = 0;
+				mesh_component.base_vertex_location = 0;
 
-				mesh_data.indices.reserve(mesh_data.indices.size() + index_accessor.count);
+				mesh_data.indices.reserve(index_accessor.count);
 				auto AddIndices = [&]<typename T>()
 				{
 					T* data = (T*)(buffer.data.data() + index_accessor.byteOffset + buffer_view.byteOffset);
@@ -1077,52 +1081,84 @@ namespace adria
 					ReadAttributeData(mesh_data.tangents_stream, "TANGENT");
 					ReadAttributeData(mesh_data.uvs_stream, "TEXCOORD_0");
 				}
-				mesh_component.vertex_count = mesh_data.positions_stream.size() - mesh_component.base_vertex_location;
+				mesh_component.vertex_count = mesh_data.positions_stream.size();
 				reg.emplace<Mesh>(e, mesh_component);
+
+				BoundingBox bounding_box = AABBFromPositions(mesh_data.positions_stream);
+				AABB aabb{};
+				aabb.bounding_box = bounding_box;
+				aabb.light_visible = true;
+				aabb.camera_visible = true;
+				reg.emplace<AABB>(e, aabb);
 			}
 		}
 
-		std::vector<CompleteVertex> vertices;
-		std::vector<uint32> const& indices = mesh_data.indices;
-		size_t vertex_count = mesh_data.positions_stream.size();
-
-		bool has_tangents = !mesh_data.tangents_stream.empty();
-		if (mesh_data.normals_stream.size() != vertex_count) mesh_data.normals_stream.resize(vertex_count);
-		if (mesh_data.uvs_stream.size() != vertex_count) mesh_data.uvs_stream.resize(vertex_count);
-		if (mesh_data.tangents_stream.size() != vertex_count) mesh_data.tangents_stream.resize(vertex_count);
-		if (mesh_data.bitangents_stream.size() != vertex_count) mesh_data.bitangents_stream.resize(vertex_count);
-		if (has_tangents)
+		for (auto& mesh_data : mesh_datas)
 		{
+			std::vector<CompleteVertex> vertices;
+			std::vector<uint32> const& indices = mesh_data.indices;
+			size_t vertex_count = mesh_data.positions_stream.size();
+
+			bool has_tangents = !mesh_data.tangents_stream.empty();
+			if (mesh_data.normals_stream.size() != vertex_count) mesh_data.normals_stream.resize(vertex_count);
+			if (mesh_data.uvs_stream.size() != vertex_count) mesh_data.uvs_stream.resize(vertex_count);
+			if (mesh_data.tangents_stream.size() != vertex_count) mesh_data.tangents_stream.resize(vertex_count);
+			if (mesh_data.bitangents_stream.size() != vertex_count) mesh_data.bitangents_stream.resize(vertex_count);
+			if (has_tangents)
+			{
+				for (size_t i = 0; i < vertex_count; ++i)
+				{
+					float tangent_handness = mesh_data.tangents_stream[i].w;
+					XMVECTOR bitangent = XMVectorScale(XMVector3Cross(XMLoadFloat3(&mesh_data.normals_stream[i]), XMLoadFloat4(&mesh_data.tangents_stream[i])), tangent_handness);
+					XMStoreFloat3(&mesh_data.bitangents_stream[i], XMVector3Normalize(bitangent));
+				}
+			}
+
+			meshopt_optimizeVertexCache(mesh_data.indices.data(), mesh_data.indices.data(), mesh_data.indices.size(), vertex_count);
+			meshopt_optimizeOverdraw(mesh_data.indices.data(), mesh_data.indices.data(), mesh_data.indices.size(), &mesh_data.positions_stream[0].x, vertex_count, sizeof(XMFLOAT3), 1.05f);
+			std::vector<uint32> remap(vertex_count);
+			meshopt_optimizeVertexFetchRemap(&remap[0], mesh_data.indices.data(), mesh_data.indices.size(), vertex_count);
+			meshopt_remapIndexBuffer(mesh_data.indices.data(), mesh_data.indices.data(), mesh_data.indices.size(), &remap[0]);
+			meshopt_remapVertexBuffer(mesh_data.positions_stream.data(), mesh_data.positions_stream.data(), vertex_count, sizeof(XMFLOAT3), &remap[0]);
+			meshopt_remapVertexBuffer(mesh_data.normals_stream.data(), mesh_data.normals_stream.data(), mesh_data.normals_stream.size(), sizeof(XMFLOAT3), &remap[0]);
+			meshopt_remapVertexBuffer(mesh_data.tangents_stream.data(), mesh_data.tangents_stream.data(), mesh_data.tangents_stream.size(), sizeof(XMFLOAT4), &remap[0]);
+			meshopt_remapVertexBuffer(mesh_data.bitangents_stream.data(), mesh_data.bitangents_stream.data(), mesh_data.bitangents_stream.size(), sizeof(XMFLOAT3), &remap[0]);
+			meshopt_remapVertexBuffer(mesh_data.uvs_stream.data(), mesh_data.uvs_stream.data(), mesh_data.uvs_stream.size(), sizeof(XMFLOAT2), &remap[0]);
+
+			vertices.reserve(vertex_count);
 			for (size_t i = 0; i < vertex_count; ++i)
 			{
-				float tangent_handness = mesh_data.tangents_stream[i].w;
-				XMVECTOR bitangent = XMVectorScale(XMVector3Cross(XMLoadFloat3(&mesh_data.normals_stream[i]), XMLoadFloat4(&mesh_data.tangents_stream[i])), tangent_handness);
-				XMStoreFloat3(&mesh_data.bitangents_stream[i], XMVector3Normalize(bitangent));
+				vertices.emplace_back(
+					mesh_data.positions_stream[i],
+					XMFLOAT2(mesh_data.uvs_stream[i].x, 1.0f - mesh_data.uvs_stream[i].y),
+					mesh_data.normals_stream[i],
+					XMFLOAT3(mesh_data.tangents_stream[i].x, mesh_data.tangents_stream[i].y, mesh_data.tangents_stream[i].z),
+					mesh_data.bitangents_stream[i]
+				);
 			}
-		}
+			BufferDesc vb_desc = VertexBufferDesc(vertices.size(), sizeof(CompleteVertex), params.used_in_raytracing);
+			BufferDesc ib_desc = IndexBufferDesc(indices.size(), false, params.used_in_raytracing);
 
-		//this will break offsets that can be found in Mesh component?
-		//meshopt_optimizeVertexCache(mesh_data.indices.data(), mesh_data.indices.data(), mesh_data.indices.size(), vertex_count);
-		//meshopt_optimizeOverdraw(mesh_data.indices.data(), mesh_data.indices.data(), mesh_data.indices.size(), &mesh_data.positions_stream[0].x, vertex_count, sizeof(XMFLOAT3), 1.05f);
-		//std::vector<uint32> remap(vertex_count);
-		//meshopt_optimizeVertexFetchRemap(&remap[0], mesh_data.indices.data(), mesh_data.indices.size(), vertex_count);
-		//meshopt_remapIndexBuffer(mesh_data.indices.data(), mesh_data.indices.data(), mesh_data.indices.size(), &remap[0]);
-		//meshopt_remapVertexBuffer(mesh_data.positions_stream.data(), mesh_data.positions_stream.data(), vertex_count, sizeof(XMFLOAT3), &remap[0]);
-		//meshopt_remapVertexBuffer(mesh_data.normals_stream.data(), mesh_data.normals_stream.data(), mesh_data.normals_stream.size(), sizeof(XMFLOAT3), &remap[0]);
-		//meshopt_remapVertexBuffer(mesh_data.tangents_stream.data(), mesh_data.tangents_stream.data(), mesh_data.tangents_stream.size(), sizeof(XMFLOAT4), &remap[0]);
-		//meshopt_remapVertexBuffer(mesh_data.bitangents_stream.data(), mesh_data.bitangents_stream.data(), mesh_data.bitangents_stream.size(), sizeof(XMFLOAT3), &remap[0]);
-		//meshopt_remapVertexBuffer(mesh_data.uvs_stream.data(), mesh_data.uvs_stream.data(), mesh_data.uvs_stream.size(), sizeof(XMFLOAT2), &remap[0]);
+			std::shared_ptr<Buffer> vb = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());
+			std::shared_ptr<Buffer> ib = std::make_shared<Buffer>(gfx, ib_desc, indices.data());
 
-		vertices.reserve(vertex_count);
-		for (size_t i = 0; i < vertex_count; ++i)
-		{
-			vertices.emplace_back(
-				mesh_data.positions_stream[i],
-				XMFLOAT2(mesh_data.uvs_stream[i].x, 1.0f - mesh_data.uvs_stream[i].y),
-				mesh_data.normals_stream[i],
-				XMFLOAT3(mesh_data.tangents_stream[i].x, mesh_data.tangents_stream[i].y, mesh_data.tangents_stream[i].z),
-				mesh_data.bitangents_stream[i]
-			);
+			entt::entity e = mesh_data.entity;
+			auto& mesh = reg.get<Mesh>(e);
+			mesh.vertex_buffer = vb;
+			mesh.index_buffer = ib;
+
+			if (params.used_in_raytracing)
+			{
+				size_t rt_vertices_size = RayTracing::rt_vertices.size();
+				size_t rt_indices_size = RayTracing::rt_indices.size();
+				RayTracing::rt_vertices.insert(std::end(RayTracing::rt_vertices), std::begin(vertices), std::end(vertices));
+				RayTracing::rt_indices.insert(std::end(RayTracing::rt_indices), std::begin(indices), std::end(indices));
+				RayTracing rt_component{
+					.vertex_offset = (uint32)rt_vertices_size,
+					.index_offset = (uint32)rt_indices_size
+				};
+				reg.emplace<RayTracing>(e, rt_component);
+			}
 		}
 
 		std::function<void(int, XMMATRIX)> LoadNode;
@@ -1192,17 +1228,11 @@ namespace adria
 				std::vector<entt::entity> const& mesh_entities = mesh_name_to_entities_map[mesh.name];
 				for (entt::entity e : mesh_entities)
 				{
-					Mesh const& mesh = reg.get<Mesh>(e);
 					XMMATRIX model = XMLoadFloat4x4(&transforms.world) * parent_transform;
-					BoundingBox bounding_box = AABBFromRange(vertices.begin() + mesh.base_vertex_location, vertices.begin() + mesh.base_vertex_location + mesh.vertex_count);
-					bounding_box.Transform(bounding_box, model);
 
-					AABB aabb{};
-					aabb.bounding_box = bounding_box;
-					aabb.light_visible = true;
-					aabb.camera_visible = true;
+					AABB& aabb = reg.get<AABB>(e);
+					aabb.bounding_box.Transform(aabb.bounding_box, model);
 					aabb.UpdateBuffer(gfx);
-					reg.emplace<AABB>(e, aabb);
 					reg.emplace<Transform>(e, model, model);
 				}
 			}
@@ -1211,22 +1241,8 @@ namespace adria
 		};
 		tinygltf::Scene const& scene = model.scenes[std::max(0, model.defaultScene)];
 		for (size_t i = 0; i < scene.nodes.size(); ++i)
-		{
+		{ 
 			LoadNode(scene.nodes[i], params.model_matrix);
-		}
-
-		BufferDesc vb_desc = VertexBufferDesc(vertices.size(), sizeof(CompleteVertex), params.used_in_raytracing);
-		BufferDesc ib_desc = IndexBufferDesc(indices.size(), false, params.used_in_raytracing);
-
-		std::shared_ptr<Buffer> vb = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());
-		std::shared_ptr<Buffer> ib = std::make_shared<Buffer>(gfx, ib_desc, indices.data());
-
-		size_t rt_vertices_size = RayTracing::rt_vertices.size();
-		size_t rt_indices_size = RayTracing::rt_indices.size();
-		if (params.used_in_raytracing)
-		{
-			RayTracing::rt_vertices.insert(std::end(RayTracing::rt_vertices), std::begin(vertices), std::end(vertices));
-			RayTracing::rt_indices.insert(std::end(RayTracing::rt_indices), std::begin(indices), std::end(indices));
 		}
 
 		entt::entity root = reg.create();
@@ -1239,18 +1255,7 @@ namespace adria
 		for (size_t i = 0; i < entities.size(); ++i)
 		{
 			entt::entity e = entities[i];
-			auto& mesh = reg.get<Mesh>(e);
-			mesh.vertex_buffer = vb;
-			mesh.index_buffer = ib;
 			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(entt::to_integral(e)));
-			if (params.used_in_raytracing)
-			{
-				RayTracing rt_component{
-					.vertex_offset = (uint32)rt_vertices_size + mesh.base_vertex_location,
-					.index_offset = (uint32)rt_indices_size + mesh.start_index_location
-				};
-				reg.emplace<RayTracing>(e, rt_component);
-			}
 			Relationship relationship{};
 			relationship.parent = root;
 			relationship.children_count = 0;
