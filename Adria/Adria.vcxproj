@@ -336,6 +336,7 @@
     <ClInclude Include="Math\Constants.h" />
     <ClInclude Include="Math\Halton.h" />
     <ClInclude Include="Math\Packing.h" />
+    <ClInclude Include="Math\XMUtils.h" />
     <ClInclude Include="RenderGraph\RenderGraph.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>

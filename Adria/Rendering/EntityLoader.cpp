@@ -15,6 +15,7 @@
 #include "MeshletStructs.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Logging/Logger.h"
+#include "../Math/XMUtils.h"
 #include "../Math/BoundingVolumeHelpers.h"
 #include "../Math/ComputeTangentFrame.h"
 #include "../Core/Definitions.h"
@@ -969,12 +970,18 @@ namespace adria
 		struct MeshData
 		{
 			entt::entity entity = entt::null;
+
 			std::vector<XMFLOAT3> positions_stream;
 			std::vector<XMFLOAT3> normals_stream;
 			std::vector<XMFLOAT4> tangents_stream;
 			std::vector<XMFLOAT3> bitangents_stream;
 			std::vector<XMFLOAT2> uvs_stream;
 			std::vector<uint32>   indices;
+
+			std::vector<Meshlet>	meshlets;
+			std::vector<uint32>		meshlet_vertices;
+			std::vector<MeshletTriangle> meshlet_triangles;
+			std::vector<MeshletBoundingSphere> meshlet_bounding_spheres;
 		};
 		std::vector<MeshData> mesh_datas{};
 
@@ -1124,6 +1131,75 @@ namespace adria
 			meshopt_remapVertexBuffer(mesh_data.tangents_stream.data(), mesh_data.tangents_stream.data(), mesh_data.tangents_stream.size(), sizeof(XMFLOAT4), &remap[0]);
 			meshopt_remapVertexBuffer(mesh_data.bitangents_stream.data(), mesh_data.bitangents_stream.data(), mesh_data.bitangents_stream.size(), sizeof(XMFLOAT3), &remap[0]);
 			meshopt_remapVertexBuffer(mesh_data.uvs_stream.data(), mesh_data.uvs_stream.data(), mesh_data.uvs_stream.size(), sizeof(XMFLOAT2), &remap[0]);
+
+			size_t const max_meshlets = meshopt_buildMeshletsBound(mesh_data.indices.size(), MESHLET_MAX_VERTICES, MESHLET_MAX_TRIANGLES);
+			mesh_data.meshlets.resize(max_meshlets);
+			mesh_data.meshlet_vertices.resize(max_meshlets * MESHLET_MAX_VERTICES);
+
+			std::vector<unsigned char> meshlet_triangles(max_meshlets * MESHLET_MAX_TRIANGLES * 3);
+			std::vector<meshopt_Meshlet> meshlets(max_meshlets);
+
+			size_t meshlet_count = meshopt_buildMeshlets(meshlets.data(), mesh_data.meshlet_vertices.data(), meshlet_triangles.data(),
+				mesh_data.indices.data(), mesh_data.indices.size(), &mesh_data.positions_stream[0].x, mesh_data.positions_stream.size(), sizeof(XMFLOAT3),
+				MESHLET_MAX_VERTICES, MESHLET_MAX_TRIANGLES, 0);
+
+			meshopt_Meshlet const& last = meshlets[meshlet_count - 1];
+			meshlet_triangles.resize(last.triangle_offset + ((last.triangle_count * 3 + 3) & ~3));
+			meshlets.resize(meshlet_count);
+
+			mesh_data.meshlet_vertices.resize(last.vertex_offset + last.vertex_count);
+			mesh_data.meshlets.resize(meshlet_count);
+			mesh_data.meshlet_bounding_spheres.resize(meshlet_count);
+			mesh_data.meshlet_triangles.resize(meshlet_triangles.size() / 3);
+			
+			uint32 triangle_offset = 0;
+			for (size_t i = 0; i < meshlet_count; ++i)
+			{
+				meshopt_Meshlet const& meshlet = meshlets[i];
+
+				XMFLOAT3 min(FLT_MAX, FLT_MAX, FLT_MAX);
+				XMFLOAT3 max(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+				for (uint32 k = 0; k < meshlet.triangle_count * 3; ++k)
+				{
+					uint32 idx = mesh_data.meshlet_vertices[meshlet.vertex_offset + meshlet_triangles[meshlet.triangle_offset + k]];
+					XMFLOAT3 const& p = mesh_data.positions_stream[idx];
+
+					max = Max(max, p);
+					min = Min(min, p);
+				}
+				XMFLOAT3 center  = (max + min) / 2.0f;
+				XMFLOAT3 extents = (max - min) / 2.0f;
+				DirectX::BoundingBox meshlet_bbox(center, extents);
+				DirectX::BoundingSphere meshlet_sphere;
+				DirectX::BoundingSphere::CreateFromBoundingBox(meshlet_sphere, meshlet_bbox);
+
+				MeshletBoundingSphere& out_bounds = mesh_data.meshlet_bounding_spheres[i];
+				out_bounds.center[0] = meshlet_sphere.Center.x;
+				out_bounds.center[1] = meshlet_sphere.Center.y;
+				out_bounds.center[2] = meshlet_sphere.Center.z;
+				out_bounds.radius = meshlet_sphere.Radius;
+
+				unsigned char* src_triangles = meshlet_triangles.data() + meshlet.triangle_offset;
+				for (uint32 triangle_idx = 0; triangle_idx < meshlet.triangle_count; ++triangle_idx)
+				{
+					MeshletTriangle& tri = mesh_data.meshlet_triangles[triangle_idx + triangle_offset];
+					tri.V0 = *src_triangles++;
+					tri.V1 = *src_triangles++;
+					tri.V2 = *src_triangles++;
+				}
+
+				Meshlet& out_meshlet = mesh_data.meshlets[i];
+				out_meshlet.triangle_count = meshlet.triangle_count;
+				out_meshlet.triangle_offset = triangle_offset;
+				out_meshlet.vertex_count = meshlet.vertex_count;
+				out_meshlet.vertex_offset = meshlet.vertex_offset;
+				triangle_offset += meshlet.triangle_count;
+			}
+			mesh_data.meshlet_triangles.resize(triangle_offset);
+
+
+
+
 
 			vertices.reserve(vertex_count);
 			for (size_t i = 0; i < vertex_count; ++i)

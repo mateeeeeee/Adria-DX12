@@ -68,6 +68,9 @@
     <Filter Include="Shaders\Ocean">
       <UniqueIdentifier>{18ba23cf-78ca-4fd9-a2f4-3ee43a42e85e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="meshoptimizer">
+      <UniqueIdentifier>{7fe9dc60-f08d-4abe-9603-2712167e3096}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -85,9 +88,6 @@
     </ClCompile>
     <ClCompile Include="Input\Input.cpp">
       <Filter>Input</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\ModelImporter.cpp">
-      <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\Camera.cpp">
       <Filter>Rendering</Filter>
@@ -329,6 +329,57 @@
     <ClCompile Include="Editor\EditorUtil.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\EntityLoader.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\Image.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\meshoptimizer\allocator.cpp">
+      <Filter>meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\meshoptimizer\clusterizer.cpp">
+      <Filter>meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\meshoptimizer\indexcodec.cpp">
+      <Filter>meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\meshoptimizer\indexgenerator.cpp">
+      <Filter>meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\meshoptimizer\overdrawanalyzer.cpp">
+      <Filter>meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\meshoptimizer\overdrawoptimizer.cpp">
+      <Filter>meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\meshoptimizer\vfetchoptimizer.cpp">
+      <Filter>meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\meshoptimizer\vfetchanalyzer.cpp">
+      <Filter>meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\meshoptimizer\vertexfilter.cpp">
+      <Filter>meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\meshoptimizer\vertexcodec.cpp">
+      <Filter>meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\meshoptimizer\vcacheoptimizer.cpp">
+      <Filter>meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\meshoptimizer\vcacheanalyzer.cpp">
+      <Filter>meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\meshoptimizer\stripifier.cpp">
+      <Filter>meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\meshoptimizer\spatialorder.cpp">
+      <Filter>meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\meshoptimizer\simplifier.cpp">
+      <Filter>meshoptimizer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -401,9 +452,6 @@
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\Enums.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\ModelImporter.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\Camera.h">
@@ -789,6 +837,21 @@
     </ClInclude>
     <ClInclude Include="Core\ConsoleCommand.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\MeshManager.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\MeshletStructs.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\EntityLoader.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\meshoptimizer\meshoptimizer.h">
+      <Filter>meshoptimizer</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\XMUtils.h">
+      <Filter>Math</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
