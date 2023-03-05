@@ -904,7 +904,7 @@ namespace adria
 			return {};
 		}
 		std::vector<entt::entity> entities{};
-		HashMap<std::string, std::vector<entt::entity>> mesh_name_to_entities_map;
+		HashMap<int32, std::vector<entt::entity>> mesh_name_to_entities_map;
 
 		//process the materials
 		std::vector<Material> materials;
@@ -968,7 +968,7 @@ namespace adria
 
 		struct MeshData
 		{
-			std::string mesh_name;
+			int32 mesh_index;
 			int32 material_index;
 			D3D12_PRIMITIVE_TOPOLOGY topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
@@ -985,8 +985,9 @@ namespace adria
 		};
 		std::vector<MeshData> mesh_datas{};
 
-		for (auto const& gltf_mesh : model.meshes)
+		for (int32 i = 0; i < model.meshes.size(); ++i)
 		{
+			auto const& gltf_mesh = model.meshes[i];
 			for (auto const& gltf_primitive : gltf_mesh.primitives)
 			{
 				ADRIA_ASSERT(gltf_primitive.indices >= 0);
@@ -995,7 +996,7 @@ namespace adria
 				tinygltf::Buffer const& buffer = model.buffers[buffer_view.buffer];
 
 				MeshData& mesh_data = mesh_datas.emplace_back();
-				mesh_data.mesh_name = gltf_mesh.name;
+				mesh_data.mesh_index = i;
 				mesh_data.material_index = gltf_primitive.material;
 
 				mesh_data.indices.reserve(index_accessor.count);
@@ -1080,7 +1081,6 @@ namespace adria
 
 		for (auto& mesh_data : mesh_datas)
 		{
-			std::vector<CompleteVertex> vertices;
 			std::vector<uint32> const& indices = mesh_data.indices;
 			size_t vertex_count = mesh_data.positions_stream.size();
 
@@ -1157,25 +1157,9 @@ namespace adria
 			}
 			mesh_data.meshlet_triangles.resize(triangle_offset);
 
-			vertices.reserve(vertex_count);
-			for (size_t i = 0; i < vertex_count; ++i)
-			{
-				vertices.emplace_back(
-					mesh_data.positions_stream[i],
-					XMFLOAT2(mesh_data.uvs_stream[i].x, 1.0f - mesh_data.uvs_stream[i].y),
-					mesh_data.normals_stream[i],
-					XMFLOAT3(mesh_data.tangents_stream[i].x, mesh_data.tangents_stream[i].y, mesh_data.tangents_stream[i].z),
-					mesh_data.bitangents_stream[i]
-				);
-			}
-			BufferDesc vb_desc = VertexBufferDesc(vertices.size(), sizeof(CompleteVertex), params.used_in_raytracing);
-			BufferDesc ib_desc = IndexBufferDesc(indices.size(), false, params.used_in_raytracing);
-			std::shared_ptr<Buffer> vb = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());
-			std::shared_ptr<Buffer> ib = std::make_shared<Buffer>(gfx, ib_desc, indices.data());
-
 			entt::entity e = reg.create();
 			entities.push_back(e);
-			mesh_name_to_entities_map[mesh_data.mesh_name].push_back(e);
+			mesh_name_to_entities_map[mesh_data.mesh_index].push_back(e);
 
 			Material material = mesh_data.material_index < 0 ? Material{} : materials[mesh_data.material_index];
 			reg.emplace<Material>(e, material);
@@ -1187,27 +1171,6 @@ namespace adria
 			aabb.light_visible = true;
 			aabb.camera_visible = true;
 			reg.emplace<AABB>(e, aabb);
-
-			Mesh mesh{};
-			mesh.vertex_buffer = vb;
-			mesh.index_buffer = ib;
-			mesh.vertex_count = (uint32)vertex_count;
-			mesh.indices_count = (uint32)indices.size();
-			mesh.topology = mesh_data.topology;
-			reg.emplace<Mesh>(e, mesh);
-
-			if (params.used_in_raytracing)
-			{
-				size_t rt_vertices_size = RayTracing::rt_vertices.size();
-				size_t rt_indices_size = RayTracing::rt_indices.size();
-				RayTracing::rt_vertices.insert(std::end(RayTracing::rt_vertices), std::begin(vertices), std::end(vertices));
-				RayTracing::rt_indices.insert(std::end(RayTracing::rt_indices), std::begin(indices), std::end(indices));
-				RayTracing rt_component{
-					.vertex_offset = (uint32)rt_vertices_size,
-					.index_offset = (uint32)rt_indices_size
-				};
-				reg.emplace<RayTracing>(e, rt_component);
-			}
 		}
 
 		std::function<void(int, XMMATRIX)> LoadNode;
@@ -1273,8 +1236,7 @@ namespace adria
 
 			if (node.mesh >= 0)
 			{
-				auto const& mesh = model.meshes[node.mesh];
-				std::vector<entt::entity> const& mesh_entities = mesh_name_to_entities_map[mesh.name];
+				std::vector<entt::entity> const& mesh_entities = mesh_name_to_entities_map[node.mesh];
 				for (entt::entity e : mesh_entities)
 				{
 					XMMATRIX model = XMLoadFloat4x4(&transforms.world) * parent_transform;
