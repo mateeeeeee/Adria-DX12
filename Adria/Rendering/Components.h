@@ -14,7 +14,6 @@ namespace adria
 {
 	struct COMPONENT Transform
 	{
-		DirectX::XMMATRIX starting_transform = DirectX::XMMatrixIdentity();
 		DirectX::XMMATRIX current_transform = DirectX::XMMatrixIdentity();
 	};
 
@@ -37,7 +36,6 @@ namespace adria
 		uint32 start_instance_location = 0; //A value added to each index before reading per-instance data from a vertex buffer
 
 		D3D12_PRIMITIVE_TOPOLOGY topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-
 		void Draw(ID3D12GraphicsCommandList* cmd_list) const
 		{
 			cmd_list->IASetPrimitiveTopology(topology);
@@ -49,7 +47,6 @@ namespace adria
 			}
 			else cmd_list->DrawInstanced(vertex_count, instance_count, start_vertex_location, start_instance_location);
 		}
-
 		void Draw(ID3D12GraphicsCommandList* cmd_list, D3D12_PRIMITIVE_TOPOLOGY override_topology) const
 		{
 			cmd_list->IASetPrimitiveTopology(override_topology);
@@ -61,6 +58,24 @@ namespace adria
 			}
 			else cmd_list->DrawInstanced(vertex_count, instance_count, start_vertex_location, start_instance_location);
 		}
+	};
+
+	struct COMPONENT NewMesh
+	{
+		std::shared_ptr<Buffer> geometry_buffer;
+
+		uint32 positions_offset;
+		uint32 uvs_offset;
+		uint32 normals_offset;
+		uint32 tangents_offset;
+		uint32 bitangents_offset;
+		
+		uint32 indices_offset;
+
+		uint32 meshlet_offset;
+		uint32 meshlet_vertices_offset;
+		uint32 meshlet_triangles_offset;
+		uint32 meshlet_count;
 	};
 
 	struct COMPONENT Relationship

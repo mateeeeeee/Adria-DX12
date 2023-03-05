@@ -960,11 +960,12 @@ namespace adria
 				auto const& transform = shadow_view.get<Transform>(e);
 				auto const& mesh = shadow_view.get<Mesh>(e);
 
-				XMMATRIX parent_transform = XMMatrixIdentity();
+				DirectX::XMMATRIX parent_transform = DirectX::XMMatrixIdentity();
 				if (Relationship* relationship = reg.try_get<Relationship>(e))
 				{
 					if (auto* root_transform = reg.try_get<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
 				}
+
 				struct ModelConstants
 				{
 					XMMATRIX model_matrix;
@@ -1004,7 +1005,7 @@ namespace adria
 				auto const& transform = shadow_view.get<Transform>(e);
 				auto const& mesh = shadow_view.get<Mesh>(e);
 
-				XMMATRIX parent_transform = XMMatrixIdentity();
+				DirectX::XMMATRIX parent_transform = DirectX::XMMatrixIdentity();
 				if (Relationship* relationship = reg.try_get<Relationship>(e))
 				{
 					if (auto* root_transform = reg.try_get<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;

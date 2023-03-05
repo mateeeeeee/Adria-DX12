@@ -850,9 +850,6 @@
     <ClInclude Include="..\ThirdParty\meshoptimizer\meshoptimizer.h">
       <Filter>meshoptimizer</Filter>
     </ClInclude>
-    <ClInclude Include="Math\XMUtils.h">
-      <Filter>Math</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

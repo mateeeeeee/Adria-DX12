@@ -15,7 +15,6 @@
 #include "MeshletStructs.h"
 #include "../Graphics/GraphicsDeviceDX12.h"
 #include "../Logging/Logger.h"
-#include "../Math/XMUtils.h"
 #include "../Math/BoundingVolumeHelpers.h"
 #include "../Math/ComputeTangentFrame.h"
 #include "../Core/Definitions.h"
@@ -411,7 +410,7 @@ namespace adria
 
             reg.emplace<Material>(light, material);
 			auto translation_matrix = XMMatrixTranslationFromVector(params.light_data.position);
-            reg.emplace<Transform>(light, translation_matrix, translation_matrix);
+            reg.emplace<Transform>(light, translation_matrix);
             if(params.light_data.type != ELightType::Directional) reg.emplace<Forward>(light, true);
         }
         else if (params.mesh_type == ELightMesh::Sphere)
@@ -709,7 +708,7 @@ namespace adria
 					ReadAttributeData(mesh_data.tangents_stream, "TANGENT");
 					ReadAttributeData(mesh_data.uvs_stream, "TEXCOORD_0");
 				}
-				mesh_component.vertex_count = mesh_data.positions_stream.size() - mesh_component.base_vertex_location;
+				mesh_component.vertex_count = (uint32)(mesh_data.positions_stream.size() - mesh_component.base_vertex_location);
 				reg.emplace<Mesh>(e, mesh_component);
 			}
 		}
@@ -823,7 +822,7 @@ namespace adria
 					aabb.camera_visible = true;
 					aabb.UpdateBuffer(gfx);
 					reg.emplace<AABB>(e, aabb);
-					reg.emplace<Transform>(e, model, model);
+					reg.emplace<Transform>(e, model);
 				}
 			}
 
@@ -969,7 +968,9 @@ namespace adria
 
 		struct MeshData
 		{
-			entt::entity entity = entt::null;
+			std::string mesh_name;
+			int32 material_index;
+			D3D12_PRIMITIVE_TOPOLOGY topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 			std::vector<XMFLOAT3> positions_stream;
 			std::vector<XMFLOAT3> normals_stream;
@@ -978,38 +979,24 @@ namespace adria
 			std::vector<XMFLOAT2> uvs_stream;
 			std::vector<uint32>   indices;
 
-			std::vector<Meshlet>	meshlets;
-			std::vector<uint32>		meshlet_vertices;
+			std::vector<Meshlet>		 meshlets;
+			std::vector<uint32>			 meshlet_vertices;
 			std::vector<MeshletTriangle> meshlet_triangles;
-			std::vector<MeshletBoundingSphere> meshlet_bounding_spheres;
 		};
 		std::vector<MeshData> mesh_datas{};
 
 		for (auto const& gltf_mesh : model.meshes)
 		{
-			std::vector<entt::entity>& mesh_entities = mesh_name_to_entities_map[gltf_mesh.name];
 			for (auto const& gltf_primitive : gltf_mesh.primitives)
 			{
-				entt::entity e = reg.create();
-				entities.push_back(e);
-				mesh_entities.push_back(e);
-
 				ADRIA_ASSERT(gltf_primitive.indices >= 0);
 				tinygltf::Accessor const& index_accessor = model.accessors[gltf_primitive.indices];
 				tinygltf::BufferView const& buffer_view = model.bufferViews[index_accessor.bufferView];
 				tinygltf::Buffer const& buffer = model.buffers[buffer_view.buffer];
 
 				MeshData& mesh_data = mesh_datas.emplace_back();
-				mesh_data.entity = e;
-
-				Material material = gltf_primitive.material < 0 ? Material{} : materials[gltf_primitive.material];
-				reg.emplace<Material>(e, material);
-				reg.emplace<Deferred>(e);
-
-				Mesh mesh_component{};
-				mesh_component.indices_count = static_cast<uint32>(index_accessor.count);
-				mesh_component.start_index_location = 0;
-				mesh_component.base_vertex_location = 0;
+				mesh_data.mesh_name = gltf_mesh.name;
+				mesh_data.material_index = gltf_primitive.material;
 
 				mesh_data.indices.reserve(index_accessor.count);
 				auto AddIndices = [&]<typename T>()
@@ -1027,13 +1014,13 @@ namespace adria
 				switch (stride)
 				{
 				case 1:
-					AddIndices.template operator() < uint8 > ();
+					AddIndices.template operator()<uint8>();
 					break;
 				case 2:
-					AddIndices.template operator() < uint16 > ();
+					AddIndices.template operator()<uint16>();
 					break;
 				case 4:
-					AddIndices.template operator() < uint32 > ();
+					AddIndices.template operator()<uint32>();
 					break;
 				default:
 					ADRIA_ASSERT(false);
@@ -1041,19 +1028,19 @@ namespace adria
 				switch (gltf_primitive.mode)
 				{
 				case TINYGLTF_MODE_POINTS:
-					mesh_component.topology = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
+					mesh_data.topology = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
 					break;
 				case TINYGLTF_MODE_LINE:
-					mesh_component.topology = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
+					mesh_data.topology = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
 					break;
 				case TINYGLTF_MODE_LINE_STRIP:
-					mesh_component.topology = D3D_PRIMITIVE_TOPOLOGY_LINESTRIP;
+					mesh_data.topology = D3D_PRIMITIVE_TOPOLOGY_LINESTRIP;
 					break;
 				case TINYGLTF_MODE_TRIANGLES:
-					mesh_component.topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+					mesh_data.topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 					break;
 				case TINYGLTF_MODE_TRIANGLE_STRIP:
-					mesh_component.topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+					mesh_data.topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
 					break;
 				default:
 					ADRIA_ASSERT(false);
@@ -1088,15 +1075,6 @@ namespace adria
 					ReadAttributeData(mesh_data.tangents_stream, "TANGENT");
 					ReadAttributeData(mesh_data.uvs_stream, "TEXCOORD_0");
 				}
-				mesh_component.vertex_count = mesh_data.positions_stream.size();
-				reg.emplace<Mesh>(e, mesh_component);
-
-				BoundingBox bounding_box = AABBFromPositions(mesh_data.positions_stream);
-				AABB aabb{};
-				aabb.bounding_box = bounding_box;
-				aabb.light_visible = true;
-				aabb.camera_visible = true;
-				reg.emplace<AABB>(e, aabb);
 			}
 		}
 
@@ -1147,37 +1125,25 @@ namespace adria
 			meshlet_triangles.resize(last.triangle_offset + ((last.triangle_count * 3 + 3) & ~3));
 			meshlets.resize(meshlet_count);
 
-			mesh_data.meshlet_vertices.resize(last.vertex_offset + last.vertex_count);
 			mesh_data.meshlets.resize(meshlet_count);
-			mesh_data.meshlet_bounding_spheres.resize(meshlet_count);
+			mesh_data.meshlet_vertices.resize(last.vertex_offset + last.vertex_count);
 			mesh_data.meshlet_triangles.resize(meshlet_triangles.size() / 3);
-			
+
 			uint32 triangle_offset = 0;
 			for (size_t i = 0; i < meshlet_count; ++i)
 			{
-				meshopt_Meshlet const& meshlet = meshlets[i];
+				meshopt_Meshlet const& m = meshlets[i];
 
-				XMFLOAT3 min(FLT_MAX, FLT_MAX, FLT_MAX);
-				XMFLOAT3 max(-FLT_MAX, -FLT_MAX, -FLT_MAX);
-				for (uint32 k = 0; k < meshlet.triangle_count * 3; ++k)
-				{
-					uint32 idx = mesh_data.meshlet_vertices[meshlet.vertex_offset + meshlet_triangles[meshlet.triangle_offset + k]];
-					XMFLOAT3 const& p = mesh_data.positions_stream[idx];
+				meshopt_Bounds meshopt_bounds = meshopt_computeMeshletBounds(&mesh_data.meshlet_vertices[m.vertex_offset], &meshlet_triangles[m.triangle_offset],
+					m.triangle_count, reinterpret_cast<float const*>(mesh_data.positions_stream.data()), vertex_count, sizeof(XMFLOAT3));
 
-					max = Max(max, p);
-					min = Min(min, p);
-				}
-				XMFLOAT3 center  = (max + min) / 2.0f;
-				XMFLOAT3 extents = (max - min) / 2.0f;
-				DirectX::BoundingBox meshlet_bbox(center, extents);
-				DirectX::BoundingSphere meshlet_sphere;
-				DirectX::BoundingSphere::CreateFromBoundingBox(meshlet_sphere, meshlet_bbox);
-
-				MeshletBoundingSphere& out_bounds = mesh_data.meshlet_bounding_spheres[i];
-				out_bounds.center[0] = meshlet_sphere.Center.x;
-				out_bounds.center[1] = meshlet_sphere.Center.y;
-				out_bounds.center[2] = meshlet_sphere.Center.z;
-				out_bounds.radius = meshlet_sphere.Radius;
+				Meshlet& meshlet = mesh_data.meshlets[i];
+				std::memcpy(meshlet.center, meshopt_bounds.center, sizeof(float) * 3);
+				meshlet.radius = meshopt_bounds.radius;
+				meshlet.vertex_count = m.vertex_count;
+				meshlet.triangle_count = m.triangle_count;
+				meshlet.vertex_offset = m.vertex_offset;
+				meshlet.triangle_offset = m.triangle_offset;
 
 				unsigned char* src_triangles = meshlet_triangles.data() + meshlet.triangle_offset;
 				for (uint32 triangle_idx = 0; triangle_idx < meshlet.triangle_count; ++triangle_idx)
@@ -1187,19 +1153,9 @@ namespace adria
 					tri.V1 = *src_triangles++;
 					tri.V2 = *src_triangles++;
 				}
-
-				Meshlet& out_meshlet = mesh_data.meshlets[i];
-				out_meshlet.triangle_count = meshlet.triangle_count;
-				out_meshlet.triangle_offset = triangle_offset;
-				out_meshlet.vertex_count = meshlet.vertex_count;
-				out_meshlet.vertex_offset = meshlet.vertex_offset;
 				triangle_offset += meshlet.triangle_count;
 			}
 			mesh_data.meshlet_triangles.resize(triangle_offset);
-
-
-
-
 
 			vertices.reserve(vertex_count);
 			for (size_t i = 0; i < vertex_count; ++i)
@@ -1214,14 +1170,31 @@ namespace adria
 			}
 			BufferDesc vb_desc = VertexBufferDesc(vertices.size(), sizeof(CompleteVertex), params.used_in_raytracing);
 			BufferDesc ib_desc = IndexBufferDesc(indices.size(), false, params.used_in_raytracing);
-
 			std::shared_ptr<Buffer> vb = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());
 			std::shared_ptr<Buffer> ib = std::make_shared<Buffer>(gfx, ib_desc, indices.data());
 
-			entt::entity e = mesh_data.entity;
-			auto& mesh = reg.get<Mesh>(e);
+			entt::entity e = reg.create();
+			entities.push_back(e);
+			mesh_name_to_entities_map[mesh_data.mesh_name].push_back(e);
+
+			Material material = mesh_data.material_index < 0 ? Material{} : materials[mesh_data.material_index];
+			reg.emplace<Material>(e, material);
+			reg.emplace<Deferred>(e);
+
+			BoundingBox bounding_box = AABBFromPositions(mesh_data.positions_stream);
+			AABB aabb{};
+			aabb.bounding_box = bounding_box;
+			aabb.light_visible = true;
+			aabb.camera_visible = true;
+			reg.emplace<AABB>(e, aabb);
+
+			Mesh mesh{};
 			mesh.vertex_buffer = vb;
 			mesh.index_buffer = ib;
+			mesh.vertex_count = (uint32)vertex_count;
+			mesh.indices_count = (uint32)indices.size();
+			mesh.topology = mesh_data.topology;
+			reg.emplace<Mesh>(e, mesh);
 
 			if (params.used_in_raytracing)
 			{
@@ -1309,7 +1282,7 @@ namespace adria
 					AABB& aabb = reg.get<AABB>(e);
 					aabb.bounding_box.Transform(aabb.bounding_box, model);
 					aabb.UpdateBuffer(gfx);
-					reg.emplace<Transform>(e, model, model);
+					reg.emplace<Transform>(e, model);
 				}
 			}
 

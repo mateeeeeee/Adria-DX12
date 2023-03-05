@@ -16,15 +16,13 @@ namespace adria
 
 	struct Meshlet
 	{
-		uint32 vertex_offset;
-		uint32 triangle_offset;
-		uint32 vertex_count;
-		uint32 triangle_count;
-	};
-
-	struct MeshletBoundingSphere
-	{
 		float center[3];
 		float radius;
+
+		uint32 vertex_count;
+		uint32 triangle_count;
+
+		uint32 vertex_offset;
+		uint32 triangle_offset;
 	};
 }
