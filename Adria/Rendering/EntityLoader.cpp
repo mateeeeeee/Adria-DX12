@@ -904,7 +904,7 @@ namespace adria
 			return {};
 		}
 		std::vector<entt::entity> entities{};
-		HashMap<int32, std::vector<entt::entity>> mesh_name_to_entities_map;
+		HashMap<int32, std::vector<entt::entity>> mesh_to_entities;
 
 		//process the materials
 		std::vector<Material> materials;
@@ -1005,7 +1005,6 @@ namespace adria
 					T* data = (T*)(buffer.data.data() + index_accessor.byteOffset + buffer_view.byteOffset);
 					for (size_t i = 0; i < index_accessor.count; i += 3)
 					{
-						//change later to meshData.indices
 						mesh_data.indices.push_back(data[i + 0]);
 						mesh_data.indices.push_back(data[i + 1]);
 						mesh_data.indices.push_back(data[i + 2]);
@@ -1079,6 +1078,7 @@ namespace adria
 			}
 		}
 
+		uint64 total_buffer_size = 0;
 		for (auto& mesh_data : mesh_datas)
 		{
 			std::vector<uint32> const& indices = mesh_data.indices;
@@ -1157,9 +1157,19 @@ namespace adria
 			}
 			mesh_data.meshlet_triangles.resize(triangle_offset);
 
+			total_buffer_size += Align(mesh_data.indices.size() * sizeof(uint32), 16);
+			total_buffer_size += Align(mesh_data.positions_stream.size() * sizeof(XMFLOAT3), 16);
+			total_buffer_size += Align(mesh_data.uvs_stream.size() * sizeof(XMFLOAT2), 16);
+			total_buffer_size += Align(mesh_data.normals_stream.size() * sizeof(XMFLOAT3), 16);
+			total_buffer_size += Align(mesh_data.tangents_stream.size() * sizeof(XMFLOAT4), 16);
+			total_buffer_size += Align(mesh_data.bitangents_stream.size() * sizeof(XMFLOAT3), 16);
+			total_buffer_size += Align(mesh_data.meshlets.size() * sizeof(Meshlet), 16);
+			total_buffer_size += Align(mesh_data.meshlet_vertices.size() * sizeof(uint32), 16);
+			total_buffer_size += Align(mesh_data.meshlet_triangles.size() * sizeof(MeshletTriangle), 16);
+			
 			entt::entity e = reg.create();
 			entities.push_back(e);
-			mesh_name_to_entities_map[mesh_data.mesh_index].push_back(e);
+			mesh_to_entities[mesh_data.mesh_index].push_back(e);
 
 			Material material = mesh_data.material_index < 0 ? Material{} : materials[mesh_data.material_index];
 			reg.emplace<Material>(e, material);
@@ -1172,6 +1182,64 @@ namespace adria
 			aabb.camera_visible = true;
 			reg.emplace<AABB>(e, aabb);
 		}
+
+		BufferDesc desc{};
+		desc.size = total_buffer_size;
+		desc.bind_flags = EBindFlag::ShaderResource;
+		desc.misc_flags = EBufferMiscFlag::BufferRaw;
+		desc.resource_usage = EResourceUsage::Default;
+		std::shared_ptr<Buffer> geometry_buffer = std::make_shared<Buffer>(gfx, desc);
+
+		DynamicAllocation staging_buffer = gfx->GetDynamicAllocator()->Allocate(total_buffer_size, 16);
+		uint8* mem_dst = (uint8*)staging_buffer.cpu_address;
+
+		uint32 current_offset = 0;
+		auto CopyData = [mem_dst, &current_offset]<typename T>(std::vector<T> const& _data)
+		{
+			uint64 current_copy_size = _data.size() * sizeof(T);
+			std::memcpy(mem_dst + current_offset, _data.data(), current_copy_size);
+			current_offset += Align(current_copy_size, 16);
+		};
+
+		ADRIA_ASSERT(entities.size() == mesh_datas.size());
+		for (size_t i = 0; i < mesh_datas.size(); ++i)
+		{
+			entt::entity e = entities[i];
+			auto const& mesh_data = mesh_datas[i];
+
+			NewMesh mesh_component{};
+			mesh_component.indices_offset = current_offset;
+			CopyData(mesh_data.indices);
+
+			mesh_component.positions_offset = current_offset;
+			CopyData(mesh_data.positions_stream);
+
+			mesh_component.uvs_offset = current_offset;
+			CopyData(mesh_data.uvs_stream);
+
+			mesh_component.normals_offset = current_offset;
+			CopyData(mesh_data.normals_stream);
+
+			mesh_component.tangents_offset = current_offset;
+			CopyData(mesh_data.tangents_stream);
+
+			mesh_component.bitangents_offset = current_offset;
+			CopyData(mesh_data.bitangents_stream);
+
+			mesh_component.meshlet_offset = current_offset;
+			CopyData(mesh_data.meshlets);
+
+			mesh_component.meshlet_vertices_offset = current_offset;
+			CopyData(mesh_data.meshlet_vertices);
+
+			mesh_component.meshlet_triangles_offset = current_offset;
+			CopyData(mesh_data.meshlet_triangles);
+
+			mesh_component.meshlet_count = (uint32)mesh_data.meshlets.size();
+			mesh_component.geometry_buffer = geometry_buffer;
+			reg.emplace<NewMesh>(e, mesh_component);
+		}
+		gfx->GetDefaultCommandList()->CopyBufferRegion(geometry_buffer->GetNative(), 0, staging_buffer.buffer, staging_buffer.offset, total_buffer_size);
 
 		std::function<void(int, XMMATRIX)> LoadNode;
 		LoadNode = [&](int node_index, XMMATRIX parent_transform)
@@ -1236,7 +1304,7 @@ namespace adria
 
 			if (node.mesh >= 0)
 			{
-				std::vector<entt::entity> const& mesh_entities = mesh_name_to_entities_map[node.mesh];
+				std::vector<entt::entity> const& mesh_entities = mesh_to_entities[node.mesh];
 				for (entt::entity e : mesh_entities)
 				{
 					XMMATRIX model = XMLoadFloat4x4(&transforms.world) * parent_transform;
