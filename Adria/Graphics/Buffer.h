@@ -15,54 +15,6 @@ namespace adria
 		std::strong_ordering operator<=>(BufferDesc const& other) const = default;
 	};
 
-	static BufferDesc VertexBufferDesc(uint64 vertex_count, uint32 stride, bool ray_tracing = true)
-	{
-		BufferDesc desc{};
-		desc.bind_flags = ray_tracing ? EBindFlag::ShaderResource : EBindFlag::None;
-		desc.resource_usage = EResourceUsage::Default;
-		desc.size = vertex_count * stride;
-		desc.stride = stride;
-		return desc;
-	}
-	static BufferDesc IndexBufferDesc(uint64 index_count, bool small_indices, bool ray_tracing = true)
-	{
-		BufferDesc desc{};
-		desc.bind_flags = ray_tracing ? EBindFlag::ShaderResource : EBindFlag::None;
-		desc.resource_usage = EResourceUsage::Default;
-		desc.stride = small_indices ? 2 : 4;
-		desc.size = index_count * desc.stride;
-		desc.format = small_indices ? EFormat::R16_UINT : EFormat::R32_UINT;
-		return desc;
-	}
-	static BufferDesc ReadBackBufferDesc(uint64 size)
-	{
-		BufferDesc desc{};
-		desc.bind_flags = EBindFlag::None;
-		desc.resource_usage = EResourceUsage::Readback;
-		desc.size = size;
-		desc.misc_flags = EBufferMiscFlag::None;
-		return desc;
-	}
-	template<typename T>
-	static BufferDesc StructuredBufferDesc(uint64 count, bool uav = true, bool dynamic = false)
-	{
-		BufferDesc desc{};
-		desc.resource_usage = (uav || !dynamic) ? EResourceUsage::Default : EResourceUsage::Upload;
-		desc.bind_flags = EBindFlag::ShaderResource;
-		if (uav) desc.bind_flags |= EBindFlag::UnorderedAccess;
-		desc.misc_flags = EBufferMiscFlag::BufferStructured;
-		desc.stride = sizeof(T);
-		desc.size = desc.stride * count;
-		return desc;
-	}
-	static BufferDesc CounterBufferDesc()
-	{
-		BufferDesc desc{};
-		desc.size = sizeof(uint32);
-		desc.bind_flags = EBindFlag::UnorderedAccess;
-		return desc;
-	}
-
 	struct BufferSubresourceDesc
 	{
 		uint64 offset = 0;
@@ -458,6 +410,54 @@ namespace adria
 		ib_view.Format = ConvertFormat(index_buffer->GetDesc().format);
 		ib_view.SizeInBytes = (UINT)index_buffer->GetDesc().size;
 		cmd_list->IASetIndexBuffer(&ib_view);
+	}
+
+	static BufferDesc VertexBufferDesc(uint64 vertex_count, uint32 stride, bool ray_tracing = true)
+	{
+		BufferDesc desc{};
+		desc.bind_flags = ray_tracing ? EBindFlag::ShaderResource : EBindFlag::None;
+		desc.resource_usage = EResourceUsage::Default;
+		desc.size = vertex_count * stride;
+		desc.stride = stride;
+		return desc;
+	}
+	static BufferDesc IndexBufferDesc(uint64 index_count, bool small_indices, bool ray_tracing = true)
+	{
+		BufferDesc desc{};
+		desc.bind_flags = ray_tracing ? EBindFlag::ShaderResource : EBindFlag::None;
+		desc.resource_usage = EResourceUsage::Default;
+		desc.stride = small_indices ? 2 : 4;
+		desc.size = index_count * desc.stride;
+		desc.format = small_indices ? EFormat::R16_UINT : EFormat::R32_UINT;
+		return desc;
+	}
+	static BufferDesc ReadBackBufferDesc(uint64 size)
+	{
+		BufferDesc desc{};
+		desc.bind_flags = EBindFlag::None;
+		desc.resource_usage = EResourceUsage::Readback;
+		desc.size = size;
+		desc.misc_flags = EBufferMiscFlag::None;
+		return desc;
+	}
+	template<typename T>
+	static BufferDesc StructuredBufferDesc(uint64 count, bool uav = true, bool dynamic = false)
+	{
+		BufferDesc desc{};
+		desc.resource_usage = (uav || !dynamic) ? EResourceUsage::Default : EResourceUsage::Upload;
+		desc.bind_flags = EBindFlag::ShaderResource;
+		if (uav) desc.bind_flags |= EBindFlag::UnorderedAccess;
+		desc.misc_flags = EBufferMiscFlag::BufferStructured;
+		desc.stride = sizeof(T);
+		desc.size = desc.stride * count;
+		return desc;
+	}
+	static BufferDesc CounterBufferDesc()
+	{
+		BufferDesc desc{};
+		desc.size = sizeof(uint32);
+		desc.bind_flags = EBindFlag::UnorderedAccess;
+		return desc;
 	}
 
 }

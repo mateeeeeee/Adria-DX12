@@ -97,7 +97,6 @@ namespace adria
 		TextureType_2D,
 		TextureType_3D
 	};
-
 	inline constexpr ETextureType ConvertTextureType(D3D12_RESOURCE_DIMENSION dimension)
 	{
 		switch (dimension)
@@ -141,7 +140,6 @@ namespace adria
 				&& HasAllFlags(bind_flags, desc.bind_flags) && HasAllFlags(misc_flags, desc.misc_flags);
 		}
 	};
-
 	struct TextureSubresourceDesc
 	{
 		uint32 first_slice = 0;
@@ -151,7 +149,6 @@ namespace adria
 
 		std::strong_ordering operator<=>(TextureSubresourceDesc const& other) const = default;
 	};
-
 	using TextureInitialData = D3D12_SUBRESOURCE_DATA;
 
 	class Texture
