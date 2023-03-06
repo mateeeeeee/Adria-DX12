@@ -1191,13 +1191,12 @@ namespace adria
 		std::shared_ptr<Buffer> geometry_buffer = std::make_shared<Buffer>(gfx, desc);
 
 		DynamicAllocation staging_buffer = gfx->GetDynamicAllocator()->Allocate(total_buffer_size, 16);
-		uint8* mem_dst = (uint8*)staging_buffer.cpu_address;
 
 		uint32 current_offset = 0;
-		auto CopyData = [mem_dst, &current_offset]<typename T>(std::vector<T> const& _data)
+		auto CopyData = [&staging_buffer, &current_offset]<typename T>(std::vector<T> const& _data)
 		{
 			uint64 current_copy_size = _data.size() * sizeof(T);
-			std::memcpy(mem_dst + current_offset, _data.data(), current_copy_size);
+			staging_buffer.Update(_data.data(), current_copy_size, current_offset);
 			current_offset += Align(current_copy_size, 16);
 		};
 
