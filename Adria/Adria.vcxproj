@@ -415,6 +415,7 @@
     <ClInclude Include="Tasks\TaskSystem.h" />
     <ClInclude Include="Tasks\ThreadPool.h" />
     <ClInclude Include="Utilities\AllocatorUtil.h" />
+    <ClInclude Include="Utilities\AutoRefCountPtr.h" />
     <ClInclude Include="Utilities\CLIParser.h" />
     <ClInclude Include="Utilities\CPUProfiler.h" />
     <ClInclude Include="Utilities\EnumUtil.h" />
