@@ -82,6 +82,7 @@ namespace adria
 	public:
         
         EntityLoader(entt::registry& reg, GraphicsDevice* device);
+		~EntityLoader();
 
 		[[maybe_unused]] entt::entity LoadSkybox(SkyboxParameters const&);
         [[maybe_unused]] entt::entity LoadLight(LightParameters const&);

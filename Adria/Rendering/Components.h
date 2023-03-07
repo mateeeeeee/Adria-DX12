@@ -1,8 +1,9 @@
 #pragma once
 #include <memory>
-#include "Enums.h"
-#include "../Core/Definitions.h"
 #include <DirectXCollision.h>
+#include "Enums.h"
+#include "GeometryBufferCache.h"
+#include "../Core/Definitions.h"
 #include "../Graphics/VertexTypes.h"
 #include "../Graphics/Buffer.h"
 #include "../Graphics/TextureManager.h"
@@ -58,21 +59,6 @@ namespace adria
 			else cmd_list->DrawInstanced(vertex_count, instance_count, start_vertex_location, start_instance_location);
 		}
 	};
-	struct COMPONENT NewMesh
-	{
-		std::shared_ptr<Buffer> geometry_buffer;
-
-		uint32 positions_offset;
-		uint32 uvs_offset;
-		uint32 normals_offset;
-		uint32 tangents_offset;
-		uint32 bitangents_offset;
-		uint32 indices_offset;
-		uint32 meshlet_offset;
-		uint32 meshlet_vertices_offset;
-		uint32 meshlet_triangles_offset;
-		uint32 meshlet_count;
-	};
 	struct COMPONENT Material
 	{
 		TextureHandle albedo_texture			  = INVALID_TEXTURE_HANDLE;
@@ -80,13 +66,13 @@ namespace adria
 		TextureHandle metallic_roughness_texture  = INVALID_TEXTURE_HANDLE;
 		TextureHandle emissive_texture			  = INVALID_TEXTURE_HANDLE;
 
-		float base_color[3]  = { 1.0f, 1.0f, 1.0f };
+		float base_color[3]		= { 1.0f, 1.0f, 1.0f };
 		float metallic_factor	= 1.0f;
 		float roughness_factor	= 1.0f;
 		float emissive_factor	= 1.0f;
 
 		EMaterialAlphaMode alpha_mode = EMaterialAlphaMode::Opaque;
-		float alpha_cutoff		= 0.5f;
+		float alpha_cutoff	= 0.5f;
 		bool  double_sided	= false;
 
 		EPipelineState pso = EPipelineState::Unknown;
@@ -206,4 +192,23 @@ namespace adria
 	{
 		std::string name = "name tag";
 	};
+
+	struct COMPONENT SubMesh
+	{
+		GeometryBufferHandle geometry_buffer_handle = INVALID_GEOMETRY_BUFFER_HANDLE;
+
+		uint32 positions_offset;
+		uint32 uvs_offset;
+		uint32 normals_offset;
+		uint32 tangents_offset;
+		uint32 bitangents_offset;
+		uint32 indices_offset;
+		uint32 meshlet_offset;
+		uint32 meshlet_vertices_offset;
+		uint32 meshlet_triangles_offset;
+		uint32 meshlet_count;
+	};
+
+
+
 }

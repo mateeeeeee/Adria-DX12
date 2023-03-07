@@ -380,6 +380,7 @@
     <ClCompile Include="..\ThirdParty\meshoptimizer\simplifier.cpp">
       <Filter>meshoptimizer</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\GeometryBufferCache.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -838,7 +839,7 @@
     <ClInclude Include="Core\ConsoleCommand.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\MeshManager.h">
+    <ClInclude Include="Rendering\GeometryBufferCache.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\MeshletStructs.h">

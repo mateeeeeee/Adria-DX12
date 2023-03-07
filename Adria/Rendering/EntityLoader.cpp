@@ -105,12 +105,12 @@ namespace adria
 				.format = EFormat::R32_UINT
 			};
 
-			Mesh mesh{};
-			mesh.indices_count = (uint32)indices.size();
-			mesh.vertex_buffer = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());
-			mesh.index_buffer = std::make_shared<Buffer>(gfx, ib_desc, indices.data());
+			Mesh submesh{};
+			submesh.indices_count = (uint32)indices.size();
+			submesh.vertex_buffer = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());
+			submesh.index_buffer = std::make_shared<Buffer>(gfx, ib_desc, indices.data());
 
-			reg.emplace<Mesh>(grid, mesh);
+			reg.emplace<Mesh>(grid, submesh);
 			reg.emplace<Transform>(grid);
 
 			BoundingBox bounding_box = AABBFromRange(vertices.begin(), vertices.end());
@@ -162,11 +162,11 @@ namespace adria
 						}
 					}
 
-					Mesh mesh{};
-					mesh.indices_count = indices_count;
-					mesh.start_index_location = indices_offset;
+					Mesh submesh{};
+					submesh.indices_count = indices_count;
+					submesh.start_index_location = indices_offset;
 
-					reg.emplace<Mesh>(chunk, mesh);
+					reg.emplace<Mesh>(chunk, submesh);
 					reg.emplace<Transform>(chunk);
 
 					BoundingBox bounding_box = AABBFromRange(chunk_vertices_aabb.begin(), chunk_vertices_aabb.end());
@@ -199,9 +199,9 @@ namespace adria
 
 			for (entt::entity chunk : chunks)
 			{
-				auto& mesh = reg.get<Mesh>(chunk);
-				mesh.vertex_buffer = vb;
-				mesh.index_buffer = ib;
+				auto& submesh = reg.get<Mesh>(chunk);
+				submesh.vertex_buffer = vb;
+				submesh.index_buffer = ib;
 			}
 		}
 		return chunks;
@@ -327,7 +327,13 @@ namespace adria
 	EntityLoader::EntityLoader(entt::registry& reg, GraphicsDevice* gfx)
         : reg(reg), gfx(gfx)
     {
+		GeometryBufferCache::Get().Initialize(gfx);
     }
+
+	EntityLoader::~EntityLoader()
+	{
+		GeometryBufferCache::Get().Destroy();
+	}
 
 	entt::entity EntityLoader::LoadSkybox(SkyboxParameters const& params)
     {
@@ -382,12 +388,12 @@ namespace adria
 				.stride = sizeof(uint16),
 				.format = EFormat::R16_UINT };
 
-            Mesh mesh{};
-            mesh.vertex_buffer = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());
-			mesh.index_buffer = std::make_shared<Buffer>(gfx, ib_desc, indices.data());
-            mesh.indices_count = static_cast<uint32>(indices.size());
+            Mesh submesh{};
+            submesh.vertex_buffer = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());
+			submesh.index_buffer = std::make_shared<Buffer>(gfx, ib_desc, indices.data());
+            submesh.indices_count = static_cast<uint32>(indices.size());
 
-            reg.emplace<Mesh>(light, mesh);
+            reg.emplace<Mesh>(light, submesh);
 
             Material material{};
 			XMFLOAT3 base_color;
@@ -626,10 +632,10 @@ namespace adria
 				reg.emplace<Material>(e, material);
 				reg.emplace<Deferred>(e);
 
-				Mesh mesh_component{};
-				mesh_component.indices_count = static_cast<uint32>(index_accessor.count);
-				mesh_component.start_index_location = static_cast<uint32>(mesh_data.indices.size());
-				mesh_component.base_vertex_location = static_cast<uint32>(mesh_data.positions_stream.size());
+				Mesh submesh{};
+				submesh.indices_count = static_cast<uint32>(index_accessor.count);
+				submesh.start_index_location = static_cast<uint32>(mesh_data.indices.size());
+				submesh.base_vertex_location = static_cast<uint32>(mesh_data.positions_stream.size());
 
 				mesh_data.indices.reserve(mesh_data.indices.size() + index_accessor.count);
 				auto AddIndices =[&]<typename T>() 
@@ -661,19 +667,19 @@ namespace adria
 				switch (gltf_primitive.mode)
 				{
 				case TINYGLTF_MODE_POINTS:
-					mesh_component.topology = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
+					submesh.topology = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
 					break;
 				case TINYGLTF_MODE_LINE:
-					mesh_component.topology = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
+					submesh.topology = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
 					break;
 				case TINYGLTF_MODE_LINE_STRIP:
-					mesh_component.topology = D3D_PRIMITIVE_TOPOLOGY_LINESTRIP;
+					submesh.topology = D3D_PRIMITIVE_TOPOLOGY_LINESTRIP;
 					break;
 				case TINYGLTF_MODE_TRIANGLES:
-					mesh_component.topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+					submesh.topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 					break;
 				case TINYGLTF_MODE_TRIANGLE_STRIP:
-					mesh_component.topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+					submesh.topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
 					break;
 				default:
 					ADRIA_ASSERT(false);
@@ -708,8 +714,8 @@ namespace adria
 					ReadAttributeData(mesh_data.tangents_stream, "TANGENT");
 					ReadAttributeData(mesh_data.uvs_stream, "TEXCOORD_0");
 				}
-				mesh_component.vertex_count = (uint32)(mesh_data.positions_stream.size() - mesh_component.base_vertex_location);
-				reg.emplace<Mesh>(e, mesh_component);
+				submesh.vertex_count = (uint32)(mesh_data.positions_stream.size() - submesh.base_vertex_location);
+				reg.emplace<Mesh>(e, submesh);
 			}
 		}
 
@@ -858,15 +864,15 @@ namespace adria
 		for (size_t i = 0; i < entities.size(); ++i)
 		{
 			entt::entity e = entities[i];
-			auto& mesh = reg.get<Mesh>(e);
-			mesh.vertex_buffer = vb;
-			mesh.index_buffer = ib;
+			auto& submesh = reg.get<Mesh>(e);
+			submesh.vertex_buffer = vb;
+			submesh.index_buffer = ib;
 			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(entt::to_integral(e)));
 			if (params.used_in_raytracing)
 			{
 				RayTracing rt_component{
-					.vertex_offset = (uint32)rt_vertices_size + mesh.base_vertex_location,
-					.index_offset = (uint32)rt_indices_size + mesh.start_index_location
+					.vertex_offset = (uint32)rt_vertices_size + submesh.base_vertex_location,
+					.index_offset = (uint32)rt_indices_size + submesh.start_index_location
 				};
 				reg.emplace<RayTracing>(e, rt_component);
 			}
@@ -1206,39 +1212,39 @@ namespace adria
 			entt::entity e = entities[i];
 			auto const& mesh_data = mesh_datas[i];
 
-			NewMesh mesh_component{};
-			mesh_component.indices_offset = current_offset;
+			SubMesh submesh{};
+			submesh.indices_offset = current_offset;
 			CopyData(mesh_data.indices);
 
-			mesh_component.positions_offset = current_offset;
+			submesh.positions_offset = current_offset;
 			CopyData(mesh_data.positions_stream);
 
-			mesh_component.uvs_offset = current_offset;
+			submesh.uvs_offset = current_offset;
 			CopyData(mesh_data.uvs_stream);
 
-			mesh_component.normals_offset = current_offset;
+			submesh.normals_offset = current_offset;
 			CopyData(mesh_data.normals_stream);
 
-			mesh_component.tangents_offset = current_offset;
+			submesh.tangents_offset = current_offset;
 			CopyData(mesh_data.tangents_stream);
 
-			mesh_component.bitangents_offset = current_offset;
+			submesh.bitangents_offset = current_offset;
 			CopyData(mesh_data.bitangents_stream);
 
-			mesh_component.meshlet_offset = current_offset;
+			submesh.meshlet_offset = current_offset;
 			CopyData(mesh_data.meshlets);
 
-			mesh_component.meshlet_vertices_offset = current_offset;
+			submesh.meshlet_vertices_offset = current_offset;
 			CopyData(mesh_data.meshlet_vertices);
 
-			mesh_component.meshlet_triangles_offset = current_offset;
+			submesh.meshlet_triangles_offset = current_offset;
 			CopyData(mesh_data.meshlet_triangles);
 
-			mesh_component.meshlet_count = (uint32)mesh_data.meshlets.size();
-			mesh_component.geometry_buffer = geometry_buffer;
-			reg.emplace<NewMesh>(e, mesh_component);
+			submesh.meshlet_count = (uint32)mesh_data.meshlets.size();
+
+			reg.emplace<SubMesh>(e, submesh);
 		}
-		gfx->GetDefaultCommandList()->CopyBufferRegion(geometry_buffer->GetNative(), 0, staging_buffer.buffer, staging_buffer.offset, total_buffer_size);
+		GeometryBufferHandle geometry_buffer_handle = GeometryBufferCache::Get().CreateAndInitializeGeometryBuffer(total_buffer_size, staging_buffer.buffer, staging_buffer.offset);
 
 		std::function<void(int, XMMATRIX)> LoadNode;
 		LoadNode = [&](int node_index, XMMATRIX parent_transform)
@@ -1333,13 +1339,18 @@ namespace adria
 		for (size_t i = 0; i < entities.size(); ++i)
 		{
 			entt::entity e = entities[i];
+
 			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(entt::to_integral(e)));
+
 			Relationship relationship{};
 			relationship.parent = root;
 			relationship.children_count = 0;
 			if (i != entities.size() - 1) relationship.next = entities[i + 1];
 			if (i != 0) relationship.prev = entities[i - 1];
 			reg.emplace<Relationship>(e, relationship);
+
+			SubMesh& submesh  = reg.get<SubMesh>(e);
+			submesh.geometry_buffer_handle = geometry_buffer_handle;
 		}
 		ADRIA_LOG(INFO, "GLTF Mesh %s successfully loaded!", params.model_path.c_str());
 		return entities;

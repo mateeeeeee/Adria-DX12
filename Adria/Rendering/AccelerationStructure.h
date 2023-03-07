@@ -11,7 +11,7 @@ namespace adria
 	public:
 		explicit AccelerationStructure(GraphicsDevice* gfx) : gfx(gfx){}
 
-		void AddInstance(Mesh const& mesh, Transform const& transform, bool is_transparent = false)
+		void AddInstance(Mesh const& submesh, Transform const& transform, bool is_transparent = false)
 		{
 			auto dynamic_allocator = gfx->GetDynamicAllocator();
 
@@ -22,12 +22,12 @@ namespace adria
 			geo_desc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
 			geo_desc.Triangles.Transform3x4 = NULL;
 			geo_desc.Triangles.VertexBuffer.StrideInBytes = sizeof(CompleteVertex);
-			geo_desc.Triangles.VertexBuffer.StartAddress = mesh.vertex_buffer->GetGPUAddress() + geo_desc.Triangles.VertexBuffer.StrideInBytes * mesh.base_vertex_location;
+			geo_desc.Triangles.VertexBuffer.StartAddress = submesh.vertex_buffer->GetGPUAddress() + geo_desc.Triangles.VertexBuffer.StrideInBytes * submesh.base_vertex_location;
 			geo_desc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
-			geo_desc.Triangles.VertexCount = mesh.vertex_count;
-			geo_desc.Triangles.IndexFormat = ConvertFormat(mesh.index_buffer->GetDesc().format);
-			geo_desc.Triangles.IndexBuffer = mesh.index_buffer->GetGPUAddress() + mesh.start_index_location * (mesh.index_buffer->GetDesc().stride);
-			geo_desc.Triangles.IndexCount = mesh.indices_count;
+			geo_desc.Triangles.VertexCount = submesh.vertex_count;
+			geo_desc.Triangles.IndexFormat = ConvertFormat(submesh.index_buffer->GetDesc().format);
+			geo_desc.Triangles.IndexBuffer = submesh.index_buffer->GetGPUAddress() + submesh.start_index_location * (submesh.index_buffer->GetDesc().stride);
+			geo_desc.Triangles.IndexCount = submesh.indices_count;
 			geo_desc.Flags = is_transparent ? D3D12_RAYTRACING_GEOMETRY_FLAG_NONE : D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
 			geo_descs.push_back(geo_desc);
 			geo_transforms.push_back(transform.current_transform);
