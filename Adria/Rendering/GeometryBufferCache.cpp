@@ -44,5 +44,14 @@ namespace adria
 		}
 	}
 
+	Buffer* GeometryBufferCache::GetGeometryBuffer(GeometryBufferHandle handle) const
+	{
+		if (auto it = buffer_map.find(handle); it != buffer_map.end())
+		{
+			return it->second.get();
+		}
+		else return nullptr;
+	}
+
 }
 

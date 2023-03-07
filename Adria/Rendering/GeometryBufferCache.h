@@ -20,6 +20,7 @@ namespace adria
 		void Destroy();
 
 		[[nodiscard]] GeometryBufferHandle CreateAndInitializeGeometryBuffer(uint64 total_buffer_size, void* resource, uint64 src_offset);
+		[[nodiscard]] Buffer* GetGeometryBuffer(GeometryBufferHandle handle) const;
 		void DestroyGeometryBuffer(GeometryBufferHandle handle);
 
 	private:
