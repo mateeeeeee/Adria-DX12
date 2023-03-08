@@ -19,7 +19,7 @@ namespace adria
 		bool IsSupported() const;
 	private:
 		GraphicsDevice* gfx;
-		Microsoft::WRL::ComPtr<ID3D12StateObject> ray_traced_shadows;
+		ArcPtr<ID3D12StateObject> ray_traced_shadows;
 		uint32 width, height;
 		bool is_supported;
 	private:

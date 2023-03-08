@@ -83,7 +83,7 @@ namespace adria
 				resource_state,
 				nullptr,
 				&alloc,
-				IID_PPV_ARGS(&resource)
+				IID_PPV_ARGS(resource.GetAddressOf())
 			);
 			BREAK_IF_FAILED(hr);
 			allocation.reset(alloc);
@@ -252,7 +252,7 @@ namespace adria
 		}
 	private:
 		GraphicsDevice* gfx;
-		Microsoft::WRL::ComPtr<ID3D12Resource> resource;
+		ArcPtr<ID3D12Resource> resource;
 		BufferDesc desc;
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> srvs;
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> uavs;
@@ -313,11 +313,7 @@ namespace adria
 					srv_desc.Buffer.FirstElement = view_desc.offset / stride;
 					srv_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / stride;
 				}
-
-				Microsoft::WRL::ComPtr<ID3D12Device> device;
-				resource->GetDevice(IID_PPV_ARGS(device.GetAddressOf()));
-
-				device->CreateShaderResourceView(!is_accel_struct ? resource.Get() : nullptr, &srv_desc, heap_descriptor);
+				gfx->GetDevice()->CreateShaderResourceView(!is_accel_struct ? resource.Get() : nullptr, &srv_desc, heap_descriptor);
 				srvs.push_back(heap_descriptor);
 				return srvs.size() - 1;
 			}
@@ -360,10 +356,7 @@ namespace adria
 					uav_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / stride;
 				}
 
-				Microsoft::WRL::ComPtr<ID3D12Device> device;
-				resource->GetDevice(IID_PPV_ARGS(device.GetAddressOf()));
-
-				device->CreateUnorderedAccessView(resource.Get(), uav_counter, &uav_desc, heap_descriptor);
+				gfx->GetDevice()->CreateUnorderedAccessView(resource.Get(), uav_counter, &uav_desc, heap_descriptor);
 				uavs.push_back(heap_descriptor);
 				return uavs.size() - 1;
 			}

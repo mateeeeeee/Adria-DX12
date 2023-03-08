@@ -1,6 +1,5 @@
 #pragma once
 #include <d3d12.h>
-#include <wrl.h>
 #include <vector>
 #include <memory.h>
 #include "LinearDynamicAllocator.h"
@@ -8,6 +7,7 @@
 #include "../Core/Macros.h"
 #include "../Core/Definitions.h"
 #include "../Utilities/StringUtil.h"
+#include "../Utilities/AutoRefCountPtr.h"
 
 namespace adria
 {
@@ -77,7 +77,7 @@ namespace adria
 
 	private:
 		ID3D12StateObject* state_object;
-		Microsoft::WRL::ComPtr<ID3D12StateObjectProperties> pso_info = nullptr;
+		ArcPtr<ID3D12StateObjectProperties> pso_info = nullptr;
 		ShaderRecord ray_gen_record;
 		uint32 ray_gen_record_size = 0;
 		std::vector<ShaderRecord> miss_shader_records;

@@ -21,7 +21,7 @@ namespace adria
 	private:
 		GraphicsDevice* gfx;
 		BlurPass blur_pass;
-		Microsoft::WRL::ComPtr<ID3D12StateObject> ray_traced_reflections;
+		ArcPtr<ID3D12StateObject> ray_traced_reflections;
 		uint32 width, height;
 		bool is_supported;
 		float reflection_roughness_scale = 0.0f;

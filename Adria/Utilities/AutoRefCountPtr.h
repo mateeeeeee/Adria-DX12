@@ -137,6 +137,11 @@ namespace adria
 			return Get() != nullptr;
 		}
 
+		operator T*() const
+		{
+			return Get();
+		}
+
 		T* Get() const 
 		{
 			return ptr_;

@@ -1,10 +1,10 @@
 #pragma once
+#include <memory>
 #include "GraphicsDeviceDX12.h"
 #include "d3dx12.h"
 #include "DescriptorHeap.h"
 #include "../Core/Definitions.h"
 #include "../Core/Macros.h"
-#include <memory>
 
 namespace adria
 {
@@ -30,7 +30,7 @@ namespace adria
 				&buffer_desc,
 				D3D12_RESOURCE_STATE_GENERIC_READ,
 				nullptr,
-				IID_PPV_ARGS(&cb)));
+				IID_PPV_ARGS(cb.GetAddressOf())));
 
 			CD3DX12_RANGE read_range(0, 0);
 			BREAK_IF_FAILED(cb->Map(0, &read_range, reinterpret_cast<void**>(&_mapped_data)));
@@ -57,7 +57,7 @@ namespace adria
 			return cb.Get();
 		}
 	private:
-		Microsoft::WRL::ComPtr<ID3D12Resource> cb;
+		ArcPtr<ID3D12Resource> cb;
 		uint8* _mapped_data = nullptr;
 		uint32 const cbuffer_size;
 		uint32 const cbuffer_count;

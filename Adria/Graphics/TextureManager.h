@@ -2,7 +2,6 @@
 #include <string>
 #include <array>
 #include <d3d12.h>
-#include <wrl.h>
 #include <variant>
 #include <memory>
 #include "MipsGenerator.h"
@@ -47,8 +46,8 @@ namespace adria
 		bool mipmaps = true;
 		bool is_scene_initialized = false;
 
-		Microsoft::WRL::ComPtr<ID3D12RootSignature> equirect_root_signature;
-		Microsoft::WRL::ComPtr<ID3D12PipelineState> equirect_pso;
+		ArcPtr<ID3D12RootSignature> equirect_root_signature;
+		ArcPtr<ID3D12PipelineState> equirect_pso;
 
 	private:
 

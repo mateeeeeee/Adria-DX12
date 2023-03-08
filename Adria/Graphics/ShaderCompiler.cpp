@@ -1,22 +1,21 @@
 #pragma comment(lib, "dxcompiler.lib")
 #include "ShaderCompiler.h"
-#include <wrl.h>
 #include <d3dcompiler.h> 
 #include "dxc/dxcapi.h" 
 #include "../Utilities/StringUtil.h"
 #include "../Utilities/FilesUtil.h"
+#include "../Utilities/AutoRefCountPtr.h"
 #include "../Logging/Logger.h"
 
-using namespace Microsoft::WRL;
 
 namespace adria
 {
 	namespace
 	{
-		ComPtr<IDxcLibrary> library = nullptr;
-		ComPtr<IDxcCompiler3> compiler = nullptr;
-		ComPtr<IDxcUtils> utils = nullptr;
-		ComPtr<IDxcIncludeHandler> include_handler = nullptr;
+		ArcPtr<IDxcLibrary> library = nullptr;
+		ArcPtr<IDxcCompiler3> compiler = nullptr;
+		ArcPtr<IDxcUtils> utils = nullptr;
+		ArcPtr<IDxcIncludeHandler> include_handler = nullptr;
 	}
 	class CustomIncludeHandler : public IDxcIncludeHandler
 	{
@@ -25,7 +24,7 @@ namespace adria
 
 		HRESULT STDMETHODCALLTYPE LoadSource(_In_ LPCWSTR pFilename, _COM_Outptr_result_maybenull_ IDxcBlob** ppIncludeSource) override
 		{
-			ComPtr<IDxcBlobEncoding> encoding;
+			ArcPtr<IDxcBlobEncoding> encoding;
 			std::string include_file = NormalizePath(ToString(pFilename));
 			if (!FileExists(include_file))
 			{
@@ -190,10 +189,10 @@ namespace adria
 		bool CompileShader(ShaderDesc const& desc, ShaderCompileOutput& output)
 		{
 			uint32_t code_page = CP_UTF8; 
-			ComPtr<IDxcBlobEncoding> source_blob;
+			ArcPtr<IDxcBlobEncoding> source_blob;
 
 			std::wstring shader_source = ToWideString(desc.file);
-			HRESULT hr = library->CreateBlobFromFile(shader_source.data(), &code_page, &source_blob);
+			HRESULT hr = library->CreateBlobFromFile(shader_source.data(), &code_page, source_blob.GetAddressOf());
 			BREAK_IF_FAILED(hr);
 
 			std::wstring name = ToWideString(GetFilenameWithoutExtension(desc.file));
@@ -252,14 +251,14 @@ namespace adria
 			source_buffer.Ptr = source_blob->GetBufferPointer();
 			source_buffer.Size = source_blob->GetBufferSize();
 			source_buffer.Encoding = 0;
-			ComPtr<IDxcResult> result;
+			ArcPtr<IDxcResult> result;
 			hr = compiler->Compile(
 				&source_buffer,
 				compile_args.data(), (uint32)compile_args.size(),
 				&custom_include_handler,
 				IID_PPV_ARGS(result.GetAddressOf()));
 
-			ComPtr<IDxcBlobUtf8> errors;
+			ArcPtr<IDxcBlobUtf8> errors;
 			if (SUCCEEDED(result->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(errors.GetAddressOf()), nullptr)))
 			{
 				if (errors && errors->GetStringLength() > 0)
@@ -268,7 +267,7 @@ namespace adria
 					return false;
 				}
 			}
-			ComPtr<IDxcBlob> _blob;
+			ArcPtr<IDxcBlob> _blob;
 			BREAK_IF_FAILED(result->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(_blob.GetAddressOf()), nullptr));
 			output.shader.SetDesc(desc);
 			output.shader.SetBytecode(_blob->GetBufferPointer(), _blob->GetBufferSize());
@@ -279,15 +278,15 @@ namespace adria
 		void ReadBlobFromFile(std::wstring_view filename, ShaderBlob& blob)
 		{
 			uint32_t code_page = CP_UTF8;
-			ComPtr<IDxcBlobEncoding> source_blob;
-			HRESULT hr = library->CreateBlobFromFile(filename.data(), &code_page, &source_blob);
+			ArcPtr<IDxcBlobEncoding> source_blob;
+			HRESULT hr = library->CreateBlobFromFile(filename.data(), &code_page, source_blob.GetAddressOf());
 			BREAK_IF_FAILED(hr);
 			blob.resize(source_blob->GetBufferSize());
 			memcpy(blob.data(), source_blob->GetBufferPointer(), source_blob->GetBufferSize());
 		}
 		void CreateInputLayout(Shader const& vs_blob, InputLayout& input_layout)
 		{
-			ComPtr<IDxcContainerReflection> reflection;
+			ArcPtr<IDxcContainerReflection> reflection;
 			HRESULT hr = DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(reflection.GetAddressOf()));
 			ReflectionBlob my_blob{ vs_blob.GetPointer(), vs_blob.GetLength() };
 			BREAK_IF_FAILED(hr);
@@ -300,7 +299,7 @@ namespace adria
 			BREAK_IF_FAILED(reflection->FindFirstPartKind(MAKEFOURCC('D', 'X', 'I', 'L'), &part_index));
 #undef MAKEFOURCC
 
-			ComPtr<ID3D12ShaderReflection> vertex_shader_reflection;
+			ArcPtr<ID3D12ShaderReflection> vertex_shader_reflection;
 			BREAK_IF_FAILED(reflection->GetPartReflection(part_index, IID_PPV_ARGS(vertex_shader_reflection.GetAddressOf())));
 
 			D3D12_SHADER_DESC shader_desc;

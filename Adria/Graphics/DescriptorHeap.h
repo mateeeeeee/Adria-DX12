@@ -1,9 +1,9 @@
 #pragma once
 #include <d3d12.h>
-#include <wrl.h>
 #include <mutex>
 #include <vector>
 #include "../Core/Macros.h"
+#include "../Utilities/AutoRefCountPtr.h"
 
 namespace adria
 {
@@ -74,7 +74,7 @@ namespace adria
 		ID3D12DescriptorHeap* Heap() const;
 
 	protected:
-		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>	heap;
+		ArcPtr<ID3D12DescriptorHeap>	heap;
 		D3D12_DESCRIPTOR_HEAP_DESC                      desc;
 		D3D12_CPU_DESCRIPTOR_HANDLE                     hCPU;
 		D3D12_GPU_DESCRIPTOR_HANDLE                     hGPU;

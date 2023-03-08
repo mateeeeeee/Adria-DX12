@@ -1,6 +1,5 @@
 #pragma once
 #include <d3d12.h>
-#include <wrl.h>
 #include <vector>
 #include <array>
 #include <string>
@@ -50,7 +49,7 @@ namespace adria
 
 	private:
 		GraphicsDevice* gfx = nullptr;
-		Microsoft::WRL::ComPtr<ID3D12QueryHeap> query_heap;
+		ArcPtr<ID3D12QueryHeap> query_heap;
 		std::unique_ptr<Buffer> query_readback_buffer;
 
 		std::array<QueryData, MAX_PROFILES> query_data;

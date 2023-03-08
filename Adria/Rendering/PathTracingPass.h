@@ -20,7 +20,7 @@ namespace adria
 		void Reset();
 	private:
 		GraphicsDevice* gfx;
-		Microsoft::WRL::ComPtr<ID3D12StateObject> path_tracing;
+		ArcPtr<ID3D12StateObject> path_tracing;
 		uint32 width, height;
 		bool is_supported;
 		std::unique_ptr<Texture> accumulation_texture = nullptr;

@@ -96,11 +96,11 @@ namespace adria
 
 		CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC signature_desc;
 		signature_desc.Init_1_1(2, root_parameters, 1, &sampler_desc);
-		Microsoft::WRL::ComPtr<ID3DBlob> signature;
-		Microsoft::WRL::ComPtr<ID3DBlob> error;
-		HRESULT hr = D3DX12SerializeVersionedRootSignature(&signature_desc, D3D_ROOT_SIGNATURE_VERSION_1_1, &signature, &error);
+		ArcPtr<ID3DBlob> signature;
+		ArcPtr<ID3DBlob> error;
+		HRESULT hr = D3DX12SerializeVersionedRootSignature(&signature_desc, D3D_ROOT_SIGNATURE_VERSION_1_1, signature.GetAddressOf(), error.GetAddressOf());
 		if (error) ADRIA_LOG(ERROR, (char const*)error->GetBufferPointer());
-		BREAK_IF_FAILED(gfx->GetDevice()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&equirect_root_signature)));
+		BREAK_IF_FAILED(gfx->GetDevice()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(equirect_root_signature.GetAddressOf())));
 
 		ShaderBlob equirect_cs_shader;
 		ShaderCompiler::ReadBlobFromFile(L"Resources/Compiled Shaders/Equirect2cubeCS.cso", equirect_cs_shader);
@@ -108,7 +108,7 @@ namespace adria
 		D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc{};
 		pso_desc.pRootSignature = equirect_root_signature.Get();
 		pso_desc.CS = D3D12_SHADER_BYTECODE{ .pShaderBytecode = equirect_cs_shader.data(), .BytecodeLength = equirect_cs_shader.size() };
-		BREAK_IF_FAILED(gfx->GetDevice()->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(&equirect_pso)));
+		BREAK_IF_FAILED(gfx->GetDevice()->CreateComputePipelineState(&pso_desc, IID_PPV_ARGS(equirect_pso.GetAddressOf())));
 	}
 
 	void TextureManager::Destroy()
@@ -168,7 +168,7 @@ namespace adria
             if (format == TextureFormat::eDDS)
             {
                 loaded_textures.insert({ name, handle });
-                Microsoft::WRL::ComPtr<ID3D12Resource> cubemap = nullptr;
+                ArcPtr<ID3D12Resource> cubemap = nullptr;
                 std::unique_ptr<uint8_t[]> decoded_data;
                 std::vector<TextureInitialData> subresources;
 
@@ -364,7 +364,7 @@ namespace adria
             auto cmd_list = gfx->GetDefaultCommandList();
             auto allocator = gfx->GetAllocator();
 
-            Microsoft::WRL::ComPtr<ID3D12Resource> tex2d = nullptr;
+            ArcPtr<ID3D12Resource> tex2d = nullptr;
             std::unique_ptr<uint8_t[]> decoded_data;
             std::vector<TextureInitialData> subresources;
 			BREAK_IF_FAILED(
@@ -405,13 +405,13 @@ namespace adria
             ++handle;
             loaded_textures.insert({ texture_path, handle });
 
-            Microsoft::WRL::ComPtr<ID3D12Resource> d3d12_tex = nullptr;
+            ArcPtr<ID3D12Resource> d3d12_tex = nullptr;
             std::unique_ptr<uint8_t[]> decoded_data;
             TextureInitialData subresource{};
             if (mipmaps)
             {
                 BREAK_IF_FAILED(DirectX::LoadWICTextureFromFileEx(device, texture_path.data(), 0, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
-                    DirectX::WIC_LOADER_MIP_RESERVE | DirectX::WIC_LOADER_IGNORE_SRGB | DirectX::WIC_LOADER_FORCE_RGBA32, &d3d12_tex,
+                    DirectX::WIC_LOADER_MIP_RESERVE | DirectX::WIC_LOADER_IGNORE_SRGB | DirectX::WIC_LOADER_FORCE_RGBA32, d3d12_tex.GetAddressOf(),
                     decoded_data, subresource));
             }
             else

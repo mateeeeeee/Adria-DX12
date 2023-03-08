@@ -6,7 +6,6 @@
 #include "../Utilities/StringUtil.h"
 #include <algorithm>
 #include <d3d12.h>
-#include <wrl.h> 
 #include "pix3.h"
 
 #if GPU_MULTITHREADED

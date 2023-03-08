@@ -1,6 +1,5 @@
 #pragma once
 #include  <d3d12.h>
-#include <wrl.h>
 #include "Enums.h"
 #include "../Graphics/GraphicsStates.h"
 #include "../Graphics/Shader.h"
@@ -41,7 +40,7 @@ namespace adria
 
 	private:
 		GraphicsDevice* gfx;
-		Microsoft::WRL::ComPtr<ID3D12PipelineState> pso;
+		ArcPtr<ID3D12PipelineState> pso;
 		GraphicsPipelineStateDesc desc;
 		DelegateHandle event_handle;
 	private:
@@ -65,7 +64,7 @@ namespace adria
 
 	private:
 		GraphicsDevice* gfx;
-		Microsoft::WRL::ComPtr<ID3D12PipelineState> pso;
+		ArcPtr<ID3D12PipelineState> pso;
 		ComputePipelineStateDesc desc;
 		DelegateHandle event_handle;
 

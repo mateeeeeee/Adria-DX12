@@ -44,14 +44,14 @@ namespace adria
 			desc.pArgumentDescs = &argument_desc;
 			desc.ByteStride = IndirectCommandTraits<type>::Stride;
 			argument_desc.Type = IndirectCommandTraits<type>::ArgumentType;
-			BREAK_IF_FAILED(gfx->GetDevice()->CreateCommandSignature(&desc, nullptr, IID_PPV_ARGS(&cmd_signature)));
+			BREAK_IF_FAILED(gfx->GetDevice()->CreateCommandSignature(&desc, nullptr, IID_PPV_ARGS(cmd_signature.GetAddressOf())));
 		}
 		operator ID3D12CommandSignature* () const
 		{
 			return cmd_signature.Get();
 		}
 	private:
-		Microsoft::WRL::ComPtr<ID3D12CommandSignature> cmd_signature;
+		ArcPtr<ID3D12CommandSignature> cmd_signature;
 	};
 
 	using DrawIndirectSignature = IndirectCommandSignature<EIndirectCommandType::Draw>;

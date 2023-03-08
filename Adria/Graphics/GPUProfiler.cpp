@@ -12,7 +12,7 @@ namespace adria
 		heap_desc.Count = MAX_PROFILES * 2;
 		heap_desc.NodeMask = 0;
 		heap_desc.Type = D3D12_QUERY_HEAP_TYPE_TIMESTAMP;
-		gfx->GetDevice()->CreateQueryHeap(&heap_desc, IID_PPV_ARGS(&query_heap));
+		gfx->GetDevice()->CreateQueryHeap(&heap_desc, IID_PPV_ARGS(query_heap.GetAddressOf()));
 	}
 
 	void GPUProfiler::Destroy()

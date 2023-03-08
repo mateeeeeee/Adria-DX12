@@ -1,7 +1,6 @@
 #pragma once
 #include <memory>
 #include <d3d12.h>
-#include <wrl.h>
 #include "Enums.h"
 #include "RendererSettings.h"
 #include "BlurPass.h"

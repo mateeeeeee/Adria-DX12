@@ -21,7 +21,7 @@ namespace adria
 	private:
 		GraphicsDevice* gfx;
 		BlurPass blur_pass;
-		Microsoft::WRL::ComPtr<ID3D12StateObject> ray_traced_ambient_occlusion;
+		ArcPtr<ID3D12StateObject> ray_traced_ambient_occlusion;
 		uint32 width, height;
 		bool is_supported;
 		float ao_radius = 2.0f;

@@ -299,7 +299,7 @@ namespace adria
 				resource_state,
 				clear_value_ptr,
 				&alloc,
-				IID_PPV_ARGS(&resource)
+				IID_PPV_ARGS(resource.GetAddressOf())
 			);
 			BREAK_IF_FAILED(hr);
 			allocation.reset(alloc);
@@ -472,7 +472,7 @@ namespace adria
 		}
 	private:
 		GraphicsDevice* gfx;
-		Microsoft::WRL::ComPtr<ID3D12Resource> resource;
+		ArcPtr<ID3D12Resource> resource;
 		TextureDesc desc;
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> srvs;
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> uavs;
@@ -490,8 +490,7 @@ namespace adria
 		[[maybe_unused]] size_t CreateSubresource(ESubresourceType view_type, TextureSubresourceDesc const& view_desc)
 		{
 			EFormat format = GetDesc().format;
-			Microsoft::WRL::ComPtr<ID3D12Device> device;
-			resource->GetDevice(IID_PPV_ARGS(device.GetAddressOf()));
+			ID3D12Device* device = gfx->GetDevice();
 
 			switch (view_type)
 			{

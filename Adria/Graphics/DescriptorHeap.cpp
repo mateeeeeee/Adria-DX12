@@ -11,7 +11,7 @@ namespace adria
 		hGPU = pExistingHeap->GetGPUDescriptorHandleForHeapStart();
 		desc = pExistingHeap->GetDesc();
 
-		Microsoft::WRL::ComPtr<ID3D12Device> device;
+		ArcPtr<ID3D12Device> device;
 		pExistingHeap->GetDevice(IID_PPV_ARGS(device.GetAddressOf()));
 
 		descriptor_handle_size = device->GetDescriptorHandleIncrementSize(desc.Type);
