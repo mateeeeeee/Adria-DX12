@@ -20,7 +20,7 @@ namespace adria
 
 	void TiledDeferredLightingPass::AddPass(RenderGraph& rendergraph)
 	{
-		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<FrameBlackboardData>();
 
 		struct TiledDeferredLightingPassData
 		{

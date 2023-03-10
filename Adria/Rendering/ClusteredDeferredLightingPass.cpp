@@ -34,7 +34,7 @@ namespace adria
 
 	void ClusteredDeferredLightingPass::AddPass(RenderGraph& rendergraph, bool recreate_clusters)
 	{
-		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<FrameBlackboardData>();
 
 		rendergraph.ImportBuffer(RG_RES_NAME(ClustersBuffer), &clusters);
 		rendergraph.ImportBuffer(RG_RES_NAME(LightCounter), &light_counter);

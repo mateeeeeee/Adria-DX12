@@ -2,6 +2,7 @@
 #include "BlackboardData.h"
 #include "PSOCache.h" 
 
+#include "../Graphics/GraphicsCommon.h"
 #include "../Editor/GUICommand.h"
 #include "../RenderGraph/RenderGraph.h"
 
@@ -13,7 +14,7 @@ namespace adria
 
 	void ToneMapPass::AddPass(RenderGraph& rg, RGResourceName hdr_src)
 	{
-		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
 		struct ToneMapPassData
 		{
 			RGTextureReadOnlyId  hdr_input;
@@ -37,7 +38,8 @@ namespace adria
 
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(3);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.hdr_input), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), data.exposure.IsValid() ? ctx.GetReadOnlyTexture(data.exposure) : global_data.white_srv_texture2d, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), 
+					data.exposure.IsValid() ? ctx.GetReadOnlyTexture(data.exposure) : gfxcommon::GetCommonTexture(ECommonTextureType::WhiteTexture2D)->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				struct TonemapConstants
 				{
@@ -63,7 +65,7 @@ namespace adria
 
 	void ToneMapPass::AddPass(RenderGraph& rg, RGResourceName hdr_src, RGResourceName output)
 	{
-		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
 		ERGPassFlags flags = ERGPassFlags::None;
 
 		struct ToneMapPassData
@@ -95,7 +97,8 @@ namespace adria
 
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(3);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.hdr_input), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), data.exposure.IsValid() ? ctx.GetReadOnlyTexture(data.exposure) : global_data.white_srv_texture2d, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), 
+					data.exposure.IsValid() ? ctx.GetReadOnlyTexture(data.exposure) : gfxcommon::GetCommonTexture(ECommonTextureType::WhiteTexture2D)->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				struct TonemapConstants
 				{

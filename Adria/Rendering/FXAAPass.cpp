@@ -12,7 +12,7 @@ namespace adria
 
 	void FXAAPass::AddPass(RenderGraph& rg, RGResourceName input)
 	{
-		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
 		struct FXAAPassData
 		{
 			RGTextureReadWriteId	output;

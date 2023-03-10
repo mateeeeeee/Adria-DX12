@@ -15,7 +15,7 @@ namespace adria
 
 	void MotionVectorsPass::AddPass(RenderGraph& rg)
 	{
-		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
 		struct MotionVectorsPassData
 		{
 			RGTextureReadOnlyId depth;

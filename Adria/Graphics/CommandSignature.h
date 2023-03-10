@@ -54,7 +54,7 @@ namespace adria
 		ArcPtr<ID3D12CommandSignature> cmd_signature;
 	};
 
-	using DrawIndirectSignature = IndirectCommandSignature<EIndirectCommandType::Draw>;
-	using DrawIndexedIndirectSignature = IndirectCommandSignature<EIndirectCommandType::DrawIndexed>;
-	using DispatchIndirectSignature = IndirectCommandSignature<EIndirectCommandType::Dispatch>;
+	using DrawIndirectSignature			= IndirectCommandSignature<EIndirectCommandType::Draw>;
+	using DrawIndexedIndirectSignature	= IndirectCommandSignature<EIndirectCommandType::DrawIndexed>;
+	using DispatchIndirectSignature		= IndirectCommandSignature<EIndirectCommandType::Dispatch>;
 }

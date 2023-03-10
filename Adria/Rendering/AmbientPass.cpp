@@ -4,6 +4,7 @@
 #include "PSOCache.h" 
 
 #include "../RenderGraph/RenderGraph.h"
+#include "../Graphics/GraphicsCommon.h"
 #include "../Math/Packing.h"
 #include "../Editor/GUICommand.h"
 
@@ -26,7 +27,7 @@ namespace adria
 			RGTextureReadWriteId output;
 		};
 
-		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<FrameBlackboardData>();
 		rendergraph.AddPass<AmbientPassData>("Ambient Pass",
 			[=](AmbientPassData& data, RenderGraphBuilder& builder)
 			{
@@ -54,7 +55,7 @@ namespace adria
 
 				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { context.GetReadOnlyTexture(data.gbuffer_normal),
 					context.GetReadOnlyTexture(data.gbuffer_albedo), context.GetReadOnlyTexture(data.gbuffer_emissive), context.GetReadOnlyTexture(data.depth_stencil),
-					data.ambient_occlusion.IsValid() ? context.GetReadOnlyTexture(data.ambient_occlusion) : global_data.null_srv_texture2d,
+					data.ambient_occlusion.IsValid() ? context.GetReadOnlyTexture(data.ambient_occlusion) : gfxcommon::GetCommonView(ECommonViewType::NullTexture2D_SRV), 
 					context.GetReadWriteTexture(data.output)};
 				uint32 src_range_sizes[] = { 1,1,1,1,1,1 };
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));

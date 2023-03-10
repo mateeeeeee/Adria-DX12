@@ -7,6 +7,7 @@
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/Texture.h"
 #include "../Graphics/TextureManager.h"
+#include "../Graphics/GraphicsCommon.h"
 #include "../Editor/GUICommand.h"
 #include "../Utilities/Random.h"
 #include "../Math/Constants.h"
@@ -24,7 +25,7 @@ namespace adria
 	void OceanRenderer::AddPasses(RenderGraph& rendergraph)
 	{
 		if (reg.view<Ocean>().size() == 0) return;
-		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<FrameBlackboardData>();
 
 		if (ocean_color_changed)
 		{
@@ -330,7 +331,7 @@ namespace adria
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 				auto skyboxes = reg.view<Skybox>();
-				D3D12_CPU_DESCRIPTOR_HANDLE skybox_handle = global_data.null_srv_texturecube;
+				D3D12_CPU_DESCRIPTOR_HANDLE skybox_handle = gfxcommon::GetCommonView(ECommonViewType::NullTextureCube_SRV);
 				for (auto skybox : skyboxes)
 				{
 					auto const& _skybox = skyboxes.get<Skybox>(skybox);

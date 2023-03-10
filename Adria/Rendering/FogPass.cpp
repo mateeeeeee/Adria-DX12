@@ -17,7 +17,7 @@ namespace adria
 
 	RGResourceName FogPass::AddPass(RenderGraph& rg, RGResourceName input)
 	{
-		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
 		RGResourceName last_resource = input;
 		struct FogPassData
 		{

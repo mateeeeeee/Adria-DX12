@@ -82,7 +82,6 @@ namespace adria
 
 		//resources
 		std::unique_ptr<Texture> final_texture;
-		std::unique_ptr<Texture> white_default_texture;
 
 		//Persistent constant buffers
 		ConstantBuffer<FrameCBuffer> frame_cbuffer;
@@ -135,7 +134,6 @@ namespace adria
 		float					 wind_speed = 10.0f;
 		DirectX::XMFLOAT3		 sun_direction;
 
-		std::unique_ptr<DescriptorHeap> null_heap;
 		bool update_picking_data = false;
 		PickingData picking_data;
 
@@ -143,7 +141,6 @@ namespace adria
 
 	private:
 		void CheckDeviceCapabilities();
-		void CreateNullHeap();
 		void CreateSizeDependentResources();
 		void CreateGlobalBuffers();
 

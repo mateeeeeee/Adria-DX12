@@ -11,6 +11,7 @@
 #include "../Graphics/Buffer.h"
 #include "../Graphics/Texture.h"
 #include "../Graphics/TextureManager.h"
+#include "../Graphics/GraphicsCommon.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Utilities/Random.h"
 #include "../Utilities/hwbp.h"
@@ -251,15 +252,6 @@ namespace adria
 		float  alpha_cutoff;
 	};
 
-	enum ENullHeapSlot
-	{
-		NULL_HEAP_SLOT_TEXTURE2D,
-		NULL_HEAP_SLOT_TEXTURECUBE,
-		NULL_HEAP_SLOT_TEXTURE2DARRAY,
-		NULL_HEAP_SLOT_RWTEXTURE2D,
-		NULL_HEAP_SIZE
-	};
-
 	Renderer::Renderer(entt::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx), 
 		accel_structure(gfx), camera(nullptr), width(width), height(height),
 		backbuffer_count(gfx->BackbufferCount()), backbuffer_index(gfx->BackbufferIndex()), final_texture(nullptr),
@@ -275,7 +267,6 @@ namespace adria
 	{
 		CheckDeviceCapabilities();
 		GPUProfiler::Get().Init(gfx);
-		CreateNullHeap();
 		CreateSizeDependentResources();
 	}
 
@@ -284,6 +275,7 @@ namespace adria
 		GPUProfiler::Get().Destroy();
 		gfx->WaitForGPU();
 		reg.clear();
+		gfxcommon::Destroy();
 	}
 	void Renderer::NewFrame(Camera const* _camera)
 	{
@@ -308,7 +300,7 @@ namespace adria
 
 		RenderGraph render_graph(resource_pool);
 		RGBlackboard& rg_blackboard = render_graph.GetBlackboard();
-		GlobalBlackboardData global_data{};
+		FrameBlackboardData global_data{};
 		{
 			global_data.camera_position = camera->Position();
 			global_data.camera_view = camera->View();
@@ -316,13 +308,8 @@ namespace adria
 			global_data.camera_viewproj = camera->ViewProj();
 			global_data.camera_fov = camera->Fov();
 			global_data.frame_cbuffer_address = frame_cbuffer.BufferLocation(backbuffer_index);
-			global_data.null_srv_texture2d = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURE2D);
-			global_data.null_uav_texture2d = null_heap->GetHandle(NULL_HEAP_SLOT_RWTEXTURE2D);
-			global_data.null_srv_texture2darray = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURE2DARRAY);
-			global_data.null_srv_texturecube = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURECUBE);
-			global_data.white_srv_texture2d = white_default_texture->GetSRV();
 		}
-		rg_blackboard.Add<GlobalBlackboardData>(std::move(global_data));
+		rg_blackboard.Add<FrameBlackboardData>(std::move(global_data));
 
 		if (IsRayTracingSupported())
 		{
@@ -381,22 +368,7 @@ namespace adria
 		aabb_pass.OnSceneInitialized(gfx);
 		CreateGlobalBuffers();
 
-		TextureDesc desc{};
-		desc.width = 1;
-		desc.height = 1;
-		desc.format = EFormat::R32_FLOAT;
-		desc.bind_flags = EBindFlag::ShaderResource;
-		desc.initial_state = EResourceState::PixelShaderResource;
-		desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
-
-		float v = 1.0f;
-		TextureInitialData init_data{};
-		init_data.pData = &v;
-		init_data.RowPitch = sizeof(float);
-		init_data.SlicePitch = 0;
-		white_default_texture = std::make_unique<Texture>(gfx, desc, &init_data);
-		white_default_texture->CreateSRV();
-
+		gfxcommon::Initialize(gfx);
 		TextureManager::Get().OnSceneInitialized();
 	}
 	void Renderer::OnRightMouseClicked(int32 x, int32 y)
@@ -411,30 +383,7 @@ namespace adria
 		HRESULT hr = device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &features5, sizeof(D3D12_FEATURE_DATA_D3D12_OPTIONS5));
 		is_ray_tracing_supported = features5.RaytracingTier != D3D12_RAYTRACING_TIER_NOT_SUPPORTED;
 	}
-	void Renderer::CreateNullHeap()
-	{
-		ID3D12Device* device = gfx->GetDevice();
-		null_heap = std::make_unique<DescriptorHeap>(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, NULL_HEAP_SIZE);
-		D3D12_SHADER_RESOURCE_VIEW_DESC null_srv_desc{};
-		null_srv_desc.Texture2D.MostDetailedMip = 0;
-		null_srv_desc.Texture2D.MipLevels = -1;
-		null_srv_desc.Texture2D.ResourceMinLODClamp = 0.0f;
 
-		null_srv_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-		null_srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		null_srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-
-		device->CreateShaderResourceView(nullptr, &null_srv_desc, null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURE2D));
-		null_srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
-		device->CreateShaderResourceView(nullptr, &null_srv_desc, null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURECUBE));
-		null_srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
-		device->CreateShaderResourceView(nullptr, &null_srv_desc, null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURE2DARRAY));
-
-		D3D12_UNORDERED_ACCESS_VIEW_DESC null_uav_desc{};
-		null_uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
-		null_uav_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-		device->CreateUnorderedAccessView(nullptr, nullptr, &null_uav_desc, null_heap->GetHandle(NULL_HEAP_SLOT_RWTEXTURE2D));
-	}
 	void Renderer::CreateSizeDependentResources()
 	{
 		TextureDesc ldr_desc{};
@@ -502,7 +451,7 @@ namespace adria
 
 	void Renderer::UpdateEnvironmentMap()
 	{
-		D3D12_CPU_DESCRIPTOR_HANDLE env_map = null_heap->GetHandle(NULL_HEAP_SLOT_TEXTURECUBE);
+		D3D12_CPU_DESCRIPTOR_HANDLE env_map = gfxcommon::GetCommonView(ECommonViewType::NullTextureCube_SRV); 
 		if (sky_pass.GetSkyType() == ESkyType::Skybox)
 		{
 			auto skybox_entities = reg.view<Skybox>();

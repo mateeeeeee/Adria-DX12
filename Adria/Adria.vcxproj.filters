@@ -380,7 +380,12 @@
     <ClCompile Include="..\ThirdParty\meshoptimizer\simplifier.cpp">
       <Filter>meshoptimizer</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\GeometryBufferCache.cpp" />
+    <ClCompile Include="Graphics\GraphicsCommon.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\GeometryBufferCache.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -850,6 +855,12 @@
     </ClInclude>
     <ClInclude Include="..\ThirdParty\meshoptimizer\meshoptimizer.h">
       <Filter>meshoptimizer</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GraphicsCommon.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\AutoRefCountPtr.h">
+      <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

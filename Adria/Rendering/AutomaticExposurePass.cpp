@@ -46,7 +46,7 @@ namespace adria
 			RGTextureReadOnlyId scene_texture;
 			RGBufferReadWriteId histogram_buffer;
 		};
-		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
 		rg.AddPass<BuildHistogramData>("Build Histogram Pass",
 			[=](BuildHistogramData& data, RenderGraphBuilder& builder)
 			{

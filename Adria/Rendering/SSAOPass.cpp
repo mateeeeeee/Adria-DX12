@@ -40,7 +40,7 @@ namespace adria
 			RGTextureReadWriteId output_uav;
 		};
 
-		GlobalBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<FrameBlackboardData>();
 		rendergraph.AddPass<SSAOPassData>("SSAO Pass",
 			[=](SSAOPassData& data, RenderGraphBuilder& builder)
 			{

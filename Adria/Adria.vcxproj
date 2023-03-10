@@ -195,6 +195,7 @@
     <ClCompile Include="Graphics\D3D12MemAlloc.cpp" />
     <ClCompile Include="Graphics\DDSTextureLoader12.cpp" />
     <ClCompile Include="Graphics\DescriptorHeap.cpp" />
+    <ClCompile Include="Graphics\GraphicsCommon.cpp" />
     <ClCompile Include="Graphics\GraphicsDeviceDX12.cpp" />
     <ClCompile Include="Graphics\GraphicsStates.cpp" />
     <ClCompile Include="Graphics\LinearOnlineDescriptorAllocator.cpp" />
@@ -308,6 +309,7 @@
     <ClInclude Include="Graphics\DWParam.h" />
     <ClInclude Include="Graphics\DynamicAllocation.h" />
     <ClInclude Include="Graphics\GpuMacros.h" />
+    <ClInclude Include="Graphics\GraphicsCommon.h" />
     <ClInclude Include="Graphics\GraphicsDeviceDX12.h" />
     <ClInclude Include="Graphics\GraphicsStates.h" />
     <ClInclude Include="Graphics\InputLayout.h" />

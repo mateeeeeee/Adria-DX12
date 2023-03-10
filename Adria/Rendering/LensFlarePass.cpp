@@ -19,7 +19,7 @@ namespace adria
 
 	void LensFlarePass::AddPass(RenderGraph& rg, Light const& light)
 	{
-		GlobalBlackboardData const& global_data = rg.GetBlackboard().GetChecked<GlobalBlackboardData>();
+		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
 
 		struct LensFlarePassData
 		{
