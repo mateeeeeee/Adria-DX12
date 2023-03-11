@@ -267,11 +267,11 @@ namespace adria
 				compute_pso_desc.CS = CS_Blur_Vertical;
 				compute_pso_map[EPipelineState::Blur_Vertical] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.CS = CS_BloomExtract;
-				compute_pso_map[EPipelineState::BloomExtract] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+				compute_pso_desc.CS = CS_BloomDownsample;
+				compute_pso_map[EPipelineState::BloomDownsample] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.CS = CS_BloomCombine;
-				compute_pso_map[EPipelineState::BloomCombine] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+				compute_pso_desc.CS = CS_BloomUpsample;
+				compute_pso_map[EPipelineState::BloomUpsample] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
 				compute_pso_desc.CS = CS_GenerateMips;
 				compute_pso_map[EPipelineState::GenerateMips] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);

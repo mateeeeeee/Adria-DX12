@@ -1,3 +1,4 @@
+#include <format>
 #include "BloomPass.h"
 #include "ConstantBuffers.h"
 #include "Components.h"
@@ -9,33 +10,72 @@
 
 namespace adria
 {
-	BloomPass::BloomPass(uint32 w, uint32 h) : width(w), height(h), generate_mips_pass(w, h)
+	BloomPass::BloomPass(uint32 w, uint32 h) : width(w), height(h)
 	{}
 
-	RGResourceName BloomPass::AddPass(RenderGraph& rg, RGResourceName input)
+	RGResourceName BloomPass::AddPass(RenderGraph& rg, RGResourceName color_texture)
 	{
+		uint32 pass_count = (uint32)std::floor(log2f((float)std::max(width, height))) - 3;
+		std::vector<RGResourceName> downsample_mips(pass_count);
+		downsample_mips[0] = DownsamplePass(rg, color_texture, 1);
+		for (uint32 i = 1; i < pass_count; ++i)
+		{
+			downsample_mips[i] = DownsamplePass(rg, downsample_mips[i - 1], i + 1);
+		}
+
+		std::vector<RGResourceName> upsample_mips(pass_count);
+		upsample_mips[pass_count - 1] = downsample_mips[pass_count - 1];
+		
+		for (int32 i = pass_count - 2; i >= 0; --i)
+		{
+			upsample_mips[i] = UpsamplePass(rg, downsample_mips[i], upsample_mips[i + 1], i);
+		}
+
+		AddGUI([&]() 
+			{
+				if (ImGui::TreeNodeEx("Bloom", 0))
+				{
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
+			}
+		);
+		return upsample_mips.front();
+	}
+
+	void BloomPass::OnResize(uint32 w, uint32 h)
+	{
+		width = w, height = h;
+	}
+
+	RGResourceName BloomPass::DownsamplePass(RenderGraph& rg, RGResourceName input, uint32 pass_idx)
+	{
+		uint32 target_dim_x = std::max(1u, width >> pass_idx);
+		uint32 target_dim_y = std::max(1u, height >> pass_idx);
+
+		RGResourceName output = RG_RES_NAME_IDX(BloomDownsample, pass_idx);
 		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
-		RGResourceName last_resource = input;
-		struct BloomExtractPassData
+
+		struct BloomDownsamplePassData
 		{
 			RGTextureReadWriteId output;
-			RGTextureReadOnlyId input;
+			RGTextureReadOnlyId  input;
 		};
 
-		rg.AddPass<BloomExtractPassData>("BloomExtract Pass",
-			[=](BloomExtractPassData& data, RenderGraphBuilder& builder)
+		std::string pass_name = std::format("Bloom Downsample Pass {}", pass_idx);
+		rg.AddPass<BloomDownsamplePassData>(pass_name.c_str(),
+			[=](BloomDownsamplePassData& data, RenderGraphBuilder& builder)
 			{
-				RGTextureDesc bloom_extract_desc{};
-				bloom_extract_desc.width = width;
-				bloom_extract_desc.height = height;
-				bloom_extract_desc.mip_levels = 5;
-				bloom_extract_desc.format = EFormat::R16G16B16A16_FLOAT;
+				data.input = builder.ReadTexture(input, ReadAccess_NonPixelShader);
 
-				builder.DeclareTexture(RG_RES_NAME(BloomExtract), bloom_extract_desc);
-				data.output = builder.WriteTexture(RG_RES_NAME(BloomExtract));
-				data.input = builder.ReadTexture(last_resource, ReadAccess_NonPixelShader);
+				RGTextureDesc desc{};
+				desc.width = target_dim_x;
+				desc.height = target_dim_y;
+				desc.format = EFormat::R16G16B16A16_FLOAT;
+				builder.DeclareTexture(output, desc); 
+				data.output = builder.WriteTexture(output);
 			},
-			[=](BloomExtractPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](BloomDownsamplePassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -44,92 +84,93 @@ namespace adria
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.input), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-				struct BloomExtractConstants
+				struct BloomDownsampleConstants
 				{
-					uint32 input_idx;
-					uint32 output_idx;
-
-					float threshold;
-					float scale;
+					float    target_dims_inv_x;
+					float    target_dims_inv_y;
+					uint32   source_idx;
+					uint32   target_idx;
 				} constants =
 				{
-					.input_idx = i, .output_idx = i + 1,
-					.threshold = params.bloom_threshold, .scale = params.bloom_scale
+					.target_dims_inv_x = 1.0f / target_dim_x,
+					.target_dims_inv_y = 1.0f / target_dim_y,
+					.source_idx = i,
+					.target_idx = i + 1
 				};
 
-				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::BloomExtract));
+				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::BloomDownsample));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 4, &constants, 0);
-				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
-			}, ERGPassType::Compute, ERGPassFlags::None);
+				cmd_list->Dispatch((uint32)std::ceil(target_dim_x / 8.0f), (uint32)std::ceil(target_dim_y / 8.0f), 1);
+			}, ERGPassType::Compute, ERGPassFlags::ForceNoCull);
 
-		generate_mips_pass.AddPass(rg, RG_RES_NAME(BloomExtract));
+		return output;
+	}
 
-		struct BloomCombinePassData
+	RGResourceName BloomPass::UpsamplePass(RenderGraph& rg, RGResourceName input_high, RGResourceName input_low, uint32 pass_idx)
+	{
+		struct BloomUpsamplePassData
 		{
 			RGTextureReadWriteId output;
-			RGTextureReadOnlyId  input;
-			RGTextureReadOnlyId  extract;
+			RGTextureReadOnlyId  input_low;
+			RGTextureReadOnlyId  input_high;
 		};
-		rg.AddPass<BloomCombinePassData>("BloomCombine Pass",
-			[=](BloomCombinePassData& data, RenderGraphBuilder& builder)
-			{
-				RGTextureDesc bloom_output_desc{};
-				bloom_output_desc.width = width;
-				bloom_output_desc.height = height;
-				bloom_output_desc.format = EFormat::R16G16B16A16_FLOAT;
 
-				builder.DeclareTexture(RG_RES_NAME(BloomOutput), bloom_output_desc);
-				data.output = builder.WriteTexture(RG_RES_NAME(BloomOutput));
-				data.extract = builder.ReadTexture(RG_RES_NAME(BloomExtract), ReadAccess_NonPixelShader);
-				data.input = builder.ReadTexture(last_resource, ReadAccess_NonPixelShader);
+		uint32 target_dim_x = std::max(1u, width >> pass_idx);
+		uint32 target_dim_y = std::max(1u, height >> pass_idx);
+
+		RGResourceName output = RG_RES_NAME_IDX(BloomUpsample, pass_idx);
+		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
+
+		std::string pass_name = std::format("Bloom Upsample Pass {}", pass_idx);
+		rg.AddPass<BloomUpsamplePassData>(pass_name.c_str(),
+			[=](BloomUpsamplePassData& data, RenderGraphBuilder& builder)
+			{
+				data.input_high = builder.ReadTexture(input_high, ReadAccess_NonPixelShader);
+				data.input_low  = builder.ReadTexture(input_low,  ReadAccess_NonPixelShader);
+
+				RGTextureDesc desc{};
+				desc.width = target_dim_x;
+				desc.height = target_dim_y;
+				desc.format = EFormat::R16G16B16A16_FLOAT;
+				builder.DeclareTexture(output, desc);
+				data.output = builder.WriteTexture(output);
 			},
-			[=](BloomCombinePassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](BloomUpsamplePassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(3);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.input), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadOnlyTexture(data.extract), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.input_low), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadOnlyTexture(data.input_high), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-				struct BloomCombineConstants
+				struct BloomUpsampleConstants
 				{
-					uint32 input_idx;
-					uint32 output_idx;
-					uint32 bloom_idx;
+					float source_dims_inv_x;
+					float source_dims_inv_y;
+					uint32   low_input_idx;
+					uint32   high_input_idx;
+					uint32   output_idx;
 				} constants =
 				{
-					.input_idx = i, .output_idx = i + 1, .bloom_idx = i + 2
+					.source_dims_inv_x = 1.0f / (target_dim_x),
+					.source_dims_inv_y = 1.0f / (target_dim_y),
+					.low_input_idx = i,
+					.high_input_idx = i + 1,
+					.output_idx = i + 2
 				};
 
-				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::BloomCombine));
+				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::BloomUpsample));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRoot32BitConstants(1, 3, &constants, 0);
-				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
-			}, ERGPassType::Compute, ERGPassFlags::None);
+				cmd_list->SetComputeRoot32BitConstants(1, 5, &constants, 0);
+				cmd_list->Dispatch((uint32)std::ceil(target_dim_x / 8.0f), (uint32)std::ceil(target_dim_y / 8.0f), 1);
+			}, ERGPassType::Compute, ERGPassFlags::ForceNoCull);
 
-		AddGUI([&]() 
-			{
-				if (ImGui::TreeNodeEx("Bloom", 0))
-				{
-					ImGui::SliderFloat("Threshold", &params.bloom_threshold, 0.1f, 2.0f);
-					ImGui::SliderFloat("Bloom Scale", &params.bloom_scale, 0.1f, 5.0f);
-					ImGui::TreePop();
-					ImGui::Separator();
-				}
-			}
-		);
-		return RG_RES_NAME(BloomOutput);
+
+		return output;
 	}
 
-	void BloomPass::OnResize(uint32 w, uint32 h)
-	{
-		width = w, height = h;
-		generate_mips_pass.OnResize(w, h);
-	}
 }
 

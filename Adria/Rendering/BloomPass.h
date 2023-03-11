@@ -1,6 +1,5 @@
 #pragma once
 #include "Enums.h"
-#include "GenerateMipsPass.h"
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceName.h"
 
@@ -13,8 +12,7 @@ namespace adria
 	{
 		struct BloomParameters
 		{
-			float bloom_threshold = 0.25f;
-			float bloom_scale = 2.0f;
+			
 		};
 	public:
 		BloomPass(uint32 w, uint32 h);
@@ -23,8 +21,12 @@ namespace adria
 		void OnResize(uint32 w, uint32 h);
 	private:
 		uint32 width, height;
-		GenerateMipsPass generate_mips_pass;
 		BloomParameters params{};
+
+	private:
+
+		RGResourceName DownsamplePass(RenderGraph& rendergraph, RGResourceName input, uint32 pass_idx);
+		RGResourceName UpsamplePass(RenderGraph& rendergraph, RGResourceName input, RGResourceName, uint32 pass_idx);
 	};
 
 	
