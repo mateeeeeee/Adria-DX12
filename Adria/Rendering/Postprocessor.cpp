@@ -61,7 +61,7 @@ namespace adria
 			final_resource = dof_pass.AddPass(rg, final_resource);
 		}
 		if (settings.motion_blur) final_resource = motion_blur_pass.AddPass(rg, final_resource);
-		if (settings.bloom) final_resource = bloom_pass.AddPass(rg, final_resource);
+		if (settings.bloom) bloom_pass.AddPass(rg, final_resource);
 
 		for (entt::entity light_entity : lights)
 		{

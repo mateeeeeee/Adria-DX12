@@ -15,10 +15,13 @@ namespace adria
 	void ToneMapPass::AddPass(RenderGraph& rg, RGResourceName hdr_src)
 	{
 		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
+		BloomBlackboardData const* bloom_data  = rg.GetBlackboard().Get<BloomBlackboardData>();
+		
 		struct ToneMapPassData
 		{
 			RGTextureReadOnlyId  hdr_input;
 			RGTextureReadOnlyId  exposure;
+			RGTextureReadOnlyId  bloom;
 			RGTextureReadWriteId output;
 		};
 
@@ -26,8 +29,14 @@ namespace adria
 			[=](ToneMapPassData& data, RenderGraphBuilder& builder)
 			{
 				data.hdr_input = builder.ReadTexture(hdr_src, ReadAccess_NonPixelShader);
+
 				if (builder.IsTextureDeclared(RG_RES_NAME(Exposure))) data.exposure = builder.ReadTexture(RG_RES_NAME(Exposure), ReadAccess_NonPixelShader);
 				else data.exposure.Invalidate();
+
+				if (builder.IsTextureDeclared(RG_RES_NAME(Bloom))) 
+					data.bloom = builder.ReadTexture(RG_RES_NAME(Bloom), ReadAccess_NonPixelShader);
+				else data.bloom.Invalidate();
+
 				ADRIA_ASSERT(builder.IsTextureDeclared(RG_RES_NAME(FinalTexture)));
 				data.output = builder.WriteTexture(RG_RES_NAME(FinalTexture));
 			},
@@ -36,29 +45,41 @@ namespace adria
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				uint32 i = (uint32)descriptor_allocator->AllocateRange(3);
+				uint32 i = (uint32)descriptor_allocator->AllocateRange(4);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.hdr_input), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), 
 					data.exposure.IsValid() ? ctx.GetReadOnlyTexture(data.exposure) : gfxcommon::GetCommonTexture(ECommonTextureType::WhiteTexture2D)->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				
+				bool const bloom_enabled = data.bloom.IsValid();
+				if (bloom_enabled) device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 3), ctx.GetReadOnlyTexture(data.bloom), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
 				struct TonemapConstants
 				{
-					float  tonemap_exposure;
+					float    tonemap_exposure;
 					uint32   tonemap_operator;
 					uint32   hdr_idx;
 					uint32   exposure_idx;
 					uint32   output_idx;
-					float    bloomIntensity;
-					float    bloomBlendFactor;
+					int32    bloom_idx;
+					float    bloom_intensity;
+					float    bloom_blend_factor;
 				} constants = 
 				{
 					.tonemap_exposure = params.tonemap_exposure, .tonemap_operator = static_cast<uint32>(params.tone_map_op),
-					.hdr_idx = i, .exposure_idx = i + 1, .output_idx = i + 2
+					.hdr_idx = i, .exposure_idx = i + 1, .output_idx = i + 2, .bloom_idx = -1
 				};
+				if (bloom_enabled)
+				{
+					ADRIA_ASSERT(bloom_data != nullptr);
+					constants.bloom_idx = i + 3;
+					constants.bloom_intensity = bloom_data->bloom_intensity;
+					constants.bloom_blend_factor = bloom_data->bloom_blend_factor;
+				}
 				
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ToneMap));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRoot32BitConstants(1, 5, &constants, 0);
+				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
 				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
 			}, ERGPassType::Compute, ERGPassFlags::None);
 
@@ -68,12 +89,15 @@ namespace adria
 	void ToneMapPass::AddPass(RenderGraph& rg, RGResourceName hdr_src, RGResourceName output)
 	{
 		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
+		BloomBlackboardData const* bloom_data  = rg.GetBlackboard().Get<BloomBlackboardData>();
+
 		ERGPassFlags flags = ERGPassFlags::None;
 
 		struct ToneMapPassData
 		{
 			RGTextureReadOnlyId  hdr_input;
 			RGTextureReadOnlyId  exposure;
+			RGTextureReadOnlyId  bloom;
 			RGTextureReadWriteId output;
 		};
 
@@ -87,8 +111,14 @@ namespace adria
 				builder.DeclareTexture(output, fxaa_input_desc);
 
 				data.hdr_input = builder.ReadTexture(hdr_src, ReadAccess_NonPixelShader);
+
 				if (builder.IsTextureDeclared(RG_RES_NAME(Exposure))) data.exposure = builder.ReadTexture(RG_RES_NAME(Exposure), ReadAccess_NonPixelShader);
 				else data.exposure.Invalidate();
+
+				if (builder.IsTextureDeclared(RG_RES_NAME(Bloom))) 
+					data.bloom = builder.ReadTexture(RG_RES_NAME(Bloom), ReadAccess_NonPixelShader);
+				else data.bloom.Invalidate();
+
 				data.output = builder.WriteTexture(output);
 				builder.SetViewport(width, height);
 			},
@@ -97,27 +127,41 @@ namespace adria
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
-				uint32 i = (uint32)descriptor_allocator->AllocateRange(3);
+				uint32 i = (uint32)descriptor_allocator->AllocateRange(4);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.hdr_input), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), 
 					data.exposure.IsValid() ? ctx.GetReadOnlyTexture(data.exposure) : gfxcommon::GetCommonTexture(ECommonTextureType::WhiteTexture2D)->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				
+				bool const bloom_enabled = data.bloom.IsValid();
+				if (bloom_enabled) device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 3), ctx.GetReadOnlyTexture(data.bloom), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
 				struct TonemapConstants
 				{
-					float  tonemap_exposure;
+					float    tonemap_exposure;
 					uint32   tonemap_operator;
 					uint32   hdr_idx;
 					uint32   exposure_idx;
 					uint32   output_idx;
+					int32    bloom_idx;
+					float    bloom_intensity;
+					float    bloom_blend_factor;
 				} constants =
 				{
 					.tonemap_exposure = params.tonemap_exposure, .tonemap_operator = static_cast<uint32>(params.tone_map_op),
-					.hdr_idx = i,  .exposure_idx = i + 1, .output_idx = i + 2
+					.hdr_idx = i, .exposure_idx = i + 1, .output_idx = i + 2, .bloom_idx = -1
 				};
+				if (bloom_enabled)
+				{
+					ADRIA_ASSERT(bloom_data != nullptr);
+					constants.bloom_idx = i + 3;
+					constants.bloom_intensity = bloom_data->bloom_intensity;
+					constants.bloom_blend_factor = bloom_data->bloom_blend_factor;
+				}
 				
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ToneMap));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRoot32BitConstants(1, 5, &constants, 0);
+				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
 				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
 			}, ERGPassType::Compute, flags);
 

@@ -10,8 +10,8 @@ struct TonemapConstants
     uint  tonemapOperator;
     uint  hdrIdx;
     uint  exposureIdx;
-    int   bloomIdx;
     uint  outputIdx;
+	int   bloomIdx;
     float bloomIntensity;
     float bloomBlendFactor;
 };
