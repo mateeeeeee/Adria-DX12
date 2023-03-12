@@ -32,7 +32,7 @@ namespace adria
 			velocity_buffer_pass.AddPass(rg);
 		}
 		final_resource = AddHDRCopyPass(rg);
-		
+
 		for (entt::entity light : lights)
 		{
 			auto const& light_data = lights.get<Light>(light);
@@ -61,7 +61,6 @@ namespace adria
 			final_resource = dof_pass.AddPass(rg, final_resource);
 		}
 		if (settings.motion_blur) final_resource = motion_blur_pass.AddPass(rg, final_resource);
-		if (settings.bloom) bloom_pass.AddPass(rg, RG_RES_NAME(PostprocessMain));
 
 		for (entt::entity light_entity : lights)
 		{
@@ -84,6 +83,7 @@ namespace adria
 			}
 		}
 		if (settings.automatic_exposure) automatic_exposure_pass.AddPasses(rg, final_resource);
+		if (settings.bloom) bloom_pass.AddPass(rg, final_resource);
 
 		if (HasAnyFlag(settings.anti_aliasing, AntiAliasing_TAA))
 		{
@@ -91,6 +91,7 @@ namespace adria
 			final_resource = taa_pass.AddPass(rg, final_resource, RG_RES_NAME(HistoryBuffer));
 			AddHistoryCopyPass(rg);
 		}
+		
 	}
 
 	void Postprocessor::OnResize(GfxDevice* gfx, uint32 w, uint32 h)
