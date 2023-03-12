@@ -197,6 +197,7 @@
     <ClCompile Include="Graphics\DescriptorHeap.cpp" />
     <ClCompile Include="Graphics\GfxCommon.cpp" />
     <ClCompile Include="Graphics\GfxDevice.cpp" />
+    <ClCompile Include="Graphics\GfxFence.cpp" />
     <ClCompile Include="Graphics\GfxStates.cpp" />
     <ClCompile Include="Graphics\LinearOnlineDescriptorAllocator.cpp" />
     <ClCompile Include="Graphics\LinearDynamicAllocator.cpp" />
@@ -308,6 +309,7 @@
     <ClInclude Include="Graphics\DescriptorHeap.h" />
     <ClInclude Include="Graphics\DWParam.h" />
     <ClInclude Include="Graphics\DynamicAllocation.h" />
+    <ClInclude Include="Graphics\GfxFence.h" />
     <ClInclude Include="Graphics\GfxFormat.h" />
     <ClInclude Include="Graphics\GpuMacros.h" />
     <ClInclude Include="Graphics\GfxCommon.h" />
