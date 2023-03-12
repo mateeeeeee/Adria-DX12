@@ -48,6 +48,8 @@ namespace adria
 					uint32   hdr_idx;
 					uint32   exposure_idx;
 					uint32   output_idx;
+					float    bloomIntensity;
+					float    bloomBlendFactor;
 				} constants = 
 				{
 					.tonemap_exposure = params.tonemap_exposure, .tonemap_operator = static_cast<uint32>(params.tone_map_op),

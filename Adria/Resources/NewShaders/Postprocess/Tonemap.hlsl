@@ -10,7 +10,10 @@ struct TonemapConstants
     uint  tonemapOperator;
     uint  hdrIdx;
     uint  exposureIdx;
+    int   bloomIdx;
     uint  outputIdx;
+    float bloomIntensity;
+    float bloomBlendFactor;
 };
 ConstantBuffer<TonemapConstants> PassCB : register(b1);
 
@@ -32,8 +35,15 @@ void Tonemap(CS_INPUT input)
     float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
     
     float4 color = hdrTx.Sample(LinearWrapSampler, uv);
+	if (PassCB.bloomIdx > 0)
+	{
+        Texture2D<float4> bloomTx = ResourceDescriptorHeap[PassCB.bloomIdx];
+		//float3 lensDirt = tLensDirt.SampleLevel(sLinearClamp, float2(uv.x, 1.0f - uv.y), 0).rgb * cPassData.LensDirtTint;
+		float3 bloom = bloomTx.SampleLevel(LinearClampSampler, uv, 0).rgb * PassCB.bloomIntensity;
+        color.xyz = lerp(color.xyz, bloom /* + bloom * lensDirt*/, PassCB.bloomBlendFactor);
+	}
+
     float exposure = exposureTx[uint2(0, 0)];
-    
     float4 tone_mapped_color = float4(1.0f, 0.0f, 0.0f, 1.0f);
     switch (PassCB.tonemapOperator)
     {

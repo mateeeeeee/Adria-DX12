@@ -28,18 +28,25 @@ namespace adria
 		
 		for (int32 i = pass_count - 2; i >= 0; --i)
 		{
-			upsample_mips[i] = UpsamplePass(rg, downsample_mips[i], upsample_mips[i + 1], i);
+			upsample_mips[i] = UpsamplePass(rg, downsample_mips[i], upsample_mips[i + 1], i + 1);
 		}
+
+		BloomBlackboardData blackboard_data{ .bloom_intensity = params.bloom_intensity, .bloom_blend_factor = params.bloom_blend_factor };
+		rg.GetBlackboard().Add<BloomBlackboardData>(std::move(blackboard_data));
 
 		AddGUI([&]() 
 			{
 				if (ImGui::TreeNodeEx("Bloom", 0))
 				{
+					ImGui::SliderFloat("Bloom Radius", &params.radius, 0.0f, 1.0f);
+					ImGui::SliderFloat("Bloom Intensity", &params.bloom_intensity, 0.0f, 8.0f);
+					ImGui::SliderFloat("Bloom Blend Factor", &params.bloom_blend_factor, 0.0f, 1.0f);
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
 			}
 		);
+
 		return upsample_mips.front();
 	}
 
@@ -86,14 +93,14 @@ namespace adria
 
 				struct BloomDownsampleConstants
 				{
-					float    target_dims_inv_x;
-					float    target_dims_inv_y;
+					float    dims_inv_x;
+					float    dims_inv_y;
 					uint32   source_idx;
 					uint32   target_idx;
 				} constants =
 				{
-					.target_dims_inv_x = 1.0f / target_dim_x,
-					.target_dims_inv_y = 1.0f / target_dim_y,
+					.dims_inv_x = 1.0f / target_dim_x,
+					.dims_inv_y = 1.0f / target_dim_y,
 					.source_idx = i,
 					.target_idx = i + 1
 				};
@@ -119,15 +126,15 @@ namespace adria
 		uint32 target_dim_x = std::max(1u, width >> pass_idx);
 		uint32 target_dim_y = std::max(1u, height >> pass_idx);
 
-		RGResourceName output = RG_RES_NAME_IDX(BloomUpsample, pass_idx);
+		RGResourceName output = pass_idx != 1 ? RG_RES_NAME_IDX(BloomUpsample, pass_idx) : RG_RES_NAME(Bloom);
 		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
 
 		std::string pass_name = std::format("Bloom Upsample Pass {}", pass_idx);
 		rg.AddPass<BloomUpsamplePassData>(pass_name.c_str(),
 			[=](BloomUpsamplePassData& data, RenderGraphBuilder& builder)
 			{
-				data.input_high = builder.ReadTexture(input_high, ReadAccess_NonPixelShader);
-				data.input_low  = builder.ReadTexture(input_low,  ReadAccess_NonPixelShader);
+				data.input_high = builder.ReadTexture(input_high);
+				data.input_low  = builder.ReadTexture(input_low);
 
 				RGTextureDesc desc{};
 				desc.width = target_dim_x;
@@ -148,23 +155,25 @@ namespace adria
 
 				struct BloomUpsampleConstants
 				{
-					float source_dims_inv_x;
-					float source_dims_inv_y;
+					float    dims_inv_x;
+					float    dims_inv_y;
 					uint32   low_input_idx;
 					uint32   high_input_idx;
 					uint32   output_idx;
+					float    radius;
 				} constants =
 				{
-					.source_dims_inv_x = 1.0f / (target_dim_x),
-					.source_dims_inv_y = 1.0f / (target_dim_y),
+					.dims_inv_x = 1.0f / (target_dim_x),
+					.dims_inv_y = 1.0f / (target_dim_y),
 					.low_input_idx = i,
 					.high_input_idx = i + 1,
-					.output_idx = i + 2
+					.output_idx = i + 2,
+					.radius = params.radius
 				};
 
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::BloomUpsample));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRoot32BitConstants(1, 5, &constants, 0);
+				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);
 				cmd_list->Dispatch((uint32)std::ceil(target_dim_x / 8.0f), (uint32)std::ceil(target_dim_y / 8.0f), 1);
 			}, ERGPassType::Compute, ERGPassFlags::ForceNoCull);
 

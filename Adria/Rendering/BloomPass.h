@@ -12,7 +12,9 @@ namespace adria
 	{
 		struct BloomParameters
 		{
-			
+			float radius = 0.75f;
+			float bloom_intensity = 1.0f;
+			float bloom_blend_factor = 0.25f;
 		};
 	public:
 		BloomPass(uint32 w, uint32 h);

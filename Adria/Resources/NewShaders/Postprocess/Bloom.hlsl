@@ -12,7 +12,7 @@ struct CS_INPUT
 
 struct BloomDownsampleConstants
 {
-	float2 targetDimsInv;
+	float2 dimsInv;
 	uint   sourceIdx;
 	uint   targetIdx;
 };
@@ -30,7 +30,7 @@ void BloomDownsample(CS_INPUT input)
 	Texture2D sourceTx = ResourceDescriptorHeap[PassCB.sourceIdx];
 	RWTexture2D<float4> targetTx = ResourceDescriptorHeap[PassCB.targetIdx];
 
-	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f * PassCB.targetDimsInv;
+	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f * PassCB.dimsInv;
 
 	float3 outColor = 0.0f;
 	float3 M0 = sourceTx.SampleLevel(LinearClampSampler, uv, 0, int2(-1.0f, 1.0f)).xyz;
@@ -59,10 +59,11 @@ void BloomDownsample(CS_INPUT input)
 
 struct BloomUpsampleConstants
 {
-	float2 sourceDimsInv;
+	float2 dimsInv;
 	uint   lowInputIdx;
 	uint   highInputIdx;
 	uint   outputIdx;
+	float  radius;
 };
 ConstantBuffer<BloomUpsampleConstants> PassCB2 : register(b1);
 
@@ -73,18 +74,18 @@ void BloomUpsample(CS_INPUT input)
 	Texture2D inputHighTx = ResourceDescriptorHeap[PassCB2.highInputIdx];
 	RWTexture2D<float3> outputTx = ResourceDescriptorHeap[PassCB2.outputIdx];
 
-	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f * PassCB2.sourceDimsInv;
+	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f * PassCB2.dimsInv;
 
 	float3 outColor = 0.0f;
-	outColor += 0.0625f * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0.0f, int2(-1.0f, 1.0f)).xyz;
-	outColor += 0.125f  * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0.0f, int2(0.0f, 1.0f)).xyz;
-	outColor += 0.0625f * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0.0f, int2(1.0f, 1.0f)).xyz;
-	outColor += 0.125f  * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0.0f, int2(-1.0f, 0.0f)).xyz;
-	outColor += 0.25f   * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0.0f, int2(0.0f, 0.0f)).xyz;
-	outColor += 0.125f  * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0.0f, int2(1.0f, 0.0f)).xyz;
-	outColor += 0.0625f * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0.0f, int2(-1.0f, -1.0f)).xyz;
-	outColor += 0.125f  * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0.0f, int2(0.0f, -1.0f)).xyz;
-	outColor += 0.0625f * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0.0f, int2(1.0f, -1.0f)).xyz;
+	outColor += 0.0625f * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0, int2(-1.0f, 1.0f)).xyz;
+	outColor += 0.125f  * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0, int2(0.0f, 1.0f)).xyz;
+	outColor += 0.0625f * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0, int2(1.0f, 1.0f)).xyz;
+	outColor += 0.125f  * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0, int2(-1.0f, 0.0f)).xyz;
+	outColor += 0.25f   * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0, int2(0.0f, 0.0f)).xyz;
+	outColor += 0.125f  * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0, int2(1.0f, 0.0f)).xyz;
+	outColor += 0.0625f * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0, int2(-1.0f, -1.0f)).xyz;
+	outColor += 0.125f  * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0, int2(0.0f, -1.0f)).xyz;
+	outColor += 0.0625f * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0, int2(1.0f, -1.0f)).xyz;
 
-	outputTx[input.DispatchThreadId.xy] = inputHighTx[input.DispatchThreadId.xy].xyz + outColor; 
+	outputTx[input.DispatchThreadId.xy] = lerp(inputHighTx[input.DispatchThreadId.xy].xyz, outColor, PassCB2.radius);
 }

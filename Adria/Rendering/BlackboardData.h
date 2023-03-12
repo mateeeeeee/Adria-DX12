@@ -22,4 +22,10 @@ namespace adria
 		float dof_params_z;
 		float dof_params_w;
 	};
+
+	struct BloomBlackboardData
+	{
+		float bloom_intensity;
+		float bloom_blend_factor;
+	};
 }
