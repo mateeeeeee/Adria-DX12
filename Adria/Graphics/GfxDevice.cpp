@@ -194,6 +194,21 @@ namespace adria
 		}
 	}
 
+	GfxDevice::DRED::DRED(GfxDevice* gfx)
+	{
+		dred_fence.Create(gfx, "DRED Fence");
+		dred_wait_handle = CreateEventA(nullptr, false, false, nullptr);
+		static_cast<ID3D12Fence*>(dred_fence)->SetEventOnCompletion(UINT64_MAX, dred_wait_handle);
+		ADRIA_ASSERT(RegisterWaitForSingleObject(&dred_wait_handle, dred_wait_handle, DeviceRemovedHandler, gfx->GetDevice(), INFINITE, 0));
+	}
+
+	GfxDevice::DRED::~DRED()
+	{
+		dred_fence.Signal(UINT64_MAX);
+		ADRIA_ASSERT(UnregisterWaitEx(dred_wait_handle, INVALID_HANDLE_VALUE));
+		CloseHandle(dred_wait_handle);
+	}
+
 	GfxDevice::GfxDevice(GfxOptions const& options)
 		: frame_index(0), 
 		frame_fence_value(0), frame_fence_values{}, graphics_fence_values{}, compute_fence_values{}
@@ -362,27 +377,10 @@ namespace adria
 		}
 
 		frame_fence.Create(this, "Frame Fence");
-		for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
-		{
-			hr = device->CreateFence(graphics_fence_values[i], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(graphics_fences[i].GetAddressOf()));
-			BREAK_IF_FAILED(hr);
-			graphics_fence_events[i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-			if (graphics_fence_events[i] == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
+		graphics_fence.Create(this, "Graphics Fence");
+		compute_fence.Create(this, "Compute Fence");
+		wait_fence.Create(this, "Wait Fence");
 
-			hr = device->CreateFence(compute_fence_values[i], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(compute_fences[i].GetAddressOf()));
-			BREAK_IF_FAILED(hr);
-			compute_fence_events[i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-			if (compute_fence_events[i] == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
-		}
-
-		wait_fence_value = 0;
-		hr = device->CreateFence(wait_fence_value, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(wait_fence.GetAddressOf()));
-		wait_fence_value++;
-		BREAK_IF_FAILED(hr);
-		wait_event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-		if (wait_event == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
-
-		
 		ArcPtr<ID3D12InfoQueue> info_queue;
 		if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(info_queue.GetAddressOf()))))
 		{
@@ -433,14 +431,8 @@ namespace adria
 		
 		if (options.dred)
 		{
-			hr = device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(dred_fence.GetAddressOf()));
-			BREAK_IF_FAILED(hr);
-			wait_handle = CreateEventA(nullptr, false, false, nullptr);
-			dred_fence->SetEventOnCompletion(UINT64_MAX, wait_handle);
-			ADRIA_ASSERT(RegisterWaitForSingleObject(&wait_handle, wait_handle, DeviceRemovedHandler, device.Get(), INFINITE, 0));
-
+			dred = std::make_unique<DRED>(this);
 		}
-
 		if (options.pix) PIXLoadLatestWinPixGpuCapturerLibrary();
 	}
 
@@ -448,37 +440,18 @@ namespace adria
 	{
 		WaitForGPU();
 		ProcessReleaseQueue();
-		if (dred_fence)
-		{
-			dred_fence->Signal(UINT64_MAX);
-			ADRIA_ASSERT(UnregisterWaitEx(wait_handle, INVALID_HANDLE_VALUE));
-			CloseHandle(wait_handle);
-		}
 
 		for (size_t i = 0; i < BACKBUFFER_COUNT; ++i)
 		{
-			if (graphics_fences[i]->GetCompletedValue() < graphics_fence_values[i])
-			{
-				BREAK_IF_FAILED(graphics_fences[i]->SetEventOnCompletion(graphics_fence_values[i], graphics_fence_events[i]));
-				WaitForSingleObject(graphics_fence_events[i], INFINITE);
-			}
-
-			if (compute_fences[i]->GetCompletedValue() < compute_fence_values[i])
-			{
-				BREAK_IF_FAILED(compute_fences[i]->SetEventOnCompletion(compute_fence_values[i], compute_fence_events[i]));
-				WaitForSingleObject(compute_fence_events[i], INFINITE);
-			}
-
-			CloseHandle(compute_fence_events[i]);
-			CloseHandle(graphics_fence_events[i]);
+			graphics_fence.Wait(graphics_fence_values[i]);
+			compute_fence.Wait(compute_fence_values[i]);
 		}
 	}
 
 	void GfxDevice::WaitForGPU()
 	{
-		BREAK_IF_FAILED(graphics_queue->Signal(wait_fence.Get(), wait_fence_value));
-		BREAK_IF_FAILED(wait_fence->SetEventOnCompletion(wait_fence_value, wait_event));
-		WaitForSingleObject(wait_event, INFINITE);
+		BREAK_IF_FAILED(graphics_queue->Signal(wait_fence, wait_fence_value));
+		wait_fence.Wait(wait_fence_value);
 		wait_fence_value++;
 	}
 
@@ -487,10 +460,10 @@ namespace adria
 		switch (type)
 		{
 		case GfxQueueType::Graphics:
-			graphics_queue->Wait(compute_fences[backbuffer_index].Get(), fence_value);
+			graphics_queue->Wait(compute_fence, fence_value);
 			break;
 		case GfxQueueType::Compute:
-			compute_queue->Wait(graphics_fences[backbuffer_index].Get(), fence_value);
+			compute_queue->Wait(graphics_fence, fence_value);
 			break;
 		default:
 			ADRIA_ASSERT(false && "Unsupported Queue Type!");
@@ -504,12 +477,12 @@ namespace adria
 		{
 		case GfxQueueType::Graphics:
 			fence_signal_value = graphics_fence_values[backbuffer_index];
-			graphics_queue->Signal(graphics_fences[backbuffer_index].Get(), fence_signal_value);
+			graphics_queue->Signal(graphics_fence, fence_signal_value);
 			++graphics_fence_values[backbuffer_index];
 			break;
 		case GfxQueueType::Compute:
 			fence_signal_value = compute_fence_values[backbuffer_index];
-			compute_queue->Signal(compute_fences[backbuffer_index].Get(), compute_fence_values[backbuffer_index]);
+			compute_queue->Signal(compute_fence, compute_fence_values[backbuffer_index]);
 			++compute_fence_values[backbuffer_index];
 			break;
 		default:

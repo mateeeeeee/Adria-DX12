@@ -65,6 +65,7 @@ namespace adria
 			mutable std::atomic_uint compute_cmd_list_index = 0;
 		};
 
+
 	public:
 		explicit GfxDevice(GfxOptions const&);
 		GfxDevice(GfxDevice const&) = delete;
@@ -145,17 +146,14 @@ namespace adria
 		UINT64		 frame_fence_value;
 		UINT64       frame_fence_values[BACKBUFFER_COUNT];
 
-		ArcPtr<ID3D12Fence> graphics_fences[BACKBUFFER_COUNT];
-		HANDLE		 graphics_fence_events[BACKBUFFER_COUNT];
+		GfxFence     graphics_fence;
 		UINT64       graphics_fence_values[BACKBUFFER_COUNT];
 
-		ArcPtr<ID3D12Fence> compute_fences[BACKBUFFER_COUNT];
-		HANDLE		 compute_fence_events[BACKBUFFER_COUNT];
+		GfxFence     compute_fence;
 		UINT64       compute_fence_values[BACKBUFFER_COUNT];
 
-		ArcPtr<ID3D12Fence> wait_fence = nullptr;
-		HANDLE		 wait_event = nullptr;
-		UINT64       wait_fence_value = 0;
+		GfxFence     wait_fence;
+		UINT64       wait_fence_value = 1;
 
 		std::array<std::unique_ptr<OfflineDescriptorAllocator>, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES> offline_descriptor_allocators;
 
@@ -163,9 +161,16 @@ namespace adria
 		std::vector<std::unique_ptr<LinearDynamicAllocator>> dynamic_allocators;
 		std::unique_ptr<LinearDynamicAllocator> dynamic_allocator_before_rendering;
 
-		ArcPtr<ID3D12Fence> dred_fence = nullptr;
-		HANDLE wait_handle = nullptr;
+		struct DRED
+		{
+			DRED(GfxDevice* gfx);
+			~DRED();
 
+			GfxFence dred_fence;
+			HANDLE   dred_wait_handle;
+		};
+		std::unique_ptr<DRED> dred;
+		
 		BOOL rendering_not_started = TRUE;
 
 		ArcPtr<ID3D12RootSignature> global_root_signature = nullptr;
