@@ -104,12 +104,12 @@ namespace adria
 					.source_idx = i,
 					.target_idx = i + 1
 				};
-
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::BloomDownsample));
+				EPipelineState pso = pass_idx == 1 ? EPipelineState::BloomDownsample_FirstPass : EPipelineState::BloomDownsample;
+				cmd_list->SetPipelineState(PSOCache::Get(pso));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 4, &constants, 0);
 				cmd_list->Dispatch((uint32)std::ceil(target_dim_x / 8.0f), (uint32)std::ceil(target_dim_y / 8.0f), 1);
-			}, ERGPassType::Compute, ERGPassFlags::ForceNoCull);
+			}, ERGPassType::Compute, ERGPassFlags::None);
 
 		return output;
 	}
@@ -175,7 +175,7 @@ namespace adria
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);
 				cmd_list->Dispatch((uint32)std::ceil(target_dim_x / 8.0f), (uint32)std::ceil(target_dim_y / 8.0f), 1);
-			}, ERGPassType::Compute, ERGPassFlags::ForceNoCull);
+			}, ERGPassType::Compute, ERGPassFlags::None);
 
 
 		return output;

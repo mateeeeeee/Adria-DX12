@@ -67,6 +67,7 @@ namespace adria
 			case CS_Clouds:
 				return "Clouds";
 			case CS_BloomDownsample:
+			case CS_BloomDownsampleFirstPass:
 				return "BloomDownsample";
 			case CS_BloomUpsample:
 				return "BloomUpsample";
@@ -200,8 +201,9 @@ namespace adria
 			case CS_Blur_Horizontal:
 			case CS_Blur_Vertical:
 			case CS_BokehGeneration:
-			case CS_BloomUpsample:
 			case CS_BloomDownsample:
+			case CS_BloomDownsampleFirstPass:
+			case CS_BloomUpsample:
 			case CS_InitialSpectrum:
 			case CS_Phase:
 			case CS_Spectrum:
@@ -297,6 +299,7 @@ namespace adria
 			case CS_BokehGeneration:
 				return "Postprocess/BokehGeneration.hlsl";
 			case CS_BloomDownsample:
+			case CS_BloomDownsampleFirstPass:
 			case CS_BloomUpsample:
 				return "Postprocess/Bloom.hlsl";
 			case CS_InitialSpectrum:
@@ -390,6 +393,8 @@ namespace adria
 				return { { L"SOFT_SHADOWS", L"" } };
 			case PS_GBuffer_Mask:
 				return { { L"MASK", L"1" } };
+			case CS_BloomDownsampleFirstPass:
+				return { {L"FIRST_PASS", L"1"} };
 			default:
 				return {};
 			}

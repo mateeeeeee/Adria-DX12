@@ -2,6 +2,10 @@
 
 #define BLOCK_SIZE 8
 
+#ifndef FIRST_PASS
+#define FIRST_PASS 0
+#endif
+
 struct CS_INPUT
 {
 	uint3 GroupId : SV_GroupID;
@@ -18,10 +22,25 @@ struct BloomDownsampleConstants
 };
 ConstantBuffer<BloomDownsampleConstants> PassCB : register(b1);
 
+float Luminance(float3 color)
+{
+	return dot(color, float3(0.2126729, 0.7151522, 0.0721750));
+}
 
 float3 ComputePartialAverage(float3 v0, float3 v1, float3 v2, float3 v3)
 {
-	return 0.25f * (v0 + v1 + v2 + v3);
+#if FIRST_PASS //Karis Average
+	float w0 = rcp(1.0 + Luminance(v0));
+	float w1 = rcp(1.0 + Luminance(v1));
+	float w2 = rcp(1.0 + Luminance(v2));
+	float w3 = rcp(1.0 + Luminance(v3));
+#else
+	float w0 = 1.0;
+	float w1 = 1.0;
+	float w2 = 1.0;
+	float w3 = 1.0;
+#endif
+	return (v0 * w0 + v1 * w1 + v2 * w2 + v3 * w3) / (w0 + w1 + w2 + w3);
 }
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]

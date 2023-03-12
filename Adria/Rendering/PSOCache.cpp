@@ -270,6 +270,9 @@ namespace adria
 				compute_pso_desc.CS = CS_BloomDownsample;
 				compute_pso_map[EPipelineState::BloomDownsample] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
+				compute_pso_desc.CS = CS_BloomDownsampleFirstPass;
+				compute_pso_map[EPipelineState::BloomDownsample_FirstPass] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
 				compute_pso_desc.CS = CS_BloomUpsample;
 				compute_pso_map[EPipelineState::BloomUpsample] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
