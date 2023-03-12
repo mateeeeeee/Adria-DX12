@@ -366,6 +366,7 @@ namespace adria
 		postprocessor.OnSceneInitialized(gfx);
 		ocean_renderer.OnSceneInitialized(gfx);
 		aabb_pass.OnSceneInitialized(gfx);
+		tonemap_pass.OnSceneInitialized(gfx);
 		CreateGlobalBuffers();
 
 		gfxcommon::Initialize(gfx);

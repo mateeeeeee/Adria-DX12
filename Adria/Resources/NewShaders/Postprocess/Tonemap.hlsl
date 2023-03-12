@@ -12,8 +12,8 @@ struct TonemapConstants
     uint  exposureIdx;
     uint  outputIdx;
 	int   bloomIdx;
-    float bloomIntensity;
-    float bloomBlendFactor;
+    uint  lensDirtIdx;
+	uint  bloomParamsPacked; //f16 bloomIntensity + f16 bloomBlendFactor;
 };
 ConstantBuffer<TonemapConstants> PassCB : register(b1);
 
@@ -38,9 +38,12 @@ void Tonemap(CS_INPUT input)
 	if (PassCB.bloomIdx > 0)
 	{
         Texture2D<float4> bloomTx = ResourceDescriptorHeap[PassCB.bloomIdx];
-		//float3 lensDirt = tLensDirt.SampleLevel(sLinearClamp, float2(uv.x, 1.0f - uv.y), 0).rgb * cPassData.LensDirtTint;
-		float3 bloom = bloomTx.SampleLevel(LinearClampSampler, uv, 0).rgb * PassCB.bloomIntensity;
-        color.xyz = lerp(color.xyz, bloom /* + bloom * lensDirt*/, PassCB.bloomBlendFactor);
+        Texture2D<float4> lensDirtTx = ResourceDescriptorHeap[PassCB.lensDirtIdx];
+
+        float2 bloomParams = UnpackHalf2(PassCB.bloomParamsPacked);
+		float3 lensDirt = lensDirtTx.SampleLevel(LinearClampSampler, float2(uv.x, 1.0f - uv.y), 0).rgb;
+		float3 bloom = bloomTx.SampleLevel(LinearClampSampler, uv, 0).rgb * bloomParams.x;
+        color.xyz = lerp(color.xyz, bloom + bloom * lensDirt, bloomParams.y);
 	}
 
     float exposure = exposureTx[uint2(0, 0)];

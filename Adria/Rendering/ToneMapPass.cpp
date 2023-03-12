@@ -3,6 +3,8 @@
 #include "PSOCache.h" 
 
 #include "../Graphics/GraphicsCommon.h"
+#include "../Graphics/TextureManager.h"
+#include "../Math/Packing.h"
 #include "../Editor/GUICommand.h"
 #include "../RenderGraph/RenderGraph.h"
 
@@ -62,8 +64,8 @@ namespace adria
 					uint32   exposure_idx;
 					uint32   output_idx;
 					int32    bloom_idx;
-					float    bloom_intensity;
-					float    bloom_blend_factor;
+					uint32   lens_dirt_idx;
+					uint32   bloom_params_packed;
 				} constants = 
 				{
 					.tonemap_exposure = params.tonemap_exposure, .tonemap_operator = static_cast<uint32>(params.tone_map_op),
@@ -73,8 +75,8 @@ namespace adria
 				{
 					ADRIA_ASSERT(bloom_data != nullptr);
 					constants.bloom_idx = i + 3;
-					constants.bloom_intensity = bloom_data->bloom_intensity;
-					constants.bloom_blend_factor = bloom_data->bloom_blend_factor;
+					constants.lens_dirt_idx = (uint32)lens_dirt_handle;
+					constants.bloom_params_packed = PackTwoFloatsToUint32(bloom_data->bloom_intensity, bloom_data->bloom_blend_factor);
 				}
 				
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ToneMap));
@@ -144,8 +146,8 @@ namespace adria
 					uint32   exposure_idx;
 					uint32   output_idx;
 					int32    bloom_idx;
-					float    bloom_intensity;
-					float    bloom_blend_factor;
+					uint32   lens_dirt_idx;
+					uint32   bloom_params_packed;
 				} constants =
 				{
 					.tonemap_exposure = params.tonemap_exposure, .tonemap_operator = static_cast<uint32>(params.tone_map_op),
@@ -155,8 +157,8 @@ namespace adria
 				{
 					ADRIA_ASSERT(bloom_data != nullptr);
 					constants.bloom_idx = i + 3;
-					constants.bloom_intensity = bloom_data->bloom_intensity;
-					constants.bloom_blend_factor = bloom_data->bloom_blend_factor;
+					constants.lens_dirt_idx = (uint32)lens_dirt_handle;
+					constants.bloom_params_packed = PackTwoFloatsToUint32(bloom_data->bloom_intensity, bloom_data->bloom_blend_factor);
 				}
 				
 				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ToneMap));
@@ -171,6 +173,11 @@ namespace adria
 	void ToneMapPass::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
+	}
+
+	void ToneMapPass::OnSceneInitialized(GraphicsDevice* gfx)
+	{
+		lens_dirt_handle = TextureManager::Get().LoadTexture(L"Resources/Textures/LensDirt.dds");
 	}
 
 	void ToneMapPass::GUI()

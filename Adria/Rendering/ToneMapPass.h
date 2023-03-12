@@ -7,7 +7,7 @@
 namespace adria
 {
 	class RenderGraph;
-
+	class GraphicsDevice;
 
 	class ToneMapPass
 	{
@@ -28,11 +28,11 @@ namespace adria
 		void AddPass(RenderGraph& rg, RGResourceName hdr_src);
 		void AddPass(RenderGraph& rg, RGResourceName hdr_src, RGResourceName output);
 		void OnResize(uint32 w, uint32 h);
-
+		void OnSceneInitialized(GraphicsDevice* gfx);
 	private:
 		uint32 width, height;
 		TonemapParams params;
-
+		size_t lens_dirt_handle = -1;
 	private:
 		void GUI();
 	};
