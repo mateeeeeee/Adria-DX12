@@ -1008,7 +1008,7 @@ namespace adria
 					RGTextureId rt_texture = render_target_info.render_target_handle.GetResourceId();
 					GfxTexture* texture = rg.GetTexture(rt_texture);
 
-					RtvAttachmentDesc rtv_desc{};
+					GfxColorAttachmentDesc rtv_desc{};
 					GfxTextureDesc const& desc = texture->GetDesc();
 					GfxClearValue const& clear_value = desc.clear_value;
 					if (clear_value.active_member != GfxClearValue::GfxActiveMember::None)
@@ -1071,7 +1071,7 @@ namespace adria
 					RGTextureId ds_texture = depth_stencil_info.depth_stencil_handle.GetResourceId();
 					GfxTexture* texture = rg.GetTexture(ds_texture);
 
-					DsvAttachmentDesc dsv_desc{};
+					GfxDepthAttachmentDesc dsv_desc{};
 					GfxTextureDesc const& desc = texture->GetDesc();
 					GfxClearValue const& clear_value = desc.clear_value;
 					if (clear_value.active_member != GfxClearValue::GfxActiveMember::None)
@@ -1167,7 +1167,7 @@ namespace adria
 						RGTextureId rt_texture = render_target_info.render_target_handle.GetResourceId();
 						GfxTexture* texture = rg.GetTexture(rt_texture);
 
-						RtvAttachmentDesc rtv_desc{};
+						GfxColorAttachmentDesc rtv_desc{};
 						GfxTextureDesc const& desc = texture->GetDesc();
 						GfxClearValue const& clear_value = desc.clear_value;
 						if (clear_value.active_member != GfxClearValue::GfxActiveMember::None)
@@ -1230,7 +1230,7 @@ namespace adria
 						RGTextureId ds_texture = depth_stencil_info.depth_stencil_handle.GetResourceId();
 						GfxTexture* texture = rg.GetTexture(ds_texture);
 
-						DsvAttachmentDesc dsv_desc{};
+						GfxDepthAttachmentDesc dsv_desc{};
 						GfxTextureDesc const& desc = texture->GetDesc();
 						GfxClearValue const& clear_value = desc.clear_value;
 						if (clear_value.active_member != GfxClearValue::GfxActiveMember::None)
