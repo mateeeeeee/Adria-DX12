@@ -10,7 +10,6 @@
 #include "../Rendering/Camera.h"
 #include "../Graphics/GfxDevice.h"
 #include "../Rendering/EntityLoader.h"
-#include "../Rendering/PipelineState.h"
 #include "../Rendering/ShaderCache.h"
 #include "../Utilities/FilesUtil.h"
 #include "../Utilities/StringUtil.h"

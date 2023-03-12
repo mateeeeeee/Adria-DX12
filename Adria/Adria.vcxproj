@@ -203,6 +203,7 @@
     <ClCompile Include="Graphics\MipsGenerator.cpp" />
     <ClCompile Include="Graphics\GPUProfiler.cpp" />
     <ClCompile Include="Graphics\GfxRenderPass.cpp" />
+    <ClCompile Include="Graphics\GfxPipelineState.cpp" />
     <ClCompile Include="Graphics\RingOnlineDescriptorAllocator.cpp" />
     <ClCompile Include="Graphics\RingDynamicAllocator.cpp" />
     <ClCompile Include="Graphics\GfxShaderCompiler.cpp" />
@@ -247,7 +248,6 @@
     <ClCompile Include="Rendering\OceanRenderer.cpp" />
     <ClCompile Include="Rendering\PathTracingPass.cpp" />
     <ClCompile Include="Rendering\PickingPass.cpp" />
-    <ClCompile Include="Rendering\PipelineState.cpp" />
     <ClCompile Include="Rendering\Postprocessor.cpp" />
     <ClCompile Include="Rendering\PSOCache.cpp" />
     <ClCompile Include="Rendering\RayTracedAmbientOcclusionPass.cpp" />
@@ -318,10 +318,11 @@
     <ClInclude Include="Graphics\LinearDynamicAllocator.h" />
     <ClInclude Include="Graphics\GPUProfiler.h" />
     <ClInclude Include="Graphics\OfflineDescriptorAllocator.h" />
+    <ClInclude Include="Graphics\GfxPipelineState.h" />
     <ClInclude Include="Graphics\RayTracingUtil.h" />
     <ClInclude Include="Graphics\Releasable.h" />
     <ClInclude Include="Graphics\GfxRenderPass.h" />
-    <ClInclude Include="Graphics\ResourceBarrierBatch.h" />
+    <ClInclude Include="Graphics\GfxResourceBarrierBatch.h" />
     <ClInclude Include="Graphics\GfxResourceCommon.h" />
     <ClInclude Include="Graphics\GfxShader.h" />
     <ClInclude Include="Graphics\GfxTexture.h" />
@@ -399,7 +400,6 @@
     <ClInclude Include="Rendering\RayTracedShadowsPass.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />
     <ClInclude Include="Rendering\Renderer.h" />
-    <ClInclude Include="Rendering\PipelineState.h" />
     <ClInclude Include="Rendering\ShaderCache.h" />
     <ClInclude Include="Rendering\SSRPass.h" />
     <ClInclude Include="Rendering\TAAPass.h" />

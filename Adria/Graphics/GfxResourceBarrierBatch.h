@@ -5,11 +5,11 @@
 
 namespace adria
 {
-	class ResourceBarrierBatch
+	class GfxResourceBarrierBatch
 	{
 	public:
 
-		ResourceBarrierBatch() = default;
+		GfxResourceBarrierBatch() = default;
 
 		void AddTransition(
 			ID3D12Resource* resource,
@@ -83,7 +83,7 @@ namespace adria
 			if(!resource_barriers.empty()) command_list->ResourceBarrier(static_cast<UINT>(resource_barriers.size()), resource_barriers.data());
 		}
 
-		void Merge(ResourceBarrierBatch&& barriers)
+		void Merge(GfxResourceBarrierBatch&& barriers)
 		{
 			for (auto&& barrier : barriers.resource_barriers)
 				resource_barriers.emplace_back(barrier);

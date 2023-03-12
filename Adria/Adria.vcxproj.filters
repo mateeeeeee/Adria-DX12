@@ -245,9 +245,6 @@
     <ClCompile Include="Graphics\GfxStates.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\PipelineState.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\AABBPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
@@ -386,6 +383,9 @@
     <ClCompile Include="Rendering\GeometryBufferCache.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\GfxPipelineState.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -514,7 +514,7 @@
     <ClInclude Include="Graphics\MipsGenerator.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\ResourceBarrierBatch.h">
+    <ClInclude Include="Graphics\GfxResourceBarrierBatch.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\Releasable.h">
@@ -612,9 +612,6 @@
     </ClInclude>
     <ClInclude Include="Utilities\JsonUtil.h">
       <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\PipelineState.h">
-      <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\CPUProfiler.h">
       <Filter>Utilities</Filter>
@@ -863,6 +860,9 @@
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxFormat.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxPipelineState.h">
       <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>

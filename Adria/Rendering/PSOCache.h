@@ -1,6 +1,5 @@
 #pragma once
 #include "Enums.h"
-#include "PipelineState.h"
 
 struct ID3D12PipelineState;
 

@@ -1,9 +1,8 @@
-#include "PipelineState.h"
-
-#include "ShaderCache.h"
-#include "../Graphics/GfxDevice.h"
-#include "../Graphics/GfxStates.h"
-#include "../Graphics/GfxShader.h"
+#include "GfxPipelineState.h"
+#include "GfxDevice.h"
+#include "GfxStates.h"
+#include "GfxShader.h"
+#include "../Rendering/ShaderCache.h"
 #include "../Core/Macros.h"
 
 namespace adria

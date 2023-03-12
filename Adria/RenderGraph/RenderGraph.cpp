@@ -1,7 +1,7 @@
 #include "RenderGraph.h"
 #include "../Graphics/GPUProfiler.h"
 #include "../Graphics/GfxRenderPass.h"
-#include "../Graphics/ResourceBarrierBatch.h"
+#include "../Graphics/GfxResourceBarrierBatch.h"
 #include "../Tasks/TaskSystem.h"
 #include "../Utilities/StringUtil.h"
 #include <algorithm>
@@ -136,7 +136,7 @@ namespace adria
 				rg_buffer->SetName();
 			}
 
-			ResourceBarrierBatch barrier_batcher{};
+			GfxResourceBarrierBatch barrier_batcher{};
 			{
 				for (auto const& [tex_id, state] : dependency_level.texture_state_map)
 				{
@@ -264,7 +264,7 @@ namespace adria
 				rg_buffer->SetName();
 			}
 
-			ResourceBarrierBatch barrier_batcher{};
+			GfxResourceBarrierBatch barrier_batcher{};
 			{
 				for (auto const& [tex_id, state] : dependency_level.texture_state_map)
 				{

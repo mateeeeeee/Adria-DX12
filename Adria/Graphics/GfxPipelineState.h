@@ -1,10 +1,9 @@
 #pragma once
-#include  <d3d12.h>
-#include "Enums.h"
-#include "../Graphics/GfxStates.h"
-#include "../Graphics/GfxShader.h"
-#include "../Graphics/GfxInputLayout.h"
-#include "../Graphics/GfxResourceCommon.h"
+#include "GfxStates.h"
+#include "GfxShader.h"
+#include "GfxInputLayout.h"
+#include "GfxResourceCommon.h"
+#include "../Rendering/Enums.h"
 #include "../Events/Delegate.h"
 
 namespace adria

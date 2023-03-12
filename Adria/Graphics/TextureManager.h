@@ -5,7 +5,7 @@
 #include <variant>
 #include <memory>
 #include "MipsGenerator.h"
-#include "ResourceBarrierBatch.h"
+#include "GfxResourceBarrierBatch.h"
 #include "../Utilities/HashMap.h"
 
 namespace adria
