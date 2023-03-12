@@ -1,10 +1,10 @@
-#include "RenderPass.h"
+#include "GfxRenderPass.h"
 
 
 namespace adria
 {
 
-	RenderPass::RenderPass(RenderPassDesc const& desc) : flags(desc.render_pass_flags),
+	GfxRenderPass::GfxRenderPass(GfxRenderPassDesc const& desc) : flags(desc.render_pass_flags),
 		width(desc.width), height(desc.height)
 	{
 		for (auto const& attachment : desc.rtv_attachments)
@@ -32,7 +32,7 @@ namespace adria
 		}
 	}
 
-	void RenderPass::Begin(ID3D12GraphicsCommandList4* cmd_list, bool legacy)
+	void GfxRenderPass::Begin(ID3D12GraphicsCommandList4* cmd_list, bool legacy)
 	{
 		if (!legacy)
 		{
@@ -75,7 +75,7 @@ namespace adria
 		cmd_list->RSSetScissorRects(1, &rect);
 	}
 
-	void RenderPass::End(ID3D12GraphicsCommandList4* cmd_list, bool legacy)
+	void GfxRenderPass::End(ID3D12GraphicsCommandList4* cmd_list, bool legacy)
 	{
 		if (!legacy) cmd_list->EndRenderPass();
 	}

@@ -13,7 +13,7 @@
 #include "EntityLoader.h"
 #include "Components.h"
 #include "MeshletStructs.h"
-#include "../Graphics/GraphicsDeviceDX12.h"
+#include "../Graphics/GfxDevice.h"
 #include "../Logging/Logger.h"
 #include "../Math/BoundingVolumeHelpers.h"
 #include "../Math/ComputeTangentFrame.h"
@@ -92,23 +92,23 @@ namespace adria
 
 			entt::entity grid = reg.create();
 
-			BufferDesc vb_desc{
+			GfxBufferDesc vb_desc{
 			.size = vertices.size() * sizeof(TexturedNormalVertex),
-			.bind_flags = EBindFlag::None,
+			.bind_flags = GfxBindFlag::None,
 			.stride = sizeof(TexturedNormalVertex)
 			};
 
-			BufferDesc ib_desc{
+			GfxBufferDesc ib_desc{
 				.size = indices.size() * sizeof(uint32),
-				.bind_flags = EBindFlag::None,
+				.bind_flags = GfxBindFlag::None,
 				.stride = sizeof(uint32),
-				.format = EFormat::R32_UINT
+				.format = GfxFormat::R32_UINT
 			};
 
 			Mesh submesh{};
 			submesh.indices_count = (uint32)indices.size();
-			submesh.vertex_buffer = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());
-			submesh.index_buffer = std::make_shared<Buffer>(gfx, ib_desc, indices.data());
+			submesh.vertex_buffer = std::make_shared<GfxBuffer>(gfx, vb_desc, vertices.data());
+			submesh.index_buffer = std::make_shared<GfxBuffer>(gfx, ib_desc, indices.data());
 
 			reg.emplace<Mesh>(grid, submesh);
 			reg.emplace<Transform>(grid);
@@ -181,21 +181,21 @@ namespace adria
 			}
 			ComputeNormals(params.normal_type, vertices, indices);
 
-			BufferDesc vb_desc{
+			GfxBufferDesc vb_desc{
 			.size = vertices.size() * sizeof(TexturedNormalVertex),
-			.bind_flags = EBindFlag::None,
+			.bind_flags = GfxBindFlag::None,
 			.stride = sizeof(TexturedNormalVertex)
 			};
 
-			BufferDesc ib_desc{
+			GfxBufferDesc ib_desc{
 				.size = indices.size() * sizeof(uint32),
-				.bind_flags = EBindFlag::None,
+				.bind_flags = GfxBindFlag::None,
 				.stride = sizeof(uint32),
-				.format = EFormat::R32_UINT
+				.format = GfxFormat::R32_UINT
 			};
 
-			std::shared_ptr<Buffer> vb = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());
-			std::shared_ptr<Buffer> ib = std::make_shared<Buffer>(gfx, ib_desc, indices.data());
+			std::shared_ptr<GfxBuffer> vb = std::make_shared<GfxBuffer>(gfx, vb_desc, vertices.data());
+			std::shared_ptr<GfxBuffer> ib = std::make_shared<GfxBuffer>(gfx, ib_desc, indices.data());
 
 			for (entt::entity chunk : chunks)
 			{
@@ -296,21 +296,21 @@ namespace adria
 			mesh_component.indices_count = static_cast<uint32>(index_offset);
 		}
 
-		BufferDesc vb_desc{
+		GfxBufferDesc vb_desc{
 			.size = vertices.size() * sizeof(CompleteVertex),
-			.bind_flags = EBindFlag::None,
+			.bind_flags = GfxBindFlag::None,
 			.stride = sizeof(CompleteVertex)
 		};
 
-		BufferDesc ib_desc{
+		GfxBufferDesc ib_desc{
 			.size = indices.size() * sizeof(uint32),
-			.bind_flags = EBindFlag::None,
+			.bind_flags = GfxBindFlag::None,
 			.stride = sizeof(uint32),
-			.format = EFormat::R32_UINT
+			.format = GfxFormat::R32_UINT
 		};
 
-		std::shared_ptr<Buffer> vb = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());
-		std::shared_ptr<Buffer> ib = std::make_shared<Buffer>(gfx, ib_desc, indices.data());
+		std::shared_ptr<GfxBuffer> vb = std::make_shared<GfxBuffer>(gfx, vb_desc, vertices.data());
+		std::shared_ptr<GfxBuffer> ib = std::make_shared<GfxBuffer>(gfx, ib_desc, indices.data());
 
 		for (entt::entity e : entities)
 		{
@@ -324,7 +324,7 @@ namespace adria
 		return entities;
 	}
 
-	EntityLoader::EntityLoader(entt::registry& reg, GraphicsDevice* gfx)
+	EntityLoader::EntityLoader(entt::registry& reg, GfxDevice* gfx)
         : reg(reg), gfx(gfx)
     {
 		GeometryBufferCache::Get().Initialize(gfx);
@@ -356,11 +356,11 @@ namespace adria
     {
         entt::entity light = reg.create();
 
-        if (params.light_data.type == ELightType::Directional)
+        if (params.light_data.type == LightType::Directional)
             const_cast<LightParameters&>(params).light_data.position = XMVectorScale(-params.light_data.direction, 1e3);
 
         reg.emplace<Light>(light, params.light_data);
-        if (params.mesh_type == ELightMesh::Quad)
+        if (params.mesh_type == LightMesh::Quad)
         {
             uint32 const size = params.mesh_size;
             std::vector<TexturedVertex> const vertices =
@@ -376,21 +376,21 @@ namespace adria
                     0, 2, 1, 2, 0, 3
             };
 
-			BufferDesc vb_desc{
+			GfxBufferDesc vb_desc{
 			.size = vertices.size() * sizeof(TexturedVertex),
-			.bind_flags = EBindFlag::None,
+			.bind_flags = GfxBindFlag::None,
 			.stride = sizeof(TexturedVertex)
 			};
 
-			BufferDesc ib_desc{
+			GfxBufferDesc ib_desc{
 				.size = indices.size() * sizeof(uint16),
-				.bind_flags = EBindFlag::None,
+				.bind_flags = GfxBindFlag::None,
 				.stride = sizeof(uint16),
-				.format = EFormat::R16_UINT };
+				.format = GfxFormat::R16_UINT };
 
             Mesh submesh{};
-            submesh.vertex_buffer = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());
-			submesh.index_buffer = std::make_shared<Buffer>(gfx, ib_desc, indices.data());
+            submesh.vertex_buffer = std::make_shared<GfxBuffer>(gfx, vb_desc, vertices.data());
+			submesh.index_buffer = std::make_shared<GfxBuffer>(gfx, ib_desc, indices.data());
             submesh.indices_count = static_cast<uint32>(indices.size());
 
             reg.emplace<Mesh>(light, submesh);
@@ -404,11 +404,11 @@ namespace adria
 
             if (params.light_texture.has_value())
                 material.albedo_texture = TextureManager::Get().LoadTexture(params.light_texture.value()); //
-            else if (params.light_data.type == ELightType::Directional)
+            else if (params.light_data.type == LightType::Directional)
                 material.albedo_texture = TextureManager::Get().LoadTexture(L"Resources/Textures/sun.png");
 
-            if (params.light_data.type == ELightType::Directional)
-                material.pso = EPipelineState::Sun;
+            if (params.light_data.type == LightType::Directional)
+                material.pso = GfxPipelineStateID::Sun;
 			else 
 			{ 
 				ADRIA_LOG(ERROR, "Light with quad mesh needs to be directional!"); 
@@ -417,9 +417,9 @@ namespace adria
             reg.emplace<Material>(light, material);
 			auto translation_matrix = XMMatrixTranslationFromVector(params.light_data.position);
             reg.emplace<Transform>(light, translation_matrix);
-            if(params.light_data.type != ELightType::Directional) reg.emplace<Forward>(light, true);
+            if(params.light_data.type != LightType::Directional) reg.emplace<Forward>(light, true);
         }
-        else if (params.mesh_type == ELightMesh::Sphere)
+        else if (params.mesh_type == LightMesh::Sphere)
         {
             //load sphere mesh and mesh component
            //Mesh sphere_mesh{};
@@ -444,13 +444,13 @@ namespace adria
 
         switch (params.light_data.type)
         {
-        case ELightType::Directional:
+        case LightType::Directional:
             reg.emplace<Tag>(light, "Directional Light");
             break;
-        case ELightType::Spot:
+        case LightType::Spot:
             reg.emplace<Tag>(light, "Spot Light");
             break;
-        case ELightType::Point:
+        case LightType::Point:
             reg.emplace<Tag>(light, "Point Light");
             break;
         }
@@ -464,7 +464,7 @@ namespace adria
 		Material ocean_material{};
 		static float default_ocean_color[] = { 0.0123f, 0.3613f, 0.6867f };
 		memcpy(ocean_material.base_color, default_ocean_color, 3 * sizeof(float));
-		ocean_material.pso = EPipelineState::Unknown;
+		ocean_material.pso = GfxPipelineStateID::Unknown;
 		Ocean ocean_component{};
 
 		for (auto ocean_chunk : ocean_chunks)
@@ -499,15 +499,15 @@ namespace adria
 		XMStoreFloat3(&abs_normal, XMVectorAbs(N));
 		if (abs_normal.x >= abs_normal.y && abs_normal.x >= abs_normal.z)
 		{
-			decal.decal_type = EDecalType::Project_YZ;
+			decal.decal_type = DecalType::Project_YZ;
 		}
 		else if (abs_normal.y >= abs_normal.x && abs_normal.y >= abs_normal.z)
 		{
-			decal.decal_type = EDecalType::Project_XZ;
+			decal.decal_type = DecalType::Project_XZ;
 		}
 		else
 		{
-			decal.decal_type = EDecalType::Project_XY;
+			decal.decal_type = DecalType::Project_XY;
 		}
 
 		entt::entity decal_entity = reg.create();
@@ -549,22 +549,22 @@ namespace adria
 		for (auto const& gltf_material : model.materials)
 		{
 			Material& material = materials.emplace_back();
-			material.pso = EPipelineState::GBuffer;
+			material.pso = GfxPipelineStateID::GBuffer;
 			material.alpha_cutoff = (float)gltf_material.alphaCutoff;
 			material.double_sided = gltf_material.doubleSided;
 			if (gltf_material.alphaMode == "OPAQUE")
 			{
-				material.alpha_mode = EMaterialAlphaMode::Opaque;
-				material.pso = material.double_sided ? EPipelineState::GBuffer_NoCull : EPipelineState::GBuffer;
+				material.alpha_mode = MaterialAlphaMode::Opaque;
+				material.pso = material.double_sided ? GfxPipelineStateID::GBuffer_NoCull : GfxPipelineStateID::GBuffer;
 			}
 			else if (gltf_material.alphaMode == "BLEND")
 			{
-				material.alpha_mode = EMaterialAlphaMode::Blend;
+				material.alpha_mode = MaterialAlphaMode::Blend;
 			}
 			else if (gltf_material.alphaMode == "MASK")
 			{
-				material.alpha_mode = EMaterialAlphaMode::Mask;
-				material.pso = material.double_sided ? EPipelineState::GBuffer_Mask_NoCull : EPipelineState::GBuffer_Mask;
+				material.alpha_mode = MaterialAlphaMode::Mask;
+				material.pso = material.double_sided ? GfxPipelineStateID::GBuffer_Mask_NoCull : GfxPipelineStateID::GBuffer_Mask;
 			}
 			tinygltf::PbrMetallicRoughness pbr_metallic_roughness = gltf_material.pbrMetallicRoughness;
 			if (pbr_metallic_roughness.baseColorTexture.index >= 0)
@@ -840,11 +840,11 @@ namespace adria
 			LoadNode(scene.nodes[i], params.model_matrix);
 		}
 
-		BufferDesc vb_desc = VertexBufferDesc(vertices.size(), sizeof(CompleteVertex), params.used_in_raytracing);
-		BufferDesc ib_desc = IndexBufferDesc(indices.size(), false, params.used_in_raytracing);
+		GfxBufferDesc vb_desc = VertexBufferDesc(vertices.size(), sizeof(CompleteVertex), params.used_in_raytracing);
+		GfxBufferDesc ib_desc = IndexBufferDesc(indices.size(), false, params.used_in_raytracing);
 
-		std::shared_ptr<Buffer> vb = std::make_shared<Buffer>(gfx, vb_desc, vertices.data());
-		std::shared_ptr<Buffer> ib = std::make_shared<Buffer>(gfx, ib_desc, indices.data());
+		std::shared_ptr<GfxBuffer> vb = std::make_shared<GfxBuffer>(gfx, vb_desc, vertices.data());
+		std::shared_ptr<GfxBuffer> ib = std::make_shared<GfxBuffer>(gfx, ib_desc, indices.data());
 
 		size_t rt_vertices_size = RayTracing::rt_vertices.size();
 		size_t rt_indices_size = RayTracing::rt_indices.size();
@@ -918,22 +918,22 @@ namespace adria
 		for (auto const& gltf_material : model.materials)
 		{
 			Material& material = materials.emplace_back();
-			material.pso = EPipelineState::GBuffer;
+			material.pso = GfxPipelineStateID::GBuffer;
 			material.alpha_cutoff = (float)gltf_material.alphaCutoff;
 			material.double_sided = gltf_material.doubleSided;
 			if (gltf_material.alphaMode == "OPAQUE")
 			{
-				material.alpha_mode = EMaterialAlphaMode::Opaque;
-				material.pso = material.double_sided ? EPipelineState::GBuffer_NoCull : EPipelineState::GBuffer;
+				material.alpha_mode = MaterialAlphaMode::Opaque;
+				material.pso = material.double_sided ? GfxPipelineStateID::GBuffer_NoCull : GfxPipelineStateID::GBuffer;
 			}
 			else if (gltf_material.alphaMode == "BLEND")
 			{
-				material.alpha_mode = EMaterialAlphaMode::Blend;
+				material.alpha_mode = MaterialAlphaMode::Blend;
 			}
 			else if (gltf_material.alphaMode == "MASK")
 			{
-				material.alpha_mode = EMaterialAlphaMode::Mask;
-				material.pso = material.double_sided ? EPipelineState::GBuffer_Mask_NoCull : EPipelineState::GBuffer_Mask;
+				material.alpha_mode = MaterialAlphaMode::Mask;
+				material.pso = material.double_sided ? GfxPipelineStateID::GBuffer_Mask_NoCull : GfxPipelineStateID::GBuffer_Mask;
 			}
 			tinygltf::PbrMetallicRoughness pbr_metallic_roughness = gltf_material.pbrMetallicRoughness;
 			if (pbr_metallic_roughness.baseColorTexture.index >= 0)
@@ -1189,12 +1189,12 @@ namespace adria
 			reg.emplace<AABB>(e, aabb);
 		}
 
-		BufferDesc desc{};
+		GfxBufferDesc desc{};
 		desc.size = total_buffer_size;
-		desc.bind_flags = EBindFlag::ShaderResource;
-		desc.misc_flags = EBufferMiscFlag::BufferRaw;
-		desc.resource_usage = EResourceUsage::Default;
-		std::shared_ptr<Buffer> geometry_buffer = std::make_shared<Buffer>(gfx, desc);
+		desc.bind_flags = GfxBindFlag::ShaderResource;
+		desc.misc_flags = GfxBufferMiscFlag::BufferRaw;
+		desc.resource_usage = GfxResourceUsage::Default;
+		std::shared_ptr<GfxBuffer> geometry_buffer = std::make_shared<GfxBuffer>(gfx, desc);
 
 		DynamicAllocation staging_buffer = gfx->GetDynamicAllocator()->Allocate(total_buffer_size, 16);
 

@@ -29,7 +29,7 @@ namespace adria
 				RGTextureDesc blur_desc{};
 				blur_desc.width = width;
 				blur_desc.height = height;
-				blur_desc.format = EFormat::R16G16B16A16_FLOAT;
+				blur_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 				
 				builder.DeclareTexture(RG_RES_NAME_IDX(Intermediate, counter), blur_desc);
 				data.dst_texture = builder.WriteTexture(RG_RES_NAME_IDX(Intermediate, counter));
@@ -37,7 +37,7 @@ namespace adria
 
 				builder.SetViewport(width, height);
 			},
-			[=](BlurPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](BlurPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -58,11 +58,11 @@ namespace adria
 				};
 
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Blur_Horizontal));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Blur_Horizontal));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 2, &constants, 0);
 				cmd_list->Dispatch((uint32)std::ceil(width / 1024.0f), height, 1);
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::None);
 
 		name = "Vertical Blur Pass" + std::string(pass_name);
 		rendergraph.AddPass<BlurPassData>(name.c_str(),
@@ -71,13 +71,13 @@ namespace adria
 				RGTextureDesc blur_desc{};
 				blur_desc.width = width;
 				blur_desc.height = height;
-				blur_desc.format = EFormat::R16G16B16A16_FLOAT;
+				blur_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 				
 				builder.DeclareTexture(blurred_texture, blur_desc);
 				data.dst_texture = builder.WriteTexture(blurred_texture);
 				data.src_texture = builder.ReadTexture(RG_RES_NAME_IDX(Intermediate, counter), ReadAccess_NonPixelShader);
 			},
-			[=](BlurPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](BlurPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -98,12 +98,12 @@ namespace adria
 				};
 
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Blur_Vertical));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Blur_Vertical));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 2, &constants, 0);
 				cmd_list->Dispatch(width, (uint32)std::ceil(height / 1024.0f), 1);
 
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::None);
 
 	}
 

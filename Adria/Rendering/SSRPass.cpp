@@ -30,7 +30,7 @@ namespace adria
 				RGTextureDesc ssr_output_desc{};
 				ssr_output_desc.width = width;
 				ssr_output_desc.height = height;
-				ssr_output_desc.format = EFormat::R16G16B16A16_FLOAT;
+				ssr_output_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 
 				builder.DeclareTexture(RG_RES_NAME(SSR_Output), ssr_output_desc);
 				data.output = builder.WriteTexture(RG_RES_NAME(SSR_Output));
@@ -38,7 +38,7 @@ namespace adria
 				data.normals = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
-			[=](SSRPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](SSRPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -64,11 +64,11 @@ namespace adria
 					.depth_idx = i, .normal_idx = i + 1, .scene_idx = i + 2, .output_idx = i + 3
 				};
 
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::SSR));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::SSR));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);
 				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
-			}, ERGPassType::Compute);
+			}, RGPassType::Compute);
 
 		AddGUI([&]() {
 			if (ImGui::TreeNodeEx("Screen-Space Reflections", 0))

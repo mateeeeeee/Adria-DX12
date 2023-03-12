@@ -7,8 +7,8 @@
 namespace adria
 {
 	class RenderGraph;
-	class GraphicsDevice;
-	class Buffer;
+	class GfxDevice;
+	class GfxBuffer;
 
 	class DecalsPass
 	{
@@ -19,15 +19,15 @@ namespace adria
 
 		void OnResize(uint32 w, uint32 h);
 
-		void OnSceneInitialized(GraphicsDevice* gfx);
+		void OnSceneInitialized(GfxDevice* gfx);
 
 	private:
 		entt::registry& reg;
 		uint32 width, height;
-		std::unique_ptr<Buffer>	cube_vb = nullptr;
-		std::unique_ptr<Buffer>	cube_ib = nullptr;
+		std::unique_ptr<GfxBuffer>	cube_vb = nullptr;
+		std::unique_ptr<GfxBuffer>	cube_ib = nullptr;
 
 	private:
-		void CreateCubeBuffers(GraphicsDevice* gfx);
+		void CreateCubeBuffers(GfxDevice* gfx);
 	};
 }

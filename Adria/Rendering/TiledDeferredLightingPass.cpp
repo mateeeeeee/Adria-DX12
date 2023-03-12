@@ -37,7 +37,7 @@ namespace adria
 				RGTextureDesc tiled_desc{};
 				tiled_desc.width = width;
 				tiled_desc.height = height;
-				tiled_desc.format = EFormat::R16G16B16A16_FLOAT;
+				tiled_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 
 				builder.DeclareTexture(RG_RES_NAME(TiledTarget), tiled_desc);
 				builder.DeclareTexture(RG_RES_NAME(TiledDebugTarget), tiled_desc);
@@ -48,7 +48,7 @@ namespace adria
 				data.gbuffer_albedo = builder.ReadTexture(RG_RES_NAME(GBufferAlbedo), ReadAccess_NonPixelShader);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
-			[=](TiledDeferredLightingPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](TiledDeferredLightingPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
@@ -82,22 +82,22 @@ namespace adria
 					.debug_idx = visualize_tiled ? int32(i + 4) : -1
 				};
 				static constexpr float black[4] = {0.0f,0.0f,0.0f,0.0f};
-				Texture const& tiled_target = context.GetTexture(data.output.GetResourceId());
+				GfxTexture const& tiled_target = context.GetTexture(data.output.GetResourceId());
 				cmd_list->ClearUnorderedAccessViewFloat(descriptor_allocator->GetHandle(i + 3), context.GetReadWriteTexture(data.output), tiled_target.GetNative(),
 					black, 0, nullptr);
-				Texture const& tiled_debug_target = context.GetTexture(data.debug_output.GetResourceId());
+				GfxTexture const& tiled_debug_target = context.GetTexture(data.debug_output.GetResourceId());
 				cmd_list->ClearUnorderedAccessViewFloat(descriptor_allocator->GetHandle(i + 4), context.GetReadWriteTexture(data.debug_output), tiled_debug_target.GetNative(),
 					black, 0, nullptr); 
 
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::TiledDeferredLighting));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::TiledDeferredLighting));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);
 				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::None);
 
-		if (visualize_tiled)  add_textures_pass.AddPass(rendergraph, RG_RES_NAME(HDR_RenderTarget), RG_RES_NAME(TiledTarget), RG_RES_NAME(TiledDebugTarget), EBlendMode::AlphaBlend);
-		else copy_to_texture_pass.AddPass(rendergraph, RG_RES_NAME(HDR_RenderTarget), RG_RES_NAME(TiledTarget), EBlendMode::AdditiveBlend);
+		if (visualize_tiled)  add_textures_pass.AddPass(rendergraph, RG_RES_NAME(HDR_RenderTarget), RG_RES_NAME(TiledTarget), RG_RES_NAME(TiledDebugTarget), BlendMode::AlphaBlend);
+		else copy_to_texture_pass.AddPass(rendergraph, RG_RES_NAME(HDR_RenderTarget), RG_RES_NAME(TiledTarget), BlendMode::AdditiveBlend);
 		AddGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("Tiled Deferred", ImGuiTreeNodeFlags_OpenOnDoubleClick))

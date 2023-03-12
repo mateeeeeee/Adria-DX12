@@ -3,8 +3,8 @@
 #include "PSOCache.h" 
 
 #include "../RenderGraph/RenderGraph.h"
-#include "../Graphics/Texture.h"
-#include "../Graphics/Buffer.h"
+#include "../Graphics/GfxTexture.h"
+#include "../Graphics/GfxBuffer.h"
 #include "../Editor/GUICommand.h"
 
 #include <algorithm> // remove this later
@@ -16,27 +16,27 @@ namespace adria
 		: width(w), height(h)
 	{}
 
-	void AutomaticExposurePass::OnSceneInitialized(GraphicsDevice* gfx)
+	void AutomaticExposurePass::OnSceneInitialized(GfxDevice* gfx)
 	{
-		TextureDesc desc{};
+		GfxTextureDesc desc{};
 		desc.width = 1;
 		desc.height = 1;
 		desc.mip_levels = 1;
-		desc.bind_flags = EBindFlag::UnorderedAccess;
-		desc.misc_flags = ETextureMiscFlag::None;
-		desc.initial_state = EResourceState::UnorderedAccess;
-		desc.format = EFormat::R16_FLOAT;
+		desc.bind_flags = GfxBindFlag::UnorderedAccess;
+		desc.misc_flags = GfxTextureMiscFlag::None;
+		desc.initial_state = GfxResourceState::UnorderedAccess;
+		desc.format = GfxFormat::R16_FLOAT;
 
-		previous_ev100 = std::make_unique<Texture>(gfx, desc);
+		previous_ev100 = std::make_unique<GfxTexture>(gfx, desc);
 		previous_ev100->CreateUAV();
 
-		BufferDesc hist_desc{};
+		GfxBufferDesc hist_desc{};
 		hist_desc.stride = sizeof(uint32);
 		hist_desc.size = hist_desc.stride * 256;
-		hist_desc.format = EFormat::R32_FLOAT;
-		hist_desc.misc_flags = EBufferMiscFlag::BufferRaw;
-		hist_desc.resource_usage = EResourceUsage::Readback;
-		histogram_copy = std::make_unique<Buffer>(gfx, hist_desc);
+		hist_desc.format = GfxFormat::R32_FLOAT;
+		hist_desc.misc_flags = GfxBufferMiscFlag::BufferRaw;
+		hist_desc.resource_usage = GfxResourceUsage::Readback;
+		histogram_copy = std::make_unique<GfxBuffer>(gfx, hist_desc);
 	}
 
 	void AutomaticExposurePass::AddPasses(RenderGraph& rg, RGResourceName input)
@@ -55,13 +55,13 @@ namespace adria
 				RGBufferDesc desc{};
 				desc.stride = sizeof(uint32);
 				desc.size = desc.stride * 256;
-				desc.format = EFormat::R32_FLOAT;
-				desc.misc_flags = EBufferMiscFlag::BufferRaw;
-				desc.resource_usage = EResourceUsage::Default;
+				desc.format = GfxFormat::R32_FLOAT;
+				desc.misc_flags = GfxBufferMiscFlag::BufferRaw;
+				desc.resource_usage = GfxResourceUsage::Default;
 				builder.DeclareBuffer(RG_RES_NAME(HistogramBuffer), desc);
 				data.histogram_buffer = builder.WriteBuffer(RG_RES_NAME(HistogramBuffer));
 			},
-			[=](BuildHistogramData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](BuildHistogramData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -76,7 +76,7 @@ namespace adria
 				DescriptorHandle buffer_gpu = descriptor_allocator->GetHandle(descriptor_index + 1);
 				device->CopyDescriptorsSimple(1, buffer_gpu, context.GetReadWriteBuffer(data.histogram_buffer), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	
-				Buffer const& histogram_buffer = context.GetBuffer(data.histogram_buffer.GetResourceId());
+				GfxBuffer const& histogram_buffer = context.GetBuffer(data.histogram_buffer.GetResourceId());
 				uint32 clear_value[4] = { 0, 0, 0, 0 };
 				cmd_list->ClearUnorderedAccessViewUint(buffer_gpu, context.GetReadWriteBuffer(data.histogram_buffer), histogram_buffer.GetNative(), clear_value, 0, nullptr);
 
@@ -86,7 +86,7 @@ namespace adria
 				cmd_list->ResourceBarrier(1, &buffer_uav_barrier);
 
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::BuildHistogram)); 
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::BuildHistogram)); 
 				uint32 half_width = (width + 1) / 2;
 				uint32 half_height = (height + 1) / 2;
 
@@ -111,7 +111,7 @@ namespace adria
 					return (a + b - 1) / b;
 				};
 				cmd_list->Dispatch(DivideRoudingUp(half_width, 16), DivideRoudingUp(half_height, 16), 1);
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::None);
 
 		struct HistogramReductionData
 		{
@@ -125,18 +125,18 @@ namespace adria
 				data.histogram_buffer = builder.ReadBuffer(RG_RES_NAME(HistogramBuffer));
 				RGTextureDesc desc{};
 				desc.width = desc.height = 1;
-				desc.format = EFormat::R16_FLOAT;
+				desc.format = GfxFormat::R16_FLOAT;
 				builder.DeclareTexture(RG_RES_NAME(AverageLuminance), desc);
 				data.avg_luminance = builder.WriteTexture(RG_RES_NAME(AverageLuminance));
 			},
-			[=](HistogramReductionData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](HistogramReductionData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::HistogramReduction));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::HistogramReduction));
 
 				uint32 descriptor_index = (uint32)descriptor_allocator->AllocateRange(2);
 
@@ -161,7 +161,7 @@ namespace adria
 				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);
 
 				cmd_list->Dispatch(1, 1, 1);
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::None);
 
 		struct ExposureData
 		{
@@ -176,11 +176,11 @@ namespace adria
 
 				RGTextureDesc desc{};
 				desc.width = desc.height = 1;
-				desc.format = EFormat::R16_FLOAT;
+				desc.format = GfxFormat::R16_FLOAT;
 				builder.DeclareTexture(RG_RES_NAME(Exposure), desc);
 				data.exposure = builder.WriteTexture(RG_RES_NAME(Exposure));
 			},
-			[=](ExposureData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](ExposureData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -197,7 +197,7 @@ namespace adria
 					invalid_history = false;
 				}
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Exposure));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Exposure));
 
 				uint32 descriptor_index = (uint32)descriptor_allocator->AllocateRange(3);
 				
@@ -226,7 +226,7 @@ namespace adria
 
 				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);
 				cmd_list->Dispatch(1, 1, 1);
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::None);
 	
 		if (show_histogram)
 		{
@@ -240,10 +240,10 @@ namespace adria
 					ADRIA_ASSERT(builder.IsBufferDeclared(RG_RES_NAME(HistogramBuffer)));
 					data.histogram = builder.ReadCopySrcBuffer(RG_RES_NAME(HistogramBuffer));
 				},
-				[=](HistogramCopyData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+				[=](HistogramCopyData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 				{
 					cmd_list->CopyResource(histogram_copy->GetNative(), context.GetBuffer(data.histogram).GetNative());
-				}, ERGPassType::Compute, ERGPassFlags::ForceNoCull);
+				}, RGPassType::Compute, RGPassFlags::ForceNoCull);
 		}
 
 		AddGUI([&]() 

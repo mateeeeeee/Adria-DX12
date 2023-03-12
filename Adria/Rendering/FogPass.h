@@ -11,7 +11,7 @@ namespace adria
 	class FogPass
 	{
 
-		enum class EFogType : int32
+		enum class FogType : int32
 		{
 			Exponential,
 			ExponentialHeight
@@ -19,7 +19,7 @@ namespace adria
 
 		struct FogParameters
 		{
-			EFogType fog_type = EFogType::Exponential;
+			FogType fog_type = FogType::Exponential;
 			float  fog_falloff = 0.005f;
 			float  fog_density = 0.002f;
 			float  fog_start = 100.0f;

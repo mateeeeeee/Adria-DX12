@@ -4,17 +4,17 @@
 
 namespace adria
 {
-	class GraphicsDevice;
-	class Texture;
+	class GfxDevice;
+	class GfxTexture;
 
-	enum class ECommonTextureType : uint8
+	enum class GfxCommonTextureType : uint8
 	{
 		WhiteTexture2D,
 		BlackTexture2D,
 		Count
 	};
 
-	enum class ECommonViewType : uint8
+	enum class GfxCommonViewType : uint8
 	{
 		NullTexture2D_SRV,
 		NullTexture2D_UAV,
@@ -25,10 +25,10 @@ namespace adria
 
 	namespace gfxcommon
 	{
-		void Initialize(GraphicsDevice* gfx);
+		void Initialize(GfxDevice* gfx);
 		void Destroy();
 
-		Texture* GetCommonTexture(ECommonTextureType);
-		D3D12_CPU_DESCRIPTOR_HANDLE GetCommonView(ECommonViewType);
+		GfxTexture* GetCommonTexture(GfxCommonTextureType);
+		D3D12_CPU_DESCRIPTOR_HANDLE GetCommonView(GfxCommonViewType);
 	}
 }

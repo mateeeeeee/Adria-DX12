@@ -1,10 +1,9 @@
 #pragma once
-#include <d3d12.h>
 #include <vector>
 #include <array>
 #include <string>
 #include "GpuMacros.h"
-#include "GraphicsDeviceDX12.h"
+#include "GfxDevice.h"
 #include "../Utilities/HashMap.h"
 #if GPU_MULTITHREADED
 #include <mutex>
@@ -18,11 +17,11 @@ namespace adria
 		std::string name;
 	};
 
-	class Buffer;
+	class GfxBuffer;
 
 	class GPUProfiler
 	{
-		static constexpr UINT64 FRAME_COUNT = GraphicsDevice::BackbufferCount();
+		static constexpr UINT64 FRAME_COUNT = GfxDevice::BackbufferCount();
 		static constexpr UINT64 MAX_PROFILES = 64;
 
 		struct QueryData
@@ -39,7 +38,7 @@ namespace adria
 			static GPUProfiler gpu_profiler;
 			return gpu_profiler;
 		}
-		void Init(GraphicsDevice* gfx);
+		void Init(GfxDevice* gfx);
 		void Destroy();
 
 		void NewFrame();
@@ -48,9 +47,9 @@ namespace adria
 		std::vector<Timestamp> GetProfilerResults(ID3D12GraphicsCommandList* cmd_list);
 
 	private:
-		GraphicsDevice* gfx = nullptr;
+		GfxDevice* gfx = nullptr;
 		ArcPtr<ID3D12QueryHeap> query_heap;
-		std::unique_ptr<Buffer> query_readback_buffer;
+		std::unique_ptr<GfxBuffer> query_readback_buffer;
 
 		std::array<QueryData, MAX_PROFILES> query_data;
 		HashMap<std::string, uint32> name_to_index_map;

@@ -1,6 +1,6 @@
 #pragma once
 #include <memory>
-#include "GraphicsDeviceDX12.h"
+#include "GfxDevice.h"
 #include "d3dx12.h"
 #include "DescriptorHeap.h"
 #include "../Core/Definitions.h"
@@ -10,7 +10,7 @@ namespace adria
 {
 	
 	template<typename BufferType>
-	class ConstantBuffer
+	class GfxConstantBuffer
 	{
 		static constexpr uint32 GetCBufferSize()
 		{
@@ -18,7 +18,7 @@ namespace adria
 		}
 
 	public:
-		ConstantBuffer(ID3D12Device* device, uint32 cbuffer_count)
+		GfxConstantBuffer(ID3D12Device* device, uint32 cbuffer_count)
 			: cbuffer_size(GetCBufferSize()), cbuffer_count(cbuffer_count)
 		{
 			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
@@ -36,13 +36,13 @@ namespace adria
 			BREAK_IF_FAILED(cb->Map(0, &read_range, reinterpret_cast<void**>(&_mapped_data)));
 		}
 
-		ConstantBuffer(ConstantBuffer const&) = delete;
-		ConstantBuffer(ConstantBuffer&& o) noexcept;
+		GfxConstantBuffer(GfxConstantBuffer const&) = delete;
+		GfxConstantBuffer(GfxConstantBuffer&& o) noexcept;
 
-		ConstantBuffer& operator=(ConstantBuffer const&) = delete;
-		ConstantBuffer& operator=(ConstantBuffer&&) = delete;
+		GfxConstantBuffer& operator=(GfxConstantBuffer const&) = delete;
+		GfxConstantBuffer& operator=(GfxConstantBuffer&&) = delete;
 
-		~ConstantBuffer();
+		~GfxConstantBuffer();
 
 		void Update(BufferType const& data, uint32 cbuffer_index);
 		void Update(void* data, uint32 data_size, uint32 cbuffer_index);
@@ -66,14 +66,14 @@ namespace adria
 
 
 	template<typename BufferType>
-	ConstantBuffer<BufferType>::ConstantBuffer(ConstantBuffer&& o) noexcept
+	GfxConstantBuffer<BufferType>::GfxConstantBuffer(GfxConstantBuffer&& o) noexcept
 		: cb(std::move(o.cb)), cbuffer_size(o.cbuffer_size), _mapped_data(o._mapped_data)
 	{
 		o._mapped_data = nullptr;
 	}
 	
 	template<typename BufferType>
-	ConstantBuffer<BufferType>::~ConstantBuffer()
+	GfxConstantBuffer<BufferType>::~GfxConstantBuffer()
 	{
 		if (cb != nullptr)
 			cb->Unmap(0, nullptr);
@@ -82,19 +82,19 @@ namespace adria
 	}
 
 	template<typename BufferType>
-	void ConstantBuffer<BufferType>::Update(BufferType const& data, uint32 cbuffer_index)
+	void GfxConstantBuffer<BufferType>::Update(BufferType const& data, uint32 cbuffer_index)
 	{
 		memcpy(&_mapped_data[cbuffer_index * cbuffer_size], &data, sizeof(BufferType)); //maybe change to cbuffer_size
 	}
 
 	template<typename BufferType>
-	void ConstantBuffer<BufferType>::Update(void* data, uint32 data_size, uint32 cbuffer_index)
+	void GfxConstantBuffer<BufferType>::Update(void* data, uint32 data_size, uint32 cbuffer_index)
 	{
 		memcpy(&_mapped_data[cbuffer_index * cbuffer_size], data, data_size);
 	}
 
 	template<typename BufferType>
-	D3D12_CONSTANT_BUFFER_VIEW_DESC ConstantBuffer<BufferType>::View(uint32 cbuffer_index) const
+	D3D12_CONSTANT_BUFFER_VIEW_DESC GfxConstantBuffer<BufferType>::View(uint32 cbuffer_index) const
 	{
 		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
 		cbvDesc.BufferLocation = cb->GetGPUVirtualAddress() + (uint64)cbuffer_index * cbuffer_size;

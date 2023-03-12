@@ -78,11 +78,11 @@ namespace adria
 				RGTextureDesc desc{};
 				desc.width = target_dim_x;
 				desc.height = target_dim_y;
-				desc.format = EFormat::R16G16B16A16_FLOAT;
+				desc.format = GfxFormat::R16G16B16A16_FLOAT;
 				builder.DeclareTexture(output, desc); 
 				data.output = builder.WriteTexture(output);
 			},
-			[=](BloomDownsamplePassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](BloomDownsamplePassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -104,12 +104,12 @@ namespace adria
 					.source_idx = i,
 					.target_idx = i + 1
 				};
-				EPipelineState pso = pass_idx == 1 ? EPipelineState::BloomDownsample_FirstPass : EPipelineState::BloomDownsample;
+				GfxPipelineStateID pso = pass_idx == 1 ? GfxPipelineStateID::BloomDownsample_FirstPass : GfxPipelineStateID::BloomDownsample;
 				cmd_list->SetPipelineState(PSOCache::Get(pso));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 4, &constants, 0);
 				cmd_list->Dispatch((uint32)std::ceil(target_dim_x / 8.0f), (uint32)std::ceil(target_dim_y / 8.0f), 1);
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::None);
 
 		return output;
 	}
@@ -139,11 +139,11 @@ namespace adria
 				RGTextureDesc desc{};
 				desc.width = target_dim_x;
 				desc.height = target_dim_y;
-				desc.format = EFormat::R16G16B16A16_FLOAT;
+				desc.format = GfxFormat::R16G16B16A16_FLOAT;
 				builder.DeclareTexture(output, desc);
 				data.output = builder.WriteTexture(output);
 			},
-			[=](BloomUpsamplePassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](BloomUpsamplePassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -171,11 +171,11 @@ namespace adria
 					.radius = params.radius
 				};
 
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::BloomUpsample));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::BloomUpsample));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);
 				cmd_list->Dispatch((uint32)std::ceil(target_dim_x / 8.0f), (uint32)std::ceil(target_dim_y / 8.0f), 1);
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::None);
 
 
 		return output;

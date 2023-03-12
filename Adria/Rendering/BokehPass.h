@@ -7,13 +7,13 @@
 namespace adria
 {
 	class RenderGraph;
-	class GraphicsDevice;
-	class Buffer;
+	class GfxDevice;
+	class GfxBuffer;
 
 	class BokehPass
 	{
 
-		enum class EBokehType : uint8
+		enum class BokehType : uint8
 		{
 			Hex,
 			Oct,
@@ -28,7 +28,7 @@ namespace adria
 			float bokeh_radius_scale = 25.0f;
 			float bokeh_color_scale = 1.0f;
 			float bokeh_fallout = 0.9f;
-			EBokehType bokeh_type = EBokehType::Hex;
+			BokehType bokeh_type = BokehType::Hex;
 		};
 
 	public:
@@ -36,7 +36,7 @@ namespace adria
 
 		void AddPass(RenderGraph& rendergraph, RGResourceName input);
 		void OnResize(uint32 w, uint32 h);
-		void OnSceneInitialized(GraphicsDevice* gfx);
+		void OnSceneInitialized(GfxDevice* gfx);
 
 	private:
 		uint32 width, height;
@@ -45,8 +45,8 @@ namespace adria
 		size_t oct_bokeh_handle = -1;
 		size_t circle_bokeh_handle = -1;
 		size_t cross_bokeh_handle = -1;
-		std::unique_ptr<Buffer> counter_reset_buffer;
-		std::unique_ptr<Buffer> bokeh_indirect_buffer;
+		std::unique_ptr<GfxBuffer> counter_reset_buffer;
+		std::unique_ptr<GfxBuffer> bokeh_indirect_buffer;
 		std::unique_ptr<DrawIndirectSignature> bokeh_command_signature;
 		
 	private:

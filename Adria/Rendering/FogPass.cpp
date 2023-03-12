@@ -32,7 +32,7 @@ namespace adria
 				RGTextureDesc fog_output_desc{};
 				fog_output_desc.width = width;
 				fog_output_desc.height = height;
-				fog_output_desc.format = EFormat::R16G16B16A16_FLOAT;
+				fog_output_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 
 				builder.DeclareTexture(RG_RES_NAME(FogOutput), fog_output_desc);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
@@ -40,7 +40,7 @@ namespace adria
 				data.output = builder.WriteTexture(RG_RES_NAME(FogOutput));
 				builder.SetViewport(width, height);
 			},
-			[=](FogPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](FogPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -69,11 +69,11 @@ namespace adria
 				};
 
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Fog));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Fog));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
 				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::None);
 
 		AddGUI([&]() 
 			{
@@ -93,7 +93,7 @@ namespace adria
 						ImGui::EndCombo();
 					}
 
-					params.fog_type = static_cast<EFogType>(current_fog_type);
+					params.fog_type = static_cast<FogType>(current_fog_type);
 
 					ImGui::SliderFloat("Fog Falloff", &params.fog_falloff, 0.0001f, 0.01f);
 					ImGui::SliderFloat("Fog Density", &params.fog_density, 0.0001f, 0.01f);

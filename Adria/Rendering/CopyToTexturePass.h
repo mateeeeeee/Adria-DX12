@@ -14,7 +14,7 @@ namespace adria
 
 		void AddPass(RenderGraph& rendergraph,
 			RGResourceName render_target,
-			RGResourceName texture_src, EBlendMode mode = EBlendMode::None);
+			RGResourceName texture_src, BlendMode mode = BlendMode::None);
 
 		void OnResize(uint32 w, uint32 h)
 		{

@@ -31,7 +31,7 @@ namespace adria
 			[=](GodRaysPassData& data, RenderGraphBuilder& builder)
 			{
 				RGTextureDesc god_rays_desc{};
-				god_rays_desc.format = EFormat::R16G16B16A16_FLOAT;
+				god_rays_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 				god_rays_desc.width = width;
 				god_rays_desc.height = height;
 
@@ -39,13 +39,13 @@ namespace adria
 				data.output = builder.WriteTexture(RG_RES_NAME(GodRaysOutput));
 				data.sun = builder.ReadTexture(RG_RES_NAME(SunOutput));
 			},
-			[=](GodRaysPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](GodRaysPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
-				if (light.type != ELightType::Directional)
+				if (light.type != LightType::Directional)
 				{
 					ADRIA_LOG(WARNING, "Using God Rays on a Non-Directional Light Source");
 					return;
@@ -81,11 +81,11 @@ namespace adria
 				};
 
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::GodRays));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::GodRays));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
 				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::None);
 	}
 
 	void GodRaysPass::OnResize(uint32 w, uint32 h)

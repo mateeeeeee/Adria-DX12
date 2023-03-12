@@ -12,53 +12,53 @@ namespace adria
 		return rg.GetBlackboard();
 	}
 
-	Texture const& RenderGraphContext::GetTexture(RGTextureId res_id) const
+	GfxTexture const& RenderGraphContext::GetTexture(RGTextureId res_id) const
 	{
 		return *rg.GetTexture(res_id);
 	}
 
-	Buffer const& RenderGraphContext::GetBuffer(RGBufferId res_id) const
+	GfxBuffer const& RenderGraphContext::GetBuffer(RGBufferId res_id) const
 	{
 		return *rg.GetBuffer(res_id);
 	}
 
-	Texture const& RenderGraphContext::GetCopySrcTexture(RGTextureCopySrcId res_id) const
+	GfxTexture const& RenderGraphContext::GetCopySrcTexture(RGTextureCopySrcId res_id) const
 	{
 		return rg.GetCopySrcTexture(res_id);
 	}
 
-	Texture const& RenderGraphContext::GetCopyDstTexture(RGTextureCopyDstId res_id) const
+	GfxTexture const& RenderGraphContext::GetCopyDstTexture(RGTextureCopyDstId res_id) const
 	{
 		return rg.GetCopyDstTexture(res_id);
 	}
 
 
-	Buffer const& RenderGraphContext::GetCopySrcBuffer(RGBufferCopySrcId res_id) const
+	GfxBuffer const& RenderGraphContext::GetCopySrcBuffer(RGBufferCopySrcId res_id) const
 	{
 		return rg.GetCopySrcBuffer(res_id);
 	}
 
-	Buffer const& RenderGraphContext::GetCopyDstBuffer(RGBufferCopyDstId res_id) const
+	GfxBuffer const& RenderGraphContext::GetCopyDstBuffer(RGBufferCopyDstId res_id) const
 	{
 		return rg.GetCopyDstBuffer(res_id);
 	}
 
-	Buffer const& RenderGraphContext::GetIndirectArgsBuffer(RGBufferIndirectArgsId res_id) const
+	GfxBuffer const& RenderGraphContext::GetIndirectArgsBuffer(RGBufferIndirectArgsId res_id) const
 	{
 		return rg.GetIndirectArgsBuffer(res_id);
 	}
 
-	Buffer const& RenderGraphContext::GetVertexBuffer(RGBufferVertexId res_id) const
+	GfxBuffer const& RenderGraphContext::GetVertexBuffer(RGBufferVertexId res_id) const
 	{
 		return rg.GetVertexBuffer(res_id);
 	}
 
-	Buffer const& RenderGraphContext::GetIndexBuffer(RGBufferIndexId res_id) const
+	GfxBuffer const& RenderGraphContext::GetIndexBuffer(RGBufferIndexId res_id) const
 	{
 		return rg.GetIndexBuffer(res_id);
 	}
 
-	Buffer const& RenderGraphContext::GetConstantBuffer(RGBufferConstantId res_id) const
+	GfxBuffer const& RenderGraphContext::GetConstantBuffer(RGBufferConstantId res_id) const
 	{
 		return rg.GetConstantBuffer(res_id);
 	}

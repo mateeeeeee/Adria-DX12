@@ -7,7 +7,7 @@
 namespace adria
 {
 	class RenderGraph;
-	class GraphicsDevice;
+	class GfxDevice;
 	struct Light;
 
 	class LensFlarePass
@@ -17,7 +17,7 @@ namespace adria
 
 		void AddPass(RenderGraph& rendergraph, Light const& light);
 		void OnResize(uint32 w, uint32 h);
-		void OnSceneInitialized(GraphicsDevice* gfx);
+		void OnSceneInitialized(GfxDevice* gfx);
 	private:
 		uint32 width, height;
 		std::vector<size_t> lens_flare_textures;

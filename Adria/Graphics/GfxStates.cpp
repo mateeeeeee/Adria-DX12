@@ -1,4 +1,4 @@
-#include "GraphicsStates.h"
+#include "GfxStates.h"
 #include "d3dx12.h"
 #include "../Utilities/EnumUtil.h"
 
@@ -6,14 +6,14 @@ namespace adria
 {
 	namespace
 	{
-		constexpr D3D12_FILL_MODE ConvertFillMode(EFillMode value)
+		constexpr D3D12_FILL_MODE ConvertFillMode(GfxFillMode value)
 		{
 			switch (value)
 			{
-			case EFillMode::Wireframe:
+			case GfxFillMode::Wireframe:
 				return D3D12_FILL_MODE_WIREFRAME;
 				break;
-			case EFillMode::Solid:
+			case GfxFillMode::Solid:
 				return D3D12_FILL_MODE_SOLID;
 				break;
 			default:
@@ -21,17 +21,17 @@ namespace adria
 			}
 			return D3D12_FILL_MODE_WIREFRAME;
 		}
-		constexpr D3D12_CULL_MODE ConvertCullMode(ECullMode value)
+		constexpr D3D12_CULL_MODE ConvertCullMode(GfxCullMode value)
 		{
 			switch (value)
 			{
-			case ECullMode::None:
+			case GfxCullMode::None:
 				return D3D12_CULL_MODE_NONE;
 				break;
-			case ECullMode::Front:
+			case GfxCullMode::Front:
 				return D3D12_CULL_MODE_FRONT;
 				break;
-			case ECullMode::Back:
+			case GfxCullMode::Back:
 				return D3D12_CULL_MODE_BACK;
 				break;
 			default:
@@ -39,14 +39,14 @@ namespace adria
 			}
 			return D3D12_CULL_MODE_NONE;
 		}
-		constexpr D3D12_DEPTH_WRITE_MASK ConvertDepthWriteMask(EDepthWriteMask value)
+		constexpr D3D12_DEPTH_WRITE_MASK ConvertDepthWriteMask(GfxDepthWriteMask value)
 		{
 			switch (value)
 			{
-			case EDepthWriteMask::Zero:
+			case GfxDepthWriteMask::Zero:
 				return D3D12_DEPTH_WRITE_MASK_ZERO;
 				break;
-			case EDepthWriteMask::All:
+			case GfxDepthWriteMask::All:
 				return D3D12_DEPTH_WRITE_MASK_ALL;
 				break;
 			default:
@@ -54,32 +54,32 @@ namespace adria
 			}
 			return D3D12_DEPTH_WRITE_MASK_ZERO;
 		}
-		constexpr D3D12_STENCIL_OP ConvertStencilOp(EStencilOp value)
+		constexpr D3D12_STENCIL_OP ConvertStencilOp(GfxStencilOp value)
 		{
 			switch (value)
 			{
-			case EStencilOp::Keep:
+			case GfxStencilOp::Keep:
 				return D3D12_STENCIL_OP_KEEP;
 				break;
-			case EStencilOp::Zero:
+			case GfxStencilOp::Zero:
 				return D3D12_STENCIL_OP_ZERO;
 				break;
-			case EStencilOp::Replace:
+			case GfxStencilOp::Replace:
 				return D3D12_STENCIL_OP_REPLACE;
 				break;
-			case EStencilOp::IncrSat:
+			case GfxStencilOp::IncrSat:
 				return D3D12_STENCIL_OP_INCR_SAT;
 				break;
-			case EStencilOp::DecrSat:
+			case GfxStencilOp::DecrSat:
 				return D3D12_STENCIL_OP_DECR_SAT;
 				break;
-			case EStencilOp::Invert:
+			case GfxStencilOp::Invert:
 				return D3D12_STENCIL_OP_INVERT;
 				break;
-			case EStencilOp::Incr:
+			case GfxStencilOp::Incr:
 				return D3D12_STENCIL_OP_INCR;
 				break;
-			case EStencilOp::Decr:
+			case GfxStencilOp::Decr:
 				return D3D12_STENCIL_OP_DECR;
 				break;
 			default:
@@ -87,112 +87,112 @@ namespace adria
 			}
 			return D3D12_STENCIL_OP_KEEP;
 		}
-		constexpr D3D12_BLEND ConvertBlend(EBlend value)
+		constexpr D3D12_BLEND ConvertBlend(GfxBlend value)
 		{
 			switch (value)
 			{
-			case EBlend::Zero:
+			case GfxBlend::Zero:
 				return D3D12_BLEND_ZERO;
-			case EBlend::One:
+			case GfxBlend::One:
 				return D3D12_BLEND_ONE;
-			case EBlend::SrcColor:
+			case GfxBlend::SrcColor:
 				return D3D12_BLEND_SRC_COLOR;
-			case EBlend::InvSrcColor:
+			case GfxBlend::InvSrcColor:
 				return D3D12_BLEND_INV_SRC_COLOR;
-			case EBlend::SrcAlpha:
+			case GfxBlend::SrcAlpha:
 				return D3D12_BLEND_SRC_ALPHA;
-			case EBlend::InvSrcAlpha:
+			case GfxBlend::InvSrcAlpha:
 				return D3D12_BLEND_INV_SRC_ALPHA;
-			case EBlend::DstAlpha:
+			case GfxBlend::DstAlpha:
 				return D3D12_BLEND_DEST_ALPHA;
-			case EBlend::InvDstAlpha:
+			case GfxBlend::InvDstAlpha:
 				return D3D12_BLEND_INV_DEST_ALPHA;
-			case EBlend::DstColor:
+			case GfxBlend::DstColor:
 				return D3D12_BLEND_DEST_COLOR;
-			case EBlend::InvDstColor:
+			case GfxBlend::InvDstColor:
 				return D3D12_BLEND_INV_DEST_COLOR;
-			case EBlend::SrcAlphaSat:
+			case GfxBlend::SrcAlphaSat:
 				return D3D12_BLEND_SRC_ALPHA_SAT;
-			case EBlend::BlendFactor:
+			case GfxBlend::BlendFactor:
 				return D3D12_BLEND_BLEND_FACTOR;
-			case EBlend::InvBlendFactor:
+			case GfxBlend::InvBlendFactor:
 				return D3D12_BLEND_INV_BLEND_FACTOR;
-			case EBlend::Src1Color:
+			case GfxBlend::Src1Color:
 				return D3D12_BLEND_SRC1_COLOR;
-			case EBlend::InvSrc1Color:
+			case GfxBlend::InvSrc1Color:
 				return D3D12_BLEND_INV_SRC1_COLOR;
-			case EBlend::Src1Alpha:
+			case GfxBlend::Src1Alpha:
 				return D3D12_BLEND_SRC1_ALPHA;
-			case EBlend::InvSrc1Alpha:
+			case GfxBlend::InvSrc1Alpha:
 				return D3D12_BLEND_INV_SRC1_ALPHA;
 			default:
 				return D3D12_BLEND_ZERO;
 			}
 		}
-		constexpr D3D12_BLEND ConvertAlphaBlend(EBlend value)
+		constexpr D3D12_BLEND ConvertAlphaBlend(GfxBlend value)
 		{
 			switch (value)
 			{
-			case EBlend::SrcColor:
+			case GfxBlend::SrcColor:
 				return D3D12_BLEND_SRC_ALPHA;
-			case EBlend::InvSrcColor:
+			case GfxBlend::InvSrcColor:
 				return D3D12_BLEND_INV_SRC_ALPHA;
-			case EBlend::DstColor:
+			case GfxBlend::DstColor:
 				return D3D12_BLEND_DEST_ALPHA;
-			case EBlend::InvDstColor:
+			case GfxBlend::InvDstColor:
 				return D3D12_BLEND_INV_DEST_ALPHA;
-			case EBlend::Src1Color:
+			case GfxBlend::Src1Color:
 				return D3D12_BLEND_SRC1_ALPHA;
-			case EBlend::InvSrc1Color:
+			case GfxBlend::InvSrc1Color:
 				return D3D12_BLEND_INV_SRC1_ALPHA;
 			default:
 				return ConvertBlend(value);
 			}
 		}
-		constexpr D3D12_BLEND_OP ConvertBlendOp(EBlendOp value)
+		constexpr D3D12_BLEND_OP ConvertBlendOp(GfxBlendOp value)
 		{
 			switch (value)
 			{
-			case EBlendOp::Add:
+			case GfxBlendOp::Add:
 				return D3D12_BLEND_OP_ADD;
-			case EBlendOp::Subtract:
+			case GfxBlendOp::Subtract:
 				return D3D12_BLEND_OP_SUBTRACT;
-			case EBlendOp::RevSubtract:
+			case GfxBlendOp::RevSubtract:
 				return D3D12_BLEND_OP_REV_SUBTRACT;
-			case EBlendOp::Min:
+			case GfxBlendOp::Min:
 				return D3D12_BLEND_OP_MIN;
-			case EBlendOp::Max:
+			case GfxBlendOp::Max:
 				return D3D12_BLEND_OP_MAX;
 			default:
 				return D3D12_BLEND_OP_ADD;
 			}
 		}
-		constexpr D3D12_COMPARISON_FUNC ConvertComparisonFunc(EComparisonFunc value)
+		constexpr D3D12_COMPARISON_FUNC ConvertComparisonFunc(GfxComparisonFunc value)
 		{
 			switch (value)
 			{
-			case EComparisonFunc::Never:
+			case GfxComparisonFunc::Never:
 				return D3D12_COMPARISON_FUNC_NEVER;
 				break;
-			case EComparisonFunc::Less:
+			case GfxComparisonFunc::Less:
 				return D3D12_COMPARISON_FUNC_LESS;
 				break;
-			case EComparisonFunc::Equal:
+			case GfxComparisonFunc::Equal:
 				return D3D12_COMPARISON_FUNC_EQUAL;
 				break;
-			case EComparisonFunc::LessEqual:
+			case GfxComparisonFunc::LessEqual:
 				return D3D12_COMPARISON_FUNC_LESS_EQUAL;
 				break;
-			case EComparisonFunc::Greater:
+			case GfxComparisonFunc::Greater:
 				return D3D12_COMPARISON_FUNC_GREATER;
 				break;
-			case EComparisonFunc::NotEqual:
+			case GfxComparisonFunc::NotEqual:
 				return D3D12_COMPARISON_FUNC_NOT_EQUAL;
 				break;
-			case EComparisonFunc::GreaterEqual:
+			case GfxComparisonFunc::GreaterEqual:
 				return D3D12_COMPARISON_FUNC_GREATER_EQUAL;
 				break;
-			case EComparisonFunc::Always:
+			case GfxComparisonFunc::Always:
 				return D3D12_COMPARISON_FUNC_ALWAYS;
 				break;
 			default:
@@ -200,29 +200,29 @@ namespace adria
 			}
 			return D3D12_COMPARISON_FUNC_NEVER;
 		}
-		constexpr uint32 ParseColorWriteMask(EColorWrite value)
+		constexpr uint32 ParseColorWriteMask(GfxColorWrite value)
 		{
 			uint32 _flag = 0;
-			if (value == EColorWrite::EnableAll)
+			if (value == GfxColorWrite::EnableAll)
 			{
 				return D3D12_COLOR_WRITE_ENABLE_ALL;
 			}
 			else
 			{
-				if (HasAnyFlag(value, EColorWrite::EnableRed))
+				if (HasAnyFlag(value, GfxColorWrite::EnableRed))
 					_flag |= D3D12_COLOR_WRITE_ENABLE_RED;
-				if (HasAnyFlag(value, EColorWrite::EnableGreen))
+				if (HasAnyFlag(value, GfxColorWrite::EnableGreen))
 					_flag |= D3D12_COLOR_WRITE_ENABLE_GREEN;
-				if (HasAnyFlag(value, EColorWrite::EnableBlue))
+				if (HasAnyFlag(value, GfxColorWrite::EnableBlue))
 					_flag |= D3D12_COLOR_WRITE_ENABLE_BLUE;
-				if (HasAnyFlag(value, EColorWrite::EnableAlpha))
+				if (HasAnyFlag(value, GfxColorWrite::EnableAlpha))
 					_flag |= D3D12_COLOR_WRITE_ENABLE_ALPHA;
 			}
 			return _flag;
 		}
 	}
 
-	D3D12_RASTERIZER_DESC ConvertRasterizerDesc(RasterizerState _rs)
+	D3D12_RASTERIZER_DESC ConvertRasterizerDesc(GfxRasterizerState _rs)
 	{
 		CD3DX12_RASTERIZER_DESC rs{};
 		rs.FillMode = ConvertFillMode(_rs.fill_mode);
@@ -238,7 +238,7 @@ namespace adria
 		rs.ForcedSampleCount = _rs.forced_sample_count;
 		return rs;
 	}
-	D3D12_DEPTH_STENCIL_DESC ConvertDepthStencilDesc(DepthStencilState _dss)
+	D3D12_DEPTH_STENCIL_DESC ConvertDepthStencilDesc(GfxDepthStencilState _dss)
 	{
 		CD3DX12_DEPTH_STENCIL_DESC dss{};
 		dss.DepthEnable = _dss.depth_enable;
@@ -257,7 +257,7 @@ namespace adria
 		dss.BackFace.StencilPassOp = ConvertStencilOp(_dss.back_face.stencil_pass_op);
 		return dss;
 	}
-	D3D12_BLEND_DESC ConvertBlendDesc(BlendState _bd)
+	D3D12_BLEND_DESC ConvertBlendDesc(GfxBlendState _bd)
 	{
 		CD3DX12_BLEND_DESC bd{};
 		bd.AlphaToCoverageEnable = _bd.alpha_to_coverage_enable;

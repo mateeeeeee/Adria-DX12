@@ -1,18 +1,18 @@
 #include "RingDynamicAllocator.h"
-#include "Buffer.h"
+#include "GfxBuffer.h"
 
 
 namespace adria
 {
-	RingDynamicAllocator::RingDynamicAllocator(GraphicsDevice* gfx, SIZE_T max_size_in_bytes)
+	RingDynamicAllocator::RingDynamicAllocator(GfxDevice* gfx, SIZE_T max_size_in_bytes)
 		: ring_allocator(max_size_in_bytes)
 	{
-		BufferDesc desc{};
+		GfxBufferDesc desc{};
 		desc.size = max_size_in_bytes;
-		desc.resource_usage = EResourceUsage::Upload;
-		desc.bind_flags = EBindFlag::ShaderResource;
+		desc.resource_usage = GfxResourceUsage::Upload;
+		desc.bind_flags = GfxBindFlag::ShaderResource;
 
-		buffer = std::make_unique<Buffer>(gfx, desc);
+		buffer = std::make_unique<GfxBuffer>(gfx, desc);
 		ADRIA_ASSERT(buffer->IsMapped());
 		cpu_address = buffer->GetMappedData();
 	}

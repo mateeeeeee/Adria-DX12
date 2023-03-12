@@ -1,6 +1,6 @@
 #include "RenderGraph.h"
 #include "../Graphics/GPUProfiler.h"
-#include "../Graphics/RenderPass.h"
+#include "../Graphics/GfxRenderPass.h"
 #include "../Graphics/ResourceBarrierBatch.h"
 #include "../Tasks/TaskSystem.h"
 #include "../Utilities/StringUtil.h"
@@ -19,7 +19,7 @@ namespace adria
 	RGTextureId RenderGraph::DeclareTexture(RGResourceName name, RGTextureDesc const& desc)
 	{
 		ADRIA_ASSERT(texture_name_id_map.find(name) == texture_name_id_map.end() && "Texture with that name has already been declared");
-		TextureDesc tex_desc{}; FillTextureDesc(desc, tex_desc);
+		GfxTextureDesc tex_desc{}; FillTextureDesc(desc, tex_desc);
 		textures.emplace_back(new RGTexture(textures.size(), tex_desc, name));
 		texture_name_id_map[name] = RGTextureId(textures.size() - 1);
 		return RGTextureId(textures.size() - 1);
@@ -28,7 +28,7 @@ namespace adria
 	RGBufferId RenderGraph::DeclareBuffer(RGResourceName name, RGBufferDesc const& desc)
 	{
 		ADRIA_ASSERT(buffer_name_id_map.find(name) == buffer_name_id_map.end() && "Buffer with that name has already been declared");
-		BufferDesc buf_desc{}; FillBufferDesc(desc, buf_desc);
+		GfxBufferDesc buf_desc{}; FillBufferDesc(desc, buf_desc);
 		buffers.emplace_back(new RGBuffer(buffers.size(), buf_desc, name));
 		buffer_name_id_map[name] = RGBufferId(buffers.size() - 1);
 		return RGBufferId(buffers.size() - 1);
@@ -44,14 +44,14 @@ namespace adria
 		return buffer_name_id_map.find(name) != buffer_name_id_map.end();
 	}
 
-	void RenderGraph::ImportTexture(RGResourceName name, Texture* texture)
+	void RenderGraph::ImportTexture(RGResourceName name, GfxTexture* texture)
 	{
 		textures.emplace_back(new RGTexture(textures.size(), texture, name));
 		textures.back()->SetName();
 		texture_name_id_map[name] = RGTextureId(textures.size() - 1);
 	}
 
-	void RenderGraph::ImportBuffer(RGResourceName name, Buffer* buffer)
+	void RenderGraph::ImportBuffer(RGResourceName name, GfxBuffer* buffer)
 	{
 		buffers.emplace_back(new RGBuffer(buffers.size(), buffer, name));
 		buffers.back()->SetName();
@@ -76,10 +76,10 @@ namespace adria
 			{
 				switch (type)
 				{
-				case ERGDescriptorType::RenderTarget:
+				case RGDescriptorType::RenderTarget:
 					gfx->FreeOfflineDescriptor(view, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 					continue;
-				case ERGDescriptorType::DepthStencil:
+				case RGDescriptorType::DepthStencil:
 					gfx->FreeOfflineDescriptor(view, D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 					continue;
 				default:
@@ -141,7 +141,7 @@ namespace adria
 				for (auto const& [tex_id, state] : dependency_level.texture_state_map)
 				{
 					RGTexture* rg_texture = GetRGTexture(tex_id);
-					Texture* texture = rg_texture->resource;
+					GfxTexture* texture = rg_texture->resource;
 					if (dependency_level.texture_creates.contains(tex_id))
 					{
 						if (!HasAllFlags(texture->GetDesc().initial_state, state))
@@ -178,10 +178,10 @@ namespace adria
 				for (auto const& [buf_id, state] : dependency_level.buffer_state_map)
 				{
 					RGBuffer* rg_buffer = GetRGBuffer(buf_id);
-					Buffer* buffer = rg_buffer->resource;
+					GfxBuffer* buffer = rg_buffer->resource;
 					if (dependency_level.buffer_creates.contains(buf_id))
 					{
-						if (state != EResourceState::Common) //check if there is an implicit transition, maybe this can be avoided
+						if (state != GfxResourceState::Common) //check if there is an implicit transition, maybe this can be avoided
 						{
 							ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
 							barrier_batcher.AddTransition(buffer->GetNative(), D3D12_RESOURCE_STATE_COMMON, ConvertToD3D12ResourceState(state));
@@ -205,7 +205,7 @@ namespace adria
 					if (!found && rg_buffer->imported)
 					{
 						ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
-						if (EResourceState::Common != state) barrier_batcher.AddTransition(buffer->GetNative(), D3D12_RESOURCE_STATE_COMMON, ConvertToD3D12ResourceState(state));
+						if (GfxResourceState::Common != state) barrier_batcher.AddTransition(buffer->GetNative(), D3D12_RESOURCE_STATE_COMMON, ConvertToD3D12ResourceState(state));
 					}
 				}
 			}
@@ -217,11 +217,11 @@ namespace adria
 			for (RGTextureId tex_id : dependency_level.texture_destroys)
 			{
 				RGTexture* rg_texture = GetRGTexture(tex_id);
-				Texture* texture = rg_texture->resource;
-				EResourceState initial_state = texture->GetDesc().initial_state;
+				GfxTexture* texture = rg_texture->resource;
+				GfxResourceState initial_state = texture->GetDesc().initial_state;
 				D3D12_RESOURCE_STATES wanted_state = ConvertToD3D12ResourceState(initial_state);
 				ADRIA_ASSERT(dependency_level.texture_state_map.contains(tex_id));
-				EResourceState state = dependency_level.texture_state_map[tex_id];
+				GfxResourceState state = dependency_level.texture_state_map[tex_id];
 				D3D12_RESOURCE_STATES prev_state = ConvertToD3D12ResourceState(state);
 				if (initial_state != state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, wanted_state);
 				if (!rg_texture->imported) pool.ReleaseTexture(rg_texture->resource);
@@ -229,10 +229,10 @@ namespace adria
 			for (RGBufferId buf_id : dependency_level.buffer_destroys)
 			{
 				RGBuffer* rg_buffer = GetRGBuffer(buf_id);
-				Buffer* buffer = rg_buffer->resource;
+				GfxBuffer* buffer = rg_buffer->resource;
 				D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATE_COMMON;
 				ADRIA_ASSERT(dependency_level.buffer_state_map.contains(buf_id));
-				EResourceState state = dependency_level.buffer_state_map[buf_id];
+				GfxResourceState state = dependency_level.buffer_state_map[buf_id];
 				D3D12_RESOURCE_STATES prev_state = ConvertToD3D12ResourceState(state);
 				if (initial_state != prev_state) barrier_batcher.AddTransition(buffer->GetNative(), prev_state, initial_state);
 				if (!rg_buffer->imported) pool.ReleaseBuffer(rg_buffer->resource);
@@ -269,7 +269,7 @@ namespace adria
 				for (auto const& [tex_id, state] : dependency_level.texture_state_map)
 				{
 					RGTexture* rg_texture = GetRGTexture(tex_id);
-					Texture* texture = rg_texture->resource;
+					GfxTexture* texture = rg_texture->resource;
 					if (dependency_level.texture_creates.contains(tex_id))
 					{
 						if (!HasAllFlags(texture->GetDesc().initial_state, state))
@@ -306,10 +306,10 @@ namespace adria
 				for (auto const& [buf_id, state] : dependency_level.buffer_state_map)
 				{
 					RGBuffer* rg_buffer = GetRGBuffer(buf_id);
-					Buffer* buffer = rg_buffer->resource;
+					GfxBuffer* buffer = rg_buffer->resource;
 					if (dependency_level.buffer_creates.contains(buf_id))
 					{
-						if (state != EResourceState::Common) //check if there is an implicit transition, maybe this can be avoided
+						if (state != GfxResourceState::Common) //check if there is an implicit transition, maybe this can be avoided
 						{
 							ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
 							barrier_batcher.AddTransition(buffer->GetNative(), D3D12_RESOURCE_STATE_COMMON, ConvertToD3D12ResourceState(state));
@@ -333,7 +333,7 @@ namespace adria
 					if (!found && rg_buffer->imported)
 					{
 						ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
-						if (EResourceState::Common != state) barrier_batcher.AddTransition(buffer->GetNative(), D3D12_RESOURCE_STATE_COMMON, ConvertToD3D12ResourceState(state));
+						if (GfxResourceState::Common != state) barrier_batcher.AddTransition(buffer->GetNative(), D3D12_RESOURCE_STATE_COMMON, ConvertToD3D12ResourceState(state));
 					}
 				}
 			}
@@ -349,11 +349,11 @@ namespace adria
 			for (RGTextureId tex_id : dependency_level.texture_destroys)
 			{
 				RGTexture* rg_texture = GetRGTexture(tex_id);
-				Texture* texture = rg_texture->resource;
-				EResourceState initial_state = texture->GetDesc().initial_state;
+				GfxTexture* texture = rg_texture->resource;
+				GfxResourceState initial_state = texture->GetDesc().initial_state;
 				D3D12_RESOURCE_STATES wanted_state = ConvertToD3D12ResourceState(initial_state);
 				ADRIA_ASSERT(dependency_level.texture_state_map.contains(tex_id));
-				EResourceState state = dependency_level.texture_state_map[tex_id];
+				GfxResourceState state = dependency_level.texture_state_map[tex_id];
 				D3D12_RESOURCE_STATES prev_state = ConvertToD3D12ResourceState(state);
 				if (initial_state != state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, wanted_state);
 				if (!rg_texture->imported) pool.ReleaseTexture(rg_texture->resource);
@@ -361,10 +361,10 @@ namespace adria
 			for (RGBufferId buf_id : dependency_level.buffer_destroys)
 			{
 				RGBuffer* rg_buffer = GetRGBuffer(buf_id);
-				Buffer* buffer = rg_buffer->resource;
+				GfxBuffer* buffer = rg_buffer->resource;
 				D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATE_COMMON;
 				ADRIA_ASSERT(dependency_level.buffer_state_map.contains(buf_id));
-				EResourceState state = dependency_level.buffer_state_map[buf_id];
+				GfxResourceState state = dependency_level.buffer_state_map[buf_id];
 				D3D12_RESOURCE_STATES prev_state = ConvertToD3D12ResourceState(state);
 				if (initial_state != prev_state) barrier_batcher.AddTransition(buffer->GetNative(), prev_state, initial_state);
 				if (!rg_buffer->imported) pool.ReleaseBuffer(rg_buffer->resource);
@@ -559,12 +559,12 @@ namespace adria
 		return buffers[handle.id].get();
 	}
 
-	Texture* RenderGraph::GetTexture(RGTextureId res_id) const
+	GfxTexture* RenderGraph::GetTexture(RGTextureId res_id) const
 	{
 		return GetRGTexture(res_id)->resource;
 	}
 
-	Buffer* RenderGraph::GetBuffer(RGBufferId res_id) const
+	GfxBuffer* RenderGraph::GetBuffer(RGBufferId res_id) const
 	{
 		return GetRGBuffer(res_id)->resource;
 	}
@@ -574,20 +574,20 @@ namespace adria
 		auto const& view_descs = texture_view_desc_map[res_id];
 		for (auto const& [view_desc, type] : view_descs)
 		{
-			Texture* texture = GetTexture(res_id);
+			GfxTexture* texture = GetTexture(res_id);
 			DescriptorCPU view;
 			switch (type)
 			{
-			case ERGDescriptorType::RenderTarget:
+			case RGDescriptorType::RenderTarget:
 				view = texture->TakeRTV(&view_desc);
 				break;
-			case ERGDescriptorType::DepthStencil:
+			case RGDescriptorType::DepthStencil:
 				view = texture->TakeDSV(&view_desc);
 				break;
-			case ERGDescriptorType::ReadOnly:
+			case RGDescriptorType::ReadOnly:
 				view = texture->TakeSRV(&view_desc);
 				break;
-			case ERGDescriptorType::ReadWrite:
+			case RGDescriptorType::ReadWrite:
 				view = texture->TakeUAV(&view_desc);
 				break;
 			default:
@@ -603,17 +603,17 @@ namespace adria
 		for (size_t i = 0; i < view_descs.size(); ++i)
 		{
 			auto const& [view_desc, type] = view_descs[i];
-			Buffer* buffer = GetBuffer(res_id);
+			GfxBuffer* buffer = GetBuffer(res_id);
 			
 			DescriptorCPU view;
 			switch (type)
 			{
-			case ERGDescriptorType::ReadOnly:
+			case RGDescriptorType::ReadOnly:
 			{
 				view = buffer->TakeSRV(&view_desc);
 				break;
 			}
-			case ERGDescriptorType::ReadWrite:
+			case RGDescriptorType::ReadWrite:
 			{
 				RGBufferReadWriteId rw_id(i, res_id);
 				if (buffer_uav_counter_map.contains(rw_id))
@@ -624,8 +624,8 @@ namespace adria
 				else view = buffer->TakeUAV(&view_desc);
 				break;
 			}
-			case ERGDescriptorType::RenderTarget:
-			case ERGDescriptorType::DepthStencil:
+			case RGDescriptorType::RenderTarget:
+			case RGDescriptorType::DepthStencil:
 			default:
 				ADRIA_ASSERT(false && "invalid resource view type for buffer");
 			}
@@ -645,7 +645,7 @@ namespace adria
 		return buffer_name_id_map[name];
 	}
 
-	void RenderGraph::AddBufferBindFlags(RGResourceName name, EBindFlag flags)
+	void RenderGraph::AddBufferBindFlags(RGResourceName name, GfxBindFlag flags)
 	{
 		RGBufferId handle = buffer_name_id_map[name];
 		ADRIA_ASSERT(IsValidBufferHandle(handle) && "Resource has not been declared!");
@@ -653,7 +653,7 @@ namespace adria
 		rg_buffer->desc.bind_flags |= flags;
 	}
 
-	void RenderGraph::AddTextureBindFlags(RGResourceName name, EBindFlag flags)
+	void RenderGraph::AddTextureBindFlags(RGResourceName name, GfxBindFlag flags)
 	{
 		RGTextureId handle = texture_name_id_map[name];
 		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
@@ -666,9 +666,9 @@ namespace adria
 		RGTextureId handle = texture_name_id_map[name];
 		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
 		RGTexture* rg_texture = GetRGTexture(handle);
-		if (rg_texture->desc.initial_state == EResourceState::Common)
+		if (rg_texture->desc.initial_state == GfxResourceState::Common)
 		{
-			rg_texture->desc.initial_state = EResourceState::CopySource;
+			rg_texture->desc.initial_state = GfxResourceState::CopySource;
 		}
 		return RGTextureCopySrcId(handle);
 	}
@@ -678,9 +678,9 @@ namespace adria
 		RGTextureId handle = texture_name_id_map[name];
 		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
 		RGTexture* rg_texture = GetRGTexture(handle);
-		if (rg_texture->desc.initial_state == EResourceState::Common)
+		if (rg_texture->desc.initial_state == GfxResourceState::Common)
 		{
-			rg_texture->desc.initial_state = EResourceState::CopyDest;
+			rg_texture->desc.initial_state = GfxResourceState::CopyDest;
 		}
 		return RGTextureCopyDstId(handle);
 	}
@@ -727,125 +727,125 @@ namespace adria
 		return RGBufferConstantId(handle);
 	}
 
-	RGRenderTargetId RenderGraph::RenderTarget(RGResourceName name, TextureSubresourceDesc const& desc)
+	RGRenderTargetId RenderGraph::RenderTarget(RGResourceName name, GfxTextureSubresourceDesc const& desc)
 	{
 		RGTextureId handle = texture_name_id_map[name];
 		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
 		RGTexture* rg_texture = GetRGTexture(handle);
-		rg_texture->desc.bind_flags |= EBindFlag::RenderTarget;
-		if (rg_texture->desc.initial_state == EResourceState::Common)
+		rg_texture->desc.bind_flags |= GfxBindFlag::RenderTarget;
+		if (rg_texture->desc.initial_state == GfxResourceState::Common)
 		{
-			rg_texture->desc.initial_state = EResourceState::RenderTarget;
+			rg_texture->desc.initial_state = GfxResourceState::RenderTarget;
 		}
-		std::vector<std::pair<TextureSubresourceDesc, ERGDescriptorType>>& view_descs = texture_view_desc_map[handle];
+		std::vector<std::pair<GfxTextureSubresourceDesc, RGDescriptorType>>& view_descs = texture_view_desc_map[handle];
 		for (size_t i = 0; i < view_descs.size(); ++i)
 		{
 			auto const& [_desc, _type] = view_descs[i];
-			if (desc == _desc && _type == ERGDescriptorType::RenderTarget) return RGRenderTargetId(i, handle);
+			if (desc == _desc && _type == RGDescriptorType::RenderTarget) return RGRenderTargetId(i, handle);
 		}
 		size_t view_id = view_descs.size();
-		view_descs.emplace_back(desc, ERGDescriptorType::RenderTarget);
+		view_descs.emplace_back(desc, RGDescriptorType::RenderTarget);
 		return RGRenderTargetId(view_id, handle);
 	}
 
-	RGDepthStencilId RenderGraph::DepthStencil(RGResourceName name, TextureSubresourceDesc const& desc)
+	RGDepthStencilId RenderGraph::DepthStencil(RGResourceName name, GfxTextureSubresourceDesc const& desc)
 	{
 		RGTextureId handle = texture_name_id_map[name];
 		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
 		RGTexture* rg_texture = GetRGTexture(handle);
-		rg_texture->desc.bind_flags |= EBindFlag::DepthStencil;
-		if (rg_texture->desc.initial_state == EResourceState::Common)
+		rg_texture->desc.bind_flags |= GfxBindFlag::DepthStencil;
+		if (rg_texture->desc.initial_state == GfxResourceState::Common)
 		{
-			rg_texture->desc.initial_state = EResourceState::DepthWrite;
+			rg_texture->desc.initial_state = GfxResourceState::DepthWrite;
 		}
-		std::vector<std::pair<TextureSubresourceDesc, ERGDescriptorType>>& view_descs = texture_view_desc_map[handle];
+		std::vector<std::pair<GfxTextureSubresourceDesc, RGDescriptorType>>& view_descs = texture_view_desc_map[handle];
 		for (size_t i = 0; i < view_descs.size(); ++i)
 		{
 			auto const& [_desc, _type] = view_descs[i];
-			if (desc == _desc && _type == ERGDescriptorType::DepthStencil) return RGDepthStencilId(i, handle);
+			if (desc == _desc && _type == RGDescriptorType::DepthStencil) return RGDepthStencilId(i, handle);
 		}
 		size_t view_id = view_descs.size();
-		view_descs.emplace_back(desc, ERGDescriptorType::DepthStencil);
+		view_descs.emplace_back(desc, RGDescriptorType::DepthStencil);
 		return RGDepthStencilId(view_id, handle);
 	}
 
-	RGTextureReadOnlyId RenderGraph::ReadTexture(RGResourceName name, TextureSubresourceDesc const& desc)
+	RGTextureReadOnlyId RenderGraph::ReadTexture(RGResourceName name, GfxTextureSubresourceDesc const& desc)
 	{
 		RGTextureId handle = texture_name_id_map[name];
 		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
 		RGTexture* rg_texture = GetRGTexture(handle);
-		rg_texture->desc.bind_flags |= EBindFlag::ShaderResource;
-		if (rg_texture->desc.initial_state == EResourceState::Common)
+		rg_texture->desc.bind_flags |= GfxBindFlag::ShaderResource;
+		if (rg_texture->desc.initial_state == GfxResourceState::Common)
 		{
-			rg_texture->desc.initial_state = EResourceState::PixelShaderResource | EResourceState::NonPixelShaderResource;
+			rg_texture->desc.initial_state = GfxResourceState::PixelShaderResource | GfxResourceState::NonPixelShaderResource;
 		}
-		std::vector<std::pair<TextureSubresourceDesc, ERGDescriptorType>>& view_descs = texture_view_desc_map[handle];
+		std::vector<std::pair<GfxTextureSubresourceDesc, RGDescriptorType>>& view_descs = texture_view_desc_map[handle];
 		for (size_t i = 0; i < view_descs.size(); ++i)
 		{
 			auto const& [_desc, _type] = view_descs[i];
-			if (desc == _desc && _type == ERGDescriptorType::ReadOnly) return RGTextureReadOnlyId(i, handle);
+			if (desc == _desc && _type == RGDescriptorType::ReadOnly) return RGTextureReadOnlyId(i, handle);
 		}
 		size_t view_id = view_descs.size();
-		view_descs.emplace_back(desc, ERGDescriptorType::ReadOnly);
+		view_descs.emplace_back(desc, RGDescriptorType::ReadOnly);
 		return RGTextureReadOnlyId(view_id, handle);
 	}
 
-	RGTextureReadWriteId RenderGraph::WriteTexture(RGResourceName name, TextureSubresourceDesc const& desc)
+	RGTextureReadWriteId RenderGraph::WriteTexture(RGResourceName name, GfxTextureSubresourceDesc const& desc)
 	{
 		RGTextureId handle = texture_name_id_map[name];
 		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
 		RGTexture* rg_texture = GetRGTexture(handle);
-		rg_texture->desc.bind_flags |= EBindFlag::UnorderedAccess;
-		if (rg_texture->desc.initial_state == EResourceState::Common)
+		rg_texture->desc.bind_flags |= GfxBindFlag::UnorderedAccess;
+		if (rg_texture->desc.initial_state == GfxResourceState::Common)
 		{
-			rg_texture->desc.initial_state = EResourceState::UnorderedAccess;
+			rg_texture->desc.initial_state = GfxResourceState::UnorderedAccess;
 		}
-		std::vector<std::pair<TextureSubresourceDesc, ERGDescriptorType>>& view_descs = texture_view_desc_map[handle];
+		std::vector<std::pair<GfxTextureSubresourceDesc, RGDescriptorType>>& view_descs = texture_view_desc_map[handle];
 		for (size_t i = 0; i < view_descs.size(); ++i)
 		{
 			auto const& [_desc, _type] = view_descs[i];
-			if (desc == _desc && _type == ERGDescriptorType::ReadWrite) return RGTextureReadWriteId(i, handle);
+			if (desc == _desc && _type == RGDescriptorType::ReadWrite) return RGTextureReadWriteId(i, handle);
 		}
 		size_t view_id = view_descs.size();
-		view_descs.emplace_back(desc, ERGDescriptorType::ReadWrite);
+		view_descs.emplace_back(desc, RGDescriptorType::ReadWrite);
 		return RGTextureReadWriteId(view_id, handle);
 	}
 
-	RGBufferReadOnlyId RenderGraph::ReadBuffer(RGResourceName name, BufferSubresourceDesc const& desc)
+	RGBufferReadOnlyId RenderGraph::ReadBuffer(RGResourceName name, GfxBufferSubresourceDesc const& desc)
 	{
 		RGBufferId handle = buffer_name_id_map[name];
 		ADRIA_ASSERT(IsValidBufferHandle(handle) && "Resource has not been declared!");
 		RGBuffer* rg_buffer = GetRGBuffer(handle);
-		rg_buffer->desc.bind_flags |= EBindFlag::ShaderResource;
-		std::vector<std::pair<BufferSubresourceDesc, ERGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
+		rg_buffer->desc.bind_flags |= GfxBindFlag::ShaderResource;
+		std::vector<std::pair<GfxBufferSubresourceDesc, RGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
 		for (size_t i = 0; i < view_descs.size(); ++i)
 		{
 			auto const& [_desc, _type] = view_descs[i];
-			if (desc == _desc && _type == ERGDescriptorType::ReadOnly) return RGBufferReadOnlyId(i, handle);
+			if (desc == _desc && _type == RGDescriptorType::ReadOnly) return RGBufferReadOnlyId(i, handle);
 		}
 		size_t view_id = view_descs.size();
-		view_descs.emplace_back(desc, ERGDescriptorType::ReadOnly);
+		view_descs.emplace_back(desc, RGDescriptorType::ReadOnly);
 		return RGBufferReadOnlyId(view_id, handle);
 	}
 
-	RGBufferReadWriteId RenderGraph::WriteBuffer(RGResourceName name, BufferSubresourceDesc const& desc)
+	RGBufferReadWriteId RenderGraph::WriteBuffer(RGResourceName name, GfxBufferSubresourceDesc const& desc)
 	{
 		RGBufferId handle = buffer_name_id_map[name];
 		ADRIA_ASSERT(IsValidBufferHandle(handle) && "Resource has not been declared!");
 		RGBuffer* rg_buffer = GetRGBuffer(handle);
-		rg_buffer->desc.bind_flags |= EBindFlag::UnorderedAccess;
-		std::vector<std::pair<BufferSubresourceDesc, ERGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
+		rg_buffer->desc.bind_flags |= GfxBindFlag::UnorderedAccess;
+		std::vector<std::pair<GfxBufferSubresourceDesc, RGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
 		for (size_t i = 0; i < view_descs.size(); ++i)
 		{
 			auto const& [_desc, _type] = view_descs[i];
-			if (desc == _desc && _type == ERGDescriptorType::ReadWrite) return RGBufferReadWriteId(i, handle);
+			if (desc == _desc && _type == RGDescriptorType::ReadWrite) return RGBufferReadWriteId(i, handle);
 		}
 		size_t view_id = view_descs.size();
-		view_descs.emplace_back(desc, ERGDescriptorType::ReadWrite);
+		view_descs.emplace_back(desc, RGDescriptorType::ReadWrite);
 		return RGBufferReadWriteId(view_id, handle);
 	}
 
-	RGBufferReadWriteId RenderGraph::WriteBuffer(RGResourceName name, RGResourceName counter_name, BufferSubresourceDesc const& desc)
+	RGBufferReadWriteId RenderGraph::WriteBuffer(RGResourceName name, RGResourceName counter_name, GfxBufferSubresourceDesc const& desc)
 	{
 		RGBufferId handle = buffer_name_id_map[name];
 		RGBufferId counter_handle = buffer_name_id_map[counter_name];
@@ -855,14 +855,14 @@ namespace adria
 		RGBuffer* rg_buffer = GetRGBuffer(handle);
 		RGBuffer* rg_counter_buffer = GetRGBuffer(counter_handle);
 
-		rg_buffer->desc.bind_flags |= EBindFlag::UnorderedAccess;
-		rg_counter_buffer->desc.bind_flags |= EBindFlag::UnorderedAccess;
+		rg_buffer->desc.bind_flags |= GfxBindFlag::UnorderedAccess;
+		rg_counter_buffer->desc.bind_flags |= GfxBindFlag::UnorderedAccess;
 
-		std::vector<std::pair<BufferSubresourceDesc, ERGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
+		std::vector<std::pair<GfxBufferSubresourceDesc, RGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
 		for (size_t i = 0; i < view_descs.size(); ++i)
 		{
 			auto const& [_desc, _type] = view_descs[i];
-			if (desc == _desc && _type == ERGDescriptorType::ReadWrite)
+			if (desc == _desc && _type == RGDescriptorType::ReadWrite)
 			{
 				RGBufferReadWriteId rw_id(i, handle);
 				if (auto it = buffer_uav_counter_map.find(rw_id); it != buffer_uav_counter_map.end())
@@ -872,48 +872,48 @@ namespace adria
 			}
 		}
 		size_t view_id = view_descs.size();
-		view_descs.emplace_back(desc, ERGDescriptorType::ReadWrite);
+		view_descs.emplace_back(desc, RGDescriptorType::ReadWrite);
 		RGBufferReadWriteId rw_id = RGBufferReadWriteId(view_id, handle);
 		buffer_uav_counter_map.insert(std::make_pair(rw_id, counter_handle));
 		return rw_id;
 	}
 
-	Texture const& RenderGraph::GetCopySrcTexture(RGTextureCopySrcId res_id) const
+	GfxTexture const& RenderGraph::GetCopySrcTexture(RGTextureCopySrcId res_id) const
 	{
 		return *GetTexture(RGTextureId(res_id));
 	}
 
-	Texture const& RenderGraph::GetCopyDstTexture(RGTextureCopyDstId res_id) const
+	GfxTexture const& RenderGraph::GetCopyDstTexture(RGTextureCopyDstId res_id) const
 	{
 		return *GetTexture(RGTextureId(res_id));
 	}
 
-	Buffer const& RenderGraph::GetCopySrcBuffer(RGBufferCopySrcId res_id) const
+	GfxBuffer const& RenderGraph::GetCopySrcBuffer(RGBufferCopySrcId res_id) const
 	{
 		return *GetBuffer(RGBufferId(res_id));
 	}
 
-	Buffer const& RenderGraph::GetCopyDstBuffer(RGBufferCopyDstId res_id) const
+	GfxBuffer const& RenderGraph::GetCopyDstBuffer(RGBufferCopyDstId res_id) const
 	{
 		return *GetBuffer(RGBufferId(res_id));
 	}
 
-	Buffer const& RenderGraph::GetIndirectArgsBuffer(RGBufferIndirectArgsId res_id) const
+	GfxBuffer const& RenderGraph::GetIndirectArgsBuffer(RGBufferIndirectArgsId res_id) const
 	{
 		return *GetBuffer(RGBufferId(res_id));
 	}
 
-	Buffer const& RenderGraph::GetVertexBuffer(RGBufferVertexId res_id) const
+	GfxBuffer const& RenderGraph::GetVertexBuffer(RGBufferVertexId res_id) const
 	{
 		return *GetBuffer(RGBufferId(res_id));
 	}
 
-	Buffer const& RenderGraph::GetIndexBuffer(RGBufferIndexId res_id) const
+	GfxBuffer const& RenderGraph::GetIndexBuffer(RGBufferIndexId res_id) const
 	{
 		return *GetBuffer(RGBufferId(res_id));
 	}
 
-	Buffer const& RenderGraph::GetConstantBuffer(RGBufferConstantId res_id) const
+	GfxBuffer const& RenderGraph::GetConstantBuffer(RGBufferConstantId res_id) const
 	{
 		return *GetBuffer(RGBufferId(res_id));
 	}
@@ -991,30 +991,30 @@ namespace adria
 		}
 	}
 
-	void RenderGraph::DependencyLevel::Execute(GraphicsDevice* gfx, CommandList* cmd_list)
+	void RenderGraph::DependencyLevel::Execute(GfxDevice* gfx, CommandList* cmd_list)
 	{
 		for (auto& pass : passes)
 		{
 			if (pass->IsCulled()) continue;
 			RenderGraphContext rg_resources(rg, *pass);
-			if (pass->type == ERGPassType::Graphics && !pass->SkipAutoRenderPassSetup())
+			if (pass->type == RGPassType::Graphics && !pass->SkipAutoRenderPassSetup())
 			{
-				RenderPassDesc render_pass_desc{};
+				GfxRenderPassDesc render_pass_desc{};
 				if (pass->AllowUAVWrites()) render_pass_desc.render_pass_flags = D3D12_RENDER_PASS_FLAG_ALLOW_UAV_WRITES;
 				else render_pass_desc.render_pass_flags = D3D12_RENDER_PASS_FLAG_NONE;
 
 				for (auto const& render_target_info : pass->render_targets_info)
 				{
 					RGTextureId rt_texture = render_target_info.render_target_handle.GetResourceId();
-					Texture* texture = rg.GetTexture(rt_texture);
+					GfxTexture* texture = rg.GetTexture(rt_texture);
 
 					RtvAttachmentDesc rtv_desc{};
-					TextureDesc const& desc = texture->GetDesc();
-					ClearValue const& clear_value = desc.clear_value;
-					if (clear_value.active_member != ClearValue::ActiveMember::None)
+					GfxTextureDesc const& desc = texture->GetDesc();
+					GfxClearValue const& clear_value = desc.clear_value;
+					if (clear_value.active_member != GfxClearValue::GfxActiveMember::None)
 					{
-						ADRIA_ASSERT(clear_value.active_member == ClearValue::ActiveMember::Color && "Invalid Clear Value for Render Target");
-						rtv_desc.clear_value.Format = ConvertFormat(desc.format);
+						ADRIA_ASSERT(clear_value.active_member == GfxClearValue::GfxActiveMember::Color && "Invalid Clear Value for Render Target");
+						rtv_desc.clear_value.Format = ConvertGfxFormat(desc.format);
 						rtv_desc.clear_value.Color[0] = desc.clear_value.color.color[0];
 						rtv_desc.clear_value.Color[1] = desc.clear_value.color.color[1];
 						rtv_desc.clear_value.Color[2] = desc.clear_value.color.color[2];
@@ -1022,22 +1022,22 @@ namespace adria
 					}
 					rtv_desc.cpu_handle = rg.GetRenderTarget(render_target_info.render_target_handle);
 					
-					ERGLoadAccessOp load_access = ERGLoadAccessOp::NoAccess;
-					ERGStoreAccessOp store_access = ERGStoreAccessOp::NoAccess;
+					RGLoadAccessOp load_access = RGLoadAccessOp::NoAccess;
+					RGStoreAccessOp store_access = RGStoreAccessOp::NoAccess;
 					SplitAccessOp(render_target_info.render_target_access, load_access, store_access);
 
 					switch (load_access)
 					{
-					case ERGLoadAccessOp::Clear:
+					case RGLoadAccessOp::Clear:
 						rtv_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
 						break;
-					case ERGLoadAccessOp::Discard:
+					case RGLoadAccessOp::Discard:
 						rtv_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_DISCARD;
 						break;
-					case ERGLoadAccessOp::Preserve: 
+					case RGLoadAccessOp::Preserve: 
 						rtv_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
 						break;
-					case ERGLoadAccessOp::NoAccess:
+					case RGLoadAccessOp::NoAccess:
 						rtv_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS;
 						break;
 					default:
@@ -1046,16 +1046,16 @@ namespace adria
 
 					switch (store_access)
 					{
-					case ERGStoreAccessOp::Resolve:
+					case RGStoreAccessOp::Resolve:
 						rtv_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_RESOLVE;
 						break;
-					case ERGStoreAccessOp::Discard:
+					case RGStoreAccessOp::Discard:
 						rtv_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD;
 						break;
-					case ERGStoreAccessOp::Preserve:
+					case RGStoreAccessOp::Preserve:
 						rtv_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
 						break;
-					case ERGStoreAccessOp::NoAccess:
+					case RGStoreAccessOp::NoAccess:
 						rtv_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_NO_ACCESS;;
 						break;
 					default:
@@ -1069,36 +1069,36 @@ namespace adria
 				{
 					auto depth_stencil_info = pass->depth_stencil.value();
 					RGTextureId ds_texture = depth_stencil_info.depth_stencil_handle.GetResourceId();
-					Texture* texture = rg.GetTexture(ds_texture);
+					GfxTexture* texture = rg.GetTexture(ds_texture);
 
 					DsvAttachmentDesc dsv_desc{};
-					TextureDesc const& desc = texture->GetDesc();
-					ClearValue const& clear_value = desc.clear_value;
-					if (clear_value.active_member != ClearValue::ActiveMember::None)
+					GfxTextureDesc const& desc = texture->GetDesc();
+					GfxClearValue const& clear_value = desc.clear_value;
+					if (clear_value.active_member != GfxClearValue::GfxActiveMember::None)
 					{
-						ADRIA_ASSERT(clear_value.active_member == ClearValue::ActiveMember::DepthStencil && "Invalid Clear Value for Depth Stencil");
-						dsv_desc.clear_value.Format = ConvertFormat(desc.format);
+						ADRIA_ASSERT(clear_value.active_member == GfxClearValue::GfxActiveMember::DepthStencil && "Invalid Clear Value for Depth Stencil");
+						dsv_desc.clear_value.Format = ConvertGfxFormat(desc.format);
 						dsv_desc.clear_value.DepthStencil.Depth = desc.clear_value.depth_stencil.depth;
 						dsv_desc.clear_value.DepthStencil.Stencil = desc.clear_value.depth_stencil.stencil;
 					}
 					dsv_desc.cpu_handle = rg.GetDepthStencil(depth_stencil_info.depth_stencil_handle);
 
-					ERGLoadAccessOp load_access = ERGLoadAccessOp::NoAccess;
-					ERGStoreAccessOp store_access = ERGStoreAccessOp::NoAccess;
+					RGLoadAccessOp load_access = RGLoadAccessOp::NoAccess;
+					RGStoreAccessOp store_access = RGStoreAccessOp::NoAccess;
 					SplitAccessOp(depth_stencil_info.depth_access, load_access, store_access);
 
 					switch (load_access)
 					{
-					case ERGLoadAccessOp::Clear:
+					case RGLoadAccessOp::Clear:
 						dsv_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
 						break;
-					case ERGLoadAccessOp::Discard:
+					case RGLoadAccessOp::Discard:
 						dsv_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_DISCARD;
 						break;
-					case ERGLoadAccessOp::Preserve:
+					case RGLoadAccessOp::Preserve:
 						dsv_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
 						break;
-					case ERGLoadAccessOp::NoAccess:
+					case RGLoadAccessOp::NoAccess:
 						dsv_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS;
 						break;
 					default:
@@ -1107,16 +1107,16 @@ namespace adria
 
 					switch (store_access)
 					{
-					case ERGStoreAccessOp::Resolve:
+					case RGStoreAccessOp::Resolve:
 						dsv_desc.depth_ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_RESOLVE;
 						break;
-					case ERGStoreAccessOp::Discard:
+					case RGStoreAccessOp::Discard:
 						dsv_desc.depth_ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD;
 						break;
-					case ERGStoreAccessOp::Preserve:
+					case RGStoreAccessOp::Preserve:
 						dsv_desc.depth_ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
 						break;
-					case ERGStoreAccessOp::NoAccess:
+					case RGStoreAccessOp::NoAccess:
 						dsv_desc.depth_ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_NO_ACCESS;;
 						break;
 					default:
@@ -1128,7 +1128,7 @@ namespace adria
 				ADRIA_ASSERT((pass->viewport_width != 0 && pass->viewport_height != 0) && "Viewport Width/Height is 0! The call to builder.SetViewport is probably missing...");
 				render_pass_desc.width = pass->viewport_width;
 				render_pass_desc.height = pass->viewport_height;
-				RenderPass render_pass(render_pass_desc);
+				GfxRenderPass render_pass(render_pass_desc);
 
 				PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, pass->name.c_str());
 				GPU_PROFILE_SCOPE(cmd_list, pass->name.c_str());
@@ -1145,7 +1145,7 @@ namespace adria
 		}
 	}
 
-	void RenderGraph::DependencyLevel::Execute(GraphicsDevice* gfx, std::vector<CommandList*> const& cmd_lists)
+	void RenderGraph::DependencyLevel::Execute(GfxDevice* gfx, std::vector<CommandList*> const& cmd_lists)
 	{
 		std::vector<std::future<void>> pass_futures;
 		for (size_t k = 0; k < passes.size(); ++k)
@@ -1156,24 +1156,24 @@ namespace adria
 				CommandList* cmd_list = cmd_lists[j];
 				if (pass->IsCulled()) return;
 				RenderGraphContext rg_resources(rg, *pass);
-				if (pass->type == ERGPassType::Graphics && !pass->SkipAutoRenderPassSetup())
+				if (pass->type == RGPassType::Graphics && !pass->SkipAutoRenderPassSetup())
 				{
-					RenderPassDesc render_pass_desc{};
+					GfxRenderPassDesc render_pass_desc{};
 					if (pass->AllowUAVWrites()) render_pass_desc.render_pass_flags = D3D12_RENDER_PASS_FLAG_ALLOW_UAV_WRITES;
 					else render_pass_desc.render_pass_flags = D3D12_RENDER_PASS_FLAG_NONE;
 
 					for (auto const& render_target_info : pass->render_targets_info)
 					{
 						RGTextureId rt_texture = render_target_info.render_target_handle.GetResourceId();
-						Texture* texture = rg.GetTexture(rt_texture);
+						GfxTexture* texture = rg.GetTexture(rt_texture);
 
 						RtvAttachmentDesc rtv_desc{};
-						TextureDesc const& desc = texture->GetDesc();
-						ClearValue const& clear_value = desc.clear_value;
-						if (clear_value.active_member != ClearValue::ActiveMember::None)
+						GfxTextureDesc const& desc = texture->GetDesc();
+						GfxClearValue const& clear_value = desc.clear_value;
+						if (clear_value.active_member != GfxClearValue::GfxActiveMember::None)
 						{
-							ADRIA_ASSERT(clear_value.active_member == ClearValue::ActiveMember::Color && "Invalid Clear Value for Render Target");
-							rtv_desc.clear_value.Format = ConvertFormat(desc.format);
+							ADRIA_ASSERT(clear_value.active_member == GfxClearValue::GfxActiveMember::Color && "Invalid Clear Value for Render Target");
+							rtv_desc.clear_value.Format = ConvertGfxFormat(desc.format);
 							rtv_desc.clear_value.Color[0] = desc.clear_value.color.color[0];
 							rtv_desc.clear_value.Color[1] = desc.clear_value.color.color[1];
 							rtv_desc.clear_value.Color[2] = desc.clear_value.color.color[2];
@@ -1181,22 +1181,22 @@ namespace adria
 						}
 						rtv_desc.cpu_handle = rg.GetRenderTarget(render_target_info.render_target_handle);
 
-						ERGLoadAccessOp load_access = ERGLoadAccessOp::NoAccess;
-						ERGStoreAccessOp store_access = ERGStoreAccessOp::NoAccess;
+						RGLoadAccessOp load_access = RGLoadAccessOp::NoAccess;
+						RGStoreAccessOp store_access = RGStoreAccessOp::NoAccess;
 						SplitAccessOp(render_target_info.render_target_access, load_access, store_access);
 
 						switch (load_access)
 						{
-						case ERGLoadAccessOp::Clear:
+						case RGLoadAccessOp::Clear:
 							rtv_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
 							break;
-						case ERGLoadAccessOp::Discard:
+						case RGLoadAccessOp::Discard:
 							rtv_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_DISCARD;
 							break;
-						case ERGLoadAccessOp::Preserve:
+						case RGLoadAccessOp::Preserve:
 							rtv_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
 							break;
-						case ERGLoadAccessOp::NoAccess:
+						case RGLoadAccessOp::NoAccess:
 							rtv_desc.beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS;
 							break;
 						default:
@@ -1205,16 +1205,16 @@ namespace adria
 
 						switch (store_access)
 						{
-						case ERGStoreAccessOp::Resolve:
+						case RGStoreAccessOp::Resolve:
 							rtv_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_RESOLVE;
 							break;
-						case ERGStoreAccessOp::Discard:
+						case RGStoreAccessOp::Discard:
 							rtv_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD;
 							break;
-						case ERGStoreAccessOp::Preserve:
+						case RGStoreAccessOp::Preserve:
 							rtv_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
 							break;
-						case ERGStoreAccessOp::NoAccess:
+						case RGStoreAccessOp::NoAccess:
 							rtv_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_NO_ACCESS;;
 							break;
 						default:
@@ -1228,36 +1228,36 @@ namespace adria
 					{
 						auto depth_stencil_info = pass->depth_stencil.value();
 						RGTextureId ds_texture = depth_stencil_info.depth_stencil_handle.GetResourceId();
-						Texture* texture = rg.GetTexture(ds_texture);
+						GfxTexture* texture = rg.GetTexture(ds_texture);
 
 						DsvAttachmentDesc dsv_desc{};
-						TextureDesc const& desc = texture->GetDesc();
-						ClearValue const& clear_value = desc.clear_value;
-						if (clear_value.active_member != ClearValue::ActiveMember::None)
+						GfxTextureDesc const& desc = texture->GetDesc();
+						GfxClearValue const& clear_value = desc.clear_value;
+						if (clear_value.active_member != GfxClearValue::GfxActiveMember::None)
 						{
-							ADRIA_ASSERT(clear_value.active_member == ClearValue::ActiveMember::DepthStencil && "Invalid Clear Value for Depth Stencil");
-							dsv_desc.clear_value.Format = ConvertFormat(desc.format);
+							ADRIA_ASSERT(clear_value.active_member == GfxClearValue::GfxActiveMember::DepthStencil && "Invalid Clear Value for Depth Stencil");
+							dsv_desc.clear_value.Format = ConvertGfxFormat(desc.format);
 							dsv_desc.clear_value.DepthStencil.Depth = desc.clear_value.depth_stencil.depth;
 							dsv_desc.clear_value.DepthStencil.Stencil = desc.clear_value.depth_stencil.stencil;
 						}
 						dsv_desc.cpu_handle = rg.GetDepthStencil(depth_stencil_info.depth_stencil_handle);
 
-						ERGLoadAccessOp load_access = ERGLoadAccessOp::NoAccess;
-						ERGStoreAccessOp store_access = ERGStoreAccessOp::NoAccess;
+						RGLoadAccessOp load_access = RGLoadAccessOp::NoAccess;
+						RGStoreAccessOp store_access = RGStoreAccessOp::NoAccess;
 						SplitAccessOp(depth_stencil_info.depth_access, load_access, store_access);
 
 						switch (load_access)
 						{
-						case ERGLoadAccessOp::Clear:
+						case RGLoadAccessOp::Clear:
 							dsv_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
 							break;
-						case ERGLoadAccessOp::Discard:
+						case RGLoadAccessOp::Discard:
 							dsv_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_DISCARD;
 							break;
-						case ERGLoadAccessOp::Preserve:
+						case RGLoadAccessOp::Preserve:
 							dsv_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE;
 							break;
-						case ERGLoadAccessOp::NoAccess:
+						case RGLoadAccessOp::NoAccess:
 							dsv_desc.depth_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS;
 							break;
 						default:
@@ -1266,16 +1266,16 @@ namespace adria
 
 						switch (store_access)
 						{
-						case ERGStoreAccessOp::Resolve:
+						case RGStoreAccessOp::Resolve:
 							dsv_desc.depth_ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_RESOLVE;
 							break;
-						case ERGStoreAccessOp::Discard:
+						case RGStoreAccessOp::Discard:
 							dsv_desc.depth_ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD;
 							break;
-						case ERGStoreAccessOp::Preserve:
+						case RGStoreAccessOp::Preserve:
 							dsv_desc.depth_ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
 							break;
-						case ERGStoreAccessOp::NoAccess:
+						case RGStoreAccessOp::NoAccess:
 							dsv_desc.depth_ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_NO_ACCESS;;
 							break;
 						default:
@@ -1287,7 +1287,7 @@ namespace adria
 					ADRIA_ASSERT((pass->viewport_width != 0 && pass->viewport_height != 0) && "Viewport Width/Height is 0! The call to builder.SetViewport is probably missing...");
 					render_pass_desc.width = pass->viewport_width;
 					render_pass_desc.height = pass->viewport_height;
-					RenderPass render_pass(render_pass_desc);
+					GfxRenderPass render_pass(render_pass_desc);
 					PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, pass->name.c_str());
 					GPU_PROFILE_SCOPE(cmd_list, pass->name.c_str());
 					render_pass.Begin(cmd_list, pass->UseLegacyRenderPasses());

@@ -8,8 +8,8 @@
 namespace adria
 {
 	class RenderGraph;
-	class GraphicsDevice;
-	class Buffer;
+	class GfxDevice;
+	class GfxBuffer;
 	
 	class AABBPass
 	{
@@ -17,15 +17,15 @@ namespace adria
 		AABBPass(entt::registry& reg, uint32 w, uint32 h);
 		void AddPass(RenderGraph& rg);
 
-		void OnSceneInitialized(GraphicsDevice* gfx);
+		void OnSceneInitialized(GfxDevice* gfx);
 		void OnResize(uint32 w, uint32 h);
 	private:
 		entt::registry& reg;
 		uint32 width, height;
-		std::unique_ptr<Buffer>	aabb_ib = nullptr;
+		std::unique_ptr<GfxBuffer>	aabb_ib = nullptr;
 
 	private:
-		void CreateIndexBuffer(GraphicsDevice* gfx);
+		void CreateIndexBuffer(GfxDevice* gfx);
 	};
 
 }

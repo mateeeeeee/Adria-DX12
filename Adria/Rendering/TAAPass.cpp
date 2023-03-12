@@ -31,7 +31,7 @@ namespace adria
 				RGTextureDesc taa_desc{};
 				taa_desc.width = width;
 				taa_desc.height = height;
-				taa_desc.format = EFormat::R16G16B16A16_FLOAT;
+				taa_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 
 				builder.DeclareTexture(RG_RES_NAME(TAAOutput), taa_desc);
 				data.output = builder.WriteTexture(RG_RES_NAME(TAAOutput));
@@ -39,7 +39,7 @@ namespace adria
 				data.history = builder.ReadTexture(RG_RES_NAME(HistoryBuffer), ReadAccess_PixelShader);
 				data.velocity = builder.ReadTexture(RG_RES_NAME(VelocityBuffer), ReadAccess_PixelShader);
 			},
-			[=](TAAPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](TAAPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -62,11 +62,11 @@ namespace adria
 				};
 
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::TAA));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::TAA));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 4, &constants, 0);
 				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::None);
 
 		return RG_RES_NAME(TAAOutput);
 	}

@@ -2,7 +2,7 @@
 #include <memory>
 #include <vector>
 #include <DirectXMath.h>
-#include "../Graphics/Buffer.h"
+#include "../Graphics/GfxBuffer.h"
 
 
 namespace adria
@@ -13,14 +13,14 @@ namespace adria
 		DirectX::XMFLOAT4 normal;
 	};
 
-	class GraphicsDevice;
+	class GfxDevice;
 	class RenderGraph;
 
 	class PickingPass
 	{
 	public:
 		
-		PickingPass(GraphicsDevice* gfx, uint32 width, uint32 height);
+		PickingPass(GfxDevice* gfx, uint32 width, uint32 height);
 
 		void OnResize(uint32 w, uint32 h);
 
@@ -29,8 +29,8 @@ namespace adria
 		PickingData GetPickingData() const;
 
 	private:
-		GraphicsDevice* gfx;
-		std::vector<std::unique_ptr<Buffer>> read_picking_buffers;
+		GfxDevice* gfx;
+		std::vector<std::unique_ptr<GfxBuffer>> read_picking_buffers;
 		uint32 width, height;
 	};
 }

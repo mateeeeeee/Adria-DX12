@@ -8,10 +8,10 @@
 #include "SkyModel.h"
 #include "entt/entity/registry.hpp"
 #include "../Editor/GUICommand.h"
-#include "../Graphics/Buffer.h"
-#include "../Graphics/Texture.h"
+#include "../Graphics/GfxBuffer.h"
+#include "../Graphics/GfxTexture.h"
 #include "../Graphics/TextureManager.h"
-#include "../Graphics/GraphicsCommon.h"
+#include "../Graphics/GfxCommon.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Utilities/Random.h"
 #include "../Utilities/hwbp.h"
@@ -113,7 +113,7 @@ namespace adria
 		}
 		std::pair<XMMATRIX, XMMATRIX> LightViewProjection_Spot(Light const& light)
 		{
-			ADRIA_ASSERT(light.type == ELightType::Spot);
+			ADRIA_ASSERT(light.type == LightType::Spot);
 
 			XMVECTOR light_dir = XMVector3Normalize(light.direction);
 			XMVECTOR light_pos = light.position;
@@ -252,7 +252,7 @@ namespace adria
 		float  alpha_cutoff;
 	};
 
-	Renderer::Renderer(entt::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx), 
+	Renderer::Renderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx), 
 		accel_structure(gfx), camera(nullptr), width(width), height(height),
 		backbuffer_count(gfx->BackbufferCount()), backbuffer_index(gfx->BackbufferIndex()), final_texture(nullptr),
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count),
@@ -318,7 +318,7 @@ namespace adria
 			render_graph.ImportBuffer(RG_RES_NAME(BigGeometryBuffer), geo_buffer.get());
 		}
 
-		if (renderer_settings.render_path == ERenderPathType::PathTracing) Render_PathTracing(render_graph);
+		if (renderer_settings.render_path == RenderPathType::PathTracing) Render_PathTracing(render_graph);
 		else Render_Deferred(render_graph);
 
 		render_graph.Build();
@@ -387,14 +387,14 @@ namespace adria
 
 	void Renderer::CreateSizeDependentResources()
 	{
-		TextureDesc ldr_desc{};
+		GfxTextureDesc ldr_desc{};
 		ldr_desc.width = width;
 		ldr_desc.height = height;
-		ldr_desc.format = EFormat::R10G10B10A2_UNORM;
-		ldr_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::ShaderResource | EBindFlag::RenderTarget;
-		ldr_desc.initial_state = EResourceState::UnorderedAccess;
+		ldr_desc.format = GfxFormat::R10G10B10A2_UNORM;
+		ldr_desc.bind_flags = GfxBindFlag::UnorderedAccess | GfxBindFlag::ShaderResource | GfxBindFlag::RenderTarget;
+		ldr_desc.initial_state = GfxResourceState::UnorderedAccess;
 
-		final_texture = std::make_unique<Texture>(gfx, ldr_desc);
+		final_texture = std::make_unique<GfxTexture>(gfx, ldr_desc);
 		final_texture->CreateSRV();
 	}
 	void Renderer::CreateGlobalBuffers()
@@ -423,8 +423,8 @@ namespace adria
 		}
 		accel_structure.Build();
 
-		BufferDesc desc = StructuredBufferDesc<GeoInfo>(geo_info.size(), false);
-		geo_buffer = std::make_unique<Buffer>(gfx, desc, geo_info.data());
+		GfxBufferDesc desc = StructuredBufferDesc<GeoInfo>(geo_info.size(), false);
+		geo_buffer = std::make_unique<GfxBuffer>(gfx, desc, geo_info.data());
 
 		ID3D12Device5* device = gfx->GetDevice();
 		if (RayTracing::rt_vertices.empty() || RayTracing::rt_indices.empty())
@@ -433,27 +433,27 @@ namespace adria
 			return;
 		}
 
-		BufferDesc vb_desc{};
-		vb_desc.bind_flags = EBindFlag::ShaderResource;
-		vb_desc.misc_flags = EBufferMiscFlag::VertexBuffer | EBufferMiscFlag::BufferStructured;
+		GfxBufferDesc vb_desc{};
+		vb_desc.bind_flags = GfxBindFlag::ShaderResource;
+		vb_desc.misc_flags = GfxBufferMiscFlag::VertexBuffer | GfxBufferMiscFlag::BufferStructured;
 		vb_desc.size = RayTracing::rt_vertices.size() * sizeof(CompleteVertex);
 		vb_desc.stride = sizeof(CompleteVertex);
 
-		BufferDesc ib_desc{};
-		ib_desc.bind_flags = EBindFlag::ShaderResource;
-		ib_desc.misc_flags = EBufferMiscFlag::IndexBuffer | EBufferMiscFlag::BufferStructured;
+		GfxBufferDesc ib_desc{};
+		ib_desc.bind_flags = GfxBindFlag::ShaderResource;
+		ib_desc.misc_flags = GfxBufferMiscFlag::IndexBuffer | GfxBufferMiscFlag::BufferStructured;
 		ib_desc.size = RayTracing::rt_indices.size() * sizeof(uint32);
 		ib_desc.stride = sizeof(uint32);
-		ib_desc.format = EFormat::R32_UINT;
+		ib_desc.format = GfxFormat::R32_UINT;
 
-		global_vb = std::make_unique<Buffer>(gfx, vb_desc, RayTracing::rt_vertices.data());
-		global_ib = std::make_unique<Buffer>(gfx, ib_desc, RayTracing::rt_indices.data());
+		global_vb = std::make_unique<GfxBuffer>(gfx, vb_desc, RayTracing::rt_vertices.data());
+		global_ib = std::make_unique<GfxBuffer>(gfx, ib_desc, RayTracing::rt_indices.data());
 	}
 
 	void Renderer::UpdateEnvironmentMap()
 	{
-		D3D12_CPU_DESCRIPTOR_HANDLE env_map = gfxcommon::GetCommonView(ECommonViewType::NullTextureCube_SRV); 
-		if (sky_pass.GetSkyType() == ESkyType::Skybox)
+		D3D12_CPU_DESCRIPTOR_HANDLE env_map = gfxcommon::GetCommonView(GfxCommonViewType::NullTextureCube_SRV); 
+		if (sky_pass.GetSkyType() == SkyType::Skybox)
 		{
 			auto skybox_entities = reg.view<Skybox>();
 			for (auto e : skybox_entities)
@@ -482,14 +482,14 @@ namespace adria
 		{
 			if (light_mask_textures[light_id] == nullptr)
 			{
-				TextureDesc mask_desc{};
+				GfxTextureDesc mask_desc{};
 				mask_desc.width = width;
 				mask_desc.height = height;
-				mask_desc.format = EFormat::R8_UNORM;
-				mask_desc.initial_state = EResourceState::UnorderedAccess;
-				mask_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::UnorderedAccess;
+				mask_desc.format = GfxFormat::R8_UNORM;
+				mask_desc.initial_state = GfxResourceState::UnorderedAccess;
+				mask_desc.bind_flags = GfxBindFlag::UnorderedAccess | GfxBindFlag::UnorderedAccess;
 
-				light_mask_textures[light_id] = std::make_unique<Texture>(gfx, mask_desc);
+				light_mask_textures[light_id] = std::make_unique<GfxTexture>(gfx, mask_desc);
 				light_mask_textures[light_id]->CreateSRV();
 				light_mask_textures[light_id]->CreateUAV();
 			}
@@ -502,15 +502,15 @@ namespace adria
 		};
 		auto AddShadowMap = [&](size_t light_id, uint32 shadow_map_size)
 		{
-			TextureDesc depth_desc{};
+			GfxTextureDesc depth_desc{};
 			depth_desc.width = shadow_map_size;
 			depth_desc.height = shadow_map_size;
-			depth_desc.format = EFormat::R32_TYPELESS;
-			depth_desc.clear_value = ClearValue(1.0f, 0);
-			depth_desc.bind_flags = EBindFlag::DepthStencil | EBindFlag::ShaderResource;
-			depth_desc.initial_state = EResourceState::DepthWrite;
+			depth_desc.format = GfxFormat::R32_TYPELESS;
+			depth_desc.clear_value = GfxClearValue(1.0f, 0);
+			depth_desc.bind_flags = GfxBindFlag::DepthStencil | GfxBindFlag::ShaderResource;
+			depth_desc.initial_state = GfxResourceState::DepthWrite;
 
-			light_shadow_maps[light_id].emplace_back(std::make_unique<Texture>(gfx, depth_desc));
+			light_shadow_maps[light_id].emplace_back(std::make_unique<GfxTexture>(gfx, depth_desc));
 			light_shadow_maps[light_id].back()->CreateDSV();
 			light_shadow_maps[light_id].back()->CreateSRV();
 		};
@@ -518,7 +518,7 @@ namespace adria
 		{
 			switch(light.type)
 			{
-			case ELightType::Directional:
+			case LightType::Directional:
 			{
 				if (light.use_cascades && light_shadow_maps[light_id].size() != shadows::SHADOW_CASCADE_COUNT)
 				{
@@ -532,7 +532,7 @@ namespace adria
 				}
 			}
 			break;
-			case ELightType::Point:
+			case LightType::Point:
 			{
 				if (light_shadow_maps[light_id].size() != 6)
 				{
@@ -541,7 +541,7 @@ namespace adria
 				}
 			}
 			break;
-			case ELightType::Spot:
+			case LightType::Spot:
 			{
 				if (light_shadow_maps[light_id].size() != 1)
 				{
@@ -571,8 +571,8 @@ namespace adria
 			auto& light = light_view.get<Light>(e);
 			if (light.casts_shadows)
 			{
-				if (light.type == ELightType::Directional && light.use_cascades) current_light_matrices_count += shadows::SHADOW_CASCADE_COUNT;
-				else if (light.type == ELightType::Point) current_light_matrices_count += 6;
+				if (light.type == LightType::Directional && light.use_cascades) current_light_matrices_count += shadows::SHADOW_CASCADE_COUNT;
+				else if (light.type == LightType::Point) current_light_matrices_count += 6;
 				else current_light_matrices_count++;
 			}
 		}
@@ -583,8 +583,8 @@ namespace adria
 			light_matrices_count = current_light_matrices_count;
 			if (light_matrices_count != 0)
 			{
-				light_matrices_buffer = std::make_unique<Buffer>(gfx, StructuredBufferDesc<XMMATRIX>(light_matrices_count * backbuffer_count, false, true));
-				BufferSubresourceDesc srv_desc{};
+				light_matrices_buffer = std::make_unique<GfxBuffer>(gfx, StructuredBufferDesc<XMMATRIX>(light_matrices_count * backbuffer_count, false, true));
+				GfxBufferSubresourceDesc srv_desc{};
 				srv_desc.size = light_matrices_count * sizeof(XMMATRIX);
 				for (uint32 i = 0; i < backbuffer_count; ++i)
 				{
@@ -604,7 +604,7 @@ namespace adria
 			{
 				if (light.ray_traced_shadows) continue;
 				light.shadow_matrix_index = (uint32)light_matrices.size();
-				if (light.type == ELightType::Directional)
+				if (light.type == LightType::Directional)
 				{
 					if (light.use_cascades)
 					{
@@ -624,7 +624,7 @@ namespace adria
 					}
 					
 				}
-				else if (light.type == ELightType::Point)
+				else if (light.type == LightType::Point)
 				{
 					for (uint32 i = 0; i < 6; ++i)
 					{
@@ -633,7 +633,7 @@ namespace adria
 						light_matrices.push_back(XMMatrixTranspose(V * P));
 					}
 				}
-				else if (light.type == ELightType::Spot)
+				else if (light.type == LightType::Spot)
 				{
 					AddShadowMaps(light, entt::to_integral(e));
 					auto const& [V, P] = shadows::LightViewProjection_Spot(light);
@@ -663,9 +663,9 @@ namespace adria
 			gfx->WaitForGPU();
 
 			light_count = light_view.size();
-			lights_buffer = std::make_unique<Buffer>(gfx, StructuredBufferDesc<LightHLSL>(light_count * backbuffer_count, false, true));
+			lights_buffer = std::make_unique<GfxBuffer>(gfx, StructuredBufferDesc<LightHLSL>(light_count * backbuffer_count, false, true));
 
-			BufferSubresourceDesc srv_desc{};
+			GfxBufferSubresourceDesc srv_desc{};
 			srv_desc.size = light_count * sizeof(LightHLSL);
 			for (uint32 i = 0; i < backbuffer_count; ++i)
 			{
@@ -676,7 +676,7 @@ namespace adria
 		std::vector<LightHLSL> hlsl_lights{};
 		hlsl_lights.reserve(light_view.size());
 		uint32 light_index = 0;
-		XMMATRIX light_transform = renderer_settings.render_path == ERenderPathType::PathTracing ?
+		XMMATRIX light_transform = renderer_settings.render_path == RenderPathType::PathTracing ?
 								   XMMatrixIdentity() : camera->View();
 		for (auto e : light_view)
 		{
@@ -770,7 +770,7 @@ namespace adria
 		for (auto light : lights)
 		{
 			auto const& light_data = lights.get<Light>(light);
-			if (light_data.type == ELightType::Directional && light_data.active)
+			if (light_data.type == LightType::Directional && light_data.active)
 			{
 				frame_cbuf_data.sun_direction = -light_data.direction;
 				frame_cbuf_data.sun_color = light_data.color;
@@ -815,22 +815,22 @@ namespace adria
 		decals_pass.AddPass(render_graph);
 		switch (renderer_settings.postprocess.ambient_occlusion)
 		{
-		case EAmbientOcclusion::SSAO:
+		case AmbientOcclusion::SSAO:
 		{
 			ssao_pass.AddPass(render_graph);
 			break;
 		}
-		case EAmbientOcclusion::HBAO:
+		case AmbientOcclusion::HBAO:
 		{
 			hbao_pass.AddPass(render_graph);
 			break;
 		}
-		case EAmbientOcclusion::RTAO:
+		case AmbientOcclusion::RTAO:
 		{
 			rtao_pass.AddPass(render_graph);
 			break;
 		}
-		case EAmbientOcclusion::None:
+		case AmbientOcclusion::None:
 		default:
 			break;
 		}
@@ -839,13 +839,13 @@ namespace adria
 		AddRayTracingShadowPasses(render_graph);
 		switch (renderer_settings.render_path)
 		{
-		case ERenderPathType::RegularDeferred:
+		case RenderPathType::RegularDeferred:
 			deferred_lighting_pass.AddPass(render_graph);
 			break;
-		case ERenderPathType::TiledDeferred:
+		case RenderPathType::TiledDeferred:
 			tiled_deferred_lighting_pass.AddPass(render_graph);
 			break;
-		case ERenderPathType::ClusteredDeferred:
+		case RenderPathType::ClusteredDeferred:
 			clustered_deferred_lighting_pass.AddPass(render_graph, true);
 			break;
 		}
@@ -855,7 +855,7 @@ namespace adria
 		ocean_renderer.AddPasses(render_graph);
 		sky_pass.AddPass(render_graph, sun_direction);
 		picking_pass.AddPass(render_graph);
-		if (renderer_settings.postprocess.reflections == EReflections::RTR) rtr_pass.AddPass(render_graph);
+		if (renderer_settings.postprocess.reflections == Reflections::RTR) rtr_pass.AddPass(render_graph);
 		postprocessor.AddPasses(render_graph, renderer_settings.postprocess);
 
 		render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
@@ -883,7 +883,7 @@ namespace adria
 			});
 	}
 
-	void Renderer::ShadowMapPass_Common(GraphicsDevice* gfx, ID3D12GraphicsCommandList4* cmd_list, bool transparent, size_t light_index, size_t shadow_map_index)
+	void Renderer::ShadowMapPass_Common(GfxDevice* gfx, ID3D12GraphicsCommandList4* cmd_list, bool transparent, size_t light_index, size_t shadow_map_index)
 	{
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -904,7 +904,7 @@ namespace adria
 		auto shadow_view = reg.view<Mesh, Transform, AABB>();
 		if (!transparent)
 		{
-			cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Shadow));
+			cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Shadow));
 			for (auto e : shadow_view)
 			{
 				auto const& transform = shadow_view.get<Transform>(e);
@@ -949,7 +949,7 @@ namespace adria
 				}
 			}
 
-			cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Shadow));
+			cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Shadow));
 			for (auto e : not_transparent)
 			{
 				auto const& transform = shadow_view.get<Transform>(e);
@@ -975,7 +975,7 @@ namespace adria
 				mesh.Draw(cmd_list);
 			}
 
-			cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Shadow_Transparent));
+			cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Shadow_Transparent));
 			for (auto e : potentially_transparent)
 			{
 				auto& transform = shadow_view.get<Transform>(e);
@@ -1015,7 +1015,7 @@ namespace adria
 			int32 light_index = light.light_index;
 			size_t light_id = entt::to_integral(e);
 
-			if (light.type == ELightType::Directional)
+			if (light.type == LightType::Directional)
 			{
 				if (light.use_cascades)
 				{
@@ -1026,13 +1026,13 @@ namespace adria
 						rg.AddPass<void>(name.c_str(), 
 						[=](RenderGraphBuilder& builder)
 						{
-							builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index + i), ERGLoadStoreAccessOp::Clear_Preserve);
+							builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index + i), RGLoadStoreAccessOp::Clear_Preserve);
 							builder.SetViewport(shadows::SHADOW_CASCADE_MAP_SIZE, shadows::SHADOW_CASCADE_MAP_SIZE);
 						},
-						[=](RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+						[=](RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 						{
 							ShadowMapPass_Common(gfx, cmd_list, false, light_index, i);
-						}, ERGPassType::Graphics);
+						}, RGPassType::Graphics);
 					}
 				}
 				else
@@ -1042,16 +1042,16 @@ namespace adria
 					rg.AddPass<void>(name.c_str(),
 					[=](RenderGraphBuilder& builder)
 					{
-						builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index), ERGLoadStoreAccessOp::Clear_Preserve);
+						builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index), RGLoadStoreAccessOp::Clear_Preserve);
 						builder.SetViewport(shadows::SHADOW_MAP_SIZE, shadows::SHADOW_MAP_SIZE);
 					},
-					[=](RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+					[=](RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 					{
 						ShadowMapPass_Common(gfx, cmd_list, false, light_index);
-					}, ERGPassType::Graphics);
+					}, RGPassType::Graphics);
 				}
 			}
-			else if (light.type == ELightType::Point)
+			else if (light.type == LightType::Point)
 			{
 				for (uint32 i = 0; i < 6; ++i)
 				{
@@ -1060,29 +1060,29 @@ namespace adria
 					rg.AddPass<void>(name.c_str(),
 						[=](RenderGraphBuilder& builder)
 						{
-							builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index + i), ERGLoadStoreAccessOp::Clear_Preserve);
+							builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index + i), RGLoadStoreAccessOp::Clear_Preserve);
 							builder.SetViewport(shadows::SHADOW_CUBE_SIZE, shadows::SHADOW_CUBE_SIZE);
 						},
-						[=](RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+						[=](RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 						{
 							ShadowMapPass_Common(gfx, cmd_list, false, light_index, i);
-						}, ERGPassType::Graphics);
+						}, RGPassType::Graphics);
 				}
 			}
-			else if (light.type == ELightType::Spot)
+			else if (light.type == LightType::Spot)
 			{
 				rg.ImportTexture(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index), light_shadow_maps[light_id][0].get());
 				std::string name = "Spot Shadow Pass";
 				rg.AddPass<void>(name.c_str(),
 					[=](RenderGraphBuilder& builder)
 					{
-						builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index), ERGLoadStoreAccessOp::Clear_Preserve);
+						builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index), RGLoadStoreAccessOp::Clear_Preserve);
 						builder.SetViewport(shadows::SHADOW_MAP_SIZE, shadows::SHADOW_MAP_SIZE);
 					},
-					[=](RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+					[=](RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 					{
 						ShadowMapPass_Common(gfx, cmd_list, false, light_index);
-					}, ERGPassType::Graphics);
+					}, RGPassType::Graphics);
 			}
 		}
 	}
@@ -1115,18 +1115,18 @@ namespace adria
 			{
 				data.src = builder.ReadCopySrcTexture(RG_RES_NAME(FinalTexture));
 			},
-			[=](CopyToBackbufferPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](CopyToBackbufferPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ResourceBarrierBatch barrier;
 				barrier.AddTransition(gfx->GetBackbuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_DEST);
 				barrier.Submit(cmd_list);
 
-				Texture const& src_texture = ctx.GetCopySrcTexture(data.src);
+				GfxTexture const& src_texture = ctx.GetCopySrcTexture(data.src);
 				cmd_list->CopyResource(gfx->GetBackbuffer(), src_texture.GetNative());
 
 				barrier.ReverseTransitions();
 				barrier.Submit(cmd_list);
-			}, ERGPassType::Copy, ERGPassFlags::ForceNoCull);
+			}, RGPassType::Copy, RGPassFlags::ForceNoCull);
 	}
 	void Renderer::ResolveToFinalTexture(RenderGraph& rg)
 	{

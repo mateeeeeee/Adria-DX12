@@ -1,7 +1,7 @@
 #include <map>
 #include <dxgidebug.h>
 #include "pix3.h"
-#include "GraphicsDeviceDX12.h"
+#include "GfxDevice.h"
 #include "d3dx12.h"
 #include "../Logging/Logger.h"
 #include "../Core/Window.h"
@@ -194,7 +194,7 @@ namespace adria
 		}
 	}
 
-	GraphicsDevice::GraphicsDevice(GraphicsOptions const& options)
+	GfxDevice::GfxDevice(GfxOptions const& options)
 		: frame_fence_value(0), frame_index(0),
 		frame_fence_values{}, graphics_fence_values{}, compute_fence_values{}
 	{
@@ -448,7 +448,7 @@ namespace adria
 		if (options.pix) PIXLoadLatestWinPixGpuCapturerLibrary();
 	}
 
-	GraphicsDevice::~GraphicsDevice()
+	GfxDevice::~GfxDevice()
 	{
 		WaitForGPU();
 		ProcessReleaseQueue();
@@ -479,7 +479,7 @@ namespace adria
 		}
 	}
 
-	void GraphicsDevice::WaitForGPU()
+	void GfxDevice::WaitForGPU()
 	{
 		BREAK_IF_FAILED(graphics_queue->Signal(wait_fence.Get(), wait_fence_value));
 		BREAK_IF_FAILED(wait_fence->SetEventOnCompletion(wait_fence_value, wait_event));
@@ -487,14 +487,14 @@ namespace adria
 		wait_fence_value++;
 	}
 
-	void GraphicsDevice::WaitOnQueue(EQueueType type, UINT64 fence_value)
+	void GfxDevice::WaitOnQueue(GfxQueueType type, UINT64 fence_value)
 	{
 		switch (type)
 		{
-		case EQueueType::Graphics:
+		case GfxQueueType::Graphics:
 			graphics_queue->Wait(compute_fences[backbuffer_index].Get(), fence_value);
 			break;
-		case EQueueType::Compute:
+		case GfxQueueType::Compute:
 			compute_queue->Wait(graphics_fences[backbuffer_index].Get(), fence_value);
 			break;
 		default:
@@ -502,17 +502,17 @@ namespace adria
 		}
 	}
 
-	UINT64 GraphicsDevice::SignalFromQueue(EQueueType type)
+	UINT64 GfxDevice::SignalFromQueue(GfxQueueType type)
 	{
 		UINT64 fence_signal_value = -1;
 		switch (type)
 		{
-		case EQueueType::Graphics:
+		case GfxQueueType::Graphics:
 			fence_signal_value = graphics_fence_values[backbuffer_index];
 			graphics_queue->Signal(graphics_fences[backbuffer_index].Get(), fence_signal_value);
 			++graphics_fence_values[backbuffer_index];
 			break;
-		case EQueueType::Compute:
+		case GfxQueueType::Compute:
 			fence_signal_value = compute_fence_values[backbuffer_index];
 			compute_queue->Signal(compute_fences[backbuffer_index].Get(), compute_fence_values[backbuffer_index]);
 			++compute_fence_values[backbuffer_index];
@@ -523,7 +523,7 @@ namespace adria
 		return fence_signal_value;
 	}
 
-	void GraphicsDevice::ResizeBackbuffer(UINT w, UINT h)
+	void GfxDevice::ResizeBackbuffer(UINT w, UINT h)
 	{
 		if ((width != w || height != h) && width > 0 && height > 0)
 		{
@@ -553,21 +553,21 @@ namespace adria
 		}
 	}
 
-	UINT GraphicsDevice::BackbufferIndex() const
+	UINT GfxDevice::BackbufferIndex() const
 	{
 		return backbuffer_index;
 	}
 
-	UINT GraphicsDevice::FrameIndex() const { return frame_index; }
+	UINT GfxDevice::FrameIndex() const { return frame_index; }
 
-	void GraphicsDevice::SetBackbuffer(ID3D12GraphicsCommandList* cmd_list /*= nullptr*/)
+	void GfxDevice::SetBackbuffer(ID3D12GraphicsCommandList* cmd_list /*= nullptr*/)
 	{
 		auto& frame_resources = GetFrameResources();
 		if (cmd_list) cmd_list->OMSetRenderTargets(1, &frame_resources.back_buffer_rtv, FALSE, nullptr);
 		else frame_resources.default_cmd_list->OMSetRenderTargets(1, &frame_resources.back_buffer_rtv, FALSE, nullptr);
 	}
 
-	void GraphicsDevice::ClearBackbuffer()
+	void GfxDevice::ClearBackbuffer()
 	{
 		if (rendering_not_started) [[unlikely]]
 		{
@@ -598,7 +598,7 @@ namespace adria
 		frame_resources.default_cmd_list->SetComputeRootSignature(global_root_signature.Get());
 	}
 
-	void GraphicsDevice::SwapBuffers(bool vsync /*= false*/)
+	void GfxDevice::SwapBuffers(bool vsync /*= false*/)
 	{
 		auto& frame_resources = GetFrameResources();
 
@@ -629,17 +629,17 @@ namespace adria
 		descriptor_allocator->FinishCurrentFrame(frame_index);
 	}
 
-	ID3D12Device5* GraphicsDevice::GetDevice() const
+	ID3D12Device5* GfxDevice::GetDevice() const
 	{
 		return device.Get();
 	}
 
-	ID3D12GraphicsCommandList4* GraphicsDevice::GetDefaultCommandList() const
+	ID3D12GraphicsCommandList4* GfxDevice::GetDefaultCommandList() const
 	{
 		return GetFrameResources().default_cmd_list.Get();
 	}
 
-	ID3D12GraphicsCommandList4* GraphicsDevice::GetNewGraphicsCommandList() const
+	ID3D12GraphicsCommandList4* GfxDevice::GetNewGraphicsCommandList() const
 	{
 		auto& frame_resources = GetFrameResources();
 		unsigned int i = frame_resources.cmd_list_index.load();
@@ -658,14 +658,14 @@ namespace adria
 		return frame_resources.cmd_lists[i].Get();
 	}
 
-	ID3D12GraphicsCommandList4* GraphicsDevice::GetLastGraphicsCommandList() const
+	ID3D12GraphicsCommandList4* GfxDevice::GetLastGraphicsCommandList() const
 	{
 		auto& frame_resources = GetFrameResources();
 		unsigned int i = frame_resources.cmd_list_index.load();
 		return i > 0 ? frame_resources.cmd_lists[i - 1].Get() : frame_resources.default_cmd_list.Get();
 	}
 
-	ID3D12GraphicsCommandList4* GraphicsDevice::GetNewComputeCommandList() const
+	ID3D12GraphicsCommandList4* GfxDevice::GetNewComputeCommandList() const
 	{
 		auto& frame_resources = GetFrameResources();
 		unsigned int i = frame_resources.compute_cmd_list_index.load();
@@ -683,24 +683,24 @@ namespace adria
 		return frame_resources.compute_cmd_lists[i].Get();
 	}
 
-	ID3D12GraphicsCommandList4* GraphicsDevice::GetLastComputeCommandList() const
+	ID3D12GraphicsCommandList4* GfxDevice::GetLastComputeCommandList() const
 	{
 		auto& frame_resources = GetFrameResources();
 		unsigned int i = frame_resources.compute_cmd_list_index.load();
 		return i > 0 ? frame_resources.compute_cmd_lists[i - 1].Get() : frame_resources.default_cmd_list.Get();
 	}
 
-	ID3D12RootSignature* GraphicsDevice::GetCommonRootSignature() const
+	ID3D12RootSignature* GfxDevice::GetCommonRootSignature() const
 	{
 		return global_root_signature.Get();
 	}
 
-	ID3D12Resource* GraphicsDevice::GetBackbuffer() const
+	ID3D12Resource* GfxDevice::GetBackbuffer() const
 	{
 		return GetFrameResources().back_buffer.Get();
 	}
 
-	void GraphicsDevice::ResetDefaultCommandList()
+	void GfxDevice::ResetDefaultCommandList()
 	{
 		auto& frame_resources = GetFrameResources();
 		HRESULT hr = frame_resources.default_cmd_allocator->Reset();
@@ -709,7 +709,7 @@ namespace adria
 		BREAK_IF_FAILED(hr);
 	}
 
-	void GraphicsDevice::ExecuteDefaultCommandList()
+	void GfxDevice::ExecuteDefaultCommandList()
 	{
 		auto& frame_resources = GetFrameResources();
 		frame_resources.default_cmd_list->Close();
@@ -717,37 +717,37 @@ namespace adria
 		graphics_queue->ExecuteCommandLists(1, &cmd_list);
 	}
 
-	D3D12MA::Allocator* GraphicsDevice::GetAllocator() const
+	D3D12MA::Allocator* GfxDevice::GetAllocator() const
 	{
 		return allocator.get();
 	}
 
-	void GraphicsDevice::AddToReleaseQueue(D3D12MA::Allocation* alloc)
+	void GfxDevice::AddToReleaseQueue(D3D12MA::Allocation* alloc)
 	{
 		release_queue.emplace(new ReleasableResource(alloc), release_queue_fence_value);
 	}
 
-	void GraphicsDevice::AddToReleaseQueue(ID3D12Resource* resource)
+	void GfxDevice::AddToReleaseQueue(ID3D12Resource* resource)
 	{
 		release_queue.emplace(new ReleasableResource(resource), release_queue_fence_value);
 	}
 
-	D3D12_CPU_DESCRIPTOR_HANDLE GraphicsDevice::AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type)
+	D3D12_CPU_DESCRIPTOR_HANDLE GfxDevice::AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type)
 	{
 		return offline_descriptor_allocators[type]->AllocateDescriptor();
 	}
 
-	void GraphicsDevice::FreeOfflineDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE handle, D3D12_DESCRIPTOR_HEAP_TYPE type)
+	void GfxDevice::FreeOfflineDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE handle, D3D12_DESCRIPTOR_HEAP_TYPE type)
 	{
 		offline_descriptor_allocators[type]->FreeDescriptor(handle);
 	}
 
-	RingOnlineDescriptorAllocator* GraphicsDevice::GetOnlineDescriptorAllocator() const
+	RingOnlineDescriptorAllocator* GfxDevice::GetOnlineDescriptorAllocator() const
 	{
 		return descriptor_allocator.get();
 	}
 
-	void GraphicsDevice::ReserveOnlineDescriptors(size_t reserve)
+	void GfxDevice::ReserveOnlineDescriptors(size_t reserve)
 	{
 		D3D12_DESCRIPTOR_HEAP_DESC shader_visible_desc{};
 		shader_visible_desc.NumDescriptors = 32767;
@@ -756,28 +756,28 @@ namespace adria
 		descriptor_allocator = std::make_unique<RingOnlineDescriptorAllocator>(device.Get(), shader_visible_desc, reserve);
 	}
 
-	LinearDynamicAllocator* GraphicsDevice::GetDynamicAllocator() const
+	LinearDynamicAllocator* GfxDevice::GetDynamicAllocator() const
 	{
 		if (rendering_not_started) return dynamic_allocator_before_rendering.get();
 		else return dynamic_allocators[backbuffer_index].get();
 	}
 
-	void GraphicsDevice::GetTimestampFrequency(UINT64& frequency) const
+	void GfxDevice::GetTimestampFrequency(UINT64& frequency) const
 	{
 		graphics_queue->GetTimestampFrequency(&frequency);
 	}
 
-	GraphicsDevice::FrameResources& GraphicsDevice::GetFrameResources()
+	GfxDevice::FrameResources& GfxDevice::GetFrameResources()
 	{
 		return frames[backbuffer_index];
 	}
 
-	GraphicsDevice::FrameResources const& GraphicsDevice::GetFrameResources() const
+	GfxDevice::FrameResources const& GfxDevice::GetFrameResources() const
 	{
 		return frames[backbuffer_index];
 	}
 
-	void GraphicsDevice::ExecuteGraphicsCommandLists()
+	void GfxDevice::ExecuteGraphicsCommandLists()
 	{
 		auto& frame_resources = GetFrameResources();
 		frame_resources.default_cmd_list->Close();
@@ -791,7 +791,7 @@ namespace adria
 		frame_resources.cmd_list_index.store(0);
 	}
 
-	void GraphicsDevice::ExecuteComputeCommandLists()
+	void GfxDevice::ExecuteComputeCommandLists()
 	{
 		auto& frame_resources = GetFrameResources();
 		if (frame_resources.compute_cmd_list_index == 0) return;
@@ -805,7 +805,7 @@ namespace adria
 		frame_resources.compute_cmd_list_index.store(0);
 	}
 
-	void GraphicsDevice::MoveToNextFrame()
+	void GfxDevice::MoveToNextFrame()
 	{
 		// Assign the current fence value to the current frame.
 		frame_fence_values[backbuffer_index] = frame_fence_value;
@@ -824,7 +824,7 @@ namespace adria
 		++frame_index;
 	}
 
-	void GraphicsDevice::ProcessReleaseQueue()
+	void GfxDevice::ProcessReleaseQueue()
 	{
 		while (!release_queue.empty())
 		{
@@ -835,7 +835,7 @@ namespace adria
 		++release_queue_fence_value;
 	}
 
-	void GraphicsDevice::CreateCommonRootSignature()
+	void GfxDevice::CreateCommonRootSignature()
 	{
 		D3D12_FEATURE_DATA_ROOT_SIGNATURE feature_data{};
 		feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;

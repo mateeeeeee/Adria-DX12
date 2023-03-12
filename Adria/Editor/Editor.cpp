@@ -8,7 +8,7 @@
 #include "../Input/Input.h"
 #include "../Rendering/Renderer.h"
 #include "../Rendering/Camera.h"
-#include "../Graphics/GraphicsDeviceDX12.h"
+#include "../Graphics/GfxDevice.h"
 #include "../Rendering/EntityLoader.h"
 #include "../Rendering/PipelineState.h"
 #include "../Rendering/ShaderCache.h"
@@ -227,13 +227,13 @@ namespace adria
 	}
 	void Editor::HandleInput()
 	{
-		if (scene_focused && Input::GetInstance().IsKeyDown(EKeyCode::I)) gui->ToggleVisibility();
-		if (scene_focused && Input::GetInstance().IsKeyDown(EKeyCode::G)) gizmo_enabled = !gizmo_enabled;
+		if (scene_focused && Input::GetInstance().IsKeyDown(KeyCode::I)) gui->ToggleVisibility();
+		if (scene_focused && Input::GetInstance().IsKeyDown(KeyCode::G)) gizmo_enabled = !gizmo_enabled;
 		if (gizmo_enabled && gui->IsVisible())
 		{
-			if (Input::GetInstance().IsKeyDown(EKeyCode::T)) gizmo_op = ImGuizmo::TRANSLATE;
-			if (Input::GetInstance().IsKeyDown(EKeyCode::R)) gizmo_op = ImGuizmo::ROTATE;
-			if (Input::GetInstance().IsKeyDown(EKeyCode::E)) gizmo_op = ImGuizmo::SCALE;
+			if (Input::GetInstance().IsKeyDown(KeyCode::T)) gizmo_op = ImGuizmo::TRANSLATE;
+			if (Input::GetInstance().IsKeyDown(KeyCode::R)) gizmo_op = ImGuizmo::ROTATE;
+			if (Input::GetInstance().IsKeyDown(KeyCode::E)) gizmo_op = ImGuizmo::SCALE;
 		}
 		engine->camera->Enable(scene_focused);
 	}
@@ -317,8 +317,8 @@ namespace adria
 						light_params.light_data.color = DirectX::XMVectorSet(real() * 2, real() * 2, real() * 2, 1.0f);
 						light_params.light_data.direction = DirectX::XMVectorSet(0.5f, -1.0f, 0.1f, 0.0f);
 						light_params.light_data.position = DirectX::XMVectorSet(real() * 200 - 100, real() * 200.0f, real() * 200 - 100, 1.0f);
-						light_params.light_data.type = ELightType::Point;
-						light_params.mesh_type = ELightMesh::NoMesh;
+						light_params.light_data.type = LightType::Point;
+						light_params.mesh_type = LightMesh::NoMesh;
 						light_params.light_data.range = real() * 100.0f + 40.0f;
 						light_params.light_data.active = true;
 						light_params.light_data.volumetric = false;
@@ -346,8 +346,8 @@ namespace adria
 						light_params.light_data.color = DirectX::XMVectorSet(real() * 2, real() * 2, real() * 2, 1.0f);
 						light_params.light_data.direction = DirectX::XMVectorSet(0.5f, -1.0f, 0.1f, 0.0f);
 						light_params.light_data.position = DirectX::XMVectorSet(real() * 200 - 100, real() * 200.0f, real() * 200 - 100, 1.0f);
-						light_params.light_data.type = ELightType::Spot;
-						light_params.mesh_type = ELightMesh::NoMesh;
+						light_params.light_data.type = LightType::Spot;
+						light_params.mesh_type = LightMesh::NoMesh;
 						light_params.light_data.range = real() * 100.0f + 40.0f;
 						light_params.light_data.active = true;
 						light_params.light_data.volumetric = false;
@@ -516,9 +516,9 @@ namespace adria
 				auto light = engine->reg.try_get<Light>(selected_entity);
 				if (light && ImGui::CollapsingHeader("Light"))
 				{
-					if (light->type == ELightType::Directional)	ImGui::Text("Directional Light");
-					else if (light->type == ELightType::Spot)	ImGui::Text("Spot Light");
-					else if (light->type == ELightType::Point)	ImGui::Text("Point Light");
+					if (light->type == LightType::Directional)	ImGui::Text("Directional Light");
+					else if (light->type == LightType::Spot)	ImGui::Text("Spot Light");
+					else if (light->type == LightType::Point)	ImGui::Text("Point Light");
 
 					XMFLOAT4 light_color, light_direction, light_position;
 					XMStoreFloat4(&light_color, light->color);
@@ -537,18 +537,18 @@ namespace adria
 						memcpy(material.base_color, color, 3 * sizeof(float));
 					}
 
-					if (light->type == ELightType::Directional || light->type == ELightType::Spot)
+					if (light->type == LightType::Directional || light->type == LightType::Spot)
 					{
 						float direction[3] = { light_direction.x, light_direction.y, light_direction.z };
 						ImGui::SliderFloat3("Light direction", direction, -1.0f, 1.0f);
 						light->direction = XMVectorSet(direction[0], direction[1], direction[2], 0.0f);
-						if (light->type == ELightType::Directional)
+						if (light->type == LightType::Directional)
 						{
 							light->position = XMVectorScale(-light->direction, 1e3);
 						}
 					}
 
-					if (light->type == ELightType::Spot)
+					if (light->type == LightType::Spot)
 					{
 						float inner_angle = XMConvertToDegrees(acos(light->inner_cosine))
 							, outer_angle = XMConvertToDegrees(acos(light->outer_cosine));
@@ -559,7 +559,7 @@ namespace adria
 						light->outer_cosine = cos(XMConvertToRadians(outer_angle));
 					}
 
-					if (light->type == ELightType::Point || light->type == ELightType::Spot)
+					if (light->type == LightType::Point || light->type == LightType::Spot)
 					{
 						float position[3] = { light_position.x, light_position.y, light_position.z };
 
@@ -579,7 +579,7 @@ namespace adria
 
 					ImGui::Checkbox("Active", &light->active);
 
-					if (light->type == ELightType::Directional)
+					if (light->type == LightType::Directional)
 					{
 						const char* shadow_types[] = { "None", "Shadow Maps", "Ray Traced Shadows" };
 						static int current_shadow_type = light->casts_shadows;
@@ -608,7 +608,7 @@ namespace adria
 
 					if (light->casts_shadows)
 					{
-						if (light->type == ELightType::Directional && light->casts_shadows)
+						if (light->type == LightType::Directional && light->casts_shadows)
 						{
 							bool use_cascades = static_cast<bool>(light->use_cascades);
 							ImGui::Checkbox("Use Cascades", &use_cascades);
@@ -728,7 +728,7 @@ namespace adria
 					ImGui::SliderFloat("Roughness Factor", &material->roughness_factor, 0.0f, 1.0f);
 					ImGui::SliderFloat("Emissive Factor", &material->emissive_factor, 0.0f, 32.0f);
 
-					material->pso = EPipelineState::GBuffer;
+					material->pso = GfxPipelineStateID::GBuffer;
 				}
 
 				auto transform = engine->reg.try_get<Transform>(selected_entity);
@@ -990,9 +990,9 @@ namespace adria
 		int& current_ao_type = cvars::ao_cvar.Get();
 		int& current_reflection_type = cvars::reflections.Get();
 
-		renderer_settings.render_path = static_cast<ERenderPathType>(current_render_path_type);
-		renderer_settings.postprocess.ambient_occlusion = static_cast<EAmbientOcclusion>(current_ao_type);
-		renderer_settings.postprocess.reflections = static_cast<EReflections>(current_reflection_type);
+		renderer_settings.render_path = static_cast<RenderPathType>(current_render_path_type);
+		renderer_settings.postprocess.ambient_occlusion = static_cast<AmbientOcclusion>(current_ao_type);
+		renderer_settings.postprocess.reflections = static_cast<Reflections>(current_reflection_type);
 		renderer_settings.postprocess.automatic_exposure = cvars::exposure;
 		renderer_settings.postprocess.clouds = cvars::clouds;
 		renderer_settings.postprocess.dof = cvars::dof;
@@ -1070,11 +1070,11 @@ namespace adria
 				bool& taa  = cvars::taa.Get();
 				ImGui::Checkbox("FXAA", &fxaa);
 				ImGui::Checkbox("TAA", &taa);
-				if (fxaa) renderer_settings.postprocess.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocess.anti_aliasing | AntiAliasing_FXAA);
-				else renderer_settings.postprocess.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocess.anti_aliasing & (~AntiAliasing_FXAA));
+				if (fxaa) renderer_settings.postprocess.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.postprocess.anti_aliasing | AntiAliasing_FXAA);
+				else renderer_settings.postprocess.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.postprocess.anti_aliasing & (~AntiAliasing_FXAA));
 
-				if (taa) renderer_settings.postprocess.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocess.anti_aliasing | AntiAliasing_TAA);
-				else renderer_settings.postprocess.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.postprocess.anti_aliasing & (~AntiAliasing_TAA));
+				if (taa) renderer_settings.postprocess.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.postprocess.anti_aliasing | AntiAliasing_TAA);
+				else renderer_settings.postprocess.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.postprocess.anti_aliasing & (~AntiAliasing_TAA));
 
 				ImGui::TreePop();
 			}

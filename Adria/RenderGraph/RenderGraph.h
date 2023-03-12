@@ -5,7 +5,7 @@
 #include "RenderGraphBlackboard.h"
 #include "RenderGraphBuilder.h"
 #include "RenderGraphResourcePool.h"
-#include "../Graphics/GraphicsDeviceDX12.h"
+#include "../Graphics/GfxDevice.h"
 #include "../Utilities/HashSet.h"
 #include "../Utilities/HashMap.h"
 
@@ -24,8 +24,8 @@ namespace adria
 			explicit DependencyLevel(RenderGraph& rg) : rg(rg) {}
 			void AddPass(RenderGraphPassBase* pass);
 			void Setup();
-			void Execute(GraphicsDevice* gfx, CommandList* cmd_list);
-			void Execute(GraphicsDevice* gfx, std::vector<CommandList*> const& cmd_lists);
+			void Execute(GfxDevice* gfx, CommandList* cmd_list);
+			void Execute(GfxDevice* gfx, std::vector<CommandList*> const& cmd_lists);
 			size_t GetSize() const;
 			size_t GetNonCulledSize() const;
 
@@ -36,13 +36,13 @@ namespace adria
 			HashSet<RGTextureId> texture_reads;
 			HashSet<RGTextureId> texture_writes;
 			HashSet<RGTextureId> texture_destroys;
-			HashMap<RGTextureId, EResourceState> texture_state_map;
+			HashMap<RGTextureId, GfxResourceState> texture_state_map;
 
 			HashSet<RGBufferId> buffer_creates;
 			HashSet<RGBufferId> buffer_reads;
 			HashSet<RGBufferId> buffer_writes;
 			HashSet<RGBufferId> buffer_destroys;
-			HashMap<RGBufferId, EResourceState> buffer_state_map;
+			HashMap<RGBufferId, GfxResourceState> buffer_state_map;
 		};
 
 	public:
@@ -67,15 +67,15 @@ namespace adria
 		void Build();
 		void Execute();
 
-		void ImportTexture(RGResourceName name, Texture* texture);
-		void ImportBuffer(RGResourceName name, Buffer* buffer);
+		void ImportTexture(RGResourceName name, GfxTexture* texture);
+		void ImportBuffer(RGResourceName name, GfxBuffer* buffer);
 
 		RGBlackboard const& GetBlackboard() const { return blackboard; }
 		RGBlackboard& GetBlackboard() { return blackboard; }
 
 	private:
 		RGResourcePool& pool;
-		GraphicsDevice* gfx;
+		GfxDevice* gfx;
 		RGBlackboard blackboard;
 
 		std::vector<std::unique_ptr<RGPassBase>> passes;
@@ -90,11 +90,11 @@ namespace adria
 		HashMap<RGResourceName, RGBufferId>  buffer_name_id_map;
 		HashMap<RGBufferReadWriteId, RGBufferId> buffer_uav_counter_map;
 
-		mutable HashMap<RGTextureId, std::vector<std::pair<TextureSubresourceDesc, ERGDescriptorType>>> texture_view_desc_map;
-		mutable HashMap<RGTextureId, std::vector<std::pair<D3D12_CPU_DESCRIPTOR_HANDLE, ERGDescriptorType>>> texture_view_map;
+		mutable HashMap<RGTextureId, std::vector<std::pair<GfxTextureSubresourceDesc, RGDescriptorType>>> texture_view_desc_map;
+		mutable HashMap<RGTextureId, std::vector<std::pair<D3D12_CPU_DESCRIPTOR_HANDLE, RGDescriptorType>>> texture_view_map;
 
-		mutable HashMap<RGBufferId, std::vector<std::pair<BufferSubresourceDesc, ERGDescriptorType>>> buffer_view_desc_map;
-		mutable HashMap<RGBufferId, std::vector<std::pair<D3D12_CPU_DESCRIPTOR_HANDLE, ERGDescriptorType>>> buffer_view_map;
+		mutable HashMap<RGBufferId, std::vector<std::pair<GfxBufferSubresourceDesc, RGDescriptorType>>> buffer_view_desc_map;
+		mutable HashMap<RGBufferId, std::vector<std::pair<D3D12_CPU_DESCRIPTOR_HANDLE, RGDescriptorType>>> buffer_view_map;
 
 	private:
 
@@ -119,8 +119,8 @@ namespace adria
 
 		RGTextureId GetTextureId(RGResourceName);
 		RGBufferId GetBufferId(RGResourceName);
-		void AddBufferBindFlags(RGResourceName name, EBindFlag flags);
-		void AddTextureBindFlags(RGResourceName name, EBindFlag flags);
+		void AddBufferBindFlags(RGResourceName name, GfxBindFlag flags);
+		void AddTextureBindFlags(RGResourceName name, GfxBindFlag flags);
 
 		RGTextureCopySrcId ReadCopySrcTexture(RGResourceName);
 		RGTextureCopyDstId WriteCopyDstTexture(RGResourceName);
@@ -131,22 +131,22 @@ namespace adria
 		RGBufferIndexId  ReadIndexBuffer(RGResourceName);
 		RGBufferConstantId  ReadConstantBuffer(RGResourceName);
 
-		RGRenderTargetId RenderTarget(RGResourceName name, TextureSubresourceDesc const& desc);
-		RGDepthStencilId DepthStencil(RGResourceName name, TextureSubresourceDesc const& desc);
-		RGTextureReadOnlyId ReadTexture(RGResourceName name, TextureSubresourceDesc const& desc);
-		RGTextureReadWriteId WriteTexture(RGResourceName name, TextureSubresourceDesc const& desc);
-		RGBufferReadOnlyId ReadBuffer(RGResourceName name, BufferSubresourceDesc const& desc);
-		RGBufferReadWriteId WriteBuffer(RGResourceName name, BufferSubresourceDesc const& desc);
-		RGBufferReadWriteId WriteBuffer(RGResourceName name, RGResourceName counter_name, BufferSubresourceDesc const& desc);
+		RGRenderTargetId RenderTarget(RGResourceName name, GfxTextureSubresourceDesc const& desc);
+		RGDepthStencilId DepthStencil(RGResourceName name, GfxTextureSubresourceDesc const& desc);
+		RGTextureReadOnlyId ReadTexture(RGResourceName name, GfxTextureSubresourceDesc const& desc);
+		RGTextureReadWriteId WriteTexture(RGResourceName name, GfxTextureSubresourceDesc const& desc);
+		RGBufferReadOnlyId ReadBuffer(RGResourceName name, GfxBufferSubresourceDesc const& desc);
+		RGBufferReadWriteId WriteBuffer(RGResourceName name, GfxBufferSubresourceDesc const& desc);
+		RGBufferReadWriteId WriteBuffer(RGResourceName name, RGResourceName counter_name, GfxBufferSubresourceDesc const& desc);
 
-		Texture const& GetCopySrcTexture(RGTextureCopySrcId) const;
-		Texture const& GetCopyDstTexture(RGTextureCopyDstId) const;
-		Buffer const& GetCopySrcBuffer(RGBufferCopySrcId) const;
-		Buffer const& GetCopyDstBuffer(RGBufferCopyDstId) const;
-		Buffer const& GetIndirectArgsBuffer(RGBufferIndirectArgsId) const;
-		Buffer const& GetVertexBuffer(RGBufferVertexId) const;
-		Buffer const& GetIndexBuffer(RGBufferIndexId) const;
-		Buffer const& GetConstantBuffer(RGBufferConstantId) const;
+		GfxTexture const& GetCopySrcTexture(RGTextureCopySrcId) const;
+		GfxTexture const& GetCopyDstTexture(RGTextureCopyDstId) const;
+		GfxBuffer const& GetCopySrcBuffer(RGBufferCopySrcId) const;
+		GfxBuffer const& GetCopyDstBuffer(RGBufferCopyDstId) const;
+		GfxBuffer const& GetIndirectArgsBuffer(RGBufferIndirectArgsId) const;
+		GfxBuffer const& GetVertexBuffer(RGBufferVertexId) const;
+		GfxBuffer const& GetIndexBuffer(RGBufferIndexId) const;
+		GfxBuffer const& GetConstantBuffer(RGBufferConstantId) const;
 
 		DescriptorCPU GetRenderTarget(RGRenderTargetId) const;
 		DescriptorCPU GetDepthStencil(RGDepthStencilId) const;
@@ -155,8 +155,8 @@ namespace adria
 		DescriptorCPU GetReadOnlyBuffer(RGBufferReadOnlyId) const;
 		DescriptorCPU GetReadWriteBuffer(RGBufferReadWriteId) const;
 
-		Texture* GetTexture(RGTextureId) const;
-		Buffer* GetBuffer(RGBufferId) const;
+		GfxTexture* GetTexture(RGTextureId) const;
+		GfxBuffer* GetBuffer(RGBufferId) const;
 
 		void CreateTextureViews(RGTextureId);
 		void CreateBufferViews(RGBufferId);

@@ -1,7 +1,7 @@
 #include <array>
 #include <memory>
-#include "GraphicsCommon.h"
-#include "Texture.h"
+#include "GfxCommon.h"
+#include "GfxTexture.h"
 #include "DescriptorHeap.h"
 
 namespace adria
@@ -10,35 +10,35 @@ namespace adria
 	{
 		namespace
 		{
-			std::array<std::unique_ptr<Texture>, (size_t)ECommonTextureType::Count>	common_textures;
+			std::array<std::unique_ptr<GfxTexture>, (size_t)GfxCommonTextureType::Count>	common_textures;
 			std::unique_ptr<DescriptorHeap> common_views_heap;
 
-			void CreateCommonTextures(GraphicsDevice* gfx)
+			void CreateCommonTextures(GfxDevice* gfx)
 			{
-				TextureDesc desc{};
+				GfxTextureDesc desc{};
 				desc.width = 1;
 				desc.height = 1;
-				desc.format = EFormat::R32_FLOAT;
-				desc.bind_flags = EBindFlag::ShaderResource;
-				desc.initial_state = EResourceState::PixelShaderResource;
-				desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
+				desc.format = GfxFormat::R32_FLOAT;
+				desc.bind_flags = GfxBindFlag::ShaderResource;
+				desc.initial_state = GfxResourceState::PixelShaderResource;
+				desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 
-				TextureInitialData init_data{};
+				GfxTextureInitialData init_data{};
 				float v = 1.0f;
 				init_data.pData = &v;
 				init_data.RowPitch = sizeof(float);
 				init_data.SlicePitch = 0;
-				common_textures[(size_t)ECommonTextureType::WhiteTexture2D] = std::make_unique<Texture>(gfx, desc, &init_data);
-				common_textures[(size_t)ECommonTextureType::WhiteTexture2D]->CreateSRV();
+				common_textures[(size_t)GfxCommonTextureType::WhiteTexture2D] = std::make_unique<GfxTexture>(gfx, desc, &init_data);
+				common_textures[(size_t)GfxCommonTextureType::WhiteTexture2D]->CreateSRV();
 
 				v = 0.0f;
-				common_textures[(size_t)ECommonTextureType::BlackTexture2D] = std::make_unique<Texture>(gfx, desc, &init_data);
-				common_textures[(size_t)ECommonTextureType::BlackTexture2D]->CreateSRV();
+				common_textures[(size_t)GfxCommonTextureType::BlackTexture2D] = std::make_unique<GfxTexture>(gfx, desc, &init_data);
+				common_textures[(size_t)GfxCommonTextureType::BlackTexture2D]->CreateSRV();
 			}
 
-			void CreateCommonViews(GraphicsDevice* gfx)
+			void CreateCommonViews(GfxDevice* gfx)
 			{
-				using enum ECommonViewType;
+				using enum GfxCommonViewType;
 
 				ID3D12Device* device = gfx->GetDevice();
 				common_views_heap = std::make_unique<DescriptorHeap>(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, (size_t)Count);
@@ -64,7 +64,7 @@ namespace adria
 			}
 		}
 
-		void Initialize(GraphicsDevice* gfx)
+		void Initialize(GfxDevice* gfx)
 		{
 			CreateCommonTextures(gfx);
 			CreateCommonViews(gfx);
@@ -76,12 +76,12 @@ namespace adria
 			for (auto& texture  : common_textures) texture.reset();
 		}
 
-		Texture* GetCommonTexture(ECommonTextureType type)
+		GfxTexture* GetCommonTexture(GfxCommonTextureType type)
 		{
 			return common_textures[(size_t)type].get();
 		}
 
-		D3D12_CPU_DESCRIPTOR_HANDLE GetCommonView(ECommonViewType type)
+		D3D12_CPU_DESCRIPTOR_HANDLE GetCommonView(GfxCommonViewType type)
 		{
 			return common_views_heap->GetHandle((size_t)type);
 		}

@@ -8,8 +8,8 @@
 namespace adria
 {
 	class RenderGraph;
-	class GraphicsDevice;
-	class Texture;
+	class GfxDevice;
+	class GfxTexture;
 
 
 	class HBAOPass
@@ -25,11 +25,11 @@ namespace adria
 		HBAOPass(uint32 w, uint32 h);
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h);
-		void OnSceneInitialized(GraphicsDevice* gfx);
+		void OnSceneInitialized(GfxDevice* gfx);
 	private:
 		uint32 width, height;
 		HBAOParams params{};
-		std::unique_ptr<Texture> hbao_random_texture;
+		std::unique_ptr<GfxTexture> hbao_random_texture;
 		BlurPass blur_pass;
 	};
 

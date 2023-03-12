@@ -9,8 +9,8 @@
 namespace adria
 {
 	class RenderGraph;
-	class GraphicsDevice;
-	class Texture;
+	class GfxDevice;
+	class GfxTexture;
 
 
 	class SSAOPass
@@ -28,12 +28,12 @@ namespace adria
 
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h);
-		void OnSceneInitialized(GraphicsDevice* gfx);
+		void OnSceneInitialized(GfxDevice* gfx);
 	private:
 		uint32 width, height;
 		SSAOParams params{};
 		DirectX::XMVECTOR ssao_kernel[KERNEL_SIZE] = {};
-		std::unique_ptr<Texture> ssao_random_texture;
+		std::unique_ptr<GfxTexture> ssao_random_texture;
 		BlurPass blur_pass;
 	};
 

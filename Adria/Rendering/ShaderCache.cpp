@@ -1,7 +1,7 @@
 #include <execution>
 #include "ShaderCache.h"
-#include "../Graphics/ShaderCompiler.h"
-#include "../Graphics/GraphicsDeviceDX12.h"
+#include "../Graphics/GfxShaderCompiler.h"
+#include "../Graphics/GfxDevice.h"
 #include "../Logging/Logger.h"
 #include "../Utilities/Timer.h"
 #include "../Utilities/HashMap.h"
@@ -18,10 +18,10 @@ namespace adria
 		std::unique_ptr<FileWatcher> file_watcher;
 		ShaderRecompiledEvent shader_recompiled_event;
 		LibraryRecompiledEvent library_recompiled_event;
-		HashMap<EShaderId, Shader> shader_map;
-		HashMap<EShaderId, HashSet<fs::path>> dependent_files_map;
+		HashMap<GfxShaderID, GfxShader> shader_map;
+		HashMap<GfxShaderID, HashSet<fs::path>> dependent_files_map;
 
-		constexpr std::string  GetEntryPoint(EShaderId shader)
+		constexpr std::string  GetEntryPoint(GfxShaderID shader)
 		{
 			switch (shader)
 			{
@@ -161,7 +161,7 @@ namespace adria
 			}
 			return "main";
 		}
-		constexpr EShaderStage GetShaderStage(EShaderId shader)
+		constexpr GfxShaderStage GetShaderStage(GfxShaderID shader)
 		{
 			switch (shader)
 			{
@@ -177,7 +177,7 @@ namespace adria
 			case VS_Shadow_Transparent:
 			case VS_Ocean:
 			case VS_OceanLOD:
-				return EShaderStage::VS;
+				return GfxShaderStage::VS;
 			case PS_Skybox:
 			case PS_HosekWilkieSky:
 			case PS_UniformColorSky:
@@ -194,10 +194,10 @@ namespace adria
 			case PS_Shadow:
 			case PS_Shadow_Transparent:
 			case PS_Ocean:
-				return EShaderStage::PS;
+				return GfxShaderStage::PS;
 			case GS_LensFlare:
 			case GS_Bokeh:
-				return EShaderStage::GS;
+				return GfxShaderStage::GS;
 			case CS_Blur_Horizontal:
 			case CS_Blur_Vertical:
 			case CS_BokehGeneration:
@@ -234,23 +234,23 @@ namespace adria
 			case CS_ClusteredDeferredLighting:
 			case CS_ClusterBuilding:
 			case CS_ClusterCulling:
-				return EShaderStage::CS;
+				return GfxShaderStage::CS;
 			case HS_OceanLOD:
-				return EShaderStage::HS;
+				return GfxShaderStage::HS;
 			case DS_OceanLOD:
-				return EShaderStage::DS;
+				return GfxShaderStage::DS;
 			case LIB_Shadows:
 			case LIB_SoftShadows:
 			case LIB_AmbientOcclusion:
 			case LIB_Reflections:
 			case LIB_PathTracing:
-				return EShaderStage::LIB;
+				return GfxShaderStage::LIB;
 			case ShaderId_Count:
 			default:
-				return EShaderStage::ShaderCount;
+				return GfxShaderStage::ShaderCount;
 			}
 		}
-		constexpr std::string  GetShaderSource(EShaderId shader)
+		constexpr std::string  GetShaderSource(GfxShaderID shader)
 		{
 			switch (shader)
 			{
@@ -380,7 +380,7 @@ namespace adria
 				return "";
 			}
 		}
-		constexpr std::vector<ShaderMacro> GetShaderMacros(EShaderId shader)
+		constexpr std::vector<GfxShaderMacro> GetShaderMacros(GfxShaderID shader)
 		{
 			switch (shader)
 			{
@@ -400,11 +400,11 @@ namespace adria
 			}
 		}
 
-		void CompileShader(EShaderId shader)
+		void CompileShader(GfxShaderID shader)
 		{
-			if (shader == ShaderId_Invalid) return;
+			if (shader == GfxShaderID_Invalid) return;
 
-			ShaderDesc shader_desc{};
+			GfxShaderDesc shader_desc{};
 			shader_desc.entry_point = GetEntryPoint(shader);
 			shader_desc.stage = GetShaderStage(shader);
 			shader_desc.macros = GetShaderMacros(shader);
@@ -415,20 +415,20 @@ namespace adria
 #else
 			shader_desc.flags = ShaderCompilerFlag_None;
 #endif
-			ShaderCompileOutput output;
-			ShaderCompiler::CompileShader(shader_desc, output);
+			GfxShaderCompileOutput output;
+			GfxShaderCompiler::CompileShader(shader_desc, output);
 			shader_map[shader] = std::move(output.shader);
 			dependent_files_map[shader].clear();
 			dependent_files_map[shader].insert(output.dependent_files.begin(), output.dependent_files.end());
 			
-			shader_desc.stage == EShaderStage::LIB ?
+			shader_desc.stage == GfxShaderStage::LIB ?
 				library_recompiled_event.Broadcast(shader) : shader_recompiled_event.Broadcast(shader);
 		}
 		void CompileAllShaders()
 		{
 			Timer t;
 			ADRIA_LOG(INFO, "Compiling all shaders...");
-			using UnderlyingType = std::underlying_type_t<EShaderId>;
+			using UnderlyingType = std::underlying_type_t<GfxShaderID>;
 			std::vector<UnderlyingType> shaders(ShaderId_Count);
 			std::iota(std::begin(shaders), std::end(shaders), 0);
 			std::for_each(
@@ -437,7 +437,7 @@ namespace adria
 				std::end(shaders),
 				[](UnderlyingType s)
 				{
-					EShaderId shader = static_cast<EShaderId>(s);
+					GfxShaderID shader = static_cast<GfxShaderID>(s);
 					CompileShader(shader);
 				});
 			ADRIA_LOG(INFO, "Compilation done in %f seconds!", t.ElapsedInSeconds());
@@ -469,7 +469,7 @@ namespace adria
 		file_watcher->CheckWatchedFiles();
 	}
 
-	Shader const& ShaderCache::GetShader(EShaderId shader)
+	GfxShader const& ShaderCache::GetShader(GfxShaderID shader)
 	{
 		return shader_map[shader];
 	}

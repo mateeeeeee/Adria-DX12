@@ -1,38 +1,38 @@
 #pragma once
-#include "ResourceCommon.h"
+#include "GfxResourceCommon.h"
 
 namespace adria
 {
 	
-	struct BufferDesc
+	struct GfxBufferDesc
 	{
 		uint64 size = 0;
-		EResourceUsage resource_usage = EResourceUsage::Default;
-		EBindFlag bind_flags = EBindFlag::None;
-		EBufferMiscFlag misc_flags = EBufferMiscFlag::None;
+		GfxResourceUsage resource_usage = GfxResourceUsage::Default;
+		GfxBindFlag bind_flags = GfxBindFlag::None;
+		GfxBufferMiscFlag misc_flags = GfxBufferMiscFlag::None;
 		uint32 stride = 0; //structured buffers, (vertex buffers, index buffers, needed for count calculation not for srv as structured buffers)
-		EFormat format = EFormat::UNKNOWN; //typed buffers, index buffers
-		std::strong_ordering operator<=>(BufferDesc const& other) const = default;
+		GfxFormat format = GfxFormat::UNKNOWN; //typed buffers, index buffers
+		std::strong_ordering operator<=>(GfxBufferDesc const& other) const = default;
 	};
 
-	struct BufferSubresourceDesc
+	struct GfxBufferSubresourceDesc
 	{
 		uint64 offset = 0;
 		uint64 size = uint64(-1);
-		std::strong_ordering operator<=>(BufferSubresourceDesc const& other) const = default;
+		std::strong_ordering operator<=>(GfxBufferSubresourceDesc const& other) const = default;
 	};
 
-	using BufferInitialData = void const*;
+	using GfxBufferInitialData = void const*;
 
-	class Buffer
+	class GfxBuffer
 	{
 	public:
 
-		Buffer(GraphicsDevice* gfx, BufferDesc const& desc, BufferInitialData initial_data = nullptr)
+		GfxBuffer(GfxDevice* gfx, GfxBufferDesc const& desc, GfxBufferInitialData initial_data = nullptr)
 			: gfx(gfx), desc(desc)
 		{
 			UINT64 buffer_size = desc.size;
-			if (HasAllFlags(desc.misc_flags, EBufferMiscFlag::ConstantBuffer))
+			if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::ConstantBuffer))
 				buffer_size = Align(buffer_size, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 
 			D3D12_RESOURCE_DESC resource_desc{};
@@ -48,25 +48,25 @@ namespace adria
 			resource_desc.SampleDesc.Count = 1;
 			resource_desc.SampleDesc.Quality = 0;
 
-			if (HasAllFlags(desc.bind_flags, EBindFlag::UnorderedAccess))
+			if (HasAllFlags(desc.bind_flags, GfxBindFlag::UnorderedAccess))
 				resource_desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
-			if (!HasAllFlags(desc.bind_flags, EBindFlag::ShaderResource))
+			if (!HasAllFlags(desc.bind_flags, GfxBindFlag::ShaderResource))
 				resource_desc.Flags |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
 
 			D3D12_RESOURCE_STATES resource_state = D3D12_RESOURCE_STATE_COMMON;
-			if (HasAllFlags(desc.misc_flags, EBufferMiscFlag::AccelStruct))
+			if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::AccelStruct))
 				resource_state = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
 
 			D3D12MA::ALLOCATION_DESC allocation_desc{};
 			allocation_desc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
-			if (desc.resource_usage == EResourceUsage::Readback)
+			if (desc.resource_usage == GfxResourceUsage::Readback)
 			{
 				allocation_desc.HeapType = D3D12_HEAP_TYPE_READBACK;
 				resource_state = D3D12_RESOURCE_STATE_COPY_DEST;
 				resource_desc.Flags |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
 			}
-			else if (desc.resource_usage == EResourceUsage::Upload)
+			else if (desc.resource_usage == GfxResourceUsage::Upload)
 			{
 				allocation_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
 				resource_state = D3D12_RESOURCE_STATE_GENERIC_READ;
@@ -88,13 +88,13 @@ namespace adria
 			BREAK_IF_FAILED(hr);
 			allocation.reset(alloc);
 
-			if (desc.resource_usage == EResourceUsage::Readback)
+			if (desc.resource_usage == GfxResourceUsage::Readback)
 			{
 				hr = resource->Map(0, nullptr, &mapped_data);
 				BREAK_IF_FAILED(hr);
 				mapped_rowpitch = static_cast<uint32_t>(desc.size);
 			}
-			else if (desc.resource_usage == EResourceUsage::Upload)
+			else if (desc.resource_usage == GfxResourceUsage::Upload)
 			{
 				D3D12_RANGE read_range{};
 				hr = resource->Map(0, &read_range, &mapped_data);
@@ -107,7 +107,7 @@ namespace adria
 				}
 			}
 
-			if (initial_data != nullptr && desc.resource_usage != EResourceUsage::Upload)
+			if (initial_data != nullptr && desc.resource_usage != GfxResourceUsage::Upload)
 			{
 				auto cmd_list = gfx->GetDefaultCommandList();
 				auto upload_buffer = gfx->GetDynamicAllocator();
@@ -120,21 +120,21 @@ namespace adria
 					upload_alloc.offset,
 					desc.size);
 
-				if (HasAnyFlag(desc.bind_flags, EBindFlag::ShaderResource))
+				if (HasAnyFlag(desc.bind_flags, GfxBindFlag::ShaderResource))
 				{
 					D3D12_RESOURCE_BARRIER barrier{};
 					barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 					barrier.Transition.pResource = resource.Get();
-					barrier.Transition.StateAfter = ConvertToD3D12ResourceState(EResourceState::NonPixelShaderResource);
-					barrier.Transition.StateBefore = ConvertToD3D12ResourceState(EResourceState::CopyDest);
+					barrier.Transition.StateAfter = ConvertToD3D12ResourceState(GfxResourceState::NonPixelShaderResource);
+					barrier.Transition.StateBefore = ConvertToD3D12ResourceState(GfxResourceState::CopyDest);
 					barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 					cmd_list->ResourceBarrier(1, &barrier);
 				}
 			}
 		}
-		Buffer(Buffer const&) = delete;
-		Buffer& operator=(Buffer const&) = delete;
-		~Buffer()
+		GfxBuffer(GfxBuffer const&) = delete;
+		GfxBuffer& operator=(GfxBuffer const&) = delete;
+		~GfxBuffer()
 		{
 			if (mapped_data != nullptr)
 			{
@@ -147,32 +147,32 @@ namespace adria
 			for (auto& uav : uavs) gfx->FreeOfflineDescriptor(uav, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		}
 
-		D3D12_CPU_DESCRIPTOR_HANDLE GetSRV(size_t i = 0) const { return GetSubresource(SubresourceType_SRV, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE GetUAV(size_t i = 0) const { return GetSubresource(SubresourceType_UAV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE GetSRV(size_t i = 0) const { return GetSubresource(GfxSubresourceType::SRV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE GetUAV(size_t i = 0) const { return GetSubresource(GfxSubresourceType::UAV, i); }
 
-		[[maybe_unused]] size_t CreateSRV(BufferSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateSRV(GfxBufferSubresourceDesc const* desc = nullptr)
 		{
-			BufferSubresourceDesc _desc = desc ? *desc : BufferSubresourceDesc{};
-			return CreateSubresource(SubresourceType_SRV, _desc, nullptr);
+			GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
+			return CreateSubresource(GfxSubresourceType::SRV, _desc, nullptr);
 		}
-		[[maybe_unused]] size_t CreateUAV(ID3D12Resource* uav_counter = nullptr, BufferSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateUAV(ID3D12Resource* uav_counter = nullptr, GfxBufferSubresourceDesc const* desc = nullptr)
 		{
-			BufferSubresourceDesc _desc = desc ? *desc : BufferSubresourceDesc{};
-			return CreateSubresource(SubresourceType_UAV, _desc, uav_counter);
+			GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
+			return CreateSubresource(GfxSubresourceType::UAV, _desc, uav_counter);
 		}
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeSRV(BufferSubresourceDesc const* desc = nullptr)
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeSRV(GfxBufferSubresourceDesc const* desc = nullptr)
 		{
-			BufferSubresourceDesc _desc = desc ? *desc : BufferSubresourceDesc{};
-			size_t i = CreateSubresource(SubresourceType_SRV, _desc);
+			GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
+			size_t i = CreateSubresource(GfxSubresourceType::SRV, _desc);
 			ADRIA_ASSERT(srvs.size() - 1 == i);
 			D3D12_CPU_DESCRIPTOR_HANDLE srv = srvs.back();
 			srvs.pop_back();
 			return srv;
 		}
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeUAV(BufferSubresourceDesc const* desc = nullptr, ID3D12Resource* uav_counter = nullptr)
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeUAV(GfxBufferSubresourceDesc const* desc = nullptr, ID3D12Resource* uav_counter = nullptr)
 		{
-			BufferSubresourceDesc _desc = desc ? *desc : BufferSubresourceDesc{};
-			size_t i = CreateSubresource(SubresourceType_UAV, _desc, uav_counter);
+			GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
+			size_t i = CreateSubresource(GfxSubresourceType::UAV, _desc, uav_counter);
 			ADRIA_ASSERT(uavs.size() - 1 == i);
 			D3D12_CPU_DESCRIPTOR_HANDLE uav = uavs.back();
 			uavs.pop_back();
@@ -188,7 +188,7 @@ namespace adria
 		{
 			return allocation.release();
 		}
-		BufferDesc const& GetDesc() const { return desc; }
+		GfxBufferDesc const& GetDesc() const { return desc; }
 		UINT GetMappedRowPitch() const { return mapped_rowpitch; }
 		D3D12_GPU_VIRTUAL_ADDRESS GetGPUAddress() const { return resource->GetGPUVirtualAddress(); }
 		UINT GetCount() const
@@ -206,13 +206,13 @@ namespace adria
 			if (mapped_data) return mapped_data;
 
 			HRESULT hr;
-			if (desc.resource_usage == EResourceUsage::Readback)
+			if (desc.resource_usage == GfxResourceUsage::Readback)
 			{
 				hr = resource->Map(0, nullptr, &mapped_data);
 				BREAK_IF_FAILED(hr);
 				mapped_rowpitch = static_cast<uint32_t>(desc.size);
 			}
-			else if (desc.resource_usage == EResourceUsage::Upload)
+			else if (desc.resource_usage == GfxResourceUsage::Upload)
 			{
 				D3D12_RANGE read_range{};
 				hr = resource->Map(0, &read_range, &mapped_data);
@@ -229,7 +229,7 @@ namespace adria
 		}
 		void Update(void const* src_data, size_t data_size, size_t offset = 0)
 		{
-			ADRIA_ASSERT(desc.resource_usage == EResourceUsage::Upload);
+			ADRIA_ASSERT(desc.resource_usage == GfxResourceUsage::Upload);
 			if (mapped_data)
 			{
 				memcpy((uint8*)mapped_data + offset, src_data, data_size);
@@ -251,9 +251,9 @@ namespace adria
 			resource->SetName(ToWideString(name).c_str());
 		}
 	private:
-		GraphicsDevice* gfx;
+		GfxDevice* gfx;
 		ArcPtr<ID3D12Resource> resource;
-		BufferDesc desc;
+		GfxBufferDesc desc;
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> srvs;
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> uavs;
 
@@ -265,23 +265,23 @@ namespace adria
 
 	private:
 
-		size_t CreateSubresource(ESubresourceType view_type, BufferSubresourceDesc const& view_desc,
+		size_t CreateSubresource(GfxSubresourceType view_type, GfxBufferSubresourceDesc const& view_desc,
 			ID3D12Resource* uav_counter = nullptr)
 		{
-			if (uav_counter) ADRIA_ASSERT(view_type == SubresourceType_UAV);
-			EFormat format = desc.format;
+			if (uav_counter) ADRIA_ASSERT(view_type == GfxSubresourceType::UAV);
+			GfxFormat format = desc.format;
 			D3D12_CPU_DESCRIPTOR_HANDLE heap_descriptor = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			switch (view_type)
 			{
-			case SubresourceType_SRV:
+			case GfxSubresourceType::SRV:
 			{
 				D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
 				srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 				srv_desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
 				bool is_accel_struct = false;
-				if (format == EFormat::UNKNOWN)
+				if (format == GfxFormat::UNKNOWN)
 				{
-					if (HasAllFlags(desc.misc_flags, EBufferMiscFlag::BufferRaw))
+					if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::BufferRaw))
 					{
 						// This is a Raw Buffer
 						srv_desc.Format = DXGI_FORMAT_R32_TYPELESS;
@@ -289,7 +289,7 @@ namespace adria
 						srv_desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
 						srv_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / sizeof(uint32_t);
 					}
-					else if (HasAllFlags(desc.misc_flags, EBufferMiscFlag::BufferStructured))
+					else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::BufferStructured))
 					{
 						// This is a Structured Buffer
 						srv_desc.Format = DXGI_FORMAT_UNKNOWN;
@@ -297,7 +297,7 @@ namespace adria
 						srv_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / desc.stride;
 						srv_desc.Buffer.StructureByteStride = desc.stride;
 					}
-					else if (HasAllFlags(desc.misc_flags, EBufferMiscFlag::AccelStruct))
+					else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::AccelStruct))
 					{
 						is_accel_struct = true;
 						srv_desc.ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
@@ -307,8 +307,8 @@ namespace adria
 				else
 				{
 					// This is a Typed Buffer
-					uint32_t stride = GetFormatStride(format);
-					srv_desc.Format = ConvertFormat(format);
+					uint32_t stride = GetGfxFormatStride(format);
+					srv_desc.Format = ConvertGfxFormat(format);
 					srv_desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
 					srv_desc.Buffer.FirstElement = view_desc.offset / stride;
 					srv_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / stride;
@@ -318,29 +318,29 @@ namespace adria
 				return srvs.size() - 1;
 			}
 			break;
-			case SubresourceType_UAV:
+			case GfxSubresourceType::UAV:
 			{
 				D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
 				uav_desc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
 				uav_desc.Buffer.FirstElement = 0;
 
-				if (format == EFormat::UNKNOWN)
+				if (format == GfxFormat::UNKNOWN)
 				{
-					if (HasAllFlags(desc.misc_flags, EBufferMiscFlag::BufferRaw))
+					if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::BufferRaw))
 					{
 						uav_desc.Format = DXGI_FORMAT_R32_TYPELESS;
 						uav_desc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
 						uav_desc.Buffer.FirstElement = (UINT)view_desc.offset / sizeof(uint32_t);
 						uav_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / sizeof(uint32_t);
 					}
-					else if (HasAllFlags(desc.misc_flags, EBufferMiscFlag::BufferStructured))
+					else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::BufferStructured))
 					{
 						uav_desc.Format = DXGI_FORMAT_UNKNOWN;
 						uav_desc.Buffer.FirstElement = (UINT)view_desc.offset / desc.stride;
 						uav_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / desc.stride;
 						uav_desc.Buffer.StructureByteStride = desc.stride;
 					}
-					else if (HasAllFlags(desc.misc_flags, EBufferMiscFlag::IndirectArgs))
+					else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::IndirectArgs))
 					{
 						uav_desc.Format = DXGI_FORMAT_R32_UINT;
 						uav_desc.Buffer.FirstElement = (UINT)view_desc.offset / sizeof(uint32_t);
@@ -350,8 +350,8 @@ namespace adria
 				}
 				else
 				{
-					uint32 stride = GetFormatStride(format);
-					uav_desc.Format = ConvertFormat(format);
+					uint32 stride = GetGfxFormatStride(format);
+					uav_desc.Format = ConvertGfxFormat(format);
 					uav_desc.Buffer.FirstElement = (UINT)view_desc.offset / stride;
 					uav_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / stride;
 				}
@@ -361,26 +361,26 @@ namespace adria
 				return uavs.size() - 1;
 			}
 			break;
-			case SubresourceType_RTV:
-			case SubresourceType_DSV:
+			case GfxSubresourceType::RTV:
+			case GfxSubresourceType::DSV:
 			default:
 				ADRIA_ASSERT(false && "Buffer View can only be UAV or SRV!");
 			}
 			return -1;
 		}
 
-		D3D12_CPU_DESCRIPTOR_HANDLE GetSubresource(ESubresourceType type, size_t index = 0) const
+		D3D12_CPU_DESCRIPTOR_HANDLE GetSubresource(GfxSubresourceType type, size_t index = 0) const
 		{
 			switch (type)
 			{
-			case SubresourceType_SRV:
+			case GfxSubresourceType::SRV:
 				ADRIA_ASSERT(index < srvs.size());
 				return srvs[index];
-			case SubresourceType_UAV:
+			case GfxSubresourceType::UAV:
 				ADRIA_ASSERT(index < uavs.size());
 				return uavs[index];
-			case SubresourceType_RTV:
-			case SubresourceType_DSV:
+			case GfxSubresourceType::RTV:
+			case GfxSubresourceType::DSV:
 			default:
 				ADRIA_ASSERT(false && "Invalid view type for buffer!");
 			}
@@ -388,7 +388,7 @@ namespace adria
 		}
 	};
 
-	inline void BindVertexBuffer(ID3D12GraphicsCommandList* cmd_list, Buffer const* vertex_buffer)
+	inline void BindVertexBuffer(ID3D12GraphicsCommandList* cmd_list, GfxBuffer const* vertex_buffer)
 	{
 		D3D12_VERTEX_BUFFER_VIEW vb_view{};
 		vb_view.BufferLocation = vertex_buffer->GetGPUAddress();
@@ -396,60 +396,60 @@ namespace adria
 		vb_view.StrideInBytes = vertex_buffer->GetDesc().stride;
 		cmd_list->IASetVertexBuffers(0, 1, &vb_view);
 	}
-	inline void BindIndexBuffer(ID3D12GraphicsCommandList* cmd_list, Buffer const* index_buffer)
+	inline void BindIndexBuffer(ID3D12GraphicsCommandList* cmd_list, GfxBuffer const* index_buffer)
 	{
 		D3D12_INDEX_BUFFER_VIEW ib_view{};
 		ib_view.BufferLocation = index_buffer->GetGPUAddress();
-		ib_view.Format = ConvertFormat(index_buffer->GetDesc().format);
+		ib_view.Format = ConvertGfxFormat(index_buffer->GetDesc().format);
 		ib_view.SizeInBytes = (UINT)index_buffer->GetDesc().size;
 		cmd_list->IASetIndexBuffer(&ib_view);
 	}
 
-	static BufferDesc VertexBufferDesc(uint64 vertex_count, uint32 stride, bool ray_tracing = true)
+	static GfxBufferDesc VertexBufferDesc(uint64 vertex_count, uint32 stride, bool ray_tracing = true)
 	{
-		BufferDesc desc{};
-		desc.bind_flags = ray_tracing ? EBindFlag::ShaderResource : EBindFlag::None;
-		desc.resource_usage = EResourceUsage::Default;
+		GfxBufferDesc desc{};
+		desc.bind_flags = ray_tracing ? GfxBindFlag::ShaderResource : GfxBindFlag::None;
+		desc.resource_usage = GfxResourceUsage::Default;
 		desc.size = vertex_count * stride;
 		desc.stride = stride;
 		return desc;
 	}
-	static BufferDesc IndexBufferDesc(uint64 index_count, bool small_indices, bool ray_tracing = true)
+	static GfxBufferDesc IndexBufferDesc(uint64 index_count, bool small_indices, bool ray_tracing = true)
 	{
-		BufferDesc desc{};
-		desc.bind_flags = ray_tracing ? EBindFlag::ShaderResource : EBindFlag::None;
-		desc.resource_usage = EResourceUsage::Default;
+		GfxBufferDesc desc{};
+		desc.bind_flags = ray_tracing ? GfxBindFlag::ShaderResource : GfxBindFlag::None;
+		desc.resource_usage = GfxResourceUsage::Default;
 		desc.stride = small_indices ? 2 : 4;
 		desc.size = index_count * desc.stride;
-		desc.format = small_indices ? EFormat::R16_UINT : EFormat::R32_UINT;
+		desc.format = small_indices ? GfxFormat::R16_UINT : GfxFormat::R32_UINT;
 		return desc;
 	}
-	static BufferDesc ReadBackBufferDesc(uint64 size)
+	static GfxBufferDesc ReadBackBufferDesc(uint64 size)
 	{
-		BufferDesc desc{};
-		desc.bind_flags = EBindFlag::None;
-		desc.resource_usage = EResourceUsage::Readback;
+		GfxBufferDesc desc{};
+		desc.bind_flags = GfxBindFlag::None;
+		desc.resource_usage = GfxResourceUsage::Readback;
 		desc.size = size;
-		desc.misc_flags = EBufferMiscFlag::None;
+		desc.misc_flags = GfxBufferMiscFlag::None;
 		return desc;
 	}
 	template<typename T>
-	static BufferDesc StructuredBufferDesc(uint64 count, bool uav = true, bool dynamic = false)
+	static GfxBufferDesc StructuredBufferDesc(uint64 count, bool uav = true, bool dynamic = false)
 	{
-		BufferDesc desc{};
-		desc.resource_usage = (uav || !dynamic) ? EResourceUsage::Default : EResourceUsage::Upload;
-		desc.bind_flags = EBindFlag::ShaderResource;
-		if (uav) desc.bind_flags |= EBindFlag::UnorderedAccess;
-		desc.misc_flags = EBufferMiscFlag::BufferStructured;
+		GfxBufferDesc desc{};
+		desc.resource_usage = (uav || !dynamic) ? GfxResourceUsage::Default : GfxResourceUsage::Upload;
+		desc.bind_flags = GfxBindFlag::ShaderResource;
+		if (uav) desc.bind_flags |= GfxBindFlag::UnorderedAccess;
+		desc.misc_flags = GfxBufferMiscFlag::BufferStructured;
 		desc.stride = sizeof(T);
 		desc.size = desc.stride * count;
 		return desc;
 	}
-	static BufferDesc CounterBufferDesc()
+	static GfxBufferDesc CounterBufferDesc()
 	{
-		BufferDesc desc{};
+		GfxBufferDesc desc{};
 		desc.size = sizeof(uint32);
-		desc.bind_flags = EBindFlag::UnorderedAccess;
+		desc.bind_flags = GfxBindFlag::UnorderedAccess;
 		return desc;
 	}
 

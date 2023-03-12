@@ -8,9 +8,9 @@ namespace adria
 	struct PostprocessSettings
 	{
 		bool fog = false;
-		EAntiAliasing anti_aliasing = AntiAliasing_None;
-		EAmbientOcclusion ambient_occlusion = EAmbientOcclusion::None;
-		EReflections reflections = EReflections::SSR;
+		AntiAliasing anti_aliasing = AntiAliasing_None;
+		AmbientOcclusion ambient_occlusion = AmbientOcclusion::None;
+		Reflections reflections = Reflections::SSR;
 		bool dof = false;
 		bool bokeh = false;
 		bool bloom = false;
@@ -22,7 +22,7 @@ namespace adria
 	struct RendererSettings
 	{
 		bool gui_visible = false;
-		ERenderPathType		render_path = ERenderPathType::RegularDeferred;
+		RenderPathType		render_path = RenderPathType::RegularDeferred;
 		PostprocessSettings postprocess{};
 	};
 

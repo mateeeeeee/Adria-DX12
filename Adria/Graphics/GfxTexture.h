@@ -1,81 +1,81 @@
 #pragma once
-#include "ResourceCommon.h"
+#include "GfxResourceCommon.h"
 
 namespace adria
 {	
-	struct ClearValue
+	struct GfxClearValue
 	{
-		enum class ActiveMember
+		enum class GfxActiveMember
 		{
 			None,
 			Color,
 			DepthStencil
 		};
-		struct ClearColor
+		struct GfxClearColor
 		{
-			ClearColor(float r = 0.0f, float g = 0.0f, float b = 0.0f, float a = 0.0f)
+			GfxClearColor(float r = 0.0f, float g = 0.0f, float b = 0.0f, float a = 0.0f)
 				: color{ r, g, b, a }
 			{
 			}
-			ClearColor(float(&_color)[4])
+			GfxClearColor(float(&_color)[4])
 				: color{ _color[0], _color[1], _color[2], _color[3] }
 			{
 			}
-			ClearColor(ClearColor const& other)
+			GfxClearColor(GfxClearColor const& other)
 				: color{ other.color[0], other.color[1], other.color[2], other.color[3] }
 			{
 			}
 
-			bool operator==(ClearColor const& other) const
+			bool operator==(GfxClearColor const& other) const
 			{
 				return memcmp(color, other.color, sizeof(color)) == 0;
 			}
 
 			float color[4];
 		};
-		struct ClearDepthStencil
+		struct GfxClearDepthStencil
 		{
-			ClearDepthStencil(float depth = 0.0f, uint8 stencil = 1)
+			GfxClearDepthStencil(float depth = 0.0f, uint8 stencil = 1)
 				: depth(depth), stencil(stencil)
 			{}
 			float depth;
 			uint8 stencil;
 		};
 
-		ClearValue() : active_member(ActiveMember::None), depth_stencil{} {}
+		GfxClearValue() : active_member(GfxActiveMember::None), depth_stencil{} {}
 
-		ClearValue(float r, float g, float b, float a)
-			: active_member(ActiveMember::Color), color(r, g, b, a)
+		GfxClearValue(float r, float g, float b, float a)
+			: active_member(GfxActiveMember::Color), color(r, g, b, a)
 		{
 		}
 
-		ClearValue(float(&_color)[4])
-			: active_member(ActiveMember::Color), color{_color }
+		GfxClearValue(float(&_color)[4])
+			: active_member(GfxActiveMember::Color), color{_color }
 		{
 		}
 
-		ClearValue(ClearColor const& color)
-			: active_member(ActiveMember::Color), color(color)
+		GfxClearValue(GfxClearColor const& color)
+			: active_member(GfxActiveMember::Color), color(color)
 		{}
 
-		ClearValue(float depth, uint8 stencil)
-			: active_member(ActiveMember::DepthStencil), depth_stencil(depth, stencil)
+		GfxClearValue(float depth, uint8 stencil)
+			: active_member(GfxActiveMember::DepthStencil), depth_stencil(depth, stencil)
 		{}
-		ClearValue(ClearDepthStencil const& depth_stencil)
-			: active_member(ActiveMember::DepthStencil), depth_stencil(depth_stencil)
+		GfxClearValue(GfxClearDepthStencil const& depth_stencil)
+			: active_member(GfxActiveMember::DepthStencil), depth_stencil(depth_stencil)
 		{}
 
-		ClearValue(ClearValue const& other)
+		GfxClearValue(GfxClearValue const& other)
 			: active_member(other.active_member), color{}
 		{
-			if (active_member == ActiveMember::Color) color = other.color;
-			else if (active_member == ActiveMember::DepthStencil) depth_stencil = other.depth_stencil;
+			if (active_member == GfxActiveMember::Color) color = other.color;
+			else if (active_member == GfxActiveMember::DepthStencil) depth_stencil = other.depth_stencil;
 		}
 
-		bool operator==(ClearValue const& other) const
+		bool operator==(GfxClearValue const& other) const
 		{
 			if (active_member != other.active_member) return false;
-			else if (active_member == ActiveMember::Color)
+			else if (active_member == GfxActiveMember::Color)
 			{
 				return color == other.color;
 			}
@@ -83,78 +83,78 @@ namespace adria
 				&& depth_stencil.stencil == other.depth_stencil.stencil;
 		}
 
-		ActiveMember active_member;
+		GfxActiveMember active_member;
 		union
 		{
-			ClearColor color;
-			ClearDepthStencil depth_stencil;
+			GfxClearColor color;
+			GfxClearDepthStencil depth_stencil;
 		};
 	};
 
-	enum ETextureType : uint8
+	enum GfxTextureType : uint8
 	{
-		TextureType_1D,
-		TextureType_2D,
-		TextureType_3D
+		GfxTextureType_1D,
+		GfxTextureType_2D,
+		GfxTextureType_3D
 	};
-	inline constexpr ETextureType ConvertTextureType(D3D12_RESOURCE_DIMENSION dimension)
+	inline constexpr GfxTextureType ConvertTextureType(D3D12_RESOURCE_DIMENSION dimension)
 	{
 		switch (dimension)
 		{
 		case D3D12_RESOURCE_DIMENSION_TEXTURE1D:
-			return TextureType_1D;
+			return GfxTextureType_1D;
 		case D3D12_RESOURCE_DIMENSION_TEXTURE2D:
-			return TextureType_2D;
+			return GfxTextureType_2D;
 		case D3D12_RESOURCE_DIMENSION_TEXTURE3D:
-			return TextureType_3D;
+			return GfxTextureType_3D;
 		case D3D12_RESOURCE_DIMENSION_BUFFER:
 		case D3D12_RESOURCE_DIMENSION_UNKNOWN:
 		default:
 			ADRIA_UNREACHABLE();
-			return TextureType_1D;
+			return GfxTextureType_1D;
 		}
-		return TextureType_1D;
+		return GfxTextureType_1D;
 	}
 	
-	struct TextureDesc
+	struct GfxTextureDesc
 	{
-		ETextureType type = TextureType_2D;
+		GfxTextureType type = GfxTextureType_2D;
 		uint32 width = 0;
 		uint32 height = 0;
 		uint32 depth = 0;
 		uint32 array_size = 1;
 		uint32 mip_levels = 1;
 		uint32 sample_count = 1;
-		EResourceUsage heap_type = EResourceUsage::Default;
-		EBindFlag bind_flags = EBindFlag::None;
-		ETextureMiscFlag misc_flags = ETextureMiscFlag::None;
-		EResourceState initial_state = EResourceState::PixelShaderResource | EResourceState::NonPixelShaderResource;
-		ClearValue clear_value{};
-		EFormat format = EFormat::UNKNOWN;
+		GfxResourceUsage heap_type = GfxResourceUsage::Default;
+		GfxBindFlag bind_flags = GfxBindFlag::None;
+		GfxTextureMiscFlag misc_flags = GfxTextureMiscFlag::None;
+		GfxResourceState initial_state = GfxResourceState::PixelShaderResource | GfxResourceState::NonPixelShaderResource;
+		GfxClearValue clear_value{};
+		GfxFormat format = GfxFormat::UNKNOWN;
 
-		std::strong_ordering operator<=>(TextureDesc const& other) const = default;
-		bool IsCompatible(TextureDesc const& desc) const
+		std::strong_ordering operator<=>(GfxTextureDesc const& other) const = default;
+		bool IsCompatible(GfxTextureDesc const& desc) const
 		{
 			return type == desc.type && width == desc.width && height == desc.height && array_size == desc.array_size
 				&& format == desc.format && sample_count == desc.sample_count && heap_type == desc.heap_type
 				&& HasAllFlags(bind_flags, desc.bind_flags) && HasAllFlags(misc_flags, desc.misc_flags);
 		}
 	};
-	struct TextureSubresourceDesc
+	struct GfxTextureSubresourceDesc
 	{
 		uint32 first_slice = 0;
 		uint32 slice_count = static_cast<uint32>(-1);
 		uint32 first_mip = 0;
 		uint32 mip_count = static_cast<uint32>(-1);
 
-		std::strong_ordering operator<=>(TextureSubresourceDesc const& other) const = default;
+		std::strong_ordering operator<=>(GfxTextureSubresourceDesc const& other) const = default;
 	};
-	using TextureInitialData = D3D12_SUBRESOURCE_DATA;
+	using GfxTextureInitialData = D3D12_SUBRESOURCE_DATA;
 
-	class Texture
+	class GfxTexture
 	{
 	public:
-		Texture(GraphicsDevice* gfx, TextureDesc const& desc, TextureInitialData* initial_data = nullptr, size_t data_count = -1)
+		GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, GfxTextureInitialData* initial_data = nullptr, size_t data_count = -1)
 			: gfx(gfx), desc(desc)
 		{
 			HRESULT hr = E_FAIL;
@@ -162,7 +162,7 @@ namespace adria
 			allocation_desc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 
 			D3D12_RESOURCE_DESC resource_desc{};
-			resource_desc.Format = ConvertFormat(desc.format);
+			resource_desc.Format = ConvertGfxFormat(desc.format);
 			resource_desc.Width = desc.width;
 			resource_desc.Height = desc.height;
 			resource_desc.MipLevels = desc.mip_levels;
@@ -172,33 +172,33 @@ namespace adria
 			resource_desc.SampleDesc.Quality = 0;
 			resource_desc.Alignment = 0;
 			resource_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
-			if (HasAllFlags(desc.bind_flags, EBindFlag::DepthStencil))
+			if (HasAllFlags(desc.bind_flags, GfxBindFlag::DepthStencil))
 			{
 				resource_desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
-				if (!HasAllFlags(desc.bind_flags, EBindFlag::ShaderResource))
+				if (!HasAllFlags(desc.bind_flags, GfxBindFlag::ShaderResource))
 				{
 					resource_desc.Flags |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
 				}
 			}
-			if (HasAllFlags(desc.bind_flags, EBindFlag::RenderTarget))
+			if (HasAllFlags(desc.bind_flags, GfxBindFlag::RenderTarget))
 			{
 				resource_desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 			}
-			if (HasAllFlags(desc.bind_flags, EBindFlag::UnorderedAccess))
+			if (HasAllFlags(desc.bind_flags, GfxBindFlag::UnorderedAccess))
 			{
 				resource_desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 			}
 
 			switch (desc.type)
 			{
-			case TextureType_1D:
+			case GfxTextureType_1D:
 				resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE1D;
 				break;
-			case TextureType_2D:
+			case GfxTextureType_2D:
 				resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 				break;
-			case TextureType_3D:
+			case GfxTextureType_3D:
 				resource_desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE3D;
 				resource_desc.DepthOrArraySize = (UINT16)desc.depth;
 				break;
@@ -208,31 +208,31 @@ namespace adria
 			}
 			D3D12_CLEAR_VALUE* clear_value_ptr = nullptr;
 			D3D12_CLEAR_VALUE clear_value{};
-			if (HasAnyFlag(desc.bind_flags, EBindFlag::DepthStencil) && desc.clear_value.active_member == ClearValue::ActiveMember::DepthStencil)
+			if (HasAnyFlag(desc.bind_flags, GfxBindFlag::DepthStencil) && desc.clear_value.active_member == GfxClearValue::GfxActiveMember::DepthStencil)
 			{
 				clear_value.DepthStencil.Depth = desc.clear_value.depth_stencil.depth;
 				clear_value.DepthStencil.Stencil = desc.clear_value.depth_stencil.stencil;
 				switch (desc.format)
 				{
-				case EFormat::R16_TYPELESS:
+				case GfxFormat::R16_TYPELESS:
 					clear_value.Format = DXGI_FORMAT_D16_UNORM;
 					break;
-				case EFormat::R32_TYPELESS:
+				case GfxFormat::R32_TYPELESS:
 					clear_value.Format = DXGI_FORMAT_D32_FLOAT;
 					break;
-				case EFormat::R24G8_TYPELESS:
+				case GfxFormat::R24G8_TYPELESS:
 					clear_value.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 					break;
-				case EFormat::R32G8X24_TYPELESS:
+				case GfxFormat::R32G8X24_TYPELESS:
 					clear_value.Format = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
 					break;
 				default:
-					clear_value.Format = ConvertFormat(desc.format);
+					clear_value.Format = ConvertGfxFormat(desc.format);
 					break;
 				}
 				clear_value_ptr = &clear_value;
 			}
-			else if (HasAnyFlag(desc.bind_flags, EBindFlag::RenderTarget) && desc.clear_value.active_member == ClearValue::ActiveMember::Color)
+			else if (HasAnyFlag(desc.bind_flags, GfxBindFlag::RenderTarget) && desc.clear_value.active_member == GfxClearValue::GfxActiveMember::Color)
 			{
 				clear_value.Color[0] = desc.clear_value.color.color[0];
 				clear_value.Color[1] = desc.clear_value.color.color[1];
@@ -240,20 +240,20 @@ namespace adria
 				clear_value.Color[3] = desc.clear_value.color.color[3];
 				switch (desc.format)
 				{
-				case EFormat::R16_TYPELESS:
+				case GfxFormat::R16_TYPELESS:
 					clear_value.Format = DXGI_FORMAT_R16_UNORM;
 					break;
-				case EFormat::R32_TYPELESS:
+				case GfxFormat::R32_TYPELESS:
 					clear_value.Format = DXGI_FORMAT_R32_FLOAT;
 					break;
-				case EFormat::R24G8_TYPELESS:
+				case GfxFormat::R24G8_TYPELESS:
 					clear_value.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 					break;
-				case EFormat::R32G8X24_TYPELESS:
+				case GfxFormat::R32G8X24_TYPELESS:
 					clear_value.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
 					break;
 				default:
-					clear_value.Format = ConvertFormat(desc.format);
+					clear_value.Format = ConvertGfxFormat(desc.format);
 					break;
 				}
 				clear_value_ptr = &clear_value;
@@ -266,7 +266,7 @@ namespace adria
 			}
 
 			auto device = gfx->GetDevice();
-			if (desc.heap_type == EResourceUsage::Readback || desc.heap_type == EResourceUsage::Upload)
+			if (desc.heap_type == GfxResourceUsage::Readback || desc.heap_type == GfxResourceUsage::Upload)
 			{
 				UINT64 required_size = 0;
 				device->GetCopyableFootprints(&resource_desc, 0, 1, 0, &footprint, nullptr, nullptr, &required_size);
@@ -279,12 +279,12 @@ namespace adria
 				resource_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 				resource_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-				if (desc.heap_type == EResourceUsage::Readback)
+				if (desc.heap_type == GfxResourceUsage::Readback)
 				{
 					allocation_desc.HeapType = D3D12_HEAP_TYPE_READBACK;
 					resource_state = D3D12_RESOURCE_STATE_COPY_DEST;
 				}
-				else if (desc.heap_type == EResourceUsage::Upload)
+				else if (desc.heap_type == GfxResourceUsage::Upload)
 				{
 					allocation_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
 					resource_state = D3D12_RESOURCE_STATE_GENERIC_READ;
@@ -304,13 +304,13 @@ namespace adria
 			BREAK_IF_FAILED(hr);
 			allocation.reset(alloc);
 
-			if (desc.heap_type == EResourceUsage::Readback)
+			if (desc.heap_type == GfxResourceUsage::Readback)
 			{
 				hr = resource->Map(0, nullptr, &mapped_data);
 				BREAK_IF_FAILED(hr);
 				mapped_rowpitch = footprint.Footprint.RowPitch;
 			}
-			else if (desc.heap_type == EResourceUsage::Upload)
+			else if (desc.heap_type == GfxResourceUsage::Upload)
 			{
 				D3D12_RANGE read_range = {};
 				hr = resource->Map(0, &read_range, &mapped_data);
@@ -319,7 +319,7 @@ namespace adria
 			}
 			if (desc.mip_levels == 0)
 			{
-				const_cast<TextureDesc&>(desc).mip_levels = (uint32_t)log2(std::max<uint32>(desc.width, desc.height)) + 1;
+				const_cast<GfxTextureDesc&>(desc).mip_levels = (uint32_t)log2(std::max<uint32>(desc.width, desc.height)) + 1;
 			}
 
 			auto upload_buffer = gfx->GetDynamicAllocator();
@@ -336,7 +336,7 @@ namespace adria
 				UpdateSubresources(cmd_list, resource.Get(), dyn_alloc.buffer,
 					dyn_alloc.offset, 0, (UINT)data_count, initial_data);
 
-				if (desc.initial_state != EResourceState::CopyDest)
+				if (desc.initial_state != GfxResourceState::CopyDest)
 				{
 					D3D12_RESOURCE_BARRIER barrier{};
 					barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -349,11 +349,11 @@ namespace adria
 			}
 		}
 
-		Texture(Texture const&) = delete;
-		Texture& operator=(Texture const&) = delete;
-		Texture(Texture&&) = delete;
-		Texture& operator=(Texture&&) = delete;
-		~Texture()
+		GfxTexture(GfxTexture const&) = delete;
+		GfxTexture& operator=(GfxTexture const&) = delete;
+		GfxTexture(GfxTexture&&) = delete;
+		GfxTexture& operator=(GfxTexture&&) = delete;
+		~GfxTexture()
 		{
 			if (mapped_data != nullptr)
 			{
@@ -368,66 +368,66 @@ namespace adria
 			for (auto& dsv : dsvs) gfx->FreeOfflineDescriptor(dsv, D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 		}
 
-		[[maybe_unused]] size_t CreateSRV(TextureSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateSRV(GfxTextureSubresourceDesc const* desc = nullptr)
 		{
-			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
-			return CreateSubresource(SubresourceType_SRV, _desc);
+			GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
+			return CreateSubresource(GfxSubresourceType::SRV, _desc);
 		}
-		[[maybe_unused]] size_t CreateUAV(TextureSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateUAV(GfxTextureSubresourceDesc const* desc = nullptr)
 		{
-			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
-			return CreateSubresource(SubresourceType_UAV, _desc);
+			GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
+			return CreateSubresource(GfxSubresourceType::UAV, _desc);
 		}
-		[[maybe_unused]] size_t CreateRTV(TextureSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateRTV(GfxTextureSubresourceDesc const* desc = nullptr)
 		{
-			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
-			return CreateSubresource(SubresourceType_RTV, _desc);
+			GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
+			return CreateSubresource(GfxSubresourceType::RTV, _desc);
 		}
-		[[maybe_unused]] size_t CreateDSV(TextureSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateDSV(GfxTextureSubresourceDesc const* desc = nullptr)
 		{
-			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
-			return CreateSubresource(SubresourceType_DSV, _desc);
+			GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
+			return CreateSubresource(GfxSubresourceType::DSV, _desc);
 		}
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeSRV(TextureSubresourceDesc const* desc = nullptr)
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeSRV(GfxTextureSubresourceDesc const* desc = nullptr)
 		{
-			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
-			size_t i = CreateSubresource(SubresourceType_SRV, _desc);
+			GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
+			size_t i = CreateSubresource(GfxSubresourceType::SRV, _desc);
 			ADRIA_ASSERT(srvs.size() - 1 == i);
 			D3D12_CPU_DESCRIPTOR_HANDLE srv = srvs.back();
 			srvs.pop_back();
 			return srv;
 		}
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeUAV(TextureSubresourceDesc const* desc = nullptr)
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeUAV(GfxTextureSubresourceDesc const* desc = nullptr)
 		{
-			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
-			size_t i = CreateSubresource(SubresourceType_UAV, _desc);
+			GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
+			size_t i = CreateSubresource(GfxSubresourceType::UAV, _desc);
 			ADRIA_ASSERT(uavs.size() - 1 == i);
 			D3D12_CPU_DESCRIPTOR_HANDLE uav = uavs.back();
 			uavs.pop_back();
 			return uav;
 		}
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeRTV(TextureSubresourceDesc const* desc = nullptr)
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeRTV(GfxTextureSubresourceDesc const* desc = nullptr)
 		{
-			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
-			size_t i = CreateSubresource(SubresourceType_RTV, _desc);
+			GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
+			size_t i = CreateSubresource(GfxSubresourceType::RTV, _desc);
 			ADRIA_ASSERT(rtvs.size() - 1 == i);
 			D3D12_CPU_DESCRIPTOR_HANDLE rtv = rtvs.back();
 			rtvs.pop_back();
 			return rtv;
 		}
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeDSV(TextureSubresourceDesc const* desc = nullptr)
+		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeDSV(GfxTextureSubresourceDesc const* desc = nullptr)
 		{
-			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
-			size_t i = CreateSubresource(SubresourceType_DSV, _desc);
+			GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
+			size_t i = CreateSubresource(GfxSubresourceType::DSV, _desc);
 			ADRIA_ASSERT(dsvs.size() - 1 == i);
 			D3D12_CPU_DESCRIPTOR_HANDLE dsv = dsvs.back();
 			dsvs.pop_back();
 			return dsv;
 		}
-		D3D12_CPU_DESCRIPTOR_HANDLE GetSRV(size_t i = 0) const { return GetSubresource(SubresourceType_SRV, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE GetUAV(size_t i = 0) const { return GetSubresource(SubresourceType_UAV, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE GetRTV(size_t i = 0) const { return GetSubresource(SubresourceType_RTV, i); }
-		D3D12_CPU_DESCRIPTOR_HANDLE GetDSV(size_t i = 0) const { return GetSubresource(SubresourceType_DSV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE GetSRV(size_t i = 0) const { return GetSubresource(GfxSubresourceType::SRV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE GetUAV(size_t i = 0) const { return GetSubresource(GfxSubresourceType::UAV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE GetRTV(size_t i = 0) const { return GetSubresource(GfxSubresourceType::RTV, i); }
+		D3D12_CPU_DESCRIPTOR_HANDLE GetDSV(size_t i = 0) const { return GetSubresource(GfxSubresourceType::DSV, i); }
 
 		uint32 GetMappedRowPitch() const { return mapped_rowpitch; }
 		D3D12_GPU_VIRTUAL_ADDRESS GetGPUAddress() const { return resource->GetGPUVirtualAddress(); }
@@ -437,7 +437,7 @@ namespace adria
 		{
 			return allocation.release();
 		}
-		TextureDesc const& GetDesc() const { return desc; }
+		GfxTextureDesc const& GetDesc() const { return desc; }
 
 		bool IsMapped() const { return mapped_data != nullptr; }
 		void* GetMappedData() const { return mapped_data; }
@@ -446,13 +446,13 @@ namespace adria
 		void* Map()
 		{
 			HRESULT hr;
-			if (desc.heap_type == EResourceUsage::Readback)
+			if (desc.heap_type == GfxResourceUsage::Readback)
 			{
 				hr = resource->Map(0, nullptr, &mapped_data);
 				BREAK_IF_FAILED(hr);
 				mapped_rowpitch = static_cast<uint32_t>(footprint.Footprint.RowPitch);
 			}
-			else if (desc.heap_type == EResourceUsage::Upload)
+			else if (desc.heap_type == GfxResourceUsage::Upload)
 			{
 				D3D12_RANGE read_range{};
 				hr = resource->Map(0, &read_range, &mapped_data);
@@ -471,9 +471,9 @@ namespace adria
 			resource->SetName(ToWideString(name).c_str());
 		}
 	private:
-		GraphicsDevice* gfx;
+		GfxDevice* gfx;
 		ArcPtr<ID3D12Resource> resource;
-		TextureDesc desc;
+		GfxTextureDesc desc;
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> srvs;
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> uavs;
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> rtvs;
@@ -487,38 +487,38 @@ namespace adria
 
 	private:
 
-		[[maybe_unused]] size_t CreateSubresource(ESubresourceType view_type, TextureSubresourceDesc const& view_desc)
+		[[maybe_unused]] size_t CreateSubresource(GfxSubresourceType view_type, GfxTextureSubresourceDesc const& view_desc)
 		{
-			EFormat format = GetDesc().format;
+			GfxFormat format = GetDesc().format;
 			ID3D12Device* device = gfx->GetDevice();
 
 			switch (view_type)
 			{
-			case SubresourceType_SRV:
+			case GfxSubresourceType::SRV:
 			{
 				D3D12_CPU_DESCRIPTOR_HANDLE descriptor = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
 				srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 				switch (format)
 				{
-				case EFormat::R16_TYPELESS:
+				case GfxFormat::R16_TYPELESS:
 					srv_desc.Format = DXGI_FORMAT_R16_UNORM;
 					break;
-				case EFormat::R32_TYPELESS:
+				case GfxFormat::R32_TYPELESS:
 					srv_desc.Format = DXGI_FORMAT_R32_FLOAT;
 					break;
-				case EFormat::R24G8_TYPELESS:
+				case GfxFormat::R24G8_TYPELESS:
 					srv_desc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 					break;
-				case EFormat::R32G8X24_TYPELESS:
+				case GfxFormat::R32G8X24_TYPELESS:
 					srv_desc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
 					break;
 				default:
-					srv_desc.Format = ConvertFormat(format);
+					srv_desc.Format = ConvertGfxFormat(format);
 					break;
 				}
 
-				if (desc.type == TextureType_1D)
+				if (desc.type == GfxTextureType_1D)
 				{
 					if (desc.array_size > 1)
 					{
@@ -535,11 +535,11 @@ namespace adria
 						srv_desc.Texture1D.MipLevels = view_desc.mip_count;
 					}
 				}
-				else if (desc.type == TextureType_2D)
+				else if (desc.type == GfxTextureType_2D)
 				{
 					if (desc.array_size > 1)
 					{
-						if (HasAnyFlag(desc.misc_flags, ETextureMiscFlag::TextureCube))
+						if (HasAnyFlag(desc.misc_flags, GfxTextureMiscFlag::TextureCube))
 						{
 							if (desc.array_size > 6)
 							{
@@ -584,7 +584,7 @@ namespace adria
 						srv_desc.Texture2D.MipLevels = view_desc.mip_count;
 					}
 				}
-				else if (desc.type == TextureType_3D)
+				else if (desc.type == GfxTextureType_3D)
 				{
 					srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
 					srv_desc.Texture3D.MostDetailedMip = view_desc.first_mip;
@@ -596,30 +596,30 @@ namespace adria
 				return srvs.size() - 1;
 			}
 			break;
-			case SubresourceType_UAV:
+			case GfxSubresourceType::UAV:
 			{
 				D3D12_CPU_DESCRIPTOR_HANDLE descriptor = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
 				switch (format)
 				{
-				case EFormat::R16_TYPELESS:
+				case GfxFormat::R16_TYPELESS:
 					uav_desc.Format = DXGI_FORMAT_R16_UNORM;
 					break;
-				case EFormat::R32_TYPELESS:
+				case GfxFormat::R32_TYPELESS:
 					uav_desc.Format = DXGI_FORMAT_R32_FLOAT;
 					break;
-				case EFormat::R24G8_TYPELESS:
+				case GfxFormat::R24G8_TYPELESS:
 					uav_desc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 					break;
-				case EFormat::R32G8X24_TYPELESS:
+				case GfxFormat::R32G8X24_TYPELESS:
 					uav_desc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
 					break;
 				default:
-					uav_desc.Format = ConvertFormat(format);
+					uav_desc.Format = ConvertGfxFormat(format);
 					break;
 				}
 
-				if (desc.type == TextureType_1D)
+				if (desc.type == GfxTextureType_1D)
 				{
 					if (desc.array_size > 1)
 					{
@@ -634,7 +634,7 @@ namespace adria
 						uav_desc.Texture1D.MipSlice = view_desc.first_mip;
 					}
 				}
-				else if (desc.type == TextureType_2D)
+				else if (desc.type == GfxTextureType_2D)
 				{
 					if (desc.array_size > 1)
 					{
@@ -649,7 +649,7 @@ namespace adria
 						uav_desc.Texture2D.MipSlice = view_desc.first_mip;
 					}
 				}
-				else if (desc.type == TextureType_2D)
+				else if (desc.type == GfxTextureType_2D)
 				{
 					uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
 					uav_desc.Texture3D.MipSlice = view_desc.first_mip;
@@ -662,30 +662,30 @@ namespace adria
 				return uavs.size() - 1;
 			}
 			break;
-			case SubresourceType_RTV:
+			case GfxSubresourceType::RTV:
 			{
 				D3D12_CPU_DESCRIPTOR_HANDLE descriptor = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 				D3D12_RENDER_TARGET_VIEW_DESC rtv_desc{};
 				switch (format)
 				{
-				case EFormat::R16_TYPELESS:
+				case GfxFormat::R16_TYPELESS:
 					rtv_desc.Format = DXGI_FORMAT_R16_UNORM;
 					break;
-				case EFormat::R32_TYPELESS:
+				case GfxFormat::R32_TYPELESS:
 					rtv_desc.Format = DXGI_FORMAT_R32_FLOAT;
 					break;
-				case EFormat::R24G8_TYPELESS:
+				case GfxFormat::R24G8_TYPELESS:
 					rtv_desc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 					break;
-				case EFormat::R32G8X24_TYPELESS:
+				case GfxFormat::R32G8X24_TYPELESS:
 					rtv_desc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
 					break;
 				default:
-					rtv_desc.Format = ConvertFormat(format);
+					rtv_desc.Format = ConvertGfxFormat(format);
 					break;
 				}
 
-				if (desc.type == TextureType_1D)
+				if (desc.type == GfxTextureType_1D)
 				{
 					if (desc.array_size > 1)
 					{
@@ -700,7 +700,7 @@ namespace adria
 						rtv_desc.Texture1D.MipSlice = view_desc.first_mip;
 					}
 				}
-				else if (desc.type == TextureType_2D)
+				else if (desc.type == GfxTextureType_2D)
 				{
 					if (desc.array_size > 1)
 					{
@@ -731,7 +731,7 @@ namespace adria
 						}
 					}
 				}
-				else if (desc.type == TextureType_3D)
+				else if (desc.type == GfxTextureType_3D)
 				{
 					rtv_desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE3D;
 					rtv_desc.Texture3D.MipSlice = view_desc.first_mip;
@@ -743,30 +743,30 @@ namespace adria
 				return rtvs.size() - 1;
 			}
 			break;
-			case SubresourceType_DSV:
+			case GfxSubresourceType::DSV:
 			{
 				D3D12_CPU_DESCRIPTOR_HANDLE descriptor = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 				D3D12_DEPTH_STENCIL_VIEW_DESC dsv_desc{};
 				switch (format)
 				{
-				case EFormat::R16_TYPELESS:
+				case GfxFormat::R16_TYPELESS:
 					dsv_desc.Format = DXGI_FORMAT_D16_UNORM;
 					break;
-				case EFormat::R32_TYPELESS:
+				case GfxFormat::R32_TYPELESS:
 					dsv_desc.Format = DXGI_FORMAT_D32_FLOAT;
 					break;
-				case EFormat::R24G8_TYPELESS:
+				case GfxFormat::R24G8_TYPELESS:
 					dsv_desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 					break;
-				case EFormat::R32G8X24_TYPELESS:
+				case GfxFormat::R32G8X24_TYPELESS:
 					dsv_desc.Format = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
 					break;
 				default:
-					dsv_desc.Format = ConvertFormat(format);
+					dsv_desc.Format = ConvertGfxFormat(format);
 					break;
 				}
 
-				if (desc.type == TextureType_1D)
+				if (desc.type == GfxTextureType_1D)
 				{
 					if (desc.array_size > 1)
 					{
@@ -781,7 +781,7 @@ namespace adria
 						dsv_desc.Texture1D.MipSlice = view_desc.first_mip;
 					}
 				}
-				else if (desc.type == TextureType_2D)
+				else if (desc.type == GfxTextureType_2D)
 				{
 					if (desc.array_size > 1)
 					{
@@ -823,24 +823,24 @@ namespace adria
 			}
 			return -1;
 		}
-		D3D12_CPU_DESCRIPTOR_HANDLE GetSubresource(ESubresourceType type, size_t index = 0) const
+		D3D12_CPU_DESCRIPTOR_HANDLE GetSubresource(GfxSubresourceType type, size_t index = 0) const
 		{
 			switch (type)
 			{
-			case SubresourceType_SRV:
+			case GfxSubresourceType::SRV:
 				ADRIA_ASSERT(index < srvs.size());
 				return srvs[index];
-			case SubresourceType_UAV:
+			case GfxSubresourceType::UAV:
 				ADRIA_ASSERT(index < uavs.size());
 				return uavs[index];
-			case SubresourceType_RTV:
+			case GfxSubresourceType::RTV:
 				ADRIA_ASSERT(index < rtvs.size());
 				return rtvs[index];
-			case SubresourceType_DSV:
+			case GfxSubresourceType::DSV:
 				ADRIA_ASSERT(index < dsvs.size());
 				return dsvs[index];
 			default:
-				ADRIA_ASSERT(false && "Invalid view type for buffer!");
+				ADRIA_ASSERT(false && "Invalid view type for texture!");
 			}
 			return { .ptr = NULL };
 		}

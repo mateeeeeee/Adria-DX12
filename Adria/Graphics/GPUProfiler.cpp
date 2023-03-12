@@ -1,13 +1,13 @@
 #include "GPUProfiler.h"
-#include "Buffer.h"
+#include "GfxBuffer.h"
 #include "../Core/Macros.h"
 
 namespace adria
 {
-	void GPUProfiler::Init(GraphicsDevice* _gfx)
+	void GPUProfiler::Init(GfxDevice* _gfx)
 	{
 		gfx = _gfx;
-		query_readback_buffer = std::make_unique<Buffer>(gfx, ReadBackBufferDesc(MAX_PROFILES * 2 * FRAME_COUNT * sizeof(UINT64)));
+		query_readback_buffer = std::make_unique<GfxBuffer>(gfx, ReadBackBufferDesc(MAX_PROFILES * 2 * FRAME_COUNT * sizeof(UINT64)));
 		D3D12_QUERY_HEAP_DESC heap_desc{};
 		heap_desc.Count = MAX_PROFILES * 2;
 		heap_desc.NodeMask = 0;

@@ -1,5 +1,5 @@
 #include "GeometryBufferCache.h"
-#include "../Graphics/Buffer.h"
+#include "../Graphics/GfxBuffer.h"
 
 namespace adria
 {
@@ -10,7 +10,7 @@ namespace adria
 		return cache;
 	}
 
-	void GeometryBufferCache::Initialize(GraphicsDevice* _gfx)
+	void GeometryBufferCache::Initialize(GfxDevice* _gfx)
 	{
 		gfx = _gfx;
 	}
@@ -23,14 +23,14 @@ namespace adria
 
 	GeometryBufferHandle GeometryBufferCache::CreateAndInitializeGeometryBuffer(uint64 total_buffer_size, void* resource, uint64 src_offset)
 	{
-		BufferDesc desc{};
+		GfxBufferDesc desc{};
 		desc.size = total_buffer_size;
-		desc.bind_flags = EBindFlag::ShaderResource;
-		desc.misc_flags = EBufferMiscFlag::BufferRaw;
-		desc.resource_usage = EResourceUsage::Default;
+		desc.bind_flags = GfxBindFlag::ShaderResource;
+		desc.misc_flags = GfxBufferMiscFlag::BufferRaw;
+		desc.resource_usage = GfxResourceUsage::Default;
 
 		++current_handle;
-		buffer_map[current_handle] = std::make_unique<Buffer>(gfx, desc);
+		buffer_map[current_handle] = std::make_unique<GfxBuffer>(gfx, desc);
 		if(resource != nullptr) gfx->GetDefaultCommandList()->CopyBufferRegion(buffer_map[current_handle]->GetNative(), 0, (ID3D12Resource*)resource, src_offset, total_buffer_size);
 		return current_handle;
 	}
@@ -44,7 +44,7 @@ namespace adria
 		}
 	}
 
-	Buffer* GeometryBufferCache::GetGeometryBuffer(GeometryBufferHandle handle) const
+	GfxBuffer* GeometryBufferCache::GetGeometryBuffer(GeometryBufferHandle handle) const
 	{
 		if (auto it = buffer_map.find(handle); it != buffer_map.end())
 		{

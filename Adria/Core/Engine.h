@@ -9,7 +9,7 @@ namespace adria
 {
 	struct WindowMessage;
 	struct SceneConfig;
-	class GraphicsDevice;
+	class GfxDevice;
 	class Renderer;
 	class EntityLoader;
 	struct EditorEvents;
@@ -47,7 +47,7 @@ namespace adria
 		entt::registry reg;
 		std::unique_ptr<Camera> camera;
 	
-		std::unique_ptr<GraphicsDevice> gfx;
+		std::unique_ptr<GfxDevice> gfx;
 		std::unique_ptr<Renderer> renderer;
 		std::unique_ptr<EntityLoader> entity_loader;
 

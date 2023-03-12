@@ -44,13 +44,13 @@ namespace adria
 		{
 			clouds_pass.AddPass(rg);
 			blur_pass.AddPass(rg, RG_RES_NAME(CloudsOutput), RG_RES_NAME(BlurredCloudsOutput), "Volumetric Clouds");
-			copy_to_texture_pass.AddPass(rg, RG_RES_NAME(PostprocessMain), RG_RES_NAME(BlurredCloudsOutput), EBlendMode::AlphaBlend);
+			copy_to_texture_pass.AddPass(rg, RG_RES_NAME(PostprocessMain), RG_RES_NAME(BlurredCloudsOutput), BlendMode::AlphaBlend);
 		}
 
-		if (settings.reflections == EReflections::SSR) final_resource = ssr_pass.AddPass(rg, final_resource);
-		else if (settings.reflections == EReflections::RTR)
+		if (settings.reflections == Reflections::SSR) final_resource = ssr_pass.AddPass(rg, final_resource);
+		else if (settings.reflections == Reflections::RTR)
 		{
-			copy_to_texture_pass.AddPass(rg, final_resource, RG_RES_NAME(RTR_Output), EBlendMode::AdditiveBlend);
+			copy_to_texture_pass.AddPass(rg, final_resource, RG_RES_NAME(RTR_Output), BlendMode::AdditiveBlend);
 		}
 
 		if (settings.fog) final_resource = fog_pass.AddPass(rg, final_resource);
@@ -68,17 +68,17 @@ namespace adria
 			auto const& light = lights.get<Light>(light_entity);
 			if (!light.active) continue;
 
-			if (light.type == ELightType::Directional)
+			if (light.type == LightType::Directional)
 			{
 				AddSunPass(rg, light_entity);
 				if (light.god_rays)
 				{
 					god_rays_pass.AddPass(rg, light);
-					copy_to_texture_pass.AddPass(rg, final_resource, RG_RES_NAME(GodRaysOutput), EBlendMode::AdditiveBlend);
+					copy_to_texture_pass.AddPass(rg, final_resource, RG_RES_NAME(GodRaysOutput), BlendMode::AdditiveBlend);
 				}
 				else
 				{
-					copy_to_texture_pass.AddPass(rg, final_resource, RG_RES_NAME(SunOutput), EBlendMode::AdditiveBlend);
+					copy_to_texture_pass.AddPass(rg, final_resource, RG_RES_NAME(SunOutput), BlendMode::AdditiveBlend);
 				}
 				break;
 			}
@@ -93,7 +93,7 @@ namespace adria
 		}
 	}
 
-	void Postprocessor::OnResize(GraphicsDevice* gfx, uint32 w, uint32 h)
+	void Postprocessor::OnResize(GfxDevice* gfx, uint32 w, uint32 h)
 	{
 		width = w, height = h;
 		blur_pass.OnResize(w, h);
@@ -113,28 +113,28 @@ namespace adria
 		god_rays_pass.OnResize(w, h);
 		bokeh_pass.OnResize(w, h);
 
-		TextureDesc render_target_desc{};
-		render_target_desc.format = EFormat::R16G16B16A16_FLOAT;
+		GfxTextureDesc render_target_desc{};
+		render_target_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 		render_target_desc.width = width;
 		render_target_desc.height = height;
-		render_target_desc.bind_flags = EBindFlag::ShaderResource;
-		render_target_desc.initial_state = EResourceState::CopyDest;
-		history_buffer = std::make_unique<Texture>(gfx, render_target_desc);
+		render_target_desc.bind_flags = GfxBindFlag::ShaderResource;
+		render_target_desc.initial_state = GfxResourceState::CopyDest;
+		history_buffer = std::make_unique<GfxTexture>(gfx, render_target_desc);
 	}
-	void Postprocessor::OnSceneInitialized(GraphicsDevice* gfx)
+	void Postprocessor::OnSceneInitialized(GfxDevice* gfx)
 	{
 		automatic_exposure_pass.OnSceneInitialized(gfx);
 		lens_flare_pass.OnSceneInitialized(gfx);
 		clouds_pass.OnSceneInitialized(gfx);
 		bokeh_pass.OnSceneInitialized(gfx);
 
-		TextureDesc render_target_desc{};
-		render_target_desc.format = EFormat::R16G16B16A16_FLOAT;
+		GfxTextureDesc render_target_desc{};
+		render_target_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 		render_target_desc.width = width;
 		render_target_desc.height = height;
-		render_target_desc.bind_flags = EBindFlag::ShaderResource;
-		render_target_desc.initial_state = EResourceState::CopyDest;
-		history_buffer = std::make_unique<Texture>(gfx, render_target_desc);
+		render_target_desc.bind_flags = GfxBindFlag::ShaderResource;
+		render_target_desc.initial_state = GfxResourceState::CopyDest;
+		history_buffer = std::make_unique<GfxTexture>(gfx, render_target_desc);
 	}
 	RGResourceName Postprocessor::GetFinalResource() const
 	{
@@ -155,18 +155,18 @@ namespace adria
 				RGTextureDesc postprocess_desc{};
 				postprocess_desc.width = width;
 				postprocess_desc.height = height;
-				postprocess_desc.format = EFormat::R16G16B16A16_FLOAT;
+				postprocess_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 
 				builder.DeclareTexture(RG_RES_NAME(PostprocessMain), postprocess_desc);
 				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(PostprocessMain));
 				data.copy_src = builder.ReadCopySrcTexture(RG_RES_NAME(HDR_RenderTarget));
 			},
-			[=](CopyPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](CopyPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
-				Texture const& src_texture = context.GetCopySrcTexture(data.copy_src);
-				Texture const& dst_texture = context.GetCopyDstTexture(data.copy_dst);
+				GfxTexture const& src_texture = context.GetCopySrcTexture(data.copy_src);
+				GfxTexture const& dst_texture = context.GetCopyDstTexture(data.copy_dst);
 				cmd_list->CopyResource(dst_texture.GetNative(), src_texture.GetNative());
-			}, ERGPassType::Copy, ERGPassFlags::None);
+			}, RGPassType::Copy, RGPassFlags::None);
 
 		return RG_RES_NAME(PostprocessMain);
 	}
@@ -185,17 +185,17 @@ namespace adria
 				RGTextureDesc history_desc{};
 				history_desc.width = width;
 				history_desc.height = height;
-				history_desc.format = EFormat::R16G16B16A16_FLOAT;
+				history_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 
 				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(HistoryBuffer));
 				data.copy_src = builder.ReadCopySrcTexture(last_resource);
 			},
-			[=](CopyPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](CopyPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
-				Texture const& src_texture = context.GetCopySrcTexture(data.copy_src);
-				Texture const& dst_texture = context.GetCopyDstTexture(data.copy_dst);
+				GfxTexture const& src_texture = context.GetCopySrcTexture(data.copy_src);
+				GfxTexture const& dst_texture = context.GetCopyDstTexture(data.copy_dst);
 				cmd_list->CopyResource(dst_texture.GetNative(), src_texture.GetNative());
-			}, ERGPassType::Copy, ERGPassFlags::None);
+			}, RGPassType::Copy, RGPassFlags::None);
 	}
 	void Postprocessor::AddSunPass(RenderGraph& rg, entt::entity sun)
 	{
@@ -206,24 +206,24 @@ namespace adria
 			[=](RenderGraphBuilder& builder)
 			{
 				RGTextureDesc sun_output_desc{};
-				sun_output_desc.format = EFormat::R16G16B16A16_FLOAT;
+				sun_output_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 				sun_output_desc.width = width;
 				sun_output_desc.height = height;
-				sun_output_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
+				sun_output_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 
 				builder.DeclareTexture(RG_RES_NAME(SunOutput), sun_output_desc);
-				builder.ReadDepthStencil(RG_RES_NAME(DepthStencil), ERGLoadStoreAccessOp::Preserve_Preserve);
-				builder.WriteRenderTarget(RG_RES_NAME(SunOutput), ERGLoadStoreAccessOp::Clear_Preserve);
+				builder.ReadDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteRenderTarget(RG_RES_NAME(SunOutput), RGLoadStoreAccessOp::Clear_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Sun));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Sun));
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				auto [transform, mesh, material] = reg.get<Transform, Mesh, Material>(sun);
 
@@ -243,7 +243,7 @@ namespace adria
 				cmd_list->SetGraphicsRootConstantBufferView(2, allocation.gpu_address);
 				mesh.Draw(cmd_list);
 
-			}, ERGPassType::Graphics, ERGPassFlags::None);
+			}, RGPassType::Graphics, RGPassFlags::None);
 	}
 }
 

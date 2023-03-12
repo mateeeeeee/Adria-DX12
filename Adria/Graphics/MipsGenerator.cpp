@@ -1,7 +1,7 @@
 #include "MipsGenerator.h"
 #include "LinearOnlineDescriptorAllocator.h"
 #include "DWParam.h"
-#include "ShaderCompiler.h"
+#include "GfxShaderCompiler.h"
 #include "d3dx12.h"
 #include "../Rendering/PSOCache.h"
 
@@ -10,7 +10,7 @@
 namespace adria
 {
 
-	MipsGenerator::MipsGenerator(GraphicsDevice* gfx, UINT max_textures) : gfx(gfx)
+	MipsGenerator::MipsGenerator(GfxDevice* gfx, UINT max_textures) : gfx(gfx)
 	{
 		CreateHeap(max_textures);
 	}
@@ -28,7 +28,7 @@ namespace adria
 		ID3D12DescriptorHeap* pp_heaps[] = { descriptor_allocator->Heap() };
 		command_list->SetDescriptorHeaps(1, pp_heaps);
 		command_list->SetComputeRootSignature(gfx->GetCommonRootSignature()); //is this needed?
-		command_list->SetPipelineState(PSOCache::Get(EPipelineState::GenerateMips));
+		command_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::GenerateMips));
 		for (auto texture : resources)
 		{
 			D3D12_SHADER_RESOURCE_VIEW_DESC src_srv_desc = {};

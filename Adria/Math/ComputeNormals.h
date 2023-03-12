@@ -235,7 +235,7 @@ namespace adria
         }
     }
 
-    enum class ENormalCalculation
+    enum class NormalCalculation
     {
         None,
         EqualWeight,
@@ -245,20 +245,20 @@ namespace adria
 
     template<typename vertex_t, typename index_t> requires HasPositionAndNormal<vertex_t>&& std::integral<index_t>
     void ComputeNormals(
-        ENormalCalculation normal_type,
+        NormalCalculation normal_type,
         std::vector<vertex_t>& vertices,
         std::vector<index_t> indices,
         bool cw = false)
     {
         switch (normal_type)
         {
-        case ENormalCalculation::EqualWeight:
+        case NormalCalculation::EqualWeight:
             return impl::ComputeNormalsEqualWeight(vertices, indices, cw);
-        case ENormalCalculation::AngleWeight:
+        case NormalCalculation::AngleWeight:
             return impl::ComputeNormalsWeightedByAngle(vertices, indices, cw);
-        case ENormalCalculation::AreaWeight:
+        case NormalCalculation::AreaWeight:
             return impl::ComputeNormalsWeightedByArea(vertices, indices, cw);
-        case ENormalCalculation::None:
+        case NormalCalculation::None:
         default:
             return;
         }

@@ -27,7 +27,7 @@ namespace adria
         D3D12_CLEAR_VALUE clear_value;
     };
 
-    struct RenderPassDesc
+    struct GfxRenderPassDesc
     {
         std::vector<RtvAttachmentDesc> rtv_attachments{};
         std::optional<DsvAttachmentDesc> dsv_attachment = std::nullopt;
@@ -36,13 +36,13 @@ namespace adria
         uint32 height;
     };
 
-    class RenderPass
+    class GfxRenderPass
     {
     public:
 
-        RenderPass() = default;
+        GfxRenderPass() = default;
 
-        explicit RenderPass(RenderPassDesc const& desc);
+        explicit GfxRenderPass(GfxRenderPassDesc const& desc);
 
         void Begin(ID3D12GraphicsCommandList4* cmd_list, bool legacy = false);
         void End(ID3D12GraphicsCommandList4* cmd_list, bool legacy = false);

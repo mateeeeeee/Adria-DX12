@@ -27,9 +27,9 @@
 namespace adria
 {
 	class RenderGraph;
-	class GraphicsDevice;
-	class Texture;
-	class Buffer;
+	class GfxDevice;
+	class GfxTexture;
+	class GfxBuffer;
 	struct Light;
 
 	class Postprocessor
@@ -38,8 +38,8 @@ namespace adria
 		Postprocessor(entt::registry& reg, uint32 width, uint32 height);
 		void AddPasses(RenderGraph& rg, PostprocessSettings const& settings);
 
-		void OnResize(GraphicsDevice* gfx, uint32 w, uint32 h);
-		void OnSceneInitialized(GraphicsDevice* gfx);
+		void OnResize(GfxDevice* gfx, uint32 w, uint32 h);
+		void OnSceneInitialized(GfxDevice* gfx);
 		RGResourceName GetFinalResource() const;
 
 	private:
@@ -48,7 +48,7 @@ namespace adria
 		PostprocessSettings settings;
 
 		RGResourceName final_resource;
-		std::unique_ptr<Texture> history_buffer;
+		std::unique_ptr<GfxTexture> history_buffer;
 		
 		BlurPass blur_pass;
 		CopyToTexturePass copy_to_texture_pass;

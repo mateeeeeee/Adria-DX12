@@ -12,13 +12,13 @@
 namespace adria
 {
 
-	class RayTracingShaderTable
+	class GfxRayTracingShaderTable
 	{
-		struct ShaderRecord
+		struct GfxShaderRecord
 		{
 			using ShaderIdentifier = uint8[D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES];
 
-			ShaderRecord() = default;
+			GfxShaderRecord() = default;
 			void Init(void const* _shader_id, void* _local_root_args = nullptr, uint32 _local_root_args_size = 0)
 			{
 				local_root_args_size = _local_root_args_size;
@@ -33,7 +33,7 @@ namespace adria
 		};
 
 	public:
-		explicit RayTracingShaderTable(ID3D12StateObject* state_object)
+		explicit GfxRayTracingShaderTable(ID3D12StateObject* state_object)
 			: state_object(state_object)
 		{
 			BREAK_IF_FAILED(state_object->QueryInterface(IID_PPV_ARGS(pso_info.GetAddressOf())));
@@ -78,11 +78,11 @@ namespace adria
 	private:
 		ID3D12StateObject* state_object;
 		ArcPtr<ID3D12StateObjectProperties> pso_info = nullptr;
-		ShaderRecord ray_gen_record;
+		GfxShaderRecord ray_gen_record;
 		uint32 ray_gen_record_size = 0;
-		std::vector<ShaderRecord> miss_shader_records;
+		std::vector<GfxShaderRecord> miss_shader_records;
 		uint32 miss_shader_record_size = 0;
-		std::vector<ShaderRecord> hit_group_records;
+		std::vector<GfxShaderRecord> hit_group_records;
 		uint32 hit_group_record_size = 0;
 
 	private:
@@ -135,12 +135,12 @@ namespace adria
 		}
 	};
 
-	class StateObjectBuilder
+	class GfxStateObjectBuilder
 	{
 		static constexpr uint64 MAX_SUBOBJECT_DESC_SIZE = sizeof(D3D12_HIT_GROUP_DESC);
 	public:
 
-		explicit StateObjectBuilder(uint64 max_subobjects) : max_subobjects(max_subobjects), num_subobjects(0u), subobjects(max_subobjects), subobject_data(max_subobjects * MAX_SUBOBJECT_DESC_SIZE)
+		explicit GfxStateObjectBuilder(uint64 max_subobjects) : max_subobjects(max_subobjects), num_subobjects(0u), subobjects(max_subobjects), subobject_data(max_subobjects * MAX_SUBOBJECT_DESC_SIZE)
 		{}
 
 		template<typename SubObjectDesc>

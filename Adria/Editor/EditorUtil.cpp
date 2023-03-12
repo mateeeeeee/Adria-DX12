@@ -115,12 +115,12 @@ namespace adria
 
 	};
 
-	EditorLogger::EditorLogger(ELogLevel logger_level /*= ELogLevel::LOG_DEBUG*/) : logger_level{ logger_level }, imgui_log(new ImGuiLogger{})
+	EditorLogger::EditorLogger(LogLevel logger_level /*= ELogLevel::LOG_DEBUG*/) : logger_level{ logger_level }, imgui_log(new ImGuiLogger{})
 	{
 		ADRIA_REGISTER_LOGGER(this);
 	}
 
-	void EditorLogger::Log(ELogLevel level, char const* entry, char const* file, uint32_t line)
+	void EditorLogger::Log(LogLevel level, char const* entry, char const* file, uint32_t line)
 	{
 		if (level < logger_level) return;
 		std::string log_entry = GetLogTime() + LevelToString(level) + std::string(entry) + "\n";

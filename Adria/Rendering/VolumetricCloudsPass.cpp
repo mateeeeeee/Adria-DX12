@@ -28,16 +28,16 @@ namespace adria
 			[=](VolumetricCloudsPassData& data, RenderGraphBuilder& builder)
 			{
 				RGTextureDesc clouds_output_desc{};
-				clouds_output_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
+				clouds_output_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 				clouds_output_desc.width = width;
 				clouds_output_desc.height = height;
-				clouds_output_desc.format = EFormat::R16G16B16A16_FLOAT;
+				clouds_output_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 
 				builder.DeclareTexture(RG_RES_NAME(CloudsOutput), clouds_output_desc);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 				data.output = builder.WriteTexture(RG_RES_NAME(CloudsOutput));
 			},
-			[=](VolumetricCloudsPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](VolumetricCloudsPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -93,13 +93,13 @@ namespace adria
 				allocation.Update(indices);
 
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Clouds));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Clouds));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
 				cmd_list->SetComputeRootConstantBufferView(2, allocation.gpu_address);
 				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
 
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::None);
 	
 		AddGUI([&]() 
 			{
@@ -125,7 +125,7 @@ namespace adria
 		width = w, height = h;
 	}
 
-	void VolumetricCloudsPass::OnSceneInitialized(GraphicsDevice* gfx)
+	void VolumetricCloudsPass::OnSceneInitialized(GfxDevice* gfx)
 	{
 		cloud_textures.push_back(TextureManager::Get().LoadTexture(L"Resources\\Textures\\clouds\\weather.dds"));
 		cloud_textures.push_back(TextureManager::Get().LoadTexture(L"Resources\\Textures\\clouds\\cloud.dds"));

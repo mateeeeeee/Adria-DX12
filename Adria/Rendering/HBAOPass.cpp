@@ -27,7 +27,7 @@ namespace adria
 			[=](HBAOPassData& data, RenderGraphBuilder& builder)
 			{
 				RGTextureDesc hbao_desc{};
-				hbao_desc.format = EFormat::R8_UNORM;
+				hbao_desc.format = GfxFormat::R8_UNORM;
 				hbao_desc.width = width;
 				hbao_desc.height = height;
 
@@ -36,14 +36,14 @@ namespace adria
 				data.gbuffer_normal_srv = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
 				data.depth_stencil_srv = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
-			[&](HBAOPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			[&](HBAOPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::HBAO));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::HBAO));
 
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(4);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.depth_stencil_srv), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -73,7 +73,7 @@ namespace adria
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
 				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
-			}, ERGPassType::Compute);
+			}, RGPassType::Compute);
 
 		blur_pass.AddPass(rendergraph, RG_RES_NAME(HBAO_Output), RG_RES_NAME(AmbientOcclusion), " HBAO");
 		
@@ -97,7 +97,7 @@ namespace adria
 		blur_pass.OnResize(w, h);
 	}
 
-	void HBAOPass::OnSceneInitialized(GraphicsDevice* gfx)
+	void HBAOPass::OnSceneInitialized(GfxDevice* gfx)
 	{
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
 		std::vector<float> random_texture_data;
@@ -110,19 +110,19 @@ namespace adria
 			random_texture_data.push_back(rand_float());
 		}
 
-		TextureInitialData data{};
+		GfxTextureInitialData data{};
 		data.pData = random_texture_data.data();
 		data.RowPitch = 8 * 4 * sizeof(float);
 		data.SlicePitch = 0;
 
-		TextureDesc noise_desc{};
+		GfxTextureDesc noise_desc{};
 		noise_desc.width = NOISE_DIM;
 		noise_desc.height = NOISE_DIM;
-		noise_desc.format = EFormat::R32G32B32A32_FLOAT;
-		noise_desc.initial_state = EResourceState::PixelShaderResource;
-		noise_desc.bind_flags = EBindFlag::ShaderResource;
+		noise_desc.format = GfxFormat::R32G32B32A32_FLOAT;
+		noise_desc.initial_state = GfxResourceState::PixelShaderResource;
+		noise_desc.bind_flags = GfxBindFlag::ShaderResource;
 
-		hbao_random_texture = std::make_unique<Texture>(gfx, noise_desc, &data);
+		hbao_random_texture = std::make_unique<GfxTexture>(gfx, noise_desc, &data);
 		hbao_random_texture->CreateSRV();
 		hbao_random_texture->GetNative()->SetName(L"HBAO Random Texture");
 	}

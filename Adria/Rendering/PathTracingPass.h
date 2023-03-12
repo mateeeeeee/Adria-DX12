@@ -7,27 +7,27 @@
 namespace adria
 {
 	class RenderGraph;
-	class Texture;
-	class GraphicsDevice;
+	class GfxTexture;
+	class GfxDevice;
 
 	class PathTracingPass
 	{
 	public:
-		PathTracingPass(GraphicsDevice* gfx, uint32 width, uint32 height);
+		PathTracingPass(GfxDevice* gfx, uint32 width, uint32 height);
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h);
 		bool IsSupported() const;
 		void Reset();
 	private:
-		GraphicsDevice* gfx;
+		GfxDevice* gfx;
 		ArcPtr<ID3D12StateObject> path_tracing;
 		uint32 width, height;
 		bool is_supported;
-		std::unique_ptr<Texture> accumulation_texture = nullptr;
+		std::unique_ptr<GfxTexture> accumulation_texture = nullptr;
 		int32 accumulated_frames = 1;
 		int32 max_bounces = 3;
 	private:
 		void CreateStateObject();
-		void OnLibraryRecompiled(EShaderId shader);
+		void OnLibraryRecompiled(GfxShaderID shader);
 	};
 }

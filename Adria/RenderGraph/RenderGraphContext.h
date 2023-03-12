@@ -1,6 +1,6 @@
 #pragma once
-#include "../Graphics/Buffer.h"
-#include "../Graphics/Texture.h"
+#include "../Graphics/GfxBuffer.h"
+#include "../Graphics/GfxTexture.h"
 #include "RenderGraphResourceId.h"
 #include "RenderGraphBlackboard.h"
 #if RG_DEBUG
@@ -12,21 +12,21 @@ namespace adria
 	class RenderGraphPassBase;
 	class RenderGraph;
 
-	template<ERGResourceType ResourceType>
+	template<RGResourceType ResourceType>
 	struct RGResourceTraits;
 
 	template<>
-	struct RGResourceTraits<ERGResourceType::Texture>
+	struct RGResourceTraits<RGResourceType::Texture>
 	{
-		using Resource = Texture;
-		using ResourceDesc = TextureDesc;
+		using Resource = GfxTexture;
+		using ResourceDesc = GfxTextureDesc;
 	};
 
 	template<>
-	struct RGResourceTraits<ERGResourceType::Buffer>
+	struct RGResourceTraits<RGResourceType::Buffer>
 	{
-		using Resource = Buffer;
-		using ResourceDesc = BufferDesc;
+		using Resource = GfxBuffer;
+		using ResourceDesc = GfxBufferDesc;
 	};
 
 	struct RenderGraphResource
@@ -45,7 +45,7 @@ namespace adria
 		char const* name = "";
 	};
 
-	template<ERGResourceType ResourceType>
+	template<RGResourceType ResourceType>
 	struct TypedRenderGraphResource : RenderGraphResource
 	{
 		using Resource = RGResourceTraits<ResourceType>::Resource;
@@ -70,8 +70,8 @@ namespace adria
 		Resource* resource;
 		ResourceDesc desc;
 	};
-	using RGTexture = TypedRenderGraphResource<ERGResourceType::Texture>;
-	using RGBuffer = TypedRenderGraphResource<ERGResourceType::Buffer>;
+	using RGTexture = TypedRenderGraphResource<RGResourceType::Texture>;
+	using RGBuffer = TypedRenderGraphResource<RGResourceType::Buffer>;
 	using DescriptorCPU = D3D12_CPU_DESCRIPTOR_HANDLE;
 	using DescriptorGPU = D3D12_GPU_DESCRIPTOR_HANDLE;
 	using CommandList = ID3D12GraphicsCommandList4;
@@ -86,17 +86,17 @@ namespace adria
 
 		RGBlackboard& GetBlackboard();
 
-		Texture const& GetTexture(RGTextureId res_id) const;
-		Buffer  const& GetBuffer(RGBufferId res_id) const;
+		GfxTexture const& GetTexture(RGTextureId res_id) const;
+		GfxBuffer  const& GetBuffer(RGBufferId res_id) const;
 
-		Texture const& GetCopySrcTexture(RGTextureCopySrcId res_id) const;
-		Texture const& GetCopyDstTexture(RGTextureCopyDstId res_id) const;
-		Buffer  const& GetCopySrcBuffer(RGBufferCopySrcId res_id) const;
-		Buffer  const& GetCopyDstBuffer(RGBufferCopyDstId res_id) const;
-		Buffer  const& GetIndirectArgsBuffer(RGBufferIndirectArgsId res_id) const;
-		Buffer  const& GetVertexBuffer(RGBufferVertexId res_id) const;
-		Buffer  const& GetIndexBuffer(RGBufferIndexId res_id) const;
-		Buffer  const& GetConstantBuffer(RGBufferConstantId res_id) const;
+		GfxTexture const& GetCopySrcTexture(RGTextureCopySrcId res_id) const;
+		GfxTexture const& GetCopyDstTexture(RGTextureCopyDstId res_id) const;
+		GfxBuffer  const& GetCopySrcBuffer(RGBufferCopySrcId res_id) const;
+		GfxBuffer  const& GetCopyDstBuffer(RGBufferCopyDstId res_id) const;
+		GfxBuffer  const& GetIndirectArgsBuffer(RGBufferIndirectArgsId res_id) const;
+		GfxBuffer  const& GetVertexBuffer(RGBufferVertexId res_id) const;
+		GfxBuffer  const& GetIndexBuffer(RGBufferIndexId res_id) const;
+		GfxBuffer  const& GetConstantBuffer(RGBufferConstantId res_id) const;
 
 		DescriptorCPU GetRenderTarget(RGRenderTargetId res_id) const;
 		DescriptorCPU GetDepthStencil(RGDepthStencilId res_id) const;

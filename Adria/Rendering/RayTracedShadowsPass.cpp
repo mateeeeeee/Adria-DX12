@@ -8,7 +8,7 @@
 namespace adria
 {
 
-	RayTracedShadowsPass::RayTracedShadowsPass(GraphicsDevice* gfx, uint32 width, uint32 height)
+	RayTracedShadowsPass::RayTracedShadowsPass(GfxDevice* gfx, uint32 width, uint32 height)
 		: gfx(gfx), width(width), height(height)
 	{
 		ID3D12Device* device = gfx->GetDevice();
@@ -39,7 +39,7 @@ namespace adria
 				data.mask = builder.WriteTexture(mask_name);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
-			[=](RayTracedShadowsPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](RayTracedShadowsPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				auto device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -70,14 +70,14 @@ namespace adria
 				dispatch_desc.Height = height;
 				dispatch_desc.Depth = 1;
 
-				RayTracingShaderTable table(ray_traced_shadows.Get());
+				GfxRayTracingShaderTable table(ray_traced_shadows.Get());
 				table.SetRayGenShader("RTS_RayGen_Hard");
 				table.AddMissShader("RTS_Miss", 0);
 				table.AddHitGroup("ShadowAnyHitGroup", 0);
 				table.Commit(*gfx->GetDynamicAllocator(), dispatch_desc);
 				cmd_list->DispatchRays(&dispatch_desc);
 
-			}, ERGPassType::Compute, ERGPassFlags::ForceNoCull);
+			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
 	}
 
 	void RayTracedShadowsPass::OnResize(uint32 w, uint32 h)
@@ -94,10 +94,10 @@ namespace adria
 	{
 		ID3D12Device5* device = gfx->GetDevice();
 
-		Shader const& rt_shadows_blob = ShaderCache::GetShader(LIB_Shadows);
-		Shader const& rt_soft_shadows_blob = ShaderCache::GetShader(LIB_SoftShadows);
+		GfxShader const& rt_shadows_blob = ShaderCache::GetShader(LIB_Shadows);
+		GfxShader const& rt_soft_shadows_blob = ShaderCache::GetShader(LIB_SoftShadows);
 
-		StateObjectBuilder rt_shadows_state_object_builder(6);
+		GfxStateObjectBuilder rt_shadows_state_object_builder(6);
 		{
 			D3D12_EXPORT_DESC export_descs[] =
 			{
@@ -148,7 +148,7 @@ namespace adria
 		}
 	}
 
-	void RayTracedShadowsPass::OnLibraryRecompiled(EShaderId shader)
+	void RayTracedShadowsPass::OnLibraryRecompiled(GfxShaderID shader)
 	{
 		if (shader == LIB_Shadows || shader == LIB_SoftShadows) CreateStateObject();
 	}

@@ -1,5 +1,5 @@
 #pragma comment(lib, "dxcompiler.lib")
-#include "ShaderCompiler.h"
+#include "GfxShaderCompiler.h"
 #include <d3dcompiler.h> 
 #include "dxc/dxcapi.h" 
 #include "../Utilities/StringUtil.h"
@@ -106,36 +106,36 @@ namespace adria
 	};
 
 	extern char const* shaders_directory;
-	inline constexpr std::wstring GetTarget(EShaderStage stage, EShaderModel model)
+	inline constexpr std::wstring GetTarget(GfxShaderStage stage, GfxShaderModel model)
 	{
 		std::wstring target = L"";
 		switch (stage)
 		{
-		case EShaderStage::VS:
+		case GfxShaderStage::VS:
 			target += L"vs_";
 			break;
-		case EShaderStage::PS:
+		case GfxShaderStage::PS:
 			target += L"ps_";
 			break;
-		case EShaderStage::CS:
+		case GfxShaderStage::CS:
 			target += L"cs_";
 			break;
-		case EShaderStage::GS:
+		case GfxShaderStage::GS:
 			target += L"gs_";
 			break;
-		case EShaderStage::HS:
+		case GfxShaderStage::HS:
 			target += L"hs_";
 			break;
-		case EShaderStage::DS:
+		case GfxShaderStage::DS:
 			target += L"ds_";
 			break;
-		case EShaderStage::LIB:
+		case GfxShaderStage::LIB:
 			target += L"lib_";
 			break;
-		case EShaderStage::MS:
+		case GfxShaderStage::MS:
 			target += L"ms_";
 			break;
-		case EShaderStage::AS:
+		case GfxShaderStage::AS:
 			target += L"as_";
 			break;
 		default:
@@ -170,7 +170,7 @@ namespace adria
 		return target;
 	}
 
-	namespace ShaderCompiler
+	namespace GfxShaderCompiler
 	{
 		void Initialize()
 		{
@@ -186,7 +186,7 @@ namespace adria
 			library.Reset();
 			utils.Reset();
 		}
-		bool CompileShader(ShaderDesc const& desc, ShaderCompileOutput& output)
+		bool CompileShader(GfxShaderDesc const& desc, GfxShaderCompileOutput& output)
 		{
 			uint32_t code_page = CP_UTF8; 
 			ArcPtr<IDxcBlobEncoding> source_blob;
@@ -275,7 +275,7 @@ namespace adria
 			output.dependent_files.push_back(desc.file);
 			return true;
 		}
-		void ReadBlobFromFile(std::wstring_view filename, ShaderBlob& blob)
+		void ReadBlobFromFile(std::wstring_view filename, GfxShaderBlob& blob)
 		{
 			uint32_t code_page = CP_UTF8;
 			ArcPtr<IDxcBlobEncoding> source_blob;
@@ -284,7 +284,7 @@ namespace adria
 			blob.resize(source_blob->GetBufferSize());
 			memcpy(blob.data(), source_blob->GetBufferPointer(), source_blob->GetBufferSize());
 		}
-		void CreateInputLayout(Shader const& vs_blob, InputLayout& input_layout)
+		void CreateInputLayout(GfxShader const& vs_blob, GfxInputLayout& input_layout)
 		{
 			ArcPtr<IDxcContainerReflection> reflection;
 			HRESULT hr = DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(reflection.GetAddressOf()));
@@ -315,34 +315,34 @@ namespace adria
 				vertex_shader_reflection->GetInputParameterDesc(i, &param_desc);
 				input_layout.elements[i].semantic_name = std::string(param_desc.SemanticName);
 				input_layout.elements[i].semantic_index = param_desc.SemanticIndex;
-				input_layout.elements[i].aligned_byte_offset = InputLayout::APPEND_ALIGNED_ELEMENT;
-				input_layout.elements[i].input_slot_class = EInputClassification::PerVertexData;
+				input_layout.elements[i].aligned_byte_offset = GfxInputLayout::APPEND_ALIGNED_ELEMENT;
+				input_layout.elements[i].input_slot_class = GfxInputClassification::PerVertexData;
 				input_layout.elements[i].input_slot = 0;
 
 				// determine DXGI format
 				if (param_desc.Mask == 1)
 				{
-					if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)		 input_layout.elements[i].format = DXGI_FORMAT_R32_UINT;
-					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  input_layout.elements[i].format = DXGI_FORMAT_R32_SINT;
-					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.elements[i].format = DXGI_FORMAT_R32_FLOAT;
+					if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)		 input_layout.elements[i].format = GfxFormat::R32_UINT;
+					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  input_layout.elements[i].format = GfxFormat::R32_SINT;
+					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.elements[i].format = GfxFormat::R32_FLOAT;
 				}
 				else if (param_desc.Mask <= 3)
 				{
-					if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)		 input_layout.elements[i].format = DXGI_FORMAT_R32G32_UINT;
-					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  input_layout.elements[i].format = DXGI_FORMAT_R32G32_SINT;
-					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.elements[i].format = DXGI_FORMAT_R32G32_FLOAT;
+					if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)		 input_layout.elements[i].format = GfxFormat::R32G32_UINT;
+					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  input_layout.elements[i].format = GfxFormat::R32G32_SINT;
+					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.elements[i].format = GfxFormat::R32G32_FLOAT;
 				}
 				else if (param_desc.Mask <= 7)
 				{
-					if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)		 input_layout.elements[i].format = DXGI_FORMAT_R32G32B32_UINT;
-					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  input_layout.elements[i].format = DXGI_FORMAT_R32G32B32_SINT;
-					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.elements[i].format = DXGI_FORMAT_R32G32B32_FLOAT;
+					if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)		 input_layout.elements[i].format = GfxFormat::R32G32B32_UINT;
+					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  input_layout.elements[i].format = GfxFormat::R32G32B32_SINT;
+					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.elements[i].format = GfxFormat::R32G32B32_FLOAT;
 				}
 				else if (param_desc.Mask <= 15)
 				{
-					if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)		 input_layout.elements[i].format = DXGI_FORMAT_R32G32B32A32_UINT;
-					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  input_layout.elements[i].format = DXGI_FORMAT_R32G32B32A32_SINT;
-					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.elements[i].format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+					if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)		 input_layout.elements[i].format = GfxFormat::R32G32B32A32_UINT;
+					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)  input_layout.elements[i].format = GfxFormat::R32G32B32A32_SINT;
+					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.elements[i].format = GfxFormat::R32G32B32A32_FLOAT;
 				}
 			}
 		}

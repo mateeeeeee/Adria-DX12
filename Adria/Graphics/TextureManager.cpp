@@ -6,12 +6,12 @@
 #endif
 
 #include "TextureManager.h"
-#include "Texture.h"
-#include "GraphicsDeviceDX12.h"
+#include "GfxTexture.h"
+#include "GfxDevice.h"
 #include "d3dx12.h"
 #include "DDSTextureLoader12.h"
 #include "WICTextureLoader12.h"
-#include "ShaderCompiler.h"
+#include "GfxShaderCompiler.h"
 #include "../Core/Macros.h"
 #include "../Logging/Logger.h"
 #include "../Utilities/StringUtil.h"
@@ -79,7 +79,7 @@ namespace adria
 		return tex_manager;
 	}
 
-	void TextureManager::Initialize(GraphicsDevice* _gfx, UINT max_textures)
+	void TextureManager::Initialize(GfxDevice* _gfx, UINT max_textures)
 	{
         gfx = _gfx;
 		mips_generator = std::make_unique<MipsGenerator>(gfx, max_textures);
@@ -102,8 +102,8 @@ namespace adria
 		if (error) ADRIA_LOG(ERROR, (char const*)error->GetBufferPointer());
 		BREAK_IF_FAILED(gfx->GetDevice()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(equirect_root_signature.GetAddressOf())));
 
-		ShaderBlob equirect_cs_shader;
-		ShaderCompiler::ReadBlobFromFile(L"Resources/Compiled Shaders/Equirect2cubeCS.cso", equirect_cs_shader);
+		GfxShaderBlob equirect_cs_shader;
+		GfxShaderCompiler::ReadBlobFromFile(L"Resources/Compiled Shaders/Equirect2cubeCS.cso", equirect_cs_shader);
 
 		D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc{};
 		pso_desc.pRootSignature = equirect_root_signature.Get();
@@ -170,7 +170,7 @@ namespace adria
                 loaded_textures.insert({ name, handle });
                 ArcPtr<ID3D12Resource> cubemap = nullptr;
                 std::unique_ptr<uint8_t[]> decoded_data;
-                std::vector<TextureInitialData> subresources;
+                std::vector<GfxTextureInitialData> subresources;
 
                 bool is_cubemap;
                 BREAK_IF_FAILED(
@@ -179,19 +179,19 @@ namespace adria
                 ADRIA_ASSERT(is_cubemap);
 
 				D3D12_RESOURCE_DESC _desc = cubemap->GetDesc();
-				TextureDesc desc{};
-				desc.type = TextureType_2D;
-                desc.misc_flags = ETextureMiscFlag::TextureCube;
+				GfxTextureDesc desc{};
+				desc.type = GfxTextureType_2D;
+                desc.misc_flags = GfxTextureMiscFlag::TextureCube;
 				desc.width = (uint32)_desc.Width;
 				desc.height = _desc.Height;
 				desc.array_size = 6;
-				desc.bind_flags = EBindFlag::ShaderResource;
+				desc.bind_flags = GfxBindFlag::ShaderResource;
 				desc.format = ConvertDXGIFormat(_desc.Format);
-				desc.initial_state = EResourceState::PixelShaderResource | EResourceState::NonPixelShaderResource;
-				desc.heap_type = EResourceUsage::Default;
+				desc.initial_state = GfxResourceState::PixelShaderResource | GfxResourceState::NonPixelShaderResource;
+				desc.heap_type = GfxResourceUsage::Default;
 				desc.mip_levels = _desc.MipLevels;
 
-				std::unique_ptr<Texture> tex = std::make_unique<Texture>(gfx, desc, subresources.data());
+				std::unique_ptr<GfxTexture> tex = std::make_unique<GfxTexture>(gfx, desc, subresources.data());
                 texture_map.insert({ handle, std::move(tex)});
                 CreateViewForTexture(handle);
             }
@@ -201,37 +201,37 @@ namespace adria
                 loaded_textures.insert({ name, handle });
                 Image equirect_hdr_image(ToString(name));
 
-                TextureDesc desc;
-                desc.type = TextureType_2D;
-                desc.misc_flags = ETextureMiscFlag::TextureCube;
-                desc.heap_type = EResourceUsage::Default;
+                GfxTextureDesc desc;
+                desc.type = GfxTextureType_2D;
+                desc.misc_flags = GfxTextureMiscFlag::TextureCube;
+                desc.heap_type = GfxResourceUsage::Default;
                 desc.width = 1024;
                 desc.height = 1024;
                 desc.array_size = 6;
                 desc.mip_levels = 1;
-                desc.format = EFormat::R16G16B16A16_FLOAT;
-                desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::UnorderedAccess;
-                desc.initial_state = EResourceState::Common;
+                desc.format = GfxFormat::R16G16B16A16_FLOAT;
+                desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
+                desc.initial_state = GfxResourceState::Common;
 
-                std::unique_ptr<Texture> cubemap_tex = std::make_unique<Texture>(gfx, desc);
+                std::unique_ptr<GfxTexture> cubemap_tex = std::make_unique<GfxTexture>(gfx, desc);
                 cubemap_tex->CreateSRV();
                 cubemap_tex->CreateUAV();
 
-                TextureDesc equirect_desc{};
+                GfxTextureDesc equirect_desc{};
                 equirect_desc.width = equirect_hdr_image.Width();
                 equirect_desc.height = equirect_hdr_image.Height();
-                equirect_desc.type = TextureType_2D;
+                equirect_desc.type = GfxTextureType_2D;
                 equirect_desc.mip_levels = 1;
                 equirect_desc.array_size = 1;
-                equirect_desc.format = EFormat::R32G32B32A32_FLOAT;
-                equirect_desc.bind_flags = EBindFlag::ShaderResource;
-                equirect_desc.initial_state = EResourceState::CopyDest;
+                equirect_desc.format = GfxFormat::R32G32B32A32_FLOAT;
+                equirect_desc.bind_flags = GfxBindFlag::ShaderResource;
+                equirect_desc.initial_state = GfxResourceState::CopyDest;
 
-                TextureInitialData subresource_data{};
+                GfxTextureInitialData subresource_data{};
                 subresource_data.pData = equirect_hdr_image.Data<void>();
                 subresource_data.RowPitch = equirect_hdr_image.Pitch();
 
-				Texture equirect_tex(gfx, desc,&subresource_data);
+				GfxTexture equirect_tex(gfx, desc,&subresource_data);
                 equirect_tex.CreateSRV();
 
                 D3D12_RESOURCE_BARRIER barriers[] = {
@@ -274,27 +274,27 @@ namespace adria
         auto cmd_list = gfx->GetDefaultCommandList();
 
         ++handle;
-        TextureDesc desc{};
-        desc.type = TextureType_2D;
+        GfxTextureDesc desc{};
+        desc.type = GfxTextureType_2D;
         desc.mip_levels = 1;
-        desc.misc_flags = ETextureMiscFlag::TextureCube;
+        desc.misc_flags = GfxTextureMiscFlag::TextureCube;
         desc.array_size = 6;
-        desc.bind_flags = EBindFlag::ShaderResource;
+        desc.bind_flags = GfxBindFlag::ShaderResource;
 
         std::vector<Image> images{};
-        std::vector<TextureInitialData> subresources;
+        std::vector<GfxTextureInitialData> subresources;
         for (UINT i = 0; i < cubemap_textures.size(); ++i)
         {
             images.emplace_back(ToString(cubemap_textures[i]), 4);
-            TextureInitialData subresource_data{};
+            GfxTextureInitialData subresource_data{};
             subresource_data.pData = images.back().Data<void>();
             subresource_data.RowPitch = images.back().Pitch();
             subresources.push_back(subresource_data);
         }
         desc.width = images[0].Width();
         desc.height = images[0].Height();
-        desc.format = images[0].IsHDR() ? EFormat::R32G32B32A32_FLOAT : EFormat::R8G8B8A8_UNORM;
-        std::unique_ptr<Texture> cubemap = std::make_unique<Texture>(gfx, desc, subresources.data());
+        desc.format = images[0].IsHDR() ? GfxFormat::R32G32B32A32_FLOAT : GfxFormat::R8G8B8A8_UNORM;
+        std::unique_ptr<GfxTexture> cubemap = std::make_unique<GfxTexture>(gfx, desc, subresources.data());
         texture_map.insert({ handle, std::move(cubemap)});
         CreateViewForTexture(handle);
         return handle;
@@ -306,7 +306,7 @@ namespace adria
 		return texture_map[tex_handle]->GetSRV();
 	}
 
-	Texture* TextureManager::GetTexture(TextureHandle handle) const
+	GfxTexture* TextureManager::GetTexture(TextureHandle handle) const
 	{
 		if (handle == INVALID_TEXTURE_HANDLE) return nullptr;
 		else if (auto it = texture_map.find(handle); it != texture_map.end()) return it->second.get();
@@ -320,19 +320,19 @@ namespace adria
 
 	void TextureManager::OnSceneInitialized()
 	{
-		TextureDesc desc{};
+		GfxTextureDesc desc{};
 		desc.width = 1;
 		desc.height = 1;
-		desc.format = EFormat::R32_FLOAT;
-		desc.bind_flags = EBindFlag::ShaderResource;
-		desc.initial_state = EResourceState::AllShaderResource;
+		desc.format = GfxFormat::R32_FLOAT;
+		desc.bind_flags = GfxBindFlag::ShaderResource;
+		desc.initial_state = GfxResourceState::AllShaderResource;
 
 		float v = 0.0f;
-		TextureInitialData init_data{};
+		GfxTextureInitialData init_data{};
 		init_data.pData = &v;
 		init_data.RowPitch = sizeof(float);
 		init_data.SlicePitch = 0;
-		std::unique_ptr<Texture> black_default_texture = std::make_unique<Texture>(gfx, desc, &init_data);
+		std::unique_ptr<GfxTexture> black_default_texture = std::make_unique<GfxTexture>(gfx, desc, &init_data);
 		texture_map[INVALID_TEXTURE_HANDLE] = std::move(black_default_texture);
 
 		mips_generator->Generate(gfx->GetDefaultCommandList());
@@ -342,7 +342,7 @@ namespace adria
 		RingOnlineDescriptorAllocator* online_descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
         for (size_t i = 0; i <= handle; ++i)
         {
-            Texture* texture = texture_map[TextureHandle(i)].get();
+            GfxTexture* texture = texture_map[TextureHandle(i)].get();
             if (texture)
             {
                 texture->CreateSRV();
@@ -366,26 +366,26 @@ namespace adria
 
             ArcPtr<ID3D12Resource> tex2d = nullptr;
             std::unique_ptr<uint8_t[]> decoded_data;
-            std::vector<TextureInitialData> subresources;
+            std::vector<GfxTextureInitialData> subresources;
 			BREAK_IF_FAILED(
 				DirectX::LoadDDSTextureFromFile(device, texture_path.data(), tex2d.GetAddressOf(),
 					decoded_data, subresources));
 
             D3D12_RESOURCE_DESC _desc = tex2d->GetDesc();
-            TextureDesc desc{};
+            GfxTextureDesc desc{};
             desc.type = ConvertTextureType(_desc.Dimension);
-            desc.misc_flags = ETextureMiscFlag::None;
+            desc.misc_flags = GfxTextureMiscFlag::None;
             desc.width = (uint32)_desc.Width;
             desc.height = _desc.Height;
             desc.array_size = _desc.DepthOrArraySize;
             desc.depth = _desc.DepthOrArraySize;
-            desc.bind_flags = EBindFlag::ShaderResource;
+            desc.bind_flags = GfxBindFlag::ShaderResource;
 			
             desc.format = ConvertDXGIFormat(_desc.Format);
-            desc.initial_state = EResourceState::PixelShaderResource | EResourceState::NonPixelShaderResource;
-            desc.heap_type = EResourceUsage::Default;
+            desc.initial_state = GfxResourceState::PixelShaderResource | GfxResourceState::NonPixelShaderResource;
+            desc.heap_type = GfxResourceUsage::Default;
             desc.mip_levels = _desc.MipLevels;
-            std::unique_ptr<Texture> tex = std::make_unique<Texture>(gfx, desc, subresources.data(), subresources.size());
+            std::unique_ptr<GfxTexture> tex = std::make_unique<GfxTexture>(gfx, desc, subresources.data(), subresources.size());
             
             texture_map.insert({ handle, std::move(tex)});
             CreateViewForTexture(handle);
@@ -407,7 +407,7 @@ namespace adria
 
             ArcPtr<ID3D12Resource> d3d12_tex = nullptr;
             std::unique_ptr<uint8_t[]> decoded_data;
-            TextureInitialData subresource{};
+            GfxTextureInitialData subresource{};
             if (mipmaps)
             {
                 BREAK_IF_FAILED(DirectX::LoadWICTextureFromFileEx(device, texture_path.data(), 0, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
@@ -420,23 +420,23 @@ namespace adria
                     decoded_data, subresource));
             }
 			D3D12_RESOURCE_DESC _desc = d3d12_tex->GetDesc();
-			TextureDesc desc{};
-			desc.type = TextureType_2D;
-			desc.misc_flags = ETextureMiscFlag::None;
+			GfxTextureDesc desc{};
+			desc.type = GfxTextureType_2D;
+			desc.misc_flags = GfxTextureMiscFlag::None;
 			desc.width = (uint32)_desc.Width;
 			desc.height = _desc.Height;
 			desc.array_size = _desc.DepthOrArraySize;
 			desc.depth = _desc.DepthOrArraySize;
-            desc.bind_flags = EBindFlag::ShaderResource;
+            desc.bind_flags = GfxBindFlag::ShaderResource;
             if (mipmaps && _desc.MipLevels != 1)
             {
-                desc.bind_flags |= EBindFlag::UnorderedAccess;
+                desc.bind_flags |= GfxBindFlag::UnorderedAccess;
             }
 			desc.format = ConvertDXGIFormat(_desc.Format);
-			desc.initial_state = EResourceState::PixelShaderResource | EResourceState::NonPixelShaderResource;
-			desc.heap_type = EResourceUsage::Default;
+			desc.initial_state = GfxResourceState::PixelShaderResource | GfxResourceState::NonPixelShaderResource;
+			desc.heap_type = GfxResourceUsage::Default;
 			desc.mip_levels = _desc.MipLevels;
-			std::unique_ptr<Texture> tex = std::make_unique<Texture>(gfx, desc, &subresource, 1);
+			std::unique_ptr<GfxTexture> tex = std::make_unique<GfxTexture>(gfx, desc, &subresource, 1);
 
             texture_map.insert({ handle, std::move(tex)});
             if (mipmaps) mips_generator->Add(texture_map[handle]->GetNative());
@@ -457,28 +457,28 @@ namespace adria
 			loaded_textures.insert({ texture_path, handle });
             Image img(texture_path, 4);
 
-			TextureDesc desc{};
-			desc.type = TextureType_2D;
-			desc.misc_flags = ETextureMiscFlag::None;
+			GfxTextureDesc desc{};
+			desc.type = GfxTextureType_2D;
+			desc.misc_flags = GfxTextureMiscFlag::None;
 			desc.width = img.Width();
 			desc.height = img.Height();
 			desc.array_size = 1;
 			desc.depth = 1;
-			desc.bind_flags = EBindFlag::ShaderResource;
+			desc.bind_flags = GfxBindFlag::ShaderResource;
 			if (mipmaps)
 			{
-				desc.bind_flags |= EBindFlag::UnorderedAccess;
+				desc.bind_flags |= GfxBindFlag::UnorderedAccess;
 			}
-			desc.format = img.IsHDR() ? EFormat::R32G32B32A32_FLOAT : EFormat::R8G8B8A8_UNORM;
-			desc.initial_state = EResourceState::PixelShaderResource | EResourceState::NonPixelShaderResource;
-			desc.heap_type = EResourceUsage::Default;
+			desc.format = img.IsHDR() ? GfxFormat::R32G32B32A32_FLOAT : GfxFormat::R8G8B8A8_UNORM;
+			desc.initial_state = GfxResourceState::PixelShaderResource | GfxResourceState::NonPixelShaderResource;
+			desc.heap_type = GfxResourceUsage::Default;
 			desc.mip_levels = mipmaps ? 0 : 1;
 
-			TextureInitialData data{};
+			GfxTextureInitialData data{};
 			data.pData = img.Data<void>();
 			data.RowPitch = img.Pitch();
 
-			std::unique_ptr<Texture> tex = std::make_unique<Texture>(gfx, desc, &data);
+			std::unique_ptr<GfxTexture> tex = std::make_unique<GfxTexture>(gfx, desc, &data);
             texture_map.insert({ handle, std::move(tex)});
             if (mipmaps) mips_generator->Add(texture_map[handle]->GetNative());
             CreateViewForTexture(handle);
@@ -494,7 +494,7 @@ namespace adria
 
 		ID3D12Device* device = gfx->GetDevice();
 		RingOnlineDescriptorAllocator* online_descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
-		Texture* texture = texture_map[handle].get();
+		GfxTexture* texture = texture_map[handle].get();
 		ADRIA_ASSERT(texture);
 		texture->CreateSRV();
 		device->CopyDescriptorsSimple(1, online_descriptor_allocator->GetHandle((size_t)handle),

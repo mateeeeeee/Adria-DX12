@@ -14,7 +14,7 @@ struct ID3D12Device;
 
 namespace adria
 {
-	enum class ELightMesh
+	enum class LightMesh
 	{
 		NoMesh,
 		Quad,
@@ -46,7 +46,7 @@ namespace adria
 		uint64 chunk_count_x;
 		uint64 chunk_count_z;
 		bool split_to_chunks = false;
-		ENormalCalculation normal_type = ENormalCalculation::None;
+		NormalCalculation normal_type = NormalCalculation::None;
 		std::unique_ptr<Heightmap> heightmap;
 	};
 	struct OceanParameters
@@ -57,7 +57,7 @@ namespace adria
     struct LightParameters
     {
         Light light_data;
-        ELightMesh mesh_type = ELightMesh::NoMesh;
+        LightMesh mesh_type = LightMesh::NoMesh;
         uint32 mesh_size = 0u;
         std::optional<std::wstring> light_texture = std::nullopt;
     };
@@ -73,7 +73,7 @@ namespace adria
 		DirectX::XMFLOAT4 normal;
 	};
 
-    class GraphicsDevice;
+    class GfxDevice;
  
 	class EntityLoader
 	{
@@ -81,7 +81,7 @@ namespace adria
 		[[nodiscard]] std::vector<entt::entity> LoadObjMesh(std::string const&);
 	public:
         
-        EntityLoader(entt::registry& reg, GraphicsDevice* device);
+        EntityLoader(entt::registry& reg, GfxDevice* device);
 		~EntityLoader();
 
 		[[maybe_unused]] entt::entity LoadSkybox(SkyboxParameters const&);
@@ -93,7 +93,7 @@ namespace adria
 		[[maybe_unused]] std::vector<entt::entity> ImportModel_GLTF_Optimized(ModelParameters const&);
 	private:
         entt::registry& reg;
-        GraphicsDevice* gfx;
+        GfxDevice* gfx;
 	};
 }
 

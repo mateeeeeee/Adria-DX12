@@ -9,17 +9,17 @@
 namespace adria
 {
 
-	std::string LevelToString(ELogLevel type)
+	std::string LevelToString(LogLevel type)
 	{
 		switch (type)
 		{
-		case ELogLevel::LOG_DEBUG:
+		case LogLevel::LOG_DEBUG:
 			return "[DEBUG]";
-		case ELogLevel::LOG_INFO:
+		case LogLevel::LOG_INFO:
 			return "[INFO]";
-		case ELogLevel::LOG_WARNING:
+		case LogLevel::LOG_WARNING:
 			return "[WARNING]";
-		case ELogLevel::LOG_ERROR:
+		case LogLevel::LOG_ERROR:
 			return "[ERROR]";
 		}
 		return "";
@@ -51,13 +51,13 @@ namespace adria
 		loggers.push_back(logger);
 	}
 
-	void LogManager::Log(ELogLevel level, char const* str, char const* filename, uint32_t line)
+	void LogManager::Log(LogLevel level, char const* str, char const* filename, uint32_t line)
 	{
 		QueueEntry entry{ level, str, filename, line };
 		log_queue.Push(std::move(entry));
 	}
 
-	void LogManager::Log(ELogLevel level, char const* str, std::source_location location /*= std::source_location::current()*/)
+	void LogManager::Log(LogLevel level, char const* str, std::source_location location /*= std::source_location::current()*/)
 	{
 		Log(level, str, location.file_name(), location.line());
 	}
@@ -76,7 +76,7 @@ namespace adria
 		}
 	}
 
-	FileLogger::FileLogger(char const* log_file, ELogLevel logger_level) : log_stream{ log_file, std::ios::out }, logger_level{ logger_level }
+	FileLogger::FileLogger(char const* log_file, LogLevel logger_level) : log_stream{ log_file, std::ios::out }, logger_level{ logger_level }
 	{}
 
 	FileLogger::~FileLogger()
@@ -84,13 +84,13 @@ namespace adria
 		log_stream.close();
 	}
 
-	void FileLogger::Log(ELogLevel level, char const* entry, char const* file, uint32_t line)
+	void FileLogger::Log(LogLevel level, char const* entry, char const* file, uint32_t line)
 	{
 		if (level < logger_level) return;
 		log_stream << GetLogTime() + LineInfoToString(file, line) + LevelToString(level) + std::string(entry) << "\n";
 	}
 
-	OutputStreamLogger::OutputStreamLogger(bool use_cerr /*= false*/, ELogLevel logger_level /*= ELogLevel::LOG_DEBUG*/)
+	OutputStreamLogger::OutputStreamLogger(bool use_cerr /*= false*/, LogLevel logger_level /*= ELogLevel::LOG_DEBUG*/)
 		: use_cerr{ use_cerr }, logger_level{ logger_level }
 	{
 	}
@@ -99,20 +99,20 @@ namespace adria
 	{
 	}
 
-	void OutputStreamLogger::Log(ELogLevel level, char const* entry, char const* file, uint32_t line)
+	void OutputStreamLogger::Log(LogLevel level, char const* entry, char const* file, uint32_t line)
 	{
 		if (level < logger_level) return;
 		(use_cerr ? std::cerr : std::cout) << GetLogTime() + LineInfoToString(file, line) + LevelToString(level) + std::string(entry) << "\n";
 	}
 
-	OutputDebugStringLogger::OutputDebugStringLogger(ELogLevel logger_level /*= ELogLevel::LOG_DEBUG*/)
+	OutputDebugStringLogger::OutputDebugStringLogger(LogLevel logger_level /*= ELogLevel::LOG_DEBUG*/)
 		: logger_level{ logger_level }
 	{}
 
 	OutputDebugStringLogger::~OutputDebugStringLogger()
 	{}
 
-	void OutputDebugStringLogger::Log(ELogLevel level, char const* entry, char const* file, uint32_t line)
+	void OutputDebugStringLogger::Log(LogLevel level, char const* entry, char const* file, uint32_t line)
 	{
 		std::string log = GetLogTime() + LineInfoToString(file, line) + LevelToString(level) + std::string(entry) + "\n";
 		OutputDebugStringA(log.c_str());

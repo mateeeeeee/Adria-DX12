@@ -9,7 +9,7 @@
 namespace adria
 {
 
-	RayTracedReflectionsPass::RayTracedReflectionsPass(GraphicsDevice* gfx, uint32 width, uint32 height)
+	RayTracedReflectionsPass::RayTracedReflectionsPass(GfxDevice* gfx, uint32 width, uint32 height)
 		: gfx(gfx), width(width), height(height), blur_pass(width, height)
 	{
 		ID3D12Device* device = gfx->GetDevice();
@@ -45,7 +45,7 @@ namespace adria
 				RGTextureDesc desc{};
 				desc.width = width;
 				desc.height = height;
-				desc.format = EFormat::R8G8B8A8_UNORM;
+				desc.format = GfxFormat::R8G8B8A8_UNORM;
 				builder.DeclareTexture(RG_RES_NAME(RTR_OutputNoisy), desc);
 
 				data.output = builder.WriteTexture(RG_RES_NAME(RTR_OutputNoisy));
@@ -56,7 +56,7 @@ namespace adria
 				data.ib = builder.ReadBuffer(RG_RES_NAME(BigIndexBuffer));
 				data.geo = builder.ReadBuffer(RG_RES_NAME(BigGeometryBuffer));
 			},
-			[=](RayTracedReflectionsPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](RayTracedReflectionsPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				auto device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -93,14 +93,14 @@ namespace adria
 				dispatch_desc.Height = height;
 				dispatch_desc.Depth = 1;
 
-				RayTracingShaderTable table(ray_traced_reflections.Get());
+				GfxRayTracingShaderTable table(ray_traced_reflections.Get());
 				table.SetRayGenShader("RTR_RayGen");
 				table.AddMissShader("RTR_Miss", 0);
 				table.AddHitGroup("RTRClosestHitGroupPrimaryRay", 0);
 				table.AddHitGroup("RTRClosestHitGroupReflectionRay", 1);
 				table.Commit(*gfx->GetDynamicAllocator(), dispatch_desc);
 				cmd_list->DispatchRays(&dispatch_desc);
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::None);
 
 		blur_pass.AddPass(rg, RG_RES_NAME(RTR_OutputNoisy), RG_RES_NAME(RTR_Output), "RTR Denoise");
 
@@ -131,9 +131,9 @@ namespace adria
 	void RayTracedReflectionsPass::CreateStateObject()
 	{
 		ID3D12Device5* device = gfx->GetDevice();
-		Shader const& rtr_blob = ShaderCache::GetShader(LIB_Reflections);
+		GfxShader const& rtr_blob = ShaderCache::GetShader(LIB_Reflections);
 
-		StateObjectBuilder rtr_state_object_builder(6);
+		GfxStateObjectBuilder rtr_state_object_builder(6);
 		{
 			D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc{};
 			dxil_lib_desc.DXILLibrary.BytecodeLength = rtr_blob.GetLength();
@@ -170,7 +170,7 @@ namespace adria
 		}
 	}
 
-	void RayTracedReflectionsPass::OnLibraryRecompiled(EShaderId shader)
+	void RayTracedReflectionsPass::OnLibraryRecompiled(GfxShaderID shader)
 	{
 		if (shader == LIB_Reflections) CreateStateObject();
 	}

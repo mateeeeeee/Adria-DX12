@@ -5,7 +5,7 @@
 namespace adria
 {
 
-	enum class EPrimitiveTopologyType : uint8
+	enum class GfxPrimitiveTopologyType : uint8
 	{
 		Undefined,
 		Point,
@@ -13,7 +13,7 @@ namespace adria
 		Triangle,
 		Patch
 	};
-	enum class EPrimitiveTopology : uint8
+	enum class GfxPrimitiveTopology : uint8
 	{
 		Undefined,
 		TriangleList,
@@ -23,7 +23,7 @@ namespace adria
 		LineStrip,
 		PatchList,
 	};
-	enum class EComparisonFunc : uint8
+	enum class GfxComparisonFunc : uint8
 	{
 		Never,
 		Less,
@@ -34,12 +34,12 @@ namespace adria
 		GreaterEqual,
 		Always,
 	};
-	enum class EDepthWriteMask : uint8
+	enum class GfxDepthWriteMask : uint8
 	{
 		Zero,	
 		All,	
 	};
-	enum class EStencilOp : uint8
+	enum class GfxStencilOp : uint8
 	{
 		Keep,
 		Zero,
@@ -50,7 +50,7 @@ namespace adria
 		Incr,
 		Decr,
 	};
-	enum class EBlend : uint8
+	enum class GfxBlend : uint8
 	{
 		Zero,
 		One,
@@ -70,7 +70,7 @@ namespace adria
 		Src1Alpha,
 		InvSrc1Alpha,
 	};
-	enum class EBlendOp : uint8
+	enum class GfxBlendOp : uint8
 	{
 		Add,
 		Subtract,
@@ -78,18 +78,18 @@ namespace adria
 		Min,
 		Max,
 	};
-	enum class EFillMode : uint8
+	enum class GfxFillMode : uint8
 	{
 		Wireframe,
 		Solid,
 	};
-	enum class ECullMode : uint8
+	enum class GfxCullMode : uint8
 	{
 		None,
 		Front,
 		Back,
 	};
-	enum class EColorWrite
+	enum class GfxColorWrite
 	{
 		Disable = 0,
 		EnableRed = 1 << 0,
@@ -99,10 +99,10 @@ namespace adria
 		EnableAll = ~0,
 	};
 
-	struct RasterizerState
+	struct GfxRasterizerState
 	{
-		EFillMode fill_mode = EFillMode::Solid;
-		ECullMode cull_mode = ECullMode::Back;
+		GfxFillMode fill_mode = GfxFillMode::Solid;
+		GfxCullMode cull_mode = GfxCullMode::Back;
 		bool front_counter_clockwise = false;
 		int32 depth_bias = 0;
 		float depth_bias_clamp = 0.0f;
@@ -113,79 +113,79 @@ namespace adria
 		bool conservative_rasterization_enable = false;
 		uint32 forced_sample_count = 0;
 	};
-	struct DepthStencilState
+	struct GfxDepthStencilState
 	{
 		bool depth_enable = true;
-		EDepthWriteMask depth_write_mask = EDepthWriteMask::All;
-		EComparisonFunc depth_func = EComparisonFunc::Less;
+		GfxDepthWriteMask depth_write_mask = GfxDepthWriteMask::All;
+		GfxComparisonFunc depth_func = GfxComparisonFunc::Less;
 		bool stencil_enable = false;
 		uint8 stencil_read_mask = 0xff;
 		uint8 stencil_write_mask = 0xff;
-		struct DepthStencilOp
+		struct GfxDepthStencilOp
 		{
-			EStencilOp stencil_fail_op = EStencilOp::Keep;
-			EStencilOp stencil_depth_fail_op = EStencilOp::Keep;
-			EStencilOp stencil_pass_op = EStencilOp::Keep;
-			EComparisonFunc stencil_func = EComparisonFunc::Always;
+			GfxStencilOp stencil_fail_op = GfxStencilOp::Keep;
+			GfxStencilOp stencil_depth_fail_op = GfxStencilOp::Keep;
+			GfxStencilOp stencil_pass_op = GfxStencilOp::Keep;
+			GfxComparisonFunc stencil_func = GfxComparisonFunc::Always;
 		};
-		DepthStencilOp front_face{};
-		DepthStencilOp back_face{};
+		GfxDepthStencilOp front_face{};
+		GfxDepthStencilOp back_face{};
 	};
-	struct BlendState
+	struct GfxBlendState
 	{
 		bool alpha_to_coverage_enable = false;
 		bool independent_blend_enable = false;
-		struct RenderTargetBlendState
+		struct GfxRenderTargetBlendState
 		{
 			bool blend_enable = false;
-			EBlend src_blend = EBlend::One;
-			EBlend dest_blend = EBlend::Zero;
-			EBlendOp blend_op = EBlendOp::Add;
-			EBlend src_blend_alpha = EBlend::One;
-			EBlend dest_blend_alpha = EBlend::Zero;
-			EBlendOp blend_op_alpha = EBlendOp::Add;
-			EColorWrite render_target_write_mask = EColorWrite::EnableAll;
+			GfxBlend src_blend = GfxBlend::One;
+			GfxBlend dest_blend = GfxBlend::Zero;
+			GfxBlendOp blend_op = GfxBlendOp::Add;
+			GfxBlend src_blend_alpha = GfxBlend::One;
+			GfxBlend dest_blend_alpha = GfxBlend::Zero;
+			GfxBlendOp blend_op_alpha = GfxBlendOp::Add;
+			GfxColorWrite render_target_write_mask = GfxColorWrite::EnableAll;
 		};
-		RenderTargetBlendState render_target[8];
+		GfxRenderTargetBlendState render_target[8];
 	};
 
-	D3D12_RASTERIZER_DESC ConvertRasterizerDesc(RasterizerState);
-	D3D12_DEPTH_STENCIL_DESC ConvertDepthStencilDesc(DepthStencilState);
-	D3D12_BLEND_DESC ConvertBlendDesc(BlendState);
-	inline constexpr D3D12_PRIMITIVE_TOPOLOGY_TYPE ConvertPrimitiveTopologyType(EPrimitiveTopologyType topology_type)
+	D3D12_RASTERIZER_DESC ConvertRasterizerDesc(GfxRasterizerState);
+	D3D12_DEPTH_STENCIL_DESC ConvertDepthStencilDesc(GfxDepthStencilState);
+	D3D12_BLEND_DESC ConvertBlendDesc(GfxBlendState);
+	inline constexpr D3D12_PRIMITIVE_TOPOLOGY_TYPE ConvertPrimitiveTopologyType(GfxPrimitiveTopologyType topology_type)
 	{
 		switch (topology_type)
 		{
-		case EPrimitiveTopologyType::Undefined:
+		case GfxPrimitiveTopologyType::Undefined:
 			return D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
-		case EPrimitiveTopologyType::Point:
+		case GfxPrimitiveTopologyType::Point:
 			return D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
-		case EPrimitiveTopologyType::Line:
+		case GfxPrimitiveTopologyType::Line:
 			return D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
-		case EPrimitiveTopologyType::Triangle:
+		case GfxPrimitiveTopologyType::Triangle:
 			return D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-		case EPrimitiveTopologyType::Patch:
+		case GfxPrimitiveTopologyType::Patch:
 			return D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
 		default:
 			break;
 		}
 		return D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
 	}
-	inline constexpr D3D_PRIMITIVE_TOPOLOGY ConvertPrimitiveTopology(EPrimitiveTopology topology, uint32_t control_points = 0)
+	inline constexpr D3D_PRIMITIVE_TOPOLOGY ConvertPrimitiveTopology(GfxPrimitiveTopology topology, uint32_t control_points = 0)
 	{
 		switch (topology)
 		{
-		case EPrimitiveTopology::PointList:
+		case GfxPrimitiveTopology::PointList:
 			return D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
-		case EPrimitiveTopology::LineList:
+		case GfxPrimitiveTopology::LineList:
 			return D3D_PRIMITIVE_TOPOLOGY_LINELIST;
-		case EPrimitiveTopology::LineStrip:
+		case GfxPrimitiveTopology::LineStrip:
 			return D3D_PRIMITIVE_TOPOLOGY_LINESTRIP;
-		case EPrimitiveTopology::TriangleList:
+		case GfxPrimitiveTopology::TriangleList:
 			return D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		case EPrimitiveTopology::TriangleStrip:
+		case GfxPrimitiveTopology::TriangleStrip:
 			return D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
-		case EPrimitiveTopology::PatchList:
+		case GfxPrimitiveTopology::PatchList:
 			if (control_points == 0 || control_points > 32) return D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
 			else return D3D_PRIMITIVE_TOPOLOGY(D3D_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST + (control_points - 1));
 		default:

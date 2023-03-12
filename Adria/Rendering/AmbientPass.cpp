@@ -4,7 +4,7 @@
 #include "PSOCache.h" 
 
 #include "../RenderGraph/RenderGraph.h"
-#include "../Graphics/GraphicsCommon.h"
+#include "../Graphics/GfxCommon.h"
 #include "../Math/Packing.h"
 #include "../Editor/GUICommand.h"
 
@@ -32,10 +32,10 @@ namespace adria
 			[=](AmbientPassData& data, RenderGraphBuilder& builder)
 			{
 				RGTextureDesc hdr_desc{};
-				hdr_desc.format = EFormat::R16G16B16A16_FLOAT;
+				hdr_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 				hdr_desc.width = width;
 				hdr_desc.height = height;
-				hdr_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
+				hdr_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 				builder.DeclareTexture(RG_RES_NAME(HDR_RenderTarget), hdr_desc);
 
 				data.output = builder.WriteTexture(RG_RES_NAME(HDR_RenderTarget));
@@ -48,14 +48,14 @@ namespace adria
 				else 
 					data.ambient_occlusion.Invalidate();
 			},
-			[&](AmbientPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[&](AmbientPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { context.GetReadOnlyTexture(data.gbuffer_normal),
 					context.GetReadOnlyTexture(data.gbuffer_albedo), context.GetReadOnlyTexture(data.gbuffer_emissive), context.GetReadOnlyTexture(data.depth_stencil),
-					data.ambient_occlusion.IsValid() ? context.GetReadOnlyTexture(data.ambient_occlusion) : gfxcommon::GetCommonView(ECommonViewType::NullTexture2D_SRV), 
+					data.ambient_occlusion.IsValid() ? context.GetReadOnlyTexture(data.ambient_occlusion) : gfxcommon::GetCommonView(GfxCommonViewType::NullTexture2D_SRV), 
 					context.GetReadWriteTexture(data.output)};
 				uint32 src_range_sizes[] = { 1,1,1,1,1,1 };
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
@@ -87,11 +87,11 @@ namespace adria
 				if (data.ambient_occlusion.IsValid()) constants.ao_idx = static_cast<int32>(i + 4);
 
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Ambient));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Ambient));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 7, &constants, 0);
 				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
-			}, ERGPassType::Compute);
+			}, RGPassType::Compute);
 
 		AddGUI([&]()
 			{

@@ -9,7 +9,7 @@
 namespace adria
 {
 
-	RayTracedAmbientOcclusionPass::RayTracedAmbientOcclusionPass(GraphicsDevice* gfx, uint32 width, uint32 height)
+	RayTracedAmbientOcclusionPass::RayTracedAmbientOcclusionPass(GfxDevice* gfx, uint32 width, uint32 height)
 		: gfx(gfx), width(width), height(height), blur_pass(width, height)
 	{
 		ID3D12Device* device = gfx->GetDevice();
@@ -41,14 +41,14 @@ namespace adria
 				RGTextureDesc desc{};
 				desc.width = width;
 				desc.height = height;
-				desc.format = EFormat::R8_UNORM;
+				desc.format = GfxFormat::R8_UNORM;
 				builder.DeclareTexture(RG_RES_NAME(RTAO_Output), desc);
 
 				data.output = builder.WriteTexture(RG_RES_NAME(RTAO_Output));
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 				data.normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
 			},
-			[=](RayTracedAmbientOcclusionPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](RayTracedAmbientOcclusionPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				auto device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -80,13 +80,13 @@ namespace adria
 				dispatch_desc.Height = height;
 				dispatch_desc.Depth = 1;
 
-				RayTracingShaderTable table(ray_traced_ambient_occlusion.Get());
+				GfxRayTracingShaderTable table(ray_traced_ambient_occlusion.Get());
 				table.SetRayGenShader("RTAO_RayGen");
 				table.AddMissShader("RTAO_Miss", 0);
 				table.AddHitGroup("RTAOAnyHitGroup", 0);
 				table.Commit(*gfx->GetDynamicAllocator(), dispatch_desc);
 				cmd_list->DispatchRays(&dispatch_desc);
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::None);
 
 		blur_pass.AddPass(rg, RG_RES_NAME(RTAO_Output), RG_RES_NAME(AmbientOcclusion));
 		AddGUI([&]()
@@ -117,9 +117,9 @@ namespace adria
 	void RayTracedAmbientOcclusionPass::CreateStateObject()
 	{
 		ID3D12Device5* device = gfx->GetDevice();
-		Shader const& rtao_blob = ShaderCache::GetShader(LIB_AmbientOcclusion);
+		GfxShader const& rtao_blob = ShaderCache::GetShader(LIB_AmbientOcclusion);
 
-		StateObjectBuilder rtao_state_object_builder(5);
+		GfxStateObjectBuilder rtao_state_object_builder(5);
 		{
 			D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc{};
 			dxil_lib_desc.DXILLibrary.BytecodeLength = rtao_blob.GetLength();
@@ -153,7 +153,7 @@ namespace adria
 
 	}
 
-	void RayTracedAmbientOcclusionPass::OnLibraryRecompiled(EShaderId shader)
+	void RayTracedAmbientOcclusionPass::OnLibraryRecompiled(GfxShaderID shader)
 	{
 		if (shader == LIB_AmbientOcclusion) CreateStateObject();
 	}

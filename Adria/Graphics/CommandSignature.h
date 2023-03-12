@@ -1,42 +1,42 @@
 #pragma once
 #include <memory>
-#include "GraphicsDeviceDX12.h"
+#include "GfxDevice.h"
 
 namespace adria
 {
-	enum class EIndirectCommandType
+	enum class IndirectCommandType
 	{
 		Draw,
 		DrawIndexed,
 		Dispatch
 	};
-	template<EIndirectCommandType>
+	template<IndirectCommandType>
 	struct IndirectCommandTraits;
 
 	template<>
-	struct IndirectCommandTraits<EIndirectCommandType::Draw>
+	struct IndirectCommandTraits<IndirectCommandType::Draw>
 	{
 		static constexpr D3D12_INDIRECT_ARGUMENT_TYPE ArgumentType = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW;
 		static constexpr UINT Stride = sizeof(D3D12_DRAW_ARGUMENTS);
 	};
 	template<>
-	struct IndirectCommandTraits<EIndirectCommandType::DrawIndexed>
+	struct IndirectCommandTraits<IndirectCommandType::DrawIndexed>
 	{
 		static constexpr D3D12_INDIRECT_ARGUMENT_TYPE ArgumentType = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED;
 		static constexpr UINT Stride = sizeof(D3D12_DRAW_INDEXED_ARGUMENTS);
 	};
 	template<>
-	struct IndirectCommandTraits<EIndirectCommandType::Dispatch>
+	struct IndirectCommandTraits<IndirectCommandType::Dispatch>
 	{
 		static constexpr D3D12_INDIRECT_ARGUMENT_TYPE ArgumentType = D3D12_INDIRECT_ARGUMENT_TYPE_DISPATCH;
 		static constexpr UINT Stride = sizeof(D3D12_DISPATCH_ARGUMENTS);
 	};
 
-	template<EIndirectCommandType type>
+	template<IndirectCommandType type>
 	class IndirectCommandSignature
 	{
 	public:
-		explicit IndirectCommandSignature(GraphicsDevice* gfx)
+		explicit IndirectCommandSignature(GfxDevice* gfx)
 		{
 			D3D12_COMMAND_SIGNATURE_DESC desc{};
 			D3D12_INDIRECT_ARGUMENT_DESC argument_desc{};
@@ -54,7 +54,7 @@ namespace adria
 		ArcPtr<ID3D12CommandSignature> cmd_signature;
 	};
 
-	using DrawIndirectSignature			= IndirectCommandSignature<EIndirectCommandType::Draw>;
-	using DrawIndexedIndirectSignature	= IndirectCommandSignature<EIndirectCommandType::DrawIndexed>;
-	using DispatchIndirectSignature		= IndirectCommandSignature<EIndirectCommandType::Dispatch>;
+	using DrawIndirectSignature			= IndirectCommandSignature<IndirectCommandType::Draw>;
+	using DrawIndexedIndirectSignature	= IndirectCommandSignature<IndirectCommandType::DrawIndexed>;
+	using DispatchIndirectSignature		= IndirectCommandSignature<IndirectCommandType::Dispatch>;
 }

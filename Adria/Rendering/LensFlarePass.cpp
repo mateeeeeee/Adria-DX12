@@ -29,17 +29,17 @@ namespace adria
 		rg.AddPass<LensFlarePassData>("LensFlare Pass",
 			[=](LensFlarePassData& data, RenderGraphBuilder& builder)
 			{
-				builder.WriteRenderTarget(RG_RES_NAME(PostprocessMain), ERGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteRenderTarget(RG_RES_NAME(PostprocessMain), RGLoadStoreAccessOp::Preserve_Preserve);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
-			[=](LensFlarePassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](LensFlarePassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
-				if (light.type != ELightType::Directional)
+				if (light.type != LightType::Directional)
 				{
 					ADRIA_LOG(WARNING, "Using Lens Flare on a Non-Directional Light Source");
 					return;
@@ -47,7 +47,7 @@ namespace adria
 				XMFLOAT3 light_ss{};
 				{
 					auto camera_position = global_data.camera_position;
-					XMVECTOR light_position = light.type == ELightType::Directional ?
+					XMVECTOR light_position = light.type == LightType::Directional ?
 						XMVector4Transform(light.position, XMMatrixTranslation(XMVectorGetX(camera_position), 0.0f, XMVectorGetY(camera_position))) : light.position;
 					XMVECTOR LightPos = XMVector4Transform(light_position, global_data.camera_viewproj);
 					XMFLOAT4 light_pos{};
@@ -99,14 +99,14 @@ namespace adria
 				allocation.Update(constants2);
 
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::LensFlare));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::LensFlare));
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetGraphicsRoot32BitConstants(1, 8, &constants, 0);
 				cmd_list->SetGraphicsRootConstantBufferView(2, allocation.gpu_address);
 				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 				cmd_list->DrawInstanced(7, 1, 0, 0);
 
-			}, ERGPassType::Graphics, ERGPassFlags::None);
+			}, RGPassType::Graphics, RGPassFlags::None);
 	}
 
 	void LensFlarePass::OnResize(uint32 w, uint32 h)
@@ -114,7 +114,7 @@ namespace adria
 		width = w, height = h;
 	}
 
-	void LensFlarePass::OnSceneInitialized(GraphicsDevice* gfx)
+	void LensFlarePass::OnSceneInitialized(GfxDevice* gfx)
 	{
 		lens_flare_textures.push_back(TextureManager::Get().LoadTexture(L"Resources/Textures/lensflare/flare0.jpg"));
 		lens_flare_textures.push_back(TextureManager::Get().LoadTexture(L"Resources/Textures/lensflare/flare1.jpg"));

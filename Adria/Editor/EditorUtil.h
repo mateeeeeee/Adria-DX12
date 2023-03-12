@@ -8,12 +8,12 @@ namespace adria
 	class EditorLogger : public ILogger
 	{
 	public:
-		EditorLogger(ELogLevel logger_level = ELogLevel::LOG_DEBUG);
-		virtual void Log(ELogLevel level, char const* entry, char const* file, uint32_t line) override;
+		EditorLogger(LogLevel logger_level = LogLevel::LOG_DEBUG);
+		virtual void Log(LogLevel level, char const* entry, char const* file, uint32_t line) override;
 		void Draw(const char* title, bool* p_open = NULL);
 	private:
 		std::unique_ptr<struct ImGuiLogger> imgui_log;
-		ELogLevel logger_level;
+		LogLevel logger_level;
 	};
 
 	class EditorConsole

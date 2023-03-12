@@ -7,12 +7,12 @@
 
 namespace adria
 {
-	struct ShaderMacro
+	struct GfxShaderMacro
 	{
 		std::wstring name;
 		std::wstring value;
 	};
-	enum class EShaderStage
+	enum class GfxShaderStage
 	{
 		VS,
 		PS,
@@ -25,7 +25,7 @@ namespace adria
 		AS,
 		ShaderCount
 	};
-	enum EShaderModel
+	enum GfxShaderModel
 	{
 		SM_6_0,
 		SM_6_1,
@@ -36,29 +36,29 @@ namespace adria
 		SM_6_6
 	};
 
-	enum EShaderCompilerFlagBit
+	enum GfxShaderCompilerFlagBit
 	{
 		ShaderCompilerFlag_None = 0,
 		ShaderCompilerFlag_Debug = 1 << 0,
 		ShaderCompilerFlag_DisableOptimization = 1 << 1
 	};
-	using ShaderCompilerFlags = uint32;
-	struct ShaderDesc
+	using GfxShaderCompilerFlags = uint32;
+	struct GfxShaderDesc
 	{
-		EShaderStage stage = EShaderStage::ShaderCount;
-		EShaderModel model = SM_6_6;
+		GfxShaderStage stage = GfxShaderStage::ShaderCount;
+		GfxShaderModel model = SM_6_6;
 		std::string file = "";
 		std::string entry_point = "";
-		std::vector<ShaderMacro> macros{};
-		ShaderCompilerFlags flags = ShaderCompilerFlag_None;
+		std::vector<GfxShaderMacro> macros{};
+		GfxShaderCompilerFlags flags = ShaderCompilerFlag_None;
 	};
 
-	using ShaderBlob = std::vector<uint8>;
-	class Shader
+	using GfxShaderBlob = std::vector<uint8>;
+	class GfxShader
 	{
 	public:
 
-		void SetDesc(ShaderDesc const& _desc)
+		void SetDesc(GfxShaderDesc const& _desc)
 		{
 			desc = _desc;
 		}
@@ -68,7 +68,7 @@ namespace adria
 			memcpy(bytecode.data(), data, size);
 		}
 
-		ShaderDesc const& GetDesc() const { return desc; }
+		GfxShaderDesc const& GetDesc() const { return desc; }
 		void* GetPointer() const
 		{
 			return !bytecode.empty() ? (void*)bytecode.data() : nullptr;
@@ -87,7 +87,7 @@ namespace adria
 		}
 
 	private:
-		ShaderBlob bytecode;
-		ShaderDesc desc;
+		GfxShaderBlob bytecode;
+		GfxShaderDesc desc;
 	};
 }

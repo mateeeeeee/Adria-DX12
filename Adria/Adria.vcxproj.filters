@@ -107,7 +107,7 @@
     <ClCompile Include="Graphics\LinearOnlineDescriptorAllocator.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\ShaderCompiler.cpp">
+    <ClCompile Include="Graphics\GfxShaderCompiler.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\RingOnlineDescriptorAllocator.cpp">
@@ -158,13 +158,13 @@
     <ClCompile Include="Graphics\MipsGenerator.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\RenderPass.cpp">
+    <ClCompile Include="Graphics\GfxRenderPass.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\GPUProfiler.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\GraphicsDeviceDX12.cpp">
+    <ClCompile Include="Graphics\GfxDevice.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\SkyModel.cpp">
@@ -242,7 +242,7 @@
     <ClCompile Include="Rendering\PSOCache.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\GraphicsStates.cpp">
+    <ClCompile Include="Graphics\GfxStates.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\PipelineState.cpp">
@@ -380,7 +380,7 @@
     <ClCompile Include="..\ThirdParty\meshoptimizer\simplifier.cpp">
       <Filter>meshoptimizer</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\GraphicsCommon.cpp">
+    <ClCompile Include="Graphics\GfxCommon.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\GeometryBufferCache.cpp">
@@ -481,7 +481,7 @@
     <ClInclude Include="Graphics\DescriptorHeap.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\ShaderCompiler.h">
+    <ClInclude Include="Graphics\GfxShaderCompiler.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\VertexTypes.h">
@@ -502,7 +502,7 @@
     <ClInclude Include="Utilities\AllocatorUtil.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\ConstantBuffer.h">
+    <ClInclude Include="Graphics\GfxConstantBuffer.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\TextureManager.h">
@@ -520,7 +520,7 @@
     <ClInclude Include="Graphics\Releasable.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\RenderPass.h">
+    <ClInclude Include="Graphics\GfxRenderPass.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\DynamicAllocation.h">
@@ -586,7 +586,7 @@
     <ClInclude Include="Math\ComputeTangentFrame.h">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GraphicsDeviceDX12.h">
+    <ClInclude Include="Graphics\GfxDevice.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Tasks\Task.h">
@@ -634,13 +634,13 @@
     <ClInclude Include="RenderGraph\RenderGraphContext.h">
       <Filter>RenderGraph</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\Buffer.h">
+    <ClInclude Include="Graphics\GfxBuffer.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\Texture.h">
+    <ClInclude Include="Graphics\GfxTexture.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\ResourceCommon.h">
+    <ClInclude Include="Graphics\GfxResourceCommon.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\OfflineDescriptorAllocator.h">
@@ -736,13 +736,13 @@
     <ClInclude Include="Rendering\ShaderCache.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\Shader.h">
+    <ClInclude Include="Graphics\GfxShader.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\PSOCache.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GraphicsStates.h">
+    <ClInclude Include="Graphics\GfxStates.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\AABBPass.h">
@@ -799,7 +799,7 @@
     <ClInclude Include="Graphics\CommandSignature.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\InputLayout.h">
+    <ClInclude Include="Graphics\GfxInputLayout.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Math\Packing.h">
@@ -856,11 +856,14 @@
     <ClInclude Include="..\ThirdParty\meshoptimizer\meshoptimizer.h">
       <Filter>meshoptimizer</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GraphicsCommon.h">
+    <ClInclude Include="Graphics\GfxCommon.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\AutoRefCountPtr.h">
       <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxFormat.h">
+      <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

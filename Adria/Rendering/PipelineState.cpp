@@ -1,15 +1,15 @@
 #include "PipelineState.h"
 
 #include "ShaderCache.h"
-#include "../Graphics/GraphicsDeviceDX12.h"
-#include "../Graphics/GraphicsStates.h"
-#include "../Graphics/Shader.h"
+#include "../Graphics/GfxDevice.h"
+#include "../Graphics/GfxStates.h"
+#include "../Graphics/GfxShader.h"
 #include "../Core/Macros.h"
 
 namespace adria
 {
 
-	GraphicsPipelineState::GraphicsPipelineState(GraphicsDevice* gfx, GraphicsPipelineStateDesc const& desc) : desc(desc), gfx(gfx)
+	GraphicsPipelineState::GraphicsPipelineState(GfxDevice* gfx, GraphicsPipelineStateDesc const& desc) : desc(desc), gfx(gfx)
 	{
 		Create(desc);
 		event_handle = ShaderCache::GetShaderRecompiledEvent().AddMember(&GraphicsPipelineState::OnShaderRecompiled, *this);
@@ -25,9 +25,9 @@ namespace adria
 		return pso.Get();
 	}
 
-	void GraphicsPipelineState::OnShaderRecompiled(EShaderId s)
+	void GraphicsPipelineState::OnShaderRecompiled(GfxShaderID s)
 	{
-		EShaderId shaders[] = { desc.VS, desc.PS, desc.GS, desc.HS, desc.DS };
+		GfxShaderID shaders[] = { desc.VS, desc.PS, desc.GS, desc.HS, desc.DS };
 		for (size_t i = 0; i < ARRAYSIZE(shaders); ++i)
 		{
 			if (s == shaders[i])
@@ -54,11 +54,11 @@ namespace adria
 		_desc.RasterizerState = ConvertRasterizerDesc(desc.rasterizer_state);
 		_desc.DepthStencilState = ConvertDepthStencilDesc(desc.depth_state);
 		_desc.SampleDesc = DXGI_SAMPLE_DESC{ .Count = 1, .Quality = 0 };
-		_desc.DSVFormat = ConvertFormat(desc.dsv_format);
+		_desc.DSVFormat = ConvertGfxFormat(desc.dsv_format);
 		_desc.NumRenderTargets = desc.num_render_targets;
 		for (size_t i = 0; i < ARRAYSIZE(_desc.RTVFormats); ++i)
 		{
-			_desc.RTVFormats[i] = ConvertFormat(desc.rtv_formats[i]);
+			_desc.RTVFormats[i] = ConvertGfxFormat(desc.rtv_formats[i]);
 		}
 		_desc.PrimitiveTopologyType = ConvertPrimitiveTopologyType(desc.topology_type);
 		_desc.SampleMask = desc.sample_mask;
@@ -66,7 +66,7 @@ namespace adria
 		BREAK_IF_FAILED(gfx->GetDevice()->CreateGraphicsPipelineState(&_desc, IID_PPV_ARGS(pso.ReleaseAndGetAddressOf())));
 	}
 
-	ComputePipelineState::ComputePipelineState(GraphicsDevice* gfx, ComputePipelineStateDesc const& desc) : gfx(gfx), desc(desc)
+	ComputePipelineState::ComputePipelineState(GfxDevice* gfx, ComputePipelineStateDesc const& desc) : gfx(gfx), desc(desc)
 	{
 		Create(desc);
 		event_handle = ShaderCache::GetShaderRecompiledEvent().AddMember(&ComputePipelineState::OnShaderRecompiled, *this);
@@ -82,7 +82,7 @@ namespace adria
 		return pso.Get();
 	}
 
-	void ComputePipelineState::OnShaderRecompiled(EShaderId s)
+	void ComputePipelineState::OnShaderRecompiled(GfxShaderID s)
 	{
 		if (s == desc.CS) Create(desc);
 	}

@@ -7,7 +7,7 @@
 namespace adria
 {
 	class RenderGraph;
-	class GraphicsDevice;
+	class GfxDevice;
 
 	class VolumetricCloudsPass
 	{
@@ -27,7 +27,7 @@ namespace adria
 
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h);
-		void OnSceneInitialized(GraphicsDevice* gfx);
+		void OnSceneInitialized(GfxDevice* gfx);
 
 	private:
 		uint32 width, height;

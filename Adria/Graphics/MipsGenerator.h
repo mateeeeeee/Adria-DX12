@@ -1,5 +1,5 @@
 #pragma once
-#include "GraphicsDeviceDX12.h"
+#include "GfxDevice.h"
 
 namespace adria
 {
@@ -8,12 +8,12 @@ namespace adria
 	{
 	public:
 
-		MipsGenerator(GraphicsDevice* gfx, UINT max_textures);
+		MipsGenerator(GfxDevice* gfx, UINT max_textures);
 		void Add(ID3D12Resource* texture);
 		void Generate(ID3D12GraphicsCommandList* command_list);
 
 	private:
-		GraphicsDevice* gfx;
+		GfxDevice* gfx;
 		std::unique_ptr<LinearOnlineDescriptorAllocator> descriptor_allocator;
 		std::vector<ID3D12Resource*> resources;
 	private:

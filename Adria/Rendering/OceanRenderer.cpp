@@ -5,9 +5,9 @@
 #include "PSOCache.h" 
 
 #include "../RenderGraph/RenderGraph.h"
-#include "../Graphics/Texture.h"
+#include "../Graphics/GfxTexture.h"
 #include "../Graphics/TextureManager.h"
-#include "../Graphics/GraphicsCommon.h"
+#include "../Graphics/GfxCommon.h"
 #include "../Editor/GUICommand.h"
 #include "../Utilities/Random.h"
 #include "../Math/Constants.h"
@@ -54,7 +54,7 @@ namespace adria
 				{
 					data.initial_spectrum = builder.WriteTexture(RG_RES_NAME(InitialSpectrum));
 				},
-				[=](InitialSpectrumPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+				[=](InitialSpectrumPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 				{
 					auto device = gfx->GetDevice();
 					auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -73,11 +73,11 @@ namespace adria
 					};
 
 					
-					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::InitialSpectrum));
+					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::InitialSpectrum));
 					cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 					cmd_list->SetComputeRoot32BitConstants(1, 3, &constants, 0);
 					cmd_list->Dispatch(FFT_RESOLUTION / 16, FFT_RESOLUTION / 16, 1);
-				}, ERGPassType::Compute, ERGPassFlags::None);
+				}, RGPassType::Compute, RGPassFlags::None);
 		}
 		
 		struct PhasePassData
@@ -91,7 +91,7 @@ namespace adria
 				data.phase_srv = builder.ReadTexture(RG_RES_NAME(PongPhase), ReadAccess_NonPixelShader);
 				data.phase_uav = builder.WriteTexture(RG_RES_NAME(PingPhase));
 			},
-			[=](PhasePassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](PhasePassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				auto device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -115,11 +115,11 @@ namespace adria
 				};
 
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Phase));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Phase));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 5, &constants, 0);
 				cmd_list->Dispatch(FFT_RESOLUTION / 16, FFT_RESOLUTION / 16, 1);
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::None);
 		pong_phase = !pong_phase;
 
 		struct SpectrumPassData
@@ -135,7 +135,7 @@ namespace adria
 				data.initial_spectrum_srv = builder.ReadTexture(RG_RES_NAME(InitialSpectrum), ReadAccess_NonPixelShader);
 				data.spectrum_uav = builder.WriteTexture(RG_RES_NAME(PongSpectrum));
 			},
-			[=](SpectrumPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](SpectrumPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				auto device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -162,12 +162,12 @@ namespace adria
 				};
 
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Spectrum));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Spectrum));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);
 				cmd_list->Dispatch(FFT_RESOLUTION / 16, FFT_RESOLUTION / 16, 1);
 
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::None);
 
 		struct FFTConstants
 		{
@@ -193,13 +193,13 @@ namespace adria
 					data.spectrum_srv = builder.ReadTexture(pong_spectrum_texture, ReadAccess_NonPixelShader);
 					data.spectrum_uav = builder.WriteTexture(ping_spectrum_texture);
 				},
-				[=](FFTHorizontalPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+				[=](FFTHorizontalPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 				{
 					auto device = gfx->GetDevice();
 					auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 					
-					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::FFT_Horizontal));
+					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::FFT_Horizontal));
 
 					uint32 i = (uint32)descriptor_allocator->AllocateRange(2);
 					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i), ctx.GetReadOnlyTexture(data.spectrum_srv), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -214,7 +214,7 @@ namespace adria
 					cmd_list->SetComputeRoot32BitConstants(1, 4, &fft_constants, 0);
 					cmd_list->Dispatch(FFT_RESOLUTION, 1, 1);
 
-				}, ERGPassType::Compute, ERGPassFlags::None);
+				}, RGPassType::Compute, RGPassFlags::None);
 			pong_spectrum = !pong_spectrum;
 		}
 
@@ -235,13 +235,13 @@ namespace adria
 					data.spectrum_srv = builder.ReadTexture(pong_spectrum_texture, ReadAccess_NonPixelShader);
 					data.spectrum_uav = builder.WriteTexture(ping_spectrum_texture);
 				},
-				[=](FFTVerticalPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+				[=](FFTVerticalPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 				{
 					auto device = gfx->GetDevice();
 					auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 					
-					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::FFT_Vertical));
+					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::FFT_Vertical));
 
 					uint32 i = (uint32)descriptor_allocator->AllocateRange(2);
 					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i), ctx.GetReadOnlyTexture(data.spectrum_srv), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -256,7 +256,7 @@ namespace adria
 					cmd_list->SetComputeRoot32BitConstants(1, 4, &fft_constants, 0);
 					cmd_list->Dispatch(FFT_RESOLUTION, 1, 1);
 
-				}, ERGPassType::Compute, ERGPassFlags::None);
+				}, RGPassType::Compute, RGPassFlags::None);
 			pong_spectrum = !pong_spectrum;
 		}
 
@@ -271,14 +271,14 @@ namespace adria
 				RGTextureDesc ocean_desc{};
 				ocean_desc.width = FFT_RESOLUTION;
 				ocean_desc.height = FFT_RESOLUTION;
-				ocean_desc.format = EFormat::R32G32B32A32_FLOAT;
+				ocean_desc.format = GfxFormat::R32G32B32A32_FLOAT;
 				builder.DeclareTexture(RG_RES_NAME(OceanNormals), ocean_desc);
 
 				RGResourceName pong_spectrum_texture = !pong_spectrum ? RG_RES_NAME(PongSpectrum) : RG_RES_NAME(PingSpectrum);
 				data.spectrum_srv = builder.ReadTexture(pong_spectrum_texture, ReadAccess_NonPixelShader);
 				data.normals_uav = builder.WriteTexture(RG_RES_NAME(OceanNormals));
 			},
-			[=](OceanNormalsPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](OceanNormalsPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				auto device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -302,11 +302,11 @@ namespace adria
 				};
 
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::OceanNormals));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::OceanNormals));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 5, &constants, 0);
 				cmd_list->Dispatch(FFT_RESOLUTION / 16, FFT_RESOLUTION / 16, 1);
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::None);
 
 		struct OceanDrawPass
 		{
@@ -320,18 +320,18 @@ namespace adria
 				RGResourceName ping_spectrum_texture = !pong_spectrum ? RG_RES_NAME(PingSpectrum) : RG_RES_NAME(PongSpectrum);
 				data.displacement = builder.ReadTexture(ping_spectrum_texture, ReadAccess_NonPixelShader);
 				data.normals = builder.ReadTexture(RG_RES_NAME(OceanNormals), ReadAccess_PixelShader);
-				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), ERGLoadStoreAccessOp::Preserve_Preserve);
-				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), ERGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](OceanDrawPass const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](OceanDrawPass const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 				auto skyboxes = reg.view<Skybox>();
-				D3D12_CPU_DESCRIPTOR_HANDLE skybox_handle = gfxcommon::GetCommonView(ECommonViewType::NullTextureCube_SRV);
+				D3D12_CPU_DESCRIPTOR_HANDLE skybox_handle = gfxcommon::GetCommonView(GfxCommonViewType::NullTextureCube_SRV);
 				for (auto skybox : skyboxes)
 				{
 					auto const& _skybox = skyboxes.get<Skybox>(skybox);
@@ -345,14 +345,14 @@ namespace adria
 				if (ocean_tesselation)
 				{
 					cmd_list->SetPipelineState(
-						ocean_tesselation ? PSOCache::Get(EPipelineState::OceanLOD_Wireframe) :
-						PSOCache::Get(EPipelineState::OceanLOD));
+						ocean_tesselation ? PSOCache::Get(GfxPipelineStateID::OceanLOD_Wireframe) :
+						PSOCache::Get(GfxPipelineStateID::OceanLOD));
 				}
 				else
 				{
 					cmd_list->SetPipelineState(
-						ocean_wireframe ? PSOCache::Get(EPipelineState::Ocean_Wireframe) :
-						PSOCache::Get(EPipelineState::Ocean));
+						ocean_wireframe ? PSOCache::Get(GfxPipelineStateID::Ocean_Wireframe) :
+						PSOCache::Get(GfxPipelineStateID::Ocean));
 				}
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 
@@ -402,7 +402,7 @@ namespace adria
 					}
 				}
 			}, 
-			ERGPassType::Graphics, ERGPassFlags::None);
+			RGPassType::Graphics, RGPassFlags::None);
 
 		AddGUI([&]()
 			{
@@ -425,34 +425,34 @@ namespace adria
 		width = w, height = h;
 	}
 
-	void OceanRenderer::OnSceneInitialized(GraphicsDevice* gfx)
+	void OceanRenderer::OnSceneInitialized(GfxDevice* gfx)
 	{
 		foam_handle = TextureManager::Get().LoadTexture(L"Resources/Textures/foam.jpg");
 		perlin_handle = TextureManager::Get().LoadTexture(L"Resources/Textures/perlin.dds");
 
-		TextureDesc ocean_texture_desc{};
+		GfxTextureDesc ocean_texture_desc{};
 		ocean_texture_desc.width = FFT_RESOLUTION;
 		ocean_texture_desc.height = FFT_RESOLUTION;
-		ocean_texture_desc.format = EFormat::R32_FLOAT;
-		ocean_texture_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::UnorderedAccess;
-		ocean_texture_desc.initial_state = EResourceState::UnorderedAccess;
-		initial_spectrum = std::make_unique<Texture>(gfx, ocean_texture_desc);
+		ocean_texture_desc.format = GfxFormat::R32_FLOAT;
+		ocean_texture_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
+		ocean_texture_desc.initial_state = GfxResourceState::UnorderedAccess;
+		initial_spectrum = std::make_unique<GfxTexture>(gfx, ocean_texture_desc);
 
 		std::vector<float> ping_array(FFT_RESOLUTION * FFT_RESOLUTION);
 		RealRandomGenerator rand_float{ 0.0f,  2.0f * pi<float> };
 		for (size_t i = 0; i < ping_array.size(); ++i) ping_array[i] = rand_float();
 
-		TextureInitialData data{};
+		GfxTextureInitialData data{};
 		data.pData = ping_array.data();
 		data.RowPitch = sizeof(float) * FFT_RESOLUTION;
 		data.SlicePitch = 0;
 
-		ping_pong_phase_textures[pong_phase] = std::make_unique<Texture>(gfx, ocean_texture_desc, &data);
-		ping_pong_phase_textures[!pong_phase] = std::make_unique<Texture>(gfx, ocean_texture_desc);
+		ping_pong_phase_textures[pong_phase] = std::make_unique<GfxTexture>(gfx, ocean_texture_desc, &data);
+		ping_pong_phase_textures[!pong_phase] = std::make_unique<GfxTexture>(gfx, ocean_texture_desc);
 
-		ocean_texture_desc.format = EFormat::R32G32B32A32_FLOAT;
-		ping_pong_spectrum_textures[pong_spectrum] = std::make_unique<Texture>(gfx, ocean_texture_desc);
-		ping_pong_spectrum_textures[!pong_spectrum] = std::make_unique<Texture>(gfx, ocean_texture_desc);
+		ocean_texture_desc.format = GfxFormat::R32G32B32A32_FLOAT;
+		ping_pong_spectrum_textures[pong_spectrum] = std::make_unique<GfxTexture>(gfx, ocean_texture_desc);
+		ping_pong_spectrum_textures[!pong_spectrum] = std::make_unique<GfxTexture>(gfx, ocean_texture_desc);
 	}
 
 }

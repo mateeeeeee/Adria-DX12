@@ -1,6 +1,6 @@
 #pragma once
-#include "../Graphics/Buffer.h"
-#include "../Graphics/Texture.h"
+#include "../Graphics/GfxBuffer.h"
+#include "../Graphics/GfxTexture.h"
 
 namespace adria
 {
@@ -8,18 +8,18 @@ namespace adria
 	{
 		struct PooledTexture
 		{
-			std::unique_ptr<Texture> texture;
+			std::unique_ptr<GfxTexture> texture;
 			uint64 last_used_frame;
 		};
 
 		struct PooledBuffer
 		{
-			std::unique_ptr<Buffer> buffer;
+			std::unique_ptr<GfxBuffer> buffer;
 			uint64 last_used_frame;
 		};
 
 	public:
-		explicit RenderGraphResourcePool(GraphicsDevice* device) : device(device) {}
+		explicit RenderGraphResourcePool(GfxDevice* device) : device(device) {}
 
 		void Tick()
 		{
@@ -37,7 +37,7 @@ namespace adria
 			++frame_index;
 		}
 
-		Texture* AllocateTexture(TextureDesc const& desc)
+		GfxTexture* AllocateTexture(GfxTextureDesc const& desc)
 		{
 			for (auto& [pool_texture, active] : texture_pool)
 			{
@@ -48,10 +48,10 @@ namespace adria
 					return pool_texture.texture.get();
 				}
 			}
-			auto& texture = texture_pool.emplace_back(std::pair{ PooledTexture{ std::make_unique<Texture>(device, desc), frame_index}, true }).first.texture;
+			auto& texture = texture_pool.emplace_back(std::pair{ PooledTexture{ std::make_unique<GfxTexture>(device, desc), frame_index}, true }).first.texture;
 			return texture.get();
 		}
-		void ReleaseTexture(Texture* texture)
+		void ReleaseTexture(GfxTexture* texture)
 		{
 			for (auto& [pooled_texture, active] : texture_pool)
 			{
@@ -63,7 +63,7 @@ namespace adria
 			}
 		}
 
-		Buffer* AllocateBuffer(BufferDesc const& desc)
+		GfxBuffer* AllocateBuffer(GfxBufferDesc const& desc)
 		{
 			for (auto& [pool_buffer, active] : buffer_pool)
 			{
@@ -74,10 +74,10 @@ namespace adria
 					return pool_buffer.buffer.get();
 				}
 			}
-			auto& buffer = buffer_pool.emplace_back(std::pair{ PooledBuffer{ std::make_unique<Buffer>(device, desc), frame_index}, true }).first.buffer;
+			auto& buffer = buffer_pool.emplace_back(std::pair{ PooledBuffer{ std::make_unique<GfxBuffer>(device, desc), frame_index}, true }).first.buffer;
 			return buffer.get();
 		}
-		void ReleaseBuffer(Buffer* buffer)
+		void ReleaseBuffer(GfxBuffer* buffer)
 		{
 			for (auto& [pooled_buffer, active] : buffer_pool)
 			{
@@ -89,9 +89,9 @@ namespace adria
 			}
 		}
 
-		GraphicsDevice* GetDevice() const { return device; }
+		GfxDevice* GetDevice() const { return device; }
 	private:
-		GraphicsDevice* device = nullptr;
+		GfxDevice* device = nullptr;
 		uint64 frame_index = 0;
 		std::vector<std::pair<PooledTexture, bool>> texture_pool;
 		std::vector<std::pair<PooledBuffer, bool>>  buffer_pool;

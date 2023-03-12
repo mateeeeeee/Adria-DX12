@@ -27,27 +27,27 @@ namespace adria
 				RGTextureDesc gbuffer_desc{};
 				gbuffer_desc.width = width;
 				gbuffer_desc.height = height;
-				gbuffer_desc.format = EFormat::R8G8B8A8_UNORM;
-				gbuffer_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
+				gbuffer_desc.format = GfxFormat::R8G8B8A8_UNORM;
+				gbuffer_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 				
 				builder.DeclareTexture(RG_RES_NAME(GBufferNormal), gbuffer_desc);
 				builder.DeclareTexture(RG_RES_NAME(GBufferAlbedo), gbuffer_desc);
 				builder.DeclareTexture(RG_RES_NAME(GBufferEmissive), gbuffer_desc);
 
-				builder.WriteRenderTarget(RG_RES_NAME(GBufferNormal), ERGLoadStoreAccessOp::Clear_Preserve);
-				builder.WriteRenderTarget(RG_RES_NAME(GBufferAlbedo), ERGLoadStoreAccessOp::Clear_Preserve);
-				builder.WriteRenderTarget(RG_RES_NAME(GBufferEmissive), ERGLoadStoreAccessOp::Clear_Preserve);
+				builder.WriteRenderTarget(RG_RES_NAME(GBufferNormal), RGLoadStoreAccessOp::Clear_Preserve);
+				builder.WriteRenderTarget(RG_RES_NAME(GBufferAlbedo), RGLoadStoreAccessOp::Clear_Preserve);
+				builder.WriteRenderTarget(RG_RES_NAME(GBufferEmissive), RGLoadStoreAccessOp::Clear_Preserve);
 				
 				RGTextureDesc depth_desc{};
 				depth_desc.width = width;
 				depth_desc.height = height;
-				depth_desc.format = EFormat::R32_TYPELESS;
-				depth_desc.clear_value = ClearValue(1.0f, 0);
+				depth_desc.format = GfxFormat::R32_TYPELESS;
+				depth_desc.clear_value = GfxClearValue(1.0f, 0);
 				builder.DeclareTexture(RG_RES_NAME(DepthStencil), depth_desc);
-				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), ERGLoadStoreAccessOp::Clear_Preserve);
+				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Clear_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -55,7 +55,7 @@ namespace adria
 				
 				struct BatchParams
 				{
-					EPipelineState pso;
+					GfxPipelineStateID pso;
 					auto operator<=>(BatchParams const&) const = default;
 				};
 				std::map<BatchParams, std::vector<entt::entity>> batched_entities;
@@ -123,7 +123,7 @@ namespace adria
 						mesh.Draw(cmd_list);
 					}
 				}
-			}, ERGPassType::Graphics, ERGPassFlags::None);
+			}, RGPassType::Graphics, RGPassFlags::None);
 	}
 
 	void GBufferPass::OnResize(uint32 w, uint32 h)

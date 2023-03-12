@@ -24,7 +24,7 @@ namespace adria
 		uint32 light_count;
 	};
 
-	ClusteredDeferredLightingPass::ClusteredDeferredLightingPass(entt::registry& reg, GraphicsDevice* gfx, uint32 w, uint32 h) : reg(reg), width(w), height(h),
+	ClusteredDeferredLightingPass::ClusteredDeferredLightingPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h) : reg(reg), width(w), height(h),
 		clusters(gfx, StructuredBufferDesc<ClusterAABB>(CLUSTER_COUNT)),
 		light_counter(gfx, StructuredBufferDesc<uint32>(1)),
 		light_list(gfx, StructuredBufferDesc<uint32>(CLUSTER_COUNT * CLUSTER_MAX_LIGHTS)),
@@ -53,7 +53,7 @@ namespace adria
 				{
 					data.clusters = builder.WriteBuffer(RG_RES_NAME(ClustersBuffer));
 				},
-				[=](ClusterBuildingPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+				[=](ClusterBuildingPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 				{
 					ID3D12Device* device = gfx->GetDevice();
 					auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -63,11 +63,11 @@ namespace adria
 					device->CopyDescriptorsSimple(1, dst_descriptor, context.GetReadWriteBuffer(data.clusters), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 					
-					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ClusterBuilding));
+					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ClusterBuilding));
 					cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 					cmd_list->SetComputeRoot32BitConstant(1, (uint32)i, 0);
 					cmd_list->Dispatch(CLUSTER_SIZE_X, CLUSTER_SIZE_Y, CLUSTER_SIZE_Z);
-				}, ERGPassType::Compute, ERGPassFlags::None);
+				}, RGPassType::Compute, RGPassFlags::None);
 		}
 
 		struct ClusterCullingPassData
@@ -85,7 +85,7 @@ namespace adria
 				data.light_grid = builder.WriteBuffer(RG_RES_NAME(LightGrid));
 				data.light_list = builder.WriteBuffer(RG_RES_NAME(LightList));
 			},
-			[=](ClusterCullingPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](ClusterCullingPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto upload_buffer = gfx->GetDynamicAllocator();
@@ -115,12 +115,12 @@ namespace adria
 				};
 				
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ClusterCulling));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ClusterCulling));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 4, &constants, 0);
 				cmd_list->Dispatch(CLUSTER_SIZE_X / 16, CLUSTER_SIZE_Y / 16, CLUSTER_SIZE_Z / 1);
 
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::None);
 
 		struct ClusteredDeferredLightingPassData
 		{
@@ -141,7 +141,7 @@ namespace adria
 				data.light_list = builder.ReadBuffer(RG_RES_NAME(LightList), ReadAccess_PixelShader);
 				data.output = builder.WriteTexture(RG_RES_NAME(HDR_RenderTarget));
 			},
-			[=](ClusteredDeferredLightingPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](ClusteredDeferredLightingPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto upload_buffer = gfx->GetDynamicAllocator();
@@ -172,11 +172,11 @@ namespace adria
 				};
 
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ClusteredDeferredLighting));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ClusteredDeferredLighting));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);
 				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::None);
 	}
 
 }

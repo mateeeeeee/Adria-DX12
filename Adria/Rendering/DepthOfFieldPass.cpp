@@ -35,7 +35,7 @@ namespace adria
 				RGTextureDesc dof_output_desc{};
 				dof_output_desc.width = width;
 				dof_output_desc.height = height;
-				dof_output_desc.format = EFormat::R16G16B16A16_FLOAT;
+				dof_output_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 
 				builder.DeclareTexture(RG_RES_NAME(DepthOfFieldOutput), dof_output_desc);
 				data.output = builder.WriteTexture(RG_RES_NAME(DepthOfFieldOutput));
@@ -43,14 +43,14 @@ namespace adria
 				data.blurred_input = builder.ReadTexture(RG_RES_NAME(BlurredDofInput), ReadAccess_PixelShader);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
 			},
-			[=](DepthOfFieldPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](DepthOfFieldPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::DOF));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DOF));
 
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(4);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.depth), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -74,7 +74,7 @@ namespace adria
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
 				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::None);
 
 		AddGUI([&]()
 			{

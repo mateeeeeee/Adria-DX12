@@ -51,7 +51,7 @@ namespace adria
 	{
 		RGTextureCopySrcId copy_src_id = rg.ReadCopySrcTexture(name);
 		RGTextureId res_id(copy_src_id);
-		rg_pass.texture_state_map[res_id] = EResourceState::CopySource;
+		rg_pass.texture_state_map[res_id] = GfxResourceState::CopySource;
 		rg_pass.texture_reads.insert(res_id);
 		return copy_src_id;
 	}
@@ -60,70 +60,70 @@ namespace adria
 	{
 		RGTextureCopyDstId copy_dst_id = rg.WriteCopyDstTexture(name);
 		RGTextureId res_id(copy_dst_id);
-		rg_pass.texture_state_map[res_id] = EResourceState::CopyDest;
+		rg_pass.texture_state_map[res_id] = GfxResourceState::CopyDest;
 		if (!rg_pass.texture_creates.contains(res_id) && !rg_pass.ActAsCreatorWhenWriting())
 		{
 			DummyReadTexture(name);
 		}
 		rg_pass.texture_writes.insert(res_id);
 		auto* texture = rg.GetRGTexture(res_id);
-		if (texture->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
+		if (texture->imported) rg_pass.flags |= RGPassFlags::ForceNoCull;
 		return copy_dst_id;
 	}
 
-	RGTextureReadOnlyId RenderGraphBuilder::ReadTextureImpl(RGResourceName name, ERGReadAccess read_access, TextureSubresourceDesc const& desc /*= {}*/)
+	RGTextureReadOnlyId RenderGraphBuilder::ReadTextureImpl(RGResourceName name, RGReadAccess read_access, GfxTextureSubresourceDesc const& desc /*= {}*/)
 	{
-		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
+		ADRIA_ASSERT(rg_pass.type != RGPassType::Copy && "Invalid Call in Copy Pass");
 		RGTextureReadOnlyId read_only_id = rg.ReadTexture(name, desc);
 		RGTextureId res_id = read_only_id.GetResourceId();
-		if (rg_pass.type == ERGPassType::Graphics)
+		if (rg_pass.type == RGPassType::Graphics)
 		{
 			switch (read_access)
 			{
 			case ReadAccess_PixelShader:
-				rg_pass.texture_state_map[res_id] = EResourceState::PixelShaderResource;
+				rg_pass.texture_state_map[res_id] = GfxResourceState::PixelShaderResource;
 				break;
 			case ReadAccess_NonPixelShader:
-				rg_pass.texture_state_map[res_id] = EResourceState::NonPixelShaderResource;
+				rg_pass.texture_state_map[res_id] = GfxResourceState::NonPixelShaderResource;
 				break;
 			case ReadAccess_AllShader:
-				rg_pass.texture_state_map[res_id] = EResourceState::AllShaderResource;
+				rg_pass.texture_state_map[res_id] = GfxResourceState::AllShaderResource;
 				break;
 			default:
 				ADRIA_ASSERT(false && "Invalid Read Flag!");
 			}
 		}
-		else if(rg_pass.type == ERGPassType::Compute || rg_pass.type == ERGPassType::ComputeAsync)
+		else if(rg_pass.type == RGPassType::Compute || rg_pass.type == RGPassType::ComputeAsync)
 		{
-			rg_pass.texture_state_map[res_id] = EResourceState::NonPixelShaderResource;
+			rg_pass.texture_state_map[res_id] = GfxResourceState::NonPixelShaderResource;
 		}
 		
 		rg_pass.texture_reads.insert(res_id);
 		return read_only_id;
 	}
 
-	RGTextureReadWriteId RenderGraphBuilder::WriteTextureImpl(RGResourceName name, TextureSubresourceDesc const& desc /*= {}*/)
+	RGTextureReadWriteId RenderGraphBuilder::WriteTextureImpl(RGResourceName name, GfxTextureSubresourceDesc const& desc /*= {}*/)
 	{
-		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
+		ADRIA_ASSERT(rg_pass.type != RGPassType::Copy && "Invalid Call in Copy Pass");
 		RGTextureReadWriteId read_write_id = rg.WriteTexture(name, desc);
 		RGTextureId res_id = read_write_id.GetResourceId();
-		rg_pass.texture_state_map[res_id] = EResourceState::UnorderedAccess;
+		rg_pass.texture_state_map[res_id] = GfxResourceState::UnorderedAccess;
 		if (!rg_pass.texture_creates.contains(res_id) && !rg_pass.ActAsCreatorWhenWriting())
 		{
 			DummyReadTexture(name);
 		}
 		rg_pass.texture_writes.insert(res_id);
 		auto* texture = rg.GetRGTexture(res_id);
-		if (texture->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
+		if (texture->imported) rg_pass.flags |= RGPassFlags::ForceNoCull;
 		return read_write_id;
 	}
 
-	RGRenderTargetId RenderGraphBuilder::WriteRenderTargetImpl(RGResourceName name, ERGLoadStoreAccessOp load_store_op, TextureSubresourceDesc const& desc /*= {}*/)
+	RGRenderTargetId RenderGraphBuilder::WriteRenderTargetImpl(RGResourceName name, RGLoadStoreAccessOp load_store_op, GfxTextureSubresourceDesc const& desc /*= {}*/)
 	{
-		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
+		ADRIA_ASSERT(rg_pass.type != RGPassType::Copy && "Invalid Call in Copy Pass");
 		RGRenderTargetId render_target_id = rg.RenderTarget(name, desc);
 		RGTextureId res_id = render_target_id.GetResourceId();
-		rg_pass.texture_state_map[res_id] = EResourceState::RenderTarget;
+		rg_pass.texture_state_map[res_id] = GfxResourceState::RenderTarget;
 		rg_pass.render_targets_info.push_back(RenderGraphPassBase::RenderTargetInfo{ .render_target_handle = render_target_id, .render_target_access = load_store_op });
 		if (!rg_pass.texture_creates.contains(res_id) && !rg_pass.ActAsCreatorWhenWriting())
 		{
@@ -131,16 +131,16 @@ namespace adria
 		}
 		rg_pass.texture_writes.insert(res_id);
 		auto* rg_texture = rg.GetRGTexture(res_id);
-		if (rg_texture->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
+		if (rg_texture->imported) rg_pass.flags |= RGPassFlags::ForceNoCull;
 		return render_target_id;
 	}
 
-	RGDepthStencilId RenderGraphBuilder::WriteDepthStencilImpl(RGResourceName name, ERGLoadStoreAccessOp load_store_op, ERGLoadStoreAccessOp stencil_load_store_op /*= ERGLoadStoreAccessOp::NoAccess_NoAccess*/, TextureSubresourceDesc const& desc /*= {}*/)
+	RGDepthStencilId RenderGraphBuilder::WriteDepthStencilImpl(RGResourceName name, RGLoadStoreAccessOp load_store_op, RGLoadStoreAccessOp stencil_load_store_op /*= ERGLoadStoreAccessOp::NoAccess_NoAccess*/, GfxTextureSubresourceDesc const& desc /*= {}*/)
 	{
-		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
+		ADRIA_ASSERT(rg_pass.type != RGPassType::Copy && "Invalid Call in Copy Pass");
 		RGDepthStencilId depth_stencil_id = rg.DepthStencil(name, desc);
 		RGTextureId res_id = depth_stencil_id.GetResourceId();
-		rg_pass.texture_state_map[res_id] = EResourceState::DepthWrite;
+		rg_pass.texture_state_map[res_id] = GfxResourceState::DepthWrite;
 		rg_pass.depth_stencil = RenderGraphPassBase::DepthStencilInfo{ .depth_stencil_handle = depth_stencil_id, .depth_access = load_store_op,.stencil_access = stencil_load_store_op, .readonly = false };
 		if (!rg_pass.texture_creates.contains(res_id) && !rg_pass.ActAsCreatorWhenWriting())
 		{
@@ -148,13 +148,13 @@ namespace adria
 		}
 		rg_pass.texture_writes.insert(res_id);
 		auto* rg_texture = rg.GetRGTexture(res_id);
-		if (rg_texture->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
+		if (rg_texture->imported) rg_pass.flags |= RGPassFlags::ForceNoCull;
 		return depth_stencil_id;
 	}
 
-	RGDepthStencilId RenderGraphBuilder::ReadDepthStencilImpl(RGResourceName name, ERGLoadStoreAccessOp load_store_op, ERGLoadStoreAccessOp stencil_load_store_op /*= ERGLoadStoreAccessOp::NoAccess_NoAccess*/, TextureSubresourceDesc const& desc /*= {}*/)
+	RGDepthStencilId RenderGraphBuilder::ReadDepthStencilImpl(RGResourceName name, RGLoadStoreAccessOp load_store_op, RGLoadStoreAccessOp stencil_load_store_op /*= ERGLoadStoreAccessOp::NoAccess_NoAccess*/, GfxTextureSubresourceDesc const& desc /*= {}*/)
 	{
-		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
+		ADRIA_ASSERT(rg_pass.type != RGPassType::Copy && "Invalid Call in Copy Pass");
 		RGDepthStencilId depth_stencil_id = rg.DepthStencil(name, desc);
 		RGTextureId res_id = depth_stencil_id.GetResourceId();
 
@@ -162,8 +162,8 @@ namespace adria
 		auto* rg_texture = rg.GetRGTexture(res_id);
 		rg_pass.texture_reads.insert(res_id);
 
-		if (rg_texture->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
-		rg_pass.texture_state_map[res_id] = EResourceState::DepthRead;
+		if (rg_texture->imported) rg_pass.flags |= RGPassFlags::ForceNoCull;
+		rg_pass.texture_state_map[res_id] = GfxResourceState::DepthRead;
 		return depth_stencil_id;
 	}
 
@@ -171,7 +171,7 @@ namespace adria
 	{
 		RGBufferCopySrcId copy_src_id = rg.ReadCopySrcBuffer(name);
 		RGBufferId res_id(copy_src_id);
-		rg_pass.buffer_state_map[res_id] = EResourceState::CopySource;
+		rg_pass.buffer_state_map[res_id] = GfxResourceState::CopySource;
 		rg_pass.buffer_reads.insert(res_id);
 		return copy_src_id;
 	}
@@ -180,14 +180,14 @@ namespace adria
 	{
 		RGBufferCopyDstId copy_dst_id = rg.WriteCopyDstBuffer(name);
 		RGBufferId res_id(copy_dst_id);
-		rg_pass.buffer_state_map[res_id] = EResourceState::CopyDest;
+		rg_pass.buffer_state_map[res_id] = GfxResourceState::CopyDest;
 		if (!rg_pass.buffer_creates.contains(res_id) && !rg_pass.ActAsCreatorWhenWriting())
 		{
 			DummyReadBuffer(name);
 		}
 		rg_pass.buffer_writes.insert(res_id);
 		auto* buffer = rg.GetRGBuffer(res_id);
-		if (buffer->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
+		if (buffer->imported) rg_pass.flags |= RGPassFlags::ForceNoCull;
 		return copy_dst_id;
 	}
 
@@ -195,7 +195,7 @@ namespace adria
 	{
 		RGBufferIndirectArgsId indirect_args_id = rg.ReadIndirectArgsBuffer(name);
 		RGBufferId res_id(indirect_args_id);
-		rg_pass.buffer_state_map[res_id] = EResourceState::IndirectArgument;
+		rg_pass.buffer_state_map[res_id] = GfxResourceState::IndirectArgument;
 		rg_pass.buffer_reads.insert(res_id);
 		return indirect_args_id;
 	}
@@ -204,7 +204,7 @@ namespace adria
 	{
 		RGBufferVertexId vertex_buf_id = rg.ReadVertexBuffer(name);
 		RGBufferId res_id(vertex_buf_id);
-		rg_pass.buffer_state_map[res_id] = EResourceState::VertexAndConstantBuffer;
+		rg_pass.buffer_state_map[res_id] = GfxResourceState::VertexAndConstantBuffer;
 		rg_pass.buffer_reads.insert(res_id);
 		return vertex_buf_id;
 	}
@@ -213,7 +213,7 @@ namespace adria
 	{
 		RGBufferIndexId index_buf_id = rg.ReadVertexBuffer(name);
 		RGBufferId res_id(index_buf_id);
-		rg_pass.buffer_state_map[res_id] = EResourceState::IndexBuffer;
+		rg_pass.buffer_state_map[res_id] = GfxResourceState::IndexBuffer;
 		rg_pass.buffer_reads.insert(res_id);
 		return index_buf_id;
 	}
@@ -222,69 +222,69 @@ namespace adria
 	{
 		RGBufferConstantId constant_buf_id = rg.ReadVertexBuffer(name);
 		RGBufferId res_id(constant_buf_id);
-		rg_pass.buffer_state_map[res_id] = EResourceState::VertexAndConstantBuffer;
+		rg_pass.buffer_state_map[res_id] = GfxResourceState::VertexAndConstantBuffer;
 		rg_pass.buffer_reads.insert(res_id);
 		return constant_buf_id;
 	}
 
-	RGBufferReadOnlyId RenderGraphBuilder::ReadBufferImpl(RGResourceName name, ERGReadAccess read_access, BufferSubresourceDesc const& desc /*= {}*/)
+	RGBufferReadOnlyId RenderGraphBuilder::ReadBufferImpl(RGResourceName name, RGReadAccess read_access, GfxBufferSubresourceDesc const& desc /*= {}*/)
 	{
-		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
+		ADRIA_ASSERT(rg_pass.type != RGPassType::Copy && "Invalid Call in Copy Pass");
 		RGBufferReadOnlyId read_only_id = rg.ReadBuffer(name, desc);
-		if (rg_pass.type == ERGPassType::Compute) read_access = ReadAccess_NonPixelShader;
+		if (rg_pass.type == RGPassType::Compute) read_access = ReadAccess_NonPixelShader;
 
 		RGBufferId res_id = read_only_id.GetResourceId();
-		if (rg_pass.type == ERGPassType::Graphics)
+		if (rg_pass.type == RGPassType::Graphics)
 		{
 			switch (read_access)
 			{
 			case ReadAccess_PixelShader:
-				rg_pass.buffer_state_map[res_id] = EResourceState::PixelShaderResource;
+				rg_pass.buffer_state_map[res_id] = GfxResourceState::PixelShaderResource;
 				break;
 			case ReadAccess_NonPixelShader:
-				rg_pass.buffer_state_map[res_id] = EResourceState::NonPixelShaderResource;
+				rg_pass.buffer_state_map[res_id] = GfxResourceState::NonPixelShaderResource;
 				break;
 			case ReadAccess_AllShader:
-				rg_pass.buffer_state_map[res_id] = EResourceState::AllShaderResource;
+				rg_pass.buffer_state_map[res_id] = GfxResourceState::AllShaderResource;
 				break;
 			default:
 				ADRIA_ASSERT(false && "Invalid Read Flag!");
 			}
 		}
-		else if (rg_pass.type == ERGPassType::Compute || rg_pass.type == ERGPassType::ComputeAsync)
+		else if (rg_pass.type == RGPassType::Compute || rg_pass.type == RGPassType::ComputeAsync)
 		{
-			rg_pass.buffer_state_map[res_id] = EResourceState::NonPixelShaderResource;
+			rg_pass.buffer_state_map[res_id] = GfxResourceState::NonPixelShaderResource;
 		}
 		rg_pass.buffer_reads.insert(res_id);
 		return read_only_id;
 	}
 
-	RGBufferReadWriteId RenderGraphBuilder::WriteBufferImpl(RGResourceName name, BufferSubresourceDesc const& desc /*= {}*/)
+	RGBufferReadWriteId RenderGraphBuilder::WriteBufferImpl(RGResourceName name, GfxBufferSubresourceDesc const& desc /*= {}*/)
 	{
-		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
+		ADRIA_ASSERT(rg_pass.type != RGPassType::Copy && "Invalid Call in Copy Pass");
 		RGBufferReadWriteId read_write_id = rg.WriteBuffer(name, desc);
 		RGBufferId res_id = read_write_id.GetResourceId();
-		rg_pass.buffer_state_map[res_id] = EResourceState::UnorderedAccess;
+		rg_pass.buffer_state_map[res_id] = GfxResourceState::UnorderedAccess;
 		if (!rg_pass.buffer_creates.contains(res_id) && !rg_pass.ActAsCreatorWhenWriting())
 		{
 			DummyReadBuffer(name);
 		}
 		rg_pass.buffer_writes.insert(res_id);
 		auto* buffer = rg.GetRGBuffer(res_id);
-		if (buffer->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
+		if (buffer->imported) rg_pass.flags |= RGPassFlags::ForceNoCull;
 		return read_write_id;
 	}
 
-	RGBufferReadWriteId RenderGraphBuilder::WriteBufferImpl(RGResourceName name, RGResourceName counter_name, BufferSubresourceDesc const& desc)
+	RGBufferReadWriteId RenderGraphBuilder::WriteBufferImpl(RGResourceName name, RGResourceName counter_name, GfxBufferSubresourceDesc const& desc)
 	{
-		ADRIA_ASSERT(rg_pass.type != ERGPassType::Copy && "Invalid Call in Copy Pass");
+		ADRIA_ASSERT(rg_pass.type != RGPassType::Copy && "Invalid Call in Copy Pass");
 		RGBufferReadWriteId read_write_id = rg.WriteBuffer(name, counter_name, desc);
 
 		RGBufferId counter_id = rg.GetBufferId(counter_name);
 		
 		RGBufferId res_id = read_write_id.GetResourceId();
-		rg_pass.buffer_state_map[res_id] = EResourceState::UnorderedAccess;
-		rg_pass.buffer_state_map[counter_id] = EResourceState::UnorderedAccess;
+		rg_pass.buffer_state_map[res_id] = GfxResourceState::UnorderedAccess;
+		rg_pass.buffer_state_map[counter_id] = GfxResourceState::UnorderedAccess;
 		DummyWriteBuffer(counter_name);
 		if (!rg_pass.buffer_creates.contains(res_id) && !rg_pass.ActAsCreatorWhenWriting())
 		{
@@ -293,7 +293,7 @@ namespace adria
 		}
 		rg_pass.buffer_writes.insert(res_id);
 		auto* buffer = rg.GetRGBuffer(res_id);
-		if (buffer->imported) rg_pass.flags |= ERGPassFlags::ForceNoCull;
+		if (buffer->imported) rg_pass.flags |= RGPassFlags::ForceNoCull;
 		return read_write_id;
 	}
 
@@ -303,12 +303,12 @@ namespace adria
 		rg_pass.viewport_height = height;
 	}
 
-	void RenderGraphBuilder::AddBufferBindFlags(RGResourceName name, EBindFlag flags)
+	void RenderGraphBuilder::AddBufferBindFlags(RGResourceName name, GfxBindFlag flags)
 	{
 		rg.AddBufferBindFlags(name, flags);
 	}
 
-	void RenderGraphBuilder::AddTextureBindFlags(RGResourceName name, EBindFlag flags)
+	void RenderGraphBuilder::AddTextureBindFlags(RGResourceName name, GfxBindFlag flags)
 	{
 		rg.AddTextureBindFlags(name, flags);
 	}

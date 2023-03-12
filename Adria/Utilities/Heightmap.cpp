@@ -5,38 +5,38 @@
 namespace adria
 {
 	
-	constexpr FastNoiseLite::NoiseType GetNoiseType(ENoiseType type)
+	constexpr FastNoiseLite::NoiseType GetNoiseType(NoiseType type)
 	{
 		switch (type)
 		{
-		case ENoiseType::OpenSimplex2:
+		case NoiseType::OpenSimplex2:
 			return FastNoiseLite::NoiseType_OpenSimplex2;
-		case ENoiseType::OpenSimplex2S:
+		case NoiseType::OpenSimplex2S:
 			return FastNoiseLite::NoiseType_OpenSimplex2S;
-		case ENoiseType::Cellular:
+		case NoiseType::Cellular:
 			return FastNoiseLite::NoiseType_OpenSimplex2;
-		case ENoiseType::ValueCubic:
+		case NoiseType::ValueCubic:
 			return FastNoiseLite::NoiseType_ValueCubic;
-		case ENoiseType::Value:
+		case NoiseType::Value:
 			return FastNoiseLite::NoiseType_Value;
-		case ENoiseType::Perlin:
+		case NoiseType::Perlin:
 		default:
 			return FastNoiseLite::NoiseType_Perlin;
 		}
 
 		return FastNoiseLite::NoiseType_Perlin;
 	}
-	constexpr FastNoiseLite::FractalType GetFractalType(EFractalType type)
+	constexpr FastNoiseLite::FractalType GetFractalType(FractalType type)
 	{
 		switch (type)
 		{
-		case EFractalType::FBM:
+		case FractalType::FBM:
 			return FastNoiseLite::FractalType_FBm;
-		case EFractalType::Ridged:
+		case FractalType::Ridged:
 			return FastNoiseLite::FractalType_Ridged;
-		case EFractalType::PingPong:
+		case FractalType::PingPong:
 			return FastNoiseLite::FractalType_PingPong;
-		case EFractalType::None:
+		case FractalType::None:
 		default:
 			return FastNoiseLite::FractalType_None;
 		}
@@ -45,7 +45,7 @@ namespace adria
 	}
 
 
-	Heightmap::Heightmap(noise_desc_t const& desc)
+	Heightmap::Heightmap(NoiseDesc const& desc)
 	{
 		FastNoiseLite noise{};
 		noise.SetFractalType(GetFractalType(desc.fractal_type));

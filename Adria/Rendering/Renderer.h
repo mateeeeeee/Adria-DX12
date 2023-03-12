@@ -25,8 +25,8 @@
 #include "RayTracedAmbientOcclusionPass.h"
 #include "RayTracedReflectionsPass.h"
 #include "PathTracingPass.h"
-#include "../Graphics/ShaderCompiler.h"
-#include "../Graphics/ConstantBuffer.h"
+#include "../Graphics/GfxShaderCompiler.h"
+#include "../Graphics/GfxConstantBuffer.h"
 #include "../Graphics/GPUProfiler.h"
 #include "../Utilities/CPUProfiler.h" 
 #include "../RenderGraph/RenderGraphResourcePool.h"
@@ -34,8 +34,8 @@
 namespace adria
 {
 	class Camera;
-	class Buffer;
-	class Texture;
+	class GfxBuffer;
+	class GfxTexture;
 	struct Light;
 
 
@@ -43,7 +43,7 @@ namespace adria
 	{
 	public:
 
-		Renderer(entt::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height);
+		Renderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height);
 		~Renderer();
 
 		void NewFrame(Camera const* camera);
@@ -59,7 +59,7 @@ namespace adria
 		void OnSceneInitialized();
 		void OnRightMouseClicked(int32 x, int32 y);
 
-		Texture const* GetFinalTexture() const 
+		GfxTexture const* GetFinalTexture() const 
 		{ 
 			return final_texture.get(); 
 		}
@@ -68,7 +68,7 @@ namespace adria
 		bool IsRayTracingSupported() const { return is_ray_tracing_supported; }
 	private:
 		entt::registry& reg;
-		GraphicsDevice* gfx;
+		GfxDevice* gfx;
 		RGResourcePool resource_pool;
 
 		CPUProfiler cpu_profiler;
@@ -81,16 +81,16 @@ namespace adria
 		uint32 height;
 
 		//resources
-		std::unique_ptr<Texture> final_texture;
+		std::unique_ptr<GfxTexture> final_texture;
 
 		//Persistent constant buffers
-		ConstantBuffer<FrameCBuffer> frame_cbuffer;
+		GfxConstantBuffer<FrameCBuffer> frame_cbuffer;
 
 		//lights and shadows
-		std::unique_ptr<Buffer>  lights_buffer;
-		std::unique_ptr<Buffer>  light_matrices_buffer;
-		HashMap<size_t, std::vector<std::unique_ptr<Texture>>> light_shadow_maps;
-		HashMap<size_t, std::unique_ptr<Texture>> light_mask_textures;
+		std::unique_ptr<GfxBuffer>  lights_buffer;
+		std::unique_ptr<GfxBuffer>  light_matrices_buffer;
+		HashMap<size_t, std::vector<std::unique_ptr<GfxTexture>>> light_shadow_maps;
+		HashMap<size_t, std::unique_ptr<GfxTexture>> light_mask_textures;
 		DescriptorHandle		 light_array_srv; 
 		DescriptorHandle		 light_matrices_srv; 
 		DescriptorHandle         env_map_srv;
@@ -121,9 +121,9 @@ namespace adria
 		//ray tracing
 		AccelerationStructure accel_structure;
 		bool is_ray_tracing_supported;
-		std::unique_ptr<Buffer> global_vb = nullptr;
-		std::unique_ptr<Buffer> global_ib = nullptr;
-		std::unique_ptr<Buffer> geo_buffer = nullptr;
+		std::unique_ptr<GfxBuffer> global_vb = nullptr;
+		std::unique_ptr<GfxBuffer> global_ib = nullptr;
+		std::unique_ptr<GfxBuffer> geo_buffer = nullptr;
 
 		//misc
 		uint32			         volumetric_lights = 0;
@@ -154,7 +154,7 @@ namespace adria
 		void Render_Deferred(RenderGraph& rg);
 		void Render_PathTracing(RenderGraph& rg);
 
-		void ShadowMapPass_Common(GraphicsDevice* gfx, ID3D12GraphicsCommandList4* cmd_list, bool transparent, size_t light_index, size_t shadow_map_index = 0);
+		void ShadowMapPass_Common(GfxDevice* gfx, ID3D12GraphicsCommandList4* cmd_list, bool transparent, size_t light_index, size_t shadow_map_index = 0);
 		void AddShadowMapPasses(RenderGraph& rg);
 		void AddRayTracingShadowPasses(RenderGraph& rg);
 		void CopyToBackbuffer(RenderGraph& rg);

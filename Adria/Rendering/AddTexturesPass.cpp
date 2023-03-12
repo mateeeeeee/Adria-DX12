@@ -10,7 +10,7 @@ namespace adria
 	AddTexturesPass::AddTexturesPass(uint32 w, uint32 h) : width(w), height(h)
 	{}
 
-	void AddTexturesPass::AddPass(RenderGraph& rendergraph, RGResourceName render_target, RGResourceName texture1, RGResourceName texture2, EBlendMode mode /*= EBlendMode::None*/)
+	void AddTexturesPass::AddPass(RenderGraph& rendergraph, RGResourceName render_target, RGResourceName texture1, RGResourceName texture2, BlendMode mode /*= EBlendMode::None*/)
 	{
 		struct CopyToTexturePassData
 		{
@@ -21,12 +21,12 @@ namespace adria
 		rendergraph.AddPass<CopyToTexturePassData>("AddTextures Pass",
 			[=](CopyToTexturePassData& data, RenderGraphBuilder& builder)
 			{
-				builder.WriteRenderTarget(render_target, ERGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteRenderTarget(render_target, RGLoadStoreAccessOp::Preserve_Preserve);
 				data.texture_src1 = builder.ReadTexture(texture1, ReadAccess_PixelShader);
 				data.texture_src2 = builder.ReadTexture(texture2, ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
-			[=](CopyToTexturePassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](CopyToTexturePassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -34,14 +34,14 @@ namespace adria
 				
 				switch (mode)
 				{
-				case EBlendMode::None:
-					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Add));
+				case BlendMode::None:
+					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Add));
 					break;
-				case EBlendMode::AlphaBlend:
-					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Add_AlphaBlend));
+				case BlendMode::AlphaBlend:
+					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Add_AlphaBlend));
 					break;
-				case EBlendMode::AdditiveBlend:
-					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Add_AdditiveBlend));
+				case BlendMode::AdditiveBlend:
+					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Add_AdditiveBlend));
 					break;
 				default:
 					ADRIA_ASSERT(false && "Invalid Copy Mode in CopyTexture");
@@ -57,7 +57,7 @@ namespace adria
 				cmd_list->SetGraphicsRoot32BitConstant(1, i + 1, 1);
 				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 				cmd_list->DrawInstanced(4, 1, 0, 0);
-			}, ERGPassType::Graphics, ERGPassFlags::None);
+			}, RGPassType::Graphics, RGPassFlags::None);
 	}
 
 	void AddTexturesPass::OnResize(uint32 w, uint32 h)

@@ -1,75 +1,75 @@
 #pragma once
 #include  <d3d12.h>
 #include "Enums.h"
-#include "../Graphics/GraphicsStates.h"
-#include "../Graphics/Shader.h"
-#include "../Graphics/InputLayout.h"
-#include "../Graphics/ResourceCommon.h"
+#include "../Graphics/GfxStates.h"
+#include "../Graphics/GfxShader.h"
+#include "../Graphics/GfxInputLayout.h"
+#include "../Graphics/GfxResourceCommon.h"
 #include "../Events/Delegate.h"
 
 namespace adria
 {
-	class GraphicsDevice;
+	class GfxDevice;
 
 	struct GraphicsPipelineStateDesc
 	{
-		RasterizerState rasterizer_state{};
-		BlendState blend_state{};
-		DepthStencilState depth_state{};
-		EPrimitiveTopologyType topology_type = EPrimitiveTopologyType::Triangle;
+		GfxRasterizerState rasterizer_state{};
+		GfxBlendState blend_state{};
+		GfxDepthStencilState depth_state{};
+		GfxPrimitiveTopologyType topology_type = GfxPrimitiveTopologyType::Triangle;
 		uint32 num_render_targets = 0;
-		EFormat rtv_formats[8];
-		EFormat dsv_format = EFormat::UNKNOWN;
-		InputLayout input_layout;
-		ERootSignature root_signature = ERootSignature::Invalid;
-		EShaderId VS = ShaderId_Invalid;
-		EShaderId PS = ShaderId_Invalid;
-		EShaderId DS = ShaderId_Invalid;
-		EShaderId HS = ShaderId_Invalid;
-		EShaderId GS = ShaderId_Invalid;
+		GfxFormat rtv_formats[8];
+		GfxFormat dsv_format = GfxFormat::UNKNOWN;
+		GfxInputLayout input_layout;
+		GfxRootSignatureID root_signature = GfxRootSignatureID::Invalid;
+		GfxShaderID VS = GfxShaderID_Invalid;
+		GfxShaderID PS = GfxShaderID_Invalid;
+		GfxShaderID DS = GfxShaderID_Invalid;
+		GfxShaderID HS = GfxShaderID_Invalid;
+		GfxShaderID GS = GfxShaderID_Invalid;
 		uint32 sample_mask = UINT_MAX;
 	};
 
 	class GraphicsPipelineState
 	{
 	public:
-		GraphicsPipelineState(GraphicsDevice* gfx, GraphicsPipelineStateDesc const& desc);
+		GraphicsPipelineState(GfxDevice* gfx, GraphicsPipelineStateDesc const& desc);
 		~GraphicsPipelineState();
 
 		operator ID3D12PipelineState*() const;
 
 	private:
-		GraphicsDevice* gfx;
+		GfxDevice* gfx;
 		ArcPtr<ID3D12PipelineState> pso;
 		GraphicsPipelineStateDesc desc;
 		DelegateHandle event_handle;
 	private:
-		void OnShaderRecompiled(EShaderId s);
+		void OnShaderRecompiled(GfxShaderID s);
 		void Create(GraphicsPipelineStateDesc const& desc);
 	};
 
 	struct ComputePipelineStateDesc
 	{
-		ERootSignature root_signature;
-		EShaderId CS;
+		GfxRootSignatureID root_signature;
+		GfxShaderID CS;
 	};
 
 	class ComputePipelineState
 	{
 	public:
-		ComputePipelineState(GraphicsDevice* gfx, ComputePipelineStateDesc const& desc);
+		ComputePipelineState(GfxDevice* gfx, ComputePipelineStateDesc const& desc);
 		~ComputePipelineState();
 
 		operator ID3D12PipelineState*() const;
 
 	private:
-		GraphicsDevice* gfx;
+		GfxDevice* gfx;
 		ArcPtr<ID3D12PipelineState> pso;
 		ComputePipelineStateDesc desc;
 		DelegateHandle event_handle;
 
 	private:
-		void OnShaderRecompiled(EShaderId s);
+		void OnShaderRecompiled(GfxShaderID s);
 		void Create(ComputePipelineStateDesc const& desc);
 	};
 }

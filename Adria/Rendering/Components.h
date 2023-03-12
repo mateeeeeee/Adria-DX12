@@ -5,7 +5,7 @@
 #include "GeometryBufferCache.h"
 #include "../Core/Definitions.h"
 #include "../Graphics/VertexTypes.h"
-#include "../Graphics/Buffer.h"
+#include "../Graphics/GfxBuffer.h"
 #include "../Graphics/TextureManager.h"
 #include "entt/entity/entity.hpp"
 
@@ -19,9 +19,9 @@ namespace adria
 	};
 	struct COMPONENT Mesh
 	{
-		std::shared_ptr<Buffer>		vertex_buffer = nullptr;
-		std::shared_ptr<Buffer>		index_buffer = nullptr;
-		std::shared_ptr<Buffer>		instance_buffer = nullptr;
+		std::shared_ptr<GfxBuffer>		vertex_buffer = nullptr;
+		std::shared_ptr<GfxBuffer>		index_buffer = nullptr;
+		std::shared_ptr<GfxBuffer>		instance_buffer = nullptr;
 		//only vb
 		uint32 vertex_count = 0;
 		uint32 start_vertex_location = 0; //Index of the first vertex
@@ -71,11 +71,11 @@ namespace adria
 		float roughness_factor	= 1.0f;
 		float emissive_factor	= 1.0f;
 
-		EMaterialAlphaMode alpha_mode = EMaterialAlphaMode::Opaque;
+		MaterialAlphaMode alpha_mode = MaterialAlphaMode::Opaque;
 		float alpha_cutoff	= 0.5f;
 		bool  double_sided	= false;
 
-		EPipelineState pso = EPipelineState::Unknown;
+		GfxPipelineStateID pso = GfxPipelineStateID::Unknown;
 	};
 	struct COMPONENT RayTracing
 	{
@@ -97,9 +97,9 @@ namespace adria
 		bool camera_visible = true;
 		bool light_visible = true;
 		bool draw_aabb = false;
-		std::shared_ptr<Buffer> aabb_vb = nullptr;
+		std::shared_ptr<GfxBuffer> aabb_vb = nullptr;
 
-		void UpdateBuffer(GraphicsDevice* gfx)
+		void UpdateBuffer(GfxDevice* gfx)
 		{
 			DirectX::XMFLOAT3 corners[8];
 			bounding_box.GetCorners(corners);
@@ -116,9 +116,9 @@ namespace adria
 			};
 			if (!aabb_vb)
 			{
-				BufferDesc desc = VertexBufferDesc(ARRAYSIZE(vertices), sizeof(SimpleVertex));
-				desc.resource_usage = EResourceUsage::Upload;
-				aabb_vb = std::make_unique<Buffer>(gfx, desc, vertices);
+				GfxBufferDesc desc = VertexBufferDesc(ARRAYSIZE(vertices), sizeof(SimpleVertex));
+				desc.resource_usage = GfxResourceUsage::Upload;
+				aabb_vb = std::make_unique<GfxBuffer>(gfx, desc, vertices);
 			}
 			else
 			{
@@ -141,7 +141,7 @@ namespace adria
 		DirectX::XMVECTOR color		= DirectX::XMVectorSet(1, 1, 1, 1);
 		float range = 100.0f;
 		float energy = 1.0f;
-		ELightType type = ELightType::Directional;
+		LightType type = LightType::Directional;
 		float outer_cosine = 0.0f;
 		float inner_cosine = 0.707f;
 		bool active = true;
@@ -179,7 +179,7 @@ namespace adria
 		TextureHandle albedo_decal_texture = INVALID_TEXTURE_HANDLE;
 		TextureHandle normal_decal_texture = INVALID_TEXTURE_HANDLE;
 		DirectX::XMMATRIX decal_model_matrix = DirectX::XMMatrixIdentity();
-		EDecalType decal_type = EDecalType::Project_XY;
+		DecalType decal_type = DecalType::Project_XY;
 		bool modify_gbuffer_normals = false;
 	};
 	struct COMPONENT Ocean {};

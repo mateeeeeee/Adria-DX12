@@ -15,7 +15,7 @@ namespace adria
 {
 
 	SkyPass::SkyPass(entt::registry& reg, uint32 w, uint32 h)
-		: reg(reg), width(w), height(h), sky_type(ESkyType::Skybox)
+		: reg(reg), width(w), height(h), sky_type(SkyType::Skybox)
 	{}
 
 	void SkyPass::AddPass(RenderGraph& rg, DirectX::XMFLOAT3 const& dir)
@@ -24,11 +24,11 @@ namespace adria
 		rg.AddPass<void>("Sky Pass",
 			[=](RenderGraphBuilder& builder)
 			{
-				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), ERGLoadStoreAccessOp::Preserve_Preserve);
-				builder.ReadDepthStencil(RG_RES_NAME(DepthStencil), ERGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.ReadDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -50,9 +50,9 @@ namespace adria
 
 				switch (sky_type)
 				{
-				case ESkyType::Skybox:
+				case SkyType::Skybox:
 				{
-					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Skybox));
+					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Skybox));
 					auto skybox_view = reg.view<Skybox>();
 					for (auto e : skybox_view)
 					{
@@ -69,9 +69,9 @@ namespace adria
 					}
 					break;
 				}
-				case ESkyType::UniformColor:
+				case SkyType::UniformColor:
 				{
-					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::UniformColorSky));
+					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::UniformColorSky));
 					struct UniformColorSkyConstants
 					{
 						XMFLOAT3 sky_color;
@@ -82,9 +82,9 @@ namespace adria
 					cmd_list->SetGraphicsRoot32BitConstants(1, 3, &constants, 0);
 					break;
 				}
-				case ESkyType::HosekWilkie:
+				case SkyType::HosekWilkie:
 				{
-					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::HosekWilkieSky));
+					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::HosekWilkieSky));
 					SkyParameters parameters = CalculateSkyParameters(turbidity, ground_albedo, dir);
 					DECLSPEC_ALIGN(16) struct HosekWilkieConstants
 					{
@@ -124,7 +124,7 @@ namespace adria
 				BindVertexBuffer(cmd_list, cube_vb.get());
 				BindIndexBuffer(cmd_list, cube_ib.get());
 				cmd_list->DrawIndexedInstanced(cube_ib->GetCount(), 1, 0, 0, 0);
-			}, ERGPassType::Graphics, ERGPassFlags::None);
+			}, RGPassType::Graphics, RGPassFlags::None);
 		
 		AddGUI([&]()
 			{
@@ -144,10 +144,10 @@ namespace adria
 						ImGui::EndCombo();
 					}
 
-					if (current_sky_type == 0) sky_type = ESkyType::Skybox;
+					if (current_sky_type == 0) sky_type = SkyType::Skybox;
 					else if (current_sky_type == 1)
 					{
-						sky_type = ESkyType::UniformColor;
+						sky_type = SkyType::UniformColor;
 						static char const* const sky_colors[] = { "Deep Sky Blue", "Sky Blue", "Light Sky Blue" };
 						static int current_sky_color = 0;
 						ImGui::ListBox("Tone Map Operator", &current_sky_color, sky_colors, IM_ARRAYSIZE(sky_colors));
@@ -178,7 +178,7 @@ namespace adria
 					}
 					else if (current_sky_type == 2)
 					{
-						sky_type = ESkyType::HosekWilkie;
+						sky_type = SkyType::HosekWilkie;
 						ImGui::SliderFloat("Turbidity", &turbidity, 2.0f, 30.0f);
 						ImGui::SliderFloat("Ground Albedo", &ground_albedo, 0.0f, 1.0f);
 					}
@@ -189,7 +189,7 @@ namespace adria
 		);
 	}
 
-	void SkyPass::OnSceneInitialized(GraphicsDevice* gfx)
+	void SkyPass::OnSceneInitialized(GfxDevice* gfx)
 	{
 		CreateCubeBuffers(gfx);
 	}
@@ -199,7 +199,7 @@ namespace adria
 		width = w, height = h;
 	}
 
-	void SkyPass::CreateCubeBuffers(GraphicsDevice* gfx)
+	void SkyPass::CreateCubeBuffers(GfxDevice* gfx)
 	{
 		SimpleVertex const cube_vertices[8] =
 		{
@@ -235,18 +235,18 @@ namespace adria
 			6, 7, 3
 		};
 
-		BufferDesc vb_desc{};
-		vb_desc.bind_flags = EBindFlag::None;
+		GfxBufferDesc vb_desc{};
+		vb_desc.bind_flags = GfxBindFlag::None;
 		vb_desc.size = sizeof(cube_vertices);
 		vb_desc.stride = sizeof(SimpleVertex);
-		cube_vb = std::make_unique<Buffer>(gfx, vb_desc, cube_vertices);
+		cube_vb = std::make_unique<GfxBuffer>(gfx, vb_desc, cube_vertices);
 
-		BufferDesc ib_desc{};
-		ib_desc.bind_flags = EBindFlag::None;
-		ib_desc.format = EFormat::R16_UINT;
+		GfxBufferDesc ib_desc{};
+		ib_desc.bind_flags = GfxBindFlag::None;
+		ib_desc.format = GfxFormat::R16_UINT;
 		ib_desc.stride = sizeof(uint16);
 		ib_desc.size = sizeof(cube_indices);
-		cube_ib = std::make_unique<Buffer>(gfx, ib_desc, cube_indices);
+		cube_ib = std::make_unique<GfxBuffer>(gfx, ib_desc, cube_indices);
 	}
 
 }

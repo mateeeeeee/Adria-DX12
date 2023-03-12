@@ -9,7 +9,7 @@
 namespace adria
 {
 
-	PathTracingPass::PathTracingPass(GraphicsDevice* gfx, uint32 width, uint32 height)
+	PathTracingPass::PathTracingPass(GfxDevice* gfx, uint32 width, uint32 height)
 		: gfx(gfx), width(width), height(height)
 	{
 		ID3D12Device* device = gfx->GetDevice();
@@ -44,10 +44,10 @@ namespace adria
 			[=](PathTracingPassData& data, RGBuilder& builder)
 			{
 				RGTextureDesc render_target_desc{};
-				render_target_desc.format = EFormat::R16G16B16A16_FLOAT;
+				render_target_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 				render_target_desc.width = width;
 				render_target_desc.height = height;
-				render_target_desc.clear_value = ClearValue(0.0f, 0.0f, 0.0f, 0.0f);
+				render_target_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 				builder.DeclareTexture(RG_RES_NAME(PT_Output), render_target_desc);
 
 				data.output = builder.WriteTexture(RG_RES_NAME(PT_Output));
@@ -57,7 +57,7 @@ namespace adria
 				data.ib = builder.ReadBuffer(RG_RES_NAME(BigIndexBuffer));
 				data.geo = builder.ReadBuffer(RG_RES_NAME(BigGeometryBuffer));
 			},
-			[=](PathTracingPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](PathTracingPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				auto device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -95,12 +95,12 @@ namespace adria
 				dispatch_desc.Height = height;
 				dispatch_desc.Depth = 1;
 
-				RayTracingShaderTable table(path_tracing.Get());
+				GfxRayTracingShaderTable table(path_tracing.Get());
 				table.SetRayGenShader("PT_RayGen");
 				table.Commit(*gfx->GetDynamicAllocator(), dispatch_desc);
 				cmd_list->DispatchRays(&dispatch_desc);
 
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::None);
 
 		++accumulated_frames;
 		AddGUI([&]()
@@ -122,13 +122,13 @@ namespace adria
 
 		width = w, height = h;
 
-		TextureDesc accum_desc{};
+		GfxTextureDesc accum_desc{};
 		accum_desc.width = width;
 		accum_desc.height = height;
-		accum_desc.format = EFormat::R32G32B32A32_FLOAT;
-		accum_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::UnorderedAccess;
-		accum_desc.initial_state = EResourceState::UnorderedAccess;
-		accumulation_texture = std::make_unique<Texture>(gfx, accum_desc);
+		accum_desc.format = GfxFormat::R32G32B32A32_FLOAT;
+		accum_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
+		accum_desc.initial_state = GfxResourceState::UnorderedAccess;
+		accumulation_texture = std::make_unique<GfxTexture>(gfx, accum_desc);
 	}
 
 	bool PathTracingPass::IsSupported() const
@@ -144,9 +144,9 @@ namespace adria
 	void PathTracingPass::CreateStateObject()
 	{
 		ID3D12Device5* device = gfx->GetDevice();
-		Shader const& pt_blob = ShaderCache::GetShader(LIB_PathTracing);
+		GfxShader const& pt_blob = ShaderCache::GetShader(LIB_PathTracing);
 
-		StateObjectBuilder pt_state_object_builder(5);
+		GfxStateObjectBuilder pt_state_object_builder(5);
 		{
 			D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc{};
 			dxil_lib_desc.DXILLibrary.BytecodeLength = pt_blob.GetLength();
@@ -179,7 +179,7 @@ namespace adria
 		}
 	}
 
-	void PathTracingPass::OnLibraryRecompiled(EShaderId shader)
+	void PathTracingPass::OnLibraryRecompiled(GfxShaderID shader)
 	{
 		if (shader == LIB_PathTracing) CreateStateObject();
 	}

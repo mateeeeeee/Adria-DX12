@@ -3,7 +3,6 @@
 
 namespace adria
 {
-	//for root constants
 	struct DWParam
 	{
 		DWParam(FLOAT f) : Float(f) {}

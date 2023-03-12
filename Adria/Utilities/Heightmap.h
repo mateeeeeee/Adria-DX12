@@ -5,7 +5,7 @@
 
 namespace adria
 {
-	enum class ENoiseType
+	enum class NoiseType
 	{
 		OpenSimplex2,
 		OpenSimplex2S,
@@ -14,20 +14,20 @@ namespace adria
 		ValueCubic,
 		Value
 	};
-	enum class EFractalType
+	enum class FractalType
 	{
 		None,
 		FBM,
 		Ridged,
 		PingPong
 	};
-	struct noise_desc_t
+	struct NoiseDesc
 	{
 		uint32 width;
 		uint32 depth;
 		uint32 max_height;
-		EFractalType fractal_type = EFractalType::None;
-		ENoiseType noise_type = ENoiseType::Perlin;
+		FractalType fractal_type = FractalType::None;
+		NoiseType noise_type = NoiseType::Perlin;
 		int32 seed = 1337;
 		float persistence = 0.5f;
 		float lacunarity = 2.0f;
@@ -41,7 +41,7 @@ namespace adria
 
 	public:
 		
-		Heightmap(noise_desc_t const& desc);
+		Heightmap(NoiseDesc const& desc);
 
 		Heightmap(std::string_view heightmap_path);
 

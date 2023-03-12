@@ -27,14 +27,14 @@ namespace adria
 				RGTextureDesc motion_blur_desc{};
 				motion_blur_desc.width = width;
 				motion_blur_desc.height = height;
-				motion_blur_desc.format = EFormat::R16G16B16A16_FLOAT;
+				motion_blur_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 
 				builder.DeclareTexture(RG_RES_NAME(MotionBlurOutput), motion_blur_desc);
 				data.output = builder.WriteTexture(RG_RES_NAME(MotionBlurOutput));
 				data.input = builder.ReadTexture(last_resource, ReadAccess_NonPixelShader);
 				data.velocity = builder.ReadTexture(RG_RES_NAME(VelocityBuffer), ReadAccess_NonPixelShader);
 			},
-			[=](MotionBlurPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](MotionBlurPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -55,11 +55,11 @@ namespace adria
 				};
 
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::MotionBlur));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::MotionBlur));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 3, &constants, 0);
 				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::None);
 
 		return RG_RES_NAME(MotionBlurOutput);
 	}

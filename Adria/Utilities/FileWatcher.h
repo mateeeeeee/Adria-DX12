@@ -6,7 +6,7 @@
 
 namespace adria
 {
-	enum class EFileStatus : uint8
+	enum class FileStatus : uint8
 	{
 		Created,
 		Modified,

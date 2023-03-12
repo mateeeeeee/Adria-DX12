@@ -10,8 +10,8 @@
 
 namespace adria
 {
-	class GraphicsDevice;
-	class Texture;
+	class GfxDevice;
+	class GfxTexture;
 	class DescriptorHeap;
 	
 	using TextureHandle = size_t;
@@ -24,7 +24,7 @@ namespace adria
 
 		static TextureManager& Get();
 
-		void Initialize(GraphicsDevice* gfx, UINT max_textures);
+		void Initialize(GfxDevice* gfx, UINT max_textures);
 		void Destroy();
 		void Tick();
 
@@ -32,16 +32,16 @@ namespace adria
 		[[nodiscard]] TextureHandle LoadCubemap(std::wstring const& name);
 		[[nodiscard]] TextureHandle LoadCubemap(std::array<std::wstring, 6> const& cubemap_textures);
 		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE GetSRV(TextureHandle tex_handle);
-		Texture* GetTexture(TextureHandle handle) const;
+		GfxTexture* GetTexture(TextureHandle handle) const;
 		void EnableMipMaps(bool);
 		void OnSceneInitialized();
 
 	private:
-		GraphicsDevice* gfx = nullptr;
+		GfxDevice* gfx = nullptr;
 		std::unique_ptr<MipsGenerator> mips_generator = nullptr;
 
 		HashMap<TextureName, TextureHandle> loaded_textures{};
-		HashMap<TextureHandle, std::unique_ptr<Texture>> texture_map{};
+		HashMap<TextureHandle, std::unique_ptr<GfxTexture>> texture_map{};
 		TextureHandle handle = 0;
 		bool mipmaps = true;
 		bool is_scene_initialized = false;

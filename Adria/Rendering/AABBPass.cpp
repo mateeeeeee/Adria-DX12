@@ -23,10 +23,10 @@ namespace adria
 		rg.AddPass<void>("AABB Pass",
 			[=](RenderGraphBuilder& builder)
 			{
-				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), ERGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -39,7 +39,7 @@ namespace adria
 					if (aabb.draw_aabb)
 					{
 						
-						cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Solid_Wireframe));
+						cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Solid_Wireframe));
 						cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 
 						struct Constants
@@ -64,10 +64,10 @@ namespace adria
 						break;
 					}
 				}
-			}, ERGPassType::Graphics, ERGPassFlags::None);
+			}, RGPassType::Graphics, RGPassFlags::None);
 	}
 
-	void AABBPass::OnSceneInitialized(GraphicsDevice* gfx)
+	void AABBPass::OnSceneInitialized(GfxDevice* gfx)
 	{
 		CreateIndexBuffer(gfx);
 	}
@@ -77,7 +77,7 @@ namespace adria
 		width = w, height = h;
 	}
 
-	void AABBPass::CreateIndexBuffer(GraphicsDevice* gfx)
+	void AABBPass::CreateIndexBuffer(GfxDevice* gfx)
 	{
 		const uint16 aabb_indices[] = {
 			0, 1,
@@ -95,7 +95,7 @@ namespace adria
 			6, 7,
 			7, 4
 		};
-		aabb_ib = std::make_unique<Buffer>(gfx, IndexBufferDesc(ARRAYSIZE(aabb_indices), true), aabb_indices);
+		aabb_ib = std::make_unique<GfxBuffer>(gfx, IndexBufferDesc(ARRAYSIZE(aabb_indices), true), aabb_indices);
 	}
 }
 

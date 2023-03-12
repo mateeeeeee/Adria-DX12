@@ -25,12 +25,12 @@
 
 namespace adria
 {
-	enum class EQueueType : uint8
+	enum class GfxQueueType : uint8
 	{
 		Graphics,
 		Compute,
 	};
-	struct GraphicsOptions
+	struct GfxOptions
 	{
 		bool debug_layer = false;
 		bool dred = false;
@@ -43,7 +43,7 @@ namespace adria
 		UINT64 budget;
 	};
 
-	class GraphicsDevice
+	class GfxDevice
 	{
 		static constexpr UINT BACKBUFFER_COUNT = 3;
 		static constexpr UINT CMD_LIST_COUNT = 32;
@@ -65,15 +65,15 @@ namespace adria
 		};
 
 	public:
-		explicit GraphicsDevice(GraphicsOptions const&);
-		GraphicsDevice(GraphicsDevice const&) = delete;
-		GraphicsDevice(GraphicsDevice&&) = default;
-		~GraphicsDevice();
+		explicit GfxDevice(GfxOptions const&);
+		GfxDevice(GfxDevice const&) = delete;
+		GfxDevice(GfxDevice&&) = default;
+		~GfxDevice();
 
 		void WaitForGPU();
 
-		void WaitOnQueue(EQueueType type, UINT64 fence_value);
-		UINT64 SignalFromQueue(EQueueType type);
+		void WaitOnQueue(GfxQueueType type, UINT64 fence_value);
+		UINT64 SignalFromQueue(GfxQueueType type);
 
 		void ResizeBackbuffer(UINT w, UINT h);
 		UINT BackbufferIndex() const;

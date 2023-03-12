@@ -28,7 +28,7 @@ namespace adria
 				data.output = builder.WriteTexture(RG_RES_NAME(HDR_RenderTarget));
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
-			[=](LightingPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](LightingPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -52,11 +52,11 @@ namespace adria
 					.depth_idx = i, .output_idx = i + 1
 				};
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::VolumetricLighting));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::VolumetricLighting));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 2, &constants, 0);
 				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
-			}, ERGPassType::Compute);
+			}, RGPassType::Compute);
 
 	}
 

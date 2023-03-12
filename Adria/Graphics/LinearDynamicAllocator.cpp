@@ -1,17 +1,17 @@
 #include "LinearDynamicAllocator.h"
-#include "Buffer.h"
+#include "GfxBuffer.h"
 
 namespace adria
 {
-	LinearDynamicAllocator::LinearDynamicAllocator(GraphicsDevice* gfx, SIZE_T max_size_in_bytes)
+	LinearDynamicAllocator::LinearDynamicAllocator(GfxDevice* gfx, SIZE_T max_size_in_bytes)
 		: linear_allocator(max_size_in_bytes)
 	{
-		BufferDesc desc{};
+		GfxBufferDesc desc{};
 		desc.size = max_size_in_bytes;
-		desc.resource_usage = EResourceUsage::Upload;
-		desc.bind_flags = EBindFlag::ShaderResource;
+		desc.resource_usage = GfxResourceUsage::Upload;
+		desc.bind_flags = GfxBindFlag::ShaderResource;
 
-		buffer = std::make_unique<Buffer>(gfx, desc);
+		buffer = std::make_unique<GfxBuffer>(gfx, desc);
 		ADRIA_ASSERT(buffer->IsMapped());
 		cpu_address = buffer->GetMappedData();
 	}

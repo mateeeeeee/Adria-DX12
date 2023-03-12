@@ -5,7 +5,7 @@
 #include "../Math/Constants.h"
 #include "../Logging/Logger.h"
 #include "../Input/Input.h"
-#include "../Graphics/GraphicsDeviceDX12.h"
+#include "../Graphics/GfxDevice.h"
 #include "../Rendering/Renderer.h"
 #include "../Rendering/Camera.h"
 #include "../Rendering/EntityLoader.h"
@@ -124,15 +124,15 @@ namespace adria
 				light.light_data.godrays_density = light_params.FindOr<float>("godrays_density", 0.975f);
 				light.light_data.godrays_weight = light_params.FindOr<float>("godrays_weight", 0.25f);
 
-				light.mesh_type = ELightMesh::NoMesh;
+				light.mesh_type = LightMesh::NoMesh;
 				std::string mesh = light_params.FindOr<std::string>("mesh", "");
 				if (mesh == "sphere")
 				{
-					light.mesh_type = ELightMesh::Sphere;
+					light.mesh_type = LightMesh::Sphere;
 				}
 				else if (mesh == "quad")
 				{
-					light.mesh_type = ELightMesh::Quad;
+					light.mesh_type = LightMesh::Quad;
 				}
 				light.mesh_size = light_params.FindOr<uint32>("size", 100u);
 				light.light_texture = ToWideString(light_params.FindOr<std::string>("texture", ""));
@@ -140,15 +140,15 @@ namespace adria
 
 				if (type == "directional")
 				{
-					light.light_data.type = ELightType::Directional;
+					light.light_data.type = LightType::Directional;
 				}
 				else if (type == "point")
 				{
-					light.light_data.type = ELightType::Point;
+					light.light_data.type = LightType::Point;
 				}
 				else if (type == "spot")
 				{
-					light.light_data.type = ELightType::Spot;
+					light.light_data.type = LightType::Spot;
 				}
 				else
 				{
@@ -208,9 +208,9 @@ namespace adria
 	Engine::Engine(EngineInit const& init) : vsync{ init.vsync }
 	{
 		TaskSystem::Initialize();
-		ShaderCompiler::Initialize();
+		GfxShaderCompiler::Initialize();
 		ShaderCache::Initialize();
-		gfx = std::make_unique<GraphicsDevice>(GraphicsOptions{.debug_layer = init.debug_layer,
+		gfx = std::make_unique<GfxDevice>(GfxOptions{.debug_layer = init.debug_layer,
 															   .dred = init.dred,
 															   .gpu_validation = init.gpu_validation, .pix = init.pix });
 		PSOCache::Initialize(gfx.get());
@@ -219,7 +219,7 @@ namespace adria
 		entity_loader = std::make_unique<EntityLoader>(reg, gfx.get());
 
 		InputEvents& input_events = Input::GetInstance().GetInputEvents();
-		input_events.window_resized_event.AddMember(&GraphicsDevice::ResizeBackbuffer, *gfx);
+		input_events.window_resized_event.AddMember(&GfxDevice::ResizeBackbuffer, *gfx);
 		input_events.window_resized_event.AddMember(&Renderer::OnResize, *renderer);
 		input_events.right_mouse_clicked.AddMember(&Renderer::OnRightMouseClicked, *renderer);
 		std::ignore = input_events.f5_pressed_event.Add(ShaderCache::CheckIfShadersHaveChanged);
@@ -237,7 +237,7 @@ namespace adria
 		TextureManager::Get().Destroy();
 		PSOCache::Destroy();
 		ShaderCache::Destroy();
-		ShaderCompiler::Destroy();
+		GfxShaderCompiler::Destroy();
 		TaskSystem::Destroy();
 	}
 

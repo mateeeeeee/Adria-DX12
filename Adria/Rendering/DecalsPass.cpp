@@ -30,11 +30,11 @@ namespace adria
 			[=](DecalsPassData& data, RenderGraphBuilder& builder)
 			{
 				data.depth_srv = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
-				builder.WriteRenderTarget(RG_RES_NAME(GBufferAlbedo), ERGLoadStoreAccessOp::Preserve_Preserve);
-				builder.WriteRenderTarget(RG_RES_NAME(GBufferNormal), ERGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteRenderTarget(RG_RES_NAME(GBufferAlbedo), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteRenderTarget(RG_RES_NAME(GBufferNormal), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](DecalsPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](DecalsPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -64,7 +64,7 @@ namespace adria
 				auto decal_pass_lambda = [&](bool modify_normals)
 				{
 					if (decal_view.empty()) return;
-					cmd_list->SetPipelineState(PSOCache::Get(modify_normals ? EPipelineState::Decals_ModifyNormals : EPipelineState::Decals));
+					cmd_list->SetPipelineState(PSOCache::Get(modify_normals ? GfxPipelineStateID::Decals_ModifyNormals : GfxPipelineStateID::Decals));
 					for (auto e : decal_view)
 					{
 						Decal& decal = decal_view.get<Decal>(e);
@@ -86,7 +86,7 @@ namespace adria
 				};
 				decal_pass_lambda(false);
 				decal_pass_lambda(true);
-			}, ERGPassType::Graphics, ERGPassFlags::None);
+			}, RGPassType::Graphics, RGPassFlags::None);
 	}
 
 	void DecalsPass::OnResize(uint32 w, uint32 h)
@@ -94,12 +94,12 @@ namespace adria
 		width = w, height = h;
 	}
 
-	void DecalsPass::OnSceneInitialized(GraphicsDevice* gfx)
+	void DecalsPass::OnSceneInitialized(GfxDevice* gfx)
 	{
 		CreateCubeBuffers(gfx);
 	}
 
-	void DecalsPass::CreateCubeBuffers(GraphicsDevice* gfx)
+	void DecalsPass::CreateCubeBuffers(GfxDevice* gfx)
 	{
 		SimpleVertex const cube_vertices[8] =
 		{
@@ -135,18 +135,18 @@ namespace adria
 			6, 7, 3
 		};
 
-		BufferDesc vb_desc{};
-		vb_desc.bind_flags = EBindFlag::None;
+		GfxBufferDesc vb_desc{};
+		vb_desc.bind_flags = GfxBindFlag::None;
 		vb_desc.size = sizeof(cube_vertices);
 		vb_desc.stride = sizeof(SimpleVertex);
-		cube_vb = std::make_unique<Buffer>(gfx, vb_desc, cube_vertices);
+		cube_vb = std::make_unique<GfxBuffer>(gfx, vb_desc, cube_vertices);
 
-		BufferDesc ib_desc{};
-		ib_desc.bind_flags = EBindFlag::None;
-		ib_desc.format = EFormat::R16_UINT;
+		GfxBufferDesc ib_desc{};
+		ib_desc.bind_flags = GfxBindFlag::None;
+		ib_desc.format = GfxFormat::R16_UINT;
 		ib_desc.stride = sizeof(uint16);
 		ib_desc.size = sizeof(cube_indices);
-		cube_ib = std::make_unique<Buffer>(gfx, ib_desc, cube_indices);
+		cube_ib = std::make_unique<GfxBuffer>(gfx, ib_desc, cube_indices);
 	}
 
 }

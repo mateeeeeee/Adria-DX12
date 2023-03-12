@@ -7,11 +7,11 @@
 namespace adria
 {
 	class RenderGraph;
-	class GraphicsDevice;
+	class GfxDevice;
 
 	class ToneMapPass
 	{
-		enum class EToneMap : uint8
+		enum class ToneMap : uint8
 		{
 			Reinhard,
 			Hable,
@@ -20,7 +20,7 @@ namespace adria
 
 		struct TonemapParams
 		{
-			EToneMap tone_map_op = EToneMap::Reinhard;
+			ToneMap tone_map_op = ToneMap::Reinhard;
 			float tonemap_exposure = 1.0f;
 		};
 	public:
@@ -28,7 +28,7 @@ namespace adria
 		void AddPass(RenderGraph& rg, RGResourceName hdr_src);
 		void AddPass(RenderGraph& rg, RGResourceName hdr_src, RGResourceName output);
 		void OnResize(uint32 w, uint32 h);
-		void OnSceneInitialized(GraphicsDevice* gfx);
+		void OnSceneInitialized(GfxDevice* gfx);
 	private:
 		uint32 width, height;
 		TonemapParams params;

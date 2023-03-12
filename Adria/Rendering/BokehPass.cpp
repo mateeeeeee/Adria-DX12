@@ -34,7 +34,7 @@ namespace adria
 					static char const* const bokeh_types[] = { "HEXAGON", "OCTAGON", "CIRCLE", "CROSS" };
 					static int bokeh_type = static_cast<int>(params.bokeh_type);
 					ImGui::ListBox("Bokeh Type", &bokeh_type, bokeh_types, IM_ARRAYSIZE(bokeh_types));
-					params.bokeh_type = static_cast<EBokehType>(bokeh_type);
+					params.bokeh_type = static_cast<BokehType>(bokeh_type);
 
 					ImGui::SliderFloat("Bokeh Blur Threshold", &params.bokeh_blur_threshold, 0.0f, 1.0f);
 					ImGui::SliderFloat("Bokeh Lum Threshold", &params.bokeh_lum_threshold, 0.0f, 10.0f);
@@ -53,27 +53,27 @@ namespace adria
 		width = w, height = h;
 	}
 
-	void BokehPass::OnSceneInitialized(GraphicsDevice* gfx)
+	void BokehPass::OnSceneInitialized(GfxDevice* gfx)
 	{
 		hex_bokeh_handle = TextureManager::Get().LoadTexture(L"Resources/Textures/bokeh/Bokeh_Hex.dds");
 		oct_bokeh_handle = TextureManager::Get().LoadTexture(L"Resources/Textures/bokeh/Bokeh_Oct.dds");
 		circle_bokeh_handle = TextureManager::Get().LoadTexture(L"Resources/Textures/bokeh/Bokeh_Circle.dds");
 		cross_bokeh_handle = TextureManager::Get().LoadTexture(L"Resources/Textures/bokeh/Bokeh_Cross.dds");
 
-		BufferDesc reset_buffer_desc{};
+		GfxBufferDesc reset_buffer_desc{};
 		reset_buffer_desc.size = sizeof(uint32);
-		reset_buffer_desc.resource_usage = EResourceUsage::Upload;
+		reset_buffer_desc.resource_usage = GfxResourceUsage::Upload;
 		uint32 initial_data[] = { 0 };
-		counter_reset_buffer = std::make_unique<Buffer>(gfx, reset_buffer_desc, initial_data);
+		counter_reset_buffer = std::make_unique<GfxBuffer>(gfx, reset_buffer_desc, initial_data);
 
-		BufferDesc buffer_desc{};
+		GfxBufferDesc buffer_desc{};
 		buffer_desc.size = 4 * sizeof(uint32);
-		buffer_desc.bind_flags = EBindFlag::None;
-		buffer_desc.misc_flags = EBufferMiscFlag::IndirectArgs;
-		buffer_desc.resource_usage = EResourceUsage::Default;
+		buffer_desc.bind_flags = GfxBindFlag::None;
+		buffer_desc.misc_flags = GfxBufferMiscFlag::IndirectArgs;
+		buffer_desc.resource_usage = GfxResourceUsage::Default;
 
 		uint32 init_data[] = { 0,1,0,0 };
-		bokeh_indirect_buffer = std::make_unique<Buffer>(gfx, buffer_desc, init_data);
+		bokeh_indirect_buffer = std::make_unique<GfxBuffer>(gfx, buffer_desc, init_data);
 		bokeh_command_signature = std::make_unique<DrawIndirectSignature>(gfx);
 	}
 
@@ -96,11 +96,11 @@ namespace adria
 				builder.DeclareBuffer(RG_RES_NAME(BokehCounter), bokeh_counter_desc);
 				data.dst = builder.WriteCopyDstBuffer(RG_RES_NAME(BokehCounter));
 			},
-			[=](BokehCounterResetPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](BokehCounterResetPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
-				Buffer const& bokeh_counter = context.GetCopyDstBuffer(data.dst);
+				GfxBuffer const& bokeh_counter = context.GetCopyDstBuffer(data.dst);
 				cmd_list->CopyBufferRegion(bokeh_counter.GetNative(), 0, counter_reset_buffer->GetNative(), 0, sizeof(uint32));
-			}, ERGPassType::Copy, ERGPassFlags::None);
+			}, RGPassType::Copy, RGPassFlags::None);
 
 		struct BokehGeneratePassData
 		{
@@ -113,8 +113,8 @@ namespace adria
 			[=](BokehGeneratePassData& data, RenderGraphBuilder& builder)
 			{
 				RGBufferDesc bokeh_desc{};
-				bokeh_desc.resource_usage = EResourceUsage::Default;
-				bokeh_desc.misc_flags = EBufferMiscFlag::BufferStructured;
+				bokeh_desc.resource_usage = GfxResourceUsage::Default;
+				bokeh_desc.misc_flags = GfxBufferMiscFlag::BufferStructured;
 				bokeh_desc.stride = sizeof(Bokeh);
 				bokeh_desc.size = bokeh_desc.stride * width * height;
 				builder.DeclareBuffer(RG_RES_NAME(Bokeh), bokeh_desc);
@@ -122,7 +122,7 @@ namespace adria
 				data.input = builder.ReadTexture(last_resource, ReadAccess_NonPixelShader);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
-			[=](BokehGeneratePassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](BokehGeneratePassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -164,13 +164,13 @@ namespace adria
 				};
 
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::BokehGenerate));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::BokehGenerate));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
 				cmd_list->SetComputeRootConstantBufferView(2, allocation.gpu_address);
 				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::None);
 
 		struct BokehCopyToIndirectBufferPass
 		{
@@ -184,12 +184,12 @@ namespace adria
 				data.dst = builder.WriteCopyDstBuffer(RG_RES_NAME(BokehIndirectDraw));
 				data.src = builder.ReadCopySrcBuffer(RG_RES_NAME(BokehCounter));
 			},
-			[=](BokehCopyToIndirectBufferPass const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](BokehCopyToIndirectBufferPass const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
-				Buffer const& src_buffer = context.GetCopySrcBuffer(data.src);
-				Buffer const& dst_buffer = context.GetCopyDstBuffer(data.dst);
+				GfxBuffer const& src_buffer = context.GetCopySrcBuffer(data.src);
+				GfxBuffer const& dst_buffer = context.GetCopyDstBuffer(data.dst);
 				cmd_list->CopyBufferRegion(dst_buffer.GetNative(), 0, src_buffer.GetNative(), 0, src_buffer.GetDesc().size);
-			}, ERGPassType::Copy, ERGPassFlags::None);
+			}, RGPassType::Copy, RGPassFlags::None);
 	}
 	void BokehPass::AddDrawBokehPass(RenderGraph& rg, RGResourceName input)
 	{
@@ -204,12 +204,12 @@ namespace adria
 		rg.AddPass<BokehDrawPassData>("Bokeh Draw Pass",
 			[=](BokehDrawPassData& data, RenderGraphBuilder& builder)
 			{
-				builder.WriteRenderTarget(last_resource, ERGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteRenderTarget(last_resource, RGLoadStoreAccessOp::Preserve_Preserve);
 				data.bokeh_stack = builder.ReadBuffer(RG_RES_NAME(Bokeh), ReadAccess_PixelShader);
 				data.bokeh_indirect_args = builder.ReadIndirectArgsBuffer(RG_RES_NAME(BokehIndirectDraw));
 				builder.SetViewport(width, height);
 			},
-			[=](BokehDrawPassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](BokehDrawPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -217,16 +217,16 @@ namespace adria
 				D3D12_CPU_DESCRIPTOR_HANDLE bokeh_descriptor{};
 				switch (params.bokeh_type)
 				{
-				case EBokehType::Hex:
+				case BokehType::Hex:
 					bokeh_descriptor = TextureManager::Get().GetSRV(hex_bokeh_handle);
 					break;
-				case EBokehType::Oct:
+				case BokehType::Oct:
 					bokeh_descriptor = TextureManager::Get().GetSRV(oct_bokeh_handle);
 					break;
-				case EBokehType::Circle:
+				case BokehType::Circle:
 					bokeh_descriptor = TextureManager::Get().GetSRV(circle_bokeh_handle);
 					break;
-				case EBokehType::Cross:
+				case BokehType::Cross:
 					bokeh_descriptor = TextureManager::Get().GetSRV(cross_bokeh_handle);
 					break;
 				default:
@@ -249,15 +249,15 @@ namespace adria
 					.bokeh_tex_idx = i, .bokeh_stack_idx = i + 1
 				};
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Bokeh));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Bokeh));
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetGraphicsRoot32BitConstants(1, 2, &constants, 0);
 				cmd_list->IASetVertexBuffers(0, 0, nullptr);
 				cmd_list->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 
-				Buffer const& indirect_args_buffer = context.GetIndirectArgsBuffer(data.bokeh_indirect_args);
+				GfxBuffer const& indirect_args_buffer = context.GetIndirectArgsBuffer(data.bokeh_indirect_args);
 				cmd_list->ExecuteIndirect(*bokeh_command_signature, 1, indirect_args_buffer.GetNative(), 0, nullptr, 0);
-			}, ERGPassType::Graphics, ERGPassFlags::None);
+			}, RGPassType::Graphics, RGPassFlags::None);
 
 	}
 

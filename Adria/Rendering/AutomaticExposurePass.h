@@ -7,21 +7,21 @@
 namespace adria
 {
 	class RenderGraph;
-	class Texture;
-	class Buffer;
-	class GraphicsDevice;
+	class GfxTexture;
+	class GfxBuffer;
+	class GfxDevice;
 
 	class AutomaticExposurePass
 	{
 	public:
 		AutomaticExposurePass(uint32 w, uint32 h);
-		void OnSceneInitialized(GraphicsDevice* gfx);
+		void OnSceneInitialized(GfxDevice* gfx);
 		void AddPasses(RenderGraph& rg, RGResourceName input);
 		void OnResize(uint32 w, uint32 h);
 	private:
 		uint32 width, height;
-		std::unique_ptr<Texture> previous_ev100;
-		std::unique_ptr<Buffer> histogram_copy;
+		std::unique_ptr<GfxTexture> previous_ev100;
+		std::unique_ptr<GfxBuffer> histogram_copy;
 		bool invalid_history = true;
 
 		float min_luminance = 0.0f;

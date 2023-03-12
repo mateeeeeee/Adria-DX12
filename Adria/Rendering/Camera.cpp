@@ -37,20 +37,20 @@ namespace adria
 	{
 		if (!enabled) return;
 		Input& input = Input::GetInstance();
-		if (input.GetKey(EKeyCode::Space)) return;
+		if (input.GetKey(KeyCode::Space)) return;
 
 		float speed_factor = 1.0f;
 
-		if (input.GetKey(EKeyCode::ShiftLeft)) speed_factor *= 5.0f;
-		if (input.GetKey(EKeyCode::CtrlLeft))  speed_factor *= 0.2f;
+		if (input.GetKey(KeyCode::ShiftLeft)) speed_factor *= 5.0f;
+		if (input.GetKey(KeyCode::CtrlLeft))  speed_factor *= 0.2f;
 
-		if (input.GetKey(EKeyCode::W)) Walk(speed_factor * dt);
-		if (input.GetKey(EKeyCode::S)) Walk(-speed_factor * dt);
-		if (input.GetKey(EKeyCode::A)) Strafe(-speed_factor * dt);
-		if (input.GetKey(EKeyCode::D)) Strafe(speed_factor * dt);
-		if (input.GetKey(EKeyCode::Q)) Jump(speed_factor * dt);
-		if (input.GetKey(EKeyCode::E)) Jump(-speed_factor * dt);
-		if (input.GetKey(EKeyCode::MouseRight))
+		if (input.GetKey(KeyCode::W)) Walk(speed_factor * dt);
+		if (input.GetKey(KeyCode::S)) Walk(-speed_factor * dt);
+		if (input.GetKey(KeyCode::A)) Strafe(-speed_factor * dt);
+		if (input.GetKey(KeyCode::D)) Strafe(speed_factor * dt);
+		if (input.GetKey(KeyCode::Q)) Jump(speed_factor * dt);
+		if (input.GetKey(KeyCode::E)) Jump(-speed_factor * dt);
+		if (input.GetKey(KeyCode::MouseRight))
 		{
 			float dx = input.GetMouseDeltaX();
 			float dy = input.GetMouseDeltaY();

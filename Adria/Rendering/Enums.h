@@ -4,9 +4,9 @@
 
 namespace adria
 {
-	enum EShaderId : uint8
+	enum GfxShaderID : uint8
 	{
-		ShaderId_Invalid,
+		GfxShaderID_Invalid,
 		VS_Sky,
 		PS_Skybox,
 		PS_UniformColorSky,
@@ -83,13 +83,13 @@ namespace adria
 		ShaderId_Count
 	};
 
-	enum class ERootSignature : uint8
+	enum class GfxRootSignatureID : uint8
 	{
 		Invalid,
 		Common
 	};
 
-	enum class EPipelineState : uint8
+	enum class GfxPipelineStateID : uint8
 	{
 		Skybox,
 		UniformColorSky,
@@ -156,28 +156,28 @@ namespace adria
         Unknown
 	};
 
-	enum class ELightType : int32
+	enum class LightType : int32
 	{
 		Directional,
 		Point,
 		Spot
 	};
 
-	enum class ESkyType : uint8
+	enum class SkyType : uint8
 	{
 		Skybox,
 		UniformColor,
 		HosekWilkie
 	};
 
-	enum class EBlendMode : uint8
+	enum class BlendMode : uint8
 	{
 		None,
 		AlphaBlend,
 		AdditiveBlend
 	};
 
-	enum class ERenderPathType
+	enum class RenderPathType
 	{
 		RegularDeferred,
 		TiledDeferred,
@@ -185,7 +185,7 @@ namespace adria
 		PathTracing
 	};
 
-	enum class EAmbientOcclusion : uint8
+	enum class AmbientOcclusion : uint8
 	{
 		None,
 		SSAO,
@@ -193,28 +193,28 @@ namespace adria
 		RTAO
 	};
 
-	enum class EReflections : uint8
+	enum class Reflections : uint8
 	{
 		None,
 		SSR,
 		RTR
 	};
 
-	enum class EDecalType : uint8
+	enum class DecalType : uint8
 	{
 		Project_XY,
 		Project_YZ,
 		Project_XZ
 	};
 
-	enum EAntiAliasing : uint8
+	enum AntiAliasing : uint8
 	{
 		AntiAliasing_None = 0x0,
 		AntiAliasing_FXAA = 0x1,
 		AntiAliasing_TAA = 0x2
 	};
 
-	enum class EMaterialAlphaMode : uint8
+	enum class MaterialAlphaMode : uint8
 	{
 		Opaque,
 		Blend,

@@ -1,14 +1,14 @@
 #pragma once
 #include <optional>
 #include "../Core/Definitions.h"
-#include "../Graphics/Buffer.h"
+#include "../Graphics/GfxBuffer.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
 #include "entt/entity/entity.hpp"
 
 namespace adria
 {
 	class RenderGraph;
-	class GraphicsDevice;
+	class GfxDevice;
 
 	class ClusteredDeferredLightingPass
 	{
@@ -19,7 +19,7 @@ namespace adria
 		static constexpr uint32 CLUSTER_MAX_LIGHTS = 128;
 
 	public:
-		ClusteredDeferredLightingPass(entt::registry& reg, GraphicsDevice* gfx, uint32 w, uint32 h);
+		ClusteredDeferredLightingPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h);
 
 		void AddPass(RenderGraph& rendergraph, bool recreate_clusters);
 
@@ -31,10 +31,10 @@ namespace adria
 	private:
 		entt::registry& reg;
 		uint32 width, height;
-		Buffer clusters;
-		Buffer light_counter;
-		Buffer light_list;
-		Buffer light_grid;
+		GfxBuffer clusters;
+		GfxBuffer light_counter;
+		GfxBuffer light_list;
+		GfxBuffer light_grid;
 	};
 
 }

@@ -2,7 +2,7 @@
 #include "BlackboardData.h"
 #include "PSOCache.h" 
 
-#include "../Graphics/GraphicsCommon.h"
+#include "../Graphics/GfxCommon.h"
 #include "../Graphics/TextureManager.h"
 #include "../Math/Packing.h"
 #include "../Editor/GUICommand.h"
@@ -42,7 +42,7 @@ namespace adria
 				ADRIA_ASSERT(builder.IsTextureDeclared(RG_RES_NAME(FinalTexture)));
 				data.output = builder.WriteTexture(RG_RES_NAME(FinalTexture));
 			},
-			[=](ToneMapPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](ToneMapPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -50,7 +50,7 @@ namespace adria
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(4);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.hdr_input), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), 
-					data.exposure.IsValid() ? ctx.GetReadOnlyTexture(data.exposure) : gfxcommon::GetCommonTexture(ECommonTextureType::WhiteTexture2D)->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					data.exposure.IsValid() ? ctx.GetReadOnlyTexture(data.exposure) : gfxcommon::GetCommonTexture(GfxCommonTextureType::WhiteTexture2D)->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				
 				bool const bloom_enabled = data.bloom.IsValid();
@@ -79,11 +79,11 @@ namespace adria
 					constants.bloom_params_packed = PackTwoFloatsToUint32(bloom_data->bloom_intensity, bloom_data->bloom_blend_factor);
 				}
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ToneMap));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ToneMap));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
 				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
-			}, ERGPassType::Compute, ERGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::None);
 
 		GUI();
 	}
@@ -93,7 +93,7 @@ namespace adria
 		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
 		BloomBlackboardData const* bloom_data  = rg.GetBlackboard().Get<BloomBlackboardData>();
 
-		ERGPassFlags flags = ERGPassFlags::None;
+		RGPassFlags flags = RGPassFlags::None;
 
 		struct ToneMapPassData
 		{
@@ -109,7 +109,7 @@ namespace adria
 				RGTextureDesc fxaa_input_desc{};
 				fxaa_input_desc.width = width;
 				fxaa_input_desc.height = height;
-				fxaa_input_desc.format = EFormat::R10G10B10A2_UNORM;
+				fxaa_input_desc.format = GfxFormat::R10G10B10A2_UNORM;
 				builder.DeclareTexture(output, fxaa_input_desc);
 
 				data.hdr_input = builder.ReadTexture(hdr_src, ReadAccess_NonPixelShader);
@@ -124,7 +124,7 @@ namespace adria
 				data.output = builder.WriteTexture(output);
 				builder.SetViewport(width, height);
 			},
-			[=](ToneMapPassData const& data, RenderGraphContext& ctx, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](ToneMapPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -132,7 +132,7 @@ namespace adria
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(4);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.hdr_input), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), 
-					data.exposure.IsValid() ? ctx.GetReadOnlyTexture(data.exposure) : gfxcommon::GetCommonTexture(ECommonTextureType::WhiteTexture2D)->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					data.exposure.IsValid() ? ctx.GetReadOnlyTexture(data.exposure) : gfxcommon::GetCommonTexture(GfxCommonTextureType::WhiteTexture2D)->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				
 				bool const bloom_enabled = data.bloom.IsValid();
@@ -161,11 +161,11 @@ namespace adria
 					constants.bloom_params_packed = PackTwoFloatsToUint32(bloom_data->bloom_intensity, bloom_data->bloom_blend_factor);
 				}
 				
-				cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::ToneMap));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ToneMap));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
 				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
-			}, ERGPassType::Compute, flags);
+			}, RGPassType::Compute, flags);
 
 		GUI();
 	}
@@ -175,7 +175,7 @@ namespace adria
 		width = w, height = h;
 	}
 
-	void ToneMapPass::OnSceneInitialized(GraphicsDevice* gfx)
+	void ToneMapPass::OnSceneInitialized(GfxDevice* gfx)
 	{
 		lens_dirt_handle = TextureManager::Get().LoadTexture(L"Resources/Textures/LensDirt.dds");
 	}
@@ -190,7 +190,7 @@ namespace adria
 					static char const* const operators[] = { "REINHARD", "HABLE", "LINEAR" };
 					static int tone_map_operator = static_cast<int>(params.tone_map_op);
 					ImGui::ListBox("Tone Map Operator", &tone_map_operator, operators, IM_ARRAYSIZE(operators));
-					params.tone_map_op = static_cast<EToneMap>(tone_map_operator);
+					params.tone_map_op = static_cast<ToneMap>(tone_map_operator);
 					ImGui::TreePop();
 					ImGui::Separator();
 				}

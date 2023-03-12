@@ -7,7 +7,7 @@
 namespace adria
 {
 
-	void CopyToTexturePass::AddPass(RenderGraph& rendergraph, RGResourceName render_target, RGResourceName texture_src, EBlendMode mode /*= EBlendMode::None*/)
+	void CopyToTexturePass::AddPass(RenderGraph& rendergraph, RGResourceName render_target, RGResourceName texture_src, BlendMode mode /*= EBlendMode::None*/)
 	{
 		struct CopyToTexturePassData
 		{
@@ -17,11 +17,11 @@ namespace adria
 		rendergraph.AddPass<CopyToTexturePassData>("CopyToTexture Pass",
 			[=](CopyToTexturePassData& data, RenderGraphBuilder& builder)
 			{
-				builder.WriteRenderTarget(render_target, ERGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteRenderTarget(render_target, RGLoadStoreAccessOp::Preserve_Preserve);
 				data.texture_src = builder.ReadTexture(texture_src, ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
-			[=](CopyToTexturePassData const& data, RenderGraphContext& context, GraphicsDevice* gfx, CommandList* cmd_list)
+			[=](CopyToTexturePassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
@@ -29,14 +29,14 @@ namespace adria
 				
 				switch (mode)
 				{
-				case EBlendMode::None:
-					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Copy));
+				case BlendMode::None:
+					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Copy));
 					break;
-				case EBlendMode::AlphaBlend:
-					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Copy_AlphaBlend));
+				case BlendMode::AlphaBlend:
+					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Copy_AlphaBlend));
 					break;
-				case EBlendMode::AdditiveBlend:
-					cmd_list->SetPipelineState(PSOCache::Get(EPipelineState::Copy_AdditiveBlend));
+				case BlendMode::AdditiveBlend:
+					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Copy_AdditiveBlend));
 					break;
 				default:
 					ADRIA_ASSERT(false && "Invalid Copy Mode in CopyTexture");
@@ -49,7 +49,7 @@ namespace adria
 				cmd_list->SetGraphicsRoot32BitConstant(1, i, 0);
 				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 				cmd_list->DrawInstanced(4, 1, 0, 0);
-			}, ERGPassType::Graphics, ERGPassFlags::None);
+			}, RGPassType::Graphics, RGPassFlags::None);
 	}
 
 }

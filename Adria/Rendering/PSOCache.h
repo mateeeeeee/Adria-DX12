@@ -6,12 +6,12 @@ struct ID3D12PipelineState;
 
 namespace adria
 {
-	class GraphicsDevice;
+	class GfxDevice;
 
 	namespace PSOCache
 	{
-		void Initialize(GraphicsDevice* gfx);
+		void Initialize(GfxDevice* gfx);
 		void Destroy();
-		ID3D12PipelineState* Get(EPipelineState);
+		ID3D12PipelineState* Get(GfxPipelineStateID);
 	};
 }

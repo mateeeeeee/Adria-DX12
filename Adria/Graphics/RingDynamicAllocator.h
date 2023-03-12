@@ -5,13 +5,13 @@
 
 namespace adria
 {
-	class Buffer;
-	class GraphicsDevice;
+	class GfxBuffer;
+	class GfxDevice;
 
 	class RingDynamicAllocator
 	{
 	public:
-		RingDynamicAllocator(GraphicsDevice* gfx, SIZE_T max_size_in_bytes);
+		RingDynamicAllocator(GfxDevice* gfx, SIZE_T max_size_in_bytes);
 		~RingDynamicAllocator();
 		DynamicAllocation Allocate(SIZE_T size_in_bytes, SIZE_T alignment);
 
@@ -22,7 +22,7 @@ namespace adria
 	private:
 		RingAllocator ring_allocator;
 		std::mutex alloc_mutex;
-		std::unique_ptr<Buffer> buffer;
+		std::unique_ptr<GfxBuffer> buffer;
 		void* cpu_address;
 	};
 }

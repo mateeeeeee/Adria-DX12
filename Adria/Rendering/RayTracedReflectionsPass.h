@@ -8,18 +8,18 @@
 namespace adria
 {
 	class RenderGraph;
-	class GraphicsDevice;
+	class GfxDevice;
 
 	class RayTracedReflectionsPass
 	{
 	public:
-		RayTracedReflectionsPass(GraphicsDevice* gfx, uint32 width, uint32 height);
+		RayTracedReflectionsPass(GfxDevice* gfx, uint32 width, uint32 height);
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h);
 		bool IsSupported() const;
 
 	private:
-		GraphicsDevice* gfx;
+		GfxDevice* gfx;
 		BlurPass blur_pass;
 		ArcPtr<ID3D12StateObject> ray_traced_reflections;
 		uint32 width, height;
@@ -27,6 +27,6 @@ namespace adria
 		float reflection_roughness_scale = 0.0f;
 	private:
 		void CreateStateObject();
-		void OnLibraryRecompiled(EShaderId shader);
+		void OnLibraryRecompiled(GfxShaderID shader);
 	};
 }

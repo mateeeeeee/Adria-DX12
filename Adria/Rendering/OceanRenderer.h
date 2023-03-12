@@ -8,8 +8,8 @@ namespace adria
 {
 	class RenderGraph;
 	class TextureManager;
-	class GraphicsDevice;
-	class Texture;
+	class GfxDevice;
+	class GfxTexture;
 
 	class OceanRenderer
 	{
@@ -21,17 +21,17 @@ namespace adria
 		void AddPasses(RenderGraph& rendergraph);
 
 		void OnResize(uint32 w, uint32 h);
-		void OnSceneInitialized(GraphicsDevice* gfx);
+		void OnSceneInitialized(GfxDevice* gfx);
 
 	private:
 		entt::registry& reg;
 		size_t foam_handle = -1;
 		size_t perlin_handle = -1;
 		uint32 width, height;
-		std::unique_ptr<Texture> initial_spectrum;
-		std::unique_ptr<Texture> ping_pong_phase_textures[2];
+		std::unique_ptr<GfxTexture> initial_spectrum;
+		std::unique_ptr<GfxTexture> ping_pong_phase_textures[2];
 		bool pong_phase = false;
-		std::unique_ptr<Texture> ping_pong_spectrum_textures[2];
+		std::unique_ptr<GfxTexture> ping_pong_spectrum_textures[2];
 		bool pong_spectrum = false;
 
 		//settings
