@@ -121,9 +121,6 @@ namespace adria
 		//release queue
 		ReleasablePtr<D3D12MA::Allocator> allocator = nullptr;
 		std::queue<ReleasableItem>  release_queue;
-		ArcPtr<ID3D12Fence> release_queue_fence = nullptr;
-		HANDLE		 release_queue_event = nullptr;
-		UINT64       release_queue_fence_value = 0;
 
 		FrameResources frames[BACKBUFFER_COUNT];
 
@@ -140,6 +137,9 @@ namespace adria
 
 		GfxFence     wait_fence;
 		UINT64       wait_fence_value = 1;
+
+		GfxFence     release_fence;
+		UINT64       release_queue_fence_value = 1;
 
 		std::array<std::unique_ptr<OfflineDescriptorAllocator>, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES> offline_descriptor_allocators;
 

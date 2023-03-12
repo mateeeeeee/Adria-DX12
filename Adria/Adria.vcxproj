@@ -302,6 +302,7 @@
     <ClInclude Include="Events\IEvent.h" />
     <ClInclude Include="Graphics\GfxBuffer.h" />
     <ClInclude Include="Graphics\CommandSignature.h" />
+    <ClInclude Include="Graphics\GfxCommandQueue.h" />
     <ClInclude Include="Graphics\GfxConstantBuffer.h" />
     <ClInclude Include="Graphics\D3D12MemAlloc.h" />
     <ClInclude Include="Graphics\d3dx12.h" />

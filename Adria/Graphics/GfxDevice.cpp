@@ -337,13 +337,6 @@ namespace adria
 		}
 		dynamic_allocator_before_rendering.reset(new LinearDynamicAllocator(this, 750'000'000));
 
-		release_queue_fence_value = 0;
-		hr = device->CreateFence(release_queue_fence_value, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(release_queue_fence.GetAddressOf()));
-		release_queue_fence_value++;
-		BREAK_IF_FAILED(hr);
-		release_queue_event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-		if (release_queue_event == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
-
 		for (UINT fr = 0; fr < BACKBUFFER_COUNT; ++fr)
 		{
 			hr = swap_chain->GetBuffer(fr, IID_PPV_ARGS(frames[fr].back_buffer.GetAddressOf()));
@@ -363,6 +356,7 @@ namespace adria
 		graphics_fence.Create(this, "Graphics Fence");
 		compute_fence.Create(this, "Compute Fence");
 		wait_fence.Create(this, "Wait Fence");
+		release_fence.Create(this, "Release Fence");
 
 		ArcPtr<ID3D12InfoQueue> info_queue;
 		if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(info_queue.GetAddressOf()))))
@@ -695,10 +689,10 @@ namespace adria
 	{
 		while (!release_queue.empty())
 		{
-			if (release_queue.front().fence_value > release_queue_fence->GetCompletedValue()) break;
+			if (!release_fence.IsCompleted(release_queue.front().fence_value)) break;
 			release_queue.pop();
 		}
-		BREAK_IF_FAILED(graphics_queue->Signal(release_queue_fence.Get(), release_queue_fence_value));
+		BREAK_IF_FAILED(graphics_queue->Signal(release_fence, release_queue_fence_value));
 		++release_queue_fence_value;
 	}
 

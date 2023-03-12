@@ -386,6 +386,9 @@
     <ClCompile Include="Graphics\GfxPipelineState.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\GfxFence.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -863,6 +866,12 @@
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxPipelineState.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxFence.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxCommandQueue.h">
       <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>
