@@ -26,19 +26,4 @@ namespace adria
 		ArcPtr<ID3D12Fence> fence = nullptr;
 		HANDLE event = nullptr;
 	};
-
-	class GfxSyncPoint
-	{
-	public:
-		GfxSyncPoint(GfxFence& fence, uint64 fence_value) : fence(fence), fence_value(fence_value) {}
-
-		void Wait() const { fence.Wait(fence_value); }
-		bool IsComplete() const { return fence.IsCompleted(fence_value); }
-		uint64 GetFenceValue() const { return fence_value; }
-		GfxFence& GetFence() const { return fence; }
-
-	private:
-		GfxFence& fence;
-		uint64 fence_value = 0;
-	};
 }

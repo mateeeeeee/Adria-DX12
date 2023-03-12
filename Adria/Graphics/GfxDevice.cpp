@@ -195,8 +195,8 @@ namespace adria
 	}
 
 	GfxDevice::GfxDevice(GfxOptions const& options)
-		: frame_fence_value(0), frame_index(0),
-		frame_fence_values{}, graphics_fence_values{}, compute_fence_values{}
+		: frame_index(0), 
+		frame_fence_value(0), frame_fence_values{}, graphics_fence_values{}, compute_fence_values{}
 	{
 		HWND hwnd = static_cast<HWND>(Window::Handle());
 		width = Window::Width();
@@ -361,13 +361,9 @@ namespace adria
 			}
 		}
 
+		frame_fence.Create(this, "Frame Fence");
 		for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
 		{
-			hr = device->CreateFence(frame_fence_values[i], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(frame_fences[i].GetAddressOf()));
-			BREAK_IF_FAILED(hr);
-			frame_fence_events[i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-			if (frame_fence_events[i] == nullptr) BREAK_IF_FAILED(HRESULT_FROM_WIN32(GetLastError()));
-
 			hr = device->CreateFence(graphics_fence_values[i], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(graphics_fences[i].GetAddressOf()));
 			BREAK_IF_FAILED(hr);
 			graphics_fence_events[i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
@@ -475,7 +471,6 @@ namespace adria
 
 			CloseHandle(compute_fence_events[i]);
 			CloseHandle(graphics_fence_events[i]);
-			CloseHandle(frame_fence_events[i]);
 		}
 	}
 
@@ -810,17 +805,13 @@ namespace adria
 		// Assign the current fence value to the current frame.
 		frame_fence_values[backbuffer_index] = frame_fence_value;
 		// Signal and increment the fence value.
-		BREAK_IF_FAILED(graphics_queue->Signal(frame_fences[backbuffer_index].Get(), frame_fence_value));
+		BREAK_IF_FAILED(graphics_queue->Signal(frame_fence, frame_fence_value));
 		++frame_fence_value;
 
 		// Update the frame index.
 		last_backbuffer_index = backbuffer_index;
 		backbuffer_index = swap_chain->GetCurrentBackBufferIndex();
-		if (frame_fences[backbuffer_index]->GetCompletedValue() < frame_fence_values[backbuffer_index])
-		{
-			BREAK_IF_FAILED(frame_fences[backbuffer_index]->SetEventOnCompletion(frame_fence_values[backbuffer_index], frame_fence_events[backbuffer_index]));
-			WaitForSingleObject(frame_fence_events[backbuffer_index], INFINITE);
-		}
+		frame_fence.Wait(frame_fence_values[backbuffer_index]);
 		++frame_index;
 	}
 

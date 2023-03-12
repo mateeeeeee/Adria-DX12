@@ -17,10 +17,11 @@ namespace adria
 		ID3D12Device* device = gfx->GetDevice();
 
 		HRESULT hr = device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(fence.GetAddressOf()));
-		if (FAILED(hr)) return;
+		if (FAILED(hr)) return false;
 
 		fence->SetName(ToWideString(name).c_str());
 		event = CreateEvent(NULL, FALSE, FALSE, NULL);
+		return true;
 	}
 
 	void GfxFence::Wait(uint64 value)

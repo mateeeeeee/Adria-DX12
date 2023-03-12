@@ -16,12 +16,13 @@
 
 #define D3D12MA_D3D12_HEADERS_ALREADY_INCLUDED
 #include "D3D12MemAlloc.h"
+
+#include "GfxFence.h"
 #include "RingOnlineDescriptorAllocator.h"
 #include "LinearOnlineDescriptorAllocator.h"
 #include "OfflineDescriptorAllocator.h"
 #include "LinearDynamicAllocator.h"
 #include "Releasable.h"
-#include "../Utilities/AutoRefCountPtr.h"
 
 namespace adria
 {
@@ -140,10 +141,9 @@ namespace adria
 		FrameResources frames[BACKBUFFER_COUNT];
 
 		//sync objects
-		ArcPtr<ID3D12Fence> frame_fences[BACKBUFFER_COUNT];
-		HANDLE		 frame_fence_events[BACKBUFFER_COUNT];
-		UINT64       frame_fence_values[BACKBUFFER_COUNT];
+		GfxFence     frame_fence;
 		UINT64		 frame_fence_value;
+		UINT64       frame_fence_values[BACKBUFFER_COUNT];
 
 		ArcPtr<ID3D12Fence> graphics_fences[BACKBUFFER_COUNT];
 		HANDLE		 graphics_fence_events[BACKBUFFER_COUNT];
