@@ -51,7 +51,7 @@ namespace adria
 		void BuildBottomLevels()
 		{
 			ID3D12Device5* device = gfx->GetDevice();
-			ID3D12GraphicsCommandList4* cmd_list = gfx->GetDefaultCommandList();
+			ID3D12GraphicsCommandList4* cmd_list = gfx->GetCommandList();
 
 			struct BLAccelerationStructureBuffers
 			{
@@ -107,7 +107,7 @@ namespace adria
 		void BuildTopLevel()
 		{
 			ID3D12Device5* device = gfx->GetDevice();
-			ID3D12GraphicsCommandList4* cmd_list = gfx->GetDefaultCommandList();
+			ID3D12GraphicsCommandList4* cmd_list = gfx->GetCommandList();
 
 			struct TLAccelerationStructureBuffers
 			{

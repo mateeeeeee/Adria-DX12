@@ -123,7 +123,7 @@ namespace adria
 
 	void TextureManager::Tick()
 	{
-		mips_generator->Generate(gfx->GetDefaultCommandList());
+		mips_generator->Generate(gfx->GetCommandList());
 	}
 
     [[nodiscard]]
@@ -164,7 +164,7 @@ namespace adria
             ++handle;
             auto device = gfx->GetDevice();
             auto allocator = gfx->GetAllocator();
-            auto cmd_list = gfx->GetDefaultCommandList();
+            auto cmd_list = gfx->GetCommandList();
             if (format == TextureFormat::eDDS)
             {
                 loaded_textures.insert({ name, handle });
@@ -271,7 +271,7 @@ namespace adria
 
         auto device = gfx->GetDevice();
         auto allocator = gfx->GetAllocator();
-        auto cmd_list = gfx->GetDefaultCommandList();
+        auto cmd_list = gfx->GetCommandList();
 
         ++handle;
         GfxTextureDesc desc{};
@@ -335,7 +335,7 @@ namespace adria
 		std::unique_ptr<GfxTexture> black_default_texture = std::make_unique<GfxTexture>(gfx, desc, &init_data);
 		texture_map[INVALID_TEXTURE_HANDLE] = std::move(black_default_texture);
 
-		mips_generator->Generate(gfx->GetDefaultCommandList());
+		mips_generator->Generate(gfx->GetCommandList());
 
 		gfx->ReserveOnlineDescriptors(1024);
 		ID3D12Device* device = gfx->GetDevice();
@@ -361,7 +361,7 @@ namespace adria
             loaded_textures.insert({ texture_path, handle });
 
             auto device = gfx->GetDevice();
-            auto cmd_list = gfx->GetDefaultCommandList();
+            auto cmd_list = gfx->GetCommandList();
             auto allocator = gfx->GetAllocator();
 
             ArcPtr<ID3D12Resource> tex2d = nullptr;
@@ -399,7 +399,7 @@ namespace adria
         if (auto it = loaded_textures.find(texture_path); it == loaded_textures.end())
         {
             auto device = gfx->GetDevice();
-            auto cmd_list = gfx->GetDefaultCommandList();
+            auto cmd_list = gfx->GetCommandList();
             auto allocator = gfx->GetAllocator();
 
             ++handle;
@@ -451,7 +451,7 @@ namespace adria
         if (auto it = loaded_textures.find(texture_path); it == loaded_textures.end())
         {
             auto device = gfx->GetDevice();
-            auto cmd_list = gfx->GetDefaultCommandList();
+            auto cmd_list = gfx->GetCommandList();
             auto allocator = gfx->GetAllocator();
             ++handle;
 			loaded_textures.insert({ texture_path, handle });

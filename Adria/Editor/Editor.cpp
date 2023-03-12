@@ -96,7 +96,7 @@ namespace adria
 		{
 			engine->SetViewportData(viewport_data);
 			engine->Run(renderer_settings);
-			auto gui_cmd_list = engine->gfx->GetDefaultCommandList();
+			auto gui_cmd_list = engine->gfx->GetCommandList();
 			engine->gfx->SetBackbuffer(gui_cmd_list);
 			{
 				gui->Begin();
@@ -1100,7 +1100,7 @@ namespace adria
 				static float FRAME_TIME_GRAPH_MAX_VALUES[ARRAYSIZE(FRAME_TIME_GRAPH_MAX_FPS)] = { 0 };
 				for (uint64 i = 0; i < ARRAYSIZE(FRAME_TIME_GRAPH_MAX_FPS); ++i) { FRAME_TIME_GRAPH_MAX_VALUES[i] = 1000.f / FRAME_TIME_GRAPH_MAX_FPS[i]; }
 
-				std::vector<Timestamp> time_stamps = GPUProfiler::Get().GetProfilerResults(engine->gfx->GetLastGraphicsCommandList());
+				std::vector<Timestamp> time_stamps = GPUProfiler::Get().GetProfilerResults(engine->gfx->GetCommandList());
 				FRAME_TIME_ARRAY[NUM_FRAMES - 1] = 1000.0f / io.Framerate;
 				for (uint32 i = 0; i < NUM_FRAMES - 1; i++) FRAME_TIME_ARRAY[i] = FRAME_TIME_ARRAY[i + 1];
 				RECENT_HIGHEST_FRAME_TIME = std::max(RECENT_HIGHEST_FRAME_TIME, FRAME_TIME_ARRAY[NUM_FRAMES - 1]);

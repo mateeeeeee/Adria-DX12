@@ -357,23 +357,6 @@ namespace adria
 			BREAK_IF_FAILED(hr);
 			hr = frames[fr].default_cmd_list->Close();
 			BREAK_IF_FAILED(hr);
-
-			for (UINT i = 0; i < CMD_LIST_COUNT; ++i)
-			{
-				hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(frames[fr].cmd_allocators[i].GetAddressOf()));
-				BREAK_IF_FAILED(hr);
-				hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, frames[fr].cmd_allocators[i].Get(), nullptr, IID_PPV_ARGS(frames[fr].cmd_lists[i].GetAddressOf()));
-				BREAK_IF_FAILED(hr);
-				hr = frames[fr].cmd_lists[i]->Close();
-				BREAK_IF_FAILED(hr);
-
-				hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COMPUTE, IID_PPV_ARGS(frames[fr].compute_cmd_allocators[i].GetAddressOf()));
-				BREAK_IF_FAILED(hr);
-				hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_COMPUTE, frames[fr].compute_cmd_allocators[i].Get(), nullptr, IID_PPV_ARGS(frames[fr].compute_cmd_lists[i].GetAddressOf()));
-				BREAK_IF_FAILED(hr);
-				hr = frames[fr].compute_cmd_lists[i]->Close();
-				BREAK_IF_FAILED(hr);
-			}
 		}
 
 		frame_fence.Create(this, "Frame Fence");
@@ -572,28 +555,19 @@ namespace adria
 
 		HRESULT hr = S_OK;
 
-		// Indicate that the back buffer will now be used to present.
-		D3D12_RESOURCE_BARRIER barrier = {};
+		D3D12_RESOURCE_BARRIER barrier{};
 		barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
 		barrier.Transition.pResource = frame_resources.back_buffer.Get();
 		barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 		barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
 		barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		GetCommandList()->ResourceBarrier(1, &barrier);
 
-		UINT cmd_list_index = frame_resources.cmd_list_index;
-
-		GetLastGraphicsCommandList()->ResourceBarrier(1, &barrier);
-
-		ExecuteGraphicsCommandLists();
-		ExecuteComputeCommandLists();
-
+		ExecuteCommandLists();
 		ProcessReleaseQueue();
-
 		swap_chain->Present(vsync, 0);
-
 		MoveToNextFrame();
-
 		descriptor_allocator->FinishCurrentFrame(frame_index);
 	}
 
@@ -602,60 +576,9 @@ namespace adria
 		return device.Get();
 	}
 
-	ID3D12GraphicsCommandList4* GfxDevice::GetDefaultCommandList() const
+	ID3D12GraphicsCommandList4* GfxDevice::GetCommandList() const
 	{
 		return GetFrameResources().default_cmd_list.Get();
-	}
-
-	ID3D12GraphicsCommandList4* GfxDevice::GetNewGraphicsCommandList() const
-	{
-		auto& frame_resources = GetFrameResources();
-		unsigned int i = frame_resources.cmd_list_index.load();
-		++frame_resources.cmd_list_index;
-		ADRIA_ASSERT(i < CMD_LIST_COUNT && "Not enough command lists");
-
-		HRESULT hr = frame_resources.cmd_allocators[i]->Reset();
-		BREAK_IF_FAILED(hr);
-		hr = frame_resources.cmd_lists[i]->Reset(frame_resources.cmd_allocators[i].Get(), nullptr);
-		BREAK_IF_FAILED(hr);
-
-		ID3D12DescriptorHeap* ppHeaps[] = { descriptor_allocator->Heap() };
-		frame_resources.cmd_lists[i]->SetDescriptorHeaps(1, ppHeaps);
-		frame_resources.cmd_lists[i]->SetGraphicsRootSignature(global_root_signature.Get());
-		frame_resources.cmd_lists[i]->SetComputeRootSignature(global_root_signature.Get());
-		return frame_resources.cmd_lists[i].Get();
-	}
-
-	ID3D12GraphicsCommandList4* GfxDevice::GetLastGraphicsCommandList() const
-	{
-		auto& frame_resources = GetFrameResources();
-		unsigned int i = frame_resources.cmd_list_index.load();
-		return i > 0 ? frame_resources.cmd_lists[i - 1].Get() : frame_resources.default_cmd_list.Get();
-	}
-
-	ID3D12GraphicsCommandList4* GfxDevice::GetNewComputeCommandList() const
-	{
-		auto& frame_resources = GetFrameResources();
-		unsigned int i = frame_resources.compute_cmd_list_index.load();
-		++frame_resources.compute_cmd_list_index;
-		ADRIA_ASSERT(i < CMD_LIST_COUNT && "Not enough command lists");
-
-		HRESULT hr = frame_resources.compute_cmd_allocators[i]->Reset();
-		BREAK_IF_FAILED(hr);
-		hr = frame_resources.compute_cmd_lists[i]->Reset(frame_resources.compute_cmd_allocators[i].Get(), nullptr);
-		BREAK_IF_FAILED(hr);
-
-		ID3D12DescriptorHeap* ppHeaps[] = { descriptor_allocator->Heap() };
-		frame_resources.compute_cmd_lists[i]->SetDescriptorHeaps(1, ppHeaps);
-		frame_resources.cmd_lists[i]->SetComputeRootSignature(global_root_signature.Get());
-		return frame_resources.compute_cmd_lists[i].Get();
-	}
-
-	ID3D12GraphicsCommandList4* GfxDevice::GetLastComputeCommandList() const
-	{
-		auto& frame_resources = GetFrameResources();
-		unsigned int i = frame_resources.compute_cmd_list_index.load();
-		return i > 0 ? frame_resources.compute_cmd_lists[i - 1].Get() : frame_resources.default_cmd_list.Get();
 	}
 
 	ID3D12RootSignature* GfxDevice::GetCommonRootSignature() const
@@ -745,32 +668,12 @@ namespace adria
 		return frames[backbuffer_index];
 	}
 
-	void GfxDevice::ExecuteGraphicsCommandLists()
+	void GfxDevice::ExecuteCommandLists()
 	{
 		auto& frame_resources = GetFrameResources();
 		frame_resources.default_cmd_list->Close();
 		std::vector<ID3D12CommandList*> cmd_lists = { frame_resources.default_cmd_list.Get() };
-		for (UINT i = 0; i < frame_resources.cmd_list_index; ++i)
-		{
-			frame_resources.cmd_lists[i]->Close();
-			cmd_lists.push_back(frame_resources.cmd_lists[i].Get());
-		}
 		graphics_queue->ExecuteCommandLists(static_cast<UINT>(cmd_lists.size()), cmd_lists.data());
-		frame_resources.cmd_list_index.store(0);
-	}
-
-	void GfxDevice::ExecuteComputeCommandLists()
-	{
-		auto& frame_resources = GetFrameResources();
-		if (frame_resources.compute_cmd_list_index == 0) return;
-		std::vector<ID3D12CommandList*> cmd_lists = {};
-		for (UINT i = 0; i < frame_resources.compute_cmd_list_index; ++i)
-		{
-			frame_resources.compute_cmd_lists[i]->Close();
-			cmd_lists.push_back(frame_resources.compute_cmd_lists[i].Get());
-		}
-		compute_queue->ExecuteCommandLists(static_cast<UINT>(cmd_lists.size()), cmd_lists.data());
-		frame_resources.compute_cmd_list_index.store(0);
 	}
 
 	void GfxDevice::MoveToNextFrame()

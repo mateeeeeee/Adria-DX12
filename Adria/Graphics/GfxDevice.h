@@ -3,13 +3,11 @@
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "dxguid.lib")
 
-
 #include <memory>
 #include <mutex>
 #include <vector>
 #include <array>
 #include <queue>
-#include <variant>
 
 #include <d3d12.h>
 #include <dxgi1_6.h>
@@ -47,22 +45,14 @@ namespace adria
 	class GfxDevice
 	{
 		static constexpr UINT BACKBUFFER_COUNT = 3;
-		static constexpr UINT CMD_LIST_COUNT = 32;
+		
 		struct FrameResources
 		{
-			ArcPtr<ID3D12Resource>	back_buffer = nullptr;
-			D3D12_CPU_DESCRIPTOR_HANDLE				back_buffer_rtv;
+			ArcPtr<ID3D12Resource>				back_buffer = nullptr;
+			D3D12_CPU_DESCRIPTOR_HANDLE			back_buffer_rtv;
 
 			ArcPtr<ID3D12CommandAllocator>      default_cmd_allocator;
 			ArcPtr<ID3D12GraphicsCommandList4>  default_cmd_list;
-
-			ArcPtr<ID3D12CommandAllocator>      cmd_allocators[CMD_LIST_COUNT] = {};
-			ArcPtr<ID3D12GraphicsCommandList4>  cmd_lists[CMD_LIST_COUNT] = {};
-			mutable std::atomic_uint cmd_list_index = 0;
-
-			ArcPtr<ID3D12CommandAllocator>      compute_cmd_allocators[CMD_LIST_COUNT] = {};
-			ArcPtr<ID3D12GraphicsCommandList4>  compute_cmd_lists[CMD_LIST_COUNT] = {};
-			mutable std::atomic_uint compute_cmd_list_index = 0;
 		};
 
 
@@ -85,11 +75,7 @@ namespace adria
 		void SwapBuffers(bool vsync = false);
 
 		ID3D12Device5* GetDevice() const;
-		ID3D12GraphicsCommandList4* GetDefaultCommandList() const;
-		ID3D12GraphicsCommandList4* GetNewGraphicsCommandList() const;
-		ID3D12GraphicsCommandList4* GetLastGraphicsCommandList() const;
-		ID3D12GraphicsCommandList4* GetNewComputeCommandList() const;
-		ID3D12GraphicsCommandList4* GetLastComputeCommandList() const;
+		ID3D12GraphicsCommandList4* GetCommandList() const;
 		ID3D12RootSignature* GetCommonRootSignature() const;
 		ID3D12Resource* GetBackbuffer() const;
 
@@ -180,9 +166,7 @@ namespace adria
 		FrameResources& GetFrameResources();
 		FrameResources const& GetFrameResources() const;
 
-		void ExecuteGraphicsCommandLists();
-		void ExecuteComputeCommandLists();
-
+		void ExecuteCommandLists();
 		void MoveToNextFrame();
 		void ProcessReleaseQueue();
 	};

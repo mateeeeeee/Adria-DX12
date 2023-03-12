@@ -31,7 +31,7 @@ namespace adria
 
 		++current_handle;
 		buffer_map[current_handle] = std::make_unique<GfxBuffer>(gfx, desc);
-		if(resource != nullptr) gfx->GetDefaultCommandList()->CopyBufferRegion(buffer_map[current_handle]->GetNative(), 0, (ID3D12Resource*)resource, src_offset, total_buffer_size);
+		if(resource != nullptr) gfx->GetCommandList()->CopyBufferRegion(buffer_map[current_handle]->GetNative(), 0, (ID3D12Resource*)resource, src_offset, total_buffer_size);
 		return current_handle;
 	}
 

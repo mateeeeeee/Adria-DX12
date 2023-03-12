@@ -323,7 +323,7 @@ namespace adria
 			}
 
 			auto upload_buffer = gfx->GetDynamicAllocator();
-			auto cmd_list = gfx->GetDefaultCommandList();
+			auto cmd_list = gfx->GetCommandList();
 			if (initial_data != nullptr)
 			{
 				if (data_count == static_cast<size_t>(-1))
