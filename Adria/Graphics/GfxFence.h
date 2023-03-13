@@ -6,6 +6,7 @@
 namespace adria
 {
 	class GfxDevice;
+	class GfxCommandQueue;
 
 	class GfxFence
 	{

@@ -195,6 +195,7 @@
     <ClCompile Include="Graphics\D3D12MemAlloc.cpp" />
     <ClCompile Include="Graphics\DDSTextureLoader12.cpp" />
     <ClCompile Include="Graphics\DescriptorHeap.cpp" />
+    <ClCompile Include="Graphics\GfxCommandQueue.cpp" />
     <ClCompile Include="Graphics\GfxCommon.cpp" />
     <ClCompile Include="Graphics\GfxDevice.cpp" />
     <ClCompile Include="Graphics\GfxFence.cpp" />

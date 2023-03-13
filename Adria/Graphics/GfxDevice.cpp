@@ -210,62 +210,15 @@ namespace adria
 	}
 
 	GfxDevice::GfxDevice(GfxOptions const& options)
-		: frame_index(0), 
-		frame_fence_value(0), frame_fence_values{}, graphics_fence_values{}, compute_fence_values{}
+		: frame_index(0), frame_fence_value(0), frame_fence_values{}
 	{
 		HWND hwnd = static_cast<HWND>(Window::Handle());
 		width = Window::Width();
 		height = Window::Height();
 
 		HRESULT hr = E_FAIL;
-		UINT dxgi_factory_flags = 0;
-
-		if (options.debug_layer)
-		{
-			ArcPtr<ID3D12Debug> debug_controller = nullptr;
-			if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(debug_controller.GetAddressOf()))))
-			{
-				debug_controller->EnableDebugLayer();
-				dxgi_factory_flags |= DXGI_CREATE_FACTORY_DEBUG;
-#if defined(_DEBUG)
-				ADRIA_LOG(INFO, "D3D12 Debug Layer Enabled");
-#else
-				ADRIA_LOG(WARNING, "D3D12 Debug Layer Enabled in Release Mode");
-#endif	
-			}
-			else ADRIA_LOG(WARNING, "debug layer setup failed!");
-		}
-		if (options.dred)
-		{
-			ArcPtr<ID3D12DeviceRemovedExtendedDataSettings1> dred_settings;
-			hr = D3D12GetDebugInterface(IID_PPV_ARGS(dred_settings.GetAddressOf()));
-			if (SUCCEEDED(hr) && dred_settings != NULL)
-			{
-				dred_settings->SetAutoBreadcrumbsEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
-				dred_settings->SetPageFaultEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
-				dred_settings->SetBreadcrumbContextEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
-#if defined(_DEBUG)
-				ADRIA_LOG(INFO, "D3D12 DRED Enabled");
-#else
-				ADRIA_LOG(WARNING, "D3D12 DRED Enabled in Release Mode");
-#endif
-			}
-			else ADRIA_LOG(WARNING, "Dred setup failed!");
-		}
-		if (options.gpu_validation)
-		{
-			ArcPtr<ID3D12Debug1> debug_controller = nullptr;
-			if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(debug_controller.GetAddressOf()))))
-			{
-				debug_controller->SetEnableGPUBasedValidation(true);
-#if defined(_DEBUG)
-				ADRIA_LOG(INFO, "D3D12 GPU Based Validation Enabled");
-#else
-				ADRIA_LOG(WARNING, "D3D12 GPU Based Validation Enabled in Release Mode");
-#endif	
-			}
-		}
-
+		uint32 dxgi_factory_flags = 0;
+		SetupOptions(options, dxgi_factory_flags);
 		ArcPtr<IDXGIFactory4> dxgi_factory = nullptr;
 		hr = CreateDXGIFactory1(IID_PPV_ARGS(dxgi_factory.GetAddressOf()));
 		BREAK_IF_FAILED(hr);
@@ -286,25 +239,8 @@ namespace adria
 		BREAK_IF_FAILED(D3D12MA::CreateAllocator(&allocator_desc, &_allocator));
 		allocator.reset(_allocator);
 
-		// Create command queues
-		D3D12_COMMAND_QUEUE_DESC graphics_queue_desc = {};
-		graphics_queue_desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-		graphics_queue_desc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
-		graphics_queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-		graphics_queue_desc.NodeMask = 0;
-		hr = device->CreateCommandQueue(&graphics_queue_desc, IID_PPV_ARGS(graphics_queue.GetAddressOf()));
-		BREAK_IF_FAILED(hr);
-		graphics_queue->SetName(L"Graphics Queue");
-
-		D3D12_COMMAND_QUEUE_DESC compute_queue_desc = {};
-		compute_queue_desc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
-		compute_queue_desc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
-		compute_queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-		compute_queue_desc.NodeMask = 0;
-		hr = device->CreateCommandQueue(&compute_queue_desc, IID_PPV_ARGS(compute_queue.GetAddressOf()));
-		BREAK_IF_FAILED(hr);
-		compute_queue->SetName(L"Compute Queue");
-
+		graphics_queue.Create(this, GfxCommandQueueType::Graphics, "Graphics Queue");
+		
 		IDXGISwapChain1* _swap_chain1 = nullptr;
 		DXGI_SWAP_CHAIN_DESC1 sd{};
 		sd.Width = width;
@@ -319,7 +255,7 @@ namespace adria
 		sd.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
 		sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 		sd.Scaling = DXGI_SCALING_NONE;
-		hr = dxgi_factory->CreateSwapChainForHwnd(graphics_queue.Get(), hwnd, &sd, nullptr, nullptr, &_swap_chain1);
+		hr = dxgi_factory->CreateSwapChainForHwnd(graphics_queue, hwnd, &sd, nullptr, nullptr, &_swap_chain1);
 		hr = _swap_chain1->QueryInterface(IID_PPV_ARGS(swap_chain.GetAddressOf()));
 		BREAK_IF_FAILED(hr);
 		_swap_chain1->Release();
@@ -327,145 +263,53 @@ namespace adria
 		backbuffer_index = swap_chain->GetCurrentBackBufferIndex();
 		last_backbuffer_index = backbuffer_index;
 
-		for (size_t i = 0; i < offline_descriptor_allocators.size(); ++i)
+		for (uint64 i = 0; i < offline_descriptor_allocators.size(); ++i)
 		{
 			offline_descriptor_allocators[i] = std::make_unique<OfflineDescriptorAllocator>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE(i), D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 250);
 		}
-		for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
+		for (uint32 i = 0; i < BACKBUFFER_COUNT; ++i)
 		{
 			dynamic_allocators.emplace_back(new LinearDynamicAllocator(this, 50'000'000));
 		}
 		dynamic_allocator_before_rendering.reset(new LinearDynamicAllocator(this, 750'000'000));
 
-		for (UINT fr = 0; fr < BACKBUFFER_COUNT; ++fr)
+		for (uint32 i = 0; i < BACKBUFFER_COUNT; ++i)
 		{
-			hr = swap_chain->GetBuffer(fr, IID_PPV_ARGS(frames[fr].back_buffer.GetAddressOf()));
+			hr = swap_chain->GetBuffer(i, IID_PPV_ARGS(frames[i].back_buffer.GetAddressOf()));
 			BREAK_IF_FAILED(hr);
-			frames[fr].back_buffer_rtv = offline_descriptor_allocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV]->AllocateDescriptor();
-			device->CreateRenderTargetView(frames[fr].back_buffer.Get(), nullptr, frames[fr].back_buffer_rtv);
+			frames[i].back_buffer_rtv = offline_descriptor_allocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV]->AllocateDescriptor();
+			device->CreateRenderTargetView(frames[i].back_buffer.Get(), nullptr, frames[i].back_buffer_rtv);
 
-			hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(frames[fr].default_cmd_allocator.GetAddressOf()));
+			hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(frames[i].default_cmd_allocator.GetAddressOf()));
 			BREAK_IF_FAILED(hr);
-			hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, frames[fr].default_cmd_allocator.Get(), nullptr, IID_PPV_ARGS(frames[fr].default_cmd_list.GetAddressOf()));
+			hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, frames[i].default_cmd_allocator.Get(), nullptr, IID_PPV_ARGS(frames[i].default_cmd_list.GetAddressOf()));
 			BREAK_IF_FAILED(hr);
-			hr = frames[fr].default_cmd_list->Close();
+			hr = frames[i].default_cmd_list->Close();
 			BREAK_IF_FAILED(hr);
 		}
 
 		frame_fence.Create(this, "Frame Fence");
-		graphics_fence.Create(this, "Graphics Fence");
-		compute_fence.Create(this, "Compute Fence");
 		wait_fence.Create(this, "Wait Fence");
 		release_fence.Create(this, "Release Fence");
 
-		ArcPtr<ID3D12InfoQueue> info_queue;
-		if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(info_queue.GetAddressOf()))))
-		{
-			//D3D12_MESSAGE_CATEGORY Categories[0] = {};
-			D3D12_MESSAGE_SEVERITY Severities[] =
-			{
-				D3D12_MESSAGE_SEVERITY_INFO
-			};
-		
-			D3D12_MESSAGE_ID DenyIds[] =
-			{
-				D3D12_MESSAGE_ID_INVALID_DESCRIPTOR_HANDLE,
-				D3D12_MESSAGE_ID_COMMAND_ALLOCATOR_SYNC 
-			};
-		
-			D3D12_INFO_QUEUE_FILTER NewFilter{};
-			NewFilter.DenyList.NumCategories = 0;
-			NewFilter.DenyList.pCategoryList = NULL;
-			NewFilter.DenyList.NumSeverities = ARRAYSIZE(Severities);
-			NewFilter.DenyList.pSeverityList = Severities;
-			NewFilter.DenyList.NumIDs = ARRAYSIZE(DenyIds);
-			NewFilter.DenyList.pIDList = DenyIds;
-		
-			BREAK_IF_FAILED(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true));
-			BREAK_IF_FAILED(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, false));
-			BREAK_IF_FAILED(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true));
-			info_queue->PushStorageFilter(&NewFilter);
-		
-			ArcPtr<ID3D12InfoQueue1> info_queue1;
-			info_queue.As(&info_queue1);
-			if (info_queue1)
-			{
-				auto MessageCallback = [](
-					D3D12_MESSAGE_CATEGORY Category,
-					D3D12_MESSAGE_SEVERITY Severity,
-					D3D12_MESSAGE_ID ID,
-					LPCSTR pDescription,
-					void* pContext)
-				{
-					ADRIA_LOG(WARNING, "D3D12 Validation Layer: %s", pDescription);
-				};
-				DWORD callbackCookie = 0;
-				BREAK_IF_FAILED(info_queue1->RegisterMessageCallback(MessageCallback, D3D12_MESSAGE_CALLBACK_FLAG_NONE, this, &callbackCookie));
-			}
-		}
+		SetInfoQueue();
 		CreateCommonRootSignature();
+
 		std::atexit(ReportLiveObjects);
-		
-		if (options.dred)
-		{
-			dred = std::make_unique<DRED>(this);
-		}
-		if (options.pix) PIXLoadLatestWinPixGpuCapturerLibrary();
+		if (options.dred) dred = std::make_unique<DRED>(this);
 	}
 
 	GfxDevice::~GfxDevice()
 	{
 		WaitForGPU();
 		ProcessReleaseQueue();
-
-		for (size_t i = 0; i < BACKBUFFER_COUNT; ++i)
-		{
-			graphics_fence.Wait(graphics_fence_values[i]);
-			compute_fence.Wait(compute_fence_values[i]);
-		}
 	}
 
 	void GfxDevice::WaitForGPU()
 	{
-		BREAK_IF_FAILED(graphics_queue->Signal(wait_fence, wait_fence_value));
+		graphics_queue.Signal(wait_fence, wait_fence_value);
 		wait_fence.Wait(wait_fence_value);
 		wait_fence_value++;
-	}
-
-	void GfxDevice::WaitOnQueue(GfxQueueType type, UINT64 fence_value)
-	{
-		switch (type)
-		{
-		case GfxQueueType::Graphics:
-			graphics_queue->Wait(compute_fence, fence_value);
-			break;
-		case GfxQueueType::Compute:
-			compute_queue->Wait(graphics_fence, fence_value);
-			break;
-		default:
-			ADRIA_ASSERT(false && "Unsupported Queue Type!");
-		}
-	}
-
-	UINT64 GfxDevice::SignalFromQueue(GfxQueueType type)
-	{
-		UINT64 fence_signal_value = -1;
-		switch (type)
-		{
-		case GfxQueueType::Graphics:
-			fence_signal_value = graphics_fence_values[backbuffer_index];
-			graphics_queue->Signal(graphics_fence, fence_signal_value);
-			++graphics_fence_values[backbuffer_index];
-			break;
-		case GfxQueueType::Compute:
-			fence_signal_value = compute_fence_values[backbuffer_index];
-			compute_queue->Signal(compute_fence, compute_fence_values[backbuffer_index]);
-			++compute_fence_values[backbuffer_index];
-			break;
-		default:
-			ADRIA_ASSERT(false && "Unsupported Queue Type!");
-		}
-		return fence_signal_value;
 	}
 
 	void GfxDevice::ResizeBackbuffer(UINT w, UINT h)
@@ -523,7 +367,7 @@ namespace adria
 		descriptor_allocator->ReleaseCompletedFrames(frame_index);
 		dynamic_allocators[backbuffer_index]->Clear();
 
-		ResetDefaultCommandList();
+		ResetCommandList();
 
 		auto& frame_resources = GetFrameResources();
 		D3D12_RESOURCE_BARRIER barrier{};
@@ -585,7 +429,7 @@ namespace adria
 		return GetFrameResources().back_buffer.Get();
 	}
 
-	void GfxDevice::ResetDefaultCommandList()
+	void GfxDevice::ResetCommandList()
 	{
 		auto& frame_resources = GetFrameResources();
 		HRESULT hr = frame_resources.default_cmd_allocator->Reset();
@@ -594,12 +438,15 @@ namespace adria
 		BREAK_IF_FAILED(hr);
 	}
 
-	void GfxDevice::ExecuteDefaultCommandList()
+	void GfxDevice::ExecuteCommandList()
 	{
 		auto& frame_resources = GetFrameResources();
+
+		std::vector<ID3D12CommandList*> cmd_lists;
 		frame_resources.default_cmd_list->Close();
 		ID3D12CommandList* cmd_list = frame_resources.default_cmd_list.Get();
-		graphics_queue->ExecuteCommandLists(1, &cmd_list);
+		cmd_lists.push_back(cmd_list);
+		graphics_queue.ExecuteCommandLists(cmd_lists);
 	}
 
 	D3D12MA::Allocator* GfxDevice::GetAllocator() const
@@ -649,7 +496,7 @@ namespace adria
 
 	void GfxDevice::GetTimestampFrequency(UINT64& frequency) const
 	{
-		graphics_queue->GetTimestampFrequency(&frequency);
+		frequency = graphics_queue.GetTimestampFrequency();
 	}
 
 	GfxDevice::FrameResources& GfxDevice::GetFrameResources()
@@ -664,21 +511,15 @@ namespace adria
 
 	void GfxDevice::ExecuteCommandLists()
 	{
-		auto& frame_resources = GetFrameResources();
-		frame_resources.default_cmd_list->Close();
-		std::vector<ID3D12CommandList*> cmd_lists = { frame_resources.default_cmd_list.Get() };
-		graphics_queue->ExecuteCommandLists(static_cast<UINT>(cmd_lists.size()), cmd_lists.data());
+		ExecuteCommandList();
 	}
 
 	void GfxDevice::MoveToNextFrame()
 	{
-		// Assign the current fence value to the current frame.
 		frame_fence_values[backbuffer_index] = frame_fence_value;
-		// Signal and increment the fence value.
-		BREAK_IF_FAILED(graphics_queue->Signal(frame_fence, frame_fence_value));
+		graphics_queue.Signal(frame_fence, frame_fence_value);
 		++frame_fence_value;
 
-		// Update the frame index.
 		last_backbuffer_index = backbuffer_index;
 		backbuffer_index = swap_chain->GetCurrentBackBufferIndex();
 		frame_fence.Wait(frame_fence_values[backbuffer_index]);
@@ -692,8 +533,107 @@ namespace adria
 			if (!release_fence.IsCompleted(release_queue.front().fence_value)) break;
 			release_queue.pop();
 		}
-		BREAK_IF_FAILED(graphics_queue->Signal(release_fence, release_queue_fence_value));
+		graphics_queue.Signal(release_fence, release_queue_fence_value);
 		++release_queue_fence_value;
+	}
+
+	void GfxDevice::SetInfoQueue()
+	{
+		ArcPtr<ID3D12InfoQueue> info_queue;
+		if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(info_queue.GetAddressOf()))))
+		{
+			//D3D12_MESSAGE_CATEGORY Categories[0] = {};
+			D3D12_MESSAGE_SEVERITY Severities[] =
+			{
+				D3D12_MESSAGE_SEVERITY_INFO
+			};
+
+			D3D12_MESSAGE_ID DenyIds[] =
+			{
+				D3D12_MESSAGE_ID_INVALID_DESCRIPTOR_HANDLE,
+				D3D12_MESSAGE_ID_COMMAND_ALLOCATOR_SYNC
+			};
+
+			D3D12_INFO_QUEUE_FILTER NewFilter{};
+			NewFilter.DenyList.NumCategories = 0;
+			NewFilter.DenyList.pCategoryList = NULL;
+			NewFilter.DenyList.NumSeverities = ARRAYSIZE(Severities);
+			NewFilter.DenyList.pSeverityList = Severities;
+			NewFilter.DenyList.NumIDs = ARRAYSIZE(DenyIds);
+			NewFilter.DenyList.pIDList = DenyIds;
+
+			BREAK_IF_FAILED(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true));
+			BREAK_IF_FAILED(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, false));
+			BREAK_IF_FAILED(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true));
+			info_queue->PushStorageFilter(&NewFilter);
+
+			ArcPtr<ID3D12InfoQueue1> info_queue1;
+			info_queue.As(&info_queue1);
+			if (info_queue1)
+			{
+				auto MessageCallback = [](
+					D3D12_MESSAGE_CATEGORY Category,
+					D3D12_MESSAGE_SEVERITY Severity,
+					D3D12_MESSAGE_ID ID,
+					LPCSTR pDescription,
+					void* pContext)
+				{
+					ADRIA_LOG(WARNING, "D3D12 Validation Layer: %s", pDescription);
+				};
+				DWORD callbackCookie = 0;
+				BREAK_IF_FAILED(info_queue1->RegisterMessageCallback(MessageCallback, D3D12_MESSAGE_CALLBACK_FLAG_NONE, this, &callbackCookie));
+			}
+		}
+	}
+
+	void GfxDevice::SetupOptions(GfxOptions const& options, uint32& dxgi_factory_flags)
+	{
+		if (options.debug_layer)
+		{
+			ArcPtr<ID3D12Debug> debug_controller = nullptr;
+			if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(debug_controller.GetAddressOf()))))
+			{
+				debug_controller->EnableDebugLayer();
+				dxgi_factory_flags |= DXGI_CREATE_FACTORY_DEBUG;
+#if defined(_DEBUG)
+				ADRIA_LOG(INFO, "D3D12 Debug Layer Enabled");
+#else
+				ADRIA_LOG(WARNING, "D3D12 Debug Layer Enabled in Release Mode");
+#endif	
+			}
+			else ADRIA_LOG(WARNING, "debug layer setup failed!");
+		}
+		if (options.dred)
+		{
+			ArcPtr<ID3D12DeviceRemovedExtendedDataSettings1> dred_settings;
+			HRESULT hr = D3D12GetDebugInterface(IID_PPV_ARGS(dred_settings.GetAddressOf()));
+			if (SUCCEEDED(hr) && dred_settings != NULL)
+			{
+				dred_settings->SetAutoBreadcrumbsEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+				dred_settings->SetPageFaultEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+				dred_settings->SetBreadcrumbContextEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+#if defined(_DEBUG)
+				ADRIA_LOG(INFO, "D3D12 DRED Enabled");
+#else
+				ADRIA_LOG(WARNING, "D3D12 DRED Enabled in Release Mode");
+#endif
+			}
+			else ADRIA_LOG(WARNING, "Dred setup failed!");
+		}
+		if (options.gpu_validation)
+		{
+			ArcPtr<ID3D12Debug1> debug_controller = nullptr;
+			if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(debug_controller.GetAddressOf()))))
+			{
+				debug_controller->SetEnableGPUBasedValidation(true);
+#if defined(_DEBUG)
+				ADRIA_LOG(INFO, "D3D12 GPU Based Validation Enabled");
+#else
+				ADRIA_LOG(WARNING, "D3D12 GPU Based Validation Enabled in Release Mode");
+#endif	
+			}
+		}
+		if (options.pix) PIXLoadLatestWinPixGpuCapturerLibrary();
 	}
 
 	void GfxDevice::CreateCommonRootSignature()

@@ -16,6 +16,7 @@
 #include "D3D12MemAlloc.h"
 
 #include "GfxFence.h"
+#include "GfxCommandQueue.h"
 #include "RingOnlineDescriptorAllocator.h"
 #include "LinearOnlineDescriptorAllocator.h"
 #include "OfflineDescriptorAllocator.h"
@@ -24,11 +25,6 @@
 
 namespace adria
 {
-	enum class GfxQueueType : uint8
-	{
-		Graphics,
-		Compute,
-	};
 	struct GfxOptions
 	{
 		bool debug_layer = false;
@@ -55,7 +51,6 @@ namespace adria
 			ArcPtr<ID3D12GraphicsCommandList4>  default_cmd_list;
 		};
 
-
 	public:
 		explicit GfxDevice(GfxOptions const&);
 		GfxDevice(GfxDevice const&) = delete;
@@ -63,9 +58,6 @@ namespace adria
 		~GfxDevice();
 
 		void WaitForGPU();
-
-		void WaitOnQueue(GfxQueueType type, UINT64 fence_value);
-		UINT64 SignalFromQueue(GfxQueueType type);
 
 		void ResizeBackbuffer(UINT w, UINT h);
 		UINT BackbufferIndex() const;
@@ -75,12 +67,12 @@ namespace adria
 		void SwapBuffers(bool vsync = false);
 
 		ID3D12Device5* GetDevice() const;
-		ID3D12GraphicsCommandList4* GetCommandList() const;
 		ID3D12RootSignature* GetCommonRootSignature() const;
 		ID3D12Resource* GetBackbuffer() const;
 
-		void ResetDefaultCommandList();
-		void ExecuteDefaultCommandList();
+		ID3D12GraphicsCommandList4* GetCommandList() const;
+		void ResetCommandList();
+		void ExecuteCommandList();
 
 		D3D12MA::Allocator* GetAllocator() const;
 		void AddToReleaseQueue(D3D12MA::Allocation* alloc);
@@ -107,6 +99,7 @@ namespace adria
 		{
 			return BACKBUFFER_COUNT;
 		}
+
 	private:
 		UINT width, height;
 		UINT backbuffer_index;
@@ -114,14 +107,9 @@ namespace adria
 		UINT frame_index;
 		ArcPtr<IDXGISwapChain3> swap_chain = nullptr;
 		ArcPtr<ID3D12Device5> device = nullptr;
-
-		ArcPtr<ID3D12CommandQueue> graphics_queue = nullptr;
-		ArcPtr<ID3D12CommandQueue> compute_queue = nullptr;
-
-		//release queue
 		ReleasablePtr<D3D12MA::Allocator> allocator = nullptr;
-		std::queue<ReleasableItem>  release_queue;
 
+		GfxCommandQueue graphics_queue;
 		FrameResources frames[BACKBUFFER_COUNT];
 
 		//sync objects
@@ -129,18 +117,14 @@ namespace adria
 		UINT64		 frame_fence_value;
 		UINT64       frame_fence_values[BACKBUFFER_COUNT];
 
-		GfxFence     graphics_fence;
-		UINT64       graphics_fence_values[BACKBUFFER_COUNT];
-
-		GfxFence     compute_fence;
-		UINT64       compute_fence_values[BACKBUFFER_COUNT];
-
 		GfxFence     wait_fence;
 		UINT64       wait_fence_value = 1;
 
 		GfxFence     release_fence;
 		UINT64       release_queue_fence_value = 1;
+		std::queue<ReleasableItem>  release_queue;
 
+		ArcPtr<ID3D12RootSignature> global_root_signature = nullptr;
 		std::array<std::unique_ptr<OfflineDescriptorAllocator>, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES> offline_descriptor_allocators;
 
 		std::unique_ptr<RingOnlineDescriptorAllocator> descriptor_allocator;
@@ -159,8 +143,10 @@ namespace adria
 		
 		BOOL rendering_not_started = TRUE;
 
-		ArcPtr<ID3D12RootSignature> global_root_signature = nullptr;
+
 	private:
+		void SetupOptions(GfxOptions const& options, uint32& dxgi_factory_flags);
+		void SetInfoQueue();
 		void CreateCommonRootSignature();
 
 		FrameResources& GetFrameResources();

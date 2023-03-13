@@ -98,9 +98,9 @@ namespace adria
 				cmd_list->ResourceBarrier(1, &uav_barrier);
 				blases[i] = std::move(blas_buffers.result_buffer);
 
-				gfx->ExecuteDefaultCommandList();
+				gfx->ExecuteCommandList();
 				gfx->WaitForGPU();
-				gfx->ResetDefaultCommandList();
+				gfx->ResetCommandList();
 			}
 			
 		}
@@ -171,9 +171,9 @@ namespace adria
 			tlas = std::move(tlas_buffers.result_buffer);
 			tlas->CreateSRV();
 
-			gfx->ExecuteDefaultCommandList();
+			gfx->ExecuteCommandList();
 			gfx->WaitForGPU();
-			gfx->ResetDefaultCommandList();
+			gfx->ResetCommandList();
 		}
 	};
 }
