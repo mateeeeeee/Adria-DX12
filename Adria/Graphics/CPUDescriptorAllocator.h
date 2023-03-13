@@ -6,7 +6,7 @@
 
 namespace adria
 {
-	class OfflineDescriptorAllocator : public DescriptorHeap
+	class CPUDescriptorAllocator : public DescriptorHeap
 	{
 		struct DescriptorRange
 		{
@@ -15,19 +15,19 @@ namespace adria
 		};
 
 	public:
-		OfflineDescriptorAllocator(ID3D12DescriptorHeap* pExistingHeap) : DescriptorHeap(pExistingHeap)
+		CPUDescriptorAllocator(ID3D12DescriptorHeap* pExistingHeap) : DescriptorHeap(pExistingHeap)
 		{
 			InitList();
 		}
 
-		OfflineDescriptorAllocator(
+		CPUDescriptorAllocator(
 			ID3D12Device* device,
 			D3D12_DESCRIPTOR_HEAP_DESC const& _desc) : DescriptorHeap(device, _desc)
 		{
 			InitList();
 		}
 
-		OfflineDescriptorAllocator(
+		CPUDescriptorAllocator(
 			ID3D12Device* device,
 			D3D12_DESCRIPTOR_HEAP_TYPE type,
 			D3D12_DESCRIPTOR_HEAP_FLAGS flags,
@@ -36,7 +36,7 @@ namespace adria
 			InitList();
 		}
 
-		OfflineDescriptorAllocator(
+		CPUDescriptorAllocator(
 			ID3D12Device* device,
 			size_t count) : DescriptorHeap(device, count)
 		{

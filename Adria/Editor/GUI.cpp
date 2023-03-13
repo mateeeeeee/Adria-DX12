@@ -27,7 +27,7 @@ namespace adria
 		ImWchar const icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
 		io.Fonts->AddFontFromFileTTF("Resources/Fonts/" FONT_ICON_FILE_NAME_FA, 15.0f, &font_config, icon_ranges);
 
-		imgui_allocator = std::make_unique<RingOnlineDescriptorAllocator>(gfx->GetDevice(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 
+		imgui_allocator = std::make_unique<RingGPUDescriptorAllocator>(gfx->GetDevice(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 
 																		  D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 30, 1); //reserve first one for fonts
 		ImGui_ImplWin32_Init(Window::Handle());
 		
@@ -99,7 +99,7 @@ namespace adria
 	{
 		return visible;
 	}
-	RingOnlineDescriptorAllocator* GUI::DescriptorAllocator() const
+	RingGPUDescriptorAllocator* GUI::DescriptorAllocator() const
 	{
 		return imgui_allocator.get();
 	}

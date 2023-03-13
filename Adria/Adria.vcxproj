@@ -203,13 +203,13 @@
     <ClCompile Include="Graphics\GfxStates.cpp" />
     <ClCompile Include="Graphics\GfxSwapchain.cpp" />
     <ClCompile Include="Graphics\GfxTexture.cpp" />
-    <ClCompile Include="Graphics\LinearOnlineDescriptorAllocator.cpp" />
+    <ClCompile Include="Graphics\LinearGPUDescriptorAllocator.cpp" />
     <ClCompile Include="Graphics\LinearDynamicAllocator.cpp" />
     <ClCompile Include="Graphics\MipsGenerator.cpp" />
     <ClCompile Include="Graphics\GPUProfiler.cpp" />
     <ClCompile Include="Graphics\GfxRenderPass.cpp" />
     <ClCompile Include="Graphics\GfxPipelineState.cpp" />
-    <ClCompile Include="Graphics\RingOnlineDescriptorAllocator.cpp" />
+    <ClCompile Include="Graphics\RingGPUDescriptorAllocator.cpp" />
     <ClCompile Include="Graphics\RingDynamicAllocator.cpp" />
     <ClCompile Include="Graphics\GfxShaderCompiler.cpp" />
     <ClCompile Include="Graphics\TextureManager.cpp" />
@@ -324,7 +324,7 @@
     <ClInclude Include="Graphics\MipsGenerator.h" />
     <ClInclude Include="Graphics\LinearDynamicAllocator.h" />
     <ClInclude Include="Graphics\GPUProfiler.h" />
-    <ClInclude Include="Graphics\OfflineDescriptorAllocator.h" />
+    <ClInclude Include="Graphics\CPUDescriptorAllocator.h" />
     <ClInclude Include="Graphics\GfxPipelineState.h" />
     <ClInclude Include="Graphics\RayTracingUtil.h" />
     <ClInclude Include="Graphics\GfxRenderPass.h" />
@@ -334,8 +334,8 @@
     <ClInclude Include="Graphics\GfxTexture.h" />
     <ClInclude Include="Graphics\TextureManager.h" />
     <ClInclude Include="Graphics\RingDynamicAllocator.h" />
-    <ClInclude Include="Graphics\LinearOnlineDescriptorAllocator.h" />
-    <ClInclude Include="Graphics\RingOnlineDescriptorAllocator.h" />
+    <ClInclude Include="Graphics\LinearGPUDescriptorAllocator.h" />
+    <ClInclude Include="Graphics\RingGPUDescriptorAllocator.h" />
     <ClInclude Include="Graphics\GfxShaderCompiler.h" />
     <ClInclude Include="Graphics\VertexTypes.h" />
     <ClInclude Include="Graphics\WICTextureLoader12.h" />

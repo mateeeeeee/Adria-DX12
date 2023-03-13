@@ -14,7 +14,7 @@ namespace adria
 
 	private:
 		GfxDevice* gfx;
-		std::unique_ptr<LinearOnlineDescriptorAllocator> descriptor_allocator;
+		std::unique_ptr<LinearGPUDescriptorAllocator> descriptor_allocator;
 		std::vector<ID3D12Resource*> resources;
 	private:
 

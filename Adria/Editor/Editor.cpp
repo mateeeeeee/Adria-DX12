@@ -648,7 +648,7 @@ namespace adria
 				if (material && ImGui::CollapsingHeader("Material"))
 				{
 					ID3D12Device5* device = engine->gfx->GetDevice();
-					RingOnlineDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
+					RingGPUDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
 
 					ImGui::Text("Albedo Texture");
 					D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = TextureManager::Get().GetSRV(material->albedo_texture);
@@ -769,7 +769,7 @@ namespace adria
 				if (decal && ImGui::CollapsingHeader("Decal"))
 				{
 					ID3D12Device5* device = engine->gfx->GetDevice();
-					RingOnlineDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
+					RingGPUDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
 
 					ImGui::Text("Decal Albedo Texture");
 					D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = TextureManager::Get().GetSRV(decal->albedo_decal_texture);

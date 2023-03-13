@@ -219,12 +219,8 @@ namespace adria
 		HRESULT hr = E_FAIL;
 		uint32 dxgi_factory_flags = 0;
 		SetupOptions(options, dxgi_factory_flags);
-		ArcPtr<IDXGIFactory4> dxgi_factory = nullptr;
 		hr = CreateDXGIFactory1(IID_PPV_ARGS(dxgi_factory.GetAddressOf()));
 		BREAK_IF_FAILED(hr);
-
-		ArcPtr<IDXGIAdapter> warp_adapter;
-		BREAK_IF_FAILED(dxgi_factory->EnumWarpAdapter(IID_PPV_ARGS(warp_adapter.GetAddressOf())));
 
 		hr = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(device.GetAddressOf()));
 		BREAK_IF_FAILED(hr);
@@ -263,14 +259,9 @@ namespace adria
 		backbuffer_index = swap_chain->GetCurrentBackBufferIndex();
 		last_backbuffer_index = backbuffer_index;
 
-		for (uint64 i = 0; i < offline_descriptor_allocators.size(); ++i)
-		{
-			offline_descriptor_allocators[i] = std::make_unique<OfflineDescriptorAllocator>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE(i), D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 250);
-		}
-		for (uint32 i = 0; i < BACKBUFFER_COUNT; ++i)
-		{
-			dynamic_allocators.emplace_back(new LinearDynamicAllocator(this, 50'000'000));
-		}
+		for (uint32 i = 0; i < offline_descriptor_allocators.size(); ++i) offline_descriptor_allocators[i] = std::make_unique<CPUDescriptorAllocator>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE(i), D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 250);
+		for (uint32 i = 0; i < BACKBUFFER_COUNT; ++i) dynamic_allocators.emplace_back(new LinearDynamicAllocator(this, 50'000'000));
+
 		dynamic_allocator_before_rendering.reset(new LinearDynamicAllocator(this, 750'000'000));
 
 		for (uint32 i = 0; i < BACKBUFFER_COUNT; ++i)
@@ -404,9 +395,16 @@ namespace adria
 
 		ExecuteCommandLists();
 		ProcessReleaseQueue();
+
 		swap_chain->Present(vsync, 0);
 		MoveToNextFrame();
+		++frame_index;
 		descriptor_allocator->FinishCurrentFrame(frame_index);
+	}
+
+	IDXGIFactory4* GfxDevice::GetFactory() const
+	{
+		return dxgi_factory.Get();
 	}
 
 	ID3D12Device5* GfxDevice::GetDevice() const
@@ -427,6 +425,19 @@ namespace adria
 	ID3D12Resource* GfxDevice::GetBackbuffer() const
 	{
 		return GetFrameResources().back_buffer.Get();
+	}
+
+	GfxCommandQueue& GfxDevice::GetCommandQueue(GfxCommandQueueType type)
+	{
+		switch (type)
+		{
+		case GfxCommandQueueType::Graphics:
+		case GfxCommandQueueType::Compute:
+		case GfxCommandQueueType::Copy:
+		default:
+			return graphics_queue;
+		}
+		ADRIA_UNREACHABLE();
 	}
 
 	void GfxDevice::ResetCommandList()
@@ -474,7 +485,7 @@ namespace adria
 		offline_descriptor_allocators[type]->FreeDescriptor(handle);
 	}
 
-	RingOnlineDescriptorAllocator* GfxDevice::GetOnlineDescriptorAllocator() const
+	RingGPUDescriptorAllocator* GfxDevice::GetOnlineDescriptorAllocator() const
 	{
 		return descriptor_allocator.get();
 	}
@@ -485,7 +496,7 @@ namespace adria
 		shader_visible_desc.NumDescriptors = 32767;
 		shader_visible_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		shader_visible_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-		descriptor_allocator = std::make_unique<RingOnlineDescriptorAllocator>(device.Get(), shader_visible_desc, reserve);
+		descriptor_allocator = std::make_unique<RingGPUDescriptorAllocator>(device.Get(), shader_visible_desc, reserve);
 	}
 
 	LinearDynamicAllocator* GfxDevice::GetDynamicAllocator() const
@@ -523,7 +534,6 @@ namespace adria
 		last_backbuffer_index = backbuffer_index;
 		backbuffer_index = swap_chain->GetCurrentBackBufferIndex();
 		frame_fence.Wait(frame_fence_values[backbuffer_index]);
-		++frame_index;
 	}
 
 	void GfxDevice::ProcessReleaseQueue()

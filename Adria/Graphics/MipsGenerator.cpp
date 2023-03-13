@@ -1,5 +1,5 @@
 #include "MipsGenerator.h"
-#include "LinearOnlineDescriptorAllocator.h"
+#include "LinearGPUDescriptorAllocator.h"
 #include "GfxShaderCompiler.h"
 #include "d3dx12.h"
 #include "../Utilities/DWParam.h"
@@ -80,7 +80,7 @@ namespace adria
 		shader_visible_desc.NumDescriptors = 20 * max_textures + 200; //approximate number of descriptors as : ~ max_textures * 2 * 10 (avg mip levels)
 		shader_visible_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		shader_visible_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-		descriptor_allocator = std::make_unique<LinearOnlineDescriptorAllocator>(gfx->GetDevice(), shader_visible_desc);
+		descriptor_allocator = std::make_unique<LinearGPUDescriptorAllocator>(gfx->GetDevice(), shader_visible_desc);
 	}
 
 }

@@ -50,7 +50,7 @@ namespace adria
 			[=](PickingPassDispatchData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
-				RingOnlineDescriptorAllocator* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				RingGPUDescriptorAllocator* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 				
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(3);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.depth), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);

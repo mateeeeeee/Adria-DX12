@@ -17,9 +17,9 @@
 
 #include "GfxFence.h"
 #include "GfxCommandQueue.h"
-#include "RingOnlineDescriptorAllocator.h"
-#include "LinearOnlineDescriptorAllocator.h"
-#include "OfflineDescriptorAllocator.h"
+#include "RingGPUDescriptorAllocator.h"
+#include "LinearGPUDescriptorAllocator.h"
+#include "CPUDescriptorAllocator.h"
 #include "LinearDynamicAllocator.h"
 #include "../Utilities/Releasable.h"
 
@@ -34,13 +34,13 @@ namespace adria
 	};
 	struct GPUMemoryUsage
 	{
-		UINT64 usage;
-		UINT64 budget;
+		uint64 usage;
+		uint64 budget;
 	};
 
 	class GfxDevice
 	{
-		static constexpr UINT BACKBUFFER_COUNT = 3;
+		static constexpr uint32 BACKBUFFER_COUNT = 3;
 		
 		struct FrameResources
 		{
@@ -54,7 +54,7 @@ namespace adria
 		struct ReleasableItem
 		{
 			std::unique_ptr<ReleasableObject> obj;
-			size_t fence_value;
+			uint64 fence_value;
 
 			ReleasableItem(ReleasableObject* obj, size_t fence_value) : obj(obj), fence_value(fence_value) {}
 		};
@@ -67,20 +67,24 @@ namespace adria
 
 		void WaitForGPU();
 
-		void ResizeBackbuffer(UINT w, UINT h);
-		UINT BackbufferIndex() const;
-		UINT FrameIndex() const;
-		void SetBackbuffer(ID3D12GraphicsCommandList* cmd_list = nullptr); //todo: remove
+		void ResizeBackbuffer(uint32 w, uint32 h);
+		uint32 BackbufferIndex() const;
+		uint32 FrameIndex() const;
+		void SetBackbuffer(ID3D12GraphicsCommandList* cmd_list = nullptr);
 		void ClearBackbuffer();
 		void SwapBuffers(bool vsync = false);
 
+		IDXGIFactory4* GetFactory() const;
 		ID3D12Device5* GetDevice() const;
-		ID3D12RootSignature* GetCommonRootSignature() const;
-		ID3D12Resource* GetBackbuffer() const;
+
+		GfxCommandQueue& GetCommandQueue(GfxCommandQueueType type);
 
 		ID3D12GraphicsCommandList4* GetCommandList() const;
 		void ResetCommandList();
 		void ExecuteCommandList();
+
+		ID3D12RootSignature* GetCommonRootSignature() const;
+		ID3D12Resource* GetBackbuffer() const;
 
 		D3D12MA::Allocator* GetAllocator() const;
 		void AddToReleaseQueue(D3D12MA::Allocation* alloc);
@@ -89,10 +93,10 @@ namespace adria
 		D3D12_CPU_DESCRIPTOR_HANDLE AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE);
 		void FreeOfflineDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE, D3D12_DESCRIPTOR_HEAP_TYPE);
 		void ReserveOnlineDescriptors(size_t reserve);
-		RingOnlineDescriptorAllocator* GetOnlineDescriptorAllocator() const;
+		RingGPUDescriptorAllocator* GetOnlineDescriptorAllocator() const;
 		LinearDynamicAllocator* GetDynamicAllocator() const;
 
-		void GetTimestampFrequency(UINT64& frequency) const;
+		void GetTimestampFrequency(uint64& frequency) const;
 		GPUMemoryUsage GetMemoryUsage() const
 		{
 			GPUMemoryUsage gpu_memory_usage{};
@@ -103,18 +107,19 @@ namespace adria
 			return gpu_memory_usage;
 		}
 
-		static constexpr UINT BackbufferCount()
+		static constexpr uint32 BackbufferCount()
 		{
 			return BACKBUFFER_COUNT;
 		}
-
 	private:
-		UINT width, height;
-		UINT backbuffer_index;
-		UINT last_backbuffer_index;
-		UINT frame_index;
-		ArcPtr<IDXGISwapChain3> swap_chain = nullptr;
+		uint32 width, height;
+		uint32 backbuffer_index;
+		uint32 last_backbuffer_index;
+		uint32 frame_index;
+
+		ArcPtr<IDXGIFactory4> dxgi_factory = nullptr;
 		ArcPtr<ID3D12Device5> device = nullptr;
+		ArcPtr<IDXGISwapChain3> swap_chain = nullptr;
 		ReleasablePtr<D3D12MA::Allocator> allocator = nullptr;
 
 		GfxCommandQueue graphics_queue;
@@ -122,20 +127,20 @@ namespace adria
 
 		//sync objects
 		GfxFence     frame_fence;
-		UINT64		 frame_fence_value;
-		UINT64       frame_fence_values[BACKBUFFER_COUNT];
+		uint64		 frame_fence_value;
+		uint64       frame_fence_values[BACKBUFFER_COUNT];
 
 		GfxFence     wait_fence;
-		UINT64       wait_fence_value = 1;
+		uint64       wait_fence_value = 1;
 
 		GfxFence     release_fence;
-		UINT64       release_queue_fence_value = 1;
+		uint64       release_queue_fence_value = 1;
 		std::queue<ReleasableItem>  release_queue;
 
 		ArcPtr<ID3D12RootSignature> global_root_signature = nullptr;
-		std::array<std::unique_ptr<OfflineDescriptorAllocator>, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES> offline_descriptor_allocators;
+		std::array<std::unique_ptr<CPUDescriptorAllocator>, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES> offline_descriptor_allocators;
 
-		std::unique_ptr<RingOnlineDescriptorAllocator> descriptor_allocator;
+		std::unique_ptr<RingGPUDescriptorAllocator> descriptor_allocator;
 		std::vector<std::unique_ptr<LinearDynamicAllocator>> dynamic_allocators;
 		std::unique_ptr<LinearDynamicAllocator> dynamic_allocator_before_rendering;
 

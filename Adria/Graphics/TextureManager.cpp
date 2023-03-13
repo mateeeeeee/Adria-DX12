@@ -339,7 +339,7 @@ namespace adria
 
 		gfx->ReserveOnlineDescriptors(1024);
 		ID3D12Device* device = gfx->GetDevice();
-		RingOnlineDescriptorAllocator* online_descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+		RingGPUDescriptorAllocator* online_descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
         for (size_t i = 0; i <= handle; ++i)
         {
             GfxTexture* texture = texture_map[TextureHandle(i)].get();
@@ -493,7 +493,7 @@ namespace adria
         if (!is_scene_initialized) return;
 
 		ID3D12Device* device = gfx->GetDevice();
-		RingOnlineDescriptorAllocator* online_descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+		RingGPUDescriptorAllocator* online_descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 		GfxTexture* texture = texture_map[handle].get();
 		ADRIA_ASSERT(texture);
 		texture->CreateSRV();

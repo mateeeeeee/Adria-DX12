@@ -6,29 +6,29 @@ namespace adria
 {
 
 	
-	class LinearOnlineDescriptorAllocator : public DescriptorHeap
+	class LinearGPUDescriptorAllocator : public DescriptorHeap
 	{
 	public:
 		
-		LinearOnlineDescriptorAllocator(
+		LinearGPUDescriptorAllocator(
 			ID3D12DescriptorHeap* pExistingHeap, OffsetType reserve = 0);
 
-		LinearOnlineDescriptorAllocator(
+		LinearGPUDescriptorAllocator(
 			ID3D12Device* device,
 			D3D12_DESCRIPTOR_HEAP_DESC const& desc, 
 			OffsetType reserve = 0);
 
-		LinearOnlineDescriptorAllocator(
+		LinearGPUDescriptorAllocator(
 			ID3D12Device* device,
 			D3D12_DESCRIPTOR_HEAP_TYPE type,
 			D3D12_DESCRIPTOR_HEAP_FLAGS flags,
 			size_t capacity,OffsetType reserve = 0);
 
-		LinearOnlineDescriptorAllocator(
+		LinearGPUDescriptorAllocator(
 			ID3D12Device* device,
 			size_t count, OffsetType reserve = 0);
 
-		~LinearOnlineDescriptorAllocator() = default;
+		~LinearGPUDescriptorAllocator() = default;
 
 		[[nodiscard]] OffsetType Allocate();
 
