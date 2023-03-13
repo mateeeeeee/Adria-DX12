@@ -1203,7 +1203,7 @@ namespace adria
 		{
 			uint64 current_copy_size = _data.size() * sizeof(T);
 			staging_buffer.Update(_data.data(), current_copy_size, current_offset);
-			current_offset += Align(current_copy_size, 16);
+			current_offset += (uint32)Align(current_copy_size, 16);
 		};
 
 		ADRIA_ASSERT(entities.size() == mesh_datas.size());

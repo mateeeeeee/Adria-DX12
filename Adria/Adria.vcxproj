@@ -195,11 +195,13 @@
     <ClCompile Include="Graphics\D3D12MemAlloc.cpp" />
     <ClCompile Include="Graphics\DDSTextureLoader12.cpp" />
     <ClCompile Include="Graphics\DescriptorHeap.cpp" />
+    <ClCompile Include="Graphics\GfxBuffer.cpp" />
     <ClCompile Include="Graphics\GfxCommandQueue.cpp" />
     <ClCompile Include="Graphics\GfxCommon.cpp" />
     <ClCompile Include="Graphics\GfxDevice.cpp" />
     <ClCompile Include="Graphics\GfxFence.cpp" />
     <ClCompile Include="Graphics\GfxStates.cpp" />
+    <ClCompile Include="Graphics\GfxTexture.cpp" />
     <ClCompile Include="Graphics\LinearOnlineDescriptorAllocator.cpp" />
     <ClCompile Include="Graphics\LinearDynamicAllocator.cpp" />
     <ClCompile Include="Graphics\MipsGenerator.cpp" />
@@ -309,7 +311,6 @@
     <ClInclude Include="Graphics\d3dx12.h" />
     <ClInclude Include="Graphics\DDSTextureLoader12.h" />
     <ClInclude Include="Graphics\DescriptorHeap.h" />
-    <ClInclude Include="Graphics\DWParam.h" />
     <ClInclude Include="Graphics\DynamicAllocation.h" />
     <ClInclude Include="Graphics\GfxFence.h" />
     <ClInclude Include="Graphics\GfxFormat.h" />
@@ -324,7 +325,6 @@
     <ClInclude Include="Graphics\OfflineDescriptorAllocator.h" />
     <ClInclude Include="Graphics\GfxPipelineState.h" />
     <ClInclude Include="Graphics\RayTracingUtil.h" />
-    <ClInclude Include="Graphics\Releasable.h" />
     <ClInclude Include="Graphics\GfxRenderPass.h" />
     <ClInclude Include="Graphics\GfxResourceBarrierBatch.h" />
     <ClInclude Include="Graphics\GfxResourceCommon.h" />
@@ -425,6 +425,7 @@
     <ClInclude Include="Utilities\AutoRefCountPtr.h" />
     <ClInclude Include="Utilities\CLIParser.h" />
     <ClInclude Include="Utilities\CPUProfiler.h" />
+    <ClInclude Include="Utilities\DWParam.h" />
     <ClInclude Include="Utilities\EnumUtil.h" />
     <ClInclude Include="Utilities\FilesUtil.h" />
     <ClInclude Include="Utilities\FileWatcher.h" />
@@ -435,6 +436,7 @@
     <ClInclude Include="Utilities\hwbp.h" />
     <ClInclude Include="Utilities\JsonUtil.h" />
     <ClInclude Include="Utilities\LinearAllocator.h" />
+    <ClInclude Include="Utilities\Releasable.h" />
     <ClInclude Include="Utilities\RingAllocator.h" />
     <ClInclude Include="Utilities\RingBuffer.h" />
     <ClInclude Include="Utilities\ConcurrentQueue.h" />

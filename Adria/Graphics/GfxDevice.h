@@ -21,7 +21,7 @@
 #include "LinearOnlineDescriptorAllocator.h"
 #include "OfflineDescriptorAllocator.h"
 #include "LinearDynamicAllocator.h"
-#include "Releasable.h"
+#include "../Utilities/Releasable.h"
 
 namespace adria
 {
@@ -49,6 +49,14 @@ namespace adria
 
 			ArcPtr<ID3D12CommandAllocator>      default_cmd_allocator;
 			ArcPtr<ID3D12GraphicsCommandList4>  default_cmd_list;
+		};
+
+		struct ReleasableItem
+		{
+			std::unique_ptr<ReleasableObject> obj;
+			size_t fence_value;
+
+			ReleasableItem(ReleasableObject* obj, size_t fence_value) : obj(obj), fence_value(fence_value) {}
 		};
 
 	public:

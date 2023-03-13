@@ -3,7 +3,7 @@
 #include "PSOCache.h" 
 
 #include "../RenderGraph/RenderGraph.h"
-#include "../Graphics/DWParam.h"
+#include "../Utilities/DWParam.h"
 
 namespace adria
 {
@@ -28,8 +28,6 @@ namespace adria
 				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
 
 				GfxTexture const& texture = context.GetTexture(data.texture_src.GetResourceId());
-				
-				
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::GenerateMips));
 
 				D3D12_SHADER_RESOURCE_VIEW_DESC src_srv_desc{};

@@ -1,8 +1,8 @@
 #include "MipsGenerator.h"
 #include "LinearOnlineDescriptorAllocator.h"
-#include "DWParam.h"
 #include "GfxShaderCompiler.h"
 #include "d3dx12.h"
+#include "../Utilities/DWParam.h"
 #include "../Rendering/PSOCache.h"
 
 //https://slindev.com/d3d12-texture-mipmap-generation/

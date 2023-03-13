@@ -3,7 +3,6 @@
 #include <concepts>
 #include <memory>
 
-
 namespace adria
 {
     template<typename T>
@@ -49,14 +48,6 @@ namespace adria
         }
 
         T* resource;
-    };
-
-    struct ReleasableItem
-    {
-        std::unique_ptr<ReleasableObject> obj;
-        UINT64 fence_value;
-
-        ReleasableItem(ReleasableObject* obj, UINT64 fence_value) : obj(obj), fence_value(fence_value) {}
     };
 
 }
