@@ -201,6 +201,7 @@
     <ClCompile Include="Graphics\GfxDevice.cpp" />
     <ClCompile Include="Graphics\GfxFence.cpp" />
     <ClCompile Include="Graphics\GfxStates.cpp" />
+    <ClCompile Include="Graphics\GfxSwapchain.cpp" />
     <ClCompile Include="Graphics\GfxTexture.cpp" />
     <ClCompile Include="Graphics\LinearOnlineDescriptorAllocator.cpp" />
     <ClCompile Include="Graphics\LinearDynamicAllocator.cpp" />
@@ -314,6 +315,7 @@
     <ClInclude Include="Graphics\DynamicAllocation.h" />
     <ClInclude Include="Graphics\GfxFence.h" />
     <ClInclude Include="Graphics\GfxFormat.h" />
+    <ClInclude Include="Graphics\GfxSwapchain.h" />
     <ClInclude Include="Graphics\GpuMacros.h" />
     <ClInclude Include="Graphics\GfxCommon.h" />
     <ClInclude Include="Graphics\GfxDevice.h" />
