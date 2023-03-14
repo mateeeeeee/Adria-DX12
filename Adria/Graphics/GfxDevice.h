@@ -17,6 +17,7 @@
 
 #include "GfxFence.h"
 #include "GfxCommandQueue.h"
+#include "GfxSwapchain.h"
 #include "RingGPUDescriptorAllocator.h"
 #include "LinearGPUDescriptorAllocator.h"
 #include "CPUDescriptorAllocator.h"
@@ -44,11 +45,8 @@ namespace adria
 		
 		struct FrameResources
 		{
-			ArcPtr<ID3D12Resource>				back_buffer = nullptr;
-			D3D12_CPU_DESCRIPTOR_HANDLE			back_buffer_rtv;
-
-			ArcPtr<ID3D12CommandAllocator>      default_cmd_allocator;
-			ArcPtr<ID3D12GraphicsCommandList4>  default_cmd_list;
+			ArcPtr<ID3D12CommandAllocator>      cmd_allocator;
+			ArcPtr<ID3D12GraphicsCommandList4>  cmd_list;
 		};
 
 		struct ReleasableItem
@@ -70,7 +68,7 @@ namespace adria
 		void ResizeBackbuffer(uint32 w, uint32 h);
 		uint32 BackbufferIndex() const;
 		uint32 FrameIndex() const;
-		void SetBackbuffer(ID3D12GraphicsCommandList* cmd_list = nullptr);
+		void SetBackbuffer(ID3D12GraphicsCommandList* cmd_list);
 		void ClearBackbuffer();
 		void SwapBuffers(bool vsync = false);
 
@@ -113,22 +111,16 @@ namespace adria
 		}
 	private:
 		uint32 width, height;
-		uint32 backbuffer_index;
-		uint32 last_backbuffer_index;
 		uint32 frame_index;
 
 		ArcPtr<IDXGIFactory4> dxgi_factory = nullptr;
 		ArcPtr<ID3D12Device5> device = nullptr;
-		ArcPtr<IDXGISwapChain3> swap_chain = nullptr;
+		
+		std::unique_ptr<GfxSwapchain> swapchain = nullptr;
 		ReleasablePtr<D3D12MA::Allocator> allocator = nullptr;
 
 		GfxCommandQueue graphics_queue;
-		FrameResources frames[BACKBUFFER_COUNT];
-
-		//sync objects
-		GfxFence     frame_fence;
-		uint64		 frame_fence_value;
-		uint64       frame_fence_values[BACKBUFFER_COUNT];
+		FrameResources frame_resources[BACKBUFFER_COUNT];
 
 		GfxFence     wait_fence;
 		uint64       wait_fence_value = 1;
@@ -153,9 +145,7 @@ namespace adria
 			HANDLE   dred_wait_handle;
 		};
 		std::unique_ptr<DRED> dred;
-		
-		BOOL rendering_not_started = TRUE;
-
+		bool rendering_not_started = true;
 
 	private:
 		void SetupOptions(GfxOptions const& options, uint32& dxgi_factory_flags);
@@ -166,7 +156,6 @@ namespace adria
 		FrameResources const& GetFrameResources() const;
 
 		void ExecuteCommandLists();
-		void MoveToNextFrame();
 		void ProcessReleaseQueue();
 	};
 

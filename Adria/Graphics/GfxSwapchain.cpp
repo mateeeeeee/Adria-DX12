@@ -6,7 +6,7 @@ namespace adria
 {
 
 	GfxSwapchain::GfxSwapchain(GfxDevice* gfx, GfxSwapchainDesc const& desc)
-		: gfx(gfx), width(desc.width), height(desc.height), vsync(desc.vsync)
+		: gfx(gfx), width(desc.width), height(desc.height)
 	{
 		DXGI_SWAP_CHAIN_DESC1 swapchain_desc{};
 		swapchain_desc.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
@@ -41,6 +41,7 @@ namespace adria
 
 		swapchain.Reset();
 		swapchain1.As(&swapchain);
+		frame_fence.Create(gfx, "Frame Fence");
 
 		backbuffer_index = swapchain->GetCurrentBackBufferIndex();
 		last_backbuffer_index = backbuffer_index;
@@ -48,9 +49,25 @@ namespace adria
 		CreateBackbuffers();
 	}
 
-	GfxSwapchain::~GfxSwapchain() = default;
+	GfxSwapchain::~GfxSwapchain()
+	{
+		frame_fence.Wait(frame_fence_values[backbuffer_index]);
+	}
 
-	void GfxSwapchain::Present()
+	void GfxSwapchain::SetBackbuffer(ID3D12GraphicsCommandList* cmd_list)
+	{
+		D3D12_CPU_DESCRIPTOR_HANDLE rtv = GetBackbufferRTV();
+		cmd_list->OMSetRenderTargets(1, &rtv, FALSE, nullptr);
+	}
+
+	void GfxSwapchain::ClearBackbuffer(ID3D12GraphicsCommandList* cmd_list)
+	{
+		float const clear_color[] = { 0,0,0,0 };
+		D3D12_CPU_DESCRIPTOR_HANDLE rtv = GetBackbufferRTV();
+		cmd_list->ClearRenderTargetView(rtv, clear_color, 0, nullptr);
+	}
+
+	void GfxSwapchain::Present(bool vsync)
 	{
 		swapchain->Present(vsync, 0);
 
@@ -69,7 +86,12 @@ namespace adria
 		width = w;
 		height = h;
 
-		for (uint32 i = 0; i < BACKBUFFER_COUNT; ++i) back_buffers[i].Reset();
+		for (uint32 i = 0; i < BACKBUFFER_COUNT; ++i)
+		{
+			back_buffers[i].Reset();
+			frame_fence_values[i] = frame_fence_values[backbuffer_index];
+		}
+
 		DXGI_SWAP_CHAIN_DESC desc{};
 		swapchain->GetDesc(&desc);
 		HRESULT hr = swapchain->ResizeBuffers(desc.BufferCount, width, height, desc.BufferDesc.Format, desc.Flags);
@@ -83,11 +105,6 @@ namespace adria
 			BREAK_IF_FAILED(hr);
 			gfx->GetDevice()->CreateRenderTargetView(back_buffers[fr].Get(), nullptr, back_buffer_rtvs[fr]);
 		}
-	}
-
-	void GfxSwapchain::SetVSync(bool enabled)
-	{
-		vsync = enabled;
 	}
 
 	void GfxSwapchain::CreateBackbuffers()

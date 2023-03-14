@@ -12,7 +12,6 @@ namespace adria
 		uint32 height = 0;
 		GfxFormat backbuffer_format = GfxFormat::R8G8B8A8_UNORM_SRGB;
 		bool fullscreen_windowed = false;
-		bool vsync = false;
 	};
 
 	class GfxSwapchain
@@ -23,21 +22,20 @@ namespace adria
 		GfxSwapchain(GfxDevice* gfx, GfxSwapchainDesc const& desc);
 		~GfxSwapchain();
 
-		void Present();
+		void SetBackbuffer(ID3D12GraphicsCommandList* cmd_list);
+		void ClearBackbuffer(ID3D12GraphicsCommandList* cmd_list);
+		void Present(bool vsync);
 		void OnResize(uint32 w, uint32 h);
-		void SetVSync(bool enabled);
 
 		IDXGISwapChain4* GetNative() const { return swapchain.Get(); }
-		ID3D12Resource* GetBackbuffer() const { return back_buffers[backbuffer_index].Get(); }
-		D3D12_CPU_DESCRIPTOR_HANDLE GetBackbufferRTV() const { return back_buffer_rtvs[backbuffer_index]; }
 		uint32 GetBackbufferIndex() const { return backbuffer_index; }
+		ID3D12Resource* GetBackbuffer() const { return back_buffers[backbuffer_index].Get(); }
 
 	private:
 		GfxDevice* gfx = nullptr;
 		ArcPtr<IDXGISwapChain4>				swapchain = nullptr;
 		ArcPtr<ID3D12Resource>				back_buffers[BACKBUFFER_COUNT] = { nullptr };
 		D3D12_CPU_DESCRIPTOR_HANDLE			back_buffer_rtvs[BACKBUFFER_COUNT] = {};
-		bool vsync = false;
 
 		uint32		 width;
 		uint32		 height;
@@ -50,5 +48,6 @@ namespace adria
 
 	private:
 		void CreateBackbuffers();
+		D3D12_CPU_DESCRIPTOR_HANDLE GetBackbufferRTV() const { return back_buffer_rtvs[backbuffer_index]; }
 	};
 }

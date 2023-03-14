@@ -210,7 +210,7 @@ namespace adria
 	}
 
 	GfxDevice::GfxDevice(GfxOptions const& options)
-		: frame_index(0), frame_fence_value(0), frame_fence_values{}
+		: frame_index(0)
 	{
 		HWND hwnd = static_cast<HWND>(Window::Handle());
 		width = Window::Width();
@@ -237,49 +237,25 @@ namespace adria
 
 		graphics_queue.Create(this, GfxCommandQueueType::Graphics, "Graphics Queue");
 		
-		IDXGISwapChain1* _swap_chain1 = nullptr;
-		DXGI_SWAP_CHAIN_DESC1 sd{};
-		sd.Width = width;
-		sd.Height = height;
-		sd.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
-		sd.Stereo = false;
-		sd.SampleDesc.Count = 1;
-		sd.SampleDesc.Quality = 0;
-		sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		sd.BufferCount = BACKBUFFER_COUNT;
-		sd.Flags = 0;
-		sd.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
-		sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
-		sd.Scaling = DXGI_SCALING_NONE;
-		hr = dxgi_factory->CreateSwapChainForHwnd(graphics_queue, hwnd, &sd, nullptr, nullptr, &_swap_chain1);
-		hr = _swap_chain1->QueryInterface(IID_PPV_ARGS(swap_chain.GetAddressOf()));
-		BREAK_IF_FAILED(hr);
-		_swap_chain1->Release();
-
-		backbuffer_index = swap_chain->GetCurrentBackBufferIndex();
-		last_backbuffer_index = backbuffer_index;
-
 		for (uint32 i = 0; i < offline_descriptor_allocators.size(); ++i) offline_descriptor_allocators[i] = std::make_unique<CPUDescriptorAllocator>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE(i), D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 250);
 		for (uint32 i = 0; i < BACKBUFFER_COUNT; ++i) dynamic_allocators.emplace_back(new LinearDynamicAllocator(this, 50'000'000));
-
 		dynamic_allocator_before_rendering.reset(new LinearDynamicAllocator(this, 750'000'000));
 
+		GfxSwapchainDesc swapchain_desc{};
+		swapchain_desc.width = width;
+		swapchain_desc.height = height;
+		swapchain_desc.fullscreen_windowed = true;
+		swapchain_desc.backbuffer_format = GfxFormat::R10G10B10A2_UNORM;
+		swapchain = std::make_unique<GfxSwapchain>(this, swapchain_desc);
 		for (uint32 i = 0; i < BACKBUFFER_COUNT; ++i)
 		{
-			hr = swap_chain->GetBuffer(i, IID_PPV_ARGS(frames[i].back_buffer.GetAddressOf()));
+			hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(frame_resources[i].cmd_allocator.GetAddressOf()));
 			BREAK_IF_FAILED(hr);
-			frames[i].back_buffer_rtv = offline_descriptor_allocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV]->AllocateDescriptor();
-			device->CreateRenderTargetView(frames[i].back_buffer.Get(), nullptr, frames[i].back_buffer_rtv);
-
-			hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(frames[i].default_cmd_allocator.GetAddressOf()));
+			hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, frame_resources[i].cmd_allocator.Get(), nullptr, IID_PPV_ARGS(frame_resources[i].cmd_list.GetAddressOf()));
 			BREAK_IF_FAILED(hr);
-			hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, frames[i].default_cmd_allocator.Get(), nullptr, IID_PPV_ARGS(frames[i].default_cmd_list.GetAddressOf()));
-			BREAK_IF_FAILED(hr);
-			hr = frames[i].default_cmd_list->Close();
+			hr = frame_resources[i].cmd_list->Close();
 			BREAK_IF_FAILED(hr);
 		}
-
-		frame_fence.Create(this, "Frame Fence");
 		wait_fence.Create(this, "Wait Fence");
 		release_fence.Create(this, "Release Fence");
 
@@ -303,48 +279,27 @@ namespace adria
 		wait_fence_value++;
 	}
 
-	void GfxDevice::ResizeBackbuffer(UINT w, UINT h)
+	void GfxDevice::ResizeBackbuffer(uint32 w, uint32 h)
 	{
 		if ((width != w || height != h) && width > 0 && height > 0)
 		{
 			width = w;
 			height = h;
 			WaitForGPU();
-
-			for (UINT fr = 0; fr < BACKBUFFER_COUNT; ++fr)
-			{
-				frames[fr].back_buffer.Reset();
-				frame_fence_values[fr] = frame_fence_values[backbuffer_index];
-			}
-
-			DXGI_SWAP_CHAIN_DESC desc = {};
-			swap_chain->GetDesc(&desc);
-			HRESULT hr = swap_chain->ResizeBuffers(desc.BufferCount, width, height, desc.BufferDesc.Format, desc.Flags);
-			BREAK_IF_FAILED(hr);
-
-			backbuffer_index = swap_chain->GetCurrentBackBufferIndex();
-			for (UINT i = 0; i < BACKBUFFER_COUNT; ++i)
-			{
-				UINT fr = (backbuffer_index + i) % BACKBUFFER_COUNT;
-				hr = swap_chain->GetBuffer(i, __uuidof(ID3D12Resource), (void**)frames[fr].back_buffer.GetAddressOf());
-				BREAK_IF_FAILED(hr);
-				device->CreateRenderTargetView(frames[fr].back_buffer.Get(), nullptr, frames[fr].back_buffer_rtv);
-			}
+			swapchain->OnResize(w, h);
 		}
 	}
 
-	UINT GfxDevice::BackbufferIndex() const
+	uint32 GfxDevice::BackbufferIndex() const
 	{
-		return backbuffer_index;
+		return swapchain->GetBackbufferIndex();
 	}
 
-	UINT GfxDevice::FrameIndex() const { return frame_index; }
+	uint32 GfxDevice::FrameIndex() const { return frame_index; }
 
-	void GfxDevice::SetBackbuffer(ID3D12GraphicsCommandList* cmd_list /*= nullptr*/)
+	void GfxDevice::SetBackbuffer(ID3D12GraphicsCommandList* cmd_list)
 	{
-		auto& frame_resources = GetFrameResources();
-		if (cmd_list) cmd_list->OMSetRenderTargets(1, &frame_resources.back_buffer_rtv, FALSE, nullptr);
-		else frame_resources.default_cmd_list->OMSetRenderTargets(1, &frame_resources.back_buffer_rtv, FALSE, nullptr);
+		swapchain->SetBackbuffer(cmd_list);
 	}
 
 	void GfxDevice::ClearBackbuffer()
@@ -354,28 +309,27 @@ namespace adria
 			rendering_not_started = FALSE;
 			dynamic_allocator_before_rendering.reset();
 		}
-
+		uint32 backbuffer_index = swapchain->GetBackbufferIndex();
 		descriptor_allocator->ReleaseCompletedFrames(frame_index);
 		dynamic_allocators[backbuffer_index]->Clear();
 
 		ResetCommandList();
-
 		auto& frame_resources = GetFrameResources();
 		D3D12_RESOURCE_BARRIER barrier{};
 		barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-		barrier.Transition.pResource = frame_resources.back_buffer.Get();
+		barrier.Transition.pResource = swapchain->GetBackbuffer();
 		barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
 		barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
 		barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-		frame_resources.default_cmd_list->ResourceBarrier(1, &barrier);
+		frame_resources.cmd_list->ResourceBarrier(1, &barrier);
 
-		FLOAT const clear_color[] = { 0,0,0,0 };
-		frame_resources.default_cmd_list->ClearRenderTargetView(frame_resources.back_buffer_rtv, clear_color, 0, nullptr);
 		ID3D12DescriptorHeap* heaps[] = { descriptor_allocator->Heap() };
-		frame_resources.default_cmd_list->SetDescriptorHeaps(1, heaps);
-		frame_resources.default_cmd_list->SetGraphicsRootSignature(global_root_signature.Get());
-		frame_resources.default_cmd_list->SetComputeRootSignature(global_root_signature.Get());
+		frame_resources.cmd_list->SetDescriptorHeaps(1, heaps);
+		frame_resources.cmd_list->SetGraphicsRootSignature(global_root_signature.Get());
+		frame_resources.cmd_list->SetComputeRootSignature(global_root_signature.Get());
+
+		swapchain->ClearBackbuffer(frame_resources.cmd_list);
 	}
 
 	void GfxDevice::SwapBuffers(bool vsync /*= false*/)
@@ -386,7 +340,7 @@ namespace adria
 
 		D3D12_RESOURCE_BARRIER barrier{};
 		barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-		barrier.Transition.pResource = frame_resources.back_buffer.Get();
+		barrier.Transition.pResource = swapchain->GetBackbuffer();
 		barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 		barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
 		barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
@@ -396,8 +350,7 @@ namespace adria
 		ExecuteCommandLists();
 		ProcessReleaseQueue();
 
-		swap_chain->Present(vsync, 0);
-		MoveToNextFrame();
+		swapchain->Present(vsync);
 		++frame_index;
 		descriptor_allocator->FinishCurrentFrame(frame_index);
 	}
@@ -414,7 +367,7 @@ namespace adria
 
 	ID3D12GraphicsCommandList4* GfxDevice::GetCommandList() const
 	{
-		return GetFrameResources().default_cmd_list.Get();
+		return GetFrameResources().cmd_list.Get();
 	}
 
 	ID3D12RootSignature* GfxDevice::GetCommonRootSignature() const
@@ -424,7 +377,7 @@ namespace adria
 
 	ID3D12Resource* GfxDevice::GetBackbuffer() const
 	{
-		return GetFrameResources().back_buffer.Get();
+		return swapchain->GetBackbuffer();
 	}
 
 	GfxCommandQueue& GfxDevice::GetCommandQueue(GfxCommandQueueType type)
@@ -443,9 +396,9 @@ namespace adria
 	void GfxDevice::ResetCommandList()
 	{
 		auto& frame_resources = GetFrameResources();
-		HRESULT hr = frame_resources.default_cmd_allocator->Reset();
+		HRESULT hr = frame_resources.cmd_allocator->Reset();
 		BREAK_IF_FAILED(hr);
-		hr = frame_resources.default_cmd_list->Reset(frame_resources.default_cmd_allocator.Get(), nullptr);
+		hr = frame_resources.cmd_list->Reset(frame_resources.cmd_allocator.Get(), nullptr);
 		BREAK_IF_FAILED(hr);
 	}
 
@@ -454,8 +407,8 @@ namespace adria
 		auto& frame_resources = GetFrameResources();
 
 		std::vector<ID3D12CommandList*> cmd_lists;
-		frame_resources.default_cmd_list->Close();
-		ID3D12CommandList* cmd_list = frame_resources.default_cmd_list.Get();
+		frame_resources.cmd_list->Close();
+		ID3D12CommandList* cmd_list = frame_resources.cmd_list.Get();
 		cmd_lists.push_back(cmd_list);
 		graphics_queue.ExecuteCommandLists(cmd_lists);
 	}
@@ -502,7 +455,7 @@ namespace adria
 	LinearDynamicAllocator* GfxDevice::GetDynamicAllocator() const
 	{
 		if (rendering_not_started) return dynamic_allocator_before_rendering.get();
-		else return dynamic_allocators[backbuffer_index].get();
+		else return dynamic_allocators[swapchain->GetBackbufferIndex()].get();
 	}
 
 	void GfxDevice::GetTimestampFrequency(UINT64& frequency) const
@@ -512,28 +465,17 @@ namespace adria
 
 	GfxDevice::FrameResources& GfxDevice::GetFrameResources()
 	{
-		return frames[backbuffer_index];
+		return frame_resources[swapchain->GetBackbufferIndex()];
 	}
 
 	GfxDevice::FrameResources const& GfxDevice::GetFrameResources() const
 	{
-		return frames[backbuffer_index];
+		return frame_resources[swapchain->GetBackbufferIndex()];
 	}
 
 	void GfxDevice::ExecuteCommandLists()
 	{
 		ExecuteCommandList();
-	}
-
-	void GfxDevice::MoveToNextFrame()
-	{
-		frame_fence_values[backbuffer_index] = frame_fence_value;
-		graphics_queue.Signal(frame_fence, frame_fence_value);
-		++frame_fence_value;
-
-		last_backbuffer_index = backbuffer_index;
-		backbuffer_index = swap_chain->GetCurrentBackBufferIndex();
-		frame_fence.Wait(frame_fence_values[backbuffer_index]);
 	}
 
 	void GfxDevice::ProcessReleaseQueue()
