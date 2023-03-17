@@ -117,13 +117,13 @@ namespace adria
 				gfx_pso_desc.blend_state.render_target[0].src_blend = GfxBlend::One;
 				gfx_pso_desc.blend_state.render_target[0].dest_blend = GfxBlend::One;
 				gfx_pso_desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;
-				
+
 				gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Point;
 				gfx_pso_desc.num_render_targets = 1;
 				gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
 
 				gfx_pso_map[GfxPipelineStateID::LensFlare] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
-				
+
 				gfx_pso_desc = {};
 				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 				gfx_pso_desc.VS = VS_FullscreenQuad;
@@ -144,7 +144,7 @@ namespace adria
 				gfx_pso_desc.blend_state.render_target[0].dest_blend = GfxBlend::One;
 				gfx_pso_desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;
 				gfx_pso_map[GfxPipelineStateID::Copy_AdditiveBlend] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
-				
+
 				gfx_pso_desc = {};
 				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 				gfx_pso_desc.VS = VS_FullscreenQuad;
@@ -165,7 +165,7 @@ namespace adria
 				gfx_pso_desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;
 				gfx_pso_map[GfxPipelineStateID::Add_AdditiveBlend] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
-				gfx_pso_desc = {};	
+				gfx_pso_desc = {};
 				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 				gfx_pso_desc.VS = VS_Bokeh;
 				gfx_pso_desc.GS = GS_Bokeh;
@@ -174,7 +174,7 @@ namespace adria
 				gfx_pso_desc.blend_state.render_target[0].src_blend = GfxBlend::One;
 				gfx_pso_desc.blend_state.render_target[0].dest_blend = GfxBlend::One;
 				gfx_pso_desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;
-				
+
 				gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Point;
 				gfx_pso_desc.num_render_targets = 1;
 				gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
@@ -371,7 +371,7 @@ namespace adria
 
 	ID3D12PipelineState* PSOCache::Get(GfxPipelineStateID ps)
 	{
-		if (compute_pso_map.contains(ps)) return *compute_pso_map[ps];
+		if (compute_pso_map.contains(ps)) return  *compute_pso_map[ps];
 		else return *gfx_pso_map[ps];
 	}
 }

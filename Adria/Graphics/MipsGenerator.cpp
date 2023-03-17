@@ -74,7 +74,7 @@ namespace adria
 		descriptor_allocator->Clear();
 	}
 
-	void MipsGenerator::CreateHeap(UINT max_textures) 
+	void MipsGenerator::CreateHeap(UINT max_textures)
 	{
 		D3D12_DESCRIPTOR_HEAP_DESC shader_visible_desc = {};
 		shader_visible_desc.NumDescriptors = 20 * max_textures + 200; //approximate number of descriptors as : ~ max_textures * 2 * 10 (avg mip levels)

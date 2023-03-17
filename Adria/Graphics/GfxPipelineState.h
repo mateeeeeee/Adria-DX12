@@ -29,17 +29,34 @@ namespace adria
 		uint32 sample_mask = UINT_MAX;
 	};
 
-	class GraphicsPipelineState
+	enum class GfxPipelineStateType : uint8
+	{
+		Graphics,
+		Compute,
+		Mesh
+	};
+
+	class GfxPipelineState
+	{
+	public:
+		operator ID3D12PipelineState* () const;
+		GfxPipelineStateType GetType() const { return type; }
+
+	protected:
+		explicit GfxPipelineState(GfxPipelineStateType type) : type(type) {}
+	protected:
+		ArcPtr<ID3D12PipelineState> pso;
+		GfxPipelineStateType type;
+	};
+
+	class GraphicsPipelineState : public GfxPipelineState
 	{
 	public:
 		GraphicsPipelineState(GfxDevice* gfx, GraphicsPipelineStateDesc const& desc);
 		~GraphicsPipelineState();
 
-		operator ID3D12PipelineState*() const;
-
 	private:
 		GfxDevice* gfx;
-		ArcPtr<ID3D12PipelineState> pso;
 		GraphicsPipelineStateDesc desc;
 		DelegateHandle event_handle;
 	private:
@@ -53,17 +70,14 @@ namespace adria
 		GfxShaderID CS;
 	};
 
-	class ComputePipelineState
+	class ComputePipelineState : public GfxPipelineState
 	{
 	public:
 		ComputePipelineState(GfxDevice* gfx, ComputePipelineStateDesc const& desc);
 		~ComputePipelineState();
 
-		operator ID3D12PipelineState*() const;
-
 	private:
 		GfxDevice* gfx;
-		ArcPtr<ID3D12PipelineState> pso;
 		ComputePipelineStateDesc desc;
 		DelegateHandle event_handle;
 

@@ -8,7 +8,12 @@
 namespace adria
 {
 
-	GraphicsPipelineState::GraphicsPipelineState(GfxDevice* gfx, GraphicsPipelineStateDesc const& desc) : desc(desc), gfx(gfx)
+	GfxPipelineState::operator ID3D12PipelineState* () const
+	{
+		return pso.Get();
+	}
+
+	GraphicsPipelineState::GraphicsPipelineState(GfxDevice* gfx, GraphicsPipelineStateDesc const& desc) : GfxPipelineState(GfxPipelineStateType::Graphics), desc(desc), gfx(gfx)
 	{
 		Create(desc);
 		event_handle = ShaderCache::GetShaderRecompiledEvent().AddMember(&GraphicsPipelineState::OnShaderRecompiled, *this);
@@ -19,10 +24,6 @@ namespace adria
 		ShaderCache::GetShaderRecompiledEvent().Remove(event_handle);
 	}
 
-	GraphicsPipelineState::operator ID3D12PipelineState* () const
-	{
-		return pso.Get();
-	}
 
 	void GraphicsPipelineState::OnShaderRecompiled(GfxShaderID s)
 	{
@@ -65,7 +66,7 @@ namespace adria
 		BREAK_IF_FAILED(gfx->GetDevice()->CreateGraphicsPipelineState(&_desc, IID_PPV_ARGS(pso.ReleaseAndGetAddressOf())));
 	}
 
-	ComputePipelineState::ComputePipelineState(GfxDevice* gfx, ComputePipelineStateDesc const& desc) : gfx(gfx), desc(desc)
+	ComputePipelineState::ComputePipelineState(GfxDevice* gfx, ComputePipelineStateDesc const& desc) :GfxPipelineState(GfxPipelineStateType::Compute), gfx(gfx), desc(desc)
 	{
 		Create(desc);
 		event_handle = ShaderCache::GetShaderRecompiledEvent().AddMember(&ComputePipelineState::OnShaderRecompiled, *this);
@@ -74,11 +75,6 @@ namespace adria
 	ComputePipelineState::~ComputePipelineState()
 	{
 		ShaderCache::GetShaderRecompiledEvent().Remove(event_handle);
-	}
-
-	ComputePipelineState::operator ID3D12PipelineState* () const
-	{
-		return pso.Get();
 	}
 
 	void ComputePipelineState::OnShaderRecompiled(GfxShaderID s)

@@ -207,7 +207,7 @@ namespace adria
 
 	Engine::Engine(EngineInit const& init) : vsync{ init.vsync }
 	{
-		TaskSystem::Initialize();
+		//TaskSystem::Initialize();
 		GfxShaderCompiler::Initialize();
 		ShaderCache::Initialize();
 		gfx = std::make_unique<GfxDevice>(GfxOptions{.debug_layer = init.debug_layer,
@@ -238,7 +238,7 @@ namespace adria
 		PSOCache::Destroy();
 		ShaderCache::Destroy();
 		GfxShaderCompiler::Destroy();
-		TaskSystem::Destroy();
+		//TaskSystem::Destroy();
 	}
 
 	void Engine::HandleWindowMessage(WindowMessage const& msg_data)
@@ -252,7 +252,7 @@ namespace adria
 		float const dt = timer.MarkInSeconds();
 		Input::GetInstance().NewFrame();
 		if (true || Window::IsActive()) //crash when window is hidden, temp fix
-		{	
+		{
 			Update(dt);
 			Render(settings);
 		}
@@ -299,7 +299,7 @@ namespace adria
 
 	void Engine::RegisterEditorEventCallbacks(EditorEvents& events)
 	{
-		
+
 	}
 
 	void Engine::InitializeScene(SceneConfig const& config)

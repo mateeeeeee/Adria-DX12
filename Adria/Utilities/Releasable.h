@@ -33,7 +33,7 @@ namespace adria
     struct ReleasableResource : ReleasableObject
     {
         ReleasableResource(T* r)
-        { 
+        {
             resource = r;
         }
 
