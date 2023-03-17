@@ -34,13 +34,6 @@ namespace adria
         uint32 height;
     };
 
-	enum GfxClearFlagBit : uint8
-	{
-		GfxClearFlagBit_Depth = 0x1,
-		GfxClearFlagBit_Stencil = 0x2
-	};
-    using GfxClearFlags = uint8;
-
     class GfxRenderPass
     {
     public:

@@ -1,10 +1,12 @@
 #pragma once
 #include <memory>
-#include "GfxDevice.h"
+#include <d3d12.h>
+#include "../Core/Macros.h"
+#include "../Utilities/AutoRefCountPtr.h"
 
 namespace adria
 {
-	enum class IndirectCommandType
+	enum class IndirectCommandType : uint8
 	{
 		Draw,
 		DrawIndexed,
@@ -36,7 +38,7 @@ namespace adria
 	class IndirectCommandSignature
 	{
 	public:
-		explicit IndirectCommandSignature(GfxDevice* gfx)
+		explicit IndirectCommandSignature(ID3D12Device* device)
 		{
 			D3D12_COMMAND_SIGNATURE_DESC desc{};
 			D3D12_INDIRECT_ARGUMENT_DESC argument_desc{};
@@ -44,7 +46,7 @@ namespace adria
 			desc.pArgumentDescs = &argument_desc;
 			desc.ByteStride = IndirectCommandTraits<type>::Stride;
 			argument_desc.Type = IndirectCommandTraits<type>::ArgumentType;
-			BREAK_IF_FAILED(gfx->GetDevice()->CreateCommandSignature(&desc, nullptr, IID_PPV_ARGS(cmd_signature.GetAddressOf())));
+			BREAK_IF_FAILED(device->CreateCommandSignature(&desc, nullptr, IID_PPV_ARGS(cmd_signature.GetAddressOf())));
 		}
 		operator ID3D12CommandSignature* () const
 		{

@@ -2,7 +2,7 @@
 #include "ConstantBuffers.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
+#include "PSOCache.h"
 
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/TextureManager.h"
@@ -74,7 +74,6 @@ namespace adria
 
 		uint32 init_data[] = { 0,1,0,0 };
 		bokeh_indirect_buffer = std::make_unique<GfxBuffer>(gfx, buffer_desc, init_data);
-		bokeh_command_signature = std::make_unique<DrawIndirectSignature>(gfx);
 	}
 
 
@@ -163,7 +162,7 @@ namespace adria
 					.bokeh_scale = params.bokeh_radius_scale, .bokeh_fallout = params.bokeh_fallout
 				};
 
-				
+
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::BokehGenerate));
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
@@ -244,11 +243,11 @@ namespace adria
 				{
 					uint32 bokeh_tex_idx;
 					uint32 bokeh_stack_idx;
-				} constants = 
+				} constants =
 				{
 					.bokeh_tex_idx = i, .bokeh_stack_idx = i + 1
 				};
-				
+
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Bokeh));
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
 				cmd_list->SetGraphicsRoot32BitConstants(1, 2, &constants, 0);
@@ -256,7 +255,7 @@ namespace adria
 				cmd_list->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 
 				GfxBuffer const& indirect_args_buffer = context.GetIndirectArgsBuffer(data.bokeh_indirect_args);
-				cmd_list->ExecuteIndirect(*bokeh_command_signature, 1, indirect_args_buffer.GetNative(), 0, nullptr, 0);
+				cmd_list->ExecuteIndirect(gfx->GetDrawIndirectSignature(), 1, indirect_args_buffer.GetNative(), 0, nullptr, 0);
 			}, RGPassType::Graphics, RGPassFlags::None);
 
 	}

@@ -2,7 +2,7 @@
 #include "GfxResourceCommon.h"
 
 namespace adria
-{	
+{
 	struct GfxClearValue
 	{
 		enum class GfxActiveMember
@@ -115,7 +115,7 @@ namespace adria
 		}
 		return GfxTextureType_1D;
 	}
-	
+
 	struct GfxTextureDesc
 	{
 		GfxTextureType type = GfxTextureType_2D;
@@ -184,10 +184,10 @@ namespace adria
 
 		bool IsMapped() const;
 		void* GetMappedData() const;
-		
+
 		template<typename T>
 		T* GetMappedData() const;
-		
+
 		void* Map();
 		void Unmap();
 

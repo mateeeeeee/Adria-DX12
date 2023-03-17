@@ -39,7 +39,7 @@ namespace adria
 	class GfxPipelineState
 	{
 	public:
-		operator ID3D12PipelineState* () const;
+		operator ID3D12PipelineState*() const;
 		GfxPipelineStateType GetType() const { return type; }
 
 	protected:

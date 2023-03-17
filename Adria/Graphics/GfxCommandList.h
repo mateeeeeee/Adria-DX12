@@ -60,33 +60,31 @@ namespace adria
 		void Wait(GfxFence& fence, uint64 value);
 		void Signal(GfxFence& fence, uint64 value);
 		void Submit();
-		void ClearState();
+		void ResetState();
 
-		void BeginEvent(char const* name);
-		void EndEvent();
-
-		void Draw(uint32 vertex_count, uint32 instance_count = 1);
-		void DrawIndexed(uint32 index_count, uint32 instance_count = 1, uint32 index_offset = 0);
-		void Dispatch(uint32 group_count_x, uint32 group_count_y, uint32 group_count_z);
+		void Draw(uint32 vertex_count, uint32 instance_count = 1, uint32 start_vertex_location = 0, uint32 start_instance_location = 0);
+		void DrawIndexed(uint32 index_count, uint32 instance_count = 1, uint32 index_offset = 0, uint32 base_vertex_location = 0, uint32 start_instance_location = 0);
+		void Dispatch(uint32 group_count_x, uint32 group_count_y, uint32 group_count_z = 1);
 		void DrawIndirect(GfxBuffer* buffer, uint32 offset);
 		void DrawIndexedIndirect(GfxBuffer* buffer, uint32 offset);
 		void DispatchIndirect(GfxBuffer* buffer, uint32 offset);
 
-		void ResourceBarrier(GfxBuffer* resource, GfxResourceState old_state, GfxResourceState new_state);
-		void ResourceBarrier(GfxTexture* resource, GfxResourceState old_state, GfxResourceState new_state, uint32 subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
+		void TransitionBarrier(GfxBuffer* resource, GfxResourceState old_state, GfxResourceState new_state);
+		void TransitionBarrier(GfxTexture* resource, GfxResourceState old_state, GfxResourceState new_state, uint32 subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
 		void UavBarrier(GfxBuffer* resource);
 		void UavBarrier(GfxTexture* resource);
+		void UavBarrier();
 		void AliasBarrier(GfxBuffer* before_resource, GfxBuffer* after_resource);
 		void AliasBarrier(GfxTexture* before_resource, GfxTexture* after_resource);
 		void FlushBarriers();
 
-		void CopyBufferToTexture(GfxTexture* dst_texture, uint32 mip_level, uint32 array_slice, GfxBuffer* src_buffer, uint32 offset);
-		void CopyTextureToBuffer(GfxBuffer* dst_buffer, GfxTexture* src_texture, uint32 mip_level, uint32 array_slice);
+		void CopyBuffer(GfxBuffer* dst, GfxBuffer* src);
 		void CopyBuffer(GfxBuffer* dst, uint32 dst_offset, GfxBuffer* src, uint32 src_offset, uint32 size);
+		void CopyTexture(GfxTexture* dst, GfxTexture* src);
 		void CopyTexture(GfxTexture* dst, uint32 dst_mip, uint32 dst_array, GfxTexture* src, uint32 src_mip, uint32 src_array);
 		void ClearUAV(GfxBuffer* resource, DescriptorHandle uav, const float* clear_value);
 		void ClearUAV(GfxBuffer* resource, DescriptorHandle uav, const uint32* clear_value);
-		void WriteImmediateBuffer(GfxBuffer* buffer, uint32 offset, uint32 data);
+		void WriteBufferImmediate(GfxBuffer* buffer, uint32 offset, uint32 data);
 
 		void BeginRenderPass(GfxRenderPassDesc const& render_pass);
 		void EndRenderPass();
@@ -94,13 +92,13 @@ namespace adria
 		void SetPipelineState(GfxPipelineState* state);
 		void SetStencilReference(uint8 stencil);
 		void SetBlendFactor(float const* blend_factor);
-		void SetTopology(GfxPrimitiveTopology type);
+		void SetTopology(GfxPrimitiveTopology topology);
 		void SetIndexBuffer(GfxIndexBufferView* index_buffer_view);
-		void SetVertexBuffer(std::span<GfxVertexBufferView> vertex_buffer_views, uint32 start_slot = 0);
+		void SetVertexBuffers(std::span<GfxVertexBufferView> vertex_buffer_views, uint32 start_slot = 0);
 		void SetViewport(uint32 x, uint32 y, uint32 width, uint32 height);
 		void SetScissorRect(uint32 x, uint32 y, uint32 width, uint32 height);
 
-		void SetRootConstants(uint32 slot, const void* data, size_t data_size);
+		void SetRootConstants(uint32 slot, const void* data, uint32 data_size, uint32 offset = 0);
 		template<typename T>
 		void SetRootConstants(uint32 slot, T const& data)
 		{
@@ -117,10 +115,11 @@ namespace adria
 		void BindResources(uint32 slot, std::span<DescriptorHandle> views, uint32 offset = 0);
 
 		void ClearRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE rtv, float const* clear_color);
-		void ClearDepth(D3D12_CPU_DESCRIPTOR_HANDLE dsv, GfxClearFlags clear_flags = GfxClearFlagBit_Stencil, float depth = 1.0f, uint8 stencil = 0);
+		void ClearDepth(D3D12_CPU_DESCRIPTOR_HANDLE dsv, float depth = 1.0f, uint8 stencil = 0, bool clear_stencil = false);
 
 	private:
 		GfxDevice* gfx = nullptr;
+		GfxCommandListType type;
 		GfxCommandQueue& cmd_queue;
 		ArcPtr<ID3D12GraphicsCommandList4> cmd_list = nullptr;
 		ArcPtr<ID3D12CommandAllocator> cmd_allocator = nullptr;
@@ -130,6 +129,6 @@ namespace adria
 		GfxCommandListContext current_context = GfxCommandListContext::Invalid;
 		std::vector<std::pair<GfxFence&, uint64>> pending_waits;
 		std::vector<std::pair<GfxFence&, uint64>> pending_signals;
-		std::vector<D3D12_RESOURCE_BARRIER> resource_barriers;
+		std::vector<D3D12_RESOURCE_BARRIER> pending_barriers;
 	};
 }

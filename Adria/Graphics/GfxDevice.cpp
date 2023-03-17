@@ -168,7 +168,7 @@ namespace adria
 					while (pNode)
 					{
 						uint32 allocTypeIndex = pNode->AllocationType - D3D12_DRED_ALLOCATION_TYPE_COMMAND_QUEUE;
-						wchar_t const* AllocTypeName = DredAllocationName(pNode->AllocationType); 
+						wchar_t const* AllocTypeName = DredAllocationName(pNode->AllocationType);
 						ADRIA_LOG(DEBUG, "\tName: %s (Type: %ls)", pNode->ObjectNameA, AllocTypeName);
 						pNode = pNode->pNext;
 					}
@@ -238,7 +238,7 @@ namespace adria
 		allocator.reset(_allocator);
 
 		graphics_queue.Create(this, GfxCommandListType::Graphics, "Graphics Queue");
-		
+
 		for (uint32 i = 0; i < offline_descriptor_allocators.size(); ++i) offline_descriptor_allocators[i] = std::make_unique<CPUDescriptorAllocator>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE(i), D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 250);
 		for (uint32 i = 0; i < BACKBUFFER_COUNT; ++i) dynamic_allocators.emplace_back(new LinearDynamicAllocator(this, 50'000'000));
 		dynamic_allocator_before_rendering.reset(new LinearDynamicAllocator(this, 750'000'000));
@@ -260,6 +260,10 @@ namespace adria
 		}
 		wait_fence.Create(this, "Wait Fence");
 		release_fence.Create(this, "Release Fence");
+
+		draw_indirect_signature = std::make_unique<DrawIndirectSignature>(device.Get());
+		draw_indexed_indirect_signature = std::make_unique<DrawIndexedIndirectSignature>(device.Get());
+		dispatch_indirect_signature = std::make_unique<DispatchIndirectSignature>(device.Get());
 
 		SetInfoQueue();
 		CreateCommonRootSignature();
@@ -553,7 +557,7 @@ namespace adria
 				ADRIA_LOG(INFO, "D3D12 Debug Layer Enabled");
 #else
 				ADRIA_LOG(WARNING, "D3D12 Debug Layer Enabled in Release Mode");
-#endif	
+#endif
 			}
 			else ADRIA_LOG(WARNING, "debug layer setup failed!");
 		}
@@ -584,7 +588,7 @@ namespace adria
 				ADRIA_LOG(INFO, "D3D12 GPU Based Validation Enabled");
 #else
 				ADRIA_LOG(WARNING, "D3D12 GPU Based Validation Enabled in Release Mode");
-#endif	
+#endif
 			}
 		}
 		if (options.pix) PIXLoadLatestWinPixGpuCapturerLibrary();

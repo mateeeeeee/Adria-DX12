@@ -17,6 +17,7 @@
 
 #include "GfxFence.h"
 #include "GfxCommandQueue.h"
+#include "CommandSignature.h"
 #include "RingGPUDescriptorAllocator.h"
 #include "LinearGPUDescriptorAllocator.h"
 #include "CPUDescriptorAllocator.h"
@@ -27,6 +28,7 @@ namespace adria
 {
 	class GfxSwapchain;
 	class GfxCommandList;
+
 
 	struct GfxOptions
 	{
@@ -44,7 +46,7 @@ namespace adria
 	class GfxDevice
 	{
 		static constexpr uint32 BACKBUFFER_COUNT = 3;
-		
+
 		struct FrameResources
 		{
 			ArcPtr<ID3D12CommandAllocator>      cmd_allocator;
@@ -111,13 +113,18 @@ namespace adria
 		{
 			return BACKBUFFER_COUNT;
 		}
+
+		DrawIndirectSignature& GetDrawIndirectSignature() const { return *draw_indirect_signature;}
+		DrawIndexedIndirectSignature& GetDrawIndexedIndirectSignature() const { return *draw_indexed_indirect_signature;}
+		DispatchIndirectSignature& GetDispatchIndirectSignature() const { return *dispatch_indirect_signature;}
+
 	private:
 		uint32 width, height;
 		uint32 frame_index;
 
 		ArcPtr<IDXGIFactory4> dxgi_factory = nullptr;
 		ArcPtr<ID3D12Device5> device = nullptr;
-		
+
 		std::unique_ptr<GfxSwapchain> swapchain;
 		ReleasablePtr<D3D12MA::Allocator> allocator = nullptr;
 
@@ -137,6 +144,10 @@ namespace adria
 		std::unique_ptr<RingGPUDescriptorAllocator> descriptor_allocator;
 		std::vector<std::unique_ptr<LinearDynamicAllocator>> dynamic_allocators;
 		std::unique_ptr<LinearDynamicAllocator> dynamic_allocator_before_rendering;
+
+		std::unique_ptr<DrawIndirectSignature> draw_indirect_signature;
+		std::unique_ptr<DrawIndexedIndirectSignature> draw_indexed_indirect_signature;
+		std::unique_ptr<DispatchIndirectSignature> dispatch_indirect_signature;
 
 		struct DRED
 		{

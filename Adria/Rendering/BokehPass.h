@@ -47,8 +47,6 @@ namespace adria
 		size_t cross_bokeh_handle = -1;
 		std::unique_ptr<GfxBuffer> counter_reset_buffer;
 		std::unique_ptr<GfxBuffer> bokeh_indirect_buffer;
-		std::unique_ptr<DrawIndirectSignature> bokeh_command_signature;
-		
 	private:
 		void AddGenerateBokehPass(RenderGraph& rg, RGResourceName input);
 		void AddDrawBokehPass(RenderGraph& rg, RGResourceName input);
