@@ -1,5 +1,7 @@
 #include "GfxSwapchain.h"
 #include "GfxDevice.h"
+#include "GfxCommandQueue.h"
+#include "GfxCommandList.h"
 #include "../Core/Window.h"
 
 namespace adria
@@ -28,7 +30,7 @@ namespace adria
 		fullscreen_desc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 		fullscreen_desc.Windowed = desc.fullscreen_windowed;
 
-		GfxCommandQueue& graphics_queue = gfx->GetCommandQueue(GfxCommandQueueType::Graphics);
+		GfxCommandQueue& graphics_queue = gfx->GetCommandQueue(GfxCommandListType::Graphics);
 		ArcPtr<IDXGISwapChain1> swapchain1 = nullptr;
 
 		BREAK_IF_FAILED(gfx->GetFactory()->CreateSwapChainForHwnd(
@@ -71,7 +73,7 @@ namespace adria
 	{
 		swapchain->Present(vsync, 0);
 
-		GfxCommandQueue& graphics_queue = gfx->GetCommandQueue(GfxCommandQueueType::Graphics);
+		GfxCommandQueue& graphics_queue = gfx->GetCommandQueue(GfxCommandListType::Graphics);
 		frame_fence_values[backbuffer_index] = frame_fence_value;
 		graphics_queue.Signal(frame_fence, frame_fence_value);
 		++frame_fence_value;

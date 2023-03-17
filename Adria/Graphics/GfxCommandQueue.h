@@ -1,26 +1,21 @@
 #pragma once
 #include <span>
 #include "GfxFence.h"
+//#include "GfxComm"
 
 namespace adria
 {
 	class GfxDevice;
 
-	enum class GfxCommandQueueType : uint8
-	{
-		Graphics,
-		Compute,
-		Copy
-	};
+	enum class GfxCommandListType : uint8;
 
 	class GfxCommandQueue
 	{
-		static constexpr D3D12_COMMAND_LIST_TYPE GetCommandListType(GfxCommandQueueType type);
 	public:
 		GfxCommandQueue() = default;
 		~GfxCommandQueue() = default;
 
-		bool Create(GfxDevice* gfx, GfxCommandQueueType type, char const* name = "");
+		bool Create(GfxDevice* gfx, GfxCommandListType type, char const* name = "");
 		
 		void ExecuteCommandLists(std::span<ID3D12CommandList*> cmd_lists);
 
@@ -28,12 +23,12 @@ namespace adria
 		void Wait(GfxFence& fence, uint64 fence_value);
 
 		uint64 GetTimestampFrequency() const { return timestamp_frequency; }
-		GfxCommandQueueType GetType() const { return type; }
+		GfxCommandListType GetType() const { return type; }
 
 		operator ID3D12CommandQueue* () const { return command_queue.Get(); }
 	private:
 		ArcPtr<ID3D12CommandQueue> command_queue;
 		uint64 timestamp_frequency;
-		GfxCommandQueueType type;
+		GfxCommandListType type;
 	};
 }

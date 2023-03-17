@@ -189,17 +189,17 @@ namespace adria
 		return desc;
 	}
 
-	UINT GfxBuffer::GetMappedRowPitch() const
+	uint32 GfxBuffer::GetMappedRowPitch() const
 	{
 		return mapped_rowpitch;
 	}
 
-	D3D12_GPU_VIRTUAL_ADDRESS GfxBuffer::GetGPUAddress() const
+	uint64 GfxBuffer::GetGPUAddress() const
 	{
 		return resource->GetGPUVirtualAddress();
 	}
 
-	UINT GfxBuffer::GetCount() const
+	uint32 GfxBuffer::GetCount() const
 	{
 		ADRIA_ASSERT(desc.stride != 0);
 		return static_cast<UINT>(desc.size / desc.stride);

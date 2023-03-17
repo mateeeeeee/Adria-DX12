@@ -2,6 +2,8 @@
 #include <dxgidebug.h>
 #include "pix3.h"
 #include "GfxDevice.h"
+#include "GfxSwapchain.h"
+#include "GfxCommandList.h"
 #include "d3dx12.h"
 #include "../Logging/Logger.h"
 #include "../Core/Window.h"
@@ -235,7 +237,7 @@ namespace adria
 		BREAK_IF_FAILED(D3D12MA::CreateAllocator(&allocator_desc, &_allocator));
 		allocator.reset(_allocator);
 
-		graphics_queue.Create(this, GfxCommandQueueType::Graphics, "Graphics Queue");
+		graphics_queue.Create(this, GfxCommandListType::Graphics, "Graphics Queue");
 		
 		for (uint32 i = 0; i < offline_descriptor_allocators.size(); ++i) offline_descriptor_allocators[i] = std::make_unique<CPUDescriptorAllocator>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE(i), D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 250);
 		for (uint32 i = 0; i < BACKBUFFER_COUNT; ++i) dynamic_allocators.emplace_back(new LinearDynamicAllocator(this, 50'000'000));
@@ -380,13 +382,13 @@ namespace adria
 		return swapchain->GetBackbuffer();
 	}
 
-	GfxCommandQueue& GfxDevice::GetCommandQueue(GfxCommandQueueType type)
+	GfxCommandQueue& GfxDevice::GetCommandQueue(GfxCommandListType type)
 	{
 		switch (type)
 		{
-		case GfxCommandQueueType::Graphics:
-		case GfxCommandQueueType::Compute:
-		case GfxCommandQueueType::Copy:
+		case GfxCommandListType::Graphics:
+		case GfxCommandListType::Compute:
+		case GfxCommandListType::Copy:
 		default:
 			return graphics_queue;
 		}

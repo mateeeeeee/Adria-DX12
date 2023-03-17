@@ -301,7 +301,7 @@ namespace adria
 		return mapped_rowpitch;
 	}
 
-	D3D12_GPU_VIRTUAL_ADDRESS GfxTexture::GetGPUAddress() const
+	uint64 GfxTexture::GetGPUAddress() const
 	{
 		return resource->GetGPUVirtualAddress();
 	}

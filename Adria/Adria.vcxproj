@@ -196,6 +196,7 @@
     <ClCompile Include="Graphics\DDSTextureLoader12.cpp" />
     <ClCompile Include="Graphics\DescriptorHeap.cpp" />
     <ClCompile Include="Graphics\GfxBuffer.cpp" />
+    <ClCompile Include="Graphics\GfxCommandList.cpp" />
     <ClCompile Include="Graphics\GfxCommandQueue.cpp" />
     <ClCompile Include="Graphics\GfxCommon.cpp" />
     <ClCompile Include="Graphics\GfxDevice.cpp" />
@@ -306,6 +307,7 @@
     <ClInclude Include="Events\IEvent.h" />
     <ClInclude Include="Graphics\GfxBuffer.h" />
     <ClInclude Include="Graphics\CommandSignature.h" />
+    <ClInclude Include="Graphics\GfxCommandList.h" />
     <ClInclude Include="Graphics\GfxCommandQueue.h" />
     <ClInclude Include="Graphics\GfxConstantBuffer.h" />
     <ClInclude Include="Graphics\D3D12MemAlloc.h" />

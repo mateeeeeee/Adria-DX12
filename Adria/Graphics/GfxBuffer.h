@@ -44,10 +44,11 @@ namespace adria
 		ID3D12Resource* GetNative() const;
 		ID3D12Resource* Detach();
 		D3D12MA::Allocation* DetachAllocation();
+		
 		GfxBufferDesc const& GetDesc() const;
-		UINT GetMappedRowPitch() const;
-		D3D12_GPU_VIRTUAL_ADDRESS GetGPUAddress() const;
-		UINT GetCount() const;
+		uint32 GetMappedRowPitch() const;
+		uint64 GetGPUAddress() const;
+		uint32 GetCount() const;
 
 		bool IsMapped() const;
 		void* GetMappedData() const;

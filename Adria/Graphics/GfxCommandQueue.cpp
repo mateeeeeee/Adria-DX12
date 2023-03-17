@@ -1,25 +1,11 @@
 #include "GfxCommandQueue.h"
 #include "GfxDevice.h"
+#include "GfxCommandList.h"
 #include "../Utilities/StringUtil.h"
 
 namespace adria
 {
-
-	constexpr D3D12_COMMAND_LIST_TYPE GfxCommandQueue::GetCommandListType(GfxCommandQueueType type)
-	{
-		switch (type)
-		{
-		case GfxCommandQueueType::Graphics:
-			return D3D12_COMMAND_LIST_TYPE_DIRECT;
-		case GfxCommandQueueType::Compute:
-			return D3D12_COMMAND_LIST_TYPE_COMPUTE;
-		case GfxCommandQueueType::Copy:
-			return D3D12_COMMAND_LIST_TYPE_COPY;
-		}
-		return D3D12_COMMAND_LIST_TYPE_DIRECT;
-	}
-
-	bool GfxCommandQueue::Create(GfxDevice* gfx, GfxCommandQueueType type, char const* name /*= ""*/)
+	bool GfxCommandQueue::Create(GfxDevice* gfx, GfxCommandListType type, char const* name /*= ""*/)
 	{
 		ID3D12Device* device = gfx->GetDevice();
 		D3D12_COMMAND_QUEUE_DESC queue_desc{};

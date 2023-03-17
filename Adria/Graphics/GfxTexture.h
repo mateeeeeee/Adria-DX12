@@ -176,7 +176,7 @@ namespace adria
 		D3D12_CPU_DESCRIPTOR_HANDLE GetDSV(size_t i = 0) const;
 
 		uint32 GetMappedRowPitch() const;
-		D3D12_GPU_VIRTUAL_ADDRESS GetGPUAddress() const;
+		uint64 GetGPUAddress() const;
 		ID3D12Resource* GetNative() const;
 		ID3D12Resource* Detach();
 		D3D12MA::Allocation* DetachAllocation();

@@ -17,7 +17,6 @@
 
 #include "GfxFence.h"
 #include "GfxCommandQueue.h"
-#include "GfxSwapchain.h"
 #include "RingGPUDescriptorAllocator.h"
 #include "LinearGPUDescriptorAllocator.h"
 #include "CPUDescriptorAllocator.h"
@@ -26,6 +25,9 @@
 
 namespace adria
 {
+	class GfxSwapchain;
+	class GfxCommandList;
+
 	struct GfxOptions
 	{
 		bool debug_layer = false;
@@ -75,7 +77,7 @@ namespace adria
 		IDXGIFactory4* GetFactory() const;
 		ID3D12Device5* GetDevice() const;
 
-		GfxCommandQueue& GetCommandQueue(GfxCommandQueueType type);
+		GfxCommandQueue& GetCommandQueue(GfxCommandListType type);
 
 		ID3D12GraphicsCommandList4* GetCommandList() const;
 		void ResetCommandList();
@@ -116,7 +118,7 @@ namespace adria
 		ArcPtr<IDXGIFactory4> dxgi_factory = nullptr;
 		ArcPtr<ID3D12Device5> device = nullptr;
 		
-		std::unique_ptr<GfxSwapchain> swapchain = nullptr;
+		std::unique_ptr<GfxSwapchain> swapchain;
 		ReleasablePtr<D3D12MA::Allocator> allocator = nullptr;
 
 		GfxCommandQueue graphics_queue;
