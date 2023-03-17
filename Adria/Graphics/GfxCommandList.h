@@ -2,6 +2,8 @@
 #include <d3d12.h>
 #include "DescriptorHeap.h"
 #include "GfxResourceCommon.h"
+#include "GfxStates.h"
+#include "GfxRenderPass.h"
 #include "../Utilities/AutoRefCountPtr.h"
 #include "../Core/Definitions.h"
 
@@ -14,6 +16,8 @@ namespace adria
 	class GfxBuffer;
 	class GfxTexture;
 	class GfxPipelineState;
+	struct GfxVertexBufferView;
+	struct GfxIndexBufferView;
 
 	enum class GfxCommandListType : uint8
 	{
@@ -38,6 +42,12 @@ namespace adria
 
 	class GfxCommandList
 	{
+		enum class GfxCommandListContext
+		{
+			Invalid,
+			Graphics,
+			Compute
+		};
 	public:
 		explicit GfxCommandList(GfxDevice* gfx, GfxCommandListType type = GfxCommandListType::Graphics, char const* name = "");
 
@@ -78,15 +88,48 @@ namespace adria
 		void ClearUAV(GfxBuffer* resource, DescriptorHandle uav, const uint32* clear_value);
 		void WriteImmediateBuffer(GfxBuffer* buffer, uint32 offset, uint32 data);
 
+		void BeginRenderPass(GfxRenderPassDesc const& render_pass);
+		void EndRenderPass();
+
+		void SetPipelineState(GfxPipelineState* state);
+		void SetStencilReference(uint8 stencil);
+		void SetBlendFactor(float const* blend_factor);
+		void SetTopology(GfxPrimitiveTopology type);
+		void SetIndexBuffer(GfxIndexBufferView* index_buffer_view);
+		void SetVertexBuffer(std::span<GfxVertexBufferView> vertex_buffer_views, uint32 start_slot = 0);
+		void SetViewport(uint32 x, uint32 y, uint32 width, uint32 height);
+		void SetScissorRect(uint32 x, uint32 y, uint32 width, uint32 height);
+
+		void SetRootConstants(uint32 slot, const void* data, size_t data_size);
+		template<typename T>
+		void SetRootConstants(uint32 slot, T const& data)
+		{
+			SetRootConstants(slot, &data, sizeof(T));
+		}
+		void SetRootCBV(uint32 slot, const void* data, size_t data_size);
+		template<typename T>
+		void SetRootCBV(uint32 slot, T const& data)
+		{
+			SetRootCBV(slot, &data, sizeof(T));
+		}
+		void SetRootSRV(uint32 slot, size_t gpu_address);
+		void SetRootUAV(uint32 slot, size_t gpu_address);
+		void BindResources(uint32 slot, std::span<DescriptorHandle> views, uint32 offset = 0);
+
+		void ClearRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE rtv, float const* clear_color);
+		void ClearDepth(D3D12_CPU_DESCRIPTOR_HANDLE dsv, GfxClearFlags clear_flags = GfxClearFlagBit_Stencil, float depth = 1.0f, uint8 stencil = 0);
+
 	private:
 		GfxDevice* gfx = nullptr;
 		GfxCommandQueue& cmd_queue;
-		ArcPtr<ID3D12GraphicsCommandList4> cmd_list;
-		ArcPtr<ID3D12CommandAllocator> cmd_allocator;
+		ArcPtr<ID3D12GraphicsCommandList4> cmd_list = nullptr;
+		ArcPtr<ID3D12CommandAllocator> cmd_allocator = nullptr;
 
-		uint32 command_count;
-		std::vector<D3D12_RESOURCE_BARRIER> resource_barriers;
+		uint32 command_count = 0;
+		GfxPipelineState* current_pso = nullptr;
+		GfxCommandListContext current_context = GfxCommandListContext::Invalid;
 		std::vector<std::pair<GfxFence&, uint64>> pending_waits;
 		std::vector<std::pair<GfxFence&, uint64>> pending_signals;
+		std::vector<D3D12_RESOURCE_BARRIER> resource_barriers;
 	};
 }

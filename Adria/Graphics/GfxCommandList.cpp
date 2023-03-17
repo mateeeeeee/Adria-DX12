@@ -166,5 +166,90 @@ namespace adria
 
 	}
 
+	void GfxCommandList::BeginRenderPass(GfxRenderPassDesc const& render_pass)
+	{
+
+	}
+
+	void GfxCommandList::EndRenderPass()
+	{
+
+	}
+
+	void GfxCommandList::SetPipelineState(GfxPipelineState* state)
+	{
+
+	}
+
+	void GfxCommandList::SetStencilReference(uint8 stencil)
+	{
+
+	}
+
+	void GfxCommandList::SetBlendFactor(float const* blend_factor)
+	{
+
+	}
+
+	void GfxCommandList::SetTopology(GfxPrimitiveTopology type)
+	{
+
+	}
+
+	void GfxCommandList::SetIndexBuffer(GfxIndexBufferView* index_buffer_view)
+	{
+
+	}
+
+	void GfxCommandList::SetVertexBuffer(std::span<GfxVertexBufferView> vertex_buffer_views, uint32 start_slot /*= 0*/)
+	{
+
+	}
+
+	void GfxCommandList::SetViewport(uint32 x, uint32 y, uint32 width, uint32 height)
+	{
+
+	}
+
+	void GfxCommandList::SetScissorRect(uint32 x, uint32 y, uint32 width, uint32 height)
+	{
+
+	}
+
+	void GfxCommandList::SetRootConstants(uint32 slot, const void* data, size_t data_size)
+	{
+
+	}
+
+	void GfxCommandList::SetRootCBV(uint32 slot, const void* data, size_t data_size)
+	{
+
+	}
+
+	void GfxCommandList::SetRootSRV(uint32 slot, size_t gpu_address)
+	{
+
+	}
+
+	void GfxCommandList::SetRootUAV(uint32 slot, size_t gpu_address)
+	{
+
+	}
+
+	void GfxCommandList::BindResources(uint32 slot, std::span<DescriptorHandle> views, uint32 offset /*= 0*/)
+	{
+
+	}
+
+	void GfxCommandList::ClearRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE rtv, float const* clear_color)
+	{
+
+	}
+
+	void GfxCommandList::ClearDepth(D3D12_CPU_DESCRIPTOR_HANDLE dsv, GfxClearFlags clear_flags /*= GfxClearFlagBit_Stencil*/, float depth /*= 1.0f*/, uint8 stencil /*= 0*/)
+	{
+
+	}
+
 }
 

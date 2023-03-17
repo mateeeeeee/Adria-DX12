@@ -12,7 +12,7 @@ namespace adria
         D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle;
         D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE beginning_access;
         D3D12_RENDER_PASS_ENDING_ACCESS_TYPE ending_access;
-        D3D12_CLEAR_VALUE clear_value; 
+        D3D12_CLEAR_VALUE clear_value;
     };
 
     struct GfxDepthAttachmentDesc
@@ -33,6 +33,13 @@ namespace adria
         uint32 width;
         uint32 height;
     };
+
+	enum GfxClearFlagBit : uint8
+	{
+		GfxClearFlagBit_Depth = 0x1,
+		GfxClearFlagBit_Stencil = 0x2
+	};
+    using GfxClearFlags = uint8;
 
     class GfxRenderPass
     {

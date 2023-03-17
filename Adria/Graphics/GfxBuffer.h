@@ -3,7 +3,7 @@
 
 namespace adria
 {
-	
+
 	struct GfxBufferDesc
 	{
 		uint64 size = 0;
@@ -44,7 +44,7 @@ namespace adria
 		ID3D12Resource* GetNative() const;
 		ID3D12Resource* Detach();
 		D3D12MA::Allocation* DetachAllocation();
-		
+
 		GfxBufferDesc const& GetDesc() const;
 		uint32 GetMappedRowPitch() const;
 		uint64 GetGPUAddress() const;
@@ -157,5 +157,35 @@ namespace adria
 		desc.bind_flags = GfxBindFlag::UnorderedAccess;
 		return desc;
 	}
+
+	struct GfxVertexBufferView
+	{
+		explicit GfxVertexBufferView(GfxBuffer* buffer)
+			: buffer_location(buffer->GetGPUAddress()), size_in_bytes((uint32)buffer->GetDesc().size), stride_in_bytes(buffer->GetDesc().stride)
+		{}
+
+		GfxVertexBufferView(uint64 buffer_location, uint32 size_in_bytes, uint32 stride_in_bytes)
+			: buffer_location(buffer_location), size_in_bytes(size_in_bytes), stride_in_bytes(stride_in_bytes)
+		{}
+
+		uint64					    buffer_location = 0;
+		uint32                      size_in_bytes = 0;
+		uint32                      stride_in_bytes = 0;
+	};
+
+	struct GfxIndexBufferView
+	{
+		explicit GfxIndexBufferView(GfxBuffer* buffer)
+			: buffer_location(buffer->GetGPUAddress()), size_in_bytes((uint32)buffer->GetDesc().size), format(buffer->GetDesc().format)
+		{}
+
+		GfxIndexBufferView(uint64 buffer_location, uint32 size_in_bytes, GfxFormat format = GfxFormat::R32_UINT)
+			: buffer_location(buffer_location), size_in_bytes(size_in_bytes), format(format)
+		{}
+
+		uint64					    buffer_location = 0;
+		uint32                      size_in_bytes;
+		GfxFormat                   format;
+	};
 
 }
