@@ -119,7 +119,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\dxc\include\;$(SolutionDir)ThirdParty\DirectXTex\Include\;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\robin-map\include;$(SolutionDir)ThirdParty\entt;$(SolutionDir)ThirdParty\nfd\include;$(SolutionDir)ThirdParty\FontAwesome;$(SolutionDir)ThirdParty\meshoptimizer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\gfx-external;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\dxc\include\;$(SolutionDir)ThirdParty\DirectXTex\Include\;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\robin-map\include;$(SolutionDir)ThirdParty\entt;$(SolutionDir)ThirdParty\nfd\include;$(SolutionDir)ThirdParty\FontAwesome;$(SolutionDir)ThirdParty\meshoptimizer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
       <AdditionalOptions>/sdl /w34996 %(AdditionalOptions)</AdditionalOptions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -142,7 +142,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\dxc\include\;$(SolutionDir)ThirdParty\DirectXTex\Include\;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\robin-map\include;$(SolutionDir)ThirdParty\entt;$(SolutionDir)ThirdParty\nfd\include;$(SolutionDir)ThirdParty\FontAwesome;$(SolutionDir)ThirdParty\meshoptimizer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\gfx-external;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\dxc\include\;$(SolutionDir)ThirdParty\DirectXTex\Include\;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\robin-map\include;$(SolutionDir)ThirdParty\entt;$(SolutionDir)ThirdParty\nfd\include;$(SolutionDir)ThirdParty\FontAwesome;$(SolutionDir)ThirdParty\meshoptimizer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
       <AdditionalOptions>/sdl /w34996 %(AdditionalOptions)</AdditionalOptions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -159,6 +159,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\ThirdParty\gfx-external\D3D12MemAlloc.cpp" />
+    <ClCompile Include="..\ThirdParty\gfx-external\DDSTextureLoader12.cpp" />
+    <ClCompile Include="..\ThirdParty\gfx-external\WICTextureLoader12.cpp" />
     <ClCompile Include="..\ThirdParty\ImGui\imgui.cpp" />
     <ClCompile Include="..\ThirdParty\ImGui\ImGuizmo.cpp" />
     <ClCompile Include="..\ThirdParty\ImGui\imgui_demo.cpp" />
@@ -192,8 +195,6 @@
     <ClCompile Include="Editor\GUI.cpp" />
     <ClCompile Include="Editor\GUICommand.cpp" />
     <ClCompile Include="Events\EventQueue.cpp" />
-    <ClCompile Include="Graphics\D3D12MemAlloc.cpp" />
-    <ClCompile Include="Graphics\DDSTextureLoader12.cpp" />
     <ClCompile Include="Graphics\DescriptorHeap.cpp" />
     <ClCompile Include="Graphics\GfxBuffer.cpp" />
     <ClCompile Include="Graphics\GfxCommandList.cpp" />
@@ -214,7 +215,6 @@
     <ClCompile Include="Graphics\RingDynamicAllocator.cpp" />
     <ClCompile Include="Graphics\GfxShaderCompiler.cpp" />
     <ClCompile Include="Graphics\TextureManager.cpp" />
-    <ClCompile Include="Graphics\WICTextureLoader12.cpp" />
     <ClCompile Include="Input\Input.cpp" />
     <ClCompile Include="Logging\Logger.cpp" />
     <ClCompile Include="main.cpp" />
@@ -279,6 +279,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ThirdParty\FontAwesome\IconsFontAwesome4.h" />
+    <ClInclude Include="..\ThirdParty\gfx-external\D3D12MemAlloc.h" />
+    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12.h" />
+    <ClInclude Include="..\ThirdParty\gfx-external\DDSTextureLoader12.h" />
+    <ClInclude Include="..\ThirdParty\gfx-external\WICTextureLoader12.h" />
     <ClInclude Include="..\ThirdParty\ImGui\imconfig.h" />
     <ClInclude Include="..\ThirdParty\ImGui\imgui.h" />
     <ClInclude Include="..\ThirdParty\ImGui\ImGuizmo.h" />
@@ -310,9 +314,6 @@
     <ClInclude Include="Graphics\GfxCommandList.h" />
     <ClInclude Include="Graphics\GfxCommandQueue.h" />
     <ClInclude Include="Graphics\GfxConstantBuffer.h" />
-    <ClInclude Include="Graphics\D3D12MemAlloc.h" />
-    <ClInclude Include="Graphics\d3dx12.h" />
-    <ClInclude Include="Graphics\DDSTextureLoader12.h" />
     <ClInclude Include="Graphics\DescriptorHeap.h" />
     <ClInclude Include="Graphics\DynamicAllocation.h" />
     <ClInclude Include="Graphics\GfxFence.h" />
@@ -340,7 +341,6 @@
     <ClInclude Include="Graphics\RingGPUDescriptorAllocator.h" />
     <ClInclude Include="Graphics\GfxShaderCompiler.h" />
     <ClInclude Include="Graphics\VertexTypes.h" />
-    <ClInclude Include="Graphics\WICTextureLoader12.h" />
     <ClInclude Include="Input\Input.h" />
     <ClInclude Include="Logging\Logger.h" />
     <ClInclude Include="Math\BoundingVolumeHelpers.h" />

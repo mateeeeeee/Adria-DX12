@@ -25,17 +25,17 @@ namespace adria
 	{
         enum class TextureFormat
         {
-            eDDS,
-            eBMP,
-            eJPG,
-            ePNG,
-            eTIFF,
-            eGIF,
-            eICO,
-            eTGA,
-            eHDR,
-            ePIC,
-            eNotSupported
+            DDS,
+            BMP,
+            JPG,
+            PNG,
+            TIFF,
+            GIF,
+            ICO,
+            TGA,
+            HDR,
+            PIC,
+            NotSupported
         };
         TextureFormat GetTextureFormat(std::string const& path)
         {
@@ -43,27 +43,27 @@ namespace adria
             std::transform(std::begin(extension), std::end(extension), std::begin(extension), [](char c) {return std::tolower(c); });
 
             if (extension == ".dds")
-                return TextureFormat::eDDS;
+                return TextureFormat::DDS;
             else if (extension == ".bmp")
-                return TextureFormat::eBMP;
+                return TextureFormat::BMP;
             else if (extension == ".jpg" || extension == ".jpeg")
-                return TextureFormat::eJPG;
+                return TextureFormat::JPG;
             else if (extension == ".png")
-                return TextureFormat::ePNG;
+                return TextureFormat::PNG;
             else if (extension == ".tiff" || extension == ".tif")
-                return TextureFormat::eTIFF;
+                return TextureFormat::TIFF;
             else if (extension == ".gif")
-                return TextureFormat::eGIF;
+                return TextureFormat::GIF;
             else if (extension == ".ico")
-                return TextureFormat::eICO;
+                return TextureFormat::ICO;
             else if (extension == ".tga")
-                return TextureFormat::eTGA;
+                return TextureFormat::TGA;
             else if (extension == ".hdr")
-                return TextureFormat::eHDR;
+                return TextureFormat::HDR;
             else if (extension == ".pic")
-                return TextureFormat::ePIC;
+                return TextureFormat::PIC;
             else
-                return TextureFormat::eNotSupported;
+                return TextureFormat::NotSupported;
         }
         TextureFormat GetTextureFormat(std::wstring const& path)
         {
@@ -133,20 +133,20 @@ namespace adria
 
         switch (format)
         {
-        case TextureFormat::eDDS:
+        case TextureFormat::DDS:
             return LoadDDSTexture(name);
-        case TextureFormat::eBMP:
-        case TextureFormat::ePNG:
-        case TextureFormat::eJPG:
-        case TextureFormat::eTIFF:
-        case TextureFormat::eGIF:
-        case TextureFormat::eICO:
+        case TextureFormat::BMP:
+        case TextureFormat::PNG:
+        case TextureFormat::JPG:
+        case TextureFormat::TIFF:
+        case TextureFormat::GIF:
+        case TextureFormat::ICO:
             return LoadWICTexture(name);
-        case TextureFormat::eTGA:
-        case TextureFormat::eHDR:
-        case TextureFormat::ePIC:
+        case TextureFormat::TGA:
+        case TextureFormat::HDR:
+        case TextureFormat::PIC:
             return LoadTexture_HDR_TGA_PIC(ToString(name));
-        case TextureFormat::eNotSupported:
+        case TextureFormat::NotSupported:
         default:
             ADRIA_ASSERT(false && "Unsupported Texture Format!");
         }
@@ -157,7 +157,7 @@ namespace adria
     TextureHandle TextureManager::LoadCubemap(std::wstring const& name)
     {
         TextureFormat format = GetTextureFormat(name);
-        ADRIA_ASSERT(format == TextureFormat::eDDS || format == TextureFormat::eHDR && "Cubemap in one file has to be .dds or .hdr format");
+        ADRIA_ASSERT(format == TextureFormat::DDS || format == TextureFormat::HDR && "Cubemap in one file has to be .dds or .hdr format");
 
         if (auto it = loaded_textures.find(name); it == loaded_textures.end())
         {
@@ -165,7 +165,7 @@ namespace adria
             auto device = gfx->GetDevice();
             auto allocator = gfx->GetAllocator();
             auto cmd_list = gfx->GetCommandList();
-            if (format == TextureFormat::eDDS)
+            if (format == TextureFormat::DDS)
             {
                 loaded_textures.insert({ name, handle });
                 ArcPtr<ID3D12Resource> cubemap = nullptr;
@@ -235,7 +235,7 @@ namespace adria
                 equirect_tex.CreateSRV();
 
                 D3D12_RESOURCE_BARRIER barriers[] = {
-                    CD3DX12_RESOURCE_BARRIER::Transition(cubemap_tex->GetNative(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_UNORDERED_ACCESS), 
+                    CD3DX12_RESOURCE_BARRIER::Transition(cubemap_tex->GetNative(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_UNORDERED_ACCESS),
                     CD3DX12_RESOURCE_BARRIER::Transition(equirect_tex.GetNative(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE) };
                 cmd_list->ResourceBarrier(_countof(barriers), barriers);
 
@@ -266,8 +266,8 @@ namespace adria
     TextureHandle TextureManager::LoadCubemap(std::array<std::wstring, 6> const& cubemap_textures)
     {
         TextureFormat format = GetTextureFormat(cubemap_textures[0]);
-        ADRIA_ASSERT(format == TextureFormat::eJPG || format == TextureFormat::ePNG || format == TextureFormat::eTGA ||
-            format == TextureFormat::eBMP || format == TextureFormat::eHDR || format == TextureFormat::ePIC);
+        ADRIA_ASSERT(format == TextureFormat::JPG || format == TextureFormat::PNG || format == TextureFormat::TGA ||
+            format == TextureFormat::BMP || format == TextureFormat::HDR || format == TextureFormat::PIC);
 
         auto device = gfx->GetDevice();
         auto allocator = gfx->GetAllocator();
@@ -380,13 +380,13 @@ namespace adria
             desc.array_size = _desc.DepthOrArraySize;
             desc.depth = _desc.DepthOrArraySize;
             desc.bind_flags = GfxBindFlag::ShaderResource;
-			
+
             desc.format = ConvertDXGIFormat(_desc.Format);
             desc.initial_state = GfxResourceState::PixelShaderResource | GfxResourceState::NonPixelShaderResource;
             desc.heap_type = GfxResourceUsage::Default;
             desc.mip_levels = _desc.MipLevels;
             std::unique_ptr<GfxTexture> tex = std::make_unique<GfxTexture>(gfx, desc, subresources.data(), subresources.size());
-            
+
             texture_map.insert({ handle, std::move(tex)});
             CreateViewForTexture(handle);
             return handle;
