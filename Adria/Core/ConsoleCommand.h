@@ -35,12 +35,12 @@ namespace adria
 		template<typename... Args>
 		std::tuple<Args...> TupleFromArguments(std::span<char const*> args)
 		{
-			std::tuple<Args...> pTuple;
+			std::tuple<Args...> tuple;
 			if constexpr (sizeof...(Args) > 0)
 			{
-				TupleFromArguments<0>(pTuple, args);
+				TupleFromArguments<0>(tuple, args);
 			}
-			return pTuple;
+			return tuple;
 		}
 
 	public:

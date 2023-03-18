@@ -319,7 +319,7 @@
     <ClInclude Include="Graphics\GfxFence.h" />
     <ClInclude Include="Graphics\GfxFormat.h" />
     <ClInclude Include="Graphics\GfxSwapchain.h" />
-    <ClInclude Include="Graphics\GpuMacros.h" />
+    <ClInclude Include="Graphics\GfxMacros.h" />
     <ClInclude Include="Graphics\GfxCommon.h" />
     <ClInclude Include="Graphics\GfxDevice.h" />
     <ClInclude Include="Graphics\GfxStates.h" />

@@ -12,7 +12,7 @@ namespace adria
 	{
 		DXGI_SWAP_CHAIN_DESC1 swapchain_desc{};
 		swapchain_desc.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
-		swapchain_desc.BufferCount = BACKBUFFER_COUNT;
+		swapchain_desc.BufferCount = GFX_BACKBUFFER_COUNT;
 		swapchain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		swapchain_desc.Format = ConvertGfxFormat(desc.backbuffer_format);
 		swapchain_desc.Width = width;
@@ -88,7 +88,7 @@ namespace adria
 		width = w;
 		height = h;
 
-		for (uint32 i = 0; i < BACKBUFFER_COUNT; ++i)
+		for (uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i)
 		{
 			back_buffers[i].Reset();
 			frame_fence_values[i] = frame_fence_values[backbuffer_index];
@@ -100,9 +100,9 @@ namespace adria
 		BREAK_IF_FAILED(hr);
 		
 		backbuffer_index = swapchain->GetCurrentBackBufferIndex();
-		for (uint32 i = 0; i < BACKBUFFER_COUNT; ++i)
+		for (uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i)
 		{
-			UINT fr = (backbuffer_index + i) % BACKBUFFER_COUNT;
+			UINT fr = (backbuffer_index + i) % GFX_BACKBUFFER_COUNT;
 			HRESULT hr = swapchain->GetBuffer(i, IID_PPV_ARGS(back_buffers[i].GetAddressOf()));
 			BREAK_IF_FAILED(hr);
 			gfx->GetDevice()->CreateRenderTargetView(back_buffers[fr].Get(), nullptr, back_buffer_rtvs[fr]);
@@ -111,7 +111,7 @@ namespace adria
 
 	void GfxSwapchain::CreateBackbuffers()
 	{
-		for (uint32 i = 0; i < BACKBUFFER_COUNT; ++i)
+		for (uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i)
 		{
 			HRESULT hr = swapchain->GetBuffer(i, IID_PPV_ARGS(back_buffers[i].GetAddressOf()));
 			BREAK_IF_FAILED(hr);

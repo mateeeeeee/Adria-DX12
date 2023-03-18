@@ -1,0 +1,5 @@
+#pragma once
+
+#define GFX_MULTITHREADED 0 
+#define GFX_PROFILING 1
+#define GFX_BACKBUFFER_COUNT 3

@@ -995,6 +995,7 @@ namespace adria
 		renderer_settings.postprocess.automatic_exposure = cvars::exposure;
 		renderer_settings.postprocess.clouds = cvars::clouds;
 		renderer_settings.postprocess.dof = cvars::dof;
+		renderer_settings.postprocess.bokeh = cvars::bokeh;
 		renderer_settings.postprocess.bloom = cvars::bloom;
 		renderer_settings.postprocess.motion_blur = cvars::motion_blur;
 		renderer_settings.postprocess.fog = cvars::fog;

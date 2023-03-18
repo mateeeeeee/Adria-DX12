@@ -240,7 +240,7 @@ namespace adria
 		graphics_queue.Create(this, GfxCommandListType::Graphics, "Graphics Queue");
 
 		for (uint32 i = 0; i < offline_descriptor_allocators.size(); ++i) offline_descriptor_allocators[i] = std::make_unique<CPUDescriptorAllocator>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE(i), D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 250);
-		for (uint32 i = 0; i < BACKBUFFER_COUNT; ++i) dynamic_allocators.emplace_back(new LinearDynamicAllocator(this, 50'000'000));
+		for (uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i) dynamic_allocators.emplace_back(new LinearDynamicAllocator(this, 50'000'000));
 		dynamic_allocator_before_rendering.reset(new LinearDynamicAllocator(this, 750'000'000));
 
 		GfxSwapchainDesc swapchain_desc{};
@@ -249,7 +249,7 @@ namespace adria
 		swapchain_desc.fullscreen_windowed = true;
 		swapchain_desc.backbuffer_format = GfxFormat::R10G10B10A2_UNORM;
 		swapchain = std::make_unique<GfxSwapchain>(this, swapchain_desc);
-		for (uint32 i = 0; i < BACKBUFFER_COUNT; ++i)
+		for (uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i)
 		{
 			hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(frame_resources[i].cmd_allocator.GetAddressOf()));
 			BREAK_IF_FAILED(hr);

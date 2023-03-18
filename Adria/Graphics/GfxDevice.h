@@ -17,6 +17,7 @@
 
 #include "GfxFence.h"
 #include "GfxCommandQueue.h"
+#include "GfxMacros.h"
 #include "CommandSignature.h"
 #include "RingGPUDescriptorAllocator.h"
 #include "LinearGPUDescriptorAllocator.h"
@@ -45,8 +46,6 @@ namespace adria
 
 	class GfxDevice
 	{
-		static constexpr uint32 BACKBUFFER_COUNT = 3;
-
 		struct FrameResources
 		{
 			ArcPtr<ID3D12CommandAllocator>      cmd_allocator;
@@ -111,7 +110,7 @@ namespace adria
 
 		static constexpr uint32 BackbufferCount()
 		{
-			return BACKBUFFER_COUNT;
+			return GFX_BACKBUFFER_COUNT;
 		}
 
 		DrawIndirectSignature& GetDrawIndirectSignature() const { return *draw_indirect_signature;}
@@ -129,7 +128,7 @@ namespace adria
 		ReleasablePtr<D3D12MA::Allocator> allocator = nullptr;
 
 		GfxCommandQueue graphics_queue;
-		FrameResources frame_resources[BACKBUFFER_COUNT];
+		FrameResources frame_resources[GFX_BACKBUFFER_COUNT];
 
 		GfxFence     wait_fence;
 		uint64       wait_fence_value = 1;

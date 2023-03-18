@@ -1,6 +1,7 @@
 #pragma once
 #include "GfxFence.h"
 #include "GfxFormat.h"
+#include "GfxMacros.h"
 
 namespace adria
 {
@@ -17,8 +18,6 @@ namespace adria
 	class GfxSwapchain
 	{
 	public:
-		static constexpr uint32 BACKBUFFER_COUNT = 3;
-	public:
 		GfxSwapchain(GfxDevice* gfx, GfxSwapchainDesc const& desc);
 		~GfxSwapchain();
 
@@ -34,8 +33,8 @@ namespace adria
 	private:
 		GfxDevice* gfx = nullptr;
 		ArcPtr<IDXGISwapChain4>				swapchain = nullptr;
-		ArcPtr<ID3D12Resource>				back_buffers[BACKBUFFER_COUNT] = { nullptr };
-		D3D12_CPU_DESCRIPTOR_HANDLE			back_buffer_rtvs[BACKBUFFER_COUNT] = {};
+		ArcPtr<ID3D12Resource>				back_buffers[GFX_BACKBUFFER_COUNT] = { nullptr };
+		D3D12_CPU_DESCRIPTOR_HANDLE			back_buffer_rtvs[GFX_BACKBUFFER_COUNT] = {};
 
 		uint32		 width;
 		uint32		 height;
@@ -44,7 +43,7 @@ namespace adria
 
 		GfxFence	 frame_fence;
 		uint64		 frame_fence_value = 0;
-		uint64       frame_fence_values[BACKBUFFER_COUNT];
+		uint64       frame_fence_values[GFX_BACKBUFFER_COUNT];
 
 	private:
 		void CreateBackbuffers();
