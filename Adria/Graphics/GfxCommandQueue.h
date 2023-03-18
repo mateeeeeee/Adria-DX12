@@ -1,11 +1,11 @@
 #pragma once
 #include <span>
 #include "GfxFence.h"
-//#include "GfxComm"
 
 namespace adria
 {
 	class GfxDevice;
+	class GfxCommandList;
 
 	enum class GfxCommandListType : uint8;
 
@@ -17,6 +17,7 @@ namespace adria
 
 		bool Create(GfxDevice* gfx, GfxCommandListType type, char const* name = "");
 		
+		void ExecuteCommandLists(std::span<GfxCommandList*> cmd_lists);
 		void ExecuteCommandLists(std::span<ID3D12CommandList*> cmd_lists);
 
 		void Signal(GfxFence& fence, uint64 fence_value);

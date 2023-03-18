@@ -86,7 +86,7 @@ namespace adria
 		void ClearUAV(GfxBuffer* resource, DescriptorHandle uav, const uint32* clear_value);
 		void WriteBufferImmediate(GfxBuffer* buffer, uint32 offset, uint32 data);
 
-		void BeginRenderPass(GfxRenderPassDesc const& render_pass);
+		void BeginRenderPass(GfxRenderPassDesc const& render_pass_desc);
 		void EndRenderPass();
 
 		void SetPipelineState(GfxPipelineState* state);
@@ -126,6 +126,7 @@ namespace adria
 
 		uint32 command_count = 0;
 		GfxPipelineState* current_pso = nullptr;
+		std::unique_ptr<GfxRenderPass> current_render_pass = nullptr;
 		GfxCommandListContext current_context = GfxCommandListContext::Invalid;
 		std::vector<std::pair<GfxFence&, uint64>> pending_waits;
 		std::vector<std::pair<GfxFence&, uint64>> pending_signals;

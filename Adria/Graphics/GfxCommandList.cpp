@@ -263,17 +263,20 @@ namespace adria
 		++command_count;
 	}
 
-	void GfxCommandList::BeginRenderPass(GfxRenderPassDesc const& render_pass)
+	void GfxCommandList::BeginRenderPass(GfxRenderPassDesc const& render_pass_desc)
 	{
 		ADRIA_ASSERT(current_context == GfxCommandListContext::Graphics);
-
-
+		ADRIA_ASSERT(current_render_pass == nullptr);
+		current_render_pass = std::make_unique<GfxRenderPass>(render_pass_desc);
+		current_render_pass->Begin(cmd_list.Get());
 	}
 
 	void GfxCommandList::EndRenderPass()
 	{
 		ADRIA_ASSERT(current_context == GfxCommandListContext::Graphics);
-
+		ADRIA_ASSERT(current_render_pass != nullptr);
+		current_render_pass->End(cmd_list.Get());
+		current_render_pass.reset();
 	}
 
 	void GfxCommandList::SetPipelineState(GfxPipelineState* state)

@@ -45,6 +45,7 @@ namespace adria
         void Begin(ID3D12GraphicsCommandList4* cmd_list, bool legacy = false);
         void End(ID3D12GraphicsCommandList4* cmd_list, bool legacy = false);
 
+
     private:
         std::vector<D3D12_RENDER_PASS_RENDER_TARGET_DESC> rtvs{};
         std::unique_ptr<D3D12_RENDER_PASS_DEPTH_STENCIL_DESC> dsv = nullptr;
