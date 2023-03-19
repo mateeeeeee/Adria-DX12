@@ -1,7 +1,8 @@
 #include "PickingPass.h"
 #include "PSOCache.h" 
-
 #include "BlackboardData.h"
+
+#include "../Graphics/RingGPUDescriptorAllocator.h"
 #include "../Logging/Logger.h"
 #include "../RenderGraph/RenderGraph.h"
 

@@ -1,4 +1,5 @@
 #include "GfxTexture.h"
+#include "LinearDynamicAllocator.h"
 
 namespace adria
 {

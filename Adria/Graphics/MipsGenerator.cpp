@@ -15,6 +15,8 @@ namespace adria
 		CreateHeap(max_textures);
 	}
 
+	MipsGenerator::~MipsGenerator() {}
+
 	void MipsGenerator::Add(ID3D12Resource* texture)
 	{
 		resources.push_back(texture);

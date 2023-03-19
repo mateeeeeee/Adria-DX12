@@ -6,6 +6,8 @@
 
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/TextureManager.h"
+#include "../Graphics/LinearDynamicAllocator.h"
+#include "../Graphics/RingGPUDescriptorAllocator.h"
 #include "../Editor/GUICommand.h"
 
 using namespace DirectX;

@@ -5,6 +5,8 @@
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/GfxTexture.h"
 #include "../Graphics/GfxBuffer.h"
+#include "../Graphics/LinearDynamicAllocator.h"
+#include "../Graphics/RingGPUDescriptorAllocator.h"
 #include "../Editor/GUICommand.h"
 
 #include <algorithm> // remove this later

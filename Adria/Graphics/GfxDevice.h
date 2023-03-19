@@ -17,12 +17,8 @@
 
 #include "GfxFence.h"
 #include "GfxCommandQueue.h"
-#include "GfxMacros.h"
+#include "GfxDefines.h"
 #include "CommandSignature.h"
-#include "RingGPUDescriptorAllocator.h"
-#include "LinearGPUDescriptorAllocator.h"
-#include "CPUDescriptorAllocator.h"
-#include "LinearDynamicAllocator.h"
 #include "../Utilities/Releasable.h"
 
 namespace adria
@@ -30,6 +26,10 @@ namespace adria
 	class GfxSwapchain;
 	class GfxCommandList;
 
+	class RingGPUDescriptorAllocator;
+	class LinearGPUDescriptorAllocator;
+	class CPUDescriptorAllocator;
+	class LinearDynamicAllocator;
 
 	struct GfxOptions
 	{
@@ -46,7 +46,7 @@ namespace adria
 
 	class GfxDevice
 	{
-		struct FrameResources
+		struct GFX_DEPRECATED FrameResources
 		{
 			ArcPtr<ID3D12CommandAllocator>      cmd_allocator;
 			ArcPtr<ID3D12GraphicsCommandList4>  cmd_list;
@@ -63,29 +63,30 @@ namespace adria
 	public:
 		explicit GfxDevice(GfxOptions const&);
 		GfxDevice(GfxDevice const&) = delete;
-		GfxDevice(GfxDevice&&) = default;
+		GfxDevice(GfxDevice&&);
 		~GfxDevice();
 
 		void WaitForGPU();
 
-		void ResizeBackbuffer(uint32 w, uint32 h);
+		void OnResize(uint32 w, uint32 h);
 		uint32 BackbufferIndex() const;
 		uint32 FrameIndex() const;
+
 		void SetBackbuffer(ID3D12GraphicsCommandList* cmd_list);
-		void ClearBackbuffer();
-		void SwapBuffers(bool vsync = false);
+		void BeginFrame();
+		void EndFrame(bool vsync = false);
 
 		IDXGIFactory4* GetFactory() const;
 		ID3D12Device5* GetDevice() const;
+		ID3D12RootSignature* GetCommonRootSignature() const;
 
 		GfxCommandQueue& GetCommandQueue(GfxCommandListType type);
+		GfxCommandList* GetCommandList(GfxCommandListType type);
 
-		ID3D12GraphicsCommandList4* GetCommandList() const;
-		void ResetCommandList();
-		void ExecuteCommandList();
-
-		ID3D12RootSignature* GetCommonRootSignature() const;
-		ID3D12Resource* GetBackbuffer() const;
+		GFX_DEPRECATED ID3D12GraphicsCommandList4* GetCommandList() const;
+		GFX_DEPRECATED void ResetCommandList();
+		GFX_DEPRECATED void ExecuteCommandList();
+		GFX_DEPRECATED ID3D12Resource* GetBackbuffer() const;
 
 		D3D12MA::Allocator* GetAllocator() const;
 		void AddToReleaseQueue(D3D12MA::Allocation* alloc);
@@ -108,15 +109,15 @@ namespace adria
 			return gpu_memory_usage;
 		}
 
-		static constexpr uint32 BackbufferCount()
-		{
-			return GFX_BACKBUFFER_COUNT;
-		}
-
 		DrawIndirectSignature& GetDrawIndirectSignature() const { return *draw_indirect_signature;}
 		DrawIndexedIndirectSignature& GetDrawIndexedIndirectSignature() const { return *draw_indexed_indirect_signature;}
 		DispatchIndirectSignature& GetDispatchIndirectSignature() const { return *dispatch_indirect_signature;}
 
+
+		static constexpr uint32 BackbufferCount()
+		{
+			return GFX_BACKBUFFER_COUNT;
+		}
 	private:
 		uint32 width, height;
 		uint32 frame_index;
@@ -128,7 +129,14 @@ namespace adria
 		ReleasablePtr<D3D12MA::Allocator> allocator = nullptr;
 
 		GfxCommandQueue graphics_queue;
-		FrameResources frame_resources[GFX_BACKBUFFER_COUNT];
+		GfxCommandQueue compute_queue;
+		GfxCommandQueue copy_queue;
+
+		std::unique_ptr<GfxCommandList> graphics_cmd_lists[GFX_BACKBUFFER_COUNT];
+		std::unique_ptr<GfxCommandList> compute_cmd_lists[GFX_BACKBUFFER_COUNT];
+		std::unique_ptr<GfxCommandList> upload_cmd_lists[GFX_BACKBUFFER_COUNT];
+
+		FrameResources frame_resources[GFX_BACKBUFFER_COUNT]; //#todo: remove
 
 		GfxFence     wait_fence;
 		uint64       wait_fence_value = 1;

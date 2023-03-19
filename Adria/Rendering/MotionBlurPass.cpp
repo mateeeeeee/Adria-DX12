@@ -4,6 +4,7 @@
 #include "BlackboardData.h"
 #include "PSOCache.h" 
 
+#include "../Graphics/RingGPUDescriptorAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 
 namespace adria

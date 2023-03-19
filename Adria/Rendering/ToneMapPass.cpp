@@ -4,6 +4,7 @@
 
 #include "../Graphics/GfxCommon.h"
 #include "../Graphics/TextureManager.h"
+#include "../Graphics/RingGPUDescriptorAllocator.h"
 #include "../Math/Packing.h"
 #include "../Editor/GUICommand.h"
 #include "../RenderGraph/RenderGraph.h"

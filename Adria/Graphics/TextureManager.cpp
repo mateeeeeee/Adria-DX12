@@ -8,6 +8,7 @@
 #include "TextureManager.h"
 #include "GfxTexture.h"
 #include "GfxDevice.h"
+#include "RingGPUDescriptorAllocator.h"
 #include "d3dx12.h"
 #include "DDSTextureLoader12.h"
 #include "WICTextureLoader12.h"

@@ -1,5 +1,5 @@
 #include "GfxBuffer.h"
-
+#include "LinearDynamicAllocator.h"
 
 namespace adria
 {

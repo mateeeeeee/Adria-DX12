@@ -1,7 +1,7 @@
 #pragma once
 #include "GfxFence.h"
 #include "GfxFormat.h"
-#include "GfxMacros.h"
+#include "GfxDefines.h"
 
 namespace adria
 {

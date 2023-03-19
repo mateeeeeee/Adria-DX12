@@ -4,6 +4,8 @@
 #include "PSOCache.h" 
 
 #include "../Graphics/GfxShader.h"
+#include "../Graphics/RingGPUDescriptorAllocator.h"
+#include "../Graphics/LinearDynamicAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Editor/GUICommand.h"
 

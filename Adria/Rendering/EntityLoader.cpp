@@ -14,6 +14,7 @@
 #include "Components.h"
 #include "MeshletStructs.h"
 #include "../Graphics/GfxDevice.h"
+#include "../Graphics/LinearDynamicAllocator.h"
 #include "../Logging/Logger.h"
 #include "../Math/BoundingVolumeHelpers.h"
 #include "../Math/ComputeTangentFrame.h"

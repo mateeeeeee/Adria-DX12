@@ -5,7 +5,11 @@
 #include "BlackboardData.h"
 #include "PSOCache.h" 
 
+#include "../Graphics/LinearDynamicAllocator.h"
+#include "../Graphics/RingGPUDescriptorAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
+
+
 #include "entt/entity/registry.hpp"
 
 using namespace DirectX;

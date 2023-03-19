@@ -3,12 +3,12 @@
 
 namespace adria
 {
-
 	class MipsGenerator
 	{
 	public:
 
 		MipsGenerator(GfxDevice* gfx, UINT max_textures);
+		~MipsGenerator();
 		void Add(ID3D12Resource* texture);
 		void Generate(ID3D12GraphicsCommandList* command_list);
 

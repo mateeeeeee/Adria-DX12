@@ -4,6 +4,10 @@
 #include "GfxDevice.h"
 #include "GfxSwapchain.h"
 #include "GfxCommandList.h"
+#include "RingGPUDescriptorAllocator.h"
+#include "LinearGPUDescriptorAllocator.h"
+#include "CPUDescriptorAllocator.h"
+#include "LinearDynamicAllocator.h"
 #include "d3dx12.h"
 #include "../Logging/Logger.h"
 #include "../Core/Window.h"
@@ -238,6 +242,15 @@ namespace adria
 		allocator.reset(_allocator);
 
 		graphics_queue.Create(this, GfxCommandListType::Graphics, "Graphics Queue");
+		compute_queue.Create(this, GfxCommandListType::Compute, "Compute Queue");
+		copy_queue.Create(this, GfxCommandListType::Copy, "Copy Queue");
+
+		for (uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i)
+		{
+			graphics_cmd_lists[i] = std::make_unique<GfxCommandList>(this, GfxCommandListType::Graphics, "graphics command list");
+			compute_cmd_lists[i]  = std::make_unique<GfxCommandList>(this, GfxCommandListType::Compute, "compute command list");
+			upload_cmd_lists[i]   = std::make_unique<GfxCommandList>(this, GfxCommandListType::Copy, "upload command list");
+		}
 
 		for (uint32 i = 0; i < offline_descriptor_allocators.size(); ++i) offline_descriptor_allocators[i] = std::make_unique<CPUDescriptorAllocator>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE(i), D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 250);
 		for (uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i) dynamic_allocators.emplace_back(new LinearDynamicAllocator(this, 50'000'000));
@@ -249,6 +262,7 @@ namespace adria
 		swapchain_desc.fullscreen_windowed = true;
 		swapchain_desc.backbuffer_format = GfxFormat::R10G10B10A2_UNORM;
 		swapchain = std::make_unique<GfxSwapchain>(this, swapchain_desc);
+
 		for (uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i)
 		{
 			hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(frame_resources[i].cmd_allocator.GetAddressOf()));
@@ -272,6 +286,8 @@ namespace adria
 		if (options.dred) dred = std::make_unique<DRED>(this);
 	}
 
+	GfxDevice::GfxDevice(GfxDevice&&) = default;
+
 	GfxDevice::~GfxDevice()
 	{
 		WaitForGPU();
@@ -285,7 +301,7 @@ namespace adria
 		wait_fence_value++;
 	}
 
-	void GfxDevice::ResizeBackbuffer(uint32 w, uint32 h)
+	void GfxDevice::OnResize(uint32 w, uint32 h)
 	{
 		if ((width != w || height != h) && width > 0 && height > 0)
 		{
@@ -308,7 +324,7 @@ namespace adria
 		swapchain->SetBackbuffer(cmd_list);
 	}
 
-	void GfxDevice::ClearBackbuffer()
+	void GfxDevice::BeginFrame()
 	{
 		if (rendering_not_started) [[unlikely]]
 		{
@@ -338,7 +354,7 @@ namespace adria
 		swapchain->ClearBackbuffer(frame_resources.cmd_list);
 	}
 
-	void GfxDevice::SwapBuffers(bool vsync /*= false*/)
+	void GfxDevice::EndFrame(bool vsync /*= false*/)
 	{
 		auto& frame_resources = GetFrameResources();
 
@@ -391,13 +407,34 @@ namespace adria
 		switch (type)
 		{
 		case GfxCommandListType::Graphics:
+			return graphics_queue;
 		case GfxCommandListType::Compute:
+			return compute_queue;
 		case GfxCommandListType::Copy:
+			return copy_queue;
 		default:
 			return graphics_queue;
 		}
 		ADRIA_UNREACHABLE();
 	}
+
+	GfxCommandList* GfxDevice::GetCommandList(GfxCommandListType type)
+	{
+		uint32 backbuffer_index = swapchain->GetBackbufferIndex();
+		switch (type)
+		{
+		case GfxCommandListType::Graphics:
+			return graphics_cmd_lists[backbuffer_index].get();
+		case GfxCommandListType::Compute:
+			return compute_cmd_lists[backbuffer_index].get();
+		case GfxCommandListType::Copy:
+			return upload_cmd_lists[backbuffer_index].get();
+		default:
+			return graphics_cmd_lists[backbuffer_index].get();
+		}
+		ADRIA_UNREACHABLE();
+	}
+
 
 	void GfxDevice::ResetCommandList()
 	{

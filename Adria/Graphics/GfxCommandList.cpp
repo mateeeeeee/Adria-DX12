@@ -4,6 +4,8 @@
 #include "GfxBuffer.h"
 #include "GfxTexture.h"
 #include "GfxPipelineState.h"
+#include "RingGPUDescriptorAllocator.h"
+#include "LinearDynamicAllocator.h"
 #include "../Utilities/StringUtil.h"
 
 namespace adria

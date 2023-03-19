@@ -12,11 +12,14 @@
 #include "../Graphics/GfxTexture.h"
 #include "../Graphics/TextureManager.h"
 #include "../Graphics/GfxCommon.h"
+#include "../Graphics/RingGPUDescriptorAllocator.h"
+#include "../Graphics/LinearDynamicAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Utilities/Random.h"
 #include "../Utilities/hwbp.h"
 #include "../Math/Halton.h"
 #include "../Logging/Logger.h"
+
 using namespace DirectX;
 
 namespace adria

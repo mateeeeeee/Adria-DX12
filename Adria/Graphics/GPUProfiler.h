@@ -2,7 +2,7 @@
 #include <vector>
 #include <array>
 #include <string>
-#include "GfxMacros.h"
+#include "GfxDefines.h"
 #include "GfxDevice.h"
 #include "../Utilities/HashMap.h"
 #if GPU_MULTITHREADED

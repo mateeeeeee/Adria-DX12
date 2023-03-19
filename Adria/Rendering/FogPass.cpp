@@ -6,6 +6,7 @@
 
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/TextureManager.h"
+#include "../Graphics/RingGPUDescriptorAllocator.h"
 #include "../Logging/Logger.h"
 #include "../Editor/GUICommand.h"
 #include "../Math/Packing.h"

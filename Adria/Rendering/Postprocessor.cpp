@@ -4,6 +4,8 @@
 #include "BlackboardData.h"
 #include "PSOCache.h" 
 
+#include "../Graphics/RingGPUDescriptorAllocator.h"
+#include "../Graphics/LinearDynamicAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Logging/Logger.h"
 #include "entt/entity/registry.hpp"

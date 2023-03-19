@@ -219,7 +219,7 @@ namespace adria
 		entity_loader = std::make_unique<EntityLoader>(reg, gfx.get());
 
 		InputEvents& input_events = Input::GetInstance().GetInputEvents();
-		input_events.window_resized_event.AddMember(&GfxDevice::ResizeBackbuffer, *gfx);
+		input_events.window_resized_event.AddMember(&GfxDevice::OnResize, *gfx);
 		input_events.window_resized_event.AddMember(&Renderer::OnResize, *renderer);
 		input_events.right_mouse_clicked.AddMember(&Renderer::OnRightMouseClicked, *renderer);
 		std::ignore = input_events.f5_pressed_event.Add(ShaderCache::CheckIfShadersHaveChanged);
@@ -260,7 +260,7 @@ namespace adria
 
 	void Engine::Present()
 	{
-		gfx->SwapBuffers(vsync);
+		gfx->EndFrame(vsync);
 	}
 
 	void Engine::Update(float dt)
@@ -272,7 +272,7 @@ namespace adria
 
 	void Engine::Render(RendererSettings const& settings)
 	{
-		gfx->ClearBackbuffer();
+		gfx->BeginFrame();
 		renderer->Render(settings);
 	}
 

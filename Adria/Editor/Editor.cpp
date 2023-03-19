@@ -9,6 +9,7 @@
 #include "../Rendering/Renderer.h"
 #include "../Rendering/Camera.h"
 #include "../Graphics/GfxDevice.h"
+#include "../Graphics/RingGPUDescriptorAllocator.h"
 #include "../Rendering/EntityLoader.h"
 #include "../Rendering/ShaderCache.h"
 #include "../Utilities/FilesUtil.h"
