@@ -43,10 +43,12 @@ namespace adria
 		GfxPipelineStateType GetType() const { return type; }
 
 	protected:
-		explicit GfxPipelineState(GfxPipelineStateType type) : type(type) {}
+		GfxPipelineState(GfxDevice* gfx, GfxPipelineStateType type) : gfx(gfx), type(type) {}
 	protected:
+		GfxDevice* gfx;
 		ArcPtr<ID3D12PipelineState> pso;
 		GfxPipelineStateType type;
+		DelegateHandle event_handle;
 	};
 
 	class GraphicsPipelineState : public GfxPipelineState
@@ -56,9 +58,7 @@ namespace adria
 		~GraphicsPipelineState();
 
 	private:
-		GfxDevice* gfx;
 		GraphicsPipelineStateDesc desc;
-		DelegateHandle event_handle;
 	private:
 		void OnShaderRecompiled(GfxShaderID s);
 		void Create(GraphicsPipelineStateDesc const& desc);
@@ -77,10 +77,8 @@ namespace adria
 		~ComputePipelineState();
 
 	private:
-		GfxDevice* gfx;
 		ComputePipelineStateDesc desc;
-		DelegateHandle event_handle;
-
+		
 	private:
 		void OnShaderRecompiled(GfxShaderID s);
 		void Create(ComputePipelineStateDesc const& desc);

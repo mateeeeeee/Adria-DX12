@@ -13,7 +13,7 @@ namespace adria
 		return pso.Get();
 	}
 
-	GraphicsPipelineState::GraphicsPipelineState(GfxDevice* gfx, GraphicsPipelineStateDesc const& desc) : GfxPipelineState(GfxPipelineStateType::Graphics), desc(desc), gfx(gfx)
+	GraphicsPipelineState::GraphicsPipelineState(GfxDevice* gfx, GraphicsPipelineStateDesc const& desc) : GfxPipelineState(gfx, GfxPipelineStateType::Graphics), desc(desc)
 	{
 		Create(desc);
 		event_handle = ShaderCache::GetShaderRecompiledEvent().AddMember(&GraphicsPipelineState::OnShaderRecompiled, *this);
@@ -66,7 +66,7 @@ namespace adria
 		BREAK_IF_FAILED(gfx->GetDevice()->CreateGraphicsPipelineState(&_desc, IID_PPV_ARGS(pso.ReleaseAndGetAddressOf())));
 	}
 
-	ComputePipelineState::ComputePipelineState(GfxDevice* gfx, ComputePipelineStateDesc const& desc) :GfxPipelineState(GfxPipelineStateType::Compute), gfx(gfx), desc(desc)
+	ComputePipelineState::ComputePipelineState(GfxDevice* gfx, ComputePipelineStateDesc const& desc) :GfxPipelineState(gfx, GfxPipelineStateType::Compute),desc(desc)
 	{
 		Create(desc);
 		event_handle = ShaderCache::GetShaderRecompiledEvent().AddMember(&ComputePipelineState::OnShaderRecompiled, *this);
