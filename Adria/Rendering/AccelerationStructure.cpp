@@ -2,7 +2,7 @@
 #include "Components.h"
 #include "../Graphics/GfxBuffer.h"
 #include "../Graphics/GfxDevice.h"
-#include "../Graphics/GfxDevice.h"
+#include "../Graphics/GfxCommandList.h"
 #include "../Graphics/LinearDynamicAllocator.h"
 
 namespace adria
@@ -46,7 +46,8 @@ namespace adria
 	void AccelerationStructure::BuildBottomLevels()
 	{
 		ID3D12Device5* device = gfx->GetDevice();
-		ID3D12GraphicsCommandList4* cmd_list = gfx->GetCommandList();
+		GfxCommandList* cmd_list = gfx->GetCommandList(GfxCommandListType::Graphics);
+		cmd_list->Begin();
 
 		struct BLAccelerationStructureBuffers
 		{
@@ -85,24 +86,22 @@ namespace adria
 			blas_desc.Inputs = inputs;
 			blas_desc.DestAccelerationStructureData = blas_buffers.result_buffer->GetGPUAddress();
 			blas_desc.ScratchAccelerationStructureData = blas_buffers.scratch_buffer->GetGPUAddress();
-			cmd_list->BuildRaytracingAccelerationStructure(&blas_desc, 0, nullptr);
+			cmd_list->GetNative()->BuildRaytracingAccelerationStructure(&blas_desc, 0, nullptr);
 
-			D3D12_RESOURCE_BARRIER uav_barrier{};
-			uav_barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
-			uav_barrier.UAV.pResource = blas_buffers.result_buffer->GetNative();
-			cmd_list->ResourceBarrier(1, &uav_barrier);
+			cmd_list->UavBarrier(blas_buffers.result_buffer.get());
 			blases[i] = std::move(blas_buffers.result_buffer);
 
-			gfx->ExecuteCommandList();
+			cmd_list->Submit();
 			gfx->WaitForGPU();
-			gfx->ResetCommandList();
+			cmd_list->Reset();
 		}
 	}
 
 	void AccelerationStructure::BuildTopLevel()
 	{
 		ID3D12Device5* device = gfx->GetDevice();
-		ID3D12GraphicsCommandList4* cmd_list = gfx->GetCommandList();
+		GfxCommandList* cmd_list = gfx->GetCommandList(GfxCommandListType::Graphics);
+		cmd_list->Begin();
 
 		struct TLAccelerationStructureBuffers
 		{
@@ -157,19 +156,15 @@ namespace adria
 		tlas_desc.Inputs.InstanceDescs = tlas_buffers.instance_buffer->GetGPUAddress();
 		tlas_desc.DestAccelerationStructureData = tlas_buffers.result_buffer->GetGPUAddress();
 		tlas_desc.ScratchAccelerationStructureData = tlas_buffers.scratch_buffer->GetGPUAddress();
-		cmd_list->BuildRaytracingAccelerationStructure(&tlas_desc, 0, nullptr);
+		cmd_list->GetNative()->BuildRaytracingAccelerationStructure(&tlas_desc, 0, nullptr);
 
-		D3D12_RESOURCE_BARRIER uav_barrier{};
-		uav_barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
-		uav_barrier.UAV.pResource = tlas_buffers.result_buffer->GetNative();
-		cmd_list->ResourceBarrier(1, &uav_barrier);
+		cmd_list->UavBarrier(tlas_buffers.result_buffer.get());
 		tlas = std::move(tlas_buffers.result_buffer);
 		tlas->CreateSRV();
 
-		gfx->ExecuteCommandList();
+		cmd_list->Submit();
 		gfx->WaitForGPU();
-		gfx->ResetCommandList();
+		cmd_list->Reset();
 	}
-
 }
 

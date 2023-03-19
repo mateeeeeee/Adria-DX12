@@ -1126,11 +1126,11 @@ namespace adria
 			[=](CopyToBackbufferPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				GfxResourceBarrierBatch barrier;
-				barrier.AddTransition(gfx->GetBackbuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_DEST);
+				barrier.AddTransition(gfx->GetBackbuffer()->GetNative(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_DEST);
 				barrier.Submit(cmd_list);
 
 				GfxTexture const& src_texture = ctx.GetCopySrcTexture(data.src);
-				cmd_list->CopyResource(gfx->GetBackbuffer(), src_texture.GetNative());
+				cmd_list->CopyResource(gfx->GetBackbuffer()->GetNative(), src_texture.GetNative());
 
 				barrier.ReverseTransitions();
 				barrier.Submit(cmd_list);

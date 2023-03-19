@@ -101,7 +101,7 @@ namespace adria
 			engine->Run(renderer_settings);
 			auto gui_cmd_list = engine->gfx->GetCommandList(GfxCommandListType::Graphics);
 
-			GfxTexture* backbuffer = engine->gfx->GetSwapchainBuffer();
+			GfxTexture* backbuffer = engine->gfx->GetBackbuffer();
 			D3D12_CPU_DESCRIPTOR_HANDLE rtvs[] = { backbuffer->GetRTV() };
 			gui_cmd_list->FlushBarriers();
 			gui_cmd_list->SetRenderTargets(rtvs);

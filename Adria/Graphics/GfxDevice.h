@@ -76,16 +76,17 @@ namespace adria
 
 		GfxCommandQueue& GetCommandQueue(GfxCommandListType type);
 		GfxCommandList* GetCommandList(GfxCommandListType type) const;
-		GfxTexture* GetSwapchainBuffer() const;
+		GfxTexture* GetBackbuffer() const;
 
 		GFX_DEPRECATED ID3D12GraphicsCommandList4* GetCommandList() const;
-		GFX_DEPRECATED void ResetCommandList();
-		GFX_DEPRECATED void ExecuteCommandList();
-		GFX_DEPRECATED ID3D12Resource* GetBackbuffer() const;
 
 		D3D12MA::Allocator* GetAllocator() const;
-		void AddToReleaseQueue(D3D12MA::Allocation* alloc);
-		void AddToReleaseQueue(ID3D12Resource* resource);
+
+		template<Releasable T>
+		void AddToReleaseQueue(T* alloc)
+		{
+			release_queue.emplace(new ReleasableResource(alloc), release_queue_fence_value);
+		}
 
 		D3D12_CPU_DESCRIPTOR_HANDLE AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE);
 		void FreeOfflineDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE, D3D12_DESCRIPTOR_HEAP_TYPE);

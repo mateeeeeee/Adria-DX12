@@ -316,7 +316,6 @@ namespace adria
 
 	uint32 GfxDevice::FrameIndex() const { return frame_index; }
 
-
 	void GfxDevice::BeginFrame()
 	{
 		if (rendering_not_started) [[unlikely]]
@@ -375,7 +374,7 @@ namespace adria
 		return GetCommandList(GfxCommandListType::Graphics)->GetNative();
 	}
 
-	GfxTexture* GfxDevice::GetSwapchainBuffer() const
+	GfxTexture* GfxDevice::GetBackbuffer() const
 	{
 		return swapchain->GetBackbuffer();
 	}
@@ -383,11 +382,6 @@ namespace adria
 	ID3D12RootSignature* GfxDevice::GetCommonRootSignature() const
 	{
 		return global_root_signature.Get();
-	}
-
-	ID3D12Resource* GfxDevice::GetBackbuffer() const
-	{
-		return swapchain->GetBackbuffer()->GetNative();
 	}
 
 	GfxCommandQueue& GfxDevice::GetCommandQueue(GfxCommandListType type)
@@ -423,30 +417,9 @@ namespace adria
 		ADRIA_UNREACHABLE();
 	}
 
-
-	void GfxDevice::ResetCommandList()
-	{
-		GetCommandList(GfxCommandListType::Graphics)->Reset();
-	}
-
-	void GfxDevice::ExecuteCommandList()
-	{
-		GetCommandList(GfxCommandListType::Graphics)->Submit();
-	}
-
 	D3D12MA::Allocator* GfxDevice::GetAllocator() const
 	{
 		return allocator.get();
-	}
-
-	void GfxDevice::AddToReleaseQueue(D3D12MA::Allocation* alloc)
-	{
-		release_queue.emplace(new ReleasableResource(alloc), release_queue_fence_value);
-	}
-
-	void GfxDevice::AddToReleaseQueue(ID3D12Resource* resource)
-	{
-		release_queue.emplace(new ReleasableResource(resource), release_queue_fence_value);
 	}
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GfxDevice::AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type)
