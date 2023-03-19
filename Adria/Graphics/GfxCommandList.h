@@ -55,6 +55,7 @@ namespace adria
 		GfxCommandQueue& GetQueue() const { return cmd_queue; }
 
 		void ResetAllocator();
+		void Reset();
 		void Begin();
 		void End();
 		void Wait(GfxFence& fence, uint64 value);
@@ -112,10 +113,11 @@ namespace adria
 		}
 		void SetRootSRV(uint32 slot, size_t gpu_address);
 		void SetRootUAV(uint32 slot, size_t gpu_address);
-		void BindResources(uint32 slot, std::span<DescriptorHandle> views, uint32 offset = 0);
+		void SetRootDescriptorTable(uint32 slot, DescriptorHandle base_descriptor);
 
 		void ClearRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE rtv, float const* clear_color);
 		void ClearDepth(D3D12_CPU_DESCRIPTOR_HANDLE dsv, float depth = 1.0f, uint8 stencil = 0, bool clear_stencil = false);
+		void SetRenderTargets(std::span<D3D12_CPU_DESCRIPTOR_HANDLE> rtvs, D3D12_CPU_DESCRIPTOR_HANDLE* dsv = nullptr, bool single_rt = false);
 
 	private:
 		GfxDevice* gfx = nullptr;

@@ -1,11 +1,14 @@
 #pragma once
-#include "GfxFence.h"
+#include <memory>
 #include "GfxFormat.h"
 #include "GfxDefines.h"
+#include "../Utilities/AutoRefCountPtr.h"
 
 namespace adria
 {
 	class GfxDevice;
+	class GfxCommandList;
+	class GfxTexture;
 
 	struct GfxSwapchainDesc
 	{
@@ -21,32 +24,26 @@ namespace adria
 		GfxSwapchain(GfxDevice* gfx, GfxSwapchainDesc const& desc);
 		~GfxSwapchain();
 
-		void SetBackbuffer(ID3D12GraphicsCommandList* cmd_list);
-		void ClearBackbuffer(ID3D12GraphicsCommandList* cmd_list);
+		void SetAsRenderTarget(GfxCommandList* cmd_list);
+		void ClearBackbuffer(GfxCommandList* cmd_list);
 		void Present(bool vsync);
 		void OnResize(uint32 w, uint32 h);
 
 		IDXGISwapChain4* GetNative() const { return swapchain.Get(); }
 		uint32 GetBackbufferIndex() const { return backbuffer_index; }
-		ID3D12Resource* GetBackbuffer() const { return back_buffers[backbuffer_index].Get(); }
+		GfxTexture* GetBackbuffer() const { return back_buffers[backbuffer_index].get(); }
 
 	private:
 		GfxDevice* gfx = nullptr;
 		ArcPtr<IDXGISwapChain4>				swapchain = nullptr;
-		ArcPtr<ID3D12Resource>				back_buffers[GFX_BACKBUFFER_COUNT] = { nullptr };
-		D3D12_CPU_DESCRIPTOR_HANDLE			back_buffer_rtvs[GFX_BACKBUFFER_COUNT] = {};
+		std::unique_ptr<GfxTexture>			back_buffers[GFX_BACKBUFFER_COUNT] = { nullptr };
 
 		uint32		 width;
 		uint32		 height;
 		uint32		 backbuffer_index;
-		uint32		 last_backbuffer_index;
-
-		GfxFence	 frame_fence;
-		uint64		 frame_fence_value = 0;
-		uint64       frame_fence_values[GFX_BACKBUFFER_COUNT];
 
 	private:
 		void CreateBackbuffers();
-		D3D12_CPU_DESCRIPTOR_HANDLE GetBackbufferRTV() const { return back_buffer_rtvs[backbuffer_index]; }
+		size_t GetBackbufferRTV() const;
 	};
 }

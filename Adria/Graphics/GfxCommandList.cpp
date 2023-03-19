@@ -31,9 +31,14 @@ namespace adria
 		cmd_allocator->Reset();
 	}
 
+	void GfxCommandList::Reset()
+	{
+		ResetAllocator();
+		cmd_list->Reset(cmd_allocator.Get(), nullptr);
+	}
+
 	void GfxCommandList::Begin()
 	{
-		cmd_list->Reset(cmd_allocator.Get(), nullptr);
 		ResetState();
 	}
 
@@ -61,10 +66,10 @@ namespace adria
 		}
 		pending_waits.clear();
 
-		if (command_count > 0)
+		if (command_count >= 0) //later > 0
 		{
-			ID3D12CommandList* ppCommandLists[] = { cmd_list.Get() };
-			cmd_queue.ExecuteCommandLists(ppCommandLists);
+			ID3D12CommandList* cmd_list_array[] = { cmd_list.Get() };
+			cmd_queue.ExecuteCommandLists(cmd_list_array);
 		}
 
 		for (size_t i = 0; i < pending_signals.size(); ++i)
@@ -83,12 +88,15 @@ namespace adria
 		if (type == GfxCommandListType::Graphics || type == GfxCommandListType::Compute)
 		{
 			auto* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
-			ID3D12DescriptorHeap* heaps[] = { descriptor_allocator->Heap() };
-			cmd_list->SetDescriptorHeaps(1, heaps);
+			if (descriptor_allocator)
+			{
+				ID3D12DescriptorHeap* heaps[] = { descriptor_allocator->Heap() };
+				cmd_list->SetDescriptorHeaps(1, heaps);
 
-			ID3D12RootSignature* common_rs = gfx->GetCommonRootSignature();
-			cmd_list->SetComputeRootSignature(common_rs);
-			if (type == GfxCommandListType::Graphics) cmd_list->SetGraphicsRootSignature(common_rs);
+				ID3D12RootSignature* common_rs = gfx->GetCommonRootSignature();
+				cmd_list->SetComputeRootSignature(common_rs);
+				if (type == GfxCommandListType::Graphics) cmd_list->SetGraphicsRootSignature(common_rs);
+			}
 		}
 	}
 
@@ -258,7 +266,7 @@ namespace adria
 
 	void GfxCommandList::WriteBufferImmediate(GfxBuffer* buffer, uint32 offset, uint32 data)
 	{
-		D3D12_WRITEBUFFERIMMEDIATE_PARAMETER parameter;
+		D3D12_WRITEBUFFERIMMEDIATE_PARAMETER parameter{};
 		parameter.Dest = buffer->GetGPUAddress() + offset;
 		parameter.Value = data;
 		cmd_list->WriteBufferImmediate(1, &parameter, nullptr);
@@ -425,9 +433,17 @@ namespace adria
 		}
 	}
 
-	void GfxCommandList::BindResources(uint32 slot, std::span<DescriptorHandle> views, uint32 offset /*= 0*/)
+	void GfxCommandList::SetRootDescriptorTable(uint32 slot, DescriptorHandle base_descriptor)
 	{
 		ADRIA_ASSERT_MSG(false, "Not yet implemented! (Or needed)");
+		if (current_context == GfxCommandListContext::Graphics)
+		{
+			cmd_list->SetGraphicsRootDescriptorTable(slot, base_descriptor);
+		}
+		else
+		{
+			cmd_list->SetComputeRootDescriptorTable(slot, base_descriptor);
+		}
 	}
 
 	void GfxCommandList::ClearRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE rtv, float const* clear_color)
@@ -440,6 +456,11 @@ namespace adria
 		D3D12_CLEAR_FLAGS d3d12_clear_flags = D3D12_CLEAR_FLAG_DEPTH;
 		if (clear_stencil) d3d12_clear_flags |= D3D12_CLEAR_FLAG_STENCIL;
 		cmd_list->ClearDepthStencilView(dsv, d3d12_clear_flags, depth, stencil, 0, nullptr);
+	}
+
+	void GfxCommandList::SetRenderTargets(std::span<D3D12_CPU_DESCRIPTOR_HANDLE> rtvs, D3D12_CPU_DESCRIPTOR_HANDLE* dsv /*= nullptr*/, bool single_rt /*= false*/)
+	{
+		cmd_list->OMSetRenderTargets((uint32)rtvs.size(), rtvs.data(), single_rt, dsv);
 	}
 
 }

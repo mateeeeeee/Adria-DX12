@@ -12,6 +12,6 @@ namespace adria
 	using HashMap = std::unordered_map<K, V>;
 #else 
 	template<typename K, typename V>
-	using HashMap = tsl::robin_map<K, V>;
+	using HashMap = std::unordered_map<K, V>; //change later to better hash map with the same interface
 #endif
 }

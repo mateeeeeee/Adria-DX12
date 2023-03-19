@@ -161,7 +161,7 @@ namespace adria
 	std::vector<std::string> SplitString(const std::string& text, char delimeter)
 	{
 		std::vector<std::string> tokens;
-		int start = 0, end = 0;
+		size_t start = 0, end = 0;
 		while ((end = text.find(delimeter, start)) != std::string::npos)
 		{
 			tokens.push_back(text.substr(start, end - start));

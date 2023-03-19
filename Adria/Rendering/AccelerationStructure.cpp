@@ -2,6 +2,7 @@
 #include "Components.h"
 #include "../Graphics/GfxBuffer.h"
 #include "../Graphics/GfxDevice.h"
+#include "../Graphics/GfxDevice.h"
 #include "../Graphics/LinearDynamicAllocator.h"
 
 namespace adria

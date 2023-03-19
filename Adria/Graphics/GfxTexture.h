@@ -155,6 +155,8 @@ namespace adria
 	{
 	public:
 		GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, GfxTextureInitialData* initial_data = nullptr, size_t data_count = -1);
+		//constructor used by swapchain for creating backbuffer texture
+		GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, ID3D12Resource* backbuffer);
 
 		GfxTexture(GfxTexture const&) = delete;
 		GfxTexture& operator=(GfxTexture const&) = delete;
@@ -208,7 +210,6 @@ namespace adria
 		uint32 mapped_rowpitch = 0;
 
 	private:
-
 		[[maybe_unused]] size_t CreateSubresource(GfxSubresourceType view_type, GfxTextureSubresourceDesc const& view_desc);
 		D3D12_CPU_DESCRIPTOR_HANDLE GetSubresource(GfxSubresourceType type, size_t index = 0) const;
 	};

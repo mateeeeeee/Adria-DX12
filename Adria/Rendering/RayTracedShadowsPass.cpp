@@ -4,6 +4,7 @@
 #include "PSOCache.h" 
 
 #include "../Graphics/GfxShader.h"
+#include "../Graphics/RingGPUDescriptorAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 
 namespace adria

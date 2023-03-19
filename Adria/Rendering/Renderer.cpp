@@ -648,12 +648,14 @@ namespace adria
 				AddShadowMask(light, entt::to_integral(e));
 			}
 		}
-		light_matrices_buffer->Update(light_matrices.data(), light_matrices_count * sizeof(XMMATRIX), light_matrices_count * sizeof(XMMATRIX) * backbuffer_index);
-
-		OffsetType i = descriptor_allocator->Allocate();
-		auto dst_descriptor = descriptor_allocator->GetHandle(i);
-		device->CopyDescriptorsSimple(1, dst_descriptor, light_matrices_buffer->GetSRV(backbuffer_index), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		light_matrices_srv = dst_descriptor;
+		if (light_matrices_buffer)
+		{
+			light_matrices_buffer->Update(light_matrices.data(), light_matrices_count * sizeof(XMMATRIX), light_matrices_count * sizeof(XMMATRIX) * backbuffer_index);
+			OffsetType i = descriptor_allocator->Allocate();
+			auto dst_descriptor = descriptor_allocator->GetHandle(i);
+			device->CopyDescriptorsSimple(1, dst_descriptor, light_matrices_buffer->GetSRV(backbuffer_index), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			light_matrices_srv = dst_descriptor;
+		}
 	}
 	void Renderer::UpdateLights()
 	{
@@ -706,14 +708,17 @@ namespace adria
 
 			if (light.volumetric) ++volumetric_lights;
 		}
-		lights_buffer->Update(hlsl_lights.data(), hlsl_lights.size() * sizeof(LightHLSL), light_count * sizeof(LightHLSL) * backbuffer_index);
+		if (lights_buffer)
+		{
+			lights_buffer->Update(hlsl_lights.data(), hlsl_lights.size() * sizeof(LightHLSL), light_count * sizeof(LightHLSL) * backbuffer_index);
 
-		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
-		OffsetType i = descriptor_allocator->Allocate();
-		auto dst_descriptor = descriptor_allocator->GetHandle(i);
-		device->CopyDescriptorsSimple(1, dst_descriptor, lights_buffer->GetSRV(backbuffer_index), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		light_array_srv = dst_descriptor;
+			ID3D12Device* device = gfx->GetDevice();
+			auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+			OffsetType i = descriptor_allocator->Allocate();
+			auto dst_descriptor = descriptor_allocator->GetHandle(i);
+			device->CopyDescriptorsSimple(1, dst_descriptor, lights_buffer->GetSRV(backbuffer_index), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			light_array_srv = dst_descriptor;
+		}
 	}
 	void Renderer::UpdateFrameConstantBuffer(float dt)
 	{

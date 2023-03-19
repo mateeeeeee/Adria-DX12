@@ -2,6 +2,7 @@
 #include "GfxDevice.h"
 #include "GfxCommandQueue.h"
 #include "GfxCommandList.h"
+#include "GfxTexture.h"
 #include "../Core/Window.h"
 
 namespace adria
@@ -43,44 +44,33 @@ namespace adria
 
 		swapchain.Reset();
 		swapchain1.As(&swapchain);
-		frame_fence.Create(gfx, "Frame Fence");
-
+		
 		backbuffer_index = swapchain->GetCurrentBackBufferIndex();
-		last_backbuffer_index = backbuffer_index;
 
 		CreateBackbuffers();
 	}
 
 	GfxSwapchain::~GfxSwapchain()
 	{
-		frame_fence.Wait(frame_fence_values[backbuffer_index]);
 	}
 
-	void GfxSwapchain::SetBackbuffer(ID3D12GraphicsCommandList* cmd_list)
+	void GfxSwapchain::SetAsRenderTarget(GfxCommandList* cmd_list)
 	{
-		D3D12_CPU_DESCRIPTOR_HANDLE rtv = GetBackbufferRTV();
-		cmd_list->OMSetRenderTargets(1, &rtv, FALSE, nullptr);
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvs[] = { {.ptr = GetBackbufferRTV() } };
+		cmd_list->SetRenderTargets(rtvs);
 	}
 
-	void GfxSwapchain::ClearBackbuffer(ID3D12GraphicsCommandList* cmd_list)
+	void GfxSwapchain::ClearBackbuffer(GfxCommandList* cmd_list)
 	{
 		float const clear_color[] = { 0,0,0,0 };
-		D3D12_CPU_DESCRIPTOR_HANDLE rtv = GetBackbufferRTV();
-		cmd_list->ClearRenderTargetView(rtv, clear_color, 0, nullptr);
+		D3D12_CPU_DESCRIPTOR_HANDLE rtv = { .ptr = GetBackbufferRTV() };
+		cmd_list->ClearRenderTarget(rtv, clear_color);
 	}
 
 	void GfxSwapchain::Present(bool vsync)
 	{
 		swapchain->Present(vsync, 0);
-
-		GfxCommandQueue& graphics_queue = gfx->GetCommandQueue(GfxCommandListType::Graphics);
-		frame_fence_values[backbuffer_index] = frame_fence_value;
-		graphics_queue.Signal(frame_fence, frame_fence_value);
-		++frame_fence_value;
-
-		last_backbuffer_index = backbuffer_index;
 		backbuffer_index = swapchain->GetCurrentBackBufferIndex();
-		frame_fence.Wait(frame_fence_values[backbuffer_index]);
 	}
 
 	void GfxSwapchain::OnResize(uint32 w, uint32 h)
@@ -90,8 +80,7 @@ namespace adria
 
 		for (uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i)
 		{
-			back_buffers[i].Reset();
-			frame_fence_values[i] = frame_fence_values[backbuffer_index];
+			back_buffers[i].reset(nullptr);
 		}
 
 		DXGI_SWAP_CHAIN_DESC desc{};
@@ -100,24 +89,33 @@ namespace adria
 		BREAK_IF_FAILED(hr);
 		
 		backbuffer_index = swapchain->GetCurrentBackBufferIndex();
-		for (uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i)
-		{
-			UINT fr = (backbuffer_index + i) % GFX_BACKBUFFER_COUNT;
-			HRESULT hr = swapchain->GetBuffer(i, IID_PPV_ARGS(back_buffers[i].GetAddressOf()));
-			BREAK_IF_FAILED(hr);
-			gfx->GetDevice()->CreateRenderTargetView(back_buffers[fr].Get(), nullptr, back_buffer_rtvs[fr]);
-		}
+		CreateBackbuffers();
 	}
 
 	void GfxSwapchain::CreateBackbuffers()
 	{
 		for (uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i)
 		{
-			HRESULT hr = swapchain->GetBuffer(i, IID_PPV_ARGS(back_buffers[i].GetAddressOf()));
+			ArcPtr<ID3D12Resource> backbuffer = nullptr;
+			HRESULT hr = swapchain->GetBuffer(i, IID_PPV_ARGS(backbuffer.GetAddressOf()));
 			BREAK_IF_FAILED(hr);
-			back_buffer_rtvs[i] = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-			gfx->GetDevice()->CreateRenderTargetView(back_buffers[i].Get(), nullptr, back_buffer_rtvs[i]);
+			D3D12_RESOURCE_DESC desc = backbuffer->GetDesc();
+			GfxTextureDesc gfx_desc{};
+			gfx_desc.width = (uint32)desc.Width;
+			gfx_desc.height = (uint32)desc.Height;
+			gfx_desc.format = ConvertDXGIFormat(desc.Format);
+			gfx_desc.initial_state = GfxResourceState::Present;
+			gfx_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
+			gfx_desc.bind_flags = GfxBindFlag::RenderTarget;
+			back_buffers[i] = std::make_unique<GfxTexture>(gfx, gfx_desc, backbuffer);
+			back_buffers[i]->CreateRTV();
+			back_buffers[i]->SetName("Backbuffer");
 		}
+	}
+
+	size_t GfxSwapchain::GetBackbufferRTV() const
+	{
+		return back_buffers[backbuffer_index]->GetRTV().ptr;
 	}
 
 }

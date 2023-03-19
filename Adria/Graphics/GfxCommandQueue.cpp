@@ -16,7 +16,7 @@ namespace adria
 		HRESULT hr = device->CreateCommandQueue(&queue_desc, IID_PPV_ARGS(command_queue.GetAddressOf()));
 		if (FAILED(hr)) return false;
 		command_queue->SetName(ToWideString(name).c_str());
-		command_queue->GetTimestampFrequency(&timestamp_frequency);
+		if(type != GfxCommandListType::Copy) command_queue->GetTimestampFrequency(&timestamp_frequency);
 		return true;
 	}
 

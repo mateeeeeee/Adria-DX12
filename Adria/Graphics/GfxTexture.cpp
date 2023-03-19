@@ -194,9 +194,12 @@ namespace adria
 				barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
 				barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 				cmd_list->ResourceBarrier(1, &barrier);
-			}
+			}	
 		}
 	}
+
+	GfxTexture::GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, ID3D12Resource* backbuffer) : gfx(gfx), desc(desc), resource(backbuffer)
+	{}
 
 	GfxTexture::~GfxTexture()
 	{

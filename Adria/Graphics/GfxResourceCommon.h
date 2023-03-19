@@ -71,6 +71,7 @@ namespace adria
 		CopyDest = 0x200,
 		CopySource = 0x400,
 		RaytracingAccelerationStructure = 0x800,
+		Present = 0x1000,
 		GenericRead = VertexAndConstantBuffer | IndexBuffer | DepthRead | NonPixelShaderResource | PixelShaderResource | IndirectArgument | CopySource,
 	};
 	DEFINE_ENUM_BIT_OPERATORS(GfxResourceState);
@@ -101,6 +102,7 @@ namespace adria
 		if (HasAnyFlag(state, GfxResourceState::IndirectArgument)) api_state |= D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
 		if (HasAnyFlag(state, GfxResourceState::CopyDest)) api_state |= D3D12_RESOURCE_STATE_COPY_DEST;
 		if (HasAnyFlag(state, GfxResourceState::CopySource)) api_state |= D3D12_RESOURCE_STATE_COPY_SOURCE;
+		if (HasAnyFlag(state, GfxResourceState::Present)) api_state |= D3D12_RESOURCE_STATE_PRESENT;
 		if (HasAnyFlag(state, GfxResourceState::RaytracingAccelerationStructure)) api_state |= D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
 		return api_state;
 	}

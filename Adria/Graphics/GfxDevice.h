@@ -25,6 +25,7 @@ namespace adria
 {
 	class GfxSwapchain;
 	class GfxCommandList;
+	class GfxTexture;
 
 	class RingGPUDescriptorAllocator;
 	class LinearGPUDescriptorAllocator;
@@ -46,12 +47,6 @@ namespace adria
 
 	class GfxDevice
 	{
-		struct GFX_DEPRECATED FrameResources
-		{
-			ArcPtr<ID3D12CommandAllocator>      cmd_allocator;
-			ArcPtr<ID3D12GraphicsCommandList4>  cmd_list;
-		};
-
 		struct ReleasableItem
 		{
 			std::unique_ptr<ReleasableObject> obj;
@@ -72,7 +67,6 @@ namespace adria
 		uint32 BackbufferIndex() const;
 		uint32 FrameIndex() const;
 
-		void SetBackbuffer(ID3D12GraphicsCommandList* cmd_list);
 		void BeginFrame();
 		void EndFrame(bool vsync = false);
 
@@ -81,7 +75,8 @@ namespace adria
 		ID3D12RootSignature* GetCommonRootSignature() const;
 
 		GfxCommandQueue& GetCommandQueue(GfxCommandListType type);
-		GfxCommandList* GetCommandList(GfxCommandListType type);
+		GfxCommandList* GetCommandList(GfxCommandListType type) const;
+		GfxTexture* GetSwapchainBuffer() const;
 
 		GFX_DEPRECATED ID3D12GraphicsCommandList4* GetCommandList() const;
 		GFX_DEPRECATED void ResetCommandList();
@@ -113,7 +108,6 @@ namespace adria
 		DrawIndexedIndirectSignature& GetDrawIndexedIndirectSignature() const { return *draw_indexed_indirect_signature;}
 		DispatchIndirectSignature& GetDispatchIndirectSignature() const { return *dispatch_indirect_signature;}
 
-
 		static constexpr uint32 BackbufferCount()
 		{
 			return GFX_BACKBUFFER_COUNT;
@@ -125,6 +119,8 @@ namespace adria
 		ArcPtr<IDXGIFactory4> dxgi_factory = nullptr;
 		ArcPtr<ID3D12Device5> device = nullptr;
 
+		std::array<std::unique_ptr<CPUDescriptorAllocator>, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES> offline_descriptor_allocators;
+
 		std::unique_ptr<GfxSwapchain> swapchain;
 		ReleasablePtr<D3D12MA::Allocator> allocator = nullptr;
 
@@ -133,10 +129,17 @@ namespace adria
 		GfxCommandQueue copy_queue;
 
 		std::unique_ptr<GfxCommandList> graphics_cmd_lists[GFX_BACKBUFFER_COUNT];
-		std::unique_ptr<GfxCommandList> compute_cmd_lists[GFX_BACKBUFFER_COUNT];
-		std::unique_ptr<GfxCommandList> upload_cmd_lists[GFX_BACKBUFFER_COUNT];
+		GfxFence	 frame_fence;
+		uint64		 frame_fence_value = 0;
+		uint64       frame_fence_values[GFX_BACKBUFFER_COUNT];
 
-		FrameResources frame_resources[GFX_BACKBUFFER_COUNT]; //#todo: remove
+		std::unique_ptr<GfxCommandList> compute_cmd_lists[GFX_BACKBUFFER_COUNT];
+		GfxFence async_compute_fence;
+		uint64 async_compute_fence_value = 0;
+
+		std::unique_ptr<GfxCommandList> upload_cmd_lists[GFX_BACKBUFFER_COUNT];
+		GfxFence upload_fence;
+		uint64 upload_fence_value = 0;
 
 		GfxFence     wait_fence;
 		uint64       wait_fence_value = 1;
@@ -146,7 +149,6 @@ namespace adria
 		std::queue<ReleasableItem>  release_queue;
 
 		ArcPtr<ID3D12RootSignature> global_root_signature = nullptr;
-		std::array<std::unique_ptr<CPUDescriptorAllocator>, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES> offline_descriptor_allocators;
 
 		std::unique_ptr<RingGPUDescriptorAllocator> descriptor_allocator;
 		std::vector<std::unique_ptr<LinearDynamicAllocator>> dynamic_allocators;
@@ -172,10 +174,6 @@ namespace adria
 		void SetInfoQueue();
 		void CreateCommonRootSignature();
 
-		FrameResources& GetFrameResources();
-		FrameResources const& GetFrameResources() const;
-
-		void ExecuteCommandLists();
 		void ProcessReleaseQueue();
 	};
 

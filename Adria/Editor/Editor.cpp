@@ -9,6 +9,8 @@
 #include "../Rendering/Renderer.h"
 #include "../Rendering/Camera.h"
 #include "../Graphics/GfxDevice.h"
+#include "../Graphics/GfxCommandList.h"
+#include "../Graphics/GfxTexture.h"
 #include "../Graphics/RingGPUDescriptorAllocator.h"
 #include "../Rendering/EntityLoader.h"
 #include "../Rendering/ShaderCache.h"
@@ -97,27 +99,31 @@ namespace adria
 		{
 			engine->SetViewportData(viewport_data);
 			engine->Run(renderer_settings);
-			auto gui_cmd_list = engine->gfx->GetCommandList();
-			engine->gfx->SetBackbuffer(gui_cmd_list);
+			auto gui_cmd_list = engine->gfx->GetCommandList(GfxCommandListType::Graphics);
+
+			GfxTexture* backbuffer = engine->gfx->GetSwapchainBuffer();
+			D3D12_CPU_DESCRIPTOR_HANDLE rtvs[] = { backbuffer->GetRTV() };
+			gui_cmd_list->FlushBarriers();
+			gui_cmd_list->SetRenderTargets(rtvs);
+			
+			gui->Begin();
 			{
-				gui->Begin();
-				{
-					ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
-					MenuBar();
-					Scene();
-					ListEntities();
-					AddEntities();
-					Settings();
-					Camera();
-					Properties();
-					Log();
-					Console();
-					Profiling();
-					ShaderHotReload();
-					Debug();
-				}
-				gui->End(gui_cmd_list);
+				ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
+				MenuBar();
+				Scene();
+				ListEntities();
+				AddEntities();
+				Settings();
+				Camera();
+				Properties();
+				Log();
+				Console();
+				Profiling();
+				ShaderHotReload();
+				Debug();
 			}
+			gui->End(gui_cmd_list->GetNative());
+			
 			if (!aabb_updates.empty())
 			{
 				engine->gfx->WaitForGPU();

@@ -63,8 +63,6 @@ namespace adria
 		uint32 const cbuffer_count;
 	};
 
-
-
 	template<typename BufferType>
 	GfxConstantBuffer<BufferType>::GfxConstantBuffer(GfxConstantBuffer&& o) noexcept
 		: cb(std::move(o.cb)), cbuffer_size(o.cbuffer_size), _mapped_data(o._mapped_data)
@@ -96,10 +94,10 @@ namespace adria
 	template<typename BufferType>
 	D3D12_CONSTANT_BUFFER_VIEW_DESC GfxConstantBuffer<BufferType>::View(uint32 cbuffer_index) const
 	{
-		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-		cbvDesc.BufferLocation = cb->GetGPUVirtualAddress() + (uint64)cbuffer_index * cbuffer_size;
-		cbvDesc.SizeInBytes = cbuffer_size;
-		return cbvDesc;
+		D3D12_CONSTANT_BUFFER_VIEW_DESC cbv_desc{};
+		cbv_desc.BufferLocation = cb->GetGPUVirtualAddress() + (uint64)cbuffer_index * cbuffer_size;
+		cbv_desc.SizeInBytes = cbuffer_size;
+		return cbv_desc;
 	}
 
 
