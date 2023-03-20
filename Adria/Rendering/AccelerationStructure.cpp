@@ -4,11 +4,17 @@
 #include "../Graphics/GfxDevice.h"
 #include "../Graphics/GfxCommandList.h"
 #include "../Graphics/LinearDynamicAllocator.h"
+#include "../Utilities/Timer.h"
+#include "../Logging/Logger.h"
 
 namespace adria
 {
 
-	AccelerationStructure::AccelerationStructure(GfxDevice* gfx) : gfx(gfx){}
+	AccelerationStructure::AccelerationStructure(GfxDevice* gfx) : gfx(gfx)
+	{
+		build_fence.Create(gfx, "Build Fence");
+		++build_fence_value;
+	}
 
 	void AccelerationStructure::AddInstance(Mesh const& submesh, Transform const& transform, bool is_transparent /*= false*/)
 	{
@@ -38,7 +44,7 @@ namespace adria
 		BuildTopLevel();
 	}
 
-	adria::GfxBuffer const* AccelerationStructure::GetTLAS() const
+	GfxBuffer const* AccelerationStructure::GetTLAS() const
 	{
 		return tlas.get();
 	}
@@ -47,14 +53,8 @@ namespace adria
 	{
 		ID3D12Device5* device = gfx->GetDevice();
 		GfxCommandList* cmd_list = gfx->GetCommandList(GfxCommandListType::Graphics);
-		cmd_list->Begin();
 
-		struct BLAccelerationStructureBuffers
-		{
-			std::unique_ptr<GfxBuffer> scratch_buffer;
-			std::unique_ptr<GfxBuffer> result_buffer;
-		} blas_buffers{};
-
+		std::unique_ptr<GfxBuffer> scratch_buffer = nullptr;
 
 		blases.resize(geo_descs.size());
 		for (size_t i = 0; i < blases.size(); ++i)
@@ -72,28 +72,30 @@ namespace adria
 			GfxBufferDesc scratch_buffer_desc{};
 			scratch_buffer_desc.bind_flags = GfxBindFlag::UnorderedAccess;
 			scratch_buffer_desc.size = bl_prebuild_info.ScratchDataSizeInBytes;
-			blas_buffers.scratch_buffer = std::make_unique<GfxBuffer>(gfx, scratch_buffer_desc);
+			scratch_buffer = std::make_unique<GfxBuffer>(gfx, scratch_buffer_desc);
 
 			GfxBufferDesc result_buffer_desc{};
 			result_buffer_desc.bind_flags = GfxBindFlag::UnorderedAccess | GfxBindFlag::ShaderResource;
 			result_buffer_desc.size = bl_prebuild_info.ResultDataMaxSizeInBytes;
 			result_buffer_desc.misc_flags = GfxBufferMiscFlag::AccelStruct;
 			result_buffer_desc.stride = 4;
-			blas_buffers.result_buffer = std::make_unique<GfxBuffer>(gfx, result_buffer_desc);
+			blases[i] = std::make_unique<GfxBuffer>(gfx, result_buffer_desc);
 
-			// Create the bottom-level AS
 			D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC blas_desc{};
 			blas_desc.Inputs = inputs;
-			blas_desc.DestAccelerationStructureData = blas_buffers.result_buffer->GetGPUAddress();
-			blas_desc.ScratchAccelerationStructureData = blas_buffers.scratch_buffer->GetGPUAddress();
+			blas_desc.DestAccelerationStructureData = blases[i]->GetGPUAddress();
+			blas_desc.ScratchAccelerationStructureData = scratch_buffer->GetGPUAddress();
 			cmd_list->GetNative()->BuildRaytracingAccelerationStructure(&blas_desc, 0, nullptr);
+			cmd_list->UavBarrier(blases[i].get());
+			cmd_list->FlushBarriers();
 
-			cmd_list->UavBarrier(blas_buffers.result_buffer.get());
-			blases[i] = std::move(blas_buffers.result_buffer);
-
+			cmd_list->Signal(build_fence, build_fence_value);
+			cmd_list->End();
 			cmd_list->Submit();
-			gfx->WaitForGPU();
-			cmd_list->Reset();
+			cmd_list->Begin();
+
+			build_fence.Wait(build_fence_value);
+			++build_fence_value;
 		}
 	}
 
@@ -101,13 +103,11 @@ namespace adria
 	{
 		ID3D12Device5* device = gfx->GetDevice();
 		GfxCommandList* cmd_list = gfx->GetCommandList(GfxCommandListType::Graphics);
-		cmd_list->Begin();
 
 		struct TLAccelerationStructureBuffers
 		{
 			std::unique_ptr<GfxBuffer> instance_buffer;
 			std::unique_ptr<GfxBuffer> scratch_buffer;
-			std::unique_ptr<GfxBuffer> result_buffer;
 		} tlas_buffers{};
 
 		// First, get the size of the TLAS buffers and create them
@@ -130,7 +130,7 @@ namespace adria
 		result_buffer_desc.bind_flags = GfxBindFlag::UnorderedAccess | GfxBindFlag::ShaderResource;
 		result_buffer_desc.size = tl_prebuild_info.ResultDataMaxSizeInBytes;
 		result_buffer_desc.misc_flags = GfxBufferMiscFlag::AccelStruct;
-		tlas_buffers.result_buffer = std::make_unique<GfxBuffer>(gfx, result_buffer_desc);
+		tlas = std::make_unique<GfxBuffer>(gfx, result_buffer_desc);
 
 		GfxBufferDesc instance_buffer_desc{};
 		instance_buffer_desc.bind_flags = GfxBindFlag::None;
@@ -154,17 +154,20 @@ namespace adria
 		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC tlas_desc{};
 		tlas_desc.Inputs = inputs;
 		tlas_desc.Inputs.InstanceDescs = tlas_buffers.instance_buffer->GetGPUAddress();
-		tlas_desc.DestAccelerationStructureData = tlas_buffers.result_buffer->GetGPUAddress();
+		tlas_desc.DestAccelerationStructureData = tlas->GetGPUAddress();
 		tlas_desc.ScratchAccelerationStructureData = tlas_buffers.scratch_buffer->GetGPUAddress();
 		cmd_list->GetNative()->BuildRaytracingAccelerationStructure(&tlas_desc, 0, nullptr);
+		cmd_list->UavBarrier(tlas.get());
 
-		cmd_list->UavBarrier(tlas_buffers.result_buffer.get());
-		tlas = std::move(tlas_buffers.result_buffer);
-		tlas->CreateSRV();
-
+		cmd_list->Signal(build_fence, build_fence_value);
+		cmd_list->End();
 		cmd_list->Submit();
-		gfx->WaitForGPU();
-		cmd_list->Reset();
+		cmd_list->Begin();
+
+		build_fence.Wait(build_fence_value);
+		++build_fence_value;
+
+		tlas->CreateSRV();
 	}
 }
 

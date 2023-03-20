@@ -3,6 +3,7 @@
 #include <memory>
 #include <d3d12.h>
 #include <DirectXMath.h>
+#include "../Graphics/GfxFence.h"
 
 namespace adria
 {
@@ -13,7 +14,7 @@ namespace adria
 
 	class AccelerationStructure
 	{
-		
+
 	public:
 		explicit AccelerationStructure(GfxDevice* gfx);
 
@@ -29,6 +30,9 @@ namespace adria
 
 		std::vector<std::unique_ptr<GfxBuffer>> blases;
 		std::unique_ptr<GfxBuffer> tlas;
+
+		GfxFence build_fence;
+		uint64 build_fence_value = 0;
 	private:
 		void BuildBottomLevels();
 		void BuildTopLevel();

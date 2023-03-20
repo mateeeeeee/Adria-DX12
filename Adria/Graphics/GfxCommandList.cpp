@@ -31,14 +31,9 @@ namespace adria
 		cmd_allocator->Reset();
 	}
 
-	void GfxCommandList::Reset()
-	{
-		ResetAllocator();
-		cmd_list->Reset(cmd_allocator.Get(), nullptr);
-	}
-
 	void GfxCommandList::Begin()
 	{
+		cmd_list->Reset(cmd_allocator.Get(), nullptr);
 		ResetState();
 	}
 
@@ -212,7 +207,7 @@ namespace adria
 	{
 		if (!pending_barriers.empty())
 		{
-			cmd_list->ResourceBarrier((UINT)pending_barriers.size(), pending_barriers.data());
+			cmd_list->ResourceBarrier((uint32)pending_barriers.size(), pending_barriers.data());
 			pending_barriers.clear();
 			++command_count;
 		}

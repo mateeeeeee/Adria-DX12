@@ -329,7 +329,7 @@ namespace adria
 		dynamic_allocators[backbuffer_index]->Clear();
 
 		GfxCommandList* cmd_list = GetCommandList(GfxCommandListType::Graphics);
-		cmd_list->Reset();
+		cmd_list->ResetAllocator();
 		cmd_list->Begin();
 		cmd_list->TransitionBarrier(swapchain->GetBackbuffer(), GfxResourceState::Present, GfxResourceState::RenderTarget);
 		cmd_list->FlushBarriers();

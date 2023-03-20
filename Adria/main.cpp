@@ -2,7 +2,7 @@
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "dxguid.lib")
 
-#define STB_IMAGE_IMPLEMENTATION  
+#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #include "Core/Window.h"
 #include "Core/Engine.h"
@@ -52,7 +52,7 @@ int APIENTRY wWinMain(
         window_init.title = title_str.c_str();
         window_init.maximize = maximize;
         Window::Initialize(window_init);
-         
+
         EngineInit engine_init{};
         engine_init.vsync = vsync;
         engine_init.debug_layer = debug_layer;
@@ -71,8 +71,9 @@ int APIENTRY wWinMain(
             Editor::GetInstance().Run();
         }
         Editor::GetInstance().Destroy();
-        Window::Destroy();   
+        Window::Destroy();
     }
+    int x = 5;
 }
 
 

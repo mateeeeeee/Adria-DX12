@@ -55,7 +55,6 @@ namespace adria
 		GfxCommandQueue& GetQueue() const { return cmd_queue; }
 
 		void ResetAllocator();
-		void Reset();
 		void Begin();
 		void End();
 		void Wait(GfxFence& fence, uint64 value);

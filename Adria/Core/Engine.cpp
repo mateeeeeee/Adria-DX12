@@ -306,13 +306,12 @@ namespace adria
 	void Engine::InitializeScene(SceneConfig const& config)
 	{
 		auto cmd_list = gfx->GetCommandList(GfxCommandListType::Graphics);
-		cmd_list->Reset();
 		cmd_list->Begin();
 
 		const_cast<SceneConfig&>(config).camera_params.aspect_ratio = static_cast<float>(Window::Width()) / Window::Height();
 		camera = std::make_unique<Camera>(config.camera_params);
 		entity_loader->LoadSkybox(config.skybox_params);
-		
+
 		for (auto&& model : config.scene_models) entity_loader->ImportModel_GLTF(model);
 		for (auto&& light : config.scene_lights) entity_loader->LoadLight(light);
 

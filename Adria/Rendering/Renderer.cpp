@@ -2,7 +2,7 @@
 #include "BlackboardData.h"
 #include "Camera.h"
 #include "Components.h"
-#include "PSOCache.h" 
+#include "PSOCache.h"
 
 #include "ShaderCache.h"
 #include "SkyModel.h"
@@ -94,7 +94,7 @@ namespace adria
 
 			float l = min_e.x;
 			float b = min_e.y;
-			float n = min_e.z; 
+			float n = min_e.z;
 			float r = max_e.x;
 			float t = max_e.y;
 			float f = max_e.z * 1.5f;
@@ -140,32 +140,32 @@ namespace adria
 			XMVECTOR up{};
 			switch (face_index)
 			{
-			case 0: 
+			case 0:
 				target = XMVectorAdd(light_pos, XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f));
 				up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 				V = XMMatrixLookAtLH(light_pos, target, up);
 				break;
-			case 1: 
+			case 1:
 				target = XMVectorAdd(light_pos, XMVectorSet(-1.0f, 0.0f, 0.0f, 0.0f));
 				up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 				V = XMMatrixLookAtLH(light_pos, target, up);
 				break;
-			case 2:	 
+			case 2:
 				target = XMVectorAdd(light_pos, XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
 				up = XMVectorSet(0.0f, 0.0f, -1.0f, 0.0f);
 				V = XMMatrixLookAtLH(light_pos, target, up);
 				break;
-			case 3:  
+			case 3:
 				target = XMVectorAdd(light_pos, XMVectorSet(0.0f, -1.0f, 0.0f, 0.0f));
 				up = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
 				V = XMMatrixLookAtLH(light_pos, target, up);
 				break;
-			case 4: 
+			case 4:
 				target = XMVectorAdd(light_pos, XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f));
 				up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 				V = XMMatrixLookAtLH(light_pos, target, up);
 				break;
-			case 5:  
+			case 5:
 				target = XMVectorAdd(light_pos, XMVectorSet(0.0f, 0.0f, -1.0f, 0.0f));
 				up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 				V = XMMatrixLookAtLH(light_pos, target, up);
@@ -226,7 +226,7 @@ namespace adria
 			XMFLOAT3 so(0, 0, 0);
 
 			XMVECTOR shadow_origin = XMLoadFloat3(&so);
-			shadow_origin = XMVector3Transform(shadow_origin, VP); 
+			shadow_origin = XMVector3Transform(shadow_origin, VP);
 			shadow_origin *= (SHADOW_CASCADE_MAP_SIZE / 2.0f);
 
 			XMVECTOR rounded_origin = XMVectorRound(shadow_origin);
@@ -255,7 +255,7 @@ namespace adria
 		float  alpha_cutoff;
 	};
 
-	Renderer::Renderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx), 
+	Renderer::Renderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx),
 		accel_structure(gfx), camera(nullptr), width(width), height(height),
 		backbuffer_count(gfx->BackbufferCount()), backbuffer_index(gfx->BackbufferIndex()), final_texture(nullptr),
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count),
@@ -385,7 +385,7 @@ namespace adria
 		ID3D12Device* device = gfx->GetDevice();
 		D3D12_FEATURE_DATA_D3D12_OPTIONS5 features5{};
 		HRESULT hr = device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &features5, sizeof(D3D12_FEATURE_DATA_D3D12_OPTIONS5));
-		is_ray_tracing_supported = features5.RaytracingTier != D3D12_RAYTRACING_TIER_NOT_SUPPORTED;
+		is_ray_tracing_supported = false; // features5.RaytracingTier != D3D12_RAYTRACING_TIER_NOT_SUPPORTED;
 	}
 
 	void Renderer::CreateSizeDependentResources()
@@ -455,7 +455,7 @@ namespace adria
 
 	void Renderer::UpdateEnvironmentMap()
 	{
-		D3D12_CPU_DESCRIPTOR_HANDLE env_map = gfxcommon::GetCommonView(GfxCommonViewType::NullTextureCube_SRV); 
+		D3D12_CPU_DESCRIPTOR_HANDLE env_map = gfxcommon::GetCommonView(GfxCommonViewType::NullTextureCube_SRV);
 		if (sky_pass.GetSkyType() == SkyType::Skybox)
 		{
 			auto skybox_entities = reg.view<Skybox>();
@@ -517,7 +517,7 @@ namespace adria
 			light_shadow_maps[light_id].back()->CreateDSV();
 			light_shadow_maps[light_id].back()->CreateSRV();
 		};
-		auto AddShadowMaps = [&](Light& light, size_t light_id) 
+		auto AddShadowMaps = [&](Light& light, size_t light_id)
 		{
 			switch(light.type)
 			{
@@ -625,7 +625,7 @@ namespace adria
 						auto const& [V, P] = shadows::LightViewProjection_Directional(light, *camera);
 						light_matrices.push_back(XMMatrixTranspose(V * P));
 					}
-					
+
 				}
 				else if (light.type == LightType::Point)
 				{
@@ -807,7 +807,7 @@ namespace adria
 		for (auto e : aabb_view)
 		{
 			auto& aabb = aabb_view.get<AABB>(e);
-			aabb.camera_visible = camera_frustum.Intersects(aabb.bounding_box) || reg.all_of<Light>(e); 
+			aabb.camera_visible = camera_frustum.Intersects(aabb.bounding_box) || reg.all_of<Light>(e);
 		}
 	}
 
@@ -901,12 +901,12 @@ namespace adria
 		{
 			uint32  light_index;
 			uint32  matrix_index;
-		} constants = 
+		} constants =
 		{
 			.light_index = (uint32)light_index,
 			.matrix_index = (uint32)shadow_map_index
 		};
-		
+
 		cmd_list->SetGraphicsRoot32BitConstants(1, 2, &constants, 0);
 
 		auto shadow_view = reg.view<Mesh, Transform, AABB>();
@@ -1031,7 +1031,7 @@ namespace adria
 					{
 						rg.ImportTexture(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index + i), light_shadow_maps[light_id][i].get());
 						std::string name = "Cascade Shadow Pass" + std::to_string(i);
-						rg.AddPass<void>(name.c_str(), 
+						rg.AddPass<void>(name.c_str(),
 						[=](RenderGraphBuilder& builder)
 						{
 							builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index + i), RGLoadStoreAccessOp::Clear_Preserve);
