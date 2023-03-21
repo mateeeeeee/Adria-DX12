@@ -1,12 +1,14 @@
+#include <algorithm>
+#include <optional>
+#include <d3d12.h>
+#include "pix3.h"
 #include "RenderGraph.h"
 #include "../Graphics/GPUProfiler.h"
 #include "../Graphics/GfxRenderPass.h"
 #include "../Graphics/GfxResourceBarrierBatch.h"
 #include "../Tasks/TaskSystem.h"
 #include "../Utilities/StringUtil.h"
-#include <algorithm>
-#include <d3d12.h>
-#include "pix3.h"
+
 
 #if GPU_MULTITHREADED
 #define RG_MULTITHREADED 1
@@ -77,20 +79,20 @@ namespace adria
 				switch (type)
 				{
 				case RGDescriptorType::RenderTarget:
-					gfx->FreeOfflineDescriptor(view, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+					gfx->FreeOfflineDescriptor(view, GfxDescriptorHeapType::RTV);
 					continue;
 				case RGDescriptorType::DepthStencil:
-					gfx->FreeOfflineDescriptor(view, D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+					gfx->FreeOfflineDescriptor(view, GfxDescriptorHeapType::DSV);
 					continue;
 				default:
-					gfx->FreeOfflineDescriptor(view, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					gfx->FreeOfflineDescriptor(view, GfxDescriptorHeapType::CBV_SRV_UAV);
 				}
 			}
 		}
 
 		for (auto& [buf_id, view_vector] : buffer_view_map)
 		{
-			for (auto [view, type] : view_vector) gfx->FreeOfflineDescriptor(view, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			for (auto [view, type] : view_vector) gfx->FreeOfflineDescriptor(view, GfxDescriptorHeapType::CBV_SRV_UAV);
 		}
 	}
 
@@ -448,20 +450,20 @@ namespace adria
 		for (auto const& [view_desc, type] : view_descs)
 		{
 			GfxTexture* texture = GetTexture(res_id);
-			DescriptorCPU view;
+			GfxDescriptor view;
 			switch (type)
 			{
 			case RGDescriptorType::RenderTarget:
-				view = texture->TakeRTV(&view_desc);
+				view = gfx->CreateTextureRTV(texture, &view_desc);
 				break;
 			case RGDescriptorType::DepthStencil:
-				view = texture->TakeDSV(&view_desc);
+				view = gfx->CreateTextureDSV(texture, &view_desc);
 				break;
 			case RGDescriptorType::ReadOnly:
-				view = texture->TakeSRV(&view_desc);
+				view = gfx->CreateTextureSRV(texture, &view_desc);
 				break;
 			case RGDescriptorType::ReadWrite:
-				view = texture->TakeUAV(&view_desc);
+				view = gfx->CreateTextureUAV(texture, &view_desc);
 				break;
 			default:
 				ADRIA_ASSERT(false && "invalid resource view type for texture");
@@ -477,13 +479,12 @@ namespace adria
 		{
 			auto const& [view_desc, type] = view_descs[i];
 			GfxBuffer* buffer = GetBuffer(res_id);
-			
-			DescriptorCPU view;
+			GfxDescriptor view;
 			switch (type)
 			{
 			case RGDescriptorType::ReadOnly:
 			{
-				view = buffer->TakeSRV(&view_desc);
+				view = gfx->CreateBufferSRV(buffer, &view_desc);
 				break;
 			}
 			case RGDescriptorType::ReadWrite:
@@ -491,10 +492,10 @@ namespace adria
 				RGBufferReadWriteId rw_id(i, res_id);
 				if (buffer_uav_counter_map.contains(rw_id))
 				{
-					RGBuffer* counter_buffer = GetRGBuffer(buffer_uav_counter_map[rw_id]);
-					view = buffer->TakeUAV(&view_desc, counter_buffer->resource->GetNative());
+					GfxBuffer* counter_buffer = GetBuffer(buffer_uav_counter_map[rw_id]);
+					view = gfx->CreateBufferUAV(buffer, counter_buffer, &view_desc);
 				}
-				else view = buffer->TakeUAV(&view_desc);
+				else view = gfx->CreateBufferUAV(buffer, &view_desc);
 				break;
 			}
 			case RGDescriptorType::RenderTarget:
@@ -791,42 +792,42 @@ namespace adria
 		return *GetBuffer(RGBufferId(res_id));
 	}
 
-	DescriptorCPU RenderGraph::GetRenderTarget(RGRenderTargetId res_id) const
+	GfxDescriptor RenderGraph::GetRenderTarget(RGRenderTargetId res_id) const
 	{
 		RGTextureId tex_id = res_id.GetResourceId();
 		auto const& views = texture_view_map[tex_id];
 		return views[res_id.GetViewId()].first;
 	}
 
-	DescriptorCPU RenderGraph::GetDepthStencil(RGDepthStencilId res_id) const
+	GfxDescriptor RenderGraph::GetDepthStencil(RGDepthStencilId res_id) const
 	{
 		RGTextureId tex_id = res_id.GetResourceId();
 		auto const& views = texture_view_map[tex_id];
 		return views[res_id.GetViewId()].first;
 	}
 
-	DescriptorCPU RenderGraph::GetReadOnlyTexture(RGTextureReadOnlyId res_id) const
+	GfxDescriptor RenderGraph::GetReadOnlyTexture(RGTextureReadOnlyId res_id) const
 	{
 		RGTextureId tex_id = res_id.GetResourceId();
 		auto const& views = texture_view_map[tex_id];
 		return views[res_id.GetViewId()].first;
 	}
 
-	DescriptorCPU RenderGraph::GetReadWriteTexture(RGTextureReadWriteId res_id) const
+	GfxDescriptor RenderGraph::GetReadWriteTexture(RGTextureReadWriteId res_id) const
 	{
 		RGTextureId tex_id = res_id.GetResourceId();
 		auto const& views = texture_view_map[tex_id];
 		return views[res_id.GetViewId()].first;
 	}
 
-	DescriptorCPU RenderGraph::GetReadOnlyBuffer(RGBufferReadOnlyId res_id) const
+	GfxDescriptor RenderGraph::GetReadOnlyBuffer(RGBufferReadOnlyId res_id) const
 	{
 		RGBufferId buf_id = res_id.GetResourceId();
 		auto const& views = buffer_view_map[buf_id];
 		return views[res_id.GetViewId()].first;
 	}
 
-	DescriptorCPU RenderGraph::GetReadWriteBuffer(RGBufferReadWriteId res_id) const
+	GfxDescriptor RenderGraph::GetReadWriteBuffer(RGBufferReadWriteId res_id) const
 	{
 		RGBufferId buf_id = res_id.GetResourceId();
 		auto const& views = buffer_view_map[buf_id];
@@ -929,7 +930,7 @@ namespace adria
 						rtv_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
 						break;
 					case RGStoreAccessOp::NoAccess:
-						rtv_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_NO_ACCESS;;
+						rtv_desc.ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_NO_ACCESS;
 						break;
 					default:
 						ADRIA_ASSERT(false && "Invalid Store Access!");

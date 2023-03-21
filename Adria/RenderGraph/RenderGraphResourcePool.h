@@ -90,6 +90,7 @@ namespace adria
 		}
 
 		GfxDevice* GetDevice() const { return device; }
+
 	private:
 		GfxDevice* device = nullptr;
 		uint64 frame_index = 0;

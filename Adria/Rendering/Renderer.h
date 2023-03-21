@@ -82,18 +82,26 @@ namespace adria
 
 		//resources
 		std::unique_ptr<GfxTexture> final_texture;
+		GfxDescriptor final_texture_srv;
 
 		//Persistent constant buffers
 		GfxConstantBuffer<FrameCBuffer> frame_cbuffer;
 
 		//lights and shadows
 		std::unique_ptr<GfxBuffer>  lights_buffer;
+		GfxDescriptor				lights_buffer_srvs[GFX_BACKBUFFER_COUNT];
 		std::unique_ptr<GfxBuffer>  light_matrices_buffer;
+		GfxDescriptor				light_matrices_buffer_srvs[GFX_BACKBUFFER_COUNT];
 		HashMap<size_t, std::vector<std::unique_ptr<GfxTexture>>> light_shadow_maps;
+		HashMap<size_t, std::vector<GfxDescriptor>> light_shadow_map_srvs;
+		HashMap<size_t, std::vector<GfxDescriptor>> light_shadow_map_uavs;
 		HashMap<size_t, std::unique_ptr<GfxTexture>> light_mask_textures;
-		DescriptorHandle		 light_array_srv; 
-		DescriptorHandle		 light_matrices_srv; 
-		DescriptorHandle         env_map_srv;
+		HashMap<size_t, GfxDescriptor> light_mask_texture_srvs;
+		HashMap<size_t, GfxDescriptor> light_mask_texture_uavs;
+
+		GfxDescriptor		 light_array_srv;
+		GfxDescriptor		 light_matrices_srv;
+		GfxDescriptor        env_map_srv;
 
 		//passes
 		GBufferPass  gbuffer_pass;
@@ -118,8 +126,10 @@ namespace adria
 		AABBPass aabb_pass;
 		Postprocessor postprocessor;
 		PathTracingPass path_tracer;
+
 		//ray tracing
 		AccelerationStructure accel_structure;
+		GfxDescriptor tlas_srv;
 		bool is_ray_tracing_supported;
 		std::unique_ptr<GfxBuffer> global_vb = nullptr;
 		std::unique_ptr<GfxBuffer> global_ib = nullptr;
@@ -133,10 +143,8 @@ namespace adria
 		float					 wind_dir[3] = { 1.0f, 0.0f, 1.0f };
 		float					 wind_speed = 10.0f;
 		DirectX::XMFLOAT3		 sun_direction;
-
 		bool update_picking_data = false;
 		PickingData picking_data;
-
 		ViewportData viewport_data;
 
 	private:

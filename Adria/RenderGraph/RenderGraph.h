@@ -91,10 +91,10 @@ namespace adria
 		HashMap<RGBufferReadWriteId, RGBufferId> buffer_uav_counter_map;
 
 		mutable HashMap<RGTextureId, std::vector<std::pair<GfxTextureSubresourceDesc, RGDescriptorType>>> texture_view_desc_map;
-		mutable HashMap<RGTextureId, std::vector<std::pair<D3D12_CPU_DESCRIPTOR_HANDLE, RGDescriptorType>>> texture_view_map;
+		mutable HashMap<RGTextureId, std::vector<std::pair<GfxDescriptor, RGDescriptorType>>> texture_view_map;
 
 		mutable HashMap<RGBufferId, std::vector<std::pair<GfxBufferSubresourceDesc, RGDescriptorType>>> buffer_view_desc_map;
-		mutable HashMap<RGBufferId, std::vector<std::pair<D3D12_CPU_DESCRIPTOR_HANDLE, RGDescriptorType>>> buffer_view_map;
+		mutable HashMap<RGBufferId, std::vector<std::pair<GfxDescriptor, RGDescriptorType>>> buffer_view_map;
 
 	private:
 
@@ -148,12 +148,12 @@ namespace adria
 		GfxBuffer const& GetIndexBuffer(RGBufferIndexId) const;
 		GfxBuffer const& GetConstantBuffer(RGBufferConstantId) const;
 
-		DescriptorCPU GetRenderTarget(RGRenderTargetId) const;
-		DescriptorCPU GetDepthStencil(RGDepthStencilId) const;
-		DescriptorCPU GetReadOnlyTexture(RGTextureReadOnlyId) const;
-		DescriptorCPU GetReadWriteTexture(RGTextureReadWriteId) const;
-		DescriptorCPU GetReadOnlyBuffer(RGBufferReadOnlyId) const;
-		DescriptorCPU GetReadWriteBuffer(RGBufferReadWriteId) const;
+		GfxDescriptor GetRenderTarget(RGRenderTargetId) const;
+		GfxDescriptor GetDepthStencil(RGDepthStencilId) const;
+		GfxDescriptor GetReadOnlyTexture(RGTextureReadOnlyId) const;
+		GfxDescriptor GetReadWriteTexture(RGTextureReadWriteId) const;
+		GfxDescriptor GetReadOnlyBuffer(RGBufferReadOnlyId) const;
+		GfxDescriptor GetReadWriteBuffer(RGBufferReadWriteId) const;
 
 		GfxTexture* GetTexture(RGTextureId) const;
 		GfxBuffer* GetBuffer(RGBufferId) const;

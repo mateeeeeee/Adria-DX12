@@ -95,13 +95,15 @@ namespace adria
 		void FreeOfflineDescriptor(GfxDescriptor, GfxDescriptorHeapType);
 		void InitShaderVisibleAllocator(size_t reserve);
 
-		GfxDescriptor CreateBufferSRV(GfxBuffer*, GfxBufferSubresourceDesc const* = nullptr);
-		GfxDescriptor CreateBufferUAV(GfxBuffer*, GfxBufferSubresourceDesc const* = nullptr);
-		GfxDescriptor CreateBufferUAV(GfxBuffer*, GfxBuffer*, GfxBufferSubresourceDesc const* = nullptr);
-		GfxDescriptor CreateTextureSRV(GfxTexture*, GfxTextureSubresourceDesc const* = nullptr);
-		GfxDescriptor CreateTextureUAV(GfxTexture*, GfxTextureSubresourceDesc const* = nullptr);
-		GfxDescriptor CreateTextureRTV(GfxTexture*, GfxTextureSubresourceDesc const* = nullptr);
-		GfxDescriptor CreateTextureDSV(GfxTexture*, GfxTextureSubresourceDesc const* = nullptr);
+		GfxDescriptor CreateBufferSRV(GfxBuffer const*, GfxBufferSubresourceDesc const* = nullptr);
+		GfxDescriptor CreateBufferUAV(GfxBuffer const*, GfxBufferSubresourceDesc const* = nullptr);
+		GfxDescriptor CreateBufferUAV(GfxBuffer const*, GfxBuffer const*, GfxBufferSubresourceDesc const* = nullptr);
+		GfxDescriptor CreateTextureSRV(GfxTexture const*, GfxTextureSubresourceDesc const* = nullptr);
+		GfxDescriptor CreateTextureUAV(GfxTexture const*, GfxTextureSubresourceDesc const* = nullptr);
+		GfxDescriptor CreateTextureRTV(GfxTexture const*, GfxTextureSubresourceDesc const* = nullptr);
+		GfxDescriptor CreateTextureDSV(GfxTexture const*, GfxTextureSubresourceDesc const* = nullptr);
+
+		//#todo : copy descriptors API
 
 		GfxMTRingDescriptorAllocator* GetDescriptorAllocator() const;
 		GfxLinearDynamicAllocator* GetDynamicAllocator() const;
@@ -172,7 +174,7 @@ namespace adria
 			HANDLE   dred_wait_handle;
 		};
 		std::unique_ptr<DRED> dred;
-		bool rendering_not_started = true;
+		bool rendering_not_started = true; //#todo : remove
 
 	private:
 		void SetupOptions(GfxOptions const& options, uint32& dxgi_factory_flags);
@@ -181,8 +183,8 @@ namespace adria
 
 		void ProcessReleaseQueue();
 
-		GfxDescriptor CreateBufferView(GfxBuffer* buffer, GfxSubresourceType view_type, GfxBufferSubresourceDesc const& view_desc, GfxBuffer* uav_counter = nullptr);
-		GfxDescriptor CreateTextureView(GfxTexture* texture, GfxSubresourceType view_type, GfxTextureSubresourceDesc const& view_desc);
+		GfxDescriptor CreateBufferView(GfxBuffer const* buffer, GfxSubresourceType view_type, GfxBufferSubresourceDesc const& view_desc, GfxBuffer const* uav_counter = nullptr);
+		GfxDescriptor CreateTextureView(GfxTexture const* texture, GfxSubresourceType view_type, GfxTextureSubresourceDesc const& view_desc);
 
 	};
 

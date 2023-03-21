@@ -9,6 +9,7 @@ namespace adria
 		friend class GfxDescriptorAllocatorBase;
 
 	public:
+		GfxDescriptor() {}
 		GfxDescriptor(GfxDescriptor const&) = default;
 		GfxDescriptor(GfxDescriptor&&) = default;
 		GfxDescriptor& operator=(GfxDescriptor const&) = default;
@@ -30,7 +31,6 @@ namespace adria
 		}
 
 	private:
-		GfxDescriptor() {}
 		D3D12_CPU_DESCRIPTOR_HANDLE cpu = { NULL };
 		D3D12_GPU_DESCRIPTOR_HANDLE gpu = { NULL };
 		uint32 index = -1;

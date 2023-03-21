@@ -1,5 +1,6 @@
 #pragma once
 #include <functional>
+#include <optional>
 #include "RenderGraphContext.h"
 #include "../Utilities/EnumUtil.h"
 #include "../Utilities/HashSet.h"
@@ -75,6 +76,7 @@ namespace adria
 
 	class RenderGraph;
 	class RenderGraphBuilder;
+	class GfxDevice;
 
 	class RenderGraphPassBase
 	{

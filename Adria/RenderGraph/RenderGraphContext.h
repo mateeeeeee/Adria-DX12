@@ -1,4 +1,5 @@
 #pragma once
+#include <d3d12.h>
 #include "../Graphics/GfxBuffer.h"
 #include "../Graphics/GfxTexture.h"
 #include "RenderGraphResourceId.h"
@@ -72,9 +73,7 @@ namespace adria
 	};
 	using RGTexture = TypedRenderGraphResource<RGResourceType::Texture>;
 	using RGBuffer = TypedRenderGraphResource<RGResourceType::Buffer>;
-	using DescriptorCPU = D3D12_CPU_DESCRIPTOR_HANDLE;
-	using DescriptorGPU = D3D12_GPU_DESCRIPTOR_HANDLE;
-	using CommandList = ID3D12GraphicsCommandList4;
+	using CommandList = ID3D12GraphicsCommandList4; //#todo : remove and d3d12.h 
 
 	class RenderGraphContext
 	{
@@ -98,13 +97,13 @@ namespace adria
 		GfxBuffer  const& GetIndexBuffer(RGBufferIndexId res_id) const;
 		GfxBuffer  const& GetConstantBuffer(RGBufferConstantId res_id) const;
 
-		DescriptorCPU GetRenderTarget(RGRenderTargetId res_id) const;
-		DescriptorCPU GetDepthStencil(RGDepthStencilId res_id) const;
-		DescriptorCPU GetReadOnlyTexture(RGTextureReadOnlyId res_id) const;
-		DescriptorCPU GetReadWriteTexture(RGTextureReadWriteId res_id) const;
+		GfxDescriptor GetRenderTarget(RGRenderTargetId res_id) const;
+		GfxDescriptor GetDepthStencil(RGDepthStencilId res_id) const;
+		GfxDescriptor GetReadOnlyTexture(RGTextureReadOnlyId res_id) const;
+		GfxDescriptor GetReadWriteTexture(RGTextureReadWriteId res_id) const;
 
-		DescriptorCPU GetReadOnlyBuffer(RGBufferReadOnlyId res_id) const;
-		DescriptorCPU GetReadWriteBuffer(RGBufferReadWriteId res_id) const;
+		GfxDescriptor GetReadOnlyBuffer(RGBufferReadOnlyId res_id) const;
+		GfxDescriptor GetReadWriteBuffer(RGBufferReadWriteId res_id) const;
 	private:
 		RenderGraph& rg;
 		RenderGraphPassBase& rg_pass;

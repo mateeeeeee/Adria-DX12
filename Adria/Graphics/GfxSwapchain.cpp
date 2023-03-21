@@ -56,14 +56,14 @@ namespace adria
 
 	void GfxSwapchain::SetAsRenderTarget(GfxCommandList* cmd_list)
 	{
-		D3D12_CPU_DESCRIPTOR_HANDLE rtvs[] = { {.ptr = GetBackbufferRTV() } };
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvs[] = { GetBackbufferDescriptor() };
 		cmd_list->SetRenderTargets(rtvs);
 	}
 
 	void GfxSwapchain::ClearBackbuffer(GfxCommandList* cmd_list)
 	{
 		float const clear_color[] = { 0,0,0,0 };
-		D3D12_CPU_DESCRIPTOR_HANDLE rtv = { .ptr = GetBackbufferRTV() };
+		D3D12_CPU_DESCRIPTOR_HANDLE rtv = GetBackbufferDescriptor();
 		cmd_list->ClearRenderTarget(rtv, clear_color);
 	}
 
@@ -108,14 +108,14 @@ namespace adria
 			gfx_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 			gfx_desc.bind_flags = GfxBindFlag::RenderTarget;
 			back_buffers[i] = std::make_unique<GfxTexture>(gfx, gfx_desc, backbuffer);
-			back_buffers[i]->CreateRTV();
 			back_buffers[i]->SetName("Backbuffer");
+			backbuffer_rtvs[i] = gfx->CreateTextureRTV(back_buffers[i].get());
 		}
 	}
 
-	size_t GfxSwapchain::GetBackbufferRTV() const
+	GfxDescriptor GfxSwapchain::GetBackbufferDescriptor() const
 	{
-		return back_buffers[backbuffer_index]->GetRTV().ptr;
+		return backbuffer_rtvs[backbuffer_index];
 	}
 
 }

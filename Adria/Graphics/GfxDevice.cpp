@@ -448,43 +448,43 @@ namespace adria
 		gpu_descriptor_allocator = std::make_unique<GfxMTRingDescriptorAllocator>(this, 32767, reserve);
 	}
 
-	GfxDescriptor GfxDevice::CreateBufferSRV(GfxBuffer* buffer, GfxBufferSubresourceDesc const* desc)
+	GfxDescriptor GfxDevice::CreateBufferSRV(GfxBuffer const* buffer, GfxBufferSubresourceDesc const* desc)
 	{
 		GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
 		return CreateBufferView(buffer, GfxSubresourceType::SRV, _desc);
 	}
 
-	GfxDescriptor GfxDevice::CreateBufferUAV(GfxBuffer* buffer, GfxBufferSubresourceDesc const* desc)
+	GfxDescriptor GfxDevice::CreateBufferUAV(GfxBuffer const* buffer, GfxBufferSubresourceDesc const* desc)
 	{
 		GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
 		return CreateBufferView(buffer, GfxSubresourceType::UAV, _desc);
 	}
 
-	GfxDescriptor GfxDevice::CreateBufferUAV(GfxBuffer* buffer, GfxBuffer* counter, GfxBufferSubresourceDesc const* desc/*= nullptr*/)
+	GfxDescriptor GfxDevice::CreateBufferUAV(GfxBuffer const* buffer, GfxBuffer const* counter, GfxBufferSubresourceDesc const* desc/*= nullptr*/)
 	{
 		GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
 		return CreateBufferView(buffer, GfxSubresourceType::UAV, _desc, counter);
 	}
 
-	GfxDescriptor GfxDevice::CreateTextureSRV(GfxTexture* texture, GfxTextureSubresourceDesc const* desc)
+	GfxDescriptor GfxDevice::CreateTextureSRV(GfxTexture const* texture, GfxTextureSubresourceDesc const* desc)
 	{
 		GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
 		return CreateTextureView(texture, GfxSubresourceType::SRV, _desc);
 	}
 
-	GfxDescriptor GfxDevice::CreateTextureUAV(GfxTexture* texture, GfxTextureSubresourceDesc const* desc)
+	GfxDescriptor GfxDevice::CreateTextureUAV(GfxTexture const* texture, GfxTextureSubresourceDesc const* desc)
 	{
 		GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
 		return CreateTextureView(texture, GfxSubresourceType::UAV, _desc);
 	}
 
-	GfxDescriptor GfxDevice::CreateTextureRTV(GfxTexture* texture, GfxTextureSubresourceDesc const* desc)
+	GfxDescriptor GfxDevice::CreateTextureRTV(GfxTexture const* texture, GfxTextureSubresourceDesc const* desc)
 	{
 		GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
 		return CreateTextureView(texture, GfxSubresourceType::RTV, _desc);
 	}
 
-	GfxDescriptor GfxDevice::CreateTextureDSV(GfxTexture* texture, GfxTextureSubresourceDesc const* desc)
+	GfxDescriptor GfxDevice::CreateTextureDSV(GfxTexture const* texture, GfxTextureSubresourceDesc const* desc)
 	{
 		GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
 		return CreateTextureView(texture, GfxSubresourceType::DSV, _desc);
@@ -663,7 +663,7 @@ namespace adria
 		BREAK_IF_FAILED(hr);
 	}
 
-	GfxDescriptor GfxDevice::CreateBufferView(GfxBuffer* buffer, GfxSubresourceType view_type, GfxBufferSubresourceDesc const& view_desc, GfxBuffer* uav_counter)
+	GfxDescriptor GfxDevice::CreateBufferView(GfxBuffer const* buffer, GfxSubresourceType view_type, GfxBufferSubresourceDesc const& view_desc, GfxBuffer const* uav_counter)
 	{
 		GfxBufferDesc desc = buffer->GetDesc();
 		if (uav_counter) ADRIA_ASSERT(view_type == GfxSubresourceType::UAV);
@@ -762,7 +762,7 @@ namespace adria
 		return heap_descriptor;
 	}
 
-	GfxDescriptor GfxDevice::CreateTextureView(GfxTexture* texture, GfxSubresourceType view_type, GfxTextureSubresourceDesc const& view_desc)
+	GfxDescriptor GfxDevice::CreateTextureView(GfxTexture const* texture, GfxSubresourceType view_type, GfxTextureSubresourceDesc const& view_desc)
 	{
 		GfxTextureDesc desc = texture->GetDesc();
 		GfxFormat format = desc.format;

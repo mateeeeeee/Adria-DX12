@@ -166,8 +166,6 @@ namespace adria
 
 		build_fence.Wait(build_fence_value);
 		++build_fence_value;
-
-		tlas->CreateSRV();
 	}
 }
 

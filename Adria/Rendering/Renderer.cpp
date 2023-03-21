@@ -12,7 +12,7 @@
 #include "../Graphics/GfxTexture.h"
 #include "../Graphics/TextureManager.h"
 #include "../Graphics/GfxCommon.h"
-#include "../Graphics/RingGPUDescriptorAllocator.h"
+#include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Utilities/Random.h"
@@ -398,7 +398,7 @@ namespace adria
 		ldr_desc.initial_state = GfxResourceState::UnorderedAccess;
 
 		final_texture = std::make_unique<GfxTexture>(gfx, ldr_desc);
-		final_texture->CreateSRV();
+		final_texture_srv = gfx->CreateTextureSRV(final_texture.get());
 	}
 	void Renderer::CreateGlobalBuffers()
 	{
@@ -425,6 +425,7 @@ namespace adria
 			accel_structure.AddInstance(mesh, transform);
 		}
 		accel_structure.Build();
+		tlas_srv = gfx->CreateBufferSRV(accel_structure.GetTLAS());
 
 		GfxBufferDesc desc = StructuredBufferDesc<GeoInfo>(geo_info.size(), false);
 		geo_buffer = std::make_unique<GfxBuffer>(gfx, desc, geo_info.data());
@@ -472,9 +473,8 @@ namespace adria
 		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-		OffsetType i = descriptor_allocator->Allocate();
-		env_map_srv = descriptor_allocator->GetHandle(i);
-		device->CopyDescriptorsSimple(1, env_map_srv, env_map, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		GfxDescriptor descriptor = descriptor_allocator->Allocate();
+		device->CopyDescriptorsSimple(1, descriptor, env_map, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	}
 	void Renderer::SetupShadows()
 	{
@@ -493,15 +493,15 @@ namespace adria
 				mask_desc.bind_flags = GfxBindFlag::UnorderedAccess | GfxBindFlag::UnorderedAccess;
 
 				light_mask_textures[light_id] = std::make_unique<GfxTexture>(gfx, mask_desc);
-				light_mask_textures[light_id]->CreateSRV();
-				light_mask_textures[light_id]->CreateUAV();
+
+				light_mask_texture_srvs[light_id] = gfx->CreateTextureSRV(light_mask_textures[light_id].get());
+				light_mask_texture_uavs[light_id] = gfx->CreateTextureUAV(light_mask_textures[light_id].get());
 			}
 
-			auto srv = light_mask_textures[light_id]->GetSRV();
-			OffsetType i = descriptor_allocator->Allocate();
-			auto dst_descriptor = descriptor_allocator->GetHandle(i);
+			GfxDescriptor srv = light_mask_texture_srvs[light_id];
+			GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
 			device->CopyDescriptorsSimple(1, dst_descriptor, srv, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			light.shadow_mask_index = (int32)i;
+			light.shadow_mask_index = (int32)dst_descriptor.GetIndex();
 		};
 		auto AddShadowMap = [&](size_t light_id, uint32 shadow_map_size)
 		{
@@ -514,8 +514,8 @@ namespace adria
 			depth_desc.initial_state = GfxResourceState::DepthWrite;
 
 			light_shadow_maps[light_id].emplace_back(std::make_unique<GfxTexture>(gfx, depth_desc));
-			light_shadow_maps[light_id].back()->CreateDSV();
-			light_shadow_maps[light_id].back()->CreateSRV();
+			light_shadow_map_srvs[light_id].emplace_back(gfx->CreateTextureSRV(light_shadow_maps[light_id].back().get()));
+			light_shadow_map_uavs[light_id].emplace_back(gfx->CreateTextureUAV(light_shadow_maps[light_id].back().get()));
 		};
 		auto AddShadowMaps = [&](Light& light, size_t light_id)
 		{
@@ -557,11 +557,10 @@ namespace adria
 
 			for (size_t j = 0; j < light_shadow_maps[light_id].size(); ++j)
 			{
-				auto srv = light_shadow_maps[light_id][j]->GetSRV();
-				OffsetType i = descriptor_allocator->Allocate();
-				auto dst_descriptor = descriptor_allocator->GetHandle(i);
+				GfxDescriptor srv = light_shadow_map_srvs[light_id][j];
+				GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
 				device->CopyDescriptorsSimple(1, dst_descriptor, srv, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				if(j == 0) light.shadow_texture_index = (int32)i;
+				if(j == 0) light.shadow_texture_index = (int32)dst_descriptor.GetIndex();
 			}
 		};
 
@@ -592,7 +591,7 @@ namespace adria
 				for (uint32 i = 0; i < backbuffer_count; ++i)
 				{
 					srv_desc.offset = i * light_matrices_count * sizeof(XMMATRIX);
-					light_matrices_buffer->CreateSRV(&srv_desc);
+					light_matrices_buffer_srvs[i] = gfx->CreateBufferSRV(light_matrices_buffer.get(), &srv_desc);
 				}
 			}
 		}
@@ -651,9 +650,8 @@ namespace adria
 		if (light_matrices_buffer)
 		{
 			light_matrices_buffer->Update(light_matrices.data(), light_matrices_count * sizeof(XMMATRIX), light_matrices_count * sizeof(XMMATRIX) * backbuffer_index);
-			OffsetType i = descriptor_allocator->Allocate();
-			auto dst_descriptor = descriptor_allocator->GetHandle(i);
-			device->CopyDescriptorsSimple(1, dst_descriptor, light_matrices_buffer->GetSRV(backbuffer_index), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
+			device->CopyDescriptorsSimple(1, dst_descriptor, light_matrices_buffer_srvs[backbuffer_index], D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			light_matrices_srv = dst_descriptor;
 		}
 	}
@@ -675,7 +673,7 @@ namespace adria
 			for (uint32 i = 0; i < backbuffer_count; ++i)
 			{
 				srv_desc.offset = i * light_count * sizeof(LightHLSL);
-				lights_buffer->CreateSRV(&srv_desc);
+				lights_buffer_srvs[i] = gfx->CreateBufferSRV(lights_buffer.get(), &srv_desc);
 			}
 		}
 		std::vector<LightHLSL> hlsl_lights{};
@@ -714,9 +712,8 @@ namespace adria
 
 			ID3D12Device* device = gfx->GetDevice();
 			auto descriptor_allocator = gfx->GetDescriptorAllocator();
-			OffsetType i = descriptor_allocator->Allocate();
-			auto dst_descriptor = descriptor_allocator->GetHandle(i);
-			device->CopyDescriptorsSimple(1, dst_descriptor, lights_buffer->GetSRV(backbuffer_index), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
+			device->CopyDescriptorsSimple(1, dst_descriptor, lights_buffer_srvs[backbuffer_index], D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			light_array_srv = dst_descriptor;
 		}
 	}
@@ -770,9 +767,9 @@ namespace adria
 		frame_cbuf_data.frame_count = gfx->FrameIndex();
 		frame_cbuf_data.mouse_normalized_coords_x = (viewport_data.mouse_position_x - viewport_data.scene_viewport_pos_x) / viewport_data.scene_viewport_size_x;
 		frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
-		frame_cbuf_data.lights_idx = (int32)light_array_srv.GetHeapOffset();
-		frame_cbuf_data.lights_matrices_idx = (int32)light_matrices_srv.GetHeapOffset();
-		frame_cbuf_data.env_map_idx = (int32)env_map_srv.GetHeapOffset();
+		frame_cbuf_data.lights_idx = (int32)light_array_srv.GetIndex();
+		frame_cbuf_data.lights_matrices_idx = (int32)light_matrices_srv.GetIndex();
+		frame_cbuf_data.env_map_idx = (int32)env_map_srv.GetIndex();
 		frame_cbuf_data.cascade_splits = XMVectorSet(split_distances[0], split_distances[1], split_distances[2], split_distances[3]);
 		auto lights = reg.view<Light>();
 		for (auto light : lights)
@@ -791,9 +788,9 @@ namespace adria
 		{
 			auto device = gfx->GetDevice();
 			auto descriptor_allocator = gfx->GetDescriptorAllocator();
-			uint32 accel_struct_idx = (uint32)descriptor_allocator->Allocate();
-			device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(accel_struct_idx), accel_structure.GetTLAS()->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			frame_cbuf_data.accel_struct_idx = (int32)accel_struct_idx;
+			GfxDescriptor accel_struct_descriptor = descriptor_allocator->Allocate();
+			device->CopyDescriptorsSimple(1, accel_struct_descriptor, accel_structure.GetTLAS()->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			frame_cbuf_data.accel_struct_idx = (int32)accel_struct_descriptor.GetIndex();
 		}
 
 		frame_cbuf_data.wind_params = XMVectorSet(wind_dir[0], wind_dir[1], wind_dir[2], wind_speed);

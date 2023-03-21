@@ -2,6 +2,7 @@
 #include <memory>
 #include "GfxFormat.h"
 #include "GfxDefines.h"
+#include "GfxDescriptor.h"
 #include "../Utilities/AutoRefCountPtr.h"
 
 namespace adria
@@ -37,13 +38,13 @@ namespace adria
 		GfxDevice* gfx = nullptr;
 		ArcPtr<IDXGISwapChain4>				swapchain = nullptr;
 		std::unique_ptr<GfxTexture>			back_buffers[GFX_BACKBUFFER_COUNT] = { nullptr };
-
+		GfxDescriptor					    backbuffer_rtvs[GFX_BACKBUFFER_COUNT];
 		uint32		 width;
 		uint32		 height;
 		uint32		 backbuffer_index;
 
 	private:
 		void CreateBackbuffers();
-		size_t GetBackbufferRTV() const;
+		GfxDescriptor GetBackbufferDescriptor() const;
 	};
 }
