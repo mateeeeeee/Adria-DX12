@@ -5,7 +5,7 @@
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/GfxTexture.h"
 #include "../Graphics/GfxBuffer.h"
-#include "../Graphics/LinearDynamicAllocator.h"
+#include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../Graphics/RingGPUDescriptorAllocator.h"
 #include "../Editor/GUICommand.h"
 
@@ -66,7 +66,7 @@ namespace adria
 			[=](BuildHistogramData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 				uint32 descriptor_index = (uint32)descriptor_allocator->AllocateRange(2);
@@ -134,7 +134,7 @@ namespace adria
 			[=](HistogramReductionData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 				
@@ -185,7 +185,7 @@ namespace adria
 			[=](ExposureData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 				if (invalid_history)
 				{

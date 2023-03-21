@@ -4,7 +4,7 @@
 #include "BlackboardData.h"
 #include "PSOCache.h" 
 
-#include "../Graphics/LinearDynamicAllocator.h"
+#include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../Graphics/RingGPUDescriptorAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Editor/GUICommand.h"
@@ -48,7 +48,7 @@ namespace adria
 			[=](DepthOfFieldPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 				

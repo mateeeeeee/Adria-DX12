@@ -13,7 +13,7 @@
 #include "../Graphics/TextureManager.h"
 #include "../Graphics/GfxCommon.h"
 #include "../Graphics/RingGPUDescriptorAllocator.h"
-#include "../Graphics/LinearDynamicAllocator.h"
+#include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Utilities/Random.h"
 #include "../Utilities/hwbp.h"
@@ -470,7 +470,7 @@ namespace adria
 			}
 		}
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 		OffsetType i = descriptor_allocator->Allocate();
 		env_map_srv = descriptor_allocator->GetHandle(i);
@@ -479,7 +479,7 @@ namespace adria
 	void Renderer::SetupShadows()
 	{
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 		auto AddShadowMask = [&](Light& light, size_t light_id)
 		{
@@ -713,7 +713,7 @@ namespace adria
 			lights_buffer->Update(hlsl_lights.data(), hlsl_lights.size() * sizeof(LightHLSL), light_count * sizeof(LightHLSL) * backbuffer_index);
 
 			ID3D12Device* device = gfx->GetDevice();
-			auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+			auto descriptor_allocator = gfx->GetDescriptorAllocator();
 			OffsetType i = descriptor_allocator->Allocate();
 			auto dst_descriptor = descriptor_allocator->GetHandle(i);
 			device->CopyDescriptorsSimple(1, dst_descriptor, lights_buffer->GetSRV(backbuffer_index), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -790,7 +790,7 @@ namespace adria
 		if (IsRayTracingSupported())
 		{
 			auto device = gfx->GetDevice();
-			auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+			auto descriptor_allocator = gfx->GetDescriptorAllocator();
 			uint32 accel_struct_idx = (uint32)descriptor_allocator->Allocate();
 			device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(accel_struct_idx), accel_structure.GetTLAS()->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			frame_cbuf_data.accel_struct_idx = (int32)accel_struct_idx;
@@ -894,7 +894,7 @@ namespace adria
 	void Renderer::ShadowMapPass_Common(GfxDevice* gfx, ID3D12GraphicsCommandList4* cmd_list, bool transparent, size_t light_index, size_t shadow_map_index)
 	{
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 		auto upload_buffer = gfx->GetDynamicAllocator();
 
 		struct ShadowConstants
@@ -933,7 +933,7 @@ namespace adria
 					.model_matrix = transform.current_transform * parent_transform,
 					._unused = 0
 				};
-				DynamicAllocation model_allocation = upload_buffer->Allocate(GetCBufferSize<ModelConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				GfxDynamicAllocation model_allocation = upload_buffer->Allocate(GetCBufferSize<ModelConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 				model_allocation.Update(model_constants);
 				cmd_list->SetGraphicsRootConstantBufferView(2, model_allocation.gpu_address);
 				mesh.Draw(cmd_list);
@@ -977,7 +977,7 @@ namespace adria
 					.model_matrix = transform.current_transform * parent_transform,
 					._unused = 0
 				};
-				DynamicAllocation model_allocation = upload_buffer->Allocate(GetCBufferSize<ModelConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				GfxDynamicAllocation model_allocation = upload_buffer->Allocate(GetCBufferSize<ModelConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 				model_allocation.Update(model_constants);
 				cmd_list->SetGraphicsRootConstantBufferView(2, model_allocation.gpu_address);
 				mesh.Draw(cmd_list);
@@ -1006,7 +1006,7 @@ namespace adria
 					.model_matrix = transform.current_transform * parent_transform,
 					.albedo_idx = (uint32)material->albedo_texture
 				};
-				DynamicAllocation model_allocation = upload_buffer->Allocate(GetCBufferSize<ModelConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				GfxDynamicAllocation model_allocation = upload_buffer->Allocate(GetCBufferSize<ModelConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 				model_allocation.Update(model_constants);
 				cmd_list->SetGraphicsRootConstantBufferView(2, model_allocation.gpu_address);
 				mesh.Draw(cmd_list);

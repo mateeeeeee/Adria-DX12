@@ -7,7 +7,7 @@
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/GfxTexture.h"
 #include "../Graphics/RingGPUDescriptorAllocator.h"
-#include "../Graphics/LinearDynamicAllocator.h"
+#include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../Graphics/TextureManager.h"
 #include "../Graphics/GfxCommon.h"
 #include "../Editor/GUICommand.h"
@@ -59,7 +59,7 @@ namespace adria
 				[=](InitialSpectrumPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 				{
 					auto device = gfx->GetDevice();
-					auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+					auto descriptor_allocator = gfx->GetDescriptorAllocator();
 					uint32 i = (uint32)descriptor_allocator->Allocate();
 					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i), context.GetReadWriteTexture(data.initial_spectrum),
 						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -96,7 +96,7 @@ namespace adria
 			[=](PhasePassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				auto device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(2);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.phase_srv),
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -140,7 +140,7 @@ namespace adria
 			[=](SpectrumPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				auto device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(3);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.initial_spectrum_srv),
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -198,7 +198,7 @@ namespace adria
 				[=](FFTHorizontalPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 				{
 					auto device = gfx->GetDevice();
-					auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+					auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 					
 					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::FFT_Horizontal));
@@ -240,7 +240,7 @@ namespace adria
 				[=](FFTVerticalPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 				{
 					auto device = gfx->GetDevice();
-					auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+					auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 					
 					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::FFT_Vertical));
@@ -283,7 +283,7 @@ namespace adria
 			[=](OceanNormalsPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				auto device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(2);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.spectrum_srv),
 					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -329,7 +329,7 @@ namespace adria
 			[=](OceanDrawPass const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 				auto skyboxes = reg.view<Skybox>();
@@ -395,7 +395,7 @@ namespace adria
 							.ocean_model_matrix = transform.current_transform,
 							.ocean_color = XMFLOAT3(material.base_color)
 						};
-						DynamicAllocation allocation = dynamic_allocator->Allocate(GetCBufferSize<OceanConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+						GfxDynamicAllocation allocation = dynamic_allocator->Allocate(GetCBufferSize<OceanConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 						allocation.Update(constants);
 
 						cmd_list->SetGraphicsRoot32BitConstants(1, 4, &indices, 0);

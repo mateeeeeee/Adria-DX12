@@ -2,7 +2,6 @@
 #include <memory>
 #include "GfxDevice.h"
 #include "d3dx12.h"
-#include "DescriptorHeap.h"
 #include "../Core/Definitions.h"
 #include "../Core/Macros.h"
 

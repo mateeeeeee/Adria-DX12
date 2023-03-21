@@ -37,7 +37,7 @@ namespace adria
 			[=](MotionVectorsPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::MotionVectors));
 

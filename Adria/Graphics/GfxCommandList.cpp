@@ -4,8 +4,8 @@
 #include "GfxBuffer.h"
 #include "GfxTexture.h"
 #include "GfxPipelineState.h"
-#include "RingGPUDescriptorAllocator.h"
-#include "LinearDynamicAllocator.h"
+#include "GfxRingDescriptorAllocator.h"
+#include "GfxLinearDynamicAllocator.h"
 #include "../Utilities/StringUtil.h"
 
 namespace adria
@@ -63,7 +63,7 @@ namespace adria
 
 		if (command_count >= 0) //later > 0
 		{
-			ID3D12CommandList* cmd_list_array[] = { cmd_list.Get() };
+			GfxCommandList* cmd_list_array[] = { this };
 			cmd_queue.ExecuteCommandLists(cmd_list_array);
 		}
 
@@ -82,10 +82,10 @@ namespace adria
 
 		if (type == GfxCommandListType::Graphics || type == GfxCommandListType::Compute)
 		{
-			auto* descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+			auto* descriptor_allocator = gfx->GetDescriptorAllocator();
 			if (descriptor_allocator)
 			{
-				ID3D12DescriptorHeap* heaps[] = { descriptor_allocator->Heap() };
+				ID3D12DescriptorHeap* heaps[] = { descriptor_allocator->GetHeap() };
 				cmd_list->SetDescriptorHeaps(1, heaps);
 
 				ID3D12RootSignature* common_rs = gfx->GetCommonRootSignature();
@@ -247,13 +247,13 @@ namespace adria
 		++command_count;
 	}
 
-	void GfxCommandList::ClearUAV(GfxBuffer* resource, DescriptorHandle uav, const float* clear_value)
+	void GfxCommandList::ClearUAV(GfxBuffer* resource, GfxDescriptor uav, const float* clear_value)
 	{
 		cmd_list->ClearUnorderedAccessViewFloat(uav, uav, resource->GetNative(), clear_value, 0, nullptr);
 		++command_count;
 	}
 
-	void GfxCommandList::ClearUAV(GfxBuffer* resource, DescriptorHandle uav, const uint32* clear_value)
+	void GfxCommandList::ClearUAV(GfxBuffer* resource, GfxDescriptor uav, const uint32* clear_value)
 	{
 		cmd_list->ClearUnorderedAccessViewUint(uav, uav, resource->GetNative(), clear_value, 0, nullptr);
 		++command_count;
@@ -387,7 +387,7 @@ namespace adria
 		ADRIA_ASSERT(current_context != GfxCommandListContext::Invalid);
 
 		auto dynamic_allocator = gfx->GetDynamicAllocator();
-		DynamicAllocation alloc = dynamic_allocator->Allocate(data_size, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+		GfxDynamicAllocation alloc = dynamic_allocator->Allocate(data_size, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 		alloc.Update(data, data_size);
 
 		if (current_context == GfxCommandListContext::Graphics)
@@ -428,7 +428,7 @@ namespace adria
 		}
 	}
 
-	void GfxCommandList::SetRootDescriptorTable(uint32 slot, DescriptorHandle base_descriptor)
+	void GfxCommandList::SetRootDescriptorTable(uint32 slot, GfxDescriptor base_descriptor)
 	{
 		ADRIA_ASSERT_MSG(false, "Not yet implemented! (Or needed)");
 		if (current_context == GfxCommandListContext::Graphics)

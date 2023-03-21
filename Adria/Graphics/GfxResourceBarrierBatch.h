@@ -5,6 +5,8 @@
 
 namespace adria
 {
+
+	//#todo : remove
 	class GfxResourceBarrierBatch
 	{
 	public:

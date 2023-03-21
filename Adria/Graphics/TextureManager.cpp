@@ -198,7 +198,7 @@ namespace adria
             }
             else //format == TextureFormat::eHDR
             {
-                auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+                auto descriptor_allocator = gfx->GetDescriptorAllocator();
                 loaded_textures.insert({ name, handle });
                 Image equirect_hdr_image(ToString(name));
 
@@ -338,9 +338,9 @@ namespace adria
 
 		mips_generator->Generate(gfx->GetCommandList());
 
-		gfx->ReserveOnlineDescriptors(1024);
+		gfx->InitShaderVisibleAllocator(1024);
 		ID3D12Device* device = gfx->GetDevice();
-		RingGPUDescriptorAllocator* online_descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+		RingGPUDescriptorAllocator* online_descriptor_allocator = gfx->GetDescriptorAllocator();
         for (size_t i = 0; i <= handle; ++i)
         {
             GfxTexture* texture = texture_map[TextureHandle(i)].get();
@@ -494,7 +494,7 @@ namespace adria
         if (!is_scene_initialized) return;
 
 		ID3D12Device* device = gfx->GetDevice();
-		RingGPUDescriptorAllocator* online_descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+		RingGPUDescriptorAllocator* online_descriptor_allocator = gfx->GetDescriptorAllocator();
 		GfxTexture* texture = texture_map[handle].get();
 		ADRIA_ASSERT(texture);
 		texture->CreateSRV();

@@ -2,7 +2,7 @@
 #include <memory>
 #include "GfxCommon.h"
 #include "GfxTexture.h"
-#include "DescriptorHeap.h"
+#include "GfxDescriptorAllocator.h"
 
 namespace adria
 {
@@ -11,7 +11,7 @@ namespace adria
 		namespace
 		{
 			std::array<std::unique_ptr<GfxTexture>, (size_t)GfxCommonTextureType::Count>	common_textures;
-			std::unique_ptr<DescriptorHeap> common_views_heap;
+			std::unique_ptr<GfxDescriptorAllocator> common_views_heap;
 
 			void CreateCommonTextures(GfxDevice* gfx)
 			{
@@ -29,11 +29,8 @@ namespace adria
 				init_data.RowPitch = sizeof(float);
 				init_data.SlicePitch = 0;
 				common_textures[(size_t)GfxCommonTextureType::WhiteTexture2D] = std::make_unique<GfxTexture>(gfx, desc, &init_data);
-				common_textures[(size_t)GfxCommonTextureType::WhiteTexture2D]->CreateSRV();
-
 				v = 0.0f;
 				common_textures[(size_t)GfxCommonTextureType::BlackTexture2D] = std::make_unique<GfxTexture>(gfx, desc, &init_data);
-				common_textures[(size_t)GfxCommonTextureType::BlackTexture2D]->CreateSRV();
 			}
 
 			void CreateCommonViews(GfxDevice* gfx)
@@ -41,7 +38,13 @@ namespace adria
 				using enum GfxCommonViewType;
 
 				ID3D12Device* device = gfx->GetDevice();
-				common_views_heap = std::make_unique<DescriptorHeap>(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, (size_t)Count);
+
+				GfxDescriptorAllocatorDesc desc{};
+				desc.type = GfxDescriptorHeapType::CBV_SRV_UAV;
+				desc.shader_visible = false;
+				desc.descriptor_count = (size_t)Count;
+
+				common_views_heap = std::make_unique<GfxDescriptorAllocator>(gfx, desc);
 				D3D12_SHADER_RESOURCE_VIEW_DESC null_srv_desc{};
 				null_srv_desc.Texture2D.MostDetailedMip = 0;
 				null_srv_desc.Texture2D.MipLevels = -1;
@@ -61,6 +64,12 @@ namespace adria
 				null_uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
 				null_uav_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 				device->CreateUnorderedAccessView(nullptr, nullptr, &null_uav_desc, common_views_heap->GetHandle((size_t)NullTexture2D_UAV));
+
+				GfxDescriptor white_srv = gfx->CreateTextureSRV(common_textures[(size_t)GfxCommonTextureType::WhiteTexture2D].get());
+				GfxDescriptor black_srv = gfx->CreateTextureSRV(common_textures[(size_t)GfxCommonTextureType::BlackTexture2D].get());
+				
+				device->CopyDescriptorsSimple(1, common_views_heap->GetHandle((size_t)WhiteTexture2D_SRV), white_srv, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				device->CopyDescriptorsSimple(1, common_views_heap->GetHandle((size_t)BlackTexture2D_SRV), black_srv, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			}
 		}
 
@@ -73,7 +82,7 @@ namespace adria
 		void Destroy()
 		{
 			common_views_heap.reset();
-			for (auto& texture  : common_textures) texture.reset();
+			for (auto& texture : common_textures) texture.reset();
 		}
 
 		GfxTexture* GetCommonTexture(GfxCommonTextureType type)
@@ -81,7 +90,7 @@ namespace adria
 			return common_textures[(size_t)type].get();
 		}
 
-		D3D12_CPU_DESCRIPTOR_HANDLE GetCommonView(GfxCommonViewType type)
+		GfxDescriptor GetCommonView(GfxCommonViewType type)
 		{
 			return common_views_heap->GetHandle((size_t)type);
 		}

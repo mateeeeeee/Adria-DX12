@@ -1,6 +1,6 @@
 #pragma once
 #include <mutex>
-#include "DynamicAllocation.h"
+#include "GfxDynamicAllocation.h"
 #include "../Utilities/LinearAllocator.h"
 
 namespace adria
@@ -8,12 +8,12 @@ namespace adria
 	class GfxBuffer;
 	class GfxDevice;
 	
-	class LinearDynamicAllocator
+	class GfxLinearDynamicAllocator
 	{
 	public:
-		LinearDynamicAllocator(GfxDevice* gfx, SIZE_T max_size_in_bytes);
-		~LinearDynamicAllocator();
-		DynamicAllocation Allocate(SIZE_T size_in_bytes, SIZE_T alignment = 0);
+		GfxLinearDynamicAllocator(GfxDevice* gfx, size_t max_size_in_bytes);
+		~GfxLinearDynamicAllocator();
+		GfxDynamicAllocation Allocate(size_t size_in_bytes, size_t alignment = 0);
 
 		void Clear();
 

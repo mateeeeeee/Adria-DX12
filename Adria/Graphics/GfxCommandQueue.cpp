@@ -20,11 +20,6 @@ namespace adria
 		return true;
 	}
 
-	void GfxCommandQueue::ExecuteCommandLists(std::span<ID3D12CommandList*> cmd_lists)
-	{
-		command_queue->ExecuteCommandLists((uint32)cmd_lists.size(), cmd_lists.data());
-	}
-
 	void GfxCommandQueue::ExecuteCommandLists(std::span<GfxCommandList*> cmd_lists)
 	{
 		std::vector<ID3D12CommandList*> d3d12_cmd_lists(cmd_lists.size());

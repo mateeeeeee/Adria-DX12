@@ -33,54 +33,32 @@ namespace adria
 		GfxBuffer& operator=(GfxBuffer const&) = delete;
 		~GfxBuffer();
 
-		D3D12_CPU_DESCRIPTOR_HANDLE GetSRV(size_t i = 0) const;
-		D3D12_CPU_DESCRIPTOR_HANDLE GetUAV(size_t i = 0) const;
-
-		[[maybe_unused]] size_t CreateSRV(GfxBufferSubresourceDesc const* desc = nullptr);
-		[[maybe_unused]] size_t CreateUAV(ID3D12Resource* uav_counter = nullptr, GfxBufferSubresourceDesc const* desc = nullptr);
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeSRV(GfxBufferSubresourceDesc const* desc = nullptr);
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeUAV(GfxBufferSubresourceDesc const* desc = nullptr, ID3D12Resource* uav_counter = nullptr);
-
 		ID3D12Resource* GetNative() const;
 		ID3D12Resource* Detach();
 		D3D12MA::Allocation* DetachAllocation();
 
 		GfxBufferDesc const& GetDesc() const;
-		uint32 GetMappedRowPitch() const;
 		uint64 GetGPUAddress() const;
 		uint32 GetCount() const;
 
 		bool IsMapped() const;
 		void* GetMappedData() const;
-
 		template<typename T>
 		T* GetMappedData() const;
 		[[maybe_unused]] void* Map();
-
 		void Unmap();
 		void Update(void const* src_data, size_t data_size, size_t offset = 0);
 		template<typename T>
 		void Update(T const& src_data);
+
 		void SetName(char const* name);
+
 	private:
 		GfxDevice* gfx;
 		ArcPtr<ID3D12Resource> resource;
 		GfxBufferDesc desc;
-		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> srvs;
-		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> uavs;
-
 		ReleasablePtr<D3D12MA::Allocation> allocation = nullptr;
-		D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
-
 		void* mapped_data = nullptr;
-		uint32 mapped_rowpitch = 0;
-
-	private:
-
-		size_t CreateSubresource(GfxSubresourceType view_type, GfxBufferSubresourceDesc const& view_desc,
-			ID3D12Resource* uav_counter = nullptr);
-
-		D3D12_CPU_DESCRIPTOR_HANDLE GetSubresource(GfxSubresourceType type, size_t index = 0) const;
 	};
 
 	template<typename T>
@@ -93,6 +71,37 @@ namespace adria
 	{
 		Update(&src_data, sizeof(T));
 	}
+
+	struct GfxVertexBufferView
+	{
+		explicit GfxVertexBufferView(GfxBuffer* buffer)
+			: buffer_location(buffer->GetGPUAddress()), size_in_bytes((uint32)buffer->GetDesc().size), stride_in_bytes(buffer->GetDesc().stride)
+		{}
+
+		GfxVertexBufferView(uint64 buffer_location, uint32 size_in_bytes, uint32 stride_in_bytes)
+			: buffer_location(buffer_location), size_in_bytes(size_in_bytes), stride_in_bytes(stride_in_bytes)
+		{}
+
+		uint64					    buffer_location = 0;
+		uint32                      size_in_bytes = 0;
+		uint32                      stride_in_bytes = 0;
+	};
+
+	struct GfxIndexBufferView
+	{
+		explicit GfxIndexBufferView(GfxBuffer* buffer)
+			: buffer_location(buffer->GetGPUAddress()), size_in_bytes((uint32)buffer->GetDesc().size), format(buffer->GetDesc().format)
+		{}
+
+		GfxIndexBufferView(uint64 buffer_location, uint32 size_in_bytes, GfxFormat format = GfxFormat::R32_UINT)
+			: buffer_location(buffer_location), size_in_bytes(size_in_bytes), format(format)
+		{}
+
+		uint64					    buffer_location = 0;
+		uint32                      size_in_bytes;
+		GfxFormat                   format;
+	};
+
 
 	inline void BindVertexBuffer(ID3D12GraphicsCommandList* cmd_list, GfxBuffer const* vertex_buffer)
 	{
@@ -157,35 +166,4 @@ namespace adria
 		desc.bind_flags = GfxBindFlag::UnorderedAccess;
 		return desc;
 	}
-
-	struct GfxVertexBufferView
-	{
-		explicit GfxVertexBufferView(GfxBuffer* buffer)
-			: buffer_location(buffer->GetGPUAddress()), size_in_bytes((uint32)buffer->GetDesc().size), stride_in_bytes(buffer->GetDesc().stride)
-		{}
-
-		GfxVertexBufferView(uint64 buffer_location, uint32 size_in_bytes, uint32 stride_in_bytes)
-			: buffer_location(buffer_location), size_in_bytes(size_in_bytes), stride_in_bytes(stride_in_bytes)
-		{}
-
-		uint64					    buffer_location = 0;
-		uint32                      size_in_bytes = 0;
-		uint32                      stride_in_bytes = 0;
-	};
-
-	struct GfxIndexBufferView
-	{
-		explicit GfxIndexBufferView(GfxBuffer* buffer)
-			: buffer_location(buffer->GetGPUAddress()), size_in_bytes((uint32)buffer->GetDesc().size), format(buffer->GetDesc().format)
-		{}
-
-		GfxIndexBufferView(uint64 buffer_location, uint32 size_in_bytes, GfxFormat format = GfxFormat::R32_UINT)
-			: buffer_location(buffer_location), size_in_bytes(size_in_bytes), format(format)
-		{}
-
-		uint64					    buffer_location = 0;
-		uint32                      size_in_bytes;
-		GfxFormat                   format;
-	};
-
 }

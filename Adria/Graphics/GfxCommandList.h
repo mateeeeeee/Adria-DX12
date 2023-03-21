@@ -1,6 +1,6 @@
 #pragma once
 #include <d3d12.h>
-#include "DescriptorHeap.h"
+#include "GfxDescriptor.h"
 #include "GfxResourceCommon.h"
 #include "GfxStates.h"
 #include "GfxRenderPass.h"
@@ -82,8 +82,8 @@ namespace adria
 		void CopyBuffer(GfxBuffer* dst, uint32 dst_offset, GfxBuffer* src, uint32 src_offset, uint32 size);
 		void CopyTexture(GfxTexture* dst, GfxTexture* src);
 		void CopyTexture(GfxTexture* dst, uint32 dst_mip, uint32 dst_array, GfxTexture* src, uint32 src_mip, uint32 src_array);
-		void ClearUAV(GfxBuffer* resource, DescriptorHandle uav, const float* clear_value);
-		void ClearUAV(GfxBuffer* resource, DescriptorHandle uav, const uint32* clear_value);
+		void ClearUAV(GfxBuffer* resource, GfxDescriptor uav, const float* clear_value);
+		void ClearUAV(GfxBuffer* resource, GfxDescriptor uav, const uint32* clear_value);
 		void WriteBufferImmediate(GfxBuffer* buffer, uint32 offset, uint32 data);
 
 		void BeginRenderPass(GfxRenderPassDesc const& render_pass_desc);
@@ -112,7 +112,7 @@ namespace adria
 		}
 		void SetRootSRV(uint32 slot, size_t gpu_address);
 		void SetRootUAV(uint32 slot, size_t gpu_address);
-		void SetRootDescriptorTable(uint32 slot, DescriptorHandle base_descriptor);
+		void SetRootDescriptorTable(uint32 slot, GfxDescriptor base_descriptor);
 
 		void ClearRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE rtv, float const* clear_color);
 		void ClearDepth(D3D12_CPU_DESCRIPTOR_HANDLE dsv, float depth = 1.0f, uint8 stencil = 0, bool clear_stencil = false);

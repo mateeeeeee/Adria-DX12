@@ -7,7 +7,7 @@
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/TextureManager.h"
 #include "../Graphics/RingGPUDescriptorAllocator.h"
-#include "../Graphics/LinearDynamicAllocator.h"
+#include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../Logging/Logger.h"
 #include "../Editor/GUICommand.h"
 
@@ -42,7 +42,7 @@ namespace adria
 			[=](VolumetricCloudsPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(5);
@@ -91,7 +91,7 @@ namespace adria
 					.depth_idx = i + 3,.output_idx = i + 4
 				};
 
-				DynamicAllocation allocation = dynamic_allocator->Allocate(GetCBufferSize<TextureIndices>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				GfxDynamicAllocation allocation = dynamic_allocator->Allocate(GetCBufferSize<TextureIndices>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 				allocation.Update(indices);
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Clouds));

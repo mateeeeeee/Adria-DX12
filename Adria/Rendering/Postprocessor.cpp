@@ -5,7 +5,7 @@
 #include "PSOCache.h" 
 
 #include "../Graphics/RingGPUDescriptorAllocator.h"
-#include "../Graphics/LinearDynamicAllocator.h"
+#include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Logging/Logger.h"
 #include "entt/entity/registry.hpp"
@@ -222,7 +222,7 @@ namespace adria
 			[=](RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 				
@@ -241,7 +241,7 @@ namespace adria
 					.diffuse_color = XMFLOAT3(material.base_color),
 					.diffuse_idx = (uint32)material.albedo_texture
 				};
-				DynamicAllocation allocation = dynamic_allocator->Allocate(GetCBufferSize<Constants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				GfxDynamicAllocation allocation = dynamic_allocator->Allocate(GetCBufferSize<Constants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 				allocation.Update(constants);
 				cmd_list->SetGraphicsRootConstantBufferView(2, allocation.gpu_address);
 				mesh.Draw(cmd_list);

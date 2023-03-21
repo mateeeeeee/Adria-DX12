@@ -5,7 +5,7 @@
 #include "BlackboardData.h"
 #include "PSOCache.h" 
 
-#include "../Graphics/LinearDynamicAllocator.h"
+#include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../Graphics/RingGPUDescriptorAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 
@@ -33,7 +33,7 @@ namespace adria
 			[=](RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				auto upload_buffer = gfx->GetDynamicAllocator();
 
 				auto aabb_view = reg.view<AABB>();
@@ -57,7 +57,7 @@ namespace adria
 							.diffuse_color = XMFLOAT3(1, 0, 0),
 							.diffuse_idx = uint32(-1)
 						};
-						DynamicAllocation allocation = upload_buffer->Allocate(GetCBufferSize<Constants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+						GfxDynamicAllocation allocation = upload_buffer->Allocate(GetCBufferSize<Constants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 						allocation.Update(constants);
 						cmd_list->SetGraphicsRootConstantBufferView(2, allocation.gpu_address);
 						cmd_list->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);

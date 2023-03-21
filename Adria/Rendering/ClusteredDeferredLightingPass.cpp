@@ -4,7 +4,7 @@
 #include "BlackboardData.h"
 #include "PSOCache.h" 
 
-#include "../Graphics/LinearDynamicAllocator.h"
+#include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../Graphics/RingGPUDescriptorAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Logging/Logger.h"
@@ -58,7 +58,7 @@ namespace adria
 				[=](ClusterBuildingPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 				{
 					ID3D12Device* device = gfx->GetDevice();
-					auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+					auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 					OffsetType i = descriptor_allocator->Allocate();
 					auto dst_descriptor = descriptor_allocator->GetHandle(i);
@@ -91,7 +91,7 @@ namespace adria
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto upload_buffer = gfx->GetDynamicAllocator();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = {	context.GetReadOnlyBuffer(data.clusters),
 																context.GetReadWriteBuffer(data.light_counter),
@@ -147,7 +147,7 @@ namespace adria
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto upload_buffer = gfx->GetDynamicAllocator();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { context.GetReadOnlyBuffer(data.light_list), context.GetReadOnlyBuffer(data.light_grid),
 															  context.GetReadOnlyTexture(data.gbuffer_normal), context.GetReadOnlyTexture(data.gbuffer_albedo), 

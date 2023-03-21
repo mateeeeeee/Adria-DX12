@@ -6,7 +6,7 @@
 #include "PSOCache.h" 
 
 #include "../Graphics/RingGPUDescriptorAllocator.h"
-#include "../Graphics/LinearDynamicAllocator.h"
+#include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Editor/GUICommand.h"
 #include "entt/entity/registry.hpp"
@@ -33,7 +33,7 @@ namespace adria
 			[=](RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				auto upload_buffer = gfx->GetDynamicAllocator();
 
 				struct SkyConstants
@@ -43,7 +43,7 @@ namespace adria
 				{
 					.model_matrix = XMMatrixTranslationFromVector(global_data.camera_position)
 				};
-				DynamicAllocation allocation = upload_buffer->Allocate(GetCBufferSize<SkyConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				GfxDynamicAllocation allocation = upload_buffer->Allocate(GetCBufferSize<SkyConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 				allocation.Update(constants);
 
 				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
@@ -112,7 +112,7 @@ namespace adria
 						.I = parameters[ESkyParam_I],
 						.Z = parameters[ESkyParam_Z],
 					};
-					DynamicAllocation hosek_allocation = upload_buffer->Allocate(GetCBufferSize<HosekWilkieConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+					GfxDynamicAllocation hosek_allocation = upload_buffer->Allocate(GetCBufferSize<HosekWilkieConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 					hosek_allocation.Update(constants);
 					cmd_list->SetGraphicsRootConstantBufferView(3, hosek_allocation.gpu_address);
 					break;

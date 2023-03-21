@@ -44,7 +44,7 @@ namespace adria
 			[=](RayTracedShadowsPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				auto device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(2);

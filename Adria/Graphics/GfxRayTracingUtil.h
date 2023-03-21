@@ -2,8 +2,8 @@
 #include <d3d12.h>
 #include <vector>
 #include <memory.h>
-#include "LinearDynamicAllocator.h"
-#include "RingDynamicAllocator.h"
+#include "GfxLinearDynamicAllocator.h"
+#include "GfxRingDynamicAllocator.h"
 #include "../Core/Macros.h"
 #include "../Core/Definitions.h"
 #include "../Utilities/StringUtil.h"
@@ -66,11 +66,11 @@ namespace adria
 			hit_group_record_size = std::max(hit_group_record_size, (uint32)Align(D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES + data_size, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT));
 		}
 
-		void Commit(LinearDynamicAllocator& allocator, D3D12_DISPATCH_RAYS_DESC& desc)
+		void Commit(GfxLinearDynamicAllocator& allocator, D3D12_DISPATCH_RAYS_DESC& desc)
 		{
 			CommitImpl(allocator, desc);
 		}
-		void Commit(RingDynamicAllocator& allocator, D3D12_DISPATCH_RAYS_DESC& desc)
+		void Commit(GfxRingDynamicAllocator& allocator, D3D12_DISPATCH_RAYS_DESC& desc)
 		{
 			CommitImpl(allocator, desc);
 		}
@@ -99,7 +99,7 @@ namespace adria
 			uint32 hit_section_aligned = (uint32)Align(hit_section, D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT);
 			total_size = (uint32)Align(rg_section_aligned + miss_section_aligned + hit_section_aligned, 256);
 
-			DynamicAllocation allocation = allocator.Allocate(total_size, D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT);
+			GfxDynamicAllocation allocation = allocator.Allocate(total_size, D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT);
 
 			uint8* p_start = (uint8*)allocation.cpu_address;
 			uint8* p_data = p_start;

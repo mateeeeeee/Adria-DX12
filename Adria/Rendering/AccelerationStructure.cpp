@@ -3,7 +3,7 @@
 #include "../Graphics/GfxBuffer.h"
 #include "../Graphics/GfxDevice.h"
 #include "../Graphics/GfxCommandList.h"
-#include "../Graphics/LinearDynamicAllocator.h"
+#include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../Utilities/Timer.h"
 #include "../Logging/Logger.h"
 
@@ -20,7 +20,7 @@ namespace adria
 	{
 		auto dynamic_allocator = gfx->GetDynamicAllocator();
 
-		DynamicAllocation transform_alloc = dynamic_allocator->Allocate(sizeof(DirectX::XMMATRIX), D3D12_RAYTRACING_TRANSFORM3X4_BYTE_ALIGNMENT);
+		GfxDynamicAllocation transform_alloc = dynamic_allocator->Allocate(sizeof(DirectX::XMMATRIX), D3D12_RAYTRACING_TRANSFORM3X4_BYTE_ALIGNMENT);
 		transform_alloc.Update(XMMatrixTranspose(transform.current_transform));
 
 		D3D12_RAYTRACING_GEOMETRY_DESC geo_desc{};

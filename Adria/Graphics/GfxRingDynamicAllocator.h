@@ -1,5 +1,5 @@
 #pragma once
-#include "DynamicAllocation.h"
+#include "GfxDynamicAllocation.h"
 #include "../Utilities/RingAllocator.h"
 #include <mutex>
 
@@ -8,12 +8,12 @@ namespace adria
 	class GfxBuffer;
 	class GfxDevice;
 
-	class RingDynamicAllocator
+	class GfxRingDynamicAllocator
 	{
 	public:
-		RingDynamicAllocator(GfxDevice* gfx, SIZE_T max_size_in_bytes);
-		~RingDynamicAllocator();
-		DynamicAllocation Allocate(SIZE_T size_in_bytes, SIZE_T alignment);
+		GfxRingDynamicAllocator(GfxDevice* gfx, size_t max_size_in_bytes);
+		~GfxRingDynamicAllocator();
+		GfxDynamicAllocation Allocate(size_t size_in_bytes, size_t alignment);
 
 		void FinishCurrentFrame(uint64 frame);
 

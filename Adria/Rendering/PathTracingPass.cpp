@@ -5,7 +5,7 @@
 
 #include "../Graphics/GfxShader.h"
 #include "../Graphics/RingGPUDescriptorAllocator.h"
-#include "../Graphics/LinearDynamicAllocator.h"
+#include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Editor/GUICommand.h"
 
@@ -63,7 +63,7 @@ namespace adria
 			[=](PathTracingPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				auto device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(5);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadWriteTexture(data.accumulation), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);

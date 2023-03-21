@@ -1,5 +1,5 @@
 #include "GfxBuffer.h"
-#include "LinearDynamicAllocator.h"
+#include "GfxLinearDynamicAllocator.h"
 
 #include <format>
 
@@ -51,7 +51,6 @@ namespace adria
 
 		auto device = gfx->GetDevice();
 		auto allocator = gfx->GetAllocator();
-		device->GetCopyableFootprints(&resource_desc, 0, 1, 0, &footprint, nullptr, nullptr, nullptr);
 
 		D3D12MA::Allocation* alloc = nullptr;
 		HRESULT hr = allocator->CreateResource(
@@ -69,14 +68,12 @@ namespace adria
 		{
 			hr = resource->Map(0, nullptr, &mapped_data);
 			BREAK_IF_FAILED(hr);
-			mapped_rowpitch = static_cast<uint32_t>(desc.size);
 		}
 		else if (desc.resource_usage == GfxResourceUsage::Upload)
 		{
 			D3D12_RANGE read_range{};
 			hr = resource->Map(0, &read_range, &mapped_data);
 			BREAK_IF_FAILED(hr);
-			mapped_rowpitch = static_cast<uint32>(desc.size);
 
 			if (initial_data)
 			{
@@ -88,7 +85,7 @@ namespace adria
 		{
 			auto cmd_list = gfx->GetCommandList();
 			auto upload_buffer = gfx->GetDynamicAllocator();
-			DynamicAllocation upload_alloc = upload_buffer->Allocate(buffer_size);
+			GfxDynamicAllocation upload_alloc = upload_buffer->Allocate(buffer_size);
 			upload_alloc.Update(initial_data, desc.size);
 			cmd_list->CopyBufferRegion(
 				resource.Get(),
@@ -118,51 +115,6 @@ namespace adria
 			resource->Unmap(0, nullptr);
 			mapped_data = nullptr;
 		}
-
-		for (auto& srv : srvs) gfx->FreeOfflineDescriptor(srv, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		for (auto& uav : uavs) gfx->FreeOfflineDescriptor(uav, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	}
-
-	D3D12_CPU_DESCRIPTOR_HANDLE GfxBuffer::GetSRV(size_t i /*= 0*/) const
-	{
-		return GetSubresource(GfxSubresourceType::SRV, i);
-	}
-
-	D3D12_CPU_DESCRIPTOR_HANDLE GfxBuffer::GetUAV(size_t i /*= 0*/) const
-	{
-		return GetSubresource(GfxSubresourceType::UAV, i);
-	}
-
-	size_t GfxBuffer::CreateSRV(GfxBufferSubresourceDesc const* desc /*= nullptr*/)
-	{
-		GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
-		return CreateSubresource(GfxSubresourceType::SRV, _desc, nullptr);
-	}
-
-	size_t GfxBuffer::CreateUAV(ID3D12Resource* uav_counter /*= nullptr*/, GfxBufferSubresourceDesc const* desc /*= nullptr*/)
-	{
-		GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
-		return CreateSubresource(GfxSubresourceType::UAV, _desc, uav_counter);
-	}
-
-	D3D12_CPU_DESCRIPTOR_HANDLE GfxBuffer::TakeSRV(GfxBufferSubresourceDesc const* desc /*= nullptr*/)
-	{
-		GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
-		size_t i = CreateSubresource(GfxSubresourceType::SRV, _desc);
-		ADRIA_ASSERT(srvs.size() - 1 == i);
-		D3D12_CPU_DESCRIPTOR_HANDLE srv = srvs.back();
-		srvs.pop_back();
-		return srv;
-	}
-
-	D3D12_CPU_DESCRIPTOR_HANDLE GfxBuffer::TakeUAV(GfxBufferSubresourceDesc const* desc /*= nullptr*/, ID3D12Resource* uav_counter /*= nullptr*/)
-	{
-		GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
-		size_t i = CreateSubresource(GfxSubresourceType::UAV, _desc, uav_counter);
-		ADRIA_ASSERT(uavs.size() - 1 == i);
-		D3D12_CPU_DESCRIPTOR_HANDLE uav = uavs.back();
-		uavs.pop_back();
-		return uav;
 	}
 
 	void* GfxBuffer::GetMappedData() const
@@ -191,11 +143,6 @@ namespace adria
 		return desc;
 	}
 
-	uint32 GfxBuffer::GetMappedRowPitch() const
-	{
-		return mapped_rowpitch;
-	}
-
 	uint64 GfxBuffer::GetGPUAddress() const
 	{
 		return resource->GetGPUVirtualAddress();
@@ -221,14 +168,12 @@ namespace adria
 		{
 			hr = resource->Map(0, nullptr, &mapped_data);
 			BREAK_IF_FAILED(hr);
-			mapped_rowpitch = static_cast<uint32_t>(desc.size);
 		}
 		else if (desc.resource_usage == GfxResourceUsage::Upload)
 		{
 			D3D12_RANGE read_range{};
 			hr = resource->Map(0, &read_range, &mapped_data);
 			BREAK_IF_FAILED(hr);
-			mapped_rowpitch = static_cast<uint32>(desc.size);
 		}
 		return mapped_data;
 	}
@@ -237,7 +182,6 @@ namespace adria
 	{
 		resource->Unmap(0, nullptr);
 		mapped_data = nullptr;
-		mapped_rowpitch = 0;
 	}
 
 	void GfxBuffer::Update(void const* src_data, size_t data_size, size_t offset /*= 0*/)
@@ -259,126 +203,4 @@ namespace adria
 	{
 		resource->SetName(ToWideString(name).c_str());
 	}
-
-	size_t GfxBuffer::CreateSubresource(GfxSubresourceType view_type, GfxBufferSubresourceDesc const& view_desc, ID3D12Resource* uav_counter /*= nullptr*/)
-	{
-		if (uav_counter) ADRIA_ASSERT(view_type == GfxSubresourceType::UAV);
-		GfxFormat format = desc.format;
-		D3D12_CPU_DESCRIPTOR_HANDLE heap_descriptor = gfx->AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		switch (view_type)
-		{
-		case GfxSubresourceType::SRV:
-		{
-			D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
-			srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-			srv_desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-			bool is_accel_struct = false;
-			if (format == GfxFormat::UNKNOWN)
-			{
-				if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::BufferRaw))
-				{
-					// This is a Raw Buffer
-					srv_desc.Format = DXGI_FORMAT_R32_TYPELESS;
-					srv_desc.Buffer.FirstElement = (UINT)view_desc.offset / sizeof(uint32_t);
-					srv_desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
-					srv_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / sizeof(uint32_t);
-				}
-				else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::BufferStructured))
-				{
-					// This is a Structured Buffer
-					srv_desc.Format = DXGI_FORMAT_UNKNOWN;
-					srv_desc.Buffer.FirstElement = (UINT)view_desc.offset / desc.stride;
-					srv_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / desc.stride;
-					srv_desc.Buffer.StructureByteStride = desc.stride;
-				}
-				else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::AccelStruct))
-				{
-					is_accel_struct = true;
-					srv_desc.ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
-					srv_desc.RaytracingAccelerationStructure.Location = GetGPUAddress();
-				}
-			}
-			else
-			{
-				// This is a Typed Buffer
-				uint32_t stride = GetGfxFormatStride(format);
-				srv_desc.Format = ConvertGfxFormat(format);
-				srv_desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-				srv_desc.Buffer.FirstElement = view_desc.offset / stride;
-				srv_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / stride;
-			}
-			gfx->GetDevice()->CreateShaderResourceView(!is_accel_struct ? resource.Get() : nullptr, &srv_desc, heap_descriptor);
-			srvs.push_back(heap_descriptor);
-			return srvs.size() - 1;
-		}
-		break;
-		case GfxSubresourceType::UAV:
-		{
-			D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
-			uav_desc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
-			uav_desc.Buffer.FirstElement = 0;
-
-			if (format == GfxFormat::UNKNOWN)
-			{
-				if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::BufferRaw))
-				{
-					uav_desc.Format = DXGI_FORMAT_R32_TYPELESS;
-					uav_desc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
-					uav_desc.Buffer.FirstElement = (UINT)view_desc.offset / sizeof(uint32_t);
-					uav_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / sizeof(uint32_t);
-				}
-				else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::BufferStructured))
-				{
-					uav_desc.Format = DXGI_FORMAT_UNKNOWN;
-					uav_desc.Buffer.FirstElement = (UINT)view_desc.offset / desc.stride;
-					uav_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / desc.stride;
-					uav_desc.Buffer.StructureByteStride = desc.stride;
-				}
-				else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::IndirectArgs))
-				{
-					uav_desc.Format = DXGI_FORMAT_R32_UINT;
-					uav_desc.Buffer.FirstElement = (UINT)view_desc.offset / sizeof(uint32_t);
-					uav_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / sizeof(uint32_t);
-
-				}
-			}
-			else
-			{
-				uint32 stride = GetGfxFormatStride(format);
-				uav_desc.Format = ConvertGfxFormat(format);
-				uav_desc.Buffer.FirstElement = (UINT)view_desc.offset / stride;
-				uav_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / stride;
-			}
-
-			gfx->GetDevice()->CreateUnorderedAccessView(resource.Get(), uav_counter, &uav_desc, heap_descriptor);
-			uavs.push_back(heap_descriptor);
-			return uavs.size() - 1;
-		}
-		break;
-		case GfxSubresourceType::RTV:
-		case GfxSubresourceType::DSV:
-		default:
-			ADRIA_ASSERT(false && "Buffer View can only be UAV or SRV!");
-		}
-		return -1;
-	}
-
-	D3D12_CPU_DESCRIPTOR_HANDLE GfxBuffer::GetSubresource(GfxSubresourceType type, size_t index /*= 0*/) const
-	{
-		switch (type)
-		{
-		case GfxSubresourceType::SRV:
-			ADRIA_ASSERT(index < srvs.size());
-			return srvs[index];
-		case GfxSubresourceType::UAV:
-			ADRIA_ASSERT(index < uavs.size());
-			return uavs[index];
-		case GfxSubresourceType::RTV:
-		case GfxSubresourceType::DSV:
-		default:
-			ADRIA_ASSERT(false && "Invalid view type for buffer!");
-		}
-		return { .ptr = NULL };
-	}
-
 }

@@ -1,7 +1,8 @@
 #pragma once
 #include <mutex>
-#include "../Utilities/RingAllocator.h"
 #include "GfxDescriptorAllocatorBase.h"
+#include "../Utilities/RingAllocator.h"
+#include "../Core/Macros.h"
 
 namespace adria
 {
@@ -40,7 +41,7 @@ namespace adria
 		}
 
 	private:
-		Mutex alloc_mutex;
+		mutable Mutex alloc_mutex;
 		RingAllocator ring_allocator;
 	};
 }

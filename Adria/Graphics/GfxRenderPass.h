@@ -6,6 +6,7 @@
 
 namespace adria
 {
+    //#todo : refactor
 
     struct GfxColorAttachmentDesc
     {

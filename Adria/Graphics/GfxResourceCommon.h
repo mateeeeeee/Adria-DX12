@@ -1,9 +1,5 @@
 #pragma once
-#include <memory>
-#include <optional>
-#include "GfxDevice.h"
 #include "GfxFormat.h"
-#include "d3dx12.h"
 #include "../Utilities/EnumUtil.h"
 #include "../Utilities/StringUtil.h"
 

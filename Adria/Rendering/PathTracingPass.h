@@ -1,6 +1,6 @@
 #pragma once
 #include "Enums.h"
-#include "../Graphics/RayTracingUtil.h"
+#include "../Graphics/GfxRayTracingUtil.h"
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceName.h"
 

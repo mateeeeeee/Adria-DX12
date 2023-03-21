@@ -53,7 +53,7 @@ namespace adria
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { context.GetReadOnlyTexture(data.gbuffer_normal), 
 															  context.GetReadOnlyTexture(data.gbuffer_albedo),

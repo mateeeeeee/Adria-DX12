@@ -6,7 +6,7 @@
 
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/TextureManager.h"
-#include "../Graphics/LinearDynamicAllocator.h"
+#include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../Graphics/RingGPUDescriptorAllocator.h"
 #include "../Logging/Logger.h"
 
@@ -38,7 +38,7 @@ namespace adria
 			[=](LensFlarePassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 				if (light.type != LightType::Directional)
@@ -97,7 +97,7 @@ namespace adria
 					.light_ss_z = light_ss.z
 				};
 
-				DynamicAllocation allocation = dynamic_allocator->Allocate(GetCBufferSize<LensFlareConstants2>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				GfxDynamicAllocation allocation = dynamic_allocator->Allocate(GetCBufferSize<LensFlareConstants2>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 				allocation.Update(constants2);
 
 				

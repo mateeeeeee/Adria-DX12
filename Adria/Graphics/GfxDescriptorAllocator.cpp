@@ -6,9 +6,10 @@ namespace adria
 
 
 	GfxDescriptorAllocator::GfxDescriptorAllocator(GfxDevice* gfx, GfxDescriptorAllocatorDesc const& desc)
-		: GfxDescriptorAllocatorBase(gfx, desc.type, desc.descriptor_count, desc.shader_visible)
+		: GfxDescriptorAllocatorBase(gfx, desc.type, desc.descriptor_count, desc.shader_visible),
+		tail_descriptor(head_descriptor)
 	{
-		tail_descriptor = GetHandle(desc.descriptor_count - 1);
+		tail_descriptor.Increment(descriptor_handle_size ,desc.descriptor_count - 1);
 		free_descriptor_ranges.emplace_back(head_descriptor, tail_descriptor);
 	}
 

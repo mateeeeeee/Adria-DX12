@@ -12,7 +12,7 @@ namespace adria
 		return (sizeof(CBuffer) + (D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1)) & ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
 	}
 
-	struct DynamicAllocation
+	struct GfxDynamicAllocation
 	{
 		ID3D12Resource* buffer = nullptr;
 		void* cpu_address = nullptr;

@@ -6,7 +6,7 @@
 
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/TextureManager.h"
-#include "../Graphics/LinearDynamicAllocator.h"
+#include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../Graphics/RingGPUDescriptorAllocator.h"
 #include "../Editor/GUICommand.h"
 
@@ -126,7 +126,7 @@ namespace adria
 			[=](BokehGeneratePassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(3);
@@ -146,7 +146,7 @@ namespace adria
 				{
 					.hdr_idx = i, .depth_idx = i + 1, .bokeh_stack_idx = i + 2
 				};
-				DynamicAllocation allocation = dynamic_allocator->Allocate(GetCBufferSize<BokehGenerationIndices>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				GfxDynamicAllocation allocation = dynamic_allocator->Allocate(GetCBufferSize<BokehGenerationIndices>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 				allocation.Update(indices);
 
 				DoFBlackboardData const& dof_data = context.GetBlackboard().GetChecked<DoFBlackboardData>();
@@ -213,7 +213,7 @@ namespace adria
 			[=](BokehDrawPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				D3D12_CPU_DESCRIPTOR_HANDLE bokeh_descriptor{};
 				switch (params.bokeh_type)

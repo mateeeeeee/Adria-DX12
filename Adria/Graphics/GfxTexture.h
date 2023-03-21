@@ -164,32 +164,17 @@ namespace adria
 		GfxTexture& operator=(GfxTexture&&) = delete;
 		~GfxTexture();
 
-		[[maybe_unused]] size_t CreateSRV(GfxTextureSubresourceDesc const* desc = nullptr);
-		[[maybe_unused]] size_t CreateUAV(GfxTextureSubresourceDesc const* desc = nullptr);
-		[[maybe_unused]] size_t CreateRTV(GfxTextureSubresourceDesc const* desc = nullptr);
-		[[maybe_unused]] size_t CreateDSV(GfxTextureSubresourceDesc const* desc = nullptr);
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeSRV(GfxTextureSubresourceDesc const* desc = nullptr);
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeUAV(GfxTextureSubresourceDesc const* desc = nullptr);
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeRTV(GfxTextureSubresourceDesc const* desc = nullptr);
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE TakeDSV(GfxTextureSubresourceDesc const* desc = nullptr);
-		D3D12_CPU_DESCRIPTOR_HANDLE GetSRV(size_t i = 0) const;
-		D3D12_CPU_DESCRIPTOR_HANDLE GetUAV(size_t i = 0) const;
-		D3D12_CPU_DESCRIPTOR_HANDLE GetRTV(size_t i = 0) const;
-		D3D12_CPU_DESCRIPTOR_HANDLE GetDSV(size_t i = 0) const;
-
-		uint32 GetMappedRowPitch() const;
-		uint64 GetGPUAddress() const;
 		ID3D12Resource* GetNative() const;
 		ID3D12Resource* Detach();
 		D3D12MA::Allocation* DetachAllocation();
+
 		GfxTextureDesc const& GetDesc() const;
+		uint64 GetGPUAddress() const;
 
 		bool IsMapped() const;
 		void* GetMappedData() const;
-
 		template<typename T>
 		T* GetMappedData() const;
-
 		void* Map();
 		void Unmap();
 
@@ -198,20 +183,8 @@ namespace adria
 		GfxDevice* gfx;
 		ArcPtr<ID3D12Resource> resource;
 		GfxTextureDesc desc;
-		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> srvs;
-		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> uavs;
-		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> rtvs;
-		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> dsvs;
-
 		ReleasablePtr<D3D12MA::Allocation> allocation = nullptr;
-		D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint{};
-
 		void* mapped_data = nullptr;
-		uint32 mapped_rowpitch = 0;
-
-	private:
-		[[maybe_unused]] size_t CreateSubresource(GfxSubresourceType view_type, GfxTextureSubresourceDesc const& view_desc);
-		D3D12_CPU_DESCRIPTOR_HANDLE GetSubresource(GfxSubresourceType type, size_t index = 0) const;
 	};
 
 	template<typename T>

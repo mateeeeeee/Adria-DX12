@@ -18,7 +18,6 @@ namespace adria
 		bool Create(GfxDevice* gfx, GfxCommandListType type, char const* name = "");
 		
 		void ExecuteCommandLists(std::span<GfxCommandList*> cmd_lists);
-		void ExecuteCommandLists(std::span<ID3D12CommandList*> cmd_lists);
 
 		void Signal(GfxFence& fence, uint64 fence_value);
 		void Wait(GfxFence& fence, uint64 fence_value);

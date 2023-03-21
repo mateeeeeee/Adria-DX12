@@ -1,5 +1,5 @@
 #pragma once
-#include <d3d12.h>
+#include "GfxDescriptor.h"
 #include "../Core/Definitions.h"
 
 namespace adria
@@ -20,6 +20,8 @@ namespace adria
 		NullTexture2D_UAV,
 		NullTextureCube_SRV,
 		NullTexture2DArray_SRV,
+		WhiteTexture2D_SRV,
+		BlackTexture2D_SRV,
 		Count
 	};
 
@@ -29,6 +31,6 @@ namespace adria
 		void Destroy();
 
 		GfxTexture* GetCommonTexture(GfxCommonTextureType);
-		D3D12_CPU_DESCRIPTOR_HANDLE GetCommonView(GfxCommonViewType);
+		GfxDescriptor GetCommonView(GfxCommonViewType);
 	}
 }

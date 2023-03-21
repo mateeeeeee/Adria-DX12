@@ -14,7 +14,7 @@
 #include "Components.h"
 #include "MeshletStructs.h"
 #include "../Graphics/GfxDevice.h"
-#include "../Graphics/LinearDynamicAllocator.h"
+#include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../Logging/Logger.h"
 #include "../Math/BoundingVolumeHelpers.h"
 #include "../Math/ComputeTangentFrame.h"
@@ -1197,7 +1197,7 @@ namespace adria
 		desc.resource_usage = GfxResourceUsage::Default;
 		std::shared_ptr<GfxBuffer> geometry_buffer = std::make_shared<GfxBuffer>(gfx, desc);
 
-		DynamicAllocation staging_buffer = gfx->GetDynamicAllocator()->Allocate(total_buffer_size, 16);
+		GfxDynamicAllocation staging_buffer = gfx->GetDynamicAllocator()->Allocate(total_buffer_size, 16);
 
 		uint32 current_offset = 0;
 		auto CopyData = [&staging_buffer, &current_offset]<typename T>(std::vector<T> const& _data)

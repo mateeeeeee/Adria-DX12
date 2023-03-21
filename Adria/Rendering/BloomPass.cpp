@@ -5,7 +5,7 @@
 #include "BlackboardData.h"
 #include "PSOCache.h" 
 
-#include "../Graphics/LinearDynamicAllocator.h"
+#include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../Graphics/RingGPUDescriptorAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Editor/GUICommand.h"
@@ -87,7 +87,7 @@ namespace adria
 			[=](BloomDownsamplePassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(2);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.input), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -148,7 +148,7 @@ namespace adria
 			[=](BloomUpsamplePassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(3);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.input_low), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);

@@ -195,7 +195,6 @@
     <ClCompile Include="Editor\GUI.cpp" />
     <ClCompile Include="Editor\GUICommand.cpp" />
     <ClCompile Include="Events\EventQueue.cpp" />
-    <ClCompile Include="Graphics\DescriptorHeap.cpp" />
     <ClCompile Include="Graphics\GfxBuffer.cpp" />
     <ClCompile Include="Graphics\GfxCommandList.cpp" />
     <ClCompile Include="Graphics\GfxCommandQueue.cpp" />
@@ -207,12 +206,12 @@
     <ClCompile Include="Graphics\GfxStates.cpp" />
     <ClCompile Include="Graphics\GfxSwapchain.cpp" />
     <ClCompile Include="Graphics\GfxTexture.cpp" />
-    <ClCompile Include="Graphics\LinearDynamicAllocator.cpp" />
+    <ClCompile Include="Graphics\GfxLinearDynamicAllocator.cpp" />
     <ClCompile Include="Graphics\MipsGenerator.cpp" />
     <ClCompile Include="Graphics\GPUProfiler.cpp" />
     <ClCompile Include="Graphics\GfxRenderPass.cpp" />
     <ClCompile Include="Graphics\GfxPipelineState.cpp" />
-    <ClCompile Include="Graphics\RingDynamicAllocator.cpp" />
+    <ClCompile Include="Graphics\GfxRingDynamicAllocator.cpp" />
     <ClCompile Include="Graphics\GfxShaderCompiler.cpp" />
     <ClCompile Include="Graphics\TextureManager.cpp" />
     <ClCompile Include="Input\Input.cpp" />
@@ -315,8 +314,7 @@
     <ClInclude Include="Graphics\GfxCommandList.h" />
     <ClInclude Include="Graphics\GfxCommandQueue.h" />
     <ClInclude Include="Graphics\GfxConstantBuffer.h" />
-    <ClInclude Include="Graphics\DescriptorHeap.h" />
-    <ClInclude Include="Graphics\DynamicAllocation.h" />
+    <ClInclude Include="Graphics\GfxDynamicAllocation.h" />
     <ClInclude Include="Graphics\GfxDescriptor.h" />
     <ClInclude Include="Graphics\GfxDescriptorAllocator.h" />
     <ClInclude Include="Graphics\GfxDescriptorAllocatorBase.h" />
@@ -330,17 +328,17 @@
     <ClInclude Include="Graphics\GfxStates.h" />
     <ClInclude Include="Graphics\GfxInputLayout.h" />
     <ClInclude Include="Graphics\MipsGenerator.h" />
-    <ClInclude Include="Graphics\LinearDynamicAllocator.h" />
+    <ClInclude Include="Graphics\GfxLinearDynamicAllocator.h" />
     <ClInclude Include="Graphics\GPUProfiler.h" />
     <ClInclude Include="Graphics\GfxPipelineState.h" />
-    <ClInclude Include="Graphics\RayTracingUtil.h" />
+    <ClInclude Include="Graphics\GfxRayTracingUtil.h" />
     <ClInclude Include="Graphics\GfxRenderPass.h" />
     <ClInclude Include="Graphics\GfxResourceBarrierBatch.h" />
     <ClInclude Include="Graphics\GfxResourceCommon.h" />
     <ClInclude Include="Graphics\GfxShader.h" />
     <ClInclude Include="Graphics\GfxTexture.h" />
     <ClInclude Include="Graphics\TextureManager.h" />
-    <ClInclude Include="Graphics\RingDynamicAllocator.h" />
+    <ClInclude Include="Graphics\GfxRingDynamicAllocator.h" />
     <ClInclude Include="Graphics\GfxShaderCompiler.h" />
     <ClInclude Include="Graphics\VertexTypes.h" />
     <ClInclude Include="Input\Input.h" />
@@ -999,6 +997,9 @@
     </None>
     <None Include="Resources\NewShaders\Tonemapping.hlsli" />
     <None Include="scene.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="adria.log" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

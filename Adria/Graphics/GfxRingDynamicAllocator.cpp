@@ -1,10 +1,10 @@
-#include "RingDynamicAllocator.h"
+#include "GfxRingDynamicAllocator.h"
 #include "GfxBuffer.h"
 
 
 namespace adria
 {
-	RingDynamicAllocator::RingDynamicAllocator(GfxDevice* gfx, SIZE_T max_size_in_bytes)
+	GfxRingDynamicAllocator::GfxRingDynamicAllocator(GfxDevice* gfx, size_t max_size_in_bytes)
 		: ring_allocator(max_size_in_bytes)
 	{
 		GfxBufferDesc desc{};
@@ -17,9 +17,9 @@ namespace adria
 		cpu_address = buffer->GetMappedData();
 	}
 
-	RingDynamicAllocator::~RingDynamicAllocator() = default;
+	GfxRingDynamicAllocator::~GfxRingDynamicAllocator() = default;
 
-	DynamicAllocation RingDynamicAllocator::Allocate(SIZE_T size_in_bytes, SIZE_T alignment)
+	GfxDynamicAllocation GfxRingDynamicAllocator::Allocate(size_t size_in_bytes, size_t alignment)
 	{
 		OffsetType offset = INVALID_OFFSET;
 		{
@@ -29,7 +29,7 @@ namespace adria
 
 		if (offset != INVALID_OFFSET)
 		{
-			DynamicAllocation allocation{}; 
+			GfxDynamicAllocation allocation{}; 
 			allocation.buffer = buffer->GetNative();
 			allocation.cpu_address = reinterpret_cast<uint8*>(cpu_address) + offset;
 			allocation.gpu_address = buffer->GetGPUAddress() + offset;
@@ -40,15 +40,15 @@ namespace adria
 		else
 		{
 			ADRIA_ASSERT(false && "Not enough memory in Dynamic Allocator. Increase the size to avoid this error!");
-			return DynamicAllocation{};
+			return GfxDynamicAllocation{};
 		}
 	}
-	void RingDynamicAllocator::FinishCurrentFrame(uint64 frame)
+	void GfxRingDynamicAllocator::FinishCurrentFrame(uint64 frame)
 	{
 		std::lock_guard<std::mutex> guard(alloc_mutex);
 		ring_allocator.FinishCurrentFrame(frame);
 	}
-	void RingDynamicAllocator::ReleaseCompletedFrames(uint64 completed_frame)
+	void GfxRingDynamicAllocator::ReleaseCompletedFrames(uint64 completed_frame)
 	{
 		std::lock_guard<std::mutex> guard(alloc_mutex);
 		ring_allocator.ReleaseCompletedFrames(completed_frame);

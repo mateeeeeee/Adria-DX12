@@ -24,6 +24,11 @@ namespace adria
 			index += multiply;
 		}
 
+		bool operator==(GfxDescriptor const& other)
+		{
+			return cpu.ptr == other.cpu.ptr && index == other.index;
+		}
+
 	private:
 		GfxDescriptor() {}
 		D3D12_CPU_DESCRIPTOR_HANDLE cpu = { NULL };

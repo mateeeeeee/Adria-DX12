@@ -4,7 +4,7 @@
 #include "BlackboardData.h"
 #include "PSOCache.h"
 
-#include "../Graphics/LinearDynamicAllocator.h"
+#include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../Graphics/RingGPUDescriptorAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 
@@ -42,7 +42,7 @@ namespace adria
 			[=](BlurPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(2);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.src_texture),
@@ -82,7 +82,7 @@ namespace adria
 			[=](BlurPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				uint32 i = (uint32)descriptor_allocator->AllocateRange(2);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.src_texture),

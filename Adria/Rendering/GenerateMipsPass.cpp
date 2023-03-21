@@ -26,7 +26,7 @@ namespace adria
 			[=](GenerateMipsPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				GfxTexture const& texture = context.GetTexture(data.texture_src.GetResourceId());
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::GenerateMips));

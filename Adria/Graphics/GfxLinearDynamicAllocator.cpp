@@ -1,9 +1,9 @@
-#include "LinearDynamicAllocator.h"
+#include "GfxLinearDynamicAllocator.h"
 #include "GfxBuffer.h"
 
 namespace adria
 {
-	LinearDynamicAllocator::LinearDynamicAllocator(GfxDevice* gfx, SIZE_T max_size_in_bytes)
+	GfxLinearDynamicAllocator::GfxLinearDynamicAllocator(GfxDevice* gfx, size_t max_size_in_bytes)
 		: linear_allocator(max_size_in_bytes)
 	{
 		GfxBufferDesc desc{};
@@ -15,9 +15,9 @@ namespace adria
 		ADRIA_ASSERT(buffer->IsMapped());
 		cpu_address = buffer->GetMappedData();
 	}
-	LinearDynamicAllocator::~LinearDynamicAllocator() = default;
+	GfxLinearDynamicAllocator::~GfxLinearDynamicAllocator() = default;
 
-	DynamicAllocation LinearDynamicAllocator::Allocate(SIZE_T size_in_bytes, SIZE_T alignment)
+	GfxDynamicAllocation GfxLinearDynamicAllocator::Allocate(size_t size_in_bytes, size_t alignment)
 	{
 		OffsetType offset = INVALID_OFFSET;
 		{
@@ -27,7 +27,7 @@ namespace adria
 		
 		if (offset != INVALID_OFFSET)
 		{
-			DynamicAllocation allocation{}; 
+			GfxDynamicAllocation allocation{}; 
 			allocation.buffer = buffer->GetNative();
 			allocation.cpu_address = reinterpret_cast<uint8*>(cpu_address) + offset;
 			allocation.gpu_address = buffer->GetGPUAddress() + offset;
@@ -39,10 +39,10 @@ namespace adria
 		else
 		{
 			ADRIA_ASSERT(false && "Not enough memory in Dynamic Allocator. Increase the size to avoid this error!");
-			return DynamicAllocation{}; //return optional?
+			return GfxDynamicAllocation{}; //return optional?
 		}
 	}
-	void LinearDynamicAllocator::Clear()
+	void GfxLinearDynamicAllocator::Clear()
 	{
 		std::lock_guard<std::mutex> guard(alloc_mutex);
 		linear_allocator.Clear();

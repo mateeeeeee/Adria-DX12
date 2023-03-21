@@ -4,16 +4,6 @@
 
 namespace adria
 {
-	enum class GfxDescriptorHeapType : uint8
-	{
-		CBV_SRV_UAV = 0,
-		Sampler,
-		RTV,
-		DSV,
-		Count,
-		Invalid
-	};
-
 	struct GfxDescriptorAllocatorDesc
 	{
 		GfxDescriptorHeapType type = GfxDescriptorHeapType::Invalid;

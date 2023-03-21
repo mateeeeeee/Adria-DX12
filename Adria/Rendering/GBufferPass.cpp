@@ -5,7 +5,7 @@
 #include "BlackboardData.h"
 #include "PSOCache.h" 
 
-#include "../Graphics/LinearDynamicAllocator.h"
+#include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Editor/GUICommand.h"
 #include "entt/entity/registry.hpp"
@@ -51,7 +51,7 @@ namespace adria
 			[=](RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 				
 				struct BatchParams
@@ -117,7 +117,7 @@ namespace adria
 						model_cbuf_data.metallic_roughness_idx = static_cast<int32>(material.metallic_roughness_texture);
 						model_cbuf_data.emissive_idx = static_cast<int32>(material.emissive_texture);
 
-						DynamicAllocation model_allocation = dynamic_allocator->Allocate(GetCBufferSize<ModelCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+						GfxDynamicAllocation model_allocation = dynamic_allocator->Allocate(GetCBufferSize<ModelCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 						model_allocation.Update(model_cbuf_data);
 						cmd_list->SetGraphicsRootConstantBufferView(2, model_allocation.gpu_address);
 

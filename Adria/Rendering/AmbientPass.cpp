@@ -5,7 +5,7 @@
 
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/GfxCommon.h"
-#include "../Graphics/LinearDynamicAllocator.h"
+#include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../Graphics/RingGPUDescriptorAllocator.h"
 #include "../Math/Packing.h"
 #include "../Editor/GUICommand.h"
@@ -53,7 +53,7 @@ namespace adria
 			[&](AmbientPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { context.GetReadOnlyTexture(data.gbuffer_normal),
 					context.GetReadOnlyTexture(data.gbuffer_albedo), context.GetReadOnlyTexture(data.gbuffer_emissive), context.GetReadOnlyTexture(data.depth_stencil),

@@ -6,7 +6,7 @@
 
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/TextureManager.h"
-#include "../Graphics/LinearDynamicAllocator.h"
+#include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../Graphics/RingGPUDescriptorAllocator.h"
 #include "entt/entity/registry.hpp"
 
@@ -39,7 +39,7 @@ namespace adria
 			[=](DecalsPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				auto upload_buffer = gfx->GetDynamicAllocator();
 
 				uint32 depth_idx = (uint32)descriptor_allocator->Allocate();
@@ -77,7 +77,7 @@ namespace adria
 						constants.decal_type = static_cast<uint32>(decal.decal_type);
 						constants.decal_albedo_idx = (uint32)decal.albedo_decal_texture;
 						constants.decal_normal_idx = (uint32)decal.normal_decal_texture;
-						DynamicAllocation allocation = upload_buffer->Allocate(GetCBufferSize<DecalsConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+						GfxDynamicAllocation allocation = upload_buffer->Allocate(GetCBufferSize<DecalsConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 						allocation.Update(constants);
 						cmd_list->SetGraphicsRootConstantBufferView(2, allocation.gpu_address);
 						cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

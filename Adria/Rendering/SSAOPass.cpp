@@ -3,7 +3,7 @@
 #include "BlackboardData.h"
 #include "PSOCache.h" 
 
-#include "../Graphics/LinearDynamicAllocator.h"
+#include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../Graphics/RingGPUDescriptorAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Utilities/Random.h"
@@ -59,7 +59,7 @@ namespace adria
 			[&](SSAOPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetOnlineDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::SSAO));
@@ -87,7 +87,7 @@ namespace adria
 					.noise_scale_x = width * 1.0f / NOISE_DIM, .noise_scale_y = height * 1.0f / NOISE_DIM,
 					.depth_idx = i, .normal_idx = i + 1, .noise_idx = i + 2, .output_idx = i + 3
 				};
-				DynamicAllocation alloc = dynamic_allocator->Allocate(sizeof(ssao_kernel), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				GfxDynamicAllocation alloc = dynamic_allocator->Allocate(sizeof(ssao_kernel), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 				alloc.Update(ssao_kernel, alloc.size);
 
 				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);

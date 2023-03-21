@@ -17,6 +17,7 @@
 
 #include "GfxFence.h"
 #include "GfxCommandQueue.h"
+#include "GfxDescriptorAllocatorBase.h"
 #include "GfxDefines.h"
 #include "CommandSignature.h"
 #include "../Utilities/Releasable.h"
@@ -26,11 +27,14 @@ namespace adria
 	class GfxSwapchain;
 	class GfxCommandList;
 	class GfxTexture;
+	class GfxTextureSubresourceDesc;
+	class GfxBuffer;
+	class GfxBufferSubresourceDesc;
 
-	class RingGPUDescriptorAllocator;
-	class LinearGPUDescriptorAllocator;
-	class CPUDescriptorAllocator;
-	class LinearDynamicAllocator;
+	class GfxDescriptorAllocator;
+	template<bool>
+	class GfxRingDescriptorAllocator;
+	using GfxMTRingDescriptorAllocator = GfxRingDescriptorAllocator<GFX_MULTITHREADED>;
 
 	struct GfxOptions
 	{
@@ -81,29 +85,29 @@ namespace adria
 		GFX_DEPRECATED ID3D12GraphicsCommandList4* GetCommandList() const;
 
 		D3D12MA::Allocator* GetAllocator() const;
-
 		template<Releasable T>
 		void AddToReleaseQueue(T* alloc)
 		{
 			release_queue.emplace(new ReleasableResource(alloc), release_queue_fence_value);
 		}
 
-		D3D12_CPU_DESCRIPTOR_HANDLE AllocateOfflineDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE);
-		void FreeOfflineDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE, D3D12_DESCRIPTOR_HEAP_TYPE);
-		void ReserveOnlineDescriptors(size_t reserve);
-		RingGPUDescriptorAllocator* GetOnlineDescriptorAllocator() const;
-		LinearDynamicAllocator* GetDynamicAllocator() const;
+		GfxDescriptor AllocateOfflineDescriptor(GfxDescriptorHeapType);
+		void FreeOfflineDescriptor(GfxDescriptor, GfxDescriptorHeapType);
+		void InitShaderVisibleAllocator(size_t reserve);
+
+		GfxDescriptor CreateBufferSRV(GfxBuffer*, GfxBufferSubresourceDesc const* = nullptr);
+		GfxDescriptor CreateBufferUAV(GfxBuffer*, GfxBufferSubresourceDesc const* = nullptr);
+		GfxDescriptor CreateBufferUAV(GfxBuffer*, GfxBuffer*, GfxBufferSubresourceDesc const* = nullptr);
+		GfxDescriptor CreateTextureSRV(GfxTexture*, GfxTextureSubresourceDesc const* = nullptr);
+		GfxDescriptor CreateTextureUAV(GfxTexture*, GfxTextureSubresourceDesc const* = nullptr);
+		GfxDescriptor CreateTextureRTV(GfxTexture*, GfxTextureSubresourceDesc const* = nullptr);
+		GfxDescriptor CreateTextureDSV(GfxTexture*, GfxTextureSubresourceDesc const* = nullptr);
+
+		GfxMTRingDescriptorAllocator* GetDescriptorAllocator() const;
+		GfxLinearDynamicAllocator* GetDynamicAllocator() const;
 
 		void GetTimestampFrequency(uint64& frequency) const;
-		GPUMemoryUsage GetMemoryUsage() const
-		{
-			GPUMemoryUsage gpu_memory_usage{};
-			D3D12MA::Budget budget;
-			allocator->GetBudget(&budget, nullptr);
-			gpu_memory_usage.budget = budget.BudgetBytes;
-			gpu_memory_usage.usage = budget.UsageBytes;
-			return gpu_memory_usage;
-		}
+		GPUMemoryUsage GetMemoryUsage() const;
 
 		DrawIndirectSignature& GetDrawIndirectSignature() const { return *draw_indirect_signature;}
 		DrawIndexedIndirectSignature& GetDrawIndexedIndirectSignature() const { return *draw_indexed_indirect_signature;}
@@ -120,7 +124,8 @@ namespace adria
 		ArcPtr<IDXGIFactory4> dxgi_factory = nullptr;
 		ArcPtr<ID3D12Device5> device = nullptr;
 
-		std::array<std::unique_ptr<CPUDescriptorAllocator>, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES> offline_descriptor_allocators;
+		std::unique_ptr<GfxMTRingDescriptorAllocator> gpu_descriptor_allocator;
+		std::array<std::unique_ptr<GfxDescriptorAllocator>, (size_t)GfxDescriptorHeapType::Count> cpu_descriptor_allocators;
 
 		std::unique_ptr<GfxSwapchain> swapchain;
 		ReleasablePtr<D3D12MA::Allocator> allocator = nullptr;
@@ -151,9 +156,8 @@ namespace adria
 
 		ArcPtr<ID3D12RootSignature> global_root_signature = nullptr;
 
-		std::unique_ptr<RingGPUDescriptorAllocator> descriptor_allocator;
-		std::vector<std::unique_ptr<LinearDynamicAllocator>> dynamic_allocators;
-		std::unique_ptr<LinearDynamicAllocator> dynamic_allocator_before_rendering;
+		std::vector<std::unique_ptr<GfxLinearDynamicAllocator>> dynamic_allocators;
+		std::unique_ptr<GfxLinearDynamicAllocator> dynamic_allocator_before_rendering;
 
 		std::unique_ptr<DrawIndirectSignature> draw_indirect_signature;
 		std::unique_ptr<DrawIndexedIndirectSignature> draw_indexed_indirect_signature;
@@ -176,6 +180,10 @@ namespace adria
 		void CreateCommonRootSignature();
 
 		void ProcessReleaseQueue();
+
+		GfxDescriptor CreateBufferView(GfxBuffer* buffer, GfxSubresourceType view_type, GfxBufferSubresourceDesc const& view_desc, GfxBuffer* uav_counter = nullptr);
+		GfxDescriptor CreateTextureView(GfxTexture* texture, GfxSubresourceType view_type, GfxTextureSubresourceDesc const& view_desc);
+
 	};
 
 }
