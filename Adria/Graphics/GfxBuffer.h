@@ -3,7 +3,6 @@
 
 namespace adria
 {
-
 	struct GfxBufferDesc
 	{
 		uint64 size = 0;

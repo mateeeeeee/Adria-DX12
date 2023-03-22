@@ -5,7 +5,7 @@
 #include "BlackboardData.h"
 #include "PSOCache.h" 
 
-#include "../Graphics/RingGPUDescriptorAllocator.h"
+#include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Editor/GUICommand.h"
@@ -30,12 +30,10 @@ namespace adria
 				builder.ReadDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
+			[=](RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
-				auto upload_buffer = gfx->GetDynamicAllocator();
-
+				
 				struct SkyConstants
 				{
 					XMMATRIX model_matrix;
@@ -43,11 +41,9 @@ namespace adria
 				{
 					.model_matrix = XMMatrixTranslationFromVector(global_data.camera_position)
 				};
-				GfxDynamicAllocation allocation = upload_buffer->Allocate(GetCBufferSize<SkyConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-				allocation.Update(constants);
-
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetGraphicsRootConstantBufferView(2, allocation.gpu_address);
+	
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(2, constants);
 
 				switch (sky_type)
 				{
@@ -61,12 +57,8 @@ namespace adria
 						if (!skybox.active) continue;
 
 						ADRIA_ASSERT(skybox.cubemap_texture != INVALID_TEXTURE_HANDLE);
-						D3D12_CPU_DESCRIPTOR_HANDLE texture_handle = TextureManager::Get().GetSRV(skybox.cubemap_texture);
-						OffsetType i = descriptor_allocator->Allocate();
-						auto dst_descriptor = descriptor_allocator->GetHandle(i);
-						device->CopyDescriptorsSimple(1, dst_descriptor, texture_handle,
-							D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-						cmd_list->SetGraphicsRoot32BitConstant(1, (uint32)i, 0);
+						GfxDescriptor texture_handle = TextureManager::Get().GetSRV(skybox.cubemap_texture);
+						cmd_list->SetRootConstant(1, texture_handle.GetIndex(), 0);
 					}
 					break;
 				}
@@ -80,7 +72,7 @@ namespace adria
 					{
 						.sky_color = XMFLOAT3(sky_color)
 					};
-					cmd_list->SetGraphicsRoot32BitConstants(1, 3, &constants, 0);
+					cmd_list->SetRootConstants(1, constants);
 					break;
 				}
 				case SkyType::HosekWilkie:
@@ -112,19 +104,17 @@ namespace adria
 						.I = parameters[ESkyParam_I],
 						.Z = parameters[ESkyParam_Z],
 					};
-					GfxDynamicAllocation hosek_allocation = upload_buffer->Allocate(GetCBufferSize<HosekWilkieConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-					hosek_allocation.Update(constants);
-					cmd_list->SetGraphicsRootConstantBufferView(3, hosek_allocation.gpu_address);
+					cmd_list->SetRootCBV(3, constants);
 					break;
 				}
 				default:
 					ADRIA_ASSERT(false);
 				}
 
-				cmd_list->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-				BindVertexBuffer(cmd_list, cube_vb.get());
-				BindIndexBuffer(cmd_list, cube_ib.get());
-				cmd_list->DrawIndexedInstanced(cube_ib->GetCount(), 1, 0, 0, 0);
+				cmd_list->SetTopology(GfxPrimitiveTopology::TriangleList);
+				BindVertexBuffer(cmd_list->GetNative(), cube_vb.get());
+				BindIndexBuffer(cmd_list->GetNative(), cube_ib.get());
+				cmd_list->DrawIndexed(cube_ib->GetCount());
 			}, RGPassType::Graphics, RGPassFlags::None);
 		
 		AddGUI([&]()

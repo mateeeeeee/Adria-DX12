@@ -11,7 +11,7 @@
 #include "../Graphics/GfxDevice.h"
 #include "../Graphics/GfxCommandList.h"
 #include "../Graphics/GfxTexture.h"
-#include "../Graphics/RingGPUDescriptorAllocator.h"
+#include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../Rendering/EntityLoader.h"
 #include "../Rendering/ShaderCache.h"
 #include "../Utilities/FilesUtil.h"
@@ -100,12 +100,7 @@ namespace adria
 			engine->SetViewportData(viewport_data);
 			engine->Run(renderer_settings);
 			auto gui_cmd_list = engine->gfx->GetCommandList(GfxCommandListType::Graphics);
-
-			GfxTexture* backbuffer = engine->gfx->GetBackbuffer();
-			D3D12_CPU_DESCRIPTOR_HANDLE rtvs[] = { backbuffer->GetRTV() };
-			gui_cmd_list->FlushBarriers();
-			gui_cmd_list->SetRenderTargets(rtvs);
-			
+			engine->gfx->SetBackbufferAsRenderTarget(gui_cmd_list);
 			gui->Begin();
 			{
 				ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
@@ -655,15 +650,13 @@ namespace adria
 				if (material && ImGui::CollapsingHeader("Material"))
 				{
 					ID3D12Device5* device = engine->gfx->GetDevice();
-					RingGPUDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
+					GUIDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
 
 					ImGui::Text("Albedo Texture");
 					D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = TextureManager::Get().GetSRV(material->albedo_texture);
-					OffsetType descriptor_index = descriptor_allocator->Allocate();
-					auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+					GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
 					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
-						ImVec2(48.0f, 48.0f));
+					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, ImVec2(48.0f, 48.0f));
 
 					ImGui::PushID(0);
 					if (ImGui::Button("Remove")) material->albedo_texture = INVALID_TEXTURE_HANDLE;
@@ -683,8 +676,7 @@ namespace adria
 
 					ImGui::Text("Metallic-Roughness Texture");
 					tex_handle = TextureManager::Get().GetSRV(material->metallic_roughness_texture);
-					descriptor_index = descriptor_allocator->Allocate();
-					dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+					GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
 					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
 						ImVec2(48.0f, 48.0f));
@@ -707,8 +699,7 @@ namespace adria
 
 					ImGui::Text("Emissive Texture");
 					tex_handle = TextureManager::Get().GetSRV(material->emissive_texture);
-					descriptor_index = descriptor_allocator->Allocate();
-					dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+					GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
 					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
 						ImVec2(48.0f, 48.0f));
@@ -776,12 +767,11 @@ namespace adria
 				if (decal && ImGui::CollapsingHeader("Decal"))
 				{
 					ID3D12Device5* device = engine->gfx->GetDevice();
-					RingGPUDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
+					GUIDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
 
 					ImGui::Text("Decal Albedo Texture");
 					D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = TextureManager::Get().GetSRV(decal->albedo_decal_texture);
-					OffsetType descriptor_index = descriptor_allocator->Allocate();
-					auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+					GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
 					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
 						ImVec2(48.0f, 48.0f));
@@ -804,8 +794,7 @@ namespace adria
 
 					ImGui::Text("Decal Normal Texture");
 					tex_handle = TextureManager::Get().GetSRV(decal->normal_decal_texture);
-					descriptor_index = descriptor_allocator->Allocate();
-					dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+					GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
 					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
 						ImVec2(48.0f, 48.0f));
@@ -897,9 +886,8 @@ namespace adria
 			v_max.y += ImGui::GetWindowPos().y;
 			ImVec2 size(v_max.x - v_min.x, v_max.y - v_min.y);
 
-			D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetFinalTexture()->GetSRV();
-			OffsetType descriptor_index = descriptor_allocator->Allocate();
-			auto dst_descriptor = descriptor_allocator->GetHandle(descriptor_index);
+			D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetFinalTextureSRV();
+			GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
 			device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, size);
 

@@ -3,7 +3,7 @@
 #include "PSOCache.h" 
 
 #include "../Graphics/GfxLinearDynamicAllocator.h"
-#include "../Graphics/RingGPUDescriptorAllocator.h"
+#include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 
 namespace adria
@@ -28,12 +28,10 @@ namespace adria
 				data.texture_src2 = builder.ReadTexture(texture2, ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
-			[=](CopyToTexturePassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
+			[=](CopyToTexturePassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-				
 				switch (mode)
 				{
 				case BlendMode::None:
@@ -49,16 +47,15 @@ namespace adria
 					ADRIA_ASSERT(false && "Invalid Copy Mode in CopyTexture");
 				}
 
-				uint32 i = (uint32)descriptor_allocator->AllocateRange(2);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.texture_src1),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), context.GetReadOnlyTexture(data.texture_src2),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				GfxDescriptor dst_descriptor = descriptor_allocator->Allocate(2);
+				GfxDescriptor src_descriptors[] = { context.GetReadOnlyTexture(data.texture_src1), context.GetReadOnlyTexture(data.texture_src2) };
+				uint32 i = dst_descriptor.GetIndex();
+				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
 
-				cmd_list->SetGraphicsRoot32BitConstant(1, i, 0);
-				cmd_list->SetGraphicsRoot32BitConstant(1, i + 1, 1);
-				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-				cmd_list->DrawInstanced(4, 1, 0, 0);
+				cmd_list->SetRootConstant(1, i, 0);
+				cmd_list->SetRootConstant(1, i + 1, 1);
+				cmd_list->SetTopology(GfxPrimitiveTopology::TriangleStrip);
+				cmd_list->Draw(4);
 			}, RGPassType::Graphics, RGPassFlags::None);
 	}
 

@@ -3,6 +3,7 @@
 #include <memory>
 #include "BlurPass.h"
 #include "../Core/Definitions.h"
+#include "../Graphics/GfxDescriptor.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
 
 
@@ -34,6 +35,7 @@ namespace adria
 		SSAOParams params{};
 		DirectX::XMVECTOR ssao_kernel[KERNEL_SIZE] = {};
 		std::unique_ptr<GfxTexture> ssao_random_texture;
+		GfxDescriptor ssao_random_texture_srv;
 		BlurPass blur_pass;
 	};
 

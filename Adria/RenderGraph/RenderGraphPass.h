@@ -104,7 +104,7 @@ namespace adria
 	protected:
 
 		virtual void Setup(RenderGraphBuilder&) = 0;
-		virtual void Execute(RenderGraphContext&, GfxDevice*, CommandList*) const = 0;
+		virtual void Execute(RenderGraphContext&, GfxDevice*, GfxCommandList*) const = 0;
 
 		bool IsCulled() const { return CanBeCulled() && ref_count == 0; }
 		bool CanBeCulled() const { return !HasAnyFlag(flags, RGPassFlags::ForceNoCull); }
@@ -141,7 +141,7 @@ namespace adria
 	{
 	public:
 		using SetupFunc = std::function<void(PassData&, RenderGraphBuilder&)>;
-		using ExecuteFunc = std::function<void(PassData const&, RenderGraphContext&, GfxDevice*, CommandList*)>;
+		using ExecuteFunc = std::function<void(PassData const&, RenderGraphContext&, GfxDevice*, GfxCommandList*)>;
 
 	public:
 		RenderGraphPass(char const* name, SetupFunc&& setup, ExecuteFunc&& execute, RGPassType type = RGPassType::Graphics, RGPassFlags flags = RGPassFlags::None)
@@ -166,7 +166,7 @@ namespace adria
 			setup(data, builder);
 		}
 
-		void Execute(RenderGraphContext& context, GfxDevice* dev, CommandList* ctx) const override
+		void Execute(RenderGraphContext& context, GfxDevice* dev, GfxCommandList* ctx) const override
 		{
 			ADRIA_ASSERT(setup != nullptr && "execute function is null!");
 			execute(data, context, dev, ctx);
@@ -178,7 +178,7 @@ namespace adria
 	{
 	public:
 		using SetupFunc = std::function<void(RenderGraphBuilder&)>;
-		using ExecuteFunc = std::function<void(RenderGraphContext&, GfxDevice*, CommandList*)>;
+		using ExecuteFunc = std::function<void(RenderGraphContext&, GfxDevice*, GfxCommandList*)>;
 
 	public:
 		RenderGraphPass(char const* name, SetupFunc&& setup, ExecuteFunc&& execute, RGPassType type = RGPassType::Graphics, RGPassFlags flags = RGPassFlags::None)
@@ -202,7 +202,7 @@ namespace adria
 			setup(builder);
 		}
 
-		void Execute(RenderGraphContext& context, GfxDevice* dev, CommandList* ctx) const override
+		void Execute(RenderGraphContext& context, GfxDevice* dev, GfxCommandList* ctx) const override
 		{
 			ADRIA_ASSERT(setup != nullptr && "execute function is null!");
 			execute(context, dev, ctx);

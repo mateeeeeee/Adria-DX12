@@ -31,11 +31,18 @@ namespace adria
 	class GfxBuffer;
 	class GfxBufferSubresourceDesc;
 
+	class GfxLinearDynamicAllocator;
 	class GfxDescriptorAllocator;
 	template<bool>
 	class GfxRingDescriptorAllocator;
-	using GfxMTRingDescriptorAllocator = GfxRingDescriptorAllocator<GFX_MULTITHREADED>;
 
+#ifdef GFX_MULTITHREADED
+	using GfxOnlineDescriptorAllocator = GfxRingDescriptorAllocator<true>;
+#else 
+	using GfxOnlineDescriptorAllocator = GfxRingDescriptorAllocator<false>;
+#endif
+
+	
 	struct GfxOptions
 	{
 		bool debug_layer = false;
@@ -81,6 +88,7 @@ namespace adria
 		GfxCommandQueue& GetCommandQueue(GfxCommandListType type);
 		GfxCommandList* GetCommandList(GfxCommandListType type) const;
 		GfxTexture* GetBackbuffer() const;
+		void SetBackbufferAsRenderTarget(GfxCommandList*) const;
 
 		GFX_DEPRECATED ID3D12GraphicsCommandList4* GetCommandList() const;
 
@@ -95,6 +103,13 @@ namespace adria
 		void FreeOfflineDescriptor(GfxDescriptor, GfxDescriptorHeapType);
 		void InitShaderVisibleAllocator(size_t reserve);
 
+		GfxOnlineDescriptorAllocator* GetDescriptorAllocator() const; //#todo get rid of this?
+		GfxLinearDynamicAllocator* GetDynamicAllocator() const;
+
+		GfxBuffer* CreateBuffer(GfxBufferDesc const& desc, GfxBufferInitialData initial_data = nullptr);
+		GfxTexture* CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data = nullptr, size_t data_count = -1);
+		GfxTexture* CreateTextureForBackbuffer(GfxDevice* gfx, GfxTextureDesc const& desc, ID3D12Resource* backbuffer);
+
 		GfxDescriptor CreateBufferSRV(GfxBuffer const*, GfxBufferSubresourceDesc const* = nullptr);
 		GfxDescriptor CreateBufferUAV(GfxBuffer const*, GfxBufferSubresourceDesc const* = nullptr);
 		GfxDescriptor CreateBufferUAV(GfxBuffer const*, GfxBuffer const*, GfxBufferSubresourceDesc const* = nullptr);
@@ -103,10 +118,12 @@ namespace adria
 		GfxDescriptor CreateTextureRTV(GfxTexture const*, GfxTextureSubresourceDesc const* = nullptr);
 		GfxDescriptor CreateTextureDSV(GfxTexture const*, GfxTextureSubresourceDesc const* = nullptr);
 
-		//#todo : copy descriptors API
-
-		GfxMTRingDescriptorAllocator* GetDescriptorAllocator() const;
-		GfxLinearDynamicAllocator* GetDynamicAllocator() const;
+		void CopyDescriptors(uint32 count, GfxDescriptor dst, GfxDescriptor src, GfxDescriptorHeapType type = GfxDescriptorHeapType::CBV_SRV_UAV);
+		void CopyDescriptors(GfxDescriptor dst, std::span<GfxDescriptor> src_descriptors, GfxDescriptorHeapType type = GfxDescriptorHeapType::CBV_SRV_UAV);
+		void CopyDescriptors(
+			std::span<std::pair<GfxDescriptor, uint32>> dst_range_starts_and_size,
+			std::span<std::pair<GfxDescriptor, uint32>> src_range_starts_and_size,
+			GfxDescriptorHeapType type = GfxDescriptorHeapType::CBV_SRV_UAV);
 
 		void GetTimestampFrequency(uint64& frequency) const;
 		GPUMemoryUsage GetMemoryUsage() const;
@@ -126,7 +143,7 @@ namespace adria
 		ArcPtr<IDXGIFactory4> dxgi_factory = nullptr;
 		ArcPtr<ID3D12Device5> device = nullptr;
 
-		std::unique_ptr<GfxMTRingDescriptorAllocator> gpu_descriptor_allocator;
+		std::unique_ptr<GfxOnlineDescriptorAllocator> gpu_descriptor_allocator;
 		std::array<std::unique_ptr<GfxDescriptorAllocator>, (size_t)GfxDescriptorHeapType::Count> cpu_descriptor_allocators;
 
 		std::unique_ptr<GfxSwapchain> swapchain;

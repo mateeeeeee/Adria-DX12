@@ -5,7 +5,7 @@
 #include "BlackboardData.h"
 #include "PSOCache.h" 
 
-#include "../Graphics/RingGPUDescriptorAllocator.h"
+#include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Logging/Logger.h"
 
@@ -40,11 +40,9 @@ namespace adria
 				data.output = builder.WriteTexture(RG_RES_NAME(GodRaysOutput));
 				data.sun = builder.ReadTexture(RG_RES_NAME(SunOutput));
 			},
-			[=](GodRaysPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
+			[=](GodRaysPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
-				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 				if (light.type != LightType::Directional)
 				{
@@ -52,9 +50,9 @@ namespace adria
 					return;
 				}
 
-				uint32 i = (uint32)descriptor_allocator->AllocateRange(2);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.sun), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				uint32 i = descriptor_allocator->Allocate(2).GetIndex();
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.sun));
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.output));
 
 				XMVECTOR camera_position = global_data.camera_position;
 				XMVECTOR LightPos = XMVector4Transform(light.position, XMMatrixTranslation(XMVectorGetX(camera_position), 0.0f, XMVectorGetY(camera_position)));
@@ -83,9 +81,9 @@ namespace adria
 
 				
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::GodRays));
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
-				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, constants);
+				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 	}
 

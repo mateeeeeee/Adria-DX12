@@ -3,7 +3,7 @@
 #include "BlackboardData.h"
 #include "PSOCache.h" 
 
-#include "../Graphics/RingGPUDescriptorAllocator.h"
+#include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Utilities/Random.h"
 #include "../Editor/GUICommand.h"
@@ -37,20 +37,19 @@ namespace adria
 				data.gbuffer_normal_srv = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
 				data.depth_stencil_srv = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
-			[&](HBAOPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
+			[&](HBAOPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
-				
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::HBAO));
 
-				uint32 i = (uint32)descriptor_allocator->AllocateRange(4);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.depth_stencil_srv), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadOnlyTexture(data.gbuffer_normal_srv), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), hbao_random_texture->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 3), ctx.GetReadWriteTexture(data.output_uav), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				uint32 i = descriptor_allocator->Allocate(4).GetIndex();
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.depth_stencil_srv));
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadOnlyTexture(data.gbuffer_normal_srv));
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 2), hbao_random_texture_srv);
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 3), ctx.GetReadWriteTexture(data.output_uav));
 
 				struct HBAOConstants
 				{
@@ -71,9 +70,9 @@ namespace adria
 					.depth_idx = i, .normal_idx = i + 1, .noise_idx = i + 2, .output_idx = i + 3
 				};
 
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
-				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1,constants);
+				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 			}, RGPassType::Compute);
 
 		blur_pass.AddPass(rendergraph, RG_RES_NAME(HBAO_Output), RG_RES_NAME(AmbientOcclusion), " HBAO");
@@ -124,8 +123,8 @@ namespace adria
 		noise_desc.bind_flags = GfxBindFlag::ShaderResource;
 
 		hbao_random_texture = std::make_unique<GfxTexture>(gfx, noise_desc, &data);
-		hbao_random_texture->CreateSRV();
-		hbao_random_texture->GetNative()->SetName(L"HBAO Random Texture");
+		hbao_random_texture->SetName("HBAO Random Texture");
+		hbao_random_texture_srv = gfx->CreateTextureSRV(hbao_random_texture.get());
 	}
 
 }

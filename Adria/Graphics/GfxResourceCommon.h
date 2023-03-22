@@ -1,7 +1,10 @@
 #pragma once
 #include "GfxFormat.h"
+#include "D3D12MemAlloc.h"
 #include "../Utilities/EnumUtil.h"
 #include "../Utilities/StringUtil.h"
+#include "../Utilities/AutoRefCountPtr.h"
+#include "../Utilities/Releasable.h"
 
 namespace adria
 {
@@ -102,4 +105,94 @@ namespace adria
 		if (HasAnyFlag(state, GfxResourceState::RaytracingAccelerationStructure)) api_state |= D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
 		return api_state;
 	}
+
+	struct GfxClearValue
+	{
+		enum class GfxActiveMember
+		{
+			None,
+			Color,
+			DepthStencil
+		};
+		struct GfxClearColor
+		{
+			GfxClearColor(float r = 0.0f, float g = 0.0f, float b = 0.0f, float a = 0.0f)
+				: color{ r, g, b, a }
+			{
+			}
+			GfxClearColor(float(&_color)[4])
+				: color{ _color[0], _color[1], _color[2], _color[3] }
+			{
+			}
+			GfxClearColor(GfxClearColor const& other)
+				: color{ other.color[0], other.color[1], other.color[2], other.color[3] }
+			{
+			}
+
+			bool operator==(GfxClearColor const& other) const
+			{
+				return memcmp(color, other.color, sizeof(color)) == 0;
+			}
+
+			float color[4];
+		};
+		struct GfxClearDepthStencil
+		{
+			GfxClearDepthStencil(float depth = 0.0f, uint8 stencil = 1)
+				: depth(depth), stencil(stencil)
+			{}
+			float depth;
+			uint8 stencil;
+		};
+
+		GfxClearValue() : active_member(GfxActiveMember::None), depth_stencil{} {}
+
+		GfxClearValue(float r, float g, float b, float a)
+			: active_member(GfxActiveMember::Color), color(r, g, b, a)
+		{
+		}
+
+		GfxClearValue(float(&_color)[4])
+			: active_member(GfxActiveMember::Color), color{ _color }
+		{
+		}
+
+		GfxClearValue(GfxClearColor const& color)
+			: active_member(GfxActiveMember::Color), color(color)
+		{}
+
+		GfxClearValue(float depth, uint8 stencil)
+			: active_member(GfxActiveMember::DepthStencil), depth_stencil(depth, stencil)
+		{}
+		GfxClearValue(GfxClearDepthStencil const& depth_stencil)
+			: active_member(GfxActiveMember::DepthStencil), depth_stencil(depth_stencil)
+		{}
+
+		GfxClearValue(GfxClearValue const& other)
+			: active_member(other.active_member), color{}
+		{
+			if (active_member == GfxActiveMember::Color) color = other.color;
+			else if (active_member == GfxActiveMember::DepthStencil) depth_stencil = other.depth_stencil;
+		}
+
+		bool operator==(GfxClearValue const& other) const
+		{
+			if (active_member != other.active_member) return false;
+			else if (active_member == GfxActiveMember::Color)
+			{
+				return color == other.color;
+			}
+			else return depth_stencil.depth == other.depth_stencil.depth
+				&& depth_stencil.stencil == other.depth_stencil.stencil;
+		}
+
+		GfxActiveMember active_member;
+		union
+		{
+			GfxClearColor color;
+			GfxClearDepthStencil depth_stencil;
+		};
+	};
+
+	class GfxDevice;
 }

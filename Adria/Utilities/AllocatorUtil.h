@@ -19,10 +19,13 @@ namespace adria
 		return r ? address + (align - r) : address;
 	}
 
-
-
 	using OffsetType = size_t;
 
 	inline constexpr OffsetType const INVALID_OFFSET = static_cast<OffsetType>(-1);
 
+	struct DummyMutex
+	{
+		void lock() {}
+		void unlock() {}
+	};
 }

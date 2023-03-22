@@ -24,8 +24,8 @@ namespace adria
 			explicit DependencyLevel(RenderGraph& rg) : rg(rg) {}
 			void AddPass(RenderGraphPassBase* pass);
 			void Setup();
-			void Execute(GfxDevice* gfx, CommandList* cmd_list);
-			void Execute(GfxDevice* gfx, std::vector<CommandList*> const& cmd_lists);
+			void Execute(GfxDevice* gfx, GfxCommandList* cmd_list);
+			void Execute(GfxDevice* gfx, std::span<GfxCommandList*> const& cmd_lists);
 			size_t GetSize() const;
 			size_t GetNonCulledSize() const;
 
@@ -140,9 +140,9 @@ namespace adria
 		RGBufferReadWriteId WriteBuffer(RGResourceName name, RGResourceName counter_name, GfxBufferSubresourceDesc const& desc);
 
 		GfxTexture const& GetCopySrcTexture(RGTextureCopySrcId) const;
-		GfxTexture const& GetCopyDstTexture(RGTextureCopyDstId) const;
-		GfxBuffer const& GetCopySrcBuffer(RGBufferCopySrcId) const;
-		GfxBuffer const& GetCopyDstBuffer(RGBufferCopyDstId) const;
+		GfxTexture&		  GetCopyDstTexture(RGTextureCopyDstId) const;
+		GfxBuffer const&  GetCopySrcBuffer(RGBufferCopySrcId) const;
+		GfxBuffer&		  GetCopyDstBuffer(RGBufferCopyDstId) const;
 		GfxBuffer const& GetIndirectArgsBuffer(RGBufferIndirectArgsId) const;
 		GfxBuffer const& GetVertexBuffer(RGBufferVertexId) const;
 		GfxBuffer const& GetIndexBuffer(RGBufferIndexId) const;

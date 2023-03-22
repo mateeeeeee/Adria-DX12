@@ -4,7 +4,7 @@
 #include "PSOCache.h" 
 
 #include "../Graphics/GfxLinearDynamicAllocator.h"
-#include "../Graphics/RingGPUDescriptorAllocator.h"
+#include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Utilities/Random.h"
 #include "../Core/ConsoleVariable.h"
@@ -56,19 +56,17 @@ namespace adria
 				data.gbuffer_normal_srv = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
 				data.depth_stencil_srv = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
-			[&](SSAOPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
+			[&](SSAOPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
-				auto dynamic_allocator = gfx->GetDynamicAllocator();
-
+				
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::SSAO));
 
-				uint32 i = (uint32)descriptor_allocator->AllocateRange(4);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.depth_stencil_srv), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadOnlyTexture(data.gbuffer_normal_srv), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ssao_random_texture->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 3), ctx.GetReadWriteTexture(data.output_uav), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				uint32 i = descriptor_allocator->Allocate(4).GetIndex();
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.depth_stencil_srv));
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadOnlyTexture(data.gbuffer_normal_srv));
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 2), ssao_random_texture_srv);
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 3), ctx.GetReadWriteTexture(data.output_uav));
 
 				struct SSAOConstants
 				{
@@ -87,13 +85,11 @@ namespace adria
 					.noise_scale_x = width * 1.0f / NOISE_DIM, .noise_scale_y = height * 1.0f / NOISE_DIM,
 					.depth_idx = i, .normal_idx = i + 1, .noise_idx = i + 2, .output_idx = i + 3
 				};
-				GfxDynamicAllocation alloc = dynamic_allocator->Allocate(sizeof(ssao_kernel), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-				alloc.Update(ssao_kernel, alloc.size);
 
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
-				cmd_list->SetComputeRootConstantBufferView(2, alloc.gpu_address);
-				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, constants);
+				cmd_list->SetRootCBV(2, ssao_kernel);
+				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 			}, RGPassType::Compute);
 
 		blur_pass.AddPass(rendergraph, RG_RES_NAME(SSAO_Output), RG_RES_NAME(AmbientOcclusion), " SSAO");
@@ -145,8 +141,8 @@ namespace adria
 		noise_desc.bind_flags = GfxBindFlag::ShaderResource;
 
 		ssao_random_texture = std::make_unique<GfxTexture>(gfx, noise_desc, &data);
-		ssao_random_texture->CreateSRV();
-		ssao_random_texture->GetNative()->SetName(L"SSAO Random Texture");
+		ssao_random_texture->SetName("SSAO Random Texture");
+		ssao_random_texture_srv = gfx->CreateTextureSRV(ssao_random_texture.get());
 	}
 }
 

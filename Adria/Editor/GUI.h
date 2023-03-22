@@ -9,7 +9,11 @@ namespace adria
 {
 
 	class GfxDevice;
-	class RingGPUDescriptorAllocator;
+	template<bool>
+	class GfxRingDescriptorAllocator;
+
+	using GUIDescriptorAllocator = GfxRingDescriptorAllocator<false>;
+
 	struct WindowMessage;
 
 	class GUI
@@ -29,11 +33,11 @@ namespace adria
 
 		bool IsVisible() const;
 
-		RingGPUDescriptorAllocator* DescriptorAllocator() const;
+		GUIDescriptorAllocator* DescriptorAllocator() const;
 
 	private:
 		GfxDevice* gfx;
-		std::unique_ptr<RingGPUDescriptorAllocator> imgui_allocator;
+		std::unique_ptr<GUIDescriptorAllocator> imgui_allocator;
 		bool visible = true;
 		mutable uint64 frame_count = 0;
 	};

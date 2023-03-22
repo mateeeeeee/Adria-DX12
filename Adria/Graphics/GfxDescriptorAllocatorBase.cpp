@@ -1,26 +1,10 @@
 #include "GfxDescriptorAllocatorBase.h"
+#include "GfxDevice.h"
 #include "../Core/Macros.h"
 
 namespace adria
 {
-	static constexpr D3D12_DESCRIPTOR_HEAP_TYPE ToD3D12HeapType(GfxDescriptorHeapType type)
-	{
-		switch (type)
-		{
-		case GfxDescriptorHeapType::CBV_SRV_UAV:
-			return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-		case GfxDescriptorHeapType::Sampler:
-			return D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
-		case GfxDescriptorHeapType::RTV:
-			return D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-		case GfxDescriptorHeapType::DSV:
-			return D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-		}
-		ADRIA_UNREACHABLE();
-	}
-
-
-	GfxDescriptor GfxDescriptorAllocatorBase::GetHandle(size_t index /*= 0*/) const
+	GfxDescriptor GfxDescriptorAllocatorBase::GetHandle(uint32 index /*= 0*/) const
 	{
 		ADRIA_ASSERT(heap != nullptr);
 		ADRIA_ASSERT(index < descriptor_count);
@@ -43,7 +27,7 @@ namespace adria
 
 	void GfxDescriptorAllocatorBase::CreateHeap()
 	{
-		ADRIA_ASSERT(count <= UINT32_MAX && "Too many descriptors");
+		ADRIA_ASSERT(descriptor_count <= UINT32_MAX && "Too many descriptors");
 		D3D12_DESCRIPTOR_HEAP_DESC heap_desc{};
 		heap_desc.Flags = shader_visible ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 		heap_desc.NumDescriptors = descriptor_count;

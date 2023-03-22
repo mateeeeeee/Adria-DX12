@@ -12,12 +12,12 @@ namespace adria
 		return rg.GetBlackboard();
 	}
 
-	GfxTexture const& RenderGraphContext::GetTexture(RGTextureId res_id) const
+	GfxTexture& RenderGraphContext::GetTexture(RGTextureId res_id) const
 	{
 		return *rg.GetTexture(res_id);
 	}
 
-	GfxBuffer const& RenderGraphContext::GetBuffer(RGBufferId res_id) const
+	GfxBuffer& RenderGraphContext::GetBuffer(RGBufferId res_id) const
 	{
 		return *rg.GetBuffer(res_id);
 	}
@@ -27,7 +27,7 @@ namespace adria
 		return rg.GetCopySrcTexture(res_id);
 	}
 
-	GfxTexture const& RenderGraphContext::GetCopyDstTexture(RGTextureCopyDstId res_id) const
+	GfxTexture& RenderGraphContext::GetCopyDstTexture(RGTextureCopyDstId res_id) const
 	{
 		return rg.GetCopyDstTexture(res_id);
 	}
@@ -38,7 +38,7 @@ namespace adria
 		return rg.GetCopySrcBuffer(res_id);
 	}
 
-	GfxBuffer const& RenderGraphContext::GetCopyDstBuffer(RGBufferCopyDstId res_id) const
+	GfxBuffer& RenderGraphContext::GetCopyDstBuffer(RGBufferCopyDstId res_id) const
 	{
 		return rg.GetCopyDstBuffer(res_id);
 	}

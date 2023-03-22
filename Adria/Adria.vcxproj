@@ -333,7 +333,6 @@
     <ClInclude Include="Graphics\GfxPipelineState.h" />
     <ClInclude Include="Graphics\GfxRayTracingUtil.h" />
     <ClInclude Include="Graphics\GfxRenderPass.h" />
-    <ClInclude Include="Graphics\GfxResourceBarrierBatch.h" />
     <ClInclude Include="Graphics\GfxResourceCommon.h" />
     <ClInclude Include="Graphics\GfxShader.h" />
     <ClInclude Include="Graphics\GfxTexture.h" />

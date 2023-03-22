@@ -1,36 +1,65 @@
 #pragma once
+#include <memory>
 #include <optional>
-#include "d3dx12.h"
+#include <d3d12.h>
+#include "GfxDescriptor.h"
+#include "GfxResourceCommon.h"
 #include "../Core/Definitions.h"
 
 
 namespace adria
 {
-    //#todo : refactor
+    class GfxCommandList;
+	
+    enum class GfxLoadAccessOp : uint8
+    {
+        Discard,
+        Preserve,
+        Clear,
+        NoAccess
+    };
+
+	enum class GfxStoreAccessOp : uint8
+	{
+		Discard,
+		Preserve,
+		Resolve,
+		NoAccess
+	};
+
+    enum GfxRenderPassFlagBit : uint32
+    {
+        GfxRenderPassFlagBit_None = 0x0,
+        GfxRenderPassFlagBit_AllowUAVWrites = 0x1,
+        GfxRenderPassFlagBit_SuspendingPass = 0x2,
+        GfxRenderPassFlagBit_ResumingPass = 0x4,
+    };
+    DEFINE_ENUM_BIT_OPERATORS(GfxRenderPassFlagBit);
+    using GfxRenderPassFlags = uint32;
 
     struct GfxColorAttachmentDesc
     {
-        D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle;
-        D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE beginning_access;
-        D3D12_RENDER_PASS_ENDING_ACCESS_TYPE ending_access;
-        D3D12_CLEAR_VALUE clear_value;
+        GfxDescriptor cpu_handle;
+        GfxLoadAccessOp beginning_access;
+        GfxStoreAccessOp ending_access;
+        GfxClearValue clear_value;
     };
 
     struct GfxDepthAttachmentDesc
     {
-        D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle;
-        D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE depth_beginning_access;
-        D3D12_RENDER_PASS_ENDING_ACCESS_TYPE    depth_ending_access;
-        D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE stencil_beginning_access = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS;
-        D3D12_RENDER_PASS_ENDING_ACCESS_TYPE    stencil_ending_access = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_NO_ACCESS;
-        D3D12_CLEAR_VALUE clear_value;
+        GfxDescriptor cpu_handle;
+        GfxLoadAccessOp depth_beginning_access;
+        GfxStoreAccessOp    depth_ending_access;
+        GfxLoadAccessOp stencil_beginning_access = GfxLoadAccessOp::NoAccess;
+        GfxStoreAccessOp    stencil_ending_access = GfxStoreAccessOp::NoAccess;
+        GfxClearValue clear_value;
     };
 
     struct GfxRenderPassDesc
     {
         std::vector<GfxColorAttachmentDesc> rtv_attachments{};
         std::optional<GfxDepthAttachmentDesc> dsv_attachment = std::nullopt;
-        D3D12_RENDER_PASS_FLAGS render_pass_flags = D3D12_RENDER_PASS_FLAG_NONE;
+        GfxRenderPassFlags flags = GfxRenderPassFlagBit_None;
         uint32 width;
         uint32 height;
     };
@@ -38,14 +67,11 @@ namespace adria
     class GfxRenderPass
     {
     public:
-
         GfxRenderPass() = default;
-
         explicit GfxRenderPass(GfxRenderPassDesc const& desc);
 
-        void Begin(ID3D12GraphicsCommandList4* cmd_list, bool legacy = false);
-        void End(ID3D12GraphicsCommandList4* cmd_list, bool legacy = false);
-
+        void Begin(GfxCommandList* cmd_list, bool legacy = false);
+        void End();
 
     private:
         std::vector<D3D12_RENDER_PASS_RENDER_TARGET_DESC> rtvs{};
@@ -53,5 +79,8 @@ namespace adria
         D3D12_RENDER_PASS_FLAGS flags = D3D12_RENDER_PASS_FLAG_NONE;
         uint32 width = 0;
         uint32 height = 0;
+
+        bool legacy = false;
+        GfxCommandList* cmd_list = nullptr;
     };
 }

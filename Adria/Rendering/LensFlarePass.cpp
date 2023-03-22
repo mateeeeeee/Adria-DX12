@@ -7,7 +7,7 @@
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/TextureManager.h"
 #include "../Graphics/GfxLinearDynamicAllocator.h"
-#include "../Graphics/RingGPUDescriptorAllocator.h"
+#include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../Logging/Logger.h"
 
 using namespace DirectX;
@@ -35,12 +35,10 @@ namespace adria
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
-			[=](LensFlarePassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
+			[=](LensFlarePassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
-				auto dynamic_allocator = gfx->GetDynamicAllocator();
-
+				
 				if (light.type != LightType::Directional)
 				{
 					ADRIA_LOG(WARNING, "Using Lens Flare on a Non-Directional Light Source");
@@ -59,16 +57,15 @@ namespace adria
 					light_ss.z = light_pos.z / light_pos.w;
 				}
 
-				std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> lens_flare_descriptors{};
+				std::vector<GfxDescriptor> lens_flare_descriptors{};
 				for (size_t i = 0; i < lens_flare_textures.size(); ++i)
 					lens_flare_descriptors.push_back(TextureManager::Get().GetSRV(lens_flare_textures[i]));
 				lens_flare_descriptors.push_back(context.GetReadOnlyTexture(data.depth));
-				uint32 i = (uint32)descriptor_allocator->AllocateRange(8);
-				D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { descriptor_allocator->GetHandle(i) };
-				uint32 src_range_sizes[] = { 1, 1, 1, 1, 1, 1, 1, 1 };
-				uint32 dst_range_sizes[] = { 8 };
-				device->CopyDescriptors(ARRAYSIZE(dst_ranges), dst_ranges, dst_range_sizes, ARRAYSIZE(src_range_sizes), lens_flare_descriptors.data(), src_range_sizes,
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+				GfxDescriptor dst_descriptor = descriptor_allocator->Allocate(8);
+				gfx->CopyDescriptors(dst_descriptor, lens_flare_descriptors);
+				uint32 i = dst_descriptor.GetIndex();
+
 				struct LensFlareConstants
 				{
 					uint32   lens_idx0;
@@ -96,17 +93,12 @@ namespace adria
 					.light_ss_y = light_ss.y,
 					.light_ss_z = light_ss.z
 				};
-
-				GfxDynamicAllocation allocation = dynamic_allocator->Allocate(GetCBufferSize<LensFlareConstants2>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-				allocation.Update(constants2);
-
-				
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::LensFlare));
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetGraphicsRoot32BitConstants(1, 8, &constants, 0);
-				cmd_list->SetGraphicsRootConstantBufferView(2, allocation.gpu_address);
-				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-				cmd_list->DrawInstanced(7, 1, 0, 0);
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, constants);
+				cmd_list->SetRootCBV(2, constants2);
+				cmd_list->SetTopology(GfxPrimitiveTopology::PointList);
+				cmd_list->Draw(7);
 
 			}, RGPassType::Graphics, RGPassFlags::None);
 	}

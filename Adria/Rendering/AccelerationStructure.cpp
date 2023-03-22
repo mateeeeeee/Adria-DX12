@@ -86,7 +86,7 @@ namespace adria
 			blas_desc.DestAccelerationStructureData = blases[i]->GetGPUAddress();
 			blas_desc.ScratchAccelerationStructureData = scratch_buffer->GetGPUAddress();
 			cmd_list->GetNative()->BuildRaytracingAccelerationStructure(&blas_desc, 0, nullptr);
-			cmd_list->UavBarrier(blases[i].get());
+			cmd_list->UavBarrier(*blases[i]);
 			cmd_list->FlushBarriers();
 
 			cmd_list->Signal(build_fence, build_fence_value);
@@ -157,7 +157,7 @@ namespace adria
 		tlas_desc.DestAccelerationStructureData = tlas->GetGPUAddress();
 		tlas_desc.ScratchAccelerationStructureData = tlas_buffers.scratch_buffer->GetGPUAddress();
 		cmd_list->GetNative()->BuildRaytracingAccelerationStructure(&tlas_desc, 0, nullptr);
-		cmd_list->UavBarrier(tlas.get());
+		cmd_list->UavBarrier(*tlas);
 
 		cmd_list->Signal(build_fence, build_fence_value);
 		cmd_list->End();

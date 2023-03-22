@@ -369,10 +369,10 @@ namespace adria
 		compute_pso_map.clear();
 	}
 
-	ID3D12PipelineState* PSOCache::Get(GfxPipelineStateID ps)
+	GfxPipelineState* PSOCache::Get(GfxPipelineStateID ps)
 	{
-		if (compute_pso_map.contains(ps)) return  *compute_pso_map[ps];
-		else return *gfx_pso_map[ps];
+		if (compute_pso_map.contains(ps)) return compute_pso_map[ps].get();
+		else return gfx_pso_map[ps].get();
 	}
 }
 

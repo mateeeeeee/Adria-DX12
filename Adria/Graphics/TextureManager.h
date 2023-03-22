@@ -4,15 +4,14 @@
 #include <d3d12.h>
 #include <variant>
 #include <memory>
-#include "MipsGenerator.h"
-#include "GfxResourceBarrierBatch.h"
+#include "GfxDescriptor.h"
 #include "../Utilities/HashMap.h"
 
 namespace adria
 {
 	class GfxDevice;
 	class GfxTexture;
-	class DescriptorHeap;
+	class MipsGenerator;
 	
 	using TextureHandle = size_t;
 	inline constexpr TextureHandle INVALID_TEXTURE_HANDLE = TextureHandle(0);
@@ -31,8 +30,8 @@ namespace adria
 		[[nodiscard]] TextureHandle LoadTexture(std::wstring const& name);
 		[[nodiscard]] TextureHandle LoadCubemap(std::wstring const& name);
 		[[nodiscard]] TextureHandle LoadCubemap(std::array<std::wstring, 6> const& cubemap_textures);
-		[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE GetSRV(TextureHandle tex_handle);
-		GfxTexture* GetTexture(TextureHandle handle) const;
+		[[nodiscard]] GfxDescriptor GetSRV(TextureHandle tex_handle);
+		[[nodiscard]] GfxTexture* GetTexture(TextureHandle handle) const;
 		void EnableMipMaps(bool);
 		void OnSceneInitialized();
 
@@ -42,6 +41,7 @@ namespace adria
 
 		HashMap<TextureName, TextureHandle> loaded_textures{};
 		HashMap<TextureHandle, std::unique_ptr<GfxTexture>> texture_map{};
+		HashMap<TextureHandle, GfxDescriptor> texture_srv_map{};
 		TextureHandle handle = 0;
 		bool mipmaps = true;
 		bool is_scene_initialized = false;

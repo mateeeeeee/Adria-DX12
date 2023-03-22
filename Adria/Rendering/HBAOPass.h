@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include "BlurPass.h"
+#include "../Graphics/GfxDescriptor.h"
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
 
@@ -30,6 +31,7 @@ namespace adria
 		uint32 width, height;
 		HBAOParams params{};
 		std::unique_ptr<GfxTexture> hbao_random_texture;
+		GfxDescriptor hbao_random_texture_srv;
 		BlurPass blur_pass;
 	};
 

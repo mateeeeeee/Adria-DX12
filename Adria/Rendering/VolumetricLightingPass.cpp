@@ -4,7 +4,7 @@
 #include "BlackboardData.h"
 #include "PSOCache.h" 
 
-#include "../Graphics/RingGPUDescriptorAllocator.h"
+#include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Logging/Logger.h"
 
@@ -29,20 +29,15 @@ namespace adria
 				data.output = builder.WriteTexture(RG_RES_NAME(HDR_RenderTarget));
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
-			[=](LightingPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
+			[=](LightingPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
-				auto dynamic_allocator = gfx->GetDynamicAllocator();
-
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { context.GetReadOnlyTexture(data.depth),
-															  context.GetReadWriteTexture(data.output) };
-				uint32 src_range_sizes[] = { 1,1 };
-				uint32 i = (uint32)descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
-				auto dst_descriptor = descriptor_allocator->GetHandle(i);
-				uint32 dst_range_sizes[] = { (uint32)ARRAYSIZE(cpu_handles) };
-				device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes, ARRAYSIZE(cpu_handles), cpu_handles, src_range_sizes,
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				
+				GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.depth),
+												context.GetReadWriteTexture(data.output) };
+				GfxDescriptor dst_handle = descriptor_allocator->Allocate(ARRAYSIZE(src_handles));
+				gfx->CopyDescriptors(dst_handle, src_handles);
+				uint32 i = dst_handle.GetIndex();
 
 				struct VolumetricLightingConstants
 				{
@@ -54,9 +49,9 @@ namespace adria
 				};
 				
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::VolumetricLighting));
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRoot32BitConstants(1, 2, &constants, 0);
-				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, constants);
+				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 			}, RGPassType::Compute);
 
 	}

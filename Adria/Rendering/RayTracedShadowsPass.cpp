@@ -4,7 +4,7 @@
 #include "PSOCache.h" 
 
 #include "../Graphics/GfxShader.h"
-#include "../Graphics/RingGPUDescriptorAllocator.h"
+#include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 
 namespace adria
@@ -41,15 +41,13 @@ namespace adria
 				data.mask = builder.WriteTexture(mask_name);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
-			[=](RayTracedShadowsPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
+			[=](RayTracedShadowsPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				auto device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
-				auto dynamic_allocator = gfx->GetDynamicAllocator();
-
-				uint32 i = (uint32)descriptor_allocator->AllocateRange(2);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.depth), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.mask), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				
+				uint32 i = descriptor_allocator->Allocate(2).GetIndex();
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.depth));
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.mask));
 
 				struct RayTracedShadowsConstants
 				{
@@ -62,10 +60,10 @@ namespace adria
 					.light_idx = light_index
 				};
 				
-				cmd_list->SetPipelineState1(ray_traced_shadows.Get());
+				cmd_list->GetNative()->SetPipelineState1(ray_traced_shadows.Get());
 
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRoot32BitConstants(1, 3, &constants, 0);
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, constants);
 
 				D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
 				dispatch_desc.Width = width;
@@ -77,7 +75,7 @@ namespace adria
 				table.AddMissShader("RTS_Miss", 0);
 				table.AddHitGroup("ShadowAnyHitGroup", 0);
 				table.Commit(*gfx->GetDynamicAllocator(), dispatch_desc);
-				cmd_list->DispatchRays(&dispatch_desc);
+				cmd_list->GetNative()->DispatchRays(&dispatch_desc);
 
 			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
 	}

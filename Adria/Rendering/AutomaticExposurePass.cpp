@@ -6,7 +6,7 @@
 #include "../Graphics/GfxTexture.h"
 #include "../Graphics/GfxBuffer.h"
 #include "../Graphics/GfxLinearDynamicAllocator.h"
-#include "../Graphics/RingGPUDescriptorAllocator.h"
+#include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../Editor/GUICommand.h"
 
 #include <algorithm> // remove this later
@@ -30,7 +30,7 @@ namespace adria
 		desc.format = GfxFormat::R16_FLOAT;
 
 		previous_ev100 = std::make_unique<GfxTexture>(gfx, desc);
-		previous_ev100->CreateUAV();
+		previous_ev100_uav = gfx->CreateTextureUAV(previous_ev100.get());
 
 		GfxBufferDesc hist_desc{};
 		hist_desc.stride = sizeof(uint32);
@@ -63,31 +63,22 @@ namespace adria
 				builder.DeclareBuffer(RG_RES_NAME(HistogramBuffer), desc);
 				data.histogram_buffer = builder.WriteBuffer(RG_RES_NAME(HistogramBuffer));
 			},
-			[=](BuildHistogramData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
+			[=](BuildHistogramData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
-				auto dynamic_allocator = gfx->GetDynamicAllocator();
+				GfxDescriptor dst_handle = descriptor_allocator->Allocate(2);
+				GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.scene_texture), context.GetReadWriteBuffer(data.histogram_buffer) };
+				gfx->CopyDescriptors(dst_handle, src_handles);
 
-				uint32 descriptor_index = (uint32)descriptor_allocator->AllocateRange(2);
+				uint32 descriptor_index = dst_handle.GetIndex();
+				GfxDescriptor scene_srv = descriptor_allocator->GetHandle(descriptor_index);
+				GfxDescriptor buffer_gpu = descriptor_allocator->GetHandle(descriptor_index + 1);
 
-				DescriptorHandle scene_srv = descriptor_allocator->GetHandle(descriptor_index);
-				device->CopyDescriptorsSimple(1, scene_srv, context.GetReadOnlyTexture(data.scene_texture),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-				DescriptorHandle buffer_gpu = descriptor_allocator->GetHandle(descriptor_index + 1);
-				device->CopyDescriptorsSimple(1, buffer_gpu, context.GetReadWriteBuffer(data.histogram_buffer), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	
 				GfxBuffer const& histogram_buffer = context.GetBuffer(data.histogram_buffer.GetResourceId());
 				uint32 clear_value[4] = { 0, 0, 0, 0 };
-				cmd_list->ClearUnorderedAccessViewUint(buffer_gpu, context.GetReadWriteBuffer(data.histogram_buffer), histogram_buffer.GetNative(), clear_value, 0, nullptr);
-
-				D3D12_RESOURCE_BARRIER buffer_uav_barrier{};
-				buffer_uav_barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
-				buffer_uav_barrier.UAV.pResource = histogram_buffer.GetNative();
-				cmd_list->ResourceBarrier(1, &buffer_uav_barrier);
-
-				
+				cmd_list->ClearUAV(histogram_buffer, buffer_gpu, context.GetReadWriteBuffer(data.histogram_buffer), clear_value);
+				cmd_list->UavBarrier(histogram_buffer);
+				cmd_list->FlushBarriers();
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::BuildHistogram)); 
 				uint32 half_width = (width + 1) / 2;
 				uint32 half_height = (height + 1) / 2;
@@ -106,7 +97,7 @@ namespace adria
 								.rcp_width = 1.0f / half_width, .rcp_height = 1.0f / half_height,
 								.min_luminance = min_luminance, .max_luminance = max_luminance,
 								.scene_idx = descriptor_index, .histogram_idx = descriptor_index + 1 };
-				cmd_list->SetComputeRoot32BitConstants(1, 8, &constants, 0);
+				cmd_list->SetRootConstants(1, constants);
 
 				auto DivideRoudingUp = [](uint32 a, uint32 b)
 				{
@@ -131,23 +122,17 @@ namespace adria
 				builder.DeclareTexture(RG_RES_NAME(AverageLuminance), desc);
 				data.avg_luminance = builder.WriteTexture(RG_RES_NAME(AverageLuminance));
 			},
-			[=](HistogramReductionData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
+			[=](HistogramReductionData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
-				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
-				
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::HistogramReduction));
+				uint32 descriptor_index = descriptor_allocator->Allocate(2).GetIndex();
 
-				uint32 descriptor_index = (uint32)descriptor_allocator->AllocateRange(2);
-
-				DescriptorHandle buffer_srv = descriptor_allocator->GetHandle(descriptor_index);
-				device->CopyDescriptorsSimple(1, buffer_srv, context.GetReadOnlyBuffer(data.histogram_buffer),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				DescriptorHandle avgluminance_uav = descriptor_allocator->GetHandle(descriptor_index + 1);
-				device->CopyDescriptorsSimple(1, avgluminance_uav, context.GetReadWriteTexture(data.avg_luminance),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				GfxDescriptor buffer_srv = descriptor_allocator->GetHandle(descriptor_index);
+				gfx->CopyDescriptors(1, buffer_srv, context.GetReadOnlyBuffer(data.histogram_buffer));
+				GfxDescriptor avgluminance_uav = descriptor_allocator->GetHandle(descriptor_index + 1);
+				gfx->CopyDescriptors(1, avgluminance_uav, context.GetReadWriteTexture(data.avg_luminance));
 
 				struct HistogramReductionConstants 
 				{
@@ -160,8 +145,7 @@ namespace adria
 				} constants = { .min_luminance = min_luminance, .max_luminance = max_luminance,
 								.low_percentile = low_percentile, .high_percentile = high_percentile,
 								.histogram_idx = descriptor_index, .luminance_idx = descriptor_index + 1 };
-				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);
-
+				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(1, 1, 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 
@@ -182,38 +166,29 @@ namespace adria
 				builder.DeclareTexture(RG_RES_NAME(Exposure), desc);
 				data.exposure = builder.WriteTexture(RG_RES_NAME(Exposure));
 			},
-			[=](ExposureData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
+			[=](ExposureData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
-				auto dynamic_allocator = gfx->GetDynamicAllocator();
+				
 				if (invalid_history)
 				{
-					DescriptorCPU cpu_descriptor = previous_ev100->GetUAV();
-					OffsetType descriptor_index = descriptor_allocator->Allocate();
-					DescriptorHandle gpu_descriptor = descriptor_allocator->GetHandle(descriptor_index);
-					device->CopyDescriptorsSimple(1, gpu_descriptor, cpu_descriptor, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
+					GfxDescriptor cpu_descriptor = previous_ev100_uav;
+					GfxDescriptor gpu_descriptor = descriptor_allocator->Allocate();
+					gfx->CopyDescriptors(1, gpu_descriptor, cpu_descriptor);
 					float clear_value[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-					cmd_list->ClearUnorderedAccessViewFloat(gpu_descriptor, cpu_descriptor, previous_ev100->GetNative(), clear_value, 0, nullptr);
+					cmd_list->ClearUAV(*previous_ev100, gpu_descriptor, cpu_descriptor, clear_value);
 					invalid_history = false;
 				}
 				
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Exposure));
-
-				uint32 descriptor_index = (uint32)descriptor_allocator->AllocateRange(3);
-				
-				DescriptorHandle previous_uav = descriptor_allocator->GetHandle(descriptor_index);
-				device->CopyDescriptorsSimple(1, previous_uav, previous_ev100->GetUAV(),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-				DescriptorHandle exposure_uav = descriptor_allocator->GetHandle(descriptor_index + 1);
-				device->CopyDescriptorsSimple(1, exposure_uav, context.GetReadWriteTexture(data.exposure),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-				DescriptorHandle avgluminance_srv = descriptor_allocator->GetHandle(descriptor_index + 2);
-				device->CopyDescriptorsSimple(1, avgluminance_srv, context.GetReadOnlyTexture(data.avg_luminance),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				GfxDescriptor dst_descriptor = descriptor_allocator->Allocate(3);
+				GfxDescriptor src_descriptors[] = {
+					previous_ev100_uav,
+					context.GetReadWriteTexture(data.exposure),
+					context.GetReadOnlyTexture(data.avg_luminance)
+				};
+				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
+				uint32 descriptor_index = dst_descriptor.GetIndex();
 
 				struct ExposureConstants
 				{
@@ -226,7 +201,7 @@ namespace adria
 				} constants{.adaption_speed = adaption_speed, .exposure_compensation = exposure_compensation, .frame_time = 0.166f,
 						.previous_ev_idx = descriptor_index, .exposure_idx = descriptor_index + 1, .luminance_idx  = descriptor_index + 2};
 
-				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);
+				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(1, 1, 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 	
@@ -242,9 +217,9 @@ namespace adria
 					ADRIA_ASSERT(builder.IsBufferDeclared(RG_RES_NAME(HistogramBuffer)));
 					data.histogram = builder.ReadCopySrcBuffer(RG_RES_NAME(HistogramBuffer));
 				},
-				[=](HistogramCopyData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
+				[=](HistogramCopyData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 				{
-					cmd_list->CopyResource(histogram_copy->GetNative(), context.GetBuffer(data.histogram).GetNative());
+					cmd_list->CopyBuffer(*histogram_copy, context.GetBuffer(data.histogram));
 				}, RGPassType::Compute, RGPassFlags::ForceNoCull);
 		}
 

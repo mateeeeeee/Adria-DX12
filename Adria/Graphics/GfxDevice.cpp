@@ -287,9 +287,7 @@ namespace adria
 		std::atexit(ReportLiveObjects);
 		if (options.dred) dred = std::make_unique<DRED>(this);
 	}
-
 	GfxDevice::GfxDevice(GfxDevice&&) = default;
-
 	GfxDevice::~GfxDevice()
 	{
 		WaitForGPU();
@@ -315,14 +313,11 @@ namespace adria
 			swapchain->OnResize(w, h);
 		}
 	}
-
 	uint32 GfxDevice::BackbufferIndex() const
 	{
 		return swapchain->GetBackbufferIndex();
 	}
-
 	uint32 GfxDevice::FrameIndex() const { return frame_index; }
-
 	void GfxDevice::BeginFrame()
 	{
 		if (rendering_not_started) [[unlikely]]
@@ -338,15 +333,14 @@ namespace adria
 		GfxCommandList* cmd_list = GetCommandList(GfxCommandListType::Graphics);
 		cmd_list->ResetAllocator();
 		cmd_list->Begin();
-		cmd_list->TransitionBarrier(swapchain->GetBackbuffer(), GfxResourceState::Present, GfxResourceState::RenderTarget);
+		cmd_list->TransitionBarrier(*swapchain->GetBackbuffer(), GfxResourceState::Present, GfxResourceState::RenderTarget);
 		cmd_list->FlushBarriers();
 		swapchain->ClearBackbuffer(cmd_list);
 	}
-
 	void GfxDevice::EndFrame(bool vsync /*= false*/)
 	{
 		GfxCommandList* cmd_list = GetCommandList(GfxCommandListType::Graphics);
-		cmd_list->TransitionBarrier(swapchain->GetBackbuffer(), GfxResourceState::RenderTarget, GfxResourceState::Present);
+		cmd_list->TransitionBarrier(*swapchain->GetBackbuffer(), GfxResourceState::RenderTarget, GfxResourceState::Present);
 		cmd_list->End();
 
 		graphics_queue.ExecuteCommandLists(std::span{ &cmd_list, 1 });
@@ -370,25 +364,30 @@ namespace adria
 	{
 		return dxgi_factory.Get();
 	}
-
 	ID3D12Device5* GfxDevice::GetDevice() const
 	{
 		return device.Get();
 	}
-
 	ID3D12GraphicsCommandList4* GfxDevice::GetCommandList() const
 	{
 		return GetCommandList(GfxCommandListType::Graphics)->GetNative();
+	}
+	ID3D12RootSignature* GfxDevice::GetCommonRootSignature() const
+	{
+		return global_root_signature.Get();
+	}
+	D3D12MA::Allocator* GfxDevice::GetAllocator() const
+	{
+		return allocator.get();
 	}
 
 	GfxTexture* GfxDevice::GetBackbuffer() const
 	{
 		return swapchain->GetBackbuffer();
 	}
-
-	ID3D12RootSignature* GfxDevice::GetCommonRootSignature() const
+	void GfxDevice::SetBackbufferAsRenderTarget(GfxCommandList* cmd_list) const
 	{
-		return global_root_signature.Get();
+		return swapchain->SetAsRenderTarget(cmd_list);
 	}
 
 	GfxCommandQueue& GfxDevice::GetCommandQueue(GfxCommandListType type)
@@ -406,7 +405,6 @@ namespace adria
 		}
 		ADRIA_UNREACHABLE();
 	}
-
 	GfxCommandList* GfxDevice::GetCommandList(GfxCommandListType type) const
 	{
 		uint32 backbuffer_index = swapchain->GetBackbufferIndex();
@@ -424,9 +422,46 @@ namespace adria
 		ADRIA_UNREACHABLE();
 	}
 
-	D3D12MA::Allocator* GfxDevice::GetAllocator() const
+	void GfxDevice::CopyDescriptors(uint32 count, GfxDescriptor dst, GfxDescriptor src, GfxDescriptorHeapType type /*= GfxDescriptorHeapType::CBV_SRV_UAV*/)
 	{
-		return allocator.get();
+		device->CopyDescriptorsSimple(count, dst, src, ToD3D12HeapType(type));
+	}
+	void GfxDevice::CopyDescriptors(GfxDescriptor dst, std::span<GfxDescriptor> src_descriptors, GfxDescriptorHeapType type /*= GfxDescriptorHeapType::CBV_SRV_UAV*/)
+	{
+		uint32 const dst_ranges_count = 1;
+		uint32 const src_ranges_count = src_descriptors.size();
+
+		D3D12_CPU_DESCRIPTOR_HANDLE dst_handles[] = { dst };
+		uint32 dst_range_sizes[] = { src_descriptors.size() };
+
+		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> src_handles(src_descriptors.size());
+		std::vector<uint32> src_range_sizes(src_descriptors.size(), 1);
+
+		device->CopyDescriptors(dst_ranges_count, dst_handles, dst_range_sizes,
+			src_ranges_count, src_handles.data(), src_range_sizes.data(), ToD3D12HeapType(type));
+	}
+	void GfxDevice::CopyDescriptors(std::span<std::pair<GfxDescriptor, uint32>> dst_range_starts_and_size, std::span<std::pair<GfxDescriptor, uint32>> src_range_starts_and_size, GfxDescriptorHeapType type /*= GfxDescriptorHeapType::CBV_SRV_UAV*/)
+	{
+		uint32 const dst_ranges_count = dst_range_starts_and_size.size();
+		uint32 const src_ranges_count = src_range_starts_and_size.size();
+		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> dst_handles(dst_ranges_count);
+		std::vector<uint32> dst_range_sizes(dst_ranges_count);
+		for (size_t i = 0; i < dst_ranges_count; ++i)
+		{
+			dst_handles[i] = dst_range_starts_and_size[i].first;
+			dst_range_sizes[i] = dst_range_starts_and_size[i].second;
+		}
+
+		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> src_handles(src_ranges_count);
+		std::vector<uint32> src_range_sizes(src_ranges_count);
+		for (size_t i = 0; i < src_ranges_count; ++i)
+		{
+			src_handles[i] = src_range_starts_and_size[i].first;
+			src_range_sizes[i] = src_range_starts_and_size[i].second;
+		}
+
+		device->CopyDescriptors(dst_ranges_count, dst_handles.data(), dst_range_sizes.data(),
+			src_ranges_count, src_handles.data(), src_range_sizes.data(), ToD3D12HeapType(type));
 	}
 
 	GfxDescriptor GfxDevice::AllocateOfflineDescriptor(GfxDescriptorHeapType type)
@@ -437,15 +472,31 @@ namespace adria
 	{
 		cpu_descriptor_allocators[(size_t)type]->FreeDescriptor(descriptor);
 	}
-
-	GfxMTRingDescriptorAllocator* GfxDevice::GetDescriptorAllocator() const
+	GfxOnlineDescriptorAllocator* GfxDevice::GetDescriptorAllocator() const
 	{
 		return gpu_descriptor_allocator.get();
 	}
-
+	GfxLinearDynamicAllocator* GfxDevice::GetDynamicAllocator() const
+	{
+		if (rendering_not_started) return dynamic_allocator_before_rendering.get();
+		else return dynamic_allocators[swapchain->GetBackbufferIndex()].get();
+	}
 	void GfxDevice::InitShaderVisibleAllocator(size_t reserve)
 	{
-		gpu_descriptor_allocator = std::make_unique<GfxMTRingDescriptorAllocator>(this, 32767, reserve);
+		gpu_descriptor_allocator = std::make_unique<GfxOnlineDescriptorAllocator>(this, 32767, reserve);
+	}
+
+	GfxBuffer* GfxDevice::CreateBuffer(GfxBufferDesc const& desc, GfxBufferInitialData initial_data /*= nullptr*/)
+	{
+		return new GfxBuffer(this, desc, initial_data);
+	}
+	GfxTexture* GfxDevice::CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data /*= nullptr*/, size_t data_count /*= -1*/)
+	{
+		return new GfxTexture(this, desc, initial_data, data_count);
+	}
+	GfxTexture* GfxDevice::CreateTextureForBackbuffer(GfxDevice* gfx, GfxTextureDesc const& desc, ID3D12Resource* backbuffer)
+	{
+		return new GfxTexture(this, desc, backbuffer);
 	}
 
 	GfxDescriptor GfxDevice::CreateBufferSRV(GfxBuffer const* buffer, GfxBufferSubresourceDesc const* desc)
@@ -453,54 +504,41 @@ namespace adria
 		GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
 		return CreateBufferView(buffer, GfxSubresourceType::SRV, _desc);
 	}
-
 	GfxDescriptor GfxDevice::CreateBufferUAV(GfxBuffer const* buffer, GfxBufferSubresourceDesc const* desc)
 	{
 		GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
 		return CreateBufferView(buffer, GfxSubresourceType::UAV, _desc);
 	}
-
 	GfxDescriptor GfxDevice::CreateBufferUAV(GfxBuffer const* buffer, GfxBuffer const* counter, GfxBufferSubresourceDesc const* desc/*= nullptr*/)
 	{
 		GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
 		return CreateBufferView(buffer, GfxSubresourceType::UAV, _desc, counter);
 	}
-
 	GfxDescriptor GfxDevice::CreateTextureSRV(GfxTexture const* texture, GfxTextureSubresourceDesc const* desc)
 	{
 		GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
 		return CreateTextureView(texture, GfxSubresourceType::SRV, _desc);
 	}
-
 	GfxDescriptor GfxDevice::CreateTextureUAV(GfxTexture const* texture, GfxTextureSubresourceDesc const* desc)
 	{
 		GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
 		return CreateTextureView(texture, GfxSubresourceType::UAV, _desc);
 	}
-
 	GfxDescriptor GfxDevice::CreateTextureRTV(GfxTexture const* texture, GfxTextureSubresourceDesc const* desc)
 	{
 		GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
 		return CreateTextureView(texture, GfxSubresourceType::RTV, _desc);
 	}
-
 	GfxDescriptor GfxDevice::CreateTextureDSV(GfxTexture const* texture, GfxTextureSubresourceDesc const* desc)
 	{
 		GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
 		return CreateTextureView(texture, GfxSubresourceType::DSV, _desc);
 	}
 
-	GfxLinearDynamicAllocator* GfxDevice::GetDynamicAllocator() const
-	{
-		if (rendering_not_started) return dynamic_allocator_before_rendering.get();
-		else return dynamic_allocators[swapchain->GetBackbufferIndex()].get();
-	}
-
-	void GfxDevice::GetTimestampFrequency(UINT64& frequency) const
+	void GfxDevice::GetTimestampFrequency(uint64& frequency) const
 	{
 		frequency = graphics_queue.GetTimestampFrequency();
 	}
-
 	GPUMemoryUsage GfxDevice::GetMemoryUsage() const
 	{
 		GPUMemoryUsage gpu_memory_usage{};
@@ -521,7 +559,6 @@ namespace adria
 		graphics_queue.Signal(release_fence, release_queue_fence_value);
 		++release_queue_fence_value;
 	}
-
 	void GfxDevice::SetInfoQueue()
 	{
 		ArcPtr<ID3D12InfoQueue> info_queue;
@@ -570,7 +607,6 @@ namespace adria
 			}
 		}
 	}
-
 	void GfxDevice::SetupOptions(GfxOptions const& options, uint32& dxgi_factory_flags)
 	{
 		if (options.debug_layer)
@@ -761,7 +797,6 @@ namespace adria
 		}
 		return heap_descriptor;
 	}
-
 	GfxDescriptor GfxDevice::CreateTextureView(GfxTexture const* texture, GfxSubresourceType view_type, GfxTextureSubresourceDesc const& view_desc)
 	{
 		GfxTextureDesc desc = texture->GetDesc();

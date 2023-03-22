@@ -1,7 +1,7 @@
 #pragma once
-#include <d3d12.h>
 #include "../Graphics/GfxBuffer.h"
 #include "../Graphics/GfxTexture.h"
+#include "../Graphics/GfxCommandList.h"
 #include "RenderGraphResourceId.h"
 #include "RenderGraphBlackboard.h"
 #if RG_DEBUG
@@ -71,9 +71,9 @@ namespace adria
 		Resource* resource;
 		ResourceDesc desc;
 	};
+
 	using RGTexture = TypedRenderGraphResource<RGResourceType::Texture>;
 	using RGBuffer = TypedRenderGraphResource<RGResourceType::Buffer>;
-	using CommandList = ID3D12GraphicsCommandList4; //#todo : remove and d3d12.h 
 
 	class RenderGraphContext
 	{
@@ -85,13 +85,13 @@ namespace adria
 
 		RGBlackboard& GetBlackboard();
 
-		GfxTexture const& GetTexture(RGTextureId res_id) const;
-		GfxBuffer  const& GetBuffer(RGBufferId res_id) const;
+		GfxTexture& GetTexture(RGTextureId res_id) const;
+		GfxBuffer& GetBuffer(RGBufferId res_id) const;
 
 		GfxTexture const& GetCopySrcTexture(RGTextureCopySrcId res_id) const;
-		GfxTexture const& GetCopyDstTexture(RGTextureCopyDstId res_id) const;
+		GfxTexture&		  GetCopyDstTexture(RGTextureCopyDstId res_id) const;
 		GfxBuffer  const& GetCopySrcBuffer(RGBufferCopySrcId res_id) const;
-		GfxBuffer  const& GetCopyDstBuffer(RGBufferCopyDstId res_id) const;
+		GfxBuffer&		  GetCopyDstBuffer(RGBufferCopyDstId res_id) const;
 		GfxBuffer  const& GetIndirectArgsBuffer(RGBufferIndirectArgsId res_id) const;
 		GfxBuffer  const& GetVertexBuffer(RGBufferVertexId res_id) const;
 		GfxBuffer  const& GetIndexBuffer(RGBufferIndexId res_id) const;

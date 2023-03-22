@@ -10,8 +10,6 @@
 #include "../Utilities/Heightmap.h"
 #include "../Math/ComputeNormals.h"
 
-struct ID3D12Device;
-
 namespace adria
 {
 	enum class LightMesh

@@ -4,7 +4,7 @@
 #include "PSOCache.h" 
 
 #include "../Graphics/GfxShader.h"
-#include "../Graphics/RingGPUDescriptorAllocator.h"
+#include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Editor/GUICommand.h"
@@ -60,17 +60,16 @@ namespace adria
 				data.ib = builder.ReadBuffer(RG_RES_NAME(BigIndexBuffer));
 				data.geo = builder.ReadBuffer(RG_RES_NAME(BigGeometryBuffer));
 			},
-			[=](PathTracingPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
+			[=](PathTracingPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				auto device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-				uint32 i = (uint32)descriptor_allocator->AllocateRange(5);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadWriteTexture(data.accumulation), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadOnlyBuffer(data.vb), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 3), ctx.GetReadOnlyBuffer(data.ib), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 4), ctx.GetReadOnlyBuffer(data.geo), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				uint32 i = descriptor_allocator->Allocate(5).GetIndex();
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadWriteTexture(data.accumulation));
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.output));
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadOnlyBuffer(data.vb));
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 3), ctx.GetReadOnlyBuffer(data.ib));
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 4), ctx.GetReadOnlyBuffer(data.geo));
 
 				struct PathTracingConstants
 				{
@@ -89,9 +88,9 @@ namespace adria
 				};
 
 				
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRoot32BitConstants(1, 7, &constants, 0);
-				cmd_list->SetPipelineState1(path_tracing.Get());
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, constants);
+				cmd_list->GetNative()->SetPipelineState1(path_tracing.Get());
 
 				D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
 				dispatch_desc.Width = width;
@@ -101,7 +100,7 @@ namespace adria
 				GfxRayTracingShaderTable table(path_tracing.Get());
 				table.SetRayGenShader("PT_RayGen");
 				table.Commit(*gfx->GetDynamicAllocator(), dispatch_desc);
-				cmd_list->DispatchRays(&dispatch_desc);
+				cmd_list->GetNative()->DispatchRays(&dispatch_desc);
 
 			}, RGPassType::Compute, RGPassFlags::None);
 

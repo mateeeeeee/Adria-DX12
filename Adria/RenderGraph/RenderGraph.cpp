@@ -3,9 +3,9 @@
 #include <d3d12.h>
 #include "pix3.h"
 #include "RenderGraph.h"
-#include "../Graphics/GPUProfiler.h"
+#include "../Graphics/GfxCommandList.h"
 #include "../Graphics/GfxRenderPass.h"
-#include "../Graphics/GfxResourceBarrierBatch.h"
+#include "../Graphics/GPUProfiler.h"
 #include "../Tasks/TaskSystem.h"
 #include "../Utilities/StringUtil.h"
 
@@ -117,9 +117,10 @@ namespace adria
 	void RenderGraph::Execute_Singlethreaded()
 	{
 		pool.Tick();
+
 		for (auto& dependency_level : dependency_levels) dependency_level.Setup();
 
-		auto cmd_list = gfx->GetCommandList();
+		GfxCommandList* cmd_list = gfx->GetCommandList(GfxCommandListType::Graphics);
 		for (size_t i = 0; i < dependency_levels.size(); ++i)
 		{
 			auto& dependency_level = dependency_levels[i];
@@ -138,7 +139,6 @@ namespace adria
 				rg_buffer->SetName();
 			}
 
-			GfxResourceBarrierBatch barrier_batcher{};
 			{
 				for (auto const& [tex_id, state] : dependency_level.texture_state_map)
 				{
@@ -149,9 +149,7 @@ namespace adria
 						if (!HasAllFlags(texture->GetDesc().initial_state, state))
 						{
 							ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
-							D3D12_RESOURCE_STATES initial_state = ConvertToD3D12ResourceState(texture->GetDesc().initial_state);
-							D3D12_RESOURCE_STATES wanted_state = ConvertToD3D12ResourceState(state);
-							barrier_batcher.AddTransition(texture->GetNative(), initial_state, wanted_state);
+							cmd_list->TransitionBarrier(*texture, texture->GetDesc().initial_state, state);
 						}
 						continue;
 					}
@@ -162,9 +160,8 @@ namespace adria
 						if (prev_dependency_level.texture_state_map.contains(tex_id))
 						{
 							ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
-							D3D12_RESOURCE_STATES wanted_state = ConvertToD3D12ResourceState(state);
-							D3D12_RESOURCE_STATES prev_state = ConvertToD3D12ResourceState(prev_dependency_level.texture_state_map[tex_id]);
-							if (prev_state != wanted_state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, wanted_state); 
+							GfxResourceState prev_state = prev_dependency_level.texture_state_map[tex_id];
+							if (prev_state != state) cmd_list->TransitionBarrier(*texture, prev_state, state);
 							found = true;
 							break;
 						}
@@ -172,9 +169,8 @@ namespace adria
 					if (!found && rg_texture->imported)
 					{
 						ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
-						D3D12_RESOURCE_STATES wanted_state = ConvertToD3D12ResourceState(state);
-						D3D12_RESOURCE_STATES prev_state = ConvertToD3D12ResourceState(rg_texture->desc.initial_state);
-						if (prev_state != wanted_state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, wanted_state); 
+						GfxResourceState prev_state = rg_texture->desc.initial_state;
+						if (prev_state != state) cmd_list->TransitionBarrier(*texture, prev_state, state);
 					}
 				}
 				for (auto const& [buf_id, state] : dependency_level.buffer_state_map)
@@ -186,7 +182,7 @@ namespace adria
 						if (state != GfxResourceState::Common) //check if there is an implicit transition, maybe this can be avoided
 						{
 							ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
-							barrier_batcher.AddTransition(buffer->GetNative(), D3D12_RESOURCE_STATE_COMMON, ConvertToD3D12ResourceState(state));
+							cmd_list->TransitionBarrier(*buffer, GfxResourceState::Common, state);
 						}
 						continue;
 					}
@@ -197,9 +193,8 @@ namespace adria
 						if (prev_dependency_level.buffer_state_map.contains(buf_id))
 						{
 							ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
-							D3D12_RESOURCE_STATES wanted_state = ConvertToD3D12ResourceState(state);
-							D3D12_RESOURCE_STATES prev_state = ConvertToD3D12ResourceState(prev_dependency_level.buffer_state_map[buf_id]);
-							if (prev_state != wanted_state) barrier_batcher.AddTransition(buffer->GetNative(), prev_state, wanted_state);
+							GfxResourceState prev_state = prev_dependency_level.buffer_state_map[buf_id];
+							if (prev_state != state) cmd_list->TransitionBarrier(*buffer, prev_state, state);
 							found = true;
 							break;
 						}
@@ -207,39 +202,33 @@ namespace adria
 					if (!found && rg_buffer->imported)
 					{
 						ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
-						if (GfxResourceState::Common != state) barrier_batcher.AddTransition(buffer->GetNative(), D3D12_RESOURCE_STATE_COMMON, ConvertToD3D12ResourceState(state));
+						if (GfxResourceState::Common != state)cmd_list->TransitionBarrier(*buffer, GfxResourceState::Common, state);
 					}
 				}
 			}
-
-			barrier_batcher.Submit(cmd_list);
+			cmd_list->FlushBarriers();
 			dependency_level.Execute(gfx, cmd_list);
 
-			barrier_batcher.Clear();
 			for (RGTextureId tex_id : dependency_level.texture_destroys)
 			{
 				RGTexture* rg_texture = GetRGTexture(tex_id);
 				GfxTexture* texture = rg_texture->resource;
 				GfxResourceState initial_state = texture->GetDesc().initial_state;
-				D3D12_RESOURCE_STATES wanted_state = ConvertToD3D12ResourceState(initial_state);
 				ADRIA_ASSERT(dependency_level.texture_state_map.contains(tex_id));
 				GfxResourceState state = dependency_level.texture_state_map[tex_id];
-				D3D12_RESOURCE_STATES prev_state = ConvertToD3D12ResourceState(state);
-				if (initial_state != state) barrier_batcher.AddTransition(texture->GetNative(), prev_state, wanted_state);
+				if (initial_state != state) cmd_list->TransitionBarrier(*texture, state, initial_state);
 				if (!rg_texture->imported) pool.ReleaseTexture(rg_texture->resource);
 			}
 			for (RGBufferId buf_id : dependency_level.buffer_destroys)
 			{
 				RGBuffer* rg_buffer = GetRGBuffer(buf_id);
 				GfxBuffer* buffer = rg_buffer->resource;
-				D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATE_COMMON;
 				ADRIA_ASSERT(dependency_level.buffer_state_map.contains(buf_id));
 				GfxResourceState state = dependency_level.buffer_state_map[buf_id];
-				D3D12_RESOURCE_STATES prev_state = ConvertToD3D12ResourceState(state);
-				if (initial_state != prev_state) barrier_batcher.AddTransition(buffer->GetNative(), prev_state, initial_state);
+				if(state != GfxResourceState::Common) cmd_list->TransitionBarrier(*buffer, state, GfxResourceState::Common);
 				if (!rg_buffer->imported) pool.ReleaseBuffer(rg_buffer->resource);
 			}
-			barrier_batcher.Submit(cmd_list);
+			cmd_list->FlushBarriers();
 		}
 	}
 
@@ -757,7 +746,7 @@ namespace adria
 		return *GetTexture(RGTextureId(res_id));
 	}
 
-	GfxTexture const& RenderGraph::GetCopyDstTexture(RGTextureCopyDstId res_id) const
+	GfxTexture& RenderGraph::GetCopyDstTexture(RGTextureCopyDstId res_id) const
 	{
 		return *GetTexture(RGTextureId(res_id));
 	}
@@ -767,7 +756,7 @@ namespace adria
 		return *GetBuffer(RGBufferId(res_id));
 	}
 
-	GfxBuffer const& RenderGraph::GetCopyDstBuffer(RGBufferCopyDstId res_id) const
+	GfxBuffer& RenderGraph::GetCopyDstBuffer(RGBufferCopyDstId res_id) const
 	{
 		return *GetBuffer(RGBufferId(res_id));
 	}
@@ -865,7 +854,7 @@ namespace adria
 		}
 	}
 
-	void RenderGraph::DependencyLevel::Execute(GfxDevice* gfx, CommandList* cmd_list)
+	void RenderGraph::DependencyLevel::Execute(GfxDevice* gfx, GfxCommandList* cmd_list)
 	{
 		for (auto& pass : passes)
 		{
@@ -1002,13 +991,11 @@ namespace adria
 				ADRIA_ASSERT((pass->viewport_width != 0 && pass->viewport_height != 0) && "Viewport Width/Height is 0! The call to builder.SetViewport is probably missing...");
 				render_pass_desc.width = pass->viewport_width;
 				render_pass_desc.height = pass->viewport_height;
-				GfxRenderPass render_pass(render_pass_desc);
 
-				PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, pass->name.c_str());
-				GPU_PROFILE_SCOPE(cmd_list, pass->name.c_str());
-				render_pass.Begin(cmd_list, pass->UseLegacyRenderPasses());
+				PIXScopedEvent(cmd_list->GetNative(), PIX_COLOR_DEFAULT, pass->name.c_str());
+				GPU_PROFILE_SCOPE(cmd_list->GetNative(), pass->name.c_str());
+				cmd_list->BeginRenderPass(render_pass_desc, pass->UseLegacyRenderPasses());
 				pass->Execute(rg_resources, gfx, cmd_list);
-				render_pass.End(cmd_list, pass->UseLegacyRenderPasses());
 			}
 			else
 			{
@@ -1019,7 +1006,7 @@ namespace adria
 		}
 	}
 
-	void RenderGraph::DependencyLevel::Execute(GfxDevice* gfx, std::vector<CommandList*> const& cmd_lists)
+	void RenderGraph::DependencyLevel::Execute(GfxDevice* gfx, std::span<GfxCommandList*> const& cmd_lists)
 	{
 		std::vector<std::future<void>> pass_futures;
 		for (size_t k = 0; k < passes.size(); ++k)
@@ -1027,7 +1014,7 @@ namespace adria
 			pass_futures.push_back(TaskSystem::Submit([&](size_t j)
 				{
 				auto& pass = passes[j];
-				CommandList* cmd_list = cmd_lists[j];
+				GfxCommandList* cmd_list = cmd_lists[j];
 				if (pass->IsCulled()) return;
 				RenderGraphContext rg_resources(rg, *pass);
 				if (pass->type == RGPassType::Graphics && !pass->SkipAutoRenderPassSetup())
@@ -1161,12 +1148,11 @@ namespace adria
 					ADRIA_ASSERT((pass->viewport_width != 0 && pass->viewport_height != 0) && "Viewport Width/Height is 0! The call to builder.SetViewport is probably missing...");
 					render_pass_desc.width = pass->viewport_width;
 					render_pass_desc.height = pass->viewport_height;
-					GfxRenderPass render_pass(render_pass_desc);
-					PIXScopedEvent(cmd_list, PIX_COLOR_DEFAULT, pass->name.c_str());
-					GPU_PROFILE_SCOPE(cmd_list, pass->name.c_str());
-					render_pass.Begin(cmd_list, pass->UseLegacyRenderPasses());
+					PIXScopedEvent(cmd_list->GetNative(), PIX_COLOR_DEFAULT, pass->name.c_str());
+					GPU_PROFILE_SCOPE(cmd_list->GetNative(), pass->name.c_str());
+					cmd_list->BeginRenderPass(render_pass_desc, pass->UseLegacyRenderPasses());
 					pass->Execute(rg_resources, gfx, cmd_list);
-					render_pass.End(cmd_list, pass->UseLegacyRenderPasses());
+					cmd_list->EndRenderPass(pass->UseLegacyRenderPasses());
 				}
 				else
 				{

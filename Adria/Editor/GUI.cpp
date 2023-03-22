@@ -2,7 +2,7 @@
 #include "IconsFontAwesome4.h"
 #include "../Core/Window.h"
 #include "../Graphics/GfxDevice.h"
-#include "../Graphics/RingGPUDescriptorAllocator.h"
+#include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../ImGui/ImGuizmo.h"
 
 IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -28,13 +28,12 @@ namespace adria
 		ImWchar const icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
 		io.Fonts->AddFontFromFileTTF("Resources/Fonts/" FONT_ICON_FILE_NAME_FA, 15.0f, &font_config, icon_ranges);
 
-		imgui_allocator = std::make_unique<RingGPUDescriptorAllocator>(gfx->GetDevice(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 
-																		  D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 30, 1); //reserve first one for fonts
+		imgui_allocator = std::make_unique<GUIDescriptorAllocator>(gfx, 30, 1); //reserve first one for fonts
 		ImGui_ImplWin32_Init(Window::Handle());
 		
-		DescriptorHandle handle = imgui_allocator->GetFirstHandle();
+		GfxDescriptor handle = imgui_allocator->GetHandle(0);
 		ImGui_ImplDX12_Init(gfx->GetDevice(), gfx->BackbufferCount(),
-			DXGI_FORMAT_R10G10B10A2_UNORM, imgui_allocator->Heap(),
+			DXGI_FORMAT_R10G10B10A2_UNORM, imgui_allocator->GetHeap(),
 			handle, handle);
 
 		ImGuiStyle& style = ImGui::GetStyle();
@@ -100,7 +99,7 @@ namespace adria
 	{
 		return visible;
 	}
-	RingGPUDescriptorAllocator* GUI::DescriptorAllocator() const
+	GUIDescriptorAllocator* GUI::DescriptorAllocator() const
 	{
 		return imgui_allocator.get();
 	}

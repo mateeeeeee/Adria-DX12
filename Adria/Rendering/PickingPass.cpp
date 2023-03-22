@@ -2,7 +2,7 @@
 #include "PSOCache.h" 
 #include "BlackboardData.h"
 
-#include "../Graphics/RingGPUDescriptorAllocator.h"
+#include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../Logging/Logger.h"
 #include "../RenderGraph/RenderGraph.h"
 
@@ -48,15 +48,14 @@ namespace adria
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 				data.normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
 			},
-			[=](PickingPassDispatchData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
+			[=](PickingPassDispatchData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				ID3D12Device* device = gfx->GetDevice();
-				RingGPUDescriptorAllocator* descriptor_allocator = gfx->GetDescriptorAllocator();
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				
-				uint32 i = (uint32)descriptor_allocator->AllocateRange(3);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.depth), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadOnlyTexture(data.normal), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadWriteBuffer(data.pick_buffer), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				uint32 i = descriptor_allocator->Allocate(3).GetIndex();
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.depth));
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadOnlyTexture(data.normal));
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadWriteBuffer(data.pick_buffer));
 				
 				struct PickingConstants
 				{
@@ -70,8 +69,8 @@ namespace adria
 
 				
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Picking));
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRoot32BitConstants(1, 3, &constants, 0);
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 				cmd_list->Dispatch(1, 1, 1);
 			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
@@ -86,10 +85,10 @@ namespace adria
 			{
 				data.src = builder.ReadCopySrcBuffer(RG_RES_NAME(PickBuffer));
 			},
-			[=, backbuffer_index = gfx->BackbufferIndex()](PickingPassCopyData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
+			[=, backbuffer_index = gfx->BackbufferIndex()](PickingPassCopyData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
 				GfxBuffer const& buffer = context.GetCopySrcBuffer(data.src);
-				cmd_list->CopyResource(read_picking_buffers[backbuffer_index]->GetNative(), buffer.GetNative());
+				cmd_list->CopyBuffer(*read_picking_buffers[backbuffer_index], buffer);
 			}, RGPassType::Copy, RGPassFlags::ForceNoCull);
 	}
 

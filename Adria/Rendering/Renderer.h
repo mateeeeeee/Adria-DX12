@@ -50,18 +50,15 @@ namespace adria
 		void Update(float dt);
 		void Render(RendererSettings const&);
 
-		void SetViewportData(ViewportData const& vp)
-		{
-			viewport_data = vp;
-		}
+		void SetViewportData(ViewportData const& vp);
 
 		void OnResize(uint32 w, uint32 h);
 		void OnSceneInitialized();
 		void OnRightMouseClicked(int32 x, int32 y);
 
-		GfxTexture const* GetFinalTexture() const 
+		GfxDescriptor GetFinalTextureSRV() const 
 		{ 
-			return final_texture.get(); 
+			return final_texture_srv;
 		}
 		
 		PickingData const& GetPickingData() const { return picking_data; }

@@ -16,13 +16,29 @@ namespace adria
 		Invalid
 	};
 
+	inline constexpr D3D12_DESCRIPTOR_HEAP_TYPE ToD3D12HeapType(GfxDescriptorHeapType type)
+	{
+		switch (type)
+		{
+		case GfxDescriptorHeapType::CBV_SRV_UAV:
+			return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+		case GfxDescriptorHeapType::Sampler:
+			return D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+		case GfxDescriptorHeapType::RTV:
+			return D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+		case GfxDescriptorHeapType::DSV:
+			return D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+		}
+		return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	}
+
 	class GfxDescriptorAllocatorBase
 	{
 	public:
 
-		GfxDescriptor GetHandle(size_t index = 0) const;
+		GfxDescriptor GetHandle(uint32 index = 0) const;
 		ID3D12DescriptorHeap* GetHeap() const { return heap.Get(); }
-
+		
 	protected:
 		GfxDevice* gfx;
 		ArcPtr<ID3D12DescriptorHeap> heap = nullptr;

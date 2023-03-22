@@ -4,7 +4,7 @@
 #include "BlackboardData.h"
 #include "PSOCache.h" 
 
-#include "../Graphics/RingGPUDescriptorAllocator.h"
+#include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Logging/Logger.h"
@@ -164,11 +164,11 @@ namespace adria
 				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(PostprocessMain));
 				data.copy_src = builder.ReadCopySrcTexture(RG_RES_NAME(HDR_RenderTarget));
 			},
-			[=](CopyPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
+			[=](CopyPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
 				GfxTexture const& src_texture = context.GetCopySrcTexture(data.copy_src);
-				GfxTexture const& dst_texture = context.GetCopyDstTexture(data.copy_dst);
-				cmd_list->CopyResource(dst_texture.GetNative(), src_texture.GetNative());
+				GfxTexture& dst_texture = context.GetCopyDstTexture(data.copy_dst);
+				cmd_list->CopyTexture(dst_texture, src_texture);
 			}, RGPassType::Copy, RGPassFlags::None);
 
 		return RG_RES_NAME(PostprocessMain);
@@ -193,11 +193,11 @@ namespace adria
 				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(HistoryBuffer));
 				data.copy_src = builder.ReadCopySrcTexture(last_resource);
 			},
-			[=](CopyPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
+			[=](CopyPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
 				GfxTexture const& src_texture = context.GetCopySrcTexture(data.copy_src);
-				GfxTexture const& dst_texture = context.GetCopyDstTexture(data.copy_dst);
-				cmd_list->CopyResource(dst_texture.GetNative(), src_texture.GetNative());
+				GfxTexture& dst_texture = context.GetCopyDstTexture(data.copy_dst);
+				cmd_list->CopyTexture(dst_texture, src_texture);
 			}, RGPassType::Copy, RGPassFlags::None);
 	}
 	void Postprocessor::AddSunPass(RenderGraph& rg, entt::entity sun)
@@ -219,15 +219,14 @@ namespace adria
 				builder.WriteRenderTarget(RG_RES_NAME(SunOutput), RGLoadStoreAccessOp::Clear_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
+			[=](RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
-				
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Sun));
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				auto [transform, mesh, material] = reg.get<Transform, Mesh, Material>(sun);
 
 				struct Constants
@@ -241,11 +240,10 @@ namespace adria
 					.diffuse_color = XMFLOAT3(material.base_color),
 					.diffuse_idx = (uint32)material.albedo_texture
 				};
-				GfxDynamicAllocation allocation = dynamic_allocator->Allocate(GetCBufferSize<Constants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				GfxDynamicAllocation allocation = dynamic_allocator->AllocateCBuffer<Constants>();
 				allocation.Update(constants);
-				cmd_list->SetGraphicsRootConstantBufferView(2, allocation.gpu_address);
-				mesh.Draw(cmd_list);
-
+				cmd_list->SetRootCBV(2, allocation.gpu_address);
+				mesh.Draw(cmd_list->GetNative());
 			}, RGPassType::Graphics, RGPassFlags::None);
 	}
 }

@@ -3,7 +3,7 @@
 #include "PSOCache.h" 
 
 #include "../Graphics/GfxLinearDynamicAllocator.h"
-#include "../Graphics/RingGPUDescriptorAllocator.h"
+#include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 
 namespace adria
@@ -23,9 +23,8 @@ namespace adria
 				data.texture_src = builder.ReadTexture(texture_src, ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
-			[=](CopyToTexturePassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
+			[=](CopyToTexturePassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				switch (mode)
@@ -43,13 +42,12 @@ namespace adria
 					ADRIA_ASSERT(false && "Invalid Copy Mode in CopyTexture");
 				}
 
-				uint32 i = (uint32)descriptor_allocator->Allocate();
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.texture_src),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				GfxDescriptor dst = descriptor_allocator->Allocate();
+				gfx->CopyDescriptors(1, dst, context.GetReadOnlyTexture(data.texture_src));
 
-				cmd_list->SetGraphicsRoot32BitConstant(1, i, 0);
-				cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-				cmd_list->DrawInstanced(4, 1, 0, 0);
+				cmd_list->SetRootConstant(1, dst.GetIndex(), 0);
+				cmd_list->SetTopology(GfxPrimitiveTopology::TriangleStrip);
+				cmd_list->Draw(4);
 			}, RGPassType::Graphics, RGPassFlags::None);
 	}
 

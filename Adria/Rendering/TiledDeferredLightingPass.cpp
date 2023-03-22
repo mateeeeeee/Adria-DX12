@@ -4,7 +4,7 @@
 #include "BlackboardData.h"
 #include "PSOCache.h" 
 
-#include "../Graphics/RingGPUDescriptorAllocator.h"
+#include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Logging/Logger.h"
 #include "../Editor/GUICommand.h"
@@ -49,25 +49,19 @@ namespace adria
 				data.gbuffer_albedo = builder.ReadTexture(RG_RES_NAME(GBufferAlbedo), ReadAccess_NonPixelShader);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
-			[=](TiledDeferredLightingPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
+			[=](TiledDeferredLightingPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				ID3D12Device* device = gfx->GetDevice();
-				auto dynamic_allocator = gfx->GetDynamicAllocator();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { context.GetReadOnlyTexture(data.gbuffer_normal), 
-															  context.GetReadOnlyTexture(data.gbuffer_albedo),
-															  context.GetReadOnlyTexture(data.depth),
-															  context.GetReadWriteTexture(data.output),
-															  context.GetReadWriteTexture(data.debug_output) };
-				uint32 src_range_sizes[] = { 1,1,1,1,1 };
+				GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.gbuffer_normal),
+												context.GetReadOnlyTexture(data.gbuffer_albedo),
+												context.GetReadOnlyTexture(data.depth),
+												context.GetReadWriteTexture(data.output),
+												context.GetReadWriteTexture(data.debug_output) };
+				GfxDescriptor dst_handle = descriptor_allocator->Allocate(ARRAYSIZE(src_handles));
+				gfx->CopyDescriptors(dst_handle, src_handles);
 
-				uint32 i = (uint32)descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
-				auto dst_descriptor = descriptor_allocator->GetHandle(i);
-				uint32 dst_range_sizes[] = { (uint32)ARRAYSIZE(cpu_handles) };
-				device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes, ARRAYSIZE(cpu_handles), cpu_handles, src_range_sizes,
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
+				uint32 i = dst_handle.GetIndex();
 				struct TiledLightingConstants
 				{
 					int32  visualize_max_lights;
@@ -82,18 +76,17 @@ namespace adria
 					.normal_idx = i, .diffuse_idx = i + 1, .depth_idx = i + 2, .output_idx = i + 3,
 					.debug_idx = visualize_tiled ? int32(i + 4) : -1
 				};
+
 				static constexpr float black[4] = {0.0f,0.0f,0.0f,0.0f};
 				GfxTexture const& tiled_target = context.GetTexture(data.output.GetResourceId());
-				cmd_list->ClearUnorderedAccessViewFloat(descriptor_allocator->GetHandle(i + 3), context.GetReadWriteTexture(data.output), tiled_target.GetNative(),
-					black, 0, nullptr);
 				GfxTexture const& tiled_debug_target = context.GetTexture(data.debug_output.GetResourceId());
-				cmd_list->ClearUnorderedAccessViewFloat(descriptor_allocator->GetHandle(i + 4), context.GetReadWriteTexture(data.debug_output), tiled_debug_target.GetNative(),
-					black, 0, nullptr); 
-
+				cmd_list->ClearUAV(tiled_target, descriptor_allocator->GetHandle(i + 3), context.GetReadWriteTexture(data.output), black);
+				cmd_list->ClearUAV(tiled_debug_target, descriptor_allocator->GetHandle(i + 4), context.GetReadWriteTexture(data.debug_output), black);
+				
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::TiledDeferredLighting));
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);
-				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, constants);
+				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 
 		if (visualize_tiled)  add_textures_pass.AddPass(rendergraph, RG_RES_NAME(HDR_RenderTarget), RG_RES_NAME(TiledTarget), RG_RES_NAME(TiledDebugTarget), BlendMode::AlphaBlend);

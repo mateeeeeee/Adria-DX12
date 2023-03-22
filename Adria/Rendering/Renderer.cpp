@@ -328,6 +328,11 @@ namespace adria
 		render_graph.Execute();
 	}
 
+	void Renderer::SetViewportData(ViewportData const& vp)
+	{
+		viewport_data = vp;
+	}
+
 	void Renderer::OnResize(uint32 w, uint32 h)
 	{
 		if (width != w || height != h)
@@ -789,7 +794,7 @@ namespace adria
 			auto device = gfx->GetDevice();
 			auto descriptor_allocator = gfx->GetDescriptorAllocator();
 			GfxDescriptor accel_struct_descriptor = descriptor_allocator->Allocate();
-			device->CopyDescriptorsSimple(1, accel_struct_descriptor, accel_structure.GetTLAS()->GetSRV(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			device->CopyDescriptorsSimple(1, accel_struct_descriptor, tlas_srv, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			frame_cbuf_data.accel_struct_idx = (int32)accel_struct_descriptor.GetIndex();
 		}
 
@@ -1034,7 +1039,7 @@ namespace adria
 							builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index + i), RGLoadStoreAccessOp::Clear_Preserve);
 							builder.SetViewport(shadows::SHADOW_CASCADE_MAP_SIZE, shadows::SHADOW_CASCADE_MAP_SIZE);
 						},
-						[=](RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
+						[=](RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 						{
 							ShadowMapPass_Common(gfx, cmd_list, false, light_index, i);
 						}, RGPassType::Graphics);
@@ -1050,7 +1055,7 @@ namespace adria
 						builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index), RGLoadStoreAccessOp::Clear_Preserve);
 						builder.SetViewport(shadows::SHADOW_MAP_SIZE, shadows::SHADOW_MAP_SIZE);
 					},
-					[=](RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
+					[=](RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 					{
 						ShadowMapPass_Common(gfx, cmd_list, false, light_index);
 					}, RGPassType::Graphics);
@@ -1068,7 +1073,7 @@ namespace adria
 							builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index + i), RGLoadStoreAccessOp::Clear_Preserve);
 							builder.SetViewport(shadows::SHADOW_CUBE_SIZE, shadows::SHADOW_CUBE_SIZE);
 						},
-						[=](RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
+						[=](RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 						{
 							ShadowMapPass_Common(gfx, cmd_list, false, light_index, i);
 						}, RGPassType::Graphics);
@@ -1084,7 +1089,7 @@ namespace adria
 						builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index), RGLoadStoreAccessOp::Clear_Preserve);
 						builder.SetViewport(shadows::SHADOW_MAP_SIZE, shadows::SHADOW_MAP_SIZE);
 					},
-					[=](RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
+					[=](RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 					{
 						ShadowMapPass_Common(gfx, cmd_list, false, light_index);
 					}, RGPassType::Graphics);
@@ -1120,7 +1125,7 @@ namespace adria
 			{
 				data.src = builder.ReadCopySrcTexture(RG_RES_NAME(FinalTexture));
 			},
-			[=](CopyToBackbufferPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
+			[=](CopyToBackbufferPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
 				GfxResourceBarrierBatch barrier;
 				barrier.AddTransition(gfx->GetBackbuffer()->GetNative(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_DEST);

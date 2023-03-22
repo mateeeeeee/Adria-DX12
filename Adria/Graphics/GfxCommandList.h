@@ -65,29 +65,32 @@ namespace adria
 		void Draw(uint32 vertex_count, uint32 instance_count = 1, uint32 start_vertex_location = 0, uint32 start_instance_location = 0);
 		void DrawIndexed(uint32 index_count, uint32 instance_count = 1, uint32 index_offset = 0, uint32 base_vertex_location = 0, uint32 start_instance_location = 0);
 		void Dispatch(uint32 group_count_x, uint32 group_count_y, uint32 group_count_z = 1);
-		void DrawIndirect(GfxBuffer* buffer, uint32 offset);
-		void DrawIndexedIndirect(GfxBuffer* buffer, uint32 offset);
-		void DispatchIndirect(GfxBuffer* buffer, uint32 offset);
+		void DrawIndirect(GfxBuffer const& buffer, uint32 offset);
+		void DrawIndexedIndirect(GfxBuffer const& buffer, uint32 offset);
+		void DispatchIndirect(GfxBuffer const& buffer, uint32 offset);
+		//#todo : add Ray Tracing API
 
-		void TransitionBarrier(GfxBuffer* resource, GfxResourceState old_state, GfxResourceState new_state);
-		void TransitionBarrier(GfxTexture* resource, GfxResourceState old_state, GfxResourceState new_state, uint32 subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
-		void UavBarrier(GfxBuffer* resource);
-		void UavBarrier(GfxTexture* resource);
+		void TransitionBarrier(GfxBuffer const& resource, GfxResourceState old_state, GfxResourceState new_state);
+		void TransitionBarrier(GfxTexture const& resource, GfxResourceState old_state, GfxResourceState new_state, uint32 subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
+		void UavBarrier(GfxBuffer const& resource);
+		void UavBarrier(GfxTexture const& resource);
 		void UavBarrier();
-		void AliasBarrier(GfxBuffer* before_resource, GfxBuffer* after_resource);
-		void AliasBarrier(GfxTexture* before_resource, GfxTexture* after_resource);
+		void AliasBarrier(GfxBuffer const& before_resource, GfxBuffer const& after_resource);
+		void AliasBarrier(GfxTexture const& before_resource, GfxTexture const& after_resource);
 		void FlushBarriers();
 
-		void CopyBuffer(GfxBuffer* dst, GfxBuffer* src);
-		void CopyBuffer(GfxBuffer* dst, uint32 dst_offset, GfxBuffer* src, uint32 src_offset, uint32 size);
-		void CopyTexture(GfxTexture* dst, GfxTexture* src);
-		void CopyTexture(GfxTexture* dst, uint32 dst_mip, uint32 dst_array, GfxTexture* src, uint32 src_mip, uint32 src_array);
-		void ClearUAV(GfxBuffer* resource, GfxDescriptor uav, const float* clear_value);
-		void ClearUAV(GfxBuffer* resource, GfxDescriptor uav, const uint32* clear_value);
-		void WriteBufferImmediate(GfxBuffer* buffer, uint32 offset, uint32 data);
+		void CopyBuffer(GfxBuffer& dst, GfxBuffer const& src);
+		void CopyBuffer(GfxBuffer& dst, uint32 dst_offset, GfxBuffer const& src, uint32 src_offset, uint32 size);
+		void CopyTexture(GfxTexture& dst, GfxTexture const& src);
+		void CopyTexture(GfxTexture& dst, uint32 dst_mip, uint32 dst_array, GfxTexture const& src, uint32 src_mip, uint32 src_array);
+		void ClearUAV(GfxBuffer const& resource, GfxDescriptor uav, GfxDescriptor uav_cpu, const float* clear_value);
+		void ClearUAV(GfxTexture const& resource, GfxDescriptor uav, GfxDescriptor uav_cpu, const float* clear_value);
+		void ClearUAV(GfxBuffer const& resource, GfxDescriptor uav, GfxDescriptor uav_cpu, const uint32* clear_value);
+		void ClearUAV(GfxTexture const& resource, GfxDescriptor uav, GfxDescriptor uav_cpu, const uint32* clear_value);
+		void WriteBufferImmediate(GfxBuffer& buffer, uint32 offset, uint32 data);
 
-		void BeginRenderPass(GfxRenderPassDesc const& render_pass_desc);
-		void EndRenderPass();
+		void BeginRenderPass(GfxRenderPassDesc const& render_pass_desc, bool legacy = false);
+		void EndRenderPass(bool legacy = false);
 
 		void SetPipelineState(GfxPipelineState* state);
 		void SetStencilReference(uint8 stencil);
@@ -98,6 +101,7 @@ namespace adria
 		void SetViewport(uint32 x, uint32 y, uint32 width, uint32 height);
 		void SetScissorRect(uint32 x, uint32 y, uint32 width, uint32 height);
 
+		void SetRootConstant(uint32 slot, uint32 data, uint32 offset);
 		void SetRootConstants(uint32 slot, const void* data, uint32 data_size, uint32 offset = 0);
 		template<typename T>
 		void SetRootConstants(uint32 slot, T const& data)
@@ -110,13 +114,14 @@ namespace adria
 		{
 			SetRootCBV(slot, &data, sizeof(T));
 		}
+		void SetRootCBV(uint32 slot, size_t gpu_address);
 		void SetRootSRV(uint32 slot, size_t gpu_address);
 		void SetRootUAV(uint32 slot, size_t gpu_address);
 		void SetRootDescriptorTable(uint32 slot, GfxDescriptor base_descriptor);
 
-		void ClearRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE rtv, float const* clear_color);
-		void ClearDepth(D3D12_CPU_DESCRIPTOR_HANDLE dsv, float depth = 1.0f, uint8 stencil = 0, bool clear_stencil = false);
-		void SetRenderTargets(std::span<D3D12_CPU_DESCRIPTOR_HANDLE> rtvs, D3D12_CPU_DESCRIPTOR_HANDLE* dsv = nullptr, bool single_rt = false);
+		void ClearRenderTarget(GfxDescriptor rtv, float const* clear_color);
+		void ClearDepth(GfxDescriptor dsv, float depth = 1.0f, uint8 stencil = 0, bool clear_stencil = false);
+		void SetRenderTargets(std::span<GfxDescriptor> rtvs, GfxDescriptor* dsv = nullptr, bool single_rt = false);
 
 	private:
 		GfxDevice* gfx = nullptr;

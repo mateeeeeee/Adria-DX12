@@ -6,10 +6,8 @@
 #include "PSOCache.h" 
 
 #include "../Graphics/GfxLinearDynamicAllocator.h"
-#include "../Graphics/RingGPUDescriptorAllocator.h"
+#include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
-
-
 #include "entt/entity/registry.hpp"
 
 using namespace DirectX;
@@ -30,12 +28,8 @@ namespace adria
 				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
+			[=](RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				ID3D12Device* device = gfx->GetDevice();
-				auto descriptor_allocator = gfx->GetDescriptorAllocator();
-				auto upload_buffer = gfx->GetDynamicAllocator();
-
 				auto aabb_view = reg.view<AABB>();
 				for (auto e : aabb_view)
 				{
@@ -44,7 +38,7 @@ namespace adria
 					{
 						
 						cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Solid_Wireframe));
-						cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
+						cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 
 						struct Constants
 						{
@@ -57,13 +51,11 @@ namespace adria
 							.diffuse_color = XMFLOAT3(1, 0, 0),
 							.diffuse_idx = uint32(-1)
 						};
-						GfxDynamicAllocation allocation = upload_buffer->Allocate(GetCBufferSize<Constants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-						allocation.Update(constants);
-						cmd_list->SetGraphicsRootConstantBufferView(2, allocation.gpu_address);
-						cmd_list->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-						BindVertexBuffer(cmd_list, aabb.aabb_vb.get());
-						BindIndexBuffer(cmd_list, aabb_ib.get());
-						cmd_list->DrawIndexedInstanced(aabb_ib->GetCount(), 1, 0, 0, 0);
+						cmd_list->SetRootCBV(2, constants);
+						cmd_list->SetTopology(GfxPrimitiveTopology::LineList);
+						BindVertexBuffer(cmd_list->GetNative(), aabb.aabb_vb.get());
+						BindIndexBuffer(cmd_list->GetNative(), aabb_ib.get());
+						cmd_list->DrawIndexed(aabb_ib->GetCount());
 						aabb.draw_aabb = false;
 						break;
 					}

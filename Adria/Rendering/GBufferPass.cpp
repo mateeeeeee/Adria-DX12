@@ -48,11 +48,9 @@ namespace adria
 				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Clear_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
+			[=](RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
-				auto dynamic_allocator = gfx->GetDynamicAllocator();
 				
 				struct BatchParams
 				{
@@ -72,7 +70,7 @@ namespace adria
 					batched_entities[params].push_back(e);
 				}
 
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 
 				for (auto const& [params, entities] : batched_entities)
 				{
@@ -117,11 +115,8 @@ namespace adria
 						model_cbuf_data.metallic_roughness_idx = static_cast<int32>(material.metallic_roughness_texture);
 						model_cbuf_data.emissive_idx = static_cast<int32>(material.emissive_texture);
 
-						GfxDynamicAllocation model_allocation = dynamic_allocator->Allocate(GetCBufferSize<ModelCBuffer>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-						model_allocation.Update(model_cbuf_data);
-						cmd_list->SetGraphicsRootConstantBufferView(2, model_allocation.gpu_address);
-
-						mesh.Draw(cmd_list);
+						cmd_list->SetRootCBV(2, model_cbuf_data);
+						mesh.Draw(cmd_list->GetNative());
 					}
 				}
 			}, RGPassType::Graphics, RGPassFlags::None);

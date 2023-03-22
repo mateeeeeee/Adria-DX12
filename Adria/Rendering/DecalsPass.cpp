@@ -7,7 +7,7 @@
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/TextureManager.h"
 #include "../Graphics/GfxLinearDynamicAllocator.h"
-#include "../Graphics/RingGPUDescriptorAllocator.h"
+#include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "entt/entity/registry.hpp"
 
 using namespace DirectX;
@@ -36,16 +36,14 @@ namespace adria
 				builder.WriteRenderTarget(RG_RES_NAME(GBufferNormal), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](DecalsPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
+			[=](DecalsPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
-				auto upload_buffer = gfx->GetDynamicAllocator();
+				
+				GfxDescriptor depth_srv = descriptor_allocator->Allocate();
+				gfx->CopyDescriptors(1, depth_srv, context.GetReadOnlyTexture(data.depth_srv));
 
-				uint32 depth_idx = (uint32)descriptor_allocator->Allocate();
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(depth_idx), context.GetReadOnlyTexture(data.depth_srv),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
+				uint32 depth_idx = depth_srv.GetIndex();
 				struct DecalsConstants
 				{
 					XMMATRIX model_matrix;
@@ -60,7 +58,7 @@ namespace adria
 				};
 
 				
-				cmd_list->SetGraphicsRootConstantBufferView(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				auto decal_view = reg.view<Decal>();
 
 				auto decal_pass_lambda = [&](bool modify_normals)
@@ -77,13 +75,12 @@ namespace adria
 						constants.decal_type = static_cast<uint32>(decal.decal_type);
 						constants.decal_albedo_idx = (uint32)decal.albedo_decal_texture;
 						constants.decal_normal_idx = (uint32)decal.normal_decal_texture;
-						GfxDynamicAllocation allocation = upload_buffer->Allocate(GetCBufferSize<DecalsConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-						allocation.Update(constants);
-						cmd_list->SetGraphicsRootConstantBufferView(2, allocation.gpu_address);
-						cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-						BindVertexBuffer(cmd_list, cube_vb.get());
-						BindIndexBuffer(cmd_list, cube_ib.get());
-						cmd_list->DrawIndexedInstanced(cube_ib->GetCount(), 1, 0, 0, 0);
+						
+						cmd_list->SetRootCBV(2, constants);
+						cmd_list->SetTopology(GfxPrimitiveTopology::TriangleList);
+						BindVertexBuffer(cmd_list->GetNative(), cube_vb.get());
+						BindIndexBuffer(cmd_list->GetNative(), cube_ib.get());
+						cmd_list->DrawIndexed(cube_ib->GetCount());
 					}
 				};
 				decal_pass_lambda(false);

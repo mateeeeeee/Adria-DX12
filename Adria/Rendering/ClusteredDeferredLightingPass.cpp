@@ -5,7 +5,7 @@
 #include "PSOCache.h" 
 
 #include "../Graphics/GfxLinearDynamicAllocator.h"
-#include "../Graphics/RingGPUDescriptorAllocator.h"
+#include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Logging/Logger.h"
 #include "entt/entity/registry.hpp"
@@ -55,19 +55,16 @@ namespace adria
 				{
 					data.clusters = builder.WriteBuffer(RG_RES_NAME(ClustersBuffer));
 				},
-				[=](ClusterBuildingPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
+				[=](ClusterBuildingPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 				{
-					ID3D12Device* device = gfx->GetDevice();
 					auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-					OffsetType i = descriptor_allocator->Allocate();
-					auto dst_descriptor = descriptor_allocator->GetHandle(i);
-					device->CopyDescriptorsSimple(1, dst_descriptor, context.GetReadWriteBuffer(data.clusters), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
+					gfx->CopyDescriptors(1, dst_descriptor, context.GetReadWriteBuffer(data.clusters));
 
-					
 					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ClusterBuilding));
-					cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-					cmd_list->SetComputeRoot32BitConstant(1, (uint32)i, 0);
+					cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+					cmd_list->SetRootConstant(1, dst_descriptor.GetIndex(), 0);
 					cmd_list->Dispatch(CLUSTER_SIZE_X, CLUSTER_SIZE_Y, CLUSTER_SIZE_Z);
 				}, RGPassType::Compute, RGPassFlags::None);
 		}
@@ -87,23 +84,19 @@ namespace adria
 				data.light_grid = builder.WriteBuffer(RG_RES_NAME(LightGrid));
 				data.light_list = builder.WriteBuffer(RG_RES_NAME(LightList));
 			},
-			[=](ClusterCullingPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
+			[=](ClusterCullingPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				ID3D12Device* device = gfx->GetDevice();
-				auto upload_buffer = gfx->GetDynamicAllocator();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = {	context.GetReadOnlyBuffer(data.clusters),
-																context.GetReadWriteBuffer(data.light_counter),
-																context.GetReadWriteBuffer(data.light_list),
-																context.GetReadWriteBuffer(data.light_grid)};
-				uint32 src_range_sizes[] = { 1,1,1,1 };
-				uint32 i = (uint32)descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
-				auto dst_descriptor = descriptor_allocator->GetHandle(i);
-				uint32 dst_range_sizes[] = { (uint32)ARRAYSIZE(cpu_handles) };
-				device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes, ARRAYSIZE(cpu_handles), cpu_handles, src_range_sizes,
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				GfxDescriptor src_handles[] = { context.GetReadOnlyBuffer(data.clusters),
+												context.GetReadWriteBuffer(data.light_counter),
+												context.GetReadWriteBuffer(data.light_list),
+												context.GetReadWriteBuffer(data.light_grid) };
+	
+				GfxDescriptor dst_handle = descriptor_allocator->Allocate(ARRAYSIZE(src_handles));
+				gfx->CopyDescriptors(dst_handle, src_handles);
 
+				uint32 i = dst_handle.GetIndex();
 				struct ClusterCullingConstants
 				{
 					uint32 clusters_idx;
@@ -115,11 +108,10 @@ namespace adria
 					.clusters_idx = i, .light_index_counter_idx = i + 1,
 					.light_index_list_idx = i + 2, .light_grid_idx = i + 3
 				};
-				
-				
+
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ClusterCulling));
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRoot32BitConstants(1, 4, &constants, 0);
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(CLUSTER_SIZE_X / 16, CLUSTER_SIZE_Y / 16, CLUSTER_SIZE_Z / 1);
 
 			}, RGPassType::Compute, RGPassFlags::None);
@@ -143,21 +135,16 @@ namespace adria
 				data.light_list = builder.ReadBuffer(RG_RES_NAME(LightList), ReadAccess_PixelShader);
 				data.output = builder.WriteTexture(RG_RES_NAME(HDR_RenderTarget));
 			},
-			[=](ClusteredDeferredLightingPassData const& data, RenderGraphContext& context, GfxDevice* gfx, CommandList* cmd_list)
+			[=](ClusteredDeferredLightingPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				ID3D12Device* device = gfx->GetDevice();
-				auto upload_buffer = gfx->GetDynamicAllocator();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-				D3D12_CPU_DESCRIPTOR_HANDLE cpu_handles[] = { context.GetReadOnlyBuffer(data.light_list), context.GetReadOnlyBuffer(data.light_grid),
+				GfxDescriptor src_handles[] = { context.GetReadOnlyBuffer(data.light_list), context.GetReadOnlyBuffer(data.light_grid),
 															  context.GetReadOnlyTexture(data.gbuffer_normal), context.GetReadOnlyTexture(data.gbuffer_albedo), 
 															  context.GetReadOnlyTexture(data.depth), context.GetReadWriteTexture(data.output) };
-				uint32 src_range_sizes[] = { 1,1,1,1,1,1 };
-				uint32 i = (uint32)descriptor_allocator->AllocateRange(ARRAYSIZE(cpu_handles));
-				auto dst_descriptor = descriptor_allocator->GetHandle(i);
-				uint32 dst_range_sizes[] = { (uint32)ARRAYSIZE(cpu_handles) };
-				device->CopyDescriptors(1, dst_descriptor.GetCPUAddress(), dst_range_sizes, ARRAYSIZE(cpu_handles), cpu_handles, src_range_sizes,
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				GfxDescriptor dst_handle = descriptor_allocator->Allocate(ARRAYSIZE(src_handles));
+				uint32 i = dst_handle.GetIndex();
+				gfx->CopyDescriptors(dst_handle, src_handles);
 				
 				struct ClusteredDeferredLightingConstants
 				{
@@ -173,11 +160,10 @@ namespace adria
 					.diffuse_idx = i + 3, .depth_idx = i + 4, .output_idx = i + 5
 				};
 
-				
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ClusteredDeferredLighting));
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);
-				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, constants);
+				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 	}
 

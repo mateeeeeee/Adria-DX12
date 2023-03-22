@@ -1,24 +1,31 @@
 #pragma once
-#include "GfxDevice.h"
+#include <memory>
+#include <vector>
+#include "../Core/Definitions.h"
 
 namespace adria
 {
+	class GfxDevice;
+	class GfxCommandList;
+	class GfxTexture;
+	class GfxDescriptorAllocator;
+
 	class MipsGenerator
 	{
 	public:
 
-		MipsGenerator(GfxDevice* gfx, UINT max_textures);
+		MipsGenerator(GfxDevice* gfx, uint32 max_textures);
 		~MipsGenerator();
-		void Add(ID3D12Resource* texture);
-		void Generate(ID3D12GraphicsCommandList* command_list);
+		void Add(GfxTexture* texture);
+		void Generate(GfxCommandList* command_list);
 
 	private:
 		GfxDevice* gfx;
-		std::unique_ptr<LinearGPUDescriptorAllocator> descriptor_allocator;
-		std::vector<ID3D12Resource*> resources;
-	private:
+		std::unique_ptr<GfxDescriptorAllocator> descriptor_allocator;
+		std::vector<GfxTexture*> resources;
 
-		void CreateHeap(UINT max_textures); //approximate number of descriptors as : ~ max_textures * 2 * 10 (avg mip levels)
+	private:
+		void CreateHeap(uint32 max_textures); //approximate number of descriptors as : ~ max_textures * 2 * 10 (avg mip levels)
 
 	};
 }

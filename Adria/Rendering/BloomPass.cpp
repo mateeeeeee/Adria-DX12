@@ -6,7 +6,7 @@
 #include "PSOCache.h" 
 
 #include "../Graphics/GfxLinearDynamicAllocator.h"
-#include "../Graphics/RingGPUDescriptorAllocator.h"
+#include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
 #include "../Editor/GUICommand.h"
 
@@ -84,14 +84,12 @@ namespace adria
 				builder.DeclareTexture(output, desc); 
 				data.output = builder.WriteTexture(output);
 			},
-			[=](BloomDownsamplePassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
+			[=](BloomDownsamplePassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
-
-				uint32 i = (uint32)descriptor_allocator->AllocateRange(2);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.input), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				uint32 i = descriptor_allocator->Allocate(2).GetIndex();
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.input));
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.output));
 
 				struct BloomDownsampleConstants
 				{
@@ -108,8 +106,8 @@ namespace adria
 				};
 				GfxPipelineStateID pso = pass_idx == 1 ? GfxPipelineStateID::BloomDownsample_FirstPass : GfxPipelineStateID::BloomDownsample;
 				cmd_list->SetPipelineState(PSOCache::Get(pso));
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRoot32BitConstants(1, 4, &constants, 0);
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch((uint32)std::ceil(target_dim_x / 8.0f), (uint32)std::ceil(target_dim_y / 8.0f), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 
@@ -145,12 +143,12 @@ namespace adria
 				builder.DeclareTexture(output, desc);
 				data.output = builder.WriteTexture(output);
 			},
-			[=](BloomUpsamplePassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, CommandList* cmd_list)
+			[=](BloomUpsamplePassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
 				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-				uint32 i = (uint32)descriptor_allocator->AllocateRange(3);
+				uint32 i = descriptor_allocator->Allocate(3).GetIndex();
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.input_low), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadOnlyTexture(data.input_high), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -174,8 +172,8 @@ namespace adria
 				};
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::BloomUpsample));
-				cmd_list->SetComputeRootConstantBufferView(0, global_data.frame_cbuffer_address);
-				cmd_list->SetComputeRoot32BitConstants(1, 6, &constants, 0);
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch((uint32)std::ceil(target_dim_x / 8.0f), (uint32)std::ceil(target_dim_y / 8.0f), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 

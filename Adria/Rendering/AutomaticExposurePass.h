@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include "../Core/Definitions.h"
+#include "../Graphics/GfxDescriptor.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
 #include "../RenderGraph/RenderGraphResourceName.h"
 
@@ -21,6 +22,7 @@ namespace adria
 	private:
 		uint32 width, height;
 		std::unique_ptr<GfxTexture> previous_ev100;
+		GfxDescriptor previous_ev100_uav;
 		std::unique_ptr<GfxBuffer> histogram_copy;
 		bool invalid_history = true;
 
