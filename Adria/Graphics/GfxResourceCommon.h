@@ -169,10 +169,20 @@ namespace adria
 		{}
 
 		GfxClearValue(GfxClearValue const& other)
-			: active_member(other.active_member), color{}
+			: active_member(other.active_member), color{}, format(other.format)
 		{
 			if (active_member == GfxActiveMember::Color) color = other.color;
 			else if (active_member == GfxActiveMember::DepthStencil) depth_stencil = other.depth_stencil;
+		}
+
+		GfxClearValue& operator=(GfxClearValue const& other)
+		{
+			if (this == &other) return *this;
+			active_member = other.active_member;
+			format = other.format;
+			if (active_member == GfxActiveMember::Color) color = other.color;
+			else if (active_member == GfxActiveMember::DepthStencil) depth_stencil = other.depth_stencil;
+			return *this;
 		}
 
 		bool operator==(GfxClearValue const& other) const
@@ -187,6 +197,7 @@ namespace adria
 		}
 
 		GfxActiveMember active_member;
+		GfxFormat format = GfxFormat::UNKNOWN;
 		union
 		{
 			GfxClearColor color;

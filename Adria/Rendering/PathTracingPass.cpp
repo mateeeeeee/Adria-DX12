@@ -87,20 +87,11 @@ namespace adria
 					.vertices_idx = i + 2, .indices_idx = i + 3, .geo_infos_idx = i + 4
 				};
 
-				
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
-				cmd_list->GetNative()->SetPipelineState1(path_tracing.Get());
-
-				D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
-				dispatch_desc.Width = width;
-				dispatch_desc.Height = height;
-				dispatch_desc.Depth = 1;
-
-				GfxRayTracingShaderTable table(path_tracing.Get());
+				auto& table = cmd_list->SetStateObject(path_tracing.Get());
 				table.SetRayGenShader("PT_RayGen");
-				table.Commit(*gfx->GetDynamicAllocator(), dispatch_desc);
-				cmd_list->GetNative()->DispatchRays(&dispatch_desc);
+				cmd_list->DispatchRays(width, height);
 
 			}, RGPassType::Compute, RGPassFlags::None);
 

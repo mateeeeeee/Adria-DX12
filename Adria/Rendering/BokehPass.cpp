@@ -181,7 +181,7 @@ namespace adria
 			{
 				GfxBuffer const& src_buffer = context.GetCopySrcBuffer(data.src);
 				GfxBuffer&		 dst_buffer = context.GetCopyDstBuffer(data.dst);
-				cmd_list->CopyBuffer(dst_buffer, 0, src_buffer, 0, src_buffer.GetDesc().size);
+				cmd_list->CopyBuffer(dst_buffer, 0, src_buffer, 0, (uint32)src_buffer.GetDesc().size);
 			}, RGPassType::Copy, RGPassFlags::None);
 	}
 	void BokehPass::AddDrawBokehPass(RenderGraph& rg, RGResourceName input)

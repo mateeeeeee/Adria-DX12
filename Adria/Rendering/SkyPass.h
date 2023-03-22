@@ -1,7 +1,6 @@
 #pragma once
 #include <memory>
 #include "SkyModel.h"
-#include "../Graphics/DescriptorHeap.h"
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
 #include "entt/entity/fwd.hpp"

@@ -70,23 +70,15 @@ namespace adria
 					.depth_idx = i + 0, .gbuf_normals_idx = i + 1, .output_idx = i + 2,
 					.ao_radius = ao_radius
 				};
-				
-				cmd_list->GetNative()->SetPipelineState1(ray_traced_ambient_occlusion.Get());
 
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
-				cmd_list->SetRootConstants(1, constants);
-
-				D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
-				dispatch_desc.Width = width;
-				dispatch_desc.Height = height;
-				dispatch_desc.Depth = 1;
-
-				GfxRayTracingShaderTable table(ray_traced_ambient_occlusion.Get());
+				auto& table = cmd_list->SetStateObject(ray_traced_ambient_occlusion.Get());
 				table.SetRayGenShader("RTAO_RayGen");
 				table.AddMissShader("RTAO_Miss", 0);
 				table.AddHitGroup("RTAOAnyHitGroup", 0);
-				table.Commit(*gfx->GetDynamicAllocator(), dispatch_desc);
-				cmd_list->GetNative()->DispatchRays(&dispatch_desc);
+
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, constants);
+				cmd_list->DispatchRays(width, height);
 			}, RGPassType::Compute, RGPassFlags::None);
 
 		blur_pass.AddPass(rg, RG_RES_NAME(RTAO_Output), RG_RES_NAME(AmbientOcclusion));

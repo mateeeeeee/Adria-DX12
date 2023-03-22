@@ -27,6 +27,4 @@ namespace adria
 		std::unique_ptr<GfxBuffer> buffer;
 		void* cpu_address;
 	};
-
-
 }

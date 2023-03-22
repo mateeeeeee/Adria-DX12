@@ -9,8 +9,6 @@
 
 namespace adria
 {
-    class GfxCommandList;
-	
     enum class GfxLoadAccessOp : uint8
     {
         Discard,
@@ -60,27 +58,8 @@ namespace adria
         std::vector<GfxColorAttachmentDesc> rtv_attachments{};
         std::optional<GfxDepthAttachmentDesc> dsv_attachment = std::nullopt;
         GfxRenderPassFlags flags = GfxRenderPassFlagBit_None;
-        uint32 width;
-        uint32 height;
-    };
-
-    class GfxRenderPass
-    {
-    public:
-        GfxRenderPass() = default;
-        explicit GfxRenderPass(GfxRenderPassDesc const& desc);
-
-        void Begin(GfxCommandList* cmd_list, bool legacy = false);
-        void End();
-
-    private:
-        std::vector<D3D12_RENDER_PASS_RENDER_TARGET_DESC> rtvs{};
-        std::unique_ptr<D3D12_RENDER_PASS_DEPTH_STENCIL_DESC> dsv = nullptr;
-        D3D12_RENDER_PASS_FLAGS flags = D3D12_RENDER_PASS_FLAG_NONE;
         uint32 width = 0;
         uint32 height = 0;
-
         bool legacy = false;
-        GfxCommandList* cmd_list = nullptr;
     };
 }

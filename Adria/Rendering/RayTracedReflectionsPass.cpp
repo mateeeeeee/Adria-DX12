@@ -83,24 +83,15 @@ namespace adria
 					.depth_idx = i + 0, .output_idx = i + 1,
 					.vertices_idx = i + 2, .indices_idx = i + 3, .geo_infos_idx = i + 4
 				};
-
-				
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
-				cmd_list->SetRootConstants(1, constants);
-				cmd_list->GetNative()->SetPipelineState1(ray_traced_reflections.Get());
-
-				D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
-				dispatch_desc.Width = width;
-				dispatch_desc.Height = height;
-				dispatch_desc.Depth = 1;
-
-				GfxRayTracingShaderTable table(ray_traced_reflections.Get());
+				auto& table = cmd_list->SetStateObject(ray_traced_reflections.Get());
 				table.SetRayGenShader("RTR_RayGen");
 				table.AddMissShader("RTR_Miss", 0);
 				table.AddHitGroup("RTRClosestHitGroupPrimaryRay", 0);
 				table.AddHitGroup("RTRClosestHitGroupReflectionRay", 1);
-				table.Commit(*gfx->GetDynamicAllocator(), dispatch_desc);
-				cmd_list->GetNative()->DispatchRays(&dispatch_desc);
+
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, constants);
+				cmd_list->DispatchRays(width, height);
 			}, RGPassType::Compute, RGPassFlags::None);
 
 		blur_pass.AddPass(rg, RG_RES_NAME(RTR_OutputNoisy), RG_RES_NAME(RTR_Output), "RTR Denoise");

@@ -22,7 +22,6 @@ namespace adria
 		case D3D12_RESOURCE_DIMENSION_BUFFER:
 		case D3D12_RESOURCE_DIMENSION_UNKNOWN:
 		default:
-			ADRIA_UNREACHABLE();
 			return GfxTextureType_1D;
 		}
 		return GfxTextureType_1D;

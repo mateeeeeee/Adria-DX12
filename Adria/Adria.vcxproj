@@ -209,7 +209,6 @@
     <ClCompile Include="Graphics\GfxLinearDynamicAllocator.cpp" />
     <ClCompile Include="Graphics\MipsGenerator.cpp" />
     <ClCompile Include="Graphics\GPUProfiler.cpp" />
-    <ClCompile Include="Graphics\GfxRenderPass.cpp" />
     <ClCompile Include="Graphics\GfxPipelineState.cpp" />
     <ClCompile Include="Graphics\GfxRingDynamicAllocator.cpp" />
     <ClCompile Include="Graphics\GfxShaderCompiler.cpp" />

@@ -1,3 +1,4 @@
+#include "d3dx12.h"
 #include "GenerateMipsPass.h"
 #include "BlackboardData.h"
 #include "PSOCache.h" 

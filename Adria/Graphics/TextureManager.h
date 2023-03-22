@@ -6,6 +6,7 @@
 #include <memory>
 #include "GfxDescriptor.h"
 #include "../Utilities/HashMap.h"
+#include "../Utilities/AutoRefCountPtr.h"
 
 namespace adria
 {
@@ -37,7 +38,7 @@ namespace adria
 
 	private:
 		GfxDevice* gfx = nullptr;
-		std::unique_ptr<MipsGenerator> mips_generator = nullptr;
+		std::unique_ptr<MipsGenerator> mips_generator;
 
 		HashMap<TextureName, TextureHandle> loaded_textures{};
 		HashMap<TextureHandle, std::unique_ptr<GfxTexture>> texture_map{};
@@ -52,11 +53,12 @@ namespace adria
 	private:
 
 		TextureManager();
+		~TextureManager();
 
 		TextureHandle LoadDDSTexture(std::wstring const& texture_path);
 		TextureHandle LoadWICTexture(std::wstring const& texture_path);
 		TextureHandle LoadTexture_HDR_TGA_PIC(std::string const& texture_path);
 
-		void CreateViewForTexture(TextureHandle handle);
+		void CreateViewForTexture(TextureHandle handle, bool flag = false);
 	};
 }

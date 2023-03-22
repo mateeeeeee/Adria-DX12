@@ -429,21 +429,22 @@ namespace adria
 	void GfxDevice::CopyDescriptors(GfxDescriptor dst, std::span<GfxDescriptor> src_descriptors, GfxDescriptorHeapType type /*= GfxDescriptorHeapType::CBV_SRV_UAV*/)
 	{
 		uint32 const dst_ranges_count = 1;
-		uint32 const src_ranges_count = src_descriptors.size();
+		uint32 const src_ranges_count = (uint32)src_descriptors.size();
 
 		D3D12_CPU_DESCRIPTOR_HANDLE dst_handles[] = { dst };
-		uint32 dst_range_sizes[] = { src_descriptors.size() };
+		uint32 dst_range_sizes[] = { (uint32)src_descriptors.size() };
 
-		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> src_handles(src_descriptors.size());
 		std::vector<uint32> src_range_sizes(src_descriptors.size(), 1);
+		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> src_handles(src_descriptors.size());
+		for (size_t i = 0; i < src_handles.size(); ++i) src_handles[i] = src_descriptors[i];
 
 		device->CopyDescriptors(dst_ranges_count, dst_handles, dst_range_sizes,
 			src_ranges_count, src_handles.data(), src_range_sizes.data(), ToD3D12HeapType(type));
 	}
 	void GfxDevice::CopyDescriptors(std::span<std::pair<GfxDescriptor, uint32>> dst_range_starts_and_size, std::span<std::pair<GfxDescriptor, uint32>> src_range_starts_and_size, GfxDescriptorHeapType type /*= GfxDescriptorHeapType::CBV_SRV_UAV*/)
 	{
-		uint32 const dst_ranges_count = dst_range_starts_and_size.size();
-		uint32 const src_ranges_count = src_range_starts_and_size.size();
+		uint32 const dst_ranges_count = (uint32)dst_range_starts_and_size.size();
+		uint32 const src_ranges_count = (uint32)src_range_starts_and_size.size();
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> dst_handles(dst_ranges_count);
 		std::vector<uint32> dst_range_sizes(dst_ranges_count);
 		for (size_t i = 0; i < dst_ranges_count; ++i)
@@ -481,7 +482,7 @@ namespace adria
 		if (rendering_not_started) return dynamic_allocator_before_rendering.get();
 		else return dynamic_allocators[swapchain->GetBackbufferIndex()].get();
 	}
-	void GfxDevice::InitShaderVisibleAllocator(size_t reserve)
+	void GfxDevice::InitShaderVisibleAllocator(uint32 reserve)
 	{
 		gpu_descriptor_allocator = std::make_unique<GfxOnlineDescriptorAllocator>(this, 32767, reserve);
 	}
@@ -787,7 +788,8 @@ namespace adria
 				uav_desc.Buffer.FirstElement = (UINT)view_desc.offset / stride;
 				uav_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / stride;
 			}
-			device->CreateUnorderedAccessView(buffer->GetNative(), uav_counter->GetNative(), &uav_desc, heap_descriptor);
+			
+			device->CreateUnorderedAccessView(buffer->GetNative(), uav_counter ? uav_counter->GetNative() : nullptr, &uav_desc, heap_descriptor);
 		}
 		break;
 		case GfxSubresourceType::RTV:

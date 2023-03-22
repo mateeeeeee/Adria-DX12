@@ -27,9 +27,12 @@ namespace adria
 	class GfxSwapchain;
 	class GfxCommandList;
 	class GfxTexture;
-	class GfxTextureSubresourceDesc;
+	struct GfxTextureDesc;
+	struct GfxTextureSubresourceDesc;
 	class GfxBuffer;
-	class GfxBufferSubresourceDesc;
+	struct GfxBufferDesc;
+	struct GfxBufferSubresourceDesc;
+	enum class GfxSubresourceType : uint8;
 
 	class GfxLinearDynamicAllocator;
 	class GfxDescriptorAllocator;
@@ -101,13 +104,13 @@ namespace adria
 
 		GfxDescriptor AllocateOfflineDescriptor(GfxDescriptorHeapType);
 		void FreeOfflineDescriptor(GfxDescriptor, GfxDescriptorHeapType);
-		void InitShaderVisibleAllocator(size_t reserve);
+		void InitShaderVisibleAllocator(uint32 reserve);
 
 		GfxOnlineDescriptorAllocator* GetDescriptorAllocator() const; //#todo get rid of this?
 		GfxLinearDynamicAllocator* GetDynamicAllocator() const;
 
-		GfxBuffer* CreateBuffer(GfxBufferDesc const& desc, GfxBufferInitialData initial_data = nullptr);
-		GfxTexture* CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data = nullptr, size_t data_count = -1);
+		GfxBuffer* CreateBuffer(GfxBufferDesc const& desc, const void* initial_data = nullptr);
+		GfxTexture* CreateTexture(GfxTextureDesc const& desc, D3D12_SUBRESOURCE_DATA* initial_data = nullptr, size_t data_count = -1);
 		GfxTexture* CreateTextureForBackbuffer(GfxDevice* gfx, GfxTextureDesc const& desc, ID3D12Resource* backbuffer);
 
 		GfxDescriptor CreateBufferSRV(GfxBuffer const*, GfxBufferSubresourceDesc const* = nullptr);

@@ -76,6 +76,8 @@ namespace adria
 
     TextureManager::TextureManager() {}
 
+    TextureManager::~TextureManager() = default;
+
 	TextureManager& TextureManager::Get()
 	{
 		static TextureManager tex_manager;
@@ -349,8 +351,7 @@ namespace adria
             GfxTexture* texture = texture_map[TextureHandle(i)].get();
             if (texture)
             {
-                device->CopyDescriptorsSimple(1, online_descriptor_allocator->GetHandle(i),
-                                              texture_srv_map[TextureHandle(i)], D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+                CreateViewForTexture(TextureHandle(i), true);
             }
         }
         is_scene_initialized = true;
@@ -491,15 +492,15 @@ namespace adria
 
     }
 
-	void TextureManager::CreateViewForTexture(TextureHandle handle)
+	void TextureManager::CreateViewForTexture(TextureHandle handle, bool flag)
 	{
-        if (!is_scene_initialized) return;
+        if (!is_scene_initialized && !flag) return;
 
 		auto* online_descriptor_allocator = gfx->GetDescriptorAllocator();
 		GfxTexture* texture = texture_map[handle].get();
 		ADRIA_ASSERT(texture);
         texture_srv_map[handle] = gfx->CreateTextureSRV(texture);
-        gfx->CopyDescriptors(1, online_descriptor_allocator->GetHandle((size_t)handle),
+        gfx->CopyDescriptors(1, online_descriptor_allocator->GetHandle((uint32)handle),
             texture_srv_map[handle]);
 	}
 

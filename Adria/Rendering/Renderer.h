@@ -35,6 +35,7 @@ namespace adria
 {
 	class Camera;
 	class GfxBuffer;
+	class GfxCommandList;
 	class GfxTexture;
 	struct Light;
 
@@ -91,7 +92,7 @@ namespace adria
 		GfxDescriptor				light_matrices_buffer_srvs[GFX_BACKBUFFER_COUNT];
 		HashMap<size_t, std::vector<std::unique_ptr<GfxTexture>>> light_shadow_maps;
 		HashMap<size_t, std::vector<GfxDescriptor>> light_shadow_map_srvs;
-		HashMap<size_t, std::vector<GfxDescriptor>> light_shadow_map_uavs;
+		HashMap<size_t, std::vector<GfxDescriptor>> light_shadow_map_dsvs;
 		HashMap<size_t, std::unique_ptr<GfxTexture>> light_mask_textures;
 		HashMap<size_t, GfxDescriptor> light_mask_texture_srvs;
 		HashMap<size_t, GfxDescriptor> light_mask_texture_uavs;
@@ -159,7 +160,7 @@ namespace adria
 		void Render_Deferred(RenderGraph& rg);
 		void Render_PathTracing(RenderGraph& rg);
 
-		void ShadowMapPass_Common(GfxDevice* gfx, ID3D12GraphicsCommandList4* cmd_list, bool transparent, size_t light_index, size_t shadow_map_index = 0);
+		void ShadowMapPass_Common(GfxDevice* gfx, GfxCommandList* cmd_list, bool transparent, size_t light_index, size_t shadow_map_index = 0);
 		void AddShadowMapPasses(RenderGraph& rg);
 		void AddRayTracingShadowPasses(RenderGraph& rg);
 		void CopyToBackbuffer(RenderGraph& rg);

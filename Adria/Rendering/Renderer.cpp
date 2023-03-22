@@ -12,6 +12,7 @@
 #include "../Graphics/GfxTexture.h"
 #include "../Graphics/TextureManager.h"
 #include "../Graphics/GfxCommon.h"
+#include "../Graphics/GfxPipelineState.h"
 #include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
@@ -519,8 +520,8 @@ namespace adria
 			depth_desc.initial_state = GfxResourceState::DepthWrite;
 
 			light_shadow_maps[light_id].emplace_back(std::make_unique<GfxTexture>(gfx, depth_desc));
-			light_shadow_map_srvs[light_id].emplace_back(gfx->CreateTextureSRV(light_shadow_maps[light_id].back().get()));
-			light_shadow_map_uavs[light_id].emplace_back(gfx->CreateTextureUAV(light_shadow_maps[light_id].back().get()));
+			light_shadow_map_srvs[light_id].push_back(gfx->CreateTextureSRV(light_shadow_maps[light_id].back().get()));
+			light_shadow_map_dsvs[light_id].push_back(gfx->CreateTextureDSV(light_shadow_maps[light_id].back().get()));
 		};
 		auto AddShadowMaps = [&](Light& light, size_t light_id)
 		{
@@ -893,12 +894,8 @@ namespace adria
 			});
 	}
 
-	void Renderer::ShadowMapPass_Common(GfxDevice* gfx, ID3D12GraphicsCommandList4* cmd_list, bool transparent, size_t light_index, size_t shadow_map_index)
+	void Renderer::ShadowMapPass_Common(GfxDevice* gfx, GfxCommandList* cmd_list, bool transparent, size_t light_index, size_t shadow_map_index)
 	{
-		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
-		auto upload_buffer = gfx->GetDynamicAllocator();
-
 		struct ShadowConstants
 		{
 			uint32  light_index;
@@ -909,7 +906,7 @@ namespace adria
 			.matrix_index = (uint32)shadow_map_index
 		};
 
-		cmd_list->SetGraphicsRoot32BitConstants(1, 2, &constants, 0);
+		cmd_list->SetRootConstants(1, constants);
 
 		auto shadow_view = reg.view<Mesh, Transform, AABB>();
 		if (!transparent)
@@ -935,10 +932,8 @@ namespace adria
 					.model_matrix = transform.current_transform * parent_transform,
 					._unused = 0
 				};
-				GfxDynamicAllocation model_allocation = upload_buffer->Allocate(GetCBufferSize<ModelConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-				model_allocation.Update(model_constants);
-				cmd_list->SetGraphicsRootConstantBufferView(2, model_allocation.gpu_address);
-				mesh.Draw(cmd_list);
+				cmd_list->SetRootCBV(2, model_constants);
+				mesh.Draw(cmd_list->GetNative());
 			}
 		}
 		else
@@ -979,10 +974,8 @@ namespace adria
 					.model_matrix = transform.current_transform * parent_transform,
 					._unused = 0
 				};
-				GfxDynamicAllocation model_allocation = upload_buffer->Allocate(GetCBufferSize<ModelConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-				model_allocation.Update(model_constants);
-				cmd_list->SetGraphicsRootConstantBufferView(2, model_allocation.gpu_address);
-				mesh.Draw(cmd_list);
+				cmd_list->SetRootCBV(2, model_constants);
+				mesh.Draw(cmd_list->GetNative());
 			}
 
 			cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Shadow_Transparent));
@@ -1008,10 +1001,8 @@ namespace adria
 					.model_matrix = transform.current_transform * parent_transform,
 					.albedo_idx = (uint32)material->albedo_texture
 				};
-				GfxDynamicAllocation model_allocation = upload_buffer->Allocate(GetCBufferSize<ModelConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-				model_allocation.Update(model_constants);
-				cmd_list->SetGraphicsRootConstantBufferView(2, model_allocation.gpu_address);
-				mesh.Draw(cmd_list);
+				cmd_list->SetRootCBV(2, model_constants);
+				mesh.Draw(cmd_list->GetNative());
 			}
 		}
 	}
@@ -1127,15 +1118,15 @@ namespace adria
 			},
 			[=](CopyToBackbufferPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				GfxResourceBarrierBatch barrier;
-				barrier.AddTransition(gfx->GetBackbuffer()->GetNative(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_DEST);
-				barrier.Submit(cmd_list);
+				cmd_list->TransitionBarrier(*gfx->GetBackbuffer(), GfxResourceState::RenderTarget, GfxResourceState::CopyDest);
+				cmd_list->FlushBarriers();
 
 				GfxTexture const& src_texture = ctx.GetCopySrcTexture(data.src);
-				cmd_list->CopyResource(gfx->GetBackbuffer()->GetNative(), src_texture.GetNative());
+				cmd_list->CopyTexture(*gfx->GetBackbuffer(), src_texture);
 
-				barrier.ReverseTransitions();
-				barrier.Submit(cmd_list);
+				cmd_list->TransitionBarrier(*gfx->GetBackbuffer(), GfxResourceState::CopyDest, GfxResourceState::RenderTarget);
+				cmd_list->FlushBarriers();
+
 			}, RGPassType::Copy, RGPassFlags::ForceNoCull);
 	}
 	void Renderer::ResolveToFinalTexture(RenderGraph& rg)

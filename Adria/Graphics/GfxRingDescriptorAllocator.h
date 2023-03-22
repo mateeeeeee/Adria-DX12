@@ -22,21 +22,21 @@ namespace adria
 		{
 			OffsetType start = INVALID_OFFSET;
 			{
-				std::lock_guard<std::mutex> guard(alloc_lock);
-				start = ring_allocator.Allocate(range_size);
+				std::lock_guard guard(alloc_mutex);
+				start = ring_allocator.Allocate(count);
 			}
 			ADRIA_ASSERT(start != INVALID_OFFSET && "Don't have enough space");
-			return GetHandle(start);
+			return GetHandle((uint32)start);
 		}
 
 		void FinishCurrentFrame(uint64 frame)
 		{
-			std::lock_guard<std::mutex> guard(alloc_mutex);
+			std::lock_guard guard(alloc_mutex);
 			ring_allocator.FinishCurrentFrame(frame);
 		}
 		void ReleaseCompletedFrames(uint64 completed_frame)
 		{
-			std::lock_guard<std::mutex> guard(alloc_mutex);
+			std::lock_guard guard(alloc_mutex);
 			ring_allocator.ReleaseCompletedFrames(completed_frame);
 		}
 

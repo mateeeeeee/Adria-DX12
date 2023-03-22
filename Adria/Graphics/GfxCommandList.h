@@ -1,9 +1,9 @@
 #pragma once
+#include <span>
 #include <d3d12.h>
 #include "GfxDescriptor.h"
 #include "GfxResourceCommon.h"
 #include "GfxStates.h"
-#include "GfxRenderPass.h"
 #include "../Utilities/AutoRefCountPtr.h"
 #include "../Core/Definitions.h"
 
@@ -18,6 +18,8 @@ namespace adria
 	class GfxPipelineState;
 	struct GfxVertexBufferView;
 	struct GfxIndexBufferView;
+	struct GfxRenderPassDesc;
+	class GfxRayTracingShaderTable;
 
 	enum class GfxCommandListType : uint8
 	{
@@ -42,7 +44,8 @@ namespace adria
 
 	class GfxCommandList
 	{
-		enum class GfxCommandListContext
+	public:
+		enum class Context
 		{
 			Invalid,
 			Graphics,
@@ -50,6 +53,7 @@ namespace adria
 		};
 	public:
 		explicit GfxCommandList(GfxDevice* gfx, GfxCommandListType type = GfxCommandListType::Graphics, char const* name = "");
+		~GfxCommandList();
 
 		ID3D12GraphicsCommandList4* GetNative() const { return cmd_list.Get(); }
 		GfxCommandQueue& GetQueue() const { return cmd_queue; }
@@ -68,7 +72,7 @@ namespace adria
 		void DrawIndirect(GfxBuffer const& buffer, uint32 offset);
 		void DrawIndexedIndirect(GfxBuffer const& buffer, uint32 offset);
 		void DispatchIndirect(GfxBuffer const& buffer, uint32 offset);
-		//#todo : add Ray Tracing API
+		void DispatchRays(uint32 dispatch_width, uint32 dispatch_height, uint32 dispatch_depth = 1);
 
 		void TransitionBarrier(GfxBuffer const& resource, GfxResourceState old_state, GfxResourceState new_state);
 		void TransitionBarrier(GfxTexture const& resource, GfxResourceState old_state, GfxResourceState new_state, uint32 subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
@@ -89,10 +93,12 @@ namespace adria
 		void ClearUAV(GfxTexture const& resource, GfxDescriptor uav, GfxDescriptor uav_cpu, const uint32* clear_value);
 		void WriteBufferImmediate(GfxBuffer& buffer, uint32 offset, uint32 data);
 
-		void BeginRenderPass(GfxRenderPassDesc const& render_pass_desc, bool legacy = false);
-		void EndRenderPass(bool legacy = false);
+		void BeginRenderPass(GfxRenderPassDesc const& render_pass_desc);
+		void EndRenderPass();
 
 		void SetPipelineState(GfxPipelineState* state);
+		GfxRayTracingShaderTable& SetStateObject(ID3D12StateObject* state_object);
+
 		void SetStencilReference(uint8 stencil);
 		void SetBlendFactor(float const* blend_factor);
 		void SetTopology(GfxPrimitiveTopology topology);
@@ -121,8 +127,9 @@ namespace adria
 
 		void ClearRenderTarget(GfxDescriptor rtv, float const* clear_color);
 		void ClearDepth(GfxDescriptor dsv, float depth = 1.0f, uint8 stencil = 0, bool clear_stencil = false);
-		void SetRenderTargets(std::span<GfxDescriptor> rtvs, GfxDescriptor* dsv = nullptr, bool single_rt = false);
+		void SetRenderTargets(std::span<GfxDescriptor> rtvs, GfxDescriptor const* dsv = nullptr, bool single_rt = false);
 
+		void SetContext(Context ctx);
 	private:
 		GfxDevice* gfx = nullptr;
 		GfxCommandListType type;
@@ -132,8 +139,13 @@ namespace adria
 
 		uint32 command_count = 0;
 		GfxPipelineState* current_pso = nullptr;
-		std::unique_ptr<GfxRenderPass> current_render_pass = nullptr;
-		GfxCommandListContext current_context = GfxCommandListContext::Invalid;
+		GfxRenderPassDesc const* current_render_pass = nullptr;
+
+		ID3D12StateObject* current_state_object = nullptr;
+		std::unique_ptr<GfxRayTracingShaderTable> current_rt_table;
+
+		Context current_context = Context::Invalid;
+
 		std::vector<std::pair<GfxFence&, uint64>> pending_waits;
 		std::vector<std::pair<GfxFence&, uint64>> pending_signals;
 		std::vector<D3D12_RESOURCE_BARRIER> pending_barriers;

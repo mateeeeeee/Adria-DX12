@@ -69,7 +69,7 @@ namespace adria
 					params.pso = material.pso; 
 					batched_entities[params].push_back(e);
 				}
-
+				
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 
 				for (auto const& [params, entities] : batched_entities)

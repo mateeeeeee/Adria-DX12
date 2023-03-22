@@ -71,6 +71,9 @@
     <Filter Include="meshoptimizer">
       <UniqueIdentifier>{7fe9dc60-f08d-4abe-9603-2712167e3096}</UniqueIdentifier>
     </Filter>
+    <Filter Include="gfx-external">
+      <UniqueIdentifier>{e5ca3307-61b2-4c16-85ff-b9a7898599b5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -92,34 +95,10 @@
     <ClCompile Include="Rendering\Camera.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\D3D12MemAlloc.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\DDSTextureLoader12.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\WICTextureLoader12.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\DescriptorHeap.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\LinearOnlineDescriptorAllocator.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="Graphics\GfxShaderCompiler.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\RingOnlineDescriptorAllocator.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="Graphics\TextureManager.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\LinearDynamicAllocator.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\RingDynamicAllocator.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\AdriaException.cpp">
@@ -156,9 +135,6 @@
       <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\MipsGenerator.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\GfxRenderPass.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\GPUProfiler.cpp">
@@ -401,6 +377,33 @@
     <ClCompile Include="Graphics\GfxSwapchain.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="..\ThirdParty\gfx-external\D3D12MemAlloc.cpp">
+      <Filter>gfx-external</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\gfx-external\DDSTextureLoader12.cpp">
+      <Filter>gfx-external</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\gfx-external\WICTextureLoader12.cpp">
+      <Filter>gfx-external</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\AccelerationStructure.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\GfxCommandList.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\GfxRingDynamicAllocator.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\GfxLinearDynamicAllocator.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\GfxDescriptorAllocatorBase.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\GfxDescriptorAllocator.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -478,34 +481,10 @@
     <ClInclude Include="Rendering\Camera.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\D3D12MemAlloc.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\d3dx12.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\DDSTextureLoader12.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\WICTextureLoader12.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\LinearOnlineDescriptorAllocator.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\DescriptorHeap.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\GfxShaderCompiler.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\VertexTypes.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\RingDynamicAllocator.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\RingOnlineDescriptorAllocator.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\RingAllocator.h">
@@ -526,16 +505,7 @@
     <ClInclude Include="Graphics\MipsGenerator.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GfxResourceBarrierBatch.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\GfxRenderPass.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\DynamicAllocation.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\LinearDynamicAllocator.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\AdriaException.h">
@@ -582,9 +552,6 @@
     </ClInclude>
     <ClInclude Include="Utilities\Timer.h">
       <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\RayTracingUtil.h">
-      <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GPUProfiler.h">
       <Filter>Graphics</Filter>
@@ -647,9 +614,6 @@
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxResourceCommon.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\OfflineDescriptorAllocator.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="RenderGraph\RenderGraphResourcePool.h">
@@ -811,9 +775,6 @@
     <ClInclude Include="Math\Packing.h">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GpuMacros.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\DeferredLightingPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
@@ -880,12 +841,56 @@
     <ClInclude Include="Graphics\GfxCommandQueue.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\Releasable.h" />
     <ClInclude Include="Utilities\DWParam.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxSwapchain.h">
       <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\gfx-external\D3D12MemAlloc.h">
+      <Filter>gfx-external</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\gfx-external\DDSTextureLoader12.h">
+      <Filter>gfx-external</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12.h">
+      <Filter>gfx-external</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\gfx-external\WICTextureLoader12.h">
+      <Filter>gfx-external</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxRingDynamicAllocator.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxRingDescriptorAllocator.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxRayTracingUtil.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxLinearDynamicAllocator.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxDynamicAllocation.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxDescriptorAllocatorBase.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxDescriptorAllocator.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxDescriptor.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxDefines.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxCommandList.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Releasable.h">
+      <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1084,5 +1089,8 @@
     <None Include="Resources\NewShaders\RayTracing\PathTracing.hlsli">
       <Filter>Shaders\RayTracing</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="adria.log" />
   </ItemGroup>
 </Project>

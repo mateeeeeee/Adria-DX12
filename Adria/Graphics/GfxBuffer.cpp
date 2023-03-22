@@ -1,4 +1,5 @@
 #include "GfxBuffer.h"
+#include "GfxDevice.h"
 #include "GfxLinearDynamicAllocator.h"
 
 #include <format>

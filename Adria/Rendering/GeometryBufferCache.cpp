@@ -1,5 +1,6 @@
 #include "GeometryBufferCache.h"
 #include "../Graphics/GfxBuffer.h"
+#include "../Graphics/GfxDevice.h"
 
 namespace adria
 {

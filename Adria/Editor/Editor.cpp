@@ -676,7 +676,7 @@ namespace adria
 
 					ImGui::Text("Metallic-Roughness Texture");
 					tex_handle = TextureManager::Get().GetSRV(material->metallic_roughness_texture);
-					GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
+					dst_descriptor = descriptor_allocator->Allocate();
 					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
 						ImVec2(48.0f, 48.0f));
@@ -699,7 +699,7 @@ namespace adria
 
 					ImGui::Text("Emissive Texture");
 					tex_handle = TextureManager::Get().GetSRV(material->emissive_texture);
-					GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
+					dst_descriptor = descriptor_allocator->Allocate();
 					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
 						ImVec2(48.0f, 48.0f));
@@ -794,7 +794,7 @@ namespace adria
 
 					ImGui::Text("Decal Normal Texture");
 					tex_handle = TextureManager::Get().GetSRV(decal->normal_decal_texture);
-					GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
+					dst_descriptor = descriptor_allocator->Allocate();
 					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
 						ImVec2(48.0f, 48.0f));

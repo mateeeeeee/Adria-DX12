@@ -1,5 +1,7 @@
 #include "GfxTexture.h"
+#include "GfxDevice.h"
 #include "GfxLinearDynamicAllocator.h"
+#include "d3dx12.h"
 
 namespace adria
 {

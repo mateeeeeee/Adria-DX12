@@ -56,14 +56,14 @@ namespace adria
 
 	void GfxSwapchain::SetAsRenderTarget(GfxCommandList* cmd_list)
 	{
-		D3D12_CPU_DESCRIPTOR_HANDLE rtvs[] = { GetBackbufferDescriptor() };
+		GfxDescriptor rtvs[] = { GetBackbufferDescriptor() };
 		cmd_list->SetRenderTargets(rtvs);
 	}
 
 	void GfxSwapchain::ClearBackbuffer(GfxCommandList* cmd_list)
 	{
 		float const clear_color[] = { 0,0,0,0 };
-		D3D12_CPU_DESCRIPTOR_HANDLE rtv = GetBackbufferDescriptor();
+		GfxDescriptor rtv = GetBackbufferDescriptor();
 		cmd_list->ClearRenderTarget(rtv, clear_color);
 	}
 

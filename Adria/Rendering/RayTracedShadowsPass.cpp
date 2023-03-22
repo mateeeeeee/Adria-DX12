@@ -59,23 +59,14 @@ namespace adria
 					.depth_idx = i + 0, .output_idx = i + 1,
 					.light_idx = light_index
 				};
-				
-				cmd_list->GetNative()->SetPipelineState1(ray_traced_shadows.Get());
-
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
-				cmd_list->SetRootConstants(1, constants);
-
-				D3D12_DISPATCH_RAYS_DESC dispatch_desc{};
-				dispatch_desc.Width = width;
-				dispatch_desc.Height = height;
-				dispatch_desc.Depth = 1;
-
-				GfxRayTracingShaderTable table(ray_traced_shadows.Get());
+				auto& table = cmd_list->SetStateObject(ray_traced_shadows.Get());
 				table.SetRayGenShader("RTS_RayGen_Hard");
 				table.AddMissShader("RTS_Miss", 0);
 				table.AddHitGroup("ShadowAnyHitGroup", 0);
-				table.Commit(*gfx->GetDynamicAllocator(), dispatch_desc);
-				cmd_list->GetNative()->DispatchRays(&dispatch_desc);
+
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, constants);
+				cmd_list->DispatchRays(width, height);
 
 			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
 	}
