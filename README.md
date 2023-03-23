@@ -7,7 +7,6 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 	- Resource reuse using resource pool
 	- Automatic resource bind flags and initial state deduction
 	- Pass culling
-	- Optional multithreaded command list building
 * Reference path tracer 
 * Tiled deferred rendering 
 * Clustered deferred rendering
@@ -70,8 +69,7 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 
 ## Screenshots
 
-Since this is DirectX 12 port of this [engine](https://github.com/mate286/Adria-DX11), you can see some of the screenshots there. 
-All of DXR screenshots will go here:
+Since this engine shares some of the features with [engine](https://github.com/mate286/Adria-DX11), you can also see some of the screenshots there. 
 
 <table>
   <tr>
@@ -83,9 +81,6 @@ All of DXR screenshots will go here:
     <td><img src="Screenshots/raytraced.png"></td>
   </tr>
 </table>
-
-Ray Traced Reflections
-![alt text](Screenshots/rtr.png "Ray Traced Reflections") 
 
 Path Tracer
 ![alt text](Screenshots/pathtracing1.png "Path tracing") 
