@@ -32,7 +32,7 @@ namespace adria
 				blur_desc.width = width;
 				blur_desc.height = height;
 				blur_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-				
+
 				builder.DeclareTexture(RG_RES_NAME_IDX(Intermediate, counter), blur_desc);
 				data.dst_texture = builder.WriteTexture(RG_RES_NAME_IDX(Intermediate, counter));
 				data.src_texture = builder.ReadTexture(src_texture, ReadAccess_NonPixelShader);
@@ -50,7 +50,7 @@ namespace adria
 				{
 					uint32 input_idx;
 					uint32 output_idx;
-				} constants = 
+				} constants =
 				{
 					.input_idx = i, .output_idx = i + 1
 				};
@@ -69,21 +69,18 @@ namespace adria
 				blur_desc.width = width;
 				blur_desc.height = height;
 				blur_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-				
+
 				builder.DeclareTexture(blurred_texture, blur_desc);
 				data.dst_texture = builder.WriteTexture(blurred_texture);
 				data.src_texture = builder.ReadTexture(RG_RES_NAME_IDX(Intermediate, counter), ReadAccess_NonPixelShader);
 			},
 			[=](BlurPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				uint32 i = descriptor_allocator->Allocate(2).GetIndex();
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.src_texture),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), context.GetReadWriteTexture(data.dst_texture),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.src_texture));
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), context.GetReadWriteTexture(data.dst_texture));
 
 				struct BlurConstants
 				{

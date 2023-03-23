@@ -3,7 +3,7 @@
 #include "ConstantBuffers.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
+#include "PSOCache.h"
 
 #include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../Graphics/GfxRingDescriptorAllocator.h"
@@ -27,7 +27,7 @@ namespace adria
 
 		std::vector<RGResourceName> upsample_mips(pass_count);
 		upsample_mips[pass_count - 1] = downsample_mips[pass_count - 1];
-		
+
 		for (int32 i = pass_count - 2; i >= 0; --i)
 		{
 			upsample_mips[i] = UpsamplePass(rg, downsample_mips[i], upsample_mips[i + 1], i + 1);
@@ -36,7 +36,7 @@ namespace adria
 		BloomBlackboardData blackboard_data{ .bloom_intensity = params.bloom_intensity, .bloom_blend_factor = params.bloom_blend_factor };
 		rg.GetBlackboard().Add<BloomBlackboardData>(std::move(blackboard_data));
 
-		AddGUI([&]() 
+		AddGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("Bloom", 0))
 				{
@@ -81,7 +81,7 @@ namespace adria
 				desc.width = target_dim_x;
 				desc.height = target_dim_y;
 				desc.format = GfxFormat::R16G16B16A16_FLOAT;
-				builder.DeclareTexture(output, desc); 
+				builder.DeclareTexture(output, desc);
 				data.output = builder.WriteTexture(output);
 			},
 			[=](BloomDownsamplePassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
@@ -145,13 +145,12 @@ namespace adria
 			},
 			[=](BloomUpsamplePassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				uint32 i = descriptor_allocator->Allocate(3).GetIndex();
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.input_low), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadOnlyTexture(data.input_high), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadWriteTexture(data.output), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.input_low));
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadOnlyTexture(data.input_high));
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadWriteTexture(data.output));
 
 				struct BloomUpsampleConstants
 				{

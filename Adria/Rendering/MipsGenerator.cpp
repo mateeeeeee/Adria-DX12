@@ -1,13 +1,14 @@
 #include "MipsGenerator.h"
-#include "GfxDevice.h"
-#include "GfxTexture.h"
-#include "GfxShaderCompiler.h"
-#include "GfxCommandList.h"
-#include "GfxPipelineState.h"
-#include "GfxDescriptorAllocator.h"
 #include "d3dx12.h"
+#include "PSOCache.h"
+#include "../Graphics/GfxDevice.h"
+#include "../Graphics/GfxTexture.h"
+#include "../Graphics/GfxShaderCompiler.h"
+#include "../Graphics/GfxCommandList.h"
+#include "../Graphics/GfxPipelineState.h"
+#include "../Graphics/GfxDescriptorAllocator.h"
 #include "../Utilities/DWParam.h"
-#include "../Rendering/PSOCache.h"
+
 
 //https://slindev.com/d3d12-texture-mipmap-generation/
 
@@ -31,8 +32,7 @@ namespace adria
 		if (resources.empty()) return;
 		ID3D12Device* device = gfx->GetDevice();
 
-		static std::vector<GfxDescriptor> used_descriptors;
-		for (auto descriptor : used_descriptors) descriptor_allocator->FreeDescriptor(descriptor);
+		std::vector<GfxDescriptor> used_descriptors;
 
 		auto command_list_native = gfx_cmd_list->GetNative();
 		ID3D12DescriptorHeap* pp_heaps[] = { descriptor_allocator->GetHeap() };
@@ -68,6 +68,7 @@ namespace adria
 				dst_uav_desc.Texture2D.MipSlice = top_mip + 1;
 				device->CreateUnorderedAccessView(texture->GetNative(), nullptr, &dst_uav_desc, handle2);
 
+				i = handle1.GetIndex();
 				command_list_native->SetComputeRoot32BitConstant(1, DWParam(1.0f / dst_width).Uint, 0);
 				command_list_native->SetComputeRoot32BitConstant(1, DWParam(1.0f / dst_height).Uint, 1);
 				command_list_native->SetComputeRoot32BitConstant(1, i, 2);
@@ -83,6 +84,8 @@ namespace adria
 			}
 		}
 		resources.clear();
+
+		for (auto& descriptor : used_descriptors) descriptor_allocator->FreeDescriptor(descriptor);
 	}
 
 	void MipsGenerator::CreateHeap(uint32 max_textures)

@@ -2,7 +2,7 @@
 #include "Enums.h"
 #include "../Core/Definitions.h"
 #include "../RenderGraph/RenderGraphResourceName.h"
-#include "../Graphics/CommandSignature.h"
+#include "../Graphics/GfxCommandSignature.h"
 
 namespace adria
 {

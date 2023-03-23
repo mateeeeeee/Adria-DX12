@@ -30,7 +30,7 @@ namespace adria
 
 		imgui_allocator = std::make_unique<GUIDescriptorAllocator>(gfx, 30, 1); //reserve first one for fonts
 		ImGui_ImplWin32_Init(Window::Handle());
-		
+
 		GfxDescriptor handle = imgui_allocator->GetHandle(0);
 		ImGui_ImplDX12_Init(gfx->GetDevice(), gfx->BackbufferCount(),
 			DXGI_FORMAT_R10G10B10A2_UNORM, imgui_allocator->GetHeap(),
@@ -73,7 +73,7 @@ namespace adria
 		if (visible)
 		{
 			ID3D12DescriptorHeap* pp_heaps[] = { imgui_allocator->GetHeap() };
-			cmd_list->SetDescriptorHeaps(_countof(pp_heaps), pp_heaps);
+			cmd_list->SetDescriptorHeaps(ARRAYSIZE(pp_heaps), pp_heaps);
 			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), cmd_list);
 		}
 

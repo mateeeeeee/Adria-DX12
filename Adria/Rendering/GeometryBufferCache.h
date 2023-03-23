@@ -19,7 +19,7 @@ namespace adria
 		void Initialize(GfxDevice* _gfx);
 		void Destroy();
 
-		[[nodiscard]] GeometryBufferHandle CreateAndInitializeGeometryBuffer(uint64 total_buffer_size, void* resource, uint64 src_offset);
+		[[nodiscard]] GeometryBufferHandle CreateAndInitializeGeometryBuffer(GfxBuffer* staging_buffer, uint64 total_buffer_size,uint64 src_offset);
 		[[nodiscard]] GfxBuffer* GetGeometryBuffer(GeometryBufferHandle handle) const;
 		void DestroyGeometryBuffer(GeometryBufferHandle handle);
 

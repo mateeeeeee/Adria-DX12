@@ -98,9 +98,6 @@
     <ClCompile Include="Graphics\GfxShaderCompiler.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\TextureManager.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="Utilities\AdriaException.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
@@ -133,9 +130,6 @@
     </ClCompile>
     <ClCompile Include="..\ThirdParty\ImGui\ImGuizmo.cpp">
       <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\MipsGenerator.cpp">
-      <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\GPUProfiler.cpp">
       <Filter>Graphics</Filter>
@@ -404,6 +398,15 @@
     <ClCompile Include="Graphics\GfxDescriptorAllocator.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\TextureManager.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\MipsGenerator.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\GfxQueryHeap.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -484,9 +487,6 @@
     <ClInclude Include="Graphics\GfxShaderCompiler.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\VertexTypes.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Utilities\RingAllocator.h">
       <Filter>Utilities</Filter>
     </ClInclude>
@@ -497,12 +497,6 @@
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxConstantBuffer.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\TextureManager.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\MipsGenerator.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxRenderPass.h">
@@ -766,9 +760,6 @@
     <ClInclude Include="..\ThirdParty\FontAwesome\IconsFontAwesome4.h">
       <Filter>Font</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\CommandSignature.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\GfxInputLayout.h">
       <Filter>Graphics</Filter>
     </ClInclude>
@@ -891,6 +882,21 @@
     </ClInclude>
     <ClInclude Include="Utilities\Releasable.h">
       <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxCommandSignature.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxVertexTypes.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\TextureManager.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\MipsGenerator.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxQueryHeap.h">
+      <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

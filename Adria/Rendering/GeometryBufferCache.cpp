@@ -1,6 +1,7 @@
 #include "GeometryBufferCache.h"
 #include "../Graphics/GfxBuffer.h"
 #include "../Graphics/GfxDevice.h"
+#include "../Graphics/GfxCommandList.h"
 
 namespace adria
 {
@@ -22,7 +23,7 @@ namespace adria
 		gfx = nullptr;
 	}
 
-	GeometryBufferHandle GeometryBufferCache::CreateAndInitializeGeometryBuffer(uint64 total_buffer_size, void* resource, uint64 src_offset)
+	GeometryBufferHandle GeometryBufferCache::CreateAndInitializeGeometryBuffer(GfxBuffer* staging_buffer, uint64 total_buffer_size, uint64 src_offset)
 	{
 		GfxBufferDesc desc{};
 		desc.size = total_buffer_size;
@@ -32,7 +33,7 @@ namespace adria
 
 		++current_handle;
 		buffer_map[current_handle] = std::make_unique<GfxBuffer>(gfx, desc);
-		if(resource != nullptr) gfx->GetCommandList()->CopyBufferRegion(buffer_map[current_handle]->GetNative(), 0, (ID3D12Resource*)resource, src_offset, total_buffer_size);
+		if(staging_buffer) gfx->GetGraphicsCommandList()->CopyBuffer(*buffer_map[current_handle], 0, *staging_buffer, src_offset, total_buffer_size);
 		return current_handle;
 	}
 

@@ -16,6 +16,7 @@ namespace adria
 	class GfxBuffer;
 	class GfxTexture;
 	class GfxPipelineState;
+	class GfxQueryHeap;
 	struct GfxVertexBufferView;
 	struct GfxIndexBufferView;
 	struct GfxRenderPassDesc;
@@ -51,6 +52,7 @@ namespace adria
 			Graphics,
 			Compute
 		};
+
 	public:
 		explicit GfxCommandList(GfxDevice* gfx, GfxCommandListType type = GfxCommandListType::Graphics, char const* name = "");
 		~GfxCommandList();
@@ -65,6 +67,10 @@ namespace adria
 		void Signal(GfxFence& fence, uint64 value);
 		void Submit();
 		void ResetState();
+
+		void BeginQuery(GfxQueryHeap& query_heap, uint32 index);
+		void EndQuery(GfxQueryHeap& query_heap, uint32 index);
+		void ResolveQueryData(GfxQueryHeap const& query_heap, uint32 start, uint32 count, GfxBuffer& dst_buffer, uint64 dst_offset);
 
 		void Draw(uint32 vertex_count, uint32 instance_count = 1, uint32 start_vertex_location = 0, uint32 start_instance_location = 0);
 		void DrawIndexed(uint32 index_count, uint32 instance_count = 1, uint32 index_offset = 0, uint32 base_vertex_location = 0, uint32 start_instance_location = 0);
@@ -84,9 +90,10 @@ namespace adria
 		void FlushBarriers();
 
 		void CopyBuffer(GfxBuffer& dst, GfxBuffer const& src);
-		void CopyBuffer(GfxBuffer& dst, uint32 dst_offset, GfxBuffer const& src, uint32 src_offset, uint32 size);
+		void CopyBuffer(GfxBuffer& dst, uint64 dst_offset, GfxBuffer const& src, uint64 src_offset, uint64 size);
 		void CopyTexture(GfxTexture& dst, GfxTexture const& src);
 		void CopyTexture(GfxTexture& dst, uint32 dst_mip, uint32 dst_array, GfxTexture const& src, uint32 src_mip, uint32 src_array);
+
 		void ClearUAV(GfxBuffer const& resource, GfxDescriptor uav, GfxDescriptor uav_cpu, const float* clear_value);
 		void ClearUAV(GfxTexture const& resource, GfxDescriptor uav, GfxDescriptor uav_cpu, const float* clear_value);
 		void ClearUAV(GfxBuffer const& resource, GfxDescriptor uav, GfxDescriptor uav_cpu, const uint32* clear_value);

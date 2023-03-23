@@ -203,16 +203,15 @@
     <ClCompile Include="Graphics\GfxDescriptorAllocatorBase.cpp" />
     <ClCompile Include="Graphics\GfxDevice.cpp" />
     <ClCompile Include="Graphics\GfxFence.cpp" />
+    <ClCompile Include="Graphics\GfxQueryHeap.cpp" />
     <ClCompile Include="Graphics\GfxStates.cpp" />
     <ClCompile Include="Graphics\GfxSwapchain.cpp" />
     <ClCompile Include="Graphics\GfxTexture.cpp" />
     <ClCompile Include="Graphics\GfxLinearDynamicAllocator.cpp" />
-    <ClCompile Include="Graphics\MipsGenerator.cpp" />
     <ClCompile Include="Graphics\GPUProfiler.cpp" />
     <ClCompile Include="Graphics\GfxPipelineState.cpp" />
     <ClCompile Include="Graphics\GfxRingDynamicAllocator.cpp" />
     <ClCompile Include="Graphics\GfxShaderCompiler.cpp" />
-    <ClCompile Include="Graphics\TextureManager.cpp" />
     <ClCompile Include="Input\Input.cpp" />
     <ClCompile Include="Logging\Logger.cpp" />
     <ClCompile Include="main.cpp" />
@@ -249,6 +248,7 @@
     <ClCompile Include="Rendering\GenerateMipsPass.cpp" />
     <ClCompile Include="Rendering\HBAOPass.cpp" />
     <ClCompile Include="Rendering\DeferredLightingPass.cpp" />
+    <ClCompile Include="Rendering\MipsGenerator.cpp" />
     <ClCompile Include="Rendering\MotionBlurPass.cpp" />
     <ClCompile Include="Rendering\OceanRenderer.cpp" />
     <ClCompile Include="Rendering\PathTracingPass.cpp" />
@@ -265,6 +265,7 @@
     <ClCompile Include="Rendering\SSAOPass.cpp" />
     <ClCompile Include="Rendering\SSRPass.cpp" />
     <ClCompile Include="Rendering\TAAPass.cpp" />
+    <ClCompile Include="Rendering\TextureManager.cpp" />
     <ClCompile Include="Rendering\TiledDeferredLightingPass.cpp" />
     <ClCompile Include="Rendering\ToneMapPass.cpp" />
     <ClCompile Include="Rendering\MotionVectorsPass.cpp" />
@@ -309,7 +310,7 @@
     <ClInclude Include="Events\EventQueue.h" />
     <ClInclude Include="Events\IEvent.h" />
     <ClInclude Include="Graphics\GfxBuffer.h" />
-    <ClInclude Include="Graphics\CommandSignature.h" />
+    <ClInclude Include="Graphics\GfxCommandSignature.h" />
     <ClInclude Include="Graphics\GfxCommandList.h" />
     <ClInclude Include="Graphics\GfxCommandQueue.h" />
     <ClInclude Include="Graphics\GfxConstantBuffer.h" />
@@ -319,6 +320,7 @@
     <ClInclude Include="Graphics\GfxDescriptorAllocatorBase.h" />
     <ClInclude Include="Graphics\GfxFence.h" />
     <ClInclude Include="Graphics\GfxFormat.h" />
+    <ClInclude Include="Graphics\GfxQueryHeap.h" />
     <ClInclude Include="Graphics\GfxRingDescriptorAllocator.h" />
     <ClInclude Include="Graphics\GfxSwapchain.h" />
     <ClInclude Include="Graphics\GfxDefines.h" />
@@ -326,7 +328,6 @@
     <ClInclude Include="Graphics\GfxDevice.h" />
     <ClInclude Include="Graphics\GfxStates.h" />
     <ClInclude Include="Graphics\GfxInputLayout.h" />
-    <ClInclude Include="Graphics\MipsGenerator.h" />
     <ClInclude Include="Graphics\GfxLinearDynamicAllocator.h" />
     <ClInclude Include="Graphics\GPUProfiler.h" />
     <ClInclude Include="Graphics\GfxPipelineState.h" />
@@ -335,10 +336,9 @@
     <ClInclude Include="Graphics\GfxResourceCommon.h" />
     <ClInclude Include="Graphics\GfxShader.h" />
     <ClInclude Include="Graphics\GfxTexture.h" />
-    <ClInclude Include="Graphics\TextureManager.h" />
     <ClInclude Include="Graphics\GfxRingDynamicAllocator.h" />
     <ClInclude Include="Graphics\GfxShaderCompiler.h" />
-    <ClInclude Include="Graphics\VertexTypes.h" />
+    <ClInclude Include="Graphics\GfxVertexTypes.h" />
     <ClInclude Include="Input\Input.h" />
     <ClInclude Include="Logging\Logger.h" />
     <ClInclude Include="Math\BoundingVolumeHelpers.h" />
@@ -395,6 +395,7 @@
     <ClInclude Include="Rendering\DeferredLightingPass.h" />
     <ClInclude Include="Rendering\MeshletStructs.h" />
     <ClInclude Include="Rendering\GeometryBufferCache.h" />
+    <ClInclude Include="Rendering\MipsGenerator.h" />
     <ClInclude Include="Rendering\MotionBlurPass.h" />
     <ClInclude Include="Rendering\OceanRenderer.h" />
     <ClInclude Include="Rendering\PathTracingPass.h" />
@@ -410,6 +411,7 @@
     <ClInclude Include="Rendering\SSRPass.h" />
     <ClInclude Include="Rendering\TAAPass.h" />
     <ClInclude Include="Rendering\MotionVectorsPass.h" />
+    <ClInclude Include="Rendering\TextureManager.h" />
     <ClInclude Include="Rendering\ViewportData.h" />
     <ClInclude Include="Rendering\SkyModel.h" />
     <ClInclude Include="Rendering\SkyPass.h" />

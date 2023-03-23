@@ -4,7 +4,7 @@
 #include <d3d12.h>
 #include <variant>
 #include <memory>
-#include "GfxDescriptor.h"
+#include "../Graphics/GfxDescriptor.h"
 #include "../Utilities/HashMap.h"
 #include "../Utilities/AutoRefCountPtr.h"
 
@@ -13,7 +13,7 @@ namespace adria
 	class GfxDevice;
 	class GfxTexture;
 	class MipsGenerator;
-	
+
 	using TextureHandle = size_t;
 	inline constexpr TextureHandle INVALID_TEXTURE_HANDLE = TextureHandle(0);
 
@@ -24,7 +24,7 @@ namespace adria
 
 		static TextureManager& Get();
 
-		void Initialize(GfxDevice* gfx, UINT max_textures);
+		void Initialize(GfxDevice* gfx, uint32 max_textures);
 		void Destroy();
 		void Tick();
 

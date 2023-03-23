@@ -4,17 +4,17 @@
 #else
 #pragma comment(lib, "Release\\DirectXTex.lib")
 #endif
-
-#include "TextureManager.h"
-#include "GfxTexture.h"
-#include "GfxDevice.h"
-#include "GfxCommandList.h"
-#include "GfxRingDescriptorAllocator.h"
 #include "d3dx12.h"
 #include "DDSTextureLoader12.h"
 #include "WICTextureLoader12.h"
-#include "GfxShaderCompiler.h"
+
+#include "TextureManager.h"
 #include "MipsGenerator.h"
+#include "../Graphics/GfxTexture.h"
+#include "../Graphics/GfxDevice.h"
+#include "../Graphics/GfxCommandList.h"
+#include "../Graphics/GfxRingDescriptorAllocator.h"
+#include "../Graphics/GfxShaderCompiler.h"
 #include "../Core/Macros.h"
 #include "../Logging/Logger.h"
 #include "../Utilities/StringUtil.h"
@@ -128,7 +128,7 @@ namespace adria
 
 	void TextureManager::Tick()
 	{
-		mips_generator->Generate(gfx->GetCommandList(GfxCommandListType::Graphics));
+		mips_generator->Generate(gfx->GetGraphicsCommandList());
 	}
 
     [[nodiscard]]
@@ -341,7 +341,7 @@ namespace adria
 		std::unique_ptr<GfxTexture> black_default_texture = std::make_unique<GfxTexture>(gfx, desc, &init_data);
 		texture_map[INVALID_TEXTURE_HANDLE] = std::move(black_default_texture);
 
-		mips_generator->Generate(gfx->GetCommandList(GfxCommandListType::Graphics));
+		mips_generator->Generate(gfx->GetGraphicsCommandList());
 
 		gfx->InitShaderVisibleAllocator(1024);
 		ID3D12Device* device = gfx->GetDevice();
@@ -389,7 +389,7 @@ namespace adria
             desc.initial_state = GfxResourceState::PixelShaderResource | GfxResourceState::NonPixelShaderResource;
             desc.heap_type = GfxResourceUsage::Default;
             desc.mip_levels = _desc.MipLevels;
-            std::unique_ptr<GfxTexture> tex = std::make_unique<GfxTexture>(gfx, desc, subresources.data(), subresources.size());
+            std::unique_ptr<GfxTexture> tex = std::make_unique<GfxTexture>(gfx, desc, subresources.data(), (uint32)subresources.size());
 
             texture_map.insert({ handle, std::move(tex)});
             CreateViewForTexture(handle);

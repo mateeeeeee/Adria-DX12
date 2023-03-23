@@ -305,7 +305,7 @@ namespace adria
 
 	void Engine::InitializeScene(SceneConfig const& config)
 	{
-		auto cmd_list = gfx->GetCommandList(GfxCommandListType::Graphics);
+		auto cmd_list = gfx->GetGraphicsCommandList();
 		cmd_list->Begin();
 
 		const_cast<SceneConfig&>(config).camera_params.aspect_ratio = static_cast<float>(Window::Width()) / Window::Height();

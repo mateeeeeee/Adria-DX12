@@ -2,7 +2,7 @@
 #include "ConstantBuffers.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
+#include "PSOCache.h"
 
 #include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
@@ -15,7 +15,7 @@ using namespace DirectX;
 namespace adria
 {
 
-	TiledDeferredLightingPass::TiledDeferredLightingPass(entt::registry& reg, uint32 w, uint32 h) : reg(reg), width(w), height(h), 
+	TiledDeferredLightingPass::TiledDeferredLightingPass(entt::registry& reg, uint32 w, uint32 h) : reg(reg), width(w), height(h),
 		add_textures_pass(width, height), copy_to_texture_pass(width, height)
 	{}
 
@@ -70,7 +70,7 @@ namespace adria
 					uint32 depth_idx;
 					uint32 output_idx;
 					int32  debug_idx;
-				} constants = 
+				} constants =
 				{
 					.visualize_max_lights = visualize_max_lights,
 					.normal_idx = i, .diffuse_idx = i + 1, .depth_idx = i + 2, .output_idx = i + 3,
@@ -78,11 +78,11 @@ namespace adria
 				};
 
 				static constexpr float black[4] = {0.0f,0.0f,0.0f,0.0f};
-				GfxTexture const& tiled_target = context.GetTexture(data.output.GetResourceId());
-				GfxTexture const& tiled_debug_target = context.GetTexture(data.debug_output.GetResourceId());
+				GfxTexture const& tiled_target = context.GetTexture(*data.output);
+				GfxTexture const& tiled_debug_target = context.GetTexture(*data.debug_output);
 				cmd_list->ClearUAV(tiled_target, descriptor_allocator->GetHandle(i + 3), context.GetReadWriteTexture(data.output), black);
 				cmd_list->ClearUAV(tiled_debug_target, descriptor_allocator->GetHandle(i + 4), context.GetReadWriteTexture(data.debug_output), black);
-				
+
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::TiledDeferredLighting));
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);

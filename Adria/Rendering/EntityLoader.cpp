@@ -228,7 +228,7 @@ namespace adria
 
 		tinyobj::attrib_t const& attrib = reader.GetAttrib();
 		std::vector<tinyobj::shape_t> const& shapes = reader.GetShapes();
-		
+
 		// Loop over shapes
 		std::vector<TexturedNormalVertex> vertices{};
 		std::vector<uint32> indices{};
@@ -352,7 +352,7 @@ namespace adria
         return skybox;
 
     }
- 
+
 	entt::entity EntityLoader::LoadLight(LightParameters const& params)
     {
         entt::entity light = reg.create();
@@ -410,9 +410,9 @@ namespace adria
 
             if (params.light_data.type == LightType::Directional)
                 material.pso = GfxPipelineStateID::Sun;
-			else 
-			{ 
-				ADRIA_LOG(ERROR, "Light with quad mesh needs to be directional!"); 
+			else
+			{
+				ADRIA_LOG(ERROR, "Light with quad mesh needs to be directional!");
 			}
 
             reg.emplace<Material>(light, material);
@@ -545,7 +545,7 @@ namespace adria
 		HashMap<std::string, std::vector<entt::entity>> mesh_name_to_entities_map;
 
 		//process the materials
-		std::vector<Material> materials; 
+		std::vector<Material> materials;
 		materials.reserve(model.materials.size());
 		for (auto const& gltf_material : model.materials)
 		{
@@ -639,7 +639,7 @@ namespace adria
 				submesh.base_vertex_location = static_cast<uint32>(mesh_data.positions_stream.size());
 
 				mesh_data.indices.reserve(mesh_data.indices.size() + index_accessor.count);
-				auto AddIndices =[&]<typename T>() 
+				auto AddIndices =[&]<typename T>()
 				{
 					T* data = (T*)(buffer.data.data() + index_accessor.byteOffset + buffer_view.byteOffset);
 					for (size_t i = 0; i < index_accessor.count; i += 3)
@@ -1173,7 +1173,7 @@ namespace adria
 			total_buffer_size += Align(mesh_data.meshlets.size() * sizeof(Meshlet), 16);
 			total_buffer_size += Align(mesh_data.meshlet_vertices.size() * sizeof(uint32), 16);
 			total_buffer_size += Align(mesh_data.meshlet_triangles.size() * sizeof(MeshletTriangle), 16);
-			
+
 			entt::entity e = reg.create();
 			entities.push_back(e);
 			mesh_to_entities[mesh_data.mesh_index].push_back(e);
@@ -1245,7 +1245,7 @@ namespace adria
 
 			reg.emplace<SubMesh>(e, submesh);
 		}
-		GeometryBufferHandle geometry_buffer_handle = GeometryBufferCache::Get().CreateAndInitializeGeometryBuffer(total_buffer_size, staging_buffer.buffer, staging_buffer.offset);
+		GeometryBufferHandle geometry_buffer_handle = GeometryBufferCache::Get().CreateAndInitializeGeometryBuffer(staging_buffer.buffer, total_buffer_size, staging_buffer.offset);
 
 		std::function<void(int, XMMATRIX)> LoadNode;
 		LoadNode = [&](int node_index, XMMATRIX parent_transform)
@@ -1326,7 +1326,7 @@ namespace adria
 		};
 		tinygltf::Scene const& scene = model.scenes[std::max(0, model.defaultScene)];
 		for (size_t i = 0; i < scene.nodes.size(); ++i)
-		{ 
+		{
 			LoadNode(scene.nodes[i], params.model_matrix);
 		}
 

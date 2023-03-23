@@ -1,7 +1,6 @@
 #include "nfd.h"
 #include "Editor.h"
-
-#include "GUICommand.h"
+#include "GUI.h"
 #include "EditorUtil.h"
 
 #include "../Core/Engine.h"
@@ -17,10 +16,9 @@
 #include "../Utilities/FilesUtil.h"
 #include "../Utilities/StringUtil.h"
 #include "../Utilities/Random.h"
-#include "../Math/BoundingVolumeHelpers.h"
-
 #include "../Core/ConsoleVariable.h"
 #include "../Core/ConsoleCommand.h"
+#include "../Math/BoundingVolumeHelpers.h"
 
 
 using namespace DirectX;
@@ -74,8 +72,10 @@ namespace adria
 		console = std::make_unique<EditorConsole>();
 
 		engine = std::make_unique<Engine>(init.engine_init);
-		gui = std::make_unique<GUI>(engine->gfx.get());
+		gfx = engine->gfx.get();
+		gui = std::make_unique<GUI>(gfx);
 		engine->RegisterEditorEventCallbacks(editor_events);
+
 		SetStyle();
 	}
 	void Editor::Destroy()
@@ -99,8 +99,8 @@ namespace adria
 		{
 			engine->SetViewportData(viewport_data);
 			engine->Run(renderer_settings);
-			auto gui_cmd_list = engine->gfx->GetCommandList(GfxCommandListType::Graphics);
-			engine->gfx->SetBackbufferAsRenderTarget(gui_cmd_list);
+			auto gui_cmd_list = gfx->GetGraphicsCommandList();
+			gfx->SetBackbufferAsRenderTarget(gui_cmd_list);
 			gui->Begin();
 			{
 				ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
@@ -118,10 +118,10 @@ namespace adria
 				Debug();
 			}
 			gui->End(gui_cmd_list->GetNative());
-			
+
 			if (!aabb_updates.empty())
 			{
-				engine->gfx->WaitForGPU();
+				gfx->WaitForGPU();
 				while (!aabb_updates.empty())
 				{
 					AABB* aabb = aabb_updates.front();
@@ -140,7 +140,7 @@ namespace adria
 
 		if (reload_shaders)
 		{
-			engine->gfx->WaitForGPU();
+			gfx->WaitForGPU();
 			ShaderCache::CheckIfShadersHaveChanged();
 			reload_shaders = false;
 		}
@@ -502,6 +502,7 @@ namespace adria
 		if (!window_flags[Flag_Entities]) return;
 		if (ImGui::Begin("Properties", &window_flags[Flag_Entities]))
 		{
+			GfxDevice* gfx = engine->gfx.get();
 			if (selected_entity != entt::null)
 			{
 				auto tag = engine->reg.try_get<Tag>(selected_entity);
@@ -649,13 +650,12 @@ namespace adria
 				auto material = engine->reg.try_get<Material>(selected_entity);
 				if (material && ImGui::CollapsingHeader("Material"))
 				{
-					ID3D12Device5* device = engine->gfx->GetDevice();
 					GUIDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
 
 					ImGui::Text("Albedo Texture");
-					D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = TextureManager::Get().GetSRV(material->albedo_texture);
+					GfxDescriptor tex_handle = TextureManager::Get().GetSRV(material->albedo_texture);
 					GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
-					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
 					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, ImVec2(48.0f, 48.0f));
 
 					ImGui::PushID(0);
@@ -677,7 +677,7 @@ namespace adria
 					ImGui::Text("Metallic-Roughness Texture");
 					tex_handle = TextureManager::Get().GetSRV(material->metallic_roughness_texture);
 					dst_descriptor = descriptor_allocator->Allocate();
-					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
 					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
 						ImVec2(48.0f, 48.0f));
 
@@ -700,7 +700,7 @@ namespace adria
 					ImGui::Text("Emissive Texture");
 					tex_handle = TextureManager::Get().GetSRV(material->emissive_texture);
 					dst_descriptor = descriptor_allocator->Allocate();
-					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
 					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
 						ImVec2(48.0f, 48.0f));
 
@@ -766,13 +766,12 @@ namespace adria
 				auto decal = engine->reg.try_get<Decal>(selected_entity);
 				if (decal && ImGui::CollapsingHeader("Decal"))
 				{
-					ID3D12Device5* device = engine->gfx->GetDevice();
 					GUIDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
 
 					ImGui::Text("Decal Albedo Texture");
-					D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = TextureManager::Get().GetSRV(decal->albedo_decal_texture);
+					GfxDescriptor tex_handle = TextureManager::Get().GetSRV(decal->albedo_decal_texture);
 					GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
-					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
 					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
 						ImVec2(48.0f, 48.0f));
 
@@ -795,7 +794,7 @@ namespace adria
 					ImGui::Text("Decal Normal Texture");
 					tex_handle = TextureManager::Get().GetSRV(decal->normal_decal_texture);
 					dst_descriptor = descriptor_allocator->Allocate();
-					device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
 					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
 						ImVec2(48.0f, 48.0f));
 
@@ -852,7 +851,7 @@ namespace adria
 	void Editor::Camera()
 	{
 		if (!window_flags[Flag_Camera]) return;
-		
+
 		auto& camera = *engine->camera;
 		if (ImGui::Begin("Camera", &window_flags[Flag_Camera]))
 		{
@@ -875,9 +874,7 @@ namespace adria
 	{
 		ImGui::Begin("Scene");
 		{
-			auto device = engine->gfx->GetDevice();
 			auto descriptor_allocator = gui->DescriptorAllocator();
-
 			ImVec2 v_min = ImGui::GetWindowContentRegionMin();
 			ImVec2 v_max = ImGui::GetWindowContentRegionMax();
 			v_min.x += ImGui::GetWindowPos().x;
@@ -886,9 +883,9 @@ namespace adria
 			v_max.y += ImGui::GetWindowPos().y;
 			ImVec2 size(v_max.x - v_min.x, v_max.y - v_min.y);
 
-			D3D12_CPU_DESCRIPTOR_HANDLE tex_handle = engine->renderer->GetFinalTextureSRV();
+			GfxDescriptor tex_handle = engine->renderer->GetFinalTextureSRV();
 			GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
-			device->CopyDescriptorsSimple(1, dst_descriptor, tex_handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
 			ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, size);
 
 			scene_focused = ImGui::IsWindowFocused();
@@ -1096,7 +1093,7 @@ namespace adria
 				static float FRAME_TIME_GRAPH_MAX_VALUES[ARRAYSIZE(FRAME_TIME_GRAPH_MAX_FPS)] = { 0 };
 				for (uint64 i = 0; i < ARRAYSIZE(FRAME_TIME_GRAPH_MAX_FPS); ++i) { FRAME_TIME_GRAPH_MAX_VALUES[i] = 1000.f / FRAME_TIME_GRAPH_MAX_FPS[i]; }
 
-				std::vector<Timestamp> time_stamps = GPUProfiler::Get().GetProfilerResults(engine->gfx->GetCommandList());
+				std::vector<Timestamp> time_stamps = GPUProfiler::Get().GetProfilerResults();
 				FRAME_TIME_ARRAY[NUM_FRAMES - 1] = 1000.0f / io.Framerate;
 				for (uint32 i = 0; i < NUM_FRAMES - 1; i++) FRAME_TIME_ARRAY[i] = FRAME_TIME_ARRAY[i + 1];
 				RECENT_HIGHEST_FRAME_TIME = std::max(RECENT_HIGHEST_FRAME_TIME, FRAME_TIME_ARRAY[NUM_FRAMES - 1]);
@@ -1142,7 +1139,7 @@ namespace adria
 						((current_time - state.last_reset_time) > avg_timestamp_update_interval))
 					{
 						std::swap(state.displayed_timestamps, state.accumulating_timestamps);
-						for (uint32_t i = 0; i < state.displayed_timestamps.size(); i++)
+						for (uint32 i = 0; i < state.displayed_timestamps.size(); i++)
 						{
 							state.displayed_timestamps[i].sum /= state.accumulating_frame_count;
 						}
@@ -1158,7 +1155,7 @@ namespace adria
 						state.accumulating_frame_count = 0;
 					}
 
-					FLOAT total_time_ms = 0.0f;
+					float total_time_ms = 0.0f;
 					for (uint64 i = 0; i < time_stamps.size(); i++)
 					{
 						float value = time_stamps[i].time_in_ms;
@@ -1191,7 +1188,7 @@ namespace adria
 			ImGui::Checkbox("Display VRAM Usage", &display_vram_usage);
 			if (display_vram_usage)
 			{
-				GPUMemoryUsage vram = engine->gfx->GetMemoryUsage();
+				GPUMemoryUsage vram = gfx->GetMemoryUsage();
 				float const ratio = vram.usage * 1.0f / vram.budget;
 				std::string vram_display_string = "VRAM usage: " + std::to_string(vram.usage / 1024 / 1024) + "MB / " + std::to_string(vram.budget / 1024 / 1024) + "MB\n";
 				if (ratio >= 0.9f && ratio <= 1.0f) ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 0, 255));

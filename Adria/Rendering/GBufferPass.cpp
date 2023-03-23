@@ -3,7 +3,7 @@
 #include "ConstantBuffers.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
+#include "PSOCache.h"
 
 #include "../Graphics/GfxLinearDynamicAllocator.h"
 #include "../RenderGraph/RenderGraph.h"
@@ -30,7 +30,7 @@ namespace adria
 				gbuffer_desc.height = height;
 				gbuffer_desc.format = GfxFormat::R8G8B8A8_UNORM;
 				gbuffer_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
-				
+
 				builder.DeclareTexture(RG_RES_NAME(GBufferNormal), gbuffer_desc);
 				builder.DeclareTexture(RG_RES_NAME(GBufferAlbedo), gbuffer_desc);
 				builder.DeclareTexture(RG_RES_NAME(GBufferEmissive), gbuffer_desc);
@@ -38,7 +38,7 @@ namespace adria
 				builder.WriteRenderTarget(RG_RES_NAME(GBufferNormal), RGLoadStoreAccessOp::Clear_Preserve);
 				builder.WriteRenderTarget(RG_RES_NAME(GBufferAlbedo), RGLoadStoreAccessOp::Clear_Preserve);
 				builder.WriteRenderTarget(RG_RES_NAME(GBufferEmissive), RGLoadStoreAccessOp::Clear_Preserve);
-				
+
 				RGTextureDesc depth_desc{};
 				depth_desc.width = width;
 				depth_desc.height = height;
@@ -51,7 +51,7 @@ namespace adria
 			[=](RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
-				
+
 				struct BatchParams
 				{
 					GfxPipelineStateID pso;
@@ -66,10 +66,10 @@ namespace adria
 					if (!aabb.camera_visible) continue;
 
 					BatchParams params{};
-					params.pso = material.pso; 
+					params.pso = material.pso;
 					batched_entities[params].push_back(e);
 				}
-				
+
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 
 				for (auto const& [params, entities] : batched_entities)

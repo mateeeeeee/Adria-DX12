@@ -1,7 +1,7 @@
 #include "d3dx12.h"
 #include "GenerateMipsPass.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
+#include "PSOCache.h"
 
 #include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../Graphics/GfxPipelineState.h"
@@ -31,7 +31,7 @@ namespace adria
 				ID3D12GraphicsCommandList* cmd_list = _cmd_list->GetNative();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-				GfxTexture const& texture = context.GetTexture(data.texture_src.GetResourceId());
+				GfxTexture const& texture = context.GetTexture(*data.texture_src);
 				cmd_list->SetPipelineState(*PSOCache::Get(GfxPipelineStateID::GenerateMips));
 
 				D3D12_SHADER_RESOURCE_VIEW_DESC src_srv_desc{};
@@ -61,7 +61,7 @@ namespace adria
 					dst_uav_desc.Format = ConvertGfxFormat(tex_desc.format);
 					dst_uav_desc.Texture2D.MipSlice = top_mip + 1;
 					device->CreateUnorderedAccessView(texture.GetNative(), nullptr, &dst_uav_desc, handle2);
-					
+
 					cmd_list->SetComputeRoot32BitConstant(1, DWParam(1.0f / dst_width).Uint, 0);
 					cmd_list->SetComputeRoot32BitConstant(1, DWParam(1.0f / dst_height).Uint, 1);
 					cmd_list->SetComputeRoot32BitConstant(1, i, 2);

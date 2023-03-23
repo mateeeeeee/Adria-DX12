@@ -1,6 +1,6 @@
 #include "AutomaticExposurePass.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
+#include "PSOCache.h"
 
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/GfxTexture.h"
@@ -74,12 +74,12 @@ namespace adria
 				GfxDescriptor scene_srv = descriptor_allocator->GetHandle(descriptor_index);
 				GfxDescriptor buffer_gpu = descriptor_allocator->GetHandle(descriptor_index + 1);
 
-				GfxBuffer const& histogram_buffer = context.GetBuffer(data.histogram_buffer.GetResourceId());
+				GfxBuffer const& histogram_buffer = context.GetBuffer(*data.histogram_buffer);
 				uint32 clear_value[4] = { 0, 0, 0, 0 };
 				cmd_list->ClearUAV(histogram_buffer, buffer_gpu, context.GetReadWriteBuffer(data.histogram_buffer), clear_value);
 				cmd_list->UavBarrier(histogram_buffer);
 				cmd_list->FlushBarriers();
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::BuildHistogram)); 
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::BuildHistogram));
 				uint32 half_width = (width + 1) / 2;
 				uint32 half_height = (height + 1) / 2;
 
@@ -93,7 +93,7 @@ namespace adria
 					float max_luminance;
 					uint32  scene_idx;
 					uint32  histogram_idx;
-				} constants = {	.width = half_width, .height = half_height, 
+				} constants = {	.width = half_width, .height = half_height,
 								.rcp_width = 1.0f / half_width, .rcp_height = 1.0f / half_height,
 								.min_luminance = min_luminance, .max_luminance = max_luminance,
 								.scene_idx = descriptor_index, .histogram_idx = descriptor_index + 1 };
@@ -134,7 +134,7 @@ namespace adria
 				GfxDescriptor avgluminance_uav = descriptor_allocator->GetHandle(descriptor_index + 1);
 				gfx->CopyDescriptors(1, avgluminance_uav, context.GetReadWriteTexture(data.avg_luminance));
 
-				struct HistogramReductionConstants 
+				struct HistogramReductionConstants
 				{
 					float min_luminance;
 					float max_luminance;
@@ -169,7 +169,7 @@ namespace adria
 			[=](ExposureData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
-				
+
 				if (invalid_history)
 				{
 					GfxDescriptor cpu_descriptor = previous_ev100_uav;
@@ -179,7 +179,7 @@ namespace adria
 					cmd_list->ClearUAV(*previous_ev100, gpu_descriptor, cpu_descriptor, clear_value);
 					invalid_history = false;
 				}
-				
+
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Exposure));
 				GfxDescriptor dst_descriptor = descriptor_allocator->Allocate(3);
 				GfxDescriptor src_descriptors[] = {
@@ -204,7 +204,7 @@ namespace adria
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(1, 1, 1);
 			}, RGPassType::Compute, RGPassFlags::None);
-	
+
 		if (show_histogram)
 		{
 			struct HistogramCopyData
@@ -223,7 +223,7 @@ namespace adria
 				}, RGPassType::Compute, RGPassFlags::ForceNoCull);
 		}
 
-		AddGUI([&]() 
+		AddGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("Automatic Exposure", 0))
 				{

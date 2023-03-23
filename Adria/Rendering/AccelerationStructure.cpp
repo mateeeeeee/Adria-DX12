@@ -20,9 +20,6 @@ namespace adria
 	{
 		auto dynamic_allocator = gfx->GetDynamicAllocator();
 
-		GfxDynamicAllocation transform_alloc = dynamic_allocator->Allocate(sizeof(DirectX::XMMATRIX), D3D12_RAYTRACING_TRANSFORM3X4_BYTE_ALIGNMENT);
-		transform_alloc.Update(XMMatrixTranspose(transform.current_transform));
-
 		D3D12_RAYTRACING_GEOMETRY_DESC geo_desc{};
 		geo_desc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
 		geo_desc.Triangles.Transform3x4 = NULL;
@@ -52,7 +49,7 @@ namespace adria
 	void AccelerationStructure::BuildBottomLevels()
 	{
 		ID3D12Device5* device = gfx->GetDevice();
-		GfxCommandList* cmd_list = gfx->GetCommandList(GfxCommandListType::Graphics);
+		GfxCommandList* cmd_list = gfx->GetGraphicsCommandList();
 
 		std::unique_ptr<GfxBuffer> scratch_buffer = nullptr;
 
@@ -102,7 +99,7 @@ namespace adria
 	void AccelerationStructure::BuildTopLevel()
 	{
 		ID3D12Device5* device = gfx->GetDevice();
-		GfxCommandList* cmd_list = gfx->GetCommandList(GfxCommandListType::Graphics);
+		GfxCommandList* cmd_list = gfx->GetGraphicsCommandList();
 
 		struct TLAccelerationStructureBuffers
 		{

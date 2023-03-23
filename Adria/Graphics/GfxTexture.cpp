@@ -1,12 +1,14 @@
 #include "GfxTexture.h"
 #include "GfxDevice.h"
+#include "GfxBuffer.h"
+#include "GfxCommandList.h"
 #include "GfxLinearDynamicAllocator.h"
 #include "d3dx12.h"
 
 namespace adria
 {
 
-	GfxTexture::GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, GfxTextureInitialData* initial_data /*= nullptr*/, size_t data_count /*= -1*/) : gfx(gfx), desc(desc)
+	GfxTexture::GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, GfxTextureInitialData* initial_data /*= nullptr*/, uint32 subresource_count /*= -1*/) : gfx(gfx), desc(desc)
 	{
 		HRESULT hr = E_FAIL;
 		D3D12MA::ALLOCATION_DESC allocation_desc{};
@@ -172,29 +174,20 @@ namespace adria
 		}
 
 		auto upload_buffer = gfx->GetDynamicAllocator();
-		auto cmd_list = gfx->GetCommandList();
+		auto cmd_list = gfx->GetGraphicsCommandList();
 		if (initial_data != nullptr)
 		{
-			if (data_count == static_cast<size_t>(-1))
-			{
-				data_count = desc.array_size * std::max<uint32>(1u, desc.mip_levels);
-			}
+			if (subresource_count == static_cast<uint32>(-1)) subresource_count = desc.array_size * std::max<uint32>(1u, desc.mip_levels);
 			UINT64 required_size;
-			device->GetCopyableFootprints(&resource_desc, 0, (UINT)data_count, 0, nullptr, nullptr, nullptr, &required_size);
+			device->GetCopyableFootprints(&resource_desc, 0, (uint32)subresource_count, 0, nullptr, nullptr, nullptr, &required_size);
 			GfxDynamicAllocation dyn_alloc = upload_buffer->Allocate(required_size, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
-			UpdateSubresources(cmd_list, resource.Get(), dyn_alloc.buffer,
-				dyn_alloc.offset, 0, (UINT)data_count, initial_data);
+			UpdateSubresources(cmd_list->GetNative(), resource.Get(), dyn_alloc.buffer->GetNative(), dyn_alloc.offset, 0, subresource_count, initial_data);
 
 			if (desc.initial_state != GfxResourceState::CopyDest)
 			{
-				D3D12_RESOURCE_BARRIER barrier{};
-				barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-				barrier.Transition.pResource = resource.Get();
-				barrier.Transition.StateAfter = ConvertToD3D12ResourceState(desc.initial_state);
-				barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
-				barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-				cmd_list->ResourceBarrier(1, &barrier);
-			}	
+				cmd_list->TransitionBarrier(*this, GfxResourceState::CopyDest, desc.initial_state);
+				cmd_list->FlushBarriers();
+			}
 		}
 	}
 

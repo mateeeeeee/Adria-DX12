@@ -12,7 +12,7 @@ namespace adria
 
 	enum class RGResourceMode : uint8
 	{
-		CopySrc, 
+		CopySrc,
 		CopyDst,
 		IndirectArgs,
 		Vertex,
@@ -97,6 +97,11 @@ namespace adria
 			return (size_t)static_cast<uint32>(id);
 		};
 
+		RenderGraphResourceId operator*() const
+		{
+			return RenderGraphResourceId(GetResourceId());
+		}
+
 		void Invalidate() { id = invalid_id; }
 		bool IsValid() const { return id != invalid_id; }
 		auto operator<=>(RenderGraphResourceDescriptorId const&) const = default;
@@ -113,24 +118,31 @@ namespace adria
 	};
 
 	template<RGResourceType ResourceType, RGDescriptorType ResourceViewType>
-	struct TypedRenderGraphResourceDescriptorId : RenderGraphResourceDescriptorId 
+	struct TypedRenderGraphResourceDescriptorId : RenderGraphResourceDescriptorId
 	{
 		using RenderGraphResourceDescriptorId::RenderGraphResourceDescriptorId;
+		using RenderGraphResourceDescriptorId::operator*;
 
 		auto GetResourceId() const
 		{
 			if constexpr (ResourceType == RGResourceType::Buffer) return RGBufferId(RenderGraphResourceDescriptorId::GetResourceId());
 			else if constexpr (ResourceType == RGResourceType::Texture) return RGTextureId(RenderGraphResourceDescriptorId::GetResourceId());
 		}
+
+		auto operator*() const
+		{
+			if constexpr (ResourceType == RGResourceType::Buffer) return RGBufferId(GetResourceId());
+			else if constexpr (ResourceType == RGResourceType::Texture) return	RGTextureId(GetResourceId());
+		}
 	};
 
 	using RGRenderTargetId		 = TypedRenderGraphResourceDescriptorId<RGResourceType::Texture, RGDescriptorType::RenderTarget>;
 	using RGDepthStencilId		 = TypedRenderGraphResourceDescriptorId<RGResourceType::Texture, RGDescriptorType::DepthStencil>;
-	using RGTextureReadOnlyId	 = TypedRenderGraphResourceDescriptorId<RGResourceType::Texture,  RGDescriptorType::ReadOnly>;
-	using RGTextureReadWriteId	 = TypedRenderGraphResourceDescriptorId<RGResourceType::Texture,  RGDescriptorType::ReadWrite>;
+	using RGTextureReadOnlyId	 = TypedRenderGraphResourceDescriptorId<RGResourceType::Texture, RGDescriptorType::ReadOnly>;
+	using RGTextureReadWriteId	 = TypedRenderGraphResourceDescriptorId<RGResourceType::Texture, RGDescriptorType::ReadWrite>;
 
-	using RGBufferReadOnlyId	 = TypedRenderGraphResourceDescriptorId<RGResourceType::Buffer,   RGDescriptorType::ReadOnly>;
-	using RGBufferReadWriteId	 = TypedRenderGraphResourceDescriptorId<RGResourceType::Buffer,   RGDescriptorType::ReadWrite>;
+	using RGBufferReadOnlyId	 = TypedRenderGraphResourceDescriptorId<RGResourceType::Buffer,  RGDescriptorType::ReadOnly>;
+	using RGBufferReadWriteId	 = TypedRenderGraphResourceDescriptorId<RGResourceType::Buffer,  RGDescriptorType::ReadWrite>;
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -140,7 +152,7 @@ namespace adria
 	};
 }
 
-namespace std 
+namespace std
 {
 	template <> struct hash<adria::RGTextureId>
 	{

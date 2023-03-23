@@ -6,17 +6,13 @@
 
 namespace adria
 {
-	template<typename CBuffer>
-	inline constexpr uint32 GetCBufferSize()
-	{
-		return (sizeof(CBuffer) + (D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1)) & ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
-	}
+	class GfxBuffer;
 
 	struct GfxDynamicAllocation
 	{
-		ID3D12Resource* buffer = nullptr;
+		GfxBuffer* buffer = nullptr;
 		void* cpu_address = nullptr;
-		D3D12_GPU_VIRTUAL_ADDRESS gpu_address = 0;
+		size_t gpu_address = 0;
 		OffsetType offset = 0;
 		OffsetType size = 0;
 
@@ -25,7 +21,7 @@ namespace adria
 			memcpy((uint8*)cpu_address + offset, data, size);
 		}
 
-		template<typename T> 
+		template<typename T>
 		void Update(T const& data)
 		{
 			memcpy(cpu_address, &data, sizeof(T));

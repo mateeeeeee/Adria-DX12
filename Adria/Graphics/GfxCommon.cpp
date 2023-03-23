@@ -68,9 +68,9 @@ namespace adria
 
 				GfxDescriptor white_srv = gfx->CreateTextureSRV(common_textures[(size_t)GfxCommonTextureType::WhiteTexture2D].get());
 				GfxDescriptor black_srv = gfx->CreateTextureSRV(common_textures[(size_t)GfxCommonTextureType::BlackTexture2D].get());
-				
-				device->CopyDescriptorsSimple(1, common_views_heap->GetHandle((size_t)WhiteTexture2D_SRV), white_srv, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, common_views_heap->GetHandle((size_t)BlackTexture2D_SRV), black_srv, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+				gfx->CopyDescriptors(1, common_views_heap->GetHandle((size_t)WhiteTexture2D_SRV), white_srv);
+				gfx->CopyDescriptors(1, common_views_heap->GetHandle((size_t)BlackTexture2D_SRV), black_srv);
 			}
 		}
 

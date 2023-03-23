@@ -2,13 +2,13 @@
 #include "ConstantBuffers.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
+#include "PSOCache.h"
 
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/GfxTexture.h"
 #include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../Graphics/GfxLinearDynamicAllocator.h"
-#include "../Graphics/TextureManager.h"
+#include "TextureManager.h"
 #include "../Graphics/GfxCommon.h"
 #include "../Editor/GUICommand.h"
 #include "../Utilities/Random.h"
@@ -35,7 +35,7 @@ namespace adria
 			for (auto e : ocean_view)
 			{
 				auto& material = ocean_view.get<Material>(e);
-				memcpy(material.base_color, ocean_color, 3 * sizeof(ocean_color));
+				memcpy(material.base_color, ocean_color, sizeof(ocean_color));
 			}
 		}
 
@@ -46,7 +46,7 @@ namespace adria
 		rendergraph.ImportTexture(RG_RES_NAME(PingSpectrum), ping_pong_spectrum_textures[!pong_spectrum].get());
 
 		if (recreate_initial_spectrum)
-		{ 
+		{
 			struct InitialSpectrumPassData
 			{
 				RGTextureReadWriteId initial_spectrum;
@@ -58,18 +58,16 @@ namespace adria
 				},
 				[=](InitialSpectrumPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 				{
-					auto device = gfx->GetDevice();
 					auto descriptor_allocator = gfx->GetDescriptorAllocator();
 					GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
-					device->CopyDescriptorsSimple(1, dst_descriptor, context.GetReadWriteTexture(data.initial_spectrum),
-						D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					gfx->CopyDescriptors(1, dst_descriptor, context.GetReadWriteTexture(data.initial_spectrum));
 
 					struct InitialSpectrumConstants
 					{
 						float   fft_resolution;
 						float   ocean_size;
 						uint32  output_idx;
-					} constants = 
+					} constants =
 					{
 						.fft_resolution = FFT_RESOLUTION, .ocean_size = FFT_RESOLUTION, .output_idx = dst_descriptor.GetIndex()
 					};
@@ -80,7 +78,7 @@ namespace adria
 					cmd_list->Dispatch(FFT_RESOLUTION / 16, FFT_RESOLUTION / 16, 1);
 				}, RGPassType::Compute, RGPassFlags::None);
 		}
-		
+
 		struct PhasePassData
 		{
 			RGTextureReadOnlyId phase_srv;
@@ -94,13 +92,10 @@ namespace adria
 			},
 			[=](PhasePassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				auto device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				uint32 i = descriptor_allocator->Allocate(2).GetIndex();
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.phase_srv),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), context.GetReadWriteTexture(data.phase_uav),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.phase_srv));
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), context.GetReadWriteTexture(data.phase_uav));
 
 				struct PhaseConstants
 				{
@@ -137,15 +132,11 @@ namespace adria
 			},
 			[=](SpectrumPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				auto device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				uint32 i = descriptor_allocator->Allocate(3).GetIndex();
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.initial_spectrum_srv),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), context.GetReadOnlyTexture(data.phase_srv),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 2), context.GetReadWriteTexture(data.spectrum_uav),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.initial_spectrum_srv));
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), context.GetReadOnlyTexture(data.phase_srv));
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 2), context.GetReadWriteTexture(data.spectrum_uav));
 
 				struct SpectrumConstants
 				{
@@ -161,7 +152,7 @@ namespace adria
 					.initial_spectrum_idx = i, .phases_idx = i + 1, .output_idx = i + 2
 				};
 
-				
+
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Spectrum));
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
@@ -195,15 +186,14 @@ namespace adria
 				},
 				[=](FFTHorizontalPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
 				{
-					auto device = gfx->GetDevice();
 					auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::FFT_Horizontal));
 
 					uint32 i = descriptor_allocator->Allocate(2).GetIndex();
-					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i), ctx.GetReadOnlyTexture(data.spectrum_srv), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.spectrum_uav), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-					
+					gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i), ctx.GetReadOnlyTexture(data.spectrum_srv));
+					gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.spectrum_uav));
+
 					FFTConstants fft_constants{};
 					fft_constants.seq_count = FFT_RESOLUTION;
 					fft_constants.subseq_count = p;
@@ -236,15 +226,13 @@ namespace adria
 				},
 				[=](FFTVerticalPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
 				{
-					auto device = gfx->GetDevice();
 					auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-					
 					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::FFT_Vertical));
 
 					uint32 i = descriptor_allocator->Allocate(2).GetIndex();
-					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i), ctx.GetReadOnlyTexture(data.spectrum_srv), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-					device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.spectrum_uav), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+					gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i), ctx.GetReadOnlyTexture(data.spectrum_srv));
+					gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.spectrum_uav));
 
 					FFTConstants fft_constants{};
 					fft_constants.seq_count = FFT_RESOLUTION;
@@ -279,13 +267,10 @@ namespace adria
 			},
 			[=](OceanNormalsPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				auto device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				uint32 i = descriptor_allocator->Allocate(2).GetIndex();
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.spectrum_srv),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-				device->CopyDescriptorsSimple(1, descriptor_allocator->GetHandle(i + 1), context.GetReadWriteTexture(data.normals_uav),
-					D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.spectrum_srv));
+				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), context.GetReadWriteTexture(data.normals_uav));
 
 				struct OceanNormalsConstants
 				{
@@ -324,12 +309,10 @@ namespace adria
 			},
 			[=](OceanDrawPass const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				ID3D12Device* device = gfx->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
-				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 				auto skyboxes = reg.view<Skybox>();
-				D3D12_CPU_DESCRIPTOR_HANDLE skybox_handle = gfxcommon::GetCommonView(GfxCommonViewType::NullTextureCube_SRV);
+				GfxDescriptor skybox_handle = gfxcommon::GetCommonView(GfxCommonViewType::NullTextureCube_SRV);
 				for (auto skybox : skyboxes)
 				{
 					auto const& _skybox = skyboxes.get<Skybox>(skybox);
@@ -339,7 +322,7 @@ namespace adria
 						break;
 					}
 				}
-				
+
 				if (ocean_tesselation)
 				{
 					cmd_list->SetPipelineState(
@@ -354,7 +337,7 @@ namespace adria
 				}
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 
-				auto ocean_chunk_view = reg.view<Mesh, Material, Transform, AABB, Ocean>();				
+				auto ocean_chunk_view = reg.view<Mesh, Material, Transform, AABB, Ocean>();
 				for (auto ocean_chunk : ocean_chunk_view)
 				{
 					auto const& [mesh, material, transform, aabb] = ocean_chunk_view.get<const Mesh, const Material, const Transform, const AABB>(ocean_chunk);
@@ -362,13 +345,9 @@ namespace adria
 					if (aabb.camera_visible)
 					{
 						uint32 i = descriptor_allocator->Allocate(4).GetIndex();
-						auto dst_descriptor = descriptor_allocator->GetHandle(i);
-						D3D12_CPU_DESCRIPTOR_HANDLE src_ranges[] = { context.GetReadOnlyTexture(data.displacement), context.GetReadOnlyTexture(data.normals), skybox_handle, TextureManager::Get().GetSRV(foam_handle) };
-						D3D12_CPU_DESCRIPTOR_HANDLE dst_ranges[] = { dst_descriptor };
-						UINT src_range_sizes[] = { 1, 1, 1, 1 };
-						UINT dst_range_sizes[] = { ARRAYSIZE(src_ranges) };
-						device->CopyDescriptors(1, dst_ranges, dst_range_sizes, ARRAYSIZE(src_ranges), src_ranges, src_range_sizes,
-							D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+						GfxDescriptor dst_handle = descriptor_allocator->GetHandle(i);
+						GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.displacement), context.GetReadOnlyTexture(data.normals), skybox_handle, TextureManager::Get().GetSRV(foam_handle) };
+						gfx->CopyDescriptors(dst_handle, src_handles);
 
 						struct OceanIndices
 						{
@@ -376,7 +355,7 @@ namespace adria
 							uint32 normal_idx;
 							uint32 sky_idx;
 							uint32 foam_idx;
-						} indices = 
+						} indices =
 						{
 							.displacement_idx = i, .normal_idx = i + 1,
 							.sky_idx = i + 2, .foam_idx = i + 3
@@ -386,20 +365,18 @@ namespace adria
 						{
 							XMMATRIX ocean_model_matrix;
 							XMFLOAT3 ocean_color;
-						} constants = 
+						} constants =
 						{
 							.ocean_model_matrix = transform.current_transform,
 							.ocean_color = XMFLOAT3(material.base_color)
 						};
-						GfxDynamicAllocation allocation = dynamic_allocator->Allocate(GetCBufferSize<OceanConstants>(), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-						allocation.Update(constants);
 
 						cmd_list->SetRootConstants(1, indices);
-						cmd_list->SetRootCBV(2, allocation.gpu_address);
+						cmd_list->SetRootCBV(2, constants);
 						ocean_tesselation ? mesh.Draw(cmd_list->GetNative(), D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST) : mesh.Draw(cmd_list->GetNative());
 					}
 				}
-			}, 
+			},
 			RGPassType::Graphics, RGPassFlags::None);
 
 		AddGUI([&]()

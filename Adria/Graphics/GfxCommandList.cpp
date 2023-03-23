@@ -3,6 +3,7 @@
 #include "GfxDevice.h"
 #include "GfxBuffer.h"
 #include "GfxTexture.h"
+#include "GfxQueryHeap.h"
 #include "GfxPipelineState.h"
 #include "GfxRenderPass.h"
 #include "GfxRingDescriptorAllocator.h"
@@ -139,6 +140,9 @@ namespace adria
 	{
 		command_count = 0;
 		current_pso = nullptr;
+		current_render_pass = nullptr;
+		current_state_object = nullptr;
+		current_rt_table.reset();
 		current_context = Context::Invalid;
 
 		if (type == GfxCommandListType::Graphics || type == GfxCommandListType::Compute)
@@ -154,6 +158,23 @@ namespace adria
 				if (type == GfxCommandListType::Graphics) cmd_list->SetGraphicsRootSignature(common_rs);
 			}
 		}
+	}
+
+	void GfxCommandList::BeginQuery(GfxQueryHeap& query_heap, uint32 index)
+	{
+		D3D12_QUERY_TYPE d3d12_query_type = ToD3D12QueryType(query_heap.GetDesc().type);
+		cmd_list->EndQuery(query_heap, d3d12_query_type, index);
+	}
+
+	void GfxCommandList::EndQuery(GfxQueryHeap& query_heap, uint32 index)
+	{
+		D3D12_QUERY_TYPE d3d12_query_type = ToD3D12QueryType(query_heap.GetDesc().type);
+		cmd_list->EndQuery(query_heap, d3d12_query_type, index);
+	}
+
+	void GfxCommandList::ResolveQueryData(GfxQueryHeap const& query_heap, uint32 start, uint32 count, GfxBuffer& dst_buffer, uint64 dst_offset)
+	{
+		cmd_list->ResolveQueryData(query_heap, ToD3D12QueryType(query_heap.GetDesc().type), start, count, dst_buffer.GetNative(), dst_offset);
 	}
 
 	void GfxCommandList::Draw(uint32 vertex_count, uint32 instance_count /*= 1*/, uint32 start_vertex_location /*= 0*/, uint32 start_instance_location /*= 0*/)
@@ -282,7 +303,7 @@ namespace adria
 		}
 	}
 
-	void GfxCommandList::CopyBuffer(GfxBuffer& dst, uint32 dst_offset, GfxBuffer const& src, uint32 src_offset, uint32 size)
+	void GfxCommandList::CopyBuffer(GfxBuffer& dst, uint64 dst_offset, GfxBuffer const& src, uint64 src_offset, uint64 size)
 	{
 		cmd_list->CopyBufferRegion(dst.GetNative(), dst_offset, src.GetNative(), src_offset, size);
 		++command_count;
@@ -364,7 +385,7 @@ namespace adria
 				rtv_desc.cpuDescriptor = attachment.cpu_handle;
 				rtv_desc.BeginningAccess = { ToD3D12RenderPassBeginningAccess(attachment.beginning_access) };
 				ToD3D12ClearValue(attachment.clear_value, rtv_desc.BeginningAccess.Clear.ClearValue);
-				rtv_desc.EndingAccess = { ToD3D12RenderPassEndingAccess(attachment.ending_access), {} }; 
+				rtv_desc.EndingAccess = { ToD3D12RenderPassEndingAccess(attachment.ending_access), {} };
 				rtvs.push_back(rtv_desc);
 			}
 

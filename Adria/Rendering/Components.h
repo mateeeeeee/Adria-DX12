@@ -4,12 +4,12 @@
 #include "Enums.h"
 #include "GeometryBufferCache.h"
 #include "../Core/Definitions.h"
-#include "../Graphics/VertexTypes.h"
+#include "../Graphics/GfxVertexTypes.h"
 #include "../Graphics/GfxBuffer.h"
-#include "../Graphics/TextureManager.h"
+#include "TextureManager.h"
 #include "entt/entity/entity.hpp"
 
-#define COMPONENT 
+#define COMPONENT
 
 namespace adria
 {

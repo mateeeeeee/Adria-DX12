@@ -3,7 +3,7 @@
 #include "Components.h"
 #include "Enums.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
+#include "PSOCache.h"
 
 #include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../Graphics/GfxLinearDynamicAllocator.h"
@@ -33,15 +33,15 @@ namespace adria
 			[=](RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
-				
+
 				struct SkyConstants
 				{
 					XMMATRIX model_matrix;
-				} constants = 
+				} constants =
 				{
 					.model_matrix = XMMatrixTranslationFromVector(global_data.camera_position)
 				};
-	
+
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				cmd_list->SetRootCBV(2, constants);
 
@@ -58,7 +58,7 @@ namespace adria
 
 						ADRIA_ASSERT(skybox.cubemap_texture != INVALID_TEXTURE_HANDLE);
 						GfxDescriptor texture_handle = TextureManager::Get().GetSRV(skybox.cubemap_texture);
-						cmd_list->SetRootConstant(1, texture_handle.GetIndex(), 0);
+						cmd_list->SetRootConstant(1, (uint32)skybox.cubemap_texture, 0);
 					}
 					break;
 				}
@@ -68,7 +68,7 @@ namespace adria
 					struct UniformColorSkyConstants
 					{
 						XMFLOAT3 sky_color;
-					} constants = 
+					} constants =
 					{
 						.sky_color = XMFLOAT3(sky_color)
 					};
@@ -91,7 +91,7 @@ namespace adria
 						DECLSPEC_ALIGN(16) XMFLOAT3 H;
 						DECLSPEC_ALIGN(16) XMFLOAT3 I;
 						DECLSPEC_ALIGN(16) XMFLOAT3 Z;
-					} constants = 
+					} constants =
 					{
 						.A = parameters[ESkyParam_A],
 						.B = parameters[ESkyParam_B],
@@ -116,7 +116,7 @@ namespace adria
 				BindIndexBuffer(cmd_list->GetNative(), cube_ib.get());
 				cmd_list->DrawIndexed(cube_ib->GetCount());
 			}, RGPassType::Graphics, RGPassFlags::None);
-		
+
 		AddGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("Sky", ImGuiTreeNodeFlags_OpenOnDoubleClick))

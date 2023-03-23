@@ -61,9 +61,7 @@ int APIENTRY wWinMain(
         engine_init.pix = pix;
         engine_init.scene_file = scene.AsStringOr("scene.json");
 
-        EditorInit editor_init{};
-        editor_init.engine_init = std::move(engine_init);
-
+        EditorInit editor_init{.engine_init = engine_init };
         Editor::GetInstance().Init(std::move(editor_init));
         Window::SetCallback([](WindowMessage const& msg_data) {Editor::GetInstance().HandleWindowMessage(msg_data); });
         while (Window::Loop())
@@ -73,7 +71,6 @@ int APIENTRY wWinMain(
         Editor::GetInstance().Destroy();
         Window::Destroy();
     }
-    int x = 5;
 }
 
 

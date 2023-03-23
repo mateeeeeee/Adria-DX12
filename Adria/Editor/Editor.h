@@ -1,22 +1,27 @@
 #pragma once
 #include <memory>
 #include <queue>
-#include "GUI.h"
 #include "GUICommand.h"
 #include "EditorEvents.h"
-#include "../Core/Engine.h"
 #include "../Rendering/RendererSettings.h"
 #include "../Rendering/ViewportData.h"
 #include "../ImGui/ImGuizmo.h"
+#include "entt/entt.hpp"
 
 namespace adria
 {
+	class GfxDevice;
+	class Engine;
+	class GUI;
+	class EditorLogger;
+	class EditorConsole;
+	struct EngineInit;
 	struct Material;
 	struct AABB;
 
 	struct EditorInit
 	{
-		EngineInit engine_init;
+		EngineInit& engine_init;
 	};
 	class Editor
 	{
@@ -50,9 +55,10 @@ namespace adria
 	private:
 		std::unique_ptr<Engine> engine;
 		std::unique_ptr<GUI> gui;
+		GfxDevice* gfx;
 
-		std::unique_ptr<class EditorLogger> logger;
-		std::unique_ptr<class EditorConsole> console;
+		std::unique_ptr<EditorLogger> logger;
+		std::unique_ptr<EditorConsole> console;
 
 		entt::entity selected_entity = entt::null;
 		bool gizmo_enabled = false;
@@ -60,7 +66,7 @@ namespace adria
 		ImGuizmo::OPERATION gizmo_op = ImGuizmo::TRANSLATE;
 
 		RendererSettings renderer_settings{};
-		
+
 		bool reload_shaders = false;
 		std::queue<AABB*> aabb_updates;
 		std::array<bool, Flag_Count> window_flags = { false };
@@ -84,7 +90,7 @@ namespace adria
 		void Scene();
 		void Log();
 		void Console();
-		void Settings(); 
+		void Settings();
 		void Profiling();
 		void ShaderHotReload();
 		void Debug();

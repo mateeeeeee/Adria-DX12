@@ -12,7 +12,7 @@
 
 #if GPU_MULTITHREADED
 #define RG_MULTITHREADED 1
-#else 
+#else
 #define RG_MULTITHREADED 0
 #endif
 
@@ -120,7 +120,7 @@ namespace adria
 
 		for (auto& dependency_level : dependency_levels) dependency_level.Setup();
 
-		GfxCommandList* cmd_list = gfx->GetCommandList(GfxCommandListType::Graphics);
+		GfxCommandList* cmd_list = gfx->GetGraphicsCommandList();
 		for (size_t i = 0; i < dependency_levels.size(); ++i)
 		{
 			auto& dependency_level = dependency_levels[i];
@@ -379,7 +379,7 @@ namespace adria
 				RGBuffer* rg_buffer = GetRGBuffer(id);
 				rg_buffer->last_used_by = pass.get();
 			}
-				
+
 			for (auto id : pass->texture_reads)
 			{
 				RGTexture* rg_texture = GetRGTexture(id);
@@ -882,7 +882,7 @@ namespace adria
 						rtv_desc.clear_value.format = desc.format;
 					}
 					rtv_desc.cpu_handle = rg.GetRenderTarget(render_target_info.render_target_handle);
-					
+
 					RGLoadAccessOp load_access = RGLoadAccessOp::NoAccess;
 					RGStoreAccessOp store_access = RGStoreAccessOp::NoAccess;
 					SplitAccessOp(render_target_info.render_target_access, load_access, store_access);
@@ -895,7 +895,7 @@ namespace adria
 					case RGLoadAccessOp::Discard:
 						rtv_desc.beginning_access = GfxLoadAccessOp::Discard;
 						break;
-					case RGLoadAccessOp::Preserve: 
+					case RGLoadAccessOp::Preserve:
 						rtv_desc.beginning_access = GfxLoadAccessOp::Preserve;
 						break;
 					case RGLoadAccessOp::NoAccess:
@@ -925,7 +925,7 @@ namespace adria
 
 					render_pass_desc.rtv_attachments.push_back(rtv_desc);
 				}
-				
+
 				if (pass->depth_stencil.has_value())
 				{
 					auto const& depth_stencil_info = pass->depth_stencil.value();
@@ -990,7 +990,7 @@ namespace adria
 				render_pass_desc.legacy = pass->UseLegacyRenderPasses();
 
 				PIXScopedEvent(cmd_list->GetNative(), PIX_COLOR_DEFAULT, pass->name.c_str());
-				GPU_PROFILE_SCOPE(cmd_list->GetNative(), pass->name.c_str());
+				GPU_PROFILE_SCOPE(cmd_list, pass->name.c_str());
 				cmd_list->SetContext(GfxCommandList::Context::Graphics);
 				cmd_list->BeginRenderPass(render_pass_desc);
 				pass->Execute(rg_resources, gfx, cmd_list);
@@ -999,7 +999,7 @@ namespace adria
 			else
 			{
 				PIXScopedEvent(cmd_list->GetNative(), PIX_COLOR_DEFAULT, pass->name.c_str());
-				GPU_PROFILE_SCOPE(cmd_list->GetNative(), pass->name.c_str());
+				GPU_PROFILE_SCOPE(cmd_list, pass->name.c_str());
 				cmd_list->SetContext(GfxCommandList::Context::Compute);
 				pass->Execute(rg_resources, gfx, cmd_list);
 			}

@@ -208,7 +208,6 @@ namespace adria
 		static_cast<ID3D12Fence*>(dred_fence)->SetEventOnCompletion(UINT64_MAX, dred_wait_handle);
 		ADRIA_ASSERT(RegisterWaitForSingleObject(&dred_wait_handle, dred_wait_handle, DeviceRemovedHandler, gfx->GetDevice(), INFINITE, 0));
 	}
-
 	GfxDevice::DRED::~DRED()
 	{
 		dred_fence.Signal(UINT64_MAX);
@@ -318,6 +317,7 @@ namespace adria
 		return swapchain->GetBackbufferIndex();
 	}
 	uint32 GfxDevice::FrameIndex() const { return frame_index; }
+
 	void GfxDevice::BeginFrame()
 	{
 		if (rendering_not_started) [[unlikely]]
@@ -359,6 +359,7 @@ namespace adria
 		++frame_index;
 		gpu_descriptor_allocator->FinishCurrentFrame(frame_index);
 	}
+
 
 	IDXGIFactory4* GfxDevice::GetFactory() const
 	{
@@ -420,6 +421,18 @@ namespace adria
 			return graphics_cmd_lists[backbuffer_index].get();
 		}
 		ADRIA_UNREACHABLE();
+	}
+	GfxCommandList* GfxDevice::GetGraphicsCommandList() const
+	{
+		return GetCommandList(GfxCommandListType::Graphics);
+	}
+	GfxCommandList* GfxDevice::GetComputeCommandList() const
+	{
+		return GetCommandList(GfxCommandListType::Compute);
+	}
+	GfxCommandList* GfxDevice::GetCopyCommandList() const
+	{
+		return GetCommandList(GfxCommandListType::Copy);
 	}
 
 	void GfxDevice::CopyDescriptors(uint32 count, GfxDescriptor dst, GfxDescriptor src, GfxDescriptorHeapType type /*= GfxDescriptorHeapType::CBV_SRV_UAV*/)
@@ -485,19 +498,6 @@ namespace adria
 	void GfxDevice::InitShaderVisibleAllocator(uint32 reserve)
 	{
 		gpu_descriptor_allocator = std::make_unique<GfxOnlineDescriptorAllocator>(this, 32767, reserve);
-	}
-
-	GfxBuffer* GfxDevice::CreateBuffer(GfxBufferDesc const& desc, GfxBufferInitialData initial_data /*= nullptr*/)
-	{
-		return new GfxBuffer(this, desc, initial_data);
-	}
-	GfxTexture* GfxDevice::CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data /*= nullptr*/, size_t data_count /*= -1*/)
-	{
-		return new GfxTexture(this, desc, initial_data, data_count);
-	}
-	GfxTexture* GfxDevice::CreateTextureForBackbuffer(GfxDevice* gfx, GfxTextureDesc const& desc, ID3D12Resource* backbuffer)
-	{
-		return new GfxTexture(this, desc, backbuffer);
 	}
 
 	GfxDescriptor GfxDevice::CreateBufferSRV(GfxBuffer const* buffer, GfxBufferSubresourceDesc const* desc)
@@ -788,7 +788,7 @@ namespace adria
 				uav_desc.Buffer.FirstElement = (UINT)view_desc.offset / stride;
 				uav_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / stride;
 			}
-			
+
 			device->CreateUnorderedAccessView(buffer->GetNative(), uav_counter ? uav_counter->GetNative() : nullptr, &uav_desc, heap_descriptor);
 		}
 		break;

@@ -3,7 +3,7 @@
 #include "PSOCache.h" 
 
 #include "../Graphics/GfxCommon.h"
-#include "../Graphics/TextureManager.h"
+#include "TextureManager.h"
 #include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../Math/Packing.h"
 #include "../Editor/GUICommand.h"

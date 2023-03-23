@@ -19,7 +19,7 @@
 #include "GfxCommandQueue.h"
 #include "GfxDescriptorAllocatorBase.h"
 #include "GfxDefines.h"
-#include "CommandSignature.h"
+#include "GfxCommandSignature.h"
 #include "../Utilities/Releasable.h"
 
 namespace adria
@@ -41,11 +41,11 @@ namespace adria
 
 #ifdef GFX_MULTITHREADED
 	using GfxOnlineDescriptorAllocator = GfxRingDescriptorAllocator<true>;
-#else 
+#else
 	using GfxOnlineDescriptorAllocator = GfxRingDescriptorAllocator<false>;
 #endif
 
-	
+
 	struct GfxOptions
 	{
 		bool debug_layer = false;
@@ -86,16 +86,19 @@ namespace adria
 
 		IDXGIFactory4* GetFactory() const;
 		ID3D12Device5* GetDevice() const;
+		GFX_DEPRECATED ID3D12GraphicsCommandList4* GetCommandList() const;
 		ID3D12RootSignature* GetCommonRootSignature() const;
+		D3D12MA::Allocator* GetAllocator() const;
 
 		GfxCommandQueue& GetCommandQueue(GfxCommandListType type);
 		GfxCommandList* GetCommandList(GfxCommandListType type) const;
+		GfxCommandList* GetGraphicsCommandList() const;
+		GfxCommandList* GetComputeCommandList() const;
+		GfxCommandList* GetCopyCommandList() const;
 		GfxTexture* GetBackbuffer() const;
+
 		void SetBackbufferAsRenderTarget(GfxCommandList*) const;
 
-		GFX_DEPRECATED ID3D12GraphicsCommandList4* GetCommandList() const;
-
-		D3D12MA::Allocator* GetAllocator() const;
 		template<Releasable T>
 		void AddToReleaseQueue(T* alloc)
 		{
@@ -108,10 +111,6 @@ namespace adria
 
 		GfxOnlineDescriptorAllocator* GetDescriptorAllocator() const; //#todo get rid of this?
 		GfxLinearDynamicAllocator* GetDynamicAllocator() const;
-
-		GfxBuffer* CreateBuffer(GfxBufferDesc const& desc, const void* initial_data = nullptr);
-		GfxTexture* CreateTexture(GfxTextureDesc const& desc, D3D12_SUBRESOURCE_DATA* initial_data = nullptr, size_t data_count = -1);
-		GfxTexture* CreateTextureForBackbuffer(GfxDevice* gfx, GfxTextureDesc const& desc, ID3D12Resource* backbuffer);
 
 		GfxDescriptor CreateBufferSRV(GfxBuffer const*, GfxBufferSubresourceDesc const* = nullptr);
 		GfxDescriptor CreateBufferUAV(GfxBuffer const*, GfxBufferSubresourceDesc const* = nullptr);

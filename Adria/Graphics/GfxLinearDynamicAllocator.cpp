@@ -24,11 +24,11 @@ namespace adria
 			std::lock_guard<std::mutex> guard(alloc_mutex);
 			offset = linear_allocator.Allocate(size_in_bytes, alignment);
 		}
-		
+
 		if (offset != INVALID_OFFSET)
 		{
-			GfxDynamicAllocation allocation{}; 
-			allocation.buffer = buffer->GetNative();
+			GfxDynamicAllocation allocation{};
+			allocation.buffer = buffer.get();
 			allocation.cpu_address = reinterpret_cast<uint8*>(cpu_address) + offset;
 			allocation.gpu_address = buffer->GetGPUAddress() + offset;
 			allocation.offset = offset;

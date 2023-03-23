@@ -1,7 +1,7 @@
 #include "AmbientPass.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
+#include "PSOCache.h"
 
 #include "../RenderGraph/RenderGraph.h"
 #include "../Graphics/GfxCommon.h"
@@ -64,9 +64,9 @@ namespace adria
 				uint32 i = dst_handle.GetIndex();
 
 				float clear[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-				cmd_list->ClearUAV(context.GetTexture(data.output.GetResourceId()), descriptor_allocator->GetHandle(i + 5),
+				cmd_list->ClearUAV(context.GetTexture(*data.output), descriptor_allocator->GetHandle(i + 5),
 					context.GetReadWriteTexture(data.output), clear);
-	
+
 				struct AmbientConstants
 				{
 					uint32  color;
@@ -85,7 +85,7 @@ namespace adria
 				};
 				if (data.ambient_occlusion.IsValid()) constants.ao_idx = static_cast<int32>(i + 4);
 
-				
+
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Ambient));
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);

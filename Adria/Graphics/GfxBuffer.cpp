@@ -1,5 +1,6 @@
 #include "GfxBuffer.h"
 #include "GfxDevice.h"
+#include "GfxCommandList.h"
 #include "GfxLinearDynamicAllocator.h"
 
 #include <format>
@@ -84,26 +85,21 @@ namespace adria
 
 		if (initial_data != nullptr && desc.resource_usage != GfxResourceUsage::Upload)
 		{
-			auto cmd_list = gfx->GetCommandList();
+			auto cmd_list = gfx->GetGraphicsCommandList();
 			auto upload_buffer = gfx->GetDynamicAllocator();
 			GfxDynamicAllocation upload_alloc = upload_buffer->Allocate(buffer_size);
 			upload_alloc.Update(initial_data, desc.size);
-			cmd_list->CopyBufferRegion(
-				resource.Get(),
+			cmd_list->CopyBuffer(
+				*this,
 				0,
-				upload_alloc.buffer,
+				*upload_alloc.buffer,
 				upload_alloc.offset,
 				desc.size);
 
 			if (HasAnyFlag(desc.bind_flags, GfxBindFlag::ShaderResource))
 			{
-				D3D12_RESOURCE_BARRIER barrier{};
-				barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-				barrier.Transition.pResource = resource.Get();
-				barrier.Transition.StateAfter = ConvertToD3D12ResourceState(GfxResourceState::NonPixelShaderResource);
-				barrier.Transition.StateBefore = ConvertToD3D12ResourceState(GfxResourceState::CopyDest);
-				barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-				cmd_list->ResourceBarrier(1, &barrier);
+				cmd_list->TransitionBarrier(*this, GfxResourceState::CopyDest, GfxResourceState::NonPixelShaderResource);
+				cmd_list->FlushBarriers();
 			}
 		}
 	}
