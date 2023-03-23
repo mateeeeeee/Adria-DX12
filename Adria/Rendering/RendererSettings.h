@@ -21,7 +21,6 @@ namespace adria
 
 	struct RendererSettings
 	{
-		bool gui_visible = false;
 		RenderPathType		render_path = RenderPathType::RegularDeferred;
 		PostprocessSettings postprocess{};
 	};

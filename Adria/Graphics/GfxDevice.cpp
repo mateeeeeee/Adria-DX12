@@ -333,14 +333,10 @@ namespace adria
 		GfxCommandList* cmd_list = GetCommandList(GfxCommandListType::Graphics);
 		cmd_list->ResetAllocator();
 		cmd_list->Begin();
-		cmd_list->TransitionBarrier(*swapchain->GetBackbuffer(), GfxResourceState::Present, GfxResourceState::RenderTarget);
-		cmd_list->FlushBarriers();
-		swapchain->ClearBackbuffer(cmd_list);
 	}
 	void GfxDevice::EndFrame(bool vsync /*= false*/)
 	{
 		GfxCommandList* cmd_list = GetCommandList(GfxCommandListType::Graphics);
-		cmd_list->TransitionBarrier(*swapchain->GetBackbuffer(), GfxResourceState::RenderTarget, GfxResourceState::Present);
 		cmd_list->End();
 
 		graphics_queue.ExecuteCommandLists(std::span{ &cmd_list, 1 });
@@ -386,11 +382,6 @@ namespace adria
 	{
 		return swapchain->GetBackbuffer();
 	}
-	void GfxDevice::SetBackbufferAsRenderTarget(GfxCommandList* cmd_list) const
-	{
-		return swapchain->SetAsRenderTarget(cmd_list);
-	}
-
 	GfxCommandQueue& GfxDevice::GetCommandQueue(GfxCommandListType type)
 	{
 		switch (type)

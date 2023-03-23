@@ -30,10 +30,9 @@ namespace adria
 		void Present(bool vsync);
 		void OnResize(uint32 w, uint32 h);
 
-		IDXGISwapChain4* GetNative() const { return swapchain.Get(); }
 		uint32 GetBackbufferIndex() const { return backbuffer_index; }
 		GfxTexture* GetBackbuffer() const { return back_buffers[backbuffer_index].get(); }
-
+		
 	private:
 		GfxDevice* gfx = nullptr;
 		ArcPtr<IDXGISwapChain4>				swapchain = nullptr;

@@ -84,6 +84,8 @@ namespace adria
 				case RGDescriptorType::DepthStencil:
 					gfx->FreeOfflineDescriptor(view, GfxDescriptorHeapType::DSV);
 					continue;
+				case RGDescriptorType::ReadWrite:
+				case RGDescriptorType::ReadOnly:
 				default:
 					gfx->FreeOfflineDescriptor(view, GfxDescriptorHeapType::CBV_SRV_UAV);
 				}
@@ -371,22 +373,26 @@ namespace adria
 			if (pass->IsCulled()) continue;
 			for (auto id : pass->texture_writes)
 			{
+				if (!pass->texture_state_map.contains(id)) continue;
 				RGTexture* rg_texture = GetRGTexture(id);
 				rg_texture->last_used_by = pass.get();
 			}
 			for (auto id : pass->buffer_writes)
 			{
+				if (!pass->buffer_state_map.contains(id)) continue;
 				RGBuffer* rg_buffer = GetRGBuffer(id);
 				rg_buffer->last_used_by = pass.get();
 			}
 
 			for (auto id : pass->texture_reads)
 			{
+				if (!pass->texture_state_map.contains(id)) continue;
 				RGTexture* rg_texture = GetRGTexture(id);
 				rg_texture->last_used_by = pass.get();
 			}
 			for (auto id : pass->buffer_reads)
 			{
+				if (!pass->buffer_state_map.contains(id)) continue;
 				RGBuffer* rg_buffer = GetRGBuffer(id);
 				rg_buffer->last_used_by = pass.get();
 			}
@@ -1009,16 +1015,6 @@ namespace adria
 	void RenderGraph::DependencyLevel::Execute(GfxDevice* gfx, std::span<GfxCommandList*> const& cmd_lists)
 	{
 		ADRIA_ASSERT_MSG(false, "Not yet implemented");
-	}
-
-	size_t RenderGraph::DependencyLevel::GetSize() const
-	{
-		return passes.size();
-	}
-
-	size_t RenderGraph::DependencyLevel::GetNonCulledSize() const
-	{
-		return std::count_if(std::begin(passes), std::end(passes), [](auto* pass) {return !pass->IsCulled(); });
 	}
 }
 

@@ -7,12 +7,13 @@
 #include "../Input/Input.h"
 #include "../Rendering/Renderer.h"
 #include "../Rendering/Camera.h"
+#include "../Rendering/EntityLoader.h"
+#include "../Rendering/ShaderCache.h"
 #include "../Graphics/GfxDevice.h"
 #include "../Graphics/GfxCommandList.h"
 #include "../Graphics/GfxTexture.h"
 #include "../Graphics/GfxRingDescriptorAllocator.h"
-#include "../Rendering/EntityLoader.h"
-#include "../Rendering/ShaderCache.h"
+#include "../RenderGraph/RenderGraph.h"
 #include "../Utilities/FilesUtil.h"
 #include "../Utilities/StringUtil.h"
 #include "../Utilities/Random.h"
@@ -94,31 +95,9 @@ namespace adria
 	void Editor::Run()
 	{
 		HandleInput();
-		renderer_settings.gui_visible = gui->IsVisible();
 		if (gui->IsVisible())
 		{
 			engine->SetViewportData(viewport_data);
-			engine->Run(renderer_settings);
-			auto gui_cmd_list = gfx->GetGraphicsCommandList();
-			gfx->SetBackbufferAsRenderTarget(gui_cmd_list);
-			gui->Begin();
-			{
-				ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
-				MenuBar();
-				Scene();
-				ListEntities();
-				AddEntities();
-				Settings();
-				Camera();
-				Properties();
-				Log();
-				Console();
-				Profiling();
-				ShaderHotReload();
-				Debug();
-			}
-			gui->End(gui_cmd_list->GetNative());
-
 			if (!aabb_updates.empty())
 			{
 				gfx->WaitForGPU();
@@ -129,14 +108,11 @@ namespace adria
 					aabb_updates.pop();
 				}
 			}
-			engine->Present();
 		}
-		else
-		{
-			engine->SetViewportData(std::nullopt);
-			engine->Run(renderer_settings);
-			engine->Present();
-		}
+		else engine->SetViewportData(std::nullopt);
+
+		engine->Run(renderer_settings);
+		engine->Present();
 
 		if (reload_shaders)
 		{
@@ -148,6 +124,11 @@ namespace adria
 		debug_commands.clear();
 	}
 
+	bool Editor::IsActive() const
+	{
+		return gui->IsVisible();
+	}
+
 	void Editor::AddCommand(GUICommand&& command)
 	{
 		commands.emplace_back(std::move(command));
@@ -155,6 +136,42 @@ namespace adria
 	void Editor::AddDebugCommand(GUICommand_Debug&& command)
 	{
 		debug_commands.emplace_back(std::move(command));
+	}
+
+	void Editor::AddRenderPass(RenderGraph& rg)
+	{
+		struct EditorPassData
+		{
+			RGRenderTargetId rt;
+		};
+
+		rg.AddPass<EditorPassData>("Editor Pass",
+			[=](EditorPassData& data, RenderGraphBuilder& builder)
+			{
+				builder.DummyReadTexture(RG_RES_NAME(FinalTexture));
+				data.rt = builder.WriteRenderTarget(RG_RES_NAME(Backbuffer), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.SetViewport(engine->renderer->GetWidth(), engine->renderer->GetHeight());
+			},
+			[=](EditorPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
+			{
+				gui->Begin();
+				{
+					ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
+					MenuBar();
+					Scene();
+					ListEntities();
+					AddEntities();
+					Settings();
+					Camera();
+					Properties();
+					Log();
+					Console();
+					Profiling();
+					ShaderHotReload();
+					Debug();
+				}
+				gui->End(cmd_list->GetNative());
+			}, RGPassType::Graphics, RGPassFlags::ForceNoCull | RGPassFlags::LegacyRenderPass);
 	}
 
 	void Editor::SetStyle()
@@ -228,7 +245,7 @@ namespace adria
 	}
 	void Editor::HandleInput()
 	{
-		if (scene_focused && Input::GetInstance().IsKeyDown(KeyCode::I)) gui->ToggleVisibility();
+		if (Input::GetInstance().IsKeyDown(KeyCode::I)) gui->ToggleVisibility();
 		if (scene_focused && Input::GetInstance().IsKeyDown(KeyCode::G)) gizmo_enabled = !gizmo_enabled;
 		if (gizmo_enabled && gui->IsVisible())
 		{
@@ -236,7 +253,8 @@ namespace adria
 			if (Input::GetInstance().IsKeyDown(KeyCode::R)) gizmo_op = ImGuizmo::ROTATE;
 			if (Input::GetInstance().IsKeyDown(KeyCode::E)) gizmo_op = ImGuizmo::SCALE;
 		}
-		engine->camera->Enable(scene_focused);
+		if (gui->IsVisible()) engine->camera->Enable(scene_focused);
+		else engine->camera->Enable(true);
 	}
 	void Editor::MenuBar()
 	{

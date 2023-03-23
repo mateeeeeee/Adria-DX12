@@ -26,8 +26,6 @@ namespace adria
 			void Setup();
 			void Execute(GfxDevice* gfx, GfxCommandList* cmd_list);
 			void Execute(GfxDevice* gfx, std::span<GfxCommandList*> const& cmd_lists);
-			size_t GetSize() const;
-			size_t GetNonCulledSize() const;
 
 		private:
 			RenderGraph& rg;
@@ -47,8 +45,7 @@ namespace adria
 
 	public:
 
-		RenderGraph(RGResourcePool& pool) : pool(pool), gfx(pool.GetDevice())
-		{}
+		RenderGraph(RGResourcePool& pool) : pool(pool), gfx(pool.GetDevice()) {}
 		RenderGraph(RenderGraph const&) = delete;
 		RenderGraph(RenderGraph&&) = default;
 		RenderGraph& operator=(RenderGraph const&) = delete;

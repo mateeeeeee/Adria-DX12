@@ -6,11 +6,13 @@
 
 #include "ShaderCache.h"
 #include "SkyModel.h"
+#include "TextureManager.h"
 #include "entt/entity/registry.hpp"
 #include "../Editor/GUICommand.h"
+#include "../Editor/Editor.h"
 #include "../Graphics/GfxBuffer.h"
 #include "../Graphics/GfxTexture.h"
-#include "TextureManager.h"
+
 #include "../Graphics/GfxCommon.h"
 #include "../Graphics/GfxPipelineState.h"
 #include "../Graphics/GfxRingDescriptorAllocator.h"
@@ -315,6 +317,7 @@ namespace adria
 		}
 		rg_blackboard.Add<FrameBlackboardData>(std::move(global_data));
 
+		render_graph.ImportTexture(RG_RES_NAME(Backbuffer), gfx->GetBackbuffer());
 		if (IsRayTracingSupported())
 		{
 			render_graph.ImportBuffer(RG_RES_NAME(BigVertexBuffer), global_vb.get());
@@ -871,14 +874,16 @@ namespace adria
 
 		render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
 		ResolveToFinalTexture(render_graph);
-		if (!renderer_settings.gui_visible) CopyToBackbuffer(render_graph);
+		if (!Editor::GetInstance().IsActive()) CopyToBackbuffer(render_graph);
+		else Editor::GetInstance().AddRenderPass(render_graph);
 	}
 	void Renderer::Render_PathTracing(RenderGraph& render_graph)
 	{
 		path_tracer.AddPass(render_graph);
 		render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
 		tonemap_pass.AddPass(render_graph, RG_RES_NAME(PT_Output));
-		if (!renderer_settings.gui_visible) CopyToBackbuffer(render_graph);
+		if (!Editor::GetInstance().IsActive()) CopyToBackbuffer(render_graph);
+		else Editor::GetInstance().AddRenderPass(render_graph);
 	}
 
 	void Renderer::MiscGUI()
@@ -1114,19 +1119,14 @@ namespace adria
 		rg.AddPass<CopyToBackbufferPassData>("Copy to Backbuffer Pass",
 			[=](CopyToBackbufferPassData& data, RenderGraphBuilder& builder)
 			{
+				data.dst = builder.WriteCopyDstTexture(RG_RES_NAME(Backbuffer));
 				data.src = builder.ReadCopySrcTexture(RG_RES_NAME(FinalTexture));
 			},
 			[=](CopyToBackbufferPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
-				cmd_list->TransitionBarrier(*gfx->GetBackbuffer(), GfxResourceState::RenderTarget, GfxResourceState::CopyDest);
-				cmd_list->FlushBarriers();
-
 				GfxTexture const& src_texture = ctx.GetCopySrcTexture(data.src);
-				cmd_list->CopyTexture(*gfx->GetBackbuffer(), src_texture);
-
-				cmd_list->TransitionBarrier(*gfx->GetBackbuffer(), GfxResourceState::CopyDest, GfxResourceState::RenderTarget);
-				cmd_list->FlushBarriers();
-
+				GfxTexture& dst_texture = ctx.GetCopyDstTexture(data.dst);
+				cmd_list->CopyTexture(dst_texture, src_texture);
 			}, RGPassType::Copy, RGPassFlags::ForceNoCull);
 	}
 	void Renderer::ResolveToFinalTexture(RenderGraph& rg)

@@ -50,7 +50,6 @@ namespace adria
 		void NewFrame(Camera const* camera);
 		void Update(float dt);
 		void Render(RendererSettings const&);
-
 		void SetViewportData(ViewportData const& vp);
 
 		void OnResize(uint32 w, uint32 h);
@@ -64,6 +63,10 @@ namespace adria
 		
 		PickingData const& GetPickingData() const { return picking_data; }
 		bool IsRayTracingSupported() const { return is_ray_tracing_supported; }
+
+		uint32 GetWidth() const { return width; }
+		uint32 GetHeight() const { return height; }
+
 	private:
 		entt::registry& reg;
 		GfxDevice* gfx;

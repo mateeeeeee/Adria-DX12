@@ -13,6 +13,7 @@ namespace adria
 	class GfxDevice;
 	class Engine;
 	class GUI;
+	class RenderGraph;
 	class EditorLogger;
 	class EditorConsole;
 	struct EngineInit;
@@ -47,11 +48,15 @@ namespace adria
 		}
 		void Init(EditorInit&& init);
 		void Destroy();
+
 		void HandleWindowMessage(WindowMessage const& msg_data);
 		void Run();
+		bool IsActive() const;
 
 		void AddCommand(GUICommand&& command);
 		void AddDebugCommand(GUICommand_Debug&& command);
+		void AddRenderPass(RenderGraph& rg);
+
 	private:
 		std::unique_ptr<Engine> engine;
 		std::unique_ptr<GUI> gui;
@@ -60,9 +65,10 @@ namespace adria
 		std::unique_ptr<EditorLogger> logger;
 		std::unique_ptr<EditorConsole> console;
 
-		entt::entity selected_entity = entt::null;
-		bool gizmo_enabled = false;
 		bool scene_focused = false;
+		entt::entity selected_entity = entt::null;
+		
+		bool gizmo_enabled = false;
 		ImGuizmo::OPERATION gizmo_op = ImGuizmo::TRANSLATE;
 
 		RendererSettings renderer_settings{};

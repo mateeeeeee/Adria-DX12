@@ -22,7 +22,7 @@ namespace adria
 		ForceNoCull = 0x01,						//RGPass cannot be culled by Render Graph
 		AllowUAVWrites = 0x02,					//Allow uav writes, only makes sense if LegacyRenderPassEnabled is disabled
 		SkipAutoRenderPass = 0x04,				//RGPass will manage render targets by himself
-		LegacyRenderPassEnabled = 0x08,			//Don't use DX12 Render Passes, use OMSetRenderTargets
+		LegacyRenderPass = 0x08,			//Don't use DX12 Render Passes, use OMSetRenderTargets
 		ActAsCreatorWhenWriting = 0x10			//When writing to a resource, avoid forcing dependency by acting as a creator
 	};
 	DEFINE_ENUM_BIT_OPERATORS(RGPassFlags);
@@ -109,7 +109,7 @@ namespace adria
 		bool IsCulled() const { return CanBeCulled() && ref_count == 0; }
 		bool CanBeCulled() const { return !HasAnyFlag(flags, RGPassFlags::ForceNoCull); }
 		bool SkipAutoRenderPassSetup() const { return HasAnyFlag(flags, RGPassFlags::SkipAutoRenderPass); }
-		bool UseLegacyRenderPasses() const { return HasAnyFlag(flags, RGPassFlags::LegacyRenderPassEnabled); }
+		bool UseLegacyRenderPasses() const { return HasAnyFlag(flags, RGPassFlags::LegacyRenderPass); }
 		bool AllowUAVWrites() const { return HasAnyFlag(flags, RGPassFlags::AllowUAVWrites); }
 		bool ActAsCreatorWhenWriting() const { return HasAnyFlag(flags, RGPassFlags::ActAsCreatorWhenWriting); };
 	private:

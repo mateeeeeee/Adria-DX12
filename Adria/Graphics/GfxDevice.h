@@ -97,8 +97,6 @@ namespace adria
 		GfxCommandList* GetCopyCommandList() const;
 		GfxTexture* GetBackbuffer() const;
 
-		void SetBackbufferAsRenderTarget(GfxCommandList*) const;
-
 		template<Releasable T>
 		void AddToReleaseQueue(T* alloc)
 		{

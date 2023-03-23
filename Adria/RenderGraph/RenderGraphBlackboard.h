@@ -53,6 +53,11 @@ namespace adria
 			return *p_data;
 		}
 
+		void Clear()
+		{
+			board_data.clear();
+		}
+
 	private:
 		HashMap<std::type_index, std::unique_ptr<uint8[]>> board_data;
 	};
