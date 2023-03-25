@@ -2,7 +2,7 @@
 #include <optional>
 #include "CopyToTexturePass.h"
 #include "AddTexturesPass.h"
-#include "../Core/Definitions.h"
+#include "../Core/CoreTypes.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
 #include "entt/entity/entity.hpp"
 

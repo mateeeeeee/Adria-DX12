@@ -2,7 +2,7 @@
 #include <DirectXMath.h>
 #include <vector>
 #include <concepts>
-#include "../Core/Definitions.h"
+#include "../Core/CoreTypes.h"
 
 
 namespace adria

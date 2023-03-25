@@ -124,6 +124,9 @@
       <AdditionalOptions>/sdl /w34996 %(AdditionalOptions)</AdditionalOptions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <IntrinsicFunctions>false</IntrinsicFunctions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>precomp.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>precomp.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -147,6 +150,9 @@
       <AdditionalOptions>/sdl /w34996 %(AdditionalOptions)</AdditionalOptions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WholeProgramOptimization>false</WholeProgramOptimization>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>precomp.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>precomp.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -216,6 +222,10 @@
     <ClCompile Include="Logging\Logger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Math\Packing.cpp" />
+    <ClCompile Include="precomp.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="RenderGraph\RenderGraph.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
@@ -296,9 +306,9 @@
     <ClInclude Include="Core\ConsoleCommand.h" />
     <ClInclude Include="Core\ConsoleManager.h" />
     <ClInclude Include="Core\ConsoleVariable.h" />
-    <ClInclude Include="Core\Definitions.h" />
+    <ClInclude Include="Core\CoreTypes.h" />
     <ClInclude Include="Core\Engine.h" />
-    <ClInclude Include="Core\Macros.h" />
+    <ClInclude Include="Core\Defines.h" />
     <ClInclude Include="Core\Window.h" />
     <ClInclude Include="Core\Windows.h" />
     <ClInclude Include="Editor\Editor.h" />
@@ -347,6 +357,7 @@
     <ClInclude Include="Math\Constants.h" />
     <ClInclude Include="Math\Halton.h" />
     <ClInclude Include="Math\Packing.h" />
+    <ClInclude Include="precomp.h" />
     <ClInclude Include="RenderGraph\RenderGraph.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>

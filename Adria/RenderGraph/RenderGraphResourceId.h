@@ -1,6 +1,6 @@
 #pragma once
 #include <compare>
-#include "../Core/Definitions.h"
+#include "../Core/CoreTypes.h"
 
 namespace adria
 {

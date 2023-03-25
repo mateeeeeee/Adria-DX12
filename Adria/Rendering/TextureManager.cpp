@@ -15,7 +15,7 @@
 #include "../Graphics/GfxCommandList.h"
 #include "../Graphics/GfxRingDescriptorAllocator.h"
 #include "../Graphics/GfxShaderCompiler.h"
-#include "../Core/Macros.h"
+#include "../Core/Defines.h"
 #include "../Logging/Logger.h"
 #include "../Utilities/StringUtil.h"
 #include "../Utilities/Image.h"

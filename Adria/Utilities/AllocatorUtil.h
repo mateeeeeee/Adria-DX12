@@ -1,6 +1,6 @@
 #pragma once
-#include "../Core/Definitions.h"
-#include "../Core/Macros.h"
+#include "../Core/CoreTypes.h"
+#include "../Core/Defines.h"
 
 namespace adria
 {

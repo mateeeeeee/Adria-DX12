@@ -4,8 +4,8 @@
 #include <memory.h>
 #include "GfxLinearDynamicAllocator.h"
 #include "GfxRingDynamicAllocator.h"
-#include "../Core/Macros.h"
-#include "../Core/Definitions.h"
+#include "../Core/Defines.h"
+#include "../Core/CoreTypes.h"
 #include "../Utilities/StringUtil.h"
 #include "../Utilities/AutoRefCountPtr.h"
 

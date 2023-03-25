@@ -6,7 +6,7 @@
 #include <string>
 #include "Components.h"
 #include "entt/entity/registry.hpp"
-#include "../Core/Definitions.h"
+#include "../Core/CoreTypes.h"
 #include "../Utilities/Heightmap.h"
 #include "../Math/ComputeNormals.h"
 

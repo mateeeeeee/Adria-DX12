@@ -6,7 +6,7 @@
 #include "../Rendering/RendererSettings.h"
 #include "../Rendering/ViewportData.h"
 #include "../ImGui/ImGuizmo.h"
-#include "entt/entt.hpp"
+#include "entt/entity/fwd.hpp"
 
 namespace adria
 {
@@ -66,7 +66,7 @@ namespace adria
 		std::unique_ptr<EditorConsole> console;
 
 		bool scene_focused = false;
-		entt::entity selected_entity = entt::null;
+		entt::entity selected_entity;
 		
 		bool gizmo_enabled = false;
 		ImGuizmo::OPERATION gizmo_op = ImGuizmo::TRANSLATE;

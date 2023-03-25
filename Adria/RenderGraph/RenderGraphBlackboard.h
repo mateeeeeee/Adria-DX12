@@ -1,8 +1,8 @@
 #pragma once
 #include <typeindex>
 #include <memory>
-#include "../Core/Definitions.h"
-#include "../Core/Macros.h"
+#include "../Core/CoreTypes.h"
+#include "../Core/Defines.h"
 #include "../Utilities/TemplatesUtil.h"
 #include "../Utilities/HashMap.h"
 

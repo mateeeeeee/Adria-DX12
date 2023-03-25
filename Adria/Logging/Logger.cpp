@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include "../Core/Windows.h"
-#include "../Core/Macros.h"
+#include "../Core/Defines.h"
 
 namespace adria
 {

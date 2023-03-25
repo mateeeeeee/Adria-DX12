@@ -1,5 +1,5 @@
 #pragma once
-#include "Definitions.h"
+#include "CoreTypes.h"
 #include "Windows.h"
 #include <functional>
 

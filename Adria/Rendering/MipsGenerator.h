@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include <vector>
-#include "../Core/Definitions.h"
+#include "../Core/CoreTypes.h"
 
 namespace adria
 {

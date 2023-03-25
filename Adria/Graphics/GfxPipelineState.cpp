@@ -3,7 +3,7 @@
 #include "GfxStates.h"
 #include "GfxShader.h"
 #include "../Rendering/ShaderCache.h"
-#include "../Core/Macros.h"
+#include "../Core/Defines.h"
 
 namespace adria
 {

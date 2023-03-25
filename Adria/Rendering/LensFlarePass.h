@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "../Core/Definitions.h"
+#include "../Core/CoreTypes.h"
 #include "../RenderGraph/RenderGraphResourceId.h"
 
 

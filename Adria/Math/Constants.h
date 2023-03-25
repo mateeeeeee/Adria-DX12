@@ -1,7 +1,7 @@
 #pragma once
 #include <limits>
 #include <concepts>
-#include "../Core/Definitions.h"
+#include "../Core/CoreTypes.h"
 
 
 namespace adria

@@ -2,8 +2,8 @@
 #include <memory>
 #include "GfxDevice.h"
 #include "d3dx12.h"
-#include "../Core/Definitions.h"
-#include "../Core/Macros.h"
+#include "../Core/CoreTypes.h"
+#include "../Core/Defines.h"
 
 namespace adria
 {

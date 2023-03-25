@@ -1,7 +1,7 @@
 #pragma once
 #include <filesystem>
 #include "HashMap.h"
-#include "../Core/Definitions.h"
+#include "../Core/CoreTypes.h"
 #include "../Events/Delegate.h"
 
 namespace adria

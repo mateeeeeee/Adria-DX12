@@ -4,7 +4,7 @@
 #include <d3d12.h>
 #include "GfxDescriptor.h"
 #include "GfxResourceCommon.h"
-#include "../Core/Definitions.h"
+#include "../Core/CoreTypes.h"
 
 
 namespace adria

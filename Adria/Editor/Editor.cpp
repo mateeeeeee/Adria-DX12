@@ -77,6 +77,7 @@ namespace adria
 		gui = std::make_unique<GUI>(gfx);
 		engine->RegisterEditorEventCallbacks(editor_events);
 
+		selected_entity = entt::null;
 		SetStyle();
 	}
 	void Editor::Destroy()

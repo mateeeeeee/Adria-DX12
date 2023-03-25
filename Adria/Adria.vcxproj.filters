@@ -407,6 +407,7 @@
     <ClCompile Include="Graphics\GfxQueryHeap.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="precomp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -439,7 +440,7 @@
     <ClInclude Include="Events\IEvent.h">
       <Filter>Events</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Definitions.h">
+    <ClInclude Include="Core\CoreTypes.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\Window.h">
@@ -457,7 +458,7 @@
     <ClInclude Include="Input\Input.h">
       <Filter>Input</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Macros.h">
+    <ClInclude Include="Core\Defines.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
@@ -898,6 +899,7 @@
     <ClInclude Include="Graphics\GfxQueryHeap.h">
       <Filter>Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="precomp.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

@@ -1,7 +1,7 @@
 #pragma once
 #include <d3d12.h>
-#include "../Core/Macros.h"
-#include "../Core/Definitions.h"
+#include "../Core/Defines.h"
+#include "../Core/CoreTypes.h"
 #include "../Utilities/AllocatorUtil.h"
 
 namespace adria

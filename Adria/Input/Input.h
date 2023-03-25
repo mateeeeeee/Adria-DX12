@@ -1,6 +1,6 @@
 #pragma once
 #include <array>
-#include "../Core/Definitions.h"
+#include "../Core/CoreTypes.h"
 #include "../Core/Windows.h"
 #include "../Events/Delegate.h"
 #include "../Utilities/HashMap.h"

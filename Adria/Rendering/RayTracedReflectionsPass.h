@@ -2,7 +2,7 @@
 #include "Enums.h"
 #include "BlurPass.h"
 #include "../Graphics/GfxRayTracingUtil.h"
-#include "../Core/Definitions.h"
+#include "../Core/CoreTypes.h"
 #include "../RenderGraph/RenderGraphResourceName.h"
 
 namespace adria

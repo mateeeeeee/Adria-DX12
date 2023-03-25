@@ -18,7 +18,7 @@
 #include "../Logging/Logger.h"
 #include "../Math/BoundingVolumeHelpers.h"
 #include "../Math/ComputeTangentFrame.h"
-#include "../Core/Definitions.h"
+#include "../Core/CoreTypes.h"
 #include "../Utilities/StringUtil.h"
 #include "../Utilities/FilesUtil.h"
 #include "../Utilities/HashMap.h"

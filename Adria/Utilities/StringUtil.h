@@ -10,10 +10,10 @@ namespace adria
 	std::string ToLower(std::string const& in);
 	std::string ToUpper(std::string const& in);
 
-	bool FromCString(const char* in, int& out);
-	bool FromCString(const char* in, float& out);
-	bool FromCString(const char* in, const char*& out);
-	bool FromCString(const char* in, bool& out);
+	bool FromCString(char const* in, int& out);
+	bool FromCString(char const* in, float& out);
+	bool FromCString(char const* in, const char*& out);
+	bool FromCString(char const* in, bool& out);
 
 	std::string IntToString(int val);
 	std::string FloatToString(float val);

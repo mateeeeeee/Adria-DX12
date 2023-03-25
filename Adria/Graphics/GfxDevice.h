@@ -191,7 +191,7 @@ namespace adria
 			HANDLE   dred_wait_handle;
 		};
 		std::unique_ptr<DRED> dred;
-		bool rendering_not_started = true; //#todo : remove
+		bool rendering_not_started = true; 
 
 	private:
 		void SetupOptions(GfxOptions const& options, uint32& dxgi_factory_flags);

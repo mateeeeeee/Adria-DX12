@@ -1,7 +1,7 @@
 #pragma once
 #include "Enums.h"
 #include "../Graphics/GfxRayTracingUtil.h"
-#include "../Core/Definitions.h"
+#include "../Core/CoreTypes.h"
 #include "../RenderGraph/RenderGraphResourceName.h"
 
 namespace adria

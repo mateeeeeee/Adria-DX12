@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include <d3d12.h>
-#include "../Core/Macros.h"
+#include "../Core/Defines.h"
 #include "../Utilities/AutoRefCountPtr.h"
 
 namespace adria

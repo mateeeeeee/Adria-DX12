@@ -5,7 +5,7 @@
 #include <string>
 #include "GfxDefines.h"
 #include "../Utilities/HashMap.h"
-#include "../Core/Definitions.h"
+#include "../Core/CoreTypes.h"
 #if GPU_MULTITHREADED
 #include <mutex>
 #endif

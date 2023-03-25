@@ -1,5 +1,5 @@
 #include "GfxDescriptorAllocator.h"
-#include "../Core/Macros.h"
+#include "../Core/Defines.h"
 
 namespace adria
 {

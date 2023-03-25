@@ -5,7 +5,7 @@
 #include "GfxResourceCommon.h"
 #include "GfxStates.h"
 #include "../Utilities/AutoRefCountPtr.h"
-#include "../Core/Definitions.h"
+#include "../Core/CoreTypes.h"
 
 
 namespace adria
