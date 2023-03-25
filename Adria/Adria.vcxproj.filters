@@ -900,6 +900,9 @@
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="precomp.h" />
+    <ClInclude Include="Utilities\Singleton.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

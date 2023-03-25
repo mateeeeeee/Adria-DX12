@@ -2,6 +2,7 @@
 #include <memory>
 #include "../Core/CoreTypes.h"
 #include "../Utilities/HashMap.h"
+#include "../Utilities/Singleton.h"
 
 namespace adria
 {
@@ -11,11 +12,11 @@ namespace adria
 	using GeometryBufferHandle = uint64;
 	inline constexpr GeometryBufferHandle INVALID_GEOMETRY_BUFFER_HANDLE = uint64(-1);
 
-	class GeometryBufferCache
+	class GeometryBufferCache : public Singleton<GeometryBufferCache>
 	{
+		friend class Singleton<GeometryBufferCache>;
 	public:
-		static GeometryBufferCache& Get();
-
+		
 		void Initialize(GfxDevice* _gfx);
 		void Destroy();
 

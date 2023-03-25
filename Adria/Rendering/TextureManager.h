@@ -6,6 +6,7 @@
 #include <memory>
 #include "../Graphics/GfxDescriptor.h"
 #include "../Utilities/HashMap.h"
+#include "../Utilities/Singleton.h"
 #include "../Utilities/AutoRefCountPtr.h"
 
 namespace adria
@@ -17,12 +18,11 @@ namespace adria
 	using TextureHandle = size_t;
 	inline constexpr TextureHandle INVALID_TEXTURE_HANDLE = TextureHandle(0);
 
-	class TextureManager
+	class TextureManager : public Singleton<TextureManager>
 	{
+		friend class Singleton<TextureManager>;
 		using TextureName = std::variant<std::wstring, std::string>;
 	public:
-
-		static TextureManager& Get();
 
 		void Initialize(GfxDevice* gfx, uint32 max_textures);
 		void Destroy();

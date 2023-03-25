@@ -246,13 +246,13 @@ namespace adria
 	}
 	void Editor::HandleInput()
 	{
-		if (Input::GetInstance().IsKeyDown(KeyCode::I)) gui->ToggleVisibility();
-		if (scene_focused && Input::GetInstance().IsKeyDown(KeyCode::G)) gizmo_enabled = !gizmo_enabled;
+		if (Input::Get().IsKeyDown(KeyCode::I)) gui->ToggleVisibility();
+		if (scene_focused && Input::Get().IsKeyDown(KeyCode::G)) gizmo_enabled = !gizmo_enabled;
 		if (gizmo_enabled && gui->IsVisible())
 		{
-			if (Input::GetInstance().IsKeyDown(KeyCode::T)) gizmo_op = ImGuizmo::TRANSLATE;
-			if (Input::GetInstance().IsKeyDown(KeyCode::R)) gizmo_op = ImGuizmo::ROTATE;
-			if (Input::GetInstance().IsKeyDown(KeyCode::E)) gizmo_op = ImGuizmo::SCALE;
+			if (Input::Get().IsKeyDown(KeyCode::T)) gizmo_op = ImGuizmo::TRANSLATE;
+			if (Input::Get().IsKeyDown(KeyCode::R)) gizmo_op = ImGuizmo::ROTATE;
+			if (Input::Get().IsKeyDown(KeyCode::E)) gizmo_op = ImGuizmo::SCALE;
 		}
 		if (gui->IsVisible()) engine->camera->Enable(scene_focused);
 		else engine->camera->Enable(true);

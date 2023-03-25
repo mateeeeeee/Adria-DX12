@@ -36,7 +36,7 @@ namespace adria
 	void Camera::Tick(float dt)
 	{
 		if (!enabled) return;
-		Input& input = Input::GetInstance();
+		Input& input = Input::Get();
 		if (input.GetKey(KeyCode::Space)) return;
 
 		float speed_factor = 1.0f;

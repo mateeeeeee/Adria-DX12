@@ -78,13 +78,7 @@ namespace adria
 
     TextureManager::~TextureManager() = default;
 
-	TextureManager& TextureManager::Get()
-	{
-		static TextureManager tex_manager;
-		return tex_manager;
-	}
-
-	void TextureManager::Initialize(GfxDevice* _gfx, UINT max_textures)
+	void TextureManager::Initialize(GfxDevice* _gfx, uint32 max_textures)
 	{
         gfx = _gfx;
 		mips_generator = std::make_unique<MipsGenerator>(gfx, max_textures);

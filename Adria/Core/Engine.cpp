@@ -219,7 +219,7 @@ namespace adria
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
 		entity_loader = std::make_unique<EntityLoader>(reg, gfx.get());
 
-		InputEvents& input_events = Input::GetInstance().GetInputEvents();
+		InputEvents& input_events = Input::Get().GetInputEvents();
 		input_events.window_resized_event.AddMember(&GfxDevice::OnResize, *gfx);
 		input_events.window_resized_event.AddMember(&Renderer::OnResize, *renderer);
 		input_events.right_mouse_clicked.AddMember(&Renderer::OnRightMouseClicked, *renderer);
@@ -244,14 +244,14 @@ namespace adria
 
 	void Engine::HandleWindowMessage(WindowMessage const& msg_data)
 	{
-		Input::GetInstance().HandleWindowMessage(msg_data);
+		Input::Get().HandleWindowMessage(msg_data);
 	}
 
 	void Engine::Run(RendererSettings const& settings)
 	{
 		static AdriaTimer timer;
 		float const dt = timer.MarkInSeconds();
-		Input::GetInstance().NewFrame();
+		Input::Get().NewFrame();
 		if (true || Window::IsActive()) //crash when window is hidden, temp fix
 		{
 			Update(dt);
@@ -286,8 +286,8 @@ namespace adria
 		else
 		{
 			viewport_data.scene_viewport_focused = true;
-			viewport_data.mouse_position_x = Input::GetInstance().GetMousePositionX();
-			viewport_data.mouse_position_y = Input::GetInstance().GetMousePositionY();
+			viewport_data.mouse_position_x = Input::Get().GetMousePositionX();
+			viewport_data.mouse_position_y = Input::Get().GetMousePositionY();
 
 			auto [pos_x, pos_y] = Window::Position();
 			viewport_data.scene_viewport_pos_x = static_cast<float>(pos_x);

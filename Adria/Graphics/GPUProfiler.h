@@ -5,6 +5,7 @@
 #include <string>
 #include "GfxDefines.h"
 #include "../Utilities/HashMap.h"
+#include "../Utilities/Singleton.h"
 #include "../Core/CoreTypes.h"
 #if GPU_MULTITHREADED
 #include <mutex>
@@ -23,8 +24,10 @@ namespace adria
 	class GfxQueryHeap;
 	class GfxCommandList;
 
-	class GPUProfiler
+	class GPUProfiler : public Singleton<GPUProfiler>
 	{
+		friend class Singleton<GPUProfiler>;
+
 		static constexpr uint64 FRAME_COUNT = GFX_BACKBUFFER_COUNT;
 		static constexpr uint64 MAX_PROFILES = 64;
 
@@ -37,11 +40,6 @@ namespace adria
 
 	public:
 
-		static GPUProfiler& Get()
-		{
-			static GPUProfiler gpu_profiler;
-			return gpu_profiler;
-		}
 		void Init(GfxDevice* gfx);
 		void Destroy();
 

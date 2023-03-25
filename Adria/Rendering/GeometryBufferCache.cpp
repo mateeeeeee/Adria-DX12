@@ -5,13 +5,6 @@
 
 namespace adria
 {
-
-	GeometryBufferCache& GeometryBufferCache::Get()
-	{
-		static GeometryBufferCache cache;
-		return cache;
-	}
-
 	void GeometryBufferCache::Initialize(GfxDevice* _gfx)
 	{
 		gfx = _gfx;

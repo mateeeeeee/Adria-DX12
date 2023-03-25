@@ -461,6 +461,7 @@
     <ClInclude Include="Utilities\MemoryDebugger.h" />
     <ClInclude Include="Utilities\ObjectPool.h" />
     <ClInclude Include="Utilities\Random.h" />
+    <ClInclude Include="Utilities\Singleton.h" />
     <ClInclude Include="Utilities\StringUtil.h" />
     <ClInclude Include="Utilities\TemplatesUtil.h" />
     <ClInclude Include="Utilities\Timer.h" />

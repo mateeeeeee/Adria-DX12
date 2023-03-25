@@ -5,6 +5,7 @@
 #include "EditorEvents.h"
 #include "../Rendering/RendererSettings.h"
 #include "../Rendering/ViewportData.h"
+#include "../Utilities/Singleton.h"
 #include "../ImGui/ImGuizmo.h"
 #include "entt/entity/fwd.hpp"
 
@@ -24,8 +25,10 @@ namespace adria
 	{
 		EngineInit& engine_init;
 	};
-	class Editor
+	class Editor : public Singleton<Editor>
 	{
+		friend class Singleton<Editor>;
+
 		enum
 		{
 			Flag_Profiler,
@@ -41,11 +44,7 @@ namespace adria
 		};
 
 	public:
-		static Editor& GetInstance()
-		{
-			static Editor editor;
-			return editor;
-		}
+		
 		void Init(EditorInit&& init);
 		void Destroy();
 
