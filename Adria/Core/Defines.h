@@ -2,9 +2,9 @@
 #include <cassert>
 
 #define _STRINGIFY_IMPL(a) #a
-#define ADRIA_STRINGIFY(a) _STRINGIFY_IMPL(a)
 #define _CONCAT_IMPL(x, y) x##y
-#define ADRIA__CONCAT(x, y) __CONCAT_IMPL( x, y )
+#define ADRIA_STRINGIFY(a) _STRINGIFY_IMPL(a)
+#define ADRIA_CONCAT(x, y) _CONCAT_IMPL( x, y )
 
 #define ADRIA_ASSERT(expr) assert(expr)
 #define ADRIA_ASSERT_MSG(expr, msg) assert(expr && msg)
