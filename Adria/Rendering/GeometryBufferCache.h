@@ -9,12 +9,29 @@ namespace adria
 	class GfxDevice;
 	class GfxBuffer;
 
-	using GeometryBufferHandle = uint64;
-	inline constexpr GeometryBufferHandle INVALID_GEOMETRY_BUFFER_HANDLE = uint64(-1);
+	inline constexpr uint64 INVALID_GEOMETRY_BUFFER_HANDLE_VALUE = uint64(-1);
+
+	class GeometryBufferHandle
+	{
+	public:
+		GeometryBufferHandle() = default;
+		GeometryBufferHandle(uint64 h)
+		{
+			handle = std::make_shared<uint64>(h);
+		}
+		GeometryBufferHandle(GeometryBufferHandle const&) = default;
+		GeometryBufferHandle& operator=(GeometryBufferHandle const&) = default;
+		~GeometryBufferHandle();
+
+		operator uint64() const { return *handle; }
+	private:
+		std::shared_ptr<uint64> handle = nullptr;
+	};
 
 	class GeometryBufferCache : public Singleton<GeometryBufferCache>
 	{
 		friend class Singleton<GeometryBufferCache>;
+
 	public:
 		
 		void Initialize(GfxDevice* _gfx);
@@ -26,7 +43,7 @@ namespace adria
 
 	private:
 		GfxDevice* gfx;
-		GeometryBufferHandle current_handle = INVALID_GEOMETRY_BUFFER_HANDLE;
-		HashMap<GeometryBufferHandle, std::unique_ptr<GfxBuffer>> buffer_map;
+		uint64 current_handle = INVALID_GEOMETRY_BUFFER_HANDLE_VALUE;
+		HashMap<uint64, std::unique_ptr<GfxBuffer>> buffer_map;
 	};
 }

@@ -30,7 +30,7 @@ namespace adria
 		return current_handle;
 	}
 
-	void GeometryBufferCache::DestroyGeometryBuffer(GeometryBufferHandle handle) //TODO: when to call this?
+	void GeometryBufferCache::DestroyGeometryBuffer(GeometryBufferHandle handle) 
 	{
 		if (auto it = buffer_map.find(handle); it != buffer_map.end())
 		{
@@ -46,6 +46,11 @@ namespace adria
 			return it->second.get();
 		}
 		else return nullptr;
+	}
+
+	GeometryBufferHandle::~GeometryBufferHandle()
+	{
+		GeometryBufferCache::Get().DestroyGeometryBuffer(*this);
 	}
 
 }
