@@ -62,13 +62,13 @@ int APIENTRY wWinMain(
         engine_init.scene_file = scene.AsStringOr("scene.json");
 
         EditorInit editor_init{.engine_init = engine_init };
-        Editor::Get().Init(std::move(editor_init));
-        Window::SetCallback([](WindowMessage const& msg_data) {Editor::Get().HandleWindowMessage(msg_data); });
+        g_Editor.Init(std::move(editor_init));
+        Window::SetCallback([](WindowMessage const& msg_data) {g_Editor.HandleWindowMessage(msg_data); });
         while (Window::Loop())
         {
-            Editor::Get().Run();
+            g_Editor.Run();
         }
-        Editor::Get().Destroy();
+        g_Editor.Destroy();
         Window::Destroy();
     }
 }

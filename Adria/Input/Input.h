@@ -51,6 +51,7 @@ namespace adria
 		F5PressedEvent f5_pressed_event;
 	};
 
+	#define g_Input Singleton<class Input>::Get()
 	class Input : public Singleton<Input>
 	{
 		friend class Singleton<Input>;

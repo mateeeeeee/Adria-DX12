@@ -28,6 +28,7 @@ namespace adria
 		std::shared_ptr<uint64> handle = nullptr;
 	};
 
+	#define g_GeometryBufferCache Singleton<class GeometryBufferCache>::Get()
 	class GeometryBufferCache : public Singleton<GeometryBufferCache>
 	{
 		friend class Singleton<GeometryBufferCache>;

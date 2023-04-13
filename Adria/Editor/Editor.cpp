@@ -246,13 +246,13 @@ namespace adria
 	}
 	void Editor::HandleInput()
 	{
-		if (Input::Get().IsKeyDown(KeyCode::I)) gui->ToggleVisibility();
-		if (scene_focused && Input::Get().IsKeyDown(KeyCode::G)) gizmo_enabled = !gizmo_enabled;
+		if (g_Input.IsKeyDown(KeyCode::I)) gui->ToggleVisibility();
+		if (scene_focused && g_Input.IsKeyDown(KeyCode::G)) gizmo_enabled = !gizmo_enabled;
 		if (gizmo_enabled && gui->IsVisible())
 		{
-			if (Input::Get().IsKeyDown(KeyCode::T)) gizmo_op = ImGuizmo::TRANSLATE;
-			if (Input::Get().IsKeyDown(KeyCode::R)) gizmo_op = ImGuizmo::ROTATE;
-			if (Input::Get().IsKeyDown(KeyCode::E)) gizmo_op = ImGuizmo::SCALE;
+			if (g_Input.IsKeyDown(KeyCode::T)) gizmo_op = ImGuizmo::TRANSLATE;
+			if (g_Input.IsKeyDown(KeyCode::R)) gizmo_op = ImGuizmo::ROTATE;
+			if (g_Input.IsKeyDown(KeyCode::E)) gizmo_op = ImGuizmo::SCALE;
 		}
 		if (gui->IsVisible()) engine->camera->Enable(scene_focused);
 		else engine->camera->Enable(true);
@@ -672,7 +672,7 @@ namespace adria
 					GUIDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
 
 					ImGui::Text("Albedo Texture");
-					GfxDescriptor tex_handle = TextureManager::Get().GetSRV(material->albedo_texture);
+					GfxDescriptor tex_handle = g_TextureManager.GetSRV(material->albedo_texture);
 					GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
 					gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
 					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, ImVec2(48.0f, 48.0f));
@@ -687,14 +687,14 @@ namespace adria
 						if (result == NFD_OKAY)
 						{
 							std::wstring texture_path = ToWideString(file_path);
-							material->albedo_texture = TextureManager::Get().LoadTexture(texture_path);
+							material->albedo_texture = g_TextureManager.LoadTexture(texture_path);
 							free(file_path);
 						}
 					}
 					ImGui::PopID();
 
 					ImGui::Text("Metallic-Roughness Texture");
-					tex_handle = TextureManager::Get().GetSRV(material->metallic_roughness_texture);
+					tex_handle = g_TextureManager.GetSRV(material->metallic_roughness_texture);
 					dst_descriptor = descriptor_allocator->Allocate();
 					gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
 					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
@@ -710,14 +710,14 @@ namespace adria
 						if (result == NFD_OKAY)
 						{
 							std::wstring texture_path = ToWideString(file_path);
-							material->metallic_roughness_texture = TextureManager::Get().LoadTexture(texture_path);
+							material->metallic_roughness_texture = g_TextureManager.LoadTexture(texture_path);
 							free(file_path);
 						}
 					}
 					ImGui::PopID();
 
 					ImGui::Text("Emissive Texture");
-					tex_handle = TextureManager::Get().GetSRV(material->emissive_texture);
+					tex_handle = g_TextureManager.GetSRV(material->emissive_texture);
 					dst_descriptor = descriptor_allocator->Allocate();
 					gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
 					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
@@ -733,7 +733,7 @@ namespace adria
 						if (result == NFD_OKAY)
 						{
 							std::wstring texture_path = ToWideString(file_path);
-							material->emissive_texture = TextureManager::Get().LoadTexture(texture_path);
+							material->emissive_texture = g_TextureManager.LoadTexture(texture_path);
 							free(file_path);
 						}
 					}
@@ -788,7 +788,7 @@ namespace adria
 					GUIDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
 
 					ImGui::Text("Decal Albedo Texture");
-					GfxDescriptor tex_handle = TextureManager::Get().GetSRV(decal->albedo_decal_texture);
+					GfxDescriptor tex_handle = g_TextureManager.GetSRV(decal->albedo_decal_texture);
 					GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
 					gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
 					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
@@ -804,14 +804,14 @@ namespace adria
 						if (result == NFD_OKAY)
 						{
 							std::wstring texture_path = ToWideString(file_path);
-							decal->albedo_decal_texture = TextureManager::Get().LoadTexture(texture_path);
+							decal->albedo_decal_texture = g_TextureManager.LoadTexture(texture_path);
 							free(file_path);
 						}
 					}
 					ImGui::PopID();
 
 					ImGui::Text("Decal Normal Texture");
-					tex_handle = TextureManager::Get().GetSRV(decal->normal_decal_texture);
+					tex_handle = g_TextureManager.GetSRV(decal->normal_decal_texture);
 					dst_descriptor = descriptor_allocator->Allocate();
 					gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
 					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
@@ -827,7 +827,7 @@ namespace adria
 						if (result == NFD_OKAY)
 						{
 							std::wstring texture_path = ToWideString(file_path);
-							decal->normal_decal_texture = TextureManager::Get().LoadTexture(texture_path);
+							decal->normal_decal_texture = g_TextureManager.LoadTexture(texture_path);
 							free(file_path);
 						}
 					}
@@ -847,7 +847,7 @@ namespace adria
 						if (result == NFD_OKAY)
 						{
 							std::wstring texture_path = ToWideString(file_path);
-							skybox->cubemap_texture = TextureManager::Get().LoadTexture(texture_path);
+							skybox->cubemap_texture = g_TextureManager.LoadTexture(texture_path);
 							free(file_path);
 						}
 					}
@@ -1112,7 +1112,7 @@ namespace adria
 				static float FRAME_TIME_GRAPH_MAX_VALUES[ARRAYSIZE(FRAME_TIME_GRAPH_MAX_FPS)] = { 0 };
 				for (uint64 i = 0; i < ARRAYSIZE(FRAME_TIME_GRAPH_MAX_FPS); ++i) { FRAME_TIME_GRAPH_MAX_VALUES[i] = 1000.f / FRAME_TIME_GRAPH_MAX_FPS[i]; }
 
-				std::vector<Timestamp> time_stamps = GPUProfiler::Get().GetProfilerResults();
+				std::vector<Timestamp> time_stamps = g_GpuProfiler.GetProfilerResults();
 				FRAME_TIME_ARRAY[NUM_FRAMES - 1] = 1000.0f / io.Framerate;
 				for (uint32 i = 0; i < NUM_FRAMES - 1; i++) FRAME_TIME_ARRAY[i] = FRAME_TIME_ARRAY[i + 1];
 				RECENT_HIGHEST_FRAME_TIME = std::max(RECENT_HIGHEST_FRAME_TIME, FRAME_TIME_ARRAY[NUM_FRAMES - 1]);

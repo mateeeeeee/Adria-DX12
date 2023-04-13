@@ -25,6 +25,8 @@ namespace adria
 	{
 		EngineInit& engine_init;
 	};
+
+	#define g_Editor Singleton<class Editor>::Get()
 	class Editor : public Singleton<Editor>
 	{
 		friend class Singleton<Editor>;

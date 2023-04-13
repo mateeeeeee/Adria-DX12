@@ -59,7 +59,7 @@ namespace adria
 
 				std::vector<GfxDescriptor> lens_flare_descriptors{};
 				for (size_t i = 0; i < lens_flare_textures.size(); ++i)
-					lens_flare_descriptors.push_back(TextureManager::Get().GetSRV(lens_flare_textures[i]));
+					lens_flare_descriptors.push_back(g_TextureManager.GetSRV(lens_flare_textures[i]));
 				lens_flare_descriptors.push_back(context.GetReadOnlyTexture(data.depth));
 
 				GfxDescriptor dst_descriptor = descriptor_allocator->Allocate(8);
@@ -110,13 +110,13 @@ namespace adria
 
 	void LensFlarePass::OnSceneInitialized(GfxDevice* gfx)
 	{
-		lens_flare_textures.push_back(TextureManager::Get().LoadTexture(L"Resources/Textures/lensflare/flare0.jpg"));
-		lens_flare_textures.push_back(TextureManager::Get().LoadTexture(L"Resources/Textures/lensflare/flare1.jpg"));
-		lens_flare_textures.push_back(TextureManager::Get().LoadTexture(L"Resources/Textures/lensflare/flare2.jpg"));
-		lens_flare_textures.push_back(TextureManager::Get().LoadTexture(L"Resources/Textures/lensflare/flare3.jpg"));
-		lens_flare_textures.push_back(TextureManager::Get().LoadTexture(L"Resources/Textures/lensflare/flare4.jpg"));
-		lens_flare_textures.push_back(TextureManager::Get().LoadTexture(L"Resources/Textures/lensflare/flare5.jpg"));
-		lens_flare_textures.push_back(TextureManager::Get().LoadTexture(L"Resources/Textures/lensflare/flare6.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture(L"Resources/Textures/lensflare/flare0.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture(L"Resources/Textures/lensflare/flare1.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture(L"Resources/Textures/lensflare/flare2.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture(L"Resources/Textures/lensflare/flare3.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture(L"Resources/Textures/lensflare/flare4.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture(L"Resources/Textures/lensflare/flare5.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture(L"Resources/Textures/lensflare/flare6.jpg"));
 	}
 
 }

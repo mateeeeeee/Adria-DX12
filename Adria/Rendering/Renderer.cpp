@@ -271,14 +271,14 @@ namespace adria
 		ray_traced_shadows_pass(gfx, width, height), rtao_pass(gfx, width, height), rtr_pass(gfx, width, height),
 		path_tracer(gfx, width, height)
 	{
+		g_GpuProfiler.Init(gfx);
 		CheckDeviceCapabilities();
-		GPUProfiler::Get().Init(gfx);
 		CreateSizeDependentResources();
 	}
 
 	Renderer::~Renderer()
 	{
-		GPUProfiler::Get().Destroy();
+		g_GpuProfiler.Destroy();
 		gfx->WaitForGPU();
 		reg.clear();
 		gfxcommon::Destroy();
@@ -288,7 +288,7 @@ namespace adria
 		ADRIA_ASSERT(_camera);
 		camera = _camera;
 		backbuffer_index = gfx->BackbufferIndex();
-		GPUProfiler::Get().NewFrame();
+		g_GpuProfiler.NewFrame();
 	}
 	void Renderer::Update(float dt)
 	{
@@ -302,7 +302,7 @@ namespace adria
 	void Renderer::Render(RendererSettings const& _settings)
 	{
 		renderer_settings = _settings;
-		TextureManager::Get().Tick();
+		g_TextureManager.Tick();
 
 		RenderGraph render_graph(resource_pool);
 		RGBlackboard& rg_blackboard = render_graph.GetBlackboard();
@@ -382,7 +382,7 @@ namespace adria
 		CreateGlobalBuffers();
 
 		gfxcommon::Initialize(gfx);
-		TextureManager::Get().OnSceneInitialized();
+		g_TextureManager.OnSceneInitialized();
 	}
 	void Renderer::OnRightMouseClicked(int32 x, int32 y)
 	{
@@ -474,7 +474,7 @@ namespace adria
 				Skybox skybox = skybox_entities.get<Skybox>(e);
 				if (skybox.active && skybox.used_in_rt)
 				{
-					env_map = TextureManager::Get().GetSRV(skybox.cubemap_texture);
+					env_map = g_TextureManager.GetSRV(skybox.cubemap_texture);
 					break;
 				}
 			}

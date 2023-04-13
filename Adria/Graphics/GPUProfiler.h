@@ -24,6 +24,7 @@ namespace adria
 	class GfxQueryHeap;
 	class GfxCommandList;
 
+	#define g_GpuProfiler Singleton<class GPUProfiler>::Get()
 	class GPUProfiler : public Singleton<GPUProfiler>
 	{
 		friend class Singleton<GPUProfiler>;
@@ -73,12 +74,12 @@ namespace adria
 		GPUProfileScope(GfxCommandList* _cmd_list, char const* _name)
 			: name{ _name }, cmd_list{ _cmd_list }
 		{
-			GPUProfiler::Get().BeginProfileScope(cmd_list, name.c_str());
+			g_GpuProfiler.BeginProfileScope(cmd_list, name.c_str());
 		}
 
 		~GPUProfileScope()
 		{
-			GPUProfiler::Get().EndProfileScope(name.c_str());
+			g_GpuProfiler.EndProfileScope(name.c_str());
 		}
 
 		GfxCommandList* cmd_list;

@@ -176,7 +176,7 @@ namespace adria
 
 	void ToneMapPass::OnSceneInitialized(GfxDevice* gfx)
 	{
-		lens_dirt_handle = TextureManager::Get().LoadTexture(L"Resources/Textures/LensDirt.dds");
+		lens_dirt_handle = g_TextureManager.LoadTexture(L"Resources/Textures/LensDirt.dds");
 	}
 
 	void ToneMapPass::GUI()

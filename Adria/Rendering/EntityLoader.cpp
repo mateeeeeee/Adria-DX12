@@ -328,12 +328,12 @@ namespace adria
 	EntityLoader::EntityLoader(entt::registry& reg, GfxDevice* gfx)
         : reg(reg), gfx(gfx)
     {
-		GeometryBufferCache::Get().Initialize(gfx);
+		g_GeometryBufferCache.Initialize(gfx);
     }
 
 	EntityLoader::~EntityLoader()
 	{
-		GeometryBufferCache::Get().Destroy();
+		g_GeometryBufferCache.Destroy();
 	}
 
 	entt::entity EntityLoader::LoadSkybox(SkyboxParameters const& params)
@@ -344,8 +344,8 @@ namespace adria
         sky.active = true;
 		sky.used_in_rt = params.used_in_rt;
 
-        if (params.cubemap.has_value()) sky.cubemap_texture = TextureManager::Get().LoadCubemap(params.cubemap.value());
-        else sky.cubemap_texture = TextureManager::Get().LoadCubemap(params.cubemap_textures);
+        if (params.cubemap.has_value()) sky.cubemap_texture = g_TextureManager.LoadCubemap(params.cubemap.value());
+        else sky.cubemap_texture = g_TextureManager.LoadCubemap(params.cubemap_textures);
 
         reg.emplace<Skybox>(skybox, sky);
         reg.emplace<Tag>(skybox, "Skybox");
@@ -404,9 +404,9 @@ namespace adria
 			material.base_color[2] = base_color.z;
 
             if (params.light_texture.has_value())
-                material.albedo_texture = TextureManager::Get().LoadTexture(params.light_texture.value()); //
+                material.albedo_texture = g_TextureManager.LoadTexture(params.light_texture.value()); //
             else if (params.light_data.type == LightType::Directional)
-                material.albedo_texture = TextureManager::Get().LoadTexture(L"Resources/Textures/sun.png");
+                material.albedo_texture = g_TextureManager.LoadTexture(L"Resources/Textures/sun.png");
 
             if (params.light_data.type == LightType::Directional)
                 material.pso = GfxPipelineStateID::Sun;
@@ -481,10 +481,10 @@ namespace adria
 	entt::entity EntityLoader::LoadDecal(DecalParameters const& params)
 	{
 		Decal decal{};
-		TextureManager::Get().EnableMipMaps(false);
-		if (!params.albedo_texture_path.empty()) decal.albedo_decal_texture = TextureManager::Get().LoadTexture(ToWideString(params.albedo_texture_path));
-		if (!params.normal_texture_path.empty()) decal.normal_decal_texture = TextureManager::Get().LoadTexture(ToWideString(params.normal_texture_path));
-		TextureManager::Get().EnableMipMaps(true);
+		g_TextureManager.EnableMipMaps(false);
+		if (!params.albedo_texture_path.empty()) decal.albedo_decal_texture = g_TextureManager.LoadTexture(ToWideString(params.albedo_texture_path));
+		if (!params.normal_texture_path.empty()) decal.normal_decal_texture = g_TextureManager.LoadTexture(ToWideString(params.normal_texture_path));
+		g_TextureManager.EnableMipMaps(true);
 
 		XMVECTOR P = XMLoadFloat4(&params.position);
 		XMVECTOR N = XMLoadFloat4(&params.normal);
@@ -573,7 +573,7 @@ namespace adria
 				tinygltf::Texture const& base_texture = model.textures[pbr_metallic_roughness.baseColorTexture.index];
 				tinygltf::Image const& base_image = model.images[base_texture.source];
 				std::string texbase = params.textures_path + base_image.uri;
-				material.albedo_texture = TextureManager::Get().LoadTexture(ToWideString(texbase));
+				material.albedo_texture = g_TextureManager.LoadTexture(ToWideString(texbase));
 				material.base_color[0] = (float)pbr_metallic_roughness.baseColorFactor[0];
 				material.base_color[1] = (float)pbr_metallic_roughness.baseColorFactor[1];
 				material.base_color[2] = (float)pbr_metallic_roughness.baseColorFactor[2];
@@ -583,7 +583,7 @@ namespace adria
 				tinygltf::Texture const& metallic_roughness_texture = model.textures[pbr_metallic_roughness.metallicRoughnessTexture.index];
 				tinygltf::Image const& metallic_roughness_image = model.images[metallic_roughness_texture.source];
 				std::string texmetallicroughness = params.textures_path + metallic_roughness_image.uri;
-				material.metallic_roughness_texture = TextureManager::Get().LoadTexture(ToWideString(texmetallicroughness));
+				material.metallic_roughness_texture = g_TextureManager.LoadTexture(ToWideString(texmetallicroughness));
 				material.metallic_factor = (float)pbr_metallic_roughness.metallicFactor;
 				material.roughness_factor = (float)pbr_metallic_roughness.roughnessFactor;
 			}
@@ -592,14 +592,14 @@ namespace adria
 				tinygltf::Texture const& normal_texture = model.textures[gltf_material.normalTexture.index];
 				tinygltf::Image const& normal_image = model.images[normal_texture.source];
 				std::string texnormal = params.textures_path + normal_image.uri;
-				material.normal_texture = TextureManager::Get().LoadTexture(ToWideString(texnormal));
+				material.normal_texture = g_TextureManager.LoadTexture(ToWideString(texnormal));
 			}
 			if (gltf_material.emissiveTexture.index >= 0)
 			{
 				tinygltf::Texture const& emissive_texture = model.textures[gltf_material.emissiveTexture.index];
 				tinygltf::Image const& emissive_image = model.images[emissive_texture.source];
 				std::string texemissive = params.textures_path + emissive_image.uri;
-				material.emissive_texture = TextureManager::Get().LoadTexture(ToWideString(texemissive));
+				material.emissive_texture = g_TextureManager.LoadTexture(ToWideString(texemissive));
 				material.emissive_factor = (float)gltf_material.emissiveFactor[0];
 			}
 		}
@@ -942,7 +942,7 @@ namespace adria
 				tinygltf::Texture const& base_texture = model.textures[pbr_metallic_roughness.baseColorTexture.index];
 				tinygltf::Image const& base_image = model.images[base_texture.source];
 				std::string texbase = params.textures_path + base_image.uri;
-				material.albedo_texture = TextureManager::Get().LoadTexture(ToWideString(texbase));
+				material.albedo_texture = g_TextureManager.LoadTexture(ToWideString(texbase));
 				material.base_color[0] = (float)pbr_metallic_roughness.baseColorFactor[0];
 				material.base_color[1] = (float)pbr_metallic_roughness.baseColorFactor[1];
 				material.base_color[2] = (float)pbr_metallic_roughness.baseColorFactor[2];
@@ -952,7 +952,7 @@ namespace adria
 				tinygltf::Texture const& metallic_roughness_texture = model.textures[pbr_metallic_roughness.metallicRoughnessTexture.index];
 				tinygltf::Image const& metallic_roughness_image = model.images[metallic_roughness_texture.source];
 				std::string texmetallicroughness = params.textures_path + metallic_roughness_image.uri;
-				material.metallic_roughness_texture = TextureManager::Get().LoadTexture(ToWideString(texmetallicroughness));
+				material.metallic_roughness_texture = g_TextureManager.LoadTexture(ToWideString(texmetallicroughness));
 				material.metallic_factor = (float)pbr_metallic_roughness.metallicFactor;
 				material.roughness_factor = (float)pbr_metallic_roughness.roughnessFactor;
 			}
@@ -961,14 +961,14 @@ namespace adria
 				tinygltf::Texture const& normal_texture = model.textures[gltf_material.normalTexture.index];
 				tinygltf::Image const& normal_image = model.images[normal_texture.source];
 				std::string texnormal = params.textures_path + normal_image.uri;
-				material.normal_texture = TextureManager::Get().LoadTexture(ToWideString(texnormal));
+				material.normal_texture = g_TextureManager.LoadTexture(ToWideString(texnormal));
 			}
 			if (gltf_material.emissiveTexture.index >= 0)
 			{
 				tinygltf::Texture const& emissive_texture = model.textures[gltf_material.emissiveTexture.index];
 				tinygltf::Image const& emissive_image = model.images[emissive_texture.source];
 				std::string texemissive = params.textures_path + emissive_image.uri;
-				material.emissive_texture = TextureManager::Get().LoadTexture(ToWideString(texemissive));
+				material.emissive_texture = g_TextureManager.LoadTexture(ToWideString(texemissive));
 				material.emissive_factor = (float)gltf_material.emissiveFactor[0];
 			}
 		}
@@ -1245,7 +1245,7 @@ namespace adria
 
 			reg.emplace<SubMesh>(e, submesh);
 		}
-		GeometryBufferHandle geometry_buffer_handle = GeometryBufferCache::Get().CreateAndInitializeGeometryBuffer(staging_buffer.buffer, total_buffer_size, staging_buffer.offset);
+		GeometryBufferHandle geometry_buffer_handle = g_GeometryBufferCache.CreateAndInitializeGeometryBuffer(staging_buffer.buffer, total_buffer_size, staging_buffer.offset);
 
 		std::function<void(int, XMMATRIX)> LoadNode;
 		LoadNode = [&](int node_index, XMMATRIX parent_transform)
@@ -1318,6 +1318,7 @@ namespace adria
 					AABB& aabb = reg.get<AABB>(e);
 					aabb.bounding_box.Transform(aabb.bounding_box, model);
 					aabb.UpdateBuffer(gfx);
+
 					reg.emplace<Transform>(e, model);
 				}
 			}

@@ -57,10 +57,10 @@ namespace adria
 
 	void BokehPass::OnSceneInitialized(GfxDevice* gfx)
 	{
-		hex_bokeh_handle = TextureManager::Get().LoadTexture(L"Resources/Textures/bokeh/Bokeh_Hex.dds");
-		oct_bokeh_handle = TextureManager::Get().LoadTexture(L"Resources/Textures/bokeh/Bokeh_Oct.dds");
-		circle_bokeh_handle = TextureManager::Get().LoadTexture(L"Resources/Textures/bokeh/Bokeh_Circle.dds");
-		cross_bokeh_handle = TextureManager::Get().LoadTexture(L"Resources/Textures/bokeh/Bokeh_Cross.dds");
+		hex_bokeh_handle = g_TextureManager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Hex.dds");
+		oct_bokeh_handle = g_TextureManager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Oct.dds");
+		circle_bokeh_handle = g_TextureManager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Circle.dds");
+		cross_bokeh_handle = g_TextureManager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Cross.dds");
 
 		GfxBufferDesc reset_buffer_desc{};
 		reset_buffer_desc.size = sizeof(uint32);
@@ -210,16 +210,16 @@ namespace adria
 				switch (params.bokeh_type)
 				{
 				case BokehType::Hex:
-					bokeh_descriptor = TextureManager::Get().GetSRV(hex_bokeh_handle);
+					bokeh_descriptor = g_TextureManager.GetSRV(hex_bokeh_handle);
 					break;
 				case BokehType::Oct:
-					bokeh_descriptor = TextureManager::Get().GetSRV(oct_bokeh_handle);
+					bokeh_descriptor = g_TextureManager.GetSRV(oct_bokeh_handle);
 					break;
 				case BokehType::Circle:
-					bokeh_descriptor = TextureManager::Get().GetSRV(circle_bokeh_handle);
+					bokeh_descriptor = g_TextureManager.GetSRV(circle_bokeh_handle);
 					break;
 				case BokehType::Cross:
-					bokeh_descriptor = TextureManager::Get().GetSRV(cross_bokeh_handle);
+					bokeh_descriptor = g_TextureManager.GetSRV(cross_bokeh_handle);
 					break;
 				default:
 					ADRIA_ASSERT(false && "Invalid Bokeh Type");

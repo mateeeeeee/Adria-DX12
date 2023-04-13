@@ -43,8 +43,8 @@ namespace adria
 			{
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				
-				GfxDescriptor src_handles[] = { TextureManager::Get().GetSRV(cloud_textures[0]),  TextureManager::Get().GetSRV(cloud_textures[1]),
-															 TextureManager::Get().GetSRV(cloud_textures[2]), context.GetReadOnlyTexture(data.depth),
+				GfxDescriptor src_handles[] = { g_TextureManager.GetSRV(cloud_textures[0]),  g_TextureManager.GetSRV(cloud_textures[1]),
+															 g_TextureManager.GetSRV(cloud_textures[2]), context.GetReadOnlyTexture(data.depth),
 															context.GetReadWriteTexture(data.output) };
 				GfxDescriptor dst_handle = descriptor_allocator->Allocate(ARRAYSIZE(src_handles));
 				gfx->CopyDescriptors(dst_handle, src_handles);
@@ -119,9 +119,9 @@ namespace adria
 
 	void VolumetricCloudsPass::OnSceneInitialized(GfxDevice* gfx)
 	{
-		cloud_textures.push_back(TextureManager::Get().LoadTexture(L"Resources\\Textures\\clouds\\weather.dds"));
-		cloud_textures.push_back(TextureManager::Get().LoadTexture(L"Resources\\Textures\\clouds\\cloud.dds"));
-		cloud_textures.push_back(TextureManager::Get().LoadTexture(L"Resources\\Textures\\clouds\\worley.dds"));
+		cloud_textures.push_back(g_TextureManager.LoadTexture(L"Resources\\Textures\\clouds\\weather.dds"));
+		cloud_textures.push_back(g_TextureManager.LoadTexture(L"Resources\\Textures\\clouds\\cloud.dds"));
+		cloud_textures.push_back(g_TextureManager.LoadTexture(L"Resources\\Textures\\clouds\\worley.dds"));
 	}
 
 }

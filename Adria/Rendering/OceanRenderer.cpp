@@ -318,7 +318,7 @@ namespace adria
 					auto const& _skybox = skyboxes.get<Skybox>(skybox);
 					if (_skybox.active)
 					{
-						skybox_handle = TextureManager::Get().GetSRV(_skybox.cubemap_texture);
+						skybox_handle = g_TextureManager.GetSRV(_skybox.cubemap_texture);
 						break;
 					}
 				}
@@ -346,7 +346,7 @@ namespace adria
 					{
 						uint32 i = descriptor_allocator->Allocate(4).GetIndex();
 						GfxDescriptor dst_handle = descriptor_allocator->GetHandle(i);
-						GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.displacement), context.GetReadOnlyTexture(data.normals), skybox_handle, TextureManager::Get().GetSRV(foam_handle) };
+						GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.displacement), context.GetReadOnlyTexture(data.normals), skybox_handle, g_TextureManager.GetSRV(foam_handle) };
 						gfx->CopyDescriptors(dst_handle, src_handles);
 
 						struct OceanIndices
@@ -402,8 +402,8 @@ namespace adria
 
 	void OceanRenderer::OnSceneInitialized(GfxDevice* gfx)
 	{
-		foam_handle = TextureManager::Get().LoadTexture(L"Resources/Textures/foam.jpg");
-		perlin_handle = TextureManager::Get().LoadTexture(L"Resources/Textures/perlin.dds");
+		foam_handle = g_TextureManager.LoadTexture(L"Resources/Textures/foam.jpg");
+		perlin_handle = g_TextureManager.LoadTexture(L"Resources/Textures/perlin.dds");
 
 		GfxTextureDesc ocean_texture_desc{};
 		ocean_texture_desc.width = FFT_RESOLUTION;

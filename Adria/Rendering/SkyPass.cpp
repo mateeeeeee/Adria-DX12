@@ -57,7 +57,7 @@ namespace adria
 						if (!skybox.active) continue;
 
 						ADRIA_ASSERT(skybox.cubemap_texture != INVALID_TEXTURE_HANDLE);
-						GfxDescriptor texture_handle = TextureManager::Get().GetSRV(skybox.cubemap_texture);
+						GfxDescriptor texture_handle = g_TextureManager.GetSRV(skybox.cubemap_texture);
 						cmd_list->SetRootConstant(1, (uint32)skybox.cubemap_texture, 0);
 					}
 					break;

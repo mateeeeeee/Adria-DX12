@@ -50,7 +50,7 @@ namespace adria
 
 	GeometryBufferHandle::~GeometryBufferHandle()
 	{
-		GeometryBufferCache::Get().DestroyGeometryBuffer(*this);
+		g_GeometryBufferCache.DestroyGeometryBuffer(*this);
 	}
 
 }
