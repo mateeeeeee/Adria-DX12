@@ -5,11 +5,11 @@
 #include "cereal/archives/binary.hpp"
 #include "cereal/types/string.hpp"
 #include "cereal/types/vector.hpp"
-#include "../Utilities/StringUtil.h"
-#include "../Utilities/FilesUtil.h"
-#include "../Utilities/HashUtil.h"
-#include "../Utilities/AutoRefCountPtr.h"
-#include "../Logging/Logger.h"
+#include "Utilities/StringUtil.h"
+#include "Utilities/FilesUtil.h"
+#include "Utilities/HashUtil.h"
+#include "Utilities/AutoRefCountPtr.h"
+#include "Logging/Logger.h"
 
 
 namespace adria

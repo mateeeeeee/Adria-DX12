@@ -10,16 +10,16 @@
 
 #include "TextureManager.h"
 #include "MipsGenerator.h"
-#include "../Graphics/GfxTexture.h"
-#include "../Graphics/GfxDevice.h"
-#include "../Graphics/GfxCommandList.h"
-#include "../Graphics/GfxRingDescriptorAllocator.h"
-#include "../Graphics/GfxShaderCompiler.h"
-#include "../Core/Defines.h"
-#include "../Logging/Logger.h"
-#include "../Utilities/StringUtil.h"
-#include "../Utilities/Image.h"
-#include "../Utilities/FilesUtil.h"
+#include "Graphics/GfxTexture.h"
+#include "Graphics/GfxDevice.h"
+#include "Graphics/GfxCommandList.h"
+#include "Graphics/GfxRingDescriptorAllocator.h"
+#include "Graphics/GfxShaderCompiler.h"
+#include "Core/Defines.h"
+#include "Logging/Logger.h"
+#include "Utilities/StringUtil.h"
+#include "Utilities/Image.h"
+#include "Utilities/FilesUtil.h"
 
 namespace adria
 {

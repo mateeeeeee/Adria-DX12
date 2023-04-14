@@ -3,8 +3,8 @@
 #include "GfxShader.h"
 #include "GfxInputLayout.h"
 #include "GfxResourceCommon.h"
-#include "../Rendering/Enums.h"
-#include "../Events/Delegate.h"
+#include "Rendering/Enums.h"
+#include "Events/Delegate.h"
 
 namespace adria
 {

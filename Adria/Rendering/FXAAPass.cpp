@@ -2,8 +2,8 @@
 #include "BlackboardData.h"
 #include "PSOCache.h" 
 
-#include "../Graphics/GfxRingDescriptorAllocator.h"
-#include "../RenderGraph/RenderGraph.h"
+#include "Graphics/GfxRingDescriptorAllocator.h"
+#include "RenderGraph/RenderGraph.h"
 
 namespace adria
 {

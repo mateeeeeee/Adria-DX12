@@ -3,10 +3,10 @@
 #include <queue>
 #include "GUICommand.h"
 #include "EditorEvents.h"
-#include "../Rendering/RendererSettings.h"
-#include "../Rendering/ViewportData.h"
-#include "../Utilities/Singleton.h"
-#include "../ImGui/ImGuizmo.h"
+#include "Rendering/RendererSettings.h"
+#include "Rendering/ViewportData.h"
+#include "Utilities/Singleton.h"
+#include "ImGui/ImGuizmo.h"
 #include "entt/entity/fwd.hpp"
 
 namespace adria

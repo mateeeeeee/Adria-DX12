@@ -3,7 +3,7 @@
 #include <functional>
 #include <type_traits>
 #include <tuple>
-#include "../Utilities/StringUtil.h"
+#include "Utilities/StringUtil.h"
 
 namespace adria
 {

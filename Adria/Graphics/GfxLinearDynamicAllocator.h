@@ -1,7 +1,7 @@
 #pragma once
 #include <mutex>
 #include "GfxDynamicAllocation.h"
-#include "../Utilities/LinearAllocator.h"
+#include "Utilities/LinearAllocator.h"
 
 namespace adria
 {

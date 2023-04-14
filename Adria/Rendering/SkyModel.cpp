@@ -1,6 +1,6 @@
 #include "SkyModel.h"
-#include "../Math/Constants.h"
-#include "../Utilities/HosekDataRGB.h"
+#include "Math/Constants.h"
+#include "Utilities/HosekDataRGB.h"
 #include <algorithm>
 #include <cmath>
 

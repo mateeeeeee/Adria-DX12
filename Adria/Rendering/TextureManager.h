@@ -4,10 +4,10 @@
 #include <d3d12.h>
 #include <variant>
 #include <memory>
-#include "../Graphics/GfxDescriptor.h"
-#include "../Utilities/HashMap.h"
-#include "../Utilities/Singleton.h"
-#include "../Utilities/AutoRefCountPtr.h"
+#include "Graphics/GfxDescriptor.h"
+#include "Utilities/HashMap.h"
+#include "Utilities/Singleton.h"
+#include "Utilities/AutoRefCountPtr.h"
 
 namespace adria
 {

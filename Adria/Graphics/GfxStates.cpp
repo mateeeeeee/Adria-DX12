@@ -1,6 +1,6 @@
 #include "GfxStates.h"
 #include "d3dx12.h"
-#include "../Utilities/EnumUtil.h"
+#include "Utilities/EnumUtil.h"
 
 namespace adria
 {

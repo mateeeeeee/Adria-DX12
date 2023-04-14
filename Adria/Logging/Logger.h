@@ -5,7 +5,7 @@
 #include <string>
 #include <fstream>
 #include <source_location>
-#include "../Utilities/ConcurrentQueue.h"
+#include "Utilities/ConcurrentQueue.h"
 
 namespace adria
 {

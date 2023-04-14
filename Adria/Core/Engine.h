@@ -2,8 +2,8 @@
 #include <memory>
 #include <optional>
 #include "entt/entity/registry.hpp"
-#include "../Rendering/RendererSettings.h"
-#include "../Rendering/ViewportData.h"
+#include "Rendering/RendererSettings.h"
+#include "Rendering/ViewportData.h"
 
 namespace adria
 {

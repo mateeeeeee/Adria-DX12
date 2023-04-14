@@ -1,5 +1,5 @@
 #pragma once
-#include "../Core/CoreTypes.h"
+#include "Core/CoreTypes.h"
 #include <DirectXMath.h>
 
 #ifndef DECLSPEC_ALIGN

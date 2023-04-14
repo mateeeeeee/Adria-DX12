@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "../Utilities/StringUtil.h"
+#include "Utilities/StringUtil.h"
 
 namespace adria
 {

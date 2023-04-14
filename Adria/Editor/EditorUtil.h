@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
-#include "../ImGui/imgui.h"
-#include "../Logging/Logger.h"
+#include "ImGui/imgui.h"
+#include "Logging/Logger.h"
 
 namespace adria
 {

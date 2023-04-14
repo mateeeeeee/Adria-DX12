@@ -1,11 +1,11 @@
 #pragma once
-#include "../Graphics/GfxBuffer.h"
-#include "../Graphics/GfxTexture.h"
-#include "../Graphics/GfxCommandList.h"
+#include "Graphics/GfxBuffer.h"
+#include "Graphics/GfxTexture.h"
+#include "Graphics/GfxCommandList.h"
 #include "RenderGraphResourceId.h"
 #include "RenderGraphBlackboard.h"
 #if RG_DEBUG
-#include "../Utilities/StringUtil.h"
+#include "Utilities/StringUtil.h"
 #endif
 
 namespace adria

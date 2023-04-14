@@ -3,12 +3,12 @@
 #include "BlackboardData.h"
 #include "PSOCache.h"
 
-#include "../RenderGraph/RenderGraph.h"
-#include "../Graphics/GfxCommon.h"
-#include "../Graphics/GfxLinearDynamicAllocator.h"
-#include "../Graphics/GfxRingDescriptorAllocator.h"
-#include "../Math/Packing.h"
-#include "../Editor/GUICommand.h"
+#include "RenderGraph/RenderGraph.h"
+#include "Graphics/GfxCommon.h"
+#include "Graphics/GfxLinearDynamicAllocator.h"
+#include "Graphics/GfxRingDescriptorAllocator.h"
+#include "Math/Packing.h"
+#include "Editor/GUICommand.h"
 
 namespace adria
 {

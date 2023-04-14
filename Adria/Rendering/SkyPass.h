@@ -1,8 +1,8 @@
 #pragma once
 #include <memory>
 #include "SkyModel.h"
-#include "../Core/CoreTypes.h"
-#include "../RenderGraph/RenderGraphResourceId.h"
+#include "Core/CoreTypes.h"
+#include "RenderGraph/RenderGraphResourceId.h"
 #include "entt/entity/fwd.hpp"
 
 

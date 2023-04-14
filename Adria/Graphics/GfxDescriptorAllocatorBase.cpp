@@ -1,6 +1,6 @@
 #include "GfxDescriptorAllocatorBase.h"
 #include "GfxDevice.h"
-#include "../Core/Defines.h"
+#include "Core/Defines.h"
 
 namespace adria
 {

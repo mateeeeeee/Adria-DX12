@@ -2,7 +2,7 @@
 #include <memory>
 #include <vector>
 #include <DirectXMath.h>
-#include "../Graphics/GfxBuffer.h"
+#include "Graphics/GfxBuffer.h"
 
 
 namespace adria

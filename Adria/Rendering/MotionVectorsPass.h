@@ -1,6 +1,6 @@
 #pragma once
-#include "../Core/CoreTypes.h"
-#include "../RenderGraph/RenderGraphResourceId.h"
+#include "Core/CoreTypes.h"
+#include "RenderGraph/RenderGraphResourceId.h"
 
 namespace adria
 {

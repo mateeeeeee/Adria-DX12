@@ -2,7 +2,7 @@
 #include <thread>
 #include <future>
 #include <type_traits>
-#include "../Utilities/ConcurrentQueue.h"
+#include "Utilities/ConcurrentQueue.h"
 
 
 namespace adria

@@ -1,6 +1,6 @@
 #pragma once
-#include "../Core/CoreTypes.h"
-#include "../Utilities/HashUtil.h"
+#include "Core/CoreTypes.h"
+#include "Utilities/HashUtil.h"
 
 #ifdef _DEBUG
 #define RG_DEBUG 1

@@ -9,7 +9,7 @@
 #include "GfxRingDescriptorAllocator.h"
 #include "GfxLinearDynamicAllocator.h"
 #include "GfxRayTracingUtil.h"
-#include "../Utilities/StringUtil.h"
+#include "Utilities/StringUtil.h"
 
 namespace adria
 {

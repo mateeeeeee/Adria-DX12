@@ -4,10 +4,10 @@
 #include <memory.h>
 #include "GfxLinearDynamicAllocator.h"
 #include "GfxRingDynamicAllocator.h"
-#include "../Core/Defines.h"
-#include "../Core/CoreTypes.h"
-#include "../Utilities/StringUtil.h"
-#include "../Utilities/AutoRefCountPtr.h"
+#include "Core/Defines.h"
+#include "Core/CoreTypes.h"
+#include "Utilities/StringUtil.h"
+#include "Utilities/AutoRefCountPtr.h"
 
 namespace adria
 {

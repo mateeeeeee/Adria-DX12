@@ -27,8 +27,8 @@
 #include "cereal/archives/binary.hpp"
 #include "cereal/types/string.hpp"
 #include "cereal/types/vector.hpp"
-#include "../ImGui/imgui.h"
-#include "../ImGui/ImGuizmo.h"
+#include "ImGui/imgui.h"
+#include "ImGui/ImGuizmo.h"
 
 //
 #include "Core/CoreTypes.h"

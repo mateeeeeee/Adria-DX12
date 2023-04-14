@@ -5,9 +5,9 @@
 #include "RenderGraphBlackboard.h"
 #include "RenderGraphBuilder.h"
 #include "RenderGraphResourcePool.h"
-#include "../Graphics/GfxDevice.h"
-#include "../Utilities/HashSet.h"
-#include "../Utilities/HashMap.h"
+#include "Graphics/GfxDevice.h"
+#include "Utilities/HashSet.h"
+#include "Utilities/HashMap.h"
 
 namespace adria
 {

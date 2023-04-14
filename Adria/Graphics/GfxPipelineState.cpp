@@ -2,8 +2,8 @@
 #include "GfxDevice.h"
 #include "GfxStates.h"
 #include "GfxShader.h"
-#include "../Rendering/ShaderCache.h"
-#include "../Core/Defines.h"
+#include "Rendering/ShaderCache.h"
+#include "Core/Defines.h"
 
 namespace adria
 {

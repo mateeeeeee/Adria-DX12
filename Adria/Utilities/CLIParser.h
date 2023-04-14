@@ -3,8 +3,8 @@
 #include <vector>
 #include <string>
 #include "StringUtil.h"
-#include "../Core/Defines.h"
-#include "../Core/CoreTypes.h"
+#include "Core/Defines.h"
+#include "Core/CoreTypes.h"
 
 namespace adria
 {

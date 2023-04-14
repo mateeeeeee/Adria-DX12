@@ -1,6 +1,6 @@
 #pragma once
-#include "../Logging/Logger.h"
-#include "../Core/Defines.h"
+#include "Logging/Logger.h"
+#include "Core/Defines.h"
 #include "nlohmann/json.hpp"
 
 

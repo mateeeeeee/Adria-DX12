@@ -3,8 +3,6 @@
 
 namespace adria
 {
-
-
 	template<typename Duration = std::chrono::microseconds, typename Clock = std::chrono::steady_clock>
 	class Timer
 	{

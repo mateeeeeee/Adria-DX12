@@ -3,9 +3,9 @@
 #include <DirectXCollision.h>
 #include "Enums.h"
 #include "GeometryBufferCache.h"
-#include "../Core/CoreTypes.h"
-#include "../Graphics/GfxVertexTypes.h"
-#include "../Graphics/GfxBuffer.h"
+#include "Core/CoreTypes.h"
+#include "Graphics/GfxVertexTypes.h"
+#include "Graphics/GfxBuffer.h"
 #include "TextureManager.h"
 #include "entt/entity/entity.hpp"
 

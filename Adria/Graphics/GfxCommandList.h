@@ -4,8 +4,8 @@
 #include "GfxDescriptor.h"
 #include "GfxResourceCommon.h"
 #include "GfxStates.h"
-#include "../Utilities/AutoRefCountPtr.h"
-#include "../Core/CoreTypes.h"
+#include "Utilities/AutoRefCountPtr.h"
+#include "Core/CoreTypes.h"
 
 
 namespace adria

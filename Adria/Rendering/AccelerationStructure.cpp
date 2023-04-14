@@ -1,11 +1,11 @@
 #include "AccelerationStructure.h"
 #include "Components.h"
-#include "../Graphics/GfxBuffer.h"
-#include "../Graphics/GfxDevice.h"
-#include "../Graphics/GfxCommandList.h"
-#include "../Graphics/GfxLinearDynamicAllocator.h"
-#include "../Utilities/Timer.h"
-#include "../Logging/Logger.h"
+#include "Graphics/GfxBuffer.h"
+#include "Graphics/GfxDevice.h"
+#include "Graphics/GfxCommandList.h"
+#include "Graphics/GfxLinearDynamicAllocator.h"
+#include "Utilities/Timer.h"
+#include "Logging/Logger.h"
 
 namespace adria
 {

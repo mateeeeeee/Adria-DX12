@@ -1,6 +1,6 @@
 #pragma once
 #include <d3d12.h>
-#include "../Core/CoreTypes.h"
+#include "Core/CoreTypes.h"
 
 namespace adria
 {

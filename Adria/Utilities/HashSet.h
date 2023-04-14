@@ -2,7 +2,7 @@
 #if _DEBUG
 #include <unordered_set>
 #else 
-#include "tsl/robin_set.h"
+#include <unordered_set>
 #endif
 
 namespace adria
@@ -12,6 +12,6 @@ namespace adria
 	using HashSet = std::unordered_set<K>;
 #else 
 	template<typename K>
-	using HashSet = tsl::robin_set<K>;
+	using HashSet = std::unordered_set<K>;
 #endif
 }

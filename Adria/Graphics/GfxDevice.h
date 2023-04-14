@@ -20,7 +20,7 @@
 #include "GfxDescriptorAllocatorBase.h"
 #include "GfxDefines.h"
 #include "GfxCommandSignature.h"
-#include "../Utilities/Releasable.h"
+#include "Utilities/Releasable.h"
 
 namespace adria
 {

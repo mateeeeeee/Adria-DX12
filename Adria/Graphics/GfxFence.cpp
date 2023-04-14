@@ -1,7 +1,7 @@
 #include "GfxFence.h"
 #include "GfxDevice.h"
 #include "GfxCommandQueue.h"
-#include "../Utilities/StringUtil.h"
+#include "Utilities/StringUtil.h"
 
 namespace adria
 {

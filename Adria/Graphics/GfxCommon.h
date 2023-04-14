@@ -1,6 +1,6 @@
 #pragma once
 #include "GfxDescriptor.h"
-#include "../Core/CoreTypes.h"
+#include "Core/CoreTypes.h"
 
 namespace adria
 {

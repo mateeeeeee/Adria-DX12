@@ -1,6 +1,6 @@
 #pragma once
 #include "GfxDescriptor.h"
-#include "../Utilities/AutoRefCountPtr.h"
+#include "Utilities/AutoRefCountPtr.h"
 
 namespace adria
 {

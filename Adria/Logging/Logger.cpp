@@ -3,8 +3,8 @@
 #include <ctime>   
 #include <iostream>
 
-#include "../Core/Windows.h"
-#include "../Core/Defines.h"
+#include "Core/Windows.h"
+#include "Core/Defines.h"
 
 namespace adria
 {

@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <type_traits>
-#include "../Utilities/HashMap.h"
+#include "Utilities/HashMap.h"
 
 namespace adria
 {

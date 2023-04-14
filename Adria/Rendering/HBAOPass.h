@@ -1,9 +1,9 @@
 #pragma once
 #include <memory>
 #include "BlurPass.h"
-#include "../Graphics/GfxDescriptor.h"
-#include "../Core/CoreTypes.h"
-#include "../RenderGraph/RenderGraphResourceId.h"
+#include "Graphics/GfxDescriptor.h"
+#include "Core/CoreTypes.h"
+#include "RenderGraph/RenderGraphResourceId.h"
 
 
 namespace adria

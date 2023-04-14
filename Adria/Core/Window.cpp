@@ -1,7 +1,7 @@
 #include "Window.h"
-#include "../Utilities/StringUtil.h"
-#include "../resource.h"
-#include "../Core/Defines.h"
+#include "Utilities/StringUtil.h"
+#include "resource.h"
+#include "Core/Defines.h"
 
 namespace adria
 {

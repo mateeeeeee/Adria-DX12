@@ -1,7 +1,7 @@
 #include "GfxCommandQueue.h"
 #include "GfxDevice.h"
 #include "GfxCommandList.h"
-#include "../Utilities/StringUtil.h"
+#include "Utilities/StringUtil.h"
 
 namespace adria
 {

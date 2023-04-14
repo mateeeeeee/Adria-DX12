@@ -3,7 +3,7 @@
 #include "GfxCommandQueue.h"
 #include "GfxCommandList.h"
 #include "GfxTexture.h"
-#include "../Core/Window.h"
+#include "Core/Window.h"
 
 namespace adria
 {

@@ -1,8 +1,8 @@
 #pragma once
 #include "Enums.h"
 #include "GenerateMipsPass.h"
-#include "../Core/CoreTypes.h"
-#include "../RenderGraph/RenderGraphResourceName.h"
+#include "Core/CoreTypes.h"
+#include "RenderGraph/RenderGraphResourceName.h"
 
 
 namespace adria

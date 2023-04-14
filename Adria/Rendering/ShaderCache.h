@@ -1,6 +1,6 @@
 #pragma once
 #include "Enums.h"
-#include "../Events/Delegate.h"
+#include "Events/Delegate.h"
 
 namespace adria
 {

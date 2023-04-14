@@ -1,6 +1,6 @@
 #pragma once
 #include "GfxDynamicAllocation.h"
-#include "../Utilities/RingAllocator.h"
+#include "Utilities/RingAllocator.h"
 #include <mutex>
 
 namespace adria

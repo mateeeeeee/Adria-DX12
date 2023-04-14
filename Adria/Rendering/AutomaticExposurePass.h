@@ -1,9 +1,9 @@
 #pragma once
 #include <memory>
-#include "../Core/CoreTypes.h"
-#include "../Graphics/GfxDescriptor.h"
-#include "../RenderGraph/RenderGraphResourceId.h"
-#include "../RenderGraph/RenderGraphResourceName.h"
+#include "Core/CoreTypes.h"
+#include "Graphics/GfxDescriptor.h"
+#include "RenderGraph/RenderGraphResourceId.h"
+#include "RenderGraph/RenderGraphResourceName.h"
 
 namespace adria
 {

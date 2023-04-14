@@ -1,13 +1,13 @@
 #include "MipsGenerator.h"
 #include "d3dx12.h"
 #include "PSOCache.h"
-#include "../Graphics/GfxDevice.h"
-#include "../Graphics/GfxTexture.h"
-#include "../Graphics/GfxShaderCompiler.h"
-#include "../Graphics/GfxCommandList.h"
-#include "../Graphics/GfxPipelineState.h"
-#include "../Graphics/GfxDescriptorAllocator.h"
-#include "../Utilities/DWParam.h"
+#include "Graphics/GfxDevice.h"
+#include "Graphics/GfxTexture.h"
+#include "Graphics/GfxShaderCompiler.h"
+#include "Graphics/GfxCommandList.h"
+#include "Graphics/GfxPipelineState.h"
+#include "Graphics/GfxDescriptorAllocator.h"
+#include "Utilities/DWParam.h"
 
 
 //https://slindev.com/d3d12-texture-mipmap-generation/

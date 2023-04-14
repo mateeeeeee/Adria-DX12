@@ -1,10 +1,10 @@
 #pragma once
 #include <array>
-#include "../Core/CoreTypes.h"
-#include "../Core/Windows.h"
-#include "../Events/Delegate.h"
-#include "../Utilities/HashMap.h"
-#include "../Utilities/Singleton.h"
+#include "Core/CoreTypes.h"
+#include "Core/Windows.h"
+#include "Events/Delegate.h"
+#include "Utilities/HashMap.h"
+#include "Utilities/Singleton.h"
 
 namespace adria
 {

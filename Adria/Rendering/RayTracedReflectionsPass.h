@@ -1,9 +1,9 @@
 #pragma once
 #include "Enums.h"
 #include "BlurPass.h"
-#include "../Graphics/GfxRayTracingUtil.h"
-#include "../Core/CoreTypes.h"
-#include "../RenderGraph/RenderGraphResourceName.h"
+#include "Graphics/GfxRayTracingUtil.h"
+#include "Core/CoreTypes.h"
+#include "RenderGraph/RenderGraphResourceName.h"
 
 namespace adria
 {

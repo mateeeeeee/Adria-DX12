@@ -2,12 +2,12 @@
 #include "BlackboardData.h"
 #include "PSOCache.h" 
 
-#include "../Graphics/GfxCommon.h"
+#include "Graphics/GfxCommon.h"
 #include "TextureManager.h"
-#include "../Graphics/GfxRingDescriptorAllocator.h"
-#include "../Math/Packing.h"
-#include "../Editor/GUICommand.h"
-#include "../RenderGraph/RenderGraph.h"
+#include "Graphics/GfxRingDescriptorAllocator.h"
+#include "Math/Packing.h"
+#include "Editor/GUICommand.h"
+#include "RenderGraph/RenderGraph.h"
 
 namespace adria
 {

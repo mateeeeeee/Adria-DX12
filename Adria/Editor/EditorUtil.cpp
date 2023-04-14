@@ -5,9 +5,9 @@
 #include <stdlib.h>         // NULL, malloc, free, atoi
 #include <stdint.h>         // intptr_t
 #include "EditorUtil.h"
-#include "../Core/ConsoleManager.h"
-#include "../Core/ConsoleVariable.h" //not necessary, add interfaces to different header
-#include "../Core/ConsoleCommand.h"	 //not necessary, add interfaces to different header
+#include "Core/ConsoleManager.h"
+#include "Core/ConsoleVariable.h" //not necessary, add interfaces to different header
+#include "Core/ConsoleCommand.h"	 //not necessary, add interfaces to different header
 
 namespace adria
 {

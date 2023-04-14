@@ -3,10 +3,10 @@
 #include <d3d12.h>
 #include "pix3.h"
 #include "RenderGraph.h"
-#include "../Graphics/GfxCommandList.h"
-#include "../Graphics/GfxRenderPass.h"
-#include "../Graphics/GPUProfiler.h"
-#include "../Utilities/StringUtil.h"
+#include "Graphics/GfxCommandList.h"
+#include "Graphics/GfxRenderPass.h"
+#include "Graphics/GPUProfiler.h"
+#include "Utilities/StringUtil.h"
 
 
 #if GPU_MULTITHREADED

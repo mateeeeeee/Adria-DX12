@@ -1,6 +1,6 @@
 #pragma once
-#include "../Graphics/GfxBuffer.h"
-#include "../Graphics/GfxTexture.h"
+#include "Graphics/GfxBuffer.h"
+#include "Graphics/GfxTexture.h"
 
 namespace adria
 {

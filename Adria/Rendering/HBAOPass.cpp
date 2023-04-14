@@ -3,10 +3,10 @@
 #include "BlackboardData.h"
 #include "PSOCache.h" 
 
-#include "../Graphics/GfxRingDescriptorAllocator.h"
-#include "../RenderGraph/RenderGraph.h"
-#include "../Utilities/Random.h"
-#include "../Editor/GUICommand.h"
+#include "Graphics/GfxRingDescriptorAllocator.h"
+#include "RenderGraph/RenderGraph.h"
+#include "Utilities/Random.h"
+#include "Editor/GUICommand.h"
 
 namespace adria
 {

@@ -1,5 +1,5 @@
 #pragma once
-#include "../Events/Delegate.h"
+#include "Events/Delegate.h"
 
 namespace adria
 {

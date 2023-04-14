@@ -1,6 +1,6 @@
 #include "Image.h"
 #include <stb_image.h>
-#include "../Logging/Logger.h"
+#include "Logging/Logger.h"
 
 namespace adria
 {

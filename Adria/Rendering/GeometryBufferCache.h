@@ -1,8 +1,8 @@
 #pragma once
 #include <memory>
-#include "../Core/CoreTypes.h"
-#include "../Utilities/HashMap.h"
-#include "../Utilities/Singleton.h"
+#include "Core/CoreTypes.h"
+#include "Utilities/HashMap.h"
+#include "Utilities/Singleton.h"
 
 namespace adria
 {

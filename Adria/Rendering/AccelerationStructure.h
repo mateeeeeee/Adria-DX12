@@ -3,7 +3,7 @@
 #include <memory>
 #include <d3d12.h>
 #include <DirectXMath.h>
-#include "../Graphics/GfxFence.h"
+#include "Graphics/GfxFence.h"
 
 namespace adria
 {

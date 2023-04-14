@@ -4,9 +4,9 @@
 #include <array>
 #include <string>
 #include "GfxDefines.h"
-#include "../Utilities/HashMap.h"
-#include "../Utilities/Singleton.h"
-#include "../Core/CoreTypes.h"
+#include "Utilities/HashMap.h"
+#include "Utilities/Singleton.h"
+#include "Core/CoreTypes.h"
 #if GPU_MULTITHREADED
 #include <mutex>
 #endif

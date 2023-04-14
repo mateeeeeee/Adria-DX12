@@ -1,7 +1,7 @@
 #include "ConsoleManager.h"
 #include "ConsoleVariable.h"
 #include "ConsoleCommand.h"
-#include "../Utilities/StringUtil.h"
+#include "Utilities/StringUtil.h"
 
 namespace adria
 {

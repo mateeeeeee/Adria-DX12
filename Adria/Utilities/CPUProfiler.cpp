@@ -1,6 +1,6 @@
 #include "CPUProfiler.h"
 #include "Timer.h"
-#include "../Logging/Logger.h"
+#include "Logging/Logger.h"
 
 namespace adria
 {

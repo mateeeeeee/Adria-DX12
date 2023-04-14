@@ -1,10 +1,10 @@
 #pragma once
 #include "GfxFormat.h"
 #include "D3D12MemAlloc.h"
-#include "../Utilities/EnumUtil.h"
-#include "../Utilities/StringUtil.h"
-#include "../Utilities/AutoRefCountPtr.h"
-#include "../Utilities/Releasable.h"
+#include "Utilities/EnumUtil.h"
+#include "Utilities/StringUtil.h"
+#include "Utilities/AutoRefCountPtr.h"
+#include "Utilities/Releasable.h"
 
 namespace adria
 {
