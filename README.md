@@ -49,23 +49,23 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 * Add DXR GI
 
 ## Dependencies
-[tinygltf](https://github.com/syoyo/tinygltf)
-
 [ImGui](https://github.com/ocornut/imgui)
-
-[ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo)
-
-[nativefiledialog](https://github.com/mlabbe/nativefiledialog)
-
-[stb](https://github.com/nothings/stb)
 
 [DirectXShaderCompiler](https://github.com/microsoft/DirectXShaderCompiler)
 
 [D3D12MemoryAllocator](https://github.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator)
 
-[FastNoiseLite](https://github.com/Auburn/FastNoiseLite)
+[nativefiledialog](https://github.com/mlabbe/nativefiledialog)
+
+[stb](https://github.com/nothings/stb)
+
+[cereal](https://github.com/USCiLab/cereal)
+
+[tinygltf](https://github.com/syoyo/tinygltf)
 
 [json](https://github.com/nlohmann/json)
+
+[ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo)
 
 ## Screenshots
 

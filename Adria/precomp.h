@@ -24,6 +24,9 @@
 #include "D3D12MemAlloc.h"
 #include "nfd.h"
 #include "entt/entt.hpp"
+#include "cereal/archives/binary.hpp"
+#include "cereal/types/string.hpp"
+#include "cereal/types/vector.hpp"
 #include "../ImGui/imgui.h"
 #include "../ImGui/ImGuizmo.h"
 

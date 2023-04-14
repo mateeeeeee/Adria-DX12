@@ -27,6 +27,11 @@ namespace adria
 		fs::path p(file_path);
 		return fs::exists(p);
 	}
+	inline fs::file_time_type GetFileLastWriteTime(std::string const& file_path)
+	{
+		fs::path p(file_path);
+		return fs::last_write_time(p);
+	}
 	inline std::string GetExtension(std::string const& path)
 	{
 		fs::path p(path);

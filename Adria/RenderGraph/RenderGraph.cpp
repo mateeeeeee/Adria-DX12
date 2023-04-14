@@ -6,7 +6,6 @@
 #include "../Graphics/GfxCommandList.h"
 #include "../Graphics/GfxRenderPass.h"
 #include "../Graphics/GPUProfiler.h"
-#include "../Tasks/TaskSystem.h"
 #include "../Utilities/StringUtil.h"
 
 

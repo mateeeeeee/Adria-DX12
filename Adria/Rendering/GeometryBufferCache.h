@@ -28,7 +28,6 @@ namespace adria
 		std::shared_ptr<uint64> handle = nullptr;
 	};
 
-	#define g_GeometryBufferCache Singleton<class GeometryBufferCache>::Get()
 	class GeometryBufferCache : public Singleton<GeometryBufferCache>
 	{
 		friend class Singleton<GeometryBufferCache>;
@@ -47,4 +46,6 @@ namespace adria
 		uint64 current_handle = INVALID_GEOMETRY_BUFFER_HANDLE_VALUE;
 		HashMap<uint64, std::unique_ptr<GfxBuffer>> buffer_map;
 	};
+	#define g_GeometryBufferCache GeometryBufferCache::Get()
+
 }

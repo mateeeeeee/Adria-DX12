@@ -12,7 +12,7 @@ namespace fs = std::filesystem;
 
 namespace adria
 {
-	char const* shaders_directory = "Resources/NewShaders/";
+	char const* shaders_directory = "Resources/Shaders/";
 	namespace
 	{
 		std::unique_ptr<FileWatcher> file_watcher;
@@ -385,16 +385,16 @@ namespace adria
 			switch (shader)
 			{
 			case PS_Decals_ModifyNormals:
-				return { {L"DECAL_MODIFY_NORMALS", L""} };
+				return { {"DECAL_MODIFY_NORMALS", ""} };
 			case VS_Shadow_Transparent:
 			case PS_Shadow_Transparent:
-				return { {L"ALPHA_TEST", L"1"} };
+				return { {"ALPHA_TEST", "1"} };
 			case LIB_SoftShadows:
-				return { { L"SOFT_SHADOWS", L"" } };
+				return { { "SOFT_SHADOWS", "" } };
 			case PS_GBuffer_Mask:
-				return { { L"MASK", L"1" } };
+				return { { "MASK", "1" } };
 			case CS_BloomDownsampleFirstPass:
-				return { {L"FIRST_PASS", L"1"} };
+				return { {"FIRST_PASS", "1"} };
 			default:
 				return {};
 			}
@@ -419,7 +419,7 @@ namespace adria
 			GfxShaderCompiler::CompileShader(shader_desc, output);
 			shader_map[shader] = std::move(output.shader);
 			dependent_files_map[shader].clear();
-			dependent_files_map[shader].insert(output.dependent_files.begin(), output.dependent_files.end());
+			dependent_files_map[shader].insert(output.includes.begin(), output.includes.end());
 			
 			shader_desc.stage == GfxShaderStage::LIB ?
 				library_recompiled_event.Broadcast(shader) : shader_recompiled_event.Broadcast(shader);

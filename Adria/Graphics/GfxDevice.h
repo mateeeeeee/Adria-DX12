@@ -61,14 +61,6 @@ namespace adria
 
 	class GfxDevice
 	{
-		struct ReleasableItem
-		{
-			std::unique_ptr<ReleasableObject> obj;
-			uint64 fence_value;
-
-			ReleasableItem(ReleasableObject* obj, size_t fence_value) : obj(obj), fence_value(fence_value) {}
-		};
-
 	public:
 		explicit GfxDevice(GfxOptions const&);
 		GfxDevice(GfxDevice const&) = delete;
@@ -171,6 +163,13 @@ namespace adria
 
 		GfxFence     release_fence;
 		uint64       release_queue_fence_value = 1;
+		struct ReleasableItem
+		{
+			std::unique_ptr<ReleasableObject> obj;
+			uint64 fence_value;
+
+			ReleasableItem(ReleasableObject* obj, size_t fence_value) : obj(obj), fence_value(fence_value) {}
+		};
 		std::queue<ReleasableItem>  release_queue;
 
 		ArcPtr<ID3D12RootSignature> global_root_signature = nullptr;

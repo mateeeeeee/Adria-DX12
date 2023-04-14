@@ -1,47 +1,47 @@
 #pragma once
 #include "Task.h"
-
 #include "ThreadPool.h"
 #include "../Utilities/ObjectPool.h"
-
-#include <iostream>
+#include "../Utilities/Singleton.h"
 
 namespace adria
 {
 
-	class TaskManager
+	class TaskManager : public Singleton<TaskManager>
 	{
-		using TaskPool = ObjectPool<Task>;
-
+		friend class Singleton<TaskManager>;
 	public:
 
-		explicit TaskManager(size_t task_count) : task_pool{ task_count }, thread_pool{} {}
-
-		TaskManager(size_t task_count, size_t thread_count) : task_pool{ task_count }, thread_pool{ thread_count } {}
+		void Initialize(uint32_t thread_count = 0)
+		{
+			thread_pool = std::make_unique<ThreadPool>(thread_count);
+		}
+		void Destroy()
+		{
+			thread_pool.reset();
+		}
 
 		template<typename F, typename... Args>
 		std::shared_ptr<Task> CreateTask(F&& f, Args&&... args)
 		{
 			auto taskfunc = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
-
-			std::shared_ptr<Task> task(task_pool.Construct<Task>(taskfunc), [this](Task* task) {task_pool.Destroy<Task>(task); });
-
+			std::shared_ptr<Task> task = std::make_shared<Task>(taskfunc);
 			return task;
 		}
-
-		void DestroyTask(std::shared_ptr<Task> task)
+		void DestroyTask(std::shared_ptr<Task>& task)
 		{
-			task_pool.Destroy<Task>(task.get());
+			task.reset();
 		}
-
-		auto SubmitTask(std::shared_ptr<Task> task)
+		auto SubmitTask(std::shared_ptr<Task>& task)
 		{
-			return thread_pool.Submit(&Task::Run, task);
+			return thread_pool->Submit(&Task::Run, task);
 		}
 
 	private:
-		ThreadPool thread_pool;
-		TaskPool task_pool;
-	};
+		std::unique_ptr<ThreadPool> thread_pool;
 
+	private:
+		TaskManager() = default;
+	};
+	#define g_TaskManager TaskManager::Get()
 }

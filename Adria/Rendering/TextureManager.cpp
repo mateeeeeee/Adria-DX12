@@ -102,7 +102,7 @@ namespace adria
 		BREAK_IF_FAILED(gfx->GetDevice()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(equirect_root_signature.GetAddressOf())));
 
 		GfxShaderBlob equirect_cs_shader;
-		GfxShaderCompiler::ReadBlobFromFile(L"Resources/Compiled Shaders/Equirect2cubeCS.cso", equirect_cs_shader);
+		GfxShaderCompiler::ReadBlobFromFile(L"Resources/Misc/Equirect2cubeCS.cso", equirect_cs_shader);
 
 		D3D12_COMPUTE_PIPELINE_STATE_DESC pso_desc{};
 		pso_desc.pRootSignature = equirect_root_signature.Get();

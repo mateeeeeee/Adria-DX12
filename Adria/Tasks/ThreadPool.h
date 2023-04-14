@@ -1,21 +1,15 @@
 #pragma once
-#include "../Utilities/ConcurrentQueue.h"
-#include <atomic>
+#include <thread>
 #include <future>
 #include <type_traits>
-#include <functional>
-#include <iostream>
-#include <algorithm>
-
+#include "../Utilities/ConcurrentQueue.h"
 
 
 namespace adria
 {
 	class ThreadPool
 	{
-
 	public:
-
 		explicit ThreadPool(uint32_t pool_size = std::thread::hardware_concurrency() - 1) : done(false), task_queue{}
 		{
 			static const uint32_t max_threads = std::thread::hardware_concurrency();
@@ -30,10 +24,8 @@ namespace adria
 
 		ThreadPool(ThreadPool const&) = delete;
 		ThreadPool(ThreadPool&&) = delete;
-
 		ThreadPool& operator=(ThreadPool const&) = delete;
 		ThreadPool& operator=(ThreadPool&&) = delete;
-
 		~ThreadPool()
 		{
 			if(!done) Destroy();
@@ -46,12 +38,10 @@ namespace adria
 				done = true;
 				cond_var.notify_all();
 			}
-			for (int i = 0; i < threads.size(); ++i)
-				if (threads[i].joinable())  threads[i].join();
+			for (int i = 0; i < threads.size(); ++i) if (threads[i].joinable())  threads[i].join();
 		}
-
 		template<typename F, typename... Args>
-		auto Submit(F&& f, Args&&... args) //-> std::future<typename std::result_of<F(Args...)>::type>
+		auto Submit(F&& f, Args&&... args) 
 		{
 			using ReturnType = std::invoke_result_t<std::decay_t<F>, std::decay_t<Args>...>;
 			auto bind_f = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
@@ -92,7 +82,6 @@ namespace adria
 				}
 			}
 		}
-
 	};
 
 }

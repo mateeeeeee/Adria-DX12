@@ -566,9 +566,6 @@
     <ClInclude Include="Tasks\TaskManager.h">
       <Filter>Tasks</Filter>
     </ClInclude>
-    <ClInclude Include="Tasks\TaskSystem.h">
-      <Filter>Tasks</Filter>
-    </ClInclude>
     <ClInclude Include="Tasks\ThreadPool.h">
       <Filter>Tasks</Filter>
     </ClInclude>

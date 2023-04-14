@@ -1,7 +1,7 @@
 #include "Engine.h"
 #include "Window.h"
 #include "../Editor/EditorEvents.h"
-#include "../Tasks/TaskSystem.h"
+#include "../Tasks/TaskManager.h"
 #include "../Math/Constants.h"
 #include "../Logging/Logger.h"
 #include "../Input/Input.h"
@@ -30,7 +30,6 @@ namespace adria
 		SkyboxParameters skybox_params;
 		CameraParameters camera_params;
 	};
-
 	namespace
 	{
 		std::optional<SceneConfig> ParseSceneConfig(std::string const& scene_file)
@@ -208,7 +207,7 @@ namespace adria
 
 	Engine::Engine(EngineInit const& init) : vsync{ init.vsync }
 	{
-		//TaskSystem::Initialize();
+		g_TaskManager.Initialize();
 		GfxShaderCompiler::Initialize();
 		ShaderCache::Initialize();
 		gfx = std::make_unique<GfxDevice>(GfxOptions{.debug_layer = init.debug_layer,
@@ -239,7 +238,7 @@ namespace adria
 		PSOCache::Destroy();
 		ShaderCache::Destroy();
 		GfxShaderCompiler::Destroy();
-		//TaskSystem::Destroy();
+		g_TaskManager.Destroy();
 	}
 
 	void Engine::HandleWindowMessage(WindowMessage const& msg_data)

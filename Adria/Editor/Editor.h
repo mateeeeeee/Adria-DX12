@@ -26,7 +26,6 @@ namespace adria
 		EngineInit& engine_init;
 	};
 
-	#define g_Editor Singleton<class Editor>::Get()
 	class Editor : public Singleton<Editor>
 	{
 		friend class Singleton<Editor>;
@@ -102,5 +101,7 @@ namespace adria
 		void ShaderHotReload();
 		void Debug();
 	};
+	#define g_Editor Editor::Get()
+
 }
 

@@ -9,8 +9,8 @@ namespace adria
 {
 	struct GfxShaderMacro
 	{
-		std::wstring name;
-		std::wstring value;
+		std::string name;
+		std::string value;
 	};
 	enum class GfxShaderStage
 	{

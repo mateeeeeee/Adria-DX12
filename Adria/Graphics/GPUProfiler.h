@@ -24,7 +24,6 @@ namespace adria
 	class GfxQueryHeap;
 	class GfxCommandList;
 
-	#define g_GpuProfiler Singleton<class GPUProfiler>::Get()
 	class GPUProfiler : public Singleton<GPUProfiler>
 	{
 		friend class Singleton<GPUProfiler>;
@@ -68,6 +67,7 @@ namespace adria
 		GPUProfiler();
 		~GPUProfiler();
 	};
+	#define g_GpuProfiler GPUProfiler::Get()
 
 	struct GPUProfileScope
 	{
@@ -94,4 +94,5 @@ namespace adria
 	#define GPU_PROFILE_SCOPE(cmd_list, name)
 	#define CONDITIONAL_GPU_PROFILE_SCOPE(cmd_list, name, cond)
 #endif
+	
 }

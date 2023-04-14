@@ -18,7 +18,6 @@ namespace adria
 	using TextureHandle = size_t;
 	inline constexpr TextureHandle INVALID_TEXTURE_HANDLE = TextureHandle(0);
 
-	#define g_TextureManager Singleton<class TextureManager>::Get()
 	class TextureManager : public Singleton<TextureManager>
 	{
 		friend class Singleton<TextureManager>;
@@ -62,4 +61,6 @@ namespace adria
 
 		void CreateViewForTexture(TextureHandle handle, bool flag = false);
 	};
+	#define g_TextureManager TextureManager::Get()
+
 }

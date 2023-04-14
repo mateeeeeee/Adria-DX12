@@ -2,8 +2,12 @@
 #include "GfxShaderCompiler.h"
 #include <d3dcompiler.h> 
 #include "dxc/dxcapi.h" 
+#include "cereal/archives/binary.hpp"
+#include "cereal/types/string.hpp"
+#include "cereal/types/vector.hpp"
 #include "../Utilities/StringUtil.h"
 #include "../Utilities/FilesUtil.h"
+#include "../Utilities/HashUtil.h"
 #include "../Utilities/AutoRefCountPtr.h"
 #include "../Logging/Logger.h"
 
@@ -105,7 +109,9 @@ namespace adria
 		SIZE_T bytecodeSize = 0;
 	};
 
+	static char const* shaders_cache_directory = "Resources/ShaderCache/";
 	extern char const* shaders_directory;
+
 	inline constexpr std::wstring GetTarget(GfxShaderStage stage, GfxShaderModel model)
 	{
 		std::wstring target = L"";
@@ -172,6 +178,35 @@ namespace adria
 
 	namespace GfxShaderCompiler
 	{
+		static bool CheckCache(char const* cache_path, GfxShaderCompileInput const& input, GfxShaderCompileOutput& output)
+		{
+			if (!FileExists(cache_path)) return false;
+			if (GetFileLastWriteTime(cache_path) < GetFileLastWriteTime(input.file)) return false;
+
+			std::ifstream is(cache_path, std::ios::binary);
+			cereal::BinaryInputArchive archive(is);
+
+			archive(output.shader_hash);
+			archive(output.includes);
+			size_t binary_size = 0;
+			archive(binary_size);
+			std::unique_ptr<char[]> binary_data(new char[binary_size]);
+			archive.loadBinary(binary_data.get(), binary_size);
+			output.shader.SetBytecode(binary_data.get(), binary_size);
+			output.shader.SetDesc(input);
+			return true;
+		}
+		static bool SaveToCache(char const* cache_path, GfxShaderCompileOutput const& output)
+		{
+			std::ofstream os(cache_path, std::ios::binary);
+			cereal::BinaryOutputArchive archive(os);
+			archive(output.shader_hash);
+			archive(output.includes); 
+			archive(output.shader.GetLength());
+			archive.saveBinary(output.shader.GetPointer(), output.shader.GetLength());
+			return true;
+		}
+
 		void Initialize()
 		{
 			BREAK_IF_FAILED(DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(library.GetAddressOf())));
@@ -186,26 +221,41 @@ namespace adria
 			library.Reset();
 			utils.Reset();
 		}
-		bool CompileShader(GfxShaderDesc const& desc, GfxShaderCompileOutput& output)
+		bool CompileShader(GfxShaderCompileInput const& input, GfxShaderCompileOutput& output)
 		{
+			std::string macro_key;
+			for (GfxShaderMacro const& macro : input.macros)
+			{
+				macro_key += macro.name;
+				macro_key += macro.value;
+			}
+			uint64 macro_hash = crc64(macro_key.c_str(), macro_key.size());
+			
+			char cache_path[256];
+			sprintf_s(cache_path, "%s%s_%s_%llx.bin", shaders_cache_directory, GetFilenameWithoutExtension(input.file).c_str(), 
+												    input.entry_point.c_str(), macro_hash);
+
+			if (CheckCache(cache_path, input, output)) return true;
+			ADRIA_LOG(INFO, "Shader '%s.%s' not found in cache. Compiling...", input.file.c_str(), input.entry_point.c_str());
+
 			uint32_t code_page = CP_UTF8; 
 			ArcPtr<IDxcBlobEncoding> source_blob;
 
-			std::wstring shader_source = ToWideString(desc.file);
+			std::wstring shader_source = ToWideString(input.file);
 			HRESULT hr = library->CreateBlobFromFile(shader_source.data(), &code_page, source_blob.GetAddressOf());
 			BREAK_IF_FAILED(hr);
 
-			std::wstring name = ToWideString(GetFilenameWithoutExtension(desc.file));
+			std::wstring name = ToWideString(GetFilenameWithoutExtension(input.file));
 			std::wstring dir  = ToWideString(shaders_directory);
-			std::wstring path = ToWideString(GetParentPath(desc.file));
+			std::wstring path = ToWideString(GetParentPath(input.file));
 			
-			std::wstring target = GetTarget(desc.stage, desc.model);
-			std::wstring entry_point = ToWideString(desc.entry_point);
+			std::wstring target = GetTarget(input.stage, input.model);
+			std::wstring entry_point = ToWideString(input.entry_point);
 			if (entry_point.empty()) entry_point = L"main";
 
 			std::vector<wchar_t const*> compile_args{};
 			compile_args.push_back(name.c_str());
-			if (desc.flags & ShaderCompilerFlag_Debug)
+			if (input.flags & ShaderCompilerFlag_Debug)
 			{
 				compile_args.push_back(DXC_ARG_DEBUG);
 				compile_args.push_back(L"-Qembed_debug");
@@ -216,7 +266,7 @@ namespace adria
 				compile_args.push_back(L"-Qstrip_reflect");
 			}
 
-			if (desc.flags & ShaderCompilerFlag_DisableOptimization)
+			if (input.flags & ShaderCompilerFlag_DisableOptimization)
 			{
 				compile_args.push_back(DXC_ARG_SKIP_OPTIMIZATIONS);
 			}
@@ -237,20 +287,25 @@ namespace adria
 			compile_args.push_back(path.c_str());
 
 			std::vector<std::wstring> macros;
-			macros.reserve(desc.macros.size());
-			for (auto const& define : desc.macros)
+			macros.reserve(input.macros.size());
+			for (auto const& macro : input.macros)
 			{
+				std::wstring macro_name = ToWideString(macro.name);
+				std::wstring macro_value = ToWideString(macro.value);
 				compile_args.push_back(L"-D");
-				if (define.value.empty()) macros.push_back(define.name + L"=1");
-				else macros.push_back(define.name + L"=" + define.value);
+				if (macro.value.empty()) 
+					macros.push_back(macro_name + L"=1");
+				else 
+					macros.push_back(macro_name + L"=" + macro_value);
 				compile_args.push_back(macros.back().c_str());
 			}
 
-			CustomIncludeHandler custom_include_handler{};
 			DxcBuffer source_buffer;
 			source_buffer.Ptr = source_blob->GetBufferPointer();
 			source_buffer.Size = source_blob->GetBufferSize();
 			source_buffer.Encoding = 0;
+			CustomIncludeHandler custom_include_handler{};
+			
 			ArcPtr<IDxcResult> result;
 			hr = compiler->Compile(
 				&source_buffer,
@@ -263,16 +318,24 @@ namespace adria
 			{
 				if (errors && errors->GetStringLength() > 0)
 				{
-					ADRIA_LOG(DEBUG, "%s", errors->GetStringPointer());
+					ADRIA_LOG(ERROR, "%s", errors->GetStringPointer());
 					return false;
 				}
 			}
-			ArcPtr<IDxcBlob> _blob;
-			BREAK_IF_FAILED(result->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(_blob.GetAddressOf()), nullptr));
-			output.shader.SetDesc(desc);
-			output.shader.SetBytecode(_blob->GetBufferPointer(), _blob->GetBufferSize());
-			output.dependent_files = std::move(custom_include_handler.include_files);
-			output.dependent_files.push_back(desc.file);
+			ArcPtr<IDxcBlob> blob;
+			BREAK_IF_FAILED(result->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(blob.GetAddressOf()), nullptr));
+			ArcPtr<IDxcBlob> hash;
+			if (SUCCEEDED(result->GetOutput(DXC_OUT_SHADER_HASH, IID_PPV_ARGS(hash.GetAddressOf()), nullptr)))
+			{
+				DxcShaderHash* hash_buf = (DxcShaderHash*)hash->GetBufferPointer();
+				memcpy(output.shader_hash, hash_buf->HashDigest, sizeof(uint64) * 2);
+			}
+			
+			output.shader.SetDesc(input);
+			output.shader.SetBytecode(blob->GetBufferPointer(), blob->GetBufferSize());
+			output.includes = std::move(custom_include_handler.include_files);
+			output.includes.push_back(input.file);
+			SaveToCache(cache_path, output);
 			return true;
 		}
 		void ReadBlobFromFile(std::wstring_view filename, GfxShaderBlob& blob)
