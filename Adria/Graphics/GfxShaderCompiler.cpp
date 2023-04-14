@@ -230,10 +230,10 @@ namespace adria
 				macro_key += macro.value;
 			}
 			uint64 macro_hash = crc64(macro_key.c_str(), macro_key.size());
-			
+			std::string build_string = input.flags & ShaderCompilerFlag_Debug ? "debug" : "release";
 			char cache_path[256];
-			sprintf_s(cache_path, "%s%s_%s_%llx.bin", shaders_cache_directory, GetFilenameWithoutExtension(input.file).c_str(), 
-												    input.entry_point.c_str(), macro_hash);
+			sprintf_s(cache_path, "%s%s_%s_%llx_%s.bin", shaders_cache_directory, GetFilenameWithoutExtension(input.file).c_str(), 
+												    input.entry_point.c_str(), macro_hash, build_string.c_str());
 
 			if (CheckCache(cache_path, input, output)) return true;
 			ADRIA_LOG(INFO, "Shader '%s.%s' not found in cache. Compiling...", input.file.c_str(), input.entry_point.c_str());
