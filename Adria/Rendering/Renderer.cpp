@@ -707,8 +707,8 @@ namespace adria
 			NewMesh mesh = reg.get<NewMesh>(mesh_entity);
 
 			GfxBuffer* mesh_buffer = g_GeometryBufferCache.GetGeometryBuffer(mesh.geometry_buffer_handle);
-			GfxDescriptor mesh_buffer_online_srv = gfx->CreateBufferSRV(mesh_buffer);
-			GfxDescriptor mesh_buffer_srv = gfx->GetDescriptorAllocator()->Allocate();
+			GfxDescriptor mesh_buffer_srv = gfx->CreateBufferSRV(mesh_buffer);
+			GfxDescriptor mesh_buffer_online_srv = gfx->GetDescriptorAllocator()->Allocate();
 			gfx->CopyDescriptors(1, mesh_buffer_online_srv, mesh_buffer_srv);
 
 			for (auto const& instance : mesh.instances)

@@ -969,6 +969,9 @@ namespace adria
 			}
 		}
 
+		HashMap<int32, std::vector<int32>> mesh_primitives_map; //mesh index -> vector of primitive indices
+		int32 primitive_count = 0;
+
 		struct MeshData
 		{
 			DirectX::BoundingBox bounding_box;
@@ -989,6 +992,7 @@ namespace adria
 		std::vector<MeshData> mesh_datas{};
 		for (int32 i = 0; i < model.meshes.size(); ++i)
 		{
+			std::vector<int32>& primitives = mesh_primitives_map[i];
 			auto const& gltf_mesh = model.meshes[i];
 			for (auto const& gltf_primitive : gltf_mesh.primitives)
 			{
@@ -1076,6 +1080,7 @@ namespace adria
 					ReadAttributeData(mesh_data.tangents_stream, "TANGENT");
 					ReadAttributeData(mesh_data.uvs_stream, "TEXCOORD_0");
 				}
+				primitives.push_back(primitive_count++);
 			}
 		}
 
@@ -1290,11 +1295,14 @@ namespace adria
 
 			if (node.mesh >= 0)
 			{
-				XMMATRIX model = XMLoadFloat4x4(&transforms.world) * parent_transform;
-				SubMeshInstance& instance = new_mesh.instances.emplace_back();
-				instance.submesh_index = node.mesh;
-				instance.transform = model;
-				instance.parent = mesh;
+				XMMATRIX model_matrix = XMLoadFloat4x4(&transforms.world) * parent_transform;
+				for (auto primitive : mesh_primitives_map[node.mesh])
+				{
+					SubMeshInstance& instance = new_mesh.instances.emplace_back();
+					instance.submesh_index = primitive;
+					instance.transform = model_matrix;
+					instance.parent = mesh;
+				}
 			}
 
 			for (int child : node.children) LoadNode(child, XMLoadFloat4x4(&transforms.world) * parent_transform);
