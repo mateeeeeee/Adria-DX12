@@ -167,7 +167,7 @@ namespace adria
 
 	struct COMPONENT SubMesh
 	{
-		GeometryBufferHandle geometry_buffer_handle = INVALID_GEOMETRY_BUFFER_HANDLE_VALUE;
+		GeometryBufferHandle geometry_buffer_handle = INVALID_GEOMETRY_BUFFER_HANDLE;
 
 		uint32 positions_offset;
 		uint32 uvs_offset;

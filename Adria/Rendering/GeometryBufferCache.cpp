@@ -32,6 +32,7 @@ namespace adria
 
 	void GeometryBufferCache::DestroyGeometryBuffer(GeometryBufferHandle handle) 
 	{
+		if (!handle.IsValid()) return;
 		if (auto it = buffer_map.find(handle); it != buffer_map.end())
 		{
 			it->second = nullptr;
