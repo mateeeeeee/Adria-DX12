@@ -1,5 +1,5 @@
 #include "SkyPass.h"
-#include "ConstantBuffers.h"
+#include "ShaderStructs.h"
 #include "Components.h"
 #include "Enums.h"
 #include "BlackboardData.h"

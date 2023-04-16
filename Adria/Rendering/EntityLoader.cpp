@@ -12,7 +12,7 @@
 
 #include "EntityLoader.h"
 #include "Components.h"
-#include "MeshletStructs.h"
+#include "Meshlet.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxLinearDynamicAllocator.h"
 #include "Logging/Logger.h"
@@ -885,7 +885,7 @@ namespace adria
 		return entities;
 	}
 
-	std::vector<entt::entity> EntityLoader::ImportModel_GLTF_Optimized(ModelParameters const& params)
+	entt::entity EntityLoader::ImportModel_GLTF_Optimized(ModelParameters const& params)
 	{
 		tinygltf::TinyGLTF loader;
 		tinygltf::Model model;
@@ -907,15 +907,14 @@ namespace adria
 			ADRIA_LOG(ERROR, "Failed to load model %s", model_name.c_str());
 			return {};
 		}
-		std::vector<entt::entity> entities{};
-		HashMap<int32, std::vector<entt::entity>> mesh_to_entities;
+		entt::entity mesh = reg.create();
+		NewMesh new_mesh{};
 
 		//process the materials
-		std::vector<Material> materials;
-		materials.reserve(model.materials.size());
+		new_mesh.materials.reserve(model.materials.size());
 		for (auto const& gltf_material : model.materials)
 		{
-			Material& material = materials.emplace_back();
+			Material& material = new_mesh.materials.emplace_back();
 			material.pso = GfxPipelineStateID::GBuffer;
 			material.alpha_cutoff = (float)gltf_material.alphaCutoff;
 			material.double_sided = gltf_material.doubleSided;
@@ -972,8 +971,8 @@ namespace adria
 
 		struct MeshData
 		{
-			int32 mesh_index;
-			int32 material_index;
+			DirectX::BoundingBox bounding_box;
+			int32 material_index = -1;
 			D3D12_PRIMITIVE_TOPOLOGY topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 			std::vector<XMFLOAT3> positions_stream;
@@ -988,7 +987,6 @@ namespace adria
 			std::vector<MeshletTriangle> meshlet_triangles;
 		};
 		std::vector<MeshData> mesh_datas{};
-
 		for (int32 i = 0; i < model.meshes.size(); ++i)
 		{
 			auto const& gltf_mesh = model.meshes[i];
@@ -1000,7 +998,6 @@ namespace adria
 				tinygltf::Buffer const& buffer = model.buffers[buffer_view.buffer];
 
 				MeshData& mesh_data = mesh_datas.emplace_back();
-				mesh_data.mesh_index = i;
 				mesh_data.material_index = gltf_primitive.material;
 
 				mesh_data.indices.reserve(index_accessor.count);
@@ -1018,13 +1015,13 @@ namespace adria
 				switch (stride)
 				{
 				case 1:
-					AddIndices.template operator()<uint8>();
+					AddIndices.template operator() < uint8 > ();
 					break;
 				case 2:
-					AddIndices.template operator()<uint16>();
+					AddIndices.template operator() < uint16 > ();
 					break;
 				case 4:
-					AddIndices.template operator()<uint32>();
+					AddIndices.template operator() < uint32 > ();
 					break;
 				default:
 					ADRIA_ASSERT(false);
@@ -1171,20 +1168,7 @@ namespace adria
 			total_buffer_size += Align(mesh_data.meshlet_vertices.size() * sizeof(uint32), 16);
 			total_buffer_size += Align(mesh_data.meshlet_triangles.size() * sizeof(MeshletTriangle), 16);
 
-			entt::entity e = reg.create();
-			entities.push_back(e);
-			mesh_to_entities[mesh_data.mesh_index].push_back(e);
-
-			Material material = mesh_data.material_index < 0 ? Material{} : materials[mesh_data.material_index];
-			reg.emplace<Material>(e, material);
-			reg.emplace<Deferred>(e);
-
-			BoundingBox bounding_box = AABBFromPositions(mesh_data.positions_stream);
-			AABB aabb{};
-			aabb.bounding_box = bounding_box;
-			aabb.light_visible = true;
-			aabb.camera_visible = true;
-			reg.emplace<AABB>(e, aabb);
+			mesh_data.bounding_box = AABBFromPositions(mesh_data.positions_stream);
 		}
 
 		GfxBufferDesc desc{};
@@ -1204,10 +1188,9 @@ namespace adria
 			current_offset += (uint32)Align(current_copy_size, 16);
 		};
 
-		ADRIA_ASSERT(entities.size() == mesh_datas.size());
+		new_mesh.submeshes.reserve(mesh_datas.size());
 		for (size_t i = 0; i < mesh_datas.size(); ++i)
 		{
-			entt::entity e = entities[i];
 			auto const& mesh_data = mesh_datas[i];
 
 			SubMesh submesh{};
@@ -1240,9 +1223,9 @@ namespace adria
 
 			submesh.meshlet_count = (uint32)mesh_data.meshlets.size();
 
-			reg.emplace<SubMesh>(e, submesh);
+			new_mesh.submeshes.push_back(submesh);
 		}
-		GeometryBufferHandle geometry_buffer_handle = g_GeometryBufferCache.CreateAndInitializeGeometryBuffer(staging_buffer.buffer, total_buffer_size, staging_buffer.offset);
+		new_mesh.geometry_buffer_handle = g_GeometryBufferCache.CreateAndInitializeGeometryBuffer(staging_buffer.buffer, total_buffer_size, staging_buffer.offset);
 
 		std::function<void(int, XMMATRIX)> LoadNode;
 		LoadNode = [&](int node_index, XMMATRIX parent_transform)
@@ -1307,50 +1290,26 @@ namespace adria
 
 			if (node.mesh >= 0)
 			{
-				std::vector<entt::entity> const& mesh_entities = mesh_to_entities[node.mesh];
-				for (entt::entity e : mesh_entities)
-				{
-					XMMATRIX model = XMLoadFloat4x4(&transforms.world) * parent_transform;
-
-					AABB& aabb = reg.get<AABB>(e);
-					aabb.bounding_box.Transform(aabb.bounding_box, model);
-					reg.emplace<Transform>(e, model);
-				}
+				XMMATRIX model = XMLoadFloat4x4(&transforms.world) * parent_transform;
+				SubMeshInstance& instance = new_mesh.instances.emplace_back();
+				instance.submesh_index = node.mesh;
+				instance.transform = model;
+				instance.parent = mesh;
 			}
 
 			for (int child : node.children) LoadNode(child, XMLoadFloat4x4(&transforms.world) * parent_transform);
 		};
+
 		tinygltf::Scene const& scene = model.scenes[std::max(0, model.defaultScene)];
 		for (size_t i = 0; i < scene.nodes.size(); ++i)
 		{
 			LoadNode(scene.nodes[i], params.model_matrix);
 		}
 
-		entt::entity root = reg.create();
-		reg.emplace<Transform>(root);
-		reg.emplace<Tag>(root, model_name);
-		Relationship relationship{};
-		relationship.children_count = entities.size();
-		relationship.first = entities.front();
-		reg.emplace<Relationship>(root, relationship);
-		for (size_t i = 0; i < entities.size(); ++i)
-		{
-			entt::entity e = entities[i];
+		reg.emplace<NewMesh>(mesh, new_mesh);
+		reg.emplace<Tag>(mesh, model_name + " mesh");
 
-			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(entt::to_integral(e)));
-
-			Relationship relationship{};
-			relationship.parent = root;
-			relationship.children_count = 0;
-			if (i != entities.size() - 1) relationship.next = entities[i + 1];
-			if (i != 0) relationship.prev = entities[i - 1];
-			reg.emplace<Relationship>(e, relationship);
-
-			SubMesh& submesh  = reg.get<SubMesh>(e);
-			submesh.geometry_buffer_handle = geometry_buffer_handle;
-		}
 		ADRIA_LOG(INFO, "GLTF Mesh %s successfully loaded!", params.model_path.c_str());
-		return entities;
+		return mesh;
 	}
-
 }

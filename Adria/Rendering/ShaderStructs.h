@@ -65,4 +65,44 @@ namespace adria
 		int32 shadow_mask_index;
 		int32 padd;
 	};
+
+	struct MeshHLSL
+	{
+		uint32 buffer_idx;
+		uint32 positions_offset;
+		uint32 uvs_offset;
+		uint32 normals_offset;
+		uint32 tangents_offset;
+		uint32 bitangents_offset;
+		uint32 indices_offset;
+		uint32 meshlet_offset;
+		uint32 meshlet_vertices_offset;
+		uint32 meshlet_triangles_offset;
+		uint32 meshlet_count;
+	};
+
+	struct MaterialHLSL
+	{
+		uint32 diffuse_idx;
+		uint32 normal_idx;
+		uint32 roughness_metallic_idx;
+		uint32 emissive_idx;
+		DirectX::XMFLOAT3 base_color_factor;
+		float emissive_factor;
+		float metalness_factor;
+		float roughness_factor;
+		float alpha_cutoff;
+	};
+
+	struct InstanceHLSL
+	{
+		DirectX::XMMATRIX world_matrix;
+		DirectX::XMFLOAT3 bb_origin;
+		DirectX::XMFLOAT3 bb_extents;
+		uint32 instance_id;
+		uint32 material_idx;
+		uint32 mesh_index;
+	};
+
+
 }

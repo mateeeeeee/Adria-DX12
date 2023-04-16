@@ -1,7 +1,7 @@
 #pragma once
 #include "RendererSettings.h"
 #include "ViewportData.h"
-#include "ConstantBuffers.h"
+#include "ShaderStructs.h"
 #include "Postprocessor.h"
 #include "GBufferPass.h"
 #include "AmbientPass.h"

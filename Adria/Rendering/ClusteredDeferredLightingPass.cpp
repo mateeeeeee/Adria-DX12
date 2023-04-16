@@ -1,5 +1,5 @@
 #include "ClusteredDeferredLightingPass.h"
-#include "ConstantBuffers.h"
+#include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
 #include "PSOCache.h" 

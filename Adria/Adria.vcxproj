@@ -389,7 +389,7 @@
     <ClInclude Include="Rendering\Camera.h" />
     <ClInclude Include="Rendering\ClusteredDeferredLightingPass.h" />
     <ClInclude Include="Rendering\Components.h" />
-    <ClInclude Include="Rendering\ConstantBuffers.h" />
+    <ClInclude Include="Rendering\ShaderStructs.h" />
     <ClInclude Include="Rendering\CopyToTexturePass.h" />
     <ClInclude Include="Rendering\DecalsPass.h" />
     <ClInclude Include="Rendering\DepthOfFieldPass.h" />
@@ -404,7 +404,7 @@
     <ClInclude Include="Rendering\BlackboardData.h" />
     <ClInclude Include="Rendering\HBAOPass.h" />
     <ClInclude Include="Rendering\DeferredLightingPass.h" />
-    <ClInclude Include="Rendering\MeshletStructs.h" />
+    <ClInclude Include="Rendering\Meshlet.h" />
     <ClInclude Include="Rendering\GeometryBufferCache.h" />
     <ClInclude Include="Rendering\MipsGenerator.h" />
     <ClInclude Include="Rendering\MotionBlurPass.h" />

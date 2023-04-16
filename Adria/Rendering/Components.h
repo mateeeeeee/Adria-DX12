@@ -165,10 +165,8 @@ namespace adria
 		std::string name = "name tag";
 	};
 
-	struct COMPONENT SubMesh
+	struct SubMesh
 	{
-		GeometryBufferHandle geometry_buffer_handle = INVALID_GEOMETRY_BUFFER_HANDLE;
-
 		uint32 positions_offset;
 		uint32 uvs_offset;
 		uint32 normals_offset;
@@ -179,6 +177,22 @@ namespace adria
 		uint32 meshlet_vertices_offset;
 		uint32 meshlet_triangles_offset;
 		uint32 meshlet_count;
+
+		uint32 material_index;
+		DirectX::BoundingBox bounding_box;
+	};
+	struct SubMeshInstance
+	{
+		entt::entity parent;
+		uint32 submesh_index;
+		DirectX::XMMATRIX transform;
+	};
+	struct COMPONENT NewMesh
+	{
+		GeometryBufferHandle geometry_buffer_handle = INVALID_GEOMETRY_BUFFER_HANDLE;
+		std::vector<Material> materials;
+		std::vector<SubMesh> submeshes;
+		std::vector<SubMeshInstance> instances;
 	};
 
 

@@ -12,7 +12,7 @@ namespace fs = std::filesystem;
 
 namespace adria
 {
-	char const* shaders_directory = "Resources/Shaders/";
+	char const* shaders_directory = "Resources/NewShaders/";
 	namespace
 	{
 		std::unique_ptr<FileWatcher> file_watcher;
