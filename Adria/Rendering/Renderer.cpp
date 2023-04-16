@@ -825,6 +825,11 @@ namespace adria
 		frame_cbuf_data.frame_count = gfx->FrameIndex();
 		frame_cbuf_data.mouse_normalized_coords_x = (viewport_data.mouse_position_x - viewport_data.scene_viewport_pos_x) / viewport_data.scene_viewport_size_x;
 		frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
+		
+
+		frame_cbuf_data.meshes_idx = (int32)scene_buffers[SceneBuffer_Mesh].buffer_srv_gpu.GetIndex();
+		frame_cbuf_data.materials_idx = (int32)scene_buffers[SceneBuffer_Material].buffer_srv_gpu.GetIndex();
+		frame_cbuf_data.instances_idx = (int32)scene_buffers[SceneBuffer_Instance].buffer_srv_gpu.GetIndex();
 		frame_cbuf_data.lights_idx = (int32)scene_buffers[SceneBuffer_Light].buffer_srv_gpu.GetIndex();
 		frame_cbuf_data.lights_matrices_idx = (int32)light_matrices_srv_gpu.GetIndex();
 		frame_cbuf_data.env_map_idx = (int32)envmap_srv_gpu.GetIndex();

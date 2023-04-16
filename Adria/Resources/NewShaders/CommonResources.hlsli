@@ -28,10 +28,12 @@ struct FrameCBuffer
 	float  totalTime;
 	uint   frameCount;
 	int    lightsIdx;
-
 	int    lightsMatricesIdx;
     int	   accelStructIdx;
     int	   envMapIdx;
+	int    meshesIdx;
+	int    materialsIdx;
+	int    instancesIdx;
 };
 ConstantBuffer<FrameCBuffer> FrameCB  : register(b0);
 

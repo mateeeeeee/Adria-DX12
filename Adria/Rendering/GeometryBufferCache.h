@@ -13,19 +13,30 @@ namespace adria
 
 	class GeometryBufferHandle
 	{
+		struct RefCountedData
+		{
+			uint64 handle;
+			
+			bool IsValid() const { return handle != INVALID_GEOMETRY_BUFFER_HANDLE; }
+			RefCountedData(uint64 h) : handle(h) {}
+			~RefCountedData();
+		};
 	public:
-		constexpr GeometryBufferHandle() = default;
-		constexpr GeometryBufferHandle(uint64 h) : handle(h) {}
+		GeometryBufferHandle() = default;
+		GeometryBufferHandle(uint64 h)
+		{
+			data = std::make_shared<RefCountedData>(h);
+		}
 		GeometryBufferHandle(GeometryBufferHandle const&) = default;
 		GeometryBufferHandle& operator=(GeometryBufferHandle const&) = default;
-		~GeometryBufferHandle();
+		~GeometryBufferHandle() = default;
 
-		operator uint64() const { return handle; }
-		GeometryBufferHandle operator ++() const { return handle + 1; }
+		operator uint64() const { return data->handle; }
+		GeometryBufferHandle operator ++() const { return data->handle + 1; }
 
-		bool IsValid() const { return handle != uint64(-1); }
+		bool IsValid() const { return data->IsValid(); }
 	private:
-		uint64 handle = INVALID_GEOMETRY_BUFFER_HANDLE;
+		std::shared_ptr<RefCountedData> data;
 	};
 
 	class GeometryBufferCache : public Singleton<GeometryBufferCache>

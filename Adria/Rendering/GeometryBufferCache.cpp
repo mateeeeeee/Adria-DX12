@@ -49,9 +49,9 @@ namespace adria
 		else return nullptr;
 	}
 
-	GeometryBufferHandle::~GeometryBufferHandle()
+	GeometryBufferHandle::RefCountedData::~RefCountedData()
 	{
-		g_GeometryBufferCache.DestroyGeometryBuffer(*this);
+		if (IsValid()) g_GeometryBufferCache.DestroyGeometryBuffer(handle);
 	}
 
 }

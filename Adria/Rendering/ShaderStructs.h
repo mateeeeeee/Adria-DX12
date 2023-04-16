@@ -39,10 +39,12 @@ namespace adria
 		float  total_time;
 		uint32 frame_count;
 		int32  lights_idx;
-
 		int32  lights_matrices_idx;
 		int32  accel_struct_idx;
 		int32  env_map_idx;
+		int32  meshes_idx;
+		int32  materials_idx;
+		int32  instances_idx;
 	};
 
 	struct LightHLSL
