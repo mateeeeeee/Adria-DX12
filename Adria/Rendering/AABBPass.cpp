@@ -53,8 +53,9 @@ namespace adria
 						};
 						cmd_list->SetRootCBV(2, constants);
 						cmd_list->SetTopology(GfxPrimitiveTopology::LineList);
-						BindVertexBuffer(cmd_list->GetNative(), aabb.aabb_vb.get());
-						BindIndexBuffer(cmd_list->GetNative(), aabb_ib.get());
+						//#todo later add debug renderer which contains DrawAABB
+						//BindVertexBuffer(cmd_list->GetNative(), aabb.aabb_vb.get());
+						//BindIndexBuffer(cmd_list->GetNative(), aabb_ib.get());
 						cmd_list->DrawIndexed(aabb_ib->GetCount());
 						aabb.draw_aabb = false;
 						break;

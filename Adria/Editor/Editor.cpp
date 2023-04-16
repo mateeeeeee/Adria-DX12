@@ -41,8 +41,6 @@ namespace adria
 		static ConsoleVariable bloom("bloom", false);
 		static ConsoleVariable motion_blur("motionblur", false);
 		static ConsoleVariable fog("fog", false);
-
-		ConsoleCommand<char const*> test("test", [](char const*) {});
 	}
 
 	struct ProfilerState
@@ -82,7 +80,6 @@ namespace adria
 	}
 	void Editor::Destroy()
 	{
-		while (!aabb_updates.empty()) aabb_updates.pop();
 		gui.reset();
 		engine.reset();
 		console.reset();
@@ -96,20 +93,7 @@ namespace adria
 	void Editor::Run()
 	{
 		HandleInput();
-		if (gui->IsVisible())
-		{
-			engine->SetViewportData(viewport_data);
-			if (!aabb_updates.empty())
-			{
-				gfx->WaitForGPU();
-				while (!aabb_updates.empty())
-				{
-					AABB* aabb = aabb_updates.front();
-					aabb->UpdateBuffer(engine->gfx.get());
-					aabb_updates.pop();
-				}
-			}
-		}
+		if (gui->IsVisible()) engine->SetViewportData(viewport_data);
 		else engine->SetViewportData(std::nullopt);
 
 		engine->Run(renderer_settings);
@@ -760,25 +744,6 @@ namespace adria
 					change &= ImGui::InputFloat3("Scale", scale);
 					ImGuizmo::RecomposeMatrixFromComponents(translation, rotation, scale, tr.m[0]);
 
-					if (AABB* aabb = engine->reg.try_get<AABB>(selected_entity))
-					{
-						aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, transform->current_transform));
-						aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));
-						if(change) aabb_updates.push(aabb);
-					}
-
-					if (Relationship* relationship = engine->reg.try_get<Relationship>(selected_entity))
-					{
-						for (entt::entity curr = relationship->first; curr != entt::null; curr = engine->reg.get<Relationship>(curr).next)
-						{
-							if (AABB* aabb = engine->reg.try_get<AABB>(curr))
-							{
-								aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, transform->current_transform));
-								aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));
-								if (change) aabb_updates.push(aabb);
-							}
-						}
-					}
 					transform->current_transform = DirectX::XMLoadFloat4x4(&tr);
 				}
 
@@ -944,31 +909,9 @@ namespace adria
 			DirectX::XMFLOAT4X4 tr;
 			DirectX::XMStoreFloat4x4(&tr, entity_transform.current_transform);
 
-			bool change = ImGuizmo::Manipulate(view.m[0], projection.m[0], gizmo_op, ImGuizmo::LOCAL,
-				tr.m[0]);
-
 			if (ImGuizmo::IsUsing())
 			{
-				AABB* aabb = engine->reg.try_get<AABB>(selected_entity);
-				if (aabb)
-				{
-					aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, entity_transform.current_transform));
-					aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));
-					if(change) aabb_updates.push(aabb);
-				}
-
-				if (Relationship* relationship = engine->reg.try_get<Relationship>(selected_entity))
-				{
-					for (entt::entity curr = relationship->first; curr != entt::null; curr = engine->reg.get<Relationship>(curr).next)
-					{
-						if (AABB* aabb = engine->reg.try_get<AABB>(curr))
-						{
-							aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, entity_transform.current_transform));
-							aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));
-							if (change) aabb_updates.push(aabb);
-						}
-					}
-				}
+				bool change = ImGuizmo::Manipulate(view.m[0], projection.m[0], gizmo_op, ImGuizmo::LOCAL, tr.m[0]);
 				entity_transform.current_transform = DirectX::XMLoadFloat4x4(&tr);
 			}
 		}

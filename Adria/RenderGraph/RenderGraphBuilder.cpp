@@ -7,12 +7,12 @@ namespace adria
 		: rg(rg), rg_pass(rg_pass)
 	{}
 
-	bool RenderGraphBuilder::IsTextureDeclared(RGResourceName name)
+	bool RenderGraphBuilder::IsTextureDeclared(RGResourceName name) const
 	{
 		return rg.IsTextureDeclared(name);
 	}
 
-	bool RenderGraphBuilder::IsBufferDeclared(RGResourceName name)
+	bool RenderGraphBuilder::IsBufferDeclared(RGResourceName name) const
 	{
 		return rg.IsBufferDeclared(name);
 	}

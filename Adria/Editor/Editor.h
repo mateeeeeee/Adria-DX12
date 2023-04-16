@@ -74,7 +74,6 @@ namespace adria
 		RendererSettings renderer_settings{};
 
 		bool reload_shaders = false;
-		std::queue<AABB*> aabb_updates;
 		std::array<bool, Flag_Count> window_flags = { false };
 		std::vector<GUICommand> commands;
 		std::vector<GUICommand_Debug> debug_commands;

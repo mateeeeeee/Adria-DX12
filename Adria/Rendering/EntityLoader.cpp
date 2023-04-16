@@ -119,7 +119,6 @@ namespace adria
 			aabb.bounding_box = bounding_box;
 			aabb.light_visible = true;
 			aabb.camera_visible = true;
-			aabb.UpdateBuffer(gfx);
 			reg.emplace<AABB>(grid, aabb);
 			chunks.push_back(grid);
 		}
@@ -175,7 +174,6 @@ namespace adria
 					aabb.bounding_box = bounding_box;
 					aabb.light_visible = true;
 					aabb.camera_visible = true;
-					aabb.UpdateBuffer(gfx);
 					reg.emplace<AABB>(chunk, aabb);
 					chunks.push_back(chunk);
 				}
@@ -827,7 +825,6 @@ namespace adria
 					aabb.bounding_box = bounding_box;
 					aabb.light_visible = true;
 					aabb.camera_visible = true;
-					aabb.UpdateBuffer(gfx);
 					reg.emplace<AABB>(e, aabb);
 					reg.emplace<Transform>(e, model);
 				}
@@ -1317,8 +1314,6 @@ namespace adria
 
 					AABB& aabb = reg.get<AABB>(e);
 					aabb.bounding_box.Transform(aabb.bounding_box, model);
-					aabb.UpdateBuffer(gfx);
-
 					reg.emplace<Transform>(e, model);
 				}
 			}

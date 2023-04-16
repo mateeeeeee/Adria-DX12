@@ -97,34 +97,6 @@ namespace adria
 		bool camera_visible = true;
 		bool light_visible = true;
 		bool draw_aabb = false;
-		std::shared_ptr<GfxBuffer> aabb_vb = nullptr;
-
-		void UpdateBuffer(GfxDevice* gfx)
-		{
-			DirectX::XMFLOAT3 corners[8];
-			bounding_box.GetCorners(corners);
-			SimpleVertex vertices[] =
-			{
-				SimpleVertex{corners[0]},
-				SimpleVertex{corners[1]},
-				SimpleVertex{corners[2]},
-				SimpleVertex{corners[3]},
-				SimpleVertex{corners[4]},
-				SimpleVertex{corners[5]},
-				SimpleVertex{corners[6]},
-				SimpleVertex{corners[7]}
-			};
-			if (!aabb_vb)
-			{
-				GfxBufferDesc desc = VertexBufferDesc(ARRAYSIZE(vertices), sizeof(SimpleVertex));
-				desc.resource_usage = GfxResourceUsage::Upload;
-				aabb_vb = std::make_unique<GfxBuffer>(gfx, desc, vertices);
-			}
-			else
-			{
-				aabb_vb->Update(vertices, sizeof(vertices));
-			}
-		}
 	};
 	struct COMPONENT Relationship
 	{
