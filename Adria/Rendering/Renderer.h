@@ -89,17 +89,16 @@ namespace adria
 		GfxConstantBuffer<FrameCBuffer> frame_cbuffer;
 
 		//scene buffers
-		enum SceneBufferType { SceneBuffer_Mesh, SceneBuffer_Material, SceneBuffer_Instance, SceneBuffer_Count };
+		enum SceneBufferType { SceneBuffer_Light, SceneBuffer_Mesh, SceneBuffer_Material, SceneBuffer_Instance, SceneBuffer_Count };
 		struct SceneBuffer
 		{
-			std::unique_ptr<GfxBuffer>  scene_buffer;
-			GfxDescriptor				scene_buffer_srv;
+			std::unique_ptr<GfxBuffer>  buffer;
+			GfxDescriptor				buffer_srv;
+			GfxDescriptor				buffer_srv_gpu;
 		};
 		std::array<SceneBuffer, SceneBuffer_Count> scene_buffers;
 
-		//lights and shadows
-		std::unique_ptr<GfxBuffer>  lights_buffer;
-		GfxDescriptor				lights_buffer_srvs[GFX_BACKBUFFER_COUNT];
+		//shadows
 		std::unique_ptr<GfxBuffer>  light_matrices_buffer;
 		GfxDescriptor				light_matrices_buffer_srvs[GFX_BACKBUFFER_COUNT];
 		HashMap<size_t, std::vector<std::unique_ptr<GfxTexture>>> light_shadow_maps;
@@ -109,9 +108,8 @@ namespace adria
 		HashMap<size_t, GfxDescriptor> light_mask_texture_srvs;
 		HashMap<size_t, GfxDescriptor> light_mask_texture_uavs;
 
-		GfxDescriptor		 light_array_srv;
-		GfxDescriptor		 light_matrices_srv;
-		GfxDescriptor        env_map_srv;
+		GfxDescriptor		 light_matrices_srv_gpu;
+		GfxDescriptor        envmap_srv_gpu;
 
 		//passes
 		GBufferPass  gbuffer_pass;
@@ -167,7 +165,6 @@ namespace adria
 		void UpdateEnvironmentMap();
 		void MiscGUI();
 		void SetupShadows();
-		void UpdateLights();
 		void UpdateSceneBuffers();
 		void UpdateFrameConstantBuffer(float dt);
 		void CameraFrustumCulling();

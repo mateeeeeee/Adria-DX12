@@ -293,7 +293,7 @@ namespace adria
 	void Renderer::Update(float dt)
 	{
 		SetupShadows();
-		UpdateLights();
+		UpdateSceneBuffers();
 		UpdateEnvironmentMap();
 		UpdateFrameConstantBuffer(dt);
 		CameraFrustumCulling();
@@ -661,42 +661,24 @@ namespace adria
 			light_matrices_buffer->Update(light_matrices.data(), light_matrices_count * sizeof(XMMATRIX), light_matrices_count * sizeof(XMMATRIX) * backbuffer_index);
 			GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
 			device->CopyDescriptorsSimple(1, dst_descriptor, light_matrices_buffer_srvs[backbuffer_index], D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			light_matrices_srv = dst_descriptor;
+			light_matrices_srv_gpu = dst_descriptor;
 		}
 	}
-	void Renderer::UpdateLights()
+
+	void Renderer::UpdateSceneBuffers()
 	{
 		volumetric_lights = 0;
 
-		auto light_view = reg.view<Light>();
-		static size_t light_count = 0;
-		if (light_count != light_view.size())
-		{
-			gfx->WaitForGPU();
-
-			light_count = light_view.size();
-			lights_buffer = std::make_unique<GfxBuffer>(gfx, StructuredBufferDesc<LightHLSL>(light_count * backbuffer_count, false, true));
-
-			GfxBufferSubresourceDesc srv_desc{};
-			srv_desc.size = light_count * sizeof(LightHLSL);
-			for (uint32 i = 0; i < backbuffer_count; ++i)
-			{
-				srv_desc.offset = i * light_count * sizeof(LightHLSL);
-				lights_buffer_srvs[i] = gfx->CreateBufferSRV(lights_buffer.get(), &srv_desc);
-			}
-		}
 		std::vector<LightHLSL> hlsl_lights{};
-		hlsl_lights.reserve(light_view.size());
 		uint32 light_index = 0;
-		XMMATRIX light_transform = renderer_settings.render_path == RenderPathType::PathTracing ?
-								   XMMatrixIdentity() : camera->View();
-		for (auto e : light_view)
+		XMMATRIX light_transform = renderer_settings.render_path == RenderPathType::PathTracing ? XMMatrixIdentity() : camera->View();
+		for (auto light_entity : reg.view<Light>())
 		{
-			auto& light = light_view.get<Light>(e);
+			Light& light = reg.get<Light>(light_entity);
 			light.light_index = light_index;
 			++light_index;
 
-			LightHLSL hlsl_light{};
+			LightHLSL& hlsl_light = hlsl_lights.emplace_back();
 			hlsl_light.color = light.color * light.energy;
 			hlsl_light.position = XMVector4Transform(light.position, light_transform);
 			hlsl_light.direction = XMVector4Transform(light.direction, light_transform);
@@ -707,28 +689,14 @@ namespace adria
 			hlsl_light.volumetric = light.volumetric;
 			hlsl_light.volumetric_strength = light.volumetric_strength;
 			hlsl_light.active = light.active;
-			hlsl_light.shadow_matrix_index = light.casts_shadows ? light.shadow_matrix_index : - 1;
+			hlsl_light.shadow_matrix_index = light.casts_shadows ? light.shadow_matrix_index : -1;
 			hlsl_light.shadow_texture_index = light.casts_shadows ? light.shadow_texture_index : -1;
 			hlsl_light.shadow_mask_index = light.ray_traced_shadows ? light.shadow_mask_index : -1;
 			hlsl_light.use_cascades = light.use_cascades;
-			hlsl_lights.push_back(hlsl_light);
-
 			if (light.volumetric) ++volumetric_lights;
 		}
-		if (lights_buffer)
-		{
-			lights_buffer->Update(hlsl_lights.data(), hlsl_lights.size() * sizeof(LightHLSL), light_count * sizeof(LightHLSL) * backbuffer_index);
 
-			ID3D12Device* device = gfx->GetDevice();
-			auto descriptor_allocator = gfx->GetDescriptorAllocator();
-			GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
-			device->CopyDescriptorsSimple(1, dst_descriptor, lights_buffer_srvs[backbuffer_index], D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			light_array_srv = dst_descriptor;
-		}
-	}
 
-	void Renderer::UpdateSceneBuffers()
-	{
 		std::vector<MeshHLSL> meshes; 
 		std::vector<InstanceHLSL> instances; 
 		std::vector<MaterialHLSL> materials;
@@ -749,8 +717,8 @@ namespace adria
 
 				InstanceHLSL& instance_hlsl = instances.emplace_back();
 				instance_hlsl.instance_id = instanceID;
-				instance_hlsl.material_idx = materials.size() + submesh.material_index;
-				instance_hlsl.mesh_index = meshes.size() + instance.submesh_index;
+				instance_hlsl.material_idx = static_cast<uint32>(materials.size() + submesh.material_index);
+				instance_hlsl.mesh_index = static_cast<uint32>(meshes.size() + instance.submesh_index);
 				instance_hlsl.world_matrix = instance.transform;
 				instance_hlsl.bb_origin = submesh.bounding_box.Center;
 				instance_hlsl.bb_extents = submesh.bounding_box.Extents;
@@ -789,19 +757,22 @@ namespace adria
 			}
 		}
 
-		auto CopyBuffer = [&]<typename T>(std::vector<T> const& data, std::unique_ptr<GfxBuffer>& buffer, GfxDescriptor& buffer_srv)
+		auto CopyBuffer = [&]<typename T>(std::vector<T> const& data, SceneBuffer& scene_buffer)
 		{
-			if (!buffer || buffer->GetCount() < data.size())
+			if (data.empty()) return;
+			if (!scene_buffer.buffer || scene_buffer.buffer->GetCount() < data.size())
 			{
-				buffer = std::make_unique<GfxBuffer>(gfx, StructuredBufferDesc<T>(data.size(), false, true));
-				buffer_srv = gfx->CreateBufferSRV(buffer.get());
+				scene_buffer.buffer = std::make_unique<GfxBuffer>(gfx, StructuredBufferDesc<T>(data.size(), false, true));
+				scene_buffer.buffer_srv = gfx->CreateBufferSRV(scene_buffer.buffer.get());
 			}
-			buffer->Update(data.data(), data.size() * sizeof(T));
+			scene_buffer.buffer->Update(data.data(), data.size() * sizeof(T));
+			scene_buffer.buffer_srv_gpu = gfx->GetDescriptorAllocator()->Allocate();
+			gfx->CopyDescriptors(1, scene_buffer.buffer_srv_gpu, scene_buffer.buffer_srv);
 		};
-
-		CopyBuffer(meshes, scene_buffers[SceneBuffer_Mesh].scene_buffer, scene_buffers[SceneBuffer_Mesh].scene_buffer_srv);
-		CopyBuffer(instances, scene_buffers[SceneBuffer_Instance].scene_buffer, scene_buffers[SceneBuffer_Instance].scene_buffer_srv);
-		CopyBuffer(materials, scene_buffers[SceneBuffer_Material].scene_buffer, scene_buffers[SceneBuffer_Material].scene_buffer_srv);
+		CopyBuffer(hlsl_lights, scene_buffers[SceneBuffer_Light]);
+		CopyBuffer(meshes, scene_buffers[SceneBuffer_Mesh]);
+		CopyBuffer(instances, scene_buffers[SceneBuffer_Instance]);
+		CopyBuffer(materials, scene_buffers[SceneBuffer_Material]);
 	}
 
 	void Renderer::UpdateFrameConstantBuffer(float dt)
@@ -854,9 +825,9 @@ namespace adria
 		frame_cbuf_data.frame_count = gfx->FrameIndex();
 		frame_cbuf_data.mouse_normalized_coords_x = (viewport_data.mouse_position_x - viewport_data.scene_viewport_pos_x) / viewport_data.scene_viewport_size_x;
 		frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
-		frame_cbuf_data.lights_idx = (int32)light_array_srv.GetIndex();
-		frame_cbuf_data.lights_matrices_idx = (int32)light_matrices_srv.GetIndex();
-		frame_cbuf_data.env_map_idx = (int32)env_map_srv.GetIndex();
+		frame_cbuf_data.lights_idx = (int32)scene_buffers[SceneBuffer_Light].buffer_srv_gpu.GetIndex();
+		frame_cbuf_data.lights_matrices_idx = (int32)light_matrices_srv_gpu.GetIndex();
+		frame_cbuf_data.env_map_idx = (int32)envmap_srv_gpu.GetIndex();
 		frame_cbuf_data.cascade_splits = XMVectorSet(split_distances[0], split_distances[1], split_distances[2], split_distances[3]);
 		auto lights = reg.view<Light>();
 		for (auto light : lights)
