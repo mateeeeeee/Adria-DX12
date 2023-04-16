@@ -726,6 +726,84 @@ namespace adria
 			light_array_srv = dst_descriptor;
 		}
 	}
+
+	void Renderer::UpdateSceneBuffers()
+	{
+		std::vector<MeshHLSL> meshes; 
+		std::vector<InstanceHLSL> instances; 
+		std::vector<MaterialHLSL> materials;
+		uint32 instanceID = 0;
+
+		for (auto mesh_entity : reg.view<NewMesh>())
+		{
+			NewMesh mesh = reg.get<NewMesh>(mesh_entity);
+
+			GfxBuffer* mesh_buffer = g_GeometryBufferCache.GetGeometryBuffer(mesh.geometry_buffer_handle);
+			GfxDescriptor mesh_buffer_online_srv = gfx->CreateBufferSRV(mesh_buffer);
+			GfxDescriptor mesh_buffer_srv = gfx->GetDescriptorAllocator()->Allocate();
+			gfx->CopyDescriptors(1, mesh_buffer_online_srv, mesh_buffer_srv);
+
+			for (auto const& instance : mesh.instances)
+			{
+				SubMesh submesh = mesh.submeshes[instance.submesh_index];
+
+				InstanceHLSL& instance_hlsl = instances.emplace_back();
+				instance_hlsl.instance_id = instanceID;
+				instance_hlsl.material_idx = materials.size() + submesh.material_index;
+				instance_hlsl.mesh_index = meshes.size() + instance.submesh_index;
+				instance_hlsl.world_matrix = instance.transform;
+				instance_hlsl.bb_origin = submesh.bounding_box.Center;
+				instance_hlsl.bb_extents = submesh.bounding_box.Extents;
+
+				++instanceID;
+			}
+			for (auto const& submesh : mesh.submeshes)
+			{
+				MeshHLSL& mesh_hlsl = meshes.emplace_back();
+				mesh_hlsl.buffer_idx = mesh_buffer_online_srv.GetIndex();
+				mesh_hlsl.indices_offset = submesh.indices_offset;
+				mesh_hlsl.positions_offset = submesh.positions_offset;
+				mesh_hlsl.normals_offset = submesh.normals_offset;
+				mesh_hlsl.tangents_offset = submesh.tangents_offset;
+				mesh_hlsl.bitangents_offset = submesh.bitangents_offset;
+				mesh_hlsl.uvs_offset = submesh.uvs_offset;
+
+				mesh_hlsl.meshlet_offset = submesh.meshlet_offset;
+				mesh_hlsl.meshlet_vertices_offset = submesh.meshlet_vertices_offset;
+				mesh_hlsl.meshlet_triangles_offset = submesh.meshlet_triangles_offset;
+				mesh_hlsl.meshlet_count = submesh.meshlet_count;
+			}
+
+			for (auto const& material : mesh.materials)
+			{
+				MaterialHLSL& material_hlsl = materials.emplace_back();
+				material_hlsl.diffuse_idx = (uint32)material.albedo_texture;
+				material_hlsl.normal_idx = (uint32)material.normal_texture;
+				material_hlsl.roughness_metallic_idx = (uint32)material.metallic_roughness_texture;
+				material_hlsl.emissive_idx = (uint32)material.emissive_texture;
+				material_hlsl.base_color_factor = XMFLOAT3(material.base_color);
+				material_hlsl.emissive_factor = material.emissive_factor;
+				material_hlsl.metallic_factor = material.metallic_factor;
+				material_hlsl.roughness_factor = material.roughness_factor;
+				material_hlsl.alpha_cutoff = material.alpha_cutoff;
+			}
+		}
+
+		auto CopyBuffer = [&]<typename T>(std::vector<T> const& data, std::unique_ptr<GfxBuffer>& buffer, GfxDescriptor& buffer_srv)
+		{
+			if (!buffer || buffer->GetCount() < data.size())
+			{
+				buffer = std::make_unique<GfxBuffer>(gfx, StructuredBufferDesc<T>(data.size(), false, true));
+				buffer_srv = gfx->CreateBufferSRV(buffer.get());
+			}
+			buffer->Update(data.data(), data.size() * sizeof(T));
+		};
+
+		CopyBuffer(meshes, scene_buffers[SceneBuffer_Mesh].scene_buffer, scene_buffers[SceneBuffer_Mesh].scene_buffer_srv);
+		CopyBuffer(instances, scene_buffers[SceneBuffer_Instance].scene_buffer, scene_buffers[SceneBuffer_Instance].scene_buffer_srv);
+		CopyBuffer(materials, scene_buffers[SceneBuffer_Material].scene_buffer, scene_buffers[SceneBuffer_Material].scene_buffer_srv);
+	}
+
 	void Renderer::UpdateFrameConstantBuffer(float dt)
 	{
 		auto AreMatricesEqual = [](XMMATRIX m1, XMMATRIX m2) -> bool

@@ -89,7 +89,7 @@ namespace adria
 		uint32 emissive_idx;
 		DirectX::XMFLOAT3 base_color_factor;
 		float emissive_factor;
-		float metalness_factor;
+		float metallic_factor;
 		float roughness_factor;
 		float alpha_cutoff;
 	};

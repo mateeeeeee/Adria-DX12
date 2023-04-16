@@ -88,6 +88,15 @@ namespace adria
 		//Persistent constant buffers
 		GfxConstantBuffer<FrameCBuffer> frame_cbuffer;
 
+		//scene buffers
+		enum SceneBufferType { SceneBuffer_Mesh, SceneBuffer_Material, SceneBuffer_Instance, SceneBuffer_Count };
+		struct SceneBuffer
+		{
+			std::unique_ptr<GfxBuffer>  scene_buffer;
+			GfxDescriptor				scene_buffer_srv;
+		};
+		std::array<SceneBuffer, SceneBuffer_Count> scene_buffers;
+
 		//lights and shadows
 		std::unique_ptr<GfxBuffer>  lights_buffer;
 		GfxDescriptor				lights_buffer_srvs[GFX_BACKBUFFER_COUNT];
@@ -136,6 +145,10 @@ namespace adria
 		std::unique_ptr<GfxBuffer> global_ib = nullptr;
 		std::unique_ptr<GfxBuffer> geo_buffer = nullptr;
 
+		//picking 
+		bool update_picking_data = false;
+		PickingData picking_data;
+
 		//misc
 		uint32			         volumetric_lights = 0;
 		float					 cascades_split_lambda = 0.5f;
@@ -144,8 +157,6 @@ namespace adria
 		float					 wind_dir[3] = { 1.0f, 0.0f, 1.0f };
 		float					 wind_speed = 10.0f;
 		DirectX::XMFLOAT3		 sun_direction;
-		bool update_picking_data = false;
-		PickingData picking_data;
 		ViewportData viewport_data;
 
 	private:
@@ -157,6 +168,7 @@ namespace adria
 		void MiscGUI();
 		void SetupShadows();
 		void UpdateLights();
+		void UpdateSceneBuffers();
 		void UpdateFrameConstantBuffer(float dt);
 		void CameraFrustumCulling();
 
