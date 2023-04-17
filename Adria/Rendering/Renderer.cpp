@@ -697,7 +697,6 @@ namespace adria
 			if (light.volumetric) ++volumetric_lights;
 		}
 
-
 		std::vector<MeshHLSL> meshes; 
 		std::vector<InstanceHLSL> instances; 
 		std::vector<MaterialHLSL> materials;
@@ -705,20 +704,24 @@ namespace adria
 
 		for (auto mesh_entity : reg.view<NewMesh>())
 		{
-			NewMesh mesh = reg.get<NewMesh>(mesh_entity);
+			NewMesh& mesh = reg.get<NewMesh>(mesh_entity);
 
 			GfxBuffer* mesh_buffer = g_GeometryBufferCache.GetGeometryBuffer(mesh.geometry_buffer_handle);
-			GfxDescriptor mesh_buffer_srv = gfx->CreateBufferSRV(mesh_buffer);
+			GfxDescriptor mesh_buffer_srv = g_GeometryBufferCache.GetGeometryBufferSRV(mesh.geometry_buffer_handle);
 			GfxDescriptor mesh_buffer_online_srv = gfx->GetDescriptorAllocator()->Allocate();
 			gfx->CopyDescriptors(1, mesh_buffer_online_srv, mesh_buffer_srv);
 
 			for (auto const& instance : mesh.instances)
 			{
 				SubMesh& submesh = mesh.submeshes[instance.submesh_index];
+				Material& material = mesh.materials[submesh.material_index];
+
+				submesh.buffer_address = mesh_buffer->GetGPUAddress();
 
 				entt::entity batch_entity = reg.create();
 				Batch& batch = reg.emplace<Batch>(batch_entity);
 				batch.instance_id = instanceID;
+				batch.alpha_mode = material.alpha_mode;
 				batch.submesh = &submesh;
 				batch.world_transform = instance.world_transform;
 				submesh.bounding_box.Transform(batch.bounding_box, batch.world_transform);
@@ -888,7 +891,7 @@ namespace adria
 			update_picking_data = false;
 		}
 
-		gbuffer_pass.AddPass(render_graph);
+		gbuffer_pass.AddPass_New(render_graph);
 		decals_pass.AddPass(render_graph);
 		switch (renderer_settings.postprocess.ambient_occlusion)
 		{

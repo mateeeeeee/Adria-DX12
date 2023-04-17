@@ -166,11 +166,35 @@ namespace adria
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				auto GetPSO = [](MaterialAlphaMode alpha_mode)
+				{
+					switch (alpha_mode)
+					{
+					case MaterialAlphaMode::Opaque: return GfxPipelineStateID::GBuffer;
+					case MaterialAlphaMode::Mask: return GfxPipelineStateID::GBuffer_Mask;
+					case MaterialAlphaMode::Blend: return GfxPipelineStateID::GBuffer_NoCull;
+					}
+					return GfxPipelineStateID::GBuffer;
+				};
 
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				for (auto batch_entity : reg.view<Batch>())
 				{
-					Batch batch = reg.get<Batch>(batch_entity);
+					Batch& batch = reg.get<Batch>(batch_entity);
+					//#todo group by pso_id
+					GfxPipelineStateID pso_id = GetPSO(batch.alpha_mode);
+					cmd_list->SetPipelineState(PSOCache::Get(pso_id));
 
+					struct GBufferConstants
+					{
+						uint32 instance_id;
+					} constants { .instance_id = batch.instance_id };
+					cmd_list->SetRootConstants(1, constants);
+
+					cmd_list->SetTopology(GfxPrimitiveTopology::TriangleList);
+					GfxIndexBufferView ibv(batch.submesh->buffer_address + batch.submesh->indices_offset, batch.submesh->indices_count * GetGfxFormatStride(GfxFormat::R32_UINT));
+					cmd_list->SetIndexBuffer(&ibv);
+					cmd_list->DrawIndexed(batch.submesh->indices_count);
 				}
 			}, RGPassType::Graphics, RGPassFlags::None);
 	}

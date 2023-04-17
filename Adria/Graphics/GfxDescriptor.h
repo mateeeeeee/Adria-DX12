@@ -32,6 +32,11 @@ namespace adria
 			return cpu.ptr == other.cpu.ptr && index == other.index;
 		}
 
+		bool IsValid() const
+		{
+			return cpu.ptr != NULL;
+		}
+
 	private:
 		D3D12_CPU_DESCRIPTOR_HANDLE cpu = { NULL };
 		D3D12_GPU_DESCRIPTOR_HANDLE gpu = { NULL };

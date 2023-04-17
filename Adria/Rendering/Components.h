@@ -165,12 +165,17 @@ namespace adria
 
 	struct SubMesh
 	{
+		uint64 buffer_address;
+
+		uint32 indices_offset;
+		uint32 indices_count;
+
 		uint32 positions_offset;
 		uint32 uvs_offset;
 		uint32 normals_offset;
 		uint32 tangents_offset;
 		uint32 bitangents_offset;
-		uint32 indices_offset;
+
 		uint32 meshlet_offset;
 		uint32 meshlet_vertices_offset;
 		uint32 meshlet_triangles_offset;
@@ -187,7 +192,7 @@ namespace adria
 	};
 	struct COMPONENT NewMesh
 	{
-		GeometryBufferHandle geometry_buffer_handle = INVALID_GEOMETRY_BUFFER_HANDLE;
+		ArcGeometryBufferHandle geometry_buffer_handle;
 		std::vector<Material> materials;
 		std::vector<SubMesh> submeshes;
 		std::vector<SubMeshInstance> instances;
@@ -195,6 +200,7 @@ namespace adria
 
 	struct COMPONENT Batch
 	{
+		MaterialAlphaMode alpha_mode;
 		uint32   instance_id;
 		SubMesh* submesh;
 		DirectX::XMMATRIX world_transform;

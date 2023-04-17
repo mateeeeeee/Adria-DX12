@@ -1184,8 +1184,10 @@ namespace adria
 		{
 			auto const& mesh_data = mesh_datas[i];
 
-			SubMesh submesh{};
+			SubMesh& submesh = new_mesh.submeshes.emplace_back();
+
 			submesh.indices_offset = current_offset;
+			submesh.indices_count = (uint32)mesh_data.indices.size();
 			CopyData(mesh_data.indices);
 
 			submesh.positions_offset = current_offset;
@@ -1213,8 +1215,6 @@ namespace adria
 			CopyData(mesh_data.meshlet_triangles);
 
 			submesh.meshlet_count = (uint32)mesh_data.meshlets.size();
-
-			new_mesh.submeshes.push_back(submesh);
 		}
 		new_mesh.geometry_buffer_handle = g_GeometryBufferCache.CreateAndInitializeGeometryBuffer(staging_buffer.buffer, total_buffer_size, staging_buffer.offset);
 

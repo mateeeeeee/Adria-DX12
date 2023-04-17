@@ -1,4 +1,6 @@
-#if 1
+#define NEW 1
+
+#if !NEW
 #include "../CommonResources.hlsli"
 
 struct VS_INPUT

@@ -16,7 +16,7 @@ namespace adria
 		gfx = nullptr;
 	}
 
-	GeometryBufferHandle GeometryBufferCache::CreateAndInitializeGeometryBuffer(GfxBuffer* staging_buffer, uint64 total_buffer_size, uint64 src_offset)
+	ArcGeometryBufferHandle GeometryBufferCache::CreateAndInitializeGeometryBuffer(GfxBuffer* staging_buffer, uint64 total_buffer_size, uint64 src_offset)
 	{
 		GfxBufferDesc desc{};
 		desc.size = total_buffer_size;
@@ -27,12 +27,13 @@ namespace adria
 		++current_handle;
 		buffer_map[current_handle] = std::make_unique<GfxBuffer>(gfx, desc);
 		if(staging_buffer) gfx->GetGraphicsCommandList()->CopyBuffer(*buffer_map[current_handle], 0, *staging_buffer, src_offset, total_buffer_size);
+		buffer_srv_map[current_handle] = gfx->CreateBufferSRV(buffer_map[current_handle].get());
 		return current_handle;
 	}
 
-	void GeometryBufferCache::DestroyGeometryBuffer(GeometryBufferHandle handle) 
+	void GeometryBufferCache::DestroyGeometryBuffer(GeometryBufferHandle& handle)
 	{
-		if (!handle.IsValid()) return;
+		if (buffer_map.empty()) return;
 		if (auto it = buffer_map.find(handle); it != buffer_map.end())
 		{
 			it->second = nullptr;
@@ -40,8 +41,10 @@ namespace adria
 		}
 	}
 
-	GfxBuffer* GeometryBufferCache::GetGeometryBuffer(GeometryBufferHandle handle) const
+	GfxBuffer* GeometryBufferCache::GetGeometryBuffer(GeometryBufferHandle& handle) const
 	{
+		if (!handle.IsValid()) return nullptr;
+
 		if (auto it = buffer_map.find(handle); it != buffer_map.end())
 		{
 			return it->second.get();
@@ -49,9 +52,20 @@ namespace adria
 		else return nullptr;
 	}
 
-	GeometryBufferHandle::RefCountedData::~RefCountedData()
+	GfxDescriptor GeometryBufferCache::GetGeometryBufferSRV(GeometryBufferHandle& handle) const
 	{
-		if (IsValid()) g_GeometryBufferCache.DestroyGeometryBuffer(handle);
+		if (!handle.IsValid()) return GfxDescriptor{};
+
+		if (auto it = buffer_srv_map.find(handle); it != buffer_srv_map.end())
+		{
+			return it->second;
+		}
+		else return GfxDescriptor{};
+	}
+
+	GeometryBufferHandle::~GeometryBufferHandle()
+	{
+		if (IsValid()) g_GeometryBufferCache.DestroyGeometryBuffer(*this);
 	}
 
 }

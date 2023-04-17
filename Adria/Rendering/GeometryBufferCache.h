@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include "Core/CoreTypes.h"
+#include "Graphics/GfxDescriptor.h"
 #include "Utilities/HashMap.h"
 #include "Utilities/Singleton.h"
 
@@ -13,31 +14,40 @@ namespace adria
 
 	class GeometryBufferHandle
 	{
-		struct RefCountedData
-		{
-			uint64 handle;
-			
-			bool IsValid() const { return handle != INVALID_GEOMETRY_BUFFER_HANDLE; }
-			RefCountedData(uint64 h) : handle(h) {}
-			~RefCountedData();
-		};
+		friend class ArcGeometryBufferHandle;
+
 	public:
-		GeometryBufferHandle() = default;
-		GeometryBufferHandle(uint64 h)
-		{
-			data = std::make_shared<RefCountedData>(h);
-		}
-		GeometryBufferHandle(GeometryBufferHandle const&) = default;
-		GeometryBufferHandle& operator=(GeometryBufferHandle const&) = default;
-		~GeometryBufferHandle() = default;
 
-		operator uint64() const { return data->handle; }
-		GeometryBufferHandle operator ++() const { return data->handle + 1; }
+		~GeometryBufferHandle();
+		operator uint64() const { return handle; }
+		GeometryBufferHandle operator ++() const { return handle + 1; }
+		bool IsValid() const { return handle != INVALID_GEOMETRY_BUFFER_HANDLE; }
 
-		bool IsValid() const { return data->IsValid(); }
 	private:
-		std::shared_ptr<RefCountedData> data;
+		GeometryBufferHandle() = default;
+		GeometryBufferHandle(uint64 h) : handle(h) {}
+		GeometryBufferHandle(GeometryBufferHandle const&) = default;
+		GeometryBufferHandle(GeometryBufferHandle&&) = default;
+		GeometryBufferHandle& operator=(GeometryBufferHandle const&) = default;
+		GeometryBufferHandle& operator=(GeometryBufferHandle&&) = default;
+
+	private:
+		uint64 handle = INVALID_GEOMETRY_BUFFER_HANDLE;
 	};
+
+	class ArcGeometryBufferHandle
+	{
+	public:
+		ArcGeometryBufferHandle() = default;
+		ArcGeometryBufferHandle(uint64 h) : handle{ new GeometryBufferHandle(h) } {}
+		~ArcGeometryBufferHandle() = default;
+
+		operator GeometryBufferHandle&() const { return *handle; }
+		bool IsValid() const { return handle->IsValid(); }
+	private:
+		std::shared_ptr<GeometryBufferHandle> handle;
+	};
+
 
 	class GeometryBufferCache : public Singleton<GeometryBufferCache>
 	{
@@ -48,14 +58,16 @@ namespace adria
 		void Initialize(GfxDevice* _gfx);
 		void Destroy();
 
-		[[nodiscard]] GeometryBufferHandle CreateAndInitializeGeometryBuffer(GfxBuffer* staging_buffer, uint64 total_buffer_size, uint64 src_offset);
-		[[nodiscard]] GfxBuffer* GetGeometryBuffer(GeometryBufferHandle handle) const;
-		void DestroyGeometryBuffer(GeometryBufferHandle handle);
+		[[nodiscard]] ArcGeometryBufferHandle CreateAndInitializeGeometryBuffer(GfxBuffer* staging_buffer, uint64 total_buffer_size, uint64 src_offset);
+		[[nodiscard]] GfxBuffer* GetGeometryBuffer(GeometryBufferHandle& handle) const;
+		[[nodiscard]] GfxDescriptor GetGeometryBufferSRV(GeometryBufferHandle& handle) const;
+		void DestroyGeometryBuffer(GeometryBufferHandle& handle);
 
 	private:
 		GfxDevice* gfx;
 		uint64 current_handle = INVALID_GEOMETRY_BUFFER_HANDLE;
 		HashMap<uint64, std::unique_ptr<GfxBuffer>> buffer_map;
+		HashMap<uint64, GfxDescriptor> buffer_srv_map;
 	};
 	#define g_GeometryBufferCache GeometryBufferCache::Get()
 }

@@ -311,7 +311,7 @@ namespace adria
 		camera = std::make_unique<Camera>(config.camera_params);
 		entity_loader->LoadSkybox(config.skybox_params);
 
-		for (auto&& model : config.scene_models) entity_loader->ImportModel_GLTF(model);
+		for (auto&& model : config.scene_models) entity_loader->ImportModel_GLTF_Optimized(model);
 		for (auto&& light : config.scene_lights) entity_loader->LoadLight(light);
 
 		renderer->OnSceneInitialized();
