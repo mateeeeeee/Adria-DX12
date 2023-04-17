@@ -727,8 +727,6 @@ namespace adria
 					ImGui::SliderFloat("Metallic Factor", &material->metallic_factor, 0.0f, 1.0f);
 					ImGui::SliderFloat("Roughness Factor", &material->roughness_factor, 0.0f, 1.0f);
 					ImGui::SliderFloat("Emissive Factor", &material->emissive_factor, 0.0f, 32.0f);
-
-					material->pso = GfxPipelineStateID::GBuffer;
 				}
 
 				auto transform = engine->reg.try_get<Transform>(selected_entity);

@@ -99,6 +99,7 @@ namespace adria
 	struct InstanceHLSL
 	{
 		DirectX::XMMATRIX world_matrix;
+		DirectX::XMMATRIX inverse_world_matrix;
 		DirectX::XMFLOAT3 bb_origin;
 		DirectX::XMFLOAT3 bb_extents;
 		uint32 instance_id;

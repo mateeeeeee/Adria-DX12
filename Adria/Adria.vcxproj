@@ -1006,6 +1006,7 @@
     <None Include="Resources\NewShaders\RayTracing\RayTracingUtil.hlsli">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </None>
+    <None Include="Resources\NewShaders\Scene.hlsli" />
     <None Include="Resources\NewShaders\Tonemapping.hlsli" />
     <None Include="scene.json" />
   </ItemGroup>

@@ -14,6 +14,8 @@ namespace adria
 
 		void AddPass(RenderGraph& rendergraph);
 
+		void AddPass_New(RenderGraph& rendergraph);
+
 		void OnResize(uint32 w, uint32 h);
 
 	private:

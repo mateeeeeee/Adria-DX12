@@ -406,13 +406,6 @@ namespace adria
             else if (params.light_data.type == LightType::Directional)
                 material.albedo_texture = g_TextureManager.LoadTexture(L"Resources/Textures/sun.png");
 
-            if (params.light_data.type == LightType::Directional)
-                material.pso = GfxPipelineStateID::Sun;
-			else
-			{
-				ADRIA_LOG(ERROR, "Light with quad mesh needs to be directional!");
-			}
-
             reg.emplace<Material>(light, material);
 			auto translation_matrix = XMMatrixTranslationFromVector(params.light_data.position);
             reg.emplace<Transform>(light, translation_matrix);
@@ -463,7 +456,6 @@ namespace adria
 		Material ocean_material{};
 		static float default_ocean_color[] = { 0.0123f, 0.3613f, 0.6867f };
 		memcpy(ocean_material.base_color, default_ocean_color, 3 * sizeof(float));
-		ocean_material.pso = GfxPipelineStateID::Unknown;
 		Ocean ocean_component{};
 
 		for (auto ocean_chunk : ocean_chunks)
@@ -548,13 +540,11 @@ namespace adria
 		for (auto const& gltf_material : model.materials)
 		{
 			Material& material = materials.emplace_back();
-			material.pso = GfxPipelineStateID::GBuffer;
 			material.alpha_cutoff = (float)gltf_material.alphaCutoff;
 			material.double_sided = gltf_material.doubleSided;
 			if (gltf_material.alphaMode == "OPAQUE")
 			{
 				material.alpha_mode = MaterialAlphaMode::Opaque;
-				material.pso = material.double_sided ? GfxPipelineStateID::GBuffer_NoCull : GfxPipelineStateID::GBuffer;
 			}
 			else if (gltf_material.alphaMode == "BLEND")
 			{
@@ -563,7 +553,6 @@ namespace adria
 			else if (gltf_material.alphaMode == "MASK")
 			{
 				material.alpha_mode = MaterialAlphaMode::Mask;
-				material.pso = material.double_sided ? GfxPipelineStateID::GBuffer_Mask_NoCull : GfxPipelineStateID::GBuffer_Mask;
 			}
 			tinygltf::PbrMetallicRoughness pbr_metallic_roughness = gltf_material.pbrMetallicRoughness;
 			if (pbr_metallic_roughness.baseColorTexture.index >= 0)
@@ -915,13 +904,11 @@ namespace adria
 		for (auto const& gltf_material : model.materials)
 		{
 			Material& material = new_mesh.materials.emplace_back();
-			material.pso = GfxPipelineStateID::GBuffer;
 			material.alpha_cutoff = (float)gltf_material.alphaCutoff;
 			material.double_sided = gltf_material.doubleSided;
 			if (gltf_material.alphaMode == "OPAQUE")
 			{
 				material.alpha_mode = MaterialAlphaMode::Opaque;
-				material.pso = material.double_sided ? GfxPipelineStateID::GBuffer_NoCull : GfxPipelineStateID::GBuffer;
 			}
 			else if (gltf_material.alphaMode == "BLEND")
 			{
@@ -930,7 +917,6 @@ namespace adria
 			else if (gltf_material.alphaMode == "MASK")
 			{
 				material.alpha_mode = MaterialAlphaMode::Mask;
-				material.pso = material.double_sided ? GfxPipelineStateID::GBuffer_Mask_NoCull : GfxPipelineStateID::GBuffer_Mask;
 			}
 			tinygltf::PbrMetallicRoughness pbr_metallic_roughness = gltf_material.pbrMetallicRoughness;
 			if (pbr_metallic_roughness.baseColorTexture.index >= 0)
@@ -1300,7 +1286,7 @@ namespace adria
 				{
 					SubMeshInstance& instance = new_mesh.instances.emplace_back();
 					instance.submesh_index = primitive;
-					instance.transform = model_matrix;
+					instance.world_transform = model_matrix;
 					instance.parent = mesh;
 				}
 			}

@@ -476,9 +476,6 @@
     <ClInclude Include="Rendering\Components.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\ConstantBuffers.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\Enums.h">
       <Filter>Rendering</Filter>
     </ClInclude>
@@ -776,9 +773,6 @@
     <ClInclude Include="Rendering\GeometryBufferCache.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\MeshletStructs.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\EntityLoader.h">
       <Filter>Rendering</Filter>
     </ClInclude>
@@ -899,6 +893,12 @@
     </ClInclude>
     <ClInclude Include="..\ThirdParty\ImGui\ImGui\imstb_truetype.h">
       <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Meshlet.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\ShaderStructs.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1096,6 +1096,9 @@
     </None>
     <None Include="Resources\NewShaders\RayTracing\PathTracing.hlsli">
       <Filter>Shaders\RayTracing</Filter>
+    </None>
+    <None Include="Resources\NewShaders\Scene.hlsli">
+      <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

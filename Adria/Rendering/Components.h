@@ -74,8 +74,6 @@ namespace adria
 		MaterialAlphaMode alpha_mode = MaterialAlphaMode::Opaque;
 		float alpha_cutoff	= 0.5f;
 		bool  double_sided	= false;
-
-		GfxPipelineStateID pso = GfxPipelineStateID::Unknown;
 	};
 	struct COMPONENT RayTracing
 	{
@@ -185,7 +183,7 @@ namespace adria
 	{
 		entt::entity parent;
 		uint32 submesh_index;
-		DirectX::XMMATRIX transform;
+		DirectX::XMMATRIX world_transform;
 	};
 	struct COMPONENT NewMesh
 	{
@@ -195,6 +193,13 @@ namespace adria
 		std::vector<SubMeshInstance> instances;
 	};
 
+	struct COMPONENT Batch
+	{
+		uint32   instance_id;
+		SubMesh* submesh;
+		DirectX::XMMATRIX world_transform;
+		DirectX::BoundingBox bounding_box;
+	};
 
 
 }

@@ -668,6 +668,7 @@ namespace adria
 	void Renderer::UpdateSceneBuffers()
 	{
 		volumetric_lights = 0;
+		reg.clear<Batch>();
 
 		std::vector<LightHLSL> hlsl_lights{};
 		uint32 light_index = 0;
@@ -713,13 +714,21 @@ namespace adria
 
 			for (auto const& instance : mesh.instances)
 			{
-				SubMesh submesh = mesh.submeshes[instance.submesh_index];
+				SubMesh& submesh = mesh.submeshes[instance.submesh_index];
+
+				entt::entity batch_entity = reg.create();
+				Batch& batch = reg.emplace<Batch>(batch_entity);
+				batch.instance_id = instanceID;
+				batch.submesh = &submesh;
+				batch.world_transform = instance.world_transform;
+				submesh.bounding_box.Transform(batch.bounding_box, batch.world_transform);
 
 				InstanceHLSL& instance_hlsl = instances.emplace_back();
 				instance_hlsl.instance_id = instanceID;
 				instance_hlsl.material_idx = static_cast<uint32>(materials.size() + submesh.material_index);
 				instance_hlsl.mesh_index = static_cast<uint32>(meshes.size() + instance.submesh_index);
-				instance_hlsl.world_matrix = instance.transform;
+				instance_hlsl.world_matrix = instance.world_transform;
+				instance_hlsl.inverse_world_matrix = XMMatrixInverse(nullptr, instance.world_transform);
 				instance_hlsl.bb_origin = submesh.bounding_box.Center;
 				instance_hlsl.bb_extents = submesh.bounding_box.Extents;
 

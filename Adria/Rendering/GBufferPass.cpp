@@ -51,13 +51,23 @@ namespace adria
 			[=](RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
-
 				struct BatchParams
 				{
-					GfxPipelineStateID pso;
+					MaterialAlphaMode alpha_mode;
 					auto operator<=>(BatchParams const&) const = default;
 				};
 				std::map<BatchParams, std::vector<entt::entity>> batched_entities;
+
+				auto GetPSO = [](MaterialAlphaMode alpha_mode) 
+				{
+					switch (alpha_mode)
+					{
+					case MaterialAlphaMode::Opaque: return GfxPipelineStateID::GBuffer;
+					case MaterialAlphaMode::Mask: return GfxPipelineStateID::GBuffer_Mask;
+					case MaterialAlphaMode::Blend: return GfxPipelineStateID::GBuffer_NoCull;
+					}
+					return GfxPipelineStateID::GBuffer;
+				};
 
 				auto gbuffer_view = reg.view<Mesh, Transform, Material, Deferred, AABB>();
 				for (auto e : gbuffer_view)
@@ -66,7 +76,7 @@ namespace adria
 					if (!aabb.camera_visible) continue;
 
 					BatchParams params{};
-					params.pso = material.pso;
+					params.alpha_mode = material.alpha_mode;
 					batched_entities[params].push_back(e);
 				}
 
@@ -74,7 +84,7 @@ namespace adria
 
 				for (auto const& [params, entities] : batched_entities)
 				{
-					cmd_list->SetPipelineState(PSOCache::Get(params.pso));
+					cmd_list->SetPipelineState(PSOCache::Get(GetPSO(params.alpha_mode)));
 					for (auto e : entities)
 					{
 						auto [mesh, transform, material, aabb] = gbuffer_view.get<Mesh, Transform, Material, AABB>(e);
@@ -118,6 +128,49 @@ namespace adria
 						cmd_list->SetRootCBV(2, model_cbuf_data);
 						mesh.Draw(cmd_list->GetNative());
 					}
+				}
+			}, RGPassType::Graphics, RGPassFlags::None);
+	}
+
+	void GBufferPass::AddPass_New(RenderGraph& rendergraph)
+	{
+		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<FrameBlackboardData>();
+		rendergraph.AddPass<void>("GBuffer Pass",
+			[=](RenderGraphBuilder& builder)
+			{
+				RGTextureDesc gbuffer_desc{};
+				gbuffer_desc.width = width;
+				gbuffer_desc.height = height;
+				gbuffer_desc.format = GfxFormat::R8G8B8A8_UNORM;
+				gbuffer_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
+
+				builder.DeclareTexture(RG_RES_NAME(GBufferNormal), gbuffer_desc);
+				builder.DeclareTexture(RG_RES_NAME(GBufferAlbedo), gbuffer_desc);
+				builder.DeclareTexture(RG_RES_NAME(GBufferEmissive), gbuffer_desc);
+
+				builder.WriteRenderTarget(RG_RES_NAME(GBufferNormal), RGLoadStoreAccessOp::Clear_Preserve);
+				builder.WriteRenderTarget(RG_RES_NAME(GBufferAlbedo), RGLoadStoreAccessOp::Clear_Preserve);
+				builder.WriteRenderTarget(RG_RES_NAME(GBufferEmissive), RGLoadStoreAccessOp::Clear_Preserve);
+
+				RGTextureDesc depth_desc{};
+				depth_desc.width = width;
+				depth_desc.height = height;
+				depth_desc.format = GfxFormat::R32_TYPELESS;
+				depth_desc.clear_value = GfxClearValue(1.0f, 0);
+				builder.DeclareTexture(RG_RES_NAME(DepthStencil), depth_desc);
+				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Clear_Preserve);
+				builder.SetViewport(width, height);
+			},
+			[=](RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+			{
+				auto descriptor_allocator = gfx->GetDescriptorAllocator();
+				
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+
+				for (auto batch_entity : reg.view<Batch>())
+				{
+					Batch batch = reg.get<Batch>(batch_entity);
+
 				}
 			}, RGPassType::Graphics, RGPassFlags::None);
 	}
