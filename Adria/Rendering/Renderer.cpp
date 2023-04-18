@@ -269,10 +269,9 @@ namespace adria
 		clustered_deferred_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height),
 		decals_pass(reg, width, height), ocean_renderer(reg, width, height), aabb_pass(reg, width, height),
 		ray_traced_shadows_pass(gfx, width, height), rtao_pass(gfx, width, height), rtr_pass(gfx, width, height),
-		path_tracer(gfx, width, height)
+		path_tracer(gfx, width, height), ray_tracing_supported(gfx->GetCapabilities().SupportsRayTracing())
 	{
 		g_GpuProfiler.Init(gfx);
-		CheckDeviceCapabilities();
 		CreateSizeDependentResources();
 	}
 
@@ -318,7 +317,7 @@ namespace adria
 		rg_blackboard.Add<FrameBlackboardData>(std::move(global_data));
 
 		render_graph.ImportTexture(RG_RES_NAME(Backbuffer), gfx->GetBackbuffer());
-		if (IsRayTracingSupported() && !RayTracing::rt_vertices.empty())
+		if (ray_tracing_supported && !RayTracing::rt_vertices.empty())
 		{
 			render_graph.ImportBuffer(RG_RES_NAME(BigVertexBuffer), global_vb.get());
 			render_graph.ImportBuffer(RG_RES_NAME(BigIndexBuffer), global_ib.get());
@@ -389,14 +388,6 @@ namespace adria
 		update_picking_data = true;
 	}
 
-	void Renderer::CheckDeviceCapabilities()
-	{
-		ID3D12Device* device = gfx->GetDevice();
-		D3D12_FEATURE_DATA_D3D12_OPTIONS5 features5{};
-		HRESULT hr = device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &features5, sizeof(D3D12_FEATURE_DATA_D3D12_OPTIONS5));
-		is_ray_tracing_supported = features5.RaytracingTier != D3D12_RAYTRACING_TIER_NOT_SUPPORTED;
-	}
-
 	void Renderer::CreateSizeDependentResources()
 	{
 		GfxTextureDesc ldr_desc{};
@@ -411,7 +402,14 @@ namespace adria
 	}
 	void Renderer::CreateGlobalBuffers()
 	{
-		if (!IsRayTracingSupported() || RayTracing::rt_vertices.empty()) return;
+		if (!ray_tracing_supported) return;
+
+		if (RayTracing::rt_vertices.empty() || RayTracing::rt_indices.empty())
+		{
+			ADRIA_LOG(WARNING, "Ray tracing buffers are empty. This is expected if the meshes are loaded with ray-tracing support off");
+			return;
+		}
+
 		auto ray_tracing_view = reg.view<SubMesh, Transform, Material, RayTracing>();
 
 		std::vector<GeoInfo> geo_info{};
@@ -440,13 +438,6 @@ namespace adria
 
 		GfxBufferDesc desc = StructuredBufferDesc<GeoInfo>(geo_info.size(), false);
 		geo_buffer = std::make_unique<GfxBuffer>(gfx, desc, geo_info.data());
-
-		ID3D12Device5* device = gfx->GetDevice();
-		if (RayTracing::rt_vertices.empty() || RayTracing::rt_indices.empty())
-		{
-			ADRIA_LOG(WARNING, "Ray tracing buffers are empty. This is expected if the meshes are loaded with ray-tracing support off");
-			return;
-		}
 
 		GfxBufferDesc vb_desc{};
 		vb_desc.bind_flags = GfxBindFlag::ShaderResource;
@@ -864,12 +855,11 @@ namespace adria
 			}
 		}
 
-		if (IsRayTracingSupported() && !RayTracing::rt_vertices.empty())
+		if (ray_tracing_supported && !RayTracing::rt_vertices.empty())
 		{
-			auto device = gfx->GetDevice();
 			auto descriptor_allocator = gfx->GetDescriptorAllocator();
 			GfxDescriptor accel_struct_descriptor = descriptor_allocator->Allocate();
-			device->CopyDescriptorsSimple(1, accel_struct_descriptor, tlas_srv, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			gfx->CopyDescriptors(1, accel_struct_descriptor, tlas_srv);
 			frame_cbuf_data.accel_struct_idx = (int32)accel_struct_descriptor.GetIndex();
 		}
 

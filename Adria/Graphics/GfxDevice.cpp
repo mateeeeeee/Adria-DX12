@@ -230,6 +230,11 @@ namespace adria
 
 		hr = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(device.GetAddressOf()));
 		BREAK_IF_FAILED(hr);
+		if (!device_capabilities.Initialize(this))
+		{
+			ADRIA_DEBUGBREAK();
+			std::exit(1);
+		}
 
 		ArcPtr<IDXGIAdapter1> adapter;
 		dxgi_factory->EnumAdapters1(1, adapter.GetAddressOf());

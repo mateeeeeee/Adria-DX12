@@ -202,6 +202,7 @@
     <ClCompile Include="Editor\GUICommand.cpp" />
     <ClCompile Include="Events\EventQueue.cpp" />
     <ClCompile Include="Graphics\GfxBuffer.cpp" />
+    <ClCompile Include="Graphics\GfxCapabilities.cpp" />
     <ClCompile Include="Graphics\GfxCommandList.cpp" />
     <ClCompile Include="Graphics\GfxCommandQueue.cpp" />
     <ClCompile Include="Graphics\GfxCommon.cpp" />
@@ -293,6 +294,16 @@
     <ClInclude Include="..\ThirdParty\FontAwesome\IconsFontAwesome4.h" />
     <ClInclude Include="..\ThirdParty\gfx-external\D3D12MemAlloc.h" />
     <ClInclude Include="..\ThirdParty\gfx-external\d3dx12.h" />
+    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_barriers.h" />
+    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_check_feature_support.h" />
+    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_core.h" />
+    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_default.h" />
+    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_pipeline_state_stream.h" />
+    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_property_format_table.h" />
+    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_render_pass.h" />
+    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_resource_helpers.h" />
+    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_root_signature.h" />
+    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_state_object.h" />
     <ClInclude Include="..\ThirdParty\gfx-external\DDSTextureLoader12.h" />
     <ClInclude Include="..\ThirdParty\gfx-external\WICTextureLoader12.h" />
     <ClInclude Include="..\ThirdParty\ImGui\ImGui\imconfig.h" />
@@ -322,6 +333,7 @@
     <ClInclude Include="Events\EventQueue.h" />
     <ClInclude Include="Events\IEvent.h" />
     <ClInclude Include="Graphics\GfxBuffer.h" />
+    <ClInclude Include="Graphics\GfxCapabilities.h" />
     <ClInclude Include="Graphics\GfxCommandSignature.h" />
     <ClInclude Include="Graphics\GfxCommandList.h" />
     <ClInclude Include="Graphics\GfxCommandQueue.h" />

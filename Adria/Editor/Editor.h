@@ -60,6 +60,7 @@ namespace adria
 		std::unique_ptr<Engine> engine;
 		std::unique_ptr<GUI> gui;
 		GfxDevice* gfx;
+		bool ray_tracing_supported = false;
 
 		std::unique_ptr<EditorLogger> logger;
 		std::unique_ptr<EditorConsole> console;

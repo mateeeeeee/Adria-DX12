@@ -17,6 +17,7 @@
 
 #include "GfxFence.h"
 #include "GfxCommandQueue.h"
+#include "GfxCapabilities.h"
 #include "GfxDescriptorAllocatorBase.h"
 #include "GfxDefines.h"
 #include "GfxCommandSignature.h"
@@ -82,6 +83,7 @@ namespace adria
 		ID3D12RootSignature* GetCommonRootSignature() const;
 		D3D12MA::Allocator* GetAllocator() const;
 
+		GfxCapabilities const& GetCapabilities() const { return device_capabilities; }
 		GfxCommandQueue& GetCommandQueue(GfxCommandListType type);
 		GfxCommandList* GetCommandList(GfxCommandListType type) const;
 		GfxCommandList* GetGraphicsCommandList() const;
@@ -134,6 +136,7 @@ namespace adria
 
 		ArcPtr<IDXGIFactory4> dxgi_factory = nullptr;
 		ArcPtr<ID3D12Device5> device = nullptr;
+		GfxCapabilities device_capabilities{};
 
 		std::unique_ptr<GfxOnlineDescriptorAllocator> gpu_descriptor_allocator;
 		std::array<std::unique_ptr<GfxDescriptorAllocator>, (size_t)GfxDescriptorHeapType::Count> cpu_descriptor_allocators;

@@ -75,6 +75,7 @@ namespace adria
 		gui = std::make_unique<GUI>(gfx);
 		engine->RegisterEditorEventCallbacks(editor_events);
 
+		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 		selected_entity = entt::null;
 		SetStyle();
 	}
@@ -590,7 +591,7 @@ namespace adria
 							}
 							ImGui::EndCombo();
 						}
-						if (!engine->renderer->IsRayTracingSupported() && current_shadow_type == 2)
+						if (!ray_tracing_supported && current_shadow_type == 2)
 						{
 							current_shadow_type = 1;
 						}
@@ -947,7 +948,7 @@ namespace adria
 				}
 				ImGui::EndCombo();
 			}
-			if (!engine->renderer->IsRayTracingSupported() && current_render_path_type == 3)
+			if (!ray_tracing_supported && current_render_path_type == 3)
 			{
 				current_render_path_type = 0;
 			}
@@ -964,7 +965,7 @@ namespace adria
 				}
 				ImGui::EndCombo();
 			}
-			if (!engine->renderer->IsRayTracingSupported() && current_ao_type == 3)
+			if (!ray_tracing_supported && current_ao_type == 3)
 			{
 				current_ao_type = 1;
 			}
@@ -981,7 +982,7 @@ namespace adria
 				}
 				ImGui::EndCombo();
 			}
-			if (!engine->renderer->IsRayTracingSupported() && current_reflection_type == 2)
+			if (!ray_tracing_supported && current_reflection_type == 2)
 			{
 				current_reflection_type = 1;
 			}

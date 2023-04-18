@@ -59,10 +59,8 @@ namespace adria
 		GfxDescriptor GetFinalTextureSRV() const 
 		{ 
 			return final_texture_srv;
-		}
-		
+		}		
 		PickingData const& GetPickingData() const { return picking_data; }
-		bool IsRayTracingSupported() const { return is_ray_tracing_supported; }
 
 		uint32 GetWidth() const { return width; }
 		uint32 GetHeight() const { return height; }
@@ -136,9 +134,9 @@ namespace adria
 		PathTracingPass path_tracer;
 
 		//ray tracing
+		bool ray_tracing_supported = false;
 		AccelerationStructure accel_structure;
 		GfxDescriptor tlas_srv;
-		bool is_ray_tracing_supported;
 		std::unique_ptr<GfxBuffer> global_vb = nullptr;
 		std::unique_ptr<GfxBuffer> global_ib = nullptr;
 		std::unique_ptr<GfxBuffer> geo_buffer = nullptr;
@@ -158,7 +156,6 @@ namespace adria
 		ViewportData viewport_data;
 
 	private:
-		void CheckDeviceCapabilities();
 		void CreateSizeDependentResources();
 		void CreateGlobalBuffers();
 

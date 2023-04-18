@@ -15,10 +15,7 @@ namespace adria
 	PathTracingPass::PathTracingPass(GfxDevice* gfx, uint32 width, uint32 height)
 		: gfx(gfx), width(width), height(height)
 	{
-		ID3D12Device* device = gfx->GetDevice();
-		D3D12_FEATURE_DATA_D3D12_OPTIONS5 features5{};
-		HRESULT hr = device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &features5, sizeof(D3D12_FEATURE_DATA_D3D12_OPTIONS5));
-		is_supported = features5.RaytracingTier >= D3D12_RAYTRACING_TIER_1_0;
+		is_supported = gfx->GetCapabilities().CheckRayTracingSupport(RayTracingSupport::Tier1_1);
 		if (IsSupported())
 		{
 			CreateStateObject();
