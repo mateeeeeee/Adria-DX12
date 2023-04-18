@@ -37,6 +37,7 @@ namespace adria
 
 	void AccelerationStructure::Build() //add build flag options
 	{
+		if (blases.empty()) return;
 		BuildBottomLevels();
 		BuildTopLevel();
 	}

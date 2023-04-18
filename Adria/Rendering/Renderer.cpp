@@ -318,7 +318,7 @@ namespace adria
 		rg_blackboard.Add<FrameBlackboardData>(std::move(global_data));
 
 		render_graph.ImportTexture(RG_RES_NAME(Backbuffer), gfx->GetBackbuffer());
-		if (IsRayTracingSupported())
+		if (IsRayTracingSupported() && !RayTracing::rt_vertices.empty())
 		{
 			render_graph.ImportBuffer(RG_RES_NAME(BigVertexBuffer), global_vb.get());
 			render_graph.ImportBuffer(RG_RES_NAME(BigIndexBuffer), global_ib.get());
@@ -411,9 +411,9 @@ namespace adria
 	}
 	void Renderer::CreateGlobalBuffers()
 	{
-		if (!is_ray_tracing_supported) return;
-
+		if (!IsRayTracingSupported() || RayTracing::rt_vertices.empty()) return;
 		auto ray_tracing_view = reg.view<SubMesh, Transform, Material, RayTracing>();
+
 		std::vector<GeoInfo> geo_info{};
 		for (auto entity : ray_tracing_view)
 		{
@@ -433,6 +433,8 @@ namespace adria
 				});
 			accel_structure.AddInstance(mesh, transform);
 		}
+		if (geo_info.empty()) return;
+
 		accel_structure.Build();
 		tlas_srv = gfx->CreateBufferSRV(accel_structure.GetTLAS());
 
@@ -603,7 +605,7 @@ namespace adria
 				}
 			}
 		}
-		
+
 		std::vector<XMMATRIX> light_matrices;
 		light_matrices.reserve(light_matrices_count);
 		for (auto e : light_view)
@@ -699,8 +701,8 @@ namespace adria
 			if (light.volumetric) ++volumetric_lights;
 		}
 
-		std::vector<MeshHLSL> meshes; 
-		std::vector<InstanceHLSL> instances; 
+		std::vector<MeshHLSL> meshes;
+		std::vector<InstanceHLSL> instances;
 		std::vector<MaterialHLSL> materials;
 		uint32 instanceID = 0;
 
@@ -841,7 +843,6 @@ namespace adria
 		frame_cbuf_data.frame_count = gfx->FrameIndex();
 		frame_cbuf_data.mouse_normalized_coords_x = (viewport_data.mouse_position_x - viewport_data.scene_viewport_pos_x) / viewport_data.scene_viewport_size_x;
 		frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
-		
 
 		frame_cbuf_data.meshes_idx = (int32)scene_buffers[SceneBuffer_Mesh].buffer_srv_gpu.GetIndex();
 		frame_cbuf_data.materials_idx = (int32)scene_buffers[SceneBuffer_Material].buffer_srv_gpu.GetIndex();
@@ -863,7 +864,7 @@ namespace adria
 			}
 		}
 
-		if (IsRayTracingSupported())
+		if (IsRayTracingSupported() && !RayTracing::rt_vertices.empty())
 		{
 			auto device = gfx->GetDevice();
 			auto descriptor_allocator = gfx->GetDescriptorAllocator();
