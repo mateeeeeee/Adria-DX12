@@ -31,13 +31,16 @@ struct Material
 
 struct Instance
 {
-	row_major matrix worldMatrix;
-	row_major matrix inverseWorldMatrix;
+	matrix worldMatrix;
+	matrix inverseWorldMatrix;
 	float3 bbOrigin;
+	uint pad;
 	float3 bbExtents;
 	uint instanceId;
+
 	uint materialIdx;
 	uint meshIndex;
+	uint2 pad2;
 };
 
 Instance GetInstanceData(uint instanceId)

@@ -6,6 +6,7 @@
 #include "Core/CoreTypes.h"
 #include "Graphics/GfxVertexTypes.h"
 #include "Graphics/GfxBuffer.h"
+#include "Graphics/GfxStates.h"
 #include "TextureManager.h"
 #include "entt/entity/entity.hpp"
 
@@ -13,12 +14,16 @@
 
 namespace adria
 {
+	class GfxCommandList;
+
 	struct COMPONENT Transform
 	{
 		DirectX::XMMATRIX current_transform = DirectX::XMMatrixIdentity();
 	};
-	struct COMPONENT Mesh
+	struct COMPONENT SubMesh
 	{
+		DirectX::BoundingBox bounding_box;
+
 		std::shared_ptr<GfxBuffer>		vertex_buffer = nullptr;
 		std::shared_ptr<GfxBuffer>		index_buffer = nullptr;
 		std::shared_ptr<GfxBuffer>		instance_buffer = nullptr;
@@ -35,29 +40,7 @@ namespace adria
 		uint32 instance_count = 1;
 		uint32 start_instance_location = 0; //A value added to each index before reading per-instance data from a vertex buffer
 
-		D3D12_PRIMITIVE_TOPOLOGY topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		void Draw(ID3D12GraphicsCommandList* cmd_list) const
-		{
-			cmd_list->IASetPrimitiveTopology(topology);
-			BindVertexBuffer(cmd_list, vertex_buffer.get());
-			if (index_buffer)
-			{
-				BindIndexBuffer(cmd_list, index_buffer.get());
-				cmd_list->DrawIndexedInstanced(indices_count, instance_count, start_index_location, base_vertex_location, start_instance_location);
-			}
-			else cmd_list->DrawInstanced(vertex_count, instance_count, start_vertex_location, start_instance_location);
-		}
-		void Draw(ID3D12GraphicsCommandList* cmd_list, D3D12_PRIMITIVE_TOPOLOGY override_topology) const
-		{
-			cmd_list->IASetPrimitiveTopology(override_topology);
-			BindVertexBuffer(cmd_list, vertex_buffer.get());
-			if (index_buffer)
-			{
-				BindIndexBuffer(cmd_list, index_buffer.get());
-				cmd_list->DrawIndexedInstanced(indices_count, instance_count, start_index_location, base_vertex_location, start_instance_location);
-			}
-			else cmd_list->DrawInstanced(vertex_count, instance_count, start_vertex_location, start_instance_location);
-		}
+		GfxPrimitiveTopology topology = GfxPrimitiveTopology::TriangleList;
 	};
 	struct COMPONENT Material
 	{
@@ -89,21 +72,6 @@ namespace adria
 		inline static std::vector<uint32> rt_indices = {};
 	};
 
-	struct COMPONENT AABB
-	{
-		DirectX::BoundingBox bounding_box;
-		bool camera_visible = true;
-		bool light_visible = true;
-		bool draw_aabb = false;
-	};
-	struct COMPONENT Relationship
-	{
-		size_t children_count = 0;
-		entt::entity first = entt::null;
-		entt::entity prev = entt::null;
-		entt::entity next = entt::null;
-		entt::entity parent = entt::null;
-	};
 	struct COMPONENT Light
 	{
 		DirectX::XMVECTOR position	= DirectX::XMVectorSet(0, 0, 0, 1);
@@ -142,7 +110,6 @@ namespace adria
 	{
 		TextureHandle cubemap_texture;
 		bool active;
-		bool used_in_rt;
 	};
 	struct COMPONENT Decal
 	{
@@ -154,16 +121,12 @@ namespace adria
 	};
 	struct COMPONENT Ocean {};
 	struct COMPONENT Deferred {};
-	struct COMPONENT Forward
-	{
-		bool transparent;
-	};
 	struct COMPONENT Tag
 	{
 		std::string name = "name tag";
 	};
 
-	struct SubMesh
+	struct SubMeshGPU
 	{
 		uint64 buffer_address;
 
@@ -190,22 +153,31 @@ namespace adria
 		uint32 submesh_index;
 		DirectX::XMMATRIX world_transform;
 	};
-	struct COMPONENT NewMesh
+	struct COMPONENT Mesh
 	{
 		ArcGeometryBufferHandle geometry_buffer_handle;
 		std::vector<Material> materials;
-		std::vector<SubMesh> submeshes;
+		std::vector<SubMeshGPU> submeshes;
 		std::vector<SubMeshInstance> instances;
+	};
+
+
+	struct LightVisibility
+	{
+		
 	};
 
 	struct COMPONENT Batch
 	{
-		MaterialAlphaMode alpha_mode;
 		uint32   instance_id;
-		SubMesh* submesh;
+		SubMeshGPU*  submesh;
+		MaterialAlphaMode alpha_mode;
 		DirectX::XMMATRIX world_transform;
 		DirectX::BoundingBox bounding_box;
+
+		bool camera_visibility = true;
+		std::vector<bool> light_visibility;
 	};
 
-
+	void Draw(SubMesh const& submesh, GfxCommandList* cmd_list, bool override_topology = false, GfxPrimitiveTopology new_topology = GfxPrimitiveTopology::Undefined);
 }

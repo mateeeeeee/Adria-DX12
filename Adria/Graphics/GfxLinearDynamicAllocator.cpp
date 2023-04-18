@@ -30,7 +30,7 @@ namespace adria
 			GfxDynamicAllocation allocation{};
 			allocation.buffer = buffer.get();
 			allocation.cpu_address = reinterpret_cast<uint8*>(cpu_address) + offset;
-			allocation.gpu_address = buffer->GetGPUAddress() + offset;
+			allocation.gpu_address = buffer->GetGpuAddress() + offset;
 			allocation.offset = offset;
 			allocation.size = size_in_bytes;
 

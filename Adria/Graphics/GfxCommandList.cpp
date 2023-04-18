@@ -8,7 +8,7 @@
 #include "GfxRenderPass.h"
 #include "GfxRingDescriptorAllocator.h"
 #include "GfxLinearDynamicAllocator.h"
-#include "GfxRayTracingUtil.h"
+#include "GfxRayTracingShaderTable.h"
 #include "Utilities/StringUtil.h"
 
 namespace adria
@@ -364,7 +364,7 @@ namespace adria
 	void GfxCommandList::WriteBufferImmediate(GfxBuffer& buffer, uint32 offset, uint32 data)
 	{
 		D3D12_WRITEBUFFERIMMEDIATE_PARAMETER parameter{};
-		parameter.Dest = buffer.GetGPUAddress() + offset;
+		parameter.Dest = buffer.GetGpuAddress() + offset;
 		parameter.Value = data;
 		cmd_list->WriteBufferImmediate(1, &parameter, nullptr);
 		++command_count;

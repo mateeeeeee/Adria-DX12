@@ -6,6 +6,8 @@
 #define DECLSPEC_ALIGN(x)   __declspec(align(x))
 #endif
 
+#define PAD uint32 ADRIA_CONCAT(pad, __COUNTER__)
+
 namespace adria
 {
 	DECLSPEC_ALIGN(16) struct FrameCBuffer
@@ -101,10 +103,12 @@ namespace adria
 		DirectX::XMMATRIX world_matrix;
 		DirectX::XMMATRIX inverse_world_matrix;
 		DirectX::XMFLOAT3 bb_origin;
+		PAD;
 		DirectX::XMFLOAT3 bb_extents;
 		uint32 instance_id;
 		uint32 material_idx;
 		uint32 mesh_index;
+		PAD[2];
 	};
 
 

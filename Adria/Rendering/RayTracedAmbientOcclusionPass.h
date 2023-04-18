@@ -1,7 +1,7 @@
 #pragma once
 #include "Enums.h"
 #include "BlurPass.h"
-#include "Graphics/GfxRayTracingUtil.h"
+#include "Graphics/GfxRayTracingShaderTable.h"
 #include "Core/CoreTypes.h"
 #include "RenderGraph/RenderGraphResourceName.h"
 

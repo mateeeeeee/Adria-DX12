@@ -227,7 +227,7 @@ namespace adria
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Sun));
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
-				auto [transform, mesh, material] = reg.get<Transform, Mesh, Material>(sun);
+				auto [transform, mesh, material] = reg.get<Transform, SubMesh, Material>(sun);
 
 				struct Constants
 				{
@@ -243,7 +243,7 @@ namespace adria
 				GfxDynamicAllocation allocation = dynamic_allocator->AllocateCBuffer<Constants>();
 				allocation.Update(constants);
 				cmd_list->SetRootCBV(2, allocation.gpu_address);
-				mesh.Draw(cmd_list->GetNative());
+				Draw(mesh, cmd_list);
 			}, RGPassType::Graphics, RGPassFlags::None);
 	}
 }

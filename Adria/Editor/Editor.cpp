@@ -470,8 +470,6 @@ namespace adria
 			std::function<void(entt::entity, bool)> ShowEntity;
 			ShowEntity = [&](entt::entity e, bool first_iteration)
 			{
-				Relationship* relationship = engine->reg.try_get<Relationship>(e);
-				if (first_iteration && relationship && relationship->parent != entt::null) return;
 				auto& tag = all_entities.get<Tag>(e);
 
 				ImGuiTreeNodeFlags flags = ((selected_entity == e) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
@@ -486,13 +484,6 @@ namespace adria
 
 				if (opened)
 				{
-					if (relationship)
-					{
-						for (entt::entity curr = relationship->first; curr != entt::null; curr = engine->reg.get<Relationship>(curr).next)
-						{
-							ShowEntity(curr, false);
-						}
-					}
 					ImGui::TreePop();
 				}
 			};
@@ -814,17 +805,6 @@ namespace adria
 							free(file_path);
 						}
 					}
-				}
-
-				auto forward = engine->reg.try_get<Forward>(selected_entity);
-				if (forward)
-				{
-					if (ImGui::CollapsingHeader("Forward")) ImGui::Checkbox("Transparent", &forward->transparent);
-				}
-
-				if (AABB* aabb = engine->reg.try_get<AABB>(selected_entity))
-				{
-					aabb->draw_aabb = true;
 				}
 			}
 		}

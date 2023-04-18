@@ -326,7 +326,7 @@ namespace adria
 				if (ocean_tesselation)
 				{
 					cmd_list->SetPipelineState(
-						ocean_tesselation ? PSOCache::Get(GfxPipelineStateID::OceanLOD_Wireframe) :
+						ocean_wireframe ? PSOCache::Get(GfxPipelineStateID::OceanLOD_Wireframe) :
 						PSOCache::Get(GfxPipelineStateID::OceanLOD));
 				}
 				else
@@ -337,44 +337,41 @@ namespace adria
 				}
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 
-				auto ocean_chunk_view = reg.view<Mesh, Material, Transform, AABB, Ocean>();
+				auto ocean_chunk_view = reg.view<SubMesh, Material, Transform, Ocean>();
 				for (auto ocean_chunk : ocean_chunk_view)
 				{
-					auto const& [mesh, material, transform, aabb] = ocean_chunk_view.get<const Mesh, const Material, const Transform, const AABB>(ocean_chunk);
+					auto const& [mesh, material, transform] = ocean_chunk_view.get<const SubMesh, const Material, const Transform>(ocean_chunk);
 
-					if (aabb.camera_visible)
+					uint32 i = descriptor_allocator->Allocate(4).GetIndex();
+					GfxDescriptor dst_handle = descriptor_allocator->GetHandle(i);
+					GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.displacement), context.GetReadOnlyTexture(data.normals), skybox_handle, g_TextureManager.GetSRV(foam_handle) };
+					gfx->CopyDescriptors(dst_handle, src_handles);
+
+					struct OceanIndices
 					{
-						uint32 i = descriptor_allocator->Allocate(4).GetIndex();
-						GfxDescriptor dst_handle = descriptor_allocator->GetHandle(i);
-						GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.displacement), context.GetReadOnlyTexture(data.normals), skybox_handle, g_TextureManager.GetSRV(foam_handle) };
-						gfx->CopyDescriptors(dst_handle, src_handles);
+						uint32 displacement_idx;
+						uint32 normal_idx;
+						uint32 sky_idx;
+						uint32 foam_idx;
+					} indices =
+					{
+						.displacement_idx = i, .normal_idx = i + 1,
+						.sky_idx = i + 2, .foam_idx = i + 3
+					};
 
-						struct OceanIndices
-						{
-							uint32 displacement_idx;
-							uint32 normal_idx;
-							uint32 sky_idx;
-							uint32 foam_idx;
-						} indices =
-						{
-							.displacement_idx = i, .normal_idx = i + 1,
-							.sky_idx = i + 2, .foam_idx = i + 3
-						};
+					struct OceanConstants
+					{
+						XMMATRIX ocean_model_matrix;
+						XMFLOAT3 ocean_color;
+					} constants =
+					{
+						.ocean_model_matrix = transform.current_transform,
+						.ocean_color = XMFLOAT3(material.base_color)
+					};
 
-						struct OceanConstants
-						{
-							XMMATRIX ocean_model_matrix;
-							XMFLOAT3 ocean_color;
-						} constants =
-						{
-							.ocean_model_matrix = transform.current_transform,
-							.ocean_color = XMFLOAT3(material.base_color)
-						};
-
-						cmd_list->SetRootConstants(1, indices);
-						cmd_list->SetRootCBV(2, constants);
-						ocean_tesselation ? mesh.Draw(cmd_list->GetNative(), D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST) : mesh.Draw(cmd_list->GetNative());
-					}
+					cmd_list->SetRootConstants(1, indices);
+					cmd_list->SetRootCBV(2, constants);
+					ocean_tesselation ? Draw(mesh, cmd_list, true, GfxPrimitiveTopology::PatchList3) : Draw(mesh, cmd_list);
 				}
 			},
 			RGPassType::Graphics, RGPassFlags::None);

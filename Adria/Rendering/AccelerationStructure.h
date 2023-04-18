@@ -9,7 +9,7 @@ namespace adria
 {
 	class GfxDevice;
 	class GfxBuffer;
-	struct Mesh;
+	struct SubMesh;
 	struct Transform;
 
 	class AccelerationStructure
@@ -18,7 +18,7 @@ namespace adria
 	public:
 		explicit AccelerationStructure(GfxDevice* gfx);
 
-		void AddInstance(Mesh const& submesh, Transform const& transform, bool is_transparent = false);
+		void AddInstance(SubMesh const& submesh, Transform const& transform, bool is_transparent = false);
 		void Build(); //add build flag options
 
 		GfxBuffer const* GetTLAS() const;

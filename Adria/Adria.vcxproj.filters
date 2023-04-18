@@ -191,7 +191,7 @@
     <ClCompile Include="Graphics\GfxStates.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\AABBPass.cpp">
+    <ClCompile Include="Rendering\DebugPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\AutomaticExposurePass.cpp">
@@ -677,7 +677,7 @@
     <ClInclude Include="Graphics\GfxStates.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\AABBPass.h">
+    <ClInclude Include="Rendering\DebugPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\CLIParser.h">

@@ -140,7 +140,7 @@ namespace adria
 		return desc;
 	}
 
-	uint64 GfxBuffer::GetGPUAddress() const
+	uint64 GfxBuffer::GetGpuAddress() const
 	{
 		return resource->GetGPUVirtualAddress();
 	}

@@ -16,7 +16,7 @@ namespace adria
 		++build_fence_value;
 	}
 
-	void AccelerationStructure::AddInstance(Mesh const& submesh, Transform const& transform, bool is_transparent /*= false*/)
+	void AccelerationStructure::AddInstance(SubMesh const& submesh, Transform const& transform, bool is_transparent /*= false*/)
 	{
 		auto dynamic_allocator = gfx->GetDynamicAllocator();
 
@@ -24,11 +24,11 @@ namespace adria
 		geo_desc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
 		geo_desc.Triangles.Transform3x4 = NULL;
 		geo_desc.Triangles.VertexBuffer.StrideInBytes = sizeof(CompleteVertex);
-		geo_desc.Triangles.VertexBuffer.StartAddress = submesh.vertex_buffer->GetGPUAddress() + geo_desc.Triangles.VertexBuffer.StrideInBytes * submesh.base_vertex_location;
+		geo_desc.Triangles.VertexBuffer.StartAddress = submesh.vertex_buffer->GetGpuAddress() + geo_desc.Triangles.VertexBuffer.StrideInBytes * submesh.base_vertex_location;
 		geo_desc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
 		geo_desc.Triangles.VertexCount = submesh.vertex_count;
 		geo_desc.Triangles.IndexFormat = ConvertGfxFormat(submesh.index_buffer->GetDesc().format);
-		geo_desc.Triangles.IndexBuffer = submesh.index_buffer->GetGPUAddress() + submesh.start_index_location * (submesh.index_buffer->GetDesc().stride);
+		geo_desc.Triangles.IndexBuffer = submesh.index_buffer->GetGpuAddress() + submesh.start_index_location * (submesh.index_buffer->GetDesc().stride);
 		geo_desc.Triangles.IndexCount = submesh.indices_count;
 		geo_desc.Flags = is_transparent ? D3D12_RAYTRACING_GEOMETRY_FLAG_NONE : D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
 		geo_descs.push_back(geo_desc);
@@ -80,8 +80,8 @@ namespace adria
 
 			D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC blas_desc{};
 			blas_desc.Inputs = inputs;
-			blas_desc.DestAccelerationStructureData = blases[i]->GetGPUAddress();
-			blas_desc.ScratchAccelerationStructureData = scratch_buffer->GetGPUAddress();
+			blas_desc.DestAccelerationStructureData = blases[i]->GetGpuAddress();
+			blas_desc.ScratchAccelerationStructureData = scratch_buffer->GetGpuAddress();
 			cmd_list->GetNative()->BuildRaytracingAccelerationStructure(&blas_desc, 0, nullptr);
 			cmd_list->UavBarrier(*blases[i]);
 			cmd_list->FlushBarriers();
@@ -143,16 +143,16 @@ namespace adria
 			p_instance_desc[i].Flags = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
 			const auto T = XMMatrixTranspose(geo_transforms[i]); //maybe transpose
 			memcpy(p_instance_desc[i].Transform, &T, sizeof(p_instance_desc->Transform));
-			p_instance_desc[i].AccelerationStructure = blases[i]->GetGPUAddress();
+			p_instance_desc[i].AccelerationStructure = blases[i]->GetGpuAddress();
 			p_instance_desc[i].InstanceMask = 0xFF;
 		}
 		tlas_buffers.instance_buffer->Unmap();
 
 		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC tlas_desc{};
 		tlas_desc.Inputs = inputs;
-		tlas_desc.Inputs.InstanceDescs = tlas_buffers.instance_buffer->GetGPUAddress();
-		tlas_desc.DestAccelerationStructureData = tlas->GetGPUAddress();
-		tlas_desc.ScratchAccelerationStructureData = tlas_buffers.scratch_buffer->GetGPUAddress();
+		tlas_desc.Inputs.InstanceDescs = tlas_buffers.instance_buffer->GetGpuAddress();
+		tlas_desc.DestAccelerationStructureData = tlas->GetGpuAddress();
+		tlas_desc.ScratchAccelerationStructureData = tlas_buffers.scratch_buffer->GetGpuAddress();
 		cmd_list->GetNative()->BuildRaytracingAccelerationStructure(&tlas_desc, 0, nullptr);
 		cmd_list->UavBarrier(*tlas);
 

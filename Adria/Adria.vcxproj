@@ -210,6 +210,7 @@
     <ClCompile Include="Graphics\GfxDevice.cpp" />
     <ClCompile Include="Graphics\GfxFence.cpp" />
     <ClCompile Include="Graphics\GfxQueryHeap.cpp" />
+    <ClCompile Include="Graphics\GfxRayTracingAS.cpp" />
     <ClCompile Include="Graphics\GfxStates.cpp" />
     <ClCompile Include="Graphics\GfxSwapchain.cpp" />
     <ClCompile Include="Graphics\GfxTexture.cpp" />
@@ -235,7 +236,8 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Rendering\AABBPass.cpp" />
+    <ClCompile Include="Rendering\Components.cpp" />
+    <ClCompile Include="Rendering\DebugPass.cpp" />
     <ClCompile Include="Rendering\AccelerationStructure.cpp" />
     <ClCompile Include="Rendering\AddTexturesPass.cpp" />
     <ClCompile Include="Rendering\AmbientPass.cpp" />
@@ -331,6 +333,7 @@
     <ClInclude Include="Graphics\GfxFence.h" />
     <ClInclude Include="Graphics\GfxFormat.h" />
     <ClInclude Include="Graphics\GfxQueryHeap.h" />
+    <ClInclude Include="Graphics\GfxRayTracingAS.h" />
     <ClInclude Include="Graphics\GfxRingDescriptorAllocator.h" />
     <ClInclude Include="Graphics\GfxSwapchain.h" />
     <ClInclude Include="Graphics\GfxDefines.h" />
@@ -341,7 +344,7 @@
     <ClInclude Include="Graphics\GfxLinearDynamicAllocator.h" />
     <ClInclude Include="Graphics\GPUProfiler.h" />
     <ClInclude Include="Graphics\GfxPipelineState.h" />
-    <ClInclude Include="Graphics\GfxRayTracingUtil.h" />
+    <ClInclude Include="Graphics\GfxRayTracingShaderTable.h" />
     <ClInclude Include="Graphics\GfxRenderPass.h" />
     <ClInclude Include="Graphics\GfxResourceCommon.h" />
     <ClInclude Include="Graphics\GfxShader.h" />
@@ -378,7 +381,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="Rendering\AABBPass.h" />
+    <ClInclude Include="Rendering\DebugPass.h" />
     <ClInclude Include="Rendering\AccelerationStructure.h" />
     <ClInclude Include="Rendering\AddTexturesPass.h" />
     <ClInclude Include="Rendering\AmbientPass.h" />

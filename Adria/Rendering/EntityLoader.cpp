@@ -106,20 +106,14 @@ namespace adria
 				.format = GfxFormat::R32_UINT
 			};
 
-			Mesh submesh{};
+			SubMesh submesh{};
 			submesh.indices_count = (uint32)indices.size();
 			submesh.vertex_buffer = std::make_shared<GfxBuffer>(gfx, vb_desc, vertices.data());
 			submesh.index_buffer = std::make_shared<GfxBuffer>(gfx, ib_desc, indices.data());
-
-			reg.emplace<Mesh>(grid, submesh);
+			submesh.bounding_box = AABBFromRange(vertices.begin(), vertices.end());
+			reg.emplace<SubMesh>(grid, submesh);
 			reg.emplace<Transform>(grid);
 
-			BoundingBox bounding_box = AABBFromRange(vertices.begin(), vertices.end());
-			AABB aabb{};
-			aabb.bounding_box = bounding_box;
-			aabb.light_visible = true;
-			aabb.camera_visible = true;
-			reg.emplace<AABB>(grid, aabb);
 			chunks.push_back(grid);
 		}
 		else
@@ -162,19 +156,12 @@ namespace adria
 						}
 					}
 
-					Mesh submesh{};
+					SubMesh submesh{};
 					submesh.indices_count = indices_count;
 					submesh.start_index_location = indices_offset;
-
-					reg.emplace<Mesh>(chunk, submesh);
+					submesh.bounding_box = AABBFromRange(chunk_vertices_aabb.begin(), chunk_vertices_aabb.end());
+					reg.emplace<SubMesh>(chunk, submesh);
 					reg.emplace<Transform>(chunk);
-
-					BoundingBox bounding_box = AABBFromRange(chunk_vertices_aabb.begin(), chunk_vertices_aabb.end());
-					AABB aabb{};
-					aabb.bounding_box = bounding_box;
-					aabb.light_visible = true;
-					aabb.camera_visible = true;
-					reg.emplace<AABB>(chunk, aabb);
 					chunks.push_back(chunk);
 				}
 			}
@@ -198,7 +185,7 @@ namespace adria
 
 			for (entt::entity chunk : chunks)
 			{
-				auto& submesh = reg.get<Mesh>(chunk);
+				auto& submesh = reg.get<SubMesh>(chunk);
 				submesh.vertex_buffer = vb;
 				submesh.index_buffer = ib;
 			}
@@ -237,7 +224,7 @@ namespace adria
 			entt::entity e = reg.create();
 			entities.push_back(e);
 
-			Mesh mesh_component{};
+			SubMesh mesh_component{};
 			mesh_component.start_index_location = static_cast<uint32>(indices.size());
 			mesh_component.base_vertex_location = static_cast<uint32>(vertices.size());
 
@@ -313,7 +300,7 @@ namespace adria
 
 		for (entt::entity e : entities)
 		{
-			auto& mesh = reg.get<Mesh>(e);
+			auto& mesh = reg.get<SubMesh>(e);
 			mesh.vertex_buffer = vb;
 			mesh.index_buffer = ib;
 			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(entt::to_integral(e)));
@@ -340,8 +327,7 @@ namespace adria
 
         Skybox sky{};
         sky.active = true;
-		sky.used_in_rt = params.used_in_rt;
-
+		
         if (params.cubemap.has_value()) sky.cubemap_texture = g_TextureManager.LoadCubemap(params.cubemap.value());
         else sky.cubemap_texture = g_TextureManager.LoadCubemap(params.cubemap_textures);
 
@@ -387,12 +373,12 @@ namespace adria
 				.stride = sizeof(uint16),
 				.format = GfxFormat::R16_UINT };
 
-            Mesh submesh{};
+            SubMesh submesh{};
             submesh.vertex_buffer = std::make_shared<GfxBuffer>(gfx, vb_desc, vertices.data());
 			submesh.index_buffer = std::make_shared<GfxBuffer>(gfx, ib_desc, indices.data());
             submesh.indices_count = static_cast<uint32>(indices.size());
 
-            reg.emplace<Mesh>(light, submesh);
+            reg.emplace<SubMesh>(light, submesh);
 
             Material material{};
 			XMFLOAT3 base_color;
@@ -409,7 +395,6 @@ namespace adria
             reg.emplace<Material>(light, material);
 			auto translation_matrix = XMMatrixTranslationFromVector(params.light_data.position);
             reg.emplace<Transform>(light, translation_matrix);
-            if(params.light_data.type != LightType::Directional) reg.emplace<Forward>(light, true);
         }
         else if (params.mesh_type == LightMesh::Sphere)
         {
@@ -509,7 +494,7 @@ namespace adria
 		return decal_entity;
 	}
 
-	std::vector<entt::entity> EntityLoader::ImportModel_GLTF(ModelParameters const& params)
+	entt::entity EntityLoader::ImportModel_GLTF(ModelParameters const& params)
 	{
 		tinygltf::TinyGLTF loader;
 		tinygltf::Model model;
@@ -531,379 +516,14 @@ namespace adria
 			ADRIA_LOG(ERROR, "Failed to load model %s", model_name.c_str());
 			return {};
 		}
-		std::vector<entt::entity> entities{};
-		HashMap<std::string, std::vector<entt::entity>> mesh_name_to_entities_map;
+		entt::entity mesh_entity = reg.create();
+		Mesh mesh{};
 
 		//process the materials
-		std::vector<Material> materials;
-		materials.reserve(model.materials.size());
+		mesh.materials.reserve(model.materials.size());
 		for (auto const& gltf_material : model.materials)
 		{
-			Material& material = materials.emplace_back();
-			material.alpha_cutoff = (float)gltf_material.alphaCutoff;
-			material.double_sided = gltf_material.doubleSided;
-			if (gltf_material.alphaMode == "OPAQUE")
-			{
-				material.alpha_mode = MaterialAlphaMode::Opaque;
-			}
-			else if (gltf_material.alphaMode == "BLEND")
-			{
-				material.alpha_mode = MaterialAlphaMode::Blend;
-			}
-			else if (gltf_material.alphaMode == "MASK")
-			{
-				material.alpha_mode = MaterialAlphaMode::Mask;
-			}
-			tinygltf::PbrMetallicRoughness pbr_metallic_roughness = gltf_material.pbrMetallicRoughness;
-			if (pbr_metallic_roughness.baseColorTexture.index >= 0)
-			{
-				tinygltf::Texture const& base_texture = model.textures[pbr_metallic_roughness.baseColorTexture.index];
-				tinygltf::Image const& base_image = model.images[base_texture.source];
-				std::string texbase = params.textures_path + base_image.uri;
-				material.albedo_texture = g_TextureManager.LoadTexture(ToWideString(texbase));
-				material.base_color[0] = (float)pbr_metallic_roughness.baseColorFactor[0];
-				material.base_color[1] = (float)pbr_metallic_roughness.baseColorFactor[1];
-				material.base_color[2] = (float)pbr_metallic_roughness.baseColorFactor[2];
-			}
-			if (pbr_metallic_roughness.metallicRoughnessTexture.index >= 0)
-			{
-				tinygltf::Texture const& metallic_roughness_texture = model.textures[pbr_metallic_roughness.metallicRoughnessTexture.index];
-				tinygltf::Image const& metallic_roughness_image = model.images[metallic_roughness_texture.source];
-				std::string texmetallicroughness = params.textures_path + metallic_roughness_image.uri;
-				material.metallic_roughness_texture = g_TextureManager.LoadTexture(ToWideString(texmetallicroughness));
-				material.metallic_factor = (float)pbr_metallic_roughness.metallicFactor;
-				material.roughness_factor = (float)pbr_metallic_roughness.roughnessFactor;
-			}
-			if (gltf_material.normalTexture.index >= 0)
-			{
-				tinygltf::Texture const& normal_texture = model.textures[gltf_material.normalTexture.index];
-				tinygltf::Image const& normal_image = model.images[normal_texture.source];
-				std::string texnormal = params.textures_path + normal_image.uri;
-				material.normal_texture = g_TextureManager.LoadTexture(ToWideString(texnormal));
-			}
-			if (gltf_material.emissiveTexture.index >= 0)
-			{
-				tinygltf::Texture const& emissive_texture = model.textures[gltf_material.emissiveTexture.index];
-				tinygltf::Image const& emissive_image = model.images[emissive_texture.source];
-				std::string texemissive = params.textures_path + emissive_image.uri;
-				material.emissive_texture = g_TextureManager.LoadTexture(ToWideString(texemissive));
-				material.emissive_factor = (float)gltf_material.emissiveFactor[0];
-			}
-		}
-
-		struct MeshData
-		{
-			std::vector<XMFLOAT3> positions_stream;
-			std::vector<XMFLOAT3> normals_stream;
-			std::vector<XMFLOAT4> tangents_stream;
-			std::vector<XMFLOAT3> bitangents_stream;
-			std::vector<XMFLOAT2> uvs_stream;
-			std::vector<uint32>   indices;
-		};
-		MeshData mesh_data{};
-
-		for (auto const& gltf_mesh : model.meshes)
-		{
-			std::vector<entt::entity>& mesh_entities = mesh_name_to_entities_map[gltf_mesh.name];
-			for (auto const& gltf_primitive : gltf_mesh.primitives)
-			{
-				ADRIA_ASSERT(gltf_primitive.indices >= 0);
-				tinygltf::Accessor const& index_accessor = model.accessors[gltf_primitive.indices];
-				tinygltf::BufferView const& buffer_view = model.bufferViews[index_accessor.bufferView];
-				tinygltf::Buffer const& buffer = model.buffers[buffer_view.buffer];
-
-				entt::entity e = reg.create();
-				entities.push_back(e);
-				mesh_entities.push_back(e);
-
-				Material material = gltf_primitive.material < 0 ? Material{} : materials[gltf_primitive.material];
-				reg.emplace<Material>(e, material);
-				reg.emplace<Deferred>(e);
-
-				Mesh submesh{};
-				submesh.indices_count = static_cast<uint32>(index_accessor.count);
-				submesh.start_index_location = static_cast<uint32>(mesh_data.indices.size());
-				submesh.base_vertex_location = static_cast<uint32>(mesh_data.positions_stream.size());
-
-				mesh_data.indices.reserve(mesh_data.indices.size() + index_accessor.count);
-				auto AddIndices =[&]<typename T>()
-				{
-					T* data = (T*)(buffer.data.data() + index_accessor.byteOffset + buffer_view.byteOffset);
-					for (size_t i = 0; i < index_accessor.count; i += 3)
-					{
-						//change later to meshData.indices
-						mesh_data.indices.push_back(data[i + 0]);
-						mesh_data.indices.push_back(data[i + 1]);
-						mesh_data.indices.push_back(data[i + 2]);
-					}
-				};
-				int stride = index_accessor.ByteStride(buffer_view);
-				switch (stride)
-				{
-				case 1:
-					AddIndices.template operator()<uint8>();
-					break;
-				case 2:
-					AddIndices.template operator()<uint16>();
-					break;
-				case 4:
-					AddIndices.template operator()<uint32>();
-					break;
-				default:
-					ADRIA_ASSERT(false);
-				}
-				switch (gltf_primitive.mode)
-				{
-				case TINYGLTF_MODE_POINTS:
-					submesh.topology = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
-					break;
-				case TINYGLTF_MODE_LINE:
-					submesh.topology = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
-					break;
-				case TINYGLTF_MODE_LINE_STRIP:
-					submesh.topology = D3D_PRIMITIVE_TOPOLOGY_LINESTRIP;
-					break;
-				case TINYGLTF_MODE_TRIANGLES:
-					submesh.topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-					break;
-				case TINYGLTF_MODE_TRIANGLE_STRIP:
-					submesh.topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
-					break;
-				default:
-					ADRIA_ASSERT(false);
-				}
-
-				for (auto const& attr : gltf_primitive.attributes)
-				{
-					std::string const& attr_name = attr.first;
-					int attr_data = attr.second;
-
-					const tinygltf::Accessor& accessor = model.accessors[attr_data];
-					const tinygltf::BufferView& buffer_view = model.bufferViews[accessor.bufferView];
-					const tinygltf::Buffer& buffer = model.buffers[buffer_view.buffer];
-
-					int stride = accessor.ByteStride(buffer_view);
-					size_t count = accessor.count;
-					const unsigned char* data = buffer.data.data() + accessor.byteOffset + buffer_view.byteOffset;
-
-					auto ReadAttributeData = [&]<typename T>(std::vector<T>& stream, const char* stream_name)
-					{
-						if (!attr_name.compare(stream_name))
-						{
-							stream.reserve(count);
-							for (size_t i = 0; i < count; ++i)
-							{
-								stream.push_back(*(T*)((size_t)data + i * stride));
-							}
-						}
-					};
-					ReadAttributeData(mesh_data.positions_stream, "POSITION");
-					ReadAttributeData(mesh_data.normals_stream, "NORMAL");
-					ReadAttributeData(mesh_data.tangents_stream, "TANGENT");
-					ReadAttributeData(mesh_data.uvs_stream, "TEXCOORD_0");
-				}
-				submesh.vertex_count = (uint32)(mesh_data.positions_stream.size() - submesh.base_vertex_location);
-				reg.emplace<Mesh>(e, submesh);
-			}
-		}
-
-		std::vector<CompleteVertex> vertices;
-		std::vector<uint32> const& indices = mesh_data.indices;
-
-		bool has_tangents = !mesh_data.tangents_stream.empty();
-		size_t vertex_count = mesh_data.positions_stream.size();
-		if (mesh_data.normals_stream.size() != vertex_count) mesh_data.normals_stream.resize(vertex_count);
-		if (mesh_data.uvs_stream.size() != vertex_count) mesh_data.uvs_stream.resize(vertex_count);
-		if (mesh_data.tangents_stream.size() != vertex_count) mesh_data.tangents_stream.resize(vertex_count);
-		if (mesh_data.bitangents_stream.size() != vertex_count) mesh_data.bitangents_stream.resize(vertex_count);
-		if (has_tangents)
-		{
-			for (size_t i = 0; i < vertex_count; ++i)
-			{
-				float tangent_handness = mesh_data.tangents_stream[i].w;
-				XMVECTOR bitangent = XMVectorScale(XMVector3Cross(XMLoadFloat3(&mesh_data.normals_stream[i]), XMLoadFloat4(&mesh_data.tangents_stream[i])), tangent_handness);
-				XMStoreFloat3(&mesh_data.bitangents_stream[i], XMVector3Normalize(bitangent));
-			}
-		}
-
-		vertices.reserve(vertex_count);
-		for (size_t i = 0; i < vertex_count; ++i)
-		{
-			vertices.emplace_back(
-				mesh_data.positions_stream[i],
-				XMFLOAT2(mesh_data.uvs_stream[i].x, 1.0f - mesh_data.uvs_stream[i].y),
-				mesh_data.normals_stream[i],
-				XMFLOAT3(mesh_data.tangents_stream[i].x, mesh_data.tangents_stream[i].y, mesh_data.tangents_stream[i].z),
-				mesh_data.bitangents_stream[i]
-			);
-		}
-
-		std::function<void(int, XMMATRIX)> LoadNode;
-		LoadNode = [&](int node_index, XMMATRIX parent_transform)
-		{
-			if (node_index < 0) return;
-			auto& node = model.nodes[node_index];
-			struct Transforms
-			{
-				XMFLOAT4 rotation_local = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-				XMFLOAT3 scale_local = XMFLOAT3(1.0f, 1.0f, 1.0f);
-				XMFLOAT3 translation_local = XMFLOAT3(0.0f, 0.0f, 0.0f);
-				XMFLOAT4X4 world;
-				bool update = true;
-				void Update()
-				{
-					if (update)
-					{
-						XMVECTOR S_local = XMLoadFloat3(&scale_local);
-						XMVECTOR R_local = XMLoadFloat4(&rotation_local);
-						XMVECTOR T_local = XMLoadFloat3(&translation_local);
-						XMMATRIX WORLD = XMMatrixScalingFromVector(S_local) *
-							XMMatrixRotationQuaternion(R_local) *
-							XMMatrixTranslationFromVector(T_local);
-						XMStoreFloat4x4(&world, WORLD);
-					}
-				}
-			} transforms;
-
-			if (!node.scale.empty())
-			{
-				transforms.scale_local = XMFLOAT3((float)node.scale[0], (float)node.scale[1], (float)node.scale[2]);
-			}
-			if (!node.rotation.empty())
-			{
-				transforms.rotation_local = XMFLOAT4((float)node.rotation[0], (float)node.rotation[1], (float)node.rotation[2], (float)node.rotation[3]);
-			}
-			if (!node.translation.empty())
-			{
-				transforms.translation_local = XMFLOAT3((float)node.translation[0], (float)node.translation[1], (float)node.translation[2]);
-			}
-			if (!node.matrix.empty())
-			{
-				transforms.world._11 = (float)node.matrix[0];
-				transforms.world._12 = (float)node.matrix[1];
-				transforms.world._13 = (float)node.matrix[2];
-				transforms.world._14 = (float)node.matrix[3];
-				transforms.world._21 = (float)node.matrix[4];
-				transforms.world._22 = (float)node.matrix[5];
-				transforms.world._23 = (float)node.matrix[6];
-				transforms.world._24 = (float)node.matrix[7];
-				transforms.world._31 = (float)node.matrix[8];
-				transforms.world._32 = (float)node.matrix[9];
-				transforms.world._33 = (float)node.matrix[10];
-				transforms.world._34 = (float)node.matrix[11];
-				transforms.world._41 = (float)node.matrix[12];
-				transforms.world._42 = (float)node.matrix[13];
-				transforms.world._43 = (float)node.matrix[14];
-				transforms.world._44 = (float)node.matrix[15];
-				transforms.update = false;
-			}
-			transforms.Update();
-
-			if (node.mesh >= 0)
-			{
-				auto const& mesh = model.meshes[node.mesh];
-				std::vector<entt::entity> const& mesh_entities = mesh_name_to_entities_map[mesh.name];
-				for (entt::entity e : mesh_entities)
-				{
-					Mesh const& mesh = reg.get<Mesh>(e);
-					XMMATRIX model = XMLoadFloat4x4(&transforms.world) * parent_transform;
-					BoundingBox bounding_box = AABBFromRange(vertices.begin() + mesh.base_vertex_location, vertices.begin() + mesh.base_vertex_location + mesh.vertex_count);
-					bounding_box.Transform(bounding_box, model);
-
-					AABB aabb{};
-					aabb.bounding_box = bounding_box;
-					aabb.light_visible = true;
-					aabb.camera_visible = true;
-					reg.emplace<AABB>(e, aabb);
-					reg.emplace<Transform>(e, model);
-				}
-			}
-
-			for (int child : node.children) LoadNode(child, XMLoadFloat4x4(&transforms.world) * parent_transform);
-		};
-		tinygltf::Scene const& scene = model.scenes[std::max(0, model.defaultScene)];
-		for (size_t i = 0; i < scene.nodes.size(); ++i)
-		{
-			LoadNode(scene.nodes[i], params.model_matrix);
-		}
-
-		GfxBufferDesc vb_desc = VertexBufferDesc(vertices.size(), sizeof(CompleteVertex), params.used_in_raytracing);
-		GfxBufferDesc ib_desc = IndexBufferDesc(indices.size(), false, params.used_in_raytracing);
-
-		std::shared_ptr<GfxBuffer> vb = std::make_shared<GfxBuffer>(gfx, vb_desc, vertices.data());
-		std::shared_ptr<GfxBuffer> ib = std::make_shared<GfxBuffer>(gfx, ib_desc, indices.data());
-
-		size_t rt_vertices_size = RayTracing::rt_vertices.size();
-		size_t rt_indices_size = RayTracing::rt_indices.size();
-		if (params.used_in_raytracing)
-		{
-			RayTracing::rt_vertices.insert(std::end(RayTracing::rt_vertices), std::begin(vertices), std::end(vertices));
-			RayTracing::rt_indices.insert(std::end(RayTracing::rt_indices), std::begin(indices), std::end(indices));
-		}
-
-		entt::entity root = reg.create();
-		reg.emplace<Transform>(root);
-		reg.emplace<Tag>(root, model_name);
-		Relationship relationship{};
-		relationship.children_count = entities.size();
-		relationship.first = entities.front();
-		reg.emplace<Relationship>(root, relationship);
-		for (size_t i = 0; i < entities.size(); ++i)
-		{
-			entt::entity e = entities[i];
-			auto& submesh = reg.get<Mesh>(e);
-			submesh.vertex_buffer = vb;
-			submesh.index_buffer = ib;
-			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(entt::to_integral(e)));
-			if (params.used_in_raytracing)
-			{
-				RayTracing rt_component{
-					.vertex_offset = (uint32)rt_vertices_size + submesh.base_vertex_location,
-					.index_offset = (uint32)rt_indices_size + submesh.start_index_location
-				};
-				reg.emplace<RayTracing>(e, rt_component);
-			}
-			Relationship relationship{};
-			relationship.parent = root;
-			relationship.children_count = 0;
-			if (i != entities.size() - 1) relationship.next = entities[i + 1];
-			if (i != 0) relationship.prev = entities[i - 1];
-			reg.emplace<Relationship>(e, relationship);
-		}
-		ADRIA_LOG(INFO, "GLTF Mesh %s successfully loaded!", params.model_path.c_str());
-		return entities;
-	}
-
-	entt::entity EntityLoader::ImportModel_GLTF_Optimized(ModelParameters const& params)
-	{
-		tinygltf::TinyGLTF loader;
-		tinygltf::Model model;
-		std::string err;
-		std::string warn;
-		bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, params.model_path);
-		std::string model_name = GetFilename(params.model_path);
-		if (!warn.empty())
-		{
-			ADRIA_LOG(WARNING, warn.c_str());
-		}
-		if (!err.empty())
-		{
-			ADRIA_LOG(ERROR, err.c_str());
-			return {};
-		}
-		if (!ret)
-		{
-			ADRIA_LOG(ERROR, "Failed to load model %s", model_name.c_str());
-			return {};
-		}
-		entt::entity mesh = reg.create();
-		NewMesh new_mesh{};
-
-		//process the materials
-		new_mesh.materials.reserve(model.materials.size());
-		for (auto const& gltf_material : model.materials)
-		{
-			Material& material = new_mesh.materials.emplace_back();
+			Material& material = mesh.materials.emplace_back();
 			material.alpha_cutoff = (float)gltf_material.alphaCutoff;
 			material.double_sided = gltf_material.doubleSided;
 			if (gltf_material.alphaMode == "OPAQUE")
@@ -1179,12 +799,12 @@ namespace adria
 			current_offset += (uint32)Align(current_copy_size, 16);
 		};
 
-		new_mesh.submeshes.reserve(mesh_datas.size());
+		mesh.submeshes.reserve(mesh_datas.size());
 		for (size_t i = 0; i < mesh_datas.size(); ++i)
 		{
 			auto const& mesh_data = mesh_datas[i];
 
-			SubMesh& submesh = new_mesh.submeshes.emplace_back();
+			SubMeshGPU& submesh = mesh.submeshes.emplace_back();
 
 			submesh.indices_offset = current_offset;
 			submesh.indices_count = (uint32)mesh_data.indices.size();
@@ -1215,8 +835,12 @@ namespace adria
 			CopyData(mesh_data.meshlet_triangles);
 
 			submesh.meshlet_count = (uint32)mesh_data.meshlets.size();
+
+			submesh.bounding_box = mesh_data.bounding_box;
+			submesh.material_index = mesh_data.material_index;
+
 		}
-		new_mesh.geometry_buffer_handle = g_GeometryBufferCache.CreateAndInitializeGeometryBuffer(staging_buffer.buffer, total_buffer_size, staging_buffer.offset);
+		mesh.geometry_buffer_handle = g_GeometryBufferCache.CreateAndInitializeGeometryBuffer(staging_buffer.buffer, total_buffer_size, staging_buffer.offset);
 
 		std::function<void(int, XMMATRIX)> LoadNode;
 		LoadNode = [&](int node_index, XMMATRIX parent_transform)
@@ -1284,10 +908,10 @@ namespace adria
 				XMMATRIX model_matrix = XMLoadFloat4x4(&transforms.world) * parent_transform;
 				for (auto primitive : mesh_primitives_map[node.mesh])
 				{
-					SubMeshInstance& instance = new_mesh.instances.emplace_back();
+					SubMeshInstance& instance = mesh.instances.emplace_back();
 					instance.submesh_index = primitive;
 					instance.world_transform = model_matrix;
-					instance.parent = mesh;
+					instance.parent = mesh_entity;
 				}
 			}
 
@@ -1300,10 +924,10 @@ namespace adria
 			LoadNode(scene.nodes[i], params.model_matrix);
 		}
 
-		reg.emplace<NewMesh>(mesh, new_mesh);
-		reg.emplace<Tag>(mesh, model_name + " mesh");
+		reg.emplace<Mesh>(mesh_entity, mesh);
+		reg.emplace<Tag>(mesh_entity, model_name + " mesh");
 
 		ADRIA_LOG(INFO, "GLTF Mesh %s successfully loaded!", params.model_path.c_str());
-		return mesh;
+		return mesh_entity;
 	}
 }

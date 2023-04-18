@@ -80,7 +80,7 @@ namespace adria
 		D3D12MA::Allocation* DetachAllocation();
 
 		GfxTextureDesc const& GetDesc() const;
-		uint64 GetGPUAddress() const;
+		uint64 GetGpuAddress() const;
 
 		bool IsMapped() const;
 		void* GetMappedData() const;

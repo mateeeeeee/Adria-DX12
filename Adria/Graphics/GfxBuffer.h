@@ -37,7 +37,7 @@ namespace adria
 		D3D12MA::Allocation* DetachAllocation();
 
 		GfxBufferDesc const& GetDesc() const;
-		uint64 GetGPUAddress() const;
+		uint64 GetGpuAddress() const;
 		uint32 GetCount() const;
 
 		bool IsMapped() const;
@@ -74,11 +74,11 @@ namespace adria
 	struct GfxVertexBufferView
 	{
 		explicit GfxVertexBufferView(GfxBuffer* buffer)
-			: buffer_location(buffer->GetGPUAddress()), size_in_bytes((uint32)buffer->GetDesc().size), stride_in_bytes(buffer->GetDesc().stride)
+			: buffer_location(buffer->GetGpuAddress()), size_in_bytes((uint32)buffer->GetDesc().size), stride_in_bytes(buffer->GetDesc().stride)
 		{}
 
-		GfxVertexBufferView(uint64 buffer_location, uint32 size_in_bytes, uint32 stride_in_bytes)
-			: buffer_location(buffer_location), size_in_bytes(size_in_bytes), stride_in_bytes(stride_in_bytes)
+		GfxVertexBufferView(uint64 buffer_location, uint32 count, uint32 stride_in_bytes)
+			: buffer_location(buffer_location), size_in_bytes(count * stride_in_bytes), stride_in_bytes(stride_in_bytes)
 		{}
 
 		uint64					    buffer_location = 0;
@@ -89,11 +89,11 @@ namespace adria
 	struct GfxIndexBufferView
 	{
 		explicit GfxIndexBufferView(GfxBuffer* buffer)
-			: buffer_location(buffer->GetGPUAddress()), size_in_bytes((uint32)buffer->GetDesc().size), format(buffer->GetDesc().format)
+			: buffer_location(buffer->GetGpuAddress()), size_in_bytes((uint32)buffer->GetDesc().size), format(buffer->GetDesc().format)
 		{}
 
-		GfxIndexBufferView(uint64 buffer_location, uint32 size_in_bytes, GfxFormat format = GfxFormat::R32_UINT)
-			: buffer_location(buffer_location), size_in_bytes(size_in_bytes), format(format)
+		GfxIndexBufferView(uint64 buffer_location, uint32 count, GfxFormat format = GfxFormat::R32_UINT)
+			: buffer_location(buffer_location), size_in_bytes(count * GetGfxFormatStride(format)), format(format)
 		{}
 
 		uint64					    buffer_location = 0;
@@ -105,7 +105,7 @@ namespace adria
 	inline void BindVertexBuffer(ID3D12GraphicsCommandList* cmd_list, GfxBuffer const* vertex_buffer)
 	{
 		D3D12_VERTEX_BUFFER_VIEW vb_view{};
-		vb_view.BufferLocation = vertex_buffer->GetGPUAddress();
+		vb_view.BufferLocation = vertex_buffer->GetGpuAddress();
 		vb_view.SizeInBytes = (UINT)vertex_buffer->GetDesc().size;
 		vb_view.StrideInBytes = vertex_buffer->GetDesc().stride;
 		cmd_list->IASetVertexBuffers(0, 1, &vb_view);
@@ -113,7 +113,7 @@ namespace adria
 	inline void BindIndexBuffer(ID3D12GraphicsCommandList* cmd_list, GfxBuffer const* index_buffer)
 	{
 		D3D12_INDEX_BUFFER_VIEW ib_view{};
-		ib_view.BufferLocation = index_buffer->GetGPUAddress();
+		ib_view.BufferLocation = index_buffer->GetGpuAddress();
 		ib_view.Format = ConvertGfxFormat(index_buffer->GetDesc().format);
 		ib_view.SizeInBytes = (UINT)index_buffer->GetDesc().size;
 		cmd_list->IASetIndexBuffer(&ib_view);

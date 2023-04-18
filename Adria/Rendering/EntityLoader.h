@@ -31,7 +31,6 @@ namespace adria
     {
         std::optional<std::wstring> cubemap;
         std::array<std::wstring, 6> cubemap_textures;
-		bool used_in_rt = true;
     };
 	struct GridParameters
 	{
@@ -87,8 +86,7 @@ namespace adria
 		[[maybe_unused]] std::vector<entt::entity> LoadOcean(OceanParameters const&);
 		[[maybe_unused]] entt::entity LoadDecal(DecalParameters const&);
 
-		[[maybe_unused]] std::vector<entt::entity> ImportModel_GLTF(ModelParameters const&);
-		[[maybe_unused]] entt::entity ImportModel_GLTF_Optimized(ModelParameters const&);
+		[[maybe_unused]] entt::entity ImportModel_GLTF(ModelParameters const&);
 	private:
         entt::registry& reg;
         GfxDevice* gfx;

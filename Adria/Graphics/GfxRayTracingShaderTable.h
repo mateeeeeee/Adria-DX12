@@ -223,5 +223,4 @@ namespace adria
 		}
 
 	};
-
 }

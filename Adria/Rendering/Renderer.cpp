@@ -413,11 +413,11 @@ namespace adria
 	{
 		if (!is_ray_tracing_supported) return;
 
-		auto ray_tracing_view = reg.view<Mesh, Transform, Material, RayTracing>();
+		auto ray_tracing_view = reg.view<SubMesh, Transform, Material, RayTracing>();
 		std::vector<GeoInfo> geo_info{};
 		for (auto entity : ray_tracing_view)
 		{
-			auto const& [mesh, transform, material, ray_tracing] = ray_tracing_view.get<Mesh, Transform, Material, RayTracing>(entity);
+			auto const& [mesh, transform, material, ray_tracing] = ray_tracing_view.get<SubMesh, Transform, Material, RayTracing>(entity);
 			geo_info.push_back(GeoInfo{
 				.vertex_offset = ray_tracing.vertex_offset,
 				.index_offset = ray_tracing.index_offset,
@@ -465,25 +465,24 @@ namespace adria
 
 	void Renderer::UpdateEnvironmentMap()
 	{
-		D3D12_CPU_DESCRIPTOR_HANDLE env_map = gfxcommon::GetCommonView(GfxCommonViewType::NullTextureCube_SRV);
+		GfxDescriptor env_map = gfxcommon::GetCommonView(GfxCommonViewType::NullTextureCube_SRV);
 		if (sky_pass.GetSkyType() == SkyType::Skybox)
 		{
 			auto skybox_entities = reg.view<Skybox>();
 			for (auto e : skybox_entities)
 			{
 				Skybox skybox = skybox_entities.get<Skybox>(e);
-				if (skybox.active && skybox.used_in_rt)
+				if (skybox.active)
 				{
 					env_map = g_TextureManager.GetSRV(skybox.cubemap_texture);
 					break;
 				}
 			}
 		}
-		ID3D12Device* device = gfx->GetDevice();
 		auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 		GfxDescriptor descriptor = descriptor_allocator->Allocate();
-		device->CopyDescriptorsSimple(1, descriptor, env_map, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		gfx->CopyDescriptors(1, descriptor, env_map);
 	}
 	void Renderer::SetupShadows()
 	{
@@ -604,7 +603,8 @@ namespace adria
 				}
 			}
 		}
-		std::vector<XMMATRIX> light_matrices{};
+		
+		std::vector<XMMATRIX> light_matrices;
 		light_matrices.reserve(light_matrices_count);
 		for (auto e : light_view)
 		{
@@ -660,7 +660,7 @@ namespace adria
 		{
 			light_matrices_buffer->Update(light_matrices.data(), light_matrices_count * sizeof(XMMATRIX), light_matrices_count * sizeof(XMMATRIX) * backbuffer_index);
 			GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
-			device->CopyDescriptorsSimple(1, dst_descriptor, light_matrices_buffer_srvs[backbuffer_index], D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			gfx->CopyDescriptors(1, dst_descriptor, light_matrices_buffer_srvs[backbuffer_index]);
 			light_matrices_srv_gpu = dst_descriptor;
 		}
 	}
@@ -668,6 +668,8 @@ namespace adria
 	void Renderer::UpdateSceneBuffers()
 	{
 		volumetric_lights = 0;
+		for (auto e : reg.view<Batch>())
+			reg.destroy(e);
 		reg.clear<Batch>();
 
 		std::vector<LightHLSL> hlsl_lights{};
@@ -702,9 +704,9 @@ namespace adria
 		std::vector<MaterialHLSL> materials;
 		uint32 instanceID = 0;
 
-		for (auto mesh_entity : reg.view<NewMesh>())
+		for (auto mesh_entity : reg.view<Mesh>())
 		{
-			NewMesh& mesh = reg.get<NewMesh>(mesh_entity);
+			Mesh& mesh = reg.get<Mesh>(mesh_entity);
 
 			GfxBuffer* mesh_buffer = g_GeometryBufferCache.GetGeometryBuffer(mesh.geometry_buffer_handle);
 			GfxDescriptor mesh_buffer_srv = g_GeometryBufferCache.GetGeometryBufferSRV(mesh.geometry_buffer_handle);
@@ -713,10 +715,10 @@ namespace adria
 
 			for (auto const& instance : mesh.instances)
 			{
-				SubMesh& submesh = mesh.submeshes[instance.submesh_index];
+				SubMeshGPU& submesh = mesh.submeshes[instance.submesh_index];
 				Material& material = mesh.materials[submesh.material_index];
 
-				submesh.buffer_address = mesh_buffer->GetGPUAddress();
+				submesh.buffer_address = mesh_buffer->GetGpuAddress();
 
 				entt::entity batch_entity = reg.create();
 				Batch& batch = reg.emplace<Batch>(batch_entity);
@@ -785,6 +787,8 @@ namespace adria
 		CopyBuffer(meshes, scene_buffers[SceneBuffer_Mesh]);
 		CopyBuffer(instances, scene_buffers[SceneBuffer_Instance]);
 		CopyBuffer(materials, scene_buffers[SceneBuffer_Material]);
+
+		size_t count = reg.size();
 	}
 
 	void Renderer::UpdateFrameConstantBuffer(float dt)
@@ -875,11 +879,12 @@ namespace adria
 	void Renderer::CameraFrustumCulling()
 	{
 		BoundingFrustum camera_frustum = camera->Frustum();
-		auto aabb_view = reg.view<AABB>();
-		for (auto e : aabb_view)
+		auto batch_view = reg.view<Batch>();
+		for (auto e : batch_view)
 		{
-			auto& aabb = aabb_view.get<AABB>(e);
-			aabb.camera_visible = camera_frustum.Intersects(aabb.bounding_box) || reg.all_of<Light>(e);
+			Batch& batch = batch_view.get<Batch>(e);
+			auto& aabb = batch.bounding_box;
+			batch.camera_visibility = camera_frustum.Intersects(aabb);
 		}
 	}
 
@@ -891,7 +896,7 @@ namespace adria
 			update_picking_data = false;
 		}
 
-		gbuffer_pass.AddPass_New(render_graph);
+		gbuffer_pass.AddPass(render_graph);
 		decals_pass.AddPass(render_graph);
 		switch (renderer_settings.postprocess.ambient_occlusion)
 		{
@@ -978,107 +983,27 @@ namespace adria
 		};
 
 		cmd_list->SetRootConstants(1, constants);
-
-		auto shadow_view = reg.view<Mesh, Transform, AABB>();
-		if (!transparent)
+		for (auto batch_entity : reg.view<Batch>())
 		{
-			cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Shadow));
-			for (auto e : shadow_view)
+			Batch& batch = reg.get<Batch>(batch_entity);
+			GfxPipelineStateID pso_id = GfxPipelineStateID::Shadow;
+			cmd_list->SetPipelineState(PSOCache::Get(pso_id));
+
+			struct ModelConstants
 			{
-				auto const& transform = shadow_view.get<Transform>(e);
-				auto const& mesh = shadow_view.get<Mesh>(e);
+				uint32 instance_id;
+			} model_constants{ .instance_id = batch.instance_id };
+			cmd_list->SetRootCBV(2, model_constants);
 
-				DirectX::XMMATRIX parent_transform = DirectX::XMMatrixIdentity();
-				if (Relationship* relationship = reg.try_get<Relationship>(e))
-				{
-					if (auto* root_transform = reg.try_get<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
-				}
-
-				struct ModelConstants
-				{
-					XMMATRIX model_matrix;
-					uint32  _unused;
-				} model_constants =
-				{
-					.model_matrix = transform.current_transform * parent_transform,
-					._unused = 0
-				};
-				cmd_list->SetRootCBV(2, model_constants);
-				mesh.Draw(cmd_list->GetNative());
-			}
-		}
-		else
-		{
-			std::vector<entt::entity> potentially_transparent, not_transparent;
-			for (auto e : shadow_view)
-			{
-				auto const& aabb = shadow_view.get<AABB>(e);
-				if (aabb.light_visible)
-				{
-					if (auto* p_material = reg.try_get<Material>(e))
-					{
-						if (p_material->albedo_texture != INVALID_TEXTURE_HANDLE)
-							potentially_transparent.push_back(e);
-						else not_transparent.push_back(e);
-					}
-					else not_transparent.push_back(e);
-				}
-			}
-
-			cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Shadow));
-			for (auto e : not_transparent)
-			{
-				auto const& transform = shadow_view.get<Transform>(e);
-				auto const& mesh = shadow_view.get<Mesh>(e);
-
-				DirectX::XMMATRIX parent_transform = DirectX::XMMatrixIdentity();
-				if (Relationship* relationship = reg.try_get<Relationship>(e))
-				{
-					if (auto* root_transform = reg.try_get<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
-				}
-				struct ModelConstants
-				{
-					XMMATRIX model_matrix;
-					uint32  _unused;
-				} model_constants =
-				{
-					.model_matrix = transform.current_transform * parent_transform,
-					._unused = 0
-				};
-				cmd_list->SetRootCBV(2, model_constants);
-				mesh.Draw(cmd_list->GetNative());
-			}
-
-			cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Shadow_Transparent));
-			for (auto e : potentially_transparent)
-			{
-				auto& transform = shadow_view.get<Transform>(e);
-				auto& mesh = shadow_view.get<Mesh>(e);
-				auto* material = reg.try_get<Material>(e);
-				ADRIA_ASSERT(material != nullptr);
-				ADRIA_ASSERT(material->albedo_texture != INVALID_TEXTURE_HANDLE);
-
-				XMMATRIX parent_transform = XMMatrixIdentity();
-				if (Relationship* relationship = reg.try_get<Relationship>(e))
-				{
-					if (auto* root_transform = reg.try_get<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
-				}
-				struct ModelConstants
-				{
-					XMMATRIX model_matrix;
-					uint32   albedo_idx;
-				} model_constants =
-				{
-					.model_matrix = transform.current_transform * parent_transform,
-					.albedo_idx = (uint32)material->albedo_texture
-				};
-				cmd_list->SetRootCBV(2, model_constants);
-				mesh.Draw(cmd_list->GetNative());
-			}
+			GfxIndexBufferView ibv(batch.submesh->buffer_address + batch.submesh->indices_offset, batch.submesh->indices_count);
+			cmd_list->SetTopology(GfxPrimitiveTopology::TriangleList);
+			cmd_list->SetIndexBuffer(&ibv);
+			cmd_list->DrawIndexed(batch.submesh->indices_count);
 		}
 	}
 	void Renderer::AddShadowMapPasses(RenderGraph& rg)
 	{
+		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
 		auto light_view = reg.view<Light>();
 		for (auto e : light_view)
 		{
@@ -1103,6 +1028,7 @@ namespace adria
 						},
 						[=](RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 						{
+							cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 							ShadowMapPass_Common(gfx, cmd_list, false, light_index, i);
 						}, RGPassType::Graphics);
 					}
@@ -1119,6 +1045,7 @@ namespace adria
 					},
 					[=](RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 					{
+						cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 						ShadowMapPass_Common(gfx, cmd_list, false, light_index);
 					}, RGPassType::Graphics);
 				}
@@ -1137,6 +1064,7 @@ namespace adria
 						},
 						[=](RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 						{
+							cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 							ShadowMapPass_Common(gfx, cmd_list, false, light_index, i);
 						}, RGPassType::Graphics);
 				}
@@ -1153,6 +1081,7 @@ namespace adria
 					},
 					[=](RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
 					{
+						cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 						ShadowMapPass_Common(gfx, cmd_list, false, light_index);
 					}, RGPassType::Graphics);
 			}

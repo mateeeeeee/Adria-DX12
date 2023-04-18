@@ -19,7 +19,6 @@ namespace adria
 	class EditorConsole;
 	struct EngineInit;
 	struct Material;
-	struct AABB;
 
 	struct EditorInit
 	{

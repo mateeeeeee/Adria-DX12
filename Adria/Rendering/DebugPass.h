@@ -11,10 +11,10 @@ namespace adria
 	class GfxDevice;
 	class GfxBuffer;
 	
-	class AABBPass
+	class DebugPass
 	{
 	public:
-		AABBPass(entt::registry& reg, uint32 w, uint32 h);
+		DebugPass(entt::registry& reg, uint32 w, uint32 h);
 		void AddPass(RenderGraph& rg);
 
 		void OnSceneInitialized(GfxDevice* gfx);

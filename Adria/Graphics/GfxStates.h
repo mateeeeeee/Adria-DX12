@@ -21,7 +21,38 @@ namespace adria
 		PointList,
 		LineList,
 		LineStrip,
-		PatchList,
+		PatchList1,
+		PatchList2,
+		PatchList3,
+		PatchList4,
+		PatchList5,
+		PatchList6,
+		PatchList7,
+		PatchList8,
+		PatchList9,
+		PatchList10,
+		PatchList11,
+		PatchList12,
+		PatchList13,
+		PatchList14,
+		PatchList15,
+		PatchList16,
+		PatchList17,
+		PatchList18,
+		PatchList19,
+		PatchList20,
+		PatchList21,
+		PatchList22,
+		PatchList23,
+		PatchList24,
+		PatchList25,
+		PatchList26,
+		PatchList27,
+		PatchList28,
+		PatchList29,
+		PatchList30,
+		PatchList31,
+		PatchList32
 	};
 	enum class GfxComparisonFunc : uint8
 	{
@@ -171,7 +202,7 @@ namespace adria
 		}
 		return D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
 	}
-	inline constexpr D3D_PRIMITIVE_TOPOLOGY ConvertPrimitiveTopology(GfxPrimitiveTopology topology, uint32_t control_points = 0)
+	inline constexpr D3D_PRIMITIVE_TOPOLOGY ConvertPrimitiveTopology(GfxPrimitiveTopology topology)
 	{
 		switch (topology)
 		{
@@ -185,11 +216,10 @@ namespace adria
 			return D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 		case GfxPrimitiveTopology::TriangleStrip:
 			return D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
-		case GfxPrimitiveTopology::PatchList:
-			if (control_points == 0 || control_points > 32) return D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
-			else return D3D_PRIMITIVE_TOPOLOGY(D3D_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST + (control_points - 1));
 		default:
-			return D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
+			if (topology >= GfxPrimitiveTopology::PatchList1 && topology <= GfxPrimitiveTopology::PatchList32) 
+				return D3D_PRIMITIVE_TOPOLOGY(D3D_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST + ((uint32)topology - (uint32)GfxPrimitiveTopology::PatchList1));
+			else return D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
 		}
 	}
 }

@@ -1,4 +1,4 @@
-#include "../CommonResources.hlsli"
+#include "../Scene.hlsli"
 #include "../Lighting.hlsli"
 
 struct ShadowConstants
@@ -6,23 +6,15 @@ struct ShadowConstants
 	uint  lightIndex;
 	uint  matrixIndex;
 };
-ConstantBuffer<ShadowConstants> PassCB : register(b1);
+ConstantBuffer<ShadowConstants> ShadowCB : register(b1);
 
 struct ModelConstants
 {
-	row_major matrix modelMatrix;
-	uint albedoIdx;
+	uint instanceId;
 };
-
 ConstantBuffer<ModelConstants> ModelCB : register(b2);
 
-struct VS_INPUT
-{
-	float3 Pos : POSITION;
-#if ALPHA_TEST
-	float2 TexCoords : TEX;
-#endif
-};
+
 struct VS_OUTPUT
 {
 	float4 Pos : SV_POSITION;
@@ -31,21 +23,25 @@ struct VS_OUTPUT
 #endif
 };
 
-VS_OUTPUT ShadowVS(VS_INPUT input)
+VS_OUTPUT ShadowVS(uint vertexId : SV_VertexID)
 {
 	StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
 	StructuredBuffer<float4x4> lightViewProjections = ResourceDescriptorHeap[FrameCB.lightsMatricesIdx];
-	Light light = lights[PassCB.lightIndex];
-	float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex + PassCB.matrixIndex];
+	Light light = lights[ShadowCB.lightIndex];
+	float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex + ShadowCB.matrixIndex];
 
-	VS_OUTPUT output;
-	float4 pos = float4(input.Pos, 1.0f);
-	pos = mul(pos, ModelCB.modelMatrix);
-	pos = mul(pos, lightViewProjection); 
-	output.Pos = pos;
+	VS_OUTPUT output = (VS_OUTPUT)0;
+	Instance instanceData = GetInstanceData(ModelCB.instanceId);
+	Mesh meshData = GetMeshData(instanceData.meshIndex);
+
+	float3 pos = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.positionsOffset, vertexId);
+	float4 posWS = mul(float4(pos, 1.0f), instanceData.worldMatrix);
+	float4 posLS = mul(posWS, lightViewProjection);
+	output.Pos = posLS;
 
 #if ALPHA_TEST
-	output.TexCoords = input.TexCoords;
+	float2 uv = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, vertexId);
+	output.TexCoords = uv;
 #endif
 	return output;
 }
@@ -53,7 +49,10 @@ VS_OUTPUT ShadowVS(VS_INPUT input)
 void ShadowPS(VS_OUTPUT input)
 {
 #if ALPHA_TEST 
-	Texture2D albedoTx = ResourceDescriptorHeap[ModelCB.albedoIdx];
-	if (albedoTx.Sample(LinearWrapSampler, input.TexCoords).a < 0.1) discard;
+	Instance instanceData = GetInstanceData(ModelCB.instanceId);
+	Material materialData = GetMaterialData(instanceData.materialIdx);
+
+	Texture2D albedoTx = ResourceDescriptorHeap[materialData.diffuseIdx];
+	if (albedoTx.Sample(LinearWrapSampler, input.TexCoords).a < materialData.alphaCutoff) discard;
 #endif
 }

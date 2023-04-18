@@ -204,7 +204,7 @@ namespace adria
 		}
 	}
 
-	uint64 GfxTexture::GetGPUAddress() const
+	uint64 GfxTexture::GetGpuAddress() const
 	{
 		return resource->GetGPUVirtualAddress();
 	}

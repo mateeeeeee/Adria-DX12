@@ -727,7 +727,7 @@ namespace adria
 				{
 					is_accel_struct = true;
 					srv_desc.ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
-					srv_desc.RaytracingAccelerationStructure.Location = buffer->GetGPUAddress();
+					srv_desc.RaytracingAccelerationStructure.Location = buffer->GetGpuAddress();
 				}
 			}
 			else
