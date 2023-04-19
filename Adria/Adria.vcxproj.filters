@@ -408,6 +408,15 @@
     <ClCompile Include="..\ThirdParty\ImGui\ImGui\ImGuizmo.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\GfxRayTracingAS.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\GfxCapabilities.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Components.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -821,9 +830,6 @@
     <ClInclude Include="Graphics\GfxRingDescriptorAllocator.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GfxRayTracingUtil.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\GfxLinearDynamicAllocator.h">
       <Filter>Graphics</Filter>
     </ClInclude>
@@ -899,6 +905,45 @@
     </ClInclude>
     <ClInclude Include="Rendering\ShaderStructs.h">
       <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_barriers.h">
+      <Filter>gfx-external</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_check_feature_support.h">
+      <Filter>gfx-external</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_core.h">
+      <Filter>gfx-external</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_default.h">
+      <Filter>gfx-external</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_pipeline_state_stream.h">
+      <Filter>gfx-external</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_property_format_table.h">
+      <Filter>gfx-external</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_render_pass.h">
+      <Filter>gfx-external</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_resource_helpers.h">
+      <Filter>gfx-external</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_root_signature.h">
+      <Filter>gfx-external</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_state_object.h">
+      <Filter>gfx-external</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxRayTracingShaderTable.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxRayTracingAS.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxCapabilities.h">
+      <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

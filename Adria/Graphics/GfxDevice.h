@@ -130,6 +130,12 @@ namespace adria
 		{
 			return GFX_BACKBUFFER_COUNT;
 		}
+
+		void GetASPrebuildInfo()
+		{
+
+		}
+
 	private:
 		uint32 width, height;
 		uint32 frame_index;
@@ -193,7 +199,7 @@ namespace adria
 			HANDLE   dred_wait_handle;
 		};
 		std::unique_ptr<DRED> dred;
-		bool rendering_not_started = true; 
+		bool rendering_not_started = true;
 
 	private:
 		void SetupOptions(GfxOptions const& options, uint32& dxgi_factory_flags);

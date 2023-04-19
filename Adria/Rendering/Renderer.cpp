@@ -242,22 +242,6 @@ namespace adria
 		}
 	}
 
-	struct GeoInfo
-	{
-		uint32	vertex_offset;
-		uint32	index_offset;
-		int32	albedo_idx;
-		int32	normal_idx;
-		int32	metallic_roughness_idx;
-		int32	emissive_idx;
-
-		DirectX::XMFLOAT3 base_color;
-		float  metallic_factor;
-		float  roughness_factor;
-		float  emissive_factor;
-		float  alpha_cutoff;
-	};
-
 	Renderer::Renderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx),
 		accel_structure(gfx), camera(nullptr), width(width), height(height),
 		backbuffer_count(gfx->BackbufferCount()), backbuffer_index(gfx->BackbufferIndex()), final_texture(nullptr),
@@ -317,12 +301,6 @@ namespace adria
 		rg_blackboard.Add<FrameBlackboardData>(std::move(global_data));
 
 		render_graph.ImportTexture(RG_RES_NAME(Backbuffer), gfx->GetBackbuffer());
-		if (ray_tracing_supported && !RayTracing::rt_vertices.empty())
-		{
-			render_graph.ImportBuffer(RG_RES_NAME(BigVertexBuffer), global_vb.get());
-			render_graph.ImportBuffer(RG_RES_NAME(BigIndexBuffer), global_ib.get());
-			render_graph.ImportBuffer(RG_RES_NAME(BigGeometryBuffer), geo_buffer.get());
-		}
 
 		if (renderer_settings.render_path == RenderPathType::PathTracing) Render_PathTracing(render_graph);
 		else Render_Deferred(render_graph);
@@ -378,7 +356,7 @@ namespace adria
 		ocean_renderer.OnSceneInitialized(gfx);
 		aabb_pass.OnSceneInitialized(gfx);
 		tonemap_pass.OnSceneInitialized(gfx);
-		CreateGlobalBuffers();
+		CreateAS();
 
 		gfxcommon::Initialize(gfx);
 		g_TextureManager.OnSceneInitialized();
@@ -400,60 +378,19 @@ namespace adria
 		final_texture = std::make_unique<GfxTexture>(gfx, ldr_desc);
 		final_texture_srv = gfx->CreateTextureSRV(final_texture.get());
 	}
-	void Renderer::CreateGlobalBuffers()
+	void Renderer::CreateAS()
 	{
 		if (!ray_tracing_supported) return;
+		if (reg.view<RayTracing>().size() == 0) return;
 
-		if (RayTracing::rt_vertices.empty() || RayTracing::rt_indices.empty())
-		{
-			ADRIA_LOG(WARNING, "Ray tracing buffers are empty. This is expected if the meshes are loaded with ray-tracing support off");
-			return;
-		}
-
-		auto ray_tracing_view = reg.view<SubMesh, Transform, Material, RayTracing>();
-
-		std::vector<GeoInfo> geo_info{};
+		auto ray_tracing_view = reg.view<Mesh, RayTracing>();
 		for (auto entity : ray_tracing_view)
 		{
-			auto const& [mesh, transform, material, ray_tracing] = ray_tracing_view.get<SubMesh, Transform, Material, RayTracing>(entity);
-			geo_info.push_back(GeoInfo{
-				.vertex_offset = ray_tracing.vertex_offset,
-				.index_offset = ray_tracing.index_offset,
-				.albedo_idx = (int32)material.albedo_texture,
-				.normal_idx = (int32)material.normal_texture,
-				.metallic_roughness_idx = (int32)material.metallic_roughness_texture,
-				.emissive_idx = (int32)material.emissive_texture,
-				.base_color = XMFLOAT3(material.base_color),
-				.metallic_factor = material.metallic_factor,
-				.roughness_factor = material.roughness_factor,
-				.emissive_factor = material.emissive_factor,
-				.alpha_cutoff = material.alpha_cutoff
-				});
-			accel_structure.AddInstance(mesh, transform);
+			auto const& mesh = ray_tracing_view.get<Mesh>(entity);
+			accel_structure.AddInstance(mesh);
 		}
-		if (geo_info.empty()) return;
-
 		accel_structure.Build();
-		tlas_srv = gfx->CreateBufferSRV(accel_structure.GetTLAS());
-
-		GfxBufferDesc desc = StructuredBufferDesc<GeoInfo>(geo_info.size(), false);
-		geo_buffer = std::make_unique<GfxBuffer>(gfx, desc, geo_info.data());
-
-		GfxBufferDesc vb_desc{};
-		vb_desc.bind_flags = GfxBindFlag::ShaderResource;
-		vb_desc.misc_flags = GfxBufferMiscFlag::VertexBuffer | GfxBufferMiscFlag::BufferStructured;
-		vb_desc.size = RayTracing::rt_vertices.size() * sizeof(CompleteVertex);
-		vb_desc.stride = sizeof(CompleteVertex);
-
-		GfxBufferDesc ib_desc{};
-		ib_desc.bind_flags = GfxBindFlag::ShaderResource;
-		ib_desc.misc_flags = GfxBufferMiscFlag::IndexBuffer | GfxBufferMiscFlag::BufferStructured;
-		ib_desc.size = RayTracing::rt_indices.size() * sizeof(uint32);
-		ib_desc.stride = sizeof(uint32);
-		ib_desc.format = GfxFormat::R32_UINT;
-
-		global_vb = std::make_unique<GfxBuffer>(gfx, vb_desc, RayTracing::rt_vertices.data());
-		global_ib = std::make_unique<GfxBuffer>(gfx, ib_desc, RayTracing::rt_indices.data());
+		tlas_srv = gfx->CreateBufferSRV(&*accel_structure.GetTLAS());
 	}
 
 	void Renderer::UpdateEnvironmentMap()
@@ -855,7 +792,7 @@ namespace adria
 			}
 		}
 
-		if (ray_tracing_supported && !RayTracing::rt_vertices.empty())
+		if (ray_tracing_supported && reg.view<RayTracing>().size())
 		{
 			auto descriptor_allocator = gfx->GetDescriptorAllocator();
 			GfxDescriptor accel_struct_descriptor = descriptor_allocator->Allocate();

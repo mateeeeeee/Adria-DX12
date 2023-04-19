@@ -58,20 +58,6 @@ namespace adria
 		float alpha_cutoff	= 0.5f;
 		bool  double_sided	= false;
 	};
-	struct COMPONENT RayTracing
-	{
-		friend class EntityLoader;
-		friend class Renderer;
-
-	public:
-		uint32 vertex_offset; //offset to global raytracing vertex buffer
-		uint32 index_offset;  //offset to global raytracing index buffer
-
-	private:
-		inline static std::vector<CompleteVertex> rt_vertices = {};
-		inline static std::vector<uint32> rt_indices = {};
-	};
-
 	struct COMPONENT Light
 	{
 		DirectX::XMVECTOR position	= DirectX::XMVectorSet(0, 0, 0, 1);
@@ -119,12 +105,14 @@ namespace adria
 		DecalType decal_type = DecalType::Project_XY;
 		bool modify_gbuffer_normals = false;
 	};
-	struct COMPONENT Ocean {};
-	struct COMPONENT Deferred {};
 	struct COMPONENT Tag
 	{
 		std::string name = "name tag";
 	};
+
+	struct COMPONENT RayTracing {};
+	struct COMPONENT Ocean {};
+	struct COMPONENT Deferred {};
 
 	struct SubMeshGPU
 	{
@@ -132,6 +120,7 @@ namespace adria
 
 		uint32 indices_offset;
 		uint32 indices_count;
+		uint32 vertices_count;
 
 		uint32 positions_offset;
 		uint32 uvs_offset;
@@ -164,7 +153,7 @@ namespace adria
 
 	struct LightVisibility
 	{
-		
+
 	};
 
 	struct COMPONENT Batch

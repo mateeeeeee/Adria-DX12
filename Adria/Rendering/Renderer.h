@@ -28,7 +28,7 @@
 #include "Graphics/GfxShaderCompiler.h"
 #include "Graphics/GfxConstantBuffer.h"
 #include "Graphics/GPUProfiler.h"
-#include "Utilities/CPUProfiler.h" 
+#include "Utilities/CPUProfiler.h"
 #include "RenderGraph/RenderGraphResourcePool.h"
 
 namespace adria
@@ -56,10 +56,10 @@ namespace adria
 		void OnSceneInitialized();
 		void OnRightMouseClicked(int32 x, int32 y);
 
-		GfxDescriptor GetFinalTextureSRV() const 
-		{ 
+		GfxDescriptor GetFinalTextureSRV() const
+		{
 			return final_texture_srv;
-		}		
+		}
 		PickingData const& GetPickingData() const { return picking_data; }
 
 		uint32 GetWidth() const { return width; }
@@ -137,11 +137,8 @@ namespace adria
 		bool ray_tracing_supported = false;
 		AccelerationStructure accel_structure;
 		GfxDescriptor tlas_srv;
-		std::unique_ptr<GfxBuffer> global_vb = nullptr;
-		std::unique_ptr<GfxBuffer> global_ib = nullptr;
-		std::unique_ptr<GfxBuffer> geo_buffer = nullptr;
 
-		//picking 
+		//picking
 		bool update_picking_data = false;
 		PickingData picking_data;
 
@@ -157,7 +154,7 @@ namespace adria
 
 	private:
 		void CreateSizeDependentResources();
-		void CreateGlobalBuffers();
+		void CreateAS();
 
 		void UpdateEnvironmentMap();
 		void MiscGUI();

@@ -327,7 +327,7 @@ namespace adria
 
         Skybox sky{};
         sky.active = true;
-		
+
         if (params.cubemap.has_value()) sky.cubemap_texture = g_TextureManager.LoadCubemap(params.cubemap.value());
         else sky.cubemap_texture = g_TextureManager.LoadCubemap(params.cubemap_textures);
 
@@ -810,6 +810,7 @@ namespace adria
 			submesh.indices_count = (uint32)mesh_data.indices.size();
 			CopyData(mesh_data.indices);
 
+			submesh.vertices_count = (uint32)mesh_data.positions_stream.size();
 			submesh.positions_offset = current_offset;
 			CopyData(mesh_data.positions_stream);
 
@@ -926,6 +927,8 @@ namespace adria
 
 		reg.emplace<Mesh>(mesh_entity, mesh);
 		reg.emplace<Tag>(mesh_entity, model_name + " mesh");
+
+		if (gfx->GetCapabilities().SupportsRayTracing()) reg.emplace<RayTracing>(mesh_entity);
 
 		ADRIA_LOG(INFO, "GLTF Mesh %s successfully loaded!", params.model_path.c_str());
 		return mesh_entity;

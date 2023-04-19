@@ -1,5 +1,5 @@
 #pragma once
-#include <vector>
+#include <span>
 #include <memory>
 #include "GfxFormat.h"
 
@@ -24,8 +24,8 @@ namespace adria
 	enum GfxRayTracingInstanceFlagBit : uint32
 	{
 		GfxRayTracingInstanceFlag_None = 0x0,
-		GfxRayTracingInstanceFlag_DisableCull = 0x1,
-		GfxRayTracingInstanceFlag_FrontFaceCCW = 0x2,
+		GfxRayTracingInstanceFlag_CullDisable = 0x1,
+		GfxRayTracingInstanceFlag_FrontCCW = 0x2,
 		GfxRayTracingInstanceFlag_ForceOpaque = 0x4,
 		GfxRayTracingInstanceFlag_ForceNoOpaque = 0x8,
 	};
@@ -48,66 +48,43 @@ namespace adria
 		bool opaque;
 	};
 
+	class GfxRayTracingBLAS
+	{
+	public:
+		GfxRayTracingBLAS(GfxDevice* gfx, std::span<GfxRayTracingGeometry> geometries, GfxRayTracingASFlags flags);
+		~GfxRayTracingBLAS();
+
+		uint64 GetGpuAddress() const;
+		GfxBuffer const& GetBuffer() const { return *result_buffer; }
+		GfxBuffer const& operator*() const { return *result_buffer; }
+
+	private:
+		std::unique_ptr<GfxBuffer> result_buffer;
+		std::unique_ptr<GfxBuffer> scratch_buffer;
+	};
+
+
 	struct GfxRayTracingInstance
 	{
 		GfxRayTracingBLAS* blas;
-		float transform[12]; 
+		float transform[4][4];
 		uint32 instance_id;
 		uint8 instance_mask;
 		GfxRayTracingInstanceFlags flags;
 	};
 
-	struct GfxRayTracingBLASDesc
-	{
-		std::vector<GfxRayTracingGeometry> geometries;
-		GfxRayTracingASFlags flags;
-	};
-
-	struct GfxRayTracingTLASDesc
-	{
-		uint32 instance_count;
-		GfxRayTracingASFlags flags;
-	};
-
-	class GfxRayTracingBLAS 
-	{
-	public:
-		GfxRayTracingBLAS(GfxDevice* gfx, GfxRayTracingBLASDesc const& desc)
-		{
-
-		}
-		~GfxRayTracingBLAS()
-		{
-
-		}
-
-		GfxRayTracingBLASDesc const& GetDesc() const { return desc; }
-		uint64 GetGpuAddress() const;
-
-	private:
-		GfxRayTracingBLASDesc desc;
-		std::unique_ptr<GfxBuffer> as_buffer;
-		std::unique_ptr<GfxBuffer> scratch_buffer;
-	};
-
 	class GfxRayTracingTLAS
 	{
 	public:
-		GfxRayTracingTLAS(GfxDevice* gfx, GfxRayTracingTLASDesc const& desc)
-		{
+		GfxRayTracingTLAS(GfxDevice* gfx, std::span<GfxRayTracingInstance> instances, GfxRayTracingASFlags flags);
+		~GfxRayTracingTLAS();
 
-		}
-		~GfxRayTracingTLAS()
-		{
-
-		}
-
-		GfxRayTracingTLASDesc const& GetDesc() const { return desc; }
 		uint64 GetGpuAddress() const;
+		GfxBuffer const& GetBuffer() const { return *result_buffer; }
+		GfxBuffer const& operator*() const { return *result_buffer; }
 
 	private:
-		GfxRayTracingTLASDesc desc;
-		std::unique_ptr<GfxBuffer> as_buffer;
+		std::unique_ptr<GfxBuffer> result_buffer;
 		std::unique_ptr<GfxBuffer> scratch_buffer;
 		std::unique_ptr<GfxBuffer> instance_buffer;
 		void* instance_buffer_cpu_address = nullptr;

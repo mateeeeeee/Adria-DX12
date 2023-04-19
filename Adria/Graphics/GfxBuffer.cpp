@@ -148,7 +148,7 @@ namespace adria
 	uint32 GfxBuffer::GetCount() const
 	{
 		ADRIA_ASSERT(desc.stride != 0);
-		return static_cast<UINT>(desc.size / desc.stride);
+		return static_cast<uint32>(desc.size / desc.stride);
 	}
 
 	bool GfxBuffer::IsMapped() const
