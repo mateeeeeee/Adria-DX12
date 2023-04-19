@@ -44,13 +44,13 @@ namespace adria
 			d3d12_desc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
 			d3d12_desc.Flags = geometry.opaque ? D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE : D3D12_RAYTRACING_GEOMETRY_FLAG_NONE;
 			d3d12_desc.Triangles.Transform3x4 = NULL;
-			d3d12_desc.Triangles.VertexBuffer.StartAddress = geometry.vertex_buffer->GetGpuAddress() + geometry.vertex_buffer_offset * geometry.vertex_stride;
+			d3d12_desc.Triangles.VertexBuffer.StartAddress = geometry.vertex_buffer->GetGpuAddress() + geometry.vertex_buffer_offset;
 			d3d12_desc.Triangles.VertexBuffer.StrideInBytes = geometry.vertex_stride;
 			d3d12_desc.Triangles.VertexCount = geometry.vertex_count;
 			d3d12_desc.Triangles.VertexFormat = ConvertGfxFormat(geometry.vertex_format);
 			d3d12_desc.Triangles.IndexFormat = ConvertGfxFormat(geometry.index_format);
 			d3d12_desc.Triangles.IndexCount = geometry.index_count;
-			d3d12_desc.Triangles.IndexBuffer = geometry.index_buffer->GetGpuAddress() + geometry.index_buffer_offset * GetGfxFormatStride(geometry.index_format);
+			d3d12_desc.Triangles.IndexBuffer = geometry.index_buffer->GetGpuAddress() + geometry.index_buffer_offset;
 			return d3d12_desc;
 		}
 	}

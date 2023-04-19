@@ -72,35 +72,30 @@ namespace adria
 		for (size_t i = 0; i < blases.size(); ++i)
 		{
 			blases[i] = std::make_unique<GfxRayTracingBLAS>(gfx, geometry_span.subspan(i, 1), GfxRayTracingASFlag_PreferFastTrace);
-
-			//#todo improve this!!
-			cmd_list->UavBarrier(blases[i]->GetBuffer());
-			cmd_list->FlushBarriers();
-			cmd_list->Signal(build_fence, build_fence_value);
-			cmd_list->End();
-			cmd_list->Submit();
-			cmd_list->Begin();
-
-			build_fence.Wait(build_fence_value);
-			++build_fence_value;
 		}
+		cmd_list->Signal(build_fence, build_fence_value);
+		cmd_list->End();
+		cmd_list->Submit();
 	}
 
 	void AccelerationStructure::BuildTopLevel()
 	{
 		GfxCommandList* cmd_list = gfx->GetGraphicsCommandList();
-
-		tlas = std::make_unique<GfxRayTracingTLAS>(gfx, rt_instances, GfxRayTracingASFlag_PreferFastTrace);
-
-		cmd_list->UavBarrier(tlas->GetBuffer());
-		cmd_list->FlushBarriers();
-		cmd_list->Signal(build_fence, build_fence_value);
-		cmd_list->End();
-		cmd_list->Submit();
 		cmd_list->Begin();
 
 		build_fence.Wait(build_fence_value);
 		++build_fence_value;
+
+		tlas = std::make_unique<GfxRayTracingTLAS>(gfx, rt_instances, GfxRayTracingASFlag_PreferFastTrace);
+
+		cmd_list->Signal(build_fence, build_fence_value);
+		cmd_list->End();
+		cmd_list->Submit();
+
+		build_fence.Wait(build_fence_value);
+		++build_fence_value;
+
+		cmd_list->Begin();
 	}
 }
 
