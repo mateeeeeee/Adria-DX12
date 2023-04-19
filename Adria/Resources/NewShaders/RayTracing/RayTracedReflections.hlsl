@@ -79,7 +79,7 @@ void RTR_ClosestHitPrimaryRay(inout RTR_Payload payloadData, in HitAttributes at
 	float2 uv0 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i0);
 	float2 uv1 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i1);
 	float2 uv2 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i2);
-	float2 uv  = Interpolate(uv0, uv1, uv2, attribs.barycentrics); uv.y = 1.0f - uv.y;
+	float2 uv  = Interpolate(uv0, uv1, uv2, attribs.barycentrics);
 
 	float3 nor0 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.normalsOffset, i0);
 	float3 nor1 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.normalsOffset, i1);
@@ -127,7 +127,7 @@ void RTR_ClosestHitReflectionRay(inout RTR_Payload payload_data, in HitAttribute
 	float2 uv0 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i0);
 	float2 uv1 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i1);
 	float2 uv2 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i2);
-	float2 uv = Interpolate(uv0, uv1, uv2, attribs.barycentrics); uv.y = 1.0f - uv.y;
+	float2 uv = Interpolate(uv0, uv1, uv2, attribs.barycentrics);
 
 	Texture2D txAlbedo = ResourceDescriptorHeap[materialData.diffuseIdx];
     float3 albedo = 0.5f * txAlbedo.SampleLevel(LinearWrapSampler, uv, 2).rgb;

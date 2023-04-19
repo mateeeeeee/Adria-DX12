@@ -1,5 +1,6 @@
 #pragma once
 #include "RayTracingUtil.hlsli"
+#include "../Scene.hlsli"
 #include "../BRDF.hlsli"
 #include "../Lighting.hlsli"
 #include "../Tonemapping.hlsli"
@@ -80,22 +81,23 @@ struct MaterialProperties
     float opacity;
     float specular;
 };
-MaterialProperties GetMaterialProperties(MaterialData material, float2 UV, int mipLevel)
+
+MaterialProperties GetMaterialProperties(Material material, float2 UV, int mipLevel)
 {
     MaterialProperties properties = (MaterialProperties) 0;
-    float4 baseColor = float4(material.baseColor, 1.0f);
-    if (material.albedoIdx >= 0)
+    float4 baseColor = float4(material.baseColorFactor, 1.0f);
+    if (material.diffuseIdx >= 0)
     {
-        baseColor *= SampleBindlessLevel2D(material.albedoIdx, LinearWrapSampler, UV, mipLevel);
+        baseColor *= SampleBindlessLevel2D(material.diffuseIdx, LinearWrapSampler, UV, mipLevel);
     }
     properties.baseColor = baseColor.rgb;
     properties.opacity = baseColor.a;
-    
+
     properties.metallic = material.metallicFactor;
     properties.roughness = material.roughnessFactor;
-    if (material.metallicRoughnessIdx >= 0)
+    if (material.roughnessMetallicIdx >= 0)
     {
-        float4 roughnessMetalnessSample = SampleBindlessLevel2D(material.metallicRoughnessIdx, LinearWrapSampler, UV, mipLevel);
+        float4 roughnessMetalnessSample = SampleBindlessLevel2D(material.roughnessMetallicIdx, LinearWrapSampler, UV, mipLevel);
         properties.metallic *= roughnessMetalnessSample.b;
         properties.roughness *= roughnessMetalnessSample.g;
     }
@@ -105,7 +107,7 @@ MaterialProperties GetMaterialProperties(MaterialData material, float2 UV, int m
         properties.emissive *= SampleBindlessLevel2D(material.emissiveIdx, LinearWrapSampler, UV, mipLevel).rgb;
     }
     properties.specular = 0.5f;
-    
+
     properties.normalTS = float3(0.5f, 0.5f, 1.0f);
     if (material.normalIdx >= 0)
     {

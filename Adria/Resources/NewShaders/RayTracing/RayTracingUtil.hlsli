@@ -1,5 +1,4 @@
 #pragma once
-
 #include "../Common.hlsli"
 #include "../Random.hlsli"
 #include "../CommonResources.hlsli"

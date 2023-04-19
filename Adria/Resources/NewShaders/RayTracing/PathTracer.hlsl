@@ -6,29 +6,23 @@ struct PathTracingConstants
     int  accumulatedFrames;
     uint accumIdx;
     uint outputIdx;
-    uint verticesIdx;
-    uint indicesIdx;
-    uint geoInfosIdx;
 };
 ConstantBuffer<PathTracingConstants> PassCB : register(b1);
 
 [shader("raygeneration")]
 void PT_RayGen()
 {
-    StructuredBuffer<Vertex> vertices = ResourceDescriptorHeap[PassCB.verticesIdx];
-    StructuredBuffer<uint> indices = ResourceDescriptorHeap[PassCB.indicesIdx];
-    StructuredBuffer<GeoInfo> geoInfos = ResourceDescriptorHeap[PassCB.geoInfosIdx];
-    StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
+   StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
     RWTexture2D<float4> accumTx = ResourceDescriptorHeap[PassCB.accumIdx];
 
     float2 pixel = float2(DispatchRaysIndex().xy);
     float2 resolution = float2(DispatchRaysDimensions().xy);
-    
+
     uint randSeed = InitRand(pixel.x + pixel.y * resolution.x, FrameCB.frameCount, 16);
 
     float2 offset = float2(NextRand(randSeed), NextRand(randSeed));
     pixel += lerp(-0.5f.xx, 0.5f.xx, offset);
-    
+
     float2 ncdXY = (pixel / (resolution * 0.5f)) - 1.0f;
     ncdXY.y *= -1.0f;
     float4 rayStart = mul(float4(ncdXY, 0.0f, 1.0f), FrameCB.inverseViewProjection);
@@ -48,37 +42,43 @@ void PT_RayGen()
     float3 radiance = 0.0f;
     float3 throughput = 1.0f;
     float pdf = 1.0;
-    for (int i = 0; i < PassCB.bounceCount; ++i) 
+    for (int i = 0; i < PassCB.bounceCount; ++i)
     {
         HitInfo info;
         if (TraceRay(ray, info))
         {
-            uint geoId = info.instanceIndex;
             uint triangleId = info.primitiveIndex;
-            float2 barycentrics = info.barycentricCoordinates;
-    
-            GeoInfo geoInfo = geoInfos[geoId];
-            uint vbOffset = geoInfo.vertexOffset;
-            uint ibOffset = geoInfo.indexOffset;
-    
-            uint i0 = indices[ibOffset + triangleId * 3 + 0];
-            uint i1 = indices[ibOffset + triangleId * 3 + 1];
-            uint i2 = indices[ibOffset + triangleId * 3 + 2];
-    
-            Vertex v0 = vertices[vbOffset + i0];
-            Vertex v1 = vertices[vbOffset + i1];
-            Vertex v2 = vertices[vbOffset + i2];
-            float3 localPosition = Interpolate(v0.pos, v1.pos, v2.pos, barycentrics);
-            float2 uv = Interpolate(v0.uv, v1.uv, v2.uv, barycentrics);
-            uv.y = 1.0f - uv.y;
-            float3 localNormal = Interpolate(v0.nor, v1.nor, v2.nor, barycentrics);
-            float3 worldPosition = mul(localPosition, info.objectToWorldMatrix).xyz;
-            float3 worldNormal = normalize(mul(localNormal, (float3x3) transpose(info.worldToObjectMatrix)));
+
+			Instance instanceData = GetInstanceData(info.instanceIndex);
+			Mesh meshData = GetMeshData(instanceData.meshIndex);
+			Material materialData = GetMaterialData(instanceData.materialIdx);
+
+			uint i0 = LoadMeshBuffer<uint>(meshData.bufferIdx, meshData.indicesOffset, 3 * triangleId + 0);
+			uint i1 = LoadMeshBuffer<uint>(meshData.bufferIdx, meshData.indicesOffset, 3 * triangleId + 1);
+			uint i2 = LoadMeshBuffer<uint>(meshData.bufferIdx, meshData.indicesOffset, 3 * triangleId + 2);
+
+			float3 pos0 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.positionsOffset, i0);
+			float3 pos1 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.positionsOffset, i1);
+			float3 pos2 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.positionsOffset, i2);
+			float3 pos = Interpolate(pos0, pos1, pos2, info.barycentricCoordinates);
+
+			float2 uv0 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i0);
+			float2 uv1 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i1);
+			float2 uv2 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i2);
+			float2 uv = Interpolate(uv0, uv1, uv2, info.barycentricCoordinates);
+
+			float3 nor0 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.normalsOffset, i0);
+			float3 nor1 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.normalsOffset, i1);
+			float3 nor2 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.normalsOffset, i2);
+			float3 nor = normalize(Interpolate(nor0, nor1, nor2, info.barycentricCoordinates));
+
+            float3 worldPosition = mul(pos, info.objectToWorldMatrix).xyz;
+            float3 worldNormal = normalize(mul(nor, (float3x3) transpose(info.worldToObjectMatrix)));
             float3 geometryNormal = worldNormal; //for now, later with cross()
             float3 V = -ray.Direction;
-            MaterialProperties matProperties = GetMaterialProperties(geoInfo.materialData, uv, 0);
+            MaterialProperties matProperties = GetMaterialProperties(materialData, uv, 0);
             BrdfData brdfData = GetBrdfData(matProperties);
-                
+
             int lightIndex = 0;
             float lightWeight = 0.0f;
           //if (SampleLightRIS(randSeed, worldPosition, worldNormal, lightIndex, lightWeight))
@@ -91,16 +91,16 @@ void PT_RayGen()
             shadowRay.Direction = L;
             shadowRay.TMin = 1e-2f;
             shadowRay.TMax = FLT_MAX;
-            
-            float visibility = TraceShadowRay(shadowRay) ? 1.0f : 0.0f;  
+
+            float visibility = TraceShadowRay(shadowRay) ? 1.0f : 0.0f;
             float NdotL = saturate(dot(worldNormal, L));
             float3 wo = normalize(FrameCB.cameraPosition.xyz - worldPosition);
             float3 directLighting = DefaultBRDF(wi, wo, worldNormal, brdfData.Diffuse, brdfData.Specular, brdfData.Roughness) * visibility * light.color.rgb * NdotL;
             radiance += (directLighting + matProperties.emissive) * throughput / pdf;
           //}
-            
+
             if (i == PassCB.bounceCount - 1) break;
-            
+
             //indirect light
             float probDiffuse = ProbabilityToSampleDiffuse(brdfData.Diffuse, brdfData.Specular);
             bool chooseDiffuse = NextRand(randSeed) < probDiffuse;
@@ -118,7 +118,7 @@ void PT_RayGen()
             {
                 float2 u = float2(NextRand(randSeed), NextRand(randSeed));
                 float3 H = SampleGGX(u, brdfData.Roughness, worldNormal);
-                                
+
                 float roughness = max(brdfData.Roughness, 0.065);
 
                 wi = reflect(-wo, H);
@@ -138,7 +138,7 @@ void PT_RayGen()
                 float samplePDF = D * NdotH / (4 * LdotH);
                 pdf *= samplePDF * (1.0 - probDiffuse);
             }
-            
+
             ray.Origin = OffsetRay(worldPosition, worldNormal);
             ray.Direction = wi;
             ray.TMin = 1e-2f;
@@ -162,7 +162,7 @@ void PT_RayGen()
     {
         radiance = float3(1, 0, 0);
     }
-    
+
     RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
     accumTx[DispatchRaysIndex().xy] = float4(radiance, 1.0);
     outputTx[DispatchRaysIndex().xy] = float4(radiance / PassCB.accumulatedFrames, 1.0f);

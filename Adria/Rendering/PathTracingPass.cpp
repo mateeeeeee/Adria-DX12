@@ -1,7 +1,7 @@
 #include "PathTracingPass.h"
 #include "BlackboardData.h"
 #include "ShaderCache.h"
-#include "PSOCache.h" 
+#include "PSOCache.h"
 
 #include "Graphics/GfxShader.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
@@ -33,10 +33,6 @@ namespace adria
 		{
 			RGTextureReadWriteId output;
 			RGTextureReadWriteId accumulation;
-
-			RGBufferReadOnlyId vb;
-			RGBufferReadOnlyId ib;
-			RGBufferReadOnlyId geo;
 		};
 
 		rg.ImportTexture(RG_RES_NAME(AccumulationTexture), accumulation_texture.get());
@@ -52,21 +48,14 @@ namespace adria
 
 				data.output = builder.WriteTexture(RG_RES_NAME(PT_Output));
 				data.accumulation = builder.WriteTexture(RG_RES_NAME(AccumulationTexture));
-
-				data.vb = builder.ReadBuffer(RG_RES_NAME(BigVertexBuffer));
-				data.ib = builder.ReadBuffer(RG_RES_NAME(BigIndexBuffer));
-				data.geo = builder.ReadBuffer(RG_RES_NAME(BigGeometryBuffer));
 			},
 			[=](PathTracingPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-				uint32 i = descriptor_allocator->Allocate(5).GetIndex();
+				uint32 i = descriptor_allocator->Allocate(2).GetIndex();
 				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadWriteTexture(data.accumulation));
 				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.output));
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadOnlyBuffer(data.vb));
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 3), ctx.GetReadOnlyBuffer(data.ib));
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 4), ctx.GetReadOnlyBuffer(data.geo));
 
 				struct PathTracingConstants
 				{
@@ -74,14 +63,10 @@ namespace adria
 					int32   accumulated_frames;
 					uint32  accum_idx;
 					uint32  output_idx;
-					uint32  vertices_idx;
-					uint32  indices_idx;
-					uint32  geo_infos_idx;
 				} constants =
 				{
 					.bounce_count = max_bounces, .accumulated_frames = accumulated_frames,
-					.accum_idx = i + 0, .output_idx = i + 1,
-					.vertices_idx = i + 2, .indices_idx = i + 3, .geo_infos_idx = i + 4
+					.accum_idx = i + 0, .output_idx = i + 1
 				};
 
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
