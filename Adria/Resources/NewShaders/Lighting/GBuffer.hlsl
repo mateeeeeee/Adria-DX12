@@ -38,7 +38,7 @@ struct PS_OUTPUT
 
 VS_OUTPUT GBufferVS(uint vertexId : SV_VertexID)
 {
-	VS_OUTPUT Output = (VS_OUTPUT)0;;
+	VS_OUTPUT Output = (VS_OUTPUT)0;
 
     Instance instanceData = GetInstanceData(PassCB.instanceId);
     Mesh meshData = GetMeshData(instanceData.meshIndex);
@@ -84,7 +84,7 @@ PS_OUTPUT GBufferPS(PS_INPUT In)
 	Texture2D txEmissive = ResourceDescriptorHeap[materialData.emissiveIdx];
 
 	float4 albedoColor = txAlbedo.Sample(LinearWrapSampler, In.Uvs) * float4(materialData.baseColorFactor, 1.0f);
-#if MASK 
+#if MASK
 	if (albedoColor.a < 0.5f) discard;
 #endif
 

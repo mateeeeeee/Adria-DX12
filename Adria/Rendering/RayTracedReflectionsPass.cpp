@@ -30,12 +30,7 @@ namespace adria
 		struct RayTracedReflectionsPassData
 		{
 			RGTextureReadOnlyId depth;
-			RGTextureReadOnlyId normal;
 			RGTextureReadWriteId output;
-
-			RGBufferReadOnlyId vb;
-			RGBufferReadOnlyId ib;
-			RGBufferReadOnlyId geo;
 		};
 
 		rg.AddPass<RayTracedReflectionsPassData>("Ray Traced Reflections Pass",
@@ -49,36 +44,24 @@ namespace adria
 
 				data.output = builder.WriteTexture(RG_RES_NAME(RTR_OutputNoisy));
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil));
-				data.normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal));
-
-				data.vb = builder.ReadBuffer(RG_RES_NAME(BigVertexBuffer));
-				data.ib = builder.ReadBuffer(RG_RES_NAME(BigIndexBuffer));
-				data.geo = builder.ReadBuffer(RG_RES_NAME(BigGeometryBuffer));
 			},
 			[=](RayTracedReflectionsPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
 			{
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
-				uint32 i = descriptor_allocator->Allocate(5).GetIndex();
+				uint32 i = descriptor_allocator->Allocate(2).GetIndex();
 				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.depth));
 				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.output));
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadOnlyBuffer(data.vb));
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 3), ctx.GetReadOnlyBuffer(data.ib));
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 4), ctx.GetReadOnlyBuffer(data.geo));
 
 				struct RayTracedReflectionsConstants
 				{
 					float   roughness_scale;
 					uint32  depth_idx;
 					uint32  output_idx;
-					uint32  vertices_idx;
-					uint32  indices_idx;
-					uint32  geo_infos_idx;
 				} constants =
 				{
 					.roughness_scale = reflection_roughness_scale,
-					.depth_idx = i + 0, .output_idx = i + 1,
-					.vertices_idx = i + 2, .indices_idx = i + 3, .geo_infos_idx = i + 4
+					.depth_idx = i + 0, .output_idx = i + 1
 				};
 				auto& table = cmd_list->SetStateObject(ray_traced_reflections.Get());
 				table.SetRayGenShader("RTR_RayGen");

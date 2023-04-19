@@ -1,4 +1,5 @@
 #include "../Constants.hlsli"
+#include "../Scene.hlsli"
 #include "RayTracingUtil.hlsli"
 
 
@@ -7,9 +8,6 @@ struct RayTracedReflectionsConstants
     float roughnessScale;
     uint  depthIdx;
 	uint  outputIdx;
-	uint  verticesIdx;
-	uint  indicesIdx;
-	uint  geoInfosIdx;
 };
 ConstantBuffer<RayTracedReflectionsConstants> PassCB : register(b1);
 
@@ -30,8 +28,8 @@ void RTR_RayGen()
 	uint2 launchDim = DispatchRaysDimensions().xy;
 
 	float depth = depthTx.Load(int3(launchIndex.xy, 0));
-	float2 texToords = (launchIndex + 0.5f) / FrameCB.screenResolution;
-	float3 posWorld = GetWorldPosition(texToords, depth);
+	float2 texCoords = (launchIndex + 0.5f) / FrameCB.screenResolution;
+	float3 posWorld = GetWorldPosition(texCoords, depth);
 
 	RayDesc ray;
 	ray.Origin = FrameCB.cameraPosition.xyz;
@@ -39,8 +37,8 @@ void RTR_RayGen()
 	ray.TMin = 0.005f;
 	ray.TMax = FLT_MAX;
 
-    uint randSeed = InitRand(launchIndex.x + launchIndex.y * launchDim.x, 0, 16); 
-    
+    uint randSeed = InitRand(launchIndex.x + launchIndex.y * launchDim.x, 0, 16);
+
 	RTR_Payload payloadData;
 	payloadData.reflectivity = 0.0f;
 	payloadData.reflectionColor = 0.0f;
@@ -63,36 +61,39 @@ void RTR_Miss(inout RTR_Payload payloadData)
 [shader("closesthit")]
 void RTR_ClosestHitPrimaryRay(inout RTR_Payload payloadData, in HitAttributes attribs)
 {
-    uint geoId = InstanceIndex();
 	uint triangleId = PrimitiveIndex();
 
-	StructuredBuffer<Vertex> vertices	= ResourceDescriptorHeap[PassCB.verticesIdx];
-	StructuredBuffer<uint> indices		= ResourceDescriptorHeap[PassCB.indicesIdx];
-	StructuredBuffer<GeoInfo> geoInfos	= ResourceDescriptorHeap[PassCB.geoInfosIdx];
+	Instance instanceData = GetInstanceData(InstanceIndex());
+	Mesh meshData = GetMeshData(instanceData.meshIndex);
+	Material materialData = GetMaterialData(instanceData.materialIdx);
 
-	GeoInfo geoInfo = geoInfos[geoId];
-	uint vbOffset = geoInfo.vertexOffset;
-	uint ibOffset = geoInfo.indexOffset;
+	uint i0 = LoadMeshBuffer<uint>(meshData.bufferIdx, meshData.indicesOffset, 3 * triangleId + 0);
+	uint i1 = LoadMeshBuffer<uint>(meshData.bufferIdx, meshData.indicesOffset, 3 * triangleId + 1);
+	uint i2 = LoadMeshBuffer<uint>(meshData.bufferIdx, meshData.indicesOffset, 3 * triangleId + 2);
 
-	uint i0 = indices[ibOffset + triangleId * 3 + 0];
-	uint i1 = indices[ibOffset + triangleId * 3 + 1];
-	uint i2 = indices[ibOffset + triangleId * 3 + 2];
+	float3 pos0 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.positionsOffset, i0);
+	float3 pos1 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.positionsOffset, i1);
+	float3 pos2 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.positionsOffset, i2);
+	float3 pos = Interpolate(pos0, pos1, pos2, attribs.barycentrics);
 
-	Vertex v0 = vertices[vbOffset + i0];
-	Vertex v1 = vertices[vbOffset + i1];
-	Vertex v2 = vertices[vbOffset + i2];
+	float2 uv0 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i0);
+	float2 uv1 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i1);
+	float2 uv2 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i2);
+	float2 uv  = Interpolate(uv0, uv1, uv2, attribs.barycentrics); uv.y = 1.0f - uv.y;
 
-	float3 pos = Interpolate(v0.pos, v1.pos, v2.pos, attribs.barycentrics);
-	float2 uv = Interpolate(v0.uv, v1.uv, v2.uv, attribs.barycentrics); uv.y = 1.0f - uv.y;
-	float3 nor = normalize(Interpolate(v0.nor, v1.nor, v2.nor, attribs.barycentrics));
-    float3 worldPosition = pos; //mul(pos, ObjectToWorld3x4()).xyz; why???
-    float3 worldNormal = nor; 
+	float3 nor0 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.normalsOffset, i0);
+	float3 nor1 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.normalsOffset, i1);
+	float3 nor2 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.normalsOffset, i2);
+	float3 nor = normalize(Interpolate(nor0, nor1, nor2, attribs.barycentrics));
 
-	Texture2D txMetallicRoughness = ResourceDescriptorHeap[geoInfo.materialData.metallicRoughnessIdx];
+	float3 worldPosition = pos; //mul(pos, ObjectToWorld3x4()).xyz; why???
+    float3 worldNormal = nor;
+
+	Texture2D txMetallicRoughness = ResourceDescriptorHeap[materialData.roughnessMetallicIdx];
 	float2 roughnessMetallic = txMetallicRoughness.SampleLevel(LinearWrapSampler, uv, 0).gb;
 
 	if (roughnessMetallic.y <= 0.01f) return;
-	
+
     uint randSeed = payloadData.randSeed;
     float3 dir = GetConeSample(randSeed, reflect(WorldRayDirection(), worldNormal), roughnessMetallic.x * PassCB.roughnessScale);
 
@@ -113,27 +114,22 @@ void RTR_ClosestHitPrimaryRay(inout RTR_Payload payloadData, in HitAttributes at
 [shader("closesthit")]
 void RTR_ClosestHitReflectionRay(inout RTR_Payload payload_data, in HitAttributes attribs)
 {
-    uint geoId = InstanceIndex();
-    uint triangleId = PrimitiveIndex();
+	uint triangleId = PrimitiveIndex();
 
-	StructuredBuffer<Vertex> vertices = ResourceDescriptorHeap[PassCB.verticesIdx];
-	StructuredBuffer<uint> indices = ResourceDescriptorHeap[PassCB.indicesIdx];
-	StructuredBuffer<GeoInfo> geoInfos = ResourceDescriptorHeap[PassCB.geoInfosIdx];
+	Instance instanceData = GetInstanceData(InstanceIndex());
+	Mesh meshData = GetMeshData(instanceData.meshIndex);
+	Material materialData = GetMaterialData(instanceData.materialIdx);
 
-	GeoInfo geoInfo = geoInfos[geoId];
-	uint vbOffset = geoInfo.vertexOffset;
-	uint ibOffset = geoInfo.indexOffset;
+	uint i0 = LoadMeshBuffer<uint>(meshData.bufferIdx, meshData.indicesOffset, 3 * triangleId + 0);
+	uint i1 = LoadMeshBuffer<uint>(meshData.bufferIdx, meshData.indicesOffset, 3 * triangleId + 1);
+	uint i2 = LoadMeshBuffer<uint>(meshData.bufferIdx, meshData.indicesOffset, 3 * triangleId + 2);
 
-	uint i0 = indices[ibOffset + triangleId * 3 + 0];
-	uint i1 = indices[ibOffset + triangleId * 3 + 1];
-	uint i2 = indices[ibOffset + triangleId * 3 + 2];
+	float2 uv0 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i0);
+	float2 uv1 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i1);
+	float2 uv2 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i2);
+	float2 uv = Interpolate(uv0, uv1, uv2, attribs.barycentrics); uv.y = 1.0f - uv.y;
 
-	Vertex v0 = vertices[vbOffset + i0];
-	Vertex v1 = vertices[vbOffset + i1];
-	Vertex v2 = vertices[vbOffset + i2];
-
-	float2 uv = Interpolate(v0.uv, v1.uv, v2.uv, attribs.barycentrics); uv.y = 1.0f - uv.y;
-	Texture2D txAlbedo = ResourceDescriptorHeap[geoInfo.materialData.albedoIdx];
+	Texture2D txAlbedo = ResourceDescriptorHeap[materialData.diffuseIdx];
     float3 albedo = 0.5f * txAlbedo.SampleLevel(LinearWrapSampler, uv, 2).rgb;
 	payload_data.reflectionColor = albedo;
 }

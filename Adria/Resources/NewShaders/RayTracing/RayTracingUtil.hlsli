@@ -81,27 +81,6 @@ float2 Interpolate(in float2 x0, in float2 x1, in float2 x2, float2 bary)
 	return x0 * (1.0f - bary.x - bary.y) + bary.x * x1 + bary.y * x2;
 }
 
-struct MaterialData
-{
-    int albedoIdx;
-    int normalIdx;
-    int metallicRoughnessIdx;
-    int emissiveIdx;
-
-    float3 baseColor;
-    float  metallicFactor;
-    float  roughnessFactor;
-    float  emissiveFactor;
-    float  alphaCutoff;
-};
-
-struct GeoInfo
-{
-    uint vertexOffset;
-    uint indexOffset;
-    MaterialData materialData;
-};
-
 struct HitInfo
 {
     float2   barycentricCoordinates;
@@ -124,9 +103,9 @@ bool TraceRay(RayDesc ray, out HitInfo hitInfo)
         //uint geometryIndex = q.CandidateGeometryIndex();
         //float2 barycentricCoordinates = q.CandidateTriangleBarycentrics();
         //todo alpha test
-        q.CommitNonOpaqueTriangleHit(); 
+        q.CommitNonOpaqueTriangleHit();
     }
-    if (q.CommittedStatus() == COMMITTED_NOTHING) 
+    if (q.CommittedStatus() == COMMITTED_NOTHING)
     {
         return false;
     }
@@ -142,7 +121,7 @@ bool TraceRay(RayDesc ray, out HitInfo hitInfo)
 bool TraceShadowRay(RayDesc ray)
 {
     RaytracingAccelerationStructure raytracingAS = ResourceDescriptorHeap[FrameCB.accelStructIdx];
-    
+
     RayQuery<RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES> q;
     q.TraceRayInline(raytracingAS, RAY_FLAG_NONE, 0xFF, ray);
 

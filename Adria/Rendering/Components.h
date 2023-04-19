@@ -150,12 +150,6 @@ namespace adria
 		std::vector<SubMeshInstance> instances;
 	};
 
-
-	struct LightVisibility
-	{
-
-	};
-
 	struct COMPONENT Batch
 	{
 		uint32   instance_id;
@@ -165,7 +159,6 @@ namespace adria
 		DirectX::BoundingBox bounding_box;
 
 		bool camera_visibility = true;
-		std::vector<bool> light_visibility;
 	};
 
 	void Draw(SubMesh const& submesh, GfxCommandList* cmd_list, bool override_topology = false, GfxPrimitiveTopology new_topology = GfxPrimitiveTopology::Undefined);
