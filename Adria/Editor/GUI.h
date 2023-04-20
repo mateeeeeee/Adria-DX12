@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include "Core/CoreTypes.h"
+#include "Graphics/GfxDescriptor.h"
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_win32.h"
 #include "ImGui/imgui_impl_dx12.h"
@@ -11,6 +12,7 @@ namespace adria
 	class GfxDevice;
 	template<bool>
 	class GfxRingDescriptorAllocator;
+	class GfxCommandList;
 
 	using GUIDescriptorAllocator = GfxRingDescriptorAllocator<false>;
 
@@ -25,7 +27,7 @@ namespace adria
 
 		void Begin() const;
 
-		void End(ID3D12GraphicsCommandList* cmd_list) const;
+		void End(GfxCommandList* cmd_list) const;
 
 		void HandleWindowMessage(WindowMessage const&) const;
 
@@ -33,7 +35,7 @@ namespace adria
 
 		bool IsVisible() const;
 
-		GUIDescriptorAllocator* DescriptorAllocator() const;
+		GfxDescriptor AllocateDescriptorsGPU(uint32 count = 1) const;
 
 	private:
 		GfxDevice* gfx;

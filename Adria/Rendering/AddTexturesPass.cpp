@@ -31,7 +31,7 @@ namespace adria
 			[=](CopyToTexturePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				auto descriptor_allocator = gfx->GetDescriptorAllocator();
+				
 
 				switch (mode)
 				{
@@ -48,7 +48,7 @@ namespace adria
 					ADRIA_ASSERT(false && "Invalid Copy Mode in CopyTexture");
 				}
 
-				GfxDescriptor dst_descriptor = descriptor_allocator->Allocate(2);
+				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(2);
 				GfxDescriptor src_descriptors[] = { context.GetReadOnlyTexture(data.texture_src1), context.GetReadOnlyTexture(data.texture_src2) };
 				uint32 i = dst_descriptor.GetIndex();
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);

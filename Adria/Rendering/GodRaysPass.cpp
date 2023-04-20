@@ -43,7 +43,7 @@ namespace adria
 			[=](GodRaysPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				auto descriptor_allocator = gfx->GetDescriptorAllocator();
+				
 
 				if (light.type != LightType::Directional)
 				{
@@ -51,9 +51,9 @@ namespace adria
 					return;
 				}
 
-				uint32 i = descriptor_allocator->Allocate(2).GetIndex();
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.sun));
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.output));
+				uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.sun));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadWriteTexture(data.output));
 
 				XMVECTOR camera_position = global_data.camera_position;
 				XMVECTOR LightPos = XMVector4Transform(light.position, XMMatrixTranslation(XMVectorGetX(camera_position), 0.0f, XMVectorGetY(camera_position)));

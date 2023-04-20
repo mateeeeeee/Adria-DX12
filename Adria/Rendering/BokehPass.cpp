@@ -126,9 +126,9 @@ namespace adria
 			[=](BokehGeneratePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				auto descriptor_allocator = gfx->GetDescriptorAllocator();
+				
 
-				GfxDescriptor dst_handle = descriptor_allocator->Allocate(3);
+				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(3);
 				GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.input), context.GetReadOnlyTexture(data.depth), context.GetReadWriteBuffer(data.bokeh) };
 				gfx->CopyDescriptors(dst_handle, src_handles);
 				uint32 i = dst_handle.GetIndex();
@@ -206,7 +206,7 @@ namespace adria
 			[=](BokehDrawPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				auto descriptor_allocator = gfx->GetDescriptorAllocator();
+				
 
 				GfxDescriptor bokeh_descriptor{};
 				switch (params.bokeh_type)
@@ -227,9 +227,9 @@ namespace adria
 					ADRIA_ASSERT(false && "Invalid Bokeh Type");
 				}
 
-				uint32 i = descriptor_allocator->Allocate(2).GetIndex();
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i),bokeh_descriptor);
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), context.GetReadOnlyBuffer(data.bokeh_stack));
+				uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i),bokeh_descriptor);
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), context.GetReadOnlyBuffer(data.bokeh_stack));
 
 				struct BokehConstants
 				{

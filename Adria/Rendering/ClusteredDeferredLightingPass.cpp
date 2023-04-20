@@ -58,9 +58,9 @@ namespace adria
 				[=](ClusterBuildingPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 				{
 					GfxDevice* gfx = cmd_list->GetDevice();
-					auto descriptor_allocator = gfx->GetDescriptorAllocator();
+					
 
-					GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
+					GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU();
 					gfx->CopyDescriptors(1, dst_descriptor, context.GetReadWriteBuffer(data.clusters));
 
 					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ClusterBuilding));
@@ -88,14 +88,14 @@ namespace adria
 			[=](ClusterCullingPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				auto descriptor_allocator = gfx->GetDescriptorAllocator();
+				
 
 				GfxDescriptor src_handles[] = { context.GetReadOnlyBuffer(data.clusters),
 												context.GetReadWriteBuffer(data.light_counter),
 												context.GetReadWriteBuffer(data.light_list),
 												context.GetReadWriteBuffer(data.light_grid) };
 	
-				GfxDescriptor dst_handle = descriptor_allocator->Allocate(ARRAYSIZE(src_handles));
+				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				gfx->CopyDescriptors(dst_handle, src_handles);
 
 				uint32 i = dst_handle.GetIndex();
@@ -140,12 +140,12 @@ namespace adria
 			[=](ClusteredDeferredLightingPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				auto descriptor_allocator = gfx->GetDescriptorAllocator();
+				
 
 				GfxDescriptor src_handles[] = { context.GetReadOnlyBuffer(data.light_list), context.GetReadOnlyBuffer(data.light_grid),
 															  context.GetReadOnlyTexture(data.gbuffer_normal), context.GetReadOnlyTexture(data.gbuffer_albedo), 
 															  context.GetReadOnlyTexture(data.depth), context.GetReadWriteTexture(data.output) };
-				GfxDescriptor dst_handle = descriptor_allocator->Allocate(ARRAYSIZE(src_handles));
+				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				uint32 i = dst_handle.GetIndex();
 				gfx->CopyDescriptors(dst_handle, src_handles);
 				

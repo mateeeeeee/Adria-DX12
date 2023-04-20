@@ -42,10 +42,10 @@ namespace adria
 			[=](BlurPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				auto descriptor_allocator = gfx->GetDescriptorAllocator();
-				uint32 i = descriptor_allocator->Allocate(2).GetIndex();
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.src_texture));
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), context.GetReadWriteTexture(data.dst_texture));
+				
+				uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i), context.GetReadOnlyTexture(data.src_texture));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), context.GetReadWriteTexture(data.dst_texture));
 
 				struct BlurConstants
 				{
@@ -78,11 +78,11 @@ namespace adria
 			[=](BlurPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				auto descriptor_allocator = gfx->GetDescriptorAllocator();
+				
 
-				uint32 i = descriptor_allocator->Allocate(2).GetIndex();
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.src_texture));
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), context.GetReadWriteTexture(data.dst_texture));
+				uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i), context.GetReadOnlyTexture(data.src_texture));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), context.GetReadWriteTexture(data.dst_texture));
 
 				struct BlurConstants
 				{

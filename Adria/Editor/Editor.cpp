@@ -156,7 +156,7 @@ namespace adria
 					ShaderHotReload();
 					Debug();
 				}
-				gui->End(cmd_list->GetNative());
+				gui->End(cmd_list);
 			}, RGPassType::Graphics, RGPassFlags::ForceNoCull | RGPassFlags::LegacyRenderPass);
 	}
 
@@ -645,11 +645,9 @@ namespace adria
 				auto material = engine->reg.try_get<Material>(selected_entity);
 				if (material && ImGui::CollapsingHeader("Material"))
 				{
-					GUIDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
-
 					ImGui::Text("Albedo Texture");
 					GfxDescriptor tex_handle = g_TextureManager.GetSRV(material->albedo_texture);
-					GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
+					GfxDescriptor dst_descriptor = gui->AllocateDescriptorsGPU();
 					gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
 					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, ImVec2(48.0f, 48.0f));
 
@@ -671,7 +669,7 @@ namespace adria
 
 					ImGui::Text("Metallic-Roughness Texture");
 					tex_handle = g_TextureManager.GetSRV(material->metallic_roughness_texture);
-					dst_descriptor = descriptor_allocator->Allocate();
+					dst_descriptor = gui->AllocateDescriptorsGPU();
 					gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
 					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
 						ImVec2(48.0f, 48.0f));
@@ -694,7 +692,7 @@ namespace adria
 
 					ImGui::Text("Emissive Texture");
 					tex_handle = g_TextureManager.GetSRV(material->emissive_texture);
-					dst_descriptor = descriptor_allocator->Allocate();
+					dst_descriptor = gui->AllocateDescriptorsGPU();
 					gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
 					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
 						ImVec2(48.0f, 48.0f));
@@ -740,11 +738,9 @@ namespace adria
 				auto decal = engine->reg.try_get<Decal>(selected_entity);
 				if (decal && ImGui::CollapsingHeader("Decal"))
 				{
-					GUIDescriptorAllocator* descriptor_allocator = gui->DescriptorAllocator();
-
 					ImGui::Text("Decal Albedo Texture");
 					GfxDescriptor tex_handle = g_TextureManager.GetSRV(decal->albedo_decal_texture);
-					GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
+					GfxDescriptor dst_descriptor = gui->AllocateDescriptorsGPU();
 					gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
 					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
 						ImVec2(48.0f, 48.0f));
@@ -767,7 +763,7 @@ namespace adria
 
 					ImGui::Text("Decal Normal Texture");
 					tex_handle = g_TextureManager.GetSRV(decal->normal_decal_texture);
-					dst_descriptor = descriptor_allocator->Allocate();
+					dst_descriptor = gui->AllocateDescriptorsGPU();
 					gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
 					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
 						ImVec2(48.0f, 48.0f));
@@ -837,7 +833,6 @@ namespace adria
 	{
 		ImGui::Begin("Scene");
 		{
-			auto descriptor_allocator = gui->DescriptorAllocator();
 			ImVec2 v_min = ImGui::GetWindowContentRegionMin();
 			ImVec2 v_max = ImGui::GetWindowContentRegionMax();
 			v_min.x += ImGui::GetWindowPos().x;
@@ -847,7 +842,7 @@ namespace adria
 			ImVec2 size(v_max.x - v_min.x, v_max.y - v_min.y);
 
 			GfxDescriptor tex_handle = engine->renderer->GetFinalTextureSRV();
-			GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
+			GfxDescriptor dst_descriptor = gui->AllocateDescriptorsGPU();
 			gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
 			ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, size);
 
@@ -1159,7 +1154,7 @@ namespace adria
 		if (!window_flags[Flag_Debug]) return;
 		if(ImGui::Begin("Debug", &window_flags[Flag_Debug]))
 		{
-			for (auto& cmd : debug_commands) cmd.callback(gui->DescriptorAllocator());
+			//for (auto& cmd : debug_commands) cmd.callback(gui->DescriptorAllocator());
 		}
 		ImGui::End();
 	}

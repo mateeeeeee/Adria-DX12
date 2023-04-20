@@ -37,13 +37,13 @@ namespace adria
 			[=](MotionVectorsPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				auto descriptor_allocator = gfx->GetDescriptorAllocator();
+				
 				
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::MotionVectors));
 
-				uint32 i = descriptor_allocator->Allocate(2).GetIndex();
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.depth));
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.velocity));
+				uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.depth));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadWriteTexture(data.velocity));
 
 				struct MotionVectorsConstants
 				{

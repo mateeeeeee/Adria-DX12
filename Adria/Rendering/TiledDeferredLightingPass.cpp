@@ -52,14 +52,14 @@ namespace adria
 			[=](TiledDeferredLightingPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				auto descriptor_allocator = gfx->GetDescriptorAllocator();
+				
 
 				GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.gbuffer_normal),
 												context.GetReadOnlyTexture(data.gbuffer_albedo),
 												context.GetReadOnlyTexture(data.depth),
 												context.GetReadWriteTexture(data.output),
 												context.GetReadWriteTexture(data.debug_output) };
-				GfxDescriptor dst_handle = descriptor_allocator->Allocate(ARRAYSIZE(src_handles));
+				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				gfx->CopyDescriptors(dst_handle, src_handles);
 
 				uint32 i = dst_handle.GetIndex();
@@ -81,8 +81,8 @@ namespace adria
 				static constexpr float black[4] = {0.0f,0.0f,0.0f,0.0f};
 				GfxTexture const& tiled_target = context.GetTexture(*data.output);
 				GfxTexture const& tiled_debug_target = context.GetTexture(*data.debug_output);
-				cmd_list->ClearUAV(tiled_target, descriptor_allocator->GetHandle(i + 3), context.GetReadWriteTexture(data.output), black);
-				cmd_list->ClearUAV(tiled_debug_target, descriptor_allocator->GetHandle(i + 4), context.GetReadWriteTexture(data.debug_output), black);
+				cmd_list->ClearUAV(tiled_target, gfx->GetDescriptorGPU(i + 3), context.GetReadWriteTexture(data.output), black);
+				cmd_list->ClearUAV(tiled_debug_target, gfx->GetDescriptorGPU(i + 4), context.GetReadWriteTexture(data.debug_output), black);
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::TiledDeferredLighting));
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);

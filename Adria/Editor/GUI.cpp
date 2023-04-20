@@ -2,6 +2,7 @@
 #include "IconsFontAwesome4.h"
 #include "Core/Window.h"
 #include "Graphics/GfxDevice.h"
+#include "Graphics/GfxCommandList.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
 #include "ImGui/ImGuizmo.h"
 
@@ -67,14 +68,14 @@ namespace adria
 
 		imgui_allocator->ReleaseCompletedFrames(frame_count);
 	}
-	void GUI::End(ID3D12GraphicsCommandList* cmd_list) const
+	void GUI::End(GfxCommandList* cmd_list) const
 	{
 		ImGui::Render();
 		if (visible)
 		{
 			ID3D12DescriptorHeap* pp_heaps[] = { imgui_allocator->GetHeap() };
-			cmd_list->SetDescriptorHeaps(ARRAYSIZE(pp_heaps), pp_heaps);
-			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), cmd_list);
+			cmd_list->GetNative()->SetDescriptorHeaps(ARRAYSIZE(pp_heaps), pp_heaps);
+			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), cmd_list->GetNative());
 		}
 
 		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -99,8 +100,10 @@ namespace adria
 	{
 		return visible;
 	}
-	GUIDescriptorAllocator* GUI::DescriptorAllocator() const
+	
+	GfxDescriptor GUI::AllocateDescriptorsGPU(uint32 count /*= 1*/) const
 	{
-		return imgui_allocator.get();
+		return imgui_allocator->Allocate(count);
 	}
+
 }

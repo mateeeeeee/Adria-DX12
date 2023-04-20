@@ -39,9 +39,9 @@ namespace adria
 			[=](DecalsPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				
-				GfxDescriptor depth_srv = descriptor_allocator->Allocate();
+				
+				GfxDescriptor depth_srv = gfx->AllocateDescriptorsGPU();
 				gfx->CopyDescriptors(1, depth_srv, context.GetReadOnlyTexture(data.depth_srv));
 
 				uint32 depth_idx = depth_srv.GetIndex();

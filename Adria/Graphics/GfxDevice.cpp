@@ -474,14 +474,24 @@ namespace adria
 			src_ranges_count, src_handles.data(), src_range_sizes.data(), ToD3D12HeapType(type));
 	}
 
-	GfxDescriptor GfxDevice::AllocateOfflineDescriptor(GfxDescriptorHeapType type)
+	GfxDescriptor GfxDevice::AllocateDescriptorCPU(GfxDescriptorHeapType type)
 	{
 		return cpu_descriptor_allocators[(size_t)type]->AllocateDescriptor();
 	}
-	void GfxDevice::FreeOfflineDescriptor(GfxDescriptor descriptor, GfxDescriptorHeapType type)
+	void GfxDevice::FreeDescriptorCPU(GfxDescriptor descriptor, GfxDescriptorHeapType type)
 	{
 		cpu_descriptor_allocators[(size_t)type]->FreeDescriptor(descriptor);
 	}
+
+	GfxDescriptor GfxDevice::AllocateDescriptorsGPU(uint32 count)
+	{
+		return GetDescriptorAllocator()->Allocate(count);
+	}
+	GfxDescriptor GfxDevice::GetDescriptorGPU(uint32 i) const
+	{
+		return GetDescriptorAllocator()->GetHandle(i);
+	}
+
 	GfxOnlineDescriptorAllocator* GfxDevice::GetDescriptorAllocator() const
 	{
 		return gpu_descriptor_allocator.get();
@@ -701,7 +711,7 @@ namespace adria
 		GfxBufferDesc desc = buffer->GetDesc();
 		if (uav_counter) ADRIA_ASSERT(view_type == GfxSubresourceType::UAV);
 		GfxFormat format = desc.format;
-		GfxDescriptor heap_descriptor = AllocateOfflineDescriptor(GfxDescriptorHeapType::CBV_SRV_UAV);
+		GfxDescriptor heap_descriptor = AllocateDescriptorCPU(GfxDescriptorHeapType::CBV_SRV_UAV);
 		switch (view_type)
 		{
 		case GfxSubresourceType::SRV:
@@ -803,7 +813,7 @@ namespace adria
 		{
 		case GfxSubresourceType::SRV:
 		{
-			GfxDescriptor descriptor = AllocateOfflineDescriptor(GfxDescriptorHeapType::CBV_SRV_UAV);
+			GfxDescriptor descriptor = AllocateDescriptorCPU(GfxDescriptorHeapType::CBV_SRV_UAV);
 			D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
 			srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 			switch (format)
@@ -904,7 +914,7 @@ namespace adria
 		break;
 		case GfxSubresourceType::UAV:
 		{
-			GfxDescriptor descriptor = AllocateOfflineDescriptor(GfxDescriptorHeapType::CBV_SRV_UAV);
+			GfxDescriptor descriptor = AllocateDescriptorCPU(GfxDescriptorHeapType::CBV_SRV_UAV);
 			D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
 			switch (format)
 			{
@@ -969,7 +979,7 @@ namespace adria
 		break;
 		case GfxSubresourceType::RTV:
 		{
-			GfxDescriptor descriptor = AllocateOfflineDescriptor(GfxDescriptorHeapType::RTV);
+			GfxDescriptor descriptor = AllocateDescriptorCPU(GfxDescriptorHeapType::RTV);
 			D3D12_RENDER_TARGET_VIEW_DESC rtv_desc{};
 			switch (format)
 			{
@@ -1049,7 +1059,7 @@ namespace adria
 		break;
 		case GfxSubresourceType::DSV:
 		{
-			GfxDescriptor descriptor = AllocateOfflineDescriptor(GfxDescriptorHeapType::DSV);
+			GfxDescriptor descriptor = AllocateDescriptorCPU(GfxDescriptorHeapType::DSV);
 			D3D12_DEPTH_STENCIL_VIEW_DESC dsv_desc{};
 			switch (format)
 			{

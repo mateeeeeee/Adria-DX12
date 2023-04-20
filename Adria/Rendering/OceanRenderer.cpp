@@ -59,8 +59,8 @@ namespace adria
 				[=](InitialSpectrumPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 				{
 					GfxDevice* gfx = cmd_list->GetDevice();
-					auto descriptor_allocator = gfx->GetDescriptorAllocator();
-					GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
+					
+					GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU();
 					gfx->CopyDescriptors(1, dst_descriptor, context.GetReadWriteTexture(data.initial_spectrum));
 
 					struct InitialSpectrumConstants
@@ -94,10 +94,10 @@ namespace adria
 			[=](PhasePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				auto descriptor_allocator = gfx->GetDescriptorAllocator();
-				uint32 i = descriptor_allocator->Allocate(2).GetIndex();
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.phase_srv));
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), context.GetReadWriteTexture(data.phase_uav));
+				
+				uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i), context.GetReadOnlyTexture(data.phase_srv));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), context.GetReadWriteTexture(data.phase_uav));
 
 				struct PhaseConstants
 				{
@@ -135,11 +135,11 @@ namespace adria
 			[=](SpectrumPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				auto descriptor_allocator = gfx->GetDescriptorAllocator();
-				uint32 i = descriptor_allocator->Allocate(3).GetIndex();
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.initial_spectrum_srv));
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), context.GetReadOnlyTexture(data.phase_srv));
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 2), context.GetReadWriteTexture(data.spectrum_uav));
+				
+				uint32 i = gfx->AllocateDescriptorsGPU(3).GetIndex();
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i), context.GetReadOnlyTexture(data.initial_spectrum_srv));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), context.GetReadOnlyTexture(data.phase_srv));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 2), context.GetReadWriteTexture(data.spectrum_uav));
 
 				struct SpectrumConstants
 				{
@@ -190,13 +190,13 @@ namespace adria
 				[=](FFTHorizontalPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 				{
 					GfxDevice* gfx = cmd_list->GetDevice();
-					auto descriptor_allocator = gfx->GetDescriptorAllocator();
+					
 
 					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::FFT_Horizontal));
 
-					uint32 i = descriptor_allocator->Allocate(2).GetIndex();
-					gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i), ctx.GetReadOnlyTexture(data.spectrum_srv));
-					gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.spectrum_uav));
+					uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();
+					gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i), ctx.GetReadOnlyTexture(data.spectrum_srv));
+					gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadWriteTexture(data.spectrum_uav));
 
 					FFTConstants fft_constants{};
 					fft_constants.seq_count = FFT_RESOLUTION;
@@ -231,13 +231,13 @@ namespace adria
 				[=](FFTVerticalPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 				{
 					GfxDevice* gfx = cmd_list->GetDevice();
-					auto descriptor_allocator = gfx->GetDescriptorAllocator();
+					
 
 					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::FFT_Vertical));
 
-					uint32 i = descriptor_allocator->Allocate(2).GetIndex();
-					gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i), ctx.GetReadOnlyTexture(data.spectrum_srv));
-					gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadWriteTexture(data.spectrum_uav));
+					uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();
+					gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i), ctx.GetReadOnlyTexture(data.spectrum_srv));
+					gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadWriteTexture(data.spectrum_uav));
 
 					FFTConstants fft_constants{};
 					fft_constants.seq_count = FFT_RESOLUTION;
@@ -273,10 +273,10 @@ namespace adria
 			[=](OceanNormalsPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				auto descriptor_allocator = gfx->GetDescriptorAllocator();
-				uint32 i = descriptor_allocator->Allocate(2).GetIndex();
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.spectrum_srv));
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), context.GetReadWriteTexture(data.normals_uav));
+				
+				uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i), context.GetReadOnlyTexture(data.spectrum_srv));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), context.GetReadWriteTexture(data.normals_uav));
 
 				struct OceanNormalsConstants
 				{
@@ -316,7 +316,7 @@ namespace adria
 			[=](OceanDrawPass const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				auto descriptor_allocator = gfx->GetDescriptorAllocator();
+				
 
 				auto skyboxes = reg.view<Skybox>();
 				GfxDescriptor skybox_handle = gfxcommon::GetCommonView(GfxCommonViewType::NullTextureCube_SRV);
@@ -349,8 +349,8 @@ namespace adria
 				{
 					auto const& [mesh, material, transform] = ocean_chunk_view.get<const SubMesh, const Material, const Transform>(ocean_chunk);
 
-					uint32 i = descriptor_allocator->Allocate(4).GetIndex();
-					GfxDescriptor dst_handle = descriptor_allocator->GetHandle(i);
+					uint32 i = gfx->AllocateDescriptorsGPU(4).GetIndex();
+					GfxDescriptor dst_handle = gfx->GetDescriptorGPU(i);
 					GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.displacement), context.GetReadOnlyTexture(data.normals), skybox_handle, g_TextureManager.GetSRV(foam_handle) };
 					gfx->CopyDescriptors(dst_handle, src_handles);
 

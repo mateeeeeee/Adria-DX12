@@ -38,7 +38,7 @@ namespace adria
 			[=](LensFlarePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				auto descriptor_allocator = gfx->GetDescriptorAllocator();
+				
 				
 				if (light.type != LightType::Directional)
 				{
@@ -63,7 +63,7 @@ namespace adria
 					lens_flare_descriptors.push_back(g_TextureManager.GetSRV(lens_flare_textures[i]));
 				lens_flare_descriptors.push_back(context.GetReadOnlyTexture(data.depth));
 
-				GfxDescriptor dst_descriptor = descriptor_allocator->Allocate(8);
+				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(8);
 				gfx->CopyDescriptors(dst_descriptor, lens_flare_descriptors);
 				uint32 i = dst_descriptor.GetIndex();
 

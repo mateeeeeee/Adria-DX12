@@ -196,7 +196,7 @@ namespace adria
             }
             else //format == TextureFormat::eHDR //#todo
             {
-                auto descriptor_allocator = gfx->GetDescriptorAllocator();
+                
                 loaded_textures.insert({ name, handle });
                 Image equirect_hdr_image(ToString(name));
 
@@ -213,8 +213,6 @@ namespace adria
                 desc.initial_state = GfxResourceState::Common;
 
                 std::unique_ptr<GfxTexture> cubemap_tex = std::make_unique<GfxTexture>(gfx, desc);
-                //cubemap_tex->CreateSRV();
-                //cubemap_tex->CreateUAV();
 
                 GfxTextureDesc equirect_desc{};
                 equirect_desc.width = equirect_hdr_image.Width();
@@ -238,15 +236,15 @@ namespace adria
                     CD3DX12_RESOURCE_BARRIER::Transition(equirect_tex.GetNative(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE) };
                 cmd_list->ResourceBarrier(_countof(barriers), barriers);
 
-                ID3D12DescriptorHeap* heap = descriptor_allocator->GetHeap();
-                cmd_list->SetDescriptorHeaps(1, &heap);
+                //ID3D12DescriptorHeap* heap = gfx->GetHeapGPU();
+                //cmd_list->SetDescriptorHeaps(1, &heap);
 
                 //Set root signature, pso and descriptor heap
                 cmd_list->SetComputeRootSignature(equirect_root_signature.Get());
                 cmd_list->SetPipelineState(equirect_pso.Get());
 
-                cmd_list->SetComputeRootDescriptorTable(0, descriptor_allocator->GetHandle(1));
-                cmd_list->SetComputeRootDescriptorTable(1, descriptor_allocator->GetHandle(0));
+                cmd_list->SetComputeRootDescriptorTable(0, gfx->GetDescriptorGPU(1));
+                cmd_list->SetComputeRootDescriptorTable(1, gfx->GetDescriptorGPU(0));
                 cmd_list->Dispatch(1024 / 32, 1024 / 32, 6);
 
                 auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(cubemap_tex->GetNative(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE);
@@ -338,9 +336,7 @@ namespace adria
 		mips_generator->Generate(gfx->GetGraphicsCommandList());
 
 		gfx->InitShaderVisibleAllocator(1024);
-		ID3D12Device* device = gfx->GetDevice();
-		auto* online_descriptor_allocator = gfx->GetDescriptorAllocator();
-        for (size_t i = 0; i <= handle; ++i)
+		for (size_t i = 0; i <= handle; ++i)
         {
             GfxTexture* texture = texture_map[TextureHandle(i)].get();
             if (texture)
@@ -490,11 +486,10 @@ namespace adria
 	{
         if (!is_scene_initialized && !flag) return;
 
-		auto* online_descriptor_allocator = gfx->GetDescriptorAllocator();
 		GfxTexture* texture = texture_map[handle].get();
 		ADRIA_ASSERT(texture);
         texture_srv_map[handle] = gfx->CreateTextureSRV(texture);
-        gfx->CopyDescriptors(1, online_descriptor_allocator->GetHandle((uint32)handle),
+        gfx->CopyDescriptors(1, gfx->GetDescriptorGPU((uint32)handle),
             texture_srv_map[handle]);
 	}
 

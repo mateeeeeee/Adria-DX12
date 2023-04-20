@@ -46,16 +46,16 @@ namespace adria
 			[=](ToneMapPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				auto descriptor_allocator = gfx->GetDescriptorAllocator();
+				
 
-				uint32 i = descriptor_allocator->Allocate(4).GetIndex();
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.hdr_input));
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1),
+				uint32 i = gfx->AllocateDescriptorsGPU(4).GetIndex();
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.hdr_input));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1),
 					data.exposure.IsValid() ? ctx.GetReadOnlyTexture(data.exposure) : gfxcommon::GetCommonView(GfxCommonViewType::WhiteTexture2D_SRV));
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadWriteTexture(data.output));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 2), ctx.GetReadWriteTexture(data.output));
 				
 				bool const bloom_enabled = data.bloom.IsValid();
-				if (bloom_enabled) gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 3), ctx.GetReadOnlyTexture(data.bloom));
+				if (bloom_enabled) gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 3), ctx.GetReadOnlyTexture(data.bloom));
 
 				struct TonemapConstants
 				{
@@ -128,16 +128,16 @@ namespace adria
 			[=](ToneMapPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				auto descriptor_allocator = gfx->GetDescriptorAllocator();
+				
 
-				uint32 i = descriptor_allocator->Allocate(4).GetIndex();
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.hdr_input));
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1),
+				uint32 i = gfx->AllocateDescriptorsGPU(4).GetIndex();
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.hdr_input));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1),
 					data.exposure.IsValid() ? ctx.GetReadOnlyTexture(data.exposure) : gfxcommon::GetCommonView(GfxCommonViewType::WhiteTexture2D_SRV));
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 2), ctx.GetReadWriteTexture(data.output));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 2), ctx.GetReadWriteTexture(data.output));
 				
 				bool const bloom_enabled = data.bloom.IsValid();
-				if (bloom_enabled) gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 3), ctx.GetReadOnlyTexture(data.bloom));
+				if (bloom_enabled) gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 3), ctx.GetReadOnlyTexture(data.bloom));
 
 				struct TonemapConstants
 				{

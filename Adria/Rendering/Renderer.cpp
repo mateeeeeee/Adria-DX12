@@ -409,15 +409,15 @@ namespace adria
 				}
 			}
 		}
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		
 
-		GfxDescriptor descriptor = descriptor_allocator->Allocate();
+		GfxDescriptor descriptor = gfx->AllocateDescriptorsGPU();
 		gfx->CopyDescriptors(1, descriptor, env_map);
 	}
 	void Renderer::SetupShadows()
 	{
 		ID3D12Device* device = gfx->GetDevice();
-		auto descriptor_allocator = gfx->GetDescriptorAllocator();
+		
 
 		auto AddShadowMask = [&](Light& light, size_t light_id)
 		{
@@ -437,7 +437,7 @@ namespace adria
 			}
 
 			GfxDescriptor srv = light_mask_texture_srvs[light_id];
-			GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
+			GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU();
 			device->CopyDescriptorsSimple(1, dst_descriptor, srv, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 			light.shadow_mask_index = (int32)dst_descriptor.GetIndex();
 		};
@@ -496,7 +496,7 @@ namespace adria
 			for (size_t j = 0; j < light_shadow_maps[light_id].size(); ++j)
 			{
 				GfxDescriptor srv = light_shadow_map_srvs[light_id][j];
-				GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
+				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU();
 				device->CopyDescriptorsSimple(1, dst_descriptor, srv, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 				if(j == 0) light.shadow_texture_index = (int32)dst_descriptor.GetIndex();
 			}
@@ -589,7 +589,7 @@ namespace adria
 		if (light_matrices_buffer)
 		{
 			light_matrices_buffer->Update(light_matrices.data(), light_matrices_count * sizeof(XMMATRIX), light_matrices_count * sizeof(XMMATRIX) * backbuffer_index);
-			GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
+			GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU();
 			gfx->CopyDescriptors(1, dst_descriptor, light_matrices_buffer_srvs[backbuffer_index]);
 			light_matrices_srv_gpu = dst_descriptor;
 		}
@@ -640,7 +640,7 @@ namespace adria
 
 			GfxBuffer* mesh_buffer = g_GeometryBufferCache.GetGeometryBuffer(mesh.geometry_buffer_handle);
 			GfxDescriptor mesh_buffer_srv = g_GeometryBufferCache.GetGeometryBufferSRV(mesh.geometry_buffer_handle);
-			GfxDescriptor mesh_buffer_online_srv = gfx->GetDescriptorAllocator()->Allocate();
+			GfxDescriptor mesh_buffer_online_srv = gfx->AllocateDescriptorsGPU();
 			gfx->CopyDescriptors(1, mesh_buffer_online_srv, mesh_buffer_srv);
 
 			for (auto const& instance : mesh.instances)
@@ -710,7 +710,7 @@ namespace adria
 				scene_buffer.buffer_srv = gfx->CreateBufferSRV(scene_buffer.buffer.get());
 			}
 			scene_buffer.buffer->Update(data.data(), data.size() * sizeof(T));
-			scene_buffer.buffer_srv_gpu = gfx->GetDescriptorAllocator()->Allocate();
+			scene_buffer.buffer_srv_gpu = gfx->AllocateDescriptorsGPU();
 			gfx->CopyDescriptors(1, scene_buffer.buffer_srv_gpu, scene_buffer.buffer_srv);
 		};
 		CopyBuffer(hlsl_lights, scene_buffers[SceneBuffer_Light]);
@@ -794,8 +794,8 @@ namespace adria
 
 		if (ray_tracing_supported && reg.view<RayTracing>().size())
 		{
-			auto descriptor_allocator = gfx->GetDescriptorAllocator();
-			GfxDescriptor accel_struct_descriptor = descriptor_allocator->Allocate();
+			
+			GfxDescriptor accel_struct_descriptor = gfx->AllocateDescriptorsGPU();
 			gfx->CopyDescriptors(1, accel_struct_descriptor, tlas_srv);
 			frame_cbuf_data.accel_struct_idx = (int32)accel_struct_descriptor.GetIndex();
 		}

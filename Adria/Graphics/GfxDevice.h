@@ -62,6 +62,7 @@ namespace adria
 
 	class GfxDevice
 	{
+		friend class GfxCommandList;
 	public:
 		explicit GfxDevice(GfxOptions const&);
 		GfxDevice(GfxDevice const&) = delete;
@@ -97,11 +98,13 @@ namespace adria
 			release_queue.emplace(new ReleasableResource(alloc), release_queue_fence_value);
 		}
 
-		GfxDescriptor AllocateOfflineDescriptor(GfxDescriptorHeapType);
-		void FreeOfflineDescriptor(GfxDescriptor, GfxDescriptorHeapType);
+		GfxDescriptor AllocateDescriptorCPU(GfxDescriptorHeapType);
+		void FreeDescriptorCPU(GfxDescriptor, GfxDescriptorHeapType);
+
+		GfxDescriptor AllocateDescriptorsGPU(uint32 count = 1);
+		GfxDescriptor GetDescriptorGPU(uint32 i) const;
 		void InitShaderVisibleAllocator(uint32 reserve);
 
-		GfxOnlineDescriptorAllocator* GetDescriptorAllocator() const; //#todo get rid of this?
 		GfxLinearDynamicAllocator* GetDynamicAllocator() const;
 
 		GfxDescriptor CreateBufferSRV(GfxBuffer const*, GfxBufferSubresourceDesc const* = nullptr);
@@ -129,11 +132,6 @@ namespace adria
 		static constexpr uint32 BackbufferCount()
 		{
 			return GFX_BACKBUFFER_COUNT;
-		}
-
-		void GetASPrebuildInfo()
-		{
-
 		}
 
 	private:
@@ -207,6 +205,7 @@ namespace adria
 		void CreateCommonRootSignature();
 
 		void ProcessReleaseQueue();
+		GfxOnlineDescriptorAllocator* GetDescriptorAllocator() const;
 
 		GfxDescriptor CreateBufferView(GfxBuffer const* buffer, GfxSubresourceType view_type, GfxBufferSubresourceDesc const& view_desc, GfxBuffer const* uav_counter = nullptr);
 		GfxDescriptor CreateTextureView(GfxTexture const* texture, GfxSubresourceType view_type, GfxTextureSubresourceDesc const& view_desc);

@@ -40,16 +40,16 @@ namespace adria
 			[&](HBAOPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				auto descriptor_allocator = gfx->GetDescriptorAllocator();
+				
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::HBAO));
 
-				uint32 i = descriptor_allocator->Allocate(4).GetIndex();
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 0), ctx.GetReadOnlyTexture(data.depth_stencil_srv));
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 1), ctx.GetReadOnlyTexture(data.gbuffer_normal_srv));
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 2), hbao_random_texture_srv);
-				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i + 3), ctx.GetReadWriteTexture(data.output_uav));
+				uint32 i = gfx->AllocateDescriptorsGPU(4).GetIndex();
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.depth_stencil_srv));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadOnlyTexture(data.gbuffer_normal_srv));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 2), hbao_random_texture_srv);
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 3), ctx.GetReadWriteTexture(data.output_uav));
 
 				struct HBAOConstants
 				{

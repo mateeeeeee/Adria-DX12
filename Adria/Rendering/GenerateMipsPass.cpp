@@ -30,7 +30,7 @@ namespace adria
 				GfxDevice* gfx = cmd_list->GetDevice();
 				ID3D12Device* device = gfx->GetDevice();
 				ID3D12GraphicsCommandList* _cmd_list = cmd_list->GetNative();
-				auto descriptor_allocator = gfx->GetDescriptorAllocator();
+				
 
 				GfxTexture const& texture = context.GetTexture(*data.texture_src);
 				_cmd_list->SetPipelineState(*PSOCache::Get(GfxPipelineStateID::GenerateMips));
@@ -50,15 +50,15 @@ namespace adria
 					uint32 dst_width = (std::max)((UINT)tex_desc.width >> (top_mip + 1), 1u);
 					uint32 dst_height = (std::max)(tex_desc.height >> (top_mip + 1), 1u);
 
-					uint32 i = descriptor_allocator->Allocate(2).GetIndex();
+					uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();
 
-					GfxDescriptor handle1 = descriptor_allocator->GetHandle(i);
+					GfxDescriptor handle1 = gfx->GetDescriptorGPU(i);
 					src_srv_desc.Format = ConvertGfxFormat(tex_desc.format);
 					src_srv_desc.Texture2D.MipLevels = 1;
 					src_srv_desc.Texture2D.MostDetailedMip = top_mip;
 					device->CreateShaderResourceView(texture.GetNative(), &src_srv_desc, handle1);
 
-					GfxDescriptor handle2 = descriptor_allocator->GetHandle(i + 1);
+					GfxDescriptor handle2 = gfx->GetDescriptorGPU(i + 1);
 					dst_uav_desc.Format = ConvertGfxFormat(tex_desc.format);
 					dst_uav_desc.Texture2D.MipSlice = top_mip + 1;
 					device->CreateUnorderedAccessView(texture.GetNative(), nullptr, &dst_uav_desc, handle2);

@@ -66,14 +66,14 @@ namespace adria
 			[=](BuildHistogramData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				auto descriptor_allocator = gfx->GetDescriptorAllocator();
-				GfxDescriptor dst_handle = descriptor_allocator->Allocate(2);
+				
+				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(2);
 				GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.scene_texture), context.GetReadWriteBuffer(data.histogram_buffer) };
 				gfx->CopyDescriptors(dst_handle, src_handles);
 
 				uint32 descriptor_index = dst_handle.GetIndex();
-				GfxDescriptor scene_srv = descriptor_allocator->GetHandle(descriptor_index);
-				GfxDescriptor buffer_gpu = descriptor_allocator->GetHandle(descriptor_index + 1);
+				GfxDescriptor scene_srv = gfx->GetDescriptorGPU(descriptor_index);
+				GfxDescriptor buffer_gpu = gfx->GetDescriptorGPU(descriptor_index + 1);
 
 				GfxBuffer const& histogram_buffer = context.GetBuffer(*data.histogram_buffer);
 				uint32 clear_value[4] = { 0, 0, 0, 0 };
@@ -126,14 +126,14 @@ namespace adria
 			[=](HistogramReductionData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				auto descriptor_allocator = gfx->GetDescriptorAllocator();
+				
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::HistogramReduction));
-				uint32 descriptor_index = descriptor_allocator->Allocate(2).GetIndex();
+				uint32 descriptor_index = gfx->AllocateDescriptorsGPU(2).GetIndex();
 
-				GfxDescriptor buffer_srv = descriptor_allocator->GetHandle(descriptor_index);
+				GfxDescriptor buffer_srv = gfx->GetDescriptorGPU(descriptor_index);
 				gfx->CopyDescriptors(1, buffer_srv, context.GetReadOnlyBuffer(data.histogram_buffer));
-				GfxDescriptor avgluminance_uav = descriptor_allocator->GetHandle(descriptor_index + 1);
+				GfxDescriptor avgluminance_uav = gfx->GetDescriptorGPU(descriptor_index + 1);
 				gfx->CopyDescriptors(1, avgluminance_uav, context.GetReadWriteTexture(data.avg_luminance));
 
 				struct HistogramReductionConstants
@@ -171,12 +171,12 @@ namespace adria
 			[=](ExposureData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				auto descriptor_allocator = gfx->GetDescriptorAllocator();
+				
 
 				if (invalid_history)
 				{
 					GfxDescriptor cpu_descriptor = previous_ev100_uav;
-					GfxDescriptor gpu_descriptor = descriptor_allocator->Allocate();
+					GfxDescriptor gpu_descriptor = gfx->AllocateDescriptorsGPU();
 					gfx->CopyDescriptors(1, gpu_descriptor, cpu_descriptor);
 					float clear_value[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 					cmd_list->ClearUAV(*previous_ev100, gpu_descriptor, cpu_descriptor, clear_value);
@@ -184,7 +184,7 @@ namespace adria
 				}
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Exposure));
-				GfxDescriptor dst_descriptor = descriptor_allocator->Allocate(3);
+				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(3);
 				GfxDescriptor src_descriptors[] = {
 					previous_ev100_uav,
 					context.GetReadWriteTexture(data.exposure),
