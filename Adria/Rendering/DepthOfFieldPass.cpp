@@ -45,8 +45,9 @@ namespace adria
 				data.blurred_input = builder.ReadTexture(RG_RES_NAME(BlurredDofInput), ReadAccess_PixelShader);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
 			},
-			[=](DepthOfFieldPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](DepthOfFieldPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DOF));

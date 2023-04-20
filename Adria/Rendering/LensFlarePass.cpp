@@ -35,8 +35,9 @@ namespace adria
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
-			[=](LensFlarePassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](LensFlarePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				
 				if (light.type != LightType::Directional)

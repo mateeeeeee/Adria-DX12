@@ -164,7 +164,7 @@ namespace adria
 				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(PostprocessMain));
 				data.copy_src = builder.ReadCopySrcTexture(RG_RES_NAME(HDR_RenderTarget));
 			},
-			[=](CopyPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](CopyPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxTexture const& src_texture = context.GetCopySrcTexture(data.copy_src);
 				GfxTexture& dst_texture = context.GetCopyDstTexture(data.copy_dst);
@@ -193,7 +193,7 @@ namespace adria
 				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(HistoryBuffer));
 				data.copy_src = builder.ReadCopySrcTexture(last_resource);
 			},
-			[=](CopyPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](CopyPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxTexture const& src_texture = context.GetCopySrcTexture(data.copy_src);
 				GfxTexture& dst_texture = context.GetCopyDstTexture(data.copy_dst);
@@ -219,9 +219,9 @@ namespace adria
 				builder.WriteRenderTarget(RG_RES_NAME(SunOutput), RGLoadStoreAccessOp::Clear_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
-				ID3D12Device* device = gfx->GetDevice();
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 

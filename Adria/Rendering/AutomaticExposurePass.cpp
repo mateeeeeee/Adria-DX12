@@ -63,8 +63,9 @@ namespace adria
 				builder.DeclareBuffer(RG_RES_NAME(HistogramBuffer), desc);
 				data.histogram_buffer = builder.WriteBuffer(RG_RES_NAME(HistogramBuffer));
 			},
-			[=](BuildHistogramData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](BuildHistogramData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				GfxDescriptor dst_handle = descriptor_allocator->Allocate(2);
 				GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.scene_texture), context.GetReadWriteBuffer(data.histogram_buffer) };
@@ -122,8 +123,9 @@ namespace adria
 				builder.DeclareTexture(RG_RES_NAME(AverageLuminance), desc);
 				data.avg_luminance = builder.WriteTexture(RG_RES_NAME(AverageLuminance));
 			},
-			[=](HistogramReductionData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](HistogramReductionData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::HistogramReduction));
@@ -166,8 +168,9 @@ namespace adria
 				builder.DeclareTexture(RG_RES_NAME(Exposure), desc);
 				data.exposure = builder.WriteTexture(RG_RES_NAME(Exposure));
 			},
-			[=](ExposureData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](ExposureData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				if (invalid_history)
@@ -217,7 +220,7 @@ namespace adria
 					ADRIA_ASSERT(builder.IsBufferDeclared(RG_RES_NAME(HistogramBuffer)));
 					data.histogram = builder.ReadCopySrcBuffer(RG_RES_NAME(HistogramBuffer));
 				},
-				[=](HistogramCopyData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+				[=](HistogramCopyData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 				{
 					cmd_list->CopyBuffer(*histogram_copy, context.GetBuffer(data.histogram));
 				}, RGPassType::Compute, RGPassFlags::ForceNoCull);

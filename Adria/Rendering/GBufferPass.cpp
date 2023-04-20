@@ -48,8 +48,9 @@ namespace adria
 				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Clear_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);

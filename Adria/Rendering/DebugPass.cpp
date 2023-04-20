@@ -28,7 +28,7 @@ namespace adria
 				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				
 			}, RGPassType::Graphics, RGPassFlags::None);

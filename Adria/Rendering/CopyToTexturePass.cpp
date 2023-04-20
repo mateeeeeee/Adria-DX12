@@ -23,8 +23,9 @@ namespace adria
 				data.texture_src = builder.ReadTexture(texture_src, ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
-			[=](CopyToTexturePassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](CopyToTexturePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				switch (mode)

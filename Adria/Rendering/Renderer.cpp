@@ -954,7 +954,7 @@ namespace adria
 							builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index + i), RGLoadStoreAccessOp::Clear_Preserve);
 							builder.SetViewport(shadows::SHADOW_CASCADE_MAP_SIZE, shadows::SHADOW_CASCADE_MAP_SIZE);
 						},
-						[=](RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+						[=](RenderGraphContext& context, GfxCommandList* cmd_list)
 						{
 							cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 							ShadowMapPass_Common(gfx, cmd_list, false, light_index, i);
@@ -971,7 +971,7 @@ namespace adria
 						builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index), RGLoadStoreAccessOp::Clear_Preserve);
 						builder.SetViewport(shadows::SHADOW_MAP_SIZE, shadows::SHADOW_MAP_SIZE);
 					},
-					[=](RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+					[=](RenderGraphContext& context, GfxCommandList* cmd_list)
 					{
 						cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 						ShadowMapPass_Common(gfx, cmd_list, false, light_index);
@@ -990,7 +990,7 @@ namespace adria
 							builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index + i), RGLoadStoreAccessOp::Clear_Preserve);
 							builder.SetViewport(shadows::SHADOW_CUBE_SIZE, shadows::SHADOW_CUBE_SIZE);
 						},
-						[=](RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+						[=](RenderGraphContext& context, GfxCommandList* cmd_list)
 						{
 							cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 							ShadowMapPass_Common(gfx, cmd_list, false, light_index, i);
@@ -1007,7 +1007,7 @@ namespace adria
 						builder.WriteDepthStencil(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index), RGLoadStoreAccessOp::Clear_Preserve);
 						builder.SetViewport(shadows::SHADOW_MAP_SIZE, shadows::SHADOW_MAP_SIZE);
 					},
-					[=](RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+					[=](RenderGraphContext& context, GfxCommandList* cmd_list)
 					{
 						cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 						ShadowMapPass_Common(gfx, cmd_list, false, light_index);
@@ -1045,7 +1045,7 @@ namespace adria
 				data.dst = builder.WriteCopyDstTexture(RG_RES_NAME(Backbuffer));
 				data.src = builder.ReadCopySrcTexture(RG_RES_NAME(FinalTexture));
 			},
-			[=](CopyToBackbufferPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](CopyToBackbufferPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxTexture const& src_texture = ctx.GetCopySrcTexture(data.src);
 				GfxTexture& dst_texture = ctx.GetCopyDstTexture(data.dst);

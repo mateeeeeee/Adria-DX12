@@ -40,8 +40,9 @@ namespace adria
 				data.output = builder.WriteTexture(RG_RES_NAME(GodRaysOutput));
 				data.sun = builder.ReadTexture(RG_RES_NAME(SunOutput));
 			},
-			[=](GodRaysPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](GodRaysPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				if (light.type != LightType::Directional)

@@ -34,8 +34,9 @@ namespace adria
 				data.velocity = builder.WriteTexture(RG_RES_NAME(VelocityBuffer));
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
-			[=](MotionVectorsPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](MotionVectorsPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::MotionVectors));

@@ -41,8 +41,9 @@ namespace adria
 				data.output = builder.WriteTexture(RG_RES_NAME(FogOutput));
 				builder.SetViewport(width, height);
 			},
-			[=](FogPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](FogPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				uint32 i = descriptor_allocator->Allocate(3).GetIndex();

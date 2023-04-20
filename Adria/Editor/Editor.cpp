@@ -138,7 +138,7 @@ namespace adria
 				data.rt = builder.WriteRenderTarget(RG_RES_NAME(Backbuffer), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(engine->renderer->GetWidth(), engine->renderer->GetHeight());
 			},
-			[=](EditorPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](EditorPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				gui->Begin();
 				{

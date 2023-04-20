@@ -38,8 +38,9 @@ namespace adria
 				data.mask = builder.WriteTexture(mask_name);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
-			[=](RayTracedShadowsPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](RayTracedShadowsPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				
 				uint32 i = descriptor_allocator->Allocate(2).GetIndex();

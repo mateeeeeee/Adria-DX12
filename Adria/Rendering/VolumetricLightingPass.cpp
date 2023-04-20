@@ -29,8 +29,9 @@ namespace adria
 				data.output = builder.WriteTexture(RG_RES_NAME(HDR_RenderTarget));
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
-			[=](LightingPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](LightingPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				
 				GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.depth),

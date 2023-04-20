@@ -43,8 +43,9 @@ namespace adria
 				ADRIA_ASSERT(builder.IsTextureDeclared(RG_RES_NAME(FinalTexture)));
 				data.output = builder.WriteTexture(RG_RES_NAME(FinalTexture));
 			},
-			[=](ToneMapPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](ToneMapPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				uint32 i = descriptor_allocator->Allocate(4).GetIndex();
@@ -124,8 +125,9 @@ namespace adria
 				data.output = builder.WriteTexture(output);
 				builder.SetViewport(width, height);
 			},
-			[=](ToneMapPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](ToneMapPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				uint32 i = descriptor_allocator->Allocate(4).GetIndex();

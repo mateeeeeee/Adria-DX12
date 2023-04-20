@@ -57,6 +57,7 @@ namespace adria
 		explicit GfxCommandList(GfxDevice* gfx, GfxCommandListType type = GfxCommandListType::Graphics, char const* name = "");
 		~GfxCommandList();
 
+		GfxDevice* GetDevice() const { return gfx; }
 		ID3D12GraphicsCommandList4* GetNative() const { return cmd_list.Get(); }
 		GfxCommandQueue& GetQueue() const { return cmd_queue; }
 

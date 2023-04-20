@@ -45,8 +45,9 @@ namespace adria
 				data.output = builder.WriteTexture(RG_RES_NAME(RTR_OutputNoisy));
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil));
 			},
-			[=](RayTracedReflectionsPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](RayTracedReflectionsPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				uint32 i = descriptor_allocator->Allocate(2).GetIndex();

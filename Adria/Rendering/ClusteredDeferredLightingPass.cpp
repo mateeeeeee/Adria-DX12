@@ -55,8 +55,9 @@ namespace adria
 				{
 					data.clusters = builder.WriteBuffer(RG_RES_NAME(ClustersBuffer));
 				},
-				[=](ClusterBuildingPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+				[=](ClusterBuildingPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 				{
+					GfxDevice* gfx = cmd_list->GetDevice();
 					auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 					GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
@@ -84,8 +85,9 @@ namespace adria
 				data.light_grid = builder.WriteBuffer(RG_RES_NAME(LightGrid));
 				data.light_list = builder.WriteBuffer(RG_RES_NAME(LightList));
 			},
-			[=](ClusterCullingPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](ClusterCullingPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				GfxDescriptor src_handles[] = { context.GetReadOnlyBuffer(data.clusters),
@@ -135,8 +137,9 @@ namespace adria
 				data.light_list = builder.ReadBuffer(RG_RES_NAME(LightList), ReadAccess_PixelShader);
 				data.output = builder.WriteTexture(RG_RES_NAME(HDR_RenderTarget));
 			},
-			[=](ClusteredDeferredLightingPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](ClusteredDeferredLightingPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				GfxDescriptor src_handles[] = { context.GetReadOnlyBuffer(data.light_list), context.GetReadOnlyBuffer(data.light_grid),

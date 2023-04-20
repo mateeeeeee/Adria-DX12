@@ -25,14 +25,15 @@ namespace adria
 				builder.DummyWriteTexture(texture_name);
 				builder.SetViewport(width, height);
 			},
-			[=](GenerateMipsPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* _cmd_list)
+			[=](GenerateMipsPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				ID3D12Device* device = gfx->GetDevice();
-				ID3D12GraphicsCommandList* cmd_list = _cmd_list->GetNative();
+				ID3D12GraphicsCommandList* _cmd_list = cmd_list->GetNative();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				GfxTexture const& texture = context.GetTexture(*data.texture_src);
-				cmd_list->SetPipelineState(*PSOCache::Get(GfxPipelineStateID::GenerateMips));
+				_cmd_list->SetPipelineState(*PSOCache::Get(GfxPipelineStateID::GenerateMips));
 
 				D3D12_SHADER_RESOURCE_VIEW_DESC src_srv_desc{};
 				src_srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -62,15 +63,15 @@ namespace adria
 					dst_uav_desc.Texture2D.MipSlice = top_mip + 1;
 					device->CreateUnorderedAccessView(texture.GetNative(), nullptr, &dst_uav_desc, handle2);
 
-					cmd_list->SetComputeRoot32BitConstant(1, DWParam(1.0f / dst_width).Uint, 0);
-					cmd_list->SetComputeRoot32BitConstant(1, DWParam(1.0f / dst_height).Uint, 1);
-					cmd_list->SetComputeRoot32BitConstant(1, i, 2);
-					cmd_list->SetComputeRoot32BitConstant(1, i + 1, 3);
+					_cmd_list->SetComputeRoot32BitConstant(1, DWParam(1.0f / dst_width).Uint, 0);
+					_cmd_list->SetComputeRoot32BitConstant(1, DWParam(1.0f / dst_height).Uint, 1);
+					_cmd_list->SetComputeRoot32BitConstant(1, i, 2);
+					_cmd_list->SetComputeRoot32BitConstant(1, i + 1, 3);
 
-					cmd_list->Dispatch((uint32)std::max(std::ceil(dst_width / 8.0f), 1.0f), (uint32)std::max(std::ceil(dst_height / 8.0f), 1.0f), 1);
+					_cmd_list->Dispatch((uint32)std::max(std::ceil(dst_width / 8.0f), 1.0f), (uint32)std::max(std::ceil(dst_height / 8.0f), 1.0f), 1);
 
 					auto uav_barrier = CD3DX12_RESOURCE_BARRIER::UAV(texture.GetNative());
-					cmd_list->ResourceBarrier(1, &uav_barrier);
+					_cmd_list->ResourceBarrier(1, &uav_barrier);
 				}
 			}, RGPassType::Compute, RGPassFlags::None);
 	}

@@ -22,7 +22,7 @@ namespace adria
 		ForceNoCull = 0x01,						//RGPass cannot be culled by Render Graph
 		AllowUAVWrites = 0x02,					//Allow uav writes, only makes sense if LegacyRenderPassEnabled is disabled
 		SkipAutoRenderPass = 0x04,				//RGPass will manage render targets by himself
-		LegacyRenderPass = 0x08,			//Don't use DX12 Render Passes, use OMSetRenderTargets
+		LegacyRenderPass = 0x08,				//Don't use DX12 Render Passes, use OMSetRenderTargets
 		ActAsCreatorWhenWriting = 0x10			//When writing to a resource, avoid forcing dependency by acting as a creator
 	};
 	DEFINE_ENUM_BIT_OPERATORS(RGPassFlags);
@@ -104,7 +104,7 @@ namespace adria
 	protected:
 
 		virtual void Setup(RenderGraphBuilder&) = 0;
-		virtual void Execute(RenderGraphContext&, GfxDevice*, GfxCommandList*) const = 0;
+		virtual void Execute(RenderGraphContext&, GfxCommandList*) const = 0;
 
 		bool IsCulled() const { return CanBeCulled() && ref_count == 0; }
 		bool CanBeCulled() const { return !HasAnyFlag(flags, RGPassFlags::ForceNoCull); }
@@ -141,7 +141,7 @@ namespace adria
 	{
 	public:
 		using SetupFunc = std::function<void(PassData&, RenderGraphBuilder&)>;
-		using ExecuteFunc = std::function<void(PassData const&, RenderGraphContext&, GfxDevice*, GfxCommandList*)>;
+		using ExecuteFunc = std::function<void(PassData const&, RenderGraphContext&, GfxCommandList*)>;
 
 	public:
 		RenderGraphPass(char const* name, SetupFunc&& setup, ExecuteFunc&& execute, RGPassType type = RGPassType::Graphics, RGPassFlags flags = RGPassFlags::None)
@@ -166,10 +166,10 @@ namespace adria
 			setup(data, builder);
 		}
 
-		void Execute(RenderGraphContext& context, GfxDevice* dev, GfxCommandList* ctx) const override
+		void Execute(RenderGraphContext& context, GfxCommandList* ctx) const override
 		{
 			ADRIA_ASSERT(setup != nullptr && "execute function is null!");
-			execute(data, context, dev, ctx);
+			execute(data, context, ctx);
 		}
 	};
 
@@ -178,7 +178,7 @@ namespace adria
 	{
 	public:
 		using SetupFunc = std::function<void(RenderGraphBuilder&)>;
-		using ExecuteFunc = std::function<void(RenderGraphContext&, GfxDevice*, GfxCommandList*)>;
+		using ExecuteFunc = std::function<void(RenderGraphContext&, GfxCommandList*)>;
 
 	public:
 		RenderGraphPass(char const* name, SetupFunc&& setup, ExecuteFunc&& execute, RGPassType type = RGPassType::Graphics, RGPassFlags flags = RGPassFlags::None)
@@ -202,10 +202,10 @@ namespace adria
 			setup(builder);
 		}
 
-		void Execute(RenderGraphContext& context, GfxDevice* dev, GfxCommandList* ctx) const override
+		void Execute(RenderGraphContext& context, GfxCommandList* ctx) const override
 		{
 			ADRIA_ASSERT(setup != nullptr && "execute function is null!");
-			execute(context, dev, ctx);
+			execute(context, ctx);
 		}
 	};
 

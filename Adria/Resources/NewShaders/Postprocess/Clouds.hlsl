@@ -7,7 +7,7 @@
 static const float4 StratusGradient = float4(0.0f, 0.1f, 0.2f, 0.3f);
 static const float4 StratocumulusGradient = float4(0.02f, 0.2f, 0.48f, 0.625f);
 static const float4 CumulusGradient = float4(0.0f, 0.1625f, 0.88f, 0.98f);
-static const float PlanetRadius = 600000.0f;
+static const float  PlanetRadius = 600000.0f;
 static const float3 PlanetCenter = float3(0.0f, -PlanetRadius, 0.0f);
 
 struct CloudsConstants

@@ -48,8 +48,9 @@ namespace adria
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 				data.normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
 			},
-			[=](PickingPassDispatchData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](PickingPassDispatchData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				
 				uint32 i = descriptor_allocator->Allocate(3).GetIndex();
@@ -85,7 +86,7 @@ namespace adria
 			{
 				data.src = builder.ReadCopySrcBuffer(RG_RES_NAME(PickBuffer));
 			},
-			[=, backbuffer_index = gfx->BackbufferIndex()](PickingPassCopyData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=, backbuffer_index = gfx->BackbufferIndex()](PickingPassCopyData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxBuffer const& buffer = context.GetCopySrcBuffer(data.src);
 				cmd_list->CopyBuffer(*read_picking_buffers[backbuffer_index], buffer);

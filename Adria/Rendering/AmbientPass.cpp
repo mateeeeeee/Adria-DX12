@@ -50,8 +50,9 @@ namespace adria
 				else
 					data.ambient_occlusion.Invalidate();
 			},
-			[&](AmbientPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[&](AmbientPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.gbuffer_normal),

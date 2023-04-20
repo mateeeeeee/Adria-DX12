@@ -813,6 +813,9 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Postprocess\Clouds.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="Resources\NewShaders\Postprocess\DepthOfField.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
@@ -1016,6 +1019,9 @@
     <None Include="Resources\NewShaders\Lighting.hlsli" />
     <None Include="Resources\NewShaders\Lighting\LightRadiance.hlsli" />
     <None Include="Resources\NewShaders\Packing.hlsli" />
+    <None Include="Resources\NewShaders\Postprocess\CloudsUtil.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
     <None Include="Resources\NewShaders\Random.hlsli" />
     <None Include="Resources\NewShaders\RayTracing\PathTracing.hlsli" />
     <None Include="Resources\NewShaders\RayTracing\RayTracingUtil.hlsli">

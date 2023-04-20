@@ -56,8 +56,9 @@ namespace adria
 				{
 					data.initial_spectrum = builder.WriteTexture(RG_RES_NAME(InitialSpectrum));
 				},
-				[=](InitialSpectrumPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+				[=](InitialSpectrumPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 				{
+					GfxDevice* gfx = cmd_list->GetDevice();
 					auto descriptor_allocator = gfx->GetDescriptorAllocator();
 					GfxDescriptor dst_descriptor = descriptor_allocator->Allocate();
 					gfx->CopyDescriptors(1, dst_descriptor, context.GetReadWriteTexture(data.initial_spectrum));
@@ -90,8 +91,9 @@ namespace adria
 				data.phase_srv = builder.ReadTexture(RG_RES_NAME(PongPhase), ReadAccess_NonPixelShader);
 				data.phase_uav = builder.WriteTexture(RG_RES_NAME(PingPhase));
 			},
-			[=](PhasePassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](PhasePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				uint32 i = descriptor_allocator->Allocate(2).GetIndex();
 				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.phase_srv));
@@ -130,8 +132,9 @@ namespace adria
 				data.initial_spectrum_srv = builder.ReadTexture(RG_RES_NAME(InitialSpectrum), ReadAccess_NonPixelShader);
 				data.spectrum_uav = builder.WriteTexture(RG_RES_NAME(PongSpectrum));
 			},
-			[=](SpectrumPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](SpectrumPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				uint32 i = descriptor_allocator->Allocate(3).GetIndex();
 				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.initial_spectrum_srv));
@@ -184,8 +187,9 @@ namespace adria
 					data.spectrum_srv = builder.ReadTexture(pong_spectrum_texture, ReadAccess_NonPixelShader);
 					data.spectrum_uav = builder.WriteTexture(ping_spectrum_texture);
 				},
-				[=](FFTHorizontalPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
+				[=](FFTHorizontalPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 				{
+					GfxDevice* gfx = cmd_list->GetDevice();
 					auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::FFT_Horizontal));
@@ -224,8 +228,9 @@ namespace adria
 					data.spectrum_srv = builder.ReadTexture(pong_spectrum_texture, ReadAccess_NonPixelShader);
 					data.spectrum_uav = builder.WriteTexture(ping_spectrum_texture);
 				},
-				[=](FFTVerticalPassData const& data, RenderGraphContext& ctx, GfxDevice* gfx, GfxCommandList* cmd_list)
+				[=](FFTVerticalPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 				{
+					GfxDevice* gfx = cmd_list->GetDevice();
 					auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::FFT_Vertical));
@@ -265,8 +270,9 @@ namespace adria
 				data.spectrum_srv = builder.ReadTexture(pong_spectrum_texture, ReadAccess_NonPixelShader);
 				data.normals_uav = builder.WriteTexture(RG_RES_NAME(OceanNormals));
 			},
-			[=](OceanNormalsPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](OceanNormalsPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 				uint32 i = descriptor_allocator->Allocate(2).GetIndex();
 				gfx->CopyDescriptors(1, descriptor_allocator->GetHandle(i), context.GetReadOnlyTexture(data.spectrum_srv));
@@ -307,8 +313,9 @@ namespace adria
 				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](OceanDrawPass const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](OceanDrawPass const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				auto skyboxes = reg.view<Skybox>();

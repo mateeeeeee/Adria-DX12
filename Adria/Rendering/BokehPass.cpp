@@ -97,7 +97,7 @@ namespace adria
 				builder.DeclareBuffer(RG_RES_NAME(BokehCounter), bokeh_counter_desc);
 				data.dst = builder.WriteCopyDstBuffer(RG_RES_NAME(BokehCounter));
 			},
-			[=](BokehCounterResetPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](BokehCounterResetPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxBuffer& bokeh_counter = context.GetCopyDstBuffer(data.dst);
 				cmd_list->CopyBuffer(bokeh_counter, 0, *counter_reset_buffer, 0, sizeof(uint32));
@@ -123,8 +123,9 @@ namespace adria
 				data.input = builder.ReadTexture(last_resource, ReadAccess_NonPixelShader);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
-			[=](BokehGeneratePassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](BokehGeneratePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				GfxDescriptor dst_handle = descriptor_allocator->Allocate(3);
@@ -177,7 +178,7 @@ namespace adria
 				data.dst = builder.WriteCopyDstBuffer(RG_RES_NAME(BokehIndirectDraw));
 				data.src = builder.ReadCopySrcBuffer(RG_RES_NAME(BokehCounter));
 			},
-			[=](BokehCopyToIndirectBufferPass const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](BokehCopyToIndirectBufferPass const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxBuffer const& src_buffer = context.GetCopySrcBuffer(data.src);
 				GfxBuffer&		 dst_buffer = context.GetCopyDstBuffer(data.dst);
@@ -202,8 +203,9 @@ namespace adria
 				data.bokeh_indirect_args = builder.ReadIndirectArgsBuffer(RG_RES_NAME(BokehIndirectDraw));
 				builder.SetViewport(width, height);
 			},
-			[=](BokehDrawPassData const& data, RenderGraphContext& context, GfxDevice* gfx, GfxCommandList* cmd_list)
+			[=](BokehDrawPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
+				GfxDevice* gfx = cmd_list->GetDevice();
 				auto descriptor_allocator = gfx->GetDescriptorAllocator();
 
 				GfxDescriptor bokeh_descriptor{};
