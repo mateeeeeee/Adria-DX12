@@ -33,7 +33,6 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 				
-				
 				GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.depth),
 												context.GetReadWriteTexture(data.output) };
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));

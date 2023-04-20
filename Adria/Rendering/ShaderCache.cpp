@@ -119,8 +119,8 @@ namespace adria
 				return "SkyboxPS";
 			case PS_HosekWilkieSky:
 				return "HosekWilkieSkyPS";
-			case PS_UniformColorSky:
-				return "UniformColorSkyPS";
+			case PS_MinimalAtmosphereSky:
+				return "MinimalAtmosphereSkyPS";
 			case VS_Simple:
 				return "SimpleVS";
 			case VS_Sun:
@@ -180,7 +180,7 @@ namespace adria
 				return GfxShaderStage::VS;
 			case PS_Skybox:
 			case PS_HosekWilkieSky:
-			case PS_UniformColorSky:
+			case PS_MinimalAtmosphereSky:
 			case PS_Texture:
 			case PS_Solid:
 			case PS_Decals:
@@ -257,7 +257,7 @@ namespace adria
 			case VS_Sky:
 			case PS_Skybox:
 			case PS_HosekWilkieSky:
-			case PS_UniformColorSky:
+			case PS_MinimalAtmosphereSky:
 				return "Other/Sky.hlsl";
 			case VS_Simple:
 			case VS_Sun:

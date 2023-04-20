@@ -9,7 +9,7 @@ namespace adria
 		GfxShaderID_Invalid,
 		VS_Sky,
 		PS_Skybox,
-		PS_UniformColorSky,
+		PS_MinimalAtmosphereSky,
 		PS_HosekWilkieSky,
 		VS_FullscreenQuad,
 		VS_GBuffer,
@@ -92,7 +92,7 @@ namespace adria
 	enum class GfxPipelineStateID : uint8
 	{
 		Skybox,
-		UniformColorSky,
+		MinimalAtmosphereSky,
 		HosekWilkieSky,
 		Texture,
 		Solid_Wireframe,
@@ -166,7 +166,7 @@ namespace adria
 	enum class SkyType : uint8
 	{
 		Skybox,
-		UniformColor,
+		MinimalAtmosphere,
 		HosekWilkie
 	};
 

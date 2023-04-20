@@ -66,7 +66,6 @@ namespace adria
 			[=](BuildHistogramData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(2);
 				GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.scene_texture), context.GetReadWriteBuffer(data.histogram_buffer) };
 				gfx->CopyDescriptors(dst_handle, src_handles);
@@ -126,7 +125,6 @@ namespace adria
 			[=](HistogramReductionData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::HistogramReduction));
 				uint32 descriptor_index = gfx->AllocateDescriptorsGPU(2).GetIndex();
@@ -171,7 +169,6 @@ namespace adria
 			[=](ExposureData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				
 
 				if (invalid_history)
 				{

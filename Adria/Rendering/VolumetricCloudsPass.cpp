@@ -43,7 +43,6 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 				
-				
 				GfxDescriptor src_handles[] = { g_TextureManager.GetSRV(cloud_textures[0]),  g_TextureManager.GetSRV(cloud_textures[1]),
 															 g_TextureManager.GetSRV(cloud_textures[2]), context.GetReadOnlyTexture(data.depth),
 															context.GetReadWriteTexture(data.output) };

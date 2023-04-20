@@ -38,7 +38,6 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 				
-				
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::MotionVectors));
 
 				uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();

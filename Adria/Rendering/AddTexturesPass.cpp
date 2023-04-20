@@ -31,7 +31,6 @@ namespace adria
 			[=](CopyToTexturePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				
 
 				switch (mode)
 				{

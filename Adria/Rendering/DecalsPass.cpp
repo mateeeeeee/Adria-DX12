@@ -40,7 +40,6 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 				
-				
 				GfxDescriptor depth_srv = gfx->AllocateDescriptorsGPU();
 				gfx->CopyDescriptors(1, depth_srv, context.GetReadOnlyTexture(data.depth_srv));
 

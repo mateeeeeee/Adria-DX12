@@ -22,17 +22,14 @@ namespace adria
 	{
 	public:
 		GUI(GfxDevice* gfx);
-
 		~GUI();
 
 		void Begin() const;
-
 		void End(GfxCommandList* cmd_list) const;
 
 		void HandleWindowMessage(WindowMessage const&) const;
 
 		void ToggleVisibility();
-
 		bool IsVisible() const;
 
 		GfxDescriptor AllocateDescriptorsGPU(uint32 count = 1) const;

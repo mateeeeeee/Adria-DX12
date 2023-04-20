@@ -44,7 +44,6 @@ namespace adria
 			[=](FogPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				
 
 				uint32 i = gfx->AllocateDescriptorsGPU(3).GetIndex();
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.depth));

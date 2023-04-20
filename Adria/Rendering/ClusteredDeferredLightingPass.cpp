@@ -88,7 +88,6 @@ namespace adria
 			[=](ClusterCullingPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				
 
 				GfxDescriptor src_handles[] = { context.GetReadOnlyBuffer(data.clusters),
 												context.GetReadWriteBuffer(data.light_counter),
@@ -140,7 +139,6 @@ namespace adria
 			[=](ClusteredDeferredLightingPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				
 
 				GfxDescriptor src_handles[] = { context.GetReadOnlyBuffer(data.light_list), context.GetReadOnlyBuffer(data.light_grid),
 															  context.GetReadOnlyTexture(data.gbuffer_normal), context.GetReadOnlyTexture(data.gbuffer_albedo), 

@@ -126,7 +126,6 @@ namespace adria
 			[=](BokehGeneratePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				
 
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(3);
 				GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.input), context.GetReadOnlyTexture(data.depth), context.GetReadWriteBuffer(data.bokeh) };
@@ -206,7 +205,6 @@ namespace adria
 			[=](BokehDrawPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				
 
 				GfxDescriptor bokeh_descriptor{};
 				switch (params.bokeh_type)

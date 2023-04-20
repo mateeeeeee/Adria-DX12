@@ -278,7 +278,7 @@ namespace adria
 		SetupShadows();
 		UpdateSceneBuffers();
 		UpdateEnvironmentMap();
-		UpdateFrameConstantBuffer(dt);
+		UpdateFrameConstants(dt);
 		CameraFrustumCulling();
 		MiscGUI();
 	}
@@ -721,7 +721,7 @@ namespace adria
 		size_t count = reg.size();
 	}
 
-	void Renderer::UpdateFrameConstantBuffer(float dt)
+	void Renderer::UpdateFrameConstants(float dt)
 	{
 		auto AreMatricesEqual = [](XMMATRIX m1, XMMATRIX m2) -> bool
 		{
@@ -786,7 +786,7 @@ namespace adria
 			if (light_data.type == LightType::Directional && light_data.active)
 			{
 				frame_cbuf_data.sun_direction = -light_data.direction;
-				frame_cbuf_data.sun_color = light_data.color;
+				frame_cbuf_data.sun_color = light_data.color * light_data.energy;
 				XMStoreFloat3(&sun_direction, -light_data.direction);
 				break;
 			}

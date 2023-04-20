@@ -52,7 +52,6 @@ namespace adria
 			[=](TiledDeferredLightingPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				
 
 				GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.gbuffer_normal),
 												context.GetReadOnlyTexture(data.gbuffer_albedo),

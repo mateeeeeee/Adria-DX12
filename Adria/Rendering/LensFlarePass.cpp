@@ -39,7 +39,6 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 				
-				
 				if (light.type != LightType::Directional)
 				{
 					ADRIA_LOG(WARNING, "Using Lens Flare on a Non-Directional Light Source");

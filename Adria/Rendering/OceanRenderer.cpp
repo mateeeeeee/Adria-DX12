@@ -94,7 +94,6 @@ namespace adria
 			[=](PhasePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				
 				uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i), context.GetReadOnlyTexture(data.phase_srv));
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), context.GetReadWriteTexture(data.phase_uav));
@@ -135,7 +134,6 @@ namespace adria
 			[=](SpectrumPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				
 				uint32 i = gfx->AllocateDescriptorsGPU(3).GetIndex();
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i), context.GetReadOnlyTexture(data.initial_spectrum_srv));
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), context.GetReadOnlyTexture(data.phase_srv));
@@ -273,7 +271,6 @@ namespace adria
 			[=](OceanNormalsPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				
 				uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i), context.GetReadOnlyTexture(data.spectrum_srv));
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), context.GetReadWriteTexture(data.normals_uav));
@@ -316,7 +313,6 @@ namespace adria
 			[=](OceanDrawPass const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				
 
 				auto skyboxes = reg.view<Skybox>();
 				GfxDescriptor skybox_handle = gfxcommon::GetCommonView(GfxCommonViewType::NullTextureCube_SRV);

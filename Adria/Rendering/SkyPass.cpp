@@ -33,19 +33,8 @@ namespace adria
 			[=](RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				
-
-				struct SkyConstants
-				{
-					XMMATRIX model_matrix;
-				} constants =
-				{
-					.model_matrix = XMMatrixTranslationFromVector(global_data.camera_position)
-				};
 
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
-				cmd_list->SetRootCBV(2, constants);
-
 				switch (sky_type)
 				{
 				case SkyType::Skybox:
@@ -63,17 +52,9 @@ namespace adria
 					}
 					break;
 				}
-				case SkyType::UniformColor:
+				case SkyType::MinimalAtmosphere:
 				{
-					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::UniformColorSky));
-					struct UniformColorSkyConstants
-					{
-						XMFLOAT3 sky_color;
-					} constants =
-					{
-						.sky_color = XMFLOAT3(sky_color)
-					};
-					cmd_list->SetRootConstants(1, constants);
+					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::MinimalAtmosphereSky));
 					break;
 				}
 				case SkyType::HosekWilkie:
@@ -123,7 +104,7 @@ namespace adria
 				if (ImGui::TreeNodeEx("Sky", ImGuiTreeNodeFlags_OpenOnDoubleClick))
 				{
 					static int current_sky_type = 0;
-					const char* sky_types[] = { "Skybox", "Uniform Color", "Hosek-Wilkie" };
+					const char* sky_types[] = { "Skybox", "Minimal Atmosphere", "Hosek-Wilkie" };
 					const char* combo_label = sky_types[current_sky_type];
 					if (ImGui::BeginCombo("Sky Type", combo_label, 0))
 					{
@@ -137,37 +118,7 @@ namespace adria
 					}
 
 					if (current_sky_type == 0) sky_type = SkyType::Skybox;
-					else if (current_sky_type == 1)
-					{
-						sky_type = SkyType::UniformColor;
-						static char const* const sky_colors[] = { "Deep Sky Blue", "Sky Blue", "Light Sky Blue" };
-						static int current_sky_color = 0;
-						ImGui::ListBox("Tone Map Operator", &current_sky_color, sky_colors, IM_ARRAYSIZE(sky_colors));
-
-						switch (current_sky_color)
-						{
-						case 0:
-						{
-							static float deep_sky_blue[3] = { 0.0f, 0.75f, 1.0f };
-							memcpy(sky_color, deep_sky_blue, sizeof(deep_sky_blue));
-							break;
-						}
-						case 1:
-						{
-							static float sky_blue[3] = { 0.53f, 0.81f, 0.92f };
-							memcpy(sky_color, sky_blue, sizeof(sky_blue));
-							break;
-						}
-						case 2:
-						{
-							static float light_sky_blue[3] = { 0.53f, 0.81f, 0.98f };
-							memcpy(sky_color, light_sky_blue, sizeof(light_sky_blue));
-							break;
-						}
-						default:
-							ADRIA_ASSERT(false);
-						}
-					}
+					else if (current_sky_type == 1) sky_type = SkyType::MinimalAtmosphere;
 					else if (current_sky_type == 2)
 					{
 						sky_type = SkyType::HosekWilkie;

@@ -1,12 +1,6 @@
 #include "../CommonResources.hlsli"
+#include "../Atmosphere.hlsli"
 
-
-
-struct SkyConstants
-{
-	row_major matrix modelMatrix;
-};
-ConstantBuffer<SkyConstants> SkyPassCB : register(b2);
 
 struct VertexIn
 {
@@ -22,7 +16,7 @@ struct VertexOut
 VertexOut SkyVS(VertexIn input)
 {
 	VertexOut output;
-	output.PosH = mul(float4(input.PosL, 1.0f), SkyPassCB.modelMatrix);
+	output.PosH = float4(input.PosL + FrameCB.cameraPosition.xyz, 1.0f);
 	output.PosH = mul(output.PosH, FrameCB.viewProjection).xyww;
 	output.PosL = input.PosL;
 	return output;
@@ -88,13 +82,27 @@ float4 HosekWilkieSkyPS(VertexOut input) : SV_TARGET
 	return float4(col, 1.0);
 }
 
-struct UniformColorSkyConstants
+float4 MinimalAtmosphereSkyPS(VertexOut input) : SV_Target
 {
-	float3 skyColor;
-};
-ConstantBuffer<UniformColorSkyConstants> UniformColorSkyPassCB : register(b1);
+	float3 rayStart = FrameCB.cameraPosition.xyz;
+	float3 rayDir = normalize(input.PosL);
+	float rayLength = INFINITY;
 
-float4 UniformColorSkyPS(VertexOut) : SV_Target
-{
-	return float4(UniformColorSkyPassCB.skyColor, 1.0f);
+	bool PlanetShadow = false;
+	if (PlanetShadow)
+	{
+		float2 planetIntersection = PlanetIntersection(rayStart, rayDir);
+		if (planetIntersection.x > 0)
+		{
+			rayLength = min(rayLength, planetIntersection.x);
+		}
+	}
+
+	float3 lightDir = normalize(FrameCB.sunDirection.xyz);
+	float3 lightColor = FrameCB.sunColor.xyz;
+
+	float3 transmittance;
+	float3 color = IntegrateScattering(rayStart, rayDir, rayLength, lightDir, lightColor, 16, transmittance);
+
+	return float4(color, 1);
 }

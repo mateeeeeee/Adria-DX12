@@ -43,7 +43,6 @@ namespace adria
 			[=](GodRaysPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				
 
 				if (light.type != LightType::Directional)
 				{

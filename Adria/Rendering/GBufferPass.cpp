@@ -52,7 +52,6 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 				
-				
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				auto GetPSO = [](MaterialAlphaMode alpha_mode)
 				{

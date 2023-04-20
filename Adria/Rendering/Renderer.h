@@ -160,7 +160,7 @@ namespace adria
 		void MiscGUI();
 		void SetupShadows();
 		void UpdateSceneBuffers();
-		void UpdateFrameConstantBuffer(float dt);
+		void UpdateFrameConstants(float dt);
 		void CameraFrustumCulling();
 
 		void Render_Deferred(RenderGraph& rg);

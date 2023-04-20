@@ -1,14 +1,16 @@
 #include "CloudsUtil.hlsli"
+#include "../Atmosphere.hlsli"
 #include "../CommonResources.hlsli"
 #include "../Packing.hlsli"
 
 #define BLOCK_SIZE 16
 #define CONE_STEP 0.1666666
+
 static const float4 StratusGradient = float4(0.0f, 0.1f, 0.2f, 0.3f);
 static const float4 StratocumulusGradient = float4(0.02f, 0.2f, 0.48f, 0.625f);
 static const float4 CumulusGradient = float4(0.0f, 0.1625f, 0.88f, 0.98f);
-static const float  PlanetRadius = 600000.0f;
-static const float3 PlanetCenter = float3(0.0f, -PlanetRadius, 0.0f);
+static const float  PlanetRadius = PLANET_RADIUS;
+static const float3 PlanetCenter = PLANET_CENTER;
 
 struct CloudsConstants
 {
@@ -33,19 +35,26 @@ struct CloudTextureIndices
 };
 ConstantBuffer<CloudTextureIndices> TexturesCB : register(b2);
 
+
+float3 ToClipSpaceCoord(float2 tex)
+{
+    float2 ray;
+    ray.x = 2.0 * tex.x - 1.0;
+    ray.y = 1.0 - tex.y * 2.0;
+
+    return float3(ray, 1.0);
+}
 float GetHeightFraction(float3 inPos)
 {
     float innerRadius = PlanetRadius + PassCB.cloudsBottomHeight;
     float outerRadius = innerRadius + PassCB.cloudsTopHeight;
     return (length(inPos - PlanetCenter) - innerRadius) / (outerRadius - innerRadius);
 }
-
 float2 GetUVProjection(float3 p)
 {
     float innerRadius = PlanetRadius + PassCB.cloudsBottomHeight;
     return p.xz / innerRadius + 0.5f;
 }
-
 float GetDensityForCloud(float heightFraction, float cloudType)
 {
     float stratusFactor = 1.0 - clamp(cloudType * 2.0, 0.0, 1.0);
@@ -55,7 +64,6 @@ float GetDensityForCloud(float heightFraction, float cloudType)
     float4 baseGradient = stratusFactor * StratusGradient + stratoCumulusFactor * StratocumulusGradient + cumulusFactor * CumulusGradient;
     return smoothstep(baseGradient.x, baseGradient.y, heightFraction) - smoothstep(baseGradient.z, baseGradient.w, heightFraction);
 }
-
 float SampleCloudDensity(float3 p, bool useHighFreq, float lod)
 {
     Texture3D cloudTx = ResourceDescriptorHeap[TexturesCB.cloudIdx];
@@ -94,7 +102,6 @@ float SampleCloudDensity(float3 p, bool useHighFreq, float lod)
 
     return clamp(cloudSampleWithCoverage, 0.0f, 1.0f);
 }
-
 float RaymarchToLight(float3 origin, float stepSize, float3 lightDir, float originalDensity, float lightDotEye)
 {
     float3 startPos = origin;
@@ -136,7 +143,6 @@ float RaymarchToLight(float3 origin, float stepSize, float3 lightDir, float orig
     }
     return LightEnergy(coneDensity, lightDotEye);
 }
-
 float4 RaymarchToCloud(uint2 globalCoord, float3 startPos, float3 endPos, float3 skyColor, out float4 cloudPos)
 {
     const float minTransmittance = 0.1f;
@@ -188,7 +194,6 @@ float4 RaymarchToCloud(uint2 globalCoord, float3 startPos, float3 endPos, float3
     }
     return finalColor;
 }
-
 bool IntersectSphere(float3 o, float3 d, out float3 minT, out float3 maxT)
 {
     float innerRadius = PlanetRadius + PassCB.cloudsBottomHeight;
@@ -229,7 +234,6 @@ bool IntersectSphere(float3 o, float3 d, out float3 minT, out float3 maxT)
     return true;
 }
 
-
 struct CS_INPUT
 {
     uint3 GroupId : SV_GroupID;
@@ -237,16 +241,6 @@ struct CS_INPUT
     uint3 DispatchThreadId : SV_DispatchThreadID;
     uint GroupIndex : SV_GroupIndex;
 };
-
-
-float3 ToClipSpaceCoord(float2 tex)
-{
-    float2 ray;
-    ray.x = 2.0 * tex.x - 1.0;
-    ray.y = 1.0 - tex.y * 2.0;
-    
-    return float3(ray, 1.0);
-}
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void Clouds(CS_INPUT input)

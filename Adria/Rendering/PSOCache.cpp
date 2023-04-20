@@ -43,8 +43,8 @@ namespace adria
 				gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
 				gfx_pso_map[GfxPipelineStateID::Skybox] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
-				gfx_pso_desc.PS = PS_UniformColorSky;
-				gfx_pso_map[GfxPipelineStateID::UniformColorSky] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
+				gfx_pso_desc.PS = PS_MinimalAtmosphereSky;
+				gfx_pso_map[GfxPipelineStateID::MinimalAtmosphereSky] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc.PS = PS_HosekWilkieSky;
 				gfx_pso_map[GfxPipelineStateID::HosekWilkieSky] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);

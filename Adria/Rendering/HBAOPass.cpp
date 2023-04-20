@@ -40,7 +40,6 @@ namespace adria
 			[&](HBAOPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::HBAO));

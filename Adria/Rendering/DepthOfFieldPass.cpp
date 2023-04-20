@@ -48,7 +48,6 @@ namespace adria
 			[=](DepthOfFieldPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DOF));
 

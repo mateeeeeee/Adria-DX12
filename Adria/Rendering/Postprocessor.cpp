@@ -222,7 +222,6 @@ namespace adria
 			[=](RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Sun));
