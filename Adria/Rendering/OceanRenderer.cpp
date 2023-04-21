@@ -313,19 +313,6 @@ namespace adria
 			[=](OceanDrawPass const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-
-				auto skyboxes = reg.view<Skybox>();
-				GfxDescriptor skybox_handle = gfxcommon::GetCommonView(GfxCommonViewType::NullTextureCube_SRV);
-				for (auto skybox : skyboxes)
-				{
-					auto const& _skybox = skyboxes.get<Skybox>(skybox);
-					if (_skybox.active)
-					{
-						skybox_handle = g_TextureManager.GetSRV(_skybox.cubemap_texture);
-						break;
-					}
-				}
-
 				if (ocean_tesselation)
 				{
 					cmd_list->SetPipelineState(
@@ -345,21 +332,20 @@ namespace adria
 				{
 					auto const& [mesh, material, transform] = ocean_chunk_view.get<const SubMesh, const Material, const Transform>(ocean_chunk);
 
-					uint32 i = gfx->AllocateDescriptorsGPU(4).GetIndex();
+					uint32 i = gfx->AllocateDescriptorsGPU(3).GetIndex();
 					GfxDescriptor dst_handle = gfx->GetDescriptorGPU(i);
-					GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.displacement), context.GetReadOnlyTexture(data.normals), skybox_handle, g_TextureManager.GetSRV(foam_handle) };
+					GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.displacement), context.GetReadOnlyTexture(data.normals), g_TextureManager.GetSRV(foam_handle) };
 					gfx->CopyDescriptors(dst_handle, src_handles);
 
 					struct OceanIndices
 					{
 						uint32 displacement_idx;
 						uint32 normal_idx;
-						uint32 sky_idx;
 						uint32 foam_idx;
 					} indices =
 					{
 						.displacement_idx = i, .normal_idx = i + 1,
-						.sky_idx = i + 2, .foam_idx = i + 3
+						.foam_idx = i + 3
 					};
 
 					struct OceanConstants

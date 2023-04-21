@@ -4,6 +4,7 @@
 #include <d3d12.h>
 #include <DirectXMath.h>
 #include "Graphics/GfxFence.h"
+#include "Graphics/GfxDescriptor.h"
 #include "Graphics/GfxRayTracingAS.h"
 
 namespace adria
@@ -21,7 +22,7 @@ namespace adria
 		void AddInstance(Mesh const& mesh);
 		void Build();
 
-		GfxRayTracingTLAS const& GetTLAS() const;
+		int32 GetTLASIndex() const;
 
 	private:
 		GfxDevice* gfx;
@@ -30,6 +31,7 @@ namespace adria
 
 		std::vector<GfxRayTracingInstance> rt_instances;
 		std::unique_ptr<GfxRayTracingTLAS> tlas;
+		GfxDescriptor tlas_srv;
 
 		GfxFence build_fence;
 		uint64 build_fence_value = 0;

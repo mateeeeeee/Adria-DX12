@@ -191,7 +191,7 @@ namespace adria
 		}
 	}
 
-	GfxTexture::GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, ID3D12Resource* backbuffer) : gfx(gfx), desc(desc), resource(backbuffer)
+	GfxTexture::GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, void* backbuffer) : gfx(gfx), desc(desc), resource((ID3D12Resource*)backbuffer)
 	{}
 
 	GfxTexture::~GfxTexture()

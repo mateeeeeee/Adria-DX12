@@ -112,7 +112,7 @@ namespace adria
 			XMFLOAT3{ -0.5f,  0.5f, -0.5f }
 		};
 
-		uint16_t const cube_indices[36] =
+		uint16 const cube_indices[36] =
 		{
 			// front
 			0, 1, 2,

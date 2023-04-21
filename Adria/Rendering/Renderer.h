@@ -95,7 +95,6 @@ namespace adria
 			GfxDescriptor				buffer_srv_gpu;
 		};
 		std::array<SceneBuffer, SceneBuffer_Count> scene_buffers;
-
 		//shadows
 		std::unique_ptr<GfxBuffer>  light_matrices_buffer;
 		GfxDescriptor				light_matrices_buffer_srvs[GFX_BACKBUFFER_COUNT];
@@ -106,8 +105,7 @@ namespace adria
 		HashMap<size_t, GfxDescriptor> light_mask_texture_srvs;
 		HashMap<size_t, GfxDescriptor> light_mask_texture_uavs;
 
-		GfxDescriptor		 light_matrices_srv_gpu;
-		GfxDescriptor        envmap_srv_gpu;
+		int32				 light_matrices_gpu_index;
 
 		//passes
 		GBufferPass  gbuffer_pass;
@@ -156,7 +154,6 @@ namespace adria
 		void CreateSizeDependentResources();
 		void CreateAS();
 
-		void UpdateEnvironmentMap();
 		void MiscGUI();
 		void SetupShadows();
 		void UpdateSceneBuffers();

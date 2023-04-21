@@ -277,7 +277,6 @@ namespace adria
 	{
 		SetupShadows();
 		UpdateSceneBuffers();
-		UpdateEnvironmentMap();
 		UpdateFrameConstants(dt);
 		CameraFrustumCulling();
 		MiscGUI();
@@ -390,35 +389,10 @@ namespace adria
 			accel_structure.AddInstance(mesh);
 		}
 		accel_structure.Build();
-		tlas_srv = gfx->CreateBufferSRV(&*accel_structure.GetTLAS());
 	}
 
-	void Renderer::UpdateEnvironmentMap()
-	{
-		GfxDescriptor env_map = gfxcommon::GetCommonView(GfxCommonViewType::NullTextureCube_SRV);
-		if (sky_pass.GetSkyType() == SkyType::Skybox)
-		{
-			auto skybox_entities = reg.view<Skybox>();
-			for (auto e : skybox_entities)
-			{
-				Skybox skybox = skybox_entities.get<Skybox>(e);
-				if (skybox.active)
-				{
-					env_map = g_TextureManager.GetSRV(skybox.cubemap_texture);
-					break;
-				}
-			}
-		}
-		
-
-		GfxDescriptor descriptor = gfx->AllocateDescriptorsGPU();
-		gfx->CopyDescriptors(1, descriptor, env_map);
-	}
 	void Renderer::SetupShadows()
 	{
-		ID3D12Device* device = gfx->GetDevice();
-		
-
 		auto AddShadowMask = [&](Light& light, size_t light_id)
 		{
 			if (light_mask_textures[light_id] == nullptr)
@@ -438,7 +412,7 @@ namespace adria
 
 			GfxDescriptor srv = light_mask_texture_srvs[light_id];
 			GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU();
-			device->CopyDescriptorsSimple(1, dst_descriptor, srv, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			gfx->CopyDescriptors(1, dst_descriptor, srv);
 			light.shadow_mask_index = (int32)dst_descriptor.GetIndex();
 		};
 		auto AddShadowMap = [&](size_t light_id, uint32 shadow_map_size)
@@ -497,7 +471,7 @@ namespace adria
 			{
 				GfxDescriptor srv = light_shadow_map_srvs[light_id][j];
 				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU();
-				device->CopyDescriptorsSimple(1, dst_descriptor, srv, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				gfx->CopyDescriptors(1, dst_descriptor, srv);
 				if(j == 0) light.shadow_texture_index = (int32)dst_descriptor.GetIndex();
 			}
 		};
@@ -591,7 +565,7 @@ namespace adria
 			light_matrices_buffer->Update(light_matrices.data(), light_matrices_count * sizeof(XMMATRIX), light_matrices_count * sizeof(XMMATRIX) * backbuffer_index);
 			GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU();
 			gfx->CopyDescriptors(1, dst_descriptor, light_matrices_buffer_srvs[backbuffer_index]);
-			light_matrices_srv_gpu = dst_descriptor;
+			light_matrices_gpu_index = (int32)dst_descriptor.GetIndex();
 		}
 	}
 
@@ -771,14 +745,14 @@ namespace adria
 		frame_cbuf_data.frame_count = gfx->FrameIndex();
 		frame_cbuf_data.mouse_normalized_coords_x = (viewport_data.mouse_position_x - viewport_data.scene_viewport_pos_x) / viewport_data.scene_viewport_size_x;
 		frame_cbuf_data.mouse_normalized_coords_y = (viewport_data.mouse_position_y - viewport_data.scene_viewport_pos_y) / viewport_data.scene_viewport_size_y;
-
+		frame_cbuf_data.env_map_idx = sky_pass.GetSkyIndex();
 		frame_cbuf_data.meshes_idx = (int32)scene_buffers[SceneBuffer_Mesh].buffer_srv_gpu.GetIndex();
 		frame_cbuf_data.materials_idx = (int32)scene_buffers[SceneBuffer_Material].buffer_srv_gpu.GetIndex();
 		frame_cbuf_data.instances_idx = (int32)scene_buffers[SceneBuffer_Instance].buffer_srv_gpu.GetIndex();
 		frame_cbuf_data.lights_idx = (int32)scene_buffers[SceneBuffer_Light].buffer_srv_gpu.GetIndex();
-		frame_cbuf_data.lights_matrices_idx = (int32)light_matrices_srv_gpu.GetIndex();
-		frame_cbuf_data.env_map_idx = (int32)envmap_srv_gpu.GetIndex();
+		frame_cbuf_data.lights_matrices_idx = light_matrices_gpu_index;
 		frame_cbuf_data.cascade_splits = XMVectorSet(split_distances[0], split_distances[1], split_distances[2], split_distances[3]);
+
 		auto lights = reg.view<Light>();
 		for (auto light : lights)
 		{
@@ -794,10 +768,7 @@ namespace adria
 
 		if (ray_tracing_supported && reg.view<RayTracing>().size())
 		{
-			
-			GfxDescriptor accel_struct_descriptor = gfx->AllocateDescriptorsGPU();
-			gfx->CopyDescriptors(1, accel_struct_descriptor, tlas_srv);
-			frame_cbuf_data.accel_struct_idx = (int32)accel_struct_descriptor.GetIndex();
+			frame_cbuf_data.accel_struct_idx = accel_structure.GetTLASIndex();
 		}
 
 		frame_cbuf_data.wind_params = XMVectorSet(wind_dir[0], wind_dir[1], wind_dir[2], wind_speed);
@@ -823,6 +794,7 @@ namespace adria
 			picking_data = picking_pass.GetPickingData();
 			update_picking_data = false;
 		}
+		sky_pass.AddComputeSkyPass(render_graph, sun_direction);
 
 		gbuffer_pass.AddPass(render_graph);
 		decals_pass.AddPass(render_graph);
@@ -866,7 +838,7 @@ namespace adria
 
 		aabb_pass.AddPass(render_graph);
 		ocean_renderer.AddPasses(render_graph);
-		sky_pass.AddPass(render_graph, sun_direction);
+		sky_pass.AddDrawSkyPass(render_graph);
 		picking_pass.AddPass(render_graph);
 		if (renderer_settings.postprocess.reflections == Reflections::RTR) rtr_pass.AddPass(render_graph);
 		postprocessor.AddPasses(render_graph, renderer_settings.postprocess);

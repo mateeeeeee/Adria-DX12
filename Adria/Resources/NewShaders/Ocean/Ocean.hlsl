@@ -6,7 +6,6 @@ struct OceanIndices
 {
 	uint displacementIdx;
 	uint normalIdx;
-	uint skyIdx;
 	uint foamIdx;
 };
 ConstantBuffer<OceanIndices> PassCB2 : register(b1);
@@ -52,7 +51,7 @@ VS_OUTPUT OceanVS(VS_INPUT input)
 float4 OceanPS(VS_OUTPUT input) : SV_TARGET
 {
 	Texture2D	normalTx		= ResourceDescriptorHeap[PassCB2.normalIdx];
-	TextureCube skyCubeTx		= ResourceDescriptorHeap[PassCB2.skyIdx];
+	TextureCube skyCubeTx		= ResourceDescriptorHeap[FrameCB.envMapIdx];
 	Texture2D   foamTx			= ResourceDescriptorHeap[PassCB2.foamIdx];
 
 	float4 normalAndFoam = normalTx.Sample(LinearWrapSampler, input.TexCoord);

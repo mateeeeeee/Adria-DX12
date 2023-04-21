@@ -51,17 +51,20 @@ namespace adria
 		}
 	}
 
-	void AccelerationStructure::Build() //add build flag options
+	void AccelerationStructure::Build() 
 	{
 		if (blases.empty()) return;
 		BuildBottomLevels();
 		for(auto& rt_instance : rt_instances) rt_instance.blas = blases[rt_instance.instance_id].get();
 		BuildTopLevel();
+		tlas_srv = gfx->CreateBufferSRV(&tlas->GetBuffer());
 	}
 
-	GfxRayTracingTLAS const& AccelerationStructure::GetTLAS() const
+	int32 AccelerationStructure::GetTLASIndex() const
 	{
-		return *tlas;
+		GfxDescriptor tlas_srv_gpu = gfx->AllocateDescriptorsGPU();
+		gfx->CopyDescriptors(1, tlas_srv_gpu, tlas_srv);
+		return (int32)tlas_srv_gpu.GetIndex();
 	}
 
 	void AccelerationStructure::BuildBottomLevels()

@@ -67,7 +67,7 @@ namespace adria
 	public:
 		GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, GfxTextureInitialData* initial_data = nullptr, uint32 data_count = -1);
 		//constructor used by swapchain for creating backbuffer texture
-		GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, ID3D12Resource* backbuffer);
+		GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, void* backbuffer);
 
 		GfxTexture(GfxTexture const&) = delete;
 		GfxTexture& operator=(GfxTexture const&) = delete;

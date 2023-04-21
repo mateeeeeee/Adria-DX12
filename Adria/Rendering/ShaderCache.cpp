@@ -115,12 +115,12 @@ namespace adria
 				return "CopyTexture";
 			case VS_Sky:
 				return "SkyVS";
-			case PS_Skybox:
-				return "SkyboxPS";
-			case PS_HosekWilkieSky:
-				return "HosekWilkieSkyPS";
-			case PS_MinimalAtmosphereSky:
-				return "MinimalAtmosphereSkyPS";
+			case PS_Sky:
+				return "SkyPS";
+			case CS_HosekWilkieSky:
+				return "HosekWilkieSkyCS";
+			case CS_MinimalAtmosphereSky:
+				return "MinimalAtmosphereSkyCS";
 			case VS_Simple:
 				return "SimpleVS";
 			case VS_Sun:
@@ -178,9 +178,7 @@ namespace adria
 			case VS_Ocean:
 			case VS_OceanLOD:
 				return GfxShaderStage::VS;
-			case PS_Skybox:
-			case PS_HosekWilkieSky:
-			case PS_MinimalAtmosphereSky:
+			case PS_Sky:
 			case PS_Texture:
 			case PS_Solid:
 			case PS_Decals:
@@ -234,6 +232,8 @@ namespace adria
 			case CS_ClusteredDeferredLighting:
 			case CS_ClusterBuilding:
 			case CS_ClusterCulling:
+			case CS_HosekWilkieSky:
+			case CS_MinimalAtmosphereSky:
 				return GfxShaderStage::CS;
 			case HS_OceanLOD:
 				return GfxShaderStage::HS;
@@ -255,9 +255,9 @@ namespace adria
 			switch (shader)
 			{
 			case VS_Sky:
-			case PS_Skybox:
-			case PS_HosekWilkieSky:
-			case PS_MinimalAtmosphereSky:
+			case PS_Sky:
+			case CS_HosekWilkieSky:
+			case CS_MinimalAtmosphereSky:
 				return "Other/Sky.hlsl";
 			case VS_Simple:
 			case VS_Sun:

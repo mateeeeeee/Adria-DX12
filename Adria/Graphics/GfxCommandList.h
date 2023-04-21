@@ -115,7 +115,7 @@ namespace adria
 		void SetViewport(uint32 x, uint32 y, uint32 width, uint32 height);
 		void SetScissorRect(uint32 x, uint32 y, uint32 width, uint32 height);
 
-		void SetRootConstant(uint32 slot, uint32 data, uint32 offset);
+		void SetRootConstant(uint32 slot, uint32 data, uint32 offset = 0);
 		void SetRootConstants(uint32 slot, const void* data, uint32 data_size, uint32 offset = 0);
 		template<typename T>
 		void SetRootConstants(uint32 slot, T const& data)

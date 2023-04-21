@@ -33,7 +33,7 @@ namespace adria
 				GfxShaderCompiler::CreateInputLayout(GetShader(VS_Sky), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 				gfx_pso_desc.VS = VS_Sky;
-				gfx_pso_desc.PS = PS_Skybox;
+				gfx_pso_desc.PS = PS_Sky;
 				gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
 				gfx_pso_desc.depth_state.depth_enable = true;
 				gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::Zero;
@@ -41,13 +41,7 @@ namespace adria
 				gfx_pso_desc.num_render_targets = 1;
 				gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
 				gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
-				gfx_pso_map[GfxPipelineStateID::Skybox] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
-
-				gfx_pso_desc.PS = PS_MinimalAtmosphereSky;
-				gfx_pso_map[GfxPipelineStateID::MinimalAtmosphereSky] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
-
-				gfx_pso_desc.PS = PS_HosekWilkieSky;
-				gfx_pso_map[GfxPipelineStateID::HosekWilkieSky] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
+				gfx_pso_map[GfxPipelineStateID::Sky] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 
 				gfx_pso_desc = {};
 				GfxShaderCompiler::CreateInputLayout(GetShader(VS_GBuffer), gfx_pso_desc.input_layout);
@@ -353,6 +347,12 @@ namespace adria
 
 				compute_pso_desc.CS = CS_VolumetricLighting;
 				compute_pso_map[GfxPipelineStateID::VolumetricLighting] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.CS = CS_MinimalAtmosphereSky;
+				compute_pso_map[GfxPipelineStateID::MinimalAtmosphereSky] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.CS = CS_HosekWilkieSky;
+				compute_pso_map[GfxPipelineStateID::HosekWilkieSky] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 			}
 		}
 	}

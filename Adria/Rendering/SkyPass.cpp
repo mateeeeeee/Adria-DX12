@@ -15,43 +15,39 @@ using namespace DirectX;
 
 namespace adria
 {
+	static constexpr uint32 SKYCUBE_SIZE = 128;
 
 	SkyPass::SkyPass(entt::registry& reg, uint32 w, uint32 h)
-		: reg(reg), width(w), height(h), sky_type(SkyType::Skybox)
+		: reg(reg), width(w), height(h), sky_type(SkyType::MinimalAtmosphere)
 	{}
 
-	void SkyPass::AddPass(RenderGraph& rg, DirectX::XMFLOAT3 const& dir)
+	void SkyPass::AddComputeSkyPass(RenderGraph& rg, DirectX::XMFLOAT3 const& dir)
 	{
+		if (sky_type == SkyType::Skybox) return;
+
 		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
-		rg.AddPass<void>("Sky Pass",
-			[=](RenderGraphBuilder& builder)
+		struct ComputeSkyPassData
+		{
+			RGTextureReadWriteId sky_uav;
+		};
+
+		rg.ImportTexture(RG_RES_NAME(Sky), sky_texture.get());
+		rg.AddPass<ComputeSkyPassData>("Compute Sky Pass",
+			[=](ComputeSkyPassData& data, RenderGraphBuilder& builder)
 			{
-				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), RGLoadStoreAccessOp::Preserve_Preserve);
-				builder.ReadDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
-				builder.SetViewport(width, height);
+				data.sky_uav = builder.WriteTexture(RG_RES_NAME(Sky));
 			},
-			[=](RenderGraphContext& context, GfxCommandList* cmd_list)
+			[&](ComputeSkyPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+
+				GfxDescriptor sky = gfx->AllocateDescriptorsGPU(1);
+				gfx->CopyDescriptors(1, sky, context.GetReadWriteTexture(data.sky_uav));
+				cmd_list->SetRootConstant(1, sky.GetIndex());
+
 				switch (sky_type)
 				{
-				case SkyType::Skybox:
-				{
-					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Skybox));
-					auto skybox_view = reg.view<Skybox>();
-					for (auto e : skybox_view)
-					{
-						auto const& skybox = skybox_view.get<Skybox>(e);
-						if (!skybox.active) continue;
-
-						ADRIA_ASSERT(skybox.cubemap_texture != INVALID_TEXTURE_HANDLE);
-						GfxDescriptor texture_handle = g_TextureManager.GetSRV(skybox.cubemap_texture);
-						cmd_list->SetRootConstant(1, (uint32)skybox.cubemap_texture, 0);
-					}
-					break;
-				}
 				case SkyType::MinimalAtmosphere:
 				{
 					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::MinimalAtmosphereSky));
@@ -61,7 +57,7 @@ namespace adria
 				{
 					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::HosekWilkieSky));
 					SkyParameters parameters = CalculateSkyParameters(turbidity, ground_albedo, dir);
-					DECLSPEC_ALIGN(16) struct HosekWilkieConstants
+					struct HosekWilkieConstants
 					{
 						DECLSPEC_ALIGN(16) XMFLOAT3 A;
 						DECLSPEC_ALIGN(16) XMFLOAT3 B;
@@ -75,24 +71,44 @@ namespace adria
 						DECLSPEC_ALIGN(16) XMFLOAT3 Z;
 					} constants =
 					{
-						.A = parameters[ESkyParam_A],
-						.B = parameters[ESkyParam_B],
-						.C = parameters[ESkyParam_C],
-						.D = parameters[ESkyParam_D],
-						.E = parameters[ESkyParam_E],
-						.F = parameters[ESkyParam_F],
-						.G = parameters[ESkyParam_G],
-						.H = parameters[ESkyParam_H],
-						.I = parameters[ESkyParam_I],
-						.Z = parameters[ESkyParam_Z],
+							.A = parameters[ESkyParam_A],
+							.B = parameters[ESkyParam_B],
+							.C = parameters[ESkyParam_C],
+							.D = parameters[ESkyParam_D],
+							.E = parameters[ESkyParam_E],
+							.F = parameters[ESkyParam_F],
+							.G = parameters[ESkyParam_G],
+							.H = parameters[ESkyParam_H],
+							.I = parameters[ESkyParam_I],
+							.Z = parameters[ESkyParam_Z],
 					};
 					cmd_list->SetRootCBV(3, constants);
 					break;
 				}
+				case SkyType::Skybox:
 				default:
 					ADRIA_ASSERT(false);
 				}
+				cmd_list->Dispatch(SKYCUBE_SIZE / 16, SKYCUBE_SIZE / 16, 6);
 
+			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
+	}
+
+	void SkyPass::AddDrawSkyPass(RenderGraph& rg)
+	{
+		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
+		rg.AddPass<void>("Draw Sky Pass",
+			[=](RenderGraphBuilder& builder)
+			{
+				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.ReadDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.SetViewport(width, height);
+			},
+			[=](RenderGraphContext& context, GfxCommandList* cmd_list)
+			{
+				GfxDevice* gfx = cmd_list->GetDevice();
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Sky));
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				cmd_list->SetTopology(GfxPrimitiveTopology::TriangleList);
 				BindVertexBuffer(cmd_list->GetNative(), cube_vb.get());
 				BindIndexBuffer(cmd_list->GetNative(), cube_ib.get());
@@ -132,8 +148,9 @@ namespace adria
 		);
 	}
 
-	void SkyPass::OnSceneInitialized(GfxDevice* gfx)
+	void SkyPass::OnSceneInitialized(GfxDevice* _gfx)
 	{
+		gfx = _gfx;
 		CreateCubeBuffers(gfx);
 	}
 
@@ -142,8 +159,44 @@ namespace adria
 		width = w, height = h;
 	}
 
+	int32 SkyPass::GetSkyIndex() const
+	{
+		if (sky_type == SkyType::Skybox)
+		{
+			auto skybox_view = reg.view<Skybox>();
+			for (auto e : skybox_view)
+			{
+				auto const& skybox = skybox_view.get<Skybox>(e);
+				if (!skybox.active) continue;
+
+				ADRIA_ASSERT(skybox.cubemap_texture != INVALID_TEXTURE_HANDLE);
+				return (int32)skybox.cubemap_texture;
+			}
+		}
+
+		GfxDescriptor sky_srv_gpu = gfx->AllocateDescriptorsGPU();
+		gfx->CopyDescriptors(1, sky_srv_gpu, sky_texture_srv);
+		return (int32)sky_srv_gpu.GetIndex();
+	}
+
 	void SkyPass::CreateCubeBuffers(GfxDevice* gfx)
 	{
+		GfxTextureDesc sky_desc{};
+		sky_desc.type = GfxTextureType_2D;
+		sky_desc.width = SKYCUBE_SIZE;
+		sky_desc.height = SKYCUBE_SIZE;
+		sky_desc.misc_flags = GfxTextureMiscFlag::TextureCube;
+		sky_desc.array_size = 6;
+		sky_desc.format = GfxFormat::R16G16B16A16_FLOAT;
+		sky_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
+		sky_desc.initial_state = GfxResourceState::UnorderedAccess;
+		sky_texture = std::make_unique<GfxTexture>(gfx, sky_desc);
+
+		GfxTextureSubresourceDesc sky_srv_desc{};
+		sky_srv_desc.first_slice = 0;
+		sky_srv_desc.slice_count = 6;
+		sky_texture_srv = gfx->CreateTextureSRV(sky_texture.get(), &sky_srv_desc);
+
 		SimpleVertex const cube_vertices[8] =
 		{
 			XMFLOAT3{ -0.5f, -0.5f,  0.5f },
@@ -156,7 +209,7 @@ namespace adria
 			XMFLOAT3{ -0.5f,  0.5f, -0.5f }
 		};
 
-		uint16_t const cube_indices[36] =
+		uint16 const cube_indices[36] =
 		{
 			// front
 			0, 1, 2,

@@ -1,12 +1,10 @@
 #include "../CommonResources.hlsli"
 #include "../Atmosphere.hlsli"
 
-
 struct VertexIn
 {
 	float3 PosL : POSITION;
 };
-
 struct VertexOut
 {
 	float4 PosH : SV_POSITION;
@@ -21,20 +19,31 @@ VertexOut SkyVS(VertexIn input)
 	output.PosL = input.PosL;
 	return output;
 }
-
-
-struct SkyboxConstants
+float4 SkyPS(VertexOut input) : SV_Target
 {
-	uint cubemapIdx;
-};
-ConstantBuffer<SkyboxConstants> SkyboxPassCB : register(b1);
-
-float4 SkyboxPS(VertexOut input) : SV_Target
-{
-	TextureCube cubemapTx = ResourceDescriptorHeap[SkyboxPassCB.cubemapIdx];
+	TextureCube cubemapTx = ResourceDescriptorHeap[FrameCB.envMapIdx];
 	return cubemapTx.Sample(LinearWrapSampler, input.PosL);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#define BLOCK_SIZE 16
+
+struct CS_INPUT
+{
+	uint3 GroupId : SV_GroupID;
+	uint3 GroupThreadId : SV_GroupThreadID;
+	uint3 DispatchThreadId : SV_DispatchThreadID;
+	uint GroupIndex : SV_GroupIndex;
+};
+
+struct EnvMapConstants
+{
+	uint envMapIdx;
+};
+ConstantBuffer<EnvMapConstants> EnvMapPassCB : register(b1);
 
 struct HosekWilkieConstants
 {
@@ -50,7 +59,6 @@ struct HosekWilkieConstants
 	float3 Z;
 };
 ConstantBuffer<HosekWilkieConstants> HosekWilkiePassCB : register(b3);
-
 float3 HosekWilkie(float cosTheta, float gamma, float cosGamma)
 {
 	const float3 A = HosekWilkiePassCB.A;
@@ -75,17 +83,48 @@ float3 HosekWilkieSky(float3 v, float3 sunDir)
 	return R;
 }
 
-float4 HosekWilkieSkyPS(VertexOut input) : SV_TARGET
+float3 GetRayDir(uint3 threadId)
 {
-	float3 dir = normalize(input.PosL);
-	float3 col = HosekWilkieSky(dir, normalize(FrameCB.sunDirection.xyz));
-	return float4(col, 1.0);
+	const float2 outputSize = float2(128, 128);
+	float2 st = threadId.xy / outputSize;
+	float2 uv = 2.0 * float2(st.x, 1.0 - st.y) - float2(1.0, 1.0);
+
+	// Select vector based on cubemap face index.
+	float3 ret;
+	switch (threadId.z)
+	{
+	case 0: ret = float3(1.0, uv.y, -uv.x); break;
+	case 1: ret = float3(-1.0, uv.y, uv.x); break;
+	case 2: ret = float3(uv.x, 1.0, -uv.y); break;
+	case 3: ret = float3(uv.x, -1.0, uv.y); break;
+	case 4: ret = float3(uv.x, uv.y, 1.0); break;
+	case 5: ret = float3(-uv.x, uv.y, -1.0); break;
+	}
+	return normalize(ret);
 }
 
-float4 MinimalAtmosphereSkyPS(VertexOut input) : SV_Target
+[numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
+void HosekWilkieSkyCS(CS_INPUT input)
 {
+	RWTexture2DArray<float4> envMapTx = ResourceDescriptorHeap[EnvMapPassCB.envMapIdx];
+	uint3 threadId = input.DispatchThreadId;
+
 	float3 rayStart = FrameCB.cameraPosition.xyz;
-	float3 rayDir = normalize(input.PosL);
+	float3 rayDir = GetRayDir(threadId);
+	float rayLength = INFINITY;
+
+	float3 color = HosekWilkieSky(rayDir, normalize(FrameCB.sunDirection.xyz));
+	envMapTx[threadId] = float4(color, 1.0f);
+}
+
+[numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
+void MinimalAtmosphereSkyCS(CS_INPUT input)
+{
+	RWTexture2DArray<float4> envMapTx = ResourceDescriptorHeap[EnvMapPassCB.envMapIdx];
+	uint3 threadId = input.DispatchThreadId;
+
+	float3 rayStart = FrameCB.cameraPosition.xyz;
+	float3 rayDir = GetRayDir(threadId);
 	float rayLength = INFINITY;
 
 	bool PlanetShadow = false;
@@ -103,6 +142,5 @@ float4 MinimalAtmosphereSkyPS(VertexOut input) : SV_Target
 
 	float3 transmittance;
 	float3 color = IntegrateScattering(rayStart, rayDir, rayLength, lightDir, lightColor, 16, transmittance);
-
-	return float4(color, 1);
+	envMapTx[threadId] = float4(color, 1.0f);
 }
