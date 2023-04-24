@@ -247,7 +247,7 @@ namespace adria
 		backbuffer_count(gfx->BackbufferCount()), backbuffer_index(gfx->BackbufferIndex()), final_texture(nullptr),
 		frame_cbuffer(gfx->GetDevice(), backbuffer_count),
 		gbuffer_pass(reg, width, height), ambient_pass(width, height), tonemap_pass(width, height),
-		sky_pass(reg, width, height), deferred_lighting_pass(width, height), volumetric_lighting_pass(width, height),
+		sky_pass(reg, gfx, width, height), deferred_lighting_pass(width, height), volumetric_lighting_pass(width, height),
 		tiled_deferred_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
 		postprocessor(reg, width, height), fxaa_pass(width, height), picking_pass(gfx, width, height),
 		clustered_deferred_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height),

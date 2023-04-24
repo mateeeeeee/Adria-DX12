@@ -1,6 +1,7 @@
 #include "CloudsUtil.hlsli"
 #include "../Atmosphere.hlsli"
 #include "../CommonResources.hlsli"
+#include "../Common.hlsli"
 #include "../Packing.hlsli"
 
 #define BLOCK_SIZE 16
@@ -32,6 +33,8 @@ struct CloudTextureIndices
     uint worleyIdx;
     uint depthIdx;
     uint outputIdx;
+    uint prevOutputIdx;
+    uint velocityIdx;
 };
 ConstantBuffer<CloudTextureIndices> TexturesCB : register(b2);
 
@@ -158,7 +161,7 @@ float4 RaymarchToCloud(uint2 globalCoord, float3 startPos, float3 endPos, float3
     
     int a = int(globalCoord.x) % 4;
     int b = int(globalCoord.y) % 4;
-    startPos += dir * BayerFilter[a * 4 + b];
+    startPos += dir * BayerFactor * BayerFilter[a * 4 + b];
 
     float3 pos = startPos;
     float density = 0.0f;
@@ -247,16 +250,55 @@ void Clouds(CS_INPUT input)
 {
     Texture2D depthTx = ResourceDescriptorHeap[TexturesCB.depthIdx];
     RWTexture2D<float4> outputTx = ResourceDescriptorHeap[TexturesCB.outputIdx];
-   
-    float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
-   
-    float4 cloudsColor = float4(0.0, 0.0, 0.0, 0.0f);
-    float depth = depthTx.SampleLevel(PointWrapSampler, uv, 0).r;
-    if (depth < 0.99999f)
+    Texture2D<float4> prevOutputTx = ResourceDescriptorHeap[TexturesCB.prevOutputIdx];
+
+    uint3 threadId = input.DispatchThreadId;
+	float2 uv = ((float2) threadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
+    
+    float3 thisClip = ToClipSpaceCoord(uv);
+    float2 screenPosition = thisClip.xy;
+	
+    ////////////////////////////////////////////////////////////
+    
+	Texture2D<float2> velocityTx = ResourceDescriptorHeap[TexturesCB.velocityIdx];
+	float2 velocity = velocityTx.SampleLevel(LinearClampSampler, uv, 0);
+	float2 prevScreenPosition = screenPosition + velocity * 2.0f;
+	// Transform from screen position to uv
+	float2 prevUV = prevScreenPosition * float2(0.5, -0.5) + 0.5;
+
+	//float4 prevPos = float4(uv * 2.0 - 1.0, 1.0, 1.0);
+	//prevPos = mul(prevPos, FrameCB.inverseViewProjection);
+	//prevPos = prevPos / prevPos.w;
+	//float4 reproj = mul(prevPos, FrameCB.prevViewProjection);
+	//reproj /= reproj.w;
+	//reproj.xy = reproj.xy * 0.5 + 0.5;
+    //float2 prevUv = reproj.xy;
+
+	uint frameIndex = FrameCB.frameCount;
+	uint index = frameIndex % 16;
+	bool update = (((threadId.x + 4 * threadId.y) % 16) == BayerFilter[index]);
+    //
+	////update = update || ;
+    if (!update)
     {
-        outputTx[input.DispatchThreadId.xy] = 0.0f;
+		float4 prevColor = prevOutputTx.Sample(LinearClampSampler, prevUV);
+        outputTx[threadId.xy] = prevColor;
         return;
     }
+    if (any(prevUV) > 1.0f || any(prevUV) < 0.0f)
+    {
+		outputTx[threadId.xy] = float4(0, 0, 1, 1);
+		return;
+    }
+    ////////////////////////////////////////////////////////////
+
+	float4 cloudsColor = float4(0.0, 0.0, 0.0, 0.0f);
+	float depth = depthTx.SampleLevel(PointWrapSampler, uv, 0).r;
+	if (depth < 0.99999f)
+	{
+		outputTx[threadId.xy] = 0.0f;
+		return;
+	}
     
     float4 rayClipSpace = float4(ToClipSpaceCoord(uv), 1.0);
     float4 rayView = mul(rayClipSpace, FrameCB.inverseProjection);
@@ -271,11 +313,11 @@ void Clouds(CS_INPUT input)
     if (intersect)
     {
         float4 cloudDistance;
-        cloudsColor = RaymarchToCloud(input.DispatchThreadId.xy, startPos, endPos, float3(0, 0, 0), cloudDistance);
-        outputTx[input.DispatchThreadId.xy] = cloudsColor;
+        cloudsColor = RaymarchToCloud(threadId.xy, startPos, endPos, float3(0, 0, 0), cloudDistance);
+        outputTx[threadId.xy] = cloudsColor;
     }
     else
     {
-        outputTx[input.DispatchThreadId.xy] = 0.0f;
+        outputTx[threadId.xy] = 0.0f;
     }
 }

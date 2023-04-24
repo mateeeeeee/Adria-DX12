@@ -29,7 +29,7 @@ namespace adria
 	{
 		settings = _settings;
 		auto lights = reg.view<Light>();
-		if (settings.motion_blur || HasAnyFlag(settings.anti_aliasing, AntiAliasing_TAA))
+		if (settings.motion_blur || HasAnyFlag(settings.anti_aliasing, AntiAliasing_TAA) || settings.clouds)
 		{
 			velocity_buffer_pass.AddPass(rg);
 		}
@@ -99,13 +99,13 @@ namespace adria
 	void Postprocessor::OnResize(GfxDevice* gfx, uint32 w, uint32 h)
 	{
 		width = w, height = h;
+		clouds_pass.OnResize(gfx, w, h);
 		blur_pass.OnResize(w, h);
 		add_textures_pass.OnResize(w, h);
 		copy_to_texture_pass.OnResize(w, h);
 		generate_mips_pass.OnResize(w, h);
 		automatic_exposure_pass.OnResize(w, h);
 		lens_flare_pass.OnResize(w, h);
-		clouds_pass.OnResize(w, h);
 		ssr_pass.OnResize(w, h);
 		fog_pass.OnResize(w, h);
 		dof_pass.OnResize(w, h);
@@ -116,13 +116,13 @@ namespace adria
 		god_rays_pass.OnResize(w, h);
 		bokeh_pass.OnResize(w, h);
 
-		GfxTextureDesc render_target_desc{};
-		render_target_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-		render_target_desc.width = width;
-		render_target_desc.height = height;
-		render_target_desc.bind_flags = GfxBindFlag::ShaderResource;
-		render_target_desc.initial_state = GfxResourceState::CopyDest;
-		history_buffer = std::make_unique<GfxTexture>(gfx, render_target_desc);
+		if (history_buffer)
+		{
+			GfxTextureDesc render_target_desc = history_buffer->GetDesc();
+			render_target_desc.width = width;
+			render_target_desc.height = height;
+			history_buffer = std::make_unique<GfxTexture>(gfx, render_target_desc);
+		}
 	}
 	void Postprocessor::OnSceneInitialized(GfxDevice* gfx)
 	{

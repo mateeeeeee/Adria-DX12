@@ -8,6 +8,8 @@
 #include "TextureManager.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
 #include "Graphics/GfxLinearDynamicAllocator.h"
+#include "Graphics/GfxTexture.h"
+#include "Graphics/GfxDevice.h"
 #include "Logging/Logger.h"
 #include "Editor/GUICommand.h"
 
@@ -24,8 +26,12 @@ namespace adria
 		struct VolumetricCloudsPassData
 		{
 			RGTextureReadOnlyId depth;
+			RGTextureReadOnlyId velocity;
+			RGTextureReadOnlyId prev_output;
 			RGTextureReadWriteId output;
 		};
+
+		rg.ImportTexture(RG_RES_NAME(PreviousCloudsOutput), prev_clouds.get());
 		rg.AddPass<VolumetricCloudsPassData>("Volumetric Clouds Pass",
 			[=](VolumetricCloudsPassData& data, RenderGraphBuilder& builder)
 			{
@@ -36,16 +42,24 @@ namespace adria
 				clouds_output_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 
 				builder.DeclareTexture(RG_RES_NAME(CloudsOutput), clouds_output_desc);
-				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 				data.output = builder.WriteTexture(RG_RES_NAME(CloudsOutput));
+
+				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				data.prev_output = builder.ReadTexture(RG_RES_NAME(PreviousCloudsOutput), ReadAccess_NonPixelShader);
+				data.velocity = builder.ReadTexture(RG_RES_NAME(VelocityBuffer), ReadAccess_NonPixelShader);
 			},
 			[=](VolumetricCloudsPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 				
-				GfxDescriptor src_handles[] = { g_TextureManager.GetSRV(cloud_textures[0]),  g_TextureManager.GetSRV(cloud_textures[1]),
-															 g_TextureManager.GetSRV(cloud_textures[2]), context.GetReadOnlyTexture(data.depth),
-															context.GetReadWriteTexture(data.output) };
+				GfxDescriptor src_handles[] = { g_TextureManager.GetSRV(cloud_textures[0]),  
+												g_TextureManager.GetSRV(cloud_textures[1]),
+												g_TextureManager.GetSRV(cloud_textures[2]),
+												context.GetReadOnlyTexture(data.depth),
+												context.GetReadWriteTexture(data.output),
+												context.GetReadOnlyTexture(data.prev_output),
+												context.GetReadOnlyTexture(data.velocity) };
+
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				gfx->CopyDescriptors(dst_handle, src_handles);
 
@@ -79,10 +93,12 @@ namespace adria
 					uint32 worley_idx;
 					uint32 depth_idx;
 					uint32 output_idx;
+					uint32 prev_output_idx;
+					uint32 velocity_idx;
 				} indices =
 				{
 					.weather_idx = i, .cloud_idx = i + 1, .worley_idx = i + 2,
-					.depth_idx = i + 3,.output_idx = i + 4
+					.depth_idx = i + 3,.output_idx = i + 4, .prev_output_idx = i + 5, .velocity_idx = i + 6
 				};
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Clouds));
@@ -93,6 +109,27 @@ namespace adria
 
 			}, RGPassType::Compute, RGPassFlags::None);
 	
+		struct CopyCloudsPassData
+		{
+			RGTextureCopySrcId copy_src;
+			RGTextureCopyDstId copy_dst;
+		};
+
+		rg.AddPass<CopyCloudsPassData>("Clouds Copy Pass",
+			[=](CopyCloudsPassData& data, RenderGraphBuilder& builder)
+			{
+				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(PreviousCloudsOutput));
+				data.copy_src = builder.ReadCopySrcTexture(RG_RES_NAME(CloudsOutput));
+			},
+			[=](CopyCloudsPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
+			{
+				GfxTexture const& src_texture = context.GetCopySrcTexture(data.copy_src);
+				GfxTexture& dst_texture = context.GetCopyDstTexture(data.copy_dst);
+				cmd_list->UavBarrier(src_texture);
+				cmd_list->FlushBarriers();
+				cmd_list->CopyTexture(dst_texture, src_texture);
+			}, RGPassType::Copy, RGPassFlags::ForceNoCull);
+
 		AddGUI([&]() 
 			{
 				if (ImGui::TreeNodeEx("Volumetric Clouds", 0))
@@ -112,13 +149,30 @@ namespace adria
 		);
 	}
 
-	void VolumetricCloudsPass::OnResize(uint32 w, uint32 h)
+	void VolumetricCloudsPass::OnResize(GfxDevice* gfx, uint32 w, uint32 h)
 	{
 		width = w, height = h;
+		if (prev_clouds)
+		{
+			GfxTextureDesc clouds_output_desc = prev_clouds->GetDesc();
+			clouds_output_desc.width = width;
+			clouds_output_desc.height = height;
+			prev_clouds = std::make_unique<GfxTexture>(gfx, clouds_output_desc);
+		}
 	}
 
 	void VolumetricCloudsPass::OnSceneInitialized(GfxDevice* gfx)
 	{
+		GfxTextureDesc clouds_output_desc{};
+		clouds_output_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
+		clouds_output_desc.width = width;
+		clouds_output_desc.height = height;
+		clouds_output_desc.format = GfxFormat::R16G16B16A16_FLOAT;
+		clouds_output_desc.bind_flags = GfxBindFlag::ShaderResource;
+		clouds_output_desc.initial_state = GfxResourceState::NonPixelShaderResource;
+
+		prev_clouds = std::make_unique<GfxTexture>(gfx, clouds_output_desc);
+
 		cloud_textures.push_back(g_TextureManager.LoadTexture(L"Resources\\Textures\\clouds\\weather.dds"));
 		cloud_textures.push_back(g_TextureManager.LoadTexture(L"Resources\\Textures\\clouds\\cloud.dds"));
 		cloud_textures.push_back(g_TextureManager.LoadTexture(L"Resources\\Textures\\clouds\\worley.dds"));

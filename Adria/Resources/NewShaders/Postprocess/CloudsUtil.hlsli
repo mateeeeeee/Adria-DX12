@@ -1,12 +1,12 @@
 #pragma once
 
 static const float BayerFactor = 1.0f / 16.0f;
-static const float BayerFilter[16] =
+static const int BayerFilter[16] =
 {
-    0.0f * BayerFactor, 8.0f * BayerFactor, 2.0f * BayerFactor, 10.0f * BayerFactor,
-	12.0f * BayerFactor, 4.0f * BayerFactor, 14.0f * BayerFactor, 6.0f * BayerFactor,
-	3.0f * BayerFactor, 11.0f * BayerFactor, 1.0f * BayerFactor, 9.0f * BayerFactor,
-	15.0f * BayerFactor, 7.0f * BayerFactor, 13.0f * BayerFactor, 5.0f * BayerFactor
+    0, 8, 2, 10,
+	12, 4, 14, 6,
+	3, 11, 1, 9,
+	15, 7, 13, 5
 };
 static float3 NoiseKernelConeSampling[6] =
 {

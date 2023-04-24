@@ -1098,6 +1098,9 @@
     <FxCompile Include="Resources\NewShaders\RayTracing\PathTracer.hlsl">
       <Filter>Shaders\RayTracing</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Postprocess\Clouds.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="scene.json" />
@@ -1144,6 +1147,12 @@
     </None>
     <None Include="Resources\NewShaders\Scene.hlsli">
       <Filter>Shaders</Filter>
+    </None>
+    <None Include="Resources\NewShaders\Atmosphere.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Resources\NewShaders\Postprocess\CloudsUtil.hlsli">
+      <Filter>Shaders\Postprocess</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

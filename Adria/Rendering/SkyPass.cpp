@@ -17,8 +17,8 @@ namespace adria
 {
 	static constexpr uint32 SKYCUBE_SIZE = 128;
 
-	SkyPass::SkyPass(entt::registry& reg, uint32 w, uint32 h)
-		: reg(reg), width(w), height(h), sky_type(SkyType::MinimalAtmosphere)
+	SkyPass::SkyPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h)
+		: reg(reg), gfx(gfx), width(w), height(h), sky_type(SkyType::MinimalAtmosphere)
 	{}
 
 	void SkyPass::AddComputeSkyPass(RenderGraph& rg, DirectX::XMFLOAT3 const& dir)
@@ -148,9 +148,8 @@ namespace adria
 		);
 	}
 
-	void SkyPass::OnSceneInitialized(GfxDevice* _gfx)
+	void SkyPass::OnSceneInitialized(GfxDevice* gfx)
 	{
-		gfx = _gfx;
 		CreateCubeBuffers(gfx);
 	}
 
