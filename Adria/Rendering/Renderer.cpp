@@ -774,6 +774,8 @@ namespace adria
 		frame_cbuf_data.wind_params = XMVectorSet(wind_dir[0], wind_dir[1], wind_dir[2], wind_speed);
 		frame_cbuffer.Update(frame_cbuf_data, backbuffer_index);
 		frame_cbuf_data.prev_view_projection = camera->ViewProj();
+		frame_cbuf_data.prev_view = camera->View();
+		frame_cbuf_data.prev_projection = camera->Proj();
 	}
 	void Renderer::CameraFrustumCulling()
 	{

@@ -8,6 +8,8 @@ struct FrameCBuffer
 	row_major matrix inverseView;
 	row_major matrix inverseProjection;
 	row_major matrix inverseViewProjection;
+	row_major matrix prevView;
+	row_major matrix prevProjection;
 	row_major matrix prevViewProjection;
 	row_major matrix reprojection;
 	float4 cameraPosition;

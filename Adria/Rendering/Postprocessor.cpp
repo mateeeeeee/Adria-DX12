@@ -45,8 +45,9 @@ namespace adria
 		if (settings.clouds)
 		{
 			clouds_pass.AddPass(rg);
-			blur_pass.AddPass(rg, RG_RES_NAME(CloudsOutput), RG_RES_NAME(BlurredCloudsOutput), "Volumetric Clouds");
-			copy_to_texture_pass.AddPass(rg, RG_RES_NAME(PostprocessMain), RG_RES_NAME(BlurredCloudsOutput), BlendMode::AlphaBlend);
+			blur_pass.AddPass(rg, RG_RES_NAME(CloudsOutput), RG_RES_NAME(BlurredCloudsOutput), " Volumetric Clouds ");
+			clouds_pass.AddCombinePass(rg, RG_RES_NAME(PostprocessMain));
+			//copy_to_texture_pass.AddPass(rg, RG_RES_NAME(PostprocessMain), RG_RES_NAME(BlurredCloudsOutput), BlendMode::AlphaBlend);
 		}
 
 		if (settings.reflections == Reflections::SSR) final_resource = ssr_pass.AddPass(rg, final_resource);

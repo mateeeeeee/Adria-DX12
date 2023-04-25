@@ -106,8 +106,7 @@ namespace adria
 			ShaderCache::CheckIfShadersHaveChanged();
 			reload_shaders = false;
 		}
-		commands.clear();
-		debug_commands.clear();
+
 	}
 
 	bool Editor::IsActive() const
@@ -157,6 +156,8 @@ namespace adria
 					Debug();
 				}
 				gui->End(cmd_list);
+				commands.clear();
+				debug_commands.clear();
 			}, RGPassType::Graphics, RGPassFlags::ForceNoCull | RGPassFlags::LegacyRenderPass);
 	}
 
@@ -1150,11 +1151,14 @@ namespace adria
 	}
 	void Editor::Debug()
 	{
-		debug_commands.clear();
 		if (!window_flags[Flag_Debug]) return;
 		if(ImGui::Begin("Debug", &window_flags[Flag_Debug]))
 		{
-			//for (auto& cmd : debug_commands) cmd.callback(gui->DescriptorAllocator());
+			for (auto& cmd : debug_commands)
+			{
+				GfxDescriptor gui_descriptor = gui->AllocateDescriptorsGPU();
+				cmd.callback(&gui_descriptor);
+			}
 		}
 		ImGui::End();
 	}

@@ -6,12 +6,13 @@
 
 #define BLOCK_SIZE 16
 #define CONE_STEP 0.1666666
+#define CLOUDS_DEPTH 0.99999f
 
 static const float4 StratusGradient = float4(0.0f, 0.1f, 0.2f, 0.3f);
 static const float4 StratocumulusGradient = float4(0.02f, 0.2f, 0.48f, 0.625f);
 static const float4 CumulusGradient = float4(0.0f, 0.1625f, 0.88f, 0.98f);
-static const float  PlanetRadius = PLANET_RADIUS;
-static const float3 PlanetCenter = PLANET_CENTER;
+static const float  PlanetRadius = 600000.0f;
+static const float3 PlanetCenter = float3(0.0f, -PlanetRadius, 0.0f);
 
 struct CloudsConstants
 {
@@ -31,13 +32,10 @@ struct CloudTextureIndices
     uint weatherIdx;
     uint cloudIdx;
     uint worleyIdx;
-    uint depthIdx;
     uint outputIdx;
     uint prevOutputIdx;
-    uint velocityIdx;
 };
 ConstantBuffer<CloudTextureIndices> TexturesCB : register(b2);
-
 
 float3 ToClipSpaceCoord(float2 tex)
 {
@@ -248,58 +246,41 @@ struct CS_INPUT
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void Clouds(CS_INPUT input)
 {
-    Texture2D depthTx = ResourceDescriptorHeap[TexturesCB.depthIdx];
     RWTexture2D<float4> outputTx = ResourceDescriptorHeap[TexturesCB.outputIdx];
-    Texture2D<float4> prevOutputTx = ResourceDescriptorHeap[TexturesCB.prevOutputIdx];
-
     uint3 threadId = input.DispatchThreadId;
 	float2 uv = ((float2) threadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
-    
-    float3 thisClip = ToClipSpaceCoord(uv);
-    float2 screenPosition = thisClip.xy;
-	
-    ////////////////////////////////////////////////////////////
-    
-	Texture2D<float2> velocityTx = ResourceDescriptorHeap[TexturesCB.velocityIdx];
-	float2 velocity = velocityTx.SampleLevel(LinearClampSampler, uv, 0);
-	float2 prevScreenPosition = screenPosition + velocity * 2.0f;
-	// Transform from screen position to uv
-	float2 prevUV = prevScreenPosition * float2(0.5, -0.5) + 0.5;
 
-	//float4 prevPos = float4(uv * 2.0 - 1.0, 1.0, 1.0);
-	//prevPos = mul(prevPos, FrameCB.inverseViewProjection);
-	//prevPos = prevPos / prevPos.w;
-	//float4 reproj = mul(prevPos, FrameCB.prevViewProjection);
-	//reproj /= reproj.w;
-	//reproj.xy = reproj.xy * 0.5 + 0.5;
-    //float2 prevUv = reproj.xy;
+	//float depth = depthTx.SampleLevel(PointWrapSampler, uv, 0).r;
+	//if (depth < CLOUDS_DEPTH)
+	//{
+	//	outputTx[input.DispatchThreadId.xy] = 0.0f;
+	//	return;
+	//}
 
-	uint frameIndex = FrameCB.frameCount;
-	uint index = frameIndex % 16;
-	bool update = (((threadId.x + 4 * threadId.y) % 16) == BayerFilter[index]);
-    //
-	////update = update || ;
-    if (!update)
-    {
-		float4 prevColor = prevOutputTx.Sample(LinearClampSampler, prevUV);
-        outputTx[threadId.xy] = prevColor;
-        return;
-    }
-    if (any(prevUV) > 1.0f || any(prevUV) < 0.0f)
-    {
-		outputTx[threadId.xy] = float4(0, 0, 1, 1);
-		return;
-    }
-    ////////////////////////////////////////////////////////////
+#if REPROJECTION
+	float4 prevPos = float4(ToClipSpaceCoord(uv), 1.0);
+	prevPos = mul(prevPos, FrameCB.inverseProjection);
+	prevPos = prevPos / prevPos.w;
+    prevPos.xyz = mul(prevPos.xyz, (float3x3) FrameCB.inverseView);
+    prevPos.xyz = mul(prevPos.xyz, (float3x3) FrameCB.prevView);
+	float4 reproj = mul(prevPos, FrameCB.prevProjection);
+	reproj /= reproj.w;
+    float2 prevUv = reproj.xy * 0.5 + 0.5;
+	prevUv.y = 1.0f - prevUv.y;
 
-	float4 cloudsColor = float4(0.0, 0.0, 0.0, 0.0f);
-	float depth = depthTx.SampleLevel(PointWrapSampler, uv, 0).r;
-	if (depth < 0.99999f)
+	Texture2D<float4> prevOutputTx = ResourceDescriptorHeap[TexturesCB.prevOutputIdx];
+	float4 prevColor = prevOutputTx.Sample(LinearClampSampler, prevUv);
+
+	uint index = FrameCB.frameCount % 16;
+	bool shouldUpdate = (((threadId.x + 4 * threadId.y) % 16) == BayerFilter[index]);
+
+    if (!shouldUpdate && IsSaturated(prevUv))
 	{
-		outputTx[threadId.xy] = 0.0f;
-		return;
+        outputTx[threadId.xy] = prevColor;
+	    return;
 	}
-    
+#endif
+
     float4 rayClipSpace = float4(ToClipSpaceCoord(uv), 1.0);
     float4 rayView = mul(rayClipSpace, FrameCB.inverseProjection);
     rayView = float4(rayView.xy, 1.0, 0.0);
@@ -313,11 +294,43 @@ void Clouds(CS_INPUT input)
     if (intersect)
     {
         float4 cloudDistance;
-        cloudsColor = RaymarchToCloud(threadId.xy, startPos, endPos, float3(0, 0, 0), cloudDistance);
+        float4 cloudsColor = RaymarchToCloud(threadId.xy, startPos, endPos, float3(0, 0, 0), cloudDistance);
+        //put max distance 
         outputTx[threadId.xy] = cloudsColor;
     }
     else
     {
         outputTx[threadId.xy] = 0.0f;
     }
+}
+
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+
+struct VertexOut
+{
+	float4 PosH : SV_POSITION;
+	float2 Tex  : TEX;
+};
+VertexOut CloudsCombineVS(uint vI : SV_VERTEXID)
+{
+	int2 texcoord = int2(vI & 1, vI >> 1);
+	VertexOut vout;
+	vout.Tex = float2(texcoord);
+	vout.PosH = float4(2 * (texcoord.x - 0.5f), -2 * (texcoord.y - 0.5f), CLOUDS_DEPTH, 1);
+	return vout;
+}
+
+struct CloudsCombineConstants
+{
+	uint inputIdx;
+};
+ConstantBuffer<CloudsCombineConstants> CombineCB : register(b1);
+
+float4 CloudsCombinePS(VertexOut pin) : SV_Target0
+{
+    Texture2D<float4> inputTx = ResourceDescriptorHeap[CombineCB.inputIdx];
+	float4 color = inputTx.Sample(LinearWrapSampler, pin.Tex);
+    if (!any(color.xyz)) discard;
+	return color;
 }

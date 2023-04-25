@@ -65,6 +65,7 @@ namespace adria
 			case PS_LensFlare:
 				return "LensFlarePS";
 			case CS_Clouds:
+			case CS_Clouds_Reprojection:
 				return "Clouds";
 			case CS_BloomDownsample:
 			case CS_BloomDownsampleFirstPass:
@@ -156,6 +157,10 @@ namespace adria
 			case PS_Shadow:
 			case PS_Shadow_Transparent:
 				return "ShadowPS";
+			case VS_CloudsCombine:
+				return "CloudsCombineVS";
+			case PS_CloudsCombine:
+				return "CloudsCombinePS";
 			default:
 				return "main";
 			}
@@ -177,6 +182,7 @@ namespace adria
 			case VS_Shadow_Transparent:
 			case VS_Ocean:
 			case VS_OceanLOD:
+			case VS_CloudsCombine:
 				return GfxShaderStage::VS;
 			case PS_Sky:
 			case PS_Texture:
@@ -192,6 +198,7 @@ namespace adria
 			case PS_Shadow:
 			case PS_Shadow_Transparent:
 			case PS_Ocean:
+			case PS_CloudsCombine:
 				return GfxShaderStage::PS;
 			case GS_LensFlare:
 			case GS_Bokeh:
@@ -225,6 +232,7 @@ namespace adria
 			case CS_Fxaa:
 			case CS_Ambient:
 			case CS_Clouds:
+			case CS_Clouds_Reprojection:
 			case CS_Taa:
 			case CS_DeferredLighting:
 			case CS_VolumetricLighting:
@@ -250,7 +258,7 @@ namespace adria
 				return GfxShaderStage::ShaderCount;
 			}
 		}
-		constexpr std::string  GetShaderSource(GfxShaderID shader)
+		constexpr std::string GetShaderSource(GfxShaderID shader)
 		{
 			switch (shader)
 			{
@@ -287,6 +295,9 @@ namespace adria
 			case PS_Bokeh:
 				return "Postprocess/Bokeh.hlsl";
 			case CS_Clouds:
+			case CS_Clouds_Reprojection:
+			case VS_CloudsCombine:
+			case PS_CloudsCombine:
 				return "Postprocess/Clouds.hlsl";
 			case VS_Shadow:
 			case VS_Shadow_Transparent:
@@ -395,6 +406,8 @@ namespace adria
 				return { { "MASK", "1" } };
 			case CS_BloomDownsampleFirstPass:
 				return { {"FIRST_PASS", "1"} };
+			case CS_Clouds_Reprojection:
+				return { {"REPROJECTION", "1"} };
 			default:
 				return {};
 			}

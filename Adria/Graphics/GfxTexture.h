@@ -79,6 +79,7 @@ namespace adria
 		ID3D12Resource* Detach();
 		D3D12MA::Allocation* DetachAllocation();
 
+		GfxDevice* GetParent() const { return gfx; }
 		GfxTextureDesc const& GetDesc() const;
 		uint64 GetGpuAddress() const;
 
