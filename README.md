@@ -32,6 +32,7 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 * Motion blur
 * Fog
 * Volumetric clouds
+    - Temporal reprojection
 * Hosek-Wilkie sky
 * Ocean FFT
     - Adaptive tesselation
@@ -81,6 +82,9 @@ Since this engine shares some of the features with [engine](https://github.com/m
     <td><img src="Screenshots/raytraced.png"></td>
   </tr>
 </table>
+
+Volumetric Clouds
+![alt text](Screenshots/clouds.png "Volumetric clouds") 
 
 Path Tracer
 ![alt text](Screenshots/pathtracing1.png "Path tracing") 
