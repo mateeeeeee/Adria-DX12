@@ -66,6 +66,7 @@ namespace adria
 					float cloud_type;
 					float absorption;
 					float density_factor;
+					float max_draw_distance;
 				} constants =
 				{
 					.clouds_bottom_height = params.clouds_bottom_height,
@@ -75,7 +76,8 @@ namespace adria
 					.coverage = params.coverage,
 					.cloud_type = params.cloud_type,
 					.absorption = params.light_absorption,
-					.density_factor = params.density_factor
+					.density_factor = params.density_factor,
+					.max_draw_distance = params.max_draw_distance
 				};
 
 				struct TextureIndices
@@ -94,8 +96,8 @@ namespace adria
 				GfxPipelineState* clouds_pso = PSOCache::Get(temporal_reprojection ? GfxPipelineStateID::Clouds_Reprojection : GfxPipelineStateID::Clouds);
 				cmd_list->SetPipelineState(clouds_pso);
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
-				cmd_list->SetRootConstants(1, constants);
-				cmd_list->SetRootCBV(2, indices);
+				cmd_list->SetRootConstants(1, indices);
+				cmd_list->SetRootCBV(2, constants);
 				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 
 			}, RGPassType::Compute, RGPassFlags::None);
@@ -134,6 +136,7 @@ namespace adria
 					ImGui::SliderFloat("Curliness", &params.curliness, 0.0f, 5.0f);
 					ImGui::SliderFloat("Coverage", &params.coverage, 0.0f, 1.0f);
 					ImGui::SliderFloat("Cloud Type", &params.cloud_type, 0.0f, 1.0f);
+					ImGui::SliderFloat("Max Draw Distance", &params.max_draw_distance, 5000.0f, 15000.0f);
 					ImGui::TreePop();
 					ImGui::Separator();
 				}

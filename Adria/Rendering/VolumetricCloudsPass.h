@@ -23,6 +23,7 @@ namespace adria
 			float clouds_top_height = 10000.0f;
 			float density_factor = 0.015f;
 			float cloud_type = 0.9f;
+			float max_draw_distance = 8000.0f;
 		};
 	public:
 		VolumetricCloudsPass(uint32 w, uint32 h);
@@ -37,7 +38,7 @@ namespace adria
 		std::vector<size_t> cloud_textures;
 		std::unique_ptr<GfxTexture> prev_clouds;
 		CloudParameters params{};
-		bool temporal_reprojection = false;
+		bool temporal_reprojection = true;
 
 	};
 

@@ -83,10 +83,10 @@ namespace adria
 		bool volumetric = false;
 		bool lens_flare = false;
 		bool god_rays = false;
-		float godrays_decay = 0.825f;
-		float godrays_weight = 0.25f;
-		float godrays_density = 0.975f;
-		float godrays_exposure = 2.0f;
+		float godrays_decay = 0.98f;
+		float godrays_weight = 0.07f;
+		float godrays_density = 0.9f;
+		float godrays_exposure = 0.45f;
 		bool  sscs = false;
 		float sscs_thickness = 0.5f;
 		float sscs_max_ray_distance = 0.05f;

@@ -14,6 +14,16 @@ static const float4 CumulusGradient = float4(0.0f, 0.1625f, 0.88f, 0.98f);
 static const float  PlanetRadius = 600000.0f;
 static const float3 PlanetCenter = float3(0.0f, -PlanetRadius, 0.0f);
 
+struct CloudTextureIndices
+{
+	uint weatherIdx;
+	uint cloudIdx;
+	uint worleyIdx;
+	uint outputIdx;
+	uint prevOutputIdx;
+};
+ConstantBuffer<CloudTextureIndices> TexturesCB : register(b1);
+
 struct CloudsConstants
 {
     float cloudsBottomHeight;
@@ -24,18 +34,10 @@ struct CloudsConstants
     float cloudType;
     float absorption;
     float densityFactor;
+    float maxDistance;
 };
-ConstantBuffer<CloudsConstants> PassCB : register(b1);
+ConstantBuffer<CloudsConstants> PassCB : register(b2);
 
-struct CloudTextureIndices
-{
-    uint weatherIdx;
-    uint cloudIdx;
-    uint worleyIdx;
-    uint outputIdx;
-    uint prevOutputIdx;
-};
-ConstantBuffer<CloudTextureIndices> TexturesCB : register(b2);
 
 float3 ToClipSpaceCoord(float2 tex)
 {
@@ -250,13 +252,6 @@ void Clouds(CS_INPUT input)
     uint3 threadId = input.DispatchThreadId;
 	float2 uv = ((float2) threadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
 
-	//float depth = depthTx.SampleLevel(PointWrapSampler, uv, 0).r;
-	//if (depth < CLOUDS_DEPTH)
-	//{
-	//	outputTx[input.DispatchThreadId.xy] = 0.0f;
-	//	return;
-	//}
-
 #if REPROJECTION
 	float4 prevPos = float4(ToClipSpaceCoord(uv), 1.0);
 	prevPos = mul(prevPos, FrameCB.inverseProjection);
@@ -293,9 +288,8 @@ void Clouds(CS_INPUT input)
     
     if (intersect)
     {
-        float4 cloudDistance;
-        float4 cloudsColor = RaymarchToCloud(threadId.xy, startPos, endPos, float3(0, 0, 0), cloudDistance);
-        //put max distance 
+        float4 cloudPos;
+        float4 cloudsColor = RaymarchToCloud(threadId.xy, startPos, endPos, float3(0, 0, 0), cloudPos);
         outputTx[threadId.xy] = cloudsColor;
     }
     else
@@ -331,6 +325,6 @@ float4 CloudsCombinePS(VertexOut pin) : SV_Target0
 {
     Texture2D<float4> inputTx = ResourceDescriptorHeap[CombineCB.inputIdx];
 	float4 color = inputTx.Sample(LinearWrapSampler, pin.Tex);
-    if (!any(color.xyz)) discard;
+    if (!any(color.xyz) || color.a == 0.0f) discard;
 	return color;
 }
