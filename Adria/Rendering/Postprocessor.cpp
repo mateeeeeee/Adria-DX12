@@ -39,7 +39,7 @@ namespace adria
 		{
 			auto const& light_data = lights.get<Light>(light);
 			if (!light_data.active || !light_data.lens_flare) continue;
-			lens_flare_pass.AddPass(rg, light_data);
+			lens_flare_pass.AddPass2(rg, light_data);
 		}
 
 		if (settings.clouds)
@@ -47,7 +47,6 @@ namespace adria
 			clouds_pass.AddPass(rg);
 			blur_pass.AddPass(rg, RG_RES_NAME(CloudsOutput), RG_RES_NAME(BlurredCloudsOutput), " Volumetric Clouds ");
 			clouds_pass.AddCombinePass(rg, RG_RES_NAME(PostprocessMain));
-			//copy_to_texture_pass.AddPass(rg, RG_RES_NAME(PostprocessMain), RG_RES_NAME(BlurredCloudsOutput), BlendMode::AlphaBlend);
 		}
 
 		if (settings.reflections == Reflections::SSR) final_resource = ssr_pass.AddPass(rg, final_resource);
@@ -59,7 +58,7 @@ namespace adria
 		if (settings.fog) final_resource = fog_pass.AddPass(rg, final_resource);
 		if (settings.dof)
 		{
-			blur_pass.AddPass(rg, final_resource, RG_RES_NAME(BlurredDofInput), "DoF");
+			blur_pass.AddPass(rg, final_resource, RG_RES_NAME(BlurredDofInput), " DoF ");
 			if (settings.bokeh) bokeh_pass.AddPass(rg, final_resource);
 			final_resource = dof_pass.AddPass(rg, final_resource);
 		}

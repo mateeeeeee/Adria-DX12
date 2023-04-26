@@ -16,6 +16,7 @@ namespace adria
 		LensFlarePass(uint32 w, uint32 h);
 
 		void AddPass(RenderGraph& rendergraph, Light const& light);
+		void AddPass2(RenderGraph& rendergraph, Light const& light);
 		void OnResize(uint32 w, uint32 h);
 		void OnSceneInitialized(GfxDevice* gfx);
 	private:

@@ -370,6 +370,9 @@ namespace adria
 
 				compute_pso_desc.CS = CS_HosekWilkieSky;
 				compute_pso_map[GfxPipelineStateID::HosekWilkieSky] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.CS = CS_LensFlare2;
+				compute_pso_map[GfxPipelineStateID::LensFlare2] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 			}
 		}
 	}

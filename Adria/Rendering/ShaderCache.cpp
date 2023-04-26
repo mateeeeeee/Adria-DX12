@@ -21,7 +21,7 @@ namespace adria
 		HashMap<GfxShaderID, GfxShader> shader_map;
 		HashMap<GfxShaderID, HashSet<fs::path>> dependent_files_map;
 
-		constexpr std::string  GetEntryPoint(GfxShaderID shader)
+		constexpr std::string GetEntryPoint(GfxShaderID shader)
 		{
 			switch (shader)
 			{
@@ -161,6 +161,8 @@ namespace adria
 				return "CloudsCombineVS";
 			case PS_CloudsCombine:
 				return "CloudsCombinePS";
+			case CS_LensFlare2:
+				return "LensFlareCS";
 			default:
 				return "main";
 			}
@@ -242,6 +244,7 @@ namespace adria
 			case CS_ClusterCulling:
 			case CS_HosekWilkieSky:
 			case CS_MinimalAtmosphereSky:
+			case CS_LensFlare2:
 				return GfxShaderStage::CS;
 			case HS_OceanLOD:
 				return GfxShaderStage::HS;
@@ -290,6 +293,8 @@ namespace adria
 			case GS_LensFlare:
 			case PS_LensFlare:
 				return "Postprocess/LensFlare.hlsl";
+			case CS_LensFlare2:
+				return "Postprocess/LensFlare2.hlsl";
 			case VS_Bokeh:
 			case GS_Bokeh:
 			case PS_Bokeh:

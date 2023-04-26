@@ -5,7 +5,7 @@
 
 struct GodRaysConstants
 {
-	float2 lightScreenSpacePosition;
+	float2 sunScreenSpacePosition;
 	float  density;
 	float  weight;
 	float  decay;
@@ -33,7 +33,7 @@ void GodRays(CS_INPUT input)
 
 	float3 color = sunTx.SampleLevel(LinearClampSampler, uv, 0).rgb;
 
-	float2 deltaUV = (uv - PassCB.lightScreenSpacePosition);
+	float2 deltaUV = (uv - PassCB.sunScreenSpacePosition);
 	deltaUV *= PassCB.density / NUM_SAMPLES;
 
 	float illuminationDecay = 1.0f;

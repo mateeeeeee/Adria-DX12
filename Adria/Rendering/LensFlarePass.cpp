@@ -28,7 +28,7 @@ namespace adria
 			RGTextureReadOnlyId depth;
 		};
 
-		rg.AddPass<LensFlarePassData>("LensFlare Pass",
+		rg.AddPass<LensFlarePassData>("Lens Flare Pass",
 			[=](LensFlarePassData& data, RenderGraphBuilder& builder)
 			{
 				builder.WriteRenderTarget(RG_RES_NAME(PostprocessMain), RGLoadStoreAccessOp::Preserve_Preserve);
@@ -101,6 +101,70 @@ namespace adria
 				cmd_list->Draw(7);
 
 			}, RGPassType::Graphics, RGPassFlags::None);
+	}
+
+	void LensFlarePass::AddPass2(RenderGraph& rg, Light const& light)
+	{
+		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
+
+		struct LensFlarePassData
+		{
+			RGTextureReadWriteId output;
+			RGTextureReadOnlyId depth;
+		};
+
+		rg.AddPass<LensFlarePassData>("Lens Flare 2 Pass",
+			[=](LensFlarePassData& data, RenderGraphBuilder& builder)
+			{
+				data.output = builder.WriteTexture(RG_RES_NAME(PostprocessMain));
+				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+			},
+			[=](LensFlarePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
+			{
+				GfxDevice* gfx = cmd_list->GetDevice();
+
+				if (light.type != LightType::Directional)
+				{
+					ADRIA_LOG(WARNING, "Using Lens Flare on a Non-Directional Light Source");
+					return;
+				}
+				XMFLOAT3 light_ss{};
+				{
+					auto camera_position = global_data.camera_position;
+					XMVECTOR light_position = light.type == LightType::Directional ?
+						XMVector4Transform(light.position, XMMatrixTranslation(XMVectorGetX(camera_position), 0.0f, XMVectorGetY(camera_position))) : light.position;
+					XMVECTOR LightPos = XMVector4Transform(light_position, global_data.camera_viewproj);
+					XMFLOAT4 light_pos{};
+					XMStoreFloat4(&light_pos, LightPos);
+					light_ss.x = 0.5f * light_pos.x / light_pos.w + 0.5f;
+					light_ss.y = -0.5f * light_pos.y / light_pos.w + 0.5f;
+					light_ss.z = light_pos.z / light_pos.w;
+				}
+				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(2);
+				GfxDescriptor src_descriptors[] = { context.GetReadOnlyTexture(data.depth), context.GetReadWriteTexture(data.output) };
+				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
+				uint32 i = dst_descriptor.GetIndex();
+
+				struct LensFlareConstants
+				{
+					float light_ss_x;
+					float light_ss_y;
+					uint32 depth_idx;
+					uint32 output_idx;
+				} constants =
+				{
+					.light_ss_x = light_ss.x,
+					.light_ss_y = light_ss.y,
+					.depth_idx = i + 0,
+					.output_idx = i + 1
+				};
+
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::LensFlare2));
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, constants);
+				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
+
+			}, RGPassType::Compute, RGPassFlags::None);
 	}
 
 	void LensFlarePass::OnResize(uint32 w, uint32 h)

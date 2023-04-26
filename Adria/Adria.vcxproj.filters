@@ -1101,6 +1101,9 @@
     <FxCompile Include="Resources\NewShaders\Postprocess\Clouds.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Postprocess\LensFlare2.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="scene.json" />
