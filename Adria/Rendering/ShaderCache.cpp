@@ -25,6 +25,8 @@ namespace adria
 		{
 			switch (shader)
 			{
+			case CS_ClearCounters:
+				return "ClearCountersCS";
 			case CS_BuildHistogram:
 				return "BuildHistogramCS";
 			case CS_HistogramReduction:
@@ -245,6 +247,7 @@ namespace adria
 			case CS_HosekWilkieSky:
 			case CS_MinimalAtmosphereSky:
 			case CS_LensFlare2:
+			case CS_ClearCounters:
 				return GfxShaderStage::CS;
 			case HS_OceanLOD:
 				return GfxShaderStage::HS;
@@ -382,6 +385,8 @@ namespace adria
 				return "Lighting/ClusterBuilding.hlsl";
 			case CS_ClusterCulling:
 				return "Lighting/ClusterCulling.hlsl";
+			case CS_ClearCounters:
+				return "GpuDrivenRendering/ClearCounters.hlsl";
 			case LIB_Shadows:
 			case LIB_SoftShadows:
 				return "RayTracing/RayTracedShadows.hlsl";

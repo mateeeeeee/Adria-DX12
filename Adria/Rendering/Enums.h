@@ -79,6 +79,7 @@ namespace adria
 		CS_ClusteredDeferredLighting,
 		CS_ClusterBuilding,
 		CS_ClusterCulling,
+		CS_ClearCounters,
 		LIB_Shadows,
 		LIB_SoftShadows,
 		LIB_AmbientOcclusion,
@@ -160,6 +161,9 @@ namespace adria
 		BuildHistogram,
 		HistogramReduction,
 		Exposure,
+		ClearCounters,
+		CullInstances1stPhase,
+		CullInstances2ndPhase,
         Unknown
 	};
 

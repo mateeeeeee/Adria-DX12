@@ -373,6 +373,10 @@ namespace adria
 
 				compute_pso_desc.CS = CS_LensFlare2;
 				compute_pso_map[GfxPipelineStateID::LensFlare2] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.CS = CS_ClearCounters;
+				compute_pso_map[GfxPipelineStateID::ClearCounters] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
 			}
 		}
 	}
