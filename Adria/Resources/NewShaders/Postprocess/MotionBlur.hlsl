@@ -27,13 +27,13 @@ void MotionBlur(CS_INPUT input)
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
 
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
-	
-	float2 velocity = velocityTx.Sample(LinearWrapSampler, uv) / 16;
+
+	float2 velocity = velocityTx.Sample(LinearWrapSampler, uv) / SAMPLE_COUNT;
 	float4 color = sceneTx.Sample(LinearWrapSampler, uv);
 	uv += velocity;
 	for (int i = 1; i < SAMPLE_COUNT; ++i, uv += velocity)
 	{
-		float4 currentColor = sceneTx.Sample(LinearWrapSampler, uv);
+		float4 currentColor = sceneTx.Sample(LinearClampSampler, uv);
 		color += currentColor;
 	}
 	float4 finalColor = color / SAMPLE_COUNT;
