@@ -1,4 +1,5 @@
-#pragma once
+#ifndef LIGHTING_INCLUDED
+#define LIGHTING_INCLUDED
 
 #include "Constants.hlsli"
 
@@ -187,3 +188,5 @@ float CalcShadowFactor_PCF3x3(SamplerComparisonState shadowSampler,
     percentLit /= 9.0f;
     return percentLit;
 }
+
+#endif

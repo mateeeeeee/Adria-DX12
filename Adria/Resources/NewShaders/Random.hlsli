@@ -1,4 +1,5 @@
-#pragma once
+#ifndef RANDOM_INCLUDED
+#define RANDOM_INCLUDED
 
 //https://github.com/chris-wyman/GettingStartedWithRTXRayTracing/blob/master/05-AmbientOcclusion/Data/Tutorial05/hlslUtils.hlsli
 // Generates a seed for a random number generator from 2 inputs plus a backoff
@@ -21,3 +22,5 @@ float NextRand(inout uint s)
 	s = (1664525u * s + 1013904223u);
 	return float(s & 0x00FFFFFF) / float(0x01000000);
 }
+
+#endif

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef RAYTRACING_UTIL_INCLUDED
+#define RAYTRACING_UTIL_INCLUDED
+
 #include "../Common.hlsli"
 #include "../Random.hlsli"
 #include "../CommonResources.hlsli"
@@ -139,5 +141,4 @@ bool TraceShadowRay(RayDesc ray)
     return q.CommittedStatus() != COMMITTED_TRIANGLE_HIT;
 }
 
-
-
+#endif

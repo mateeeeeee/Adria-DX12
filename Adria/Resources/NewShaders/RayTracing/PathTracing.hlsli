@@ -1,4 +1,6 @@
-#pragma once
+#ifndef PATHTRACING_INCLUDED
+#define PATHTRACING_INCLUDED
+
 #include "RayTracingUtil.hlsli"
 #include "../Scene.hlsli"
 #include "../BRDF.hlsli"
@@ -141,3 +143,5 @@ float3 SampleGGX(float2 randVal, float roughness, float3 N)
     float3 v = float3(sinThetaH * cos(phiH), sinThetaH * sin(phiH), cosThetaH);
     return TangentToWorld(v, N);
 }
+
+#endif

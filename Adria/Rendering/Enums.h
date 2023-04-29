@@ -80,6 +80,8 @@ namespace adria
 		CS_ClusterBuilding,
 		CS_ClusterCulling,
 		CS_ClearCounters,
+		CS_CullInstances1stPhase,
+		CS_MeshletCullArgs1stPhase,
 		LIB_Shadows,
 		LIB_SoftShadows,
 		LIB_AmbientOcclusion,
@@ -163,7 +165,7 @@ namespace adria
 		Exposure,
 		ClearCounters,
 		CullInstances1stPhase,
-		CullInstances2ndPhase,
+		BuildMeshletCullArgs1stPhase,
         Unknown
 	};
 

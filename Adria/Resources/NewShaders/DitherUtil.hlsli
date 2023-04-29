@@ -1,4 +1,5 @@
-#pragma once
+#ifndef DITHER_INCLUDED
+#define DITHER_INCLUDED
 
 static const float2x2 BayerMatrix2 =
 {
@@ -71,3 +72,5 @@ float2 ModDither(float2 u)
 	float noiseY = fmod(u.y + u.x + fmod(203. + u.y * 3.18, 12. + fmod(u.x * 27.4, 8.)), 6.) * .139;
 	return float2(noiseX, noiseY) * 2.0 - 1.0;
 }
+
+#endif

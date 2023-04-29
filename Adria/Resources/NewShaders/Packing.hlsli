@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PACKING_INCLUDED
+#define PACKING_INCLUDED
 
 static float2 UnpackHalf2(in uint packed)
 {
@@ -32,3 +33,5 @@ static float4 UnpackUintColor(uint color)
     float4 outCol = float4((color >> 24 & 0xff) / 255.0, (color >> 16 & 0xff) / 255.0f, (color >> 8 & 0xff) / 255.0, (color >> 0 & 0xff) / 255.0);
     return outCol;
 }
+
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CONSTANTS_INCLUDED
+#define CONSTANTS_INCLUDED
 
 static const float M_PI = 3.141592654f;
 static const float M_PI_2 = 6.283185307f;
@@ -12,3 +13,5 @@ float DegreesToRadians(float degrees)
 {
     return degrees * (M_PI / 180.0f);
 }
+
+#endif

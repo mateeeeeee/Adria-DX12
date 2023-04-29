@@ -27,6 +27,10 @@ namespace adria
 			{
 			case CS_ClearCounters:
 				return "ClearCountersCS";
+			case CS_CullInstances1stPhase:
+				return "CullInstances1stPhaseCS";
+			case CS_MeshletCullArgs1stPhase:
+				return "BuildMeshletCullArgsCS";
 			case CS_BuildHistogram:
 				return "BuildHistogramCS";
 			case CS_HistogramReduction:
@@ -248,6 +252,8 @@ namespace adria
 			case CS_MinimalAtmosphereSky:
 			case CS_LensFlare2:
 			case CS_ClearCounters:
+			case CS_CullInstances1stPhase:
+			case CS_MeshletCullArgs1stPhase:
 				return GfxShaderStage::CS;
 			case HS_OceanLOD:
 				return GfxShaderStage::HS;
@@ -387,6 +393,10 @@ namespace adria
 				return "Lighting/ClusterCulling.hlsl";
 			case CS_ClearCounters:
 				return "GpuDrivenRendering/ClearCounters.hlsl";
+			case CS_CullInstances1stPhase:
+				return "GpuDrivenRendering/CullInstances.hlsl";
+			case CS_MeshletCullArgs1stPhase:
+				return "GpuDrivenRendering/MeshletCullArgs.hlsl";
 			case LIB_Shadows:
 			case LIB_SoftShadows:
 				return "RayTracing/RayTracedShadows.hlsl";
@@ -418,6 +428,8 @@ namespace adria
 				return { {"FIRST_PASS", "1"} };
 			case CS_Clouds_Reprojection:
 				return { {"REPROJECTION", "1"} };
+			case CS_MeshletCullArgs1stPhase:
+				return { {"FIRST_PHASE", "1"} };
 			default:
 				return {};
 			}

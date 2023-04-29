@@ -2,12 +2,6 @@
 #include <memory>
 #include "RenderGraph/RenderGraphResourceId.h"
 
-namespace entt
-{
-	class registry;
-}
-
-
 
 namespace adria
 {

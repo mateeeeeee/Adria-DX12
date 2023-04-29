@@ -1,4 +1,6 @@
-#pragma once
+#ifndef  BRDF_INCLUDED
+#define  BRDF_INCLUDED
+
 #include "Constants.hlsli"
 
 //add reference 
@@ -116,3 +118,5 @@ struct BrdfData
     float3 Specular;
     float  Roughness;
 };
+
+#endif

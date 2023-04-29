@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TONEMAPPING_INCLUDED
+#define TONEMAPPING_INCLUDED
 
 static const float gamma = 2.2;
 
@@ -51,3 +52,5 @@ static float3 HableToneMapping(float3 color)
 	color = pow(color, 1. / gamma);
 	return color;
 }
+
+#endif

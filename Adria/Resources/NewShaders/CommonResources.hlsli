@@ -1,4 +1,5 @@
-#pragma once
+#ifndef COMMON_RESOURCES_INCLUDED
+#define COMMON_RESOURCES_INCLUDED
 
 struct FrameCBuffer
 {
@@ -92,3 +93,5 @@ static float LinearizeDepth(float z)
 {
 	return FrameCB.cameraFar / (FrameCB.cameraFar + z * (FrameCB.cameraNear - FrameCB.cameraFar));
 }
+
+#endif

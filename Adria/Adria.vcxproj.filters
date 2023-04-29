@@ -74,6 +74,9 @@
     <Filter Include="gfx-external">
       <UniqueIdentifier>{e5ca3307-61b2-4c16-85ff-b9a7898599b5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\GpuDrivenRendering">
+      <UniqueIdentifier>{6e1cdfc3-a4ac-439d-b70d-3fbc52b59f12}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -415,6 +418,9 @@
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\Components.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\GPUDrivenRenderer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
   </ItemGroup>
@@ -945,6 +951,9 @@
     <ClInclude Include="Graphics\GfxCapabilities.h">
       <Filter>Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\GPUDrivenRenderer.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
@@ -1104,6 +1113,15 @@
     <FxCompile Include="Resources\NewShaders\Postprocess\LensFlare2.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\NewShaders\GpuDrivenRendering\CullInstances.hlsl">
+      <Filter>Shaders\GpuDrivenRendering</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\GpuDrivenRendering\ClearCounters.hlsl">
+      <Filter>Shaders\GpuDrivenRendering</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\GpuDrivenRendering\MeshletCullArgs.hlsl">
+      <Filter>Shaders\GpuDrivenRendering</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="scene.json" />
@@ -1156,6 +1174,9 @@
     </None>
     <None Include="Resources\NewShaders\Postprocess\CloudsUtil.hlsli">
       <Filter>Shaders\Postprocess</Filter>
+    </None>
+    <None Include="Resources\NewShaders\GpuDrivenRendering\GpuDrivenRendering.hlsli">
+      <Filter>Shaders\GpuDrivenRendering</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

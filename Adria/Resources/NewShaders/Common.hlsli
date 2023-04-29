@@ -1,4 +1,5 @@
-#pragma once
+#ifndef COMMON_INCLUDED
+#define COMMON_INCLUDED
 
 float4 GetRotationToZAxis(float3 input)
 {
@@ -103,4 +104,5 @@ float4 SampleBindlessLevel2D(int index, SamplerState s, float2 uv, float level, 
     return tex.SampleLevel(s, uv, level, offset);
 }
 
+#endif
 

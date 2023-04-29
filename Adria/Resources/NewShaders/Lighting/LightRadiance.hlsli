@@ -1,3 +1,6 @@
+#ifndef LIGHT_RADIANCE_INCLUDED
+#define LIGHT_RADIANCE_INCLUDED
+
 #include "../Lighting.hlsli"
 #include "../CommonResources.hlsli"
 #include "../Common.hlsli"
@@ -154,3 +157,5 @@ float SSCS(Light light, float3 viewPosition)
 	return 1.0f - occlusion;
 }
 */
+
+#endif

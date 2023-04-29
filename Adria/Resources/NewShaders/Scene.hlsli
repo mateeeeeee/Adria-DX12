@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SCENE_INCLUDED
+#define SCENE_INCLUDED
 #include "CommonResources.hlsli"
 
 struct Mesh
@@ -67,3 +68,5 @@ T LoadMeshBuffer(uint bufferIdx, uint bufferOffset, uint vertexId)
 	ByteAddressBuffer meshBuffer = ResourceDescriptorHeap[bufferIdx];
 	return meshBuffer.Load<T>(bufferOffset + sizeof(T) * vertexId);
 }
+
+#endif
