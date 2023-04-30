@@ -128,6 +128,7 @@ namespace adria
 		DrawIndirectSignature& GetDrawIndirectSignature() const { return *draw_indirect_signature;}
 		DrawIndexedIndirectSignature& GetDrawIndexedIndirectSignature() const { return *draw_indexed_indirect_signature;}
 		DispatchIndirectSignature& GetDispatchIndirectSignature() const { return *dispatch_indirect_signature;}
+		DispatchMeshIndirectSignature& GetDispatchMeshIndirectSignature() const { return *dispatch_mesh_indirect_signature;}
 
 		static constexpr uint32 BackbufferCount()
 		{
@@ -187,6 +188,7 @@ namespace adria
 		std::unique_ptr<DrawIndirectSignature> draw_indirect_signature;
 		std::unique_ptr<DrawIndexedIndirectSignature> draw_indexed_indirect_signature;
 		std::unique_ptr<DispatchIndirectSignature> dispatch_indirect_signature;
+		std::unique_ptr<DispatchMeshIndirectSignature> dispatch_mesh_indirect_signature;
 
 		struct DRED
 		{

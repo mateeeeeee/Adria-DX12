@@ -377,6 +377,14 @@ namespace adria
 				compute_pso_desc.CS = CS_ClearCounters;
 				compute_pso_map[GfxPipelineStateID::ClearCounters] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
+				compute_pso_desc.CS = CS_CullInstances1stPhase;
+				compute_pso_map[GfxPipelineStateID::CullInstances1stPhase] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.CS = CS_MeshletCullArgs1stPhase;
+				compute_pso_map[GfxPipelineStateID::BuildMeshletCullArgs1stPhase] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+				
+				compute_pso_desc.CS = CS_CullMeshlets1stPhase;
+				compute_pso_map[GfxPipelineStateID::CullMeshlets1stPhase] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 			}
 		}
 	}

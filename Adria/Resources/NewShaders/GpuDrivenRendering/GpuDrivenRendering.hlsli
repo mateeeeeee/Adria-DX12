@@ -206,18 +206,35 @@ struct MeshletCandidate
 #define COUNTER_PHASE1_VISIBLE_MESHLETS 0
 #define COUNTER_PHASE2_VISIBLE_MESHLETS 1
 
-#define MAX_NUM_MESHLETS (1 << 20u)
-#define MAX_NUM_INSTANCES (1 << 14u)
+#define MAX_NUM_MESHLETS (1u << 20u)
+#define MAX_NUM_INSTANCES (1u << 14u)
 
+#define MESHLET_MAX_TRIANGLES 124
+#define MESHLET_MAX_VERTICES 64
 
+struct MeshletTriangle
+{
+	uint V0 : 10;
+	uint V1 : 10;
+	uint V2 : 10;
+	uint : 2;
+};
 
+struct Meshlet
+{
+	float3 center;
+	float  radius;
+	//add cone stuff
+	uint vertexCount;
+	uint triangleCount;
+	uint vertexOffset;
+	uint triangleOffset;
+};
 
-
-
-
-
-
-
-
+Meshlet GetMeshletData(uint bufferIdx, uint bufferOffset, uint meshletIdx)
+{
+	ByteAddressBuffer meshBuffer = ResourceDescriptorHeap[bufferIdx];
+	return meshBuffer.Load<Meshlet>(bufferOffset + sizeof(Meshlet) * meshletIdx);
+}
 
 #endif

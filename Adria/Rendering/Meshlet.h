@@ -19,8 +19,6 @@ namespace adria
 		float center[3];
 		float radius;
 
-		//add cone stuff
-
 		uint32 vertex_count;
 		uint32 triangle_count;
 

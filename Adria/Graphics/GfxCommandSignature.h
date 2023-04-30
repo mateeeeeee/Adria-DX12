@@ -10,7 +10,8 @@ namespace adria
 	{
 		Draw,
 		DrawIndexed,
-		Dispatch
+		Dispatch,
+		DispatchMesh
 	};
 	template<IndirectCommandType>
 	struct IndirectCommandTraits;
@@ -32,6 +33,13 @@ namespace adria
 	{
 		static constexpr D3D12_INDIRECT_ARGUMENT_TYPE ArgumentType = D3D12_INDIRECT_ARGUMENT_TYPE_DISPATCH;
 		static constexpr UINT Stride = sizeof(D3D12_DISPATCH_ARGUMENTS);
+	};
+
+	template<>
+	struct IndirectCommandTraits<IndirectCommandType::DispatchMesh>
+	{
+		static constexpr D3D12_INDIRECT_ARGUMENT_TYPE ArgumentType = D3D12_INDIRECT_ARGUMENT_TYPE_DISPATCH_MESH;
+		static constexpr UINT Stride = sizeof(D3D12_DISPATCH_MESH_ARGUMENTS);
 	};
 
 	template<IndirectCommandType type>
@@ -59,4 +67,5 @@ namespace adria
 	using DrawIndirectSignature			= IndirectCommandSignature<IndirectCommandType::Draw>;
 	using DrawIndexedIndirectSignature	= IndirectCommandSignature<IndirectCommandType::DrawIndexed>;
 	using DispatchIndirectSignature		= IndirectCommandSignature<IndirectCommandType::Dispatch>;
+	using DispatchMeshIndirectSignature = IndirectCommandSignature<IndirectCommandType::DispatchMesh>;
 }

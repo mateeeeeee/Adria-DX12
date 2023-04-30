@@ -42,6 +42,7 @@ namespace adria
 		void AddClearCountersPass(RenderGraph& rg);
 		void Add1stPhasePasses(RenderGraph& rg);
 		void Add2ndPhasePasses(RenderGraph& rg);
+		void AddBuildHZBPasses(RenderGraph& rg);
 
 		void CalculateHZBParameters();
 	};

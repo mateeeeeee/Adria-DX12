@@ -31,6 +31,12 @@ namespace adria
 				return "CullInstances1stPhaseCS";
 			case CS_MeshletCullArgs1stPhase:
 				return "BuildMeshletCullArgsCS";
+			case CS_CullMeshlets1stPhase:
+				return "CullMeshlets1stPhaseCS";
+			case CS_InitializeHZB:
+				return "InitializeHZB_CS";
+			case CS_HZBMips:
+				return "HZBMipsCS";
 			case CS_BuildHistogram:
 				return "BuildHistogramCS";
 			case CS_HistogramReduction:
@@ -254,6 +260,9 @@ namespace adria
 			case CS_ClearCounters:
 			case CS_CullInstances1stPhase:
 			case CS_MeshletCullArgs1stPhase:
+			case CS_CullMeshlets1stPhase:
+			case CS_InitializeHZB:
+			case CS_HZBMips:
 				return GfxShaderStage::CS;
 			case HS_OceanLOD:
 				return GfxShaderStage::HS;
@@ -397,6 +406,11 @@ namespace adria
 				return "GpuDrivenRendering/CullInstances.hlsl";
 			case CS_MeshletCullArgs1stPhase:
 				return "GpuDrivenRendering/MeshletCullArgs.hlsl";
+			case CS_CullMeshlets1stPhase:
+				return "GpuDrivenRendering/CullMeshlets.hlsl";
+			case CS_InitializeHZB:
+			case CS_HZBMips:
+				return "GpuDrivenRendering/HZB.hlsl";
 			case LIB_Shadows:
 			case LIB_SoftShadows:
 				return "RayTracing/RayTracedShadows.hlsl";

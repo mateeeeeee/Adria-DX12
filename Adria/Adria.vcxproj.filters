@@ -77,6 +77,9 @@
     <Filter Include="Shaders\GpuDrivenRendering">
       <UniqueIdentifier>{6e1cdfc3-a4ac-439d-b70d-3fbc52b59f12}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\SPD">
+      <UniqueIdentifier>{00bc2406-b3df-464f-ad11-a0eec8ebe949}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -954,6 +957,12 @@
     <ClInclude Include="Rendering\GPUDrivenRenderer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="Resources\NewShaders\SPD\ffx_a.h">
+      <Filter>Shaders\SPD</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\NewShaders\SPD\ffx_spd.h">
+      <Filter>Shaders\SPD</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
@@ -1122,6 +1131,12 @@
     <FxCompile Include="Resources\NewShaders\GpuDrivenRendering\MeshletCullArgs.hlsl">
       <Filter>Shaders\GpuDrivenRendering</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\NewShaders\GpuDrivenRendering\CullMeshlets.hlsl">
+      <Filter>Shaders\GpuDrivenRendering</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\GpuDrivenRendering\HZB.hlsl">
+      <Filter>Shaders\GpuDrivenRendering</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="scene.json" />
@@ -1181,5 +1196,8 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="adria.log" />
+    <Text Include="Resources\NewShaders\SPD\LICENSE.txt">
+      <Filter>Shaders\SPD</Filter>
+    </Text>
   </ItemGroup>
 </Project>

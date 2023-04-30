@@ -33,7 +33,7 @@ namespace adria
 	{
 		Graphics,
 		Compute,
-		Mesh
+		MeshShader
 	};
 
 	class GfxPipelineState
@@ -82,5 +82,34 @@ namespace adria
 	private:
 		void OnShaderRecompiled(GfxShaderID s);
 		void Create(ComputePipelineStateDesc const& desc);
+	};
+
+	struct MeshShaderPipelineStateDesc
+	{
+		GfxRasterizerState rasterizer_state{};
+		GfxBlendState blend_state{};
+		GfxDepthStencilState depth_state{};
+		GfxPrimitiveTopologyType topology_type = GfxPrimitiveTopologyType::Triangle;
+		uint32 num_render_targets = 0;
+		GfxFormat rtv_formats[8];
+		GfxFormat dsv_format = GfxFormat::UNKNOWN;
+		GfxRootSignatureID root_signature = GfxRootSignatureID::Invalid;
+		GfxShaderID AS = GfxShaderID_Invalid;
+		GfxShaderID MS = GfxShaderID_Invalid;
+		GfxShaderID PS = GfxShaderID_Invalid;
+		uint32 sample_mask = UINT_MAX;
+	};
+	class MeshShaderPipelineState : public GfxPipelineState
+	{
+	public:
+		MeshShaderPipelineState(GfxDevice* gfx, MeshShaderPipelineStateDesc const& desc);
+		~MeshShaderPipelineState();
+
+	private:
+		MeshShaderPipelineStateDesc desc;
+
+	private:
+		void OnShaderRecompiled(GfxShaderID s);
+		void Create(MeshShaderPipelineStateDesc const& desc);
 	};
 }

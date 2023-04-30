@@ -58,7 +58,7 @@ namespace adria
 		~GfxCommandList();
 
 		GfxDevice* GetDevice() const { return gfx; }
-		ID3D12GraphicsCommandList4* GetNative() const { return cmd_list.Get(); }
+		ID3D12GraphicsCommandList6* GetNative() const { return cmd_list.Get(); }
 		GfxCommandQueue& GetQueue() const { return cmd_queue; }
 
 		void ResetAllocator();
@@ -76,9 +76,11 @@ namespace adria
 		void Draw(uint32 vertex_count, uint32 instance_count = 1, uint32 start_vertex_location = 0, uint32 start_instance_location = 0);
 		void DrawIndexed(uint32 index_count, uint32 instance_count = 1, uint32 index_offset = 0, uint32 base_vertex_location = 0, uint32 start_instance_location = 0);
 		void Dispatch(uint32 group_count_x, uint32 group_count_y, uint32 group_count_z = 1);
+		void DispatchMesh(uint32 group_count_x, uint32 group_count_y, uint32 group_count_z = 1);
 		void DrawIndirect(GfxBuffer const& buffer, uint32 offset);
 		void DrawIndexedIndirect(GfxBuffer const& buffer, uint32 offset);
 		void DispatchIndirect(GfxBuffer const& buffer, uint32 offset);
+		void DispatchMeshIndirect(GfxBuffer const& buffer, uint32 offset);
 		void DispatchRays(uint32 dispatch_width, uint32 dispatch_height, uint32 dispatch_depth = 1);
 
 		void TransitionBarrier(GfxBuffer const& resource, GfxResourceState old_state, GfxResourceState new_state);
@@ -142,7 +144,7 @@ namespace adria
 		GfxDevice* gfx = nullptr;
 		GfxCommandListType type;
 		GfxCommandQueue& cmd_queue;
-		ArcPtr<ID3D12GraphicsCommandList4> cmd_list = nullptr;
+		ArcPtr<ID3D12GraphicsCommandList6> cmd_list = nullptr;
 		ArcPtr<ID3D12CommandAllocator> cmd_allocator = nullptr;
 
 		uint32 command_count = 0;

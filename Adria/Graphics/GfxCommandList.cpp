@@ -198,6 +198,13 @@ namespace adria
 		++command_count;
 	}
 
+	void GfxCommandList::DispatchMesh(uint32 group_count_x, uint32 group_count_y, uint32 group_count_z /*= 1*/)
+	{
+		ADRIA_ASSERT(current_context == Context::Graphics);
+		cmd_list->DispatchMesh(group_count_x, group_count_y, group_count_z);
+		++command_count;
+	}
+
 	void GfxCommandList::DrawIndirect(GfxBuffer const& buffer, uint32 offset)
 	{
 		ADRIA_ASSERT(current_context == Context::Graphics);
@@ -216,6 +223,13 @@ namespace adria
 	{
 		ADRIA_ASSERT(current_context == Context::Compute);
 		cmd_list->ExecuteIndirect(gfx->GetDispatchIndirectSignature(), 1, buffer.GetNative(), offset, nullptr, 0);
+		++command_count;
+	}
+
+	void GfxCommandList::DispatchMeshIndirect(GfxBuffer const& buffer, uint32 offset)
+	{
+		ADRIA_ASSERT(current_context == Context::Graphics);
+		cmd_list->ExecuteIndirect(gfx->GetDispatchMeshIndirectSignature(), 1, buffer.GetNative(), offset, nullptr, 0);
 		++command_count;
 	}
 

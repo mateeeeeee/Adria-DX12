@@ -82,6 +82,9 @@ namespace adria
 		CS_ClearCounters,
 		CS_CullInstances1stPhase,
 		CS_MeshletCullArgs1stPhase,
+		CS_CullMeshlets1stPhase,
+		CS_InitializeHZB,
+		CS_HZBMips,
 		LIB_Shadows,
 		LIB_SoftShadows,
 		LIB_AmbientOcclusion,
@@ -166,6 +169,9 @@ namespace adria
 		ClearCounters,
 		CullInstances1stPhase,
 		BuildMeshletCullArgs1stPhase,
+		CullMeshlets1stPhase,
+		InitializeHZB,
+		HZBMips,
         Unknown
 	};
 
