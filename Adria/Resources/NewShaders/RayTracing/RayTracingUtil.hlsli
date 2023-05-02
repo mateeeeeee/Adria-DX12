@@ -128,14 +128,13 @@ bool TraceShadowRay(RayDesc ray)
 
     while (q.Proceed())
     {
-        switch (q.CandidateType())
+		switch (q.CandidateType())
         {
             case CANDIDATE_NON_OPAQUE_TRIANGLE:
 		    {
                 q.CommitNonOpaqueTriangleHit();
                 break;
             }
-        //todo alpha test
         }
     }
     return q.CommittedStatus() != COMMITTED_TRIANGLE_HIT;

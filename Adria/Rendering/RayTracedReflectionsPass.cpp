@@ -30,6 +30,7 @@ namespace adria
 		struct RayTracedReflectionsPassData
 		{
 			RGTextureReadOnlyId depth;
+			RGTextureReadOnlyId normal;
 			RGTextureReadWriteId output;
 		};
 
@@ -43,31 +44,33 @@ namespace adria
 				builder.DeclareTexture(RG_RES_NAME(RTR_OutputNoisy), desc);
 
 				data.output = builder.WriteTexture(RG_RES_NAME(RTR_OutputNoisy));
+				data.normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal));
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil));
 			},
 			[=](RayTracedReflectionsPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();
+				uint32 i = gfx->AllocateDescriptorsGPU(3).GetIndex();
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.depth));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadWriteTexture(data.output));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadOnlyTexture(data.normal));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 2), ctx.GetReadWriteTexture(data.output));
 
 				struct RayTracedReflectionsConstants
 				{
 					float   roughness_scale;
 					uint32  depth_idx;
+					uint32  normal_idx;
 					uint32  output_idx;
 				} constants =
 				{
 					.roughness_scale = reflection_roughness_scale,
-					.depth_idx = i + 0, .output_idx = i + 1
+					.depth_idx = i + 0, .normal_idx = i + 1, .output_idx = i + 2
 				};
 				auto& table = cmd_list->SetStateObject(ray_traced_reflections.Get());
 				table.SetRayGenShader("RTR_RayGen");
 				table.AddMissShader("RTR_Miss", 0);
 				table.AddHitGroup("RTRClosestHitGroupPrimaryRay", 0);
-				table.AddHitGroup("RTRClosestHitGroupReflectionRay", 1);
 
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
@@ -134,9 +137,9 @@ namespace adria
 			closesthit_group.HitGroupExport = L"RTRClosestHitGroupPrimaryRay";
 			rtr_state_object_builder.AddSubObject(closesthit_group);
 
-			closesthit_group.ClosestHitShaderImport = L"RTR_ClosestHitReflectionRay";
-			closesthit_group.HitGroupExport = L"RTRClosestHitGroupReflectionRay";
-			rtr_state_object_builder.AddSubObject(closesthit_group);
+			//closesthit_group.ClosestHitShaderImport = L"RTR_ClosestHitReflectionRay";
+			//closesthit_group.HitGroupExport = L"RTRClosestHitGroupReflectionRay";
+			//rtr_state_object_builder.AddSubObject(closesthit_group);
 
 			ray_traced_reflections.Attach(rtr_state_object_builder.CreateStateObject(device));
 		}
