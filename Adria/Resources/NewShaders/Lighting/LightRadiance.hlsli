@@ -95,12 +95,12 @@ float3 LightRadiance(Light light, float3 P, float3 N, float3 V, float3 albedo, f
 		}
 		lightRadiance *= shadowFactor;
 	}
-	
+
     bool rayTracedShadows = light.shadowMaskIndex >= 0;
 	if(rayTracedShadows)
     {
         Texture2D<float> rayTracedMaskTexture = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowMaskIndex)];
-        float maskValue = rayTracedMaskTexture.Sample(LinearWrapSampler, uv).r;
+        float maskValue = rayTracedMaskTexture.SampleLevel(LinearWrapSampler, uv, 0).r;
         lightRadiance *= maskValue;
     }
 	return lightRadiance;

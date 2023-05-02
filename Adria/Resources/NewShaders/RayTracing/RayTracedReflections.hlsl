@@ -1,5 +1,6 @@
 #include "../Constants.hlsli"
 #include "../Scene.hlsli"
+#include "../Lighting.hlsli"
 #include "RayTracingUtil.hlsli"
 
 
@@ -86,7 +87,7 @@ void RTR_ClosestHitPrimaryRay(inout RTR_Payload payloadData, in HitAttributes at
 	float3 nor2 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.normalsOffset, i2);
 	float3 nor = normalize(Interpolate(nor0, nor1, nor2, attribs.barycentrics));
 
-	float3 worldPosition = pos; //mul(pos, ObjectToWorld3x4()).xyz; why???
+	float3 worldPosition = pos;
     float3 worldNormal = nor;
 
 	Texture2D txMetallicRoughness = ResourceDescriptorHeap[materialData.roughnessMetallicIdx];
@@ -114,8 +115,9 @@ void RTR_ClosestHitPrimaryRay(inout RTR_Payload payloadData, in HitAttributes at
 [shader("closesthit")]
 void RTR_ClosestHitReflectionRay(inout RTR_Payload payload_data, in HitAttributes attribs)
 {
-	uint triangleId = PrimitiveIndex();
+	StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
 
+	uint triangleId = PrimitiveIndex();
 	Instance instanceData = GetInstanceData(InstanceIndex());
 	Mesh meshData = GetMeshData(instanceData.meshIndex);
 	Material materialData = GetMaterialData(instanceData.materialIdx);
@@ -124,12 +126,44 @@ void RTR_ClosestHitReflectionRay(inout RTR_Payload payload_data, in HitAttribute
 	uint i1 = LoadMeshBuffer<uint>(meshData.bufferIdx, meshData.indicesOffset, 3 * triangleId + 1);
 	uint i2 = LoadMeshBuffer<uint>(meshData.bufferIdx, meshData.indicesOffset, 3 * triangleId + 2);
 
+	float3 pos0 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.positionsOffset, i0);
+	float3 pos1 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.positionsOffset, i1);
+	float3 pos2 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.positionsOffset, i2);
+	float3 pos = Interpolate(pos0, pos1, pos2, attribs.barycentrics);
+
 	float2 uv0 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i0);
 	float2 uv1 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i1);
 	float2 uv2 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i2);
 	float2 uv = Interpolate(uv0, uv1, uv2, attribs.barycentrics);
 
-	Texture2D txAlbedo = ResourceDescriptorHeap[materialData.diffuseIdx];
-    float3 albedo = 0.5f * txAlbedo.SampleLevel(LinearWrapSampler, uv, 2).rgb;
-	payload_data.reflectionColor = albedo;
+	float3 nor0 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.normalsOffset, i0);
+	float3 nor1 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.normalsOffset, i1);
+	float3 nor2 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.normalsOffset, i2);
+	float3 nor = normalize(Interpolate(nor0, nor1, nor2, attribs.barycentrics));
+
+	float3 worldPosition = pos;
+	float3 worldNormal = nor;
+
+	Texture2D albedoTx = ResourceDescriptorHeap[materialData.diffuseIdx];
+	Texture2D emissiveTx = ResourceDescriptorHeap[materialData.emissiveIdx];
+	Texture2D txMetallicRoughness = ResourceDescriptorHeap[materialData.roughnessMetallicIdx];
+
+	float4 albedoColor = albedoTx.SampleLevel(LinearWrapSampler, uv, 0) * float4(materialData.baseColorFactor, 1.0f);
+	float2 roughnessMetallic = txMetallicRoughness.SampleLevel(LinearWrapSampler, uv, 0).gb;
+	float3 V = normalize(FrameCB.cameraPosition.xyz - worldPosition);
+
+	Light light = lights[0];
+	//light.direction.xyz = mul(light.direction.xyz, (float3x3) FrameCB.inverseView);
+
+	float3 radiance = DirectionalLightPBR(light, worldPosition, worldNormal, V, albedoColor.xyz, roughnessMetallic.y, roughnessMetallic.x);
+
+	RayDesc shadowRay;
+	shadowRay.Origin = worldPosition;
+	shadowRay.Direction = normalize(-light.direction.xyz);
+	shadowRay.TMin = 0.2f;
+	shadowRay.TMax = FLT_MAX;
+	bool visible = TraceShadowRay(shadowRay);
+
+	float3 reflectionColor = visible * radiance + emissiveTx.SampleLevel(LinearWrapSampler, uv, 0).rgb;
+	payload_data.reflectionColor = reflectionColor;
 }

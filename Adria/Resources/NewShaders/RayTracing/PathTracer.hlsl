@@ -12,7 +12,7 @@ ConstantBuffer<PathTracingConstants> PassCB : register(b1);
 [shader("raygeneration")]
 void PT_RayGen()
 {
-   StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
+    StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
     RWTexture2D<float4> accumTx = ResourceDescriptorHeap[PassCB.accumIdx];
 
     float2 pixel = float2(DispatchRaysIndex().xy);
