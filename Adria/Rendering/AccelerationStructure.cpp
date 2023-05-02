@@ -42,7 +42,7 @@ namespace adria
 			rt_geometry.opaque = material.alpha_mode == MaterialAlphaMode::Opaque;
 
 			GfxRayTracingInstance& rt_instance = rt_instances.emplace_back();
-			rt_instance.flags = GfxRayTracingInstanceFlag_None;
+			rt_instance.flags = GfxRayTracingInstanceFlag_ForceOpaque;
 			rt_instance.instance_id = instance_id++; //#todo tmp, fix this
 			rt_instance.instance_mask = 0xff;
 			//
@@ -51,7 +51,7 @@ namespace adria
 		}
 	}
 
-	void AccelerationStructure::Build() 
+	void AccelerationStructure::Build()
 	{
 		if (blases.empty()) return;
 		BuildBottomLevels();
