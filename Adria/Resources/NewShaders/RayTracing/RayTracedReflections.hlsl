@@ -78,7 +78,6 @@ void RTR_Miss(inout RTR_Payload payloadData)
 [shader("closesthit")]
 void RTR_ClosestHitPrimaryRay(inout RTR_Payload payloadData, in HitAttributes attribs)
 {
-	StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
 	uint triangleId = PrimitiveIndex();
 
 	Instance instanceData = GetInstanceData(InstanceIndex());
@@ -104,8 +103,12 @@ void RTR_ClosestHitPrimaryRay(inout RTR_Payload payloadData, in HitAttributes at
 	float3 nor2 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.normalsOffset, i2);
 	float3 nor = normalize(Interpolate(nor0, nor1, nor2, attribs.barycentrics));
 
-	float3 worldPosition = pos;
-    float3 worldNormal = nor;
+	//float3 worldPosition = pos;
+	//float3 worldNormal = nor;
+
+	float4 posWS = mul(float4(pos, 1.0), instanceData.worldMatrix);
+	float3 worldPosition = posWS.xyz / posWS.w;
+    float3 worldNormal = mul(nor, (float3x3) transpose(instanceData.inverseWorldMatrix));
 
 	Texture2D albedoTx = ResourceDescriptorHeap[materialData.diffuseIdx];
 	Texture2D emissiveTx = ResourceDescriptorHeap[materialData.emissiveIdx];
@@ -114,42 +117,27 @@ void RTR_ClosestHitPrimaryRay(inout RTR_Payload payloadData, in HitAttributes at
 	float4 albedoColor = albedoTx.SampleLevel(LinearWrapSampler, uv, 0) * float4(materialData.baseColorFactor, 1.0f);
 	float2 roughnessMetallic = txMetallicRoughness.SampleLevel(LinearWrapSampler, uv, 0).gb;
 
-	float3 V = normalize(FrameCB.cameraPosition.xyz - worldPosition);
+	float3 V = normalize(FrameCB.cameraPosition.xyz - worldPosition.xyz);
 
+	StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
 	Light light = lights[0];
 	light.direction.xyz = mul(light.direction.xyz, (float3x3) FrameCB.inverseView);
-	float3 radiance = DirectionalLightPBR(light, worldPosition, worldNormal, V, albedoColor.xyz, roughnessMetallic.y, roughnessMetallic.x);
 
-	float3 L = -light.direction.xyz;
-
-	bool visibility = false;
+	bool visibility = true;
 	{
-		RaytracingAccelerationStructure raytracingAS = ResourceDescriptorHeap[FrameCB.accelStructIdx];
-		RayQuery<RAY_FLAG_CULL_NON_OPAQUE | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH> q;
-
+		float3 L = normalize(-light.direction.xyz); //not correct for point/spot lights
 		RayDesc shadowRay;
-		shadowRay.Origin = worldPosition;
-		shadowRay.Direction = normalize(L);
-		shadowRay.TMin = 0.01f;
+		shadowRay.Origin = worldPosition.xyz;
+		shadowRay.Direction = L;
+		shadowRay.TMin = 1e-2f;
 		shadowRay.TMax = FLT_MAX;
-
-		q.TraceRayInline(raytracingAS, RAY_FLAG_NONE, 0xFF, shadowRay);
-		while (q.Proceed())
-		{
-			switch (q.CandidateType())
-			{
-			case CANDIDATE_NON_OPAQUE_TRIANGLE:
-			{
-				q.CommitNonOpaqueTriangleHit();
-				break;
-			}
-			}
-		}
-		visibility = q.CommittedStatus() != COMMITTED_TRIANGLE_HIT;
+		visibility = TraceShadowRay(shadowRay) ? 1.0f : 0.0f;
 	}
 
-	float3 reflectionColor = visibility * radiance + emissiveTx.SampleLevel(LinearWrapSampler, uv, 0).rgb;
-	payloadData.reflectionColor = reflectionColor;
+	float3 radiance = DirectionalLightPBR(light, worldPosition.xyz, worldNormal, V, albedoColor.xyz, roughnessMetallic.y, roughnessMetallic.x);
+
+	float3 reflectionColor = (visibility + 0.025f) * radiance + emissiveTx.SampleLevel(LinearWrapSampler, uv, 0).rgb;
+	payloadData.reflectionColor = roughnessMetallic.x * reflectionColor;
 }
 
 
