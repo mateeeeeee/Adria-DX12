@@ -1,3 +1,6 @@
+#ifndef NOISE_INCLUDED
+#define NOISE_INCLUDED
+
 // Hash by David_Hoskins
 #define UI0 1597334673U
 #define UI1 3812015801U
@@ -105,3 +108,5 @@ float WorleyFBM(float3 p, float freq)
 		   WorleyNoise(p * freq * 2., freq * 2.) * .25 +
 		   WorleyNoise(p * freq * 4., freq * 4.) * .125;
 }
+
+#endif

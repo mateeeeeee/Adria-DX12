@@ -15,16 +15,36 @@ namespace adria
 	{
 		struct CloudParameters
 		{
-			float crispiness = 43.0f;
-			float curliness = 3.6f;
-			float coverage = 0.25f;
-			float light_absorption = 0.003f;
-			float clouds_bottom_height = 4000.0f;
-			float clouds_top_height = 10000.0f;
-			float density_factor = 0.015f;
-			float cloud_type = 0.9f;
-			float max_draw_distance = 8000.0f;
+			int32 shape_noise_frequency = 4;
+			int32 shape_noise_resolution = 128;
+			int32 detail_noise_frequency = 3;
+			int32 detail_noise_resolution = 32;
+
+			int32 max_num_steps = 128;
+			float cloud_min_height = 1500.0f;
+			float cloud_max_height = 4000.0f;
+			float shape_noise_scale = 0.3f;
+			float detail_noise_scale = 5.5f;
+			float detail_noise_modifier = 0.5f;
+			float turbulence_noise_scale = 7.44f;
+			float turbulence_amount = 1.0f;
+			float cloud_coverage = 0.7f;
+
+			float planet_radius = 35000.0f;
+			float planet_center[3];
+			float light_step_length = 64.0f;
+			float light_cone_radius = 0.4f;
+
+			float cloud_base_color[3] = { 0.78f, 0.86f, 1.0f };
+			float cloud_top_color[3] = { 1.0f, 1.0f, 1.0f };
+			float precipitation = 1.0f;
+			float ambient_light_factor = 0.12f;
+			float sun_light_factor = 1.0f;
+			float henyey_greenstein_g_forward = 0.4f;
+			float henyey_greenstein_g_backward = 0.179f;
+			float exposure = 0.6f;
 		};
+
 	public:
 		VolumetricCloudsPass(uint32 w, uint32 h);
 
@@ -35,11 +55,19 @@ namespace adria
 
 	private:
 		uint32 width, height;
-		std::vector<size_t> cloud_textures;
+
 		std::unique_ptr<GfxTexture> prev_clouds;
+		std::unique_ptr<GfxTexture> cloud_detail_noise;
+		std::unique_ptr<GfxTexture> cloud_shape_noise;
+		size_t cloud_curl_noise_handle;
+
 		CloudParameters params{};
+		bool should_generate_textures = false;
 		bool temporal_reprojection = true;
 
+	private:
+
+		void CreateCloudTextures(GfxDevice* gfx = nullptr);
 	};
 
 }
