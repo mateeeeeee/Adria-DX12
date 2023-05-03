@@ -1090,6 +1090,7 @@
     <None Include="Resources\NewShaders\GpuDrivenRendering\GpuDrivenRendering.hlsli" />
     <None Include="Resources\NewShaders\Lighting.hlsli" />
     <None Include="Resources\NewShaders\Lighting\LightRadiance.hlsli" />
+    <None Include="Resources\NewShaders\Noise.hlsli" />
     <None Include="Resources\NewShaders\Packing.hlsli" />
     <None Include="Resources\NewShaders\Postprocess\CloudsUtil.hlsli">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
