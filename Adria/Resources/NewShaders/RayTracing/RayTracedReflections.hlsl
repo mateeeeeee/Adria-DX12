@@ -65,7 +65,8 @@ void RTR_RayGen()
 		RAY_FLAG_FORCE_OPAQUE,
 		0xFF, 0, 0, 0, ray, payloadData);
 
-	outputTx[launchIndex.xy] = float4(payloadData.reflectionColor, 1.0f);
+	float3 fresnel = clamp(pow(1 - dot(normalize(worldPosition), worldNormal), 1), 0, 1);
+	outputTx[launchIndex.xy] = metallic * float4(fresnel * payloadData.reflectionColor, 1.0f);
 }
 
 [shader("miss")]
@@ -103,9 +104,6 @@ void RTR_ClosestHitPrimaryRay(inout RTR_Payload payloadData, in HitAttributes at
 	float3 nor2 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.normalsOffset, i2);
 	float3 nor = normalize(Interpolate(nor0, nor1, nor2, attribs.barycentrics));
 
-	//float3 worldPosition = pos;
-	//float3 worldNormal = nor;
-
 	float4 posWS = mul(float4(pos, 1.0), instanceData.worldMatrix);
 	float3 worldPosition = posWS.xyz / posWS.w;
     float3 worldNormal = mul(nor, (float3x3) transpose(instanceData.inverseWorldMatrix));
@@ -136,8 +134,8 @@ void RTR_ClosestHitPrimaryRay(inout RTR_Payload payloadData, in HitAttributes at
 
 	float3 radiance = DirectionalLightPBR(light, worldPosition.xyz, worldNormal, V, albedoColor.xyz, roughnessMetallic.y, roughnessMetallic.x);
 
-	float3 reflectionColor = (visibility + 0.025f) * radiance + emissiveTx.SampleLevel(LinearWrapSampler, uv, 0).rgb;
-	payloadData.reflectionColor = roughnessMetallic.x * reflectionColor;
+	float3 reflectionColor = (visibility + 0.05f) * radiance + emissiveTx.SampleLevel(LinearWrapSampler, uv, 0).rgb;
+	payloadData.reflectionColor = reflectionColor;
 }
 
 

@@ -8,7 +8,7 @@ struct SSRConstants
 {
     float ssrRayStep;
     float ssrRayHitThreshold;
-    
+
     uint depthIdx;
     uint normalIdx;
     uint sceneIdx;
@@ -89,13 +89,13 @@ void SSR(CS_INPUT input)
     Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
     Texture2D sceneTx = ResourceDescriptorHeap[PassCB.sceneIdx];
     RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
-    
+
     float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
     float4 viewNormalMetallic = normalTx.Sample(LinearBorderSampler, uv);
     float3 viewNormal = viewNormalMetallic.rgb;
     viewNormal = 2.0f * viewNormal - 1.0f;
     viewNormal = normalize(viewNormal);
-    
+
     float metallic = viewNormalMetallic.a;
     float4 sceneColor = sceneTx.SampleLevel(LinearClampSampler, uv, 0);
     if (metallic < 0.01f)
@@ -112,13 +112,14 @@ void SSR(CS_INPUT input)
     float4 coords = SSRRayMarch(depthTx, reflectDir, viewPosition);
     float2 coordsEdgeFactors = float2(1, 1) - pow(saturate(abs(coords.xy - float2(0.5f, 0.5f)) * 2), 8);
     float  screenEdgeFactor = saturate(min(coordsEdgeFactors.x, coordsEdgeFactors.y));
-	
+    float4 fresnel = clamp(pow(1 - dot(normalize(viewPosition), viewNormal), 1), 0, 1);
+
     float reflectionIntensity =
 		saturate(
-			screenEdgeFactor * 
-			saturate(reflectDir.z) 
-			* (coords.w) 
+			screenEdgeFactor *
+			saturate(reflectDir.z)
+			* (coords.w)
 			);
     float4 reflectionColor = reflectionIntensity * float4(sceneTx.SampleLevel(LinearClampSampler, coords.xy, 0).rgb, 1.0f);
-    outputTx[input.DispatchThreadId.xy] = sceneColor + metallic * max(0, reflectionColor);
+    outputTx[input.DispatchThreadId.xy] = sceneColor + fresnel * metallic * max(0, reflectionColor);
 }
