@@ -148,7 +148,7 @@ namespace adria
 				gfx_pso_desc.depth_state.depth_enable = true;
 				gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
 				gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
-				gfx_pso_desc.blend_state.render_target[0].src_blend = GfxBlend::SrcAlpha;
+				gfx_pso_desc.blend_state.render_target[0].src_blend = GfxBlend::One;
 				gfx_pso_desc.blend_state.render_target[0].dest_blend = GfxBlend::InvSrcAlpha;
 				gfx_pso_desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;
 				gfx_pso_map[GfxPipelineStateID::CloudsCombine] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
