@@ -9,7 +9,7 @@ struct CloudNoiseConstants
 ConstantBuffer<CloudNoiseConstants> PassCB : register(b1);
 
 [numthreads(8, 8, 8)]
-void CloudShapeNoiseCS(uint3 threadId : SV_DispatchThreadID)
+void CloudShapeCS(uint3 threadId : SV_DispatchThreadID)
 {
 	float3 uvw = (threadId.xyz + 0.5f) * (float)PassCB.resolutionInv;
 
@@ -25,7 +25,7 @@ void CloudShapeNoiseCS(uint3 threadId : SV_DispatchThreadID)
 }
 
 [numthreads(8, 8, 8)]
-void CloudDetailNoiseCS(uint3 threadId : SV_DispatchThreadID)
+void CloudDetailCS(uint3 threadId : SV_DispatchThreadID)
 {
 	float3 uvw = (threadId.xyz + 0.5f) * (float)PassCB.resolutionInv;
 

@@ -78,7 +78,11 @@ namespace adria
 				return "LensFlarePS";
 			case CS_Clouds:
 			case CS_Clouds_Reprojection:
-				return "Clouds";
+				return "CloudsCS";
+			case CS_CloudShape:
+				return "CloudShapeCS";
+			case CS_CloudDetail:
+				return "CloudDetailCS";
 			case CS_BloomDownsample:
 			case CS_BloomDownsampleFirstPass:
 				return "BloomDownsample";
@@ -247,6 +251,8 @@ namespace adria
 			case CS_Ambient:
 			case CS_Clouds:
 			case CS_Clouds_Reprojection:
+			case CS_CloudShape:
+			case CS_CloudDetail:
 			case CS_Taa:
 			case CS_DeferredLighting:
 			case CS_VolumetricLighting:
@@ -321,7 +327,10 @@ namespace adria
 			case CS_Clouds_Reprojection:
 			case VS_CloudsCombine:
 			case PS_CloudsCombine:
-				return "Postprocess/Clouds.hlsl";
+				return "Clouds/VolumetricClouds.hlsl";
+			case CS_CloudShape:
+			case CS_CloudDetail:
+				return "Clouds/CloudNoise.hlsl";
 			case VS_Shadow:
 			case VS_Shadow_Transparent:
 			case PS_Shadow:

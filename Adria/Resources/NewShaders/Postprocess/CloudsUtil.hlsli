@@ -1,13 +1,5 @@
 #pragma once
 
-static const float BayerFactor = 1.0f / 16.0f;
-static const int BayerFilter[16] =
-{
-    0, 8, 2, 10,
-	12, 4, 14, 6,
-	3, 11, 1, 9,
-	15, 7, 13, 5
-};
 static float3 NoiseKernelConeSampling[6] =
 {
     float3(0.38051305, 0.92453449, -0.02111345),

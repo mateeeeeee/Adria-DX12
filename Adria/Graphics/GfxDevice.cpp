@@ -967,7 +967,7 @@ namespace adria
 					uav_desc.Texture2D.MipSlice = view_desc.first_mip;
 				}
 			}
-			else if (desc.type == GfxTextureType_2D)
+			else if (desc.type == GfxTextureType_3D)
 			{
 				uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
 				uav_desc.Texture3D.MipSlice = view_desc.first_mip;

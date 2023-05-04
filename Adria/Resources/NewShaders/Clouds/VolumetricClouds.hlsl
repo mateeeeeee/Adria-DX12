@@ -1,0 +1,317 @@
+#include "../CommonResources.hlsli"
+#define BLOCK_SIZE 16
+
+struct CloudsConstants
+{
+	uint      curlIdx;
+	uint      shapeIdx;
+	uint      detailIdx;
+	uint      outputIdx;
+
+	uint      prevOutputIdx;
+	float 	  cloudMinHeight;
+	float 	  cloudMaxHeight;
+	float 	  shapeNoiseScale;
+
+	float 	  detailNoiseScale;
+	float 	  detailNoiseModifier;
+	float 	  turbulenceNoiseScale;
+	float 	  turbulenceAmount;
+
+	float 	  cloudCoverage;
+	float3    cloudBaseColor;
+	float3    cloudTopColor;
+	int	      maxNumSteps;
+	
+	float 	  planetRadius;
+	float3    planetCenter;
+
+	float 	  lightStepLength;
+	float 	  lightConeRadius;
+	float 	  precipitation;
+	float 	  ambientLightFactor;
+
+	float 	  sunLightFactor;
+	float 	  henyeyGreensteinGForward;
+	float 	  henyeyGreensteinGBackward;
+};
+ConstantBuffer<CloudsConstants> PassCB : register(b2);
+
+static const float BayerFactor = 1.0f / 16.0f;
+static const int BayerFilter[16] =
+{
+	0, 8, 2, 10,
+	12, 4, 14, 6,
+	3, 11, 1, 9,
+	15, 7, 13, 5
+};
+
+struct Ray
+{
+	float3 origin;
+	float3 direction;
+};
+
+float3 ToClipSpaceCoord(float2 uv)
+{
+	float2 ray;
+	ray.x = 2.0 * uv.x - 1.0;
+	ray.y = 1.0 - uv.y * 2.0;
+	return float3(ray, 1.0);
+}
+
+float3 RaySphereIntersection(Ray ray, float3 sphereCenter, in float sphereRadius)
+{
+	float3 l = ray.origin - sphereCenter;
+	float a = 1.0;
+	float b = 2.0 * dot(ray.direction, l);
+	float c = dot(l, l) - pow(sphereRadius, 2);
+	float D = pow(b, 2) - 4.0 * a * c;
+
+	if (D < 0.0) return ray.origin;
+	else if (abs(D) - 0.00005 <= 0.0) return ray.origin + ray.direction * (-0.5 * b / a);
+	else
+	{
+		float q = 0.0;
+		if (b > 0.0) q = -0.5 * (b + sqrt(D));
+		else q = -0.5 * (b - sqrt(D));
+
+		float h1 = q / a;
+		float h2 = c / q;
+		float2 t = float2(min(h1, h2), max(h1, h2));
+
+		if (t.x < 0.0)
+		{
+			t.x = t.y;
+			if (t.x < 0.0) return ray.origin;
+		}
+		return ray.origin + t.x * ray.direction;
+	}
+}
+float Remap(float originalValue, float originalMin, float originalMax, float newMin, float newMax)
+{
+	return newMin + (((originalValue - originalMin) / (originalMax - originalMin)) * (newMax - newMin));
+}
+float HeightFractionForPoint(float3 position)
+{
+	return clamp((distance(position, PassCB.planetCenter) - (PassCB.planetRadius + PassCB.cloudMinHeight)) / (PassCB.cloudMaxHeight - PassCB.cloudMinHeight), 0.0f, 1.0f);
+}
+float BeerLambertLaw(float density)
+{
+	return exp(-density * PassCB.precipitation);
+}
+float BeerLaw(float density)
+{
+	float d = -density * PassCB.precipitation;
+	return max(exp(d), exp(d * 0.5f) * 0.7f);
+}
+float HenyeyGreensteinPhase(float cosAngle, float g)
+{
+	float g2 = g * g;
+	return ((1.0f - g2) / pow(1.0f + g2 - 2.0f * g * cosAngle, 1.5f)) / 4.0f * 3.1415f;
+}
+float PowderEffect(float density, float cosAngle)
+{
+	float powder = 1.0f - exp(-density * 2.0f);
+	return lerp(1.0f, powder, clamp((-cosAngle * 0.5f) + 0.5f, 0.0f, 1.0f));
+}
+float CalculateLightEnergy(float density, float cosAngle, float powderDensity)
+{
+	float beerPowder = 2.0f * BeerLaw(density) * PowderEffect(powderDensity, cosAngle);
+	float HG = max(HenyeyGreensteinPhase(cosAngle, PassCB.henyeyGreensteinGForward), HenyeyGreensteinPhase(cosAngle, PassCB.henyeyGreensteinGBackward)) * 0.07f + 0.8f;
+	return beerPowder * HG;
+}
+
+float SampleCloudDensity(float3 positionStatic, float heightFraction, float lod, bool useDetail)
+{
+	Texture3D shapeTx = ResourceDescriptorHeap[PassCB.shapeIdx];
+	Texture3D detailTx = ResourceDescriptorHeap[PassCB.detailIdx];
+	Texture2D curlTx = ResourceDescriptorHeap[PassCB.curlIdx];
+
+	float3 position = positionStatic + FrameCB.windParams.xyz * heightFraction;
+	position += (FrameCB.windParams.xyz + float3(0.0f, 0.1f, 0.0f)) * FrameCB.windParams.w * FrameCB.totalTime;
+
+	float4 lowFrequencyNoises = shapeTx.SampleLevel(LinearWrapSampler, position * PassCB.shapeNoiseScale, lod);
+	float lowFreqFbm = (lowFrequencyNoises.g * 0.625f) + (lowFrequencyNoises.b * 0.25f) + (lowFrequencyNoises.a * 0.125f);
+	float baseCloud = Remap(lowFrequencyNoises.r, (1.0f - lowFreqFbm), 1.0f, 0.0f, 1.0f);
+	float cloudCoverage =  PassCB.cloudCoverage;
+	float baseCloudWithCoverage = Remap(baseCloud, cloudCoverage, 1.0f, 0.0f, 1.0f);
+	
+	baseCloudWithCoverage *= cloudCoverage;
+	if (baseCloudWithCoverage <= 0.0f) return 0.0f;
+	float finalCloud = baseCloudWithCoverage;
+
+	if (useDetail)
+	{
+		// Sample curl noise texture.
+		float2 curlNoise = curlTx.SampleLevel(LinearWrapSampler, position.xz * PassCB.turbulenceNoiseScale, 0.0f).xy;
+		position.xy += curlNoise * (1.0f - heightFraction) * PassCB.turbulenceAmount;
+		float3 highFrequencyNoises = detailTx.SampleLevel(LinearWrapSampler, position * PassCB.detailNoiseScale, lod).xyz; 
+		float highFreqFbm = (highFrequencyNoises.r * 0.625f) + (highFrequencyNoises.g * 0.25f) + (highFrequencyNoises.b * 0.125f);
+		float highFreqNoiseModifier = lerp(1.0f - highFreqFbm, highFreqFbm, clamp(heightFraction * 10.0f, 0.0f, 1.0f));
+		finalCloud = Remap(baseCloudWithCoverage, highFreqNoiseModifier * PassCB.detailNoiseModifier, 1.0f, 0.0f, 1.0f);
+	}
+
+	return clamp(finalCloud, 0.0f, 1.0f);
+}
+float SampleCloudDensityAlongCone(float3 position, float3 lightDir)
+{
+	const float3 noiseKernel[6] =
+	{
+		{ -0.6, -0.8, -0.2 },
+		{ 1.0, -0.3, 0.0 },
+		{ -0.7, 0.0, 0.7 },
+		{ -0.2, 0.6, -0.8 },
+		{ 0.4, 0.3, 0.9 },
+		{ -0.2, 0.6, -0.8 }
+	};
+
+	float densityAlongCone = 0.0f;
+	const int NUM_CONE_SAMPLES = 6;
+	for (int i = 0; i < NUM_CONE_SAMPLES; i++)
+	{
+		position += lightDir * PassCB.lightStepLength;
+		float3 random_offset = noiseKernel[i] * PassCB.lightStepLength * PassCB.lightConeRadius * (float(i + 1));
+		float3 p = position + random_offset;
+		float heightFraction = HeightFractionForPoint(p); 
+		bool useDetailNoise = i < 2;
+		densityAlongCone += SampleCloudDensity(p, heightFraction, float(i) * 0.5f, useDetailNoise);
+	}
+	position += 32.0f * PassCB.lightStepLength * lightDir;
+	float heightFraction = HeightFractionForPoint(position);
+	densityAlongCone += SampleCloudDensity(position, heightFraction, 2.0f, false) * 3.0f;
+
+	return densityAlongCone;
+}
+
+float4 RayMarch(float3 rayOrigin, float3 rayDirection, float cosAngle, float stepSize, float numSteps)
+{
+	float3  position = rayOrigin;
+	float   stepIncrement = 1.0f;
+	float   accumTransmittance = 1.0f;
+	float3  accumScattering = 0.0f;
+	float   alpha = 0.0f;
+	float3 sunColor = FrameCB.sunColor.rgb;
+	float3 sunDirection = normalize(FrameCB.sunDirection.xyz);
+
+	for (float i = 0.0f; i < numSteps; i += stepIncrement)
+	{
+		float heightFraction = HeightFractionForPoint(position);
+		float density = SampleCloudDensity(position, heightFraction, 0.0f, true);
+		float stepTransmittance = BeerLambertLaw(density * stepSize);
+
+		accumTransmittance *= stepTransmittance;
+
+		if (density > 0.0f)
+		{
+			alpha += (1.0f - stepTransmittance) * (1.0f - alpha);
+
+			float coneDensity = SampleCloudDensityAlongCone(position, sunDirection);
+			float3 inScatteredLight = CalculateLightEnergy(coneDensity * stepSize, cosAngle, density * stepSize) * sunColor * PassCB.sunLightFactor * alpha;
+			float3 ambientLight = lerp(PassCB.cloudBaseColor, PassCB.cloudTopColor, heightFraction) * PassCB.ambientLightFactor;
+			accumScattering += (ambientLight + inScatteredLight) * accumScattering * density;
+		}
+		position += rayDirection * stepSize * stepIncrement;
+	}
+
+	return float4(accumScattering, alpha);
+}
+
+
+struct CS_INPUT
+{
+	uint3 GroupId : SV_GroupID;
+	uint3 GroupThreadId : SV_GroupThreadID;
+	uint3 DispatchThreadId : SV_DispatchThreadID;
+	uint  GroupIndex : SV_GroupIndex;
+};
+[numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
+void CloudsCS(CS_INPUT input)
+{
+	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
+	uint3 threadId = input.DispatchThreadId;
+	float2 uv = ((float2) threadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
+
+#if REPROJECTION
+	float4 prevPos = float4(ToClipSpaceCoord(uv), 1.0);
+	prevPos = mul(prevPos, FrameCB.inverseProjection);
+	prevPos = prevPos / prevPos.w;
+	prevPos.xyz = mul(prevPos.xyz, (float3x3) FrameCB.inverseView);
+	prevPos.xyz = mul(prevPos.xyz, (float3x3) FrameCB.prevView);
+	float4 reproj = mul(prevPos, FrameCB.prevProjection);
+	reproj /= reproj.w;
+	float2 prevUv = reproj.xy * 0.5 + 0.5;
+	prevUv.y = 1.0f - prevUv.y;
+
+	Texture2D<float4> prevOutputTx = ResourceDescriptorHeap[PassCB.prevOutputIdx];
+	float4 prevColor = prevOutputTx.Sample(LinearClampSampler, prevUv);
+
+	uint index = FrameCB.frameCount % 16;
+	bool shouldUpdate = (((threadId.x + 4 * threadId.y) % 16) == BayerFilter[index]);
+
+	if (!shouldUpdate && all(prevUv <= 1.0f) && all(prevUv >= 0.0f))
+	{
+		outputTx[threadId.xy] = prevColor;
+		return;
+	}
+#endif
+
+	float4 rayClipSpace = float4(ToClipSpaceCoord(uv), 1.0);
+	float4 rayView = mul(rayClipSpace, FrameCB.inverseProjection);
+	rayView = float4(rayView.xy, 1.0, 0.0);
+	float3 worldDir = mul(rayView, FrameCB.inverseView).xyz;
+
+	Ray ray;
+	ray.origin = FrameCB.cameraPosition.xyz;
+	ray.direction = normalize(worldDir);
+
+	float3 rayStart = RaySphereIntersection(ray, PassCB.planetCenter, PassCB.planetRadius + PassCB.cloudMinHeight);
+	float3 rayEnd   = RaySphereIntersection(ray, PassCB.planetCenter, PassCB.planetRadius + PassCB.cloudMaxHeight);
+
+	const float numSteps = PassCB.maxNumSteps;
+	float stepSize = length(rayEnd - rayStart) / numSteps;
+
+	// Jitter the ray to prevent banding.
+	int a = int(threadId.x) % 4;
+	int b = int(threadId.y) % 4;
+	rayStart += stepSize * ray.direction * BayerFactor * BayerFilter[a * 4 + b];
+
+	float cosAngle = dot(ray.direction, normalize(FrameCB.sunDirection.xyz));
+	float4 clouds = RayMarch(rayStart, ray.direction, cosAngle, stepSize, numSteps);
+
+	outputTx[threadId.xy] = clouds;
+	//clouds.rgb + (1.0f - clouds.a) * sky.rgb;
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+#define CLOUDS_DEPTH 0.99999f
+
+struct VertexOut
+{
+	float4 PosH : SV_POSITION;
+	float2 Tex  : TEX;
+};
+VertexOut CloudsCombineVS(uint vI : SV_VERTEXID)
+{
+	int2 texcoord = int2(vI & 1, vI >> 1);
+	VertexOut vout;
+	vout.Tex = float2(texcoord);
+	vout.PosH = float4(2 * (texcoord.x - 0.5f), -2 * (texcoord.y - 0.5f), CLOUDS_DEPTH, 1);
+	return vout;
+}
+
+struct CloudsCombineConstants
+{
+	uint inputIdx;
+};
+ConstantBuffer<CloudsCombineConstants> CombineCB : register(b1);
+
+float4 CloudsCombinePS(VertexOut pin) : SV_Target0
+{
+	Texture2D<float4> inputTx = ResourceDescriptorHeap[CombineCB.inputIdx];
+	float4 color = inputTx.Sample(LinearWrapSampler, pin.Tex);
+	if (!any(color.xyz) || color.a < 0.025f) discard;
+	return color;
+}

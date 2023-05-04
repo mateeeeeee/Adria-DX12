@@ -80,6 +80,9 @@
     <Filter Include="Shaders\SPD">
       <UniqueIdentifier>{00bc2406-b3df-464f-ad11-a0eec8ebe949}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Clouds">
+      <UniqueIdentifier>{93683108-3ee8-4a1d-9d4a-ac2927722ee2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -1137,6 +1140,12 @@
     <FxCompile Include="Resources\NewShaders\GpuDrivenRendering\HZB.hlsl">
       <Filter>Shaders\GpuDrivenRendering</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Clouds\CloudNoise.hlsl">
+      <Filter>Shaders\Clouds</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Clouds\VolumetricClouds.hlsl">
+      <Filter>Shaders\Clouds</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="scene.json" />
@@ -1192,6 +1201,9 @@
     </None>
     <None Include="Resources\NewShaders\GpuDrivenRendering\GpuDrivenRendering.hlsli">
       <Filter>Shaders\GpuDrivenRendering</Filter>
+    </None>
+    <None Include="Resources\NewShaders\Noise.hlsli">
+      <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

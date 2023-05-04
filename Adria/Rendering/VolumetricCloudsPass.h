@@ -20,7 +20,7 @@ namespace adria
 			int32 detail_noise_frequency = 3;
 			int32 detail_noise_resolution = 32;
 
-			int32 max_num_steps = 128;
+			int32 max_num_steps = 32;
 			float cloud_min_height = 1500.0f;
 			float cloud_max_height = 4000.0f;
 			float shape_noise_scale = 0.3f;
@@ -31,7 +31,6 @@ namespace adria
 			float cloud_coverage = 0.7f;
 
 			float planet_radius = 35000.0f;
-			float planet_center[3];
 			float light_step_length = 64.0f;
 			float light_cone_radius = 0.4f;
 
@@ -42,7 +41,6 @@ namespace adria
 			float sun_light_factor = 1.0f;
 			float henyey_greenstein_g_forward = 0.4f;
 			float henyey_greenstein_g_backward = 0.179f;
-			float exposure = 0.6f;
 		};
 
 	public:
@@ -63,7 +61,7 @@ namespace adria
 
 		CloudParameters params{};
 		bool should_generate_textures = false;
-		bool temporal_reprojection = true;
+		bool temporal_reprojection = false;
 
 	private:
 

@@ -323,8 +323,8 @@ ConstantBuffer<CloudsCombineConstants> CombineCB : register(b1);
 
 float4 CloudsCombinePS(VertexOut pin) : SV_Target0
 {
-    Texture2D<float4> inputTx = ResourceDescriptorHeap[CombineCB.inputIdx];
+	Texture2D<float4> inputTx = ResourceDescriptorHeap[CombineCB.inputIdx];
 	float4 color = inputTx.Sample(LinearWrapSampler, pin.Tex);
-    if (!any(color.xyz) || color.a < 0.025f) discard;
+	if (!any(color.xyz) || color.a < 0.025f) discard;
 	return color;
 }
