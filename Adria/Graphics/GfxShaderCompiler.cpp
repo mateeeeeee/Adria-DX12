@@ -1,7 +1,7 @@
 #pragma comment(lib, "dxcompiler.lib")
 #include "GfxShaderCompiler.h"
-#include <d3dcompiler.h> 
-#include "dxc/dxcapi.h" 
+#include <d3dcompiler.h>
+#include "dxc/dxcapi.h"
 #include "cereal/archives/binary.hpp"
 #include "cereal/types/string.hpp"
 #include "cereal/types/vector.hpp"
@@ -21,10 +21,10 @@ namespace adria
 		ArcPtr<IDxcUtils> utils = nullptr;
 		ArcPtr<IDxcIncludeHandler> include_handler = nullptr;
 	}
-	class CustomIncludeHandler : public IDxcIncludeHandler
+	class GfxIncludeHandler : public IDxcIncludeHandler
 	{
 	public:
-		CustomIncludeHandler() {}
+		GfxIncludeHandler() {}
 
 		HRESULT STDMETHODCALLTYPE LoadSource(_In_ LPCWSTR pFilename, _COM_Outptr_result_maybenull_ IDxcBlob** ppIncludeSource) override
 		{
@@ -75,14 +75,14 @@ namespace adria
 
 		std::vector<std::string> include_files;
 	};
-	class ReflectionBlob : public IDxcBlob
+	class GfxReflectionBlob : public IDxcBlob
 	{
 	public:
-		ReflectionBlob(void const* pShaderBytecode, SIZE_T byteLength) : bytecodeSize{ byteLength }
+		GfxReflectionBlob(void const* pShaderBytecode, SIZE_T byteLength) : bytecodeSize{ byteLength }
 		{
 			pBytecode = const_cast<void*>(pShaderBytecode);
 		}
-		virtual ~ReflectionBlob() { /*non owning blob -> empty destructor*/ }
+		virtual ~GfxReflectionBlob() { /*non owning blob -> empty destructor*/ }
 		virtual LPVOID STDMETHODCALLTYPE GetBufferPointer(void) override { return pBytecode; }
 		virtual SIZE_T STDMETHODCALLTYPE GetBufferSize(void) override { return bytecodeSize; }
 		virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, _COM_Outptr_ void __RPC_FAR* __RPC_FAR* ppv) override
@@ -201,7 +201,7 @@ namespace adria
 			std::ofstream os(cache_path, std::ios::binary);
 			cereal::BinaryOutputArchive archive(os);
 			archive(output.shader_hash);
-			archive(output.includes); 
+			archive(output.includes);
 			archive(output.shader.GetLength());
 			archive.saveBinary(output.shader.GetPointer(), output.shader.GetLength());
 			return true;
@@ -232,13 +232,14 @@ namespace adria
 			uint64 macro_hash = crc64(macro_key.c_str(), macro_key.size());
 			std::string build_string = input.flags & ShaderCompilerFlag_Debug ? "debug" : "release";
 			char cache_path[256];
-			sprintf_s(cache_path, "%s%s_%s_%llx_%s.bin", shaders_cache_directory, GetFilenameWithoutExtension(input.file).c_str(), 
+			sprintf_s(cache_path, "%s%s_%s_%llx_%s.bin", shaders_cache_directory, GetFilenameWithoutExtension(input.file).c_str(),
 												    input.entry_point.c_str(), macro_hash, build_string.c_str());
 
 			if (CheckCache(cache_path, input, output)) return true;
 			ADRIA_LOG(INFO, "Shader '%s.%s' not found in cache. Compiling...", input.file.c_str(), input.entry_point.c_str());
 
-			uint32_t code_page = CP_UTF8; 
+			compile:
+			uint32_t code_page = CP_UTF8;
 			ArcPtr<IDxcBlobEncoding> source_blob;
 
 			std::wstring shader_source = ToWideString(input.file);
@@ -248,7 +249,7 @@ namespace adria
 			std::wstring name = ToWideString(GetFilenameWithoutExtension(input.file));
 			std::wstring dir  = ToWideString(shaders_directory);
 			std::wstring path = ToWideString(GetParentPath(input.file));
-			
+
 			std::wstring target = GetTarget(input.stage, input.model);
 			std::wstring entry_point = ToWideString(input.entry_point);
 			if (entry_point.empty()) entry_point = L"main";
@@ -293,9 +294,9 @@ namespace adria
 				std::wstring macro_name = ToWideString(macro.name);
 				std::wstring macro_value = ToWideString(macro.value);
 				compile_args.push_back(L"-D");
-				if (macro.value.empty()) 
+				if (macro.value.empty())
 					macros.push_back(macro_name + L"=1");
-				else 
+				else
 					macros.push_back(macro_name + L"=" + macro_value);
 				compile_args.push_back(macros.back().c_str());
 			}
@@ -304,8 +305,8 @@ namespace adria
 			source_buffer.Ptr = source_blob->GetBufferPointer();
 			source_buffer.Size = source_blob->GetBufferSize();
 			source_buffer.Encoding = 0;
-			CustomIncludeHandler custom_include_handler{};
-			
+			GfxIncludeHandler custom_include_handler{};
+
 			ArcPtr<IDxcResult> result;
 			hr = compiler->Compile(
 				&source_buffer,
@@ -318,8 +319,13 @@ namespace adria
 			{
 				if (errors && errors->GetStringLength() > 0)
 				{
-					ADRIA_LOG(ERROR, "%s", errors->GetStringPointer());
-					return false;
+					char const* err_msg = errors->GetStringPointer();
+					ADRIA_LOG(ERROR, "%s", err_msg);
+					std::string msg = "Click OK after you fixed the following errors: \n";
+					msg += err_msg;
+					int32 result = MessageBoxA(NULL, msg.c_str(), NULL, MB_OKCANCEL);
+					if (result == IDOK) goto compile;
+					else if (result == IDCANCEL) return false;
 				}
 			}
 			ArcPtr<IDxcBlob> blob;
@@ -330,7 +336,7 @@ namespace adria
 				DxcShaderHash* hash_buf = (DxcShaderHash*)hash->GetBufferPointer();
 				memcpy(output.shader_hash, hash_buf->HashDigest, sizeof(uint64) * 2);
 			}
-			
+
 			output.shader.SetDesc(input);
 			output.shader.SetBytecode(blob->GetBufferPointer(), blob->GetBufferSize());
 			output.includes = std::move(custom_include_handler.include_files);
@@ -340,7 +346,7 @@ namespace adria
 		}
 		void ReadBlobFromFile(std::wstring_view filename, GfxShaderBlob& blob)
 		{
-			uint32_t code_page = CP_UTF8;
+			uint32 code_page = CP_UTF8;
 			ArcPtr<IDxcBlobEncoding> source_blob;
 			HRESULT hr = library->CreateBlobFromFile(filename.data(), &code_page, source_blob.GetAddressOf());
 			BREAK_IF_FAILED(hr);
@@ -351,7 +357,7 @@ namespace adria
 		{
 			ArcPtr<IDxcContainerReflection> reflection;
 			HRESULT hr = DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(reflection.GetAddressOf()));
-			ReflectionBlob my_blob{ vs_blob.GetPointer(), vs_blob.GetLength() };
+			GfxReflectionBlob my_blob{ vs_blob.GetPointer(), vs_blob.GetLength() };
 			BREAK_IF_FAILED(hr);
 			hr = reflection->Load(&my_blob);
 			BREAK_IF_FAILED(hr);
