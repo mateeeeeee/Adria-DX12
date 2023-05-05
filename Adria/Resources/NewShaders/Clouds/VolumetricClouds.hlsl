@@ -60,15 +60,59 @@ float3 ToClipSpaceCoord(float2 uv)
 	return float3(ray, 1.0);
 }
 
-float3 RaySphereIntersection(Ray ray, float3 sphereCenter, in float sphereRadius)
+bool IntersectSphere(Ray ray, out float3 minT, out float3 maxT)
 {
+	float innerRadius = PassCB.planetRadius + PassCB.cloudMinHeight;
+	float outerRadius = innerRadius + PassCB.cloudMaxHeight;
+
+	float3 sphereToOrigin = (ray.origin - PassCB.planetCenter);
+	float b = dot(ray.direction, sphereToOrigin);
+	float c = dot(sphereToOrigin, sphereToOrigin);
+	float sqrtOpInner = b * b - (c - innerRadius * innerRadius);
+
+	float maxSInner;
+	if (sqrtOpInner < 0.0) return false;
+
+	float deInner = sqrt(sqrtOpInner);
+	float solAInner = -b - deInner;
+	float solBInner = -b + deInner;
+	maxSInner = max(solAInner, solBInner);
+	if (maxSInner < 0.0) return false;
+
+	maxSInner = maxSInner < 0.0 ? 0.0 : maxSInner;
+	float sqrtOpOuter = b * b - (c - outerRadius * outerRadius);
+	if (sqrtOpOuter < 0.0) return false;
+
+	float deOuter = sqrt(sqrtOpOuter);
+	float solAOuter = -b - deOuter;
+	float solBOuter = -b + deOuter;
+	float maxSOuter = max(solAOuter, solBOuter);
+	if (maxSOuter < 0.0) return false;
+
+	maxSOuter = maxSOuter < 0.0 ? 0.0 : maxSOuter;
+	float minSol = min(maxSInner, maxSOuter);
+
+	if (minSol > PassCB.planetRadius * 0.3f) return false;
+	float maxSol = max(maxSInner, maxSOuter);
+
+	minT = ray.origin + ray.direction * minSol;
+	maxT = ray.origin + ray.direction * maxSol;
+	return true;
+}
+float3 RaySphereIntersection(Ray ray, float3 sphereCenter, in float sphereRadius, out bool hit)
+{
+	hit = true;
 	float3 l = ray.origin - sphereCenter;
 	float a = 1.0;
 	float b = 2.0 * dot(ray.direction, l);
 	float c = dot(l, l) - pow(sphereRadius, 2);
 	float D = pow(b, 2) - 4.0 * a * c;
 
-	if (D < 0.0) return ray.origin;
+	if (D < 0.0)
+	{
+		hit = false;
+		return ray.origin;
+	}
 	else if (abs(D) - 0.00005 <= 0.0) return ray.origin + ray.direction * (-0.5 * b / a);
 	else
 	{
@@ -124,6 +168,7 @@ float CalculateLightEnergy(float density, float cosAngle, float powderDensity)
 
 float SampleCloudDensity(float3 positionStatic, float heightFraction, float lod, bool useDetail)
 {
+	lod = min(lod, 3.0f);
 	Texture3D shapeTx = ResourceDescriptorHeap[PassCB.shapeIdx];
 	Texture3D detailTx = ResourceDescriptorHeap[PassCB.detailIdx];
 	Texture2D curlTx = ResourceDescriptorHeap[PassCB.curlIdx];
@@ -143,7 +188,6 @@ float SampleCloudDensity(float3 positionStatic, float heightFraction, float lod,
 
 	if (useDetail)
 	{
-		// Sample curl noise texture.
 		float2 curlNoise = curlTx.SampleLevel(LinearWrapSampler, position.xz * PassCB.turbulenceNoiseScale, 0.0f).xy;
 		position.xy += curlNoise * (1.0f - heightFraction) * PassCB.turbulenceAmount;
 		float3 highFrequencyNoises = detailTx.SampleLevel(LinearWrapSampler, position * PassCB.detailNoiseScale, lod).xyz; 
@@ -209,7 +253,9 @@ float4 RayMarch(float3 rayOrigin, float3 rayDirection, float cosAngle, float ste
 			float coneDensity = SampleCloudDensityAlongCone(position, sunDirection);
 			float3 inScatteredLight = CalculateLightEnergy(coneDensity * stepSize, cosAngle, density * stepSize) * sunColor * PassCB.sunLightFactor * alpha;
 			float3 ambientLight = lerp(PassCB.cloudBaseColor, PassCB.cloudTopColor, heightFraction) * PassCB.ambientLightFactor;
-			accumScattering += (ambientLight + inScatteredLight) * accumScattering * density;
+			accumScattering += (ambientLight + inScatteredLight) * accumTransmittance * density;
+
+			if (alpha > 0.99f || accumTransmittance < 0.01f) break;
 		}
 		position += rayDirection * stepSize * stepIncrement;
 	}
@@ -265,22 +311,31 @@ void CloudsCS(CS_INPUT input)
 	ray.origin = FrameCB.cameraPosition.xyz;
 	ray.direction = normalize(worldDir);
 
-	float3 rayStart = RaySphereIntersection(ray, PassCB.planetCenter, PassCB.planetRadius + PassCB.cloudMinHeight);
-	float3 rayEnd   = RaySphereIntersection(ray, PassCB.planetCenter, PassCB.planetRadius + PassCB.cloudMaxHeight);
+	//IntersectSphere
 
-	const float numSteps = PassCB.maxNumSteps;
-	float stepSize = length(rayEnd - rayStart) / numSteps;
+	float3 rayStart, rayEnd;
+	bool intersect = IntersectSphere(ray, rayStart, rayEnd);
 
-	// Jitter the ray to prevent banding.
+	if (!intersect)
+	{
+		outputTx[threadId.xy] = 0.0f;
+		return;
+	}
+
 	int a = int(threadId.x) % 4;
 	int b = int(threadId.y) % 4;
+
+	const float maxSteps = PassCB.maxNumSteps;
+	const float minSteps = (maxSteps * 0.5f) + BayerFilter[a * 4 + b] / 8.0f;
+	float numSteps = lerp(maxSteps, minSteps, ray.direction.y);
+	float stepSize = length(rayEnd - rayStart) / numSteps;
+
 	rayStart += stepSize * ray.direction * BayerFactor * BayerFilter[a * 4 + b];
 
 	float cosAngle = dot(ray.direction, normalize(FrameCB.sunDirection.xyz));
 	float4 clouds = RayMarch(rayStart, ray.direction, cosAngle, stepSize, numSteps);
 
 	outputTx[threadId.xy] = clouds;
-	//clouds.rgb + (1.0f - clouds.a) * sky.rgb;
 }
 
 
@@ -312,6 +367,6 @@ float4 CloudsCombinePS(VertexOut pin) : SV_Target0
 {
 	Texture2D<float4> inputTx = ResourceDescriptorHeap[CombineCB.inputIdx];
 	float4 color = inputTx.Sample(LinearWrapSampler, pin.Tex);
-	//if (!any(color.xyz) || color.a < 0.025f) discard;
+	if (!any(color.xyz) || color.a < 0.03f) discard;
 	return color;
 }

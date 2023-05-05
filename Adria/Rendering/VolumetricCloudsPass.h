@@ -17,7 +17,7 @@ namespace adria
 		{
 			int32 shape_noise_frequency = 4;
 			int32 shape_noise_resolution = 128;
-			int32 detail_noise_frequency = 3;
+			int32 detail_noise_frequency = 8;
 			int32 detail_noise_resolution = 32;
 
 			int32 max_num_steps = 32;
@@ -28,7 +28,7 @@ namespace adria
 			float detail_noise_modifier = 0.5f;
 			float turbulence_noise_scale = 7.44f;
 			float turbulence_amount = 1.0f;
-			float cloud_coverage = 0.7f;
+			float cloud_coverage = 0.5f;
 
 			float planet_radius = 35000.0f;
 			float light_step_length = 64.0f;
@@ -61,7 +61,7 @@ namespace adria
 
 		CloudParameters params{};
 		bool should_generate_textures = false;
-		bool temporal_reprojection = false;
+		bool temporal_reprojection = true;
 
 	private:
 

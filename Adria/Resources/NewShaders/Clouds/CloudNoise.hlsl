@@ -13,11 +13,13 @@ void CloudShapeCS(uint3 threadId : SV_DispatchThreadID)
 {
 	float3 uvw = (threadId.xyz + 0.5f) * (float)PassCB.resolutionInv;
 
+	float perlin = lerp(1.0f, PerlinFBM(uvw, 4.0f, 7), 0.5f);
+	perlin = abs(perlin * 2.0f - 1.0f);
+
 	float4 noise = 0;
 	noise.y = WorleyFBM(uvw, PassCB.frequency);
 	noise.z = WorleyFBM(uvw, PassCB.frequency * 2);
 	noise.w = WorleyFBM(uvw, PassCB.frequency * 4);
-	float perlin = PerlinFBM(uvw, 3, 7);
 	noise.x = Remap(perlin, 0.0f, 1.0f, noise.y, 1.0f);
 
 	RWTexture3D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];

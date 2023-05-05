@@ -156,6 +156,7 @@ namespace adria
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				gfx->CopyDescriptors(dst_handle, src_handles);
 
+				float noise_scale = 0.00001f + params.shape_noise_scale * 0.0004f;
 				uint32 i = dst_handle.GetIndex();
 				struct CloudsConstants
 				{
@@ -199,10 +200,10 @@ namespace adria
 					.prev_output_idx = i + 4,
 					.cloud_min_height = params.cloud_min_height,
 					.cloud_max_height = params.cloud_max_height,
-					.shape_noise_scale = params.shape_noise_scale,
-					.detail_noise_scale = params.detail_noise_scale,
+					.shape_noise_scale = noise_scale,
+					.detail_noise_scale = params.detail_noise_scale * noise_scale,
 					.detail_noise_modifier = params.detail_noise_modifier,
-					.turbulence_noise_scale = params.turbulence_noise_scale,
+					.turbulence_noise_scale = params.turbulence_noise_scale * noise_scale,
 					.turbulence_amount = params.turbulence_amount,
 					.cloud_coverage = params.cloud_coverage,
 					.cloud_base_color = XMFLOAT3(params.cloud_base_color),
@@ -214,7 +215,7 @@ namespace adria
 
 					.light_step_length = params.light_step_length,
 					.light_cone_radius = params.light_cone_radius,
-					.precipitation = params.precipitation,
+					.precipitation = params.precipitation * 0.01f,
 					.ambient_light_factor = params.ambient_light_factor,
 
 					.sun_light_factor = params.sun_light_factor,
@@ -294,7 +295,7 @@ namespace adria
 			{
 				builder.WriteRenderTarget(render_target, RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
-				data.clouds_src = builder.ReadTexture(RG_RES_NAME(BlurredCloudsOutput), ReadAccess_PixelShader);
+				data.clouds_src = builder.ReadTexture(RG_RES_NAME(CloudsOutput), ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
 			[=](CloudsCombinePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)

@@ -45,7 +45,7 @@ namespace adria
 		if (settings.clouds)
 		{
 			clouds_pass.AddPass(rg);
-			blur_pass.AddPass(rg, RG_RES_NAME(CloudsOutput), RG_RES_NAME(BlurredCloudsOutput), " Volumetric Clouds ");
+			//blur_pass.AddPass(rg, RG_RES_NAME(CloudsOutput), RG_RES_NAME(BlurredCloudsOutput), " Volumetric Clouds ");
 			clouds_pass.AddCombinePass(rg, RG_RES_NAME(PostprocessMain));
 		}
 
