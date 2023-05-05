@@ -83,6 +83,8 @@ namespace adria
 				return "CloudShapeCS";
 			case CS_CloudDetail:
 				return "CloudDetailCS";
+			case CS_CloudType:
+				return "CloudTypeCS";
 			case CS_BloomDownsample:
 			case CS_BloomDownsampleFirstPass:
 				return "BloomDownsample";
@@ -253,6 +255,7 @@ namespace adria
 			case CS_Clouds_Reprojection:
 			case CS_CloudShape:
 			case CS_CloudDetail:
+			case CS_CloudType:
 			case CS_Taa:
 			case CS_DeferredLighting:
 			case CS_VolumetricLighting:
@@ -330,6 +333,7 @@ namespace adria
 				return "Clouds/VolumetricClouds.hlsl";
 			case CS_CloudShape:
 			case CS_CloudDetail:
+			case CS_CloudType:
 				return "Clouds/CloudNoise.hlsl";
 			case VS_Shadow:
 			case VS_Shadow_Transparent:

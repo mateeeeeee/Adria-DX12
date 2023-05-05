@@ -350,6 +350,9 @@ namespace adria
 				compute_pso_desc.CS = CS_Ambient;
 				compute_pso_map[GfxPipelineStateID::Ambient] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
+				compute_pso_desc.CS = CS_CloudType;
+				compute_pso_map[GfxPipelineStateID::CloudType] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
 				compute_pso_desc.CS = CS_CloudShape;
 				compute_pso_map[GfxPipelineStateID::CloudShape] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 

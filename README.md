@@ -72,6 +72,10 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 
 Since this engine shares some of the features with [engine](https://github.com/mate286/Adria-DX11), you can also see some of the screenshots there. 
 
+
+Volumetric Clouds
+![alt text](Screenshots/clouds.png "Volumetric clouds") 
+
 <table>
   <tr>
     <td>Cascaded Shadow Maps</td>
@@ -82,9 +86,6 @@ Since this engine shares some of the features with [engine](https://github.com/m
     <td><img src="Screenshots/raytraced.png"></td>
   </tr>
 </table>
-
-Volumetric Clouds
-![alt text](Screenshots/clouds.png "Volumetric clouds") 
 
 Path Tracer
 ![alt text](Screenshots/pathtracing1.png "Path tracing") 

@@ -20,15 +20,15 @@ namespace adria
 			int32 detail_noise_frequency = 8;
 			int32 detail_noise_resolution = 32;
 
-			int32 max_num_steps = 32;
+			int32 max_num_steps = 64;
 			float cloud_min_height = 1500.0f;
 			float cloud_max_height = 4000.0f;
 			float shape_noise_scale = 0.3f;
 			float detail_noise_scale = 5.5f;
 			float detail_noise_modifier = 0.5f;
-			float turbulence_noise_scale = 7.44f;
-			float turbulence_amount = 1.0f;
 			float cloud_coverage = 0.5f;
+			float cloud_type = 0.5f;
+			float global_density = 0.1f;
 
 			float planet_radius = 35000.0f;
 			float light_step_length = 64.0f;
@@ -57,7 +57,7 @@ namespace adria
 		std::unique_ptr<GfxTexture> prev_clouds;
 		std::unique_ptr<GfxTexture> cloud_detail_noise;
 		std::unique_ptr<GfxTexture> cloud_shape_noise;
-		size_t cloud_curl_noise_handle;
+		std::unique_ptr<GfxTexture> cloud_type;
 
 		CloudParameters params{};
 		bool should_generate_textures = false;

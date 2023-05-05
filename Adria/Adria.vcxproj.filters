@@ -1119,9 +1119,6 @@
     <FxCompile Include="Resources\NewShaders\RayTracing\PathTracer.hlsl">
       <Filter>Shaders\RayTracing</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Postprocess\Clouds.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\NewShaders\Postprocess\LensFlare2.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
@@ -1195,9 +1192,6 @@
     </None>
     <None Include="Resources\NewShaders\Atmosphere.hlsli">
       <Filter>Shaders</Filter>
-    </None>
-    <None Include="Resources\NewShaders\Postprocess\CloudsUtil.hlsli">
-      <Filter>Shaders\Postprocess</Filter>
     </None>
     <None Include="Resources\NewShaders\GpuDrivenRendering\GpuDrivenRendering.hlsli">
       <Filter>Shaders\GpuDrivenRendering</Filter>

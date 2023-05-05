@@ -3,28 +3,28 @@
 
 struct CloudsConstants
 {
-	uint      curlIdx;
+	uint      typeIdx;
 	uint      shapeIdx;
 	uint      detailIdx;
 	uint      outputIdx;
 
 	uint      prevOutputIdx;
+	float     cloudType;
 	float 	  cloudMinHeight;
 	float 	  cloudMaxHeight;
-	float 	  shapeNoiseScale;
 
+	float 	  shapeNoiseScale;
 	float 	  detailNoiseScale;
 	float 	  detailNoiseModifier;
-	float 	  turbulenceNoiseScale;
-	float 	  turbulenceAmount;
-
+	float     globalDensity;
+	
 	float 	  cloudCoverage;
 	float3    cloudBaseColor;
 	float3    cloudTopColor;
 	int	      maxNumSteps;
-	
-	float 	  planetRadius;
+
 	float3    planetCenter;
+	float 	  planetRadius;
 
 	float 	  lightStepLength;
 	float 	  lightConeRadius;
@@ -168,10 +168,9 @@ float CalculateLightEnergy(float density, float cosAngle, float powderDensity)
 
 float SampleCloudDensity(float3 positionStatic, float heightFraction, float lod, bool useDetail)
 {
-	lod = min(lod, 3.0f);
 	Texture3D shapeTx = ResourceDescriptorHeap[PassCB.shapeIdx];
 	Texture3D detailTx = ResourceDescriptorHeap[PassCB.detailIdx];
-	Texture2D curlTx = ResourceDescriptorHeap[PassCB.curlIdx];
+	Texture2D typeTx = ResourceDescriptorHeap[PassCB.typeIdx];
 
 	float3 position = positionStatic + FrameCB.windParams.xyz * heightFraction;
 	position += (FrameCB.windParams.xyz + float3(0.0f, 0.1f, 0.0f)) * FrameCB.windParams.w * FrameCB.totalTime;
@@ -180,23 +179,24 @@ float SampleCloudDensity(float3 positionStatic, float heightFraction, float lod,
 	float lowFreqFbm = (lowFrequencyNoises.g * 0.625f) + (lowFrequencyNoises.b * 0.25f) + (lowFrequencyNoises.a * 0.125f);
 	float baseCloud = Remap(lowFrequencyNoises.r, (1.0f - lowFreqFbm), 1.0f, 0.0f, 1.0f);
 	float cloudCoverage =  PassCB.cloudCoverage;
-	float baseCloudWithCoverage = Remap(baseCloud, cloudCoverage, 1.0f, 0.0f, 1.0f);
-	
+	float baseCloudWithCoverage = Remap(baseCloud, 1.0f - cloudCoverage, 1.0f, 0.0f, 1.0f);
+
 	baseCloudWithCoverage *= cloudCoverage;
 	if (baseCloudWithCoverage <= 0.0f) return 0.0f;
 	float finalCloud = baseCloudWithCoverage;
 
+	float verticalDensity = typeTx.SampleLevel(LinearClampSampler, float2(PassCB.cloudType, heightFraction), 0).x;
+	baseCloudWithCoverage *= verticalDensity;
+
 	if (useDetail)
 	{
-		float2 curlNoise = curlTx.SampleLevel(LinearWrapSampler, position.xz * PassCB.turbulenceNoiseScale, 0.0f).xy;
-		position.xy += curlNoise * (1.0f - heightFraction) * PassCB.turbulenceAmount;
 		float3 highFrequencyNoises = detailTx.SampleLevel(LinearWrapSampler, position * PassCB.detailNoiseScale, lod).xyz; 
 		float highFreqFbm = (highFrequencyNoises.r * 0.625f) + (highFrequencyNoises.g * 0.25f) + (highFrequencyNoises.b * 0.125f);
 		float highFreqNoiseModifier = lerp(1.0f - highFreqFbm, highFreqFbm, clamp(heightFraction * 10.0f, 0.0f, 1.0f));
 		finalCloud = Remap(baseCloudWithCoverage, highFreqNoiseModifier * PassCB.detailNoiseModifier, 1.0f, 0.0f, 1.0f);
 	}
 
-	return clamp(finalCloud, 0.0f, 1.0f);
+	return saturate(finalCloud * PassCB.globalDensity);
 }
 float SampleCloudDensityAlongCone(float3 position, float3 lightDir)
 {
@@ -310,8 +310,6 @@ void CloudsCS(CS_INPUT input)
 	Ray ray;
 	ray.origin = FrameCB.cameraPosition.xyz;
 	ray.direction = normalize(worldDir);
-
-	//IntersectSphere
 
 	float3 rayStart, rayEnd;
 	bool intersect = IntersectSphere(ray, rayStart, rayEnd);

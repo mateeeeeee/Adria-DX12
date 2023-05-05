@@ -38,6 +38,7 @@ namespace adria
 			}
 			rg.ImportTexture(RG_RES_NAME(CloudShape), cloud_shape_noise.get());
 			rg.ImportTexture(RG_RES_NAME(CloudDetail), cloud_detail_noise.get()); 
+			rg.ImportTexture(RG_RES_NAME(CloudType), cloud_type.get()); 
 
 			struct CloudNoiseConstants
 			{
@@ -78,7 +79,7 @@ namespace adria
 						cmd_list->SetRootConstants(1, constants);
 						uint32 dispatch = (uint32)std::ceil(resolution * 1.0f / 8);
 						cmd_list->Dispatch(dispatch, dispatch, dispatch);
-					}, RGPassType::Compute, RGPassFlags::ForceNoCull);
+					}, RGPassType::Compute, RGPassFlags::None);
 			}
 
 			for (uint32 i = 0; i < cloud_detail_noise->GetDesc().mip_levels; ++i)
@@ -113,17 +114,50 @@ namespace adria
 						cmd_list->SetRootConstants(1, constants);
 						uint32 dispatch = (uint32)std::ceil(resolution * 1.0f / 8);
 						cmd_list->Dispatch(dispatch, dispatch, dispatch);
-					}, RGPassType::Compute, RGPassFlags::ForceNoCull);
+					}, RGPassType::Compute, RGPassFlags::None);
 			}
+
+			struct CloudTypePassData
+			{
+				RGTextureReadWriteId type;
+			};
+
+			rg.AddPass<CloudTypePassData>("Compute Cloud Type",
+				[=](CloudTypePassData& data, RenderGraphBuilder& builder)
+				{
+					data.type = builder.WriteTexture(RG_RES_NAME(CloudType));
+				},
+				[=](CloudTypePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+				{
+					GfxDevice* gfx = cmd_list->GetDevice();
+					uint32 resolution = cloud_type->GetDesc().width;
+
+					GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(1);
+					GfxDescriptor src_handles[] = { ctx.GetReadWriteTexture(data.type) };
+					gfx->CopyDescriptors(dst_handle, src_handles);
+					uint32 j = dst_handle.GetIndex();
+
+					CloudNoiseConstants constants
+					{
+						.resolution_inv = 1.0f / resolution,
+						.output_idx = j
+					};
+					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::CloudType));
+					cmd_list->SetRootConstants(1, constants);
+					uint32 dispatch = (uint32)std::ceil(resolution * 1.0f / 8);
+					cmd_list->Dispatch(dispatch, dispatch, dispatch);
+				}, RGPassType::Compute, RGPassFlags::None);
 		}
 		else
 		{
 			rg.ImportTexture(RG_RES_NAME(CloudShape), cloud_shape_noise.get());
 			rg.ImportTexture(RG_RES_NAME(CloudDetail), cloud_detail_noise.get());
+			rg.ImportTexture(RG_RES_NAME(CloudType), cloud_type.get());
 		}
 
 		struct VolumetricCloudsPassData
 		{
+			RGTextureReadOnlyId type;
 			RGTextureReadOnlyId shape;
 			RGTextureReadOnlyId detail;
 			RGTextureReadOnlyId prev_output;
@@ -140,6 +174,7 @@ namespace adria
 
 				builder.DeclareTexture(RG_RES_NAME(CloudsOutput), clouds_output_desc);
 				data.output = builder.WriteTexture(RG_RES_NAME(CloudsOutput));
+				data.type = builder.ReadTexture(RG_RES_NAME(CloudType), ReadAccess_NonPixelShader);
 				data.shape = builder.ReadTexture(RG_RES_NAME(CloudShape), ReadAccess_NonPixelShader);
 				data.detail = builder.ReadTexture(RG_RES_NAME(CloudDetail), ReadAccess_NonPixelShader);
 				data.prev_output = builder.ReadTexture(RG_RES_NAME(PreviousCloudsOutput), ReadAccess_NonPixelShader);
@@ -148,7 +183,7 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				GfxDescriptor src_handles[] = { g_TextureManager.GetSRV(cloud_curl_noise_handle),
+				GfxDescriptor src_handles[] = { context.GetReadOnlyTexture(data.type),
 												context.GetReadOnlyTexture(data.shape),
 												context.GetReadOnlyTexture(data.detail),
 												context.GetReadWriteTexture(data.output),
@@ -156,32 +191,33 @@ namespace adria
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				gfx->CopyDescriptors(dst_handle, src_handles);
 
-				float noise_scale = 0.00001f + params.shape_noise_scale * 0.0004f;
 				uint32 i = dst_handle.GetIndex();
+
+				float noise_scale = 0.00001f + params.shape_noise_scale * 0.0004f;
 				struct CloudsConstants
 				{
-					uint32      curl_idx;
+					uint32      type_idx;
 					uint32      shape_idx;
 					uint32      detail_idx;
 					uint32      output_idx;
 
 					uint32      prev_output_idx;
+					float		cloud_type;
 					float 	    cloud_min_height;
 					float 	    cloud_max_height;
-					float 	    shape_noise_scale;
 
+					float 	    shape_noise_scale;
 					float 	    detail_noise_scale;
 					float 	    detail_noise_modifier;
-					float 	    turbulence_noise_scale;
-					float 	    turbulence_amount;
+					float       global_density;
 
 					float 	    cloud_coverage;
 					XMFLOAT3    cloud_base_color;
 					XMFLOAT3    cloud_top_color;
 					int	        max_num_steps;
 
-					float 	    planet_radius;
 					XMFLOAT3    planet_center;
+					float 	    planet_radius;
 
 					float 	    light_step_length;
 					float 	    light_cone_radius;
@@ -193,26 +229,29 @@ namespace adria
 					float 	    henyey_greenstein_g_backward;
 				} constants =
 				{
-					.curl_idx = i + 0,
+					.type_idx = i + 0,
 					.shape_idx = i + 1,
 					.detail_idx = i + 2,
 					.output_idx = i + 3,
+
 					.prev_output_idx = i + 4,
+					.cloud_type = params.cloud_type,
 					.cloud_min_height = params.cloud_min_height,
 					.cloud_max_height = params.cloud_max_height,
+
 					.shape_noise_scale = noise_scale,
 					.detail_noise_scale = params.detail_noise_scale * noise_scale,
 					.detail_noise_modifier = params.detail_noise_modifier,
-					.turbulence_noise_scale = params.turbulence_noise_scale * noise_scale,
-					.turbulence_amount = params.turbulence_amount,
+					.global_density = params.global_density,
+
 					.cloud_coverage = params.cloud_coverage,
 					.cloud_base_color = XMFLOAT3(params.cloud_base_color),
 					.cloud_top_color = XMFLOAT3(params.cloud_top_color),
 					.max_num_steps = params.max_num_steps,
 
-					.planet_radius = params.planet_radius,
 					.planet_center = XMFLOAT3(0.0f, -params.planet_radius, 0.0f),
-
+					.planet_radius = params.planet_radius,
+					
 					.light_step_length = params.light_step_length,
 					.light_cone_radius = params.light_cone_radius,
 					.precipitation = params.precipitation * 0.01f,
@@ -222,7 +261,6 @@ namespace adria
 					.henyey_greenstein_g_forward = params.henyey_greenstein_g_forward,
 					.henyey_greenstein_g_backward = params.henyey_greenstein_g_backward
 				};
-
 
 				GfxPipelineState* clouds_pso = PSOCache::Get(temporal_reprojection ? GfxPipelineStateID::Clouds_Reprojection : GfxPipelineStateID::Clouds);
 				cmd_list->SetPipelineState(clouds_pso);
@@ -264,15 +302,17 @@ namespace adria
 					should_generate_textures |= ImGui::SliderInt("Detail Noise Frequency", &params.detail_noise_frequency, 1, 10);
 					should_generate_textures |= ImGui::SliderInt("Detail Noise Resolution", &params.detail_noise_resolution, 8, 64);
 
-					ImGui::InputFloat("Cloud Min Height", &params.cloud_min_height);
-					ImGui::InputFloat("Cloud Max Height", &params.cloud_max_height);
+					ImGui::SliderFloat("Cloud Type", &params.cloud_type, 0.0f, 1.0f);
+					ImGui::SliderFloat("Global Density", &params.global_density, 0.0f, 1.0f);
+					ImGui::SliderFloat("Cloud Min Height", &params.cloud_min_height, 1000.0f, 20000.0f);
+					ImGui::SliderFloat("Cloud Max Height", &params.cloud_max_height, params.cloud_min_height, 20000.0f);
 					ImGui::SliderFloat("Shape Noise Scale", &params.shape_noise_scale, 0.1f, 1.0f);
 					ImGui::SliderFloat("Detail Noise Scale", &params.detail_noise_scale, 0.0f, 100.0f);
 					ImGui::SliderFloat("Detail Noise Modifier", &params.detail_noise_modifier, 0.0f, 1.0f);
-					ImGui::SliderFloat("Turbulence Noise Scale", &params.turbulence_noise_scale, 0.0f, 100.0f);
-					ImGui::SliderFloat("Turbulence Amount", &params.turbulence_amount, 0.0f, 100.0f);
 					ImGui::SliderFloat("Cloud Coverage", &params.cloud_coverage, 0.0f, 1.0f);
 					ImGui::SliderFloat("Precipitation", &params.precipitation, 1.0f, 2.5f);
+					ImGui::SliderFloat("Ambient Factor", &params.ambient_light_factor, 0.01f, 10.0f);
+					ImGui::SliderFloat("Sun Factor", &params.sun_light_factor, 0.1f, 10.0f);
 					ImGui::InputFloat("Planet Radius", &params.planet_radius);
 					ImGui::SliderInt("Max Num Steps", &params.max_num_steps, 16, 256);
 					
@@ -334,7 +374,6 @@ namespace adria
 		clouds_output_desc.initial_state = GfxResourceState::NonPixelShaderResource;
 
 		prev_clouds = std::make_unique<GfxTexture>(gfx, clouds_output_desc);
-		cloud_curl_noise_handle = g_TextureManager.LoadTexture(L"Resources\\Textures\\curlNoise.png");
 		CreateCloudTextures(gfx);
 	}
 
@@ -363,6 +402,16 @@ namespace adria
 		cloud_detail_noise_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
 
 		cloud_detail_noise = std::make_unique<GfxTexture>(gfx, cloud_detail_noise_desc);
+
+		GfxTextureDesc cloud_type_desc{};
+		cloud_type_desc.type = GfxTextureType_2D;
+		cloud_type_desc.width = 128;
+		cloud_type_desc.height = 128;
+		cloud_type_desc.mip_levels = 1;
+		cloud_type_desc.format = GfxFormat::R8_UNORM;
+		cloud_type_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
+
+		cloud_type = std::make_unique<GfxTexture>(gfx, cloud_type_desc);
 	}
 
 }
