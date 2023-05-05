@@ -12,6 +12,7 @@
 namespace adria
 {
 	class GfxDevice;
+	class GfxDescriptor;
 	class Engine;
 	class GUI;
 	class RenderGraph;
@@ -92,7 +93,7 @@ namespace adria
 		void ListEntities();
 		void Properties();
 		void Camera();
-		void Scene();
+		void Scene(GfxDescriptor& tex);
 		void Log();
 		void Console();
 		void Settings();
