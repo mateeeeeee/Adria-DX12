@@ -66,7 +66,7 @@ void RTR_RayGen()
 		0xFF, 0, 0, 0, ray, payloadData);
 
 	float3 fresnel = clamp(pow(1 - dot(normalize(worldPosition), worldNormal), 1), 0, 1);
-	outputTx[launchIndex.xy] = metallic * float4(fresnel * payloadData.reflectionColor, 1.0f);
+	outputTx[launchIndex.xy] = 0.3f * metallic * float4(fresnel * payloadData.reflectionColor, 1.0f);
 }
 
 [shader("miss")]
