@@ -39,8 +39,6 @@ namespace adria
 	class GfxTexture;
 	struct Light;
 
-
-
 	class Renderer
 	{
 	public:

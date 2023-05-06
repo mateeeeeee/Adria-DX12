@@ -47,7 +47,6 @@ namespace adria
 		VolumetricCloudsPass(uint32 w, uint32 h);
 
 		void AddPass(RenderGraph& rendergraph);
-		void AddCombinePass(RenderGraph& rendergraph, RGResourceName render_target);
 		void OnResize(GfxDevice* gfx, uint32 w, uint32 h);
 		void OnSceneInitialized(GfxDevice* gfx);
 
@@ -66,6 +65,8 @@ namespace adria
 	private:
 
 		void CreateCloudTextures(GfxDevice* gfx = nullptr);
+		void AddCombinePass(RenderGraph& rendergraph, RGResourceName render_target);
+
 	};
 
 }

@@ -291,6 +291,7 @@ namespace adria
 				}, RGPassType::Copy, RGPassFlags::ForceNoCull);
 		}
 
+		AddCombinePass(rg, RG_RES_NAME(PostprocessMain));
 
 		AddGUI([&]() 
 			{
