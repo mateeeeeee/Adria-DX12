@@ -191,7 +191,8 @@ namespace adria
 		}
 	}
 
-	GfxTexture::GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, void* backbuffer) : gfx(gfx), desc(desc), resource((ID3D12Resource*)backbuffer)
+	GfxTexture::GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, void* backbuffer) 
+		: gfx(gfx), desc(desc), resource((ID3D12Resource*)backbuffer), is_backbuffer(true)
 	{}
 
 	GfxTexture::~GfxTexture()
@@ -201,6 +202,11 @@ namespace adria
 			ADRIA_ASSERT(resource != nullptr);
 			resource->Unmap(0, nullptr);
 			mapped_data = nullptr;
+		}
+		if (!is_backbuffer)
+		{
+			gfx->AddToReleaseQueue(resource.Detach());
+			gfx->AddToReleaseQueue(allocation.release());
 		}
 	}
 

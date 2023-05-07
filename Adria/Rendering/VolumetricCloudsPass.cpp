@@ -168,8 +168,8 @@ namespace adria
 			{
 				RGTextureDesc clouds_output_desc{};
 				clouds_output_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
-				clouds_output_desc.width = width;
-				clouds_output_desc.height = height;
+				clouds_output_desc.width = width >> resolution;
+				clouds_output_desc.height = height >> resolution;
 				clouds_output_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 
 				builder.DeclareTexture(RG_RES_NAME(CloudsOutput), clouds_output_desc);
@@ -227,6 +227,7 @@ namespace adria
 					float 	    sun_light_factor;
 					float 	    henyey_greenstein_g_forward;
 					float 	    henyey_greenstein_g_backward;
+					uint32      resolution_factor;
 				} constants =
 				{
 					.type_idx = i + 0,
@@ -259,14 +260,15 @@ namespace adria
 
 					.sun_light_factor = params.sun_light_factor,
 					.henyey_greenstein_g_forward = params.henyey_greenstein_g_forward,
-					.henyey_greenstein_g_backward = params.henyey_greenstein_g_backward
+					.henyey_greenstein_g_backward = params.henyey_greenstein_g_backward,
+					.resolution_factor = (uint32)resolution
 				};
 
 				GfxPipelineState* clouds_pso = PSOCache::Get(temporal_reprojection ? GfxPipelineStateID::Clouds_Reprojection : GfxPipelineStateID::Clouds);
 				cmd_list->SetPipelineState(clouds_pso);
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				cmd_list->SetRootCBV(2, constants);
-				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
+				cmd_list->Dispatch((uint32)std::ceil((width >> resolution) / 16.0f), (uint32)std::ceil((height >> resolution) / 16.0f), 1);
 
 			}, RGPassType::Compute, RGPassFlags::None);
 
@@ -316,6 +318,26 @@ namespace adria
 					ImGui::SliderFloat("Sun Factor", &params.sun_light_factor, 0.1f, 10.0f);
 					ImGui::InputFloat("Planet Radius", &params.planet_radius);
 					ImGui::SliderInt("Max Num Steps", &params.max_num_steps, 16, 256);
+
+					static int _resolution = 0;
+					static const char* res_types[] = { "Full", "Half", "Quarter" };
+					const char* res_combo_label = res_types[_resolution];
+					if (ImGui::BeginCombo("Cloud Resolution", res_combo_label, 0))
+					{
+						for (int n = 0; n < IM_ARRAYSIZE(res_types); n++)
+						{
+							const bool is_selected = (_resolution == n);
+							if (ImGui::Selectable(res_types[n], is_selected)) _resolution = (CloudResolution)n;
+							if (is_selected) ImGui::SetItemDefaultFocus();
+						}
+						ImGui::EndCombo();
+					}
+
+					if (resolution != _resolution)
+					{
+						resolution = (CloudResolution)_resolution;
+						OnResize(nullptr, width, height);
+					}
 					
 					ImGui::TreePop();
 					ImGui::Separator();
@@ -357,9 +379,11 @@ namespace adria
 		width = w, height = h;
 		if (prev_clouds)
 		{
+			if (!gfx) gfx = cloud_shape_noise->GetParent();
+
 			GfxTextureDesc clouds_output_desc = prev_clouds->GetDesc();
-			clouds_output_desc.width = width;
-			clouds_output_desc.height = height;
+			clouds_output_desc.width = width >> resolution;
+			clouds_output_desc.height = height >> resolution;
 			prev_clouds = std::make_unique<GfxTexture>(gfx, clouds_output_desc);
 		}
 	}
@@ -368,8 +392,8 @@ namespace adria
 	{
 		GfxTextureDesc clouds_output_desc{};
 		clouds_output_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
-		clouds_output_desc.width = width;
-		clouds_output_desc.height = height;
+		clouds_output_desc.width = width >> resolution;
+		clouds_output_desc.height = height >> resolution;
 		clouds_output_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 		clouds_output_desc.bind_flags = GfxBindFlag::ShaderResource;
 		clouds_output_desc.initial_state = GfxResourceState::NonPixelShaderResource;
