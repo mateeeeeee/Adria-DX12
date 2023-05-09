@@ -173,11 +173,11 @@ bool HZBCull(FrustumCullData cullData, Texture2D<float> hzbTexture, bool debug =
 		float depth33 = hzbTexture.SampleLevel(PointClampSampler, float2(xCoords.w, yCoords.w), mip);
 
 		depth =
-			min(
-				min(depth00, depth10, depth20, depth30),
-				min(depth01, depth11, depth21, depth31),
-				min(depth02, depth12, depth22, depth32),
-				min(depth03, depth13, depth23, depth33)
+			max(
+				max(depth00, depth10, depth20, depth30),
+				max(depth01, depth11, depth21, depth31),
+				max(depth02, depth12, depth22, depth32),
+				max(depth03, depth13, depth23, depth33)
 			);
 	}
 	else if (hzbTexelCoverage == 2)
@@ -187,7 +187,7 @@ bool HZBCull(FrustumCullData cullData, Texture2D<float> hzbTexture, bool debug =
 		float depth01 = hzbTexture.SampleLevel(PointClampSampler, (rectPixels.xw + 0.5f) * texelSize, mip);
 		float depth11 = hzbTexture.SampleLevel(PointClampSampler, (rectPixels.zw + 0.5f) * texelSize, mip);
 
-		depth = min(depth00, depth10, depth01, depth11);
+		depth = max(depth00, depth10, depth01, depth11);
 	}
 
 	bool isOccluded = depth > maxDepth;

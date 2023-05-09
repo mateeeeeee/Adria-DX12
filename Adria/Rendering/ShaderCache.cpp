@@ -478,11 +478,11 @@ namespace adria
 			shader_desc.flags = ShaderCompilerFlag_None;
 #endif
 			GfxShaderCompileOutput output;
-			GfxShaderCompiler::CompileShader(shader_desc, output);
+			ADRIA_ASSERT(GfxShaderCompiler::CompileShader(shader_desc, output));
 			shader_map[shader] = std::move(output.shader);
 			dependent_files_map[shader].clear();
 			dependent_files_map[shader].insert(output.includes.begin(), output.includes.end());
-			
+
 			shader_desc.stage == GfxShaderStage::LIB ?
 				library_recompiled_event.Broadcast(shader) : shader_recompiled_event.Broadcast(shader);
 		}

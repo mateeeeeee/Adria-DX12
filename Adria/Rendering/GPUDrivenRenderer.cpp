@@ -89,7 +89,7 @@ namespace adria
 					.visible_meshlets_counter_idx = i + 1,
 					.occluded_instances_counter_idx = i + 2
 				};
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ClearCounters)); 
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ClearCounters));
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(1, 1, 1);
 				cmd_list->UavBarrier();
@@ -305,7 +305,7 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				GfxDescriptor src_handles[] = { 
+				GfxDescriptor src_handles[] = {
 					ctx.GetReadOnlyTexture(data.depth),
 					ctx.GetReadWriteTexture(data.hzb)
 				};
