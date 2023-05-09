@@ -34,6 +34,7 @@ struct CloudsConstants
 	float 	  sunLightFactor;
 	float 	  henyeyGreensteinGForward;
 	float 	  henyeyGreensteinGBackward;
+	uint      resolutionFactor;
 };
 ConstantBuffer<CloudsConstants> PassCB : register(b2);
 
@@ -276,7 +277,8 @@ void CloudsCS(CS_INPUT input)
 {
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
 	uint3 threadId = input.DispatchThreadId;
-	float2 uv = ((float2) threadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
+	uint2 resolution = uint2(FrameCB.screenResolution) >> PassCB.resolutionFactor;
+	float2 uv = ((float2) threadId.xy + 0.5f) * 1.0f / resolution;
 
 #if REPROJECTION
 	float4 prevPos = float4(ToClipSpaceCoord(uv), 1.0);

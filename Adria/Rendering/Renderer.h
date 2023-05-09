@@ -39,7 +39,6 @@ namespace adria
 	class GfxTexture;
 	struct Light;
 
-
 	class Renderer
 	{
 	public:
@@ -56,10 +55,6 @@ namespace adria
 		void OnSceneInitialized();
 		void OnRightMouseClicked(int32 x, int32 y);
 
-		GfxDescriptor GetFinalTextureSRV() const
-		{
-			return final_texture_srv;
-		}
 		PickingData const& GetPickingData() const { return picking_data; }
 
 		uint32 GetWidth() const { return width; }
@@ -81,8 +76,7 @@ namespace adria
 
 		//resources
 		std::unique_ptr<GfxTexture> final_texture;
-		GfxDescriptor final_texture_srv;
-
+		
 		//Persistent constant buffers
 		GfxConstantBuffer<FrameCBuffer> frame_cbuffer;
 

@@ -97,6 +97,7 @@ namespace adria
 		GfxTextureDesc desc;
 		ReleasablePtr<D3D12MA::Allocation> allocation = nullptr;
 		void* mapped_data = nullptr;
+		bool is_backbuffer = false;
 	};
 
 	template<typename T>

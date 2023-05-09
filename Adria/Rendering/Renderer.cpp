@@ -375,7 +375,6 @@ namespace adria
 		ldr_desc.initial_state = GfxResourceState::UnorderedAccess;
 
 		final_texture = std::make_unique<GfxTexture>(gfx, ldr_desc);
-		final_texture_srv = gfx->CreateTextureSRV(final_texture.get());
 	}
 	void Renderer::CreateAS()
 	{
@@ -847,16 +846,16 @@ namespace adria
 
 		render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
 		ResolveToFinalTexture(render_graph);
-		if (!Editor::Get().IsActive()) CopyToBackbuffer(render_graph);
-		else Editor::Get().AddRenderPass(render_graph);
+		if (!g_Editor.IsActive()) CopyToBackbuffer(render_graph);
+		else g_Editor.AddRenderPass(render_graph);
 	}
 	void Renderer::Render_PathTracing(RenderGraph& render_graph)
 	{
 		path_tracer.AddPass(render_graph);
 		render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
 		tonemap_pass.AddPass(render_graph, RG_RES_NAME(PT_Output));
-		if (!Editor::Get().IsActive()) CopyToBackbuffer(render_graph);
-		else Editor::Get().AddRenderPass(render_graph);
+		if (!g_Editor.IsActive()) CopyToBackbuffer(render_graph);
+		else g_Editor.AddRenderPass(render_graph);
 	}
 
 	void Renderer::MiscGUI()

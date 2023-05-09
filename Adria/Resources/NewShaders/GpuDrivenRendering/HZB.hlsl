@@ -17,8 +17,8 @@ void InitializeHZB_CS(uint3 threadId : SV_DispatchThreadID)
 
 	float2 uv = ((float2)threadId.xy + 0.5f) * PassCB.hzbDimsInv;
 	float4 depths = depthTx.Gather(PointClampSampler, uv);
-	float  minDepth = min(min(min(depths.x, depths.y), depths.z), depths.w);
-	hzbTx[threadId.xy] = minDepth;
+	float  maxDepth = max(max(max(depths.x, depths.y), depths.z), depths.w);
+	hzbTx[threadId.xy] = maxDepth;
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -94,7 +94,7 @@ void SpdStoreIntermediate(AU1 x, AU1 y, AF4 value) { spdIntermediate[x][y] = val
 
 AF4 SpdReduce4(AF4 v0, AF4 v1, AF4 v2, AF4 v3)
 {
-	return min(v0, min(v1, min(v2, v3)));
+	return max(v0, max(v1, max(v2, v3)));
 }
 
 #include "../SPD/ffx_spd.h"

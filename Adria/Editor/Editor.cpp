@@ -127,23 +127,25 @@ namespace adria
 	{
 		struct EditorPassData
 		{
+			RGTextureReadOnlyId src;
 			RGRenderTargetId rt;
 		};
 
 		rg.AddPass<EditorPassData>("Editor Pass",
 			[=](EditorPassData& data, RenderGraphBuilder& builder)
 			{
-				builder.DummyReadTexture(RG_RES_NAME(FinalTexture));
+				data.src = builder.ReadTexture(RG_RES_NAME(FinalTexture));
 				data.rt = builder.WriteRenderTarget(RG_RES_NAME(Backbuffer), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(engine->renderer->GetWidth(), engine->renderer->GetHeight());
 			},
 			[=](EditorPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
+				GfxDescriptor src_descriptor = ctx.GetReadOnlyTexture(data.src);
 				gui->Begin();
 				{
 					ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 					MenuBar();
-					Scene();
+					Scene(src_descriptor);
 					ListEntities();
 					AddEntities();
 					Settings();
@@ -830,7 +832,7 @@ namespace adria
 		}
 		ImGui::End();
 	}
-	void Editor::Scene()
+	void Editor::Scene(GfxDescriptor& src)
 	{
 		ImGui::Begin("Scene");
 		{
@@ -842,9 +844,8 @@ namespace adria
 			v_max.y += ImGui::GetWindowPos().y;
 			ImVec2 size(v_max.x - v_min.x, v_max.y - v_min.y);
 
-			GfxDescriptor tex_handle = engine->renderer->GetFinalTextureSRV();
 			GfxDescriptor dst_descriptor = gui->AllocateDescriptorsGPU();
-			gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
+			gfx->CopyDescriptors(1, dst_descriptor, src);
 			ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, size);
 
 			scene_focused = ImGui::IsWindowFocused();
@@ -948,6 +949,8 @@ namespace adria
 			{
 				current_render_path_type = 0;
 			}
+
+
 
 			static const char* ao_types[] = { "None", "SSAO", "HBAO", "RTAO" };
 			const char* ao_combo_label = ao_types[current_ao_type];

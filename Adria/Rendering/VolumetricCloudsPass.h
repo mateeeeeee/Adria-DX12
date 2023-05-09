@@ -26,8 +26,8 @@ namespace adria
 			float shape_noise_scale = 0.3f;
 			float detail_noise_scale = 5.5f;
 			float detail_noise_modifier = 0.5f;
-			float cloud_coverage = 0.5f;
-			float cloud_type = 0.5f;
+			float cloud_coverage = 0.7f;
+			float cloud_type = 0.6f;
 			float global_density = 0.1f;
 
 			float planet_radius = 35000.0f;
@@ -43,11 +43,17 @@ namespace adria
 			float henyey_greenstein_g_backward = 0.179f;
 		};
 
+		enum CloudResolution
+		{
+			CloudResolution_Full  = 0,
+			CloudResolution_Half = 1,
+			CloudResolution_Quarter = 2
+		};
+
 	public:
 		VolumetricCloudsPass(uint32 w, uint32 h);
 
 		void AddPass(RenderGraph& rendergraph);
-		void AddCombinePass(RenderGraph& rendergraph, RGResourceName render_target);
 		void OnResize(GfxDevice* gfx, uint32 w, uint32 h);
 		void OnSceneInitialized(GfxDevice* gfx);
 
@@ -62,10 +68,13 @@ namespace adria
 		CloudParameters params{};
 		bool should_generate_textures = false;
 		bool temporal_reprojection = true;
+		CloudResolution resolution = CloudResolution_Full;
 
 	private:
 
 		void CreateCloudTextures(GfxDevice* gfx = nullptr);
+		void AddCombinePass(RenderGraph& rendergraph, RGResourceName render_target);
+
 	};
 
 }

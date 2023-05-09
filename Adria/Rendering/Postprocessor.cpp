@@ -42,12 +42,7 @@ namespace adria
 			lens_flare_pass.AddPass2(rg, light_data);
 		}
 
-		if (settings.clouds)
-		{
-			clouds_pass.AddPass(rg);
-			//blur_pass.AddPass(rg, RG_RES_NAME(CloudsOutput), RG_RES_NAME(BlurredCloudsOutput), " Volumetric Clouds ");
-			clouds_pass.AddCombinePass(rg, RG_RES_NAME(PostprocessMain));
-		}
+		if (settings.clouds) clouds_pass.AddPass(rg);
 
 		if (settings.reflections == Reflections::SSR) final_resource = ssr_pass.AddPass(rg, final_resource);
 		else if (settings.reflections == Reflections::RTR)
