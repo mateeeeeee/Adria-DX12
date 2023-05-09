@@ -4,6 +4,7 @@
 #include "ShaderStructs.h"
 #include "Postprocessor.h"
 #include "GBufferPass.h"
+#include "GPUDrivenRenderer.h"
 #include "AmbientPass.h"
 #include "SkyPass.h"
 #include "DeferredLightingPass.h"
@@ -76,7 +77,7 @@ namespace adria
 
 		//resources
 		std::unique_ptr<GfxTexture> final_texture;
-		
+
 		//Persistent constant buffers
 		GfxConstantBuffer<FrameCBuffer> frame_cbuffer;
 
@@ -103,6 +104,7 @@ namespace adria
 
 		//passes
 		GBufferPass  gbuffer_pass;
+		GPUDrivenRenderer gpu_driven_renderer;
 		SSAOPass	 ssao_pass;
 		HBAOPass     hbao_pass;
 		AmbientPass  ambient_pass;

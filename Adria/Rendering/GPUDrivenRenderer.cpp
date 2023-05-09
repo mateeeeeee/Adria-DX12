@@ -16,6 +16,16 @@ namespace adria
 {
 	static constexpr uint32 MAX_NUM_MESHLETS = 1 << 20u;
 	static constexpr uint32 MAX_NUM_INSTANCES = 1 << 14u;
+	struct MeshletCandidate
+	{
+		uint32 instance_id;
+		uint32 meshlet_index;
+	};
+
+	GPUDrivenRenderer::GPUDrivenRenderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), width(width), height(height)
+	{
+		InitializeHZB();
+	}
 
 	void GPUDrivenRenderer::Render(RenderGraph& rg)
 	{
@@ -112,12 +122,6 @@ namespace adria
 		rg.AddPass<CullInstancesPassData>("1st Phase Cull Instances Pass",
 			[=](CullInstancesPassData& data, RenderGraphBuilder& builder)
 			{
-				struct MeshletCandidate
-				{
-					uint32 instance_id;
-					uint32 meshlet_index;
-				};
-
 				RGBufferDesc candidate_meshlets_buffer_desc{};
 				candidate_meshlets_buffer_desc.resource_usage = GfxResourceUsage::Default;
 				candidate_meshlets_buffer_desc.misc_flags = GfxBufferMiscFlag::BufferStructured;
@@ -235,6 +239,13 @@ namespace adria
 		rg.AddPass<CullMeshletsPassData>("1st Phase Cull Meshlets Pass",
 			[=](CullMeshletsPassData& data, RenderGraphBuilder& builder)
 			{
+				RGBufferDesc visible_meshlets_buffer_desc{};
+				visible_meshlets_buffer_desc.resource_usage = GfxResourceUsage::Default;
+				visible_meshlets_buffer_desc.misc_flags = GfxBufferMiscFlag::BufferStructured;
+				visible_meshlets_buffer_desc.stride = sizeof(MeshletCandidate);
+				visible_meshlets_buffer_desc.size = sizeof(MeshletCandidate) * MAX_NUM_MESHLETS;
+				builder.DeclareBuffer(RG_RES_NAME(VisibleMeshlets), visible_meshlets_buffer_desc);
+
 				data.hzb = builder.ReadTexture(RG_RES_NAME(HZB));
 				data.indirect_args = builder.ReadIndirectArgsBuffer(RG_RES_NAME(MeshletCullArgs));
 				data.candidate_meshlets = builder.WriteBuffer(RG_RES_NAME(CandidateMeshlets));
@@ -331,6 +342,29 @@ namespace adria
 		rg.AddPass<DrawMeshletsPassData>("Draw Meshlets",
 			[=](DrawMeshletsPassData& data, RenderGraphBuilder& builder)
 			{
+				RGTextureDesc gbuffer_desc{};
+				gbuffer_desc.width = width;
+				gbuffer_desc.height = height;
+				gbuffer_desc.format = GfxFormat::R8G8B8A8_UNORM;
+				gbuffer_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
+
+				builder.DeclareTexture(RG_RES_NAME(GBufferNormal), gbuffer_desc);
+				builder.DeclareTexture(RG_RES_NAME(GBufferAlbedo), gbuffer_desc);
+				builder.DeclareTexture(RG_RES_NAME(GBufferEmissive), gbuffer_desc);
+
+				builder.WriteRenderTarget(RG_RES_NAME(GBufferNormal), RGLoadStoreAccessOp::Clear_Preserve);
+				builder.WriteRenderTarget(RG_RES_NAME(GBufferAlbedo), RGLoadStoreAccessOp::Clear_Preserve);
+				builder.WriteRenderTarget(RG_RES_NAME(GBufferEmissive), RGLoadStoreAccessOp::Clear_Preserve);
+
+				RGTextureDesc depth_desc{};
+				depth_desc.width = width;
+				depth_desc.height = height;
+				depth_desc.format = GfxFormat::R32_TYPELESS;
+				depth_desc.clear_value = GfxClearValue(1.0f, 0);
+				builder.DeclareTexture(RG_RES_NAME(DepthStencil), depth_desc);
+				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Clear_Preserve);
+				builder.SetViewport(width, height);
+
 				data.visible_meshlets = builder.ReadBuffer(RG_RES_NAME(VisibleMeshlets));
 				data.draw_args = builder.ReadIndirectArgsBuffer(RG_RES_NAME(MeshletDrawArgs));
 			},
@@ -338,29 +372,25 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				GfxDescriptor src_handles[] = {
+				GfxDescriptor src_handles[] =
+				{
 					ctx.GetReadOnlyBuffer(data.visible_meshlets)
 				};
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
 				gfx->CopyDescriptors(dst_handle, src_handles);
 				uint32 i = dst_handle.GetIndex();
 
-				struct DrawMeshletsConstants
+				struct DrawMeshlets1stPhaseConstants
 				{
-					uint32 depth_idx;
-					uint32 hzb_idx;
-					float inv_hzb_width;
-					float inv_hzb_height;
+					uint32 visible_meshlets_idx;
 				} constants =
 				{
-					.depth_idx = i,
-					.hzb_idx = i + 1,
-					.inv_hzb_width = 1.0f / hzb_width,
-					.inv_hzb_height = 1.0f / hzb_height
+					.visible_meshlets_idx = i,
 				};
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DrawMeshlets1stPhase));
 				cmd_list->SetRootConstants(1, constants);
-				cmd_list->DispatchMesh(1,1,1);
+				GfxBuffer const& draw_args = ctx.GetIndirectArgsBuffer(data.draw_args);
+				cmd_list->DispatchMeshIndirect(draw_args, 0);
 			}, RGPassType::Graphics, RGPassFlags::None);
 
 		AddBuildHZBPasses(rg);
@@ -412,7 +442,7 @@ namespace adria
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::InitializeHZB));
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch((uint32)std::ceil(hzb_width / 16.0f), (uint32)std::ceil(hzb_width / 16.0f), 1);
-			}, RGPassType::Compute, RGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
 
 		struct HZBMipsPassData
 		{
@@ -492,7 +522,7 @@ namespace adria
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->SetRootCBV(2, indices);
 				cmd_list->Dispatch(dispatchThreadGroupCountXY[0], dispatchThreadGroupCountXY[1], 1);
-			}, RGPassType::Compute, RGPassFlags::None);
+			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
 	}
 
 	void GPUDrivenRenderer::CalculateHZBParameters()

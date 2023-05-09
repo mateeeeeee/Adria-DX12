@@ -245,7 +245,7 @@ namespace adria
 	Renderer::Renderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx),
 		accel_structure(gfx), camera(nullptr), width(width), height(height),
 		backbuffer_count(gfx->BackbufferCount()), backbuffer_index(gfx->BackbufferIndex()), final_texture(nullptr),
-		frame_cbuffer(gfx->GetDevice(), backbuffer_count),
+		frame_cbuffer(gfx->GetDevice(), backbuffer_count), gpu_driven_renderer(reg, gfx, width, height),
 		gbuffer_pass(reg, width, height), ambient_pass(width, height), tonemap_pass(width, height),
 		sky_pass(reg, gfx, width, height), deferred_lighting_pass(width, height), volumetric_lighting_pass(width, height),
 		tiled_deferred_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
@@ -798,6 +798,8 @@ namespace adria
 		sky_pass.AddComputeSkyPass(render_graph, sun_direction);
 
 		gbuffer_pass.AddPass(render_graph);
+		//gpu_driven_renderer.Render(render_graph);
+
 		decals_pass.AddPass(render_graph);
 		switch (renderer_settings.postprocess.ambient_occlusion)
 		{

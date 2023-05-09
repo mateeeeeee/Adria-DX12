@@ -392,9 +392,18 @@ namespace adria
 
 				compute_pso_desc.CS = CS_MeshletCullArgs1stPhase;
 				compute_pso_map[GfxPipelineStateID::BuildMeshletCullArgs1stPhase] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
-				
+
 				compute_pso_desc.CS = CS_CullMeshlets1stPhase;
 				compute_pso_map[GfxPipelineStateID::CullMeshlets1stPhase] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.CS = CS_MeshletDrawArgs1stPhase;
+				compute_pso_map[GfxPipelineStateID::BuildMeshletDrawArgs1stPhase] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.CS = CS_InitializeHZB;
+				compute_pso_map[GfxPipelineStateID::InitializeHZB] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.CS = CS_HZBMips;
+				compute_pso_map[GfxPipelineStateID::HZBMips] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 			}
 
 			if (gfx->GetCapabilities().SupportsMeshShaders())
@@ -434,6 +443,7 @@ namespace adria
 	GfxPipelineState* PSOCache::Get(GfxPipelineStateID ps)
 	{
 		if (compute_pso_map.contains(ps)) return compute_pso_map[ps].get();
+		else if (mesh_pso_map.contains(ps)) return mesh_pso_map[ps].get();
 		else return gfx_pso_map[ps].get();
 	}
 }

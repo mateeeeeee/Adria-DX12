@@ -467,7 +467,7 @@ namespace adria
 			else
 			{
 				cmd_list->SetPipelineState(*state);
-				if (state->GetType() == GfxPipelineStateType::Graphics)
+				if (state->GetType() == GfxPipelineStateType::Graphics || state->GetType() == GfxPipelineStateType::MeshShader)
 					ADRIA_ASSERT(current_context == Context::Graphics);
 				else ADRIA_ASSERT(current_context == Context::Compute);
 			}
