@@ -13,8 +13,9 @@ namespace adria
 	namespace
 	{
 		GfxDevice* gfx;
-		HashMap<GfxPipelineStateID, std::unique_ptr<GraphicsPipelineState>> gfx_pso_map;
-		HashMap<GfxPipelineStateID, std::unique_ptr<ComputePipelineState>>  compute_pso_map;
+		HashMap<GfxPipelineStateID, std::unique_ptr<GraphicsPipelineState>>		gfx_pso_map;
+		HashMap<GfxPipelineStateID, std::unique_ptr<ComputePipelineState>>		compute_pso_map;
+		HashMap<GfxPipelineStateID, std::unique_ptr<MeshShaderPipelineState>>   mesh_pso_map;
 
 		enum EPipelineStateType
 		{
@@ -394,6 +395,26 @@ namespace adria
 				
 				compute_pso_desc.CS = CS_CullMeshlets1stPhase;
 				compute_pso_map[GfxPipelineStateID::CullMeshlets1stPhase] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+			}
+
+			if (gfx->GetCapabilities().SupportsMeshShaders())
+			{
+				MeshShaderPipelineStateDesc mesh_pso_desc{};
+				{
+					mesh_pso_desc = {};
+					mesh_pso_desc.root_signature = GfxRootSignatureID::Common;
+					mesh_pso_desc.MS = MS_DrawMeshlets1stPhase;
+					mesh_pso_desc.PS = PS_GBuffer;
+					mesh_pso_desc.depth_state.depth_enable = true;
+					mesh_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
+					mesh_pso_desc.depth_state.depth_func = GfxComparisonFunc::LessEqual;
+					mesh_pso_desc.num_render_targets = 3u;
+					mesh_pso_desc.rtv_formats[0] = GfxFormat::R8G8B8A8_UNORM;
+					mesh_pso_desc.rtv_formats[1] = GfxFormat::R8G8B8A8_UNORM;
+					mesh_pso_desc.rtv_formats[2] = GfxFormat::R8G8B8A8_UNORM;
+					mesh_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
+					mesh_pso_map[GfxPipelineStateID::DrawMeshlets1stPhase] = std::make_unique<MeshShaderPipelineState>(gfx, mesh_pso_desc);
+				}
 			}
 		}
 	}

@@ -31,8 +31,12 @@ namespace adria
 				return "CullInstances1stPhaseCS";
 			case CS_MeshletCullArgs1stPhase:
 				return "BuildMeshletCullArgsCS";
+			case CS_MeshletDrawArgs1stPhase:
+				return "BuildMeshletDrawArgsCS";
 			case CS_CullMeshlets1stPhase:
 				return "CullMeshlets1stPhaseCS";
+			case MS_DrawMeshlets1stPhase:
+				return "DrawMeshletsMS";
 			case CS_InitializeHZB:
 				return "InitializeHZB_CS";
 			case CS_HZBMips:
@@ -272,11 +276,14 @@ namespace adria
 			case CS_CullMeshlets1stPhase:
 			case CS_InitializeHZB:
 			case CS_HZBMips:
+			case CS_MeshletDrawArgs1stPhase:
 				return GfxShaderStage::CS;
 			case HS_OceanLOD:
 				return GfxShaderStage::HS;
 			case DS_OceanLOD:
 				return GfxShaderStage::DS;
+			case MS_DrawMeshlets1stPhase:
+				return GfxShaderStage::MS;
 			case LIB_Shadows:
 			case LIB_SoftShadows:
 			case LIB_AmbientOcclusion:
@@ -424,6 +431,10 @@ namespace adria
 			case CS_InitializeHZB:
 			case CS_HZBMips:
 				return "GpuDrivenRendering/HZB.hlsl";
+			case CS_MeshletDrawArgs1stPhase:
+				return "GpuDrivenRendering/MeshletDrawArgs.hlsl";
+			case MS_DrawMeshlets1stPhase:
+				return "GpuDrivenRendering/MeshletDraw.hlsl";
 			case LIB_Shadows:
 			case LIB_SoftShadows:
 				return "RayTracing/RayTracedShadows.hlsl";
@@ -456,6 +467,7 @@ namespace adria
 			case CS_Clouds_Reprojection:
 				return { {"REPROJECTION", "1"} };
 			case CS_MeshletCullArgs1stPhase:
+			case CS_MeshletDrawArgs1stPhase:
 				return { {"FIRST_PHASE", "1"} };
 			default:
 				return {};

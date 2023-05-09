@@ -65,7 +65,7 @@ VS_OUTPUT GBufferVS(uint vertexId : SV_VertexID)
 
 PS_OUTPUT PackGBuffer(float3 BaseColor, float3 NormalVS, float4 emissive, float roughness, float metallic)
 {
-	PS_OUTPUT Out = (PS_OUTPUT)0;;
+	PS_OUTPUT Out = (PS_OUTPUT)0;
 
 	Out.NormalMetallic = float4(0.5 * NormalVS + 0.5, metallic);
 	Out.DiffuseRoughness = float4(BaseColor, roughness);

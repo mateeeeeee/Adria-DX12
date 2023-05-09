@@ -1146,6 +1146,9 @@
     <FxCompile Include="Resources\NewShaders\GpuDrivenRendering\MeshletDraw.hlsl">
       <Filter>Shaders\GpuDrivenRendering</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\NewShaders\GpuDrivenRendering\MeshletDrawArgs.hlsl">
+      <Filter>Shaders\GpuDrivenRendering</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="scene.json" />

@@ -88,6 +88,8 @@ namespace adria
 		CS_CullMeshlets1stPhase,
 		CS_InitializeHZB,
 		CS_HZBMips,
+		CS_MeshletDrawArgs1stPhase,
+		MS_DrawMeshlets1stPhase,
 		LIB_Shadows,
 		LIB_SoftShadows,
 		LIB_AmbientOcclusion,
@@ -176,6 +178,8 @@ namespace adria
 		CullInstances1stPhase,
 		BuildMeshletCullArgs1stPhase,
 		CullMeshlets1stPhase,
+		BuildMeshletDrawArgs1stPhase,
+		DrawMeshlets1stPhase,
 		InitializeHZB,
 		HZBMips,
         Unknown
