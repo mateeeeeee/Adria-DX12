@@ -388,12 +388,13 @@ namespace adria
 					.visible_meshlets_idx = i,
 				};
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DrawMeshlets1stPhase));
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				GfxBuffer const& draw_args = ctx.GetIndirectArgsBuffer(data.draw_args);
 				cmd_list->DispatchMeshIndirect(draw_args, 0);
-			}, RGPassType::Graphics, RGPassFlags::None);
+			}, RGPassType::Graphics, RGPassFlags::ForceNoCull);
 
-		AddBuildHZBPasses(rg);
+		//AddBuildHZBPasses(rg);
 	}
 
 	void GPUDrivenRenderer::Add2ndPhasePasses(RenderGraph& rg)

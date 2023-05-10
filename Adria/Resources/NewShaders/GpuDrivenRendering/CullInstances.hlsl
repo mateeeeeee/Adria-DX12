@@ -28,6 +28,7 @@ void CullInstances1stPhaseCS(uint threadId : SV_DispatchThreadID)
 	bool isVisible = cullData.isVisible;
 	bool wasOccluded = false;
 
+#ifdef OCCLUSION_CULL
 	if (isVisible)
 	{
 		FrustumCullData prevCullData = FrustumCull(instance.bbOrigin, instance.bbExtents, instance.worldMatrix, FrameCB.prevViewProjection);
@@ -42,6 +43,7 @@ void CullInstances1stPhaseCS(uint threadId : SV_DispatchThreadID)
 			occludedInstances[elementOffset] = instance.instanceId;
 		}
 	}
+#endif
 
 	if (isVisible && !wasOccluded)
 	{

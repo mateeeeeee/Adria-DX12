@@ -790,6 +790,7 @@ namespace adria
 
 	void Renderer::Render_Deferred(RenderGraph& render_graph)
 	{
+		//gpu_driven_renderer.Render(render_graph);
 		if (update_picking_data)
 		{
 			picking_data = picking_pass.GetPickingData();
@@ -798,8 +799,6 @@ namespace adria
 		sky_pass.AddComputeSkyPass(render_graph, sun_direction);
 
 		gbuffer_pass.AddPass(render_graph);
-		//gpu_driven_renderer.Render(render_graph);
-
 		decals_pass.AddPass(render_graph);
 		switch (renderer_settings.postprocess.ambient_occlusion)
 		{

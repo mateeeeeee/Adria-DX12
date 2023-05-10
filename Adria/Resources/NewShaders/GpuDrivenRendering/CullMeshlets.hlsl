@@ -24,7 +24,7 @@ void CullMeshlets1stPhaseCS(uint threadId : SV_DispatchThreadID)
 	RWStructuredBuffer<MeshletCandidate> visibleMeshlets = ResourceDescriptorHeap[PassCB.visibleMeshletsIdx];
 
 	if (threadId >= candidateMeshletsCounter[COUNTER_PHASE1_CANDIDATE_MESHLETS]) return;
-	
+
 	uint candidateIndex = threadId;
 	MeshletCandidate candidate = candidateMeshlets[candidateIndex];
 	Instance instance = GetInstanceData(candidate.instanceID);
@@ -34,6 +34,7 @@ void CullMeshlets1stPhaseCS(uint threadId : SV_DispatchThreadID)
 	bool isVisible = cullData.isVisible;
 	bool wasOccluded = false;
 
+#ifdef OCCLUSION_CULL
 	if (isVisible)
 	{
 		FrustumCullData prevCullData = FrustumCull(meshlet.center, meshlet.radius.xxx, instance.worldMatrix, FrameCB.prevViewProjection);
@@ -56,6 +57,7 @@ void CullMeshlets1stPhaseCS(uint threadId : SV_DispatchThreadID)
 			}
 		}
 	}
+#endif
 
 	if (isVisible && !wasOccluded)
 	{
