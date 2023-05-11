@@ -174,7 +174,7 @@ float SampleCloudDensity(float3 positionStatic, float heightFraction, float lod,
 	Texture2D typeTx = ResourceDescriptorHeap[PassCB.typeIdx];
 
 	float3 position = positionStatic + FrameCB.windParams.xyz * heightFraction;
-	position += (FrameCB.windParams.xyz + float3(0.0f, 0.1f, 0.0f)) * FrameCB.windParams.w * FrameCB.totalTime;
+	position += (FrameCB.windParams.xyz + float3(0.0f, 0.1f, 0.0f)) * FrameCB.windParams.w * (FrameCB.totalTime + 256.0f);
 
 	float4 lowFrequencyNoises = shapeTx.SampleLevel(LinearWrapSampler, position * PassCB.shapeNoiseScale, lod);
 	float lowFreqFbm = (lowFrequencyNoises.g * 0.625f) + (lowFrequencyNoises.b * 0.25f) + (lowFrequencyNoises.a * 0.125f);
@@ -183,11 +183,12 @@ float SampleCloudDensity(float3 positionStatic, float heightFraction, float lod,
 	float baseCloudWithCoverage = Remap(baseCloud, 1.0f - cloudCoverage, 1.0f, 0.0f, 1.0f);
 
 	baseCloudWithCoverage *= cloudCoverage;
-	if (baseCloudWithCoverage <= 0.0f) return 0.0f;
 	float finalCloud = baseCloudWithCoverage;
 
-	float verticalDensity = typeTx.SampleLevel(LinearClampSampler, float2(PassCB.cloudType, heightFraction), 0).x;
+	float verticalDensity = typeTx.SampleLevel(LinearWrapSampler, float2(PassCB.cloudType, heightFraction), 0).x;
 	baseCloudWithCoverage *= verticalDensity;
+
+	if (baseCloudWithCoverage <= 0.0f) return 0.0f;
 
 	if (useDetail)
 	{
