@@ -431,6 +431,7 @@ namespace adria
 	{
 		gfx_pso_map.clear();
 		compute_pso_map.clear();
+		mesh_pso_map.clear();
 	}
 
 	GfxPipelineState* PSOCache::Get(GfxPipelineStateID ps)
