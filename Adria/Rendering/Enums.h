@@ -90,6 +90,7 @@ namespace adria
 		CS_HZBMips,
 		CS_MeshletDrawArgs1stPhase,
 		MS_DrawMeshlets1stPhase,
+		PS_DrawMeshlets,
 		LIB_Shadows,
 		LIB_SoftShadows,
 		LIB_AmbientOcclusion,

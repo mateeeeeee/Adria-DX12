@@ -21,175 +21,6 @@ namespace adria
 		HashMap<GfxShaderID, GfxShader> shader_map;
 		HashMap<GfxShaderID, HashSet<fs::path>> dependent_files_map;
 
-		constexpr std::string GetEntryPoint(GfxShaderID shader)
-		{
-			switch (shader)
-			{
-			case CS_ClearCounters:
-				return "ClearCountersCS";
-			case CS_CullInstances1stPhase:
-				return "CullInstances1stPhaseCS";
-			case CS_MeshletCullArgs1stPhase:
-				return "BuildMeshletCullArgsCS";
-			case CS_MeshletDrawArgs1stPhase:
-				return "BuildMeshletDrawArgsCS";
-			case CS_CullMeshlets1stPhase:
-				return "CullMeshlets1stPhaseCS";
-			case MS_DrawMeshlets1stPhase:
-				return "DrawMeshletsMS";
-			case CS_InitializeHZB:
-				return "InitializeHZB_CS";
-			case CS_HZBMips:
-				return "HZBMipsCS";
-			case CS_BuildHistogram:
-				return "BuildHistogramCS";
-			case CS_HistogramReduction:
-				return "HistogramReductionCS";
-			case CS_Exposure:
-				return "ExposureCS";
-			case CS_Ssao:
-				return "SSAO";
-			case CS_Hbao:
-				return "HBAO";
-			case CS_Ssr:
-				return "SSR";
-			case CS_Fog:
-				return "Fog";
-			case CS_Tonemap:
-				return "Tonemap";
-			case CS_MotionVectors:
-				return "MotionVectors";
-			case CS_MotionBlur:
-				return "MotionBlur";
-			case CS_Dof:
-				return "DepthOfField";
-			case CS_GodRays:
-				return "GodRays";
-			case CS_Fxaa:
-				return "FXAA";
-			case CS_Ambient:
-				return "Ambient";
-			case VS_GBuffer:
-				return "GBufferVS";
-			case PS_GBuffer:
-			case PS_GBuffer_Mask:
-				return "GBufferPS";
-			case VS_LensFlare:
-				return "LensFlareVS";
-			case GS_LensFlare:
-				return "LensFlareGS";
-			case PS_LensFlare:
-				return "LensFlarePS";
-			case CS_Clouds:
-			case CS_Clouds_Reprojection:
-				return "CloudsCS";
-			case CS_CloudShape:
-				return "CloudShapeCS";
-			case CS_CloudDetail:
-				return "CloudDetailCS";
-			case CS_CloudType:
-				return "CloudTypeCS";
-			case CS_BloomDownsample:
-			case CS_BloomDownsampleFirstPass:
-				return "BloomDownsample";
-			case CS_BloomUpsample:
-				return "BloomUpsample";
-			case CS_BokehGeneration:
-				return "BokehGeneration";
-			case VS_Bokeh:
-				return "BokehVS";
-			case GS_Bokeh:
-				return "BokehGS";
-			case PS_Bokeh:
-				return "BokehPS";
-			case CS_Blur_Horizontal:
-				return "Blur_Horizontal";
-			case CS_Blur_Vertical:
-				return "Blur_Vertical";
-			case CS_Picking:
-				return "Picking";
-			case VS_Ocean:
-				return "OceanVS";
-			case PS_Ocean:
-				return "OceanPS";
-			case VS_OceanLOD:
-				return "OceanVS_LOD";
-			case DS_OceanLOD:
-				return "OceanDS_LOD";
-			case HS_OceanLOD:
-				return "OceanHS_LOD";
-			case CS_FFT_Horizontal:
-				return "FFT_Horizontal";
-			case CS_FFT_Vertical:
-				return "FFT_Vertical";
-			case CS_InitialSpectrum:
-				return "InitialSpectrum";
-			case CS_Spectrum:
-				return "Spectrum";
-			case CS_Phase:
-				return "Phase";
-			case CS_OceanNormals:
-				return "OceanNormals";
-			case VS_FullscreenQuad:
-				return "FullscreenQuad";
-			case PS_Add:
-				return "AddTextures";
-			case PS_Copy:
-				return "CopyTexture";
-			case VS_Sky:
-				return "SkyVS";
-			case PS_Sky:
-				return "SkyPS";
-			case CS_HosekWilkieSky:
-				return "HosekWilkieSkyCS";
-			case CS_MinimalAtmosphereSky:
-				return "MinimalAtmosphereSkyCS";
-			case VS_Simple:
-				return "SimpleVS";
-			case VS_Sun:
-				return "SunVS";
-			case PS_Texture:
-				return "TexturePS";
-			case PS_Solid:
-				return "SolidPS";
-			case VS_Decals:
-				return "DecalsVS";
-			case PS_Decals:
-			case PS_Decals_ModifyNormals:
-				return "DecalsPS";
-			case CS_GenerateMips:
-				return "GenerateMips";
-			case CS_Taa:
-				return "TAA";
-			case CS_DeferredLighting:
-				return "DeferredLighting";
-			case CS_VolumetricLighting:
-				return "VolumetricLighting";
-			case CS_TiledDeferredLighting:
-				return "TiledDeferredLighting";
-			case CS_ClusteredDeferredLighting:
-				return "ClusteredDeferredLighting";
-			case CS_ClusterBuilding:
-				return "ClusterBuilding";
-			case CS_ClusterCulling:
-				return "ClusterCulling";
-			case VS_Shadow:
-			case VS_Shadow_Transparent:
-				return "ShadowVS";
-			case PS_Shadow:
-			case PS_Shadow_Transparent:
-				return "ShadowPS";
-			case VS_CloudsCombine:
-				return "CloudsCombineVS";
-			case PS_CloudsCombine:
-				return "CloudsCombinePS";
-			case CS_LensFlare2:
-				return "LensFlareCS";
-			default:
-				return "main";
-			}
-			return "main";
-		}
 		constexpr GfxShaderStage GetShaderStage(GfxShaderID shader)
 		{
 			switch (shader)
@@ -223,6 +54,7 @@ namespace adria
 			case PS_Shadow_Transparent:
 			case PS_Ocean:
 			case PS_CloudsCombine:
+			case PS_DrawMeshlets:
 				return GfxShaderStage::PS;
 			case GS_LensFlare:
 			case GS_Bokeh:
@@ -434,6 +266,7 @@ namespace adria
 			case CS_MeshletDrawArgs1stPhase:
 				return "GpuDrivenRendering/MeshletDrawArgs.hlsl";
 			case MS_DrawMeshlets1stPhase:
+			case PS_DrawMeshlets:
 				return "GpuDrivenRendering/MeshletDraw.hlsl";
 			case LIB_Shadows:
 			case LIB_SoftShadows:
@@ -448,6 +281,177 @@ namespace adria
 			default:
 				return "";
 			}
+		}
+		constexpr std::string GetEntryPoint(GfxShaderID shader)
+		{
+			switch (shader)
+			{
+			case CS_ClearCounters:
+				return "ClearCountersCS";
+			case CS_CullInstances1stPhase:
+				return "CullInstances1stPhaseCS";
+			case CS_MeshletCullArgs1stPhase:
+				return "BuildMeshletCullArgsCS";
+			case CS_MeshletDrawArgs1stPhase:
+				return "BuildMeshletDrawArgsCS";
+			case CS_CullMeshlets1stPhase:
+				return "CullMeshlets1stPhaseCS";
+			case MS_DrawMeshlets1stPhase:
+				return "DrawMeshletsMS";
+			case PS_DrawMeshlets:
+				return "DrawMeshletsPS";
+			case CS_InitializeHZB:
+				return "InitializeHZB_CS";
+			case CS_HZBMips:
+				return "HZBMipsCS";
+			case CS_BuildHistogram:
+				return "BuildHistogramCS";
+			case CS_HistogramReduction:
+				return "HistogramReductionCS";
+			case CS_Exposure:
+				return "ExposureCS";
+			case CS_Ssao:
+				return "SSAO";
+			case CS_Hbao:
+				return "HBAO";
+			case CS_Ssr:
+				return "SSR";
+			case CS_Fog:
+				return "Fog";
+			case CS_Tonemap:
+				return "Tonemap";
+			case CS_MotionVectors:
+				return "MotionVectors";
+			case CS_MotionBlur:
+				return "MotionBlur";
+			case CS_Dof:
+				return "DepthOfField";
+			case CS_GodRays:
+				return "GodRays";
+			case CS_Fxaa:
+				return "FXAA";
+			case CS_Ambient:
+				return "Ambient";
+			case VS_GBuffer:
+				return "GBufferVS";
+			case PS_GBuffer:
+			case PS_GBuffer_Mask:
+				return "GBufferPS";
+			case VS_LensFlare:
+				return "LensFlareVS";
+			case GS_LensFlare:
+				return "LensFlareGS";
+			case PS_LensFlare:
+				return "LensFlarePS";
+			case CS_Clouds:
+			case CS_Clouds_Reprojection:
+				return "CloudsCS";
+			case CS_CloudShape:
+				return "CloudShapeCS";
+			case CS_CloudDetail:
+				return "CloudDetailCS";
+			case CS_CloudType:
+				return "CloudTypeCS";
+			case CS_BloomDownsample:
+			case CS_BloomDownsampleFirstPass:
+				return "BloomDownsample";
+			case CS_BloomUpsample:
+				return "BloomUpsample";
+			case CS_BokehGeneration:
+				return "BokehGeneration";
+			case VS_Bokeh:
+				return "BokehVS";
+			case GS_Bokeh:
+				return "BokehGS";
+			case PS_Bokeh:
+				return "BokehPS";
+			case CS_Blur_Horizontal:
+				return "Blur_Horizontal";
+			case CS_Blur_Vertical:
+				return "Blur_Vertical";
+			case CS_Picking:
+				return "Picking";
+			case VS_Ocean:
+				return "OceanVS";
+			case PS_Ocean:
+				return "OceanPS";
+			case VS_OceanLOD:
+				return "OceanVS_LOD";
+			case DS_OceanLOD:
+				return "OceanDS_LOD";
+			case HS_OceanLOD:
+				return "OceanHS_LOD";
+			case CS_FFT_Horizontal:
+				return "FFT_Horizontal";
+			case CS_FFT_Vertical:
+				return "FFT_Vertical";
+			case CS_InitialSpectrum:
+				return "InitialSpectrum";
+			case CS_Spectrum:
+				return "Spectrum";
+			case CS_Phase:
+				return "Phase";
+			case CS_OceanNormals:
+				return "OceanNormals";
+			case VS_FullscreenQuad:
+				return "FullscreenQuad";
+			case PS_Add:
+				return "AddTextures";
+			case PS_Copy:
+				return "CopyTexture";
+			case VS_Sky:
+				return "SkyVS";
+			case PS_Sky:
+				return "SkyPS";
+			case CS_HosekWilkieSky:
+				return "HosekWilkieSkyCS";
+			case CS_MinimalAtmosphereSky:
+				return "MinimalAtmosphereSkyCS";
+			case VS_Simple:
+				return "SimpleVS";
+			case VS_Sun:
+				return "SunVS";
+			case PS_Texture:
+				return "TexturePS";
+			case PS_Solid:
+				return "SolidPS";
+			case VS_Decals:
+				return "DecalsVS";
+			case PS_Decals:
+			case PS_Decals_ModifyNormals:
+				return "DecalsPS";
+			case CS_GenerateMips:
+				return "GenerateMips";
+			case CS_Taa:
+				return "TAA";
+			case CS_DeferredLighting:
+				return "DeferredLighting";
+			case CS_VolumetricLighting:
+				return "VolumetricLighting";
+			case CS_TiledDeferredLighting:
+				return "TiledDeferredLighting";
+			case CS_ClusteredDeferredLighting:
+				return "ClusteredDeferredLighting";
+			case CS_ClusterBuilding:
+				return "ClusterBuilding";
+			case CS_ClusterCulling:
+				return "ClusterCulling";
+			case VS_Shadow:
+			case VS_Shadow_Transparent:
+				return "ShadowVS";
+			case PS_Shadow:
+			case PS_Shadow_Transparent:
+				return "ShadowPS";
+			case VS_CloudsCombine:
+				return "CloudsCombineVS";
+			case PS_CloudsCombine:
+				return "CloudsCombinePS";
+			case CS_LensFlare2:
+				return "LensFlareCS";
+			default:
+				return "main";
+			}
+			return "main";
 		}
 		constexpr std::vector<GfxShaderMacro> GetShaderMacros(GfxShaderID shader)
 		{

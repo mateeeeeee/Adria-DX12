@@ -8,6 +8,7 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 	- Automatic resource bind flags and initial state deduction
 	- Pass culling
 * Reference path tracer 
+* GPU-Driven Rendering (wip)
 * Tiled deferred rendering 
 * Clustered deferred rendering
 * Physically based shading
@@ -45,9 +46,7 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 * Model Loading with tinygltf
 
 ## TODO
-* GPU-Driven Rendering (wip)
-* Improve DXR features
-* Add DXR GI
+* Add Global Illumination
 
 ## Dependencies
 [ImGui](https://github.com/ocornut/imgui)

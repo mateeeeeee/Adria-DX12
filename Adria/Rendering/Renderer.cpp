@@ -790,7 +790,6 @@ namespace adria
 
 	void Renderer::Render_Deferred(RenderGraph& render_graph)
 	{
-		//gpu_driven_renderer.Render(render_graph);
 		if (update_picking_data)
 		{
 			picking_data = picking_pass.GetPickingData();
@@ -798,7 +797,9 @@ namespace adria
 		}
 		sky_pass.AddComputeSkyPass(render_graph, sun_direction);
 
-		gbuffer_pass.AddPass(render_graph);
+		if(gfx->GetCapabilities().SupportsMeshShaders()) gpu_driven_renderer.Render(render_graph);
+		else gbuffer_pass.AddPass(render_graph);
+
 		decals_pass.AddPass(render_graph);
 		switch (renderer_settings.postprocess.ambient_occlusion)
 		{
@@ -844,9 +845,9 @@ namespace adria
 		picking_pass.AddPass(render_graph);
 		if (renderer_settings.postprocess.reflections == Reflections::RTR) rtr_pass.AddPass(render_graph);
 		postprocessor.AddPasses(render_graph, renderer_settings.postprocess);
-
 		render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
 		ResolveToFinalTexture(render_graph);
+
 		if (!g_Editor.IsActive()) CopyToBackbuffer(render_graph);
 		else g_Editor.AddRenderPass(render_graph);
 	}

@@ -85,7 +85,7 @@ PS_OUTPUT GBufferPS(PS_INPUT In)
 
 	float4 albedoColor = txAlbedo.Sample(LinearWrapSampler, In.Uvs) * float4(materialData.baseColorFactor, 1.0f);
 #if MASK
-	if (albedoColor.a < 0.5f) discard;
+	if (albedoColor.a < materialData.alphaCutoff) discard;
 #endif
 
 	float3 normal = normalize(In.NormalWS);

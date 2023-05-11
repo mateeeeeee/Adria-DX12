@@ -17,12 +17,6 @@ namespace adria
 		HashMap<GfxPipelineStateID, std::unique_ptr<ComputePipelineState>>		compute_pso_map;
 		HashMap<GfxPipelineStateID, std::unique_ptr<MeshShaderPipelineState>>   mesh_pso_map;
 
-		enum EPipelineStateType
-		{
-			Graphics,
-			Compute
-		};
-
 		inline GfxShader const& GetShader(GfxShaderID shader)
 		{
 			return ShaderCache::GetShader(shader);
@@ -410,10 +404,9 @@ namespace adria
 			{
 				MeshShaderPipelineStateDesc mesh_pso_desc{};
 				{
-					mesh_pso_desc = {};
 					mesh_pso_desc.root_signature = GfxRootSignatureID::Common;
 					mesh_pso_desc.MS = MS_DrawMeshlets1stPhase;
-					mesh_pso_desc.PS = PS_GBuffer;
+					mesh_pso_desc.PS = PS_DrawMeshlets;
 					mesh_pso_desc.depth_state.depth_enable = true;
 					mesh_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
 					mesh_pso_desc.depth_state.depth_func = GfxComparisonFunc::LessEqual;
