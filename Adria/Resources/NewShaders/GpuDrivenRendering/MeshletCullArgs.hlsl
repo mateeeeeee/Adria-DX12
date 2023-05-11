@@ -19,6 +19,6 @@ void BuildMeshletCullArgsCS()
 #else
 	uint numMeshlets = candidateMeshletsCounter[COUNTER_PHASE2_CANDIDATE_MESHLETS];
 #endif
-	uint3 args = uint3(ceil(numMeshlets / 64), 1, 1);
+	uint3 args = uint3(ceil(numMeshlets / 64.0f), 1, 1);
 	meshletCullArgs[0] = args;
 }

@@ -64,13 +64,13 @@ void DrawMeshletsMS(
 
 	for (uint i = groupThreadID; i < meshlet.vertexCount; i += BLOCK_SIZE)
 	{
-		uint vertexId = LoadMeshBuffer<uint>(mesh.bufferIdx, mesh.meshletVerticesOffset, i + meshlet.vertexOffset);
+		uint vertexId = LoadMeshBuffer<uint>(mesh.bufferIdx, mesh.meshletVerticesOffset, meshlet.vertexOffset + i);
 		verts[i] = GetVertex(mesh, instance, vertexId);
 	}
 
 	for (uint j = groupThreadID; j < meshlet.triangleCount; j += BLOCK_SIZE)
 	{
-		MeshletTriangle tri = LoadMeshBuffer<MeshletTriangle>(mesh.bufferIdx, mesh.meshletTrianglesOffset, j + meshlet.triangleOffset);
+		MeshletTriangle tri = LoadMeshBuffer<MeshletTriangle>(mesh.bufferIdx, mesh.meshletTrianglesOffset, meshlet.triangleOffset + j);
 		triangles[j] = uint3(tri.V0, tri.V1, tri.V2);
 	}
 }

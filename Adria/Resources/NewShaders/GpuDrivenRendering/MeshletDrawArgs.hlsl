@@ -19,6 +19,6 @@ void BuildMeshletDrawArgsCS()
 #else
 	uint numMeshlets = visibleMeshletsCounter[COUNTER_PHASE2_VISIBLE_MESHLETS];
 #endif
-	uint3 args = uint3(ceil(numMeshlets / 1), 1, 1);
+	uint3 args = uint3(ceil(numMeshlets / 1.0f), 1, 1);
 	meshletDrawArgs[0] = args;
 }

@@ -745,27 +745,28 @@ namespace adria
 			for (size_t i = 0; i < meshlet_count; ++i)
 			{
 				meshopt_Meshlet const& m = meshlets[i];
-
 				meshopt_Bounds meshopt_bounds = meshopt_computeMeshletBounds(&mesh_data.meshlet_vertices[m.vertex_offset], &meshlet_triangles[m.triangle_offset],
 					m.triangle_count, reinterpret_cast<float const*>(mesh_data.positions_stream.data()), vertex_count, sizeof(XMFLOAT3));
 
-				Meshlet& meshlet = mesh_data.meshlets[i];
-				std::memcpy(meshlet.center, meshopt_bounds.center, sizeof(float) * 3);
-				meshlet.radius = meshopt_bounds.radius;
-				meshlet.vertex_count = m.vertex_count;
-				meshlet.triangle_count = m.triangle_count;
-				meshlet.vertex_offset = m.vertex_offset;
-				meshlet.triangle_offset = m.triangle_offset;
-
-				unsigned char* src_triangles = meshlet_triangles.data() + meshlet.triangle_offset;
-				for (uint32 triangle_idx = 0; triangle_idx < meshlet.triangle_count; ++triangle_idx)
+				unsigned char* src_triangles = meshlet_triangles.data() + m.triangle_offset;
+				for (uint32 triangle_idx = 0; triangle_idx < m.triangle_count; ++triangle_idx)
 				{
 					MeshletTriangle& tri = mesh_data.meshlet_triangles[triangle_idx + triangle_offset];
 					tri.V0 = *src_triangles++;
 					tri.V1 = *src_triangles++;
 					tri.V2 = *src_triangles++;
 				}
-				triangle_offset += meshlet.triangle_count;
+
+				Meshlet& meshlet = mesh_data.meshlets[i];
+				std::memcpy(meshlet.center, meshopt_bounds.center, sizeof(float) * 3);
+
+				meshlet.radius = meshopt_bounds.radius;
+				meshlet.vertex_count = m.vertex_count;
+				meshlet.triangle_count = m.triangle_count;
+				meshlet.vertex_offset = m.vertex_offset;
+				meshlet.triangle_offset = triangle_offset;
+				triangle_offset += m.triangle_count;
+
 			}
 			mesh_data.meshlet_triangles.resize(triangle_offset);
 
@@ -839,7 +840,6 @@ namespace adria
 
 			submesh.bounding_box = mesh_data.bounding_box;
 			submesh.material_index = mesh_data.material_index;
-
 		}
 		mesh.geometry_buffer_handle = g_GeometryBufferCache.CreateAndInitializeGeometryBuffer(staging_buffer.buffer, total_buffer_size, staging_buffer.offset);
 
