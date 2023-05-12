@@ -17,7 +17,7 @@ namespace adria
 		LOG_WARNING,
 		LOG_ERROR
 	};
-	
+
 	std::string LevelToString(LogLevel type);
 	std::string GetLogTime();
 	std::string LineInfoToString(char const* file, uint32_t line);
@@ -84,8 +84,8 @@ namespace adria
 
 	private:
 		std::vector<ILogger*> loggers;
-		std::thread log_thread;
 		ConcurrentQueue<QueueEntry> log_queue;
+		std::thread log_thread;
 		std::atomic_bool exit = false;
 
 	private:

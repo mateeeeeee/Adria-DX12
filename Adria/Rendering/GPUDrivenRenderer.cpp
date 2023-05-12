@@ -392,7 +392,7 @@ namespace adria
 				cmd_list->SetRootConstants(1, constants);
 				GfxBuffer const& draw_args = ctx.GetIndirectArgsBuffer(data.draw_args);
 				cmd_list->DispatchMeshIndirect(draw_args, 0);
-			}, RGPassType::Graphics, RGPassFlags::ForceNoCull);
+			}, RGPassType::Graphics, RGPassFlags::None);
 
 		//AddBuildHZBPasses(rg);
 	}
