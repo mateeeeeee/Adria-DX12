@@ -108,6 +108,12 @@ namespace adria
 
 	void RenderGraph::Execute()
 	{
+		static bool dump = true;
+		if (dump)
+		{
+			DumpDebugData();
+			dump = false;
+		}
 #if RG_MULTITHREADED
 		Execute_Multithreaded();
 #else
@@ -362,36 +368,39 @@ namespace adria
 
 	void RenderGraph::CalculateResourcesLifetime()
 	{
-		for (size_t i = 0; i < topologically_sorted_passes.size(); ++i)
+		for (auto& dependency_level : dependency_levels)
 		{
-			auto& pass = passes[topologically_sorted_passes[i]];
-			if (pass->IsCulled()) continue;
-			for (auto id : pass->texture_writes)
+			for (auto& pass : dependency_level.passes)
 			{
-				if (!pass->texture_state_map.contains(id)) continue;
-				RGTexture* rg_texture = GetRGTexture(id);
-				rg_texture->last_used_by = pass.get();
-			}
-			for (auto id : pass->buffer_writes)
-			{
-				if (!pass->buffer_state_map.contains(id)) continue;
-				RGBuffer* rg_buffer = GetRGBuffer(id);
-				rg_buffer->last_used_by = pass.get();
-			}
+				if (pass->IsCulled()) continue;
+				for (auto id : pass->texture_writes)
+				{
+					if (!pass->texture_state_map.contains(id)) continue;
+					RGTexture* rg_texture = GetRGTexture(id);
+					rg_texture->last_used_by = pass;
+				}
+				for (auto id : pass->buffer_writes)
+				{
+					if (!pass->buffer_state_map.contains(id)) continue;
+					RGBuffer* rg_buffer = GetRGBuffer(id);
+					rg_buffer->last_used_by = pass;
+				}
 
-			for (auto id : pass->texture_reads)
-			{
-				if (!pass->texture_state_map.contains(id)) continue;
-				RGTexture* rg_texture = GetRGTexture(id);
-				rg_texture->last_used_by = pass.get();
-			}
-			for (auto id : pass->buffer_reads)
-			{
-				if (!pass->buffer_state_map.contains(id)) continue;
-				RGBuffer* rg_buffer = GetRGBuffer(id);
-				rg_buffer->last_used_by = pass.get();
+				for (auto id : pass->texture_reads)
+				{
+					if (!pass->texture_state_map.contains(id)) continue;
+					RGTexture* rg_texture = GetRGTexture(id);
+					rg_texture->last_used_by = pass;
+				}
+				for (auto id : pass->buffer_reads)
+				{
+					if (!pass->buffer_state_map.contains(id)) continue;
+					RGBuffer* rg_buffer = GetRGBuffer(id);
+					rg_buffer->last_used_by = pass;
+				}
 			}
 		}
+
 		for (size_t i = 0; i < textures.size(); ++i)
 		{
 			if (textures[i]->last_used_by != nullptr) textures[i]->last_used_by->texture_destroys.insert(RGTextureId(i));

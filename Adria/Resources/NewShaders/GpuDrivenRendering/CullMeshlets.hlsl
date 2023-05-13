@@ -34,6 +34,7 @@ void CullMeshletsCS(uint threadId : SV_DispatchThreadID)
 	bool isVisible = cullData.isVisible;
 	bool wasOccluded = false;
 
+#if 0
 	if (isVisible)
 	{
 		Texture2D<float> hzbTx = ResourceDescriptorHeap[PassCB.hzbIdx];
@@ -60,6 +61,7 @@ void CullMeshletsCS(uint threadId : SV_DispatchThreadID)
 		isVisible = HZBCull(cullData, hzbTx);
 #endif
 	}
+#endif
 
 	if (isVisible && !wasOccluded)
 	{

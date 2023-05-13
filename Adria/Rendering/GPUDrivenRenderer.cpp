@@ -13,6 +13,8 @@
 #include "Resources/NewShaders/SPD/ffx_a.h"
 #include "Resources/NewShaders/SPD/ffx_spd.h"
 
+using namespace DirectX;
+
 namespace adria
 {
 	static constexpr uint32 MAX_NUM_MESHLETS = 1 << 20u;
@@ -32,7 +34,7 @@ namespace adria
 	{
 		AddClearCountersPass(rg);
 		Add1stPhasePasses(rg);
-		Add2ndPhasePasses(rg);
+		//Add2ndPhasePasses(rg);
 		AddGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("GPU Driven Rendering", ImGuiTreeNodeFlags_OpenOnDoubleClick))
@@ -806,12 +808,13 @@ namespace adria
 					.work_group_offset_y = workGroupOffset[1]
 				};
 
+				DECLSPEC_ALIGN(16)
 				struct SPDIndices
 				{
-					uint32	dstIdx[12];
+					XMUINT4	dstIdx[12];
 					uint32	spdGlobalAtomicIdx;
 				} indices{ .spdGlobalAtomicIdx = i };
-				for (uint32 j = 0; j < hzb_mip_count; ++j) indices.dstIdx[j] = i + 1 + j;
+				for (uint32 j = 0; j < hzb_mip_count; ++j) indices.dstIdx[j].x = i + 1 + j;
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::HZBMips));
 				cmd_list->SetRootConstants(1, constants);

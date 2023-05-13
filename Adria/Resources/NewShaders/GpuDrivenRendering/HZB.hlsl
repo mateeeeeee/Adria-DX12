@@ -7,7 +7,7 @@ struct InitializeHZBConstants
 	float2 hzbDimsInv;
 };
 
-ConstantBuffer<InitializeHZBConstants> PassCB : register(b0);
+ConstantBuffer<InitializeHZBConstants> PassCB : register(b1);
 
 [numthreads(16, 16, 1)]
 void InitializeHZB_CS(uint3 threadId : SV_DispatchThreadID)
