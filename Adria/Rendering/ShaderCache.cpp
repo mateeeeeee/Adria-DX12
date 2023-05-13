@@ -494,7 +494,8 @@ namespace adria
 			shader_desc.flags = ShaderCompilerFlag_None;
 #endif
 			GfxShaderCompileOutput output;
-			ADRIA_ASSERT(GfxShaderCompiler::CompileShader(shader_desc, output));
+			bool successful_compilation = GfxShaderCompiler::CompileShader(shader_desc, output);
+			ADRIA_ASSERT(successful_compilation);
 			shader_map[shader] = std::move(output.shader);
 			dependent_files_map[shader].clear();
 			dependent_files_map[shader].insert(output.includes.begin(), output.includes.end());
