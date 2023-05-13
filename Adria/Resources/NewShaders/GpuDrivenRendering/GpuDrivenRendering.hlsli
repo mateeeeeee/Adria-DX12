@@ -127,7 +127,7 @@ uint ComputeHZBMip(int4 rectPixels, int texelCoverage)
 	}
 	return mip;
 }
-bool HZBCull(FrustumCullData cullData, Texture2D<float> hzbTexture, bool debug = false)
+bool HZBCull(FrustumCullData cullData, Texture2D<float> hzbTexture)
 {
 	uint2 hzbDimensions;
 	uint hzbMipCount;

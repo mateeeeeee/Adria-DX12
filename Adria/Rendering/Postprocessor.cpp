@@ -2,7 +2,7 @@
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
+#include "PSOCache.h"
 
 #include "Graphics/GfxRingDescriptorAllocator.h"
 #include "Graphics/GfxLinearDynamicAllocator.h"
@@ -88,7 +88,7 @@ namespace adria
 			final_resource = taa_pass.AddPass(rg, final_resource, RG_RES_NAME(HistoryBuffer));
 			AddHistoryCopyPass(rg);
 		}
-		
+
 	}
 
 	void Postprocessor::OnResize(GfxDevice* gfx, uint32 w, uint32 h)

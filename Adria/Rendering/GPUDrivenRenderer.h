@@ -35,13 +35,16 @@ namespace adria
 		uint32 hzb_width = 0;
 		uint32 hzb_height = 0;
 
+		bool occlusion_culling = false;
+
 	private:
 		void InitializeHZB();
 
 		void AddClearCountersPass(RenderGraph& rg);
 		void Add1stPhasePasses(RenderGraph& rg);
 		void Add2ndPhasePasses(RenderGraph& rg);
-		void AddBuildHZBPasses(RenderGraph& rg);
+
+		void AddHZBPasses(RenderGraph& rg, bool second_phase = false);
 
 		void CalculateHZBParameters();
 	};

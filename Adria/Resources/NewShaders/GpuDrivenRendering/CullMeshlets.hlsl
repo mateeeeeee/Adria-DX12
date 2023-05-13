@@ -5,7 +5,7 @@
 
 #define BLOCK_SIZE 64
 
-struct CullMeshlets1stPhaseConstants
+struct CullMeshletsConstants
 {
 	uint hzbIdx;
 	uint candidateMeshletsIdx;
@@ -13,10 +13,10 @@ struct CullMeshlets1stPhaseConstants
 	uint visibleMeshletsIdx;
 	uint visibleMeshletsCounterIdx;
 };
-ConstantBuffer<CullMeshlets1stPhaseConstants> PassCB : register(b1);
+ConstantBuffer<CullMeshletsConstants> PassCB : register(b1);
 
 [numthreads(BLOCK_SIZE, 1, 1)]
-void CullMeshlets1stPhaseCS(uint threadId : SV_DispatchThreadID)
+void CullMeshletsCS(uint threadId : SV_DispatchThreadID)
 {
 	RWBuffer<uint> candidateMeshletsCounter = ResourceDescriptorHeap[PassCB.candidateMeshletsCounterIdx];
 	RWStructuredBuffer<MeshletCandidate> candidateMeshlets = ResourceDescriptorHeap[PassCB.candidateMeshletsIdx];
@@ -34,13 +34,13 @@ void CullMeshlets1stPhaseCS(uint threadId : SV_DispatchThreadID)
 	bool isVisible = cullData.isVisible;
 	bool wasOccluded = false;
 
-#ifdef OCCLUSION_CULL
 	if (isVisible)
 	{
+		Texture2D<float> hzbTx = ResourceDescriptorHeap[PassCB.hzbIdx];
+#if !SECOND_PHASE
 		FrustumCullData prevCullData = FrustumCull(meshlet.center, meshlet.radius.xxx, instance.worldMatrix, FrameCB.prevViewProjection);
 		if (prevCullData.isVisible)
 		{
-			Texture2D<float> hzbTx = ResourceDescriptorHeap[PassCB.hzbIdx];
 			wasOccluded = !HZBCull(prevCullData, hzbTx);
 		}
 
@@ -56,14 +56,42 @@ void CullMeshlets1stPhaseCS(uint threadId : SV_DispatchThreadID)
 				candidateMeshlets[meshletOffset + elementOffset] = candidate;
 			}
 		}
-	}
+#else
+		isVisible = HZBCull(cullData, hzbTx);
 #endif
+	}
 
 	if (isVisible && !wasOccluded)
 	{
 		uint elementOffset;
 		InterlockedAdd(visibleMeshletsCounter[COUNTER_PHASE1_VISIBLE_MESHLETS], 1, elementOffset);
+#if SECOND_PHASE
+		elementOffset += visibleMeshletsCounter[COUNTER_PHASE1_VISIBLE_MESHLETS];
+#endif
 		visibleMeshlets[elementOffset] = candidate;
 	}
 
+}
+
+struct BuildMeshletCullArgsConstants
+{
+	uint candidateMeshletsCounterIdx;
+	uint meshletCullArgsIdx;
+};
+ConstantBuffer<BuildMeshletCullArgsConstants> PassCB2 : register(b1);
+
+
+[numthreads(1, 1, 1)]
+void BuildMeshletCullArgsCS()
+{
+	RWBuffer<uint> candidateMeshletsCounter = ResourceDescriptorHeap[PassCB2.candidateMeshletsCounterIdx];
+	RWStructuredBuffer<uint3> meshletCullArgs = ResourceDescriptorHeap[PassCB2.meshletCullArgsIdx];
+
+#if !SECOND_PHASE
+	uint numMeshlets = candidateMeshletsCounter[COUNTER_PHASE1_CANDIDATE_MESHLETS];
+#else
+	uint numMeshlets = candidateMeshletsCounter[COUNTER_PHASE2_CANDIDATE_MESHLETS];
+#endif
+	uint3 args = uint3(ceil(numMeshlets / 64.0f), 1, 1);
+	meshletCullArgs[0] = args;
 }

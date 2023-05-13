@@ -1128,9 +1128,6 @@
     <FxCompile Include="Resources\NewShaders\GpuDrivenRendering\ClearCounters.hlsl">
       <Filter>Shaders\GpuDrivenRendering</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\NewShaders\GpuDrivenRendering\MeshletCullArgs.hlsl">
-      <Filter>Shaders\GpuDrivenRendering</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\NewShaders\GpuDrivenRendering\CullMeshlets.hlsl">
       <Filter>Shaders\GpuDrivenRendering</Filter>
     </FxCompile>
@@ -1143,10 +1140,7 @@
     <FxCompile Include="Resources\NewShaders\Clouds\VolumetricClouds.hlsl">
       <Filter>Shaders\Clouds</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\NewShaders\GpuDrivenRendering\MeshletDraw.hlsl">
-      <Filter>Shaders\GpuDrivenRendering</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\GpuDrivenRendering\MeshletDrawArgs.hlsl">
+    <FxCompile Include="Resources\NewShaders\GpuDrivenRendering\DrawMeshlets.hlsl">
       <Filter>Shaders\GpuDrivenRendering</Filter>
     </FxCompile>
   </ItemGroup>

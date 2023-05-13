@@ -593,8 +593,8 @@ namespace adria
 			NewFilter.DenyList.NumIDs = ARRAYSIZE(DenyIds);
 			NewFilter.DenyList.pIDList = DenyIds;
 
-			BREAK_IF_FAILED(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true));
 			BREAK_IF_FAILED(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, false));
+			BREAK_IF_FAILED(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true));
 			BREAK_IF_FAILED(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true));
 			info_queue->PushStorageFilter(&NewFilter);
 

@@ -7,6 +7,7 @@
 #include "entt/entity/registry.hpp"
 #include "Logging/Logger.h"
 #include "Core/Defines.h"
+#include "Editor/GUICommand.h"
 
 #define A_CPU 1
 #include "Resources/NewShaders/SPD/ffx_a.h"
@@ -29,10 +30,19 @@ namespace adria
 
 	void GPUDrivenRenderer::Render(RenderGraph& rg)
 	{
-		rg.ImportTexture(RG_RES_NAME(HZB), HZB.get());
 		AddClearCountersPass(rg);
 		Add1stPhasePasses(rg);
 		Add2ndPhasePasses(rg);
+		AddGUI([&]()
+			{
+				if (ImGui::TreeNodeEx("GPU Driven Rendering", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+				{
+					ImGui::Checkbox("Power", &occlusion_culling);
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
+			}
+		);
 	}
 
 	void GPUDrivenRenderer::InitializeHZB()
@@ -108,6 +118,8 @@ namespace adria
 
 	void GPUDrivenRenderer::Add1stPhasePasses(RenderGraph& rg)
 	{
+		rg.ImportTexture(RG_RES_NAME(HZB), HZB.get());
+
 		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
 
 		struct CullInstancesPassData
@@ -387,29 +399,308 @@ namespace adria
 				{
 					.visible_meshlets_idx = i,
 				};
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DrawMeshlets1stPhase));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DrawMeshlets));
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				GfxBuffer const& draw_args = ctx.GetIndirectArgsBuffer(data.draw_args);
 				cmd_list->DispatchMeshIndirect(draw_args, 0);
 			}, RGPassType::Graphics, RGPassFlags::None);
 
-		//AddBuildHZBPasses(rg);
+		AddHZBPasses(rg);
 	}
 
 	void GPUDrivenRenderer::Add2ndPhasePasses(RenderGraph& rg)
 	{
-		//todo
+		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
+		struct BuildInstanceCullArgsPassData
+		{
+			RGBufferReadOnlyId  occluded_instances_counter;
+			RGBufferReadWriteId instance_cull_args;
+		};
+
+		rg.AddPass<BuildInstanceCullArgsPassData>("2nd Phase Build Instance Cull Args Pass",
+			[=](BuildInstanceCullArgsPassData& data, RenderGraphBuilder& builder)
+			{
+				RGBufferDesc instance_cull_args_desc{};
+				instance_cull_args_desc.resource_usage = GfxResourceUsage::Default;
+				instance_cull_args_desc.misc_flags = GfxBufferMiscFlag::IndirectArgs;
+				instance_cull_args_desc.stride = sizeof(D3D12_DISPATCH_ARGUMENTS);
+				instance_cull_args_desc.size = sizeof(D3D12_DISPATCH_ARGUMENTS);
+				builder.DeclareBuffer(RG_RES_NAME(InstanceCullArgs), instance_cull_args_desc);
+
+				data.instance_cull_args = builder.WriteBuffer(RG_RES_NAME(InstanceCullArgs));
+				data.occluded_instances_counter = builder.ReadBuffer(RG_RES_NAME(OccludedInstancesCounter));
+			},
+			[=](BuildInstanceCullArgsPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			{
+				GfxDevice* gfx = cmd_list->GetDevice();
+
+				GfxDescriptor src_handles[] = { ctx.GetReadOnlyBuffer(data.occluded_instances_counter),
+												ctx.GetReadWriteBuffer(data.instance_cull_args)
+				};
+				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
+				gfx->CopyDescriptors(dst_handle, src_handles);
+				uint32 i = dst_handle.GetIndex();
+
+				struct BuildInstanceCullArgsConstants
+				{
+					uint32  occluded_instances_counter_idx;
+					uint32  instance_cull_args_idx;
+				} constants =
+				{
+					.occluded_instances_counter_idx = i + 0,
+					.instance_cull_args_idx = i + 1
+				};
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::BuildInstanceCullArgs));
+				cmd_list->SetRootConstants(1, constants);
+				cmd_list->Dispatch(1, 1, 1);
+
+			}, RGPassType::Compute, RGPassFlags::None);
+
+		struct CullInstancesPassData
+		{
+			RGTextureReadOnlyId hzb;
+			RGBufferIndirectArgsId cull_args;
+			RGBufferReadWriteId candidate_meshlets;
+			RGBufferReadWriteId candidate_meshlets_counter;
+			RGBufferReadWriteId occluded_instances;
+			RGBufferReadWriteId occluded_instances_counter;
+		};
+
+		rg.AddPass<CullInstancesPassData>("2nd Phase Cull Instances Pass",
+			[=](CullInstancesPassData& data, RenderGraphBuilder& builder)
+			{
+				data.hzb = builder.ReadTexture(RG_RES_NAME(HZB));
+				data.cull_args = builder.ReadIndirectArgsBuffer(RG_RES_NAME(InstanceCullArgs));
+				data.occluded_instances = builder.WriteBuffer(RG_RES_NAME(OccludedInstances));
+				data.occluded_instances_counter = builder.WriteBuffer(RG_RES_NAME(OccludedInstancesCounter));
+				data.candidate_meshlets = builder.WriteBuffer(RG_RES_NAME(CandidateMeshlets));
+				data.candidate_meshlets_counter = builder.WriteBuffer(RG_RES_NAME(CandidateMeshletsCounter));
+			},
+			[=](CullInstancesPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			{
+				GfxDevice* gfx = cmd_list->GetDevice();
+				GfxDescriptor src_handles[] = { ctx.GetReadOnlyTexture(data.hzb),
+												ctx.GetReadWriteBuffer(data.occluded_instances),
+												ctx.GetReadWriteBuffer(data.occluded_instances_counter),
+												ctx.GetReadWriteBuffer(data.candidate_meshlets),
+												ctx.GetReadWriteBuffer(data.candidate_meshlets_counter) };
+				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
+				gfx->CopyDescriptors(dst_handle, src_handles);
+				uint32 i = dst_handle.GetIndex();
+
+				struct CullInstances2ndPhaseConstants
+				{
+					uint32 num_instances;
+					uint32 hzb_idx;
+					uint32 occluded_instances_idx;
+					uint32 occluded_instances_counter_idx;
+					uint32 candidate_meshlets_idx;
+					uint32 candidate_meshlets_counter_idx;
+				} constants =
+				{
+					.num_instances = 0,
+					.hzb_idx = i,
+					.occluded_instances_idx = i + 1,
+					.occluded_instances_counter_idx = i + 2,
+					.candidate_meshlets_idx = i + 3,
+					.candidate_meshlets_counter_idx = i + 4,
+				};
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::CullInstances2ndPhase));
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, constants);
+				GfxBuffer const& dispatch_args = ctx.GetIndirectArgsBuffer(data.cull_args);
+				cmd_list->DispatchIndirect(dispatch_args, 0);
+
+			}, RGPassType::Compute, RGPassFlags::None);
+
+		struct BuildMeshletCullArgsPassData
+		{
+			RGBufferReadOnlyId  candidate_meshlets_counter;
+			RGBufferReadWriteId meshlet_cull_args;
+		};
+
+		rg.AddPass<BuildMeshletCullArgsPassData>("2nd Phase Build Meshlet Cull Args Pass",
+			[=](BuildMeshletCullArgsPassData& data, RenderGraphBuilder& builder)
+			{
+				data.meshlet_cull_args = builder.WriteBuffer(RG_RES_NAME(MeshletCullArgs));
+				data.candidate_meshlets_counter = builder.ReadBuffer(RG_RES_NAME(CandidateMeshletsCounter));
+			},
+			[=](BuildMeshletCullArgsPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			{
+				GfxDevice* gfx = cmd_list->GetDevice();
+
+				GfxDescriptor src_handles[] = { ctx.GetReadOnlyBuffer(data.candidate_meshlets_counter),
+												ctx.GetReadWriteBuffer(data.meshlet_cull_args)
+				};
+				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
+				gfx->CopyDescriptors(dst_handle, src_handles);
+				uint32 i = dst_handle.GetIndex();
+
+				struct BuildMeshletCullArgsConstants
+				{
+					uint32 candidate_meshlets_counter_idx;
+					uint32 meshlet_cull_args_idx;
+				} constants =
+				{
+					.candidate_meshlets_counter_idx = i + 0,
+					.meshlet_cull_args_idx = i + 1
+				};
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::BuildMeshletCullArgs2ndPhase));
+				cmd_list->SetRootConstants(1, constants);
+				cmd_list->Dispatch(1, 1, 1);
+
+			}, RGPassType::Compute, RGPassFlags::None);
+
+
+		struct CullMeshletsPassData
+		{
+			RGTextureReadOnlyId hzb;
+			RGBufferIndirectArgsId indirect_args;
+			RGBufferReadWriteId candidate_meshlets;
+			RGBufferReadWriteId candidate_meshlets_counter;
+			RGBufferReadWriteId visible_meshlets;
+			RGBufferReadWriteId visible_meshlets_counter;
+		};
+
+		rg.AddPass<CullMeshletsPassData>("2nd Phase Cull Meshlets Pass",
+			[=](CullMeshletsPassData& data, RenderGraphBuilder& builder)
+			{
+				data.hzb = builder.ReadTexture(RG_RES_NAME(HZB));
+				data.indirect_args = builder.ReadIndirectArgsBuffer(RG_RES_NAME(MeshletCullArgs));
+				data.candidate_meshlets = builder.WriteBuffer(RG_RES_NAME(CandidateMeshlets));
+				data.candidate_meshlets_counter = builder.WriteBuffer(RG_RES_NAME(CandidateMeshletsCounter));
+				data.visible_meshlets = builder.WriteBuffer(RG_RES_NAME(VisibleMeshlets));
+				data.visible_meshlets_counter = builder.WriteBuffer(RG_RES_NAME(VisibleMeshletsCounter));
+			},
+			[=](CullMeshletsPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			{
+				GfxDevice* gfx = cmd_list->GetDevice();
+
+				GfxDescriptor src_handles[] = { ctx.GetReadOnlyTexture(data.hzb),
+												ctx.GetReadWriteBuffer(data.candidate_meshlets),
+												ctx.GetReadWriteBuffer(data.candidate_meshlets_counter),
+												ctx.GetReadWriteBuffer(data.visible_meshlets),
+												ctx.GetReadWriteBuffer(data.visible_meshlets_counter) };
+				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
+				gfx->CopyDescriptors(dst_handle, src_handles);
+				uint32 i = dst_handle.GetIndex();
+
+				struct CullMeshlets2ndPhaseConstants
+				{
+					uint32 hzb_idx;
+					uint32 candidate_meshlets_idx;
+					uint32 candidate_meshlets_counter_idx;
+					uint32 visible_meshlets_idx;
+					uint32 visible_meshlets_counter_idx;
+				} constants =
+				{
+					.hzb_idx = i,
+					.candidate_meshlets_idx = i + 1,
+					.candidate_meshlets_counter_idx = i + 2,
+					.visible_meshlets_idx = i + 3,
+					.visible_meshlets_counter_idx = i + 4,
+				};
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::CullMeshlets2ndPhase));
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, constants);
+
+				GfxBuffer const& indirect_args = ctx.GetIndirectArgsBuffer(data.indirect_args);
+				cmd_list->DispatchIndirect(indirect_args, 0);
+			}, RGPassType::Compute, RGPassFlags::None);
+
+		struct BuildMeshletDrawArgsPassData
+		{
+			RGBufferReadOnlyId  visible_meshlets_counter;
+			RGBufferReadWriteId meshlet_draw_args;
+		};
+
+		rg.AddPass<BuildMeshletDrawArgsPassData>("2nd Phase Build Meshlet Draw Args Pass",
+			[=](BuildMeshletDrawArgsPassData& data, RenderGraphBuilder& builder)
+			{
+				data.meshlet_draw_args = builder.WriteBuffer(RG_RES_NAME(MeshletDrawArgs));
+				data.visible_meshlets_counter = builder.ReadBuffer(RG_RES_NAME(VisibleMeshletsCounter));
+			},
+			[=](BuildMeshletDrawArgsPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			{
+				GfxDevice* gfx = cmd_list->GetDevice();
+
+				GfxDescriptor src_handles[] = { ctx.GetReadOnlyBuffer(data.visible_meshlets_counter),
+												ctx.GetReadWriteBuffer(data.meshlet_draw_args)
+				};
+				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
+				gfx->CopyDescriptors(dst_handle, src_handles);
+				uint32 i = dst_handle.GetIndex();
+
+				struct BuildMeshletDrawArgsConstants
+				{
+					uint32 visible_meshlets_counter_idx;
+					uint32 meshlet_draw_args_idx;
+				} constants =
+				{
+					.visible_meshlets_counter_idx = i + 0,
+					.meshlet_draw_args_idx = i + 1
+				};
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::BuildMeshletDrawArgs2ndPhase));
+				cmd_list->SetRootConstants(1, constants);
+				cmd_list->Dispatch(1, 1, 1);
+
+			}, RGPassType::Compute, RGPassFlags::None);
+
+		struct DrawMeshletsPassData
+		{
+			RGBufferReadOnlyId visible_meshlets;
+			RGBufferIndirectArgsId draw_args;
+		};
+		rg.AddPass<DrawMeshletsPassData>("Draw Meshlets",
+			[=](DrawMeshletsPassData& data, RenderGraphBuilder& builder)
+			{
+				builder.WriteRenderTarget(RG_RES_NAME(GBufferNormal), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteRenderTarget(RG_RES_NAME(GBufferAlbedo), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteRenderTarget(RG_RES_NAME(GBufferEmissive), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.SetViewport(width, height);
+
+				data.visible_meshlets = builder.ReadBuffer(RG_RES_NAME(VisibleMeshlets));
+				data.draw_args = builder.ReadIndirectArgsBuffer(RG_RES_NAME(MeshletDrawArgs));
+			},
+			[=](DrawMeshletsPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			{
+				GfxDevice* gfx = cmd_list->GetDevice();
+
+				GfxDescriptor src_handles[] =
+				{
+					ctx.GetReadOnlyBuffer(data.visible_meshlets)
+				};
+				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
+				gfx->CopyDescriptors(dst_handle, src_handles);
+				uint32 i = dst_handle.GetIndex();
+
+				struct DrawMeshlets1stPhaseConstants
+				{
+					uint32 visible_meshlets_idx;
+				} constants =
+				{
+					.visible_meshlets_idx = i,
+				};
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DrawMeshlets));
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, constants);
+				GfxBuffer const& draw_args = ctx.GetIndirectArgsBuffer(data.draw_args);
+				cmd_list->DispatchMeshIndirect(draw_args, 0);
+			}, RGPassType::Graphics, RGPassFlags::None);
+
+		AddHZBPasses(rg, true);
 	}
 
-	void GPUDrivenRenderer::AddBuildHZBPasses(RenderGraph& rg)
+	void GPUDrivenRenderer::AddHZBPasses(RenderGraph& rg, bool second_phase)
 	{
 		struct InitializeHZBPassData
 		{
 			RGTextureReadOnlyId depth;
 			RGTextureReadWriteId hzb;
 		};
-		rg.AddPass<InitializeHZBPassData>("1st Phase Initialize HZB",
+		rg.AddPass<InitializeHZBPassData>("Initialize HZB",
 			[=](InitializeHZBPassData& data, RenderGraphBuilder& builder)
 			{
 				data.hzb = builder.WriteTexture(RG_RES_NAME(HZB));
@@ -450,14 +741,17 @@ namespace adria
 			RGBufferReadWriteId  spd_counter;
 			RGTextureReadWriteId hzb_mips[12];
 		};
-		rg.AddPass<HZBMipsPassData>("1st Phase HZB Mips",
+		rg.AddPass<HZBMipsPassData>("HZB Mips",
 			[=](HZBMipsPassData& data, RenderGraphBuilder& builder)
 			{
-				RGBufferDesc counter_desc{};
-				counter_desc.size = sizeof(uint32);
-				counter_desc.format = GfxFormat::R32_UINT;
-				counter_desc.stride = sizeof(uint32);
-				builder.DeclareBuffer(RG_RES_NAME(SPDCounter), counter_desc);
+				if (!second_phase)
+				{
+					RGBufferDesc counter_desc{};
+					counter_desc.size = sizeof(uint32);
+					counter_desc.format = GfxFormat::R32_UINT;
+					counter_desc.stride = sizeof(uint32);
+					builder.DeclareBuffer(RG_RES_NAME(SPDCounter), counter_desc);
+				}
 
 				ADRIA_ASSERT(hzb_mip_count <= 12);
 				for (uint32 i = 0; i < hzb_mip_count; ++i)

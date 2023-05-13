@@ -3,11 +3,11 @@
 
 #define BLOCK_SIZE 32
 
-struct DrawMeshlets1stPhaseConstants
+struct DrawMeshletsConstants
 {
 	uint visibleMeshletsIdx;
 };
-ConstantBuffer<DrawMeshlets1stPhaseConstants> PassCB : register(b1);
+ConstantBuffer<DrawMeshletsConstants> PassCB : register(b1);
 
 
 struct VertexOutput
@@ -140,4 +140,28 @@ PixelOutput DrawMeshletsPS(PixelInput In)
 	float3 emissiveColor = txEmissive.Sample(LinearWrapSampler, In.Uvs).rgb;
 	return PackGBuffer(albedoColor.xyz, normalize(In.NormalVS), float4(emissiveColor, material.emissiveFactor),
 		aoRoughnessMetallic.g * material.roughnessFactor, aoRoughnessMetallic.b * material.metallicFactor);
+}
+
+
+struct BuildMeshletDrawArgsConstants
+{
+	uint visibleMeshletsCounterIdx;
+	uint meshletDrawArgsIdx;
+};
+ConstantBuffer<BuildMeshletDrawArgsConstants> PassCB2 : register(b1);
+
+
+[numthreads(1, 1, 1)]
+void BuildMeshletDrawArgsCS()
+{
+	RWBuffer<uint> visibleMeshletsCounter = ResourceDescriptorHeap[PassCB2.visibleMeshletsCounterIdx];
+	RWStructuredBuffer<uint3> meshletDrawArgs = ResourceDescriptorHeap[PassCB2.meshletDrawArgsIdx];
+
+#if !SECOND_PHASE
+	uint numMeshlets = visibleMeshletsCounter[COUNTER_PHASE1_VISIBLE_MESHLETS];
+#else
+	uint numMeshlets = visibleMeshletsCounter[COUNTER_PHASE2_VISIBLE_MESHLETS];
+#endif
+	uint3 args = uint3(ceil(numMeshlets / 1.0f), 1, 1);
+	meshletDrawArgs[0] = args;
 }

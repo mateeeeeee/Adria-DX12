@@ -384,14 +384,29 @@ namespace adria
 				compute_pso_desc.CS = CS_CullInstances1stPhase;
 				compute_pso_map[GfxPipelineStateID::CullInstances1stPhase] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.CS = CS_MeshletCullArgs1stPhase;
+				compute_pso_desc.CS = CS_CullInstances2ndPhase;
+				compute_pso_map[GfxPipelineStateID::CullInstances2ndPhase] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.CS = CS_BuildMeshletCullArgs1stPhase;
 				compute_pso_map[GfxPipelineStateID::BuildMeshletCullArgs1stPhase] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.CS = CS_BuildMeshletCullArgs2ndPhase;
+				compute_pso_map[GfxPipelineStateID::BuildMeshletCullArgs2ndPhase] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
 				compute_pso_desc.CS = CS_CullMeshlets1stPhase;
 				compute_pso_map[GfxPipelineStateID::CullMeshlets1stPhase] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
-				compute_pso_desc.CS = CS_MeshletDrawArgs1stPhase;
+				compute_pso_desc.CS = CS_CullMeshlets2ndPhase;
+				compute_pso_map[GfxPipelineStateID::CullMeshlets2ndPhase] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.CS = CS_BuildMeshletDrawArgs1stPhase;
 				compute_pso_map[GfxPipelineStateID::BuildMeshletDrawArgs1stPhase] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.CS = CS_BuildMeshletDrawArgs2ndPhase;
+				compute_pso_map[GfxPipelineStateID::BuildMeshletDrawArgs2ndPhase] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.CS = CS_BuildInstanceCullArgs;
+				compute_pso_map[GfxPipelineStateID::BuildInstanceCullArgs] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
 				compute_pso_desc.CS = CS_InitializeHZB;
 				compute_pso_map[GfxPipelineStateID::InitializeHZB] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
@@ -405,7 +420,7 @@ namespace adria
 				MeshShaderPipelineStateDesc mesh_pso_desc{};
 				{
 					mesh_pso_desc.root_signature = GfxRootSignatureID::Common;
-					mesh_pso_desc.MS = MS_DrawMeshlets1stPhase;
+					mesh_pso_desc.MS = MS_DrawMeshlets;
 					mesh_pso_desc.PS = PS_DrawMeshlets;
 					mesh_pso_desc.depth_state.depth_enable = true;
 					mesh_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
@@ -415,7 +430,7 @@ namespace adria
 					mesh_pso_desc.rtv_formats[1] = GfxFormat::R8G8B8A8_UNORM;
 					mesh_pso_desc.rtv_formats[2] = GfxFormat::R8G8B8A8_UNORM;
 					mesh_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
-					mesh_pso_map[GfxPipelineStateID::DrawMeshlets1stPhase] = std::make_unique<MeshShaderPipelineState>(gfx, mesh_pso_desc);
+					mesh_pso_map[GfxPipelineStateID::DrawMeshlets] = std::make_unique<MeshShaderPipelineState>(gfx, mesh_pso_desc);
 				}
 			}
 		}

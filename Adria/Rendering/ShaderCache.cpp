@@ -104,17 +104,22 @@ namespace adria
 			case CS_LensFlare2:
 			case CS_ClearCounters:
 			case CS_CullInstances1stPhase:
-			case CS_MeshletCullArgs1stPhase:
+			case CS_CullInstances2ndPhase:
+			case CS_BuildMeshletCullArgs1stPhase:
+			case CS_BuildMeshletCullArgs2ndPhase:
 			case CS_CullMeshlets1stPhase:
+			case CS_CullMeshlets2ndPhase:
+			case CS_BuildMeshletDrawArgs1stPhase:
+			case CS_BuildMeshletDrawArgs2ndPhase:
+			case CS_BuildInstanceCullArgs:
 			case CS_InitializeHZB:
 			case CS_HZBMips:
-			case CS_MeshletDrawArgs1stPhase:
 				return GfxShaderStage::CS;
 			case HS_OceanLOD:
 				return GfxShaderStage::HS;
 			case DS_OceanLOD:
 				return GfxShaderStage::DS;
-			case MS_DrawMeshlets1stPhase:
+			case MS_DrawMeshlets:
 				return GfxShaderStage::MS;
 			case LIB_Shadows:
 			case LIB_SoftShadows:
@@ -254,20 +259,23 @@ namespace adria
 				return "Lighting/ClusterCulling.hlsl";
 			case CS_ClearCounters:
 				return "GpuDrivenRendering/ClearCounters.hlsl";
-			case CS_CullInstances1stPhase:
-				return "GpuDrivenRendering/CullInstances.hlsl";
-			case CS_MeshletCullArgs1stPhase:
-				return "GpuDrivenRendering/MeshletCullArgs.hlsl";
+			case CS_BuildMeshletCullArgs1stPhase:
+			case CS_BuildMeshletCullArgs2ndPhase:
 			case CS_CullMeshlets1stPhase:
+			case CS_CullMeshlets2ndPhase:
 				return "GpuDrivenRendering/CullMeshlets.hlsl";
+			case CS_BuildInstanceCullArgs:
+			case CS_CullInstances1stPhase:
+			case CS_CullInstances2ndPhase:
+				return "GpuDrivenRendering/CullInstances.hlsl";
+			case CS_BuildMeshletDrawArgs1stPhase:
+			case CS_BuildMeshletDrawArgs2ndPhase:
+			case MS_DrawMeshlets:
+			case PS_DrawMeshlets:
+				return "GpuDrivenRendering/DrawMeshlets.hlsl";
 			case CS_InitializeHZB:
 			case CS_HZBMips:
 				return "GpuDrivenRendering/HZB.hlsl";
-			case CS_MeshletDrawArgs1stPhase:
-				return "GpuDrivenRendering/MeshletDrawArgs.hlsl";
-			case MS_DrawMeshlets1stPhase:
-			case PS_DrawMeshlets:
-				return "GpuDrivenRendering/MeshletDraw.hlsl";
 			case LIB_Shadows:
 			case LIB_SoftShadows:
 				return "RayTracing/RayTracedShadows.hlsl";
@@ -288,15 +296,21 @@ namespace adria
 			{
 			case CS_ClearCounters:
 				return "ClearCountersCS";
-			case CS_CullInstances1stPhase:
-				return "CullInstances1stPhaseCS";
-			case CS_MeshletCullArgs1stPhase:
-				return "BuildMeshletCullArgsCS";
-			case CS_MeshletDrawArgs1stPhase:
-				return "BuildMeshletDrawArgsCS";
 			case CS_CullMeshlets1stPhase:
-				return "CullMeshlets1stPhaseCS";
-			case MS_DrawMeshlets1stPhase:
+			case CS_CullMeshlets2ndPhase:
+				return "CullMeshletsCS";
+			case CS_BuildMeshletCullArgs1stPhase:
+			case CS_BuildMeshletCullArgs2ndPhase:
+				return "BuildMeshletCullArgsCS";
+			case CS_CullInstances1stPhase:
+			case CS_CullInstances2ndPhase:
+				return "CullInstancesCS";
+			case CS_BuildInstanceCullArgs:
+				return "BuildInstanceCullArgsCS";
+			case CS_BuildMeshletDrawArgs1stPhase:
+			case CS_BuildMeshletDrawArgs2ndPhase:
+				return "BuildMeshletDrawArgsCS";
+			case MS_DrawMeshlets:
 				return "DrawMeshletsMS";
 			case PS_DrawMeshlets:
 				return "DrawMeshletsPS";
@@ -470,9 +484,11 @@ namespace adria
 				return { {"FIRST_PASS", "1"} };
 			case CS_Clouds_Reprojection:
 				return { {"REPROJECTION", "1"} };
-			case CS_MeshletCullArgs1stPhase:
-			case CS_MeshletDrawArgs1stPhase:
-				return { {"FIRST_PHASE", "1"} };
+			case CS_CullMeshlets2ndPhase:
+			case CS_BuildMeshletCullArgs2ndPhase:
+			case CS_CullInstances2ndPhase:
+			case CS_BuildMeshletDrawArgs2ndPhase:
+				return { {"SECOND_PHASE", "1"} };
 			default:
 				return {};
 			}

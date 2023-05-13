@@ -42,7 +42,7 @@ struct SPDIndices
 ConstantBuffer<SPDIndices> spdIndices : register(b2);
 
 
-#define globallycoherent 
+//#define globallycoherent
 
 #define A_GPU 1
 #define A_HLSL 1
@@ -51,15 +51,15 @@ ConstantBuffer<SPDIndices> spdIndices : register(b2);
 groupshared AF1 spdIntermediate[16][16];
 groupshared AU1 spdCounter;
 
-AF4 SpdLoadSourceImage(ASU2 tex, AU1 slice) 
-{ 
+AF4 SpdLoadSourceImage(ASU2 tex, AU1 slice)
+{
 	RWTexture2D<float> destination0 = ResourceDescriptorHeap[spdIndices.dstIdx[0].x];
 	return destination0[tex];
 }
-AF4 SpdLoad(ASU2 tex, AU1 slice) 
+AF4 SpdLoad(ASU2 tex, AU1 slice)
 {
 	globallycoherent RWTexture2D<float> destination6 = ResourceDescriptorHeap[spdIndices.dstIdx[6].x];
-	return destination6[tex]; 
+	return destination6[tex];
 }
 void SpdStore(ASU2 pix, AF4 value, AU1 mip, AU1 slice)
 {
@@ -73,20 +73,20 @@ void SpdStore(ASU2 pix, AF4 value, AU1 mip, AU1 slice)
 	destination[pix] = value.x;
 }
 
-void SpdIncreaseAtomicCounter(AU1 slice) 
-{ 
+void SpdIncreaseAtomicCounter(AU1 slice)
+{
 	globallycoherent RWBuffer<uint> spdGlobalAtomic = ResourceDescriptorHeap[spdIndices.spdGlobalAtomicIdx];
-	InterlockedAdd(spdGlobalAtomic[slice], 1, spdCounter); 
+	InterlockedAdd(spdGlobalAtomic[slice], 1, spdCounter);
 }
-AU1 SpdGetAtomicCounter() 
-{ 
+AU1 SpdGetAtomicCounter()
+{
 	globallycoherent RWBuffer<uint> spdGlobalAtomic = ResourceDescriptorHeap[spdIndices.spdGlobalAtomicIdx];
-	return spdCounter; 
+	return spdCounter;
 }
-void SpdResetAtomicCounter(AU1 slice) 
-{ 
+void SpdResetAtomicCounter(AU1 slice)
+{
 	globallycoherent RWBuffer<uint> spdGlobalAtomic = ResourceDescriptorHeap[spdIndices.spdGlobalAtomicIdx];
-	spdGlobalAtomic[slice] = 0; 
+	spdGlobalAtomic[slice] = 0;
 }
 
 AF4 SpdLoadIntermediate(AU1 x, AU1 y) { return spdIntermediate[x][y]; }

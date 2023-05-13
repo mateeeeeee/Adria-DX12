@@ -139,74 +139,72 @@ namespace adria
 				CreateBufferViews(buf_id);
 				rg_buffer->SetName();
 			}
-
+			for (auto const& [tex_id, state] : dependency_level.texture_state_map)
 			{
-				for (auto const& [tex_id, state] : dependency_level.texture_state_map)
+				RGTexture* rg_texture = GetRGTexture(tex_id);
+				GfxTexture* texture = rg_texture->resource;
+				if (dependency_level.texture_creates.contains(tex_id))
 				{
-					RGTexture* rg_texture = GetRGTexture(tex_id);
-					GfxTexture* texture = rg_texture->resource;
-					if (dependency_level.texture_creates.contains(tex_id))
-					{
-						if (!HasAllFlags(texture->GetDesc().initial_state, state))
-						{
-							ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
-							cmd_list->TransitionBarrier(*texture, texture->GetDesc().initial_state, state);
-						}
-						continue;
-					}
-					bool found = false;
-					for (int32 j = (int32)i - 1; j >= 0; --j)
-					{
-						auto& prev_dependency_level = dependency_levels[j];
-						if (prev_dependency_level.texture_state_map.contains(tex_id))
-						{
-							ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
-							GfxResourceState prev_state = prev_dependency_level.texture_state_map[tex_id];
-							if (prev_state != state) cmd_list->TransitionBarrier(*texture, prev_state, state);
-							found = true;
-							break;
-						}
-					}
-					if (!found && rg_texture->imported)
+					if (!HasAllFlags(texture->GetDesc().initial_state, state))
 					{
 						ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
-						GfxResourceState prev_state = rg_texture->desc.initial_state;
+						cmd_list->TransitionBarrier(*texture, texture->GetDesc().initial_state, state);
+					}
+					continue;
+				}
+				bool found = false;
+				for (int32 j = (int32)i - 1; j >= 0; --j)
+				{
+					auto& prev_dependency_level = dependency_levels[j];
+					if (prev_dependency_level.texture_state_map.contains(tex_id))
+					{
+						ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
+						GfxResourceState prev_state = prev_dependency_level.texture_state_map[tex_id];
 						if (prev_state != state) cmd_list->TransitionBarrier(*texture, prev_state, state);
+						found = true;
+						break;
 					}
 				}
-				for (auto const& [buf_id, state] : dependency_level.buffer_state_map)
+				if (!found && rg_texture->imported)
 				{
-					RGBuffer* rg_buffer = GetRGBuffer(buf_id);
-					GfxBuffer* buffer = rg_buffer->resource;
-					if (dependency_level.buffer_creates.contains(buf_id))
-					{
-						if (state != GfxResourceState::Common) //check if there is an implicit transition, maybe this can be avoided
-						{
-							ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
-							cmd_list->TransitionBarrier(*buffer, GfxResourceState::Common, state);
-						}
-						continue;
-					}
-					bool found = false;
-					for (int32 j = (int32)i - 1; j >= 0; --j)
-					{
-						auto& prev_dependency_level = dependency_levels[j];
-						if (prev_dependency_level.buffer_state_map.contains(buf_id))
-						{
-							ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
-							GfxResourceState prev_state = prev_dependency_level.buffer_state_map[buf_id];
-							if (prev_state != state) cmd_list->TransitionBarrier(*buffer, prev_state, state);
-							found = true;
-							break;
-						}
-					}
-					if (!found && rg_buffer->imported)
-					{
-						ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
-						if (GfxResourceState::Common != state)cmd_list->TransitionBarrier(*buffer, GfxResourceState::Common, state);
-					}
+					ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
+					GfxResourceState prev_state = rg_texture->desc.initial_state;
+					if (prev_state != state) cmd_list->TransitionBarrier(*texture, prev_state, state);
 				}
 			}
+			for (auto const& [buf_id, state] : dependency_level.buffer_state_map)
+			{
+				RGBuffer* rg_buffer = GetRGBuffer(buf_id);
+				GfxBuffer* buffer = rg_buffer->resource;
+				if (dependency_level.buffer_creates.contains(buf_id))
+				{
+					if (state != GfxResourceState::Common) //check if there is an implicit transition, maybe this can be avoided
+					{
+						ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
+						cmd_list->TransitionBarrier(*buffer, GfxResourceState::Common, state);
+					}
+					continue;
+				}
+				bool found = false;
+				for (int32 j = (int32)i - 1; j >= 0; --j)
+				{
+					auto& prev_dependency_level = dependency_levels[j];
+					if (prev_dependency_level.buffer_state_map.contains(buf_id))
+					{
+						ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
+						GfxResourceState prev_state = prev_dependency_level.buffer_state_map[buf_id];
+						if (prev_state != state) cmd_list->TransitionBarrier(*buffer, prev_state, state);
+						found = true;
+						break;
+					}
+				}
+				if (!found && rg_buffer->imported)
+				{
+					ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
+					if (GfxResourceState::Common != state)cmd_list->TransitionBarrier(*buffer, GfxResourceState::Common, state);
+				}
+			}
+
 			cmd_list->FlushBarriers();
 			dependency_level.Execute(gfx, cmd_list);
 
