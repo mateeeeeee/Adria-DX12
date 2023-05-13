@@ -249,8 +249,8 @@ namespace adria
 		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 		barrier.Transition.pResource = resource.GetNative();
 		barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-		barrier.Transition.StateBefore = ConvertToD3D12ResourceState(old_state);
-		barrier.Transition.StateAfter = ConvertToD3D12ResourceState(new_state);
+		barrier.Transition.StateBefore = ConvertGfxResourceStateToD3D12(old_state);
+		barrier.Transition.StateAfter = ConvertGfxResourceStateToD3D12(new_state);
 		pending_barriers.push_back(barrier);
 	}
 
@@ -260,8 +260,8 @@ namespace adria
 		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 		barrier.Transition.pResource = resource.GetNative();
 		barrier.Transition.Subresource = subresource;
-		barrier.Transition.StateBefore = ConvertToD3D12ResourceState(old_state);
-		barrier.Transition.StateAfter = ConvertToD3D12ResourceState(new_state);
+		barrier.Transition.StateBefore = ConvertGfxResourceStateToD3D12(old_state);
+		barrier.Transition.StateAfter = ConvertGfxResourceStateToD3D12(new_state);
 		pending_barriers.push_back(barrier);
 	}
 

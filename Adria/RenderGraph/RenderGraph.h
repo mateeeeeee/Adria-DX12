@@ -70,6 +70,7 @@ namespace adria
 		RGBlackboard const& GetBlackboard() const { return blackboard; }
 		RGBlackboard& GetBlackboard() { return blackboard; }
 
+		void DumpDebugData();
 	private:
 		RGResourcePool& pool;
 		GfxDevice* gfx;

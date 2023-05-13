@@ -1,12 +1,11 @@
-#include <algorithm>
-#include <optional>
-#include <d3d12.h>
-#include "pix3.h"
+#include <format>
+#include <pix3.h>
 #include "RenderGraph.h"
 #include "Graphics/GfxCommandList.h"
 #include "Graphics/GfxRenderPass.h"
 #include "Graphics/GPUProfiler.h"
 #include "Utilities/StringUtil.h"
+#include "Logging/Logger.h"
 
 
 #if GPU_MULTITHREADED
@@ -104,6 +103,7 @@ namespace adria
 		BuildDependencyLevels();
 		CullPasses();
 		CalculateResourcesLifetime();
+		for (auto& dependency_level : dependency_levels) dependency_level.Setup();
 	}
 
 	void RenderGraph::Execute()
@@ -118,8 +118,6 @@ namespace adria
 	void RenderGraph::Execute_Singlethreaded()
 	{
 		pool.Tick();
-
-		for (auto& dependency_level : dependency_levels) dependency_level.Setup();
 
 		GfxCommandList* cmd_list = gfx->GetGraphicsCommandList();
 		for (size_t i = 0; i < dependency_levels.size(); ++i)
@@ -1013,5 +1011,76 @@ namespace adria
 	{
 		ADRIA_ASSERT_MSG(false, "Not yet implemented");
 	}
+
+	void RenderGraph::DumpDebugData()
+	{
+		std::string render_graph_data = "";
+		render_graph_data += "Passes: \n";
+		for (size_t i = 0; i < passes.size(); ++i)
+		{
+			auto& pass = passes[i];
+			render_graph_data += std::format("Pass {}: {}\n", i, pass->name);
+			render_graph_data += "\nTexture usage:\n";
+			for (auto [tex_id, state] : pass->texture_state_map)
+			{
+				render_graph_data += std::format("Texture ID: {}, State: {}\n", tex_id.id, ConvertGfxResourceStateToString(state));
+			}
+			render_graph_data += "\nBuffer usage:\n";
+			for (auto [buf_id, state] : pass->buffer_state_map)
+			{
+				render_graph_data += std::format("Buffer ID: {}, State: {}\n", buf_id.id, ConvertGfxResourceStateToString(state));
+			}
+			render_graph_data += "\n";
+		}
+
+		render_graph_data += "\nAdjacency lists: \n";
+		for (size_t i = 0; i < adjacency_lists.size(); ++i)
+		{
+			auto& list = adjacency_lists[i];
+			render_graph_data += std::format("{}. {}'s adjacency list: ", i, passes[i]->name);
+			for (auto j : list) render_graph_data += std::format(" {} ", j);
+			render_graph_data += "\n";
+		}
+
+		render_graph_data += "\nTopologically sorted passes: \n";
+		for (size_t i = 0; i < topologically_sorted_passes.size(); ++i)
+		{
+			auto& topologically_sorted_pass = topologically_sorted_passes[i];
+			render_graph_data += std::format("{}. : {}\n", i, passes[topologically_sorted_pass]->name);
+		}
+
+		render_graph_data += "\nDependency levels: \n";
+		for (size_t i = 0; i < dependency_levels.size(); ++i)
+		{
+			auto& level = dependency_levels[i];
+			render_graph_data += std::format("Dependency level {}: \n", i);
+			for(auto pass : level.passes) render_graph_data += std::format("{}\n", pass->name);
+			render_graph_data += "\nTexture usage:\n";
+			for (auto [tex_id, state] : level.texture_state_map)
+			{
+				render_graph_data += std::format("Texture ID: {}, State: {}\n", tex_id.id, ConvertGfxResourceStateToString(state));
+			}
+			render_graph_data += "\nBuffer usage:\n";
+			for (auto [buf_id, state] : level.buffer_state_map)
+			{
+				render_graph_data += std::format("Buffer ID: {}, State: {}\n", buf_id.id, ConvertGfxResourceStateToString(state));
+			}
+			render_graph_data += "\n";
+		}
+		render_graph_data += "\nTextures: \n";
+		for (size_t i = 0; i < textures.size(); ++i)
+		{
+			auto& texture = textures[i];
+			render_graph_data += std::format("Texture: id = {}, name = {}, last used by: {} \n", texture->id, texture->name, texture->last_used_by->name);
+		}
+		render_graph_data += "\nBuffers: \n";
+		for (size_t i = 0; i < buffers.size(); ++i)
+		{
+			auto& buffer = buffers[i];
+			render_graph_data += std::format("Buffer: id = {}, name = {}, last used by: {} \n", buffer->id, buffer->name, buffer->last_used_by->name);
+		}
+		ADRIA_LOG(DEBUG, "[RenderGraph]\n%s", render_graph_data.c_str());
+	}
+
 }
 

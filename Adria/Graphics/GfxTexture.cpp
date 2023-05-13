@@ -112,7 +112,7 @@ namespace adria
 			clear_value_ptr = &clear_value;
 		}
 
-		D3D12_RESOURCE_STATES resource_state = ConvertToD3D12ResourceState(desc.initial_state);
+		D3D12_RESOURCE_STATES resource_state = ConvertGfxResourceStateToD3D12(desc.initial_state);
 		if (initial_data != nullptr)
 		{
 			resource_state = D3D12_RESOURCE_STATE_COMMON;

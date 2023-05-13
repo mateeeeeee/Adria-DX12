@@ -797,7 +797,7 @@ namespace adria
 		}
 		sky_pass.AddComputeSkyPass(render_graph, sun_direction);
 
-		//if(gfx->GetCapabilities().SupportsMeshShaders()) gpu_driven_renderer.Render(render_graph);
+		//if (gfx->GetCapabilities().SupportsMeshShaders()) gpu_driven_renderer.Render(render_graph);
 		//else
 		gbuffer_pass.AddPass(render_graph);
 

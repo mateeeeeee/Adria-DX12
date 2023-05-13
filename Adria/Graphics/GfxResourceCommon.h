@@ -30,7 +30,7 @@ namespace adria
 	enum class GfxResourceUsage : uint8
 	{
 		Default,
-		Upload,	   
+		Upload,
 		Readback
 	};
 
@@ -87,7 +87,7 @@ namespace adria
 	{
 		return true;
 	}
-	inline constexpr D3D12_RESOURCE_STATES ConvertToD3D12ResourceState(GfxResourceState state)
+	inline constexpr D3D12_RESOURCE_STATES ConvertGfxResourceStateToD3D12(GfxResourceState state)
 	{
 		D3D12_RESOURCE_STATES api_state = D3D12_RESOURCE_STATE_COMMON;
 		if (HasAnyFlag(state, GfxResourceState::VertexAndConstantBuffer)) api_state |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
@@ -104,6 +104,25 @@ namespace adria
 		if (HasAnyFlag(state, GfxResourceState::Present)) api_state |= D3D12_RESOURCE_STATE_PRESENT;
 		if (HasAnyFlag(state, GfxResourceState::RaytracingAccelerationStructure)) api_state |= D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
 		return api_state;
+	}
+	inline constexpr std::string ConvertGfxResourceStateToString(GfxResourceState state)
+	{
+		std::string resource_state_string = "";
+		if (HasAnyFlag(state, GfxResourceState::VertexAndConstantBuffer)) resource_state_string += "D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER |";
+		if (HasAnyFlag(state, GfxResourceState::IndexBuffer)) resource_state_string += "D3D12_RESOURCE_STATE_INDEX_BUFFER |";
+		if (HasAnyFlag(state, GfxResourceState::RenderTarget)) resource_state_string += "D3D12_RESOURCE_STATE_RENDER_TARGET |";
+		if (HasAnyFlag(state, GfxResourceState::UnorderedAccess)) resource_state_string += "D3D12_RESOURCE_STATE_UNORDERED_ACCESS |";
+		if (HasAnyFlag(state, GfxResourceState::DepthWrite)) resource_state_string += "D3D12_RESOURCE_STATE_DEPTH_WRITE |";
+		if (HasAnyFlag(state, GfxResourceState::DepthRead)) resource_state_string += "D3D12_RESOURCE_STATE_DEPTH_READ |";
+		if (HasAnyFlag(state, GfxResourceState::NonPixelShaderResource)) resource_state_string += "D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE |";
+		if (HasAnyFlag(state, GfxResourceState::PixelShaderResource)) resource_state_string += "D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE |";
+		if (HasAnyFlag(state, GfxResourceState::IndirectArgument)) resource_state_string += "D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT |";
+		if (HasAnyFlag(state, GfxResourceState::CopyDest)) resource_state_string += "D3D12_RESOURCE_STATE_COPY_DEST |";
+		if (HasAnyFlag(state, GfxResourceState::CopySource)) resource_state_string += "D3D12_RESOURCE_STATE_COPY_SOURCE |";
+		if (HasAnyFlag(state, GfxResourceState::Present)) resource_state_string += "D3D12_RESOURCE_STATE_PRESENT |";
+		if (HasAnyFlag(state, GfxResourceState::RaytracingAccelerationStructure)) resource_state_string += "D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE |";
+		if (!resource_state_string.empty()) resource_state_string.pop_back();
+		return resource_state_string.empty() ? "Common" : resource_state_string;
 	}
 
 	struct GfxClearValue
