@@ -15,6 +15,8 @@ struct CullMeshletsConstants
 };
 ConstantBuffer<CullMeshletsConstants> PassCB : register(b1);
 
+
+
 [numthreads(BLOCK_SIZE, 1, 1)]
 void CullMeshletsCS(uint threadId : SV_DispatchThreadID)
 {
@@ -23,9 +25,17 @@ void CullMeshletsCS(uint threadId : SV_DispatchThreadID)
 	RWBuffer<uint> visibleMeshletsCounter = ResourceDescriptorHeap[PassCB.visibleMeshletsCounterIdx];
 	RWStructuredBuffer<MeshletCandidate> visibleMeshlets = ResourceDescriptorHeap[PassCB.visibleMeshletsIdx];
 
-	if (threadId >= candidateMeshletsCounter[COUNTER_PHASE1_CANDIDATE_MESHLETS]) return;
+#if SECOND_PHASE
+	uint candidateMeshletCounterIdx = COUNTER_PHASE2_CANDIDATE_MESHLETS;
+	uint candidateIndexOffset = candidateMeshletsCounter[COUNTER_PHASE1_CANDIDATE_MESHLETS];
+#else
+	uint candidateMeshletCounterIdx = COUNTER_PHASE1_CANDIDATE_MESHLETS;
+	uint candidateIndexOffset = 0;
+#endif
 
-	uint candidateIndex = threadId;
+	if (threadId >= candidateMeshletsCounter[candidateMeshletCounterIdx]) return;
+
+	uint candidateIndex = threadId + candidateIndexOffset;
 	MeshletCandidate candidate = candidateMeshlets[candidateIndex];
 	Instance instance = GetInstanceData(candidate.instanceID);
 	Mesh mesh = GetMeshData(instance.meshIndex);

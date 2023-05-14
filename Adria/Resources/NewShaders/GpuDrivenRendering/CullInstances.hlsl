@@ -19,7 +19,13 @@ ConstantBuffer<CullInstancesConstants> PassCB : register(b1);
 [numthreads(BLOCK_SIZE, 1, 1)]
 void CullInstancesCS(uint threadId : SV_DispatchThreadID)
 {
-	if (threadId >= PassCB.numInstances) return;
+#if !SECOND_PHASE
+	uint numInstances = PassCB.numInstances;
+#else
+	Buffer<uint> occludedInstancesCounter = ResourceDescriptorHeap[PassCB.occludedInstancesCounterIdx];
+	uint numInstances = occludedInstancesCounter[0];
+#endif
+	if (threadId >= numInstances) return;
 
 	Instance instance = GetInstanceData(threadId);
 	Mesh mesh = GetMeshData(instance.meshIndex);
