@@ -108,12 +108,6 @@ namespace adria
 
 	void RenderGraph::Execute()
 	{
-		static bool dump = true;
-		if (dump)
-		{
-			DumpDebugData();
-			dump = false;
-		}
 #if RG_MULTITHREADED
 		Execute_Multithreaded();
 #else
