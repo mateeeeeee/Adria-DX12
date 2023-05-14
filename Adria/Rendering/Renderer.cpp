@@ -320,6 +320,7 @@ namespace adria
 			width = w; height = h;
 			CreateSizeDependentResources();
 			gbuffer_pass.OnResize(w, h);
+			gpu_driven_renderer.OnResize(w, h);
 			ambient_pass.OnResize(w, h);
 			ssao_pass.OnResize(w, h);
 			hbao_pass.OnResize(w, h);
