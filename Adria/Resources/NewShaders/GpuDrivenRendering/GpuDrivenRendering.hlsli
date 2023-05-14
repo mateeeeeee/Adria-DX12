@@ -135,16 +135,14 @@ bool HZBCull(FrustumCullData cullData, Texture2D<float> hzbTexture)
 
 	static const uint hzbTexelCoverage = 4;
 
-	// Convert NDC to UV
 	float4 rect = saturate(float4(cullData.rectMin.xy, cullData.rectMax.xy) * float2(0.5f, -0.5f).xyxy + 0.5f).xwzy;
-	// Convert to texel indices. Contract bounds to only account for the area overlapping texel centres
 	int4 rectPixels = int4(rect * hzbDimensions.xyxy + float4(0.5f, 0.5f, -0.5f, -0.5f));
 	rectPixels = int4(rectPixels.xy, max(rectPixels.xy, rectPixels.zw));
 	int mip = ComputeHZBMip(rectPixels, hzbTexelCoverage);
 	rectPixels >>= mip;
 	float2 texelSize = 1.0f / hzbDimensions * (1u << mip);
 
-	float maxDepth = cullData.rectMax.z;
+	float minDepth = cullData.rectMin.z;
 	float depth = 0;
 
 	if (hzbTexelCoverage == 4)
@@ -190,7 +188,7 @@ bool HZBCull(FrustumCullData cullData, Texture2D<float> hzbTexture)
 		depth = max(depth00, depth10, depth01, depth11);
 	}
 
-	bool isOccluded = depth > maxDepth;
+	bool isOccluded = depth < minDepth;
 	return cullData.isVisible && !isOccluded;
 }
 

@@ -34,7 +34,7 @@ namespace adria
 	{
 		AddClearCountersPass(rg);
 		Add1stPhasePasses(rg);
-		//Add2ndPhasePasses(rg);
+		Add2ndPhasePasses(rg);
 		AddGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("GPU Driven Rendering", ImGuiTreeNodeFlags_OpenOnDoubleClick))
@@ -702,7 +702,9 @@ namespace adria
 			RGTextureReadOnlyId depth;
 			RGTextureReadWriteId hzb;
 		};
-		rg.AddPass<InitializeHZBPassData>("Initialize HZB",
+		std::string hzb_init_name = "HZB Init ";
+		hzb_init_name += (second_phase ? "2nd phase" : "1st phase");
+		rg.AddPass<InitializeHZBPassData>(hzb_init_name.c_str(),
 			[=](InitializeHZBPassData& data, RenderGraphBuilder& builder)
 			{
 				data.hzb = builder.WriteTexture(RG_RES_NAME(HZB));
@@ -743,7 +745,10 @@ namespace adria
 			RGBufferReadWriteId  spd_counter;
 			RGTextureReadWriteId hzb_mips[12];
 		};
-		rg.AddPass<HZBMipsPassData>("HZB Mips",
+
+		std::string hzb_mips_name = "HZB Mips ";
+		hzb_mips_name += (second_phase ? "2nd phase" : "1st phase");
+		rg.AddPass<HZBMipsPassData>(hzb_mips_name.c_str(),
 			[=](HZBMipsPassData& data, RenderGraphBuilder& builder)
 			{
 				if (!second_phase)
