@@ -13,6 +13,7 @@
 #define OCCLUSION_CULL 0
 #endif
 
+
 struct CullMeshletsConstants
 {
 	uint hzbIdx;

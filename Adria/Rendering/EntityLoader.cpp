@@ -544,6 +544,7 @@ namespace adria
 				tinygltf::Texture const& base_texture = model.textures[pbr_metallic_roughness.baseColorTexture.index];
 				tinygltf::Image const& base_image = model.images[base_texture.source];
 				std::string texbase = params.textures_path + base_image.uri;
+
 				material.albedo_texture = g_TextureManager.LoadTexture(ToWideString(texbase));
 				material.base_color[0] = (float)pbr_metallic_roughness.baseColorFactor[0];
 				material.base_color[1] = (float)pbr_metallic_roughness.baseColorFactor[1];
@@ -625,13 +626,13 @@ namespace adria
 				switch (stride)
 				{
 				case 1:
-					AddIndices.template operator() < uint8 > ();
+					AddIndices.template operator()<uint8>();
 					break;
 				case 2:
-					AddIndices.template operator() < uint16 > ();
+					AddIndices.template operator()<uint16>();
 					break;
 				case 4:
-					AddIndices.template operator() < uint32 > ();
+					AddIndices.template operator()<uint32>();
 					break;
 				default:
 					ADRIA_ASSERT(false);

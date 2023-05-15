@@ -133,7 +133,7 @@ bool HZBCull(FrustumCullData cullData, Texture2D<float> hzbTexture)
 	uint hzbMipCount;
 	hzbTexture.GetDimensions(0, hzbDimensions.x, hzbDimensions.y, hzbMipCount);
 
-	static const uint hzbTexelCoverage = 4;
+	static const uint hzbTexelCoverage = 2;
 
 	float4 rect = saturate(float4(cullData.rectMin.xy, cullData.rectMax.xy) * float2(0.5f, -0.5f).xyxy + 0.5f).xwzy;
 	int4 rectPixels = int4(rect * hzbDimensions.xyxy + float4(0.5f, 0.5f, -0.5f, -0.5f));
@@ -143,7 +143,7 @@ bool HZBCull(FrustumCullData cullData, Texture2D<float> hzbTexture)
 	float2 texelSize = 1.0f / hzbDimensions * (1u << mip);
 
 	float minDepth = cullData.rectMin.z;
-	float depth = 0;
+	float depth = 1.0f;
 
 	if (hzbTexelCoverage == 4)
 	{

@@ -13,6 +13,7 @@
 #define OCCLUSION_CULL 0
 #endif
 
+
 struct CullInstancesConstants
 {
 	uint numInstances;
@@ -51,7 +52,11 @@ void CullInstancesCS(uint threadId : SV_DispatchThreadID)
 		Texture2D<float> hzbTx = ResourceDescriptorHeap[PassCB.hzbIdx];
 #if !SECOND_PHASE
 		FrustumCullData prevCullData = FrustumCull(instance.bbOrigin, instance.bbExtents, instance.worldMatrix, FrameCB.prevViewProjection);
-		wasOccluded = !HZBCull(prevCullData, hzbTx);
+		if (prevCullData.isVisible)
+		{
+			wasOccluded = !HZBCull(prevCullData, hzbTx);
+		}
+
 		if (wasOccluded)
 		{
 			RWBuffer<uint> occludedInstancesCounter = ResourceDescriptorHeap[PassCB.occludedInstancesCounterIdx];
@@ -79,6 +84,10 @@ void CullInstancesCS(uint threadId : SV_DispatchThreadID)
 
 		uint elementOffset;
 		InterlockedAdd(candidateMeshletsCounter[COUNTER_PHASE1_CANDIDATE_MESHLETS], numMeshletsToAdd, elementOffset);
+
+#if SECOND_PHASE
+		elementOffset += candidateMeshletsCounter[COUNTER_PHASE1_VISIBLE_MESHLETS];
+#endif
 		for (uint i = 0; i < numMeshletsToAdd; ++i)
 		{
 			MeshletCandidate meshlet;
