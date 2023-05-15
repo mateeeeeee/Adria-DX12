@@ -5,6 +5,14 @@
 
 #define BLOCK_SIZE 64
 
+#ifndef SECOND_PHASE
+#define SECOND_PHASE 0
+#endif
+
+#ifndef OCCLUSION_CULL
+#define OCCLUSION_CULL 0
+#endif
+
 struct CullMeshletsConstants
 {
 	uint hzbIdx;
@@ -27,15 +35,14 @@ void CullMeshletsCS(uint threadId : SV_DispatchThreadID)
 
 #if SECOND_PHASE
 	uint candidateMeshletCounterIdx = COUNTER_PHASE2_CANDIDATE_MESHLETS;
-	uint candidateIndexOffset = candidateMeshletsCounter[COUNTER_PHASE1_CANDIDATE_MESHLETS];
+	uint candidateIndex = threadId + candidateMeshletsCounter[COUNTER_PHASE1_CANDIDATE_MESHLETS];
 #else
 	uint candidateMeshletCounterIdx = COUNTER_PHASE1_CANDIDATE_MESHLETS;
-	uint candidateIndexOffset = 0;
+	uint candidateIndex = threadId;
 #endif
 
 	if (threadId >= candidateMeshletsCounter[candidateMeshletCounterIdx]) return;
 
-	uint candidateIndex = threadId + candidateIndexOffset;
 	MeshletCandidate candidate = candidateMeshlets[candidateIndex];
 	Instance instance = GetInstanceData(candidate.instanceID);
 	Mesh mesh = GetMeshData(instance.meshIndex);
@@ -44,7 +51,7 @@ void CullMeshletsCS(uint threadId : SV_DispatchThreadID)
 	bool isVisible = cullData.isVisible;
 	bool wasOccluded = false;
 
-#if 0
+#if OCCLUSION_CULL
 	if (isVisible)
 	{
 		Texture2D<float> hzbTx = ResourceDescriptorHeap[PassCB.hzbIdx];

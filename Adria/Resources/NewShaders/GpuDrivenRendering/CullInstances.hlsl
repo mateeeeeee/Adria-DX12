@@ -5,6 +5,14 @@
 
 #define BLOCK_SIZE 64
 
+#ifndef SECOND_PHASE
+#define SECOND_PHASE 0
+#endif
+
+#ifndef OCCLUSION_CULL
+#define OCCLUSION_CULL 0
+#endif
+
 struct CullInstancesConstants
 {
 	uint numInstances;
@@ -21,20 +29,23 @@ void CullInstancesCS(uint threadId : SV_DispatchThreadID)
 {
 #if !SECOND_PHASE
 	uint numInstances = PassCB.numInstances;
+	uint instanceIndex = threadId;
 #else
 	Buffer<uint> occludedInstancesCounter = ResourceDescriptorHeap[PassCB.occludedInstancesCounterIdx];
+	StructuredBuffer<uint> occludedInstances = ResourceDescriptorHeap[PassCB.occludedInstancesIdx];
 	uint numInstances = occludedInstancesCounter[0];
+	uint instanceIndex = occludedInstances[threadId];
 #endif
 	if (threadId >= numInstances) return;
 
-	Instance instance = GetInstanceData(threadId);
+	Instance instance = GetInstanceData(instanceIndex);
 	Mesh mesh = GetMeshData(instance.meshIndex);
 
 	FrustumCullData cullData = FrustumCull(instance.bbOrigin, instance.bbExtents, instance.worldMatrix, FrameCB.viewProjection);
 	bool isVisible = cullData.isVisible;
 	bool wasOccluded = false;
 
-#if 0
+#if OCCLUSION_CULL
 	if (isVisible)
 	{
 		Texture2D<float> hzbTx = ResourceDescriptorHeap[PassCB.hzbIdx];
