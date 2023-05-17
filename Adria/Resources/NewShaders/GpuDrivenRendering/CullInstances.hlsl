@@ -10,7 +10,7 @@
 #endif
 
 #ifndef OCCLUSION_CULL
-#define OCCLUSION_CULL 0
+#define OCCLUSION_CULL 1
 #endif
 
 

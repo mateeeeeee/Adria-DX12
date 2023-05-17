@@ -8,7 +8,9 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 	- Automatic resource bind flags and initial state deduction
 	- Pass culling
 * Reference path tracer 
-* GPU-Driven Rendering (wip)
+* GPU-Driven Rendering
+    - GPU frustum culling
+    - 2 phase GPU occlusion culling
 * Tiled deferred rendering 
 * Clustered deferred rendering
 * Physically based shading

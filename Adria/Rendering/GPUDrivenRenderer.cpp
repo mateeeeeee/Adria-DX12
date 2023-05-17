@@ -27,6 +27,7 @@ namespace adria
 
 	GPUDrivenRenderer::GPUDrivenRenderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), width(width), height(height)
 	{
+		CreateDebugBuffer();
 		InitializeHZB();
 	}
 
@@ -35,14 +36,31 @@ namespace adria
 		AddClearCountersPass(rg);
 		Add1stPhasePasses(rg);
 		Add2ndPhasePasses(rg);
+		//AddDebugPass(rg);
+
 		AddGUI([&]()
 			{
 				if (ImGui::TreeNodeEx("GPU Driven Rendering", ImGuiTreeNodeFlags_OpenOnDoubleClick))
 				{
-					ImGui::Checkbox("Power", &occlusion_culling);
+					ImGui::Checkbox("Occlusion Cull", &occlusion_culling);
+					ImGui::Checkbox("Display Debug Stats", &display_debug_stats);
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
+
+				//if (ImGui::Begin("GPU Driven Debug Stats") && display_debug_stats)
+				//{
+				//	DebugStats _debug_stats = debug_stats[gfx->BackbufferIndex()];
+				//	ImGui::Text("Total Instances: %d", _debug_stats.num_instances);
+				//	ImGui::Text("Occluded Instances: %d", _debug_stats.occluded_instances);
+				//	ImGui::Text("Visible Instances: %d", _debug_stats.visible_instances);
+				//	ImGui::Text("Phase 1 Candidate Meshlets: %d", _debug_stats.phase1_candidate_meshlets);
+				//	ImGui::Text("Phase 1 Visible Meshlets: %d", _debug_stats.phase1_visible_meshlets);
+				//	ImGui::Text("Phase 2 Candidate Meshlets: %d", _debug_stats.phase2_candidate_meshlets);
+				//	ImGui::Text("Phase 2 Visible Meshlets: %d", _debug_stats.phase2_visible_meshlets);
+				//	ImGui::Text("Processed Meshlets: %d", _debug_stats.processed_meshlets);
+				//}
+				//ImGui::End();
 			}
 		);
 	}
@@ -55,7 +73,7 @@ namespace adria
 		hzb_desc.width = hzb_width;
 		hzb_desc.height = hzb_height;
 		hzb_desc.mip_levels = hzb_mip_count;
-		hzb_desc.format = GfxFormat::R16_FLOAT;
+		hzb_desc.format = GfxFormat::R32_FLOAT;
 		hzb_desc.initial_state = GfxResourceState::NonPixelShaderResource;
 		hzb_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
 
@@ -123,7 +141,6 @@ namespace adria
 		rg.ImportTexture(RG_RES_NAME(HZB), HZB.get());
 
 		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
-
 		struct CullInstancesPassData
 		{
 			RGTextureReadOnlyId hzb;
@@ -187,7 +204,8 @@ namespace adria
 					.candidate_meshlets_idx = i + 3,
 					.candidate_meshlets_counter_idx = i + 4,
 				};
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::CullInstances1stPhase));
+				GfxPipelineStateID pso_id = occlusion_culling ? GfxPipelineStateID::CullInstances1stPhase : GfxPipelineStateID::CullInstances1stPhase_NoOcclusionCull;
+				cmd_list->SetPipelineState(PSOCache::Get(pso_id));
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch((uint32)std::ceil(num_instances / 64.0f), 1, 1);
@@ -295,7 +313,9 @@ namespace adria
 					.visible_meshlets_idx = i + 3,
 					.visible_meshlets_counter_idx = i + 4,
 				};
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::CullMeshlets1stPhase));
+
+				GfxPipelineStateID pso_id = occlusion_culling ? GfxPipelineStateID::CullMeshlets1stPhase : GfxPipelineStateID::CullMeshlets1stPhase_NoOcclusionCull;
+				cmd_list->SetPipelineState(PSOCache::Get(pso_id));
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 
@@ -413,6 +433,8 @@ namespace adria
 
 	void GPUDrivenRenderer::Add2ndPhasePasses(RenderGraph& rg)
 	{
+		if (!occlusion_culling) return;
+
 		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
 		struct BuildInstanceCullArgsPassData
 		{
@@ -697,6 +719,8 @@ namespace adria
 
 	void GPUDrivenRenderer::AddHZBPasses(RenderGraph& rg, bool second_phase)
 	{
+		if (!occlusion_culling) return;
+
 		struct InitializeHZBPassData
 		{
 			RGTextureReadOnlyId depth;
@@ -828,6 +852,58 @@ namespace adria
 			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
 	}
 
+	void GPUDrivenRenderer::AddDebugPass(RenderGraph& rg)
+	{
+		if (!display_debug_stats) return;
+
+		struct GPUDrivenDebugPassData
+		{
+			RGBufferCopySrcId  candidate_meshlets_counter;
+			RGBufferCopySrcId  visible_meshlets_counter;
+			RGBufferCopySrcId  occluded_instances_counter;
+			RGBufferCopyDstId  debug_buffer;
+		};
+
+		rg.ImportBuffer(RG_RES_NAME(GPUDrivenDebugBuffer), debug_buffer.get());
+
+		rg.AddPass<GPUDrivenDebugPassData>("GPU Driven Debug Pass",
+			[=](GPUDrivenDebugPassData& data, RenderGraphBuilder& builder)
+			{
+				data.debug_buffer = builder.WriteCopyDstBuffer(RG_RES_NAME(GPUDrivenDebugBuffer));
+				data.candidate_meshlets_counter = builder.ReadCopySrcBuffer(RG_RES_NAME(CandidateMeshletsCounter));
+				data.visible_meshlets_counter = builder.ReadCopySrcBuffer(RG_RES_NAME(VisibleMeshletsCounter));
+				data.occluded_instances_counter = builder.ReadCopySrcBuffer(RG_RES_NAME(OccludedInstancesCounter));
+			},
+			[&](GPUDrivenDebugPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
+			{
+				GfxBuffer const& src_buffer1 = context.GetCopySrcBuffer(data.occluded_instances_counter);
+				GfxBuffer const& src_buffer2 = context.GetCopySrcBuffer(data.visible_meshlets_counter);
+				GfxBuffer const& src_buffer3 = context.GetCopySrcBuffer(data.candidate_meshlets_counter);
+				GfxBuffer& debug_buffer = context.GetCopyDstBuffer(data.debug_buffer);
+
+				uint32 backbuffer_index = gfx->BackbufferIndex();
+				uint32 buffer_offset = 6 * sizeof(uint32) * backbuffer_index;
+				cmd_list->CopyBuffer(debug_buffer, buffer_offset, src_buffer1, 0, sizeof(uint32));
+				cmd_list->CopyBuffer(debug_buffer, buffer_offset + sizeof(uint32), src_buffer2, 0, 2 * sizeof(uint32));
+				cmd_list->CopyBuffer(debug_buffer, buffer_offset + 3 * sizeof(uint32), src_buffer3, 0, 3 * sizeof(uint32));
+
+				ADRIA_ASSERT(debug_buffer.IsMapped());
+				uint32* buffer_data = debug_buffer.GetMappedData<uint32>();
+				buffer_data += 6 * backbuffer_index;
+				uint32 num_instances = (uint32)reg.view<Batch>().size();
+				debug_stats[backbuffer_index].occluded_instances = buffer_data[0];
+				debug_stats[backbuffer_index].num_instances = num_instances;
+				debug_stats[backbuffer_index].visible_instances = num_instances - buffer_data[0];
+				debug_stats[backbuffer_index].processed_meshlets = buffer_data[3];
+				debug_stats[backbuffer_index].phase1_candidate_meshlets = buffer_data[4];
+				debug_stats[backbuffer_index].phase2_candidate_meshlets = buffer_data[5];
+				debug_stats[backbuffer_index].phase1_visible_meshlets = buffer_data[1];
+				debug_stats[backbuffer_index].phase2_visible_meshlets = buffer_data[2];
+
+			}, RGPassType::Copy, RGPassFlags::ForceNoCull);
+
+	}
+
 	void GPUDrivenRenderer::CalculateHZBParameters()
 	{
 		uint32 mips_x = (uint32)std::max(ceilf(log2f((float)width)), 1.0f);
@@ -838,4 +914,16 @@ namespace adria
 		hzb_width = 1 << (mips_x - 1);
 		hzb_height = 1 << (mips_y - 1);
 	}
+
+	void GPUDrivenRenderer::CreateDebugBuffer()
+	{
+		GfxBufferDesc debug_buffer_desc{};
+		debug_buffer_desc.size = 6 * sizeof(uint32) * gfx->BackbufferCount();
+		debug_buffer_desc.format = GfxFormat::R32_UINT;
+		debug_buffer_desc.stride = sizeof(uint32);
+		debug_buffer_desc.resource_usage = GfxResourceUsage::Readback;
+
+		debug_buffer = std::make_unique<GfxBuffer>(gfx, debug_buffer_desc);
+	}
+
 }

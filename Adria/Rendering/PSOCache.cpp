@@ -384,6 +384,9 @@ namespace adria
 				compute_pso_desc.CS = CS_CullInstances1stPhase;
 				compute_pso_map[GfxPipelineStateID::CullInstances1stPhase] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
+				compute_pso_desc.CS = CS_CullInstances1stPhase_NoOcclusionCull;
+				compute_pso_map[GfxPipelineStateID::CullInstances1stPhase_NoOcclusionCull] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
 				compute_pso_desc.CS = CS_CullInstances2ndPhase;
 				compute_pso_map[GfxPipelineStateID::CullInstances2ndPhase] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
@@ -395,6 +398,9 @@ namespace adria
 
 				compute_pso_desc.CS = CS_CullMeshlets1stPhase;
 				compute_pso_map[GfxPipelineStateID::CullMeshlets1stPhase] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.CS = CS_CullMeshlets1stPhase_NoOcclusionCull;
+				compute_pso_map[GfxPipelineStateID::CullMeshlets1stPhase_NoOcclusionCull] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 
 				compute_pso_desc.CS = CS_CullMeshlets2ndPhase;
 				compute_pso_map[GfxPipelineStateID::CullMeshlets2ndPhase] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);

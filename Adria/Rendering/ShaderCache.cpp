@@ -104,10 +104,12 @@ namespace adria
 			case CS_LensFlare2:
 			case CS_ClearCounters:
 			case CS_CullInstances1stPhase:
+			case CS_CullInstances1stPhase_NoOcclusionCull:
 			case CS_CullInstances2ndPhase:
 			case CS_BuildMeshletCullArgs1stPhase:
 			case CS_BuildMeshletCullArgs2ndPhase:
 			case CS_CullMeshlets1stPhase:
+			case CS_CullMeshlets1stPhase_NoOcclusionCull:
 			case CS_CullMeshlets2ndPhase:
 			case CS_BuildMeshletDrawArgs1stPhase:
 			case CS_BuildMeshletDrawArgs2ndPhase:
@@ -262,10 +264,12 @@ namespace adria
 			case CS_BuildMeshletCullArgs1stPhase:
 			case CS_BuildMeshletCullArgs2ndPhase:
 			case CS_CullMeshlets1stPhase:
+			case CS_CullMeshlets1stPhase_NoOcclusionCull:
 			case CS_CullMeshlets2ndPhase:
 				return "GpuDrivenRendering/CullMeshlets.hlsl";
 			case CS_BuildInstanceCullArgs:
 			case CS_CullInstances1stPhase:
+			case CS_CullInstances1stPhase_NoOcclusionCull:
 			case CS_CullInstances2ndPhase:
 				return "GpuDrivenRendering/CullInstances.hlsl";
 			case CS_BuildMeshletDrawArgs1stPhase:
@@ -297,12 +301,14 @@ namespace adria
 			case CS_ClearCounters:
 				return "ClearCountersCS";
 			case CS_CullMeshlets1stPhase:
+			case CS_CullMeshlets1stPhase_NoOcclusionCull:
 			case CS_CullMeshlets2ndPhase:
 				return "CullMeshletsCS";
 			case CS_BuildMeshletCullArgs1stPhase:
 			case CS_BuildMeshletCullArgs2ndPhase:
 				return "BuildMeshletCullArgsCS";
 			case CS_CullInstances1stPhase:
+			case CS_CullInstances1stPhase_NoOcclusionCull:
 			case CS_CullInstances2ndPhase:
 				return "CullInstancesCS";
 			case CS_BuildInstanceCullArgs:
@@ -489,6 +495,9 @@ namespace adria
 			case CS_CullInstances2ndPhase:
 			case CS_BuildMeshletDrawArgs2ndPhase:
 				return { {"SECOND_PHASE", "1"} };
+			case CS_CullInstances1stPhase_NoOcclusionCull:
+			case CS_CullMeshlets1stPhase_NoOcclusionCull:
+				return { {"OCCLUSION_CULL", "0"} };
 			default:
 				return {};
 			}

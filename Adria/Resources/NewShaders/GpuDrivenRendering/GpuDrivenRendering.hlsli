@@ -133,60 +133,38 @@ bool HZBCull(FrustumCullData cullData, Texture2D<float> hzbTexture)
 	uint hzbMipCount;
 	hzbTexture.GetDimensions(0, hzbDimensions.x, hzbDimensions.y, hzbMipCount);
 
-	static const uint hzbTexelCoverage = 2;
+	float2 minXY = cullData.rectMin.xy;
+	float2 maxXY = cullData.rectMax.xy;
 
-	float4 rect = saturate(float4(cullData.rectMin.xy, cullData.rectMax.xy) * float2(0.5f, -0.5f).xyxy + 0.5f).xwzy;
+	float4 rect = saturate(float4(minXY, maxXY) * float2(0.5f, -0.5f).xyxy + 0.5f).xwzy;
 	int4 rectPixels = int4(rect * hzbDimensions.xyxy + float4(0.5f, 0.5f, -0.5f, -0.5f));
 	rectPixels = int4(rectPixels.xy, max(rectPixels.xy, rectPixels.zw));
-	int mip = ComputeHZBMip(rectPixels, hzbTexelCoverage);
+
+	// Calculate hi-Z buffer mip
+	int2 size = (maxXY - minXY) * hzbDimensions.xy;
+	int mip = ceil(log2(max(size.x, size.y)));
+	mip = clamp(mip, 0, hzbMipCount);
+
+	// Texel footprint for the lower (finer-grained) level
+	float  lowerLevel = max(mip - 1, 0);
+	float2 scale = exp2(-lowerLevel);
+	float2 a = floor(minXY * scale);
+	float2 b = ceil(maxXY * scale);
+	float2 dims = b - a;
+
+	// Use the lower level if we only touch <= 2 texels in both dimensions
+	if (dims.x <= 2 && dims.y <= 2) mip = lowerLevel;
+
 	rectPixels >>= mip;
 	float2 texelSize = 1.0f / hzbDimensions * (1u << mip);
 
+	float4 depths = { hzbTexture.SampleLevel(PointClampSampler, (rectPixels.xy + 0.5f) * texelSize, mip),
+					  hzbTexture.SampleLevel(PointClampSampler, (rectPixels.zy + 0.5f) * texelSize, mip),
+					  hzbTexture.SampleLevel(PointClampSampler, (rectPixels.xw + 0.5f) * texelSize, mip),
+					  hzbTexture.SampleLevel(PointClampSampler, (rectPixels.zw + 0.5f) * texelSize, mip) };
+
+	float depth = max(depths.x, depths.y, depths.z, depths.w);
 	float minDepth = cullData.rectMin.z;
-	float depth = 1.0f;
-
-	if (hzbTexelCoverage == 4)
-	{
-		float4 xCoords = (min(rectPixels.x + float4(0, 1, 2, 3), rectPixels.z) + 0.5f) * texelSize.x;
-		float4 yCoords = (min(rectPixels.y + float4(0, 1, 2, 3), rectPixels.w) + 0.5f) * texelSize.y;
-
-		float depth00 = hzbTexture.SampleLevel(PointClampSampler, float2(xCoords.x, yCoords.x), mip);
-		float depth10 = hzbTexture.SampleLevel(PointClampSampler, float2(xCoords.y, yCoords.x), mip);
-		float depth20 = hzbTexture.SampleLevel(PointClampSampler, float2(xCoords.z, yCoords.x), mip);
-		float depth30 = hzbTexture.SampleLevel(PointClampSampler, float2(xCoords.w, yCoords.x), mip);
-
-		float depth01 = hzbTexture.SampleLevel(PointClampSampler, float2(xCoords.x, yCoords.y), mip);
-		float depth11 = hzbTexture.SampleLevel(PointClampSampler, float2(xCoords.y, yCoords.y), mip);
-		float depth21 = hzbTexture.SampleLevel(PointClampSampler, float2(xCoords.z, yCoords.y), mip);
-		float depth31 = hzbTexture.SampleLevel(PointClampSampler, float2(xCoords.w, yCoords.y), mip);
-
-		float depth02 = hzbTexture.SampleLevel(PointClampSampler, float2(xCoords.x, yCoords.z), mip);
-		float depth12 = hzbTexture.SampleLevel(PointClampSampler, float2(xCoords.y, yCoords.z), mip);
-		float depth22 = hzbTexture.SampleLevel(PointClampSampler, float2(xCoords.z, yCoords.z), mip);
-		float depth32 = hzbTexture.SampleLevel(PointClampSampler, float2(xCoords.w, yCoords.z), mip);
-
-		float depth03 = hzbTexture.SampleLevel(PointClampSampler, float2(xCoords.x, yCoords.w), mip);
-		float depth13 = hzbTexture.SampleLevel(PointClampSampler, float2(xCoords.y, yCoords.w), mip);
-		float depth23 = hzbTexture.SampleLevel(PointClampSampler, float2(xCoords.z, yCoords.w), mip);
-		float depth33 = hzbTexture.SampleLevel(PointClampSampler, float2(xCoords.w, yCoords.w), mip);
-
-		depth =
-			max(
-				max(depth00, depth10, depth20, depth30),
-				max(depth01, depth11, depth21, depth31),
-				max(depth02, depth12, depth22, depth32),
-				max(depth03, depth13, depth23, depth33)
-			);
-	}
-	else if (hzbTexelCoverage == 2)
-	{
-		float depth00 = hzbTexture.SampleLevel(PointClampSampler, (rectPixels.xy + 0.5f) * texelSize, mip);
-		float depth10 = hzbTexture.SampleLevel(PointClampSampler, (rectPixels.zy + 0.5f) * texelSize, mip);
-		float depth01 = hzbTexture.SampleLevel(PointClampSampler, (rectPixels.xw + 0.5f) * texelSize, mip);
-		float depth11 = hzbTexture.SampleLevel(PointClampSampler, (rectPixels.zw + 0.5f) * texelSize, mip);
-
-		depth = max(depth00, depth10, depth01, depth11);
-	}
 
 	bool isOccluded = depth < minDepth;
 	return cullData.isVisible && !isOccluded;
