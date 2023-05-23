@@ -1143,6 +1143,9 @@
     <FxCompile Include="Resources\NewShaders\GpuDrivenRendering\DrawMeshlets.hlsl">
       <Filter>Shaders\GpuDrivenRendering</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\NewShaders\RayTracing\RTAOFilter.hlsl">
+      <Filter>Shaders\RayTracing</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="scene.json" />

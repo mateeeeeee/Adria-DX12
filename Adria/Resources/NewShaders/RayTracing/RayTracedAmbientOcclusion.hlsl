@@ -3,9 +3,10 @@
 struct RayTracedAmbientOcclusionConstants
 {
 	uint  depthIdx;
-	uint  gbufNormals;
+	uint  normalsIdx;
 	uint  outputIdx;
 	float aoRadius;
+	float aoPower;
 };
 
 ConstantBuffer<RayTracedAmbientOcclusionConstants> PassCB : register(b1);
@@ -13,17 +14,17 @@ ConstantBuffer<RayTracedAmbientOcclusionConstants> PassCB : register(b1);
 
 struct AORayData
 {
-	bool hit;
+	float tHit;
 };
 
-static const int RAY_COUNT = 16;
+static const int RAY_COUNT = 1;
 
 [shader("raygeneration")]
 void RTAO_RayGen()
 {
     RaytracingAccelerationStructure scene = ResourceDescriptorHeap[FrameCB.accelStructIdx];
 	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
-	Texture2D gbufferNormals = ResourceDescriptorHeap[PassCB.gbufNormals];
+	Texture2D normalsTx = ResourceDescriptorHeap[PassCB.normalsIdx];
 	RWTexture2D<float> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
 
 	uint2 launchIndex = DispatchRaysIndex().xy;
@@ -33,40 +34,34 @@ void RTAO_RayGen()
 	float2 texCoords = (launchIndex + 0.5f) / FrameCB.screenResolution;
 	float3 worldPosition = GetWorldPosition(texCoords, depth);
 
-	float3 viewNormal = gbufferNormals.Load(int3(launchIndex.xy, 0)).xyz;
+	float3 viewNormal = normalsTx.Load(int3(launchIndex.xy, 0)).xyz;
 	viewNormal = 2 * viewNormal - 1.0;
 	float3 worldNormal = normalize(mul(viewNormal, (float3x3) transpose(FrameCB.view)));
 	uint randSeed = InitRand(launchIndex.x + launchIndex.y * launchDim.x, FrameCB.frameCount, 16);
 
-	float ao = 0.0f;
-	[unroll(RAY_COUNT)]
-	for (int i = 0; i < RAY_COUNT; i++)
-	{
-		float3 worldDir = GetCosHemisphereSample(randSeed, worldNormal);
-		AORayData rayPayload = { true };
-		RayDesc rayAO;
-		rayAO.Origin = OffsetRay(worldPosition, worldNormal);
-		rayAO.Direction = normalize(worldDir);
-		rayAO.TMin = 0.05f;
-		rayAO.TMax = PassCB.aoRadius;
+	float3 worldDir = GetCosHemisphereSample(randSeed, worldNormal);
+	AORayData rayPayload = { true };
+	RayDesc rayAO;
+	rayAO.Origin = OffsetRay(worldPosition, worldNormal);
+	rayAO.Direction = normalize(worldDir);
+	rayAO.TMin = 0.02f;
+	rayAO.TMax = PassCB.aoRadius;
 
-		TraceRay(scene,
-			(RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES),
-			0xFF, 0, 0, 0, rayAO, rayPayload);
-		ao += rayPayload.hit ? 0.0f : 1.0f;
-	}
+	TraceRay(scene,
+		(RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES),
+		0xFF, 0, 0, 0, rayAO, rayPayload);
 
-	outputTx[launchIndex.xy] = ao / RAY_COUNT;
+	outputTx[launchIndex.xy] = rayPayload.tHit < 0.0f ? 1.0f : pow(saturate(rayPayload.tHit / PassCB.aoRadius), PassCB.aoPower);
 }
 
 [shader("miss")]
 void RTAO_Miss(inout AORayData hitData)
 {
-	hitData.hit = false;
+	hitData.tHit = -1;
 }
 
 [shader("anyhit")]
 void RTAO_AnyHit(inout AORayData hitData, in BuiltInTriangleIntersectionAttributes attribs)
 {
-	hitData.hit = true;
+	hitData.tHit = RayTCurrent();
 }

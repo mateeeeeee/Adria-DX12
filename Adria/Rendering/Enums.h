@@ -98,6 +98,7 @@ namespace adria
 		CS_BuildInstanceCullArgs,
 		CS_InitializeHZB,
 		CS_HZBMips,
+		CS_RTAOFilter,
 		LIB_Shadows,
 		LIB_SoftShadows,
 		LIB_AmbientOcclusion,
@@ -197,6 +198,7 @@ namespace adria
 		BuildInstanceCullArgs,
 		InitializeHZB,
 		HZBMips,
+		RTAOFilter,
         Unknown
 	};
 

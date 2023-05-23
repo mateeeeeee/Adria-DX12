@@ -116,6 +116,7 @@ namespace adria
 			case CS_BuildInstanceCullArgs:
 			case CS_InitializeHZB:
 			case CS_HZBMips:
+			case CS_RTAOFilter:
 				return GfxShaderStage::CS;
 			case HS_OceanLOD:
 				return GfxShaderStage::HS;
@@ -280,6 +281,8 @@ namespace adria
 			case CS_InitializeHZB:
 			case CS_HZBMips:
 				return "GpuDrivenRendering/HZB.hlsl";
+			case CS_RTAOFilter:
+				return "RayTracing/RTAOFilter.hlsl";
 			case LIB_Shadows:
 			case LIB_SoftShadows:
 				return "RayTracing/RayTracedShadows.hlsl";
@@ -468,6 +471,8 @@ namespace adria
 				return "CloudsCombinePS";
 			case CS_LensFlare2:
 				return "LensFlareCS";
+			case CS_RTAOFilter:
+				return "RTAOFilterCS";
 			default:
 				return "main";
 			}

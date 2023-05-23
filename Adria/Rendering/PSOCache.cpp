@@ -419,6 +419,9 @@ namespace adria
 
 				compute_pso_desc.CS = CS_HZBMips;
 				compute_pso_map[GfxPipelineStateID::HZBMips] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.CS = CS_RTAOFilter;
+				compute_pso_map[GfxPipelineStateID::RTAOFilter] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 			}
 
 			if (gfx->GetCapabilities().SupportsMeshShaders())

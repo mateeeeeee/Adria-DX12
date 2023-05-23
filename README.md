@@ -77,6 +77,11 @@ Since this engine shares some of the features with [engine](https://github.com/m
 Volumetric Clouds
 ![alt text](Screenshots/clouds.png "Volumetric clouds") 
 
+Path Tracer
+![alt text](Screenshots/pathtracing1.png "Path tracing") 
+![alt text](Screenshots/pathtracing2.png "Path tracing") 
+
+
 <table>
   <tr>
     <td>Cascaded Shadow Maps</td>
@@ -99,6 +104,13 @@ Volumetric Clouds
   </tr>
 </table>
 
-Path Tracer
-![alt text](Screenshots/pathtracing1.png "Path tracing") 
-![alt text](Screenshots/pathtracing2.png "Path tracing") 
+<table>
+  <tr>
+    <td>SSAO</td>
+     <td>RTAO</td>
+     </tr>
+  <tr>
+    <td><img src="Screenshots/ssao.png"></td>
+    <td><img src="Screenshots/rtao.png"></td>
+  </tr>
+</table>
