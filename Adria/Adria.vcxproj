@@ -254,7 +254,7 @@
     <ClCompile Include="Rendering\FogPass.cpp" />
     <ClCompile Include="Rendering\GeometryBufferCache.cpp" />
     <ClCompile Include="Rendering\GodRaysPass.cpp" />
-    <ClCompile Include="Rendering\GPUDrivenRenderer.cpp" />
+    <ClCompile Include="Rendering\GPUDrivenGBufferPass.cpp" />
     <ClCompile Include="Rendering\LensFlarePass.cpp" />
     <ClCompile Include="Rendering\EntityLoader.cpp" />
     <ClCompile Include="Rendering\FXAAPass.cpp" />
@@ -405,7 +405,7 @@
     <ClInclude Include="Rendering\Camera.h" />
     <ClInclude Include="Rendering\ClusteredDeferredLightingPass.h" />
     <ClInclude Include="Rendering\Components.h" />
-    <ClInclude Include="Rendering\GPUDrivenRenderer.h" />
+    <ClInclude Include="Rendering\GPUDrivenGBufferPass.h" />
     <ClInclude Include="Rendering\ShaderStructs.h" />
     <ClInclude Include="Rendering\CopyToTexturePass.h" />
     <ClInclude Include="Rendering\DecalsPass.h" />

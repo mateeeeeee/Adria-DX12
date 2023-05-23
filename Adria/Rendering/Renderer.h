@@ -4,7 +4,7 @@
 #include "ShaderStructs.h"
 #include "Postprocessor.h"
 #include "GBufferPass.h"
-#include "GPUDrivenRenderer.h"
+#include "GPUDrivenGBufferPass.h"
 #include "AmbientPass.h"
 #include "SkyPass.h"
 #include "DeferredLightingPass.h"
@@ -104,7 +104,7 @@ namespace adria
 
 		//passes
 		GBufferPass  gbuffer_pass;
-		GPUDrivenRenderer gpu_driven_renderer;
+		GPUDrivenGBufferPass gpu_driven_renderer;
 		SSAOPass	 ssao_pass;
 		HBAOPass     hbao_pass;
 		AmbientPass  ambient_pass;

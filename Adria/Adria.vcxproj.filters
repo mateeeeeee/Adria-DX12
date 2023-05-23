@@ -426,7 +426,7 @@
     <ClCompile Include="Rendering\Components.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\GPUDrivenRenderer.cpp">
+    <ClCompile Include="Rendering\GPUDrivenGBufferPass.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
   </ItemGroup>
@@ -957,7 +957,7 @@
     <ClInclude Include="Graphics\GfxCapabilities.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\GPUDrivenRenderer.h">
+    <ClInclude Include="Rendering\GPUDrivenGBufferPass.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Resources\NewShaders\SPD\ffx_a.h">

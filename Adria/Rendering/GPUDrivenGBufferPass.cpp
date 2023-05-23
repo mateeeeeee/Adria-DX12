@@ -1,4 +1,4 @@
-#include "GPUDrivenRenderer.h"
+#include "GPUDrivenGBufferPass.h"
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
@@ -25,13 +25,13 @@ namespace adria
 		uint32 meshlet_index;
 	};
 
-	GPUDrivenRenderer::GPUDrivenRenderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), width(width), height(height)
+	GPUDrivenGBufferPass::GPUDrivenGBufferPass(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), width(width), height(height)
 	{
 		CreateDebugBuffer();
 		InitializeHZB();
 	}
 
-	void GPUDrivenRenderer::Render(RenderGraph& rg)
+	void GPUDrivenGBufferPass::Render(RenderGraph& rg)
 	{
 		AddClearCountersPass(rg);
 		Add1stPhasePasses(rg);
@@ -65,7 +65,7 @@ namespace adria
 		);
 	}
 
-	void GPUDrivenRenderer::InitializeHZB()
+	void GPUDrivenGBufferPass::InitializeHZB()
 	{
 		CalculateHZBParameters();
 
@@ -80,7 +80,7 @@ namespace adria
 		HZB = std::make_unique<GfxTexture>(gfx, hzb_desc);
 	}
 
-	void GPUDrivenRenderer::AddClearCountersPass(RenderGraph& rg)
+	void GPUDrivenGBufferPass::AddClearCountersPass(RenderGraph& rg)
 	{
 		struct ClearCountersPassData
 		{
@@ -136,7 +136,7 @@ namespace adria
 			}, RGPassType::Compute, RGPassFlags::None);
 	}
 
-	void GPUDrivenRenderer::Add1stPhasePasses(RenderGraph& rg)
+	void GPUDrivenGBufferPass::Add1stPhasePasses(RenderGraph& rg)
 	{
 		rg.ImportTexture(RG_RES_NAME(HZB), HZB.get());
 
@@ -431,7 +431,7 @@ namespace adria
 		AddHZBPasses(rg);
 	}
 
-	void GPUDrivenRenderer::Add2ndPhasePasses(RenderGraph& rg)
+	void GPUDrivenGBufferPass::Add2ndPhasePasses(RenderGraph& rg)
 	{
 		if (!occlusion_culling) return;
 
@@ -717,7 +717,7 @@ namespace adria
 		AddHZBPasses(rg, true);
 	}
 
-	void GPUDrivenRenderer::AddHZBPasses(RenderGraph& rg, bool second_phase)
+	void GPUDrivenGBufferPass::AddHZBPasses(RenderGraph& rg, bool second_phase)
 	{
 		if (!occlusion_culling) return;
 
@@ -852,7 +852,7 @@ namespace adria
 			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
 	}
 
-	void GPUDrivenRenderer::AddDebugPass(RenderGraph& rg)
+	void GPUDrivenGBufferPass::AddDebugPass(RenderGraph& rg)
 	{
 		if (!display_debug_stats) return;
 
@@ -904,7 +904,7 @@ namespace adria
 
 	}
 
-	void GPUDrivenRenderer::CalculateHZBParameters()
+	void GPUDrivenGBufferPass::CalculateHZBParameters()
 	{
 		uint32 mips_x = (uint32)std::max(ceilf(log2f((float)width)), 1.0f);
 		uint32 mips_y = (uint32)std::max(ceilf(log2f((float)height)), 1.0f);
@@ -915,7 +915,7 @@ namespace adria
 		hzb_height = 1 << (mips_y - 1);
 	}
 
-	void GPUDrivenRenderer::CreateDebugBuffer()
+	void GPUDrivenGBufferPass::CreateDebugBuffer()
 	{
 		GfxBufferDesc debug_buffer_desc{};
 		debug_buffer_desc.size = 6 * sizeof(uint32) * gfx->BackbufferCount();

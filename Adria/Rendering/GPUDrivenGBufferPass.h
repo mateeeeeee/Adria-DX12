@@ -11,7 +11,7 @@ namespace adria
 	class GfxTexture;
 	class GfxBuffer;
 
-	class GPUDrivenRenderer
+	class GPUDrivenGBufferPass
 	{
 		static constexpr uint32 MAX_HZB_MIP_COUNT = 13;
 
@@ -28,7 +28,7 @@ namespace adria
 		};
 
 	public:
-		GPUDrivenRenderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height);
+		GPUDrivenGBufferPass(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height);
 
 		void Render(RenderGraph& rg);
 
