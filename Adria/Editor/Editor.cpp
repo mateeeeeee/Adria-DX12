@@ -5,6 +5,7 @@
 
 #include "Core/Engine.h"
 #include "Input/Input.h"
+#include "IconsFontAwesome4.h"
 #include "Rendering/Renderer.h"
 #include "Rendering/Camera.h"
 #include "Rendering/EntityLoader.h"
@@ -245,13 +246,14 @@ namespace adria
 		if (gui->IsVisible()) engine->camera->Enable(scene_focused);
 		else engine->camera->Enable(true);
 	}
+
 	void Editor::MenuBar()
 	{
 		if (ImGui::BeginMainMenuBar())
 		{
-			if (ImGui::BeginMenu("File"))
+			if (ImGui::BeginMenu(ICON_FA_FILE" File"))
 			{
-				if (ImGui::MenuItem("Load Model"))
+				if (ImGui::MenuItem(ICON_FA_FOLDER_OPEN" Load Model"))
 				{
 					nfdchar_t* file_path = NULL;
 					const nfdchar_t* filter_list = "gltf";
@@ -286,7 +288,7 @@ namespace adria
 
 				ImGui::EndMenu();
 			}
-			if (ImGui::BeginMenu("Help"))
+			if (ImGui::BeginMenu(ICON_FA_QUESTION" Help"))
 			{
 				ImGui::Text("Controls\n");
 				ImGui::Text(
@@ -393,7 +395,7 @@ namespace adria
 					engine->entity_loader->LoadOcean(params);
 				}
 
-				if (ImGui::Button("Clear"))
+				if (ImGui::Button(ICON_FA_ERASER" Clear"))
 				{
 					engine->reg.clear<Ocean>();
 				}
@@ -454,7 +456,7 @@ namespace adria
 
 					engine->entity_loader->LoadDecal(params);
 				}
-				if (ImGui::Button("Clear Decals"))
+				if (ImGui::Button(ICON_FA_ERASER" Clear Decals"))
 				{
 					for (auto e : engine->reg.view<Decal>()) engine->reg.destroy(e);
 				}
@@ -815,7 +817,7 @@ namespace adria
 		if (!window_flags[Flag_Camera]) return;
 
 		auto& camera = *engine->camera;
-		if (ImGui::Begin("Camera", &window_flags[Flag_Camera]))
+		if (ImGui::Begin(ICON_FA_CAMERA" Camera", &window_flags[Flag_Camera]))
 		{
 			XMFLOAT3 cam_pos;
 			XMStoreFloat3(&cam_pos, camera.Position());
@@ -897,9 +899,9 @@ namespace adria
 	void Editor::Log()
 	{
 		if (!window_flags[Flag_Log]) return;
-		if(ImGui::Begin("Log", &window_flags[Flag_Log]))
+		if(ImGui::Begin(ICON_FA_COMMENT" Log", &window_flags[Flag_Log]))
 		{
-			logger->Draw("Log");
+			logger->Draw(ICON_FA_COMMENT" Log");
 		}
 		ImGui::End();
 	}
@@ -931,7 +933,7 @@ namespace adria
 		renderer_settings.postprocess.fog = cvars::fog;
 
 		if (!window_flags[Flag_Settings]) return;
-		if (ImGui::Begin("Settings", &window_flags[Flag_Settings]))
+		if (ImGui::Begin(ICON_FA_COGS" Settings", &window_flags[Flag_Settings]))
 		{
 			static const char* render_path_types[] = { "Regular Deferred", "Tiled Deferred", "Clustered Deferred", "Path Tracing" };
 			const char* render_path_combo_label = render_path_types[current_render_path_type];
@@ -1018,10 +1020,10 @@ namespace adria
 	void Editor::Profiling()
 	{
 		if (!window_flags[Flag_Profiler]) return;
-		if (ImGui::Begin("Profiling", &window_flags[Flag_Profiler]))
+		if (ImGui::Begin(ICON_FA_CLOCK_O" Profiling", &window_flags[Flag_Profiler]))
 		{
 			ImGuiIO io = ImGui::GetIO();
-			static bool show_profiling = false;
+			static bool show_profiling = true;
 			ImGui::Checkbox("Show Profiling Results", &show_profiling);
 			if (show_profiling)
 			{
@@ -1143,7 +1145,7 @@ namespace adria
 	void Editor::ShaderHotReload()
 	{
 		if (!window_flags[Flag_HotReload]) return;
-		if (ImGui::Begin("Shader Hot Reload", &window_flags[Flag_HotReload]))
+		if (ImGui::Begin(ICON_FA_FIRE" Shader Hot Reload", &window_flags[Flag_HotReload]))
 		{
 			if (ImGui::Button("Compile Changed Shaders"))
 			{
@@ -1155,7 +1157,7 @@ namespace adria
 	void Editor::Debug()
 	{
 		if (!window_flags[Flag_Debug]) return;
-		if(ImGui::Begin("Debug", &window_flags[Flag_Debug]))
+		if(ImGui::Begin(ICON_FA_BUG" Debug", &window_flags[Flag_Debug]))
 		{
 			for (auto& cmd : debug_commands)
 			{

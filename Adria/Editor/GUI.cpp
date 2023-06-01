@@ -28,10 +28,10 @@ namespace adria
 		font_config.MergeMode = true;
 		ImWchar const icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
 		io.Fonts->AddFontFromFileTTF("Resources/Fonts/" FONT_ICON_FILE_NAME_FA, 15.0f, &font_config, icon_ranges);
-
-		imgui_allocator = std::make_unique<GUIDescriptorAllocator>(gfx, 30, 1); //reserve first one for fonts
+		io.Fonts->Build();
 		ImGui_ImplWin32_Init(Window::Handle());
 
+		imgui_allocator = std::make_unique<GUIDescriptorAllocator>(gfx, 30, 1); //reserve first one for fonts
 		GfxDescriptor handle = imgui_allocator->GetHandle(0);
 		ImGui_ImplDX12_Init(gfx->GetDevice(), gfx->BackbufferCount(),
 			DXGI_FORMAT_R10G10B10A2_UNORM, imgui_allocator->GetHeap(),
