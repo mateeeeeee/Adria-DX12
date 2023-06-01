@@ -1208,5 +1208,6 @@
     <Text Include="Resources\NewShaders\SPD\LICENSE.txt">
       <Filter>Shaders\SPD</Filter>
     </Text>
+    <Text Include="..\todo.txt" />
   </ItemGroup>
 </Project>

@@ -1133,6 +1133,7 @@
     <None Include="scene.json" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="..\todo.txt" />
     <Text Include="adria.log" />
     <Text Include="Resources\NewShaders\SPD\LICENSE.txt" />
   </ItemGroup>
