@@ -1147,10 +1147,7 @@ namespace adria
 		if (!window_flags[Flag_HotReload]) return;
 		if (ImGui::Begin(ICON_FA_FIRE" Shader Hot Reload", &window_flags[Flag_HotReload]))
 		{
-			if (ImGui::Button("Compile Changed Shaders"))
-			{
-				reload_shaders = true;
-			}
+			if (ImGui::Button("Compile Changed Shaders")) reload_shaders = true;
 		}
 		ImGui::End();
 	}

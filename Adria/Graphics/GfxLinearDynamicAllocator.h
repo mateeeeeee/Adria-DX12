@@ -7,13 +7,26 @@ namespace adria
 {
 	class GfxBuffer;
 	class GfxDevice;
+
+	class GfxAllocationPage;
 	
 	class GfxLinearDynamicAllocator
 	{
+		struct GfxAllocationPage
+		{
+			std::unique_ptr<GfxBuffer> buffer;
+			LinearAllocator linear_allocator;
+			void* cpu_address;
+
+			GfxAllocationPage(GfxDevice* gfx, size_t page_size);
+			GfxAllocationPage(GfxAllocationPage&&);
+			~GfxAllocationPage();
+		};
 	public:
-		GfxLinearDynamicAllocator(GfxDevice* gfx, size_t max_size_in_bytes);
+		GfxLinearDynamicAllocator(GfxDevice* gfx, size_t page_size, size_t page_count = 1);
 		~GfxLinearDynamicAllocator();
 		GfxDynamicAllocation Allocate(size_t size_in_bytes, size_t alignment = 0);
+
 		template<typename T>
 		GfxDynamicAllocation AllocateCBuffer()
 		{
@@ -22,9 +35,10 @@ namespace adria
 		void Clear();
 
 	private:
-		LinearAllocator linear_allocator;
+		GfxDevice* gfx;
 		std::mutex alloc_mutex;
-		std::unique_ptr<GfxBuffer> buffer;
-		void* cpu_address;
+		std::vector<GfxAllocationPage> alloc_pages;
+		size_t const page_size;
+		size_t current_page = 0;
 	};
 }

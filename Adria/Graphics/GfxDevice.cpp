@@ -265,8 +265,8 @@ namespace adria
 			desc.type = static_cast<GfxDescriptorHeapType>(i);
 			cpu_descriptor_allocators[i] = std::make_unique<GfxDescriptorAllocator>(this, desc);
 		}
-		for (uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i) dynamic_allocators.emplace_back(new GfxLinearDynamicAllocator(this, 50'000'000));
-		dynamic_allocator_before_rendering.reset(new GfxLinearDynamicAllocator(this, 750'000'000));
+		for (uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i) dynamic_allocators.emplace_back(new GfxLinearDynamicAllocator(this, 1 << 20));
+		dynamic_allocator_before_rendering.reset(new GfxLinearDynamicAllocator(this, 1 << 30));
 
 		GfxSwapchainDesc swapchain_desc{};
 		swapchain_desc.width = width;
