@@ -76,6 +76,7 @@ namespace adria
 		scratch_buffer_desc.bind_flags = GfxBindFlag::UnorderedAccess;
 		scratch_buffer_desc.size = bl_prebuild_info.ScratchDataSizeInBytes;
 		scratch_buffer = std::make_unique<GfxBuffer>(gfx, scratch_buffer_desc);
+		scratch_buffer->SetName("scratch buffer");
 
 		GfxBufferDesc result_buffer_desc{};
 		result_buffer_desc.bind_flags = GfxBindFlag::UnorderedAccess | GfxBindFlag::ShaderResource;
@@ -83,6 +84,7 @@ namespace adria
 		result_buffer_desc.misc_flags = GfxBufferMiscFlag::AccelStruct;
 		result_buffer_desc.stride = 4;
 		result_buffer = std::make_unique<GfxBuffer>(gfx, result_buffer_desc);
+		scratch_buffer->SetName("result buffer");
 
 		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC blas_desc{};
 		blas_desc.Inputs = inputs;

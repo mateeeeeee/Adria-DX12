@@ -1109,6 +1109,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\.gitignore" />
     <None Include="..\README.md" />
     <None Include="packages.config" />
     <None Include="Resources\NewShaders\Atmosphere.hlsli" />

@@ -313,6 +313,14 @@ namespace adria
 		for (auto&& model : config.scene_models) entity_loader->ImportModel_GLTF(model);
 		for (auto&& light : config.scene_lights) entity_loader->LoadLight(light);
 
+		auto ray_tracing_view = reg.view<Mesh, RayTracing>();
+		for (auto entity : ray_tracing_view)
+		{
+			auto const& mesh = ray_tracing_view.get<Mesh>(entity);
+			GfxBuffer* buffer = g_GeometryBufferCache.GetGeometryBuffer(mesh.geometry_buffer_handle);
+			cmd_list->TransitionBarrier(*buffer, GfxResourceState::CopyDest, GfxResourceState::AllShaderResource);
+		}
+
 		renderer->OnSceneInitialized();
 		cmd_list->End();
 		cmd_list->Submit();

@@ -35,14 +35,7 @@ namespace adria
 		{
 			++current_page;
 			GfxAllocationPage& last_page = current_page < alloc_pages.size() ? alloc_pages[current_page] : alloc_pages.emplace_back(gfx, page_size);
-			GfxDynamicAllocation allocation{};
-			allocation.buffer = last_page.buffer.get();
-			allocation.cpu_address = reinterpret_cast<uint8*>(last_page.cpu_address) + offset;
-			allocation.gpu_address = last_page.buffer->GetGpuAddress() + offset;
-			allocation.offset = offset;
-			allocation.size = size_in_bytes;
-
-			return allocation;
+			return Allocate(size_in_bytes, alignment);
 		}
 	}
 	void GfxLinearDynamicAllocator::Clear()

@@ -1202,6 +1202,7 @@
     <None Include="Resources\NewShaders\Noise.hlsli">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="..\.gitignore" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="adria.log" />
