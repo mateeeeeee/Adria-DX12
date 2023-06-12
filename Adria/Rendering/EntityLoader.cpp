@@ -794,13 +794,6 @@ namespace adria
 			mesh_data.bounding_box = AABBFromPositions(mesh_data.positions_stream);
 		}
 
-		GfxBufferDesc desc{};
-		desc.size = total_buffer_size;
-		desc.bind_flags = GfxBindFlag::ShaderResource;
-		desc.misc_flags = GfxBufferMiscFlag::BufferRaw;
-		desc.resource_usage = GfxResourceUsage::Default;
-		std::shared_ptr<GfxBuffer> geometry_buffer = std::make_shared<GfxBuffer>(gfx, desc);
-
 		GfxDynamicAllocation staging_buffer = gfx->GetDynamicAllocator()->Allocate(total_buffer_size, 16);
 
 		uint32 current_offset = 0;

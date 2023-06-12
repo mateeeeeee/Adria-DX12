@@ -260,7 +260,7 @@ namespace adria
 		for (uint32 i = 0; i < cpu_descriptor_allocators.size(); ++i)
 		{
 			GfxDescriptorAllocatorDesc desc{};
-			desc.descriptor_count = 256;
+			desc.descriptor_count = 512;
 			desc.shader_visible = false;
 			desc.type = static_cast<GfxDescriptorHeapType>(i);
 			cpu_descriptor_allocators[i] = std::make_unique<GfxDescriptorAllocator>(this, desc);
