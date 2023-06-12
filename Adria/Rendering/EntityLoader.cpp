@@ -526,6 +526,11 @@ namespace adria
 			Material& material = mesh.materials.emplace_back();
 			material.alpha_cutoff = (float)gltf_material.alphaCutoff;
 			material.double_sided = gltf_material.doubleSided;
+
+			if (params.force_mask_alpha_usage)
+			{
+				material.alpha_mode = MaterialAlphaMode::Mask;
+			}
 			if (gltf_material.alphaMode == "OPAQUE")
 			{
 				material.alpha_mode = MaterialAlphaMode::Opaque;
@@ -539,6 +544,13 @@ namespace adria
 				material.alpha_mode = MaterialAlphaMode::Mask;
 			}
 			tinygltf::PbrMetallicRoughness pbr_metallic_roughness = gltf_material.pbrMetallicRoughness;
+			material.base_color[0] = (float)pbr_metallic_roughness.baseColorFactor[0];
+			material.base_color[1] = (float)pbr_metallic_roughness.baseColorFactor[1];
+			material.base_color[2] = (float)pbr_metallic_roughness.baseColorFactor[2];
+			material.metallic_factor = (float)pbr_metallic_roughness.metallicFactor;
+			material.roughness_factor = (float)pbr_metallic_roughness.roughnessFactor;
+			material.emissive_factor = (float)gltf_material.emissiveFactor[0];
+
 			if (pbr_metallic_roughness.baseColorTexture.index >= 0)
 			{
 				tinygltf::Texture const& base_texture = model.textures[pbr_metallic_roughness.baseColorTexture.index];
@@ -546,9 +558,6 @@ namespace adria
 				std::string texbase = params.textures_path + base_image.uri;
 
 				material.albedo_texture = g_TextureManager.LoadTexture(ToWideString(texbase));
-				material.base_color[0] = (float)pbr_metallic_roughness.baseColorFactor[0];
-				material.base_color[1] = (float)pbr_metallic_roughness.baseColorFactor[1];
-				material.base_color[2] = (float)pbr_metallic_roughness.baseColorFactor[2];
 			}
 			if (pbr_metallic_roughness.metallicRoughnessTexture.index >= 0)
 			{
@@ -556,8 +565,7 @@ namespace adria
 				tinygltf::Image const& metallic_roughness_image = model.images[metallic_roughness_texture.source];
 				std::string texmetallicroughness = params.textures_path + metallic_roughness_image.uri;
 				material.metallic_roughness_texture = g_TextureManager.LoadTexture(ToWideString(texmetallicroughness));
-				material.metallic_factor = (float)pbr_metallic_roughness.metallicFactor;
-				material.roughness_factor = (float)pbr_metallic_roughness.roughnessFactor;
+				
 			}
 			if (gltf_material.normalTexture.index >= 0)
 			{
@@ -572,7 +580,6 @@ namespace adria
 				tinygltf::Image const& emissive_image = model.images[emissive_texture.source];
 				std::string texemissive = params.textures_path + emissive_image.uri;
 				material.emissive_texture = g_TextureManager.LoadTexture(ToWideString(texemissive));
-				material.emissive_factor = (float)gltf_material.emissiveFactor[0];
 			}
 		}
 
@@ -615,11 +622,14 @@ namespace adria
 				auto AddIndices = [&]<typename T>()
 				{
 					T* data = (T*)(buffer.data.data() + index_accessor.byteOffset + buffer_view.byteOffset);
+					uint32 triangle_cw[]   = { 0, 1, 2 };
+					uint32 triangle_ccw[]  = { 0, 2, 1 };
+					uint32* order = params.triangle_ccw ? triangle_ccw : triangle_cw;
 					for (size_t i = 0; i < index_accessor.count; i += 3)
 					{
-						mesh_data.indices.push_back(data[i + 0]);
-						mesh_data.indices.push_back(data[i + 1]);
-						mesh_data.indices.push_back(data[i + 2]);
+						mesh_data.indices.push_back(data[i + order[0]]);
+						mesh_data.indices.push_back(data[i + order[1]]);
+						mesh_data.indices.push_back(data[i + order[2]]);
 					}
 				};
 				int stride = index_accessor.ByteStride(buffer_view);

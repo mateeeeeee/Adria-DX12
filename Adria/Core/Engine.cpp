@@ -75,8 +75,11 @@ namespace adria
 				XMMATRIX scale = XMMatrixScaling(scale_factors[0], scale_factors[1], scale_factors[2]);
 				XMMATRIX transform = rotation * scale * translation;
 
-				bool used_for_ray_tracing = model_params.FindOr<bool>("ray_tracing", true);
-				config.scene_models.emplace_back(path, tex_path, transform, used_for_ray_tracing);
+				bool triangle_ccw = true;
+				model_params.Find<bool>("use_ccw", triangle_ccw);
+				bool force_mask = false;
+				model_params.Find<bool>("force_alpha_mask", force_mask);
+				config.scene_models.emplace_back(path, tex_path, transform, triangle_ccw, force_mask);
 			}
 
 			for (auto&& light_json : lights)

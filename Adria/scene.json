@@ -22,7 +22,9 @@
     "models" : [
 			{
 				"path": "Resources/Models/Sponza/glTF/sponza.gltf",
-				"scale": [ 15.0, 15.0, 15.0 ]
+				"scale": [ 15.0, 15.0, 15.0 ],
+				"use_ccw": false,
+				"force_alpha_mask": false
 			}
 	],
 	"lights" : [

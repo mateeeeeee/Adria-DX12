@@ -266,7 +266,7 @@ namespace adria
 			cpu_descriptor_allocators[i] = std::make_unique<GfxDescriptorAllocator>(this, desc);
 		}
 		for (uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i) dynamic_allocators.emplace_back(new GfxLinearDynamicAllocator(this, 1 << 20));
-		dynamic_allocator_before_rendering.reset(new GfxLinearDynamicAllocator(this, 1 << 30));
+		dynamic_allocator_on_init.reset(new GfxLinearDynamicAllocator(this, 1 << 30));
 
 		GfxSwapchainDesc swapchain_desc{};
 		swapchain_desc.width = width;
@@ -329,7 +329,7 @@ namespace adria
 		if (rendering_not_started) [[unlikely]]
 		{
 			rendering_not_started = FALSE;
-			dynamic_allocator_before_rendering.reset();
+			dynamic_allocator_on_init.reset();
 		}
 
 		uint32 backbuffer_index = swapchain->GetBackbufferIndex();
@@ -500,7 +500,7 @@ namespace adria
 	}
 	GfxLinearDynamicAllocator* GfxDevice::GetDynamicAllocator() const
 	{
-		if (rendering_not_started) return dynamic_allocator_before_rendering.get();
+		if (rendering_not_started) return dynamic_allocator_on_init.get();
 		else return dynamic_allocators[swapchain->GetBackbufferIndex()].get();
 	}
 	void GfxDevice::InitShaderVisibleAllocator(uint32 reserve)

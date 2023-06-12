@@ -79,7 +79,7 @@ namespace adria
 		int32 shadow_mask_index = -1;
 		uint32 light_index = 0;
 
-		float volumetric_strength = 0.3f;
+		float volumetric_strength = 0.004f;
 		bool volumetric = false;
 		bool lens_flare = false;
 		bool god_rays = false;

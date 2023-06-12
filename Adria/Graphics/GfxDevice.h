@@ -183,7 +183,7 @@ namespace adria
 		ArcPtr<ID3D12RootSignature> global_root_signature = nullptr;
 
 		std::vector<std::unique_ptr<GfxLinearDynamicAllocator>> dynamic_allocators;
-		std::unique_ptr<GfxLinearDynamicAllocator> dynamic_allocator_before_rendering;
+		std::unique_ptr<GfxLinearDynamicAllocator> dynamic_allocator_on_init;
 
 		std::unique_ptr<DrawIndirectSignature> draw_indirect_signature;
 		std::unique_ptr<DrawIndexedIndirectSignature> draw_indexed_indirect_signature;
