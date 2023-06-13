@@ -1,6 +1,7 @@
 #include "../Constants.hlsli"
 #include "../Scene.hlsli"
 #include "../Lighting.hlsli"
+#include "../Reflections.hlsli"
 #include "RayTracingUtil.hlsli"
 
 
@@ -9,6 +10,7 @@ struct RayTracedReflectionsConstants
     float roughnessScale;
     uint  depthIdx;
 	uint  normalIdx;
+	uint  albedoIdx;
 	uint  outputIdx;
 };
 ConstantBuffer<RayTracedReflectionsConstants> PassCB : register(b1);
@@ -26,6 +28,7 @@ void RTR_RayGen()
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
 	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
 	Texture2D normalMetallicTx = ResourceDescriptorHeap[PassCB.normalIdx];
+	Texture2D albedoRoughnessTx = ResourceDescriptorHeap[PassCB.albedoIdx];
 
 	uint2 launchIndex = DispatchRaysIndex().xy;
 	uint2 launchDim = DispatchRaysDimensions().xy;
@@ -33,9 +36,9 @@ void RTR_RayGen()
 	float2 uv = (launchIndex + 0.5f) / FrameCB.screenResolution;
 	float depth = depthTx.Load(int3(launchIndex.xy, 0));
 	float4 normalMetallic = normalMetallicTx.Load(int3(launchIndex.xy, 0));
+	float roughness = albedoRoughnessTx.Load(int3(launchIndex.xy, 0)).a;
 
-	float metallic = normalMetallic.a;
-	if (metallic <= 0.01f)
+	if (roughness >= ROUGHNESS_CUTOFF)
 	{
 		outputTx[launchIndex.xy] = 0.0f;
 		return;
@@ -66,7 +69,7 @@ void RTR_RayGen()
 		0xFF, 0, 0, 0, ray, payloadData);
 
 	float3 fresnel = clamp(pow(1 - dot(normalize(worldPosition), worldNormal), 1), 0, 1);
-	outputTx[launchIndex.xy] = 0.3f * metallic * float4(fresnel * payloadData.reflectionColor, 1.0f);
+	outputTx[launchIndex.xy] = float4(0.25f * fresnel * payloadData.reflectionColor, 1.0f);
 }
 
 [shader("miss")]

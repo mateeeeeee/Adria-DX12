@@ -31,6 +31,7 @@ namespace adria
 		{
 			RGTextureReadOnlyId depth;
 			RGTextureReadOnlyId normal;
+			RGTextureReadOnlyId diffuse;
 			RGTextureReadWriteId output;
 		};
 
@@ -45,27 +46,30 @@ namespace adria
 
 				data.output = builder.WriteTexture(RG_RES_NAME(RTR_OutputNoisy));
 				data.normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal));
+				data.diffuse = builder.ReadTexture(RG_RES_NAME(GBufferAlbedo));
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil));
 			},
 			[=](RayTracedReflectionsPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				uint32 i = gfx->AllocateDescriptorsGPU(3).GetIndex();
+				uint32 i = gfx->AllocateDescriptorsGPU(4).GetIndex();
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.depth));
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadOnlyTexture(data.normal));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 2), ctx.GetReadWriteTexture(data.output));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 2), ctx.GetReadOnlyTexture(data.diffuse));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 3), ctx.GetReadWriteTexture(data.output));
 
 				struct RayTracedReflectionsConstants
 				{
 					float   roughness_scale;
 					uint32  depth_idx;
 					uint32  normal_idx;
+					uint32  albedo_idx;
 					uint32  output_idx;
 				} constants =
 				{
 					.roughness_scale = reflection_roughness_scale,
-					.depth_idx = i + 0, .normal_idx = i + 1, .output_idx = i + 2
+					.depth_idx = i + 0, .normal_idx = i + 1, .albedo_idx = i + 2, .output_idx = i + 3
 				};
 				auto& table = cmd_list->SetStateObject(ray_traced_reflections.Get());
 				table.SetRayGenShader("RTR_RayGen");

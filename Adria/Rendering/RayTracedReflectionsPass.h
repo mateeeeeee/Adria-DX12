@@ -25,6 +25,7 @@ namespace adria
 		uint32 width, height;
 		bool is_supported;
 		float reflection_roughness_scale = 0.0f;
+
 	private:
 		void CreateStateObject();
 		void OnLibraryRecompiled(GfxShaderID shader);

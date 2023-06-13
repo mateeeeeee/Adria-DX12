@@ -1,9 +1,11 @@
 #include "../CommonResources.hlsli"
+#include "../Random.hlsli"
+#include "../Reflections.hlsli"
 
+#define USE_GGX 1
 #define BLOCK_SIZE 16
 #define MAX_STEPS 16
 #define BINARY_SEARCH_STEPS 16
-#define ROUGHNESS_CUTOFF 0.6
 
 bool NeedReflection(float roughness, float roughness_cutoff)
 {
@@ -114,9 +116,16 @@ void SSR(CS_INPUT input)
         return;
     }
 
+    uint randSeed = InitRand(input.DispatchThreadId.x + input.DispatchThreadId.y * BLOCK_SIZE, 0, 16);
+    float2 rand = float2(NextRand(randSeed), NextRand(randSeed));
+
     float depth = depthTx.Sample(LinearClampSampler, uv);
     float3 viewPosition = GetViewPosition(uv, depth);
+#if USE_GGX
+    float3 reflectDir = normalize(ReflectionDir_GGX(viewPosition, viewNormal, roughness, rand).xyz);
+#else 
     float3 reflectDir = normalize(reflect(viewPosition, viewNormal));
+#endif
 
     float3 HitPos = viewPosition;
     float4 coords = SSRRayMarch(depthTx, reflectDir, viewPosition);

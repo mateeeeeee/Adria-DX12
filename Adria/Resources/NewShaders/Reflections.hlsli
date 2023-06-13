@@ -1,9 +1,10 @@
 #ifndef REFLECTIONS_INCLUDED
 #define REFLECTIONS_INCLUDED
 
+#define ROUGHNESS_CUTOFF 0.6
+
 #define GGX_SAMPLE_VISIBLE
 #define PI 3.1415
-
 #define GGX_IMPORTANCE_SAMPLE_BIAS 0.1
 
 // Brian Karis, Epic Games "Real Shading in Unreal Engine 4"
