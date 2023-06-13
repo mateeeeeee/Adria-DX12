@@ -57,10 +57,10 @@ namespace adria
 
 	void BokehPass::OnSceneInitialized(GfxDevice* gfx)
 	{
-		hex_bokeh_handle = g_TextureManager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Hex.dds");
-		oct_bokeh_handle = g_TextureManager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Oct.dds");
-		circle_bokeh_handle = g_TextureManager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Circle.dds");
-		cross_bokeh_handle = g_TextureManager.LoadTexture(L"Resources/Textures/bokeh/Bokeh_Cross.dds");
+		hex_bokeh_handle = g_TextureManager.LoadTexture("Resources/Textures/bokeh/Bokeh_Hex.dds");
+		oct_bokeh_handle = g_TextureManager.LoadTexture("Resources/Textures/bokeh/Bokeh_Oct.dds");
+		circle_bokeh_handle = g_TextureManager.LoadTexture("Resources/Textures/bokeh/Bokeh_Circle.dds");
+		cross_bokeh_handle = g_TextureManager.LoadTexture("Resources/Textures/bokeh/Bokeh_Cross.dds");
 
 		GfxBufferDesc reset_buffer_desc{};
 		reset_buffer_desc.size = sizeof(uint32);

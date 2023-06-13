@@ -21,9 +21,9 @@
 	}, 
     "models" : [
 			{
-				"path": "Resources/Models/Sponza/glTF/sponza.gltf",
-				"scale": [ 15.0, 15.0, 15.0 ],
-				"use_ccw": false,
+				"path": "Resources/Models/Sponza/sponza.gltf",
+				"scale": [ 12.0, 12.0, -12.0 ],
+				"use_ccw": true,
 				"force_alpha_mask": false
 			}
 	],

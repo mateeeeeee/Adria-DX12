@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include "RenderGraph/RenderGraphResourceId.h"
+#include "Graphics/GfxDefines.h"
 
 
 namespace adria
@@ -14,7 +15,6 @@ namespace adria
 	class GPUDrivenGBufferPass
 	{
 		static constexpr uint32 MAX_HZB_MIP_COUNT = 13;
-
 		struct DebugStats
 		{
 			uint32 num_instances;
@@ -52,7 +52,7 @@ namespace adria
 
 		std::unique_ptr<GfxBuffer> debug_buffer;
 		bool display_debug_stats = false;
-		DebugStats debug_stats[3];
+		DebugStats debug_stats[GFX_BACKBUFFER_COUNT];
 	private:
 		void InitializeHZB();
 

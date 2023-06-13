@@ -328,7 +328,7 @@ namespace adria
         Skybox sky{};
         sky.active = true;
 
-        if (params.cubemap.has_value()) sky.cubemap_texture = g_TextureManager.LoadCubemap(params.cubemap.value());
+        if (params.cubemap.has_value()) sky.cubemap_texture = g_TextureManager.LoadTexture(params.cubemap.value());
         else sky.cubemap_texture = g_TextureManager.LoadCubemap(params.cubemap_textures);
 
         reg.emplace<Skybox>(skybox, sky);
@@ -390,7 +390,7 @@ namespace adria
             if (params.light_texture.has_value())
                 material.albedo_texture = g_TextureManager.LoadTexture(params.light_texture.value()); //
             else if (params.light_data.type == LightType::Directional)
-                material.albedo_texture = g_TextureManager.LoadTexture(L"Resources/Textures/sun.png");
+                material.albedo_texture = g_TextureManager.LoadTexture("Resources/Textures/sun.dds");
 
             reg.emplace<Material>(light, material);
 			auto translation_matrix = XMMatrixTranslationFromVector(params.light_data.position);
@@ -457,8 +457,8 @@ namespace adria
 	{
 		Decal decal{};
 		g_TextureManager.EnableMipMaps(false);
-		if (!params.albedo_texture_path.empty()) decal.albedo_decal_texture = g_TextureManager.LoadTexture(ToWideString(params.albedo_texture_path));
-		if (!params.normal_texture_path.empty()) decal.normal_decal_texture = g_TextureManager.LoadTexture(ToWideString(params.normal_texture_path));
+		if (!params.albedo_texture_path.empty()) decal.albedo_decal_texture = g_TextureManager.LoadTexture(params.albedo_texture_path);
+		if (!params.normal_texture_path.empty()) decal.normal_decal_texture = g_TextureManager.LoadTexture(params.normal_texture_path);
 		g_TextureManager.EnableMipMaps(true);
 
 		XMVECTOR P = XMLoadFloat4(&params.position);
@@ -557,14 +557,14 @@ namespace adria
 				tinygltf::Image const& base_image = model.images[base_texture.source];
 				std::string texbase = params.textures_path + base_image.uri;
 
-				material.albedo_texture = g_TextureManager.LoadTexture(ToWideString(texbase));
+				material.albedo_texture = g_TextureManager.LoadTexture(texbase);
 			}
 			if (pbr_metallic_roughness.metallicRoughnessTexture.index >= 0)
 			{
 				tinygltf::Texture const& metallic_roughness_texture = model.textures[pbr_metallic_roughness.metallicRoughnessTexture.index];
 				tinygltf::Image const& metallic_roughness_image = model.images[metallic_roughness_texture.source];
 				std::string texmetallicroughness = params.textures_path + metallic_roughness_image.uri;
-				material.metallic_roughness_texture = g_TextureManager.LoadTexture(ToWideString(texmetallicroughness));
+				material.metallic_roughness_texture = g_TextureManager.LoadTexture(texmetallicroughness);
 				
 			}
 			if (gltf_material.normalTexture.index >= 0)
@@ -572,14 +572,14 @@ namespace adria
 				tinygltf::Texture const& normal_texture = model.textures[gltf_material.normalTexture.index];
 				tinygltf::Image const& normal_image = model.images[normal_texture.source];
 				std::string texnormal = params.textures_path + normal_image.uri;
-				material.normal_texture = g_TextureManager.LoadTexture(ToWideString(texnormal));
+				material.normal_texture = g_TextureManager.LoadTexture(texnormal);
 			}
 			if (gltf_material.emissiveTexture.index >= 0)
 			{
 				tinygltf::Texture const& emissive_texture = model.textures[gltf_material.emissiveTexture.index];
 				tinygltf::Image const& emissive_image = model.images[emissive_texture.source];
 				std::string texemissive = params.textures_path + emissive_image.uri;
-				material.emissive_texture = g_TextureManager.LoadTexture(ToWideString(texemissive));
+				material.emissive_texture = g_TextureManager.LoadTexture(texemissive);
 			}
 		}
 

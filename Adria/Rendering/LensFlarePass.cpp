@@ -174,13 +174,13 @@ namespace adria
 
 	void LensFlarePass::OnSceneInitialized(GfxDevice* gfx)
 	{
-		lens_flare_textures.push_back(g_TextureManager.LoadTexture(L"Resources/Textures/lensflare/flare0.jpg"));
-		lens_flare_textures.push_back(g_TextureManager.LoadTexture(L"Resources/Textures/lensflare/flare1.jpg"));
-		lens_flare_textures.push_back(g_TextureManager.LoadTexture(L"Resources/Textures/lensflare/flare2.jpg"));
-		lens_flare_textures.push_back(g_TextureManager.LoadTexture(L"Resources/Textures/lensflare/flare3.jpg"));
-		lens_flare_textures.push_back(g_TextureManager.LoadTexture(L"Resources/Textures/lensflare/flare4.jpg"));
-		lens_flare_textures.push_back(g_TextureManager.LoadTexture(L"Resources/Textures/lensflare/flare5.jpg"));
-		lens_flare_textures.push_back(g_TextureManager.LoadTexture(L"Resources/Textures/lensflare/flare6.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare0.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare1.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare2.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare3.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare4.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare5.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare6.jpg"));
 	}
 
 }

@@ -29,8 +29,8 @@ namespace adria
     };
     struct SkyboxParameters
     {
-        std::optional<std::wstring> cubemap;
-        std::array<std::wstring, 6> cubemap_textures;
+        std::optional<std::string> cubemap;
+        std::array<std::string, 6> cubemap_textures;
     };
 	struct GridParameters
 	{
@@ -56,7 +56,7 @@ namespace adria
         Light light_data;
         LightMesh mesh_type = LightMesh::NoMesh;
         uint32 mesh_size = 0u;
-        std::optional<std::wstring> light_texture = std::nullopt;
+        std::optional<std::string> light_texture = std::nullopt;
     };
 	struct DecalParameters
 	{

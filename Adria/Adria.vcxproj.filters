@@ -359,12 +359,6 @@
     <ClCompile Include="..\ThirdParty\gfx-external\D3D12MemAlloc.cpp">
       <Filter>gfx-external</Filter>
     </ClCompile>
-    <ClCompile Include="..\ThirdParty\gfx-external\DDSTextureLoader12.cpp">
-      <Filter>gfx-external</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ThirdParty\gfx-external\WICTextureLoader12.cpp">
-      <Filter>gfx-external</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\AccelerationStructure.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
@@ -384,9 +378,6 @@
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\TextureManager.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\MipsGenerator.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\GfxQueryHeap.cpp">
@@ -827,13 +818,7 @@
     <ClInclude Include="..\ThirdParty\gfx-external\D3D12MemAlloc.h">
       <Filter>gfx-external</Filter>
     </ClInclude>
-    <ClInclude Include="..\ThirdParty\gfx-external\DDSTextureLoader12.h">
-      <Filter>gfx-external</Filter>
-    </ClInclude>
     <ClInclude Include="..\ThirdParty\gfx-external\d3dx12.h">
-      <Filter>gfx-external</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\gfx-external\WICTextureLoader12.h">
       <Filter>gfx-external</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxRingDynamicAllocator.h">
@@ -873,9 +858,6 @@
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\TextureManager.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\MipsGenerator.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxQueryHeap.h">
@@ -1203,6 +1185,9 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\.gitignore" />
+    <None Include="Resources\NewShaders\Reflections.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="adria.log" />

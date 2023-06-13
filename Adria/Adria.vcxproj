@@ -166,8 +166,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\ThirdParty\gfx-external\D3D12MemAlloc.cpp" />
-    <ClCompile Include="..\ThirdParty\gfx-external\DDSTextureLoader12.cpp" />
-    <ClCompile Include="..\ThirdParty\gfx-external\WICTextureLoader12.cpp" />
     <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui.cpp" />
     <ClCompile Include="..\ThirdParty\ImGui\ImGui\ImGuizmo.cpp" />
     <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui_demo.cpp" />
@@ -262,7 +260,6 @@
     <ClCompile Include="Rendering\GenerateMipsPass.cpp" />
     <ClCompile Include="Rendering\HBAOPass.cpp" />
     <ClCompile Include="Rendering\DeferredLightingPass.cpp" />
-    <ClCompile Include="Rendering\MipsGenerator.cpp" />
     <ClCompile Include="Rendering\MotionBlurPass.cpp" />
     <ClCompile Include="Rendering\OceanRenderer.cpp" />
     <ClCompile Include="Rendering\PathTracingPass.cpp" />
@@ -305,8 +302,6 @@
     <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_resource_helpers.h" />
     <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_root_signature.h" />
     <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_state_object.h" />
-    <ClInclude Include="..\ThirdParty\gfx-external\DDSTextureLoader12.h" />
-    <ClInclude Include="..\ThirdParty\gfx-external\WICTextureLoader12.h" />
     <ClInclude Include="..\ThirdParty\ImGui\ImGui\imconfig.h" />
     <ClInclude Include="..\ThirdParty\ImGui\ImGui\imgui.h" />
     <ClInclude Include="..\ThirdParty\ImGui\ImGui\ImGuizmo.h" />
@@ -423,7 +418,6 @@
     <ClInclude Include="Rendering\DeferredLightingPass.h" />
     <ClInclude Include="Rendering\Meshlet.h" />
     <ClInclude Include="Rendering\GeometryBufferCache.h" />
-    <ClInclude Include="Rendering\MipsGenerator.h" />
     <ClInclude Include="Rendering\MotionBlurPass.h" />
     <ClInclude Include="Rendering\OceanRenderer.h" />
     <ClInclude Include="Rendering\PathTracingPass.h" />
@@ -1129,6 +1123,7 @@
     <None Include="Resources\NewShaders\RayTracing\RayTracingUtil.hlsli">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </None>
+    <None Include="Resources\NewShaders\Reflections.hlsli" />
     <None Include="Resources\NewShaders\Scene.hlsli" />
     <None Include="Resources\NewShaders\Tonemapping.hlsli" />
     <None Include="scene.json" />

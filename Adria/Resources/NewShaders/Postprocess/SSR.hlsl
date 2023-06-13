@@ -3,6 +3,13 @@
 #define BLOCK_SIZE 16
 #define MAX_STEPS 16
 #define BINARY_SEARCH_STEPS 16
+#define ROUGHNESS_CUTOFF 0.6
+
+bool NeedReflection(float roughness, float roughness_cutoff)
+{
+	return roughness < roughness_cutoff;
+}
+
 
 struct SSRConstants
 {
@@ -11,6 +18,7 @@ struct SSRConstants
 
     uint depthIdx;
     uint normalIdx;
+    uint diffuseIdx;
     uint sceneIdx;
     uint outputIdx;
 };
@@ -86,6 +94,7 @@ struct CS_INPUT
 void SSR(CS_INPUT input)
 {
     Texture2D normalTx = ResourceDescriptorHeap[PassCB.normalIdx];
+    Texture2D diffuseTx = ResourceDescriptorHeap[PassCB.diffuseIdx];
     Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
     Texture2D sceneTx = ResourceDescriptorHeap[PassCB.sceneIdx];
     RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
@@ -96,9 +105,10 @@ void SSR(CS_INPUT input)
     viewNormal = 2.0f * viewNormal - 1.0f;
     viewNormal = normalize(viewNormal);
 
-    float metallic = viewNormalMetallic.a;
-    float4 sceneColor = sceneTx.SampleLevel(LinearClampSampler, uv, 0);
-    if (metallic < 0.01f)
+    float roughness = diffuseTx.Sample(LinearBorderSampler, uv).a;
+	float4 sceneColor = sceneTx.SampleLevel(LinearClampSampler, uv, 0);
+
+    if (roughness >= ROUGHNESS_CUTOFF)
     {
         outputTx[input.DispatchThreadId.xy] = sceneColor;
         return;
@@ -120,6 +130,6 @@ void SSR(CS_INPUT input)
 			saturate(reflectDir.z)
 			* (coords.w)
 			);
-    float4 reflectionColor = reflectionIntensity * float4(sceneTx.SampleLevel(LinearClampSampler, coords.xy, 0).rgb, 1.0f);
-    outputTx[input.DispatchThreadId.xy] = sceneColor + fresnel * metallic * max(0, reflectionColor);
+    float4 reflectionColor = fresnel * reflectionIntensity * float4(sceneTx.SampleLevel(LinearClampSampler, coords.xy, 0).rgb, 1.0f);
+    outputTx[input.DispatchThreadId.xy] = sceneColor + max(0, reflectionColor);
 }

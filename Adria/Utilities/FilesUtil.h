@@ -14,7 +14,6 @@ namespace adria
 	inline std::string GetFilename(std::string const& complete_path)
 	{
 		fs::path p(complete_path);
-
 		return p.filename().string();
 	}
 	inline std::string GetFilenameWithoutExtension(std::string const& complete_path)
@@ -33,6 +32,11 @@ namespace adria
 		return fs::last_write_time(p);
 	}
 	inline std::string GetExtension(std::string const& path)
+	{
+		fs::path p(path);
+		return p.extension().string();
+	}
+	inline std::string GetExtension(std::string_view path)
 	{
 		fs::path p(path);
 		return p.extension().string();

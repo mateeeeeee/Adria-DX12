@@ -2,59 +2,74 @@
 #include <string_view>
 #include <memory>
 #include "Core/CoreTypes.h"
+#include "Graphics/GfxFormat.h"
 
 namespace adria
 {
 	class Image
 	{
 	public:
-		Image(std::string_view image_file, int32 desired_channels = 4);
-
-		Image(Image const&) = delete;
-		Image(Image&&) = default;
-		Image& operator=(Image const&) = delete;
-		Image& operator=(Image&&) = default;
-		~Image() = default;
+		explicit Image(GfxFormat format) : format(format) {}
+		explicit Image(std::string_view file_path);
 
 		uint32 Width() const
 		{
-			return _width;
+			return width;
 		}
 		uint32 Height() const
 		{
-			return _height;
+			return height;
 		}
-		uint32 Channels() const
+		uint32 Depth() const
 		{
-			return _channels;
+			return depth;
 		}
-		uint32 BytesPerPixel() const
+		uint32 MipLevels() const
 		{
-			return _channels * (is_hdr ? sizeof(float) : sizeof(uint8));
+			return mip_levels;
 		}
-		uint32 Pitch() const
-		{
-			return _width * BytesPerPixel();
-		}
-		bool IsHDR() const
-		{
-			return is_hdr;
-		}
+		GfxFormat Format() const { return format; }
+		bool IsHDR() const { return is_hdr; }
+		bool IsCubemap() const { return is_cubemap; }
 
-		template<typename T>
+		template<typename T = uint8>
 		T const* Data() const;
+		template<typename T = uint8>
+		T const* MipData(uint32 mip_level) const;
+
+		Image const* NextImage() const { return next_image.get(); }
 
 	private:
-		uint32 _width, _height;
-		uint32 _channels;
-		std::unique_ptr<uint8[]> _pixels;
+		uint32 width, height, depth, mip_levels;
+		std::vector<uint8> pixels;
 		bool is_hdr;
+		bool is_cubemap;
+		bool is_srgb;
+		GfxFormat format = GfxFormat::UNKNOWN;
+		std::unique_ptr<Image> next_image;
+
+	private:
+		void SetData(uint32 width, uint32 height, uint32 depth, uint32 mip_levels, void const* data);
+
+		bool LoadDDS(std::string_view texture_path);
+		bool LoadSTB(std::string_view texture_path);
 	};
 
 	template<typename T>
-	T const* adria::Image::Data() const
+	T const* Image::Data() const
 	{
-		return reinterpret_cast<T const*>(_pixels.get());
+		return reinterpret_cast<T const*>(pixels.data());
+	}
+
+	template<typename T>
+	T const* Image::MipData(uint32 mip_level) const
+	{
+		uint64 offset = 0;
+		for (uint32 mip = 0; mip < mip_level; ++mip)
+		{
+			offset += GetTextureMipByteSize(format, width, height, depth, mip);
+		}
+		return reinterpret_cast<T const*>(pixels.data() + offset);
 	}
 
 }

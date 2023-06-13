@@ -29,9 +29,9 @@ namespace adria
 {
 	namespace shadows
 	{
-		static constexpr uint32 SHADOW_MAP_SIZE = 1024;
+		static constexpr uint32 SHADOW_MAP_SIZE = 2048;
 		static constexpr uint32 SHADOW_CUBE_SIZE = 512;
-		static constexpr uint32 SHADOW_CASCADE_MAP_SIZE = 2048;
+		static constexpr uint32 SHADOW_CASCADE_MAP_SIZE = 1024;
 		static constexpr uint32 SHADOW_CASCADE_COUNT = 4;
 
 		std::array<XMMATRIX, SHADOW_CASCADE_COUNT> RecalculateProjectionMatrices(Camera const& camera, float split_lambda, std::array<float, SHADOW_CASCADE_COUNT>& split_distances)
@@ -284,7 +284,6 @@ namespace adria
 	void Renderer::Render(RendererSettings const& _settings)
 	{
 		renderer_settings = _settings;
-		g_TextureManager.Tick();
 
 		RenderGraph render_graph(resource_pool);
 		RGBlackboard& rg_blackboard = render_graph.GetBlackboard();
@@ -781,6 +780,7 @@ namespace adria
 	{
 		BoundingFrustum camera_frustum = camera->Frustum();
 		auto batch_view = reg.view<Batch>();
+		auto light_view = reg.view<Light>();
 		for (auto e : batch_view)
 		{
 			Batch& batch = batch_view.get<Batch>(e);
@@ -890,7 +890,7 @@ namespace adria
 		for (auto batch_entity : reg.view<Batch>())
 		{
 			Batch& batch = reg.get<Batch>(batch_entity);
-			GfxPipelineStateID pso_id = GfxPipelineStateID::Shadow;
+			GfxPipelineStateID pso_id = batch.alpha_mode == MaterialAlphaMode::Mask ? GfxPipelineStateID::Shadow_Transparent : GfxPipelineStateID::Shadow; //#todo group it
 			cmd_list->SetPipelineState(PSOCache::Get(pso_id));
 
 			struct ModelConstants

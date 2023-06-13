@@ -20,6 +20,7 @@ namespace adria
 		struct SSRPassData
 		{
 			RGTextureReadOnlyId normals;
+			RGTextureReadOnlyId roughness;
 			RGTextureReadOnlyId input;
 			RGTextureReadOnlyId depth;
 			RGTextureReadWriteId output;
@@ -37,17 +38,19 @@ namespace adria
 				data.output = builder.WriteTexture(RG_RES_NAME(SSR_Output));
 				data.input = builder.ReadTexture(last_resource, ReadAccess_NonPixelShader);
 				data.normals = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
+				data.roughness = builder.ReadTexture(RG_RES_NAME(GBufferAlbedo), ReadAccess_NonPixelShader);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
 			[=](SSRPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 				
-				uint32 i = gfx->AllocateDescriptorsGPU(4).GetIndex();
+				uint32 i = gfx->AllocateDescriptorsGPU(5).GetIndex();
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.depth));
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadOnlyTexture(data.normals));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 2), ctx.GetReadOnlyTexture(data.input));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 3), ctx.GetReadWriteTexture(data.output));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 2), ctx.GetReadOnlyTexture(data.roughness));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 3), ctx.GetReadOnlyTexture(data.input));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 4), ctx.GetReadWriteTexture(data.output));
 
 				struct SSRConstants
 				{
@@ -56,12 +59,13 @@ namespace adria
 
 					uint32 depth_idx;
 					uint32 normal_idx;
+					uint32 diffuse_idx;
 					uint32 scene_idx;
 					uint32 output_idx;
 				} constants = 
 				{
 					.ssr_ray_step = params.ssr_ray_step, .ssr_ray_hit_threshold = params.ssr_ray_hit_threshold,
-					.depth_idx = i, .normal_idx = i + 1, .scene_idx = i + 2, .output_idx = i + 3
+					.depth_idx = i, .normal_idx = i + 1, .diffuse_idx = i + 2, .scene_idx = i + 3, .output_idx = i + 4
 				};
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::SSR));

@@ -117,7 +117,7 @@ namespace adria
 
 				light.light_data.active = light_params.FindOr<bool>("active", true);
 				light.light_data.volumetric = light_params.FindOr<bool>("volumetric", false);
-				light.light_data.volumetric_strength = light_params.FindOr<float>("volumetric_strength", 0.3f);
+				light.light_data.volumetric_strength = light_params.FindOr<float>("volumetric_strength", 0.004f);
 
 				light.light_data.lens_flare = light_params.FindOr<bool>("lens_flare", false);
 				light.light_data.god_rays = light_params.FindOr<bool>("god_rays", false);
@@ -138,7 +138,7 @@ namespace adria
 					light.mesh_type = LightMesh::Quad;
 				}
 				light.mesh_size = light_params.FindOr<uint32>("size", 100u);
-				light.light_texture = ToWideString(light_params.FindOr<std::string>("texture", ""));
+				light.light_texture = light_params.FindOr<std::string>("texture", "");
 				if (light.light_texture.has_value() && light.light_texture->empty()) light.light_texture = std::nullopt;
 
 				if (type == "directional")
@@ -182,23 +182,20 @@ namespace adria
 			std::string cubemap[1];
 			if (skybox_params.FindArray("texture", cubemap))
 			{
-				config.skybox_params.cubemap = ToWideString(cubemap[0]);
+				config.skybox_params.cubemap = cubemap[0];
 			}
 			else
 			{
 				std::string cubemap[6];
 				if (skybox_params.FindArray("texture", cubemap))
 				{
-					std::wstring w_cubemap[6];
-					std::transform(std::begin(cubemap), std::end(cubemap), std::begin(w_cubemap), [](std::string const& s) {
-						return ToWideString(s); });
-					config.skybox_params.cubemap_textures = std::to_array(w_cubemap);
+					config.skybox_params.cubemap_textures = std::to_array(cubemap);
 				}
 				else
 				{
 					ADRIA_LOG(WARNING, "Skybox texture not found or is incorrectly specified!  \
 										Size of texture array has to be either 1 or 6! Fallback to the default one...");
-					config.skybox_params.cubemap = L"Resources/Textures/Skybox/sunsetcube1024.dds";
+					config.skybox_params.cubemap = "Resources/Textures/Skybox/sunsetcube1024.dds";
 				}
 			}
 			bool used_for_ray_tracing = skybox_params.FindOr<bool>("ray_tracing", true);
@@ -311,7 +308,7 @@ namespace adria
 
 		const_cast<SceneConfig&>(config).camera_params.aspect_ratio = static_cast<float>(Window::Width()) / Window::Height();
 		camera = std::make_unique<Camera>(config.camera_params);
-		entity_loader->LoadSkybox(config.skybox_params);
+		//entity_loader->LoadSkybox(config.skybox_params);
 
 		for (auto&& model : config.scene_models) entity_loader->ImportModel_GLTF(model);
 		for (auto&& light : config.scene_lights) entity_loader->LoadLight(light);

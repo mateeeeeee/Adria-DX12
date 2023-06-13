@@ -332,7 +332,7 @@ namespace adria
 						light_params.light_data.range = real() * 100.0f + 40.0f;
 						light_params.light_data.active = true;
 						light_params.light_data.volumetric = false;
-						light_params.light_data.volumetric_strength = 0.3f;
+						light_params.light_data.volumetric_strength = 0.004f;
 						engine->entity_loader->LoadLight(light_params);
 					}
 				}
@@ -361,7 +361,7 @@ namespace adria
 						light_params.light_data.range = real() * 100.0f + 40.0f;
 						light_params.light_data.active = true;
 						light_params.light_data.volumetric = false;
-						light_params.light_data.volumetric_strength = 0.3f;
+						light_params.light_data.volumetric_strength = 0.004f;
 						if (light_params.light_data.inner_cosine > light_params.light_data.outer_cosine)
 							std::swap(light_params.light_data.inner_cosine, light_params.light_data.outer_cosine);
 						engine->entity_loader->LoadLight(light_params);
@@ -641,7 +641,7 @@ namespace adria
 					ImGui::Checkbox("Volumetric Lighting", &light->volumetric);
 					if (light->volumetric)
 					{
-						ImGui::SliderFloat("Volumetric lighting Strength", &light->volumetric_strength, 0.0f, 5.0f);
+						ImGui::SliderFloat("Volumetric lighting Strength", &light->volumetric_strength, 0.0f, 0.1f);
 					}
 
 					ImGui::Checkbox("Lens Flare", &light->lens_flare);
@@ -665,8 +665,7 @@ namespace adria
 						nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
 						if (result == NFD_OKAY)
 						{
-							std::wstring texture_path = ToWideString(file_path);
-							material->albedo_texture = g_TextureManager.LoadTexture(texture_path);
+							material->albedo_texture = g_TextureManager.LoadTexture(file_path);
 							free(file_path);
 						}
 					}
@@ -688,8 +687,7 @@ namespace adria
 						nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
 						if (result == NFD_OKAY)
 						{
-							std::wstring texture_path = ToWideString(file_path);
-							material->metallic_roughness_texture = g_TextureManager.LoadTexture(texture_path);
+							material->metallic_roughness_texture = g_TextureManager.LoadTexture(file_path);
 							free(file_path);
 						}
 					}
@@ -711,8 +709,7 @@ namespace adria
 						nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
 						if (result == NFD_OKAY)
 						{
-							std::wstring texture_path = ToWideString(file_path);
-							material->emissive_texture = g_TextureManager.LoadTexture(texture_path);
+							material->emissive_texture = g_TextureManager.LoadTexture(file_path);
 							free(file_path);
 						}
 					}
@@ -759,8 +756,7 @@ namespace adria
 						nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
 						if (result == NFD_OKAY)
 						{
-							std::wstring texture_path = ToWideString(file_path);
-							decal->albedo_decal_texture = g_TextureManager.LoadTexture(texture_path);
+							decal->albedo_decal_texture = g_TextureManager.LoadTexture(file_path);
 							free(file_path);
 						}
 					}
@@ -782,8 +778,7 @@ namespace adria
 						nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
 						if (result == NFD_OKAY)
 						{
-							std::wstring texture_path = ToWideString(file_path);
-							decal->normal_decal_texture = g_TextureManager.LoadTexture(texture_path);
+							decal->normal_decal_texture = g_TextureManager.LoadTexture(file_path);
 							free(file_path);
 						}
 					}
@@ -802,8 +797,7 @@ namespace adria
 						nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
 						if (result == NFD_OKAY)
 						{
-							std::wstring texture_path = ToWideString(file_path);
-							skybox->cubemap_texture = g_TextureManager.LoadTexture(texture_path);
+							skybox->cubemap_texture = g_TextureManager.LoadTexture(file_path);
 							free(file_path);
 						}
 					}

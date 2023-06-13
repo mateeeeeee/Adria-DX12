@@ -4,6 +4,11 @@
 
 namespace adria
 {
+	constexpr inline uint32 DivideAndRoundUp(uint32 nominator, uint32 denominator)
+	{
+		return (nominator + denominator - 1) / denominator;
+	}
+
 	enum class GfxFormat
 	{
 		UNKNOWN,
@@ -569,5 +574,47 @@ namespace adria
 			break;
 		}
 		return 16u;
+	}
+	inline constexpr uint32 GetGfxFormatBlockSize(GfxFormat _format)
+	{
+		switch (_format)
+		{
+		case GfxFormat::BC1_UNORM:
+		case GfxFormat::BC2_UNORM:
+		case GfxFormat::BC3_UNORM:
+		case GfxFormat::BC4_UNORM:
+		case GfxFormat::BC5_UNORM:
+		case GfxFormat::BC5_SNORM:
+		case GfxFormat::BC6H_UF16:
+		case GfxFormat::BC6H_SF16:
+		case GfxFormat::BC7_UNORM:
+			return 4;
+		}
+		return 1;
+	}
+
+	inline uint64 GetRowPitch(GfxFormat format, uint32 width, uint32 mip_index = 0)
+	{
+		uint64 num_blocks = std::max(1u, DivideAndRoundUp(width >> mip_index, GetGfxFormatBlockSize(format)));
+		return num_blocks * GetGfxFormatStride(format);
+	}
+	inline uint64 GetSlicePitch(GfxFormat format, uint32 width, uint32 height, uint32 mip_index = 0)
+	{
+		uint64 num_blocks_x = std::max(1u, DivideAndRoundUp(width >> mip_index, GetGfxFormatBlockSize(format)));
+		uint64 num_blocks_y = std::max(1u, DivideAndRoundUp(height >> mip_index, GetGfxFormatBlockSize(format)));
+		return num_blocks_x * num_blocks_y * GetGfxFormatStride(format);
+	}
+	inline uint64 GetTextureMipByteSize(GfxFormat format, uint32 width, uint32 height, uint32 depth, uint32 mip_index)
+	{
+		return GetSlicePitch(format, width, height, mip_index) * std::max(1u, depth >> mip_index);
+	}
+	inline uint64 GetTextureByteSize(GfxFormat format, uint32 width, uint32 height, uint32 depth = 1, uint32 mip_count = 1)
+	{
+		uint64 size = 0;
+		for (uint32 mip_level = 0; mip_level < mip_count; ++mip_level)
+		{
+			size += GetTextureMipByteSize(format, width, height, depth, mip_level);
+		}
+		return size;
 	}
 }
