@@ -125,7 +125,7 @@ PixelOutput DrawMeshletsPS(PixelInput In)
 #endif
 
 	float3 normal = normalize(In.NormalWS);
-	if (!In.IsFrontFace) normal = -normal;
+	if (In.IsFrontFace) normal = -normal;
 
 	float3 tangent = normalize(In.TangentWS);
 	float3 bitangent = normalize(In.BitangentWS);
