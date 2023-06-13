@@ -28,16 +28,17 @@
 			}
 	],
 	"lights" : [
-	{
-		"type" : "directional",
-		"color" : [1.0, 0.9, 0.99],
-		"direction" : [0.1, -1.0, 0.25],
-		"energy" : 8.0,
-		"shadows" : true,
-		"cascades" : true,
-		"volumetric" : false,
-		"mesh" : "quad",
-		"size" : 250
-	}
+		{
+			"type": "directional",
+			"color": [ 1.0, 0.9, 0.99 ],
+			"direction": [ 0.1, -1.0, 0.25 ],
+			"energy": 2.125,
+			"shadows": true,
+			"cascades": true,
+			"volumetric": true,
+			"lens_flare": true,
+			"mesh": "quad",
+			"size": 200
+		}
 	]
 }		

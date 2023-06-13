@@ -8,15 +8,15 @@ namespace adria
 	struct PostprocessSettings
 	{
 		bool fog = false;
-		AntiAliasing anti_aliasing = AntiAliasing_None;
-		AmbientOcclusion ambient_occlusion = AmbientOcclusion::None;
+		AntiAliasing anti_aliasing = AntiAliasing_TAA;
+		AmbientOcclusion ambient_occlusion = AmbientOcclusion::SSAO;
 		Reflections reflections = Reflections::SSR;
 		bool dof = false;
 		bool bokeh = false;
 		bool bloom = false;
-		bool clouds = false;
+		bool clouds = true;
 		bool motion_blur = false;
-		bool automatic_exposure = false;
+		bool automatic_exposure = true;
 	};
 
 	struct RendererSettings

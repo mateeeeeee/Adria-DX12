@@ -319,7 +319,7 @@ namespace adria
 					ImGui::InputFloat("Planet Radius", &params.planet_radius);
 					ImGui::SliderInt("Max Num Steps", &params.max_num_steps, 16, 256);
 
-					static int _resolution = 0;
+					static int _resolution = 1;
 					static const char* res_types[] = { "Full", "Half", "Quarter" };
 					const char* res_combo_label = res_types[_resolution];
 					if (ImGui::BeginCombo("Cloud Resolution", res_combo_label, 0))

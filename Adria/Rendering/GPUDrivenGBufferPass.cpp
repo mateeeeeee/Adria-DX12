@@ -881,7 +881,7 @@ namespace adria
 				GfxBuffer const& src_buffer3 = context.GetCopySrcBuffer(data.candidate_meshlets_counter);
 				GfxBuffer& debug_buffer = context.GetCopyDstBuffer(data.debug_buffer);
 
-				uint32 backbuffer_index = gfx->BackbufferIndex();
+				uint32 backbuffer_index = gfx->GetBackbufferIndex();
 				uint32 buffer_offset = 6 * sizeof(uint32) * backbuffer_index;
 				cmd_list->CopyBuffer(debug_buffer, buffer_offset, src_buffer1, 0, sizeof(uint32));
 				cmd_list->CopyBuffer(debug_buffer, buffer_offset + sizeof(uint32), src_buffer2, 0, 2 * sizeof(uint32));
@@ -918,7 +918,7 @@ namespace adria
 	void GPUDrivenGBufferPass::CreateDebugBuffer()
 	{
 		GfxBufferDesc debug_buffer_desc{};
-		debug_buffer_desc.size = 6 * sizeof(uint32) * gfx->BackbufferCount();
+		debug_buffer_desc.size = 6 * sizeof(uint32) * gfx->GetBackbufferCount();
 		debug_buffer_desc.format = GfxFormat::R32_UINT;
 		debug_buffer_desc.stride = sizeof(uint32);
 		debug_buffer_desc.resource_usage = GfxResourceUsage::Readback;

@@ -271,6 +271,7 @@
     <ClCompile Include="Rendering\RayTracedShadowsPass.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
     <ClCompile Include="Rendering\ShaderCache.cpp" />
+    <ClCompile Include="Rendering\ShadowRenderer.cpp" />
     <ClCompile Include="Rendering\SkyModel.cpp" />
     <ClCompile Include="Rendering\SkyPass.cpp" />
     <ClCompile Include="Rendering\SSAOPass.cpp" />
@@ -430,6 +431,7 @@
     <ClInclude Include="Rendering\RendererSettings.h" />
     <ClInclude Include="Rendering\Renderer.h" />
     <ClInclude Include="Rendering\ShaderCache.h" />
+    <ClInclude Include="Rendering\ShadowRenderer.h" />
     <ClInclude Include="Rendering\SSRPass.h" />
     <ClInclude Include="Rendering\TAAPass.h" />
     <ClInclude Include="Rendering\MotionVectorsPass.h" />

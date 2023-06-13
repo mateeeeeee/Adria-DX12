@@ -18,7 +18,7 @@ namespace adria
 	{
 		struct SSAOParams
 		{
-			float   ssao_power = 4.0f;
+			float   ssao_power = 1.5f;
 			float   ssao_radius = 1.0f;
 		};
 	public:
@@ -30,6 +30,7 @@ namespace adria
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h);
 		void OnSceneInitialized(GfxDevice* gfx);
+
 	private:
 		uint32 width, height;
 		SSAOParams params{};

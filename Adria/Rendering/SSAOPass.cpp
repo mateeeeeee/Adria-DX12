@@ -16,7 +16,7 @@ namespace adria
 {
 	namespace cvars
 	{
-		static ConsoleVariable ssao_power("ssao.power",   4.0f);
+		static ConsoleVariable ssao_power("ssao.power",   1.5f);
 		static ConsoleVariable ssao_radius("ssao.radius", 1.0f);
 	}
 

@@ -22,7 +22,7 @@
 #include "DebugPass.h"
 #include "OceanRenderer.h"
 #include "AccelerationStructure.h"
-#include "RayTracedShadowsPass.h"
+#include "ShadowRenderer.h"
 #include "RayTracedAmbientOcclusionPass.h"
 #include "RayTracedReflectionsPass.h"
 #include "PathTracingPass.h"
@@ -75,10 +75,7 @@ namespace adria
 		uint32 width;
 		uint32 height;
 
-		//resources
 		std::unique_ptr<GfxTexture> final_texture;
-
-		//Persistent constant buffers
 		GfxConstantBuffer<FrameCBuffer> frame_cbuffer;
 
 		//scene buffers
@@ -90,17 +87,6 @@ namespace adria
 			GfxDescriptor				buffer_srv_gpu;
 		};
 		std::array<SceneBuffer, SceneBuffer_Count> scene_buffers;
-		//shadows
-		std::unique_ptr<GfxBuffer>  light_matrices_buffer;
-		GfxDescriptor				light_matrices_buffer_srvs[GFX_BACKBUFFER_COUNT];
-		HashMap<size_t, std::vector<std::unique_ptr<GfxTexture>>> light_shadow_maps;
-		HashMap<size_t, std::vector<GfxDescriptor>> light_shadow_map_srvs;
-		HashMap<size_t, std::vector<GfxDescriptor>> light_shadow_map_dsvs;
-		HashMap<size_t, std::unique_ptr<GfxTexture>> light_mask_textures;
-		HashMap<size_t, GfxDescriptor> light_mask_texture_srvs;
-		HashMap<size_t, GfxDescriptor> light_mask_texture_uavs;
-
-		int32				 light_matrices_gpu_index;
 
 		//passes
 		GBufferPass  gbuffer_pass;
@@ -111,7 +97,6 @@ namespace adria
 		ToneMapPass  tonemap_pass;
 		FXAAPass	 fxaa_pass;
 		SkyPass		 sky_pass;
-		RayTracedShadowsPass ray_traced_shadows_pass;
 		RayTracedAmbientOcclusionPass rtao_pass;
 		RayTracedReflectionsPass rtr_pass;
 		DeferredLightingPass deferred_lighting_pass;
@@ -123,6 +108,7 @@ namespace adria
 		PickingPass picking_pass;
 		DecalsPass decals_pass;
 		OceanRenderer  ocean_renderer;
+		ShadowRenderer shadow_renderer;
 		DebugPass aabb_pass;
 		Postprocessor postprocessor;
 		PathTracingPass path_tracer;
@@ -138,20 +124,16 @@ namespace adria
 
 		//misc
 		uint32			         volumetric_lights = 0;
-		float					 cascades_split_lambda = 0.5f;
-		bool				     transparent_shadows = false;
-		std::array<float, 4>	 split_distances;
 		float					 wind_dir[3] = { 1.0f, 0.0f, 1.0f };
 		float					 wind_speed = 10.0f;
 		DirectX::XMFLOAT3		 sun_direction;
-		ViewportData viewport_data;
+		ViewportData			 viewport_data;
 
 	private:
 		void CreateSizeDependentResources();
 		void CreateAS();
 
 		void MiscGUI();
-		void SetupShadows();
 		void UpdateSceneBuffers();
 		void UpdateFrameConstants(float dt);
 		void CameraFrustumCulling();
@@ -159,9 +141,6 @@ namespace adria
 		void Render_Deferred(RenderGraph& rg);
 		void Render_PathTracing(RenderGraph& rg);
 
-		void ShadowMapPass_Common(GfxDevice* gfx, GfxCommandList* cmd_list, bool transparent, size_t light_index, size_t shadow_map_index = 0);
-		void AddShadowMapPasses(RenderGraph& rg);
-		void AddRayTracingShadowPasses(RenderGraph& rg);
 		void CopyToBackbuffer(RenderGraph& rg);
 		void ResolveToFinalTexture(RenderGraph& rg);
 	};

@@ -17,11 +17,13 @@ namespace adria
 		void OnResize(uint32 w, uint32 h);
 
 		bool IsSupported() const;
+
 	private:
 		GfxDevice* gfx;
 		ArcPtr<ID3D12StateObject> ray_traced_shadows;
 		uint32 width, height;
 		bool is_supported;
+
 	private:
 		void CreateStateObject();
 		void OnLibraryRecompiled(GfxShaderID shader);

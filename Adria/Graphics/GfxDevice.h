@@ -72,8 +72,8 @@ namespace adria
 		void WaitForGPU();
 
 		void OnResize(uint32 w, uint32 h);
-		uint32 BackbufferIndex() const;
-		uint32 FrameIndex() const;
+		uint32 GetBackbufferIndex() const;
+		uint32 GetFrameIndex() const;
 
 		void BeginFrame();
 		void EndFrame(bool vsync = false);
@@ -130,7 +130,7 @@ namespace adria
 		DispatchIndirectSignature& GetDispatchIndirectSignature() const { return *dispatch_indirect_signature;}
 		DispatchMeshIndirectSignature& GetDispatchMeshIndirectSignature() const { return *dispatch_mesh_indirect_signature;}
 
-		static constexpr uint32 BackbufferCount()
+		static constexpr uint32 GetBackbufferCount()
 		{
 			return GFX_BACKBUFFER_COUNT;
 		}

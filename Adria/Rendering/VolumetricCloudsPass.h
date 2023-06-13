@@ -68,7 +68,7 @@ namespace adria
 		CloudParameters params{};
 		bool should_generate_textures = false;
 		bool temporal_reprojection = true;
-		CloudResolution resolution = CloudResolution_Full;
+		CloudResolution resolution = CloudResolution_Half;
 
 	private:
 

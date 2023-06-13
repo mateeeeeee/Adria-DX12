@@ -81,7 +81,7 @@ namespace adria
 	{
 		UINT64 gpu_frequency = 0;
 		gfx->GetTimestampFrequency(gpu_frequency);
-		UINT64 current_backbuffer_index = gfx->BackbufferIndex();
+		UINT64 current_backbuffer_index = gfx->GetBackbufferIndex();
 		for (auto const& [_, index] : name_to_index_map)
 		{
 			ADRIA_ASSERT(index < MAX_PROFILES);

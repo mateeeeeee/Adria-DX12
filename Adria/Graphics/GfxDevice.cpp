@@ -318,11 +318,11 @@ namespace adria
 			swapchain->OnResize(w, h);
 		}
 	}
-	uint32 GfxDevice::BackbufferIndex() const
+	uint32 GfxDevice::GetBackbufferIndex() const
 	{
 		return swapchain->GetBackbufferIndex();
 	}
-	uint32 GfxDevice::FrameIndex() const { return frame_index; }
+	uint32 GfxDevice::GetFrameIndex() const { return frame_index; }
 
 	void GfxDevice::BeginFrame()
 	{

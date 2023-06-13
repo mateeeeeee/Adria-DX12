@@ -12,7 +12,7 @@ namespace adria
 	PickingPass::PickingPass(GfxDevice* gfx, uint32 width, uint32 height) : gfx(gfx),
 		width(width), height(height)
 	{
-		for (size_t i = 0; i < gfx->BackbufferCount(); ++i)
+		for (size_t i = 0; i < gfx->GetBackbufferCount(); ++i)
 		{
 			read_picking_buffers.emplace_back(std::make_unique<GfxBuffer>(gfx, ReadBackBufferDesc(sizeof(PickingData))));
 		}
@@ -85,7 +85,7 @@ namespace adria
 			{
 				data.src = builder.ReadCopySrcBuffer(RG_RES_NAME(PickBuffer));
 			},
-			[=, backbuffer_index = gfx->BackbufferIndex()](PickingPassCopyData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
+			[=, backbuffer_index = gfx->GetBackbufferIndex()](PickingPassCopyData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxBuffer const& buffer = context.GetCopySrcBuffer(data.src);
 				cmd_list->CopyBuffer(*read_picking_buffers[backbuffer_index], buffer);
@@ -94,7 +94,7 @@ namespace adria
 
 	PickingData PickingPass::GetPickingData() const
 	{
-		UINT backbuffer_index = gfx->BackbufferIndex();
+		UINT backbuffer_index = gfx->GetBackbufferIndex();
 		PickingData const* data = read_picking_buffers[backbuffer_index]->GetMappedData<PickingData>();
 		PickingData picking_data = *data;
 		return picking_data;
