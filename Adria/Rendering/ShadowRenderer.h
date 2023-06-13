@@ -60,11 +60,12 @@ namespace adria
 		HashMap<size_t, GfxDescriptor> light_mask_texture_uavs;
 		int32						   light_matrices_gpu_index = -1;
 
+		std::vector<DirectX::XMMATRIX> light_matrices;
 		float											cascades_split_lambda = 0.5f;
 		std::array<float, SHADOW_CASCADE_COUNT>		    split_distances{};
 
 	private:
-		void ShadowMapPass_Common(GfxDevice* gfx, GfxCommandList* cmd_list, bool transparent, size_t light_index, size_t shadow_map_index = 0);
+		void ShadowMapPass_Common(GfxDevice* gfx, GfxCommandList* cmd_list, size_t light_index, size_t matrix_index, size_t matrix_offset);
 		static std::array<DirectX::XMMATRIX, SHADOW_CASCADE_COUNT> RecalculateProjectionMatrices(Camera const& camera, float split_lambda, std::array<float, SHADOW_CASCADE_COUNT>& split_distances);
 	};
 }
