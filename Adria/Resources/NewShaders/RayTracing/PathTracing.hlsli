@@ -2,7 +2,6 @@
 #define PATHTRACING_INCLUDED
 
 #include "RayTracingUtil.hlsli"
-#include "../Scene.hlsli"
 #include "../BRDF.hlsli"
 #include "../Lighting.hlsli"
 #include "../Tonemapping.hlsli"
