@@ -76,10 +76,12 @@ Since this engine shares some of the features with [engine](https://github.com/m
 
 Volumetric Clouds
 ![alt text](Screenshots/clouds.png "Volumetric clouds") 
+![alt text](Screenshots/sanmiguel.png "San Miguel") 
 
 Path Tracer
 ![alt text](Screenshots/pathtracing1.png "Path tracing") 
 ![alt text](Screenshots/pathtracing2.png "Path tracing") 
+![alt text](Screenshots/sanmiguel-pt.png "San Miguel") 
 
 
 <table>

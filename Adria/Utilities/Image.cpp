@@ -269,6 +269,7 @@ namespace adria
 			width = (uint32)_width;
 			height = (uint32)_height;
 			depth = 1;
+			mip_levels = 1;
 			format = GfxFormat::R32G32B32A32_FLOAT;
 			pixels.resize(width * height * 4 * sizeof(float));
 			memcpy(pixels.data(), _pixels, pixels.size());
@@ -283,6 +284,7 @@ namespace adria
 			width = (uint32)_width;
 			height = (uint32)_height;
 			depth = 1;
+			mip_levels = 1;
 			format = GfxFormat::R8G8B8A8_UNORM;
 			pixels.resize(width * height * 4);
 			memcpy(pixels.data(), _pixels, pixels.size());

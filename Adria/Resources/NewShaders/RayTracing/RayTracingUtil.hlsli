@@ -2,6 +2,7 @@
 #define RAYTRACING_UTIL_INCLUDED
 
 #include "../Common.hlsli"
+#include "../Scene.hlsli"
 #include "../Random.hlsli"
 #include "../CommonResources.hlsli"
 
@@ -99,12 +100,26 @@ bool TraceRay(RayDesc ray, out HitInfo hitInfo)
 
     while (q.Proceed())
     {
-        //uint instanceID = q.CandidateInstanceID();
-        //uint primitiveIndex = q.CandidatePrimitiveIndex();
-        //uint geometryIndex = q.CandidateGeometryIndex();
-        //float2 barycentricCoordinates = q.CandidateTriangleBarycentrics();
-        //todo alpha test
-        q.CommitNonOpaqueTriangleHit();
+		//uint instanceIndex = q.CandidateInstanceID();
+		//uint triangleId = q.CandidatePrimitiveIndex();
+		//Instance instanceData = GetInstanceData(instanceIndex);
+		//Mesh meshData = GetMeshData(instanceData.meshIndex);
+		//Material materialData = GetMaterialData(instanceData.materialIdx);
+		//
+		//uint i0 = LoadMeshBuffer<uint>(meshData.bufferIdx, meshData.indicesOffset, 3 * triangleId + 0);
+		//uint i1 = LoadMeshBuffer<uint>(meshData.bufferIdx, meshData.indicesOffset, 3 * triangleId + 1);
+		//uint i2 = LoadMeshBuffer<uint>(meshData.bufferIdx, meshData.indicesOffset, 3 * triangleId + 2);
+		//
+		//float2 uv0 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i0);
+		//float2 uv1 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i1);
+		//float2 uv2 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i2);
+		//float2 uv = Interpolate(uv0, uv1, uv2, q.CandidateTriangleBarycentrics());
+		//
+		//Texture2D txAlbedo = ResourceDescriptorHeap[materialData.diffuseIdx];
+		//float4 albedoColor = txAlbedo.SampleLevel(LinearWrapSampler, uv, 0) * float4(materialData.baseColorFactor, 1.0f);
+		//
+		//if (albedoColor.a >= materialData.alphaCutoff)
+		q.CommitNonOpaqueTriangleHit();
     }
     if (q.CommittedStatus() == COMMITTED_NOTHING)
     {
