@@ -2,8 +2,6 @@
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "dxguid.lib")
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
 #include "Core/Window.h"
 #include "Core/Engine.h"
 #include "Logging/Logger.h"

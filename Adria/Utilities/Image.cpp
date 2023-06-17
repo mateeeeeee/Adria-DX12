@@ -1,4 +1,5 @@
 #include "Image.h"
+#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #include "Logging/Logger.h"
 #include "Utilities/FilesUtil.h"
