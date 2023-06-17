@@ -9,6 +9,7 @@ struct VolumetricLightingConstants
 {
 	uint depthIdx;
 	uint outputIdx;
+	uint resolutionFactor;
 };
 ConstantBuffer<VolumetricLightingConstants> PassCB : register(b1);
 
@@ -31,7 +32,9 @@ void VolumetricLighting(CS_INPUT input)
 
 	uint lightCount, _unused;
 	lights.GetDimensions(lightCount, _unused);
-	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
+	uint2 resolution = uint2(FrameCB.screenResolution) >> PassCB.resolutionFactor;
+
+	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / resolution;
 	float depth = depthTx.SampleLevel(LinearClampSampler, uv, 2);
 
 	float3 viewPosition = GetViewPosition(uv, depth);
@@ -65,7 +68,7 @@ void VolumetricLighting(CS_INPUT input)
 		totalAccumulation += lightAccumulation * light.color.rgb * light.volumetricStrength;
 	}
 
-	outputTx[input.DispatchThreadId.xy] += float4(totalAccumulation, 1.0f);
+	outputTx[input.DispatchThreadId.xy] = float4(totalAccumulation, 1.0f);
 }
 
 
