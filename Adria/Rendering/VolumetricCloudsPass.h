@@ -66,12 +66,11 @@ namespace adria
 		std::unique_ptr<GfxTexture> cloud_type;
 
 		CloudParameters params{};
+		CloudResolution resolution = CloudResolution_Half;
 		bool should_generate_textures = false;
 		bool temporal_reprojection = true;
-		CloudResolution resolution = CloudResolution_Half;
-
+		
 	private:
-
 		void CreateCloudTextures(GfxDevice* gfx = nullptr);
 		void AddCombinePass(RenderGraph& rendergraph, RGResourceName render_target);
 

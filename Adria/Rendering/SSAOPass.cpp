@@ -3,6 +3,7 @@
 #include "BlackboardData.h"
 #include "PSOCache.h" 
 
+#include "Math/Packing.h"
 #include "Graphics/GfxLinearDynamicAllocator.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
 #include "RenderGraph/RenderGraph.h"
@@ -21,7 +22,7 @@ namespace adria
 	}
 
 	SSAOPass::SSAOPass(uint32 w, uint32 h) : width(w), height(h), ssao_random_texture(nullptr),
-		blur_pass(w, h)
+		blur_pass(w >> resolution, h >> resolution)
 	{
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
 		for (uint32 i = 0; i < ARRAYSIZE(ssao_kernel); i++)
@@ -48,8 +49,8 @@ namespace adria
 			{
 				RGTextureDesc ssao_desc{};
 				ssao_desc.format = GfxFormat::R8_UNORM;
-				ssao_desc.width = width;
-				ssao_desc.height = height;
+				ssao_desc.width = width >> resolution;
+				ssao_desc.height = height >> resolution;
 
 				builder.DeclareTexture(RG_RES_NAME(SSAO_Output), ssao_desc);
 				data.output_uav = builder.WriteTexture(RG_RES_NAME(SSAO_Output));
@@ -70,8 +71,8 @@ namespace adria
 
 				struct SSAOConstants
 				{
-					float  radius;
-					float  power;
+					uint32 ssao_params_packed;
+					uint32 resolutionFactor;
 					float  noise_scale_x;
 					float  noise_scale_y;
 		
@@ -81,15 +82,15 @@ namespace adria
 					uint32   output_idx;
 				} constants = 
 				{
-					.radius = params.ssao_radius, .power = params.ssao_power,
-					.noise_scale_x = width * 1.0f / NOISE_DIM, .noise_scale_y = height * 1.0f / NOISE_DIM,
+					.ssao_params_packed = PackTwoFloatsToUint32(params.ssao_radius,params.ssao_power), .resolutionFactor = (uint32)resolution,
+					.noise_scale_x = (width >> resolution) * 1.0f / NOISE_DIM, .noise_scale_y = (height >> resolution) * 1.0f / NOISE_DIM,
 					.depth_idx = i, .normal_idx = i + 1, .noise_idx = i + 2, .output_idx = i + 3
 				};
 
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->SetRootCBV(2, ssao_kernel);
-				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
+				cmd_list->Dispatch((uint32)std::ceil((width >> resolution) / 16.0f), (uint32)std::ceil((height >> resolution) / 16.0f), 1);
 			}, RGPassType::Compute);
 
 		blur_pass.AddPass(rendergraph, RG_RES_NAME(SSAO_Output), RG_RES_NAME(AmbientOcclusion), " SSAO");
@@ -103,6 +104,26 @@ namespace adria
 					ImGui::SliderFloat("Power", &cvars::ssao_power.Get(), 1.0f, 16.0f);
 					ImGui::SliderFloat("Radius", &cvars::ssao_radius.Get(), 0.5f, 4.0f);
 
+					static int _resolution = 1;
+					static const char* res_types[] = { "Full", "Half", "Quarter" };
+					const char* res_combo_label = res_types[_resolution];
+					if (ImGui::BeginCombo("SSAO Resolution", res_combo_label, 0))
+					{
+						for (int n = 0; n < IM_ARRAYSIZE(res_types); n++)
+						{
+							const bool is_selected = (_resolution == n);
+							if (ImGui::Selectable(res_types[n], is_selected)) _resolution = (SSAOResolution)n;
+							if (is_selected) ImGui::SetItemDefaultFocus();
+						}
+						ImGui::EndCombo();
+					}
+
+					if (resolution != _resolution)
+					{
+						resolution = (SSAOResolution)_resolution;
+						OnResize(width, height);
+					}
+
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
@@ -113,7 +134,7 @@ namespace adria
 	void SSAOPass::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
-		blur_pass.OnResize(w, h);
+		blur_pass.OnResize(w >> resolution, h >> resolution);
 	}
 
 	void SSAOPass::OnSceneInitialized(GfxDevice* gfx)
