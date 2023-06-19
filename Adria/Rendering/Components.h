@@ -12,6 +12,8 @@
 
 #define COMPONENT
 
+//move components to appropriate files
+
 namespace adria
 {
 	class GfxCommandList;

@@ -70,7 +70,7 @@ namespace adria
 				auto batch_view = reg.view<Batch>();
 				for (auto batch_entity : batch_view)
 				{
-					Batch& batch = reg.get<Batch>(batch_entity);
+					Batch& batch = batch_view.get<Batch>(batch_entity);
 					if (!batch.camera_visibility) continue;
 
 					GfxPipelineStateID pso_id = GetPSO(batch.alpha_mode);

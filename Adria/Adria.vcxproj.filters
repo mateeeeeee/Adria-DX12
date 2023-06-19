@@ -423,6 +423,9 @@
     <ClCompile Include="Rendering\ShadowRenderer.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\DDGI.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -952,6 +955,9 @@
       <Filter>Shaders\SPD</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\ShadowRenderer.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\DDGI.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
   </ItemGroup>
