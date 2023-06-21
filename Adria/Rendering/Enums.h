@@ -99,9 +99,8 @@ namespace adria
 		CS_InitializeHZB,
 		CS_HZBMips,
 		CS_RTAOFilter,
-		CS_DDGIUpdateIrradianceColor,
-		CS_DDGIUpdateIrradianceDepth,
-		CS_DDGIUpdateProbeStates,
+		CS_DDGIUpdateIrradiance,
+		CS_DDGIUpdateDistance,
 		LIB_Shadows,
 		LIB_SoftShadows,
 		LIB_AmbientOcclusion,
@@ -203,9 +202,8 @@ namespace adria
 		InitializeHZB,
 		HZBMips,
 		RTAOFilter,
-		DDGIUpdateIrradianceColor,
-		DDGIUpdateIrradianceDepth,
-		DDGIUpdateProbeStates,
+		DDGIUpdateIrradiance,
+		DDGIUpdateDistance,
         Unknown
 	};
 

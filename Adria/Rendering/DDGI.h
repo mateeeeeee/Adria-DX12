@@ -22,8 +22,6 @@ namespace adria
 			DirectX::XMUINT3	 num_probes;
 			uint32				 max_num_rays;
 			uint32				 num_rays;
-			std::unique_ptr<GfxBuffer>  probe_states;
-			std::unique_ptr<GfxBuffer>  probe_offsets;
 			std::unique_ptr<GfxTexture> irradiance_history;
 			std::unique_ptr<GfxTexture> depth_history;
 		};

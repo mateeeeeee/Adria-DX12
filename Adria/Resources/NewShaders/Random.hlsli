@@ -23,4 +23,34 @@ float NextRand(inout uint s)
 	return float(s & 0x00FFFFFF) / float(0x01000000);
 }
 
+/*
+ * From Nathan Reed's blog at:
+ * http://www.reedbeta.com/blog/quick-and-easy-gpu-random-numbers-in-d3d11/
+*/
+
+uint WangHash(uint seed)
+{
+	seed = (seed ^ 61) ^ (seed >> 16);
+	seed *= 9;
+	seed = seed ^ (seed >> 4);
+	seed *= 0x27d4eb2d;
+	seed = seed ^ (seed >> 15);
+	return seed;
+}
+
+uint Xorshift(uint seed)
+{
+	// Xorshift algorithm from George Marsaglia's paper
+	seed ^= (seed << 13);
+	seed ^= (seed >> 17);
+	seed ^= (seed << 5);
+	return seed;
+}
+
+float GetRandomNumber(inout uint seed)
+{
+	seed = WangHash(seed);
+	return float(Xorshift(seed)) * (1.f / 4294967296.f);
+}
+
 #endif

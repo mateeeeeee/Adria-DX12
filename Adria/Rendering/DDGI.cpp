@@ -67,14 +67,11 @@ namespace adria
 
 		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
 
-		rg.ImportBuffer(RG_RES_NAME(ProbeStates), ddgi.probe_states.get());
-		rg.ImportBuffer(RG_RES_NAME(ProbeOffsets), ddgi.probe_offsets.get());
-		rg.ImportTexture(RG_RES_NAME(IrradianceHistory), ddgi.irradiance_history.get());
-		rg.ImportTexture(RG_RES_NAME(DepthHistory), ddgi.depth_history.get());
+		rg.ImportTexture(RG_RES_NAME(DDGIIrradianceHistory), ddgi.irradiance_history.get());
+		rg.ImportTexture(RG_RES_NAME(DDGIDepthHistory), ddgi.depth_history.get());
 
 		struct DDGIRayTracePassData
 		{
-			RGBufferReadOnlyId  probe_states;
 			RGBufferReadWriteId ray_buffer;
 		};
 
@@ -85,9 +82,8 @@ namespace adria
 				ray_buffer_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 				ray_buffer_desc.stride = GetGfxFormatStride(ray_buffer_desc.format);
 				ray_buffer_desc.size = ray_buffer_desc.stride * num_probes * ddgi_max_num_rays;
-				builder.DeclareBuffer(RG_RES_NAME(RayBuffer), ray_buffer_desc);
-				data.probe_states = builder.ReadBuffer(RG_RES_NAME(ProbeStates));
-				data.ray_buffer	  = builder.WriteBuffer(RG_RES_NAME(RayBuffer));
+				builder.DeclareBuffer(RG_RES_NAME(DDGIRayBuffer), ray_buffer_desc);
+				data.ray_buffer	  = builder.WriteBuffer(RG_RES_NAME(DDGIRayBuffer));
 			},
 			[=](DDGIRayTracePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
@@ -107,7 +103,6 @@ namespace adria
 
 		struct DDGIUpdateIrradiancePassData
 		{
-			RGBufferReadOnlyId		probe_states;
 			RGBufferReadOnlyId		ray_buffer;
 			RGTextureReadOnlyId		irradiance_history;
 			RGTextureReadWriteId	irradiance;
@@ -121,84 +116,104 @@ namespace adria
 				irradiance_desc.width  = irradiance_dimensions.x;
 				irradiance_desc.height = irradiance_dimensions.y;
 				irradiance_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-				builder.DeclareTexture(RG_RES_NAME(Irradiance), irradiance_desc);
+				builder.DeclareTexture(RG_RES_NAME(DDGIIrradiance), irradiance_desc);
 
-				data.irradiance		= builder.WriteTexture(RG_RES_NAME(Irradiance));
-				data.probe_states	= builder.ReadBuffer(RG_RES_NAME(ProbeStates));
-				data.ray_buffer		= builder.ReadBuffer(RG_RES_NAME(RayBuffer));
-				data.irradiance_history = builder.ReadTexture(RG_RES_NAME(IrradianceHistory));
+				data.irradiance		= builder.WriteTexture(RG_RES_NAME(DDGIIrradiance));
+				data.ray_buffer		= builder.ReadBuffer(RG_RES_NAME(DDGIRayBuffer));
+				data.irradiance_history = builder.ReadTexture(RG_RES_NAME(DDGIIrradianceHistory));
 			},
 			[=](DDGIUpdateIrradiancePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIUpdateIrradianceColor));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIUpdateIrradiance));
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, parameters);
 				cmd_list->Dispatch(num_probes, 1, 1);
 				cmd_list->UavBarrier(ctx.GetTexture(*data.irradiance));
 			}, RGPassType::Compute);
 
-		struct DDGIUpdateDepthPassData
+		struct DDGIUpdateDistancePassData
 		{
-			RGBufferReadOnlyId		probe_states;
 			RGBufferReadOnlyId		ray_buffer;
 			RGTextureReadOnlyId		depth_history;
 			RGTextureReadWriteId	depth;
 		};
 
-		rg.AddPass<DDGIUpdateDepthPassData>("DDGI Update Depth Pass",
-			[=](DDGIUpdateDepthPassData& data, RenderGraphBuilder& builder)
+		rg.AddPass<DDGIUpdateDistancePassData>("DDGI Update Distance Pass",
+			[=](DDGIUpdateDistancePassData& data, RenderGraphBuilder& builder)
 			{
 				XMUINT2 depth_dimensions = ProbeTextureDimensions(ddgi_num_probes, PROBE_DEPTH_TEXELS);
 				RGTextureDesc irradiance_desc{};
 				irradiance_desc.width = depth_dimensions.x;
 				irradiance_desc.height = depth_dimensions.y;
 				irradiance_desc.format = GfxFormat::R16G16_FLOAT;
-				builder.DeclareTexture(RG_RES_NAME(Depth), irradiance_desc);
+				builder.DeclareTexture(RG_RES_NAME(DDGIDistance), irradiance_desc);
 
-				data.depth = builder.WriteTexture(RG_RES_NAME(Depth));
-				data.probe_states = builder.ReadBuffer(RG_RES_NAME(ProbeStates));
-				data.ray_buffer = builder.ReadBuffer(RG_RES_NAME(RayBuffer));
-				data.depth_history = builder.ReadTexture(RG_RES_NAME(IrradianceHistory));
+				data.depth = builder.WriteTexture(RG_RES_NAME(DDGIDistance));
+				data.ray_buffer = builder.ReadBuffer(RG_RES_NAME(DDGIRayBuffer));
+				data.depth_history = builder.ReadTexture(RG_RES_NAME(DDGIDistanceHistory));
 			},
-			[=](DDGIUpdateDepthPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			[=](DDGIUpdateDistancePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIUpdateIrradianceDepth));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIUpdateDistance));
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, parameters);
 				cmd_list->Dispatch(num_probes, 1, 1);
 				cmd_list->UavBarrier(ctx.GetTexture(*data.depth));
 			}, RGPassType::Compute);
 
-		struct DDGIUpdateProbeStatesPassData
+
+		struct DDGICopyIrradiancePassData
 		{
-			RGBufferReadWriteId		probe_states;
-			RGBufferReadWriteId		probe_offsets;
-			RGBufferReadOnlyId		ray_buffer;
+			RGTextureCopySrcId copy_src;
+			RGTextureCopyDstId copy_dst;
 		};
-		
-		rg.AddPass<DDGIUpdateProbeStatesPassData>("DDGI Update Probe States Pass",
-			[=](DDGIUpdateProbeStatesPassData& data, RenderGraphBuilder& builder)
+
+		rg.AddPass<DDGICopyIrradiancePassData>("DDGI Copy Irradiance Pass",
+			[=](DDGICopyIrradiancePassData& data, RenderGraphBuilder& builder)
 			{
-				data.probe_states = builder.WriteBuffer(RG_RES_NAME(ProbeStates));
-				data.probe_offsets = builder.WriteBuffer(RG_RES_NAME(ProbeOffsets));
-				data.ray_buffer = builder.ReadBuffer(RG_RES_NAME(RayBuffer));
+				RGTextureDesc history_desc{};
+				history_desc.width = width;
+				history_desc.height = height;
+				history_desc.format = GfxFormat::R16G16B16A16_FLOAT;
+
+				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(DDGIIrradianceHistory));
+				data.copy_src = builder.ReadCopySrcTexture(RG_RES_NAME(DDGIIrradiance));
 			},
-			[=](DDGIUpdateProbeStatesPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			[=](DDGICopyIrradiancePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
-				GfxDevice* gfx = cmd_list->GetDevice();
-
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIUpdateProbeStates));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
-				cmd_list->SetRootConstants(1, parameters);
-				cmd_list->Dispatch(num_probes / 32, 1, 1);
-			}, RGPassType::Compute);
+				GfxTexture const& src_texture = context.GetCopySrcTexture(data.copy_src);
+				GfxTexture& dst_texture = context.GetCopyDstTexture(data.copy_dst);
+				cmd_list->CopyTexture(dst_texture, src_texture);
+			}, RGPassType::Copy, RGPassFlags::None);
 
 
-		//copy irradiance to history for next frame
+		struct DDGICopyDistancePassData
+		{
+			RGTextureCopySrcId copy_src;
+			RGTextureCopyDstId copy_dst;
+		};
+
+		rg.AddPass<DDGICopyDistancePassData>("DDGI Copy Distance Pass",
+			[=](DDGICopyDistancePassData& data, RenderGraphBuilder& builder)
+			{
+				RGTextureDesc history_desc{};
+				history_desc.width = width;
+				history_desc.height = height;
+				history_desc.format = GfxFormat::R16G16B16A16_FLOAT;
+
+				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(DDGIDistanceHistory));
+				data.copy_src = builder.ReadCopySrcTexture(RG_RES_NAME(DDGIDistance));
+			},
+			[=](DDGICopyDistancePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
+			{
+				GfxTexture const& src_texture = context.GetCopySrcTexture(data.copy_src);
+				GfxTexture& dst_texture = context.GetCopyDstTexture(data.copy_dst);
+				cmd_list->CopyTexture(dst_texture, src_texture);
+			}, RGPassType::Copy, RGPassFlags::None);
 	}
 
 	void DDGI::CreateStateObject()

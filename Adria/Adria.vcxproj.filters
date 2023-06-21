@@ -83,6 +83,9 @@
     <Filter Include="Shaders\Clouds">
       <UniqueIdentifier>{93683108-3ee8-4a1d-9d4a-ac2927722ee2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\DDGI">
+      <UniqueIdentifier>{88a1207d-a71c-4a36-bb15-62c64a752d2f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -1139,6 +1142,9 @@
     </FxCompile>
     <FxCompile Include="Resources\NewShaders\RayTracing\RTAOFilter.hlsl">
       <Filter>Shaders\RayTracing</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\DDGI\DDGIRayTrace.hlsl">
+      <Filter>Shaders\DDGI</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
