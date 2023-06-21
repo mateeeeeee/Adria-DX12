@@ -40,10 +40,13 @@ namespace adria
 		uint32 width, height;
 		bool is_supported;
 		ArcPtr<ID3D12StateObject> ddgi_trace_so;
-		std::vector<DDGIVolume> ddgi_volumes;
+		DDGIVolume ddgi_volume;
 
 	private:
 		void CreateStateObject();
 		void OnLibraryRecompiled(GfxShaderID shader);
+
+		void AddUpdateProbeBorderPasses(RenderGraph& rg);
+		void AddHistoryPasses(RenderGraph& rg);
 	};
 }

@@ -100,7 +100,9 @@ namespace adria
 		CS_HZBMips,
 		CS_RTAOFilter,
 		CS_DDGIUpdateIrradiance,
+		CS_DDGIUpdateIrradianceBorder,
 		CS_DDGIUpdateDistance,
+		CS_DDGIUpdateDistanceBorder,
 		LIB_Shadows,
 		LIB_SoftShadows,
 		LIB_AmbientOcclusion,
@@ -203,7 +205,9 @@ namespace adria
 		HZBMips,
 		RTAOFilter,
 		DDGIUpdateIrradiance,
+		DDGIUpdateIrradianceBorder,
 		DDGIUpdateDistance,
+		DDGIUpdateDistanceBorder,
         Unknown
 	};
 

@@ -42,14 +42,13 @@ namespace adria
 
 	void DDGI::AddPasses(RenderGraph& rg)
 	{
-		if (ddgi_volumes.empty()) return;
+		if (!IsSupported()) return;
 
 		uint64 random_index = 0;
-		DDGIVolume& ddgi = ddgi_volumes[random_index];
-		uint32 const num_probes = ddgi.num_probes.x * ddgi.num_probes.y * ddgi.num_probes.z;
-		uint32 const ddgi_num_rays = ddgi.num_rays;
-		uint32 const ddgi_max_num_rays = ddgi.max_num_rays;
-		XMUINT3 ddgi_num_probes = ddgi.num_probes;
+		uint32 const num_probes = ddgi_volume.num_probes.x * ddgi_volume.num_probes.y * ddgi_volume.num_probes.z;
+		uint32 const ddgi_num_rays = ddgi_volume.num_rays;
+		uint32 const ddgi_max_num_rays = ddgi_volume.max_num_rays;
+		XMUINT3 ddgi_num_probes = ddgi_volume.num_probes;
 
 		struct DDGIParameters
 		{
@@ -67,8 +66,8 @@ namespace adria
 
 		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
 
-		rg.ImportTexture(RG_RES_NAME(DDGIIrradianceHistory), ddgi.irradiance_history.get());
-		rg.ImportTexture(RG_RES_NAME(DDGIDepthHistory), ddgi.depth_history.get());
+		rg.ImportTexture(RG_RES_NAME(DDGIIrradianceHistory), ddgi_volume.irradiance_history.get());
+		rg.ImportTexture(RG_RES_NAME(DDGIDepthHistory), ddgi_volume.depth_history.get());
 
 		struct DDGIRayTracePassData
 		{
@@ -165,7 +164,61 @@ namespace adria
 				cmd_list->UavBarrier(ctx.GetTexture(*data.depth));
 			}, RGPassType::Compute);
 
+		AddUpdateProbeBorderPasses(rg);
+		AddHistoryPasses(rg);
+	}
 
+	void DDGI::CreateStateObject()
+	{
+
+	}
+
+	void DDGI::OnLibraryRecompiled(GfxShaderID shader)
+	{
+		if (shader == LIB_AmbientOcclusion) CreateStateObject();
+	}
+
+	void DDGI::AddUpdateProbeBorderPasses(RenderGraph& rg)
+	{
+		struct DDGIUpdateIrradianceBorderPassData
+		{
+			RGTextureReadWriteId	irradiance;
+		};
+
+		rg.AddPass<DDGIUpdateIrradianceBorderPassData>("DDGI Update Irradiance Border Pass",
+			[=](DDGIUpdateIrradianceBorderPassData& data, RenderGraphBuilder& builder)
+			{
+				data.irradiance = builder.WriteTexture(RG_RES_NAME(DDGIIrradiance));
+			},
+			[=](DDGIUpdateIrradianceBorderPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			{
+				GfxDevice* gfx = cmd_list->GetDevice();
+
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIUpdateIrradianceBorder));
+				cmd_list->UavBarrier(ctx.GetTexture(*data.irradiance));
+			}, RGPassType::Compute);
+
+		struct DDGIUpdateDistanceBorderPassData
+		{
+			RGTextureReadWriteId	distance;
+		};
+
+		rg.AddPass<DDGIUpdateDistanceBorderPassData>("DDGI Update Distance Border Pass",
+			[=](DDGIUpdateDistanceBorderPassData& data, RenderGraphBuilder& builder)
+			{
+				data.distance = builder.WriteTexture(RG_RES_NAME(DDGIDistance));
+			},
+			[=](DDGIUpdateDistanceBorderPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			{
+				GfxDevice* gfx = cmd_list->GetDevice();
+
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIUpdateDistanceBorder));
+				cmd_list->UavBarrier(ctx.GetTexture(*data.distance));
+			}, RGPassType::Compute);
+	}
+
+	void DDGI::AddHistoryPasses(RenderGraph& rg)
+	{
 		struct DDGICopyIrradiancePassData
 		{
 			RGTextureCopySrcId copy_src;
@@ -190,7 +243,6 @@ namespace adria
 				cmd_list->CopyTexture(dst_texture, src_texture);
 			}, RGPassType::Copy, RGPassFlags::None);
 
-
 		struct DDGICopyDistancePassData
 		{
 			RGTextureCopySrcId copy_src;
@@ -214,16 +266,6 @@ namespace adria
 				GfxTexture& dst_texture = context.GetCopyDstTexture(data.copy_dst);
 				cmd_list->CopyTexture(dst_texture, src_texture);
 			}, RGPassType::Copy, RGPassFlags::None);
-	}
-
-	void DDGI::CreateStateObject()
-	{
-
-	}
-
-	void DDGI::OnLibraryRecompiled(GfxShaderID shader)
-	{
-		if (shader == LIB_AmbientOcclusion) CreateStateObject();
 	}
 
 }
