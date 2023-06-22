@@ -1206,6 +1206,9 @@
     <None Include="Resources\NewShaders\Reflections.hlsli">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Resources\NewShaders\DDGI\DDGICommon.hlsli">
+      <Filter>Shaders\DDGI</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="adria.log" />

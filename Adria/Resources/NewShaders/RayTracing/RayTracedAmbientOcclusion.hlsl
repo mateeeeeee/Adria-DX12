@@ -22,7 +22,7 @@ static const int RAY_COUNT = 1;
 [shader("raygeneration")]
 void RTAO_RayGen()
 {
-    RaytracingAccelerationStructure scene = ResourceDescriptorHeap[FrameCB.accelStructIdx];
+    RaytracingAccelerationStructure tlas = ResourceDescriptorHeap[FrameCB.accelStructIdx];
 	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
 	Texture2D normalsTx = ResourceDescriptorHeap[PassCB.normalsIdx];
 	RWTexture2D<float> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
@@ -47,7 +47,7 @@ void RTAO_RayGen()
 	rayAO.TMin = 0.02f;
 	rayAO.TMax = PassCB.aoRadius;
 
-	TraceRay(scene,
+	TraceRay(tlas,
 		(RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES),
 		0xFF, 0, 0, 0, rayAO, rayPayload);
 

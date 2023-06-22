@@ -94,31 +94,31 @@ struct HitInfo
 
 bool TraceRay(RayDesc ray, out HitInfo hitInfo)
 {
-    RaytracingAccelerationStructure raytracingAS = ResourceDescriptorHeap[FrameCB.accelStructIdx];
+    RaytracingAccelerationStructure tlas = ResourceDescriptorHeap[FrameCB.accelStructIdx];
     RayQuery<RAY_FLAG_NONE> q;
-    q.TraceRayInline(raytracingAS, RAY_FLAG_NONE, 0xFF, ray);
+    q.TraceRayInline(tlas, RAY_FLAG_NONE, 0xFF, ray);
 
     while (q.Proceed())
     {
-		//uint instanceIndex = q.CandidateInstanceID();
-		//uint triangleId = q.CandidatePrimitiveIndex();
-		//Instance instanceData = GetInstanceData(instanceIndex);
-		//Mesh meshData = GetMeshData(instanceData.meshIndex);
-		//Material materialData = GetMaterialData(instanceData.materialIdx);
-		//
-		//uint i0 = LoadMeshBuffer<uint>(meshData.bufferIdx, meshData.indicesOffset, 3 * triangleId + 0);
-		//uint i1 = LoadMeshBuffer<uint>(meshData.bufferIdx, meshData.indicesOffset, 3 * triangleId + 1);
-		//uint i2 = LoadMeshBuffer<uint>(meshData.bufferIdx, meshData.indicesOffset, 3 * triangleId + 2);
-		//
-		//float2 uv0 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i0);
-		//float2 uv1 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i1);
-		//float2 uv2 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i2);
-		//float2 uv = Interpolate(uv0, uv1, uv2, q.CandidateTriangleBarycentrics());
-		//
-		//Texture2D txAlbedo = ResourceDescriptorHeap[materialData.diffuseIdx];
-		//float4 albedoColor = txAlbedo.SampleLevel(LinearWrapSampler, uv, 0) * float4(materialData.baseColorFactor, 1.0f);
-		//
-		//if (albedoColor.a >= materialData.alphaCutoff)
+		/*uint instanceIndex = q.CandidateInstanceID();
+		uint triangleId = q.CandidatePrimitiveIndex();
+		Instance instanceData = GetInstanceData(instanceIndex);
+		Mesh meshData = GetMeshData(instanceData.meshIndex);
+		Material materialData = GetMaterialData(instanceData.materialIdx);
+
+		uint i0 = LoadMeshBuffer<uint>(meshData.bufferIdx, meshData.indicesOffset, 3 * triangleId + 0);
+		uint i1 = LoadMeshBuffer<uint>(meshData.bufferIdx, meshData.indicesOffset, 3 * triangleId + 1);
+		uint i2 = LoadMeshBuffer<uint>(meshData.bufferIdx, meshData.indicesOffset, 3 * triangleId + 2);
+
+		float2 uv0 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i0);
+		float2 uv1 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i1);
+		float2 uv2 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i2);
+		float2 uv = Interpolate(uv0, uv1, uv2, q.CandidateTriangleBarycentrics());
+
+		Texture2D txAlbedo = ResourceDescriptorHeap[materialData.diffuseIdx];
+		float4 albedoColor = txAlbedo.SampleLevel(LinearWrapSampler, uv, 0) * float4(materialData.baseColorFactor, 1.0f);
+
+		if (albedoColor.a >= materialData.alphaCutoff)*/
 		q.CommitNonOpaqueTriangleHit();
     }
     if (q.CommittedStatus() == COMMITTED_NOTHING)
@@ -136,11 +136,10 @@ bool TraceRay(RayDesc ray, out HitInfo hitInfo)
 
 bool TraceShadowRay(RayDesc ray)
 {
-    RaytracingAccelerationStructure raytracingAS = ResourceDescriptorHeap[FrameCB.accelStructIdx];
+    RaytracingAccelerationStructure tlas = ResourceDescriptorHeap[FrameCB.accelStructIdx];
 	RayQuery<RAY_FLAG_CULL_NON_OPAQUE | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH> q;
 
-    //RayQuery<RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES> q;
-    q.TraceRayInline(raytracingAS, RAY_FLAG_NONE, 0xFF, ray);
+    q.TraceRayInline(tlas, RAY_FLAG_NONE, 0xFF, ray);
     while (q.Proceed())
     {
 		switch (q.CandidateType())

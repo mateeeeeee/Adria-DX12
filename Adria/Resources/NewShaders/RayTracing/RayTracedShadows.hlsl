@@ -17,7 +17,7 @@ struct ShadowRayData
 [shader("raygeneration")]
 void RTS_RayGen()
 {
-	RaytracingAccelerationStructure scene = ResourceDescriptorHeap[FrameCB.accelStructIdx];
+	RaytracingAccelerationStructure tlas = ResourceDescriptorHeap[FrameCB.accelStructIdx];
 	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
 	RWTexture2D<float> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
 	StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
@@ -65,7 +65,7 @@ void RTS_RayGen()
 
 	ShadowRayData payload;
 	payload.hit = true;
-	TraceRay(scene, (RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES),
+	TraceRay(tlas, (RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES),
 		0xFF, 0, 0, 0, ray, payload);
     outputTx[launchIndex.xy] = payload.hit ? 0.0f : 1.0f;
 
@@ -86,7 +86,7 @@ void RTS_RayGen()
 
 		ShadowRayData payload;
 		payload.hit = true;
-		TraceRay(scene, (RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES),
+		TraceRay(tlas, (RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES),
 			0xFF, 0, 0, 0, ray, payload);
 		shadowFactor += payload.hit ? 0.0f : 1.0f;
 	}

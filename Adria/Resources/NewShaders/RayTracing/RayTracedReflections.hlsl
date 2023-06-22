@@ -24,7 +24,7 @@ struct RTR_Payload
 [shader("raygeneration")]
 void RTR_RayGen()
 {
-	RaytracingAccelerationStructure scene = ResourceDescriptorHeap[FrameCB.accelStructIdx];
+	RaytracingAccelerationStructure tlas = ResourceDescriptorHeap[FrameCB.accelStructIdx];
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
 	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
 	Texture2D normalMetallicTx = ResourceDescriptorHeap[PassCB.normalIdx];
@@ -64,7 +64,7 @@ void RTR_RayGen()
 	RTR_Payload payloadData;
 	payloadData.reflectionColor = 0.0f;
     payloadData.randSeed = randSeed;
-	TraceRay(scene,
+	TraceRay(tlas,
 		RAY_FLAG_FORCE_OPAQUE,
 		0xFF, 0, 0, 0, ray, payloadData);
 

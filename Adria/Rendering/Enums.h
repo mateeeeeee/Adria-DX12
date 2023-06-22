@@ -99,16 +99,16 @@ namespace adria
 		CS_InitializeHZB,
 		CS_HZBMips,
 		CS_RTAOFilter,
-		CS_DDGIUpdateIrradiance,
-		CS_DDGIUpdateIrradianceBorder,
-		CS_DDGIUpdateDistance,
-		CS_DDGIUpdateDistanceBorder,
+		//CS_DDGIUpdateIrradiance,
+		//CS_DDGIUpdateIrradianceBorder,
+		//CS_DDGIUpdateDistance,
+		//CS_DDGIUpdateDistanceBorder,
 		LIB_Shadows,
 		LIB_SoftShadows,
 		LIB_AmbientOcclusion,
 		LIB_Reflections,
 		LIB_PathTracing,
-		LIB_DDGIRayTracing,
+		//LIB_DDGIRayTracing,
 		ShaderId_Count
 	};
 

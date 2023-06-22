@@ -10,6 +10,7 @@
 #include "Graphics/GfxRayTracingShaderTable.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
+#include "Utilities/Random.h"
 #include "entt/entity/registry.hpp"
 
 using namespace DirectX;
@@ -50,20 +51,6 @@ namespace adria
 		uint32 const ddgi_max_num_rays = ddgi_volume.max_num_rays;
 		XMUINT3 ddgi_num_probes = ddgi_volume.num_probes;
 
-		struct DDGIParameters
-		{
-			XMFLOAT3 random_vector;
-			float    random_angle;
-			float    history_blend_weight;
-			uint32   volume_index;
-		} parameters
-		{
-			.random_vector = XMFLOAT3(),
-			.random_angle = 0.0f,
-			.history_blend_weight = 0.98f,
-			.volume_index = random_index
-		};
-
 		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
 
 		rg.ImportTexture(RG_RES_NAME(DDGIIrradianceHistory), ddgi_volume.irradiance_history.get());
@@ -88,13 +75,31 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
+				uint32 i = gfx->AllocateDescriptorsGPU(1).GetIndex();
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadWriteBuffer(data.ray_buffer));
+
+				struct DDGIParameters
+				{
+					XMFLOAT3 random_vector;
+					float    random_angle;
+					float    history_blend_weight;
+					uint32   ray_buffer_index;
+				} parameters
+				{
+					.random_vector = XMFLOAT3(),
+					.random_angle = 0.0f,
+					.history_blend_weight = 0.98f,
+					.ray_buffer_index = i
+				};
+
 				auto& table = cmd_list->SetStateObject(ddgi_trace_so.Get());
 				table.SetRayGenShader("DDGI_RayGen");
 				table.AddMissShader("DDGI_Miss", 0);
-				table.AddHitGroup("DDGIHitGroup", 0);
+				table.AddHitGroup("DDGI_ClosestHit", 0);
 
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, parameters);
+				cmd_list->SetRootCBV(2, ddgi_volume);
 				cmd_list->DispatchRays(ddgi_num_rays, num_probes);
 				cmd_list->UavBarrier(ctx.GetBuffer(*data.ray_buffer));
 
@@ -127,7 +132,6 @@ namespace adria
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIUpdateIrradiance));
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
-				cmd_list->SetRootConstants(1, parameters);
 				cmd_list->Dispatch(num_probes, 1, 1);
 				cmd_list->UavBarrier(ctx.GetTexture(*data.irradiance));
 			}, RGPassType::Compute);
@@ -159,7 +163,6 @@ namespace adria
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIUpdateDistance));
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
-				cmd_list->SetRootConstants(1, parameters);
 				cmd_list->Dispatch(num_probes, 1, 1);
 				cmd_list->UavBarrier(ctx.GetTexture(*data.depth));
 			}, RGPassType::Compute);
@@ -175,7 +178,7 @@ namespace adria
 
 	void DDGI::OnLibraryRecompiled(GfxShaderID shader)
 	{
-		if (shader == LIB_AmbientOcclusion) CreateStateObject();
+		//if (shader == LIB_DDGIRayTracing) CreateStateObject();
 	}
 
 	void DDGI::AddUpdateProbeBorderPasses(RenderGraph& rg)
