@@ -219,7 +219,10 @@
     <ClCompile Include="Graphics\GfxRingDynamicAllocator.cpp" />
     <ClCompile Include="Graphics\GfxShaderCompiler.cpp" />
     <ClCompile Include="Input\Input.cpp" />
+    <ClCompile Include="Logging\FileLogger.cpp" />
     <ClCompile Include="Logging\Logger.cpp" />
+    <ClCompile Include="Logging\OutputDebugStringLogger.cpp" />
+    <ClCompile Include="Logging\OutputStreamLogger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Math\Packing.cpp" />
     <ClCompile Include="precomp.cpp">
@@ -362,7 +365,10 @@
     <ClInclude Include="Graphics\GfxShaderCompiler.h" />
     <ClInclude Include="Graphics\GfxVertexTypes.h" />
     <ClInclude Include="Input\Input.h" />
+    <ClInclude Include="Logging\FileLogger.h" />
     <ClInclude Include="Logging\Logger.h" />
+    <ClInclude Include="Logging\OutputDebugStringLogger.h" />
+    <ClInclude Include="Logging\OutputStreamLogger.h" />
     <ClInclude Include="Math\BoundingVolumeHelpers.h" />
     <ClInclude Include="Math\ComputeNormals.h" />
     <ClInclude Include="Math\ComputeTangentFrame.h" />

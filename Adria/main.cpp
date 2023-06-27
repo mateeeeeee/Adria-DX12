@@ -1,10 +1,7 @@
-#pragma comment(lib,"d3d12.lib")
-#pragma comment(lib, "dxgi.lib")
-#pragma comment(lib, "dxguid.lib")
-
 #include "Core/Window.h"
 #include "Core/Engine.h"
-#include "Logging/Logger.h"
+#include "Logging/FileLogger.h"
+#include "Logging/OutputDebugStringLogger.h"
 #include "Editor/Editor.h"
 #include "Utilities/MemoryDebugger.h"
 #include "Utilities/CLIParser.h"
@@ -36,9 +33,9 @@ int APIENTRY wWinMain(
     //MemoryDebugger::SetAllocHook(MemoryAllocHook);
     {
         std::string log_file = log.AsStringOr("adria.log");
-        int32 log_level = loglevel.AsIntOr(0);
-        std::unique_ptr<FileLogger> file_logger(new FileLogger(log_file.c_str(), static_cast<LogLevel>(log_level)));
-        std::unique_ptr<OutputDebugStringLogger> output_debug_logger(new OutputDebugStringLogger(static_cast<LogLevel>(log_level)));
+        LogLevel log_level = static_cast<LogLevel>(loglevel.AsIntOr(0));
+        std::unique_ptr<FileLogger> file_logger = std::make_unique<FileLogger>(log_file.c_str(), log_level);
+        std::unique_ptr<OutputDebugStringLogger> output_debug_logger = std::make_unique<OutputDebugStringLogger>(log_level);
         ADRIA_REGISTER_LOGGER(file_logger.get());
         ADRIA_REGISTER_LOGGER(output_debug_logger.get());
 

@@ -10,7 +10,7 @@
 namespace adria
 {
 
-	enum class LogLevel : uint8_t
+	enum class LogLevel : uint8
 	{
 		LOG_DEBUG,
 		LOG_INFO,
@@ -20,45 +20,13 @@ namespace adria
 
 	std::string LevelToString(LogLevel type);
 	std::string GetLogTime();
-	std::string LineInfoToString(char const* file, uint32_t line);
+	std::string LineInfoToString(char const* file, uint32 line);
 
 	class ILogger
 	{
 	public:
 		virtual ~ILogger() = default;
-		virtual void Log(LogLevel level, char const* entry, char const* file, uint32_t line) = 0;
-	};
-
-	class FileLogger : public ILogger
-	{
-	public:
-		FileLogger(char const* log_file, LogLevel logger_level = LogLevel::LOG_DEBUG);
-		virtual ~FileLogger() override;
-		virtual void Log(LogLevel level, char const* entry, char const* file, uint32_t line) override;
-	private:
-		std::ofstream log_stream;
-		LogLevel const logger_level;
-	};
-
-	class OutputStreamLogger : public ILogger
-	{
-	public:
-		OutputStreamLogger(bool use_cerr = false, LogLevel logger_level = LogLevel::LOG_DEBUG);
-		virtual ~OutputStreamLogger() override;
-		virtual void Log(LogLevel level, char const* entry, char const* file, uint32_t line) override;
-	private:
-		bool const use_cerr;
-		LogLevel const logger_level;
-	};
-
-	class OutputDebugStringLogger : public ILogger
-	{
-	public:
-		OutputDebugStringLogger(LogLevel logger_level = LogLevel::LOG_DEBUG);
-		virtual ~OutputDebugStringLogger() override;
-		virtual void Log(LogLevel level, char const* entry, char const* file, uint32_t line) override;
-	private:
-		LogLevel const logger_level;
+		virtual void Log(LogLevel level, char const* entry, char const* file, uint32 line) = 0;
 	};
 
 	class LogManager
