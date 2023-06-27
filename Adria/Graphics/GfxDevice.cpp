@@ -226,10 +226,10 @@ namespace adria
 		uint32 dxgi_factory_flags = 0;
 		SetupOptions(options, dxgi_factory_flags);
 		hr = CreateDXGIFactory1(IID_PPV_ARGS(dxgi_factory.GetAddressOf()));
-		BREAK_IF_FAILED(hr);
+		GFX_CHECK_HR(hr);
 
 		hr = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(device.GetAddressOf()));
-		BREAK_IF_FAILED(hr);
+		GFX_CHECK_HR(hr);
 		if (!device_capabilities.Initialize(this))
 		{
 			ADRIA_DEBUGBREAK();
@@ -243,7 +243,7 @@ namespace adria
 		allocator_desc.pDevice = device.Get();
 		allocator_desc.pAdapter = adapter.Get();
 		D3D12MA::Allocator* _allocator = nullptr;
-		BREAK_IF_FAILED(D3D12MA::CreateAllocator(&allocator_desc, &_allocator));
+		GFX_CHECK_HR(D3D12MA::CreateAllocator(&allocator_desc, &_allocator));
 		allocator.reset(_allocator);
 
 		graphics_queue.Create(this, GfxCommandListType::Graphics, "Graphics Queue");
@@ -593,9 +593,9 @@ namespace adria
 			NewFilter.DenyList.NumIDs = ARRAYSIZE(DenyIds);
 			NewFilter.DenyList.pIDList = DenyIds;
 
-			BREAK_IF_FAILED(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, false));
-			BREAK_IF_FAILED(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true));
-			BREAK_IF_FAILED(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true));
+			GFX_CHECK_HR(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, false));
+			GFX_CHECK_HR(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true));
+			GFX_CHECK_HR(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true));
 			info_queue->PushStorageFilter(&NewFilter);
 
 			ArcPtr<ID3D12InfoQueue1> info_queue1;
@@ -612,7 +612,7 @@ namespace adria
 					ADRIA_LOG(WARNING, "D3D12 Validation Layer: %s", pDescription);
 				};
 				DWORD callbackCookie = 0;
-				BREAK_IF_FAILED(info_queue1->RegisterMessageCallback(MessageCallback, D3D12_MESSAGE_CALLBACK_FLAG_NONE, this, &callbackCookie));
+				GFX_CHECK_HR(info_queue1->RegisterMessageCallback(MessageCallback, D3D12_MESSAGE_CALLBACK_FLAG_NONE, this, &callbackCookie));
 			}
 		}
 	}
@@ -703,9 +703,9 @@ namespace adria
 		ArcPtr<ID3DBlob> signature;
 		ArcPtr<ID3DBlob> error;
 		HRESULT hr = D3DX12SerializeVersionedRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1_1, signature.GetAddressOf(), error.GetAddressOf());
-		BREAK_IF_FAILED(hr);
+		GFX_CHECK_HR(hr);
 		hr = device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(global_root_signature.GetAddressOf()));
-		BREAK_IF_FAILED(hr);
+		GFX_CHECK_HR(hr);
 	}
 
 	GfxDescriptor GfxDevice::CreateBufferView(GfxBuffer const* buffer, GfxSubresourceType view_type, GfxBufferSubresourceDesc const& view_desc, GfxBuffer const* uav_counter)

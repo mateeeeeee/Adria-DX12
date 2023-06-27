@@ -1,11 +1,9 @@
 #pragma once
 #include <memory>
 #include <d3d12.h>
-#include "Enums.h"
 #include "RendererSettings.h"
 #include "BlurPass.h"
-#include "CopyToTexturePass.h"
-#include "AddTexturesPass.h"
+#include "HelperPasses.h"
 #include "GenerateMipsPass.h"
 #include "AutomaticExposurePass.h"
 #include "LensFlarePass.h"

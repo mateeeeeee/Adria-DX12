@@ -3,7 +3,6 @@
 #include <utility>
 #include "Core/CoreTypes.h"
 
-
 namespace adria
 {
 

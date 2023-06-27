@@ -23,7 +23,7 @@ namespace adria
 			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 			auto buffer_desc = CD3DX12_RESOURCE_DESC::Buffer((uint64)cbuffer_size * cbuffer_count);
 
-			BREAK_IF_FAILED(device->CreateCommittedResource(
+			GFX_CHECK_HR(device->CreateCommittedResource(
 				&heap_properties,
 				D3D12_HEAP_FLAG_NONE,
 				&buffer_desc,
@@ -32,7 +32,7 @@ namespace adria
 				IID_PPV_ARGS(cb.GetAddressOf())));
 
 			CD3DX12_RANGE read_range(0, 0);
-			BREAK_IF_FAILED(cb->Map(0, &read_range, reinterpret_cast<void**>(&_mapped_data)));
+			GFX_CHECK_HR(cb->Map(0, &read_range, reinterpret_cast<void**>(&_mapped_data)));
 		}
 
 		GfxConstantBuffer(GfxConstantBuffer const&) = delete;

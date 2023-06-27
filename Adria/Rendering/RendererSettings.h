@@ -1,9 +1,27 @@
 #pragma once
-#include "Enums.h"
-
 
 namespace adria
 {
+
+	enum class AmbientOcclusion : uint8
+	{
+		None,
+		SSAO,
+		HBAO,
+		RTAO
+	};
+	enum class Reflections : uint8
+	{
+		None,
+		SSR,
+		RTR
+	};
+	enum AntiAliasing : uint8
+	{
+		AntiAliasing_None = 0x0,
+		AntiAliasing_FXAA = 0x1,
+		AntiAliasing_TAA = 0x2
+	};
 
 	struct PostprocessSettings
 	{
@@ -19,6 +37,14 @@ namespace adria
 		bool automatic_exposure = true;
 	};
 
+
+	enum class RenderPathType
+	{
+		RegularDeferred,
+		TiledDeferred,
+		ClusteredDeferred,
+		PathTracing
+	};
 	struct RendererSettings
 	{
 		RenderPathType		render_path = RenderPathType::RegularDeferred;

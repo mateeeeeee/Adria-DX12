@@ -154,19 +154,19 @@ namespace adria
 			&alloc,
 			IID_PPV_ARGS(resource.GetAddressOf())
 		);
-		BREAK_IF_FAILED(hr);
+		GFX_CHECK_HR(hr);
 		allocation.reset(alloc);
 
 		if (desc.heap_type == GfxResourceUsage::Readback)
 		{
 			hr = resource->Map(0, nullptr, &mapped_data);
-			BREAK_IF_FAILED(hr);
+			GFX_CHECK_HR(hr);
 		}
 		else if (desc.heap_type == GfxResourceUsage::Upload)
 		{
 			D3D12_RANGE read_range = {};
 			hr = resource->Map(0, &read_range, &mapped_data);
-			BREAK_IF_FAILED(hr);
+			GFX_CHECK_HR(hr);
 		}
 		if (desc.mip_levels == 0)
 		{
@@ -251,13 +251,13 @@ namespace adria
 		if (desc.heap_type == GfxResourceUsage::Readback)
 		{
 			hr = resource->Map(0, nullptr, &mapped_data);
-			BREAK_IF_FAILED(hr);
+			GFX_CHECK_HR(hr);
 		}
 		else if (desc.heap_type == GfxResourceUsage::Upload)
 		{
 			D3D12_RANGE read_range{};
 			hr = resource->Map(0, &read_range, &mapped_data);
-			BREAK_IF_FAILED(hr);
+			GFX_CHECK_HR(hr);
 		}
 		return mapped_data;
 	}

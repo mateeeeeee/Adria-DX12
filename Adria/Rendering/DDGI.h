@@ -1,10 +1,10 @@
 #pragma once
 #include <DirectXCollision.h>
-#include "Enums.h"
 #include "entt/entity/fwd.hpp"
 
 namespace adria
 {
+	enum GfxShaderID : uint8;
 	class GfxBuffer;
 	class GfxTexture;
 	class GfxDevice;

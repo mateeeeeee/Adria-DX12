@@ -12,8 +12,13 @@ namespace adria
 	class GfxDevice;
 	class GfxBuffer;
 	class GfxTexture;
-	enum class SkyType : uint8;
 
+	enum class SkyType : uint8
+	{
+		Skybox,
+		MinimalAtmosphere,
+		HosekWilkie
+	};
 
 	class SkyPass
 	{

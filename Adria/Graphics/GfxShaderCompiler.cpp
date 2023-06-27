@@ -1,7 +1,8 @@
 #pragma comment(lib, "dxcompiler.lib")
-#include "GfxShaderCompiler.h"
 #include <d3dcompiler.h>
 #include "dxc/dxcapi.h"
+#include "GfxShaderCompiler.h"
+#include "GfxDefines.h"
 #include "cereal/archives/binary.hpp"
 #include "cereal/types/string.hpp"
 #include "cereal/types/vector.hpp"
@@ -209,10 +210,10 @@ namespace adria
 
 		void Initialize()
 		{
-			BREAK_IF_FAILED(DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(library.GetAddressOf())));
-			BREAK_IF_FAILED(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(compiler.GetAddressOf())));
-			BREAK_IF_FAILED(library->CreateIncludeHandler(include_handler.GetAddressOf()));
-			BREAK_IF_FAILED(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(utils.GetAddressOf())));
+			GFX_CHECK_HR(DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(library.GetAddressOf())));
+			GFX_CHECK_HR(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(compiler.GetAddressOf())));
+			GFX_CHECK_HR(library->CreateIncludeHandler(include_handler.GetAddressOf()));
+			GFX_CHECK_HR(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(utils.GetAddressOf())));
 		}
 		void Destroy()
 		{
@@ -244,7 +245,7 @@ namespace adria
 
 			std::wstring shader_source = ToWideString(input.file);
 			HRESULT hr = library->CreateBlobFromFile(shader_source.data(), &code_page, source_blob.GetAddressOf());
-			BREAK_IF_FAILED(hr);
+			GFX_CHECK_HR(hr);
 
 			std::wstring name = ToWideString(GetFilenameWithoutExtension(input.file));
 			std::wstring dir  = ToWideString(shaders_directory);
@@ -329,7 +330,7 @@ namespace adria
 				}
 			}
 			ArcPtr<IDxcBlob> blob;
-			BREAK_IF_FAILED(result->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(blob.GetAddressOf()), nullptr));
+			GFX_CHECK_HR(result->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(blob.GetAddressOf()), nullptr));
 			ArcPtr<IDxcBlob> hash;
 			if (SUCCEEDED(result->GetOutput(DXC_OUT_SHADER_HASH, IID_PPV_ARGS(hash.GetAddressOf()), nullptr)))
 			{
@@ -349,7 +350,7 @@ namespace adria
 			uint32 code_page = CP_UTF8;
 			ArcPtr<IDxcBlobEncoding> source_blob;
 			HRESULT hr = library->CreateBlobFromFile(filename.data(), &code_page, source_blob.GetAddressOf());
-			BREAK_IF_FAILED(hr);
+			GFX_CHECK_HR(hr);
 			blob.resize(source_blob->GetBufferSize());
 			memcpy(blob.data(), source_blob->GetBufferPointer(), source_blob->GetBufferSize());
 		}
@@ -358,21 +359,21 @@ namespace adria
 			ArcPtr<IDxcContainerReflection> reflection;
 			HRESULT hr = DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(reflection.GetAddressOf()));
 			GfxReflectionBlob my_blob{ vs_blob.GetPointer(), vs_blob.GetLength() };
-			BREAK_IF_FAILED(hr);
+			GFX_CHECK_HR(hr);
 			hr = reflection->Load(&my_blob);
-			BREAK_IF_FAILED(hr);
+			GFX_CHECK_HR(hr);
 			uint32_t part_index;
 #ifndef MAKEFOURCC
 #define MAKEFOURCC(a, b, c, d) (unsigned int)((unsigned char)(a) | (unsigned char)(b) << 8 | (unsigned char)(c) << 16 | (unsigned char)(d) << 24)
 #endif
-			BREAK_IF_FAILED(reflection->FindFirstPartKind(MAKEFOURCC('D', 'X', 'I', 'L'), &part_index));
+			GFX_CHECK_HR(reflection->FindFirstPartKind(MAKEFOURCC('D', 'X', 'I', 'L'), &part_index));
 #undef MAKEFOURCC
 
 			ArcPtr<ID3D12ShaderReflection> vertex_shader_reflection;
-			BREAK_IF_FAILED(reflection->GetPartReflection(part_index, IID_PPV_ARGS(vertex_shader_reflection.GetAddressOf())));
+			GFX_CHECK_HR(reflection->GetPartReflection(part_index, IID_PPV_ARGS(vertex_shader_reflection.GetAddressOf())));
 
 			D3D12_SHADER_DESC shader_desc;
-			BREAK_IF_FAILED(vertex_shader_reflection->GetDesc(&shader_desc));
+			GFX_CHECK_HR(vertex_shader_reflection->GetDesc(&shader_desc));
 
 			D3D12_SIGNATURE_PARAMETER_DESC param_desc{};
 			D3D12_INPUT_ELEMENT_DESC d3d12element_desc{};

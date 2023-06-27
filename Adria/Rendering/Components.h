@@ -1,7 +1,6 @@
 #pragma once
 #include <memory>
 #include <DirectXCollision.h>
-#include "Enums.h"
 #include "GeometryBufferCache.h"
 #include "Core/CoreTypes.h"
 #include "Graphics/GfxVertexTypes.h"
@@ -17,6 +16,25 @@
 namespace adria
 {
 	class GfxCommandList;
+
+	enum class LightType : int32
+	{
+		Directional,
+		Point,
+		Spot
+	};
+	enum class DecalType : uint8
+	{
+		Project_XY,
+		Project_YZ,
+		Project_XZ
+	};
+	enum class MaterialAlphaMode : uint8
+	{
+		Opaque,
+		Blend,
+		Mask
+	};
 
 	struct COMPONENT Transform
 	{

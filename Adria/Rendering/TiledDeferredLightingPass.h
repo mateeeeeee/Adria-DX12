@@ -1,7 +1,5 @@
 #pragma once
-#include <optional>
-#include "CopyToTexturePass.h"
-#include "AddTexturesPass.h"
+#include "HelperPasses.h"
 #include "Core/CoreTypes.h"
 #include "RenderGraph/RenderGraphResourceId.h"
 #include "entt/entity/entity.hpp"
@@ -22,9 +20,6 @@ namespace adria
 			copy_to_texture_pass.OnResize(w, h);
 			add_textures_pass.OnResize(w, h);
 		}
-
-		bool IsVisualized() const { return visualize_tiled; }
-		int32 MaxLightsForVisualization() const { return visualize_max_lights; }
 	private:
 		entt::registry& reg;
 		uint32 width, height;

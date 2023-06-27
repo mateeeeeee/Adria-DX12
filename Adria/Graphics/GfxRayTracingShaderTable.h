@@ -4,7 +4,7 @@
 #include <memory.h>
 #include "GfxLinearDynamicAllocator.h"
 #include "GfxRingDynamicAllocator.h"
-#include "Core/Defines.h"
+#include "GfxDefines.h"
 #include "Core/CoreTypes.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/AutoRefCountPtr.h"
@@ -36,7 +36,7 @@ namespace adria
 		explicit GfxRayTracingShaderTable(ID3D12StateObject* state_object)
 			: state_object(state_object)
 		{
-			BREAK_IF_FAILED(state_object->QueryInterface(IID_PPV_ARGS(pso_info.GetAddressOf())));
+			GFX_CHECK_HR(state_object->QueryInterface(IID_PPV_ARGS(pso_info.GetAddressOf())));
 		}
 
 		void SetRayGenShader(char const* name, void* local_data = nullptr, uint32 data_size = 0)

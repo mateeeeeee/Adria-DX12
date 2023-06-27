@@ -1,5 +1,5 @@
 #pragma once
-#include "Enums.h"
+
 #include "BlurPass.h"
 #include "Graphics/GfxRayTracingShaderTable.h"
 #include "Core/CoreTypes.h"
@@ -7,6 +7,7 @@
 
 namespace adria
 {
+	enum GfxShaderID : uint8;
 	class RenderGraph;
 	class GfxDevice;
 

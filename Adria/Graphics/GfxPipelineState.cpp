@@ -64,7 +64,7 @@ namespace adria
 		_desc.PrimitiveTopologyType = ConvertPrimitiveTopologyType(desc.topology_type);
 		_desc.SampleMask = desc.sample_mask;
 		if (_desc.DSVFormat == DXGI_FORMAT_UNKNOWN) _desc.DepthStencilState.DepthEnable = false;
-		BREAK_IF_FAILED(gfx->GetDevice()->CreateGraphicsPipelineState(&_desc, IID_PPV_ARGS(pso.ReleaseAndGetAddressOf())));
+		GFX_CHECK_HR(gfx->GetDevice()->CreateGraphicsPipelineState(&_desc, IID_PPV_ARGS(pso.ReleaseAndGetAddressOf())));
 	}
 
 	ComputePipelineState::ComputePipelineState(GfxDevice* gfx, ComputePipelineStateDesc const& desc) : GfxPipelineState(gfx, GfxPipelineStateType::Compute), desc(desc)
@@ -88,7 +88,7 @@ namespace adria
 		D3D12_COMPUTE_PIPELINE_STATE_DESC _desc{};
 		_desc.pRootSignature = gfx->GetCommonRootSignature();
 		_desc.CS = ShaderCache::GetShader(desc.CS);
-		BREAK_IF_FAILED(gfx->GetDevice()->CreateComputePipelineState(&_desc, IID_PPV_ARGS(pso.ReleaseAndGetAddressOf())));
+		GFX_CHECK_HR(gfx->GetDevice()->CreateComputePipelineState(&_desc, IID_PPV_ARGS(pso.ReleaseAndGetAddressOf())));
 	}
 
 	MeshShaderPipelineState::MeshShaderPipelineState(GfxDevice* gfx, MeshShaderPipelineStateDesc const& desc) : GfxPipelineState(gfx, GfxPipelineStateType::MeshShader), desc(desc)
@@ -109,7 +109,7 @@ namespace adria
 
 	void MeshShaderPipelineState::Create(MeshShaderPipelineStateDesc const& desc)
 	{
-		D3DX12_MESH_SHADER_PIPELINE_STATE_DESC _desc = {};
+		D3DX12_MESH_SHADER_PIPELINE_STATE_DESC _desc{};
 
 		_desc.pRootSignature = gfx->GetCommonRootSignature();
 		_desc.AS = ShaderCache::GetShader(desc.AS);
@@ -134,7 +134,7 @@ namespace adria
 		stream_desc.pPipelineStateSubobjectStream = &pso_stream;
 		stream_desc.SizeInBytes = sizeof(pso_stream);
 
-		BREAK_IF_FAILED(gfx->GetDevice()->CreatePipelineState(&stream_desc, IID_PPV_ARGS(pso.ReleaseAndGetAddressOf())));
+		GFX_CHECK_HR(gfx->GetDevice()->CreatePipelineState(&stream_desc, IID_PPV_ARGS(pso.ReleaseAndGetAddressOf())));
 	}
 
 }

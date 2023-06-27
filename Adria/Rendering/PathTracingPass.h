@@ -1,11 +1,12 @@
 #pragma once
-#include "Enums.h"
+
 #include "Graphics/GfxRayTracingShaderTable.h"
 #include "Core/CoreTypes.h"
 #include "RenderGraph/RenderGraphResourceName.h"
 
 namespace adria
 {
+	enum GfxShaderID : uint8;
 	class RenderGraph;
 	class GfxTexture;
 	class GfxDevice;

@@ -15,5 +15,3 @@
 #define ADRIA_DEBUGBREAK() __debugbreak()
 #define ADRIA_FORCEINLINE __forceinline
 #define ADRIA_UNREACHABLE() __assume(false)
-
-#define BREAK_IF_FAILED(hr)		if(FAILED(hr)) __debugbreak()

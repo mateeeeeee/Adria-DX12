@@ -1,5 +1,5 @@
 #pragma once
-#include "Enums.h"
+
 #include "Core/CoreTypes.h"
 #include "RenderGraph/RenderGraphResourceId.h"
 #include "RenderGraph/RenderGraphResourceName.h"

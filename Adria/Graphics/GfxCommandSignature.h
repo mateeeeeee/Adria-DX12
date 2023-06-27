@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include <d3d12.h>
-#include "Core/Defines.h"
+#include "GfxDefines.h"
 #include "Utilities/AutoRefCountPtr.h"
 
 namespace adria
@@ -54,7 +54,7 @@ namespace adria
 			desc.pArgumentDescs = &argument_desc;
 			desc.ByteStride = IndirectCommandTraits<type>::Stride;
 			argument_desc.Type = IndirectCommandTraits<type>::ArgumentType;
-			BREAK_IF_FAILED(device->CreateCommandSignature(&desc, nullptr, IID_PPV_ARGS(cmd_signature.GetAddressOf())));
+			GFX_CHECK_HR(device->CreateCommandSignature(&desc, nullptr, IID_PPV_ARGS(cmd_signature.GetAddressOf())));
 		}
 		operator ID3D12CommandSignature* () const
 		{

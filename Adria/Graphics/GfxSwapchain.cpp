@@ -34,7 +34,7 @@ namespace adria
 		GfxCommandQueue& graphics_queue = gfx->GetCommandQueue(GfxCommandListType::Graphics);
 		ArcPtr<IDXGISwapChain1> swapchain1 = nullptr;
 
-		BREAK_IF_FAILED(gfx->GetFactory()->CreateSwapChainForHwnd(
+		GFX_CHECK_HR(gfx->GetFactory()->CreateSwapChainForHwnd(
 			graphics_queue,
 			static_cast<HWND>(Window::Handle()),
 			&swapchain_desc,
@@ -86,7 +86,7 @@ namespace adria
 		DXGI_SWAP_CHAIN_DESC desc{};
 		swapchain->GetDesc(&desc);
 		HRESULT hr = swapchain->ResizeBuffers(desc.BufferCount, width, height, desc.BufferDesc.Format, desc.Flags);
-		BREAK_IF_FAILED(hr);
+		GFX_CHECK_HR(hr);
 		
 		backbuffer_index = swapchain->GetCurrentBackBufferIndex();
 		CreateBackbuffers();
@@ -98,7 +98,7 @@ namespace adria
 		{
 			ArcPtr<ID3D12Resource> backbuffer = nullptr;
 			HRESULT hr = swapchain->GetBuffer(i, IID_PPV_ARGS(backbuffer.GetAddressOf()));
-			BREAK_IF_FAILED(hr);
+			GFX_CHECK_HR(hr);
 			D3D12_RESOURCE_DESC desc = backbuffer->GetDesc();
 			GfxTextureDesc gfx_desc{};
 			gfx_desc.width = (uint32)desc.Width;

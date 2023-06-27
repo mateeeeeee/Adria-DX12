@@ -3,12 +3,18 @@
 #include "GfxShader.h"
 #include "GfxInputLayout.h"
 #include "GfxResourceCommon.h"
-#include "Rendering/Enums.h"
 #include "Events/Delegate.h"
 
 namespace adria
 {
+	enum GfxShaderID : uint8;
 	class GfxDevice;
+
+	enum class GfxRootSignatureID : uint8
+	{
+		Invalid,
+		Common
+	};
 
 	struct GraphicsPipelineStateDesc
 	{
@@ -21,11 +27,11 @@ namespace adria
 		GfxFormat dsv_format = GfxFormat::UNKNOWN;
 		GfxInputLayout input_layout;
 		GfxRootSignatureID root_signature = GfxRootSignatureID::Invalid;
-		GfxShaderID VS = GfxShaderID_Invalid;
-		GfxShaderID PS = GfxShaderID_Invalid;
-		GfxShaderID DS = GfxShaderID_Invalid;
-		GfxShaderID HS = GfxShaderID_Invalid;
-		GfxShaderID GS = GfxShaderID_Invalid;
+		GfxShaderID VS;
+		GfxShaderID PS;
+		GfxShaderID DS;
+		GfxShaderID HS;
+		GfxShaderID GS;
 		uint32 sample_mask = UINT_MAX;
 	};
 
@@ -94,9 +100,9 @@ namespace adria
 		GfxFormat rtv_formats[8];
 		GfxFormat dsv_format = GfxFormat::UNKNOWN;
 		GfxRootSignatureID root_signature = GfxRootSignatureID::Invalid;
-		GfxShaderID AS = GfxShaderID_Invalid;
-		GfxShaderID MS = GfxShaderID_Invalid;
-		GfxShaderID PS = GfxShaderID_Invalid;
+		GfxShaderID AS;
+		GfxShaderID MS;
+		GfxShaderID PS;
 		uint32 sample_mask = UINT_MAX;
 	};
 	class MeshShaderPipelineState : public GfxPipelineState

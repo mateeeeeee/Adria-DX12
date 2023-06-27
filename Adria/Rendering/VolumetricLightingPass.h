@@ -1,6 +1,6 @@
 #pragma once
 #include <optional>
-#include "CopyToTexturePass.h"
+#include "HelperPasses.h"
 #include "Core/CoreTypes.h"
 #include "RenderGraph/RenderGraphResourceId.h"
 

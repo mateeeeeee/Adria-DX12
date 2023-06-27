@@ -32,7 +32,7 @@ namespace adria
 		heap_desc.Flags = shader_visible ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 		heap_desc.NumDescriptors = descriptor_count;
 		heap_desc.Type = ToD3D12HeapType(type);
-		BREAK_IF_FAILED(gfx->GetDevice()->CreateDescriptorHeap(&heap_desc, IID_PPV_ARGS(heap.ReleaseAndGetAddressOf())));
+		GFX_CHECK_HR(gfx->GetDevice()->CreateDescriptorHeap(&heap_desc, IID_PPV_ARGS(heap.ReleaseAndGetAddressOf())));
 		descriptor_handle_size = gfx->GetDevice()->GetDescriptorHandleIncrementSize(heap_desc.Type);
 	}
 
