@@ -429,8 +429,12 @@
     <ClCompile Include="Logging\FileLogger.cpp">
       <Filter>Logging</Filter>
     </ClCompile>
-    <ClCompile Include="Logging\OutputStreamLogger.cpp" />
-    <ClCompile Include="Logging\OutputDebugStringLogger.cpp" />
+    <ClCompile Include="Logging\OutputDebugStringLogger.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Logging\OutputStreamLogger.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">

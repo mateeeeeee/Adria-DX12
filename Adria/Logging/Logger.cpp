@@ -1,10 +1,60 @@
 #include "Logger.h"
 #include <chrono>
 #include <ctime>   
+#include <vector>
+#include <thread>
+#include "Utilities/ConcurrentQueue.h"
 
 namespace adria
 {
-	
+	struct QueueEntry
+	{
+		LogLevel level;
+		std::string str;
+		std::string filename;
+		uint32 line;
+	};
+
+	class LogManagerImpl
+	{
+	public:
+
+		LogManagerImpl() : log_thread(&LogManagerImpl::ProcessLogs, this) {}
+		~LogManagerImpl()
+		{
+			exit.store(true);
+			log_thread.join();
+		}
+
+		void RegisterLogger(ILogger* logger)
+		{
+			loggers.push_back(logger);
+		}
+		void Log(LogLevel level, char const* str, char const* filename, uint32 line)
+		{
+			log_queue.Push(QueueEntry{ level, str, filename, line });
+		}
+
+		std::vector<ILogger*> loggers;
+		ConcurrentQueue<QueueEntry> log_queue;
+		std::thread log_thread;
+		std::atomic_bool exit = false;
+
+	private:
+		void ProcessLogs()
+		{
+			QueueEntry entry{};
+			while (true)
+			{
+				bool success = log_queue.TryPop(entry);
+				if (success)
+				{
+					for (auto&& logger : loggers) if (logger) logger->Log(entry.level, entry.str.c_str(), entry.filename.c_str(), entry.line);
+				}
+				if (exit.load() && log_queue.Empty()) break;
+			}
+		}
+	};
 
 	std::string LevelToString(LogLevel type)
 	{
@@ -29,44 +79,25 @@ namespace adria
 		time_str.pop_back();
 		return "[" + time_str + "]";
 	}
-	std::string LineInfoToString(char const* file, uint32_t line)
+	std::string LineInfoToString(char const* file, uint32 line)
 	{
 		return "[File: " + std::string(file) + "  Line: " + std::to_string(line) + "]";
 	}
 
-	LogManager::LogManager() : log_thread(&LogManager::ProcessLogs, this)
-	{}
-	LogManager::~LogManager()
-	{
-		exit.store(true);
-		log_thread.join();
-	}
+	LogManager::LogManager() : pimpl(new LogManagerImpl) {}
+	LogManager::~LogManager() = default;
 
 	void LogManager::RegisterLogger(ILogger* logger)
 	{
-		loggers.push_back(logger);
+		pimpl->RegisterLogger(logger);
 	}
 
-	void LogManager::Log(LogLevel level, char const* str, char const* filename, uint32_t line)
+	void LogManager::Log(LogLevel level, char const* str, char const* filename, uint32 line)
 	{
-		QueueEntry entry{ level, str, filename, line };
-		log_queue.Push(std::move(entry));
+		pimpl->Log(level, str, filename, line);
 	}
 	void LogManager::Log(LogLevel level, char const* str, std::source_location location /*= std::source_location::current()*/)
 	{
 		Log(level, str, location.file_name(), location.line());
-	}
-	void LogManager::ProcessLogs()
-	{
-		QueueEntry entry{};
-		while (true)
-		{
-			bool success = log_queue.TryPop(entry);
-			if (success)
-			{
-				for (auto&& logger : loggers) if (logger) logger->Log(entry.level, entry.str.c_str(), entry.filename.c_str(), entry.line);
-			}
-			if (exit.load() && log_queue.Empty()) break;
-		}
 	}
 }

@@ -1,11 +1,7 @@
 #pragma once
-#include <memory>
-#include <vector>
-#include <thread>
+#include <memory> 
 #include <string>
-#include <fstream>
 #include <source_location>
-#include "Utilities/ConcurrentQueue.h"
 
 namespace adria
 {
@@ -31,13 +27,6 @@ namespace adria
 
 	class LogManager
 	{
-		struct QueueEntry
-		{
-			LogLevel level;
-			std::string str;
-			std::string filename;
-			uint32_t line;
-		};
 	public:
 		LogManager();
 		LogManager(LogManager const&) = delete;
@@ -47,17 +36,12 @@ namespace adria
 		~LogManager();
 
 		void RegisterLogger(ILogger* logger);
-		void Log(LogLevel level, char const* str, char const* file, uint32_t line);
+		void Log(LogLevel level, char const* str, char const* file, uint32 line);
 		void Log(LogLevel level, char const* str, std::source_location location = std::source_location::current());
 
 	private:
-		std::vector<ILogger*> loggers;
-		ConcurrentQueue<QueueEntry> log_queue;
-		std::thread log_thread;
-		std::atomic_bool exit = false;
 
-	private:
-		void ProcessLogs();
+		std::unique_ptr<class LogManagerImpl> pimpl;
 	};
 
 	inline LogManager g_log{};
