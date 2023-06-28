@@ -6,16 +6,15 @@
 #include "Graphics/GfxShaderCompiler.h"
 #include "Logging/Logger.h"
 #include "Utilities/Timer.h"
-#include "Utilities/HashMap.h"
 
 namespace adria
 {
 	namespace
 	{
 		GfxDevice* gfx;
-		HashMap<GfxPipelineStateID, std::unique_ptr<GraphicsPipelineState>>		gfx_pso_map;
-		HashMap<GfxPipelineStateID, std::unique_ptr<ComputePipelineState>>		compute_pso_map;
-		HashMap<GfxPipelineStateID, std::unique_ptr<MeshShaderPipelineState>>   mesh_pso_map;
+		std::unordered_map<GfxPipelineStateID, std::unique_ptr<GraphicsPipelineState>>		gfx_pso_map;
+		std::unordered_map<GfxPipelineStateID, std::unique_ptr<ComputePipelineState>>		compute_pso_map;
+		std::unordered_map<GfxPipelineStateID, std::unique_ptr<MeshShaderPipelineState>>   mesh_pso_map;
 
 		inline GfxShader const& GetShader(GfxShaderID shader)
 		{

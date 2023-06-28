@@ -4,7 +4,6 @@
 #include <array>
 #include <string>
 #include "GfxDefines.h"
-#include "Utilities/HashMap.h"
 #include "Utilities/Singleton.h"
 #include "Core/CoreTypes.h"
 #if GPU_MULTITHREADED
@@ -54,7 +53,7 @@ namespace adria
 		std::unique_ptr<GfxBuffer> query_readback_buffer;
 
 		std::array<QueryData, MAX_PROFILES> query_data;
-		HashMap<std::string, uint32> name_to_index_map;
+		std::unordered_map<std::string, uint32> name_to_index_map;
 
 #if GPU_MULTITHREADED
 		mutable std::mutex map_mutex;

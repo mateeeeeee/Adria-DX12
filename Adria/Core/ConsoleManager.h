@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 #include <type_traits>
-#include "Utilities/HashMap.h"
 
 namespace adria
 {
@@ -38,8 +37,8 @@ namespace adria
 			for (auto&& [name, ccmd] : ccmds) pfn(ccmd);
 		}
 	private:
-		inline static HashMap<std::string, IConsoleVariable*> cvars{};
-		inline static HashMap<std::string, IConsoleCommand*>  ccmds{};
+		inline static std::unordered_map<std::string, IConsoleVariable*> cvars{};
+		inline static std::unordered_map<std::string, IConsoleCommand*>  ccmds{};
 
 	private:
 		static void RegisterConsoleVariable(IConsoleVariable* cvar, char const* name);

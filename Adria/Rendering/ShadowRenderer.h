@@ -3,7 +3,6 @@
 #include "RayTracedShadowsPass.h"
 #include "Graphics/GfxDefines.h"
 #include "Graphics/GfxDescriptor.h"
-#include "Utilities/HashMap.h"
 
 namespace adria
 {
@@ -52,12 +51,12 @@ namespace adria
 
 		std::unique_ptr<GfxBuffer>  light_matrices_buffer;
 		GfxDescriptor				light_matrices_buffer_srvs[GFX_BACKBUFFER_COUNT];
-		HashMap<size_t, std::vector<std::unique_ptr<GfxTexture>>> light_shadow_maps;
-		HashMap<size_t, std::vector<GfxDescriptor>> light_shadow_map_srvs;
-		HashMap<size_t, std::vector<GfxDescriptor>> light_shadow_map_dsvs;
-		HashMap<size_t, std::unique_ptr<GfxTexture>> light_mask_textures;
-		HashMap<size_t, GfxDescriptor> light_mask_texture_srvs;
-		HashMap<size_t, GfxDescriptor> light_mask_texture_uavs;
+		std::unordered_map<size_t, std::vector<std::unique_ptr<GfxTexture>>> light_shadow_maps;
+		std::unordered_map<size_t, std::vector<GfxDescriptor>> light_shadow_map_srvs;
+		std::unordered_map<size_t, std::vector<GfxDescriptor>> light_shadow_map_dsvs;
+		std::unordered_map<size_t, std::unique_ptr<GfxTexture>> light_mask_textures;
+		std::unordered_map<size_t, GfxDescriptor> light_mask_texture_srvs;
+		std::unordered_map<size_t, GfxDescriptor> light_mask_texture_uavs;
 		int32						   light_matrices_gpu_index = -1;
 
 		std::vector<DirectX::XMMATRIX> light_matrices;

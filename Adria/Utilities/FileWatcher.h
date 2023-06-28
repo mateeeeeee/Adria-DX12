@@ -1,6 +1,5 @@
 #pragma once
 #include <filesystem>
-#include "HashMap.h"
 #include "Core/CoreTypes.h"
 #include "Events/Delegate.h"
 
@@ -57,7 +56,7 @@ namespace adria
 		FileModifiedEvent& GetFileModifiedEvent() { return file_modified_event; }
 	private:
 		std::vector<std::string> paths_to_watch;
-		HashMap<std::string, std::filesystem::file_time_type> files_map;
+		std::unordered_map<std::string, std::filesystem::file_time_type> files_map;
 		FileModifiedEvent file_modified_event;
 	};
 }

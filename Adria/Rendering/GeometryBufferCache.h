@@ -2,7 +2,6 @@
 #include <memory>
 #include "Core/CoreTypes.h"
 #include "Graphics/GfxDescriptor.h"
-#include "Utilities/HashMap.h"
 #include "Utilities/Singleton.h"
 
 namespace adria
@@ -66,8 +65,8 @@ namespace adria
 	private:
 		GfxDevice* gfx;
 		uint64 current_handle = INVALID_GEOMETRY_BUFFER_HANDLE;
-		HashMap<uint64, std::unique_ptr<GfxBuffer>> buffer_map;
-		HashMap<uint64, GfxDescriptor> buffer_srv_map;
+		std::unordered_map<uint64, std::unique_ptr<GfxBuffer>> buffer_map;
+		std::unordered_map<uint64, GfxDescriptor> buffer_srv_map;
 	};
 	#define g_GeometryBufferCache GeometryBufferCache::Get()
 }

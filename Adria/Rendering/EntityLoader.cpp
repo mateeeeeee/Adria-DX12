@@ -21,7 +21,6 @@
 #include "Core/CoreTypes.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/FilesUtil.h"
-#include "Utilities/HashMap.h"
 #include "Utilities/Heightmap.h"
 
 
@@ -583,7 +582,7 @@ namespace adria
 			}
 		}
 
-		HashMap<int32, std::vector<int32>> mesh_primitives_map; //mesh index -> vector of primitive indices
+		std::unordered_map<int32, std::vector<int32>> mesh_primitives_map; //mesh index -> vector of primitive indices
 		int32 primitive_count = 0;
 
 		struct MeshData

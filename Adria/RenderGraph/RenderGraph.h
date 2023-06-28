@@ -6,8 +6,6 @@
 #include "RenderGraphBuilder.h"
 #include "RenderGraphResourcePool.h"
 #include "Graphics/GfxDevice.h"
-#include "Utilities/HashSet.h"
-#include "Utilities/HashMap.h"
 
 namespace adria
 {
@@ -30,17 +28,17 @@ namespace adria
 		private:
 			RenderGraph& rg;
 			std::vector<RenderGraphPassBase*> passes;
-			HashSet<RGTextureId> texture_creates;
-			HashSet<RGTextureId> texture_reads;
-			HashSet<RGTextureId> texture_writes;
-			HashSet<RGTextureId> texture_destroys;
-			HashMap<RGTextureId, GfxResourceState> texture_state_map;
+			std::unordered_set<RGTextureId> texture_creates;
+			std::unordered_set<RGTextureId> texture_reads;
+			std::unordered_set<RGTextureId> texture_writes;
+			std::unordered_set<RGTextureId> texture_destroys;
+			std::unordered_map<RGTextureId, GfxResourceState> texture_state_map;
 
-			HashSet<RGBufferId> buffer_creates;
-			HashSet<RGBufferId> buffer_reads;
-			HashSet<RGBufferId> buffer_writes;
-			HashSet<RGBufferId> buffer_destroys;
-			HashMap<RGBufferId, GfxResourceState> buffer_state_map;
+			std::unordered_set<RGBufferId> buffer_creates;
+			std::unordered_set<RGBufferId> buffer_reads;
+			std::unordered_set<RGBufferId> buffer_writes;
+			std::unordered_set<RGBufferId> buffer_destroys;
+			std::unordered_map<RGBufferId, GfxResourceState> buffer_state_map;
 		};
 
 	public:
@@ -84,15 +82,15 @@ namespace adria
 		std::vector<size_t> topologically_sorted_passes;
 		std::vector<DependencyLevel> dependency_levels;
 
-		HashMap<RGResourceName, RGTextureId> texture_name_id_map;
-		HashMap<RGResourceName, RGBufferId>  buffer_name_id_map;
-		HashMap<RGBufferReadWriteId, RGBufferId> buffer_uav_counter_map;
+		std::unordered_map<RGResourceName, RGTextureId> texture_name_id_map;
+		std::unordered_map<RGResourceName, RGBufferId>  buffer_name_id_map;
+		std::unordered_map<RGBufferReadWriteId, RGBufferId> buffer_uav_counter_map;
 
-		mutable HashMap<RGTextureId, std::vector<std::pair<GfxTextureSubresourceDesc, RGDescriptorType>>> texture_view_desc_map;
-		mutable HashMap<RGTextureId, std::vector<std::pair<GfxDescriptor, RGDescriptorType>>> texture_view_map;
+		mutable std::unordered_map<RGTextureId, std::vector<std::pair<GfxTextureSubresourceDesc, RGDescriptorType>>> texture_view_desc_map;
+		mutable std::unordered_map<RGTextureId, std::vector<std::pair<GfxDescriptor, RGDescriptorType>>> texture_view_map;
 
-		mutable HashMap<RGBufferId, std::vector<std::pair<GfxBufferSubresourceDesc, RGDescriptorType>>> buffer_view_desc_map;
-		mutable HashMap<RGBufferId, std::vector<std::pair<GfxDescriptor, RGDescriptorType>>> buffer_view_map;
+		mutable std::unordered_map<RGBufferId, std::vector<std::pair<GfxBufferSubresourceDesc, RGDescriptorType>>> buffer_view_desc_map;
+		mutable std::unordered_map<RGBufferId, std::vector<std::pair<GfxDescriptor, RGDescriptorType>>> buffer_view_map;
 
 	private:
 

@@ -4,8 +4,6 @@
 #include "Graphics/GfxDevice.h"
 #include "Logging/Logger.h"
 #include "Utilities/Timer.h"
-#include "Utilities/HashMap.h"
-#include "Utilities/HashSet.h"
 #include "Utilities/FileWatcher.h"
 
 namespace fs = std::filesystem;
@@ -18,8 +16,8 @@ namespace adria
 		std::unique_ptr<FileWatcher> file_watcher;
 		ShaderRecompiledEvent shader_recompiled_event;
 		LibraryRecompiledEvent library_recompiled_event;
-		HashMap<GfxShaderID, GfxShader> shader_map;
-		HashMap<GfxShaderID, HashSet<fs::path>> dependent_files_map;
+		std::unordered_map<GfxShaderID, GfxShader> shader_map;
+		std::unordered_map<GfxShaderID, std::unordered_set<fs::path>> dependent_files_map;
 
 		constexpr GfxShaderStage GetShaderStage(GfxShaderID shader)
 		{

@@ -5,7 +5,6 @@
 #include <variant>
 #include <memory>
 #include "Graphics/GfxDescriptor.h"
-#include "Utilities/HashMap.h"
 #include "Utilities/Singleton.h"
 #include "Utilities/AutoRefCountPtr.h"
 
@@ -37,9 +36,9 @@ namespace adria
 	private:
 		GfxDevice* gfx = nullptr;
 		
-		HashMap<TextureName, TextureHandle> loaded_textures;
-		HashMap<TextureHandle, std::unique_ptr<GfxTexture>> texture_map;
-		HashMap<TextureHandle, GfxDescriptor> texture_srv_map;
+		std::unordered_map<TextureName, TextureHandle> loaded_textures;
+		std::unordered_map<TextureHandle, std::unique_ptr<GfxTexture>> texture_map;
+		std::unordered_map<TextureHandle, GfxDescriptor> texture_srv_map;
 		TextureHandle handle = 0;
 		bool mipmaps = true;
 		bool is_scene_initialized = false;

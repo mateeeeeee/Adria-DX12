@@ -4,8 +4,6 @@
 #include "Core/CoreTypes.h"
 #include "Core/Defines.h"
 #include "Utilities/TemplatesUtil.h"
-#include "Utilities/HashMap.h"
-
 
 namespace adria
 {
@@ -59,7 +57,7 @@ namespace adria
 		}
 
 	private:
-		HashMap<std::type_index, std::unique_ptr<uint8[]>> board_data;
+		std::unordered_map<std::type_index, std::unique_ptr<uint8[]>> board_data;
 	};
 
 	using RGBlackboard = RenderGraphBlackboard;

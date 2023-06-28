@@ -3,8 +3,6 @@
 #include <optional>
 #include "RenderGraphContext.h"
 #include "Utilities/EnumUtil.h"
-#include "Utilities/HashSet.h"
-#include "Utilities/HashMap.h"
 
 
 namespace adria
@@ -118,17 +116,17 @@ namespace adria
 		RGPassType type;
 		RGPassFlags flags = RGPassFlags::None;
 
-		HashSet<RGTextureId> texture_creates;
-		HashSet<RGTextureId> texture_reads;
-		HashSet<RGTextureId> texture_writes;
-		HashSet<RGTextureId> texture_destroys;
-		HashMap<RGTextureId, GfxResourceState> texture_state_map;
+		std::unordered_set<RGTextureId> texture_creates;
+		std::unordered_set<RGTextureId> texture_reads;
+		std::unordered_set<RGTextureId> texture_writes;
+		std::unordered_set<RGTextureId> texture_destroys;
+		std::unordered_map<RGTextureId, GfxResourceState> texture_state_map;
 		
-		HashSet<RGBufferId> buffer_creates;
-		HashSet<RGBufferId> buffer_reads;
-		HashSet<RGBufferId> buffer_writes;
-		HashSet<RGBufferId> buffer_destroys;
-		HashMap<RGBufferId, GfxResourceState> buffer_state_map;
+		std::unordered_set<RGBufferId> buffer_creates;
+		std::unordered_set<RGBufferId> buffer_reads;
+		std::unordered_set<RGBufferId> buffer_writes;
+		std::unordered_set<RGBufferId> buffer_destroys;
+		std::unordered_map<RGBufferId, GfxResourceState> buffer_state_map;
 
 		std::vector<RenderTargetInfo> render_targets_info;
 		std::optional<DepthStencilInfo> depth_stencil = std::nullopt;

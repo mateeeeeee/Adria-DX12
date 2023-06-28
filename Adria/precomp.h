@@ -1,5 +1,6 @@
 #pragma once
-//std headers + win32/d3d12
+
+//stl headers + win32/d3d12
 #include <vector>
 #include <memory>
 #include <string>

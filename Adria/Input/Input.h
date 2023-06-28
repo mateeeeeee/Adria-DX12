@@ -3,7 +3,6 @@
 #include "Core/CoreTypes.h"
 #include "Core/Windows.h"
 #include "Events/Delegate.h"
-#include "Utilities/HashMap.h"
 #include "Utilities/Singleton.h"
 
 namespace adria
@@ -77,8 +76,8 @@ namespace adria
 
 	private:
 		InputEvents input_events;
-		HashMap<KeyCode, bool> keys;
-		HashMap<KeyCode, bool> prev_keys;
+		std::unordered_map<KeyCode, bool> keys;
+		std::unordered_map<KeyCode, bool> prev_keys;
 		// Mouse
 		float mouse_position_x = 0.0f;
 		float mouse_position_y = 0.0f;
