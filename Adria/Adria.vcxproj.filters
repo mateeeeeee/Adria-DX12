@@ -29,9 +29,6 @@
     <Filter Include="Rendering">
       <UniqueIdentifier>{90f3ecb1-e0b1-41fc-8574-0f3d8d799d4f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ImGui">
-      <UniqueIdentifier>{5f1947cd-69aa-41fd-9f89-0025141372cc}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Editor">
       <UniqueIdentifier>{82f8fa3a-c2b4-4cd1-9a90-c46b3a0b1dfb}</UniqueIdentifier>
     </Filter>
@@ -43,9 +40,6 @@
     </Filter>
     <Filter Include="Rendering\Passes">
       <UniqueIdentifier>{446d9ca2-5cd9-4492-b4d3-0f129c97eb27}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Font">
-      <UniqueIdentifier>{4bcac2f2-2236-4e3b-8891-7ec43621b7d1}</UniqueIdentifier>
     </Filter>
     <Filter Include="Shaders">
       <UniqueIdentifier>{1e5e0278-a230-4a83-80fb-55d749bd8fad}</UniqueIdentifier>
@@ -68,12 +62,6 @@
     <Filter Include="Shaders\Ocean">
       <UniqueIdentifier>{18ba23cf-78ca-4fd9-a2f4-3ee43a42e85e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="meshoptimizer">
-      <UniqueIdentifier>{7fe9dc60-f08d-4abe-9603-2712167e3096}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="gfx-external">
-      <UniqueIdentifier>{e5ca3307-61b2-4c16-85ff-b9a7898599b5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shaders\GpuDrivenRendering">
       <UniqueIdentifier>{6e1cdfc3-a4ac-439d-b70d-3fbc52b59f12}</UniqueIdentifier>
     </Filter>
@@ -83,8 +71,26 @@
     <Filter Include="Shaders\Clouds">
       <UniqueIdentifier>{93683108-3ee8-4a1d-9d4a-ac2927722ee2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="External">
+      <UniqueIdentifier>{2d0f4fdf-8937-4be0-8fa5-797b9dcbefec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\D3D12MA">
+      <UniqueIdentifier>{5f8fe533-622b-4008-86c0-413e607271b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\d3dx12">
+      <UniqueIdentifier>{2589bf7e-268e-409f-af93-dd83b1e99892}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\meshoptimizer">
+      <UniqueIdentifier>{56ae3881-2233-4ddd-968f-8928d1ca4e8d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\ImGui">
+      <UniqueIdentifier>{193b0e60-4098-4825-a53e-f7e3ffc005ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\FontAwesome">
+      <UniqueIdentifier>{c43936f5-3a2b-4145-8dd9-b8c7eee54f05}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Shaders\DDGI">
-      <UniqueIdentifier>{88a1207d-a71c-4a36-bb15-62c64a752d2f}</UniqueIdentifier>
+      <UniqueIdentifier>{54d61a60-15bc-49dd-97a1-109cce8ee98e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -156,9 +162,6 @@
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\BlurPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\HelperPasses.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\TiledDeferredLightingPass.cpp">
@@ -287,51 +290,6 @@
     <ClCompile Include="Utilities\Image.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="..\ThirdParty\meshoptimizer\allocator.cpp">
-      <Filter>meshoptimizer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ThirdParty\meshoptimizer\clusterizer.cpp">
-      <Filter>meshoptimizer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ThirdParty\meshoptimizer\indexcodec.cpp">
-      <Filter>meshoptimizer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ThirdParty\meshoptimizer\indexgenerator.cpp">
-      <Filter>meshoptimizer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ThirdParty\meshoptimizer\overdrawanalyzer.cpp">
-      <Filter>meshoptimizer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ThirdParty\meshoptimizer\overdrawoptimizer.cpp">
-      <Filter>meshoptimizer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ThirdParty\meshoptimizer\vfetchoptimizer.cpp">
-      <Filter>meshoptimizer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ThirdParty\meshoptimizer\vfetchanalyzer.cpp">
-      <Filter>meshoptimizer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ThirdParty\meshoptimizer\vertexfilter.cpp">
-      <Filter>meshoptimizer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ThirdParty\meshoptimizer\vertexcodec.cpp">
-      <Filter>meshoptimizer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ThirdParty\meshoptimizer\vcacheoptimizer.cpp">
-      <Filter>meshoptimizer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ThirdParty\meshoptimizer\vcacheanalyzer.cpp">
-      <Filter>meshoptimizer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ThirdParty\meshoptimizer\stripifier.cpp">
-      <Filter>meshoptimizer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ThirdParty\meshoptimizer\spatialorder.cpp">
-      <Filter>meshoptimizer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ThirdParty\meshoptimizer\simplifier.cpp">
-      <Filter>meshoptimizer</Filter>
-    </ClCompile>
     <ClCompile Include="Graphics\GfxCommon.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
@@ -355,9 +313,6 @@
     </ClCompile>
     <ClCompile Include="Graphics\GfxSwapchain.cpp">
       <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ThirdParty\gfx-external\D3D12MemAlloc.cpp">
-      <Filter>gfx-external</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\AccelerationStructure.cpp">
       <Filter>Rendering</Filter>
@@ -384,30 +339,6 @@
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="precomp.cpp" />
-    <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui_demo.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui_draw.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui_impl_dx12.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui_impl_win32.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui_tables.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui_widgets.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ThirdParty\ImGui\ImGui\ImGuizmo.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
     <ClCompile Include="Graphics\GfxRayTracingAS.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
@@ -420,20 +351,95 @@
     <ClCompile Include="Rendering\GPUDrivenGBufferPass.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\DDGI.cpp">
-      <Filter>Rendering\Passes</Filter>
+    <ClCompile Include="..\External\D3D12MA\D3D12MemAlloc.cpp">
+      <Filter>External\D3D12MA</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\ShadowRenderer.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="..\External\meshoptimizer\allocator.cpp">
+      <Filter>External\meshoptimizer</Filter>
     </ClCompile>
-    <ClCompile Include="Logging\FileLogger.cpp">
+    <ClCompile Include="..\External\meshoptimizer\clusterizer.cpp">
+      <Filter>External\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\meshoptimizer\indexcodec.cpp">
+      <Filter>External\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\meshoptimizer\indexgenerator.cpp">
+      <Filter>External\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\meshoptimizer\overdrawanalyzer.cpp">
+      <Filter>External\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\meshoptimizer\overdrawoptimizer.cpp">
+      <Filter>External\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\meshoptimizer\simplifier.cpp">
+      <Filter>External\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\meshoptimizer\spatialorder.cpp">
+      <Filter>External\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\meshoptimizer\stripifier.cpp">
+      <Filter>External\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\meshoptimizer\vcacheanalyzer.cpp">
+      <Filter>External\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\meshoptimizer\vcacheoptimizer.cpp">
+      <Filter>External\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\meshoptimizer\vertexcodec.cpp">
+      <Filter>External\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\meshoptimizer\vertexfilter.cpp">
+      <Filter>External\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\meshoptimizer\vfetchanalyzer.cpp">
+      <Filter>External\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\meshoptimizer\vfetchoptimizer.cpp">
+      <Filter>External\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\ImGui\ImGui\imgui.cpp">
+      <Filter>External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\ImGui\ImGui\imgui_demo.cpp">
+      <Filter>External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\ImGui\ImGui\imgui_draw.cpp">
+      <Filter>External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\ImGui\ImGui\imgui_impl_dx12.cpp">
+      <Filter>External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\ImGui\ImGui\imgui_impl_win32.cpp">
+      <Filter>External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\ImGui\ImGui\imgui_tables.cpp">
+      <Filter>External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\ImGui\ImGui\imgui_widgets.cpp">
+      <Filter>External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\ImGui\ImGui\ImGuizmo.cpp">
+      <Filter>External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Logging\OutputStreamLogger.cpp">
       <Filter>Logging</Filter>
     </ClCompile>
     <ClCompile Include="Logging\OutputDebugStringLogger.cpp">
       <Filter>Logging</Filter>
     </ClCompile>
-    <ClCompile Include="Logging\OutputStreamLogger.cpp">
+    <ClCompile Include="Logging\FileLogger.cpp">
       <Filter>Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\ShadowRenderer.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\DDGI.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\HelperPasses.cpp">
+      <Filter>Rendering\Passes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -635,9 +641,6 @@
     <ClInclude Include="Rendering\TiledDeferredLightingPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\HelperPasses.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\Postprocessor.h">
       <Filter>Rendering</Filter>
     </ClInclude>
@@ -746,9 +749,6 @@
     <ClInclude Include="Rendering\BokehPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
-    <ClInclude Include="..\ThirdParty\FontAwesome\IconsFontAwesome4.h">
-      <Filter>Font</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\GfxInputLayout.h">
       <Filter>Graphics</Filter>
     </ClInclude>
@@ -797,9 +797,6 @@
     <ClInclude Include="Rendering\EntityLoader.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="..\ThirdParty\meshoptimizer\meshoptimizer.h">
-      <Filter>meshoptimizer</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\GfxCommon.h">
       <Filter>Graphics</Filter>
     </ClInclude>
@@ -823,12 +820,6 @@
     </ClInclude>
     <ClInclude Include="Graphics\GfxSwapchain.h">
       <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\gfx-external\D3D12MemAlloc.h">
-      <Filter>gfx-external</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12.h">
-      <Filter>gfx-external</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxRingDynamicAllocator.h">
       <Filter>Graphics</Filter>
@@ -876,68 +867,11 @@
     <ClInclude Include="Utilities\Singleton.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="..\ThirdParty\ImGui\ImGui\imconfig.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\ImGui\ImGui\imgui.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\ImGui\ImGui\imgui_impl_dx12.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\ImGui\ImGui\imgui_impl_win32.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\ImGui\ImGui\imgui_internal.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\ImGui\ImGui\ImGuizmo.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\ImGui\ImGui\imstb_rectpack.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\ImGui\ImGui\imstb_textedit.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\ImGui\ImGui\imstb_truetype.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\Meshlet.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\ShaderStructs.h">
       <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_barriers.h">
-      <Filter>gfx-external</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_check_feature_support.h">
-      <Filter>gfx-external</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_core.h">
-      <Filter>gfx-external</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_default.h">
-      <Filter>gfx-external</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_pipeline_state_stream.h">
-      <Filter>gfx-external</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_property_format_table.h">
-      <Filter>gfx-external</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_render_pass.h">
-      <Filter>gfx-external</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_resource_helpers.h">
-      <Filter>gfx-external</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_root_signature.h">
-      <Filter>gfx-external</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\gfx-external\d3dx12_state_object.h">
-      <Filter>gfx-external</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxRayTracingShaderTable.h">
       <Filter>Graphics</Filter>
@@ -957,20 +891,92 @@
     <ClInclude Include="Resources\NewShaders\SPD\ffx_spd.h">
       <Filter>Shaders\SPD</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\DDGI.h">
-      <Filter>Rendering\Passes</Filter>
+    <ClInclude Include="..\External\D3D12MA\D3D12MemAlloc.h">
+      <Filter>External\D3D12MA</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\ShadowRenderer.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="..\External\d3dx12\d3dx12.h">
+      <Filter>External\d3dx12</Filter>
     </ClInclude>
-    <ClInclude Include="Logging\FileLogger.h">
-      <Filter>Logging</Filter>
+    <ClInclude Include="..\External\d3dx12\d3dx12_barriers.h">
+      <Filter>External\d3dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\d3dx12\d3dx12_check_feature_support.h">
+      <Filter>External\d3dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\d3dx12\d3dx12_core.h">
+      <Filter>External\d3dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\d3dx12\d3dx12_default.h">
+      <Filter>External\d3dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\d3dx12\d3dx12_pipeline_state_stream.h">
+      <Filter>External\d3dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\d3dx12\d3dx12_property_format_table.h">
+      <Filter>External\d3dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\d3dx12\d3dx12_render_pass.h">
+      <Filter>External\d3dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\d3dx12\d3dx12_resource_helpers.h">
+      <Filter>External\d3dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\d3dx12\d3dx12_root_signature.h">
+      <Filter>External\d3dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\d3dx12\d3dx12_state_object.h">
+      <Filter>External\d3dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\meshoptimizer\meshoptimizer.h">
+      <Filter>External\meshoptimizer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FontAwesome\IconsFontAwesome4.h">
+      <Filter>External\FontAwesome</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImGui\ImGui\imconfig.h">
+      <Filter>External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImGui\ImGui\imgui.h">
+      <Filter>External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImGui\ImGui\imgui_impl_dx12.h">
+      <Filter>External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImGui\ImGui\imgui_impl_win32.h">
+      <Filter>External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImGui\ImGui\imgui_internal.h">
+      <Filter>External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImGui\ImGui\ImGuizmo.h">
+      <Filter>External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImGui\ImGui\imstb_rectpack.h">
+      <Filter>External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImGui\ImGui\imstb_textedit.h">
+      <Filter>External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\ImGui\ImGui\imstb_truetype.h">
+      <Filter>External\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="Logging\OutputStreamLogger.h">
       <Filter>Logging</Filter>
     </ClInclude>
     <ClInclude Include="Logging\OutputDebugStringLogger.h">
       <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging\FileLogger.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\ShadowRenderer.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\DDGI.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\HelperPasses.h">
+      <Filter>Rendering\Passes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

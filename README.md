@@ -81,8 +81,6 @@ Volumetric Clouds
 Path Tracer
 ![alt text](Screenshots/pathtracing1.png "Path tracing") 
 ![alt text](Screenshots/pathtracing2.png "Path tracing") 
-![alt text](Screenshots/sanmiguel-pt.png "San Miguel") 
-
 
 <table>
   <tr>

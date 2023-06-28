@@ -18,7 +18,7 @@
     },
 		"skybox" : {
 			"texture" : ["Resources/Textures/Skybox/sunsetcube1024.dds"]
-	}, 
+	},
     "models" : [
 			{
 				"path": "Resources/Models/Sponza/sponza.gltf",
@@ -32,13 +32,13 @@
 			"type": "directional",
 			"color": [ 1.0, 0.9, 0.99 ],
 			"direction": [ 0.1, -1.0, 0.25 ],
-			"energy": 2.125,
+			"energy": 5.0,
 			"shadows": true,
 			"cascades": true,
 			"volumetric": true,
 			"lens_flare": true,
 			"mesh": "quad",
-			"size": 200
+			"size": 125
 		}
 	]
-}		
+}
