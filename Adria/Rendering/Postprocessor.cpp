@@ -16,7 +16,7 @@ namespace adria
 {
 	Postprocessor::Postprocessor(entt::registry& reg, uint32 width, uint32 height)
 		: reg(reg), width(width), height(height),
-		blur_pass(width, height), copy_to_texture_pass(width, height), generate_mips_pass(width, height),
+		blur_pass(width, height), copy_to_texture_pass(width, height),
 		add_textures_pass(width, height), automatic_exposure_pass(width, height),
 		lens_flare_pass(width, height),
 		clouds_pass(width, height), ssr_pass(width, height), fog_pass(width, height),
@@ -98,7 +98,6 @@ namespace adria
 		blur_pass.OnResize(w, h);
 		add_textures_pass.OnResize(w, h);
 		copy_to_texture_pass.OnResize(w, h);
-		generate_mips_pass.OnResize(w, h);
 		automatic_exposure_pass.OnResize(w, h);
 		lens_flare_pass.OnResize(w, h);
 		ssr_pass.OnResize(w, h);

@@ -271,7 +271,6 @@
     <ClCompile Include="Rendering\EntityLoader.cpp" />
     <ClCompile Include="Rendering\FXAAPass.cpp" />
     <ClCompile Include="Rendering\GBufferPass.cpp" />
-    <ClCompile Include="Rendering\GenerateMipsPass.cpp" />
     <ClCompile Include="Rendering\HBAOPass.cpp" />
     <ClCompile Include="Rendering\DeferredLightingPass.cpp" />
     <ClCompile Include="Rendering\MotionBlurPass.cpp" />
@@ -520,7 +519,6 @@
     <ClInclude Include="Rendering\EntityLoader.h" />
     <ClInclude Include="Rendering\FXAAPass.h" />
     <ClInclude Include="Rendering\GBufferPass.h" />
-    <ClInclude Include="Rendering\GenerateMipsPass.h" />
     <ClInclude Include="Rendering\BlackboardData.h" />
     <ClInclude Include="Rendering\HBAOPass.h" />
     <ClInclude Include="Rendering\DeferredLightingPass.h" />
@@ -561,7 +559,6 @@
     <ClInclude Include="Utilities\AutoRefCountPtr.h" />
     <ClInclude Include="Utilities\CLIParser.h" />
     <ClInclude Include="Utilities\CPUProfiler.h" />
-    <ClInclude Include="Utilities\DWParam.h" />
     <ClInclude Include="Utilities\EnumUtil.h" />
     <ClInclude Include="Utilities\FilesUtil.h" />
     <ClInclude Include="Utilities\FileWatcher.h" />

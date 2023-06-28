@@ -182,9 +182,6 @@
     <ClCompile Include="Rendering\FXAAPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\GenerateMipsPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\Postprocessor.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
@@ -695,17 +692,8 @@
     <ClInclude Include="Rendering\FXAAPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\GenerateMipsPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\ClusteredDeferredLightingPass.h">
       <Filter>Rendering\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Utilities\HashMap.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Utilities\HashSet.h">
-      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\SSAOPass.h">
       <Filter>Rendering\Passes</Filter>
@@ -859,9 +847,6 @@
     </ClInclude>
     <ClInclude Include="Graphics\GfxCommandQueue.h">
       <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Utilities\DWParam.h">
-      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxSwapchain.h">
       <Filter>Graphics</Filter>
@@ -1295,6 +1280,12 @@
     </ClInclude>
     <ClInclude Include="..\External\EASTL\include\EASTL\weak_ptr.h">
       <Filter>External\EASTL\include</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\HashMap.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\HashSet.h">
+      <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

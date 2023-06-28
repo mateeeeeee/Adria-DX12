@@ -4,7 +4,6 @@
 #include "RendererSettings.h"
 #include "BlurPass.h"
 #include "HelperPasses.h"
-#include "GenerateMipsPass.h"
 #include "AutomaticExposurePass.h"
 #include "LensFlarePass.h"
 #include "VolumetricCloudsPass.h"
@@ -51,7 +50,6 @@ namespace adria
 		BlurPass blur_pass;
 		CopyToTexturePass copy_to_texture_pass;
 		AddTexturesPass add_textures_pass;
-		GenerateMipsPass generate_mips_pass;
 		AutomaticExposurePass automatic_exposure_pass;
 		LensFlarePass lens_flare_pass;
 		VolumetricCloudsPass clouds_pass;
