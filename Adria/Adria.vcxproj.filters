@@ -483,6 +483,9 @@
     <ClCompile Include="..\External\EASTL\source\thread_support.cpp">
       <Filter>External\EASTL\source</Filter>
     </ClCompile>
+    <ClCompile Include="Core\EastlAllocator.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
