@@ -119,7 +119,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)Adria\;$(SolutionDir)External\d3dx12;$(SolutionDir)External\D3D12MA;$(SolutionDir)External\stb;$(SolutionDir)External\dxc\include\;$(SolutionDir)External\tinygltf;$(SolutionDir)External\tinyobjloader;$(SolutionDir)External\FastNoiseLite;$(SolutionDir)External\json;$(SolutionDir)External\entt;$(SolutionDir)External\nfd\include;$(SolutionDir)External\FontAwesome;$(SolutionDir)External\meshoptimizer;$(SolutionDir)External\cereal;$(SolutionDir)External\ImGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Adria\;$(SolutionDir)External\d3dx12;$(SolutionDir)External\D3D12MA;$(SolutionDir)External\stb;$(SolutionDir)External\dxc\include\;$(SolutionDir)External\tinygltf;$(SolutionDir)External\tinyobjloader;$(SolutionDir)External\FastNoiseLite;$(SolutionDir)External\json;$(SolutionDir)External\entt;$(SolutionDir)External\nfd\include;$(SolutionDir)External\FontAwesome;$(SolutionDir)External\meshoptimizer;$(SolutionDir)External\cereal;$(SolutionDir)External\ImGui;C:\Users\mateb\OneDrive\Desktop\Projekti\Adria D3D12\External\EASTL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
       <AdditionalOptions>/sdl /w34996 %(AdditionalOptions)</AdditionalOptions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -145,7 +145,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)Adria\;$(SolutionDir)External\d3dx12;$(SolutionDir)External\D3D12MA;$(SolutionDir)External\stb;$(SolutionDir)External\dxc\include\;$(SolutionDir)External\tinygltf;$(SolutionDir)External\tinyobjloader;$(SolutionDir)External\FastNoiseLite;$(SolutionDir)External\json;$(SolutionDir)External\entt;$(SolutionDir)External\nfd\include;$(SolutionDir)External\FontAwesome;$(SolutionDir)External\meshoptimizer;$(SolutionDir)External\cereal;$(SolutionDir)External\ImGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Adria\;$(SolutionDir)External\d3dx12;$(SolutionDir)External\D3D12MA;$(SolutionDir)External\stb;$(SolutionDir)External\dxc\include\;$(SolutionDir)External\tinygltf;$(SolutionDir)External\tinyobjloader;$(SolutionDir)External\FastNoiseLite;$(SolutionDir)External\json;$(SolutionDir)External\entt;$(SolutionDir)External\nfd\include;$(SolutionDir)External\FontAwesome;$(SolutionDir)External\meshoptimizer;$(SolutionDir)External\cereal;$(SolutionDir)External\ImGui;C:\Users\mateb\OneDrive\Desktop\Projekti\Adria D3D12\External\EASTL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
       <AdditionalOptions>/sdl /w34996 %(AdditionalOptions)</AdditionalOptions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -166,6 +166,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\External\D3D12MA\D3D12MemAlloc.cpp" />
+    <ClCompile Include="..\External\EASTL\source\allocator_eastl.cpp" />
+    <ClCompile Include="..\External\EASTL\source\assert.cpp" />
+    <ClCompile Include="..\External\EASTL\source\atomic.cpp" />
+    <ClCompile Include="..\External\EASTL\source\fixed_pool.cpp" />
+    <ClCompile Include="..\External\EASTL\source\hashtable.cpp" />
+    <ClCompile Include="..\External\EASTL\source\intrusive_list.cpp" />
+    <ClCompile Include="..\External\EASTL\source\numeric_limits.cpp" />
+    <ClCompile Include="..\External\EASTL\source\red_black_tree.cpp" />
+    <ClCompile Include="..\External\EASTL\source\string.cpp" />
+    <ClCompile Include="..\External\EASTL\source\thread_support.cpp" />
     <ClCompile Include="..\External\ImGui\ImGui\imgui.cpp" />
     <ClCompile Include="..\External\ImGui\ImGui\ImGuizmo.cpp" />
     <ClCompile Include="..\External\ImGui\ImGui\imgui_demo.cpp" />
@@ -305,6 +315,97 @@
     <ClInclude Include="..\External\d3dx12\d3dx12_resource_helpers.h" />
     <ClInclude Include="..\External\d3dx12\d3dx12_root_signature.h" />
     <ClInclude Include="..\External\d3dx12\d3dx12_state_object.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\algorithm.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\allocator.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\allocator_malloc.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\any.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\array.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\atomic.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\bit.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\bitset.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\bitvector.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\bonus\adaptors.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\bonus\call_traits.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\bonus\compressed_pair.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\bonus\fixed_ring_buffer.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\bonus\fixed_tuple_vector.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\bonus\intrusive_sdlist.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\bonus\intrusive_slist.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\bonus\list_map.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\bonus\lru_cache.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\bonus\overloaded.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\bonus\ring_buffer.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\bonus\sort_extra.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\bonus\tuple_vector.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\chrono.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\compare.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\core_allocator.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\core_allocator_adapter.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\deque.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\finally.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\fixed_allocator.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\fixed_function.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\fixed_hash_map.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\fixed_hash_set.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\fixed_list.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\fixed_map.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\fixed_set.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\fixed_slist.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\fixed_string.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\fixed_substring.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\fixed_vector.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\functional.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\hash_map.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\hash_set.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\heap.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\initializer_list.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\intrusive_hash_map.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\intrusive_hash_set.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\intrusive_list.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\intrusive_ptr.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\iterator.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\linked_array.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\linked_ptr.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\list.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\map.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\memory.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\meta.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\numeric.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\numeric_limits.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\optional.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\priority_queue.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\queue.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\random.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\ratio.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\safe_ptr.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\scoped_array.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\scoped_ptr.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\segmented_vector.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\set.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\shared_array.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\shared_ptr.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\slist.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\sort.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\span.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\stack.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\string.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\string_hash_map.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\string_map.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\string_view.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\tuple.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\type_traits.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\unique_ptr.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\unordered_map.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\unordered_set.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\utility.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\variant.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\vector.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\vector_map.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\vector_multimap.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\vector_multiset.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\vector_set.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\version.h" />
+    <ClInclude Include="..\External\EASTL\include\EASTL\weak_ptr.h" />
     <ClInclude Include="..\External\FontAwesome\IconsFontAwesome4.h" />
     <ClInclude Include="..\External\ImGui\ImGui\imconfig.h" />
     <ClInclude Include="..\External\ImGui\ImGui\imgui.h" />
@@ -1152,6 +1253,9 @@
     <Text Include="..\todo.txt" />
     <Text Include="adria.log" />
     <Text Include="Resources\NewShaders\SPD\LICENSE.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="..\External\EASTL\EASTL.natvis" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
