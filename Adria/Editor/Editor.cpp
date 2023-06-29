@@ -31,7 +31,7 @@ namespace adria
 	namespace cvars
 	{
 		static ConsoleVariable ao_cvar("ao", 1);
-		static ConsoleVariable reflections("reflections", 1);
+		static ConsoleVariable reflections("reflections", 0);
 		static ConsoleVariable renderpath("renderpath", 0);
 		static ConsoleVariable taa("TAA", true);
 		static ConsoleVariable fxaa("FXAA", false);
@@ -39,7 +39,7 @@ namespace adria
 		static ConsoleVariable clouds("clouds", true);
 		static ConsoleVariable dof("dof", false);
 		static ConsoleVariable bokeh("bokeh", false);
-		static ConsoleVariable bloom("bloom", false);
+		static ConsoleVariable bloom("bloom", true);
 		static ConsoleVariable motion_blur("motionblur", false);
 		static ConsoleVariable fog("fog", false);
 	}
