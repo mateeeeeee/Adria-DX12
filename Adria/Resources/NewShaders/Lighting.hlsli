@@ -40,6 +40,10 @@ float DoAttenuation(float distance, float range)
 	float att = saturate(1.0f - (distance * distance / (range * range)));
 	return att * att;
 }
+float3 Diffuse_Lambert(float3 diffuseColor)
+{
+	return diffuseColor * M_PI_INV;
+}
 float DistributionGGX(float3 N, float3 H, float roughness)
 {
     float a = roughness * roughness;

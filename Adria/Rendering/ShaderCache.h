@@ -105,12 +105,11 @@ namespace adria
 		//CS_DDGIUpdateIrradianceBorder,
 		//CS_DDGIUpdateDistance,
 		//CS_DDGIUpdateDistanceBorder,
+		//LIB_DDGIRayTracing,
 		LIB_Shadows,
-		LIB_SoftShadows,
 		LIB_AmbientOcclusion,
 		LIB_Reflections,
 		LIB_PathTracing,
-		//LIB_DDGIRayTracing,
 		ShaderId_Count
 	};
 

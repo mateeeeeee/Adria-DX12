@@ -123,7 +123,6 @@ namespace adria
 			case MS_DrawMeshlets:
 				return GfxShaderStage::MS;
 			case LIB_Shadows:
-			case LIB_SoftShadows:
 			case LIB_AmbientOcclusion:
 			case LIB_Reflections:
 			case LIB_PathTracing:
@@ -282,7 +281,6 @@ namespace adria
 			case CS_RTAOFilter:
 				return "RayTracing/RTAOFilter.hlsl";
 			case LIB_Shadows:
-			case LIB_SoftShadows:
 				return "RayTracing/RayTracedShadows.hlsl";
 			case LIB_AmbientOcclusion:
 				return "RayTracing/RayTracedAmbientOcclusion.hlsl";
@@ -485,8 +483,6 @@ namespace adria
 			case VS_Shadow_Transparent:
 			case PS_Shadow_Transparent:
 				return { {"ALPHA_TEST", "1"} };
-			case LIB_SoftShadows:
-				return { { "SOFT_SHADOWS", "" } };
 			case PS_GBuffer_Mask:
 				return { { "MASK", "1" } };
 			case CS_BloomDownsampleFirstPass:

@@ -8,6 +8,8 @@ struct DDGIVolume
 	int3 probeCounts;
 	int raysPerProbe;
 	int maxRaysPerProbe;
+	int irradianceIdx;
+	int distanceIdx;
 };
 
 int GetProbeIndexFromGridCoord(in DDGIVolume ddgi, int3 gridCoord)
@@ -44,6 +46,13 @@ float3 SphericalFibonacci(float i, float n)
 	float cosTheta = 1.0f - (2.0f * i + 1.0f) * (1.0f / n);
 	float sinTheta = sqrt(saturate(1.0 - cosTheta * cosTheta));
 	return float3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
+}
+
+
+
+float3 SampleDDGIIrradiance(in DDGIVolume volume, float3 position, float3 direction, float3 cameraDirection)
+{
+	return float3(0, 0, 0);
 }
 
 #endif

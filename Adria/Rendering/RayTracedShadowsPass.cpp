@@ -83,7 +83,6 @@ namespace adria
 		ID3D12Device5* device = gfx->GetDevice();
 
 		GfxShader const& rt_shadows_blob = ShaderCache::GetShader(LIB_Shadows);
-		GfxShader const& rt_soft_shadows_blob = ShaderCache::GetShader(LIB_SoftShadows);
 
 		GfxStateObjectBuilder rt_shadows_state_object_builder(6);
 		{
@@ -101,19 +100,9 @@ namespace adria
 			dxil_lib_desc.pExports = export_descs;
 			rt_shadows_state_object_builder.AddSubObject(dxil_lib_desc);
 
-			D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc2{};
-			D3D12_EXPORT_DESC export_desc2{};
-			export_desc2.ExportToRename = L"RTS_RayGen";
-			export_desc2.Name = L"RTS_RayGen_Soft";
-			dxil_lib_desc2.DXILLibrary.BytecodeLength = rt_soft_shadows_blob.GetLength();
-			dxil_lib_desc2.DXILLibrary.pShaderBytecode = rt_soft_shadows_blob.GetPointer();
-			dxil_lib_desc2.NumExports = 1;
-			dxil_lib_desc2.pExports = &export_desc2;
-			rt_shadows_state_object_builder.AddSubObject(dxil_lib_desc2);
-
 			// Add a state subobject for the shader payload configuration
 			D3D12_RAYTRACING_SHADER_CONFIG rt_shadows_shader_config{};
-			rt_shadows_shader_config.MaxPayloadSizeInBytes = 4;	//bool in hlsl is 4 bytes
+			rt_shadows_shader_config.MaxPayloadSizeInBytes = 4;	
 			rt_shadows_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
 			rt_shadows_state_object_builder.AddSubObject(rt_shadows_shader_config);
 
@@ -138,7 +127,7 @@ namespace adria
 
 	void RayTracedShadowsPass::OnLibraryRecompiled(GfxShaderID shader)
 	{
-		if (shader == LIB_Shadows || shader == LIB_SoftShadows) CreateStateObject();
+		if (shader == LIB_Shadows) CreateStateObject();
 	}
 
 }

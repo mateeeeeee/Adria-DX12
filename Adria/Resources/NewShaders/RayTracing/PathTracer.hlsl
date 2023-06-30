@@ -74,17 +74,17 @@ void PT_RayGen()
 
             float3 worldPosition = mul(pos, info.objectToWorldMatrix).xyz;
             float3 worldNormal = normalize(mul(nor, (float3x3) transpose(info.worldToObjectMatrix)));
-            float3 geometryNormal = worldNormal; //for now, later with cross()
+            float3 geometryNormal = worldNormal; //for now, later use cross
             float3 V = -ray.Direction;
             MaterialProperties matProperties = GetMaterialProperties(materialData, uv, 0);
             BrdfData brdfData = GetBrdfData(matProperties);
 
             int lightIndex = 0;
             float lightWeight = 0.0f;
-          //if (SampleLightRIS(randSeed, worldPosition, worldNormal, lightIndex, lightWeight))
-          //{
+            
+			////#todo use all lights
             Light light = lights[0];
-            float3 L = normalize(-light.direction.xyz); //not correct for point/spot lights
+            float3 L = normalize(-light.direction.xyz); // #todo: make a function TraceShadowRay(light,...)
             float3 wi = L;
             RayDesc shadowRay;
             shadowRay.Origin = worldPosition;
@@ -97,7 +97,6 @@ void PT_RayGen()
             float3 wo = normalize(FrameCB.cameraPosition.xyz - worldPosition);
             float3 directLighting = DefaultBRDF(wi, wo, worldNormal, brdfData.Diffuse, brdfData.Specular, brdfData.Roughness) * visibility * light.color.rgb * NdotL;
             radiance += (directLighting + matProperties.emissive) * throughput / pdf;
-          //}
 
             if (i == PassCB.bounceCount - 1) break;
 

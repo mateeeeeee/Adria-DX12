@@ -111,22 +111,24 @@ void RTR_ClosestHitPrimaryRay(inout RTR_Payload payloadData, in HitAttributes at
 	float3 worldPosition = posWS.xyz / posWS.w;
     float3 worldNormal = mul(nor, (float3x3) transpose(instanceData.inverseWorldMatrix));
 
+	//#todo use GetMaterialProperties
 	Texture2D albedoTx = ResourceDescriptorHeap[materialData.diffuseIdx];
 	Texture2D emissiveTx = ResourceDescriptorHeap[materialData.emissiveIdx];
-	Texture2D txMetallicRoughness = ResourceDescriptorHeap[materialData.roughnessMetallicIdx];
+	Texture2D metallicRoughnessTx = ResourceDescriptorHeap[materialData.roughnessMetallicIdx];
 
 	float4 albedoColor = albedoTx.SampleLevel(LinearWrapSampler, uv, 0) * float4(materialData.baseColorFactor, 1.0f);
-	float2 roughnessMetallic = txMetallicRoughness.SampleLevel(LinearWrapSampler, uv, 0).gb;
+	float2 roughnessMetallic = metallicRoughnessTx.SampleLevel(LinearWrapSampler, uv, 0).gb;
 
 	float3 V = normalize(FrameCB.cameraPosition.xyz - worldPosition.xyz);
 
+	//#todo use all lights
 	StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
 	Light light = lights[0];
 	light.direction.xyz = mul(light.direction.xyz, (float3x3) FrameCB.inverseView);
 
 	bool visibility = true;
 	{
-		float3 L = normalize(-light.direction.xyz); //not correct for point/spot lights
+		float3 L = normalize(-light.direction.xyz); //not correct for point/spot lights, #todo: make a function TraceShadowRay(light,...)
 		RayDesc shadowRay;
 		shadowRay.Origin = worldPosition.xyz;
 		shadowRay.Direction = L;

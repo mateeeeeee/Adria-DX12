@@ -56,7 +56,6 @@ void RTS_RayGen()
 		break;
 	}
 
-#ifndef SOFT_SHADOWS
 	RayDesc ray;
 	ray.Origin = worldPos.xyz;
 	ray.Direction = normalize(direction);
@@ -68,30 +67,6 @@ void RTS_RayGen()
 	TraceRay(tlas, (RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES),
 		0xFF, 0, 0, 0, ray, payload);
     outputTx[launchIndex.xy] = payload.hit ? 0.0f : 1.0f;
-
-#else
-	static const int RAY_COUNT = 1;
-
-	uint randSeed = InitRand(launchIndex.x + launchIndex.y * launchDim.x, FrameCB.frameCount, 16); //0; set to 0 for deterministic output
-	float shadowFactor = 0.0f;
-
-	[unroll(RAY_COUNT)]
-	for (int i = 0; i < RAY_COUNT; i++)
-	{
-		RayDesc ray;
-		ray.Origin = worldPos.xyz;
-		ray.Direction = normalize(GetConeSample(randSeed, direction, DegreesToRadians(softness)));
-		ray.TMin = 0.2f;
-		ray.TMax = maxT;
-
-		ShadowRayData payload;
-		payload.hit = true;
-		TraceRay(tlas, (RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES),
-			0xFF, 0, 0, 0, ray, payload);
-		shadowFactor += payload.hit ? 0.0f : 1.0f;
-	}
-	outputTx[launchIndex.xy] = shadowFactor / RAY_COUNT;
-#endif
 }
 
 [shader("miss")]
