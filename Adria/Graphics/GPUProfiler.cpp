@@ -39,7 +39,7 @@ namespace adria
 	void GPUProfiler::BeginProfileScope(GfxCommandList* cmd_list, char const* name)
 	{
 		uint32_t profile_index = scope_counter++;
-#if GPU_MULTITHREADED
+#if GFX_MULTITHREADED
 		{
 			std::scoped_lock(map_mutex);
 			name_to_index_map[name] = profile_index;
@@ -59,7 +59,7 @@ namespace adria
 	void GPUProfiler::EndProfileScope(char const* name)
 	{
 		uint32 profile_index = -1;
-#if GPU_MULTITHREADED
+#if GFX_MULTITHREADED
 		{
 			std::scoped_lock(map_mutex);
 			profile_index = name_to_index_map[name];

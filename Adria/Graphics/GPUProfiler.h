@@ -6,7 +6,7 @@
 #include "GfxDefines.h"
 #include "Utilities/Singleton.h"
 #include "Core/CoreTypes.h"
-#if GPU_MULTITHREADED
+#if GFX_MULTITHREADED
 #include <mutex>
 #endif
 
@@ -55,7 +55,7 @@ namespace adria
 		std::array<QueryData, MAX_PROFILES> query_data;
 		std::unordered_map<std::string, uint32> name_to_index_map;
 
-#if GPU_MULTITHREADED
+#if GFX_MULTITHREADED
 		mutable std::mutex map_mutex;
 		std::atomic_uint scope_counter = 0;
 #else

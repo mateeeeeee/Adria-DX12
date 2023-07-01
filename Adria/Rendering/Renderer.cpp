@@ -255,7 +255,6 @@ namespace adria
 				mesh_hlsl.positions_offset = submesh.positions_offset;
 				mesh_hlsl.normals_offset = submesh.normals_offset;
 				mesh_hlsl.tangents_offset = submesh.tangents_offset;
-				mesh_hlsl.bitangents_offset = submesh.bitangents_offset;
 				mesh_hlsl.uvs_offset = submesh.uvs_offset;
 
 				mesh_hlsl.meshlet_offset = submesh.meshlet_offset;

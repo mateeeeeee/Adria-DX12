@@ -594,7 +594,6 @@ namespace adria
 			std::vector<XMFLOAT3> positions_stream;
 			std::vector<XMFLOAT3> normals_stream;
 			std::vector<XMFLOAT4> tangents_stream;
-			std::vector<XMFLOAT3> bitangents_stream;
 			std::vector<XMFLOAT2> uvs_stream;
 			std::vector<uint32>   indices;
 
@@ -710,16 +709,6 @@ namespace adria
 			if (mesh_data.normals_stream.size() != vertex_count) mesh_data.normals_stream.resize(vertex_count);
 			if (mesh_data.uvs_stream.size() != vertex_count) mesh_data.uvs_stream.resize(vertex_count);
 			if (mesh_data.tangents_stream.size() != vertex_count) mesh_data.tangents_stream.resize(vertex_count);
-			if (mesh_data.bitangents_stream.size() != vertex_count) mesh_data.bitangents_stream.resize(vertex_count);
-			if (has_tangents)
-			{
-				for (size_t i = 0; i < vertex_count; ++i)
-				{
-					float tangent_handness = mesh_data.tangents_stream[i].w;
-					XMVECTOR bitangent = XMVectorScale(XMVector3Cross(XMLoadFloat3(&mesh_data.normals_stream[i]), XMLoadFloat4(&mesh_data.tangents_stream[i])), tangent_handness);
-					XMStoreFloat3(&mesh_data.bitangents_stream[i], XMVector3Normalize(bitangent));
-				}
-			}
 
 			meshopt_optimizeVertexCache(mesh_data.indices.data(), mesh_data.indices.data(), mesh_data.indices.size(), vertex_count);
 			meshopt_optimizeOverdraw(mesh_data.indices.data(), mesh_data.indices.data(), mesh_data.indices.size(), &mesh_data.positions_stream[0].x, vertex_count, sizeof(XMFLOAT3), 1.05f);
@@ -729,7 +718,6 @@ namespace adria
 			meshopt_remapVertexBuffer(mesh_data.positions_stream.data(), mesh_data.positions_stream.data(), vertex_count, sizeof(XMFLOAT3), &remap[0]);
 			meshopt_remapVertexBuffer(mesh_data.normals_stream.data(), mesh_data.normals_stream.data(), mesh_data.normals_stream.size(), sizeof(XMFLOAT3), &remap[0]);
 			meshopt_remapVertexBuffer(mesh_data.tangents_stream.data(), mesh_data.tangents_stream.data(), mesh_data.tangents_stream.size(), sizeof(XMFLOAT4), &remap[0]);
-			meshopt_remapVertexBuffer(mesh_data.bitangents_stream.data(), mesh_data.bitangents_stream.data(), mesh_data.bitangents_stream.size(), sizeof(XMFLOAT3), &remap[0]);
 			meshopt_remapVertexBuffer(mesh_data.uvs_stream.data(), mesh_data.uvs_stream.data(), mesh_data.uvs_stream.size(), sizeof(XMFLOAT2), &remap[0]);
 
 			size_t const max_meshlets = meshopt_buildMeshletsBound(mesh_data.indices.size(), MESHLET_MAX_VERTICES, MESHLET_MAX_TRIANGLES);
@@ -785,7 +773,6 @@ namespace adria
 			total_buffer_size += Align(mesh_data.uvs_stream.size() * sizeof(XMFLOAT2), 16);
 			total_buffer_size += Align(mesh_data.normals_stream.size() * sizeof(XMFLOAT3), 16);
 			total_buffer_size += Align(mesh_data.tangents_stream.size() * sizeof(XMFLOAT4), 16);
-			total_buffer_size += Align(mesh_data.bitangents_stream.size() * sizeof(XMFLOAT3), 16);
 			total_buffer_size += Align(mesh_data.meshlets.size() * sizeof(Meshlet), 16);
 			total_buffer_size += Align(mesh_data.meshlet_vertices.size() * sizeof(uint32), 16);
 			total_buffer_size += Align(mesh_data.meshlet_triangles.size() * sizeof(MeshletTriangle), 16);
@@ -826,9 +813,6 @@ namespace adria
 
 			submesh.tangents_offset = current_offset;
 			CopyData(mesh_data.tangents_stream);
-
-			submesh.bitangents_offset = current_offset;
-			CopyData(mesh_data.bitangents_stream);
 
 			submesh.meshlet_offset = current_offset;
 			CopyData(mesh_data.meshlets);

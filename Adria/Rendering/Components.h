@@ -146,7 +146,6 @@ namespace adria
 		uint32 uvs_offset;
 		uint32 normals_offset;
 		uint32 tangents_offset;
-		uint32 bitangents_offset;
 
 		uint32 meshlet_offset;
 		uint32 meshlet_vertices_offset;

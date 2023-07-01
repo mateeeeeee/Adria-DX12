@@ -29,8 +29,7 @@ VertexOutput GetVertex(Mesh mesh, Instance instance, uint vertexId)
 	float2 uv  = LoadMeshBuffer<float2>(mesh.bufferIdx,  mesh.uvsOffset, vertexId);
 	float3 nor = LoadMeshBuffer<float3>(mesh.bufferIdx,  mesh.normalsOffset, vertexId);
 	float4 tan = LoadMeshBuffer<float4>(mesh.bufferIdx,  mesh.tangentsOffset, vertexId);
-	float3 bit = LoadMeshBuffer<float3>(mesh.bufferIdx,  mesh.bitangentsOffset, vertexId);
-
+	
 	float4 posWS = mul(float4(pos, 1.0), instance.worldMatrix);
 	vert.Position = mul(posWS, FrameCB.viewProjection);
 	vert.Position.xy += FrameCB.cameraJitter * vert.Position.w;
@@ -38,10 +37,10 @@ VertexOutput GetVertex(Mesh mesh, Instance instance, uint vertexId)
 	vert.Uvs = uv;
 
 	float3 normalWS = mul(nor, (float3x3) transpose(instance.inverseWorldMatrix));
-	vert.NormalVS = mul(normalWS, (float3x3) transpose(FrameCB.inverseView));
-	vert.TangentWS = mul(tan.xyz, (float3x3) instance.worldMatrix);
-	vert.BitangentWS = mul(bit, (float3x3) instance.worldMatrix);
 	vert.NormalWS = normalWS;
+	vert.NormalVS = mul(normalWS, (float3x3) transpose(FrameCB.inverseView));
+	vert.TangentWS = mul(tan.xyz, (float3x3) transpose(instance.inverseWorldMatrix));
+	vert.BitangentWS = normalize(cross(vert.NormalWS, vert.TangentWS) * tan.w);
 
 	return vert;
 }

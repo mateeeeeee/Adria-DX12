@@ -47,8 +47,7 @@ VS_OUTPUT GBufferVS(uint vertexId : SV_VertexID)
 	float2 uv  = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, vertexId);
 	float3 nor = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.normalsOffset, vertexId);
 	float4 tan = LoadMeshBuffer<float4>(meshData.bufferIdx, meshData.tangentsOffset, vertexId);
-    float3 bit = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.bitangentsOffset, vertexId);
-
+    
 	float4 posWS = mul(float4(pos, 1.0), instanceData.worldMatrix);
 	Output.Position = mul(posWS, FrameCB.viewProjection);
 	Output.Position.xy += FrameCB.cameraJitter * Output.Position.w;
@@ -56,10 +55,11 @@ VS_OUTPUT GBufferVS(uint vertexId : SV_VertexID)
 	Output.Uvs = uv;
 
 	float3 normalWS = mul(nor, (float3x3) transpose(instanceData.inverseWorldMatrix));
-	Output.NormalVS = mul(normalWS, (float3x3) transpose(FrameCB.inverseView));
-	Output.TangentWS = mul(tan.xyz, (float3x3) instanceData.worldMatrix);
-	Output.BitangentWS = mul(bit, (float3x3) instanceData.worldMatrix);
 	Output.NormalWS = normalWS;
+	Output.NormalVS = mul(normalWS, (float3x3) transpose(FrameCB.inverseView));
+	Output.TangentWS = mul(tan.xyz, (float3x3) transpose(instanceData.inverseWorldMatrix));
+	Output.BitangentWS = normalize(cross(Output.NormalWS, Output.TangentWS) * tan.w);
+	
 	return Output;
 }
 

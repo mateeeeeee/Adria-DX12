@@ -9,7 +9,6 @@ struct Mesh
 	uint uvsOffset;
 	uint normalsOffset;
 	uint tangentsOffset;
-	uint bitangentsOffset;
 	uint indicesOffset;
 	uint meshletOffset;
 	uint meshletVerticesOffset;
