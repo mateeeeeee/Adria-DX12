@@ -3,15 +3,15 @@
 #include "../Common.hlsli"
 #include "../RayTracing/RayTracingUtil.hlsli"
 
-struct DDGIRayTracePassConstants
+struct DDGIPassConstants
 {
 	float3 randomVector;
 	float  randomAngle;
 	float  historyBlendWeight;
 	uint   rayBufferIdx;
 };
-ConstantBuffer<DDGIRayTracePassConstants> PassCB : register(b1);
-ConstantBuffer<DDGIVolume> DDGIVolumeCB			 : register(b2);
+ConstantBuffer<DDGIPassConstants> PassCB : register(b1);
+ConstantBuffer<DDGIVolume> DDGIVolumeCB	 : register(b2);
 
 struct DDGIPayload
 {

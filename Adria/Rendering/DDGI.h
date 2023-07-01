@@ -26,6 +26,19 @@ namespace adria
 			std::unique_ptr<GfxTexture> depth_history;
 		};
 
+		struct DDGIVolumeHLSL
+		{
+			DirectX::XMFLOAT3 start_position;
+			float normal_bias;
+			DirectX::XMFLOAT3 probe_size;
+			float energy_preservation;
+			DirectX::XMUINT3 probe_counts;
+			int rays_per_probe;
+			int maxRays_per_probe;
+			int irradiance_idx;
+			int distance_idx;
+		};
+
 	public:
 
 		DDGI(GfxDevice* gfx, entt::registry& reg, uint32 w, uint32 h);
@@ -45,8 +58,5 @@ namespace adria
 	private:
 		void CreateStateObject();
 		void OnLibraryRecompiled(GfxShaderID shader);
-
-		void AddUpdateProbeBorderPasses(RenderGraph& rg);
-		void AddHistoryPasses(RenderGraph& rg);
 	};
 }
