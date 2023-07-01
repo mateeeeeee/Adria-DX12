@@ -35,7 +35,6 @@ namespace adria
 		GfxBufferDesc hist_desc{};
 		hist_desc.stride = sizeof(uint32);
 		hist_desc.size = hist_desc.stride * 256;
-		hist_desc.format = GfxFormat::R32_FLOAT;
 		hist_desc.misc_flags = GfxBufferMiscFlag::BufferRaw;
 		hist_desc.resource_usage = GfxResourceUsage::Readback;
 		histogram_copy = std::make_unique<GfxBuffer>(gfx, hist_desc);
@@ -57,7 +56,6 @@ namespace adria
 				RGBufferDesc desc{};
 				desc.stride = sizeof(uint32);
 				desc.size = desc.stride * 256;
-				desc.format = GfxFormat::R32_FLOAT;
 				desc.misc_flags = GfxBufferMiscFlag::BufferRaw;
 				desc.resource_usage = GfxResourceUsage::Default;
 				builder.DeclareBuffer(RG_RES_NAME(HistogramBuffer), desc);
@@ -80,8 +78,6 @@ namespace adria
 				cmd_list->UavBarrier(histogram_buffer);
 				cmd_list->FlushBarriers();
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::BuildHistogram));
-				uint32 half_width = (width + 1) / 2;
-				uint32 half_height = (height + 1) / 2;
 
 				struct BuildHistogramConstants
 				{
@@ -93,8 +89,8 @@ namespace adria
 					float max_luminance;
 					uint32  scene_idx;
 					uint32  histogram_idx;
-				} constants = {	.width = half_width, .height = half_height,
-								.rcp_width = 1.0f / half_width, .rcp_height = 1.0f / half_height,
+				} constants = {	.width = width, .height = height,
+								.rcp_width = 1.0f / width, .rcp_height = 1.0f / height,
 								.min_luminance = min_luminance, .max_luminance = max_luminance,
 								.scene_idx = descriptor_index, .histogram_idx = descriptor_index + 1 };
 				cmd_list->SetRootConstants(1, constants);
@@ -103,7 +99,7 @@ namespace adria
 				{
 					return (a + b - 1) / b;
 				};
-				cmd_list->Dispatch(DivideRoudingUp(half_width, 16), DivideRoudingUp(half_height, 16), 1);
+				cmd_list->Dispatch(DivideRoudingUp(width, 16), DivideRoudingUp(height, 16), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 
 		struct HistogramReductionData
@@ -205,23 +201,7 @@ namespace adria
 				cmd_list->Dispatch(1, 1, 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 
-		if (show_histogram)
-		{
-			struct HistogramCopyData
-			{
-				RGBufferCopySrcId histogram;
-			};
-			rg.AddPass<HistogramCopyData>("Histogram Copy Pass",
-				[&](HistogramCopyData& data, RenderGraphBuilder& builder)
-				{
-					ADRIA_ASSERT(builder.IsBufferDeclared(RG_RES_NAME(HistogramBuffer)));
-					data.histogram = builder.ReadCopySrcBuffer(RG_RES_NAME(HistogramBuffer));
-				},
-				[=](HistogramCopyData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
-				{
-					cmd_list->CopyBuffer(*histogram_copy, context.GetBuffer(data.histogram));
-				}, RGPassType::Compute, RGPassFlags::ForceNoCull);
-		}
+		if (show_histogram) rg.ExportBuffer(RG_RES_NAME(HistogramBuffer), histogram_copy.get());
 
 		AddGUI([&]()
 			{

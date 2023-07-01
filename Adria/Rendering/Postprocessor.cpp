@@ -86,7 +86,7 @@ namespace adria
 		{
 			rg.ImportTexture(RG_RES_NAME(HistoryBuffer), history_buffer.get());
 			final_resource = taa_pass.AddPass(rg, final_resource, RG_RES_NAME(HistoryBuffer));
-			AddHistoryCopyPass(rg);
+			rg.ExportTexture(final_resource, history_buffer.get());
 		}
 
 	}
@@ -166,33 +166,6 @@ namespace adria
 			}, RGPassType::Copy, RGPassFlags::None);
 
 		return RG_RES_NAME(PostprocessMain);
-	}
-	void Postprocessor::AddHistoryCopyPass(RenderGraph& rg)
-	{
-		struct CopyPassData
-		{
-			RGTextureCopySrcId copy_src;
-			RGTextureCopyDstId copy_dst;
-		};
-		RGResourceName last_resource = final_resource;
-
-		rg.AddPass<CopyPassData>("History Copy Pass",
-			[=](CopyPassData& data, RenderGraphBuilder& builder)
-			{
-				RGTextureDesc history_desc{};
-				history_desc.width = width;
-				history_desc.height = height;
-				history_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-
-				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(HistoryBuffer));
-				data.copy_src = builder.ReadCopySrcTexture(last_resource);
-			},
-			[=](CopyPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
-			{
-				GfxTexture const& src_texture = context.GetCopySrcTexture(data.copy_src);
-				GfxTexture& dst_texture = context.GetCopyDstTexture(data.copy_dst);
-				cmd_list->CopyTexture(dst_texture, src_texture);
-			}, RGPassType::Copy, RGPassFlags::None);
 	}
 	void Postprocessor::AddSunPass(RenderGraph& rg, entt::entity sun)
 	{

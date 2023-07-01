@@ -49,7 +49,7 @@ void HistogramReductionCS(uint groupIndex : SV_GroupIndex)
 	ByteAddressBuffer  HistogramBuffer = ResourceDescriptorHeap[PassCB.histogramIdx];
 	RWTexture2D<float> AvgLuminanceTexture = ResourceDescriptorHeap[PassCB.luminanceIdx];
 
-	float histogramValue = HistogramBuffer.Load(groupIndex * 4) / 1024.0f;
+	float histogramValue = HistogramBuffer.Load(groupIndex * 4);
 	Values[groupIndex] = histogramValue;
 	IntermediateValues[groupIndex] = histogramValue;
 	GroupMemoryBarrierWithGroupSync();

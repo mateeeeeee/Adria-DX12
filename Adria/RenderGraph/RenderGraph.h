@@ -50,6 +50,9 @@ namespace adria
 		RenderGraph& operator=(RenderGraph&&) = default;
 		~RenderGraph();
 
+		void Build();
+		void Execute();
+
 		template<typename PassData, typename... Args> requires std::is_constructible_v<RenderGraphPass<PassData>, Args...>
 		[[maybe_unused]] decltype(auto) AddPass(Args&&... args)
 		{
@@ -59,11 +62,11 @@ namespace adria
 			return *dynamic_cast<RenderGraphPass<PassData>*>(passes.back().get());
 		}
 
-		void Build();
-		void Execute();
-
 		void ImportTexture(RGResourceName name, GfxTexture* texture);
 		void ImportBuffer(RGResourceName name, GfxBuffer* buffer);
+
+		void ExportTexture(RGResourceName name, GfxTexture* texture);
+		void ExportBuffer(RGResourceName name, GfxBuffer* buffer);
 
 		RGBlackboard const& GetBlackboard() const { return blackboard; }
 		RGBlackboard& GetBlackboard() { return blackboard; }
@@ -158,6 +161,9 @@ namespace adria
 		void CreateBufferViews(RGBufferId);
 		void Execute_Singlethreaded();
 		void Execute_Multithreaded();
+
+		void AddExportBufferCopyPass(RGResourceName export_buffer, GfxBuffer* buffer);
+		void AddExportTextureCopyPass(RGResourceName export_texture, GfxTexture* texture);
 	};
 
 }

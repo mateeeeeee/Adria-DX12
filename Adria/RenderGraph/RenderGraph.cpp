@@ -36,16 +36,17 @@ namespace adria
 
 	bool RenderGraph::IsTextureDeclared(RGResourceName name)
 	{
-		return texture_name_id_map.find(name) != texture_name_id_map.end();
+		return texture_name_id_map.contains(name);
 	}
 
 	bool RenderGraph::IsBufferDeclared(RGResourceName name)
 	{
-		return buffer_name_id_map.find(name) != buffer_name_id_map.end();
+		return buffer_name_id_map.contains(name);
 	}
 
 	void RenderGraph::ImportTexture(RGResourceName name, GfxTexture* texture)
 	{
+		ADRIA_ASSERT(texture);
 		textures.emplace_back(new RGTexture(textures.size(), texture, name));
 		textures.back()->SetName();
 		texture_name_id_map[name] = RGTextureId(textures.size() - 1);
@@ -53,9 +54,22 @@ namespace adria
 
 	void RenderGraph::ImportBuffer(RGResourceName name, GfxBuffer* buffer)
 	{
+		ADRIA_ASSERT(buffer);
 		buffers.emplace_back(new RGBuffer(buffers.size(), buffer, name));
 		buffers.back()->SetName();
 		buffer_name_id_map[name] = RGBufferId(buffers.size() - 1);
+	}
+
+	void RenderGraph::ExportTexture(RGResourceName name, GfxTexture* texture)
+	{
+		ADRIA_ASSERT_MSG(texture, "Cannot export to a null resource");
+		AddExportTextureCopyPass(name, texture);
+	}
+
+	void RenderGraph::ExportBuffer(RGResourceName name, GfxBuffer* buffer)
+	{
+		ADRIA_ASSERT_MSG(buffer, "Cannot export to a null resource");
+		AddExportBufferCopyPass(name, buffer);
 	}
 
 	bool RenderGraph::IsValidTextureHandle(RGTextureId handle) const
@@ -232,6 +246,44 @@ namespace adria
 	void RenderGraph::Execute_Multithreaded()
 	{
 		ADRIA_ASSERT_MSG(false, "Not implemented!");
+	}
+
+	void RenderGraph::AddExportBufferCopyPass(RGResourceName export_buffer, GfxBuffer* buffer)
+	{
+		struct ExportBufferCopyPassData
+		{
+			RGBufferCopySrcId src;
+		};
+		AddPass<ExportBufferCopyPassData>("Export Buffer Copy Pass",
+			[=](ExportBufferCopyPassData& data, RenderGraphBuilder& builder)
+			{
+				ADRIA_ASSERT(IsBufferDeclared(export_buffer));
+				data.src = builder.ReadCopySrcBuffer(export_buffer);
+			},
+			[=](ExportBufferCopyPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
+			{
+				GfxBuffer const& src_buffer = context.GetCopySrcBuffer(data.src);
+				cmd_list->CopyBuffer(*buffer, src_buffer);
+			}, RGPassType::Copy, RGPassFlags::ForceNoCull);
+	}
+
+	void RenderGraph::AddExportTextureCopyPass(RGResourceName export_texture, GfxTexture* texture)
+	{
+		struct ExportTextureCopyPassData
+		{
+			RGTextureCopySrcId src;
+		};
+		AddPass<ExportTextureCopyPassData>("Export Texture Copy Pass",
+			[=](ExportTextureCopyPassData& data, RenderGraphBuilder& builder)
+			{
+				ADRIA_ASSERT(IsTextureDeclared(export_texture));
+				data.src = builder.ReadCopySrcTexture(export_texture);
+			},
+			[=](ExportTextureCopyPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
+			{
+				GfxTexture const& src_texture = context.GetCopySrcTexture(data.src);
+				cmd_list->CopyTexture(*texture, src_texture);
+			}, RGPassType::Copy, RGPassFlags::ForceNoCull);
 	}
 
 	void RenderGraph::BuildAdjacencyLists()

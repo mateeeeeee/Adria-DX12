@@ -24,7 +24,6 @@ void BuildHistogramCS(uint groupIndex : SV_GroupIndex, uint3 dispatchThreadID : 
 	GroupMemoryBarrierWithGroupSync();
 
 	Texture2D SceneTexture = ResourceDescriptorHeap[PassCB.sceneIdx];
-	RWByteAddressBuffer HistogramBuffer = ResourceDescriptorHeap[PassCB.histogramIdx];
 	if (all(dispatchThreadID.xy < uint2(PassCB.width, PassCB.height)))
 	{
 		float2 screenPos = (float2) dispatchThreadID.xy + 0.5;
@@ -33,9 +32,10 @@ void BuildHistogramCS(uint groupIndex : SV_GroupIndex, uint3 dispatchThreadID : 
 
 		float luminance = clamp(Luminance(color), PassCB.minLuminance, PassCB.maxLuminance);
 		uint bin = GetHistogramBin(luminance, PassCB.minLuminance, PassCB.maxLuminance);
-		float const weight = 1.0f;
-		InterlockedAdd(HistogramBins[bin], uint(weight * 1024.0));
+		InterlockedAdd(HistogramBins[bin], 1);
 	}
 	GroupMemoryBarrierWithGroupSync();
+
+	RWByteAddressBuffer HistogramBuffer = ResourceDescriptorHeap[PassCB.histogramIdx];
 	HistogramBuffer.InterlockedAdd(groupIndex * 4, HistogramBins[groupIndex]);
 }

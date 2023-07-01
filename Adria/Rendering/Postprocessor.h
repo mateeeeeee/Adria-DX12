@@ -62,9 +62,9 @@ namespace adria
 		TAAPass taa_pass;
 		GodRaysPass god_rays_pass;
 		BokehPass bokeh_pass;
+
 	private:
 		RGResourceName AddHDRCopyPass(RenderGraph& rg);
-		void AddHistoryCopyPass(RenderGraph& rg);
 		void AddSunPass(RenderGraph& rg, entt::entity sun);
 	};
 }

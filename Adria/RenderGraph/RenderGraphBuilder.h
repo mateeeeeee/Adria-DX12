@@ -65,6 +65,8 @@ namespace adria
 
 		bool IsTextureDeclared(RGResourceName name) const;
 		bool IsBufferDeclared(RGResourceName name) const;
+		void ExportTexture(RGResourceName name, GfxTexture* texture);
+		void ExportBuffer(RGResourceName name, GfxBuffer* buffer);
 		void DeclareTexture(RGResourceName name, RGTextureDesc const& desc);
 		void DeclareBuffer(RGResourceName name, RGBufferDesc const& desc);
 

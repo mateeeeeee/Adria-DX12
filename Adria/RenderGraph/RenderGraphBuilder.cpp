@@ -17,6 +17,16 @@ namespace adria
 		return rg.IsBufferDeclared(name);
 	}
 
+	void RenderGraphBuilder::ExportTexture(RGResourceName name, GfxTexture* texture)
+	{
+		rg.ExportTexture(name, texture);
+	}
+
+	void RenderGraphBuilder::ExportBuffer(RGResourceName name, GfxBuffer* buffer)
+	{
+		rg.ExportBuffer(name, buffer);
+	}
+
 	void RenderGraphBuilder::DeclareTexture(RGResourceName name, RGTextureDesc const& desc)
 	{
 		rg_pass.texture_creates.insert(rg.DeclareTexture(name, desc));

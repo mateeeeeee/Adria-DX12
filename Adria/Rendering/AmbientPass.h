@@ -10,14 +10,12 @@ namespace adria
 	{
 	public:
 		AmbientPass(uint32 w, uint32 h);
-
 		void AddPass(RenderGraph& rendergraph);
-
 		void OnResize(uint32 w, uint32 h);
 
 	private:
 		uint32 width, height;
-		float ambient_color[3] = { 6.0f / 255.0f, 6.0f / 255.0f, 6.0f / 255.0f };
+		float ambient_color[3] = { 2.0f / 255.0f, 2.0f / 255.0f, 2.0f / 255.0f };
 		bool ibl = false;
 	};
 
