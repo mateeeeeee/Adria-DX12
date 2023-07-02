@@ -38,10 +38,6 @@ namespace adria
             loaded_textures.insert({ texture_name, handle });
             Image img(path);
 
-			auto device = gfx->GetDevice();
-			auto cmd_list = gfx->GetCommandList();
-			auto allocator = gfx->GetAllocator();
-
 			GfxTextureDesc desc{};
 			desc.type = GfxTextureType_2D;
 			desc.misc_flags = GfxTextureMiscFlag::None;
@@ -80,10 +76,6 @@ namespace adria
 
 	TextureHandle TextureManager::LoadCubemap(std::array<std::string, 6> const& cubemap_textures)
 	{
-		auto device = gfx->GetDevice();
-		auto allocator = gfx->GetAllocator();
-		auto cmd_list = gfx->GetCommandList();
-
 		++handle;
 		GfxTextureDesc desc{};
 		desc.type = GfxTextureType_2D;

@@ -3,7 +3,7 @@
 #include "RenderGraph.h"
 #include "Graphics/GfxCommandList.h"
 #include "Graphics/GfxRenderPass.h"
-#include "Graphics/GPUProfiler.h"
+#include "Graphics/GfxProfiler.h"
 #include "Utilities/StringUtil.h"
 #include "Logging/Logger.h"
 
@@ -1046,7 +1046,7 @@ namespace adria
 				render_pass_desc.legacy = pass->UseLegacyRenderPasses();
 
 				PIXScopedEvent(cmd_list->GetNative(), PIX_COLOR_DEFAULT, pass->name.c_str());
-				GPU_PROFILE_SCOPE(cmd_list, pass->name.c_str());
+				AdriaGfxProfileScope(cmd_list, pass->name.c_str());
 				cmd_list->SetContext(GfxCommandList::Context::Graphics);
 				cmd_list->BeginRenderPass(render_pass_desc);
 				pass->Execute(rg_resources,cmd_list);
@@ -1055,7 +1055,7 @@ namespace adria
 			else
 			{
 				PIXScopedEvent(cmd_list->GetNative(), PIX_COLOR_DEFAULT, pass->name.c_str());
-				GPU_PROFILE_SCOPE(cmd_list, pass->name.c_str());
+				AdriaGfxProfileScope(cmd_list, pass->name.c_str());
 				cmd_list->SetContext(GfxCommandList::Context::Compute);
 				pass->Execute(rg_resources, cmd_list);
 			}

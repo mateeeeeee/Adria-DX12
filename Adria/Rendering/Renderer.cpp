@@ -41,13 +41,13 @@ namespace adria
 		shadow_renderer(reg, gfx, width, height), rtao_pass(gfx, width, height), rtr_pass(gfx, width, height),
 		path_tracer(gfx, width, height), ray_tracing_supported(gfx->GetCapabilities().SupportsRayTracing())
 	{
-		g_GpuProfiler.Init(gfx);
+		g_GfxProfiler.Init(gfx);
 		CreateSizeDependentResources();
 	}
 
 	Renderer::~Renderer()
 	{
-		g_GpuProfiler.Destroy();
+		g_GfxProfiler.Destroy();
 		gfx->WaitForGPU();
 		reg.clear();
 		gfxcommon::Destroy();
@@ -61,7 +61,7 @@ namespace adria
 		ADRIA_ASSERT(_camera);
 		camera = _camera;
 		backbuffer_index = gfx->GetBackbufferIndex();
-		g_GpuProfiler.NewFrame();
+		g_GfxProfiler.NewFrame();
 	}
 	void Renderer::Update(float dt)
 	{

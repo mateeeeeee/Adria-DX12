@@ -1,3 +1,4 @@
+#include "tracy/Tracy.hpp"
 #include "Engine.h"
 #include "Window.h"
 #include "Editor/EditorEvents.h"
@@ -247,14 +248,12 @@ namespace adria
 
 	void Engine::Run(RendererSettings const& settings)
 	{
+		FrameMarkNamed("EngineFrame");
 		static AdriaTimer timer;
 		float const dt = timer.MarkInSeconds();
 		g_Input.NewFrame();
-		if (true || Window::IsActive()) //crash when window is hidden, temp fix
-		{
-			Update(dt);
-			Render(settings);
-		}
+		Update(dt);
+		Render(settings);
 	}
 
 	void Engine::Present()

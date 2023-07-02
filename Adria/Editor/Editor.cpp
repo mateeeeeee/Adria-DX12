@@ -274,7 +274,7 @@ namespace adria
 				}
 				ImGui::EndMenu();
 			}
-			if (ImGui::BeginMenu("Windows"))
+			if (ImGui::BeginMenu(ICON_FA_WINDOW_MAXIMIZE "Windows"))
 			{
 				if (ImGui::MenuItem(ICON_FA_CLOCK_O" Profiler", 0, window_flags[Flag_Profiler]))			 window_flags[Flag_Profiler] = !window_flags[Flag_Profiler];
 				if (ImGui::MenuItem(ICON_FA_COMMENT" Log", 0, window_flags[Flag_Log]))						 window_flags[Flag_Log] = !window_flags[Flag_Log];
@@ -284,7 +284,7 @@ namespace adria
 				if (ImGui::MenuItem(ICON_FA_FIRE" Hot Reload", 0, window_flags[Flag_HotReload]))			 window_flags[Flag_HotReload] = !window_flags[Flag_HotReload];
 				if (ImGui::MenuItem(ICON_FA_COGS" Settings", 0, window_flags[Flag_Settings]))			 window_flags[Flag_Settings] = !window_flags[Flag_Settings];
 				if (ImGui::MenuItem(ICON_FA_BUG" Debug", 0, window_flags[Flag_Debug]))					 window_flags[Flag_Debug] = !window_flags[Flag_Debug];
-				if (ImGui::MenuItem("Add Entities", 0, window_flags[Flag_AddEntities]))		 window_flags[Flag_AddEntities] = !window_flags[Flag_AddEntities];
+				if (ImGui::MenuItem(ICON_FA_PLUS "Add Entities", 0, window_flags[Flag_AddEntities]))		 window_flags[Flag_AddEntities] = !window_flags[Flag_AddEntities];
 
 				ImGui::EndMenu();
 			}
@@ -1029,7 +1029,7 @@ namespace adria
 				static float FRAME_TIME_GRAPH_MAX_VALUES[ARRAYSIZE(FRAME_TIME_GRAPH_MAX_FPS)] = { 0 };
 				for (uint64 i = 0; i < ARRAYSIZE(FRAME_TIME_GRAPH_MAX_FPS); ++i) { FRAME_TIME_GRAPH_MAX_VALUES[i] = 1000.f / FRAME_TIME_GRAPH_MAX_FPS[i]; }
 
-				std::vector<Timestamp> time_stamps = g_GpuProfiler.GetProfilerResults();
+				std::vector<GfxTimestamp> time_stamps = g_GfxProfiler.GetResults();
 				FRAME_TIME_ARRAY[NUM_FRAMES - 1] = 1000.0f / io.Framerate;
 				for (uint32 i = 0; i < NUM_FRAMES - 1; i++) FRAME_TIME_ARRAY[i] = FRAME_TIME_ARRAY[i + 1];
 				RECENT_HIGHEST_FRAME_TIME = std::max(RECENT_HIGHEST_FRAME_TIME, FRAME_TIME_ARRAY[NUM_FRAMES - 1]);

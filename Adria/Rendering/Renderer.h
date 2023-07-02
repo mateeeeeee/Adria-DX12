@@ -27,7 +27,7 @@
 #include "PathTracingPass.h"
 #include "Graphics/GfxShaderCompiler.h"
 #include "Graphics/GfxConstantBuffer.h"
-#include "Graphics/GPUProfiler.h"
+#include "Graphics/GfxProfiler.h"
 #include "Utilities/CPUProfiler.h"
 #include "RenderGraph/RenderGraphResourcePool.h"
 

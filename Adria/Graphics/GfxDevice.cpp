@@ -371,10 +371,6 @@ namespace adria
 	{
 		return device.Get();
 	}
-	ID3D12GraphicsCommandList4* GfxDevice::GetCommandList() const
-	{
-		return GetCommandList(GfxCommandListType::Graphics)->GetNative();
-	}
 	ID3D12RootSignature* GfxDevice::GetCommonRootSignature() const
 	{
 		return global_root_signature.Get();

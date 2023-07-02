@@ -80,7 +80,6 @@ namespace adria
 
 		IDXGIFactory4* GetFactory() const;
 		ID3D12Device5* GetDevice() const;
-		GFX_DEPRECATED ID3D12GraphicsCommandList4* GetCommandList() const;
 		ID3D12RootSignature* GetCommonRootSignature() const;
 		D3D12MA::Allocator* GetAllocator() const;
 
