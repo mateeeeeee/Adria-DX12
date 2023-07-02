@@ -209,12 +209,47 @@ namespace adria
 
 	void DDGI::CreateStateObject()
 	{
+		ID3D12Device5* device = gfx->GetDevice();
+		GfxShader const& ddgi_blob = ShaderCache::GetShader(LIB_DDGIRayTracing);
 
+		GfxStateObjectBuilder ddgi_state_object_builder(5);
+		{
+			D3D12_EXPORT_DESC export_descs[] =
+			{
+				D3D12_EXPORT_DESC{.Name = L"DDGI_RayGen", .ExportToRename = NULL },
+				D3D12_EXPORT_DESC{.Name = L"DDGI_ClosestHit", .ExportToRename = NULL },
+				D3D12_EXPORT_DESC{.Name = L"DDGI_Miss", .ExportToRename = NULL }
+			};
+
+			D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc{};
+			dxil_lib_desc.DXILLibrary.BytecodeLength = ddgi_blob.GetLength();
+			dxil_lib_desc.DXILLibrary.pShaderBytecode = ddgi_blob.GetPointer();
+			dxil_lib_desc.NumExports = ARRAYSIZE(export_descs);
+			dxil_lib_desc.pExports = export_descs;
+			ddgi_state_object_builder.AddSubObject(dxil_lib_desc);
+
+			// Add a state subobject for the shader payload configuration
+			D3D12_RAYTRACING_SHADER_CONFIG rt_shadows_shader_config{};
+			rt_shadows_shader_config.MaxPayloadSizeInBytes = 4 * sizeof(float);
+			rt_shadows_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
+			ddgi_state_object_builder.AddSubObject(rt_shadows_shader_config);
+
+			D3D12_GLOBAL_ROOT_SIGNATURE global_root_sig{};
+			global_root_sig.pGlobalRootSignature = gfx->GetCommonRootSignature();
+			ddgi_state_object_builder.AddSubObject(global_root_sig);
+
+			// Add a state subobject for the ray tracing pipeline config
+			D3D12_RAYTRACING_PIPELINE_CONFIG pipeline_config = {};
+			pipeline_config.MaxTraceRecursionDepth = 1;
+			ddgi_state_object_builder.AddSubObject(pipeline_config);
+
+			ddgi_trace_so.Attach(ddgi_state_object_builder.CreateStateObject(device));
+		}
 	}
 
 	void DDGI::OnLibraryRecompiled(GfxShaderID shader)
 	{
-		//if (shader == LIB_DDGIRayTracing) CreateStateObject();
+		if (shader == LIB_DDGIRayTracing) CreateStateObject();
 	}
 }
 
