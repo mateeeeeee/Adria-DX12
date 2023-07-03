@@ -17,6 +17,8 @@
 #include "Graphics/GfxPipelineState.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
 #include "Graphics/GfxLinearDynamicAllocator.h"
+#include "Graphics/GfxProfiler.h"
+#include "Graphics/GfxTracyProfiler.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Utilities/Random.h"
 #include "Utilities/hwbp.h"
@@ -42,11 +44,13 @@ namespace adria
 		path_tracer(gfx, width, height), ray_tracing_supported(gfx->GetCapabilities().SupportsRayTracing())
 	{
 		g_GfxProfiler.Init(gfx);
+		GfxTracyProfiler::Initialize(gfx);
 		CreateSizeDependentResources();
 	}
 
 	Renderer::~Renderer()
 	{
+		GfxTracyProfiler::Destroy();
 		g_GfxProfiler.Destroy();
 		gfx->WaitForGPU();
 		reg.clear();
@@ -62,6 +66,7 @@ namespace adria
 		camera = _camera;
 		backbuffer_index = gfx->GetBackbufferIndex();
 		g_GfxProfiler.NewFrame();
+		GfxTracyProfiler::NewFrame();
 	}
 	void Renderer::Update(float dt)
 	{

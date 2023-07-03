@@ -1,10 +1,3 @@
-#include "GfxProfiler.h"
-#include "GfxDevice.h"
-#include "GfxCommandList.h"
-#include "GfxQueryHeap.h"
-#include "GfxBuffer.h"
-
-#if !GFX_PROFILING_USE_TRACY
 #include <vector>
 #include <memory>
 #include <array>
@@ -12,11 +5,16 @@
 #if GFX_MULTITHREADED
 #include <mutex>
 #endif
-#endif
+
+#include "GfxProfiler.h"
+#include "GfxDevice.h"
+#include "GfxCommandList.h"
+#include "GfxQueryHeap.h"
+#include "GfxBuffer.h"
+
 
 namespace adria
 {
-#if !GFX_PROFILING_USE_TRACY
 	struct GfxProfiler::Impl
 	{
 		static constexpr uint64 FRAME_COUNT = GFX_BACKBUFFER_COUNT;
@@ -149,40 +147,6 @@ namespace adria
 			return results;
 		}
 	};
-#else
-
-	struct GfxProfiler::Impl
-	{
-		tracy::D3D12QueueCtx* ctx;
-
-		void Init(GfxDevice* _gfx)
-		{
-			ctx = TracyD3D12Context(_gfx->GetDevice(), _gfx->GetCommandQueue(GfxCommandListType::Graphics));
-		}
-		void Destroy()
-		{
-			TracyD3D12Destroy(ctx);
-		}
-		void NewFrame()
-		{
-			TracyD3D12NewFrame(ctx);
-		}
-		void BeginProfileScope(GfxCommandList* cmd_list, char const* name)
-		{
-		}
-		void EndProfileScope(char const* name)
-		{
-			
-		}
-
-		std::vector<GfxTimestamp> GetResults()
-		{
-			TracyD3D12Collect(ctx);
-			return {};
-		}
-
-	};
-#endif
 
 	void GfxProfiler::Init(GfxDevice* _gfx)
 	{

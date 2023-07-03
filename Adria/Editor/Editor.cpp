@@ -2,7 +2,6 @@
 #include "Editor.h"
 #include "GUI.h"
 #include "EditorUtil.h"
-
 #include "Core/Engine.h"
 #include "Input/Input.h"
 #include "IconsFontAwesome4.h"
@@ -14,6 +13,7 @@
 #include "Graphics/GfxCommandList.h"
 #include "Graphics/GfxTexture.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
+#include "Graphics/GfxProfiler.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Utilities/FilesUtil.h"
 #include "Utilities/StringUtil.h"

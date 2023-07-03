@@ -111,7 +111,7 @@ namespace adria
 		bool AllowUAVWrites() const { return HasAnyFlag(flags, RGPassFlags::AllowUAVWrites); }
 		bool ActAsCreatorWhenWriting() const { return HasAnyFlag(flags, RGPassFlags::ActAsCreatorWhenWriting); };
 	private:
-		std::string name;
+		std::string const name;
 		size_t ref_count = 0ull;
 		RGPassType type;
 		RGPassFlags flags = RGPassFlags::None;

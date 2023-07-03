@@ -27,8 +27,6 @@
 #include "PathTracingPass.h"
 #include "Graphics/GfxShaderCompiler.h"
 #include "Graphics/GfxConstantBuffer.h"
-#include "Graphics/GfxProfiler.h"
-#include "Utilities/CPUProfiler.h"
 #include "RenderGraph/RenderGraphResourcePool.h"
 
 namespace adria
@@ -65,7 +63,6 @@ namespace adria
 		GfxDevice* gfx;
 		RGResourcePool resource_pool;
 
-		CPUProfiler cpu_profiler;
 		RendererSettings renderer_settings;
 		Camera const* camera;
 
