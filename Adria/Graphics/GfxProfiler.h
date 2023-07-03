@@ -68,13 +68,9 @@ namespace adria
 		uint32 color;
 	};
 	#define AdriaGfxProfileScope(cmd_list, name) GfxProfileScope ADRIA_CONCAT(scope, __COUNTER__)(cmd_list, name)
-	#define AdriaGfxProfileScopeColored(cmd_list, name, color) GfxProfileScope ADRIA_CONCAT(scope, __COUNTER__)(cmd_list, name, color, true)
 	#define AdriaGfxProfileCondScope(cmd_list, name, active) GfxProfileScope ADRIA_CONCAT(scope, __COUNTER__)(cmd_list, name, active)
-	#define AdriaGfxProfileCondScopeColored(cmd_list, name, active, color) GfxProfileScope ADRIA_CONCAT(scope, __COUNTER__)(cmd_list, name, color, active)
 #else
 	#define AdriaGfxProfileScope(cmd_list, name) 
-	#define AdriaGfxProfileScopeColored(cmd_list, name, color) 
 	#define AdriaGfxProfileCondScope(cmd_list, name, active) 
-	#define AdriaGfxProfileCondScopeColored(cmd_list, name, active, color)
 #endif
 }

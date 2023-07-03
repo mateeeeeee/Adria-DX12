@@ -1017,6 +1017,12 @@ namespace adria
 		if (ImGui::Begin(ICON_FA_CLOCK_O" Profiling", &window_flags[Flag_Profiler]))
 		{
 			ImGuiIO io = ImGui::GetIO();
+#if GFX_PROFILING_USE_TRACY
+			if (ImGui::Button("Run Tracy"))
+			{
+				system("start ..\\External\\tracy\\Tracy-0.9.1\\Tracy.exe");
+			}
+#endif
 			static bool show_profiling = true;
 			ImGui::Checkbox("Show Profiling Results", &show_profiling);
 			if (show_profiling)
