@@ -2,8 +2,9 @@
 #define DDGICOMMON_INCLUDED
 #include "../Packing.hlsli"
 
-static const uint PROBE_IRRADIANCE_TEXELS = 6;
-static const uint PROBE_DEPTH_TEXELS = 14;
+#define PROBE_IRRADIANCE_TEXELS 6
+#define PROBE_DEPTH_TEXELS 14
+
 
 struct DDGIVolume
 {
@@ -27,8 +28,8 @@ uint2 GetProbeTexel(DDGIVolume ddgi, uint3 probeIndex3D, uint numProbeInteriorTe
 float2 GetProbeUV(DDGIVolume volume, uint3 probeIndex3D, float3 direction, uint numProbeInteriorTexels)
 {
 	uint numProbeTexels = 1 + numProbeInteriorTexels + 1;
-	uint textureWidth = numProbeTexels * volume.ProbeVolumeDimensions.x * volume.ProbeVolumeDimensions.y;
-	uint textureHeight = numProbeTexels * volume.ProbeVolumeDimensions.z;
+	uint textureWidth = numProbeTexels * volume.probeCounts.x * volume.probeCounts.y;
+	uint textureHeight = numProbeTexels * volume.probeCounts.z;
 
 	float2 pixel = GetProbeTexel(volume, probeIndex3D, numProbeInteriorTexels);
 	pixel += (EncodeNormalOctahedron(normalize(direction)) * 0.5f + 0.5f) * numProbeInteriorTexels;
@@ -76,6 +77,8 @@ float3 SphericalFibonacci(float i, float n)
 	return float3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
 }
 
+float pow2(float x) { return x * x; }
+float pow3(float x) { return x * x * x; }
 
 float3 SampleDDGIIrradiance(in DDGIVolume ddgi, float3 P, float3 N, float3 Wo)
 {
@@ -120,7 +123,7 @@ float3 SampleDDGIIrradiance(in DDGIVolume ddgi, float3 P, float3 N, float3 Wo)
 		// transition between probes. Avoid ever going entirely to zero because that
 		// will cause problems at the border probes. This isn't really a lerp. 
 		// We're using 1-a when offset = 0 and a when offset = 1.
-		float3 trilinear = mix(1.0 - alpha, alpha, offset);
+		float3 trilinear = lerp(1.0 - alpha, alpha, offset);
 		float weight = 1.0;
 
 		// Clamp all of the multiplies. We can't let the weight go to zero because then it would be 
@@ -144,7 +147,7 @@ float3 SampleDDGIIrradiance(in DDGIVolume ddgi, float3 P, float3 N, float3 Wo)
 
 			// The small offset at the end reduces the "going to zero" impact
 			// where this is really close to exactly opposite
-			weight *= square(max(0.0001, (dot(trueDirectionToProbe, N) + 1.0) * 0.5)) + 0.2;
+			weight *= pow2(max(0.0001, (dot(trueDirectionToProbe, N) + 1.0) * 0.5)) + 0.2;
 		}
 
 		// Moment visibility test
@@ -155,11 +158,11 @@ float3 SampleDDGIIrradiance(in DDGIVolume ddgi, float3 P, float3 N, float3 Wo)
 			float2 moments = distanceTexture.SampleLevel(LinearClampSampler, probeDepthUV, 0).xy;
 
 			float mean = moments.x;
-			float variance = abs(square(moments.x) - moments.y);
+			float variance = abs(pow2(moments.x) - moments.y);
 
 			// http://www.punkuser.net/vsm/vsm_paper.pdf; equation 5
 			// Need the max in the denominator because biasing can cause a negative displacement
-			float chebyshevWeight = variance / (variance + square(max(distanceToProbe - mean, 0.0)));
+			float chebyshevWeight = variance / (variance + pow2(max(distanceToProbe - mean, 0.0)));
 
 			// Increase contrast in the weight 
 			chebyshevWeight = max(pow3(chebyshevWeight), 0.0);
@@ -177,7 +180,7 @@ float3 SampleDDGIIrradiance(in DDGIVolume ddgi, float3 P, float3 N, float3 Wo)
 		// crush tiny weights but keep the curve continuous. This must be done
 		// before the trilinear weights, because those should be preserved.
 		const float crushThreshold = 0.2f;
-		if (weight < crushThreshold)  weight *= weight * weight * (1.0f / square(crushThreshold));
+		if (weight < crushThreshold)  weight *= weight * weight * (1.0f / pow2(crushThreshold));
 
 		// Trilinear weights
 		weight *= trilinear.x * trilinear.y * trilinear.z;
@@ -202,7 +205,7 @@ float3 SampleDDGIIrradiance(in DDGIVolume ddgi, float3 P, float3 N, float3 Wo)
 
 	// Go back to linear irradiance
 #ifdef LINEAR_BLENDING
-	netIrradiance = square(netIrradiance);
+	netIrradiance = pow2(netIrradiance);
 #endif
 	netIrradiance *= ddgi.energyPreservation;
 

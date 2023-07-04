@@ -45,13 +45,27 @@ namespace adria
 	{
 		if (!IsSupported()) return;
 
-		uint64 random_index = 0;
+		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
+
 		uint32 const num_probes = ddgi_volume.num_probes.x * ddgi_volume.num_probes.y * ddgi_volume.num_probes.z;
 		uint32 const ddgi_num_rays = ddgi_volume.num_rays;
 		uint32 const ddgi_max_num_rays = ddgi_volume.max_num_rays;
-		XMUINT3 ddgi_num_probes = ddgi_volume.num_probes;
+		XMUINT3 const ddgi_num_probes = ddgi_volume.num_probes;
 
-		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
+		struct DDGIParameters
+		{
+			XMFLOAT3 random_vector;
+			float    random_angle;
+			float    history_blend_weight;
+			uint32   ray_buffer_index;
+		} parameters
+		{
+			.random_vector = XMFLOAT3(),
+			.random_angle = 0.0f,
+			.history_blend_weight = 0.98f,
+			.ray_buffer_index = 0 //#todo
+		};
+
 
 		rg.ImportTexture(RG_RES_NAME(DDGIIrradianceHistory), ddgi_volume.irradiance_history.get());
 		rg.ImportTexture(RG_RES_NAME(DDGIDepthHistory), ddgi_volume.depth_history.get());
@@ -77,20 +91,6 @@ namespace adria
 
 				uint32 i = gfx->AllocateDescriptorsGPU(1).GetIndex();
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadWriteBuffer(data.ray_buffer));
-
-				struct DDGIParameters
-				{
-					XMFLOAT3 random_vector;
-					float    random_angle;
-					float    history_blend_weight;
-					uint32   ray_buffer_index;
-				} parameters
-				{
-					.random_vector = XMFLOAT3(),
-					.random_angle = 0.0f,
-					.history_blend_weight = 0.98f,
-					.ray_buffer_index = i
-				};
 
 				auto& table = cmd_list->SetStateObject(ddgi_trace_so.Get());
 				table.SetRayGenShader("DDGI_RayGen");
@@ -167,22 +167,6 @@ namespace adria
 				cmd_list->UavBarrier(ctx.GetTexture(*data.depth));
 			}, RGPassType::Compute);
 
-		AddUpdateProbeBorderPasses(rg);
-		AddHistoryPasses(rg);
-	}
-
-	void DDGI::CreateStateObject()
-	{
-
-	}
-
-	void DDGI::OnLibraryRecompiled(GfxShaderID shader)
-	{
-		//if (shader == LIB_DDGIRayTracing) CreateStateObject();
-	}
-
-	void DDGI::AddUpdateProbeBorderPasses(RenderGraph& rg)
-	{
 		struct DDGIUpdateIrradianceBorderPassData
 		{
 			RGTextureReadWriteId	irradiance;
@@ -218,58 +202,54 @@ namespace adria
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIUpdateDistanceBorder));
 				cmd_list->UavBarrier(ctx.GetTexture(*data.distance));
 			}, RGPassType::Compute);
+		
+		rg.ExportTexture(RG_RES_NAME(DDGIIradiance), ddgi_volume.irradiance_history.get());
+		rg.ExportTexture(RG_RES_NAME(DDGIDepth), ddgi_volume.depth_history.get());
 	}
 
-	void DDGI::AddHistoryPasses(RenderGraph& rg)
+	void DDGI::CreateStateObject()
 	{
-		struct DDGICopyIrradiancePassData
+		ID3D12Device5* device = gfx->GetDevice();
+		GfxShader const& ddgi_blob = ShaderCache::GetShader(LIB_DDGIRayTracing);
+
+		GfxStateObjectBuilder ddgi_state_object_builder(5);
 		{
-			RGTextureCopySrcId copy_src;
-			RGTextureCopyDstId copy_dst;
-		};
-
-		rg.AddPass<DDGICopyIrradiancePassData>("DDGI Copy Irradiance Pass",
-			[=](DDGICopyIrradiancePassData& data, RenderGraphBuilder& builder)
+			D3D12_EXPORT_DESC export_descs[] =
 			{
-				RGTextureDesc history_desc{};
-				history_desc.width = width;
-				history_desc.height = height;
-				history_desc.format = GfxFormat::R16G16B16A16_FLOAT;
+				D3D12_EXPORT_DESC{.Name = L"DDGI_RayGen", .ExportToRename = NULL },
+				D3D12_EXPORT_DESC{.Name = L"DDGI_ClosestHit", .ExportToRename = NULL },
+				D3D12_EXPORT_DESC{.Name = L"DDGI_Miss", .ExportToRename = NULL }
+			};
 
-				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(DDGIIrradianceHistory));
-				data.copy_src = builder.ReadCopySrcTexture(RG_RES_NAME(DDGIIrradiance));
-			},
-			[=](DDGICopyIrradiancePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
-			{
-				GfxTexture const& src_texture = context.GetCopySrcTexture(data.copy_src);
-				GfxTexture& dst_texture = context.GetCopyDstTexture(data.copy_dst);
-				cmd_list->CopyTexture(dst_texture, src_texture);
-			}, RGPassType::Copy, RGPassFlags::None);
+			D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc{};
+			dxil_lib_desc.DXILLibrary.BytecodeLength = ddgi_blob.GetLength();
+			dxil_lib_desc.DXILLibrary.pShaderBytecode = ddgi_blob.GetPointer();
+			dxil_lib_desc.NumExports = ARRAYSIZE(export_descs);
+			dxil_lib_desc.pExports = export_descs;
+			ddgi_state_object_builder.AddSubObject(dxil_lib_desc);
 
-		struct DDGICopyDistancePassData
-		{
-			RGTextureCopySrcId copy_src;
-			RGTextureCopyDstId copy_dst;
-		};
+			// Add a state subobject for the shader payload configuration
+			D3D12_RAYTRACING_SHADER_CONFIG rt_shadows_shader_config{};
+			rt_shadows_shader_config.MaxPayloadSizeInBytes = 4 * sizeof(float);
+			rt_shadows_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
+			ddgi_state_object_builder.AddSubObject(rt_shadows_shader_config);
 
-		rg.AddPass<DDGICopyDistancePassData>("DDGI Copy Distance Pass",
-			[=](DDGICopyDistancePassData& data, RenderGraphBuilder& builder)
-			{
-				RGTextureDesc history_desc{};
-				history_desc.width = width;
-				history_desc.height = height;
-				history_desc.format = GfxFormat::R16G16B16A16_FLOAT;
+			D3D12_GLOBAL_ROOT_SIGNATURE global_root_sig{};
+			global_root_sig.pGlobalRootSignature = gfx->GetCommonRootSignature();
+			ddgi_state_object_builder.AddSubObject(global_root_sig);
 
-				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(DDGIDistanceHistory));
-				data.copy_src = builder.ReadCopySrcTexture(RG_RES_NAME(DDGIDistance));
-			},
-			[=](DDGICopyDistancePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
-			{
-				GfxTexture const& src_texture = context.GetCopySrcTexture(data.copy_src);
-				GfxTexture& dst_texture = context.GetCopyDstTexture(data.copy_dst);
-				cmd_list->CopyTexture(dst_texture, src_texture);
-			}, RGPassType::Copy, RGPassFlags::None);
+			// Add a state subobject for the ray tracing pipeline config
+			D3D12_RAYTRACING_PIPELINE_CONFIG pipeline_config = {};
+			pipeline_config.MaxTraceRecursionDepth = 1;
+			ddgi_state_object_builder.AddSubObject(pipeline_config);
+
+			ddgi_trace_so.Attach(ddgi_state_object_builder.CreateStateObject(device));
+		}
 	}
 
+	void DDGI::OnLibraryRecompiled(GfxShaderID shader)
+	{
+		if (shader == LIB_DDGIRayTracing) CreateStateObject();
+	}
 }
 
