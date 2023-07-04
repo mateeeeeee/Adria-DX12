@@ -4,6 +4,8 @@
 #include "../Common.hlsli"
 #include "../Scene.hlsli"
 #include "../Random.hlsli"
+#include "../BRDF.hlsli"
+#include "../Lighting.hlsli"
 #include "../CommonResources.hlsli"
 
 typedef BuiltInTriangleIntersectionAttributes HitAttributes;
@@ -63,24 +65,6 @@ float3 OffsetRay(const float3 p, const float3 n)
     return float3(abs(p.x) < origin ? p.x + floatScale * n.x : p_i.x,
 		abs(p.y) < origin ? p.y + floatScale * n.y : p_i.y,
 		abs(p.z) < origin ? p.z + floatScale * n.z : p_i.z);
-}
-
-struct Vertex
-{
-	float3 pos;
-	float2 uv;
-	float3 nor;
-	float3 tan;
-	float3 bin;
-};
-
-float3 Interpolate(in float3 x0, in float3 x1, in float3 x2, float2 bary)
-{
-	return x0 * (1.0f - bary.x - bary.y) + bary.x * x1 + bary.y * x2;
-}
-float2 Interpolate(in float2 x0, in float2 x1, in float2 x2, float2 bary)
-{
-	return x0 * (1.0f - bary.x - bary.y) + bary.x * x1 + bary.y * x2;
 }
 
 struct HitInfo
@@ -153,5 +137,98 @@ bool TraceShadowRay(RayDesc ray)
     }
     return q.CommittedStatus() != COMMITTED_TRIANGLE_HIT;
 }
+
+bool TraceShadowRay(Light light, float3 worldPos)
+{
+	float3 direction;
+	float maxT;
+	switch (light.type)
+	{
+	case DIRECTIONAL_LIGHT:
+		direction = -light.direction.xyz;
+		maxT = FLT_MAX;
+		break;
+	case POINT_LIGHT:
+		direction = light.position.xyz - worldPos;
+		maxT = length(direction);
+		break;
+	case SPOT_LIGHT:
+		direction = -light.direction.xyz;
+		maxT = length(light.position.xyz - worldPos);
+		break;
+	}
+
+	RayDesc ray;
+	ray.Origin = worldPos;
+	ray.Direction = normalize(direction);
+	ray.TMin = 1e-1f;
+	ray.TMax = maxT;
+
+	return TraceShadowRay(ray);
+}
+
+bool TraceShadowRay(Light light, float3 worldPos, float4x4 inverseView)
+{
+	light.direction.xyz = mul(light.direction.xyz, (float3x3) inverseView);
+	light.position = mul(float4(light.position.xyz, 1.0f), inverseView);
+	light.position.xyz /= light.position.w;
+
+	return TraceShadowRay(light, worldPos);
+}
+
+struct MaterialProperties
+{
+    float3 baseColor;
+    float3 normalTS;
+    float metallic;
+    float3 emissive;
+    float roughness;
+    float opacity;
+    float specular;
+};
+
+MaterialProperties GetMaterialProperties(Material material, float2 UV, int mipLevel)
+{
+    MaterialProperties properties = (MaterialProperties)0;
+    float4 baseColor = float4(material.baseColorFactor, 1.0f);
+    if (material.diffuseIdx >= 0)
+    {
+        baseColor *= SampleBindlessLevel2D(material.diffuseIdx, LinearWrapSampler, UV, mipLevel);
+    }
+    properties.baseColor = baseColor.rgb;
+    properties.opacity = baseColor.a;
+
+    properties.metallic = material.metallicFactor;
+    properties.roughness = material.roughnessFactor;
+    if (material.roughnessMetallicIdx >= 0)
+    {
+        float4 roughnessMetalnessSample = SampleBindlessLevel2D(material.roughnessMetallicIdx, LinearWrapSampler, UV, mipLevel);
+        properties.metallic *= roughnessMetalnessSample.b;
+        properties.roughness *= roughnessMetalnessSample.g;
+    }
+    properties.emissive = material.emissiveFactor.rrr;
+    if (material.emissiveIdx >= 0)
+    {
+        properties.emissive *= SampleBindlessLevel2D(material.emissiveIdx, LinearWrapSampler, UV, mipLevel).rgb;
+    }
+    properties.specular = 0.5f;
+
+    properties.normalTS = float3(0.5f, 0.5f, 1.0f);
+    if (material.normalIdx >= 0)
+    {
+        properties.normalTS = SampleBindlessLevel2D(material.normalIdx, LinearWrapSampler, UV, mipLevel).rgb;
+    }
+    return properties;
+}
+
+BrdfData GetBrdfData(MaterialProperties material)
+{
+    BrdfData data;
+    data.Diffuse = ComputeDiffuseColor(material.baseColor, material.metallic);
+    data.Specular = ComputeF0(material.specular, material.baseColor, material.metallic);
+    data.Roughness = material.roughness;
+    return data;
+}
+
 
 #endif

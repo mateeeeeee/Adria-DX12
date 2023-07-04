@@ -4,7 +4,6 @@
 struct RayTracedShadowsConstants
 {
 	uint  depthIdx;
-	uint  outputIdx;
 	uint  lightIdx;
 };
 ConstantBuffer<RayTracedShadowsConstants> PassCB : register(b1);
@@ -19,36 +18,32 @@ void RTS_RayGen()
 {
 	RaytracingAccelerationStructure tlas = ResourceDescriptorHeap[FrameCB.accelStructIdx];
 	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
-	RWTexture2D<float> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
 	StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
+	Light light = lights[PassCB.lightIdx];
+	RWTexture2D<float> outputTx = ResourceDescriptorHeap[light.shadowMaskIndex];
 
 	uint2 launchIndex = DispatchRaysIndex().xy;
 	uint2 launchDim = DispatchRaysDimensions().xy;
 
 	float depth = depthTx.Load(int3(launchIndex.xy, 0)).r;
 	float2 texCoords = (launchIndex + 0.5f) / FrameCB.screenResolution;
-
 	float3 worldPos = GetWorldPosition(texCoords, depth);
-
-	Light light = lights[PassCB.lightIdx];
 
 	light.direction.xyz = mul(light.direction.xyz, (float3x3) FrameCB.inverseView);
 	light.position = mul(float4(light.position.xyz, 1.0f), FrameCB.inverseView);
 	light.position.xyz /= light.position.w;
 
-	float softness = 0.0f;
-    float3 direction;
+	float3 direction;
     float maxT;
 	switch (light.type)
 	{
-	case POINT_LIGHT:
-		direction = light.position.xyz - worldPos;
-		maxT = length(direction);
-		break;
 	case DIRECTIONAL_LIGHT:
 		direction = -light.direction.xyz;
 		maxT = FLT_MAX;
-		softness = 0.5f;
+		break;
+	case POINT_LIGHT:
+		direction = light.position.xyz - worldPos;
+		maxT = length(direction);
 		break;
 	case SPOT_LIGHT:
 		direction = -light.direction.xyz;
@@ -59,7 +54,7 @@ void RTS_RayGen()
 	RayDesc ray;
 	ray.Origin = worldPos.xyz;
 	ray.Direction = normalize(direction);
-	ray.TMin = 0.2f;
+	ray.TMin = 1e-1f;
 	ray.TMax = maxT;
 
 	ShadowRayData payload;

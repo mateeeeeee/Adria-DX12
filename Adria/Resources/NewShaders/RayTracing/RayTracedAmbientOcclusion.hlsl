@@ -33,10 +33,10 @@ void RTAO_RayGen()
 	float depth = depthTx.Load(int3(launchIndex.xy, 0)).r;
 	float2 texCoords = (launchIndex + 0.5f) / FrameCB.screenResolution;
 	float3 worldPosition = GetWorldPosition(texCoords, depth);
-
 	float3 viewNormal = normalsTx.Load(int3(launchIndex.xy, 0)).xyz;
 	viewNormal = 2 * viewNormal - 1.0;
 	float3 worldNormal = normalize(mul(viewNormal, (float3x3) transpose(FrameCB.view)));
+
 	uint randSeed = InitRand(launchIndex.x + launchIndex.y * launchDim.x, FrameCB.frameCount, 16);
 
 	float3 worldDir = GetCosHemisphereSample(randSeed, worldNormal);

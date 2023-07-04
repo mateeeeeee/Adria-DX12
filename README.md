@@ -11,6 +11,8 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 * GPU-Driven Rendering
     - GPU frustum culling
     - 2 phase GPU occlusion culling
+* Ultimate Bindless 
+    - Only one root signature 
 * Tiled deferred rendering 
 * Clustered deferred rendering
 * Physically based shading
@@ -22,11 +24,9 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 * HDR and tone mapping
 * Automatic exposure
 * Bloom
-* Depth of field
-* Bokeh
+* Depth of field + Bokeh
 * Ambient occlusion: SSAO, HBAO, RTAO (DXR)
 * Reflections: SSR, RTR (DXR)
-* SSCS
 * Deferred decals
 * FXAA
 * TAA
@@ -40,15 +40,14 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 * Ocean FFT
     - Adaptive tesselation
     - Foam
+* Shader hot reload
 * ImGui Editor
 * Profiler
-* Shader hot reload
-* Ultimate Bindless 
-    - Only one root signature 
+    - custom and tracy profiler
 * Model Loading with tinygltf
 
 ## TODO
-* Add Global Illumination
+* DDGI (wip)
 
 ## Dependencies
 [ImGui](https://github.com/ocornut/imgui)
@@ -58,6 +57,8 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 [D3D12MemoryAllocator](https://github.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator)
 
 [nativefiledialog](https://github.com/mlabbe/nativefiledialog)
+
+[tracy](https://github.com/wolfpld/tracy)
 
 [stb](https://github.com/nothings/stb)
 
@@ -73,9 +74,10 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 
 Since this engine shares some of the features with [engine](https://github.com/mate286/Adria-DX11), you can also see some of the screenshots there. 
 
-
 Volumetric Clouds
 ![alt text](Screenshots/clouds.png "Volumetric clouds") 
+
+San Miguel
 ![alt text](Screenshots/sanmiguel.png "San Miguel") 
 
 Path Tracer

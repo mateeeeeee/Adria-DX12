@@ -14,7 +14,7 @@ namespace adria
 	{
 	public:
 		RayTracedShadowsPass(GfxDevice* gfx, uint32 width, uint32 height);
-		void AddPass(RenderGraph& rendergraph, uint32 light_index, RGResourceName mask_name);
+		void AddPass(RenderGraph& rendergraph, uint32 light_index);
 		void OnResize(uint32 w, uint32 h);
 
 		bool IsSupported() const;

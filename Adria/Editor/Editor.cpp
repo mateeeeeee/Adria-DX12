@@ -33,8 +33,8 @@ namespace adria
 		static ConsoleVariable ao_cvar("ao", 1);
 		static ConsoleVariable reflections("reflections", 0);
 		static ConsoleVariable renderpath("renderpath", 0);
-		static ConsoleVariable taa("TAA", true);
-		static ConsoleVariable fxaa("FXAA", false);
+		static ConsoleVariable taa("TAA", false);
+		static ConsoleVariable fxaa("FXAA", true);
 		static ConsoleVariable exposure("exposure", true);
 		static ConsoleVariable clouds("clouds", true);
 		static ConsoleVariable dof("dof", false);

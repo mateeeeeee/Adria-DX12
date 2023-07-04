@@ -14,7 +14,7 @@ using namespace DirectX;
 
 namespace adria
 {
-	namespace 
+	namespace
 	{
 
 		std::pair<XMMATRIX, XMMATRIX> LightViewProjection_Directional(Light const& light, Camera const& camera, uint32 shadow_size)
@@ -496,8 +496,8 @@ namespace adria
 			int32 light_index = light.light_index;
 			size_t light_id = entt::to_integral(e);
 
-			rg.ImportTexture(RG_RES_NAME_IDX(LightMask, light_id), light_mask_textures[light_id].get());
-			ray_traced_shadows_pass.AddPass(rg, light_index, RG_RES_NAME_IDX(LightMask, light_id));
+			//rg.ImportTexture(RG_RES_NAME_IDX(LightMask, light_id), light_mask_textures[light_id].get());
+			ray_traced_shadows_pass.AddPass(rg, light_index);//, RG_RES_NAME_IDX(LightMask, light_id));
 		}
 	}
 
@@ -521,7 +521,7 @@ namespace adria
 			else masked_batches.push_back(&batch);
 		}
 
-		auto DrawBatch = [&](GfxCommandList* cmd_list, bool masked_batch) 
+		auto DrawBatch = [&](GfxCommandList* cmd_list, bool masked_batch)
 		{
 			std::vector<Batch*>& batches = masked_batch ? masked_batches : opaque_batches;
 			GfxPipelineStateID pso = masked_batch ? GfxPipelineStateID::Shadow_Transparent : GfxPipelineStateID::Shadow;

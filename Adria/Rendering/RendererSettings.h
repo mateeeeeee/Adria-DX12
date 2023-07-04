@@ -26,7 +26,7 @@ namespace adria
 	struct PostprocessSettings
 	{
 		bool fog = false;
-		AntiAliasing anti_aliasing = AntiAliasing_TAA;
+		AntiAliasing anti_aliasing = AntiAliasing_FXAA;
 		AmbientOcclusion ambient_occlusion = AmbientOcclusion::SSAO;
 		Reflections reflections = Reflections::SSR;
 		bool dof = false;

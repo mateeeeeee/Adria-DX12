@@ -10,6 +10,8 @@
 
 namespace adria
 {
+	using bool32 = int32;
+
 	DECLSPEC_ALIGN(16) struct FrameCBuffer
 	{
 		DirectX::XMMATRIX view;
@@ -62,9 +64,9 @@ namespace adria
 		float outer_cosine;
 
 		float inner_cosine;
-		int32 volumetric;
+		bool32 volumetric;
 		float volumetric_strength;
-		int32 use_cascades;
+		bool32 use_cascades;
 
 		int32 shadow_texture_index;
 		int32 shadow_matrix_index;

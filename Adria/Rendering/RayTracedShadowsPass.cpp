@@ -1,7 +1,7 @@
 #include "RayTracedShadowsPass.h"
 #include "BlackboardData.h"
 #include "ShaderCache.h"
-#include "PSOCache.h" 
+#include "PSOCache.h"
 
 #include "Graphics/GfxShader.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
@@ -21,7 +21,7 @@ namespace adria
 		}
 	}
 
-	void RayTracedShadowsPass::AddPass(RenderGraph& rg, uint32 light_index, RGResourceName mask_name)
+	void RayTracedShadowsPass::AddPass(RenderGraph& rg, uint32 light_index)
 	{
 		if (!IsSupported()) return;
 
@@ -29,31 +29,27 @@ namespace adria
 		struct RayTracedShadowsPassData
 		{
 			RGTextureReadOnlyId depth;
-			RGTextureReadWriteId mask;
 		};
 
 		rg.AddPass<RayTracedShadowsPassData>("Ray Traced Shadows Pass",
 			[=](RayTracedShadowsPassData& data, RGBuilder& builder)
 			{
-				data.mask = builder.WriteTexture(mask_name);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
 			[=](RayTracedShadowsPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				
-				uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();
+
+				uint32 i = gfx->AllocateDescriptorsGPU(1).GetIndex();
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.depth));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadWriteTexture(data.mask));
 
 				struct RayTracedShadowsConstants
 				{
 					uint32  depth_idx;
-					uint32  output_idx;
 					uint32  light_idx;
 				} constants =
 				{
-					.depth_idx = i + 0, .output_idx = i + 1,
+					.depth_idx = i + 0,
 					.light_idx = light_index
 				};
 				auto& table = cmd_list->SetStateObject(ray_traced_shadows.Get());
@@ -102,7 +98,7 @@ namespace adria
 
 			// Add a state subobject for the shader payload configuration
 			D3D12_RAYTRACING_SHADER_CONFIG rt_shadows_shader_config{};
-			rt_shadows_shader_config.MaxPayloadSizeInBytes = 4;	
+			rt_shadows_shader_config.MaxPayloadSizeInBytes = 4;
 			rt_shadows_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
 			rt_shadows_state_object_builder.AddSubObject(rt_shadows_shader_config);
 

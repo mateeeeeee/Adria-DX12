@@ -47,54 +47,29 @@ void PT_RayGen()
         HitInfo info;
         if (TraceRay(ray, info))
         {
-            uint triangleId = info.primitiveIndex;
-
 			Instance instanceData = GetInstanceData(info.instanceIndex);
 			Mesh meshData = GetMeshData(instanceData.meshIndex);
 			Material materialData = GetMaterialData(instanceData.materialIdx);
 
-			uint i0 = LoadMeshBuffer<uint>(meshData.bufferIdx, meshData.indicesOffset, 3 * triangleId + 0);
-			uint i1 = LoadMeshBuffer<uint>(meshData.bufferIdx, meshData.indicesOffset, 3 * triangleId + 1);
-			uint i2 = LoadMeshBuffer<uint>(meshData.bufferIdx, meshData.indicesOffset, 3 * triangleId + 2);
+			VertexData vertex = LoadVertexData(meshData, info.primitiveIndex, info.barycentricCoordinates);
 
-			float3 pos0 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.positionsOffset, i0);
-			float3 pos1 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.positionsOffset, i1);
-			float3 pos2 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.positionsOffset, i2);
-			float3 pos = Interpolate(pos0, pos1, pos2, info.barycentricCoordinates);
-
-			float2 uv0 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i0);
-			float2 uv1 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i1);
-			float2 uv2 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i2);
-			float2 uv = Interpolate(uv0, uv1, uv2, info.barycentricCoordinates);
-
-			float3 nor0 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.normalsOffset, i0);
-			float3 nor1 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.normalsOffset, i1);
-			float3 nor2 = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.normalsOffset, i2);
-			float3 nor = normalize(Interpolate(nor0, nor1, nor2, info.barycentricCoordinates));
-
-            float3 worldPosition = mul(pos, info.objectToWorldMatrix).xyz;
-            float3 worldNormal = normalize(mul(nor, (float3x3) transpose(info.worldToObjectMatrix)));
-            float3 geometryNormal = worldNormal; //for now, later use cross
+            float3 worldPosition = mul(vertex.pos, info.objectToWorldMatrix).xyz;
+            float3 worldNormal = normalize(mul(vertex.nor, (float3x3) transpose(info.worldToObjectMatrix)));
+            float3 geometryNormal = worldNormal; //temp
             float3 V = -ray.Direction;
-            MaterialProperties matProperties = GetMaterialProperties(materialData, uv, 0);
+            MaterialProperties matProperties = GetMaterialProperties(materialData, vertex.uv, 0);
             BrdfData brdfData = GetBrdfData(matProperties);
 
             int lightIndex = 0;
             float lightWeight = 0.0f;
-            
-			////#todo use all lights
-            Light light = lights[0];
-            float3 L = normalize(-light.direction.xyz); // #todo: make a function TraceShadowRay(light,...)
-            float3 wi = L;
-            RayDesc shadowRay;
-            shadowRay.Origin = worldPosition;
-            shadowRay.Direction = L;
-            shadowRay.TMin = 1e-2f;
-            shadowRay.TMax = FLT_MAX;
 
-            float visibility = TraceShadowRay(shadowRay) ? 1.0f : 0.0f;
-            float NdotL = saturate(dot(worldNormal, L));
+			//#todo use all lights
+            Light light = lights[0];
+			float visibility = TraceShadowRay(light, worldPosition.xyz);
+            float3 wi = normalize(-light.direction.xyz);
             float3 wo = normalize(FrameCB.cameraPosition.xyz - worldPosition);
+			float NdotL = saturate(dot(worldNormal, wi));
+
             float3 directLighting = DefaultBRDF(wi, wo, worldNormal, brdfData.Diffuse, brdfData.Specular, brdfData.Roughness) * visibility * light.color.rgb * NdotL;
             radiance += (directLighting + matProperties.emissive) * throughput / pdf;
 
