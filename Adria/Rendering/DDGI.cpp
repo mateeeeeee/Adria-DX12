@@ -11,6 +11,7 @@
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
 #include "Utilities/Random.h"
+#include "Math/Constants.h"
 #include "entt/entity/registry.hpp"
 
 using namespace DirectX;
@@ -52,6 +53,13 @@ namespace adria
 		uint32 const ddgi_max_num_rays = ddgi_volume.max_num_rays;
 		XMUINT3 const ddgi_num_probes = ddgi_volume.num_probes;
 
+		static RealRandomGenerator<float> rand(0.0f, 1.0f);
+		float rand_angle = rand() * 2 * pi<float>;
+		XMFLOAT3 rand_vector(rand(), rand(), rand());
+		XMVECTOR RandVector = XMLoadFloat3(&rand_vector);
+		RandVector = XMVector3Normalize(RandVector);
+		XMStoreFloat3(&rand_vector, RandVector);
+
 		struct DDGIParameters
 		{
 			XMFLOAT3 random_vector;
@@ -60,10 +68,9 @@ namespace adria
 			uint32   ray_buffer_index;
 		} parameters
 		{
-			.random_vector = XMFLOAT3(),
-			.random_angle = 0.0f,
-			.history_blend_weight = 0.98f,
-			.ray_buffer_index = 0 //#todo
+			.random_vector = rand_vector,
+			.random_angle = rand_angle,
+			.history_blend_weight = 0.98f, 
 		};
 
 
@@ -85,7 +92,7 @@ namespace adria
 				builder.DeclareBuffer(RG_RES_NAME(DDGIRayBuffer), ray_buffer_desc);
 				data.ray_buffer	  = builder.WriteBuffer(RG_RES_NAME(DDGIRayBuffer));
 			},
-			[=](DDGIRayTracePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			[&](DDGIRayTracePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
@@ -98,6 +105,7 @@ namespace adria
 				table.AddHitGroup("DDGI_ClosestHit", 0);
 
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				parameters.ray_buffer_index = i;
 				cmd_list->SetRootConstants(1, parameters);
 				cmd_list->SetRootCBV(2, ddgi_volume);
 				cmd_list->DispatchRays(ddgi_num_rays, num_probes);
@@ -132,6 +140,8 @@ namespace adria
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIUpdateIrradiance));
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, parameters);
+				cmd_list->SetRootCBV(2, ddgi_volume);
 				cmd_list->Dispatch(num_probes, 1, 1);
 				cmd_list->UavBarrier(ctx.GetTexture(*data.irradiance));
 			}, RGPassType::Compute);
@@ -146,12 +156,12 @@ namespace adria
 		rg.AddPass<DDGIUpdateDistancePassData>("DDGI Update Distance Pass",
 			[=](DDGIUpdateDistancePassData& data, RenderGraphBuilder& builder)
 			{
-				XMUINT2 depth_dimensions = ProbeTextureDimensions(ddgi_num_probes, PROBE_DEPTH_TEXELS);
-				RGTextureDesc irradiance_desc{};
-				irradiance_desc.width = depth_dimensions.x;
-				irradiance_desc.height = depth_dimensions.y;
-				irradiance_desc.format = GfxFormat::R16G16_FLOAT;
-				builder.DeclareTexture(RG_RES_NAME(DDGIDistance), irradiance_desc);
+				XMUINT2 depth_dimensions = ProbeTextureDimensions(ddgi_num_probes, PROBE_DISTANCE_TEXELS);
+				RGTextureDesc distance_desc{};
+				distance_desc.width = depth_dimensions.x;
+				distance_desc.height = depth_dimensions.y;
+				distance_desc.format = GfxFormat::R16G16_FLOAT;
+				builder.DeclareTexture(RG_RES_NAME(DDGIDistance), distance_desc);
 
 				data.depth = builder.WriteTexture(RG_RES_NAME(DDGIDistance));
 				data.ray_buffer = builder.ReadBuffer(RG_RES_NAME(DDGIRayBuffer));
@@ -163,10 +173,15 @@ namespace adria
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIUpdateDistance));
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, parameters);
+				cmd_list->SetRootCBV(2, ddgi_volume);
 				cmd_list->Dispatch(num_probes, 1, 1);
 				cmd_list->UavBarrier(ctx.GetTexture(*data.depth));
 			}, RGPassType::Compute);
 
+		
+		//border updates
+		/*
 		struct DDGIUpdateIrradianceBorderPassData
 		{
 			RGTextureReadWriteId	irradiance;
@@ -202,6 +217,7 @@ namespace adria
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIUpdateDistanceBorder));
 				cmd_list->UavBarrier(ctx.GetTexture(*data.distance));
 			}, RGPassType::Compute);
+			*/
 		
 		rg.ExportTexture(RG_RES_NAME(DDGIIradiance), ddgi_volume.irradiance_history.get());
 		rg.ExportTexture(RG_RES_NAME(DDGIDepth), ddgi_volume.depth_history.get());
@@ -212,7 +228,7 @@ namespace adria
 		ID3D12Device5* device = gfx->GetDevice();
 		GfxShader const& ddgi_blob = ShaderCache::GetShader(LIB_DDGIRayTracing);
 
-		GfxStateObjectBuilder ddgi_state_object_builder(5);
+		GfxStateObjectBuilder ddgi_state_object_builder(4);
 		{
 			D3D12_EXPORT_DESC export_descs[] =
 			{
@@ -228,18 +244,16 @@ namespace adria
 			dxil_lib_desc.pExports = export_descs;
 			ddgi_state_object_builder.AddSubObject(dxil_lib_desc);
 
-			// Add a state subobject for the shader payload configuration
-			D3D12_RAYTRACING_SHADER_CONFIG rt_shadows_shader_config{};
-			rt_shadows_shader_config.MaxPayloadSizeInBytes = 4 * sizeof(float);
-			rt_shadows_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
-			ddgi_state_object_builder.AddSubObject(rt_shadows_shader_config);
+			D3D12_RAYTRACING_SHADER_CONFIG ddgi_shader_config{};
+			ddgi_shader_config.MaxPayloadSizeInBytes = 4 * sizeof(float);
+			ddgi_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
+			ddgi_state_object_builder.AddSubObject(ddgi_shader_config);
 
 			D3D12_GLOBAL_ROOT_SIGNATURE global_root_sig{};
 			global_root_sig.pGlobalRootSignature = gfx->GetCommonRootSignature();
 			ddgi_state_object_builder.AddSubObject(global_root_sig);
 
-			// Add a state subobject for the ray tracing pipeline config
-			D3D12_RAYTRACING_PIPELINE_CONFIG pipeline_config = {};
+			D3D12_RAYTRACING_PIPELINE_CONFIG pipeline_config{};
 			pipeline_config.MaxTraceRecursionDepth = 1;
 			ddgi_state_object_builder.AddSubObject(pipeline_config);
 

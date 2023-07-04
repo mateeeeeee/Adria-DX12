@@ -3,7 +3,7 @@
 #include "../Packing.hlsli"
 
 #define PROBE_IRRADIANCE_TEXELS 6
-#define PROBE_DEPTH_TEXELS 14
+#define PROBE_DISTANCE_TEXELS 14
 
 
 struct DDGIVolume

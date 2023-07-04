@@ -55,3 +55,9 @@ void DDGI_UpdateIrradiance(uint3 groupThreadId : SV_GroupThreadID, uint groupId 
 
 	
 }
+
+[numthreads(PROBE_DISTANCE_TEXELS, PROBE_DISTANCE_TEXELS, 1)]
+void DDGI_UpdateDistance(uint3 groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
+{
+
+}

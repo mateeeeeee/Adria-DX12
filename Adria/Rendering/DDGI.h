@@ -13,7 +13,7 @@ namespace adria
 	class DDGI
 	{
 		static constexpr uint32 PROBE_IRRADIANCE_TEXELS = 6;
-		static constexpr uint32 PROBE_DEPTH_TEXELS = 14;
+		static constexpr uint32 PROBE_DISTANCE_TEXELS = 14;
 		static DirectX::XMUINT2 ProbeTextureDimensions(DirectX::XMUINT3 const& num_probes, uint32 texels_per_probe);
 
 		struct DDGIVolume
