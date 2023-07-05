@@ -1164,9 +1164,6 @@
     <FxCompile Include="Resources\NewShaders\DDGI\DDGIRayTrace.hlsl">
       <Filter>Shaders\DDGI</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\NewShaders\DDGI\DDGIUpdate.hlsl">
-      <Filter>Shaders\DDGI</Filter>
-    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="scene.json" />

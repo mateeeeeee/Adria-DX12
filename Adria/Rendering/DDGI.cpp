@@ -46,12 +46,11 @@ namespace adria
 	{
 		if (!IsSupported()) return;
 
-		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
-
+		uint64 random_index = 0;
 		uint32 const num_probes = ddgi_volume.num_probes.x * ddgi_volume.num_probes.y * ddgi_volume.num_probes.z;
 		uint32 const ddgi_num_rays = ddgi_volume.num_rays;
 		uint32 const ddgi_max_num_rays = ddgi_volume.max_num_rays;
-		XMUINT3 const ddgi_num_probes = ddgi_volume.num_probes;
+		XMUINT3 ddgi_num_probes = ddgi_volume.num_probes;
 
 		static RealRandomGenerator<float> rand(0.0f, 1.0f);
 		float rand_angle = rand() * 2 * pi<float>;
@@ -70,9 +69,9 @@ namespace adria
 		{
 			.random_vector = rand_vector,
 			.random_angle = rand_angle,
-			.history_blend_weight = 0.98f, 
+			.history_blend_weight = 0.98f,
 		};
-
+		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
 
 		rg.ImportTexture(RG_RES_NAME(DDGIIrradianceHistory), ddgi_volume.irradiance_history.get());
 		rg.ImportTexture(RG_RES_NAME(DDGIDepthHistory), ddgi_volume.depth_history.get());
@@ -179,7 +178,7 @@ namespace adria
 				cmd_list->UavBarrier(ctx.GetTexture(*data.depth));
 			}, RGPassType::Compute);
 
-		
+
 		//border updates
 		/*
 		struct DDGIUpdateIrradianceBorderPassData
@@ -218,7 +217,7 @@ namespace adria
 				cmd_list->UavBarrier(ctx.GetTexture(*data.distance));
 			}, RGPassType::Compute);
 			*/
-		
+
 		rg.ExportTexture(RG_RES_NAME(DDGIIradiance), ddgi_volume.irradiance_history.get());
 		rg.ExportTexture(RG_RES_NAME(DDGIDepth), ddgi_volume.depth_history.get());
 	}
@@ -226,7 +225,7 @@ namespace adria
 	void DDGI::CreateStateObject()
 	{
 		ID3D12Device5* device = gfx->GetDevice();
-		GfxShader const& ddgi_blob = ShaderCache::GetShader(LIB_DDGIRayTracing);
+		GfxShader const& ddgi_blob = GfxShader{}; // = ShaderCache::GetShader(LIB_DDGIRayTracing);
 
 		GfxStateObjectBuilder ddgi_state_object_builder(4);
 		{
@@ -244,16 +243,18 @@ namespace adria
 			dxil_lib_desc.pExports = export_descs;
 			ddgi_state_object_builder.AddSubObject(dxil_lib_desc);
 
-			D3D12_RAYTRACING_SHADER_CONFIG ddgi_shader_config{};
-			ddgi_shader_config.MaxPayloadSizeInBytes = 4 * sizeof(float);
-			ddgi_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
-			ddgi_state_object_builder.AddSubObject(ddgi_shader_config);
+			// Add a state subobject for the shader payload configuration
+			D3D12_RAYTRACING_SHADER_CONFIG rt_shadows_shader_config{};
+			rt_shadows_shader_config.MaxPayloadSizeInBytes = 4 * sizeof(float);
+			rt_shadows_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
+			ddgi_state_object_builder.AddSubObject(rt_shadows_shader_config);
 
 			D3D12_GLOBAL_ROOT_SIGNATURE global_root_sig{};
 			global_root_sig.pGlobalRootSignature = gfx->GetCommonRootSignature();
 			ddgi_state_object_builder.AddSubObject(global_root_sig);
 
-			D3D12_RAYTRACING_PIPELINE_CONFIG pipeline_config{};
+			// Add a state subobject for the ray tracing pipeline config
+			D3D12_RAYTRACING_PIPELINE_CONFIG pipeline_config = {};
 			pipeline_config.MaxTraceRecursionDepth = 1;
 			ddgi_state_object_builder.AddSubObject(pipeline_config);
 
@@ -263,7 +264,7 @@ namespace adria
 
 	void DDGI::OnLibraryRecompiled(GfxShaderID shader)
 	{
-		if (shader == LIB_DDGIRayTracing) CreateStateObject();
+		//if (shader == LIB_DDGIRayTracing) CreateStateObject();
 	}
 }
 
