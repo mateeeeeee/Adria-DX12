@@ -71,7 +71,9 @@ namespace adria
 		RGBlackboard const& GetBlackboard() const { return blackboard; }
 		RGBlackboard& GetBlackboard() { return blackboard; }
 
+		void DumpRenderGraph(char const* graph_file_name);
 		void DumpDebugData();
+
 	private:
 		RGResourcePool& pool;
 		GfxDevice* gfx;
@@ -103,7 +105,7 @@ namespace adria
 		void CullPasses();
 		void CalculateResourcesLifetime();
 		void DepthFirstSearch(size_t i, std::vector<bool>& visited, std::stack<size_t>& stack);
-
+		
 		RGTextureId DeclareTexture(RGResourceName name, RGTextureDesc const& desc);
 		RGBufferId DeclareBuffer(RGResourceName name, RGBufferDesc const& desc);
 

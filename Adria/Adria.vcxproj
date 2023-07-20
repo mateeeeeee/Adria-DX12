@@ -1125,6 +1125,7 @@
   <ItemGroup>
     <None Include="..\.gitignore" />
     <None Include="..\README.md" />
+    <None Include="imgui.ini" />
     <None Include="packages.config" />
     <None Include="Resources\NewShaders\Atmosphere.hlsli" />
     <None Include="Resources\NewShaders\BRDF.hlsli" />

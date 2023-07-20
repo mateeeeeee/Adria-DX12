@@ -45,6 +45,7 @@ namespace adria
 		RenderGraphPassBase* last_used_by = nullptr;
 		char const* name = "";
 	};
+	using RGResource = RenderGraphResource;
 
 	template<RGResourceType ResourceType>
 	struct TypedRenderGraphResource : RenderGraphResource

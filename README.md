@@ -7,6 +7,7 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 	- Resource reuse using resource pool
 	- Automatic resource bind flags and initial state deduction
 	- Pass culling
+    - Graph visualization
 * Reference path tracer 
 * GPU-Driven Rendering
     - GPU frustum culling
@@ -73,6 +74,9 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 ## Screenshots
 
 Since this engine shares some of the features with [engine](https://github.com/mate286/Adria-DX11), you can also see some of the screenshots there. 
+
+Render graph visualization
+![alt text](Screenshots/rg.png "Render graph visualization") 
 
 Volumetric Clouds
 ![alt text](Screenshots/clouds.png "Volumetric clouds") 

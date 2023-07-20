@@ -1,4 +1,5 @@
 #include <format>
+#include <fstream>
 #include <pix3.h>
 #include "RenderGraph.h"
 #include "Graphics/GfxCommandList.h"
@@ -1070,6 +1071,154 @@ namespace adria
 		ADRIA_ASSERT_MSG(false, "Not yet implemented");
 	}
 
+	void RenderGraph::DumpRenderGraph(char const* graph_file_name)
+	{
+		static bool once = false;
+		if (once) return;
+		once = true;
+
+		static struct GraphVizStyle
+		{
+			char const* rank_dir{ "TB" };
+			struct
+			{
+				char const* name{ "helvetica" };
+				int32       size{ 10 };
+			} font;
+			struct
+			{
+				struct
+				{
+					char const* executed{ "orange" };
+					char const* culled{ "lightgray" };
+				} pass;
+				struct
+				{
+					char const* imported{ "lightsteelblue" };
+					char const* transient{ "skyblue" };
+				} resource;
+				struct
+				{
+					char const* read{ "olivedrab3" };
+					char const* write{ "orangered" };
+				} edge;
+			} color;
+		} style;
+
+		struct GraphViz
+		{
+			std::string defaults;
+			std::string declarations;
+			std::string dependencies;
+		} graphviz;
+
+		graphviz.defaults += std::format("graph [style=invis, rankdir=\"{}\", ordering=out, splines=spline]\n", style.rank_dir);
+		graphviz.defaults += std::format("node [shape=record, fontname=\"{}\", fontsize={}, margin=\"0.2,0.03\"]\n", style.font.name, style.font.size);
+
+		struct pair_hash
+		{
+			size_t operator()(std::pair<size_t, size_t> const& p) const
+			{
+				return std::hash<size_t>{}(p.first) + std::hash<size_t>{}(p.second);
+			}
+		};
+		std::unordered_set<std::pair<size_t, size_t>, pair_hash> declared_buffers;
+		std::unordered_set<std::pair<size_t, size_t>, pair_hash> declared_textures;
+		auto DeclareBuffer = [&declared_buffers,&graphviz, this](RGBuffer* buffer)
+		{
+			auto decl_pair = std::make_pair(buffer->id, buffer->version);
+			if (!declared_buffers.contains(decl_pair))
+			{
+				buffer->desc.size;
+				graphviz.declarations += std::format("B{}_{} ", buffer->id, buffer->version);
+				std::string label = std::format("<{}<br/>size: {} bytes <br/>format: {} <br/>version: {} <br/>refs: {}<br/>{}>", 
+					buffer->name, buffer->desc.size, GfxFormatToString(buffer->desc.format), buffer->version, buffer->ref_count, buffer->imported ? "Imported" : "Transient");
+				graphviz.declarations += std::format("[shape=\"box\", style=\"filled\",fillcolor={}, label={}] \n", buffer->imported ? style.color.resource.imported : style.color.resource.transient, label);
+				declared_buffers.insert(decl_pair);
+			}
+		};
+		auto DeclareTexture = [&declared_textures, &graphviz, this](RGTexture* texture)
+		{
+			auto decl_pair = std::make_pair(texture->id, texture->version);
+			if (!declared_textures.contains(decl_pair))
+			{
+				std::string dimensions;
+				switch (texture->desc.type)
+				{
+				case GfxTextureType_1D:  dimensions += std::format("width = {}", texture->desc.width); break;
+				case GfxTextureType_2D:  dimensions += std::format("width = {}, height = {}", texture->desc.width, texture->desc.height); break;
+				case GfxTextureType_3D:  dimensions += std::format("width = {}, height = {}, depth = {}", texture->desc.width, texture->desc.height, texture->desc.depth); break;
+				}
+				
+				graphviz.declarations += std::format("T{}_{} ", texture->id, texture->version);
+				std::string label = std::format("<{} <br/>dimension: {}<br/>{}<br/>format: {} <br/>version: {} <br/>refs: {}<br/>{}>", 
+					texture->name, GfxTextureTypeToString(texture->desc.type), dimensions, GfxFormatToString(texture->desc.format), texture->version, texture->ref_count, texture->imported ? "Imported" : "Transient");
+				graphviz.declarations += std::format("[shape=\"box\", style=\"filled\",fillcolor={}, label={}] \n", texture->imported ? style.color.resource.imported : style.color.resource.transient, label);
+				declared_textures.insert(decl_pair);
+			}
+		};
+
+		for (auto const& dependency_level : dependency_levels)
+		{
+			for (auto const& pass : dependency_level.passes)
+			{
+				graphviz.declarations += std::format("P{} ", pass->id);
+				std::string label = std::format("<{}<br/> type: {}<br/> refs: {}<br/> culled: {}>", pass->name, RGPassTypeToString(pass->type), pass->ref_count, pass->IsCulled() ? "Yes" : "No");
+				graphviz.declarations += std::format("[shape=\"ellipse\", style=\"rounded,filled\",fillcolor={}, label={}] \n",
+					                                  pass->IsCulled() ?  style.color.pass.culled : style.color.pass.executed, label);
+
+				std::string read_dependencies = "{"; 
+				std::string write_dependencies = "{";
+
+				for (auto const& buffer_read : pass->buffer_reads)
+				{
+					RGBuffer* buffer = GetRGBuffer(buffer_read);
+					DeclareBuffer(buffer);
+					read_dependencies += std::format("B{}_{},", buffer->id, buffer->version);
+				}
+
+				for (auto const& texture_read : pass->texture_reads)
+				{
+					RGTexture* texture = GetRGTexture(texture_read);
+					DeclareTexture(texture);
+					read_dependencies += std::format("T{}_{},", texture->id, texture->version);
+				}
+				
+				for (auto const& buffer_write : pass->buffer_writes)
+				{
+					RGBuffer* buffer = GetRGBuffer(buffer_write);
+					if (!pass->buffer_creates.contains(buffer_write)) buffer->version++;
+					DeclareBuffer(buffer);
+					write_dependencies += std::format("B{}_{},", buffer->id, buffer->version);
+				}
+
+				for (auto const& texture_write : pass->texture_writes)
+				{
+					RGTexture* texture = GetRGTexture(texture_write);
+					if (!pass->texture_creates.contains(texture_write)) texture->version++;
+					DeclareTexture(texture);
+					write_dependencies += std::format("T{}_{},", texture->id, texture->version);
+				}
+
+				if (read_dependencies.back() == ',') read_dependencies.pop_back(); 
+				read_dependencies += "}";
+				if (write_dependencies.back() == ',') write_dependencies.pop_back();
+				write_dependencies += "}";
+
+				graphviz.dependencies += std::format("{}->P{} [color=olivedrab3]\n", read_dependencies, pass->id);
+				graphviz.dependencies += std::format("P{}->{} [color=orangered]\n", pass->id, write_dependencies);
+			}
+		}
+
+		std::ofstream graph_file(graph_file_name);
+		graph_file << "digraph RenderGraph{ \n";
+		graph_file << graphviz.defaults << "\n";
+		graph_file << graphviz.declarations << "\n";
+		graph_file << graphviz.dependencies << "\n";
+		graph_file << "}";
+		graph_file.close();
+	}
+
 	void RenderGraph::DumpDebugData()
 	{
 		std::string render_graph_data = "";
@@ -1142,3 +1291,4 @@ namespace adria
 
 }
 
+ 

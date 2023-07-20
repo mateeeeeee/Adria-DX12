@@ -99,6 +99,7 @@ namespace adria
 		else Render_Deferred(render_graph);
 
 		render_graph.Build();
+		render_graph.DumpRenderGraph("graph.dot");
 		render_graph.Execute();
 	}
 

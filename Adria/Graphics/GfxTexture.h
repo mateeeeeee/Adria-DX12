@@ -9,6 +9,16 @@ namespace adria
 		GfxTextureType_2D,
 		GfxTextureType_3D
 	};
+	inline char const* GfxTextureTypeToString(GfxTextureType type)
+	{
+		switch (type)
+		{
+		case GfxTextureType_1D: return "1D";
+		case GfxTextureType_2D: return "2D";
+		case GfxTextureType_3D: return "3D";
+		default: return "Invalid";
+		}
+	}
 	inline constexpr GfxTextureType ConvertTextureType(D3D12_RESOURCE_DIMENSION dimension)
 	{
 		switch (dimension)
@@ -26,6 +36,7 @@ namespace adria
 		}
 		return GfxTextureType_1D;
 	}
+
 
 	struct GfxTextureDesc
 	{
@@ -105,5 +116,4 @@ namespace adria
 	{
 		return reinterpret_cast<T*>(mapped_data);
 	}
-
 }
