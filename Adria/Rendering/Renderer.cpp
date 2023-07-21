@@ -29,6 +29,11 @@ using namespace DirectX;
 
 namespace adria
 {
+	namespace cvars
+	{
+		extern bool dump_render_graph;
+	}
+	using namespace cvars;
 
 	Renderer::Renderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx),
 		accel_structure(gfx), camera(nullptr), width(width), height(height),
@@ -99,7 +104,7 @@ namespace adria
 		else Render_Deferred(render_graph);
 
 		render_graph.Build();
-		render_graph.DumpRenderGraph("graph.dot");
+		if (dump_render_graph) render_graph.DumpRenderGraph("rendergraph.gv");
 		render_graph.Execute();
 	}
 

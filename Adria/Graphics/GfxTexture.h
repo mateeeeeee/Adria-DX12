@@ -13,9 +13,9 @@ namespace adria
 	{
 		switch (type)
 		{
-		case GfxTextureType_1D: return "1D";
-		case GfxTextureType_2D: return "2D";
-		case GfxTextureType_3D: return "3D";
+		case GfxTextureType_1D: return "Texture 1D";
+		case GfxTextureType_2D: return "Texture 2D";
+		case GfxTextureType_3D: return "Texture 3D";
 		default: return "Invalid";
 		}
 	}

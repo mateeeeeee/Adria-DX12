@@ -42,6 +42,9 @@ namespace adria
 		static ConsoleVariable bloom("bloom", true);
 		static ConsoleVariable motion_blur("motionblur", false);
 		static ConsoleVariable fog("fog", false);
+
+		bool dump_render_graph = false;
+		ConsoleCommand<> dump_render_graph_cmd("dump.rendergraph", []() { dump_render_graph = true; });
 	}
 
 	struct ProfilerState
@@ -1156,6 +1159,8 @@ namespace adria
 		if (!window_flags[Flag_Debug]) return;
 		if(ImGui::Begin(ICON_FA_BUG" Debug", &window_flags[Flag_Debug]))
 		{
+			cvars::dump_render_graph = ImGui::Button("Dump render graph");
+			
 			for (auto& cmd : debug_commands)
 			{
 				GfxDescriptor gui_descriptor = gui->AllocateDescriptorsGPU();

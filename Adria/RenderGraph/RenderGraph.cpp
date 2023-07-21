@@ -7,6 +7,7 @@
 #include "Graphics/GfxProfiler.h"
 #include "Graphics/GfxTracyProfiler.h"
 #include "Utilities/StringUtil.h"
+#include "Utilities/FilesUtil.h"
 #include "Logging/Logger.h"
 
 
@@ -1073,10 +1074,6 @@ namespace adria
 
 	void RenderGraph::DumpRenderGraph(char const* graph_file_name)
 	{
-		static bool once = false;
-		if (once) return;
-		once = true;
-
 		static struct GraphVizStyle
 		{
 			char const* rank_dir{ "TB" };
@@ -1115,23 +1112,20 @@ namespace adria
 		graphviz.defaults += std::format("graph [style=invis, rankdir=\"{}\", ordering=out, splines=spline]\n", style.rank_dir);
 		graphviz.defaults += std::format("node [shape=record, fontname=\"{}\", fontsize={}, margin=\"0.2,0.03\"]\n", style.font.name, style.font.size);
 
-		struct pair_hash
+		auto PairHash = [](std::pair<size_t, size_t> const& p)
 		{
-			size_t operator()(std::pair<size_t, size_t> const& p) const
-			{
-				return std::hash<size_t>{}(p.first) + std::hash<size_t>{}(p.second);
-			}
+			return std::hash<size_t>{}(p.first) + std::hash<size_t>{}(p.second);
 		};
-		std::unordered_set<std::pair<size_t, size_t>, pair_hash> declared_buffers;
-		std::unordered_set<std::pair<size_t, size_t>, pair_hash> declared_textures;
-		auto DeclareBuffer = [&declared_buffers,&graphviz, this](RGBuffer* buffer)
+		std::unordered_set<std::pair<size_t, size_t>, decltype(PairHash)> declared_buffers;
+		std::unordered_set<std::pair<size_t, size_t>, decltype(PairHash)> declared_textures;
+		auto DeclareBuffer  = [&declared_buffers,&graphviz, this](RGBuffer* buffer)
 		{
 			auto decl_pair = std::make_pair(buffer->id, buffer->version);
 			if (!declared_buffers.contains(decl_pair))
 			{
 				buffer->desc.size;
 				graphviz.declarations += std::format("B{}_{} ", buffer->id, buffer->version);
-				std::string label = std::format("<{}<br/>size: {} bytes <br/>format: {} <br/>version: {} <br/>refs: {}<br/>{}>", 
+				std::string label = std::format("<{}<br/>dimension: Buffer<br/>size: {} bytes <br/>format: {} <br/>version: {} <br/>refs: {}<br/>{}>", 
 					buffer->name, buffer->desc.size, GfxFormatToString(buffer->desc.format), buffer->version, buffer->ref_count, buffer->imported ? "Imported" : "Transient");
 				graphviz.declarations += std::format("[shape=\"box\", style=\"filled\",fillcolor={}, label={}] \n", buffer->imported ? style.color.resource.imported : style.color.resource.transient, label);
 				declared_buffers.insert(decl_pair);
@@ -1217,6 +1211,9 @@ namespace adria
 		graph_file << graphviz.dependencies << "\n";
 		graph_file << "}";
 		graph_file.close();
+
+		std::string filename = GetFilenameWithoutExtension(graph_file_name);
+		system(std::format("dot -Tsvg {} > {}.svg", graph_file_name, filename).c_str());
 	}
 
 	void RenderGraph::DumpDebugData()
