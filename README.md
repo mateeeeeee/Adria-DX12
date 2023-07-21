@@ -75,9 +75,6 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 
 Since this engine shares some of the features with [engine](https://github.com/mate286/Adria-DX11), you can also see some of the screenshots there. 
 
-Render graph visualization
-![alt text](Screenshots/rg.png "Render graph visualization") 
-
 Volumetric Clouds
 ![alt text](Screenshots/clouds.png "Volumetric clouds") 
 
@@ -120,3 +117,6 @@ Path Tracer
     <td><img src="Screenshots/rtao.png"></td>
   </tr>
 </table>
+
+Render graph visualization
+![alt text](Adria/rendergraph.svg "Render graph visualization") 
