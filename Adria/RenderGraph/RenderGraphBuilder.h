@@ -28,7 +28,7 @@ namespace adria
 		GfxFormat format = GfxFormat::UNKNOWN;
 	};
 
-	static void FillTextureDesc(RGTextureDesc const& rg_tex_desc, GfxTextureDesc& tex_desc)
+	inline void InitGfxTextureDesc(RGTextureDesc const& rg_tex_desc, GfxTextureDesc& tex_desc)
 	{
 		tex_desc.type = rg_tex_desc.type;
 		tex_desc.width = rg_tex_desc.width;
@@ -44,7 +44,7 @@ namespace adria
 		tex_desc.bind_flags = GfxBindFlag::None;
 		tex_desc.initial_state = GfxResourceState::Common;
 	}
-	static void FillBufferDesc(RGBufferDesc const& rg_buf_desc, GfxBufferDesc& buf_desc)
+	inline void InitGfxBufferDesc(RGBufferDesc const& rg_buf_desc, GfxBufferDesc& buf_desc)
 	{
 		buf_desc.size = rg_buf_desc.size;
 		buf_desc.stride = rg_buf_desc.stride;
@@ -52,6 +52,28 @@ namespace adria
 		buf_desc.misc_flags = rg_buf_desc.misc_flags;
 		buf_desc.format = rg_buf_desc.format;
 		buf_desc.bind_flags = GfxBindFlag::None;
+	}
+	inline void ExtractRGTextureDesc(GfxTextureDesc const& tex_desc, RGTextureDesc& rg_tex_desc)
+	{
+		rg_tex_desc.type = tex_desc.type;
+		rg_tex_desc.width = tex_desc.width;
+		rg_tex_desc.height = tex_desc.height;
+		rg_tex_desc.depth = tex_desc.depth;
+		rg_tex_desc.array_size = tex_desc.array_size;
+		rg_tex_desc.mip_levels = tex_desc.mip_levels;
+		rg_tex_desc.format = tex_desc.format;
+		rg_tex_desc.sample_count = tex_desc.sample_count;
+		rg_tex_desc.heap_type = tex_desc.heap_type;
+		rg_tex_desc.misc_flags = tex_desc.misc_flags;
+		rg_tex_desc.clear_value = tex_desc.clear_value;
+	}
+	inline void ExtractRGBufferDesc(GfxBufferDesc const& buf_desc, RGBufferDesc& rg_buf_desc)
+	{
+		rg_buf_desc.size = buf_desc.size;
+		rg_buf_desc.stride = buf_desc.stride;
+		rg_buf_desc.resource_usage = buf_desc.resource_usage;
+		rg_buf_desc.misc_flags = buf_desc.misc_flags;
+		rg_buf_desc.format = buf_desc.format;
 	}
 
 	class RenderGraphBuilder
@@ -125,6 +147,8 @@ namespace adria
 		}
 
 		void SetViewport(uint32 width, uint32 height);
+		RGTextureDesc GetTextureDesc(RGResourceName);
+		RGBufferDesc  GetBufferDesc(RGResourceName);
 		void AddBufferBindFlags(RGResourceName name, GfxBindFlag flags);
 		void AddTextureBindFlags(RGResourceName name, GfxBindFlag flags);
 	private:

@@ -120,6 +120,10 @@ namespace adria
 
 		RGTextureId GetTextureId(RGResourceName);
 		RGBufferId GetBufferId(RGResourceName);
+
+		RGTextureDesc GetTextureDesc(RGResourceName);
+		RGBufferDesc  GetBufferDesc(RGResourceName);
+
 		void AddBufferBindFlags(RGResourceName name, GfxBindFlag flags);
 		void AddTextureBindFlags(RGResourceName name, GfxBindFlag flags);
 

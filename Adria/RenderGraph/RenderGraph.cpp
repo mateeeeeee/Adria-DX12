@@ -22,7 +22,7 @@ namespace adria
 	RGTextureId RenderGraph::DeclareTexture(RGResourceName name, RGTextureDesc const& desc)
 	{
 		ADRIA_ASSERT(texture_name_id_map.find(name) == texture_name_id_map.end() && "Texture with that name has already been declared");
-		GfxTextureDesc tex_desc{}; FillTextureDesc(desc, tex_desc);
+		GfxTextureDesc tex_desc{}; InitGfxTextureDesc(desc, tex_desc);
 		textures.emplace_back(new RGTexture(textures.size(), tex_desc, name));
 		texture_name_id_map[name] = RGTextureId(textures.size() - 1);
 		return RGTextureId(textures.size() - 1);
@@ -31,7 +31,7 @@ namespace adria
 	RGBufferId RenderGraph::DeclareBuffer(RGResourceName name, RGBufferDesc const& desc)
 	{
 		ADRIA_ASSERT(buffer_name_id_map.find(name) == buffer_name_id_map.end() && "Buffer with that name has already been declared");
-		GfxBufferDesc buf_desc{}; FillBufferDesc(desc, buf_desc);
+		GfxBufferDesc buf_desc{}; InitGfxBufferDesc(desc, buf_desc);
 		buffers.emplace_back(new RGBuffer(buffers.size(), buf_desc, name));
 		buffer_name_id_map[name] = RGBufferId(buffers.size() - 1);
 		return RGBufferId(buffers.size() - 1);
@@ -565,6 +565,24 @@ namespace adria
 	{
 		ADRIA_ASSERT(IsBufferDeclared(name));
 		return buffer_name_id_map[name];
+	}
+
+	RGTextureDesc RenderGraph::GetTextureDesc(RGResourceName name)
+	{
+		ADRIA_ASSERT(IsTextureDeclared(name));
+		RGTextureId tex_id = texture_name_id_map[name];
+		RGTextureDesc desc{};
+		ExtractRGTextureDesc(GetRGTexture(tex_id)->desc, desc);
+		return desc;
+	}
+
+	RGBufferDesc RenderGraph::GetBufferDesc(RGResourceName name)
+	{
+		ADRIA_ASSERT(IsBufferDeclared(name));
+		RGBufferId buf_id = buffer_name_id_map[name];
+		RGBufferDesc desc{};
+		ExtractRGBufferDesc(GetRGBuffer(buf_id)->desc, desc);
+		return desc;
 	}
 
 	void RenderGraph::AddBufferBindFlags(RGResourceName name, GfxBindFlag flags)

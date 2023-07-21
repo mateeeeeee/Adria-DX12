@@ -313,6 +313,16 @@ namespace adria
 		rg_pass.viewport_height = height;
 	}
 
+	RGTextureDesc RenderGraphBuilder::GetTextureDesc(RGResourceName name)
+	{
+		return rg.GetTextureDesc(name);
+	}
+
+	RGBufferDesc RenderGraphBuilder::GetBufferDesc(RGResourceName name)
+	{
+		return rg.GetBufferDesc(name);
+	}
+
 	void RenderGraphBuilder::AddBufferBindFlags(RGResourceName name, GfxBindFlag flags)
 	{
 		rg.AddBufferBindFlags(name, flags);
