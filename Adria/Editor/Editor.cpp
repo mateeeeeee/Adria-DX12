@@ -1159,7 +1159,23 @@ namespace adria
 		if (!window_flags[Flag_Debug]) return;
 		if(ImGui::Begin(ICON_FA_BUG" Debug", &window_flags[Flag_Debug]))
 		{
-			cvars::dump_render_graph = ImGui::Button("Dump render graph");
+			if (ImGui::TreeNode("Render Graph"))
+			{
+				cvars::dump_render_graph = ImGui::Button("Dump render graph");
+				ImGui::TreePop();
+			}
+
+			if (ImGui::TreeNode("PIX"))
+			{
+				static int frame_count = 1;
+				ImGui::SliderInt("Number of capture frames", &frame_count, 1, 10);
+				if (ImGui::Button("Take capture"))
+				{
+					gfx->TakePixCapture(frame_count);
+				}
+				ImGui::TreePop();
+			}
+
 			
 			for (auto& cmd : debug_commands)
 			{

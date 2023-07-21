@@ -363,6 +363,14 @@ namespace adria
 	}
 
 
+	void GfxDevice::TakePixCapture(uint32 num_frames)
+	{
+		if (!pix_dll_loaded) LoadPixDLL();
+		HRESULT hr = PIXGpuCaptureNextFrames(L"adria.wpix", num_frames);
+		GFX_CHECK_HR(hr);
+		ADRIA_LOG(INFO, "[PIX] Capturing %d frames to file %s...", num_frames, "adria.wpix");
+	}
+
 	IDXGIFactory4* GfxDevice::GetFactory() const
 	{
 		return dxgi_factory.Get();
@@ -612,6 +620,14 @@ namespace adria
 			}
 		}
 	}
+
+	void GfxDevice::LoadPixDLL()
+	{
+		PIXLoadLatestWinPixGpuCapturerLibrary();
+		pix_dll_loaded = true;
+		ADRIA_LOG(INFO, "[PIX] Pix DLL loaded!");
+	}
+
 	void GfxDevice::SetupOptions(GfxOptions const& options, uint32& dxgi_factory_flags)
 	{
 		if (options.debug_layer)
@@ -659,7 +675,7 @@ namespace adria
 #endif
 			}
 		}
-		if (options.pix) PIXLoadLatestWinPixGpuCapturerLibrary();
+		if (options.pix) LoadPixDLL();
 	}
 
 	void GfxDevice::CreateCommonRootSignature()
