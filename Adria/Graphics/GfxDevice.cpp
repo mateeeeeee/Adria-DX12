@@ -365,10 +365,17 @@ namespace adria
 
 	void GfxDevice::TakePixCapture(uint32 num_frames)
 	{
-		if (!pix_dll_loaded) LoadPixDLL();
-		HRESULT hr = PIXGpuCaptureNextFrames(L"adria.wpix", num_frames);
+		if (!pix_dll_loaded)
+		{
+			ADRIA_LOG(WARNING, "All PIX capture requests are ignored because PIX dll wasn't loaded! Did you pass -pix as a command line argument?");
+			return;
+		}
+		static uint32 capture_index = 0;
+		std::wstring capture_name = L"adria";
+		capture_name += std::to_wstring(capture_index++) + L".wpix";
+		HRESULT hr = PIXGpuCaptureNextFrames(capture_name.data(), num_frames);
 		GFX_CHECK_HR(hr);
-		ADRIA_LOG(INFO, "[PIX] Capturing %d frames to file %s...", num_frames, "adria.wpix");
+		ADRIA_LOG(INFO, "Capturing %d frames...", num_frames);
 	}
 
 	IDXGIFactory4* GfxDevice::GetFactory() const
@@ -621,13 +628,6 @@ namespace adria
 		}
 	}
 
-	void GfxDevice::LoadPixDLL()
-	{
-		PIXLoadLatestWinPixGpuCapturerLibrary();
-		pix_dll_loaded = true;
-		ADRIA_LOG(INFO, "[PIX] Pix DLL loaded!");
-	}
-
 	void GfxDevice::SetupOptions(GfxOptions const& options, uint32& dxgi_factory_flags)
 	{
 		if (options.debug_layer)
@@ -643,7 +643,7 @@ namespace adria
 				ADRIA_LOG(WARNING, "D3D12 Debug Layer Enabled in Release Mode");
 #endif
 			}
-			else ADRIA_LOG(WARNING, "debug layer setup failed!");
+			else ADRIA_LOG(WARNING, "Debug layer setup failed!");
 		}
 		if (options.dred)
 		{
@@ -675,7 +675,12 @@ namespace adria
 #endif
 			}
 		}
-		if (options.pix) LoadPixDLL();
+		if (options.pix)
+		{
+			PIXLoadLatestWinPixGpuCapturerLibrary();
+			pix_dll_loaded = true;
+			ADRIA_LOG(INFO, "PIX dll loaded!");
+		}
 	}
 
 	void GfxDevice::CreateCommonRootSignature()

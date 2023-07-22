@@ -21,7 +21,7 @@ namespace adria
 		ForceNoCull = 0x01,						//RGPass cannot be culled by Render Graph
 		SkipAutoRenderPass = 0x02,				//RGPass will manage render targets by himself
 		LegacyRenderPass = 0x04,				//Don't use DX12 Render Passes, use OMSetRenderTargets
-		AllowUAVWrites = 0x08 					//Allow uav writes, only makes sense if LegacyRenderPassEnabled is disabled
+		AllowUAVWrites = 0x08 					//Allow uav writes, only makes sense if LegacyRenderPassEnabled is not used
 	};
 	DEFINE_ENUM_BIT_OPERATORS(RGPassFlags);
 
@@ -98,7 +98,7 @@ namespace adria
 
 	public:
 		explicit RenderGraphPassBase(char const* name, RGPassType type = RGPassType::Graphics, RGPassFlags flags = RGPassFlags::None)
-			: id(unique_pass_id++), name(name), type(type), flags(flags) {}
+			: name(name), type(type), flags(flags) {}
 		virtual ~RenderGraphPassBase() = default;
 
 	protected:
@@ -113,11 +113,11 @@ namespace adria
 		bool AllowUAVWrites() const { return HasAnyFlag(flags, RGPassFlags::AllowUAVWrites); }
 
 	private:
-		uint32 const id;
 		std::string const name;
 		size_t ref_count = 0ull;
 		RGPassType type;
 		RGPassFlags flags = RGPassFlags::None;
+		size_t id;
 
 		std::unordered_set<RGTextureId> texture_creates;
 		std::unordered_set<RGTextureId> texture_reads;

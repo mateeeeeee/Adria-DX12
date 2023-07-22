@@ -946,19 +946,7 @@ namespace adria
 				render_pass_desc.rtv_attachments.reserve(pass->render_targets_info.size());
 				for (auto const& render_target_info : pass->render_targets_info)
 				{
-					RGTextureId rt_texture = render_target_info.render_target_handle.GetResourceId();
-					GfxTexture* texture = rg.GetTexture(rt_texture);
-
 					GfxColorAttachmentDesc rtv_desc{};
-					GfxTextureDesc const& desc = texture->GetDesc();
-					GfxClearValue const& clear_value = desc.clear_value;
-					if (clear_value.active_member != GfxClearValue::GfxActiveMember::None)
-					{
-						ADRIA_ASSERT(clear_value.active_member == GfxClearValue::GfxActiveMember::Color && "Invalid Clear Value for Render Target");
-						rtv_desc.clear_value = desc.clear_value;
-						rtv_desc.clear_value.format = desc.format;
-					}
-					rtv_desc.cpu_handle = rg.GetRenderTarget(render_target_info.render_target_handle);
 
 					RGLoadAccessOp load_access = RGLoadAccessOp::NoAccess;
 					RGStoreAccessOp store_access = RGStoreAccessOp::NoAccess;
@@ -1000,25 +988,32 @@ namespace adria
 						ADRIA_ASSERT(false && "Invalid Store Access!");
 					}
 
+					RGTextureId rt_texture = render_target_info.render_target_handle.GetResourceId();
+					GfxTexture* texture = rg.GetTexture(rt_texture);
+
+					GfxTextureDesc const& desc = texture->GetDesc();
+					GfxClearValue const& clear_value = desc.clear_value;
+					if (clear_value.active_member != GfxClearValue::GfxActiveMember::None)
+					{
+						ADRIA_ASSERT(clear_value.active_member == GfxClearValue::GfxActiveMember::Color && "Invalid Clear Value for Render Target");
+						rtv_desc.clear_value = desc.clear_value;
+						rtv_desc.clear_value.format = desc.format;
+					}
+					else if(rtv_desc.beginning_access == GfxLoadAccessOp::Clear)
+					{
+						rtv_desc.clear_value.format = desc.format;
+						rtv_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
+					}
+
+					rtv_desc.cpu_handle = rg.GetRenderTarget(render_target_info.render_target_handle);
 					render_pass_desc.rtv_attachments.push_back(rtv_desc);
 				}
 
 				if (pass->depth_stencil.has_value())
 				{
 					auto const& depth_stencil_info = pass->depth_stencil.value();
-					RGTextureId ds_texture = depth_stencil_info.depth_stencil_handle.GetResourceId();
-					GfxTexture* texture = rg.GetTexture(ds_texture);
-
+					
 					GfxDepthAttachmentDesc dsv_desc{};
-					GfxTextureDesc const& desc = texture->GetDesc();
-					if (desc.clear_value.active_member != GfxClearValue::GfxActiveMember::None)
-					{
-						ADRIA_ASSERT(desc.clear_value.active_member == GfxClearValue::GfxActiveMember::DepthStencil && "Invalid Clear Value for Depth Stencil");
-						dsv_desc.clear_value = desc.clear_value;
-						dsv_desc.clear_value.format = desc.format;
-					}
-					dsv_desc.cpu_handle = rg.GetDepthStencil(depth_stencil_info.depth_stencil_handle);
-
 					RGLoadAccessOp load_access = RGLoadAccessOp::NoAccess;
 					RGStoreAccessOp store_access = RGStoreAccessOp::NoAccess;
 					SplitAccessOp(depth_stencil_info.depth_access, load_access, store_access);
@@ -1058,6 +1053,25 @@ namespace adria
 					default:
 						ADRIA_ASSERT(false && "Invalid Store Access!");
 					}
+
+					RGTextureId ds_texture = depth_stencil_info.depth_stencil_handle.GetResourceId();
+					GfxTexture* texture = rg.GetTexture(ds_texture);
+
+					GfxTextureDesc const& desc = texture->GetDesc();
+					if (desc.clear_value.active_member != GfxClearValue::GfxActiveMember::None)
+					{
+						ADRIA_ASSERT(desc.clear_value.active_member == GfxClearValue::GfxActiveMember::DepthStencil && "Invalid Clear Value for Depth Stencil");
+						dsv_desc.clear_value = desc.clear_value;
+						dsv_desc.clear_value.format = desc.format;
+					}
+					else if (dsv_desc.depth_beginning_access == GfxLoadAccessOp::Clear)
+					{
+						dsv_desc.clear_value.format = desc.format;
+						dsv_desc.clear_value = GfxClearValue(0.0f, 0);
+					}
+
+					dsv_desc.cpu_handle = rg.GetDepthStencil(depth_stencil_info.depth_stencil_handle);
+
 					//todo add stencil
 					render_pass_desc.dsv_attachment = dsv_desc;
 				}

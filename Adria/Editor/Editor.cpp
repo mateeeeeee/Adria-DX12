@@ -28,6 +28,8 @@ using namespace DirectX;
 
 namespace adria
 {
+	bool dump_render_graph = false;
+
 	namespace cvars
 	{
 		static ConsoleVariable ao_cvar("ao", 1);
@@ -43,7 +45,6 @@ namespace adria
 		static ConsoleVariable motion_blur("motionblur", false);
 		static ConsoleVariable fog("fog", false);
 
-		bool dump_render_graph = false;
 		ConsoleCommand<> dump_render_graph_cmd("dump.rendergraph", []() { dump_render_graph = true; });
 	}
 
@@ -949,8 +950,6 @@ namespace adria
 				current_render_path_type = 0;
 			}
 
-
-
 			static const char* ao_types[] = { "None", "SSAO", "HBAO", "RTAO" };
 			const char* ao_combo_label = ao_types[current_ao_type];
 			if (ImGui::BeginCombo("Ambient Occlusion", ao_combo_label, 0))
@@ -1161,7 +1160,7 @@ namespace adria
 		{
 			if (ImGui::TreeNode("Render Graph"))
 			{
-				cvars::dump_render_graph = ImGui::Button("Dump render graph");
+				dump_render_graph = ImGui::Button("Dump render graph");
 				ImGui::TreePop();
 			}
 
