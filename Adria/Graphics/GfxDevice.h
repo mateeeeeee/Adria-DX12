@@ -204,7 +204,6 @@ namespace adria
 		bool pix_dll_loaded = false;
 
 	private:
-		void LoadPixDLL();
 		void SetupOptions(GfxOptions const& options, uint32& dxgi_factory_flags);
 		void SetInfoQueue();
 		void CreateCommonRootSignature();

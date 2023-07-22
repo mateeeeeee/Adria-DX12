@@ -57,9 +57,10 @@ namespace adria
 		[[maybe_unused]] decltype(auto) AddPass(Args&&... args)
 		{
 			passes.emplace_back(std::make_unique<RenderGraphPass<PassData>>(std::forward<Args>(args)...));
-			RenderGraphBuilder builder(*this, *passes.back());
-			passes.back()->Setup(builder);
-			return *dynamic_cast<RenderGraphPass<PassData>*>(passes.back().get());
+			std::unique_ptr<RGPassBase>& pass = passes.back(); pass->id = passes.size() - 1;
+			RenderGraphBuilder builder(*this, *pass);
+			pass->Setup(builder);
+			return *dynamic_cast<RenderGraphPass<PassData>*>(pass.get());
 		}
 
 		void ImportTexture(RGResourceName name, GfxTexture* texture);

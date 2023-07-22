@@ -29,11 +29,7 @@ using namespace DirectX;
 
 namespace adria
 {
-	namespace cvars
-	{
-		extern bool dump_render_graph;
-	}
-	using namespace cvars;
+	extern bool dump_render_graph;
 
 	Renderer::Renderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx),
 		accel_structure(gfx), camera(nullptr), width(width), height(height),
