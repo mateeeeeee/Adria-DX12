@@ -1,5 +1,6 @@
 #include "GfxLinearDynamicAllocator.h"
 #include "GfxBuffer.h"
+#include "GfxDevice.h"
 
 namespace adria
 {
@@ -34,14 +35,26 @@ namespace adria
 		else
 		{
 			++current_page;
-			GfxAllocationPage& last_page = current_page < alloc_pages.size() ? alloc_pages[current_page] : alloc_pages.emplace_back(gfx, page_size);
+			GfxAllocationPage& last_page = current_page < alloc_pages.size() ? alloc_pages[current_page] : alloc_pages.emplace_back(gfx, std::max(size_in_bytes, page_size));
 			return Allocate(size_in_bytes, alignment);
 		}
 	}
 	void GfxLinearDynamicAllocator::Clear()
 	{
-		std::lock_guard<std::mutex> guard(alloc_mutex);
-		for (auto& page : alloc_pages) page.linear_allocator.Clear();
+		{
+			std::lock_guard<std::mutex> guard(alloc_mutex);
+			for (auto& page : alloc_pages) page.linear_allocator.Clear();
+		}
+		
+		uint32 i = gfx->GetFrameIndex() % PAGE_COUNT_HISTORY_SIZE;
+		used_page_count_history[i] = current_page;
+		uint64 max_used_page_count = 0;
+		for (uint32 j = 0; j < PAGE_COUNT_HISTORY_SIZE; ++j) max_used_page_count = std::max(max_used_page_count, used_page_count_history[j]);
+		if (max_used_page_count < alloc_pages.size())
+		{
+			while (alloc_pages.size() == max_used_page_count) 
+				alloc_pages.pop_back();
+		}
 		current_page = 0;
 	}
 
@@ -57,6 +70,7 @@ namespace adria
 		cpu_address = buffer->GetMappedData();
 	}
 	GfxLinearDynamicAllocator::GfxAllocationPage::GfxAllocationPage(GfxAllocationPage&&) = default;
+
 	GfxLinearDynamicAllocator::GfxAllocationPage::~GfxAllocationPage() = default;
 
 }

@@ -77,6 +77,7 @@ namespace adria
 
 		void BeginFrame();
 		void EndFrame(bool vsync = false);
+		void TakePixCapture(uint32 num_frames);
 
 		IDXGIFactory4* GetFactory() const;
 		ID3D12Device5* GetDevice() const;
@@ -199,6 +200,8 @@ namespace adria
 		};
 		std::unique_ptr<DRED> dred;
 		bool rendering_not_started = true;
+
+		bool pix_dll_loaded = false;
 
 	private:
 		void SetupOptions(GfxOptions const& options, uint32& dxgi_factory_flags);

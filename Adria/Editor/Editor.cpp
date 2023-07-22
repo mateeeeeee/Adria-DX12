@@ -28,6 +28,8 @@ using namespace DirectX;
 
 namespace adria
 {
+	bool dump_render_graph = false;
+
 	namespace cvars
 	{
 		static ConsoleVariable ao_cvar("ao", 1);
@@ -42,6 +44,8 @@ namespace adria
 		static ConsoleVariable bloom("bloom", true);
 		static ConsoleVariable motion_blur("motionblur", false);
 		static ConsoleVariable fog("fog", false);
+
+		ConsoleCommand<> dump_render_graph_cmd("dump.rendergraph", []() { dump_render_graph = true; });
 	}
 
 	struct ProfilerState
@@ -119,9 +123,10 @@ namespace adria
 	{
 		commands.emplace_back(std::move(command));
 	}
-	void Editor::AddDebugCommand(GUICommand_Debug&& command)
+
+	void Editor::AddDebugTexture(GUITexture&& debug_texture)
 	{
-		debug_commands.emplace_back(std::move(command));
+		debug_textures.emplace_back(std::move(debug_texture));
 	}
 
 	void Editor::AddRenderPass(RenderGraph& rg)
@@ -160,7 +165,7 @@ namespace adria
 				}
 				gui->End(cmd_list);
 				commands.clear();
-				debug_commands.clear();
+				debug_textures.clear();
 			}, RGPassType::Graphics, RGPassFlags::ForceNoCull | RGPassFlags::LegacyRenderPass);
 	}
 
@@ -392,6 +397,7 @@ namespace adria
 				{
 					OceanParameters params{};
 					params.ocean_grid = std::move(ocean_params);
+					gfx->WaitForGPU();
 					engine->entity_loader->LoadOcean(params);
 				}
 
@@ -946,8 +952,6 @@ namespace adria
 				current_render_path_type = 0;
 			}
 
-
-
 			static const char* ao_types[] = { "None", "SSAO", "HBAO", "RTAO" };
 			const char* ao_combo_label = ao_types[current_ao_type];
 			if (ImGui::BeginCombo("Ambient Occlusion", ao_combo_label, 0))
@@ -1156,10 +1160,40 @@ namespace adria
 		if (!window_flags[Flag_Debug]) return;
 		if(ImGui::Begin(ICON_FA_BUG" Debug", &window_flags[Flag_Debug]))
 		{
-			for (auto& cmd : debug_commands)
+			if (ImGui::TreeNode("Render Graph"))
 			{
-				GfxDescriptor gui_descriptor = gui->AllocateDescriptorsGPU();
-				cmd.callback(&gui_descriptor);
+				dump_render_graph = ImGui::Button("Dump render graph");
+				ImGui::TreePop();
+			}
+
+			if (ImGui::TreeNode("PIX"))
+			{
+				static int frame_count = 1;
+				ImGui::SliderInt("Number of capture frames", &frame_count, 1, 10);
+				if (ImGui::Button("Take capture"))
+				{
+					gfx->TakePixCapture(frame_count);
+				}
+				ImGui::TreePop();
+			}
+
+			if (ImGui::TreeNode("Textures"))
+			{
+				for (int32 i = 0; i < debug_textures.size(); ++i)
+				{
+					ImGui::PushID(i);
+					auto& debug_texture = debug_textures[i];
+					ImGui::Text(debug_texture.name);
+					GfxDescriptor tex_handle = gfx->CreateTextureSRV(debug_texture.gfx_texture);
+					GfxDescriptor dst_descriptor = gui->AllocateDescriptorsGPU();
+					gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
+					uint32 width = debug_texture.gfx_texture->GetDesc().width;
+					uint32 height = debug_texture.gfx_texture->GetDesc().width;
+					float window_width = ImGui::GetWindowWidth();
+					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, ImVec2(window_width * 0.9f, window_width * 0.9f * (float)height / width));
+					ImGui::PopID();
+				}
+				ImGui::TreePop();
 			}
 		}
 		ImGui::End();

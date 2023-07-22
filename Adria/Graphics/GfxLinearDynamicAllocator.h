@@ -12,6 +12,7 @@ namespace adria
 	
 	class GfxLinearDynamicAllocator
 	{
+		static constexpr uint32 PAGE_COUNT_HISTORY_SIZE = 8;
 		struct GfxAllocationPage
 		{
 			std::unique_ptr<GfxBuffer> buffer;
@@ -38,7 +39,8 @@ namespace adria
 		GfxDevice* gfx;
 		std::mutex alloc_mutex;
 		std::vector<GfxAllocationPage> alloc_pages;
-		size_t const page_size;
-		size_t current_page = 0;
+		uint64 const page_size;
+		uint64 current_page = 0;
+		uint64 used_page_count_history[PAGE_COUNT_HISTORY_SIZE];
 	};
 }

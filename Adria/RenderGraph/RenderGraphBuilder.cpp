@@ -71,7 +71,7 @@ namespace adria
 		RGTextureCopyDstId copy_dst_id = rg.WriteCopyDstTexture(name);
 		RGTextureId res_id(copy_dst_id);
 		rg_pass.texture_state_map[res_id] = GfxResourceState::CopyDest;
-		if (!rg_pass.texture_creates.contains(res_id) && !rg_pass.ActAsCreatorWhenWriting())
+		if (!rg_pass.texture_creates.contains(res_id))
 		{
 			DummyReadTexture(name);
 		}
@@ -118,7 +118,7 @@ namespace adria
 		RGTextureReadWriteId read_write_id = rg.WriteTexture(name, desc);
 		RGTextureId res_id = read_write_id.GetResourceId();
 		rg_pass.texture_state_map[res_id] = GfxResourceState::UnorderedAccess;
-		if (!rg_pass.texture_creates.contains(res_id) && !rg_pass.ActAsCreatorWhenWriting())
+		if (!rg_pass.texture_creates.contains(res_id))
 		{
 			DummyReadTexture(name);
 		}
@@ -135,7 +135,7 @@ namespace adria
 		RGTextureId res_id = render_target_id.GetResourceId();
 		rg_pass.texture_state_map[res_id] = GfxResourceState::RenderTarget;
 		rg_pass.render_targets_info.push_back(RenderGraphPassBase::RenderTargetInfo{ .render_target_handle = render_target_id, .render_target_access = load_store_op });
-		if (!rg_pass.texture_creates.contains(res_id) && !rg_pass.ActAsCreatorWhenWriting())
+		if (!rg_pass.texture_creates.contains(res_id))
 		{
 			DummyReadTexture(name);
 		}
@@ -152,7 +152,7 @@ namespace adria
 		RGTextureId res_id = depth_stencil_id.GetResourceId();
 		rg_pass.texture_state_map[res_id] = GfxResourceState::DepthWrite;
 		rg_pass.depth_stencil = RenderGraphPassBase::DepthStencilInfo{ .depth_stencil_handle = depth_stencil_id, .depth_access = load_store_op,.stencil_access = stencil_load_store_op, .readonly = false };
-		if (!rg_pass.texture_creates.contains(res_id) && !rg_pass.ActAsCreatorWhenWriting())
+		if (!rg_pass.texture_creates.contains(res_id))
 		{
 			DummyReadTexture(name);
 		}
@@ -191,7 +191,7 @@ namespace adria
 		RGBufferCopyDstId copy_dst_id = rg.WriteCopyDstBuffer(name);
 		RGBufferId res_id(copy_dst_id);
 		rg_pass.buffer_state_map[res_id] = GfxResourceState::CopyDest;
-		if (!rg_pass.buffer_creates.contains(res_id) && !rg_pass.ActAsCreatorWhenWriting())
+		if (!rg_pass.buffer_creates.contains(res_id))
 		{
 			DummyReadBuffer(name);
 		}
@@ -275,7 +275,7 @@ namespace adria
 		RGBufferReadWriteId read_write_id = rg.WriteBuffer(name, desc);
 		RGBufferId res_id = read_write_id.GetResourceId();
 		rg_pass.buffer_state_map[res_id] = GfxResourceState::UnorderedAccess;
-		if (!rg_pass.buffer_creates.contains(res_id) && !rg_pass.ActAsCreatorWhenWriting())
+		if (!rg_pass.buffer_creates.contains(res_id))
 		{
 			DummyReadBuffer(name);
 		}
@@ -296,7 +296,7 @@ namespace adria
 		rg_pass.buffer_state_map[res_id] = GfxResourceState::UnorderedAccess;
 		rg_pass.buffer_state_map[counter_id] = GfxResourceState::UnorderedAccess;
 		DummyWriteBuffer(counter_name);
-		if (!rg_pass.buffer_creates.contains(res_id) && !rg_pass.ActAsCreatorWhenWriting())
+		if (!rg_pass.buffer_creates.contains(res_id))
 		{
 			DummyReadBuffer(name);
 			DummyReadBuffer(counter_name);
@@ -311,6 +311,16 @@ namespace adria
 	{
 		rg_pass.viewport_width = width;
 		rg_pass.viewport_height = height;
+	}
+
+	RGTextureDesc RenderGraphBuilder::GetTextureDesc(RGResourceName name)
+	{
+		return rg.GetTextureDesc(name);
+	}
+
+	RGBufferDesc RenderGraphBuilder::GetBufferDesc(RGResourceName name)
+	{
+		return rg.GetBufferDesc(name);
 	}
 
 	void RenderGraphBuilder::AddBufferBindFlags(RGResourceName name, GfxBindFlag flags)

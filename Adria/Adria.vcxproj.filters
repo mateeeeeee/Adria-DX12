@@ -1227,6 +1227,7 @@
     <None Include="Resources\NewShaders\DDGI\DDGICommon.hlsli">
       <Filter>Shaders\DDGI</Filter>
     </None>
+    <None Include="imgui.ini" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="adria.log" />

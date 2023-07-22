@@ -74,7 +74,7 @@ namespace adria
 				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 			}, RGPassType::Compute);
 
-		AddGUI([&]() {
+		GUI_RunCommand([&]() {
 			if (ImGui::TreeNodeEx("Screen-Space Reflections", 0))
 			{
 				ImGui::SliderFloat("Ray Step", &params.ssr_ray_step, 1.0f, 3.0f);

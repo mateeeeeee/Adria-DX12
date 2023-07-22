@@ -28,15 +28,11 @@ namespace adria
 		rendergraph.AddPass<BlurPassData>(name.c_str(),
 			[=](BlurPassData& data, RenderGraphBuilder& builder)
 			{
-				RGTextureDesc blur_desc{};
-				blur_desc.width = width;
-				blur_desc.height = height;
-				blur_desc.format = GfxFormat::R16G16B16A16_FLOAT;
+				RGTextureDesc blur_desc = builder.GetTextureDesc(src_texture);
 
 				builder.DeclareTexture(RG_RES_NAME_IDX(Intermediate, counter), blur_desc);
 				data.dst_texture = builder.WriteTexture(RG_RES_NAME_IDX(Intermediate, counter));
 				data.src_texture = builder.ReadTexture(src_texture, ReadAccess_NonPixelShader);
-
 				builder.SetViewport(width, height);
 			},
 			[=](BlurPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
@@ -65,11 +61,7 @@ namespace adria
 		rendergraph.AddPass<BlurPassData>(name.c_str(),
 			[=](BlurPassData& data, RenderGraphBuilder& builder)
 			{
-				RGTextureDesc blur_desc{};
-				blur_desc.width = width;
-				blur_desc.height = height;
-				blur_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-
+				RGTextureDesc blur_desc = builder.GetTextureDesc(src_texture);
 				builder.DeclareTexture(blurred_texture, blur_desc);
 				data.dst_texture = builder.WriteTexture(blurred_texture);
 				data.src_texture = builder.ReadTexture(RG_RES_NAME_IDX(Intermediate, counter), ReadAccess_NonPixelShader);

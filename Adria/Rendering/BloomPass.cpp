@@ -36,7 +36,7 @@ namespace adria
 		BloomBlackboardData blackboard_data{ .bloom_intensity = params.bloom_intensity, .bloom_blend_factor = params.bloom_blend_factor };
 		rg.GetBlackboard().Add<BloomBlackboardData>(std::move(blackboard_data));
 
-		AddGUI([&]()
+		GUI_RunCommand([&]()
 			{
 				if (ImGui::TreeNodeEx("Bloom", 0))
 				{

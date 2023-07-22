@@ -44,9 +44,8 @@ namespace adria
 		}
 
 	public:
-		ConsoleCommand(const char* name, std::function<void(Args...)>&& cmd_fn)
-			: IConsoleCommand(name), fn(std::move(cmd_fn))
-		{}
+		ConsoleCommand(char const* name, std::function<void(Args...)>&& cmd_fn)
+			: IConsoleCommand(name), fn(std::move(cmd_fn)) {}
 
 		virtual bool Execute(std::span<char const*> args) override
 		{

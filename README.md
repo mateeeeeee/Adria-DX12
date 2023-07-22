@@ -7,6 +7,7 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 	- Resource reuse using resource pool
 	- Automatic resource bind flags and initial state deduction
 	- Pass culling
+    - Graph visualization
 * Reference path tracer 
 * GPU-Driven Rendering
     - GPU frustum culling
@@ -116,3 +117,6 @@ Path Tracer
     <td><img src="Screenshots/rtao.png"></td>
   </tr>
 </table>
+
+Render graph visualization
+![alt text](Adria/rendergraph.svg "Render graph visualization") 

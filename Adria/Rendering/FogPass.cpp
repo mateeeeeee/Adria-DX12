@@ -74,7 +74,7 @@ namespace adria
 				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 
-		AddGUI([&]() 
+		GUI_RunCommand([&]() 
 			{
 				if(ImGui::TreeNodeEx("Fog", 0))
 				{

@@ -14,14 +14,14 @@ namespace adria
 		ComputeAsync,
 		Copy
 	};
+
 	enum class RGPassFlags : uint32
 	{
 		None = 0x00,
 		ForceNoCull = 0x01,						//RGPass cannot be culled by Render Graph
-		AllowUAVWrites = 0x02,					//Allow uav writes, only makes sense if LegacyRenderPassEnabled is disabled
-		SkipAutoRenderPass = 0x04,				//RGPass will manage render targets by himself
-		LegacyRenderPass = 0x08,				//Don't use DX12 Render Passes, use OMSetRenderTargets
-		ActAsCreatorWhenWriting = 0x10			//When writing to a resource, avoid forcing dependency by acting as a creator
+		SkipAutoRenderPass = 0x02,				//RGPass will manage render targets by himself
+		LegacyRenderPass = 0x04,				//Don't use DX12 Render Passes, use OMSetRenderTargets
+		AllowUAVWrites = 0x08 					//Allow uav writes, only makes sense if LegacyRenderPassEnabled is not used
 	};
 	DEFINE_ENUM_BIT_OPERATORS(RGPassFlags);
 
@@ -94,6 +94,8 @@ namespace adria
 			bool readonly;
 		};
 
+		inline static uint32 unique_pass_id = 0;
+
 	public:
 		explicit RenderGraphPassBase(char const* name, RGPassType type = RGPassType::Graphics, RGPassFlags flags = RGPassFlags::None)
 			: name(name), type(type), flags(flags) {}
@@ -109,12 +111,13 @@ namespace adria
 		bool SkipAutoRenderPassSetup() const { return HasAnyFlag(flags, RGPassFlags::SkipAutoRenderPass); }
 		bool UseLegacyRenderPasses() const { return HasAnyFlag(flags, RGPassFlags::LegacyRenderPass); }
 		bool AllowUAVWrites() const { return HasAnyFlag(flags, RGPassFlags::AllowUAVWrites); }
-		bool ActAsCreatorWhenWriting() const { return HasAnyFlag(flags, RGPassFlags::ActAsCreatorWhenWriting); };
+
 	private:
 		std::string const name;
 		size_t ref_count = 0ull;
 		RGPassType type;
 		RGPassFlags flags = RGPassFlags::None;
+		size_t id;
 
 		std::unordered_set<RGTextureId> texture_creates;
 		std::unordered_set<RGTextureId> texture_reads;
@@ -209,4 +212,16 @@ namespace adria
 
 	template<typename PassData>
 	using RGPass = RenderGraphPass<PassData>;
+
+	inline std::string RGPassTypeToString(RGPassType type)
+	{
+		switch (type)
+		{
+		case RGPassType::Graphics: return "Graphics";
+		case RGPassType::Compute: return "Compute";
+		case RGPassType::ComputeAsync: return "ComputeAsync";
+		case RGPassType::Copy: return "Copy";
+		}
+		return "Invalid";
+	}
 };

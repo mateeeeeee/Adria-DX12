@@ -1,4 +1,5 @@
 #include <format>
+#include <fstream>
 #include <pix3.h>
 #include "RenderGraph.h"
 #include "Graphics/GfxCommandList.h"
@@ -6,6 +7,7 @@
 #include "Graphics/GfxProfiler.h"
 #include "Graphics/GfxTracyProfiler.h"
 #include "Utilities/StringUtil.h"
+#include "Utilities/FilesUtil.h"
 #include "Logging/Logger.h"
 
 
@@ -20,7 +22,7 @@ namespace adria
 	RGTextureId RenderGraph::DeclareTexture(RGResourceName name, RGTextureDesc const& desc)
 	{
 		ADRIA_ASSERT(texture_name_id_map.find(name) == texture_name_id_map.end() && "Texture with that name has already been declared");
-		GfxTextureDesc tex_desc{}; FillTextureDesc(desc, tex_desc);
+		GfxTextureDesc tex_desc{}; InitGfxTextureDesc(desc, tex_desc);
 		textures.emplace_back(new RGTexture(textures.size(), tex_desc, name));
 		texture_name_id_map[name] = RGTextureId(textures.size() - 1);
 		return RGTextureId(textures.size() - 1);
@@ -29,7 +31,7 @@ namespace adria
 	RGBufferId RenderGraph::DeclareBuffer(RGResourceName name, RGBufferDesc const& desc)
 	{
 		ADRIA_ASSERT(buffer_name_id_map.find(name) == buffer_name_id_map.end() && "Buffer with that name has already been declared");
-		GfxBufferDesc buf_desc{}; FillBufferDesc(desc, buf_desc);
+		GfxBufferDesc buf_desc{}; InitGfxBufferDesc(desc, buf_desc);
 		buffers.emplace_back(new RGBuffer(buffers.size(), buf_desc, name));
 		buffer_name_id_map[name] = RGBufferId(buffers.size() - 1);
 		return RGBufferId(buffers.size() - 1);
@@ -565,6 +567,24 @@ namespace adria
 		return buffer_name_id_map[name];
 	}
 
+	RGTextureDesc RenderGraph::GetTextureDesc(RGResourceName name)
+	{
+		ADRIA_ASSERT(IsTextureDeclared(name));
+		RGTextureId tex_id = texture_name_id_map[name];
+		RGTextureDesc desc{};
+		ExtractRGTextureDesc(GetRGTexture(tex_id)->desc, desc);
+		return desc;
+	}
+
+	RGBufferDesc RenderGraph::GetBufferDesc(RGResourceName name)
+	{
+		ADRIA_ASSERT(IsBufferDeclared(name));
+		RGBufferId buf_id = buffer_name_id_map[name];
+		RGBufferDesc desc{};
+		ExtractRGBufferDesc(GetRGBuffer(buf_id)->desc, desc);
+		return desc;
+	}
+
 	void RenderGraph::AddBufferBindFlags(RGResourceName name, GfxBindFlag flags)
 	{
 		RGBufferId handle = buffer_name_id_map[name];
@@ -926,19 +946,7 @@ namespace adria
 				render_pass_desc.rtv_attachments.reserve(pass->render_targets_info.size());
 				for (auto const& render_target_info : pass->render_targets_info)
 				{
-					RGTextureId rt_texture = render_target_info.render_target_handle.GetResourceId();
-					GfxTexture* texture = rg.GetTexture(rt_texture);
-
 					GfxColorAttachmentDesc rtv_desc{};
-					GfxTextureDesc const& desc = texture->GetDesc();
-					GfxClearValue const& clear_value = desc.clear_value;
-					if (clear_value.active_member != GfxClearValue::GfxActiveMember::None)
-					{
-						ADRIA_ASSERT(clear_value.active_member == GfxClearValue::GfxActiveMember::Color && "Invalid Clear Value for Render Target");
-						rtv_desc.clear_value = desc.clear_value;
-						rtv_desc.clear_value.format = desc.format;
-					}
-					rtv_desc.cpu_handle = rg.GetRenderTarget(render_target_info.render_target_handle);
 
 					RGLoadAccessOp load_access = RGLoadAccessOp::NoAccess;
 					RGStoreAccessOp store_access = RGStoreAccessOp::NoAccess;
@@ -980,25 +988,32 @@ namespace adria
 						ADRIA_ASSERT(false && "Invalid Store Access!");
 					}
 
+					RGTextureId rt_texture = render_target_info.render_target_handle.GetResourceId();
+					GfxTexture* texture = rg.GetTexture(rt_texture);
+
+					GfxTextureDesc const& desc = texture->GetDesc();
+					GfxClearValue const& clear_value = desc.clear_value;
+					if (clear_value.active_member != GfxClearValue::GfxActiveMember::None)
+					{
+						ADRIA_ASSERT(clear_value.active_member == GfxClearValue::GfxActiveMember::Color && "Invalid Clear Value for Render Target");
+						rtv_desc.clear_value = desc.clear_value;
+						rtv_desc.clear_value.format = desc.format;
+					}
+					else if(rtv_desc.beginning_access == GfxLoadAccessOp::Clear)
+					{
+						rtv_desc.clear_value.format = desc.format;
+						rtv_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
+					}
+
+					rtv_desc.cpu_handle = rg.GetRenderTarget(render_target_info.render_target_handle);
 					render_pass_desc.rtv_attachments.push_back(rtv_desc);
 				}
 
 				if (pass->depth_stencil.has_value())
 				{
 					auto const& depth_stencil_info = pass->depth_stencil.value();
-					RGTextureId ds_texture = depth_stencil_info.depth_stencil_handle.GetResourceId();
-					GfxTexture* texture = rg.GetTexture(ds_texture);
-
+					
 					GfxDepthAttachmentDesc dsv_desc{};
-					GfxTextureDesc const& desc = texture->GetDesc();
-					if (desc.clear_value.active_member != GfxClearValue::GfxActiveMember::None)
-					{
-						ADRIA_ASSERT(desc.clear_value.active_member == GfxClearValue::GfxActiveMember::DepthStencil && "Invalid Clear Value for Depth Stencil");
-						dsv_desc.clear_value = desc.clear_value;
-						dsv_desc.clear_value.format = desc.format;
-					}
-					dsv_desc.cpu_handle = rg.GetDepthStencil(depth_stencil_info.depth_stencil_handle);
-
 					RGLoadAccessOp load_access = RGLoadAccessOp::NoAccess;
 					RGStoreAccessOp store_access = RGStoreAccessOp::NoAccess;
 					SplitAccessOp(depth_stencil_info.depth_access, load_access, store_access);
@@ -1038,6 +1053,25 @@ namespace adria
 					default:
 						ADRIA_ASSERT(false && "Invalid Store Access!");
 					}
+
+					RGTextureId ds_texture = depth_stencil_info.depth_stencil_handle.GetResourceId();
+					GfxTexture* texture = rg.GetTexture(ds_texture);
+
+					GfxTextureDesc const& desc = texture->GetDesc();
+					if (desc.clear_value.active_member != GfxClearValue::GfxActiveMember::None)
+					{
+						ADRIA_ASSERT(desc.clear_value.active_member == GfxClearValue::GfxActiveMember::DepthStencil && "Invalid Clear Value for Depth Stencil");
+						dsv_desc.clear_value = desc.clear_value;
+						dsv_desc.clear_value.format = desc.format;
+					}
+					else if (dsv_desc.depth_beginning_access == GfxLoadAccessOp::Clear)
+					{
+						dsv_desc.clear_value.format = desc.format;
+						dsv_desc.clear_value = GfxClearValue(0.0f, 0);
+					}
+
+					dsv_desc.cpu_handle = rg.GetDepthStencil(depth_stencil_info.depth_stencil_handle);
+
 					//todo add stencil
 					render_pass_desc.dsv_attachment = dsv_desc;
 				}
@@ -1068,6 +1102,150 @@ namespace adria
 	void RenderGraph::DependencyLevel::Execute(GfxDevice* gfx, std::span<GfxCommandList*> const& cmd_lists)
 	{
 		ADRIA_ASSERT_MSG(false, "Not yet implemented");
+	}
+
+	void RenderGraph::DumpRenderGraph(char const* graph_file_name)
+	{
+		static struct GraphVizStyle
+		{
+			char const* rank_dir{ "TB" };
+			struct
+			{
+				char const* name{ "helvetica" };
+				int32       size{ 10 };
+			} font;
+			struct
+			{
+				struct
+				{
+					char const* executed{ "orange" };
+					char const* culled{ "lightgray" };
+				} pass;
+				struct
+				{
+					char const* imported{ "lightsteelblue" };
+					char const* transient{ "skyblue" };
+				} resource;
+				struct
+				{
+					char const* read{ "olivedrab3" };
+					char const* write{ "orangered" };
+				} edge;
+			} color;
+		} style;
+
+		struct GraphViz
+		{
+			std::string defaults;
+			std::string declarations;
+			std::string dependencies;
+		} graphviz;
+
+		graphviz.defaults += std::format("graph [style=invis, rankdir=\"{}\", ordering=out, splines=spline]\n", style.rank_dir);
+		graphviz.defaults += std::format("node [shape=record, fontname=\"{}\", fontsize={}, margin=\"0.2,0.03\"]\n", style.font.name, style.font.size);
+
+		auto PairHash = [](std::pair<size_t, size_t> const& p)
+		{
+			return std::hash<size_t>{}(p.first) + std::hash<size_t>{}(p.second);
+		};
+		std::unordered_set<std::pair<size_t, size_t>, decltype(PairHash)> declared_buffers;
+		std::unordered_set<std::pair<size_t, size_t>, decltype(PairHash)> declared_textures;
+		auto DeclareBuffer  = [&declared_buffers,&graphviz, this](RGBuffer* buffer)
+		{
+			auto decl_pair = std::make_pair(buffer->id, buffer->version);
+			if (!declared_buffers.contains(decl_pair))
+			{
+				buffer->desc.size;
+				graphviz.declarations += std::format("B{}_{} ", buffer->id, buffer->version);
+				std::string label = std::format("<{}<br/>dimension: Buffer<br/>size: {} bytes <br/>format: {} <br/>version: {} <br/>refs: {}<br/>{}>", 
+					buffer->name, buffer->desc.size, GfxFormatToString(buffer->desc.format), buffer->version, buffer->ref_count, buffer->imported ? "Imported" : "Transient");
+				graphviz.declarations += std::format("[shape=\"box\", style=\"filled\",fillcolor={}, label={}] \n", buffer->imported ? style.color.resource.imported : style.color.resource.transient, label);
+				declared_buffers.insert(decl_pair);
+			}
+		};
+		auto DeclareTexture = [&declared_textures, &graphviz, this](RGTexture* texture)
+		{
+			auto decl_pair = std::make_pair(texture->id, texture->version);
+			if (!declared_textures.contains(decl_pair))
+			{
+				std::string dimensions;
+				switch (texture->desc.type)
+				{
+				case GfxTextureType_1D:  dimensions += std::format("width = {}", texture->desc.width); break;
+				case GfxTextureType_2D:  dimensions += std::format("width = {}, height = {}", texture->desc.width, texture->desc.height); break;
+				case GfxTextureType_3D:  dimensions += std::format("width = {}, height = {}, depth = {}", texture->desc.width, texture->desc.height, texture->desc.depth); break;
+				}
+				
+				graphviz.declarations += std::format("T{}_{} ", texture->id, texture->version);
+				std::string label = std::format("<{} <br/>dimension: {}<br/>{}<br/>format: {} <br/>version: {} <br/>refs: {}<br/>{}>", 
+					texture->name, GfxTextureTypeToString(texture->desc.type), dimensions, GfxFormatToString(texture->desc.format), texture->version, texture->ref_count, texture->imported ? "Imported" : "Transient");
+				graphviz.declarations += std::format("[shape=\"box\", style=\"filled\",fillcolor={}, label={}] \n", texture->imported ? style.color.resource.imported : style.color.resource.transient, label);
+				declared_textures.insert(decl_pair);
+			}
+		};
+
+		for (auto const& dependency_level : dependency_levels)
+		{
+			for (auto const& pass : dependency_level.passes)
+			{
+				graphviz.declarations += std::format("P{} ", pass->id);
+				std::string label = std::format("<{}<br/> type: {}<br/> refs: {}<br/> culled: {}>", pass->name, RGPassTypeToString(pass->type), pass->ref_count, pass->IsCulled() ? "Yes" : "No");
+				graphviz.declarations += std::format("[shape=\"ellipse\", style=\"rounded,filled\",fillcolor={}, label={}] \n",
+					                                  pass->IsCulled() ?  style.color.pass.culled : style.color.pass.executed, label);
+
+				std::string read_dependencies = "{"; 
+				std::string write_dependencies = "{";
+
+				for (auto const& buffer_read : pass->buffer_reads)
+				{
+					RGBuffer* buffer = GetRGBuffer(buffer_read);
+					DeclareBuffer(buffer);
+					read_dependencies += std::format("B{}_{},", buffer->id, buffer->version);
+				}
+
+				for (auto const& texture_read : pass->texture_reads)
+				{
+					RGTexture* texture = GetRGTexture(texture_read);
+					DeclareTexture(texture);
+					read_dependencies += std::format("T{}_{},", texture->id, texture->version);
+				}
+				
+				for (auto const& buffer_write : pass->buffer_writes)
+				{
+					RGBuffer* buffer = GetRGBuffer(buffer_write);
+					if (!pass->buffer_creates.contains(buffer_write)) buffer->version++;
+					DeclareBuffer(buffer);
+					write_dependencies += std::format("B{}_{},", buffer->id, buffer->version);
+				}
+
+				for (auto const& texture_write : pass->texture_writes)
+				{
+					RGTexture* texture = GetRGTexture(texture_write);
+					if (!pass->texture_creates.contains(texture_write)) texture->version++;
+					DeclareTexture(texture);
+					write_dependencies += std::format("T{}_{},", texture->id, texture->version);
+				}
+
+				if (read_dependencies.back() == ',') read_dependencies.pop_back(); 
+				read_dependencies += "}";
+				if (write_dependencies.back() == ',') write_dependencies.pop_back();
+				write_dependencies += "}";
+
+				graphviz.dependencies += std::format("{}->P{} [color=olivedrab3]\n", read_dependencies, pass->id);
+				graphviz.dependencies += std::format("P{}->{} [color=orangered]\n", pass->id, write_dependencies);
+			}
+		}
+
+		std::ofstream graph_file(graph_file_name);
+		graph_file << "digraph RenderGraph{ \n";
+		graph_file << graphviz.defaults << "\n";
+		graph_file << graphviz.declarations << "\n";
+		graph_file << graphviz.dependencies << "\n";
+		graph_file << "}";
+		graph_file.close();
+
+		std::string filename = GetFilenameWithoutExtension(graph_file_name);
+		system(std::format("dot -Tsvg {} > {}.svg", graph_file_name, filename).c_str());
 	}
 
 	void RenderGraph::DumpDebugData()
@@ -1142,3 +1320,4 @@ namespace adria
 
 }
 
+ 

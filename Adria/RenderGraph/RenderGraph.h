@@ -57,9 +57,10 @@ namespace adria
 		[[maybe_unused]] decltype(auto) AddPass(Args&&... args)
 		{
 			passes.emplace_back(std::make_unique<RenderGraphPass<PassData>>(std::forward<Args>(args)...));
-			RenderGraphBuilder builder(*this, *passes.back());
-			passes.back()->Setup(builder);
-			return *dynamic_cast<RenderGraphPass<PassData>*>(passes.back().get());
+			std::unique_ptr<RGPassBase>& pass = passes.back(); pass->id = passes.size() - 1;
+			RenderGraphBuilder builder(*this, *pass);
+			pass->Setup(builder);
+			return *dynamic_cast<RenderGraphPass<PassData>*>(pass.get());
 		}
 
 		void ImportTexture(RGResourceName name, GfxTexture* texture);
@@ -71,7 +72,9 @@ namespace adria
 		RGBlackboard const& GetBlackboard() const { return blackboard; }
 		RGBlackboard& GetBlackboard() { return blackboard; }
 
+		void DumpRenderGraph(char const* graph_file_name);
 		void DumpDebugData();
+
 	private:
 		RGResourcePool& pool;
 		GfxDevice* gfx;
@@ -103,7 +106,7 @@ namespace adria
 		void CullPasses();
 		void CalculateResourcesLifetime();
 		void DepthFirstSearch(size_t i, std::vector<bool>& visited, std::stack<size_t>& stack);
-
+		
 		RGTextureId DeclareTexture(RGResourceName name, RGTextureDesc const& desc);
 		RGBufferId DeclareBuffer(RGResourceName name, RGBufferDesc const& desc);
 
@@ -118,6 +121,10 @@ namespace adria
 
 		RGTextureId GetTextureId(RGResourceName);
 		RGBufferId GetBufferId(RGResourceName);
+
+		RGTextureDesc GetTextureDesc(RGResourceName);
+		RGBufferDesc  GetBufferDesc(RGResourceName);
+
 		void AddBufferBindFlags(RGResourceName name, GfxBindFlag flags);
 		void AddTextureBindFlags(RGResourceName name, GfxBindFlag flags);
 

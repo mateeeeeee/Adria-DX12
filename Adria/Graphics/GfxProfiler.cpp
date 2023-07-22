@@ -18,7 +18,7 @@ namespace adria
 	struct GfxProfiler::Impl
 	{
 		static constexpr uint64 FRAME_COUNT = GFX_BACKBUFFER_COUNT;
-		static constexpr uint64 MAX_PROFILES = 64;
+		static constexpr uint64 MAX_PROFILES = 256;
 
 		struct QueryData
 		{

@@ -12,15 +12,13 @@ namespace adria
 			callback();
 		}
 	};
-	struct GUICommand_Debug
-	{
-		std::function<void(void*)> callback;
-		void operator()(void* args = nullptr) const
-		{
-			callback(args);
-		}
-	};
+	void GUI_RunCommand(std::function<void()>&& cb);
 
-	void AddGUI(std::function<void()>&& cb);
-	void AddGUI_Debug(std::function<void(void*)>&& cb);
+	class GfxTexture;
+	struct GUITexture
+	{
+		char const* name;
+		GfxTexture* gfx_texture;
+	};
+	void GUI_DisplayTexture(char const* name, GfxTexture* gfx_texture);
 }
