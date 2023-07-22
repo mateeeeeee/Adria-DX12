@@ -7,11 +7,5 @@ namespace adria
 	{
 		Editor::Get().AddCommand(GUICommand{ .callback = std::move(cb) });
 	}
-
-	void AddGUI_Debug(std::function<void(void*)>&& cb)
-	{
-		Editor::Get().AddDebugCommand(GUICommand_Debug{ .callback = std::move(cb) });
-	}
-
 }
 

@@ -54,7 +54,6 @@ namespace adria
 		bool IsActive() const;
 
 		void AddCommand(GUICommand&& command);
-		void AddDebugCommand(GUICommand_Debug&& command);
 		void AddRenderPass(RenderGraph& rg);
 
 	private:
@@ -77,8 +76,7 @@ namespace adria
 		bool reload_shaders = false;
 		std::array<bool, Flag_Count> window_flags = { false };
 		std::vector<GUICommand> commands;
-		std::vector<GUICommand_Debug> debug_commands;
-
+		
 		EditorEvents editor_events;
 		ViewportData viewport_data;
 

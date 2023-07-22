@@ -638,12 +638,12 @@ namespace adria
 				debug_controller->EnableDebugLayer();
 				dxgi_factory_flags |= DXGI_CREATE_FACTORY_DEBUG;
 #if defined(_DEBUG)
-				ADRIA_LOG(INFO, "D3D12 Debug Layer Enabled");
+				ADRIA_LOG(INFO, "D3D12 Debug Layer Enabled!");
 #else
-				ADRIA_LOG(WARNING, "D3D12 Debug Layer Enabled in Release Mode");
+				ADRIA_LOG(WARNING, "D3D12 Debug Layer Enabled! (Release)");
 #endif
 			}
-			else ADRIA_LOG(WARNING, "Debug layer setup failed!");
+			else ADRIA_LOG(WARNING, "Debug Layer setup failed!");
 		}
 		if (options.dred)
 		{
@@ -655,12 +655,12 @@ namespace adria
 				dred_settings->SetPageFaultEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
 				dred_settings->SetBreadcrumbContextEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
 #if defined(_DEBUG)
-				ADRIA_LOG(INFO, "D3D12 DRED Enabled");
+				ADRIA_LOG(INFO, "D3D12 DRED Enabled!");
 #else
-				ADRIA_LOG(WARNING, "D3D12 DRED Enabled in Release Mode");
+				ADRIA_LOG(WARNING, "D3D12 DRED Enabled! (Release)");
 #endif
 			}
-			else ADRIA_LOG(WARNING, "Dred setup failed!");
+			else ADRIA_LOG(WARNING, "DRED setup failed!");
 		}
 		if (options.gpu_validation)
 		{
@@ -669,9 +669,9 @@ namespace adria
 			{
 				debug_controller->SetEnableGPUBasedValidation(true);
 #if defined(_DEBUG)
-				ADRIA_LOG(INFO, "D3D12 GPU Based Validation Enabled");
+				ADRIA_LOG(INFO, "D3D12 GPU Based Validation Enabled!");
 #else
-				ADRIA_LOG(WARNING, "D3D12 GPU Based Validation Enabled in Release Mode");
+				ADRIA_LOG(WARNING, "D3D12 GPU Based Validation Enabled! (Release)");
 #endif
 			}
 		}

@@ -123,11 +123,6 @@ namespace adria
 	{
 		commands.emplace_back(std::move(command));
 	}
-	void Editor::AddDebugCommand(GUICommand_Debug&& command)
-	{
-		debug_commands.emplace_back(std::move(command));
-	}
-
 	void Editor::AddRenderPass(RenderGraph& rg)
 	{
 		struct EditorPassData
