@@ -295,7 +295,7 @@ namespace adria
 
 		AddCombinePass(rg, RG_RES_NAME(PostprocessMain));
 
-		AddGUI([&]() 
+		GUI_RunCommand([&]() 
 			{
 				if (ImGui::TreeNodeEx("Volumetric Clouds", 0))
 				{

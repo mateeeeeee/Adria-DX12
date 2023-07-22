@@ -123,6 +123,12 @@ namespace adria
 	{
 		commands.emplace_back(std::move(command));
 	}
+
+	void Editor::AddDebugTexture(GUITexture&& debug_texture)
+	{
+		debug_textures.emplace_back(std::move(debug_texture));
+	}
+
 	void Editor::AddRenderPass(RenderGraph& rg)
 	{
 		struct EditorPassData
@@ -159,7 +165,7 @@ namespace adria
 				}
 				gui->End(cmd_list);
 				commands.clear();
-				debug_commands.clear();
+				debug_textures.clear();
 			}, RGPassType::Graphics, RGPassFlags::ForceNoCull | RGPassFlags::LegacyRenderPass);
 	}
 
@@ -391,6 +397,7 @@ namespace adria
 				{
 					OceanParameters params{};
 					params.ocean_grid = std::move(ocean_params);
+					gfx->WaitForGPU();
 					engine->entity_loader->LoadOcean(params);
 				}
 
@@ -1170,11 +1177,23 @@ namespace adria
 				ImGui::TreePop();
 			}
 
-			
-			for (auto& cmd : debug_commands)
+			if (ImGui::TreeNode("Textures"))
 			{
-				GfxDescriptor gui_descriptor = gui->AllocateDescriptorsGPU();
-				cmd.callback(&gui_descriptor);
+				for (int32 i = 0; i < debug_textures.size(); ++i)
+				{
+					ImGui::PushID(i);
+					auto& debug_texture = debug_textures[i];
+					ImGui::Text(debug_texture.name);
+					GfxDescriptor tex_handle = gfx->CreateTextureSRV(debug_texture.gfx_texture);
+					GfxDescriptor dst_descriptor = gui->AllocateDescriptorsGPU();
+					gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
+					uint32 width = debug_texture.gfx_texture->GetDesc().width;
+					uint32 height = debug_texture.gfx_texture->GetDesc().width;
+					float window_width = ImGui::GetWindowWidth();
+					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, ImVec2(window_width * 0.9f, window_width * 0.9f * (float)height / width));
+					ImGui::PopID();
+				}
+				ImGui::TreePop();
 			}
 		}
 		ImGui::End();

@@ -83,7 +83,7 @@ namespace adria
 
 		blur_pass.AddPass(rg, RG_RES_NAME(RTR_OutputNoisy), RG_RES_NAME(RTR_Output), "RTR Denoise");
 
-		AddGUI([&]()
+		GUI_RunCommand([&]()
 			{
 				if (ImGui::TreeNodeEx("Ray Traced Reflection", ImGuiTreeNodeFlags_OpenOnDoubleClick))
 				{

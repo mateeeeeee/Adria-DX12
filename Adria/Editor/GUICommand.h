@@ -12,5 +12,13 @@ namespace adria
 			callback();
 		}
 	};
-	void AddGUI(std::function<void()>&& cb);
+	void GUI_RunCommand(std::function<void()>&& cb);
+
+	class GfxTexture;
+	struct GUITexture
+	{
+		char const* name;
+		GfxTexture* gfx_texture;
+	};
+	void GUI_DisplayTexture(char const* name, GfxTexture* gfx_texture);
 }

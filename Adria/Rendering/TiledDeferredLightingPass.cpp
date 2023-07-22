@@ -91,7 +91,7 @@ namespace adria
 
 		if (visualize_tiled)  add_textures_pass.AddPass(rendergraph, RG_RES_NAME(HDR_RenderTarget), RG_RES_NAME(TiledTarget), RG_RES_NAME(TiledDebugTarget), BlendMode::AlphaBlend);
 		else copy_to_texture_pass.AddPass(rendergraph, RG_RES_NAME(HDR_RenderTarget), RG_RES_NAME(TiledTarget), BlendMode::AdditiveBlend);
-		AddGUI([&]()
+		GUI_RunCommand([&]()
 			{
 				if (ImGui::TreeNodeEx("Tiled Deferred", ImGuiTreeNodeFlags_OpenOnDoubleClick))
 				{

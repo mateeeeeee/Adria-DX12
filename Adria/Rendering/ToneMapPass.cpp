@@ -181,7 +181,7 @@ namespace adria
 
 	void ToneMapPass::GUI()
 	{
-		AddGUI([&]() 
+		GUI_RunCommand([&]() 
 			{
 				if (ImGui::TreeNodeEx("Tone Mapping", 0))
 				{

@@ -152,7 +152,7 @@ namespace adria
 				cmd_list->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 
-		AddGUI([&]()
+		GUI_RunCommand([&]()
 			{
 				if (ImGui::TreeNodeEx("RTAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
 				{
