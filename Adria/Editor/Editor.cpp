@@ -403,7 +403,7 @@ namespace adria
 
 				if (ImGui::Button(ICON_FA_ERASER" Clear"))
 				{
-					engine->reg.clear<Ocean>();
+					for (auto e : engine->reg.view<Ocean>()) engine->reg.destroy(e);
 				}
 				ImGui::TreePop();
 				ImGui::Separator();
