@@ -243,11 +243,10 @@ namespace adria
 			dxil_lib_desc.pExports = export_descs;
 			ddgi_state_object_builder.AddSubObject(dxil_lib_desc);
 
-			// Add a state subobject for the shader payload configuration
-			D3D12_RAYTRACING_SHADER_CONFIG rt_shadows_shader_config{};
-			rt_shadows_shader_config.MaxPayloadSizeInBytes = 4 * sizeof(float);
-			rt_shadows_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
-			ddgi_state_object_builder.AddSubObject(rt_shadows_shader_config);
+			D3D12_RAYTRACING_SHADER_CONFIG ddgi_shader_config{};
+			ddgi_shader_config.MaxPayloadSizeInBytes = 4 * sizeof(float);
+			ddgi_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
+			ddgi_state_object_builder.AddSubObject(ddgi_shader_config);
 
 			D3D12_GLOBAL_ROOT_SIGNATURE global_root_sig{};
 			global_root_sig.pGlobalRootSignature = gfx->GetCommonRootSignature();

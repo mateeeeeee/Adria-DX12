@@ -20,44 +20,23 @@ ConstantBuffer<DDGIVolume> DDGIVolumeCB	 : register(b2);
 [numthreads(PROBE_IRRADIANCE_TEXELS, PROBE_IRRADIANCE_TEXELS, 1)]
 void DDGI_UpdateIrradiance(uint3 groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
 {
-	uint probeIdx = groupId;
-	uint3 probeCoordinates = GetProbeGridCoord(DDGIVolumeCB, probeIdx);
 
-	float3 result = 0.0f;
-	float totalWeight = 0.0f;
+}
 
-	uint remainingRays = DDGIVolumeCB.raysPerProbe;
-	uint offset = 0;
+[numthreads(1, 1, 1)]
+void DDGI_UpdateBordersIrradiance(uint3 groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
+{
 
-	while (remainingRays > 0)
-	{
-		uint numRays = min(CACHE_SIZE, remainingRays);
-		if (groupIndex < numRays)
-		{
-			//radianceCache[groupIndex] = rayBuffer[probeIdx * volume.maxRaysPerProbe + rayIndex + groupIndex].rgb;
-			//directionCache[groupIndex] = DDGIGetRayDirection(rayIndex + groupIndex, volume.NumRaysPerProbe, randomRotation);
-		}
-		GroupMemoryBarrierWithGroupSync();
-
-		for (uint i = 0; i < numRays; ++i)
-		{
-			float3 radiance = radianceCache[i].rgb;
-			float3 direction = directionCache[i];
-			float weight = 0.0f; // saturate(dot(probeDirection, direction));
-			sum += weight * radiance;
-			totalWeight += weight;
-		}
-		GroupMemoryBarrierWithGroupSync();
-
-		remainingRays -= numRays;
-		offset += numRays;
-	}
-
-	
 }
 
 [numthreads(PROBE_DISTANCE_TEXELS, PROBE_DISTANCE_TEXELS, 1)]
 void DDGI_UpdateDistance(uint3 groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
+{
+
+}
+
+[numthreads(1, 1, 1)]
+void DDGI_UpdateBordersDistance(uint3 groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
 {
 
 }
