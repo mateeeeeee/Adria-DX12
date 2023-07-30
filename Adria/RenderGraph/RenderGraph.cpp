@@ -1176,7 +1176,7 @@ namespace adria
 				case GfxTextureType_3D:  dimensions += std::format("width = {}, height = {}, depth = {}", texture->desc.width, texture->desc.height, texture->desc.depth); break;
 				}
 
-				if (texture->desc.array_size > 1)  dimensions += std::format(", array size = {}", texture->desc.array_size > 1);
+				if (texture->desc.array_size > 1)  dimensions += std::format(", array size = {}", texture->desc.array_size);
 				
 				graphviz.declarations += std::format("T{}_{} ", texture->id, texture->version);
 				std::string label = std::format("<{} <br/>dimension: {}<br/>{}<br/>format: {} <br/>version: {} <br/>refs: {}<br/>{}>", 

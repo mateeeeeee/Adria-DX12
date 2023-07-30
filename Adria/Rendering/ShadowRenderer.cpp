@@ -203,14 +203,8 @@ namespace adria
 	}
 
 	ShadowRenderer::ShadowRenderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), width(width), height(height),
-		ray_traced_shadows_pass(gfx, width, height)
-	{
-
-	}
-	ShadowRenderer::~ShadowRenderer()
-	{
-
-	}
+		ray_traced_shadows_pass(gfx, width, height) {}
+	ShadowRenderer::~ShadowRenderer() {}
 
 	void ShadowRenderer::FillFrameCBuffer(FrameCBuffer& frame_cbuffer)
 	{
@@ -566,6 +560,5 @@ namespace adria
 			projection_matrices[i] = XMMatrixPerspectiveFovLH(fov, ar, split_distances[i - 1], split_distances[i]);
 		return projection_matrices;
 	}
-
 }
 
