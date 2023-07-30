@@ -22,7 +22,7 @@ namespace adria
 	void DecalsPass::AddPass(RenderGraph& rendergraph)
 	{
 		if (reg.view<Decal>().size() == 0) return;
-		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<FrameBlackboardData>();
+		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
 
 		struct DecalsPassData
 		{

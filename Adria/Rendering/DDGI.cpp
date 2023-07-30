@@ -51,7 +51,7 @@ namespace adria
 		uint32 const ddgi_max_num_rays = ddgi_volume.max_num_rays;
 		XMUINT3 ddgi_num_probes = ddgi_volume.num_probes;
 
-		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
+		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
 		rg.ImportTexture(RG_RES_NAME(DDGIIrradianceHistory), ddgi_volume.irradiance_history.get());
 		rg.ImportTexture(RG_RES_NAME(DDGIDepthHistory), ddgi_volume.depth_history.get());

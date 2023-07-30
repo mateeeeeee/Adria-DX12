@@ -20,7 +20,7 @@ namespace adria
 
 	void GodRaysPass::AddPass(RenderGraph& rg, Light const& light)
 	{
-		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
+		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
 		struct GodRaysPassData
 		{

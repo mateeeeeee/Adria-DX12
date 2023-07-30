@@ -27,7 +27,7 @@ namespace adria
 	void OceanRenderer::AddPasses(RenderGraph& rendergraph)
 	{
 		if (reg.view<Ocean>().size() == 0) return;
-		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<FrameBlackboardData>();
+		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
 
 		if (ocean_color_changed)
 		{

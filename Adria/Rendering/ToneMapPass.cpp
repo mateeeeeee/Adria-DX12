@@ -17,8 +17,8 @@ namespace adria
 
 	void ToneMapPass::AddPass(RenderGraph& rg, RGResourceName hdr_src)
 	{
-		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
-		BloomBlackboardData const* bloom_data  = rg.GetBlackboard().Get<BloomBlackboardData>();
+		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+		BloomBlackboardData const* bloom_data  = rg.GetBlackboard().TryGet<BloomBlackboardData>();
 		
 		struct ToneMapPassData
 		{
@@ -90,8 +90,8 @@ namespace adria
 
 	void ToneMapPass::AddPass(RenderGraph& rg, RGResourceName hdr_src, RGResourceName output)
 	{
-		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
-		BloomBlackboardData const* bloom_data  = rg.GetBlackboard().Get<BloomBlackboardData>();
+		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+		BloomBlackboardData const* bloom_data  = rg.GetBlackboard().TryGet<BloomBlackboardData>();
 
 		RGPassFlags flags = RGPassFlags::None;
 

@@ -14,7 +14,7 @@ namespace adria
 
 	RGResourceName MotionBlurPass::AddPass(RenderGraph& rg, RGResourceName input)
 	{
-		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
+		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		RGResourceName last_resource = input;
 		struct MotionBlurPassData
 		{

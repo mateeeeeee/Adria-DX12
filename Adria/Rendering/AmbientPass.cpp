@@ -29,7 +29,7 @@ namespace adria
 			RGTextureReadWriteId output;
 		};
 
-		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<FrameBlackboardData>();
+		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
 		rendergraph.AddPass<AmbientPassData>("Ambient Pass",
 			[=](AmbientPassData& data, RenderGraphBuilder& builder)
 			{

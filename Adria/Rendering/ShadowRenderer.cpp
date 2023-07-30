@@ -395,7 +395,7 @@ namespace adria
 
 	void ShadowRenderer::AddShadowMapPasses(RenderGraph& rg)
 	{
-		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
+		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		auto light_view = reg.view<Light>();
 		for (auto e : light_view)
 		{

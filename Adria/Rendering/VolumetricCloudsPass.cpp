@@ -24,7 +24,7 @@ namespace adria
 
 	void VolumetricCloudsPass::AddPass(RenderGraph& rg)
 	{
-		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
+		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		rg.ImportTexture(RG_RES_NAME(PreviousCloudsOutput), prev_clouds.get());
 
 		static bool first_frame = true;

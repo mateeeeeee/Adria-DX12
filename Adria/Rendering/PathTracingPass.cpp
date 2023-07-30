@@ -28,7 +28,7 @@ namespace adria
 	{
 		if (!IsSupported()) return;
 
-		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
+		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		struct PathTracingPassData
 		{
 			RGTextureReadWriteId output;
