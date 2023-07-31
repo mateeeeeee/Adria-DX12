@@ -47,6 +47,8 @@ namespace adria
 		g_GfxProfiler.Init(gfx);
 		GfxTracyProfiler::Initialize(gfx);
 		CreateSizeDependentResources();
+		shadow_renderer.GetShadowTextureRenderedEvent().AddMember(&DeferredLightingPass::OnShadowTextureRendered, deferred_lighting_pass);
+		shadow_renderer.GetShadowTextureRenderedEvent().AddMember(&VolumetricLightingPass::OnShadowTextureRendered, volumetric_lighting_pass);
 	}
 
 	Renderer::~Renderer()

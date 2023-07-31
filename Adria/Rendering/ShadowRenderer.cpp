@@ -424,6 +424,8 @@ namespace adria
 								cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 								ShadowMapPass_Common(gfx, cmd_list, light_index, light_matrix_index, i);
 							}, RGPassType::Graphics);
+
+						shadow_rendered_event.Broadcast(RG_RES_NAME_IDX(ShadowMap, light_matrix_index + i));
 					}
 				}
 				else
@@ -441,6 +443,8 @@ namespace adria
 							cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 							ShadowMapPass_Common(gfx, cmd_list, light_index, light_matrix_index, 0);
 						}, RGPassType::Graphics);
+
+					shadow_rendered_event.Broadcast(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index));
 				}
 			}
 			else if (light.type == LightType::Point)
@@ -460,6 +464,8 @@ namespace adria
 							cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 							ShadowMapPass_Common(gfx, cmd_list, light_index, light_matrix_index, i);
 						}, RGPassType::Graphics);
+
+					shadow_rendered_event.Broadcast(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index + i));
 				}
 			}
 			else if (light.type == LightType::Spot)
@@ -477,6 +483,8 @@ namespace adria
 						cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 						ShadowMapPass_Common(gfx, cmd_list, light_index, light_matrix_index, 0);
 					}, RGPassType::Graphics);
+
+				shadow_rendered_event.Broadcast(RG_RES_NAME_IDX(ShadowMap, light_matrix_index));
 			}
 		}
 	}
@@ -490,8 +498,9 @@ namespace adria
 			int32 light_index = light.light_index;
 			size_t light_id = entt::to_integral(e);
 
-			//rg.ImportTexture(RG_RES_NAME_IDX(LightMask, light_id), light_mask_textures[light_id].get());
-			ray_traced_shadows_pass.AddPass(rg, light_index);//, RG_RES_NAME_IDX(LightMask, light_id));
+			rg.ImportTexture(RG_RES_NAME_IDX(LightMask, light_id), light_mask_textures[light_id].get());
+			ray_traced_shadows_pass.AddPass(rg, light_index);
+			shadow_rendered_event.Broadcast(RG_RES_NAME_IDX(LightMask, light_id));
 		}
 	}
 

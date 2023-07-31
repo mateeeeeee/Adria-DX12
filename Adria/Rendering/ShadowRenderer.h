@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include "Events/Delegate.h"
 #include "RayTracedShadowsPass.h"
 #include "Graphics/GfxDefines.h"
 #include "Graphics/GfxDescriptor.h"
@@ -13,6 +14,9 @@ namespace adria
 	class RenderGraph;
 	class Camera;
 	struct FrameCBuffer;
+
+
+	DECLARE_EVENT(ShadowTextureRenderedEvent, ShadowRenderer, RGResourceName);
 
 	class ShadowRenderer
 	{
@@ -40,14 +44,15 @@ namespace adria
 		void AddRayTracingShadowPasses(RenderGraph& rg);
 
 		void FillFrameCBuffer(FrameCBuffer& frame_cbuffer);
-		
+
+		ShadowTextureRenderedEvent& GetShadowTextureRenderedEvent() { return shadow_rendered_event; }
+
 	private:
 		entt::registry& reg;
 		GfxDevice* gfx;
 		uint32 width;
 		uint32 height;
 		RayTracedShadowsPass ray_traced_shadows_pass;
-
 
 		std::unique_ptr<GfxBuffer>  light_matrices_buffer;
 		GfxDescriptor				light_matrices_buffer_srvs[GFX_BACKBUFFER_COUNT];
@@ -59,9 +64,11 @@ namespace adria
 		std::unordered_map<size_t, GfxDescriptor> light_mask_texture_uavs;
 		int32						   light_matrices_gpu_index = -1;
 
-		std::vector<DirectX::XMMATRIX> light_matrices;
-		float											cascades_split_lambda = 0.5f;
+		std::vector<DirectX::XMMATRIX>					light_matrices;
 		std::array<float, SHADOW_CASCADE_COUNT>		    split_distances{};
+		float											cascades_split_lambda = 0.5f;
+
+		ShadowTextureRenderedEvent shadow_rendered_event;
 
 	private:
 		void ShadowMapPass_Common(GfxDevice* gfx, GfxCommandList* cmd_list, size_t light_index, size_t matrix_index, size_t matrix_offset);
