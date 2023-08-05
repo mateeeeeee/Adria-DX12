@@ -49,6 +49,8 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 
 ## TODO
 * DDGI (wip)
+* Debug Renderer
+* FSR2
 
 ## Dependencies
 [ImGui](https://github.com/ocornut/imgui)
