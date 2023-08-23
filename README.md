@@ -50,6 +50,7 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 ## TODO
 * DDGI (wip)
 * Debug Renderer
+* Resource Viewer
 * FSR2
 
 ## Dependencies
