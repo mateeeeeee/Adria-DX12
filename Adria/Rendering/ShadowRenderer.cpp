@@ -203,14 +203,8 @@ namespace adria
 	}
 
 	ShadowRenderer::ShadowRenderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), width(width), height(height),
-		ray_traced_shadows_pass(gfx, width, height)
-	{
-
-	}
-	ShadowRenderer::~ShadowRenderer()
-	{
-
-	}
+		ray_traced_shadows_pass(gfx, width, height) {}
+	ShadowRenderer::~ShadowRenderer() {}
 
 	void ShadowRenderer::FillFrameCBuffer(FrameCBuffer& frame_cbuffer)
 	{
@@ -401,7 +395,7 @@ namespace adria
 
 	void ShadowRenderer::AddShadowMapPasses(RenderGraph& rg)
 	{
-		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
+		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		auto light_view = reg.view<Light>();
 		for (auto e : light_view)
 		{
@@ -430,6 +424,8 @@ namespace adria
 								cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 								ShadowMapPass_Common(gfx, cmd_list, light_index, light_matrix_index, i);
 							}, RGPassType::Graphics);
+
+						shadow_rendered_event.Broadcast(RG_RES_NAME_IDX(ShadowMap, light_matrix_index + i));
 					}
 				}
 				else
@@ -447,6 +443,8 @@ namespace adria
 							cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 							ShadowMapPass_Common(gfx, cmd_list, light_index, light_matrix_index, 0);
 						}, RGPassType::Graphics);
+
+					shadow_rendered_event.Broadcast(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index));
 				}
 			}
 			else if (light.type == LightType::Point)
@@ -466,6 +464,8 @@ namespace adria
 							cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 							ShadowMapPass_Common(gfx, cmd_list, light_index, light_matrix_index, i);
 						}, RGPassType::Graphics);
+
+					shadow_rendered_event.Broadcast(RG_RES_NAME_IDX(ShadowMap, light.shadow_matrix_index + i));
 				}
 			}
 			else if (light.type == LightType::Spot)
@@ -483,6 +483,8 @@ namespace adria
 						cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 						ShadowMapPass_Common(gfx, cmd_list, light_index, light_matrix_index, 0);
 					}, RGPassType::Graphics);
+
+				shadow_rendered_event.Broadcast(RG_RES_NAME_IDX(ShadowMap, light_matrix_index));
 			}
 		}
 	}
@@ -496,8 +498,9 @@ namespace adria
 			int32 light_index = light.light_index;
 			size_t light_id = entt::to_integral(e);
 
-			//rg.ImportTexture(RG_RES_NAME_IDX(LightMask, light_id), light_mask_textures[light_id].get());
-			ray_traced_shadows_pass.AddPass(rg, light_index);//, RG_RES_NAME_IDX(LightMask, light_id));
+			rg.ImportTexture(RG_RES_NAME_IDX(LightMask, light_id), light_mask_textures[light_id].get());
+			ray_traced_shadows_pass.AddPass(rg, light_index);
+			shadow_rendered_event.Broadcast(RG_RES_NAME_IDX(LightMask, light_id));
 		}
 	}
 
@@ -566,6 +569,5 @@ namespace adria
 			projection_matrices[i] = XMMatrixPerspectiveFovLH(fov, ar, split_distances[i - 1], split_distances[i]);
 		return projection_matrices;
 	}
-
 }
 

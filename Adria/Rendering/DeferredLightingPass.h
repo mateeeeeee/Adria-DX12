@@ -1,7 +1,8 @@
 #pragma once
-#include <optional>
+#include <unordered_set>
 #include "Core/CoreTypes.h"
 #include "RenderGraph/RenderGraphResourceId.h"
+#include "RenderGraph/RenderGraphResourceName.h"
 #include "entt/entity/entity.hpp"
 
 namespace adria
@@ -17,9 +18,14 @@ namespace adria
 		{
 			width = w, height = h;
 		}
-
+		
+		void OnShadowTextureRendered(RGResourceName name)
+		{
+			shadow_textures.push_back(name);
+		}
 	private:
 		uint32 width, height;
+		std::vector<RGResourceName> shadow_textures;
 	};
 
 }

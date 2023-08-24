@@ -19,7 +19,7 @@ namespace adria
 
 	void DebugPass::AddPass(RenderGraph& rg)
 	{
-		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
+		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		rg.AddPass<void>("AABB Pass",
 			[=](RenderGraphBuilder& builder)
 			{

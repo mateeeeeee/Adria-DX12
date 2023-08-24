@@ -24,7 +24,7 @@ namespace adria
 		counter++;
 
 		std::string name = "Horizontal Blur Pass" + std::string(pass_name);
-		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<FrameBlackboardData>();
+		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
 		rendergraph.AddPass<BlurPassData>(name.c_str(),
 			[=](BlurPassData& data, RenderGraphBuilder& builder)
 			{

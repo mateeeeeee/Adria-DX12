@@ -81,7 +81,7 @@ namespace adria
 
 	void BokehPass::AddGenerateBokehPass(RenderGraph& rg, RGResourceName input)
 	{
-		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
+		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		RGResourceName last_resource = input;
 		struct BokehCounterResetPassData
 		{
@@ -142,7 +142,7 @@ namespace adria
 					.hdr_idx = i, .depth_idx = i + 1, .bokeh_stack_idx = i + 2
 				};
 
-				DoFBlackboardData const& dof_data = context.GetBlackboard().GetChecked<DoFBlackboardData>();
+				DoFBlackboardData const& dof_data = context.GetBlackboard().Get<DoFBlackboardData>();
 				struct BokehGenerationConstants
 				{
 					XMFLOAT4 dof_params;
@@ -186,7 +186,7 @@ namespace adria
 	}
 	void BokehPass::AddDrawBokehPass(RenderGraph& rg, RGResourceName input)
 	{
-		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
+		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		RGResourceName last_resource = input;
 		struct BokehDrawPassData
 		{

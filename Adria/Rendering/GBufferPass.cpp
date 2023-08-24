@@ -20,7 +20,7 @@ namespace adria
 
 	void GBufferPass::AddPass(RenderGraph& rendergraph)
 	{
-		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<FrameBlackboardData>();
+		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
 		rendergraph.AddPass<void>("GBuffer Pass",
 			[=](RenderGraphBuilder& builder)
 			{

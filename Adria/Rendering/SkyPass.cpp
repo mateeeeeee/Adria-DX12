@@ -25,7 +25,7 @@ namespace adria
 	{
 		if (sky_type == SkyType::Skybox) return;
 
-		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
+		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		struct ComputeSkyPassData
 		{
 			RGTextureReadWriteId sky_uav;
@@ -96,10 +96,11 @@ namespace adria
 
 	void SkyPass::AddDrawSkyPass(RenderGraph& rg)
 	{
-		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
+		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		rg.AddPass<void>("Draw Sky Pass",
 			[=](RenderGraphBuilder& builder)
 			{
+				std::ignore = builder.ReadTexture(RG_RES_NAME(Sky));
 				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.ReadDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);

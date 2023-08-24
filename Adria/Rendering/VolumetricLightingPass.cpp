@@ -23,7 +23,7 @@ namespace adria
 			RGTextureReadWriteId output;
 		};
 
-		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<FrameBlackboardData>();
+		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
 		rendergraph.AddPass<LightingPassData>("Volumetric Lighting Pass",
 			[=](LightingPassData& data, RenderGraphBuilder& builder)
 			{
@@ -35,6 +35,8 @@ namespace adria
 
 				data.output = builder.WriteTexture(RG_RES_NAME(VolumetricLightOutput));
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+
+				for (auto& shadow_texture : shadow_textures) std::ignore = builder.ReadTexture(shadow_texture);
 			},
 			[=](LightingPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
@@ -91,8 +93,8 @@ namespace adria
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
-			}
-		);
+			});
+		shadow_textures.clear();
 	}
 
 }

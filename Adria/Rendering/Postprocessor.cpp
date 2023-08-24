@@ -169,7 +169,7 @@ namespace adria
 	}
 	void Postprocessor::AddSunPass(RenderGraph& rg, entt::entity sun)
 	{
-		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
+		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		RGResourceName last_resource = final_resource;
 
 		rg.AddPass<void>("Sun Pass",

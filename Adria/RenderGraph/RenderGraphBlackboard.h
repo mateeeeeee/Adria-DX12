@@ -34,7 +34,7 @@ namespace adria
 		}
 
 		template<typename T>
-		T const* Get() const
+		T const* TryGet() const
 		{
 			if (auto it = board_data.find(typeid(T)); it != board_data.end())
 			{
@@ -44,9 +44,9 @@ namespace adria
 		}
 
 		template<typename T>
-		T const& GetChecked() const
+		T const& Get() const
 		{
-			T const* p_data = Get<T>();
+			T const* p_data = TryGet<T>();
 			ADRIA_ASSERT(p_data != nullptr);
 			return *p_data;
 		}

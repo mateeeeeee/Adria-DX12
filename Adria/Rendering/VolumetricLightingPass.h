@@ -25,10 +25,15 @@ namespace adria
 			copy_to_texture_pass.OnResize(w, h);
 		}
 
+		void OnShadowTextureRendered(RGResourceName name)
+		{
+			shadow_textures.push_back(name);
+		}
 	private:
 		CopyToTexturePass copy_to_texture_pass;
 		uint32 width, height;
 		VolumetricLightingResolution resolution = VolumetricLightingResolution_Full;
+		std::vector<RGResourceName> shadow_textures;
 	};
 
 }

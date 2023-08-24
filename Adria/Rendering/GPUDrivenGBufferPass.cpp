@@ -140,7 +140,7 @@ namespace adria
 	{
 		rg.ImportTexture(RG_RES_NAME(HZB), HZB.get());
 
-		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
+		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		struct CullInstancesPassData
 		{
 			RGTextureReadOnlyId hzb;
@@ -435,7 +435,7 @@ namespace adria
 	{
 		if (!occlusion_culling) return;
 
-		FrameBlackboardData const& global_data = rg.GetBlackboard().GetChecked<FrameBlackboardData>();
+		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		struct BuildInstanceCullArgsPassData
 		{
 			RGBufferReadOnlyId  occluded_instances_counter;

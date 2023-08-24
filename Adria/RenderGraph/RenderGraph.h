@@ -172,5 +172,4 @@ namespace adria
 		void AddExportBufferCopyPass(RGResourceName export_buffer, GfxBuffer* buffer);
 		void AddExportTextureCopyPass(RGResourceName export_texture, GfxTexture* texture);
 	};
-
 }

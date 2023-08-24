@@ -25,7 +25,7 @@ namespace adria
 			RGTextureReadWriteId output;
 		};
 
-		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().GetChecked<FrameBlackboardData>();
+		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
 		rendergraph.AddPass<LightingPassData>("Deferred Lighting Pass",
 			[=](LightingPassData& data, RenderGraphBuilder& builder)
 			{
@@ -33,6 +33,8 @@ namespace adria
 				data.gbuffer_normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
 				data.gbuffer_albedo = builder.ReadTexture(RG_RES_NAME(GBufferAlbedo), ReadAccess_NonPixelShader);
 				data.depth			= builder.ReadTexture(RG_RES_NAME(DepthStencil),  ReadAccess_NonPixelShader);
+
+				for (auto& shadow_texture : shadow_textures) std::ignore = builder.ReadTexture(shadow_texture);
 			},
 			[=](LightingPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
@@ -64,6 +66,7 @@ namespace adria
 				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 			}, RGPassType::Compute);
 
+		shadow_textures.clear();
 	}
 
 }
