@@ -252,6 +252,7 @@
     <ClCompile Include="Rendering\BokehPass.cpp" />
     <ClCompile Include="Rendering\Camera.cpp" />
     <ClCompile Include="Rendering\ClusteredDeferredLightingPass.cpp" />
+    <ClCompile Include="Rendering\DebugRenderer.cpp" />
     <ClCompile Include="Rendering\HelperPasses.cpp" />
     <ClCompile Include="Rendering\DecalsPass.cpp" />
     <ClCompile Include="Rendering\DepthOfFieldPass.cpp" />
@@ -375,6 +376,7 @@
     <ClInclude Include="Logging\OutputDebugStringLogger.h" />
     <ClInclude Include="Logging\OutputStreamLogger.h" />
     <ClInclude Include="Math\BoundingVolumeHelpers.h" />
+    <ClInclude Include="Math\Color.h" />
     <ClInclude Include="Math\ComputeNormals.h" />
     <ClInclude Include="Math\ComputeTangentFrame.h" />
     <ClInclude Include="Math\Constants.h" />
@@ -412,6 +414,7 @@
     <ClInclude Include="Rendering\Camera.h" />
     <ClInclude Include="Rendering\ClusteredDeferredLightingPass.h" />
     <ClInclude Include="Rendering\Components.h" />
+    <ClInclude Include="Rendering\DebugRenderer.h" />
     <ClInclude Include="Rendering\GPUDrivenGBufferPass.h" />
     <ClInclude Include="Rendering\ShaderStructs.h" />
     <ClInclude Include="Rendering\HelperPasses.h" />

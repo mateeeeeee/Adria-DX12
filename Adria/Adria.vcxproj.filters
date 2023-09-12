@@ -447,6 +447,9 @@
     <ClCompile Include="..\External\tracy\TracyClient.cpp">
       <Filter>External\tracy</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\DebugRenderer.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -980,6 +983,12 @@
     </ClInclude>
     <ClInclude Include="..\External\tracy\tracy\Tracy.hpp">
       <Filter>External\tracy</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Color.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\DebugRenderer.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -329,9 +329,9 @@ namespace adria
 					{
 						LightParameters light_params{};
 						light_params.light_data.casts_shadows = false;
-						light_params.light_data.color = DirectX::XMVectorSet(real() * 2, real() * 2, real() * 2, 1.0f);
-						light_params.light_data.direction = DirectX::XMVectorSet(0.5f, -1.0f, 0.1f, 0.0f);
-						light_params.light_data.position = DirectX::XMVectorSet(real() * 200 - 100, real() * 200.0f, real() * 200 - 100, 1.0f);
+						light_params.light_data.color = XMVectorSet(real() * 2, real() * 2, real() * 2, 1.0f);
+						light_params.light_data.direction = XMVectorSet(0.5f, -1.0f, 0.1f, 0.0f);
+						light_params.light_data.position = XMVectorSet(real() * 200 - 100, real() * 200.0f, real() * 200 - 100, 1.0f);
 						light_params.light_data.type = LightType::Point;
 						light_params.mesh_type = LightMesh::NoMesh;
 						light_params.light_data.range = real() * 100.0f + 40.0f;
@@ -358,9 +358,9 @@ namespace adria
 						light_params.light_data.casts_shadows = false;
 						light_params.light_data.inner_cosine = real();
 						light_params.light_data.outer_cosine = real();
-						light_params.light_data.color = DirectX::XMVectorSet(real() * 2, real() * 2, real() * 2, 1.0f);
-						light_params.light_data.direction = DirectX::XMVectorSet(0.5f, -1.0f, 0.1f, 0.0f);
-						light_params.light_data.position = DirectX::XMVectorSet(real() * 200 - 100, real() * 200.0f, real() * 200 - 100, 1.0f);
+						light_params.light_data.color = XMVectorSet(real() * 2, real() * 2, real() * 2, 1.0f);
+						light_params.light_data.direction = XMVectorSet(0.5f, -1.0f, 0.1f, 0.0f);
+						light_params.light_data.position = XMVectorSet(real() * 200 - 100, real() * 200.0f, real() * 200 - 100, 1.0f);
 						light_params.light_data.type = LightType::Spot;
 						light_params.mesh_type = LightMesh::NoMesh;
 						light_params.light_data.range = real() * 100.0f + 40.0f;
@@ -740,7 +740,7 @@ namespace adria
 					change &= ImGui::InputFloat3("Scale", scale);
 					ImGuizmo::RecomposeMatrixFromComponents(translation, rotation, scale, tr.m[0]);
 
-					transform->current_transform = DirectX::XMLoadFloat4x4(&tr);
+					transform->current_transform = XMLoadFloat4x4(&tr);
 				}
 
 				auto decal = engine->reg.try_get<Decal>(selected_entity);
@@ -823,7 +823,7 @@ namespace adria
 			XMStoreFloat3(&cam_pos, camera.Position());
 			float pos[3] = { cam_pos.x , cam_pos.y, cam_pos.z };
 			ImGui::SliderFloat3("Position", pos, 0.0f, 2000.0f);
-			camera.SetPosition(DirectX::XMFLOAT3(pos));
+			camera.SetPosition(XMFLOAT3(pos));
 			float near_plane = camera.Near(), far_plane = camera.Far();
 			float fov = camera.Fov(), ar = camera.AspectRatio();
 			ImGui::SliderFloat("Near", &near_plane, 0.0f, 2.0f);
@@ -877,20 +877,20 @@ namespace adria
 			auto camera_view = camera.View();
 			auto camera_proj = camera.Proj();
 
-			DirectX::XMFLOAT4X4 view, projection;
+			XMFLOAT4X4 view, projection;
 
-			DirectX::XMStoreFloat4x4(&view, camera_view);
-			DirectX::XMStoreFloat4x4(&projection, camera_proj);
+			XMStoreFloat4x4(&view, camera_view);
+			XMStoreFloat4x4(&projection, camera_proj);
 
 			auto& entity_transform = engine->reg.get<Transform>(selected_entity);
 
-			DirectX::XMFLOAT4X4 tr;
-			DirectX::XMStoreFloat4x4(&tr, entity_transform.current_transform);
+			XMFLOAT4X4 tr;
+			XMStoreFloat4x4(&tr, entity_transform.current_transform);
 
 			if (ImGuizmo::IsUsing())
 			{
 				bool change = ImGuizmo::Manipulate(view.m[0], projection.m[0], gizmo_op, ImGuizmo::LOCAL, tr.m[0]);
-				entity_transform.current_transform = DirectX::XMLoadFloat4x4(&tr);
+				entity_transform.current_transform = XMLoadFloat4x4(&tr);
 			}
 		}
 
