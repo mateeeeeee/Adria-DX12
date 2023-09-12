@@ -95,6 +95,9 @@
     <Filter Include="External\tracy">
       <UniqueIdentifier>{b7135eb2-079c-421c-89f6-541149851239}</UniqueIdentifier>
     </Filter>
+    <Filter Include="External\SimpleMath">
+      <UniqueIdentifier>{2c8e0df6-adf6-494c-8d19-9be2a0108398}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -449,6 +452,9 @@
     </ClCompile>
     <ClCompile Include="Rendering\DebugRenderer.cpp">
       <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\SimpleMath\SimpleMath.cpp">
+      <Filter>External\SimpleMath</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -990,6 +996,9 @@
     <ClInclude Include="Rendering\DebugRenderer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="..\External\SimpleMath\SimpleMath.h">
+      <Filter>External\SimpleMath</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
@@ -1237,6 +1246,9 @@
       <Filter>Shaders\DDGI</Filter>
     </None>
     <None Include="imgui.ini" />
+    <None Include="..\External\SimpleMath\SimpleMath.inl">
+      <Filter>External\SimpleMath</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="adria.log" />

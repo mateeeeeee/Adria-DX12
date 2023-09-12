@@ -190,6 +190,7 @@
     <ClCompile Include="..\External\meshoptimizer\vertexfilter.cpp" />
     <ClCompile Include="..\External\meshoptimizer\vfetchanalyzer.cpp" />
     <ClCompile Include="..\External\meshoptimizer\vfetchoptimizer.cpp" />
+    <ClCompile Include="..\External\SimpleMath\SimpleMath.cpp" />
     <ClCompile Include="..\External\tracy\TracyClient.cpp" />
     <ClCompile Include="Core\ConsoleCommand.cpp" />
     <ClCompile Include="Core\ConsoleManager.cpp" />
@@ -319,6 +320,7 @@
     <ClInclude Include="..\External\ImGui\ImGui\imstb_textedit.h" />
     <ClInclude Include="..\External\ImGui\ImGui\imstb_truetype.h" />
     <ClInclude Include="..\External\meshoptimizer\meshoptimizer.h" />
+    <ClInclude Include="..\External\SimpleMath\SimpleMath.h" />
     <ClInclude Include="..\External\tracy\tracy\Tracy.hpp" />
     <ClInclude Include="..\External\tracy\tracy\TracyD3D12.hpp" />
     <ClInclude Include="Core\ConsoleCommand.h" />
@@ -1127,6 +1129,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\.gitignore" />
+    <None Include="..\External\SimpleMath\SimpleMath.inl" />
     <None Include="..\README.md" />
     <None Include="imgui.ini" />
     <None Include="packages.config" />
