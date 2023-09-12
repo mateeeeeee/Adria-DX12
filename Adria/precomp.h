@@ -35,4 +35,5 @@
 //
 #include "Core/CoreTypes.h"
 #include "Core/Defines.h"
+#include "Math/MathTypes.h"
 #include "Utilities/AutoRefCountPtr.h"

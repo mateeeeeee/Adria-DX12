@@ -1,8 +1,9 @@
 #pragma once
 #include <vector>
 #include <DirectXCollision.h>
-#include "Math/Color.h"
 #include "Utilities/Singleton.h"
+
+using namespace DirectX;
 
 namespace adria
 {
@@ -26,13 +27,13 @@ namespace adria
 
 		void Render(RenderGraph& rg);
 
-		void RenderLine(XMFLOAT3 const& start, XMFLOAT3 const& end, Color col = Color::Red());
-		void RenderRay(XMFLOAT3 const& origin, XMFLOAT3 const& direction, Color col = Color::Red());
-		void RenderBox(XMFLOAT3 const& center, XMFLOAT3 const& extents, Color col = Color::Red());
-		void RenderBoundingBox(BoundingBox const& bounding_box, Color col = Color::Red());
-		void RenderBoundingBox(BoundingBox const& bounding_box, XMFLOAT4X4 transform, Color col = Color::Red());
-		void RenderSphere(BoundingSphere const& sphere, Color col = Color::Red());
-		void RenderFrustum(BoundingFrustum const& frustum, Color col = Color::Red());
+		void RenderLine(XMFLOAT3 const& start, XMFLOAT3 const& end, Color col);
+		void RenderRay(XMFLOAT3 const& origin, XMFLOAT3 const& direction, Color col);
+		void RenderBox(XMFLOAT3 const& center, XMFLOAT3 const& extents, Color col);
+		void RenderBoundingBox(BoundingBox const& bounding_box, Color col);
+		void RenderBoundingBox(BoundingBox const& bounding_box, XMFLOAT4X4 transform, Color col);
+		void RenderSphere(BoundingSphere const& sphere, Color col);
+		void RenderFrustum(BoundingFrustum const& frustum, Color col);
 
 	private:
 		GfxDevice* gfx;

@@ -990,14 +990,14 @@
     <ClInclude Include="..\External\tracy\tracy\Tracy.hpp">
       <Filter>External\tracy</Filter>
     </ClInclude>
-    <ClInclude Include="Math\Color.h">
-      <Filter>Math</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\DebugRenderer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="..\External\SimpleMath\SimpleMath.h">
       <Filter>External\SimpleMath</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\MathTypes.h">
+      <Filter>Math</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
