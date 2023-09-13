@@ -34,6 +34,8 @@ namespace adria
 		VS_Simple,
 		PS_Texture,
 		PS_Solid,
+		VS_Debug,
+		PS_Debug,
 		CS_Blur_Horizontal,
 		CS_Blur_Vertical,
 		CS_BloomDownsample,

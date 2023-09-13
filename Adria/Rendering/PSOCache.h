@@ -12,6 +12,8 @@ namespace adria
 		HosekWilkieSky,
 		Texture,
 		Solid_Wireframe,
+		Debug_Wireframe,
+		Debug_Solid,
 		Sun,
 		GBuffer,
 		GBuffer_NoCull,

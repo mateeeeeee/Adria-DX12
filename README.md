@@ -48,8 +48,8 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 * Model Loading with tinygltf
 
 ## TODO
+* Debug Renderer (wip)
 * DDGI (wip)
-* Debug Renderer
 * Resource Viewer
 * FSR2
 

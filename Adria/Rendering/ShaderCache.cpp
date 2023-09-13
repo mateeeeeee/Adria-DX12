@@ -36,6 +36,7 @@ namespace adria
 			case VS_Ocean:
 			case VS_OceanLOD:
 			case VS_CloudsCombine:
+			case VS_Debug:
 				return GfxShaderStage::VS;
 			case PS_Sky:
 			case PS_Texture:
@@ -53,6 +54,7 @@ namespace adria
 			case PS_Ocean:
 			case PS_CloudsCombine:
 			case PS_DrawMeshlets:
+			case PS_Debug:
 				return GfxShaderStage::PS;
 			case GS_LensFlare:
 			case GS_Bokeh:
@@ -146,6 +148,9 @@ namespace adria
 			case PS_Texture:
 			case PS_Solid:
 				return "Other/Simple.hlsl";
+			case VS_Debug:
+			case PS_Debug:
+				return "Other/Debug.hlsl";
 			case VS_Decals:
 			case PS_Decals:
 			case PS_Decals_ModifyNormals:
@@ -362,6 +367,10 @@ namespace adria
 				return "LensFlareGS";
 			case PS_LensFlare:
 				return "LensFlarePS";
+			case VS_Debug:
+				return "DebugVS";
+			case PS_Debug:
+				return "DebugPS";
 			case CS_Clouds:
 			case CS_Clouds_Reprojection:
 				return "CloudsCS";
@@ -529,8 +538,8 @@ namespace adria
 		}
 		void CompileAllShaders()
 		{
-			Timer t;
 			ADRIA_LOG(INFO, "Compiling all shaders...");
+			Timer t;
 			using UnderlyingType = std::underlying_type_t<GfxShaderID>;
 			std::vector<UnderlyingType> shaders(ShaderId_Count);
 			std::iota(std::begin(shaders), std::end(shaders), 0);
