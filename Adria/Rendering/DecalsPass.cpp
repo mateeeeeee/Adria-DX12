@@ -46,8 +46,8 @@ namespace adria
 				uint32 depth_idx = depth_srv.GetIndex();
 				struct DecalsConstants
 				{
-					XMMATRIX model_matrix;
-					XMMATRIX transposed_inverse_model;
+					Matrix model_matrix;
+					Matrix transposed_inverse_model;
 					uint32 decal_type;
 					uint32 decal_albedo_idx;
 					uint32 decal_normal_idx;
@@ -71,7 +71,7 @@ namespace adria
 						if (decal.modify_gbuffer_normals != modify_normals) continue;
 
 						constants.model_matrix = decal.decal_model_matrix;
-						constants.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, decal.decal_model_matrix));
+						constants.transposed_inverse_model = decal.decal_model_matrix.Invert().Transpose(); 
 						constants.decal_type = static_cast<uint32>(decal.decal_type);
 						constants.decal_albedo_idx = (uint32)decal.albedo_decal_texture;
 						constants.decal_normal_idx = (uint32)decal.normal_decal_texture;

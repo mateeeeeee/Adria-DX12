@@ -8,7 +8,6 @@ using namespace DirectX;
 
 namespace adria
 {
-
 	namespace
 	{
 		inline double EvaluateSpline(double const* spline, size_t stride, double value)
@@ -21,7 +20,6 @@ namespace adria
 				5 * pow(1 - value, 1) * pow(value, 4) * spline[4 * stride] +
 				1 * pow(value, 5) * spline[5 * stride];
 		}
-
 		double Evaluate(double const* dataset, size_t stride, float turbidity, float albedo, float sun_theta)
 		{
 			// splines are functions of elevation^1/3
@@ -59,10 +57,7 @@ namespace adria
 			XMVECTOR chi = XMVectorDivide(XMVectorReplicate(1.f + cos_gamma * cos_gamma), XMVectorPow(_H * _H + XMVectorReplicate(1.0f) - XMVectorScale(_H, 2.0f * cos_gamma), XMVectorReplicate(1.5)));
 			XMVECTOR temp1 = _A * XMVectorExp(XMVectorScale(_B, 1.0f/(cos_theta + 0.01f)));
 			XMVECTOR temp2 = _C + _D * XMVectorExp(XMVectorScale(_E, gamma)) + XMVectorScale(_F, gamma * gamma) + chi * _G + XMVectorScale(_I, (float)sqrt(std::max(0.f, cos_theta)));
-			XMVECTOR temp = temp1 * temp2;
-
-			XMFLOAT3 result;
-			XMStoreFloat3(&result, temp);
+			XMVECTOR result = temp1 * temp2;
 			return result;
 		}
 	}
@@ -95,14 +90,8 @@ namespace adria
 			params[ESkyParam_G],
 			params[ESkyParam_H],
 			params[ESkyParam_I]);
-
-		XMVECTOR _S = XMLoadFloat3(&S);
-		XMVECTOR _Z = XMLoadFloat3(&params[ESkyParam_Z]);
-		_S = _S * _Z;
-
-		_Z = XMVectorDivide(_Z, XMVector3Dot(_S, XMVectorSet(0.2126f, 0.7152f, 0.0722f, 0.0f)));
-		XMStoreFloat3(&params[ESkyParam_Z], _Z);
-
+		S = S * params[ESkyParam_Z];
+		params[ESkyParam_Z] = params[ESkyParam_Z] / (S.Dot(Vector3(0.2126f, 0.7152f, 0.0722f)));
 		return params;
 	}
 

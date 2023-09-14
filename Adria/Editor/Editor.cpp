@@ -450,13 +450,13 @@ namespace adria
 				ImGui::DragFloat("Rotation", &params.rotation, 1.0f, -180.0f, 180.0f);
 				ImGui::Checkbox("Modify GBuffer Normals", &params.modify_gbuffer_normals);
 
-				auto picking_data = engine->renderer->GetPickingData();
+				auto const& picking_data = engine->renderer->GetPickingData();
 				ImGui::Text("Picked Position: %f %f %f", picking_data.position.x, picking_data.position.y, picking_data.position.z);
 				ImGui::Text("Picked Normal: %f %f %f", picking_data.normal.x, picking_data.normal.y, picking_data.normal.z);
 				if (ImGui::Button("Load Decal"))
 				{
-					params.position = picking_data.position;
-					params.normal = picking_data.normal;
+					params.position = Vector3(picking_data.position);
+					params.normal = Vector3(picking_data.normal);
 					params.rotation = XMConvertToRadians(params.rotation);
 
 					engine->entity_loader->LoadDecal(params);

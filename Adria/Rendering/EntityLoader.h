@@ -1,12 +1,10 @@
 #pragma once
-#include <DirectXMath.h>
 #include <optional>
 #include <array>
 #include <vector>
 #include <string>
 #include "Components.h"
 #include "entt/entity/registry.hpp"
-#include "Core/CoreTypes.h"
 #include "Utilities/Heightmap.h"
 #include "Math/ComputeNormals.h"
 
@@ -23,7 +21,7 @@ namespace adria
     {
         std::string model_path = "";
         std::string textures_path = "";
-		DirectX::XMMATRIX model_matrix;
+		Matrix model_matrix;
 		bool triangle_ccw = true;
 		bool force_mask_alpha_usage = false;
     };
@@ -66,8 +64,8 @@ namespace adria
 		float rotation = 0.0f;
 		float size = 50.0f;
 		bool modify_gbuffer_normals = false;
-		DirectX::XMFLOAT4 position;
-		DirectX::XMFLOAT4 normal;
+		Vector3 position;
+		Vector3 normal;
 	};
 
     class GfxDevice;
