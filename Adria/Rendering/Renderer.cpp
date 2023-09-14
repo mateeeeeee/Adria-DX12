@@ -192,7 +192,7 @@ namespace adria
 
 		std::vector<LightHLSL> hlsl_lights{};
 		uint32 light_index = 0;
-		XMMATRIX light_transform = renderer_settings.render_path == RenderPathType::PathTracing ? XMMatrixIdentity() : camera->View();
+		Matrix light_transform = renderer_settings.render_path == RenderPathType::PathTracing ? Matrix::Identity : camera->View();
 		for (auto light_entity : reg.view<Light>())
 		{
 			Light& light = reg.get<Light>(light_entity);
@@ -310,18 +310,6 @@ namespace adria
 
 	void Renderer::UpdateFrameConstants(float dt)
 	{
-		auto AreMatricesEqual = [](XMMATRIX m1, XMMATRIX m2) -> bool
-		{
-			XMFLOAT4X4 _m1, _m2;
-			XMStoreFloat4x4(&_m1, m1);
-			XMStoreFloat4x4(&_m2, m2);
-
-			return !memcmp(_m1.m[0], _m2.m[0], 4 * sizeof(float)) &&
-				!memcmp(_m1.m[1], _m2.m[1], 4 * sizeof(float)) &&
-				!memcmp(_m1.m[2], _m2.m[2], 4 * sizeof(float)) &&
-				!memcmp(_m1.m[3], _m2.m[3], 4 * sizeof(float));
-		};
-
 		static float total_time = 0.0f;
 		total_time += dt;
 
@@ -337,7 +325,7 @@ namespace adria
 		}
 
 		static FrameCBuffer frame_cbuf_data{};
-		if (!AreMatricesEqual(camera->ViewProj(), frame_cbuf_data.prev_view_projection)) path_tracer.Reset();
+		if (camera->ViewProj() != frame_cbuf_data.prev_view_projection) path_tracer.Reset();
 		frame_cbuf_data.camera_near = camera->Near();
 		frame_cbuf_data.camera_far = camera->Far();
 		frame_cbuf_data.camera_position = camera->Position();
@@ -345,9 +333,9 @@ namespace adria
 		frame_cbuf_data.view = camera->View();
 		frame_cbuf_data.projection = camera->Proj();
 		frame_cbuf_data.view_projection = camera->ViewProj();
-		frame_cbuf_data.inverse_view = XMMatrixInverse(nullptr, camera->View());
-		frame_cbuf_data.inverse_projection = XMMatrixInverse(nullptr, camera->Proj());
-		frame_cbuf_data.inverse_view_projection = XMMatrixInverse(nullptr, camera->ViewProj());
+		frame_cbuf_data.inverse_view = camera->View().Invert();
+		frame_cbuf_data.inverse_projection = camera->Proj().Invert();
+		frame_cbuf_data.inverse_view_projection = camera->ViewProj().Invert();
 		frame_cbuf_data.reprojection = frame_cbuf_data.inverse_view_projection * frame_cbuf_data.prev_view_projection;
 		frame_cbuf_data.camera_jitter_x = jitter_x;
 		frame_cbuf_data.camera_jitter_y = jitter_y;
@@ -373,7 +361,7 @@ namespace adria
 			{
 				frame_cbuf_data.sun_direction = -light_data.direction;
 				frame_cbuf_data.sun_color = light_data.color * light_data.energy;
-				XMStoreFloat3(&sun_direction, -light_data.direction);
+				sun_direction = light_data.direction;
 				break;
 			}
 		}
@@ -383,7 +371,7 @@ namespace adria
 			frame_cbuf_data.accel_struct_idx = accel_structure.GetTLASIndex();
 		}
 
-		frame_cbuf_data.wind_params = XMVectorSet(wind_dir[0], wind_dir[1], wind_dir[2], wind_speed);
+		frame_cbuf_data.wind_params = Vector4(wind_dir[0], wind_dir[1], wind_dir[2], wind_speed);
 		frame_cbuffer.Update(frame_cbuf_data, backbuffer_index);
 		frame_cbuf_data.prev_view_projection = camera->ViewProj();
 		frame_cbuf_data.prev_view = camera->View();
@@ -398,7 +386,7 @@ namespace adria
 		{
 			Batch& batch = batch_view.get<Batch>(e);
 			auto& aabb = batch.bounding_box;
-			batch.camera_visibility = camera_frustum.Intersects(aabb);
+			batch.camera_visibility = true;// camera_frustum.Intersects(aabb);
 		}
 	}
 

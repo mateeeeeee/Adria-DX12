@@ -120,7 +120,7 @@ namespace adria
 		uint32			         volumetric_lights = 0;
 		float					 wind_dir[3] = { 1.0f, 0.0f, 1.0f };
 		float					 wind_speed = 10.0f;
-		DirectX::XMFLOAT3		 sun_direction;
+		Vector3					 sun_direction;
 		ViewportData			 viewport_data;
 
 	private:
