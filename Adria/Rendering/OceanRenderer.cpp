@@ -350,12 +350,12 @@ namespace adria
 
 					struct OceanConstants
 					{
-						XMMATRIX ocean_model_matrix;
-						XMFLOAT3 ocean_color;
+						Matrix ocean_model_matrix;
+						Vector3 ocean_color;
 					} constants =
 					{
 						.ocean_model_matrix = transform.current_transform,
-						.ocean_color = XMFLOAT3(material.base_color)
+						.ocean_color = Vector3(material.base_color)
 					};
 
 					cmd_list->SetRootConstants(1, indices);

@@ -89,7 +89,11 @@ namespace adria
 		RGBlackboard& rg_blackboard = render_graph.GetBlackboard();
 		FrameBlackboardData global_data{};
 		{
-			global_data.camera_position = camera->Position();
+			Vector3 cam_pos = camera->Position();
+			global_data.camera_position[0] = cam_pos.x;
+			global_data.camera_position[1] = cam_pos.y;
+			global_data.camera_position[2] = cam_pos.z;
+			global_data.camera_position[3] = 1.0f;
 			global_data.camera_view = camera->View();
 			global_data.camera_proj = camera->Proj();
 			global_data.camera_viewproj = camera->ViewProj();
@@ -280,7 +284,7 @@ namespace adria
 				material_hlsl.normal_idx = (uint32)material.normal_texture;
 				material_hlsl.roughness_metallic_idx = (uint32)material.metallic_roughness_texture;
 				material_hlsl.emissive_idx = (uint32)material.emissive_texture;
-				material_hlsl.base_color_factor = XMFLOAT3(material.base_color);
+				material_hlsl.base_color_factor = Vector3(material.base_color);
 				material_hlsl.emissive_factor = material.emissive_factor;
 				material_hlsl.metallic_factor = material.metallic_factor;
 				material_hlsl.roughness_factor = material.roughness_factor;
@@ -386,7 +390,7 @@ namespace adria
 		{
 			Batch& batch = batch_view.get<Batch>(e);
 			auto& aabb = batch.bounding_box;
-			batch.camera_visibility = true;// camera_frustum.Intersects(aabb);
+			batch.camera_visibility = camera_frustum.Intersects(aabb);
 		}
 	}
 

@@ -44,14 +44,12 @@ namespace adria
 					ADRIA_LOG(WARNING, "Using Lens Flare on a Non-Directional Light Source");
 					return;
 				}
-				XMFLOAT3 light_ss{};
+				Vector3 light_ss{};
 				{
-					auto camera_position = global_data.camera_position;
-					XMVECTOR light_position = light.type == LightType::Directional ?
-						XMVector4Transform(light.position, XMMatrixTranslation(XMVectorGetX(camera_position), 0.0f, XMVectorGetY(camera_position))) : XMVECTOR(light.position);
-					XMVECTOR LightPos = XMVector4Transform(light_position, global_data.camera_viewproj);
-					XMFLOAT4 light_pos{};
-					XMStoreFloat4(&light_pos, LightPos);
+					Vector4 camera_position(global_data.camera_position);
+					Vector4 light_pos = light.type == LightType::Directional ? Vector4::Transform(light.position, XMMatrixTranslation(camera_position.x, 0.0f, camera_position.y)) : light.position;
+					light_pos = Vector4::Transform(light_pos, global_data.camera_viewproj);
+
 					light_ss.x = 0.5f * light_pos.x / light_pos.w + 0.5f;
 					light_ss.y = -0.5f * light_pos.y / light_pos.w + 0.5f;
 					light_ss.z = light_pos.z / light_pos.w;
@@ -130,12 +128,9 @@ namespace adria
 				}
 				XMFLOAT3 light_ss{};
 				{
-					auto camera_position = global_data.camera_position;
-					XMVECTOR light_position = light.type == LightType::Directional ?
-						XMVector4Transform(light.position, XMMatrixTranslation(XMVectorGetX(camera_position), 0.0f, XMVectorGetY(camera_position))) : XMVECTOR(light.position);
-					XMVECTOR LightPos = XMVector4Transform(light_position, global_data.camera_viewproj);
-					XMFLOAT4 light_pos{};
-					XMStoreFloat4(&light_pos, LightPos);
+					Vector4 camera_position(global_data.camera_position);
+					Vector4 light_pos = light.type == LightType::Directional ? Vector4::Transform(light.position, XMMatrixTranslation(camera_position.x, 0.0f, camera_position.y)) : light.position;
+					light_pos = Vector4::Transform(light_pos, global_data.camera_viewproj);
 					light_ss.x = 0.5f * light_pos.x / light_pos.w + 0.5f;
 					light_ss.y = -0.5f * light_pos.y / light_pos.w + 0.5f;
 					light_ss.z = light_pos.z / light_pos.w;

@@ -328,9 +328,9 @@ namespace adria
 					{
 						LightParameters light_params{};
 						light_params.light_data.casts_shadows = false;
-						light_params.light_data.color = XMVectorSet(real() * 2, real() * 2, real() * 2, 1.0f);
-						light_params.light_data.direction = XMVectorSet(0.5f, -1.0f, 0.1f, 0.0f);
-						light_params.light_data.position = XMVectorSet(real() * 200 - 100, real() * 200.0f, real() * 200 - 100, 1.0f);
+						light_params.light_data.color = Vector4(real() * 2, real() * 2, real() * 2, 1.0f);
+						light_params.light_data.direction = Vector4(0.5f, -1.0f, 0.1f, 0.0f);
+						light_params.light_data.position = Vector4(real() * 200 - 100, real() * 200.0f, real() * 200 - 100, 1.0f);
 						light_params.light_data.type = LightType::Point;
 						light_params.mesh_type = LightMesh::NoMesh;
 						light_params.light_data.range = real() * 100.0f + 40.0f;
@@ -357,9 +357,9 @@ namespace adria
 						light_params.light_data.casts_shadows = false;
 						light_params.light_data.inner_cosine = real();
 						light_params.light_data.outer_cosine = real();
-						light_params.light_data.color = XMVectorSet(real() * 2, real() * 2, real() * 2, 1.0f);
-						light_params.light_data.direction = XMVectorSet(0.5f, -1.0f, 0.1f, 0.0f);
-						light_params.light_data.position = XMVectorSet(real() * 200 - 100, real() * 200.0f, real() * 200 - 100, 1.0f);
+						light_params.light_data.color = Vector4(real() * 2, real() * 2, real() * 2, 1.0f);
+						light_params.light_data.direction = Vector4(0.5f, -1.0f, 0.1f, 0.0f);
+						light_params.light_data.position = Vector4(real() * 200 - 100, real() * 200.0f, real() * 200 - 100, 1.0f);
 						light_params.light_data.type = LightType::Spot;
 						light_params.mesh_type = LightMesh::NoMesh;
 						light_params.light_data.range = real() * 100.0f + 40.0f;
@@ -867,23 +867,15 @@ namespace adria
 
 			auto& camera = *engine->camera;
 
-			auto camera_view = camera.View();
-			auto camera_proj = camera.Proj();
-
-			XMFLOAT4X4 view, projection;
-
-			XMStoreFloat4x4(&view, camera_view);
-			XMStoreFloat4x4(&projection, camera_proj);
-
+			Matrix camera_view = camera.View();
+			Matrix camera_proj = camera.Proj();
 			auto& entity_transform = engine->reg.get<Transform>(selected_entity);
-
-			XMFLOAT4X4 tr;
-			XMStoreFloat4x4(&tr, entity_transform.current_transform);
 
 			if (ImGuizmo::IsUsing())
 			{
-				bool change = ImGuizmo::Manipulate(view.m[0], projection.m[0], gizmo_op, ImGuizmo::LOCAL, tr.m[0]);
-				entity_transform.current_transform = XMLoadFloat4x4(&tr);
+				Matrix tr = entity_transform.current_transform;
+				bool change = ImGuizmo::Manipulate(camera_view.m[0], camera_proj.m[0], gizmo_op, ImGuizmo::LOCAL, tr.m[0]);
+				entity_transform.current_transform = tr;
 			}
 		}
 
