@@ -119,7 +119,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)Adria\;$(SolutionDir)External\d3dx12;$(SolutionDir)External\D3D12MA;$(SolutionDir)External\stb;$(SolutionDir)External\dxc\include\;$(SolutionDir)External\tinygltf;$(SolutionDir)External\tinyobjloader;$(SolutionDir)External\FastNoiseLite;$(SolutionDir)External\json;$(SolutionDir)External\entt;$(SolutionDir)External\nfd\include;$(SolutionDir)External\FontAwesome;$(SolutionDir)External\meshoptimizer;$(SolutionDir)External\cereal;$(SolutionDir)External\ImGui;$(SolutionDir)External\Tracy;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Adria\;$(SolutionDir)External\d3dx12;$(SolutionDir)External\D3D12MA;$(SolutionDir)External\stb;$(SolutionDir)External\dxc\include\;$(SolutionDir)External\tinygltf;$(SolutionDir)External\tinyobjloader;$(SolutionDir)External\FastNoiseLite;$(SolutionDir)External\json;$(SolutionDir)External\entt;$(SolutionDir)External\nfd\include;$(SolutionDir)External\FontAwesome;$(SolutionDir)External\meshoptimizer;$(SolutionDir)External\cereal;$(SolutionDir)External\ImGui;$(SolutionDir)External\Tracy;$(SolutionDir)External\SimpleMath;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
       <AdditionalOptions>/sdl /w34996 %(AdditionalOptions)</AdditionalOptions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -146,7 +146,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)Adria\;$(SolutionDir)External\d3dx12;$(SolutionDir)External\D3D12MA;$(SolutionDir)External\stb;$(SolutionDir)External\dxc\include\;$(SolutionDir)External\tinygltf;$(SolutionDir)External\tinyobjloader;$(SolutionDir)External\FastNoiseLite;$(SolutionDir)External\json;$(SolutionDir)External\entt;$(SolutionDir)External\nfd\include;$(SolutionDir)External\FontAwesome;$(SolutionDir)External\meshoptimizer;$(SolutionDir)External\cereal;$(SolutionDir)External\ImGui;$(SolutionDir)External\Tracy;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Adria\;$(SolutionDir)External\d3dx12;$(SolutionDir)External\D3D12MA;$(SolutionDir)External\stb;$(SolutionDir)External\dxc\include\;$(SolutionDir)External\tinygltf;$(SolutionDir)External\tinyobjloader;$(SolutionDir)External\FastNoiseLite;$(SolutionDir)External\json;$(SolutionDir)External\entt;$(SolutionDir)External\nfd\include;$(SolutionDir)External\FontAwesome;$(SolutionDir)External\meshoptimizer;$(SolutionDir)External\cereal;$(SolutionDir)External\ImGui;$(SolutionDir)External\Tracy;$(SolutionDir)External\SimpleMath;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
       <AdditionalOptions>/sdl /w34996 %(AdditionalOptions)</AdditionalOptions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -190,6 +190,7 @@
     <ClCompile Include="..\External\meshoptimizer\vertexfilter.cpp" />
     <ClCompile Include="..\External\meshoptimizer\vfetchanalyzer.cpp" />
     <ClCompile Include="..\External\meshoptimizer\vfetchoptimizer.cpp" />
+    <ClCompile Include="..\External\SimpleMath\SimpleMath.cpp" />
     <ClCompile Include="..\External\tracy\TracyClient.cpp" />
     <ClCompile Include="Core\ConsoleCommand.cpp" />
     <ClCompile Include="Core\ConsoleManager.cpp" />
@@ -243,7 +244,6 @@
     </ClCompile>
     <ClCompile Include="Rendering\Components.cpp" />
     <ClCompile Include="Rendering\DDGI.cpp" />
-    <ClCompile Include="Rendering\DebugPass.cpp" />
     <ClCompile Include="Rendering\AccelerationStructure.cpp" />
     <ClCompile Include="Rendering\AmbientPass.cpp" />
     <ClCompile Include="Rendering\AutomaticExposurePass.cpp" />
@@ -252,6 +252,7 @@
     <ClCompile Include="Rendering\BokehPass.cpp" />
     <ClCompile Include="Rendering\Camera.cpp" />
     <ClCompile Include="Rendering\ClusteredDeferredLightingPass.cpp" />
+    <ClCompile Include="Rendering\DebugRenderer.cpp" />
     <ClCompile Include="Rendering\HelperPasses.cpp" />
     <ClCompile Include="Rendering\DecalsPass.cpp" />
     <ClCompile Include="Rendering\DepthOfFieldPass.cpp" />
@@ -318,6 +319,7 @@
     <ClInclude Include="..\External\ImGui\ImGui\imstb_textedit.h" />
     <ClInclude Include="..\External\ImGui\ImGui\imstb_truetype.h" />
     <ClInclude Include="..\External\meshoptimizer\meshoptimizer.h" />
+    <ClInclude Include="..\External\SimpleMath\SimpleMath.h" />
     <ClInclude Include="..\External\tracy\tracy\Tracy.hpp" />
     <ClInclude Include="..\External\tracy\tracy\TracyD3D12.hpp" />
     <ClInclude Include="Core\ConsoleCommand.h" />
@@ -368,7 +370,7 @@
     <ClInclude Include="Graphics\GfxRingDynamicAllocator.h" />
     <ClInclude Include="Graphics\GfxShaderCompiler.h" />
     <ClInclude Include="Graphics\GfxTracyProfiler.h" />
-    <ClInclude Include="Graphics\GfxVertexTypes.h" />
+    <ClInclude Include="Graphics\GfxVertexFormat.h" />
     <ClInclude Include="Input\Input.h" />
     <ClInclude Include="Logging\FileLogger.h" />
     <ClInclude Include="Logging\Logger.h" />
@@ -379,6 +381,7 @@
     <ClInclude Include="Math\ComputeTangentFrame.h" />
     <ClInclude Include="Math\Constants.h" />
     <ClInclude Include="Math\Halton.h" />
+    <ClInclude Include="Math\MathTypes.h" />
     <ClInclude Include="Math\Packing.h" />
     <ClInclude Include="precomp.h" />
     <ClInclude Include="RenderGraph\RenderGraph.h">
@@ -402,7 +405,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="Rendering\DDGI.h" />
-    <ClInclude Include="Rendering\DebugPass.h" />
     <ClInclude Include="Rendering\AccelerationStructure.h" />
     <ClInclude Include="Rendering\AmbientPass.h" />
     <ClInclude Include="Rendering\AutomaticExposurePass.h" />
@@ -412,6 +414,7 @@
     <ClInclude Include="Rendering\Camera.h" />
     <ClInclude Include="Rendering\ClusteredDeferredLightingPass.h" />
     <ClInclude Include="Rendering\Components.h" />
+    <ClInclude Include="Rendering\DebugRenderer.h" />
     <ClInclude Include="Rendering\GPUDrivenGBufferPass.h" />
     <ClInclude Include="Rendering\ShaderStructs.h" />
     <ClInclude Include="Rendering\HelperPasses.h" />
@@ -810,6 +813,14 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Other\Debug.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="Resources\NewShaders\Other\Decals.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
@@ -1127,6 +1138,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\.gitignore" />
+    <None Include="..\External\SimpleMath\SimpleMath.inl" />
     <None Include="..\README.md" />
     <None Include="imgui.ini" />
     <None Include="packages.config" />

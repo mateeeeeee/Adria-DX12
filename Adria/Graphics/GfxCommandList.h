@@ -3,6 +3,7 @@
 #include <d3d12.h>
 #include "GfxDescriptor.h"
 #include "GfxResourceCommon.h"
+#include "GfxDynamicAllocation.h"
 #include "GfxStates.h"
 #include "Utilities/AutoRefCountPtr.h"
 #include "Core/CoreTypes.h"
@@ -134,6 +135,8 @@ namespace adria
 		void SetRootSRV(uint32 slot, size_t gpu_address);
 		void SetRootUAV(uint32 slot, size_t gpu_address);
 		void SetRootDescriptorTable(uint32 slot, GfxDescriptor base_descriptor);
+
+		GfxDynamicAllocation AllocateTransient(uint32 size, uint32 align = 0);
 
 		void ClearRenderTarget(GfxDescriptor rtv, float const* clear_color);
 		void ClearDepth(GfxDescriptor dsv, float depth = 1.0f, uint8 stencil = 0, bool clear_stencil = false);

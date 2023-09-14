@@ -42,6 +42,7 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
     - Adaptive tesselation
     - Foam
 * Shader hot reload
+* Debug Renderer
 * ImGui Editor
 * Profiler
     - custom and tracy profiler
@@ -49,7 +50,6 @@ Graphics engine written in C++ using DirectX12/DXR. For successful build you wil
 
 ## TODO
 * DDGI (wip)
-* Debug Renderer
 * FSR2
 
 ## Dependencies

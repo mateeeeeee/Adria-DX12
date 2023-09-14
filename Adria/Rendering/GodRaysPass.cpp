@@ -54,11 +54,10 @@ namespace adria
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.sun));
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadWriteTexture(data.output));
 
-				XMVECTOR camera_position = global_data.camera_position;
-				XMVECTOR LightPos = XMVector4Transform(light.position, XMMatrixTranslation(XMVectorGetX(camera_position), 0.0f, XMVectorGetY(camera_position)));
-				LightPos = XMVector4Transform(LightPos, global_data.camera_viewproj);
-				XMFLOAT4 light_pos{};
-				XMStoreFloat4(&light_pos, LightPos);
+				Vector4 camera_position(global_data.camera_position);
+				Vector4 light_pos = Vector4::Transform(light.position, XMMatrixTranslation(camera_position.x, 0.0f, camera_position.y));
+				light_pos = Vector4::Transform(light_pos, global_data.camera_viewproj);
+
 				struct GodRaysConstants
 				{
 					float  light_screen_space_position_x;
@@ -78,8 +77,6 @@ namespace adria
 					.decay = light.godrays_decay, .exposure = light.godrays_exposure,
 					.sun_idx = i, .output_idx = i + 1
 				};
-
-				
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::GodRays));
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);

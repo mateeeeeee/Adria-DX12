@@ -1,6 +1,4 @@
 #pragma once
-#include <DirectXMath.h>
-#include "Core/CoreTypes.h"
 #include <array>
 
 namespace adria
@@ -21,7 +19,7 @@ namespace adria
 		ESkyParam_Count
 	};
 
-	using SkyParameters = std::array<DirectX::XMFLOAT3, ESkyParam_Count>;
+	using SkyParameters = std::array<Vector3, ESkyParam_Count>;
 
-	SkyParameters CalculateSkyParameters(float turbidity, float albedo, DirectX::XMFLOAT3 sun_direction);
+	SkyParameters CalculateSkyParameters(float turbidity, float albedo, Vector3 const& sun_direction);
 }

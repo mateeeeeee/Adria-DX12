@@ -3,10 +3,11 @@
 #include "Camera.h"
 #include "Components.h"
 #include "PSOCache.h"
-
 #include "ShaderCache.h"
 #include "SkyModel.h"
 #include "TextureManager.h"
+#include "DebugRenderer.h"
+
 #include "entt/entity/registry.hpp"
 #include "Editor/GUICommand.h"
 #include "Editor/Editor.h"
@@ -40,11 +41,12 @@ namespace adria
 		tiled_deferred_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
 		postprocessor(reg, width, height), fxaa_pass(width, height), picking_pass(gfx, width, height),
 		clustered_deferred_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height),
-		decals_pass(reg, width, height), ocean_renderer(reg, width, height), aabb_pass(reg, width, height),
+		decals_pass(reg, width, height), ocean_renderer(reg, width, height),
 		shadow_renderer(reg, gfx, width, height), rtao_pass(gfx, width, height), rtr_pass(gfx, width, height),
 		path_tracer(gfx, width, height), ray_tracing_supported(gfx->GetCapabilities().SupportsRayTracing())
 	{
-		g_GfxProfiler.Init(gfx);
+		g_DebugRenderer.Initialize(width, height);
+		g_GfxProfiler.Initialize(gfx);
 		GfxTracyProfiler::Initialize(gfx);
 		CreateSizeDependentResources();
 		shadow_renderer.GetShadowTextureRenderedEvent().AddMember(&DeferredLightingPass::OnShadowTextureRendered, deferred_lighting_pass);
@@ -87,7 +89,11 @@ namespace adria
 		RGBlackboard& rg_blackboard = render_graph.GetBlackboard();
 		FrameBlackboardData global_data{};
 		{
-			global_data.camera_position = camera->Position();
+			Vector3 cam_pos = camera->Position();
+			global_data.camera_position[0] = cam_pos.x;
+			global_data.camera_position[1] = cam_pos.y;
+			global_data.camera_position[2] = cam_pos.z;
+			global_data.camera_position[3] = 1.0f;
 			global_data.camera_view = camera->View();
 			global_data.camera_proj = camera->Proj();
 			global_data.camera_viewproj = camera->ViewProj();
@@ -112,6 +118,7 @@ namespace adria
 		{
 			width = w; height = h;
 			CreateSizeDependentResources();
+			g_DebugRenderer.OnResize(w, h);
 			gbuffer_pass.OnResize(w, h);
 			gpu_driven_renderer.OnResize(w, h);
 			ambient_pass.OnResize(w, h);
@@ -134,7 +141,6 @@ namespace adria
 			rtr_pass.OnResize(w, h);
 			path_tracer.OnResize(w, h);
 			rtao_pass.OnResize(w, h);
-			aabb_pass.OnResize(w, h);
 		}
 	}
 	void Renderer::OnSceneInitialized()
@@ -145,7 +151,6 @@ namespace adria
 		hbao_pass.OnSceneInitialized(gfx);
 		postprocessor.OnSceneInitialized(gfx);
 		ocean_renderer.OnSceneInitialized(gfx);
-		aabb_pass.OnSceneInitialized(gfx);
 		tonemap_pass.OnSceneInitialized(gfx);
 		CreateAS();
 
@@ -191,7 +196,7 @@ namespace adria
 
 		std::vector<LightHLSL> hlsl_lights{};
 		uint32 light_index = 0;
-		XMMATRIX light_transform = renderer_settings.render_path == RenderPathType::PathTracing ? XMMatrixIdentity() : camera->View();
+		Matrix light_transform = renderer_settings.render_path == RenderPathType::PathTracing ? Matrix::Identity : camera->View();
 		for (auto light_entity : reg.view<Light>())
 		{
 			Light& light = reg.get<Light>(light_entity);
@@ -279,7 +284,7 @@ namespace adria
 				material_hlsl.normal_idx = (uint32)material.normal_texture;
 				material_hlsl.roughness_metallic_idx = (uint32)material.metallic_roughness_texture;
 				material_hlsl.emissive_idx = (uint32)material.emissive_texture;
-				material_hlsl.base_color_factor = XMFLOAT3(material.base_color);
+				material_hlsl.base_color_factor = Vector3(material.base_color);
 				material_hlsl.emissive_factor = material.emissive_factor;
 				material_hlsl.metallic_factor = material.metallic_factor;
 				material_hlsl.roughness_factor = material.roughness_factor;
@@ -309,18 +314,6 @@ namespace adria
 
 	void Renderer::UpdateFrameConstants(float dt)
 	{
-		auto AreMatricesEqual = [](XMMATRIX m1, XMMATRIX m2) -> bool
-		{
-			XMFLOAT4X4 _m1, _m2;
-			XMStoreFloat4x4(&_m1, m1);
-			XMStoreFloat4x4(&_m2, m2);
-
-			return !memcmp(_m1.m[0], _m2.m[0], 4 * sizeof(float)) &&
-				!memcmp(_m1.m[1], _m2.m[1], 4 * sizeof(float)) &&
-				!memcmp(_m1.m[2], _m2.m[2], 4 * sizeof(float)) &&
-				!memcmp(_m1.m[3], _m2.m[3], 4 * sizeof(float));
-		};
-
 		static float total_time = 0.0f;
 		total_time += dt;
 
@@ -336,7 +329,7 @@ namespace adria
 		}
 
 		static FrameCBuffer frame_cbuf_data{};
-		if (!AreMatricesEqual(camera->ViewProj(), frame_cbuf_data.prev_view_projection)) path_tracer.Reset();
+		if (camera->ViewProj() != frame_cbuf_data.prev_view_projection) path_tracer.Reset();
 		frame_cbuf_data.camera_near = camera->Near();
 		frame_cbuf_data.camera_far = camera->Far();
 		frame_cbuf_data.camera_position = camera->Position();
@@ -344,9 +337,9 @@ namespace adria
 		frame_cbuf_data.view = camera->View();
 		frame_cbuf_data.projection = camera->Proj();
 		frame_cbuf_data.view_projection = camera->ViewProj();
-		frame_cbuf_data.inverse_view = XMMatrixInverse(nullptr, camera->View());
-		frame_cbuf_data.inverse_projection = XMMatrixInverse(nullptr, camera->Proj());
-		frame_cbuf_data.inverse_view_projection = XMMatrixInverse(nullptr, camera->ViewProj());
+		frame_cbuf_data.inverse_view = camera->View().Invert();
+		frame_cbuf_data.inverse_projection = camera->Proj().Invert();
+		frame_cbuf_data.inverse_view_projection = camera->ViewProj().Invert();
 		frame_cbuf_data.reprojection = frame_cbuf_data.inverse_view_projection * frame_cbuf_data.prev_view_projection;
 		frame_cbuf_data.camera_jitter_x = jitter_x;
 		frame_cbuf_data.camera_jitter_y = jitter_y;
@@ -372,7 +365,7 @@ namespace adria
 			{
 				frame_cbuf_data.sun_direction = -light_data.direction;
 				frame_cbuf_data.sun_color = light_data.color * light_data.energy;
-				XMStoreFloat3(&sun_direction, -light_data.direction);
+				sun_direction = Vector3(light_data.direction);
 				break;
 			}
 		}
@@ -382,7 +375,7 @@ namespace adria
 			frame_cbuf_data.accel_struct_idx = accel_structure.GetTLASIndex();
 		}
 
-		frame_cbuf_data.wind_params = XMVectorSet(wind_dir[0], wind_dir[1], wind_dir[2], wind_speed);
+		frame_cbuf_data.wind_params = Vector4(wind_dir[0], wind_dir[1], wind_dir[2], wind_speed);
 		frame_cbuffer.Update(frame_cbuf_data, backbuffer_index);
 		frame_cbuf_data.prev_view_projection = camera->ViewProj();
 		frame_cbuf_data.prev_view = camera->View();
@@ -452,7 +445,6 @@ namespace adria
 		}
 		if (volumetric_lights > 0) volumetric_lighting_pass.AddPass(render_graph);
 
-		aabb_pass.AddPass(render_graph);
 		ocean_renderer.AddPasses(render_graph);
 		sky_pass.AddDrawSkyPass(render_graph);
 		picking_pass.AddPass(render_graph);
@@ -460,6 +452,7 @@ namespace adria
 		postprocessor.AddPasses(render_graph, renderer_settings.postprocess);
 		render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
 		ResolveToFinalTexture(render_graph);
+		g_DebugRenderer.Render(render_graph);
 
 		if (!g_Editor.IsActive()) CopyToBackbuffer(render_graph);
 		else g_Editor.AddRenderPass(render_graph);

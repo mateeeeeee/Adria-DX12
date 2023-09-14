@@ -95,6 +95,9 @@
     <Filter Include="External\tracy">
       <UniqueIdentifier>{b7135eb2-079c-421c-89f6-541149851239}</UniqueIdentifier>
     </Filter>
+    <Filter Include="External\SimpleMath">
+      <UniqueIdentifier>{2c8e0df6-adf6-494c-8d19-9be2a0108398}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -199,9 +202,6 @@
     </ClCompile>
     <ClCompile Include="Graphics\GfxStates.cpp">
       <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\DebugPass.cpp">
-      <Filter>Rendering\Passes</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\AutomaticExposurePass.cpp">
       <Filter>Rendering\Passes</Filter>
@@ -446,6 +446,12 @@
     </ClCompile>
     <ClCompile Include="..\External\tracy\TracyClient.cpp">
       <Filter>External\tracy</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\DebugRenderer.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\SimpleMath\SimpleMath.cpp">
+      <Filter>External\SimpleMath</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -695,9 +701,6 @@
     <ClInclude Include="Graphics\GfxStates.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\DebugPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
     <ClInclude Include="Utilities\CLIParser.h">
       <Filter>Utilities</Filter>
     </ClInclude>
@@ -845,7 +848,7 @@
     <ClInclude Include="Graphics\GfxCommandSignature.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GfxVertexTypes.h">
+    <ClInclude Include="Graphics\GfxVertexFormat.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\TextureManager.h">
@@ -980,6 +983,15 @@
     </ClInclude>
     <ClInclude Include="..\External\tracy\tracy\Tracy.hpp">
       <Filter>External\tracy</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\DebugRenderer.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\SimpleMath\SimpleMath.h">
+      <Filter>External\SimpleMath</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\MathTypes.h">
+      <Filter>Math</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1164,8 +1176,8 @@
     <FxCompile Include="Resources\NewShaders\DDGI\DDGIRayTrace.hlsl">
       <Filter>Shaders\DDGI</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\NewShaders\DDGI\DDGIUpdate.hlsl">
-      <Filter>Shaders\DDGI</Filter>
+    <FxCompile Include="Resources\NewShaders\Other\Debug.hlsl">
+      <Filter>Shaders\Other</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1231,6 +1243,9 @@
       <Filter>Shaders\DDGI</Filter>
     </None>
     <None Include="imgui.ini" />
+    <None Include="..\External\SimpleMath\SimpleMath.inl">
+      <Filter>External\SimpleMath</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="adria.log" />

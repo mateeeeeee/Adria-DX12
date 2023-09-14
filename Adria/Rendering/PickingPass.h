@@ -9,8 +9,8 @@ namespace adria
 {
 	struct PickingData
 	{
-		DirectX::XMFLOAT4 position;
-		DirectX::XMFLOAT4 normal;
+		Vector4 position;
+		Vector4 normal;
 	};
 
 	class GfxDevice;

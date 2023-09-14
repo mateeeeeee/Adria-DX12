@@ -212,11 +212,11 @@ namespace adria
 					float       global_density;
 
 					float 	    cloud_coverage;
-					XMFLOAT3    cloud_base_color;
-					XMFLOAT3    cloud_top_color;
+					Vector3     cloud_base_color;
+					Vector3     cloud_top_color;
 					int	        max_num_steps;
 
-					XMFLOAT3    planet_center;
+					Vector3     planet_center;
 					float 	    planet_radius;
 
 					float 	    light_step_length;
@@ -246,11 +246,11 @@ namespace adria
 					.global_density = params.global_density,
 
 					.cloud_coverage = params.cloud_coverage,
-					.cloud_base_color = XMFLOAT3(params.cloud_base_color),
-					.cloud_top_color = XMFLOAT3(params.cloud_top_color),
+					.cloud_base_color = Vector3(params.cloud_base_color),
+					.cloud_top_color = Vector3(params.cloud_top_color),
 					.max_num_steps = params.max_num_steps,
 
-					.planet_center = XMFLOAT3(0.0f, -params.planet_radius, 0.0f),
+					.planet_center = Vector3(0.0f, -params.planet_radius, 0.0f),
 					.planet_radius = params.planet_radius,
 					
 					.light_step_length = params.light_step_length,

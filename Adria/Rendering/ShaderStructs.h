@@ -14,27 +14,29 @@ namespace adria
 
 	DECLSPEC_ALIGN(16) struct FrameCBuffer
 	{
-		DirectX::XMMATRIX view;
-		DirectX::XMMATRIX projection;
-		DirectX::XMMATRIX view_projection;
-		DirectX::XMMATRIX inverse_view;
-		DirectX::XMMATRIX inverse_projection;
-		DirectX::XMMATRIX inverse_view_projection;
-		DirectX::XMMATRIX prev_view;
-		DirectX::XMMATRIX prev_projection;
-		DirectX::XMMATRIX prev_view_projection;
-		DirectX::XMMATRIX reprojection;
-		DirectX::XMVECTOR camera_position;
-		DirectX::XMVECTOR camera_forward;
+		Matrix view;
+		Matrix projection;
+		Matrix view_projection;
+		Matrix inverse_view;
+		Matrix inverse_projection;
+		Matrix inverse_view_projection;
+		Matrix prev_view;
+		Matrix prev_projection;
+		Matrix prev_view_projection;
+		Matrix reprojection;
+		Vector3 camera_position;
+		PAD;
+		Vector3 camera_forward;
+		PAD;
 		float  camera_jitter_x;
 		float  camera_jitter_y;
 		float  camera_near;
 		float  camera_far;
 
-		DirectX::XMVECTOR wind_params;
-		DirectX::XMVECTOR sun_direction;
-		DirectX::XMVECTOR sun_color;
-		DirectX::XMVECTOR cascade_splits;
+		Vector4 wind_params;
+		Vector4 sun_direction;
+		Vector4 sun_color;
+		Vector4 cascade_splits;
 
 		float  screen_resolution_x;
 		float  screen_resolution_y;
@@ -55,9 +57,9 @@ namespace adria
 
 	struct LightHLSL
 	{
-		DirectX::XMVECTOR position;
-		DirectX::XMVECTOR direction;
-		DirectX::XMVECTOR color;
+		Vector4 position;
+		Vector4 direction;
+		Vector4 color;
 		int32 active;
 		float range;
 		int32 type;
@@ -94,7 +96,7 @@ namespace adria
 		uint32 normal_idx;
 		uint32 roughness_metallic_idx;
 		uint32 emissive_idx;
-		DirectX::XMFLOAT3 base_color_factor;
+		Vector3 base_color_factor;
 		float emissive_factor;
 		float metallic_factor;
 		float roughness_factor;
@@ -103,11 +105,11 @@ namespace adria
 
 	struct InstanceHLSL
 	{
-		DirectX::XMMATRIX world_matrix;
-		DirectX::XMMATRIX inverse_world_matrix;
-		DirectX::XMFLOAT3 bb_origin;
+		Matrix world_matrix;
+		Matrix inverse_world_matrix;
+		Vector3 bb_origin;
 		PAD;
-		DirectX::XMFLOAT3 bb_extents;
+		Vector3 bb_extents;
 		uint32 instance_id;
 		uint32 material_idx;
 		uint32 mesh_index;

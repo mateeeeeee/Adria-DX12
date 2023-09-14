@@ -214,7 +214,7 @@ namespace adria
 				gfx_pso_desc.VS = VS_Decals;
 				gfx_pso_desc.PS = PS_Decals;
 				gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
-				gfx_pso_desc.depth_state.depth_enable = FALSE;
+				gfx_pso_desc.depth_state.depth_enable = false;
 				gfx_pso_desc.num_render_targets = 1;
 				gfx_pso_desc.rtv_formats[0] = GfxFormat::R8G8B8A8_UNORM;
 				gfx_pso_map[GfxPipelineStateID::Decals] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
@@ -244,6 +244,26 @@ namespace adria
 				gfx_pso_desc.rasterizer_state.fill_mode = GfxFillMode::Wireframe;
 				gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Line;
 				gfx_pso_map[GfxPipelineStateID::Solid_Wireframe] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
+
+				gfx_pso_desc = {};
+				GfxShaderCompiler::CreateInputLayout(GetShader(VS_Debug), gfx_pso_desc.input_layout);
+				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
+				gfx_pso_desc.VS = VS_Debug;
+				gfx_pso_desc.PS = PS_Debug;
+				gfx_pso_desc.num_render_targets = 1;
+				gfx_pso_desc.rtv_formats[0] = GfxFormat::R10G10B10A2_UNORM;
+				gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
+				gfx_pso_desc.depth_state.depth_enable = true;
+				gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
+				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::LessEqual;
+				gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
+				gfx_pso_desc.rasterizer_state.fill_mode = GfxFillMode::Wireframe;
+				gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Line;
+				gfx_pso_map[GfxPipelineStateID::Debug_Wireframe] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
+
+				gfx_pso_desc.rasterizer_state.fill_mode = GfxFillMode::Solid;
+				gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Triangle;
+				gfx_pso_map[GfxPipelineStateID::Debug_Solid] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);
 			}
 
 			ComputePipelineStateDesc compute_pso_desc{};

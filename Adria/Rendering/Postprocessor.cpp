@@ -197,13 +197,13 @@ namespace adria
 
 				struct Constants
 				{
-					XMMATRIX model_matrix;
-					XMFLOAT3 diffuse_color;
+					Matrix model_matrix;
+					Vector3 diffuse_color;
 					uint32   diffuse_idx;
 				} constants =
 				{
 					.model_matrix = transform.current_transform,
-					.diffuse_color = XMFLOAT3(material.base_color),
+					.diffuse_color = Vector3(material.base_color),
 					.diffuse_idx = (uint32)material.albedo_texture
 				};
 				GfxDynamicAllocation allocation = dynamic_allocator->AllocateCBuffer<Constants>();

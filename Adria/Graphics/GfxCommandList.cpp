@@ -649,6 +649,11 @@ namespace adria
 		}
 	}
 
+	GfxDynamicAllocation GfxCommandList::AllocateTransient(uint32 size, uint32 align /*= 0*/)
+	{
+		return gfx->GetDynamicAllocator()->Allocate(size, align);
+	}
+
 	void GfxCommandList::ClearRenderTarget(GfxDescriptor rtv, float const* clear_color)
 	{
 		cmd_list->ClearRenderTargetView(rtv, clear_color, 0, nullptr);

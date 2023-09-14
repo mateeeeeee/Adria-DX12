@@ -171,11 +171,11 @@ namespace adria
 
 			float position[3] = { 0.0f, 0.0f, 0.0f };
 			camera_params.FindArray("position", position);
-			config.camera_params.position = XMFLOAT3(position);
+			config.camera_params.position = Vector3(position);
 
 			float look_at[3] = { 0.0f, 0.0f, 10.0f };
 			camera_params.FindArray("look_at", look_at);
-			config.camera_params.look_at = XMFLOAT3(look_at);
+			config.camera_params.look_at = Vector3(look_at);
 
 			JsonParams skybox_params(skybox);
 			std::vector<std::string> skybox_textures;
