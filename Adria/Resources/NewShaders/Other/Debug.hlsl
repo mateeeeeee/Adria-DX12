@@ -1,14 +1,6 @@
 #include "../CommonResources.hlsli"
 #include "../Packing.hlsli"
 
-//struct DebugConstants
-//{
-//	uint vertexBufferIdx;
-//};
-//ConstantBuffer<DebugConstants> PassCB : register(b1);
-//StructuredBuffer<Vertex> debugVertices = ResourceDescriptorHeap[PassCB.vertexBufferIdx];
-//Vertex v = debugVertices[vertexID];
-
 struct VS_OUTPUT
 {
 	float4 Position : SV_Position;

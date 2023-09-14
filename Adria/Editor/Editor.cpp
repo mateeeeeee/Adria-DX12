@@ -318,7 +318,6 @@ namespace adria
 		{
 			if (ImGui::TreeNodeEx("Point Lights", 0))
 			{
-				ImGui::Text("For Easy Demonstration of Tiled Deferred Rendering");
 				static int light_count_to_add = 1;
 				ImGui::SliderInt("Light Count", &light_count_to_add, 1, 128);
 				if (ImGui::Button("Create Random Point Lights"))

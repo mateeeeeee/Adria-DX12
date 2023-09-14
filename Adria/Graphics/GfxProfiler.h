@@ -25,7 +25,7 @@ namespace adria
 
 	public:
 
-		void Init(GfxDevice* gfx);
+		void Initialize(GfxDevice* gfx);
 		void Destroy();
 
 		void NewFrame();

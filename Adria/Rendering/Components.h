@@ -3,15 +3,13 @@
 #include <DirectXCollision.h>
 #include "GeometryBufferCache.h"
 #include "Core/CoreTypes.h"
-#include "Graphics/GfxVertexTypes.h"
+#include "Graphics/GfxVertexFormat.h"
 #include "Graphics/GfxBuffer.h"
 #include "Graphics/GfxStates.h"
 #include "TextureManager.h"
 #include "entt/entity/entity.hpp"
 
 #define COMPONENT
-
-//move components to appropriate files
 
 namespace adria
 {

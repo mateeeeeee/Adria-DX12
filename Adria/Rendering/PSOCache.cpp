@@ -251,10 +251,12 @@ namespace adria
 				gfx_pso_desc.VS = VS_Debug;
 				gfx_pso_desc.PS = PS_Debug;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
+				gfx_pso_desc.rtv_formats[0] = GfxFormat::R10G10B10A2_UNORM;
+				gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
 				gfx_pso_desc.depth_state.depth_enable = true;
 				gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
 				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::LessEqual;
+				gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
 				gfx_pso_desc.rasterizer_state.fill_mode = GfxFillMode::Wireframe;
 				gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Line;
 				gfx_pso_map[GfxPipelineStateID::Debug_Wireframe] = std::make_unique<GraphicsPipelineState>(gfx, gfx_pso_desc);

@@ -148,7 +148,7 @@ namespace adria
 		}
 	};
 
-	void GfxProfiler::Init(GfxDevice* _gfx)
+	void GfxProfiler::Initialize(GfxDevice* _gfx)
 	{
 		pimpl = std::make_unique<Impl>();
 		pimpl->Init(_gfx);

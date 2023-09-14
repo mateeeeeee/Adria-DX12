@@ -244,7 +244,6 @@
     </ClCompile>
     <ClCompile Include="Rendering\Components.cpp" />
     <ClCompile Include="Rendering\DDGI.cpp" />
-    <ClCompile Include="Rendering\DebugPass.cpp" />
     <ClCompile Include="Rendering\AccelerationStructure.cpp" />
     <ClCompile Include="Rendering\AmbientPass.cpp" />
     <ClCompile Include="Rendering\AutomaticExposurePass.cpp" />
@@ -371,7 +370,7 @@
     <ClInclude Include="Graphics\GfxRingDynamicAllocator.h" />
     <ClInclude Include="Graphics\GfxShaderCompiler.h" />
     <ClInclude Include="Graphics\GfxTracyProfiler.h" />
-    <ClInclude Include="Graphics\GfxVertexTypes.h" />
+    <ClInclude Include="Graphics\GfxVertexFormat.h" />
     <ClInclude Include="Input\Input.h" />
     <ClInclude Include="Logging\FileLogger.h" />
     <ClInclude Include="Logging\Logger.h" />
@@ -406,7 +405,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="Rendering\DDGI.h" />
-    <ClInclude Include="Rendering\DebugPass.h" />
     <ClInclude Include="Rendering\AccelerationStructure.h" />
     <ClInclude Include="Rendering\AmbientPass.h" />
     <ClInclude Include="Rendering\AutomaticExposurePass.h" />

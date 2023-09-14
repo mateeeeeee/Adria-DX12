@@ -3,10 +3,11 @@
 #include "Camera.h"
 #include "Components.h"
 #include "PSOCache.h"
-
 #include "ShaderCache.h"
 #include "SkyModel.h"
 #include "TextureManager.h"
+#include "DebugRenderer.h"
+
 #include "entt/entity/registry.hpp"
 #include "Editor/GUICommand.h"
 #include "Editor/Editor.h"
@@ -40,11 +41,12 @@ namespace adria
 		tiled_deferred_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
 		postprocessor(reg, width, height), fxaa_pass(width, height), picking_pass(gfx, width, height),
 		clustered_deferred_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height),
-		decals_pass(reg, width, height), ocean_renderer(reg, width, height), aabb_pass(reg, width, height),
+		decals_pass(reg, width, height), ocean_renderer(reg, width, height),
 		shadow_renderer(reg, gfx, width, height), rtao_pass(gfx, width, height), rtr_pass(gfx, width, height),
 		path_tracer(gfx, width, height), ray_tracing_supported(gfx->GetCapabilities().SupportsRayTracing())
 	{
-		g_GfxProfiler.Init(gfx);
+		g_DebugRenderer.Initialize(width, height);
+		g_GfxProfiler.Initialize(gfx);
 		GfxTracyProfiler::Initialize(gfx);
 		CreateSizeDependentResources();
 		shadow_renderer.GetShadowTextureRenderedEvent().AddMember(&DeferredLightingPass::OnShadowTextureRendered, deferred_lighting_pass);
@@ -112,6 +114,7 @@ namespace adria
 		{
 			width = w; height = h;
 			CreateSizeDependentResources();
+			g_DebugRenderer.OnResize(w, h);
 			gbuffer_pass.OnResize(w, h);
 			gpu_driven_renderer.OnResize(w, h);
 			ambient_pass.OnResize(w, h);
@@ -134,7 +137,6 @@ namespace adria
 			rtr_pass.OnResize(w, h);
 			path_tracer.OnResize(w, h);
 			rtao_pass.OnResize(w, h);
-			aabb_pass.OnResize(w, h);
 		}
 	}
 	void Renderer::OnSceneInitialized()
@@ -145,7 +147,6 @@ namespace adria
 		hbao_pass.OnSceneInitialized(gfx);
 		postprocessor.OnSceneInitialized(gfx);
 		ocean_renderer.OnSceneInitialized(gfx);
-		aabb_pass.OnSceneInitialized(gfx);
 		tonemap_pass.OnSceneInitialized(gfx);
 		CreateAS();
 
@@ -452,7 +453,6 @@ namespace adria
 		}
 		if (volumetric_lights > 0) volumetric_lighting_pass.AddPass(render_graph);
 
-		aabb_pass.AddPass(render_graph);
 		ocean_renderer.AddPasses(render_graph);
 		sky_pass.AddDrawSkyPass(render_graph);
 		picking_pass.AddPass(render_graph);
@@ -460,6 +460,7 @@ namespace adria
 		postprocessor.AddPasses(render_graph, renderer_settings.postprocess);
 		render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
 		ResolveToFinalTexture(render_graph);
+		g_DebugRenderer.Render(render_graph);
 
 		if (!g_Editor.IsActive()) CopyToBackbuffer(render_graph);
 		else g_Editor.AddRenderPass(render_graph);

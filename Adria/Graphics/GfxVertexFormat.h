@@ -1,9 +1,9 @@
 #pragma once
-
-#include <DirectXMath.h>
 #include <array>
-#include <d3d12.h>
 #include <vector>
+#include <d3d12.h>
+#include <DirectXMath.h>
+
 
 namespace adria
 {

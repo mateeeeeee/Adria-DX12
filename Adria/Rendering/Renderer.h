@@ -18,7 +18,6 @@
 #include "HelperPasses.h"
 #include "PickingPass.h"
 #include "DecalsPass.h"
-#include "DebugPass.h"
 #include "OceanRenderer.h"
 #include "AccelerationStructure.h"
 #include "ShadowRenderer.h"
@@ -105,7 +104,6 @@ namespace adria
 		DecalsPass decals_pass;
 		OceanRenderer  ocean_renderer;
 		ShadowRenderer shadow_renderer;
-		DebugPass aabb_pass;
 		Postprocessor postprocessor;
 		PathTracingPass path_tracer;
 
