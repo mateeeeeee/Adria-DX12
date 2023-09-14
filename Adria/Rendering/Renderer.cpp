@@ -361,7 +361,7 @@ namespace adria
 			{
 				frame_cbuf_data.sun_direction = -light_data.direction;
 				frame_cbuf_data.sun_color = light_data.color * light_data.energy;
-				sun_direction = light_data.direction;
+				sun_direction = Vector3(light_data.direction);
 				break;
 			}
 		}

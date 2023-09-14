@@ -80,13 +80,13 @@ namespace adria
 
 				struct DDGIParameters
 				{
-					XMFLOAT3 random_vector;
+					Vector3 random_vector;
 					float    random_angle;
 					float    history_blend_weight;
 					uint32   ray_buffer_index;
 				} parameters
 				{
-					.random_vector = XMFLOAT3(),
+					.random_vector = Vector3(),
 					.random_angle = 0.0f,
 					.history_blend_weight = 0.98f,
 					.ray_buffer_index = i

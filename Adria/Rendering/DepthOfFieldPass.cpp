@@ -59,14 +59,14 @@ namespace adria
 
 				struct DoFConstants
 				{
-					XMFLOAT4 dof_params;
+					Vector4 dof_params;
 					uint32 depth_idx;
 					uint32 scene_idx;
 					uint32 blurred_idx;
 					uint32 output_idx;
 				} constants =
 				{
-					.dof_params = XMFLOAT4(params.dof_near_blur, params.dof_near, params.dof_far, params.dof_far_blur),
+					.dof_params = Vector4(params.dof_near_blur, params.dof_near, params.dof_far, params.dof_far_blur),
 					.depth_idx = i, .scene_idx = i + 1, .blurred_idx = i + 2, .output_idx = i + 3
 				};
 

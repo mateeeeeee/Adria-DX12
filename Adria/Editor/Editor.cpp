@@ -527,14 +527,14 @@ namespace adria
 					else if (light->type == LightType::Spot)	ImGui::Text("Spot Light");
 					else if (light->type == LightType::Point)	ImGui::Text("Point Light");
 
-					XMFLOAT4 light_color, light_direction, light_position;
-					XMStoreFloat4(&light_color, light->color);
-					XMStoreFloat4(&light_direction, light->direction);
-					XMStoreFloat4(&light_position, light->position);
+					//Vector4 light_color, light_direction, light_position;
+					//XMStoreFloat4(&light_color, light->color);
+					//XMStoreFloat4(&light_direction, light->direction);
+					//XMStoreFloat4(&light_position, light->position);
 
-					float color[3] = { light_color.x, light_color.y, light_color.z };
+					float color[3] = { light->color.x, light->color.y, light->color.z };
 					ImGui::ColorEdit3("Light Color", color);
-					light->color = XMVectorSet(color[0], color[1], color[2], 1.0f);
+					light->color = Vector4(color[0], color[1], color[2], 1.0f);
 
 					ImGui::SliderFloat("Light Energy", &light->energy, 0.0f, 50.0f);
 
@@ -546,12 +546,12 @@ namespace adria
 
 					if (light->type == LightType::Directional || light->type == LightType::Spot)
 					{
-						float direction[3] = { light_direction.x, light_direction.y, light_direction.z };
+						float direction[3] = { light->direction.x, light->direction.y, light->direction.z };
 						ImGui::SliderFloat3("Light direction", direction, -1.0f, 1.0f);
-						light->direction = XMVectorSet(direction[0], direction[1], direction[2], 0.0f);
+						light->direction = Vector4(direction[0], direction[1], direction[2], 0.0f);
 						if (light->type == LightType::Directional)
 						{
-							light->position = XMVectorScale(-light->direction, 1e3);
+							light->position = -light->direction * 1e3;
 						}
 					}
 
@@ -568,19 +568,15 @@ namespace adria
 
 					if (light->type == LightType::Point || light->type == LightType::Spot)
 					{
-						float position[3] = { light_position.x, light_position.y, light_position.z };
-
+						float position[3] = { light->position.x,  light->position.y,  light->position.z };
 						ImGui::SliderFloat3("Light position", position, -300.0f, 500.0f);
-
-						light->position = XMVectorSet(position[0], position[1], position[2], 1.0f);
-
+						light->position = Vector4(position[0], position[1], position[2], 1.0f);
 						ImGui::SliderFloat("Range", &light->range, 50.0f, 1000.0f);
 					}
 
 					if (engine->reg.all_of<Transform>(selected_entity))
 					{
 						auto& tr = engine->reg.get<Transform>(selected_entity);
-
 						tr.current_transform = XMMatrixTranslationFromVector(light->position);
 					}
 
@@ -729,9 +725,8 @@ namespace adria
 				auto transform = engine->reg.try_get<Transform>(selected_entity);
 				if (transform && ImGui::CollapsingHeader("Transform"))
 				{
-					XMFLOAT4X4 tr;
-					XMStoreFloat4x4(&tr, transform->current_transform);
-
+					Matrix tr = transform->current_transform;
+					
 					float translation[3], rotation[3], scale[3];
 					ImGuizmo::DecomposeMatrixToComponents(tr.m[0], translation, rotation, scale);
 					bool change = ImGui::InputFloat3("Translation", translation);
@@ -739,7 +734,7 @@ namespace adria
 					change &= ImGui::InputFloat3("Scale", scale);
 					ImGuizmo::RecomposeMatrixFromComponents(translation, rotation, scale, tr.m[0]);
 
-					transform->current_transform = XMLoadFloat4x4(&tr);
+					transform->current_transform = tr;
 				}
 
 				auto decal = engine->reg.try_get<Decal>(selected_entity);
@@ -818,11 +813,10 @@ namespace adria
 		auto& camera = *engine->camera;
 		if (ImGui::Begin(ICON_FA_CAMERA" Camera", &window_flags[Flag_Camera]))
 		{
-			XMFLOAT3 cam_pos;
-			XMStoreFloat3(&cam_pos, camera.Position());
+			Vector3 cam_pos = camera.Position();
 			float pos[3] = { cam_pos.x , cam_pos.y, cam_pos.z };
 			ImGui::SliderFloat3("Position", pos, 0.0f, 2000.0f);
-			camera.SetPosition(XMFLOAT3(pos));
+			camera.SetPosition(Vector3(pos));
 			float near_plane = camera.Near(), far_plane = camera.Far();
 			float fov = camera.Fov(), ar = camera.AspectRatio();
 			ImGui::SliderFloat("Near", &near_plane, 0.0f, 2.0f);

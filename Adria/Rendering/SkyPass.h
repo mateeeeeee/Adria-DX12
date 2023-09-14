@@ -25,7 +25,7 @@ namespace adria
 	public:
 		SkyPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h);
 
-		void AddComputeSkyPass(RenderGraph& rg, DirectX::XMFLOAT3 const& dir);
+		void AddComputeSkyPass(RenderGraph& rg, Vector3 const& dir);
 		void AddDrawSkyPass(RenderGraph& rg);
 
 		void OnSceneInitialized(GfxDevice* gfx);

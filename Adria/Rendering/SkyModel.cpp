@@ -43,7 +43,8 @@ namespace adria
 			return a0t0 * (1.0f - albedo) * (1.0f - turbidityK) + a1t0 * albedo * (1.0f - turbidityK) + a0t1 * (1.0f - albedo) * turbidityK + a1t1 * albedo * turbidityK;
 		}
 
-		XMFLOAT3 HosekWilkie(float cos_theta, float gamma, float cos_gamma, XMFLOAT3 A, XMFLOAT3 B, XMFLOAT3 C, XMFLOAT3 D, XMFLOAT3 E, XMFLOAT3 F, XMFLOAT3 G, XMFLOAT3 H, XMFLOAT3 I)
+		Vector3 HosekWilkie(float cos_theta, float gamma, float cos_gamma, 
+			Vector3 const& A, Vector3 const& B, Vector3 const& C, Vector3 const& D, Vector3 const& E, Vector3 const& F, Vector3 const& G, Vector3 const& H, Vector3 const& I)
 		{
 			XMVECTOR _A = XMLoadFloat3(&A);
 			XMVECTOR _B = XMLoadFloat3(&B);
@@ -66,7 +67,7 @@ namespace adria
 		}
 	}
 
-	SkyParameters CalculateSkyParameters(float turbidity, float albedo, XMFLOAT3 sun_direction)
+	SkyParameters CalculateSkyParameters(float turbidity, float albedo, Vector3 const& sun_direction)
 	{
 		float sun_theta = std::acos(std::clamp(sun_direction.y, 0.f, 1.f));
 
@@ -84,7 +85,7 @@ namespace adria
 		paramZ.y = (float)Evaluate(datasetsRGBRad[1], 1, turbidity, albedo, sun_theta);
 		paramZ.z = (float)Evaluate(datasetsRGBRad[2], 1, turbidity, albedo, sun_theta);
 
-		XMFLOAT3 S = HosekWilkie(std::cos(sun_theta), 0.0f, 1.0f,
+		Vector3 S = HosekWilkie(std::cos(sun_theta), 0.0f, 1.0f,
 			params[ESkyParam_A],
 			params[ESkyParam_B],
 			params[ESkyParam_C],

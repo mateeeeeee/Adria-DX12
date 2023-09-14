@@ -21,7 +21,7 @@ namespace adria
 		: reg(reg), gfx(gfx), width(w), height(h), sky_type(SkyType::MinimalAtmosphere)
 	{}
 
-	void SkyPass::AddComputeSkyPass(RenderGraph& rg, DirectX::XMFLOAT3 const& dir)
+	void SkyPass::AddComputeSkyPass(RenderGraph& rg, Vector3 const& dir)
 	{
 		if (sky_type == SkyType::Skybox) return;
 
@@ -59,16 +59,16 @@ namespace adria
 					SkyParameters parameters = CalculateSkyParameters(turbidity, ground_albedo, dir);
 					struct HosekWilkieConstants
 					{
-						DECLSPEC_ALIGN(16) XMFLOAT3 A;
-						DECLSPEC_ALIGN(16) XMFLOAT3 B;
-						DECLSPEC_ALIGN(16) XMFLOAT3 C;
-						DECLSPEC_ALIGN(16) XMFLOAT3 D;
-						DECLSPEC_ALIGN(16) XMFLOAT3 E;
-						DECLSPEC_ALIGN(16) XMFLOAT3 F;
-						DECLSPEC_ALIGN(16) XMFLOAT3 G;
-						DECLSPEC_ALIGN(16) XMFLOAT3 H;
-						DECLSPEC_ALIGN(16) XMFLOAT3 I;
-						DECLSPEC_ALIGN(16) XMFLOAT3 Z;
+						DECLSPEC_ALIGN(16) Vector3 A;
+						DECLSPEC_ALIGN(16) Vector3 B;
+						DECLSPEC_ALIGN(16) Vector3 C;
+						DECLSPEC_ALIGN(16) Vector3 D;
+						DECLSPEC_ALIGN(16) Vector3 E;
+						DECLSPEC_ALIGN(16) Vector3 F;
+						DECLSPEC_ALIGN(16) Vector3 G;
+						DECLSPEC_ALIGN(16) Vector3 H;
+						DECLSPEC_ALIGN(16) Vector3 I;
+						DECLSPEC_ALIGN(16) Vector3 Z;
 					} constants =
 					{
 							.A = parameters[ESkyParam_A],
@@ -199,14 +199,14 @@ namespace adria
 
 		SimpleVertex const cube_vertices[8] =
 		{
-			XMFLOAT3{ -0.5f, -0.5f,  0.5f },
-			XMFLOAT3{  0.5f, -0.5f,  0.5f },
-			XMFLOAT3{  0.5f,  0.5f,  0.5f },
-			XMFLOAT3{ -0.5f,  0.5f,  0.5f },
-			XMFLOAT3{ -0.5f, -0.5f, -0.5f },
-			XMFLOAT3{  0.5f, -0.5f, -0.5f },
-			XMFLOAT3{  0.5f,  0.5f, -0.5f },
-			XMFLOAT3{ -0.5f,  0.5f, -0.5f }
+			Vector3{ -0.5f, -0.5f,  0.5f },
+			Vector3{  0.5f, -0.5f,  0.5f },
+			Vector3{  0.5f,  0.5f,  0.5f },
+			Vector3{ -0.5f,  0.5f,  0.5f },
+			Vector3{ -0.5f, -0.5f, -0.5f },
+			Vector3{  0.5f, -0.5f, -0.5f },
+			Vector3{  0.5f,  0.5f, -0.5f },
+			Vector3{ -0.5f,  0.5f, -0.5f }
 		};
 
 		uint16 const cube_indices[36] =

@@ -48,7 +48,7 @@ namespace adria
 				{
 					auto camera_position = global_data.camera_position;
 					XMVECTOR light_position = light.type == LightType::Directional ?
-						XMVector4Transform(light.position, XMMatrixTranslation(XMVectorGetX(camera_position), 0.0f, XMVectorGetY(camera_position))) : light.position;
+						XMVector4Transform(light.position, XMMatrixTranslation(XMVectorGetX(camera_position), 0.0f, XMVectorGetY(camera_position))) : XMVECTOR(light.position);
 					XMVECTOR LightPos = XMVector4Transform(light_position, global_data.camera_viewproj);
 					XMFLOAT4 light_pos{};
 					XMStoreFloat4(&light_pos, LightPos);
@@ -132,7 +132,7 @@ namespace adria
 				{
 					auto camera_position = global_data.camera_position;
 					XMVECTOR light_position = light.type == LightType::Directional ?
-						XMVector4Transform(light.position, XMMatrixTranslation(XMVectorGetX(camera_position), 0.0f, XMVectorGetY(camera_position))) : light.position;
+						XMVector4Transform(light.position, XMMatrixTranslation(XMVectorGetX(camera_position), 0.0f, XMVectorGetY(camera_position))) : XMVECTOR(light.position);
 					XMVECTOR LightPos = XMVector4Transform(light_position, global_data.camera_viewproj);
 					XMFLOAT4 light_pos{};
 					XMStoreFloat4(&light_pos, LightPos);

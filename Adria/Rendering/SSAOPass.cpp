@@ -27,9 +27,8 @@ namespace adria
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
 		for (uint32 i = 0; i < ARRAYSIZE(ssao_kernel); i++)
 		{
-			DirectX::XMFLOAT4 _offset = DirectX::XMFLOAT4(2 * rand_float() - 1, 2 * rand_float() - 1, rand_float(), 0.0f);
-			DirectX::XMVECTOR offset = DirectX::XMLoadFloat4(&_offset);
-			offset = DirectX::XMVector4Normalize(offset);
+			Vector4 offset(2 * rand_float() - 1, 2 * rand_float() - 1, rand_float(), 0.0f);
+			offset.Normalize();
 			offset *= rand_float();
 			ssao_kernel[i] = offset;
 		}

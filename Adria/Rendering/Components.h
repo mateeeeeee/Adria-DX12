@@ -36,11 +36,11 @@ namespace adria
 
 	struct COMPONENT Transform
 	{
-		DirectX::XMMATRIX current_transform = DirectX::XMMatrixIdentity();
+		Matrix current_transform = Matrix::Identity;
 	};
 	struct COMPONENT SubMesh
 	{
-		DirectX::BoundingBox bounding_box;
+		BoundingBox bounding_box;
 
 		std::shared_ptr<GfxBuffer>		vertex_buffer = nullptr;
 		std::shared_ptr<GfxBuffer>		index_buffer = nullptr;
@@ -78,9 +78,9 @@ namespace adria
 	};
 	struct COMPONENT Light
 	{
-		DirectX::XMVECTOR position	= DirectX::XMVectorSet(0, 0, 0, 1);
-		DirectX::XMVECTOR direction	= DirectX::XMVectorSet(0, -1, 0, 0);
-		DirectX::XMVECTOR color		= DirectX::XMVectorSet(1, 1, 1, 1);
+		Vector4 position = Vector4(0, 0, 0, 1);
+		Vector4 direction = Vector4(0, -1, 0, 0);
+		Vector4 color = Vector4(1, 1, 1, 1);
 		float range = 100.0f;
 		float energy = 1.0f;
 		LightType type = LightType::Directional;
@@ -119,7 +119,7 @@ namespace adria
 	{
 		TextureHandle albedo_decal_texture = INVALID_TEXTURE_HANDLE;
 		TextureHandle normal_decal_texture = INVALID_TEXTURE_HANDLE;
-		DirectX::XMMATRIX decal_model_matrix = DirectX::XMMatrixIdentity();
+		Matrix decal_model_matrix = Matrix::Identity;
 		DecalType decal_type = DecalType::Project_XY;
 		bool modify_gbuffer_normals = false;
 	};
@@ -157,7 +157,7 @@ namespace adria
 	{
 		entt::entity parent;
 		uint32 submesh_index;
-		DirectX::XMMATRIX world_transform;
+		Matrix world_transform;
 	};
 	struct COMPONENT Mesh
 	{
@@ -172,8 +172,8 @@ namespace adria
 		uint32   instance_id;
 		SubMeshGPU*  submesh;
 		MaterialAlphaMode alpha_mode;
-		DirectX::XMMATRIX world_transform;
-		DirectX::BoundingBox bounding_box;
+		Matrix world_transform;
+		BoundingBox bounding_box;
 
 		bool camera_visibility = true;
 

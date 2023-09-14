@@ -102,14 +102,14 @@ namespace adria
 	{
 		SimpleVertex const cube_vertices[8] =
 		{
-			XMFLOAT3{ -0.5f, -0.5f,  0.5f },
-			XMFLOAT3{  0.5f, -0.5f,  0.5f },
-			XMFLOAT3{  0.5f,  0.5f,  0.5f },
-			XMFLOAT3{ -0.5f,  0.5f,  0.5f },
-			XMFLOAT3{ -0.5f, -0.5f, -0.5f },
-			XMFLOAT3{  0.5f, -0.5f, -0.5f },
-			XMFLOAT3{  0.5f,  0.5f, -0.5f },
-			XMFLOAT3{ -0.5f,  0.5f, -0.5f }
+			Vector3{ -0.5f, -0.5f,  0.5f },
+			Vector3{  0.5f, -0.5f,  0.5f },
+			Vector3{  0.5f,  0.5f,  0.5f },
+			Vector3{ -0.5f,  0.5f,  0.5f },
+			Vector3{ -0.5f, -0.5f, -0.5f },
+			Vector3{  0.5f, -0.5f, -0.5f },
+			Vector3{  0.5f,  0.5f, -0.5f },
+			Vector3{ -0.5f,  0.5f, -0.5f }
 		};
 
 		uint16 const cube_indices[36] =

@@ -16,9 +16,9 @@ namespace adria
 {
 	struct Bokeh
 	{
-		DirectX::XMFLOAT3 Position;
-		DirectX::XMFLOAT2 Size;
-		DirectX::XMFLOAT3 Color;
+		Vector3 Position;
+		Vector2 Size;
+		Vector3 Color;
 	};
 
 	BokehPass::BokehPass(uint32 w, uint32 h)
@@ -145,14 +145,14 @@ namespace adria
 				DoFBlackboardData const& dof_data = context.GetBlackboard().Get<DoFBlackboardData>();
 				struct BokehGenerationConstants
 				{
-					XMFLOAT4 dof_params;
+					Vector4 dof_params;
 					float  bokeh_lum_threshold;
 					float  bokeh_blur_threshold;
 					float  bokeh_scale;
 					float  bokeh_fallout;
 				} constants =
 				{
-					.dof_params = XMFLOAT4(dof_data.dof_params_x, dof_data.dof_params_y, dof_data.dof_params_z, dof_data.dof_params_w),
+					.dof_params = Vector4(dof_data.dof_params_x, dof_data.dof_params_y, dof_data.dof_params_z, dof_data.dof_params_w),
 					.bokeh_lum_threshold = params.bokeh_lum_threshold, .bokeh_blur_threshold = params.bokeh_blur_threshold,
 					.bokeh_scale = params.bokeh_radius_scale, .bokeh_fallout = params.bokeh_fallout
 				};
