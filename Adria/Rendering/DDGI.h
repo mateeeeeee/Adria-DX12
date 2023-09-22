@@ -1,5 +1,4 @@
 #pragma once
-#include <DirectXCollision.h>
 #include "entt/entity/fwd.hpp"
 
 namespace adria

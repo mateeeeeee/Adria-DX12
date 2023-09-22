@@ -18,7 +18,6 @@ namespace adria
 		operator D3D12_CPU_DESCRIPTOR_HANDLE() const { return cpu; }
 		operator D3D12_GPU_DESCRIPTOR_HANDLE() const { return gpu; }
 
-
 		uint32 GetIndex() const { return index; }
 		void Increment(uint32 increment, uint32 multiply = 1)
 		{
@@ -27,7 +26,7 @@ namespace adria
 			index += multiply;
 		}
 
-		bool operator==(GfxDescriptor const& other)
+		bool operator==(GfxDescriptor const& other) const
 		{
 			return cpu.ptr == other.cpu.ptr && index == other.index;
 		}

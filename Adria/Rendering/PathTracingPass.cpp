@@ -131,7 +131,7 @@ namespace adria
 			pt_state_object_builder.AddSubObject(dxil_lib_desc);
 
 			D3D12_RAYTRACING_SHADER_CONFIG pt_shader_config{};
-			pt_shader_config.MaxPayloadSizeInBytes = sizeof(float) * 1;
+			pt_shader_config.MaxPayloadSizeInBytes = sizeof(float);
 			pt_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
 			pt_state_object_builder.AddSubObject(pt_shader_config);
 

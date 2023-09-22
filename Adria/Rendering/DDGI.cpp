@@ -78,7 +78,7 @@ namespace adria
 
 				struct DDGIParameters
 				{
-					Vector3 random_vector;
+					Vector3  random_vector;
 					float    random_angle;
 					float    history_blend_weight;
 					uint32   ray_buffer_index;
@@ -171,6 +171,33 @@ namespace adria
 
 	void DDGI::CreateStateObject()
 	{
+		ID3D12Device5* device = gfx->GetDevice();
+		GfxShader const& ddgi_blob = ShaderCache::GetShader(LIB_AmbientOcclusion);
+
+		GfxStateObjectBuilder ddgi_state_object_builder(5);
+		{
+			D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc{};
+			dxil_lib_desc.DXILLibrary.BytecodeLength = ddgi_blob.GetLength();
+			dxil_lib_desc.DXILLibrary.pShaderBytecode = ddgi_blob.GetPointer();
+			dxil_lib_desc.NumExports = 0;
+			dxil_lib_desc.pExports = nullptr;
+			ddgi_state_object_builder.AddSubObject(dxil_lib_desc);
+
+			D3D12_RAYTRACING_SHADER_CONFIG ddgi_shader_config{};
+			ddgi_shader_config.MaxPayloadSizeInBytes = 4;
+			ddgi_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
+			ddgi_state_object_builder.AddSubObject(ddgi_shader_config);
+
+			D3D12_GLOBAL_ROOT_SIGNATURE global_root_sig{};
+			global_root_sig.pGlobalRootSignature = gfx->GetCommonRootSignature();
+			ddgi_state_object_builder.AddSubObject(global_root_sig);
+
+			D3D12_RAYTRACING_PIPELINE_CONFIG pipeline_config{};
+			pipeline_config.MaxTraceRecursionDepth = 1;
+			ddgi_state_object_builder.AddSubObject(pipeline_config);
+
+			ddgi_trace_so.Attach(ddgi_state_object_builder.CreateStateObject(device));
+		}
 
 	}
 
