@@ -48,9 +48,9 @@ namespace adria
 
 				float height = params.heightmap ? params.heightmap->HeightAt(i, j) : 0.0f;
 
-				vertex.position = XMFLOAT3(i * params.tile_size_x, height, j * params.tile_size_z);
-				vertex.uv = XMFLOAT2(i * 1.0f * params.texture_scale_x / (params.tile_count_x - 1), j * 1.0f * params.texture_scale_z / (params.tile_count_z - 1));
-				vertex.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
+				vertex.position = Vector3(i * params.tile_size_x, height, j * params.tile_size_z);
+				vertex.uv = Vector2(i * 1.0f * params.texture_scale_x / (params.tile_count_x - 1), j * 1.0f * params.texture_scale_z / (params.tile_count_z - 1));
+				vertex.normal = Vector3(0.0f, 1.0f, 0.0f);
 				vertices.push_back(vertex);
 			}
 		}
@@ -341,7 +341,7 @@ namespace adria
         entt::entity light = reg.create();
 
         if (params.light_data.type == LightType::Directional)
-            const_cast<LightParameters&>(params).light_data.position = XMVectorScale(-params.light_data.direction, 1e3);
+            const_cast<LightParameters&>(params).light_data.position = -params.light_data.direction * 1e3;
 
         reg.emplace<Light>(light, params.light_data);
         if (params.mesh_type == LightMesh::Quad)
@@ -380,11 +380,9 @@ namespace adria
             reg.emplace<SubMesh>(light, submesh);
 
             Material material{};
-			XMFLOAT3 base_color;
-			XMStoreFloat3(&base_color, params.light_data.color);
-			material.base_color[0] = base_color.x;
-			material.base_color[1] = base_color.y;
-			material.base_color[2] = base_color.z;
+			material.base_color[0] = params.light_data.color.x;
+			material.base_color[1] = params.light_data.color.y;
+			material.base_color[2] = params.light_data.color.z;
 
             if (params.light_texture.has_value())
                 material.albedo_texture = g_TextureManager.LoadTexture(params.light_texture.value()); //
@@ -392,7 +390,7 @@ namespace adria
                 material.albedo_texture = g_TextureManager.LoadTexture("Resources/Textures/sun.dds");
 
             reg.emplace<Material>(light, material);
-			auto translation_matrix = XMMatrixTranslationFromVector(params.light_data.position);
+			Matrix translation_matrix = Matrix::CreateTranslation(Vector3(&params.light_data.position.x));
             reg.emplace<Transform>(light, translation_matrix);
         }
         else if (params.mesh_type == LightMesh::Sphere)
@@ -460,18 +458,16 @@ namespace adria
 		if (!params.normal_texture_path.empty()) decal.normal_decal_texture = g_TextureManager.LoadTexture(params.normal_texture_path);
 		g_TextureManager.EnableMipMaps(true);
 
-		XMVECTOR P = XMLoadFloat4(&params.position);
-		XMVECTOR N = XMLoadFloat4(&params.normal);
-
-		XMVECTOR ProjectorDirection = XMVectorNegate(N);
-		XMMATRIX RotationMatrix = XMMatrixRotationAxis(ProjectorDirection, params.rotation);
-		XMMATRIX ModelMatrix = XMMatrixScaling(params.size, params.size, params.size) * RotationMatrix * XMMatrixTranslationFromVector(P);
+		Vector3 P = params.position;
+		Vector3 N = params.normal;
+		Vector3 ProjectorDirection = -N;
+		Matrix RotationMatrix = Matrix::CreateFromAxisAngle(ProjectorDirection, params.rotation);
+		Matrix ModelMatrix = Matrix::CreateScale(params.size) * RotationMatrix * Matrix::CreateTranslation(P);
 
 		decal.decal_model_matrix = ModelMatrix;
 		decal.modify_gbuffer_normals = params.modify_gbuffer_normals;
 
-		XMFLOAT3 abs_normal;
-		XMStoreFloat3(&abs_normal, XMVectorAbs(N));
+		Vector3 abs_normal = XMVectorAbs(N);
 		if (abs_normal.x >= abs_normal.y && abs_normal.x >= abs_normal.z)
 		{
 			decal.decal_type = DecalType::Project_YZ;
@@ -591,10 +587,10 @@ namespace adria
 			int32 material_index = -1;
 			D3D12_PRIMITIVE_TOPOLOGY topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
-			std::vector<XMFLOAT3> positions_stream;
-			std::vector<XMFLOAT3> normals_stream;
-			std::vector<XMFLOAT4> tangents_stream;
-			std::vector<XMFLOAT2> uvs_stream;
+			std::vector<Vector3> positions_stream;
+			std::vector<Vector3> normals_stream;
+			std::vector<Vector4> tangents_stream;
+			std::vector<Vector2> uvs_stream;
 			std::vector<uint32>   indices;
 
 			std::vector<Meshlet>		 meshlets;
@@ -711,14 +707,14 @@ namespace adria
 			if (mesh_data.tangents_stream.size() != vertex_count) mesh_data.tangents_stream.resize(vertex_count);
 
 			meshopt_optimizeVertexCache(mesh_data.indices.data(), mesh_data.indices.data(), mesh_data.indices.size(), vertex_count);
-			meshopt_optimizeOverdraw(mesh_data.indices.data(), mesh_data.indices.data(), mesh_data.indices.size(), &mesh_data.positions_stream[0].x, vertex_count, sizeof(XMFLOAT3), 1.05f);
+			meshopt_optimizeOverdraw(mesh_data.indices.data(), mesh_data.indices.data(), mesh_data.indices.size(), &mesh_data.positions_stream[0].x, vertex_count, sizeof(Vector3), 1.05f);
 			std::vector<uint32> remap(vertex_count);
 			meshopt_optimizeVertexFetchRemap(&remap[0], mesh_data.indices.data(), mesh_data.indices.size(), vertex_count);
 			meshopt_remapIndexBuffer(mesh_data.indices.data(), mesh_data.indices.data(), mesh_data.indices.size(), &remap[0]);
-			meshopt_remapVertexBuffer(mesh_data.positions_stream.data(), mesh_data.positions_stream.data(), vertex_count, sizeof(XMFLOAT3), &remap[0]);
-			meshopt_remapVertexBuffer(mesh_data.normals_stream.data(), mesh_data.normals_stream.data(), mesh_data.normals_stream.size(), sizeof(XMFLOAT3), &remap[0]);
-			meshopt_remapVertexBuffer(mesh_data.tangents_stream.data(), mesh_data.tangents_stream.data(), mesh_data.tangents_stream.size(), sizeof(XMFLOAT4), &remap[0]);
-			meshopt_remapVertexBuffer(mesh_data.uvs_stream.data(), mesh_data.uvs_stream.data(), mesh_data.uvs_stream.size(), sizeof(XMFLOAT2), &remap[0]);
+			meshopt_remapVertexBuffer(mesh_data.positions_stream.data(), mesh_data.positions_stream.data(), vertex_count, sizeof(Vector3), &remap[0]);
+			meshopt_remapVertexBuffer(mesh_data.normals_stream.data(), mesh_data.normals_stream.data(), mesh_data.normals_stream.size(), sizeof(Vector3), &remap[0]);
+			meshopt_remapVertexBuffer(mesh_data.tangents_stream.data(), mesh_data.tangents_stream.data(), mesh_data.tangents_stream.size(), sizeof(Vector4), &remap[0]);
+			meshopt_remapVertexBuffer(mesh_data.uvs_stream.data(), mesh_data.uvs_stream.data(), mesh_data.uvs_stream.size(), sizeof(Vector2), &remap[0]);
 
 			size_t const max_meshlets = meshopt_buildMeshletsBound(mesh_data.indices.size(), MESHLET_MAX_VERTICES, MESHLET_MAX_TRIANGLES);
 			mesh_data.meshlets.resize(max_meshlets);
@@ -728,7 +724,7 @@ namespace adria
 			std::vector<meshopt_Meshlet> meshlets(max_meshlets);
 
 			size_t meshlet_count = meshopt_buildMeshlets(meshlets.data(), mesh_data.meshlet_vertices.data(), meshlet_triangles.data(),
-				mesh_data.indices.data(), mesh_data.indices.size(), &mesh_data.positions_stream[0].x, mesh_data.positions_stream.size(), sizeof(XMFLOAT3),
+				mesh_data.indices.data(), mesh_data.indices.size(), &mesh_data.positions_stream[0].x, mesh_data.positions_stream.size(), sizeof(Vector3),
 				MESHLET_MAX_VERTICES, MESHLET_MAX_TRIANGLES, 0);
 
 			meshopt_Meshlet const& last = meshlets[meshlet_count - 1];
@@ -744,7 +740,7 @@ namespace adria
 			{
 				meshopt_Meshlet const& m = meshlets[i];
 				meshopt_Bounds meshopt_bounds = meshopt_computeMeshletBounds(&mesh_data.meshlet_vertices[m.vertex_offset], &meshlet_triangles[m.triangle_offset],
-					m.triangle_count, reinterpret_cast<float const*>(mesh_data.positions_stream.data()), vertex_count, sizeof(XMFLOAT3));
+					m.triangle_count, reinterpret_cast<float const*>(mesh_data.positions_stream.data()), vertex_count, sizeof(Vector3));
 
 				unsigned char* src_triangles = meshlet_triangles.data() + m.triangle_offset;
 				for (uint32 triangle_idx = 0; triangle_idx < m.triangle_count; ++triangle_idx)
@@ -769,10 +765,10 @@ namespace adria
 			mesh_data.meshlet_triangles.resize(triangle_offset);
 
 			total_buffer_size += Align(mesh_data.indices.size() * sizeof(uint32), 16);
-			total_buffer_size += Align(mesh_data.positions_stream.size() * sizeof(XMFLOAT3), 16);
-			total_buffer_size += Align(mesh_data.uvs_stream.size() * sizeof(XMFLOAT2), 16);
-			total_buffer_size += Align(mesh_data.normals_stream.size() * sizeof(XMFLOAT3), 16);
-			total_buffer_size += Align(mesh_data.tangents_stream.size() * sizeof(XMFLOAT4), 16);
+			total_buffer_size += Align(mesh_data.positions_stream.size() * sizeof(Vector3), 16);
+			total_buffer_size += Align(mesh_data.uvs_stream.size() * sizeof(Vector2), 16);
+			total_buffer_size += Align(mesh_data.normals_stream.size() * sizeof(Vector3), 16);
+			total_buffer_size += Align(mesh_data.tangents_stream.size() * sizeof(Vector4), 16);
 			total_buffer_size += Align(mesh_data.meshlets.size() * sizeof(Meshlet), 16);
 			total_buffer_size += Align(mesh_data.meshlet_vertices.size() * sizeof(uint32), 16);
 			total_buffer_size += Align(mesh_data.meshlet_triangles.size() * sizeof(MeshletTriangle), 16);
@@ -830,44 +826,40 @@ namespace adria
 		}
 		mesh.geometry_buffer_handle = g_GeometryBufferCache.CreateAndInitializeGeometryBuffer(staging_buffer.buffer, total_buffer_size, staging_buffer.offset);
 
-		std::function<void(int, XMMATRIX)> LoadNode;
-		LoadNode = [&](int node_index, XMMATRIX parent_transform)
+		std::function<void(int, Matrix const&)> LoadNode;
+		LoadNode = [&](int node_index, Matrix const& parent_transform)
 		{
 			if (node_index < 0) return;
 			auto& node = model.nodes[node_index];
 			struct Transforms
 			{
-				XMFLOAT4 rotation_local = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-				XMFLOAT3 scale_local = XMFLOAT3(1.0f, 1.0f, 1.0f);
-				XMFLOAT3 translation_local = XMFLOAT3(0.0f, 0.0f, 0.0f);
-				XMFLOAT4X4 world;
+				Vector4 rotation_local = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+				Vector3 scale_local = Vector3(1.0f, 1.0f, 1.0f);
+				Vector3 translation_local = Vector3(0.0f, 0.0f, 0.0f);
+				Matrix world = Matrix::Identity;
 				bool update = true;
 				void Update()
 				{
 					if (update)
 					{
-						XMVECTOR S_local = XMLoadFloat3(&scale_local);
-						XMVECTOR R_local = XMLoadFloat4(&rotation_local);
-						XMVECTOR T_local = XMLoadFloat3(&translation_local);
-						XMMATRIX WORLD = XMMatrixScalingFromVector(S_local) *
-							XMMatrixRotationQuaternion(R_local) *
-							XMMatrixTranslationFromVector(T_local);
-						XMStoreFloat4x4(&world, WORLD);
+							world = Matrix::CreateScale(scale_local) *
+							Matrix::CreateFromQuaternion(rotation_local) *
+							Matrix::CreateTranslation(translation_local);
 					}
 				}
 			} transforms;
 
 			if (!node.scale.empty())
 			{
-				transforms.scale_local = XMFLOAT3((float)node.scale[0], (float)node.scale[1], (float)node.scale[2]);
+				transforms.scale_local = Vector3((float)node.scale[0], (float)node.scale[1], (float)node.scale[2]);
 			}
 			if (!node.rotation.empty())
 			{
-				transforms.rotation_local = XMFLOAT4((float)node.rotation[0], (float)node.rotation[1], (float)node.rotation[2], (float)node.rotation[3]);
+				transforms.rotation_local = Vector4((float)node.rotation[0], (float)node.rotation[1], (float)node.rotation[2], (float)node.rotation[3]);
 			}
 			if (!node.translation.empty())
 			{
-				transforms.translation_local = XMFLOAT3((float)node.translation[0], (float)node.translation[1], (float)node.translation[2]);
+				transforms.translation_local = Vector3((float)node.translation[0], (float)node.translation[1], (float)node.translation[2]);
 			}
 			if (!node.matrix.empty())
 			{
@@ -893,7 +885,7 @@ namespace adria
 
 			if (node.mesh >= 0)
 			{
-				XMMATRIX model_matrix = XMLoadFloat4x4(&transforms.world) * parent_transform;
+				Matrix model_matrix = transforms.world * parent_transform;
 				for (auto primitive : mesh_primitives_map[node.mesh])
 				{
 					SubMeshInstance& instance = mesh.instances.emplace_back();
@@ -903,7 +895,7 @@ namespace adria
 				}
 			}
 
-			for (int child : node.children) LoadNode(child, XMLoadFloat4x4(&transforms.world) * parent_transform);
+			for (int child : node.children) LoadNode(child, transforms.world * parent_transform);
 		};
 
 		tinygltf::Scene const& scene = model.scenes[std::max(0, model.defaultScene)];

@@ -17,120 +17,111 @@ namespace adria
 	namespace
 	{
 
-		std::pair<XMMATRIX, XMMATRIX> LightViewProjection_Directional(Light const& light, Camera const& camera, uint32 shadow_size)
+		std::pair<Matrix, Matrix> LightViewProjection_Directional(Light const& light, Camera const& camera, uint32 shadow_size)
 		{
 			BoundingFrustum frustum = camera.Frustum();
-			std::array<XMFLOAT3, frustum.CORNER_COUNT> corners = {};
+			std::array<Vector3, BoundingFrustum::CORNER_COUNT> corners = {};
 			frustum.GetCorners(corners.data());
 
 			BoundingSphere frustum_sphere;
 			BoundingSphere::CreateFromFrustum(frustum_sphere, frustum);
 
-			XMVECTOR frustum_center = XMVectorSet(0, 0, 0, 0);
+			Vector3 frustum_center(0, 0, 0);
 			for (uint32 i = 0; i < corners.size(); ++i)
 			{
-				frustum_center = frustum_center + XMLoadFloat3(&corners[i]);
+				frustum_center = frustum_center + corners[i];
 			}
 			frustum_center /= static_cast<float>(corners.size());
 
 			float radius = 0.0f;
-			for (uint32 i = 0; i < corners.size(); ++i)
+			for (Vector3 const& corner : corners)
 			{
-				float dist = DirectX::XMVectorGetX(XMVector3Length(DirectX::XMLoadFloat3(&corners[i]) - frustum_center));
-				radius = (std::max)(radius, dist);
+				float distance = Vector3::Distance(corner, frustum_center);
+				radius = std::max(radius, distance);
 			}
 			radius = std::ceil(radius * 8.0f) / 8.0f;
 
-			XMVECTOR const max_extents = XMVectorSet(radius, radius, radius, 0);
-			XMVECTOR const min_extents = -max_extents;
-			XMVECTOR const cascade_extents = max_extents - min_extents;
+			Vector3 const max_extents(radius, radius, radius);
+			Vector3 const min_extents = -max_extents;
+			Vector3 const cascade_extents = max_extents - min_extents;
 
-			XMVECTOR light_dir = XMVector3Normalize(light.direction);
-			static const XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+			Vector3 light_dir = XMVector3Normalize(light.direction);
+			Matrix V = XMMatrixLookAtLH(frustum_center, frustum_center + 1.0f * light_dir * radius, Vector3::Up);
 
-			XMMATRIX V = XMMatrixLookAtLH(frustum_center, frustum_center + 1.0f * light_dir * radius, up);
+			float l = min_extents.x;
+			float b = min_extents.y;
+			float n = min_extents.z;
+			float r = max_extents.x;
+			float t = max_extents.y;
+			float f = max_extents.z * 1.5f;
 
-			XMFLOAT3 min_e, max_e, cascade_e;
-			XMStoreFloat3(&min_e, min_extents);
-			XMStoreFloat3(&max_e, max_extents);
-			XMStoreFloat3(&cascade_e, cascade_extents);
-
-			float l = min_e.x;
-			float b = min_e.y;
-			float n = min_e.z;
-			float r = max_e.x;
-			float t = max_e.y;
-			float f = max_e.z * 1.5f;
-
-			XMMATRIX P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
-			XMMATRIX VP = V * P;
-			XMFLOAT3 so(0, 0, 0);
-			XMVECTOR shadow_origin = XMLoadFloat3(&so);
-			shadow_origin = XMVector3Transform(shadow_origin, VP); //sOrigin * P;
+			Matrix P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
+			Matrix VP = V * P;
+			Vector3 shadow_origin(0, 0, 0);
+			shadow_origin = Vector3::Transform(shadow_origin, VP);
 			shadow_origin *= (shadow_size / 2.0f);
-
-			XMVECTOR rounded_origin = XMVectorRound(shadow_origin);
-			XMVECTOR rounded_offset = rounded_origin - shadow_origin;
+			
+			Vector3 rounded_origin = XMVectorRound(shadow_origin);
+			Vector3 rounded_offset = rounded_origin - shadow_origin;
 			rounded_offset *= (2.0f / shadow_size);
-			rounded_offset *= XMVectorSet(1.0, 1.0, 0.0, 0.0);
-
-			P.r[3] += rounded_offset;
+			rounded_offset.z = 0.0f;
+			P.m[3][0] += rounded_offset.x;
+			P.m[3][1] += rounded_offset.y;
 			return { V,P };
 		}
-		std::pair<XMMATRIX, XMMATRIX> LightViewProjection_Spot(Light const& light)
+		std::pair<Matrix, Matrix> LightViewProjection_Spot(Light const& light)
 		{
 			ADRIA_ASSERT(light.type == LightType::Spot);
 
-			XMVECTOR light_dir = XMVector3Normalize(light.direction);
-			XMVECTOR light_pos = light.position;
-			XMVECTOR target_pos = light_pos + light_dir * light.range;
+			Vector3 light_dir = XMVector3Normalize(light.direction);
+			Vector3 light_pos = Vector3(light.position);
+			Vector3 target_pos = light_pos + light_dir * light.range;
 
-			static const XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-			XMMATRIX V = XMMatrixLookAtLH(light_pos, target_pos, up);
+			Matrix V = XMMatrixLookAtLH(light_pos, target_pos, Vector3::Up);
 			static const float shadow_near = 0.5f;
 			float fov_angle = 2.0f * acos(light.outer_cosine);
-			XMMATRIX P = XMMatrixPerspectiveFovLH(fov_angle, 1.0f, shadow_near, light.range);
+			Matrix P = XMMatrixPerspectiveFovLH(fov_angle, 1.0f, shadow_near, light.range);
 			return { V,P };
 		}
-		std::pair<XMMATRIX, XMMATRIX> LightViewProjection_Point(Light const& light, uint32 face_index)
+		std::pair<Matrix, Matrix> LightViewProjection_Point(Light const& light, uint32 face_index)
 		{
 			static float const shadow_near = 0.5f;
-			XMMATRIX P = XMMatrixPerspectiveFovLH(XMConvertToRadians(90.0f), 1.0f, shadow_near, light.range);
+			Matrix P = XMMatrixPerspectiveFovLH(XMConvertToRadians(90.0f), 1.0f, shadow_near, light.range);
 
-			XMVECTOR light_pos = light.position;
-			XMMATRIX V{};
-			XMVECTOR target{};
-			XMVECTOR up{};
+			Vector3 light_pos = Vector3(light.position);
+			Matrix V{};
+			Vector3 target{};
+			Vector3 up{};
 			switch (face_index)
 			{
 			case 0:
-				target = XMVectorAdd(light_pos, XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f));
-				up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+				target = light_pos + Vector3(1, 0, 0); 
+				up = Vector3(0.0f, 1.0f, 0.0f);
 				V = XMMatrixLookAtLH(light_pos, target, up);
 				break;
 			case 1:
-				target = XMVectorAdd(light_pos, XMVectorSet(-1.0f, 0.0f, 0.0f, 0.0f));
-				up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+				target = light_pos + Vector3(-1, 0, 0);
+				up = Vector3(0.0f, 1.0f, 0.0f);
 				V = XMMatrixLookAtLH(light_pos, target, up);
 				break;
 			case 2:
-				target = XMVectorAdd(light_pos, XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
-				up = XMVectorSet(0.0f, 0.0f, -1.0f, 0.0f);
+				target = light_pos + Vector3(0, 1, 0);
+				up = Vector3(0.0f, 0.0f, -1.0f);
 				V = XMMatrixLookAtLH(light_pos, target, up);
 				break;
 			case 3:
-				target = XMVectorAdd(light_pos, XMVectorSet(0.0f, -1.0f, 0.0f, 0.0f));
-				up = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+				target = light_pos + Vector3(0, -1, 0);
+				up = Vector3(0.0f, 0.0f, 1.0f);
 				V = XMMatrixLookAtLH(light_pos, target, up);
 				break;
 			case 4:
-				target = XMVectorAdd(light_pos, XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f));
-				up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+				target = light_pos + Vector3(0, 0, 1);
+				up = Vector3(0.0f, 1.0f, 0.0f);
 				V = XMMatrixLookAtLH(light_pos, target, up);
 				break;
 			case 5:
-				target = XMVectorAdd(light_pos, XMVectorSet(0.0f, 0.0f, -1.0f, 0.0f));
-				up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+				target = light_pos + Vector3(0, 0, -1);
+				up = Vector3(0.0f, 1.0f, 0.0f);
 				V = XMMatrixLookAtLH(light_pos, target, up);
 				break;
 			default:
@@ -138,66 +129,57 @@ namespace adria
 			}
 			return { V,P };
 		}
-		std::pair<XMMATRIX, XMMATRIX> LightViewProjection_Cascades(Light const& light, Camera const& camera, XMMATRIX projection_matrix, uint32 shadow_cascade_size)
+		std::pair<Matrix, Matrix> LightViewProjection_Cascades(Light const& light, Camera const& camera, Matrix const& projection_matrix, uint32 shadow_cascade_size)
 		{
 			static float const far_factor = 1.5f;
 			static float const light_distance_factor = 1.0f;
 
 			BoundingFrustum frustum(projection_matrix);
-			frustum.Transform(frustum, XMMatrixInverse(nullptr, camera.View()));
-			std::array<XMFLOAT3, frustum.CORNER_COUNT> corners{};
+			frustum.Transform(frustum, camera.View().Invert());
+			std::array<Vector3, BoundingFrustum::CORNER_COUNT> corners{};
 			frustum.GetCorners(corners.data());
 
-			XMVECTOR frustum_center = XMVectorSet(0, 0, 0, 0);
-			for (uint32 i = 0; i < corners.size(); ++i)
+			Vector3 frustum_center(0, 0, 0);
+			for (Vector3 const& corner : corners)
 			{
-				frustum_center = frustum_center + XMLoadFloat3(&corners[i]);
+				frustum_center = frustum_center + corner;
 			}
 			frustum_center /= static_cast<float>(corners.size());
 
 			float radius = 0.0f;
-			for (uint32 i = 0; i < corners.size(); ++i)
+			for (Vector3 const& corner : corners)
 			{
-				float dist = XMVectorGetX(XMVector3Length(XMLoadFloat3(&corners[i]) - frustum_center));
-				radius = (std::max)(radius, dist);
+				float distance = Vector3::Distance(corner, frustum_center);
+				radius = std::max(radius, distance);
 			}
 			radius = std::ceil(radius * 8.0f) / 8.0f;
 
-			XMVECTOR const max_extents = XMVectorSet(radius, radius, radius, 0);
-			XMVECTOR const min_extents = -max_extents;
-			XMVECTOR const cascade_extents = max_extents - min_extents;
+			Vector3 const max_extents(radius, radius, radius);
+			Vector3 const min_extents = -max_extents;
+			Vector3 const cascade_extents = max_extents - min_extents;
 
-			XMVECTOR light_dir = light.direction;
-			static const XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+			Vector3 light_dir = XMVector3Normalize(light.direction);
+			Matrix V = XMMatrixLookAtLH(frustum_center, frustum_center + light_distance_factor * light_dir * radius, Vector3::Up);
 
-			XMMATRIX V = XMMatrixLookAtLH(frustum_center, frustum_center + light_distance_factor * light_dir * radius, up);
-			XMFLOAT3 min_e, max_e, cascade_e;
+			float l = min_extents.x;
+			float b = min_extents.y;
+			float n = min_extents.z - far_factor * radius;
+			float r = max_extents.x;
+			float t = max_extents.y;
+			float f = max_extents.z * far_factor;
 
-			XMStoreFloat3(&min_e, min_extents);
-			XMStoreFloat3(&max_e, max_extents);
-			XMStoreFloat3(&cascade_e, cascade_extents);
-
-			float l = min_e.x;
-			float b = min_e.y;
-			float n = min_e.z - far_factor * radius;
-			float r = max_e.x;
-			float t = max_e.y;
-			float f = max_e.z * far_factor;
-
-			XMMATRIX P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
-			XMMATRIX VP = V * P;
-			XMFLOAT3 so(0, 0, 0);
-
-			XMVECTOR shadow_origin = XMLoadFloat3(&so);
-			shadow_origin = XMVector3Transform(shadow_origin, VP);
+			Matrix P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
+			Matrix VP = V * P;
+			Vector3 shadow_origin(0, 0, 0);
+			shadow_origin = Vector3::Transform(shadow_origin, VP);
 			shadow_origin *= (shadow_cascade_size / 2.0f);
 
-			XMVECTOR rounded_origin = XMVectorRound(shadow_origin);
-			XMVECTOR round_offset = rounded_origin - shadow_origin;
-
-			round_offset *= (2.0f / shadow_cascade_size);
-			round_offset *= XMVectorSet(1.0, 1.0, 0.0, 0.0);
-			P.r[3] += round_offset;
+			Vector3 rounded_origin = XMVectorRound(shadow_origin);
+			Vector3 rounded_offset = rounded_origin - shadow_origin;
+			rounded_offset *= (2.0f / shadow_cascade_size);
+			rounded_offset.z = 0.0f;
+			P.m[3][0] += rounded_offset.x;
+			P.m[3][1] += rounded_offset.y;
 			return { V,P };
 		}
 	}
@@ -209,7 +191,7 @@ namespace adria
 	void ShadowRenderer::FillFrameCBuffer(FrameCBuffer& frame_cbuffer)
 	{
 		frame_cbuffer.lights_matrices_idx = light_matrices_gpu_index;
-		frame_cbuffer.cascade_splits = XMVectorSet(split_distances[0], split_distances[1], split_distances[2], split_distances[3]);
+		frame_cbuffer.cascade_splits = Vector4(split_distances[0], split_distances[1], split_distances[2], split_distances[3]);
 	}
 	void ShadowRenderer::SetupShadows(Camera const* camera)
 	{
@@ -320,18 +302,18 @@ namespace adria
 			light_matrices_count = current_light_matrices_count;
 			if (light_matrices_count != 0)
 			{
-				light_matrices_buffer = std::make_unique<GfxBuffer>(gfx, StructuredBufferDesc<XMMATRIX>(light_matrices_count * backbuffer_count, false, true));
+				light_matrices_buffer = std::make_unique<GfxBuffer>(gfx, StructuredBufferDesc<Matrix>(light_matrices_count * backbuffer_count, false, true));
 				GfxBufferSubresourceDesc srv_desc{};
-				srv_desc.size = light_matrices_count * sizeof(XMMATRIX);
+				srv_desc.size = light_matrices_count * sizeof(Matrix);
 				for (uint32 i = 0; i < backbuffer_count; ++i)
 				{
-					srv_desc.offset = i * light_matrices_count * sizeof(XMMATRIX);
+					srv_desc.offset = i * light_matrices_count * sizeof(Matrix);
 					light_matrices_buffer_srvs[i] = gfx->CreateBufferSRV(light_matrices_buffer.get(), &srv_desc);
 				}
 			}
 		}
 
-		std::vector<XMMATRIX> _light_matrices;
+		std::vector<Matrix> _light_matrices;
 		_light_matrices.reserve(light_matrices_count);
 		for (auto e : light_view)
 		{
@@ -346,7 +328,7 @@ namespace adria
 				{
 					if (light.use_cascades)
 					{
-						std::array<XMMATRIX, SHADOW_CASCADE_COUNT> proj_matrices = RecalculateProjectionMatrices(*camera, cascades_split_lambda, split_distances);
+						std::array<Matrix, SHADOW_CASCADE_COUNT> proj_matrices = RecalculateProjectionMatrices(*camera, cascades_split_lambda, split_distances);
 						for (uint32 i = 0; i < SHADOW_CASCADE_COUNT; ++i)
 						{
 							AddShadowMaps(light, entt::to_integral(e));
@@ -385,7 +367,7 @@ namespace adria
 		}
 		if (light_matrices_buffer)
 		{
-			light_matrices_buffer->Update(_light_matrices.data(), light_matrices_count * sizeof(XMMATRIX), light_matrices_count * sizeof(XMMATRIX) * backbuffer_index);
+			light_matrices_buffer->Update(_light_matrices.data(), light_matrices_count * sizeof(Matrix), light_matrices_count * sizeof(Matrix) * backbuffer_index);
 			GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU();
 			gfx->CopyDescriptors(1, dst_descriptor, light_matrices_buffer_srvs[backbuffer_index]);
 			light_matrices_gpu_index = (int32)dst_descriptor.GetIndex();
@@ -547,7 +529,7 @@ namespace adria
 		DrawBatch(cmd_list, false);
 		DrawBatch(cmd_list, true);
 	}
-	std::array<XMMATRIX, ShadowRenderer::SHADOW_CASCADE_COUNT> ShadowRenderer::RecalculateProjectionMatrices(Camera const& camera, float split_lambda, std::array<float, SHADOW_CASCADE_COUNT>& split_distances)
+	std::array<Matrix, ShadowRenderer::SHADOW_CASCADE_COUNT> ShadowRenderer::RecalculateProjectionMatrices(Camera const& camera, float split_lambda, std::array<float, SHADOW_CASCADE_COUNT>& split_distances)
 	{
 		float camera_near = camera.Near();
 		float camera_far = camera.Far();
@@ -563,7 +545,7 @@ namespace adria
 			split_distances[i] = l * split_lambda + u * (1.0f - split_lambda);
 		}
 
-		std::array<XMMATRIX, SHADOW_CASCADE_COUNT> projection_matrices{};
+		std::array<Matrix, SHADOW_CASCADE_COUNT> projection_matrices{};
 		projection_matrices[0] = XMMatrixPerspectiveFovLH(fov, ar, camera_near, split_distances[0]);
 		for (uint32 i = 1; i < projection_matrices.size(); ++i)
 			projection_matrices[i] = XMMatrixPerspectiveFovLH(fov, ar, split_distances[i - 1], split_distances[i]);
