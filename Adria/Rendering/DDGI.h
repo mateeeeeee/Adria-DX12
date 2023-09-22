@@ -22,7 +22,7 @@ namespace adria
 			uint32				 max_num_rays;
 			uint32				 num_rays;
 			std::unique_ptr<GfxTexture> irradiance_history;
-			std::unique_ptr<GfxTexture> depth_history;
+			std::unique_ptr<GfxTexture> distance_history;
 		};
 
 	public:
@@ -46,6 +46,5 @@ namespace adria
 		void OnLibraryRecompiled(GfxShaderID shader);
 
 		void AddUpdateProbeBorderPasses(RenderGraph& rg);
-		void AddHistoryPasses(RenderGraph& rg);
 	};
 }

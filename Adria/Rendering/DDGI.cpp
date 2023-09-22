@@ -52,7 +52,7 @@ namespace adria
 		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
 		rg.ImportTexture(RG_RES_NAME(DDGIIrradianceHistory), ddgi_volume.irradiance_history.get());
-		rg.ImportTexture(RG_RES_NAME(DDGIDepthHistory), ddgi_volume.depth_history.get());
+		rg.ImportTexture(RG_RES_NAME(DDGIDepthHistory), ddgi_volume.distance_history.get());
 
 		struct DDGIRayTracePassData
 		{
@@ -166,7 +166,9 @@ namespace adria
 			}, RGPassType::Compute);
 
 		AddUpdateProbeBorderPasses(rg);
-		AddHistoryPasses(rg);
+
+		rg.ExportTexture(RG_RES_NAME(DDGIIrradiance), ddgi_volume.irradiance_history.get());
+		rg.ExportTexture(RG_RES_NAME(DDGIDistance), ddgi_volume.distance_history.get());
 	}
 
 	void DDGI::CreateStateObject()
@@ -244,57 +246,5 @@ namespace adria
 				cmd_list->UavBarrier(ctx.GetTexture(*data.distance));
 			}, RGPassType::Compute);
 	}
-
-	void DDGI::AddHistoryPasses(RenderGraph& rg)
-	{
-		struct DDGICopyIrradiancePassData
-		{
-			RGTextureCopySrcId copy_src;
-			RGTextureCopyDstId copy_dst;
-		};
-
-		rg.AddPass<DDGICopyIrradiancePassData>("DDGI Copy Irradiance Pass",
-			[=](DDGICopyIrradiancePassData& data, RenderGraphBuilder& builder)
-			{
-				RGTextureDesc history_desc{};
-				history_desc.width = width;
-				history_desc.height = height;
-				history_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-
-				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(DDGIIrradianceHistory));
-				data.copy_src = builder.ReadCopySrcTexture(RG_RES_NAME(DDGIIrradiance));
-			},
-			[=](DDGICopyIrradiancePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
-			{
-				GfxTexture const& src_texture = context.GetCopySrcTexture(data.copy_src);
-				GfxTexture& dst_texture = context.GetCopyDstTexture(data.copy_dst);
-				cmd_list->CopyTexture(dst_texture, src_texture);
-			}, RGPassType::Copy, RGPassFlags::None);
-
-		struct DDGICopyDistancePassData
-		{
-			RGTextureCopySrcId copy_src;
-			RGTextureCopyDstId copy_dst;
-		};
-
-		rg.AddPass<DDGICopyDistancePassData>("DDGI Copy Distance Pass",
-			[=](DDGICopyDistancePassData& data, RenderGraphBuilder& builder)
-			{
-				RGTextureDesc history_desc{};
-				history_desc.width = width;
-				history_desc.height = height;
-				history_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-
-				data.copy_dst = builder.WriteCopyDstTexture(RG_RES_NAME(DDGIDistanceHistory));
-				data.copy_src = builder.ReadCopySrcTexture(RG_RES_NAME(DDGIDistance));
-			},
-			[=](DDGICopyDistancePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
-			{
-				GfxTexture const& src_texture = context.GetCopySrcTexture(data.copy_src);
-				GfxTexture& dst_texture = context.GetCopyDstTexture(data.copy_dst);
-				cmd_list->CopyTexture(dst_texture, src_texture);
-			}, RGPassType::Copy, RGPassFlags::None);
-	}
-
 }
 
