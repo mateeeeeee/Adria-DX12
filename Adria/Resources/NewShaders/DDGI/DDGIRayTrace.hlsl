@@ -69,10 +69,9 @@ void DDGI_ClosestHit(inout DDGIPayload payload, in HitAttributes attribs)
 	float3 worldNormal = mul(vertex.nor, (float3x3) transpose(instanceData.inverseWorldMatrix));
 	float3 V = normalize(FrameCB.cameraPosition.xyz - worldPosition.xyz);
 
-	MaterialProperties matProperties = GetMaterialProperties(materialData, uv, 0);
+	MaterialProperties matProperties = GetMaterialProperties(materialData, vertex.uv, 0);
 	BrdfData brdfData = GetBrdfData(matProperties);
 
-	float3 V = normalize(FrameCB.cameraPosition.xyz - worldPosition.xyz);
 	float3 N = worldNormal;
 
 	StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];

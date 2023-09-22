@@ -1,9 +1,11 @@
 #ifndef DDGICOMMON_INCLUDED
 #define DDGICOMMON_INCLUDED
 #include "../Packing.hlsli"
+#include "../Constants.hlsli"
+#include "../CommonResources.hlsli"
 
 #define PROBE_IRRADIANCE_TEXELS 6
-#define PROBE_DEPTH_TEXELS 14
+#define PROBE_DISTANCE_TEXELS 14
 
 
 struct DDGIVolume
@@ -71,7 +73,7 @@ float3 SphericalFibonacci(float i, float n)
 {
 	const float PHI = sqrt(5) * 0.5f + 0.5f;
 	float fraction = (i * (PHI - 1)) - floor(i * (PHI - 1));
-	float phi = 2.0f * PI * fraction;
+	float phi = 2.0f * M_PI * fraction;
 	float cosTheta = 1.0f - (2.0f * i + 1.0f) * (1.0f / n);
 	float sinTheta = sqrt(saturate(1.0 - cosTheta * cosTheta));
 	return float3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
@@ -82,8 +84,8 @@ float pow3(float x) { return x * x * x; }
 
 float3 SampleDDGIIrradiance(in DDGIVolume ddgi, float3 P, float3 N, float3 Wo)
 {
-	Texture2D<float4> irradianceTexture = ResourceDescriptorHeap[volume.irradianceIdx];
-	Texture2D<float2> distanceTexture = ResourceDescriptorHeap[volume.distanceIdx];
+	Texture2D<float4> irradianceTexture = ResourceDescriptorHeap[ddgi.irradianceIdx];
+	Texture2D<float2> distanceTexture = ResourceDescriptorHeap[ddgi.distanceIdx];
 
 	int3 baseGridCoord = BaseGridCoord(ddgi, P);
 	float3 baseProbePosition = GetProbeLocationFromGridCoord(ddgi, baseGridCoord);
@@ -99,8 +101,8 @@ float3 SampleDDGIIrradiance(in DDGIVolume ddgi, float3 P, float3 N, float3 Wo)
 	{
 		// Compute the offset grid coord and clamp to the probe grid boundary
 		// Offset = 0 or 1 along each axis
-		int3  offset = int3(i, i >> 1, i >> 2) & int3(1);
-		int3  probeGridCoord = clamp(baseGridCoord + offset, int3(0), ddgi.probeCounts - int3(1));
+		int3  offset = int3(i, i >> 1, i >> 2) & int3(1, 1, 1);
+		int3  probeGridCoord = clamp(baseGridCoord + offset, int3(0, 0, 0), ddgi.probeCounts - int3(1, 1, 1));
 		int p = GetProbeIndexFromGridCoord(ddgi, probeGridCoord);
 
 		// Make cosine falloff in tangent plane with respect to the angle from the surface to the probe so that we never
@@ -152,7 +154,7 @@ float3 SampleDDGIIrradiance(in DDGIVolume ddgi, float3 P, float3 N, float3 Wo)
 
 		// Moment visibility test
 		{
-			float2 probeDepthUV = GetProbeUV(ddgi, probeGridCoord, -dir, PROBE_DEPTH_TEXELS);
+			float2 probeDepthUV = GetProbeUV(ddgi, probeGridCoord, -dir, PROBE_DISTANCE_TEXELS);
 
 			float distanceToProbe = length(probeToPoint);
 			float2 moments = distanceTexture.SampleLevel(LinearClampSampler, probeDepthUV, 0).xy;

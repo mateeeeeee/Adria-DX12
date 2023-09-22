@@ -117,6 +117,10 @@ namespace adria
 			case CS_InitializeHZB:
 			case CS_HZBMips:
 			case CS_RTAOFilter:
+			case CS_DDGIUpdateIrradiance:
+			case CS_DDGIUpdateIrradianceBorder:
+			case CS_DDGIUpdateDistance:
+			case CS_DDGIUpdateDistanceBorder:
 				return GfxShaderStage::CS;
 			case HS_OceanLOD:
 				return GfxShaderStage::HS;
@@ -128,6 +132,7 @@ namespace adria
 			case LIB_AmbientOcclusion:
 			case LIB_Reflections:
 			case LIB_PathTracing:
+			case LIB_DDGIRayTracing:
 				return GfxShaderStage::LIB;
 			case ShaderId_Count:
 			default:
@@ -285,6 +290,13 @@ namespace adria
 				return "GpuDrivenRendering/HZB.hlsl";
 			case CS_RTAOFilter:
 				return "RayTracing/RTAOFilter.hlsl";
+			case CS_DDGIUpdateIrradiance:
+			case CS_DDGIUpdateIrradianceBorder:
+			case CS_DDGIUpdateDistance:
+			case CS_DDGIUpdateDistanceBorder:
+				return "DDGI/DDGIUpdate.hlsl";
+			case LIB_DDGIRayTracing:
+				return "DDGI/DDGIRayTrace.hlsl";
 			case LIB_Shadows:
 				return "RayTracing/RayTracedShadows.hlsl";
 			case LIB_AmbientOcclusion:
@@ -478,6 +490,14 @@ namespace adria
 				return "LensFlareCS";
 			case CS_RTAOFilter:
 				return "RTAOFilterCS";
+			case CS_DDGIUpdateIrradiance:
+				return "DDGI_UpdateIrradiance";
+			case CS_DDGIUpdateIrradianceBorder:
+				return "DDGI_UpdateIrradianceBorder";
+			case CS_DDGIUpdateDistance:
+				return "DDGI_UpdateDistance";
+			case CS_DDGIUpdateDistanceBorder:
+				return "DDGI_UpdateDistanceBorder";
 			default:
 				return "main";
 			}

@@ -16,6 +16,14 @@ namespace adria
 	using Color = DirectX::SimpleMath::Color;
 	using Ray = DirectX::SimpleMath::Ray;
 
+	using Vector2u = DirectX::XMUINT2;
+	using Vector3u = DirectX::XMUINT3;
+	using Vector4u = DirectX::XMUINT4;
+	using Vector2i = DirectX::XMINT2;
+	using Vector3i = DirectX::XMINT3;
+	using Vector4i = DirectX::XMINT4;
+
+
 	namespace Colors
 	{
 		static constexpr Color AliceBlue = { 0.941176534f, 0.972549081f, 1.000000000f, 1.000000000f };

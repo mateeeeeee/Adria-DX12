@@ -14,7 +14,7 @@ namespace adria
 		GfxDevice* gfx;
 		std::unordered_map<GfxPipelineStateID, std::unique_ptr<GraphicsPipelineState>>		gfx_pso_map;
 		std::unordered_map<GfxPipelineStateID, std::unique_ptr<ComputePipelineState>>		compute_pso_map;
-		std::unordered_map<GfxPipelineStateID, std::unique_ptr<MeshShaderPipelineState>>   mesh_pso_map;
+		std::unordered_map<GfxPipelineStateID, std::unique_ptr<MeshShaderPipelineState>>    mesh_pso_map;
 
 		inline GfxShader const& GetShader(GfxShaderID shader)
 		{
@@ -441,6 +441,18 @@ namespace adria
 
 				compute_pso_desc.CS = CS_RTAOFilter;
 				compute_pso_map[GfxPipelineStateID::RTAOFilter] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.CS = CS_DDGIUpdateIrradiance;
+				compute_pso_map[GfxPipelineStateID::DDGIUpdateIrradiance] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.CS = CS_DDGIUpdateIrradianceBorder;
+				compute_pso_map[GfxPipelineStateID::DDGIUpdateIrradianceBorder] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.CS = CS_DDGIUpdateDistance;
+				compute_pso_map[GfxPipelineStateID::DDGIUpdateDistance] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+
+				compute_pso_desc.CS = CS_DDGIUpdateDistanceBorder;
+				compute_pso_map[GfxPipelineStateID::DDGIUpdateDistanceBorder] = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
 			}
 
 			if (gfx->GetCapabilities().SupportsMeshShaders())

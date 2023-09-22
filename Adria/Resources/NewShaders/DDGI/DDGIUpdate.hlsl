@@ -24,7 +24,7 @@ void DDGI_UpdateIrradiance(uint3 groupThreadId : SV_GroupThreadID, uint groupId 
 }
 
 [numthreads(1, 1, 1)]
-void DDGI_UpdateBordersIrradiance(uint3 groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
+void DDGI_UpdateIrradianceBorder(uint3 groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
 {
 
 }
@@ -36,7 +36,7 @@ void DDGI_UpdateDistance(uint3 groupThreadId : SV_GroupThreadID, uint groupId : 
 }
 
 [numthreads(1, 1, 1)]
-void DDGI_UpdateBordersDistance(uint3 groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
+void DDGI_UpdateDistanceBorder(uint3 groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
 {
 
 }

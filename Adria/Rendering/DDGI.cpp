@@ -13,16 +13,14 @@
 #include "Utilities/Random.h"
 #include "entt/entity/registry.hpp"
 
-using namespace DirectX;
-
 namespace adria
 {
 
-	XMUINT2 DDGI::ProbeTextureDimensions(XMUINT3 const& num_probes, uint32 texels_per_probe)
+	Vector2u DDGI::ProbeTextureDimensions(Vector3u const& num_probes, uint32 texels_per_probe)
 	{
 		uint32 width = (1 + texels_per_probe + 1) * num_probes.y * num_probes.x;
 		uint32 height = (1 + texels_per_probe + 1) * num_probes.z;
-		return XMUINT2(width, height);
+		return Vector2u(width, height);
 	}
 
 	DDGI::DDGI(GfxDevice* gfx, entt::registry& reg, uint32 w, uint32 h) : gfx(gfx), reg(reg), width(w), height(h)
@@ -49,7 +47,7 @@ namespace adria
 		uint32 const num_probes = ddgi_volume.num_probes.x * ddgi_volume.num_probes.y * ddgi_volume.num_probes.z;
 		uint32 const ddgi_num_rays = ddgi_volume.num_rays;
 		uint32 const ddgi_max_num_rays = ddgi_volume.max_num_rays;
-		XMUINT3 ddgi_num_probes = ddgi_volume.num_probes;
+		Vector3u ddgi_num_probes = ddgi_volume.num_probes;
 
 		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
@@ -115,7 +113,7 @@ namespace adria
 		rg.AddPass<DDGIUpdateIrradiancePassData>("DDGI Update Irradiance Pass",
 			[=](DDGIUpdateIrradiancePassData& data, RenderGraphBuilder& builder)
 			{
-				XMUINT2 irradiance_dimensions = ProbeTextureDimensions(ddgi_num_probes, PROBE_IRRADIANCE_TEXELS);
+				Vector2u irradiance_dimensions = ProbeTextureDimensions(ddgi_num_probes, PROBE_IRRADIANCE_TEXELS);
 				RGTextureDesc irradiance_desc{};
 				irradiance_desc.width  = irradiance_dimensions.x;
 				irradiance_desc.height = irradiance_dimensions.y;
@@ -146,7 +144,7 @@ namespace adria
 		rg.AddPass<DDGIUpdateDistancePassData>("DDGI Update Distance Pass",
 			[=](DDGIUpdateDistancePassData& data, RenderGraphBuilder& builder)
 			{
-				XMUINT2 depth_dimensions = ProbeTextureDimensions(ddgi_num_probes, PROBE_DEPTH_TEXELS);
+				Vector2u depth_dimensions = ProbeTextureDimensions(ddgi_num_probes, PROBE_DISTANCE_TEXELS);
 				RGTextureDesc irradiance_desc{};
 				irradiance_desc.width = depth_dimensions.x;
 				irradiance_desc.height = depth_dimensions.y;
@@ -178,7 +176,7 @@ namespace adria
 
 	void DDGI::OnLibraryRecompiled(GfxShaderID shader)
 	{
-		//if (shader == LIB_DDGIRayTracing) CreateStateObject();
+		if (shader == LIB_DDGIRayTracing) CreateStateObject();
 	}
 
 	void DDGI::AddUpdateProbeBorderPasses(RenderGraph& rg)
