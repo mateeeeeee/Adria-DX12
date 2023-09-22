@@ -15,7 +15,6 @@
 
 namespace adria
 {
-
 	Vector2u DDGI::ProbeTextureDimensions(Vector3u const& num_probes, uint32 texels_per_probe)
 	{
 		uint32 width = (1 + texels_per_probe + 1) * num_probes.y * num_probes.x;
@@ -43,29 +42,24 @@ namespace adria
 	{
 		if (!IsSupported()) return;
 
-		uint64 random_index = 0;
-		uint32 const num_probes = ddgi_volume.num_probes.x * ddgi_volume.num_probes.y * ddgi_volume.num_probes.z;
-		uint32 const ddgi_num_rays = ddgi_volume.num_rays;
-		uint32 const ddgi_max_num_rays = ddgi_volume.max_num_rays;
-		Vector3u ddgi_num_probes = ddgi_volume.num_probes;
-
 		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
 		rg.ImportTexture(RG_RES_NAME(DDGIIrradianceHistory), ddgi_volume.irradiance_history.get());
 		rg.ImportTexture(RG_RES_NAME(DDGIDepthHistory), ddgi_volume.distance_history.get());
 
+		uint32 const num_probes_flat = ddgi_volume.num_probes.x * ddgi_volume.num_probes.y * ddgi_volume.num_probes.z;
+
 		struct DDGIRayTracePassData
 		{
 			RGBufferReadWriteId ray_buffer;
 		};
-
 		rg.AddPass<DDGIRayTracePassData>("DDGI Ray Trace Pass",
 			[=](DDGIRayTracePassData& data, RenderGraphBuilder& builder)
 			{
 				RGBufferDesc ray_buffer_desc{};
 				ray_buffer_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 				ray_buffer_desc.stride = GetGfxFormatStride(ray_buffer_desc.format);
-				ray_buffer_desc.size = ray_buffer_desc.stride * num_probes * ddgi_max_num_rays;
+				ray_buffer_desc.size = ray_buffer_desc.stride * num_probes_flat * ddgi_volume.max_num_rays;
 				builder.DeclareBuffer(RG_RES_NAME(DDGIRayBuffer), ray_buffer_desc);
 				data.ray_buffer	  = builder.WriteBuffer(RG_RES_NAME(DDGIRayBuffer));
 			},
@@ -89,16 +83,20 @@ namespace adria
 					.history_blend_weight = 0.98f,
 					.ray_buffer_index = i
 				};
+				//#todo fill this
 
-				auto& table = cmd_list->SetStateObject(ddgi_trace_so.Get());
+				DDGIVolumeHLSL ddgi_hlsl{};
+				
+				GfxRayTracingShaderTable& table = cmd_list->SetStateObject(ddgi_trace_so.Get());
 				table.SetRayGenShader("DDGI_RayGen");
 				table.AddMissShader("DDGI_Miss", 0);
 				table.AddHitGroup("DDGI_ClosestHit", 0);
 
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, parameters);
-				cmd_list->SetRootCBV(2, ddgi_volume);
-				cmd_list->DispatchRays(ddgi_num_rays, num_probes);
+				cmd_list->SetRootCBV(2, ddgi_hlsl);
+
+				cmd_list->DispatchRays(ddgi_volume.num_rays, num_probes_flat);
 				cmd_list->UavBarrier(ctx.GetBuffer(*data.ray_buffer));
 
 			}, RGPassType::Compute);
@@ -113,7 +111,7 @@ namespace adria
 		rg.AddPass<DDGIUpdateIrradiancePassData>("DDGI Update Irradiance Pass",
 			[=](DDGIUpdateIrradiancePassData& data, RenderGraphBuilder& builder)
 			{
-				Vector2u irradiance_dimensions = ProbeTextureDimensions(ddgi_num_probes, PROBE_IRRADIANCE_TEXELS);
+				Vector2u irradiance_dimensions = ProbeTextureDimensions(ddgi_volume.num_probes, PROBE_IRRADIANCE_TEXELS);
 				RGTextureDesc irradiance_desc{};
 				irradiance_desc.width  = irradiance_dimensions.x;
 				irradiance_desc.height = irradiance_dimensions.y;
@@ -130,7 +128,7 @@ namespace adria
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIUpdateIrradiance));
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
-				cmd_list->Dispatch(num_probes, 1, 1);
+				cmd_list->Dispatch(num_probes_flat, 1, 1);
 				cmd_list->UavBarrier(ctx.GetTexture(*data.irradiance));
 			}, RGPassType::Compute);
 
@@ -144,7 +142,7 @@ namespace adria
 		rg.AddPass<DDGIUpdateDistancePassData>("DDGI Update Distance Pass",
 			[=](DDGIUpdateDistancePassData& data, RenderGraphBuilder& builder)
 			{
-				Vector2u depth_dimensions = ProbeTextureDimensions(ddgi_num_probes, PROBE_DISTANCE_TEXELS);
+				Vector2u depth_dimensions = ProbeTextureDimensions(ddgi_volume.num_probes, PROBE_DISTANCE_TEXELS);
 				RGTextureDesc irradiance_desc{};
 				irradiance_desc.width = depth_dimensions.x;
 				irradiance_desc.height = depth_dimensions.y;
@@ -161,7 +159,7 @@ namespace adria
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIUpdateDistance));
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
-				cmd_list->Dispatch(num_probes, 1, 1);
+				cmd_list->Dispatch(num_probes_flat, 1, 1);
 				cmd_list->UavBarrier(ctx.GetTexture(*data.depth));
 			}, RGPassType::Compute);
 

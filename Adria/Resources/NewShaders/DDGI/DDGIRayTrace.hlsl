@@ -25,12 +25,13 @@ void DDGI_RayGen()
 {
 	RaytracingAccelerationStructure tlas = ResourceDescriptorHeap[FrameCB.accelStructIdx];
 
-	uint probeIdx = DispatchRaysIndex().y;
-	uint rayIdx = DispatchRaysIndex().x;
+	uint const probeIdx = DispatchRaysIndex().y;
+	uint const rayIdx = DispatchRaysIndex().x;
+
+	float3x3 randomRotation  = AngleAxis3x3(PassCB.randomAngle, PassCB.randomVector);
+	float3   randomDirection = normalize(mul(SphericalFibonacci(rayIdx, DDGIVolumeCB.raysPerProbe), randomRotation));
 
 	float3 probeLocation = GetProbeLocation(DDGIVolumeCB, probeIdx);
-	float3x3 randomRotation = AngleAxis3x3(PassCB.randomAngle, PassCB.randomVector);
-	float3  randomDirection = normalize(mul(SphericalFibonacci(rayIdx, DDGIVolumeCB.raysPerProbe), randomRotation));
 
 	RayDesc ray;
 	ray.Origin = probeLocation;
@@ -43,7 +44,6 @@ void DDGI_RayGen()
 	payload.distance = FLT_MAX;
 	TraceRay(tlas, (RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES), 0xFF, 0, 0, 0, ray, payload);
 	RWBuffer<float4> rayBuffer = ResourceDescriptorHeap[PassCB.rayBufferIdx];
-
 	rayBuffer[probeIdx * DDGIVolumeCB.maxRaysPerProbe + rayIdx] = float4(payload.radiance, payload.distance);
 }
 
@@ -61,7 +61,6 @@ void DDGI_ClosestHit(inout DDGIPayload payload, in HitAttributes attribs)
 	Instance instanceData = GetInstanceData(InstanceIndex());
 	Mesh meshData = GetMeshData(instanceData.meshIndex);
 	Material materialData = GetMaterialData(instanceData.materialIdx);
-
 	VertexData vertex = LoadVertexData(meshData, PrimitiveIndex(), attribs.barycentrics);
 
 	float4 posWS = mul(float4(vertex.pos, 1.0), instanceData.worldMatrix);

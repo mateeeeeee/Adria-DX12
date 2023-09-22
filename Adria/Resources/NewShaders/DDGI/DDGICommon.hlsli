@@ -11,14 +11,14 @@
 struct DDGIVolume
 {
 	float3 startPosition;
-	float normalBias;
-	float3 probeSize;
-	float energyPreservation;
-	int3 probeCounts;
 	int raysPerProbe;
+	float3 probeSize;
 	int maxRaysPerProbe;
-	int irradianceIdx;
-	int distanceIdx;
+	int3 probeCounts;
+	float normalBias;
+	float energyPreservation;
+	int irradianceHistoryIdx;
+	int distanceHistoryIdx;
 };
 
 uint2 GetProbeTexel(DDGIVolume ddgi, uint3 probeIndex3D, uint numProbeInteriorTexels)
@@ -84,8 +84,8 @@ float pow3(float x) { return x * x * x; }
 
 float3 SampleDDGIIrradiance(in DDGIVolume ddgi, float3 P, float3 N, float3 Wo)
 {
-	Texture2D<float4> irradianceTexture = ResourceDescriptorHeap[ddgi.irradianceIdx];
-	Texture2D<float2> distanceTexture = ResourceDescriptorHeap[ddgi.distanceIdx];
+	Texture2D<float4> irradianceTexture = ResourceDescriptorHeap[ddgi.irradianceHistoryIdx];
+	Texture2D<float2> distanceTexture = ResourceDescriptorHeap[ddgi.distanceHistoryIdx];
 
 	int3 baseGridCoord = BaseGridCoord(ddgi, P);
 	float3 baseProbePosition = GetProbeLocationFromGridCoord(ddgi, baseGridCoord);

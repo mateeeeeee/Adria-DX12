@@ -17,13 +17,28 @@ namespace adria
 
 		struct DDGIVolume
 		{
-			BoundingBox			 bounding_box;
+			Vector3				 origin;
+			Vector3				 extents;
 			Vector3u			 num_probes;
 			uint32				 max_num_rays;
 			uint32				 num_rays;
 			std::unique_ptr<GfxTexture> irradiance_history;
 			std::unique_ptr<GfxTexture> distance_history;
 		};
+
+		struct DDGIVolumeHLSL
+		{
+			Vector3 startPosition;
+			int32 raysPerProbe;
+			Vector3 probeSize;
+			int32 maxRaysPerProbe;
+			Vector3i probeCounts;
+			float normalBias;
+			float energyPreservation;
+			int32 irradianceHistoryIdx;
+			int32 distanceHistoryIdx;
+		};
+
 
 	public:
 
