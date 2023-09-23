@@ -6,6 +6,7 @@
 
 #define PROBE_IRRADIANCE_TEXELS 6
 #define PROBE_DISTANCE_TEXELS 14
+#define MIN_WEIGHT 0.0001f
 
 
 struct DDGIVolume
@@ -79,9 +80,15 @@ float3 SphericalFibonacci(float i, float n)
 	return float3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
 }
 
+float3 GetRayDirection(uint rayIndex, uint numRays, float3x3 randomRotation = float3x3(1, 0, 0, 0, 1, 0, 0, 0, 1))
+{
+	return mul(SphericalFibonacci(rayIndex, numRays), randomRotation);
+}
+
 float pow2(float x) { return x * x; }
 float pow3(float x) { return x * x * x; }
 
+//https://github.com/diharaw/hybrid-rendering/blob/master/src/shaders/gi/gi_common.glsl
 float3 SampleDDGIIrradiance(in DDGIVolume ddgi, float3 P, float3 N, float3 Wo)
 {
 	Texture2D<float4> irradianceTexture = ResourceDescriptorHeap[ddgi.irradianceHistoryIdx];

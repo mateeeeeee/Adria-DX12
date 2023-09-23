@@ -118,9 +118,7 @@ namespace adria
 			case CS_HZBMips:
 			case CS_RTAOFilter:
 			case CS_DDGIUpdateIrradiance:
-			case CS_DDGIUpdateIrradianceBorder:
 			case CS_DDGIUpdateDistance:
-			case CS_DDGIUpdateDistanceBorder:
 				return GfxShaderStage::CS;
 			case HS_OceanLOD:
 				return GfxShaderStage::HS;
@@ -291,10 +289,9 @@ namespace adria
 			case CS_RTAOFilter:
 				return "RayTracing/RTAOFilter.hlsl";
 			case CS_DDGIUpdateIrradiance:
-			case CS_DDGIUpdateIrradianceBorder:
+				return "DDGI/DDGIUpdateIrradiance.hlsl";
 			case CS_DDGIUpdateDistance:
-			case CS_DDGIUpdateDistanceBorder:
-				return "DDGI/DDGIUpdate.hlsl";
+				return "DDGI/DDGIUpdateDistance.hlsl";
 			case LIB_DDGIRayTracing:
 				return "DDGI/DDGIRayTrace.hlsl";
 			case LIB_Shadows:
@@ -492,12 +489,8 @@ namespace adria
 				return "RTAOFilterCS";
 			case CS_DDGIUpdateIrradiance:
 				return "DDGI_UpdateIrradiance";
-			case CS_DDGIUpdateIrradianceBorder:
-				return "DDGI_UpdateIrradianceBorder";
 			case CS_DDGIUpdateDistance:
 				return "DDGI_UpdateDistance";
-			case CS_DDGIUpdateDistanceBorder:
-				return "DDGI_UpdateDistanceBorder";
 			default:
 				return "main";
 			}

@@ -1179,7 +1179,10 @@
     <FxCompile Include="Resources\NewShaders\Other\Debug.hlsl">
       <Filter>Shaders\Other</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\NewShaders\DDGI\DDGIUpdate.hlsl">
+    <FxCompile Include="Resources\NewShaders\DDGI\DDGIUpdateIrradiance.hlsl">
+      <Filter>Shaders\DDGI</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\DDGI\DDGIUpdateDistance.hlsl">
       <Filter>Shaders\DDGI</Filter>
     </FxCompile>
   </ItemGroup>

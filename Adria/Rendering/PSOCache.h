@@ -94,9 +94,7 @@ namespace adria
 		HZBMips,
 		RTAOFilter,
 		DDGIUpdateIrradiance,
-		DDGIUpdateIrradianceBorder,
 		DDGIUpdateDistance,
-		DDGIUpdateDistanceBorder,
 		Unknown
 	};
 
