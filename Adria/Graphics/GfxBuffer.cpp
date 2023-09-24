@@ -8,7 +8,7 @@
 namespace adria
 {
 
-	GfxBuffer::GfxBuffer(GfxDevice* gfx, GfxBufferDesc const& desc, GfxBufferInitialData initial_data /*= nullptr*/) : gfx(gfx), desc(desc)
+	GfxBuffer::GfxBuffer(GfxDevice* gfx, GfxBufferDesc const& desc, GfxBufferInitialData initial_data) : gfx(gfx), desc(desc)
 	{
 		UINT64 buffer_size = desc.size;
 		if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::ConstantBuffer))

@@ -71,14 +71,20 @@ namespace adria
 
 		std::strong_ordering operator<=>(GfxTextureSubresourceDesc const& other) const = default;
 	};
-	using GfxTextureInitialData = D3D12_SUBRESOURCE_DATA;
+
+	struct GfxTextureInitialData
+	{
+		void const* data;
+		uint64 row_pitch;
+		uint64 slice_pitch;
+	};
 
 	class GfxTexture
 	{
 	public:
-		GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, GfxTextureInitialData* initial_data = nullptr, uint32 data_count = -1);
-		//constructor used by swapchain for creating backbuffer texture
-		GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, void* backbuffer);
+		GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, GfxTextureInitialData* initial_data, uint32 subresource_count);
+		GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, GfxTextureInitialData* initial_data = nullptr);
+		GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, void* backbuffer); //constructor used by swapchain for creating backbuffer texture
 
 		GfxTexture(GfxTexture const&) = delete;
 		GfxTexture& operator=(GfxTexture const&) = delete;
@@ -102,6 +108,7 @@ namespace adria
 		void Unmap();
 
 		void SetName(char const* name);
+
 	private:
 		GfxDevice* gfx;
 		ArcPtr<ID3D12Resource> resource;

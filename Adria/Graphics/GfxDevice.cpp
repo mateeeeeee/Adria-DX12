@@ -514,9 +514,30 @@ namespace adria
 		if (rendering_not_started) return dynamic_allocator_on_init.get();
 		else return dynamic_allocators[swapchain->GetBackbufferIndex()].get();
 	}
+
 	void GfxDevice::InitShaderVisibleAllocator(uint32 reserve)
 	{
 		gpu_descriptor_allocator = std::make_unique<GfxOnlineDescriptorAllocator>(this, 32767, reserve);
+	}
+
+	GfxTexture* GfxDevice::CreateBackbufferTexture(GfxTextureDesc const& desc, void* backbuffer)
+	{
+		return new GfxTexture(this, desc, backbuffer);
+	}
+
+	GfxTexture* GfxDevice::CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data, uint32 subresource_count)
+	{
+		return new GfxTexture(this, desc, initial_data, subresource_count);
+	}
+
+	GfxTexture* GfxDevice::CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data /*= nullptr*/)
+	{
+		return new GfxTexture(this, desc, initial_data);
+	}
+
+	GfxBuffer* GfxDevice::CreateBuffer(GfxBufferDesc const& desc, GfxBufferInitialData initial_data /*= nullptr*/)
+	{
+		return new GfxBuffer(this, desc, initial_data);
 	}
 
 	GfxDescriptor GfxDevice::CreateBufferSRV(GfxBuffer const* buffer, GfxBufferSubresourceDesc const* desc)

@@ -177,11 +177,19 @@ namespace adria
 		auto cmd_list = gfx->GetGraphicsCommandList();
 		if (initial_data != nullptr)
 		{
-			if (subresource_count == static_cast<uint32>(-1)) subresource_count = desc.array_size * std::max<uint32>(1u, desc.mip_levels);
-			UINT64 required_size;
+			uint64 required_size;
 			device->GetCopyableFootprints(&resource_desc, 0, (uint32)subresource_count, 0, nullptr, nullptr, nullptr, &required_size);
 			GfxDynamicAllocation dyn_alloc = upload_buffer->Allocate(required_size, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
-			UpdateSubresources(cmd_list->GetNative(), resource.Get(), dyn_alloc.buffer->GetNative(), dyn_alloc.offset, 0, subresource_count, initial_data);
+			
+			std::vector<D3D12_SUBRESOURCE_DATA> subresource_data(subresource_count);
+			for (uint32 i = 0; i < subresource_count; ++i)
+			{
+				GfxTextureInitialData init_data = initial_data[i];
+				subresource_data[i].pData = init_data.data;
+				subresource_data[i].RowPitch = init_data.row_pitch;
+				subresource_data[i].SlicePitch = init_data.slice_pitch;
+			}
+			UpdateSubresources(cmd_list->GetNative(), resource.Get(), dyn_alloc.buffer->GetNative(), dyn_alloc.offset, 0, subresource_count, subresource_data.data());
 
 			if (desc.initial_state != GfxResourceState::CopyDest)
 			{
@@ -194,6 +202,12 @@ namespace adria
 	GfxTexture::GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, void* backbuffer) 
 		: gfx(gfx), desc(desc), resource((ID3D12Resource*)backbuffer), is_backbuffer(true)
 	{}
+
+	GfxTexture::GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, GfxTextureInitialData* initial_data /*= nullptr*/)
+		: GfxTexture(gfx, desc, initial_data, desc.array_size* std::max<uint32>(1u, desc.mip_levels))
+	{
+
+	}
 
 	GfxTexture::~GfxTexture()
 	{

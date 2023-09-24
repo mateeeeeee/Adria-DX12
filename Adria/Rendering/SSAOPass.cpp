@@ -152,9 +152,9 @@ namespace adria
 		}
 
 		GfxTextureInitialData data{};
-		data.pData = random_texture_data.data();
-		data.RowPitch = 8 * 4 * sizeof(float);
-		data.SlicePitch = 0;
+		data.data = random_texture_data.data();
+		data.row_pitch = 8 * 4 * sizeof(float);
+		data.slice_pitch = 0;
 
 		GfxTextureDesc noise_desc{};
 		noise_desc.width = NOISE_DIM;

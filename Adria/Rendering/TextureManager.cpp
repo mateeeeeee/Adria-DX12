@@ -59,9 +59,9 @@ namespace adria
 				for (uint32 i = 0; i < desc.mip_levels; ++i)
 				{
                     GfxTextureInitialData& data = tex_data.emplace_back();
-					data.pData = curr_img->MipData(i);
-					data.RowPitch = GetRowPitch(curr_img->Format(), desc.width, i);
-					data.SlicePitch = GetSlicePitch(img.Format(), desc.width, desc.height, i);
+					data.data = curr_img->MipData(i);
+					data.row_pitch = GetRowPitch(curr_img->Format(), desc.width, i);
+					data.slice_pitch = GetSlicePitch(img.Format(), desc.width, desc.height, i);
 				}
                 curr_img = curr_img->NextImage();
 			}
@@ -90,8 +90,8 @@ namespace adria
 		{
 			images.emplace_back(cubemap_textures[i]);
 			GfxTextureInitialData subresource_data{};
-			subresource_data.pData = images.back().Data<void>();
-			subresource_data.RowPitch = GetRowPitch(images.back().Format(), desc.width, 0);
+			subresource_data.data = images.back().Data<void>();
+			subresource_data.row_pitch = GetRowPitch(images.back().Format(), desc.width, 0);
 			subresources.push_back(subresource_data);
 		}
 		desc.width  = images[0].Width();
@@ -133,9 +133,9 @@ namespace adria
 
 		float v = 0.0f;
 		GfxTextureInitialData init_data{};
-		init_data.pData = &v;
-		init_data.RowPitch = sizeof(float);
-		init_data.SlicePitch = 0;
+		init_data.data = &v;
+		init_data.row_pitch = sizeof(float);
+		init_data.slice_pitch = 0;
 		std::unique_ptr<GfxTexture> black_default_texture = std::make_unique<GfxTexture>(gfx, desc, &init_data);
 		texture_map[INVALID_TEXTURE_HANDLE] = std::move(black_default_texture);
 

@@ -404,9 +404,9 @@ namespace adria
 		for (size_t i = 0; i < ping_array.size(); ++i) ping_array[i] = rand_float();
 
 		GfxTextureInitialData data{};
-		data.pData = ping_array.data();
-		data.RowPitch = sizeof(float) * FFT_RESOLUTION;
-		data.SlicePitch = 0;
+		data.data = ping_array.data();
+		data.row_pitch = sizeof(float) * FFT_RESOLUTION;
+		data.slice_pitch = 0;
 
 		ping_pong_phase_textures[pong_phase] = std::make_unique<GfxTexture>(gfx, ocean_texture_desc, &data);
 		ping_pong_phase_textures[!pong_phase] = std::make_unique<GfxTexture>(gfx, ocean_texture_desc);

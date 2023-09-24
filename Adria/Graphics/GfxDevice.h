@@ -33,6 +33,7 @@ namespace adria
 	class GfxBuffer;
 	struct GfxBufferDesc;
 	struct GfxBufferSubresourceDesc;
+	struct GfxTextureInitialData;
 	enum class GfxSubresourceType : uint8;
 
 	class GfxLinearDynamicAllocator;
@@ -106,6 +107,11 @@ namespace adria
 		void InitShaderVisibleAllocator(uint32 reserve);
 
 		GfxLinearDynamicAllocator* GetDynamicAllocator() const;
+
+		GfxTexture* CreateBackbufferTexture(GfxTextureDesc const& desc, void* backbuffer);
+		GfxTexture* CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data, uint32 subresource_count);
+		GfxTexture* CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data = nullptr);
+		GfxBuffer*  CreateBuffer(GfxBufferDesc const& desc, void const* initial_data = nullptr);
 
 		GfxDescriptor CreateBufferSRV(GfxBuffer const*, GfxBufferSubresourceDesc const* = nullptr);
 		GfxDescriptor CreateBufferUAV(GfxBuffer const*, GfxBufferSubresourceDesc const* = nullptr);
