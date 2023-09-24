@@ -1,7 +1,7 @@
+#include <algorithm>
 #include "Camera.h"
 #include "Input/Input.h"
 #include "Math/Constants.h"
-#include <algorithm>
 
 using namespace DirectX;
 

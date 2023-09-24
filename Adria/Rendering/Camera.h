@@ -1,7 +1,5 @@
 #pragma once
-#include <DirectXCollision.h>
 #include <utility>
-#include "Core/CoreTypes.h"
 
 namespace adria
 {

@@ -36,20 +36,6 @@ namespace adria
 		ImGui_ImplDX12_Init(gfx->GetDevice(), gfx->GetBackbufferCount(),
 			DXGI_FORMAT_R10G10B10A2_UNORM, imgui_allocator->GetHeap(),
 			handle, handle);
-
-		ImGuiStyle& style = ImGui::GetStyle();
-		style.WindowBorderSize = 1.0f;
-		style.FrameBorderSize = 0.0f;
-		style.ScrollbarSize = 20.0f;
-		style.FramePadding = ImVec2(5, 5);
-		style.ItemSpacing = ImVec2(6, 5);
-		style.WindowMenuButtonPosition = ImGuiDir_Right;
-		style.WindowRounding = 2.0f;
-		style.FrameRounding = 2.0f;
-		style.PopupRounding = 2.0f;
-		style.GrabRounding = 2.0f;
-		style.ScrollbarRounding = 2.0f;
-		style.Alpha = 1.0f;
 	}
 	GUI::~GUI()
 	{

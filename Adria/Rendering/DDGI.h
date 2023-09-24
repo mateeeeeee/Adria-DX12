@@ -25,18 +25,6 @@ namespace adria
 			std::unique_ptr<GfxTexture> irradiance_history;
 			std::unique_ptr<GfxTexture> distance_history;
 		};
-
-		//float3 BoundsMin;
-		//uint NumRaysPerProbe;
-		//float3 ProbeSize;
-		//uint MaxRaysPerProbe;
-		//uint3 ProbeVolumeDimensions;
-
-		//ddgi.BoundsMin = ddgiVolume.Origin - ddgiVolume.Extents;
-		//ddgi.ProbeSize = 2 * ddgiVolume.Extents / (Vector3((float)ddgiVolume.NumProbes.x, (float)ddgiVolume.NumProbes.y, (float)ddgiVolume.NumProbes.z) - Vector3::One);
-		//ddgi.ProbeVolumeDimensions = Vector3u(ddgiVolume.NumProbes.x, ddgiVolume.NumProbes.y, ddgiVolume.NumProbes.z);
-
-
 		struct DDGIVolumeHLSL
 		{
 			Vector3 startPosition;
@@ -49,7 +37,6 @@ namespace adria
 			int32 irradianceHistoryIdx;
 			int32 distanceHistoryIdx;
 		};
-
 
 	public:
 

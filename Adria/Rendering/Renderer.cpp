@@ -43,7 +43,7 @@ namespace adria
 		clustered_deferred_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height),
 		decals_pass(reg, width, height), ocean_renderer(reg, width, height),
 		shadow_renderer(reg, gfx, width, height), rtao_pass(gfx, width, height), rtr_pass(gfx, width, height),
-		path_tracer(gfx, width, height), ray_tracing_supported(gfx->GetCapabilities().SupportsRayTracing())
+		path_tracer(gfx, width, height), ddgi(gfx, reg, width, height), ray_tracing_supported(gfx->GetCapabilities().SupportsRayTracing())
 	{
 		g_DebugRenderer.Initialize(width, height);
 		g_GfxProfiler.Initialize(gfx);
@@ -141,6 +141,7 @@ namespace adria
 			rtr_pass.OnResize(w, h);
 			path_tracer.OnResize(w, h);
 			rtao_pass.OnResize(w, h);
+			ddgi.OnResize(w, h);
 		}
 	}
 	void Renderer::OnSceneInitialized()

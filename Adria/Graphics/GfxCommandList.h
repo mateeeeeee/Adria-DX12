@@ -143,6 +143,7 @@ namespace adria
 		void SetRenderTargets(std::span<GfxDescriptor> rtvs, GfxDescriptor const* dsv = nullptr, bool single_rt = false);
 
 		void SetContext(Context ctx);
+
 	private:
 		GfxDevice* gfx = nullptr;
 		GfxCommandListType type;

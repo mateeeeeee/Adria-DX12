@@ -15,6 +15,7 @@
 #include "FXAAPass.h"
 #include "SSAOPass.h"
 #include "HBAOPass.h"
+#include "DDGI.h"
 #include "HelperPasses.h"
 #include "PickingPass.h"
 #include "DecalsPass.h"
@@ -105,6 +106,7 @@ namespace adria
 		OceanRenderer  ocean_renderer;
 		ShadowRenderer shadow_renderer;
 		Postprocessor postprocessor;
+		DDGI		  ddgi;
 		PathTracingPass path_tracer;
 
 		//ray tracing

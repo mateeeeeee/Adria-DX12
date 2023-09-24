@@ -38,7 +38,7 @@ namespace adria
 		mutable std::mutex map_mutex;
 		std::atomic_uint scope_counter = 0;
 #else
-		uint32_t scope_counter = 0;
+		uint32 scope_counter = 0;
 #endif
 
 		void Init(GfxDevice* _gfx)
@@ -69,7 +69,7 @@ namespace adria
 		}
 		void BeginProfileScope(GfxCommandList* cmd_list, char const* name)
 		{
-			uint32_t profile_index = scope_counter++;
+			uint32 profile_index = scope_counter++;
 #if GFX_MULTITHREADED
 			{
 				std::scoped_lock(map_mutex);
@@ -108,9 +108,9 @@ namespace adria
 		}
 		std::vector<GfxTimestamp> GetResults()
 		{
-			UINT64 gpu_frequency = 0;
+			uint64 gpu_frequency = 0;
 			gfx->GetTimestampFrequency(gpu_frequency);
-			UINT64 current_backbuffer_index = gfx->GetBackbufferIndex();
+			uint64 current_backbuffer_index = gfx->GetBackbufferIndex();
 			for (auto const& [_, index] : name_to_index_map)
 			{
 				ADRIA_ASSERT(index < MAX_PROFILES);

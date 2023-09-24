@@ -2,8 +2,6 @@
 #include <string>
 #include <vector>
 #include <d3d12.h>
-#include "Core/Defines.h"
-#include "Core/CoreTypes.h"
 
 namespace adria
 {
@@ -69,6 +67,7 @@ namespace adria
 		}
 
 		GfxShaderDesc const& GetDesc() const { return desc; }
+
 		void* GetPointer() const
 		{
 			return !bytecode.empty() ? (void*)bytecode.data() : nullptr;
@@ -80,10 +79,11 @@ namespace adria
 
 		operator D3D12_SHADER_BYTECODE() const
 		{
-			D3D12_SHADER_BYTECODE Bytecode{};
-			Bytecode.pShaderBytecode = GetPointer();
-			Bytecode.BytecodeLength = GetLength();
-			return Bytecode;
+			return D3D12_SHADER_BYTECODE
+			{
+				.pShaderBytecode = GetPointer(),
+				.BytecodeLength = GetLength()
+			};
 		}
 
 	private:
