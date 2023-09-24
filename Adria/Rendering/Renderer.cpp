@@ -171,8 +171,7 @@ namespace adria
 		ldr_desc.format = GfxFormat::R10G10B10A2_UNORM;
 		ldr_desc.bind_flags = GfxBindFlag::UnorderedAccess | GfxBindFlag::ShaderResource | GfxBindFlag::RenderTarget;
 		ldr_desc.initial_state = GfxResourceState::UnorderedAccess;
-
-		final_texture = std::make_unique<GfxTexture>(gfx, ldr_desc);
+		final_texture = gfx->CreateTexture(ldr_desc);
 	}
 	void Renderer::CreateAS()
 	{
@@ -298,7 +297,7 @@ namespace adria
 			if (data.empty()) return;
 			if (!scene_buffer.buffer || scene_buffer.buffer->GetCount() < data.size())
 			{
-				scene_buffer.buffer = std::make_unique<GfxBuffer>(gfx, StructuredBufferDesc<T>(data.size(), false, true));
+				scene_buffer.buffer = gfx->CreateBuffer(StructuredBufferDesc<T>(data.size(), false, true));
 				scene_buffer.buffer_srv = gfx->CreateBufferSRV(scene_buffer.buffer.get());
 			}
 			scene_buffer.buffer->Update(data.data(), data.size() * sizeof(T));

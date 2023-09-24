@@ -107,7 +107,7 @@ namespace adria
 			gfx_desc.initial_state = GfxResourceState::Present;
 			gfx_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 			gfx_desc.bind_flags = GfxBindFlag::RenderTarget;
-			back_buffers[i] = std::make_unique<GfxTexture>(gfx, gfx_desc, backbuffer);
+			back_buffers[i] = gfx->CreateBackbufferTexture(gfx_desc, backbuffer);
 			back_buffers[i]->SetName("Backbuffer");
 			backbuffer_rtvs[i] = gfx->CreateTextureRTV(back_buffers[i].get());
 		}

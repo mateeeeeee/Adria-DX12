@@ -44,12 +44,12 @@ namespace adria
 		void Init(GfxDevice* _gfx)
 		{
 			gfx = _gfx;
-			query_readback_buffer = std::make_unique<GfxBuffer>(gfx, ReadBackBufferDesc(MAX_PROFILES * 2 * FRAME_COUNT * sizeof(UINT64)));
+			query_readback_buffer = gfx->CreateBuffer(ReadBackBufferDesc(MAX_PROFILES * 2 * FRAME_COUNT * sizeof(uint64)));
 
 			GfxQueryHeapDesc query_heap_desc{};
 			query_heap_desc.count = MAX_PROFILES * 2;
 			query_heap_desc.type = GfxQueryType::Timestamp;
-			query_heap = std::make_unique<GfxQueryHeap>(gfx, query_heap_desc);
+			query_heap = gfx->CreateQueryHeap(query_heap_desc);
 		}
 		void Destroy()
 		{

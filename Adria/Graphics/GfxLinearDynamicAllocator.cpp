@@ -65,7 +65,7 @@ namespace adria
 		desc.resource_usage = GfxResourceUsage::Upload;
 		desc.bind_flags = GfxBindFlag::ShaderResource;
 
-		buffer = std::make_unique<GfxBuffer>(gfx, desc);
+		buffer = gfx->CreateBuffer(desc);
 		ADRIA_ASSERT(buffer->IsMapped());
 		cpu_address = buffer->GetMappedData();
 	}

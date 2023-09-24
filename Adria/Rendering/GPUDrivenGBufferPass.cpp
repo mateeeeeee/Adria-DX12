@@ -77,7 +77,7 @@ namespace adria
 		hzb_desc.initial_state = GfxResourceState::NonPixelShaderResource;
 		hzb_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
 
-		HZB = std::make_unique<GfxTexture>(gfx, hzb_desc);
+		HZB = gfx->CreateTexture(hzb_desc);
 	}
 
 	void GPUDrivenGBufferPass::AddClearCountersPass(RenderGraph& rg)
@@ -923,7 +923,7 @@ namespace adria
 		debug_buffer_desc.stride = sizeof(uint32);
 		debug_buffer_desc.resource_usage = GfxResourceUsage::Readback;
 
-		debug_buffer = std::make_unique<GfxBuffer>(gfx, debug_buffer_desc);
+		debug_buffer = gfx->CreateBuffer(debug_buffer_desc);
 	}
 
 }

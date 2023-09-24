@@ -14,7 +14,7 @@ namespace adria
 	{
 		for (size_t i = 0; i < gfx->GetBackbufferCount(); ++i)
 		{
-			read_picking_buffers.emplace_back(std::make_unique<GfxBuffer>(gfx, ReadBackBufferDesc(sizeof(PickingData))));
+			read_picking_buffers.emplace_back(gfx->CreateBuffer(ReadBackBufferDesc(sizeof(PickingData))));
 		}
 	}
 

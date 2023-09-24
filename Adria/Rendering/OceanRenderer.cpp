@@ -397,7 +397,7 @@ namespace adria
 		ocean_texture_desc.format = GfxFormat::R32_FLOAT;
 		ocean_texture_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
 		ocean_texture_desc.initial_state = GfxResourceState::UnorderedAccess;
-		initial_spectrum = std::make_unique<GfxTexture>(gfx, ocean_texture_desc);
+		initial_spectrum = gfx->CreateTexture(ocean_texture_desc);
 
 		std::vector<float> ping_array(FFT_RESOLUTION * FFT_RESOLUTION);
 		RealRandomGenerator rand_float{ 0.0f,  2.0f * pi<float> };
@@ -408,12 +408,12 @@ namespace adria
 		data.row_pitch = sizeof(float) * FFT_RESOLUTION;
 		data.slice_pitch = 0;
 
-		ping_pong_phase_textures[pong_phase] = std::make_unique<GfxTexture>(gfx, ocean_texture_desc, &data);
-		ping_pong_phase_textures[!pong_phase] = std::make_unique<GfxTexture>(gfx, ocean_texture_desc);
+		ping_pong_phase_textures[pong_phase] = gfx->CreateTexture(ocean_texture_desc, &data);
+		ping_pong_phase_textures[!pong_phase] = gfx->CreateTexture(ocean_texture_desc);
 
 		ocean_texture_desc.format = GfxFormat::R32G32B32A32_FLOAT;
-		ping_pong_spectrum_textures[pong_spectrum] = std::make_unique<GfxTexture>(gfx, ocean_texture_desc);
-		ping_pong_spectrum_textures[!pong_spectrum] = std::make_unique<GfxTexture>(gfx, ocean_texture_desc);
+		ping_pong_spectrum_textures[pong_spectrum] = gfx->CreateTexture(ocean_texture_desc);
+		ping_pong_spectrum_textures[!pong_spectrum] = gfx->CreateTexture(ocean_texture_desc);
 	}
 
 }

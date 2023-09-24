@@ -3,9 +3,6 @@
 #include "Graphics/GfxBuffer.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxCommandList.h"
-#include "Graphics/GfxLinearDynamicAllocator.h"
-#include "Utilities/Timer.h"
-#include "Logging/Logger.h"
 
 namespace adria
 {
@@ -74,7 +71,7 @@ namespace adria
 		std::span<GfxRayTracingGeometry> geometry_span(rt_geometries);
 		for (size_t i = 0; i < blases.size(); ++i)
 		{
-			blases[i] = std::make_unique<GfxRayTracingBLAS>(gfx, geometry_span.subspan(i, 1), GfxRayTracingASFlag_PreferFastTrace);
+			blases[i] = gfx->CreateRayTracingBLAS(geometry_span.subspan(i, 1), GfxRayTracingASFlag_PreferFastTrace);
 		}
 		cmd_list->Signal(build_fence, build_fence_value);
 		cmd_list->End();
@@ -89,7 +86,7 @@ namespace adria
 		build_fence.Wait(build_fence_value);
 		++build_fence_value;
 
-		tlas = std::make_unique<GfxRayTracingTLAS>(gfx, rt_instances, GfxRayTracingASFlag_PreferFastTrace);
+		tlas = gfx->CreateRayTracingTLAS(rt_instances, GfxRayTracingASFlag_PreferFastTrace);
 
 		cmd_list->Signal(build_fence, build_fence_value);
 		cmd_list->End();

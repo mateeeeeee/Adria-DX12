@@ -29,9 +29,9 @@ namespace adria
 				init_data.data = &v;
 				init_data.row_pitch = sizeof(float);
 				init_data.slice_pitch = 0;
-				common_textures[(size_t)GfxCommonTextureType::WhiteTexture2D] = std::make_unique<GfxTexture>(gfx, desc, &init_data);
+				common_textures[(size_t)GfxCommonTextureType::WhiteTexture2D] = gfx->CreateTexture(desc, &init_data);
 				v = 0.0f;
-				common_textures[(size_t)GfxCommonTextureType::BlackTexture2D] = std::make_unique<GfxTexture>(gfx, desc, &init_data);
+				common_textures[(size_t)GfxCommonTextureType::BlackTexture2D] = gfx->CreateTexture(desc, &init_data);
 			}
 
 			void CreateCommonViews(GfxDevice* gfx)

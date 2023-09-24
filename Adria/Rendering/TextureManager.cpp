@@ -65,7 +65,7 @@ namespace adria
 				}
                 curr_img = curr_img->NextImage();
 			}
-            std::unique_ptr<GfxTexture> tex = std::make_unique<GfxTexture>(gfx, desc, tex_data.data(), (uint32)tex_data.size());
+            std::unique_ptr<GfxTexture> tex = gfx->CreateTexture(desc, tex_data.data(), (uint32)tex_data.size());
 
             texture_map[handle] = std::move(tex);
 			CreateViewForTexture(handle);
@@ -97,7 +97,7 @@ namespace adria
 		desc.width  = images[0].Width();
 		desc.height = images[0].Height();
 		desc.format = images[0].IsHDR() ? GfxFormat::R32G32B32A32_FLOAT : GfxFormat::R8G8B8A8_UNORM;
-		std::unique_ptr<GfxTexture> cubemap = std::make_unique<GfxTexture>(gfx, desc, subresources.data());
+		std::unique_ptr<GfxTexture> cubemap = gfx->CreateTexture(desc, subresources.data());
 		texture_map.insert({ handle, std::move(cubemap) });
 		CreateViewForTexture(handle);
 		return handle;
@@ -136,7 +136,7 @@ namespace adria
 		init_data.data = &v;
 		init_data.row_pitch = sizeof(float);
 		init_data.slice_pitch = 0;
-		std::unique_ptr<GfxTexture> black_default_texture = std::make_unique<GfxTexture>(gfx, desc, &init_data);
+		std::unique_ptr<GfxTexture> black_default_texture = gfx->CreateTexture(desc, &init_data);
 		texture_map[INVALID_TEXTURE_HANDLE] = std::move(black_default_texture);
 
 		gfx->InitShaderVisibleAllocator(1024);

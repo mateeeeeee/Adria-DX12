@@ -115,7 +115,7 @@ namespace adria
 			GfxTextureDesc render_target_desc = history_buffer->GetDesc();
 			render_target_desc.width = width;
 			render_target_desc.height = height;
-			history_buffer = std::make_unique<GfxTexture>(gfx, render_target_desc);
+			history_buffer = gfx->CreateTexture(render_target_desc);
 		}
 	}
 	void Postprocessor::OnSceneInitialized(GfxDevice* gfx)
@@ -131,7 +131,7 @@ namespace adria
 		render_target_desc.height = height;
 		render_target_desc.bind_flags = GfxBindFlag::ShaderResource;
 		render_target_desc.initial_state = GfxResourceState::CopyDest;
-		history_buffer = std::make_unique<GfxTexture>(gfx, render_target_desc);
+		history_buffer = gfx->CreateTexture(render_target_desc);
 	}
 	RGResourceName Postprocessor::GetFinalResource() const
 	{

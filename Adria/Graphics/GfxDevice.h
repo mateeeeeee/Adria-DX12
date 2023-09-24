@@ -122,19 +122,19 @@ namespace adria
 
 		GfxLinearDynamicAllocator* GetDynamicAllocator() const;
 
-		GfxTexture* CreateBackbufferTexture(GfxTextureDesc const& desc, void* backbuffer);
-		GfxTexture* CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data, uint32 subresource_count);
-		GfxTexture* CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data = nullptr);
-		GfxBuffer*  CreateBuffer(GfxBufferDesc const& desc, void const* initial_data = nullptr);
+		std::unique_ptr<GfxTexture> CreateBackbufferTexture(GfxTextureDesc const& desc, void* backbuffer);
+		std::unique_ptr<GfxTexture> CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data, uint32 subresource_count);
+		std::unique_ptr<GfxTexture> CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data = nullptr);
+		std::unique_ptr<GfxBuffer> CreateBuffer(GfxBufferDesc const& desc, void const* initial_data = nullptr);
 
-		GraphicsPipelineState*		CreateGraphicsPipelineState(GraphicsPipelineStateDesc const& desc);
-		ComputePipelineState*		CreateComputePipelineState(ComputePipelineStateDesc const& desc);
-		MeshShaderPipelineState*	CreateMeshShaderPipelineState(MeshShaderPipelineStateDesc const& desc);
+		std::unique_ptr<GraphicsPipelineState>		CreateGraphicsPipelineState(GraphicsPipelineStateDesc const& desc);
+		std::unique_ptr<ComputePipelineState>		CreateComputePipelineState(ComputePipelineStateDesc const& desc);
+		std::unique_ptr<MeshShaderPipelineState>	CreateMeshShaderPipelineState(MeshShaderPipelineStateDesc const& desc);
 
-		GfxQueryHeap*	   CreateQueryHeap(GfxQueryHeapDesc const& desc);
+		std::unique_ptr<GfxQueryHeap>	   CreateQueryHeap(GfxQueryHeapDesc const& desc);
 
-		GfxRayTracingTLAS* CreateRayTracingTLAS(std::span<GfxRayTracingInstance> instances, GfxRayTracingASFlags flags);
-		GfxRayTracingBLAS* CreateRayTracingBLAS(std::span<GfxRayTracingGeometry> geometries, GfxRayTracingASFlags flags);
+		std::unique_ptr<GfxRayTracingTLAS> CreateRayTracingTLAS(std::span<GfxRayTracingInstance> instances, GfxRayTracingASFlags flags);
+		std::unique_ptr<GfxRayTracingBLAS> CreateRayTracingBLAS(std::span<GfxRayTracingGeometry> geometries, GfxRayTracingASFlags flags);
 
 		GfxDescriptor CreateBufferSRV(GfxBuffer const*, GfxBufferSubresourceDesc const* = nullptr);
 		GfxDescriptor CreateBufferUAV(GfxBuffer const*, GfxBufferSubresourceDesc const* = nullptr);

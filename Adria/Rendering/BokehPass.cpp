@@ -66,7 +66,7 @@ namespace adria
 		reset_buffer_desc.size = sizeof(uint32);
 		reset_buffer_desc.resource_usage = GfxResourceUsage::Upload;
 		uint32 initial_data[] = { 0 };
-		counter_reset_buffer = std::make_unique<GfxBuffer>(gfx, reset_buffer_desc, initial_data);
+		counter_reset_buffer = gfx->CreateBuffer(reset_buffer_desc, initial_data);
 
 		GfxBufferDesc buffer_desc{};
 		buffer_desc.size = 4 * sizeof(uint32);
@@ -75,7 +75,7 @@ namespace adria
 		buffer_desc.resource_usage = GfxResourceUsage::Default;
 
 		uint32 init_data[] = { 0,1,0,0 };
-		bokeh_indirect_buffer = std::make_unique<GfxBuffer>(gfx, buffer_desc, init_data);
+		bokeh_indirect_buffer = gfx->CreateBuffer(buffer_desc, init_data);
 	}
 
 

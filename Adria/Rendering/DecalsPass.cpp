@@ -138,14 +138,14 @@ namespace adria
 		vb_desc.bind_flags = GfxBindFlag::None;
 		vb_desc.size = sizeof(cube_vertices);
 		vb_desc.stride = sizeof(SimpleVertex);
-		cube_vb = std::make_unique<GfxBuffer>(gfx, vb_desc, cube_vertices);
+		cube_vb = gfx->CreateBuffer(vb_desc, cube_vertices);
 
 		GfxBufferDesc ib_desc{};
 		ib_desc.bind_flags = GfxBindFlag::None;
 		ib_desc.format = GfxFormat::R16_UINT;
 		ib_desc.stride = sizeof(uint16);
 		ib_desc.size = sizeof(cube_indices);
-		cube_ib = std::make_unique<GfxBuffer>(gfx, ib_desc, cube_indices);
+		cube_ib = gfx->CreateBuffer(ib_desc, cube_indices);
 	}
 
 }

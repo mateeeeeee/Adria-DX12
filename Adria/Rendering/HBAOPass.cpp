@@ -121,7 +121,7 @@ namespace adria
 		noise_desc.initial_state = GfxResourceState::PixelShaderResource;
 		noise_desc.bind_flags = GfxBindFlag::ShaderResource;
 
-		hbao_random_texture = std::make_unique<GfxTexture>(gfx, noise_desc, &data);
+		hbao_random_texture = gfx->CreateTexture(noise_desc, &data);
 		hbao_random_texture->SetName("HBAO Random Texture");
 		hbao_random_texture_srv = gfx->CreateTextureSRV(hbao_random_texture.get());
 	}

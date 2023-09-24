@@ -75,7 +75,7 @@ namespace adria
 		GfxBufferDesc scratch_buffer_desc{};
 		scratch_buffer_desc.bind_flags = GfxBindFlag::UnorderedAccess;
 		scratch_buffer_desc.size = bl_prebuild_info.ScratchDataSizeInBytes;
-		scratch_buffer = std::make_unique<GfxBuffer>(gfx, scratch_buffer_desc);
+		scratch_buffer = gfx->CreateBuffer(scratch_buffer_desc);
 		scratch_buffer->SetName("scratch buffer");
 
 		GfxBufferDesc result_buffer_desc{};
@@ -83,7 +83,7 @@ namespace adria
 		result_buffer_desc.size = bl_prebuild_info.ResultDataMaxSizeInBytes;
 		result_buffer_desc.misc_flags = GfxBufferMiscFlag::AccelStruct;
 		result_buffer_desc.stride = 4;
-		result_buffer = std::make_unique<GfxBuffer>(gfx, result_buffer_desc);
+		result_buffer = gfx->CreateBuffer(result_buffer_desc);
 		scratch_buffer->SetName("result buffer");
 
 		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC blas_desc{};
@@ -118,19 +118,19 @@ namespace adria
 		GfxBufferDesc scratch_buffer_desc{};
 		scratch_buffer_desc.bind_flags = GfxBindFlag::UnorderedAccess;
 		scratch_buffer_desc.size = tl_prebuild_info.ScratchDataSizeInBytes;
-		scratch_buffer = std::make_unique<GfxBuffer>(gfx, scratch_buffer_desc);
+		scratch_buffer = gfx->CreateBuffer(scratch_buffer_desc);
 
 		GfxBufferDesc result_buffer_desc{};
 		result_buffer_desc.bind_flags = GfxBindFlag::UnorderedAccess | GfxBindFlag::ShaderResource;
 		result_buffer_desc.size = tl_prebuild_info.ResultDataMaxSizeInBytes;
 		result_buffer_desc.misc_flags = GfxBufferMiscFlag::AccelStruct;
-		result_buffer = std::make_unique<GfxBuffer>(gfx, result_buffer_desc);
+		result_buffer = gfx->CreateBuffer(result_buffer_desc);
 
 		GfxBufferDesc instance_buffer_desc{};
 		instance_buffer_desc.bind_flags = GfxBindFlag::None;
 		instance_buffer_desc.size = sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * instances.size();
 		instance_buffer_desc.resource_usage = GfxResourceUsage::Upload;
-		instance_buffer = std::make_unique<GfxBuffer>(gfx, instance_buffer_desc);
+		instance_buffer = gfx->CreateBuffer(instance_buffer_desc);
 
 		D3D12_RAYTRACING_INSTANCE_DESC* p_instance_desc = instance_buffer->GetMappedData<D3D12_RAYTRACING_INSTANCE_DESC>();
 		for (size_t i = 0; i < instances.size(); ++i)

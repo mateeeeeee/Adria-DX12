@@ -29,7 +29,7 @@ namespace adria
 		desc.initial_state = GfxResourceState::UnorderedAccess;
 		desc.format = GfxFormat::R16_FLOAT;
 
-		previous_ev100 = std::make_unique<GfxTexture>(gfx, desc);
+		previous_ev100 = gfx->CreateTexture(desc);
 		previous_ev100_uav = gfx->CreateTextureUAV(previous_ev100.get());
 
 		GfxBufferDesc hist_desc{};
@@ -37,7 +37,7 @@ namespace adria
 		hist_desc.size = hist_desc.stride * 256;
 		hist_desc.misc_flags = GfxBufferMiscFlag::BufferRaw;
 		hist_desc.resource_usage = GfxResourceUsage::Readback;
-		histogram_copy = std::make_unique<GfxBuffer>(gfx, hist_desc);
+		histogram_copy = gfx->CreateBuffer(hist_desc);
 	}
 
 	void AutomaticExposurePass::AddPasses(RenderGraph& rg, RGResourceName input)

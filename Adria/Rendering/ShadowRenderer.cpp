@@ -209,7 +209,7 @@ namespace adria
 				mask_desc.initial_state = GfxResourceState::UnorderedAccess;
 				mask_desc.bind_flags = GfxBindFlag::UnorderedAccess | GfxBindFlag::UnorderedAccess;
 
-				light_mask_textures[light_id] = std::make_unique<GfxTexture>(gfx, mask_desc);
+				light_mask_textures[light_id] = gfx->CreateTexture(mask_desc);
 
 				light_mask_texture_srvs[light_id] = gfx->CreateTextureSRV(light_mask_textures[light_id].get());
 				light_mask_texture_uavs[light_id] = gfx->CreateTextureUAV(light_mask_textures[light_id].get());
@@ -230,7 +230,7 @@ namespace adria
 			depth_desc.bind_flags = GfxBindFlag::DepthStencil | GfxBindFlag::ShaderResource;
 			depth_desc.initial_state = GfxResourceState::DepthWrite;
 
-			light_shadow_maps[light_id].emplace_back(std::make_unique<GfxTexture>(gfx, depth_desc));
+			light_shadow_maps[light_id].emplace_back(gfx->CreateTexture(depth_desc));
 			light_shadow_map_srvs[light_id].push_back(gfx->CreateTextureSRV(light_shadow_maps[light_id].back().get()));
 			light_shadow_map_dsvs[light_id].push_back(gfx->CreateTextureDSV(light_shadow_maps[light_id].back().get()));
 		};
@@ -302,7 +302,7 @@ namespace adria
 			light_matrices_count = current_light_matrices_count;
 			if (light_matrices_count != 0)
 			{
-				light_matrices_buffer = std::make_unique<GfxBuffer>(gfx, StructuredBufferDesc<Matrix>(light_matrices_count * backbuffer_count, false, true));
+				light_matrices_buffer = gfx->CreateBuffer(StructuredBufferDesc<Matrix>(light_matrices_count * backbuffer_count, false, true));
 				GfxBufferSubresourceDesc srv_desc{};
 				srv_desc.size = light_matrices_count * sizeof(Matrix);
 				for (uint32 i = 0; i < backbuffer_count; ++i)

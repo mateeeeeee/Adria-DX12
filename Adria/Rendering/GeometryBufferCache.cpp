@@ -25,7 +25,7 @@ namespace adria
 		desc.resource_usage = GfxResourceUsage::Default;
 
 		++current_handle;
-		buffer_map[current_handle] = std::make_unique<GfxBuffer>(gfx, desc);
+		buffer_map[current_handle] = gfx->CreateBuffer(desc);
 		if(staging_buffer) gfx->GetGraphicsCommandList()->CopyBuffer(*buffer_map[current_handle], 0, *staging_buffer, src_offset, total_buffer_size);
 		buffer_srv_map[current_handle] = gfx->CreateBufferSRV(buffer_map[current_handle].get());
 		return current_handle;

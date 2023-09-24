@@ -30,7 +30,7 @@ namespace adria
 	inline void ConvertInputLayout(GfxInputLayout const& input_layout, std::vector<D3D12_INPUT_ELEMENT_DESC>& element_descs)
 	{
 		element_descs.resize(input_layout.elements.size());
-		for (uint32_t i = 0; i < element_descs.size(); ++i)
+		for (uint32 i = 0; i < element_descs.size(); ++i)
 		{
 			GfxInputLayout::GfxInputElement const& element = input_layout.elements[i];
 			D3D12_INPUT_ELEMENT_DESC desc{};

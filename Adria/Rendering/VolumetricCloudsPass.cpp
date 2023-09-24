@@ -384,7 +384,7 @@ namespace adria
 			GfxTextureDesc clouds_output_desc = prev_clouds->GetDesc();
 			clouds_output_desc.width = width >> resolution;
 			clouds_output_desc.height = height >> resolution;
-			prev_clouds = std::make_unique<GfxTexture>(gfx, clouds_output_desc);
+			prev_clouds = gfx->CreateTexture(clouds_output_desc);
 		}
 	}
 
@@ -398,7 +398,7 @@ namespace adria
 		clouds_output_desc.bind_flags = GfxBindFlag::ShaderResource;
 		clouds_output_desc.initial_state = GfxResourceState::NonPixelShaderResource;
 
-		prev_clouds = std::make_unique<GfxTexture>(gfx, clouds_output_desc);
+		prev_clouds = gfx->CreateTexture(clouds_output_desc);
 		CreateCloudTextures(gfx);
 	}
 
@@ -415,7 +415,7 @@ namespace adria
 		cloud_shape_noise_desc.format = GfxFormat::R8G8B8A8_UNORM;
 		cloud_shape_noise_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
 
-		cloud_shape_noise = std::make_unique<GfxTexture>(gfx, cloud_shape_noise_desc);
+		cloud_shape_noise = gfx->CreateTexture(cloud_shape_noise_desc);
 
 		GfxTextureDesc cloud_detail_noise_desc{};
 		cloud_detail_noise_desc.type = GfxTextureType_3D;
@@ -426,7 +426,7 @@ namespace adria
 		cloud_detail_noise_desc.format = GfxFormat::R8G8B8A8_UNORM;
 		cloud_detail_noise_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
 
-		cloud_detail_noise = std::make_unique<GfxTexture>(gfx, cloud_detail_noise_desc);
+		cloud_detail_noise = gfx->CreateTexture(cloud_detail_noise_desc);
 
 		GfxTextureDesc cloud_type_desc{};
 		cloud_type_desc.type = GfxTextureType_2D;
@@ -436,7 +436,7 @@ namespace adria
 		cloud_type_desc.format = GfxFormat::R8_UNORM;
 		cloud_type_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
 
-		cloud_type = std::make_unique<GfxTexture>(gfx, cloud_type_desc);
+		cloud_type = gfx->CreateTexture(cloud_type_desc);
 	}
 
 }

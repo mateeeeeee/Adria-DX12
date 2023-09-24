@@ -522,48 +522,48 @@ namespace adria
 		gpu_descriptor_allocator = std::make_unique<GfxOnlineDescriptorAllocator>(this, 32767, reserve);
 	}
 
-	GfxTexture* GfxDevice::CreateBackbufferTexture(GfxTextureDesc const& desc, void* backbuffer)
+	std::unique_ptr<GfxTexture> GfxDevice::CreateBackbufferTexture(GfxTextureDesc const& desc, void* backbuffer)
 	{
-		return new GfxTexture(this, desc, backbuffer);
+		return std::make_unique<GfxTexture>(this, desc, backbuffer);
 	}
-	GfxTexture* GfxDevice::CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data, uint32 subresource_count)
+	std::unique_ptr<GfxTexture> GfxDevice::CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data, uint32 subresource_count)
 	{
-		return new GfxTexture(this, desc, initial_data, subresource_count);
+		return std::make_unique<GfxTexture>(this, desc, initial_data, subresource_count);
 	}
-	GfxTexture* GfxDevice::CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data /*= nullptr*/)
+	std::unique_ptr<GfxTexture> GfxDevice::CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data /*= nullptr*/)
 	{
-		return new GfxTexture(this, desc, initial_data);
+		return std::make_unique<GfxTexture>(this, desc, initial_data);
 	}
-	GfxBuffer* GfxDevice::CreateBuffer(GfxBufferDesc const& desc, GfxBufferInitialData initial_data /*= nullptr*/)
+	std::unique_ptr<GfxBuffer>  GfxDevice::CreateBuffer(GfxBufferDesc const& desc, GfxBufferInitialData initial_data /*= nullptr*/)
 	{
-		return new GfxBuffer(this, desc, initial_data);
-	}
-
-	GraphicsPipelineState* GfxDevice::CreateGraphicsPipelineState(GraphicsPipelineStateDesc const& desc)
-	{
-		return new GraphicsPipelineState(this, desc);
-	}
-	ComputePipelineState* GfxDevice::CreateComputePipelineState(ComputePipelineStateDesc const& desc)
-	{
-		return new ComputePipelineState(this, desc);
-	}
-	MeshShaderPipelineState* GfxDevice::CreateMeshShaderPipelineState(MeshShaderPipelineStateDesc const& desc)
-	{
-		return new MeshShaderPipelineState(this, desc);
+		return std::make_unique<GfxBuffer>(this, desc, initial_data);
 	}
 
-	GfxQueryHeap* GfxDevice::CreateQueryHeap(GfxQueryHeapDesc const& desc)
+	std::unique_ptr<GraphicsPipelineState> GfxDevice::CreateGraphicsPipelineState(GraphicsPipelineStateDesc const& desc)
 	{
-		return new GfxQueryHeap(this, desc);
+		return std::make_unique<GraphicsPipelineState>(this, desc);
+	}
+	std::unique_ptr<ComputePipelineState> GfxDevice::CreateComputePipelineState(ComputePipelineStateDesc const& desc)
+	{
+		return std::make_unique<ComputePipelineState>(this, desc);
+	}
+	std::unique_ptr<MeshShaderPipelineState> GfxDevice::CreateMeshShaderPipelineState(MeshShaderPipelineStateDesc const& desc)
+	{
+		return std::make_unique<MeshShaderPipelineState>(this, desc);
 	}
 
-	GfxRayTracingTLAS* GfxDevice::CreateRayTracingTLAS(std::span<GfxRayTracingInstance> instances, GfxRayTracingASFlags flags)
+	std::unique_ptr<GfxQueryHeap> GfxDevice::CreateQueryHeap(GfxQueryHeapDesc const& desc)
 	{
-		return new GfxRayTracingTLAS(this, instances, flags);
+		return std::make_unique<GfxQueryHeap>(this, desc);
 	}
-	GfxRayTracingBLAS* GfxDevice::CreateRayTracingBLAS(std::span<GfxRayTracingGeometry> geometries, GfxRayTracingASFlags flags)
+
+	std::unique_ptr<GfxRayTracingTLAS> GfxDevice::CreateRayTracingTLAS(std::span<GfxRayTracingInstance> instances, GfxRayTracingASFlags flags)
 	{
-		return new GfxRayTracingBLAS(this, geometries, flags);
+		return std::make_unique<GfxRayTracingTLAS>(this, instances, flags);
+	}
+	std::unique_ptr<GfxRayTracingBLAS> GfxDevice::CreateRayTracingBLAS(std::span<GfxRayTracingGeometry> geometries, GfxRayTracingASFlags flags)
+	{
+		return std::make_unique<GfxRayTracingBLAS>(this, geometries, flags);
 	}
 
 	GfxDescriptor GfxDevice::CreateBufferSRV(GfxBuffer const* buffer, GfxBufferSubresourceDesc const* desc)

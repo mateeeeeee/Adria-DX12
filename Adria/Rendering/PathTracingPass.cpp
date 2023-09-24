@@ -103,7 +103,7 @@ namespace adria
 		accum_desc.format = GfxFormat::R32G32B32A32_FLOAT;
 		accum_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
 		accum_desc.initial_state = GfxResourceState::UnorderedAccess;
-		accumulation_texture = std::make_unique<GfxTexture>(gfx, accum_desc);
+		accumulation_texture = gfx->CreateTexture(accum_desc);
 	}
 
 	bool PathTracingPass::IsSupported() const
