@@ -9,6 +9,8 @@
 #include "GfxDescriptorAllocator.h"
 #include "GfxRingDescriptorAllocator.h"
 #include "GfxLinearDynamicAllocator.h"
+#include "GfxQueryHeap.h"
+#include "GfxPipelineState.h"
 #include "d3dx12.h"
 #include "Logging/Logger.h"
 #include "Core/Window.h"
@@ -524,20 +526,44 @@ namespace adria
 	{
 		return new GfxTexture(this, desc, backbuffer);
 	}
-
 	GfxTexture* GfxDevice::CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data, uint32 subresource_count)
 	{
 		return new GfxTexture(this, desc, initial_data, subresource_count);
 	}
-
 	GfxTexture* GfxDevice::CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data /*= nullptr*/)
 	{
 		return new GfxTexture(this, desc, initial_data);
 	}
-
 	GfxBuffer* GfxDevice::CreateBuffer(GfxBufferDesc const& desc, GfxBufferInitialData initial_data /*= nullptr*/)
 	{
 		return new GfxBuffer(this, desc, initial_data);
+	}
+
+	GraphicsPipelineState* GfxDevice::CreateGraphicsPipelineState(GraphicsPipelineStateDesc const& desc)
+	{
+		return new GraphicsPipelineState(this, desc);
+	}
+	ComputePipelineState* GfxDevice::CreateComputePipelineState(ComputePipelineStateDesc const& desc)
+	{
+		return new ComputePipelineState(this, desc);
+	}
+	MeshShaderPipelineState* GfxDevice::CreateMeshShaderPipelineState(MeshShaderPipelineStateDesc const& desc)
+	{
+		return new MeshShaderPipelineState(this, desc);
+	}
+
+	GfxQueryHeap* GfxDevice::CreateQueryHeap(GfxQueryHeapDesc const& desc)
+	{
+		return new GfxQueryHeap(this, desc);
+	}
+
+	GfxRayTracingTLAS* GfxDevice::CreateRayTracingTLAS(std::span<GfxRayTracingInstance> instances, GfxRayTracingASFlags flags)
+	{
+		return new GfxRayTracingTLAS(this, instances, flags);
+	}
+	GfxRayTracingBLAS* GfxDevice::CreateRayTracingBLAS(std::span<GfxRayTracingGeometry> geometries, GfxRayTracingASFlags flags)
+	{
+		return new GfxRayTracingBLAS(this, geometries, flags);
 	}
 
 	GfxDescriptor GfxDevice::CreateBufferSRV(GfxBuffer const* buffer, GfxBufferSubresourceDesc const* desc)

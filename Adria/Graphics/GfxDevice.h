@@ -21,20 +21,34 @@
 #include "GfxDescriptorAllocatorBase.h"
 #include "GfxDefines.h"
 #include "GfxCommandSignature.h"
+#include "GfxRayTracingAS.h"
 #include "Utilities/Releasable.h"
 
 namespace adria
 {
 	class GfxSwapchain;
 	class GfxCommandList;
+
+	enum class GfxSubresourceType : uint8;
+
 	class GfxTexture;
 	struct GfxTextureDesc;
 	struct GfxTextureSubresourceDesc;
+	struct GfxTextureInitialData;
+
 	class GfxBuffer;
 	struct GfxBufferDesc;
 	struct GfxBufferSubresourceDesc;
-	struct GfxTextureInitialData;
-	enum class GfxSubresourceType : uint8;
+
+	class GfxQueryHeap;
+	struct GfxQueryHeapDesc;
+
+	struct GraphicsPipelineStateDesc;
+	struct ComputePipelineStateDesc;
+	struct MeshShaderPipelineStateDesc;
+	class GraphicsPipelineState;
+	class ComputePipelineState;
+	class MeshShaderPipelineState;
 
 	class GfxLinearDynamicAllocator;
 	class GfxDescriptorAllocator;
@@ -112,6 +126,15 @@ namespace adria
 		GfxTexture* CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data, uint32 subresource_count);
 		GfxTexture* CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data = nullptr);
 		GfxBuffer*  CreateBuffer(GfxBufferDesc const& desc, void const* initial_data = nullptr);
+
+		GraphicsPipelineState*		CreateGraphicsPipelineState(GraphicsPipelineStateDesc const& desc);
+		ComputePipelineState*		CreateComputePipelineState(ComputePipelineStateDesc const& desc);
+		MeshShaderPipelineState*	CreateMeshShaderPipelineState(MeshShaderPipelineStateDesc const& desc);
+
+		GfxQueryHeap*	   CreateQueryHeap(GfxQueryHeapDesc const& desc);
+
+		GfxRayTracingTLAS* CreateRayTracingTLAS(std::span<GfxRayTracingInstance> instances, GfxRayTracingASFlags flags);
+		GfxRayTracingBLAS* CreateRayTracingBLAS(std::span<GfxRayTracingGeometry> geometries, GfxRayTracingASFlags flags);
 
 		GfxDescriptor CreateBufferSRV(GfxBuffer const*, GfxBufferSubresourceDesc const* = nullptr);
 		GfxDescriptor CreateBufferUAV(GfxBuffer const*, GfxBufferSubresourceDesc const* = nullptr);
