@@ -1,5 +1,4 @@
 #include "Heightmap.h"
-//move to cpp
 #include "Cpp/FastNoiseLite.h"
 
 namespace adria
@@ -43,7 +42,6 @@ namespace adria
 
 		return FastNoiseLite::FractalType_None;
 	}
-
 
 	Heightmap::Heightmap(NoiseDesc const& desc)
 	{

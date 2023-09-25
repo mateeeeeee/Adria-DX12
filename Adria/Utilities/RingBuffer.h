@@ -5,7 +5,6 @@
 
 namespace adria
 {
-	//Fixed Length Element Ring Buffer
 	template<typename T>
 	class RingBuffer
 	{

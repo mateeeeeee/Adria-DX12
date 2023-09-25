@@ -201,7 +201,6 @@
     <ClCompile Include="Editor\EditorUtil.cpp" />
     <ClCompile Include="Editor\GUI.cpp" />
     <ClCompile Include="Editor\GUICommand.cpp" />
-    <ClCompile Include="Events\EventQueue.cpp" />
     <ClCompile Include="Graphics\GfxBuffer.cpp" />
     <ClCompile Include="Graphics\GfxCapabilities.cpp" />
     <ClCompile Include="Graphics\GfxCommandList.cpp" />
@@ -289,8 +288,6 @@
     <ClCompile Include="Rendering\MotionVectorsPass.cpp" />
     <ClCompile Include="Rendering\VolumetricCloudsPass.cpp" />
     <ClCompile Include="Rendering\VolumetricLightingPass.cpp" />
-    <ClCompile Include="Utilities\AdriaException.cpp" />
-    <ClCompile Include="Utilities\CPUProfiler.cpp" />
     <ClCompile Include="Utilities\Heightmap.cpp" />
     <ClCompile Include="Utilities\Image.cpp" />
     <ClCompile Include="Utilities\StringUtil.cpp" />
@@ -336,8 +333,6 @@
     <ClInclude Include="Editor\GUICommand.h" />
     <ClInclude Include="Editor\EditorUtil.h" />
     <ClInclude Include="Events\Delegate.h" />
-    <ClInclude Include="Events\EventQueue.h" />
-    <ClInclude Include="Events\IEvent.h" />
     <ClInclude Include="Graphics\GfxBuffer.h" />
     <ClInclude Include="Graphics\GfxCapabilities.h" />
     <ClInclude Include="Graphics\GfxCommandSignature.h" />
@@ -465,7 +460,6 @@
     <ClInclude Include="Utilities\AllocatorUtil.h" />
     <ClInclude Include="Utilities\AutoRefCountPtr.h" />
     <ClInclude Include="Utilities\CLIParser.h" />
-    <ClInclude Include="Utilities\CPUProfiler.h" />
     <ClInclude Include="Utilities\EnumUtil.h" />
     <ClInclude Include="Utilities\FilesUtil.h" />
     <ClInclude Include="Utilities\FileWatcher.h" />
@@ -478,11 +472,9 @@
     <ClInclude Include="Utilities\RingAllocator.h" />
     <ClInclude Include="Utilities\RingBuffer.h" />
     <ClInclude Include="Utilities\ConcurrentQueue.h" />
-    <ClInclude Include="Utilities\AdriaException.h" />
     <ClInclude Include="Utilities\HashUtil.h" />
     <ClInclude Include="Utilities\Image.h" />
     <ClInclude Include="Utilities\MemoryDebugger.h" />
-    <ClInclude Include="Utilities\ObjectPool.h" />
     <ClInclude Include="Utilities\Random.h" />
     <ClInclude Include="Utilities\Singleton.h" />
     <ClInclude Include="Utilities\StringUtil.h" />

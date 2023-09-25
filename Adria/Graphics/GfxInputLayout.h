@@ -3,8 +3,6 @@
 #include <vector>
 #include <d3d12.h>
 #include "GfxFormat.h"
-#include "Core/Defines.h"
-#include "Core/CoreTypes.h"
 
 namespace adria
 {

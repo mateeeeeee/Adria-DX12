@@ -1,7 +1,6 @@
 #pragma once
 #include "Task.h"
 #include "ThreadPool.h"
-#include "Utilities/ObjectPool.h"
 #include "Utilities/Singleton.h"
 
 namespace adria

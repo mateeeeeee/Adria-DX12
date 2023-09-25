@@ -104,9 +104,6 @@
     <ClCompile Include="Logging\Logger.cpp">
       <Filter>Logging</Filter>
     </ClCompile>
-    <ClCompile Include="Events\EventQueue.cpp">
-      <Filter>Events</Filter>
-    </ClCompile>
     <ClCompile Include="Core\Engine.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -122,9 +119,6 @@
     <ClCompile Include="Graphics\GfxShaderCompiler.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Utilities\AdriaException.cpp">
-      <Filter>Utilities</Filter>
-    </ClCompile>
     <ClCompile Include="Editor\GUI.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
@@ -136,9 +130,6 @@
     </ClCompile>
     <ClCompile Include="Rendering\SkyModel.cpp">
       <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Utilities\CPUProfiler.cpp">
-      <Filter>Utilities</Filter>
     </ClCompile>
     <ClCompile Include="RenderGraph\RenderGraphContext.cpp">
       <Filter>RenderGraph</Filter>
@@ -464,9 +455,6 @@
     <ClInclude Include="Utilities\HashUtil.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\ObjectPool.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="Utilities\Random.h">
       <Filter>Utilities</Filter>
     </ClInclude>
@@ -478,12 +466,6 @@
     </ClInclude>
     <ClInclude Include="Logging\Logger.h">
       <Filter>Logging</Filter>
-    </ClInclude>
-    <ClInclude Include="Events\EventQueue.h">
-      <Filter>Events</Filter>
-    </ClInclude>
-    <ClInclude Include="Events\IEvent.h">
-      <Filter>Events</Filter>
     </ClInclude>
     <ClInclude Include="Core\CoreTypes.h">
       <Filter>Core</Filter>
@@ -542,9 +524,6 @@
     <ClInclude Include="Graphics\GfxRenderPass.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\AdriaException.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="Editor\GUI.h">
       <Filter>Editor</Filter>
     </ClInclude>
@@ -588,9 +567,6 @@
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\JsonUtil.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Utilities\CPUProfiler.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Events\Delegate.h">
