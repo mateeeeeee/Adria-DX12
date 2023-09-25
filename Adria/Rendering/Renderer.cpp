@@ -35,7 +35,7 @@ namespace adria
 	Renderer::Renderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx),
 		accel_structure(gfx), camera(nullptr), width(width), height(height),
 		backbuffer_count(gfx->GetBackbufferCount()), backbuffer_index(gfx->GetBackbufferIndex()), final_texture(nullptr),
-		frame_cbuffer(gfx->GetDevice(), backbuffer_count), gpu_driven_renderer(reg, gfx, width, height),
+		frame_cbuffer(gfx, backbuffer_count), gpu_driven_renderer(reg, gfx, width, height),
 		gbuffer_pass(reg, width, height), ambient_pass(width, height), tonemap_pass(width, height),
 		sky_pass(reg, gfx, width, height), deferred_lighting_pass(width, height), volumetric_lighting_pass(width, height),
 		tiled_deferred_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
@@ -98,7 +98,7 @@ namespace adria
 			global_data.camera_proj = camera->Proj();
 			global_data.camera_viewproj = camera->ViewProj();
 			global_data.camera_fov = camera->Fov();
-			global_data.frame_cbuffer_address = frame_cbuffer.BufferLocation(backbuffer_index);
+			global_data.frame_cbuffer_address = frame_cbuffer.GetGpuAddress(backbuffer_index);
 		}
 		rg_blackboard.Add<FrameBlackboardData>(std::move(global_data));
 

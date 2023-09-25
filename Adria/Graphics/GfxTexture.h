@@ -19,24 +19,6 @@ namespace adria
 		default: return "Invalid";
 		}
 	}
-	inline constexpr GfxTextureType ConvertTextureType(D3D12_RESOURCE_DIMENSION dimension)
-	{
-		switch (dimension)
-		{
-		case D3D12_RESOURCE_DIMENSION_TEXTURE1D:
-			return GfxTextureType_1D;
-		case D3D12_RESOURCE_DIMENSION_TEXTURE2D:
-			return GfxTextureType_2D;
-		case D3D12_RESOURCE_DIMENSION_TEXTURE3D:
-			return GfxTextureType_3D;
-		case D3D12_RESOURCE_DIMENSION_BUFFER:
-		case D3D12_RESOURCE_DIMENSION_UNKNOWN:
-		default:
-			return GfxTextureType_1D;
-		}
-		return GfxTextureType_1D;
-	}
-
 
 	struct GfxTextureDesc
 	{

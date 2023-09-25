@@ -15,6 +15,26 @@ namespace adria
 {
 	namespace
 	{
+		constexpr D3D_PRIMITIVE_TOPOLOGY ToD3D12PrimitiveTopology(GfxPrimitiveTopology topology)
+		{
+			switch (topology)
+			{
+			case GfxPrimitiveTopology::PointList:
+				return D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
+			case GfxPrimitiveTopology::LineList:
+				return D3D_PRIMITIVE_TOPOLOGY_LINELIST;
+			case GfxPrimitiveTopology::LineStrip:
+				return D3D_PRIMITIVE_TOPOLOGY_LINESTRIP;
+			case GfxPrimitiveTopology::TriangleList:
+				return D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+			case GfxPrimitiveTopology::TriangleStrip:
+				return D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+			default:
+				if (topology >= GfxPrimitiveTopology::PatchList1 && topology <= GfxPrimitiveTopology::PatchList32)
+					return D3D_PRIMITIVE_TOPOLOGY(D3D_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST + ((uint32)topology - (uint32)GfxPrimitiveTopology::PatchList1));
+				else return D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
+			}
+		}
 		constexpr D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE ToD3D12RenderPassBeginningAccess(GfxLoadAccessOp op)
 		{
 			switch (op)
@@ -30,7 +50,6 @@ namespace adria
 			}
 			ADRIA_UNREACHABLE();
 		}
-
 		constexpr D3D12_RENDER_PASS_ENDING_ACCESS_TYPE ToD3D12RenderPassEndingAccess(GfxStoreAccessOp op)
 		{
 			switch (op)
@@ -46,7 +65,6 @@ namespace adria
 			}
 			ADRIA_UNREACHABLE();
 		}
-
 		constexpr D3D12_RENDER_PASS_FLAGS ToD3D12RenderPassFlags(GfxRenderPassFlags flags)
 		{
 			D3D12_RENDER_PASS_FLAGS d3d12_flags = D3D12_RENDER_PASS_FLAG_NONE;
@@ -55,7 +73,34 @@ namespace adria
 			if (flags & GfxRenderPassFlagBit_ResumingPass) d3d12_flags |= D3D12_RENDER_PASS_FLAG_RESUMING_PASS;
 			return d3d12_flags;
 		}
-
+		constexpr D3D12_COMMAND_LIST_TYPE ToD3D12CommandListType(GfxCommandListType type)
+		{
+			switch (type)
+			{
+			case GfxCommandListType::Graphics:
+				return D3D12_COMMAND_LIST_TYPE_DIRECT;
+			case GfxCommandListType::Compute:
+				return D3D12_COMMAND_LIST_TYPE_COMPUTE;
+			case GfxCommandListType::Copy:
+				return D3D12_COMMAND_LIST_TYPE_COPY;
+			}
+			return D3D12_COMMAND_LIST_TYPE_DIRECT;
+		}
+		constexpr D3D12_QUERY_TYPE ToD3D12QueryType(GfxQueryType query_type)
+		{
+			switch (query_type)
+			{
+			case GfxQueryType::Timestamp:
+				return D3D12_QUERY_TYPE_TIMESTAMP;
+			case GfxQueryType::Occlusion:
+				return D3D12_QUERY_TYPE_OCCLUSION;
+			case GfxQueryType::BinaryOcclusion:
+				return D3D12_QUERY_TYPE_BINARY_OCCLUSION;
+			case GfxQueryType::PipelineStatistics:
+				return D3D12_QUERY_TYPE_PIPELINE_STATISTICS;
+			}
+			return D3D12_QUERY_TYPE_TIMESTAMP;
+		}
 		void ToD3D12ClearValue(GfxClearValue value, D3D12_CLEAR_VALUE& d3d12_clear_value)
 		{
 			d3d12_clear_value.Format = ConvertGfxFormat(value.format);
@@ -74,7 +119,7 @@ namespace adria
 	GfxCommandList::GfxCommandList(GfxDevice* gfx, GfxCommandListType type /*= GfxCommandListType::Graphics*/, char const* name /*""*/)
 		: gfx(gfx), type(type), cmd_queue(gfx->GetCommandQueue(type)), current_rt_table(nullptr)
 	{
-		D3D12_COMMAND_LIST_TYPE cmd_list_type = GetCommandListType(type);
+		D3D12_COMMAND_LIST_TYPE cmd_list_type = ToD3D12CommandListType(type);
 		ID3D12Device* device = gfx->GetDevice();
 		HRESULT hr = device->CreateCommandAllocator(cmd_list_type, IID_PPV_ARGS(cmd_allocator.GetAddressOf()));
 		GFX_CHECK_HR(hr);
@@ -498,7 +543,7 @@ namespace adria
 
 	void GfxCommandList::SetTopology(GfxPrimitiveTopology topology)
 	{
-		cmd_list->IASetPrimitiveTopology(ConvertPrimitiveTopology(topology));
+		cmd_list->IASetPrimitiveTopology(ToD3D12PrimitiveTopology(topology));
 	}
 
 	void GfxCommandList::SetIndexBuffer(GfxIndexBufferView* index_buffer_view)

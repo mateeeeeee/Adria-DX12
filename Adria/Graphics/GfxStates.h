@@ -1,6 +1,4 @@
 #pragma once
-#include <d3d12.h>
-#include "Core/CoreTypes.h"
 
 namespace adria
 {
@@ -179,47 +177,4 @@ namespace adria
 		};
 		GfxRenderTargetBlendState render_target[8];
 	};
-
-	D3D12_RASTERIZER_DESC ConvertRasterizerDesc(GfxRasterizerState);
-	D3D12_DEPTH_STENCIL_DESC ConvertDepthStencilDesc(GfxDepthStencilState);
-	D3D12_BLEND_DESC ConvertBlendDesc(GfxBlendState);
-	inline constexpr D3D12_PRIMITIVE_TOPOLOGY_TYPE ConvertPrimitiveTopologyType(GfxPrimitiveTopologyType topology_type)
-	{
-		switch (topology_type)
-		{
-		case GfxPrimitiveTopologyType::Undefined:
-			return D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
-		case GfxPrimitiveTopologyType::Point:
-			return D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
-		case GfxPrimitiveTopologyType::Line:
-			return D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
-		case GfxPrimitiveTopologyType::Triangle:
-			return D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-		case GfxPrimitiveTopologyType::Patch:
-			return D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
-		default:
-			break;
-		}
-		return D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
-	}
-	inline constexpr D3D_PRIMITIVE_TOPOLOGY ConvertPrimitiveTopology(GfxPrimitiveTopology topology)
-	{
-		switch (topology)
-		{
-		case GfxPrimitiveTopology::PointList:
-			return D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
-		case GfxPrimitiveTopology::LineList:
-			return D3D_PRIMITIVE_TOPOLOGY_LINELIST;
-		case GfxPrimitiveTopology::LineStrip:
-			return D3D_PRIMITIVE_TOPOLOGY_LINESTRIP;
-		case GfxPrimitiveTopology::TriangleList:
-			return D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		case GfxPrimitiveTopology::TriangleStrip:
-			return D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
-		default:
-			if (topology >= GfxPrimitiveTopology::PatchList1 && topology <= GfxPrimitiveTopology::PatchList32) 
-				return D3D_PRIMITIVE_TOPOLOGY(D3D_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST + ((uint32)topology - (uint32)GfxPrimitiveTopology::PatchList1));
-			else return D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
-		}
-	}
 }

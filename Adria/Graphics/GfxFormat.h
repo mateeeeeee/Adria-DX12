@@ -617,7 +617,6 @@ namespace adria
 		}
 		return size;
 	}
-
 	inline char const* GfxFormatToString(GfxFormat format)
 	{
 		switch (format)

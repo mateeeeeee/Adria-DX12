@@ -9,7 +9,19 @@ namespace adria
 	{
 		ID3D12Device* device = gfx->GetDevice();
 		D3D12_COMMAND_QUEUE_DESC queue_desc{};
-		queue_desc.Type = GetCommandListType(type);
+		auto GetCmdListType = [](GfxCommandListType type)
+		{
+			switch (type)
+			{
+			case GfxCommandListType::Graphics:
+				return D3D12_COMMAND_LIST_TYPE_DIRECT;
+			case GfxCommandListType::Compute:
+				return D3D12_COMMAND_LIST_TYPE_COMPUTE;
+			case GfxCommandListType::Copy:
+				return D3D12_COMMAND_LIST_TYPE_COPY;
+			}
+		};
+		queue_desc.Type = GetCmdListType(type);
 		queue_desc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
 		queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 		queue_desc.NodeMask = 0;

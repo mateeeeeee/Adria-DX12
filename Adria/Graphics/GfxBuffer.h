@@ -9,8 +9,8 @@ namespace adria
 		GfxResourceUsage resource_usage = GfxResourceUsage::Default;
 		GfxBindFlag bind_flags = GfxBindFlag::None;
 		GfxBufferMiscFlag misc_flags = GfxBufferMiscFlag::None;
-		uint32 stride = 0; //structured buffers, (vertex buffers, index buffers, needed for count calculation not for srv as structured buffers)
-		GfxFormat format = GfxFormat::UNKNOWN; //typed buffers, index buffers
+		uint32 stride = 0; 
+		GfxFormat format = GfxFormat::UNKNOWN; 
 		std::strong_ordering operator<=>(GfxBufferDesc const& other) const = default;
 	};
 

@@ -212,7 +212,6 @@
     <ClCompile Include="Graphics\GfxFence.cpp" />
     <ClCompile Include="Graphics\GfxQueryHeap.cpp" />
     <ClCompile Include="Graphics\GfxRayTracingAS.cpp" />
-    <ClCompile Include="Graphics\GfxStates.cpp" />
     <ClCompile Include="Graphics\GfxSwapchain.cpp" />
     <ClCompile Include="Graphics\GfxTexture.cpp" />
     <ClCompile Include="Graphics\GfxLinearDynamicAllocator.cpp" />

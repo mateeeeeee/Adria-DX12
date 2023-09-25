@@ -191,9 +191,6 @@
     <ClCompile Include="Rendering\PSOCache.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\GfxStates.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\AutomaticExposurePass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>

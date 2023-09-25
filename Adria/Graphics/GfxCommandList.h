@@ -30,20 +30,6 @@ namespace adria
 		Copy
 	};
 
-	inline constexpr D3D12_COMMAND_LIST_TYPE GetCommandListType(GfxCommandListType type)
-	{
-		switch (type)
-		{
-		case GfxCommandListType::Graphics:
-			return D3D12_COMMAND_LIST_TYPE_DIRECT;
-		case GfxCommandListType::Compute:
-			return D3D12_COMMAND_LIST_TYPE_COMPUTE;
-		case GfxCommandListType::Copy:
-			return D3D12_COMMAND_LIST_TYPE_COPY;
-		}
-		return D3D12_COMMAND_LIST_TYPE_DIRECT;
-	}
-
 	class GfxCommandList
 	{
 	public:
