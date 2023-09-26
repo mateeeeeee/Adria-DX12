@@ -1,5 +1,6 @@
 #pragma once
 #include "GfxDevice.h"
+#include "GfxBuffer.h"
 
 namespace adria
 {
@@ -15,19 +16,16 @@ namespace adria
 		GfxConstantBuffer(GfxDevice* gfx, uint32 cbuffer_count)
 			: cbuffer_size(GetCBufferSize()), cbuffer_count(cbuffer_count)
 		{
-			auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-			auto buffer_desc = CD3DX12_RESOURCE_DESC::Buffer((uint64)cbuffer_size * cbuffer_count);
-
-			GFX_CHECK_HR(gfx->GetDevice()->CreateCommittedResource(
-				&heap_properties,
-				D3D12_HEAP_FLAG_NONE,
-				&buffer_desc,
-				D3D12_RESOURCE_STATE_GENERIC_READ,
-				nullptr,
-				IID_PPV_ARGS(cb.GetAddressOf())));
-
-			CD3DX12_RANGE read_range(0, 0);
-			GFX_CHECK_HR(cb->Map(0, &read_range, reinterpret_cast<void**>(&_mapped_data)));
+			GfxBufferDesc desc{};
+			desc.resource_usage = GfxResourceUsage::Upload;
+			desc.bind_flags = GfxBindFlag::None;
+			desc.format = GfxFormat::UNKNOWN;
+			desc.misc_flags = GfxBufferMiscFlag::ConstantBuffer;
+			desc.size = cbuffer_size * cbuffer_count;
+			
+			cbuffer = std::make_unique<GfxBuffer>(gfx, desc);
+			ADRIA_ASSERT(cbuffer->IsMapped());
+			mapped_data = cbuffer->GetMappedData<uint8>();
 		}
 
 		GfxConstantBuffer(GfxConstantBuffer const&) = delete;
@@ -43,42 +41,40 @@ namespace adria
 
 		uint64 GetGpuAddress(uint32 cbuffer_index) const
 		{
-			return cb->GetGPUVirtualAddress();
+			return cbuffer->GetGpuAddress();
 		}
 
 	private:
-		ArcPtr<ID3D12Resource> cb;
-		uint8* _mapped_data = nullptr;
+		std::unique_ptr<GfxBuffer> cbuffer;
+		uint8* mapped_data = nullptr;
 		uint32 const cbuffer_size;
 		uint32 const cbuffer_count;
 	};
 
 	template<typename BufferType>
 	GfxConstantBuffer<BufferType>::GfxConstantBuffer(GfxConstantBuffer&& o) noexcept
-		: cb(std::move(o.cb)), cbuffer_size(o.cbuffer_size), _mapped_data(o._mapped_data)
+		: cbuffer(std::move(o.cbuffer)), cbuffer_size(o.cbuffer_size), _mapped_data(o.mapped_data)
 	{
-		o._mapped_data = nullptr;
+		o.mapped_data = nullptr;
 	}
 	
 	template<typename BufferType>
 	GfxConstantBuffer<BufferType>::~GfxConstantBuffer()
 	{
-		if (cb != nullptr)
-			cb->Unmap(0, nullptr);
-
-		_mapped_data = nullptr;
+		if (cbuffer != nullptr) cbuffer->Unmap();
+		mapped_data = nullptr;
 	}
 
 	template<typename BufferType>
 	void GfxConstantBuffer<BufferType>::Update(BufferType const& data, uint32 cbuffer_index)
 	{
-		memcpy(&_mapped_data[cbuffer_index * cbuffer_size], &data, sizeof(BufferType)); //maybe change to cbuffer_size
+		memcpy(&mapped_data[cbuffer_index * cbuffer_size], &data, sizeof(BufferType)); //maybe change to cbuffer_size
 	}
 
 	template<typename BufferType>
 	void GfxConstantBuffer<BufferType>::Update(void* data, uint32 data_size, uint32 cbuffer_index)
 	{
-		memcpy(&_mapped_data[cbuffer_index * cbuffer_size], data, data_size);
+		memcpy(&mapped_data[cbuffer_index * cbuffer_size], data, data_size);
 	}
 
 }
