@@ -100,6 +100,7 @@ namespace adria
 		void SetBlendFactor(float const* blend_factor);
 		void SetTopology(GfxPrimitiveTopology topology);
 		void SetIndexBuffer(GfxIndexBufferView* index_buffer_view);
+		void SetVertexBuffer(GfxVertexBufferView const& vertex_buffer_view, uint32 start_slot = 0);
 		void SetVertexBuffers(std::span<GfxVertexBufferView> vertex_buffer_views, uint32 start_slot = 0);
 		void SetViewport(uint32 x, uint32 y, uint32 width, uint32 height);
 		void SetScissorRect(uint32 x, uint32 y, uint32 width, uint32 height);

@@ -111,8 +111,9 @@ namespace adria
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Sky));
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				cmd_list->SetTopology(GfxPrimitiveTopology::TriangleList);
-				BindVertexBuffer(cmd_list->GetNative(), cube_vb.get());
-				BindIndexBuffer(cmd_list->GetNative(), cube_ib.get());
+				cmd_list->SetVertexBuffer(GfxVertexBufferView(cube_vb.get()));
+				GfxIndexBufferView ibv(cube_ib.get());
+				cmd_list->SetIndexBuffer(&ibv);
 				cmd_list->DrawIndexed(cube_ib->GetCount());
 			}, RGPassType::Graphics, RGPassFlags::None);
 

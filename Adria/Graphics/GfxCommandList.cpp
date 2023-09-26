@@ -564,6 +564,15 @@ namespace adria
 		}
 	}
 
+	void GfxCommandList::SetVertexBuffer(GfxVertexBufferView const& vertex_buffer_view, uint32 start_slot /*= 0*/)
+	{
+		D3D12_VERTEX_BUFFER_VIEW vbv{};
+		vbv.BufferLocation = vertex_buffer_view.buffer_location;
+		vbv.SizeInBytes = vertex_buffer_view.size_in_bytes;
+		vbv.StrideInBytes = vertex_buffer_view.stride_in_bytes;
+		cmd_list->IASetVertexBuffers(start_slot, 1, &vbv);
+	}
+
 	void GfxCommandList::SetVertexBuffers(std::span<GfxVertexBufferView> vertex_buffer_views, uint32 start_slot /*= 0*/)
 	{
 		ADRIA_ASSERT(current_context == Context::Graphics);

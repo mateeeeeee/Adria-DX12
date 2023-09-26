@@ -53,7 +53,7 @@ namespace adria
 
 	template<typename BufferType>
 	GfxConstantBuffer<BufferType>::GfxConstantBuffer(GfxConstantBuffer&& o) noexcept
-		: cbuffer(std::move(o.cbuffer)), cbuffer_size(o.cbuffer_size), _mapped_data(o.mapped_data)
+		: cbuffer(std::move(o.cbuffer)), cbuffer_size(o.cbuffer_size), mapped_data(o.mapped_data)
 	{
 		o.mapped_data = nullptr;
 	}

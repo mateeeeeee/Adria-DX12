@@ -101,23 +101,6 @@ namespace adria
 		GfxFormat                   format;
 	};
 
-
-	inline void BindVertexBuffer(ID3D12GraphicsCommandList* cmd_list, GfxBuffer const* vertex_buffer)
-	{
-		D3D12_VERTEX_BUFFER_VIEW vb_view{};
-		vb_view.BufferLocation = vertex_buffer->GetGpuAddress();
-		vb_view.SizeInBytes = (UINT)vertex_buffer->GetDesc().size;
-		vb_view.StrideInBytes = vertex_buffer->GetDesc().stride;
-		cmd_list->IASetVertexBuffers(0, 1, &vb_view);
-	}
-	inline void BindIndexBuffer(ID3D12GraphicsCommandList* cmd_list, GfxBuffer const* index_buffer)
-	{
-		D3D12_INDEX_BUFFER_VIEW ib_view{};
-		ib_view.BufferLocation = index_buffer->GetGpuAddress();
-		ib_view.Format = ConvertGfxFormat(index_buffer->GetDesc().format);
-		ib_view.SizeInBytes = (UINT)index_buffer->GetDesc().size;
-		cmd_list->IASetIndexBuffer(&ib_view);
-	}
 	inline GfxBufferDesc VertexBufferDesc(uint64 vertex_count, uint32 stride, bool ray_tracing = true)
 	{
 		GfxBufferDesc desc{};
