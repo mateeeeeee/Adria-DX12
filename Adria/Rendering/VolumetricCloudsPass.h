@@ -68,7 +68,7 @@ namespace adria
 		CloudParameters params{};
 		CloudResolution resolution = CloudResolution_Half;
 		bool should_generate_textures = false;
-		bool temporal_reprojection = true;
+		bool temporal_reprojection = false;
 		
 	private:
 		void CreateCloudTextures(GfxDevice* gfx = nullptr);
