@@ -41,7 +41,7 @@ namespace adria
 
 		uint64 GetGpuAddress(uint32 cbuffer_index) const
 		{
-			return cbuffer->GetGpuAddress();
+			return cbuffer->GetGpuAddress() + (uint64)cbuffer_index * cbuffer_size;
 		}
 
 	private:
