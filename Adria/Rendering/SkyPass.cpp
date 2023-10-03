@@ -71,16 +71,16 @@ namespace adria
 						DECLSPEC_ALIGN(16) Vector3 Z;
 					} constants =
 					{
-							.A = parameters[ESkyParam_A],
-							.B = parameters[ESkyParam_B],
-							.C = parameters[ESkyParam_C],
-							.D = parameters[ESkyParam_D],
-							.E = parameters[ESkyParam_E],
-							.F = parameters[ESkyParam_F],
-							.G = parameters[ESkyParam_G],
-							.H = parameters[ESkyParam_H],
-							.I = parameters[ESkyParam_I],
-							.Z = parameters[ESkyParam_Z],
+							.A = parameters[SkyParam_A],
+							.B = parameters[SkyParam_B],
+							.C = parameters[SkyParam_C],
+							.D = parameters[SkyParam_D],
+							.E = parameters[SkyParam_E],
+							.F = parameters[SkyParam_F],
+							.G = parameters[SkyParam_G],
+							.H = parameters[SkyParam_H],
+							.I = parameters[SkyParam_I],
+							.Z = parameters[SkyParam_Z],
 					};
 					cmd_list->SetRootCBV(3, constants);
 					break;

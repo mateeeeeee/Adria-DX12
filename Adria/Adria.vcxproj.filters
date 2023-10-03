@@ -333,9 +333,6 @@
     <ClCompile Include="Rendering\Components.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\GPUDrivenGBufferPass.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="..\External\D3D12MA\D3D12MemAlloc.cpp">
       <Filter>External\D3D12MA</Filter>
     </ClCompile>
@@ -440,6 +437,9 @@
     </ClCompile>
     <ClCompile Include="..\External\SimpleMath\SimpleMath.cpp">
       <Filter>External\SimpleMath</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\GPUDrivenGBufferPass.cpp">
+      <Filter>Rendering\Passes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -849,9 +849,6 @@
     <ClInclude Include="Graphics\GfxCapabilities.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\GPUDrivenGBufferPass.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Resources\NewShaders\SPD\ffx_a.h">
       <Filter>Shaders\SPD</Filter>
     </ClInclude>
@@ -965,6 +962,9 @@
     </ClInclude>
     <ClInclude Include="Math\MathTypes.h">
       <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\GPUDrivenGBufferPass.h">
+      <Filter>Rendering\Passes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

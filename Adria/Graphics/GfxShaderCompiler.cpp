@@ -79,7 +79,7 @@ namespace adria
 	class GfxReflectionBlob : public IDxcBlob
 	{
 	public:
-		GfxReflectionBlob(void const* pShaderBytecode, SIZE_T byteLength) : bytecodeSize{ byteLength }
+		GfxReflectionBlob(void const* pShaderBytecode, size_t byteLength) : bytecodeSize{ byteLength }
 		{
 			pBytecode = const_cast<void*>(pShaderBytecode);
 		}
@@ -94,7 +94,7 @@ namespace adria
 			else if (riid == IID_IUnknown)
 				*ppv = static_cast<IUnknown*>(this);
 			else
-			{ // unsupported interface
+			{
 				*ppv = NULL;
 				return E_NOINTERFACE;
 			}
@@ -240,7 +240,7 @@ namespace adria
 			ADRIA_LOG(INFO, "Shader '%s.%s' not found in cache. Compiling...", input.file.c_str(), input.entry_point.c_str());
 
 			compile:
-			uint32_t code_page = CP_UTF8;
+			uint32 code_page = CP_UTF8;
 			ArcPtr<IDxcBlobEncoding> source_blob;
 
 			std::wstring shader_source = ToWideString(input.file);
@@ -345,16 +345,7 @@ namespace adria
 			SaveToCache(cache_path, output);
 			return true;
 		}
-		void ReadBlobFromFile(std::wstring_view filename, GfxShaderBlob& blob)
-		{
-			uint32 code_page = CP_UTF8;
-			ArcPtr<IDxcBlobEncoding> source_blob;
-			HRESULT hr = library->CreateBlobFromFile(filename.data(), &code_page, source_blob.GetAddressOf());
-			GFX_CHECK_HR(hr);
-			blob.resize(source_blob->GetBufferSize());
-			memcpy(blob.data(), source_blob->GetBufferPointer(), source_blob->GetBufferSize());
-		}
-		void CreateInputLayout(GfxShader const& vs_blob, GfxInputLayout& input_layout)
+		void FillInputLayoutDesc(GfxShader const& vs_blob, GfxInputLayout& input_layout)
 		{
 			ArcPtr<IDxcContainerReflection> reflection;
 			HRESULT hr = DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(reflection.GetAddressOf()));
@@ -380,7 +371,7 @@ namespace adria
 
 			input_layout.elements.clear();
 			input_layout.elements.resize(shader_desc.InputParameters);
-			for (uint32_t i = 0; i < shader_desc.InputParameters; i++)
+			for (uint32 i = 0; i < shader_desc.InputParameters; i++)
 			{
 				vertex_shader_reflection->GetInputParameterDesc(i, &param_desc);
 				input_layout.elements[i].semantic_name = std::string(param_desc.SemanticName);
@@ -389,7 +380,12 @@ namespace adria
 				input_layout.elements[i].input_slot_class = GfxInputClassification::PerVertexData;
 				input_layout.elements[i].input_slot = 0;
 
-				// determine DXGI format
+				if (input_layout.elements[i].semantic_name.starts_with("INSTANCE"))
+				{
+					input_layout.elements[i].input_slot_class = GfxInputClassification::PerInstanceData;
+					input_layout.elements[i].input_slot = 1;
+				}
+
 				if (param_desc.Mask == 1)
 				{
 					if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)		 input_layout.elements[i].format = GfxFormat::R32_UINT;
@@ -415,6 +411,16 @@ namespace adria
 					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) input_layout.elements[i].format = GfxFormat::R32G32B32A32_FLOAT;
 				}
 			}
+		}
+		void ReadBlobFromFile(std::string const& filename, GfxShaderBlob& blob)
+		{
+			std::wstring wide_filename = ToWideString(filename);
+			uint32 code_page = CP_UTF8;
+			ArcPtr<IDxcBlobEncoding> source_blob;
+			HRESULT hr = library->CreateBlobFromFile(wide_filename.data(), &code_page, source_blob.GetAddressOf());
+			GFX_CHECK_HR(hr);
+			blob.resize(source_blob->GetBufferSize());
+			memcpy(blob.data(), source_blob->GetBufferPointer(), source_blob->GetBufferSize());
 		}
 	}
 }
