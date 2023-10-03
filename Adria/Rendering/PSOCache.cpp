@@ -24,7 +24,7 @@ namespace adria
 		{
 			GraphicsPipelineStateDesc gfx_pso_desc{};
 			{
-				GfxShaderCompiler::CreateInputLayout(GetShader(VS_Sky), gfx_pso_desc.input_layout);
+				GfxShaderCompiler::FillInputLayoutDesc(GetShader(VS_Sky), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 				gfx_pso_desc.VS = VS_Sky;
 				gfx_pso_desc.PS = PS_Sky;
@@ -38,7 +38,7 @@ namespace adria
 				gfx_pso_map[GfxPipelineStateID::Sky] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				GfxShaderCompiler::CreateInputLayout(GetShader(VS_GBuffer), gfx_pso_desc.input_layout);
+				GfxShaderCompiler::FillInputLayoutDesc(GetShader(VS_GBuffer), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 				gfx_pso_desc.VS = VS_GBuffer;
 				gfx_pso_desc.PS = PS_GBuffer;
@@ -59,7 +59,7 @@ namespace adria
 				gfx_pso_map[GfxPipelineStateID::GBuffer_NoCull] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				GfxShaderCompiler::CreateInputLayout(GetShader(VS_Shadow), gfx_pso_desc.input_layout);
+				GfxShaderCompiler::FillInputLayoutDesc(GetShader(VS_Shadow), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 				gfx_pso_desc.VS = VS_Shadow;
 				gfx_pso_desc.PS = PS_Shadow;
@@ -74,13 +74,13 @@ namespace adria
 				gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
 				gfx_pso_map[GfxPipelineStateID::Shadow] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 
-				GfxShaderCompiler::CreateInputLayout(GetShader(VS_Shadow_Transparent), gfx_pso_desc.input_layout);
+				GfxShaderCompiler::FillInputLayoutDesc(GetShader(VS_Shadow_Transparent), gfx_pso_desc.input_layout);
 				gfx_pso_desc.VS = VS_Shadow_Transparent;
 				gfx_pso_desc.PS = PS_Shadow_Transparent;
 				gfx_pso_map[GfxPipelineStateID::Shadow_Transparent] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				GfxShaderCompiler::CreateInputLayout(GetShader(VS_Sun), gfx_pso_desc.input_layout);
+				GfxShaderCompiler::FillInputLayoutDesc(GetShader(VS_Sun), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 				gfx_pso_desc.VS = VS_Sun;
 				gfx_pso_desc.PS = PS_Texture;
@@ -183,7 +183,7 @@ namespace adria
 				gfx_pso_map[GfxPipelineStateID::Bokeh] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				GfxShaderCompiler::CreateInputLayout(GetShader(VS_Ocean), gfx_pso_desc.input_layout);
+				GfxShaderCompiler::FillInputLayoutDesc(GetShader(VS_Ocean), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 				gfx_pso_desc.VS = VS_Ocean;
 				gfx_pso_desc.PS = PS_Ocean;
@@ -209,7 +209,7 @@ namespace adria
 				gfx_pso_map[GfxPipelineStateID::OceanLOD] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				GfxShaderCompiler::CreateInputLayout(GetShader(VS_Decals), gfx_pso_desc.input_layout);
+				GfxShaderCompiler::FillInputLayoutDesc(GetShader(VS_Decals), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 				gfx_pso_desc.VS = VS_Decals;
 				gfx_pso_desc.PS = PS_Decals;
@@ -225,7 +225,7 @@ namespace adria
 				gfx_pso_map[GfxPipelineStateID::Decals_ModifyNormals] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				GfxShaderCompiler::CreateInputLayout(GetShader(VS_Simple), gfx_pso_desc.input_layout);
+				GfxShaderCompiler::FillInputLayoutDesc(GetShader(VS_Simple), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 				gfx_pso_desc.VS = VS_Simple;
 				gfx_pso_desc.PS = PS_Texture;
@@ -234,7 +234,7 @@ namespace adria
 				gfx_pso_map[GfxPipelineStateID::Texture] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				GfxShaderCompiler::CreateInputLayout(GetShader(VS_Simple), gfx_pso_desc.input_layout);
+				GfxShaderCompiler::FillInputLayoutDesc(GetShader(VS_Simple), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 				gfx_pso_desc.VS = VS_Simple;
 				gfx_pso_desc.PS = PS_Solid;
@@ -246,7 +246,7 @@ namespace adria
 				gfx_pso_map[GfxPipelineStateID::Solid_Wireframe] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				GfxShaderCompiler::CreateInputLayout(GetShader(VS_Debug), gfx_pso_desc.input_layout);
+				GfxShaderCompiler::FillInputLayoutDesc(GetShader(VS_Debug), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 				gfx_pso_desc.VS = VS_Debug;
 				gfx_pso_desc.PS = PS_Debug;

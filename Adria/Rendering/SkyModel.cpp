@@ -67,7 +67,7 @@ namespace adria
 		float sun_theta = std::acos(std::clamp(sun_direction.y, 0.f, 1.f));
 
 		SkyParameters params{};
-		for (size_t i = 0; i < ESkyParam_Z; ++i)
+		for (size_t i = 0; i < SkyParam_Z; ++i)
 		{
 			auto& param = params[i];
 			param.x = (float)Evaluate(datasetsRGB[0] + i, 9, turbidity, albedo, sun_theta);
@@ -75,23 +75,23 @@ namespace adria
 			param.z = (float)Evaluate(datasetsRGB[2] + i, 9, turbidity, albedo, sun_theta);
 		}
 
-		auto& paramZ = params[ESkyParam_Z];
+		auto& paramZ = params[SkyParam_Z];
 		paramZ.x = (float)Evaluate(datasetsRGBRad[0], 1, turbidity, albedo, sun_theta);
 		paramZ.y = (float)Evaluate(datasetsRGBRad[1], 1, turbidity, albedo, sun_theta);
 		paramZ.z = (float)Evaluate(datasetsRGBRad[2], 1, turbidity, albedo, sun_theta);
 
 		Vector3 S = HosekWilkie(std::cos(sun_theta), 0.0f, 1.0f,
-			params[ESkyParam_A],
-			params[ESkyParam_B],
-			params[ESkyParam_C],
-			params[ESkyParam_D],
-			params[ESkyParam_E],
-			params[ESkyParam_F],
-			params[ESkyParam_G],
-			params[ESkyParam_H],
-			params[ESkyParam_I]);
-		S = S * params[ESkyParam_Z];
-		params[ESkyParam_Z] = params[ESkyParam_Z] / (S.Dot(Vector3(0.2126f, 0.7152f, 0.0722f)));
+			params[SkyParam_A],
+			params[SkyParam_B],
+			params[SkyParam_C],
+			params[SkyParam_D],
+			params[SkyParam_E],
+			params[SkyParam_F],
+			params[SkyParam_G],
+			params[SkyParam_H],
+			params[SkyParam_I]);
+		S = S * params[SkyParam_Z];
+		params[SkyParam_Z] = params[SkyParam_Z] / (S.Dot(Vector3(0.2126f, 0.7152f, 0.0722f)));
 		return params;
 	}
 
