@@ -36,7 +36,7 @@ namespace adria
 		AddClearCountersPass(rg);
 		Add1stPhasePasses(rg);
 		Add2ndPhasePasses(rg);
-		//AddDebugPass(rg);
+		AddDebugPass(rg);
 
 		GUI_RunCommand([&]()
 			{
@@ -48,19 +48,23 @@ namespace adria
 					ImGui::Separator();
 				}
 
-				//if (ImGui::Begin("GPU Driven Debug Stats") && display_debug_stats)
-				//{
-				//	DebugStats _debug_stats = debug_stats[gfx->BackbufferIndex()];
-				//	ImGui::Text("Total Instances: %d", _debug_stats.num_instances);
-				//	ImGui::Text("Occluded Instances: %d", _debug_stats.occluded_instances);
-				//	ImGui::Text("Visible Instances: %d", _debug_stats.visible_instances);
-				//	ImGui::Text("Phase 1 Candidate Meshlets: %d", _debug_stats.phase1_candidate_meshlets);
-				//	ImGui::Text("Phase 1 Visible Meshlets: %d", _debug_stats.phase1_visible_meshlets);
-				//	ImGui::Text("Phase 2 Candidate Meshlets: %d", _debug_stats.phase2_candidate_meshlets);
-				//	ImGui::Text("Phase 2 Visible Meshlets: %d", _debug_stats.phase2_visible_meshlets);
-				//	ImGui::Text("Processed Meshlets: %d", _debug_stats.processed_meshlets);
-				//}
-				//ImGui::End();
+				if (display_debug_stats)
+				{
+					if (ImGui::Begin("GPU Driven Debug Stats"))
+					{
+						uint32 backbuffer_index = gfx->GetBackbufferIndex();
+						DebugStats current_debug_stats = debug_stats[backbuffer_index];
+						ImGui::Text("Total Instances: %d", current_debug_stats.num_instances);
+						ImGui::Text("Occluded Instances: %d", current_debug_stats.occluded_instances);
+						ImGui::Text("Visible Instances: %d", current_debug_stats.visible_instances);
+						ImGui::Text("Phase 1 Candidate Meshlets: %d", current_debug_stats.phase1_candidate_meshlets);
+						ImGui::Text("Phase 1 Visible Meshlets: %d", current_debug_stats.phase1_visible_meshlets);
+						ImGui::Text("Phase 2 Candidate Meshlets: %d", current_debug_stats.phase2_candidate_meshlets);
+						ImGui::Text("Phase 2 Visible Meshlets: %d", current_debug_stats.phase2_visible_meshlets);
+						ImGui::Text("Processed Meshlets: %d", current_debug_stats.processed_meshlets);
+					}
+					ImGui::End();
+				}
 			}
 		);
 	}
@@ -918,11 +922,8 @@ namespace adria
 	void GPUDrivenGBufferPass::CreateDebugBuffer()
 	{
 		GfxBufferDesc debug_buffer_desc{};
-		debug_buffer_desc.size = 6 * sizeof(uint32) * gfx->GetBackbufferCount();
-		debug_buffer_desc.format = GfxFormat::R32_UINT;
-		debug_buffer_desc.stride = sizeof(uint32);
+		debug_buffer_desc.size = 6 * sizeof(uint32) * GFX_BACKBUFFER_COUNT;
 		debug_buffer_desc.resource_usage = GfxResourceUsage::Readback;
-
 		debug_buffer = gfx->CreateBuffer(debug_buffer_desc);
 	}
 

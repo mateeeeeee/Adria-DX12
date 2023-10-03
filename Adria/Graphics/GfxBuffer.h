@@ -33,8 +33,6 @@ namespace adria
 		~GfxBuffer();
 
 		ID3D12Resource* GetNative() const;
-		ID3D12Resource* Detach();
-		D3D12MA::Allocation* DetachAllocation();
 
 		GfxBufferDesc const& GetDesc() const;
 		uint64 GetGpuAddress() const;

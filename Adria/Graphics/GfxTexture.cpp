@@ -234,16 +234,6 @@ namespace adria
 		return resource.Get();
 	}
 
-	ID3D12Resource* GfxTexture::Detach()
-	{
-		return resource.Detach();
-	}
-
-	D3D12MA::Allocation* GfxTexture::DetachAllocation()
-	{
-		return allocation.release();
-	}
-
 	GfxTextureDesc const& GfxTexture::GetDesc() const
 	{
 		return desc;

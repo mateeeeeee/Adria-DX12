@@ -75,8 +75,6 @@ namespace adria
 		~GfxTexture();
 
 		ID3D12Resource* GetNative() const;
-		ID3D12Resource* Detach();
-		D3D12MA::Allocation* DetachAllocation();
 
 		GfxDevice* GetParent() const { return gfx; }
 		GfxTextureDesc const& GetDesc() const;
