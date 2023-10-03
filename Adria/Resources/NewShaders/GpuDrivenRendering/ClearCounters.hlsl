@@ -22,5 +22,5 @@ void ClearCountersCS()
 	visibleMeshletsCounter[0] = 0;
 	visibleMeshletsCounter[1] = 0;
 
-	occludedInstancesCounter[1] = 0;
+	occludedInstancesCounter[0] = 0;
 }

@@ -54,14 +54,14 @@ namespace adria
 					{
 						uint32 backbuffer_index = gfx->GetBackbufferIndex();
 						DebugStats current_debug_stats = debug_stats[backbuffer_index];
-						ImGui::Text("Total Instances: %d", current_debug_stats.num_instances);
-						ImGui::Text("Occluded Instances: %d", current_debug_stats.occluded_instances);
-						ImGui::Text("Visible Instances: %d", current_debug_stats.visible_instances);
-						ImGui::Text("Phase 1 Candidate Meshlets: %d", current_debug_stats.phase1_candidate_meshlets);
-						ImGui::Text("Phase 1 Visible Meshlets: %d", current_debug_stats.phase1_visible_meshlets);
-						ImGui::Text("Phase 2 Candidate Meshlets: %d", current_debug_stats.phase2_candidate_meshlets);
-						ImGui::Text("Phase 2 Visible Meshlets: %d", current_debug_stats.phase2_visible_meshlets);
-						ImGui::Text("Processed Meshlets: %d", current_debug_stats.processed_meshlets);
+						ImGui::Text("Total Instances: %u", current_debug_stats.num_instances);
+						ImGui::Text("Occluded Instances: %u", current_debug_stats.occluded_instances);
+						ImGui::Text("Visible Instances: %u", current_debug_stats.visible_instances);
+						ImGui::Text("Phase 1 Candidate Meshlets: %u", current_debug_stats.phase1_candidate_meshlets);
+						ImGui::Text("Phase 1 Visible Meshlets: %u", current_debug_stats.phase1_visible_meshlets);
+						ImGui::Text("Phase 2 Candidate Meshlets: %u", current_debug_stats.phase2_candidate_meshlets);
+						ImGui::Text("Phase 2 Visible Meshlets: %u", current_debug_stats.phase2_visible_meshlets);
+						ImGui::Text("Processed Meshlets: %u", current_debug_stats.processed_meshlets);
 					}
 					ImGui::End();
 				}
