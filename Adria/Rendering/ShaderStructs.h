@@ -53,6 +53,7 @@ namespace adria
 		int32  meshes_idx;
 		int32  materials_idx;
 		int32  instances_idx;
+		int32  ddgi_volumes_idx;
 	};
 
 	struct LightHLSL
@@ -115,6 +116,4 @@ namespace adria
 		uint32 mesh_index;
 		PAD[2];
 	};
-
-
 }

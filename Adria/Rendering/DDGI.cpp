@@ -1,5 +1,6 @@
 #include "DDGI.h"
 #include "BlackboardData.h"
+#include "ShaderStructs.h"
 #include "ShaderCache.h"
 #include "PSOCache.h"
 #include "Graphics/GfxDevice.h"
@@ -45,17 +46,6 @@ namespace adria
 		RealRandomGenerator rng(0.0f, 1.0f);
 		Vector3 random_vector(2.0f * rng() - 1.0f, 2.0f * rng() - 1.0f, 2.0f * rng() - 1.0f); random_vector.Normalize();
 		float random_angle = rng() * pi<float> * 2.0f;
-
-		DDGIVolumeHLSL ddgi_hlsl{};
-		ddgi_hlsl.startPosition = ddgi_volume.origin - ddgi_volume.extents;
-		ddgi_hlsl.probeSize = 2 * ddgi_volume.extents / (Vector3((float)ddgi_volume.num_probes.x, (float)ddgi_volume.num_probes.y, (float)ddgi_volume.num_probes.z) - Vector3::One);
-		ddgi_hlsl.raysPerProbe = ddgi_volume.num_rays;
-		ddgi_hlsl.maxRaysPerProbe = ddgi_volume.max_num_rays;
-		ddgi_hlsl.probeCounts = Vector3i(ddgi_volume.num_probes.x, ddgi_volume.num_probes.y, ddgi_volume.num_probes.z);
-		ddgi_hlsl.normalBias = 0.25f;
-		ddgi_hlsl.energyPreservation = 0.85f;
-		ddgi_hlsl.irradianceHistoryIdx = 0;
-		ddgi_hlsl.distanceHistoryIdx = 0;
 
 		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		rg.ImportTexture(RG_RES_NAME(DDGIIrradianceHistory), ddgi_volume.irradiance_history.get());
@@ -109,9 +99,7 @@ namespace adria
 					.history_blend_weight = 0.98f,
 					.ray_buffer_index = i
 				};
-				ddgi_hlsl.irradianceHistoryIdx = i + 1;
-				ddgi_hlsl.distanceHistoryIdx = i + 2;
-				
+
 				GfxRayTracingShaderTable& table = cmd_list->SetStateObject(ddgi_trace_so.Get());
 				table.SetRayGenShader("DDGI_RayGen");
 				table.AddMissShader("DDGI_Miss", 0);
@@ -119,8 +107,7 @@ namespace adria
 
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, parameters);
-				cmd_list->SetRootCBV(2, ddgi_hlsl);
-
+				
 				cmd_list->DispatchRays(ddgi_volume.num_rays, num_probes_flat);
 				cmd_list->UavBarrier(ctx.GetBuffer(*data.ray_buffer));
 
@@ -167,13 +154,9 @@ namespace adria
 					.ray_buffer_index = ddgi_blackboard.heap_index
 				};
 
-				ddgi_hlsl.irradianceHistoryIdx = ddgi_blackboard.heap_index + 1;
-				ddgi_hlsl.distanceHistoryIdx = ddgi_blackboard.heap_index + 2;
-
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIUpdateIrradiance));
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, parameters);
-				cmd_list->SetRootCBV(2, ddgi_hlsl);
 				cmd_list->Dispatch(num_probes_flat, 1, 1);
 				cmd_list->UavBarrier(ctx.GetTexture(*data.irradiance));
 			}, RGPassType::Compute);
@@ -218,19 +201,45 @@ namespace adria
 					.history_blend_weight = 0.98f,
 					.ray_buffer_index = ddgi_blackboard.heap_index
 				};
-				ddgi_hlsl.irradianceHistoryIdx = ddgi_blackboard.heap_index + 1;
-				ddgi_hlsl.distanceHistoryIdx = ddgi_blackboard.heap_index + 2;
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIUpdateDistance));
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, parameters);
-				cmd_list->SetRootCBV(2, ddgi_hlsl);
 				cmd_list->Dispatch(num_probes_flat, 1, 1);
 				cmd_list->UavBarrier(ctx.GetTexture(*data.depth));
 			}, RGPassType::Compute);
 
 		rg.ExportTexture(RG_RES_NAME(DDGIIrradiance), ddgi_volume.irradiance_history.get());
 		rg.ExportTexture(RG_RES_NAME(DDGIDistance), ddgi_volume.distance_history.get());
+	}
+
+	int32 DDGI::GetDDGIVolumeIndex()
+	{
+		if (!IsSupported()) return -1;
+
+		std::vector<DDGIVolumeHLSL> ddgi_data;
+		DDGIVolumeHLSL ddgi_hlsl;
+		//DDGIVolumeHLSL ddgi_hlsl;
+		//ddgi_hlsl.start_position = ddgi_volume.origin - ddgi_volume.extents;
+		//ddgi_hlsl.probeSize = 2 * ddgi_volume.extents / (Vector3((float)ddgi_volume.num_probes.x, (float)ddgi_volume.num_probes.y, (float)ddgi_volume.num_probes.z) - Vector3::One);
+		//ddgi_hlsl.raysPerProbe = ddgi_volume.num_rays;
+		//ddgi_hlsl.maxRaysPerProbe = ddgi_volume.max_num_rays;
+		//ddgi_hlsl.probeCounts = Vector3i(ddgi_volume.num_probes.x, ddgi_volume.num_probes.y, ddgi_volume.num_probes.z);
+		//ddgi_hlsl.normalBias = 0.25f;
+		//ddgi_hlsl.energyPreservation = 0.85f;
+		//ddgi_hlsl.irradianceHistoryIdx = 0;
+		//ddgi_hlsl.distanceHistoryIdx = 0;
+		ddgi_data.push_back(ddgi_hlsl);
+		if (!ddgi_volume_buffer || ddgi_volume_buffer->GetCount() < ddgi_data.size())
+		{
+			ddgi_volume_buffer = gfx->CreateBuffer(StructuredBufferDesc<DDGIVolumeHLSL>(ddgi_data.size(), false, true));
+			ddgi_volume_buffer_srv = gfx->CreateBufferSRV(ddgi_volume_buffer.get());
+		}
+
+		ddgi_volume_buffer->Update(ddgi_data.data(), ddgi_data.size() * sizeof(DDGIVolumeHLSL));
+		ddgi_volume_buffer_srv_gpu = gfx->AllocateDescriptorsGPU();
+		gfx->CopyDescriptors(1, ddgi_volume_buffer_srv_gpu, ddgi_volume_buffer_srv);
+		return (int32)ddgi_volume_buffer_srv_gpu.GetIndex();
 	}
 
 	void DDGI::CreateStateObject()

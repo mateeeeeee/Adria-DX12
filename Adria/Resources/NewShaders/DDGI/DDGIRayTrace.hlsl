@@ -11,7 +11,6 @@ struct DDGIRayTracePassConstants
 	uint   rayBufferIdx;
 };
 ConstantBuffer<DDGIRayTracePassConstants> PassCB : register(b1);
-ConstantBuffer<DDGIVolume> DDGIVolumeCB			 : register(b2);
 
 struct DDGIPayload
 {
@@ -24,14 +23,16 @@ struct DDGIPayload
 void DDGI_RayGen()
 {
 	RaytracingAccelerationStructure tlas = ResourceDescriptorHeap[FrameCB.accelStructIdx];
+	StructuredBuffer<DDGIVolume> ddgiVolumes = ResourceDescriptorHeap[FrameCB.ddgiVolumesIdx];
+	DDGIVolume ddgiVolume = ddgiVolumes[0];
 
 	uint const probeIdx = DispatchRaysIndex().y;
 	uint const rayIdx = DispatchRaysIndex().x;
 
 	float3x3 randomRotation  = AngleAxis3x3(PassCB.randomAngle, PassCB.randomVector);
-	float3   randomDirection = normalize(mul(SphericalFibonacci(rayIdx, DDGIVolumeCB.raysPerProbe), randomRotation));
+	float3   randomDirection = normalize(mul(SphericalFibonacci(rayIdx, ddgiVolume.raysPerProbe), randomRotation));
 
-	float3 probeLocation = GetProbeLocation(DDGIVolumeCB, probeIdx);
+	float3 probeLocation = GetProbeLocation(ddgiVolume, probeIdx);
 
 	RayDesc ray;
 	ray.Origin = probeLocation;
@@ -44,7 +45,7 @@ void DDGI_RayGen()
 	payload.distance = FLT_MAX;
 	TraceRay(tlas, (RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES), 0xFF, 0, 0, 0, ray, payload);
 	RWBuffer<float4> rayBuffer = ResourceDescriptorHeap[PassCB.rayBufferIdx];
-	rayBuffer[probeIdx * DDGIVolumeCB.maxRaysPerProbe + rayIdx] = float4(payload.radiance, payload.distance);
+	rayBuffer[probeIdx * ddgiVolume.maxRaysPerProbe + rayIdx] = float4(payload.radiance, payload.distance);
 }
 
 [shader("miss")]
@@ -58,6 +59,9 @@ void DDGI_Miss(inout DDGIPayload payload)
 [shader("closesthit")]
 void DDGI_ClosestHit(inout DDGIPayload payload, in HitAttributes attribs)
 {
+	StructuredBuffer<DDGIVolume> ddgiVolumes = ResourceDescriptorHeap[FrameCB.ddgiVolumesIdx];
+	DDGIVolume ddgiVolume = ddgiVolumes[0];
+
 	Instance instanceData = GetInstanceData(InstanceIndex());
 	Mesh meshData = GetMeshData(instanceData.meshIndex);
 	Material materialData = GetMaterialData(instanceData.materialIdx);
@@ -84,7 +88,7 @@ void DDGI_ClosestHit(inout DDGIPayload payload, in HitAttributes attribs)
 	float3 radiance = diffuse * light.color.rgb;
 
 	radiance += matProperties.emissive;
-	radiance += Diffuse_Lambert(min(brdfData.Diffuse, 0.9f)) * SampleDDGIIrradiance(DDGIVolumeCB, worldPosition, N, WorldRayDirection());
+	radiance += Diffuse_Lambert(min(brdfData.Diffuse, 0.9f)) * SampleDDGIIrradiance(ddgiVolume, worldPosition, N, WorldRayDirection());
 	
 	payload.radiance = radiance;
 	payload.distance = RayTCurrent();

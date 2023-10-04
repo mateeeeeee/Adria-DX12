@@ -10,7 +10,6 @@ struct DDGIPassConstants
 	uint   distanceIdx;
 };
 ConstantBuffer<DDGIPassConstants> PassCB : register(b1);
-ConstantBuffer<DDGIVolume> DDGIVolumeCB	 : register(b2);
 
 #define CACHE_SIZE PROBE_DISTANCE_TEXELS * PROBE_DISTANCE_TEXELS
 groupshared float  DepthCache[CACHE_SIZE];
@@ -46,13 +45,16 @@ static const uint4 BORDER_OFFSETS[BORDER_TEXELS] =
 [numthreads(PROBE_DISTANCE_TEXELS, PROBE_DISTANCE_TEXELS, 1)]
 void DDGI_UpdateDistance(CS_INPUT input)
 {
+	StructuredBuffer<DDGIVolume> ddgiVolumes = ResourceDescriptorHeap[FrameCB.ddgiVolumesIdx];
+	DDGIVolume ddgiVolume = ddgiVolumes[0];
+
 	uint  probeIdx = input.GroupId.x;
-	uint3 probeGridCoords = GetProbeGridCoord(DDGIVolumeCB, probeIdx);
-	uint2 texelLocation = GetProbeTexel(DDGIVolumeCB, probeGridCoords, PROBE_DISTANCE_TEXELS);
+	uint3 probeGridCoords = GetProbeGridCoord(ddgiVolume, probeIdx);
+	uint2 texelLocation = GetProbeTexel(ddgiVolume, probeGridCoords, PROBE_DISTANCE_TEXELS);
 	uint2 cornerTexelLocation = texelLocation - 1u;
 	texelLocation += input.GroupThreadId.xy;
 
-	Texture2D<float2> distanceHistoryTx = ResourceDescriptorHeap[DDGIVolumeCB.distanceHistoryIdx];
+	Texture2D<float2> distanceHistoryTx = ResourceDescriptorHeap[ddgiVolume.distanceHistoryIdx];
 	float2 prevDistance = distanceHistoryTx[texelLocation];
 
 	float3   probeDirection = DecodeNormalOctahedron(((input.GroupThreadId.xy + 0.5f) / (float)PROBE_DISTANCE_TEXELS) * 2 - 1);
@@ -61,15 +63,15 @@ void DDGI_UpdateDistance(CS_INPUT input)
 	Buffer<float4> rayBuffer = ResourceDescriptorHeap[PassCB.rayBufferIdx];
 	float  weightSum = 0;
 	float2 result = 0;
-	uint remainingRays = DDGIVolumeCB.raysPerProbe;
+	uint remainingRays = ddgiVolume.raysPerProbe;
 	uint offset = 0;
     while (remainingRays > 0)
 	{
 		uint numRays = min(CACHE_SIZE, remainingRays);
 		if(input.GroupIndex < numRays)
 		{
-			DepthCache[input.GroupIndex] = rayBuffer[probeIdx * DDGIVolumeCB.maxRaysPerProbe + offset + input.GroupIndex].a;
-			DirectionCache[input.GroupIndex] = GetRayDirection(offset + input.GroupIndex, DDGIVolumeCB.raysPerProbe, randomRotation);
+			DepthCache[input.GroupIndex] = rayBuffer[probeIdx * ddgiVolume.maxRaysPerProbe + offset + input.GroupIndex].a;
+			DirectionCache[input.GroupIndex] = GetRayDirection(offset + input.GroupIndex, ddgiVolume.raysPerProbe, randomRotation);
 		}
 		GroupMemoryBarrierWithGroupSync();
 

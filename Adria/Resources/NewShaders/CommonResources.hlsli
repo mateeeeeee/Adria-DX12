@@ -37,6 +37,7 @@ struct FrameCBuffer
 	int    meshesIdx;
 	int    materialsIdx;
 	int    instancesIdx;
+	int    ddgiVolumesIdx;
 };
 ConstantBuffer<FrameCBuffer> FrameCB  : register(b0);
 

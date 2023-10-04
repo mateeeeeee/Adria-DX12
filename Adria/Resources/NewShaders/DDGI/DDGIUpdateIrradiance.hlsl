@@ -10,7 +10,6 @@ struct DDGIPassConstants
 	uint   irradianceIdx;
 };
 ConstantBuffer<DDGIPassConstants> PassCB : register(b1);
-ConstantBuffer<DDGIVolume> DDGIVolumeCB	 : register(b2);
 
 #define CACHE_SIZE PROBE_IRRADIANCE_TEXELS * PROBE_IRRADIANCE_TEXELS
 groupshared float3 RadianceCache[CACHE_SIZE];
@@ -40,13 +39,16 @@ static const uint4 BORDER_OFFSETS[BORDER_TEXELS] =
 [numthreads(PROBE_IRRADIANCE_TEXELS, PROBE_IRRADIANCE_TEXELS, 1)]
 void DDGI_UpdateIrradiance(CS_INPUT input)
 {
+	StructuredBuffer<DDGIVolume> ddgiVolumes = ResourceDescriptorHeap[FrameCB.ddgiVolumesIdx];
+	DDGIVolume ddgiVolume = ddgiVolumes[0];
+
 	uint  probeIdx = input.GroupId.x;
-	uint3 probeGridCoords = GetProbeGridCoord(DDGIVolumeCB, probeIdx);
-	uint2 texelLocation = GetProbeTexel(DDGIVolumeCB, probeGridCoords, PROBE_IRRADIANCE_TEXELS);
+	uint3 probeGridCoords = GetProbeGridCoord(ddgiVolume, probeIdx);
+	uint2 texelLocation = GetProbeTexel(ddgiVolume, probeGridCoords, PROBE_IRRADIANCE_TEXELS);
 	uint2 cornerTexelLocation = texelLocation - 1u;
 	texelLocation += input.GroupThreadId.xy;
 
-	Texture2D<float4> irradianceHistoryTx = ResourceDescriptorHeap[DDGIVolumeCB.irradianceHistoryIdx];
+	Texture2D<float4> irradianceHistoryTx = ResourceDescriptorHeap[ddgiVolume.irradianceHistoryIdx];
 	float3 prevRadiance = irradianceHistoryTx[texelLocation].rgb;
 
 	float3   probeDirection = DecodeNormalOctahedron(((input.GroupThreadId.xy + 0.5f) / (float)PROBE_IRRADIANCE_TEXELS) * 2 - 1);
@@ -55,15 +57,15 @@ void DDGI_UpdateIrradiance(CS_INPUT input)
 	Buffer<float4> rayBuffer = ResourceDescriptorHeap[PassCB.rayBufferIdx];
 	float  weightSum = 0;
 	float3 result = 0;
-	uint remainingRays = DDGIVolumeCB.raysPerProbe;
+	uint remainingRays = ddgiVolume.raysPerProbe;
 	uint offset = 0;
     while (remainingRays > 0)
 	{
 		uint numRays = min(CACHE_SIZE, remainingRays);
 		if(input.GroupIndex < numRays)
 		{
-			RadianceCache[input.GroupIndex] = rayBuffer[probeIdx * DDGIVolumeCB.maxRaysPerProbe + offset + input.GroupIndex].rgb;
-			DirectionCache[input.GroupIndex] = GetRayDirection(offset + input.GroupIndex, DDGIVolumeCB.raysPerProbe, randomRotation);
+			RadianceCache[input.GroupIndex] = rayBuffer[probeIdx * ddgiVolume.maxRaysPerProbe + offset + input.GroupIndex].rgb;
+			DirectionCache[input.GroupIndex] = GetRayDirection(offset + input.GroupIndex, ddgiVolume.raysPerProbe, randomRotation);
 		}
 		GroupMemoryBarrierWithGroupSync();
 
@@ -80,7 +82,7 @@ void DDGI_UpdateIrradiance(CS_INPUT input)
         offset += numRays;
 	}
 
-	const float epsilon = 1e-9f * float(DDGIVolumeCB.raysPerProbe);
+	const float epsilon = 1e-9f * float(ddgiVolume.raysPerProbe);
 	result *= 1.0f / max(2.0f * weightSum, epsilon);
 
 	result = pow(result, rcp(5.0f));

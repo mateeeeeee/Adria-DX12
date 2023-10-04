@@ -1,4 +1,5 @@
 #pragma once
+#include "Graphics/GfxDescriptor.h"
 #include "entt/entity/fwd.hpp"
  
 namespace adria
@@ -8,6 +9,7 @@ namespace adria
 	class GfxTexture;
 	class GfxDevice;
 	class RenderGraph;
+	struct DDGIVolumeHLSL;
 
 	class DDGI
 	{
@@ -25,18 +27,20 @@ namespace adria
 			std::unique_ptr<GfxTexture> irradiance_history;
 			std::unique_ptr<GfxTexture> distance_history;
 		};
+
 		struct DDGIVolumeHLSL
 		{
-			Vector3 startPosition;
-			int32 raysPerProbe;
-			Vector3 probeSize;
-			int32 maxRaysPerProbe;
-			Vector3i probeCounts;
-			float normalBias;
-			float energyPreservation;
-			int32 irradianceHistoryIdx;
-			int32 distanceHistoryIdx;
+			Vector3 start_position;
+			int32 rays_per_probe;
+			Vector3 probe_size;
+			int32 max_rays_per_probe;
+			Vector3i probe_count;
+			float normal_bias;
+			float energy_preservation;
+			int32 irradiance_histogram_idx;
+			int32 distance_histogram_idx;
 		};
+
 
 	public:
 
@@ -46,13 +50,19 @@ namespace adria
 		void AddPasses(RenderGraph& rg);
 		bool IsSupported() const { return is_supported; }
 
+		int32 GetDDGIVolumeIndex();
+
 	private:
 		GfxDevice* gfx;
 		entt::registry& reg;
 		uint32 width, height;
 		bool is_supported;
 		ArcPtr<ID3D12StateObject> ddgi_trace_so;
+
 		DDGIVolume ddgi_volume;
+		std::unique_ptr<GfxBuffer> ddgi_volume_buffer;
+		GfxDescriptor ddgi_volume_buffer_srv;
+		GfxDescriptor ddgi_volume_buffer_srv_gpu;
 
 	private:
 		void CreateStateObject();

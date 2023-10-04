@@ -356,6 +356,12 @@ namespace adria
 		frame_cbuf_data.instances_idx = (int32)scene_buffers[SceneBuffer_Instance].buffer_srv_gpu.GetIndex();
 		frame_cbuf_data.lights_idx = (int32)scene_buffers[SceneBuffer_Light].buffer_srv_gpu.GetIndex();
 		shadow_renderer.FillFrameCBuffer(frame_cbuf_data);
+		frame_cbuf_data.ddgi_volumes_idx = ddgi.GetDDGIVolumeIndex();
+
+		if (ray_tracing_supported && reg.view<RayTracing>().size())
+		{
+			frame_cbuf_data.accel_struct_idx = accel_structure.GetTLASIndex();
+		}
 
 		auto lights = reg.view<Light>();
 		for (auto light : lights)
@@ -370,13 +376,9 @@ namespace adria
 			}
 		}
 
-		if (ray_tracing_supported && reg.view<RayTracing>().size())
-		{
-			frame_cbuf_data.accel_struct_idx = accel_structure.GetTLASIndex();
-		}
-
 		frame_cbuf_data.wind_params = Vector4(wind_dir[0], wind_dir[1], wind_dir[2], wind_speed);
 		frame_cbuffer.Update(frame_cbuf_data, backbuffer_index);
+
 		frame_cbuf_data.prev_view_projection = camera->ViewProj();
 		frame_cbuf_data.prev_view = camera->View();
 		frame_cbuf_data.prev_projection = camera->Proj();
