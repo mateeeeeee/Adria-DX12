@@ -9,7 +9,7 @@ struct FXAAConstants
 };
 ConstantBuffer<FXAAConstants> PassCB : register(b1);
 
-struct CS_INPUT
+struct CSInput
 {
 	uint3 GroupId : SV_GroupID;
 	uint3 GroupThreadId : SV_GroupThreadID;
@@ -18,7 +18,7 @@ struct CS_INPUT
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void FXAA(CS_INPUT input)
+void FXAA(CSInput input)
 {
 	Texture2D<float4> ldrTx = ResourceDescriptorHeap[PassCB.ldrIdx];
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];

@@ -21,7 +21,7 @@ struct HBAOConstants
 };
 ConstantBuffer<HBAOConstants> PassCB : register(b1);
 
-struct CS_INPUT
+struct CSInput
 {
     uint3 GroupId : SV_GroupID;
     uint3 GroupThreadId : SV_GroupThreadID;
@@ -70,7 +70,7 @@ float ComputeCoarseAO(Texture2D<float> depthTx, float2 UV, float radiusInPixels,
 }
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void HBAO(CS_INPUT input)
+void HBAO(CSInput input)
 {
     Texture2D normalTx = ResourceDescriptorHeap[PassCB.normalIdx];
     Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];

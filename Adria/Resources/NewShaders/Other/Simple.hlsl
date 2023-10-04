@@ -9,27 +9,27 @@ struct Constants
 };
 ConstantBuffer<Constants> PassCB : register(b2);
 
-struct VS_INPUT
+struct VSInput
 {
 	float3 Pos : POSITION;
 	float2 Uv  : TEX;
 };
 
-struct VS_OUTPUT
+struct VSToPS
 {
 	float4 Position : SV_POSITION;
 	float2 TexCoord : TEX;
 };
 
-VS_OUTPUT SimpleVS(VS_INPUT input)
+VSToPS SimpleVS(VSInput input)
 {
-	VS_OUTPUT output;
+	VSToPS output;
 	output.Position = mul(mul(float4(input.Pos, 1.0), PassCB.modelMatrix), FrameCB.viewProjection);
 	output.TexCoord = input.Uv;
 	return output;
 }
 
-VS_OUTPUT SunVS(VS_INPUT input)
+VSToPS SunVS(VSInput input)
 {
 	float4x4 modelMatrix = PassCB.modelMatrix;
 	modelMatrix[3][0] += FrameCB.inverseView[3][0];
@@ -50,20 +50,20 @@ VS_OUTPUT SunVS(VS_INPUT input)
 	float4 viewPosition = mul(float4(input.Pos, 1.0), modelView);
 	float4 PosH = mul(viewPosition, FrameCB.projection);
 
-	VS_OUTPUT output;
+	VSToPS output;
 	output.Position = float4(PosH.xy, PosH.w - 0.001f, PosH.w); 
 	output.TexCoord = input.Uv;
 	return output;
 }
 
-float4 TexturePS(VS_OUTPUT input) : SV_TARGET
+float4 TexturePS(VSToPS input) : SV_TARGET
 {
 	Texture2D diffuseTx = ResourceDescriptorHeap[PassCB.diffuseIdx];
 	float4 texColor = diffuseTx.Sample(LinearWrapSampler, input.TexCoord) * float4(PassCB.diffuseColor, 1.0);
 	return texColor;
 }
 
-float4 SolidPS(VS_OUTPUT input) : SV_TARGET
+float4 SolidPS(VSToPS input) : SV_TARGET
 {
 	return float4(PassCB.diffuseColor, 1.0);
 }

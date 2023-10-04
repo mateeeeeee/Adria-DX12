@@ -1,5 +1,5 @@
-#ifndef RANDOM_INCLUDED
-#define RANDOM_INCLUDED
+#ifndef _RANDOM_
+#define _RANDOM_
 
 //https://github.com/chris-wyman/GettingStartedWithRTXRayTracing/blob/master/05-AmbientOcclusion/Data/Tutorial05/hlslUtils.hlsli
 // Generates a seed for a random number generator from 2 inputs plus a backoff

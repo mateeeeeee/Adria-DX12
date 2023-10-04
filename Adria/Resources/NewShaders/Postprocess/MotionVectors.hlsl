@@ -10,7 +10,7 @@ struct MotionVectorsConstants
 
 ConstantBuffer<MotionVectorsConstants> PassCB : register(b1);
 
-struct CS_INPUT
+struct CSInput
 {
 	uint3 GroupId : SV_GroupID;
 	uint3 GroupThreadId : SV_GroupThreadID;
@@ -19,7 +19,7 @@ struct CS_INPUT
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void MotionVectors(CS_INPUT input)
+void MotionVectors(CSInput input)
 {
 	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
 	RWTexture2D<float2> velocityTx = ResourceDescriptorHeap[PassCB.outputIdx];

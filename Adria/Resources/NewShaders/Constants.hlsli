@@ -1,5 +1,5 @@
-#ifndef CONSTANTS_INCLUDED
-#define CONSTANTS_INCLUDED
+#ifndef _CONSTANTS_
+#define _CONSTANTS_
 
 static const float M_PI = 3.141592654f;
 static const float M_PI_2 = 6.283185307f;

@@ -84,7 +84,7 @@ bool InsideScreen(in float2 coords)
     return !(coords.x < 0 || coords.x > 1 || coords.y < 0 || coords.y > 1);
 }
 
-struct CS_INPUT
+struct CSInput
 {
     uint3 GroupId : SV_GroupID;
     uint3 GroupThreadId : SV_GroupThreadID;
@@ -93,7 +93,7 @@ struct CS_INPUT
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void SSR(CS_INPUT input)
+void SSR(CSInput input)
 {
     Texture2D normalTx = ResourceDescriptorHeap[PassCB.normalIdx];
     Texture2D diffuseTx = ResourceDescriptorHeap[PassCB.diffuseIdx];

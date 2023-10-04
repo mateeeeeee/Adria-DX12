@@ -15,29 +15,29 @@ struct DecalsConstants
 };
 ConstantBuffer<DecalsConstants> PassCB : register(b2);
 
-struct VS_INPUT
+struct VSInput
 {
 	float3 Pos : POSITION;
 };
 
-struct VS_OUTPUT
+struct VSToPS
 {
 	float4 Position     : SV_POSITION;
 	float4 ClipSpacePos : POSITION;
 	matrix InverseModel : INVERSE_MODEL;
 };
 
-VS_OUTPUT DecalsVS(VS_INPUT vin)
+VSToPS DecalsVS(VSInput input)
 {
-	VS_OUTPUT output = (VS_OUTPUT)0;
-	float4 worldPos = mul(float4(vin.Pos, 1.0f), PassCB.modelMatrix);
+	VSToPS output = (VSToPS)0;
+	float4 worldPos = mul(float4(input.Pos, 1.0f), PassCB.modelMatrix);
 	output.Position = mul(worldPos, FrameCB.viewProjection);
 	output.ClipSpacePos = output.Position;
 	output.InverseModel = transpose(PassCB.transposedInverseModel);
 	return output;
 }
 
-struct PS_DECAL_OUT
+struct PSOutput
 {
 	float4 DiffuseRoughness : SV_TARGET0;
 #ifdef DECAL_MODIFY_NORMALS
@@ -45,9 +45,9 @@ struct PS_DECAL_OUT
 #endif
 };
 
-PS_DECAL_OUT DecalsPS(VS_OUTPUT input)
+PSOutput DecalsPS(VSToPS input)
 {
-	PS_DECAL_OUT output = (PS_DECAL_OUT)0;
+	PSOutput output = (PSOutput)0;
 
 	Texture2D<float4> albedoTx = ResourceDescriptorHeap[PassCB.decalAlbedoIdx];
 	Texture2D<float>  depthTx  = ResourceDescriptorHeap[PassCB.depthIdx];

@@ -18,20 +18,20 @@ struct OceanConstants
 ConstantBuffer<OceanConstants> PassCB : register(b2);
 
 
-struct VS_INPUT
+struct VSInput
 {
 	float3 Pos : POSITION;
 	float2 Uvs : TEX;
 };
 
-struct VS_OUTPUT
+struct VSToPS
 {
 	float4 Position     : SV_POSITION;
 	float4 WorldPos     : POS;
 	float2 TexCoord     : TEX;
 };
 
-VS_OUTPUT OceanVS(VS_INPUT input)
+VSToPS OceanVS(VSInput input)
 {
 	Texture2D displacementTx = ResourceDescriptorHeap[PassCB2.displacementIdx];
 	
@@ -41,14 +41,14 @@ VS_OUTPUT OceanVS(VS_INPUT input)
 	float3 displacement = displacementTx.SampleLevel(LinearWrapSampler, input.Uvs, 0.0f).xyz;
 	worldPos.xyz += LAMBDA * displacement;
 
-	VS_OUTPUT vout;
-	vout.Position = mul(worldPos, FrameCB.viewProjection);
-	vout.TexCoord = input.Uvs;
-	vout.WorldPos = worldPos;
-	return vout;
+	VSToPS output = (VSToPS)0;
+	output.Position = mul(worldPos, FrameCB.viewProjection);
+	output.TexCoord = input.Uvs;
+	output.WorldPos = worldPos;
+	return output;
 }
 
-float4 OceanPS(VS_OUTPUT input) : SV_TARGET
+float4 OceanPS(VSToPS input) : SV_TARGET
 {
 	Texture2D	normalTx		= ResourceDescriptorHeap[PassCB2.normalIdx];
 	TextureCube skyCubeTx		= ResourceDescriptorHeap[FrameCB.envMapIdx];

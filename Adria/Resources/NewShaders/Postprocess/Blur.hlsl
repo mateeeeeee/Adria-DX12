@@ -21,7 +21,7 @@ static const float GaussFilter[9] =
     0.0002, 0.0060, 0.0606, 0.2417, 0.3829, 0.2417, 0.0606, 0.0060, 0.0002
 };
 
-struct CS_INPUT
+struct CSInput
 {
 	uint3 GroupId : SV_GroupID;
 	uint3 GroupThreadId : SV_GroupThreadID;
@@ -30,7 +30,7 @@ struct CS_INPUT
 };
 
 [numthreads(BLOCK_SIZE, 1, 1)]
-void Blur_Horizontal(CS_INPUT input)
+void Blur_Horizontal(CSInput input)
 {
 	uint3 globalCoords = input.DispatchThreadId;
 	uint groupIndex = input.GroupIndex;
@@ -65,7 +65,7 @@ void Blur_Horizontal(CS_INPUT input)
 }
 
 [numthreads(1, BLOCK_SIZE, 1)]
-void Blur_Vertical(CS_INPUT input)
+void Blur_Vertical(CSInput input)
 {
 	uint3 globalCoords = input.DispatchThreadId;
 	uint groupIndex = input.GroupIndex;

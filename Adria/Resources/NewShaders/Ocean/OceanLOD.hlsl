@@ -1,4 +1,3 @@
-
 #include "../CommonResources.hlsli"
 
 #define LAMBDA 1.2
@@ -8,7 +7,7 @@ static const float MinDest = 100.0;
 static const float MaxDest = 400.0;
 
 static const float MinTess = 0;
-static const float MaxTess = 2;
+static const float MaxTess = 3;
 
 struct OceanIndices
 {
@@ -26,34 +25,34 @@ struct OceanConstants
 };
 ConstantBuffer<OceanConstants> PassCB : register(b2);
 
-struct VS_INPUT
+struct VSInput
 {
 	float3 Pos : POSITION;
 	float2 Uvs : TEX;
 };
 
-struct VS_CONTROL_POINT_OUTPUT
+struct VSToHS
 {
 	float4 WorldPos : POS;
 	float2 TexCoord : TEX;
 };
 
-VS_CONTROL_POINT_OUTPUT OceanVS_LOD(VS_INPUT vin)
+VSToHS OceanVS_LOD(VSInput input)
 {
-	VS_CONTROL_POINT_OUTPUT vout;
-	vout.WorldPos = mul(float4(vin.Pos, 1.0), PassCB.oceanModelMatrix);
-	vout.WorldPos /= vout.WorldPos.w;
-	vout.TexCoord = vin.Uvs;
-	return vout;
+	VSToHS output = (VSToHS)0;
+	output.WorldPos = mul(float4(input.Pos, 1.0), PassCB.oceanModelMatrix);
+	output.WorldPos /= output.WorldPos.w;
+	output.TexCoord = input.Uvs;
+	return output;
 }
 
-struct HS_CONTROL_POINT_OUTPUT
+struct HSToDS
 {
 	float3 WorldPos : POS;
 	float2 TexCoord : TEX;
 };
 
-struct HS_CONSTANT_DATA_OUTPUT
+struct HSConstantDataOutput
 {
 	float EdgeTessFactor[3]	: SV_TessFactor;
 	float InsideTessFactor  : SV_InsideTessFactor;
@@ -66,16 +65,16 @@ int CalcTessFactor(float3 p)
 	return pow(2, lerp(MaxTess, MinTess, s));
 }
 
-HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
-	InputPatch<VS_CONTROL_POINT_OUTPUT, NUM_CONTROL_POINTS> ip,
-	uint PatchID : SV_PrimitiveID)
+HSConstantDataOutput CalcHSPatchConstants(
+	InputPatch<VSToHS, NUM_CONTROL_POINTS> inputPatch,
+	uint patchId : SV_PrimitiveID)
 {
-	HS_CONSTANT_DATA_OUTPUT Output;
+	HSConstantDataOutput Output;
 
-	float3 e0 = 0.5 * (ip[1].WorldPos.xyz + ip[2].WorldPos.xyz);
-	float3 e1 = 0.5 * (ip[2].WorldPos.xyz + ip[0].WorldPos.xyz);
-	float3 e2 = 0.5 * (ip[0].WorldPos.xyz + ip[1].WorldPos.xyz);
-	float3 e3 = 1 / 3 * (ip[0].WorldPos.xyz + ip[1].WorldPos.xyz + ip[2].WorldPos.xyz);
+	float3 e0 = 0.5 * (inputPatch[1].WorldPos.xyz + inputPatch[2].WorldPos.xyz);
+	float3 e1 = 0.5 * (inputPatch[2].WorldPos.xyz + inputPatch[0].WorldPos.xyz);
+	float3 e2 = 0.5 * (inputPatch[0].WorldPos.xyz + inputPatch[1].WorldPos.xyz);
+	float3 e3 = 1 / 3 * (inputPatch[0].WorldPos.xyz + inputPatch[1].WorldPos.xyz + inputPatch[2].WorldPos.xyz);
 
 	Output.EdgeTessFactor[0] = CalcTessFactor(e0);
 	Output.EdgeTessFactor[1] = CalcTessFactor(e1);
@@ -90,18 +89,18 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
 [outputtopology("triangle_cw")]
 [outputcontrolpoints(3)]
 [patchconstantfunc("CalcHSPatchConstants")]
-HS_CONTROL_POINT_OUTPUT OceanHS_LOD(
-	InputPatch<VS_CONTROL_POINT_OUTPUT, NUM_CONTROL_POINTS> ip,
+HSToDS OceanHS_LOD(
+	InputPatch<VSToHS, NUM_CONTROL_POINTS> inputPatch,
 	uint i : SV_OutputControlPointID,
-	uint PatchID : SV_PrimitiveID)
+	uint patchId : SV_PrimitiveID)
 {
-	HS_CONTROL_POINT_OUTPUT Output;
-	Output.WorldPos = ip[i].WorldPos.xyz;
-	Output.TexCoord = ip[i].TexCoord;
+	HSToDS Output;
+	Output.WorldPos = inputPatch[i].WorldPos.xyz;
+	Output.TexCoord = inputPatch[i].TexCoord;
 	return Output;
 }
 
-struct DS_OUTPUT
+struct DSToPS
 {
 	float4 Position		: SV_POSITION;
 	float4 WorldPos		: POS;
@@ -109,12 +108,12 @@ struct DS_OUTPUT
 };
 
 [domain("tri")]
-DS_OUTPUT OceanDS_LOD(
-	HS_CONSTANT_DATA_OUTPUT input,
+DSToPS OceanDS_LOD(
+	HSConstantDataOutput input,
 	float3 domain : SV_DomainLocation,
-	const OutputPatch<HS_CONTROL_POINT_OUTPUT, NUM_CONTROL_POINTS> patch)
+	const OutputPatch<HSToDS, NUM_CONTROL_POINTS> patch)
 {
-	DS_OUTPUT output;
+	DSToPS output;
 	output.TexCoord =
 		domain.x * patch[0].TexCoord +
 		domain.y * patch[1].TexCoord +

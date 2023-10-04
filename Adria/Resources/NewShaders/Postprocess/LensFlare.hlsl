@@ -1,6 +1,6 @@
 #include "../CommonResources.hlsli"
 
-struct VertexOut
+struct VSToPS
 {
     float4 Pos : SV_POSITION;
     nointerpolation uint VertexId : VERTEXID;
@@ -70,16 +70,16 @@ void Append(inout TriangleStream<GeometryOut> triStream, GeometryOut p1, uint se
     triStream.Append(p1);
 }
 
-VertexOut LensFlareVS(uint vid : SV_VERTEXID)
+VSToPS LensFlareVS(uint vid : SV_VERTEXID)
 {
-    VertexOut o = (VertexOut)0;
+    VSToPS o = (VSToPS)0;
     o.Pos = 0;
     o.VertexId = vid;
     return o;
 }
 
 [maxvertexcount(4)]
-void LensFlareGS(point VertexOut p[1], inout TriangleStream<GeometryOut> triStream)
+void LensFlareGS(point VSToPS p[1], inout TriangleStream<GeometryOut> triStream)
 {
     Texture2D lensTx0 = ResourceDescriptorHeap[PassCB.lensIdx0];
     Texture2D lensTx1 = ResourceDescriptorHeap[PassCB.lensIdx1];

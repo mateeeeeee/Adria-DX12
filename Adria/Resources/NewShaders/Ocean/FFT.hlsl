@@ -24,7 +24,7 @@ float4 ButterflyOperation(float2 a, float2 b, float2 twiddle)
 	return result;
 }
 
-struct CS_INPUT
+struct CSInput
 {
 	uint3 GroupId : SV_GroupID;
 	uint3 GroupThreadId : SV_GroupThreadID;
@@ -33,7 +33,7 @@ struct CS_INPUT
 };
 
 [numthreads(FFT_WORK_GROUP_DIM, 1, 1)]
-void FFT_Horizontal(CS_INPUT input)
+void FFT_Horizontal(CSInput input)
 {
 	uint2 pixelCoord = uint2(input.GroupThreadId.x, input.GroupId.x);
 
@@ -59,7 +59,7 @@ void FFT_Horizontal(CS_INPUT input)
 }
 
 [numthreads(FFT_WORK_GROUP_DIM, 1, 1)]
-void FFT_Vertical(CS_INPUT input)
+void FFT_Vertical(CSInput input)
 {
 	uint2 pixelCoord = uint2(input.GroupId.x, input.GroupThreadId.x);
 

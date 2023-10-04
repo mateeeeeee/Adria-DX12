@@ -5,21 +5,21 @@ struct VertexIn
 {
 	float3 PosL : POSITION;
 };
-struct VertexOut
+struct VSToPS
 {
-	float4 PosH : SV_POSITION;
+	float4 Pos : SV_POSITION;
 	float3 PosL : POSITION;
 };
 
-VertexOut SkyVS(VertexIn input)
+VSToPS SkyVS(VertexIn input)
 {
-	VertexOut output;
-	output.PosH = float4(input.PosL + FrameCB.cameraPosition.xyz, 1.0f);
-	output.PosH = mul(output.PosH, FrameCB.viewProjection).xyww;
+	VSToPS output;
+	output.Pos = float4(input.PosL + FrameCB.cameraPosition.xyz, 1.0f);
+	output.Pos = mul(output.Pos, FrameCB.viewProjection).xyww;
 	output.PosL = input.PosL;
 	return output;
 }
-float4 SkyPS(VertexOut input) : SV_Target
+float4 SkyPS(VSToPS input) : SV_Target
 {
 	TextureCube cubemapTx = ResourceDescriptorHeap[FrameCB.envMapIdx];
 	return cubemapTx.Sample(LinearWrapSampler, input.PosL);
@@ -31,7 +31,7 @@ float4 SkyPS(VertexOut input) : SV_Target
 
 #define BLOCK_SIZE 16
 
-struct CS_INPUT
+struct CSInput
 {
 	uint3 GroupId : SV_GroupID;
 	uint3 GroupThreadId : SV_GroupThreadID;
@@ -104,7 +104,7 @@ float3 GetRayDir(uint3 threadId)
 }
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void HosekWilkieSkyCS(CS_INPUT input)
+void HosekWilkieSkyCS(CSInput input)
 {
 	RWTexture2DArray<float4> envMapTx = ResourceDescriptorHeap[EnvMapPassCB.envMapIdx];
 	uint3 threadId = input.DispatchThreadId;
@@ -118,7 +118,7 @@ void HosekWilkieSkyCS(CS_INPUT input)
 }
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void MinimalAtmosphereSkyCS(CS_INPUT input)
+void MinimalAtmosphereSkyCS(CSInput input)
 {
 	RWTexture2DArray<float4> envMapTx = ResourceDescriptorHeap[EnvMapPassCB.envMapIdx];
 	uint3 threadId = input.DispatchThreadId;

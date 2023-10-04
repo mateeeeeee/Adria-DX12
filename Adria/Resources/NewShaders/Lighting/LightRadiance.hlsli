@@ -1,5 +1,5 @@
-#ifndef LIGHT_RADIANCE_INCLUDED
-#define LIGHT_RADIANCE_INCLUDED
+#ifndef _LIGHT_RADIANCE_
+#define _LIGHT_RADIANCE_
 
 #include "../Lighting.hlsli"
 #include "../CommonResources.hlsli"

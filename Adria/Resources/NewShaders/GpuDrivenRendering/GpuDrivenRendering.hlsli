@@ -1,5 +1,5 @@
-#ifndef GPU_DRIVEN_RENDERING_INCLUDED
-#define GPU_DRIVEN_RENDERING_INCLUDED
+#ifndef _GPU_DRIVEN_RENDERING_
+#define _GPU_DRIVEN_RENDERING_
 #include "../CommonResources.hlsli"
 
 //credits: https://github.com/simco50/D3D12_Research

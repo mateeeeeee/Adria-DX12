@@ -1,5 +1,5 @@
-#ifndef RAYTRACING_UTIL_INCLUDED
-#define RAYTRACING_UTIL_INCLUDED
+#ifndef _RAYTRACING_UTIL_
+#define _RAYTRACING_UTIL_
 
 #include "../Common.hlsli"
 #include "../Scene.hlsli"

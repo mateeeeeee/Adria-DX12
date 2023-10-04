@@ -1,15 +1,15 @@
-struct VertexOut
+struct VSToPS
 {
-	float4 PosH : SV_POSITION;
+	float4 Pos : SV_POSITION;
 	float2 Tex  : TEX;
 
 };
 
-VertexOut FullscreenQuad(uint vI : SV_VERTEXID)
+VSToPS FullscreenQuad(uint vertexId : SV_VERTEXID)
 {
-	int2 texcoord = int2(vI & 1, vI >> 1);
-	VertexOut vout;
-	vout.Tex = float2(texcoord);
-	vout.PosH = float4(2 * (texcoord.x - 0.5f), -2 * (texcoord.y - 0.5f), 0, 1);
-	return vout;
+	VSToPS output = (VSToPS)0;
+	int2 texCoord = int2(vertexId & 1, vertexId >> 1);
+	output.Tex = float2(texCoord);
+	output.Pos = float4(2 * (texCoord.x - 0.5f), -2 * (texCoord.y - 0.5f), 0, 1);
+	return output;
 }

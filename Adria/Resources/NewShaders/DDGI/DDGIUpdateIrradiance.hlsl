@@ -15,7 +15,7 @@ ConstantBuffer<DDGIPassConstants> PassCB : register(b1);
 groupshared float3 RadianceCache[CACHE_SIZE];
 groupshared float3 DirectionCache[CACHE_SIZE];
 
-struct CS_INPUT
+struct CSInput
 {
     uint3 GroupId : SV_GroupID;
     uint3 GroupThreadId : SV_GroupThreadID;
@@ -37,7 +37,7 @@ static const uint4 BORDER_OFFSETS[BORDER_TEXELS] =
 };
 
 [numthreads(PROBE_IRRADIANCE_TEXELS, PROBE_IRRADIANCE_TEXELS, 1)]
-void DDGI_UpdateIrradiance(CS_INPUT input)
+void DDGI_UpdateIrradiance(CSInput input)
 {
 	StructuredBuffer<DDGIVolume> ddgiVolumes = ResourceDescriptorHeap[FrameCB.ddgiVolumesIdx];
 	DDGIVolume ddgiVolume = ddgiVolumes[0];

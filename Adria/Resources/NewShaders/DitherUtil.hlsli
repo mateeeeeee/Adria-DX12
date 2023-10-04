@@ -1,5 +1,5 @@
-#ifndef DITHER_INCLUDED
-#define DITHER_INCLUDED
+#ifndef _DITHER_UTIL_
+#define _DITHER_UTIL_
 
 static const float2x2 BayerMatrix2 =
 {

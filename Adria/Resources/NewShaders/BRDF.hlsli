@@ -1,5 +1,5 @@
-#ifndef  BRDF_INCLUDED
-#define  BRDF_INCLUDED
+#ifndef  _BRDF_
+#define  _BRDF_
 
 #include "Constants.hlsli"
 

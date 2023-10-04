@@ -1,27 +1,27 @@
 #include "../CommonResources.hlsli"
 #include "../Packing.hlsli"
 
-struct VS_OUTPUT
+struct VSToPS
 {
 	float4 Position : SV_Position;
 	float4 Color : COLOR;
 };
 
-struct VS_INPUT
+struct VSInput
 {
 	float3 Position : POSITION;
 	uint Color : COLOR;
 };
 
-VS_OUTPUT DebugVS(VS_INPUT v)
+VSToPS DebugVS(VSInput input)
 {
-	VS_OUTPUT output = (VS_OUTPUT)0;
-	output.Position = mul(float4(v.Position, 1.0f), FrameCB.viewProjection);
-	output.Color = UnpackUintColor(v.Color);
+	VSToPS output = (VSToPS)0;
+	output.Position = mul(float4(input.Position, 1.0f), FrameCB.viewProjection);
+	output.Color = UnpackUintColor(input.Color);
 	return output;
 }
 
-float4 DebugPS(VS_OUTPUT input) : SV_Target
+float4 DebugPS(VSToPS input) : SV_Target
 {
 	return input.Color; 
 }

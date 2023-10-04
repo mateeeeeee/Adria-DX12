@@ -1,5 +1,5 @@
-#ifndef TONEMAPPING_INCLUDED
-#define TONEMAPPING_INCLUDED
+#ifndef _TONEMAPPING_
+#define _TONEMAPPING_
 
 static const float gamma = 2.2;
 

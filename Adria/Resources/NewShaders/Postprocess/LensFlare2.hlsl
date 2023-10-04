@@ -56,7 +56,7 @@ float3 LensFlare(float2 uv, float2 pos)
 	return lerp(color, w * 0.5f, w * 0.1f);
 }
 
-struct CS_INPUT
+struct CSInput
 {
 	uint3 GroupId : SV_GroupID;
 	uint3 GroupThreadId : SV_GroupThreadID;
@@ -65,7 +65,7 @@ struct CS_INPUT
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void LensFlareCS(CS_INPUT input)
+void LensFlareCS(CSInput input)
 {
 	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];

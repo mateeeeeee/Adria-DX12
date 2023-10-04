@@ -30,7 +30,7 @@ float3 DistanceDOF(float3 colorFocus, float3 colorBlurred, float depth)
 	return lerp(colorFocus, colorBlurred, blurFactor);
 }
 
-struct CS_INPUT
+struct CSInput
 {
 	uint3 GroupId : SV_GroupID;
 	uint3 GroupThreadId : SV_GroupThreadID;
@@ -39,7 +39,7 @@ struct CS_INPUT
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void DepthOfField(CS_INPUT input)
+void DepthOfField(CSInput input)
 {
 	Texture2D sceneTx = ResourceDescriptorHeap[PassCB.sceneIdx];
 	Texture2D blurredSceneTx = ResourceDescriptorHeap[PassCB.blurredSceneIdx];

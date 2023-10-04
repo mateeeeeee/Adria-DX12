@@ -1,3 +1,5 @@
+#ifndef _EXPOSURE_UTIL_
+#define _EXPOSURE_UTIL_
 #include "../Tonemapping.hlsli"
 
 #define GROUP_SIZE_X 16
@@ -26,3 +28,5 @@ float GetLuminance(uint histogramBin, float minLuminance, float maxLuminance)
 	float position = ((float)histogramBin + 0.5) / float(HISTOGRAM_BIN_NUM - 1);
 	return pow(position, 5.0) * (maxLuminance - minLuminance);
 }
+
+#endif

@@ -1,5 +1,5 @@
-#ifndef PACKING_INCLUDED
-#define PACKING_INCLUDED
+#ifndef _PACKING_
+#define _PACKING_
 
 float2 UnpackHalf2(in uint packed)
 {

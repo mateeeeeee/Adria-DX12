@@ -23,7 +23,7 @@ struct SSAOKernel
 };
 ConstantBuffer<SSAOKernel> KernelCB : register(b2);
 
-struct CS_INPUT
+struct CSInput
 {
     uint3 GroupId : SV_GroupID;
     uint3 GroupThreadId : SV_GroupThreadID;
@@ -32,7 +32,7 @@ struct CS_INPUT
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void SSAO(CS_INPUT input)
+void SSAO(CSInput input)
 {
     Texture2D normalTx = ResourceDescriptorHeap[PassCB.normalIdx];
     Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];

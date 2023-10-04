@@ -25,9 +25,9 @@ struct LightGrid
 struct ClusterCullingConstants
 {
 	uint clustersIdx;
-	uint lightIndexCounterIdx; //1
-	uint lightIndexListIdx;	   //MAX_CLUSTER_LIGHTS * 16^3
-	uint lightGridIdx;		   //16^3
+	uint lightIndexCounterIdx; 
+	uint lightIndexListIdx;	   
+	uint lightGridIdx;		   
 };
 ConstantBuffer<ClusterCullingConstants> PassCB : register(b1);
 
@@ -39,7 +39,7 @@ bool LightIntersectsCluster(Light light, ClusterAABB cluster)
 	return dot(dist, dist) <= (light.range * light.range);
 }
 
-struct CS_INPUT
+struct CSInput
 {
 	uint3 GroupId : SV_GroupID;
 	uint3 GroupThreadId : SV_GroupThreadID;
@@ -50,7 +50,7 @@ struct CS_INPUT
 groupshared Light shared_lights[GROUP_SIZE];
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void ClusterCulling(CS_INPUT input)
+void ClusterCulling(CSInput input)
 {
 	StructuredBuffer<ClusterAABB> clusters			 = ResourceDescriptorHeap[PassCB.clustersIdx];
 	StructuredBuffer<Light> lights					 = ResourceDescriptorHeap[FrameCB.lightsIdx];

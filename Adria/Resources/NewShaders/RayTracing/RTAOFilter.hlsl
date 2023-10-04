@@ -69,7 +69,7 @@ float FilterAO(int2 paddedPixelPos)
 }
 
 
-struct CS_INPUT
+struct CSInput
 {
 	uint3 GroupID : SV_GroupID;
 	uint3 GroupThreadID : SV_GroupThreadID;
@@ -78,7 +78,7 @@ struct CS_INPUT
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void RTAOFilterCS(CS_INPUT input)
+void RTAOFilterCS(CSInput input)
 {
 	Texture2D<float> rtaoTx = ResourceDescriptorHeap[PassCB.inputIdx];
 	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];

@@ -1,5 +1,5 @@
-#ifndef COMMON_RESOURCES_INCLUDED
-#define COMMON_RESOURCES_INCLUDED
+#ifndef _COMMON_RESOURCES_
+#define _COMMON_RESOURCES_
 
 struct FrameCBuffer
 {

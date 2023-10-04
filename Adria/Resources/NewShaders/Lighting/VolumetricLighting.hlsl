@@ -15,7 +15,7 @@ ConstantBuffer<VolumetricLightingConstants> PassCB : register(b1);
 
 float GetAttenuation(Light light, float3 P);
 
-struct CS_INPUT
+struct CSInput
 {
 	uint3 GroupId : SV_GroupID;
 	uint3 GroupThreadId : SV_GroupThreadID;
@@ -24,14 +24,14 @@ struct CS_INPUT
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void VolumetricLighting(CS_INPUT input)
+void VolumetricLighting(CSInput input)
 {
 	Texture2D<float>        depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
 	StructuredBuffer<Light> lights	= ResourceDescriptorHeap[FrameCB.lightsIdx];
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
 
-	uint lightCount, _unused;
-	lights.GetDimensions(lightCount, _unused);
+	uint lightCount, unused;
+	lights.GetDimensions(lightCount, unused);
 	uint2 resolution = uint2(FrameCB.screenResolution) >> PassCB.resolutionFactor;
 
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / resolution;

@@ -15,7 +15,7 @@ struct ModelConstants
 ConstantBuffer<ModelConstants> ModelCB : register(b2);
 
 
-struct VS_OUTPUT
+struct VSToPS
 {
 	float4 Pos : SV_POSITION;
 #if ALPHA_TEST
@@ -23,14 +23,14 @@ struct VS_OUTPUT
 #endif
 };
 
-VS_OUTPUT ShadowVS(uint vertexId : SV_VertexID)
+VSToPS ShadowVS(uint vertexId : SV_VertexID)
 {
 	StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
 	StructuredBuffer<float4x4> lightViewProjections = ResourceDescriptorHeap[FrameCB.lightsMatricesIdx];
 	Light light = lights[ShadowCB.lightIndex];
 	float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex + ShadowCB.matrixIndex];
 
-	VS_OUTPUT output = (VS_OUTPUT)0;
+	VSToPS output = (VSToPS)0;
 	Instance instanceData = GetInstanceData(ModelCB.instanceId);
 	Mesh meshData = GetMeshData(instanceData.meshIndex);
 
@@ -46,7 +46,7 @@ VS_OUTPUT ShadowVS(uint vertexId : SV_VertexID)
 	return output;
 }
 
-void ShadowPS(VS_OUTPUT input)
+void ShadowPS(VSToPS input)
 {
 #if ALPHA_TEST 
 	Instance instanceData = GetInstanceData(ModelCB.instanceId);

@@ -69,7 +69,7 @@ struct TAAConstants
 };
 ConstantBuffer<TAAConstants> PassCB : register(b1);
 
-struct CS_INPUT
+struct CSInput
 {
 	uint3 GroupId : SV_GroupID;
 	uint3 GroupThreadId : SV_GroupThreadID;
@@ -78,7 +78,7 @@ struct CS_INPUT
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void TAA(CS_INPUT input)
+void TAA(CSInput input)
 {
 	Texture2D<float4> sceneTx = ResourceDescriptorHeap[PassCB.sceneIdx];
 	Texture2D<float4> prevSceneTx = ResourceDescriptorHeap[PassCB.prevSceneIdx];

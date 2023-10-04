@@ -21,7 +21,7 @@ void Picking()
 
 	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
 	Texture2D<float4> normalTx = ResourceDescriptorHeap[PassCB.normalIdx];
-	RWStructuredBuffer<PickingData> PickingBuffer = ResourceDescriptorHeap[PassCB.bufferIdx];
+	RWStructuredBuffer<PickingData> pickingBuffer = ResourceDescriptorHeap[PassCB.bufferIdx];
 
 	uint2 mouseCoords = uint2(FrameCB.mouseNormalizedCoords * FrameCB.screenResolution);
 	float2 uv = (mouseCoords + 0.5f) / FrameCB.screenResolution;
@@ -36,5 +36,5 @@ void Picking()
 	PickingData pickingData;
 	pickingData.position = worldPosition / worldPosition.w;
 	pickingData.normal = float4(normalize(mul(viewNormal, (float3x3) transpose(FrameCB.view))), 0.0f);
-	PickingBuffer[0] = pickingData;
+	pickingBuffer[0] = pickingData;
 }

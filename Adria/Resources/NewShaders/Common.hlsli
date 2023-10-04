@@ -1,5 +1,5 @@
-#ifndef COMMON_INCLUDED
-#define COMMON_INCLUDED
+#ifndef _COMMON_
+#define _COMMON_
 
 float4 GetRotationToZAxis(float3 input)
 {

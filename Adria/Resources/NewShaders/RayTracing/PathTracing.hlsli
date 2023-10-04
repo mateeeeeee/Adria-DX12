@@ -1,5 +1,5 @@
-#ifndef PATHTRACING_INCLUDED
-#define PATHTRACING_INCLUDED
+#ifndef _PATHTRACING_
+#define _PATHTRACING_
 
 #include "RayTracingUtil.hlsli"
 #include "../Tonemapping.hlsli"

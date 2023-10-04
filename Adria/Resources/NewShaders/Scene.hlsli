@@ -1,5 +1,5 @@
-#ifndef SCENE_INCLUDED
-#define SCENE_INCLUDED
+#ifndef _SCENE_
+#define _SCENE_
 #include "CommonResources.hlsli"
 
 struct Mesh

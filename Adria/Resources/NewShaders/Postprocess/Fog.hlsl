@@ -57,7 +57,7 @@ float ExponentialHeightFog(float4 viewPosition)
     return 1 - fog;
 }
 
-struct CS_INPUT
+struct CSInput
 {
     uint3 GroupId : SV_GroupID;
     uint3 GroupThreadId : SV_GroupThreadID;
@@ -66,7 +66,7 @@ struct CS_INPUT
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void Fog(CS_INPUT input)
+void Fog(CSInput input)
 {
     Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
     Texture2D sceneTx = ResourceDescriptorHeap[PassCB.sceneIdx];

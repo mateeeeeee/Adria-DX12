@@ -1,5 +1,5 @@
-#ifndef NOISE_INCLUDED
-#define NOISE_INCLUDED
+#ifndef _NOISE_
+#define _NOISE_
 
 // Hash by David_Hoskins
 #define UI0 1597334673U

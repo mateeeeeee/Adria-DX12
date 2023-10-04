@@ -13,7 +13,7 @@ struct ExposureConstants
 ConstantBuffer<ExposureConstants> PassCB : register(b1);
 
 [numthreads(1, 1, 1)]
-void ExposureCS(uint3 DTid : SV_DispatchThreadID)
+void ExposureCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
 	RWTexture2D<float> 			PreviousEV100 = ResourceDescriptorHeap[PassCB.previousEVIdx];
 	RWTexture2D<float>			Exposure = ResourceDescriptorHeap[PassCB.exposureIdx];

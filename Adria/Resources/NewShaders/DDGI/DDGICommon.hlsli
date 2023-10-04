@@ -1,5 +1,6 @@
-#ifndef DDGICOMMON_INCLUDED
-#define DDGICOMMON_INCLUDED
+#ifndef _DDGI_COMMON_
+#define _DDGI_COMMON_
+
 #include "../Packing.hlsli"
 #include "../Constants.hlsli"
 #include "../CommonResources.hlsli"

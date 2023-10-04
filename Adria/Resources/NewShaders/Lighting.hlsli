@@ -1,5 +1,5 @@
-#ifndef LIGHTING_INCLUDED
-#define LIGHTING_INCLUDED
+#ifndef _LIGHTING_
+#define _LIGHTING_
 
 #include "Constants.hlsli"
 

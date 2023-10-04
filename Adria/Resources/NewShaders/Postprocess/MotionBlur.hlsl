@@ -11,7 +11,7 @@ struct MotionBlurConstants
 };
 ConstantBuffer<MotionBlurConstants> PassCB : register(b1);
 
-struct CS_INPUT
+struct CSInput
 {
 	uint3 GroupId : SV_GroupID;
 	uint3 GroupThreadId : SV_GroupThreadID;
@@ -20,7 +20,7 @@ struct CS_INPUT
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void MotionBlur(CS_INPUT input)
+void MotionBlur(CSInput input)
 {
 	Texture2D<float4> sceneTx = ResourceDescriptorHeap[PassCB.sceneIdx];
 	Texture2D<float2> velocityTx = ResourceDescriptorHeap[PassCB.velocityIdx];

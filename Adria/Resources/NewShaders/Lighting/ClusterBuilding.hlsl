@@ -28,7 +28,7 @@ float3 IntersectionZPlane(float3 B, float zDist)
 	return result;
 }
 
-struct CS_INPUT
+struct CSInput
 {
 	uint3 GroupId : SV_GroupID;
 	uint3 GroupThreadId : SV_GroupThreadID;
@@ -37,11 +37,11 @@ struct CS_INPUT
 };
 
 [numthreads(1, 1, 1)]
-void ClusterBuilding(CS_INPUT input)
+void ClusterBuilding(CSInput input)
 {
 	RWStructuredBuffer<ClusterAABB> clusters = ResourceDescriptorHeap[PassCB.clustersIdx];
-	uint clustersCount, _unused;
-	clusters.GetDimensions(clustersCount, _unused);
+	uint clustersCount, unused;
+	clusters.GetDimensions(clustersCount, unused);
 
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
 

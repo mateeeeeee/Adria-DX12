@@ -266,7 +266,7 @@ float4 RayMarch(float3 rayOrigin, float3 rayDirection, float cosAngle, float ste
 }
 
 
-struct CS_INPUT
+struct CSInput
 {
 	uint3 GroupId : SV_GroupID;
 	uint3 GroupThreadId : SV_GroupThreadID;
@@ -274,7 +274,7 @@ struct CS_INPUT
 	uint  GroupIndex : SV_GroupIndex;
 };
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void CloudsCS(CS_INPUT input)
+void CloudsCS(CSInput input)
 {
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
 	uint3 threadId = input.DispatchThreadId;
@@ -344,17 +344,17 @@ void CloudsCS(CS_INPUT input)
 //////////////////////////////////////////////////////////////////////////////////
 #define CLOUDS_DEPTH 0.99999f
 
-struct VertexOut
+struct VSToPS
 {
-	float4 PosH : SV_POSITION;
+	float4 Pos : SV_POSITION;
 	float2 Tex  : TEX;
 };
-VertexOut CloudsCombineVS(uint vI : SV_VERTEXID)
+VSToPS CloudsCombineVS(uint vI : SV_VERTEXID)
 {
 	int2 texcoord = int2(vI & 1, vI >> 1);
-	VertexOut vout;
+	VSToPS vout;
 	vout.Tex = float2(texcoord);
-	vout.PosH = float4(2 * (texcoord.x - 0.5f), -2 * (texcoord.y - 0.5f), CLOUDS_DEPTH, 1);
+	vout.Pos = float4(2 * (texcoord.x - 0.5f), -2 * (texcoord.y - 0.5f), CLOUDS_DEPTH, 1);
 	return vout;
 }
 
@@ -364,7 +364,7 @@ struct CloudsCombineConstants
 };
 ConstantBuffer<CloudsCombineConstants> CombineCB : register(b1);
 
-float4 CloudsCombinePS(VertexOut pin) : SV_Target0
+float4 CloudsCombinePS(VSToPS pin) : SV_Target0
 {
 	Texture2D<float4> inputTx = ResourceDescriptorHeap[CombineCB.inputIdx];
 	float4 color = inputTx.Sample(LinearWrapSampler, pin.Tex);
