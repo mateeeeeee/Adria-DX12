@@ -520,7 +520,7 @@ namespace adria
 				} model_constants{ .instance_id = batch->instance_id };
 				cmd_list->SetRootCBV(2, model_constants);
 				GfxIndexBufferView ibv(batch->submesh->buffer_address + batch->submesh->indices_offset, batch->submesh->indices_count);
-				cmd_list->SetTopology(GfxPrimitiveTopology::TriangleList);
+				cmd_list->SetTopology(batch->submesh->topology);
 				cmd_list->SetIndexBuffer(&ibv);
 				cmd_list->DrawIndexed(batch->submesh->indices_count);
 			}

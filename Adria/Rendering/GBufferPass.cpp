@@ -82,7 +82,7 @@ namespace adria
 					cmd_list->SetRootConstants(1, constants);
 
 					GfxIndexBufferView ibv(batch.submesh->buffer_address + batch.submesh->indices_offset, batch.submesh->indices_count);
-					cmd_list->SetTopology(GfxPrimitiveTopology::TriangleList);
+					cmd_list->SetTopology(batch.submesh->topology);
 					cmd_list->SetIndexBuffer(&ibv);
 					cmd_list->DrawIndexed(batch.submesh->indices_count);
 				}

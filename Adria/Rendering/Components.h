@@ -152,6 +152,7 @@ namespace adria
 
 		uint32 material_index;
 		DirectX::BoundingBox bounding_box;
+		GfxPrimitiveTopology topology;
 	};
 	struct SubMeshInstance
 	{

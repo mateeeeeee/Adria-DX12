@@ -585,7 +585,7 @@ namespace adria
 		{
 			DirectX::BoundingBox bounding_box;
 			int32 material_index = -1;
-			D3D12_PRIMITIVE_TOPOLOGY topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+			GfxPrimitiveTopology topology = GfxPrimitiveTopology::TriangleList;
 
 			std::vector<Vector3> positions_stream;
 			std::vector<Vector3> normals_stream;
@@ -644,19 +644,19 @@ namespace adria
 				switch (gltf_primitive.mode)
 				{
 				case TINYGLTF_MODE_POINTS:
-					mesh_data.topology = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
+					mesh_data.topology = GfxPrimitiveTopology::PointList;
 					break;
 				case TINYGLTF_MODE_LINE:
-					mesh_data.topology = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
+					mesh_data.topology = GfxPrimitiveTopology::LineList;
 					break;
 				case TINYGLTF_MODE_LINE_STRIP:
-					mesh_data.topology = D3D_PRIMITIVE_TOPOLOGY_LINESTRIP;
+					mesh_data.topology = GfxPrimitiveTopology::LineStrip;
 					break;
 				case TINYGLTF_MODE_TRIANGLES:
-					mesh_data.topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+					mesh_data.topology = GfxPrimitiveTopology::TriangleList;
 					break;
 				case TINYGLTF_MODE_TRIANGLE_STRIP:
-					mesh_data.topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+					mesh_data.topology = GfxPrimitiveTopology::TriangleStrip;
 					break;
 				default:
 					ADRIA_ASSERT(false);
@@ -822,6 +822,7 @@ namespace adria
 			submesh.meshlet_count = (uint32)mesh_data.meshlets.size();
 
 			submesh.bounding_box = mesh_data.bounding_box;
+			submesh.topology = mesh_data.topology;
 			submesh.material_index = mesh_data.material_index;
 		}
 		mesh.geometry_buffer_handle = g_GeometryBufferCache.CreateAndInitializeGeometryBuffer(staging_buffer.buffer, total_buffer_size, staging_buffer.offset);
