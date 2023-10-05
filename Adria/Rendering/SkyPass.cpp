@@ -1,12 +1,9 @@
 #include "SkyPass.h"
 #include "ShaderStructs.h"
 #include "Components.h"
-
+#include "TextureManager.h"
 #include "BlackboardData.h"
 #include "PSOCache.h"
-
-#include "Graphics/GfxRingDescriptorAllocator.h"
-#include "Graphics/GfxLinearDynamicAllocator.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
 #include "entt/entity/registry.hpp"
@@ -23,7 +20,21 @@ namespace adria
 
 	void SkyPass::AddComputeSkyPass(RenderGraph& rg, Vector3 const& dir)
 	{
-		if (sky_type == SkyType::Skybox) return;
+		if (sky_type == SkyType::Skybox)
+		{
+			auto skybox_view = reg.view<Skybox>();
+			for (auto e : skybox_view)
+			{
+				auto const& [skybox] = skybox_view.get(e);
+				if (skybox.active)
+				{
+					GfxTexture* skybox_texture = g_TextureManager.GetTexture(skybox.cubemap_texture);
+					rg.ImportTexture(RG_RES_NAME(Sky), skybox_texture);
+					break;
+				}
+			}
+			return;
+		}
 
 		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		struct ComputeSkyPassData
@@ -121,7 +132,7 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx("Sky", ImGuiTreeNodeFlags_OpenOnDoubleClick))
 				{
-					static int current_sky_type = 0;
+					static int current_sky_type = 1;
 					const char* sky_types[] = { "Skybox", "Minimal Atmosphere", "Hosek-Wilkie" };
 					const char* combo_label = sky_types[current_sky_type];
 					if (ImGui::BeginCombo("Sky Type", combo_label, 0))

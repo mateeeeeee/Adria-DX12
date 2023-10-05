@@ -49,7 +49,7 @@ namespace adria
 		std::unique_ptr<Image> next_image;
 
 	private:
-		void SetData(uint32 width, uint32 height, uint32 depth, uint32 mip_levels, void const* data);
+		uint64 SetData(uint32 width, uint32 height, uint32 depth, uint32 mip_levels, void const* data);
 
 		bool LoadDDS(std::string_view texture_path);
 		bool LoadSTB(std::string_view texture_path);

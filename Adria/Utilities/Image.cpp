@@ -77,31 +77,33 @@ namespace adria
 		ADRIA_ASSERT(result);
 	}
 
-	void Image::SetData(uint32 _width, uint32 _height, uint32 _depth, uint32 _mip_levels, void const* _data)
+	uint64 Image::SetData(uint32 _width, uint32 _height, uint32 _depth, uint32 _mip_levels, void const* _data)
 	{
 		width = std::max(_width, 1u);
 		height = std::max(_height, 1u);
 		depth = std::max(_depth, 1u);
 		mip_levels = _mip_levels;
-		pixels.resize(GetTextureByteSize(format, width, height, depth, mip_levels));
+		uint64 texture_byte_size = GetTextureByteSize(format, width, height, depth, mip_levels);
+		pixels.resize(texture_byte_size);
 		memcpy(pixels.data(), _data, pixels.size());
+		return texture_byte_size;
 	}
 
 	bool Image::LoadDDS(std::string_view texture_path)
 	{
 		//https://github.com/simco50/D3D12_Research/blob/master/D3D12/Content/Image.cpp - LoadDDS
 
-		FILE* pFile = nullptr;
-		fopen_s(&pFile, texture_path.data(), "rb");
-		if (!pFile)
+		FILE* file = nullptr;
+		fopen_s(&file, texture_path.data(), "rb");
+		if (!file)
 			return false;
 
-		fseek(pFile, 0, SEEK_END);
-		std::vector<char> data((size_t)ftell(pFile));
-		fseek(pFile, 0, SEEK_SET);
-		fread(data.data(), data.size(), 1, pFile);
+		fseek(file, 0, SEEK_END);
+		std::vector<char> data((size_t)ftell(file));
+		fseek(file, 0, SEEK_SET);
+		fread(data.data(), data.size(), 1, file);
 
-	char* pBytes = data.data();
+		char* bytes = data.data();
 #pragma pack(push,1)
 		struct PixelFormatHeader
 		{
@@ -160,27 +162,27 @@ namespace adria
 
 		auto MakeFourCC = [](uint32 a, uint32 b, uint32 c, uint32 d) { return a | (b << 8u) | (c << 16u) | (d << 24u); };
 
-		constexpr const char pMagic[] = "DDS ";
-		if (memcmp(pMagic, pBytes, 4) != 0) return false;
-		pBytes += 4;
+		constexpr const char magic[] = "DDS ";
+		if (memcmp(magic, bytes, 4) != 0) return false;
+		bytes += 4;
 
-		const FileHeader* pHeader = (FileHeader*)pBytes;
-		pBytes += sizeof(FileHeader);
+		const FileHeader* dds_header = (FileHeader*)bytes;
+		bytes += sizeof(FileHeader);
 
-		if (pHeader->dwSize == sizeof(FileHeader) &&
-			pHeader->ddpf.dwSize == sizeof(PixelFormatHeader))
+		if (dds_header->dwSize == sizeof(FileHeader) &&
+			dds_header->ddpf.dwSize == sizeof(PixelFormatHeader))
 		{
 			is_srgb = false;
-			uint32 bpp = pHeader->ddpf.dwRGBBitCount;
+			uint32 bpp = dds_header->ddpf.dwRGBBitCount;
 
-			uint32 fourCC = pHeader->ddpf.dwFourCC;
-			bool hasDxgi = fourCC == MakeFourCC('D', 'X', '1', '0');
+			uint32 four_cc = dds_header->ddpf.dwFourCC;
+			bool has_dxgi = four_cc == MakeFourCC('D', 'X', '1', '0');
 			const DX10FileHeader* pDx10Header = nullptr;
 
-			if (hasDxgi)
+			if (has_dxgi)
 			{
-				pDx10Header = (DX10FileHeader*)pBytes;
-				pBytes += sizeof(DX10FileHeader);
+				pDx10Header = (DX10FileHeader*)bytes;
+				bytes += sizeof(DX10FileHeader);
 
 				auto ConvertDX10Format = [](DXGI_FORMAT format, GfxFormat& outFormat, bool& outSRGB)
 				{
@@ -201,7 +203,7 @@ namespace adria
 			}
 			else
 			{
-				switch (fourCC)
+				switch (four_cc)
 				{
 				case MakeFourCC('B', 'C', '4', 'U'):	format = GfxFormat::BC4_UNORM;		break;
 				case MakeFourCC('D', 'X', 'T', '1'):	format = GfxFormat::BC1_UNORM;		break;
@@ -214,10 +216,10 @@ namespace adria
 					{
 						auto TestMask = [=](uint32 r, uint32 g, uint32 b, uint32 a)
 						{
-							return pHeader->ddpf.dwRBitMask == r &&
-								pHeader->ddpf.dwGBitMask == g &&
-								pHeader->ddpf.dwBBitMask == b &&
-								pHeader->ddpf.dwABitMask == a;
+							return dds_header->ddpf.dwRBitMask == r &&
+								dds_header->ddpf.dwGBitMask == g &&
+								dds_header->ddpf.dwBBitMask == b &&
+								dds_header->ddpf.dwABitMask == a;
 						};
 
 						if (TestMask(0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000)) format = GfxFormat::R8G8B8A8_UNORM;
@@ -230,27 +232,27 @@ namespace adria
 				}
 			}
 
-			bool isCubemap = (pHeader->dwCaps2 & 0x0000FC00U) != 0 || (hasDxgi && (pDx10Header->miscFlag & 0x4) != 0);
-			uint32 imageChainCount = 1;
-			if (isCubemap)
+			bool _is_cubemap = (dds_header->dwCaps2 & 0x0000FC00U) != 0 || (has_dxgi && (pDx10Header->miscFlag & 0x4) != 0);
+			uint32 image_chain_count = 1;
+			if (_is_cubemap)
 			{
-				imageChainCount = 6;
+				image_chain_count = 6;
 				is_cubemap = true;
 			}
-			else if (hasDxgi && pDx10Header->arraySize > 1)
+			else if (has_dxgi && pDx10Header->arraySize > 1)
 			{
-				imageChainCount = pDx10Header->arraySize;
+				image_chain_count = pDx10Header->arraySize;
 			}
 
-			Image* pCurrentImage = this;
-			for (uint32 imageIdx = 0; imageIdx < imageChainCount; ++imageIdx)
+			Image* current_image = this;
+			for (uint32 image_idx = 0; image_idx < image_chain_count; ++image_idx)
 			{
-				pCurrentImage->SetData(pHeader->dwWidth, pHeader->dwHeight, pHeader->dwDepth, pHeader->dwMipMapCount, pBytes);
-
-				if (imageIdx < imageChainCount - 1)
+				uint64 offset = current_image->SetData(dds_header->dwWidth, dds_header->dwHeight, dds_header->dwDepth, dds_header->dwMipMapCount, bytes);
+				bytes += offset;
+				if (image_idx < image_chain_count - 1)
 				{
-					pCurrentImage->next_image = std::make_unique<Image>(format);
-					pCurrentImage = pCurrentImage->next_image.get();
+					current_image->next_image = std::make_unique<Image>(format);
+					current_image = current_image->next_image.get();
 				}
 			}
 		}
