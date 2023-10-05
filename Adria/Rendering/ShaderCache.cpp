@@ -28,7 +28,7 @@ namespace adria
 			case VS_Sun:
 			case VS_Decals:
 			case VS_GBuffer:
-			case VS_FullscreenQuad:
+			case VS_FullscreenTriangle:
 			case VS_LensFlare:
 			case VS_Bokeh:
 			case VS_Shadow:
@@ -162,8 +162,8 @@ namespace adria
 			case PS_GBuffer:
 			case PS_GBuffer_Mask:
 				return "Lighting/GBuffer.hlsl";
-			case VS_FullscreenQuad:
-				return "Other/FullscreenQuad.hlsl";
+			case VS_FullscreenTriangle:
+				return "Other/FullscreenTriangle.hlsl";
 			case PS_Copy:
 				return "Other/CopyTexture.hlsl";
 			case PS_Add:
@@ -430,8 +430,8 @@ namespace adria
 				return "Phase";
 			case CS_OceanNormals:
 				return "OceanNormals";
-			case VS_FullscreenQuad:
-				return "FullscreenQuad";
+			case VS_FullscreenTriangle:
+				return "FullscreenTriangle";
 			case PS_Add:
 				return "AddTextures";
 			case PS_Copy:

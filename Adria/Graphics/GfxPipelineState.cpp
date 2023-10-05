@@ -351,30 +351,30 @@ namespace adria
 	}
 	void GraphicsPipelineState::Create(GraphicsPipelineStateDesc const& desc)
 	{
-		D3D12_GRAPHICS_PIPELINE_STATE_DESC _desc{};
-		_desc.pRootSignature = gfx->GetCommonRootSignature();
-		_desc.VS = ShaderCache::GetShader(desc.VS);
-		_desc.PS = ShaderCache::GetShader(desc.PS);
-		_desc.GS = ShaderCache::GetShader(desc.GS);
-		_desc.HS = ShaderCache::GetShader(desc.HS);
-		_desc.DS = ShaderCache::GetShader(desc.DS);
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC d3d12_desc{};
+		d3d12_desc.pRootSignature = gfx->GetCommonRootSignature();
+		d3d12_desc.VS = ShaderCache::GetShader(desc.VS);
+		d3d12_desc.PS = ShaderCache::GetShader(desc.PS);
+		d3d12_desc.GS = ShaderCache::GetShader(desc.GS);
+		d3d12_desc.HS = ShaderCache::GetShader(desc.HS);
+		d3d12_desc.DS = ShaderCache::GetShader(desc.DS);
 		std::vector<D3D12_INPUT_ELEMENT_DESC> input_element_descs;
 		ConvertInputLayout(desc.input_layout, input_element_descs);
-		_desc.InputLayout = { .pInputElementDescs = input_element_descs.data(), .NumElements = (UINT)input_element_descs.size() };
-		_desc.BlendState = ConvertBlendDesc(desc.blend_state);
-		_desc.RasterizerState = ConvertRasterizerDesc(desc.rasterizer_state);
-		_desc.DepthStencilState = ConvertDepthStencilDesc(desc.depth_state);
-		_desc.SampleDesc = DXGI_SAMPLE_DESC{ .Count = 1, .Quality = 0 };
-		_desc.DSVFormat = ConvertGfxFormat(desc.dsv_format);
-		_desc.NumRenderTargets = desc.num_render_targets;
-		for (size_t i = 0; i < ARRAYSIZE(_desc.RTVFormats); ++i)
+		d3d12_desc.InputLayout = { .pInputElementDescs = input_element_descs.data(), .NumElements = (UINT)input_element_descs.size() };
+		d3d12_desc.BlendState = ConvertBlendDesc(desc.blend_state);
+		d3d12_desc.RasterizerState = ConvertRasterizerDesc(desc.rasterizer_state);
+		d3d12_desc.DepthStencilState = ConvertDepthStencilDesc(desc.depth_state);
+		d3d12_desc.SampleDesc = DXGI_SAMPLE_DESC{ .Count = 1, .Quality = 0 };
+		d3d12_desc.DSVFormat = ConvertGfxFormat(desc.dsv_format);
+		d3d12_desc.NumRenderTargets = desc.num_render_targets;
+		for (size_t i = 0; i < ARRAYSIZE(d3d12_desc.RTVFormats); ++i)
 		{
-			_desc.RTVFormats[i] = ConvertGfxFormat(desc.rtv_formats[i]);
+			d3d12_desc.RTVFormats[i] = ConvertGfxFormat(desc.rtv_formats[i]);
 		}
-		_desc.PrimitiveTopologyType = ConvertPrimitiveTopologyType(desc.topology_type);
-		_desc.SampleMask = desc.sample_mask;
-		if (_desc.DSVFormat == DXGI_FORMAT_UNKNOWN) _desc.DepthStencilState.DepthEnable = false;
-		GFX_CHECK_HR(gfx->GetDevice()->CreateGraphicsPipelineState(&_desc, IID_PPV_ARGS(pso.ReleaseAndGetAddressOf())));
+		d3d12_desc.PrimitiveTopologyType = ConvertPrimitiveTopologyType(desc.topology_type);
+		d3d12_desc.SampleMask = desc.sample_mask;
+		if (d3d12_desc.DSVFormat == DXGI_FORMAT_UNKNOWN) d3d12_desc.DepthStencilState.DepthEnable = false;
+		GFX_CHECK_HR(gfx->GetDevice()->CreateGraphicsPipelineState(&d3d12_desc, IID_PPV_ARGS(pso.ReleaseAndGetAddressOf())));
 	}
 
 	ComputePipelineState::ComputePipelineState(GfxDevice* gfx, ComputePipelineStateDesc const& desc) : GfxPipelineState(gfx, GfxPipelineStateType::Compute), desc(desc)
@@ -392,10 +392,10 @@ namespace adria
 	}
 	void ComputePipelineState::Create(ComputePipelineStateDesc const& desc)
 	{
-		D3D12_COMPUTE_PIPELINE_STATE_DESC _desc{};
-		_desc.pRootSignature = gfx->GetCommonRootSignature();
-		_desc.CS = ShaderCache::GetShader(desc.CS);
-		GFX_CHECK_HR(gfx->GetDevice()->CreateComputePipelineState(&_desc, IID_PPV_ARGS(pso.ReleaseAndGetAddressOf())));
+		D3D12_COMPUTE_PIPELINE_STATE_DESC d3d12_desc{};
+		d3d12_desc.pRootSignature = gfx->GetCommonRootSignature();
+		d3d12_desc.CS = ShaderCache::GetShader(desc.CS);
+		GFX_CHECK_HR(gfx->GetDevice()->CreateComputePipelineState(&d3d12_desc, IID_PPV_ARGS(pso.ReleaseAndGetAddressOf())));
 	}
 
 	MeshShaderPipelineState::MeshShaderPipelineState(GfxDevice* gfx, MeshShaderPipelineStateDesc const& desc) : GfxPipelineState(gfx, GfxPipelineStateType::MeshShader), desc(desc)
@@ -413,27 +413,27 @@ namespace adria
 	}
 	void MeshShaderPipelineState::Create(MeshShaderPipelineStateDesc const& desc)
 	{
-		D3DX12_MESH_SHADER_PIPELINE_STATE_DESC _desc{};
+		D3DX12_MESH_SHADER_PIPELINE_STATE_DESC d3d12_desc{};
 
-		_desc.pRootSignature = gfx->GetCommonRootSignature();
-		_desc.AS = ShaderCache::GetShader(desc.AS);
-		_desc.MS = ShaderCache::GetShader(desc.MS);
-		_desc.PS = ShaderCache::GetShader(desc.PS);
-		_desc.BlendState = ConvertBlendDesc(desc.blend_state);
-		_desc.RasterizerState = ConvertRasterizerDesc(desc.rasterizer_state);
-		_desc.DepthStencilState = ConvertDepthStencilDesc(desc.depth_state);
-		_desc.SampleDesc = DXGI_SAMPLE_DESC{ .Count = 1, .Quality = 0 };
-		_desc.DSVFormat = ConvertGfxFormat(desc.dsv_format);
-		_desc.NumRenderTargets = desc.num_render_targets;
-		for (size_t i = 0; i < ARRAYSIZE(_desc.RTVFormats); ++i)
+		d3d12_desc.pRootSignature = gfx->GetCommonRootSignature();
+		d3d12_desc.AS = ShaderCache::GetShader(desc.AS);
+		d3d12_desc.MS = ShaderCache::GetShader(desc.MS);
+		d3d12_desc.PS = ShaderCache::GetShader(desc.PS);
+		d3d12_desc.BlendState = ConvertBlendDesc(desc.blend_state);
+		d3d12_desc.RasterizerState = ConvertRasterizerDesc(desc.rasterizer_state);
+		d3d12_desc.DepthStencilState = ConvertDepthStencilDesc(desc.depth_state);
+		d3d12_desc.SampleDesc = DXGI_SAMPLE_DESC{ .Count = 1, .Quality = 0 };
+		d3d12_desc.DSVFormat = ConvertGfxFormat(desc.dsv_format);
+		d3d12_desc.NumRenderTargets = desc.num_render_targets;
+		for (uint32 i = 0; i < ARRAYSIZE(d3d12_desc.RTVFormats); ++i)
 		{
-			_desc.RTVFormats[i] = ConvertGfxFormat(desc.rtv_formats[i]);
+			d3d12_desc.RTVFormats[i] = ConvertGfxFormat(desc.rtv_formats[i]);
 		}
-		_desc.PrimitiveTopologyType = ConvertPrimitiveTopologyType(desc.topology_type);
-		_desc.SampleMask = desc.sample_mask;
-		if (_desc.DSVFormat == DXGI_FORMAT_UNKNOWN) _desc.DepthStencilState.DepthEnable = false;
+		d3d12_desc.PrimitiveTopologyType = ConvertPrimitiveTopologyType(desc.topology_type);
+		d3d12_desc.SampleMask = desc.sample_mask;
+		if (d3d12_desc.DSVFormat == DXGI_FORMAT_UNKNOWN) d3d12_desc.DepthStencilState.DepthEnable = false;
 
-		auto pso_stream = CD3DX12_PIPELINE_MESH_STATE_STREAM(_desc);
+		auto pso_stream = CD3DX12_PIPELINE_MESH_STATE_STREAM(d3d12_desc);
 		D3D12_PIPELINE_STATE_STREAM_DESC stream_desc{};
 		stream_desc.pPipelineStateSubobjectStream = &pso_stream;
 		stream_desc.SizeInBytes = sizeof(pso_stream);

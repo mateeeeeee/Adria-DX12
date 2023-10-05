@@ -100,10 +100,10 @@ PixelOutput PackGBuffer(float3 BaseColor, float3 NormalVS, float4 emissive, floa
 	return Out;
 }
 
-PixelOutput DrawMeshletsPS(PixelInput In)
+PixelOutput DrawMeshletsPS(PixelInput input)
 {
 	StructuredBuffer<MeshletCandidate> visibleMeshlets = ResourceDescriptorHeap[PassCB.visibleMeshletsIdx];
-	MeshletCandidate candidate = visibleMeshlets[In.MeshletIndex];
+	MeshletCandidate candidate = visibleMeshlets[input.MeshletIndex];
 	Instance instance = GetInstanceData(candidate.instanceID);
 	Material material = GetMaterialData(instance.materialIdx);
 
@@ -112,7 +112,7 @@ PixelOutput DrawMeshletsPS(PixelInput In)
 	Texture2D metallicRoughnessTx = ResourceDescriptorHeap[material.roughnessMetallicIdx];
 	Texture2D emissiveTx = ResourceDescriptorHeap[material.emissiveIdx];
 
-	float4 albedoColor = albedoTx.Sample(LinearWrapSampler, In.Uvs) * float4(material.baseColorFactor, 1.0f);
+	float4 albedoColor = albedoTx.Sample(LinearWrapSampler, input.Uvs) * float4(material.baseColorFactor, 1.0f);
 #if MASK
 	if (albedoColor.a < material.alphaCutoff) discard;
 #endif
@@ -126,8 +126,8 @@ PixelOutput DrawMeshletsPS(PixelInput In)
 	//normal = mul(normalTS, TBN);
 	float3 normalVS = normalize(mul(normal, (float3x3) FrameCB.view));
 
-	float3 aoRoughnessMetallic = metallicRoughnessTx.Sample(LinearWrapSampler, In.Uvs).rgb;
-	float3 emissiveColor = emissiveTx.Sample(LinearWrapSampler, In.Uvs).rgb;
+	float3 aoRoughnessMetallic = metallicRoughnessTx.Sample(LinearWrapSampler, input.Uvs).rgb;
+	float3 emissiveColor = emissiveTx.Sample(LinearWrapSampler, input.Uvs).rgb;
 	return PackGBuffer(albedoColor.xyz, normalVS, float4(emissiveColor, material.emissiveFactor),
 		aoRoughnessMetallic.g * material.roughnessFactor, aoRoughnessMetallic.b * material.metallicFactor);
 }

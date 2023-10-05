@@ -13,7 +13,7 @@ namespace adria
 		PS_Sky,
 		CS_MinimalAtmosphereSky,
 		CS_HosekWilkieSky,
-		VS_FullscreenQuad,
+		VS_FullscreenTriangle,
 		VS_GBuffer,
 		PS_GBuffer,
 		PS_GBuffer_Mask,

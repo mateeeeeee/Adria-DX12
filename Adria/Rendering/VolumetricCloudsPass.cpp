@@ -370,7 +370,7 @@ namespace adria
 
 				cmd_list->SetRootConstant(1, dst.GetIndex(), 0);
 				cmd_list->SetTopology(GfxPrimitiveTopology::TriangleStrip);
-				cmd_list->Draw(4);
+				cmd_list->Draw(3);
 			}, RGPassType::Graphics, RGPassFlags::None);
 	}
 

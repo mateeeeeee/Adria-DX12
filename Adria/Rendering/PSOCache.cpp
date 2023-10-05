@@ -114,9 +114,10 @@ namespace adria
 
 				gfx_pso_desc = {};
 				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
-				gfx_pso_desc.VS = VS_FullscreenQuad;
+				gfx_pso_desc.VS = VS_FullscreenTriangle;
 				gfx_pso_desc.PS = PS_Copy;
 				gfx_pso_desc.num_render_targets = 1;
+				gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
 				gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
 
 				gfx_pso_map[GfxPipelineStateID::Copy] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
@@ -145,11 +146,12 @@ namespace adria
 				gfx_pso_desc.blend_state.render_target[0].src_blend = GfxBlend::One;
 				gfx_pso_desc.blend_state.render_target[0].dest_blend = GfxBlend::InvSrcAlpha;
 				gfx_pso_desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;
+				gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
 				gfx_pso_map[GfxPipelineStateID::CloudsCombine] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 
 				gfx_pso_desc = {};
 				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
-				gfx_pso_desc.VS = VS_FullscreenQuad;
+				gfx_pso_desc.VS = VS_FullscreenTriangle;
 				gfx_pso_desc.PS = PS_Add;
 				gfx_pso_desc.num_render_targets = 1;
 				gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;

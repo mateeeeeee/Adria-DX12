@@ -1071,7 +1071,7 @@
     <FxCompile Include="Resources\NewShaders\Ocean\OceanNormals.hlsl">
       <Filter>Shaders\Ocean</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Other\FullscreenQuad.hlsl">
+    <FxCompile Include="Resources\NewShaders\Other\FullscreenTriangle.hlsl">
       <Filter>Shaders\Other</Filter>
     </FxCompile>
     <FxCompile Include="Resources\NewShaders\Other\AddTextures.hlsl">
