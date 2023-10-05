@@ -71,36 +71,23 @@ void DrawMeshletsMS(
 	}
 }
 
-
-struct PixelOutput
+struct PSOutput
 {
 	float4 NormalMetallic	: SV_TARGET0;
 	float4 DiffuseRoughness : SV_TARGET1;
 	float4 Emissive			: SV_TARGET2;
 };
 
-struct PixelInput
+PSOutput PackGBuffer(float3 BaseColor, float3 NormalVS, float4 emissive, float roughness, float metallic)
 {
-	float4 Position		: SV_POSITION;
-	float2 Uvs			: TEX;
-	float3 NormalVS		: NORMAL0;
-	float3 TangentWS	: TANGENT;
-	float3 BitangentWS	: BITANGENT;
-	float3 NormalWS		: NORMAL1;
-	uint   MeshletIndex : TEX1;
-	bool   IsFrontFace	: SV_IsFrontFace;
-};
-
-PixelOutput PackGBuffer(float3 BaseColor, float3 NormalVS, float4 emissive, float roughness, float metallic)
-{
-	PixelOutput Out = (PixelOutput)0;
-	Out.NormalMetallic = float4(0.5 * NormalVS + 0.5, metallic);
-	Out.DiffuseRoughness = float4(BaseColor, roughness);
-	Out.Emissive = float4(emissive.rgb, emissive.a / 256);
-	return Out;
+	PSOutput output = (PSOutput)0;
+	output.NormalMetallic = float4(0.5 * NormalVS + 0.5, metallic);
+	output.DiffuseRoughness = float4(BaseColor, roughness);
+	output.Emissive = float4(emissive.rgb, emissive.a / 256);
+	return output;
 }
 
-PixelOutput DrawMeshletsPS(PixelInput input)
+PSOutput DrawMeshletsPS(MSToPS input, bool IsFrontFace	: SV_IsFrontFace)
 {
 	StructuredBuffer<MeshletCandidate> visibleMeshlets = ResourceDescriptorHeap[PassCB.visibleMeshletsIdx];
 	MeshletCandidate candidate = visibleMeshlets[input.MeshletIndex];

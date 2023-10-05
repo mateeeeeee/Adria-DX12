@@ -347,15 +347,16 @@ void CloudsCS(CSInput input)
 struct VSToPS
 {
 	float4 Pos : SV_POSITION;
-	float2 Tex  : TEX;
+	float2 Tex : TEX;
 };
-VSToPS CloudsCombineVS(uint vI : SV_VERTEXID)
+VSToPS CloudsCombineVS(uint vertexId : SV_VERTEXID)
 {
-	int2 texcoord = int2(vI & 1, vI >> 1);
-	VSToPS vout;
-	vout.Tex = float2(texcoord);
-	vout.Pos = float4(2 * (texcoord.x - 0.5f), -2 * (texcoord.y - 0.5f), CLOUDS_DEPTH, 1);
-	return vout;
+	VSToPS output = (VSToPS)0;
+	uint2 v = uint2(vertexId & 1, vertexId >> 1);
+	output.Pos = float4(4.0f * float2(v) - 1.0f, CLOUDS_DEPTH, 1);
+	output.Tex.x = v.x * 2.0f;
+	output.Tex.y = 1.0f - v.y * 2.0f;
+	return output;
 }
 
 struct CloudsCombineConstants
@@ -364,10 +365,10 @@ struct CloudsCombineConstants
 };
 ConstantBuffer<CloudsCombineConstants> CombineCB : register(b1);
 
-float4 CloudsCombinePS(VSToPS pin) : SV_Target0
+float4 CloudsCombinePS(VSToPS input) : SV_Target0
 {
 	Texture2D<float4> inputTx = ResourceDescriptorHeap[CombineCB.inputIdx];
-	float4 color = inputTx.Sample(LinearWrapSampler, pin.Tex);
+	float4 color = inputTx.Sample(LinearWrapSampler, input.Tex);
 	if (!any(color.xyz) || color.a < 0.03f) discard;
 	return color;
 }
