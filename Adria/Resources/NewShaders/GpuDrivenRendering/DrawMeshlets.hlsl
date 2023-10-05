@@ -87,7 +87,7 @@ PSOutput PackGBuffer(float3 BaseColor, float3 NormalVS, float4 emissive, float r
 	return output;
 }
 
-PSOutput DrawMeshletsPS(MSToPS input, bool IsFrontFace	: SV_IsFrontFace)
+PSOutput DrawMeshletsPS(MSToPS input)
 {
 	StructuredBuffer<MeshletCandidate> visibleMeshlets = ResourceDescriptorHeap[PassCB.visibleMeshletsIdx];
 	MeshletCandidate candidate = visibleMeshlets[input.MeshletIndex];
@@ -105,12 +105,13 @@ PSOutput DrawMeshletsPS(MSToPS input, bool IsFrontFace	: SV_IsFrontFace)
 #endif
 
 	float3 normal = normalize(input.NormalWS);
-	//float3 tangent = normalize(input.TangentWS);
-	//float3 bitangent = normalize(input.BitangentWS);
-	//float3x3 TBN = float3x3(tangent, bitangent, normal); 
-	//float3 normalTS = normalTx.Sample(LinearWrapSampler, input.Uvs).xyz;
-	//normalTS = normalize(2.0f * normalTS - 1.0f);
-	//normal = mul(normalTS, TBN);
+	float3 tangent = normalize(input.TangentWS);
+	float3 bitangent = normalize(input.BitangentWS);
+	float3x3 TBN = float3x3(tangent, bitangent, normal); 
+	float3 normalTS = normalTx.Sample(LinearWrapSampler, input.Uvs).xyz;
+	normalTS.xy = 2.0f * normalTS.xy - 1.0f;
+	normalTS.z = sqrt(1.0f - normalTS.x * normalTS.x - normalTS.y * normalTS.y);
+	normal = mul(normalTS, TBN);
 	float3 normalVS = normalize(mul(normal, (float3x3) FrameCB.view));
 
 	float3 aoRoughnessMetallic = metallicRoughnessTx.Sample(LinearWrapSampler, input.Uvs).rgb;
