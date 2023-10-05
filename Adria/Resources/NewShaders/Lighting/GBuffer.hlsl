@@ -11,7 +11,6 @@ struct VSToPS
 	float4 Position     : SV_POSITION;
 
 	float2 Uvs          : TEX;
-	float3 NormalVS     : NORMAL0;
 	float3 TangentWS    : TANGENT;
 	float3 BitangentWS  : BITANGENT;
 	float3 NormalWS     : NORMAL1;
@@ -39,13 +38,10 @@ VSToPS GBufferVS(uint vertexId : SV_VertexID)
 	float4 posWS = mul(float4(pos, 1.0), instanceData.worldMatrix);
 	output.Position = mul(posWS, FrameCB.viewProjection);
 	output.Position.xy += FrameCB.cameraJitter * output.Position.w;
-
 	output.Uvs = uv;
 
-	float3 normalWS = mul(nor, (float3x3) transpose(instanceData.inverseWorldMatrix));
-	output.NormalWS = normalWS;
-	output.NormalVS = mul(normalWS, (float3x3) transpose(FrameCB.inverseView));
-	output.TangentWS = mul(tan.xyz, (float3x3) transpose(instanceData.inverseWorldMatrix));
+	output.NormalWS =  mul(nor, (float3x3) transpose(instanceData.inverseWorldMatrix));
+	output.TangentWS = mul(tan.xyz, (float3x3) instanceData.worldMatrix);
 	output.BitangentWS = normalize(cross(output.NormalWS, output.TangentWS) * tan.w);
 	
 	return output;
@@ -60,35 +56,32 @@ PSOutput PackGBuffer(float3 BaseColor, float3 NormalVS, float4 emissive, float r
 	return output;
 }
 
-PSOutput GBufferPS(VSToPS input, bool isFrontFace : SV_IsFrontFace)
+PSOutput GBufferPS(VSToPS input)
 {
     Instance instanceData = GetInstanceData(PassCB.instanceId);
     Material materialData = GetMaterialData(instanceData.materialIdx);
 
-	Texture2D txAlbedo = ResourceDescriptorHeap[materialData.diffuseIdx];
-	Texture2D txNormal = ResourceDescriptorHeap[materialData.normalIdx];
-	Texture2D txMetallicRoughness = ResourceDescriptorHeap[materialData.roughnessMetallicIdx];
-	Texture2D txEmissive = ResourceDescriptorHeap[materialData.emissiveIdx];
+	Texture2D albedoTx = ResourceDescriptorHeap[materialData.diffuseIdx];
+	Texture2D normalTx = ResourceDescriptorHeap[materialData.normalIdx];
+	Texture2D metallicRoughnessTx = ResourceDescriptorHeap[materialData.roughnessMetallicIdx];
+	Texture2D emissiveTx = ResourceDescriptorHeap[materialData.emissiveIdx];
 
-	float4 albedoColor = txAlbedo.Sample(LinearWrapSampler, input.Uvs) * float4(materialData.baseColorFactor, 1.0f);
+	float4 albedoColor = albedoTx.Sample(LinearWrapSampler, input.Uvs) * float4(materialData.baseColorFactor, 1.0f);
 #if MASK
 	if (albedoColor.a < materialData.alphaCutoff) discard;
 #endif
 
 	float3 normal = normalize(input.NormalWS);
-	if (isFrontFace) normal = -normal; 
+	//float3 tangent = normalize(input.TangentWS);
+	//float3 bitangent = normalize(input.BitangentWS);
+	//float3x3 TBN = float3x3(tangent, bitangent, normal); 
+	//float3 normalTS = normalTx.Sample(LinearWrapSampler, input.Uvs).xyz;
+	//normalTS = normalize(2.0f * normalTS - 1.0f);
+	//normal = mul(normalTS, TBN);
+	float3 normalVS = normalize(mul(normal, (float3x3) FrameCB.view));
 
-	float3 tangent = normalize(input.TangentWS);
-	float3 bitangent = normalize(input.BitangentWS);
-	float3 bumpMapNormal = txNormal.Sample(LinearWrapSampler, input.Uvs).xyz;
-	bumpMapNormal = 2.0f * bumpMapNormal - 1.0f;
-	float3x3 TBN = float3x3(tangent, bitangent, normal);
-	float3 NewNormal = mul(bumpMapNormal, TBN);
-	input.NormalVS = normalize(mul(NewNormal, (float3x3) FrameCB.view));
-
-	float3 aoRoughnessMetallic = txMetallicRoughness.Sample(LinearWrapSampler, input.Uvs).rgb;
-
-	float3 emissiveColor = txEmissive.Sample(LinearWrapSampler, input.Uvs).rgb;
-	return PackGBuffer(albedoColor.xyz, normalize(input.NormalVS), float4(emissiveColor, materialData.emissiveFactor),
+	float3 aoRoughnessMetallic = metallicRoughnessTx.Sample(LinearWrapSampler, input.Uvs).rgb;
+	float3 emissiveColor = emissiveTx.Sample(LinearWrapSampler, input.Uvs).rgb;
+	return PackGBuffer(albedoColor.xyz, normalVS, float4(emissiveColor, materialData.emissiveFactor),
 		aoRoughnessMetallic.g * materialData.roughnessFactor, aoRoughnessMetallic.b * materialData.metallicFactor);
 }
