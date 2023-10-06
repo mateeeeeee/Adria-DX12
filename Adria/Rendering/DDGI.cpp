@@ -1,5 +1,6 @@
 #include "DDGI.h"
 #include "BlackboardData.h"
+#include "Components.h"
 #include "ShaderStructs.h"
 #include "ShaderCache.h"
 #include "PSOCache.h"
@@ -28,6 +29,7 @@ namespace adria
 		{
 			CreateStateObject();
 			ShaderCache::GetLibraryRecompiledEvent().AddMember(&DDGI::OnLibraryRecompiled, *this);
+			CalculateDDGIDimensions();
 		}
 	}
 
@@ -218,18 +220,24 @@ namespace adria
 		if (!IsSupported()) return -1;
 
 		std::vector<DDGIVolumeHLSL> ddgi_data;
-		DDGIVolumeHLSL ddgi_hlsl;
-		//DDGIVolumeHLSL ddgi_hlsl;
-		//ddgi_hlsl.start_position = ddgi_volume.origin - ddgi_volume.extents;
-		//ddgi_hlsl.probeSize = 2 * ddgi_volume.extents / (Vector3((float)ddgi_volume.num_probes.x, (float)ddgi_volume.num_probes.y, (float)ddgi_volume.num_probes.z) - Vector3::One);
-		//ddgi_hlsl.raysPerProbe = ddgi_volume.num_rays;
-		//ddgi_hlsl.maxRaysPerProbe = ddgi_volume.max_num_rays;
-		//ddgi_hlsl.probeCounts = Vector3i(ddgi_volume.num_probes.x, ddgi_volume.num_probes.y, ddgi_volume.num_probes.z);
-		//ddgi_hlsl.normalBias = 0.25f;
-		//ddgi_hlsl.energyPreservation = 0.85f;
-		//ddgi_hlsl.irradianceHistoryIdx = 0;
-		//ddgi_hlsl.distanceHistoryIdx = 0;
-		ddgi_data.push_back(ddgi_hlsl);
+		DDGIVolumeHLSL& ddgi_hlsl = ddgi_data.emplace_back();
+		ddgi_hlsl.start_position = ddgi_volume.origin - ddgi_volume.extents;
+		ddgi_hlsl.probe_size = 2 * ddgi_volume.extents / (Vector3((float)ddgi_volume.num_probes.x, (float)ddgi_volume.num_probes.y, (float)ddgi_volume.num_probes.z) - Vector3::One);
+		ddgi_hlsl.rays_per_probe = ddgi_volume.num_rays;
+		ddgi_hlsl.max_rays_per_probe = ddgi_volume.max_num_rays;
+		ddgi_hlsl.probe_count = Vector3i(ddgi_volume.num_probes.x, ddgi_volume.num_probes.y, ddgi_volume.num_probes.z);
+		ddgi_hlsl.normal_bias = 0.25f;
+		ddgi_hlsl.energy_preservation = 0.85f;
+
+		GfxDescriptor irradiance_cpu = gfx->CreateTextureSRV(ddgi_volume.irradiance_history.get());
+		GfxDescriptor distance_cpu = gfx->CreateTextureSRV(ddgi_volume.distance_history.get());
+		GfxDescriptor irradiance_gpu = gfx->AllocateDescriptorsGPU();
+		GfxDescriptor distance_gpu = gfx->AllocateDescriptorsGPU();
+		gfx->CopyDescriptors(1, irradiance_gpu, irradiance_cpu);
+		gfx->CopyDescriptors(1, distance_gpu, distance_cpu);
+
+		ddgi_hlsl.irradiance_history_idx = (int32)irradiance_gpu.GetIndex();
+		ddgi_hlsl.distance_history_idx = (int32)distance_gpu.GetIndex();
 		if (!ddgi_volume_buffer || ddgi_volume_buffer->GetCount() < ddgi_data.size())
 		{
 			ddgi_volume_buffer = gfx->CreateBuffer(StructuredBufferDesc<DDGIVolumeHLSL>(ddgi_data.size(), false, true));
@@ -240,6 +248,25 @@ namespace adria
 		ddgi_volume_buffer_srv_gpu = gfx->AllocateDescriptorsGPU();
 		gfx->CopyDescriptors(1, ddgi_volume_buffer_srv_gpu, ddgi_volume_buffer_srv);
 		return (int32)ddgi_volume_buffer_srv_gpu.GetIndex();
+	}
+
+	void DDGI::CalculateDDGIDimensions()
+	{
+		BoundingBox scene_bounding_box;
+		for (auto mesh_entity : reg.view<Mesh>())
+		{
+			Mesh& mesh = reg.get<Mesh>(mesh_entity);
+
+			for (auto const& instance : mesh.instances)
+			{
+				SubMeshGPU& submesh = mesh.submeshes[instance.submesh_index];
+				BoundingBox instance_bounding_box;
+				submesh.bounding_box.Transform(instance_bounding_box, instance.world_transform);
+				BoundingBox::CreateMerged(scene_bounding_box, scene_bounding_box, instance_bounding_box);
+			}
+		}
+		ddgi_volume.origin = scene_bounding_box.Center;
+		ddgi_volume.extents = scene_bounding_box.Extents;
 	}
 
 	void DDGI::CreateStateObject()
@@ -268,10 +295,8 @@ namespace adria
 			D3D12_RAYTRACING_PIPELINE_CONFIG pipeline_config{};
 			pipeline_config.MaxTraceRecursionDepth = 1;
 			ddgi_state_object_builder.AddSubObject(pipeline_config);
-
-			ddgi_trace_so.Attach(ddgi_state_object_builder.CreateStateObject(device));
 		}
-
+		ddgi_trace_so.Attach(ddgi_state_object_builder.CreateStateObject(device));
 	}
 
 	void DDGI::OnLibraryRecompiled(GfxShaderID shader)

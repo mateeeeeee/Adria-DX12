@@ -64,7 +64,7 @@ namespace adria
 
 	SkyParameters CalculateSkyParameters(float turbidity, float albedo, Vector3 const& sun_direction)
 	{
-		float sun_theta = std::acos(std::clamp(sun_direction.y, 0.f, 1.f));
+		float sun_theta = std::acos(std::clamp(-sun_direction.y, 0.f, 1.f));
 
 		SkyParameters params{};
 		for (size_t i = 0; i < SkyParam_Z; ++i)

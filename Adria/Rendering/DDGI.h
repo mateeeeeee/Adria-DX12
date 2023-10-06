@@ -9,7 +9,6 @@ namespace adria
 	class GfxTexture;
 	class GfxDevice;
 	class RenderGraph;
-	struct DDGIVolumeHLSL;
 
 	class DDGI
 	{
@@ -37,10 +36,9 @@ namespace adria
 			Vector3i probe_count;
 			float normal_bias;
 			float energy_preservation;
-			int32 irradiance_histogram_idx;
-			int32 distance_histogram_idx;
+			int32 irradiance_history_idx;
+			int32 distance_history_idx;
 		};
-
 
 	public:
 
@@ -65,6 +63,8 @@ namespace adria
 		GfxDescriptor ddgi_volume_buffer_srv_gpu;
 
 	private:
+
+		void CalculateDDGIDimensions();
 		void CreateStateObject();
 		void OnLibraryRecompiled(GfxShaderID shader);
 	};
