@@ -35,13 +35,15 @@ namespace adria
 
 	void DDGI::OnResize(uint32 w, uint32 h)
 	{
-		if (!IsSupported()) return;
+		//if (!IsSupported())
+		return;
 		width = w, height = h;
 	}
 
 	void DDGI::AddPasses(RenderGraph& rg)
 	{
-		if (!IsSupported()) return;
+		//if (!IsSupported())
+		return;
 
 		uint32 const num_probes_flat = ddgi_volume.num_probes.x * ddgi_volume.num_probes.y * ddgi_volume.num_probes.z;
 
@@ -217,7 +219,8 @@ namespace adria
 
 	int32 DDGI::GetDDGIVolumeIndex()
 	{
-		if (!IsSupported()) return -1;
+		//if (!IsSupported())
+		return -1;
 
 		std::vector<DDGIVolumeHLSL> ddgi_data;
 		DDGIVolumeHLSL& ddgi_hlsl = ddgi_data.emplace_back();
