@@ -233,7 +233,7 @@ namespace adria
 		ArcPtr<IDXGIAdapter1> adapter;
 		dxgi_factory->EnumAdapters1(1, adapter.GetAddressOf());
 
-		hr = D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_12_2, IID_PPV_ARGS(device.GetAddressOf()));
+		hr = D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(device.GetAddressOf()));
 		GFX_CHECK_HR(hr);
 		if (!device_capabilities.Initialize(this))
 		{
