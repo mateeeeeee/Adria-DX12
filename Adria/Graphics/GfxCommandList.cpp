@@ -162,7 +162,7 @@ namespace adria
 
 	void GfxCommandList::Submit()
 	{
-		for (size_t i = 0; i < pending_waits.size(); ++i)
+		for (uint64 i = 0; i < pending_waits.size(); ++i)
 		{
 			cmd_queue.Wait(pending_waits[i].first, pending_waits[i].second);
 		}
@@ -174,7 +174,7 @@ namespace adria
 			cmd_queue.ExecuteCommandLists(cmd_list_array);
 		}
 
-		for (size_t i = 0; i < pending_signals.size(); ++i)
+		for (uint64 i = 0; i < pending_signals.size(); ++i)
 		{
 			cmd_queue.Signal(pending_signals[i].first, pending_signals[i].second);
 		}
@@ -573,12 +573,12 @@ namespace adria
 		cmd_list->IASetVertexBuffers(start_slot, 1, &vbv);
 	}
 
-	void GfxCommandList::SetVertexBuffers(std::span<GfxVertexBufferView> vertex_buffer_views, uint32 start_slot /*= 0*/)
+	void GfxCommandList::SetVertexBuffers(std::span<GfxVertexBufferView const> vertex_buffer_views, uint32 start_slot /*= 0*/)
 	{
 		ADRIA_ASSERT(current_context == Context::Graphics);
 
 		std::vector<D3D12_VERTEX_BUFFER_VIEW> vbs(vertex_buffer_views.size());
-		for (size_t i = 0; i < vertex_buffer_views.size(); ++i)
+		for (uint64 i = 0; i < vertex_buffer_views.size(); ++i)
 		{
 			vbs[i].BufferLocation = vertex_buffer_views[i].buffer_location;
 			vbs[i].SizeInBytes = vertex_buffer_views[i].size_in_bytes;
@@ -618,7 +618,7 @@ namespace adria
 		}
 	}
 
-	void GfxCommandList::SetRootConstants(uint32 slot, const void* data, uint32 data_size, uint32 offset)
+	void GfxCommandList::SetRootConstants(uint32 slot, void const* data, uint32 data_size, uint32 offset)
 	{
 		ADRIA_ASSERT(current_context != Context::Invalid);
 
@@ -632,7 +632,7 @@ namespace adria
 		}
 	}
 
-	void GfxCommandList::SetRootCBV(uint32 slot, const void* data, size_t data_size)
+	void GfxCommandList::SetRootCBV(uint32 slot, void const* data, uint64 data_size)
 	{
 		ADRIA_ASSERT(current_context != Context::Invalid);
 
@@ -650,7 +650,7 @@ namespace adria
 		}
 	}
 
-	void GfxCommandList::SetRootCBV(uint32 slot, size_t gpu_address)
+	void GfxCommandList::SetRootCBV(uint32 slot, uint64 gpu_address)
 	{
 		if (current_context == Context::Graphics)
 		{
@@ -662,7 +662,7 @@ namespace adria
 		}
 	}
 
-	void GfxCommandList::SetRootSRV(uint32 slot, size_t gpu_address)
+	void GfxCommandList::SetRootSRV(uint32 slot, uint64 gpu_address)
 	{
 		ADRIA_ASSERT(current_context != Context::Invalid);
 
@@ -676,7 +676,7 @@ namespace adria
 		}
 	}
 
-	void GfxCommandList::SetRootUAV(uint32 slot, size_t gpu_address)
+	void GfxCommandList::SetRootUAV(uint32 slot, uint64 gpu_address)
 	{
 		ADRIA_ASSERT(current_context != Context::Invalid);
 
@@ -692,7 +692,6 @@ namespace adria
 
 	void GfxCommandList::SetRootDescriptorTable(uint32 slot, GfxDescriptor base_descriptor)
 	{
-		ADRIA_ASSERT_MSG(false, "Not yet implemented! (Or needed)");
 		if (current_context == Context::Graphics)
 		{
 			cmd_list->SetGraphicsRootDescriptorTable(slot, base_descriptor);
@@ -720,17 +719,17 @@ namespace adria
 		cmd_list->ClearDepthStencilView(dsv, d3d12_clear_flags, depth, stencil, 0, nullptr);
 	}
 
-	void GfxCommandList::SetRenderTargets(std::span<GfxDescriptor> _rtvs, GfxDescriptor const* _dsv /*= nullptr*/, bool single_rt /*= false*/)
+	void GfxCommandList::SetRenderTargets(std::span<GfxDescriptor const> rtvs, GfxDescriptor const* dsv /*= nullptr*/, bool single_rt /*= false*/)
 	{
-		D3D12_CPU_DESCRIPTOR_HANDLE* dsv = nullptr;
-		if (_dsv)
+		D3D12_CPU_DESCRIPTOR_HANDLE* d3d12_dsv = nullptr;
+		if (dsv)
 		{
-			D3D12_CPU_DESCRIPTOR_HANDLE d3d12_dsv = *_dsv;
-			dsv = &d3d12_dsv;
+			D3D12_CPU_DESCRIPTOR_HANDLE _d3d12_dsv = *dsv;
+			d3d12_dsv = &_d3d12_dsv;
 		}
-		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> rtvs(_rtvs.size());
-		for (size_t i = 0; i < rtvs.size(); ++i) rtvs[i] = _rtvs[i];
-		cmd_list->OMSetRenderTargets((uint32)rtvs.size(), rtvs.data(), single_rt, dsv);
+		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> d3d12_rtvs(rtvs.size());
+		for (uint64 i = 0; i < d3d12_rtvs.size(); ++i) d3d12_rtvs[i] = rtvs[i];
+		cmd_list->OMSetRenderTargets((uint32)d3d12_rtvs.size(), d3d12_rtvs.data(), single_rt, d3d12_dsv);
 	}
 
 	void GfxCommandList::SetContext(Context ctx)

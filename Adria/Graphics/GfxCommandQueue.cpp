@@ -20,6 +20,7 @@ namespace adria
 			case GfxCommandListType::Copy:
 				return D3D12_COMMAND_LIST_TYPE_COPY;
 			}
+			return D3D12_COMMAND_LIST_TYPE_NONE;
 		};
 		queue_desc.Type = GetCmdListType(type);
 		queue_desc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;

@@ -227,18 +227,47 @@ namespace adria
 		HRESULT hr = E_FAIL;
 		uint32 dxgi_factory_flags = 0;
 		SetupOptions(options, dxgi_factory_flags);
-		hr = CreateDXGIFactory1(IID_PPV_ARGS(dxgi_factory.GetAddressOf()));
-		GFX_CHECK_HR(hr);
+		GFX_CHECK_HR(CreateDXGIFactory2(dxgi_factory_flags, IID_PPV_ARGS(dxgi_factory.GetAddressOf())));
 
-		ArcPtr<IDXGIAdapter1> adapter;
-		dxgi_factory->EnumAdapters1(1, adapter.GetAddressOf());
+		ArcPtr<IDXGIAdapter4> adapter;
+		uint32 adapter_index = 0;
+		ADRIA_LOG(INFO, "Available adapters:");
+		DXGI_GPU_PREFERENCE gpu_preference = DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE;
+		while (dxgi_factory->EnumAdapterByGpuPreference(adapter_index++, gpu_preference, IID_PPV_ARGS(adapter.ReleaseAndGetAddressOf())) == S_OK)
+		{
+			DXGI_ADAPTER_DESC3 desc{};
+			adapter->GetDesc3(&desc);
+			std::wstring adapter_wide_description(desc.Description);
+			std::string adapter_description = ToString(adapter_wide_description);
+			ADRIA_LOG(INFO, "\t%s - %f GB", adapter_description.c_str(), (float)desc.DedicatedVideoMemory / (1 << 30) );
+		}
+		dxgi_factory->EnumAdapterByGpuPreference(0, gpu_preference, IID_PPV_ARGS(adapter.GetAddressOf()));
+		DXGI_ADAPTER_DESC3 desc{};
+		adapter->GetDesc3(&desc);
+		std::wstring adapter_wide_description(desc.Description);
+		std::string adapter_description = ToString(adapter_wide_description);
+		ADRIA_LOG(INFO, "Using %s", adapter_description.c_str());
 
-		hr = D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(device.GetAddressOf()));
-		GFX_CHECK_HR(hr);
+		D3D_FEATURE_LEVEL feature_levels[] =
+		{
+			D3D_FEATURE_LEVEL_12_2,
+			D3D_FEATURE_LEVEL_12_1,
+			D3D_FEATURE_LEVEL_12_0,
+			D3D_FEATURE_LEVEL_11_1,
+			D3D_FEATURE_LEVEL_11_0
+		};
+
+		GFX_CHECK_HR(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(device.GetAddressOf())));
+		D3D12_FEATURE_DATA_FEATURE_LEVELS caps{};
+		caps.pFeatureLevelsRequested = feature_levels;
+		caps.NumFeatureLevels = ARRAYSIZE(feature_levels);
+		GFX_CHECK_HR(device->CheckFeatureSupport(D3D12_FEATURE_FEATURE_LEVELS, &caps, sizeof(D3D12_FEATURE_DATA_FEATURE_LEVELS)));
+		GFX_CHECK_HR(D3D12CreateDevice(adapter.Get(), caps.MaxSupportedFeatureLevel, IID_PPV_ARGS(device.ReleaseAndGetAddressOf())));
+
 		if (!device_capabilities.Initialize(this))
 		{
 			ADRIA_DEBUGBREAK();
-			std::exit(1);
+			std::exit(EXIT_FAILURE);
 		}
 
 		D3D12MA::ALLOCATOR_DESC allocator_desc{};
@@ -363,7 +392,6 @@ namespace adria
 		++frame_index;
 		gpu_descriptor_allocator->FinishCurrentFrame(frame_index);
 	}
-
 
 	void GfxDevice::TakePixCapture(uint32 num_frames)
 	{

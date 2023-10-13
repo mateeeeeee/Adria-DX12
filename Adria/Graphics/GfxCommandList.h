@@ -101,33 +101,33 @@ namespace adria
 		void SetTopology(GfxPrimitiveTopology topology);
 		void SetIndexBuffer(GfxIndexBufferView* index_buffer_view);
 		void SetVertexBuffer(GfxVertexBufferView const& vertex_buffer_view, uint32 start_slot = 0);
-		void SetVertexBuffers(std::span<GfxVertexBufferView> vertex_buffer_views, uint32 start_slot = 0);
+		void SetVertexBuffers(std::span<GfxVertexBufferView const> vertex_buffer_views, uint32 start_slot = 0);
 		void SetViewport(uint32 x, uint32 y, uint32 width, uint32 height);
 		void SetScissorRect(uint32 x, uint32 y, uint32 width, uint32 height);
 
 		void SetRootConstant(uint32 slot, uint32 data, uint32 offset = 0);
-		void SetRootConstants(uint32 slot, const void* data, uint32 data_size, uint32 offset = 0);
+		void SetRootConstants(uint32 slot, void const* data, uint32 data_size, uint32 offset = 0);
 		template<typename T>
 		void SetRootConstants(uint32 slot, T const& data)
 		{
 			SetRootConstants(slot, &data, sizeof(T));
 		}
-		void SetRootCBV(uint32 slot, const void* data, size_t data_size);
+		void SetRootCBV(uint32 slot, void const* data, uint64 data_size);
 		template<typename T>
 		void SetRootCBV(uint32 slot, T const& data)
 		{
 			SetRootCBV(slot, &data, sizeof(T));
 		}
-		void SetRootCBV(uint32 slot, size_t gpu_address);
-		void SetRootSRV(uint32 slot, size_t gpu_address);
-		void SetRootUAV(uint32 slot, size_t gpu_address);
+		void SetRootCBV(uint32 slot, uint64 gpu_address);
+		void SetRootSRV(uint32 slot, uint64 gpu_address);
+		void SetRootUAV(uint32 slot, uint64 gpu_address);
 		void SetRootDescriptorTable(uint32 slot, GfxDescriptor base_descriptor);
 
 		GfxDynamicAllocation AllocateTransient(uint32 size, uint32 align = 0);
 
 		void ClearRenderTarget(GfxDescriptor rtv, float const* clear_color);
 		void ClearDepth(GfxDescriptor dsv, float depth = 1.0f, uint8 stencil = 0, bool clear_stencil = false);
-		void SetRenderTargets(std::span<GfxDescriptor> rtvs, GfxDescriptor const* dsv = nullptr, bool single_rt = false);
+		void SetRenderTargets(std::span<GfxDescriptor const> rtvs, GfxDescriptor const* dsv = nullptr, bool single_rt = false);
 
 		void SetContext(Context ctx);
 

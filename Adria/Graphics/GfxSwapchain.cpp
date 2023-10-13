@@ -46,13 +46,10 @@ namespace adria
 		swapchain1.As(&swapchain);
 		
 		backbuffer_index = swapchain->GetCurrentBackBufferIndex();
-
 		CreateBackbuffers();
 	}
 
-	GfxSwapchain::~GfxSwapchain()
-	{
-	}
+	GfxSwapchain::~GfxSwapchain() {}
 
 	void GfxSwapchain::SetAsRenderTarget(GfxCommandList* cmd_list)
 	{
@@ -62,7 +59,7 @@ namespace adria
 
 	void GfxSwapchain::ClearBackbuffer(GfxCommandList* cmd_list)
 	{
-		float const clear_color[] = { 0,0,0,0 };
+		constexpr float clear_color[] = { 0,0,0,0 };
 		GfxDescriptor rtv = GetBackbufferDescriptor();
 		cmd_list->ClearRenderTarget(rtv, clear_color);
 	}

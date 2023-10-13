@@ -168,7 +168,7 @@ namespace adria
 		uint32 width, height;
 		uint32 frame_index;
 
-		ArcPtr<IDXGIFactory4> dxgi_factory = nullptr;
+		ArcPtr<IDXGIFactory6> dxgi_factory = nullptr;
 		ArcPtr<ID3D12Device5> device = nullptr;
 		GfxCapabilities device_capabilities{};
 
