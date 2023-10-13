@@ -17,18 +17,18 @@ namespace adria
 		{
 			int32 shape_noise_frequency = 4;
 			int32 shape_noise_resolution = 128;
-			int32 detail_noise_frequency = 8;
+			int32 detail_noise_frequency = 6;
 			int32 detail_noise_resolution = 32;
 
 			int32 max_num_steps = 64;
 			float cloud_min_height = 1500.0f;
 			float cloud_max_height = 4000.0f;
 			float shape_noise_scale = 0.3f;
-			float detail_noise_scale = 5.5f;
-			float detail_noise_modifier = 0.5f;
-			float cloud_coverage = 0.7f;
-			float cloud_type = 0.6f;
-			float global_density = 0.1f;
+			float detail_noise_scale = 3.2f;
+			float detail_noise_modifier = 0.33f;
+			float cloud_coverage = 0.625f;
+			float cloud_type = 0.5f;
+			float global_density = 0.25f;
 
 			float planet_radius = 35000.0f;
 			float light_step_length = 64.0f;
@@ -36,9 +36,9 @@ namespace adria
 
 			float cloud_base_color[3] = { 0.78f, 0.86f, 1.0f };
 			float cloud_top_color[3] = { 1.0f, 1.0f, 1.0f };
-			float precipitation = 1.0f;
+			float precipitation = 1.78f;
 			float ambient_light_factor = 0.12f;
-			float sun_light_factor = 1.0f;
+			float sun_light_factor = 0.7f;
 			float henyey_greenstein_g_forward = 0.4f;
 			float henyey_greenstein_g_backward = 0.179f;
 		};
