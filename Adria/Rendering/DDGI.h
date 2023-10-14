@@ -1,7 +1,7 @@
 #pragma once
 #include "Graphics/GfxDescriptor.h"
 #include "entt/entity/fwd.hpp"
- 
+
 namespace adria
 {
 	enum GfxShaderID : uint8;
@@ -25,6 +25,8 @@ namespace adria
 			uint32				 num_rays;
 			std::unique_ptr<GfxTexture> irradiance_history;
 			std::unique_ptr<GfxTexture> distance_history;
+			GfxDescriptor irradiance_history_srv;
+			GfxDescriptor distance_history_srv;
 		};
 
 		struct DDGIVolumeHLSL
@@ -57,11 +59,9 @@ namespace adria
 		uint32 width, height;
 		bool is_supported;
 		ArcPtr<ID3D12StateObject> ddgi_trace_so;
-
 		DDGIVolume ddgi_volume;
-		std::unique_ptr<GfxBuffer> ddgi_volume_buffer;
+		std::unique_ptr<GfxBuffer>  ddgi_volume_buffer;
 		GfxDescriptor ddgi_volume_buffer_srv;
-		GfxDescriptor ddgi_volume_buffer_srv_gpu;
 
 	private:
 

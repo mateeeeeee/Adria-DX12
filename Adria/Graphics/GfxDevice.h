@@ -55,7 +55,7 @@ namespace adria
 	template<bool>
 	class GfxRingDescriptorAllocator;
 
-#ifdef GFX_MULTITHREADED
+#if GFX_MULTITHREADED
 	using GfxOnlineDescriptorAllocator = GfxRingDescriptorAllocator<true>;
 #else
 	using GfxOnlineDescriptorAllocator = GfxRingDescriptorAllocator<false>;
@@ -173,7 +173,7 @@ namespace adria
 		GfxCapabilities device_capabilities{};
 
 		std::unique_ptr<GfxOnlineDescriptorAllocator> gpu_descriptor_allocator;
-		std::array<std::unique_ptr<GfxDescriptorAllocator>, (size_t)GfxDescriptorHeapType::Count> cpu_descriptor_allocators;
+		std::array<std::unique_ptr<GfxDescriptorAllocator>, (uint64)GfxDescriptorHeapType::Count> cpu_descriptor_allocators;
 
 		std::unique_ptr<GfxSwapchain> swapchain;
 		ReleasablePtr<D3D12MA::Allocator> allocator = nullptr;
@@ -205,7 +205,7 @@ namespace adria
 			std::unique_ptr<ReleasableObject> obj;
 			uint64 fence_value;
 
-			ReleasableItem(ReleasableObject* obj, size_t fence_value) : obj(obj), fence_value(fence_value) {}
+			ReleasableItem(ReleasableObject* obj, uint64 fence_value) : obj(obj), fence_value(fence_value) {}
 		};
 		std::queue<ReleasableItem>  release_queue;
 

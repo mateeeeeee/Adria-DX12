@@ -19,6 +19,7 @@ namespace adria
 		void OnSceneInitialized(GfxDevice* gfx);
 		void AddPasses(RenderGraph& rg, RGResourceName input);
 		void OnResize(uint32 w, uint32 h);
+
 	private:
 		uint32 width, height;
 		std::unique_ptr<GfxTexture> previous_ev100;

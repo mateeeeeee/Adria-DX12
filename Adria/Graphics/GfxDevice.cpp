@@ -288,10 +288,10 @@ namespace adria
 			upload_cmd_lists[i]   = std::make_unique<GfxCommandList>(this, GfxCommandListType::Copy, "upload command list");
 		}
 
-		for (uint32 i = 0; i < cpu_descriptor_allocators.size(); ++i)
+		for (uint32 i = 0; i < (uint32)GfxDescriptorHeapType::Count; ++i)
 		{
 			GfxDescriptorAllocatorDesc desc{};
-			desc.descriptor_count = 512;
+			desc.descriptor_count = 1024;
 			desc.shader_visible = false;
 			desc.type = static_cast<GfxDescriptorHeapType>(i);
 			cpu_descriptor_allocators[i] = std::make_unique<GfxDescriptorAllocator>(this, desc);
@@ -488,7 +488,7 @@ namespace adria
 
 		std::vector<uint32> src_range_sizes(src_descriptors.size(), 1);
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> src_handles(src_descriptors.size());
-		for (size_t i = 0; i < src_handles.size(); ++i) src_handles[i] = src_descriptors[i];
+		for (uint64 i = 0; i < src_handles.size(); ++i) src_handles[i] = src_descriptors[i];
 
 		device->CopyDescriptors(dst_ranges_count, dst_handles, dst_range_sizes,
 			src_ranges_count, src_handles.data(), src_range_sizes.data(), ToD3D12HeapType(type));
@@ -499,7 +499,7 @@ namespace adria
 		uint32 const src_ranges_count = (uint32)src_range_starts_and_size.size();
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> dst_handles(dst_ranges_count);
 		std::vector<uint32> dst_range_sizes(dst_ranges_count);
-		for (size_t i = 0; i < dst_ranges_count; ++i)
+		for (uint64 i = 0; i < dst_ranges_count; ++i)
 		{
 			dst_handles[i] = dst_range_starts_and_size[i].first;
 			dst_range_sizes[i] = dst_range_starts_and_size[i].second;
@@ -507,7 +507,7 @@ namespace adria
 
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> src_handles(src_ranges_count);
 		std::vector<uint32> src_range_sizes(src_ranges_count);
-		for (size_t i = 0; i < src_ranges_count; ++i)
+		for (uint64 i = 0; i < src_ranges_count; ++i)
 		{
 			src_handles[i] = src_range_starts_and_size[i].first;
 			src_range_sizes[i] = src_range_starts_and_size[i].second;
@@ -519,11 +519,11 @@ namespace adria
 
 	GfxDescriptor GfxDevice::AllocateDescriptorCPU(GfxDescriptorHeapType type)
 	{
-		return cpu_descriptor_allocators[(size_t)type]->AllocateDescriptor();
+		return cpu_descriptor_allocators[(uint64)type]->AllocateDescriptor();
 	}
 	void GfxDevice::FreeDescriptorCPU(GfxDescriptor descriptor, GfxDescriptorHeapType type)
 	{
-		cpu_descriptor_allocators[(size_t)type]->FreeDescriptor(descriptor);
+		cpu_descriptor_allocators[(uint64)type]->FreeDescriptor(descriptor);
 	}
 
 	GfxDescriptor GfxDevice::AllocateDescriptorsGPU(uint32 count)
@@ -752,9 +752,17 @@ namespace adria
 		}
 		if (options.pix)
 		{
-			PIXLoadLatestWinPixGpuCapturerLibrary();
-			pix_dll_loaded = true;
-			ADRIA_LOG(INFO, "PIX dll loaded!");
+			HMODULE pix_library = PIXLoadLatestWinPixGpuCapturerLibrary();
+			if (pix_library)
+			{
+				pix_dll_loaded = true;
+				ADRIA_LOG(INFO, "PIX dll loaded!");
+			}
+			else
+			{
+				pix_dll_loaded = false;
+				ADRIA_LOG(WARNING, "Pix dll could not be loaded!");
+			}
 		}
 	}
 

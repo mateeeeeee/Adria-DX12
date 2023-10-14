@@ -34,7 +34,7 @@ namespace adria
 		bool bloom = false;
 		bool clouds = true;
 		bool motion_blur = false;
-		bool automatic_exposure = true;
+		bool automatic_exposure = false;
 	};
 
 

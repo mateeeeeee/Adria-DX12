@@ -37,7 +37,7 @@ namespace adria
 		static ConsoleVariable renderpath("renderpath", 0);
 		static ConsoleVariable taa("TAA", false);
 		static ConsoleVariable fxaa("FXAA", true);
-		static ConsoleVariable exposure("exposure", true);
+		static ConsoleVariable exposure("exposure", false);
 		static ConsoleVariable clouds("clouds", true);
 		static ConsoleVariable dof("dof", false);
 		static ConsoleVariable bokeh("bokeh", false);

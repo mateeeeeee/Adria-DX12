@@ -66,7 +66,7 @@ namespace adria
 		std::unique_ptr<GfxTexture> cloud_type;
 
 		CloudParameters params{};
-		CloudResolution resolution = CloudResolution_Half;
+		CloudResolution resolution = CloudResolution_Full;
 		bool should_generate_textures = false;
 		bool temporal_reprojection = true;
 		

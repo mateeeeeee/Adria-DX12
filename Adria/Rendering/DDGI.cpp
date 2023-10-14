@@ -63,6 +63,8 @@ namespace adria
 		ddgi_volume.irradiance_history = gfx->CreateTexture(irradiance_desc);
 		ddgi_volume.irradiance_history->SetName("DDGI Irradiance History");
 
+		ddgi_volume.irradiance_history_srv = gfx->CreateTextureSRV(ddgi_volume.irradiance_history.get());
+
 		Vector2u distance_dimensions = ProbeTextureDimensions(ddgi_volume.num_probes, PROBE_DISTANCE_TEXELS);
 		GfxTextureDesc distance_desc{};
 		distance_desc.width = distance_dimensions.x;
@@ -72,6 +74,8 @@ namespace adria
 		distance_desc.initial_state = GfxResourceState::CopyDest;
 		ddgi_volume.distance_history = gfx->CreateTexture(distance_desc);
 		ddgi_volume.distance_history->SetName("DDGI Distance History");
+
+		ddgi_volume.distance_history_srv = gfx->CreateTextureSRV(ddgi_volume.distance_history.get());
 	}
 
 	void DDGI::OnResize(uint32 w, uint32 h)
@@ -82,8 +86,7 @@ namespace adria
 
 	void DDGI::AddPasses(RenderGraph& rg)
 	{
-		//if (!IsSupported()) 
-			return;
+		if (!IsSupported()) return;
 
 		uint32 const num_probes_flat = ddgi_volume.num_probes.x * ddgi_volume.num_probes.y * ddgi_volume.num_probes.z;
 
@@ -259,9 +262,7 @@ namespace adria
 
 	int32 DDGI::GetDDGIVolumeIndex()
 	{
-		//if (!IsSupported()) 
-			return -1;
-		if (gfx->GetFrameIndex() == 0) return -1;
+		if (!IsSupported())  return -1;
 
 		std::vector<DDGIVolumeHLSL> ddgi_data;
 		DDGIVolumeHLSL& ddgi_hlsl = ddgi_data.emplace_back();
@@ -273,12 +274,10 @@ namespace adria
 		ddgi_hlsl.normal_bias = 0.25f;
 		ddgi_hlsl.energy_preservation = 0.85f;
 
-		GfxDescriptor irradiance_cpu = gfx->CreateTextureSRV(ddgi_volume.irradiance_history.get());
-		GfxDescriptor distance_cpu = gfx->CreateTextureSRV(ddgi_volume.distance_history.get());
 		GfxDescriptor irradiance_gpu = gfx->AllocateDescriptorsGPU();
 		GfxDescriptor distance_gpu = gfx->AllocateDescriptorsGPU();
-		gfx->CopyDescriptors(1, irradiance_gpu, irradiance_cpu);
-		gfx->CopyDescriptors(1, distance_gpu, distance_cpu);
+		gfx->CopyDescriptors(1, irradiance_gpu, ddgi_volume.irradiance_history_srv);
+		gfx->CopyDescriptors(1, distance_gpu, ddgi_volume.distance_history_srv);
 
 		ddgi_hlsl.irradiance_history_idx = (int32)irradiance_gpu.GetIndex();
 		ddgi_hlsl.distance_history_idx = (int32)distance_gpu.GetIndex();
@@ -289,7 +288,7 @@ namespace adria
 		}
 
 		ddgi_volume_buffer->Update(ddgi_data.data(), ddgi_data.size() * sizeof(DDGIVolumeHLSL));
-		ddgi_volume_buffer_srv_gpu = gfx->AllocateDescriptorsGPU();
+		GfxDescriptor ddgi_volume_buffer_srv_gpu = gfx->AllocateDescriptorsGPU();
 		gfx->CopyDescriptors(1, ddgi_volume_buffer_srv_gpu, ddgi_volume_buffer_srv);
 		return (int32)ddgi_volume_buffer_srv_gpu.GetIndex();
 	}
