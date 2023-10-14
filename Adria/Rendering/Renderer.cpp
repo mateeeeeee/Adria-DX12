@@ -152,7 +152,8 @@ namespace adria
 		hbao_pass.OnSceneInitialized(gfx);
 		postprocessor.OnSceneInitialized(gfx);
 		ocean_renderer.OnSceneInitialized(gfx);
-		tonemap_pass.OnSceneInitialized(gfx);
+		tonemap_pass.OnSceneInitialized();
+		ddgi.OnSceneInitialized();
 		CreateAS();
 
 		gfxcommon::Initialize(gfx);
@@ -205,8 +206,8 @@ namespace adria
 
 			LightHLSL& hlsl_light = hlsl_lights.emplace_back();
 			hlsl_light.color = light.color * light.energy;
-			hlsl_light.position = XMVector4Transform(light.position, light_transform);
-			hlsl_light.direction = XMVector4Transform(light.direction, light_transform);
+			hlsl_light.position = Vector4::Transform(light.position, light_transform);
+			hlsl_light.direction = Vector4::Transform(light.direction, light_transform);
 			hlsl_light.range = light.range;
 			hlsl_light.type = static_cast<int32>(light.type);
 			hlsl_light.inner_cosine = light.inner_cosine;
@@ -407,6 +408,8 @@ namespace adria
 
 		if (gfx->GetCapabilities().SupportsMeshShaders()) gpu_driven_renderer.Render(render_graph);
 		else gbuffer_pass.AddPass(render_graph);
+
+		ddgi.AddPasses(render_graph);
 
 		decals_pass.AddPass(render_graph);
 		switch (renderer_settings.postprocess.ambient_occlusion)

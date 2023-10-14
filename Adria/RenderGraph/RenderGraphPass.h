@@ -91,7 +91,7 @@ namespace adria
 			RGDepthStencilId depth_stencil_handle;
 			RGLoadStoreAccessOp depth_access;
 			RGLoadStoreAccessOp stencil_access;
-			bool readonly;
+			bool depth_read_only;
 		};
 
 		inline static uint32 unique_pass_id = 0;
@@ -114,10 +114,10 @@ namespace adria
 
 	private:
 		std::string const name;
-		size_t ref_count = 0ull;
+		uint64 ref_count = 0ull;
 		RGPassType type;
 		RGPassFlags flags = RGPassFlags::None;
-		size_t id;
+		uint64 id;
 
 		std::unordered_set<RGTextureId> texture_creates;
 		std::unordered_set<RGTextureId> texture_reads;

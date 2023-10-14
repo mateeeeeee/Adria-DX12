@@ -14,11 +14,11 @@ namespace adria
 		std::strong_ordering operator<=>(GfxBufferDesc const& other) const = default;
 	};
 
-	struct GfxBufferSubresourceDesc
+	struct GfxBufferDescriptorDesc
 	{
 		uint64 offset = 0;
 		uint64 size = uint64(-1);
-		std::strong_ordering operator<=>(GfxBufferSubresourceDesc const& other) const = default;
+		std::strong_ordering operator<=>(GfxBufferDescriptorDesc const& other) const = default;
 	};
 
 	using GfxBufferInitialData = void const*;

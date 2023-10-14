@@ -28,7 +28,7 @@ namespace adria
 		void AddPass(RenderGraph& rg, RGResourceName hdr_src);
 		void AddPass(RenderGraph& rg, RGResourceName hdr_src, RGResourceName output);
 		void OnResize(uint32 w, uint32 h);
-		void OnSceneInitialized(GfxDevice* gfx);
+		void OnSceneInitialized();
 	private:
 		uint32 width, height;
 		TonemapParams params;

@@ -33,12 +33,12 @@ namespace adria
 
 	class GfxTexture;
 	struct GfxTextureDesc;
-	struct GfxTextureSubresourceDesc;
+	struct GfxTextureDescriptorDesc;
 	struct GfxTextureInitialData;
 
 	class GfxBuffer;
 	struct GfxBufferDesc;
-	struct GfxBufferSubresourceDesc;
+	struct GfxBufferDescriptorDesc;
 
 	class GfxQueryHeap;
 	struct GfxQueryHeapDesc;
@@ -136,13 +136,13 @@ namespace adria
 		std::unique_ptr<GfxRayTracingTLAS> CreateRayTracingTLAS(std::span<GfxRayTracingInstance> instances, GfxRayTracingASFlags flags);
 		std::unique_ptr<GfxRayTracingBLAS> CreateRayTracingBLAS(std::span<GfxRayTracingGeometry> geometries, GfxRayTracingASFlags flags);
 
-		GfxDescriptor CreateBufferSRV(GfxBuffer const*, GfxBufferSubresourceDesc const* = nullptr);
-		GfxDescriptor CreateBufferUAV(GfxBuffer const*, GfxBufferSubresourceDesc const* = nullptr);
-		GfxDescriptor CreateBufferUAV(GfxBuffer const*, GfxBuffer const*, GfxBufferSubresourceDesc const* = nullptr);
-		GfxDescriptor CreateTextureSRV(GfxTexture const*, GfxTextureSubresourceDesc const* = nullptr);
-		GfxDescriptor CreateTextureUAV(GfxTexture const*, GfxTextureSubresourceDesc const* = nullptr);
-		GfxDescriptor CreateTextureRTV(GfxTexture const*, GfxTextureSubresourceDesc const* = nullptr);
-		GfxDescriptor CreateTextureDSV(GfxTexture const*, GfxTextureSubresourceDesc const* = nullptr);
+		GfxDescriptor CreateBufferSRV(GfxBuffer const*, GfxBufferDescriptorDesc const* = nullptr);
+		GfxDescriptor CreateBufferUAV(GfxBuffer const*, GfxBufferDescriptorDesc const* = nullptr);
+		GfxDescriptor CreateBufferUAV(GfxBuffer const*, GfxBuffer const*, GfxBufferDescriptorDesc const* = nullptr);
+		GfxDescriptor CreateTextureSRV(GfxTexture const*, GfxTextureDescriptorDesc const* = nullptr);
+		GfxDescriptor CreateTextureUAV(GfxTexture const*, GfxTextureDescriptorDesc const* = nullptr);
+		GfxDescriptor CreateTextureRTV(GfxTexture const*, GfxTextureDescriptorDesc const* = nullptr);
+		GfxDescriptor CreateTextureDSV(GfxTexture const*, GfxTextureDescriptorDesc const* = nullptr);
 
 		void CopyDescriptors(uint32 count, GfxDescriptor dst, GfxDescriptor src, GfxDescriptorHeapType type = GfxDescriptorHeapType::CBV_SRV_UAV);
 		void CopyDescriptors(GfxDescriptor dst, std::span<GfxDescriptor> src_descriptors, GfxDescriptorHeapType type = GfxDescriptorHeapType::CBV_SRV_UAV);
@@ -240,8 +240,8 @@ namespace adria
 		void ProcessReleaseQueue();
 		GfxOnlineDescriptorAllocator* GetDescriptorAllocator() const;
 
-		GfxDescriptor CreateBufferView(GfxBuffer const* buffer, GfxSubresourceType view_type, GfxBufferSubresourceDesc const& view_desc, GfxBuffer const* uav_counter = nullptr);
-		GfxDescriptor CreateTextureView(GfxTexture const* texture, GfxSubresourceType view_type, GfxTextureSubresourceDesc const& view_desc);
+		GfxDescriptor CreateBufferView(GfxBuffer const* buffer, GfxSubresourceType view_type, GfxBufferDescriptorDesc const& view_desc, GfxBuffer const* uav_counter = nullptr);
+		GfxDescriptor CreateTextureView(GfxTexture const* texture, GfxSubresourceType view_type, GfxTextureDescriptorDesc const& view_desc);
 
 	};
 

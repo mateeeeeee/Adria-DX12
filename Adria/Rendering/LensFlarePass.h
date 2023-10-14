@@ -18,7 +18,7 @@ namespace adria
 		void AddPass(RenderGraph& rendergraph, Light const& light);
 		void AddPass2(RenderGraph& rendergraph, Light const& light);
 		void OnResize(uint32 w, uint32 h);
-		void OnSceneInitialized(GfxDevice* gfx);
+		void OnSceneInitialized();
 	private:
 		uint32 width, height;
 		std::vector<size_t> lens_flare_textures;

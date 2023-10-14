@@ -29,21 +29,61 @@ namespace adria
 		{
 			CreateStateObject();
 			ShaderCache::GetLibraryRecompiledEvent().AddMember(&DDGI::OnLibraryRecompiled, *this);
-			CalculateDDGIDimensions();
 		}
+	}
+
+	void DDGI::OnSceneInitialized()
+	{
+		BoundingBox scene_bounding_box;
+		for (auto mesh_entity : reg.view<Mesh>())
+		{
+			Mesh& mesh = reg.get<Mesh>(mesh_entity);
+
+			for (auto const& instance : mesh.instances)
+			{
+				SubMeshGPU& submesh = mesh.submeshes[instance.submesh_index];
+				BoundingBox instance_bounding_box;
+				submesh.bounding_box.Transform(instance_bounding_box, instance.world_transform);
+				BoundingBox::CreateMerged(scene_bounding_box, scene_bounding_box, instance_bounding_box);
+			}
+		}
+		ddgi_volume.origin = scene_bounding_box.Center;
+		ddgi_volume.extents = 1.1f * Vector3(scene_bounding_box.Extents);
+		ddgi_volume.num_probes = Vector3u(16, 12, 14);
+		ddgi_volume.num_rays = 128;
+		ddgi_volume.max_num_rays = 512;
+
+		Vector2u irradiance_dimensions = ProbeTextureDimensions(ddgi_volume.num_probes, PROBE_IRRADIANCE_TEXELS);
+		GfxTextureDesc irradiance_desc{};
+		irradiance_desc.width = irradiance_dimensions.x;
+		irradiance_desc.height = irradiance_dimensions.y;
+		irradiance_desc.format = GfxFormat::R16G16B16A16_FLOAT;
+		irradiance_desc.bind_flags = GfxBindFlag::ShaderResource;
+		irradiance_desc.initial_state = GfxResourceState::CopyDest;
+		ddgi_volume.irradiance_history = gfx->CreateTexture(irradiance_desc);
+		ddgi_volume.irradiance_history->SetName("DDGI Irradiance History");
+
+		Vector2u distance_dimensions = ProbeTextureDimensions(ddgi_volume.num_probes, PROBE_DISTANCE_TEXELS);
+		GfxTextureDesc distance_desc{};
+		distance_desc.width = distance_dimensions.x;
+		distance_desc.height = distance_dimensions.y;
+		distance_desc.format = GfxFormat::R16G16_FLOAT;
+		distance_desc.bind_flags = GfxBindFlag::ShaderResource;
+		distance_desc.initial_state = GfxResourceState::CopyDest;
+		ddgi_volume.distance_history = gfx->CreateTexture(distance_desc);
+		ddgi_volume.distance_history->SetName("DDGI Distance History");
 	}
 
 	void DDGI::OnResize(uint32 w, uint32 h)
 	{
-		//if (!IsSupported())
-		return;
+		if (!IsSupported()) return;
 		width = w, height = h;
 	}
 
 	void DDGI::AddPasses(RenderGraph& rg)
 	{
-		//if (!IsSupported())
-		return;
+		//if (!IsSupported()) 
+			return;
 
 		uint32 const num_probes_flat = ddgi_volume.num_probes.x * ddgi_volume.num_probes.y * ddgi_volume.num_probes.z;
 
@@ -107,7 +147,7 @@ namespace adria
 				GfxRayTracingShaderTable& table = cmd_list->SetStateObject(ddgi_trace_so.Get());
 				table.SetRayGenShader("DDGI_RayGen");
 				table.AddMissShader("DDGI_Miss", 0);
-				table.AddHitGroup("DDGI_ClosestHit", 0);
+				table.AddHitGroup("DDGI_HitGroup", 0);
 
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, parameters);
@@ -175,12 +215,12 @@ namespace adria
 		rg.AddPass<DDGIUpdateDistancePassData>("DDGI Update Distance Pass",
 			[=](DDGIUpdateDistancePassData& data, RenderGraphBuilder& builder)
 			{
-				Vector2u depth_dimensions = ProbeTextureDimensions(ddgi_volume.num_probes, PROBE_DISTANCE_TEXELS);
-				RGTextureDesc irradiance_desc{};
-				irradiance_desc.width = depth_dimensions.x;
-				irradiance_desc.height = depth_dimensions.y;
-				irradiance_desc.format = GfxFormat::R16G16_FLOAT;
-				builder.DeclareTexture(RG_RES_NAME(DDGIDistance), irradiance_desc);
+				Vector2u distance_dimensions = ProbeTextureDimensions(ddgi_volume.num_probes, PROBE_DISTANCE_TEXELS);
+				RGTextureDesc distance_desc{};
+				distance_desc.width = distance_dimensions.x;
+				distance_desc.height = distance_dimensions.y;
+				distance_desc.format = GfxFormat::R16G16_FLOAT;
+				builder.DeclareTexture(RG_RES_NAME(DDGIDistance), distance_desc);
 
 				data.depth = builder.WriteTexture(RG_RES_NAME(DDGIDistance));
 				data.ray_buffer = builder.ReadBuffer(RG_RES_NAME(DDGIRayBuffer));
@@ -219,8 +259,9 @@ namespace adria
 
 	int32 DDGI::GetDDGIVolumeIndex()
 	{
-		//if (!IsSupported())
-		return -1;
+		//if (!IsSupported()) 
+			return -1;
+		if (gfx->GetFrameIndex() == 0) return -1;
 
 		std::vector<DDGIVolumeHLSL> ddgi_data;
 		DDGIVolumeHLSL& ddgi_hlsl = ddgi_data.emplace_back();
@@ -253,29 +294,10 @@ namespace adria
 		return (int32)ddgi_volume_buffer_srv_gpu.GetIndex();
 	}
 
-	void DDGI::CalculateDDGIDimensions()
-	{
-		BoundingBox scene_bounding_box;
-		for (auto mesh_entity : reg.view<Mesh>())
-		{
-			Mesh& mesh = reg.get<Mesh>(mesh_entity);
-
-			for (auto const& instance : mesh.instances)
-			{
-				SubMeshGPU& submesh = mesh.submeshes[instance.submesh_index];
-				BoundingBox instance_bounding_box;
-				submesh.bounding_box.Transform(instance_bounding_box, instance.world_transform);
-				BoundingBox::CreateMerged(scene_bounding_box, scene_bounding_box, instance_bounding_box);
-			}
-		}
-		ddgi_volume.origin = scene_bounding_box.Center;
-		ddgi_volume.extents = scene_bounding_box.Extents;
-	}
-
 	void DDGI::CreateStateObject()
 	{
 		ID3D12Device5* device = gfx->GetDevice();
-		GfxShader const& ddgi_blob = ShaderCache::GetShader(LIB_AmbientOcclusion);
+		GfxShader const& ddgi_blob = ShaderCache::GetShader(LIB_DDGIRayTracing);
 
 		GfxStateObjectBuilder ddgi_state_object_builder(5);
 		{
@@ -287,7 +309,7 @@ namespace adria
 			ddgi_state_object_builder.AddSubObject(dxil_lib_desc);
 
 			D3D12_RAYTRACING_SHADER_CONFIG ddgi_shader_config{};
-			ddgi_shader_config.MaxPayloadSizeInBytes = 4;
+			ddgi_shader_config.MaxPayloadSizeInBytes = 16;
 			ddgi_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
 			ddgi_state_object_builder.AddSubObject(ddgi_shader_config);
 
@@ -298,6 +320,12 @@ namespace adria
 			D3D12_RAYTRACING_PIPELINE_CONFIG pipeline_config{};
 			pipeline_config.MaxTraceRecursionDepth = 1;
 			ddgi_state_object_builder.AddSubObject(pipeline_config);
+
+			D3D12_HIT_GROUP_DESC hit_group{};
+			hit_group.Type = D3D12_HIT_GROUP_TYPE_TRIANGLES;
+			hit_group.ClosestHitShaderImport = L"DDGI_ClosestHit";
+			hit_group.HitGroupExport = L"DDGI_HitGroup";
+			ddgi_state_object_builder.AddSubObject(hit_group);
 		}
 		ddgi_trace_so.Attach(ddgi_state_object_builder.CreateStateObject(device));
 	}

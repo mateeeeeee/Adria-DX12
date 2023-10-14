@@ -68,6 +68,8 @@ namespace adria
 		constexpr D3D12_RENDER_PASS_FLAGS ToD3D12RenderPassFlags(GfxRenderPassFlags flags)
 		{
 			D3D12_RENDER_PASS_FLAGS d3d12_flags = D3D12_RENDER_PASS_FLAG_NONE;
+			if (flags & GfxRenderPassFlagBit_ReadOnlyDepth) d3d12_flags |= D3D12_RENDER_PASS_FLAG_BIND_READ_ONLY_DEPTH;
+			if (flags & GfxRenderPassFlagBit_ReadOnlyStencil) d3d12_flags |= D3D12_RENDER_PASS_FLAG_BIND_READ_ONLY_STENCIL;
 			if (flags & GfxRenderPassFlagBit_AllowUAVWrites) d3d12_flags |= D3D12_RENDER_PASS_FLAG_ALLOW_UAV_WRITES;
 			if (flags & GfxRenderPassFlagBit_SuspendingPass) d3d12_flags |= D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS;
 			if (flags & GfxRenderPassFlagBit_ResumingPass) d3d12_flags |= D3D12_RENDER_PASS_FLAG_RESUMING_PASS;
@@ -460,6 +462,7 @@ namespace adria
 				ToD3D12ClearValue(_dsv_desc.clear_value, dsv->StencilBeginningAccess.Clear.ClearValue);
 				dsv->DepthEndingAccess = { ToD3D12RenderPassEndingAccess(_dsv_desc.depth_ending_access), {} };
 				dsv->StencilEndingAccess = { ToD3D12RenderPassEndingAccess(_dsv_desc.stencil_ending_access), {} };
+				
 			}
 
 			D3D12_RENDER_PASS_DEPTH_STENCIL_DESC* _dsv = dsv.get();

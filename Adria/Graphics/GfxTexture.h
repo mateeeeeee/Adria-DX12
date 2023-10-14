@@ -44,14 +44,23 @@ namespace adria
 				&& HasAllFlags(bind_flags, desc.bind_flags) && HasAllFlags(misc_flags, desc.misc_flags) && clear_value == desc.clear_value;
 		}
 	};
-	struct GfxTextureSubresourceDesc
+
+	enum GfxTextureDescriptorFlags : uint8
+	{
+		GfxTextureDescriptorFlag_None = 0x0,
+		GfxTextureDescriptorFlag_DepthReadOnly = 0x1
+	};
+
+	struct GfxTextureDescriptorDesc
 	{
 		uint32 first_slice = 0;
 		uint32 slice_count = static_cast<uint32>(-1);
 		uint32 first_mip = 0;
 		uint32 mip_count = static_cast<uint32>(-1);
 
-		std::strong_ordering operator<=>(GfxTextureSubresourceDesc const& other) const = default;
+		GfxTextureDescriptorFlags flags = GfxTextureDescriptorFlag_None;
+
+		std::strong_ordering operator<=>(GfxTextureDescriptorDesc const& other) const = default;
 	};
 
 	struct GfxTextureInitialData

@@ -178,6 +178,7 @@ namespace adria
 			BuildDescription(type, desc);
 			ID3D12StateObject* state_obj = nullptr;
 			HRESULT hr = device->CreateStateObject(&desc, IID_PPV_ARGS(&state_obj));
+			GFX_CHECK_HR(hr);
 			return state_obj;
 		}
 

@@ -24,9 +24,11 @@ namespace adria
     enum GfxRenderPassFlagBit : uint32
     {
         GfxRenderPassFlagBit_None = 0x0,
-        GfxRenderPassFlagBit_AllowUAVWrites = 0x1,
-        GfxRenderPassFlagBit_SuspendingPass = 0x2,
-        GfxRenderPassFlagBit_ResumingPass = 0x4,
+        GfxRenderPassFlagBit_ReadOnlyDepth = 0x1,
+        GfxRenderPassFlagBit_ReadOnlyStencil = 0x2,
+        GfxRenderPassFlagBit_AllowUAVWrites = 0x4,
+        GfxRenderPassFlagBit_SuspendingPass = 0x8,
+        GfxRenderPassFlagBit_ResumingPass = 0x10,
     };
     DEFINE_ENUM_BIT_OPERATORS(GfxRenderPassFlagBit);
     using GfxRenderPassFlags = uint32;
@@ -41,12 +43,12 @@ namespace adria
 
     struct GfxDepthAttachmentDesc
     {
-        GfxDescriptor cpu_handle;
-        GfxLoadAccessOp depth_beginning_access;
+        GfxDescriptor       cpu_handle;
+        GfxLoadAccessOp     depth_beginning_access;
         GfxStoreAccessOp    depth_ending_access;
-        GfxLoadAccessOp stencil_beginning_access = GfxLoadAccessOp::NoAccess;
+        GfxLoadAccessOp     stencil_beginning_access = GfxLoadAccessOp::NoAccess;
         GfxStoreAccessOp    stencil_ending_access = GfxStoreAccessOp::NoAccess;
-        GfxClearValue clear_value;
+        GfxClearValue       clear_value;
     };
 
     struct GfxRenderPassDesc

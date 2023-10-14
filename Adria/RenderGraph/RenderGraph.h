@@ -85,17 +85,17 @@ namespace adria
 		std::vector<std::unique_ptr<RGBuffer>> buffers;
 
 		std::vector<std::vector<uint64>> adjacency_lists;
-		std::vector<size_t> topologically_sorted_passes;
+		std::vector<uint64> topologically_sorted_passes;
 		std::vector<DependencyLevel> dependency_levels;
 
 		std::unordered_map<RGResourceName, RGTextureId> texture_name_id_map;
 		std::unordered_map<RGResourceName, RGBufferId>  buffer_name_id_map;
 		std::unordered_map<RGBufferReadWriteId, RGBufferId> buffer_uav_counter_map;
 
-		mutable std::unordered_map<RGTextureId, std::vector<std::pair<GfxTextureSubresourceDesc, RGDescriptorType>>> texture_view_desc_map;
+		mutable std::unordered_map<RGTextureId, std::vector<std::pair<GfxTextureDescriptorDesc, RGDescriptorType>>> texture_view_desc_map;
 		mutable std::unordered_map<RGTextureId, std::vector<std::pair<GfxDescriptor, RGDescriptorType>>> texture_view_map;
 
-		mutable std::unordered_map<RGBufferId, std::vector<std::pair<GfxBufferSubresourceDesc, RGDescriptorType>>> buffer_view_desc_map;
+		mutable std::unordered_map<RGBufferId, std::vector<std::pair<GfxBufferDescriptorDesc, RGDescriptorType>>> buffer_view_desc_map;
 		mutable std::unordered_map<RGBufferId, std::vector<std::pair<GfxDescriptor, RGDescriptorType>>> buffer_view_map;
 
 	private:
@@ -105,7 +105,7 @@ namespace adria
 		void BuildDependencyLevels();
 		void CullPasses();
 		void CalculateResourcesLifetime();
-		void DepthFirstSearch(size_t i, std::vector<bool>& visited, std::stack<size_t>& stack);
+		void DepthFirstSearch(uint64 i, std::vector<bool>& visited, std::stack<uint64>& stack);
 		
 		RGTextureId DeclareTexture(RGResourceName name, RGTextureDesc const& desc);
 		RGBufferId DeclareBuffer(RGResourceName name, RGBufferDesc const& desc);
@@ -137,13 +137,13 @@ namespace adria
 		RGBufferIndexId  ReadIndexBuffer(RGResourceName);
 		RGBufferConstantId  ReadConstantBuffer(RGResourceName);
 
-		RGRenderTargetId RenderTarget(RGResourceName name, GfxTextureSubresourceDesc const& desc);
-		RGDepthStencilId DepthStencil(RGResourceName name, GfxTextureSubresourceDesc const& desc);
-		RGTextureReadOnlyId ReadTexture(RGResourceName name, GfxTextureSubresourceDesc const& desc);
-		RGTextureReadWriteId WriteTexture(RGResourceName name, GfxTextureSubresourceDesc const& desc);
-		RGBufferReadOnlyId ReadBuffer(RGResourceName name, GfxBufferSubresourceDesc const& desc);
-		RGBufferReadWriteId WriteBuffer(RGResourceName name, GfxBufferSubresourceDesc const& desc);
-		RGBufferReadWriteId WriteBuffer(RGResourceName name, RGResourceName counter_name, GfxBufferSubresourceDesc const& desc);
+		RGRenderTargetId RenderTarget(RGResourceName name, GfxTextureDescriptorDesc const& desc);
+		RGDepthStencilId DepthStencil(RGResourceName name, GfxTextureDescriptorDesc const& desc);
+		RGTextureReadOnlyId ReadTexture(RGResourceName name, GfxTextureDescriptorDesc const& desc);
+		RGTextureReadWriteId WriteTexture(RGResourceName name, GfxTextureDescriptorDesc const& desc);
+		RGBufferReadOnlyId ReadBuffer(RGResourceName name, GfxBufferDescriptorDesc const& desc);
+		RGBufferReadWriteId WriteBuffer(RGResourceName name, GfxBufferDescriptorDesc const& desc);
+		RGBufferReadWriteId WriteBuffer(RGResourceName name, RGResourceName counter_name, GfxBufferDescriptorDesc const& desc);
 
 		GfxTexture const& GetCopySrcTexture(RGTextureCopySrcId) const;
 		GfxTexture&		  GetCopyDstTexture(RGTextureCopyDstId) const;

@@ -44,6 +44,7 @@ namespace adria
 
 		DDGI(GfxDevice* gfx, entt::registry& reg, uint32 w, uint32 h);
 
+		void OnSceneInitialized();
 		void OnResize(uint32 w, uint32 h);
 		void AddPasses(RenderGraph& rg);
 		bool IsSupported() const { return is_supported; }
@@ -64,7 +65,6 @@ namespace adria
 
 	private:
 
-		void CalculateDDGIDimensions();
 		void CreateStateObject();
 		void OnLibraryRecompiled(GfxShaderID shader);
 	};

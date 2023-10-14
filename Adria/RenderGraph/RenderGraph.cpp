@@ -137,7 +137,7 @@ namespace adria
 		pool.Tick();
 
 		GfxCommandList* cmd_list = gfx->GetGraphicsCommandList();
-		for (size_t i = 0; i < dependency_levels.size(); ++i)
+		for (uint64 i = 0; i < dependency_levels.size(); ++i)
 		{
 			auto& dependency_level = dependency_levels[i];
 			for (auto tex_id : dependency_level.texture_creates)
@@ -276,6 +276,7 @@ namespace adria
 		{
 			RGTextureCopySrcId src;
 		};
+
 		AddPass<ExportTextureCopyPassData>("Export Texture Copy Pass",
 			[=](ExportTextureCopyPassData& data, RenderGraphBuilder& builder)
 			{
@@ -292,11 +293,11 @@ namespace adria
 	void RenderGraph::BuildAdjacencyLists()
 	{
 		adjacency_lists.resize(passes.size());
-		for (size_t i = 0; i < passes.size(); ++i)
+		for (uint64 i = 0; i < passes.size(); ++i)
 		{
 			auto& pass = passes[i];
 			std::vector<uint64>& pass_adjacency_list = adjacency_lists[i];
-			for (size_t j = i + 1; j < passes.size(); ++j)
+			for (uint64 j = i + 1; j < passes.size(); ++j)
 			{
 				auto& other_pass = passes[j];
 				bool depends = false;
@@ -325,16 +326,16 @@ namespace adria
 
 	void RenderGraph::TopologicalSort()
 	{
-		std::stack<size_t> stack{};
+		std::stack<uint64> stack{};
 		std::vector<bool>  visited(passes.size(), false);
-		for (size_t i = 0; i < passes.size(); i++)
+		for (uint64 i = 0; i < passes.size(); i++)
 		{
 			if (visited[i] == false) DepthFirstSearch(i, visited, stack);
 		}
 
 		while (!stack.empty())
 		{
-			size_t i = stack.top();
+			uint64 i = stack.top();
 			topologically_sorted_passes.push_back(i);
 			stack.pop();
 		}
@@ -342,10 +343,10 @@ namespace adria
 
 	void RenderGraph::BuildDependencyLevels()
 	{
-		std::vector<size_t> distances(topologically_sorted_passes.size(), 0);
-		for (size_t u = 0; u < topologically_sorted_passes.size(); ++u)
+		std::vector<uint64> distances(topologically_sorted_passes.size(), 0);
+		for (uint64 u = 0; u < topologically_sorted_passes.size(); ++u)
 		{
-			size_t i = topologically_sorted_passes[u];
+			uint64 i = topologically_sorted_passes[u];
 			for (auto v : adjacency_lists[i])
 			{
 				if (distances[v] < distances[i] + 1) distances[v] = distances[i] + 1;
@@ -353,9 +354,9 @@ namespace adria
 		}
 
 		dependency_levels.resize(*std::max_element(std::begin(distances), std::end(distances)) + 1, DependencyLevel(*this));
-		for (size_t i = 0; i < passes.size(); ++i)
+		for (uint64 i = 0; i < passes.size(); ++i)
 		{
-			size_t level = distances[i];
+			uint64 level = distances[i];
 			dependency_levels[level].AddPass(passes[i].get());
 		}
 	}
@@ -450,19 +451,19 @@ namespace adria
 			}
 		}
 
-		for (size_t i = 0; i < textures.size(); ++i)
+		for (uint64 i = 0; i < textures.size(); ++i)
 		{
 			if (textures[i]->last_used_by != nullptr) textures[i]->last_used_by->texture_destroys.insert(RGTextureId(i));
 			if (textures[i]->imported) CreateTextureViews(RGTextureId(i));
 		}
-		for (size_t i = 0; i < buffers.size(); ++i)
+		for (uint64 i = 0; i < buffers.size(); ++i)
 		{
 			if (buffers[i]->last_used_by != nullptr) buffers[i]->last_used_by->buffer_destroys.insert(RGBufferId(i));
 			if (buffers[i]->imported) CreateBufferViews(RGBufferId(i));
 		}
 	}
 
-	void RenderGraph::DepthFirstSearch(size_t i, std::vector<bool>& visited, std::stack<size_t>& stack)
+	void RenderGraph::DepthFirstSearch(uint64 i, std::vector<bool>& visited, std::stack<uint64>& stack)
 	{
 		visited[i] = true;
 		for (auto j : adjacency_lists[i])
@@ -523,7 +524,7 @@ namespace adria
 	void RenderGraph::CreateBufferViews(RGBufferId res_id)
 	{
 		auto const& view_descs = buffer_view_desc_map[res_id];
-		for (size_t i = 0; i < view_descs.size(); ++i)
+		for (uint64 i = 0; i < view_descs.size(); ++i)
 		{
 			auto const& [view_desc, type] = view_descs[i];
 			GfxBuffer* buffer = GetBuffer(res_id);
@@ -667,7 +668,7 @@ namespace adria
 		return RGBufferConstantId(handle);
 	}
 
-	RGRenderTargetId RenderGraph::RenderTarget(RGResourceName name, GfxTextureSubresourceDesc const& desc)
+	RGRenderTargetId RenderGraph::RenderTarget(RGResourceName name, GfxTextureDescriptorDesc const& desc)
 	{
 		RGTextureId handle = texture_name_id_map[name];
 		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
@@ -677,18 +678,18 @@ namespace adria
 		{
 			rg_texture->desc.initial_state = GfxResourceState::RenderTarget;
 		}
-		std::vector<std::pair<GfxTextureSubresourceDesc, RGDescriptorType>>& view_descs = texture_view_desc_map[handle];
-		for (size_t i = 0; i < view_descs.size(); ++i)
+		std::vector<std::pair<GfxTextureDescriptorDesc, RGDescriptorType>>& view_descs = texture_view_desc_map[handle];
+		for (uint64 i = 0; i < view_descs.size(); ++i)
 		{
 			auto const& [_desc, _type] = view_descs[i];
 			if (desc == _desc && _type == RGDescriptorType::RenderTarget) return RGRenderTargetId(i, handle);
 		}
-		size_t view_id = view_descs.size();
+		uint64 view_id = view_descs.size();
 		view_descs.emplace_back(desc, RGDescriptorType::RenderTarget);
 		return RGRenderTargetId(view_id, handle);
 	}
 
-	RGDepthStencilId RenderGraph::DepthStencil(RGResourceName name, GfxTextureSubresourceDesc const& desc)
+	RGDepthStencilId RenderGraph::DepthStencil(RGResourceName name, GfxTextureDescriptorDesc const& desc)
 	{
 		RGTextureId handle = texture_name_id_map[name];
 		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
@@ -698,18 +699,18 @@ namespace adria
 		{
 			rg_texture->desc.initial_state = GfxResourceState::DepthWrite;
 		}
-		std::vector<std::pair<GfxTextureSubresourceDesc, RGDescriptorType>>& view_descs = texture_view_desc_map[handle];
-		for (size_t i = 0; i < view_descs.size(); ++i)
+		std::vector<std::pair<GfxTextureDescriptorDesc, RGDescriptorType>>& view_descs = texture_view_desc_map[handle];
+		for (uint64 i = 0; i < view_descs.size(); ++i)
 		{
 			auto const& [_desc, _type] = view_descs[i];
 			if (desc == _desc && _type == RGDescriptorType::DepthStencil) return RGDepthStencilId(i, handle);
 		}
-		size_t view_id = view_descs.size();
+		uint64 view_id = view_descs.size();
 		view_descs.emplace_back(desc, RGDescriptorType::DepthStencil);
 		return RGDepthStencilId(view_id, handle);
 	}
 
-	RGTextureReadOnlyId RenderGraph::ReadTexture(RGResourceName name, GfxTextureSubresourceDesc const& desc)
+	RGTextureReadOnlyId RenderGraph::ReadTexture(RGResourceName name, GfxTextureDescriptorDesc const& desc)
 	{
 		RGTextureId handle = texture_name_id_map[name];
 		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
@@ -719,18 +720,18 @@ namespace adria
 		{
 			rg_texture->desc.initial_state = GfxResourceState::PixelShaderResource | GfxResourceState::NonPixelShaderResource;
 		}
-		std::vector<std::pair<GfxTextureSubresourceDesc, RGDescriptorType>>& view_descs = texture_view_desc_map[handle];
-		for (size_t i = 0; i < view_descs.size(); ++i)
+		std::vector<std::pair<GfxTextureDescriptorDesc, RGDescriptorType>>& view_descs = texture_view_desc_map[handle];
+		for (uint64 i = 0; i < view_descs.size(); ++i)
 		{
 			auto const& [_desc, _type] = view_descs[i];
 			if (desc == _desc && _type == RGDescriptorType::ReadOnly) return RGTextureReadOnlyId(i, handle);
 		}
-		size_t view_id = view_descs.size();
+		uint64 view_id = view_descs.size();
 		view_descs.emplace_back(desc, RGDescriptorType::ReadOnly);
 		return RGTextureReadOnlyId(view_id, handle);
 	}
 
-	RGTextureReadWriteId RenderGraph::WriteTexture(RGResourceName name, GfxTextureSubresourceDesc const& desc)
+	RGTextureReadWriteId RenderGraph::WriteTexture(RGResourceName name, GfxTextureDescriptorDesc const& desc)
 	{
 		RGTextureId handle = texture_name_id_map[name];
 		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
@@ -740,52 +741,52 @@ namespace adria
 		{
 			rg_texture->desc.initial_state = GfxResourceState::UnorderedAccess;
 		}
-		std::vector<std::pair<GfxTextureSubresourceDesc, RGDescriptorType>>& view_descs = texture_view_desc_map[handle];
-		for (size_t i = 0; i < view_descs.size(); ++i)
+		std::vector<std::pair<GfxTextureDescriptorDesc, RGDescriptorType>>& view_descs = texture_view_desc_map[handle];
+		for (uint64 i = 0; i < view_descs.size(); ++i)
 		{
 			auto const& [_desc, _type] = view_descs[i];
 			if (desc == _desc && _type == RGDescriptorType::ReadWrite) return RGTextureReadWriteId(i, handle);
 		}
-		size_t view_id = view_descs.size();
+		uint64 view_id = view_descs.size();
 		view_descs.emplace_back(desc, RGDescriptorType::ReadWrite);
 		return RGTextureReadWriteId(view_id, handle);
 	}
 
-	RGBufferReadOnlyId RenderGraph::ReadBuffer(RGResourceName name, GfxBufferSubresourceDesc const& desc)
+	RGBufferReadOnlyId RenderGraph::ReadBuffer(RGResourceName name, GfxBufferDescriptorDesc const& desc)
 	{
 		RGBufferId handle = buffer_name_id_map[name];
 		ADRIA_ASSERT(IsValidBufferHandle(handle) && "Resource has not been declared!");
 		RGBuffer* rg_buffer = GetRGBuffer(handle);
 		rg_buffer->desc.bind_flags |= GfxBindFlag::ShaderResource;
-		std::vector<std::pair<GfxBufferSubresourceDesc, RGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
-		for (size_t i = 0; i < view_descs.size(); ++i)
+		std::vector<std::pair<GfxBufferDescriptorDesc, RGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
+		for (uint64 i = 0; i < view_descs.size(); ++i)
 		{
 			auto const& [_desc, _type] = view_descs[i];
 			if (desc == _desc && _type == RGDescriptorType::ReadOnly) return RGBufferReadOnlyId(i, handle);
 		}
-		size_t view_id = view_descs.size();
+		uint64 view_id = view_descs.size();
 		view_descs.emplace_back(desc, RGDescriptorType::ReadOnly);
 		return RGBufferReadOnlyId(view_id, handle);
 	}
 
-	RGBufferReadWriteId RenderGraph::WriteBuffer(RGResourceName name, GfxBufferSubresourceDesc const& desc)
+	RGBufferReadWriteId RenderGraph::WriteBuffer(RGResourceName name, GfxBufferDescriptorDesc const& desc)
 	{
 		RGBufferId handle = buffer_name_id_map[name];
 		ADRIA_ASSERT(IsValidBufferHandle(handle) && "Resource has not been declared!");
 		RGBuffer* rg_buffer = GetRGBuffer(handle);
 		rg_buffer->desc.bind_flags |= GfxBindFlag::UnorderedAccess;
-		std::vector<std::pair<GfxBufferSubresourceDesc, RGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
-		for (size_t i = 0; i < view_descs.size(); ++i)
+		std::vector<std::pair<GfxBufferDescriptorDesc, RGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
+		for (uint64 i = 0; i < view_descs.size(); ++i)
 		{
 			auto const& [_desc, _type] = view_descs[i];
 			if (desc == _desc && _type == RGDescriptorType::ReadWrite) return RGBufferReadWriteId(i, handle);
 		}
-		size_t view_id = view_descs.size();
+		uint64 view_id = view_descs.size();
 		view_descs.emplace_back(desc, RGDescriptorType::ReadWrite);
 		return RGBufferReadWriteId(view_id, handle);
 	}
 
-	RGBufferReadWriteId RenderGraph::WriteBuffer(RGResourceName name, RGResourceName counter_name, GfxBufferSubresourceDesc const& desc)
+	RGBufferReadWriteId RenderGraph::WriteBuffer(RGResourceName name, RGResourceName counter_name, GfxBufferDescriptorDesc const& desc)
 	{
 		RGBufferId handle = buffer_name_id_map[name];
 		RGBufferId counter_handle = buffer_name_id_map[counter_name];
@@ -798,8 +799,8 @@ namespace adria
 		rg_buffer->desc.bind_flags |= GfxBindFlag::UnorderedAccess;
 		rg_counter_buffer->desc.bind_flags |= GfxBindFlag::UnorderedAccess;
 
-		std::vector<std::pair<GfxBufferSubresourceDesc, RGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
-		for (size_t i = 0; i < view_descs.size(); ++i)
+		std::vector<std::pair<GfxBufferDescriptorDesc, RGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
+		for (uint64 i = 0; i < view_descs.size(); ++i)
 		{
 			auto const& [_desc, _type] = view_descs[i];
 			if (desc == _desc && _type == RGDescriptorType::ReadWrite)
@@ -811,7 +812,7 @@ namespace adria
 				}
 			}
 		}
-		size_t view_id = view_descs.size();
+		uint64 view_id = view_descs.size();
 		view_descs.emplace_back(desc, RGDescriptorType::ReadWrite);
 		RGBufferReadWriteId rw_id = RGBufferReadWriteId(view_id, handle);
 		buffer_uav_counter_map.insert(std::make_pair(rw_id, counter_handle));
@@ -1012,6 +1013,10 @@ namespace adria
 				if (pass->depth_stencil.has_value())
 				{
 					auto const& depth_stencil_info = pass->depth_stencil.value();
+					if (depth_stencil_info.depth_read_only)
+					{
+						render_pass_desc.flags |= GfxRenderPassFlagBit_ReadOnlyDepth;
+					}
 					
 					GfxDepthAttachmentDesc dsv_desc{};
 					RGLoadAccessOp load_access = RGLoadAccessOp::NoAccess;
@@ -1144,12 +1149,12 @@ namespace adria
 		graphviz.defaults += std::format("graph [style=invis, rankdir=\"{}\", ordering=out, splines=spline]\n", style.rank_dir);
 		graphviz.defaults += std::format("node [shape=record, fontname=\"{}\", fontsize={}, margin=\"0.2,0.03\"]\n", style.font.name, style.font.size);
 
-		auto PairHash = [](std::pair<size_t, size_t> const& p)
+		auto PairHash = [](std::pair<uint64, uint64> const& p)
 		{
-			return std::hash<size_t>{}(p.first) + std::hash<size_t>{}(p.second);
+			return std::hash<uint64>{}(p.first) + std::hash<uint64>{}(p.second);
 		};
-		std::unordered_set<std::pair<size_t, size_t>, decltype(PairHash)> declared_buffers;
-		std::unordered_set<std::pair<size_t, size_t>, decltype(PairHash)> declared_textures;
+		std::unordered_set<std::pair<uint64, uint64>, decltype(PairHash)> declared_buffers;
+		std::unordered_set<std::pair<uint64, uint64>, decltype(PairHash)> declared_textures;
 		auto DeclareBuffer  = [&declared_buffers,&graphviz, this](RGBuffer* buffer)
 		{
 			auto decl_pair = std::make_pair(buffer->id, buffer->version);
@@ -1254,7 +1259,7 @@ namespace adria
 	{
 		std::string render_graph_data = "";
 		render_graph_data += "Passes: \n";
-		for (size_t i = 0; i < passes.size(); ++i)
+		for (uint64 i = 0; i < passes.size(); ++i)
 		{
 			auto& pass = passes[i];
 			render_graph_data += std::format("Pass {}: {}\n", i, pass->name);
@@ -1272,7 +1277,7 @@ namespace adria
 		}
 
 		render_graph_data += "\nAdjacency lists: \n";
-		for (size_t i = 0; i < adjacency_lists.size(); ++i)
+		for (uint64 i = 0; i < adjacency_lists.size(); ++i)
 		{
 			auto& list = adjacency_lists[i];
 			render_graph_data += std::format("{}. {}'s adjacency list: ", i, passes[i]->name);
@@ -1281,14 +1286,14 @@ namespace adria
 		}
 
 		render_graph_data += "\nTopologically sorted passes: \n";
-		for (size_t i = 0; i < topologically_sorted_passes.size(); ++i)
+		for (uint64 i = 0; i < topologically_sorted_passes.size(); ++i)
 		{
 			auto& topologically_sorted_pass = topologically_sorted_passes[i];
 			render_graph_data += std::format("{}. : {}\n", i, passes[topologically_sorted_pass]->name);
 		}
 
 		render_graph_data += "\nDependency levels: \n";
-		for (size_t i = 0; i < dependency_levels.size(); ++i)
+		for (uint64 i = 0; i < dependency_levels.size(); ++i)
 		{
 			auto& level = dependency_levels[i];
 			render_graph_data += std::format("Dependency level {}: \n", i);
@@ -1306,13 +1311,13 @@ namespace adria
 			render_graph_data += "\n";
 		}
 		render_graph_data += "\nTextures: \n";
-		for (size_t i = 0; i < textures.size(); ++i)
+		for (uint64 i = 0; i < textures.size(); ++i)
 		{
 			auto& texture = textures[i];
 			render_graph_data += std::format("Texture: id = {}, name = {}, last used by: {} \n", texture->id, texture->name, texture->last_used_by->name);
 		}
 		render_graph_data += "\nBuffers: \n";
-		for (size_t i = 0; i < buffers.size(); ++i)
+		for (uint64 i = 0; i < buffers.size(); ++i)
 		{
 			auto& buffer = buffers[i];
 			render_graph_data += std::format("Buffer: id = {}, name = {}, last used by: {} \n", buffer->id, buffer->name, buffer->last_used_by->name);

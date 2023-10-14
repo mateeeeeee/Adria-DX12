@@ -594,39 +594,39 @@ namespace adria
 		return std::make_unique<GfxRayTracingBLAS>(this, geometries, flags);
 	}
 
-	GfxDescriptor GfxDevice::CreateBufferSRV(GfxBuffer const* buffer, GfxBufferSubresourceDesc const* desc)
+	GfxDescriptor GfxDevice::CreateBufferSRV(GfxBuffer const* buffer, GfxBufferDescriptorDesc const* desc)
 	{
-		GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
+		GfxBufferDescriptorDesc _desc = desc ? *desc : GfxBufferDescriptorDesc{};
 		return CreateBufferView(buffer, GfxSubresourceType::SRV, _desc);
 	}
-	GfxDescriptor GfxDevice::CreateBufferUAV(GfxBuffer const* buffer, GfxBufferSubresourceDesc const* desc)
+	GfxDescriptor GfxDevice::CreateBufferUAV(GfxBuffer const* buffer, GfxBufferDescriptorDesc const* desc)
 	{
-		GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
+		GfxBufferDescriptorDesc _desc = desc ? *desc : GfxBufferDescriptorDesc{};
 		return CreateBufferView(buffer, GfxSubresourceType::UAV, _desc);
 	}
-	GfxDescriptor GfxDevice::CreateBufferUAV(GfxBuffer const* buffer, GfxBuffer const* counter, GfxBufferSubresourceDesc const* desc/*= nullptr*/)
+	GfxDescriptor GfxDevice::CreateBufferUAV(GfxBuffer const* buffer, GfxBuffer const* counter, GfxBufferDescriptorDesc const* desc/*= nullptr*/)
 	{
-		GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
+		GfxBufferDescriptorDesc _desc = desc ? *desc : GfxBufferDescriptorDesc{};
 		return CreateBufferView(buffer, GfxSubresourceType::UAV, _desc, counter);
 	}
-	GfxDescriptor GfxDevice::CreateTextureSRV(GfxTexture const* texture, GfxTextureSubresourceDesc const* desc)
+	GfxDescriptor GfxDevice::CreateTextureSRV(GfxTexture const* texture, GfxTextureDescriptorDesc const* desc)
 	{
-		GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
+		GfxTextureDescriptorDesc _desc = desc ? *desc : GfxTextureDescriptorDesc{};
 		return CreateTextureView(texture, GfxSubresourceType::SRV, _desc);
 	}
-	GfxDescriptor GfxDevice::CreateTextureUAV(GfxTexture const* texture, GfxTextureSubresourceDesc const* desc)
+	GfxDescriptor GfxDevice::CreateTextureUAV(GfxTexture const* texture, GfxTextureDescriptorDesc const* desc)
 	{
-		GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
+		GfxTextureDescriptorDesc _desc = desc ? *desc : GfxTextureDescriptorDesc{};
 		return CreateTextureView(texture, GfxSubresourceType::UAV, _desc);
 	}
-	GfxDescriptor GfxDevice::CreateTextureRTV(GfxTexture const* texture, GfxTextureSubresourceDesc const* desc)
+	GfxDescriptor GfxDevice::CreateTextureRTV(GfxTexture const* texture, GfxTextureDescriptorDesc const* desc)
 	{
-		GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
+		GfxTextureDescriptorDesc _desc = desc ? *desc : GfxTextureDescriptorDesc{};
 		return CreateTextureView(texture, GfxSubresourceType::RTV, _desc);
 	}
-	GfxDescriptor GfxDevice::CreateTextureDSV(GfxTexture const* texture, GfxTextureSubresourceDesc const* desc)
+	GfxDescriptor GfxDevice::CreateTextureDSV(GfxTexture const* texture, GfxTextureDescriptorDesc const* desc)
 	{
-		GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
+		GfxTextureDescriptorDesc _desc = desc ? *desc : GfxTextureDescriptorDesc{};
 		return CreateTextureView(texture, GfxSubresourceType::DSV, _desc);
 	}
 
@@ -800,7 +800,7 @@ namespace adria
 		GFX_CHECK_HR(hr);
 	}
 
-	GfxDescriptor GfxDevice::CreateBufferView(GfxBuffer const* buffer, GfxSubresourceType view_type, GfxBufferSubresourceDesc const& view_desc, GfxBuffer const* uav_counter)
+	GfxDescriptor GfxDevice::CreateBufferView(GfxBuffer const* buffer, GfxSubresourceType view_type, GfxBufferDescriptorDesc const& view_desc, GfxBuffer const* uav_counter)
 	{
 		GfxBufferDesc desc = buffer->GetDesc();
 		if (uav_counter) ADRIA_ASSERT(view_type == GfxSubresourceType::UAV);
@@ -899,7 +899,7 @@ namespace adria
 		}
 		return heap_descriptor;
 	}
-	GfxDescriptor GfxDevice::CreateTextureView(GfxTexture const* texture, GfxSubresourceType view_type, GfxTextureSubresourceDesc const& view_desc)
+	GfxDescriptor GfxDevice::CreateTextureView(GfxTexture const* texture, GfxSubresourceType view_type, GfxTextureDescriptorDesc const& view_desc)
 	{
 		GfxTextureDesc desc = texture->GetDesc();
 		GfxFormat format = desc.format;
@@ -1173,6 +1173,8 @@ namespace adria
 				dsv_desc.Format = ConvertGfxFormat(format);
 				break;
 			}
+			if (view_desc.flags & GfxTextureDescriptorFlag_DepthReadOnly) dsv_desc.Flags = D3D12_DSV_FLAG_READ_ONLY_DEPTH;
+			else dsv_desc.Flags = D3D12_DSV_FLAG_NONE;
 
 			if (desc.type == GfxTextureType_1D)
 			{

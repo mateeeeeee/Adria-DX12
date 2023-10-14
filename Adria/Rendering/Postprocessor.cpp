@@ -121,9 +121,9 @@ namespace adria
 	void Postprocessor::OnSceneInitialized(GfxDevice* gfx)
 	{
 		automatic_exposure_pass.OnSceneInitialized(gfx);
-		lens_flare_pass.OnSceneInitialized(gfx);
 		clouds_pass.OnSceneInitialized(gfx);
 		bokeh_pass.OnSceneInitialized(gfx);
+		lens_flare_pass.OnSceneInitialized();
 
 		GfxTextureDesc render_target_desc{};
 		render_target_desc.format = GfxFormat::R16G16B16A16_FLOAT;

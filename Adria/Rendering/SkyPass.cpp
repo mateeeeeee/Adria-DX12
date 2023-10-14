@@ -204,7 +204,7 @@ namespace adria
 		sky_desc.initial_state = GfxResourceState::UnorderedAccess;
 		sky_texture = gfx->CreateTexture(sky_desc);
 
-		GfxTextureSubresourceDesc sky_srv_desc{};
+		GfxTextureDescriptorDesc sky_srv_desc{};
 		sky_srv_desc.first_slice = 0;
 		sky_srv_desc.slice_count = 6;
 		sky_texture_srv = gfx->CreateTextureSRV(sky_texture.get(), &sky_srv_desc);

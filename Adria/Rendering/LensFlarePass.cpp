@@ -167,7 +167,7 @@ namespace adria
 		width = w, height = h;
 	}
 
-	void LensFlarePass::OnSceneInitialized(GfxDevice* gfx)
+	void LensFlarePass::OnSceneInitialized()
 	{
 		lens_flare_textures.push_back(g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare0.jpg"));
 		lens_flare_textures.push_back(g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare1.jpg"));

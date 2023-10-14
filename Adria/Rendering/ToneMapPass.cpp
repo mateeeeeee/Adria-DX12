@@ -174,7 +174,7 @@ namespace adria
 		width = w, height = h;
 	}
 
-	void ToneMapPass::OnSceneInitialized(GfxDevice* gfx)
+	void ToneMapPass::OnSceneInitialized()
 	{
 		lens_dirt_handle = g_TextureManager.LoadTexture("Resources/Textures/LensDirt.dds");
 	}

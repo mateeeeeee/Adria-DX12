@@ -303,7 +303,7 @@ namespace adria
 			if (light_matrices_count != 0)
 			{
 				light_matrices_buffer = gfx->CreateBuffer(StructuredBufferDesc<Matrix>(light_matrices_count * backbuffer_count, false, true));
-				GfxBufferSubresourceDesc srv_desc{};
+				GfxBufferDescriptorDesc srv_desc{};
 				srv_desc.size = light_matrices_count * sizeof(Matrix);
 				for (uint32 i = 0; i < backbuffer_count; ++i)
 				{
