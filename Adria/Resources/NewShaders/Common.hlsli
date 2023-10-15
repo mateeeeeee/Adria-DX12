@@ -104,5 +104,10 @@ float4 SampleBindlessLevel2D(int index, SamplerState s, float2 uv, float level, 
     return tex.SampleLevel(s, uv, level, offset);
 }
 
+float max(float3 v)
+{
+    return max(v.x, max(v.y, v.z));
+}
+
 #endif
 

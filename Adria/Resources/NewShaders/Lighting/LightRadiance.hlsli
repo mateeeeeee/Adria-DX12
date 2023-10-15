@@ -1,9 +1,10 @@
 #ifndef _LIGHT_RADIANCE_
 #define _LIGHT_RADIANCE_
 
-#include "../Lighting.hlsli"
 #include "../CommonResources.hlsli"
 #include "../Common.hlsli"
+#include "../Lighting.hlsli"
+
 
 float3 LightRadiance(Light light, float3 P, float3 N, float3 V, float3 albedo, float metallic, float roughness, float2 uv)
 {

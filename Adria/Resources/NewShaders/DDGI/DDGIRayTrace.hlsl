@@ -42,8 +42,8 @@ void DDGI_RayGen()
 
 	DDGIPayload payload;
 	payload.radiance = float3(0, 0, 0);
-	payload.distance = FLT_MAX;
-	TraceRay(tlas, (RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES), 0xFF, 0, 0, 0, ray, payload);
+	payload.distance = max(ddgiVolume.probeSize) * 2;
+	TraceRay(tlas, RAY_FLAG_NONE, 0xFF, 0, 0, 0, ray, payload);
 	RWBuffer<float4> rayBuffer = ResourceDescriptorHeap[PassCB.rayBufferIdx];
 	rayBuffer[probeIdx * ddgiVolume.maxRaysPerProbe + rayIdx] = float4(payload.radiance, payload.distance);
 }
@@ -53,7 +53,6 @@ void DDGI_Miss(inout DDGIPayload payload)
 {
 	TextureCube envMap = ResourceDescriptorHeap[FrameCB.envMapIdx];
 	payload.radiance = envMap.SampleLevel(LinearWrapSampler, WorldRayDirection(), 0).rgb;
-	payload.distance = FLT_MAX;
 }
 
 [shader("closesthit")]
@@ -91,5 +90,5 @@ void DDGI_ClosestHit(inout DDGIPayload payload, in HitAttributes attribs)
 	radiance += Diffuse_Lambert(min(brdfData.Diffuse, 0.9f)) * SampleDDGIIrradiance(ddgiVolume, worldPosition, N, WorldRayDirection());
 	
 	payload.radiance = radiance;
-	payload.distance = RayTCurrent();
+	payload.distance = min(RayTCurrent(), payload.distance);
 }
