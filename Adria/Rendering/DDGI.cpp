@@ -127,10 +127,8 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				uint32 i = gfx->AllocateDescriptorsGPU(3).GetIndex();
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadWriteBuffer(data.ray_buffer));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadOnlyTexture(data.irradiance_history));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 2), ctx.GetReadOnlyTexture(data.distance_history));
+				uint32 i = gfx->AllocateDescriptorsGPU(1).GetIndex();
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i), ctx.GetReadWriteBuffer(data.ray_buffer));
 				ctx.GetBlackboard().Create<DDGIBlackboardData>(i);
 
 				struct DDGIParameters
@@ -184,8 +182,11 @@ namespace adria
 			[=](DDGIUpdateIrradiancePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list) mutable
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-
 				DDGIBlackboardData const& ddgi_blackboard = ctx.GetBlackboard().Get<DDGIBlackboardData>();
+
+				uint32 i = gfx->AllocateDescriptorsGPU(1).GetIndex();
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i), ctx.GetReadWriteTexture(data.irradiance));
+
 				struct DDGIParameters
 				{
 					Vector3  random_vector;
@@ -198,7 +199,8 @@ namespace adria
 					.random_vector = random_vector,
 					.random_angle = random_angle,
 					.history_blend_weight = 0.98f,
-					.ray_buffer_index = ddgi_blackboard.heap_index
+					.ray_buffer_index = ddgi_blackboard.heap_index,
+					.irradiance_idx = i
 				};
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIUpdateIrradiance));
@@ -211,8 +213,8 @@ namespace adria
 		struct DDGIUpdateDistancePassData
 		{
 			RGBufferReadOnlyId		ray_buffer;
-			RGTextureReadOnlyId		depth_history;
-			RGTextureReadWriteId	depth;
+			RGTextureReadOnlyId		distance_history;
+			RGTextureReadWriteId	distance;
 		};
 
 		rg.AddPass<DDGIUpdateDistancePassData>("DDGI Update Distance Pass",
@@ -225,39 +227,47 @@ namespace adria
 				distance_desc.format = GfxFormat::R16G16_FLOAT;
 				builder.DeclareTexture(RG_RES_NAME(DDGIDistance), distance_desc);
 
-				data.depth = builder.WriteTexture(RG_RES_NAME(DDGIDistance));
+				data.distance = builder.WriteTexture(RG_RES_NAME(DDGIDistance));
 				data.ray_buffer = builder.ReadBuffer(RG_RES_NAME(DDGIRayBuffer));
-				data.depth_history = builder.ReadTexture(RG_RES_NAME(DDGIDistanceHistory));
+				data.distance_history = builder.ReadTexture(RG_RES_NAME(DDGIDistanceHistory));
 			},
 			[=](DDGIUpdateDistancePassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list) mutable
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
 				DDGIBlackboardData const& ddgi_blackboard = ctx.GetBlackboard().Get<DDGIBlackboardData>();
+
+				uint32 i = gfx->AllocateDescriptorsGPU(1).GetIndex();
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i), ctx.GetReadWriteTexture(data.distance));
+
 				struct DDGIParameters
 				{
 					Vector3  random_vector;
 					float    random_angle;
 					float    history_blend_weight;
 					uint32   ray_buffer_index;
-					uint32   irradiance_idx;
+					uint32   distance_idx;
 				} parameters
 				{
 					.random_vector = random_vector,
 					.random_angle = random_angle,
 					.history_blend_weight = 0.98f,
-					.ray_buffer_index = ddgi_blackboard.heap_index
+					.ray_buffer_index = ddgi_blackboard.heap_index,
+					.distance_idx = i
 				};
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIUpdateDistance));
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, parameters);
 				cmd_list->Dispatch(num_probes_flat, 1, 1);
-				cmd_list->UavBarrier(ctx.GetTexture(*data.depth));
+				cmd_list->UavBarrier(ctx.GetTexture(*data.distance));
 			}, RGPassType::Compute);
 
 		rg.ExportTexture(RG_RES_NAME(DDGIIrradiance), ddgi_volume.irradiance_history.get());
 		rg.ExportTexture(RG_RES_NAME(DDGIDistance), ddgi_volume.distance_history.get());
+
+		GUI_DisplayTexture("DDGI Irradiance", ddgi_volume.irradiance_history.get());
+		GUI_DisplayTexture("DDGI Distance", ddgi_volume.distance_history.get());
 	}
 
 	int32 DDGI::GetDDGIVolumeIndex()

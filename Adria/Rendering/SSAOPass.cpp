@@ -91,12 +91,10 @@ namespace adria
 				cmd_list->SetRootCBV(2, ssao_kernel);
 				cmd_list->Dispatch((uint32)std::ceil((width >> resolution) / 16.0f), (uint32)std::ceil((height >> resolution) / 16.0f), 1);
 
-				GUI_DisplayTexture("ssao", &ctx.GetTexture(*data.output_uav));
 			}, RGPassType::Compute);
 
 		blur_pass.AddPass(rendergraph, RG_RES_NAME(SSAO_Output), RG_RES_NAME(AmbientOcclusion), " SSAO");
 		
-		GUI_DisplayTexture("random", ssao_random_texture.get());
 		params.ssao_power = std::clamp(cvars::ssao_power.Get(), 1.0f, 16.0f);
 		params.ssao_radius = std::clamp(cvars::ssao_radius.Get(), 0.5f, 4.0f);
 		GUI_RunCommand([&]() 

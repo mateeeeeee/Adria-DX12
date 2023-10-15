@@ -357,7 +357,7 @@ namespace adria
 		frame_cbuf_data.instances_idx = (int32)scene_buffers[SceneBuffer_Instance].buffer_srv_gpu.GetIndex();
 		frame_cbuf_data.lights_idx = (int32)scene_buffers[SceneBuffer_Light].buffer_srv_gpu.GetIndex();
 		shadow_renderer.FillFrameCBuffer(frame_cbuf_data);
-		frame_cbuf_data.ddgi_volumes_idx = -1; //ddgi.GetDDGIVolumeIndex();
+		frame_cbuf_data.ddgi_volumes_idx = -1; // ddgi.GetDDGIVolumeIndex();
 
 		if (ray_tracing_supported && reg.view<RayTracing>().size())
 		{
