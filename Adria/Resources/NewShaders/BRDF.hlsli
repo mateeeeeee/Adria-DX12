@@ -9,17 +9,18 @@
 
 float3 DiffuseBRDF(float3 diffuse)
 {
-    return diffuse / M_PI;
+    return diffuse * M_PI_INV;
 }
+
 float D_GGX(float3 N, float3 H, float a)
 {
-    float a2 = a * a;
+    float a2 = clamp(a * a, 0.0001f, 1.0f);
     float NdotH = saturate(dot(N, H));
     
     float denom = (NdotH * NdotH * (a2 - 1.0) + 1.0);
     denom = M_PI * denom * denom;
     
-    return a2 * rcp(denom);
+    return a2 * rcp(max(denom, 0.001f));
 }
 float D_GGX_Aniso(float ax, float ay, float3 T, float3 B, float3 N, float3 H)
 {
@@ -31,19 +32,32 @@ float D_GGX_Aniso(float ax, float ay, float3 T, float3 B, float3 N, float3 H)
     float3 d = float3(ay * TdotH, ax * BdotH, a2 * NdotH);
     float d2 = dot(d, d);
     float b2 = a2 / d2;
-    return a2 * b2 * b2 * (1.0 / M_PI);
+    return a2 * b2 * b2 * M_PI_INV;
 }
 //http://graphicrants.blogspot.com/2013/08/specular-brdf-reference.html
 float V_SmithGGX(float3 N, float3 V, float3 L, float a)
 {
-    float a2 = a * a;
-    float NdotV = saturate(dot(N, V));
+    float a2 = clamp(a * a, 0.0001f, 1.0f);
+    float NdotV = saturate(abs(dot(N, V)) + 1e-5); 
     float NdotL = saturate(dot(N, L));
 
     float G_V = NdotV + sqrt((NdotV - NdotV * a2) * NdotV + a2);
     float G_L = NdotL + sqrt((NdotL - NdotL * a2) * NdotL + a2);
     return rcp(G_V * G_L);
 }
+
+float V_SmithJointApprox(float3 N, float3 V, float3 L, float a)
+{
+    float a2 = clamp(a * a, 0.0001f, 1.0f);
+    float NdotV = saturate(abs(dot(N, V)) + 1e-5); 
+    float NdotL = saturate(dot(N, L));
+
+	float V_SmithV = NdotL * (NdotV * (1 - a2) + a2);
+	float V_SmithL = NdotV * (NdotL * (1 - a2) + a2);
+	return 0.5 * rcp(V_SmithV + V_SmithL);
+}
+
+
 float V_SmithGGX_Aniso(float ax, float ay, float3 T, float3 B, float3 N, float3 V, float3 L)
 {
     float TdotV = dot(T, V);
@@ -59,7 +73,7 @@ float V_SmithGGX_Aniso(float ax, float ay, float3 T, float3 B, float3 N, float3 
 }
 float3 F_Schlick(float3 V, float3 H, float3 F0)
 {
-    float VdotH = saturate(dot(V, H));
+    float VdotH = saturate(dot(V, H) + 1e-5);
     return F0 + (1.0 - F0) * pow(1.0 - VdotH, 5.0);
 }
 float3 SpecularBRDF(float3 N, float3 V, float3 L, float3 specular, float roughness, out float3 F)
@@ -78,10 +92,10 @@ float3 SpecularBRDF(float3 N, float3 V, float3 L, float3 specular, float roughne
 float3 DefaultBRDF(float3 L, float3 V, float3 N, float3 diffuse, float3 specular, float roughness)
 {
     float3 F;
-    float3 specular_brdf = SpecularBRDF(N, V, L, specular, roughness, F);
-    float3 diffuse_brdf = DiffuseBRDF(diffuse) * (1.0 - F);
+    float3 specularBrdf = SpecularBRDF(N, V, L, specular, roughness, F);
+    float3 diffuseBrdf = DiffuseBRDF(diffuse) * (1.0 - F);
 
-    return diffuse_brdf + specular_brdf;
+    return diffuseBrdf + specularBrdf;
 }
 float3 AnisotropyBRDF(float3 L, float3 V, float3 N, float3 T, float3 diffuse, float3 specular, float roughness, float anisotropy)
 {
@@ -118,5 +132,16 @@ struct BrdfData
     float3 Specular;
     float  Roughness;
 };
+
+
+BrdfData GetBrdfData(float3 materialAlbedo, float metallic, float roughness)
+{
+	BrdfData data	= (BrdfData)0;
+    data.Diffuse	= ComputeDiffuseColor(materialAlbedo, metallic);
+    data.Specular	= ComputeF0(0.5f, materialAlbedo, metallic);
+    data.Roughness	= roughness;
+    return data;
+}
+
 
 #endif

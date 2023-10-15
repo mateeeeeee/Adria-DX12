@@ -31,14 +31,14 @@
 		{
 			"type": "directional",
 			"color": [ 1.0, 0.9, 0.99 ],
-			"direction": [ 0.1, -1.0, 0.25 ],
-			"energy": 8.0,
+			"direction": [ 0.2, -1.0, 0.2 ],
+			"energy": 4.0,
 			"shadows": true,
 			"cascades": true,
 			"volumetric": true,
 			"lens_flare": true,
 			"mesh": "quad",
-			"size": 125
+			"size": 100
 		}
 	]
 }

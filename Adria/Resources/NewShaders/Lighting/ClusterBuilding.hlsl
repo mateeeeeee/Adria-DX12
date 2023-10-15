@@ -1,6 +1,6 @@
-#include "LightRadiance.hlsli"
 #include "../Packing.hlsli"
-
+#include "../Common.hlsli"
+#include "../CommonResources.hlsli"
 //reference
 //https://github.com/Angelo1211/HybridRenderingEngine/
 #define CLUSTER_BUILDING_DISPATCH_SIZE_X 16

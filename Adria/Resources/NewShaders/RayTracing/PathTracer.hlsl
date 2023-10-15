@@ -104,7 +104,6 @@ void PT_RayGen()
                 throughput *= specularBrdf * NdotL;
 
                 float a = roughness * roughness;
-                float a2 = a * a;
                 float D = D_GGX(worldNormal, H, a);
                 float NdotH = saturate(dot(worldNormal, H));
                 float LdotH = saturate(dot(wi, H));

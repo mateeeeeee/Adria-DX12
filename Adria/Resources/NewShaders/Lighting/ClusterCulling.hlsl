@@ -1,4 +1,4 @@
-#include "LightRadiance.hlsli"
+#include "../Lighting.hlsli"
 #include "../Packing.hlsli"
 
 //references 
@@ -33,7 +33,7 @@ ConstantBuffer<ClusterCullingConstants> PassCB : register(b1);
 
 bool LightIntersectsCluster(Light light, ClusterAABB cluster)
 {
-	if (light.type == DIRECTIONAL_LIGHT)return true;
+	if (light.type == DIRECTIONAL_LIGHT) return true;
 	float3 closest = max(cluster.minPoint, min(light.position, cluster.maxPoint)).xyz;
 	float3 dist = closest - light.position.xyz;
 	return dot(dist, dist) <= (light.range * light.range);

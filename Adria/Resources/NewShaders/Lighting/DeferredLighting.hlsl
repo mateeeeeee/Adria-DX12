@@ -1,4 +1,4 @@
-#include "LightRadiance.hlsli"
+#include "../Lighting.hlsli"
 #include "../Packing.hlsli"
 
 #define BLOCK_SIZE 16
@@ -44,14 +44,14 @@ void DeferredLighting(CSInput input)
 	float3 albedo			= albedoRoughness.rgb;
 	float  roughness		= albedoRoughness.a;
 
-	float3 totalRadiance = 0.0f;
+	LightingResult lightResult = (LightingResult)0;
 	for (uint i = 0; i < lightCount; ++i)
 	{
 		Light light = lights[i];
 		if (!light.active) continue;
-        totalRadiance += LightRadiance(light, viewPosition, normal, V, albedo, metallic, roughness, uv);
+        lightResult = lightResult + DoLight(light, viewPosition, normal, V, albedo, metallic, roughness, uv);
     }
 
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
-	outputTx[input.DispatchThreadId.xy] += float4(totalRadiance, 1.0f);
+	outputTx[input.DispatchThreadId.xy] += float4(lightResult.Diffuse + lightResult.Specular, 1.0f);
 }

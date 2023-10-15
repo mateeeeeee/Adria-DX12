@@ -1154,7 +1154,6 @@
     <None Include="Resources\NewShaders\Exposure\ExposureUtil.hlsli" />
     <None Include="Resources\NewShaders\GpuDrivenRendering\GpuDrivenRendering.hlsli" />
     <None Include="Resources\NewShaders\Lighting.hlsli" />
-    <None Include="Resources\NewShaders\Lighting\LightRadiance.hlsli" />
     <None Include="Resources\NewShaders\Noise.hlsli" />
     <None Include="Resources\NewShaders\Packing.hlsli" />
     <None Include="Resources\NewShaders\Random.hlsli" />
@@ -1168,7 +1167,6 @@
     <None Include="scene.json" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\todo.txt" />
     <Text Include="adria.log" />
     <Text Include="Resources\NewShaders\SPD\LICENSE.txt" />
   </ItemGroup>

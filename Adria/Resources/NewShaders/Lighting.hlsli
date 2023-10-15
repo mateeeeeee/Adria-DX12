@@ -1,7 +1,10 @@
 #ifndef _LIGHTING_
 #define _LIGHTING_
 
+#include "CommonResources.hlsli"
+#include "Common.hlsli"
 #include "Constants.hlsli"
+#include "BRDF.hlsli"
 
 #define DIRECTIONAL_LIGHT 0
 #define POINT_LIGHT 1
@@ -29,144 +32,6 @@ struct Light
     int     padd;
 };
 
-struct LightingResult
-{
-	float4 Diffuse;
-	float4 Specular;
-};
-
-float DoAttenuation(float distance, float range)
-{
-	float att = saturate(1.0f - (distance * distance / (range * range)));
-	return att * att;
-}
-float3 Diffuse_Lambert(float3 diffuseColor)
-{
-	return diffuseColor * M_PI_INV;
-}
-float DistributionGGX(float3 N, float3 H, float roughness)
-{
-    float a = roughness * roughness;
-    float a2 = a * a;
-    float NdotH = max(dot(N, H), 0.0);
-    float NdotH2 = NdotH * NdotH;
-
-    float nom = a2;
-    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
-    denom = M_PI * denom * denom;
-
-    return nom / max(denom, 0.0000001); // prevent divide by zero for roughness=0.0 and NdotH=1.0
-}
-float GeometrySchlickGGX(float NdotV, float roughness)
-{
-    float r = (roughness + 1.0);
-    float k = (r * r) / 8.0;
-
-    float nom = NdotV;
-    float denom = NdotV * (1.0 - k) + k;
-
-    return nom / denom;
-}
-float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
-{
-    float NdotV = max(dot(N, V), 0.0);
-    float NdotL = max(dot(N, L), 0.0);
-    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
-    float ggx1 = GeometrySchlickGGX(NdotL, roughness);
-
-    return ggx1 * ggx2;
-}
-float3 FresnelSchlick(float cosTheta, float3 F0)
-{
-    return F0 + (1.0 - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
-}
-float3 FresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
-{
-    return F0 + (max(float3(1.0 - roughness, 1.0 - roughness, 1.0 - roughness), F0) - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
-}
-
-float3 SpotLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V, float3 albedo, float metallic, float roughness)
-{
-	float3 F0 = float3(0.04, 0.04, 0.04);
-	F0 = lerp(F0, albedo, metallic);
-
-	float3 L = normalize(light.position.xyz - positionVS);
-	float3 H = normalize(V + L);
-	float distance = length(light.position.xyz - positionVS);
-	float attenuation = DoAttenuation(distance, light.range);
-
-	float3 normalized_light_dir = normalize(light.direction.xyz);
-	float cosAng = dot(-normalized_light_dir, L);
-	float conAtt = saturate((cosAng - light.outerCosine) / (light.innerCosine - light.outerCosine));
-	conAtt *= conAtt;
-
-	float3 radiance = light.color.xyz * attenuation * conAtt;
-
-	float NDF = DistributionGGX(normalVS, H, roughness);
-	float G = GeometrySmith(normalVS, V, L, roughness);
-	float3 F = FresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
-
-	float3 nominator = NDF * G * F;
-	float denominator = 4 * max(dot(normalVS, V), 0.0) * max(dot(normalVS, L), 0.0);
-	float3 specular = nominator / max(denominator, 0.001); // prevent divide by zero for NdotV=0.0 or NdotL=0.0
-
-	float3 kS = F;
-	float3 kD = float3(1.0, 1.0, 1.0) - kS;
-	kD *= 1.0 - metallic;
-	float NdotL = max(dot(normalVS, L), 0.0);
-	float3 Lo = (kD * albedo / M_PI + specular) * radiance * NdotL;
-	return Lo;
-}
-float3 PointLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V, float3 albedo, float metallic, float roughness)
-{
-	float3 F0 = float3(0.04, 0.04, 0.04);
-	F0 = lerp(F0, albedo, metallic);
-	float3 L = normalize(light.position.xyz - positionVS);
-	float3 H = normalize(V + L);
-	float distance = length(light.position.xyz - positionVS);
-	float attenuation = DoAttenuation(distance, light.range);
-	float3 radiance = light.color.xyz * attenuation;
-
-	// Cook-Torrance BRDF
-	float NDF = DistributionGGX(normalVS, H, roughness);
-	float G = GeometrySmith(normalVS, V, L, roughness);
-	float3 F = FresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
-
-	float3 nominator = NDF * G * F;
-	float denominator = 4 * max(dot(normalVS, V), 0.0) * max(dot(normalVS, L), 0.0);
-	float3 specular = nominator / max(denominator, 0.001); // prevent divide by zero for NdotV=0.0 or NdotL=0.0
-    float3 kS = F;
-	float3 kD = float3(1.0, 1.0, 1.0) - kS;
-	kD *= 1.0 - metallic;
-	float NdotL = max(dot(normalVS, L), 0.0);
-    float3 Lo = (kD * albedo / M_PI + specular) * radiance * NdotL;
-	return Lo;
-}
-float3 DirectionalLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V, float3 albedo, float metallic, float roughness)
-{
-    float3 F0 = float3(0.04, 0.04, 0.04);
-    F0 = lerp(F0, albedo, metallic);
-
-    float3 L = normalize(-light.direction.xyz);
-    float3 H = normalize(V + L);
-
-    float3 radiance = light.color.xyz;
-    float NDF = DistributionGGX(normalVS, H, roughness);
-    float G = GeometrySmith(normalVS, V, L, roughness);
-    float3 F = FresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
-
-    float3 nominator = NDF * G * F;
-    float denominator = 4 * max(dot(normalVS, V), 0.0) * max(dot(normalVS, L), 0.0);
-    float3 specular = nominator / max(denominator, 0.001); // prevent divide by zero for NdotV=0.0 or NdotL=0.0
-
-    float3 kS = F;
-    float3 kD = float3(1.0, 1.0, 1.0) - kS;
-    kD *= 1.0 - metallic;
-    float NdotL = max(dot(normalVS, L), 0.0);
-    float3 Lo = (kD * albedo / M_PI + specular) * radiance * NdotL;
-
-    return Lo;
-}
 
 float CalcShadowFactor_PCF3x3(SamplerComparisonState shadowSampler,
 	Texture2D<float> shadowMap, float3 uvd, int shadowMapSize)
@@ -177,9 +42,9 @@ float CalcShadowFactor_PCF3x3(SamplerComparisonState shadowSampler,
 	const float dx = 1.0f / shadowMapSize;
 	float2 offsets[9] =
 	{
-		float2(-dx, -dx), float2(0.0f, -dx), float2(dx, -dx),
+		float2(-dx, -dx),  float2(0.0f, -dx),  float2(dx, -dx),
 		float2(-dx, 0.0f), float2(0.0f, 0.0f), float2(dx, 0.0f),
-		float2(-dx, +dx), float2(0.0f, +dx), float2(dx, +dx)
+		float2(-dx, +dx),  float2(0.0f, +dx),  float2(dx, +dx)
 	};
 
 	float percentLit = 0.0f;
@@ -193,4 +58,269 @@ float CalcShadowFactor_PCF3x3(SamplerComparisonState shadowSampler,
     return percentLit;
 }
 
+
+float GetShadowMapFactor(Light light, float3 P)
+{
+	StructuredBuffer<float4x4> lightViewProjections = ResourceDescriptorHeap[FrameCB.lightsMatricesIdx];
+	bool castsShadows = light.shadowTextureIndex >= 0;
+	float shadowFactor = 1.0f;
+	if (castsShadows)
+	{
+		switch (light.type)
+		{
+		case DIRECTIONAL_LIGHT:
+		{
+			if (light.useCascades)
+			{
+				float viewDepth = P.z;
+				for (uint i = 0; i < 4; ++i)
+				{
+					float4 worldPosition = mul(float4(P, 1.0f), FrameCB.inverseView);
+					worldPosition /= worldPosition.w;
+					float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex + i];
+					float4 shadowMapPosition = mul(worldPosition, lightViewProjection);
+					float3 UVD = shadowMapPosition.xyz / shadowMapPosition.w;
+					UVD.xy = 0.5 * UVD.xy + 0.5;
+					UVD.y = 1.0 - UVD.y;
+
+					if (viewDepth < FrameCB.cascadeSplits[i])
+					{
+						Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex + i)];
+						shadowFactor = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 2048);
+						break;
+					}
+				}
+			}
+			else
+			{
+				float4 worldPosition = mul(float4(P, 1.0f), FrameCB.inverseView);
+				worldPosition /= worldPosition.w;
+				float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex];
+				float4 shadowMapPosition = mul(worldPosition, lightViewProjection);
+				float3 UVD = shadowMapPosition.xyz / shadowMapPosition.w;
+				UVD.xy = 0.5 * UVD.xy + 0.5;
+				UVD.y = 1.0 - UVD.y;
+				Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex)];
+				shadowFactor = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 1024);
+			}
+		}
+		break;
+		case POINT_LIGHT:
+		{
+			float3 lightToPixelWS = mul(float4(P - light.position.xyz, 0.0f), FrameCB.inverseView).xyz;
+			uint cubeFaceIndex = GetCubeFaceIndex(lightToPixelWS);
+			float4 worldPosition = mul(float4(P, 1.0f), FrameCB.inverseView);
+			worldPosition /= worldPosition.w;
+			float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex + cubeFaceIndex];
+			float4 shadowMapPosition = mul(worldPosition, lightViewProjection);
+			float3 UVD = shadowMapPosition.xyz / shadowMapPosition.w;
+			UVD.xy = 0.5 * UVD.xy + 0.5;
+			UVD.y = 1.0 - UVD.y;
+			Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex + cubeFaceIndex)];
+			shadowFactor = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 512);
+		}
+		break;
+		case SPOT_LIGHT:
+		{
+			float4 worldPosition = mul(float4(P, 1.0f), FrameCB.inverseView);
+			worldPosition /= worldPosition.w;
+			float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex];
+			float4 shadowMapPosition = mul(worldPosition, lightViewProjection);
+			float3 UVD = shadowMapPosition.xyz / shadowMapPosition.w;
+			UVD.xy = 0.5 * UVD.xy + 0.5;
+			UVD.y = 1.0 - UVD.y;
+			Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex)];
+			shadowFactor = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 1024);
+		}
+		break;
+		}
+	}
+	return shadowFactor;
+}
+
+float GetRayTracedShadowsFactor(Light light, float2 uv)
+{
+	bool rayTracedShadows = light.shadowMaskIndex >= 0;
+	if(rayTracedShadows)
+    {
+        Texture2D<float> rayTracedMaskTexture = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowMaskIndex)];
+        float maskValue = rayTracedMaskTexture.SampleLevel(LinearWrapSampler, uv, 0).r;
+        return maskValue;
+    }
+	return 1.0f;
+}
+
+
+float DoAttenuation(float distance, float range)
+{
+	float att = saturate(1.0f - (distance * distance / (range * range)));
+	return att * att;
+}
+
+struct LightingResult
+{
+	float3 Diffuse;
+	float3 Specular;
+
+	LightingResult operator+(LightingResult res2) 
+	{
+		LightingResult res = (LightingResult)0;
+		res.Diffuse  = Diffuse + res2.Diffuse;
+		res.Specular = Specular + res2.Specular;
+		return res;
+	}
+};
+
+
+
+
+
+LightingResult DefaultLitBxDF(float3 diffuseColor, float3 specularColor, float specularRoughness, float3 N, float3 V, float3 L, float attenuation)
+{
+	LightingResult lighting = (LightingResult)0;
+	if(attenuation <= 0.0f) return lighting;
+
+	float NdotL = saturate(dot(N, L));
+	if(NdotL == 0.0f) return lighting;
+
+	float3 H = normalize(V + L);
+	float a = specularRoughness * specularRoughness;
+	float a2 = clamp(a * a, 0.0001f, 1.0f);
+
+	float D = D_GGX(N, H, a);
+	float Vis = V_SmithJointApprox(N, V, L, a);
+	float3 F = F_Schlick(V, H, specularColor);
+
+	lighting.Specular = (attenuation * NdotL) * (D * Vis) * F;
+	lighting.Diffuse = (attenuation * NdotL) * DiffuseBRDF(diffuseColor);
+
+	return lighting;
+}
+
+LightingResult DoLightWithoutShadows(Light light, float3 P, float3 N, float3 V, float3 albedo, float metallic, float roughness)
+{
+	LightingResult result = (LightingResult)0;
+	
+	float3 L = normalize(light.position.xyz - P);
+	float attenuation = 1.0f;
+	if(light.type == POINT_LIGHT)
+	{
+		float distance = length(light.position.xyz - P);
+		attenuation = DoAttenuation(distance, light.range);
+	}
+	else if(light.type == SPOT_LIGHT)
+	{
+		float distance = length(light.position.xyz - P);
+		attenuation = DoAttenuation(distance, light.range);
+
+		float3 normalized_light_dir = normalize(light.direction.xyz);
+		float cosAng = dot(-normalized_light_dir, L);
+		float conAtt = saturate((cosAng - light.outerCosine) / (light.innerCosine - light.outerCosine));
+		conAtt *= conAtt;
+
+		attenuation *= conAtt;
+	}
+	if(attenuation <= 0.0f) return result;
+
+	BrdfData brdfData = GetBrdfData(albedo, metallic, roughness);
+	result = DefaultLitBxDF(brdfData.Diffuse, brdfData.Specular, brdfData.Roughness, N, V, L, attenuation);
+
+	result.Diffuse  *= light.color.rgb;
+	result.Specular *= light.color.rgb;
+	return result;
+}
+
+
+LightingResult DoLight(Light light, float3 P, float3 N, float3 V, float3 albedo, float metallic, float roughness, float2 uv)
+{
+	LightingResult result = (LightingResult)0;
+	
+	float3 L = normalize(light.position.xyz - P);
+	float attenuation = 1.0f;
+	if(light.type == POINT_LIGHT)
+	{
+		float distance = length(light.position.xyz - P);
+		attenuation = DoAttenuation(distance, light.range);
+	}
+	else if(light.type == SPOT_LIGHT)
+	{
+		float distance = length(light.position.xyz - P);
+		attenuation = DoAttenuation(distance, light.range);
+
+		float3 normalized_light_dir = normalize(light.direction.xyz);
+		float cosAng = dot(-normalized_light_dir, L);
+		float conAtt = saturate((cosAng - light.outerCosine) / (light.innerCosine - light.outerCosine));
+		conAtt *= conAtt;
+
+		attenuation *= conAtt;
+	}
+
+	if(attenuation <= 0.0f) return result;
+
+	attenuation *= GetShadowMapFactor(light, P);
+	attenuation *= GetRayTracedShadowsFactor(light, uv);
+
+	if(attenuation <= 0.0f) return result;
+
+	BrdfData brdfData = GetBrdfData(albedo, metallic, roughness);
+	result = DefaultLitBxDF(brdfData.Diffuse, brdfData.Specular, brdfData.Roughness, N, V, L, attenuation);
+
+	result.Diffuse  *= light.color.rgb;
+	result.Specular *= light.color.rgb;
+	return result;
+}
+
 #endif
+
+
+//SSCS
+/*
+static const uint SSCS_MAX_STEPS = 16;
+float ScreenSpaceShadows(Light light, float3 viewPosition)
+{
+	float3 rayPosition = viewPosition;
+	float2 rayUV = 0.0f;
+
+	float4 rayProjected = mul(float4(rayPosition, 1.0f), FrameCB.projection);
+	rayProjected.xy /= rayProjected.w;
+	rayUV = rayProjected.xy * float2(0.5f, -0.5f) + 0.5f;
+
+	float depth = depthTx.Sample(PointClampSampler, rayUV);
+	float linearDepth = LinearizeDepth(depth);
+
+	const float SSCS_STEP_LENGTH = light.sscsMaxRayDistance / (float)SSCS_MAX_STEPS;
+	if (linearDepth > light.sscsMaxDepthDistance) return 1.0f;
+
+	float3 rayDirection = normalize(-light.direction.xyz);
+	float3 rayStep = rayDirection * SSCS_STEP_LENGTH;
+
+	float occlusion = 0.0f;
+	[unroll(SSCS_MAX_STEPS)]
+	for (uint i = 0; i < SSCS_MAX_STEPS; i++)
+	{
+		// Step the ray
+		rayPosition += rayStep;
+
+		rayProjected = mul(float4(rayPosition, 1.0), FrameCB.projection);
+		rayProjected.xy /= rayProjected.w;
+		rayUV = rayProjected.xy * float2(0.5f, -0.5f) + 0.5f;
+
+		[branch]
+		if (IsSaturated(rayUV))
+		{
+			depth = depthTx.Sample(PointClampSampler, rayUV);
+			linearDepth = LinearizeDepth(depth);
+			float depthDelta = rayProjected.z - linearDepth;
+
+			if (depthDelta > 0 && (depthDelta < light.sscsThickness))
+			{
+				occlusion = 1.0f;
+				float2 fade = max(12 * abs(rayUV - 0.5) - 5, 0);
+				occlusion *= saturate(1 - dot(fade, fade));
+				break;
+			}
+		}
+	}
+	return 1.0f - occlusion;
+}
+*/

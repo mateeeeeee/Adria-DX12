@@ -223,7 +223,7 @@ MaterialProperties GetMaterialProperties(Material material, float2 UV, int mipLe
 
 BrdfData GetBrdfData(MaterialProperties material)
 {
-    BrdfData data;
+    BrdfData data = (BrdfData)0;
     data.Diffuse = ComputeDiffuseColor(material.baseColor, material.metallic);
     data.Specular = ComputeF0(material.specular, material.baseColor, material.metallic);
     data.Roughness = material.roughness;

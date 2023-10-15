@@ -1193,9 +1193,6 @@
     <None Include="Resources\NewShaders\DitherUtil.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Resources\NewShaders\Lighting\LightRadiance.hlsli">
-      <Filter>Shaders\Lighting</Filter>
-    </None>
     <None Include="Resources\NewShaders\BRDF.hlsli">
       <Filter>Shaders</Filter>
     </None>
@@ -1230,6 +1227,5 @@
     <Text Include="Resources\NewShaders\SPD\LICENSE.txt">
       <Filter>Shaders\SPD</Filter>
     </Text>
-    <Text Include="..\todo.txt" />
   </ItemGroup>
 </Project>

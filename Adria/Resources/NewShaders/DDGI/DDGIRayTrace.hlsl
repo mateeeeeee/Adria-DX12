@@ -83,11 +83,11 @@ void DDGI_ClosestHit(inout DDGIPayload payload, in HitAttributes attribs)
 	if (!visibility) return;
 
 	float3 L = normalize(-light.direction.xyz);
-	float3 diffuse = saturate(dot(L, N)) * Diffuse_Lambert(brdfData.Diffuse);
+	float3 diffuse = saturate(dot(L, N)) * DiffuseBRDF(brdfData.Diffuse);
 	float3 radiance = diffuse * light.color.rgb;
 
 	radiance += matProperties.emissive;
-	radiance += Diffuse_Lambert(min(brdfData.Diffuse, 0.9f)) * SampleDDGIIrradiance(ddgiVolume, worldPosition, N, WorldRayDirection());
+	radiance += DiffuseBRDF(min(brdfData.Diffuse, 0.9f)) * SampleDDGIIrradiance(ddgiVolume, worldPosition, N, WorldRayDirection());
 	
 	payload.radiance = radiance;
 	payload.distance = min(RayTCurrent(), payload.distance);
