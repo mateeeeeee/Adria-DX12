@@ -28,7 +28,6 @@ namespace adria
 			GfxDescriptor irradiance_history_srv;
 			GfxDescriptor distance_history_srv;
 		};
-
 		struct DDGIVolumeHLSL
 		{
 			Vector3 start_position;
@@ -62,6 +61,7 @@ namespace adria
 		DDGIVolume ddgi_volume;
 		std::unique_ptr<GfxBuffer>  ddgi_volume_buffer;
 		GfxDescriptor ddgi_volume_buffer_srv;
+		bool enabled = false;
 
 	private:
 

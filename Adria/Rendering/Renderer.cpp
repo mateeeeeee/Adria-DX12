@@ -356,7 +356,7 @@ namespace adria
 		frame_cbuf_data.instances_idx = (int32)scene_buffers[SceneBuffer_Instance].buffer_srv_gpu.GetIndex();
 		frame_cbuf_data.lights_idx = (int32)scene_buffers[SceneBuffer_Light].buffer_srv_gpu.GetIndex();
 		shadow_renderer.FillFrameCBuffer(frame_cbuf_data);
-		frame_cbuf_data.ddgi_volumes_idx = -1; // ddgi.GetDDGIVolumeIndex();
+		frame_cbuf_data.ddgi_volumes_idx = ddgi.GetDDGIVolumeIndex();
 
 		if (ray_tracing_supported && reg.view<RayTracing>().size())
 		{
@@ -408,7 +408,7 @@ namespace adria
 		if (gfx->GetCapabilities().SupportsMeshShaders()) gpu_driven_renderer.Render(render_graph);
 		else gbuffer_pass.AddPass(render_graph);
 
-		//ddgi.AddPasses(render_graph);
+		ddgi.AddPasses(render_graph);
 
 		decals_pass.AddPass(render_graph);
 		switch (renderer_settings.postprocess.ambient_occlusion)

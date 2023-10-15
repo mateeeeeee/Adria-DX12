@@ -88,6 +88,20 @@ namespace adria
 	{
 		if (!IsSupported()) return;
 
+		GUI_RunCommand([&]()
+			{
+				if (ImGui::TreeNode("DDGI"))
+				{
+					ImGui::Checkbox("Enable DDGI", &enabled);
+					ImGui::TreePop();
+				}
+			}
+		);
+		GUI_DisplayTexture("DDGI Irradiance", ddgi_volume.irradiance_history.get());
+		GUI_DisplayTexture("DDGI Distance", ddgi_volume.distance_history.get());
+
+		if (!enabled) return;
+
 		uint32 const num_probes_flat = ddgi_volume.num_probes.x * ddgi_volume.num_probes.y * ddgi_volume.num_probes.z;
 
 		RealRandomGenerator rng(0.0f, 1.0f);
@@ -265,14 +279,11 @@ namespace adria
 
 		rg.ExportTexture(RG_RES_NAME(DDGIIrradiance), ddgi_volume.irradiance_history.get());
 		rg.ExportTexture(RG_RES_NAME(DDGIDistance), ddgi_volume.distance_history.get());
-
-		GUI_DisplayTexture("DDGI Irradiance", ddgi_volume.irradiance_history.get());
-		GUI_DisplayTexture("DDGI Distance", ddgi_volume.distance_history.get());
 	}
 
 	int32 DDGI::GetDDGIVolumeIndex()
 	{
-		if (!IsSupported())  return -1;
+		if (!IsSupported() || !enabled)  return -1;
 
 		std::vector<DDGIVolumeHLSL> ddgi_data;
 		DDGIVolumeHLSL& ddgi_hlsl = ddgi_data.emplace_back();
