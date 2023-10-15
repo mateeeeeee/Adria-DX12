@@ -28,8 +28,7 @@ using namespace DirectX;
 
 namespace adria
 {
-	bool dump_render_graph = false;
-
+	extern bool dump_render_graph = false;
 	namespace cvars
 	{
 		static ConsoleVariable ao_cvar("ao", 1);
@@ -44,8 +43,7 @@ namespace adria
 		static ConsoleVariable bloom("bloom", true);
 		static ConsoleVariable motion_blur("motionblur", false);
 		static ConsoleVariable fog("fog", false);
-
-		ConsoleCommand<> dump_render_graph_cmd("dump.rendergraph", []() { dump_render_graph = true; });
+		static ConsoleCommand<> dump_render_graph_cmd("dump.rendergraph", []() { dump_render_graph = true; });
 	}
 
 	struct ProfilerState
@@ -1156,18 +1154,33 @@ namespace adria
 
 			if (ImGui::TreeNode("Textures"))
 			{
+				struct VoidPointerHash
+				{
+					uint64 operator()(void const* ptr) const { return reinterpret_cast<uint64>(ptr); }
+				};
+				static std::unordered_map<void const*, GfxDescriptor, VoidPointerHash> debug_srv_map;
+
 				for (int32 i = 0; i < debug_textures.size(); ++i)
 				{
 					ImGui::PushID(i);
 					auto& debug_texture = debug_textures[i];
 					ImGui::Text(debug_texture.name);
-					GfxDescriptor tex_handle = gfx->CreateTextureSRV(debug_texture.gfx_texture);
-					GfxDescriptor dst_descriptor = gui->AllocateDescriptorsGPU();
-					gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
+					GfxDescriptor debug_srv_gpu = gui->AllocateDescriptorsGPU();
+					if (debug_srv_map.contains(debug_texture.gfx_texture))
+					{
+						GfxDescriptor debug_srv_cpu = debug_srv_map[debug_texture.gfx_texture];
+						gfx->CopyDescriptors(1, debug_srv_gpu, debug_srv_cpu);
+					}
+					else
+					{
+						GfxDescriptor debug_srv_cpu = gfx->CreateTextureSRV(debug_texture.gfx_texture);
+						debug_srv_map[debug_texture.gfx_texture] = debug_srv_cpu;
+						gfx->CopyDescriptors(1, debug_srv_gpu, debug_srv_cpu);
+					}
 					uint32 width = debug_texture.gfx_texture->GetDesc().width;
 					uint32 height = debug_texture.gfx_texture->GetDesc().width;
 					float window_width = ImGui::GetWindowWidth();
-					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, ImVec2(window_width * 0.9f, window_width * 0.9f * (float)height / width));
+					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(debug_srv_gpu).ptr, ImVec2(window_width * 0.9f, window_width * 0.9f * (float)height / width));
 					ImGui::PopID();
 				}
 				ImGui::TreePop();

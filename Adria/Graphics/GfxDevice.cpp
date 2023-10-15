@@ -315,7 +315,7 @@ namespace adria
 		draw_indirect_signature = std::make_unique<DrawIndirectSignature>(device.Get());
 		draw_indexed_indirect_signature = std::make_unique<DrawIndexedIndirectSignature>(device.Get());
 		dispatch_indirect_signature = std::make_unique<DispatchIndirectSignature>(device.Get());
-		dispatch_mesh_indirect_signature = std::make_unique<DispatchMeshIndirectSignature>(device.Get());
+		if(device_capabilities.SupportsMeshShaders()) dispatch_mesh_indirect_signature = std::make_unique<DispatchMeshIndirectSignature>(device.Get());
 
 		SetInfoQueue();
 		CreateCommonRootSignature();
