@@ -26,6 +26,7 @@ namespace adria
 	private:
 		uint32 width, height;
 		std::vector<RGResourceName> shadow_textures;
+		float ambient_color[3] = { 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f };
 	};
 
 }

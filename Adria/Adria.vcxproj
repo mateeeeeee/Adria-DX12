@@ -243,7 +243,6 @@
     <ClCompile Include="Rendering\Components.cpp" />
     <ClCompile Include="Rendering\DDGI.cpp" />
     <ClCompile Include="Rendering\AccelerationStructure.cpp" />
-    <ClCompile Include="Rendering\AmbientPass.cpp" />
     <ClCompile Include="Rendering\AutomaticExposurePass.cpp" />
     <ClCompile Include="Rendering\BloomPass.cpp" />
     <ClCompile Include="Rendering\BlurPass.cpp" />
@@ -400,7 +399,6 @@
     </ClInclude>
     <ClInclude Include="Rendering\DDGI.h" />
     <ClInclude Include="Rendering\AccelerationStructure.h" />
-    <ClInclude Include="Rendering\AmbientPass.h" />
     <ClInclude Include="Rendering\AutomaticExposurePass.h" />
     <ClInclude Include="Rendering\BloomPass.h" />
     <ClInclude Include="Rendering\BlurPass.h" />

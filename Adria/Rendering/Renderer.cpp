@@ -36,7 +36,7 @@ namespace adria
 		accel_structure(gfx), camera(nullptr), width(width), height(height),
 		backbuffer_count(gfx->GetBackbufferCount()), backbuffer_index(gfx->GetBackbufferIndex()), final_texture(nullptr),
 		frame_cbuffer(gfx, backbuffer_count), gpu_driven_renderer(reg, gfx, width, height),
-		gbuffer_pass(reg, width, height), ambient_pass(width, height), tonemap_pass(width, height),
+		gbuffer_pass(reg, width, height), tonemap_pass(width, height),
 		sky_pass(reg, gfx, width, height), deferred_lighting_pass(width, height), volumetric_lighting_pass(width, height),
 		tiled_deferred_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
 		postprocessor(reg, width, height), fxaa_pass(width, height), picking_pass(gfx, width, height),
@@ -121,7 +121,6 @@ namespace adria
 			g_DebugRenderer.OnResize(w, h);
 			gbuffer_pass.OnResize(w, h);
 			gpu_driven_renderer.OnResize(w, h);
-			ambient_pass.OnResize(w, h);
 			ssao_pass.OnResize(w, h);
 			hbao_pass.OnResize(w, h);
 			sky_pass.OnResize(w, h);
@@ -433,7 +432,6 @@ namespace adria
 		default:
 			break;
 		}
-		ambient_pass.AddPass(render_graph);
 		shadow_renderer.AddShadowMapPasses(render_graph);
 		shadow_renderer.AddRayTracingShadowPasses(render_graph);
 		switch (renderer_settings.render_path)

@@ -5,7 +5,6 @@
 #include "Postprocessor.h"
 #include "GBufferPass.h"
 #include "GPUDrivenGBufferPass.h"
-#include "AmbientPass.h"
 #include "SkyPass.h"
 #include "DeferredLightingPass.h"
 #include "VolumetricLightingPass.h"
@@ -89,7 +88,6 @@ namespace adria
 		GPUDrivenGBufferPass gpu_driven_renderer;
 		SSAOPass	 ssao_pass;
 		HBAOPass     hbao_pass;
-		AmbientPass  ambient_pass;
 		ToneMapPass  tonemap_pass;
 		FXAAPass	 fxaa_pass;
 		SkyPass		 sky_pass;
