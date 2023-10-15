@@ -1,5 +1,6 @@
 #include "../Lighting.hlsli"
 #include "../Packing.hlsli"
+#include "../DDGI/DDGICommon.hlsli"
 
 #define BLOCK_SIZE 16
 
@@ -34,7 +35,7 @@ void DeferredLighting(CSInput input)
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
 
 	float4 normalMetallic = normalMetallicTx.Sample(LinearWrapSampler, uv);
-	float3 normal		  = 2.0f * normalMetallic.rgb - 1.0f;
+	float3 viewNormal	  = 2.0f * normalMetallic.rgb - 1.0f;
 	float  metallic		  = normalMetallic.a;
 	float  depth		  = depthTx.Sample(LinearWrapSampler, uv);
 
@@ -44,13 +45,23 @@ void DeferredLighting(CSInput input)
 	float3 albedo			= albedoRoughness.rgb;
 	float  roughness		= albedoRoughness.a;
 
+	BrdfData brdfData = GetBrdfData(albedo, metallic, roughness);
 	LightingResult lightResult = (LightingResult)0;
 	for (uint i = 0; i < lightCount; ++i)
 	{
 		Light light = lights[i];
 		if (!light.active) continue;
-        lightResult = lightResult + DoLight(light, viewPosition, normal, V, albedo, metallic, roughness, uv);
+        lightResult = lightResult + DoLight(light, brdfData, viewPosition, viewNormal, V, uv);
     }
+	
+	//#todo finish this, move viewPosition and viewNormal to World space, remove completely ambient pass and add it here,
+	if (FrameCB.ddgiVolumesIdx >= 0)
+	{
+		StructuredBuffer<DDGIVolume> ddgiVolumes = ResourceDescriptorHeap[FrameCB.ddgiVolumesIdx];
+		DDGIVolume ddgiVolume = ddgiVolumes[0];
+		//lightResult.Diffuse *= SampleDDGIIrradiance(viewPosition, viewNormal, -V);
+	}
+	
 
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
 	outputTx[input.DispatchThreadId.xy] += float4(lightResult.Diffuse + lightResult.Specular, 1.0f);

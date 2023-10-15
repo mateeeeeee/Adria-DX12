@@ -125,13 +125,14 @@ void TiledDeferredLighting(CSInput input)
 
 	float3 viewPosition = GetViewPosition(uv, depth);
 	float4 normalMetallic = normalMetallicTx.Load(int3(input.DispatchThreadId.xy, 0));
-	float3 normal  = 2.0f * normalMetallic.rgb - 1.0f;
+	float3 viewNormal  = 2.0f * normalMetallic.rgb - 1.0f;
 	float metallic = normalMetallic.a;
 	float4 albedoRoughness = diffuseTx.Load(int3(input.DispatchThreadId.xy, 0));
 	float3 V = normalize(0.0f.xxx - viewPosition);
 	float3 albedo = albedoRoughness.rgb;
 	float  roughness = albedoRoughness.a;
 
+	BrdfData brdfData = GetBrdfData(albedo, metallic, roughness);
 	LightingResult lightResult = (LightingResult)0; 
 	if (all(input.DispatchThreadId.xy < FrameCB.screenResolution))
 	{
@@ -139,7 +140,7 @@ void TiledDeferredLighting(CSInput input)
 		{
 			Light light = lights[TileLightIndices[i]];
 			if (!light.active) continue;
-            lightResult = lightResult + DoLight(light, viewPosition, normal, V, albedo, metallic, roughness, uv);
+            lightResult = lightResult + DoLight(light, brdfData, viewPosition, viewNormal, V, uv);
         }
 	}
 

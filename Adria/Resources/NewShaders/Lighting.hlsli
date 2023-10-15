@@ -231,7 +231,7 @@ LightingResult DoLightWithoutShadows(Light light, float3 P, float3 N, float3 V, 
 }
 
 
-LightingResult DoLight(Light light, float3 P, float3 N, float3 V, float3 albedo, float metallic, float roughness, float2 uv)
+LightingResult DoLight(Light light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv)
 {
 	LightingResult result = (LightingResult)0;
 	
@@ -262,7 +262,6 @@ LightingResult DoLight(Light light, float3 P, float3 N, float3 V, float3 albedo,
 
 	if(attenuation <= 0.0f) return result;
 
-	BrdfData brdfData = GetBrdfData(albedo, metallic, roughness);
 	result = DefaultLitBxDF(brdfData.Diffuse, brdfData.Specular, brdfData.Roughness, N, V, L, attenuation);
 
 	result.Diffuse  *= light.color.rgb;

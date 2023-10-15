@@ -41,7 +41,7 @@ void ClusteredDeferredLighting(CSInput input)
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
 
 	float4 normalMetallic = normalMetallicTx.Sample(LinearWrapSampler, uv);
-	float3 normal = 2.0f * normalMetallic.rgb - 1.0f;
+	float3 viewNormal = 2.0f * normalMetallic.rgb - 1.0f;
 	float  metallic = normalMetallic.a;
 	float  depth = depthTx.Sample(LinearWrapSampler, uv);
 
@@ -63,14 +63,15 @@ void ClusteredDeferredLighting(CSInput input)
 
 	uint lightCount = lightGrid[tileIndex].lightCount;
 	uint lightOffset = lightGrid[tileIndex].offset;
-
+	
+	BrdfData brdfData = GetBrdfData(albedo, metallic, roughness);
 	LightingResult lightResult = (LightingResult)0;
 	for (uint i = 0; i < lightCount; i++)
 	{
 		uint lightIndex = lightIndexList[lightOffset + i];
 		Light light = lights[lightIndex];
 		if (!light.active) continue;
-        lightResult = lightResult + DoLight(light, viewPosition, normal, V, albedo, metallic, roughness, uv);
+        lightResult = lightResult + DoLight(light, brdfData, viewPosition, viewNormal, V, uv);
     }
 
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
