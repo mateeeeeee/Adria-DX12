@@ -72,11 +72,11 @@ void DeferredLighting(CSInput input)
 		StructuredBuffer<DDGIVolume> ddgiVolumes = ResourceDescriptorHeap[FrameCB.ddgiVolumesIdx];
 		DDGIVolume ddgiVolume = ddgiVolumes[0];
 		
-		float3 worldNormal = normalize(mul(viewNormal, (float3x3) transpose(FrameCB.view)));
-		float4 worldPosition = mul(float4(viewPosition, 1.0f), transpose(FrameCB.inverseView));
+		float3 worldNormal = normalize(mul(viewNormal, (float3x3) FrameCB.view));
+		float4 worldPosition = mul(float4(viewPosition, 1.0f), FrameCB.inverseView);
 		worldPosition /= worldPosition.w;
 		float3 Wo = -normalize(FrameCB.cameraPosition.xyz - worldPosition.xyz);
-		indirectLighting = albedo * ambientOcclusion * SampleDDGIIrradiance(ddgiVolume, worldPosition.xyz, worldNormal, Wo);
+		indirectLighting = 0.125f * albedo * ambientOcclusion * SampleDDGIIrradiance(ddgiVolume, worldPosition.xyz, worldNormal, Wo);
 	}
 	else
 	{
