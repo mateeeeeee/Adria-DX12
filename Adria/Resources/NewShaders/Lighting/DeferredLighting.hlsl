@@ -1,6 +1,5 @@
 #include "../Lighting.hlsli"
 #include "../Packing.hlsli"
-#include "../DDGI/DDGICommon.hlsli"
 
 #define BLOCK_SIZE 16
 
@@ -11,7 +10,6 @@ struct DeferredLightingConstants
 	uint depthIdx;
 	uint emissiveIdx;
 	uint aoIdx;
-	uint ambientColor;
 	uint outputIdx;
 };
 ConstantBuffer<DeferredLightingConstants> PassCB : register(b1);
@@ -30,7 +28,6 @@ void DeferredLighting(CSInput input)
 	Texture2D               normalMetallicTx = ResourceDescriptorHeap[PassCB.normalMetallicIdx];
 	Texture2D               diffuseTx		 = ResourceDescriptorHeap[PassCB.diffuseIdx];
 	Texture2D<float>        depthTx			 = ResourceDescriptorHeap[PassCB.depthIdx];
-	Texture2D               emissiveTx       = ResourceDescriptorHeap[PassCB.emissiveIdx];
 	StructuredBuffer<Light> lights		     = ResourceDescriptorHeap[FrameCB.lightsIdx];
 
 	uint lightCount, _unused;
@@ -58,39 +55,15 @@ void DeferredLighting(CSInput input)
         lightResult = lightResult + DoLight(light, brdfData, viewPosition, viewNormal, V, uv);
     }
 
-	
-	float ambientOcclusion = 1.0f;
-	if (PassCB.aoIdx >= 0)
-	{
-		Texture2D<float> aoTx = ResourceDescriptorHeap[PassCB.aoIdx];
-		ambientOcclusion = aoTx.Sample(LinearWrapSampler, uv);
-	}
+	Texture2D<float> aoTx = ResourceDescriptorHeap[PassCB.aoIdx];
+	float ambientOcclusion = aoTx.Sample(LinearWrapSampler, uv);
+	float3 indirectLighting = GetIndirectLighting(FrameCB.ddgiVolumesIdx, viewPosition, viewNormal, albedo, ambientOcclusion);
 
-	float3 indirectLighting = 0.0f;
-	if (FrameCB.ddgiVolumesIdx >= 0)
-	{
-		StructuredBuffer<DDGIVolume> ddgiVolumes = ResourceDescriptorHeap[FrameCB.ddgiVolumesIdx];
-		DDGIVolume ddgiVolume = ddgiVolumes[0];
-		
-		float3 worldNormal = normalize(mul(viewNormal, (float3x3) FrameCB.view));
-		float4 worldPosition = mul(float4(viewPosition, 1.0f), FrameCB.inverseView);
-		worldPosition /= worldPosition.w;
-		float3 Wo = -normalize(FrameCB.cameraPosition.xyz - worldPosition.xyz);
-		indirectLighting = 0.125f * albedo * ambientOcclusion * SampleDDGIIrradiance(ddgiVolume, worldPosition.xyz, worldNormal, Wo);
-	}
-	else
-	{
-		float4 ambientColor = UnpackUintColor(PassCB.ambientColor);
-		indirectLighting = ambientColor.rgb * albedo * ambientOcclusion;
-	}
-
-
+	Texture2D emissiveTx = ResourceDescriptorHeap[PassCB.emissiveIdx];
 	float4 emissiveData = emissiveTx.Sample(LinearWrapSampler, uv);
-	float3 emissive = emissiveData.rgb;
-	float emissiveFactor = emissiveData.a * 256;
-	emissive = emissive * emissiveFactor;
+	float3 emissiveColor = emissiveData.rgb * emissiveData.a * 256;
 	
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
-	outputTx[input.DispatchThreadId.xy] += float4(indirectLighting + lightResult.Diffuse + lightResult.Specular + emissive.rgb, 1.0f);
+	outputTx[input.DispatchThreadId.xy] = float4(indirectLighting + lightResult.Diffuse + lightResult.Specular + emissiveColor, 1.0f);
 	
 }

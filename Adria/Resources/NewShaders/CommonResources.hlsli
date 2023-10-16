@@ -19,6 +19,7 @@ struct FrameCBuffer
 	float  cameraNear;
 	float  cameraFar;
 
+	float4 ambientColor;
     float4 windParams;
     float4 sunDirection;
     float4 sunColor;

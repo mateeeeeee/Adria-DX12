@@ -10,6 +10,8 @@ struct TiledLightingConstants
 	uint normalMetallicIdx;
 	uint diffuseIdx;
 	uint depthIdx;
+	uint emissiveIdx;
+	uint aoIdx;
 	uint outputIdx;
 	int  debugIdx;
 };
@@ -32,8 +34,8 @@ struct CSInput
 void TiledDeferredLighting(CSInput input)
 {
 	Texture2D               normalMetallicTx = ResourceDescriptorHeap[PassCB.normalMetallicIdx];
-	Texture2D               diffuseTx = ResourceDescriptorHeap[PassCB.diffuseIdx];
-	Texture2D<float>        depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
+	Texture2D               diffuseTx		 = ResourceDescriptorHeap[PassCB.diffuseIdx];
+	Texture2D<float>        depthTx			 = ResourceDescriptorHeap[PassCB.depthIdx];
 
 	StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
 	uint totalLights, _unused;
@@ -144,8 +146,16 @@ void TiledDeferredLighting(CSInput input)
         }
 	}
 
+	Texture2D<float> aoTx = ResourceDescriptorHeap[PassCB.aoIdx];
+	float ambientOcclusion = aoTx.Sample(LinearWrapSampler, uv);
+	float3 indirectLighting = GetIndirectLighting(FrameCB.ddgiVolumesIdx, viewPosition, viewNormal, albedo, ambientOcclusion);
+
+	Texture2D emissiveTx = ResourceDescriptorHeap[PassCB.emissiveIdx];
+	float4 emissiveData = emissiveTx.Sample(LinearWrapSampler, uv);
+	float3 emissiveColor = emissiveData.rgb * emissiveData.a * 256;
+	
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
-	outputTx[input.DispatchThreadId.xy] += float4(lightResult.Diffuse + lightResult.Specular, 1.0f);
+	outputTx[input.DispatchThreadId.xy] = float4(indirectLighting + lightResult.Diffuse + lightResult.Specular + emissiveColor, 1.0f);
 
 	if (PassCB.debugIdx > 0)
 	{

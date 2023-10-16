@@ -376,6 +376,7 @@ namespace adria
 			}
 		}
 
+		frame_cbuf_data.ambient_color = Vector4(ambient_color[0], ambient_color[1], ambient_color[2], 1.0f);
 		frame_cbuf_data.wind_params = Vector4(wind_dir[0], wind_dir[1], wind_dir[2], wind_speed);
 		frame_cbuffer.Update(frame_cbuf_data, backbuffer_index);
 
@@ -471,7 +472,17 @@ namespace adria
 
 	void Renderer::MiscGUI()
 	{
-		//todo
+		GUI_RunCommand([&]()
+			{
+				if (ImGui::TreeNode("Misc"))
+				{
+					ImGui::ColorEdit3("Ambient Color", ambient_color);
+					ImGui::SliderFloat3("Wind Direction", wind_dir, -1.0f, 1.0f);
+					ImGui::SliderFloat("Wind Speed", &wind_speed, 0.0f, 32.0f);
+					ImGui::TreePop();
+				}
+			}
+		);
 	}
 
 	void Renderer::CopyToBackbuffer(RenderGraph& rg)

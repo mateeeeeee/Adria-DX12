@@ -33,6 +33,7 @@ namespace adria
 		float  camera_near;
 		float  camera_far;
 
+		Vector4 ambient_color;
 		Vector4 wind_params;
 		Vector4 sun_direction;
 		Vector4 sun_color;

@@ -58,7 +58,7 @@ namespace adria
 												context.GetReadOnlyTexture(data.gbuffer_albedo),
 												context.GetReadOnlyTexture(data.depth),
 												context.GetReadOnlyTexture(data.gbuffer_emissive),
-												data.ambient_occlusion.IsValid() ? context.GetReadOnlyTexture(data.ambient_occlusion) : gfxcommon::GetCommonView(GfxCommonViewType::NullTexture2D_SRV),
+												data.ambient_occlusion.IsValid() ? context.GetReadOnlyTexture(data.ambient_occlusion) : gfxcommon::GetCommonView(GfxCommonViewType::WhiteTexture2D_SRV),
 												context.GetReadWriteTexture(data.output) };
 
 				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
@@ -76,13 +76,11 @@ namespace adria
 					uint32 depth_idx;
 					uint32 emissive_idx;
 					uint32 ao_idx;
-					uint32 ambient_color;
 					uint32 output_idx;
 				} constants =
 				{
 					.normal_metallic_idx = i, .diffuse_idx = i + 1, .depth_idx = i + 2, .emissive_idx = i + 3, .ao_idx = i + 4, .output_idx = i + 5
 				};
-				constants.ambient_color = PackToUint(ambient_color);
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DeferredLighting));
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
@@ -91,16 +89,6 @@ namespace adria
 			}, RGPassType::Compute);
 
 		shadow_textures.clear();
-
-		GUI_RunCommand([&]()
-		{
-			if (ImGui::TreeNode("General"))
-			{
-				ImGui::ColorEdit3("Ambient Color", ambient_color);
-				ImGui::TreePop();
-			}
-		}
-		);
 	}
 
 }

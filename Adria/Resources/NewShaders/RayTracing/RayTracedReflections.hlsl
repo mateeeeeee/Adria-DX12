@@ -102,7 +102,7 @@ void RTR_ClosestHitPrimaryRay(inout RTR_Payload payloadData, in HitAttributes at
 	Light light = lights[0];
 	bool visibility = TraceShadowRay(light, worldPosition.xyz, FrameCB.inverseView);
 	
-	LightingResult radiance = DoLightWithoutShadows(light, worldPosition.xyz, worldNormal, V, albedoColor.xyz, metallic, roughness);
+	LightingResult radiance = DoLightNoShadows(light, worldPosition.xyz, worldNormal, V, albedoColor.xyz, metallic, roughness);
 	float3 reflectionColor = (visibility + 0.05f) * (1.0f - roughness) * (radiance.Diffuse + radiance.Specular) + materialProperties.emissive;
 	payloadData.reflectionColor = reflectionColor;
 }

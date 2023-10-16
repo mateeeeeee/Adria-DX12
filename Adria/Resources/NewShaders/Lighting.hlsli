@@ -5,6 +5,7 @@
 #include "Common.hlsli"
 #include "Constants.hlsli"
 #include "BRDF.hlsli"
+#include "DDGI/DDGICommon.hlsli"
 
 #define DIRECTIONAL_LIGHT 0
 #define POINT_LIGHT 1
@@ -197,7 +198,7 @@ LightingResult DefaultLitBxDF(float3 diffuseColor, float3 specularColor, float s
 	return lighting;
 }
 
-LightingResult DoLightWithoutShadows(Light light, float3 P, float3 N, float3 V, float3 albedo, float metallic, float roughness)
+LightingResult DoLightNoShadows(Light light, float3 P, float3 N, float3 V, float3 albedo, float metallic, float roughness)
 {
 	LightingResult result = (LightingResult)0;
 	
@@ -229,7 +230,6 @@ LightingResult DoLightWithoutShadows(Light light, float3 P, float3 N, float3 V, 
 	result.Specular *= light.color.rgb;
 	return result;
 }
-
 
 LightingResult DoLight(Light light, BrdfData brdfData, float3 P, float3 N, float3 V, float2 uv)
 {
@@ -267,6 +267,27 @@ LightingResult DoLight(Light light, BrdfData brdfData, float3 P, float3 N, float
 	result.Diffuse  *= light.color.rgb;
 	result.Specular *= light.color.rgb;
 	return result;
+}
+
+float3 GetIndirectLighting(int ddgiVolumesIdx, float3 viewPosition, float3 viewNormal, float3 diffuseColor, float ambientOcclusion)
+{
+	float3 indirectLighting = 0.0f;
+	if (ddgiVolumesIdx >= 0)
+	{
+		StructuredBuffer<DDGIVolume> ddgiVolumes = ResourceDescriptorHeap[ddgiVolumesIdx];
+		DDGIVolume ddgiVolume = ddgiVolumes[0];
+		
+		float3 worldNormal = normalize(mul(viewNormal, (float3x3) FrameCB.view));
+		float4 worldPosition = mul(float4(viewPosition, 1.0f), FrameCB.inverseView);
+		worldPosition /= worldPosition.w;
+		float3 Wo = normalize(FrameCB.cameraPosition.xyz - worldPosition.xyz);
+		indirectLighting = diffuseColor * ambientOcclusion * SampleDDGIIrradiance(ddgiVolume, worldPosition.xyz, worldNormal, Wo);
+	}
+	else
+	{
+		indirectLighting = 0.1f * FrameCB.ambientColor.rgb * diffuseColor * ambientOcclusion;
+	}
+	return indirectLighting;
 }
 
 #endif

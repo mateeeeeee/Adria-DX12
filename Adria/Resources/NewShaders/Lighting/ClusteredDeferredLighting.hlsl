@@ -16,6 +16,8 @@ struct ClusteredDeferredLightingConstants
 	uint normalMetallicIdx;
 	uint diffuseIdx;
 	uint depthIdx;
+	uint emissiveIdx;
+	uint aoIdx;
 	uint outputIdx;
 };
 ConstantBuffer<ClusteredDeferredLightingConstants> PassCB : register(b1);
@@ -32,11 +34,11 @@ struct CSInput
 void ClusteredDeferredLighting(CSInput input)
 {
 	Texture2D               normalMetallicTx = ResourceDescriptorHeap[PassCB.normalMetallicIdx];
-	Texture2D               diffuseTx = ResourceDescriptorHeap[PassCB.diffuseIdx];
-	Texture2D<float>        depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
-	StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
-	StructuredBuffer<uint> lightIndexList = ResourceDescriptorHeap[PassCB.lightIndexListIdx];
-	StructuredBuffer<LightGrid> lightGrid = ResourceDescriptorHeap[PassCB.lightGridIdx];
+	Texture2D               diffuseTx		 = ResourceDescriptorHeap[PassCB.diffuseIdx];
+	Texture2D<float>        depthTx			 = ResourceDescriptorHeap[PassCB.depthIdx];
+	StructuredBuffer<Light> lights			 = ResourceDescriptorHeap[FrameCB.lightsIdx];
+	StructuredBuffer<uint>  lightIndexList	 = ResourceDescriptorHeap[PassCB.lightIndexListIdx];
+	StructuredBuffer<LightGrid> lightGrid	 = ResourceDescriptorHeap[PassCB.lightGridIdx];
 
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
 
@@ -74,6 +76,14 @@ void ClusteredDeferredLighting(CSInput input)
         lightResult = lightResult + DoLight(light, brdfData, viewPosition, viewNormal, V, uv);
     }
 
+	Texture2D<float> aoTx = ResourceDescriptorHeap[PassCB.aoIdx];
+	float ambientOcclusion = aoTx.Sample(LinearWrapSampler, uv);
+	float3 indirectLighting = GetIndirectLighting(FrameCB.ddgiVolumesIdx, viewPosition, viewNormal, albedo, ambientOcclusion);
+
+	Texture2D emissiveTx = ResourceDescriptorHeap[PassCB.emissiveIdx];
+	float4 emissiveData = emissiveTx.Sample(LinearWrapSampler, uv);
+	float3 emissiveColor = emissiveData.rgb * emissiveData.a * 256;
+
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
-	outputTx[input.DispatchThreadId.xy] += float4(lightResult.Diffuse + lightResult.Specular, 1.0f);
+	outputTx[input.DispatchThreadId.xy] = float4(indirectLighting + lightResult.Diffuse + lightResult.Specular + emissiveColor, 1.0f);
 }
