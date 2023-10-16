@@ -55,7 +55,7 @@ void PT_RayGen()
 
             float3 worldPosition = mul(vertex.pos, info.objectToWorldMatrix).xyz;
             float3 worldNormal = normalize(mul(vertex.nor, (float3x3) transpose(info.worldToObjectMatrix)));
-            float3 geometryNormal = worldNormal; //temp
+            float3 geometryNormal = normalize(worldNormal);
             float3 V = -ray.Direction;
             MaterialProperties matProperties = GetMaterialProperties(materialData, vertex.uv, 0);
             BrdfData brdfData = GetBrdfData(matProperties);

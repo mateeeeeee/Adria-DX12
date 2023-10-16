@@ -74,7 +74,7 @@ void DDGI_ClosestHit(inout DDGIPayload payload, in HitAttributes attribs)
 	MaterialProperties matProperties = GetMaterialProperties(materialData, vertex.uv, 0);
 	BrdfData brdfData = GetBrdfData(matProperties);
 
-	float3 N = worldNormal;
+	float3 N = normalize(worldNormal);
 
 	StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
 	Light light = lights[0];
