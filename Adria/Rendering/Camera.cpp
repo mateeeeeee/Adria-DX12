@@ -2,6 +2,7 @@
 #include "Camera.h"
 #include "Input/Input.h"
 #include "Math/Constants.h"
+#include "Math/Halton.h"
 
 using namespace DirectX;
 
@@ -16,6 +17,15 @@ namespace adria
 		SetLens(fov, aspect_ratio, near_plane, far_plane);
 	}
 
+	Vector2 Camera::Jitter(uint32 frame_index) const
+	{
+		Vector2 jitter{};
+		constexpr HaltonSequence<16, 2> x;
+		constexpr HaltonSequence<16, 3> y;
+		jitter.x = x[frame_index % 16];
+		jitter.y = y[frame_index % 16];
+		return jitter;
+	}
 	float Camera::Near() const
 	{
 		return near_plane;

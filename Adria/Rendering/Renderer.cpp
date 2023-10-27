@@ -23,7 +23,6 @@
 #include "RenderGraph/RenderGraph.h"
 #include "Utilities/Random.h"
 #include "Utilities/hwbp.h"
-#include "Math/Halton.h"
 #include "Logging/Logger.h"
 
 using namespace DirectX;
@@ -317,15 +316,12 @@ namespace adria
 		static float total_time = 0.0f;
 		total_time += dt;
 
-		float jitter_x = 0.0f, jitter_y = 0.0f;
+		Vector2 jitter(0.0f, 0.0f);
 		if (HasAllFlags(renderer_settings.postprocess.anti_aliasing, AntiAliasing_TAA))
 		{
-			constexpr HaltonSequence<16, 2> x;
-			constexpr HaltonSequence<16, 3> y;
-			jitter_x = x[gfx->GetFrameIndex() % 16];
-			jitter_y = y[gfx->GetFrameIndex() % 16];
-			jitter_x = ((jitter_x - 0.5f) / width) * 2;
-			jitter_y = ((jitter_y - 0.5f) / height) * 2;
+			jitter = camera->Jitter(gfx->GetFrameIndex());
+			jitter.x = ((jitter.x - 0.5f) / width) * 2;
+			jitter.y = ((jitter.y - 0.5f) / height) * 2;
 		}
 
 		static FrameCBuffer frame_cbuf_data{};
@@ -341,8 +337,8 @@ namespace adria
 		frame_cbuf_data.inverse_projection = camera->Proj().Invert();
 		frame_cbuf_data.inverse_view_projection = camera->ViewProj().Invert();
 		frame_cbuf_data.reprojection = frame_cbuf_data.inverse_view_projection * frame_cbuf_data.prev_view_projection;
-		frame_cbuf_data.camera_jitter_x = jitter_x;
-		frame_cbuf_data.camera_jitter_y = jitter_y;
+		frame_cbuf_data.camera_jitter_x = jitter.x;
+		frame_cbuf_data.camera_jitter_y = jitter.y;
 		frame_cbuf_data.screen_resolution_x = (float)width;
 		frame_cbuf_data.screen_resolution_y = (float)height;
 		frame_cbuf_data.delta_time = dt;

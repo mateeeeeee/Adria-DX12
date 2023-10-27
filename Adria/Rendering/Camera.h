@@ -44,6 +44,7 @@ namespace adria
 			return look_vector;
 		}
 
+		Vector2 Jitter(uint32 frame_index) const;
 		float Near() const;
 		float Far() const;
 		float Fov() const;
