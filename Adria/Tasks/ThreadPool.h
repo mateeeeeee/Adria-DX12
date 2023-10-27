@@ -10,13 +10,13 @@ namespace adria
 	class ThreadPool
 	{
 	public:
-		explicit ThreadPool(uint32_t pool_size = std::thread::hardware_concurrency() - 1) : done(false), task_queue{}
+		explicit ThreadPool(uint32 pool_size = std::thread::hardware_concurrency() - 1) : done(false), task_queue{}
 		{
-			static const uint32_t max_threads = std::thread::hardware_concurrency();
-			uint16_t const num_threads = pool_size == 0 ? max_threads - 1 : (std::min)(max_threads - 1, pool_size);
+			static const uint32 max_threads = std::thread::hardware_concurrency();
+			uint16 const num_threads = pool_size == 0 ? max_threads - 1 : (std::min)(max_threads - 1, pool_size);
 
 			threads.reserve(num_threads);
-			for (uint16_t i = 0; i < num_threads; ++i)
+			for (uint16 i = 0; i < num_threads; ++i)
 			{
 				threads.emplace_back(std::bind(&ThreadPool::ThreadWork, this));
 			}
@@ -38,7 +38,7 @@ namespace adria
 				done = true;
 				cond_var.notify_all();
 			}
-			for (int i = 0; i < threads.size(); ++i) if (threads[i].joinable())  threads[i].join();
+			for (uint16 i = 0; i < threads.size(); ++i) if (threads[i].joinable())  threads[i].join();
 		}
 		template<typename F, typename... Args>
 		auto Submit(F&& f, Args&&... args) 

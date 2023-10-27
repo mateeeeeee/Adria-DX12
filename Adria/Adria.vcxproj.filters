@@ -146,9 +146,6 @@
     <ClCompile Include="Rendering\GBufferPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\AmbientPass.cpp">
-      <Filter>Rendering\Passes</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\ToneMapPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
@@ -606,9 +603,6 @@
       <Filter>RenderGraph</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\GBufferPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\AmbientPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\ToneMapPass.h">
@@ -1227,5 +1221,6 @@
     <Text Include="Resources\NewShaders\SPD\LICENSE.txt">
       <Filter>Shaders\SPD</Filter>
     </Text>
+    <Text Include="todo.txt" />
   </ItemGroup>
 </Project>

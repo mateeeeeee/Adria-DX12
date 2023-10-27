@@ -118,7 +118,7 @@ namespace adria
 
 		//misc
 		uint32			         volumetric_lights = 0;
-		float					 ambient_color[3] = { 2.0f / 255.0f, 2.0f / 255.0f, 2.0f / 255.0f };
+		float					 ambient_color[3] = { 3.0f / 255.0f, 3.0f / 255.0f, 3.0f / 255.0f };
 		float					 wind_dir[3] = { 1.0f, 0.0f, 1.0f };
 		float					 wind_speed = 10.0f;
 		Vector3					 sun_direction;
