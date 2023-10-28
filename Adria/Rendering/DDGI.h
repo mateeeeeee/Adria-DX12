@@ -41,15 +41,23 @@ namespace adria
 			int32 distance_history_idx;
 		};
 
+		enum DDGIVisualizeMode : uint32
+		{
+			DDGIVisualizeMode_Irradiance = 0,
+			DDGIVisualizeMode_Distance
+		};
 	public:
 
 		DDGI(GfxDevice* gfx, entt::registry& reg, uint32 w, uint32 h);
 
 		void OnSceneInitialized();
 		void OnResize(uint32 w, uint32 h);
-		void AddPasses(RenderGraph& rg);
-		bool IsSupported() const { return is_supported; }
 
+		void AddPasses(RenderGraph& rg);
+		void AddVisualizePass(RenderGraph& rg);
+
+		bool Visualize() const { return visualize; }
+		bool IsSupported() const { return is_supported; }
 		int32 GetDDGIVolumeIndex();
 
 	private:
@@ -62,6 +70,8 @@ namespace adria
 		std::unique_ptr<GfxBuffer>  ddgi_volume_buffer;
 		GfxDescriptor ddgi_volume_buffer_srv;
 		bool enabled = false;
+		bool visualize = false;
+		DDGIVisualizeMode ddgi_visualize_mode = DDGIVisualizeMode_Irradiance;
 
 	private:
 

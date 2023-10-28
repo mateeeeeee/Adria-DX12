@@ -40,34 +40,34 @@ float2 GetProbeUV(DDGIVolume volume, uint3 probeIndex3D, float3 direction, uint 
 	return pixel / float2(textureWidth, textureHeight);
 }
 
-int GetProbeIndexFromGridCoord(in DDGIVolume ddgi, int3 gridCoord)
+int GetProbeIndexFromGridCoord(in DDGIVolume ddgi, uint3 gridCoord)
 {
 	return int(gridCoord.x + gridCoord.y * ddgi.probeCounts.x + gridCoord.z * ddgi.probeCounts.x * ddgi.probeCounts.y);
 }
 
-float3 GetProbeLocationFromGridCoord(in DDGIVolume ddgi, int3 gridCoord)
+float3 GetProbeLocationFromGridCoord(in DDGIVolume ddgi, uint3 gridCoord)
 {
 	return ddgi.startPosition + ddgi.probeSize * gridCoord;
 }
 
-int3 GetProbeGridCoord(in DDGIVolume ddgi, int probeIndex)
+uint3 GetProbeGridCoord(in DDGIVolume ddgi, uint probeIndex)
 {
-	int3 gridCoord;
+	uint3 gridCoord;
 	gridCoord.x = probeIndex % ddgi.probeCounts.x;
 	gridCoord.y = (probeIndex % (ddgi.probeCounts.x * ddgi.probeCounts.y)) / ddgi.probeCounts.x;
 	gridCoord.z = probeIndex / (ddgi.probeCounts.x * ddgi.probeCounts.y);
 	return gridCoord;
 }
 
-float3 GetProbeLocation(in DDGIVolume ddgi, int probeIndex)
+float3 GetProbeLocation(in DDGIVolume ddgi, uint probeIndex)
 {
-	int3 gridCoord = GetProbeGridCoord(ddgi, probeIndex);
+	uint3 gridCoord = GetProbeGridCoord(ddgi, probeIndex);
 	return GetProbeLocationFromGridCoord(ddgi, gridCoord);
 }
 
-int3 BaseGridCoord(in DDGIVolume ddgi, float3 X)
+uint3 BaseGridCoord(in DDGIVolume ddgi, float3 X)
 {
-	return clamp(int3((X - ddgi.startPosition) / ddgi.probeSize), int3(0, 0, 0), int3(ddgi.probeCounts) - int3(1, 1, 1));
+	return clamp(uint3((X - ddgi.startPosition) / ddgi.probeSize), uint3(0, 0, 0), uint3(ddgi.probeCounts) - uint3(1, 1, 1));
 }
 
 // Ray Tracing Gems 2: Essential Ray Generation Shaders

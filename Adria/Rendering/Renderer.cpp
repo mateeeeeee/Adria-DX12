@@ -308,7 +308,7 @@ namespace adria
 		CopyBuffer(instances, scene_buffers[SceneBuffer_Instance]);
 		CopyBuffer(materials, scene_buffers[SceneBuffer_Material]);
 
-		size_t count = reg.size();
+		uint64 count = reg.size();
 	}
 
 	void Renderer::UpdateFrameConstants(float dt)
@@ -410,38 +410,17 @@ namespace adria
 		decals_pass.AddPass(render_graph);
 		switch (renderer_settings.postprocess.ambient_occlusion)
 		{
-		case AmbientOcclusion::SSAO:
-		{
-			ssao_pass.AddPass(render_graph);
-			break;
-		}
-		case AmbientOcclusion::HBAO:
-		{
-			hbao_pass.AddPass(render_graph);
-			break;
-		}
-		case AmbientOcclusion::RTAO:
-		{
-			rtao_pass.AddPass(render_graph);
-			break;
-		}
-		case AmbientOcclusion::None:
-		default:
-			break;
+		case AmbientOcclusion::SSAO: ssao_pass.AddPass(render_graph); break;
+		case AmbientOcclusion::HBAO: hbao_pass.AddPass(render_graph); break;
+		case AmbientOcclusion::RTAO: rtao_pass.AddPass(render_graph); break;
 		}
 		shadow_renderer.AddShadowMapPasses(render_graph);
 		shadow_renderer.AddRayTracingShadowPasses(render_graph);
 		switch (renderer_settings.render_path)
 		{
-		case RenderPathType::RegularDeferred:
-			deferred_lighting_pass.AddPass(render_graph);
-			break;
-		case RenderPathType::TiledDeferred:
-			tiled_deferred_lighting_pass.AddPass(render_graph);
-			break;
-		case RenderPathType::ClusteredDeferred:
-			clustered_deferred_lighting_pass.AddPass(render_graph, true);
-			break;
+		case RenderPathType::RegularDeferred: deferred_lighting_pass.AddPass(render_graph); break;
+		case RenderPathType::TiledDeferred: tiled_deferred_lighting_pass.AddPass(render_graph); break;
+		case RenderPathType::ClusteredDeferred: clustered_deferred_lighting_pass.AddPass(render_graph, true); break;
 		}
 		if (volumetric_lights > 0) volumetric_lighting_pass.AddPass(render_graph);
 
@@ -452,6 +431,8 @@ namespace adria
 		postprocessor.AddPasses(render_graph, renderer_settings.postprocess);
 		render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
 		ResolveToFinalTexture(render_graph);
+
+		if (ddgi.Visualize()) ddgi.AddVisualizePass(render_graph);
 		g_DebugRenderer.Render(render_graph);
 
 		if (!g_Editor.IsActive()) CopyToBackbuffer(render_graph);

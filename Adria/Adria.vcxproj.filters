@@ -1152,6 +1152,9 @@
     <FxCompile Include="Resources\NewShaders\DDGI\DDGIUpdateDistance.hlsl">
       <Filter>Shaders\DDGI</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\NewShaders\DDGI\DDGIVisualize.hlsl">
+      <Filter>Shaders\DDGI</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="scene.json" />
@@ -1214,6 +1217,9 @@
     </None>
     <None Include="..\External\SimpleMath\SimpleMath.inl">
       <Filter>External\SimpleMath</Filter>
+    </None>
+    <None Include="Resources\NewShaders\Primitives.hlsli">
+      <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

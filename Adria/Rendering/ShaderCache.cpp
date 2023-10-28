@@ -37,6 +37,7 @@ namespace adria
 			case VS_OceanLOD:
 			case VS_CloudsCombine:
 			case VS_Debug:
+			case VS_DDGIVisualize:
 				return GfxShaderStage::VS;
 			case PS_Sky:
 			case PS_Texture:
@@ -55,6 +56,7 @@ namespace adria
 			case PS_CloudsCombine:
 			case PS_DrawMeshlets:
 			case PS_Debug:
+			case PS_DDGIVisualize:
 				return GfxShaderStage::PS;
 			case GS_LensFlare:
 			case GS_Bokeh:
@@ -292,6 +294,9 @@ namespace adria
 				return "DDGI/DDGIUpdateIrradiance.hlsl";
 			case CS_DDGIUpdateDistance:
 				return "DDGI/DDGIUpdateDistance.hlsl";
+			case VS_DDGIVisualize:
+			case PS_DDGIVisualize:
+				return "DDGI/DDGIVisualize.hlsl";
 			case LIB_DDGIRayTracing:
 				return "DDGI/DDGIRayTrace.hlsl";
 			case LIB_Shadows:
@@ -491,6 +496,10 @@ namespace adria
 				return "DDGI_UpdateIrradiance";
 			case CS_DDGIUpdateDistance:
 				return "DDGI_UpdateDistance";
+			case VS_DDGIVisualize:
+				return "DDGIVisualizeVS";
+			case PS_DDGIVisualize:
+				return "DDGIVisualizePS";
 			default:
 				return "main";
 			}

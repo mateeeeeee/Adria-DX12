@@ -95,6 +95,7 @@ namespace adria
 		RTAOFilter,
 		DDGIUpdateIrradiance,
 		DDGIUpdateDistance,
+		DDGIVisualize,
 		Unknown
 	};
 

@@ -109,7 +109,6 @@ namespace adria
 			ShaderCache::CheckIfShadersHaveChanged();
 			reload_shaders = false;
 		}
-
 	}
 
 	bool Editor::IsActive() const

@@ -105,6 +105,8 @@ namespace adria
 		CS_RTAOFilter,
 		CS_DDGIUpdateIrradiance,
 		CS_DDGIUpdateDistance,
+		VS_DDGIVisualize,
+		PS_DDGIVisualize,
 		LIB_DDGIRayTracing,
 		LIB_Shadows,
 		LIB_AmbientOcclusion,

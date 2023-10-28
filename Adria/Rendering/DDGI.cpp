@@ -93,10 +93,28 @@ namespace adria
 				if (ImGui::TreeNode("DDGI"))
 				{
 					ImGui::Checkbox("Enable DDGI", &enabled);
+					if(enabled) ImGui::Checkbox("Visualize DDGI", &visualize);
+					if (visualize)
+					{
+						static const char* visualize_mode[] = { "Irradiance", "Distance" };
+						static int current_visualize_mode = 0;
+						const char* visualize_mode_label = visualize_mode[current_visualize_mode];
+						if (ImGui::BeginCombo("DDGI Visualize Mode", visualize_mode_label, 0))
+						{
+							for (int n = 0; n < IM_ARRAYSIZE(visualize_mode); n++)
+							{
+								const bool is_selected = (current_visualize_mode == n);
+								if (ImGui::Selectable(visualize_mode[n], is_selected)) current_visualize_mode = n;
+								if (is_selected) ImGui::SetItemDefaultFocus();
+							}
+							ImGui::EndCombo();
+						}
+
+						ddgi_visualize_mode = (DDGIVisualizeMode)current_visualize_mode;
+					}
 					ImGui::TreePop();
 				}
-			}
-		);
+			});
 		GUI_DisplayTexture("DDGI Irradiance", ddgi_volume.irradiance_history.get());
 		GUI_DisplayTexture("DDGI Distance", ddgi_volume.distance_history.get());
 
@@ -279,6 +297,39 @@ namespace adria
 
 		rg.ExportTexture(RG_RES_NAME(DDGIIrradiance), ddgi_volume.irradiance_history.get());
 		rg.ExportTexture(RG_RES_NAME(DDGIDistance), ddgi_volume.distance_history.get());
+
+		
+	}
+
+	void DDGI::AddVisualizePass(RenderGraph& rg)
+	{
+		if (!IsSupported() || !visualize) return;
+
+		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+
+		rg.AddPass<void>("DDGI Visualize Pass",
+			[=](RenderGraphBuilder& builder)
+			{
+				builder.WriteRenderTarget(RG_RES_NAME(FinalTexture), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.SetViewport(width, height);
+			},
+			[=](RenderGraphContext& ctx, GfxCommandList* cmd_list) mutable
+			{
+				GfxDevice* gfx = cmd_list->GetDevice();
+				struct DDGIVisualizeParameters
+				{
+					uint32 visualize_mode;
+				} parameters
+				{
+					.visualize_mode = (uint32)ddgi_visualize_mode
+				};
+				cmd_list->SetTopology(GfxPrimitiveTopology::TriangleList);
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIVisualize));
+				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, parameters);
+				cmd_list->Draw(2880, ddgi_volume.num_probes.x * ddgi_volume.num_probes.y * ddgi_volume.num_probes.z);
+			}, RGPassType::Graphics);
 	}
 
 	int32 DDGI::GetDDGIVolumeIndex()

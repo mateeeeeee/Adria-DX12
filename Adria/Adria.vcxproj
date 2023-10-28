@@ -536,6 +536,14 @@
     <FxCompile Include="Resources\NewShaders\DDGI\DDGIUpdateIrradiance.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
+    <FxCompile Include="Resources\NewShaders\DDGI\DDGIVisualize.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="Resources\NewShaders\Exposure\BuildHistogram.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
@@ -1154,6 +1162,7 @@
     <None Include="Resources\NewShaders\Lighting.hlsli" />
     <None Include="Resources\NewShaders\Noise.hlsli" />
     <None Include="Resources\NewShaders\Packing.hlsli" />
+    <None Include="Resources\NewShaders\Primitives.hlsli" />
     <None Include="Resources\NewShaders\Random.hlsli" />
     <None Include="Resources\NewShaders\RayTracing\PathTracing.hlsli" />
     <None Include="Resources\NewShaders\RayTracing\RayTracingUtil.hlsli">
