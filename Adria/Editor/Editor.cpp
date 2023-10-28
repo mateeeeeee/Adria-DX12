@@ -1169,9 +1169,40 @@ namespace adria
 				{
 					static float start[3] = { 0.0f };
 					static float end[3] = { 0.0f };
-					ImGui::InputFloat3("Line start", start);
-					ImGui::InputFloat3("Line end", end);
+					ImGui::InputFloat3("Line Start", start);
+					ImGui::InputFloat3("Line End", end);
 					if (ImGui::Button("Add")) g_DebugRenderer.AddLine(Vector3(start), Vector3(end), Color(debug_color));
+				}
+				break;
+				case Ray:
+				{
+					static float origin[3] = { 0.0f };
+					static float dir[3] = { 0.0f };
+					ImGui::InputFloat3("Ray Origin", origin);
+					ImGui::InputFloat3("Ray Direction", dir);
+					if (ImGui::Button("Add")) g_DebugRenderer.AddRay(Vector3(origin), Vector3(dir), Color(debug_color));
+				}
+				break;
+				case Box:
+				{
+					static float center[3] = { 0.0f };
+					static float extents[3] = { 0.0f };
+					static bool wireframe = false;
+					ImGui::InputFloat3("Box Center", center);
+					ImGui::InputFloat3("Box Extents", extents);
+					ImGui::Checkbox("Wireframe", &wireframe);
+					if (ImGui::Button("Add")) g_DebugRenderer.AddBox(Vector3(center), Vector3(extents), Color(debug_color), wireframe);
+				}
+				break;
+				case Sphere:
+				{
+					static float center[3] = { 0.0f };
+					static float radius = 1.0f;
+					static bool wireframe = false;
+					ImGui::InputFloat3("Sphere Center", center);
+					ImGui::InputFloat("Sphere Radius", &radius);
+					ImGui::Checkbox("Wireframe", &wireframe);
+					if (ImGui::Button("Add")) g_DebugRenderer.AddSphere(Vector3(center), radius, Color(debug_color), wireframe);
 				}
 				break;
 				}

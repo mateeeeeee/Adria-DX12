@@ -456,8 +456,7 @@ namespace adria
 					ImGui::SliderFloat("Wind Speed", &wind_speed, 0.0f, 32.0f);
 					ImGui::TreePop();
 				}
-			}
-		);
+			});
 	}
 
 	void Renderer::CopyToBackbuffer(RenderGraph& rg)
