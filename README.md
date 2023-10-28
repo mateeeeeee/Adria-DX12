@@ -1,6 +1,9 @@
+<img align="left" src="Adria/Resources/Icons/adria_logo.jpg" width="120px"/>
+
 # Adria-DX12
 
-Graphics engine written in C++ using DirectX12/DXR. For successful build you will need textures that you can find [here](https://github.com/mateeeeeee/Adria-DX11/releases/tag/1.0).
+Graphics engine written in C++ using DirectX12. For successful build you will need textures that you can find [here](https://github.com/mateeeeeee/Adria-DX11/releases/tag/1.0).
+ 
 ## Features
 * Render graph
 	- Automatic resource barriers
