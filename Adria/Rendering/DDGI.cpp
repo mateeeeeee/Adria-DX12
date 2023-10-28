@@ -310,7 +310,7 @@ namespace adria
 		rg.AddPass<void>("DDGI Visualize Pass",
 			[=](RenderGraphBuilder& builder)
 			{
-				builder.WriteRenderTarget(RG_RES_NAME(FinalTexture), RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);
 			},

@@ -423,7 +423,7 @@ namespace adria
 		case RenderPathType::ClusteredDeferred: clustered_deferred_lighting_pass.AddPass(render_graph, true); break;
 		}
 		if (volumetric_lights > 0) volumetric_lighting_pass.AddPass(render_graph);
-
+		if (ddgi.Visualize()) ddgi.AddVisualizePass(render_graph);
 		ocean_renderer.AddPasses(render_graph);
 		sky_pass.AddDrawSkyPass(render_graph);
 		picking_pass.AddPass(render_graph);
@@ -431,8 +431,6 @@ namespace adria
 		postprocessor.AddPasses(render_graph, renderer_settings.postprocess);
 		render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
 		ResolveToFinalTexture(render_graph);
-
-		if (ddgi.Visualize()) ddgi.AddVisualizePass(render_graph);
 		g_DebugRenderer.Render(render_graph);
 
 		if (!g_Editor.IsActive()) CopyToBackbuffer(render_graph);

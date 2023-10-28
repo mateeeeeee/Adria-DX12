@@ -276,7 +276,7 @@ namespace adria
 				gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
 				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::LessEqual;
 				gfx_pso_desc.num_render_targets = 1u;
-				gfx_pso_desc.rtv_formats[0] = GfxFormat::R10G10B10A2_UNORM;
+				gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
 				gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
 				gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Triangle;
 				gfx_pso_map[GfxPipelineStateID::DDGIVisualize] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
