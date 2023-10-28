@@ -84,7 +84,7 @@ bool TraceRay(RayDesc ray, out HitInfo hitInfo)
 
     while (q.Proceed())
     {
-		/*uint instanceIndex = q.CandidateInstanceID();
+		uint instanceIndex = q.CandidateInstanceID();
 		uint triangleId = q.CandidatePrimitiveIndex();
 		Instance instanceData = GetInstanceData(instanceIndex);
 		Mesh meshData = GetMeshData(instanceData.meshIndex);
@@ -99,11 +99,10 @@ bool TraceRay(RayDesc ray, out HitInfo hitInfo)
 		float2 uv2 = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, i2);
 		float2 uv = Interpolate(uv0, uv1, uv2, q.CandidateTriangleBarycentrics());
 
-		Texture2D txAlbedo = ResourceDescriptorHeap[materialData.diffuseIdx];
-		float4 albedoColor = txAlbedo.SampleLevel(LinearWrapSampler, uv, 0) * float4(materialData.baseColorFactor, 1.0f);
+		Texture2D albedoTx = ResourceDescriptorHeap[materialData.diffuseIdx];
+		float4 albedoColor = albedoTx.SampleLevel(LinearWrapSampler, uv, 0) * float4(materialData.baseColorFactor, 1.0f);
 
-		if (albedoColor.a >= materialData.alphaCutoff)*/
-		q.CommitNonOpaqueTriangleHit();
+		if (albedoColor.a >= materialData.alphaCutoff) q.CommitNonOpaqueTriangleHit();
     }
     if (q.CommittedStatus() == COMMITTED_NOTHING)
     {
