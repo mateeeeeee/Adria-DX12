@@ -31,13 +31,13 @@ namespace adria
 	void DebugRenderer::Initialize(uint32 _width, uint32 _height)
 	{
 		width = _width;
-		height = _height;
+		height = _height; 
 	}
 
 	void DebugRenderer::Destroy()
 	{
-		lines.clear();
-		triangles.clear();
+		transient_lines.clear();
+		transient_triangles.clear();
 		width = 0, height = 0;
 	}
 
@@ -48,7 +48,9 @@ namespace adria
 
 	void DebugRenderer::Render(RenderGraph& rg)
 	{
-		if (lines.empty() && triangles.empty()) return;
+		if (transient_lines.empty() && transient_triangles.empty() && persistent_lines.empty() && persistent_triangles.empty()) 
+			return;
+
 		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
 		rg.AddPass<void>("Debug Pass",
@@ -64,32 +66,49 @@ namespace adria
 				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
 
 				constexpr uint32 vb_stride = (uint32)sizeof(DebugVertex);
-				if (!lines.empty())
+				uint32 transient_lines_count = (uint32)transient_lines.size();
+				uint32 persistent_lines_count = (uint32)persistent_lines.size();
+				uint32 lines_count = transient_lines_count + persistent_lines_count;
+
+				uint32 transient_triangles_count = (uint32)transient_triangles.size();
+				uint32 persistent_triangles_count = (uint32)persistent_triangles.size();
+				uint32 triangles_count = transient_triangles_count + persistent_triangles_count;
+
+				if (lines_count != 0)
 				{
-					uint32 vb_count = (uint32)lines.size() * sizeof(DebugLine) / vb_stride;
+					uint32 transient_vb_count = transient_lines_count * sizeof(DebugLine) / vb_stride;
+					uint32 persistent_vb_count = persistent_lines_count * sizeof(DebugLine) / vb_stride;
+					uint32 vb_count = transient_vb_count + persistent_vb_count;
 					GfxDynamicAllocation vb_alloc = cmd_list->AllocateTransient(vb_stride * vb_count, 16);
-					vb_alloc.Update(lines.data(), vb_count * vb_stride);
+
+					vb_alloc.Update(transient_lines.data(), transient_vb_count * vb_stride, 0);
+					vb_alloc.Update(persistent_lines.data(), persistent_vb_count * vb_stride, transient_vb_count * vb_stride);
+
 					GfxVertexBufferView vbv[] = { GfxVertexBufferView(vb_alloc.gpu_address, vb_count, vb_stride) };
 
 					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Debug_Wireframe));
 					cmd_list->SetVertexBuffers(vbv);
 					cmd_list->SetTopology(GfxPrimitiveTopology::LineList);
 					cmd_list->Draw(vb_count);
-					lines.clear();
+					transient_lines.clear();
 				}
-				if (!triangles.empty())
+				if (triangles_count != 0)
 				{
-					uint32 vb_count = (uint32)triangles.size() * sizeof(DebugTriangle) / vb_stride;
-
+					uint32 transient_vb_count = transient_triangles_count * sizeof(DebugTriangle) / vb_stride;
+					uint32 persistent_vb_count = persistent_triangles_count * sizeof(DebugTriangle) / vb_stride;
+					uint32 vb_count = transient_vb_count + persistent_vb_count;
 					GfxDynamicAllocation vb_alloc = cmd_list->AllocateTransient(vb_stride * vb_count, 16);
-					vb_alloc.Update(triangles.data(), vb_count * vb_stride);
+
+					vb_alloc.Update(transient_triangles.data(), transient_vb_count * vb_stride, 0);
+					vb_alloc.Update(persistent_triangles.data(), persistent_vb_count * vb_stride, transient_vb_count * vb_stride);
+
 					GfxVertexBufferView vbv[] = { GfxVertexBufferView(vb_alloc.gpu_address, vb_count, vb_stride) };
 
 					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Debug_Solid));
 					cmd_list->SetVertexBuffers(vbv);
 					cmd_list->SetTopology(GfxPrimitiveTopology::TriangleList);
 					cmd_list->Draw(vb_count);
-					triangles.clear();
+					transient_triangles.clear();
 				}
 				
 			}, RGPassType::Graphics, RGPassFlags::None);
@@ -97,11 +116,13 @@ namespace adria
 
 	void DebugRenderer::AddLine(Vector3 const& start, Vector3 const& end, Color color)
 	{
+		std::vector<DebugLine>& lines = (mode == DebugRendererMode::Transient ? transient_lines : persistent_lines);
 		lines.emplace_back(start, end, color);
 	}
 
 	void DebugRenderer::AddRay(Vector3 const& origin, Vector3 const& direction, Color color)
 	{
+		std::vector<DebugLine>& lines = (mode == DebugRendererMode::Transient ? transient_lines : persistent_lines);
 		lines.emplace_back(origin, origin + direction, color);
 	}
 
@@ -115,6 +136,7 @@ namespace adria
 		}
 		else
 		{
+			std::vector<DebugTriangle>& triangles = (mode == DebugRendererMode::Transient ? transient_triangles : persistent_triangles);
 			triangles.emplace_back(a, b, c, color);
 		}
 	}

@@ -11,11 +11,11 @@ namespace adria
 	{
 		GfxBuffer* buffer = nullptr;
 		void* cpu_address = nullptr;
-		size_t gpu_address = 0;
+		uint64 gpu_address = 0;
 		OffsetType offset = 0;
 		OffsetType size = 0;
 
-		void Update(void const* data, size_t size, size_t offset = 0)
+		void Update(void const* data, uint64 size, uint64 offset = 0)
 		{
 			memcpy((uint8*)cpu_address + offset, data, size);
 		}

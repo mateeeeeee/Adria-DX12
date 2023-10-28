@@ -9,6 +9,12 @@ namespace adria
 	class GfxDevice;
 	class RenderGraph;
 
+	enum class DebugRendererMode : bool
+	{
+		Transient,
+		Persistent
+	};
+
 	class DebugRenderer : public Singleton<DebugRenderer>
 	{
 		friend class Singleton<DebugRenderer>;
@@ -65,9 +71,15 @@ namespace adria
 		void AddSphere(BoundingSphere const& sphere, Color color, bool wireframe = true);
 		void AddFrustum(BoundingFrustum const& frustum, Color color);
 
+		void SetMode(DebugRendererMode _mode) { mode = _mode; }
+		void ClearPersistentLines() { persistent_lines.clear(); }
+		void ClearPersistentTriangles() { persistent_triangles.clear(); }
+		void ClearPersistent() { ClearPersistentLines(); ClearPersistentTriangles(); }
+
 	private:
-		std::vector<DebugLine> lines;
-		std::vector<DebugTriangle> triangles;
+		DebugRendererMode mode = DebugRendererMode::Transient;
+		std::vector<DebugLine> transient_lines, persistent_lines;
+		std::vector<DebugTriangle> transient_triangles, persistent_triangles;
 		uint32 width = 0, height = 0;
 
 	private:

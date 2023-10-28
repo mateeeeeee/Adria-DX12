@@ -9,6 +9,7 @@
 #include "Rendering/Camera.h"
 #include "Rendering/EntityLoader.h"
 #include "Rendering/ShaderCache.h"
+#include "Rendering/DebugRenderer.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxCommandList.h"
 #include "Graphics/GfxTexture.h"
@@ -1134,6 +1135,52 @@ namespace adria
 		if (!window_flags[Flag_Debug]) return;
 		if(ImGui::Begin(ICON_FA_BUG" Debug", &window_flags[Flag_Debug]))
 		{
+			if (ImGui::TreeNode("Debug Renderer"))
+			{
+				enum DebugRendererPrimitive
+				{
+					Line,
+					Ray,
+					Box,
+					Sphere
+				};
+				static int current_debug_renderer_primitive = 0;
+				static const char* debug_renderer_primitive[] = { "Line", "Ray", "Box", "Sphere" };
+				static float debug_color[4] = { 0.0f,0.0f, 0.0f, 1.0f };
+				
+				const char* debug_renderer_primitive_combo_label = debug_renderer_primitive[current_debug_renderer_primitive];
+				if (ImGui::BeginCombo("Debug Renderer Primitive", debug_renderer_primitive_combo_label, 0))
+				{
+					for (int n = 0; n < IM_ARRAYSIZE(debug_renderer_primitive); n++)
+					{
+						const bool is_selected = (current_debug_renderer_primitive == n);
+						if (ImGui::Selectable(debug_renderer_primitive[n], is_selected)) current_debug_renderer_primitive = n;
+						if (is_selected) ImGui::SetItemDefaultFocus();
+					}
+					ImGui::EndCombo();
+				}
+
+				ImGui::ColorEdit3("Debug Color", debug_color);
+
+				g_DebugRenderer.SetMode(DebugRendererMode::Persistent);
+				switch (current_debug_renderer_primitive)
+				{
+				case Line:
+				{
+					static float start[3] = { 0.0f };
+					static float end[3] = { 0.0f };
+					ImGui::InputFloat3("Line start", start);
+					ImGui::InputFloat3("Line end", end);
+					if (ImGui::Button("Add")) g_DebugRenderer.AddLine(Vector3(start), Vector3(end), Color(debug_color));
+				}
+				break;
+				}
+				g_DebugRenderer.SetMode(DebugRendererMode::Transient);
+
+				if (ImGui::Button("Clear")) g_DebugRenderer.ClearPersistent();
+				ImGui::TreePop();
+			}
+
 			if (ImGui::TreeNode("Render Graph"))
 			{
 				dump_render_graph = ImGui::Button("Dump render graph");
