@@ -84,7 +84,7 @@ void DDGI_UpdateDistance(CSInput input)
 			if(weight > MIN_WEIGHT)
 			{
 				weightSum += weight;
-				result += float2(abs(depth), pow2(depth)) * weight;
+				result += float2(abs(depth), Pow2(depth)) * weight;
 			}
 		}
 		remainingRays -= numRays;

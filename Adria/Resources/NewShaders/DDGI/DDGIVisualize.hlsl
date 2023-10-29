@@ -64,7 +64,7 @@ float4 DDGIVisualizePS(VSToPS input) : SV_TARGET
 		float2 uv = GetProbeUV(ddgiVolume, gridCoord, input.Normal, PROBE_DISTANCE_TEXELS);
 		Texture2D<float2> distanceTx = ResourceDescriptorHeap[ddgiVolume.distanceHistoryIdx];
 		float distance = distanceTx.SampleLevel(LinearClampSampler, uv, 0).r;
-		float3 color = distance.xxx / (max(ddgiVolume.probeSize) * 3);
+		float3 color = distance.xxx / (Max(ddgiVolume.probeSize) * 3);
 		result = float4(color, 1.0f);
 	}
 	return result;

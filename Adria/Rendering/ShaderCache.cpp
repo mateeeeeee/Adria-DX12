@@ -17,7 +17,7 @@ namespace adria
 		ShaderRecompiledEvent shader_recompiled_event;
 		LibraryRecompiledEvent library_recompiled_event;
 		std::unordered_map<GfxShaderID, GfxShader> shader_map;
-		std::unordered_map<GfxShaderID, std::unordered_set<fs::path>> dependent_files_map;
+		std::unordered_map<GfxShaderID, std::vector<fs::path>> dependent_files_map;
 
 		constexpr GfxShaderStage GetShaderStage(GfxShaderID shader)
 		{
@@ -533,7 +533,7 @@ namespace adria
 			}
 		}
 
-		void CompileShader(GfxShaderID shader)
+		void CompileShader(GfxShaderID shader, bool bypass_cache = false)
 		{
 			if (shader == GfxShaderID_Invalid) return;
 
@@ -549,16 +549,15 @@ namespace adria
 			shader_desc.flags = ShaderCompilerFlag_None;
 #endif
 			GfxShaderCompileOutput output;
-			bool compile_result = GfxShaderCompiler::CompileShader(shader_desc, output);
+			bool compile_result = GfxShaderCompiler::CompileShader(shader_desc, output, bypass_cache);
 			ADRIA_ASSERT(compile_result);
 			if (!compile_result) return;
 
 			shader_map[shader] = std::move(output.shader);
 			dependent_files_map[shader].clear();
-			dependent_files_map[shader].insert(output.includes.begin(), output.includes.end());
+			for (auto const& include : output.includes) dependent_files_map[shader].push_back(fs::path(include));
 
-			shader_desc.stage == GfxShaderStage::LIB ?
-				library_recompiled_event.Broadcast(shader) : shader_recompiled_event.Broadcast(shader);
+			shader_desc.stage == GfxShaderStage::LIB ? library_recompiled_event.Broadcast(shader) : shader_recompiled_event.Broadcast(shader);
 		}
 		void CompileAllShaders()
 		{
@@ -582,7 +581,11 @@ namespace adria
 		{
 			for (auto const& [shader, files] : dependent_files_map)
 			{
-				if (files.contains(fs::path(filename))) CompileShader(shader);
+				for (uint64 i = 0; i < files.size(); ++i)
+				{
+					fs::path const& file = files[i];
+					if (fs::equivalent(file, fs::path(filename))) CompileShader(shader, i != 0);
+				}
 			}
 		}
 	}

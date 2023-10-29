@@ -222,7 +222,7 @@ namespace adria
 			library.Reset();
 			utils.Reset();
 		}
-		bool CompileShader(GfxShaderCompileInput const& input, GfxShaderCompileOutput& output)
+		bool CompileShader(GfxShaderCompileInput const& input, GfxShaderCompileOutput& output, bool bypass_cache)
 		{
 			std::string macro_key;
 			for (GfxShaderMacro const& macro : input.macros)
@@ -236,7 +236,7 @@ namespace adria
 			sprintf_s(cache_path, "%s%s_%s_%llx_%s.bin", shaders_cache_directory, GetFilenameWithoutExtension(input.file).c_str(),
 												    input.entry_point.c_str(), macro_hash, build_string.c_str());
 
-			if (CheckCache(cache_path, input, output)) return true;
+			if (!bypass_cache && CheckCache(cache_path, input, output)) return true;
 			ADRIA_LOG(INFO, "Shader '%s.%s' not found in cache. Compiling...", input.file.c_str(), input.entry_point.c_str());
 
 			compile:
