@@ -107,33 +107,30 @@ float3 SampleDDGIIrradiance(in DDGIVolume ddgi, float3 P, float3 N, float3 Wo)
 
 	float3 direction = N;
 	float3 position = P;
-	float volumeWeight = 1.0f;
+	float  volumeWeight = 1.0f;
 
-	float3 relativeCoordindates = (position - ddgi.startPosition) / ddgi.probeSize;
+	float3 relativeCoordinates = (position - ddgi.startPosition) / ddgi.probeSize;
 	for(uint i = 0; i < 3; ++i)
 	{
-		volumeWeight *= lerp(0, 1, saturate(relativeCoordindates[i]));
-		if(relativeCoordindates[i] > ddgi.probeCounts[i] - 2)
+		volumeWeight *= lerp(0, 1, saturate(relativeCoordinates[i]));
+		if(relativeCoordinates[i] > ddgi.probeCounts[i] - 2)
 		{
-			float x = saturate(relativeCoordindates[i] - ddgi.probeCounts[i] + 2);
+			float x = saturate(relativeCoordinates[i] - ddgi.probeCounts[i] + 2);
 			volumeWeight *= lerp(1, 0, x);
 		}
 	}
-
-	if(volumeWeight <= 0.0f)
-		return 0.0f;
+	if(volumeWeight <= 0.0f) return 0.0f;
 
 	position += ComputeBias(ddgi, direction, -Wo, 0.2f);
 
-	uint3 baseProbeCoordinates = floor(relativeCoordindates);
+	uint3 baseProbeCoordinates = floor(relativeCoordinates);
 	float3 baseProbePosition = GetProbeLocationFromGridCoord(ddgi, baseProbeCoordinates);
 	float3 alpha = saturate((position - baseProbePosition) / ddgi.probeSize);
 
 	float3 sumIrradiance = 0;
 	float sumWeight = 0;
 
-	// Retrieve the irradiance of the probes that form a cage around the location
-	for(uint i = 0; i < 8; ++i)
+	for (uint i = 0; i < 8; ++i)
 	{
 		uint3 indexOffset = uint3(i, i >> 1u, i >> 2u) & 1u;
 
@@ -148,10 +145,8 @@ float3 SampleDDGIIrradiance(in DDGIVolume ddgi, float3 P, float3 N, float3 Wo)
 
 		float weight = 1;
 
-		// Disregard probes on the other side of the surface we're shading
 		weight *= saturate(dot(probeDirection, direction));
 
-		// Visibility check using exponential depth and chebyshev's inequality formula
 		float2 distanceUV = GetProbeUV(ddgi, probeCoordinates, -probeDirection, PROBE_DISTANCE_TEXELS);
 		float probeDistance = length(relativeProbePosition);
 		// https://developer.download.nvidia.com/SDK/10/direct3d/Source/VarianceShadowMapping/Doc/VarianceShadowMapping.pdf
@@ -181,13 +176,14 @@ float3 SampleDDGIIrradiance(in DDGIVolume ddgi, float3 P, float3 N, float3 Wo)
 		sumIrradiance += irradiance * weight;
 		sumWeight += weight;
 	}
-
+	
 	if(sumWeight == 0) return 0.0f;
 
 	sumIrradiance *= (1.0f / sumWeight);
 	sumIrradiance *= sumIrradiance;
-	sumIrradiance *= 2 * M_PI;
+	sumIrradiance *= M_PI;
 	return sumIrradiance * volumeWeight;
+
 }
 
 #endif

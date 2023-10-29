@@ -81,8 +81,8 @@ void DDGI_ClosestHit(inout DDGIPayload payload, in HitAttributes attribs)
 	bool visibility = TraceShadowRay(light, worldPosition.xyz, FrameCB.inverseView);
 
 	if (!visibility) return;
-
-	float3 L = normalize(-light.direction.xyz);
+	float3 L = mul(light.direction.xyz, (float3x3) FrameCB.inverseView);
+	L = normalize(-L);
 	float3 diffuse = saturate(dot(L, N)) * DiffuseBRDF(brdfData.Diffuse);
 	float3 radiance = diffuse * light.color.rgb;
 

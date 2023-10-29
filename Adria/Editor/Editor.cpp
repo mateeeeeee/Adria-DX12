@@ -37,11 +37,11 @@ namespace adria
 		static ConsoleVariable renderpath("renderpath", 0);
 		static ConsoleVariable taa("TAA", false);
 		static ConsoleVariable fxaa("FXAA", true);
-		static ConsoleVariable exposure("exposure", true);
+		static ConsoleVariable exposure("exposure", false);
 		static ConsoleVariable clouds("clouds", true);
 		static ConsoleVariable dof("dof", false);
 		static ConsoleVariable bokeh("bokeh", false);
-		static ConsoleVariable bloom("bloom", true);
+		static ConsoleVariable bloom("bloom", false);
 		static ConsoleVariable motion_blur("motionblur", false);
 		static ConsoleVariable fog("fog", false);
 		static ConsoleCommand<> dump_render_graph_cmd("dump.rendergraph", []() { dump_render_graph = true; });
@@ -812,6 +812,8 @@ namespace adria
 			ImGui::SliderFloat("Near", &near_plane, 0.0f, 2.0f);
 			ImGui::SliderFloat("Far", &far_plane, 10.0f, 3000.0f);
 			ImGui::SliderFloat("FOV", &fov, 0.01f, 1.5707f);
+			Vector3 look_at = camera.Forward();
+			ImGui::Text("Look Vector: (%f,%f,%f)", look_at.x, look_at.y, look_at.z);
 			camera.SetNearAndFar(near_plane, far_plane);
 			camera.SetFov(fov);
 		}

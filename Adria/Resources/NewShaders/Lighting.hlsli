@@ -269,15 +269,16 @@ LightingResult DoLight(Light light, BrdfData brdfData, float3 P, float3 N, float
 	return result;
 }
 
-float3 GetIndirectLighting(int ddgiVolumesIdx, float3 viewPosition, float3 viewNormal, float3 diffuseColor, float ambientOcclusion)
+float3 GetIndirectLighting(float3 viewPosition, float3 viewNormal, float3 diffuseColor, float ambientOcclusion)
 {
 	float3 indirectLighting = 0.0f;
+	int ddgiVolumesIdx = FrameCB.ddgiVolumesIdx;
 	if (ddgiVolumesIdx >= 0)
 	{
 		StructuredBuffer<DDGIVolume> ddgiVolumes = ResourceDescriptorHeap[ddgiVolumesIdx];
 		DDGIVolume ddgiVolume = ddgiVolumes[0];
 		
-		float3 worldNormal = normalize(mul(viewNormal, (float3x3) FrameCB.view));
+		float3 worldNormal = normalize(mul(viewNormal, (float3x3) FrameCB.inverseView));
 		float4 worldPosition = mul(float4(viewPosition, 1.0f), FrameCB.inverseView);
 		worldPosition /= worldPosition.w;
 		float3 Wo = normalize(FrameCB.cameraPosition.xyz - worldPosition.xyz);

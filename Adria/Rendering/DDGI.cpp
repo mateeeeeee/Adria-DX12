@@ -29,6 +29,7 @@ namespace adria
 		{
 			CreateStateObject();
 			ShaderCache::GetLibraryRecompiledEvent().AddMember(&DDGI::OnLibraryRecompiled, *this);
+			enabled = true;
 		}
 	}
 

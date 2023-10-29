@@ -1,14 +1,14 @@
 {
     "camera": {
 		"position": [
-			106.0,
-			20.0,
-			-5.0
+			108.0,
+			17.0,
+			1.0
 		],
 		"look_at": [
 			-1.0,
 			 0.0,
-			 0.6
+			 0.1
 		],
         "fov": 45.0,
         "near": 1.0,
@@ -31,7 +31,7 @@
 		{
 			"type": "directional",
 			"color": [ 1.0, 0.9, 0.99 ],
-			"direction": [ 0.2, -1.0, 0.2 ],
+			"direction": [ 0.2, -1.0, 0.333 ],
 			"energy": 4.0,
 			"shadows": true,
 			"cascades": true,

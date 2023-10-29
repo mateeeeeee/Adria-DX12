@@ -31,7 +31,8 @@ namespace adria
 		SM_6_3,
 		SM_6_4,
 		SM_6_5,
-		SM_6_6
+		SM_6_6,
+		SM_6_7
 	};
 
 	enum GfxShaderCompilerFlagBit

@@ -11,15 +11,16 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
 	- Automatic resource bind flags and initial state deduction
 	- Pass culling
     - Graph visualization
-* Reference path tracer 
+* DDGI
+    - Probe visualization
 * GPU-Driven Rendering
     - GPU frustum culling
     - 2 phase GPU occlusion culling
+* Reference path tracer 
 * Ultimate Bindless 
     - Only one root signature 
 * Tiled deferred rendering 
 * Clustered deferred rendering
-* Physically based shading
 * Ray traced shadows (DXR)
 * Shadows
     - PCF shadows for directional, spot and point lights
@@ -52,8 +53,8 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
 * Model Loading with tinygltf
 
 ## TODO
-* DDGI (wip)
 * FSR2
+* ReSTIR GI
 
 ## Dependencies
 [ImGui](https://github.com/ocornut/imgui)
@@ -78,51 +79,42 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
 
 ## Screenshots
 
-Volumetric Clouds
+### DDGI
+
+| Disabled |  Enabled |
+|---|---|
+|  ![](Screenshots/noddgi.png) | ![](Screenshots/ddgi.png) |
+
+| Probe Visualization |
+|---|
+|  ![](Screenshots/ddgi_probes1.png) |
+
+### Volumetric Clouds
 ![alt text](Screenshots/clouds.png "Volumetric clouds") 
 
-San Miguel
+### San Miguel
 ![alt text](Screenshots/sanmiguel.png "San Miguel") 
 
-Ocean
+### Ocean
 ![alt text](Screenshots/ocean.png "Ocean") 
 
-Path Tracer
+### Path Tracer
 ![alt text](Screenshots/pathtracing1.png "Path tracing") 
 ![alt text](Screenshots/pathtracing2.png "Path tracing") 
 
-<table>
-  <tr>
-    <td>Cascaded Shadow Maps</td>
-     <td>Hard Ray Traced Shadows</td>
-     </tr>
-  <tr>
-    <td><img src="Screenshots/cascades.png"></td>
-    <td><img src="Screenshots/raytraced.png"></td>
-  </tr>
-</table>
+### Ray Tracing features
 
-<table>
-  <tr>
-    <td>Screen Space Reflections</td>
-     <td>Ray Traced Reflections</td>
-     </tr>
-  <tr>
-    <td><img src="Screenshots/ssr.png"></td>
-    <td><img src="Screenshots/rtr.png"></td>
-  </tr>
-</table>
+| Cascaded Shadow Maps |  Hard Ray Traced Shadows |
+|---|---|
+|  ![](Screenshots/cascades.png) | ![](Screenshots/raytraced.png) |
 
-<table>
-  <tr>
-    <td>SSAO</td>
-     <td>RTAO</td>
-     </tr>
-  <tr>
-    <td><img src="Screenshots/ssao.png"></td>
-    <td><img src="Screenshots/rtao.png"></td>
-  </tr>
-</table>
+| Screen Space Reflections |  Ray Traced Reflections |
+|---|---|
+|  ![](Screenshots/ssr.png) | ![](Screenshots/rtr.png) |
 
-Render graph visualization
+| SSAO | RTAO |
+|---|---|
+|  ![](Screenshots/ssao.png) | ![](Screenshots/rtao.png) |
+
+### Render graph visualization
 ![alt text](Adria/rendergraph.svg "Render graph visualization") 
