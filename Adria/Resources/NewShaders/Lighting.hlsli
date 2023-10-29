@@ -281,7 +281,7 @@ float3 GetIndirectLighting(int ddgiVolumesIdx, float3 viewPosition, float3 viewN
 		float4 worldPosition = mul(float4(viewPosition, 1.0f), FrameCB.inverseView);
 		worldPosition /= worldPosition.w;
 		float3 Wo = normalize(FrameCB.cameraPosition.xyz - worldPosition.xyz);
-		indirectLighting = DiffuseBRDF(diffuseColor) * ambientOcclusion * SampleDDGIIrradiance(ddgiVolume, worldPosition.xyz, worldNormal, Wo);
+		indirectLighting = DiffuseBRDF(diffuseColor) * ambientOcclusion * SampleDDGIIrradiance(ddgiVolume, worldPosition.xyz, worldNormal, -Wo);
 	}
 	else
 	{

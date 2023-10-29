@@ -3,10 +3,12 @@
 
 #include "../Packing.hlsli"
 #include "../Constants.hlsli"
+#include "../Common.hlsli"
 #include "../CommonResources.hlsli"
 
 #define PROBE_IRRADIANCE_TEXELS 6
 #define PROBE_DISTANCE_TEXELS 14
+#define BACKFACE_DEPTH_MULTIPLIER -0.2f
 #define MIN_WEIGHT 0.0001f
 
 
@@ -86,140 +88,106 @@ float3 GetRayDirection(uint rayIndex, uint numRays, float3x3 randomRotation = fl
 	return mul(SphericalFibonacci(rayIndex, numRays), randomRotation);
 }
 
-float pow2(float x) { return x * x; }
-float pow3(float x) { return x * x * x; }
+float3 ComputeBias(DDGIVolume volume, float3 normal, float3 viewDirection, float b = 0.2f)
+{
+	const float normalBiasMultiplier = 0.2f;
+	const float viewBiasMultiplier = 0.8f;
+	const float axialDistanceMultiplier = 0.75f;
+	return (normal * normalBiasMultiplier + viewDirection * viewBiasMultiplier) * axialDistanceMultiplier * Min(volume.probeSize) * b;
+}
 
-//https://github.com/diharaw/hybrid-rendering/blob/master/src/shaders/gi/gi_common.glsl
+float Pow2(float x) { return x * x; }
+float Pow3(float x) { return x * x * x; }
+
+//https://github.com/simco50/D3D12_Research/blob/master/D3D12/Resources/Shaders/RayTracing/DDGICommon.hlsli
 float3 SampleDDGIIrradiance(in DDGIVolume ddgi, float3 P, float3 N, float3 Wo)
 {
 	Texture2D<float4> irradianceTexture = ResourceDescriptorHeap[ddgi.irradianceHistoryIdx];
 	Texture2D<float2> distanceTexture = ResourceDescriptorHeap[ddgi.distanceHistoryIdx];
 
-	int3 baseGridCoord = BaseGridCoord(ddgi, P);
-	float3 baseProbePosition = GetProbeLocationFromGridCoord(ddgi, baseGridCoord);
+	float3 direction = N;
+	float3 position = P;
+	float volumeWeight = 1.0f;
 
-	float3 sumIrradiance = 0.0f;
-	float sumWeight = 0.0f;
-
-	// alpha is how far from the floor(currentVertex) position. on [0, 1] for each axis.
-	float3 alpha = clamp((P - baseProbePosition) / ddgi.probeSize, 0.0f, 1.0f);
-
-	// Iterate over adjacent probe cage
-	for (int i = 0; i < 8; ++i)
+	float3 relativeCoordindates = (position - ddgi.startPosition) / ddgi.probeSize;
+	for(uint i = 0; i < 3; ++i)
 	{
-		// Compute the offset grid coord and clamp to the probe grid boundary
-		// Offset = 0 or 1 along each axis
-		int3  offset = int3(i, i >> 1, i >> 2) & int3(1, 1, 1);
-		int3  probeGridCoord = clamp(baseGridCoord + offset, int3(0, 0, 0), ddgi.probeCounts - int3(1, 1, 1));
-		int p = GetProbeIndexFromGridCoord(ddgi, probeGridCoord);
-
-		// Make cosine falloff in tangent plane with respect to the angle from the surface to the probe so that we never
-		// test a probe that is *behind* the surface.
-		// It doesn't have to be cosine, but that is efficient to compute and we must clip to the tangent plane.
-		float3 probePosition = GetProbeLocationFromGridCoord(ddgi, probeGridCoord);
-
-		// Bias the position at which visibility is computed; this
-		// avoids performing a shadow test *at* a surface, which is a
-		// dangerous location because that is exactly the line between
-		// shadowed and unshadowed. If the normal bias is too small,
-		// there will be light and dark leaks. If it is too large,
-		// then samples can pass through thin occluders to the other
-		// side (this can only happen if there are MULTIPLE occluders
-		// near each other, a wall surface won't pass through itself.)
-		float3 probeToPoint = P - probePosition + (N + 3.0 * Wo) * ddgi.normalBias;
-		float3 dir = normalize(-probeToPoint);
-
-		// Compute the trilinear weights based on the grid cell vertex to smoothly
-		// transition between probes. Avoid ever going entirely to zero because that
-		// will cause problems at the border probes. This isn't really a lerp. 
-		// We're using 1-a when offset = 0 and a when offset = 1.
-		float3 trilinear = lerp(1.0 - alpha, alpha, offset);
-		float weight = 1.0;
-
-		// Clamp all of the multiplies. We can't let the weight go to zero because then it would be 
-		// possible for *all* weights to be equally low and get normalized
-		// up to 1/n. We want to distinguish between weights that are 
-		// low because of different factors.
-
-		// Smooth backface test
+		volumeWeight *= lerp(0, 1, saturate(relativeCoordindates[i]));
+		if(relativeCoordindates[i] > ddgi.probeCounts[i] - 2)
 		{
-			// Computed without the biasing applied to the "dir" variable. 
-			// This test can cause reflection-map looking errors in the image
-			// (stuff looks shiny) if the transition is poor.
-			float3 trueDirectionToProbe = normalize(probePosition - P);
-
-			// The naive soft backface weight would ignore a probe when
-			// it is behind the surface. That's good for walls. But for small details inside of a
-			// room, the normals on the details might rule out all of the probes that have mutual
-			// visibility to the point. So, we instead use a "wrap shading" test below inspired by
-			// NPR work.
-			// weight *= max(0.0001, dot(trueDirectionToProbe, wsN));
-
-			// The small offset at the end reduces the "going to zero" impact
-			// where this is really close to exactly opposite
-			weight *= pow2(max(0.0001, (dot(trueDirectionToProbe, N) + 1.0) * 0.5)) + 0.2;
+			float x = saturate(relativeCoordindates[i] - ddgi.probeCounts[i] + 2);
+			volumeWeight *= lerp(1, 0, x);
 		}
+	}
 
-		// Moment visibility test
+	if(volumeWeight <= 0.0f)
+		return 0.0f;
+
+	position += ComputeBias(ddgi, direction, -Wo, 0.2f);
+
+	uint3 baseProbeCoordinates = floor(relativeCoordindates);
+	float3 baseProbePosition = GetProbeLocationFromGridCoord(ddgi, baseProbeCoordinates);
+	float3 alpha = saturate((position - baseProbePosition) / ddgi.probeSize);
+
+	float3 sumIrradiance = 0;
+	float sumWeight = 0;
+
+	// Retrieve the irradiance of the probes that form a cage around the location
+	for(uint i = 0; i < 8; ++i)
+	{
+		uint3 indexOffset = uint3(i, i >> 1u, i >> 2u) & 1u;
+
+		uint3 probeCoordinates = clamp(baseProbeCoordinates + indexOffset, 0, ddgi.probeCounts - 1);
+		float3 probePosition = GetProbeLocationFromGridCoord(ddgi, probeCoordinates);
+
+		float3 relativeProbePosition = position - probePosition;
+		float3 probeDirection = -normalize(relativeProbePosition);
+
+		float3 trilinear = max(0.001f, lerp(1.0f - alpha, alpha, indexOffset));
+        float trilinearWeight = (trilinear.x * trilinear.y * trilinear.z);
+
+		float weight = 1;
+
+		// Disregard probes on the other side of the surface we're shading
+		weight *= saturate(dot(probeDirection, direction));
+
+		// Visibility check using exponential depth and chebyshev's inequality formula
+		float2 distanceUV = GetProbeUV(ddgi, probeCoordinates, -probeDirection, PROBE_DISTANCE_TEXELS);
+		float probeDistance = length(relativeProbePosition);
+		// https://developer.download.nvidia.com/SDK/10/direct3d/Source/VarianceShadowMapping/Doc/VarianceShadowMapping.pdf
+		float2 moments = distanceTexture.SampleLevel(LinearClampSampler, distanceUV, 0).xy;
+		float variance = abs(Pow2(moments.x) - moments.y);
+		float chebyshev = 1.0f;
+		if(probeDistance > moments.x)
 		{
-			float2 probeDepthUV = GetProbeUV(ddgi, probeGridCoord, -dir, PROBE_DISTANCE_TEXELS);
-
-			float distanceToProbe = length(probeToPoint);
-			float2 moments = distanceTexture.SampleLevel(LinearClampSampler, probeDepthUV, 0).xy;
-
-			float mean = moments.x;
-			float variance = abs(pow2(moments.x) - moments.y);
-
-			// http://www.punkuser.net/vsm/vsm_paper.pdf; equation 5
-			// Need the max in the denominator because biasing can cause a negative displacement
-			float chebyshevWeight = variance / (variance + pow2(max(distanceToProbe - mean, 0.0)));
-
-			// Increase contrast in the weight 
-			chebyshevWeight = max(pow3(chebyshevWeight), 0.0);
-
-			weight *= (distanceToProbe <= mean) ? 1.0 : chebyshevWeight;
+			float mD = moments.x - probeDistance;
+			chebyshev = variance / (variance + Pow2(mD));
+			chebyshev = max(Pow3(chebyshev), 0.0);
 		}
-		// Avoid zero weight
-		weight = max(0.000001, weight);
+		weight *= max(chebyshev, 0.05f);
+		weight = max(0.000001f, weight);
 
-		float3 irradianceDirection = N;
-		float2 probeIrradianceUV = GetProbeUV(ddgi, probeGridCoord, normalize(irradianceDirection), PROBE_IRRADIANCE_TEXELS);
-		float3 probeIrradiance = irradianceTexture.SampleLevel(LinearClampSampler, probeIrradianceUV, 0).rgb;
-
-		// A tiny bit of light is really visible due to log perception, so
-		// crush tiny weights but keep the curve continuous. This must be done
-		// before the trilinear weights, because those should be preserved.
 		const float crushThreshold = 0.2f;
-		if (weight < crushThreshold)  weight *= weight * weight * (1.0f / pow2(crushThreshold));
+		if (weight < crushThreshold)
+		{
+			weight *= weight * weight * (1.0f / Pow2(crushThreshold));
+		}
+		weight *= trilinearWeight;
 
-		// Trilinear weights
-		weight *= trilinear.x * trilinear.y * trilinear.z;
+		float2 uv = GetProbeUV(ddgi, probeCoordinates, direction, PROBE_IRRADIANCE_TEXELS);
+		float3 irradiance = irradianceTexture.SampleLevel(LinearClampSampler, uv, 0).rgb;
+		irradiance = pow(irradiance, 2.5f);
 
-		// Weight in a more-perceptual brightness space instead of radiance space.
-		// This softens the transitions between probes with respect to translation.
-		// It makes little difference most of the time, but when there are radical transitions
-		// between probes this helps soften the ramp.
-#ifdef LINEAR_BLENDING
-		probeIrradiance = sqrt(probeIrradiance);
-#endif
-
-		sumIrradiance += weight * probeIrradiance;
+		sumIrradiance += irradiance * weight;
 		sumWeight += weight;
 	}
 
-	float3 netIrradiance = sumIrradiance / sumWeight;
+	if(sumWeight == 0) return 0.0f;
 
-	netIrradiance.x = isnan(netIrradiance.x) ? 0.5f : netIrradiance.x;
-	netIrradiance.y = isnan(netIrradiance.y) ? 0.5f : netIrradiance.y;
-	netIrradiance.z = isnan(netIrradiance.z) ? 0.5f : netIrradiance.z;
-
-	// Go back to linear irradiance
-#ifdef LINEAR_BLENDING
-	netIrradiance = pow2(netIrradiance);
-#endif
-	netIrradiance *= ddgi.energyPreservation;
-
-	return 0.5f * M_PI * netIrradiance;
+	sumIrradiance *= (1.0f / sumWeight);
+	sumIrradiance *= sumIrradiance;
+	sumIrradiance *= 2 * M_PI;
+	return sumIrradiance * volumeWeight;
 }
 
 #endif

@@ -42,7 +42,7 @@ void DDGI_RayGen()
 
 	DDGIPayload payload;
 	payload.radiance = float3(0, 0, 0);
-	payload.distance = max(ddgiVolume.probeSize) * 2;
+	payload.distance = Max(ddgiVolume.probeSize) * 2;
 	TraceRay(tlas, RAY_FLAG_NONE, 0xFF, 0, 0, 0, ray, payload);
 	RWBuffer<float4> rayBuffer = ResourceDescriptorHeap[PassCB.rayBufferIdx];
 	rayBuffer[probeIdx * ddgiVolume.maxRaysPerProbe + rayIdx] = float4(payload.radiance, payload.distance);
