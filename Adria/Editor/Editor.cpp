@@ -558,23 +558,10 @@ namespace adria
 
 					if (light->type == LightType::Directional)
 					{
-						const char* shadow_types[] = { "None", "Shadow Maps", "Ray Traced Shadows" };
 						static int current_shadow_type = light->casts_shadows;
-						const char* combo_label = shadow_types[current_shadow_type];
-						if (ImGui::BeginCombo("Shadows Type", combo_label, 0))
-						{
-							for (int n = 0; n < IM_ARRAYSIZE(shadow_types); n++)
-							{
-								const bool is_selected = (current_shadow_type == n);
-								if (ImGui::Selectable(shadow_types[n], is_selected)) current_shadow_type = n;
-								if (is_selected) ImGui::SetItemDefaultFocus();
-							}
-							ImGui::EndCombo();
-						}
-						if (!ray_tracing_supported && current_shadow_type == 2)
-						{
-							current_shadow_type = 1;
-						}
+						ImGui::Combo("Light Shadow Type", &current_shadow_type, "None\0Shadow Map\0Ray Traced Shadows\0", 3);
+						if (!ray_tracing_supported && current_shadow_type == 2) current_shadow_type = 1;
+
 						light->casts_shadows = (current_shadow_type == 1);
 						light->ray_traced_shadows = (current_shadow_type == 2);
 					}
@@ -1040,21 +1027,8 @@ namespace adria
 					Sphere
 				};
 				static int current_debug_renderer_primitive = 0;
-				static const char* debug_renderer_primitive[] = { "Line", "Ray", "Box", "Sphere" };
 				static float debug_color[4] = { 0.0f,0.0f, 0.0f, 1.0f };
-				
-				const char* debug_renderer_primitive_combo_label = debug_renderer_primitive[current_debug_renderer_primitive];
-				if (ImGui::BeginCombo("Debug Renderer Primitive", debug_renderer_primitive_combo_label, 0))
-				{
-					for (int n = 0; n < IM_ARRAYSIZE(debug_renderer_primitive); n++)
-					{
-						const bool is_selected = (current_debug_renderer_primitive == n);
-						if (ImGui::Selectable(debug_renderer_primitive[n], is_selected)) current_debug_renderer_primitive = n;
-						if (is_selected) ImGui::SetItemDefaultFocus();
-					}
-					ImGui::EndCombo();
-				}
-
+				ImGui::Combo("Debug Renderer Primitive", &current_debug_renderer_primitive, "Line\0Ray\0Box\0Sphere\0", 4);
 				ImGui::ColorEdit3("Debug Color", debug_color);
 
 				g_DebugRenderer.SetMode(DebugRendererMode::Persistent);
