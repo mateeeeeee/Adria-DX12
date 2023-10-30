@@ -161,7 +161,7 @@
     <ClCompile Include="Rendering\FXAAPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\Postprocessor.cpp">
+    <ClCompile Include="Rendering\PostProcessor.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\ClusteredDeferredLightingPass.cpp">
@@ -521,9 +521,6 @@
     <ClInclude Include="Editor\GUI.h">
       <Filter>Editor</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\RendererSettings.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Editor\Editor.h">
       <Filter>Editor</Filter>
     </ClInclude>
@@ -617,7 +614,7 @@
     <ClInclude Include="Rendering\TiledDeferredLightingPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\Postprocessor.h">
+    <ClInclude Include="Rendering\PostProcessor.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\BlurPass.h">

@@ -267,7 +267,7 @@
     <ClCompile Include="Rendering\OceanRenderer.cpp" />
     <ClCompile Include="Rendering\PathTracingPass.cpp" />
     <ClCompile Include="Rendering\PickingPass.cpp" />
-    <ClCompile Include="Rendering\Postprocessor.cpp" />
+    <ClCompile Include="Rendering\PostProcessor.cpp" />
     <ClCompile Include="Rendering\PSOCache.cpp" />
     <ClCompile Include="Rendering\RayTracedAmbientOcclusionPass.cpp" />
     <ClCompile Include="Rendering\RayTracedReflectionsPass.cpp" />
@@ -427,12 +427,11 @@
     <ClInclude Include="Rendering\OceanRenderer.h" />
     <ClInclude Include="Rendering\PathTracingPass.h" />
     <ClInclude Include="Rendering\PickingPass.h" />
-    <ClInclude Include="Rendering\Postprocessor.h" />
+    <ClInclude Include="Rendering\PostProcessor.h" />
     <ClInclude Include="Rendering\PSOCache.h" />
     <ClInclude Include="Rendering\RayTracedAmbientOcclusionPass.h" />
     <ClInclude Include="Rendering\RayTracedReflectionsPass.h" />
     <ClInclude Include="Rendering\RayTracedShadowsPass.h" />
-    <ClInclude Include="Rendering\RendererSettings.h" />
     <ClInclude Include="Rendering\Renderer.h" />
     <ClInclude Include="Rendering\ShaderCache.h" />
     <ClInclude Include="Rendering\ShadowRenderer.h" />

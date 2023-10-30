@@ -246,14 +246,14 @@ namespace adria
 		g_Input.HandleWindowMessage(msg_data);
 	}
 
-	void Engine::Run(RendererSettings const& settings)
+	void Engine::Run()
 	{
 		FrameMarkNamed("EngineFrame");
 		static AdriaTimer timer;
 		float const dt = timer.MarkInSeconds();
 		g_Input.NewFrame();
 		Update(dt);
-		Render(settings);
+		Render();
 	}
 
 	void Engine::Present()
@@ -268,10 +268,10 @@ namespace adria
 		renderer->Update(dt);
 	}
 
-	void Engine::Render(RendererSettings const& settings)
+	void Engine::Render()
 	{
 		gfx->BeginFrame();
-		renderer->Render(settings);
+		renderer->Render();
 	}
 
 	void Engine::SetViewportData(std::optional<ViewportData> _viewport_data)

@@ -2,7 +2,6 @@
 #include <memory>
 #include <optional>
 #include "entt/entity/registry.hpp"
-#include "Rendering/RendererSettings.h"
 #include "Rendering/ViewportData.h"
 
 namespace adria
@@ -39,7 +38,7 @@ namespace adria
 		~Engine();
 	
 		void HandleWindowMessage(WindowMessage const& msg_data);
-		void Run(RendererSettings const& settings);
+		void Run();
 		void Present();
 
 	private:
@@ -56,7 +55,7 @@ namespace adria
 	
 		virtual void InitializeScene(SceneConfig const& config);
 		virtual void Update(float dt);
-		virtual void Render(RendererSettings const& settings);
+		virtual void Render();
 		void SetViewportData(std::optional<ViewportData> viewport_data);
 		void RegisterEditorEventCallbacks(EditorEvents&);
 	};

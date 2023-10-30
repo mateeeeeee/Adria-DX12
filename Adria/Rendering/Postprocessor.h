@@ -1,7 +1,6 @@
 #pragma once
 #include <memory>
 #include <d3d12.h>
-#include "RendererSettings.h"
 #include "BlurPass.h"
 #include "HelperPasses.h"
 #include "AutomaticExposurePass.h"
@@ -29,20 +28,36 @@ namespace adria
 	class GfxBuffer;
 	struct Light;
 
-	class Postprocessor
+	class PostProcessor
 	{
+		enum class Reflections : uint8
+		{
+			None,
+			SSR,
+			RTR
+		};
+		enum AntiAliasing : uint8
+		{
+			AntiAliasing_None = 0x0,
+			AntiAliasing_FXAA = 0x1,
+			AntiAliasing_TAA = 0x2
+		};
+
 	public:
-		Postprocessor(entt::registry& reg, uint32 width, uint32 height);
-		void AddPasses(RenderGraph& rg, PostprocessSettings const& settings);
+		PostProcessor(entt::registry& reg, uint32 width, uint32 height);
+		void AddPasses(RenderGraph& rg);
 
 		void OnResize(GfxDevice* gfx, uint32 w, uint32 h);
 		void OnSceneInitialized(GfxDevice* gfx);
 		RGResourceName GetFinalResource() const;
 
+		bool HasFXAA() const;
+		bool HasTAA() const;
+		bool HasRTR() const { return reflections == Reflections::RTR; }
+
 	private:
 		entt::registry& reg;
 		uint32 width, height;
-		PostprocessSettings settings;
 
 		RGResourceName final_resource;
 		std::unique_ptr<GfxTexture> history_buffer;
@@ -63,8 +78,21 @@ namespace adria
 		GodRaysPass god_rays_pass;
 		BokehPass bokeh_pass;
 
+		bool ray_tracing_supported = false;
+		AntiAliasing anti_aliasing = AntiAliasing_FXAA;
+		Reflections reflections = Reflections::SSR;
+		bool dof = false;
+		bool bokeh = false;
+		bool fog = false;
+		bool bloom = false;
+		bool clouds = true;
+		bool motion_blur = false;
+		bool automatic_exposure = false;
+
 	private:
 		RGResourceName AddHDRCopyPass(RenderGraph& rg);
 		void AddSunPass(RenderGraph& rg, entt::entity sun);
+
+		void PostprocessorGUI();
 	};
 }

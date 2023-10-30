@@ -1,4 +1,4 @@
-#include "Postprocessor.h"
+#include "PostProcessor.h"
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
@@ -8,13 +8,29 @@
 #include "Graphics/GfxLinearDynamicAllocator.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Logging/Logger.h"
+#include "Core/ConsoleVariable.h"
+#include "Editor/GUICommand.h"
 #include "entt/entity/registry.hpp"
 
 using namespace DirectX;
 
 namespace adria
 {
-	Postprocessor::Postprocessor(entt::registry& reg, uint32 width, uint32 height)
+	namespace cvars
+	{
+		static ConsoleVariable reflections("reflections", 0);
+		static ConsoleVariable taa("TAA", false);
+		static ConsoleVariable fxaa("FXAA", true);
+		static ConsoleVariable exposure("exposure", false);
+		static ConsoleVariable clouds("clouds", true);
+		static ConsoleVariable dof("dof", false);
+		static ConsoleVariable bokeh("bokeh", false);
+		static ConsoleVariable bloom("bloom", false);
+		static ConsoleVariable motion_blur("motionblur", false);
+		static ConsoleVariable fog("fog", false);
+	}
+
+	PostProcessor::PostProcessor(entt::registry& reg, uint32 width, uint32 height)
 		: reg(reg), width(width), height(height),
 		blur_pass(width, height), copy_to_texture_pass(width, height),
 		add_textures_pass(width, height), automatic_exposure_pass(width, height),
@@ -25,11 +41,12 @@ namespace adria
 		bokeh_pass(width, height)
 	{}
 
-	void Postprocessor::AddPasses(RenderGraph& rg, PostprocessSettings const& _settings)
+	void PostProcessor::AddPasses(RenderGraph& rg)
 	{
-		settings = _settings;
+		PostprocessorGUI();
+
 		auto lights = reg.view<Light>();
-		if (settings.motion_blur || HasAnyFlag(settings.anti_aliasing, AntiAliasing_TAA) || settings.clouds)
+		if (motion_blur || HasAnyFlag(anti_aliasing, AntiAliasing_TAA) || clouds)
 		{
 			velocity_buffer_pass.AddPass(rg);
 		}
@@ -42,22 +59,22 @@ namespace adria
 			lens_flare_pass.AddPass2(rg, light_data);
 		}
 
-		if (settings.clouds) clouds_pass.AddPass(rg);
+		if (clouds) clouds_pass.AddPass(rg);
 
-		if (settings.reflections == Reflections::SSR) final_resource = ssr_pass.AddPass(rg, final_resource);
-		else if (settings.reflections == Reflections::RTR)
+		if (reflections == Reflections::SSR) final_resource = ssr_pass.AddPass(rg, final_resource);
+		else if (reflections == Reflections::RTR)
 		{
 			copy_to_texture_pass.AddPass(rg, final_resource, RG_RES_NAME(RTR_Output), BlendMode::AdditiveBlend);
 		}
 
-		if (settings.fog) final_resource = fog_pass.AddPass(rg, final_resource);
-		if (settings.dof)
+		if (fog) final_resource = fog_pass.AddPass(rg, final_resource);
+		if (dof)
 		{
 			blur_pass.AddPass(rg, final_resource, RG_RES_NAME(BlurredDofInput), " DoF ");
-			if (settings.bokeh) bokeh_pass.AddPass(rg, final_resource);
+			if (bokeh) bokeh_pass.AddPass(rg, final_resource);
 			final_resource = dof_pass.AddPass(rg, final_resource);
 		}
-		if (settings.motion_blur) final_resource = motion_blur_pass.AddPass(rg, final_resource);
+		if (motion_blur) final_resource = motion_blur_pass.AddPass(rg, final_resource);
 
 		for (entt::entity light_entity : lights)
 		{
@@ -79,19 +96,18 @@ namespace adria
 				break;
 			}
 		}
-		if (settings.automatic_exposure) automatic_exposure_pass.AddPasses(rg, final_resource);
-		if (settings.bloom) bloom_pass.AddPass(rg, final_resource);
+		if (automatic_exposure) automatic_exposure_pass.AddPasses(rg, final_resource);
+		if (bloom) bloom_pass.AddPass(rg, final_resource);
 
-		if (HasAnyFlag(settings.anti_aliasing, AntiAliasing_TAA))
+		if (HasAnyFlag(anti_aliasing, AntiAliasing_TAA))
 		{
 			rg.ImportTexture(RG_RES_NAME(HistoryBuffer), history_buffer.get());
 			final_resource = taa_pass.AddPass(rg, final_resource, RG_RES_NAME(HistoryBuffer));
 			rg.ExportTexture(final_resource, history_buffer.get());
 		}
-
 	}
 
-	void Postprocessor::OnResize(GfxDevice* gfx, uint32 w, uint32 h)
+	void PostProcessor::OnResize(GfxDevice* gfx, uint32 w, uint32 h)
 	{
 		width = w, height = h;
 		clouds_pass.OnResize(gfx, w, h);
@@ -118,7 +134,7 @@ namespace adria
 			history_buffer = gfx->CreateTexture(render_target_desc);
 		}
 	}
-	void Postprocessor::OnSceneInitialized(GfxDevice* gfx)
+	void PostProcessor::OnSceneInitialized(GfxDevice* gfx)
 	{
 		automatic_exposure_pass.OnSceneInitialized(gfx);
 		clouds_pass.OnSceneInitialized(gfx);
@@ -132,13 +148,25 @@ namespace adria
 		render_target_desc.bind_flags = GfxBindFlag::ShaderResource;
 		render_target_desc.initial_state = GfxResourceState::CopyDest;
 		history_buffer = gfx->CreateTexture(render_target_desc);
+
+		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 	}
-	RGResourceName Postprocessor::GetFinalResource() const
+	RGResourceName PostProcessor::GetFinalResource() const
 	{
 		return final_resource;
 	}
 
-	RGResourceName Postprocessor::AddHDRCopyPass(RenderGraph& rg)
+	bool PostProcessor::HasFXAA() const
+	{
+		return HasAnyFlag(anti_aliasing, AntiAliasing_FXAA);
+	}
+
+	bool PostProcessor::HasTAA() const
+	{
+		return HasAnyFlag(anti_aliasing, AntiAliasing_TAA);
+	}
+
+	RGResourceName PostProcessor::AddHDRCopyPass(RenderGraph& rg)
 	{
 		struct CopyPassData
 		{
@@ -167,7 +195,7 @@ namespace adria
 
 		return RG_RES_NAME(PostprocessMain);
 	}
-	void Postprocessor::AddSunPass(RenderGraph& rg, entt::entity sun)
+	void PostProcessor::AddSunPass(RenderGraph& rg, entt::entity sun)
 	{
 		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		RGResourceName last_resource = final_resource;
@@ -212,5 +240,53 @@ namespace adria
 				Draw(mesh, cmd_list);
 			}, RGPassType::Graphics, RGPassFlags::None);
 	}
+
+	void PostProcessor::PostprocessorGUI()
+	{
+		GUI_RunCommand([&]()
+			{
+				int& current_reflection_type = cvars::reflections.Get();
+				if (ImGui::TreeNode("PostProcess"))
+				{
+					if (ImGui::Combo("Reflections", &current_reflection_type, "None\0SSR\0RTR\0", 3))
+					{
+						if (!ray_tracing_supported && current_reflection_type == 3) current_reflection_type = 1;
+					}
+
+					ImGui::Checkbox("Automatic Exposure", &cvars::exposure.Get());
+
+					ImGui::Checkbox("Volumetric Clouds", &cvars::clouds.Get());
+					ImGui::Checkbox("Depth of Field", &cvars::dof.Get());
+					if (cvars::dof) ImGui::Checkbox("Bokeh", &cvars::bokeh.Get());
+					ImGui::Checkbox("Bloom", &cvars::bloom.Get());
+					ImGui::Checkbox("Motion Blur", &cvars::motion_blur.Get());
+					ImGui::Checkbox("Fog", &cvars::fog.Get());
+
+					if (ImGui::TreeNode("Anti-Aliasing"))
+					{
+						ImGui::Checkbox("FXAA", &cvars::fxaa.Get());
+						ImGui::Checkbox("TAA", &cvars::taa.Get());
+						ImGui::TreePop();
+					}
+
+					ImGui::TreePop();
+				}
+				reflections = static_cast<Reflections>(current_reflection_type);
+				automatic_exposure = cvars::exposure;
+				clouds = cvars::clouds;
+				dof = cvars::dof;
+				bokeh = cvars::bokeh;
+				bloom = cvars::bloom;
+				motion_blur = cvars::motion_blur;
+				fog = cvars::fog;
+				if (cvars::fxaa) anti_aliasing = static_cast<AntiAliasing>(anti_aliasing | AntiAliasing_FXAA);
+				else anti_aliasing = static_cast<AntiAliasing>(anti_aliasing & (~AntiAliasing_FXAA));
+
+				if (cvars::taa) anti_aliasing = static_cast<AntiAliasing>(anti_aliasing | AntiAliasing_TAA);
+				else anti_aliasing = static_cast<AntiAliasing>(anti_aliasing & (~AntiAliasing_TAA));
+
+			});
+	}
+
 }
 

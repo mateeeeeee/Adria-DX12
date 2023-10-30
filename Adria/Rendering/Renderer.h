@@ -1,8 +1,7 @@
 #pragma once
-#include "RendererSettings.h"
 #include "ViewportData.h"
 #include "ShaderStructs.h"
-#include "Postprocessor.h"
+#include "PostProcessor.h"
 #include "GBufferPass.h"
 #include "GPUDrivenGBufferPass.h"
 #include "SkyPass.h"
@@ -38,6 +37,22 @@ namespace adria
 
 	class Renderer
 	{
+		enum class RendererPathType : uint8
+		{
+			RegularDeferred,
+			TiledDeferred,
+			ClusteredDeferred,
+			PathTracing
+		};
+
+		enum class AmbientOcclusion : uint8
+		{
+			None,
+			SSAO,
+			HBAO,
+			RTAO
+		};
+
 	public:
 
 		Renderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height);
@@ -45,7 +60,7 @@ namespace adria
 
 		void NewFrame(Camera const* camera);
 		void Update(float dt);
-		void Render(RendererSettings const&);
+		void Render();
 		void SetViewportData(ViewportData const& vp);
 
 		void OnResize(uint32 w, uint32 h);
@@ -62,7 +77,6 @@ namespace adria
 		GfxDevice* gfx;
 		RGResourcePool resource_pool;
 
-		RendererSettings renderer_settings;
 		Camera const* camera;
 
 		uint32 const backbuffer_count;
@@ -103,7 +117,7 @@ namespace adria
 		DecalsPass decals_pass;
 		OceanRenderer  ocean_renderer;
 		ShadowRenderer shadow_renderer;
-		Postprocessor postprocessor;
+		PostProcessor postprocessor;
 		DDGI		  ddgi;
 		PathTracingPass path_tracer;
 
@@ -115,6 +129,9 @@ namespace adria
 		//picking
 		bool update_picking_data = false;
 		PickingData picking_data;
+
+		RendererPathType path_type = RendererPathType::RegularDeferred;
+		AmbientOcclusion ambient_occlusion = AmbientOcclusion::SSAO;
 
 		//misc
 		uint32			         volumetric_lights = 0;
@@ -128,7 +145,7 @@ namespace adria
 		void CreateSizeDependentResources();
 		void CreateAS();
 
-		void MiscGUI();
+		void RendererGUI();
 		void UpdateSceneBuffers();
 		void UpdateFrameConstants(float dt);
 		void CameraFrustumCulling();

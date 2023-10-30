@@ -3,7 +3,6 @@
 #include <queue>
 #include "GUICommand.h"
 #include "EditorEvents.h"
-#include "Rendering/RendererSettings.h"
 #include "Rendering/ViewportData.h"
 #include "Utilities/Singleton.h"
 #include "ImGui/ImGuizmo.h"
@@ -71,8 +70,6 @@ namespace adria
 		
 		bool gizmo_enabled = false;
 		ImGuizmo::OPERATION gizmo_op = ImGuizmo::TRANSLATE;
-
-		RendererSettings renderer_settings{};
 
 		bool reload_shaders = false;
 		std::array<bool, Flag_Count> window_flags = { false };

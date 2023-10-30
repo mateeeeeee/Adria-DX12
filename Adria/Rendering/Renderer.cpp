@@ -8,12 +8,10 @@
 #include "TextureManager.h"
 #include "DebugRenderer.h"
 
-#include "entt/entity/registry.hpp"
 #include "Editor/GUICommand.h"
 #include "Editor/Editor.h"
 #include "Graphics/GfxBuffer.h"
 #include "Graphics/GfxTexture.h"
-
 #include "Graphics/GfxCommon.h"
 #include "Graphics/GfxPipelineState.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
@@ -24,12 +22,21 @@
 #include "Utilities/Random.h"
 #include "Utilities/hwbp.h"
 #include "Logging/Logger.h"
+#include "Core/ConsoleVariable.h"
+#include "entt/entity/registry.hpp"
+
 
 using namespace DirectX;
 
 namespace adria
 {
 	extern bool dump_render_graph;
+	namespace cvars
+	{
+		static ConsoleVariable renderpath("renderpath", 0);
+		static ConsoleVariable ambient_occlusion("ao", 1);
+
+	}
 
 	Renderer::Renderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx),
 		accel_structure(gfx), camera(nullptr), width(width), height(height),
@@ -78,12 +85,10 @@ namespace adria
 		UpdateSceneBuffers();
 		UpdateFrameConstants(dt);
 		CameraFrustumCulling();
-		MiscGUI();
+		RendererGUI();
 	}
-	void Renderer::Render(RendererSettings const& _settings)
+	void Renderer::Render()
 	{
-		renderer_settings = _settings;
-
 		RenderGraph render_graph(resource_pool);
 		RGBlackboard& rg_blackboard = render_graph.GetBlackboard();
 		FrameBlackboardData global_data{};
@@ -103,7 +108,7 @@ namespace adria
 
 		render_graph.ImportTexture(RG_RES_NAME(Backbuffer), gfx->GetBackbuffer());
 
-		if (renderer_settings.render_path == RenderPathType::PathTracing) Render_PathTracing(render_graph);
+		if (path_type == RendererPathType::PathTracing) Render_PathTracing(render_graph);
 		else Render_Deferred(render_graph);
 
 		render_graph.Build();
@@ -195,7 +200,7 @@ namespace adria
 
 		std::vector<LightHLSL> hlsl_lights{};
 		uint32 light_index = 0;
-		Matrix light_transform = renderer_settings.render_path == RenderPathType::PathTracing ? Matrix::Identity : camera->View();
+		Matrix light_transform = path_type == RendererPathType::PathTracing ? Matrix::Identity : camera->View();
 		for (auto light_entity : reg.view<Light>())
 		{
 			Light& light = reg.get<Light>(light_entity);
@@ -317,7 +322,7 @@ namespace adria
 		total_time += dt;
 
 		Vector2 jitter(0.0f, 0.0f);
-		if (HasAllFlags(renderer_settings.postprocess.anti_aliasing, AntiAliasing_TAA))
+		if (postprocessor.HasTAA())
 		{
 			jitter = camera->Jitter(gfx->GetFrameIndex());
 			jitter.x = ((jitter.x - 0.5f) / width) * 2;
@@ -408,7 +413,7 @@ namespace adria
 		ddgi.AddPasses(render_graph);
 
 		decals_pass.AddPass(render_graph);
-		switch (renderer_settings.postprocess.ambient_occlusion)
+		switch (ambient_occlusion)
 		{
 		case AmbientOcclusion::SSAO: ssao_pass.AddPass(render_graph); break;
 		case AmbientOcclusion::HBAO: hbao_pass.AddPass(render_graph); break;
@@ -416,19 +421,19 @@ namespace adria
 		}
 		shadow_renderer.AddShadowMapPasses(render_graph);
 		shadow_renderer.AddRayTracingShadowPasses(render_graph);
-		switch (renderer_settings.render_path)
+		switch (path_type)
 		{
-		case RenderPathType::RegularDeferred: deferred_lighting_pass.AddPass(render_graph); break;
-		case RenderPathType::TiledDeferred: tiled_deferred_lighting_pass.AddPass(render_graph); break;
-		case RenderPathType::ClusteredDeferred: clustered_deferred_lighting_pass.AddPass(render_graph, true); break;
+		case RendererPathType::RegularDeferred: deferred_lighting_pass.AddPass(render_graph); break;
+		case RendererPathType::TiledDeferred: tiled_deferred_lighting_pass.AddPass(render_graph); break;
+		case RendererPathType::ClusteredDeferred: clustered_deferred_lighting_pass.AddPass(render_graph, true); break;
 		}
 		if (volumetric_lights > 0) volumetric_lighting_pass.AddPass(render_graph);
 		if (ddgi.Visualize()) ddgi.AddVisualizePass(render_graph);
 		ocean_renderer.AddPasses(render_graph);
 		sky_pass.AddDrawSkyPass(render_graph);
 		picking_pass.AddPass(render_graph);
-		if (renderer_settings.postprocess.reflections == Reflections::RTR) rtr_pass.AddPass(render_graph);
-		postprocessor.AddPasses(render_graph, renderer_settings.postprocess);
+		if (postprocessor.HasRTR()) rtr_pass.AddPass(render_graph);
+		postprocessor.AddPasses(render_graph);
 		render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
 		ResolveToFinalTexture(render_graph);
 		g_DebugRenderer.Render(render_graph);
@@ -445,10 +450,23 @@ namespace adria
 		else g_Editor.AddRenderPass(render_graph);
 	}
 
-	void Renderer::MiscGUI()
+	void Renderer::RendererGUI()
 	{
 		GUI_RunCommand([&]()
 			{
+				int& current_render_path_type = cvars::renderpath.Get();
+				int& current_ao_type = cvars::ambient_occlusion.Get();
+
+				if (ImGui::Combo("Renderer Path", &current_render_path_type, "Deferred\0Tiled Deferred\0Clustered Deferred\0Path Tracing\0", 4))
+				{
+					if (!ray_tracing_supported && current_render_path_type == 3) current_render_path_type = 0;
+				}
+
+				if (ImGui::Combo("Ambient Occlusion", &current_ao_type, "None\0SSAO\0HBAO\0RTAO\0", 4))
+				{
+					if (!ray_tracing_supported && current_ao_type == 3) current_ao_type = 1;
+				}
+
 				if (ImGui::TreeNode("Misc"))
 				{
 					ImGui::ColorEdit3("Ambient Color", ambient_color);
@@ -456,6 +474,10 @@ namespace adria
 					ImGui::SliderFloat("Wind Speed", &wind_speed, 0.0f, 32.0f);
 					ImGui::TreePop();
 				}
+
+				path_type = static_cast<RendererPathType>(current_render_path_type);
+				ambient_occlusion = static_cast<AmbientOcclusion>(current_ao_type);
+
 			});
 	}
 
@@ -483,7 +505,7 @@ namespace adria
 	void Renderer::ResolveToFinalTexture(RenderGraph& rg)
 	{
 		RGResourceName final_texture = postprocessor.GetFinalResource();
-		if (HasAnyFlag(renderer_settings.postprocess.anti_aliasing, AntiAliasing_FXAA))
+		if (postprocessor.HasFXAA())
 		{
 			tonemap_pass.AddPass(rg, final_texture, RG_RES_NAME(TonemapOutput));
 			fxaa_pass.AddPass(rg, RG_RES_NAME(TonemapOutput));

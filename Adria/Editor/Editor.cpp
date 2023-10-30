@@ -32,18 +32,6 @@ namespace adria
 	extern bool dump_render_graph = false;
 	namespace cvars
 	{
-		static ConsoleVariable ao_cvar("ao", 1);
-		static ConsoleVariable reflections("reflections", 0);
-		static ConsoleVariable renderpath("renderpath", 0);
-		static ConsoleVariable taa("TAA", false);
-		static ConsoleVariable fxaa("FXAA", true);
-		static ConsoleVariable exposure("exposure", false);
-		static ConsoleVariable clouds("clouds", true);
-		static ConsoleVariable dof("dof", false);
-		static ConsoleVariable bokeh("bokeh", false);
-		static ConsoleVariable bloom("bloom", false);
-		static ConsoleVariable motion_blur("motionblur", false);
-		static ConsoleVariable fog("fog", false);
 		static ConsoleCommand<> dump_render_graph_cmd("dump.rendergraph", []() { dump_render_graph = true; });
 	}
 
@@ -101,7 +89,7 @@ namespace adria
 		if (gui->IsVisible()) engine->SetViewportData(viewport_data);
 		else engine->SetViewportData(std::nullopt);
 
-		engine->Run(renderer_settings);
+		engine->Run();
 		engine->Present();
 
 		if (reload_shaders)
@@ -111,7 +99,6 @@ namespace adria
 			reload_shaders = false;
 		}
 	}
-
 	bool Editor::IsActive() const
 	{
 		return gui->IsVisible();
@@ -121,12 +108,10 @@ namespace adria
 	{
 		commands.emplace_back(std::move(command));
 	}
-
 	void Editor::AddDebugTexture(GUITexture&& debug_texture)
 	{
 		debug_textures.emplace_back(std::move(debug_texture));
 	}
-
 	void Editor::AddRenderPass(RenderGraph& rg)
 	{
 		struct EditorPassData
@@ -241,7 +226,6 @@ namespace adria
 		if (gui->IsVisible()) engine->camera->Enable(scene_focused);
 		else engine->camera->Enable(true);
 	}
-
 	void Editor::MenuBar()
 	{
 		if (ImGui::BeginMainMenuBar())
@@ -894,100 +878,9 @@ namespace adria
 
 	void Editor::Settings()
 	{
-		int& current_render_path_type = cvars::renderpath.Get();
-		int& current_ao_type = cvars::ao_cvar.Get();
-		int& current_reflection_type = cvars::reflections.Get();
-
-		renderer_settings.render_path = static_cast<RenderPathType>(current_render_path_type);
-		renderer_settings.postprocess.ambient_occlusion = static_cast<AmbientOcclusion>(current_ao_type);
-		renderer_settings.postprocess.reflections = static_cast<Reflections>(current_reflection_type);
-		renderer_settings.postprocess.automatic_exposure = cvars::exposure;
-		renderer_settings.postprocess.clouds = cvars::clouds;
-		renderer_settings.postprocess.dof = cvars::dof;
-		renderer_settings.postprocess.bokeh = cvars::bokeh;
-		renderer_settings.postprocess.bloom = cvars::bloom;
-		renderer_settings.postprocess.motion_blur = cvars::motion_blur;
-		renderer_settings.postprocess.fog = cvars::fog;
-
 		if (!window_flags[Flag_Settings]) return;
 		if (ImGui::Begin(ICON_FA_COGS" Settings", &window_flags[Flag_Settings]))
 		{
-			static const char* render_path_types[] = { "Regular Deferred", "Tiled Deferred", "Clustered Deferred", "Path Tracing" };
-			const char* render_path_combo_label = render_path_types[current_render_path_type];
-			if (ImGui::BeginCombo("Render Path", render_path_combo_label, 0))
-			{
-				for (int n = 0; n < IM_ARRAYSIZE(render_path_types); n++)
-				{
-					const bool is_selected = (current_render_path_type == n);
-					if (ImGui::Selectable(render_path_types[n], is_selected)) current_render_path_type = n;
-					if (is_selected) ImGui::SetItemDefaultFocus();
-				}
-				ImGui::EndCombo();
-			}
-			if (!ray_tracing_supported && current_render_path_type == 3)
-			{
-				current_render_path_type = 0;
-			}
-
-			static const char* ao_types[] = { "None", "SSAO", "HBAO", "RTAO" };
-			const char* ao_combo_label = ao_types[current_ao_type];
-			if (ImGui::BeginCombo("Ambient Occlusion", ao_combo_label, 0))
-			{
-				for (int n = 0; n < IM_ARRAYSIZE(ao_types); n++)
-				{
-					const bool is_selected = (current_ao_type == n);
-					if (ImGui::Selectable(ao_types[n], is_selected)) current_ao_type = n;
-					if (is_selected) ImGui::SetItemDefaultFocus();
-				}
-				ImGui::EndCombo();
-			}
-			if (!ray_tracing_supported && current_ao_type == 3)
-			{
-				current_ao_type = 1;
-			}
-
-			static const char* reflection_types[] = { "None", "SSR", "RTR" };
-			const char* reflection_combo_label = reflection_types[current_reflection_type];
-			if (ImGui::BeginCombo("Reflections", reflection_combo_label, 0))
-			{
-				for (int n = 0; n < IM_ARRAYSIZE(reflection_types); n++)
-				{
-					const bool is_selected = (current_reflection_type == n);
-					if (ImGui::Selectable(reflection_types[n], is_selected)) current_reflection_type = n;
-					if (is_selected) ImGui::SetItemDefaultFocus();
-				}
-				ImGui::EndCombo();
-			}
-			if (!ray_tracing_supported && current_reflection_type == 2)
-			{
-				current_reflection_type = 1;
-			}
-
-			ImGui::Checkbox("Automatic Exposure", &cvars::exposure.Get());
-			ImGui::Checkbox("Volumetric Clouds", &cvars::clouds.Get());
-			ImGui::Checkbox("DoF", &cvars::dof.Get());
-			if (cvars::dof)
-			{
-				ImGui::Checkbox("Bokeh", &cvars::bokeh.Get());
-			}
-			ImGui::Checkbox("Bloom", &cvars::bloom.Get());
-			ImGui::Checkbox("Motion Blur", &cvars::motion_blur.Get());
-			ImGui::Checkbox("Fog", &cvars::fog.Get());
-			if (ImGui::TreeNode("Anti-Aliasing"))
-			{
-				bool& fxaa = cvars::fxaa.Get();
-				bool& taa  = cvars::taa.Get();
-				ImGui::Checkbox("FXAA", &fxaa);
-				ImGui::Checkbox("TAA", &taa);
-				if (fxaa) renderer_settings.postprocess.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.postprocess.anti_aliasing | AntiAliasing_FXAA);
-				else renderer_settings.postprocess.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.postprocess.anti_aliasing & (~AntiAliasing_FXAA));
-
-				if (taa) renderer_settings.postprocess.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.postprocess.anti_aliasing | AntiAliasing_TAA);
-				else renderer_settings.postprocess.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.postprocess.anti_aliasing & (~AntiAliasing_TAA));
-
-				ImGui::TreePop();
-			}
-
 			for (auto&& cmd : commands) cmd.callback();
 		}
 		ImGui::End();
