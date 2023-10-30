@@ -98,6 +98,18 @@
     <Filter Include="External\SimpleMath">
       <UniqueIdentifier>{2c8e0df6-adf6-494c-8d19-9be2a0108398}</UniqueIdentifier>
     </Filter>
+    <Filter Include="External\FSR2">
+      <UniqueIdentifier>{22fa08d9-3022-4546-a5d4-cf37d5c80b98}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\FSR2\shaders">
+      <UniqueIdentifier>{84b53cae-09ca-4523-921c-c574a646d176}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\FSR2\dx12">
+      <UniqueIdentifier>{2331d734-2ade-44df-b566-8af7fea3f16f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\FSR2\dx12\shaders">
+      <UniqueIdentifier>{9f349144-e11e-4209-b522-22cf570f080e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -438,6 +450,7 @@
     <ClCompile Include="Rendering\GPUDrivenGBufferPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\FSR2Pass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -956,6 +969,39 @@
     </ClInclude>
     <ClInclude Include="Rendering\GPUDrivenGBufferPass.h">
       <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FSR2\include\FSR2\ffx_error.h">
+      <Filter>External\FSR2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FSR2\include\FSR2\ffx_fsr2.h">
+      <Filter>External\FSR2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FSR2\include\FSR2\ffx_fsr2_interface.h">
+      <Filter>External\FSR2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FSR2\include\FSR2\ffx_types.h">
+      <Filter>External\FSR2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FSR2\include\FSR2\ffx_util.h">
+      <Filter>External\FSR2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FSR2\include\FSR2\shaders\ffx_fsr2_common.h">
+      <Filter>External\FSR2\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FSR2\include\FSR2\shaders\ffx_fsr2_resources.h">
+      <Filter>External\FSR2\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FSR2\include\FSR2\dx12\ffx_fsr2_dx12.h">
+      <Filter>External\FSR2\dx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FSR2\include\FSR2\dx12\shaders\ffx_fsr2_shaders_dx12.h">
+      <Filter>External\FSR2\dx12\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\FSR2Pass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\FSR2\include\FSR2\ffx_assert.h">
+      <Filter>External\FSR2</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

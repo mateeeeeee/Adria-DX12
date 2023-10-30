@@ -119,7 +119,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)Adria\;$(SolutionDir)External\d3dx12;$(SolutionDir)External\D3D12MA;$(SolutionDir)External\stb;$(SolutionDir)External\dxc\include\;$(SolutionDir)External\tinygltf;$(SolutionDir)External\tinyobjloader;$(SolutionDir)External\FastNoiseLite;$(SolutionDir)External\json;$(SolutionDir)External\entt;$(SolutionDir)External\nfd\include;$(SolutionDir)External\FontAwesome;$(SolutionDir)External\meshoptimizer;$(SolutionDir)External\cereal;$(SolutionDir)External\ImGui;$(SolutionDir)External\Tracy;$(SolutionDir)External\SimpleMath;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Adria\;$(SolutionDir)External\d3dx12;$(SolutionDir)External\D3D12MA;$(SolutionDir)External\stb;$(SolutionDir)External\dxc\include\;$(SolutionDir)External\tinygltf;$(SolutionDir)External\tinyobjloader;$(SolutionDir)External\FastNoiseLite;$(SolutionDir)External\json;$(SolutionDir)External\entt;$(SolutionDir)External\nfd\include;$(SolutionDir)External\FontAwesome;$(SolutionDir)External\meshoptimizer;$(SolutionDir)External\cereal;$(SolutionDir)External\ImGui;$(SolutionDir)External\Tracy;$(SolutionDir)External\SimpleMath;$(SolutionDir)External\FSR2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
       <AdditionalOptions>/sdl /w34996 %(AdditionalOptions)</AdditionalOptions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -132,8 +132,8 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)External\dxc\lib;$(SolutionDir)External\nfd\lib;$(SolutionDir)packages\WinPixEventRuntime.1.0.230302001\bin\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>nfd.lib;WinPixEventRuntime.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)External\dxc\lib;$(SolutionDir)External\nfd\lib;$(SolutionDir)External\FSR2\lib;$(SolutionDir)packages\WinPixEventRuntime.1.0.230302001\bin\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>nfd.lib;WinPixEventRuntime.lib;ffx_fsr2_api_x64d.lib;ffx_fsr2_api_dx12_x64d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -146,7 +146,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)Adria\;$(SolutionDir)External\d3dx12;$(SolutionDir)External\D3D12MA;$(SolutionDir)External\stb;$(SolutionDir)External\dxc\include\;$(SolutionDir)External\tinygltf;$(SolutionDir)External\tinyobjloader;$(SolutionDir)External\FastNoiseLite;$(SolutionDir)External\json;$(SolutionDir)External\entt;$(SolutionDir)External\nfd\include;$(SolutionDir)External\FontAwesome;$(SolutionDir)External\meshoptimizer;$(SolutionDir)External\cereal;$(SolutionDir)External\ImGui;$(SolutionDir)External\Tracy;$(SolutionDir)External\SimpleMath;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Adria\;$(SolutionDir)External\d3dx12;$(SolutionDir)External\D3D12MA;$(SolutionDir)External\stb;$(SolutionDir)External\dxc\include\;$(SolutionDir)External\tinygltf;$(SolutionDir)External\tinyobjloader;$(SolutionDir)External\FastNoiseLite;$(SolutionDir)External\json;$(SolutionDir)External\entt;$(SolutionDir)External\nfd\include;$(SolutionDir)External\FontAwesome;$(SolutionDir)External\meshoptimizer;$(SolutionDir)External\cereal;$(SolutionDir)External\ImGui;$(SolutionDir)External\Tracy;$(SolutionDir)External\SimpleMath;$(SolutionDir)External\FSR2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
       <AdditionalOptions>/sdl /w34996 %(AdditionalOptions)</AdditionalOptions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -160,9 +160,9 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)External\dxc\lib;$(SolutionDir)External\nfd\lib;$(SolutionDir)packages\WinPixEventRuntime.1.0.230302001\bin\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)External\dxc\lib;$(SolutionDir)External\nfd\lib;$(SolutionDir)External\FSR2\lib;$(SolutionDir)packages\WinPixEventRuntime.1.0.230302001\bin\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <AdditionalDependencies>nfd_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>nfd_d.lib;WinPixEventRuntime.lib;ffx_fsr2_api_x64.lib;ffx_fsr2_api_dx12_x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -250,6 +250,7 @@
     <ClCompile Include="Rendering\Camera.cpp" />
     <ClCompile Include="Rendering\ClusteredDeferredLightingPass.cpp" />
     <ClCompile Include="Rendering\DebugRenderer.cpp" />
+    <ClCompile Include="Rendering\FSR2Pass.cpp" />
     <ClCompile Include="Rendering\HelperPasses.cpp" />
     <ClCompile Include="Rendering\DecalsPass.cpp" />
     <ClCompile Include="Rendering\DepthOfFieldPass.cpp" />
@@ -304,6 +305,16 @@
     <ClInclude Include="..\External\d3dx12\d3dx12_root_signature.h" />
     <ClInclude Include="..\External\d3dx12\d3dx12_state_object.h" />
     <ClInclude Include="..\External\FontAwesome\IconsFontAwesome4.h" />
+    <ClInclude Include="..\External\FSR2\include\FSR2\dx12\ffx_fsr2_dx12.h" />
+    <ClInclude Include="..\External\FSR2\include\FSR2\dx12\shaders\ffx_fsr2_shaders_dx12.h" />
+    <ClInclude Include="..\External\FSR2\include\FSR2\ffx_assert.h" />
+    <ClInclude Include="..\External\FSR2\include\FSR2\ffx_error.h" />
+    <ClInclude Include="..\External\FSR2\include\FSR2\ffx_fsr2.h" />
+    <ClInclude Include="..\External\FSR2\include\FSR2\ffx_fsr2_interface.h" />
+    <ClInclude Include="..\External\FSR2\include\FSR2\ffx_types.h" />
+    <ClInclude Include="..\External\FSR2\include\FSR2\ffx_util.h" />
+    <ClInclude Include="..\External\FSR2\include\FSR2\shaders\ffx_fsr2_common.h" />
+    <ClInclude Include="..\External\FSR2\include\FSR2\shaders\ffx_fsr2_resources.h" />
     <ClInclude Include="..\External\ImGui\ImGui\imconfig.h" />
     <ClInclude Include="..\External\ImGui\ImGui\imgui.h" />
     <ClInclude Include="..\External\ImGui\ImGui\ImGuizmo.h" />
@@ -407,6 +418,7 @@
     <ClInclude Include="Rendering\ClusteredDeferredLightingPass.h" />
     <ClInclude Include="Rendering\Components.h" />
     <ClInclude Include="Rendering\DebugRenderer.h" />
+    <ClInclude Include="Rendering\FSR2Pass.h" />
     <ClInclude Include="Rendering\GPUDrivenGBufferPass.h" />
     <ClInclude Include="Rendering\ShaderStructs.h" />
     <ClInclude Include="Rendering\HelperPasses.h" />

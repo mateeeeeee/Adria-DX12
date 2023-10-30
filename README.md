@@ -53,7 +53,7 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
 * Model Loading with tinygltf
 
 ## TODO
-* FSR2
+* FSR2 (wip)
 * ReSTIR GI
 
 ## Dependencies
