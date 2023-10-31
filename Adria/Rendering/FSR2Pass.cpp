@@ -91,12 +91,17 @@ namespace adria
 				{
 					if (ImGui::Combo("Quality Mode", (int32*)&quality_mode, "Custom\0Quality (1.5x)\0Balanced (1.7x)\0Performance (2.0x)\0Ultra Performance (3.0x)\0", 5))
 					{
+						RecreateRenderDimensions();
 						recreate_context = true;
 					}
 
 					if (quality_mode == 0)
 					{
-						if (ImGui::SliderFloat("Upscale Ratio", &custom_upscale_ratio, 1.0, 3.0)) recreate_context = true;
+						if (ImGui::SliderFloat("Upscale Ratio", &custom_upscale_ratio, 1.0, 3.0))
+						{
+							RecreateRenderDimensions();
+							recreate_context = true;
+						}
 					}
 					
 					ImGui::SliderFloat("Sharpness", &sharpness, 0.0f, 1.0f, "%.2f");
@@ -112,9 +117,6 @@ namespace adria
 
 	void FSR2Pass::CreateContext()
 	{
-		float upscale_ratio = GetUpscaleRatio();
-		render_width = (uint32)((float)width / upscale_ratio);
-		render_height = (uint32)((float)width / upscale_ratio);
 		if (recreate_context)
 		{
 			ID3D12Device* device = gfx->GetDevice();
@@ -145,6 +147,13 @@ namespace adria
 			free(context_desc.callbacks.scratchBuffer);
 			context_desc.callbacks.scratchBuffer = nullptr;
 		}
+	}
+
+	void FSR2Pass::RecreateRenderDimensions()
+	{
+		float upscale_ratio = GetUpscaleRatio();
+		render_width = (uint32)((float)width / upscale_ratio);
+		render_height = (uint32)((float)width / upscale_ratio);
 	}
 
 }

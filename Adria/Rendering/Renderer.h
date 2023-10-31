@@ -68,9 +68,7 @@ namespace adria
 		void OnRightMouseClicked(int32 x, int32 y);
 
 		PickingData const& GetPickingData() const { return picking_data; }
-
-		uint32 GetWidth() const { return width; }
-		uint32 GetHeight() const { return height; }
+		Vector2u GetDisplayDimensions() const { return Vector2u(display_width, display_height); }
 
 	private:
 		entt::registry& reg;
@@ -82,8 +80,8 @@ namespace adria
 
 		uint32 const backbuffer_count;
 		uint32 backbuffer_index;
-		uint32 width;
-		uint32 height;
+		uint32 display_width;
+		uint32 display_height;
 
 		std::unique_ptr<GfxTexture> final_texture;
 

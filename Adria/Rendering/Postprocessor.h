@@ -60,13 +60,13 @@ namespace adria
 		bool HasTAA() const;
 		bool HasRTR() const { return reflections == Reflections::RTR; }
 		bool HasUpscaler() const { return upscaler != TemporalUpscaler::None; }
-
 		bool NeedsJitter() const { return HasTAA() || HasUpscaler(); }
 
 	private:
 		GfxDevice* gfx;
 		entt::registry& reg;
-		uint32 width, height;
+		uint32 display_width;
+		uint32 display_height;
 
 		RGResourceName final_resource;
 		std::unique_ptr<GfxTexture> history_buffer;

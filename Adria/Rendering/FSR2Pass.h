@@ -20,12 +20,13 @@ namespace adria
 			if (width != w || height != h)
 			{
 				width = w, height = h;
+				RecreateRenderDimensions();
 				recreate_context = true;
 			}
 		}
 
-		Vector2u GetRenderWidth() const { return Vector2u(render_width, render_height); }
-		Vector2u GetDisplayWidth() const{ return Vector2u(width, height); }
+		Vector2u GetRenderDimensions()  const { return Vector2u(render_width, render_height); }
+		Vector2u GetDisplayDimensions() const { return Vector2u(width, height); }
 
 	private:
 		GfxDevice* gfx = nullptr;
@@ -43,5 +44,6 @@ namespace adria
 	private:
 		void CreateContext();
 		void DestroyContext();
+		void RecreateRenderDimensions();
 	};
 }

@@ -39,7 +39,7 @@ namespace adria
 	}
 
 	Renderer::Renderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx),
-		accel_structure(gfx), camera(nullptr), width(width), height(height),
+		accel_structure(gfx), camera(nullptr), display_width(width), display_height(height),
 		backbuffer_count(gfx->GetBackbufferCount()), backbuffer_index(gfx->GetBackbufferIndex()), final_texture(nullptr),
 		frame_cbuffer(gfx, backbuffer_count), gpu_driven_renderer(reg, gfx, width, height),
 		gbuffer_pass(reg, width, height), tonemap_pass(width, height),
@@ -124,10 +124,12 @@ namespace adria
 
 	void Renderer::OnResize(uint32 w, uint32 h)
 	{
-		if (width != w || height != h)
+		if (display_width != w || display_height != h)
 		{
-			width = w; height = h;
+			display_width = w; display_height = h;
 			CreateSizeDependentResources();
+			postprocessor.OnResize(w, h);
+
 			g_DebugRenderer.OnResize(w, h);
 			gbuffer_pass.OnResize(w, h);
 			gpu_driven_renderer.OnResize(w, h);
@@ -141,7 +143,6 @@ namespace adria
 			copy_to_texture_pass.OnResize(w, h);
 			tonemap_pass.OnResize(w, h);
 			fxaa_pass.OnResize(w, h);
-			postprocessor.OnResize(w, h);
 			add_textures_pass.OnResize(w, h);
 			picking_pass.OnResize(w, h);
 			decals_pass.OnResize(w, h);
@@ -176,8 +177,8 @@ namespace adria
 	void Renderer::CreateSizeDependentResources()
 	{
 		GfxTextureDesc ldr_desc{};
-		ldr_desc.width = width;
-		ldr_desc.height = height;
+		ldr_desc.width = display_width;
+		ldr_desc.height = display_height;
 		ldr_desc.format = GfxFormat::R10G10B10A2_UNORM;
 		ldr_desc.bind_flags = GfxBindFlag::UnorderedAccess | GfxBindFlag::ShaderResource | GfxBindFlag::RenderTarget;
 		ldr_desc.initial_state = GfxResourceState::UnorderedAccess;
@@ -342,10 +343,10 @@ namespace adria
 		frame_cbuf_data.inverse_projection = camera->Proj().Invert();
 		frame_cbuf_data.inverse_view_projection = camera->ViewProj().Invert();
 		frame_cbuf_data.reprojection = frame_cbuf_data.inverse_view_projection * frame_cbuf_data.prev_view_projection;
-		frame_cbuf_data.camera_jitter_x = ((camera_jitter.x - 0.5f) / width) * 2;
-		frame_cbuf_data.camera_jitter_y = ((camera_jitter.y - 0.5f) / height) * 2;
-		frame_cbuf_data.screen_resolution_x = (float)width;
-		frame_cbuf_data.screen_resolution_y = (float)height;
+		frame_cbuf_data.camera_jitter_x = ((camera_jitter.x - 0.5f) / display_width) * 2;
+		frame_cbuf_data.camera_jitter_y = ((camera_jitter.y - 0.5f) / display_height) * 2;
+		frame_cbuf_data.screen_resolution_x = (float)display_width;
+		frame_cbuf_data.screen_resolution_y = (float)display_height;
 		frame_cbuf_data.delta_time = dt;
 		frame_cbuf_data.total_time = total_time;
 		frame_cbuf_data.frame_count = gfx->GetFrameIndex();

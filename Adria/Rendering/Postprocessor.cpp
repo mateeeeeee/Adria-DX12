@@ -32,7 +32,7 @@ namespace adria
 	}
 
 	PostProcessor::PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height)
-		: gfx(gfx), reg(reg), width(width), height(height),
+		: gfx(gfx), reg(reg), display_width(width), display_height(height),
 		blur_pass(width, height), copy_to_texture_pass(width, height),
 		add_textures_pass(width, height), automatic_exposure_pass(width, height),
 		lens_flare_pass(width, height),
@@ -112,7 +112,7 @@ namespace adria
 
 	void PostProcessor::OnResize(uint32 w, uint32 h)
 	{
-		width = w, height = h;
+		display_width = w, display_height = h;
 		clouds_pass.OnResize(gfx, w, h);
 		blur_pass.OnResize(w, h);
 		add_textures_pass.OnResize(w, h);
@@ -132,8 +132,8 @@ namespace adria
 		if (history_buffer)
 		{
 			GfxTextureDesc render_target_desc = history_buffer->GetDesc();
-			render_target_desc.width = width;
-			render_target_desc.height = height;
+			render_target_desc.width = display_width;
+			render_target_desc.height = display_height;
 			history_buffer = gfx->CreateTexture(render_target_desc);
 		}
 	}
@@ -146,8 +146,8 @@ namespace adria
 
 		GfxTextureDesc render_target_desc{};
 		render_target_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-		render_target_desc.width = width;
-		render_target_desc.height = height;
+		render_target_desc.width = display_width;
+		render_target_desc.height = display_height;
 		render_target_desc.bind_flags = GfxBindFlag::ShaderResource;
 		render_target_desc.initial_state = GfxResourceState::CopyDest;
 		history_buffer = gfx->CreateTexture(render_target_desc);
@@ -179,8 +179,8 @@ namespace adria
 			[=](CopyPassData& data, RenderGraphBuilder& builder)
 			{
 				RGTextureDesc postprocess_desc{};
-				postprocess_desc.width = width;
-				postprocess_desc.height = height;
+				postprocess_desc.width = display_width;
+				postprocess_desc.height = display_height;
 				postprocess_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 
 				builder.DeclareTexture(RG_RES_NAME(PostprocessMain), postprocess_desc);
@@ -206,14 +206,14 @@ namespace adria
 			{
 				RGTextureDesc sun_output_desc{};
 				sun_output_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-				sun_output_desc.width = width;
-				sun_output_desc.height = height;
+				sun_output_desc.width = display_width;
+				sun_output_desc.height = display_height;
 				sun_output_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 
 				builder.DeclareTexture(RG_RES_NAME(SunOutput), sun_output_desc);
 				builder.ReadDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.WriteRenderTarget(RG_RES_NAME(SunOutput), RGLoadStoreAccessOp::Clear_Preserve);
-				builder.SetViewport(width, height);
+				builder.SetViewport(display_width, display_height);
 			},
 			[=](RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
