@@ -51,7 +51,7 @@ namespace adria
 		if (transient_lines.empty() && transient_triangles.empty() && persistent_lines.empty() && persistent_triangles.empty()) 
 			return;
 
-		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
 		rg.AddPass<void>("Debug Pass",
 			[=](RenderGraphBuilder& builder)
@@ -63,7 +63,7 @@ namespace adria
 			[=](RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 
 				constexpr uint32 vb_stride = (uint32)sizeof(DebugVertex);
 				uint32 transient_lines_count = (uint32)transient_lines.size();

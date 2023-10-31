@@ -22,7 +22,7 @@ namespace adria
 	void DecalsPass::AddPass(RenderGraph& rendergraph)
 	{
 		if (reg.view<Decal>().size() == 0) return;
-		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
 
 		struct DecalsPassData
 		{
@@ -58,7 +58,7 @@ namespace adria
 				};
 
 				
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				auto decal_view = reg.view<Decal>();
 
 				auto decal_pass_lambda = [&](bool modify_normals)

@@ -197,7 +197,7 @@ namespace adria
 	}
 	void PostProcessor::AddSunPass(RenderGraph& rg, entt::entity sun)
 	{
-		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		RGResourceName last_resource = final_resource;
 
 		rg.AddPass<void>("Sun Pass",
@@ -220,7 +220,7 @@ namespace adria
 				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Sun));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				auto [transform, mesh, material] = reg.get<Transform, SubMesh, Material>(sun);
 
 				struct Constants

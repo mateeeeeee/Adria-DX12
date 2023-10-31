@@ -14,7 +14,7 @@ namespace adria
 
 	RGResourceName MotionBlurPass::AddPass(RenderGraph& rg, RGResourceName input)
 	{
-		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		RGResourceName last_resource = input;
 		struct MotionBlurPassData
 		{
@@ -55,7 +55,7 @@ namespace adria
 				};
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::MotionBlur));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 			}, RGPassType::Compute, RGPassFlags::None);

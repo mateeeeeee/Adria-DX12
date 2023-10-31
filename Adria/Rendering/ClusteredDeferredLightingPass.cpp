@@ -35,7 +35,7 @@ namespace adria
 
 	void ClusteredDeferredLightingPass::AddPass(RenderGraph& rendergraph, bool recreate_clusters)
 	{
-		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
 
 		rendergraph.ImportBuffer(RG_RES_NAME(ClustersBuffer), &clusters);
 		rendergraph.ImportBuffer(RG_RES_NAME(LightCounter), &light_counter);
@@ -61,7 +61,7 @@ namespace adria
 					gfx->CopyDescriptors(1, dst_descriptor, context.GetReadWriteBuffer(data.clusters));
 
 					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ClusterBuilding));
-					cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+					cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 					cmd_list->SetRootConstant(1, dst_descriptor.GetIndex(), 0);
 					cmd_list->Dispatch(CLUSTER_SIZE_X, CLUSTER_SIZE_Y, CLUSTER_SIZE_Z);
 				}, RGPassType::Compute, RGPassFlags::None);
@@ -108,7 +108,7 @@ namespace adria
 				};
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ClusterCulling));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(CLUSTER_SIZE_X / 16, CLUSTER_SIZE_Y / 16, CLUSTER_SIZE_Z / 1);
 
@@ -182,7 +182,7 @@ namespace adria
 				};
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ClusteredDeferredLighting));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 			}, RGPassType::Compute, RGPassFlags::None);

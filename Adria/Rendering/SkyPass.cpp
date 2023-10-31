@@ -36,7 +36,7 @@ namespace adria
 			return;
 		}
 
-		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		struct ComputeSkyPassData
 		{
 			RGTextureReadWriteId sky_uav;
@@ -51,7 +51,7 @@ namespace adria
 			[&](ComputeSkyPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 
 				GfxDescriptor sky = gfx->AllocateDescriptorsGPU(1);
 				gfx->CopyDescriptors(1, sky, context.GetReadWriteTexture(data.sky_uav));
@@ -107,7 +107,7 @@ namespace adria
 
 	void SkyPass::AddDrawSkyPass(RenderGraph& rg)
 	{
-		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		rg.AddPass<void>("Draw Sky Pass",
 			[=](RenderGraphBuilder& builder)
 			{
@@ -120,7 +120,7 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Sky));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetTopology(GfxPrimitiveTopology::TriangleList);
 				cmd_list->SetVertexBuffer(GfxVertexBufferView(cube_vb.get()));
 				GfxIndexBufferView ibv(cube_ib.get());

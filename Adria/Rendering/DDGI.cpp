@@ -127,7 +127,7 @@ namespace adria
 		Vector3 random_vector(2.0f * rng() - 1.0f, 2.0f * rng() - 1.0f, 2.0f * rng() - 1.0f); random_vector.Normalize();
 		float random_angle = rng() * pi<float> * 2.0f;
 
-		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		rg.ImportTexture(RG_RES_NAME(DDGIIrradianceHistory), ddgi_volume.irradiance_history.get());
 		rg.ImportTexture(RG_RES_NAME(DDGIDistanceHistory), ddgi_volume.distance_history.get());
 
@@ -183,7 +183,7 @@ namespace adria
 				table.AddMissShader("DDGI_Miss", 0);
 				table.AddHitGroup("DDGI_HitGroup", 0);
 
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, parameters);
 				
 				cmd_list->DispatchRays(ddgi_volume.num_rays, num_probes_flat);
@@ -237,7 +237,7 @@ namespace adria
 				};
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIUpdateIrradiance));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, parameters);
 				cmd_list->Dispatch(num_probes_flat, 1, 1);
 				cmd_list->UavBarrier(ctx.GetTexture(*data.irradiance));
@@ -290,7 +290,7 @@ namespace adria
 				};
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIUpdateDistance));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, parameters);
 				cmd_list->Dispatch(num_probes_flat, 1, 1);
 				cmd_list->UavBarrier(ctx.GetTexture(*data.distance));
@@ -306,7 +306,7 @@ namespace adria
 	{
 		if (!IsSupported() || !visualize) return;
 
-		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
 		rg.AddPass<void>("DDGI Visualize Pass",
 			[=](RenderGraphBuilder& builder)
@@ -327,7 +327,7 @@ namespace adria
 				};
 				cmd_list->SetTopology(GfxPrimitiveTopology::TriangleList);
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIVisualize));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, parameters);
 				cmd_list->Draw(2880, ddgi_volume.num_probes.x * ddgi_volume.num_probes.y * ddgi_volume.num_probes.z);
 			}, RGPassType::Graphics);

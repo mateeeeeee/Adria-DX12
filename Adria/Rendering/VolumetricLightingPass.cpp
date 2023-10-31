@@ -23,7 +23,7 @@ namespace adria
 			RGTextureReadWriteId output;
 		};
 
-		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
 		rendergraph.AddPass<LightingPassData>("Volumetric Lighting Pass",
 			[=](LightingPassData& data, RenderGraphBuilder& builder)
 			{
@@ -59,7 +59,7 @@ namespace adria
 				};
 				
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::VolumetricLighting));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch((uint32)std::ceil((width >> resolution) / 16.0f), (uint32)std::ceil((height >> resolution) / 16.0f), 1);
 			}, RGPassType::Compute);

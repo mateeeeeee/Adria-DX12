@@ -23,7 +23,7 @@ namespace adria
 			RGTextureReadWriteId output_uav;
 		};
 
-		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
 		rendergraph.AddPass<HBAOPassData>("HBAO Pass",
 			[=](HBAOPassData& data, RenderGraphBuilder& builder)
 			{
@@ -63,13 +63,13 @@ namespace adria
 					uint32   output_idx;
 				} constants =
 				{
-					.r2 = params.hbao_radius * params.hbao_radius, .radius_to_screen = params.hbao_radius * 0.5f * float(height) / (tanf(global_data.camera_fov * 0.5f) * 2.0f),
+					.r2 = params.hbao_radius * params.hbao_radius, .radius_to_screen = params.hbao_radius * 0.5f * float(height) / (tanf(frame_data.camera_fov * 0.5f) * 2.0f),
 					.power = params.hbao_power,
 					.noise_scale = std::max(width * 1.0f / NOISE_DIM,height * 1.0f / NOISE_DIM),
 					.depth_idx = i, .normal_idx = i + 1, .noise_idx = i + 2, .output_idx = i + 3
 				};
 
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1,constants);
 				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 			}, RGPassType::Compute);

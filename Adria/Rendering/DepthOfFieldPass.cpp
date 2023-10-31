@@ -19,7 +19,7 @@ namespace adria
 
 	RGResourceName DepthOfFieldPass::AddPass(RenderGraph& rg, RGResourceName input)
 	{
-		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		rg.GetBlackboard().Create<DoFBlackboardData>(params.dof_near_blur, params.dof_near, params.dof_far, params.dof_far_blur);
 
 		RGResourceName last_resource = input;
@@ -70,7 +70,7 @@ namespace adria
 					.depth_idx = i, .scene_idx = i + 1, .blurred_idx = i + 2, .output_idx = i + 3
 				};
 
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 			}, RGPassType::Compute, RGPassFlags::None);

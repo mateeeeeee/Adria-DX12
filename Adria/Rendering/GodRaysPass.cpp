@@ -20,7 +20,7 @@ namespace adria
 
 	void GodRaysPass::AddPass(RenderGraph& rg, Light const& light)
 	{
-		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
 		struct GodRaysPassData
 		{
@@ -54,9 +54,9 @@ namespace adria
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.sun));
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadWriteTexture(data.output));
 
-				Vector4 camera_position(global_data.camera_position);
+				Vector4 camera_position(frame_data.camera_position);
 				Vector4 light_pos = Vector4::Transform(light.position, XMMatrixTranslation(camera_position.x, 0.0f, camera_position.y));
-				light_pos = Vector4::Transform(light_pos, global_data.camera_viewproj);
+				light_pos = Vector4::Transform(light_pos, frame_data.camera_viewproj);
 
 				struct GodRaysConstants
 				{
@@ -78,7 +78,7 @@ namespace adria
 					.sun_idx = i, .output_idx = i + 1
 				};
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::GodRays));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 			}, RGPassType::Compute, RGPassFlags::None);

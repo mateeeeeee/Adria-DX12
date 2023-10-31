@@ -91,20 +91,25 @@ namespace adria
 	{
 		RenderGraph render_graph(resource_pool);
 		RGBlackboard& rg_blackboard = render_graph.GetBlackboard();
-		FrameBlackboardData global_data{};
+		FrameBlackboardData frame_data{};
 		{
 			Vector3 cam_pos = camera->Position();
-			global_data.camera_position[0] = cam_pos.x;
-			global_data.camera_position[1] = cam_pos.y;
-			global_data.camera_position[2] = cam_pos.z;
-			global_data.camera_position[3] = 1.0f;
-			global_data.camera_view = camera->View();
-			global_data.camera_proj = camera->Proj();
-			global_data.camera_viewproj = camera->ViewProj();
-			global_data.camera_fov = camera->Fov();
-			global_data.frame_cbuffer_address = frame_cbuffer.GetGpuAddress(backbuffer_index);
+			frame_data.camera_position[0] = cam_pos.x;
+			frame_data.camera_position[1] = cam_pos.y;
+			frame_data.camera_position[2] = cam_pos.z;
+			frame_data.camera_position[3] = 1.0f;
+			frame_data.camera_view = camera->View();
+			frame_data.camera_proj = camera->Proj();
+			frame_data.camera_viewproj = camera->ViewProj();
+			frame_data.camera_fov = camera->Fov();
+			frame_data.camera_near = camera->Near();
+			frame_data.camera_far = camera->Far();
+			frame_data.camera_jitter_x = camera_jitter.x;
+			frame_data.camera_jitter_y = camera_jitter.y;
+			frame_data.frame_delta_time = frame_cbuf_data.delta_time;
+			frame_data.frame_cbuffer_address = frame_cbuffer.GetGpuAddress(backbuffer_index);
 		}
-		rg_blackboard.Add<FrameBlackboardData>(std::move(global_data));
+		rg_blackboard.Add<FrameBlackboardData>(std::move(frame_data));
 
 		render_graph.ImportTexture(RG_RES_NAME(Backbuffer), gfx->GetBackbuffer());
 
@@ -321,15 +326,9 @@ namespace adria
 		static float total_time = 0.0f;
 		total_time += dt;
 
-		Vector2 jitter(0.0f, 0.0f);
-		if (postprocessor.HasTAA())
-		{
-			jitter = camera->Jitter(gfx->GetFrameIndex());
-			jitter.x = ((jitter.x - 0.5f) / width) * 2;
-			jitter.y = ((jitter.y - 0.5f) / height) * 2;
-		}
+		camera_jitter = Vector2(0.0f, 0.0f);
+		if (postprocessor.NeedsJitter()) camera_jitter = camera->Jitter(gfx->GetFrameIndex());
 
-		static FrameCBuffer frame_cbuf_data{};
 		if (camera->ViewProj() != frame_cbuf_data.prev_view_projection) path_tracer.Reset();
 		frame_cbuf_data.camera_near = camera->Near();
 		frame_cbuf_data.camera_far = camera->Far();
@@ -342,8 +341,8 @@ namespace adria
 		frame_cbuf_data.inverse_projection = camera->Proj().Invert();
 		frame_cbuf_data.inverse_view_projection = camera->ViewProj().Invert();
 		frame_cbuf_data.reprojection = frame_cbuf_data.inverse_view_projection * frame_cbuf_data.prev_view_projection;
-		frame_cbuf_data.camera_jitter_x = jitter.x;
-		frame_cbuf_data.camera_jitter_y = jitter.y;
+		frame_cbuf_data.camera_jitter_x = ((camera_jitter.x - 0.5f) / width) * 2;
+		frame_cbuf_data.camera_jitter_y = ((camera_jitter.y - 0.5f) / height) * 2;
 		frame_cbuf_data.screen_resolution_x = (float)width;
 		frame_cbuf_data.screen_resolution_y = (float)height;
 		frame_cbuf_data.delta_time = dt;

@@ -55,6 +55,8 @@ namespace adria
 		bool HasTAA() const;
 		bool HasRTR() const { return reflections == Reflections::RTR; }
 
+		bool NeedsJitter() const { return HasTAA(); }
+
 	private:
 		entt::registry& reg;
 		uint32 width, height;

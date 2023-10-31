@@ -17,8 +17,15 @@ namespace adria
 		float GetUpscaleRatio() const;
 		void OnResize(uint32 w, uint32 h)
 		{
-			width = w, height = h;
+			if (width != w || height != h)
+			{
+				width = w, height = h;
+				recreate_context = true;
+			}
 		}
+
+		Vector2u GetRenderWidth() const { return Vector2u(render_width, render_height); }
+		Vector2u GetDisplayWidth() const{ return Vector2u(width, height); }
 
 	private:
 		GfxDevice* gfx = nullptr;
@@ -26,8 +33,8 @@ namespace adria
 		uint32 render_width, render_height;
 
 		FfxFsr2ContextDescription context_desc = {};
-		FfxFsr2Context context;
-		bool need_create_context = true;
+		FfxFsr2Context context = {};
+		bool recreate_context = true;
 
 		FfxFsr2QualityMode quality_mode = FFX_FSR2_QUALITY_MODE_QUALITY;
 		float custom_upscale_ratio = 1.0f;

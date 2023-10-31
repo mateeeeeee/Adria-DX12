@@ -78,6 +78,7 @@ namespace adria
 		RGResourcePool resource_pool;
 
 		Camera const* camera;
+		Vector2 camera_jitter;
 
 		uint32 const backbuffer_count;
 		uint32 backbuffer_index;
@@ -85,6 +86,8 @@ namespace adria
 		uint32 height;
 
 		std::unique_ptr<GfxTexture> final_texture;
+
+		FrameCBuffer frame_cbuf_data{};
 		GfxConstantBuffer<FrameCBuffer> frame_cbuffer;
 
 		//scene buffers

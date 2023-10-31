@@ -144,7 +144,7 @@ namespace adria
 	{
 		rg.ImportTexture(RG_RES_NAME(HZB), HZB.get());
 
-		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		struct CullInstancesPassData
 		{
 			RGTextureReadOnlyId hzb;
@@ -210,7 +210,7 @@ namespace adria
 				};
 				GfxPipelineStateID pso_id = occlusion_culling ? GfxPipelineStateID::CullInstances1stPhase : GfxPipelineStateID::CullInstances1stPhase_NoOcclusionCull;
 				cmd_list->SetPipelineState(PSOCache::Get(pso_id));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch((uint32)std::ceil(num_instances / 64.0f), 1, 1);
 
@@ -320,7 +320,7 @@ namespace adria
 
 				GfxPipelineStateID pso_id = occlusion_culling ? GfxPipelineStateID::CullMeshlets1stPhase : GfxPipelineStateID::CullMeshlets1stPhase_NoOcclusionCull;
 				cmd_list->SetPipelineState(PSOCache::Get(pso_id));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 
 				GfxBuffer const& indirect_args = ctx.GetIndirectArgsBuffer(data.indirect_args);
@@ -426,7 +426,7 @@ namespace adria
 					.visible_meshlets_idx = i,
 				};
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DrawMeshlets));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				GfxBuffer const& draw_args = ctx.GetIndirectArgsBuffer(data.draw_args);
 				cmd_list->DispatchMeshIndirect(draw_args, 0);
@@ -439,7 +439,7 @@ namespace adria
 	{
 		if (!occlusion_culling) return;
 
-		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		struct BuildInstanceCullArgsPassData
 		{
 			RGBufferReadOnlyId  occluded_instances_counter;
@@ -535,7 +535,7 @@ namespace adria
 					.candidate_meshlets_counter_idx = i + 4,
 				};
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::CullInstances2ndPhase));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				GfxBuffer const& dispatch_args = ctx.GetIndirectArgsBuffer(data.cull_args);
 				cmd_list->DispatchIndirect(dispatch_args, 0);
@@ -630,7 +630,7 @@ namespace adria
 					.visible_meshlets_counter_idx = i + 4,
 				};
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::CullMeshlets2ndPhase));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 
 				GfxBuffer const& indirect_args = ctx.GetIndirectArgsBuffer(data.indirect_args);
@@ -712,7 +712,7 @@ namespace adria
 					.visible_meshlets_idx = i,
 				};
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DrawMeshlets));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				GfxBuffer const& draw_args = ctx.GetIndirectArgsBuffer(data.draw_args);
 				cmd_list->DispatchMeshIndirect(draw_args, 0);

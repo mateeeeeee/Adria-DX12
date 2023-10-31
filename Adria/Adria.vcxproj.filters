@@ -450,7 +450,9 @@
     <ClCompile Include="Rendering\GPUDrivenGBufferPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\FSR2Pass.cpp" />
+    <ClCompile Include="Rendering\FSR2Pass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">

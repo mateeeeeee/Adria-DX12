@@ -9,7 +9,12 @@ namespace adria
 		DirectX::XMMATRIX			camera_proj;
 		DirectX::XMMATRIX			camera_viewproj;
 		float						camera_fov;
+		float						camera_near;
+		float						camera_far;
+		float						camera_jitter_x;
+		float						camera_jitter_y;
 		float						camera_position[4];
+		float						frame_delta_time;
 		uint64						frame_cbuffer_address;
 	};
 

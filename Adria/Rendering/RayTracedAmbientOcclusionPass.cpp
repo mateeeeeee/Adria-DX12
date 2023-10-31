@@ -26,7 +26,7 @@ namespace adria
 	{
 		if (!IsSupported()) return;
 
-		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		struct RayTracedAmbientOcclusionPassData
 		{
 			RGTextureReadOnlyId depth;
@@ -74,7 +74,7 @@ namespace adria
 				table.AddMissShader("RTAO_Miss", 0);
 				table.AddHitGroup("RTAOAnyHitGroup", 0);
 
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->DispatchRays(width, height);
 			}, RGPassType::Compute, RGPassFlags::None);
@@ -146,7 +146,7 @@ namespace adria
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::RTAOFilter));
 
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, indices);
 				cmd_list->SetRootCBV(2, constants);
 				cmd_list->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);

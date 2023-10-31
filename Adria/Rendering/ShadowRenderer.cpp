@@ -377,7 +377,7 @@ namespace adria
 
 	void ShadowRenderer::AddShadowMapPasses(RenderGraph& rg)
 	{
-		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		auto light_view = reg.view<Light>();
 		for (auto e : light_view)
 		{
@@ -403,7 +403,7 @@ namespace adria
 							},
 							[=](RenderGraphContext& context, GfxCommandList* cmd_list)
 							{
-								cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+								cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 								ShadowMapPass_Common(gfx, cmd_list, light_index, light_matrix_index, i);
 							}, RGPassType::Graphics);
 
@@ -422,7 +422,7 @@ namespace adria
 						},
 						[=](RenderGraphContext& context, GfxCommandList* cmd_list)
 						{
-							cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+							cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 							ShadowMapPass_Common(gfx, cmd_list, light_index, light_matrix_index, 0);
 						}, RGPassType::Graphics);
 
@@ -443,7 +443,7 @@ namespace adria
 						},
 						[=](RenderGraphContext& context, GfxCommandList* cmd_list)
 						{
-							cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+							cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 							ShadowMapPass_Common(gfx, cmd_list, light_index, light_matrix_index, i);
 						}, RGPassType::Graphics);
 
@@ -462,7 +462,7 @@ namespace adria
 					},
 					[=](RenderGraphContext& context, GfxCommandList* cmd_list)
 					{
-						cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+						cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 						ShadowMapPass_Common(gfx, cmd_list, light_index, light_matrix_index, 0);
 					}, RGPassType::Graphics);
 

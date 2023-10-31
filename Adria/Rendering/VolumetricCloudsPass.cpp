@@ -24,7 +24,7 @@ namespace adria
 
 	void VolumetricCloudsPass::AddPass(RenderGraph& rg)
 	{
-		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		rg.ImportTexture(RG_RES_NAME(PreviousCloudsOutput), prev_clouds.get());
 
 		static bool first_frame = true;
@@ -266,7 +266,7 @@ namespace adria
 
 				GfxPipelineState* clouds_pso = PSOCache::Get(temporal_reprojection ? GfxPipelineStateID::Clouds_Reprojection : GfxPipelineStateID::Clouds);
 				cmd_list->SetPipelineState(clouds_pso);
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootCBV(2, constants);
 				cmd_list->Dispatch((uint32)std::ceil((width >> resolution) / 16.0f), (uint32)std::ceil((height >> resolution) / 16.0f), 1);
 

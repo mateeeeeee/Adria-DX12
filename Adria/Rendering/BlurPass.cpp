@@ -24,7 +24,7 @@ namespace adria
 		counter++;
 
 		std::string name = "Horizontal Blur Pass" + std::string(pass_name);
-		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
 		rendergraph.AddPass<BlurPassData>(name.c_str(),
 			[=](BlurPassData& data, RenderGraphBuilder& builder)
 			{
@@ -52,7 +52,7 @@ namespace adria
 				};
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Blur_Horizontal));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch((uint32)std::ceil(width / 1024.0f), height, 1);
 			}, RGPassType::Compute, RGPassFlags::None);
@@ -84,7 +84,7 @@ namespace adria
 				};
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Blur_Vertical));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1,constants);
 				cmd_list->Dispatch(width, (uint32)std::ceil(height / 1024.0f), 1);
 

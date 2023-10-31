@@ -8,10 +8,8 @@
 namespace adria
 {
 
-	FSR2Pass::FSR2Pass(GfxDevice* _gfx) : gfx(_gfx)
-	{
-
-	}
+	FSR2Pass::FSR2Pass(GfxDevice* _gfx) 
+		: gfx(_gfx), width(), height(), render_width(), render_height(){}
 
 	FSR2Pass::~FSR2Pass()
 	{
@@ -20,6 +18,7 @@ namespace adria
 
 	void FSR2Pass::AddPass(RenderGraph& rg, RGResourceName input)
 	{
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
 		struct FSR2PassData
 		{
@@ -30,7 +29,6 @@ namespace adria
 			RGTextureReadWriteId output;
 		};
 
-		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		rg.AddPass<FSR2PassData>("FSR2 Pass",
 			[=](FSR2PassData& data, RenderGraphBuilder& builder)
 			{
@@ -45,11 +43,11 @@ namespace adria
 				data.input = builder.ReadTexture(input, ReadAccess_NonPixelShader);
 				data.velocity = builder.ReadTexture(RG_RES_NAME(VelocityBuffer), ReadAccess_NonPixelShader);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
-				//data.exposure = builder.ReadTexture(RG_RES_NAME(GBufferEmissive), ReadAccess_NonPixelShader);
+				//data.exposure = builder.ReadTexture(RG_RES_NAME(Exposure), ReadAccess_NonPixelShader);
 			},
 			[=](FSR2PassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
-				if (need_create_context)
+				if (recreate_context)
 				{
 					DestroyContext();
 					CreateContext();
@@ -60,32 +58,32 @@ namespace adria
 				GfxTexture& depth_texture = ctx.GetTexture(*data.depth);
 				GfxTexture& output_texture = ctx.GetTexture(*data.output);
 
-				FfxFsr2DispatchDescription dispatchDesc = {};
-				dispatchDesc.commandList = ffxGetCommandListDX12(cmd_list->GetNative());
-				dispatchDesc.color = ffxGetResourceDX12(&context, input_texture.GetNative());
-				dispatchDesc.depth = ffxGetResourceDX12(&context, depth_texture.GetNative());
-				dispatchDesc.motionVectors = ffxGetResourceDX12(&context, velocity_texture.GetNative());
-				dispatchDesc.exposure = ffxGetResourceDX12(&context, nullptr);
-				dispatchDesc.reactive = ffxGetResourceDX12(&context, nullptr); 
-				dispatchDesc.transparencyAndComposition = ffxGetResourceDX12(&context, nullptr);
-				dispatchDesc.output = ffxGetResourceDX12(&context, output_texture.GetNative(), L"FSR2_Output", FFX_RESOURCE_STATE_UNORDERED_ACCESS);
-				dispatchDesc.jitterOffset.x = 0.0f; //todo
-				dispatchDesc.jitterOffset.y = 0.0f; //todo
-				dispatchDesc.motionVectorScale.x = -0.5f * (float)render_width;
-				dispatchDesc.motionVectorScale.y = 0.5f * (float)render_height;
-				dispatchDesc.reset = false;
-				dispatchDesc.enableSharpening = true;
-				dispatchDesc.sharpness = sharpness;
-				dispatchDesc.frameTimeDelta = 0.0f; //todo
-				dispatchDesc.preExposure = 1.0f;
-				dispatchDesc.renderSize.width = render_width;
-				dispatchDesc.renderSize.height = render_height;
-				dispatchDesc.cameraFar = 0.0f; //todo
-				dispatchDesc.cameraNear = 0.0f; //todo
-				dispatchDesc.cameraFovAngleVertical = 0.0f; //todo
+				FfxFsr2DispatchDescription dispatch_desc{};
+				dispatch_desc.commandList = ffxGetCommandListDX12(cmd_list->GetNative());
+				dispatch_desc.color = ffxGetResourceDX12(&context, input_texture.GetNative());
+				dispatch_desc.depth = ffxGetResourceDX12(&context, depth_texture.GetNative());
+				dispatch_desc.motionVectors = ffxGetResourceDX12(&context, velocity_texture.GetNative());
+				dispatch_desc.exposure = ffxGetResourceDX12(&context, nullptr);
+				dispatch_desc.reactive = ffxGetResourceDX12(&context, nullptr); 
+				dispatch_desc.transparencyAndComposition = ffxGetResourceDX12(&context, nullptr);
+				dispatch_desc.output = ffxGetResourceDX12(&context, output_texture.GetNative(), L"FSR2 Output", FFX_RESOURCE_STATE_UNORDERED_ACCESS);
+				dispatch_desc.jitterOffset.x = frame_data.camera_jitter_x;
+				dispatch_desc.jitterOffset.y = frame_data.camera_jitter_y;
+				dispatch_desc.motionVectorScale.x = -0.5f * (float)render_width;
+				dispatch_desc.motionVectorScale.y = 0.5f * (float)render_height;
+				dispatch_desc.reset = false;
+				dispatch_desc.enableSharpening = true;
+				dispatch_desc.sharpness = sharpness;
+				dispatch_desc.frameTimeDelta = frame_data.frame_delta_time;
+				dispatch_desc.preExposure = 1.0f;
+				dispatch_desc.renderSize.width = render_width;
+				dispatch_desc.renderSize.height = render_height;
+				dispatch_desc.cameraFar = frame_data.camera_far;
+				dispatch_desc.cameraNear = frame_data.camera_near;
+				dispatch_desc.cameraFovAngleVertical = frame_data.camera_fov;
 
-				FfxErrorCode errorCode = ffxFsr2ContextDispatch(&context, &dispatchDesc);
-				ADRIA_ASSERT(errorCode == FFX_OK);
+				FfxErrorCode error_code = ffxFsr2ContextDispatch(&context, &dispatch_desc);
+				ADRIA_ASSERT(error_code == FFX_OK);
 			}, RGPassType::Compute);
 
 	}
@@ -97,28 +95,27 @@ namespace adria
 
 	void FSR2Pass::CreateContext()
 	{
-		if (need_create_context)
+		float upscale_ratio = GetUpscaleRatio();
+		render_width = (uint32)((float)width / upscale_ratio);
+		render_height = (uint32)((float)width / upscale_ratio);
+		if (recreate_context)
 		{
 			ID3D12Device* device = gfx->GetDevice();
 
 			uint64 const scratch_buffer_size = ffxFsr2GetScratchMemorySizeDX12();
 			void* scratch_buffer = malloc(scratch_buffer_size);
-			FfxErrorCode errorCode = ffxFsr2GetInterfaceDX12(&context_desc.callbacks, device, scratch_buffer, scratch_buffer_size);
-			ADRIA_ASSERT(errorCode == FFX_OK);
-
-			float upscale_ratio = GetUpscaleRatio();
-			render_width = (uint32)((float)width / upscale_ratio);
-			render_height = (uint32)((float)width / upscale_ratio);
+			FfxErrorCode error_code = ffxFsr2GetInterfaceDX12(&context_desc.callbacks, device, scratch_buffer, scratch_buffer_size);
+			ADRIA_ASSERT(error_code == FFX_OK);
 
 			context_desc.device = ffxGetDeviceDX12(device);
 			context_desc.maxRenderSize.width = render_width;
 			context_desc.maxRenderSize.height = render_height;
 			context_desc.displaySize.width = width;
 			context_desc.displaySize.height = height;
-			context_desc.flags = FFX_FSR2_ENABLE_HIGH_DYNAMIC_RANGE;
+			context_desc.flags = FFX_FSR2_ENABLE_HIGH_DYNAMIC_RANGE | FFX_FSR2_ENABLE_AUTO_EXPOSURE;
 
 			ffxFsr2ContextCreate(&context, &context_desc);
-			need_create_context = false;
+			recreate_context = false;
 		}
 	}
 

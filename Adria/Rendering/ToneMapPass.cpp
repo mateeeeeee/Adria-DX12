@@ -17,7 +17,7 @@ namespace adria
 
 	void ToneMapPass::AddPass(RenderGraph& rg, RGResourceName hdr_src)
 	{
-		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		BloomBlackboardData const* bloom_data  = rg.GetBlackboard().TryGet<BloomBlackboardData>();
 		
 		struct ToneMapPassData
@@ -80,7 +80,7 @@ namespace adria
 				}
 				
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ToneMap));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
@@ -90,7 +90,7 @@ namespace adria
 
 	void ToneMapPass::AddPass(RenderGraph& rg, RGResourceName hdr_src, RGResourceName output)
 	{
-		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		BloomBlackboardData const* bloom_data  = rg.GetBlackboard().TryGet<BloomBlackboardData>();
 
 		RGPassFlags flags = RGPassFlags::None;
@@ -161,7 +161,7 @@ namespace adria
 				}
 				
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ToneMap));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 			}, RGPassType::Compute, flags);

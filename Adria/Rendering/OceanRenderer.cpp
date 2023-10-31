@@ -27,7 +27,7 @@ namespace adria
 	void OceanRenderer::AddPasses(RenderGraph& rendergraph)
 	{
 		if (reg.view<Ocean>().size() == 0) return;
-		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
 
 		if (ocean_color_changed)
 		{
@@ -74,7 +74,7 @@ namespace adria
 					};
 
 					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::InitialSpectrum));
-					cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+					cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 					cmd_list->SetRootConstants(1, constants);
 					cmd_list->Dispatch(FFT_RESOLUTION / 16, FFT_RESOLUTION / 16, 1);
 				}, RGPassType::Compute, RGPassFlags::None);
@@ -112,7 +112,7 @@ namespace adria
 				};
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Phase));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(FFT_RESOLUTION / 16, FFT_RESOLUTION / 16, 1);
 			}, RGPassType::Compute, RGPassFlags::None);
@@ -155,7 +155,7 @@ namespace adria
 
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Spectrum));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(FFT_RESOLUTION / 16, FFT_RESOLUTION / 16, 1);
 
@@ -289,7 +289,7 @@ namespace adria
 				};
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::OceanNormals));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(FFT_RESOLUTION / 16, FFT_RESOLUTION / 16, 1);
 			}, RGPassType::Compute, RGPassFlags::None);
@@ -325,7 +325,7 @@ namespace adria
 						ocean_wireframe ? PSOCache::Get(GfxPipelineStateID::Ocean_Wireframe) :
 						PSOCache::Get(GfxPipelineStateID::Ocean));
 				}
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 
 				auto ocean_chunk_view = reg.view<SubMesh, Material, Transform, Ocean>();
 				for (auto ocean_chunk : ocean_chunk_view)

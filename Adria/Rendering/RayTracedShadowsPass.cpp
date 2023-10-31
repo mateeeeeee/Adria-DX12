@@ -25,7 +25,7 @@ namespace adria
 	{
 		if (!IsSupported()) return;
 
-		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		struct RayTracedShadowsPassData
 		{
 			RGTextureReadOnlyId depth;
@@ -57,7 +57,7 @@ namespace adria
 				table.AddMissShader("RTS_Miss", 0);
 				table.AddHitGroup("ShadowAnyHitGroup", 0);
 
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->DispatchRays(width, height);
 

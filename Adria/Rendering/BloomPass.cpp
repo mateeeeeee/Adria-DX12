@@ -63,7 +63,7 @@ namespace adria
 		uint32 target_dim_y = std::max(1u, height >> pass_idx);
 
 		RGResourceName output = RG_RES_NAME_IDX(BloomDownsample, pass_idx);
-		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
 		struct BloomDownsamplePassData
 		{
@@ -106,7 +106,7 @@ namespace adria
 				};
 				GfxPipelineStateID pso = pass_idx == 1 ? GfxPipelineStateID::BloomDownsample_FirstPass : GfxPipelineStateID::BloomDownsample;
 				cmd_list->SetPipelineState(PSOCache::Get(pso));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch((uint32)std::ceil(target_dim_x / 8.0f), (uint32)std::ceil(target_dim_y / 8.0f), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
@@ -127,7 +127,7 @@ namespace adria
 		uint32 target_dim_y = std::max(1u, height >> pass_idx);
 
 		RGResourceName output = pass_idx != 1 ? RG_RES_NAME_IDX(BloomUpsample, pass_idx) : RG_RES_NAME(Bloom);
-		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
 		std::string pass_name = std::format("Bloom Upsample Pass {}", pass_idx);
 		rg.AddPass<BloomUpsamplePassData>(pass_name.c_str(),
@@ -171,7 +171,7 @@ namespace adria
 				};
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::BloomUpsample));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch((uint32)std::ceil(target_dim_x / 8.0f), (uint32)std::ceil(target_dim_y / 8.0f), 1);
 			}, RGPassType::Compute, RGPassFlags::None);

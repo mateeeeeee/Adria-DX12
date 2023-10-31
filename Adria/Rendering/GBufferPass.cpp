@@ -20,7 +20,7 @@ namespace adria
 
 	void GBufferPass::AddPass(RenderGraph& rendergraph)
 	{
-		FrameBlackboardData const& global_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
 		rendergraph.AddPass<void>("GBuffer Pass",
 			[=](RenderGraphBuilder& builder)
 			{
@@ -51,7 +51,7 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 				
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				auto GetPSO = [](MaterialAlphaMode alpha_mode)
 				{
 					switch (alpha_mode)
@@ -63,7 +63,7 @@ namespace adria
 					return GfxPipelineStateID::GBuffer;
 				};
 
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 
 				reg.sort<Batch>([](Batch const& lhs, Batch const& rhs) { return lhs.alpha_mode < rhs.alpha_mode; });
 				auto batch_view = reg.view<Batch>();

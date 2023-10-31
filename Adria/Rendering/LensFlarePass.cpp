@@ -21,7 +21,7 @@ namespace adria
 
 	void LensFlarePass::AddPass(RenderGraph& rg, Light const& light)
 	{
-		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
 		struct LensFlarePassData
 		{
@@ -46,9 +46,9 @@ namespace adria
 				}
 				Vector3 light_ss{};
 				{
-					Vector4 camera_position(global_data.camera_position);
+					Vector4 camera_position(frame_data.camera_position);
 					Vector4 light_pos = light.type == LightType::Directional ? Vector4::Transform(light.position, XMMatrixTranslation(camera_position.x, 0.0f, camera_position.y)) : light.position;
-					light_pos = Vector4::Transform(light_pos, global_data.camera_viewproj);
+					light_pos = Vector4::Transform(light_pos, frame_data.camera_viewproj);
 
 					light_ss.x = 0.5f * light_pos.x / light_pos.w + 0.5f;
 					light_ss.y = -0.5f * light_pos.y / light_pos.w + 0.5f;
@@ -92,7 +92,7 @@ namespace adria
 					.light_ss_z = light_ss.z
 				};
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::LensFlare));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->SetRootCBV(2, constants2);
 				cmd_list->SetTopology(GfxPrimitiveTopology::PointList);
@@ -103,7 +103,7 @@ namespace adria
 
 	void LensFlarePass::AddPass2(RenderGraph& rg, Light const& light)
 	{
-		FrameBlackboardData const& global_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
 		struct LensFlarePassData
 		{
@@ -128,9 +128,9 @@ namespace adria
 				}
 				XMFLOAT3 light_ss{};
 				{
-					Vector4 camera_position(global_data.camera_position);
+					Vector4 camera_position(frame_data.camera_position);
 					Vector4 light_pos = light.type == LightType::Directional ? Vector4::Transform(light.position, XMMatrixTranslation(camera_position.x, 0.0f, camera_position.y)) : light.position;
-					light_pos = Vector4::Transform(light_pos, global_data.camera_viewproj);
+					light_pos = Vector4::Transform(light_pos, frame_data.camera_viewproj);
 					light_ss.x = 0.5f * light_pos.x / light_pos.w + 0.5f;
 					light_ss.y = -0.5f * light_pos.y / light_pos.w + 0.5f;
 					light_ss.z = light_pos.z / light_pos.w;
@@ -155,7 +155,7 @@ namespace adria
 				};
 
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::LensFlare2));
-				cmd_list->SetRootCBV(0, global_data.frame_cbuffer_address);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 
