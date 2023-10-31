@@ -45,12 +45,13 @@ namespace adria
 		gbuffer_pass(reg, width, height), tonemap_pass(width, height),
 		sky_pass(reg, gfx, width, height), deferred_lighting_pass(width, height), volumetric_lighting_pass(width, height),
 		tiled_deferred_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
-		postprocessor(reg, width, height), fxaa_pass(width, height), picking_pass(gfx, width, height),
+		postprocessor(gfx, reg, width, height), fxaa_pass(width, height), picking_pass(gfx, width, height),
 		clustered_deferred_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height),
 		decals_pass(reg, width, height), ocean_renderer(reg, width, height),
 		shadow_renderer(reg, gfx, width, height), rtao_pass(gfx, width, height), rtr_pass(gfx, width, height),
-		path_tracer(gfx, width, height), ddgi(gfx, reg, width, height), ray_tracing_supported(gfx->GetCapabilities().SupportsRayTracing())
+		path_tracer(gfx, width, height), ddgi(gfx, reg, width, height)
 	{
+		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 		g_DebugRenderer.Initialize(width, height);
 		g_GfxProfiler.Initialize(gfx);
 		GfxTracyProfiler::Initialize(gfx);
@@ -140,7 +141,7 @@ namespace adria
 			copy_to_texture_pass.OnResize(w, h);
 			tonemap_pass.OnResize(w, h);
 			fxaa_pass.OnResize(w, h);
-			postprocessor.OnResize(gfx, w, h);
+			postprocessor.OnResize(w, h);
 			add_textures_pass.OnResize(w, h);
 			picking_pass.OnResize(w, h);
 			decals_pass.OnResize(w, h);
@@ -158,7 +159,7 @@ namespace adria
 		decals_pass.OnSceneInitialized(gfx);
 		ssao_pass.OnSceneInitialized(gfx);
 		hbao_pass.OnSceneInitialized(gfx);
-		postprocessor.OnSceneInitialized(gfx);
+		postprocessor.OnSceneInitialized();
 		ocean_renderer.OnSceneInitialized(gfx);
 		tonemap_pass.OnSceneInitialized();
 		ddgi.OnSceneInitialized();

@@ -319,18 +319,11 @@ namespace adria
 					ImGui::InputFloat("Planet Radius", &params.planet_radius);
 					ImGui::SliderInt("Max Num Steps", &params.max_num_steps, 16, 256);
 
-					static int _resolution = 1;
-					static const char* res_types[] = { "Full", "Half", "Quarter" };
-					const char* res_combo_label = res_types[_resolution];
-					if (ImGui::BeginCombo("Cloud Resolution", res_combo_label, 0))
+					static int _resolution = (int)resolution;
+					if (ImGui::Combo("Volumetric Clouds Resolution", &_resolution, "Full\0Half\0Quarter\0", 3))
 					{
-						for (int n = 0; n < IM_ARRAYSIZE(res_types); n++)
-						{
-							const bool is_selected = (_resolution == n);
-							if (ImGui::Selectable(res_types[n], is_selected)) _resolution = (CloudResolution)n;
-							if (is_selected) ImGui::SetItemDefaultFocus();
-						}
-						ImGui::EndCombo();
+						resolution = (CloudResolution)_resolution;
+						OnResize(nullptr, width, height);
 					}
 
 					if (resolution != _resolution)

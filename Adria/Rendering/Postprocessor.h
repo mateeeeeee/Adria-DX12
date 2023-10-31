@@ -15,7 +15,7 @@
 #include "TAAPass.h"
 #include "GodRaysPass.h"
 #include "BokehPass.h"
-#include "Core/CoreTypes.h"
+#include "FSR2Pass.h"
 #include "RenderGraph/RenderGraphResourceId.h"
 #include "entt/entity/entity.hpp"
 
@@ -30,6 +30,11 @@ namespace adria
 
 	class PostProcessor
 	{
+		enum class TemporalUpscaler : uint8
+		{
+			None,
+			FSR2
+		};
 		enum class Reflections : uint8
 		{
 			None,
@@ -44,20 +49,22 @@ namespace adria
 		};
 
 	public:
-		PostProcessor(entt::registry& reg, uint32 width, uint32 height);
+		PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height);
 		void AddPasses(RenderGraph& rg);
 
-		void OnResize(GfxDevice* gfx, uint32 w, uint32 h);
-		void OnSceneInitialized(GfxDevice* gfx);
+		void OnResize(uint32 w, uint32 h);
+		void OnSceneInitialized();
 		RGResourceName GetFinalResource() const;
 
 		bool HasFXAA() const;
 		bool HasTAA() const;
 		bool HasRTR() const { return reflections == Reflections::RTR; }
+		bool HasUpscaler() const { return upscaler != TemporalUpscaler::None; }
 
-		bool NeedsJitter() const { return HasTAA(); }
+		bool NeedsJitter() const { return HasTAA() || HasUpscaler(); }
 
 	private:
+		GfxDevice* gfx;
 		entt::registry& reg;
 		uint32 width, height;
 
@@ -79,10 +86,12 @@ namespace adria
 		TAAPass taa_pass;
 		GodRaysPass god_rays_pass;
 		BokehPass bokeh_pass;
+		FSR2Pass fsr2_pass;
 
 		bool ray_tracing_supported = false;
 		AntiAliasing anti_aliasing = AntiAliasing_FXAA;
 		Reflections reflections = Reflections::SSR;
+		TemporalUpscaler upscaler = TemporalUpscaler::None;
 		bool dof = false;
 		bool bokeh = false;
 		bool fog = false;

@@ -7,7 +7,6 @@
 
 namespace adria
 {
-
 	FSR2Pass::FSR2Pass(GfxDevice* _gfx) 
 		: gfx(_gfx), width(), height(), render_width(), render_height(){}
 
@@ -69,8 +68,8 @@ namespace adria
 				dispatch_desc.output = ffxGetResourceDX12(&context, output_texture.GetNative(), L"FSR2 Output", FFX_RESOURCE_STATE_UNORDERED_ACCESS);
 				dispatch_desc.jitterOffset.x = frame_data.camera_jitter_x;
 				dispatch_desc.jitterOffset.y = frame_data.camera_jitter_y;
-				dispatch_desc.motionVectorScale.x = -0.5f * (float)render_width;
-				dispatch_desc.motionVectorScale.y = 0.5f * (float)render_height;
+				dispatch_desc.motionVectorScale.x = (float)render_width;
+				dispatch_desc.motionVectorScale.y = (float)render_height;
 				dispatch_desc.reset = false;
 				dispatch_desc.enableSharpening = true;
 				dispatch_desc.sharpness = sharpness;
@@ -86,6 +85,24 @@ namespace adria
 				ADRIA_ASSERT(error_code == FFX_OK);
 			}, RGPassType::Compute);
 
+		GUI_RunCommand([&]()
+			{
+				if (ImGui::TreeNodeEx("FSR2", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+				{
+					if (ImGui::Combo("Quality Mode", (int32*)&quality_mode, "Custom\0Quality (1.5x)\0Balanced (1.7x)\0Performance (2.0x)\0Ultra Performance (3.0x)\0", 5))
+					{
+						recreate_context = true;
+					}
+
+					if (quality_mode == 0)
+					{
+						if (ImGui::SliderFloat("Upscale Ratio", &custom_upscale_ratio, 1.0, 3.0)) recreate_context = true;
+					}
+					
+					ImGui::SliderFloat("Sharpness", &sharpness, 0.0f, 1.0f, "%.2f");
+				}
+			}
+		);
 	}
 
 	float FSR2Pass::GetUpscaleRatio() const

@@ -70,21 +70,8 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx("Volumetric Lighting", ImGuiTreeNodeFlags_OpenOnDoubleClick))
 				{
-					static int _resolution = 1;
-					static const char* res_types[] = { "Full", "Half", "Quarter" };
-					const char* res_combo_label = res_types[_resolution];
-					if (ImGui::BeginCombo("Volumetric Lighting Resolution", res_combo_label, 0))
-					{
-						for (int n = 0; n < IM_ARRAYSIZE(res_types); n++)
-						{
-							const bool is_selected = (_resolution == n);
-							if (ImGui::Selectable(res_types[n], is_selected)) _resolution = (VolumetricLightingResolution)n;
-							if (is_selected) ImGui::SetItemDefaultFocus();
-						}
-						ImGui::EndCombo();
-					}
-
-					if (resolution != _resolution)
+					static int _resolution = (int)resolution;
+					if (ImGui::Combo("Volumetric Lighting Resolution", &_resolution, "Full\0Half\0Quarter\0", 3))
 					{
 						resolution = (VolumetricLightingResolution)_resolution;
 						OnResize(width, height);

@@ -10,7 +10,7 @@ namespace adria
 	class FSR2Pass
 	{
 	public:
-		FSR2Pass(GfxDevice* gfx);
+		explicit FSR2Pass(GfxDevice* gfx);
 		~FSR2Pass();
 
 		void AddPass(RenderGraph& rg, RGResourceName input);

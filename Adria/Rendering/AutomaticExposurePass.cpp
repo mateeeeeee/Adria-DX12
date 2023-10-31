@@ -14,9 +14,7 @@
 namespace adria
 {
 
-	AutomaticExposurePass::AutomaticExposurePass(uint32 w, uint32 h)
-		: width(w), height(h)
-	{}
+	AutomaticExposurePass::AutomaticExposurePass(uint32 w, uint32 h) : width(w), height(h) {}
 
 	void AutomaticExposurePass::OnSceneInitialized(GfxDevice* gfx)
 	{
@@ -217,14 +215,14 @@ namespace adria
 					if (show_histogram)
 					{
 						ADRIA_ASSERT(histogram_copy->IsMapped());
-						size_t histogram_size = histogram_copy->GetDesc().size / sizeof(int);
-						int* hist_data = histogram_copy->GetMappedData<int>();
-						int max_value = *std::max_element(hist_data, hist_data + histogram_size);
-						auto converter = [](void* data, int idx)-> float
+						uint64 histogram_size = histogram_copy->GetDesc().size / sizeof(int32);
+						int32* hist_data = histogram_copy->GetMappedData<int32>();
+						int32 max_value = *std::max_element(hist_data, hist_data + histogram_size);
+						auto converter = [](void* data, int32 idx)-> float
 						{
-							return static_cast<float>(*(((int*)data) + idx));
+							return static_cast<float>(*(((int32*)data) + idx));
 						};
-						ImGui::PlotHistogram("Luminance Histogram", converter, hist_data, (int)histogram_size, 0, NULL, 0.0f, (float)max_value, ImVec2(0, 80));
+						ImGui::PlotHistogram("Luminance Histogram", converter, hist_data, (int32)histogram_size, 0, NULL, 0.0f, (float)max_value, ImVec2(0, 80));
 					}
 					ImGui::TreePop();
 				}

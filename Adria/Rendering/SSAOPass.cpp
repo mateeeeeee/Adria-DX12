@@ -97,6 +97,7 @@ namespace adria
 		
 		params.ssao_power = std::clamp(cvars::ssao_power.Get(), 1.0f, 16.0f);
 		params.ssao_radius = std::clamp(cvars::ssao_radius.Get(), 0.5f, 4.0f);
+
 		GUI_RunCommand([&]() 
 			{
 				if (ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
@@ -104,26 +105,12 @@ namespace adria
 					ImGui::SliderFloat("Power", &cvars::ssao_power.Get(), 1.0f, 16.0f);
 					ImGui::SliderFloat("Radius", &cvars::ssao_radius.Get(), 0.5f, 4.0f);
 
-					static int _resolution = 1;
-					static const char* res_types[] = { "Full", "Half", "Quarter" };
-					const char* res_combo_label = res_types[_resolution];
-					if (ImGui::BeginCombo("SSAO Resolution", res_combo_label, 0))
-					{
-						for (int n = 0; n < IM_ARRAYSIZE(res_types); n++)
-						{
-							const bool is_selected = (_resolution == n);
-							if (ImGui::Selectable(res_types[n], is_selected)) _resolution = (SSAOResolution)n;
-							if (is_selected) ImGui::SetItemDefaultFocus();
-						}
-						ImGui::EndCombo();
-					}
-
-					if (resolution != _resolution)
+					static int _resolution = (int)resolution;
+					if (ImGui::Combo("SSAO Resolution", &_resolution, "Full\0Half\0Quarter\0", 3))
 					{
 						resolution = (SSAOResolution)_resolution;
 						OnResize(width, height);
 					}
-
 					ImGui::TreePop();
 					ImGui::Separator();
 				}

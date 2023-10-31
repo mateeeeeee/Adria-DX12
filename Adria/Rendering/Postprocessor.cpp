@@ -18,6 +18,7 @@ namespace adria
 {
 	namespace cvars
 	{
+		static ConsoleVariable upscaler("upscaler", 0);
 		static ConsoleVariable reflections("reflections", 0);
 		static ConsoleVariable taa("TAA", false);
 		static ConsoleVariable fxaa("FXAA", true);
@@ -30,16 +31,18 @@ namespace adria
 		static ConsoleVariable fog("fog", false);
 	}
 
-	PostProcessor::PostProcessor(entt::registry& reg, uint32 width, uint32 height)
-		: reg(reg), width(width), height(height),
+	PostProcessor::PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height)
+		: gfx(gfx), reg(reg), width(width), height(height),
 		blur_pass(width, height), copy_to_texture_pass(width, height),
 		add_textures_pass(width, height), automatic_exposure_pass(width, height),
 		lens_flare_pass(width, height),
 		clouds_pass(width, height), ssr_pass(width, height), fog_pass(width, height),
 		dof_pass(width, height), bloom_pass(width, height), velocity_buffer_pass(width, height),
 		motion_blur_pass(width, height), taa_pass(width, height), god_rays_pass(width, height),
-		bokeh_pass(width, height)
-	{}
+		bokeh_pass(width, height), fsr2_pass(gfx)
+	{
+		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
+	}
 
 	void PostProcessor::AddPasses(RenderGraph& rg)
 	{
@@ -107,7 +110,7 @@ namespace adria
 		}
 	}
 
-	void PostProcessor::OnResize(GfxDevice* gfx, uint32 w, uint32 h)
+	void PostProcessor::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
 		clouds_pass.OnResize(gfx, w, h);
@@ -134,7 +137,7 @@ namespace adria
 			history_buffer = gfx->CreateTexture(render_target_desc);
 		}
 	}
-	void PostProcessor::OnSceneInitialized(GfxDevice* gfx)
+	void PostProcessor::OnSceneInitialized()
 	{
 		automatic_exposure_pass.OnSceneInitialized(gfx);
 		clouds_pass.OnSceneInitialized(gfx);
@@ -148,8 +151,6 @@ namespace adria
 		render_target_desc.bind_flags = GfxBindFlag::ShaderResource;
 		render_target_desc.initial_state = GfxResourceState::CopyDest;
 		history_buffer = gfx->CreateTexture(render_target_desc);
-
-		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 	}
 	RGResourceName PostProcessor::GetFinalResource() const
 	{
@@ -245,9 +246,14 @@ namespace adria
 	{
 		GUI_RunCommand([&]()
 			{
+				int& current_upscaler = cvars::upscaler.Get();
 				int& current_reflection_type = cvars::reflections.Get();
 				if (ImGui::TreeNode("PostProcess"))
 				{
+					if (ImGui::Combo("Temporal Upscaler", &current_upscaler, "None\0FSR2\0", 2))
+					{
+						if (!ray_tracing_supported && current_reflection_type == 3) current_reflection_type = 1;
+					}
 					if (ImGui::Combo("Reflections", &current_reflection_type, "None\0SSR\0RTR\0", 3))
 					{
 						if (!ray_tracing_supported && current_reflection_type == 3) current_reflection_type = 1;
@@ -271,6 +277,7 @@ namespace adria
 
 					ImGui::TreePop();
 				}
+				upscaler = static_cast<TemporalUpscaler>(current_upscaler);
 				reflections = static_cast<Reflections>(current_reflection_type);
 				automatic_exposure = cvars::exposure;
 				clouds = cvars::clouds;
