@@ -121,14 +121,14 @@ namespace adria
 		}
 
 	private:
-		size_t id;
+		uint64 id;
 
 	private:
 
-		inline static constexpr size_t INVALID_ID = size_t(-1);
-		static size_t GenerateID()
+		inline static constexpr uint64 INVALID_ID = uint64(-1);
+		static uint64 GenerateID()
 		{
-			static size_t current_id = 0;
+			static uint64 current_id = 0;
 			return current_id++;
 		}
 	};
@@ -184,7 +184,7 @@ namespace adria
 		{
 			if (handle.IsValid())
 			{
-				for (size_t i = 0; i < delegate_array.size(); ++i)
+				for (uint64 i = 0; i < delegate_array.size(); ++i)
 				{
 					if (delegate_array[i].first == handle)
 					{
@@ -205,7 +205,7 @@ namespace adria
 
 		void Broadcast(Args... args)
 		{
-			for (size_t i = 0; i < delegate_array.size(); ++i)
+			for (uint64 i = 0; i < delegate_array.size(); ++i)
 			{
 				if (delegate_array[i].first.IsValid()) delegate_array[i].second(std::forward<Args>(args)...);
 			}
@@ -215,7 +215,7 @@ namespace adria
 		{
 			if (handle.IsValid())
 			{
-				for (size_t i = 0; i < delegate_array.size(); ++i)
+				for (uint64 i = 0; i < delegate_array.size(); ++i)
 				{
 					if (delegate_array[i].Handle == handle) return true;
 				}

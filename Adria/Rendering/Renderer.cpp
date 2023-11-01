@@ -39,7 +39,7 @@ namespace adria
 	}
 
 	Renderer::Renderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx),
-		accel_structure(gfx), camera(nullptr), display_width(width), display_height(height),
+		accel_structure(gfx), camera(nullptr), display_width(width), display_height(height), render_width(width), render_height(height),
 		backbuffer_count(gfx->GetBackbufferCount()), backbuffer_index(gfx->GetBackbufferIndex()), final_texture(nullptr),
 		frame_cbuffer(gfx, backbuffer_count), gpu_driven_renderer(reg, gfx, width, height),
 		gbuffer_pass(reg, width, height), tonemap_pass(width, height),
@@ -51,6 +51,8 @@ namespace adria
 		shadow_renderer(reg, gfx, width, height), rtao_pass(gfx, width, height), rtr_pass(gfx, width, height),
 		path_tracer(gfx, width, height), ddgi(gfx, reg, width, height)
 	{
+		postprocessor.AddRenderResolutionChangedCallback([&](uint32 w, uint32 h) { render_width = w; render_height = h; });
+
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 		g_DebugRenderer.Initialize(width, height);
 		g_GfxProfiler.Initialize(gfx);

@@ -32,16 +32,18 @@ namespace adria
 	}
 
 	PostProcessor::PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height)
-		: gfx(gfx), reg(reg), display_width(width), display_height(height),
+		: gfx(gfx), reg(reg), display_width(width), display_height(height), render_width(width), render_height(height),
 		blur_pass(width, height), copy_to_texture_pass(width, height),
 		add_textures_pass(width, height), automatic_exposure_pass(width, height),
-		lens_flare_pass(width, height),
-		clouds_pass(width, height), ssr_pass(width, height), fog_pass(width, height),
+		lens_flare_pass(width, height), clouds_pass(width, height), ssr_pass(width, height), fog_pass(width, height),
 		dof_pass(width, height), bloom_pass(width, height), velocity_buffer_pass(width, height),
 		motion_blur_pass(width, height), taa_pass(width, height), god_rays_pass(width, height),
-		bokeh_pass(width, height), fsr2_pass(gfx)
+		bokeh_pass(width, height), fsr2_pass(gfx, width, height)
 	{
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
+
+		fsr2_pass.GetRenderResolutionChangedEvent().Add([&](uint32 w, uint32 h) { render_width = w; render_height = h; });
+		upscaler_disabled_event.Add([&](uint32 w, uint32 h) { render_width = w; render_height = h; });
 	}
 
 	void PostProcessor::AddPasses(RenderGraph& rg)
@@ -69,8 +71,14 @@ namespace adria
 		{
 			copy_to_texture_pass.AddPass(rg, final_resource, RG_RES_NAME(RTR_Output), BlendMode::AdditiveBlend);
 		}
-
+		if (automatic_exposure) automatic_exposure_pass.AddPasses(rg, final_resource);
 		if (fog) final_resource = fog_pass.AddPass(rg, final_resource);
+
+		switch (upscaler)
+		{
+		case TemporalUpscalerType::FSR2: final_resource = fsr2_pass.AddPass(rg, final_resource);
+		}
+
 		if (dof)
 		{
 			blur_pass.AddPass(rg, final_resource, RG_RES_NAME(BlurredDofInput), " DoF ");
@@ -78,7 +86,6 @@ namespace adria
 			final_resource = dof_pass.AddPass(rg, final_resource);
 		}
 		if (motion_blur) final_resource = motion_blur_pass.AddPass(rg, final_resource);
-
 		for (entt::entity light_entity : lights)
 		{
 			auto const& light = lights.get<Light>(light_entity);
@@ -99,9 +106,7 @@ namespace adria
 				break;
 			}
 		}
-		if (automatic_exposure) automatic_exposure_pass.AddPasses(rg, final_resource);
 		if (bloom) bloom_pass.AddPass(rg, final_resource);
-
 		if (HasAnyFlag(anti_aliasing, AntiAliasing_TAA))
 		{
 			rg.ImportTexture(RG_RES_NAME(HistoryBuffer), history_buffer.get());
@@ -252,11 +257,17 @@ namespace adria
 				{
 					if (ImGui::Combo("Temporal Upscaler", &current_upscaler, "None\0FSR2\0", 2))
 					{
-						if (!ray_tracing_supported && current_reflection_type == 3) current_reflection_type = 1;
+						upscaler = static_cast<TemporalUpscalerType>(current_upscaler);
+						if (upscaler == TemporalUpscalerType::None)
+						{
+							ADRIA_LOG(DEBUG, "Broadcasting upscaler disabled event...");
+							upscaler_disabled_event.Broadcast(display_width, display_height);
+						}
 					}
 					if (ImGui::Combo("Reflections", &current_reflection_type, "None\0SSR\0RTR\0", 3))
 					{
 						if (!ray_tracing_supported && current_reflection_type == 3) current_reflection_type = 1;
+						reflections = static_cast<Reflections>(current_reflection_type);
 					}
 
 					ImGui::Checkbox("Automatic Exposure", &cvars::exposure.Get());
@@ -277,8 +288,6 @@ namespace adria
 
 					ImGui::TreePop();
 				}
-				upscaler = static_cast<TemporalUpscaler>(current_upscaler);
-				reflections = static_cast<Reflections>(current_reflection_type);
 				automatic_exposure = cvars::exposure;
 				clouds = cvars::clouds;
 				dof = cvars::dof;

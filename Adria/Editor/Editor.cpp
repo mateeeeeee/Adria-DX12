@@ -125,8 +125,8 @@ namespace adria
 			{
 				data.src = builder.ReadTexture(RG_RES_NAME(FinalTexture));
 				data.rt = builder.WriteRenderTarget(RG_RES_NAME(Backbuffer), RGLoadStoreAccessOp::Preserve_Preserve);
-				Vector2u display_dimensions = engine->renderer->GetDisplayDimensions();
-				builder.SetViewport(display_dimensions.x, display_dimensions.y);
+				Vector2u display_resolution = engine->renderer->GetDisplayResolution();
+				builder.SetViewport(display_resolution.x, display_resolution.y);
 			},
 			[=](EditorPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
