@@ -17,6 +17,7 @@
 #include "BokehPass.h"
 #include "FSR2Pass.h"
 #include "RenderGraph/RenderGraphResourceId.h"
+#include "Events/Delegate.h"
 #include "entt/entity/entity.hpp"
 
 
@@ -28,9 +29,11 @@ namespace adria
 	class GfxBuffer;
 	struct Light;
 
+	DECLARE_EVENT(UpscalerDisabledEvent, PostProcessor, uint32, uint32);
+
 	class PostProcessor
 	{
-		enum class TemporalUpscaler : uint8
+		enum class TemporalUpscalerType : uint8
 		{
 			None,
 			FSR2
@@ -52,6 +55,13 @@ namespace adria
 		PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height);
 		void AddPasses(RenderGraph& rg);
 
+		template<typename F>
+		void AddRenderResolutionChangedCallback(F&& fn)
+		{
+			fsr2_pass.GetRenderResolutionChangedEvent().Add(std::forward<F>(fn));
+			upscaler_disabled_event.Add(std::forward<F>(fn));
+		}
+
 		void OnResize(uint32 w, uint32 h);
 		void OnSceneInitialized();
 		RGResourceName GetFinalResource() const;
@@ -59,7 +69,7 @@ namespace adria
 		bool HasFXAA() const;
 		bool HasTAA() const;
 		bool HasRTR() const { return reflections == Reflections::RTR; }
-		bool HasUpscaler() const { return upscaler != TemporalUpscaler::None; }
+		bool HasUpscaler() const { return upscaler != TemporalUpscalerType::None; }
 		bool NeedsJitter() const { return HasTAA() || HasUpscaler(); }
 
 	private:
@@ -67,6 +77,8 @@ namespace adria
 		entt::registry& reg;
 		uint32 display_width;
 		uint32 display_height;
+		uint32 render_width;
+		uint32 render_height;
 
 		RGResourceName final_resource;
 		std::unique_ptr<GfxTexture> history_buffer;
@@ -91,7 +103,7 @@ namespace adria
 		bool ray_tracing_supported = false;
 		AntiAliasing anti_aliasing = AntiAliasing_FXAA;
 		Reflections reflections = Reflections::SSR;
-		TemporalUpscaler upscaler = TemporalUpscaler::None;
+		TemporalUpscalerType upscaler = TemporalUpscalerType::None;
 		bool dof = false;
 		bool bokeh = false;
 		bool fog = false;
@@ -99,6 +111,8 @@ namespace adria
 		bool clouds = true;
 		bool motion_blur = false;
 		bool automatic_exposure = false;
+
+		UpscalerDisabledEvent upscaler_disabled_event;
 
 	private:
 		RGResourceName AddHDRCopyPass(RenderGraph& rg);

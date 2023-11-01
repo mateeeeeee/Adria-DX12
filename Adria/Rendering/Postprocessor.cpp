@@ -252,7 +252,7 @@ namespace adria
 				{
 					if (ImGui::Combo("Temporal Upscaler", &current_upscaler, "None\0FSR2\0", 2))
 					{
-						upscaler = static_cast<TemporalUpscaler>(current_upscaler);
+						upscaler = static_cast<TemporalUpscalerType>(current_upscaler);
 					}
 					if (ImGui::Combo("Reflections", &current_reflection_type, "None\0SSR\0RTR\0", 3))
 					{
