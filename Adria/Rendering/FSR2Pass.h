@@ -20,12 +20,9 @@ namespace adria
 		float GetUpscaleRatio() const;
 		void OnResize(uint32 w, uint32 h)
 		{
-			if (display_width != w || display_height != h)
-			{
-				display_width = w, display_height = h;
-				RecreateRenderDimensions();
-				recreate_context = true;
-			}
+			display_width = w, display_height = h;
+			RecreateRenderDimensions();
+			recreate_context = true;
 		}
 
 		Vector2u GetRenderResolution()  const { return Vector2u(render_width, render_height); }

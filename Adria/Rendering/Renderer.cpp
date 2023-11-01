@@ -51,7 +51,7 @@ namespace adria
 		shadow_renderer(reg, gfx, width, height), rtao_pass(gfx, width, height), rtr_pass(gfx, width, height),
 		path_tracer(gfx, width, height), ddgi(gfx, reg, width, height)
 	{
-		postprocessor.AddRenderResolutionChangedCallback([&](uint32 w, uint32 h) { render_width = w; render_height = h; });
+		postprocessor.AddRenderResolutionChangedCallback(&Renderer::OnRenderResolutionChanged, *this);
 
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 		g_DebugRenderer.Initialize(width, height);
@@ -156,6 +156,12 @@ namespace adria
 			ddgi.OnResize(w, h);
 		}
 	}
+
+	void Renderer::OnRenderResolutionChanged(uint32 w, uint32 h)
+	{
+		ADRIA_LOG(DEBUG, "Renderer::OnRenderResolutionChanged: %lu, %lu", w, h);
+	}
+
 	void Renderer::OnSceneInitialized()
 	{
 		sky_pass.OnSceneInitialized(gfx);

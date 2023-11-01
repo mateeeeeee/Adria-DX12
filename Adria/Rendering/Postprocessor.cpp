@@ -32,7 +32,7 @@ namespace adria
 	}
 
 	PostProcessor::PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height)
-		: gfx(gfx), reg(reg), display_width(width), display_height(height),
+		: gfx(gfx), reg(reg), display_width(width), display_height(height), render_width(width), render_height(height),
 		blur_pass(width, height), copy_to_texture_pass(width, height),
 		add_textures_pass(width, height), automatic_exposure_pass(width, height),
 		lens_flare_pass(width, height),
@@ -42,6 +42,7 @@ namespace adria
 		bokeh_pass(width, height), fsr2_pass(gfx, width, height)
 	{
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
+		AddRenderResolutionChangedCallback(&PostProcessor::OnRenderResolutionChanged, *this);
 	}
 
 	void PostProcessor::AddPasses(RenderGraph& rg)
@@ -69,8 +70,13 @@ namespace adria
 		{
 			copy_to_texture_pass.AddPass(rg, final_resource, RG_RES_NAME(RTR_Output), BlendMode::AdditiveBlend);
 		}
-
 		if (fog) final_resource = fog_pass.AddPass(rg, final_resource);
+
+		switch (upscaler)
+		{
+		case TemporalUpscalerType::FSR2: final_resource = fsr2_pass.AddPass(rg, final_resource); break;
+		}
+
 		if (dof)
 		{
 			blur_pass.AddPass(rg, final_resource, RG_RES_NAME(BlurredDofInput), " DoF ");
@@ -78,7 +84,6 @@ namespace adria
 			final_resource = dof_pass.AddPass(rg, final_resource);
 		}
 		if (motion_blur) final_resource = motion_blur_pass.AddPass(rg, final_resource);
-
 		for (entt::entity light_entity : lights)
 		{
 			auto const& light = lights.get<Light>(light_entity);
@@ -113,6 +118,8 @@ namespace adria
 	void PostProcessor::OnResize(uint32 w, uint32 h)
 	{
 		display_width = w, display_height = h;
+		if(upscaler == TemporalUpscalerType::FSR2) fsr2_pass.OnResize(w, h);
+
 		clouds_pass.OnResize(gfx, w, h);
 		blur_pass.OnResize(w, h);
 		add_textures_pass.OnResize(w, h);
@@ -137,6 +144,12 @@ namespace adria
 			history_buffer = gfx->CreateTexture(render_target_desc);
 		}
 	}
+
+	void PostProcessor::OnRenderResolutionChanged(uint32 w, uint32 h)
+	{
+		ADRIA_LOG(DEBUG, "PostProcessor::OnRenderResolutionChanged: %lu, %lu", w, h);
+	}
+
 	void PostProcessor::OnSceneInitialized()
 	{
 		automatic_exposure_pass.OnSceneInitialized(gfx);
@@ -250,9 +263,14 @@ namespace adria
 				int& current_reflection_type = cvars::reflections.Get();
 				if (ImGui::TreeNode("Post-processing"))
 				{
-					if (ImGui::Combo("Temporal Upscaler", &current_upscaler, "None\0FSR2\0", 2))
+					if (ImGui::Combo("Upscaler", &current_upscaler, "None\0FSR2\0", 2))
 					{
 						upscaler = static_cast<TemporalUpscalerType>(current_upscaler);
+						switch (upscaler)
+						{
+						case TemporalUpscalerType::FSR2: fsr2_pass.OnResize(display_width, display_height); break;
+						case TemporalUpscalerType::None: upscaler_disabled_event.Broadcast(display_width, display_height); break;
+						}
 					}
 					if (ImGui::Combo("Reflections", &current_reflection_type, "None\0SSR\0RTR\0", 3))
 					{

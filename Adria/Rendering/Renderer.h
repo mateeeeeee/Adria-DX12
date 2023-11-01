@@ -64,6 +64,7 @@ namespace adria
 		void SetViewportData(ViewportData const& vp);
 
 		void OnResize(uint32 w, uint32 h);
+		void OnRenderResolutionChanged(uint32 w, uint32 h);
 		void OnSceneInitialized();
 		void OnRightMouseClicked(int32 x, int32 y);
 

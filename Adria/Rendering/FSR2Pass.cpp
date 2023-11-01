@@ -115,8 +115,8 @@ namespace adria
 					ImGui::SliderFloat("Sharpness", &sharpness, 0.0f, 1.0f, "%.2f");
 					ImGui::TreePop(); 
 				}
-			}
-		);
+			});
+
 		return input;
 		return RG_RES_NAME(FSR2Output);
 	}
@@ -164,8 +164,7 @@ namespace adria
 	{
 		float upscale_ratio = GetUpscaleRatio();
 		render_width = (uint32)((float)display_width / upscale_ratio);
-		render_height = (uint32)((float)display_width / upscale_ratio);
-		ADRIA_LOG(DEBUG, "Broadcasting render resolution changed event...");
+		render_height = (uint32)((float)display_height / upscale_ratio);
 		render_resolution_changed_event.Broadcast(render_width, render_height);
 	}
 

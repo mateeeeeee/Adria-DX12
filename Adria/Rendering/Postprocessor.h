@@ -29,7 +29,6 @@ namespace adria
 	class GfxBuffer;
 	struct Light;
 
-	DECLARE_EVENT(UpscalerDisabledEvent, PostProcessor, uint32, uint32);
 
 	class PostProcessor
 	{
@@ -51,18 +50,21 @@ namespace adria
 			AntiAliasing_TAA = 0x2
 		};
 
+		DECLARE_EVENT(UpscalerDisabledEvent, PostProcessor, uint32, uint32);
+
 	public:
 		PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height);
 		void AddPasses(RenderGraph& rg);
 
-		template<typename F>
-		void AddRenderResolutionChangedCallback(F&& fn)
+		template<typename T, typename... Args>
+		void AddRenderResolutionChangedCallback(void(T::* mem_pfn)(Args...), T& instance)
 		{
-			fsr2_pass.GetRenderResolutionChangedEvent().Add(std::forward<F>(fn));
-			upscaler_disabled_event.Add(std::forward<F>(fn));
+			fsr2_pass.GetRenderResolutionChangedEvent().AddMember(mem_pfn, instance);
+			upscaler_disabled_event.AddMember(mem_pfn, instance);
 		}
 
 		void OnResize(uint32 w, uint32 h);
+		void OnRenderResolutionChanged(uint32 w, uint32 h);
 		void OnSceneInitialized();
 		RGResourceName GetFinalResource() const;
 
