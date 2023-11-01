@@ -92,4 +92,14 @@ namespace adria
 
 	}
 
+	void BlurPass::OnResize(uint32 w, uint32 h)
+	{
+		width = w, height = h;
+	}
+
+	void BlurPass::SetResolution(uint32 w, uint32 h)
+	{
+		width = w, height = h;
+	}
+
 }

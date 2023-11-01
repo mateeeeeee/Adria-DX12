@@ -16,10 +16,8 @@ namespace adria
 		void AddPass(RenderGraph& rendergraph,
 			RGResourceName src_texture, RGResourceName blurred_texture, char const* pass_name = "");
 
-		void OnResize(uint32 w, uint32 h)
-		{
-			width = w, height = h;
-		}
+		void OnResize(uint32 w, uint32 h);
+		void SetResolution(uint32 w, uint32 h);
 
 	private:
 		uint32 width, height;

@@ -4,19 +4,26 @@
 #include "RenderGraph/RenderGraph.h"
 #include "FSR2/dx12/ffx_fsr2_dx12.h"
 #include "Editor/GUICommand.h"
+#include "Logging/Logger.h"
 
 namespace adria
 {
-	FSR2Pass::FSR2Pass(GfxDevice* _gfx) 
-		: gfx(_gfx), width(), height(), render_width(), render_height(){}
+	FSR2Pass::FSR2Pass(GfxDevice* _gfx, uint32 w, uint32 h)
+		: gfx(_gfx), display_width(), display_height(), render_width(), render_height()
+	{
+		OnResize(w, h);
+	}
 
 	FSR2Pass::~FSR2Pass()
 	{
 		DestroyContext();
 	}
 
-	void FSR2Pass::AddPass(RenderGraph& rg, RGResourceName input)
+	RGResourceName FSR2Pass::AddPass(RenderGraph& rg, RGResourceName input)
 	{
+		if (recreate_context) CreateContext();
+
+#if 0
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
 		struct FSR2PassData
@@ -33,8 +40,8 @@ namespace adria
 			{
 				RGTextureDesc fsr2_desc{};
 				fsr2_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-				fsr2_desc.width = width;
-				fsr2_desc.height = height;
+				fsr2_desc.width = display_width;
+				fsr2_desc.height = display_height;
 				fsr2_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 				builder.DeclareTexture(RG_RES_NAME(FSR2Output), fsr2_desc);
 
@@ -84,6 +91,7 @@ namespace adria
 				FfxErrorCode error_code = ffxFsr2ContextDispatch(&context, &dispatch_desc);
 				ADRIA_ASSERT(error_code == FFX_OK);
 			}, RGPassType::Compute);
+#endif
 
 		GUI_RunCommand([&]()
 			{
@@ -105,9 +113,12 @@ namespace adria
 					}
 					
 					ImGui::SliderFloat("Sharpness", &sharpness, 0.0f, 1.0f, "%.2f");
+					ImGui::TreePop(); 
 				}
 			}
 		);
+		return input;
+		return RG_RES_NAME(FSR2Output);
 	}
 
 	float FSR2Pass::GetUpscaleRatio() const
@@ -129,8 +140,8 @@ namespace adria
 			context_desc.device = ffxGetDeviceDX12(device);
 			context_desc.maxRenderSize.width = render_width;
 			context_desc.maxRenderSize.height = render_height;
-			context_desc.displaySize.width = width;
-			context_desc.displaySize.height = height;
+			context_desc.displaySize.width = display_width;
+			context_desc.displaySize.height = display_height;
 			context_desc.flags = FFX_FSR2_ENABLE_HIGH_DYNAMIC_RANGE | FFX_FSR2_ENABLE_AUTO_EXPOSURE;
 
 			ffxFsr2ContextCreate(&context, &context_desc);
@@ -152,8 +163,10 @@ namespace adria
 	void FSR2Pass::RecreateRenderDimensions()
 	{
 		float upscale_ratio = GetUpscaleRatio();
-		render_width = (uint32)((float)width / upscale_ratio);
-		render_height = (uint32)((float)width / upscale_ratio);
+		render_width = (uint32)((float)display_width / upscale_ratio);
+		render_height = (uint32)((float)display_width / upscale_ratio);
+		ADRIA_LOG(DEBUG, "Broadcasting render resolution changed event...");
+		render_resolution_changed_event.Broadcast(render_width, render_height);
 	}
 
 }

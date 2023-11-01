@@ -1,45 +1,52 @@
 #pragma once
 #include "FSR2/ffx_fsr2.h"
 #include "RenderGraph/RenderGraphResourceName.h"
+#include "Events/Delegate.h"
 
 namespace adria
 {
 	class GfxDevice;
 	class RenderGraph;
 
+	DECLARE_EVENT(RenderResolutionChanged, FSR2Pass, uint32, uint32);
+
 	class FSR2Pass
 	{
 	public:
-		explicit FSR2Pass(GfxDevice* gfx);
+		explicit FSR2Pass(GfxDevice* gfx, uint32 w, uint32 h);
 		~FSR2Pass();
 
-		void AddPass(RenderGraph& rg, RGResourceName input);
+		RGResourceName AddPass(RenderGraph& rg, RGResourceName input);
 		float GetUpscaleRatio() const;
 		void OnResize(uint32 w, uint32 h)
 		{
-			if (width != w || height != h)
+			if (display_width != w || display_height != h)
 			{
-				width = w, height = h;
+				display_width = w, display_height = h;
 				RecreateRenderDimensions();
 				recreate_context = true;
 			}
 		}
 
-		Vector2u GetRenderDimensions()  const { return Vector2u(render_width, render_height); }
-		Vector2u GetDisplayDimensions() const { return Vector2u(width, height); }
+		Vector2u GetRenderResolution()  const { return Vector2u(render_width, render_height); }
+		Vector2u GetDisplayResolution() const { return Vector2u(display_width, display_height); }
+
+		RenderResolutionChanged& GetRenderResolutionChangedEvent() { return render_resolution_changed_event; }
 
 	private:
 		GfxDevice* gfx = nullptr;
-		uint32 width, height;
+		uint32 display_width, display_height;
 		uint32 render_width, render_height;
 
 		FfxFsr2ContextDescription context_desc = {};
 		FfxFsr2Context context = {};
-		bool recreate_context = true;
+		bool recreate_context = false;
 
 		FfxFsr2QualityMode quality_mode = FFX_FSR2_QUALITY_MODE_QUALITY;
 		float custom_upscale_ratio = 1.0f;
 		float sharpness = 0.5f;
+
+		RenderResolutionChanged render_resolution_changed_event;
 
 	private:
 		void CreateContext();

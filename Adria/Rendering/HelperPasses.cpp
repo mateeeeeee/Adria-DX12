@@ -50,6 +50,16 @@ namespace adria
 			}, RGPassType::Graphics, RGPassFlags::None);
 	}
 
+	void CopyToTexturePass::OnResize(uint32 w, uint32 h)
+	{
+		width = w, height = h;
+	}
+
+	void CopyToTexturePass::SetResolution(uint32 w, uint32 h)
+	{
+		width = w, height = h;
+	}
+
 	AddTexturesPass::AddTexturesPass(uint32 w, uint32 h) : width(w), height(h) {}
 
 	void AddTexturesPass::AddPass(RenderGraph& rendergraph, RGResourceName render_target, RGResourceName texture1, RGResourceName texture2, BlendMode mode /*= EBlendMode::None*/)
@@ -103,4 +113,10 @@ namespace adria
 	{
 		width = w, height = h;
 	}
+
+	void AddTexturesPass::SetResolution(uint32 w, uint32 h)
+	{
+		width = w, height = h;
+	}
+
 }

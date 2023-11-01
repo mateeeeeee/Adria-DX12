@@ -39,7 +39,7 @@ namespace adria
 		clouds_pass(width, height), ssr_pass(width, height), fog_pass(width, height),
 		dof_pass(width, height), bloom_pass(width, height), velocity_buffer_pass(width, height),
 		motion_blur_pass(width, height), taa_pass(width, height), god_rays_pass(width, height),
-		bokeh_pass(width, height), fsr2_pass(gfx)
+		bokeh_pass(width, height), fsr2_pass(gfx, width, height)
 	{
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 	}
@@ -248,15 +248,16 @@ namespace adria
 			{
 				int& current_upscaler = cvars::upscaler.Get();
 				int& current_reflection_type = cvars::reflections.Get();
-				if (ImGui::TreeNode("PostProcess"))
+				if (ImGui::TreeNode("Post-processing"))
 				{
 					if (ImGui::Combo("Temporal Upscaler", &current_upscaler, "None\0FSR2\0", 2))
 					{
-						if (!ray_tracing_supported && current_reflection_type == 3) current_reflection_type = 1;
+						upscaler = static_cast<TemporalUpscaler>(current_upscaler);
 					}
 					if (ImGui::Combo("Reflections", &current_reflection_type, "None\0SSR\0RTR\0", 3))
 					{
 						if (!ray_tracing_supported && current_reflection_type == 3) current_reflection_type = 1;
+						reflections = static_cast<Reflections>(current_reflection_type);
 					}
 
 					ImGui::Checkbox("Automatic Exposure", &cvars::exposure.Get());
@@ -277,8 +278,7 @@ namespace adria
 
 					ImGui::TreePop();
 				}
-				upscaler = static_cast<TemporalUpscaler>(current_upscaler);
-				reflections = static_cast<Reflections>(current_reflection_type);
+				
 				automatic_exposure = cvars::exposure;
 				clouds = cvars::clouds;
 				dof = cvars::dof;

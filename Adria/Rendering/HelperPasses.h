@@ -23,10 +23,8 @@ namespace adria
 			RGResourceName render_target,
 			RGResourceName texture_src, BlendMode mode = BlendMode::None);
 
-		void OnResize(uint32 w, uint32 h)
-		{
-			width = w, height = h;
-		}
+		void OnResize(uint32 w, uint32 h);
+		void SetResolution(uint32 w, uint32 h);
 
 	private:
 		uint32 width, height;
@@ -42,6 +40,7 @@ namespace adria
 			RGResourceName texture1, RGResourceName texture2, BlendMode mode = BlendMode::None);
 
 		void OnResize(uint32 w, uint32 h);
+		void SetResolution(uint32 w, uint32 h);
 
 	private:
 		uint32 width, height;
