@@ -14,7 +14,6 @@ using namespace DirectX;
 
 namespace adria
 {
-
 	void DeferredLightingPass::AddPass(RenderGraph& rendergraph)
 	{
 		struct LightingPassData
@@ -44,11 +43,12 @@ namespace adria
 				data.gbuffer_emissive = builder.ReadTexture(RG_RES_NAME(GBufferEmissive), ReadAccess_NonPixelShader);
 				data.depth			  = builder.ReadTexture(RG_RES_NAME(DepthStencil),  ReadAccess_NonPixelShader);
 
-				if (builder.IsTextureDeclared(RG_RES_NAME(AmbientOcclusion)))
-					 data.ambient_occlusion = builder.ReadTexture(RG_RES_NAME(AmbientOcclusion), ReadAccess_NonPixelShader);
+				if (builder.IsTextureDeclared(RG_RES_NAME(AmbientOcclusion))) data.ambient_occlusion = builder.ReadTexture(RG_RES_NAME(AmbientOcclusion), ReadAccess_NonPixelShader);
 				else data.ambient_occlusion.Invalidate();
 
 				for (auto& shadow_texture : shadow_textures) std::ignore = builder.ReadTexture(shadow_texture);
+				if(builder.IsTextureDeclared(RG_RES_NAME(DDGIIrradianceHistory))) std::ignore = builder.ReadTexture(RG_RES_NAME(DDGIIrradianceHistory));
+				if(builder.IsTextureDeclared(RG_RES_NAME(DDGIDistanceHistory)))   std::ignore = builder.ReadTexture(RG_RES_NAME(DDGIDistanceHistory));
 			},
 			[=](LightingPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{

@@ -298,8 +298,6 @@ namespace adria
 
 		rg.ExportTexture(RG_RES_NAME(DDGIIrradiance), ddgi_volume.irradiance_history.get());
 		rg.ExportTexture(RG_RES_NAME(DDGIDistance), ddgi_volume.distance_history.get());
-
-		
 	}
 
 	void DDGI::AddVisualizePass(RenderGraph& rg)

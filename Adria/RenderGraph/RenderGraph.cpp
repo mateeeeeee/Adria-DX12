@@ -1252,7 +1252,7 @@ namespace adria
 		graph_file.close();
 
 		std::string filename = GetFilenameWithoutExtension(graph_file_name);
-		system(std::format("dot -Tsvg {} > {}.svg", graph_file_name, filename).c_str());
+		system(std::format("Tools\\graphviz\\dot.exe -Tsvg {} > {}.svg", graph_file_name, filename).c_str());
 	}
 
 	void RenderGraph::DumpDebugData()
