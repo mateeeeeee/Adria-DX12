@@ -23,6 +23,7 @@ namespace adria
 		{
 			shadow_textures.push_back(name);
 		}
+
 	private:
 		uint32 width, height;
 		std::vector<RGResourceName> shadow_textures;
