@@ -159,7 +159,7 @@ namespace adria
 
 	void Renderer::OnRenderResolutionChanged(uint32 w, uint32 h)
 	{
-		ADRIA_LOG(DEBUG, "Renderer::OnRenderResolutionChanged: %lu, %lu", w, h);
+		render_width = w, render_height = h;
 	}
 
 	void Renderer::OnSceneInitialized()
