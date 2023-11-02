@@ -58,7 +58,7 @@ float ComputeCoarseAO(Texture2D<float> depthTx, float2 UV, float radiusInPixels,
         float rayT = (rand.z * stepSizeInPixels + 1.0);
         for (float stepIndex = 0; stepIndex < HBAO_NUM_STEPS; ++stepIndex)
         {
-            float2 SnappedUV = round(rayT * direction) / FrameCB.screenResolution + UV;
+            float2 SnappedUV = round(rayT * direction) / FrameCB.displayResolution + UV;
             float depth = depthTx.Sample(LinearBorderSampler, SnappedUV);
             float3 S = GetViewPosition(SnappedUV, depth);
             rayT += stepSizeInPixels;
@@ -77,7 +77,7 @@ void HBAO(CSInput input)
     Texture2D noiseTx = ResourceDescriptorHeap[PassCB.noiseIdx];
     RWTexture2D<float> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
     
-    float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
+    float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.displayResolution);
     float depth = depthTx.Sample(LinearBorderSampler, uv);
     float3 viewPosition = GetViewPosition(uv, depth);
 

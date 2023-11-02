@@ -26,7 +26,7 @@ void MotionBlur(CSInput input)
 	Texture2D<float2> velocityTx = ResourceDescriptorHeap[PassCB.velocityIdx];
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
 
-	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
+	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.displayResolution);
 
 	float2 velocity = velocityTx.Sample(LinearWrapSampler, uv) / SAMPLE_COUNT;
 	float4 color = sceneTx.Sample(LinearWrapSampler, uv);

@@ -101,7 +101,7 @@ void SSR(CSInput input)
     Texture2D sceneTx = ResourceDescriptorHeap[PassCB.sceneIdx];
     RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
 
-    float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
+    float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.displayResolution);
     float4 viewNormalMetallic = normalTx.Sample(LinearBorderSampler, uv);
     float3 viewNormal = viewNormalMetallic.rgb;
     viewNormal = 2.0f * viewNormal - 1.0f;

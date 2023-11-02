@@ -26,7 +26,7 @@ void RTS_RayGen()
 	uint2 launchDim = DispatchRaysDimensions().xy;
 
 	float depth = depthTx.Load(int3(launchIndex.xy, 0)).r;
-	float2 texCoords = (launchIndex + 0.5f) / FrameCB.screenResolution;
+	float2 texCoords = (launchIndex + 0.5f) / FrameCB.displayResolution;
 	float3 worldPos = GetWorldPosition(texCoords, depth);
 
 	light.direction.xyz = mul(light.direction.xyz, (float3x3) FrameCB.inverseView);

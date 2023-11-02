@@ -278,7 +278,7 @@ void CloudsCS(CSInput input)
 {
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
 	uint3 threadId = input.DispatchThreadId;
-	uint2 resolution = uint2(FrameCB.screenResolution) >> PassCB.resolutionFactor;
+	uint2 resolution = uint2(FrameCB.displayResolution) >> PassCB.resolutionFactor;
 	float2 uv = ((float2) threadId.xy + 0.5f) * 1.0f / resolution;
 
 #if REPROJECTION

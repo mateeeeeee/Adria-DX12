@@ -41,7 +41,7 @@ void TiledDeferredLighting(CSInput input)
 	uint totalLights, _unused;
 	lights.GetDimensions(totalLights, _unused);
 
-	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
+	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.displayResolution);
 
 	float minZ = FrameCB.cameraFar;
 	float maxZ = FrameCB.cameraNear;
@@ -78,7 +78,7 @@ void TiledDeferredLighting(CSInput input)
 	float tileMinZ = asfloat(minZ);
 	float tileMaxZ = asfloat(maxZ);
 
-	float2 tileScale = FrameCB.screenResolution * rcp(float(2 * BLOCK_SIZE));
+	float2 tileScale = FrameCB.displayResolution * rcp(float(2 * BLOCK_SIZE));
 	float2 tileBias = tileScale - float2(input.GroupId.xy);
 
 	float4 c1 = float4(FrameCB.projection._11 * tileScale.x, 0.0f, tileBias.x, 0.0f);
@@ -136,7 +136,7 @@ void TiledDeferredLighting(CSInput input)
 
 	BrdfData brdfData = GetBrdfData(albedo, metallic, roughness);
 	LightingResult lightResult = (LightingResult)0; 
-	if (all(input.DispatchThreadId.xy < FrameCB.screenResolution))
+	if (all(input.DispatchThreadId.xy < FrameCB.displayResolution))
 	{
 		for (int i = 0; i < TileNumLights; ++i)
 		{

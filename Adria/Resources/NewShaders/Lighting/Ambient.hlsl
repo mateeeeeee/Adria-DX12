@@ -31,7 +31,7 @@ void Ambient(CSInput input)
 	Texture2D               emissiveTx       = ResourceDescriptorHeap[PassCB.emissiveIdx];
 	Texture2D<float>        depthTx          = ResourceDescriptorHeap[PassCB.depthIdx];
 
-	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
+	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.displayResolution);
 
 	if (all(uv) >= 0.0f && all(uv) <= 1.0f)
 	{

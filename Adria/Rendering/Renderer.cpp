@@ -353,8 +353,10 @@ namespace adria
 		frame_cbuf_data.reprojection = frame_cbuf_data.inverse_view_projection * frame_cbuf_data.prev_view_projection;
 		frame_cbuf_data.camera_jitter_x = ((camera_jitter.x - 0.5f) / display_width) * 2;
 		frame_cbuf_data.camera_jitter_y = ((camera_jitter.y - 0.5f) / display_height) * 2;
-		frame_cbuf_data.screen_resolution_x = (float)display_width;
-		frame_cbuf_data.screen_resolution_y = (float)display_height;
+		frame_cbuf_data.display_resolution_x = (float)display_width;
+		frame_cbuf_data.display_resolution_y = (float)display_height;
+		frame_cbuf_data.render_resolution_x = (float)render_width;
+		frame_cbuf_data.render_resolution_y = (float)render_height;
 		frame_cbuf_data.delta_time = dt;
 		frame_cbuf_data.total_time = total_time;
 		frame_cbuf_data.frame_count = gfx->GetFrameIndex();

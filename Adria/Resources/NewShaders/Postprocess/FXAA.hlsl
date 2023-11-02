@@ -23,16 +23,16 @@ void FXAA(CSInput input)
 	Texture2D<float4> ldrTx = ResourceDescriptorHeap[PassCB.ldrIdx];
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
 
-	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
+	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.displayResolution);
 
 	const float FXAA_SPAN_MAX = 8.0;
 	const float FXAA_REDUCE_MUL = 1.0 / 8.0;
 	const float FXAA_REDUCE_MIN = 1.0 / 128.0;
 
-	float3 rgbNW = ldrTx.Sample(LinearWrapSampler, uv + float2(-1.0, -1.0) / FrameCB.screenResolution, 0).rgb;
-	float3 rgbNE = ldrTx.Sample(LinearWrapSampler, uv + float2(1.0, -1.0)  / FrameCB.screenResolution, 0).rgb;
-	float3 rgbSW = ldrTx.Sample(LinearWrapSampler, uv + float2(-1.0, 1.0)  / FrameCB.screenResolution, 0).rgb;
-	float3 rgbSE = ldrTx.Sample(LinearWrapSampler, uv + float2(1.0, 1.0)   / FrameCB.screenResolution, 0).rgb;
+	float3 rgbNW = ldrTx.Sample(LinearWrapSampler, uv + float2(-1.0, -1.0) / FrameCB.displayResolution, 0).rgb;
+	float3 rgbNE = ldrTx.Sample(LinearWrapSampler, uv + float2(1.0, -1.0)  / FrameCB.displayResolution, 0).rgb;
+	float3 rgbSW = ldrTx.Sample(LinearWrapSampler, uv + float2(-1.0, 1.0)  / FrameCB.displayResolution, 0).rgb;
+	float3 rgbSE = ldrTx.Sample(LinearWrapSampler, uv + float2(1.0, 1.0)   / FrameCB.displayResolution, 0).rgb;
 	float3 rgbM  = ldrTx.Sample(LinearWrapSampler, uv, 0).rgb;
 
 	float3 luma = float3(0.299, 0.587, 0.114);
@@ -57,7 +57,7 @@ void FXAA(CSInput input)
 
 	dir = min(float2(FXAA_SPAN_MAX, FXAA_SPAN_MAX),
 		max(float2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX),
-			dir * rcpDirMin)) / FrameCB.screenResolution;
+			dir * rcpDirMin)) / FrameCB.displayResolution;
 
 	float3 rgbA = (1.0 / 2.0) *
 		(

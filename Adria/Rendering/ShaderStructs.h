@@ -39,13 +39,16 @@ namespace adria
 		Vector4 sun_color;
 		Vector4 cascade_splits;
 
-		float  screen_resolution_x;
-		float  screen_resolution_y;
+		float  display_resolution_x;
+		float  display_resolution_y;
+		float  render_resolution_x;
+		float  render_resolution_y;
+
 		float  mouse_normalized_coords_x;
 		float  mouse_normalized_coords_y;
-
 		float  delta_time;
 		float  total_time;
+
 		uint32 frame_count;
 		int32  lights_idx;
 		int32  lights_matrices_idx;

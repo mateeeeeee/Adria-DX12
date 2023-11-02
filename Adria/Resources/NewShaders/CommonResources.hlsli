@@ -25,11 +25,13 @@ struct FrameCBuffer
     float4 sunColor;
 	float4 cascadeSplits;
 
-	float2 screenResolution;
-    float2 mouseNormalizedCoords;
+	float2 displayResolution;
+	float2 renderResolution;
 
+    float2 mouseNormalizedCoords;
 	float  deltaTime;
 	float  totalTime;
+
 	uint   frameCount;
 	int    lightsIdx;
 	int    lightsMatricesIdx;

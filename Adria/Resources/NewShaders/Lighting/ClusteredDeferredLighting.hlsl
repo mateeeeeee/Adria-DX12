@@ -40,7 +40,7 @@ void ClusteredDeferredLighting(CSInput input)
 	StructuredBuffer<uint>  lightIndexList	 = ResourceDescriptorHeap[PassCB.lightIndexListIdx];
 	StructuredBuffer<LightGrid> lightGrid	 = ResourceDescriptorHeap[PassCB.lightGridIdx];
 
-	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
+	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.displayResolution);
 
 	float4 normalMetallic = normalMetallicTx.Sample(LinearWrapSampler, uv);
 	float3 viewNormal = 2.0f * normalMetallic.rgb - 1.0f;
@@ -56,7 +56,7 @@ void ClusteredDeferredLighting(CSInput input)
 
 
 	uint zCluster = uint(max((log2(linearDepth) - log2(FrameCB.cameraNear)) * 16.0f / log2(FrameCB.cameraFar / FrameCB.cameraNear), 0.0f));
-	uint2 clusterDim = ceil(FrameCB.screenResolution / float2(16, 16));
+	uint2 clusterDim = ceil(FrameCB.displayResolution / float2(16, 16));
 	uint3 tiles = uint3(uint2(((float2) input.DispatchThreadId.xy + 0.5f) / clusterDim), zCluster);
 
 	uint tileIndex = tiles.x +

@@ -32,7 +32,7 @@ void Tonemap(CSInput input)
     Texture2D<float> exposureTx = ResourceDescriptorHeap[PassCB.exposureIdx];
     RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
 
-    float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
+    float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.displayResolution);
     
     float4 color = hdrTx.Sample(LinearWrapSampler, uv);
 	if (PassCB.bloomIdx > 0)

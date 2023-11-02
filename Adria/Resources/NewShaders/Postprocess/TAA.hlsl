@@ -86,7 +86,7 @@ void TAA(CSInput input)
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
 
 	int2 pos = input.DispatchThreadId.xy;
-	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.screenResolution);
+	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.displayResolution);
 
 	float3 color = sceneTx.Load(int3(pos, 0)).rgb;
 	color = RGBToYCgCo(color);
@@ -117,7 +117,7 @@ void TAA(CSInput input)
 		motion = dot(m, m) > dot(motion, motion) ? m : motion;
 	}
 
-	float3 history = BicubicSampleCatmullRom(prevSceneTx, (uv + motion) * FrameCB.screenResolution, FrameCB.screenResolution);
+	float3 history = BicubicSampleCatmullRom(prevSceneTx, (uv + motion) * FrameCB.displayResolution, FrameCB.displayResolution);
 	history = RGBToYCgCo(history);
 
 	float distToClamp = min(abs(colorMin.x - history.x), abs(colorMax.x - history.x));

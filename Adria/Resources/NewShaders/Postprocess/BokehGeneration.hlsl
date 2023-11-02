@@ -52,7 +52,7 @@ void BokehGeneration(CSInput input)
 	AppendStructuredBuffer<Bokeh> bokehBuffer = ResourceDescriptorHeap[PassCB2.bokehStackIdx];
 
 	uint2 globalCoords = input.DispatchThreadId.xy;
-	float2 uv = ((float2) globalCoords + 0.5f) * 1.0f / (FrameCB.screenResolution);
+	float2 uv = ((float2) globalCoords + 0.5f) * 1.0f / (FrameCB.displayResolution);
 
 	float depth = depthTx.Load(int3(globalCoords, 0));
 	float centerDepth = LinearizeDepth(depth);
@@ -85,7 +85,7 @@ void BokehGeneration(CSInput input)
 		{
 			Bokeh bPoint;
 			bPoint.Position = float3(uv, centerDepth);
-			bPoint.Size = centerBlur * PassCB.bokehScale / FrameCB.screenResolution;
+			bPoint.Size = centerBlur * PassCB.bokehScale / FrameCB.displayResolution;
 
 			float cocRadius = centerBlur * PassCB.bokehScale * 0.45f;
 			float cocArea = cocRadius * cocRadius * 3.14159f;

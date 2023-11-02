@@ -43,7 +43,7 @@ void SSAO(CSInput input)
     float ssaoRadius = ssaoParams.x;
     float ssaoPower = ssaoParams.y;
     
-    uint2 resolution = uint2(FrameCB.screenResolution) >> PassCB.resolutionFactor;
+    uint2 resolution = uint2(FrameCB.displayResolution) >> PassCB.resolutionFactor;
     float2 uv = ((float2)input.DispatchThreadId.xy + 0.5f) * 1.0f / resolution;
     float3 viewNormal = normalTx.Sample(LinearBorderSampler, uv).rgb;
     viewNormal = 2.0f * viewNormal - 1.0f;
