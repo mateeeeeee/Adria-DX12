@@ -80,7 +80,7 @@ namespace adria
 	}
 	void Editor::HandleWindowMessage(WindowMessage const& msg_data)
 	{
-		engine->HandleWindowMessage(msg_data);
+		if(scene_focused) engine->HandleWindowMessage(msg_data);
 		gui->HandleWindowMessage(msg_data);
 	}
 	void Editor::Run()
@@ -889,39 +889,40 @@ namespace adria
 			ImGui::Checkbox("Show Profiling Results", &show_profiling);
 			if (show_profiling)
 			{
-				static ProfilerState state;
 				static constexpr uint64 NUM_FRAMES = 128;
-				static float FRAME_TIME_ARRAY[NUM_FRAMES] = { 0 };
-				static float RECENT_HIGHEST_FRAME_TIME = 0.0f;
 				static constexpr int32 FRAME_TIME_GRAPH_MAX_FPS[] = { 800, 240, 120, 90, 65, 45, 30, 15, 10, 5, 4, 3, 2, 1 };
-				static float FRAME_TIME_GRAPH_MAX_VALUES[ARRAYSIZE(FRAME_TIME_GRAPH_MAX_FPS)] = { 0 };
-				for (uint64 i = 0; i < ARRAYSIZE(FRAME_TIME_GRAPH_MAX_FPS); ++i) { FRAME_TIME_GRAPH_MAX_VALUES[i] = 1000.f / FRAME_TIME_GRAPH_MAX_FPS[i]; }
+
+				static ProfilerState state{};
+				static float FrameTimeArray[NUM_FRAMES] = { 0 };
+				static float RecentHighestFrameTime = 0.0f;
+				static float FrameTimeGraphMaxValues[ARRAYSIZE(FRAME_TIME_GRAPH_MAX_FPS)] = { 0 };
+				for (uint64 i = 0; i < ARRAYSIZE(FrameTimeGraphMaxValues); ++i) { FrameTimeGraphMaxValues[i] = 1000.f / FRAME_TIME_GRAPH_MAX_FPS[i]; }
 
 				std::vector<GfxTimestamp> time_stamps = g_GfxProfiler.GetResults();
-				FRAME_TIME_ARRAY[NUM_FRAMES - 1] = 1000.0f / io.Framerate;
-				for (uint32 i = 0; i < NUM_FRAMES - 1; i++) FRAME_TIME_ARRAY[i] = FRAME_TIME_ARRAY[i + 1];
-				RECENT_HIGHEST_FRAME_TIME = std::max(RECENT_HIGHEST_FRAME_TIME, FRAME_TIME_ARRAY[NUM_FRAMES - 1]);
-				float frame_time_ms = FRAME_TIME_ARRAY[NUM_FRAMES - 1];
-				const int32 fps = static_cast<int32>(1000.0f / frame_time_ms);
+				FrameTimeArray[NUM_FRAMES - 1] = 1000.0f / io.Framerate;
+				for (uint32 i = 0; i < NUM_FRAMES - 1; i++) FrameTimeArray[i] = FrameTimeArray[i + 1];
+				RecentHighestFrameTime = std::max(RecentHighestFrameTime, FrameTimeArray[NUM_FRAMES - 1]);
 
+				float frame_time_ms = FrameTimeArray[NUM_FRAMES - 1];
+				int32 const fps = static_cast<int32>(1000.0f / frame_time_ms);
 				ImGui::Text("FPS        : %d (%.2f ms)", fps, frame_time_ms);
 				if (ImGui::CollapsingHeader("Timings", ImGuiTreeNodeFlags_DefaultOpen))
 				{
 					ImGui::Checkbox("Show Avg/Min/Max", &state.show_average);
 					ImGui::Spacing();
 
-					uint64 i_max = 0;
-					for (uint64 i = 0; i < ARRAYSIZE(FRAME_TIME_GRAPH_MAX_VALUES); ++i)
+					uint64 max_i = 0;
+					for (uint64 i = 0; i < ARRAYSIZE(FrameTimeGraphMaxValues); ++i)
 					{
-						if (RECENT_HIGHEST_FRAME_TIME < FRAME_TIME_GRAPH_MAX_VALUES[i]) // FRAME_TIME_GRAPH_MAX_VALUES are in increasing order
+						if (RecentHighestFrameTime < FrameTimeGraphMaxValues[i])
 						{
-							i_max = std::min(ARRAYSIZE(FRAME_TIME_GRAPH_MAX_VALUES) - 1, i + 1);
+							max_i = std::min(ARRAYSIZE(FrameTimeGraphMaxValues) - 1, i + 1);
 							break;
 						}
 					}
-					ImGui::PlotLines("", FRAME_TIME_ARRAY, NUM_FRAMES, 0, "GPU frame time (ms)", 0.0f, FRAME_TIME_GRAPH_MAX_VALUES[i_max], ImVec2(0, 80));
+					ImGui::PlotLines("", FrameTimeArray, NUM_FRAMES, 0, "GPU frame time (ms)", 0.0f, FrameTimeGraphMaxValues[max_i], ImVec2(0, 80));
 
-					constexpr uint32_t avg_timestamp_update_interval = 1000;
+					constexpr uint32 avg_timestamp_update_interval = 1000;
 					static auto MillisecondsNow = []()
 					{
 						static LARGE_INTEGER s_frequency;
@@ -960,30 +961,34 @@ namespace adria
 					}
 
 					float total_time_ms = 0.0f;
+					ImGui::Columns(2);
 					for (uint64 i = 0; i < time_stamps.size(); i++)
 					{
-						float value = time_stamps[i].time_in_ms;
-						char const* pStrUnit = "ms";
-						ImGui::Text("%-18s: %7.2f %s", time_stamps[i].name.c_str(), value, pStrUnit);
+						ImGui::Text("%s", time_stamps[i].name.c_str());
+						ImGui::NextColumn();
+						ImGui::Text("%.2f ms", time_stamps[i].time_in_ms);
+						
 						if (state.show_average)
 						{
 							if (state.displayed_timestamps.size() == time_stamps.size())
 							{
 								ImGui::SameLine();
-								ImGui::Text("  avg: %7.2f %s", state.displayed_timestamps[i].sum, pStrUnit);
-								ImGui::SameLine();
-								ImGui::Text("  min: %7.2f %s", state.displayed_timestamps[i].minimum, pStrUnit);
-								ImGui::SameLine();
-								ImGui::Text("  max: %7.2f %s", state.displayed_timestamps[i].maximum, pStrUnit);
+								ImGui::Text("  avg: %.2f ms", state.displayed_timestamps[i].sum);
+								ImGui::SameLine();	 
+								ImGui::Text("  min: %.2f ms", state.displayed_timestamps[i].minimum);
+								ImGui::SameLine();	 
+								ImGui::Text("  max: %.2f ms", state.displayed_timestamps[i].maximum);
 							}
-
-							ProfilerState::AccumulatedTimeStamp* pAccumulatingTimeStamp = &state.accumulating_timestamps[i];
-							pAccumulatingTimeStamp->sum += time_stamps[i].time_in_ms;
-							pAccumulatingTimeStamp->minimum = std::min<float>(pAccumulatingTimeStamp->minimum, time_stamps[i].time_in_ms);
-							pAccumulatingTimeStamp->maximum = std::max<float>(pAccumulatingTimeStamp->maximum, time_stamps[i].time_in_ms);
+						
+							ProfilerState::AccumulatedTimeStamp* accumulating_timestamp = &state.accumulating_timestamps[i];
+							accumulating_timestamp->sum += time_stamps[i].time_in_ms;
+							accumulating_timestamp->minimum = std::min<float>(accumulating_timestamp->minimum, time_stamps[i].time_in_ms);
+							accumulating_timestamp->maximum = std::max<float>(accumulating_timestamp->maximum, time_stamps[i].time_in_ms);
 						}
-						total_time_ms += value;
+						ImGui::NextColumn();
+						total_time_ms += time_stamps[i].time_in_ms;
 					}
+					ImGui::Columns(1);
 					ImGui::Text("Total: %7.2f %s", total_time_ms, "ms");
 					state.accumulating_frame_count++;
 				}
