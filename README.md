@@ -19,7 +19,7 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
 * Reference path tracer 
 * Ultimate Bindless 
     - Only one root signature 
-* Upscalers
+* Temporal upscalers
     - FSR2
     - XeSS (wip)
 * Shadows

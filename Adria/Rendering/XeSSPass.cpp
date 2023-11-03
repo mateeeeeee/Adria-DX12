@@ -67,12 +67,12 @@ namespace adria
 		rg.AddPass<XeSSPassData>(name_version,
 			[=](XeSSPassData& data, RenderGraphBuilder& builder)
 			{
-				RGTextureDesc fsr2_desc{};
-				fsr2_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-				fsr2_desc.width = display_width;
-				fsr2_desc.height = display_height;
-				fsr2_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
-				builder.DeclareTexture(RG_RES_NAME(XeSSOutput), fsr2_desc);
+				RGTextureDesc xess_desc{};
+				xess_desc.format = GfxFormat::R16G16B16A16_FLOAT;
+				xess_desc.width = display_width;
+				xess_desc.height = display_height;
+				xess_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
+				builder.DeclareTexture(RG_RES_NAME(XeSSOutput), xess_desc);
 
 				data.output = builder.WriteTexture(RG_RES_NAME(XeSSOutput));
 				data.input = builder.ReadTexture(input, ReadAccess_NonPixelShader);
@@ -139,7 +139,7 @@ namespace adria
 			params.outputResolution.x = display_width;
 			params.outputResolution.y = display_height;
 			params.qualitySetting = quality_setting;
-			params.initFlags = XESS_INIT_FLAG_ENABLE_AUTOEXPOSURE;
+			params.initFlags = XESS_INIT_FLAG_ENABLE_AUTOEXPOSURE | XESS_INIT_FLAG_HIGH_RES_MV;
 
 			xess_result_t result = xessD3D12Init(context, &params);
 			ADRIA_ASSERT(result == XESS_RESULT_SUCCESS);
