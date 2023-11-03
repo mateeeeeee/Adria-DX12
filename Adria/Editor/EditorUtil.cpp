@@ -164,10 +164,10 @@ namespace adria
 			free(History[i]);
 	}
 
-	void EditorConsole::Draw(const char* title)
+	void EditorConsole::Draw(const char* title, bool* p_open)
 	{
 		ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
-		if (!ImGui::Begin(title))
+		if (!ImGui::Begin(title, p_open))
 		{
 			ImGui::End();
 			return;

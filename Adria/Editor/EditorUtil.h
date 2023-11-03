@@ -10,7 +10,7 @@ namespace adria
 	public:
 		EditorLogger(LogLevel logger_level = LogLevel::LOG_DEBUG);
 		virtual void Log(LogLevel level, char const* entry, char const* file, uint32_t line) override;
-		void Draw(const char* title, bool* p_open = NULL);
+		void Draw(const char* title, bool* p_open = nullptr);
 	private:
 		std::unique_ptr<struct ImGuiLogger> imgui_log;
 		LogLevel logger_level;
@@ -22,7 +22,7 @@ namespace adria
 		EditorConsole();
 		~EditorConsole();
 
-		void Draw(const char* title);
+		void Draw(const char* title, bool* p_open = nullptr);
 
 	private:
 		char                  InputBuf[256];

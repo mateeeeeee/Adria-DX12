@@ -21,7 +21,7 @@ namespace adria
 	class GUI
 	{
 	public:
-		GUI(GfxDevice* gfx);
+		explicit GUI(GfxDevice* gfx);
 		~GUI();
 
 		void Begin() const;
