@@ -456,6 +456,9 @@
     <ClCompile Include="Rendering\XeSSPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\DLSS3Pass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1009,6 +1012,9 @@
       <Filter>External\FSR2</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\XeSSPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\DLSS3Pass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
   </ItemGroup>

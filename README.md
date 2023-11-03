@@ -21,7 +21,7 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
     - FSR2
     - XeSS 
 * Ultimate Bindless 
-- Only one root signature 
+    - Only one root signature 
 * Shadows
     - PCF shadows for directional, spot and point lights
     - Cascade shadow maps for directional lights
@@ -54,6 +54,7 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
     - custom and tracy profiler
 
 ## TODO
+* DLSS3 (wip)
 * ReSTIR GI
 
 ## Dependencies
