@@ -50,7 +50,6 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
 * ImGui Editor
 * Profiler
     - custom and tracy profiler
-* Model Loading with tinygltf
 
 ## TODO
 * FSR2 (wip)
@@ -102,7 +101,10 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
 ![alt text](Screenshots/pathtracing1.png "Path tracing") 
 ![alt text](Screenshots/pathtracing2.png "Path tracing") 
 
-### Ray Tracing features
+### Editor
+![alt text](Screenshots/editor.png "Editor") 
+
+### Ray Tracing Features
 
 | Cascaded Shadow Maps |  Hard Ray Traced Shadows |
 |---|---|
@@ -116,5 +118,5 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
 |---|---|
 |  ![](Screenshots/ssao.png) | ![](Screenshots/rtao.png) |
 
-### Render graph visualization
+### Render Graph Visualization
 ![alt text](Adria/rendergraph.svg "Render graph visualization") 
