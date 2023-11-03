@@ -22,8 +22,8 @@ namespace adria
 		Vector2 jitter{};
 		constexpr HaltonSequence<16, 2> x;
 		constexpr HaltonSequence<16, 3> y;
-		jitter.x = x[frame_index % 16];
-		jitter.y = y[frame_index % 16];
+		jitter.x = x[frame_index % 16] - 0.5f;
+		jitter.y = y[frame_index % 16] - 0.5f;
 		return jitter;
 	}
 	float Camera::Near() const

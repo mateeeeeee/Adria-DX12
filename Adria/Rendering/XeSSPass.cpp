@@ -47,7 +47,11 @@ namespace adria
 		OnResize(w, h);
 	}
 
-	XeSSPass::~XeSSPass() = default;
+	XeSSPass::~XeSSPass()
+	{
+		gfx->WaitForGPU();
+		xessDestroyContext(context);
+	}
 
 	RGResourceName XeSSPass::AddPass(RenderGraph& rg, RGResourceName input)
 	{
@@ -139,7 +143,7 @@ namespace adria
 			params.outputResolution.x = display_width;
 			params.outputResolution.y = display_height;
 			params.qualitySetting = quality_setting;
-			params.initFlags = XESS_INIT_FLAG_ENABLE_AUTOEXPOSURE | XESS_INIT_FLAG_HIGH_RES_MV;
+			params.initFlags = XESS_INIT_FLAG_ENABLE_AUTOEXPOSURE;
 
 			xess_result_t result = xessD3D12Init(context, &params);
 			ADRIA_ASSERT(result == XESS_RESULT_SUCCESS);

@@ -17,11 +17,11 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
     - GPU frustum culling
     - 2 phase GPU occlusion culling
 * Reference path tracer 
-* Ultimate Bindless 
-    - Only one root signature 
 * Temporal upscalers
     - FSR2
-    - XeSS (wip)
+    - XeSS 
+* Ultimate Bindless 
+- Only one root signature 
 * Shadows
     - PCF shadows for directional, spot and point lights
     - Cascade shadow maps for directional lights

@@ -356,8 +356,8 @@ namespace adria
 		frame_cbuf_data.inverse_projection = camera->Proj().Invert();
 		frame_cbuf_data.inverse_view_projection = camera->ViewProj().Invert();
 		frame_cbuf_data.reprojection = frame_cbuf_data.inverse_view_projection * frame_cbuf_data.prev_view_projection;
-		frame_cbuf_data.camera_jitter_x = ((camera_jitter.x - 0.5f) / display_width) * 2;
-		frame_cbuf_data.camera_jitter_y = ((camera_jitter.y - 0.5f) / display_height) * 2;
+		frame_cbuf_data.camera_jitter_x = (camera_jitter.x * 2.0f) / render_width;
+		frame_cbuf_data.camera_jitter_y = (camera_jitter.y * 2.0f) / render_height;
 		frame_cbuf_data.display_resolution_x = (float)display_width;
 		frame_cbuf_data.display_resolution_y = (float)display_height;
 		frame_cbuf_data.render_resolution_x = (float)render_width;
