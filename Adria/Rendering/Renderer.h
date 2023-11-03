@@ -9,8 +9,6 @@
 #include "VolumetricLightingPass.h"
 #include "TiledDeferredLightingPass.h"
 #include "ClusteredDeferredLightingPass.h"
-#include "ToneMapPass.h"
-#include "FXAAPass.h"
 #include "SSAOPass.h"
 #include "HBAOPass.h"
 #include "DDGI.h"
@@ -106,8 +104,6 @@ namespace adria
 		GPUDrivenGBufferPass gpu_driven_renderer;
 		SSAOPass	 ssao_pass;
 		HBAOPass     hbao_pass;
-		ToneMapPass  tonemap_pass;
-		FXAAPass	 fxaa_pass;
 		SkyPass		 sky_pass;
 		RayTracedAmbientOcclusionPass rtao_pass;
 		RayTracedReflectionsPass rtr_pass;
@@ -158,6 +154,5 @@ namespace adria
 		void Render_PathTracing(RenderGraph& rg);
 
 		void CopyToBackbuffer(RenderGraph& rg);
-		void ResolveToFinalTexture(RenderGraph& rg);
 	};
 }

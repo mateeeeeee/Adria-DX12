@@ -42,10 +42,10 @@ namespace adria
 		accel_structure(gfx), camera(nullptr), display_width(width), display_height(height), render_width(width), render_height(height),
 		backbuffer_count(gfx->GetBackbufferCount()), backbuffer_index(gfx->GetBackbufferIndex()), final_texture(nullptr),
 		frame_cbuffer(gfx, backbuffer_count), gpu_driven_renderer(reg, gfx, width, height),
-		gbuffer_pass(reg, width, height), tonemap_pass(width, height),
+		gbuffer_pass(reg, width, height),
 		sky_pass(reg, gfx, width, height), deferred_lighting_pass(width, height), volumetric_lighting_pass(width, height),
 		tiled_deferred_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
-		postprocessor(gfx, reg, width, height), fxaa_pass(width, height), picking_pass(gfx, width, height),
+		postprocessor(gfx, reg, width, height), picking_pass(gfx, width, height),
 		clustered_deferred_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height),
 		decals_pass(reg, width, height), ocean_renderer(reg, width, height),
 		shadow_renderer(reg, gfx, width, height), rtao_pass(gfx, width, height), rtr_pass(gfx, width, height),
@@ -115,9 +115,13 @@ namespace adria
 		rg_blackboard.Add<FrameBlackboardData>(std::move(frame_data));
 
 		render_graph.ImportTexture(RG_RES_NAME(Backbuffer), gfx->GetBackbuffer());
+		render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
 
 		if (path_type == RendererPathType::PathTracing) Render_PathTracing(render_graph);
 		else Render_Deferred(render_graph);
+
+		if (!g_Editor.IsActive()) CopyToBackbuffer(render_graph);
+		else g_Editor.AddRenderPass(render_graph);
 
 		render_graph.Build();
 		if (dump_render_graph) render_graph.DumpRenderGraph("rendergraph.gv");
@@ -133,8 +137,6 @@ namespace adria
 			postprocessor.OnResize(w, h);
 
 			g_DebugRenderer.OnResize(w, h);
-			fxaa_pass.OnResize(w, h);
-			tonemap_pass.OnResize(w, h);
 			path_tracer.OnResize(w, h);
 		}
 	}
@@ -174,7 +176,6 @@ namespace adria
 		hbao_pass.OnSceneInitialized(gfx);
 		postprocessor.OnSceneInitialized();
 		ocean_renderer.OnSceneInitialized(gfx);
-		tonemap_pass.OnSceneInitialized();
 		ddgi.OnSceneInitialized();
 		CreateAS();
 
@@ -204,7 +205,7 @@ namespace adria
 		auto ray_tracing_view = reg.view<Mesh, RayTracing>();
 		for (auto entity : ray_tracing_view)
 		{
-			auto const& mesh = ray_tracing_view.get<Mesh>(entity);
+			Mesh const& mesh = ray_tracing_view.get<Mesh>(entity);
 			accel_structure.AddInstance(mesh);
 		}
 		accel_structure.Build();
@@ -449,20 +450,12 @@ namespace adria
 		picking_pass.AddPass(render_graph);
 		if (postprocessor.HasRTR()) rtr_pass.AddPass(render_graph);
 		postprocessor.AddPasses(render_graph);
-		render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
-		ResolveToFinalTexture(render_graph);
 		g_DebugRenderer.Render(render_graph);
-
-		if (!g_Editor.IsActive()) CopyToBackbuffer(render_graph);
-		else g_Editor.AddRenderPass(render_graph);
 	}
 	void Renderer::Render_PathTracing(RenderGraph& render_graph)
 	{
 		path_tracer.AddPass(render_graph);
-		render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
-		tonemap_pass.AddPass(render_graph, RG_RES_NAME(PT_Output));
-		if (!g_Editor.IsActive()) CopyToBackbuffer(render_graph);
-		else g_Editor.AddRenderPass(render_graph);
+		postprocessor.AddTonemapPass(render_graph, RG_RES_NAME(PT_Output));
 	}
 
 	void Renderer::RendererGUI()
@@ -516,19 +509,6 @@ namespace adria
 				GfxTexture& dst_texture = ctx.GetCopyDstTexture(data.dst);
 				cmd_list->CopyTexture(dst_texture, src_texture);
 			}, RGPassType::Copy, RGPassFlags::ForceNoCull);
-	}
-	void Renderer::ResolveToFinalTexture(RenderGraph& rg)
-	{
-		RGResourceName final_texture = postprocessor.GetFinalResource();
-		if (postprocessor.HasFXAA())
-		{
-			tonemap_pass.AddPass(rg, final_texture, RG_RES_NAME(TonemapOutput));
-			fxaa_pass.AddPass(rg, RG_RES_NAME(TonemapOutput));
-		}
-		else
-		{
-			tonemap_pass.AddPass(rg, final_texture);
-		}
 	}
 }
 

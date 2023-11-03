@@ -19,7 +19,7 @@ namespace adria
 	namespace cvars
 	{
 		static ConsoleVariable upscaler("upscaler", 0);
-		static ConsoleVariable reflections("reflections", 0);
+		static ConsoleVariable reflections("reflections", 1);
 		static ConsoleVariable taa("TAA", false);
 		static ConsoleVariable fxaa("FXAA", true);
 		static ConsoleVariable exposure("exposure", false);
@@ -35,11 +35,10 @@ namespace adria
 		: gfx(gfx), reg(reg), display_width(width), display_height(height), render_width(width), render_height(height),
 		blur_pass(width, height), copy_to_texture_pass(width, height),
 		add_textures_pass(width, height), automatic_exposure_pass(width, height),
-		lens_flare_pass(width, height),
-		clouds_pass(width, height), ssr_pass(width, height), fog_pass(width, height),
+		lens_flare_pass(width, height), clouds_pass(width, height), ssr_pass(width, height), fog_pass(width, height),
 		dof_pass(width, height), bloom_pass(width, height), velocity_buffer_pass(width, height),
 		motion_blur_pass(width, height), taa_pass(width, height), god_rays_pass(width, height),
-		bokeh_pass(width, height), fsr2_pass(gfx, width, height)
+		bokeh_pass(width, height), fsr2_pass(gfx, width, height), tonemap_pass(width, height), fxaa_pass(width, height)
 	{
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 		AddRenderResolutionChangedCallback(&PostProcessor::OnRenderResolutionChanged, *this);
@@ -118,6 +117,21 @@ namespace adria
 		if (motion_blur) final_resource = motion_blur_pass.AddPass(rg, final_resource);
 		if (automatic_exposure) automatic_exposure_pass.AddPasses(rg, final_resource);
 		if (bloom) bloom_pass.AddPass(rg, final_resource);
+
+		if (HasAnyFlag(anti_aliasing, AntiAliasing_FXAA))
+		{
+			tonemap_pass.AddPass(rg, final_resource, RG_RES_NAME(TonemapOutput));
+			fxaa_pass.AddPass(rg, RG_RES_NAME(TonemapOutput));
+		}
+		else
+		{
+			tonemap_pass.AddPass(rg, final_resource);
+		}
+	}
+
+	void PostProcessor::AddTonemapPass(RenderGraph& rg, RGResourceName input)
+	{
+		tonemap_pass.AddPass(rg, input);
 	}
 
 	void PostProcessor::OnResize(uint32 w, uint32 h)
@@ -132,6 +146,8 @@ namespace adria
 		bokeh_pass.OnResize(w, h);
 		bloom_pass.OnResize(w, h);
 		automatic_exposure_pass.OnResize(w, h);
+		fxaa_pass.OnResize(w, h);
+		tonemap_pass.OnResize(w, h);
 
 		if (history_buffer)
 		{
@@ -163,6 +179,7 @@ namespace adria
 		clouds_pass.OnSceneInitialized(gfx);
 		bokeh_pass.OnSceneInitialized(gfx);
 		lens_flare_pass.OnSceneInitialized();
+		tonemap_pass.OnSceneInitialized(); 
 
 		GfxTextureDesc render_target_desc{};
 		render_target_desc.format = GfxFormat::R16G16B16A16_FLOAT;

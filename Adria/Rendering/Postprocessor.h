@@ -12,10 +12,12 @@
 #include "BloomPass.h"
 #include "MotionVectorsPass.h"
 #include "MotionBlurPass.h"
-#include "TAAPass.h"
 #include "GodRaysPass.h"
 #include "BokehPass.h"
+#include "TAAPass.h"
 #include "FSR2Pass.h"
+#include "FXAAPass.h"
+#include "ToneMapPass.h"
 #include "RenderGraph/RenderGraphResourceId.h"
 #include "Events/Delegate.h"
 #include "entt/entity/entity.hpp"
@@ -55,6 +57,8 @@ namespace adria
 	public:
 		PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height);
 		void AddPasses(RenderGraph& rg);
+
+		void AddTonemapPass(RenderGraph& rg, RGResourceName input);
 
 		template<typename T, typename... Args>
 		void AddRenderResolutionChangedCallback(void(T::* mem_pfn)(Args...), T& instance)
@@ -101,6 +105,8 @@ namespace adria
 		GodRaysPass god_rays_pass;
 		BokehPass bokeh_pass;
 		FSR2Pass fsr2_pass;
+		ToneMapPass  tonemap_pass;
+		FXAAPass	 fxaa_pass;
 
 		bool ray_tracing_supported = false;
 		AntiAliasing anti_aliasing = AntiAliasing_FXAA;
