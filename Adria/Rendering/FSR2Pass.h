@@ -8,20 +8,20 @@ namespace adria
 	class GfxDevice;
 	class RenderGraph;
 
-	DECLARE_EVENT(RenderResolutionChanged, FSR2Pass, uint32, uint32);
-
+	
 	class FSR2Pass
 	{
+		DECLARE_EVENT(RenderResolutionChanged, FSR2Pass, uint32, uint32);
 	public:
-		explicit FSR2Pass(GfxDevice* gfx, uint32 w, uint32 h);
+		FSR2Pass(GfxDevice* gfx, uint32 w, uint32 h);
 		~FSR2Pass();
 
 		RGResourceName AddPass(RenderGraph& rg, RGResourceName input);
-		float GetUpscaleRatio() const;
+		
 		void OnResize(uint32 w, uint32 h)
 		{
 			display_width = w, display_height = h;
-			RecreateRenderDimensions();
+			RecreateRenderResolution();
 			recreate_context = true;
 		}
 
@@ -31,9 +31,11 @@ namespace adria
 		RenderResolutionChanged& GetRenderResolutionChangedEvent() { return render_resolution_changed_event; }
 
 	private:
+		char name_version[16];
 		GfxDevice* gfx = nullptr;
 		uint32 display_width, display_height;
 		uint32 render_width, render_height;
+		
 
 		FfxFsr2ContextDescription context_desc = {};
 		FfxFsr2Context context = {};
@@ -48,6 +50,6 @@ namespace adria
 	private:
 		void CreateContext();
 		void DestroyContext();
-		void RecreateRenderDimensions();
+		void RecreateRenderResolution();
 	};
 }

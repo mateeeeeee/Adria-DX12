@@ -453,6 +453,9 @@
     <ClCompile Include="Rendering\FSR2Pass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\XeSSPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1004,6 +1007,9 @@
     </ClInclude>
     <ClInclude Include="..\External\FSR2\include\FSR2\ffx_assert.h">
       <Filter>External\FSR2</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\XeSSPass.h">
+      <Filter>Rendering\Passes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

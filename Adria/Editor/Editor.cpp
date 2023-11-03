@@ -793,7 +793,7 @@ namespace adria
 	}
 	void Editor::Scene(GfxDescriptor& src)
 	{
-		ImGui::Begin("Scene");
+		ImGui::Begin(ICON_FA_GLOBE" Scene");
 		{
 			ImVec2 v_min = ImGui::GetWindowContentRegionMin();
 			ImVec2 v_max = ImGui::GetWindowContentRegionMax();

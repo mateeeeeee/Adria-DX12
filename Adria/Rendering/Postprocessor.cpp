@@ -38,7 +38,7 @@ namespace adria
 		lens_flare_pass(width, height), clouds_pass(width, height), ssr_pass(width, height), fog_pass(width, height),
 		dof_pass(width, height), bloom_pass(width, height), velocity_buffer_pass(width, height),
 		motion_blur_pass(width, height), taa_pass(width, height), god_rays_pass(width, height),
-		bokeh_pass(width, height), fsr2_pass(gfx, width, height), tonemap_pass(width, height), fxaa_pass(width, height)
+		bokeh_pass(width, height), fsr2_pass(gfx, width, height), xess_pass(gfx, width, height), tonemap_pass(width, height), fxaa_pass(width, height)
 	{
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 		AddRenderResolutionChangedCallback(&PostProcessor::OnRenderResolutionChanged, *this);
@@ -93,8 +93,9 @@ namespace adria
 
 		switch (upscaler)
 		{
-		case TemporalUpscalerType::FSR2: final_resource = fsr2_pass.AddPass(rg, final_resource); break;
-		case TemporalUpscalerType::None:
+		case UpscalerType::FSR2: final_resource = fsr2_pass.AddPass(rg, final_resource); break;
+		case UpscalerType::XeSS: final_resource = xess_pass.AddPass(rg, final_resource); break;
+		case UpscalerType::None:
 		{
 			if (HasAnyFlag(anti_aliasing, AntiAliasing_TAA))
 			{
@@ -137,8 +138,12 @@ namespace adria
 	void PostProcessor::OnResize(uint32 w, uint32 h)
 	{
 		display_width = w, display_height = h;
-		if (upscaler == TemporalUpscalerType::FSR2) fsr2_pass.OnResize(w, h);
-		else upscaler_disabled_event.Broadcast(display_width, display_height);
+		switch (upscaler)
+		{
+		case UpscalerType::FSR2: fsr2_pass.OnResize(w, h); break;
+		case UpscalerType::XeSS: xess_pass.OnResize(w, h); break;
+		case UpscalerType::None: upscaler_disabled_event.Broadcast(display_width, display_height); break;
+		}
 
 		taa_pass.OnResize(w, h);
 		motion_blur_pass.OnResize(w, h);
@@ -192,11 +197,6 @@ namespace adria
 	RGResourceName PostProcessor::GetFinalResource() const
 	{
 		return final_resource;
-	}
-
-	bool PostProcessor::HasFXAA() const
-	{
-		return HasAnyFlag(anti_aliasing, AntiAliasing_FXAA);
 	}
 
 	bool PostProcessor::HasTAA() const
@@ -287,13 +287,14 @@ namespace adria
 				int& current_reflection_type = cvars::reflections.Get();
 				if (ImGui::TreeNode("Post-processing"))
 				{
-					if (ImGui::Combo("Upscaler", &current_upscaler, "None\0FSR2\0", 2))
+					if (ImGui::Combo("Upscaler", &current_upscaler, "None\0FSR2\0XeSS\0", 3))
 					{
-						upscaler = static_cast<TemporalUpscalerType>(current_upscaler);
+						upscaler = static_cast<UpscalerType>(current_upscaler);
 						switch (upscaler)
 						{
-						case TemporalUpscalerType::FSR2: fsr2_pass.OnResize(display_width, display_height); break;
-						case TemporalUpscalerType::None: upscaler_disabled_event.Broadcast(display_width, display_height); break;
+						case UpscalerType::FSR2: fsr2_pass.OnResize(display_width, display_height); break;
+						case UpscalerType::XeSS: xess_pass.OnResize(display_width, display_height); break;
+						case UpscalerType::None: upscaler_disabled_event.Broadcast(display_width, display_height); break;
 						}
 					}
 					if (ImGui::Combo("Reflections", &current_reflection_type, "None\0SSR\0RTR\0", 3))

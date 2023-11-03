@@ -1,8 +1,8 @@
 #include "FSR2Pass.h"
+#include "FSR2/dx12/ffx_fsr2_dx12.h"
 #include "BlackboardData.h"
 #include "Graphics/GfxDevice.h"
 #include "RenderGraph/RenderGraph.h"
-#include "FSR2/dx12/ffx_fsr2_dx12.h"
 #include "Editor/GUICommand.h"
 #include "Logging/Logger.h"
 
@@ -11,6 +11,7 @@ namespace adria
 	FSR2Pass::FSR2Pass(GfxDevice* _gfx, uint32 w, uint32 h)
 		: gfx(_gfx), display_width(), display_height(), render_width(), render_height()
 	{
+		sprintf(name_version, "FSR %d.%d.%d", FFX_FSR2_VERSION_MAJOR, FFX_FSR2_VERSION_MINOR, FFX_FSR2_VERSION_PATCH);
 		OnResize(w, h);
 	}
 
@@ -34,7 +35,7 @@ namespace adria
 			RGTextureReadWriteId output;
 		};
 
-		rg.AddPass<FSR2PassData>("FSR2 Pass",
+		rg.AddPass<FSR2PassData>(name_version,
 			[=](FSR2PassData& data, RenderGraphBuilder& builder)
 			{
 				RGTextureDesc fsr2_desc{};
@@ -48,15 +49,10 @@ namespace adria
 				data.input = builder.ReadTexture(input, ReadAccess_NonPixelShader);
 				data.velocity = builder.ReadTexture(RG_RES_NAME(VelocityBuffer), ReadAccess_NonPixelShader);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
-				//data.exposure = builder.ReadTexture(RG_RES_NAME(Exposure), ReadAccess_NonPixelShader);
 			},
 			[=](FSR2PassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
-				if (recreate_context)
-				{
-					DestroyContext();
-					CreateContext();
-				}
+				if (recreate_context) CreateContext();
 
 				GfxTexture& input_texture = ctx.GetTexture(*data.input);
 				GfxTexture& velocity_texture = ctx.GetTexture(*data.velocity);
@@ -93,13 +89,13 @@ namespace adria
 				cmd_list->ResetState();
 			}, RGPassType::Compute);
 
-		GUI_RunCommand([&]()
-			{
-				if (ImGui::TreeNodeEx("FSR2", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+		GUI_RunCommand([&]() 
+			{ 
+				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_OpenOnDoubleClick))
 				{
 					if (ImGui::Combo("Quality Mode", (int32*)&quality_mode, "Custom\0Quality (1.5x)\0Balanced (1.7x)\0Performance (2.0x)\0Ultra Performance (3.0x)\0", 5))
 					{
-						RecreateRenderDimensions();
+						RecreateRenderResolution();
 						recreate_context = true;
 					}
 
@@ -107,22 +103,17 @@ namespace adria
 					{
 						if (ImGui::SliderFloat("Upscale Ratio", &custom_upscale_ratio, 1.0, 3.0))
 						{
-							RecreateRenderDimensions();
+							RecreateRenderResolution();
 							recreate_context = true;
 						}
 					}
 					
 					ImGui::SliderFloat("Sharpness", &sharpness, 0.0f, 1.0f, "%.2f");
 					ImGui::TreePop(); 
-				}
+				} 
 			});
 
 		return RG_RES_NAME(FSR2Output);
-	}
-
-	float FSR2Pass::GetUpscaleRatio() const
-	{
-		return quality_mode == 0 ? custom_upscale_ratio : ffxFsr2GetUpscaleRatioFromQualityMode(quality_mode);
 	}
 
 	void FSR2Pass::CreateContext()
@@ -161,12 +152,11 @@ namespace adria
 		}
 	}
 
-	void FSR2Pass::RecreateRenderDimensions()
+	void FSR2Pass::RecreateRenderResolution()
 	{
-		float upscale_ratio = GetUpscaleRatio();
+		float upscale_ratio = (quality_mode == 0 ? custom_upscale_ratio : ffxFsr2GetUpscaleRatioFromQualityMode(quality_mode));
 		render_width = (uint32)((float)display_width / upscale_ratio);
 		render_height = (uint32)((float)display_height / upscale_ratio);
 		render_resolution_changed_event.Broadcast(render_width, render_height);
 	}
-
 }

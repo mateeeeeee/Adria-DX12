@@ -16,6 +16,7 @@
 #include "BokehPass.h"
 #include "TAAPass.h"
 #include "FSR2Pass.h"
+#include "XeSSPass.h"
 #include "FXAAPass.h"
 #include "ToneMapPass.h"
 #include "RenderGraph/RenderGraphResourceId.h"
@@ -34,10 +35,11 @@ namespace adria
 
 	class PostProcessor
 	{
-		enum class TemporalUpscalerType : uint8
+		enum class UpscalerType : uint8
 		{
 			None,
-			FSR2
+			FSR2,
+			XeSS
 		};
 		enum class Reflections : uint8
 		{
@@ -64,6 +66,7 @@ namespace adria
 		void AddRenderResolutionChangedCallback(void(T::* mem_pfn)(Args...), T& instance)
 		{
 			fsr2_pass.GetRenderResolutionChangedEvent().AddMember(mem_pfn, instance);
+			xess_pass.GetRenderResolutionChangedEvent().AddMember(mem_pfn, instance);
 			upscaler_disabled_event.AddMember(mem_pfn, instance);
 		}
 
@@ -72,10 +75,9 @@ namespace adria
 		void OnSceneInitialized();
 		RGResourceName GetFinalResource() const;
 
-		bool HasFXAA() const;
 		bool HasTAA() const;
 		bool HasRTR() const { return reflections == Reflections::RTR; }
-		bool HasUpscaler() const { return upscaler != TemporalUpscalerType::None; }
+		bool HasUpscaler() const { return upscaler != UpscalerType::None; }
 		bool NeedsJitter() const { return HasTAA() || HasUpscaler(); }
 
 	private:
@@ -105,13 +107,14 @@ namespace adria
 		GodRaysPass god_rays_pass;
 		BokehPass bokeh_pass;
 		FSR2Pass fsr2_pass;
+		XeSSPass xess_pass;
 		ToneMapPass  tonemap_pass;
 		FXAAPass	 fxaa_pass;
 
 		bool ray_tracing_supported = false;
 		AntiAliasing anti_aliasing = AntiAliasing_FXAA;
 		Reflections reflections = Reflections::SSR;
-		TemporalUpscalerType upscaler = TemporalUpscalerType::None;
+		UpscalerType upscaler = UpscalerType::None;
 		bool dof = false;
 		bool bokeh = false;
 		bool fog = false;
