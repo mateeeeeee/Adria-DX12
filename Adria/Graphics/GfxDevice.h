@@ -75,6 +75,14 @@ namespace adria
 		uint64 budget;
 	};
 
+	enum class GfxVendor : uint8
+	{
+		AMD,
+		Nvidia,
+		Intel,
+		Unknown
+	};
+
 	class GfxDevice
 	{
 		friend class GfxCommandList;
@@ -100,6 +108,7 @@ namespace adria
 		D3D12MA::Allocator* GetAllocator() const;
 
 		GfxCapabilities const& GetCapabilities() const { return device_capabilities; }
+		GfxVendor GetVendor() const { return vendor; }
 		GfxCommandQueue& GetCommandQueue(GfxCommandListType type);
 		GfxCommandList* GetCommandList(GfxCommandListType type) const;
 		GfxCommandList* GetGraphicsCommandList() const;
@@ -171,6 +180,7 @@ namespace adria
 		ArcPtr<IDXGIFactory6> dxgi_factory = nullptr;
 		ArcPtr<ID3D12Device5> device = nullptr;
 		GfxCapabilities device_capabilities{};
+		GfxVendor vendor = GfxVendor::Unknown;
 
 		std::unique_ptr<GfxOnlineDescriptorAllocator> gpu_descriptor_allocator;
 		std::array<std::unique_ptr<GfxDescriptorAllocator>, (uint64)GfxDescriptorHeapType::Count> cpu_descriptor_allocators;

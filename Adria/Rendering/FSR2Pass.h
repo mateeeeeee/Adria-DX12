@@ -31,7 +31,7 @@ namespace adria
 		RenderResolutionChanged& GetRenderResolutionChangedEvent() { return render_resolution_changed_event; }
 
 	private:
-		char name_version[16];
+		char name_version[16] = {};
 		GfxDevice* gfx = nullptr;
 		uint32 display_width, display_height;
 		uint32 render_width, render_height;

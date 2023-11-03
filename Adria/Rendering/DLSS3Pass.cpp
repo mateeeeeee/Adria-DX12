@@ -21,7 +21,7 @@ namespace adria
 
 	RGResourceName DLSS3Pass::AddPass(RenderGraph& rg, RGResourceName input)
 	{
-
+		return RG_RES_NAME(DLSS3Output);
 	}
 
 }

@@ -201,6 +201,33 @@ namespace adria
 				dxgi_debug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_DETAIL | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
 			}
 		}
+
+		enum GfxVendorId : uint32
+		{
+			GfxVendorId_AMD = 0x1002,
+			GfxVendorId_Nvidia = 0x10de,
+			GfxVendorId_Intel = 0x8086
+		};
+		GfxVendor GetGfxVendor(uint32 vendor_id)
+		{
+			switch (vendor_id)
+			{
+			case GfxVendorId_AMD: return GfxVendor::AMD;
+			case GfxVendorId_Nvidia: return GfxVendor::Nvidia;
+			case GfxVendorId_Intel: return GfxVendor::Intel;
+			}
+			return GfxVendor::Unknown;
+		}
+		char const* GetGfxVendorName(GfxVendor gfx_vendor)
+		{
+			switch (gfx_vendor)
+			{
+			case GfxVendor::AMD: return "AMD";
+			case GfxVendor::Nvidia: return "Nvidia";
+			case GfxVendor::Intel: return "Intel";
+			}
+			return "Unknown";
+		}
 	}
 
 	GfxDevice::DRED::DRED(GfxDevice* gfx)
@@ -244,9 +271,15 @@ namespace adria
 		dxgi_factory->EnumAdapterByGpuPreference(0, gpu_preference, IID_PPV_ARGS(adapter.GetAddressOf()));
 		DXGI_ADAPTER_DESC3 desc{};
 		adapter->GetDesc3(&desc);
+
+		vendor = GetGfxVendor(desc.VendorId);
+		ADRIA_ASSERT(vendor != GfxVendor::Unknown);
+		char const* vendor_name = GetGfxVendorName(vendor);
+		ADRIA_LOG(INFO, "Vendor: %s", vendor_name);
+
 		std::wstring adapter_wide_description(desc.Description);
 		std::string adapter_description = ToString(adapter_wide_description);
-		ADRIA_LOG(INFO, "Using %s", adapter_description.c_str());
+		ADRIA_LOG(INFO, "GPU: %s", adapter_description.c_str());
 
 		D3D_FEATURE_LEVEL feature_levels[] =
 		{
