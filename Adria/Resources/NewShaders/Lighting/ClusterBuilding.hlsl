@@ -43,7 +43,7 @@ void ClusterBuilding(CSInput input)
 	uint clustersCount, unused;
 	clusters.GetDimensions(clustersCount, unused);
 
-	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.displayResolution);
+	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
 
 	uint3 groupId = input.GroupId;
 	uint tileIndex = groupId.x +

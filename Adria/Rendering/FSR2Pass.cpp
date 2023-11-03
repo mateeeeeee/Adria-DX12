@@ -23,7 +23,6 @@ namespace adria
 	{
 		if (recreate_context) CreateContext();
 
-#if 0
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
 		struct FSR2PassData
@@ -45,7 +44,7 @@ namespace adria
 				fsr2_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 				builder.DeclareTexture(RG_RES_NAME(FSR2Output), fsr2_desc);
 
-				data.output = builder.WriteTexture(RG_RES_NAME(HDR_RenderTarget));
+				data.output = builder.WriteTexture(RG_RES_NAME(FSR2Output));
 				data.input = builder.ReadTexture(input, ReadAccess_NonPixelShader);
 				data.velocity = builder.ReadTexture(RG_RES_NAME(VelocityBuffer), ReadAccess_NonPixelShader);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
@@ -90,8 +89,9 @@ namespace adria
 
 				FfxErrorCode error_code = ffxFsr2ContextDispatch(&context, &dispatch_desc);
 				ADRIA_ASSERT(error_code == FFX_OK);
+
+				cmd_list->ResetState();
 			}, RGPassType::Compute);
-#endif
 
 		GUI_RunCommand([&]()
 			{
@@ -117,7 +117,6 @@ namespace adria
 				}
 			});
 
-		return input;
 		return RG_RES_NAME(FSR2Output);
 	}
 
@@ -130,6 +129,8 @@ namespace adria
 	{
 		if (recreate_context)
 		{
+			DestroyContext();
+
 			ID3D12Device* device = gfx->GetDevice();
 
 			uint64 const scratch_buffer_size = ffxFsr2GetScratchMemorySizeDX12();

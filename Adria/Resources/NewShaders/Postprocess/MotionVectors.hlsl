@@ -24,7 +24,7 @@ void MotionVectors(CSInput input)
 	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
 	RWTexture2D<float2> velocityTx = ResourceDescriptorHeap[PassCB.outputIdx];
 
-	float2 uv = ((float2)input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.displayResolution);
+	float2 uv = ((float2)input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
 	float2 currentClip = uv * float2(2, -2) + float2(-1, 1);
 	float depth = depthTx[input.DispatchThreadId.xy];
 	float4 previousClip = mul(float4(currentClip, depth, 1.0f), FrameCB.reprojection);

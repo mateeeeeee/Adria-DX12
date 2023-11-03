@@ -47,8 +47,6 @@ namespace adria
 				else data.ambient_occlusion.Invalidate();
 
 				for (auto& shadow_texture : shadow_textures) std::ignore = builder.ReadTexture(shadow_texture);
-				if(builder.IsTextureDeclared(RG_RES_NAME(DDGIIrradianceHistory))) std::ignore = builder.ReadTexture(RG_RES_NAME(DDGIIrradianceHistory));
-				if(builder.IsTextureDeclared(RG_RES_NAME(DDGIDistanceHistory)))   std::ignore = builder.ReadTexture(RG_RES_NAME(DDGIDistanceHistory));
 			},
 			[=](LightingPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{

@@ -133,6 +133,18 @@ namespace adria
 			postprocessor.OnResize(w, h);
 
 			g_DebugRenderer.OnResize(w, h);
+			fxaa_pass.OnResize(w, h);
+			tonemap_pass.OnResize(w, h);
+			path_tracer.OnResize(w, h);
+		}
+	}
+
+	void Renderer::OnRenderResolutionChanged(uint32 w, uint32 h)
+	{
+		if (render_width != w || render_height != h)
+		{
+			render_width = w, render_height = h;
+
 			gbuffer_pass.OnResize(w, h);
 			gpu_driven_renderer.OnResize(w, h);
 			ssao_pass.OnResize(w, h);
@@ -143,23 +155,15 @@ namespace adria
 			tiled_deferred_lighting_pass.OnResize(w, h);
 			clustered_deferred_lighting_pass.OnResize(w, h);
 			copy_to_texture_pass.OnResize(w, h);
-			tonemap_pass.OnResize(w, h);
-			fxaa_pass.OnResize(w, h);
 			add_textures_pass.OnResize(w, h);
 			picking_pass.OnResize(w, h);
 			decals_pass.OnResize(w, h);
 			ocean_renderer.OnResize(w, h);
 			shadow_renderer.OnResize(w, h);
 			rtr_pass.OnResize(w, h);
-			path_tracer.OnResize(w, h);
 			rtao_pass.OnResize(w, h);
 			ddgi.OnResize(w, h);
 		}
-	}
-
-	void Renderer::OnRenderResolutionChanged(uint32 w, uint32 h)
-	{
-		render_width = w, render_height = h;
 	}
 
 	void Renderer::OnSceneInitialized()

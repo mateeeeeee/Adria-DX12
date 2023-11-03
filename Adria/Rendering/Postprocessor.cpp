@@ -62,6 +62,26 @@ namespace adria
 			if (!light_data.active || !light_data.lens_flare) continue;
 			lens_flare_pass.AddPass2(rg, light_data);
 		}
+		for (entt::entity light : lights)
+		{
+			auto const& light_data = lights.get<Light>(light);
+			if (!light_data.active) continue;
+
+			if (light_data.type == LightType::Directional)
+			{
+				AddSunPass(rg, light);
+				if (light_data.god_rays)
+				{
+					god_rays_pass.AddPass(rg, light_data);
+					copy_to_texture_pass.AddPass(rg, final_resource, RG_RES_NAME(GodRaysOutput), BlendMode::AdditiveBlend);
+				}
+				else
+				{
+					copy_to_texture_pass.AddPass(rg, final_resource, RG_RES_NAME(SunOutput), BlendMode::AdditiveBlend);
+				}
+				break;
+			}
+		}
 
 		if (clouds) clouds_pass.AddPass(rg);
 
@@ -79,31 +99,13 @@ namespace adria
 
 		if (dof)
 		{
+			blur_pass.SetResolution(display_width, display_height);
 			blur_pass.AddPass(rg, final_resource, RG_RES_NAME(BlurredDofInput), " DoF ");
+			blur_pass.SetResolution(render_width, render_height);
 			if (bokeh) bokeh_pass.AddPass(rg, final_resource);
 			final_resource = dof_pass.AddPass(rg, final_resource);
 		}
 		if (motion_blur) final_resource = motion_blur_pass.AddPass(rg, final_resource);
-		for (entt::entity light_entity : lights)
-		{
-			auto const& light = lights.get<Light>(light_entity);
-			if (!light.active) continue;
-
-			if (light.type == LightType::Directional)
-			{
-				AddSunPass(rg, light_entity);
-				if (light.god_rays)
-				{
-					god_rays_pass.AddPass(rg, light);
-					copy_to_texture_pass.AddPass(rg, final_resource, RG_RES_NAME(GodRaysOutput), BlendMode::AdditiveBlend);
-				}
-				else
-				{
-					copy_to_texture_pass.AddPass(rg, final_resource, RG_RES_NAME(SunOutput), BlendMode::AdditiveBlend);
-				}
-				break;
-			}
-		}
 		if (automatic_exposure) automatic_exposure_pass.AddPasses(rg, final_resource);
 		if (bloom) bloom_pass.AddPass(rg, final_resource);
 
@@ -118,23 +120,15 @@ namespace adria
 	void PostProcessor::OnResize(uint32 w, uint32 h)
 	{
 		display_width = w, display_height = h;
-		if(upscaler == TemporalUpscalerType::FSR2) fsr2_pass.OnResize(w, h);
+		if (upscaler == TemporalUpscalerType::FSR2) fsr2_pass.OnResize(w, h);
+		else upscaler_disabled_event.Broadcast(display_width, display_height);
 
-		clouds_pass.OnResize(gfx, w, h);
-		blur_pass.OnResize(w, h);
-		add_textures_pass.OnResize(w, h);
-		copy_to_texture_pass.OnResize(w, h);
-		automatic_exposure_pass.OnResize(w, h);
-		lens_flare_pass.OnResize(w, h);
-		ssr_pass.OnResize(w, h);
-		fog_pass.OnResize(w, h);
-		dof_pass.OnResize(w, h);
-		bloom_pass.OnResize(w, h);
-		velocity_buffer_pass.OnResize(w, h);
-		motion_blur_pass.OnResize(w, h);
 		taa_pass.OnResize(w, h);
-		god_rays_pass.OnResize(w, h);
+		motion_blur_pass.OnResize(w, h);
+		dof_pass.OnResize(w, h);
 		bokeh_pass.OnResize(w, h);
+		bloom_pass.OnResize(w, h);
+		automatic_exposure_pass.OnResize(w, h);
 
 		if (history_buffer)
 		{
@@ -148,6 +142,16 @@ namespace adria
 	void PostProcessor::OnRenderResolutionChanged(uint32 w, uint32 h)
 	{
 		render_width = w, render_height = h;
+
+		clouds_pass.OnResize(gfx, w, h);
+		blur_pass.OnResize(w, h);
+		add_textures_pass.OnResize(w, h);
+		copy_to_texture_pass.OnResize(w, h);
+		lens_flare_pass.OnResize(w, h);
+		ssr_pass.OnResize(w, h);
+		fog_pass.OnResize(w, h);
+		velocity_buffer_pass.OnResize(w, h);
+		god_rays_pass.OnResize(w, h);
 	}
 
 	void PostProcessor::OnSceneInitialized()
@@ -192,8 +196,8 @@ namespace adria
 			[=](CopyPassData& data, RenderGraphBuilder& builder)
 			{
 				RGTextureDesc postprocess_desc{};
-				postprocess_desc.width = display_width;
-				postprocess_desc.height = display_height;
+				postprocess_desc.width = render_width;
+				postprocess_desc.height = render_height;
 				postprocess_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 
 				builder.DeclareTexture(RG_RES_NAME(PostprocessMain), postprocess_desc);
@@ -219,14 +223,14 @@ namespace adria
 			{
 				RGTextureDesc sun_output_desc{};
 				sun_output_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-				sun_output_desc.width = display_width;
-				sun_output_desc.height = display_height;
+				sun_output_desc.width = render_width;
+				sun_output_desc.height = render_height;
 				sun_output_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 
 				builder.DeclareTexture(RG_RES_NAME(SunOutput), sun_output_desc);
 				builder.ReadDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.WriteRenderTarget(RG_RES_NAME(SunOutput), RGLoadStoreAccessOp::Clear_Preserve);
-				builder.SetViewport(display_width, display_height);
+				builder.SetViewport(render_width, render_height);
 			},
 			[=](RenderGraphContext& context, GfxCommandList* cmd_list)
 			{

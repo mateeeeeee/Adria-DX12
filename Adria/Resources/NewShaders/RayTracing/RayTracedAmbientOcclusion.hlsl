@@ -31,7 +31,7 @@ void RTAO_RayGen()
 	uint2 launchDim = DispatchRaysDimensions().xy;
 
 	float depth = depthTx.Load(int3(launchIndex.xy, 0)).r;
-	float2 texCoords = (launchIndex + 0.5f) / FrameCB.displayResolution;
+	float2 texCoords = (launchIndex + 0.5f) / FrameCB.renderResolution;
 	float3 worldPosition = GetWorldPosition(texCoords, depth);
 	float3 viewNormal = normalsTx.Load(int3(launchIndex.xy, 0)).xyz;
 	viewNormal = 2 * viewNormal - 1.0;

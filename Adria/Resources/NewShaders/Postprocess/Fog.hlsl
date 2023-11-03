@@ -72,7 +72,7 @@ void Fog(CSInput input)
     Texture2D sceneTx = ResourceDescriptorHeap[PassCB.sceneIdx];
     RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
     
-    float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.displayResolution);
+    float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
     
     float4 mainColor = sceneTx.Sample(LinearWrapSampler, uv);
     float depth = depthTx.Sample(LinearWrapSampler, uv);

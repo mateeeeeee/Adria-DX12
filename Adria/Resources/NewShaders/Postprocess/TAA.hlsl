@@ -117,7 +117,7 @@ void TAA(CSInput input)
 		motion = dot(m, m) > dot(motion, motion) ? m : motion;
 	}
 
-	float3 history = BicubicSampleCatmullRom(prevSceneTx, (uv + motion) * FrameCB.displayResolution, FrameCB.displayResolution);
+	float3 history = BicubicSampleCatmullRom(prevSceneTx, (uv + motion) * FrameCB.renderResolution, FrameCB.renderResolution);
 	history = RGBToYCgCo(history);
 
 	float distToClamp = min(abs(colorMin.x - history.x), abs(colorMax.x - history.x));

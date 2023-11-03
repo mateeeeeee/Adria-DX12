@@ -23,8 +23,8 @@ void Picking()
 	Texture2D<float4> normalTx = ResourceDescriptorHeap[PassCB.normalIdx];
 	RWStructuredBuffer<PickingData> pickingBuffer = ResourceDescriptorHeap[PassCB.bufferIdx];
 
-	uint2 mouseCoords = uint2(FrameCB.mouseNormalizedCoords * FrameCB.displayResolution);
-	float2 uv = (mouseCoords + 0.5f) / FrameCB.displayResolution;
+	uint2 mouseCoords = uint2(FrameCB.mouseNormalizedCoords * FrameCB.renderResolution);
+	float2 uv = (mouseCoords + 0.5f) / FrameCB.renderResolution;
 
 	float zw = depthTx[mouseCoords].x;
 	uv = uv * 2.0f - 1.0f;

@@ -33,7 +33,7 @@ void DeferredLighting(CSInput input)
 	uint lightCount, _unused;
 	lights.GetDimensions(lightCount, _unused);
 
-	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.displayResolution);
+	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
 
 	float4 normalMetallic = normalMetallicTx.Sample(LinearWrapSampler, uv);
 	float3 viewNormal	  = 2.0f * normalMetallic.rgb - 1.0f;

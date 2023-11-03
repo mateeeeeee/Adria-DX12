@@ -19,14 +19,14 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
 * Reference path tracer 
 * Ultimate Bindless 
     - Only one root signature 
-* Tiled deferred rendering 
-* Clustered deferred rendering
-* Ray traced shadows (DXR)
+* FSR2
 * Shadows
     - PCF shadows for directional, spot and point lights
     - Cascade shadow maps for directional lights
+    - Ray traced shadows (DXR)
 * Volumetric lighting for shadow casting lights
-* HDR and tone mapping
+* Tiled deferred rendering 
+* Clustered deferred rendering
 * Automatic exposure
 * Bloom
 * Depth of field + Bokeh
@@ -52,7 +52,6 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
     - custom and tracy profiler
 
 ## TODO
-* FSR2 (wip)
 * ReSTIR GI
 
 ## Dependencies

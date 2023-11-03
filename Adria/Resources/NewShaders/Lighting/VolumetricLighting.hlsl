@@ -32,7 +32,7 @@ void VolumetricLighting(CSInput input)
 
 	uint lightCount, unused;
 	lights.GetDimensions(lightCount, unused);
-	uint2 resolution = uint2(FrameCB.displayResolution) >> PassCB.resolutionFactor;
+	uint2 resolution = uint2(FrameCB.renderResolution) >> PassCB.resolutionFactor;
 
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / resolution;
 	float depth = depthTx.SampleLevel(LinearClampSampler, uv, 2);

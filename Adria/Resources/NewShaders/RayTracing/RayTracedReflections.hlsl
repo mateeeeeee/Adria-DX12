@@ -33,7 +33,7 @@ void RTR_RayGen()
 	uint2 launchIndex = DispatchRaysIndex().xy;
 	uint2 launchDim = DispatchRaysDimensions().xy;
 
-	float2 uv = (launchIndex + 0.5f) / FrameCB.displayResolution;
+	float2 uv = (launchIndex + 0.5f) / FrameCB.renderResolution;
 	float depth = depthTx.Load(int3(launchIndex.xy, 0));
 	float4 normalMetallic = normalMetallicTx.Load(int3(launchIndex.xy, 0));
 	float roughness = albedoRoughnessTx.Load(int3(launchIndex.xy, 0)).a;

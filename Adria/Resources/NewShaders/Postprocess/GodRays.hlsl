@@ -29,7 +29,7 @@ void GodRays(CSInput input)
 {
 	Texture2D<float4> sunTx = ResourceDescriptorHeap[PassCB.sunIdx];
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
-	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.displayResolution);
+	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
 
 	float3 color = sunTx.SampleLevel(LinearClampSampler, uv, 0).rgb;
 

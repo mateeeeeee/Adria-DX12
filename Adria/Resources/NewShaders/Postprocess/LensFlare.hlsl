@@ -120,7 +120,7 @@ void LensFlareGS(point VSToPS p[1], inout TriangleStream<GeometryOut> triStream)
             break;
     };
 
-    float2 screenResolution = FrameCB.displayResolution;
+    float2 screenResolution = FrameCB.renderResolution;
    
     flareSize /= screenResolution;
 
