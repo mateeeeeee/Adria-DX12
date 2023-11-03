@@ -17,6 +17,7 @@
 #include "TAAPass.h"
 #include "FSR2Pass.h"
 #include "XeSSPass.h"
+#include "DLSS3Pass.h"
 #include "FXAAPass.h"
 #include "ToneMapPass.h"
 #include "RenderGraph/RenderGraphResourceId.h"
@@ -39,7 +40,8 @@ namespace adria
 		{
 			None,
 			FSR2,
-			XeSS
+			XeSS,
+			DLSS3
 		};
 		enum class Reflections : uint8
 		{
@@ -67,6 +69,7 @@ namespace adria
 		{
 			fsr2_pass.GetRenderResolutionChangedEvent().AddMember(mem_pfn, instance);
 			xess_pass.GetRenderResolutionChangedEvent().AddMember(mem_pfn, instance);
+			dlss3_pass.GetRenderResolutionChangedEvent().AddMember(mem_pfn, instance);
 			upscaler_disabled_event.AddMember(mem_pfn, instance);
 		}
 
@@ -108,6 +111,7 @@ namespace adria
 		BokehPass bokeh_pass;
 		FSR2Pass fsr2_pass;
 		XeSSPass xess_pass;
+		DLSS3Pass dlss3_pass;
 		ToneMapPass  tonemap_pass;
 		FXAAPass	 fxaa_pass;
 

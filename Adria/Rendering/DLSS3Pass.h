@@ -1,6 +1,11 @@
 #pragma once
+#include "nvsdk_ngx_defs.h"
 #include "RenderGraph/RenderGraphResourceName.h"
 #include "Events/Delegate.h"
+
+
+struct NVSDK_NGX_Parameter;
+struct NVSDK_NGX_Handle;
 
 namespace adria
 {
@@ -19,7 +24,8 @@ namespace adria
 		void OnResize(uint32 w, uint32 h)
 		{
 			display_width = w, display_height = h;
-			
+			RecreateRenderResolution();
+			needs_init = true;
 		}
 
 		Vector2u GetRenderResolution()  const { return Vector2u(render_width, render_height); }
@@ -36,8 +42,18 @@ namespace adria
 		uint32 display_width, display_height;
 		uint32 render_width, render_height;
 
-		
+		NVSDK_NGX_Parameter* ngx_parameters = nullptr;
+		NVSDK_NGX_Handle* dlss_feature = nullptr;
+		bool needs_init = true;
+
+		NVSDK_NGX_PerfQuality_Value perf_quality = NVSDK_NGX_PerfQuality_Value_Balanced;
+		float custom_upscale_ratio = 1.0f;
+		float sharpness = 0.5f;
 
 		RenderResolutionChanged render_resolution_changed_event;
+
+	private:
+		bool InitializeNVSDK_NGX();
+		void RecreateRenderResolution();
 	};
 }
