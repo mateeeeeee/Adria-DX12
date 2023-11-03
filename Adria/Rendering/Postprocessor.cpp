@@ -95,6 +95,16 @@ namespace adria
 		switch (upscaler)
 		{
 		case TemporalUpscalerType::FSR2: final_resource = fsr2_pass.AddPass(rg, final_resource); break;
+		case TemporalUpscalerType::None:
+		{
+			if (HasAnyFlag(anti_aliasing, AntiAliasing_TAA))
+			{
+				rg.ImportTexture(RG_RES_NAME(HistoryBuffer), history_buffer.get());
+				final_resource = taa_pass.AddPass(rg, final_resource, RG_RES_NAME(HistoryBuffer));
+				rg.ExportTexture(final_resource, history_buffer.get());
+			}
+		}
+		break;
 		}
 
 		if (dof)
@@ -108,13 +118,6 @@ namespace adria
 		if (motion_blur) final_resource = motion_blur_pass.AddPass(rg, final_resource);
 		if (automatic_exposure) automatic_exposure_pass.AddPasses(rg, final_resource);
 		if (bloom) bloom_pass.AddPass(rg, final_resource);
-
-		if (HasAnyFlag(anti_aliasing, AntiAliasing_TAA))
-		{
-			rg.ImportTexture(RG_RES_NAME(HistoryBuffer), history_buffer.get());
-			final_resource = taa_pass.AddPass(rg, final_resource, RG_RES_NAME(HistoryBuffer));
-			rg.ExportTexture(final_resource, history_buffer.get());
-		}
 	}
 
 	void PostProcessor::OnResize(uint32 w, uint32 h)
