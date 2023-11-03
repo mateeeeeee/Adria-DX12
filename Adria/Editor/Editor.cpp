@@ -80,7 +80,7 @@ namespace adria
 	}
 	void Editor::HandleWindowMessage(WindowMessage const& msg_data)
 	{
-		if(scene_focused) engine->HandleWindowMessage(msg_data);
+		engine->HandleWindowMessage(msg_data);
 		gui->HandleWindowMessage(msg_data);
 	}
 	void Editor::Run()
