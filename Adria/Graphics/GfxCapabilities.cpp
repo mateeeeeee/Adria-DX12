@@ -44,6 +44,23 @@ namespace adria
 			}
 			return MeshShaderSupport::TierNotSupported;
 		}
+
+		constexpr GfxShaderModel ConvertShaderModel(D3D_SHADER_MODEL shader_model)
+		{
+			switch (shader_model)
+			{
+			case D3D_SHADER_MODEL_6_0: return SM_6_0;
+			case D3D_SHADER_MODEL_6_1: return SM_6_1;
+			case D3D_SHADER_MODEL_6_2: return SM_6_2;
+			case D3D_SHADER_MODEL_6_3: return SM_6_3;
+			case D3D_SHADER_MODEL_6_4: return SM_6_4;
+			case D3D_SHADER_MODEL_6_5: return SM_6_5;
+			case D3D_SHADER_MODEL_6_6: return SM_6_6;
+			case D3D_SHADER_MODEL_6_7: return SM_6_7;
+			default:
+				return SM_Unknown;
+			}
+		}
 	}
 
 	bool GfxCapabilities::Initialize(GfxDevice* gfx)
@@ -54,9 +71,9 @@ namespace adria
 		ray_tracing_support = ConvertRayTracingTier(feature_support.RaytracingTier());
 		vsr_support			= ConvertVSRTier(feature_support.VariableShadingRateTier());
 		mesh_shader_support = ConvertMeshShaderTier(feature_support.MeshShaderTier());
-		shader_model = (uint16)feature_support.HighestShaderModel();
+		shader_model		= ConvertShaderModel(feature_support.HighestShaderModel());
 
-		if (shader_model < D3D_SHADER_MODEL_6_6)
+		if (shader_model < SM_6_6)
 		{
 			ADRIA_LOG(ERROR, "Device doesn't support Shader Model 6.6 which is required!");
 			return false;
@@ -64,6 +81,5 @@ namespace adria
 
 		return true;
 	}
-
 }
 

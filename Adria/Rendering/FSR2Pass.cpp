@@ -11,6 +11,9 @@ namespace adria
 	FSR2Pass::FSR2Pass(GfxDevice* _gfx, uint32 w, uint32 h)
 		: gfx(_gfx), display_width(), display_height(), render_width(), render_height()
 	{
+		is_supported = gfx->GetCapabilities().SupportsShaderModel(SM_6_6);
+		if (!is_supported) return;
+
 		sprintf(name_version, "FSR %d.%d.%d", FFX_FSR2_VERSION_MAJOR, FFX_FSR2_VERSION_MINOR, FFX_FSR2_VERSION_PATCH);
 		OnResize(w, h);
 	}

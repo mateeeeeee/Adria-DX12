@@ -1017,6 +1017,9 @@
     <ClInclude Include="Rendering\DLSS3Pass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\GfxShaderEnums.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

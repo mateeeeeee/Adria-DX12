@@ -29,8 +29,11 @@ namespace adria
 		Vector2u GetDisplayResolution() const { return Vector2u(display_width, display_height); }
 
 		RenderResolutionChanged& GetRenderResolutionChangedEvent() { return render_resolution_changed_event; }
+		
+		bool IsSupported() const { return is_supported; }
 
 	private:
+		bool is_supported = false;
 		char name_version[16] = {};
 		GfxDevice* gfx = nullptr;
 		uint32 display_width, display_height;

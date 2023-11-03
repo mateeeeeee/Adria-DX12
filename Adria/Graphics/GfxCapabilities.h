@@ -1,5 +1,5 @@
 #pragma once
-
+#include "GfxShaderEnums.h"
 
 namespace adria
 {
@@ -54,11 +54,16 @@ namespace adria
 			return mesh_shader_support >= mss;
 		}
 
+		bool SupportsShaderModel(GfxShaderModel sm) const
+		{
+			return shader_model >= sm;
+		}
+
 	private:
 		
 		RayTracingSupport ray_tracing_support = RayTracingSupport::TierNotSupported;
 		VSRSupport vsr_support = VSRSupport::TierNotSupported;
 		MeshShaderSupport mesh_shader_support = MeshShaderSupport::TierNotSupported;
-		uint16 shader_model = 0;
+		GfxShaderModel shader_model = SM_Unknown;
 	};
 }
