@@ -101,7 +101,7 @@ namespace adria
 				dlss_eval_params.InMVScaleY = (float)render_height;
 				dlss_eval_params.InRenderSubrectDimensions = { render_width, render_height };
 
-				NVSDK_NGX_Result result = NGX_D3D12_EVALUATE_DLSS_EXT((ID3D12GraphicsCommandList*)cmd_list->GetNative(), dlss_feature, ngx_parameters, &dlss_eval_params);
+				NVSDK_NGX_Result result = NGX_D3D12_EVALUATE_DLSS_EXT(cmd_list->GetNative(), dlss_feature, ngx_parameters, &dlss_eval_params);
 				ADRIA_ASSERT(NVSDK_NGX_SUCCEED(result));
 
 				cmd_list->ResetState();
@@ -133,11 +133,11 @@ namespace adria
 
 		static const wchar_t* dll_paths[] = 
 		{ 
-		L"C:\\Users\\Mate\\Desktop\\Projekti\\Adria-DX12\\External\\DLSS\\lib\\dev",
-		L"C:\\Users\\Mate\\Desktop\\Projekti\\Adria-DX12\\External\\DLSS\\lib\\rel",
+		SOLUTION_DIR L"\\External\\DLSS\\lib\\dev",
+		SOLUTION_DIR L"\\External\\DLSS\\lib\\rel",
 		};
 
-		NVSDK_NGX_FeatureCommonInfo feature_common_info = {};
+		NVSDK_NGX_FeatureCommonInfo feature_common_info{};
 		feature_common_info.LoggingInfo.LoggingCallback = DLSS3Log;
 		feature_common_info.LoggingInfo.MinimumLoggingLevel = NVSDK_NGX_LOGGING_LEVEL_ON;
 		feature_common_info.LoggingInfo.DisableOtherLoggingSinks = true;
