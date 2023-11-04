@@ -100,7 +100,7 @@ namespace adria
 
 		GUI_RunCommand([&]() 
 			{
-				if (ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+				if (ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_None))
 				{
 					ImGui::SliderFloat("Power", &cvars::ssao_power.Get(), 1.0f, 16.0f);
 					ImGui::SliderFloat("Radius", &cvars::ssao_radius.Get(), 0.5f, 4.0f);

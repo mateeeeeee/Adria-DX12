@@ -68,7 +68,7 @@ namespace adria
 
 		GUI_RunCommand([&]()
 			{
-				if (ImGui::TreeNodeEx("Volumetric Lighting", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+				if (ImGui::TreeNodeEx("Volumetric Lighting", ImGuiTreeNodeFlags_None))
 				{
 					static int _resolution = (int)resolution;
 					if (ImGui::Combo("Volumetric Lighting Resolution", &_resolution, "Full\0Half\0Quarter\0", 3))

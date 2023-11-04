@@ -78,7 +78,7 @@ namespace adria
 		
 		GUI_RunCommand([&]()
 			{
-				if (ImGui::TreeNodeEx("HBAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+				if (ImGui::TreeNodeEx("HBAO", ImGuiTreeNodeFlags_None))
 				{
 					ImGui::SliderFloat("Power", &params.hbao_power, 1.0f, 16.0f);
 					ImGui::SliderFloat("Radius", &params.hbao_radius, 0.25f, 8.0f);

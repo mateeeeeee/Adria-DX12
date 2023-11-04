@@ -20,6 +20,7 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
 * Temporal upscalers
     - FSR2
     - XeSS 
+    - DLSS3
 * Ultimate Bindless 
     - Only one root signature 
 * Shadows
@@ -54,7 +55,6 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
     - custom and tracy profiler
 
 ## TODO
-* DLSS3 (wip)
 * ReSTIR GI
 
 ## Dependencies

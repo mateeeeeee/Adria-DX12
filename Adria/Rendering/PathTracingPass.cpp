@@ -80,7 +80,7 @@ namespace adria
 		++accumulated_frames;
 		GUI_RunCommand([&]()
 			{
-				if (ImGui::TreeNodeEx("Path tracing", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+				if (ImGui::TreeNodeEx("Path tracing", ImGuiTreeNodeFlags_None))
 				{
 					ImGui::SliderInt("Max bounces", &max_bounces, 1, 8);
 					ImGui::TreePop();

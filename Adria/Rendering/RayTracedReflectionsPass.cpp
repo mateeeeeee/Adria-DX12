@@ -85,7 +85,7 @@ namespace adria
 
 		GUI_RunCommand([&]()
 			{
-				if (ImGui::TreeNodeEx("Ray Traced Reflection", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+				if (ImGui::TreeNodeEx("Ray Traced Reflection", ImGuiTreeNodeFlags_None))
 				{
 					ImGui::SliderFloat("Roughness scale", &reflection_roughness_scale, 0.0f, 0.25f);
 					ImGui::TreePop();

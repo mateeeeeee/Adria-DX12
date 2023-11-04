@@ -40,7 +40,7 @@ namespace adria
 
 		GUI_RunCommand([&]()
 			{
-				if (ImGui::TreeNodeEx("GPU Driven Rendering", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+				if (ImGui::TreeNodeEx("GPU Driven Rendering", ImGuiTreeNodeFlags_None))
 				{
 					ImGui::Checkbox("Occlusion Cull", &occlusion_culling);
 					ImGui::Checkbox("Display Debug Stats", &display_debug_stats);

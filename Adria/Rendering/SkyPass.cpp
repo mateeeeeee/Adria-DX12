@@ -130,7 +130,7 @@ namespace adria
 
 		GUI_RunCommand([&]()
 			{
-				if (ImGui::TreeNodeEx("Sky", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+				if (ImGui::TreeNodeEx("Sky", ImGuiTreeNodeFlags_None))
 				{
 					static int current_sky_type = 1;
 					const char* sky_types[] = { "Skybox", "Minimal Atmosphere", "Hosek-Wilkie" };

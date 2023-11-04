@@ -436,7 +436,7 @@ namespace adria
 
 //AddGUI_Debug([&](void* descriptor_ptr)
 //	{
-//		if (ImGui::TreeNodeEx("Clouds Debug", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+//		if (ImGui::TreeNodeEx("Clouds Debug", ImGuiTreeNodeFlags_None))
 //		{
 //			GfxDescriptor gpu_descriptor = *static_cast<GfxDescriptor*>(descriptor_ptr);
 //			ImVec2 v_min = ImGui::GetWindowContentRegionMin();

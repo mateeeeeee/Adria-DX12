@@ -94,7 +94,7 @@ namespace adria
 
 		GUI_RunCommand([&]() 
 			{ 
-				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_OpenOnDoubleClick))
+				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
 				{
 					if (ImGui::Combo("Quality Mode", (int32*)&quality_mode, "Custom\0Quality (1.5x)\0Balanced (1.7x)\0Performance (2.0x)\0Ultra Performance (3.0x)\0", 5))
 					{

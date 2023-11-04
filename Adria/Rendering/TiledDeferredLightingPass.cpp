@@ -105,7 +105,7 @@ namespace adria
 
 		GUI_RunCommand([&]()
 			{
-				if (ImGui::TreeNodeEx("Tiled Deferred", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+				if (ImGui::TreeNodeEx("Tiled Deferred", ImGuiTreeNodeFlags_None))
 				{
 					ImGui::Checkbox("Visualize Tiles", &visualize_tiled);
 					if (visualize_tiled) ImGui::SliderInt("Visualize Scale", &visualize_max_lights, 1, 32);

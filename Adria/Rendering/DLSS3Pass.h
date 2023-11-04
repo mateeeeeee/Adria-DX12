@@ -10,11 +10,12 @@ struct NVSDK_NGX_Handle;
 namespace adria
 {
 	class GfxDevice;
+	class GfxCommandList;
 	class RenderGraph;
 
 	class DLSS3Pass
 	{
-		DECLARE_EVENT(RenderResolutionChanged, FSR2Pass, uint32, uint32);
+		DECLARE_EVENT(RenderResolutionChanged, DLSS3Pass, uint32, uint32);
 	public:
 		DLSS3Pass(GfxDevice* gfx, uint32 w, uint32 h);
 		~DLSS3Pass();
@@ -25,7 +26,7 @@ namespace adria
 		{
 			display_width = w, display_height = h;
 			RecreateRenderResolution();
-			needs_init = true;
+			needs_create = true;
 		}
 
 		Vector2u GetRenderResolution()  const { return Vector2u(render_width, render_height); }
@@ -44,10 +45,9 @@ namespace adria
 
 		NVSDK_NGX_Parameter* ngx_parameters = nullptr;
 		NVSDK_NGX_Handle* dlss_feature = nullptr;
-		bool needs_init = true;
+		bool needs_create = true;
 
 		NVSDK_NGX_PerfQuality_Value perf_quality = NVSDK_NGX_PerfQuality_Value_Balanced;
-		float custom_upscale_ratio = 1.0f;
 		float sharpness = 0.5f;
 
 		RenderResolutionChanged render_resolution_changed_event;
@@ -55,5 +55,8 @@ namespace adria
 	private:
 		bool InitializeNVSDK_NGX();
 		void RecreateRenderResolution();
+
+		void CreateDLSS(GfxCommandList* cmd_list);
+		void ReleaseDLSS();
 	};
 }

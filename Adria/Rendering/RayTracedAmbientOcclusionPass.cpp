@@ -154,7 +154,7 @@ namespace adria
 
 		GUI_RunCommand([&]()
 			{
-				if (ImGui::TreeNodeEx("RTAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+				if (ImGui::TreeNodeEx("RTAO", ImGuiTreeNodeFlags_None))
 				{
 					ImGui::SliderFloat("Radius", &params.radius, 1.0f, 32.0f);
 					ImGui::SliderFloat("Power (log2)", &params.power_log, -10.0f, 10.0f);
