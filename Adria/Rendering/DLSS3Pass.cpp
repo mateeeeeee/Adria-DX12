@@ -138,7 +138,7 @@ namespace adria
 		};
 
 		NVSDK_NGX_FeatureCommonInfo feature_common_info{};
-		feature_common_info.LoggingInfo.LoggingCallback = DLSS3Log;
+		feature_common_info.LoggingInfo.LoggingCallback = nullptr;
 		feature_common_info.LoggingInfo.MinimumLoggingLevel = NVSDK_NGX_LOGGING_LEVEL_ON;
 		feature_common_info.LoggingInfo.DisableOtherLoggingSinks = true;
 		feature_common_info.PathListInfo.Path = dll_paths;
