@@ -647,6 +647,7 @@ namespace adria
 		GfxTextureDescriptorDesc _desc = desc ? *desc : GfxTextureDescriptorDesc{};
 		return CreateTextureView(texture, GfxSubresourceType::SRV, _desc);
 	}
+
 	GfxDescriptor GfxDevice::CreateTextureUAV(GfxTexture const* texture, GfxTextureDescriptorDesc const* desc)
 	{
 		GfxTextureDescriptorDesc _desc = desc ? *desc : GfxTextureDescriptorDesc{};
@@ -950,7 +951,7 @@ namespace adria
 		{
 			GfxDescriptor descriptor = AllocateDescriptorCPU(GfxDescriptorHeapType::CBV_SRV_UAV);
 			D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
-			srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			srv_desc.Shader4ComponentMapping = view_desc.channel_mapping;
 			switch (format)
 			{
 			case GfxFormat::R16_TYPELESS:

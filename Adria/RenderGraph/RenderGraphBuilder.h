@@ -112,6 +112,12 @@ namespace adria
 		{
 			return ReadTextureImpl(name, read_access, GfxTextureDescriptorDesc{ first_slice, slice_count, first_mip, mip_count });
 		}
+		[[nodiscard]] RGTextureReadOnlyId ReadTexture(RGResourceName name, GfxTextureChannelMapping channel_mapping, 
+			RGReadAccess read_access = ReadAccess_AllShader,
+			uint32 first_mip = 0, uint32 mip_count = -1, uint32 first_slice = 0, uint32 slice_count = -1)
+		{
+			return ReadTextureImpl(name, read_access, GfxTextureDescriptorDesc{ first_slice, slice_count, first_mip, mip_count, GfxTextureDescriptorFlag_None, channel_mapping });
+		}
 		[[nodiscard]] RGTextureReadWriteId WriteTexture(RGResourceName name,
 			uint32 first_mip = 0, uint32 mip_count = -1, uint32 first_slice = 0, uint32 slice_count = -1)
 		{

@@ -2,23 +2,23 @@
 #include "BlackboardData.h"
 #include "PSOCache.h" 
 
-#include "Graphics/GfxLinearDynamicAllocator.h"
-#include "Graphics/GfxRingDescriptorAllocator.h"
+#include "Graphics/GfxDevice.h"
+#include "Graphics/GfxCommandList.h"
 #include "RenderGraph/RenderGraph.h"
 
 namespace adria
 {
-	void CopyToTexturePass::AddPass(RenderGraph& rendergraph, RGResourceName render_target, RGResourceName texture_src, BlendMode mode /*= EBlendMode::None*/)
+	void CopyToTexturePass::AddPass(RenderGraph& rendergraph, RGResourceName texture_dst, RGResourceName texture_src, BlendMode mode)
 	{
 		struct CopyToTexturePassData
 		{
 			RGTextureReadOnlyId texture_src;
 		};
 
-		rendergraph.AddPass<CopyToTexturePassData>("CopyToTexture Pass",
+		rendergraph.AddPass<CopyToTexturePassData>("Copy To Texture Pass",
 			[=](CopyToTexturePassData& data, RenderGraphBuilder& builder)
 			{
-				builder.WriteRenderTarget(render_target, RGLoadStoreAccessOp::Preserve_Preserve);
+				builder.WriteRenderTarget(texture_dst, RGLoadStoreAccessOp::Preserve_Preserve);
 				data.texture_src = builder.ReadTexture(texture_src, ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
@@ -62,7 +62,7 @@ namespace adria
 
 	AddTexturesPass::AddTexturesPass(uint32 w, uint32 h) : width(w), height(h) {}
 
-	void AddTexturesPass::AddPass(RenderGraph& rendergraph, RGResourceName render_target, RGResourceName texture1, RGResourceName texture2, BlendMode mode /*= EBlendMode::None*/)
+	void AddTexturesPass::AddPass(RenderGraph& rendergraph, RGResourceName texture_dst, RGResourceName texture_src1, RGResourceName texture_src2, BlendMode mode /*= EBlendMode::None*/)
 	{
 		struct CopyToTexturePassData
 		{
@@ -70,12 +70,12 @@ namespace adria
 			RGTextureReadOnlyId texture_src2;
 		};
 
-		rendergraph.AddPass<CopyToTexturePassData>("AddTextures Pass",
+		rendergraph.AddPass<CopyToTexturePassData>("Add Textures Pass",
 			[=](CopyToTexturePassData& data, RenderGraphBuilder& builder)
 			{
-				builder.WriteRenderTarget(render_target, RGLoadStoreAccessOp::Preserve_Preserve);
-				data.texture_src1 = builder.ReadTexture(texture1, ReadAccess_PixelShader);
-				data.texture_src2 = builder.ReadTexture(texture2, ReadAccess_PixelShader);
+				builder.WriteRenderTarget(texture_dst, RGLoadStoreAccessOp::Preserve_Preserve);
+				data.texture_src1 = builder.ReadTexture(texture_src1, ReadAccess_PixelShader);
+				data.texture_src2 = builder.ReadTexture(texture_src2, ReadAccess_PixelShader);
 				builder.SetViewport(width, height);
 			},
 			[=](CopyToTexturePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
@@ -117,6 +117,40 @@ namespace adria
 	void AddTexturesPass::SetResolution(uint32 w, uint32 h)
 	{
 		width = w, height = h;
+	}
+
+	void TextureChannelMappingPass::AddPass(RenderGraph& rendergraph, RGResourceName texture_dst, RGResourceName texture_src, GfxTextureChannelMapping mapping)
+	{
+		struct TextureChannelMappingPassData
+		{
+			RGTextureReadOnlyId texture_src;
+		};
+
+		rendergraph.AddPass<TextureChannelMappingPassData>("Texture Channel Mapping Pass",
+			[=](TextureChannelMappingPassData& data, RenderGraphBuilder& builder)
+			{
+				RGTextureDesc dst_desc = builder.GetTextureDesc(texture_src);
+				dst_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
+				builder.DeclareTexture(texture_dst, dst_desc);
+
+				builder.WriteRenderTarget(texture_dst, RGLoadStoreAccessOp::Clear_Preserve);
+				data.texture_src = builder.ReadTexture(texture_src, mapping, ReadAccess_PixelShader);
+				builder.SetViewport(dst_desc.width, dst_desc.height);
+			},
+			[=](TextureChannelMappingPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
+			{
+				GfxDevice* gfx = cmd_list->GetDevice();
+
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Copy));
+
+				GfxTexture& src_tex = context.GetTexture(*data.texture_src);
+				GfxDescriptor dst = gfx->AllocateDescriptorsGPU();
+				gfx->CopyDescriptors(1, dst, context.GetReadOnlyTexture(data.texture_src));
+
+				cmd_list->SetRootConstant(1, dst.GetIndex(), 0);
+				cmd_list->SetTopology(GfxPrimitiveTopology::TriangleList);
+				cmd_list->Draw(3);
+			}, RGPassType::Graphics, RGPassFlags::None);
 	}
 
 }

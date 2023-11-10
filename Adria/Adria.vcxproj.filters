@@ -459,6 +459,9 @@
     <ClCompile Include="Rendering\DLSS3Pass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\TextureChannelMappingPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1020,6 +1023,9 @@
     <ClInclude Include="Graphics\GfxShaderEnums.h">
       <Filter>Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\TextureChannelMappingPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
@@ -1214,6 +1220,9 @@
     </FxCompile>
     <FxCompile Include="Resources\NewShaders\DDGI\DDGIVisualize.hlsl">
       <Filter>Shaders\DDGI</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Other\TextureChannelMapping.hlsl">
+      <Filter>Shaders\Other</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

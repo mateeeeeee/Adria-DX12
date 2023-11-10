@@ -51,6 +51,37 @@ namespace adria
 		GfxTextureDescriptorFlag_DepthReadOnly = 0x1
 	};
 
+
+	enum GfxTextureChannelMapping : uint32
+	{
+		GfxTextureChannelMapping_Red,
+		GfxTextureChannelMapping_Green,
+		GfxTextureChannelMapping_Blue,
+		GfxTextureChannelMapping_Alpha,
+		GfxTextureChannelMapping_Zero,
+		GfxTextureChannelMapping_One,
+	};
+
+	static constexpr GfxTextureChannelMapping GfxCustomTextureChannelMapping(GfxTextureChannelMapping R, GfxTextureChannelMapping G,
+		GfxTextureChannelMapping B, GfxTextureChannelMapping A)
+	{
+		constexpr uint32 GfxTextureChannelMappingMask = 0x7;
+		constexpr uint32 GfxTextureChannelMappingShift = 3;
+		constexpr uint32 GfxTextureChannelMappingAlwaysSetBit = 1 << (GfxTextureChannelMappingShift * 4);
+
+		return GfxTextureChannelMapping(
+			(((R)&GfxTextureChannelMappingMask) << (GfxTextureChannelMappingShift * 0)) |
+			(((G)&GfxTextureChannelMappingMask) << (GfxTextureChannelMappingShift * 1)) |
+			(((B)&GfxTextureChannelMappingMask) << (GfxTextureChannelMappingShift * 2)) |
+			(((A)&GfxTextureChannelMappingMask) << (GfxTextureChannelMappingShift * 3)) |
+			GfxTextureChannelMappingAlwaysSetBit);
+	}
+
+	inline constexpr GfxTextureChannelMapping GfxDefaultTextureChannelMapping = GfxCustomTextureChannelMapping(GfxTextureChannelMapping_Red, GfxTextureChannelMapping_Green,
+																											   GfxTextureChannelMapping_Blue, GfxTextureChannelMapping_Alpha);
+	inline constexpr GfxTextureChannelMapping GfxAlphaOneTextureChannelMapping = GfxCustomTextureChannelMapping(GfxTextureChannelMapping_Red, GfxTextureChannelMapping_Green,
+																											    GfxTextureChannelMapping_Blue, GfxTextureChannelMapping_One);
+
 	struct GfxTextureDescriptorDesc
 	{
 		uint32 first_slice = 0;
@@ -59,7 +90,7 @@ namespace adria
 		uint32 mip_count = static_cast<uint32>(-1);
 
 		GfxTextureDescriptorFlags flags = GfxTextureDescriptorFlag_None;
-
+		GfxTextureChannelMapping channel_mapping = GfxDefaultTextureChannelMapping;
 		std::strong_ordering operator<=>(GfxTextureDescriptorDesc const& other) const = default;
 	};
 

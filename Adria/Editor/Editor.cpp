@@ -10,6 +10,7 @@
 #include "Rendering/EntityLoader.h"
 #include "Rendering/ShaderCache.h"
 #include "Rendering/DebugRenderer.h"
+#include "Rendering/HelperPasses.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxCommandList.h"
 #include "Graphics/GfxTexture.h"

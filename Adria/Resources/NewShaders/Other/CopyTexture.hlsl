@@ -2,7 +2,7 @@
 
 struct VSToPS
 {
-	float4 Pos : SV_POSITION;
+	float4 Pos  : SV_POSITION;
 	float2 Tex  : TEX;
 };
 

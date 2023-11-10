@@ -1,7 +1,6 @@
 #pragma once
-
-#include "Core/CoreTypes.h"
 #include "RenderGraph/RenderGraphResourceName.h"
+#include "Graphics/GfxTexture.h"
 
 namespace adria
 {
@@ -20,7 +19,7 @@ namespace adria
 		CopyToTexturePass(uint32 w, uint32 h) : width(w), height(h) {}
 
 		void AddPass(RenderGraph& rendergraph,
-			RGResourceName render_target,
+			RGResourceName texture_dst,
 			RGResourceName texture_src, BlendMode mode = BlendMode::None);
 
 		void OnResize(uint32 w, uint32 h);
@@ -36,13 +35,24 @@ namespace adria
 		AddTexturesPass(uint32 w, uint32 h);
 
 		void AddPass(RenderGraph& rendergraph,
-			RGResourceName render_target,
-			RGResourceName texture1, RGResourceName texture2, BlendMode mode = BlendMode::None);
+			RGResourceName texture_dst,
+			RGResourceName texture_src1, RGResourceName texture_src2, BlendMode mode = BlendMode::None);
 
 		void OnResize(uint32 w, uint32 h);
 		void SetResolution(uint32 w, uint32 h);
 
 	private:
 		uint32 width, height;
+	};
+
+	class TextureChannelMappingPass
+	{
+	public:
+		TextureChannelMappingPass() = default;
+
+		void AddPass(RenderGraph& rendergraph,
+			RGResourceName texture_dst,
+			RGResourceName texture_src, GfxTextureChannelMapping);
+
 	};
 }
