@@ -954,11 +954,21 @@ namespace adria
 					}
 
 					float total_time_ms = 0.0f;
-					ImGui::Columns(2);
+					ImGui::BeginTable("Profiler", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg);
+					ImGui::TableSetupColumn("Pass");
+					ImGui::TableSetupColumn("Time");
 					for (uint64 i = 0; i < time_stamps.size(); i++)
 					{
+						ImGui::TableNextRow();
+
+						if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) 
+						{
+							//todo
+						}
+
+						ImGui::TableSetColumnIndex(0);
 						ImGui::Text("%s", time_stamps[i].name.c_str());
-						ImGui::NextColumn();
+						ImGui::TableSetColumnIndex(1);
 						ImGui::Text("%.2f ms", time_stamps[i].time_in_ms);
 						
 						if (state.show_average)
@@ -978,10 +988,9 @@ namespace adria
 							accumulating_timestamp->minimum = std::min<float>(accumulating_timestamp->minimum, time_stamps[i].time_in_ms);
 							accumulating_timestamp->maximum = std::max<float>(accumulating_timestamp->maximum, time_stamps[i].time_in_ms);
 						}
-						ImGui::NextColumn();
 						total_time_ms += time_stamps[i].time_in_ms;
 					}
-					ImGui::Columns(1);
+					ImGui::EndTable();
 					ImGui::Text("Total: %7.2f %s", total_time_ms, "ms");
 					state.accumulating_frame_count++;
 				}
