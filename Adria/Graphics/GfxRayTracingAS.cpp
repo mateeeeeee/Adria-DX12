@@ -91,7 +91,7 @@ namespace adria
 		blas_desc.DestAccelerationStructureData = result_buffer->GetGpuAddress();
 		blas_desc.ScratchAccelerationStructureData = scratch_buffer->GetGpuAddress();
 
-		GfxCommandList* cmd_list = gfx->GetGraphicsCommandList();
+		GfxCommandList* cmd_list = gfx->GetCommandList();
 		cmd_list->GetNative()->BuildRaytracingAccelerationStructure(&blas_desc, 0, nullptr);
 	}
 
@@ -150,7 +150,7 @@ namespace adria
 		tlas_desc.DestAccelerationStructureData = result_buffer->GetGpuAddress();
 		tlas_desc.ScratchAccelerationStructureData = scratch_buffer->GetGpuAddress();
 
-		GfxCommandList* cmd_list = gfx->GetGraphicsCommandList();
+		GfxCommandList* cmd_list = gfx->GetCommandList();
 		cmd_list->GetNative()->BuildRaytracingAccelerationStructure(&tlas_desc, 0, nullptr);
 	}
 

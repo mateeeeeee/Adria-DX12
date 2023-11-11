@@ -117,7 +117,7 @@ namespace adria
 
 		bool ray_tracing_supported = false;
 		AntiAliasing anti_aliasing = AntiAliasing_FXAA;
-		Reflections reflections = Reflections::SSR;
+		Reflections reflections = Reflections::None;
 		UpscalerType upscaler = UpscalerType::None;
 		bool dof = false;
 		bool bokeh = false;
@@ -125,7 +125,7 @@ namespace adria
 		bool bloom = false;
 		bool clouds = true;
 		bool motion_blur = false;
-		bool automatic_exposure = false;
+		bool automatic_exposure = true;
 
 		UpscalerDisabledEvent upscaler_disabled_event;
 

@@ -28,6 +28,10 @@ namespace adria
 {
 	class GfxSwapchain;
 	class GfxCommandList;
+	class GfxCommandListPool;
+	class GfxGraphicsCommandListPool;
+	class GfxComputeCommandListPool;
+	class GfxCopyCommandListPool;
 
 	enum class GfxSubresourceType : uint8;
 
@@ -110,10 +114,13 @@ namespace adria
 		GfxCapabilities const& GetCapabilities() const { return device_capabilities; }
 		GfxVendor GetVendor() const { return vendor; }
 		GfxCommandQueue& GetCommandQueue(GfxCommandListType type);
+
+		GfxCommandList* GetCommandList() const;
 		GfxCommandList* GetCommandList(GfxCommandListType type) const;
-		GfxCommandList* GetGraphicsCommandList() const;
-		GfxCommandList* GetComputeCommandList() const;
-		GfxCommandList* GetCopyCommandList() const;
+		GfxCommandList* GetLatestCommandList(GfxCommandListType type) const;
+		GfxCommandList* AllocateCommandList(GfxCommandListType type) const;
+		void			FreeCommandList(GfxCommandList*, GfxCommandListType type);
+
 		GfxTexture* GetBackbuffer() const;
 
 		template<Releasable T>
@@ -192,16 +199,16 @@ namespace adria
 		GfxCommandQueue compute_queue;
 		GfxCommandQueue copy_queue;
 
-		std::unique_ptr<GfxCommandList> graphics_cmd_lists[GFX_BACKBUFFER_COUNT];
+		std::unique_ptr<GfxGraphicsCommandListPool> graphics_cmd_list_pool[GFX_BACKBUFFER_COUNT];
 		GfxFence	 frame_fence;
 		uint64		 frame_fence_value = 0;
 		uint64       frame_fence_values[GFX_BACKBUFFER_COUNT];
 
-		std::unique_ptr<GfxCommandList> compute_cmd_lists[GFX_BACKBUFFER_COUNT];
+		std::unique_ptr<GfxComputeCommandListPool> compute_cmd_list_pool[GFX_BACKBUFFER_COUNT];
 		GfxFence async_compute_fence;
 		uint64 async_compute_fence_value = 0;
 
-		std::unique_ptr<GfxCommandList> upload_cmd_lists[GFX_BACKBUFFER_COUNT];
+		std::unique_ptr<GfxCopyCommandListPool> copy_cmd_list_pool[GFX_BACKBUFFER_COUNT];
 		GfxFence upload_fence;
 		uint64 upload_fence_value = 0;
 

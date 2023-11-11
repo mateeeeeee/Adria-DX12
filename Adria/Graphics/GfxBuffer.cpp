@@ -85,7 +85,7 @@ namespace adria
 
 		if (initial_data != nullptr && desc.resource_usage != GfxResourceUsage::Upload)
 		{
-			auto cmd_list = gfx->GetGraphicsCommandList();
+			auto cmd_list = gfx->GetCommandList();
 			auto upload_buffer = gfx->GetDynamicAllocator();
 			GfxDynamicAllocation upload_alloc = upload_buffer->Allocate(buffer_size);
 			upload_alloc.Update(initial_data, desc.size);

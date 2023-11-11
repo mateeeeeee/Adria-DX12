@@ -66,7 +66,7 @@ namespace adria
 
 	void AccelerationStructure::BuildBottomLevels()
 	{
-		GfxCommandList* cmd_list = gfx->GetGraphicsCommandList();
+		GfxCommandList* cmd_list = gfx->GetCommandList();
 
 		std::span<GfxRayTracingGeometry> geometry_span(rt_geometries);
 		for (size_t i = 0; i < blases.size(); ++i)
@@ -80,7 +80,7 @@ namespace adria
 
 	void AccelerationStructure::BuildTopLevel()
 	{
-		GfxCommandList* cmd_list = gfx->GetGraphicsCommandList();
+		GfxCommandList* cmd_list = gfx->GetCommandList();
 		cmd_list->Begin();
 
 		build_fence.Wait(build_fence_value);

@@ -1,6 +1,4 @@
 #pragma once
-#include "Core/Defines.h"
-#include "Core/CoreTypes.h"
 #include "Utilities/AllocatorUtil.h"
 
 namespace adria

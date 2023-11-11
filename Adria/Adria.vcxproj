@@ -204,6 +204,7 @@
     <ClCompile Include="Graphics\GfxBuffer.cpp" />
     <ClCompile Include="Graphics\GfxCapabilities.cpp" />
     <ClCompile Include="Graphics\GfxCommandList.cpp" />
+    <ClCompile Include="Graphics\GfxCommandListPool.cpp" />
     <ClCompile Include="Graphics\GfxCommandQueue.cpp" />
     <ClCompile Include="Graphics\GfxCommon.cpp" />
     <ClCompile Include="Graphics\GfxDescriptorAllocator.cpp" />
@@ -346,6 +347,7 @@
     <ClInclude Include="Events\Delegate.h" />
     <ClInclude Include="Graphics\GfxBuffer.h" />
     <ClInclude Include="Graphics\GfxCapabilities.h" />
+    <ClInclude Include="Graphics\GfxCommandListPool.h" />
     <ClInclude Include="Graphics\GfxCommandSignature.h" />
     <ClInclude Include="Graphics\GfxCommandList.h" />
     <ClInclude Include="Graphics\GfxCommandQueue.h" />

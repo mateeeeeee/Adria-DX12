@@ -1,13 +1,9 @@
 #pragma once
 #include <span>
-#include <d3d12.h>
 #include "GfxDescriptor.h"
 #include "GfxResourceCommon.h"
 #include "GfxDynamicAllocation.h"
 #include "GfxStates.h"
-#include "Utilities/AutoRefCountPtr.h"
-#include "Core/CoreTypes.h"
-
 
 namespace adria
 {

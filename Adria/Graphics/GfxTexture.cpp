@@ -174,7 +174,7 @@ namespace adria
 		}
 
 		auto upload_buffer = gfx->GetDynamicAllocator();
-		auto cmd_list = gfx->GetGraphicsCommandList();
+		auto cmd_list = gfx->GetCommandList();
 		if (initial_data != nullptr)
 		{
 			uint64 required_size;

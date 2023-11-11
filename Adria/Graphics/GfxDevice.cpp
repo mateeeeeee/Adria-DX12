@@ -4,6 +4,7 @@
 #include "GfxDevice.h"
 #include "GfxSwapchain.h"
 #include "GfxCommandList.h"
+#include "GfxCommandListPool.h"
 #include "GfxTexture.h"
 #include "GfxBuffer.h"
 #include "GfxDescriptorAllocator.h"
@@ -316,9 +317,9 @@ namespace adria
 
 		for (uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i)
 		{
-			graphics_cmd_lists[i] = std::make_unique<GfxCommandList>(this, GfxCommandListType::Graphics, "graphics command list");
-			compute_cmd_lists[i]  = std::make_unique<GfxCommandList>(this, GfxCommandListType::Compute, "compute command list");
-			upload_cmd_lists[i]   = std::make_unique<GfxCommandList>(this, GfxCommandListType::Copy, "upload command list");
+			graphics_cmd_list_pool[i] = std::make_unique<GfxGraphicsCommandListPool>(this);
+			compute_cmd_list_pool[i]  = std::make_unique<GfxComputeCommandListPool>(this);
+			copy_cmd_list_pool[i]	  = std::make_unique<GfxCopyCommandListPool>(this);
 		}
 
 		for (uint32 i = 0; i < (uint32)GfxDescriptorHeapType::Count; ++i)
@@ -478,33 +479,74 @@ namespace adria
 		}
 		ADRIA_UNREACHABLE();
 	}
+
 	GfxCommandList* GfxDevice::GetCommandList(GfxCommandListType type) const
 	{
 		uint32 backbuffer_index = swapchain->GetBackbufferIndex();
 		switch (type)
 		{
 		case GfxCommandListType::Graphics:
-			return graphics_cmd_lists[backbuffer_index].get();
+			return graphics_cmd_list_pool[backbuffer_index]->GetMainCmdList();
 		case GfxCommandListType::Compute:
-			return compute_cmd_lists[backbuffer_index].get();
+			return compute_cmd_list_pool[backbuffer_index]->GetMainCmdList();
 		case GfxCommandListType::Copy:
-			return upload_cmd_lists[backbuffer_index].get();
+			return copy_cmd_list_pool[backbuffer_index]->GetMainCmdList();
 		default:
-			return graphics_cmd_lists[backbuffer_index].get();
+			return graphics_cmd_list_pool[backbuffer_index]->GetMainCmdList();
 		}
 		ADRIA_UNREACHABLE();
 	}
-	GfxCommandList* GfxDevice::GetGraphicsCommandList() const
+	GfxCommandList* GfxDevice::GetCommandList() const
 	{
 		return GetCommandList(GfxCommandListType::Graphics);
 	}
-	GfxCommandList* GfxDevice::GetComputeCommandList() const
+	GfxCommandList* GfxDevice::GetLatestCommandList(GfxCommandListType type) const
 	{
-		return GetCommandList(GfxCommandListType::Compute);
+		uint32 backbuffer_index = swapchain->GetBackbufferIndex();
+		switch (type)
+		{
+		case GfxCommandListType::Graphics:
+			return graphics_cmd_list_pool[backbuffer_index]->GetLatestCmdList();
+		case GfxCommandListType::Compute:
+			return compute_cmd_list_pool[backbuffer_index]->GetLatestCmdList();
+		case GfxCommandListType::Copy:
+			return copy_cmd_list_pool[backbuffer_index]->GetLatestCmdList();
+		default:
+			return graphics_cmd_list_pool[backbuffer_index]->GetLatestCmdList();
+		}
+		ADRIA_UNREACHABLE();
 	}
-	GfxCommandList* GfxDevice::GetCopyCommandList() const
+	GfxCommandList* GfxDevice::AllocateCommandList(GfxCommandListType type) const
 	{
-		return GetCommandList(GfxCommandListType::Copy);
+		uint32 backbuffer_index = swapchain->GetBackbufferIndex();
+		switch (type)
+		{
+		case GfxCommandListType::Graphics:
+			return graphics_cmd_list_pool[backbuffer_index]->AllocateCmdList();
+		case GfxCommandListType::Compute:
+			return compute_cmd_list_pool[backbuffer_index]->AllocateCmdList();
+		case GfxCommandListType::Copy:
+			return copy_cmd_list_pool[backbuffer_index]->AllocateCmdList();
+		default:
+			return graphics_cmd_list_pool[backbuffer_index]->AllocateCmdList();
+		}
+		ADRIA_UNREACHABLE();
+	}
+	void GfxDevice::FreeCommandList(GfxCommandList* cmd_list, GfxCommandListType type)
+	{
+		uint32 backbuffer_index = swapchain->GetBackbufferIndex();
+		switch (type)
+		{
+		case GfxCommandListType::Graphics:
+			return graphics_cmd_list_pool[backbuffer_index]->FreeCmdList(cmd_list);
+		case GfxCommandListType::Compute:
+			return compute_cmd_list_pool[backbuffer_index]->FreeCmdList(cmd_list);
+		case GfxCommandListType::Copy:
+			return copy_cmd_list_pool[backbuffer_index]->FreeCmdList(cmd_list);
+		default:
+			return graphics_cmd_list_pool[backbuffer_index]->FreeCmdList(cmd_list);
+		}
+		ADRIA_UNREACHABLE();
 	}
 
 	void GfxDevice::CopyDescriptors(uint32 count, GfxDescriptor dst, GfxDescriptor src, GfxDescriptorHeapType type /*= GfxDescriptorHeapType::CBV_SRV_UAV*/)

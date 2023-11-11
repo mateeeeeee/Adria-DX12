@@ -136,7 +136,7 @@ namespace adria
 	{
 		pool.Tick();
 
-		GfxCommandList* cmd_list = gfx->GetGraphicsCommandList();
+		GfxCommandList* cmd_list = gfx->GetCommandList();
 		for (uint64 i = 0; i < dependency_levels.size(); ++i)
 		{
 			auto& dependency_level = dependency_levels[i];

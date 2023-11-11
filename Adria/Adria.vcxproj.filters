@@ -459,6 +459,9 @@
     <ClCompile Include="Rendering\DLSS3Pass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\GfxCommandListPool.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1022,6 +1025,9 @@
     </ClInclude>
     <ClInclude Include="Rendering\TextureChannelMappingPass.h">
       <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxCommandListPool.h">
+      <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

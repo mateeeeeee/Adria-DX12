@@ -19,10 +19,10 @@ namespace adria
 	namespace cvars
 	{
 		static ConsoleVariable upscaler("upscaler", 0);
-		static ConsoleVariable reflections("reflections", 1);
+		static ConsoleVariable reflections("reflections", 0);
 		static ConsoleVariable taa("TAA", false);
 		static ConsoleVariable fxaa("FXAA", true);
-		static ConsoleVariable exposure("exposure", false);
+		static ConsoleVariable exposure("exposure", true);
 		static ConsoleVariable clouds("clouds", true);
 		static ConsoleVariable dof("dof", false);
 		static ConsoleVariable bokeh("bokeh", false);
