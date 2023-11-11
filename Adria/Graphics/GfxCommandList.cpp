@@ -162,20 +162,28 @@ namespace adria
 		pending_signals.emplace_back(fence, value);
 	}
 
-	void GfxCommandList::Submit()
+	void GfxCommandList::WaitAll()
 	{
 		for (uint64 i = 0; i < pending_waits.size(); ++i)
 		{
 			cmd_queue.Wait(pending_waits[i].first, pending_waits[i].second);
 		}
 		pending_waits.clear();
+	}
 
-		if (command_count >= 0) //later > 0
+	void GfxCommandList::Submit()
+	{
+		WaitAll();
+		if (command_count >= 0) 
 		{
 			GfxCommandList* cmd_list_array[] = { this };
 			cmd_queue.ExecuteCommandLists(cmd_list_array);
 		}
+		SignalAll();
+	}
 
+	void GfxCommandList::SignalAll()
+	{
 		for (uint64 i = 0; i < pending_signals.size(); ++i)
 		{
 			cmd_queue.Signal(pending_signals[i].first, pending_signals[i].second);

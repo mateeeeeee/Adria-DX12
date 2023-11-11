@@ -49,7 +49,9 @@ namespace adria
 		void End();
 		void Wait(GfxFence& fence, uint64 value);
 		void Signal(GfxFence& fence, uint64 value);
+		void WaitAll();
 		void Submit();
+		void SignalAll();
 		void ResetState();
 
 		void BeginQuery(GfxQueryHeap& query_heap, uint32 index);

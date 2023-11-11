@@ -97,7 +97,7 @@ namespace adria
 		~GfxDevice();
 
 		void WaitForGPU();
-
+		
 		void OnResize(uint32 w, uint32 h);
 		uint32 GetBackbufferIndex() const;
 		uint32 GetFrameIndex() const;
@@ -210,7 +210,7 @@ namespace adria
 
 		std::unique_ptr<GfxCopyCommandListPool> copy_cmd_list_pool[GFX_BACKBUFFER_COUNT];
 		GfxFence upload_fence;
-		uint64 upload_fence_value = 0;
+		uint64   upload_fence_value = 0;
 
 		GfxFence     wait_fence;
 		uint64       wait_fence_value = 1;

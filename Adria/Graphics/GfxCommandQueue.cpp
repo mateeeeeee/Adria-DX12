@@ -35,9 +35,13 @@ namespace adria
 
 	void GfxCommandQueue::ExecuteCommandLists(std::span<GfxCommandList*> cmd_lists)
 	{
+		for (GfxCommandList* cmd_list : cmd_lists) cmd_list->WaitAll();
+
 		std::vector<ID3D12CommandList*> d3d12_cmd_lists(cmd_lists.size());
 		for (size_t i = 0; i < d3d12_cmd_lists.size(); ++i) d3d12_cmd_lists[i] = cmd_lists[i]->GetNative();
 		command_queue->ExecuteCommandLists((uint32)d3d12_cmd_lists.size(), d3d12_cmd_lists.data());
+
+		for (GfxCommandList* cmd_list : cmd_lists) cmd_list->SignalAll();
 	}
 
 	void GfxCommandQueue::Signal(GfxFence& fence, uint64 fence_value)
