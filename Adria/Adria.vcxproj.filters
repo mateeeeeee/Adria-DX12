@@ -32,9 +32,6 @@
     <Filter Include="Editor">
       <UniqueIdentifier>{82f8fa3a-c2b4-4cd1-9a90-c46b3a0b1dfb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Tasks">
-      <UniqueIdentifier>{6e93feed-a08b-471a-870c-bc433d3c1b4d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="RenderGraph">
       <UniqueIdentifier>{ae8ff9af-e5a9-4001-bb0b-49fa7b006160}</UniqueIdentifier>
     </Filter>
@@ -565,15 +562,6 @@
     </ClInclude>
     <ClInclude Include="Graphics\GfxDevice.h">
       <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Tasks\Task.h">
-      <Filter>Tasks</Filter>
-    </ClInclude>
-    <ClInclude Include="Tasks\TaskManager.h">
-      <Filter>Tasks</Filter>
-    </ClInclude>
-    <ClInclude Include="Tasks\ThreadPool.h">
-      <Filter>Tasks</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\HosekDataRGB.h">
       <Filter>Utilities</Filter>

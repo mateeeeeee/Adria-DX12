@@ -3,15 +3,21 @@
 #include <future>
 #include <type_traits>
 #include "Utilities/ConcurrentQueue.h"
+#include "Utilities/Singleton.h"
+
 
 
 namespace adria
 {
-	class ThreadPool
+	class ThreadPool : public Singleton<ThreadPool>
 	{
+		friend class Singleton<ThreadPool>;
+
 	public:
-		explicit ThreadPool(uint32 pool_size = std::thread::hardware_concurrency() - 1) : done(false), task_queue{}
+		
+		void Initialize(uint32 pool_size = std::thread::hardware_concurrency() - 1)
 		{
+			done = false;
 			static const uint32 max_threads = std::thread::hardware_concurrency();
 			uint16 const num_threads = pool_size == 0 ? max_threads - 1 : (std::min)(max_threads - 1, pool_size);
 
@@ -22,17 +28,9 @@ namespace adria
 			}
 		}
 
-		ThreadPool(ThreadPool const&) = delete;
-		ThreadPool(ThreadPool&&) = delete;
-		ThreadPool& operator=(ThreadPool const&) = delete;
-		ThreadPool& operator=(ThreadPool&&) = delete;
-		~ThreadPool()
-		{
-			if(!done) Destroy();
-		}
-
 		void Destroy()
 		{
+			if (done) return;
 			{
 				std::unique_lock<std::mutex> lk(cond_mutex);
 				done = true;
@@ -40,6 +38,13 @@ namespace adria
 			}
 			for (uint16 i = 0; i < threads.size(); ++i) if (threads[i].joinable())  threads[i].join();
 		}
+
+		ThreadPool(ThreadPool const&) = delete;
+		ThreadPool(ThreadPool&&) = delete;
+		ThreadPool& operator=(ThreadPool const&) = delete;
+		ThreadPool& operator=(ThreadPool&&) = delete;
+		~ThreadPool() = default;
+
 		template<typename F, typename... Args>
 		auto Submit(F&& f, Args&&... args) 
 		{
@@ -56,11 +61,13 @@ namespace adria
 	private:
 		std::vector<std::thread> threads;
 		ConcurrentQueue<std::function<void()>> task_queue;
-		bool done;
+		bool done = false;
 		std::condition_variable cond_var;
 		std::mutex cond_mutex;
 
 	private:
+		ThreadPool() = default;
+
 		void ThreadWork()
 		{
 			std::function <void()> task;
@@ -83,5 +90,5 @@ namespace adria
 			}
 		}
 	};
-
+	#define g_ThreadPool ThreadPool::Get()
 }

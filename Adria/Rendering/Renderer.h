@@ -143,10 +143,11 @@ namespace adria
 		ViewportData			 viewport_data;
 
 		//screenshot
-		bool					take_screenshot = false;
-		std::string				screenshot_name = "";
-		GfxFence				screenshot_fence;
-		uint64					screenshot_fence_value = 1;
+		bool						take_screenshot = false;
+		std::string					screenshot_name = "";
+		GfxFence					screenshot_fence;
+		uint64						screenshot_fence_value = 1;
+		std::unique_ptr<GfxBuffer>  screenshot_buffer;
 
 	private:
 		void CreateSizeDependentResources();
@@ -161,7 +162,6 @@ namespace adria
 		void Render_PathTracing(RenderGraph& rg);
 
 		void CopyToBackbuffer(RenderGraph& rg);
-
-		void TakeScreenshot();
+		void TakeScreenshot(RenderGraph& rg);
 	};
 }

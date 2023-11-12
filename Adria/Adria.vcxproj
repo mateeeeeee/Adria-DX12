@@ -471,9 +471,6 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="Resources\NewShaders\SPD\ffx_a.h" />
     <ClInclude Include="Resources\NewShaders\SPD\ffx_spd.h" />
-    <ClInclude Include="Tasks\Task.h" />
-    <ClInclude Include="Tasks\TaskManager.h" />
-    <ClInclude Include="Tasks\ThreadPool.h" />
     <ClInclude Include="Utilities\AllocatorUtil.h" />
     <ClInclude Include="Utilities\AutoRefCountPtr.h" />
     <ClInclude Include="Utilities\CLIParser.h" />

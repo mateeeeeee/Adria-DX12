@@ -2,7 +2,7 @@
 #include "Engine.h"
 #include "Window.h"
 #include "Editor/EditorEvents.h"
-#include "Tasks/TaskManager.h"
+#include "Threads/ThreadPool.h"
 #include "Math/Constants.h"
 #include "Logging/Logger.h"
 #include "Input/Input.h"
@@ -207,7 +207,7 @@ namespace adria
 
 	Engine::Engine(EngineInit const& init) : vsync{ init.vsync }
 	{
-		g_TaskManager.Initialize();
+		g_ThreadPool.Initialize();
 		GfxShaderCompiler::Initialize();
 		ShaderCache::Initialize();
 		gfx = std::make_unique<GfxDevice>(GfxOptions{.debug_layer = init.debug_layer,
@@ -238,7 +238,7 @@ namespace adria
 		PSOCache::Destroy();
 		ShaderCache::Destroy();
 		GfxShaderCompiler::Destroy();
-		g_TaskManager.Destroy();
+		g_ThreadPool.Destroy();
 	}
 
 	void Engine::HandleWindowMessage(WindowMessage const& msg_data)

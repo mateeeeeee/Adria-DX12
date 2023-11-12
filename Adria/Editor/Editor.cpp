@@ -1098,7 +1098,7 @@ namespace adria
 
 			if (ImGui::TreeNode("Screenshot"))
 			{
-				static char filename[32] = "screenshot.png";
+				static char filename[32] = "screenshot";
 				ImGui::InputText("File name", filename, sizeof(filename));
 				if (ImGui::Button("Take Screenshot"))
 				{

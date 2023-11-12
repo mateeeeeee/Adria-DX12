@@ -19,6 +19,7 @@
 #include "Graphics/GfxProfiler.h"
 #include "Graphics/GfxTracyProfiler.h"
 #include "RenderGraph/RenderGraph.h"
+#include "Threads/ThreadPool.h"
 #include "Utilities/Random.h"
 #include "Utilities/ImageWrite.h"
 #include "Logging/Logger.h"
@@ -123,12 +124,11 @@ namespace adria
 
 		if (!g_Editor.IsActive()) CopyToBackbuffer(render_graph);
 		else g_Editor.AddRenderPass(render_graph);
-		
+		if (take_screenshot) TakeScreenshot(render_graph);
+
 		render_graph.Build();
 		if (dump_render_graph) render_graph.DumpRenderGraph("rendergraph.gv");
 		render_graph.Execute();
-
-		if (take_screenshot) TakeScreenshot();
 	}
 
 	void Renderer::OnResize(uint32 w, uint32 h)
@@ -518,10 +518,52 @@ namespace adria
 			}, RGPassType::Copy, RGPassFlags::ForceNoCull);
 	}
 
-	void Renderer::TakeScreenshot()
+	void Renderer::TakeScreenshot(RenderGraph& rg)
 	{
 		ADRIA_ASSERT(take_screenshot);
-		//todo
+
+		D3D12_PLACED_SUBRESOURCE_FOOTPRINT backbuffer_footprint = {};
+		D3D12_RESOURCE_DESC backbuffer_desc = final_texture->GetNative()->GetDesc();
+		gfx->GetDevice()->GetCopyableFootprints(&backbuffer_desc, 0, 1, 0, &backbuffer_footprint, nullptr, nullptr, nullptr);
+
+		if (!screenshot_buffer)
+		{	
+			GfxBufferDesc screenshot_desc{};
+			screenshot_desc.size = backbuffer_footprint.Footprint.RowPitch * backbuffer_footprint.Footprint.Height;
+			screenshot_desc.resource_usage = GfxResourceUsage::Readback;
+			screenshot_buffer = gfx->CreateBuffer(screenshot_desc);
+		}
+		rg.ImportBuffer(RG_RES_NAME(ScreenshotBuffer), screenshot_buffer.get());
+
+		struct ScreenshotPassData
+		{
+			RGBufferCopyDstId  dst;
+			RGTextureCopySrcId src;
+		};
+		rg.AddPass<ScreenshotPassData>("Screenshot Pass",
+			[=](ScreenshotPassData& data, RenderGraphBuilder& builder)
+			{
+				data.dst = builder.WriteCopyDstBuffer(RG_RES_NAME(ScreenshotBuffer));
+				data.src = builder.ReadCopySrcTexture(RG_RES_NAME(FinalTexture));
+			},
+			[=](ScreenshotPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			{
+				GfxTexture const& src_texture = ctx.GetCopySrcTexture(data.src);
+				GfxBuffer& dst_buffer = ctx.GetCopyDstBuffer(data.dst);
+				cmd_list->CopyTextureToBuffer(dst_buffer, 0, src_texture, 0, 0);
+				cmd_list->Signal(screenshot_fence, screenshot_fence_value);
+			}, RGPassType::Copy, RGPassFlags::ForceNoCull);
+
+		g_ThreadPool.Submit([this](D3D12_PLACED_SUBRESOURCE_FOOTPRINT backbuffer_footprint) 
+			{
+			screenshot_fence.Wait(screenshot_fence_value++);
+			std::string screenshot_name_with_extension = screenshot_name + ".png";
+			WriteImageToFile(FileType::PNG, screenshot_name_with_extension.c_str(), backbuffer_footprint.Footprint.Width, backbuffer_footprint.Footprint.Height,
+							 screenshot_buffer->GetMappedData(), backbuffer_footprint.Footprint.RowPitch);
+		
+			screenshot_buffer.reset();
+			}, backbuffer_footprint);
+
 		take_screenshot = false;
 	}
 
