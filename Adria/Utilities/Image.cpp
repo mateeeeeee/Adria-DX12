@@ -260,7 +260,7 @@ namespace adria
 		return true;
 	}
 
-	bool Image::LoadSTB(std::string_view  texture_path)
+	bool Image::LoadSTB(std::string_view texture_path)
 	{
 		int32 components = 0;
 		is_hdr = stbi_is_hdr(texture_path.data());
@@ -295,5 +295,4 @@ namespace adria
 			return true;
 		}
 	}
-
 }

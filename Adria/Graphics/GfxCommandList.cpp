@@ -406,6 +406,30 @@ namespace adria
 		++command_count;
 	}
 
+	void GfxCommandList::CopyTextureToBuffer(GfxBuffer& dst, uint64 dst_offset, GfxTexture const& src, uint32 src_mip, uint32 src_array)
+	{
+		GfxTextureDesc const& desc = src.GetDesc();
+
+
+		D3D12_TEXTURE_COPY_LOCATION dst_texture;
+		dst_texture.pResource = dst.GetNative();
+		dst_texture.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+		dst_texture.PlacedFootprint.Offset = dst_offset;
+		dst_texture.PlacedFootprint.Footprint.Width = desc.width;
+		dst_texture.PlacedFootprint.Footprint.Depth = 1;
+		dst_texture.PlacedFootprint.Footprint.Height = desc.height;
+		dst_texture.PlacedFootprint.Footprint.Format = ConvertGfxFormat(desc.format);
+		dst_texture.PlacedFootprint.Footprint.RowPitch = (uint32) GetRowPitch(desc.format, dst_texture.PlacedFootprint.Footprint.Width); // (uint32)Align(, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+
+		D3D12_TEXTURE_COPY_LOCATION src_texture;
+		src_texture.pResource = src.GetNative();
+		src_texture.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+		src_texture.SubresourceIndex = src_mip + src.GetDesc().mip_levels * src_array;
+
+		cmd_list->CopyTextureRegion(&dst_texture, (uint32)dst_offset, 0, 0, &src_texture, nullptr);
+		++command_count;
+	}
+
 	void GfxCommandList::ClearUAV(GfxBuffer const& resource, GfxDescriptor uav, GfxDescriptor uav_cpu, const float* clear_value)
 	{
 		cmd_list->ClearUnorderedAccessViewFloat(uav, uav_cpu, resource.GetNative(), clear_value, 0, nullptr);

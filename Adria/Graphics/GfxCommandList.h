@@ -81,6 +81,7 @@ namespace adria
 		void CopyBuffer(GfxBuffer& dst, uint64 dst_offset, GfxBuffer const& src, uint64 src_offset, uint64 size);
 		void CopyTexture(GfxTexture& dst, GfxTexture const& src);
 		void CopyTexture(GfxTexture& dst, uint32 dst_mip, uint32 dst_array, GfxTexture const& src, uint32 src_mip, uint32 src_array);
+		void CopyTextureToBuffer(GfxBuffer& dst, uint64 dst_offset, GfxTexture const& src, uint32 src_mip, uint32 src_array);
 
 		void ClearUAV(GfxBuffer const& resource, GfxDescriptor uav, GfxDescriptor uav_cpu, const float* clear_value);
 		void ClearUAV(GfxTexture const& resource, GfxDescriptor uav, GfxDescriptor uav_cpu, const float* clear_value);

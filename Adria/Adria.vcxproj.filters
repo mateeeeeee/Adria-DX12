@@ -459,6 +459,9 @@
     <ClCompile Include="Rendering\DLSS3Pass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
+    <ClCompile Include="Utilities\ImageWrite.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
     <ClCompile Include="Graphics\GfxCommandListPool.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
@@ -1028,6 +1031,9 @@
     </ClInclude>
     <ClInclude Include="Graphics\GfxCommandListPool.h">
       <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\ImageWrite.h">
+      <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

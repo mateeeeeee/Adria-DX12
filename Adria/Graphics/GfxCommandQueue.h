@@ -6,6 +6,7 @@ namespace adria
 {
 	class GfxDevice;
 	class GfxCommandList;
+	class GfxCommandListPool;
 
 	enum class GfxCommandListType : uint8;
 
@@ -18,6 +19,7 @@ namespace adria
 		bool Create(GfxDevice* gfx, GfxCommandListType type, char const* name = "");
 		
 		void ExecuteCommandLists(std::span<GfxCommandList*> cmd_lists);
+		void ExecuteCommandListPool(GfxCommandListPool& cmd_list_pool);
 
 		void Signal(GfxFence& fence, uint64 fence_value);
 		void Wait(GfxFence& fence, uint64 fence_value);

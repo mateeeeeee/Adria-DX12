@@ -10,6 +10,8 @@ namespace adria
 
 	class GfxCommandListPool
 	{
+		friend class GfxCommandQueue;
+
 	public:
 		ADRIA_NONCOPYABLE(GfxCommandListPool);
 		ADRIA_DEFAULT_MOVABLE(GfxCommandListPool);
@@ -21,18 +23,8 @@ namespace adria
 		GfxCommandList* AllocateCmdList();
 		void FreeCmdList(GfxCommandList* _cmd_list);
 
-		void BeginCmdLists()
-		{
-			for (auto& cmd_list : cmd_lists)
-			{
-				cmd_list->ResetAllocator();
-				cmd_list->Begin();
-			}
-		}
-		void EndCmdLists()
-		{
-			for (auto& cmd_list : cmd_lists) cmd_list->End();
-		}
+		void BeginCmdLists();
+		void EndCmdLists();
 
 	protected:
 		GfxCommandListPool(GfxDevice* gfx, GfxCommandListType type);

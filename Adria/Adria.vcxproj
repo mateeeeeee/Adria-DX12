@@ -292,6 +292,7 @@
     <ClCompile Include="Rendering\XeSSPass.cpp" />
     <ClCompile Include="Utilities\Heightmap.cpp" />
     <ClCompile Include="Utilities\Image.cpp" />
+    <ClCompile Include="Utilities\ImageWrite.cpp" />
     <ClCompile Include="Utilities\StringUtil.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -482,6 +483,7 @@
     <ClInclude Include="Utilities\Heightmap.h" />
     <ClInclude Include="Utilities\HosekDataRGB.h" />
     <ClInclude Include="Utilities\hwbp.h" />
+    <ClInclude Include="Utilities\ImageWrite.h" />
     <ClInclude Include="Utilities\JsonUtil.h" />
     <ClInclude Include="Utilities\LinearAllocator.h" />
     <ClInclude Include="Utilities\Releasable.h" />

@@ -152,6 +152,7 @@ namespace adria
 				commands.clear();
 				debug_textures.clear();
 			}, RGPassType::Graphics, RGPassFlags::ForceNoCull | RGPassFlags::LegacyRenderPass);
+
 	}
 
 	void Editor::SetStyle()
@@ -217,7 +218,7 @@ namespace adria
 	}
 	void Editor::HandleInput()
 	{
-		if (g_Input.IsKeyDown(KeyCode::I)) gui->ToggleVisibility();
+		if (scene_focused && g_Input.IsKeyDown(KeyCode::I)) gui->ToggleVisibility();
 		if (scene_focused && g_Input.IsKeyDown(KeyCode::G)) gizmo_enabled = !gizmo_enabled;
 		if (gizmo_enabled && gui->IsVisible())
 		{
@@ -961,7 +962,7 @@ namespace adria
 					{
 						ImGui::TableNextRow();
 
-						if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) 
+						if (ImGui::IsItemHovered(ImGuiMouseButton_Left)) 
 						{
 							//todo
 						}
@@ -1092,6 +1093,17 @@ namespace adria
 			if (ImGui::TreeNode("Render Graph"))
 			{
 				dump_render_graph = ImGui::Button("Dump render graph");
+				ImGui::TreePop();
+			}
+
+			if (ImGui::TreeNode("Screenshot"))
+			{
+				static char filename[32] = "screenshot.png";
+				ImGui::InputText("File name", filename, sizeof(filename));
+				if (ImGui::Button("Take Screenshot"))
+				{
+					editor_events.take_screenshot_event.Broadcast(filename);
+				}
 				ImGui::TreePop();
 			}
 

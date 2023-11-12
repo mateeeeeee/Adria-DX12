@@ -78,9 +78,7 @@ namespace adria
 		void OnSceneInitialized();
 		RGResourceName GetFinalResource() const;
 
-		bool HasTAA() const;
 		bool HasRTR() const { return reflections == Reflections::RTR; }
-		bool HasUpscaler() const { return upscaler != UpscalerType::None; }
 		bool NeedsJitter() const { return HasTAA() || HasUpscaler(); }
 
 	private:
@@ -132,6 +130,10 @@ namespace adria
 	private:
 		RGResourceName AddHDRCopyPass(RenderGraph& rg);
 		void AddSunPass(RenderGraph& rg, entt::entity sun);
+
+		bool NeedsVelocityBuffer() const { return HasUpscaler() || HasTAA() || clouds || motion_blur; }
+		bool HasUpscaler() const { return upscaler != UpscalerType::None; }
+		bool HasTAA() const;
 
 		void PostprocessorGUI();
 	};

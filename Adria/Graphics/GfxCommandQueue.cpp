@@ -1,6 +1,7 @@
 #include "GfxCommandQueue.h"
 #include "GfxDevice.h"
 #include "GfxCommandList.h"
+#include "GfxCommandListPool.h"
 #include "Utilities/StringUtil.h"
 
 namespace adria
@@ -35,6 +36,8 @@ namespace adria
 
 	void GfxCommandQueue::ExecuteCommandLists(std::span<GfxCommandList*> cmd_lists)
 	{
+		if (cmd_lists.empty()) return;
+
 		for (GfxCommandList* cmd_list : cmd_lists) cmd_list->WaitAll();
 
 		std::vector<ID3D12CommandList*> d3d12_cmd_lists(cmd_lists.size());
@@ -42,6 +45,13 @@ namespace adria
 		command_queue->ExecuteCommandLists((uint32)d3d12_cmd_lists.size(), d3d12_cmd_lists.data());
 
 		for (GfxCommandList* cmd_list : cmd_lists) cmd_list->SignalAll();
+	}
+
+	void GfxCommandQueue::ExecuteCommandListPool(GfxCommandListPool& cmd_list_pool)
+	{
+		std::vector<GfxCommandList*> cmd_lists; cmd_lists.reserve(cmd_list_pool.cmd_lists.size());
+		for (auto& cmd_list : cmd_list_pool.cmd_lists) cmd_lists.push_back(cmd_list.get());
+		ExecuteCommandLists(cmd_lists);
 	}
 
 	void GfxCommandQueue::Signal(GfxFence& fence, uint64 fence_value)

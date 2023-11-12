@@ -50,7 +50,7 @@ namespace adria
 		PostprocessorGUI();
 
 		auto lights = reg.view<Light>();
-		if (motion_blur || HasAnyFlag(anti_aliasing, AntiAliasing_TAA) || clouds)
+		if (NeedsVelocityBuffer())
 		{
 			velocity_buffer_pass.AddPass(rg);
 		}

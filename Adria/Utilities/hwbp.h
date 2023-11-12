@@ -1,6 +1,4 @@
-﻿// HwBpLib.h : Include file for standard system include files,
-// or project specific include files.
-//https://github.com/biocomp/hw_break modified a bit
+﻿//https://github.com/biocomp/hw_break modified a bit
 
 #pragma once
 #pragma warning(push)

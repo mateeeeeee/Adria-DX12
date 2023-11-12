@@ -65,6 +65,7 @@ namespace adria
 		void OnRenderResolutionChanged(uint32 w, uint32 h);
 		void OnSceneInitialized();
 		void OnRightMouseClicked(int32 x, int32 y);
+		void OnTakeScreenshot(char const*);
 
 		PickingData const& GetPickingData() const { return picking_data; }
 		Vector2u GetDisplayResolution() const { return Vector2u(display_width, display_height); }
@@ -141,6 +142,12 @@ namespace adria
 		Vector3					 sun_direction;
 		ViewportData			 viewport_data;
 
+		//screenshot
+		bool					take_screenshot = false;
+		std::string				screenshot_name = "";
+		GfxFence				screenshot_fence;
+		uint64					screenshot_fence_value = 1;
+
 	private:
 		void CreateSizeDependentResources();
 		void CreateAS();
@@ -154,5 +161,7 @@ namespace adria
 		void Render_PathTracing(RenderGraph& rg);
 
 		void CopyToBackbuffer(RenderGraph& rg);
+
+		void TakeScreenshot();
 	};
 }

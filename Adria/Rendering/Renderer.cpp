@@ -20,7 +20,7 @@
 #include "Graphics/GfxTracyProfiler.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Utilities/Random.h"
-#include "Utilities/hwbp.h"
+#include "Utilities/ImageWrite.h"
 #include "Logging/Logger.h"
 #include "Core/ConsoleVariable.h"
 #include "entt/entity/registry.hpp"
@@ -60,6 +60,7 @@ namespace adria
 		CreateSizeDependentResources();
 		shadow_renderer.GetShadowTextureRenderedEvent().AddMember(&DeferredLightingPass::OnShadowTextureRendered, deferred_lighting_pass);
 		shadow_renderer.GetShadowTextureRenderedEvent().AddMember(&VolumetricLightingPass::OnShadowTextureRendered, volumetric_lighting_pass);
+		screenshot_fence.Create(gfx, "Screenshot Fence");
 	}
 
 	Renderer::~Renderer()
@@ -122,10 +123,12 @@ namespace adria
 
 		if (!g_Editor.IsActive()) CopyToBackbuffer(render_graph);
 		else g_Editor.AddRenderPass(render_graph);
-
+		
 		render_graph.Build();
 		if (dump_render_graph) render_graph.DumpRenderGraph("rendergraph.gv");
 		render_graph.Execute();
+
+		if (take_screenshot) TakeScreenshot();
 	}
 
 	void Renderer::OnResize(uint32 w, uint32 h)
@@ -140,7 +143,6 @@ namespace adria
 			path_tracer.OnResize(w, h);
 		}
 	}
-
 	void Renderer::OnRenderResolutionChanged(uint32 w, uint32 h)
 	{
 		if (render_width != w || render_height != h)
@@ -185,6 +187,11 @@ namespace adria
 	void Renderer::OnRightMouseClicked(int32 x, int32 y)
 	{
 		update_picking_data = true;
+	}
+	void Renderer::OnTakeScreenshot(char const* filename)
+	{
+		screenshot_name = filename;
+		take_screenshot = true;
 	}
 
 	void Renderer::CreateSizeDependentResources()
@@ -510,5 +517,13 @@ namespace adria
 				cmd_list->CopyTexture(dst_texture, src_texture);
 			}, RGPassType::Copy, RGPassFlags::ForceNoCull);
 	}
+
+	void Renderer::TakeScreenshot()
+	{
+		ADRIA_ASSERT(take_screenshot);
+		//todo
+		take_screenshot = false;
+	}
+
 }
 

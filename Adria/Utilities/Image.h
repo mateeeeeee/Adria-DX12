@@ -40,13 +40,16 @@ namespace adria
 		Image const* NextImage() const { return next_image.get(); }
 
 	private:
-		uint32 width, height, depth, mip_levels;
+		uint32 width = 0;
+		uint32 height = 0;
+		uint32 depth = 0;
+		uint32 mip_levels = 0;
 		std::vector<uint8> pixels;
-		bool is_hdr;
-		bool is_cubemap;
-		bool is_srgb;
+		bool is_hdr = false;
+		bool is_cubemap = false;
+		bool is_srgb = false;
 		GfxFormat format = GfxFormat::UNKNOWN;
-		std::unique_ptr<Image> next_image;
+		std::unique_ptr<Image> next_image = nullptr;
 
 	private:
 		uint64 SetData(uint32 width, uint32 height, uint32 depth, uint32 mip_levels, void const* data);
@@ -71,5 +74,4 @@ namespace adria
 		}
 		return reinterpret_cast<T const*>(pixels.data() + offset);
 	}
-
 }

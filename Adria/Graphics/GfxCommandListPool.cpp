@@ -38,6 +38,19 @@ namespace adria
 		cmd_lists.pop_back();
 	}
 
+	void GfxCommandListPool::BeginCmdLists()
+	{
+		for (auto& cmd_list : cmd_lists)
+		{
+			cmd_list->ResetAllocator();
+			cmd_list->Begin();
+		}
+	}
+	void GfxCommandListPool::EndCmdLists()
+	{
+		for (auto& cmd_list : cmd_lists) cmd_list->End();
+	}
+
 	GfxGraphicsCommandListPool::GfxGraphicsCommandListPool(GfxDevice* gfx) : GfxCommandListPool(gfx, GfxCommandListType::Graphics)
 	{
 

@@ -368,6 +368,8 @@ namespace adria
 	void GfxDevice::WaitForGPU()
 	{
 		graphics_queue.Signal(wait_fence, wait_fence_value);
+		copy_queue.Signal(wait_fence, wait_fence_value);
+		wait_fence.Wait(wait_fence_value);
 		wait_fence.Wait(wait_fence_value);
 		wait_fence_value++;
 	}
@@ -401,21 +403,26 @@ namespace adria
 		gpu_descriptor_allocator->ReleaseCompletedFrames(frame_index);
 		dynamic_allocators[backbuffer_index]->Clear();
 
-		GfxCommandList* cmd_list = GetCommandList(GfxCommandListType::Graphics);
-		cmd_list->ResetAllocator();
-		cmd_list->Begin();
+		graphics_cmd_list_pool[backbuffer_index]->BeginCmdLists();
+		copy_cmd_list_pool[backbuffer_index]->BeginCmdLists();
+		//GfxCommandList* cmd_list = GetCommandList(GfxCommandListType::Graphics);
+		//cmd_list->ResetAllocator();
+		//cmd_list->Begin();
 	}
 	void GfxDevice::EndFrame(bool vsync /*= false*/)
 	{
-		GfxCommandList* cmd_list = GetCommandList(GfxCommandListType::Graphics);
-		cmd_list->End();
+		uint32 backbuffer_index = swapchain->GetBackbufferIndex();
 
-		graphics_queue.ExecuteCommandLists(std::span{ &cmd_list, 1 });
+		graphics_cmd_list_pool[backbuffer_index]->EndCmdLists();
+		copy_cmd_list_pool[backbuffer_index]->EndCmdLists();
+
+		graphics_queue.ExecuteCommandListPool(*graphics_cmd_list_pool[backbuffer_index]);
+		copy_queue.ExecuteCommandListPool(*copy_cmd_list_pool[backbuffer_index]);
 		ProcessReleaseQueue();
 
 		swapchain->Present(vsync);
 
-		uint32 backbuffer_index = swapchain->GetBackbufferIndex();
+		backbuffer_index = swapchain->GetBackbufferIndex();
 		frame_fence_values[backbuffer_index] = frame_fence_value;
 		graphics_queue.Signal(frame_fence, frame_fence_value);
 		++frame_fence_value;

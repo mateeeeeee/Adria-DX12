@@ -297,7 +297,7 @@ namespace adria
 
 	void Engine::RegisterEditorEventCallbacks(EditorEvents& events)
 	{
-
+		events.take_screenshot_event.AddMember(&Renderer::OnTakeScreenshot, *renderer);
 	}
 
 	void Engine::InitializeScene(SceneConfig const& config)

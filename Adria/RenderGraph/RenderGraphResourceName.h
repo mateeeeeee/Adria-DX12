@@ -47,6 +47,11 @@ namespace adria
 			return "";
 		}
 #endif
+		bool IsValidName() const
+		{
+			return hashed_name != INVALID_HASH;
+		}
+
 		uint64 hashed_name;
 #if RG_DEBUG
 		char const* name;

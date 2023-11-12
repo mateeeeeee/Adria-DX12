@@ -40,9 +40,8 @@ namespace adria
 
 			GfxRayTracingInstance& rt_instance = rt_instances.emplace_back();
 			rt_instance.flags = GfxRayTracingInstanceFlag_None;
-			rt_instance.instance_id = instance_id++; //#todo tmp, fix this
+			rt_instance.instance_id = instance_id++; //#todo temporary
 			rt_instance.instance_mask = 0xff;
-			//
 			const auto T = XMMatrixTranspose(instance.world_transform);
 			memcpy(rt_instance.transform, &T, sizeof(T));
 		}
