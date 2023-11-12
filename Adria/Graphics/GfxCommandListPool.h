@@ -1,7 +1,6 @@
 #pragma once
 #include <vector>
 #include <memory>
-#include "GfxCommandList.h"
 
 namespace adria
 {
@@ -21,6 +20,19 @@ namespace adria
 
 		GfxCommandList* AllocateCmdList();
 		void FreeCmdList(GfxCommandList* _cmd_list);
+
+		void BeginCmdLists()
+		{
+			for (auto& cmd_list : cmd_lists)
+			{
+				cmd_list->ResetAllocator();
+				cmd_list->Begin();
+			}
+		}
+		void EndCmdLists()
+		{
+			for (auto& cmd_list : cmd_lists) cmd_list->End();
+		}
 
 	protected:
 		GfxCommandListPool(GfxDevice* gfx, GfxCommandListType type);

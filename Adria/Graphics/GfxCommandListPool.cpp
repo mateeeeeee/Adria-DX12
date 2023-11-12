@@ -21,6 +21,8 @@ namespace adria
 	GfxCommandList* GfxCommandListPool::AllocateCmdList()
 	{
 		cmd_lists.push_back(std::make_unique<GfxCommandList>(gfx, type));
+		cmd_lists.back()->ResetAllocator();
+		cmd_lists.back()->Begin();
 		return cmd_lists.back().get();
 	}
 	void GfxCommandListPool::FreeCmdList(GfxCommandList* _cmd_list)
