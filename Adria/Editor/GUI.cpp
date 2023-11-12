@@ -33,8 +33,7 @@ namespace adria
 
 		imgui_allocator = std::make_unique<GUIDescriptorAllocator>(gfx, 30, 1); //reserve first one for fonts
 		GfxDescriptor handle = imgui_allocator->GetHandle(0);
-		ImGui_ImplDX12_Init(gfx->GetDevice(), gfx->GetBackbufferCount(),
-			DXGI_FORMAT_R10G10B10A2_UNORM, imgui_allocator->GetHeap(), handle, handle);
+		ImGui_ImplDX12_Init(gfx->GetDevice(), gfx->GetBackbufferCount(), DXGI_FORMAT_R8G8B8A8_UNORM, imgui_allocator->GetHeap(), handle, handle);
 	}
 	GUI::~GUI()
 	{

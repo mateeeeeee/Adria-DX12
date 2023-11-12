@@ -337,7 +337,7 @@ namespace adria
 		swapchain_desc.width = width;
 		swapchain_desc.height = height;
 		swapchain_desc.fullscreen_windowed = true;
-		swapchain_desc.backbuffer_format = GfxFormat::R10G10B10A2_UNORM;
+		swapchain_desc.backbuffer_format = GfxFormat::R8G8B8A8_UNORM;
 		swapchain = std::make_unique<GfxSwapchain>(this, swapchain_desc);
 
 		frame_fence.Create(this, "Frame Fence");
@@ -405,9 +405,6 @@ namespace adria
 
 		graphics_cmd_list_pool[backbuffer_index]->BeginCmdLists();
 		copy_cmd_list_pool[backbuffer_index]->BeginCmdLists();
-		//GfxCommandList* cmd_list = GetCommandList(GfxCommandListType::Graphics);
-		//cmd_list->ResetAllocator();
-		//cmd_list->Begin();
 	}
 	void GfxDevice::EndFrame(bool vsync /*= false*/)
 	{

@@ -172,10 +172,14 @@ namespace adria
 				{
 					input_events.f5_pressed_event.Broadcast();
 				}
+				else if (data.wparam == VK_F6)
+				{
+					input_events.f6_pressed_event.Broadcast("");
+				}
 				break;
 			}
 		}
-		m_mouse_wheel_delta = (float)GET_WHEEL_DELTA_WPARAM(data.wparam) / (float)WHEEL_DELTA;
+		mmouse_wheel_delta = (float)GET_WHEEL_DELTA_WPARAM(data.wparam) / (float)WHEEL_DELTA;
 
 	}
 	void Input::SetMouseVisible(bool visible)

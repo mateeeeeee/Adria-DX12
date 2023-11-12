@@ -42,12 +42,14 @@ namespace adria
 	DECLARE_EVENT(RightMouseClickedEvent, Input, int32, int32);
 	DECLARE_EVENT(MiddleMouseScrolledEvent, Input, int32);
 	DECLARE_EVENT(F5PressedEvent, Input);
+	DECLARE_EVENT(PrintScreenPressedEvent, Input, char const*);
 	struct InputEvents
 	{
 		MiddleMouseScrolledEvent scroll_mouse_event;
 		RightMouseClickedEvent right_mouse_clicked;
 		WindowResizedEvent window_resized_event;
 		F5PressedEvent f5_pressed_event;
+		PrintScreenPressedEvent f6_pressed_event;
 	};
 
 	class Input : public Singleton<Input>
@@ -72,7 +74,7 @@ namespace adria
 
 		float GetMouseDeltaX()     const { return mouse_position_x - prev_mouse_position_x;/*return mouse_delta_x;*/ }
 		float GetMouseDeltaY()     const { return mouse_position_y - prev_mouse_position_y;/*return mouse_delta_y;*/ }
-		float GetMouseWheelDelta() const { return m_mouse_wheel_delta; }
+		float GetMouseWheelDelta() const { return mmouse_wheel_delta; }
 
 	private:
 		InputEvents input_events;
@@ -84,7 +86,7 @@ namespace adria
 
 		float prev_mouse_position_x = 0.0f;
 		float prev_mouse_position_y = 0.0f;
-		float m_mouse_wheel_delta = 0.0f;
+		float mmouse_wheel_delta = 0.0f;
 
 		bool new_frame = false;
 		bool resizing = false;

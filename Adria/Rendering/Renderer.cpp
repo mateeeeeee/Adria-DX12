@@ -121,10 +121,10 @@ namespace adria
 
 		if (path_type == RendererPathType::PathTracing) Render_PathTracing(render_graph);
 		else Render_Deferred(render_graph);
+		if (take_screenshot) TakeScreenshot(render_graph);
 
 		if (!g_Editor.IsActive()) CopyToBackbuffer(render_graph);
 		else g_Editor.AddRenderPass(render_graph);
-		if (take_screenshot) TakeScreenshot(render_graph);
 
 		render_graph.Build();
 		if (dump_render_graph) render_graph.DumpRenderGraph("rendergraph.gv");
@@ -191,6 +191,12 @@ namespace adria
 	void Renderer::OnTakeScreenshot(char const* filename)
 	{
 		screenshot_name = filename;
+		if (screenshot_name.empty())
+		{
+			static uint32 screenshot_index = 0;
+			screenshot_name = "adria_screenshot";
+			screenshot_name += std::to_string(screenshot_index++);
+		}
 		take_screenshot = true;
 	}
 
@@ -199,7 +205,7 @@ namespace adria
 		GfxTextureDesc ldr_desc{};
 		ldr_desc.width = display_width;
 		ldr_desc.height = display_height;
-		ldr_desc.format = GfxFormat::R10G10B10A2_UNORM;
+		ldr_desc.format = GfxFormat::R8G8B8A8_UNORM;
 		ldr_desc.bind_flags = GfxBindFlag::UnorderedAccess | GfxBindFlag::ShaderResource | GfxBindFlag::RenderTarget;
 		ldr_desc.initial_state = GfxResourceState::UnorderedAccess;
 		final_texture = gfx->CreateTexture(ldr_desc);
@@ -522,14 +528,17 @@ namespace adria
 	{
 		ADRIA_ASSERT(take_screenshot);
 
-		D3D12_PLACED_SUBRESOURCE_FOOTPRINT backbuffer_footprint = {};
-		D3D12_RESOURCE_DESC backbuffer_desc = final_texture->GetNative()->GetDesc();
-		gfx->GetDevice()->GetCopyableFootprints(&backbuffer_desc, 0, 1, 0, &backbuffer_footprint, nullptr, nullptr, nullptr);
+		std::string screenshot_name_with_extension = screenshot_name + ".png";
+		ADRIA_LOG(INFO, "Taking screenshot: %s ...", screenshot_name_with_extension.c_str());
+
+		D3D12_PLACED_SUBRESOURCE_FOOTPRINT final_texture_footprint{};
+		D3D12_RESOURCE_DESC d3d12_final_texture_desc = final_texture->GetNative()->GetDesc();
+		gfx->GetDevice()->GetCopyableFootprints(&d3d12_final_texture_desc, 0, 1, 0, &final_texture_footprint, nullptr, nullptr, nullptr);
 
 		if (!screenshot_buffer)
 		{	
 			GfxBufferDesc screenshot_desc{};
-			screenshot_desc.size = backbuffer_footprint.Footprint.RowPitch * backbuffer_footprint.Footprint.Height;
+			screenshot_desc.size = final_texture_footprint.Footprint.RowPitch * final_texture_footprint.Footprint.Height;
 			screenshot_desc.resource_usage = GfxResourceUsage::Readback;
 			screenshot_buffer = gfx->CreateBuffer(screenshot_desc);
 		}
@@ -554,15 +563,15 @@ namespace adria
 				cmd_list->Signal(screenshot_fence, screenshot_fence_value);
 			}, RGPassType::Copy, RGPassFlags::ForceNoCull);
 
-		g_ThreadPool.Submit([this](D3D12_PLACED_SUBRESOURCE_FOOTPRINT backbuffer_footprint) 
+		g_ThreadPool.Submit([this](std::string name) 
 			{
-			screenshot_fence.Wait(screenshot_fence_value++);
-			std::string screenshot_name_with_extension = screenshot_name + ".png";
-			WriteImageToFile(FileType::PNG, screenshot_name_with_extension.c_str(), backbuffer_footprint.Footprint.Width, backbuffer_footprint.Footprint.Height,
-							 screenshot_buffer->GetMappedData(), backbuffer_footprint.Footprint.RowPitch);
-		
+			screenshot_fence.Wait(screenshot_fence_value);
+			WriteImageToFile(FileType::PNG, name.c_str(), display_width, display_height,
+							 screenshot_buffer->GetMappedData(), display_width * 4);
 			screenshot_buffer.reset();
-			}, backbuffer_footprint);
+			ADRIA_LOG(INFO, "Screenshot %s taken!", name.c_str());
+			screenshot_fence_value++;
+			}, screenshot_name_with_extension);
 
 		take_screenshot = false;
 	}
