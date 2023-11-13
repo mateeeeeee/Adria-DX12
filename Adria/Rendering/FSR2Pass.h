@@ -1,5 +1,5 @@
 #pragma once
-#include "FSR2/ffx_fsr2.h"
+#include "FidelityFX/host/ffx_fsr2.h"
 #include "RenderGraph/RenderGraphResourceName.h"
 #include "Events/Delegate.h"
 
@@ -30,17 +30,14 @@ namespace adria
 
 		RenderResolutionChanged& GetRenderResolutionChangedEvent() { return render_resolution_changed_event; }
 		
-		bool IsSupported() const { return is_supported; }
-
 	private:
-		bool is_supported = false;
 		char name_version[16] = {};
 		GfxDevice* gfx = nullptr;
 		uint32 display_width, display_height;
 		uint32 render_width, render_height;
 
-		FfxFsr2ContextDescription context_desc = {};
-		FfxFsr2Context context = {};
+		FfxFsr2ContextDescription context_desc{};
+		FfxFsr2Context context{};
 		bool recreate_context = false;
 
 		FfxFsr2QualityMode quality_mode = FFX_FSR2_QUALITY_MODE_QUALITY;

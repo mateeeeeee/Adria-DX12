@@ -20,12 +20,11 @@ namespace adria
 	{
 		static ConsoleVariable upscaler("upscaler", 0);
 		static ConsoleVariable reflections("reflections", 0);
+		static ConsoleVariable dof("dof", 0);
 		static ConsoleVariable taa("TAA", false);
 		static ConsoleVariable fxaa("FXAA", true);
 		static ConsoleVariable exposure("exposure", true);
 		static ConsoleVariable clouds("clouds", true);
-		static ConsoleVariable dof("dof", false);
-		static ConsoleVariable bokeh("bokeh", false);
 		static ConsoleVariable bloom("bloom", false);
 		static ConsoleVariable motion_blur("motionblur", false);
 		static ConsoleVariable fog("fog", false);
@@ -37,9 +36,9 @@ namespace adria
 		add_textures_pass(width, height), automatic_exposure_pass(width, height),
 		lens_flare_pass(width, height), clouds_pass(width, height), ssr_pass(width, height), fog_pass(width, height),
 		dof_pass(width, height), bloom_pass(width, height), velocity_buffer_pass(width, height),
-		motion_blur_pass(width, height), taa_pass(width, height), god_rays_pass(width, height), bokeh_pass(width, height),
+		motion_blur_pass(width, height), taa_pass(width, height), god_rays_pass(width, height),
 		fsr2_pass(gfx, width, height), xess_pass(gfx, width, height), dlss3_pass(gfx, width, height),
-		tonemap_pass(width, height), fxaa_pass(width, height)
+		tonemap_pass(width, height), fxaa_pass(width, height), ffx_dof_pass(gfx, width, height), rtr_pass(gfx, width, height)
 	{
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 		AddRenderResolutionChangedCallback(&PostProcessor::OnRenderResolutionChanged, *this);
@@ -85,10 +84,15 @@ namespace adria
 
 		if (clouds) clouds_pass.AddPass(rg);
 
-		if (reflections == Reflections::SSR) final_resource = ssr_pass.AddPass(rg, final_resource);
-		else if (reflections == Reflections::RTR)
+		switch (reflections)
+		{ 
+		case Reflections::SSR: final_resource = ssr_pass.AddPass(rg, final_resource); break;
+		case Reflections::RTR:
 		{
-			copy_to_texture_pass.AddPass(rg, final_resource, RG_RES_NAME(RTR_Output), BlendMode::AdditiveBlend);
+			RGResourceName rtr_output = rtr_pass.AddPass(rg);
+			copy_to_texture_pass.AddPass(rg, final_resource, rtr_output, BlendMode::AdditiveBlend);
+		}
+		break;
 		}
 		if (fog) final_resource = fog_pass.AddPass(rg, final_resource);
 
@@ -108,15 +112,23 @@ namespace adria
 		}
 		break;
 		}
-
-		if (dof)
+		switch (dof)
+		{
+		case DepthOfField::Simple:
 		{
 			blur_pass.SetResolution(display_width, display_height);
 			blur_pass.AddPass(rg, final_resource, RG_RES_NAME(BlurredDofInput), " DoF ");
 			blur_pass.SetResolution(render_width, render_height);
-			if (bokeh) bokeh_pass.AddPass(rg, final_resource);
-			final_resource = dof_pass.AddPass(rg, final_resource);
+			final_resource = dof_pass.AddPass(rg, final_resource, RG_RES_NAME(BlurredDofInput));
 		}
+		break;
+		case DepthOfField::FFX:
+		{
+			final_resource = ffx_dof_pass.AddPass(rg, final_resource);
+		}
+		break;
+		}
+		
 		if (motion_blur) final_resource = motion_blur_pass.AddPass(rg, final_resource);
 		if (automatic_exposure) automatic_exposure_pass.AddPasses(rg, final_resource);
 		if (bloom) bloom_pass.AddPass(rg, final_resource);
@@ -151,7 +163,7 @@ namespace adria
 		taa_pass.OnResize(w, h);
 		motion_blur_pass.OnResize(w, h);
 		dof_pass.OnResize(w, h);
-		bokeh_pass.OnResize(w, h);
+		ffx_dof_pass.OnResize(w, h);
 		bloom_pass.OnResize(w, h);
 		automatic_exposure_pass.OnResize(w, h);
 		fxaa_pass.OnResize(w, h);
@@ -176,6 +188,7 @@ namespace adria
 		copy_to_texture_pass.OnResize(w, h);
 		lens_flare_pass.OnResize(w, h);
 		ssr_pass.OnResize(w, h);
+		rtr_pass.OnResize(w, h);
 		fog_pass.OnResize(w, h);
 		velocity_buffer_pass.OnResize(w, h);
 		god_rays_pass.OnResize(w, h);
@@ -185,7 +198,7 @@ namespace adria
 	{
 		automatic_exposure_pass.OnSceneInitialized(gfx);
 		clouds_pass.OnSceneInitialized(gfx);
-		bokeh_pass.OnSceneInitialized(gfx);
+		dof_pass.OnSceneInitialized(gfx);
 		lens_flare_pass.OnSceneInitialized();
 		tonemap_pass.OnSceneInitialized(); 
 
@@ -290,6 +303,7 @@ namespace adria
 			{
 				int& current_upscaler = cvars::upscaler.Get();
 				int& current_reflection_type = cvars::reflections.Get();
+				int& current_dof_type = cvars::dof.Get();
 				if (ImGui::TreeNode("Post-processing"))
 				{
 					if (ImGui::Combo("Upscaler", &current_upscaler, "None\0FSR2\0XeSS\0DLSS3\0", 4))
@@ -311,15 +325,16 @@ namespace adria
 					}
 					if (ImGui::Combo("Reflections", &current_reflection_type, "None\0SSR\0RTR\0", 3))
 					{
-						if (!ray_tracing_supported && current_reflection_type == 3) current_reflection_type = 1;
+						if (!ray_tracing_supported && current_reflection_type == 2) current_reflection_type = 1;
 						reflections = static_cast<Reflections>(current_reflection_type);
+					}
+					if (ImGui::Combo("Depth of Field", &current_dof_type, "None\0Simple\0FFX\0", 3))
+					{
+						dof = static_cast<DepthOfField>(current_dof_type);
 					}
 
 					ImGui::Checkbox("Automatic Exposure", &cvars::exposure.Get());
-
 					ImGui::Checkbox("Volumetric Clouds", &cvars::clouds.Get());
-					ImGui::Checkbox("Depth of Field", &cvars::dof.Get());
-					if (cvars::dof) ImGui::Checkbox("Bokeh", &cvars::bokeh.Get());
 					ImGui::Checkbox("Bloom", &cvars::bloom.Get());
 					ImGui::Checkbox("Motion Blur", &cvars::motion_blur.Get());
 					ImGui::Checkbox("Fog", &cvars::fog.Get());
@@ -336,8 +351,6 @@ namespace adria
 				
 				automatic_exposure = cvars::exposure;
 				clouds = cvars::clouds;
-				dof = cvars::dof;
-				bokeh = cvars::bokeh;
 				bloom = cvars::bloom;
 				motion_blur = cvars::motion_blur;
 				fog = cvars::fog;

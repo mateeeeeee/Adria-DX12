@@ -7,6 +7,7 @@
 #include "LensFlarePass.h"
 #include "VolumetricCloudsPass.h"
 #include "SSRPass.h"
+#include "RayTracedReflectionsPass.h"
 #include "FogPass.h"
 #include "DepthOfFieldPass.h"
 #include "BloomPass.h"
@@ -18,6 +19,7 @@
 #include "FSR2Pass.h"
 #include "XeSSPass.h"
 #include "DLSS3Pass.h"
+#include "FFXDepthOfFieldPass.h"
 #include "FXAAPass.h"
 #include "ToneMapPass.h"
 #include "RenderGraph/RenderGraphResourceId.h"
@@ -49,6 +51,12 @@ namespace adria
 			SSR,
 			RTR
 		};
+		enum class DepthOfField : uint8
+		{
+			None,
+			Simple,
+			FFX
+		};
 		enum AntiAliasing : uint8
 		{
 			AntiAliasing_None = 0x0,
@@ -78,7 +86,6 @@ namespace adria
 		void OnSceneInitialized();
 		RGResourceName GetFinalResource() const;
 
-		bool HasRTR() const { return reflections == Reflections::RTR; }
 		bool NeedsJitter() const { return HasTAA() || HasUpscaler(); }
 
 	private:
@@ -99,14 +106,15 @@ namespace adria
 		LensFlarePass lens_flare_pass;
 		VolumetricCloudsPass clouds_pass;
 		SSRPass ssr_pass;
+		RayTracedReflectionsPass rtr_pass;
 		FogPass fog_pass;
 		DepthOfFieldPass dof_pass;
+		FFXDepthOfFieldPass ffx_dof_pass;
 		BloomPass bloom_pass;
 		MotionVectorsPass velocity_buffer_pass;
 		MotionBlurPass motion_blur_pass;
 		TAAPass taa_pass;
 		GodRaysPass god_rays_pass;
-		BokehPass bokeh_pass;
 		FSR2Pass fsr2_pass;
 		XeSSPass xess_pass;
 		DLSS3Pass dlss3_pass;
@@ -117,8 +125,7 @@ namespace adria
 		AntiAliasing anti_aliasing = AntiAliasing_FXAA;
 		Reflections reflections = Reflections::None;
 		UpscalerType upscaler = UpscalerType::None;
-		bool dof = false;
-		bool bokeh = false;
+		DepthOfField dof = DepthOfField::None;
 		bool fog = false;
 		bool bloom = false;
 		bool clouds = true;

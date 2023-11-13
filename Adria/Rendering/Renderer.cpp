@@ -36,7 +36,6 @@ namespace adria
 	{
 		static ConsoleVariable renderpath("renderpath", 0);
 		static ConsoleVariable ambient_occlusion("ao", 1);
-
 	}
 
 	Renderer::Renderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx),
@@ -49,7 +48,7 @@ namespace adria
 		postprocessor(gfx, reg, width, height), picking_pass(gfx, width, height),
 		clustered_deferred_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height),
 		decals_pass(reg, width, height), ocean_renderer(reg, width, height),
-		shadow_renderer(reg, gfx, width, height), rtao_pass(gfx, width, height), rtr_pass(gfx, width, height),
+		shadow_renderer(reg, gfx, width, height), rtao_pass(gfx, width, height),
 		path_tracer(gfx, width, height), ddgi(gfx, reg, width, height)
 	{
 		postprocessor.AddRenderResolutionChangedCallback(&Renderer::OnRenderResolutionChanged, *this);
@@ -107,6 +106,7 @@ namespace adria
 			frame_data.camera_proj = camera->Proj();
 			frame_data.camera_viewproj = camera->ViewProj();
 			frame_data.camera_fov = camera->Fov();
+			frame_data.camera_aspect_ratio = camera->AspectRatio();
 			frame_data.camera_near = camera->Near();
 			frame_data.camera_far = camera->Far();
 			frame_data.camera_jitter_x = camera_jitter.x;
@@ -164,7 +164,6 @@ namespace adria
 			decals_pass.OnResize(w, h);
 			ocean_renderer.OnResize(w, h);
 			shadow_renderer.OnResize(w, h);
-			rtr_pass.OnResize(w, h);
 			rtao_pass.OnResize(w, h);
 			ddgi.OnResize(w, h);
 		}
@@ -461,7 +460,6 @@ namespace adria
 		ocean_renderer.AddPasses(render_graph);
 		sky_pass.AddDrawSkyPass(render_graph);
 		picking_pass.AddPass(render_graph);
-		if (postprocessor.HasRTR()) rtr_pass.AddPass(render_graph);
 		postprocessor.AddPasses(render_graph);
 		g_DebugRenderer.Render(render_graph);
 	}

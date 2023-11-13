@@ -592,6 +592,18 @@ namespace adria
 		}
 		return 1;
 	}
+	inline constexpr bool IsGfxFormatDepth(GfxFormat _format)
+	{
+		switch (_format)
+		{
+		case GfxFormat::D16_UNORM:
+		case GfxFormat::D32_FLOAT:
+		case GfxFormat::D24_UNORM_S8_UINT:
+		case GfxFormat::D32_FLOAT_S8X24_UINT:
+			return true;
+		}
+		return false;
+	}
 
 	inline uint64 GetRowPitch(GfxFormat format, uint32 width, uint32 mip_index = 0)
 	{

@@ -19,7 +19,6 @@
 #include "AccelerationStructure.h"
 #include "ShadowRenderer.h"
 #include "RayTracedAmbientOcclusionPass.h"
-#include "RayTracedReflectionsPass.h"
 #include "PathTracingPass.h"
 #include "Graphics/GfxShaderCompiler.h"
 #include "Graphics/GfxConstantBuffer.h"
@@ -107,7 +106,6 @@ namespace adria
 		HBAOPass     hbao_pass;
 		SkyPass		 sky_pass;
 		RayTracedAmbientOcclusionPass rtao_pass;
-		RayTracedReflectionsPass rtr_pass;
 		DeferredLightingPass deferred_lighting_pass;
 		VolumetricLightingPass volumetric_lighting_pass;
 		TiledDeferredLightingPass tiled_deferred_lighting_pass;

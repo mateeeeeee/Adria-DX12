@@ -36,8 +36,7 @@ namespace adria
 	XeSSPass::XeSSPass(GfxDevice* gfx, uint32 w, uint32 h) 
 		: gfx(gfx), display_width(), display_height(), render_width(), render_height()
 	{
-		is_supported = gfx->GetCapabilities().SupportsRayTracing(); //for now
-		if (!is_supported) return;
+		if (!gfx->GetCapabilities().SupportsRayTracing()) return;
 
 		xess_result_t result = xessD3D12CreateContext(gfx->GetDevice(), &context);
 		ADRIA_ASSERT(result == XESS_RESULT_SUCCESS);

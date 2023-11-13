@@ -1,8 +1,7 @@
 #pragma once
-
-#include "Core/CoreTypes.h"
+#include "BokehPass.h"
+#include "BlurPass.h"
 #include "RenderGraph/RenderGraphResourceName.h"
-
 
 namespace adria
 {
@@ -12,20 +11,22 @@ namespace adria
 	{
 		struct DoFParameters
 		{
-			float dof_near_blur = 0.0f;
-			float dof_near = 200.0f;
-			float dof_far = 400.0f;
-			float dof_far_blur = 600.0f;
+			float focus_distance = 200.0f;
+			float focus_radius   = 25.0f;
 		};
 	public:
 		DepthOfFieldPass(uint32 w, uint32 h);
 
-		RGResourceName AddPass(RenderGraph& rendergraph, RGResourceName input);
+		RGResourceName AddPass(RenderGraph& rendergraph, RGResourceName input, RGResourceName blurred_input);
 		void OnResize(uint32 w, uint32 h);
+		void OnSceneInitialized(GfxDevice* gfx);
 
 	private:
 		uint32 width, height;
 		DoFParameters params{};
+
+		BokehPass bokeh_pass;
+		BlurPass blur_pass;
 	};
 
 }

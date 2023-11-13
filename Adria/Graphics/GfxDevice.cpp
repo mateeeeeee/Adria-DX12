@@ -1004,6 +1004,7 @@ namespace adria
 				srv_desc.Format = DXGI_FORMAT_R16_UNORM;
 				break;
 			case GfxFormat::R32_TYPELESS:
+			case GfxFormat::D32_FLOAT:
 				srv_desc.Format = DXGI_FORMAT_R32_FLOAT;
 				break;
 			case GfxFormat::R24G8_TYPELESS:

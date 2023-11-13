@@ -12,7 +12,8 @@ struct Bokeh
 
 struct BokehGenerationConstants
 {
-	float4 dofParams; 
+	float  focusDistance;
+	float  focusRadius;
 	float  bokehLumThreshold;
 	float  bokehBlurThreshold;
 	float  bokehScale;
@@ -28,12 +29,9 @@ struct BokehGenerationIndices
 };
 ConstantBuffer<BokehGenerationIndices> PassCB2 : register(b2);
 
-float BlurFactor(in float depth, in float4 dofParams)
+float BlurFactor(in float depth)
 {
-	float f0 = 1.0f - saturate((depth - dofParams.x) / max(dofParams.y - dofParams.x, 0.01f));
-	float f1 = saturate((depth - dofParams.z) / max(dofParams.w - dofParams.z, 0.01f));
-	float blur = saturate(f0 + f1);
-	return blur;
+	return saturate(abs(depth - PassCB.focusDistance)) / PassCB.focusRadius;
 }
 
 struct CSInput
@@ -59,7 +57,7 @@ void BokehGeneration(CSInput input)
 
 	if (depth < 1.0f)
 	{
-		float centerBlur = BlurFactor(centerDepth, PassCB.dofParams);
+		float centerBlur = BlurFactor(centerDepth);
 		float3 centerColor = hdrTx.Load(int3(globalCoords, 0)).rgb;
 		float3 averageColor = 0.0f;
 

@@ -462,6 +462,12 @@
     <ClCompile Include="Graphics\GfxCommandListPool.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\FFXDepthOfFieldPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\FidelityFXUtils.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1022,6 +1028,12 @@
     </ClInclude>
     <ClInclude Include="Utilities\ImageWrite.h">
       <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\FFXDepthOfFieldPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\FidelityFXUtils.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

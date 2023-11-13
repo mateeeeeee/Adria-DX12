@@ -4,8 +4,7 @@
 #include "BlackboardData.h"
 #include "PSOCache.h" 
 
-#include "Graphics/GfxLinearDynamicAllocator.h"
-#include "Graphics/GfxRingDescriptorAllocator.h"
+#include "Graphics/GfxDevice.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
 
@@ -14,15 +13,13 @@ using namespace DirectX;
 namespace adria
 {
 
-	DepthOfFieldPass::DepthOfFieldPass(uint32 w, uint32 h) : width(w), height(h)
-	{}
+	DepthOfFieldPass::DepthOfFieldPass(uint32 w, uint32 h) : width(w), height(h), bokeh_pass(w, h), blur_pass(w, h) {}
 
-	RGResourceName DepthOfFieldPass::AddPass(RenderGraph& rg, RGResourceName input)
+	RGResourceName DepthOfFieldPass::AddPass(RenderGraph& rg, RGResourceName input, RGResourceName blurred_input)
 	{
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
-		rg.GetBlackboard().Create<DoFBlackboardData>(params.dof_near_blur, params.dof_near, params.dof_far, params.dof_far_blur);
+		rg.GetBlackboard().Create<DoFBlackboardData>(params.focus_distance, params.focus_radius);
 
-		RGResourceName last_resource = input;
 		struct DepthOfFieldPassData
 		{
 			RGTextureReadOnlyId input;
@@ -31,7 +28,9 @@ namespace adria
 			RGTextureReadWriteId output;
 		};
 
-		rg.AddPass<DepthOfFieldPassData>("DepthOfField Pass",
+		bokeh_pass.AddPass(rg, input);
+
+		rg.AddPass<DepthOfFieldPassData>("Depth Of Field Pass",
 			[=](DepthOfFieldPassData& data, RenderGraphBuilder& builder)
 			{
 				RGTextureDesc dof_output_desc{};
@@ -41,8 +40,8 @@ namespace adria
 
 				builder.DeclareTexture(RG_RES_NAME(DepthOfFieldOutput), dof_output_desc);
 				data.output = builder.WriteTexture(RG_RES_NAME(DepthOfFieldOutput));
-				data.input = builder.ReadTexture(last_resource, ReadAccess_PixelShader);
-				data.blurred_input = builder.ReadTexture(RG_RES_NAME(BlurredDofInput), ReadAccess_PixelShader);
+				data.input = builder.ReadTexture(input, ReadAccess_PixelShader);
+				data.blurred_input = builder.ReadTexture(blurred_input, ReadAccess_PixelShader);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
 			},
 			[=](DepthOfFieldPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
@@ -59,14 +58,14 @@ namespace adria
 
 				struct DoFConstants
 				{
-					Vector4 dof_params;
+					Vector2 dof_params;
 					uint32 depth_idx;
 					uint32 scene_idx;
 					uint32 blurred_idx;
 					uint32 output_idx;
 				} constants =
 				{
-					.dof_params = Vector4(params.dof_near_blur, params.dof_near, params.dof_far, params.dof_far_blur),
+					.dof_params = Vector2(params.focus_distance, params.focus_radius),
 					.depth_idx = i, .scene_idx = i + 1, .blurred_idx = i + 2, .output_idx = i + 3
 				};
 
@@ -79,10 +78,8 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx("Depth Of Field", 0))
 				{
-					ImGui::SliderFloat("DoF Near Blur", &params.dof_near_blur, 0.0f, 200.0f);
-					ImGui::SliderFloat("DoF Near", &params.dof_near, params.dof_near_blur, 500.0f);
-					ImGui::SliderFloat("DoF Far", &params.dof_far, params.dof_near, 1000.0f);
-					ImGui::SliderFloat("DoF Far Blur", &params.dof_far_blur, params.dof_far, 1500.0f);
+					ImGui::SliderFloat("Focus Distance", &params.focus_distance, 0.0f, 1000.0f);
+					ImGui::SliderFloat("Focus Radius", &params.focus_radius, 0.0f, 1000.0f);
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
@@ -94,6 +91,12 @@ namespace adria
 	void DepthOfFieldPass::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
+		bokeh_pass.OnResize(w, h);
+	}
+
+	void DepthOfFieldPass::OnSceneInitialized(GfxDevice* gfx)
+	{
+		bokeh_pass.OnSceneInitialized(gfx);
 	}
 
 }

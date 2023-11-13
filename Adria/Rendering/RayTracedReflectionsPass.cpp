@@ -22,9 +22,9 @@ namespace adria
 		}
 	}
 
-	void RayTracedReflectionsPass::AddPass(RenderGraph& rg)
+	RGResourceName RayTracedReflectionsPass::AddPass(RenderGraph& rg)
 	{
-		if (!IsSupported()) return;
+		if (!IsSupported()) return RGResourceName();
 
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		struct RayTracedReflectionsPassData
@@ -93,6 +93,8 @@ namespace adria
 				}
 			}
 		);
+
+		return RG_RES_NAME(RTR_Output);
 	}
 
 	void RayTracedReflectionsPass::OnResize(uint32 w, uint32 h)

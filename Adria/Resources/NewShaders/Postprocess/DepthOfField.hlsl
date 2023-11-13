@@ -4,7 +4,8 @@
 
 struct DoFConstants
 {
-	float4 dofParams;
+	float focusDistance;
+	float focusRadius;
 	uint depthIdx;
 	uint sceneIdx;
 	uint blurredSceneIdx;
@@ -12,21 +13,14 @@ struct DoFConstants
 };
 ConstantBuffer<DoFConstants> PassCB : register(b1);
 
-float BlurFactor(in float depth, in float4 DOF)
+float BlurFactor(in float depth)
 {
-	float f0 = 1.0f - saturate((depth - DOF.x) / max(DOF.y - DOF.x, 0.01f));
-	float f1 = saturate((depth - DOF.z) / max(DOF.w - DOF.z, 0.01f));
-	float blur = saturate(f0 + f1);
+	return saturate(abs(depth - PassCB.focusDistance) / PassCB.focusRadius);
+}
 
-	return blur;
-}
-float BlurFactor2(in float depth, in float2 DOF)
-{
-	return saturate((depth - DOF.x) / (DOF.y - DOF.x));
-}
 float3 DistanceDOF(float3 colorFocus, float3 colorBlurred, float depth)
 {
-	float blurFactor = BlurFactor(depth, PassCB.dofParams);
+	float blurFactor = BlurFactor(depth);
 	return lerp(colorFocus, colorBlurred, blurFactor);
 }
 

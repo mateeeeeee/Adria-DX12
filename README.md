@@ -32,7 +32,9 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
 * Clustered deferred rendering
 * Automatic exposure
 * Bloom
-* Depth of field + Bokeh
+* Depth of field + Bokeh 
+    - Custom
+    - FFX Depth of Field
 * Ambient occlusion: SSAO, HBAO, RTAO (DXR)
 * Reflections: SSR, RTR (DXR)
 * Deferred decals

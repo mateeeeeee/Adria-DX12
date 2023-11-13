@@ -13,7 +13,7 @@ namespace adria
 	{
 		DECLARE_EVENT(RenderResolutionChanged, XeSSPass, uint32, uint32);
 	public:
-		explicit XeSSPass(GfxDevice* gfx, uint32 w, uint32 h);
+		XeSSPass(GfxDevice* gfx, uint32 w, uint32 h);
 		~XeSSPass();
 
 		RGResourceName AddPass(RenderGraph& rg, RGResourceName input);
@@ -29,16 +29,14 @@ namespace adria
 
 		RenderResolutionChanged& GetRenderResolutionChangedEvent() { return render_resolution_changed_event; }
 
-		bool IsSupported() const { return is_supported; }
 
 	private:
-		bool is_supported = false;
-		char name_version[16];
+		char name_version[16] = {};
 		GfxDevice* gfx = nullptr;
 		uint32 display_width, display_height;
 		uint32 render_width, render_height;
 
-		xess_context_handle_t context;
+		xess_context_handle_t context{};
 		xess_quality_settings_t quality_setting = XESS_QUALITY_SETTING_QUALITY;
 		bool needs_init = false;
 

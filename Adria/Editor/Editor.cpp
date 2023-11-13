@@ -962,11 +962,6 @@ namespace adria
 					{
 						ImGui::TableNextRow();
 
-						if (ImGui::IsItemHovered(ImGuiMouseButton_Left)) 
-						{
-							//todo
-						}
-
 						ImGui::TableSetColumnIndex(0);
 						ImGui::Text("%s", time_stamps[i].name.c_str());
 						ImGui::TableSetColumnIndex(1);

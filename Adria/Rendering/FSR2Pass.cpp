@@ -1,5 +1,7 @@
 #include "FSR2Pass.h"
-#include "FSR2/dx12/ffx_fsr2_dx12.h"
+#include "FidelityFX/gpu/fsr2/ffx_fsr2_resources.h"
+#include "FidelityFX/host/backends/dx12/ffx_dx12.h"
+#include "FidelityFXUtils.h"
 #include "BlackboardData.h"
 #include "Graphics/GfxDevice.h"
 #include "RenderGraph/RenderGraph.h"
@@ -11,9 +13,7 @@ namespace adria
 	FSR2Pass::FSR2Pass(GfxDevice* _gfx, uint32 w, uint32 h)
 		: gfx(_gfx), display_width(), display_height(), render_width(), render_height()
 	{
-		is_supported = gfx->GetCapabilities().SupportsShaderModel(SM_6_6);
-		if (!is_supported) return;
-
+		if (!gfx->GetCapabilities().SupportsShaderModel(SM_6_6)) return;
 		sprintf(name_version, "FSR %d.%d.%d", FFX_FSR2_VERSION_MAJOR, FFX_FSR2_VERSION_MINOR, FFX_FSR2_VERSION_PATCH);
 		OnResize(w, h);
 	}
@@ -64,13 +64,13 @@ namespace adria
 
 				FfxFsr2DispatchDescription dispatch_desc{};
 				dispatch_desc.commandList = ffxGetCommandListDX12(cmd_list->GetNative());
-				dispatch_desc.color = ffxGetResourceDX12(&context, input_texture.GetNative());
-				dispatch_desc.depth = ffxGetResourceDX12(&context, depth_texture.GetNative());
-				dispatch_desc.motionVectors = ffxGetResourceDX12(&context, velocity_texture.GetNative());
-				dispatch_desc.exposure = ffxGetResourceDX12(&context, nullptr);
-				dispatch_desc.reactive = ffxGetResourceDX12(&context, nullptr); 
-				dispatch_desc.transparencyAndComposition = ffxGetResourceDX12(&context, nullptr);
-				dispatch_desc.output = ffxGetResourceDX12(&context, output_texture.GetNative(), L"FSR2 Output", FFX_RESOURCE_STATE_UNORDERED_ACCESS);
+				dispatch_desc.color = GetFfxResource(input_texture);
+				dispatch_desc.depth = GetFfxResource(depth_texture);
+				dispatch_desc.motionVectors = GetFfxResource(velocity_texture);
+				dispatch_desc.exposure = GetFfxResource();
+				dispatch_desc.reactive = GetFfxResource();
+				dispatch_desc.transparencyAndComposition = GetFfxResource();
+				dispatch_desc.output = GetFfxResource(output_texture, FFX_RESOURCE_STATE_UNORDERED_ACCESS);
 				dispatch_desc.jitterOffset.x = frame_data.camera_jitter_x;
 				dispatch_desc.jitterOffset.y = frame_data.camera_jitter_y;
 				dispatch_desc.motionVectorScale.x = (float)render_width;
@@ -127,12 +127,12 @@ namespace adria
 
 			ID3D12Device* device = gfx->GetDevice();
 
-			uint64 const scratch_buffer_size = ffxFsr2GetScratchMemorySizeDX12();
+			uint64 const scratch_buffer_size = ffxGetScratchMemorySizeDX12(FFX_FSR2_CONTEXT_COUNT);
 			void* scratch_buffer = malloc(scratch_buffer_size);
-			FfxErrorCode error_code = ffxFsr2GetInterfaceDX12(&context_desc.callbacks, device, scratch_buffer, scratch_buffer_size);
+			FfxErrorCode error_code = ffxGetInterfaceDX12(&context_desc.backendInterface, device, scratch_buffer, scratch_buffer_size, FFX_FSR2_CONTEXT_COUNT);
 			ADRIA_ASSERT(error_code == FFX_OK);
 
-			context_desc.device = ffxGetDeviceDX12(device);
+			context_desc.fpMessage = nullptr; //todo
 			context_desc.maxRenderSize.width = render_width;
 			context_desc.maxRenderSize.height = render_height;
 			context_desc.displaySize.width = display_width;
@@ -146,12 +146,12 @@ namespace adria
 
 	void FSR2Pass::DestroyContext()
 	{
-		if (context_desc.callbacks.scratchBuffer)
+		if (context_desc.backendInterface.scratchBuffer)
 		{
 			gfx->WaitForGPU();
 			ffxFsr2ContextDestroy(&context);
-			free(context_desc.callbacks.scratchBuffer);
-			context_desc.callbacks.scratchBuffer = nullptr;
+			free(context_desc.backendInterface.scratchBuffer);
+			context_desc.backendInterface.scratchBuffer = nullptr;
 		}
 	}
 

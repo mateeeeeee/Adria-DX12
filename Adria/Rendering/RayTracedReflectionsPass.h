@@ -15,7 +15,7 @@ namespace adria
 	{
 	public:
 		RayTracedReflectionsPass(GfxDevice* gfx, uint32 width, uint32 height);
-		void AddPass(RenderGraph& rendergraph);
+		RGResourceName AddPass(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h);
 		bool IsSupported() const;
 

@@ -145,14 +145,14 @@ namespace adria
 				DoFBlackboardData const& dof_data = context.GetBlackboard().Get<DoFBlackboardData>();
 				struct BokehGenerationConstants
 				{
-					Vector4 dof_params;
+					Vector2 dof_params;
 					float  bokeh_lum_threshold;
 					float  bokeh_blur_threshold;
 					float  bokeh_scale;
 					float  bokeh_fallout;
 				} constants =
 				{
-					.dof_params = Vector4(dof_data.dof_params_x, dof_data.dof_params_y, dof_data.dof_params_z, dof_data.dof_params_w),
+					.dof_params = Vector2(dof_data.dof_focus_distance, dof_data.dof_focus_radius),
 					.bokeh_lum_threshold = params.bokeh_lum_threshold, .bokeh_blur_threshold = params.bokeh_blur_threshold,
 					.bokeh_scale = params.bokeh_radius_scale, .bokeh_fallout = params.bokeh_fallout
 				};
