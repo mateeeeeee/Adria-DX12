@@ -133,7 +133,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)External\dxc\lib;$(SolutionDir)External\nfd\lib;$(SolutionDir)External\FSR2\lib;$(SolutionDir)External\XeSS\lib;$(SolutionDir)External\DLSS\lib;$(SolutionDir)External\FidelityFX-SDK\lib;$(SolutionDir)packages\WinPixEventRuntime.1.0.230302001\bin\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>nfd.lib;WinPixEventRuntime.lib;%(AdditionalDependencies);libxess.lib;nvsdk_ngx_d_dbg.lib;ffx_dof_x64d.lib;ffx_fsr2_x64d.lib;ffx_backend_dx12_x64d.lib</AdditionalDependencies>
+      <AdditionalDependencies>nfd.lib;WinPixEventRuntime.lib;%(AdditionalDependencies);libxess.lib;nvsdk_ngx_d_dbg.lib;ffx_dof_x64d.lib;ffx_fsr2_x64d.lib;ffx_cas_x64d.lib;ffx_backend_dx12_x64d.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -162,7 +162,7 @@
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)External\dxc\lib;$(SolutionDir)External\nfd\lib;$(SolutionDir)External\FSR2\lib;$(SolutionDir)External\XeSS\lib;$(SolutionDir)External\DLSS\lib;$(SolutionDir)External\FFX-DoF\lib;$(SolutionDir)packages\WinPixEventRuntime.1.0.230302001\bin\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <AdditionalDependencies>nfd_d.lib;WinPixEventRuntime.lib;%(AdditionalDependencies);libxess.lib;nvsdk_ngx_d.lib;ffx_dof_x64.lib;ffx_backend_dx12_x64.lib;ffx_fsr2_x64.lib</AdditionalDependencies>
+      <AdditionalDependencies>nfd_d.lib;WinPixEventRuntime.lib;%(AdditionalDependencies);libxess.lib;nvsdk_ngx_d.lib;ffx_dof_x64.lib;ffx_backend_dx12_x64.lib;ffx_fsr2_x64.lib;ffx_cas_x64.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -241,6 +241,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Rendering\CASPass.cpp" />
     <ClCompile Include="Rendering\Components.cpp" />
     <ClCompile Include="Rendering\DDGI.cpp" />
     <ClCompile Include="Rendering\AccelerationStructure.cpp" />
@@ -416,6 +417,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="Rendering\CASPass.h" />
     <ClInclude Include="Rendering\DDGI.h" />
     <ClInclude Include="Rendering\AccelerationStructure.h" />
     <ClInclude Include="Rendering\AutomaticExposurePass.h" />

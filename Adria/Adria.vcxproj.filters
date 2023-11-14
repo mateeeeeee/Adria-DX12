@@ -468,6 +468,9 @@
     <ClCompile Include="Rendering\FidelityFXUtils.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\CASPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1034,6 +1037,9 @@
     </ClInclude>
     <ClInclude Include="Rendering\FidelityFXUtils.h">
       <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\CASPass.h">
+      <Filter>Rendering\Passes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

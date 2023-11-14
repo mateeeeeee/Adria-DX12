@@ -33,7 +33,7 @@ namespace adria
 
 	RGResourceName FFXDepthOfFieldPass::AddPass(RenderGraph& rg, RGResourceName input)
 	{
-		struct FSR2PassData
+		struct FFXDoFPassData
 		{
 			RGTextureReadOnlyId input;
 			RGTextureReadOnlyId depth;
@@ -42,8 +42,8 @@ namespace adria
 
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
-		rg.AddPass<FSR2PassData>(name_version,
-			[=](FSR2PassData& data, RenderGraphBuilder& builder)
+		rg.AddPass<FFXDoFPassData>(name_version,
+			[=](FFXDoFPassData& data, RenderGraphBuilder& builder)
 			{
 				RGTextureDesc ffx_dof_desc = builder.GetTextureDesc(input);
 				builder.DeclareTexture(RG_RES_NAME(FFXDoFOutput), ffx_dof_desc);
@@ -52,7 +52,7 @@ namespace adria
 				data.input = builder.ReadTexture(input, ReadAccess_NonPixelShader);
 				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
-			[=](FSR2PassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			[=](FFXDoFPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxTexture& input_texture = ctx.GetTexture(*data.input);
 				GfxTexture& depth_texture = ctx.GetTexture(*data.depth);

@@ -10,6 +10,24 @@
 
 namespace adria
 {
+	namespace
+	{
+		void FSR2Log(FfxMsgType type, const wchar_t* message)
+		{
+			std::string msg = ToString(message);
+			switch (type)
+			{
+			case FFX_MESSAGE_TYPE_WARNING:
+				ADRIA_LOG(WARNING, msg.c_str());
+				break;
+			case FFX_MESSAGE_TYPE_ERROR:
+				ADRIA_LOG(ERROR, msg.c_str());
+				break;
+			default:
+				break;
+			}
+		}
+	}
 	FSR2Pass::FSR2Pass(GfxDevice* _gfx, uint32 w, uint32 h)
 		: gfx(_gfx), display_width(), display_height(), render_width(), render_height()
 	{
@@ -132,7 +150,7 @@ namespace adria
 			FfxErrorCode error_code = ffxGetInterfaceDX12(&context_desc.backendInterface, device, scratch_buffer, scratch_buffer_size, FFX_FSR2_CONTEXT_COUNT);
 			ADRIA_ASSERT(error_code == FFX_OK);
 
-			context_desc.fpMessage = nullptr; //todo
+			context_desc.fpMessage = FSR2Log; 
 			context_desc.maxRenderSize.width = render_width;
 			context_desc.maxRenderSize.height = render_height;
 			context_desc.displaySize.width = display_width;
