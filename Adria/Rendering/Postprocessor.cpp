@@ -312,6 +312,7 @@ namespace adria
 						if (upscaler == UpscalerType::DLSS3 && !dlss3_pass.IsSupported())
 						{
 							upscaler = UpscalerType::None;
+							current_upscaler = 0;
 							ADRIA_LOG(WARNING, "DLSS3 is not supported on this device!");
 						}
 

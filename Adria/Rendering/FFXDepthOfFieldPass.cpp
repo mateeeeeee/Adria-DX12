@@ -11,7 +11,8 @@ namespace adria
 {
 	FFXDepthOfFieldPass::FFXDepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
 	{
-		if (!gfx->GetCapabilities().SupportsShaderModel(SM_6_6)) return;
+		//if (!gfx->GetCapabilities().SupportsShaderModel(SM_6_6)) 
+		return;
 
 		sprintf(name_version, "FFX DoF %d.%d.%d", FFX_DOF_VERSION_MAJOR, FFX_DOF_VERSION_MINOR, FFX_DOF_VERSION_PATCH);
 
