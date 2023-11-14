@@ -23,6 +23,7 @@
 #include "XeSSPass.h"
 #include "DLSS3Pass.h"
 #include "FFXDepthOfFieldPass.h"
+#include "FFXCASPass.h"
 #include "FidelityFXManager.h"
 #include "FXAAPass.h"
 #include "ToneMapPass.h"
@@ -136,6 +137,7 @@ namespace adria
 		FSR2Pass& fsr2_pass;
 		XeSSPass xess_pass;
 		DLSS3Pass dlss3_pass;
+		FFXCASPass& cas_pass;
 		ToneMapPass  tonemap_pass;
 		FXAAPass	 fxaa_pass;
 
@@ -152,6 +154,7 @@ namespace adria
 		bool clouds = true;
 		bool motion_blur = false;
 		bool automatic_exposure = true;
+		bool cas = false;
 
 		UpscalerDisabledEvent upscaler_disabled_event;
 

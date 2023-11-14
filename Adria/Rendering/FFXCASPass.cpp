@@ -23,7 +23,7 @@ namespace adria
 
 	RGResourceName FFXCASPass::AddPass(RenderGraph& rg, RGResourceName input)
 	{
-		struct CASPassData
+		struct FFXCASPassData
 		{
 			RGTextureReadOnlyId input;
 			RGTextureReadWriteId output;
@@ -31,8 +31,8 @@ namespace adria
 
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
-		rg.AddPass<CASPassData>(name_version,
-			[=](CASPassData& data, RenderGraphBuilder& builder)
+		rg.AddPass<FFXCASPassData>(name_version,
+			[=](FFXCASPassData& data, RenderGraphBuilder& builder)
 			{
 				RGTextureDesc ffx_dof_desc = builder.GetTextureDesc(input);
 				builder.DeclareTexture(RG_RES_NAME(FFXCASOutput), ffx_dof_desc);
@@ -40,7 +40,7 @@ namespace adria
 				data.output = builder.WriteTexture(RG_RES_NAME(FFXCASOutput));
 				data.input = builder.ReadTexture(input, ReadAccess_NonPixelShader);
 			},
-			[=](CASPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			[=](FFXCASPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxTexture& input_texture = ctx.GetTexture(*data.input);
 				GfxTexture& output_texture = ctx.GetTexture(*data.output);

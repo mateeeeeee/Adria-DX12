@@ -29,6 +29,7 @@ namespace adria
 		static ConsoleVariable bloom("bloom", false);
 		static ConsoleVariable motion_blur("motionblur", false);
 		static ConsoleVariable fog("fog", false);
+		static ConsoleVariable cas("cas", false);
 	}
 
 	PostProcessor::PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height)
@@ -39,7 +40,8 @@ namespace adria
 		ssr_pass(width, height), fog_pass(width, height), dof_pass(width, height), bloom_pass(width, height), 
 		velocity_buffer_pass(width, height), motion_blur_pass(width, height), taa_pass(width, height), 
 		god_rays_pass(width, height),ffx_manager(gfx, width, height), xess_pass(gfx, width, height), dlss3_pass(gfx, width, height),
-		tonemap_pass(width, height), fxaa_pass(width, height), rtr_pass(gfx, width, height), ffx_dof_pass(ffx_manager.GetDoF()), fsr2_pass(ffx_manager.GetFSR2())
+		tonemap_pass(width, height), fxaa_pass(width, height), rtr_pass(gfx, width, height),
+		ffx_dof_pass(ffx_manager.GetDoF()), fsr2_pass(ffx_manager.GetFSR2()), cas_pass(ffx_manager.GetCAS())
 	{
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 		AddRenderResolutionChangedCallback(&PostProcessor::OnRenderResolutionChanged, *this);
@@ -143,6 +145,11 @@ namespace adria
 		if (motion_blur) final_resource = motion_blur_pass.AddPass(rg, final_resource);
 		if (automatic_exposure) automatic_exposure_pass.AddPasses(rg, final_resource);
 		if (bloom) bloom_pass.AddPass(rg, final_resource);
+
+		if (cas && upscaler == UpscalerType::None && HasAnyFlag(anti_aliasing, AntiAliasing_TAA))
+		{
+			final_resource = cas_pass.AddPass(rg, final_resource);
+		}
 
 		if (HasAnyFlag(anti_aliasing, AntiAliasing_FXAA))
 		{
@@ -369,6 +376,7 @@ namespace adria
 						ImGui::Checkbox("TAA", &cvars::taa.Get());
 						ImGui::TreePop();
 					}
+					if (cvars::taa) ImGui::Checkbox("CAS", &cvars::cas.Get());
 
 					ImGui::TreePop();
 				}
@@ -378,6 +386,7 @@ namespace adria
 				bloom = cvars::bloom;
 				motion_blur = cvars::motion_blur;
 				fog = cvars::fog;
+				cas = cvars::cas;
 				if (cvars::fxaa) anti_aliasing = static_cast<AntiAliasing>(anti_aliasing | AntiAliasing_FXAA);
 				else anti_aliasing = static_cast<AntiAliasing>(anti_aliasing & (~AntiAliasing_FXAA));
 
