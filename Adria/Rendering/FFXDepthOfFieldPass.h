@@ -22,8 +22,8 @@ namespace adria
 		GfxDevice* gfx;
 		uint32 width, height;
 
-		FfxDofContextDescription ffx_dof_context_desc{};
-		FfxDofContext            ffx_dof_context{};
+		FfxDofContextDescription dof_context_desc{};
+		FfxDofContext            dof_context{};
 
 		float aperture = 0.01f;
 		float focus_dist = 400.0f;

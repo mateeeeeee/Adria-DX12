@@ -10,7 +10,7 @@ namespace adria
 	class FFXCASPass
 	{
 	public:
-		FFXCASPass(GfxDevice* gfx, uint32 w, uint32 h);
+		FFXCASPass(GfxDevice* gfx, FfxInterface& ffx_interface, uint32 w, uint32 h);
 		~FFXCASPass();
 
 		RGResourceName AddPass(RenderGraph& rendergraph, RGResourceName input);

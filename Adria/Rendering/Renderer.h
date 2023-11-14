@@ -9,8 +9,6 @@
 #include "VolumetricLightingPass.h"
 #include "TiledDeferredLightingPass.h"
 #include "ClusteredDeferredLightingPass.h"
-#include "SSAOPass.h"
-#include "HBAOPass.h"
 #include "DDGI.h"
 #include "HelperPasses.h"
 #include "PickingPass.h"
@@ -18,7 +16,6 @@
 #include "OceanRenderer.h"
 #include "AccelerationStructure.h"
 #include "ShadowRenderer.h"
-#include "RayTracedAmbientOcclusionPass.h"
 #include "PathTracingPass.h"
 #include "Graphics/GfxShaderCompiler.h"
 #include "Graphics/GfxConstantBuffer.h"
@@ -40,14 +37,6 @@ namespace adria
 			TiledDeferred,
 			ClusteredDeferred,
 			PathTracing
-		};
-
-		enum class AmbientOcclusion : uint8
-		{
-			None,
-			SSAO,
-			HBAO,
-			RTAO
 		};
 
 	public:
@@ -102,10 +91,7 @@ namespace adria
 		//passes
 		GBufferPass  gbuffer_pass;
 		GPUDrivenGBufferPass gpu_driven_renderer;
-		SSAOPass	 ssao_pass;
-		HBAOPass     hbao_pass;
 		SkyPass		 sky_pass;
-		RayTracedAmbientOcclusionPass rtao_pass;
 		DeferredLightingPass deferred_lighting_pass;
 		VolumetricLightingPass volumetric_lighting_pass;
 		TiledDeferredLightingPass tiled_deferred_lighting_pass;
@@ -130,7 +116,6 @@ namespace adria
 		PickingData picking_data;
 
 		RendererPathType path_type = RendererPathType::RegularDeferred;
-		AmbientOcclusion ambient_occlusion = AmbientOcclusion::SSAO;
 
 		//misc
 		uint32			         volumetric_lights = 0;

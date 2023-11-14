@@ -18,6 +18,7 @@ namespace adria
 {
 	namespace cvars
 	{
+		static ConsoleVariable ambient_occlusion("ao", 1);
 		static ConsoleVariable upscaler("upscaler", 0);
 		static ConsoleVariable reflections("reflections", 0);
 		static ConsoleVariable dof("dof", 0);
@@ -33,16 +34,25 @@ namespace adria
 	PostProcessor::PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height)
 		: gfx(gfx), reg(reg), display_width(width), display_height(height), render_width(width), render_height(height),
 		blur_pass(width, height), copy_to_texture_pass(width, height),
-		add_textures_pass(width, height), automatic_exposure_pass(width, height),
-		lens_flare_pass(width, height), clouds_pass(width, height), ssr_pass(width, height), fog_pass(width, height),
-		dof_pass(width, height), bloom_pass(width, height), velocity_buffer_pass(width, height),
-		motion_blur_pass(width, height), taa_pass(width, height), god_rays_pass(width, height),
-		ffx_manager(gfx, width, height), xess_pass(gfx, width, height), dlss3_pass(gfx, width, height),
-		tonemap_pass(width, height), fxaa_pass(width, height), rtr_pass(gfx, width, height),
-		ffx_dof_pass(ffx_manager.GetDoF()), fsr2_pass(ffx_manager.GetFSR2())
+		add_textures_pass(width, height), ssao_pass(width, height), hbao_pass(width, height), rtao_pass(gfx, width, height),
+		automatic_exposure_pass(width, height), lens_flare_pass(width, height), clouds_pass(width, height), 
+		ssr_pass(width, height), fog_pass(width, height), dof_pass(width, height), bloom_pass(width, height), 
+		velocity_buffer_pass(width, height), motion_blur_pass(width, height), taa_pass(width, height), 
+		god_rays_pass(width, height),ffx_manager(gfx, width, height), xess_pass(gfx, width, height), dlss3_pass(gfx, width, height),
+		tonemap_pass(width, height), fxaa_pass(width, height), rtr_pass(gfx, width, height), ffx_dof_pass(ffx_manager.GetDoF()), fsr2_pass(ffx_manager.GetFSR2())
 	{
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 		AddRenderResolutionChangedCallback(&PostProcessor::OnRenderResolutionChanged, *this);
+	}
+
+	void PostProcessor::AddAmbientOcclusionPass(RenderGraph& rg)
+	{
+		switch (ambient_occlusion)
+		{
+		case AmbientOcclusion::SSAO: ssao_pass.AddPass(rg); break;
+		case AmbientOcclusion::HBAO: hbao_pass.AddPass(rg); break;
+		case AmbientOcclusion::RTAO: rtao_pass.AddPass(rg); break;
+		}
 	}
 
 	void PostProcessor::AddPasses(RenderGraph& rg)
@@ -183,6 +193,10 @@ namespace adria
 	{
 		render_width = w, render_height = h;
 
+		ssao_pass.OnResize(w, h);
+		hbao_pass.OnResize(w, h);
+		rtao_pass.OnResize(w, h);
+
 		clouds_pass.OnResize(gfx, w, h);
 		blur_pass.OnResize(w, h);
 		add_textures_pass.OnResize(w, h);
@@ -197,6 +211,8 @@ namespace adria
 
 	void PostProcessor::OnSceneInitialized()
 	{
+		ssao_pass.OnSceneInitialized(gfx);
+		hbao_pass.OnSceneInitialized(gfx);
 		automatic_exposure_pass.OnSceneInitialized(gfx);
 		clouds_pass.OnSceneInitialized(gfx);
 		dof_pass.OnSceneInitialized(gfx);
@@ -302,11 +318,17 @@ namespace adria
 	{
 		GUI_RunCommand([&]()
 			{
+				int& current_ao_type = cvars::ambient_occlusion.Get();
 				int& current_upscaler = cvars::upscaler.Get();
 				int& current_reflection_type = cvars::reflections.Get();
 				int& current_dof_type = cvars::dof.Get();
 				if (ImGui::TreeNode("Post-processing"))
 				{
+					if (ImGui::Combo("Ambient Occlusion", &current_ao_type, "None\0SSAO\0HBAO\0RTAO\0", 4))
+					{
+						if (!ray_tracing_supported && current_ao_type == 3) current_ao_type = 1;
+						ambient_occlusion = static_cast<AmbientOcclusion>(current_ao_type);
+					}
 					if (ImGui::Combo("Upscaler", &current_upscaler, "None\0FSR2\0XeSS\0DLSS3\0", 4))
 					{
 						upscaler = static_cast<UpscalerType>(current_upscaler);

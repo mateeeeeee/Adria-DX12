@@ -1,8 +1,5 @@
 #pragma once
-
-#include "Core/CoreTypes.h"
 #include "RenderGraph/RenderGraphResourceName.h"
-#include "Graphics/GfxCommandSignature.h"
 
 namespace adria
 {
@@ -41,10 +38,10 @@ namespace adria
 	private:
 		uint32 width, height;
 		BokehParameters params{};
-		size_t hex_bokeh_handle = -1;
-		size_t oct_bokeh_handle = -1;
-		size_t circle_bokeh_handle = -1;
-		size_t cross_bokeh_handle = -1;
+		uint64 hex_bokeh_handle = -1;
+		uint64 oct_bokeh_handle = -1;
+		uint64 circle_bokeh_handle = -1;
+		uint64 cross_bokeh_handle = -1;
 		std::unique_ptr<GfxBuffer> counter_reset_buffer;
 		std::unique_ptr<GfxBuffer> bokeh_indirect_buffer;
 	private:

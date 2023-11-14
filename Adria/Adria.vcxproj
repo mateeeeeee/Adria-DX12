@@ -241,7 +241,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Rendering\CASPass.cpp" />
+    <ClCompile Include="Rendering\FFXCASPass.cpp" />
     <ClCompile Include="Rendering\Components.cpp" />
     <ClCompile Include="Rendering\DDGI.cpp" />
     <ClCompile Include="Rendering\AccelerationStructure.cpp" />
@@ -418,7 +418,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="Rendering\CASPass.h" />
+    <ClInclude Include="Rendering\FFXCASPass.h" />
     <ClInclude Include="Rendering\DDGI.h" />
     <ClInclude Include="Rendering\AccelerationStructure.h" />
     <ClInclude Include="Rendering\AutomaticExposurePass.h" />

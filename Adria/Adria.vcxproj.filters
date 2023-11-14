@@ -468,9 +468,10 @@
     <ClCompile Include="Rendering\FidelityFXUtils.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\CASPass.cpp">
+    <ClCompile Include="Rendering\FFXCASPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\FidelityFXManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1038,9 +1039,10 @@
     <ClInclude Include="Rendering\FidelityFXUtils.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\CASPass.h">
+    <ClInclude Include="Rendering\FFXCASPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\FidelityFXManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

@@ -35,7 +35,6 @@ namespace adria
 	namespace cvars
 	{
 		static ConsoleVariable renderpath("renderpath", 0);
-		static ConsoleVariable ambient_occlusion("ao", 1);
 	}
 
 	Renderer::Renderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx),
@@ -46,9 +45,9 @@ namespace adria
 		sky_pass(reg, gfx, width, height), deferred_lighting_pass(width, height), volumetric_lighting_pass(width, height),
 		tiled_deferred_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
 		postprocessor(gfx, reg, width, height), picking_pass(gfx, width, height),
-		clustered_deferred_lighting_pass(reg, gfx, width, height), ssao_pass(width, height), hbao_pass(width, height),
+		clustered_deferred_lighting_pass(reg, gfx, width, height),
 		decals_pass(reg, width, height), ocean_renderer(reg, width, height),
-		shadow_renderer(reg, gfx, width, height), rtao_pass(gfx, width, height),
+		shadow_renderer(reg, gfx, width, height), 
 		path_tracer(gfx, width, height), ddgi(gfx, reg, width, height)
 	{
 		postprocessor.AddRenderResolutionChangedCallback(&Renderer::OnRenderResolutionChanged, *this);
@@ -151,8 +150,6 @@ namespace adria
 
 			gbuffer_pass.OnResize(w, h);
 			gpu_driven_renderer.OnResize(w, h);
-			ssao_pass.OnResize(w, h);
-			hbao_pass.OnResize(w, h);
 			sky_pass.OnResize(w, h);
 			deferred_lighting_pass.OnResize(w, h);
 			volumetric_lighting_pass.OnResize(w, h);
@@ -164,7 +161,6 @@ namespace adria
 			decals_pass.OnResize(w, h);
 			ocean_renderer.OnResize(w, h);
 			shadow_renderer.OnResize(w, h);
-			rtao_pass.OnResize(w, h);
 			ddgi.OnResize(w, h);
 		}
 	}
@@ -173,8 +169,6 @@ namespace adria
 	{
 		sky_pass.OnSceneInitialized(gfx);
 		decals_pass.OnSceneInitialized(gfx);
-		ssao_pass.OnSceneInitialized(gfx);
-		hbao_pass.OnSceneInitialized(gfx);
 		postprocessor.OnSceneInitialized();
 		ocean_renderer.OnSceneInitialized(gfx);
 		ddgi.OnSceneInitialized();
@@ -441,12 +435,7 @@ namespace adria
 		ddgi.AddPasses(render_graph);
 
 		decals_pass.AddPass(render_graph);
-		switch (ambient_occlusion)
-		{
-		case AmbientOcclusion::SSAO: ssao_pass.AddPass(render_graph); break;
-		case AmbientOcclusion::HBAO: hbao_pass.AddPass(render_graph); break;
-		case AmbientOcclusion::RTAO: rtao_pass.AddPass(render_graph); break;
-		}
+		postprocessor.AddAmbientOcclusionPass(render_graph);
 		shadow_renderer.AddShadowMapPasses(render_graph);
 		shadow_renderer.AddRayTracingShadowPasses(render_graph);
 		switch (path_type)
@@ -474,16 +463,10 @@ namespace adria
 		GUI_RunCommand([&]()
 			{
 				int& current_render_path_type = cvars::renderpath.Get();
-				int& current_ao_type = cvars::ambient_occlusion.Get();
-
+				
 				if (ImGui::Combo("Renderer Path", &current_render_path_type, "Deferred\0Tiled Deferred\0Clustered Deferred\0Path Tracing\0", 4))
 				{
 					if (!ray_tracing_supported && current_render_path_type == 3) current_render_path_type = 0;
-				}
-
-				if (ImGui::Combo("Ambient Occlusion", &current_ao_type, "None\0SSAO\0HBAO\0RTAO\0", 4))
-				{
-					if (!ray_tracing_supported && current_ao_type == 3) current_ao_type = 1;
 				}
 
 				if (ImGui::TreeNode("Misc"))
@@ -495,8 +478,6 @@ namespace adria
 				}
 
 				path_type = static_cast<RendererPathType>(current_render_path_type);
-				ambient_occlusion = static_cast<AmbientOcclusion>(current_ao_type);
-
 			});
 	}
 

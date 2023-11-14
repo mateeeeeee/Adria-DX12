@@ -14,7 +14,7 @@ namespace adria
 		if (!gfx->GetCapabilities().SupportsShaderModel(SM_6_6)) return;
 
 		sprintf(name_version, "FFX DoF %d.%d.%d", FFX_DOF_VERSION_MAJOR, FFX_DOF_VERSION_MINOR, FFX_DOF_VERSION_PATCH);
-		ffx_dof_context_desc.backendInterface = ffx_interface;
+		dof_context_desc.backendInterface = ffx_interface;
 		CreateContext();
 	}
 
@@ -51,7 +51,7 @@ namespace adria
 				GfxTexture& output_texture = ctx.GetTexture(*data.output);
 
 				float fovx = std::min<float>(frame_data.camera_fov * frame_data.camera_aspect_ratio, pi_div_2<float>);
-				float conversion = 0.5f * (float)ffx_dof_context_desc.resolution.width / sensor_size;
+				float conversion = 0.5f * (float)dof_context_desc.resolution.width / sensor_size;
 				float focal_length = sensor_size / (2.0f * std::tanf(fovx * 0.5f));
 
 				FfxDofDispatchDescription ffx_dof_dispatch_desc{};
@@ -64,7 +64,7 @@ namespace adria
 				ffx_dof_dispatch_desc.cocScale = ffxDofCalculateCocScale(aperture, -focus_dist, focal_length, conversion, proj._33, proj._43, proj._34);
 				ffx_dof_dispatch_desc.cocBias = ffxDofCalculateCocBias(aperture, -focus_dist, focal_length, conversion, proj._33, proj._43, proj._34);
 
-				FfxErrorCode error_code = ffxDofContextDispatch(&ffx_dof_context, &ffx_dof_dispatch_desc);
+				FfxErrorCode error_code = ffxDofContextDispatch(&dof_context, &ffx_dof_dispatch_desc);
 				ADRIA_ASSERT(error_code == FFX_OK);
 
 				cmd_list->ResetState();
@@ -107,22 +107,22 @@ namespace adria
 
 	void FFXDepthOfFieldPass::CreateContext()
 	{
-		ffx_dof_context_desc.flags = 0; //FFX_DOF_OUTPUT_PRE_INIT;
-		if (!enable_ring_merge) ffx_dof_context_desc.flags |= FFX_DOF_DISABLE_RING_MERGE;
+		dof_context_desc.flags = 0; //FFX_DOF_OUTPUT_PRE_INIT;
+		if (!enable_ring_merge) dof_context_desc.flags |= FFX_DOF_DISABLE_RING_MERGE;
 		
-		ffx_dof_context_desc.resolution.width = width;
-		ffx_dof_context_desc.resolution.height = height;
-		ffx_dof_context_desc.quality = static_cast<uint32>(quality);
-		ffx_dof_context_desc.cocLimitFactor = coc_limit;
+		dof_context_desc.resolution.width = width;
+		dof_context_desc.resolution.height = height;
+		dof_context_desc.quality = static_cast<uint32>(quality);
+		dof_context_desc.cocLimitFactor = coc_limit;
 
-		FfxErrorCode error_code = ffxDofContextCreate(&ffx_dof_context, &ffx_dof_context_desc);
+		FfxErrorCode error_code = ffxDofContextCreate(&dof_context, &dof_context_desc);
 		ADRIA_ASSERT(error_code == FFX_OK);
 	}
 
 	void FFXDepthOfFieldPass::DestroyContext()
 	{
 		gfx->WaitForGPU();
-		ffxDofContextDestroy(&ffx_dof_context);
+		ffxDofContextDestroy(&dof_context);
 	}
 
 }

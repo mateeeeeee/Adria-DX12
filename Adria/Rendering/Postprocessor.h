@@ -3,6 +3,9 @@
 #include <d3d12.h>
 #include "BlurPass.h"
 #include "HelperPasses.h"
+#include "SSAOPass.h"
+#include "HBAOPass.h"
+#include "RayTracedAmbientOcclusionPass.h"
 #include "AutomaticExposurePass.h"
 #include "LensFlarePass.h"
 #include "VolumetricCloudsPass.h"
@@ -39,6 +42,13 @@ namespace adria
 
 	class PostProcessor
 	{
+		enum class AmbientOcclusion : uint8
+		{
+			None,
+			SSAO,
+			HBAO,
+			RTAO
+		};
 		enum class UpscalerType : uint8
 		{
 			None,
@@ -69,8 +79,9 @@ namespace adria
 
 	public:
 		PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height);
-		void AddPasses(RenderGraph& rg);
 
+		void AddAmbientOcclusionPass(RenderGraph& rg);
+		void AddPasses(RenderGraph& rg);
 		void AddTonemapPass(RenderGraph& rg, RGResourceName input);
 
 		template<typename T, typename... Args>
@@ -82,10 +93,11 @@ namespace adria
 			upscaler_disabled_event.AddMember(mem_pfn, instance);
 		}
 
+		RGResourceName GetFinalResource() const;
+
 		void OnResize(uint32 w, uint32 h);
 		void OnRenderResolutionChanged(uint32 w, uint32 h);
 		void OnSceneInitialized();
-		RGResourceName GetFinalResource() const;
 
 		bool NeedsJitter() const { return HasTAA() || HasUpscaler(); }
 
@@ -105,6 +117,9 @@ namespace adria
 		BlurPass blur_pass;
 		CopyToTexturePass copy_to_texture_pass;
 		AddTexturesPass add_textures_pass;
+		SSAOPass	 ssao_pass;
+		HBAOPass     hbao_pass;
+		RayTracedAmbientOcclusionPass rtao_pass;
 		AutomaticExposurePass automatic_exposure_pass;
 		LensFlarePass lens_flare_pass;
 		VolumetricCloudsPass clouds_pass;
@@ -125,10 +140,13 @@ namespace adria
 		FXAAPass	 fxaa_pass;
 
 		bool ray_tracing_supported = false;
-		AntiAliasing anti_aliasing = AntiAliasing_FXAA;
+
+		AmbientOcclusion ambient_occlusion = AmbientOcclusion::SSAO;
 		Reflections reflections = Reflections::None;
 		UpscalerType upscaler = UpscalerType::None;
 		DepthOfField dof = DepthOfField::None;
+		AntiAliasing anti_aliasing = AntiAliasing_FXAA;
+
 		bool fog = false;
 		bool bloom = false;
 		bool clouds = true;

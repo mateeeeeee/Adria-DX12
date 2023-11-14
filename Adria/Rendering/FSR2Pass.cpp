@@ -32,7 +32,7 @@ namespace adria
 	{
 		if (!gfx->GetCapabilities().SupportsShaderModel(SM_6_6)) return;
 		sprintf(name_version, "FSR %d.%d.%d", FFX_FSR2_VERSION_MAJOR, FFX_FSR2_VERSION_MINOR, FFX_FSR2_VERSION_PATCH);
-		context_desc.backendInterface = ffx_interface;
+		fsr2_context_desc.backendInterface = ffx_interface;
 		RecreateRenderResolution();
 		CreateContext();
 	}
@@ -107,7 +107,7 @@ namespace adria
 				dispatch_desc.cameraNear = frame_data.camera_near;
 				dispatch_desc.cameraFovAngleVertical = frame_data.camera_fov;
 
-				FfxErrorCode error_code = ffxFsr2ContextDispatch(&context, &dispatch_desc);
+				FfxErrorCode error_code = ffxFsr2ContextDispatch(&fsr2_context, &dispatch_desc);
 				ADRIA_ASSERT(error_code == FFX_OK);
 
 				cmd_list->ResetState();
@@ -117,13 +117,13 @@ namespace adria
 			{ 
 				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
 				{
-					if (ImGui::Combo("Quality Mode", (int32*)&quality_mode, "Custom\0Quality (1.5x)\0Balanced (1.7x)\0Performance (2.0x)\0Ultra Performance (3.0x)\0", 5))
+					if (ImGui::Combo("Quality Mode", (int32*)&fsr2_quality_mode, "Custom\0Quality (1.5x)\0Balanced (1.7x)\0Performance (2.0x)\0Ultra Performance (3.0x)\0", 5))
 					{
 						RecreateRenderResolution();
 						recreate_context = true;
 					}
 
-					if (quality_mode == 0)
+					if (fsr2_quality_mode == 0)
 					{
 						if (ImGui::SliderFloat("Upscale Ratio", &custom_upscale_ratio, 1.0, 3.0))
 						{
@@ -142,26 +142,26 @@ namespace adria
 
 	void FSR2Pass::CreateContext()
 	{
-		context_desc.fpMessage = FSR2Log;
-		context_desc.maxRenderSize.width = render_width;
-		context_desc.maxRenderSize.height = render_height;
-		context_desc.displaySize.width = display_width;
-		context_desc.displaySize.height = display_height;
-		context_desc.flags = FFX_FSR2_ENABLE_HIGH_DYNAMIC_RANGE | FFX_FSR2_ENABLE_AUTO_EXPOSURE;
+		fsr2_context_desc.fpMessage = FSR2Log;
+		fsr2_context_desc.maxRenderSize.width = render_width;
+		fsr2_context_desc.maxRenderSize.height = render_height;
+		fsr2_context_desc.displaySize.width = display_width;
+		fsr2_context_desc.displaySize.height = display_height;
+		fsr2_context_desc.flags = FFX_FSR2_ENABLE_HIGH_DYNAMIC_RANGE | FFX_FSR2_ENABLE_AUTO_EXPOSURE;
 
-		ffxFsr2ContextCreate(&context, &context_desc);
+		ffxFsr2ContextCreate(&fsr2_context, &fsr2_context_desc);
 		recreate_context = false;
 	}
 
 	void FSR2Pass::DestroyContext()
 	{
 		gfx->WaitForGPU();
-		ffxFsr2ContextDestroy(&context);
+		ffxFsr2ContextDestroy(&fsr2_context);
 	}
 
 	void FSR2Pass::RecreateRenderResolution()
 	{
-		float upscale_ratio = (quality_mode == 0 ? custom_upscale_ratio : ffxFsr2GetUpscaleRatioFromQualityMode(quality_mode));
+		float upscale_ratio = (fsr2_quality_mode == 0 ? custom_upscale_ratio : ffxFsr2GetUpscaleRatioFromQualityMode(fsr2_quality_mode));
 		render_width = (uint32)((float)display_width / upscale_ratio);
 		render_height = (uint32)((float)display_height / upscale_ratio);
 		render_resolution_changed_event.Broadcast(render_width, render_height);
