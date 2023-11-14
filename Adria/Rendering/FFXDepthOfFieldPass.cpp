@@ -9,27 +9,18 @@
 
 namespace adria
 {
-	FFXDepthOfFieldPass::FFXDepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
+	FFXDepthOfFieldPass::FFXDepthOfFieldPass(GfxDevice* gfx, FfxInterface& ffx_interface, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
 	{
-		//if (!gfx->GetCapabilities().SupportsShaderModel(SM_6_6)) 
-		return;
+		if (!gfx->GetCapabilities().SupportsShaderModel(SM_6_6)) return;
 
 		sprintf(name_version, "FFX DoF %d.%d.%d", FFX_DOF_VERSION_MAJOR, FFX_DOF_VERSION_MINOR, FFX_DOF_VERSION_PATCH);
-
-		uint64 const scratch_buffer_size = ffxGetScratchMemorySizeDX12(FFX_DOF_CONTEXT_COUNT);
-		void* scratch_buffer = malloc(scratch_buffer_size);
-		FfxErrorCode error_code = ffxGetInterfaceDX12(&ffx_dof_context_desc.backendInterface, gfx->GetDevice(), scratch_buffer, scratch_buffer_size, FFX_DOF_CONTEXT_COUNT);
-		ADRIA_ASSERT(error_code == FFX_OK);
+		ffx_dof_context_desc.backendInterface = ffx_interface;
 		CreateContext();
 	}
 
 	FFXDepthOfFieldPass::~FFXDepthOfFieldPass()
 	{
 		DestroyContext();
-		if (ffx_dof_context_desc.backendInterface.scratchBuffer != nullptr)
-		{
-			free(ffx_dof_context_desc.backendInterface.scratchBuffer);
-		}
 	}
 
 	RGResourceName FFXDepthOfFieldPass::AddPass(RenderGraph& rg, RGResourceName input)

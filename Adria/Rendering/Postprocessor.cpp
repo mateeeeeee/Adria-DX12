@@ -37,8 +37,9 @@ namespace adria
 		lens_flare_pass(width, height), clouds_pass(width, height), ssr_pass(width, height), fog_pass(width, height),
 		dof_pass(width, height), bloom_pass(width, height), velocity_buffer_pass(width, height),
 		motion_blur_pass(width, height), taa_pass(width, height), god_rays_pass(width, height),
-		fsr2_pass(gfx, width, height), xess_pass(gfx, width, height), dlss3_pass(gfx, width, height),
-		tonemap_pass(width, height), fxaa_pass(width, height), ffx_dof_pass(gfx, width, height), rtr_pass(gfx, width, height)
+		ffx_manager(gfx, width, height), xess_pass(gfx, width, height), dlss3_pass(gfx, width, height),
+		tonemap_pass(width, height), fxaa_pass(width, height), rtr_pass(gfx, width, height),
+		ffx_dof_pass(ffx_manager.GetDoF()), fsr2_pass(ffx_manager.GetFSR2())
 	{
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 		AddRenderResolutionChangedCallback(&PostProcessor::OnRenderResolutionChanged, *this);

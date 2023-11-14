@@ -1,6 +1,5 @@
 #include "FSR2Pass.h"
 #include "FidelityFX/gpu/fsr2/ffx_fsr2_resources.h"
-#include "FidelityFX/host/backends/dx12/ffx_dx12.h"
 #include "FidelityFXUtils.h"
 #include "BlackboardData.h"
 #include "Graphics/GfxDevice.h"
@@ -28,12 +27,14 @@ namespace adria
 			}
 		}
 	}
-	FSR2Pass::FSR2Pass(GfxDevice* _gfx, uint32 w, uint32 h)
-		: gfx(_gfx), display_width(), display_height(), render_width(), render_height()
+	FSR2Pass::FSR2Pass(GfxDevice* _gfx, FfxInterface& ffx_interface, uint32 w, uint32 h)
+		: gfx(_gfx), display_width(w), display_height(h), render_width(), render_height()
 	{
 		if (!gfx->GetCapabilities().SupportsShaderModel(SM_6_6)) return;
 		sprintf(name_version, "FSR %d.%d.%d", FFX_FSR2_VERSION_MAJOR, FFX_FSR2_VERSION_MINOR, FFX_FSR2_VERSION_PATCH);
-		OnResize(w, h);
+		context_desc.backendInterface = ffx_interface;
+		RecreateRenderResolution();
+		CreateContext();
 	}
 
 	FSR2Pass::~FSR2Pass()
@@ -43,7 +44,11 @@ namespace adria
 
 	RGResourceName FSR2Pass::AddPass(RenderGraph& rg, RGResourceName input)
 	{
-		if (recreate_context) CreateContext();
+		if (recreate_context)
+		{
+			DestroyContext();
+			CreateContext();
+		}
 
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 
@@ -73,8 +78,6 @@ namespace adria
 			},
 			[=](FSR2PassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
-				if (recreate_context) CreateContext();
-
 				GfxTexture& input_texture = ctx.GetTexture(*data.input);
 				GfxTexture& velocity_texture = ctx.GetTexture(*data.velocity);
 				GfxTexture& depth_texture = ctx.GetTexture(*data.depth);
@@ -139,38 +142,21 @@ namespace adria
 
 	void FSR2Pass::CreateContext()
 	{
-		if (recreate_context)
-		{
-			DestroyContext();
+		context_desc.fpMessage = FSR2Log;
+		context_desc.maxRenderSize.width = render_width;
+		context_desc.maxRenderSize.height = render_height;
+		context_desc.displaySize.width = display_width;
+		context_desc.displaySize.height = display_height;
+		context_desc.flags = FFX_FSR2_ENABLE_HIGH_DYNAMIC_RANGE | FFX_FSR2_ENABLE_AUTO_EXPOSURE;
 
-			ID3D12Device* device = gfx->GetDevice();
-
-			uint64 const scratch_buffer_size = ffxGetScratchMemorySizeDX12(FFX_FSR2_CONTEXT_COUNT);
-			void* scratch_buffer = malloc(scratch_buffer_size);
-			FfxErrorCode error_code = ffxGetInterfaceDX12(&context_desc.backendInterface, device, scratch_buffer, scratch_buffer_size, FFX_FSR2_CONTEXT_COUNT);
-			ADRIA_ASSERT(error_code == FFX_OK);
-
-			context_desc.fpMessage = FSR2Log; 
-			context_desc.maxRenderSize.width = render_width;
-			context_desc.maxRenderSize.height = render_height;
-			context_desc.displaySize.width = display_width;
-			context_desc.displaySize.height = display_height;
-			context_desc.flags = FFX_FSR2_ENABLE_HIGH_DYNAMIC_RANGE | FFX_FSR2_ENABLE_AUTO_EXPOSURE;
-
-			ffxFsr2ContextCreate(&context, &context_desc);
-			recreate_context = false;
-		}
+		ffxFsr2ContextCreate(&context, &context_desc);
+		recreate_context = false;
 	}
 
 	void FSR2Pass::DestroyContext()
 	{
-		if (context_desc.backendInterface.scratchBuffer)
-		{
-			gfx->WaitForGPU();
-			ffxFsr2ContextDestroy(&context);
-			free(context_desc.backendInterface.scratchBuffer);
-			context_desc.backendInterface.scratchBuffer = nullptr;
-		}
+		gfx->WaitForGPU();
+		ffxFsr2ContextDestroy(&context);
 	}
 
 	void FSR2Pass::RecreateRenderResolution()

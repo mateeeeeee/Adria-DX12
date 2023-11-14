@@ -9,8 +9,9 @@ namespace adria
 
 	class FFXDepthOfFieldPass
 	{
+		
 	public:
-		FFXDepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h);
+		FFXDepthOfFieldPass(GfxDevice* gfx, FfxInterface& ffx_interface, uint32 w, uint32 h);
 		~FFXDepthOfFieldPass();
 
 		RGResourceName AddPass(RenderGraph& rendergraph, RGResourceName input);

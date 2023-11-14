@@ -13,7 +13,7 @@ namespace adria
 	{
 		DECLARE_EVENT(RenderResolutionChanged, FSR2Pass, uint32, uint32);
 	public:
-		FSR2Pass(GfxDevice* gfx, uint32 w, uint32 h);
+		FSR2Pass(GfxDevice* gfx, FfxInterface& ffx_interface, uint32 w, uint32 h);
 		~FSR2Pass();
 
 		RGResourceName AddPass(RenderGraph& rg, RGResourceName input);
@@ -22,7 +22,8 @@ namespace adria
 		{
 			display_width = w, display_height = h;
 			RecreateRenderResolution();
-			recreate_context = true;
+			DestroyContext();
+			CreateContext();
 		}
 
 		Vector2u GetRenderResolution()  const { return Vector2u(render_width, render_height); }
