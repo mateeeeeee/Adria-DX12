@@ -282,11 +282,12 @@ namespace adria
 		DestroyContext();
 	}
 
-	RGResourceName FFXCACAOPass::AddPass(RenderGraph& rg, RGResourceName input)
+	void FFXCACAOPass::AddPass(RenderGraph& rg)
 	{
 		struct FFXCACAOPassData
 		{
-			RGTextureReadOnlyId input;
+			RGTextureReadOnlyId gbuffer_normal;
+			RGTextureReadOnlyId depth;
 			RGTextureReadWriteId output;
 		};
 
@@ -295,17 +296,22 @@ namespace adria
 		rg.AddPass<FFXCACAOPassData>(name_version,
 			[=](FFXCACAOPassData& data, RenderGraphBuilder& builder)
 			{
-				RGTextureDesc ffx_cacao_output = builder.GetTextureDesc(input);
-				builder.DeclareTexture(RG_RES_NAME(FFXCACAOOutput), ffx_cacao_output);
+				RGTextureDesc cacao_desc{};
+				cacao_desc.format = GfxFormat::R8_UNORM;
+				cacao_desc.width = width;
+				cacao_desc.height = height;
+				builder.DeclareTexture(RG_RES_NAME(AmbientOcclusion), cacao_desc);
 
-				data.output = builder.WriteTexture(RG_RES_NAME(FFXCACAOOutput));
-				data.input = builder.ReadTexture(input, ReadAccess_NonPixelShader);
+				data.output = builder.WriteTexture(RG_RES_NAME(AmbientOcclusion));
+				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				data.gbuffer_normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
 			},
 			[=](FFXCACAOPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				static_assert(sizeof(Matrix) == sizeof(FfxCacaoMat4x4));
 
-				GfxTexture& input_texture = ctx.GetTexture(*data.input);
+				GfxTexture& depth_texture = ctx.GetTexture(*data.depth);
+				GfxTexture& normal_texture = ctx.GetTexture(*data.gbuffer_normal);
 				GfxTexture& output_texture = ctx.GetTexture(*data.output);
 
 				FfxCacaoContext* current_cacao_context = use_downsampled_ssao ? &cacao_downsampled_context : &cacao_context;
@@ -317,11 +323,13 @@ namespace adria
 				cacao_dispatch_desc.commandList = ffxGetCommandListDX12(cmd_list->GetNative());
 
 				FfxCacaoMat4x4 proj, world_to_view;
+				Matrix camera_proj(frame_data.camera_proj); 
+				camera_proj.Transpose(camera_proj);
 				memcpy(&proj, &frame_data.camera_proj, sizeof(FfxCacaoMat4x4));
 				memcpy(&world_to_view, &Matrix::Identity, sizeof(FfxCacaoMat4x4));
 
-				cacao_dispatch_desc.depthBuffer  = GetFfxResource(output_texture);
-				cacao_dispatch_desc.normalBuffer = GetFfxResource(output_texture);
+				cacao_dispatch_desc.depthBuffer  = GetFfxResource(depth_texture);
+				cacao_dispatch_desc.normalBuffer = GetFfxResource(normal_texture);
 				cacao_dispatch_desc.outputBuffer = GetFfxResource(output_texture, FFX_RESOURCE_STATE_UNORDERED_ACCESS);
 				cacao_dispatch_desc.proj = &proj;
 				cacao_dispatch_desc.normalsToView = &world_to_view;
@@ -337,12 +345,24 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
 				{
-					//todo
+					if (ImGui::Combo("Preset", &preset_id,
+						[](void* vec, int idx, const char** out_text)
+						{
+							std::vector<std::string>* vector = reinterpret_cast<std::vector<std::string>*>(vec);
+							if (idx < 0 || idx >= vector->size())return false;
+							*out_text = vector->at(idx).c_str();
+							return true;
+						}, reinterpret_cast<void*>(&FfxCacaoPresetNames), FfxCacaoPresetNames.size()))
+					{
+						cacao_settings = FfxCacaoPresets[preset_id].cacao_settings;
+						use_downsampled_ssao = FfxCacaoPresets[preset_id].use_downsampled_ssao;
+					}
+
 					ImGui::TreePop();
 				}
 			});
 
-		return RG_RES_NAME(FFXCASOutput);
+		
 	}
 
 	void FFXCACAOPass::OnResize(uint32 w, uint32 h)

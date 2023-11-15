@@ -24,6 +24,7 @@
 #include "DLSS3Pass.h"
 #include "FFXDepthOfFieldPass.h"
 #include "FFXCASPass.h"
+#include "FFXCACAOPass.h"
 #include "FidelityFXManager.h"
 #include "FXAAPass.h"
 #include "ToneMapPass.h"
@@ -48,6 +49,7 @@ namespace adria
 			None,
 			SSAO,
 			HBAO,
+			CACAO,
 			RTAO
 		};
 		enum class UpscalerType : uint8
@@ -120,6 +122,7 @@ namespace adria
 		AddTexturesPass add_textures_pass;
 		SSAOPass	 ssao_pass;
 		HBAOPass     hbao_pass;
+		FFXCACAOPass& cacao_pass;
 		RayTracedAmbientOcclusionPass rtao_pass;
 		AutomaticExposurePass automatic_exposure_pass;
 		LensFlarePass lens_flare_pass;

@@ -41,7 +41,7 @@ namespace adria
 		velocity_buffer_pass(width, height), motion_blur_pass(width, height), taa_pass(width, height), 
 		god_rays_pass(width, height),ffx_manager(gfx, width, height), xess_pass(gfx, width, height), dlss3_pass(gfx, width, height),
 		tonemap_pass(width, height), fxaa_pass(width, height), rtr_pass(gfx, width, height),
-		ffx_dof_pass(ffx_manager.GetDoF()), fsr2_pass(ffx_manager.GetFSR2()), cas_pass(ffx_manager.GetCAS())
+		ffx_dof_pass(ffx_manager.GetDoF()), fsr2_pass(ffx_manager.GetFSR2()), cas_pass(ffx_manager.GetCAS()), cacao_pass(ffx_manager.GetCACAO())
 	{
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 		AddRenderResolutionChangedCallback(&PostProcessor::OnRenderResolutionChanged, *this);
@@ -51,9 +51,10 @@ namespace adria
 	{
 		switch (ambient_occlusion)
 		{
-		case AmbientOcclusion::SSAO: ssao_pass.AddPass(rg); break;
-		case AmbientOcclusion::HBAO: hbao_pass.AddPass(rg); break;
-		case AmbientOcclusion::RTAO: rtao_pass.AddPass(rg); break;
+		case AmbientOcclusion::SSAO:  ssao_pass.AddPass(rg); break;
+		case AmbientOcclusion::HBAO:  hbao_pass.AddPass(rg); break;
+		case AmbientOcclusion::CACAO: cacao_pass.AddPass(rg); break;
+		case AmbientOcclusion::RTAO:  rtao_pass.AddPass(rg); break;
 		}
 	}
 
@@ -202,6 +203,7 @@ namespace adria
 
 		ssao_pass.OnResize(w, h);
 		hbao_pass.OnResize(w, h);
+		cacao_pass.OnResize(w, h);
 		rtao_pass.OnResize(w, h);
 
 		clouds_pass.OnResize(gfx, w, h);
@@ -331,9 +333,9 @@ namespace adria
 				int& current_dof_type = cvars::dof.Get();
 				if (ImGui::TreeNode("Post-processing"))
 				{
-					if (ImGui::Combo("Ambient Occlusion", &current_ao_type, "None\0SSAO\0HBAO\0RTAO\0", 4))
+					if (ImGui::Combo("Ambient Occlusion", &current_ao_type, "None\0SSAO\0HBAO\0CACAO\0RTAO\0", 5))
 					{
-						if (!ray_tracing_supported && current_ao_type == 3) current_ao_type = 1;
+						if (!ray_tracing_supported && current_ao_type == 4) current_ao_type = 0;
 						ambient_occlusion = static_cast<AmbientOcclusion>(current_ao_type);
 					}
 					if (ImGui::Combo("Upscaler", &current_upscaler, "None\0FSR2\0XeSS\0DLSS3\0", 4))

@@ -37,9 +37,9 @@ namespace adria
 	{
 		struct SSAOPassData
 		{
-			RGTextureReadOnlyId gbuffer_normal_srv;
-			RGTextureReadOnlyId depth_stencil_srv;
-			RGTextureReadWriteId output_uav;
+			RGTextureReadOnlyId gbuffer_normal;
+			RGTextureReadOnlyId depth;
+			RGTextureReadWriteId output;
 		};
 
 		FrameBlackboardData const& frame_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
@@ -52,9 +52,9 @@ namespace adria
 				ssao_desc.height = height >> resolution;
 
 				builder.DeclareTexture(RG_RES_NAME(SSAO_Output), ssao_desc);
-				data.output_uav = builder.WriteTexture(RG_RES_NAME(SSAO_Output));
-				data.gbuffer_normal_srv = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
-				data.depth_stencil_srv = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+				data.output = builder.WriteTexture(RG_RES_NAME(SSAO_Output));
+				data.gbuffer_normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
+				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 			},
 			[&](SSAOPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
@@ -63,10 +63,10 @@ namespace adria
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::SSAO));
 
 				uint32 i = gfx->AllocateDescriptorsGPU(4).GetIndex();
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.depth_stencil_srv));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadOnlyTexture(data.gbuffer_normal_srv));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.depth));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadOnlyTexture(data.gbuffer_normal));
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 2), ssao_random_texture_srv);
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 3), ctx.GetReadWriteTexture(data.output_uav));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 3), ctx.GetReadWriteTexture(data.output));
 
 				struct SSAOConstants
 				{

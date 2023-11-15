@@ -38,6 +38,7 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
 * Ambient occlusion: 
     - SSAO
     - HBAO
+    - CACAO (FFX)
     - RTAO (DXR)
 * Reflections: 
     - SSR

@@ -13,7 +13,7 @@ namespace adria
 		FFXCACAOPass(GfxDevice* gfx, FfxInterface& ffx_interface, uint32 w, uint32 h);
 		~FFXCACAOPass();
 
-		RGResourceName AddPass(RenderGraph& rendergraph, RGResourceName input);
+		void AddPass(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h);
 
 	private:
