@@ -471,8 +471,12 @@
     <ClCompile Include="Rendering\FFXCASPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\FidelityFXManager.cpp" />
-    <ClCompile Include="Rendering\FFXCACAOPass.cpp" />
+    <ClCompile Include="Rendering\FidelityFXManager.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\FFXCACAOPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1043,9 +1047,11 @@
     <ClInclude Include="Rendering\FFXCASPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\FidelityFXManager.h" />
     <ClInclude Include="Rendering\FFXCACAOPass.h">
       <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\FidelityFXManager.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -271,6 +271,10 @@ namespace adria
 		sprintf(name_version, "FFX CACAO %d.%d.%d", FFX_CACAO_VERSION_MAJOR, FFX_CACAO_VERSION_MINOR, FFX_CACAO_VERSION_PATCH);
 		cacao_context_desc.backendInterface = ffx_interface;
 		CreateContext();
+
+		preset_id = 2;
+		cacao_settings = FfxCacaoPresets[preset_id].cacao_settings;
+		use_downsampled_ssao = FfxCacaoPresets[preset_id].use_downsampled_ssao;
 	}
 
 	FFXCACAOPass::~FFXCACAOPass()
@@ -299,15 +303,32 @@ namespace adria
 			},
 			[=](FFXCACAOPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
+				static_assert(sizeof(Matrix) == sizeof(FfxCacaoMat4x4));
+
 				GfxTexture& input_texture = ctx.GetTexture(*data.input);
 				GfxTexture& output_texture = ctx.GetTexture(*data.output);
 
+				FfxCacaoContext* current_cacao_context = use_downsampled_ssao ? &cacao_downsampled_context : &cacao_context;
+				cacao_settings.generateNormals = generate_normals;
+				FfxErrorCode error_code = ffxCacaoUpdateSettings(current_cacao_context, &cacao_settings, use_downsampled_ssao);
+				ADRIA_ASSERT(error_code == FFX_OK);
+
 				FfxCacaoDispatchDescription cacao_dispatch_desc{};
 				cacao_dispatch_desc.commandList = ffxGetCommandListDX12(cmd_list->GetNative());
-				//todo
 
-				FfxErrorCode errorCode = ffxCacaoContextDispatch(&cacao_context, &cacao_dispatch_desc);
-				ADRIA_ASSERT(errorCode == FFX_OK);
+				FfxCacaoMat4x4 proj, world_to_view;
+				memcpy(&proj, &frame_data.camera_proj, sizeof(FfxCacaoMat4x4));
+				memcpy(&world_to_view, &Matrix::Identity, sizeof(FfxCacaoMat4x4));
+
+				cacao_dispatch_desc.depthBuffer  = GetFfxResource(output_texture);
+				cacao_dispatch_desc.normalBuffer = GetFfxResource(output_texture);
+				cacao_dispatch_desc.outputBuffer = GetFfxResource(output_texture, FFX_RESOURCE_STATE_UNORDERED_ACCESS);
+				cacao_dispatch_desc.proj = &proj;
+				cacao_dispatch_desc.normalsToView = &world_to_view;
+				cacao_dispatch_desc.normalUnpackMul = 2.0f;
+				cacao_dispatch_desc.normalUnpackAdd = -1.0f;
+				error_code = ffxCacaoContextDispatch(current_cacao_context, &cacao_dispatch_desc);
+				ADRIA_ASSERT(error_code == FFX_OK);
 
 				cmd_list->ResetState();
 			}, RGPassType::Compute);
