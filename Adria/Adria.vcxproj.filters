@@ -472,6 +472,7 @@
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\FidelityFXManager.cpp" />
+    <ClCompile Include="Rendering\FFXCACAOPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1043,6 +1044,9 @@
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\FidelityFXManager.h" />
+    <ClInclude Include="Rendering\FFXCACAOPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

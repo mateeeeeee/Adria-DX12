@@ -149,7 +149,8 @@ namespace adria
 		fsr2_context_desc.displaySize.height = display_height;
 		fsr2_context_desc.flags = FFX_FSR2_ENABLE_HIGH_DYNAMIC_RANGE | FFX_FSR2_ENABLE_AUTO_EXPOSURE;
 
-		ffxFsr2ContextCreate(&fsr2_context, &fsr2_context_desc);
+		FfxErrorCode error_code = ffxFsr2ContextCreate(&fsr2_context, &fsr2_context_desc);
+		ADRIA_ASSERT(error_code == FFX_OK);
 		recreate_context = false;
 	}
 
