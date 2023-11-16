@@ -1,22 +1,21 @@
 #pragma once
 #include "RenderGraph/RenderGraphResourceName.h"
 
+
 namespace adria
 {
 	class RenderGraph;
-	struct Light;
 
-	class GodRaysPass
+	class ChromaticAberrationPass
 	{
 	public:
-		GodRaysPass(uint32 w, uint32 h);
+		ChromaticAberrationPass(uint32 w, uint32 h);
 
-		void AddPass(RenderGraph& rendergraph, Light const& light);
+		RGResourceName AddPass(RenderGraph& rendergraph, RGResourceName input);
 		void OnResize(uint32 w, uint32 h);
 
 	private:
 		uint32 width, height;
+		float intensity = 1.0f;
 	};
-
-
 }

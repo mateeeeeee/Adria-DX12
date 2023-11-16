@@ -4,8 +4,6 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "PSOCache.h" 
-
-#include "Graphics/GfxRingDescriptorAllocator.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Logging/Logger.h"
 

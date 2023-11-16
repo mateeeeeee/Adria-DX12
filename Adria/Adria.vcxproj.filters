@@ -477,6 +477,9 @@
     <ClCompile Include="Rendering\FFXCACAOPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\ChromaticAberrationPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1053,6 +1056,9 @@
     <ClInclude Include="Rendering\FidelityFXManager.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\ChromaticAberrationPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
@@ -1247,6 +1253,9 @@
     </FxCompile>
     <FxCompile Include="Resources\NewShaders\DDGI\DDGIVisualize.hlsl">
       <Filter>Shaders\DDGI</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\NewShaders\Postprocess\ChromaticAberration.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

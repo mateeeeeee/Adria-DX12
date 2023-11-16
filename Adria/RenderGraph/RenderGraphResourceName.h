@@ -1,5 +1,4 @@
 #pragma once
-#include "Core/CoreTypes.h"
 #include "Utilities/HashUtil.h"
 
 #ifdef _DEBUG
@@ -29,7 +28,7 @@ namespace adria
 
 #if RG_DEBUG
 		RenderGraphResourceName() : hashed_name(INVALID_HASH), name{"uninitialized"}{}
-		template<size_t N>
+		template<uint64 N>
 		constexpr explicit RenderGraphResourceName(char const (&_name)[N], uint64 hash) : hashed_name(hash), name(_name)
 		{}
 

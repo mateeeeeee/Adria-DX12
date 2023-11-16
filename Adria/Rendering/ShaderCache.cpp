@@ -87,6 +87,7 @@ namespace adria
 			case CS_MotionBlur:
 			case CS_Dof:
 			case CS_GodRays:
+			case CS_ChromaticAberration:
 			case CS_Fxaa:
 			case CS_Ambient:
 			case CS_Clouds:
@@ -245,6 +246,8 @@ namespace adria
 				return "Postprocess/MotionVectors.hlsl";
 			case CS_MotionBlur:
 				return "Postprocess/MotionBlur.hlsl";
+			case CS_ChromaticAberration:
+				return "Postprocess/ChromaticAberration.hlsl";
 			case CS_Dof:
 				return "Postprocess/DepthOfField.hlsl";
 			case CS_GodRays:
@@ -366,6 +369,8 @@ namespace adria
 				return "DepthOfField";
 			case CS_GodRays:
 				return "GodRays";
+			case CS_ChromaticAberration:
+				return "ChromaticAberration";
 			case CS_Fxaa:
 				return "FXAA";
 			case CS_Ambient:

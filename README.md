@@ -23,18 +23,24 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
     - DLSS3
 * Ultimate Bindless 
     - Only one root signature 
+* Volumetric lighting for shadow casting lights
+* Tiled deferred rendering 
+* Clustered deferred rendering
 * Shadows
     - PCF shadows for directional, spot and point lights
     - Cascade shadow maps for directional lights
     - Ray traced shadows (DXR)
-* Volumetric lighting for shadow casting lights
-* Tiled deferred rendering 
-* Clustered deferred rendering
+* Volumetric clouds
+    - Temporal reprojection
+* Hosek-Wilkie sky
+* Ocean FFT
+    - Adaptive tesselation
+    - Foam
 * Automatic exposure
 * Bloom
 * Depth of field + Bokeh 
     - Custom
-    - FFX Depth of Field
+    - FFX
 * Ambient occlusion: 
     - SSAO
     - HBAO
@@ -46,21 +52,15 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
 * Deferred decals
 * FXAA
 * TAA
-* Contrast Adaptive Sharpening 
-    - FFX CAS
+* Contrast Adaptive Sharpening (FFX)
 * God rays
 * Lens flare
 * Motion blur
+* Chromatic aberration
 * Fog
-* Volumetric clouds
-    - Temporal reprojection
-* Hosek-Wilkie sky
-* Ocean FFT
-    - Adaptive tesselation
-    - Foam
 * Shader hot reload
-* Debug Renderer
-* ImGui Editor
+* Debug renderer
+* ImGui editor
 * Profiler
     - custom and tracy profiler
 
