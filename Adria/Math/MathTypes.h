@@ -23,8 +23,7 @@ namespace adria
 	using Vector3i = DirectX::XMINT3;
 	using Vector4i = DirectX::XMINT4;
 
-
-	namespace Colors
+	namespace colors
 	{
 		static constexpr Color AliceBlue = { 0.941176534f, 0.972549081f, 1.000000000f, 1.000000000f };
 		static constexpr Color AntiqueWhite = { 0.980392218f, 0.921568692f, 0.843137324f, 1.000000000f };

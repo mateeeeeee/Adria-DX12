@@ -61,7 +61,7 @@ namespace adria
 		GfxBufferDesc const& buffer_desc = buffer.GetDesc();
 		resource_description.flags = FFX_RESOURCE_FLAGS_NONE;
 		resource_description.usage = FFX_RESOURCE_USAGE_UAV;
-		resource_description.width = buffer_desc.size;
+		resource_description.width = (uint32)buffer_desc.size;
 		resource_description.height = buffer_desc.stride;
 		resource_description.format = FFX_SURFACE_FORMAT_UNKNOWN;
 		resource_description.depth = 0;

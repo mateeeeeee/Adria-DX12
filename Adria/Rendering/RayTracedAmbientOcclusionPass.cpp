@@ -77,6 +77,9 @@ namespace adria
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->DispatchRays(width, height);
+
+				GUI_DisplayTexture("RTAO Raw", &ctx.GetTexture(*data.output));
+
 			}, RGPassType::Compute, RGPassFlags::None);
 
 		struct RTAOFilterPassData
@@ -150,6 +153,9 @@ namespace adria
 				cmd_list->SetRootConstants(1, indices);
 				cmd_list->SetRootCBV(2, constants);
 				cmd_list->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
+
+				GUI_DisplayTexture("RTAO Filtered", &ctx.GetTexture(*data.output));
+
 			}, RGPassType::Compute, RGPassFlags::None);
 
 		GUI_RunCommand([&]()

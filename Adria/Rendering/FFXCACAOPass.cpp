@@ -352,7 +352,7 @@ namespace adria
 							if (idx < 0 || idx >= vector->size())return false;
 							*out_text = vector->at(idx).c_str();
 							return true;
-						}, reinterpret_cast<void*>(&FfxCacaoPresetNames), FfxCacaoPresetNames.size()))
+						}, reinterpret_cast<void*>(&FfxCacaoPresetNames), (int32)FfxCacaoPresetNames.size()))
 					{
 						cacao_settings = FfxCacaoPresets[preset_id].cacao_settings;
 						use_downsampled_ssao = FfxCacaoPresets[preset_id].use_downsampled_ssao;

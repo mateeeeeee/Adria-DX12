@@ -34,10 +34,10 @@ void RTAO_RayGen()
 	float2 texCoords = (launchIndex + 0.5f) / FrameCB.renderResolution;
 	float3 worldPosition = GetWorldPosition(texCoords, depth);
 	float3 viewNormal = normalsTx.Load(int3(launchIndex.xy, 0)).xyz;
-	viewNormal = 2 * viewNormal - 1.0;
-	float3 worldNormal = normalize(mul(viewNormal, (float3x3) transpose(FrameCB.view)));
+	viewNormal = 2.0 * viewNormal - 1.0;
+	float3 worldNormal = normalize(mul(viewNormal, (float3x3) FrameCB.inverseView));
 
-	uint randSeed = InitRand(launchIndex.x + launchIndex.y * launchDim.x, FrameCB.frameCount, 16);
+	uint randSeed = InitRand(launchIndex.x + launchIndex.y * launchDim.x, 47, 16);
 
 	float3 worldDir = GetCosHemisphereSample(randSeed, worldNormal);
 	AORayData rayPayload = { true };
@@ -48,7 +48,7 @@ void RTAO_RayGen()
 	rayAO.TMax = PassCB.aoRadius;
 
 	TraceRay(tlas,
-		(RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES),
+		(RAY_FLAG_CULL_BACK_FACING_TRIANGLES),
 		0xFF, 0, 0, 0, rayAO, rayPayload);
 
 	outputTx[launchIndex.xy] = rayPayload.tHit < 0.0f ? 1.0f : pow(saturate(rayPayload.tHit / PassCB.aoRadius), PassCB.aoPower);

@@ -116,8 +116,6 @@ namespace adria
 					ImGui::TreePop();
 				}
 			});
-		GUI_DisplayTexture("DDGI Irradiance", ddgi_volume.irradiance_history.get());
-		GUI_DisplayTexture("DDGI Distance", ddgi_volume.distance_history.get());
 
 		if (!enabled) return;
 

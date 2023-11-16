@@ -26,20 +26,20 @@ namespace adria
         {
             std::lock_guard<std::mutex> lock(mutex);
             queue.push(value);
-            condVar.notify_one();
+            cond_variable.notify_one();
         }
 
         void Push(T&& value)
         {
             std::lock_guard<std::mutex> lock(mutex);
             queue.push(std::forward<T>(value));
-            condVar.notify_one();
+            cond_variable.notify_one();
         }
 
         void WaitPop(T& value)
         {
             std::unique_lock<std::mutex> lock(mutex);
-            condVar.wait(lock, [this] {return !queue.empty(); });
+            cond_variable.wait(lock, [this] {return !queue.empty(); });
             value = std::move(queue.front());
             queue.pop();
         }
@@ -60,7 +60,7 @@ namespace adria
             return queue.empty();
         }
 
-        size_t Size() const
+        uint64 Size() const
         {
             std::lock_guard<std::mutex> lock(mutex);
             return queue.size();
@@ -69,7 +69,7 @@ namespace adria
     private:
         std::queue<T> queue;
         mutable std::mutex mutex;
-        std::condition_variable condVar;
+        std::condition_variable cond_variable;
     };
 
 
