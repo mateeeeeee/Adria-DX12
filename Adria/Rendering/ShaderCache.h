@@ -71,7 +71,7 @@ namespace adria
 		CS_Dof,
 		CS_Fxaa,
 		CS_GodRays,
-		CS_ChromaticAberration,
+		CS_FilmEffects,
 		CS_Ambient,
 		CS_Clouds,
 		CS_Clouds_Reprojection,

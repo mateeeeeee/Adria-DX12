@@ -41,7 +41,7 @@ namespace adria
 		HBAO,
 		SSR,
 		GodRays,
-		ChromaticAberration,
+		FilmEffects,
 		LensFlare,
 		LensFlare2,
 		DOF,

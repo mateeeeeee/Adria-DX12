@@ -374,8 +374,8 @@ namespace adria
 				compute_pso_desc.CS = CS_GodRays;
 				compute_pso_map[GfxPipelineStateID::GodRays] = gfx->CreateComputePipelineState(compute_pso_desc);
 				
-				compute_pso_desc.CS = CS_ChromaticAberration;
-				compute_pso_map[GfxPipelineStateID::ChromaticAberration] = gfx->CreateComputePipelineState(compute_pso_desc);
+				compute_pso_desc.CS = CS_FilmEffects;
+				compute_pso_map[GfxPipelineStateID::FilmEffects] = gfx->CreateComputePipelineState(compute_pso_desc);
 
 				compute_pso_desc.CS = CS_Fxaa;
 				compute_pso_map[GfxPipelineStateID::FXAA] = gfx->CreateComputePipelineState(compute_pso_desc);

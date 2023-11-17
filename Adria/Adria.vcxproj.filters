@@ -477,7 +477,7 @@
     <ClCompile Include="Rendering\FFXCACAOPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\ChromaticAberrationPass.cpp">
+    <ClCompile Include="Rendering\FilmEffectsPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1056,7 +1056,7 @@
     <ClInclude Include="Rendering\FidelityFXManager.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\ChromaticAberrationPass.h">
+    <ClInclude Include="Rendering\FilmEffectsPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1254,7 +1254,7 @@
     <FxCompile Include="Resources\NewShaders\DDGI\DDGIVisualize.hlsl">
       <Filter>Shaders\DDGI</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Postprocess\ChromaticAberration.hlsl">
+    <FxCompile Include="Resources\NewShaders\Postprocess\FilmEffects.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
   </ItemGroup>

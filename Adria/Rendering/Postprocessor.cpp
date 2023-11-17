@@ -29,13 +29,13 @@ namespace adria
 		static ConsoleVariable bloom("bloom", false);
 		static ConsoleVariable motion_blur("motionblur", false);
 		static ConsoleVariable fog("fog", false);
-		static ConsoleVariable chromatic_aberration("chromatic_aberration", false);
+		static ConsoleVariable film_effects("filmeffects", false);
 		static ConsoleVariable cas("cas", false);
 	}
 
 	PostProcessor::PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height)
 		: gfx(gfx), reg(reg), display_width(width), display_height(height), render_width(width), render_height(height),
-		blur_pass(width, height), copy_to_texture_pass(width, height), chromatic_aberration_pass(width, height),
+		blur_pass(width, height), copy_to_texture_pass(width, height), film_effects_pass(width, height),
 		add_textures_pass(width, height), ssao_pass(width, height), hbao_pass(width, height), rtao_pass(gfx, width, height),
 		automatic_exposure_pass(width, height), lens_flare_pass(width, height), clouds_pass(width, height), 
 		ssr_pass(width, height), fog_pass(width, height), dof_pass(width, height), bloom_pass(width, height), 
@@ -109,7 +109,7 @@ namespace adria
 		}
 		break;
 		}
-		if (chromatic_aberration) final_resource = chromatic_aberration_pass.AddPass(rg, final_resource);
+		if (film_effects) final_resource = film_effects_pass.AddPass(rg, final_resource);
 		if (fog) final_resource = fog_pass.AddPass(rg, final_resource);
 
 		switch (upscaler)
@@ -217,7 +217,7 @@ namespace adria
 		fog_pass.OnResize(w, h);
 		velocity_buffer_pass.OnResize(w, h);
 		god_rays_pass.OnResize(w, h);
-		chromatic_aberration_pass.OnResize(w, h);
+		film_effects_pass.OnResize(w, h);
 	}
 
 	void PostProcessor::OnSceneInitialized()
@@ -372,7 +372,7 @@ namespace adria
 					ImGui::Checkbox("Volumetric Clouds", &cvars::clouds.Get());
 					ImGui::Checkbox("Bloom", &cvars::bloom.Get());
 					ImGui::Checkbox("Motion Blur", &cvars::motion_blur.Get());
-					ImGui::Checkbox("Chromatic Aberration", &cvars::chromatic_aberration.Get());
+					ImGui::Checkbox("Film Effects", &cvars::film_effects.Get());
 					ImGui::Checkbox("Fog", &cvars::fog.Get());
 
 					if (ImGui::TreeNode("Anti-Aliasing"))
@@ -391,7 +391,7 @@ namespace adria
 				bloom = cvars::bloom;
 				motion_blur = cvars::motion_blur;
 				fog = cvars::fog;
-				chromatic_aberration = cvars::chromatic_aberration;
+				film_effects = cvars::film_effects;
 				cas = cvars::cas;
 				if (cvars::fxaa) anti_aliasing = static_cast<AntiAliasing>(anti_aliasing | AntiAliasing_FXAA);
 				else anti_aliasing = static_cast<AntiAliasing>(anti_aliasing & (~AntiAliasing_FXAA));
