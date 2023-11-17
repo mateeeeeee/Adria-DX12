@@ -19,6 +19,13 @@ namespace adria
 		bool chromatic_aberration_enabled = true;
 		float chromatic_aberration_intensity = 10.0f;
 		bool  vignette_enabled = true;
-		float vignette_intensity = 1.0f;
+		float vignette_intensity = 0.5f;
+		bool  film_grain_enabled = false;
+		float film_grain_scale = 3.0f;
+		float film_grain_amount = 0.5f;
+		float film_grain_seed_update_rate = 0.02f;
+
+	private:
+		static uint32 GetFilmGrainSeed(double dt, double seed_update_rate);
 	};
 }

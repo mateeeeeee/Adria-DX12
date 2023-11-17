@@ -109,4 +109,32 @@ float WorleyFBM(float3 p, float freq)
 		   WorleyNoise(p * freq * 4., freq * 4.) * .125;
 }
 
+
+uint3 PCG3D16(uint3 v)
+{
+    v = v * 12829u + 47989u;
+    v.x += v.y * v.z;
+    v.y += v.z * v.x;
+    v.z += v.x * v.y;
+    v.x += v.y * v.z;
+    v.y += v.z * v.x;
+    v.z += v.x * v.y;
+    v >>= 16u;
+    return v;
+}
+
+// Simplex noise, transforms given position onto triangle grid
+float2 Simplex(float2 P)
+{
+    const float F2 = (sqrt(3.0) - 1.0) / 2.0;  // 0.36602540378
+    const float G2 = (3.0 - sqrt(3.0)) / 6.0;  // 0.2113248654
+    float   u   = (P.x + P.y) * F2;
+    float2 Pi   = round(P + u);
+    float  v    = (Pi.x + Pi.y) * G2;
+    float2 P0   = Pi - v;  
+
+    return P - P0;  
+}
+
+
 #endif

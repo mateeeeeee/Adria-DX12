@@ -47,6 +47,10 @@ namespace adria
 					float   chromatic_aberration_intensity;
 					bool32  vignette_enabled;
 					float   vignette_intensity;
+					bool32  film_grain_enabled;
+					float   film_grain_scale;
+					float   film_grain_amount;
+					uint32  film_grain_seed;
 					uint32  input_idx;
 					uint32  output_idx;
 				} constants =
@@ -55,12 +59,16 @@ namespace adria
 					.chromatic_aberration_intensity = chromatic_aberration_intensity,
 					.vignette_enabled = vignette_enabled,
 					.vignette_intensity = vignette_intensity,
+					.film_grain_enabled = film_grain_enabled,
+					.film_grain_scale = film_grain_scale,
+					.film_grain_amount = film_grain_amount,
+					.film_grain_seed = GetFilmGrainSeed(frame_data.frame_delta_time, film_grain_seed_update_rate),
 					.input_idx  = i + 0,
 					.output_idx = i + 1
 				};
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::FilmEffects));
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
-				cmd_list->SetRootConstants(1, constants);
+				cmd_list->SetRootCBV(2, constants);
 				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 
@@ -70,6 +78,7 @@ namespace adria
 				{
 					ImGui::Checkbox("Chromatic Aberration", &chromatic_aberration_enabled);
 					ImGui::Checkbox("Vignette", &vignette_enabled);
+					ImGui::Checkbox("Film Grain", &film_grain_enabled);
 					if (chromatic_aberration_enabled)
 					{
 						ImGui::SliderFloat("Chromatic Aberration Intensity", &chromatic_aberration_intensity, 0.0f, 40.0f);
@@ -77,6 +86,12 @@ namespace adria
 					if (vignette_enabled)
 					{
 						ImGui::SliderFloat("Vignette Intensity", &vignette_intensity, 0.0f, 2.0f);
+					}
+					if (film_grain_enabled)
+					{
+						ImGui::SliderFloat("Film Grain Scale", &film_grain_scale, 0.01f, 20.0f);
+						ImGui::SliderFloat("Film Grain Amount", &film_grain_amount, 0.0f, 20.0f);
+						ImGui::SliderFloat("Film Grain Seed Update Rate", &film_grain_seed_update_rate, 0.0f, 0.1f);
 					}
 					ImGui::TreePop();
 				}
@@ -89,6 +104,19 @@ namespace adria
 	void FilmEffectsPass::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
+	}
+
+	uint32 FilmEffectsPass::GetFilmGrainSeed(double dt, double seed_update_rate)
+	{
+		static uint32 seed_counter = 0;
+		static double timeCtr = 0.0;
+		timeCtr += dt;
+		if (timeCtr >= seed_update_rate)
+		{
+			++seed_counter;
+			timeCtr = 0.0;
+		}
+		return seed_counter;
 	}
 
 }

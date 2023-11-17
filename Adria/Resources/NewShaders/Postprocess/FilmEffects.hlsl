@@ -1,5 +1,6 @@
 #include "../CommonResources.hlsli"
 #include "../Constants.hlsli"
+#include "../Noise.hlsli"
 
 #define BLOCK_SIZE 16
 
@@ -11,11 +12,16 @@ struct FilmEffectsConstants
 	bool  vignetteEnabled;
 	float vignetteIntensity;
 
+	bool  filmGrainEnabled;
+	float filmGrainScale;
+	float filmGrainAmount;
+	uint  filmGrainSeed;
+
 	uint  inputIdx;
 	uint  outputIdx;
 };
 
-ConstantBuffer<FilmEffectsConstants> PassCB : register(b1);
+ConstantBuffer<FilmEffectsConstants> PassCB : register(b2);
 
 float3 SampleWithChromaticAberration(float2 uv)
 {
@@ -57,7 +63,23 @@ float3 ApplyVignette(float3 color, float2 uv)
 	return color;
 }
 
+float3 ApplyFilmGrain(float3 color, uint2 coord)
+{
+	if (PassCB.filmGrainEnabled)
+	{
+		float  filmGrainScale	= PassCB.filmGrainScale;
+		float  filmGrainAmount	= PassCB.filmGrainAmount;
+		uint   filmGrainSeed	= PassCB.filmGrainSeed;
 
+		float2     randomNumberFine = PCG3D16(uint3(coord / (filmGrainScale / 8.0), filmGrainSeed)).xy;
+		float2     simplex = Simplex(coord / filmGrainScale + randomNumberFine);
+
+		const float grainShape = 3.0;
+		float grain = 1 - 2 * exp2(-length(simplex) * grainShape);
+		color += grain * min(color, 1 - color) * filmGrainAmount;
+	}
+	return color;
+}
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void FilmEffects(uint3 dispatchThreadId : SV_DispatchThreadID)
@@ -65,6 +87,7 @@ void FilmEffects(uint3 dispatchThreadId : SV_DispatchThreadID)
 	float2 uv = (dispatchThreadId.xy + 0.5f) /  FrameCB.renderResolution;
 	float3 color = SampleWithChromaticAberration(uv);
 	color = ApplyVignette(color, uv);
+	color = ApplyFilmGrain(color, dispatchThreadId.xy);
 
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
 	outputTx[dispatchThreadId.xy] = float4(color, 1.0);

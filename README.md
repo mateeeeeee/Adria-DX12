@@ -53,10 +53,13 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
 * FXAA
 * TAA
 * Contrast Adaptive Sharpening (FFX)
+* Film effects
+    - Chromatic aberration
+    - Vignette
+    - Film grain
 * God rays
 * Lens flare
 * Motion blur
-* Chromatic aberration
 * Fog
 * Shader hot reload
 * Debug renderer
