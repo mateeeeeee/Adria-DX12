@@ -43,6 +43,9 @@ namespace adria
 
 				struct FilmEffectsConstants
 				{
+					bool32  lens_distortion_enabled;
+					float	lens_distortion_intensity;
+
 					bool32  chromatic_aberration_enabled;
 					float   chromatic_aberration_intensity;
 					bool32  vignette_enabled;
@@ -55,6 +58,8 @@ namespace adria
 					uint32  output_idx;
 				} constants =
 				{
+					.lens_distortion_enabled = lens_distortion_enabled,
+					.lens_distortion_intensity = lens_distortion_intensity,
 					.chromatic_aberration_enabled = chromatic_aberration_enabled,
 					.chromatic_aberration_intensity = chromatic_aberration_intensity,
 					.vignette_enabled = vignette_enabled,
@@ -76,9 +81,14 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx("Film Effects", ImGuiTreeNodeFlags_None))
 				{
+					ImGui::Checkbox("Lens Distortion", &lens_distortion_enabled);
 					ImGui::Checkbox("Chromatic Aberration", &chromatic_aberration_enabled);
 					ImGui::Checkbox("Vignette", &vignette_enabled);
 					ImGui::Checkbox("Film Grain", &film_grain_enabled);
+					if (lens_distortion_enabled)
+					{
+						ImGui::SliderFloat("Lens Distortion Intensity", &lens_distortion_intensity, -1.0f, 1.0f);
+					}
 					if (chromatic_aberration_enabled)
 					{
 						ImGui::SliderFloat("Chromatic Aberration Intensity", &chromatic_aberration_intensity, 0.0f, 40.0f);
@@ -106,15 +116,15 @@ namespace adria
 		width = w, height = h;
 	}
 
-	uint32 FilmEffectsPass::GetFilmGrainSeed(double dt, double seed_update_rate)
+	uint32 FilmEffectsPass::GetFilmGrainSeed(float dt, float seed_update_rate)
 	{
 		static uint32 seed_counter = 0;
-		static double timeCtr = 0.0;
-		timeCtr += dt;
-		if (timeCtr >= seed_update_rate)
+		static float time_counter = 0.0;
+		time_counter += dt;
+		if (time_counter >= seed_update_rate)
 		{
 			++seed_counter;
-			timeCtr = 0.0;
+			time_counter = 0.0;
 		}
 		return seed_counter;
 	}

@@ -54,6 +54,7 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
 * TAA
 * Contrast Adaptive Sharpening (FFX)
 * Film effects
+    - Lens distortion
     - Chromatic aberration
     - Vignette
     - Film grain

@@ -16,6 +16,8 @@ namespace adria
 
 	private:
 		uint32 width, height;
+		bool lens_distortion_enabled = false;
+		float lens_distortion_intensity = 0.2f;
 		bool chromatic_aberration_enabled = true;
 		float chromatic_aberration_intensity = 10.0f;
 		bool  vignette_enabled = true;
@@ -26,6 +28,6 @@ namespace adria
 		float film_grain_seed_update_rate = 0.02f;
 
 	private:
-		static uint32 GetFilmGrainSeed(double dt, double seed_update_rate);
+		static uint32 GetFilmGrainSeed(float dt, float seed_update_rate);
 	};
 }
