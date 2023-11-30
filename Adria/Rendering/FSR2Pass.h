@@ -1,7 +1,7 @@
 #pragma once
 #include "FidelityFX/host/ffx_fsr2.h"
 #include "RenderGraph/RenderGraphResourceName.h"
-#include "Events/Delegate.h"
+#include "Utilities/Delegate.h"
 
 namespace adria
 {

@@ -1,7 +1,6 @@
 #pragma once
 #include <filesystem>
-#include "Core/CoreTypes.h"
-#include "Events/Delegate.h"
+#include "Utilities/Delegate.h"
 
 namespace adria
 {

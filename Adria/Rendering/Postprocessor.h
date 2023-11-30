@@ -30,7 +30,7 @@
 #include "FXAAPass.h"
 #include "ToneMapPass.h"
 #include "RenderGraph/RenderGraphResourceId.h"
-#include "Events/Delegate.h"
+#include "Utilities/Delegate.h"
 #include "entt/entity/entity.hpp"
 
 

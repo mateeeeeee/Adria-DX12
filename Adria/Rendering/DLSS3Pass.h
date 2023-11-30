@@ -1,7 +1,7 @@
 #pragma once
 #include "nvsdk_ngx_defs.h"
 #include "RenderGraph/RenderGraphResourceName.h"
-#include "Events/Delegate.h"
+#include "Utilities/Delegate.h"
 
 
 struct NVSDK_NGX_Parameter;

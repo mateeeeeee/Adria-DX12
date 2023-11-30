@@ -1,7 +1,7 @@
 #pragma once
 #include "XeSS/xess.h"
 #include "RenderGraph/RenderGraphResourceName.h"
-#include "Events/Delegate.h"
+#include "Utilities/Delegate.h"
 
 namespace adria
 {

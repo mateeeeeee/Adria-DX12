@@ -2,7 +2,7 @@
 #include <array>
 #include "Core/CoreTypes.h"
 #include "Core/Windows.h"
-#include "Events/Delegate.h"
+#include "Utilities/Delegate.h"
 #include "Utilities/Singleton.h"
 
 namespace adria

@@ -1,9 +1,9 @@
 #pragma once
 #include <array>
-#include "Events/Delegate.h"
 #include "RayTracedShadowsPass.h"
 #include "Graphics/GfxDefines.h"
 #include "Graphics/GfxDescriptor.h"
+#include "Utilities/Delegate.h"
 
 namespace adria
 {

@@ -3,7 +3,7 @@
 #include "GfxShader.h"
 #include "GfxInputLayout.h"
 #include "GfxResourceCommon.h"
-#include "Events/Delegate.h"
+#include "Utilities/Delegate.h"
 
 namespace adria
 {
