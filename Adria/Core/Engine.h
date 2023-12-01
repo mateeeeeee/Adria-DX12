@@ -6,7 +6,7 @@
 
 namespace adria
 {
-	struct WindowMessage;
+	struct WindowEventData;
 	class Window;
 	struct SceneConfig;
 	class GfxDevice;
@@ -39,7 +39,7 @@ namespace adria
 		Engine& operator=(Engine&&) = delete;
 		~Engine();
 	
-		void HandleWindowMessage(WindowMessage const& msg_data);
+		void OnWindowEvent(WindowEventData const& msg_data);
 		void Run();
 		void Present();
 

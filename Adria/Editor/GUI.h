@@ -15,7 +15,7 @@ namespace adria
 
 	using GUIDescriptorAllocator = GfxRingDescriptorAllocator<false>;
 
-	struct WindowMessage;
+	struct WindowEventData;
 
 	class GUI
 	{
@@ -26,7 +26,7 @@ namespace adria
 		void Begin() const;
 		void End(GfxCommandList* cmd_list) const;
 
-		void HandleWindowMessage(WindowMessage const&) const;
+		void OnWindowEvent(WindowEventData const&) const;
 
 		void ToggleVisibility();
 		bool IsVisible() const;

@@ -241,9 +241,9 @@ namespace adria
 		g_ThreadPool.Destroy();
 	}
 
-	void Engine::HandleWindowMessage(WindowMessage const& msg_data)
+	void Engine::OnWindowEvent(WindowEventData const& msg_data)
 	{
-		g_Input.HandleWindowMessage(msg_data);
+		g_Input.OnWindowEvent(msg_data);
 	}
 
 	void Engine::Run()

@@ -70,7 +70,7 @@ namespace adria
 		imgui_allocator->FinishCurrentFrame(frame_count);
 		++frame_count;
 	}
-	void GUI::HandleWindowMessage(WindowMessage const& msg_data) const
+	void GUI::OnWindowEvent(WindowEventData const& msg_data) const
 	{
 		ImGui_ImplWin32_WndProcHandler(static_cast<HWND>(msg_data.handle),
 			msg_data.msg, msg_data.wparam, msg_data.lparam);

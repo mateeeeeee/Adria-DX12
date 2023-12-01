@@ -11,7 +11,7 @@ namespace adria
 		LONG_PTR window_address = GetWindowLongPtr(hwnd, GWLP_USERDATA);
 		Window* this_window = reinterpret_cast<Window*>(window_address);
 
-		WindowMessage window_data{};
+		WindowEventData window_data{};
 		window_data.handle = hwnd;
 		window_data.msg = static_cast<uint32>(msg);
 		window_data.wparam = static_cast<uint64>(w_param);
@@ -145,9 +145,9 @@ namespace adria
         return GetForegroundWindow() == hwnd;
     }
 
-	void Window::BroadcastEvent(WindowMessage const& msg)
+	void Window::BroadcastEvent(WindowEventData const& data)
 	{
-        window_event.Broadcast(msg);
+        window_event.Broadcast(data);
 	}
 
 }

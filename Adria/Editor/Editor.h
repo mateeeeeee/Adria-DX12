@@ -48,7 +48,7 @@ namespace adria
 		void Init(EditorInit&& init);
 		void Destroy();
 
-		void HandleWindowMessage(WindowMessage const& msg_data);
+		void OnWindowEvent(WindowEventData const& msg_data);
 		void Run();
 		bool IsActive() const;
 

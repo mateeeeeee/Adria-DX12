@@ -79,10 +79,10 @@ namespace adria
 		console.reset();
 		logger.reset();
 	}
-	void Editor::HandleWindowMessage(WindowMessage const& msg_data)
+	void Editor::OnWindowEvent(WindowEventData const& msg_data)
 	{
-		engine->HandleWindowMessage(msg_data);
-		gui->HandleWindowMessage(msg_data);
+		engine->OnWindowEvent(msg_data);
+		gui->OnWindowEvent(msg_data);
 	}
 	void Editor::Run()
 	{
