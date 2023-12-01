@@ -177,7 +177,7 @@ namespace adria
 		mmouse_wheel_delta = (float)GET_WHEEL_DELTA_WPARAM(data.wparam) / (float)WHEEL_DELTA;
 
 	}
-	void Input::SetMouseVisible(bool visible)
+	void Input::SetMouseVisibility(bool visible)
 	{
 		::ShowCursor(visible);
 	}

@@ -1,6 +1,5 @@
 #pragma once
 #include <array>
-#include "Core/CoreTypes.h"
 #include "Core/Windows.h"
 #include "Utilities/Delegate.h"
 #include "Utilities/Singleton.h"
@@ -67,7 +66,7 @@ namespace adria
 		bool IsKeyDown(KeyCode key) const { return GetKey(key) && !prev_keys[(uint64)key]; }
 		bool IsKeyUp(KeyCode key)   const { return !GetKey(key) && prev_keys[(uint64)key]; }
 
-		void SetMouseVisible(bool visible);
+		void SetMouseVisibility(bool visible);
 		void SetMousePosition(float xpos, float ypos);
 
 		float GetMousePositionX()  const { return mouse_position_x; }

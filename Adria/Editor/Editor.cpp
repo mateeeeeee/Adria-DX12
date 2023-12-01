@@ -218,7 +218,11 @@ namespace adria
 	}
 	void Editor::HandleInput()
 	{
-		if (scene_focused && g_Input.IsKeyDown(KeyCode::I)) gui->ToggleVisibility();
+		if (scene_focused && g_Input.IsKeyDown(KeyCode::I))
+		{
+			gui->ToggleVisibility();
+			g_Input.SetMouseVisibility(gui->IsVisible());
+		}
 		if (scene_focused && g_Input.IsKeyDown(KeyCode::G)) gizmo_enabled = !gizmo_enabled;
 		if (gizmo_enabled && gui->IsVisible())
 		{
