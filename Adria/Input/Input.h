@@ -64,7 +64,7 @@ namespace adria
 		}
 
 		InputEvents& GetInputEvents() { return input_events; }
-		void NewFrame();
+		void Tick();
 		void HandleWindowMessage(WindowMessage const&);
 
 		bool GetKey(KeyCode key)    const { return keys[(uint64)key]; }
@@ -85,7 +85,7 @@ namespace adria
 		InputEvents input_events;
 		std::array<bool, (uint64)KeyCode::Count> keys;
 		std::array<bool, (uint64)KeyCode::Count> prev_keys;
-		// Mouse
+
 		float mouse_position_x = 0.0f;
 		float mouse_position_y = 0.0f;
 

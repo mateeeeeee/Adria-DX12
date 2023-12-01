@@ -251,7 +251,7 @@ namespace adria
 		FrameMarkNamed("EngineFrame");
 		static AdriaTimer timer;
 		float const dt = timer.MarkInSeconds();
-		g_Input.NewFrame();
+		g_Input.Tick();
 		Update(dt);
 		Render();
 	}
@@ -264,7 +264,7 @@ namespace adria
 	void Engine::Update(float dt)
 	{
 		camera->Tick(dt);
-		renderer->NewFrame(camera.get());
+		renderer->Tick(camera.get());
 		renderer->Update(dt);
 	}
 

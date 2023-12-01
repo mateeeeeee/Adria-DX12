@@ -22,7 +22,7 @@ namespace adria
 		}
 	}
 
-	void Input::NewFrame()
+	void Input::Tick()
 	{
 		prev_keys = std::move(keys);
 

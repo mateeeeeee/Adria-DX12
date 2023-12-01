@@ -44,7 +44,7 @@ namespace adria
 		Renderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height);
 		~Renderer();
 
-		void NewFrame(Camera const* camera);
+		void Tick(Camera const* camera);
 		void Update(float dt);
 		void Render();
 		void SetViewportData(ViewportData const& vp);

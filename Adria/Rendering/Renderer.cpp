@@ -74,7 +74,7 @@ namespace adria
 	{
 		viewport_data = vp;
 	}
-	void Renderer::NewFrame(Camera const* _camera)
+	void Renderer::Tick(Camera const* _camera)
 	{
 		ADRIA_ASSERT(_camera);
 		camera = _camera;
