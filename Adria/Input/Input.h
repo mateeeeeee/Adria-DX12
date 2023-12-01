@@ -33,7 +33,8 @@ namespace adria
 		Insert,
 		MouseLeft,
 		MouseMiddle,
-		MouseRight
+		MouseRight,
+		Count
 	};
 
 	struct WindowMessage;
@@ -62,9 +63,9 @@ namespace adria
 		void NewFrame();
 		void HandleWindowMessage(WindowMessage const&);
 
-		bool GetKey(KeyCode key)    /*const*/ { return keys[key]; }
-		bool IsKeyDown(KeyCode key) /*const*/ { return GetKey(key) && !prev_keys[key]; }
-		bool IsKeyUp(KeyCode key)   /*const*/ { return !GetKey(key) && prev_keys[key]; }
+		bool GetKey(KeyCode key)    const { return keys[(uint64)key]; }
+		bool IsKeyDown(KeyCode key) const { return GetKey(key) && !prev_keys[(uint64)key]; }
+		bool IsKeyUp(KeyCode key)   const { return !GetKey(key) && prev_keys[(uint64)key]; }
 
 		void SetMouseVisible(bool visible);
 		void SetMousePosition(float xpos, float ypos);
@@ -72,14 +73,14 @@ namespace adria
 		float GetMousePositionX()  const { return mouse_position_x; }
 		float GetMousePositionY()  const { return mouse_position_y; }
 
-		float GetMouseDeltaX()     const { return mouse_position_x - prev_mouse_position_x;/*return mouse_delta_x;*/ }
-		float GetMouseDeltaY()     const { return mouse_position_y - prev_mouse_position_y;/*return mouse_delta_y;*/ }
+		float GetMouseDeltaX()     const { return mouse_position_x - prev_mouse_position_x; }
+		float GetMouseDeltaY()     const { return mouse_position_y - prev_mouse_position_y; }
 		float GetMouseWheelDelta() const { return mmouse_wheel_delta; }
 
 	private:
 		InputEvents input_events;
-		std::unordered_map<KeyCode, bool> keys;
-		std::unordered_map<KeyCode, bool> prev_keys;
+		std::array<bool, (uint64)KeyCode::Count> keys;
+		std::array<bool, (uint64)KeyCode::Count> prev_keys;
 		// Mouse
 		float mouse_position_x = 0.0f;
 		float mouse_position_y = 0.0f;
