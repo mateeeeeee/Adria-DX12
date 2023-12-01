@@ -6,7 +6,7 @@
 #include <memory>
 #include "Graphics/GfxDescriptor.h"
 #include "Utilities/Singleton.h"
-#include "Utilities/AutoRefCountPtr.h"
+#include "Utilities/ArcPtr.h"
 
 namespace adria
 {

@@ -7,7 +7,7 @@
 #include "GfxDefines.h"
 #include "Core/CoreTypes.h"
 #include "Utilities/StringUtil.h"
-#include "Utilities/AutoRefCountPtr.h"
+#include "Utilities/ArcPtr.h"
 
 namespace adria
 {

@@ -160,6 +160,4 @@ namespace adria
 		}
 
 	};
-
-
 }

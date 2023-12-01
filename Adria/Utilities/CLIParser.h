@@ -3,8 +3,6 @@
 #include <vector>
 #include <string>
 #include "StringUtil.h"
-#include "Core/Defines.h"
-#include "Core/CoreTypes.h"
 
 namespace adria
 {
@@ -106,7 +104,7 @@ namespace adria
 		void Parse(int argc, wchar_t** argv)
 		{
 			std::vector<std::wstring> cmdline(argv, argv + argc);
-			for (size_t i = 0; i < cmdline.size(); ++i)
+			for (uint64 i = 0; i < cmdline.size(); ++i)
 			{
 				bool found = false;
 				for (CLIArg& arg : args)

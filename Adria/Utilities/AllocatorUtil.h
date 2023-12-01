@@ -19,7 +19,7 @@ namespace adria
 		return r ? address + (align - r) : address;
 	}
 
-	using OffsetType = size_t;
+	using OffsetType = uint64;
 
 	inline constexpr OffsetType const INVALID_OFFSET = static_cast<OffsetType>(-1);
 

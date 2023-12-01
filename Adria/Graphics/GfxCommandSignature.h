@@ -2,7 +2,7 @@
 #include <memory>
 #include <d3d12.h>
 #include "GfxDefines.h"
-#include "Utilities/AutoRefCountPtr.h"
+#include "Utilities/ArcPtr.h"
 
 namespace adria
 {

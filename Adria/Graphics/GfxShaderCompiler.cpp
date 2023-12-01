@@ -9,7 +9,7 @@
 #include "Utilities/StringUtil.h"
 #include "Utilities/FilesUtil.h"
 #include "Utilities/HashUtil.h"
-#include "Utilities/AutoRefCountPtr.h"
+#include "Utilities/ArcPtr.h"
 #include "Logging/Logger.h"
 
 

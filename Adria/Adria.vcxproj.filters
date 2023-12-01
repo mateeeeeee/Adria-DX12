@@ -11,9 +11,6 @@
     <Filter Include="Logging">
       <UniqueIdentifier>{0267d83e-83de-4015-82c3-053aae4c0283}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Events">
-      <UniqueIdentifier>{89bbabae-27da-4d3e-9aea-f01a3bf07905}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core">
       <UniqueIdentifier>{1471750e-b525-434b-8cb0-2a8b5be3e67d}</UniqueIdentifier>
     </Filter>
@@ -593,9 +590,6 @@
     <ClInclude Include="Utilities\JsonUtil.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Events\Delegate.h">
-      <Filter>Events</Filter>
-    </ClInclude>
     <ClInclude Include="RenderGraph\RenderGraph.h">
       <Filter>RenderGraph</Filter>
     </ClInclude>
@@ -794,7 +788,7 @@
     <ClInclude Include="Graphics\GfxCommon.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\AutoRefCountPtr.h">
+    <ClInclude Include="Utilities\ArcPtr.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxFormat.h">
@@ -1058,6 +1052,9 @@
     </ClInclude>
     <ClInclude Include="Rendering\FilmEffectsPass.h">
       <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Delegate.h">
+      <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

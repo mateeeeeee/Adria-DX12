@@ -1,7 +1,6 @@
 #pragma once
 #include <functional>
 
-
 namespace adria
 {
 	template <typename T>
@@ -51,13 +50,13 @@ namespace adria
 	}
 
 	//guaranteed compile time using consteval
-	template<size_t N>
-	consteval uint64_t crc64(char const (&_str)[N])
+	template<uint64 N>
+	consteval uint64 crc64(char const (&_str)[N])
 	{
 		return crc::crc64_impl(_str, N - 1);
 	}
 
-	inline uint64_t crc64(char const* _str, size_t N)
+	inline uint64 crc64(char const* _str, uint64 N)
 	{
 		return crc::crc64_impl(_str, N);
 	}

@@ -1,6 +1,5 @@
 #pragma once
 #include <memory>
-#include "Core/CoreTypes.h"
 #include "Graphics/GfxDescriptor.h"
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_win32.h"

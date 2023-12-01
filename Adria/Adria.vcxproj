@@ -351,7 +351,6 @@
     <ClInclude Include="Editor\GUI.h" />
     <ClInclude Include="Editor\GUICommand.h" />
     <ClInclude Include="Editor\EditorUtil.h" />
-    <ClInclude Include="Events\Delegate.h" />
     <ClInclude Include="Graphics\GfxBuffer.h" />
     <ClInclude Include="Graphics\GfxCapabilities.h" />
     <ClInclude Include="Graphics\GfxCommandListPool.h" />
@@ -484,8 +483,9 @@
     <ClInclude Include="Resources\NewShaders\SPD\ffx_a.h" />
     <ClInclude Include="Resources\NewShaders\SPD\ffx_spd.h" />
     <ClInclude Include="Utilities\AllocatorUtil.h" />
-    <ClInclude Include="Utilities\AutoRefCountPtr.h" />
+    <ClInclude Include="Utilities\ArcPtr.h" />
     <ClInclude Include="Utilities\CLIParser.h" />
+    <ClInclude Include="Utilities\Delegate.h" />
     <ClInclude Include="Utilities\EnumUtil.h" />
     <ClInclude Include="Utilities\FilesUtil.h" />
     <ClInclude Include="Utilities\FileWatcher.h" />
