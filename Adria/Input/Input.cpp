@@ -14,14 +14,8 @@ namespace adria
 
 	Input::Input() : keys{}, prev_keys{}, input_events{}
 	{
-		HWND handle = static_cast<HWND>(Window::Handle());
-		if (!handle)
-		{
-			ADRIA_LOG(ERROR, "Window handle is NULL! Have you made a call to Window::Initialize?");
-			return;
-		}
 		POINT mouse_screen_pos;
-		if (::GetCursorPos(&mouse_screen_pos))
+		if (GetCursorPos(&mouse_screen_pos))
 		{
 			mouse_position_x = static_cast<float>(mouse_screen_pos.x);
 			mouse_position_y = static_cast<float>(mouse_screen_pos.y);
@@ -35,10 +29,10 @@ namespace adria
 		prev_mouse_position_x = mouse_position_x;
 		prev_mouse_position_y = mouse_position_y;
 
-		if (Window::IsActive())
+		if (window->IsActive())
 		{
 			POINT mouse_screen_pos;
-			if (::GetCursorPos(&mouse_screen_pos))
+			if (GetCursorPos(&mouse_screen_pos))
 			{
 				mouse_position_x = static_cast<float>(mouse_screen_pos.x);
 				mouse_position_y = static_cast<float>(mouse_screen_pos.y);
@@ -46,9 +40,9 @@ namespace adria
 
 			using enum KeyCode;
 			//mouse
-			keys[(uint64)MouseLeft] = (::GetKeyState(VK_LBUTTON) & 0x8000) != 0; // Left button pressed
-			keys[(uint64)MouseMiddle] = (::GetKeyState(VK_MBUTTON) & 0x8000) != 0; // Middle button pressed
-			keys[(uint64)MouseRight] = (::GetKeyState(VK_RBUTTON) & 0x8000) != 0; // Right button pressed
+			keys[(uint64)MouseLeft] = (GetKeyState(VK_LBUTTON) & 0x8000) != 0;
+			keys[(uint64)MouseMiddle] = (GetKeyState(VK_MBUTTON) & 0x8000) != 0;
+			keys[(uint64)MouseRight] = (GetKeyState(VK_RBUTTON) & 0x8000) != 0;
 
 			//keyboard
 			keys[(uint64)F1] = IsPressed(VK_F1);
@@ -138,7 +132,7 @@ namespace adria
 	}
 	void Input::HandleWindowMessage(WindowMessage const& data)
 	{
-		HWND handle = static_cast<HWND>(Window::Handle());
+		HWND handle = static_cast<HWND>(data.handle);
 		{
 			switch (data.msg)
 			{
@@ -183,7 +177,7 @@ namespace adria
 	}
 	void Input::SetMousePosition(float xpos, float ypos)
 	{
-		HWND handle = static_cast<HWND>(Window::Handle());
+		HWND handle = static_cast<HWND>(window->Handle());
 		if (handle == ::GetActiveWindow())
 		{
 			POINT mouse_screen_pos = POINT{ static_cast<LONG>(xpos), static_cast<LONG>(ypos) };

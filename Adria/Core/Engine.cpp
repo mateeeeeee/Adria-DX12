@@ -205,17 +205,16 @@ namespace adria
 		}
 	}
 
-	Engine::Engine(EngineInit const& init) : vsync{ init.vsync }
+	Engine::Engine(EngineInit const& init) : vsync{ init.vsync }, window { init.window }
 	{
 		g_ThreadPool.Initialize();
 		GfxShaderCompiler::Initialize();
 		ShaderCache::Initialize();
-		gfx = std::make_unique<GfxDevice>(GfxOptions{.debug_layer = init.debug_layer,
-													 .dred = init.dred,
-													 .gpu_validation = init.gpu_validation, .pix = init.pix });
+		gfx = std::make_unique<GfxDevice>(window, GfxOptions{.debug_layer = init.debug_layer, .dred = init.dred,
+														     .gpu_validation = init.gpu_validation, .pix = init.pix });
 		PSOCache::Initialize(gfx.get());
 		g_TextureManager.Initialize(gfx.get(), 1000);
-		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
+		renderer = std::make_unique<Renderer>(reg, gfx.get(), window->Width(), window->Height());
 		entity_loader = std::make_unique<EntityLoader>(reg, gfx.get());
 
 		InputEvents& input_events = g_Input.GetInputEvents();
@@ -227,7 +226,7 @@ namespace adria
 
 		std::optional<SceneConfig> scene_config = ParseSceneConfig(init.scene_file);
 		if (scene_config.has_value()) InitializeScene(scene_config.value());
-		else Window::Quit(1);
+		else window->Quit(1);
 
 		input_events.window_resized_event.AddMember(&Camera::OnResize, *camera);
 		input_events.scroll_mouse_event.AddMember(&Camera::Zoom, *camera);
@@ -287,11 +286,10 @@ namespace adria
 			viewport_data.mouse_position_x = g_Input.GetMousePositionX();
 			viewport_data.mouse_position_y = g_Input.GetMousePositionY();
 
-			auto [pos_x, pos_y] = Window::Position();
-			viewport_data.scene_viewport_pos_x = static_cast<float>(pos_x);
-			viewport_data.scene_viewport_pos_y = static_cast<float>(pos_y);
-			viewport_data.scene_viewport_size_x = static_cast<float>(Window::Width());
-			viewport_data.scene_viewport_size_y = static_cast<float>(Window::Height());
+			viewport_data.scene_viewport_pos_x = static_cast<float>(window->PositionX());
+			viewport_data.scene_viewport_pos_y = static_cast<float>(window->PositionY());
+			viewport_data.scene_viewport_size_x = static_cast<float>(window->Width());
+			viewport_data.scene_viewport_size_y = static_cast<float>(window->Height());
 		}
 		renderer->SetViewportData(viewport_data);
 	}
@@ -306,7 +304,7 @@ namespace adria
 		auto cmd_list = gfx->GetCommandList();
 		cmd_list->Begin();
 
-		const_cast<SceneConfig&>(config).camera_params.aspect_ratio = static_cast<float>(Window::Width()) / Window::Height();
+		const_cast<SceneConfig&>(config).camera_params.aspect_ratio = static_cast<float>(window->Width()) / window->Height();
 		camera = std::make_unique<Camera>(config.camera_params);
 		entity_loader->LoadSkybox(config.skybox_params);
 

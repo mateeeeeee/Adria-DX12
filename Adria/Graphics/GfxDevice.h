@@ -26,6 +26,8 @@
 
 namespace adria
 {
+	class Window;
+
 	class GfxSwapchain;
 	class GfxCommandList;
 	class GfxCommandListPool;
@@ -91,7 +93,7 @@ namespace adria
 	{
 		friend class GfxCommandList;
 	public:
-		explicit GfxDevice(GfxOptions const&);
+		GfxDevice(Window* window, GfxOptions const&);
 		GfxDevice(GfxDevice const&) = delete;
 		GfxDevice(GfxDevice&&);
 		~GfxDevice();
@@ -106,6 +108,7 @@ namespace adria
 		void EndFrame(bool vsync = false);
 		void TakePixCapture(uint32 num_frames);
 
+		void* GetHwnd() const { return hwnd; }
 		IDXGIFactory4* GetFactory() const;
 		ID3D12Device5* GetDevice() const;
 		ID3D12RootSignature* GetCommonRootSignature() const;
@@ -181,6 +184,7 @@ namespace adria
 		}
 
 	private:
+		void* hwnd;
 		uint32 width, height;
 		uint32 frame_index;
 

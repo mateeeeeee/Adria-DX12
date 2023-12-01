@@ -1,20 +1,17 @@
 #pragma once
-#include "CoreTypes.h"
 #include "Windows.h"
-#include <functional>
+#include "Utilities/Delegate.h"
 
 namespace adria
 {
-
 	struct WindowMessage
 	{
-		void* handle	= nullptr;
-        void* instance  = nullptr;
+		void* handle	    = nullptr;
 		uint32 msg			= 0;
         uint64 wparam       = 0;
         int64 lparam        = 0;
-		float width		    = 0;
-		float height		= 0;
+		float width		    = 0.0f;
+		float height		= 0.0f;
 	};
 
     struct WindowInit
@@ -25,35 +22,36 @@ namespace adria
         bool maximize;
     };
 
-    //move definitions to .cpp file
+	DECLARE_EVENT(WindowEvent, Window, WindowMessage const&);
+
 	class Window
 	{
+		friend LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 	public:
-        static void Initialize(WindowInit const& init);
+		Window(WindowInit const& init);
+		~Window();
 
-        static uint32 Width();
+		uint32 Width() const;
+		uint32 Height() const;
 
-        static uint32 Height();
+		uint32 PositionX() const;
+		uint32 PositionY() const;
 
-        static std::pair<uint32, uint32> Position();
+		bool Loop();
+		void Quit(int32 exit_code);
 
-        static void SetCallback(std::function<void(WindowMessage const& window_data)> callback);
+		void* Handle() const;
+		bool  IsActive() const;
 
-        static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-        static bool Loop();
-
-        static void Quit(int exit_code);
-
-        static void Destroy();
-
-        static void* Handle();
-
-        static bool IsActive();
+		WindowEvent& GetWindowEvent() { return window_event; }
 
 	private:
-        inline static HINSTANCE _instance = nullptr;
-        inline static HWND _handle = nullptr;
-		inline static std::function<void(WindowMessage const& window_data)> _msg_callback = nullptr;
+		HINSTANCE hinstance = nullptr;
+		HWND hwnd = nullptr;
+		WindowEvent window_event;
+
+	private:
+		void BroadcastEvent(WindowMessage const&);
 	};
 }

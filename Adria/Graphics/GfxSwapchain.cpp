@@ -36,7 +36,7 @@ namespace adria
 
 		GFX_CHECK_HR(gfx->GetFactory()->CreateSwapChainForHwnd(
 			graphics_queue,
-			static_cast<HWND>(Window::Handle()),
+			static_cast<HWND>(gfx->GetHwnd()),
 			&swapchain_desc,
 			&fullscreen_desc,
 			nullptr,

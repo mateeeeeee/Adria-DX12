@@ -36,6 +36,7 @@ namespace adria
 		Count
 	};
 
+	class Window;
 	struct WindowMessage;
 
 	DECLARE_EVENT(WindowResizedEvent, Input, uint32, uint32);
@@ -57,6 +58,10 @@ namespace adria
 		friend class Singleton<Input>;
 
 	public:
+		void Initialize(Window* _window)
+		{
+			window = _window;
+		}
 
 		InputEvents& GetInputEvents() { return input_events; }
 		void NewFrame();
@@ -90,6 +95,8 @@ namespace adria
 
 		bool new_frame = false;
 		bool resizing = false;
+
+		Window* window = nullptr;
 
 	private:
 		Input();

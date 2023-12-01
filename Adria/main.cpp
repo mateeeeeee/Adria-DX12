@@ -1,5 +1,6 @@
 #include "Core/Window.h"
 #include "Core/Engine.h"
+#include "Input/Input.h"
 #include "Logging/FileLogger.h"
 #include "Logging/OutputDebugStringLogger.h"
 #include "Editor/Editor.h"
@@ -46,7 +47,8 @@ int APIENTRY wWinMain(
         window_init.height = height.AsIntOr(720);
         window_init.title = title_str.c_str();
         window_init.maximize = maximize;
-        Window::Initialize(window_init);
+        Window window(window_init);
+        g_Input.Initialize(&window);
 
         EngineInit engine_init{};
         engine_init.vsync = vsync;
@@ -55,16 +57,17 @@ int APIENTRY wWinMain(
         engine_init.gpu_validation = gpu_validation;
         engine_init.pix = pix;
         engine_init.scene_file = scene.AsStringOr("scene.json");
+		engine_init.window = &window;
 
         EditorInit editor_init{.engine_init = engine_init };
         g_Editor.Init(std::move(editor_init));
-        Window::SetCallback([](WindowMessage const& msg_data) {g_Editor.HandleWindowMessage(msg_data); });
-        while (Window::Loop())
+
+        window.GetWindowEvent().Add([](WindowMessage const& msg_data) {g_Editor.HandleWindowMessage(msg_data); });
+        while (window.Loop())
         {
             g_Editor.Run();
         }
         g_Editor.Destroy();
-        Window::Destroy();
     }
 }
 

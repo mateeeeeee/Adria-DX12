@@ -29,7 +29,7 @@ namespace adria
 		ImWchar const icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
 		io.Fonts->AddFontFromFileTTF("Resources/Fonts/FontAwesome/" FONT_ICON_FILE_NAME_FAS, 15.0f, &font_config, icon_ranges);
 		io.Fonts->Build();
-		ImGui_ImplWin32_Init(Window::Handle());
+		ImGui_ImplWin32_Init(gfx->GetHwnd());
 
 		imgui_allocator = std::make_unique<GUIDescriptorAllocator>(gfx, 30, 1); //reserve first one for fonts
 		GfxDescriptor handle = imgui_allocator->GetHandle(0);

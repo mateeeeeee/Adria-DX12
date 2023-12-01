@@ -1,12 +1,13 @@
 #pragma once
 #include <memory>
 #include <optional>
-#include "entt/entity/registry.hpp"
 #include "Rendering/ViewportData.h"
+#include "entt/entity/registry.hpp"
 
 namespace adria
 {
 	struct WindowMessage;
+	class Window;
 	struct SceneConfig;
 	class GfxDevice;
 	class Renderer;
@@ -23,6 +24,7 @@ namespace adria
 		bool dred = false;
 		bool pix = false;
 		std::string scene_file = "scene.json";
+		Window* window = nullptr;
 	};
 
 	class Engine
@@ -42,7 +44,7 @@ namespace adria
 		void Present();
 
 	private:
-		bool vsync;
+		Window* window = nullptr;
 		entt::registry reg;
 		std::unique_ptr<Camera> camera;
 	
@@ -51,6 +53,8 @@ namespace adria
 		std::unique_ptr<EntityLoader> entity_loader;
 
 		ViewportData viewport_data;
+		bool vsync;
+
 	private:
 	
 		virtual void InitializeScene(SceneConfig const& config);

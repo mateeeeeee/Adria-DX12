@@ -245,12 +245,12 @@ namespace adria
 		CloseHandle(dred_wait_handle);
 	}
 
-	GfxDevice::GfxDevice(GfxOptions const& options)
+	GfxDevice::GfxDevice(Window* window, GfxOptions const& options)
 		: frame_index(0)
 	{
-		HWND hwnd = static_cast<HWND>(Window::Handle());
-		width = Window::Width();
-		height = Window::Height();
+		hwnd = window->Handle();
+		width = window->Width();
+		height = window->Height();
 
 		HRESULT hr = E_FAIL;
 		uint32 dxgi_factory_flags = 0;
