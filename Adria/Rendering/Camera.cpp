@@ -1,6 +1,6 @@
 #include <algorithm>
 #include "Camera.h"
-#include "Input/Input.h"
+#include "Core/Input.h"
 #include "Math/Constants.h"
 #include "Math/Halton.h"
 

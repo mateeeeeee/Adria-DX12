@@ -3,7 +3,9 @@
 #include "GUI.h"
 #include "EditorUtil.h"
 #include "Core/Engine.h"
-#include "Input/Input.h"
+#include "Core/Input.h"
+#include "Core/ConsoleVariable.h"
+#include "Core/ConsoleCommand.h"
 #include "IconsFontAwesome6.h"
 #include "Rendering/Renderer.h"
 #include "Rendering/Camera.h"
@@ -20,8 +22,6 @@
 #include "Utilities/FilesUtil.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/Random.h"
-#include "Core/ConsoleVariable.h"
-#include "Core/ConsoleCommand.h"
 #include "Math/BoundingVolumeHelpers.h"
 
 

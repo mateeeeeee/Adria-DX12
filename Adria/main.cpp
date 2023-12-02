@@ -1,6 +1,6 @@
 #include "Core/Window.h"
 #include "Core/Engine.h"
-#include "Input/Input.h"
+#include "Core/Input.h"
 #include "Logging/FileLogger.h"
 #include "Logging/OutputDebugStringLogger.h"
 #include "Editor/Editor.h"

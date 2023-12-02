@@ -1,10 +1,8 @@
 #include "tracy/Tracy.hpp"
 #include "Engine.h"
 #include "Window.h"
-#include "Editor/EditorEvents.h"
-#include "Math/Constants.h"
+#include "Core/Input.h"
 #include "Logging/Logger.h"
-#include "Input/Input.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxCommandList.h"
 #include "Rendering/Renderer.h"
@@ -18,6 +16,9 @@
 #include "Utilities/JsonUtil.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/FilesUtil.h"
+#include "Math/Constants.h"
+#include "Editor/EditorEvents.h"
+
 
 using namespace DirectX;
 using json = nlohmann::json;

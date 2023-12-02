@@ -196,6 +196,7 @@
     <ClCompile Include="Core\ConsoleManager.cpp" />
     <ClCompile Include="Core\ConsoleVariable.cpp" />
     <ClCompile Include="Core\Engine.cpp" />
+    <ClCompile Include="Core\Input.cpp" />
     <ClCompile Include="Core\Window.cpp" />
     <ClCompile Include="Editor\Editor.cpp" />
     <ClCompile Include="Editor\EditorUtil.cpp" />
@@ -221,7 +222,6 @@
     <ClCompile Include="Graphics\GfxRingDynamicAllocator.cpp" />
     <ClCompile Include="Graphics\GfxShaderCompiler.cpp" />
     <ClCompile Include="Graphics\GfxTracyProfiler.cpp" />
-    <ClCompile Include="Input\Input.cpp" />
     <ClCompile Include="Logging\FileLogger.cpp" />
     <ClCompile Include="Logging\Logger.cpp" />
     <ClCompile Include="Logging\OutputDebugStringLogger.cpp" />
@@ -344,6 +344,7 @@
     <ClInclude Include="Core\CoreTypes.h" />
     <ClInclude Include="Core\Engine.h" />
     <ClInclude Include="Core\Defines.h" />
+    <ClInclude Include="Core\Input.h" />
     <ClInclude Include="Core\Window.h" />
     <ClInclude Include="Core\Windows.h" />
     <ClInclude Include="Editor\Editor.h" />
@@ -386,7 +387,6 @@
     <ClInclude Include="Graphics\GfxShaderCompiler.h" />
     <ClInclude Include="Graphics\GfxTracyProfiler.h" />
     <ClInclude Include="Graphics\GfxVertexFormat.h" />
-    <ClInclude Include="Input\Input.h" />
     <ClInclude Include="Logging\FileLogger.h" />
     <ClInclude Include="Logging\Logger.h" />
     <ClInclude Include="Logging\OutputDebugStringLogger.h" />

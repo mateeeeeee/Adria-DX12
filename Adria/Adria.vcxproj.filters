@@ -20,9 +20,6 @@
     <Filter Include="Graphics">
       <UniqueIdentifier>{3f774ea0-48a4-4afe-9e05-31075aa3a5f6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Input">
-      <UniqueIdentifier>{c1fcb557-832b-4fe5-aa19-2d97c55617eb}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Rendering">
       <UniqueIdentifier>{90f3ecb1-e0b1-41fc-8574-0f3d8d799d4f}</UniqueIdentifier>
     </Filter>
@@ -115,9 +112,6 @@
     </ClCompile>
     <ClCompile Include="Core\Window.cpp">
       <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Input\Input.cpp">
-      <Filter>Input</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\Camera.cpp">
       <Filter>Rendering</Filter>
@@ -477,6 +471,9 @@
     <ClCompile Include="Rendering\FilmEffectsPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
+    <ClCompile Include="Core\Input.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -514,9 +511,6 @@
     </ClInclude>
     <ClInclude Include="Math\Constants.h">
       <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Input\Input.h">
-      <Filter>Input</Filter>
     </ClInclude>
     <ClInclude Include="Core\Defines.h">
       <Filter>Core</Filter>
@@ -1058,6 +1052,9 @@
     </ClInclude>
     <ClInclude Include="Utilities\ThreadPool.h">
       <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Input.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
