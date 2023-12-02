@@ -2,10 +2,8 @@
 #include <thread>
 #include <future>
 #include <type_traits>
-#include "Utilities/ConcurrentQueue.h"
-#include "Utilities/Singleton.h"
-
-
+#include "ConcurrentQueue.h"
+#include "Singleton.h"
 
 namespace adria
 {

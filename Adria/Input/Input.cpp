@@ -39,12 +39,11 @@ namespace adria
 			}
 
 			using enum KeyCode;
-			//mouse
+
 			keys[(uint64)MouseLeft] = (GetKeyState(VK_LBUTTON) & 0x8000) != 0;
 			keys[(uint64)MouseMiddle] = (GetKeyState(VK_MBUTTON) & 0x8000) != 0;
 			keys[(uint64)MouseRight] = (GetKeyState(VK_RBUTTON) & 0x8000) != 0;
 
-			//keyboard
 			keys[(uint64)F1] = IsPressed(VK_F1);
 			keys[(uint64)F2] = IsPressed(VK_F2);
 			keys[(uint64)F3] = IsPressed(VK_F3);
