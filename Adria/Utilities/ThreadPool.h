@@ -10,9 +10,11 @@ namespace adria
 	class ThreadPool : public Singleton<ThreadPool>
 	{
 		friend class Singleton<ThreadPool>;
-
 	public:
-		
+
+		ADRIA_NONCOPYABLE_NONMOVABLE(ThreadPool);
+		~ThreadPool() = default;
+
 		void Initialize(uint32 pool_size = std::thread::hardware_concurrency() - 1)
 		{
 			done = false;
@@ -25,7 +27,6 @@ namespace adria
 				threads.emplace_back(std::bind(&ThreadPool::ThreadWork, this));
 			}
 		}
-
 		void Destroy()
 		{
 			if (done) return;
@@ -36,12 +37,6 @@ namespace adria
 			}
 			for (uint16 i = 0; i < threads.size(); ++i) if (threads[i].joinable())  threads[i].join();
 		}
-
-		ThreadPool(ThreadPool const&) = delete;
-		ThreadPool(ThreadPool&&) = delete;
-		ThreadPool& operator=(ThreadPool const&) = delete;
-		ThreadPool& operator=(ThreadPool&&) = delete;
-		~ThreadPool() = default;
 
 		template<typename F, typename... Args>
 		auto Submit(F&& f, Args&&... args) 

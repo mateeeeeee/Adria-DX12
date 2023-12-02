@@ -1,5 +1,4 @@
 #pragma once
-
 #include <queue>
 #include <mutex>
 #include <condition_variable>
@@ -13,14 +12,9 @@ namespace adria
     public:
 
         ConcurrentQueue() = default;
+		ADRIA_NONCOPYABLE(ConcurrentQueue);
+		ADRIA_DEFAULT_MOVABLE(ConcurrentQueue);
         ~ConcurrentQueue() = default;
-
-        ConcurrentQueue(ConcurrentQueue const&) = delete;
-        ConcurrentQueue(ConcurrentQueue&&) = delete;
-
-        ConcurrentQueue& operator=(ConcurrentQueue const&) = delete;
-        ConcurrentQueue& operator=(ConcurrentQueue&&) = delete;
-
 
         void Push(T const& value)
         {

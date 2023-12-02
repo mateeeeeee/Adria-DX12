@@ -358,7 +358,6 @@ namespace adria
 		std::atexit(ReportLiveObjects);
 		if (options.dred) dred = std::make_unique<DRED>(this);
 	}
-	GfxDevice::GfxDevice(GfxDevice&&) = default;
 	GfxDevice::~GfxDevice()
 	{
 		WaitForGPU();

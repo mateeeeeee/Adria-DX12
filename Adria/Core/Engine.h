@@ -33,12 +33,9 @@ namespace adria
 
 	public:
 		explicit Engine(EngineInit const&);
-		Engine(Engine const&) = delete;
-		Engine(Engine&&) = delete;
-		Engine& operator=(Engine const&) = delete;
-		Engine& operator=(Engine&&) = delete;
+		ADRIA_NONCOPYABLE_NONMOVABLE(Engine);
 		~Engine();
-	
+
 		void OnWindowEvent(WindowEventData const& msg_data);
 		void Run();
 		void Present();

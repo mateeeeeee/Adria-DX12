@@ -44,10 +44,8 @@ namespace adria
 	public:
 
 		RenderGraph(RGResourcePool& pool) : pool(pool), gfx(pool.GetDevice()) {}
-		RenderGraph(RenderGraph const&) = delete;
-		RenderGraph(RenderGraph&&) = default;
-		RenderGraph& operator=(RenderGraph const&) = delete;
-		RenderGraph& operator=(RenderGraph&&) = default;
+		ADRIA_NONCOPYABLE(RenderGraph);
+		ADRIA_DEFAULT_MOVABLE(RenderGraph);
 		~RenderGraph();
 
 		void Build();
