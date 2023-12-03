@@ -1,6 +1,7 @@
 #include "GUI.h"
 #include "IconsFontAwesome6.h"
 #include "Core/Window.h"
+#include "Core/Paths.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxCommandList.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
@@ -16,7 +17,10 @@ namespace adria
 		ImGui::CreateContext();
 		ImGui::StyleColorsDark();
 
-		ImGuiIO& io = ImGui::GetIO(); (void)io;
+		ImGuiIO& io = ImGui::GetIO();
+		ini_file = paths::IniDir() + "imgui.ini";
+		io.IniFilename = ini_file.c_str();
+
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
@@ -24,14 +28,16 @@ namespace adria
 		io.ConfigViewportsNoTaskBarIcon = true;
 
 		ImFontConfig font_config{};
-		io.Fonts->AddFontFromFileTTF("Resources/Fonts/roboto/Roboto-Light.ttf", 16.0f, &font_config);
+		std::string font_path = paths::FontsDir() + "roboto/Roboto-Light.ttf";
+		io.Fonts->AddFontFromFileTTF(font_path.c_str(), 16.0f, &font_config);
 		font_config.MergeMode = true;
 		ImWchar const icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
-		io.Fonts->AddFontFromFileTTF("Resources/Fonts/FontAwesome/" FONT_ICON_FILE_NAME_FAS, 15.0f, &font_config, icon_ranges);
+		std::string icon_path = paths::FontsDir() + "FontAwesome/" FONT_ICON_FILE_NAME_FAS;
+		io.Fonts->AddFontFromFileTTF(icon_path.c_str(), 15.0f, &font_config, icon_ranges);
 		io.Fonts->Build();
 		ImGui_ImplWin32_Init(gfx->GetHwnd());
 
-		imgui_allocator = std::make_unique<GUIDescriptorAllocator>(gfx, 30, 1); //reserve first one for fonts
+		imgui_allocator = std::make_unique<GUIDescriptorAllocator>(gfx, 30, 1); 
 		GfxDescriptor handle = imgui_allocator->GetHandle(0);
 		ImGui_ImplDX12_Init(gfx->GetDevice(), gfx->GetBackbufferCount(), DXGI_FORMAT_R8G8B8A8_UNORM, imgui_allocator->GetHeap(), handle, handle);
 	}

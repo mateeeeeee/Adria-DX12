@@ -23,6 +23,7 @@
 #include "Utilities/Random.h"
 #include "Utilities/ImageWrite.h"
 #include "Logging/Logger.h"
+#include "Core/Paths.h"
 #include "Core/ConsoleVariable.h"
 #include "entt/entity/registry.hpp"
 
@@ -507,8 +508,8 @@ namespace adria
 	{
 		ADRIA_ASSERT(take_screenshot);
 
-		std::string screenshot_name_with_extension = screenshot_name + ".png";
-		ADRIA_LOG(INFO, "Taking screenshot: %s ...", screenshot_name_with_extension.c_str());
+		std::string absolute_screenshot_path = paths::ScreenshotsDir() + screenshot_name + ".png";
+		ADRIA_LOG(INFO, "Taking screenshot: %s.png...", screenshot_name.c_str());
 
 		D3D12_PLACED_SUBRESOURCE_FOOTPRINT final_texture_footprint{};
 		D3D12_RESOURCE_DESC d3d12_final_texture_desc = final_texture->GetNative()->GetDesc();
@@ -542,15 +543,15 @@ namespace adria
 				cmd_list->Signal(screenshot_fence, screenshot_fence_value);
 			}, RGPassType::Copy, RGPassFlags::ForceNoCull);
 
-		g_ThreadPool.Submit([this](std::string name) 
+		g_ThreadPool.Submit([this](std::string_view name) 
 			{
 			screenshot_fence.Wait(screenshot_fence_value);
-			WriteImageToFile(FileType::PNG, name.c_str(), display_width, display_height,
+			WriteImageToFile(FileType::PNG, name.data(), display_width, display_height,
 							 screenshot_buffer->GetMappedData(), display_width * 4);
 			screenshot_buffer.reset();
-			ADRIA_LOG(INFO, "Screenshot %s taken!", name.c_str());
+			ADRIA_LOG(INFO, "Screenshot %s.png saved to screenshots folder!", screenshot_name.c_str());
 			screenshot_fence_value++;
-			}, screenshot_name_with_extension);
+			}, absolute_screenshot_path);
 
 		take_screenshot = false;
 	}

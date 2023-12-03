@@ -3,12 +3,12 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "PSOCache.h"
-
+#include "TextureManager.h"
+#include "Core/Paths.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Graphics/GfxTexture.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
 #include "Graphics/GfxLinearDynamicAllocator.h"
-#include "TextureManager.h"
 #include "Graphics/GfxCommon.h"
 #include "Editor/GUICommand.h"
 #include "Utilities/Random.h"
@@ -388,8 +388,8 @@ namespace adria
 
 	void OceanRenderer::OnSceneInitialized(GfxDevice* gfx)
 	{
-		foam_handle = g_TextureManager.LoadTexture("Resources/Textures/foam.jpg");
-		perlin_handle = g_TextureManager.LoadTexture("Resources/Textures/perlin.png");
+		foam_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "foam.jpg");
+		perlin_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "perlin.png");
 
 		GfxTextureDesc ocean_texture_desc{};
 		ocean_texture_desc.width = FFT_RESOLUTION;

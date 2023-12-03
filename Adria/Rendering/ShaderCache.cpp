@@ -1,5 +1,6 @@
 #include <execution>
 #include "ShaderCache.h"
+#include "Core/Paths.h"
 #include "Graphics/GfxShaderCompiler.h"
 #include "Graphics/GfxDevice.h"
 #include "Logging/Logger.h"
@@ -10,7 +11,6 @@ namespace fs = std::filesystem;
 
 namespace adria
 {
-	char const* shaders_directory = "Resources/NewShaders/";
 	namespace
 	{
 		std::unique_ptr<FileWatcher> file_watcher;
@@ -547,7 +547,7 @@ namespace adria
 			shader_desc.stage = GetShaderStage(shader);
 			shader_desc.macros = GetShaderMacros(shader);
 			shader_desc.model = SM_6_6;
-			shader_desc.file = std::string(shaders_directory) + GetShaderSource(shader);
+			shader_desc.file = paths::ShaderDir() + GetShaderSource(shader);
 #if _DEBUG
 			shader_desc.flags = ShaderCompilerFlag_DisableOptimization | ShaderCompilerFlag_Debug;
 #else
@@ -598,7 +598,7 @@ namespace adria
 	void ShaderCache::Initialize()
 	{
 		file_watcher = std::make_unique<FileWatcher>();
-		file_watcher->AddPathToWatch(shaders_directory);
+		file_watcher->AddPathToWatch(paths::ShaderDir());
 		std::ignore = file_watcher->GetFileModifiedEvent().Add(OnShaderFileChanged);
 		CompileAllShaders();
 	}

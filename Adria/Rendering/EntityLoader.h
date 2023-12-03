@@ -4,9 +4,9 @@
 #include <vector>
 #include <string>
 #include "Components.h"
-#include "entt/entity/registry.hpp"
 #include "Utilities/Heightmap.h"
 #include "Math/ComputeNormals.h"
+#include "entt/entity/registry.hpp"
 
 namespace adria
 {
@@ -59,8 +59,8 @@ namespace adria
 	struct DecalParameters
 	{
 		std::string name = "Decal";
-		std::string albedo_texture_path = "Resources/Textures/Decals/Decal_00_Albedo.tga";
-		std::string normal_texture_path = "Resources/Textures/Decals/Decal_00_Normal.png";
+		std::string albedo_texture_path;
+		std::string normal_texture_path;
 		float rotation = 0.0f;
 		float size = 50.0f;
 		bool modify_gbuffer_normals = false;

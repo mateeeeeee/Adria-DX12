@@ -1,10 +1,11 @@
 #include "FileLogger.h"
-
+#include "Core/Paths.h"
 
 namespace adria
 {
 
-	FileLogger::FileLogger(char const* log_file, LogLevel logger_level) : log_stream{ log_file, std::ios::out }, logger_level{ logger_level }
+	FileLogger::FileLogger(char const* log_file, LogLevel logger_level) 
+		: log_stream{ paths::LogDir() + log_file, std::ios::out }, logger_level{ logger_level }
 	{}
 
 	FileLogger::~FileLogger()

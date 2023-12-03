@@ -6,6 +6,7 @@
 
 #include "RenderGraph/RenderGraph.h"
 #include "TextureManager.h"
+#include "Core/Paths.h"
 #include "Graphics/GfxLinearDynamicAllocator.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
 #include "Logging/Logger.h"
@@ -169,13 +170,13 @@ namespace adria
 
 	void LensFlarePass::OnSceneInitialized()
 	{
-		lens_flare_textures.push_back(g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare0.jpg"));
-		lens_flare_textures.push_back(g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare1.jpg"));
-		lens_flare_textures.push_back(g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare2.jpg"));
-		lens_flare_textures.push_back(g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare3.jpg"));
-		lens_flare_textures.push_back(g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare4.jpg"));
-		lens_flare_textures.push_back(g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare5.jpg"));
-		lens_flare_textures.push_back(g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare6.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir() + "lensflare/flare0.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir() + "lensflare/flare1.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir() + "lensflare/flare2.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir() + "lensflare/flare3.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir() + "lensflare/flare4.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir() + "lensflare/flare5.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir() + "lensflare/flare6.jpg"));
 	}
 
 }

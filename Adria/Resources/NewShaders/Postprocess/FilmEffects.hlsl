@@ -41,7 +41,7 @@ float2 ApplyLensDistortion(float2 uv)
 
 float3 SampleWithChromaticAberration(float2 uv)
 {
-	Texture2D<float4>	inputTx = ResourceDescriptorHeap[PassCB.inputIdx];
+	Texture2D<float4> inputTx = ResourceDescriptorHeap[PassCB.inputIdx];
 
 	float3 color = 0.0f;
 	if (PassCB.chromaticAberrationEnabled)

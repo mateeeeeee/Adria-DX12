@@ -71,68 +71,47 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
 ## TODO
 * ReSTIR GI
 
-## Dependencies
-[ImGui](https://github.com/ocornut/imgui)
-
-[DirectXShaderCompiler](https://github.com/microsoft/DirectXShaderCompiler)
-
-[D3D12MemoryAllocator](https://github.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator)
-
-[nativefiledialog](https://github.com/mlabbe/nativefiledialog)
-
-[tracy](https://github.com/wolfpld/tracy)
-
-[stb](https://github.com/nothings/stb)
-
-[cereal](https://github.com/USCiLab/cereal)
-
-[tinygltf](https://github.com/syoyo/tinygltf)
-
-[json](https://github.com/nlohmann/json)
-
-[ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo)
-
 ## Screenshots
 
 ### DDGI
 
 | Disabled |  Enabled |
 |---|---|
-|  ![](Screenshots/noddgi.png) | ![](Screenshots/ddgi.png) |
+|  ![](Adria/Saved/Screenshots/noddgi.png) | ![](Adria/Saved/Screenshots/ddgi.png) |
 
 | Probe Visualization |
 |---|
-|  ![](Screenshots/ddgi_probes1.png) |
+|  ![](Adria/Saved/Screenshots/ddgi_probes1.png) |
 
 ### Volumetric Clouds
-![alt text](Screenshots/clouds.png "Volumetric clouds") 
+![alt text](Adria/Saved/Screenshots/clouds.png "Volumetric clouds") 
 
 ### San Miguel
-![alt text](Screenshots/sanmiguel.png "San Miguel") 
+![alt text](Adria/Saved/Screenshots/sanmiguel.png "San Miguel") 
 
 ### Ocean
-![alt text](Screenshots/ocean.png "Ocean") 
+![alt text](Adria/Saved/Screenshots/ocean.png "Ocean") 
 
 ### Path Tracer
-![alt text](Screenshots/pathtracing1.png "Path tracing") 
-![alt text](Screenshots/pathtracing2.png "Path tracing") 
+![alt text](Adria/Saved/Screenshots/pathtracing1.png "Path tracing") 
+![alt text](Adria/Saved/Screenshots/pathtracing2.png "Path tracing") 
 
 ### Editor
-![alt text](Screenshots/editor.png "Editor") 
+![alt text](Adria/Saved/Screenshots/editor.png "Editor") 
 
 ### Ray Tracing Features
 
 | Cascaded Shadow Maps |  Hard Ray Traced Shadows |
 |---|---|
-|  ![](Screenshots/cascades.png) | ![](Screenshots/raytraced.png) |
+|  ![](Adria/Saved/Screenshots/cascades.png) | ![](Adria/Saved/Screenshots/raytraced.png) |
 
 | Screen Space Reflections |  Ray Traced Reflections |
 |---|---|
-|  ![](Screenshots/ssr.png) | ![](Screenshots/rtr.png) |
+|  ![](Adria/Saved/Screenshots/ssr.png) | ![](Adria/Saved/Screenshots/rtr.png) |
 
 | SSAO | RTAO |
 |---|---|
-|  ![](Screenshots/ssao.png) | ![](Screenshots/rtao.png) |
+|  ![](Adria/Saved/Screenshots/ssao.png) | ![](Adria/Saved/Screenshots/rtao.png) |
 
 ### Render Graph Visualization
-![alt text](Adria/rendergraph.svg "Render graph visualization") 
+![alt text](Adria/Saved/RenderGraph/rendergraph.svg "Render graph visualization") 

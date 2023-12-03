@@ -1,11 +1,12 @@
 #pragma comment(lib, "dxcompiler.lib")
 #include <d3dcompiler.h>
 #include "dxc/dxcapi.h"
-#include "GfxShaderCompiler.h"
-#include "GfxDefines.h"
 #include "cereal/archives/binary.hpp"
 #include "cereal/types/string.hpp"
 #include "cereal/types/vector.hpp"
+#include "GfxShaderCompiler.h"
+#include "GfxDefines.h"
+#include "Core/Paths.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/FilesUtil.h"
 #include "Utilities/HashUtil.h"
@@ -109,9 +110,6 @@ namespace adria
 		LPVOID pBytecode = nullptr;
 		SIZE_T bytecodeSize = 0;
 	};
-
-	static char const* shaders_cache_directory = "Resources/ShaderCache/";
-	extern char const* shaders_directory;
 
 	inline constexpr std::wstring GetTarget(GfxShaderStage stage, GfxShaderModel model)
 	{
@@ -233,7 +231,7 @@ namespace adria
 			uint64 macro_hash = crc64(macro_key.c_str(), macro_key.size());
 			std::string build_string = input.flags & ShaderCompilerFlag_Debug ? "debug" : "release";
 			char cache_path[256];
-			sprintf_s(cache_path, "%s%s_%s_%llx_%s.bin", shaders_cache_directory, GetFilenameWithoutExtension(input.file).c_str(),
+			sprintf_s(cache_path, "%s%s_%s_%llx_%s.bin", paths::ShaderCacheDir().c_str(), GetFilenameWithoutExtension(input.file).c_str(),
 												    input.entry_point.c_str(), macro_hash, build_string.c_str());
 
 			if (!bypass_cache && CheckCache(cache_path, input, output)) return true;
@@ -248,7 +246,7 @@ namespace adria
 			GFX_CHECK_HR(hr);
 
 			std::wstring name = ToWideString(GetFilenameWithoutExtension(input.file));
-			std::wstring dir  = ToWideString(shaders_directory);
+			std::wstring dir  = ToWideString(paths::ShaderDir());
 			std::wstring path = ToWideString(GetParentPath(input.file));
 
 			std::wstring target = GetTarget(input.stage, input.model);

@@ -24,27 +24,26 @@
 #define ADRIA_ALIGN(align)           alignas(align) 
 
 
-
 #define ADRIA_NONCOPYABLE(ClassName)                 \
-    ClassName(ClassName const&)            = delete; \
-    ClassName& operator=(ClassName const&) = delete;
+        ClassName(ClassName const&)            = delete; \
+        ClassName& operator=(ClassName const&) = delete;
 
 #define ADRIA_NONMOVABLE(ClassName)                      \
-    ClassName(ClassName&&) noexcept            = delete; \
-    ClassName& operator=(ClassName&&) noexcept = delete;
+        ClassName(ClassName&&) noexcept            = delete; \
+        ClassName& operator=(ClassName&&) noexcept = delete;
 
 #define ADRIA_NONCOPYABLE_NONMOVABLE(ClassName) \
         ADRIA_NONCOPYABLE(ClassName)                \
         ADRIA_NONMOVABLE(ClassName)
 
 #define ADRIA_DEFAULT_COPYABLE(ClassName)             \
-    ClassName(ClassName const&)            = default; \
-    ClassName& operator=(ClassName const&) = default;
+        ClassName(ClassName const&)            = default; \
+        ClassName& operator=(ClassName const&) = default;
 
 #define ADRIA_DEFAULT_MOVABLE(ClassName)                  \
-    ClassName(ClassName&&) noexcept            = default; \
-    ClassName& operator=(ClassName&&) noexcept = default;
+        ClassName(ClassName&&) noexcept            = default; \
+        ClassName& operator=(ClassName&&) noexcept = default;
 
 #define ADRIA_DEFAULT_COPYABLE_MOVABLE(ClassName) \
-    ADRIA_DEFAULT_COPYABLE(ClassName)             \
-    ADRIA_DEFAULT_MOVABLE(ClassName)
+        ADRIA_DEFAULT_COPYABLE(ClassName)             \
+        ADRIA_DEFAULT_MOVABLE(ClassName)

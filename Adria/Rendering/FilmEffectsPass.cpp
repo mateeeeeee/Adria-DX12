@@ -45,7 +45,6 @@ namespace adria
 				{
 					bool32  lens_distortion_enabled;
 					float	lens_distortion_intensity;
-
 					bool32  chromatic_aberration_enabled;
 					float   chromatic_aberration_intensity;
 					bool32  vignette_enabled;

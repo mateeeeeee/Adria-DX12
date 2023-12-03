@@ -8,6 +8,7 @@
 #include "Graphics/GfxTracyProfiler.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/FilesUtil.h"
+#include "Core/Paths.h"
 #include "Logging/Logger.h"
 
 
@@ -1243,7 +1244,8 @@ namespace adria
 			}
 		}
 
-		std::ofstream graph_file(graph_file_name);
+		std::string absolute_graph_path = paths::RenderGraphDir() + graph_file_name;
+		std::ofstream graph_file(absolute_graph_path);
 		graph_file << "digraph RenderGraph{ \n";
 		graph_file << graphviz.defaults << "\n";
 		graph_file << graphviz.declarations << "\n";
@@ -1252,7 +1254,8 @@ namespace adria
 		graph_file.close();
 
 		std::string filename = GetFilenameWithoutExtension(graph_file_name);
-		system(std::format("Tools\\graphviz\\dot.exe -Tsvg {} > {}.svg", graph_file_name, filename).c_str());
+		std::string cmd = std::format("Tools\\graphviz\\dot.exe -Tsvg {} > {}{}.svg", absolute_graph_path, paths::RenderGraphDir(), filename);
+		system(cmd.c_str());
 	}
 
 	void RenderGraph::DumpDebugData()

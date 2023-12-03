@@ -477,6 +477,9 @@
     <ClCompile Include="Editor\EditorConsole.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
+    <ClCompile Include="Core\Paths.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1061,6 +1064,9 @@
     </ClInclude>
     <ClInclude Include="Editor\EditorConsole.h">
       <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Paths.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

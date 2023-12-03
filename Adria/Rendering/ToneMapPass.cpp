@@ -1,9 +1,9 @@
 #include "ToneMapPass.h"
 #include "BlackboardData.h"
 #include "PSOCache.h" 
-
-#include "Graphics/GfxCommon.h"
 #include "TextureManager.h"
+#include "Core/Paths.h"
+#include "Graphics/GfxCommon.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
 #include "Math/Packing.h"
 #include "Editor/GUICommand.h"
@@ -176,7 +176,7 @@ namespace adria
 
 	void ToneMapPass::OnSceneInitialized()
 	{
-		lens_dirt_handle = g_TextureManager.LoadTexture("Resources/Textures/LensDirt.dds");
+		lens_dirt_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "LensDirt.dds");
 	}
 
 	void ToneMapPass::GUI()

@@ -6,6 +6,7 @@
 
 #include "RenderGraph/RenderGraph.h"
 #include "TextureManager.h"
+#include "Core/Paths.h"
 #include "Graphics/GfxLinearDynamicAllocator.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
 #include "Editor/GUICommand.h"
@@ -57,10 +58,10 @@ namespace adria
 
 	void BokehPass::OnSceneInitialized(GfxDevice* gfx)
 	{
-		hex_bokeh_handle = g_TextureManager.LoadTexture("Resources/Textures/bokeh/Bokeh_Hex.dds");
-		oct_bokeh_handle = g_TextureManager.LoadTexture("Resources/Textures/bokeh/Bokeh_Oct.dds");
-		circle_bokeh_handle = g_TextureManager.LoadTexture("Resources/Textures/bokeh/Bokeh_Circle.dds");
-		cross_bokeh_handle = g_TextureManager.LoadTexture("Resources/Textures/bokeh/Bokeh_Cross.dds");
+		hex_bokeh_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "bokeh/Bokeh_Hex.dds");
+		oct_bokeh_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "bokeh/Bokeh_Oct.dds");
+		circle_bokeh_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "bokeh/Bokeh_Circle.dds");
+		cross_bokeh_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "bokeh/Bokeh_Cross.dds");
 
 		GfxBufferDesc reset_buffer_desc{};
 		reset_buffer_desc.size = sizeof(uint32);

@@ -2,6 +2,7 @@
 #include "Engine.h"
 #include "Window.h"
 #include "Core/Input.h"
+#include "Core/Paths.h"
 #include "Logging/Logger.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxCommandList.h"
@@ -197,7 +198,7 @@ namespace adria
 				{
 					ADRIA_LOG(WARNING, "Skybox texture not found or is incorrectly specified!  \
 										Size of texture array has to be either 1 or 6! Fallback to the default one...");
-					config.skybox_params.cubemap = "Resources/Textures/Skybox/sunsetcube1024.dds";
+					config.skybox_params.cubemap = paths::TexturesDir() + "Skybox/sunsetcube1024.dds";
 				}
 			}
 			bool used_for_ray_tracing = skybox_params.FindOr<bool>("ray_tracing", true);
