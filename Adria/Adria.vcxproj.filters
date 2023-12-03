@@ -263,7 +263,7 @@
     <ClCompile Include="Core\ConsoleCommand.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Editor\EditorUtil.cpp">
+    <ClCompile Include="Editor\EditorLogger.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\EntityLoader.cpp">
@@ -473,6 +473,9 @@
     </ClCompile>
     <ClCompile Include="Core\Input.cpp">
       <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\EditorConsole.cpp">
+      <Filter>Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -761,7 +764,7 @@
     <ClInclude Include="Utilities\Heightmap.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Editor\EditorUtil.h">
+    <ClInclude Include="Editor\EditorLogger.h">
       <Filter>Editor</Filter>
     </ClInclude>
     <ClInclude Include="Core\ConsoleManager.h">
@@ -1055,6 +1058,9 @@
     </ClInclude>
     <ClInclude Include="Core\Input.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\EditorConsole.h">
+      <Filter>Editor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

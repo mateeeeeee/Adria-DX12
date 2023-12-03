@@ -29,7 +29,7 @@ namespace adria
 	{
 		friend class Singleton<Editor>;
 
-		enum
+		enum VisibilityFlag
 		{
 			Flag_Profiler,
 			Flag_Camera,
@@ -72,7 +72,7 @@ namespace adria
 		ImGuizmo::OPERATION gizmo_op = ImGuizmo::TRANSLATE;
 
 		bool reload_shaders = false;
-		std::array<bool, Flag_Count> window_flags = { false };
+		bool visibility_flags[Flag_Count] = {false};
 		std::vector<GUICommand> commands;
 		std::vector<GUITexture> debug_textures;
 		

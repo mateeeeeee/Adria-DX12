@@ -13,8 +13,8 @@ namespace adria
 		friend class GfxCommandQueue;
 
 	public:
-		ADRIA_NONCOPYABLE(GfxCommandListPool);
-		ADRIA_DEFAULT_MOVABLE(GfxCommandListPool);
+		ADRIA_NONCOPYABLE(GfxCommandListPool)
+		ADRIA_DEFAULT_MOVABLE(GfxCommandListPool)
 		~GfxCommandListPool() = default;
 
 		GfxCommandList* GetMainCmdList() const;

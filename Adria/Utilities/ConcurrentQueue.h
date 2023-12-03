@@ -12,8 +12,8 @@ namespace adria
     public:
 
         ConcurrentQueue() = default;
-		ADRIA_NONCOPYABLE(ConcurrentQueue);
-		ADRIA_DEFAULT_MOVABLE(ConcurrentQueue);
+		ADRIA_NONCOPYABLE(ConcurrentQueue)
+		ADRIA_DEFAULT_MOVABLE(ConcurrentQueue)
         ~ConcurrentQueue() = default;
 
         void Push(T const& value)

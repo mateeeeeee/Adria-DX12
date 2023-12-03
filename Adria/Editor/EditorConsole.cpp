@@ -1,135 +1,25 @@
-#include <ctype.h>          // toupper
-#include <limits.h>         // INT_MIN, INT_MAX
-#include <math.h>           // sqrtf, powf, cosf, sinf, floorf, ceilf
-#include <stdio.h>          // vsnprintf, sscanf, printf
-#include <stdlib.h>         // NULL, malloc, free, atoi
-#include <stdint.h>         // intptr_t
-#include "EditorUtil.h"
+#include "EditorConsole.h"
 #include "Core/ConsoleManager.h"
-#include "Core/ConsoleVariable.h" //not necessary, add interfaces to different header
-#include "Core/ConsoleCommand.h"	 //not necessary, add interfaces to different header
+#include "Core/ConsoleVariable.h" 
+#include "Core/ConsoleCommand.h"	
 
 namespace adria
 {
-	struct ImGuiLogger
+	static int Stricmp(const char* s1, const char* s2)
 	{
-		ImGuiTextBuffer     Buf;
-		ImGuiTextFilter     Filter;
-		ImVector<int>       LineOffsets;
-		bool                AutoScroll;
-
-		ImGuiLogger()
-		{
-			AutoScroll = true;
-			Clear();
-		}
-
-		void Clear()
-		{
-			Buf.clear();
-			LineOffsets.clear();
-			LineOffsets.push_back(0);
-		}
-
-		void AddLog(const char* fmt, ...) IM_FMTARGS(2)
-		{
-			int old_size = Buf.size();
-			va_list args;
-			va_start(args, fmt);
-			Buf.appendfv(fmt, args);
-			va_end(args);
-			for (int new_size = Buf.size(); old_size < new_size; old_size++)
-				if (Buf[old_size] == '\n')
-					LineOffsets.push_back(old_size + 1);
-		}
-
-		void Draw(const char* title, bool* p_open = NULL)
-		{
-			if (!ImGui::Begin(title, p_open))
-			{
-				ImGui::End();
-				return;
-			}
-
-			// Options menu
-			if (ImGui::BeginPopup("Options"))
-			{
-				ImGui::Checkbox("Auto-scroll", &AutoScroll);
-				ImGui::EndPopup();
-			}
-
-			// Main window
-			if (ImGui::Button("Options"))
-				ImGui::OpenPopup("Options");
-			ImGui::SameLine();
-			bool clear = ImGui::Button("Clear");
-			ImGui::SameLine();
-			bool copy = ImGui::Button("Copy");
-			ImGui::SameLine();
-			Filter.Draw("Filter", -100.0f);
-
-			ImGui::Separator();
-			ImGui::BeginChild("scrolling", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
-
-			if (clear)
-				Clear();
-			if (copy)
-				ImGui::LogToClipboard();
-
-			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-			const char* buf = Buf.begin();
-			const char* buf_end = Buf.end();
-			if (Filter.IsActive())
-			{
-				for (int line_no = 0; line_no < LineOffsets.Size; line_no++)
-				{
-					const char* line_start = buf + LineOffsets[line_no];
-					const char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
-					if (Filter.PassFilter(line_start, line_end))
-						ImGui::TextUnformatted(line_start, line_end);
-				}
-			}
-			else
-			{
-				ImGuiListClipper clipper;
-				clipper.Begin(LineOffsets.Size);
-				while (clipper.Step())
-				{
-					for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
-					{
-						const char* line_start = buf + LineOffsets[line_no];
-						const char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
-						ImGui::TextUnformatted(line_start, line_end);
-					}
-				}
-				clipper.End();
-			}
-			ImGui::PopStyleVar();
-
-			if (AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
-				ImGui::SetScrollHereY(1.0f);
-
-			ImGui::EndChild();
-			ImGui::End();
-		}
-
-	};
-
-	EditorLogger::EditorLogger(LogLevel logger_level /*= ELogLevel::LOG_DEBUG*/) : logger_level{ logger_level }, imgui_log(new ImGuiLogger{})
-	{
-		ADRIA_REGISTER_LOGGER(this);
+		int d; while ((d = toupper(*s2) - toupper(*s1)) == 0 && *s1) { s1++; s2++; } return d;
 	}
-
-	void EditorLogger::Log(LogLevel level, char const* entry, char const* file, uint32_t line)
+	static int Strnicmp(const char* s1, const char* s2, int n)
 	{
-		if (level < logger_level) return;
-		std::string log_entry = GetLogTime() + LevelToString(level) + std::string(entry) + "\n";
-		imgui_log->AddLog(log_entry.c_str());
+		int d = 0; while (n > 0 && (d = toupper(*s2) - toupper(*s1)) == 0 && *s1) { s1++; s2++; n--; } return d;
 	}
-
-	void EditorLogger::Draw(const char* title, bool* p_open /*= NULL*/)
+	static char* Strdup(const char* s)
 	{
-		imgui_log->Draw(title, p_open);
+		IM_ASSERT(s); size_t len = strlen(s) + 1; void* buf = malloc(len); IM_ASSERT(buf); return (char*)memcpy(buf, (const void*)s, len);
+	}
+	static void  Strtrim(char* s)
+	{
+		char* str_end = s + strlen(s); while (str_end > s && str_end[-1] == ' ') str_end--; *str_end = 0;
 	}
 
 	EditorConsole::EditorConsole()
@@ -137,26 +27,25 @@ namespace adria
 		ClearLog();
 		memset(InputBuf, 0, sizeof(InputBuf));
 		HistoryPos = -1;
-		
+
 		Commands.push_back("help");
 		Commands.push_back("history");
 		Commands.push_back("clear");
 
 		auto RegisterVariables = [&](IConsoleVariable* cvar)
-		{
-			Commands.push_back(cvar->GetName());
-		};
+			{
+				Commands.push_back(cvar->GetName());
+			};
 		ConsoleManager::ForEachCVar(RegisterVariables);
 		auto RegisterCommands = [&](IConsoleCommand* ccmd)
-		{
-			Commands.push_back(ccmd->GetName());
-		};
+			{
+				Commands.push_back(ccmd->GetName());
+			};
 		ConsoleManager::ForEachCCmd(RegisterCommands);
 
 		AutoScroll = true;
 		ScrollToBottom = false;
 	}
-
 	EditorConsole::~EditorConsole()
 	{
 		ClearLog();
@@ -218,10 +107,10 @@ namespace adria
 		ImGui::Separator();
 
 		auto TextEditCallbackStub = [](ImGuiInputTextCallbackData* data)
-		{
-			EditorConsole* console = (EditorConsole*)data->UserData;
-			return console->TextEditCallback(data);
-		};
+			{
+				EditorConsole* console = (EditorConsole*)data->UserData;
+				return console->TextEditCallback(data);
+			};
 		// Command-line
 		bool reclaim_focus = false;
 		ImGuiInputTextFlags input_text_flags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory;
@@ -241,14 +130,12 @@ namespace adria
 
 		ImGui::End();
 	}
-
 	void EditorConsole::ClearLog()
 	{
 		for (int i = 0; i < Items.Size; i++)
 			free(Items[i]);
 		Items.clear();
 	}
-
 	void EditorConsole::AddLog(const char* fmt, ...) IM_FMTARGS(2)
 	{
 		// FIXME-OPT
@@ -260,7 +147,6 @@ namespace adria
 		va_end(args);
 		Items.push_back(Strdup(buf));
 	}
-
 	void EditorConsole::ExecCommand(const char* cmd)
 	{
 		AddLog("# %s\n", cmd);
@@ -298,7 +184,6 @@ namespace adria
 
 		ScrollToBottom = true;
 	}
-
 	int EditorConsole::TextEditCallback(ImGuiInputTextCallbackData* data)
 	{
 		switch (data->EventFlag)
@@ -332,7 +217,7 @@ namespace adria
 				data->InsertChars(data->CursorPos, candidates[0]);
 				data->InsertChars(data->CursorPos, " ");
 			}
-			else if(candidates.Size != Commands.Size)
+			else if (candidates.Size != Commands.Size)
 			{
 				int match_len = (int)(word_end - word_start);
 				for (;;)
@@ -392,26 +277,5 @@ namespace adria
 		}
 		return 0;
 	}
-
-	int EditorConsole::Stricmp(const char* s1, const char* s2)
-	{
-		int d; while ((d = toupper(*s2) - toupper(*s1)) == 0 && *s1) { s1++; s2++; } return d;
-	}
-
-	int EditorConsole::Strnicmp(const char* s1, const char* s2, int n)
-	{
-		int d = 0; while (n > 0 && (d = toupper(*s2) - toupper(*s1)) == 0 && *s1) { s1++; s2++; n--; } return d;
-	}
-
-	char* EditorConsole::Strdup(const char* s)
-	{
-		IM_ASSERT(s); size_t len = strlen(s) + 1; void* buf = malloc(len); IM_ASSERT(buf); return (char*)memcpy(buf, (const void*)s, len);
-	}
-
-	void EditorConsole::Strtrim(char* s)
-	{
-		char* str_end = s + strlen(s); while (str_end > s && str_end[-1] == ' ') str_end--; *str_end = 0;
-	}
-
 }
 

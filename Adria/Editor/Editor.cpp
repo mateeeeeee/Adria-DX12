@@ -1,7 +1,8 @@
 #include "nfd.h"
 #include "Editor.h"
 #include "GUI.h"
-#include "EditorUtil.h"
+#include "EditorLogger.h"
+#include "EditorConsole.h"
 #include "Core/Engine.h"
 #include "Core/Input.h"
 #include "Core/ConsoleVariable.h"
@@ -24,9 +25,7 @@
 #include "Utilities/Random.h"
 #include "Math/BoundingVolumeHelpers.h"
 
-
 using namespace DirectX;
-
 
 namespace adria
 {
@@ -262,15 +261,15 @@ namespace adria
 			}
 			if (ImGui::BeginMenu(ICON_FA_WINDOW_MAXIMIZE "Windows"))
 			{
-				if (ImGui::MenuItem(ICON_FA_CLOCK" Profiler", 0, window_flags[Flag_Profiler]))			 window_flags[Flag_Profiler] = !window_flags[Flag_Profiler];
-				if (ImGui::MenuItem(ICON_FA_COMMENT" Log", 0, window_flags[Flag_Log]))						 window_flags[Flag_Log] = !window_flags[Flag_Log];
-				if (ImGui::MenuItem(ICON_FA_TERMINAL" Console ", 0, window_flags[Flag_Console]))				 window_flags[Flag_Console] = !window_flags[Flag_Console];
-				if (ImGui::MenuItem(ICON_FA_CAMERA" Camera", 0, window_flags[Flag_Camera]))				 window_flags[Flag_Camera] = !window_flags[Flag_Camera];
-				if (ImGui::MenuItem(ICON_FA_LIST "Entities", 0, window_flags[Flag_Entities]))			 window_flags[Flag_Entities] = !window_flags[Flag_Entities];
-				if (ImGui::MenuItem(ICON_FA_FIRE" Hot Reload", 0, window_flags[Flag_HotReload]))			 window_flags[Flag_HotReload] = !window_flags[Flag_HotReload];
-				if (ImGui::MenuItem(ICON_FA_GEAR" Settings", 0, window_flags[Flag_Settings]))			 window_flags[Flag_Settings] = !window_flags[Flag_Settings];
-				if (ImGui::MenuItem(ICON_FA_BUG" Debug", 0, window_flags[Flag_Debug]))					 window_flags[Flag_Debug] = !window_flags[Flag_Debug];
-				if (ImGui::MenuItem(ICON_FA_PLUS "Add Entities", 0, window_flags[Flag_AddEntities]))		 window_flags[Flag_AddEntities] = !window_flags[Flag_AddEntities];
+				if (ImGui::MenuItem(ICON_FA_CLOCK" Profiler", 0, visibility_flags[Flag_Profiler]))			 visibility_flags[Flag_Profiler] = !visibility_flags[Flag_Profiler];
+				if (ImGui::MenuItem(ICON_FA_COMMENT" Log", 0, visibility_flags[Flag_Log]))					 visibility_flags[Flag_Log] = !visibility_flags[Flag_Log];
+				if (ImGui::MenuItem(ICON_FA_TERMINAL" Console ", 0, visibility_flags[Flag_Console]))		 visibility_flags[Flag_Console] = !visibility_flags[Flag_Console];
+				if (ImGui::MenuItem(ICON_FA_CAMERA" Camera", 0, visibility_flags[Flag_Camera]))				 visibility_flags[Flag_Camera] = !visibility_flags[Flag_Camera];
+				if (ImGui::MenuItem(ICON_FA_LIST "Entities", 0, visibility_flags[Flag_Entities]))			 visibility_flags[Flag_Entities] = !visibility_flags[Flag_Entities];
+				if (ImGui::MenuItem(ICON_FA_FIRE" Hot Reload", 0, visibility_flags[Flag_HotReload]))		 visibility_flags[Flag_HotReload] = !visibility_flags[Flag_HotReload];
+				if (ImGui::MenuItem(ICON_FA_GEAR" Settings", 0, visibility_flags[Flag_Settings]))			 visibility_flags[Flag_Settings] = !visibility_flags[Flag_Settings];
+				if (ImGui::MenuItem(ICON_FA_BUG" Debug", 0, visibility_flags[Flag_Debug]))					 visibility_flags[Flag_Debug] = !visibility_flags[Flag_Debug];
+				if (ImGui::MenuItem(ICON_FA_PLUS "Add Entities", 0, visibility_flags[Flag_AddEntities]))	 visibility_flags[Flag_AddEntities] = !visibility_flags[Flag_AddEntities];
 
 				ImGui::EndMenu();
 			}
@@ -294,8 +293,8 @@ namespace adria
 
 	void Editor::AddEntities()
 	{
-		if (!window_flags[Flag_AddEntities]) return;
-		if (ImGui::Begin("Add Entities", &window_flags[Flag_AddEntities]))
+		if (!visibility_flags[Flag_AddEntities]) return;
+		if (ImGui::Begin("Add Entities", &visibility_flags[Flag_AddEntities]))
 		{
 			if (ImGui::TreeNodeEx("Point Lights", 0))
 			{
@@ -454,9 +453,9 @@ namespace adria
 	}
 	void Editor::ListEntities()
 	{
-		if (!window_flags[Flag_Entities]) return;
+		if (!visibility_flags[Flag_Entities]) return;
 		auto all_entities = engine->reg.view<Tag>();
-		if (ImGui::Begin(ICON_FA_LIST" Entities ", &window_flags[Flag_Entities]))
+		if (ImGui::Begin(ICON_FA_LIST" Entities ", &visibility_flags[Flag_Entities]))
 		{
 			std::vector<entt::entity> deleted_entities{};
 			std::function<void(entt::entity, bool)> ShowEntity;
@@ -485,8 +484,8 @@ namespace adria
 	}
 	void Editor::Properties()
 	{
-		if (!window_flags[Flag_Entities]) return;
-		if (ImGui::Begin("Properties", &window_flags[Flag_Entities]))
+		if (!visibility_flags[Flag_Entities]) return;
+		if (ImGui::Begin("Properties", &visibility_flags[Flag_Entities]))
 		{
 			GfxDevice* gfx = engine->gfx.get();
 			if (selected_entity != entt::null)
@@ -776,10 +775,10 @@ namespace adria
 	}
 	void Editor::Camera()
 	{
-		if (!window_flags[Flag_Camera]) return;
+		if (!visibility_flags[Flag_Camera]) return;
 
 		auto& camera = *engine->camera;
-		if (ImGui::Begin(ICON_FA_CAMERA" Camera", &window_flags[Flag_Camera]))
+		if (ImGui::Begin(ICON_FA_CAMERA" Camera", &visibility_flags[Flag_Camera]))
 		{
 			Vector3 cam_pos = camera.Position();
 			float pos[3] = { cam_pos.x , cam_pos.y, cam_pos.z };
@@ -853,19 +852,19 @@ namespace adria
 	}
 	void Editor::Log()
 	{
-		if (!window_flags[Flag_Log]) return;
-		logger->Draw(ICON_FA_COMMENT" Log", &window_flags[Flag_Log]);
+		if (!visibility_flags[Flag_Log]) return;
+		logger->Draw(ICON_FA_COMMENT" Log", &visibility_flags[Flag_Log]);
 	}
 	void Editor::Console()
 	{
-		if (!window_flags[Flag_Console]) return;
-		console->Draw(ICON_FA_TERMINAL "Console ", &window_flags[Flag_Console]);
+		if (!visibility_flags[Flag_Console]) return;
+		console->Draw(ICON_FA_TERMINAL "Console ", &visibility_flags[Flag_Console]);
 	}
 
 	void Editor::Settings()
 	{
-		if (!window_flags[Flag_Settings]) return;
-		if (ImGui::Begin(ICON_FA_GEAR" Settings", &window_flags[Flag_Settings]))
+		if (!visibility_flags[Flag_Settings]) return;
+		if (ImGui::Begin(ICON_FA_GEAR" Settings", &visibility_flags[Flag_Settings]))
 		{
 			for (auto&& cmd : commands) cmd.callback();
 		}
@@ -873,8 +872,8 @@ namespace adria
 	}
 	void Editor::Profiling()
 	{
-		if (!window_flags[Flag_Profiler]) return;
-		if (ImGui::Begin(ICON_FA_CLOCK" Profiling", &window_flags[Flag_Profiler]))
+		if (!visibility_flags[Flag_Profiler]) return;
+		if (ImGui::Begin(ICON_FA_CLOCK" Profiling", &visibility_flags[Flag_Profiler]))
 		{
 			ImGuiIO io = ImGui::GetIO();
 #if GFX_PROFILING_USE_TRACY
@@ -1013,8 +1012,8 @@ namespace adria
 	}
 	void Editor::ShaderHotReload()
 	{
-		if (!window_flags[Flag_HotReload]) return;
-		if (ImGui::Begin(ICON_FA_FIRE" Shader Hot Reload", &window_flags[Flag_HotReload]))
+		if (!visibility_flags[Flag_HotReload]) return;
+		if (ImGui::Begin(ICON_FA_FIRE" Shader Hot Reload", &visibility_flags[Flag_HotReload]))
 		{
 			if (ImGui::Button("Compile Changed Shaders")) reload_shaders = true;
 		}
@@ -1022,8 +1021,8 @@ namespace adria
 	}
 	void Editor::Debug()
 	{
-		if (!window_flags[Flag_Debug]) return;
-		if(ImGui::Begin(ICON_FA_BUG" Debug", &window_flags[Flag_Debug]))
+		if (!visibility_flags[Flag_Debug]) return;
+		if(ImGui::Begin(ICON_FA_BUG" Debug", &visibility_flags[Flag_Debug]))
 		{
 			if (ImGui::TreeNode("Debug Renderer"))
 			{

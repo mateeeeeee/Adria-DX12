@@ -94,8 +94,8 @@ namespace adria
 		friend class GfxCommandList;
 	public:
 		GfxDevice(Window* window, GfxOptions const&);
-		ADRIA_NONCOPYABLE(GfxDevice);
-		ADRIA_DEFAULT_MOVABLE(GfxDevice);
+		ADRIA_NONCOPYABLE(GfxDevice)
+		ADRIA_DEFAULT_MOVABLE(GfxDevice)
 		~GfxDevice();
 
 		void WaitForGPU();
