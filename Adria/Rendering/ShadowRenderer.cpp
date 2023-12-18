@@ -125,7 +125,7 @@ namespace adria
 				V = XMMatrixLookAtLH(light_pos, target, up);
 				break;
 			default:
-				ADRIA_ASSERT(false && "Invalid face index!");
+				ADRIA_ASSERT_MSG(false, "Invalid face index!");
 			}
 			return { V,P };
 		}

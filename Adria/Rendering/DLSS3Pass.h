@@ -15,7 +15,7 @@ namespace adria
 
 	class DLSS3Pass
 	{
-		DECLARE_EVENT(RenderResolutionChanged, DLSS3Pass, uint32, uint32);
+		DECLARE_EVENT(RenderResolutionChanged, DLSS3Pass, uint32, uint32)
 	public:
 		DLSS3Pass(GfxDevice* gfx, uint32 w, uint32 h);
 		~DLSS3Pass();

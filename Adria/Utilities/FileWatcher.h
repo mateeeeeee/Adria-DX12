@@ -11,7 +11,7 @@ namespace adria
 		Deleted
 	};
 
-	DECLARE_EVENT(FileModifiedEvent, FileWatcher, std::string const&);
+	DECLARE_EVENT(FileModifiedEvent, FileWatcher, std::string const&)
 
 	class FileWatcher
 	{

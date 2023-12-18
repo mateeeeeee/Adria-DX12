@@ -223,7 +223,7 @@ namespace adria
 					bokeh_descriptor = g_TextureManager.GetSRV(cross_bokeh_handle);
 					break;
 				default:
-					ADRIA_ASSERT(false && "Invalid Bokeh Type");
+					ADRIA_ASSERT_MSG(false, "Invalid Bokeh Type");
 				}
 
 				uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();

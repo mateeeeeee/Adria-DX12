@@ -22,7 +22,7 @@ namespace adria
 {
 	RGTextureId RenderGraph::DeclareTexture(RGResourceName name, RGTextureDesc const& desc)
 	{
-		ADRIA_ASSERT(texture_name_id_map.find(name) == texture_name_id_map.end() && "Texture with that name has already been declared");
+		ADRIA_ASSERT_MSG(texture_name_id_map.find(name) == texture_name_id_map.end(), "Texture with that name has already been declared");
 		GfxTextureDesc tex_desc{}; InitGfxTextureDesc(desc, tex_desc);
 		textures.emplace_back(new RGTexture(textures.size(), tex_desc, name));
 		texture_name_id_map[name] = RGTextureId(textures.size() - 1);
@@ -31,7 +31,7 @@ namespace adria
 
 	RGBufferId RenderGraph::DeclareBuffer(RGResourceName name, RGBufferDesc const& desc)
 	{
-		ADRIA_ASSERT(buffer_name_id_map.find(name) == buffer_name_id_map.end() && "Buffer with that name has already been declared");
+		ADRIA_ASSERT_MSG(buffer_name_id_map.find(name) == buffer_name_id_map.end(), "Buffer with that name has already been declared");
 		GfxBufferDesc buf_desc{}; InitGfxBufferDesc(desc, buf_desc);
 		buffers.emplace_back(new RGBuffer(buffers.size(), buf_desc, name));
 		buffer_name_id_map[name] = RGBufferId(buffers.size() - 1);
@@ -163,7 +163,7 @@ namespace adria
 				{
 					if (!HasAllFlags(texture->GetDesc().initial_state, state))
 					{
-						ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
+						ADRIA_ASSERT_MSG(IsValidState(state), "Invalid State Combination!");
 						cmd_list->TransitionBarrier(*texture, texture->GetDesc().initial_state, state);
 					}
 					continue;
@@ -174,7 +174,7 @@ namespace adria
 					auto& prev_dependency_level = dependency_levels[j];
 					if (prev_dependency_level.texture_state_map.contains(tex_id))
 					{
-						ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
+						ADRIA_ASSERT_MSG(IsValidState(state), "Invalid State Combination!");
 						GfxResourceState prev_state = prev_dependency_level.texture_state_map[tex_id];
 						if (prev_state != state) cmd_list->TransitionBarrier(*texture, prev_state, state);
 						found = true;
@@ -183,7 +183,7 @@ namespace adria
 				}
 				if (!found && rg_texture->imported)
 				{
-					ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
+					ADRIA_ASSERT_MSG(IsValidState(state), "Invalid State Combination!");
 					GfxResourceState prev_state = rg_texture->desc.initial_state;
 					if (prev_state != state) cmd_list->TransitionBarrier(*texture, prev_state, state);
 				}
@@ -196,7 +196,7 @@ namespace adria
 				{
 					if (state != GfxResourceState::Common) //check if there is an implicit transition, maybe this can be avoided
 					{
-						ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
+						ADRIA_ASSERT_MSG(IsValidState(state), "Invalid State Combination!");
 						cmd_list->TransitionBarrier(*buffer, GfxResourceState::Common, state);
 					}
 					continue;
@@ -207,7 +207,7 @@ namespace adria
 					auto& prev_dependency_level = dependency_levels[j];
 					if (prev_dependency_level.buffer_state_map.contains(buf_id))
 					{
-						ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
+						ADRIA_ASSERT_MSG(IsValidState(state), "Invalid State Combination!");
 						GfxResourceState prev_state = prev_dependency_level.buffer_state_map[buf_id];
 						if (prev_state != state) cmd_list->TransitionBarrier(*buffer, prev_state, state);
 						found = true;
@@ -216,7 +216,7 @@ namespace adria
 				}
 				if (!found && rg_buffer->imported)
 				{
-					ADRIA_ASSERT(IsValidState(state) && "Invalid State Combination!");
+					ADRIA_ASSERT_MSG(IsValidState(state), "Invalid State Combination!");
 					if (GfxResourceState::Common != state)cmd_list->TransitionBarrier(*buffer, GfxResourceState::Common, state);
 				}
 			}
@@ -516,7 +516,7 @@ namespace adria
 				view = gfx->CreateTextureUAV(texture, &view_desc);
 				break;
 			default:
-				ADRIA_ASSERT(false && "invalid resource view type for texture");
+				ADRIA_ASSERT_MSG(false, "invalid resource view type for texture");
 			}
 			texture_view_map[res_id].emplace_back(view, type);
 		}
@@ -551,7 +551,7 @@ namespace adria
 			case RGDescriptorType::RenderTarget:
 			case RGDescriptorType::DepthStencil:
 			default:
-				ADRIA_ASSERT(false && "invalid resource view type for buffer");
+				ADRIA_ASSERT_MSG(false, "invalid resource view type for buffer");
 			}
 			buffer_view_map[res_id].emplace_back(view, type);
 		}
@@ -590,7 +590,7 @@ namespace adria
 	void RenderGraph::AddBufferBindFlags(RGResourceName name, GfxBindFlag flags)
 	{
 		RGBufferId handle = buffer_name_id_map[name];
-		ADRIA_ASSERT(IsValidBufferHandle(handle) && "Resource has not been declared!");
+		ADRIA_ASSERT_MSG(IsValidBufferHandle(handle), "Resource has not been declared!");
 		RGBuffer* rg_buffer = GetRGBuffer(handle);
 		rg_buffer->desc.bind_flags |= flags;
 	}
@@ -598,7 +598,7 @@ namespace adria
 	void RenderGraph::AddTextureBindFlags(RGResourceName name, GfxBindFlag flags)
 	{
 		RGTextureId handle = texture_name_id_map[name];
-		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
+		ADRIA_ASSERT_MSG(IsValidTextureHandle(handle), "Resource has not been declared!");
 		RGTexture* rg_texture = GetRGTexture(handle);
 		rg_texture->desc.bind_flags |= flags;
 	}
@@ -606,7 +606,7 @@ namespace adria
 	RGTextureCopySrcId RenderGraph::ReadCopySrcTexture(RGResourceName name)
 	{
 		RGTextureId handle = texture_name_id_map[name];
-		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
+		ADRIA_ASSERT_MSG(IsValidTextureHandle(handle), "Resource has not been declared!");
 		RGTexture* rg_texture = GetRGTexture(handle);
 		if (rg_texture->desc.initial_state == GfxResourceState::Common)
 		{
@@ -618,7 +618,7 @@ namespace adria
 	RGTextureCopyDstId RenderGraph::WriteCopyDstTexture(RGResourceName name)
 	{
 		RGTextureId handle = texture_name_id_map[name];
-		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
+		ADRIA_ASSERT_MSG(IsValidTextureHandle(handle), "Resource has not been declared!");
 		RGTexture* rg_texture = GetRGTexture(handle);
 		if (rg_texture->desc.initial_state == GfxResourceState::Common)
 		{
@@ -630,49 +630,49 @@ namespace adria
 	RGBufferCopySrcId RenderGraph::ReadCopySrcBuffer(RGResourceName name)
 	{
 		RGBufferId handle = buffer_name_id_map[name];
-		ADRIA_ASSERT(IsValidBufferHandle(handle) && "Resource has not been declared!");
+		ADRIA_ASSERT_MSG(IsValidBufferHandle(handle), "Resource has not been declared!");
 		return RGBufferCopySrcId(handle);
 	}
 
 	RGBufferCopyDstId RenderGraph::WriteCopyDstBuffer(RGResourceName name)
 	{
 		RGBufferId handle = buffer_name_id_map[name];
-		ADRIA_ASSERT(IsValidBufferHandle(handle) && "Resource has not been declared!");
+		ADRIA_ASSERT_MSG(IsValidBufferHandle(handle), "Resource has not been declared!");
 		return RGBufferCopyDstId(handle);
 	}
 
 	RGBufferIndirectArgsId RenderGraph::ReadIndirectArgsBuffer(RGResourceName name)
 	{
 		RGBufferId handle = buffer_name_id_map[name];
-		ADRIA_ASSERT(IsValidBufferHandle(handle) && "Resource has not been declared!");
+		ADRIA_ASSERT_MSG(IsValidBufferHandle(handle), "Resource has not been declared!");
 		return RGBufferIndirectArgsId(handle);
 	}
 
 	RGBufferVertexId RenderGraph::ReadVertexBuffer(RGResourceName name)
 	{
 		RGBufferId handle = buffer_name_id_map[name];
-		ADRIA_ASSERT(IsValidBufferHandle(handle) && "Resource has not been declared!");
+		ADRIA_ASSERT_MSG(IsValidBufferHandle(handle), "Resource has not been declared!");
 		return RGBufferVertexId(handle);
 	}
 
 	RGBufferIndexId RenderGraph::ReadIndexBuffer(RGResourceName name)
 	{
 		RGBufferId handle = buffer_name_id_map[name];
-		ADRIA_ASSERT(IsValidBufferHandle(handle) && "Resource has not been declared!");
+		ADRIA_ASSERT_MSG(IsValidBufferHandle(handle), "Resource has not been declared!");
 		return RGBufferIndexId(handle);
 	}
 
 	RGBufferConstantId RenderGraph::ReadConstantBuffer(RGResourceName name)
 	{
 		RGBufferId handle = buffer_name_id_map[name];
-		ADRIA_ASSERT(IsValidBufferHandle(handle) && "Resource has not been declared!");
+		ADRIA_ASSERT_MSG(IsValidBufferHandle(handle), "Resource has not been declared!");
 		return RGBufferConstantId(handle);
 	}
 
 	RGRenderTargetId RenderGraph::RenderTarget(RGResourceName name, GfxTextureDescriptorDesc const& desc)
 	{
 		RGTextureId handle = texture_name_id_map[name];
-		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
+		ADRIA_ASSERT_MSG(IsValidTextureHandle(handle), "Resource has not been declared!");
 		RGTexture* rg_texture = GetRGTexture(handle);
 		rg_texture->desc.bind_flags |= GfxBindFlag::RenderTarget;
 		if (rg_texture->desc.initial_state == GfxResourceState::Common)
@@ -693,7 +693,7 @@ namespace adria
 	RGDepthStencilId RenderGraph::DepthStencil(RGResourceName name, GfxTextureDescriptorDesc const& desc)
 	{
 		RGTextureId handle = texture_name_id_map[name];
-		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
+		ADRIA_ASSERT_MSG(IsValidTextureHandle(handle), "Resource has not been declared!");
 		RGTexture* rg_texture = GetRGTexture(handle);
 		rg_texture->desc.bind_flags |= GfxBindFlag::DepthStencil;
 		if (rg_texture->desc.initial_state == GfxResourceState::Common)
@@ -714,7 +714,7 @@ namespace adria
 	RGTextureReadOnlyId RenderGraph::ReadTexture(RGResourceName name, GfxTextureDescriptorDesc const& desc)
 	{
 		RGTextureId handle = texture_name_id_map[name];
-		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
+		ADRIA_ASSERT_MSG(IsValidTextureHandle(handle), "Resource has not been declared!");
 		RGTexture* rg_texture = GetRGTexture(handle);
 		rg_texture->desc.bind_flags |= GfxBindFlag::ShaderResource;
 		if (rg_texture->desc.initial_state == GfxResourceState::Common)
@@ -735,7 +735,7 @@ namespace adria
 	RGTextureReadWriteId RenderGraph::WriteTexture(RGResourceName name, GfxTextureDescriptorDesc const& desc)
 	{
 		RGTextureId handle = texture_name_id_map[name];
-		ADRIA_ASSERT(IsValidTextureHandle(handle) && "Resource has not been declared!");
+		ADRIA_ASSERT_MSG(IsValidTextureHandle(handle), "Resource has not been declared!");
 		RGTexture* rg_texture = GetRGTexture(handle);
 		rg_texture->desc.bind_flags |= GfxBindFlag::UnorderedAccess;
 		if (rg_texture->desc.initial_state == GfxResourceState::Common)
@@ -756,7 +756,7 @@ namespace adria
 	RGBufferReadOnlyId RenderGraph::ReadBuffer(RGResourceName name, GfxBufferDescriptorDesc const& desc)
 	{
 		RGBufferId handle = buffer_name_id_map[name];
-		ADRIA_ASSERT(IsValidBufferHandle(handle) && "Resource has not been declared!");
+		ADRIA_ASSERT_MSG(IsValidBufferHandle(handle), "Resource has not been declared!");
 		RGBuffer* rg_buffer = GetRGBuffer(handle);
 		rg_buffer->desc.bind_flags |= GfxBindFlag::ShaderResource;
 		std::vector<std::pair<GfxBufferDescriptorDesc, RGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
@@ -773,7 +773,7 @@ namespace adria
 	RGBufferReadWriteId RenderGraph::WriteBuffer(RGResourceName name, GfxBufferDescriptorDesc const& desc)
 	{
 		RGBufferId handle = buffer_name_id_map[name];
-		ADRIA_ASSERT(IsValidBufferHandle(handle) && "Resource has not been declared!");
+		ADRIA_ASSERT_MSG(IsValidBufferHandle(handle), "Resource has not been declared!");
 		RGBuffer* rg_buffer = GetRGBuffer(handle);
 		rg_buffer->desc.bind_flags |= GfxBindFlag::UnorderedAccess;
 		std::vector<std::pair<GfxBufferDescriptorDesc, RGDescriptorType>>& view_descs = buffer_view_desc_map[handle];
@@ -791,8 +791,8 @@ namespace adria
 	{
 		RGBufferId handle = buffer_name_id_map[name];
 		RGBufferId counter_handle = buffer_name_id_map[counter_name];
-		ADRIA_ASSERT(IsValidBufferHandle(handle) && "Resource has not been declared!");
-		ADRIA_ASSERT(IsValidBufferHandle(counter_handle) && "Resource has not been declared!");
+		ADRIA_ASSERT_MSG(IsValidBufferHandle(handle), "Resource has not been declared!");
+		ADRIA_ASSERT_MSG(IsValidBufferHandle(counter_handle), "Resource has not been declared!");
 
 		RGBuffer* rg_buffer = GetRGBuffer(handle);
 		RGBuffer* rg_counter_buffer = GetRGBuffer(counter_handle);
@@ -969,7 +969,7 @@ namespace adria
 						rtv_desc.beginning_access = GfxLoadAccessOp::NoAccess;
 						break;
 					default:
-						ADRIA_ASSERT(false && "Invalid Load Access!");
+						ADRIA_ASSERT_MSG(false, "Invalid Load Access!");
 					}
 
 					switch (store_access)
@@ -987,7 +987,7 @@ namespace adria
 						rtv_desc.ending_access = GfxStoreAccessOp::NoAccess;
 						break;
 					default:
-						ADRIA_ASSERT(false && "Invalid Store Access!");
+						ADRIA_ASSERT_MSG(false, "Invalid Store Access!");
 					}
 
 					RGTextureId rt_texture = render_target_info.render_target_handle.GetResourceId();
@@ -997,7 +997,7 @@ namespace adria
 					GfxClearValue const& clear_value = desc.clear_value;
 					if (clear_value.active_member != GfxClearValue::GfxActiveMember::None)
 					{
-						ADRIA_ASSERT(clear_value.active_member == GfxClearValue::GfxActiveMember::Color && "Invalid Clear Value for Render Target");
+						ADRIA_ASSERT_MSG(clear_value.active_member == GfxClearValue::GfxActiveMember::Color, "Invalid Clear Value for Render Target");
 						rtv_desc.clear_value = desc.clear_value;
 						rtv_desc.clear_value.format = desc.format;
 					}
@@ -1039,7 +1039,7 @@ namespace adria
 						dsv_desc.depth_beginning_access = GfxLoadAccessOp::NoAccess;
 						break;
 					default:
-						ADRIA_ASSERT(false && "Invalid Load Access!");
+						ADRIA_ASSERT_MSG(false, "Invalid Load Access!");
 					}
 
 					switch (store_access)
@@ -1057,7 +1057,7 @@ namespace adria
 						dsv_desc.depth_ending_access = GfxStoreAccessOp::NoAccess;
 						break;
 					default:
-						ADRIA_ASSERT(false && "Invalid Store Access!");
+						ADRIA_ASSERT_MSG(false, "Invalid Store Access!");
 					}
 
 					RGTextureId ds_texture = depth_stencil_info.depth_stencil_handle.GetResourceId();
@@ -1066,7 +1066,7 @@ namespace adria
 					GfxTextureDesc const& desc = texture->GetDesc();
 					if (desc.clear_value.active_member != GfxClearValue::GfxActiveMember::None)
 					{
-						ADRIA_ASSERT(desc.clear_value.active_member == GfxClearValue::GfxActiveMember::DepthStencil && "Invalid Clear Value for Depth Stencil");
+						ADRIA_ASSERT_MSG(desc.clear_value.active_member == GfxClearValue::GfxActiveMember::DepthStencil, "Invalid Clear Value for Depth Stencil");
 						dsv_desc.clear_value = desc.clear_value;
 						dsv_desc.clear_value.format = desc.format;
 					}
@@ -1081,7 +1081,7 @@ namespace adria
 					//todo add stencil
 					render_pass_desc.dsv_attachment = dsv_desc;
 				}
-				ADRIA_ASSERT((pass->viewport_width != 0 && pass->viewport_height != 0) && "Viewport Width/Height is 0! The call to builder.SetViewport is probably missing...");
+				ADRIA_ASSERT_MSG((pass->viewport_width != 0 && pass->viewport_height != 0), "Viewport Width/Height is 0! The call to builder.SetViewport is probably missing...");
 				render_pass_desc.width = pass->viewport_width;
 				render_pass_desc.height = pass->viewport_height;
 				render_pass_desc.legacy = pass->UseLegacyRenderPasses();

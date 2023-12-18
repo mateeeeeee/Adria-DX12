@@ -42,7 +42,7 @@ namespace adria
 		velocity_buffer_pass(width, height), motion_blur_pass(width, height), taa_pass(width, height), 
 		god_rays_pass(width, height),ffx_manager(gfx, width, height), xess_pass(gfx, width, height), dlss3_pass(gfx, width, height),
 		tonemap_pass(width, height), fxaa_pass(width, height), rtr_pass(gfx, width, height),
-		ffx_dof_pass(ffx_manager.GetDoF()), fsr2_pass(ffx_manager.GetFSR2()), cas_pass(ffx_manager.GetCAS()), cacao_pass(ffx_manager.GetCACAO())
+		ffx_dof_pass(ffx_manager.GetDoF()), fsr2_pass(ffx_manager.GetFSR2()), fsr3_pass(ffx_manager.GetFSR3()),  cas_pass(ffx_manager.GetCAS()), cacao_pass(ffx_manager.GetCACAO())
 	{
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 		AddRenderResolutionChangedCallback(&PostProcessor::OnRenderResolutionChanged, *this);
@@ -115,6 +115,7 @@ namespace adria
 		switch (upscaler)
 		{
 		case UpscalerType::FSR2: final_resource  = fsr2_pass.AddPass(rg, final_resource); break;
+		case UpscalerType::FSR3: final_resource  = fsr3_pass.AddPass(rg, final_resource); break;
 		case UpscalerType::XeSS: final_resource  = xess_pass.AddPass(rg, final_resource); break;
 		case UpscalerType::DLSS3: final_resource = dlss3_pass.AddPass(rg, final_resource); break;
 		case UpscalerType::None:
@@ -175,6 +176,7 @@ namespace adria
 		switch (upscaler)
 		{
 		case UpscalerType::FSR2:  fsr2_pass.OnResize(w, h); break;
+		case UpscalerType::FSR3:  fsr3_pass.OnResize(w, h); break;
 		case UpscalerType::XeSS:  xess_pass.OnResize(w, h); break;
 		case UpscalerType::DLSS3: dlss3_pass.OnResize(w, h); break;
 		case UpscalerType::None:  upscaler_disabled_event.Broadcast(display_width, display_height); break;
@@ -340,7 +342,7 @@ namespace adria
 						if (!ray_tracing_supported && current_ao_type == 4) current_ao_type = 0;
 						ambient_occlusion = static_cast<AmbientOcclusion>(current_ao_type);
 					}
-					if (ImGui::Combo("Upscaler", &current_upscaler, "None\0FSR2\0XeSS\0DLSS3\0", 4))
+					if (ImGui::Combo("Upscaler", &current_upscaler, "None\0FSR2\0\FSR3\0XeSS\0DLSS3\0", 5))
 					{
 						upscaler = static_cast<UpscalerType>(current_upscaler);
 						if (upscaler == UpscalerType::DLSS3 && !dlss3_pass.IsSupported())
@@ -353,6 +355,7 @@ namespace adria
 						switch (upscaler)
 						{
 						case UpscalerType::FSR2:  fsr2_pass.OnResize(display_width, display_height); break;
+						case UpscalerType::FSR3:  fsr3_pass.OnResize(display_width, display_height); break;
 						case UpscalerType::XeSS:  xess_pass.OnResize(display_width, display_height); break;
 						case UpscalerType::DLSS3: dlss3_pass.OnResize(display_width, display_height); break;
 						case UpscalerType::None: upscaler_disabled_event.Broadcast(display_width, display_height); break;

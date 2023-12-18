@@ -22,7 +22,7 @@ namespace adria
         bool maximize;
     };
 
-	DECLARE_EVENT(WindowEvent, Window, WindowEventData const&);
+	DECLARE_EVENT(WindowEvent, Window, WindowEventData const&)
 
 	class Window
 	{

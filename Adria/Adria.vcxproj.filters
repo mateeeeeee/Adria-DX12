@@ -480,6 +480,9 @@
     <ClCompile Include="Core\Paths.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\FSR3Pass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1067,6 +1070,9 @@
     </ClInclude>
     <ClInclude Include="Core\Paths.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\FSR3Pass.h">
+      <Filter>Rendering\Passes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

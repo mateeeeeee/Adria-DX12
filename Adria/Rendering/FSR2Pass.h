@@ -10,7 +10,7 @@ namespace adria
 
 	class FSR2Pass
 	{
-		DECLARE_EVENT(RenderResolutionChanged, FSR2Pass, uint32, uint32);
+		DECLARE_EVENT(RenderResolutionChanged, FSR2Pass, uint32, uint32)
 
 	public:
 		FSR2Pass(GfxDevice* gfx, FfxInterface& ffx_interface, uint32 w, uint32 h);

@@ -16,7 +16,7 @@ namespace adria
 	struct FrameCBuffer;
 
 
-	DECLARE_EVENT(ShadowTextureRenderedEvent, ShadowRenderer, RGResourceName);
+	DECLARE_EVENT(ShadowTextureRenderedEvent, ShadowRenderer, RGResourceName)
 
 	class ShadowRenderer
 	{

@@ -11,7 +11,7 @@ namespace adria
 	
 	class XeSSPass
 	{
-		DECLARE_EVENT(RenderResolutionChanged, XeSSPass, uint32, uint32);
+		DECLARE_EVENT(RenderResolutionChanged, XeSSPass, uint32, uint32)
 	public:
 		XeSSPass(GfxDevice* gfx, uint32 w, uint32 h);
 		~XeSSPass();

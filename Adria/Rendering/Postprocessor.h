@@ -21,6 +21,7 @@
 #include "BokehPass.h"
 #include "TAAPass.h"
 #include "FSR2Pass.h"
+#include "FSR3Pass.h"
 #include "XeSSPass.h"
 #include "DLSS3Pass.h"
 #include "FFXDepthOfFieldPass.h"
@@ -42,7 +43,6 @@ namespace adria
 	class GfxBuffer;
 	struct Light;
 
-
 	class PostProcessor
 	{
 		enum class AmbientOcclusion : uint8
@@ -57,8 +57,9 @@ namespace adria
 		{
 			None,
 			FSR2,
+			FSR3,
 			XeSS,
-			DLSS3
+			DLSS3,
 		};
 		enum class Reflections : uint8
 		{
@@ -79,7 +80,7 @@ namespace adria
 			AntiAliasing_TAA = 0x2
 		};
 
-		DECLARE_EVENT(UpscalerDisabledEvent, PostProcessor, uint32, uint32);
+		DECLARE_EVENT(UpscalerDisabledEvent, PostProcessor, uint32, uint32)
 
 	public:
 		PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height);
@@ -92,6 +93,7 @@ namespace adria
 		void AddRenderResolutionChangedCallback(void(T::* mem_pfn)(Args...), T& instance)
 		{
 			fsr2_pass.GetRenderResolutionChangedEvent().AddMember(mem_pfn, instance);
+			fsr3_pass.GetRenderResolutionChangedEvent().AddMember(mem_pfn, instance);
 			xess_pass.GetRenderResolutionChangedEvent().AddMember(mem_pfn, instance);
 			dlss3_pass.GetRenderResolutionChangedEvent().AddMember(mem_pfn, instance);
 			upscaler_disabled_event.AddMember(mem_pfn, instance);
@@ -140,6 +142,7 @@ namespace adria
 		GodRaysPass god_rays_pass;
 		FilmEffectsPass film_effects_pass;
 		FSR2Pass& fsr2_pass;
+		FSR3Pass& fsr3_pass;
 		XeSSPass xess_pass;
 		DLSS3Pass dlss3_pass;
 		FFXCASPass& cas_pass;

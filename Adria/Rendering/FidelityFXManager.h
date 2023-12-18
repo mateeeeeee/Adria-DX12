@@ -12,7 +12,7 @@ namespace adria
 	class FFXDepthOfFieldPass;
 	class FFXCASPass;
 	class FSR2Pass;
-
+	class FSR3Pass;
 
 	class FidelityFXManager
 	{
@@ -24,6 +24,7 @@ namespace adria
 		FFXDepthOfFieldPass& GetDoF() { return *ffx_depth_of_field; }
 		FFXCASPass& GetCAS() { return *ffx_cas; }
 		FSR2Pass& GetFSR2() { return *ffx_fsr2; }
+		FSR3Pass& GetFSR3() { return *ffx_fsr3; }
 
 	private:
 		std::unique_ptr<FfxInterface>		 ffx_interface;
@@ -31,5 +32,6 @@ namespace adria
 		std::unique_ptr<FFXDepthOfFieldPass> ffx_depth_of_field;
 		std::unique_ptr<FFXCASPass>			 ffx_cas;
 		std::unique_ptr<FSR2Pass>			 ffx_fsr2;
+		std::unique_ptr<FSR3Pass>			 ffx_fsr3;
 	};
 }

@@ -983,7 +983,7 @@ namespace adria
 		case GfxSubresourceType::RTV:
 		case GfxSubresourceType::DSV:
 		default:
-			ADRIA_ASSERT(false && "Buffer View can only be UAV or SRV!");
+			ADRIA_ASSERT_MSG(false, "Buffer View can only be UAV or SRV!");
 		}
 		return heap_descriptor;
 	}
