@@ -1,6 +1,5 @@
 #pragma once
 
-//stl headers + win32/d3d12
 #include <vector>
 #include <memory>
 #include <string>
@@ -20,7 +19,6 @@
 #include <dxgi1_6.h>
 #include <windows.h>
 
-//external utility
 #include <DirectXMath.h>
 #include "d3dx12.h"
 #include "D3D12MemAlloc.h"
@@ -29,10 +27,10 @@
 #include "cereal/archives/binary.hpp"
 #include "cereal/types/string.hpp"
 #include "cereal/types/vector.hpp"
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include "ImGui/imgui.h"
 #include "ImGui/ImGuizmo.h"
 
-//
 #include "Core/CoreTypes.h"
 #include "Core/Defines.h"
 #include "Math/MathTypes.h"

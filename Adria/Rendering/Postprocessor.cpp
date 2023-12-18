@@ -342,7 +342,7 @@ namespace adria
 						if (!ray_tracing_supported && current_ao_type == 4) current_ao_type = 0;
 						ambient_occlusion = static_cast<AmbientOcclusion>(current_ao_type);
 					}
-					if (ImGui::Combo("Upscaler", &current_upscaler, "None\0FSR2\0\FSR3\0XeSS\0DLSS3\0", 5))
+					if (ImGui::Combo("Upscaler", &current_upscaler, "None\0FSR2\0FSR3\0XeSS\0DLSS3\0", 5))
 					{
 						upscaler = static_cast<UpscalerType>(current_upscaler);
 						if (upscaler == UpscalerType::DLSS3 && !dlss3_pass.IsSupported())

@@ -1,9 +1,11 @@
 #pragma once
 #include <memory>
-#include "Graphics/GfxDescriptor.h"
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_win32.h"
 #include "ImGui/imgui_impl_dx12.h"
+#include "Graphics/GfxDescriptor.h"
+
 
 namespace adria
 {

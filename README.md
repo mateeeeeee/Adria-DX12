@@ -69,6 +69,7 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
     - custom and tracy profiler
 
 ## TODO
+* FSR3 (wip)
 * ReSTIR GI
 
 ## Screenshots
