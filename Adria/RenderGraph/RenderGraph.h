@@ -1,7 +1,5 @@
 #pragma once
-#include <stack>
 #include <array>
-#include <mutex>
 #include "RenderGraphBlackboard.h"
 #include "RenderGraphBuilder.h"
 #include "RenderGraphResourcePool.h"
@@ -103,7 +101,7 @@ namespace adria
 		void BuildDependencyLevels();
 		void CullPasses();
 		void CalculateResourcesLifetime();
-		void DepthFirstSearch(uint64 i, std::vector<bool>& visited, std::stack<uint64>& stack);
+		void DepthFirstSearch(uint64 i, std::vector<bool>& visited, std::vector<uint64>& sort);
 		
 		RGTextureId DeclareTexture(RGResourceName name, RGTextureDesc const& desc);
 		RGBufferId DeclareBuffer(RGResourceName name, RGBufferDesc const& desc);

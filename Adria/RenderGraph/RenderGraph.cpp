@@ -1,3 +1,4 @@
+#include <stack>
 #include <format>
 #include <fstream>
 #include <pix3.h>
@@ -327,19 +328,13 @@ namespace adria
 
 	void RenderGraph::TopologicalSort()
 	{
-		std::stack<uint64> stack{};
+		std::vector<uint64> sort{};
 		std::vector<bool>  visited(passes.size(), false);
 		for (uint64 i = 0; i < passes.size(); i++)
 		{
-			if (visited[i] == false) DepthFirstSearch(i, visited, stack);
+			if (visited[i] == false) DepthFirstSearch(i, visited, topologically_sorted_passes);
 		}
-
-		while (!stack.empty())
-		{
-			uint64 i = stack.top();
-			topologically_sorted_passes.push_back(i);
-			stack.pop();
-		}
+		std::reverse(topologically_sorted_passes.begin(), topologically_sorted_passes.end());
 	}
 
 	void RenderGraph::BuildDependencyLevels()
@@ -464,14 +459,14 @@ namespace adria
 		}
 	}
 
-	void RenderGraph::DepthFirstSearch(uint64 i, std::vector<bool>& visited, std::stack<uint64>& stack)
+	void RenderGraph::DepthFirstSearch(uint64 i, std::vector<bool>& visited, std::vector<uint64>& topologically_sorted_passes)
 	{
 		visited[i] = true;
 		for (auto j : adjacency_lists[i])
 		{
-			if (!visited[j]) DepthFirstSearch(j, visited, stack);
+			if (!visited[j]) DepthFirstSearch(j, visited, topologically_sorted_passes);
 		}
-		stack.push(i);
+		topologically_sorted_passes.push_back(i);
 	}
 
 	RGTexture* RenderGraph::GetRGTexture(RGTextureId handle) const
