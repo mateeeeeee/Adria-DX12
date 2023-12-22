@@ -11,7 +11,7 @@ namespace adria
 {
 	namespace
 	{
-		void FSR3Log(FfxMsgType type, const wchar_t* message)
+		void FSR3Log(FfxMsgType type, wchar_t const* message)
 		{
 			std::string msg = ToString(message);
 			switch (type)
@@ -45,8 +45,99 @@ namespace adria
 
 	RGResourceName FSR3Pass::AddPass(RenderGraph& rg, RGResourceName input)
 	{
-		ADRIA_ASSERT_MSG(false, "Not implemented yet!");
-		return RGResourceName();
+		if (recreate_context)
+		{
+			DestroyContext();
+			CreateContext();
+		}
+
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+
+		struct FSR3PassData
+		{
+			RGTextureReadOnlyId input;
+			RGTextureReadOnlyId depth;
+			RGTextureReadOnlyId velocity;
+			RGTextureReadOnlyId exposure;
+			RGTextureReadWriteId output;
+		};
+		rg.AddPass<FSR3PassData>(name_version,
+			[=](FSR3PassData& data, RenderGraphBuilder& builder)
+			{
+				RGTextureDesc fsr3_desc{};
+				fsr3_desc.format = GfxFormat::R16G16B16A16_FLOAT;
+				fsr3_desc.width = display_width;
+				fsr3_desc.height = display_height;
+				fsr3_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
+				builder.DeclareTexture(RG_RES_NAME(FSR3Output), fsr3_desc);
+
+				data.output = builder.WriteTexture(RG_RES_NAME(FSR3Output));
+				data.input = builder.ReadTexture(input, ReadAccess_NonPixelShader);
+				data.velocity = builder.ReadTexture(RG_RES_NAME(VelocityBuffer), ReadAccess_NonPixelShader);
+				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
+			},
+			[=](FSR3PassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			{
+				GfxTexture& input_texture = ctx.GetTexture(*data.input);
+				GfxTexture& velocity_texture = ctx.GetTexture(*data.velocity);
+				GfxTexture& depth_texture = ctx.GetTexture(*data.depth);
+				GfxTexture& output_texture = ctx.GetTexture(*data.output);
+
+				FfxFsr3UpscalerDispatchDescription dispatch_desc{};
+				dispatch_desc.commandList = ffxGetCommandListDX12(cmd_list->GetNative());
+				dispatch_desc.color = GetFfxResource(input_texture);
+				dispatch_desc.depth = GetFfxResource(depth_texture);
+				dispatch_desc.motionVectors = GetFfxResource(velocity_texture);
+				dispatch_desc.exposure = GetFfxResource();
+				dispatch_desc.reactive = GetFfxResource();
+				dispatch_desc.transparencyAndComposition = GetFfxResource();
+				dispatch_desc.output = GetFfxResource(output_texture, FFX_RESOURCE_STATE_UNORDERED_ACCESS);
+				dispatch_desc.jitterOffset.x = frame_data.camera_jitter_x;
+				dispatch_desc.jitterOffset.y = frame_data.camera_jitter_y;
+				dispatch_desc.motionVectorScale.x = (float)render_width;
+				dispatch_desc.motionVectorScale.y = (float)render_height;
+				dispatch_desc.reset = false;
+				dispatch_desc.enableSharpening = sharpening_enabled;
+				dispatch_desc.sharpness = sharpness;
+				dispatch_desc.frameTimeDelta = frame_data.frame_delta_time;
+				dispatch_desc.preExposure = 1.0f;
+				dispatch_desc.renderSize.width = render_width;
+				dispatch_desc.renderSize.height = render_height;
+				dispatch_desc.cameraFar = frame_data.camera_far;
+				dispatch_desc.cameraNear = frame_data.camera_near;
+				dispatch_desc.cameraFovAngleVertical = frame_data.camera_fov;
+
+				FfxErrorCode error_code = ffxFsr3UpscalerContextDispatch(&fsr3_context, &dispatch_desc);
+				ADRIA_ASSERT(error_code == FFX_OK);
+
+				cmd_list->ResetState();
+			}, RGPassType::Compute);
+
+		GUI_RunCommand([&]()
+			{
+				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
+				{
+					if (ImGui::Combo("Quality Mode", (int32*)&fsr3_quality_mode, "Native (1.0x)\0Quality (1.5x)\0Balanced (1.7x)\0Performance (2.0x)\0Ultra Performance (3.0x)\0Custom \0", 6))
+					{
+						RecreateRenderResolution();
+						recreate_context = true;
+					}
+
+					if (fsr3_quality_mode > FFX_FSR3UPSCALER_QUALITY_MODE_ULTRA_PERFORMANCE)
+					{
+						if (ImGui::SliderFloat("Upscale Ratio", &custom_upscale_ratio, 1.0, 3.0))
+						{
+							RecreateRenderResolution();
+							recreate_context = true;
+						}
+					}
+					ImGui::Checkbox("Enable sharpening", &sharpening_enabled);
+					if(sharpening_enabled) ImGui::SliderFloat("Sharpness", &sharpness, 0.0f, 1.0f, "%.2f");
+					ImGui::TreePop();
+				}
+			});
+
+		return RG_RES_NAME(FSR3Output);
 	}
 
 	void FSR3Pass::CreateContext()

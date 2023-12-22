@@ -43,10 +43,10 @@ namespace adria
 
 		FfxFsr3UpscalerQualityMode fsr3_quality_mode = FFX_FSR3UPSCALER_QUALITY_MODE_QUALITY;
 		float custom_upscale_ratio = 1.0f;
+		bool  sharpening_enabled = false;
 		float sharpness = 0.5f;
 
 		RenderResolutionChanged render_resolution_changed_event;
-
 	private:
 
 		void CreateContext();
