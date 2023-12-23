@@ -9,18 +9,20 @@
 
 namespace adria
 {
-	FFXDepthOfFieldPass::FFXDepthOfFieldPass(GfxDevice* gfx, FfxInterface& ffx_interface, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
+	FFXDepthOfFieldPass::FFXDepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ffx_interface(nullptr)
 	{
 		if (!gfx->GetCapabilities().SupportsShaderModel(SM_6_6)) return;
 
 		sprintf(name_version, "FFX DoF %d.%d.%d", FFX_DOF_VERSION_MAJOR, FFX_DOF_VERSION_MINOR, FFX_DOF_VERSION_PATCH);
-		dof_context_desc.backendInterface = ffx_interface;
+		ffx_interface = CreateFfxInterface(gfx, FFX_DOF_CONTEXT_COUNT);
+		dof_context_desc.backendInterface = *ffx_interface;
 		CreateContext();
 	}
 
 	FFXDepthOfFieldPass::~FFXDepthOfFieldPass()
 	{
 		DestroyContext();
+		DestroyFfxInterface(ffx_interface);
 	}
 
 	RGResourceName FFXDepthOfFieldPass::AddPass(RenderGraph& rg, RGResourceName input)

@@ -258,7 +258,6 @@
     <ClCompile Include="Rendering\DebugRenderer.cpp" />
     <ClCompile Include="Rendering\DLSS3Pass.cpp" />
     <ClCompile Include="Rendering\FFXDepthOfFieldPass.cpp" />
-    <ClCompile Include="Rendering\FidelityFXManager.cpp" />
     <ClCompile Include="Rendering\FidelityFXUtils.cpp" />
     <ClCompile Include="Rendering\FSR2Pass.cpp" />
     <ClCompile Include="Rendering\FSR3Pass.cpp" />
@@ -439,7 +438,6 @@
     <ClInclude Include="Rendering\DebugRenderer.h" />
     <ClInclude Include="Rendering\DLSS3Pass.h" />
     <ClInclude Include="Rendering\FFXDepthOfFieldPass.h" />
-    <ClInclude Include="Rendering\FidelityFXManager.h" />
     <ClInclude Include="Rendering\FidelityFXUtils.h" />
     <ClInclude Include="Rendering\FSR2Pass.h" />
     <ClInclude Include="Rendering\FSR3Pass.h" />

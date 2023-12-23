@@ -27,12 +27,12 @@ namespace adria
 			}
 		}
 	}
-	FSR2Pass::FSR2Pass(GfxDevice* _gfx, FfxInterface& ffx_interface, uint32 w, uint32 h)
-		: gfx(_gfx), display_width(w), display_height(h), render_width(), render_height()
+	FSR2Pass::FSR2Pass(GfxDevice* _gfx, uint32 w, uint32 h) : gfx(_gfx), display_width(w), display_height(h), render_width(), render_height()
 	{
 		if (!gfx->GetCapabilities().SupportsShaderModel(SM_6_6)) return;
 		sprintf(name_version, "FSR %d.%d.%d", FFX_FSR2_VERSION_MAJOR, FFX_FSR2_VERSION_MINOR, FFX_FSR2_VERSION_PATCH);
-		fsr2_context_desc.backendInterface = ffx_interface;
+		ffx_interface = CreateFfxInterface(gfx, FFX_FSR2_CONTEXT_COUNT);
+		fsr2_context_desc.backendInterface = *ffx_interface;
 		RecreateRenderResolution();
 		CreateContext();
 	}
@@ -40,6 +40,7 @@ namespace adria
 	FSR2Pass::~FSR2Pass()
 	{
 		DestroyContext();
+		DestroyFfxInterface(ffx_interface);
 	}
 
 	RGResourceName FSR2Pass::AddPass(RenderGraph& rg, RGResourceName input)

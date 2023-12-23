@@ -15,7 +15,7 @@ namespace adria
 		DECLARE_EVENT(RenderResolutionChanged, FSR3Pass, uint32, uint32)
 
 	public:
-		FSR3Pass(GfxDevice* gfx, FfxInterface& ffx_interface, uint32 w, uint32 h);
+		FSR3Pass(GfxDevice* gfx, uint32 w, uint32 h);
 		~FSR3Pass();
 
 		RGResourceName AddPass(RenderGraph& rg, RGResourceName input);
@@ -39,6 +39,7 @@ namespace adria
 		uint32 display_width, display_height;
 		uint32 render_width, render_height;
 
+		FfxInterface* ffx_interface;
 		FfxFsr3ContextDescription fsr3_context_desc{};
 		FfxFsr3Context fsr3_context{};
 		bool recreate_context = false;

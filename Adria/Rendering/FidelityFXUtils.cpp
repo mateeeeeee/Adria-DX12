@@ -2,6 +2,7 @@
 #include "Graphics/GfxFormat.h"
 #include "Graphics/GfxTexture.h"
 #include "Graphics/GfxBuffer.h"
+#include "Graphics/GfxDevice.h"
 
 
 namespace adria
@@ -108,6 +109,27 @@ namespace adria
 			break;
 		}
 		return resource_description;
+	}
+
+	FfxInterface* CreateFfxInterface(GfxDevice* gfx, uint64 context_count)
+	{
+		FfxInterface* ffx_interface = new FfxInterface{};
+		uint64 const scratch_buffer_size = ffxGetScratchMemorySizeDX12(context_count);
+		void* scratch_buffer = malloc(scratch_buffer_size);
+		ADRIA_ASSERT(scratch_buffer);
+		memset(scratch_buffer, 0, scratch_buffer_size);
+		FfxErrorCode error_code = ffxGetInterfaceDX12(ffx_interface, gfx->GetDevice(), scratch_buffer, scratch_buffer_size, context_count);
+		ADRIA_ASSERT(error_code == FFX_OK);
+		return ffx_interface;
+	}
+
+	void DestroyFfxInterface(FfxInterface* ffx_interface)
+	{
+		if (ffx_interface->scratchBuffer)
+		{
+			free(ffx_interface->scratchBuffer);
+			ffx_interface->scratchBuffer = nullptr;
+		}
 	}
 
 	FfxResource GetFfxResource()

@@ -2,6 +2,8 @@
 #include "FidelityFX/host/ffx_cacao.h"
 #include "RenderGraph/RenderGraphResourceName.h"
 
+struct FfxInterface;
+
 namespace adria
 {
 	class GfxDevice;
@@ -10,7 +12,7 @@ namespace adria
 	class FFXCACAOPass
 	{
 	public:
-		FFXCACAOPass(GfxDevice* gfx, FfxInterface& ffx_interface, uint32 w, uint32 h);
+		FFXCACAOPass(GfxDevice* gfx, uint32 w, uint32 h);
 		~FFXCACAOPass();
 
 		void AddPass(RenderGraph& rendergraph);
@@ -20,7 +22,7 @@ namespace adria
 		char name_version[16] = {};
 		GfxDevice* gfx;
 		uint32 width, height;
-
+		FfxInterface*			   ffx_interface;
 		int32					   preset_id = 0;
 		bool                       use_downsampled_ssao = false;
 		bool                       generate_normals = false;

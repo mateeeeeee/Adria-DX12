@@ -19,6 +19,7 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
 * Reference path tracer 
 * Temporal upscalers
     - FSR2
+	- FSR3
     - XeSS 
     - DLSS3
 * Ultimate Bindless 
@@ -69,7 +70,6 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
     - custom and tracy profiler
 
 ## TODO
-* FSR3 (wip)
 * ReSTIR GI
 
 ## Screenshots

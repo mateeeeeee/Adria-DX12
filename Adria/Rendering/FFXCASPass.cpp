@@ -8,17 +8,19 @@
 
 namespace adria
 {
-	FFXCASPass::FFXCASPass(GfxDevice* gfx, FfxInterface& ffx_interface, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
+	FFXCASPass::FFXCASPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ffx_interface(nullptr)
 	{
 		if (!gfx->GetCapabilities().SupportsShaderModel(SM_6_6)) return;
 		sprintf(name_version, "FFX CAS %d.%d.%d", FFX_CAS_VERSION_MAJOR, FFX_CAS_VERSION_MINOR, FFX_CAS_VERSION_PATCH);
-		cas_context_desc.backendInterface = ffx_interface;
+		ffx_interface = CreateFfxInterface(gfx, FFX_CAS_CONTEXT_COUNT);
+		cas_context_desc.backendInterface = *ffx_interface;
 		CreateContext();
 	}
 
 	FFXCASPass::~FFXCASPass()
 	{
 		DestroyContext();
+		DestroyFfxInterface(ffx_interface);
 	}
 
 	RGResourceName FFXCASPass::AddPass(RenderGraph& rg, RGResourceName input)

@@ -27,7 +27,6 @@
 #include "FFXDepthOfFieldPass.h"
 #include "FFXCASPass.h"
 #include "FFXCACAOPass.h"
-#include "FidelityFXManager.h"
 #include "FXAAPass.h"
 #include "ToneMapPass.h"
 #include "RenderGraph/RenderGraphResourceId.h"
@@ -118,14 +117,12 @@ namespace adria
 		RGResourceName final_resource;
 		std::unique_ptr<GfxTexture> history_buffer;
 
-		FidelityFXManager ffx_manager;
-
 		BlurPass blur_pass;
 		CopyToTexturePass copy_to_texture_pass;
 		AddTexturesPass add_textures_pass;
 		SSAOPass	 ssao_pass;
 		HBAOPass     hbao_pass;
-		FFXCACAOPass& cacao_pass;
+		FFXCACAOPass cacao_pass;
 		RayTracedAmbientOcclusionPass rtao_pass;
 		AutomaticExposurePass automatic_exposure_pass;
 		LensFlarePass lens_flare_pass;
@@ -134,18 +131,18 @@ namespace adria
 		RayTracedReflectionsPass rtr_pass;
 		FogPass fog_pass;
 		DepthOfFieldPass dof_pass;
-		FFXDepthOfFieldPass& ffx_dof_pass;
+		FFXDepthOfFieldPass ffx_dof_pass;
 		BloomPass bloom_pass;
 		MotionVectorsPass velocity_buffer_pass;
 		MotionBlurPass motion_blur_pass;
 		TAAPass taa_pass;
 		GodRaysPass god_rays_pass;
 		FilmEffectsPass film_effects_pass;
-		FSR2Pass& fsr2_pass;
-		FSR3Pass& fsr3_pass;
+		FSR2Pass fsr2_pass;
+		FSR3Pass fsr3_pass;
 		XeSSPass xess_pass;
 		DLSS3Pass dlss3_pass;
-		FFXCASPass& cas_pass;
+		FFXCASPass cas_pass;
 		ToneMapPass  tonemap_pass;
 		FXAAPass	 fxaa_pass;
 

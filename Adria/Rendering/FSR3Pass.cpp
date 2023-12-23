@@ -28,12 +28,12 @@ namespace adria
 		}
 	}
 
-	FSR3Pass::FSR3Pass(GfxDevice* _gfx, FfxInterface& ffx_interface, uint32 w, uint32 h)
-		: gfx(_gfx), display_width(w), display_height(h), render_width(), render_height()
+	FSR3Pass::FSR3Pass(GfxDevice* _gfx, uint32 w, uint32 h) : gfx(_gfx), display_width(w), display_height(h), render_width(), render_height()
 	{
 		if (!gfx->GetCapabilities().SupportsShaderModel(SM_6_6)) return;
 		sprintf(name_version, "FSR %d.%d.%d", FFX_FSR3_VERSION_MAJOR, FFX_FSR3_VERSION_MINOR, FFX_FSR3_VERSION_PATCH);
-		fsr3_context_desc.backendInterfaceUpscaling = ffx_interface;
+		ffx_interface = CreateFfxInterface(gfx, FFX_FSR3UPSCALER_CONTEXT_COUNT);
+		fsr3_context_desc.backendInterfaceUpscaling = *ffx_interface;
 		RecreateRenderResolution();
 		CreateContext();
 	}
@@ -41,6 +41,7 @@ namespace adria
 	FSR3Pass::~FSR3Pass()
 	{
 		DestroyContext();
+		DestroyFfxInterface(ffx_interface);
 	}
 
 	RGResourceName FSR3Pass::AddPass(RenderGraph& rg, RGResourceName input)

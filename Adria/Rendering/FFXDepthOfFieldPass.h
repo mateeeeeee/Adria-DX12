@@ -11,7 +11,7 @@ namespace adria
 	{
 		
 	public:
-		FFXDepthOfFieldPass(GfxDevice* gfx, FfxInterface& ffx_interface, uint32 w, uint32 h);
+		FFXDepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h);
 		~FFXDepthOfFieldPass();
 
 		RGResourceName AddPass(RenderGraph& rendergraph, RGResourceName input);
@@ -21,7 +21,7 @@ namespace adria
 		char name_version[20] = {};
 		GfxDevice* gfx;
 		uint32 width, height;
-
+		FfxInterface* ffx_interface;
 		FfxDofContextDescription dof_context_desc{};
 		FfxDofContext            dof_context{};
 

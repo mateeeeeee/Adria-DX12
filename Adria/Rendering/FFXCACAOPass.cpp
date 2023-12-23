@@ -265,11 +265,13 @@ namespace adria
 		};
 	}
 
-	FFXCACAOPass::FFXCACAOPass(GfxDevice* gfx, FfxInterface& ffx_interface, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
+	FFXCACAOPass::FFXCACAOPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ffx_interface(nullptr)
 	{
 		if (!gfx->GetCapabilities().SupportsShaderModel(SM_6_6)) return;
 		sprintf(name_version, "FFX CACAO %d.%d.%d", FFX_CACAO_VERSION_MAJOR, FFX_CACAO_VERSION_MINOR, FFX_CACAO_VERSION_PATCH);
-		cacao_context_desc.backendInterface = ffx_interface;
+		ffx_interface = CreateFfxInterface(gfx, FFX_CACAO_CONTEXT_COUNT * 2);
+
+		cacao_context_desc.backendInterface = *ffx_interface;
 		CreateContext();
 
 		preset_id = 2;
@@ -280,6 +282,7 @@ namespace adria
 	FFXCACAOPass::~FFXCACAOPass()
 	{
 		DestroyContext();
+		DestroyFfxInterface(ffx_interface);
 	}
 
 	void FFXCACAOPass::AddPass(RenderGraph& rg)
