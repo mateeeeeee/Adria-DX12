@@ -24,11 +24,11 @@ namespace adria
 		FfxErrorCode error_code = ffxGetInterfaceDX12(ffx_interface.get(), gfx->GetDevice(), scratch_buffer, scratch_buffer_size, context_count);
 		ADRIA_ASSERT(error_code == FFX_OK);
 
-		ffx_cacao = std::make_unique<FFXCACAOPass>(gfx, *ffx_interface, width, height);
 		ffx_depth_of_field = std::make_unique<FFXDepthOfFieldPass>(gfx, *ffx_interface, width, height);
 		ffx_cas = std::make_unique<FFXCASPass>(gfx, *ffx_interface, width, height);
 		ffx_fsr2 = std::make_unique<FSR2Pass>(gfx, *ffx_interface, width, height);
 		ffx_fsr3 = std::make_unique<FSR3Pass>(gfx, *ffx_interface, width, height);
+		ffx_cacao = std::make_unique<FFXCACAOPass>(gfx, *ffx_interface, width, height);
 	}
 
 

@@ -349,7 +349,7 @@ namespace adria
 						[](void* vec, int idx, const char** out_text)
 						{
 							std::vector<std::string>* vector = reinterpret_cast<std::vector<std::string>*>(vec);
-							if (idx < 0 || idx >= vector->size())return false;
+							if (idx < 0 || idx >= vector->size()) return false;
 							*out_text = vector->at(idx).c_str();
 							return true;
 						}, reinterpret_cast<void*>(&FfxCacaoPresetNames), (int32)FfxCacaoPresetNames.size()))
@@ -361,8 +361,6 @@ namespace adria
 					ImGui::TreePop();
 				}
 			});
-
-		
 	}
 
 	void FFXCACAOPass::OnResize(uint32 w, uint32 h)

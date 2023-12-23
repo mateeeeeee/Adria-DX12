@@ -1,7 +1,9 @@
 #pragma once
-#include "FidelityFX/host/ffx_fsr3upscaler.h"
+#include "FidelityFX/host/ffx_fsr3.h"
 #include "RenderGraph/RenderGraphResourceName.h"
 #include "Utilities/Delegate.h"
+
+struct FfxInterface;
 
 namespace adria
 {
@@ -37,11 +39,11 @@ namespace adria
 		uint32 display_width, display_height;
 		uint32 render_width, render_height;
 
-		FfxFsr3UpscalerContextDescription fsr3_context_desc{};
-		FfxFsr3UpscalerContext fsr3_context{};
+		FfxFsr3ContextDescription fsr3_context_desc{};
+		FfxFsr3Context fsr3_context{};
 		bool recreate_context = false;
 
-		FfxFsr3UpscalerQualityMode fsr3_quality_mode = FFX_FSR3UPSCALER_QUALITY_MODE_QUALITY;
+		FfxFsr3QualityMode fsr3_quality_mode = FFX_FSR3_QUALITY_MODE_QUALITY;
 		float custom_upscale_ratio = 1.0f;
 		bool  sharpening_enabled = false;
 		float sharpness = 0.5f;

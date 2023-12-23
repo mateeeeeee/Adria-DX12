@@ -28,10 +28,10 @@ namespace adria
 
 	private:
 		std::unique_ptr<FfxInterface>		 ffx_interface;
-		std::unique_ptr<FFXCACAOPass>		 ffx_cacao;
 		std::unique_ptr<FFXDepthOfFieldPass> ffx_depth_of_field;
 		std::unique_ptr<FFXCASPass>			 ffx_cas;
 		std::unique_ptr<FSR2Pass>			 ffx_fsr2;
 		std::unique_ptr<FSR3Pass>			 ffx_fsr3;
+		std::unique_ptr<FFXCACAOPass>		 ffx_cacao;
 	};
 }

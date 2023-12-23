@@ -1,5 +1,5 @@
 #include "FSR3Pass.h"
-#include "FidelityFX/gpu/fsr3upscaler/ffx_fsr3upscaler_resources.h"
+#include "FidelityFX/gpu/fsr3/ffx_fsr3_resources.h"
 #include "FidelityFXUtils.h"
 #include "BlackboardData.h"
 #include "Graphics/GfxDevice.h"
@@ -32,8 +32,8 @@ namespace adria
 		: gfx(_gfx), display_width(w), display_height(h), render_width(), render_height()
 	{
 		if (!gfx->GetCapabilities().SupportsShaderModel(SM_6_6)) return;
-		sprintf(name_version, "FSR %d.%d.%d", FFX_FSR3UPSCALER_VERSION_MAJOR, FFX_FSR3UPSCALER_VERSION_MINOR, FFX_FSR3UPSCALER_VERSION_PATCH);
-		fsr3_context_desc.backendInterface = ffx_interface;
+		sprintf(name_version, "FSR %d.%d.%d", FFX_FSR3_VERSION_MAJOR, FFX_FSR3_VERSION_MINOR, FFX_FSR3_VERSION_PATCH);
+		fsr3_context_desc.backendInterfaceUpscaling = ffx_interface;
 		RecreateRenderResolution();
 		CreateContext();
 	}
@@ -83,7 +83,7 @@ namespace adria
 				GfxTexture& depth_texture = ctx.GetTexture(*data.depth);
 				GfxTexture& output_texture = ctx.GetTexture(*data.output);
 
-				FfxFsr3UpscalerDispatchDescription dispatch_desc{};
+				FfxFsr3DispatchUpscaleDescription dispatch_desc{};
 				dispatch_desc.commandList = ffxGetCommandListDX12(cmd_list->GetNative());
 				dispatch_desc.color = GetFfxResource(input_texture);
 				dispatch_desc.depth = GetFfxResource(depth_texture);
@@ -91,7 +91,7 @@ namespace adria
 				dispatch_desc.exposure = GetFfxResource();
 				dispatch_desc.reactive = GetFfxResource();
 				dispatch_desc.transparencyAndComposition = GetFfxResource();
-				dispatch_desc.output = GetFfxResource(output_texture, FFX_RESOURCE_STATE_UNORDERED_ACCESS);
+				dispatch_desc.upscaleOutput = GetFfxResource(output_texture, FFX_RESOURCE_STATE_UNORDERED_ACCESS);
 				dispatch_desc.jitterOffset.x = frame_data.camera_jitter_x;
 				dispatch_desc.jitterOffset.y = frame_data.camera_jitter_y;
 				dispatch_desc.motionVectorScale.x = (float)render_width;
@@ -107,7 +107,7 @@ namespace adria
 				dispatch_desc.cameraNear = frame_data.camera_near;
 				dispatch_desc.cameraFovAngleVertical = frame_data.camera_fov;
 
-				FfxErrorCode error_code = ffxFsr3UpscalerContextDispatch(&fsr3_context, &dispatch_desc);
+				FfxErrorCode error_code = ffxFsr3ContextDispatchUpscale(&fsr3_context, &dispatch_desc);
 				ADRIA_ASSERT(error_code == FFX_OK);
 
 				cmd_list->ResetState();
@@ -117,13 +117,13 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
 				{
-					if (ImGui::Combo("Quality Mode", (int32*)&fsr3_quality_mode, "Native (1.0x)\0Quality (1.5x)\0Balanced (1.7x)\0Performance (2.0x)\0Ultra Performance (3.0x)\0Custom \0", 6))
+					if (ImGui::Combo("Quality Mode", (int32*)&fsr3_quality_mode, "Custom\0Quality (1.5x)\0Balanced (1.7x)\0Performance (2.0x)\0Ultra Performance (3.0x)\0", 5))
 					{
 						RecreateRenderResolution();
 						recreate_context = true;
 					}
 
-					if (fsr3_quality_mode > FFX_FSR3UPSCALER_QUALITY_MODE_ULTRA_PERFORMANCE)
+					if (fsr3_quality_mode == 0)
 					{
 						if (ImGui::SliderFloat("Upscale Ratio", &custom_upscale_ratio, 1.0, 3.0))
 						{
@@ -145,11 +145,10 @@ namespace adria
 		fsr3_context_desc.fpMessage = FSR3Log;
 		fsr3_context_desc.maxRenderSize.width = render_width;
 		fsr3_context_desc.maxRenderSize.height = render_height;
-		fsr3_context_desc.displaySize.width = display_width;
-		fsr3_context_desc.displaySize.height = display_height;
-		fsr3_context_desc.flags = FFX_FSR3UPSCALER_ENABLE_HIGH_DYNAMIC_RANGE | FFX_FSR3UPSCALER_ENABLE_AUTO_EXPOSURE;
-
-		FfxErrorCode error_code = ffxFsr3UpscalerContextCreate(&fsr3_context, &fsr3_context_desc);
+		fsr3_context_desc.upscaleOutputSize.width = display_width;
+		fsr3_context_desc.upscaleOutputSize.height = display_height;
+		fsr3_context_desc.flags = FFX_FSR3_ENABLE_HIGH_DYNAMIC_RANGE | FFX_FSR3_ENABLE_AUTO_EXPOSURE | FFX_FSR3_ENABLE_UPSCALING_ONLY;
+		FfxErrorCode error_code = ffxFsr3ContextCreate(&fsr3_context, &fsr3_context_desc);
 		ADRIA_ASSERT(error_code == FFX_OK);
 		recreate_context = false;
 	}
@@ -157,12 +156,12 @@ namespace adria
 	void FSR3Pass::DestroyContext()
 	{
 		gfx->WaitForGPU();
-		ffxFsr3UpscalerContextDestroy(&fsr3_context);
+		ffxFsr3ContextDestroy(&fsr3_context);
 	}
 
 	void FSR3Pass::RecreateRenderResolution()
 	{
-		float upscale_ratio = (fsr3_quality_mode == 0 ? custom_upscale_ratio : ffxFsr3UpscalerGetUpscaleRatioFromQualityMode(fsr3_quality_mode));
+		float upscale_ratio = (fsr3_quality_mode == 0 ? custom_upscale_ratio : ffxFsr3GetUpscaleRatioFromQualityMode(fsr3_quality_mode));
 		render_width = (uint32)((float)display_width / upscale_ratio);
 		render_height = (uint32)((float)display_height / upscale_ratio);
 		render_resolution_changed_event.Broadcast(render_width, render_height);
