@@ -462,9 +462,6 @@
     <ClCompile Include="Rendering\FFXCASPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\FidelityFXManager.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\FFXCACAOPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
@@ -482,6 +479,9 @@
     </ClCompile>
     <ClCompile Include="Rendering\FSR3Pass.cpp">
       <Filter>Rendering\Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\FilesUtil.cpp">
+      <Filter>Utilities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1049,9 +1049,6 @@
     </ClInclude>
     <ClInclude Include="Rendering\FFXCACAOPass.h">
       <Filter>Rendering\Passes</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\FidelityFXManager.h">
-      <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\FilmEffectsPass.h">
       <Filter>Rendering\Passes</Filter>

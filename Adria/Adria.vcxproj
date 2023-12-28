@@ -298,6 +298,7 @@
     <ClCompile Include="Rendering\VolumetricCloudsPass.cpp" />
     <ClCompile Include="Rendering\VolumetricLightingPass.cpp" />
     <ClCompile Include="Rendering\XeSSPass.cpp" />
+    <ClCompile Include="Utilities\FilesUtil.cpp" />
     <ClCompile Include="Utilities\Heightmap.cpp" />
     <ClCompile Include="Utilities\Image.cpp" />
     <ClCompile Include="Utilities\ImageWrite.cpp" />
