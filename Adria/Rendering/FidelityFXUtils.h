@@ -9,7 +9,7 @@ namespace adria
 	class GfxBuffer;
 	class GfxTexture;
 
-	FfxInterface* CreateFfxInterface(GfxDevice* gfx, uint64 context_count);
+	FfxInterface* CreateFfxInterface(GfxDevice* gfx, uint32 context_count);
 	void DestroyFfxInterface(FfxInterface*);
 
 	FfxResource GetFfxResource();
