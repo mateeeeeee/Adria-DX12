@@ -111,7 +111,7 @@ namespace adria
 		return resource_description;
 	}
 
-	FfxInterface* CreateFfxInterface(GfxDevice* gfx, uint64 context_count)
+	FfxInterface* CreateFfxInterface(GfxDevice* gfx, uint32 context_count)
 	{
 		FfxInterface* ffx_interface = new FfxInterface{};
 		uint64 const scratch_buffer_size = ffxGetScratchMemorySizeDX12(context_count);

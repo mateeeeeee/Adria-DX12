@@ -25,8 +25,8 @@ namespace adria
 
 	private:
 		entt::registry& reg;
-		size_t foam_handle = -1;
-		size_t perlin_handle = -1;
+		uint64 foam_handle = -1;
+		uint64 perlin_handle = -1;
 		uint32 width, height;
 		std::unique_ptr<GfxTexture> initial_spectrum;
 		std::unique_ptr<GfxTexture> ping_pong_phase_textures[2];

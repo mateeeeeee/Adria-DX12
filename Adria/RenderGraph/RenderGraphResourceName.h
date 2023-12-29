@@ -67,7 +67,7 @@ namespace std
 {
 	template <> struct hash<adria::RenderGraphResourceName>
 	{
-		size_t operator()(adria::RenderGraphResourceName const& res_name) const
+		adria::uint64 operator()(adria::RenderGraphResourceName const& res_name) const
 		{
 			return hash<decltype(res_name.hashed_name)>()(res_name.hashed_name);
 		}

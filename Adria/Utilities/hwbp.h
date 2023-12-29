@@ -10,7 +10,7 @@
 #include <bitset>
 #pragma warning(pop)
 
-namespace hwbp
+namespace adria::hwbp
 {
     enum class Result
     {
@@ -19,7 +19,7 @@ namespace hwbp
         CantSetThreadContext,
         NoAvailableRegisters,
         BadWhen, // Unsupported value of When passed
-        BadSize // Size can only be 1, 2, 4, 8
+        BadSize  // Size can only be 1, 2, 4, 8
     };
 
     enum class When
@@ -39,7 +39,7 @@ namespace hwbp
             };
         }
 
-        std::uint8_t register_index;
+        uint8 register_index;
         Result error;
     };
 
@@ -56,7 +56,7 @@ namespace hwbp
             }
 
             std::array<bool, 4> busyDebugRegister{{false, false, false, false}};
-            auto checkBusyRegister = [&](std::size_t index, DWORD64 mask)
+            auto checkBusyRegister = [&](uint64 index, DWORD64 mask)
             {
                 if (ctx.Dr7 & mask)
                     busyDebugRegister[index] = true;
@@ -81,16 +81,14 @@ namespace hwbp
     static Breakpoint Set(const void* onPointer, std::uint8_t size, When when)
     {
         return Detail::UpdateThreadContext(
-            [&](CONTEXT& ctx, const std::array<bool, 4> & busyDebugRegister) -> Breakpoint
+            [&](CONTEXT& ctx, const std::array<bool, 4>& busyDebugRegister) -> Breakpoint
             {
                 const auto found = std::find(begin(busyDebugRegister), end(busyDebugRegister), false);
                 if (found == end(busyDebugRegister))
                 {
                     return Breakpoint::MakeFailed(Result::NoAvailableRegisters);
                 }
-
                 const auto registerIndex = static_cast<std::uint16_t>(std::distance(begin(busyDebugRegister), found));
-
                 switch (registerIndex)
                 {
                 case 0:
@@ -106,15 +104,12 @@ namespace hwbp
                     ctx.Dr3 = reinterpret_cast<DWORD_PTR>(const_cast<void*>(onPointer));
                     break;
                 default:
-                    assert(!"Impossible happened - searching in array of 4 got index < 0 or > 3");
+                    ADRIA_ASSERT(!"Impossible happened - searching in array of 4 got index < 0 or > 3");
                     std::exit(EXIT_FAILURE);
                 }
-
                 std::bitset<sizeof(ctx.Dr7) * 8> dr7;
-                std::memcpy(&dr7, &ctx.Dr7, sizeof(ctx.Dr7));
-
-                dr7.set(registerIndex * 2); // Flag to enable 'local' debugging for each of 4 registers. Second bit is for global debugging, not working.
-                
+                memcpy(&dr7, &ctx.Dr7, sizeof(ctx.Dr7));
+                dr7.set(registerIndex * 2); 
                 switch (when)
                 {
                 case When::ReadOrWritten:
@@ -161,10 +156,8 @@ namespace hwbp
                 default:
                     return Breakpoint::MakeFailed(Result::BadSize);
                 }
-
-                std::memcpy(&ctx.Dr7, &dr7, sizeof(ctx.Dr7));
-
-                return Breakpoint{ static_cast<std::uint8_t>(registerIndex), Result::Success };
+                memcpy(&ctx.Dr7, &dr7, sizeof(ctx.Dr7));
+                return Breakpoint{ static_cast<uint8>(registerIndex), Result::Success };
             },
             [](auto failureCode)
             {
@@ -173,7 +166,7 @@ namespace hwbp
         );
     }
 
-    static void Remove(const Breakpoint& bp)
+    static void Remove(Breakpoint const& bp)
     {
         if (bp.error != Result::Success)
         {
@@ -181,15 +174,12 @@ namespace hwbp
         }
 
         Detail::UpdateThreadContext(
-            [&](CONTEXT& ctx, const std::array<bool, 4>&) -> Breakpoint
+            [&](CONTEXT& ctx, std::array<bool, 4> const&) -> Breakpoint
             {
                 std::bitset<sizeof(ctx.Dr7) * 8> dr7;
-                std::memcpy(&dr7, &ctx.Dr7, sizeof(ctx.Dr7));
-
-                dr7.set(bp.register_index * 2, false); // Flag to enable 'local' debugging for each of 4 registers. Second bit is for global debugging, not working.
-                
-                std::memcpy(&ctx.Dr7, &dr7, sizeof(ctx.Dr7));
-
+                memcpy(&dr7, &ctx.Dr7, sizeof(ctx.Dr7));
+                dr7.set(bp.register_index * 2, false);
+                memcpy(&ctx.Dr7, &dr7, sizeof(ctx.Dr7));
                 return Breakpoint{};
             },
             [](auto failureCode)

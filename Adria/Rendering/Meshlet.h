@@ -3,8 +3,8 @@
 
 namespace adria
 {
-	static constexpr size_t MESHLET_MAX_TRIANGLES = 124;
-	static constexpr size_t MESHLET_MAX_VERTICES = 64;
+	static constexpr uint64 MESHLET_MAX_TRIANGLES = 124;
+	static constexpr uint64 MESHLET_MAX_VERTICES = 64;
 
 	struct MeshletTriangle
 	{

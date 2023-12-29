@@ -12,7 +12,7 @@ namespace adria
 	PickingPass::PickingPass(GfxDevice* gfx, uint32 width, uint32 height) : gfx(gfx),
 		width(width), height(height)
 	{
-		for (size_t i = 0; i < gfx->GetBackbufferCount(); ++i)
+		for (uint64 i = 0; i < gfx->GetBackbufferCount(); ++i)
 		{
 			read_picking_buffers.emplace_back(gfx->CreateBuffer(ReadBackBufferDesc(sizeof(PickingData))));
 		}

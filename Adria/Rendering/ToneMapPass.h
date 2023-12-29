@@ -30,7 +30,7 @@ namespace adria
 	private:
 		uint32 width, height;
 		TonemapParams params;
-		size_t lens_dirt_handle = -1;
+		uint64 lens_dirt_handle = -1;
 	private:
 		void GUI();
 	};

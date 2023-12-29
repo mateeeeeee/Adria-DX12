@@ -38,7 +38,7 @@ namespace adria
 		{
 			desc = _desc;
 		}
-		void SetBytecode(void const* data, size_t size)
+		void SetBytecode(void const* data, uint64 size)
 		{
 			bytecode.resize(size);
 			memcpy(bytecode.data(), data, size);
@@ -50,7 +50,7 @@ namespace adria
 		{
 			return !bytecode.empty() ? (void*)bytecode.data() : nullptr;
 		}
-		size_t GetLength() const
+		uint64 GetLength() const
 		{
 			return bytecode.size();
 		}

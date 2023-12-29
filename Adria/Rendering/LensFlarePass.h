@@ -21,7 +21,7 @@ namespace adria
 		void OnSceneInitialized();
 	private:
 		uint32 width, height;
-		std::vector<size_t> lens_flare_textures;
+		std::vector<uint64> lens_flare_textures;
 	};
 
 }

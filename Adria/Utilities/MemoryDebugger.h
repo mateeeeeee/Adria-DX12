@@ -1,5 +1,5 @@
 #pragma once
-#define _CRTDBG_MAP_ALLOC //to get more details
+#define _CRTDBG_MAP_ALLOC 
 #include <stdlib.h>  
 #include <crtdbg.h> 
 #include <windows.h>
@@ -8,9 +8,7 @@
 namespace adria
 {
 	typedef int (__CRTDECL* AllocHook)(int, void*, size_t, int, long, unsigned char const*, int);
-
-	static int MemoryAllocHook(int allocType, void* userData, std::size_t size, int blockType, long requestNumber,
-		const unsigned char* filename, int lineNumber)
+	static int MemoryAllocHook(int allocType, void* userData, size_t size, int blockType, long requestNumber, const unsigned char* filename, int lineNumber)
 	{
 		return 1;
 	}

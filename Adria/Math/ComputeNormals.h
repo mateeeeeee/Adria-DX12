@@ -25,7 +25,7 @@ namespace adria
         )
         {
             std::vector<XMVECTOR> normals(vertices.size());
-            for (size_t face = 0; face < indices.size() / 3; ++face)
+            for (uint64 face = 0; face < indices.size() / 3; ++face)
             {
                 index_t i0 = indices[face * 3];
                 index_t i1 = indices[face * 3 + 1];

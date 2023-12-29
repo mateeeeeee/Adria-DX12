@@ -68,7 +68,7 @@ namespace adria
 		GfxCommandList* cmd_list = gfx->GetCommandList();
 
 		std::span<GfxRayTracingGeometry> geometry_span(rt_geometries);
-		for (size_t i = 0; i < blases.size(); ++i)
+		for (uint64 i = 0; i < blases.size(); ++i)
 		{
 			blases[i] = gfx->CreateRayTracingBLAS(geometry_span.subspan(i, 1), GfxRayTracingASFlag_PreferFastTrace);
 		}

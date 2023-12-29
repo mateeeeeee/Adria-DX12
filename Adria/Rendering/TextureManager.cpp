@@ -140,7 +140,7 @@ namespace adria
 		texture_map[INVALID_TEXTURE_HANDLE] = std::move(black_default_texture);
 
 		gfx->InitShaderVisibleAllocator(1024);
-		for (size_t i = 0; i <= handle; ++i)
+		for (uint64 i = 0; i <= handle; ++i)
         {
             GfxTexture* texture = texture_map[TextureHandle(i)].get();
             if (texture)

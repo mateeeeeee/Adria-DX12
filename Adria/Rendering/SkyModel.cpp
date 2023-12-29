@@ -10,7 +10,7 @@ namespace adria
 {
 	namespace
 	{
-		inline double EvaluateSpline(double const* spline, size_t stride, double value)
+		inline double EvaluateSpline(double const* spline, uint64 stride, double value)
 		{
 			return
 				1 * pow(1 - value, 5) * spline[0 * stride] +
@@ -20,7 +20,7 @@ namespace adria
 				5 * pow(1 - value, 1) * pow(value, 4) * spline[4 * stride] +
 				1 * pow(value, 5) * spline[5 * stride];
 		}
-		double Evaluate(double const* dataset, size_t stride, float turbidity, float albedo, float sun_theta)
+		double Evaluate(double const* dataset, uint64 stride, float turbidity, float albedo, float sun_theta)
 		{
 			// splines are functions of elevation^1/3
 			double elevationK = pow(std::max<float>(0.f, 1.f - sun_theta / (pi<float> / 2.f)), 1.f / 3.0f);
@@ -67,7 +67,7 @@ namespace adria
 		float sun_theta = std::acos(std::clamp(-sun_direction.y, 0.f, 1.f));
 
 		SkyParameters params{};
-		for (size_t i = 0; i < SkyParam_Z; ++i)
+		for (uint64 i = 0; i < SkyParam_Z; ++i)
 		{
 			auto& param = params[i];
 			param.x = (float)Evaluate(datasetsRGB[0] + i, 9, turbidity, albedo, sun_theta);

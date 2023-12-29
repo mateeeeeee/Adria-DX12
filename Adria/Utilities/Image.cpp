@@ -99,7 +99,7 @@ namespace adria
 			return false;
 
 		fseek(file, 0, SEEK_END);
-		std::vector<char> data((size_t)ftell(file));
+		std::vector<char> data((uint64)ftell(file));
 		fseek(file, 0, SEEK_SET);
 		fread(data.data(), data.size(), 1, file);
 

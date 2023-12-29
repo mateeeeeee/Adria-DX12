@@ -198,7 +198,7 @@ namespace adria
 		static constexpr uint32 backbuffer_count = GFX_BACKBUFFER_COUNT;
 		uint32 backbuffer_index = gfx->GetBackbufferIndex();
 
-		auto AddShadowMask = [&](Light& light, size_t light_id)
+		auto AddShadowMask = [&](Light& light, uint64 light_id)
 		{
 			if (light_mask_textures[light_id] == nullptr)
 			{
@@ -220,7 +220,7 @@ namespace adria
 			gfx->CopyDescriptors(1, dst_descriptor, srv);
 			light.shadow_mask_index = (int32)dst_descriptor.GetIndex();
 		};
-		auto AddShadowMap  = [&](size_t light_id, uint32 shadow_map_size)
+		auto AddShadowMap  = [&](uint64 light_id, uint32 shadow_map_size)
 		{
 			GfxTextureDesc depth_desc{};
 			depth_desc.width = shadow_map_size;
@@ -234,7 +234,7 @@ namespace adria
 			light_shadow_map_srvs[light_id].push_back(gfx->CreateTextureSRV(light_shadow_maps[light_id].back().get()));
 			light_shadow_map_dsvs[light_id].push_back(gfx->CreateTextureDSV(light_shadow_maps[light_id].back().get()));
 		};
-		auto AddShadowMaps = [&](Light& light, size_t light_id)
+		auto AddShadowMaps = [&](Light& light, uint64 light_id)
 		{
 			switch (light.type)
 			{
@@ -272,7 +272,7 @@ namespace adria
 			break;
 			}
 
-			for (size_t j = 0; j < light_shadow_maps[light_id].size(); ++j)
+			for (uint64 j = 0; j < light_shadow_maps[light_id].size(); ++j)
 			{
 				GfxDescriptor srv = light_shadow_map_srvs[light_id][j];
 				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU();
@@ -281,8 +281,8 @@ namespace adria
 			}
 		};
 
-		static size_t light_matrices_count = 0;
-		size_t current_light_matrices_count = 0;
+		static uint64 light_matrices_count = 0;
+		uint64 current_light_matrices_count = 0;
 
 		auto light_view = reg.view<Light>();
 		for (auto e : light_view)
@@ -385,7 +385,7 @@ namespace adria
 			if (!light.casts_shadows) continue;
 			int32 light_index = light.light_index;
 			int32 light_matrix_index = light.shadow_matrix_index;
-			size_t light_id = entt::to_integral(e);
+			uint64 light_id = entt::to_integral(e);
 
 			if (light.type == LightType::Directional)
 			{
@@ -478,7 +478,7 @@ namespace adria
 			auto& light = light_view.get<Light>(e);
 			if (!light.ray_traced_shadows) continue;
 			int32 light_index = light.light_index;
-			size_t light_id = entt::to_integral(e);
+			uint64 light_id = entt::to_integral(e);
 
 			rg.ImportTexture(RG_RES_NAME_IDX(LightMask, light_id), light_mask_textures[light_id].get());
 			ray_traced_shadows_pass.AddPass(rg, light_index);
@@ -486,7 +486,7 @@ namespace adria
 		}
 	}
 
-	void ShadowRenderer::ShadowMapPass_Common(GfxDevice* gfx, GfxCommandList* cmd_list, size_t light_index, size_t matrix_index, size_t matrix_offset)
+	void ShadowRenderer::ShadowMapPass_Common(GfxDevice* gfx, GfxCommandList* cmd_list, uint64 light_index, uint64 matrix_index, uint64 matrix_offset)
 	{
 		struct ShadowConstants
 		{

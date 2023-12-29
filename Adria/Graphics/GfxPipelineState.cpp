@@ -340,7 +340,7 @@ namespace adria
 	void GraphicsPipelineState::OnShaderRecompiled(GfxShaderID s)
 	{
 		GfxShaderID shaders[] = { desc.VS, desc.PS, desc.GS, desc.HS, desc.DS };
-		for (size_t i = 0; i < ARRAYSIZE(shaders); ++i)
+		for (uint64 i = 0; i < ARRAYSIZE(shaders); ++i)
 		{
 			if (s == shaders[i])
 			{
@@ -367,7 +367,7 @@ namespace adria
 		d3d12_desc.SampleDesc = DXGI_SAMPLE_DESC{ .Count = 1, .Quality = 0 };
 		d3d12_desc.DSVFormat = ConvertGfxFormat(desc.dsv_format);
 		d3d12_desc.NumRenderTargets = desc.num_render_targets;
-		for (size_t i = 0; i < ARRAYSIZE(d3d12_desc.RTVFormats); ++i)
+		for (uint64 i = 0; i < ARRAYSIZE(d3d12_desc.RTVFormats); ++i)
 		{
 			d3d12_desc.RTVFormats[i] = ConvertGfxFormat(desc.rtv_formats[i]);
 		}

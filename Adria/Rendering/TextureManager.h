@@ -13,7 +13,7 @@ namespace adria
 	class GfxDevice;
 	class GfxTexture;
 
-	using TextureHandle = size_t;
+	using TextureHandle = uint64;
 	inline constexpr TextureHandle INVALID_TEXTURE_HANDLE = TextureHandle(0);
 
 	class TextureManager : public Singleton<TextureManager>

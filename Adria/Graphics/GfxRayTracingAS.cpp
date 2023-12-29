@@ -133,7 +133,7 @@ namespace adria
 		instance_buffer = gfx->CreateBuffer(instance_buffer_desc);
 
 		D3D12_RAYTRACING_INSTANCE_DESC* p_instance_desc = instance_buffer->GetMappedData<D3D12_RAYTRACING_INSTANCE_DESC>();
-		for (size_t i = 0; i < instances.size(); ++i)
+		for (uint64 i = 0; i < instances.size(); ++i)
 		{
 			p_instance_desc[i].InstanceID = instances[i].instance_id;
 			p_instance_desc[i].InstanceContributionToHitGroupIndex = 0;

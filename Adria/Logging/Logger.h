@@ -49,7 +49,7 @@ namespace adria
 #define ADRIA_REGISTER_LOGGER(logger) g_log.RegisterLogger(logger)
 #define ADRIA_LOG(level, ... ) [&]()  \
 { \
-	size_t const size = snprintf(nullptr, 0, __VA_ARGS__) + 1; \
+	uint64 const size = snprintf(nullptr, 0, __VA_ARGS__) + 1; \
 	std::unique_ptr<char[]> buf = std::make_unique<char[]>(size); \
 	snprintf(buf.get(), size, __VA_ARGS__); \
 	g_log.Log(LogLevel::LOG_##level, buf.get(), __FILE__, __LINE__);  \

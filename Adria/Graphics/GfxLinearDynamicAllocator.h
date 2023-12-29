@@ -19,14 +19,14 @@ namespace adria
 			LinearAllocator linear_allocator;
 			void* cpu_address;
 
-			GfxAllocationPage(GfxDevice* gfx, size_t page_size);
+			GfxAllocationPage(GfxDevice* gfx, uint64 page_size);
 			GfxAllocationPage(GfxAllocationPage&&);
 			~GfxAllocationPage();
 		};
 	public:
-		GfxLinearDynamicAllocator(GfxDevice* gfx, size_t page_size, size_t page_count = 1);
+		GfxLinearDynamicAllocator(GfxDevice* gfx, uint64 page_size, uint64 page_count = 1);
 		~GfxLinearDynamicAllocator();
-		GfxDynamicAllocation Allocate(size_t size_in_bytes, size_t alignment = 0);
+		GfxDynamicAllocation Allocate(uint64 size_in_bytes, uint64 alignment = 0);
 
 		template<typename T>
 		GfxDynamicAllocation AllocateCBuffer()

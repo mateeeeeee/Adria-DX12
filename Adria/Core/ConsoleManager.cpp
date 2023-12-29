@@ -28,8 +28,8 @@ namespace adria
 		auto args = SplitString(cmd, ' ');
 		if (args.empty()) return false;
 
-		std::vector<char const*> c_args(std::max<size_t>(args.size(), 8)); 
-		for (size_t i = 0; i < args.size(); ++i) c_args[i] = args[i].c_str();
+		std::vector<char const*> c_args(std::max<uint64>(args.size(), 8));
+		for (uint64 i = 0; i < args.size(); ++i) c_args[i] = args[i].c_str();
 
 		if (auto it = cvars.find(args[0]); it != cvars.end())
 		{

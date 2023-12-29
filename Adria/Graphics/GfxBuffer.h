@@ -44,7 +44,7 @@ namespace adria
 		T* GetMappedData() const;
 		[[maybe_unused]] void* Map();
 		void Unmap();
-		void Update(void const* src_data, size_t data_size, size_t offset = 0);
+		void Update(void const* src_data, uint64 data_size, uint64 offset = 0);
 		template<typename T>
 		void Update(T const& src_data);
 

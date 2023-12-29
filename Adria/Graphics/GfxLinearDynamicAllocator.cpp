@@ -4,7 +4,7 @@
 
 namespace adria
 {
-	GfxLinearDynamicAllocator::GfxLinearDynamicAllocator(GfxDevice* gfx, size_t page_size, size_t page_count)
+	GfxLinearDynamicAllocator::GfxLinearDynamicAllocator(GfxDevice* gfx, uint64 page_size, uint64 page_count)
 		: gfx(gfx), page_size(page_size)
 	{
 		alloc_pages.reserve(page_count);
@@ -12,7 +12,7 @@ namespace adria
 	}
 	GfxLinearDynamicAllocator::~GfxLinearDynamicAllocator() = default;
 
-	GfxDynamicAllocation GfxLinearDynamicAllocator::Allocate(size_t size_in_bytes, size_t alignment)
+	GfxDynamicAllocation GfxLinearDynamicAllocator::Allocate(uint64 size_in_bytes, uint64 alignment)
 	{
 		OffsetType offset = INVALID_OFFSET;
 		GfxAllocationPage& last_page = alloc_pages[current_page];
@@ -58,7 +58,7 @@ namespace adria
 		current_page = 0;
 	}
 
-	GfxLinearDynamicAllocator::GfxAllocationPage::GfxAllocationPage(GfxDevice* gfx, size_t page_size) : linear_allocator(page_size)
+	GfxLinearDynamicAllocator::GfxAllocationPage::GfxAllocationPage(GfxDevice* gfx, uint64 page_size) : linear_allocator(page_size)
 	{
 		GfxBufferDesc desc{};
 		desc.size = page_size;

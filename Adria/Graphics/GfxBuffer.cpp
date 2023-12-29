@@ -170,7 +170,7 @@ namespace adria
 		mapped_data = nullptr;
 	}
 
-	void GfxBuffer::Update(void const* src_data, size_t data_size, size_t offset /*= 0*/)
+	void GfxBuffer::Update(void const* src_data, uint64 data_size, uint64 offset /*= 0*/)
 	{
 		ADRIA_ASSERT(desc.resource_usage == GfxResourceUsage::Upload);
 		if (mapped_data)

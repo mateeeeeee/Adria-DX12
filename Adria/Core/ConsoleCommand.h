@@ -23,7 +23,7 @@ namespace adria
 	template<typename ...Args>
 	class ConsoleCommand : public IConsoleCommand
 	{
-		template<size_t I, typename... Args>
+		template<uint64 I, typename... Args>
 		void TupleFromArguments(std::tuple<Args...>& t, std::span<char const*> args)
 		{
 			if (!FromCString(args[I], std::get<I>(t))) return;
@@ -54,7 +54,7 @@ namespace adria
 		}
 
 	private:
-		template<size_t... Is>
+		template<uint64... Is>
 		bool ExecuteImpl(std::span<char const*> args, std::index_sequence<Is...>)
 		{
 			std::tuple<std::remove_reference_t<Args>...> arguments = TupleFromArguments<std::remove_reference_t<Args>...>(args);

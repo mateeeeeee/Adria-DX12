@@ -80,7 +80,7 @@ namespace adria
 	class GfxReflectionBlob : public IDxcBlob
 	{
 	public:
-		GfxReflectionBlob(void const* pShaderBytecode, size_t byteLength) : bytecodeSize{ byteLength }
+		GfxReflectionBlob(void const* pShaderBytecode, uint64 byteLength) : bytecodeSize{ byteLength }
 		{
 			pBytecode = const_cast<void*>(pShaderBytecode);
 		}
@@ -187,7 +187,7 @@ namespace adria
 
 			archive(output.shader_hash);
 			archive(output.includes);
-			size_t binary_size = 0;
+			uint64 binary_size = 0;
 			archive(binary_size);
 			std::unique_ptr<char[]> binary_data(new char[binary_size]);
 			archive.loadBinary(binary_data.get(), binary_size);

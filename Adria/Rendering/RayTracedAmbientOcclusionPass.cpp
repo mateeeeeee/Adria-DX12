@@ -122,7 +122,7 @@ namespace adria
 				};
 
 				float distance_kernel[6];
-				for (size_t i = 0; i < 6; ++i)
+				for (uint64 i = 0; i < 6; ++i)
 				{
 					distance_kernel[i] = (float)exp(-float(i * i) / (2.f * params.filter_distance_sigma * params.filter_distance_sigma));
 				}

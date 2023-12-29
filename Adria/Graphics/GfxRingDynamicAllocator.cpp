@@ -4,7 +4,7 @@
 
 namespace adria
 {
-	GfxRingDynamicAllocator::GfxRingDynamicAllocator(GfxDevice* gfx, size_t max_size_in_bytes)
+	GfxRingDynamicAllocator::GfxRingDynamicAllocator(GfxDevice* gfx, uint64 max_size_in_bytes)
 		: ring_allocator(max_size_in_bytes)
 	{
 		GfxBufferDesc desc{};
@@ -19,7 +19,7 @@ namespace adria
 
 	GfxRingDynamicAllocator::~GfxRingDynamicAllocator() = default;
 
-	GfxDynamicAllocation GfxRingDynamicAllocator::Allocate(size_t size_in_bytes, size_t alignment)
+	GfxDynamicAllocation GfxRingDynamicAllocator::Allocate(uint64 size_in_bytes, uint64 alignment)
 	{
 		OffsetType offset = INVALID_OFFSET;
 		{

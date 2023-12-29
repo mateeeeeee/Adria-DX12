@@ -401,7 +401,7 @@ namespace adria
 
 		std::vector<float> ping_array(FFT_RESOLUTION * FFT_RESOLUTION);
 		RealRandomGenerator rand_float{ 0.0f,  2.0f * pi<float> };
-		for (size_t i = 0; i < ping_array.size(); ++i) ping_array[i] = rand_float();
+		for (uint64 i = 0; i < ping_array.size(); ++i) ping_array[i] = rand_float();
 
 		GfxTextureInitialData data{};
 		data.data = ping_array.data();

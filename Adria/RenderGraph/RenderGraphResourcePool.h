@@ -23,7 +23,7 @@ namespace adria
 
 		void Tick()
 		{
-			for (size_t i = 0; i < texture_pool.size();)
+			for (uint64 i = 0; i < texture_pool.size();)
 			{
 				PooledTexture& resource = texture_pool[i].first;
 				bool active = texture_pool[i].second;

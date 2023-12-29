@@ -117,9 +117,9 @@ namespace adria
 		else
 		{
 			std::vector<uint32> indices{};
-			for (size_t j = 0; j < params.tile_count_z; j += params.chunk_count_z)
+			for (uint64 j = 0; j < params.tile_count_z; j += params.chunk_count_z)
 			{
-				for (size_t i = 0; i < params.tile_count_x; i += params.chunk_count_x)
+				for (uint64 i = 0; i < params.tile_count_x; i += params.chunk_count_x)
 				{
 					entt::entity chunk = reg.create();
 
@@ -128,9 +128,9 @@ namespace adria
 
 
 					std::vector<TexturedNormalVertex> chunk_vertices_aabb{};
-					for (size_t k = j; k < j + params.chunk_count_z; ++k)
+					for (uint64 k = j; k < j + params.chunk_count_z; ++k)
 					{
-						for (size_t m = i; m < i + params.chunk_count_x; ++m)
+						for (uint64 m = i; m < i + params.chunk_count_x; ++m)
 						{
 
 							uint32 i1 = static_cast<uint32>(k * (params.tile_count_x + 1) + m);
@@ -217,7 +217,7 @@ namespace adria
 		std::vector<uint32> indices{};
 		std::vector<entt::entity> entities{};
 
-		for (size_t s = 0; s < shapes.size(); s++)
+		for (uint64 s = 0; s < shapes.size(); s++)
 		{
 			entt::entity e = reg.create();
 			entities.push_back(e);
@@ -227,22 +227,22 @@ namespace adria
 			mesh_component.base_vertex_location = static_cast<uint32>(vertices.size());
 
 			// Loop over faces(polygon)
-			size_t index_offset = 0;
-			for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++)
+			uint64 index_offset = 0;
+			for (uint64 f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++)
 			{
-				size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
+				uint64 fv = uint64(shapes[s].mesh.num_face_vertices[f]);
 
 				// Loop over vertices in the face.
-				for (size_t v = 0; v < fv; v++)
+				for (uint64 v = 0; v < fv; v++)
 				{
 					// access to vertex
 					tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
 					indices.push_back((uint32)(index_offset + v));
 
 					TexturedNormalVertex vertex{};
-					tinyobj::real_t vx = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
-					tinyobj::real_t vy = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
-					tinyobj::real_t vz = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
+					tinyobj::real_t vx = attrib.vertices[3 * uint64(idx.vertex_index) + 0];
+					tinyobj::real_t vy = attrib.vertices[3 * uint64(idx.vertex_index) + 1];
+					tinyobj::real_t vz = attrib.vertices[3 * uint64(idx.vertex_index) + 2];
 
 					vertex.position.x = vx;
 					vertex.position.y = vy;
@@ -251,9 +251,9 @@ namespace adria
 					// Check if `normal_index` is zero or positive. negative = no normal data
 					if (idx.normal_index >= 0)
 					{
-						tinyobj::real_t nx = attrib.normals[3 * size_t(idx.normal_index) + 0];
-						tinyobj::real_t ny = attrib.normals[3 * size_t(idx.normal_index) + 1];
-						tinyobj::real_t nz = attrib.normals[3 * size_t(idx.normal_index) + 2];
+						tinyobj::real_t nx = attrib.normals[3 * uint64(idx.normal_index) + 0];
+						tinyobj::real_t ny = attrib.normals[3 * uint64(idx.normal_index) + 1];
+						tinyobj::real_t nz = attrib.normals[3 * uint64(idx.normal_index) + 2];
 
 						vertex.normal.x = nx;
 						vertex.normal.y = ny;
@@ -263,8 +263,8 @@ namespace adria
 					// Check if `texcoord_index` is zero or positive. negative = no texcoord data
 					if (idx.texcoord_index >= 0)
 					{
-						tinyobj::real_t tx = attrib.texcoords[2 * size_t(idx.texcoord_index) + 0];
-						tinyobj::real_t ty = attrib.texcoords[2 * size_t(idx.texcoord_index) + 1];
+						tinyobj::real_t tx = attrib.texcoords[2 * uint64(idx.texcoord_index) + 0];
+						tinyobj::real_t ty = attrib.texcoords[2 * uint64(idx.texcoord_index) + 1];
 
 						vertex.uv.x = tx;
 						vertex.uv.y = ty;
@@ -620,7 +620,7 @@ namespace adria
 					uint32 triangle_cw[]   = { 0, 1, 2 };
 					uint32 triangle_ccw[]  = { 0, 2, 1 };
 					uint32* order = params.triangle_ccw ? triangle_ccw : triangle_cw;
-					for (size_t i = 0; i < index_accessor.count; i += 3)
+					for (uint64 i = 0; i < index_accessor.count; i += 3)
 					{
 						mesh_data.indices.push_back(data[i + order[0]]);
 						mesh_data.indices.push_back(data[i + order[1]]);
@@ -673,7 +673,7 @@ namespace adria
 					const tinygltf::Buffer& buffer = model.buffers[buffer_view.buffer];
 
 					int stride = accessor.ByteStride(buffer_view);
-					size_t count = accessor.count;
+					uint64 count = accessor.count;
 					const unsigned char* data = buffer.data.data() + accessor.byteOffset + buffer_view.byteOffset;
 
 					auto ReadAttributeData = [&]<typename T>(std::vector<T>&stream, const char* stream_name)
@@ -681,9 +681,9 @@ namespace adria
 						if (!attr_name.compare(stream_name))
 						{
 							stream.reserve(count);
-							for (size_t i = 0; i < count; ++i)
+							for (uint64 i = 0; i < count; ++i)
 							{
-								stream.push_back(*(T*)((size_t)data + i * stride));
+								stream.push_back(*(T*)((uint64)data + i * stride));
 							}
 						}
 					};
@@ -700,7 +700,7 @@ namespace adria
 		for (auto& mesh_data : mesh_datas)
 		{
 			std::vector<uint32> const& indices = mesh_data.indices;
-			size_t vertex_count = mesh_data.positions_stream.size();
+			uint64 vertex_count = mesh_data.positions_stream.size();
 
 			bool has_tangents = !mesh_data.tangents_stream.empty();
 			if (mesh_data.normals_stream.size() != vertex_count) mesh_data.normals_stream.resize(vertex_count);
@@ -717,14 +717,14 @@ namespace adria
 			meshopt_remapVertexBuffer(mesh_data.tangents_stream.data(), mesh_data.tangents_stream.data(), mesh_data.tangents_stream.size(), sizeof(Vector4), &remap[0]);
 			meshopt_remapVertexBuffer(mesh_data.uvs_stream.data(), mesh_data.uvs_stream.data(), mesh_data.uvs_stream.size(), sizeof(Vector2), &remap[0]);
 
-			size_t const max_meshlets = meshopt_buildMeshletsBound(mesh_data.indices.size(), MESHLET_MAX_VERTICES, MESHLET_MAX_TRIANGLES);
+			uint64 const max_meshlets = meshopt_buildMeshletsBound(mesh_data.indices.size(), MESHLET_MAX_VERTICES, MESHLET_MAX_TRIANGLES);
 			mesh_data.meshlets.resize(max_meshlets);
 			mesh_data.meshlet_vertices.resize(max_meshlets * MESHLET_MAX_VERTICES);
 
 			std::vector<unsigned char> meshlet_triangles(max_meshlets * MESHLET_MAX_TRIANGLES * 3);
 			std::vector<meshopt_Meshlet> meshlets(max_meshlets);
 
-			size_t meshlet_count = meshopt_buildMeshlets(meshlets.data(), mesh_data.meshlet_vertices.data(), meshlet_triangles.data(),
+			uint64 meshlet_count = meshopt_buildMeshlets(meshlets.data(), mesh_data.meshlet_vertices.data(), meshlet_triangles.data(),
 				mesh_data.indices.data(), mesh_data.indices.size(), &mesh_data.positions_stream[0].x, mesh_data.positions_stream.size(), sizeof(Vector3),
 				MESHLET_MAX_VERTICES, MESHLET_MAX_TRIANGLES, 0);
 
@@ -737,7 +737,7 @@ namespace adria
 			mesh_data.meshlet_triangles.resize(meshlet_triangles.size() / 3);
 
 			uint32 triangle_offset = 0;
-			for (size_t i = 0; i < meshlet_count; ++i)
+			for (uint64 i = 0; i < meshlet_count; ++i)
 			{
 				meshopt_Meshlet const& m = meshlets[i];
 				meshopt_Bounds meshopt_bounds = meshopt_computeMeshletBounds(&mesh_data.meshlet_vertices[m.vertex_offset], &meshlet_triangles[m.triangle_offset],
@@ -788,7 +788,7 @@ namespace adria
 		};
 
 		mesh.submeshes.reserve(mesh_datas.size());
-		for (size_t i = 0; i < mesh_datas.size(); ++i)
+		for (uint64 i = 0; i < mesh_datas.size(); ++i)
 		{
 			auto const& mesh_data = mesh_datas[i];
 
@@ -901,7 +901,7 @@ namespace adria
 		};
 
 		tinygltf::Scene const& scene = model.scenes[std::max(0, model.defaultScene)];
-		for (size_t i = 0; i < scene.nodes.size(); ++i)
+		for (uint64 i = 0; i < scene.nodes.size(); ++i)
 		{
 			LoadNode(scene.nodes[i], params.model_matrix);
 		}

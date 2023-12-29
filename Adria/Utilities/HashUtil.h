@@ -4,7 +4,7 @@
 namespace adria
 {
 	template <typename T>
-	constexpr void HashCombine(size_t& seed, T const& v)
+	constexpr void HashCombine(uint64& seed, T const& v)
 	{
 		std::hash<T> hasher{};
 		seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
@@ -13,17 +13,17 @@ namespace adria
 	namespace crc
 	{
 		//https://stackoverflow.com/questions/28675727/using-crc32-algorithm-to-hash-string-at-compile-time 
-		template <uint64_t c, int32_t k = 8>
+		template <uint64 c, uint32 k = 8>
 		struct CrcInternal : CrcInternal<((c & 1) ? 0xd800000000000000L : 0) ^ (c >> 1), k - 1>
 		{};
 
-		template <uint64_t c> struct CrcInternal<c, 0>
+		template <uint64 c> struct CrcInternal<c, 0>
 		{
-			static constexpr uint64_t value = c;
+			static constexpr uint64 value = c;
 		};
 
-		template<uint64_t c>
-		constexpr uint64_t CrcInternalValue = CrcInternal<c>::value;
+		template<uint64 c>
+		constexpr uint64 CrcInternalValue = CrcInternal<c>::value;
 
 		#define CRC64_TABLE_0(x) CRC64_TABLE_1(x) CRC64_TABLE_1(x + 128)
 		#define CRC64_TABLE_1(x) CRC64_TABLE_2(x) CRC64_TABLE_2(x +  64)
@@ -35,12 +35,12 @@ namespace adria
 		#define CRC64_TABLE_7(x) CRC64_TABLE_8(x) CRC64_TABLE_8(x +   1)
 		#define CRC64_TABLE_8(x) CrcInternalValue<x>,
 
-		static constexpr uint64_t CRC_TABLE[] = { CRC64_TABLE_0(0) };
+		static constexpr uint64 CRC_TABLE[] = { CRC64_TABLE_0(0) };
 
-		constexpr uint64_t crc64_impl(const char* str, size_t N)
+		constexpr uint64 crc64_impl(const char* str, uint64 N)
 		{
-			uint64_t val = 0xFFFFFFFFFFFFFFFFL;
-			for (size_t idx = 0; idx < N; ++idx)
+			uint64 val = 0xFFFFFFFFFFFFFFFFL;
+			for (uint64 idx = 0; idx < N; ++idx)
 			{
 				val = (val >> 8) ^ CRC_TABLE[(val ^ str[idx]) & 0xFF];
 			}

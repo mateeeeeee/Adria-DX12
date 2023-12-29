@@ -56,12 +56,12 @@ namespace adria
 
 		std::unique_ptr<GfxBuffer>  light_matrices_buffer;
 		GfxDescriptor				light_matrices_buffer_srvs[GFX_BACKBUFFER_COUNT];
-		std::unordered_map<size_t, std::vector<std::unique_ptr<GfxTexture>>> light_shadow_maps;
-		std::unordered_map<size_t, std::vector<GfxDescriptor>> light_shadow_map_srvs;
-		std::unordered_map<size_t, std::vector<GfxDescriptor>> light_shadow_map_dsvs;
-		std::unordered_map<size_t, std::unique_ptr<GfxTexture>> light_mask_textures;
-		std::unordered_map<size_t, GfxDescriptor> light_mask_texture_srvs;
-		std::unordered_map<size_t, GfxDescriptor> light_mask_texture_uavs;
+		std::unordered_map<uint64, std::vector<std::unique_ptr<GfxTexture>>> light_shadow_maps;
+		std::unordered_map<uint64, std::vector<GfxDescriptor>> light_shadow_map_srvs;
+		std::unordered_map<uint64, std::vector<GfxDescriptor>> light_shadow_map_dsvs;
+		std::unordered_map<uint64, std::unique_ptr<GfxTexture>> light_mask_textures;
+		std::unordered_map<uint64, GfxDescriptor> light_mask_texture_srvs;
+		std::unordered_map<uint64, GfxDescriptor> light_mask_texture_uavs;
 		int32						   light_matrices_gpu_index = -1;
 
 		std::vector<Matrix>								light_matrices;
@@ -71,7 +71,7 @@ namespace adria
 		ShadowTextureRenderedEvent shadow_rendered_event;
 
 	private:
-		void ShadowMapPass_Common(GfxDevice* gfx, GfxCommandList* cmd_list, size_t light_index, size_t matrix_index, size_t matrix_offset);
+		void ShadowMapPass_Common(GfxDevice* gfx, GfxCommandList* cmd_list, uint64 light_index, uint64 matrix_index, uint64 matrix_offset);
 		static std::array<Matrix, SHADOW_CASCADE_COUNT> RecalculateProjectionMatrices(Camera const& camera, float split_lambda, std::array<float, SHADOW_CASCADE_COUNT>& split_distances);
 	};
 }

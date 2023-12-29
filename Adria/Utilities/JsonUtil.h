@@ -1,14 +1,11 @@
 #pragma once
-#include "Logging/Logger.h"
 #include "Core/Defines.h"
 #include "nlohmann/json.hpp"
-
 
 using json = nlohmann::json;
 
 namespace adria
 {
-
 	class JsonParams
 	{
 	public:
@@ -33,24 +30,22 @@ namespace adria
 			return _return_json.is_array() ? _return_json : json::array();
 		}
 
-		//type_identity_t avoids deducing RequiredType from default_value so the user must explicitly provide template param
-
-		template<typename RequiredType> 
-		[[nodiscard]] RequiredType FindOr(std::string const& name, std::type_identity_t<RequiredType> const& default_value)
+		template<typename T>
+		[[nodiscard]] T FindOr(std::string const& name, std::type_identity_t<T> const& default_value)
 		{
 			bool has_field = _json.contains(name);
 			if (!has_field) return default_value;
 			else
 			{
 				json key_value_json = _json[name];
-				RequiredType value;
+				T value;
 				if (!CheckValueTypeAndAssign(key_value_json, value)) return default_value;
 				else return value;
 			}
 		}
 
-		template<typename RequiredType>
-		[[maybe_unused]] bool Find(std::string const& name, std::type_identity_t<RequiredType>& value)
+		template<typename T>
+		[[maybe_unused]] bool Find(std::string const& name, std::type_identity_t<T>& value)
 		{
 			bool has_field = _json.contains(name);
 			if (!has_field) return false;
@@ -61,8 +56,8 @@ namespace adria
 			}
 		}
 
-		template<typename RequiredType, size_t N>
-		[[maybe_unused]] bool FindArray(std::string const& name, RequiredType(&arr)[N])
+		template<typename T, uint64 N>
+		[[maybe_unused]] bool FindArray(std::string const& name, T(&arr)[N])
 		{
 			bool has_field = _json.contains(name);
 			if (has_field)
@@ -70,7 +65,7 @@ namespace adria
 				json const key_value_json = _json[name];
 				if (key_value_json.is_array() && key_value_json.size() == N)
 				{
-					for (size_t i = 0; i < N; ++i)
+					for (uint64 i = 0; i < N; ++i)
 					{
 						if (!CheckValueTypeAndAssign(key_value_json[i], arr[i])) return false;
 					}
@@ -80,8 +75,8 @@ namespace adria
 			return false;
 		}
 
-		template<typename RequiredType>
-		[[maybe_unused]] bool FindDynamicArray(std::string const& name, std::vector<RequiredType>& arr)
+		template<typename T>
+		[[maybe_unused]] bool FindDynamicArray(std::string const& name, std::vector<T>& arr)
 		{
 			bool has_field = _json.contains(name);
 			if (has_field)
@@ -91,7 +86,7 @@ namespace adria
 				{
 					arr.clear();
 					arr.resize(key_value_json.size());
-					for (size_t i = 0; i < key_value_json.size(); ++i)
+					for (uint64 i = 0; i < key_value_json.size(); ++i)
 					{
 						if (!CheckValueTypeAndAssign(key_value_json[i], arr[i])) return false;
 					}
@@ -106,13 +101,13 @@ namespace adria
 
 	private:
 
-		template<typename RequiredType>
-		static constexpr bool CheckValueTypeAndAssign(json const& key_value_json, RequiredType& return_value)
+		template<typename T>
+		static constexpr bool CheckValueTypeAndAssign(json const& key_value_json, T& return_value)
 		{
 			ADRIA_ASSERT(!key_value_json.is_null());
 			if (key_value_json.is_string())
 			{
-				if constexpr (std::is_same_v<std::decay_t<RequiredType>, std::string>)
+				if constexpr (std::is_same_v<std::decay_t<T>, std::string>)
 				{
 					return_value = key_value_json.get<std::string>();
 					return true;
@@ -121,12 +116,12 @@ namespace adria
 			}
 			else if (key_value_json.is_number_float())
 			{
-				if constexpr (std::is_same_v<std::decay_t<RequiredType>, float>)
+				if constexpr (std::is_same_v<std::decay_t<T>, float>)
 				{
 					return_value = key_value_json.get<float>();
 					return true;
 				}
-				else if constexpr (std::is_same_v<std::decay_t<RequiredType>, double>)
+				else if constexpr (std::is_same_v<std::decay_t<T>, double>)
 				{
 					return_value = key_value_json.get<double>();
 					return true;
@@ -135,21 +130,21 @@ namespace adria
 			}
 			else if (key_value_json.is_number_unsigned())
 			{
-				if constexpr (std::is_same_v<std::decay_t<RequiredType>, size_t>)
+				if constexpr (std::is_same_v<std::decay_t<T>, uint64>)
 				{
-					return_value = key_value_json.get<size_t>();
+					return_value = key_value_json.get<uint64>();
 					return true;
 				}
-				else if constexpr (std::is_same_v<std::decay_t<RequiredType>, uint32_t>)
+				else if constexpr (std::is_same_v<std::decay_t<T>, uint32>)
 				{
-					return_value = key_value_json.get<uint32_t>();
+					return_value = key_value_json.get<uint32>();
 					return true;
 				}
 				else return false;
 			}
 			else if (key_value_json.is_boolean())
 			{
-				if constexpr (std::is_same_v<std::decay_t<RequiredType>, bool>)
+				if constexpr (std::is_same_v<std::decay_t<T>, bool>)
 				{
 					return_value = key_value_json.get<bool>();
 					return true;
