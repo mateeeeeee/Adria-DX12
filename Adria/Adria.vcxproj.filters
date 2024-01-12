@@ -483,6 +483,9 @@
     <ClCompile Include="Utilities\FilesUtil.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\GPUDebugPrinter.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1070,6 +1073,9 @@
     </ClInclude>
     <ClInclude Include="Rendering\FSR3Pass.h">
       <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\GPUDebugPrinter.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

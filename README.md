@@ -70,7 +70,7 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
     - custom and tracy profiler
 
 ## TODO
-* Shader Printf
+* GPU Debug Print (wip)
 * ReSTIR GI
 
 ## Screenshots

@@ -285,6 +285,7 @@
     <ClCompile Include="Rendering\RayTracedShadowsPass.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
     <ClCompile Include="Rendering\ShaderCache.cpp" />
+    <ClCompile Include="Rendering\GPUDebugPrinter.cpp" />
     <ClCompile Include="Rendering\ShadowRenderer.cpp" />
     <ClCompile Include="Rendering\SkyModel.cpp" />
     <ClCompile Include="Rendering\SkyPass.cpp" />
@@ -443,6 +444,7 @@
     <ClInclude Include="Rendering\FSR2Pass.h" />
     <ClInclude Include="Rendering\FSR3Pass.h" />
     <ClInclude Include="Rendering\GPUDrivenGBufferPass.h" />
+    <ClInclude Include="Rendering\GPUDebugPrinter.h" />
     <ClInclude Include="Rendering\ShaderStructs.h" />
     <ClInclude Include="Rendering\HelperPasses.h" />
     <ClInclude Include="Rendering\DecalsPass.h" />
