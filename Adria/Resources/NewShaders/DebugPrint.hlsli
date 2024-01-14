@@ -260,7 +260,7 @@ struct DebugPrinter
     }
 };
 
-#define DebugPrint(str, ...) do                              \
+#define printf(str, ...) do                              \
 {                                                            \
     DebugPrinter printer;                                    \
     printer.Init();                                          \
