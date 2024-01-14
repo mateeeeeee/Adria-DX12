@@ -134,10 +134,25 @@ namespace adria
 		return resource->GetGPUVirtualAddress();
 	}
 
+	uint64 GfxBuffer::GetSize() const
+	{
+		return desc.size;
+	}
+
+	uint32 GfxBuffer::GetStride() const
+	{
+		return desc.stride;
+	}
+
 	uint32 GfxBuffer::GetCount() const
 	{
 		ADRIA_ASSERT(desc.stride != 0);
 		return static_cast<uint32>(desc.size / desc.stride);
+	}
+
+	GfxFormat GfxBuffer::GetFormat() const
+	{
+		return desc.format;
 	}
 
 	bool GfxBuffer::IsMapped() const

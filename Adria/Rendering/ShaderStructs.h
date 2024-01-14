@@ -58,6 +58,7 @@ namespace adria
 		int32  materials_idx;
 		int32  instances_idx;
 		int32  ddgi_volumes_idx;
+		int32  printf_buffer_idx;
 	};
 
 	struct LightHLSL

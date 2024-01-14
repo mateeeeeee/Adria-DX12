@@ -10,6 +10,7 @@
 #include "TiledDeferredLightingPass.h"
 #include "ClusteredDeferredLightingPass.h"
 #include "DDGI.h"
+#include "GPUDebugPrinter.h"
 #include "HelperPasses.h"
 #include "PickingPass.h"
 #include "DecalsPass.h"
@@ -116,6 +117,7 @@ namespace adria
 		PickingData picking_data;
 
 		RendererPathType path_type = RendererPathType::RegularDeferred;
+		GPUDebugPrinter gpu_debug_printer;
 
 		//misc
 		uint32			         volumetric_lights = 0;

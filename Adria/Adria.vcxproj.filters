@@ -1341,6 +1341,9 @@
     <None Include="Resources\NewShaders\Primitives.hlsli">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Resources\NewShaders\DebugPrint.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="adria.log" />

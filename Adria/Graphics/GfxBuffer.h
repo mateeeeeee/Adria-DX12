@@ -36,7 +36,10 @@ namespace adria
 
 		GfxBufferDesc const& GetDesc() const;
 		uint64 GetGpuAddress() const;
+		uint64 GetSize() const;
+		uint32 GetStride() const;
 		uint32 GetCount() const;
+		GfxFormat GetFormat() const;
 
 		bool IsMapped() const;
 		void* GetMappedData() const;
@@ -72,7 +75,7 @@ namespace adria
 	struct GfxVertexBufferView
 	{
 		explicit GfxVertexBufferView(GfxBuffer* buffer)
-			: buffer_location(buffer->GetGpuAddress()), size_in_bytes((uint32)buffer->GetDesc().size), stride_in_bytes(buffer->GetDesc().stride)
+			: buffer_location(buffer->GetGpuAddress()), size_in_bytes((uint32)buffer->GetSize()), stride_in_bytes(buffer->GetStride())
 		{}
 
 		GfxVertexBufferView(uint64 buffer_location, uint32 count, uint32 stride_in_bytes)
@@ -87,7 +90,7 @@ namespace adria
 	struct GfxIndexBufferView
 	{
 		explicit GfxIndexBufferView(GfxBuffer* buffer)
-			: buffer_location(buffer->GetGpuAddress()), size_in_bytes((uint32)buffer->GetDesc().size), format(buffer->GetDesc().format)
+			: buffer_location(buffer->GetGpuAddress()), size_in_bytes((uint32)buffer->GetSize()), format(buffer->GetFormat())
 		{}
 
 		GfxIndexBufferView(uint64 buffer_location, uint32 count, GfxFormat format = GfxFormat::R32_UINT)

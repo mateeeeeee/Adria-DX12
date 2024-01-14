@@ -49,7 +49,7 @@ namespace adria
 		clustered_deferred_lighting_pass(reg, gfx, width, height),
 		decals_pass(reg, width, height), ocean_renderer(reg, width, height),
 		shadow_renderer(reg, gfx, width, height), 
-		path_tracer(gfx, width, height), ddgi(gfx, reg, width, height)
+		path_tracer(gfx, width, height), ddgi(gfx, reg, width, height), gpu_debug_printer(gfx)
 	{
 		postprocessor.AddRenderResolutionChangedCallback(&Renderer::OnRenderResolutionChanged, *this);
 
@@ -381,6 +381,7 @@ namespace adria
 		frame_cbuf_data.lights_idx = (int32)scene_buffers[SceneBuffer_Light].buffer_srv_gpu.GetIndex();
 		shadow_renderer.FillFrameCBuffer(frame_cbuf_data);
 		frame_cbuf_data.ddgi_volumes_idx = ddgi.GetDDGIVolumeIndex();
+		frame_cbuf_data.printf_buffer_idx = gpu_debug_printer.GetPrintfBufferIndex();
 
 		if (ray_tracing_supported && reg.view<RayTracing>().size())
 		{
