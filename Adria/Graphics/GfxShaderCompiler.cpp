@@ -1,6 +1,6 @@
 #pragma comment(lib, "dxcompiler.lib")
 #include <d3dcompiler.h>
-#include "dxc/dxcapi.h"
+#include "dxcapi.h"
 #include "cereal/archives/binary.hpp"
 #include "cereal/types/string.hpp"
 #include "cereal/types/vector.hpp"
@@ -275,7 +275,6 @@ namespace adria
 				compile_args.push_back(DXC_ARG_OPTIMIZATION_LEVEL3);
 			}
 			compile_args.push_back(L"-HV 2021");
-			compile_args.push_back(L"-no-warnings"); //temporary
 
 			compile_args.push_back(L"-E");
 			compile_args.push_back(entry_point.c_str());

@@ -26,6 +26,8 @@ bool SampleLightRIS(inout uint seed, float3 position, float3 N, out int lightInd
     uint lightCount, _unused;
     lights.GetDimensions(lightCount, _unused);
 
+    lightIndex = -1;
+    sampleWeight = 0.0f;
     if (lightCount <= 0)
         return false;
 

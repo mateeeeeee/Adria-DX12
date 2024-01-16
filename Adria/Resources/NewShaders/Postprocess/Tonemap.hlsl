@@ -1,7 +1,6 @@
 #include "../Tonemapping.hlsli"
 #include "../CommonResources.hlsli"
 #include "../Packing.hlsli"
-#include "../DebugPrint.hlsli"
 
 #define BLOCK_SIZE 16
 
@@ -25,11 +24,6 @@ struct CSInput
     uint3 DispatchThreadId : SV_DispatchThreadID;
     uint GroupIndex : SV_GroupIndex;
 };
-
-template<typename T, uint N> uint StrLen2(T str[N])
-{
-    return N;
-}
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void Tonemap(CSInput input)
@@ -68,5 +62,5 @@ void Tonemap(CSInput input)
         default:
             tone_mapped_color = float4(color.xyz * exposure * PassCB.tonemapExposure, 1.0f);
     }
-    outputTx[input.DispatchThreadId.xy] = tone_mapped_color;
+	outputTx[input.DispatchThreadId.xy] = tone_mapped_color;
 }
