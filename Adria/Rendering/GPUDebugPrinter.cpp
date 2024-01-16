@@ -100,13 +100,16 @@ namespace adria
 		GfxBuffer& readback_buffer = *readback_buffers[current_backbuffer_index];
 		cmd_list->CopyBuffer(readback_buffer, *printf_buffer);
 
+		uint64 old_backbuffer_index = (current_backbuffer_index + 1) % gfx->GetBackbufferCount();
+		GfxBuffer& old_readback_buffer = *readback_buffers[old_backbuffer_index];
+
 		static constexpr uint32 MaxDebugPrintArgs = 4;
-		DebugPrintReader print_reader(readback_buffer.GetMappedData<uint8>(), (uint32)readback_buffer.GetSize());
+		DebugPrintReader print_reader(old_readback_buffer.GetMappedData<uint8>() + sizeof(uint32), (uint32)old_readback_buffer.GetSize() - sizeof(uint32));
 
 		while (print_reader.HasMoreData(sizeof(DebugPrintHeader)))
 		{
 			DebugPrintHeader const* header = print_reader.Consume<DebugPrintHeader>();
-			if (header->NumBytes == 0 || print_reader.HasMoreData(header->NumBytes) == false)
+			if (header->NumBytes == 0 || !print_reader.HasMoreData(header->NumBytes))
 				break;
 
 			std::string fmt = print_reader.ConsumeString(header->StringSize);

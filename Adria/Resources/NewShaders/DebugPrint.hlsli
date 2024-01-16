@@ -9,6 +9,7 @@ static const uint MaxDebugPrintArgs = 4;
 
 template<typename T> uint CharToUint(in T c)
 {
+   if  (c == '\0') return 0;
     if (c == ' ') return 32;
     if (c == '!') return 33;
     if (c == '"') return 34;
@@ -239,7 +240,7 @@ struct DebugPrinter
 
     void Commit()
     {
-        if(ByteCount < 2) return;  
+        //if(ByteCount < 2) return;  
         ByteCount = ((ByteCount + 3) / 4) * 4;
 
         RWByteAddressBuffer printBuffer = ResourceDescriptorHeap[FrameCB.printfBufferIdx];

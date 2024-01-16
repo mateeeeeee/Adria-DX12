@@ -18,8 +18,7 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
     - 2 phase GPU occlusion culling
 * Reference path tracer 
 * Temporal upscalers
-    - FSR2
-	- FSR3
+    - FSR2, FSR3
     - XeSS 
     - DLSS3
 * Ultimate Bindless 
@@ -35,8 +34,6 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
     - Temporal reprojection
 * Hosek-Wilkie sky
 * Ocean FFT
-    - Adaptive tesselation
-    - Foam
 * Automatic exposure
 * Bloom
 * Depth of field + Bokeh 
@@ -50,27 +47,22 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
 * Reflections: 
     - SSR
     - RTR (DXR)
-* Deferred decals
-* FXAA
-* TAA
+* Antialiasing: FXAA, TAA
 * Contrast Adaptive Sharpening (FFX)
-* Film effects
-    - Lens distortion
-    - Chromatic aberration
-    - Vignette
-    - Film grain
+* Film effects: Lens distortion, Chromatic aberration, Vignette, Film grain
 * God rays
 * Lens flare
 * Motion blur
-* Fog
-* Shader hot reload
-* Debug renderer
 * ImGui editor
 * Profiler
     - custom and tracy profiler
+* Debug tools
+    - Debug renderer
+    - Shader hot reloading
+    - Render graph dump and visualization
+    - Shader debug printf (wip)
 
 ## TODO
-* GPU Debug Print (wip)
 * ReSTIR GI
 
 ## Screenshots
