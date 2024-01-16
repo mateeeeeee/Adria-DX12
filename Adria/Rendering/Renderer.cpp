@@ -122,11 +122,10 @@ namespace adria
 		if (path_type == RendererPathType::PathTracing) Render_PathTracing(render_graph);
 		else Render_Deferred(render_graph);
 		if (take_screenshot) TakeScreenshot(render_graph);
+		gpu_debug_printer.Print();
 
 		if (!g_Editor.IsActive()) CopyToBackbuffer(render_graph);
 		else g_Editor.AddRenderPass(render_graph);
-
-		gpu_debug_printer.Print();
 
 		render_graph.Build();
 		if (dump_render_graph) render_graph.DumpRenderGraph("rendergraph.gv");

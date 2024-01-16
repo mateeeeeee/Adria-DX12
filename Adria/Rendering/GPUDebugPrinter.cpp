@@ -1,11 +1,16 @@
 #include "GPUDebugPrinter.h"
+#include "Graphics/GfxDefines.h"
+#if GFX_SHADER_PRINTF
 #include "Graphics/GfxBuffer.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxCommandList.h"
 #include "Logging/Logger.h"
+#endif
 
 namespace adria
 {
+#if GFX_SHADER_PRINTF
+
 	enum ArgCode
 	{
 		DebugPrint_Uint = 0,
@@ -22,23 +27,20 @@ namespace adria
 		DebugPrint_Float4,
 		NumDebugPrintArgCodes
 	};
-
 	struct DebugPrintHeader
 	{
 		uint32 NumBytes;
 		uint32 StringSize;
 		uint32 NumArgs;
 	};
-
 	struct DebugPrintReader
 	{
 		DebugPrintReader(uint8* data, uint32 size) : data(data), size(size), current_offset(0) {}
 
-		bool HasMoreData(uint32 count)
+		bool HasMoreData(uint32 count) const
 		{
 			return current_offset + count <= size;
 		}
-
 		template<typename T>
 		T* Consume()
 		{
@@ -46,8 +48,7 @@ namespace adria
 			current_offset += sizeof(T);
 			return consumed_data;
 		}
-
-		std::string ConsumeString(uint32 char_count) 
+		std::string ConsumeString(uint32 char_count)
 		{
 			char* char_data = (char*)data;
 			std::string consumed_string(char_data + current_offset, char_count);
@@ -77,10 +78,7 @@ namespace adria
 
 		for (auto& readback_buffer : readback_buffers)
 			readback_buffer = gfx->CreateBuffer(ReadBackBufferDesc(printf_buffer_desc.size));
-	}
-
-	GPUDebugPrinter::~GPUDebugPrinter() = default;
-
+}
 	int32 GPUDebugPrinter::GetPrintfBufferIndex()
 	{
 		GfxCommandList* cmd_list = gfx->GetLatestCommandList(GfxCommandListType::Graphics);
@@ -90,7 +88,6 @@ namespace adria
 		cmd_list->ClearUAV(*printf_buffer, gpu_uav_descriptor, uav_descriptor, clear);
 		return (int32)gpu_uav_descriptor.GetIndex();
 	}
-
 	void GPUDebugPrinter::Print()
 	{
 		GfxCommandList* cmd_list = gfx->GetLatestCommandList(GfxCommandListType::Graphics);
@@ -120,6 +117,11 @@ namespace adria
 		}
 		cmd_list->TransitionBarrier(*printf_buffer, GfxResourceState::CopySource, GfxResourceState::UnorderedAccess);
 	}
-
+#else
+	GPUDebugPrinter::GPUDebugPrinter(GfxDevice* gfx) : gfx(gfx) {}
+	int32 GPUDebugPrinter::GetPrintfBufferIndex() { return -1; }
+	void GPUDebugPrinter::Print() {}
+#endif
+	GPUDebugPrinter::~GPUDebugPrinter() = default;
 }
 

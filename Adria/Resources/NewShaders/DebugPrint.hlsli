@@ -240,7 +240,8 @@ struct DebugPrinter
 
     void Commit()
     {
-        //if(ByteCount < 2) return;  
+        if(FrameCB.printfBufferIdx < 0) return;
+        if(ByteCount < 2) return;  
         ByteCount = ((ByteCount + 3) / 4) * 4;
 
         RWByteAddressBuffer printBuffer = ResourceDescriptorHeap[FrameCB.printfBufferIdx];
