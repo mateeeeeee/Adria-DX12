@@ -1,4 +1,5 @@
-#include "../CommonResources.hlsli"
+#include "CommonResources.hlsli"
+
 #define BLOCK_SIZE 16
 
 struct CloudsConstants

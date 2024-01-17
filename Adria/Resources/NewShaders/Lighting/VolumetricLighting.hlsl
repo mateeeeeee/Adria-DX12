@@ -1,7 +1,7 @@
-#include "../CommonResources.hlsli"
-#include "../Common.hlsli"
-#include "../Lighting.hlsli"
-#include "../DitherUtil.hlsli"
+#include "CommonResources.hlsli"
+#include "Common.hlsli"
+#include "Lighting.hlsli"
+#include "DitherUtil.hlsli"
 
 #define BLOCK_SIZE 16
 

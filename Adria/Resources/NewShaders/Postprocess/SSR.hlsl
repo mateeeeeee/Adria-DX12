@@ -1,6 +1,6 @@
-#include "../CommonResources.hlsli"
-#include "../Random.hlsli"
-#include "../Reflections.hlsli"
+#include "CommonResources.hlsli"
+#include "Random.hlsli"
+#include "Reflections.hlsli"
 
 #define USE_GGX 1
 #define BLOCK_SIZE 16

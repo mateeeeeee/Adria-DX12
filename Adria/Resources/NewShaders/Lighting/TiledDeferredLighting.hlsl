@@ -1,5 +1,5 @@
-#include "../Lighting.hlsli"
-#include "../Packing.hlsli"
+#include "Lighting.hlsli"
+#include "Packing.hlsli"
 
 #define BLOCK_SIZE 16
 #define MAX_TILE_LIGHTS 256

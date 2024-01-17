@@ -1,6 +1,6 @@
 #ifndef _EXPOSURE_UTIL_
 #define _EXPOSURE_UTIL_
-#include "../Tonemapping.hlsli"
+#include "Tonemapping.hlsli"
 
 #define GROUP_SIZE_X 16
 #define GROUP_SIZE_Y 16

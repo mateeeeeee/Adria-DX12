@@ -1,4 +1,4 @@
-#include "../CommonResources.hlsli"
+#include "CommonResources.hlsli"
 
 #define DECAL_XY 0
 #define DECAL_YZ 1

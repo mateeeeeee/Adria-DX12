@@ -27,6 +27,13 @@ namespace adria
 		DebugPrint_Float4,
 		NumDebugPrintArgCodes
 	};
+
+	uint32 ArgCodeSizes[NumDebugPrintArgCodes] =
+	{
+		4, 8, 12, 16,
+		4, 8, 12, 16,
+		4, 8, 12, 16
+	};
 	struct DebugPrintHeader
 	{
 		uint32 NumBytes;
@@ -60,6 +67,132 @@ namespace adria
 		uint32 const size;
 		uint32 current_offset;
 	};
+
+	static std::string MakeArgString(DebugPrintReader& reader, ArgCode arg_code)
+	{
+		switch (arg_code)
+		{
+		case DebugPrint_Uint:
+		{
+			uint32 value = *reader.Consume<uint32>();
+			return std::to_string(value);
+		}
+		case DebugPrint_Uint2:
+		{
+			struct Uint2
+			{
+				uint32 value1;
+				uint32 value2;
+			};
+			Uint2 uint2 = *reader.Consume<Uint2>();
+			return "(" + std::to_string(uint2.value1) + "," + std::to_string(uint2.value2) + ")";
+		}
+		case DebugPrint_Uint3:
+		{
+			struct Uint3
+			{
+				uint32 value1;
+				uint32 value2;
+				uint32 value3;
+			};
+			Uint3 uint3 = *reader.Consume<Uint3>();
+			return "(" + std::to_string(uint3.value1) + "," + std::to_string(uint3.value2) + "," + std::to_string(uint3.value3) + ")";
+		}
+		case DebugPrint_Uint4:
+		{
+			struct Uint4
+			{
+				uint32 value1;
+				uint32 value2;
+				uint32 value3;
+				uint32 value4;
+			};
+			Uint4 uint4 = *reader.Consume<Uint4>();
+			return "(" + std::to_string(uint4.value1) + "," + std::to_string(uint4.value2) + "," + std::to_string(uint4.value3) + "," + std::to_string(uint4.value4) + ")";
+		}
+		case DebugPrint_Int:
+		{
+			int32 value = *reader.Consume<int32>();
+			return std::to_string(value);
+		}
+		case DebugPrint_Int2:
+		{
+			struct Int2
+			{
+				int32 value1;
+				int32 value2;
+			};
+			Int2 int2 = *reader.Consume<Int2>();
+			return "(" + std::to_string(int2.value1) + "," + std::to_string(int2.value2) + ")";
+		}
+		case DebugPrint_Int3:
+		{
+			struct Int3
+			{
+				int32 value1;
+				int32 value2;
+				int32 value3;
+			};
+			Int3 int3 = *reader.Consume<Int3>();
+			return "(" + std::to_string(int3.value1) + "," + std::to_string(int3.value2) + "," + std::to_string(int3.value3) + ")";
+		}
+		case DebugPrint_Int4:
+		{
+			struct Int4
+			{
+				int32 value1;
+				int32 value2;
+				int32 value3;
+				int32 value4;
+			};
+			Int4 int4 = *reader.Consume<Int4>();
+			return "(" + std::to_string(int4.value1) + "," + std::to_string(int4.value2) + "," + std::to_string(int4.value3) + "," + std::to_string(int4.value4) + ")";
+		}
+		case DebugPrint_Float:
+		{
+			float value = *reader.Consume<float>();
+			return std::to_string(value);
+		}
+		case DebugPrint_Float2:
+		{
+			struct Float2
+			{
+				float value1;
+				float value2;
+			};
+			Float2  float2 = *reader.Consume<Float2>();
+			return "(" + std::to_string(float2.value1) + "," + std::to_string(float2.value2) + ")";
+		}
+		case DebugPrint_Float3:
+		{
+			struct Float3
+			{
+				float value1;
+				float value2;
+				float value3;
+			};
+			Float3 float3 = *reader.Consume<Float3>();
+			return "(" + std::to_string(float3.value1) + "," + std::to_string(float3.value2) + "," + std::to_string(float3.value3) + ")";
+		}
+		case DebugPrint_Float4:
+		{
+			struct Float4
+			{
+				float value1;
+				float value2;
+				float value3;
+				float value4;
+			};
+			Float4 float4 = *reader.Consume<Float4>();
+			return "(" + std::to_string(float4.value1) + "," + std::to_string(float4.value2) + "," + std::to_string(float4.value3) + "," + std::to_string(float4.value4) + ")";
+		}
+		case NumDebugPrintArgCodes:
+		default:
+			ADRIA_ASSERT(false);
+		}
+		return "";
+	}
+
 
 	GPUDebugPrinter::GPUDebugPrinter(GfxDevice* gfx) : gfx(gfx)
 	{
@@ -113,6 +246,34 @@ namespace adria
 			if (fmt.length() == 0) break;
 
 			if (header->NumArgs > MaxDebugPrintArgs) break;
+
+			std::vector<std::string> arg_strings;
+			arg_strings.reserve(header->NumArgs);
+			for (uint32 arg_idx = 0; arg_idx < header->NumArgs; ++arg_idx)
+			{
+				ArgCode const arg_code = (ArgCode)*print_reader.Consume<uint8>();
+				if (arg_code >= NumDebugPrintArgCodes || arg_code < 0) break;
+
+				uint32 const arg_size = ArgCodeSizes[arg_code];
+				if (!print_reader.HasMoreData(arg_size)) break;
+
+				std::string const arg_string = MakeArgString(print_reader, arg_code);
+				arg_strings.push_back(arg_string);
+			}
+
+			if (header->NumArgs > 0)
+			{
+				for (uint64 i = 0; i < arg_strings.size(); ++i) 
+				{
+					std::string placeholder = "{" + std::to_string(i) + "}";
+					uint64 pos = fmt.find(placeholder);
+					while (pos != std::string::npos) 
+					{
+						fmt.replace(pos, placeholder.length(), arg_strings[i]);
+						pos = fmt.find(placeholder, pos + arg_strings[i].length());
+					}
+				}
+			}
 			ADRIA_LOG(DEBUG, fmt.c_str());
 		}
 		cmd_list->TransitionBarrier(*printf_buffer, GfxResourceState::CopySource, GfxResourceState::UnorderedAccess);

@@ -1,7 +1,7 @@
 #include "DDGICommon.hlsli"
-#include "../Primitives.hlsli"
-#include "../CommonResources.hlsli"
-#include "../Common.hlsli"
+#include "Primitives.hlsli"
+#include "CommonResources.hlsli"
+#include "Common.hlsli"
 
 #define DDGI_VISUALIZE_IRRADIANCE 0
 #define DDGI_VISUALIZE_DISTANCE   1

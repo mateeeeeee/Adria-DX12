@@ -1,7 +1,7 @@
 #include "DDGICommon.hlsli"
-#include "../Lighting.hlsli"
-#include "../Common.hlsli"
-#include "../RayTracing/RayTracingUtil.hlsli"
+#include "Lighting.hlsli"
+#include "Common.hlsli"
+#include "RayTracing/RayTracingUtil.hlsli"
 
 struct DDGIRayTracePassConstants
 {

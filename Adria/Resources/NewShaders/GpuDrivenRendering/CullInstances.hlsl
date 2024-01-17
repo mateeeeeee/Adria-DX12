@@ -1,7 +1,7 @@
 #include "GpuDrivenRendering.hlsli"
-#include "../CommonResources.hlsli"
-#include "../Common.hlsli"
-#include "../Scene.hlsli"
+#include "CommonResources.hlsli"
+#include "Common.hlsli"
+#include "Scene.hlsli"
 
 #define BLOCK_SIZE 64
 

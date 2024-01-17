@@ -208,6 +208,61 @@ struct DebugPrinter
         AppendArgWithCode(DebugPrint_Uint3, a);
     }
 
+    void AppendArg(uint4 x)
+    {
+        uint a[4] ={ x.x, x.y, x.z, x.w };
+        AppendArgWithCode(DebugPrint_Uint4, a);
+    }
+
+    void AppendArg(int x)
+    {
+        int a[1] = { x };
+        AppendArgWithCode(DebugPrint_Int, a);
+    }
+
+    void AppendArg(int2 x)
+    {
+        int a[2] = { x.x, x.y };
+        AppendArgWithCode(DebugPrint_Int2, a);
+    }
+
+    void AppendArg(int3 x)
+    {
+        int a[3] = { x.x, x.y, x.z };
+        AppendArgWithCode(DebugPrint_Int3, a);
+    }
+
+    void AppendArg(int4 x)
+    {
+        int a[4] ={ x.x, x.y, x.z, x.w };
+        AppendArgWithCode(DebugPrint_Int4, a);
+    }
+
+
+    void AppendArg(float x)
+    {
+        float a[1] = { x };
+        AppendArgWithCode(DebugPrint_Float, a);
+    }
+
+    void AppendArg(float2 x)
+    {
+        float a[2] = { x.x, x.y };
+        AppendArgWithCode(DebugPrint_Float2, a);
+    }
+
+    void AppendArg(float3 x)
+    {
+        float a[3] = { x.x, x.y, x.z };
+        AppendArgWithCode(DebugPrint_Float3, a);
+    }
+
+    void AppendArg(float4 x)
+    {
+        float a[4] ={ x.x, x.y, x.z, x.w };
+        AppendArgWithCode(DebugPrint_Float4, a);
+    }
+
     void AppendArgs()
     {
     }

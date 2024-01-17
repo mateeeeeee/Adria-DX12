@@ -1,4 +1,4 @@
-#include "../CommonResources.hlsli"
+#include "CommonResources.hlsli"
 
 #define BLOCK_SIZE 32
 

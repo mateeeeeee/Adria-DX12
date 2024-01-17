@@ -1,5 +1,5 @@
-#include "../Scene.hlsli"
-#include "../Lighting.hlsli"
+#include "Scene.hlsli"
+#include "Lighting.hlsli"
 
 struct ShadowConstants
 {

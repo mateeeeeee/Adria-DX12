@@ -1,12 +1,12 @@
 #ifndef _RAYTRACING_UTIL_
 #define _RAYTRACING_UTIL_
 
-#include "../Common.hlsli"
-#include "../Scene.hlsli"
-#include "../Random.hlsli"
-#include "../BRDF.hlsli"
-#include "../Lighting.hlsli"
-#include "../CommonResources.hlsli"
+#include "Common.hlsli"
+#include "Scene.hlsli"
+#include "Random.hlsli"
+#include "BRDF.hlsli"
+#include "Lighting.hlsli"
+#include "CommonResources.hlsli"
 
 typedef BuiltInTriangleIntersectionAttributes HitAttributes;
 

@@ -2,7 +2,7 @@
 #define _PATHTRACING_
 
 #include "RayTracingUtil.hlsli"
-#include "../Tonemapping.hlsli"
+#include "Tonemapping.hlsli"
 
 #define MIN_BOUNCES 3
 #define RIS_CANDIDATES_LIGHTS 8

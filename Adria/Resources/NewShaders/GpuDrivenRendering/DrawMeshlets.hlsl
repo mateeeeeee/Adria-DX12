@@ -1,5 +1,5 @@
 #include "GpuDrivenRendering.hlsli"
-#include "../Scene.hlsli"
+#include "Scene.hlsli"
 
 #define BLOCK_SIZE 32
 

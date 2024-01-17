@@ -1,7 +1,7 @@
-#include "../Constants.hlsli"
-#include "../Scene.hlsli"
-#include "../Lighting.hlsli"
-#include "../Reflections.hlsli"
+#include "Constants.hlsli"
+#include "Scene.hlsli"
+#include "Lighting.hlsli"
+#include "Reflections.hlsli"
 #include "RayTracingUtil.hlsli"
 
 

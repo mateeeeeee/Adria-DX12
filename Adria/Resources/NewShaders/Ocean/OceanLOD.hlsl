@@ -1,4 +1,4 @@
-#include "../CommonResources.hlsli"
+#include "CommonResources.hlsli"
 
 #define LAMBDA 1.2
 #define NUM_CONTROL_POINTS 3

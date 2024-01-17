@@ -1,4 +1,4 @@
-#include "../CommonResources.hlsli"
+#include "CommonResources.hlsli"
 
 struct PickingData
 {

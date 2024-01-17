@@ -1,5 +1,5 @@
-#include "../Tonemapping.hlsli"
-#include "../CommonResources.hlsli"
+#include "Tonemapping.hlsli"
+#include "CommonResources.hlsli"
 
 #define BLOCK_SIZE 16
 

@@ -1,4 +1,4 @@
-#include "../Scene.hlsli"
+#include "Scene.hlsli"
 
 struct GBufferConstants
 {

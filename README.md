@@ -60,7 +60,7 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
     - Debug renderer
     - Shader hot reloading
     - Render graph dump and visualization
-    - Shader debug printf (wip)
+    - Shader debug printf
 
 ## TODO
 * ReSTIR GI

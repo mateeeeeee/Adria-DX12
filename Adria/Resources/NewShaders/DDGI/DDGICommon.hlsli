@@ -1,10 +1,10 @@
 #ifndef _DDGI_COMMON_
 #define _DDGI_COMMON_
 
-#include "../Packing.hlsli"
-#include "../Constants.hlsli"
-#include "../Common.hlsli"
-#include "../CommonResources.hlsli"
+#include "Packing.hlsli"
+#include "Constants.hlsli"
+#include "Common.hlsli"
+#include "CommonResources.hlsli"
 
 #define PROBE_IRRADIANCE_TEXELS 6
 #define PROBE_DISTANCE_TEXELS 14

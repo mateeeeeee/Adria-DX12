@@ -1,5 +1,5 @@
-#include "../CommonResources.hlsli"
-#include "../Atmosphere.hlsli"
+#include "CommonResources.hlsli"
+#include "Atmosphere.hlsli"
 
 struct VertexIn
 {

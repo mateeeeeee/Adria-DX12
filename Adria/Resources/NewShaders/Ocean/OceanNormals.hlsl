@@ -1,5 +1,5 @@
-#include "../CommonResources.hlsli"
-#include "../Constants.hlsli"
+#include "CommonResources.hlsli"
+#include "Constants.hlsli"
 
 #define BLOCK_SIZE 16
 #define LAMBDA 1.2

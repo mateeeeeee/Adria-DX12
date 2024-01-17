@@ -1,5 +1,5 @@
-#include "../CommonResources.hlsli"
-#include "../Packing.hlsli"
+#include "CommonResources.hlsli"
+#include "Packing.hlsli"
 
 #define BLOCK_SIZE 16
 

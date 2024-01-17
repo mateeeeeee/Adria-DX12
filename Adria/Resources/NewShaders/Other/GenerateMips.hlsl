@@ -1,4 +1,4 @@
-#include "../CommonResources.hlsli"
+#include "CommonResources.hlsli"
 
 Texture2D<float4> SrcTexture : register(t0);
 RWTexture2D<float4> DstTexture : register(u0);

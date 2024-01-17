@@ -1,6 +1,6 @@
-#include "../Tonemapping.hlsli"
-#include "../CommonResources.hlsli"
-#include "../Packing.hlsli"
+#include "Tonemapping.hlsli"
+#include "CommonResources.hlsli"
+#include "Packing.hlsli"
 
 #define BLOCK_SIZE 16
 
@@ -33,7 +33,6 @@ void Tonemap(CSInput input)
     RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
 
     float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.displayResolution);
-                                    
     
     float4 color = hdrTx.Sample(LinearWrapSampler, uv);
 	if (PassCB.bloomIdx > 0)

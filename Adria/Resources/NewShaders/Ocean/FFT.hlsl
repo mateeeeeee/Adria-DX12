@@ -1,5 +1,5 @@
-#include "../CommonResources.hlsli"
-#include "../Constants.hlsli"
+#include "CommonResources.hlsli"
+#include "Constants.hlsli"
 
 #define FFT_WORK_GROUP_DIM 256
 

@@ -1,4 +1,4 @@
-#include "../CommonResources.hlsli"
+#include "CommonResources.hlsli"
 
 #define BLOCK_SIZE 16
 #define NUM_SAMPLES 64

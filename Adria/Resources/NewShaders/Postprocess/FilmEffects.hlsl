@@ -1,6 +1,6 @@
-#include "../CommonResources.hlsli"
-#include "../Constants.hlsli"
-#include "../Noise.hlsli"
+#include "CommonResources.hlsli"
+#include "Constants.hlsli"
+#include "Noise.hlsli"
 
 #define BLOCK_SIZE 16
 

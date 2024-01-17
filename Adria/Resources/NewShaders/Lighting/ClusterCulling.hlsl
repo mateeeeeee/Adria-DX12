@@ -1,5 +1,5 @@
-#include "../Lighting.hlsli"
-#include "../Packing.hlsli"
+#include "Lighting.hlsli"
+#include "Packing.hlsli"
 
 //references 
 //https://github.com/pezcode/Cluster
