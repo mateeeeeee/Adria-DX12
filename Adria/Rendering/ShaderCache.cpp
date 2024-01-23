@@ -148,7 +148,7 @@ namespace adria
 			case PS_Sky:
 			case CS_HosekWilkieSky:
 			case CS_MinimalAtmosphereSky:
-				return "Other/Sky.hlsl";
+				return "Weather/Sky.hlsl";
 			case VS_Simple:
 			case VS_Sun:
 			case PS_Texture:
@@ -185,11 +185,11 @@ namespace adria
 			case CS_Clouds_Reprojection:
 			case VS_CloudsCombine:
 			case PS_CloudsCombine:
-				return "Clouds/VolumetricClouds.hlsl";
+				return "Weather/VolumetricClouds.hlsl";
 			case CS_CloudShape:
 			case CS_CloudDetail:
 			case CS_CloudType:
-				return "Clouds/CloudNoise.hlsl";
+				return "Weather/CloudNoise.hlsl";
 			case VS_Shadow:
 			case VS_Shadow_Transparent:
 			case PS_Shadow:

@@ -10,8 +10,8 @@
 #include "Editor/GUICommand.h"
 
 #define A_CPU 1
-#include "Resources/NewShaders/SPD/ffx_a.h"
-#include "Resources/NewShaders/SPD/ffx_spd.h"
+#include "Resources/Shaders/SPD/ffx_a.h"
+#include "Resources/Shaders/SPD/ffx_spd.h"
 
 using namespace DirectX;
 

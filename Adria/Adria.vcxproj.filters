@@ -35,33 +35,6 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{1e5e0278-a230-4a83-80fb-55d749bd8fad}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shaders\Exposure">
-      <UniqueIdentifier>{05207fd7-a901-482a-b171-773d2515c224}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shaders\Other">
-      <UniqueIdentifier>{d9d0175a-61a6-406d-bb58-8324f78457ad}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shaders\RayTracing">
-      <UniqueIdentifier>{0de20b01-23d1-4d62-866a-ecfbf857f686}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shaders\Postprocess">
-      <UniqueIdentifier>{04bf1695-6a82-4e87-b105-ba18b81fde09}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shaders\Lighting">
-      <UniqueIdentifier>{eae617e6-2b56-4bf3-8c7b-94a731f182b4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shaders\Ocean">
-      <UniqueIdentifier>{18ba23cf-78ca-4fd9-a2f4-3ee43a42e85e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shaders\GpuDrivenRendering">
-      <UniqueIdentifier>{6e1cdfc3-a4ac-439d-b70d-3fbc52b59f12}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shaders\SPD">
-      <UniqueIdentifier>{00bc2406-b3df-464f-ad11-a0eec8ebe949}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shaders\Clouds">
-      <UniqueIdentifier>{93683108-3ee8-4a1d-9d4a-ac2927722ee2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="External">
       <UniqueIdentifier>{2d0f4fdf-8937-4be0-8fa5-797b9dcbefec}</UniqueIdentifier>
     </Filter>
@@ -80,9 +53,6 @@
     <Filter Include="External\FontAwesome">
       <UniqueIdentifier>{c43936f5-3a2b-4145-8dd9-b8c7eee54f05}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shaders\DDGI">
-      <UniqueIdentifier>{54d61a60-15bc-49dd-97a1-109cce8ee98e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="External\tracy">
       <UniqueIdentifier>{b7135eb2-079c-421c-89f6-541149851239}</UniqueIdentifier>
     </Filter>
@@ -100,6 +70,36 @@
     </Filter>
     <Filter Include="External\FSR2\dx12\shaders">
       <UniqueIdentifier>{9f349144-e11e-4209-b522-22cf570f080e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\DDGI">
+      <UniqueIdentifier>{f9ebf9f5-e2c7-486e-87e9-fee6fbb73a70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Exposure">
+      <UniqueIdentifier>{8ccf4ef6-32b0-4bd4-a1d1-2f8113943f8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\GpuDrivenRendering">
+      <UniqueIdentifier>{7c6f2ed7-1031-4d59-83ef-7d4c631af847}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Lighting">
+      <UniqueIdentifier>{43434356-95c5-428b-9a77-b8d0a7702854}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Ocean">
+      <UniqueIdentifier>{dfae5b66-3403-4c83-b259-2080db2509e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Other">
+      <UniqueIdentifier>{d33256cf-c5ca-4cec-b4b1-291f5cf886d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Postprocess">
+      <UniqueIdentifier>{faa625cb-9da7-40e3-b099-f4f1f5d976c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\RayTracing">
+      <UniqueIdentifier>{50c6e157-2c76-405c-81ac-d28ebc2b7c9e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\SPD">
+      <UniqueIdentifier>{29d6ef54-ae4d-4277-ab5e-4160ce0e1486}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Weather">
+      <UniqueIdentifier>{bf997929-489e-4e50-a82e-3f1071df6f00}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -873,12 +873,6 @@
     <ClInclude Include="Graphics\GfxCapabilities.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Resources\NewShaders\SPD\ffx_a.h">
-      <Filter>Shaders\SPD</Filter>
-    </ClInclude>
-    <ClInclude Include="Resources\NewShaders\SPD\ffx_spd.h">
-      <Filter>Shaders\SPD</Filter>
-    </ClInclude>
     <ClInclude Include="..\External\D3D12MA\D3D12MemAlloc.h">
       <Filter>External\D3D12MA</Filter>
     </ClInclude>
@@ -1077,6 +1071,12 @@
     <ClInclude Include="Rendering\GPUDebugPrinter.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="Resources\Shaders\SPD\ffx_a.h">
+      <Filter>Shaders\SPD</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\Shaders\SPD\ffx_spd.h">
+      <Filter>Shaders\SPD</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
@@ -1089,267 +1089,264 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Resources\NewShaders\Exposure\BuildHistogram.hlsl">
-      <Filter>Shaders\Exposure</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Exposure\HistogramReduction.hlsl">
-      <Filter>Shaders\Exposure</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Exposure\Exposure.hlsl">
-      <Filter>Shaders\Exposure</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\RayTracing\RayTracedReflections.hlsl">
-      <Filter>Shaders\RayTracing</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\RayTracing\RayTracedAmbientOcclusion.hlsl">
-      <Filter>Shaders\RayTracing</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\RayTracing\RayTracedShadows.hlsl">
-      <Filter>Shaders\RayTracing</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Postprocess\SSAO.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Postprocess\HBAO.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Postprocess\SSR.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Postprocess\Fog.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Postprocess\Tonemap.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Postprocess\MotionVectors.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Postprocess\DepthOfField.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Postprocess\MotionBlur.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Postprocess\FXAA.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Postprocess\GodRays.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Lighting\Ambient.hlsl">
-      <Filter>Shaders\Lighting</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Lighting\GBuffer.hlsl">
-      <Filter>Shaders\Lighting</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Postprocess\LensFlare.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Postprocess\BokehGeneration.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Postprocess\Bloom.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Postprocess\Bokeh.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Postprocess\Blur.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Other\Picking.hlsl">
-      <Filter>Shaders\Other</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Ocean\OceanLOD.hlsl">
-      <Filter>Shaders\Ocean</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Ocean\Ocean.hlsl">
-      <Filter>Shaders\Ocean</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Ocean\FFT.hlsl">
-      <Filter>Shaders\Ocean</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Ocean\InitialSpectrum.hlsl">
-      <Filter>Shaders\Ocean</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Ocean\Spectrum.hlsl">
-      <Filter>Shaders\Ocean</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Ocean\Phase.hlsl">
-      <Filter>Shaders\Ocean</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Ocean\OceanNormals.hlsl">
-      <Filter>Shaders\Ocean</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Other\FullscreenTriangle.hlsl">
-      <Filter>Shaders\Other</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Other\AddTextures.hlsl">
-      <Filter>Shaders\Other</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Other\CopyTexture.hlsl">
-      <Filter>Shaders\Other</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Other\Sky.hlsl">
-      <Filter>Shaders\Other</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Other\Simple.hlsl">
-      <Filter>Shaders\Other</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Other\Decals.hlsl">
-      <Filter>Shaders\Other</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Other\GenerateMips.hlsl">
-      <Filter>Shaders\Other</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Postprocess\TAA.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Lighting\Shadow.hlsl">
-      <Filter>Shaders\Lighting</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Lighting\DeferredLighting.hlsl">
-      <Filter>Shaders\Lighting</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Lighting\VolumetricLighting.hlsl">
-      <Filter>Shaders\Lighting</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Lighting\TiledDeferredLighting.hlsl">
-      <Filter>Shaders\Lighting</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Lighting\ClusterBuilding.hlsl">
-      <Filter>Shaders\Lighting</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Lighting\ClusterCulling.hlsl">
-      <Filter>Shaders\Lighting</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Lighting\ClusteredDeferredLighting.hlsl">
-      <Filter>Shaders\Lighting</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\RayTracing\PathTracer.hlsl">
-      <Filter>Shaders\RayTracing</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Postprocess\LensFlare2.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\GpuDrivenRendering\CullInstances.hlsl">
-      <Filter>Shaders\GpuDrivenRendering</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\GpuDrivenRendering\ClearCounters.hlsl">
-      <Filter>Shaders\GpuDrivenRendering</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\GpuDrivenRendering\CullMeshlets.hlsl">
-      <Filter>Shaders\GpuDrivenRendering</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\GpuDrivenRendering\HZB.hlsl">
-      <Filter>Shaders\GpuDrivenRendering</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Clouds\CloudNoise.hlsl">
-      <Filter>Shaders\Clouds</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Clouds\VolumetricClouds.hlsl">
-      <Filter>Shaders\Clouds</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\GpuDrivenRendering\DrawMeshlets.hlsl">
-      <Filter>Shaders\GpuDrivenRendering</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\RayTracing\RTAOFilter.hlsl">
-      <Filter>Shaders\RayTracing</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\DDGI\DDGIRayTrace.hlsl">
-      <Filter>Shaders\DDGI</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Other\Debug.hlsl">
-      <Filter>Shaders\Other</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\DDGI\DDGIUpdateIrradiance.hlsl">
-      <Filter>Shaders\DDGI</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\DDGI\DDGIUpdateDistance.hlsl">
-      <Filter>Shaders\DDGI</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\DDGI\DDGIVisualize.hlsl">
-      <Filter>Shaders\DDGI</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\NewShaders\Postprocess\FilmEffects.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="scene.json" />
     <None Include="packages.config" />
-    <None Include="Resources\NewShaders\Exposure\ExposureUtil.hlsli">
-      <Filter>Shaders\Exposure</Filter>
-    </None>
-    <None Include="Resources\NewShaders\Common.hlsli">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Resources\NewShaders\CommonResources.hlsli">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="..\README.md" />
-    <None Include="Resources\NewShaders\RayTracing\RayTracingUtil.hlsli">
-      <Filter>Shaders\RayTracing</Filter>
-    </None>
-    <None Include="Resources\NewShaders\Random.hlsli">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Resources\NewShaders\Tonemapping.hlsli">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Resources\NewShaders\Lighting.hlsli">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Resources\NewShaders\Constants.hlsli">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Resources\NewShaders\Packing.hlsli">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Resources\NewShaders\DitherUtil.hlsli">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Resources\NewShaders\BRDF.hlsli">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Resources\NewShaders\RayTracing\PathTracing.hlsli">
-      <Filter>Shaders\RayTracing</Filter>
-    </None>
-    <None Include="Resources\NewShaders\Scene.hlsli">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Resources\NewShaders\Atmosphere.hlsli">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Resources\NewShaders\GpuDrivenRendering\GpuDrivenRendering.hlsli">
-      <Filter>Shaders\GpuDrivenRendering</Filter>
-    </None>
-    <None Include="Resources\NewShaders\Noise.hlsli">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="..\.gitignore" />
-    <None Include="Resources\NewShaders\Reflections.hlsli">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Resources\NewShaders\DDGI\DDGICommon.hlsli">
-      <Filter>Shaders\DDGI</Filter>
-    </None>
     <None Include="..\External\SimpleMath\SimpleMath.inl">
       <Filter>External\SimpleMath</Filter>
     </None>
-    <None Include="Resources\NewShaders\Primitives.hlsli">
+    <None Include="Resources\Shaders\Atmosphere.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Resources\NewShaders\DebugPrint.hlsli">
+    <None Include="Resources\Shaders\BRDF.hlsli">
       <Filter>Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\Common.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\CommonResources.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\Constants.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\DebugPrint.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\DitherUtil.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\Lighting.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\Noise.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\Packing.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\Primitives.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\Random.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\Reflections.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\Scene.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\Tonemapping.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\DDGI\DDGICommon.hlsli">
+      <Filter>Shaders\DDGI</Filter>
+    </None>
+    <None Include="Resources\Shaders\Exposure\ExposureUtil.hlsli">
+      <Filter>Shaders\Exposure</Filter>
+    </None>
+    <None Include="Resources\Shaders\GpuDrivenRendering\GpuDrivenRendering.hlsli">
+      <Filter>Shaders\GpuDrivenRendering</Filter>
+    </None>
+    <None Include="Resources\Shaders\RayTracing\PathTracing.hlsli">
+      <Filter>Shaders\RayTracing</Filter>
+    </None>
+    <None Include="Resources\Shaders\RayTracing\RayTracingUtil.hlsli">
+      <Filter>Shaders\RayTracing</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="adria.log" />
-    <Text Include="Resources\NewShaders\SPD\LICENSE.txt">
-      <Filter>Shaders\SPD</Filter>
-    </Text>
     <Text Include="todo.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Resources\Shaders\DDGI\DDGIRayTrace.hlsl">
+      <Filter>Shaders\DDGI</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\DDGI\DDGIUpdateDistance.hlsl">
+      <Filter>Shaders\DDGI</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\DDGI\DDGIUpdateIrradiance.hlsl">
+      <Filter>Shaders\DDGI</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\DDGI\DDGIVisualize.hlsl">
+      <Filter>Shaders\DDGI</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Exposure\BuildHistogram.hlsl">
+      <Filter>Shaders\Exposure</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Exposure\Exposure.hlsl">
+      <Filter>Shaders\Exposure</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Exposure\HistogramReduction.hlsl">
+      <Filter>Shaders\Exposure</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\GpuDrivenRendering\ClearCounters.hlsl">
+      <Filter>Shaders\GpuDrivenRendering</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\GpuDrivenRendering\CullInstances.hlsl">
+      <Filter>Shaders\GpuDrivenRendering</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\GpuDrivenRendering\CullMeshlets.hlsl">
+      <Filter>Shaders\GpuDrivenRendering</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\GpuDrivenRendering\DrawMeshlets.hlsl">
+      <Filter>Shaders\GpuDrivenRendering</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\GpuDrivenRendering\HZB.hlsl">
+      <Filter>Shaders\GpuDrivenRendering</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Lighting\Ambient.hlsl">
+      <Filter>Shaders\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Lighting\ClusterBuilding.hlsl">
+      <Filter>Shaders\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Lighting\ClusterCulling.hlsl">
+      <Filter>Shaders\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Lighting\ClusteredDeferredLighting.hlsl">
+      <Filter>Shaders\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Lighting\DeferredLighting.hlsl">
+      <Filter>Shaders\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Lighting\GBuffer.hlsl">
+      <Filter>Shaders\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Lighting\Shadow.hlsl">
+      <Filter>Shaders\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Lighting\TiledDeferredLighting.hlsl">
+      <Filter>Shaders\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Lighting\VolumetricLighting.hlsl">
+      <Filter>Shaders\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Weather\CloudNoise.hlsl">
+      <Filter>Shaders\Weather</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Weather\Sky.hlsl">
+      <Filter>Shaders\Weather</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Weather\VolumetricClouds.hlsl">
+      <Filter>Shaders\Weather</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\RayTracing\PathTracer.hlsl">
+      <Filter>Shaders\RayTracing</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\RayTracing\RayTracedAmbientOcclusion.hlsl">
+      <Filter>Shaders\RayTracing</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\RayTracing\RayTracedReflections.hlsl">
+      <Filter>Shaders\RayTracing</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\RayTracing\RayTracedShadows.hlsl">
+      <Filter>Shaders\RayTracing</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\RayTracing\RTAOFilter.hlsl">
+      <Filter>Shaders\RayTracing</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\Bloom.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\Blur.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\Bokeh.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\BokehGeneration.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\DepthOfField.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\FilmEffects.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\Fog.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\FXAA.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\GodRays.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\HBAO.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\LensFlare.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\LensFlare2.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\MotionBlur.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\MotionVectors.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\SSAO.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\SSR.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\TAA.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\Tonemap.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Other\AddTextures.hlsl">
+      <Filter>Shaders\Other</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Other\CopyTexture.hlsl">
+      <Filter>Shaders\Other</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Other\Debug.hlsl">
+      <Filter>Shaders\Other</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Other\Decals.hlsl">
+      <Filter>Shaders\Other</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Other\FullscreenTriangle.hlsl">
+      <Filter>Shaders\Other</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Other\GenerateMips.hlsl">
+      <Filter>Shaders\Other</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Other\Picking.hlsl">
+      <Filter>Shaders\Other</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Other\Simple.hlsl">
+      <Filter>Shaders\Other</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Ocean\FFT.hlsl">
+      <Filter>Shaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Ocean\InitialSpectrum.hlsl">
+      <Filter>Shaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Ocean\Ocean.hlsl">
+      <Filter>Shaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Ocean\OceanLOD.hlsl">
+      <Filter>Shaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Ocean\OceanNormals.hlsl">
+      <Filter>Shaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Ocean\Phase.hlsl">
+      <Filter>Shaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Ocean\Spectrum.hlsl">
+      <Filter>Shaders\Ocean</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

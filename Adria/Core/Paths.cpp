@@ -35,7 +35,7 @@ namespace adria
 	}
 	std::string paths::ShaderDir()
 	{
-		return ResourcesDir() + "NewShaders/";
+		return ResourcesDir() + "Shaders/";
 	}
 	std::string paths::TexturesDir()
 	{

@@ -28,7 +28,7 @@ namespace adria
 		NumDebugPrintArgCodes
 	};
 
-	uint32 ArgCodeSizes[NumDebugPrintArgCodes] =
+	constexpr uint32 ArgCodeSizes[NumDebugPrintArgCodes] =
 	{
 		4, 8, 12, 16,
 		4, 8, 12, 16,
