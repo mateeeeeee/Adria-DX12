@@ -72,7 +72,7 @@ namespace adria
 			break;
 		case ImageFormat::NotSupported:
 		default:
-			ADRIA_ASSERT(false && "Unsupported Texture Format!");
+			ADRIA_ASSERT_MSG(false, "Unsupported Texture Format!");
 		}
 		ADRIA_ASSERT(result);
 	}

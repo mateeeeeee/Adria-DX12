@@ -388,8 +388,8 @@ namespace adria
 
 	void OceanRenderer::OnSceneInitialized(GfxDevice* gfx)
 	{
-		foam_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "foam.jpg");
-		perlin_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "perlin.png");
+		foam_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "Ocean/Foam.jpg");
+		perlin_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "Ocean/Perlin.png");
 
 		GfxTextureDesc ocean_texture_desc{};
 		ocean_texture_desc.width = FFT_RESOLUTION;

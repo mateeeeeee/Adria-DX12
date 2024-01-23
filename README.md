@@ -2,8 +2,8 @@
 
 # Adria-DX12
 
-Graphics engine written in C++ using DirectX12. For successful build you will need textures that you can find [here](https://github.com/mateeeeeee/Adria-DX11/releases/tag/1.0).
- 
+Graphics engine written in C++ using DirectX12. 
+
 ## Features
 * Render graph
 	- Automatic resource barriers
@@ -53,6 +53,7 @@ Graphics engine written in C++ using DirectX12. For successful build you will ne
 * God rays
 * Lens flare
 * Motion blur
+* Decals
 * ImGui editor
 * Profiler
     - custom and tracy profiler
