@@ -68,7 +68,7 @@ namespace adria
 		RGBlackboard const& GetBlackboard() const { return blackboard; }
 		RGBlackboard& GetBlackboard() { return blackboard; }
 
-		void DumpRenderGraph(char const* graph_file_name);
+		void Dump(char const* graph_file_name);
 		void DumpDebugData();
 
 	private:

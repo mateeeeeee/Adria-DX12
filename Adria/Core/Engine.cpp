@@ -41,7 +41,7 @@ namespace adria
 			json models, lights, camera, skybox;
 			try
 			{
-				JsonParams scene_params = json::parse(std::ifstream(scene_file));
+				JsonParams scene_params = json::parse(std::ifstream(paths::IniDir() + scene_file));
 				models = scene_params.FindJsonArray("models");
 				lights = scene_params.FindJsonArray("lights");
 				camera = scene_params.FindJson("camera");
@@ -49,7 +49,7 @@ namespace adria
 			}
 			catch (json::parse_error const& e)
 			{
-				ADRIA_LOG(ERROR, "JSON Parse error: %s! ", e.what());
+				ADRIA_LOG(ERROR, "Scene json parsing error: %s! ", e.what());
 				return std::nullopt;
 			}
 

@@ -1105,7 +1105,7 @@ namespace adria
 		ADRIA_ASSERT_MSG(false, "Not yet implemented");
 	}
 
-	void RenderGraph::DumpRenderGraph(char const* graph_file_name)
+	void RenderGraph::Dump(char const* graph_file_name)
 	{
 		static struct GraphVizStyle
 		{

@@ -128,7 +128,7 @@ namespace adria
 		else g_Editor.AddRenderPass(render_graph);
 
 		render_graph.Build();
-		if (dump_render_graph) render_graph.DumpRenderGraph("rendergraph.gv");
+		if (dump_render_graph) render_graph.Dump("rendergraph.gv");
 		render_graph.Execute();
 	}
 
@@ -430,7 +430,6 @@ namespace adria
 			picking_data = picking_pass.GetPickingData();
 			update_picking_data = false;
 		}
-		sky_pass.AddComputeSkyPass(render_graph, sun_direction);
 
 		if (gfx->GetCapabilities().SupportsMeshShaders()) gpu_driven_renderer.Render(render_graph);
 		else gbuffer_pass.AddPass(render_graph);
@@ -450,6 +449,7 @@ namespace adria
 		if (volumetric_lights > 0) volumetric_lighting_pass.AddPass(render_graph);
 		if (ddgi.Visualize()) ddgi.AddVisualizePass(render_graph);
 		ocean_renderer.AddPasses(render_graph);
+		sky_pass.AddComputeSkyPass(render_graph, sun_direction);
 		sky_pass.AddDrawSkyPass(render_graph);
 		picking_pass.AddPass(render_graph);
 		postprocessor.AddPasses(render_graph);

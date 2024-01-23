@@ -486,6 +486,9 @@
     <ClCompile Include="Rendering\GPUDebugPrinter.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\RainPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1077,6 +1080,9 @@
     <ClInclude Include="Resources\Shaders\SPD\ffx_spd.h">
       <Filter>Shaders\SPD</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\RainPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
@@ -1089,7 +1095,6 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <None Include="scene.json" />
     <None Include="packages.config" />
     <None Include="..\README.md" />
     <None Include="..\.gitignore" />
@@ -1156,6 +1161,7 @@
     <None Include="Resources\Shaders\RayTracing\RayTracingUtil.hlsli">
       <Filter>Shaders\RayTracing</Filter>
     </None>
+    <None Include="Saved\Ini\scene.json" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="adria.log" />
@@ -1347,6 +1353,12 @@
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Ocean\Spectrum.hlsl">
       <Filter>Shaders\Ocean</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Weather\Rain.hlsl">
+      <Filter>Shaders\Weather</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Weather\RainSimulation.hlsl">
+      <Filter>Shaders\Weather</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

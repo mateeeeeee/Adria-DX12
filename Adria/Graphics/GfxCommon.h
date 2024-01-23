@@ -30,7 +30,7 @@ namespace adria
 		void Initialize(GfxDevice* gfx);
 		void Destroy();
 
-		GfxTexture* GetCommonTexture(GfxCommonTextureType);
+		GfxTexture*   GetCommonTexture(GfxCommonTextureType);
 		GfxDescriptor GetCommonView(GfxCommonViewType);
 	}
 }
