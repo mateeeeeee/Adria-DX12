@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "Core/CoreTypes.h"
+#include "TextureHandle.h"
 #include "RenderGraph/RenderGraphResourceId.h"
 
 
@@ -21,7 +21,7 @@ namespace adria
 		void OnSceneInitialized();
 	private:
 		uint32 width, height;
-		std::vector<uint64> lens_flare_textures;
+		std::vector<TextureHandle> lens_flare_textures;
 	};
 
 }

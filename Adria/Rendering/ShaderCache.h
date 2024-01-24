@@ -57,6 +57,9 @@ namespace adria
 		VS_OceanLOD,
 		DS_OceanLOD,
 		HS_OceanLOD,
+		VS_Rain,
+		PS_Rain,
+		CS_RainSimulation,
 		CS_Picking,
 		CS_BuildHistogram,
 		CS_HistogramReduction,
@@ -116,8 +119,8 @@ namespace adria
 		ShaderId_Count
 	};
 
-	DECLARE_MULTICAST_DELEGATE(ShaderRecompiledEvent, GfxShaderID);
-	DECLARE_MULTICAST_DELEGATE(LibraryRecompiledEvent, GfxShaderID);
+	DECLARE_MULTICAST_DELEGATE(ShaderRecompiledEvent, GfxShaderID)
+	DECLARE_MULTICAST_DELEGATE(LibraryRecompiledEvent, GfxShaderID)
 
 	class ShaderCache
 	{

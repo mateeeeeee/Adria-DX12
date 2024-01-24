@@ -10,6 +10,8 @@ namespace adria
 		Sky,
 		MinimalAtmosphereSky,
 		HosekWilkieSky,
+		Rain,
+		RainSimulation,
 		Texture,
 		Solid_Wireframe,
 		Debug_Wireframe,

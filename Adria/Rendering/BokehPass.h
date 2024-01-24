@@ -1,4 +1,5 @@
 #pragma once
+#include "TextureHandle.h"
 #include "RenderGraph/RenderGraphResourceName.h"
 
 namespace adria
@@ -15,7 +16,8 @@ namespace adria
 			Hex,
 			Oct,
 			Circle,
-			Cross
+			Cross,
+			Count
 		};
 
 		struct BokehParameters
@@ -38,10 +40,7 @@ namespace adria
 	private:
 		uint32 width, height;
 		BokehParameters params{};
-		uint64 hex_bokeh_handle = -1;
-		uint64 oct_bokeh_handle = -1;
-		uint64 circle_bokeh_handle = -1;
-		uint64 cross_bokeh_handle = -1;
+		TextureHandle bokeh_textures[(uint32)BokehType::Count] = { INVALID_TEXTURE_HANDLE };
 		std::unique_ptr<GfxBuffer> counter_reset_buffer;
 		std::unique_ptr<GfxBuffer> bokeh_indirect_buffer;
 	private:

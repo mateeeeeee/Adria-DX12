@@ -3,9 +3,8 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "PSOCache.h"
-
-#include "RenderGraph/RenderGraph.h"
 #include "TextureManager.h"
+#include "RenderGraph/RenderGraph.h"
 #include "Core/Paths.h"
 #include "Graphics/GfxLinearDynamicAllocator.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
@@ -58,10 +57,10 @@ namespace adria
 
 	void BokehPass::OnSceneInitialized(GfxDevice* gfx)
 	{
-		hex_bokeh_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "bokeh/Bokeh_Hex.dds");
-		oct_bokeh_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "bokeh/Bokeh_Oct.dds");
-		circle_bokeh_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "bokeh/Bokeh_Circle.dds");
-		cross_bokeh_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "bokeh/Bokeh_Cross.dds");
+		bokeh_textures[(uint32)BokehType::Hex] = g_TextureManager.LoadTexture(paths::TexturesDir() + "bokeh/Bokeh_Hex.dds");
+		bokeh_textures[(uint32)BokehType::Oct] = g_TextureManager.LoadTexture(paths::TexturesDir() + "bokeh/Bokeh_Oct.dds");
+		bokeh_textures[(uint32)BokehType::Circle] = g_TextureManager.LoadTexture(paths::TexturesDir() + "bokeh/Bokeh_Circle.dds");
+		bokeh_textures[(uint32)BokehType::Cross] = g_TextureManager.LoadTexture(paths::TexturesDir() + "bokeh/Bokeh_Cross.dds");
 
 		GfxBufferDesc reset_buffer_desc{};
 		reset_buffer_desc.size = sizeof(uint32);
@@ -207,25 +206,7 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				GfxDescriptor bokeh_descriptor{};
-				switch (params.bokeh_type)
-				{
-				case BokehType::Hex:
-					bokeh_descriptor = g_TextureManager.GetSRV(hex_bokeh_handle);
-					break;
-				case BokehType::Oct:
-					bokeh_descriptor = g_TextureManager.GetSRV(oct_bokeh_handle);
-					break;
-				case BokehType::Circle:
-					bokeh_descriptor = g_TextureManager.GetSRV(circle_bokeh_handle);
-					break;
-				case BokehType::Cross:
-					bokeh_descriptor = g_TextureManager.GetSRV(cross_bokeh_handle);
-					break;
-				default:
-					ADRIA_ASSERT_MSG(false, "Invalid Bokeh Type");
-				}
-
+				GfxDescriptor bokeh_descriptor = g_TextureManager.GetSRV(bokeh_textures[(uint32)params.bokeh_type]);
 				uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i),bokeh_descriptor);
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), context.GetReadOnlyBuffer(data.bokeh_stack));

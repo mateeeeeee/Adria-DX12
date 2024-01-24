@@ -4,6 +4,7 @@
 #include <d3d12.h>
 #include <variant>
 #include <memory>
+#include "TextureHandle.h"
 #include "Graphics/GfxDescriptor.h"
 #include "Utilities/Singleton.h"
 #include "Utilities/ArcPtr.h"
@@ -12,9 +13,6 @@ namespace adria
 {
 	class GfxDevice;
 	class GfxTexture;
-
-	using TextureHandle = uint64;
-	inline constexpr TextureHandle INVALID_TEXTURE_HANDLE = TextureHandle(0);
 
 	class TextureManager : public Singleton<TextureManager>
 	{

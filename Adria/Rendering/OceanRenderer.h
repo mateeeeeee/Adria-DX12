@@ -1,6 +1,6 @@
 #pragma once
 #include <memory>
-#include "Core/CoreTypes.h"
+#include "TextureHandle.h"
 #include "RenderGraph/RenderGraphResourceId.h"
 #include "entt/entity/fwd.hpp"
 
@@ -25,8 +25,8 @@ namespace adria
 
 	private:
 		entt::registry& reg;
-		uint64 foam_handle = -1;
-		uint64 perlin_handle = -1;
+		TextureHandle foam_handle = INVALID_TEXTURE_HANDLE;
+		TextureHandle perlin_handle = INVALID_TEXTURE_HANDLE;
 		uint32 width, height;
 		std::unique_ptr<GfxTexture> initial_spectrum;
 		std::unique_ptr<GfxTexture> ping_pong_phase_textures[2];

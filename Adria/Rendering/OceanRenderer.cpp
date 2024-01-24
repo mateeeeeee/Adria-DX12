@@ -294,14 +294,14 @@ namespace adria
 				cmd_list->Dispatch(FFT_RESOLUTION / 16, FFT_RESOLUTION / 16, 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 
-		struct OceanDrawPass
+		struct OceanDrawPassData
 		{
 			RGTextureReadOnlyId normals;
 			RGTextureReadOnlyId displacement;
 		};
 
-		rendergraph.AddPass<OceanDrawPass>("Ocean Draw Pass",
-			[=](OceanDrawPass& data, RenderGraphBuilder& builder)
+		rendergraph.AddPass<OceanDrawPassData>("Ocean Draw Pass",
+			[=](OceanDrawPassData& data, RenderGraphBuilder& builder)
 			{
 				RGResourceName ping_spectrum_texture = !pong_spectrum ? RG_RES_NAME(PingSpectrum) : RG_RES_NAME(PongSpectrum);
 				data.displacement = builder.ReadTexture(ping_spectrum_texture, ReadAccess_NonPixelShader);
@@ -310,7 +310,7 @@ namespace adria
 				builder.WriteDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
 				builder.SetViewport(width, height);
 			},
-			[=](OceanDrawPass const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
+			[=](OceanDrawPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 				if (ocean_tesselation)

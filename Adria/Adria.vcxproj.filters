@@ -1083,6 +1083,9 @@
     <ClInclude Include="Rendering\RainPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\TextureHandle.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

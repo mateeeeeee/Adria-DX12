@@ -31,7 +31,8 @@ void RainSimulationCS(CSInput input)
 	uint3 dispatchThreadId = input.DispatchThreadId;
 	
 	RWStructuredBuffer<RainData> rainDataBuffer = ResourceDescriptorHeap[PassCB.rainDataIdx];
-	uint GroupIdx = dispatchThreadId.x: 
+	uint GroupIdx = dispatchThreadId.x;
 	RainData rainDrop = rainDataBuffer[GroupIdx];
 	rainDrop.Pos += rainDrop.Vel * FrameCB.deltaTime;
+	//todo 
 }
