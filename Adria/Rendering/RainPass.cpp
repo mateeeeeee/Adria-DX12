@@ -69,7 +69,7 @@ namespace adria
 				cmd_list->SetPipelineState(rain_simulation_pso);
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootCBV(1, constants);
-				cmd_list->Dispatch((uint32)std::ceil((MAX_RAIN_DATA_BUFFER_SIZE) / 256), 1, 1);
+				cmd_list->Dispatch((uint32)std::ceil(MAX_RAIN_DATA_BUFFER_SIZE / 256.0f), 1, 1);
 
 			}, RGPassType::Compute, RGPassFlags::None);
 
