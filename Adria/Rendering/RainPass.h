@@ -32,8 +32,6 @@ namespace adria
 		uint32 height;
 
 		TextureHandle rain_streak_handle = INVALID_TEXTURE_HANDLE;
-		TextureHandle noise_handle = INVALID_TEXTURE_HANDLE;
-
 		bool pause_simulation = false;
 		float simulation_speed = 1.0f;
 		float rain_density = 0.5f;

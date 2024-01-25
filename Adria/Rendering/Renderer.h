@@ -14,6 +14,7 @@
 #include "HelperPasses.h"
 #include "PickingPass.h"
 #include "DecalsPass.h"
+#include "RainPass.h"
 #include "OceanRenderer.h"
 #include "AccelerationStructure.h"
 #include "ShadowRenderer.h"
@@ -101,6 +102,7 @@ namespace adria
 		AddTexturesPass add_textures_pass;
 		PickingPass picking_pass;
 		DecalsPass decals_pass;
+		RainPass rain_pass;
 		OceanRenderer  ocean_renderer;
 		ShadowRenderer shadow_renderer;
 		PostProcessor postprocessor;
@@ -119,13 +121,12 @@ namespace adria
 		RendererPathType path_type = RendererPathType::RegularDeferred;
 		GPUDebugPrinter gpu_debug_printer;
 
-		//misc
-		uint32			         volumetric_lights = 0;
+		//weather
 		float					 ambient_color[3] = { 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f };
 		float					 wind_dir[3] = { 1.0f, 0.0f, 1.0f };
 		float					 wind_speed = 10.0f;
 		Vector3					 sun_direction;
-		ViewportData			 viewport_data;
+		bool					 rain_enabled = false;
 
 		//screenshot
 		bool						take_screenshot = false;
@@ -133,6 +134,10 @@ namespace adria
 		GfxFence					screenshot_fence;
 		uint64						screenshot_fence_value = 1;
 		std::unique_ptr<GfxBuffer>  screenshot_buffer;
+
+		//misc
+		uint32			         volumetric_lights = 0;
+		ViewportData			 viewport_data;
 
 	private:
 		void CreateSizeDependentResources();

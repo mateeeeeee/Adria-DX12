@@ -47,7 +47,7 @@ namespace adria
 		tiled_deferred_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
 		postprocessor(gfx, reg, width, height), picking_pass(gfx, width, height),
 		clustered_deferred_lighting_pass(reg, gfx, width, height),
-		decals_pass(reg, width, height), ocean_renderer(reg, width, height),
+		decals_pass(reg, width, height), rain_pass(gfx, width, height), ocean_renderer(reg, width, height),
 		shadow_renderer(reg, gfx, width, height), 
 		path_tracer(gfx, width, height), ddgi(gfx, reg, width, height), gpu_debug_printer(gfx)
 	{
@@ -119,10 +119,11 @@ namespace adria
 		render_graph.ImportTexture(RG_RES_NAME(Backbuffer), gfx->GetBackbuffer());
 		render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
 
+		gpu_debug_printer.AddClearPass(render_graph);
 		if (path_type == RendererPathType::PathTracing) Render_PathTracing(render_graph);
 		else Render_Deferred(render_graph);
 		if (take_screenshot) TakeScreenshot(render_graph);
-		gpu_debug_printer.Print();
+		gpu_debug_printer.AddPrintPass(render_graph);
 
 		if (!g_Editor.IsActive()) CopyToBackbuffer(render_graph);
 		else g_Editor.AddRenderPass(render_graph);
@@ -161,6 +162,7 @@ namespace adria
 			add_textures_pass.OnResize(w, h);
 			picking_pass.OnResize(w, h);
 			decals_pass.OnResize(w, h);
+			rain_pass.OnResize(w, h);
 			ocean_renderer.OnResize(w, h);
 			shadow_renderer.OnResize(w, h);
 			ddgi.OnResize(w, h);
@@ -171,6 +173,7 @@ namespace adria
 	{
 		sky_pass.OnSceneInitialized(gfx);
 		decals_pass.OnSceneInitialized(gfx);
+		rain_pass.OnSceneInitialized();
 		postprocessor.OnSceneInitialized();
 		ocean_renderer.OnSceneInitialized(gfx);
 		ddgi.OnSceneInitialized();
@@ -449,6 +452,7 @@ namespace adria
 		if (volumetric_lights > 0) volumetric_lighting_pass.AddPass(render_graph);
 		if (ddgi.Visualize()) ddgi.AddVisualizePass(render_graph);
 		ocean_renderer.AddPasses(render_graph);
+		if(rain_enabled) rain_pass.AddPass(render_graph);
 		sky_pass.AddComputeSkyPass(render_graph, sun_direction);
 		sky_pass.AddDrawSkyPass(render_graph);
 		picking_pass.AddPass(render_graph);
@@ -472,9 +476,12 @@ namespace adria
 					if (!ray_tracing_supported && current_render_path_type == 3) current_render_path_type = 0;
 				}
 
-				if (ImGui::TreeNode("Misc"))
+				ImGui::ColorEdit3("Ambient Color", ambient_color);
+
+
+				if (ImGui::TreeNode("Weather"))
 				{
-					ImGui::ColorEdit3("Ambient Color", ambient_color);
+					ImGui::Checkbox("Rain", &rain_enabled);
 					ImGui::SliderFloat3("Wind Direction", wind_dir, -1.0f, 1.0f);
 					ImGui::SliderFloat("Wind Speed", &wind_speed, 0.0f, 32.0f);
 					ImGui::TreePop();

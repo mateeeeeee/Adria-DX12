@@ -18,15 +18,6 @@ namespace adria
 	
 	RainPass::RainPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
 	{
-		GfxBufferDesc rain_data_buffer_desc = StructuredBufferDesc<RainData>(MAX_RAIN_DATA_BUFFER_SIZE);
-		std::vector<RainData> rain_data_buffer_init(MAX_RAIN_DATA_BUFFER_SIZE);
-		for (uint64 i = 0; i < MAX_RAIN_DATA_BUFFER_SIZE; ++i)
-		{
-			rain_data_buffer_init[i].position = Vector3(0.0f, -1000.0f, 0.0f); 
-			rain_data_buffer_init[i].velocity = Vector3(0.0f, -10.0f, 0.0f);
-			rain_data_buffer_init[i].state = 0.0f;
-		}
-		rain_data_buffer = std::make_unique<GfxBuffer>(gfx, rain_data_buffer_desc, rain_data_buffer_init.data());
 	}
 
 	void RainPass::AddPass(RenderGraph& rg)
@@ -47,28 +38,24 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				GfxDescriptor src_handles[] = {context.GetReadWriteBuffer(data.rain_data_buffer)};
-				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_handles));
-				gfx->CopyDescriptors(dst_handle, src_handles);
+				GfxDescriptor src_handle = context.GetReadWriteBuffer(data.rain_data_buffer);
+				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU();
+				gfx->CopyDescriptors(1, dst_handle, src_handle);
 
 				uint32 i = dst_handle.GetIndex();
-
 				struct RainSimulationConstants
 				{
-					uint32   depth_idx;
-					uint32   noise_idx;
 					uint32   rain_data_idx;
+					uint32   depth_idx;
 				} constants =
 				{
-					.depth_idx = uint32(-1),
-					.noise_idx = (uint32)noise_handle,
 					.rain_data_idx = i
 				};
 
 				GfxPipelineState* rain_simulation_pso = PSOCache::Get(GfxPipelineStateID::RainSimulation);
 				cmd_list->SetPipelineState(rain_simulation_pso);
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
-				cmd_list->SetRootCBV(1, constants);
+				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch((uint32)std::ceil(MAX_RAIN_DATA_BUFFER_SIZE / 256.0f), 1, 1);
 
 			}, RGPassType::Compute, RGPassFlags::None);
@@ -106,8 +93,10 @@ namespace adria
 					.rain_streak_idx = (uint32)rain_streak_handle
 				};
 
+				GfxPipelineState* rain_pso = PSOCache::Get(GfxPipelineStateID::Rain);
+				cmd_list->SetPipelineState(rain_pso);
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
-				cmd_list->SetRootCBV(1, constants);
+				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Draw(uint32(rain_density * MAX_RAIN_DATA_BUFFER_SIZE) * 6);
 			},
 			RGPassType::Graphics, RGPassFlags::None);
@@ -128,7 +117,15 @@ namespace adria
 	void RainPass::OnSceneInitialized()
 	{
 		rain_streak_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "RainStreak.dds");
-		noise_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "Noise.dds");
+		GfxBufferDesc rain_data_buffer_desc = StructuredBufferDesc<RainData>(MAX_RAIN_DATA_BUFFER_SIZE);
+		std::vector<RainData> rain_data_buffer_init(MAX_RAIN_DATA_BUFFER_SIZE);
+		for (uint64 i = 0; i < MAX_RAIN_DATA_BUFFER_SIZE; ++i)
+		{
+			rain_data_buffer_init[i].position = Vector3(0.0f, -1000.0f, 0.0f);
+			rain_data_buffer_init[i].velocity = Vector3(0.0f, -10.0f, 0.0f);
+			rain_data_buffer_init[i].state = 0.0f;
+		}
+		rain_data_buffer = std::make_unique<GfxBuffer>(gfx, rain_data_buffer_desc, rain_data_buffer_init.data());
 	}
 
 }

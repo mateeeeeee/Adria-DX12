@@ -82,7 +82,7 @@ namespace adria
 		width = std::max(_width, 1u);
 		height = std::max(_height, 1u);
 		depth = std::max(_depth, 1u);
-		mip_levels = _mip_levels;
+		mip_levels = std::max(_mip_levels, 1u);
 		uint64 texture_byte_size = GetTextureByteSize(format, width, height, depth, mip_levels);
 		pixels.resize(texture_byte_size);
 		memcpy(pixels.data(), _data, pixels.size());

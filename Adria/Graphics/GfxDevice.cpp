@@ -890,8 +890,8 @@ namespace adria
 
 	GfxDescriptor GfxDevice::CreateBufferView(GfxBuffer const* buffer, GfxSubresourceType view_type, GfxBufferDescriptorDesc const& view_desc, GfxBuffer const* uav_counter)
 	{
-		GfxBufferDesc desc = buffer->GetDesc();
 		if (uav_counter) ADRIA_ASSERT(view_type == GfxSubresourceType::UAV);
+		GfxBufferDesc desc = buffer->GetDesc();
 		GfxFormat format = desc.format;
 		GfxDescriptor heap_descriptor = AllocateDescriptorCPU(GfxDescriptorHeapType::CBV_SRV_UAV);
 		switch (view_type)

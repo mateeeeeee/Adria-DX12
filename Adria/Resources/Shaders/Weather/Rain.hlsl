@@ -52,9 +52,10 @@ VSToPS RainVS(uint VertexID : SV_VERTEXID)
 	float3x3 viewRotation = (float3x3)FrameCB.view;
     float3 viewDir = -viewRotation[2];
 
-    float3 pos = rainDrop.Pos + FrameCB.cameraPosition.xyz;
+    float3 pos = rainDrop.Pos;
     float3 rainDir = normalize(rainDrop.Vel);
-	float3 rainRight = normalize(cross(viewDir, rainDir));
+	float3 rainRight = cross(viewDir, rainDir);
+	rainRight = normalize(rainRight);
 
 	float2 offsets = PositionOffsets[VertexID % 6];
 	pos += rainRight * offsets.x * 0.025;

@@ -25,8 +25,8 @@ int APIENTRY wWinMain(
 	CLIArg& loglevel = parser.AddArg(true, "-loglvl", "--loglevel");
 	CLIArg& maximize = parser.AddArg(false, "-max", "--maximize");
 	CLIArg& vsync = parser.AddArg(false, "-vsync");
-	CLIArg& debug_layer = parser.AddArg(false, "-debug_layer");
-	CLIArg& dred_debug = parser.AddArg(false, "-dred_debug");
+	CLIArg& debug_layer = parser.AddArg(false, "-debuglayer");
+	CLIArg& dred_debug = parser.AddArg(false, "-dred");
 	CLIArg& gpu_validation = parser.AddArg(false, "-gpu_validation");
 	CLIArg& pix = parser.AddArg(false, "-pix");
 
