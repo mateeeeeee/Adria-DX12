@@ -481,7 +481,10 @@ namespace adria
 
 				if (ImGui::TreeNode("Weather"))
 				{
-					ImGui::Checkbox("Rain", &rain_enabled);
+					if (ImGui::Checkbox("Rain", &rain_enabled))
+					{
+						postprocessor.OnRainEvent(rain_enabled);
+					}
 					ImGui::SliderFloat3("Wind Direction", wind_dir, -1.0f, 1.0f);
 					ImGui::SliderFloat("Wind Speed", &wind_speed, 0.0f, 32.0f);
 					ImGui::TreePop();

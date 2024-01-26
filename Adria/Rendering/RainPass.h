@@ -2,6 +2,7 @@
 #include <memory>
 #include "TextureHandle.h"
 #include "Graphics/GfxDescriptor.h"
+#include "Utilities/Delegate.h"
 
 namespace adria
 {
@@ -17,7 +18,6 @@ namespace adria
 		RainPass(GfxDevice* gfx, uint32 w, uint32 h);
 
 		void AddPass(RenderGraph& rg);
-
 		void OnResize(uint32 w, uint32 h)
 		{
 			width = w, height = h;
@@ -35,5 +35,6 @@ namespace adria
 		bool pause_simulation = false;
 		float simulation_speed = 1.0f;
 		float rain_density = 0.5f;
+		float streak_scale = 0.33f;
 	};
 }

@@ -3,6 +3,7 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "PSOCache.h"
+#include "RainPass.h"
 
 #include "Graphics/GfxRingDescriptorAllocator.h"
 #include "Graphics/GfxLinearDynamicAllocator.h"
@@ -46,6 +47,11 @@ namespace adria
 	{
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 		AddRenderResolutionChangedCallback(&PostProcessor::OnRenderResolutionChanged, *this);
+	}
+
+	void PostProcessor::OnRainEvent(bool enabled)
+	{
+		clouds_pass.OnRainEvent(enabled);
 	}
 
 	void PostProcessor::AddAmbientOcclusionPass(RenderGraph& rg)

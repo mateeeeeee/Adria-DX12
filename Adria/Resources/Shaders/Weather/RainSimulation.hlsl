@@ -7,6 +7,7 @@ struct Constants
 {
 	uint   rainDataIdx;
 	uint   depthIdx;
+	float  simulationSpeed;
 };
 ConstantBuffer<Constants> PassCB : register(b1);
 
@@ -34,10 +35,10 @@ void RainSimulationCS(CSInput input)
 	uint GroupIdx = dispatchThreadId.x;
 
 	RainData rainDrop = rainDataBuffer[GroupIdx];
-	rainDrop.Pos += rainDrop.Vel * FrameCB.deltaTime; 
+	rainDrop.Pos += rainDrop.Vel * FrameCB.deltaTime * PassCB.simulationSpeed; 
 	
 	float3 boundsCenter = FrameCB.cameraPosition.xyz;
-	const float3 boundsExtents = float3(50, 50, 50); 
+	const float3 boundsExtents = float3(50.0f, 20.0f, 70.0f); 
 	
 	float2 offsetAmount = (rainDrop.Pos.xz - boundsCenter.xz) / boundsExtents.xz;
 	rainDrop.Pos.xz -= boundsExtents.xz * ceil(0.5 * offsetAmount - 0.5);
@@ -50,6 +51,10 @@ void RainSimulationCS(CSInput input)
 	
 		rainDrop.Pos.xz = boundsCenter.xz + boundsExtents.xz * random_11.xy;
 		rainDrop.Pos.y  = boundsCenter.y + boundsExtents.y;
+		rainDrop.Pos.y -= dot(random01.zw, 0.2f) * boundsExtents.y;
+
+		float3 windDir = FrameCB.windParams.xyz; // * FrameCB.windParams.w;
+		rainDrop.Vel.xz = lerp(windDir.xz, windDir.xz * random01.zw, 0.2f);
 		rainDrop.Vel.y = -10.0f;
 	}
 	

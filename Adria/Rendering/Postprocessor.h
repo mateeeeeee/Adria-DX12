@@ -41,6 +41,7 @@ namespace adria
 	class GfxTexture;
 	class GfxBuffer;
 	struct Light;
+	class RainEvent;
 
 	class PostProcessor
 	{
@@ -97,6 +98,8 @@ namespace adria
 			dlss3_pass.GetRenderResolutionChangedEvent().AddMember(mem_pfn, instance);
 			upscaler_disabled_event.AddMember(mem_pfn, instance);
 		}
+
+		void OnRainEvent(bool enabled);
 
 		RGResourceName GetFinalResource() const;
 

@@ -25,40 +25,45 @@ namespace adria
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		rg.ImportBuffer(RG_RES_NAME(RainDataBuffer), rain_data_buffer.get());
 
-		struct RainSimulationPassData
+		if (!pause_simulation)
 		{
-			RGBufferReadWriteId rain_data_buffer;
-		};
-		rg.AddPass<RainSimulationPassData>("Rain Simulation Pass",
-			[=](RainSimulationPassData& data, RenderGraphBuilder& builder)
+			struct RainSimulationPassData
 			{
-				data.rain_data_buffer = builder.WriteBuffer(RG_RES_NAME(RainDataBuffer));
-			},
-			[=](RainSimulationPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
-			{
-				GfxDevice* gfx = cmd_list->GetDevice();
-
-				GfxDescriptor src_handle = context.GetReadWriteBuffer(data.rain_data_buffer);
-				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU();
-				gfx->CopyDescriptors(1, dst_handle, src_handle);
-
-				uint32 i = dst_handle.GetIndex();
-				struct RainSimulationConstants
+				RGBufferReadWriteId rain_data_buffer;
+			};
+			rg.AddPass<RainSimulationPassData>("Rain Simulation Pass",
+				[=](RainSimulationPassData& data, RenderGraphBuilder& builder)
 				{
-					uint32   rain_data_idx;
-					uint32   depth_idx;
-				} constants =
+					data.rain_data_buffer = builder.WriteBuffer(RG_RES_NAME(RainDataBuffer));
+				},
+				[=](RainSimulationPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 				{
-					.rain_data_idx = i
-				};
+					GfxDevice* gfx = cmd_list->GetDevice();
 
-				GfxPipelineState* rain_simulation_pso = PSOCache::Get(GfxPipelineStateID::RainSimulation);
-				cmd_list->SetPipelineState(rain_simulation_pso);
-				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
-				cmd_list->SetRootConstants(1, constants);
-				cmd_list->Dispatch((uint32)std::ceil(MAX_RAIN_DATA_BUFFER_SIZE / 256.0f), 1, 1);
+					GfxDescriptor src_handle = context.GetReadWriteBuffer(data.rain_data_buffer);
+					GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU();
+					gfx->CopyDescriptors(1, dst_handle, src_handle);
 
-			}, RGPassType::Compute, RGPassFlags::None);
+					uint32 i = dst_handle.GetIndex();
+					struct RainSimulationConstants
+					{
+						uint32   rain_data_idx;
+						uint32   depth_idx;
+						float    simulation_speed;
+					} constants =
+					{
+						.rain_data_idx = i,
+						.simulation_speed = simulation_speed
+					};
+
+					GfxPipelineState* rain_simulation_pso = PSOCache::Get(GfxPipelineStateID::RainSimulation);
+					cmd_list->SetPipelineState(rain_simulation_pso);
+					cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
+					cmd_list->SetRootConstants(1, constants);
+					cmd_list->Dispatch((uint32)std::ceil(MAX_RAIN_DATA_BUFFER_SIZE / 256.0f), 1, 1);
+
+				}, RGPassType::Compute, RGPassFlags::None);
+		}
 
 		struct RainDrawPassData
 		{
@@ -87,10 +92,13 @@ namespace adria
 				{
 					uint32   rain_data_idx;
 					uint32   rain_streak_idx;
+					float	 rain_streak_scale;
+
 				} constants =
 				{
 					.rain_data_idx = i,
-					.rain_streak_idx = (uint32)rain_streak_handle
+					.rain_streak_idx = (uint32)rain_streak_handle,
+					.rain_streak_scale = streak_scale
 				};
 
 				GfxPipelineState* rain_pso = PSOCache::Get(GfxPipelineStateID::Rain);
@@ -108,6 +116,7 @@ namespace adria
 					ImGui::Checkbox("Pause simulation", &pause_simulation);
 					ImGui::SliderFloat("Simulation speed", &simulation_speed, 0.1f, 10.0f);
 					ImGui::SliderFloat("Rain density", &rain_density, 0.0f, 1.0f);
+					ImGui::SliderFloat("Streak scale", &streak_scale, 0.01f, 1.0f);
 					ImGui::TreePop();
 					ImGui::Separator();
 				}

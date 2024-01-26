@@ -4,6 +4,7 @@ struct Constants
 {
 	uint   rainDataIdx;
 	uint   rainStreakIdx;
+	float  rainStreakScale;
 };
 ConstantBuffer<Constants> PassCB : register(b1);
 
@@ -58,8 +59,8 @@ VSToPS RainVS(uint VertexID : SV_VERTEXID)
 	rainRight = normalize(rainRight);
 
 	float2 offsets = PositionOffsets[VertexID % 6];
-	pos += rainRight * offsets.x * 0.025;
-	pos += rainDir * offsets.y;
+	pos += rainRight * offsets.x * PassCB.rainStreakScale * 0.025;
+	pos += rainDir * offsets.y * PassCB.rainStreakScale;
 
 	output.Position = mul(float4(pos, 1.0), FrameCB.viewProjection);
 	output.TexCoord = UVs[VertexID % 6];

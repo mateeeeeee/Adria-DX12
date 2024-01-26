@@ -56,7 +56,21 @@ namespace adria
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(GfxDevice* gfx, uint32 w, uint32 h);
 		void OnSceneInitialized(GfxDevice* gfx);
-
+		void OnRainEvent(bool enabled)
+		{
+			if (enabled)
+			{
+				params.precipitation = 2.5f;
+				params.cloud_coverage = 0.75f;
+				params.sun_light_factor = 0.15f;
+			}
+			else
+			{
+				params.precipitation = 1.78f;
+				params.cloud_coverage = 0.625f;
+				params.sun_light_factor = 0.7f;
+			}
+		}
 	private:
 		uint32 width, height;
 
