@@ -51,10 +51,12 @@ namespace adria
 						uint32   rain_data_idx;
 						uint32   depth_idx;
 						float    simulation_speed;
+						float    range_radius;
 					} constants =
 					{
 						.rain_data_idx = i,
-						.simulation_speed = simulation_speed
+						.simulation_speed = simulation_speed,
+						.range_radius = range_radius
 					};
 
 					GfxPipelineState* rain_simulation_pso = PSOCache::Get(GfxPipelineStateID::RainSimulation);
@@ -117,6 +119,7 @@ namespace adria
 					ImGui::Checkbox("Pause simulation", &pause_simulation);
 					ImGui::SliderFloat("Simulation speed", &simulation_speed, 0.1f, 10.0f);
 					ImGui::SliderFloat("Rain density", &rain_density, 0.0f, 1.0f);
+					ImGui::SliderFloat("Range radius", &range_radius, 10.0f, 50.0f);
 					ImGui::SliderFloat("Streak scale", &streak_scale, 0.01f, 1.0f);
 					ImGui::TreePop();
 					ImGui::Separator();
@@ -126,7 +129,8 @@ namespace adria
 
 	void RainPass::OnSceneInitialized()
 	{
-		rain_streak_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "RainStreak.dds");
+		rain_streak_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "Rain/RainStreak.dds");
+
 		GfxBufferDesc rain_data_buffer_desc = StructuredBufferDesc<RainData>(MAX_RAIN_DATA_BUFFER_SIZE);
 		std::vector<RainData> rain_data_buffer_init(MAX_RAIN_DATA_BUFFER_SIZE);
 

@@ -32,9 +32,12 @@ namespace adria
 		uint32 height;
 
 		TextureHandle rain_streak_handle = INVALID_TEXTURE_HANDLE;
+		TextureHandle rain_splash_diffuse_handle = INVALID_TEXTURE_HANDLE;
+		TextureHandle rain_splash_bump_handle = INVALID_TEXTURE_HANDLE;
 		bool pause_simulation = false;
 		float simulation_speed = 1.0f;
-		float rain_density = 0.5f;
+		float rain_density = 0.9f;
 		float streak_scale = 0.33f;
+		float range_radius = 40.0f;
 	};
 }

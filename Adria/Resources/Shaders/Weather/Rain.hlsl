@@ -72,5 +72,5 @@ float4 RainPS(VSToPS input) : SV_TARGET
 {
 	Texture2D rainStreakTx = ResourceDescriptorHeap[PassCB.rainStreakIdx];
 	float rainAlpha = rainStreakTx.Sample(LinearWrapSampler, input.TexCoord).r;
-	return float4(FrameCB.ambientColor.rgb, rainAlpha);
+	return float4(FrameCB.ambientColor.rgb * 10.0f, rainAlpha);
 }

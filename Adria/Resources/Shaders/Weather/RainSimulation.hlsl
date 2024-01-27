@@ -8,6 +8,7 @@ struct Constants
 	uint   rainDataIdx;
 	uint   depthIdx;
 	float  simulationSpeed;
+	float  rangeRadius;
 };
 ConstantBuffer<Constants> PassCB : register(b1);
 
@@ -37,12 +38,11 @@ void RainSimulationCS(CSInput input)
 	RainData rainDrop = rainDataBuffer[GroupIdx];
 	rainDrop.Pos += rainDrop.Vel * FrameCB.deltaTime * PassCB.simulationSpeed; 
 	
-	float3 boundsCenter = FrameCB.cameraPosition.xyz;
-	const float3 boundsExtents = float3(40.0f, 40.0f, 80.0f); 
+	const float3 boundsCenter = FrameCB.cameraPosition.xyz;
+	const float3 boundsExtents = float3(PassCB.rangeRadius, PassCB.rangeRadius, PassCB.rangeRadius); 
 	
 	float2 offsetAmount = (rainDrop.Pos.xz - boundsCenter.xz) / boundsExtents.xz;
 	rainDrop.Pos.xz -= boundsExtents.xz * ceil(0.5 * offsetAmount - 0.5);
-	
 	if(abs(rainDrop.Pos.y - boundsCenter.y) > boundsExtents.y)
 	{
 		uint randSeed = InitRand(GroupIdx, 47, 16);
@@ -52,8 +52,8 @@ void RainSimulationCS(CSInput input)
 		rainDrop.Pos.xyz = boundsCenter.xyz + boundsExtents.xyz * random_11.xyz;
 		rainDrop.Pos.y -= dot(random01.zw, 0.2f) * boundsExtents.y;
 
-		float3 windDir = FrameCB.windParams.xyz; // * FrameCB.windParams.w;
-		rainDrop.Vel.xz += windDir.xz * random01.zw;
+		//float3 windDir = FrameCB.windParams.xyz * FrameCB.windParams.w;
+		//rainDrop.Vel.xz += windDir.xz * random01.zw;
 	}
 	
 	rainDrop.State = 1.0f;
