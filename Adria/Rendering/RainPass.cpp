@@ -21,6 +21,50 @@ namespace adria
 	{
 	}
 
+	void RainPass::AddSplashPass(RenderGraph& rg)
+	{
+		return;
+
+		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
+
+		struct RainSplashPassData
+		{
+			RGTextureReadWriteId gbuffer_diffuse;
+			RGTextureReadWriteId gbuffer_normal;
+		};
+		rg.AddPass<RainSplashPassData>("Rain Splash Pass",
+			[=](RainSplashPassData& data, RenderGraphBuilder& builder)
+			{
+				data.gbuffer_diffuse = builder.WriteTexture(RG_RES_NAME(GBufferAlbedo));
+			},
+			[=](RainSplashPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
+			{
+				GfxDevice* gfx = cmd_list->GetDevice();
+				GfxDescriptor src_handle = context.GetReadWriteTexture(data.gbuffer_diffuse);
+				GfxDescriptor dst_handle = gfx->AllocateDescriptorsGPU();
+				gfx->CopyDescriptors(1, dst_handle, src_handle);
+
+				uint32 i = dst_handle.GetIndex();
+				struct RainSimulationConstants
+				{
+					uint32   gbufferDiffuseIdx;
+					uint32   gbufferNormalIdx;
+					uint32   rainSplashDiffuseIdx;
+					uint32   rainSplashNormalIdx;
+				} constants =
+				{
+					.gbufferDiffuseIdx = i,
+					.rainSplashDiffuseIdx = (uint32)rain_splash_diffuse_handle
+				};
+
+				GfxPipelineState* rain_splash_pso = PSOCache::Get(GfxPipelineStateID::RainSplash);
+				cmd_list->SetPipelineState(rain_splash_pso);
+				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
+				cmd_list->SetRootConstants(1, constants);
+				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
+			}, RGPassType::Compute, RGPassFlags::None);
+	}
+
 	void RainPass::AddPass(RenderGraph& rg)
 	{
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
@@ -130,6 +174,8 @@ namespace adria
 	void RainPass::OnSceneInitialized()
 	{
 		rain_streak_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "Rain/RainStreak.dds");
+		rain_splash_bump_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "Rain/SplashBump.dds");
+		rain_splash_diffuse_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "Rain/SplashDiffuse.dds");
 
 		GfxBufferDesc rain_data_buffer_desc = StructuredBufferDesc<RainData>(MAX_RAIN_DATA_BUFFER_SIZE);
 		std::vector<RainData> rain_data_buffer_init(MAX_RAIN_DATA_BUFFER_SIZE);

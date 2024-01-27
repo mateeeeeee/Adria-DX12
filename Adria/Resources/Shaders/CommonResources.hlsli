@@ -56,6 +56,10 @@ SamplerState PointBorderSampler : register(s5);
 SamplerComparisonState ShadowClampSampler : register(s6);
 SamplerComparisonState ShadowWrapSampler : register(s7);
 
+SamplerState LinearMirrorSampler : register(s8);
+SamplerState PointMirrorSampler : register(s9);
+
+
 static float3 GetViewPosition(float2 texcoord, float depth)
 {
 	float4 clipSpaceLocation;

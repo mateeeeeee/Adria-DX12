@@ -39,7 +39,7 @@ namespace adria
             Image img(path);
 
 			GfxTextureDesc desc{};
-			desc.type = GfxTextureType_2D;
+			desc.type = img.Depth() > 1 ? GfxTextureType_3D : GfxTextureType_2D;
 			desc.misc_flags = GfxTextureMiscFlag::None;
 			desc.width = img.Width();
 			desc.height = img.Height();

@@ -439,6 +439,7 @@ namespace adria
 
 		ddgi.AddPasses(render_graph);
 
+		if (rain_enabled) rain_pass.AddSplashPass(render_graph);
 		decals_pass.AddPass(render_graph);
 		postprocessor.AddAmbientOcclusionPass(render_graph);
 		shadow_renderer.AddShadowMapPasses(render_graph);

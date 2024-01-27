@@ -1363,5 +1363,8 @@
     <FxCompile Include="Resources\Shaders\Weather\RainSimulation.hlsl">
       <Filter>Shaders\Weather</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\Weather\RainSplash.hlsl">
+      <Filter>Shaders\Weather</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

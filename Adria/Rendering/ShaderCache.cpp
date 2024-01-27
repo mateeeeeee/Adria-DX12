@@ -125,6 +125,7 @@ namespace adria
 			case CS_DDGIUpdateIrradiance:
 			case CS_DDGIUpdateDistance:
 			case CS_RainSimulation:
+			case CS_RainSplash:
 				return GfxShaderStage::CS;
 			case HS_OceanLOD:
 				return GfxShaderStage::HS;
@@ -157,6 +158,8 @@ namespace adria
 				return "Weather/Rain.hlsl";
 			case CS_RainSimulation:
 				return "Weather/RainSimulation.hlsl";
+			case CS_RainSplash:
+				return "Weather/RainSplash.hlsl";
 			case VS_Simple:
 			case VS_Sun:
 			case PS_Texture:
@@ -469,6 +472,8 @@ namespace adria
 				return "RainPS";
 			case CS_RainSimulation:
 				return "RainSimulationCS";
+			case CS_RainSplash:
+				return "RainSplashCS";
 			case VS_Simple:
 				return "SimpleVS";
 			case VS_Sun:

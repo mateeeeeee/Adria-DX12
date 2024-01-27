@@ -71,6 +71,7 @@ VSToPS RainVS(uint VertexID : SV_VERTEXID)
 float4 RainPS(VSToPS input) : SV_TARGET
 {
 	Texture2D rainStreakTx = ResourceDescriptorHeap[PassCB.rainStreakIdx];
-	float4 rainColor = rainStreakTx.Sample(LinearWrapSampler, input.TexCoord);
+	float4 rainColor = rainStreakTx.Sample(LinearBorderSampler, input.TexCoord);
+
 	return rainColor.rgbr;
 }
