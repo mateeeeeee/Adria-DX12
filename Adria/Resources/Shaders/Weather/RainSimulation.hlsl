@@ -38,7 +38,7 @@ void RainSimulationCS(CSInput input)
 	rainDrop.Pos += rainDrop.Vel * FrameCB.deltaTime * PassCB.simulationSpeed; 
 	
 	float3 boundsCenter = FrameCB.cameraPosition.xyz;
-	const float3 boundsExtents = float3(50.0f, 20.0f, 70.0f); 
+	const float3 boundsExtents = float3(40.0f, 40.0f, 80.0f); 
 	
 	float2 offsetAmount = (rainDrop.Pos.xz - boundsCenter.xz) / boundsExtents.xz;
 	rainDrop.Pos.xz -= boundsExtents.xz * ceil(0.5 * offsetAmount - 0.5);
@@ -49,13 +49,11 @@ void RainSimulationCS(CSInput input)
 		float4 random01 = float4(NextRand(randSeed), NextRand(randSeed), NextRand(randSeed), NextRand(randSeed));
 		float4 random_11 = (random01 * 2.0) - 1.0;
 	
-		rainDrop.Pos.xz = boundsCenter.xz + boundsExtents.xz * random_11.xy;
-		rainDrop.Pos.y  = boundsCenter.y + boundsExtents.y;
+		rainDrop.Pos.xyz = boundsCenter.xyz + boundsExtents.xyz * random_11.xyz;
 		rainDrop.Pos.y -= dot(random01.zw, 0.2f) * boundsExtents.y;
 
 		float3 windDir = FrameCB.windParams.xyz; // * FrameCB.windParams.w;
-		rainDrop.Vel.xz = lerp(windDir.xz, windDir.xz * random01.zw, 0.2f);
-		rainDrop.Vel.y = -10.0f;
+		rainDrop.Vel.xz += windDir.xz * random01.zw;
 	}
 	
 	rainDrop.State = 1.0f;

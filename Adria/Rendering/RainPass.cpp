@@ -6,6 +6,7 @@
 #include "Graphics/GfxDevice.h"
 #include "Editor/GUICommand.h"
 #include "Core/Paths.h"
+#include "Utilities/Random.h"
 
 namespace adria
 {
@@ -128,10 +129,12 @@ namespace adria
 		rain_streak_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "RainStreak.dds");
 		GfxBufferDesc rain_data_buffer_desc = StructuredBufferDesc<RainData>(MAX_RAIN_DATA_BUFFER_SIZE);
 		std::vector<RainData> rain_data_buffer_init(MAX_RAIN_DATA_BUFFER_SIZE);
+
+		RealRandomGenerator<float> rng(-1.0f, 1.0f);
 		for (uint64 i = 0; i < MAX_RAIN_DATA_BUFFER_SIZE; ++i)
 		{
 			rain_data_buffer_init[i].position = Vector3(0.0f, -1000.0f, 0.0f);
-			rain_data_buffer_init[i].velocity = Vector3(0.0f, -10.0f, 0.0f);
+			rain_data_buffer_init[i].velocity = Vector3(0.0f, -10.0f + rng(), 0.0f);
 			rain_data_buffer_init[i].state = 0.0f;
 		}
 		rain_data_buffer = std::make_unique<GfxBuffer>(gfx, rain_data_buffer_desc, rain_data_buffer_init.data());

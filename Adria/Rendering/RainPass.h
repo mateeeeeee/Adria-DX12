@@ -12,7 +12,7 @@ namespace adria
 
 	class RainPass
 	{
-		static constexpr uint32 MAX_RAIN_DATA_BUFFER_SIZE = 1 << 15;
+		static constexpr uint32 MAX_RAIN_DATA_BUFFER_SIZE = 1 << 18;
 
 	public:
 		RainPass(GfxDevice* gfx, uint32 w, uint32 h);
