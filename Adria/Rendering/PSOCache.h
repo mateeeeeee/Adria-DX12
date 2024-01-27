@@ -12,7 +12,6 @@ namespace adria
 		HosekWilkieSky,
 		Rain,
 		RainSimulation,
-		RainSplash,
 		Texture,
 		Solid_Wireframe,
 		Debug_Wireframe,

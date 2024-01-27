@@ -487,9 +487,6 @@ namespace adria
 
 				compute_pso_desc.CS = CS_RainSimulation;
 				compute_pso_map[GfxPipelineStateID::RainSimulation] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_RainSplash;
-				compute_pso_map[GfxPipelineStateID::RainSplash] = gfx->CreateComputePipelineState(compute_pso_desc);
 			}
 
 			if (gfx->GetCapabilities().SupportsMeshShaders())

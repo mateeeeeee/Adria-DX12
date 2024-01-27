@@ -60,7 +60,6 @@ namespace adria
 		VS_Rain,
 		PS_Rain,
 		CS_RainSimulation,
-		CS_RainSplash,
 		CS_Picking,
 		CS_BuildHistogram,
 		CS_HistogramReduction,

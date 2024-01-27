@@ -17,7 +17,6 @@ namespace adria
 	public:
 		RainPass(GfxDevice* gfx, uint32 w, uint32 h);
 
-		void AddSplashPass(RenderGraph& rg);
 		void AddPass(RenderGraph& rg);
 		void OnResize(uint32 w, uint32 h)
 		{
