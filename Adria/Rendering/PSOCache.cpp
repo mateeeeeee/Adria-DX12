@@ -286,16 +286,18 @@ namespace adria
 				gfx_pso_desc.VS = VS_Rain;
 				gfx_pso_desc.PS = PS_Rain;
 				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
+				gfx_pso_desc.rtv_formats[0] = GfxFormat::R8G8B8A8_UNORM;
 				gfx_pso_desc.depth_state.depth_enable = true;
 				gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
 				gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
 				gfx_pso_desc.blend_state.render_target[0].src_blend = GfxBlend::SrcAlpha;
 				gfx_pso_desc.blend_state.render_target[0].dest_blend = GfxBlend::InvSrcAlpha;
 				gfx_pso_desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;
+				gfx_pso_desc.blend_state.render_target[0].blend_op_alpha = GfxBlendOp::Max;
+				gfx_pso_desc.blend_state.render_target[0].src_blend_alpha = GfxBlend::One;
+				gfx_pso_desc.blend_state.render_target[0].dest_blend_alpha = GfxBlend::One;
 				gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
 				gfx_pso_map[GfxPipelineStateID::Rain] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-
 			}
 
 			ComputePipelineStateDesc compute_pso_desc{};

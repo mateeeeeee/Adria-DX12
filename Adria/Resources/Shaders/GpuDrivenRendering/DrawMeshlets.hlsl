@@ -100,9 +100,7 @@ PSOutput DrawMeshletsPS(MSToPS input)
 	Texture2D emissiveTx = ResourceDescriptorHeap[material.emissiveIdx];
 
 	float4 albedoColor = albedoTx.Sample(LinearWrapSampler, input.Uvs) * float4(material.baseColorFactor, 1.0f);
-#if 1
 	if (albedoColor.a < material.alphaCutoff) discard;
-#endif
 
 	float3 normal = normalize(input.NormalWS);
 	float3 tangent = normalize(input.TangentWS);

@@ -67,9 +67,7 @@ PSOutput GBufferPS(VSToPS input)
 	Texture2D emissiveTx = ResourceDescriptorHeap[materialData.emissiveIdx];
 
 	float4 albedoColor = albedoTx.Sample(LinearWrapSampler, input.Uvs) * float4(materialData.baseColorFactor, 1.0f);
-#if MASK
 	if (albedoColor.a < materialData.alphaCutoff) discard;
-#endif
 
 	float3 normal = normalize(input.NormalWS);
 	float3 tangent = normalize(input.TangentWS);

@@ -452,11 +452,11 @@ namespace adria
 		if (volumetric_lights > 0) volumetric_lighting_pass.AddPass(render_graph);
 		if (ddgi.Visualize()) ddgi.AddVisualizePass(render_graph);
 		ocean_renderer.AddPasses(render_graph);
-		if(rain_enabled) rain_pass.AddPass(render_graph);
 		sky_pass.AddComputeSkyPass(render_graph, sun_direction);
 		sky_pass.AddDrawSkyPass(render_graph);
 		picking_pass.AddPass(render_graph);
 		postprocessor.AddPasses(render_graph);
+		if (rain_enabled) rain_pass.AddPass(render_graph);
 		g_DebugRenderer.Render(render_graph);
 	}
 	void Renderer::Render_PathTracing(RenderGraph& render_graph)
