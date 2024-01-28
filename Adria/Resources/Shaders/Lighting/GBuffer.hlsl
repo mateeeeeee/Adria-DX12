@@ -9,7 +9,7 @@ ConstantBuffer<GBufferConstants> PassCB : register(b1);
 struct VSToPS
 {
 	float4 Position     : SV_POSITION;
-
+	float3 PositionWS	: POSITION;
 	float2 Uvs          : TEX;
 	float3 TangentWS    : TANGENT;
 	float3 BitangentWS  : BITANGENT;
@@ -36,6 +36,7 @@ VSToPS GBufferVS(uint vertexId : SV_VertexID)
 	float4 tan = LoadMeshBuffer<float4>(meshData.bufferIdx, meshData.tangentsOffset, vertexId);
     
 	float4 posWS = mul(float4(pos, 1.0), instanceData.worldMatrix);
+	output.PositionWS = posWS.xyz;
 	output.Position = mul(posWS, FrameCB.viewProjection);
 	output.Position.xy += FrameCB.cameraJitter * output.Position.w;
 	output.Uvs = uv;
@@ -77,12 +78,24 @@ PSOutput GBufferPS(VSToPS input)
 	normalTS.xy = 2.0f * normalTS.xy - 1.0f;
 	normalTS.z = sqrt(1.0f - normalTS.x * normalTS.x - normalTS.y * normalTS.y);
 	normal = mul(normalTS, TBN);
+	float3 aoRoughnessMetallic = metallicRoughnessTx.Sample(LinearWrapSampler, input.Uvs).rgb;
+
 #if RAIN
-	
+	Texture3D rainSplashDiffuseTx = ResourceDescriptorHeap[FrameCB.rainSplashDiffuseIdx];
+	Texture3D rainSplashBumpTx = ResourceDescriptorHeap[FrameCB.rainSplashBumpIdx];
+
+	const float wetFactor = saturate(5.0f * saturate(input.NormalWS.y));
+	float3 rainSplashDiffuse = rainSplashDiffuseTx.SampleLevel(LinearMirrorSampler, float3(input.PositionWS.xz / 5.0f, FrameCB.totalTime), 0).rgb;
+	albedoColor.rgb += wetFactor * rainSplashDiffuse;
+
+	float3 rainSplashBump = rainSplashBumpTx.SampleLevel(LinearMirrorSampler, float3(input.PositionWS.xz  / 10.0f, FrameCB.totalTime), 0).rgb - 0.5f;
+	normal += wetFactor * 2 * (rainSplashBump.x * tangent + rainSplashBump.y * bitangent);
+
+    albedoColor.rgb *= lerp(1.0f, 0.3f, wetFactor);
+    aoRoughnessMetallic.g = saturate(lerp(aoRoughnessMetallic.g, aoRoughnessMetallic.g * 2.5f, wetFactor));
 #endif
 	float3 normalVS = normalize(mul(normal, (float3x3) FrameCB.view));
 
-	float3 aoRoughnessMetallic = metallicRoughnessTx.Sample(LinearWrapSampler, input.Uvs).rgb;
 	float3 emissiveColor = emissiveTx.Sample(LinearWrapSampler, input.Uvs).rgb;
 	return PackGBuffer(albedoColor.xyz, normalVS, float4(emissiveColor, materialData.emissiveFactor),
 		aoRoughnessMetallic.g * materialData.roughnessFactor, aoRoughnessMetallic.b * materialData.metallicFactor);

@@ -14,6 +14,7 @@ struct MSToPS
 {
 	float4 Position     : SV_POSITION;
 	float2 Uvs          : TEX;
+	float3 PositionWS	: POSITION;
 	float3 TangentWS    : TANGENT;
 	float3 BitangentWS  : BITANGENT;
 	float3 NormalWS     : NORMAL1;
@@ -29,10 +30,11 @@ MSToPS GetVertex(Mesh mesh, Instance instance, uint vertexId)
 	float4 tan = LoadMeshBuffer<float4>(mesh.bufferIdx,  mesh.tangentsOffset, vertexId);
 	
 	float4 posWS = mul(float4(pos, 1.0), instance.worldMatrix);
+	output.PositionWS = posWS.xyz;
 	output.Position = mul(posWS, FrameCB.viewProjection);
 	output.Position.xy += FrameCB.cameraJitter * output.Position.w;
 	output.Uvs = uv;
-
+	
 	output.NormalWS =  mul(nor, (float3x3) transpose(instance.inverseWorldMatrix));;
 	output.TangentWS = mul(tan.xyz, (float3x3) instance.worldMatrix);
 	output.BitangentWS = normalize(cross(output.NormalWS, output.TangentWS) * tan.w);
@@ -110,11 +112,24 @@ PSOutput DrawMeshletsPS(MSToPS input)
 	normalTS.xy = 2.0f * normalTS.xy - 1.0f;
 	normalTS.z = sqrt(1.0f - normalTS.x * normalTS.x - normalTS.y * normalTS.y);
 	normal = mul(normalTS, TBN);
+
+	float3 aoRoughnessMetallic = metallicRoughnessTx.Sample(LinearWrapSampler, input.Uvs).rgb;
 #if RAIN
+	Texture3D rainSplashDiffuseTx = ResourceDescriptorHeap[FrameCB.rainSplashDiffuseIdx];
+	Texture3D rainSplashBumpTx = ResourceDescriptorHeap[FrameCB.rainSplashBumpIdx];
+
+	const float wetFactor = saturate(5.0f * saturate(input.NormalWS.y));
+	float3 rainSplashDiffuse = rainSplashDiffuseTx.SampleLevel(LinearMirrorSampler, float3(input.PositionWS.xz / 5.0f, FrameCB.totalTime), 0).rgb;
+	albedoColor.rgb += wetFactor * rainSplashDiffuse;
+
+	float3 rainSplashBump = rainSplashBumpTx.SampleLevel(LinearMirrorSampler, float3(input.PositionWS.xz  / 10.0f, FrameCB.totalTime), 0).rgb - 0.5f;
+	normal += wetFactor * 2 * (rainSplashBump.x * tangent + rainSplashBump.y * bitangent);
+
+    albedoColor.rgb *= lerp(1.0f, 0.3f, wetFactor);
+    aoRoughnessMetallic.g = saturate(lerp(aoRoughnessMetallic.g, aoRoughnessMetallic.g * 2.5f, wetFactor));
 #endif
 	float3 normalVS = normalize(mul(normal, (float3x3) FrameCB.view));
 
-	float3 aoRoughnessMetallic = metallicRoughnessTx.Sample(LinearWrapSampler, input.Uvs).rgb;
 	float3 emissiveColor = emissiveTx.Sample(LinearWrapSampler, input.Uvs).rgb;
 	return PackGBuffer(albedoColor.xyz, normalVS, float4(emissiveColor, material.emissiveFactor),
 		aoRoughnessMetallic.g * material.roughnessFactor, aoRoughnessMetallic.b * material.metallicFactor);
