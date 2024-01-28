@@ -29,7 +29,7 @@ namespace adria
 		RainEvent& GetRainEvent() { return rain_event; }
 		void OnRainEnabled(bool enabled)
 		{
-			rain_event.Broadcast(enabled);
+			rain_event.Broadcast(enabled && rain_splashes);
 		}
 
 		int32 GetRainSplashDiffuseIndex() const { return (int32)rain_splash_diffuse_handle; }
@@ -45,6 +45,7 @@ namespace adria
 		TextureHandle rain_splash_diffuse_handle = INVALID_TEXTURE_HANDLE;
 		TextureHandle rain_splash_bump_handle = INVALID_TEXTURE_HANDLE;
 		bool pause_simulation = false;
+		bool rain_splashes = true;
 		float simulation_speed = 1.0f;
 		float rain_density = 0.5f;
 		float streak_scale = 0.33f;
