@@ -425,7 +425,10 @@ namespace adria
 				{
 					.visible_meshlets_idx = i,
 				};
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DrawMeshlets));
+
+				GfxPipelineStateID pso_id = use_rain_pso ? GfxPipelineStateID::DrawMeshlets_Rain : GfxPipelineStateID::DrawMeshlets;
+
+				cmd_list->SetPipelineState(PSOCache::Get(pso_id));
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				GfxBuffer const& draw_args = ctx.GetIndirectArgsBuffer(data.draw_args);
@@ -711,7 +714,9 @@ namespace adria
 				{
 					.visible_meshlets_idx = i,
 				};
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DrawMeshlets));
+
+				GfxPipelineStateID pso_id = use_rain_pso ? GfxPipelineStateID::DrawMeshlets_Rain : GfxPipelineStateID::DrawMeshlets;
+				cmd_list->SetPipelineState(PSOCache::Get(pso_id));
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				GfxBuffer const& draw_args = ctx.GetIndirectArgsBuffer(data.draw_args);

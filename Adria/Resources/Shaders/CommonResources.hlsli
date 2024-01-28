@@ -42,6 +42,9 @@ struct FrameCBuffer
 	int    instancesIdx;
 	int    ddgiVolumesIdx;
 	int    printfBufferIdx;
+
+	int	   rainSplashDiffuseIdx;
+	int	   rainSplashBumpIdx;
 };
 ConstantBuffer<FrameCBuffer> FrameCB  : register(b0);
 

@@ -110,6 +110,8 @@ PSOutput DrawMeshletsPS(MSToPS input)
 	normalTS.xy = 2.0f * normalTS.xy - 1.0f;
 	normalTS.z = sqrt(1.0f - normalTS.x * normalTS.x - normalTS.y * normalTS.y);
 	normal = mul(normalTS, TBN);
+#if RAIN
+#endif
 	float3 normalVS = normalize(mul(normal, (float3x3) FrameCB.view));
 
 	float3 aoRoughnessMetallic = metallicRoughnessTx.Sample(LinearWrapSampler, input.Uvs).rgb;

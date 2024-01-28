@@ -38,6 +38,11 @@ namespace adria
 			InitializeHZB();
 		}
 
+		void OnRainEvent(bool enabled)
+		{
+			use_rain_pso = enabled;
+		}
+
 	private:
 		GfxDevice* gfx;
 		entt::registry& reg;
@@ -53,6 +58,9 @@ namespace adria
 		std::unique_ptr<GfxBuffer> debug_buffer;
 		bool display_debug_stats = false;
 		DebugStats debug_stats[GFX_BACKBUFFER_COUNT];
+
+		bool use_rain_pso = false;
+
 	private:
 		void InitializeHZB();
 

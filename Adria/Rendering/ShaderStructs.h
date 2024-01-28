@@ -59,6 +59,9 @@ namespace adria
 		int32  instances_idx;
 		int32  ddgi_volumes_idx;
 		int32  printf_buffer_idx;
+
+		int32  rain_splash_diffuse_idx;
+		int32  rain_splash_bump_idx;
 	};
 
 	struct LightHLSL

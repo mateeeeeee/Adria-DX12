@@ -57,6 +57,8 @@ namespace adria
 				gfx_pso_map[GfxPipelineStateID::GBuffer_Mask_NoCull] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 				gfx_pso_desc.PS = PS_GBuffer;
 				gfx_pso_map[GfxPipelineStateID::GBuffer_NoCull] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
+				gfx_pso_desc.PS = PS_GBuffer_Rain;
+				gfx_pso_map[GfxPipelineStateID::GBuffer_Rain] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 
 				gfx_pso_desc = {};
 				GfxShaderCompiler::FillInputLayoutDesc(GetShader(VS_Shadow), gfx_pso_desc.input_layout);
@@ -505,6 +507,9 @@ namespace adria
 					mesh_pso_desc.rtv_formats[2] = GfxFormat::R8G8B8A8_UNORM;
 					mesh_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
 					mesh_pso_map[GfxPipelineStateID::DrawMeshlets] = gfx->CreateMeshShaderPipelineState(mesh_pso_desc);
+
+					mesh_pso_desc.PS = PS_DrawMeshlets_Rain;
+					mesh_pso_map[GfxPipelineStateID::DrawMeshlets_Rain] = gfx->CreateMeshShaderPipelineState(mesh_pso_desc);
 				}
 			}
 		}

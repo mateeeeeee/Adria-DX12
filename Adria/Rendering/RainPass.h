@@ -10,9 +10,11 @@ namespace adria
 	class GfxBuffer;
 	class RenderGraph;
 
+	DECLARE_EVENT(RainEvent, RainPass, bool)
+
 	class RainPass
 	{
-		static constexpr uint32 MAX_RAIN_DATA_BUFFER_SIZE = 1 << 18;
+		static constexpr uint32 MAX_RAIN_DATA_BUFFER_SIZE = 1 << 20;
 
 	public:
 		RainPass(GfxDevice* gfx, uint32 w, uint32 h);
@@ -22,8 +24,16 @@ namespace adria
 		{
 			width = w, height = h;
 		}
-
 		void OnSceneInitialized();
+
+		RainEvent& GetRainEvent() { return rain_event; }
+		void OnRainEnabled(bool enabled)
+		{
+			rain_event.Broadcast(enabled);
+		}
+
+		int32 GetRainSplashDiffuseIndex() const { return (int32)rain_splash_diffuse_handle; }
+		int32 GetRainSplashBumpIndex()    const { return (int32)rain_splash_bump_handle;    }
 
 	private:
 		GfxDevice* gfx;
@@ -36,8 +46,10 @@ namespace adria
 		TextureHandle rain_splash_bump_handle = INVALID_TEXTURE_HANDLE;
 		bool pause_simulation = false;
 		float simulation_speed = 1.0f;
-		float rain_density = 0.9f;
+		float rain_density = 0.5f;
 		float streak_scale = 0.33f;
 		float range_radius = 40.0f;
+
+		RainEvent rain_event;
 	};
 }

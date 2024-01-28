@@ -73,6 +73,7 @@ namespace adria
 					if (!batch.camera_visibility) continue;
 
 					GfxPipelineStateID pso_id = GetPSO(batch.alpha_mode);
+					pso_id = use_rain_pso ? GfxPipelineStateID::GBuffer_Rain : pso_id;
 					cmd_list->SetPipelineState(PSOCache::Get(pso_id));
 
 					struct GBufferConstants

@@ -60,6 +60,11 @@ namespace adria
 		CreateSizeDependentResources();
 		shadow_renderer.GetShadowTextureRenderedEvent().AddMember(&DeferredLightingPass::OnShadowTextureRendered, deferred_lighting_pass);
 		shadow_renderer.GetShadowTextureRenderedEvent().AddMember(&VolumetricLightingPass::OnShadowTextureRendered, volumetric_lighting_pass);
+
+		rain_pass.GetRainEvent().AddMember(&PostProcessor::OnRainEvent, postprocessor);
+		rain_pass.GetRainEvent().AddMember(&GPUDrivenGBufferPass::OnRainEvent, gpu_driven_renderer);
+		rain_pass.GetRainEvent().AddMember(&GBufferPass::OnRainEvent, gbuffer_pass);
+
 		screenshot_fence.Create(gfx, "Screenshot Fence");
 	}
 
@@ -386,6 +391,8 @@ namespace adria
 		shadow_renderer.FillFrameCBuffer(frame_cbuf_data);
 		frame_cbuf_data.ddgi_volumes_idx = ddgi.GetDDGIVolumeIndex();
 		frame_cbuf_data.printf_buffer_idx = gpu_debug_printer.GetPrintfBufferIndex();
+		frame_cbuf_data.rain_splash_diffuse_idx = rain_pass.GetRainSplashDiffuseIndex();
+		frame_cbuf_data.rain_splash_bump_idx = rain_pass.GetRainSplashBumpIndex();
 
 		if (ray_tracing_supported && reg.view<RayTracing>().size())
 		{
@@ -439,7 +446,6 @@ namespace adria
 
 		ddgi.AddPasses(render_graph);
 
-		if (rain_enabled) rain_pass.AddSplashPass(render_graph);
 		decals_pass.AddPass(render_graph);
 		postprocessor.AddAmbientOcclusionPass(render_graph);
 		shadow_renderer.AddShadowMapPasses(render_graph);
@@ -476,15 +482,13 @@ namespace adria
 				{
 					if (!ray_tracing_supported && current_render_path_type == 3) current_render_path_type = 0;
 				}
-
 				ImGui::ColorEdit3("Ambient Color", ambient_color);
-
 
 				if (ImGui::TreeNode("Weather"))
 				{
 					if (ImGui::Checkbox("Rain", &rain_enabled))
 					{
-						postprocessor.OnRainEvent(rain_enabled);
+						rain_pass.OnRainEnabled(rain_enabled);
 					}
 					ImGui::SliderFloat3("Wind Direction", wind_dir, -1.0f, 1.0f);
 					ImGui::SliderFloat("Wind Speed", &wind_speed, 0.0f, 32.0f);

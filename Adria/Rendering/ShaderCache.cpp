@@ -46,6 +46,7 @@ namespace adria
 			case PS_Decals:
 			case PS_Decals_ModifyNormals:
 			case PS_GBuffer:
+			case PS_GBuffer_Rain:
 			case PS_GBuffer_Mask:
 			case PS_Copy:
 			case PS_Add:
@@ -59,6 +60,7 @@ namespace adria
 			case PS_Debug:
 			case PS_DDGIVisualize:
 			case PS_Rain:
+			case PS_DrawMeshlets_Rain:
 				return GfxShaderStage::PS;
 			case GS_LensFlare:
 			case GS_Bokeh:
@@ -172,6 +174,7 @@ namespace adria
 			
 			case VS_GBuffer:
 			case PS_GBuffer:
+			case PS_GBuffer_Rain:
 			case PS_GBuffer_Mask:
 				return "Lighting/GBuffer.hlsl";
 			case VS_FullscreenTriangle:
@@ -296,6 +299,7 @@ namespace adria
 			case CS_BuildMeshletDrawArgs2ndPhase:
 			case MS_DrawMeshlets:
 			case PS_DrawMeshlets:
+			case PS_DrawMeshlets_Rain:
 				return "GpuDrivenRendering/DrawMeshlets.hlsl";
 			case CS_InitializeHZB:
 			case CS_HZBMips:
@@ -349,6 +353,7 @@ namespace adria
 			case MS_DrawMeshlets:
 				return "DrawMeshletsMS";
 			case PS_DrawMeshlets:
+			case PS_DrawMeshlets_Rain:
 				return "DrawMeshletsPS";
 			case CS_InitializeHZB:
 				return "InitializeHZB_CS";
@@ -387,6 +392,7 @@ namespace adria
 			case VS_GBuffer:
 				return "GBufferVS";
 			case PS_GBuffer:
+			case PS_GBuffer_Rain:
 			case PS_GBuffer_Mask:
 				return "GBufferPS";
 			case VS_LensFlare:
@@ -534,6 +540,8 @@ namespace adria
 			case VS_Shadow_Transparent:
 			case PS_Shadow_Transparent:
 				return { {"ALPHA_TEST", "1"} };
+			case PS_GBuffer_Rain:
+				return { { "RAIN", "1" } };
 			case PS_GBuffer_Mask:
 				return { { "MASK", "1" } };
 			case CS_BloomDownsampleFirstPass:
@@ -548,6 +556,8 @@ namespace adria
 			case CS_CullInstances1stPhase_NoOcclusionCull:
 			case CS_CullMeshlets1stPhase_NoOcclusionCull:
 				return { {"OCCLUSION_CULL", "0"} };
+			case PS_DrawMeshlets_Rain:
+				return { {"RAIN", "1"} };
 			default:
 				return {};
 			}

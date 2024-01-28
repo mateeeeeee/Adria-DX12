@@ -13,11 +13,15 @@ namespace adria
 		GBufferPass(entt::registry& reg, uint32 w, uint32 h);
 
 		void AddPass(RenderGraph& rendergraph);
-
 		void OnResize(uint32 w, uint32 h);
 
+		void OnRainEvent(bool enabled)
+		{
+			use_rain_pso = enabled;
+		}
 	private:
 		entt::registry& reg;
 		uint32 width, height;
+		bool use_rain_pso = false;
 	};
 }
