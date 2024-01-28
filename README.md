@@ -50,6 +50,7 @@ Graphics engine written in C++ using DirectX12.
 * Antialiasing: FXAA, TAA
 * Contrast Adaptive Sharpening (FFX)
 * Film effects: Lens distortion, Chromatic aberration, Vignette, Film grain
+* Rain
 * God rays
 * Lens flare
 * Motion blur
@@ -79,20 +80,20 @@ Graphics engine written in C++ using DirectX12.
 |  ![](Adria/Saved/Screenshots/ddgi_probes1.png) |
 
 ### Volumetric Clouds
-![alt text](Adria/Saved/Screenshots/clouds.png "Volumetric clouds") 
+![](Adria/Saved/Screenshots/clouds.png "Volumetric clouds") 
 
 ### San Miguel
-![alt text](Adria/Saved/Screenshots/sanmiguel.png "San Miguel") 
+![](Adria/Saved/Screenshots/sanmiguel.png "San Miguel") 
 
 ### Ocean
-![alt text](Adria/Saved/Screenshots/ocean.png "Ocean") 
+![](Adria/Saved/Screenshots/ocean.png "Ocean") 
 
 ### Path Tracer
-![alt text](Adria/Saved/Screenshots/pathtracing1.png "Path tracing") 
-![alt text](Adria/Saved/Screenshots/pathtracing2.png "Path tracing") 
+![](Adria/Saved/Screenshots/pathtracing1.png "Path tracing") 
+![](Adria/Saved/Screenshots/pathtracing2.png "Path tracing") 
 
 ### Editor
-![alt text](Adria/Saved/Screenshots/editor.png "Editor") 
+![](Adria/Saved/Screenshots/editor.png "Editor") 
 
 ### Ray Tracing Features
 
@@ -109,4 +110,7 @@ Graphics engine written in C++ using DirectX12.
 |  ![](Adria/Saved/Screenshots/ssao.png) | ![](Adria/Saved/Screenshots/rtao.png) |
 
 ### Render Graph Visualization
-![alt text](Adria/Saved/RenderGraph/rendergraph.svg "Render graph visualization") 
+![](Adria/Saved/RenderGraph/rendergraph.svg "Render graph visualization") 
+
+### Rain
+![](Adria/Saved/Screenshots/rain.gif "Rain") 
