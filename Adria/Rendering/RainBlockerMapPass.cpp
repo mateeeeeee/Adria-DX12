@@ -4,18 +4,39 @@
 #include "BlackboardData.h"
 #include "PSOCache.h"
 #include "RenderGraph/RenderGraph.h"
+#include "Editor/GUICommand.h"
 #include "entt/entity/registry.hpp"
 
+using namespace DirectX;
 namespace adria
 {
+	static std::pair<Matrix, Matrix> RainBlockerMatrices(Vector4 const& camera_position, uint32 map_size)
+	{
+		Vector3 const max_extents(50.0f, 50.0f, 50.0f);
+		Vector3 const min_extents = -max_extents;
+
+		float l = min_extents.x;
+		float b = min_extents.y;
+		float n = 1.0f;
+		float r = max_extents.x;
+		float t = max_extents.y;
+		float f = (1000 - camera_position.y) * 1.5f;
+		Matrix V = XMMatrixLookAtLH(Vector4(0, 1000, 0, 1), camera_position, Vector3::Down);
+		Matrix P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
+		return { V,P };
+	}
+
 
 	RainBlockerMapPass::RainBlockerMapPass(entt::registry& reg, uint32 w, uint32 h) : reg(reg), width(w), height(h)
-	{
-	}
+	{}
 
 	void RainBlockerMapPass::AddPass(RenderGraph& rendergraph)
 	{
 		FrameBlackboardData const& frame_data = rendergraph.GetBlackboard().Get<FrameBlackboardData>();
+
+		auto [V, P] = RainBlockerMatrices(Vector4(frame_data.camera_position), BLOCKER_DIM);
+		view_projection = V * P;
+
 		rendergraph.AddPass<void>("Rain Blocker Pass",
 			[=](RenderGraphBuilder& builder)
 			{
@@ -34,12 +55,13 @@ namespace adria
 
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				
+				
 				struct RainBlockerConstants
 				{
 					Matrix rain_view_projection;
 				} rain_constants = 
 				{
-					.rain_view_projection = Matrix::Identity
+					.rain_view_projection = view_projection
 				};
 
 				cmd_list->SetRootCBV(2, rain_constants);
@@ -63,7 +85,9 @@ namespace adria
 					cmd_list->SetIndexBuffer(&ibv);
 					cmd_list->DrawIndexed(batch.submesh->indices_count);
 				}
-			}, RGPassType::Graphics, RGPassFlags::None);
+			}, RGPassType::Graphics, RGPassFlags::ForceNoCull);
+
+
 	}
 
 	void RainBlockerMapPass::OnResize(uint32 w, uint32 h)

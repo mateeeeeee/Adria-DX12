@@ -89,6 +89,29 @@ PSOutput PackGBuffer(float3 BaseColor, float3 NormalVS, float4 emissive, float r
 	return output;
 }
 
+#if RAIN
+struct RainConstants
+{
+	row_major matrix rainViewProjectionMatrix;
+	uint rainBlockerMapIdx;
+};
+ConstantBuffer<RainConstants> RainCB : register(b2);
+
+bool IsBlockedFromRain(float3 worldPosition)
+{
+	matrix rainViewProjection = RainCB.rainViewProjectionMatrix;
+	float4 rainMapPosition = mul(float4(worldPosition, 1.0f), rainViewProjection);
+	float3 UVD = rainMapPosition.xyz / rainMapPosition.w;
+	UVD.xy = 0.5 * UVD.xy + 0.5;
+	UVD.y = 1.0 - UVD.y;
+	Texture2D<float> blockerMap = ResourceDescriptorHeap[RainCB.rainBlockerMapIdx];
+	if (UVD.z > 1.0f) return true;
+	float depth = UVD.z;
+	return !(blockerMap.SampleCmpLevelZero(ShadowWrapSampler, UVD.xy, depth));
+}
+
+#endif
+
 PSOutput DrawMeshletsPS(MSToPS input)
 {
 	StructuredBuffer<MeshletCandidate> visibleMeshlets = ResourceDescriptorHeap[PassCB.visibleMeshletsIdx];
@@ -115,18 +138,23 @@ PSOutput DrawMeshletsPS(MSToPS input)
 
 	float3 aoRoughnessMetallic = metallicRoughnessTx.Sample(LinearWrapSampler, input.Uvs).rgb;
 #if RAIN
-	Texture3D rainSplashDiffuseTx = ResourceDescriptorHeap[FrameCB.rainSplashDiffuseIdx];
-	Texture3D rainSplashBumpTx = ResourceDescriptorHeap[FrameCB.rainSplashBumpIdx];
+	
+	if(!IsBlockedFromRain(input.PositionWS.xyz))
+	{
+		Texture3D rainSplashDiffuseTx = ResourceDescriptorHeap[FrameCB.rainSplashDiffuseIdx];
+		Texture3D rainSplashBumpTx = ResourceDescriptorHeap[FrameCB.rainSplashBumpIdx];
 
-	const float wetFactor = saturate(5.0f * saturate(input.NormalWS.y));
-	float3 rainSplashDiffuse = rainSplashDiffuseTx.SampleLevel(LinearMirrorSampler, float3(input.PositionWS.xz / 5.0f, FrameCB.totalTime), 0).rgb;
-	albedoColor.rgb += wetFactor * rainSplashDiffuse;
+		const float wetFactor = saturate(5.0f * saturate(input.NormalWS.y));
+		float3 rainSplashDiffuse = rainSplashDiffuseTx.SampleLevel(LinearMirrorSampler, float3(input.PositionWS.xz / 5.0f, FrameCB.totalTime), 0).rgb;
+		albedoColor.rgb += wetFactor * rainSplashDiffuse;
 
-	float3 rainSplashBump = rainSplashBumpTx.SampleLevel(LinearMirrorSampler, float3(input.PositionWS.xz  / 10.0f, FrameCB.totalTime), 0).rgb - 0.5f;
-	normal += wetFactor * 2 * (rainSplashBump.x * tangent + rainSplashBump.y * bitangent);
+		float3 rainSplashBump = rainSplashBumpTx.SampleLevel(LinearMirrorSampler, float3(input.PositionWS.xz  / 10.0f, FrameCB.totalTime), 0).rgb - 0.5f;
+		normal += wetFactor * 2 * (rainSplashBump.x * tangent + rainSplashBump.y * bitangent);
 
-    albedoColor.rgb *= lerp(1.0f, 0.3f, wetFactor);
-    aoRoughnessMetallic.g = saturate(lerp(aoRoughnessMetallic.g, aoRoughnessMetallic.g * 2.5f, wetFactor));
+		albedoColor.rgb *= lerp(1.0f, 0.3f, wetFactor);
+		aoRoughnessMetallic.g = saturate(lerp(aoRoughnessMetallic.g, aoRoughnessMetallic.g * 2.5f, wetFactor));
+	}
+	
 #endif
 	float3 normalVS = normalize(mul(normal, (float3x3) FrameCB.view));
 

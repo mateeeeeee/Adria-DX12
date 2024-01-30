@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include "RainBlockerMapPass.h"
 #include "RenderGraph/RenderGraphResourceId.h"
 #include "Graphics/GfxDefines.h"
 
@@ -35,12 +36,13 @@ namespace adria
 		void OnResize(uint32 w, uint32 h)
 		{
 			width = w, height = h;
+			rain_blocker_pass.OnResize(w, h);
 			InitializeHZB();
 		}
 
 		void OnRainEvent(bool enabled)
 		{
-			use_rain_pso = enabled;
+			rain_active = enabled;
 		}
 
 	private:
@@ -59,7 +61,8 @@ namespace adria
 		bool display_debug_stats = false;
 		DebugStats debug_stats[GFX_BACKBUFFER_COUNT];
 
-		bool use_rain_pso = false;
+		RainBlockerMapPass rain_blocker_pass;
+		bool rain_active = false;
 
 	private:
 		void InitializeHZB();

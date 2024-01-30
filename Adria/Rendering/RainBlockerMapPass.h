@@ -14,8 +14,11 @@ namespace adria
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h);
 
+		Matrix const& GetViewProjection() const { return view_projection; }
+
 	private:
 		entt::registry& reg;
 		uint32 width, height;
+		Matrix view_projection;
 	};
 }

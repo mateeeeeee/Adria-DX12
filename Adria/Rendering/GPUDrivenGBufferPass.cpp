@@ -25,7 +25,8 @@ namespace adria
 		uint32 meshlet_index;
 	};
 
-	GPUDrivenGBufferPass::GPUDrivenGBufferPass(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), width(width), height(height)
+	GPUDrivenGBufferPass::GPUDrivenGBufferPass(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) 
+		: reg(reg), gfx(gfx), width(width), height(height), rain_blocker_pass(reg, width, height)
 	{
 		CreateDebugBuffer();
 		InitializeHZB();
@@ -33,6 +34,8 @@ namespace adria
 
 	void GPUDrivenGBufferPass::Render(RenderGraph& rg)
 	{
+		if (rain_active) rain_blocker_pass.AddPass(rg);
+
 		AddClearCountersPass(rg);
 		Add1stPhasePasses(rg);
 		Add2ndPhasePasses(rg);
@@ -426,7 +429,7 @@ namespace adria
 					.visible_meshlets_idx = i,
 				};
 
-				GfxPipelineStateID pso_id = use_rain_pso ? GfxPipelineStateID::DrawMeshlets_Rain : GfxPipelineStateID::DrawMeshlets;
+				GfxPipelineStateID pso_id = rain_active ? GfxPipelineStateID::DrawMeshlets_Rain : GfxPipelineStateID::DrawMeshlets;
 
 				cmd_list->SetPipelineState(PSOCache::Get(pso_id));
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
@@ -715,7 +718,7 @@ namespace adria
 					.visible_meshlets_idx = i,
 				};
 
-				GfxPipelineStateID pso_id = use_rain_pso ? GfxPipelineStateID::DrawMeshlets_Rain : GfxPipelineStateID::DrawMeshlets;
+				GfxPipelineStateID pso_id = rain_active ? GfxPipelineStateID::DrawMeshlets_Rain : GfxPipelineStateID::DrawMeshlets;
 				cmd_list->SetPipelineState(PSOCache::Get(pso_id));
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);

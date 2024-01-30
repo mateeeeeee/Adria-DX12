@@ -43,7 +43,6 @@ namespace adria
 
 			Vector3 const max_extents(radius, radius, radius);
 			Vector3 const min_extents = -max_extents;
-			Vector3 const cascade_extents = max_extents - min_extents;
 
 			Vector3 light_dir = XMVector3Normalize(light.direction);
 			Matrix V = XMMatrixLookAtLH(frustum_center, frustum_center + 1.0f * light_dir * radius, Vector3::Up);
