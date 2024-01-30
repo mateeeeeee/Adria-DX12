@@ -489,6 +489,9 @@
     <ClCompile Include="Rendering\RainPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\RainBlockerMapPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1086,6 +1089,9 @@
     <ClInclude Include="Rendering\TextureHandle.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\RainBlockerMapPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
@@ -1361,6 +1367,9 @@
       <Filter>Shaders\Weather</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Weather\RainSimulation.hlsl">
+      <Filter>Shaders\Weather</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Weather\RainBlocker.hlsl">
       <Filter>Shaders\Weather</Filter>
     </FxCompile>
   </ItemGroup>

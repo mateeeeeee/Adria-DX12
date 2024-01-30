@@ -5,23 +5,17 @@
 namespace adria
 {
 	class RenderGraph;
-
-	class GBufferPass
+	class RainBlockerMapPass
 	{
+		static constexpr uint32 BLOCKER_DIM = 256;
 	public:
-		GBufferPass(entt::registry& reg, uint32 w, uint32 h);
+		RainBlockerMapPass(entt::registry& reg, uint32 w, uint32 h);
 
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h);
 
-		void OnRainEvent(bool enabled)
-		{
-			use_rain_pso = enabled;
-		}
-
 	private:
 		entt::registry& reg;
 		uint32 width, height;
-		bool use_rain_pso = false;
 	};
 }

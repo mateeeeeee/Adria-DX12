@@ -280,6 +280,7 @@
     <ClCompile Include="Rendering\PickingPass.cpp" />
     <ClCompile Include="Rendering\PostProcessor.cpp" />
     <ClCompile Include="Rendering\PSOCache.cpp" />
+    <ClCompile Include="Rendering\RainBlockerMapPass.cpp" />
     <ClCompile Include="Rendering\RainPass.cpp" />
     <ClCompile Include="Rendering\RayTracedAmbientOcclusionPass.cpp" />
     <ClCompile Include="Rendering\RayTracedReflectionsPass.cpp" />
@@ -446,6 +447,7 @@
     <ClInclude Include="Rendering\FSR3Pass.h" />
     <ClInclude Include="Rendering\GPUDrivenGBufferPass.h" />
     <ClInclude Include="Rendering\GPUDebugPrinter.h" />
+    <ClInclude Include="Rendering\RainBlockerMapPass.h" />
     <ClInclude Include="Rendering\RainPass.h" />
     <ClInclude Include="Rendering\ShaderStructs.h" />
     <ClInclude Include="Rendering\HelperPasses.h" />
@@ -806,6 +808,14 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Weather\RainBlocker.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>

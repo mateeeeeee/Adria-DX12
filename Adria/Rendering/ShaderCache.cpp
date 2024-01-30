@@ -39,6 +39,7 @@ namespace adria
 			case VS_Debug:
 			case VS_DDGIVisualize:
 			case VS_Rain:
+			case VS_RainBlocker:
 				return GfxShaderStage::VS;
 			case PS_Sky:
 			case PS_Texture:
@@ -157,6 +158,8 @@ namespace adria
 			case VS_Rain:
 			case PS_Rain:
 				return "Weather/Rain.hlsl";
+			case VS_RainBlocker:
+				return "Weather/RainBlocker.hlsl";
 			case CS_RainSimulation:
 				return "Weather/RainSimulation.hlsl";
 			case VS_Simple:
@@ -473,6 +476,8 @@ namespace adria
 				return "RainVS";
 			case PS_Rain:
 				return "RainPS";
+			case VS_RainBlocker:
+				return "RainBlockerVS";
 			case CS_RainSimulation:
 				return "RainSimulationCS";
 			case VS_Simple:
