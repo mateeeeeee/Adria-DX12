@@ -36,6 +36,7 @@ Graphics engine written in C++ using DirectX12.
 * Ocean FFT
 * Automatic exposure
 * Bloom
+* Tony McMapface tonemapping
 * Depth of field + Bokeh 
     - Custom
     - FFX

@@ -13,4 +13,6 @@ namespace adria
 
 	uint32 PackTwoFloatsToUint32(float x, float y);
 	uint64 PackFourFloatsToUint64(float x, float y, float z, float w);
+
+	uint32 PackTwoUint16ToUint32(uint16 value1, uint16 value2);
 }

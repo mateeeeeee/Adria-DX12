@@ -140,7 +140,7 @@ namespace adria
 				struct TonemapConstants
 				{
 					float    tonemap_exposure;
-					uint32   tonemap_operator;
+					uint32   tonemap_operator_lut_packed;
 					uint32   hdr_idx;
 					uint32   exposure_idx;
 					uint32   output_idx;
@@ -149,7 +149,7 @@ namespace adria
 					uint32   bloom_params_packed;
 				} constants =
 				{
-					.tonemap_exposure = params.tonemap_exposure, .tonemap_operator = static_cast<uint32>(params.tone_map_op),
+					.tonemap_exposure = params.tonemap_exposure, .tonemap_operator_lut_packed = PackTwoUint16ToUint32((uint16)params.tone_map_op, (uint16)tony_mc_mapface_lut_handle),
 					.hdr_idx = i, .exposure_idx = i + 1, .output_idx = i + 2, .bloom_idx = -1
 				};
 				if (bloom_enabled)
@@ -176,7 +176,8 @@ namespace adria
 
 	void ToneMapPass::OnSceneInitialized()
 	{
-		lens_dirt_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "LensDirt.dds");
+		lens_dirt_handle		   = g_TextureManager.LoadTexture(paths::TexturesDir() + "LensDirt.dds");
+		tony_mc_mapface_lut_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "tony_mc_mapface.dds");
 	}
 
 	void ToneMapPass::GUI()
@@ -186,7 +187,7 @@ namespace adria
 				if (ImGui::TreeNodeEx("Tone Mapping", 0))
 				{
 					ImGui::SliderFloat("Exposure", &params.tonemap_exposure, 0.01f, 10.0f);
-					static char const* const operators[] = { "REINHARD", "HABLE", "LINEAR" };
+					static char const* const operators[] = { "REINHARD", "HABLE", "LINEAR", "TONY MCMAPFACE"};
 					static int tone_map_operator = static_cast<int>(params.tone_map_op);
 					ImGui::ListBox("Tone Map Operator", &tone_map_operator, operators, IM_ARRAYSIZE(operators));
 					params.tone_map_op = static_cast<ToneMap>(tone_map_operator);

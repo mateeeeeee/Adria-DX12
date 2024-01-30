@@ -28,6 +28,15 @@ float3 UnpackHalf3(in uint2 packed)
     return unpacked;
 }
 
+uint2 UnpackTwoUint16FromUint32(in uint packed)
+{
+    uint2 unpacked;
+    unpacked.x = uint((packed >> 16) & 0xffff);
+    unpacked.y = uint(packed & 0xffff);
+    return unpacked;
+}
+
+
 float4 UnpackUintColor(uint color)
 {
     float4 outCol = float4((color >> 24 & 0xff) / 255.0, (color >> 16 & 0xff) / 255.0f, (color >> 8 & 0xff) / 255.0, (color >> 0 & 0xff) / 255.0);
@@ -54,5 +63,6 @@ float3 DecodeNormalOctahedron(float2 p)
 	n.y = tmp.y;
 	return normalize(n);
 }
+
 
 #endif

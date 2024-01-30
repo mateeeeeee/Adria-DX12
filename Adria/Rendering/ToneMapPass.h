@@ -1,4 +1,5 @@
 #pragma once
+#include "TextureHandle.h"
 #include "RenderGraph/RenderGraphResourceId.h"
 #include "RenderGraph/RenderGraphResourceName.h"
 
@@ -13,12 +14,13 @@ namespace adria
 		{
 			Reinhard,
 			Hable,
-			Linear
+			Linear,
+			TonyMcMapface
 		};
 
 		struct TonemapParams
 		{
-			ToneMap tone_map_op = ToneMap::Reinhard;
+			ToneMap tone_map_op = ToneMap::TonyMcMapface;
 			float tonemap_exposure = 1.0f;
 		};
 	public:
@@ -30,7 +32,9 @@ namespace adria
 	private:
 		uint32 width, height;
 		TonemapParams params;
-		uint64 lens_dirt_handle = -1;
+		TextureHandle lens_dirt_handle = INVALID_TEXTURE_HANDLE;
+		TextureHandle tony_mc_mapface_lut_handle = INVALID_TEXTURE_HANDLE;
+
 	private:
 		void GUI();
 	};

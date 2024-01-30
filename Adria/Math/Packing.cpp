@@ -32,4 +32,12 @@ namespace adria
 		DirectX::PackedVector::XMHALF4 packed(x, y, z, w);
 		return packed.v;
 	}
+
+	uint32 PackTwoUint16ToUint32(uint16 value1, uint16 value2) 
+	{
+		value1 &= 0xFFFF;
+		value2 &= 0xFFFF;
+		uint32 packed_value = (static_cast<uint32>(value1) << 16) | static_cast<uint32>(value2);
+		return packed_value;
+	}
 }

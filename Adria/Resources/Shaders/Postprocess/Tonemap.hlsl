@@ -7,7 +7,7 @@
 struct TonemapConstants
 {   
     float tonemapExposure;
-    uint  tonemapOperator;
+    uint  tonemapOperatorLUTPacked;
     uint  hdrIdx;
     uint  exposureIdx;
     uint  outputIdx;
@@ -48,7 +48,11 @@ void Tonemap(CSInput input)
 
     float exposure = exposureTx[uint2(0, 0)];
     float4 tone_mapped_color = float4(1.0f, 0.0f, 0.0f, 1.0f);
-    switch (PassCB.tonemapOperator)
+
+    uint2 toneMapOperatorLUTUnpacked = UnpackTwoUint16FromUint32(PassCB.tonemapOperatorLUTPacked);
+    uint tonemapOperator = toneMapOperatorLUTUnpacked.x;
+    Texture3D<float3> LUT = ResourceDescriptorHeap[toneMapOperatorLUTUnpacked.y];
+    switch (tonemapOperator)
     {
         case 0:
             tone_mapped_color = float4(ReinhardToneMapping(color.xyz * exposure * PassCB.tonemapExposure), 1.0);
@@ -59,8 +63,11 @@ void Tonemap(CSInput input)
         case 2:
             tone_mapped_color = float4(LinearToneMapping(color.xyz * exposure * PassCB.tonemapExposure), 1.0);
             break;
+        case 3:
+            tone_mapped_color = float4(TonyMcMapface(LUT, LinearClampSampler, color.xyz * exposure * PassCB.tonemapExposure), 1.0);
+            break;
         default:
-            tone_mapped_color = float4(color.xyz * exposure * PassCB.tonemapExposure, 1.0f);
+            tone_mapped_color = float4(1.0f, 0.0f, 0.0f, 1.0f);
     }
 	outputTx[input.DispatchThreadId.xy] = tone_mapped_color;
 }

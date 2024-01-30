@@ -78,7 +78,8 @@ namespace adria
 		BC6H_UF16,
 		BC6H_SF16,
 		BC7_UNORM,
-		BC7_UNORM_SRGB
+		BC7_UNORM_SRGB,
+		R9G9B9E5_SHAREDEXP
 	};
 	inline constexpr DXGI_FORMAT ConvertGfxFormat(GfxFormat _format)
 	{
@@ -281,7 +282,8 @@ namespace adria
 
 		case GfxFormat::BC7_UNORM_SRGB:
 			return DXGI_FORMAT_BC7_UNORM_SRGB;
-
+		case GfxFormat::R9G9B9E5_SHAREDEXP:
+			return DXGI_FORMAT_R9G9B9E5_SHAREDEXP;
 		}
 		return DXGI_FORMAT_UNKNOWN;
 	}
@@ -486,7 +488,8 @@ namespace adria
 
 		case DXGI_FORMAT_BC7_UNORM_SRGB:
 			return GfxFormat::BC7_UNORM_SRGB;
-
+		case DXGI_FORMAT_R9G9B9E5_SHAREDEXP:
+			return GfxFormat::R9G9B9E5_SHAREDEXP;
 		}
 		return GfxFormat::UNKNOWN;
 	}
@@ -552,6 +555,7 @@ namespace adria
 		case DXGI_FORMAT_R32_SINT:
 		case DXGI_FORMAT_R24G8_TYPELESS:
 		case DXGI_FORMAT_D24_UNORM_S8_UINT:
+		case DXGI_FORMAT_R9G9B9E5_SHAREDEXP:
 			return 4u;
 		case DXGI_FORMAT_R8G8_UNORM:
 		case DXGI_FORMAT_R8G8_UINT:
@@ -701,6 +705,7 @@ namespace adria
 		case GfxFormat::BC6H_SF16: return "BC6H_SF16";
 		case GfxFormat::BC7_UNORM: return "BC7_UNORM";
 		case GfxFormat::BC7_UNORM_SRGB: return "BC7_UNORM_SRGB";
+		case GfxFormat::R9G9B9E5_SHAREDEXP: return "R9G9B9E5_SHAREDEXP";
 		default: return "INVALID";
 		}
 	}

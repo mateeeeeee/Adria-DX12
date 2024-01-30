@@ -53,4 +53,15 @@ static float3 HableToneMapping(float3 color)
 	return color;
 }
 
+//https://github.com/h3r2tic/tony-mc-mapface/blob/main/shader/tony_mc_mapface.hlsl
+float3 TonyMcMapface(Texture3D<float3> LUT, SamplerState LinearClampSampler, float3 color) 
+{
+    const float3 encoded = color / (color + 1.0);
+    const float LUT_DIMS = 48.0;
+    const float3 uv = encoded * ((LUT_DIMS - 1.0) / LUT_DIMS) + 0.5 / LUT_DIMS;
+    float3 result =  LUT.SampleLevel(LinearClampSampler, uv, 0);
+	result = pow(result, 1. / gamma);
+	return result;
+}
+
 #endif

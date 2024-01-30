@@ -198,6 +198,7 @@ namespace adria
 					if (format == DXGI_FORMAT_BC7_UNORM_SRGB) { outFormat = GfxFormat::BC7_UNORM;		 outSRGB = true;	return; }
 					if (format == DXGI_FORMAT_R32G32B32A32_FLOAT) { outFormat = GfxFormat::R32G32B32A32_FLOAT; outSRGB = false;	return; }
 					if (format == DXGI_FORMAT_R32G32_FLOAT) { outFormat = GfxFormat::R32G32_FLOAT;		 outSRGB = false;	return; }
+					if (format == DXGI_FORMAT_R9G9B9E5_SHAREDEXP) { outFormat = GfxFormat::R9G9B9E5_SHAREDEXP;	outSRGB = false;	return; }
 				};
 				ConvertDX10Format((DXGI_FORMAT)pDx10Header->dxgiFormat, format, is_srgb);
 			}
