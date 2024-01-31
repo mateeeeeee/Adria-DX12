@@ -47,17 +47,17 @@ namespace adria
 		tiled_deferred_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
 		postprocessor(gfx, reg, width, height), picking_pass(gfx, width, height),
 		clustered_deferred_lighting_pass(reg, gfx, width, height),
-		decals_pass(reg, width, height), rain_pass(gfx, width, height), ocean_renderer(reg, width, height),
+		decals_pass(reg, width, height), rain_pass(reg, gfx, width, height), ocean_renderer(reg, width, height),
 		shadow_renderer(reg, gfx, width, height), 
 		path_tracer(gfx, width, height), ddgi(gfx, reg, width, height), gpu_debug_printer(gfx)
 	{
-		postprocessor.AddRenderResolutionChangedCallback(&Renderer::OnRenderResolutionChanged, *this);
-
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 		g_DebugRenderer.Initialize(width, height);
 		g_GfxProfiler.Initialize(gfx);
 		GfxTracyProfiler::Initialize(gfx);
 		CreateSizeDependentResources();
+
+		postprocessor.AddRenderResolutionChangedCallback(&Renderer::OnRenderResolutionChanged, *this);
 		shadow_renderer.GetShadowTextureRenderedEvent().AddMember(&DeferredLightingPass::OnShadowTextureRendered, deferred_lighting_pass);
 		shadow_renderer.GetShadowTextureRenderedEvent().AddMember(&VolumetricLightingPass::OnShadowTextureRendered, volumetric_lighting_pass);
 
@@ -393,6 +393,8 @@ namespace adria
 		frame_cbuf_data.printf_buffer_idx = gpu_debug_printer.GetPrintfBufferIndex();
 		frame_cbuf_data.rain_splash_diffuse_idx = rain_pass.GetRainSplashDiffuseIndex();
 		frame_cbuf_data.rain_splash_bump_idx = rain_pass.GetRainSplashBumpIndex();
+		frame_cbuf_data.rain_blocker_map_idx = rain_pass.GetRainBlockerMapIndex();
+		frame_cbuf_data.rain_view_projection = rain_pass.GetRainViewProjection();
 
 		if (ray_tracing_supported && reg.view<RayTracing>().size())
 		{
@@ -440,7 +442,7 @@ namespace adria
 			picking_data = picking_pass.GetPickingData();
 			update_picking_data = false;
 		}
-
+		if (rain_enabled) rain_pass.AddBlockerPass(render_graph);
 		if (gfx->GetCapabilities().SupportsMeshShaders()) gpu_driven_renderer.Render(render_graph);
 		else gbuffer_pass.AddPass(render_graph);
 

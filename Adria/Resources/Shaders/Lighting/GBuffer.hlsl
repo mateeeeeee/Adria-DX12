@@ -1,4 +1,7 @@
 #include "Scene.hlsli"
+#if RAIN
+#include "Weather/RainUtil.hlsli"
+#endif
 
 struct GBufferConstants
 {
@@ -79,20 +82,8 @@ PSOutput GBufferPS(VSToPS input)
 	normalTS.z = sqrt(1.0f - normalTS.x * normalTS.x - normalTS.y * normalTS.y);
 	normal = mul(normalTS, TBN);
 	float3 aoRoughnessMetallic = metallicRoughnessTx.Sample(LinearWrapSampler, input.Uvs).rgb;
-
 #if RAIN
-	Texture3D rainSplashDiffuseTx = ResourceDescriptorHeap[FrameCB.rainSplashDiffuseIdx];
-	Texture3D rainSplashBumpTx = ResourceDescriptorHeap[FrameCB.rainSplashBumpIdx];
-
-	const float wetFactor = saturate(5.0f * saturate(input.NormalWS.y));
-	float3 rainSplashDiffuse = rainSplashDiffuseTx.SampleLevel(LinearMirrorSampler, float3(input.PositionWS.xz / 5.0f, FrameCB.totalTime), 0).rgb;
-	albedoColor.rgb += wetFactor * rainSplashDiffuse;
-
-	float3 rainSplashBump = rainSplashBumpTx.SampleLevel(LinearMirrorSampler, float3(input.PositionWS.xz  / 10.0f, FrameCB.totalTime), 0).rgb - 0.5f;
-	normal += wetFactor * 2 * (rainSplashBump.x * tangent + rainSplashBump.y * bitangent);
-
-    albedoColor.rgb *= lerp(1.0f, 0.3f, wetFactor);
-    aoRoughnessMetallic.g = saturate(lerp(aoRoughnessMetallic.g, aoRoughnessMetallic.g * 2.5f, wetFactor));
+	ApplyRain(input.PositionWS.xyz, albedoColor.rgb, aoRoughnessMetallic.g, normal, tangent, bitangent);
 #endif
 	float3 normalVS = normalize(mul(normal, (float3x3) FrameCB.view));
 

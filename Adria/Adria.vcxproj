@@ -552,6 +552,7 @@
     <None Include="Resources\Shaders\Reflections.hlsli" />
     <None Include="Resources\Shaders\Scene.hlsli" />
     <None Include="Resources\Shaders\Tonemapping.hlsli" />
+    <None Include="Resources\Shaders\Weather\RainUtil.hlsli" />
     <None Include="Saved\Ini\scene.json" />
   </ItemGroup>
   <ItemGroup>

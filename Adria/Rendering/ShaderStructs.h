@@ -24,6 +24,7 @@ namespace adria
 		Matrix prev_projection;
 		Matrix prev_view_projection;
 		Matrix reprojection;
+		Matrix rain_view_projection;
 		Vector3 camera_position;
 		PAD;
 		Vector3 camera_forward;
@@ -62,6 +63,7 @@ namespace adria
 
 		int32  rain_splash_diffuse_idx;
 		int32  rain_splash_bump_idx;
+		int32  rain_blocker_map_idx;
 	};
 
 	struct LightHLSL

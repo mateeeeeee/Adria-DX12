@@ -1171,6 +1171,9 @@
       <Filter>Shaders\RayTracing</Filter>
     </None>
     <None Include="Saved\Ini\scene.json" />
+    <None Include="Resources\Shaders\Weather\RainUtil.hlsli">
+      <Filter>Shaders\Weather</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="adria.log" />

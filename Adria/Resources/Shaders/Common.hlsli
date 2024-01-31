@@ -35,6 +35,7 @@ float3x3 AngleAxis3x3(float angle, float3 axis)
 		t * x * z - s * y, t * y * z + s * x, t * z * z + c
 		);
 }
+
 float3 GetPerpendicularVector(float3 u)
 {
 	// Utility function to get a vector perpendicular to an input vector 

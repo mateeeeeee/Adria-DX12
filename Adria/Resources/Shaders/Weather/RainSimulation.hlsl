@@ -1,5 +1,6 @@
 #include "CommonResources.hlsli"
 #include "Random.hlsli"
+#include "RainUtil.hlsli"
 
 #define BLOCK_SIZE 256
 
@@ -43,7 +44,9 @@ void RainSimulationCS(CSInput input)
 	
 	float2 offsetAmount = (rainDrop.Pos.xz - boundsCenter.xz) / boundsExtents.xz;
 	rainDrop.Pos.xz -= boundsExtents.xz * ceil(0.5 * offsetAmount - 0.5);
-	if(abs(rainDrop.Pos.y - boundsCenter.y) > boundsExtents.y)
+
+	bool OutsideBounds = abs(rainDrop.Pos.y - boundsCenter.y) > boundsExtents.y;
+	if(OutsideBounds)
 	{
 		uint randSeed = InitRand(GroupIdx, 47, 16);
 		float4 random01 = float4(NextRand(randSeed), NextRand(randSeed), NextRand(randSeed), NextRand(randSeed));
@@ -55,7 +58,8 @@ void RainSimulationCS(CSInput input)
 		//float3 windDir = FrameCB.windParams.xyz * FrameCB.windParams.w;
 		//rainDrop.Vel.xz += windDir.xz * random01.zw;
 	}
-	
-	rainDrop.State = 1.0f;
+
+	bool Blocked = IsBlockedFromRain(rainDrop.Pos.xyz);
+	rainDrop.State = Blocked ? -1.0f : 1.0f;
 	rainDataBuffer[GroupIdx] = rainDrop;
 }

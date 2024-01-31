@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include "TextureHandle.h"
+#include "RainBlockerMapPass.h"
 #include "Graphics/GfxDescriptor.h"
 #include "Utilities/Delegate.h"
 
@@ -17,12 +18,14 @@ namespace adria
 		static constexpr uint32 MAX_RAIN_DATA_BUFFER_SIZE = 1 << 20;
 
 	public:
-		RainPass(GfxDevice* gfx, uint32 w, uint32 h);
+		RainPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h);
 
+		void AddBlockerPass(RenderGraph& rg);
 		void AddPass(RenderGraph& rg);
 		void OnResize(uint32 w, uint32 h)
 		{
 			width = w, height = h;
+			rain_blocker_map_pass.OnResize(w, h);
 		}
 		void OnSceneInitialized();
 
@@ -34,7 +37,8 @@ namespace adria
 
 		int32 GetRainSplashDiffuseIndex() const { return (int32)rain_splash_diffuse_handle; }
 		int32 GetRainSplashBumpIndex()    const { return (int32)rain_splash_bump_handle;    }
-
+		int32 GetRainBlockerMapIndex()    const { return rain_blocker_map_pass.GetRainBlockerMapIdx(); }
+		Matrix GetRainViewProjection()    const { return rain_blocker_map_pass.GetViewProjection(); }
 	private:
 		GfxDevice* gfx;
 		std::unique_ptr<GfxBuffer> rain_data_buffer;
@@ -52,5 +56,7 @@ namespace adria
 		float range_radius = 40.0f;
 
 		RainEvent rain_event;
+
+		RainBlockerMapPass rain_blocker_map_pass;
 	};
 }

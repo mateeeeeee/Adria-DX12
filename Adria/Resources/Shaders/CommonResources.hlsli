@@ -13,6 +13,7 @@ struct FrameCBuffer
 	row_major matrix prevProjection;
 	row_major matrix prevViewProjection;
 	row_major matrix reprojection;
+	row_major matrix rainViewProjection;
 	float4 cameraPosition;
 	float4 cameraForward;
 	float2 cameraJitter;
@@ -45,6 +46,7 @@ struct FrameCBuffer
 
 	int	   rainSplashDiffuseIdx;
 	int	   rainSplashBumpIdx;
+	int	   rainBlockerMapIdx;
 };
 ConstantBuffer<FrameCBuffer> FrameCB  : register(b0);
 

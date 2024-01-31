@@ -17,8 +17,13 @@ namespace adria
 		float   state;
 	};
 	
-	RainPass::RainPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
+	RainPass::RainPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), rain_blocker_map_pass(reg, gfx, w, h)
 	{
+	}
+
+	void RainPass::AddBlockerPass(RenderGraph& rg)
+	{
+		rain_blocker_map_pass.AddPass(rg);
 	}
 
 	void RainPass::AddPass(RenderGraph& rg)
