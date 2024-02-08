@@ -1,6 +1,7 @@
 #include <map>
 #include <dxgidebug.h>
 #include "pix3.h"
+#include "GFSDK_Aftermath.h"
 #include "GfxDevice.h"
 #include "GfxSwapchain.h"
 #include "GfxCommandList.h"
@@ -283,6 +284,7 @@ namespace adria
 		std::string adapter_description = ToString(adapter_wide_description);
 		ADRIA_LOG(INFO, "GPU: %s", adapter_description.c_str());
 
+		
 		D3D_FEATURE_LEVEL feature_levels[] =
 		{
 			D3D_FEATURE_LEVEL_12_2,
@@ -303,6 +305,26 @@ namespace adria
 		{
 			ADRIA_DEBUGBREAK();
 			std::exit(EXIT_FAILURE);
+		}
+
+		if (options.nvidia_aftermath)
+		{
+			if (vendor != GfxVendor::Nvidia)
+			{
+				ADRIA_LOG(WARNING, "Cannot use Nvidia Aftermath because the GPU vendor is not Nvidia!");
+			}
+			else
+			{
+				uint32 const aftermath_flags =
+					GFSDK_Aftermath_FeatureFlags_EnableMarkers |             // Enable event marker tracking.
+					GFSDK_Aftermath_FeatureFlags_CallStackCapturing |        // Enable automatic call stack event markers.
+					GFSDK_Aftermath_FeatureFlags_EnableResourceTracking |    // Enable tracking of resources.
+					GFSDK_Aftermath_FeatureFlags_GenerateShaderDebugInfo |   // Generate debug information for shaders.
+					GFSDK_Aftermath_FeatureFlags_EnableShaderErrorReporting; // Enable additional runtime shader error reporting.
+
+				GFSDK_Aftermath_Result result = GFSDK_Aftermath_DX12_Initialize(GFSDK_Aftermath_Version_API, aftermath_flags, device.Get());
+				ADRIA_ASSERT(result == GFSDK_Aftermath_Result_Success);
+			}
 		}
 
 		D3D12MA::ALLOCATOR_DESC allocator_desc{};

@@ -23,6 +23,7 @@ namespace adria
 		bool gpu_validation = false;
 		bool dred = false;
 		bool pix = false;
+		bool aftermath = false;
 		std::string scene_file = "scene.json";
 		Window* window = nullptr;
 	};
@@ -33,7 +34,7 @@ namespace adria
 
 	public:
 		explicit Engine(EngineInit const&);
-		ADRIA_NONCOPYABLE_NONMOVABLE(Engine);
+		ADRIA_NONCOPYABLE_NONMOVABLE(Engine)
 		~Engine();
 
 		void OnWindowEvent(WindowEventData const& msg_data);
