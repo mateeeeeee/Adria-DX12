@@ -39,7 +39,7 @@ void DepthOfField(CSInput input)
 	Texture2D blurredSceneTx = ResourceDescriptorHeap[PassCB.blurredSceneIdx];
 	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
-	float2 uv = ((float2)input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.displayResolution);
+	float2 uv = ((float2)input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
 	
 	float depth = depthTx.Sample(LinearBorderSampler, uv);
 	float3 color = sceneTx.Sample(LinearWrapSampler, uv).rgb;

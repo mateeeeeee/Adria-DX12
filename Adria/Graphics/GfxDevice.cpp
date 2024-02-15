@@ -666,9 +666,14 @@ namespace adria
 	{
 		return std::make_unique<GfxTexture>(this, desc, initial_data);
 	}
-	std::unique_ptr<GfxBuffer>  GfxDevice::CreateBuffer(GfxBufferDesc const& desc, GfxBufferInitialData initial_data /*= nullptr*/)
+	std::unique_ptr<GfxBuffer>  GfxDevice::CreateBuffer(GfxBufferDesc const& desc, GfxBufferInitialData const& initial_data)
 	{
 		return std::make_unique<GfxBuffer>(this, desc, initial_data);
+	}
+
+	std::unique_ptr<GfxBuffer> GfxDevice::CreateBuffer(GfxBufferDesc const& desc)
+	{
+		return std::make_unique<GfxBuffer>(this, desc);
 	}
 
 	std::unique_ptr<GraphicsPipelineState> GfxDevice::CreateGraphicsPipelineState(GraphicsPipelineStateDesc const& desc)

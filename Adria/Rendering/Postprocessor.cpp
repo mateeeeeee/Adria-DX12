@@ -118,6 +118,21 @@ namespace adria
 		if (film_effects) final_resource = film_effects_pass.AddPass(rg, final_resource);
 		if (fog) final_resource = fog_pass.AddPass(rg, final_resource);
 
+		switch (dof)
+		{
+		case DepthOfField::Simple:
+		{
+			blur_pass.AddPass(rg, final_resource, RG_RES_NAME(BlurredDofInput), " DoF ");
+			final_resource = dof_pass.AddPass(rg, final_resource, RG_RES_NAME(BlurredDofInput));
+		}
+		break;
+		case DepthOfField::FFX:
+		{
+			final_resource = ffx_dof_pass.AddPass(rg, final_resource);
+		}
+		break;
+		}
+
 		switch (upscaler)
 		{
 		case UpscalerType::FSR2: final_resource  = fsr2_pass.AddPass(rg, final_resource); break;
@@ -133,22 +148,6 @@ namespace adria
 				rg.ExportTexture(final_resource, history_buffer.get());
 			}
 		}
-		}
-		switch (dof)
-		{
-		case DepthOfField::Simple:
-		{
-			blur_pass.SetResolution(display_width, display_height);
-			blur_pass.AddPass(rg, final_resource, RG_RES_NAME(BlurredDofInput), " DoF ");
-			blur_pass.SetResolution(render_width, render_height);
-			final_resource = dof_pass.AddPass(rg, final_resource, RG_RES_NAME(BlurredDofInput));
-		}
-		break;
-		case DepthOfField::FFX:
-		{
-			final_resource = ffx_dof_pass.AddPass(rg, final_resource);
-		}
-		break;
 		}
 		
 		if (motion_blur) final_resource = motion_blur_pass.AddPass(rg, final_resource);
@@ -190,8 +189,6 @@ namespace adria
 
 		taa_pass.OnResize(w, h);
 		motion_blur_pass.OnResize(w, h);
-		dof_pass.OnResize(w, h);
-		ffx_dof_pass.OnResize(w, h);
 		bloom_pass.OnResize(w, h);
 		automatic_exposure_pass.OnResize(w, h);
 		fxaa_pass.OnResize(w, h);
@@ -226,6 +223,9 @@ namespace adria
 		velocity_buffer_pass.OnResize(w, h);
 		god_rays_pass.OnResize(w, h);
 		film_effects_pass.OnResize(w, h);
+
+		dof_pass.OnResize(w, h);
+		ffx_dof_pass.OnResize(w, h);
 	}
 
 	void PostProcessor::OnSceneInitialized()

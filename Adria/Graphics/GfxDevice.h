@@ -45,6 +45,7 @@ namespace adria
 	class GfxBuffer;
 	struct GfxBufferDesc;
 	struct GfxBufferDescriptorDesc;
+	struct GfxBufferInitialData;
 
 	class GfxQueryHeap;
 	struct GfxQueryHeapDesc;
@@ -144,7 +145,8 @@ namespace adria
 		std::unique_ptr<GfxTexture> CreateBackbufferTexture(GfxTextureDesc const& desc, void* backbuffer);
 		std::unique_ptr<GfxTexture> CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data, uint32 subresource_count);
 		std::unique_ptr<GfxTexture> CreateTexture(GfxTextureDesc const& desc, GfxTextureInitialData* initial_data = nullptr);
-		std::unique_ptr<GfxBuffer> CreateBuffer(GfxBufferDesc const& desc, void const* initial_data = nullptr);
+		std::unique_ptr<GfxBuffer> CreateBuffer(GfxBufferDesc const& desc, GfxBufferInitialData const& initial_data);
+		std::unique_ptr<GfxBuffer> CreateBuffer(GfxBufferDesc const& desc);
 
 		std::unique_ptr<GraphicsPipelineState>		CreateGraphicsPipelineState(GraphicsPipelineStateDesc const& desc);
 		std::unique_ptr<ComputePipelineState>		CreateComputePipelineState(ComputePipelineStateDesc const& desc);

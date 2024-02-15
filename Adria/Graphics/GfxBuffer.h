@@ -21,13 +21,20 @@ namespace adria
 		std::strong_ordering operator<=>(GfxBufferDescriptorDesc const& other) const = default;
 	};
 
-	using GfxBufferInitialData = void const*;
+	struct GfxBufferInitialData
+	{
+		GfxBufferInitialData() {}
+		GfxBufferInitialData(void const* _data) : data(_data) {}
+		operator void const* () const { return data; }
+
+		void const* data = nullptr;
+	};
 
 	class GfxBuffer
 	{
 	public:
 
-		GfxBuffer(GfxDevice* gfx, GfxBufferDesc const& desc, GfxBufferInitialData initial_data = nullptr);
+		GfxBuffer(GfxDevice* gfx, GfxBufferDesc const& desc, GfxBufferInitialData initial_data = {});
 		GfxBuffer(GfxBuffer const&) = delete;
 		GfxBuffer& operator=(GfxBuffer const&) = delete;
 		~GfxBuffer();
