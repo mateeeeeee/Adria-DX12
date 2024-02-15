@@ -64,10 +64,11 @@ namespace adria
 		cmd_list->ClearRenderTarget(rtv, clear_color);
 	}
 
-	void GfxSwapchain::Present(bool vsync)
+	bool GfxSwapchain::Present(bool vsync)
 	{
-		swapchain->Present(vsync, 0);
+		HRESULT hr = swapchain->Present(vsync, 0);
 		backbuffer_index = swapchain->GetCurrentBackBufferIndex();
+		return SUCCEEDED(hr);
 	}
 
 	void GfxSwapchain::OnResize(uint32 w, uint32 h)

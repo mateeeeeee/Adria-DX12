@@ -70,7 +70,6 @@ namespace adria
 	using GfxOnlineDescriptorAllocator = GfxRingDescriptorAllocator<false>;
 #endif
 
-
 	struct GfxOptions
 	{
 		bool debug_layer = false;

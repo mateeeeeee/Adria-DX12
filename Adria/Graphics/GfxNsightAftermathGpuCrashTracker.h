@@ -34,6 +34,9 @@ namespace adria
 		explicit GfxNsightAftermathGpuCrashTracker(GfxDevice* gfx);
 		~GfxNsightAftermathGpuCrashTracker();
 
+		bool IsInitialized() const { return initialized; }
+		void HandleGpuHang();
+
 	private:
 		bool initialized = false;
 		mutable std::mutex m_mutex;

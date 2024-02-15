@@ -27,7 +27,7 @@ namespace adria
 
 		void SetAsRenderTarget(GfxCommandList* cmd_list);
 		void ClearBackbuffer(GfxCommandList* cmd_list);
-		void Present(bool vsync);
+		bool Present(bool vsync);
 		void OnResize(uint32 w, uint32 h);
 
 		uint32 GetBackbufferIndex() const { return backbuffer_index; }

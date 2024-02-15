@@ -423,7 +423,12 @@ namespace adria
 		copy_queue.ExecuteCommandListPool(*copy_cmd_list_pool[backbuffer_index]);
 		ProcessReleaseQueue();
 
-		swapchain->Present(vsync);
+		bool present_successful = swapchain->Present(vsync);
+
+		if (!present_successful)
+		{
+			if (nsight_aftermath->IsInitialized()) nsight_aftermath->HandleGpuHang();
+		}
 
 		backbuffer_index = swapchain->GetBackbufferIndex();
 		frame_fence_values[backbuffer_index] = frame_fence_value;

@@ -69,6 +69,18 @@ namespace adria
 		if (initialized) GFSDK_Aftermath_DisableGpuCrashDumps();
 	}
 
+	void GfxNsightAftermathGpuCrashTracker::HandleGpuHang()
+	{
+		GFSDK_Aftermath_CrashDump_Status status = GFSDK_Aftermath_CrashDump_Status_Unknown;
+		GFSDK_Aftermath_GetCrashDumpStatus(&status);
+		while (status != GFSDK_Aftermath_CrashDump_Status_CollectingDataFailed &&
+			status != GFSDK_Aftermath_CrashDump_Status_Finished)
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(50));
+			GFSDK_Aftermath_GetCrashDumpStatus(&status);
+		}
+	}
+
 	void GfxNsightAftermathGpuCrashTracker::OnCrashDump(const void* gpu_crash_dump_data, const uint32 gpu_crash_dump_size)
 	{
 		std::lock_guard<std::mutex> lock(m_mutex);
