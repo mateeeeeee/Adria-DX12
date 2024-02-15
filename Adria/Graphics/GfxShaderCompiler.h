@@ -1,6 +1,7 @@
 #pragma once
 #include "GfxShader.h"
 #include "GfxInputLayout.h"
+#include "Utilities/Delegate.h"
 
 namespace adria
 {

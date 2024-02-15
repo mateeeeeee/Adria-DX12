@@ -492,6 +492,9 @@
     <ClCompile Include="Rendering\RainBlockerMapPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\GfxNsightAftermathGpuCrashTracker.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">

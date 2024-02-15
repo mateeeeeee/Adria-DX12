@@ -18,13 +18,15 @@ namespace adria
 
 	struct EngineInit
 	{
+		std::string scene_file = "scene.json";
+		Window* window = nullptr;
+		//gfx options
 		bool vsync = false;
 		bool debug_layer = false;
 		bool gpu_validation = false;
 		bool dred = false;
 		bool pix = false;
-		std::string scene_file = "scene.json";
-		Window* window = nullptr;
+		bool aftermath = false;
 	};
 
 	class Engine

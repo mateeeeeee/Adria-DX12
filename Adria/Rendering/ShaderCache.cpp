@@ -20,18 +20,7 @@ namespace adria
 		std::unordered_map<GfxShaderID, GfxShader> shader_map;
 		std::unordered_map<GfxShaderID, std::vector<fs::path>> dependent_files_map;
 
-		std::unordered_map<uint64, GfxShaderID> shader_hash_map;
-		void AddToShaderHashMap(GfxShaderID shader_id)
-		{
-#if GFX_NSIGHT_AFTERMATH
-			GfxShader const& shader = shader_map[shader_id];
-			D3D12_SHADER_BYTECODE shader_bytecode{ shader.GetData(), shader.GetLength() };
-			GFSDK_Aftermath_ShaderBinaryHash shader_hash;
-			bool result = GFSDK_Aftermath_GetShaderHash(GFSDK_Aftermath_Version_API, &shader_bytecode, &shader_hash);
-			ADRIA_ASSERT(result == GFSDK_Aftermath_Result_Success);
-			shader_hash_map[shader_hash.hash] = shader_id;
-#endif
-		}
+
 
 		constexpr GfxShaderStage GetShaderStage(GfxShaderID shader)
 		{
@@ -603,7 +592,6 @@ namespace adria
 			if (!compile_result) return;
 
 			shader_map[shader] = std::move(output.shader);
-			AddToShaderHashMap(shader);
 
 			dependent_files_map[shader].clear();
 			for (auto const& include : output.includes) dependent_files_map[shader].push_back(fs::path(include));
@@ -663,15 +651,6 @@ namespace adria
 	{
 		return shader_map[shader];
 	}
-	GfxShader const* ShaderCache::GetShader(uint64 hash)
-	{
-#if GFX_NSIGHT_AFTERMATH
-		return &GetShader(shader_hash_map[hash]);
-#else
-		return nullptr;
-#endif
-	}
-
 	ShaderRecompiledEvent& ShaderCache::GetShaderRecompiledEvent()
 	{
 		return shader_recompiled_event;

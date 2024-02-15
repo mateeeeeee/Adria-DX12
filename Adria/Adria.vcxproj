@@ -214,6 +214,7 @@
     <ClCompile Include="Graphics\GfxDescriptorAllocatorBase.cpp" />
     <ClCompile Include="Graphics\GfxDevice.cpp" />
     <ClCompile Include="Graphics\GfxFence.cpp" />
+    <ClCompile Include="Graphics\GfxNsightAftermathGpuCrashTracker.cpp" />
     <ClCompile Include="Graphics\GfxQueryHeap.cpp" />
     <ClCompile Include="Graphics\GfxRayTracingAS.cpp" />
     <ClCompile Include="Graphics\GfxSwapchain.cpp" />

@@ -62,6 +62,8 @@ namespace adria
 	template<bool>
 	class GfxRingDescriptorAllocator;
 
+	class GfxNsightAftermathGpuCrashTracker;
+
 #if GFX_MULTITHREADED
 	using GfxOnlineDescriptorAllocator = GfxRingDescriptorAllocator<true>;
 #else
@@ -75,6 +77,7 @@ namespace adria
 		bool dred = false;
 		bool gpu_validation = false;
 		bool pix = false;
+		bool aftermath = false;
 	};
 	struct GPUMemoryUsage
 	{
@@ -252,8 +255,9 @@ namespace adria
 		};
 		std::unique_ptr<DRED> dred;
 		bool rendering_not_started = true;
-
 		bool pix_dll_loaded = false;
+
+		std::unique_ptr<GfxNsightAftermathGpuCrashTracker> nsight_aftermath;
 
 	private:
 		void SetupOptions(GfxOptions const& options, uint32& dxgi_factory_flags);
