@@ -62,6 +62,10 @@ namespace adria
 	{
 		return SavedDir() + "Ini/";
 	}
+	std::string paths::AftermathDir()
+	{
+		return SavedDir() + "Aftermath/";
+	}
 
 }
 

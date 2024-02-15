@@ -19,4 +19,6 @@ namespace adria::paths
 	std::string RenderGraphDir();
 	std::string ShaderCacheDir();
 	std::string IniDir();
+	std::string AftermathDir();
+
 }
