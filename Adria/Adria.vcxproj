@@ -132,7 +132,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)External\dxc\lib;$(SolutionDir)External\nfd\lib;$(SolutionDir)External\XeSS\lib;$(SolutionDir)External\DLSS\lib;$(SolutionDir)External\FidelityFX-SDK\lib;$(SolutionDir)External\NVIDIA_Aftermath_SDK\lib\x64;$(SolutionDir)packages\WinPixEventRuntime.1.0.230302001\bin\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)External\dxc\lib;$(SolutionDir)External\nfd\lib;$(SolutionDir)External\XeSS\lib;$(SolutionDir)External\DLSS\lib;$(SolutionDir)External\FidelityFX-SDK\lib;$(SolutionDir)External\NVIDIA_Aftermath_SDK\lib;$(SolutionDir)packages\WinPixEventRuntime.1.0.230302001\bin\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>nfd_d.lib;WinPixEventRuntime.lib;%(AdditionalDependencies);libxess.lib;nvsdk_ngx_d_dbg.lib;ffx_dof_x64d.lib;ffx_fsr2_x64d.lib;ffx_fsr3_x64d.lib;ffx_cas_x64d.lib;ffx_backend_dx12_x64d.lib;ffx_cacao_x64d.lib;ffx_frameinterpolation_x64d.lib;ffx_opticalflow_x64d.lib;ffx_fsr3upscaler_x64d.lib;GFSDK_Aftermath_Lib.x64.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -160,7 +160,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)External\dxc\lib;$(SolutionDir)External\nfd\lib;$(SolutionDir)External\XeSS\lib;$(SolutionDir)External\DLSS\lib;$(SolutionDir)External\FidelityFX-SDK\lib;$(SolutionDir)External\NVIDIA_Aftermath_SDK\lib\x64;$(SolutionDir)packages\WinPixEventRuntime.1.0.230302001\bin\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)External\dxc\lib;$(SolutionDir)External\nfd\lib;$(SolutionDir)External\XeSS\lib;$(SolutionDir)External\DLSS\lib;$(SolutionDir)External\FidelityFX-SDK\lib;$(SolutionDir)External\NVIDIA_Aftermath_SDK\lib;$(SolutionDir)packages\WinPixEventRuntime.1.0.230302001\bin\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <AdditionalDependencies>nfd.lib;WinPixEventRuntime.lib;%(AdditionalDependencies);libxess.lib;nvsdk_ngx_d.lib;ffx_dof_x64.lib;ffx_backend_dx12_x64.lib;ffx_fsr2_x64.lib;ffx_fsr3_x64.lib;ffx_cas_x64.lib;ffx_cacao_x64.lib;ffx_frameinterpolation_x64.lib;ffx_opticalflow_x64.lib;ffx_fsr3upscaler_x64.lib;GFSDK_Aftermath_Lib.x64.lib</AdditionalDependencies>
     </Link>
