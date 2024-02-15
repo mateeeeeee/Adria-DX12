@@ -46,7 +46,7 @@ namespace adria
 
 		GfxShaderDesc const& GetDesc() const { return desc; }
 
-		void* GetPointer() const
+		void* GetData() const
 		{
 			return !bytecode.empty() ? (void*)bytecode.data() : nullptr;
 		}
@@ -59,7 +59,7 @@ namespace adria
 		{
 			return D3D12_SHADER_BYTECODE
 			{
-				.pShaderBytecode = GetPointer(),
+				.pShaderBytecode = GetData(),
 				.BytecodeLength = GetLength()
 			};
 		}

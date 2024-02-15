@@ -202,7 +202,7 @@ namespace adria
 			archive(output.shader_hash);
 			archive(output.includes);
 			archive(output.shader.GetLength());
-			archive.saveBinary(output.shader.GetPointer(), output.shader.GetLength());
+			archive.saveBinary(output.shader.GetData(), output.shader.GetLength());
 			return true;
 		}
 
@@ -348,7 +348,7 @@ namespace adria
 		{
 			ArcPtr<IDxcContainerReflection> reflection;
 			HRESULT hr = DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(reflection.GetAddressOf()));
-			GfxReflectionBlob my_blob{ vs_blob.GetPointer(), vs_blob.GetLength() };
+			GfxReflectionBlob my_blob{ vs_blob.GetData(), vs_blob.GetLength() };
 			GFX_CHECK_HR(hr);
 			hr = reflection->Load(&my_blob);
 			GFX_CHECK_HR(hr);
