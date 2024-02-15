@@ -1,9 +1,7 @@
 #include <map>
 #include <dxgidebug.h>
 #include "pix3.h"
-#if GFX_NSIGHT_AFTERMATH
 #include "GFSDK_Aftermath.h"
-#endif
 #include "GfxDevice.h"
 #include "GfxSwapchain.h"
 #include "GfxCommandList.h"
@@ -812,6 +810,9 @@ namespace adria
 
 	void GfxDevice::SetupOptions(GfxOptions const& options, uint32& dxgi_factory_flags)
 	{
+#if GFX_NSIGHT_AFTERMATH
+		return;
+#endif
 		if (options.debug_layer)
 		{
 			ArcPtr<ID3D12Debug> debug_controller = nullptr;

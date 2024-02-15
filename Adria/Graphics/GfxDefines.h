@@ -8,6 +8,7 @@
 
 #define GFX_PROFILING 1
 
+//should not be used together with PIX or debug layer
 #define GFX_NSIGHT_AFTERMATH 0
 
 #if GFX_PROFILING
