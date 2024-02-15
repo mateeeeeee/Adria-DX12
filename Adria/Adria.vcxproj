@@ -373,6 +373,7 @@
     <ClInclude Include="Graphics\GfxDescriptorAllocatorBase.h" />
     <ClInclude Include="Graphics\GfxFence.h" />
     <ClInclude Include="Graphics\GfxFormat.h" />
+    <ClInclude Include="Graphics\GfxNsightAftermathGpuCrashTracker.h" />
     <ClInclude Include="Graphics\GfxQueryHeap.h" />
     <ClInclude Include="Graphics\GfxRayTracingAS.h" />
     <ClInclude Include="Graphics\GfxRingDescriptorAllocator.h" />

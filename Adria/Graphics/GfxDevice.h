@@ -74,7 +74,6 @@ namespace adria
 		bool dred = false;
 		bool gpu_validation = false;
 		bool pix = false;
-		bool nvidia_aftermath = false;
 	};
 	struct GPUMemoryUsage
 	{

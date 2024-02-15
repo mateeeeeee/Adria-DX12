@@ -23,7 +23,6 @@ namespace adria
 		bool gpu_validation = false;
 		bool dred = false;
 		bool pix = false;
-		bool aftermath = false;
 		std::string scene_file = "scene.json";
 		Window* window = nullptr;
 	};

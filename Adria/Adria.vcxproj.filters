@@ -1092,6 +1092,9 @@
     <ClInclude Include="Rendering\RainBlockerMapPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\GfxNsightAftermathGpuCrashTracker.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

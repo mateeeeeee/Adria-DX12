@@ -1,7 +1,9 @@
 #include <map>
 #include <dxgidebug.h>
 #include "pix3.h"
+#if GFX_NSIGHT_AFTERMATH
 #include "GFSDK_Aftermath.h"
+#endif
 #include "GfxDevice.h"
 #include "GfxSwapchain.h"
 #include "GfxCommandList.h"
@@ -16,6 +18,7 @@
 #include "d3dx12.h"
 #include "Logging/Logger.h"
 #include "Core/Window.h"
+
 
 extern "C" { __declspec(dllexport) extern const UINT D3D12SDKVersion = D3D12_SDK_VERSION; }
 extern "C" { __declspec(dllexport) extern const char* D3D12SDKPath = ".\\D3D12\\"; }
@@ -237,6 +240,7 @@ namespace adria
 	{
 		dred_fence.Create(gfx, "DRED Fence");
 		dred_wait_handle = CreateEventA(nullptr, false, false, nullptr);
+		if (!dred_wait_handle) return;
 		static_cast<ID3D12Fence*>(dred_fence)->SetEventOnCompletion(UINT64_MAX, dred_wait_handle);
 		ADRIA_ASSERT(RegisterWaitForSingleObject(&dred_wait_handle, dred_wait_handle, DeviceRemovedHandler, gfx->GetDevice(), INFINITE, 0));
 	}
@@ -307,7 +311,7 @@ namespace adria
 			std::exit(EXIT_FAILURE);
 		}
 
-		if (options.nvidia_aftermath)
+#if GFX_NSIGHT_AFTERMATH
 		{
 			if (vendor != GfxVendor::Nvidia)
 			{
@@ -326,6 +330,7 @@ namespace adria
 				ADRIA_ASSERT(result == GFSDK_Aftermath_Result_Success);
 			}
 		}
+#endif
 
 		D3D12MA::ALLOCATOR_DESC allocator_desc{};
 		allocator_desc.pDevice = device.Get();
@@ -428,7 +433,7 @@ namespace adria
 		graphics_cmd_list_pool[backbuffer_index]->BeginCmdLists();
 		copy_cmd_list_pool[backbuffer_index]->BeginCmdLists();
 	}
-	void GfxDevice::EndFrame(bool vsync /*= false*/)
+	void GfxDevice::EndFrame(bool vsync)
 	{
 		uint32 backbuffer_index = swapchain->GetBackbufferIndex();
 

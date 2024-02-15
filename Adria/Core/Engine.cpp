@@ -213,7 +213,7 @@ namespace adria
 		GfxShaderCompiler::Initialize();
 		ShaderCache::Initialize();
 		gfx = std::make_unique<GfxDevice>(window, GfxOptions{.debug_layer = init.debug_layer, .dred = init.dred,
-														     .gpu_validation = init.gpu_validation, .pix = init.pix, .nvidia_aftermath = init.aftermath });
+														     .gpu_validation = init.gpu_validation, .pix = init.pix });
 		PSOCache::Initialize(gfx.get());
 		g_TextureManager.Initialize(gfx.get(), 1000);
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), window->Width(), window->Height());

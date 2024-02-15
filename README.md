@@ -64,6 +64,7 @@ Graphics engine written in C++ using DirectX12.
     - Shader hot reloading
     - Render graph dump and visualization
     - Shader debug printf
+    - Nsight Aftermath SDK (wip)
 
 ## TODO
 * ReSTIR GI
