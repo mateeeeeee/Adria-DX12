@@ -23,21 +23,16 @@ namespace adria
 
 	class GfxNsightAftermathGpuCrashTracker
 	{
-		template<typename T>
-		static std::string ToHexString(T n);
-		static std::string ToString(GFSDK_Aftermath_ShaderDebugInfoIdentifier const& identifier)
-		{
-			return ToHexString(identifier.id[0]) + "-" + ToHexString(identifier.id[1]);
-		}
-
 	public:
 		explicit GfxNsightAftermathGpuCrashTracker(GfxDevice* gfx);
 		~GfxNsightAftermathGpuCrashTracker();
 
+		void Initialize();
 		bool IsInitialized() const { return initialized; }
-		void HandleGpuHang();
+		void HandleGpuCrash();
 
 	private:
+		GfxDevice* gfx;
 		bool initialized = false;
 		mutable std::mutex m_mutex;
 		std::map<GFSDK_Aftermath_ShaderDebugInfoIdentifier, std::vector<uint8>, GFSDK_Aftermath_ShaderDebugInfoIdentifierComparator> shader_debug_info_map;

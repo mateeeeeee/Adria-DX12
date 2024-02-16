@@ -296,6 +296,8 @@ namespace adria
 			D3D_FEATURE_LEVEL_11_0
 		};
 
+		if (options.aftermath) nsight_aftermath = std::make_unique<GfxNsightAftermathGpuCrashTracker>(this);
+
 		GFX_CHECK_HR(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(device.GetAddressOf())));
 		D3D12_FEATURE_DATA_FEATURE_LEVELS caps{};
 		caps.pFeatureLevelsRequested = feature_levels;
@@ -308,8 +310,7 @@ namespace adria
 			ADRIA_DEBUGBREAK();
 			std::exit(EXIT_FAILURE);
 		}
-
-		if (options.aftermath) nsight_aftermath = std::make_unique<GfxNsightAftermathGpuCrashTracker>(this);
+		if(nsight_aftermath) nsight_aftermath->Initialize();
 
 		D3D12MA::ALLOCATOR_DESC allocator_desc{};
 		allocator_desc.pDevice = device.Get();
@@ -426,7 +427,7 @@ namespace adria
 		bool present_successful = swapchain->Present(vsync);
 		if (!present_successful && nsight_aftermath->IsInitialized())
 		{
-			nsight_aftermath->HandleGpuHang();
+			nsight_aftermath->HandleGpuCrash();
 			std::terminate();
 		}
 

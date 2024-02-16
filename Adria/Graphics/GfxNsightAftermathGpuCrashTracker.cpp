@@ -10,22 +10,53 @@
 
 namespace adria
 {
-
 	template<typename T>
-	std::string GfxNsightAftermathGpuCrashTracker::ToHexString(T n)
+	static std::string ToHexString(T n)
 	{
 		std::stringstream stream;
 		stream << std::setfill('0') << std::setw(2 * sizeof(T)) << std::hex << n;
 		return stream.str();
 	}
+	static std::string ToString(GFSDK_Aftermath_ShaderDebugInfoIdentifier const& identifier)
+	{
+		return ToHexString(identifier.id[0]) + "-" + ToHexString(identifier.id[1]);
+	}
 
-	GfxNsightAftermathGpuCrashTracker::GfxNsightAftermathGpuCrashTracker(GfxDevice* gfx)
+
+	GfxNsightAftermathGpuCrashTracker::GfxNsightAftermathGpuCrashTracker(GfxDevice* gfx) : gfx(gfx)
 	{
 		if (gfx->GetVendor() != GfxVendor::Nvidia)
 		{
 			ADRIA_LOG(WARNING, "Cannot use Nvidia Aftermath because the GPU vendor is not Nvidia!");
 			return;
 		}
+
+		GFSDK_Aftermath_Result result = GFSDK_Aftermath_EnableGpuCrashDumps(
+			GFSDK_Aftermath_Version_API,
+			GFSDK_Aftermath_GpuCrashDumpWatchedApiFlags_DX,
+			GFSDK_Aftermath_GpuCrashDumpFeatureFlags_DeferDebugInfoCallbacks,	// Let the Nsight Aftermath library cache shader debug information.
+			GpuCrashDumpCallback,												// Register callback for GPU crash dumps.
+			ShaderDebugInfoCallback,											// Register callback for shader debug information.
+			CrashDumpDescriptionCallback,										// Register callback for GPU crash dump description.
+			ResolveMarkerCallback,												// Register callback for resolving application-managed markers.
+			this);																// Set the GpuCrashTracker object as user data for the above callbacks.
+
+		ShaderCache::GetShaderRecompiledEvent().AddMember(&GfxNsightAftermathGpuCrashTracker::OnShaderOrLibraryCompiled, *this);
+	}
+
+	GfxNsightAftermathGpuCrashTracker::~GfxNsightAftermathGpuCrashTracker()
+	{
+		if (initialized) GFSDK_Aftermath_DisableGpuCrashDumps();
+	}
+
+	void GfxNsightAftermathGpuCrashTracker::Initialize()
+	{
+		if (gfx->GetVendor() != GfxVendor::Nvidia)
+		{
+			ADRIA_LOG(WARNING, "Cannot use Nvidia Aftermath because the GPU vendor is not Nvidia!");
+			return;
+		}
+
 		uint32 const aftermath_flags =
 			GFSDK_Aftermath_FeatureFlags_EnableMarkers |             // Enable event marker tracking.
 			GFSDK_Aftermath_FeatureFlags_CallStackCapturing |        // Enable automatic call stack event markers.
@@ -40,27 +71,17 @@ namespace adria
 			initialized = false;
 			return;
 		}
-
-		result = GFSDK_Aftermath_EnableGpuCrashDumps(
-			GFSDK_Aftermath_Version_API,
-			GFSDK_Aftermath_GpuCrashDumpWatchedApiFlags_DX,
-			GFSDK_Aftermath_GpuCrashDumpFeatureFlags_DeferDebugInfoCallbacks,	// Let the Nsight Aftermath library cache shader debug information.
-			GpuCrashDumpCallback,												// Register callback for GPU crash dumps.
-			ShaderDebugInfoCallback,											// Register callback for shader debug information.
-			CrashDumpDescriptionCallback,										// Register callback for GPU crash dump description.
-			ResolveMarkerCallback,																// Register callback for resolving application-managed markers.
-			this);																// Set the GpuCrashTracker object as user data for the above callbacks.
-		initialized = (result == GFSDK_Aftermath_Result_Success);
-		ShaderCache::GetShaderRecompiledEvent().AddMember(&GfxNsightAftermathGpuCrashTracker::OnShaderOrLibraryCompiled, *this);
+		initialized = true;
 	}
 
-	GfxNsightAftermathGpuCrashTracker::~GfxNsightAftermathGpuCrashTracker()
+	void GfxNsightAftermathGpuCrashTracker::HandleGpuCrash()
 	{
-		if (initialized) GFSDK_Aftermath_DisableGpuCrashDumps();
-	}
+		if (!initialized)
+		{
+			ADRIA_LOG(WARNING, "Nsight Aftermath Gpu Crash Tracker was not initialized!");
+			return;
+		}
 
-	void GfxNsightAftermathGpuCrashTracker::HandleGpuHang()
-	{
 		ADRIA_LOG(DEBUG, "Swapchain Present failed! Trying to generate capture dump with Nsight Aftermath...");
 		Timer<> timer;
 		GFSDK_Aftermath_CrashDump_Status status = GFSDK_Aftermath_CrashDump_Status_Unknown;
@@ -150,8 +171,8 @@ namespace adria
 
 		// Use the decoder object to read basic information, like application
 		// name, PID, etc. from the GPU crash dump.
-		GFSDK_Aftermath_GpuCrashDump_BaseInfo baseInfo{};
-		result = GFSDK_Aftermath_GpuCrashDump_GetBaseInfo(decoder, &baseInfo);
+		GFSDK_Aftermath_GpuCrashDump_BaseInfo base_info{};
+		result = GFSDK_Aftermath_GpuCrashDump_GetBaseInfo(decoder, &base_info);
 		if (result != GFSDK_Aftermath_Result_Success) return;
 		// Use the decoder object to query the application name that was set
 		// in the GPU crash dump description.
@@ -174,7 +195,7 @@ namespace adria
 		const std::string base_file_name =
 			std::string(application_name.data())
 			+ "-"
-			+ std::to_string(baseInfo.pid)
+			+ std::to_string(base_info.pid)
 			+ "-"
 			+ std::to_string(++count);
 
@@ -207,7 +228,7 @@ namespace adria
 		if (result != GFSDK_Aftermath_Result_Success) return;
 
 		// Write the crash dump data as JSON to a file.
-		const std::string json_filename = paths::AftermathDir() + crash_dump_filename + ".json";
+		const std::string json_filename = crash_dump_filename + ".json";
 		std::ofstream json_file(json_filename, std::ios::out | std::ios::binary);
 		if (json_file)
 		{

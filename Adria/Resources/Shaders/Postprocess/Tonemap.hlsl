@@ -69,5 +69,6 @@ void Tonemap(CSInput input)
         default:
             tone_mapped_color = float4(1.0f, 0.0f, 0.0f, 1.0f);
     }
+
 	outputTx[input.DispatchThreadId.xy] = tone_mapped_color;
 }
