@@ -47,6 +47,10 @@ namespace adria
 		void OnCrashDump(const void* gpu_crash_dump_data, const uint32 gpu_crash_dump_size);
 		void OnShaderDebugInfo(const void* shader_debug_info, const uint32 shader_debug_info_size);
 		void OnDescription(PFN_GFSDK_Aftermath_AddGpuCrashDumpDescription add_description);
+		void OnResolveMarker(void const* marker_data, uint32 marker_data_size, void** resolved_marker_data, uint32* resolved_marker_data_size)
+		{
+
+		}
 		void OnShaderDebugInfoLookup(GFSDK_Aftermath_ShaderDebugInfoIdentifier const& identifier, PFN_GFSDK_Aftermath_SetData set_shader_debug_info) const;
 		
 		void OnShaderLookup(GFSDK_Aftermath_ShaderBinaryHash const& shader_hash, PFN_GFSDK_Aftermath_SetData set_shader_binary) const;
@@ -66,6 +70,11 @@ namespace adria
 		{
 			GfxNsightAftermathGpuCrashTracker* gpu_crash_tracker = reinterpret_cast<GfxNsightAftermathGpuCrashTracker*>(user_data);
 			gpu_crash_tracker->OnDescription(add_description);
+		}
+		static void ResolveMarkerCallback(void const* marker_data, uint32 marker_data_size, void* user_data, void** resolved_marker_data, uint32* resolved_marker_data_size)
+		{
+			GfxNsightAftermathGpuCrashTracker* gpu_crash_tracker = reinterpret_cast<GfxNsightAftermathGpuCrashTracker*>(user_data);
+			gpu_crash_tracker->OnResolveMarker(marker_data, marker_data_size, resolved_marker_data, resolved_marker_data_size);
 		}
 
 		static void ShaderDebugInfoLookupCallback(GFSDK_Aftermath_ShaderDebugInfoIdentifier const* identifier, PFN_GFSDK_Aftermath_SetData set_shader_debug_info, void* user_data)

@@ -424,10 +424,10 @@ namespace adria
 		ProcessReleaseQueue();
 
 		bool present_successful = swapchain->Present(vsync);
-
-		if (!present_successful)
+		if (!present_successful && nsight_aftermath->IsInitialized())
 		{
-			if (nsight_aftermath->IsInitialized()) nsight_aftermath->HandleGpuHang();
+			nsight_aftermath->HandleGpuHang();
+			std::terminate();
 		}
 
 		backbuffer_index = swapchain->GetBackbufferIndex();

@@ -48,7 +48,7 @@ namespace adria
 			GpuCrashDumpCallback,												// Register callback for GPU crash dumps.
 			ShaderDebugInfoCallback,											// Register callback for shader debug information.
 			CrashDumpDescriptionCallback,										// Register callback for GPU crash dump description.
-			NULL,																// Register callback for resolving application-managed markers.
+			ResolveMarkerCallback,																// Register callback for resolving application-managed markers.
 			this);																// Set the GpuCrashTracker object as user data for the above callbacks.
 		initialized = (result == GFSDK_Aftermath_Result_Success);
 		ShaderCache::GetShaderRecompiledEvent().AddMember(&GfxNsightAftermathGpuCrashTracker::OnShaderOrLibraryCompiled, *this);
@@ -61,6 +61,7 @@ namespace adria
 
 	void GfxNsightAftermathGpuCrashTracker::HandleGpuHang()
 	{
+		ADRIA_LOG(DEBUG, "Swapchain Present failed! Trying to generate capture dump with Nsight Aftermath...");
 		Timer<> timer;
 		GFSDK_Aftermath_CrashDump_Status status = GFSDK_Aftermath_CrashDump_Status_Unknown;
 		GFSDK_Aftermath_GetCrashDumpStatus(&status);
@@ -69,6 +70,11 @@ namespace adria
 		{
 			std::this_thread::sleep_for(std::chrono::milliseconds(50));
 			GFSDK_Aftermath_GetCrashDumpStatus(&status);
+		}
+
+		if (status != GFSDK_Aftermath_CrashDump_Status_Finished)
+		{
+			ADRIA_LOG(WARNING, "Unexpected crash dump status!");
 		}
 	}
 
@@ -129,7 +135,6 @@ namespace adria
 	// separate debug info data files.
 	void GfxNsightAftermathGpuCrashTracker::OnShaderSourceDebugInfoLookup(GFSDK_Aftermath_ShaderDebugName const& shaderDebugName, PFN_GFSDK_Aftermath_SetData setShaderBinary) const
 	{
-
 	}
 
 	void GfxNsightAftermathGpuCrashTracker::WriteGpuCrashDumpToFile(void const* gpu_crash_dump_data, uint32 gpu_crash_dump_size)
