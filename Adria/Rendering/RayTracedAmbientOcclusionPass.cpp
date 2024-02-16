@@ -192,7 +192,7 @@ namespace adria
 		GfxStateObjectBuilder rtao_state_object_builder(5);
 		{
 			D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc{};
-			dxil_lib_desc.DXILLibrary.BytecodeLength = rtao_blob.GetLength();
+			dxil_lib_desc.DXILLibrary.BytecodeLength = rtao_blob.GetSize();
 			dxil_lib_desc.DXILLibrary.pShaderBytecode = rtao_blob.GetData();
 			dxil_lib_desc.NumExports = 0;
 			dxil_lib_desc.pExports = nullptr;

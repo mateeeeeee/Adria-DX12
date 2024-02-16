@@ -90,7 +90,7 @@ namespace adria
 			};
 
 			D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc{};
-			dxil_lib_desc.DXILLibrary.BytecodeLength = rt_shadows_blob.GetLength();
+			dxil_lib_desc.DXILLibrary.BytecodeLength = rt_shadows_blob.GetSize();
 			dxil_lib_desc.DXILLibrary.pShaderBytecode = rt_shadows_blob.GetData();
 			dxil_lib_desc.NumExports = ARRAYSIZE(export_descs);
 			dxil_lib_desc.pExports = export_descs;

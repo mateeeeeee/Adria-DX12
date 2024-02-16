@@ -148,7 +148,7 @@ namespace adria
 	void GfxNsightAftermathGpuCrashTracker::OnShaderLookup(GFSDK_Aftermath_ShaderBinaryHash const& shader_hash, PFN_GFSDK_Aftermath_SetData set_shader_binary) const
 	{
 		GfxShader const& shader = ShaderCache::GetShader(shader_hash_map[shader_hash.hash]);
-		set_shader_binary(shader.GetData(), (uint32)shader.GetLength());
+		set_shader_binary(shader.GetData(), (uint32)shader.GetSize());
 	}
 	// Handler for shader source debug info lookup callbacks.
 	// This is used by the JSON decoder for mapping shader instruction addresses to
@@ -248,7 +248,7 @@ namespace adria
 	void GfxNsightAftermathGpuCrashTracker::OnShaderOrLibraryCompiled(GfxShaderID shader_id)
 	{
 		GfxShader const& shader = ShaderCache::GetShader(shader_id);
-		D3D12_SHADER_BYTECODE shader_bytecode{ shader.GetData(), shader.GetLength() };
+		D3D12_SHADER_BYTECODE shader_bytecode{ shader.GetData(), shader.GetSize() };
 		GFSDK_Aftermath_ShaderBinaryHash shader_hash;
 		bool result = GFSDK_Aftermath_GetShaderHash(GFSDK_Aftermath_Version_API, &shader_bytecode, &shader_hash);
 		ADRIA_ASSERT(result == GFSDK_Aftermath_Result_Success);

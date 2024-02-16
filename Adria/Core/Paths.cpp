@@ -58,6 +58,11 @@ namespace adria
 	{
 		return SavedDir() + "ShaderCache/";
 	}
+	std::string paths::ShaderPDBDir()
+	{
+		return SavedDir() + "ShaderPDB/";
+	}
+
 	std::string paths::IniDir()
 	{
 		return SavedDir() + "Ini/";

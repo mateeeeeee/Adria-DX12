@@ -30,6 +30,7 @@ namespace adria
 	};
 
 	using GfxShaderBlob = std::vector<uint8>;
+	using GfxDebugBlob = std::vector<uint8>;
 	class GfxShader
 	{
 	public:
@@ -38,21 +39,21 @@ namespace adria
 		{
 			desc = _desc;
 		}
-		void SetBytecode(void const* data, uint64 size)
+		void SetShaderData(void const* data, uint64 size)
 		{
-			bytecode.resize(size);
-			memcpy(bytecode.data(), data, size);
+			shader_blob.resize(size);
+			memcpy(shader_blob.data(), data, size);
 		}
 
 		GfxShaderDesc const& GetDesc() const { return desc; }
 
 		void* GetData() const
 		{
-			return !bytecode.empty() ? (void*)bytecode.data() : nullptr;
+			return !shader_blob.empty() ? (void*)shader_blob.data() : nullptr;
 		}
-		uint64 GetLength() const
+		uint64 GetSize() const
 		{
-			return bytecode.size();
+			return shader_blob.size();
 		}
 
 		operator D3D12_SHADER_BYTECODE() const
@@ -60,12 +61,13 @@ namespace adria
 			return D3D12_SHADER_BYTECODE
 			{
 				.pShaderBytecode = GetData(),
-				.BytecodeLength = GetLength()
+				.BytecodeLength = GetSize()
 			};
 		}
 
 	private:
-		GfxShaderBlob bytecode;
+		GfxShaderBlob shader_blob;
+		GfxDebugBlob  debug_blob;
 		GfxShaderDesc desc;
 	};
 }

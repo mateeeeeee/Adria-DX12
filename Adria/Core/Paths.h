@@ -18,6 +18,7 @@ namespace adria::paths
 	std::string ScreenshotsDir();
 	std::string RenderGraphDir();
 	std::string ShaderCacheDir();
+	std::string ShaderPDBDir();
 	std::string IniDir();
 	std::string AftermathDir();
 

@@ -191,7 +191,7 @@ namespace adria
 			archive(binary_size);
 			std::unique_ptr<char[]> binary_data(new char[binary_size]);
 			archive.loadBinary(binary_data.get(), binary_size);
-			output.shader.SetBytecode(binary_data.get(), binary_size);
+			output.shader.SetShaderData(binary_data.get(), binary_size);
 			output.shader.SetDesc(input);
 			return true;
 		}
@@ -201,8 +201,8 @@ namespace adria
 			cereal::BinaryOutputArchive archive(os);
 			archive(output.shader_hash);
 			archive(output.includes);
-			archive(output.shader.GetLength());
-			archive.saveBinary(output.shader.GetData(), output.shader.GetLength());
+			archive(output.shader.GetSize());
+			archive.saveBinary(output.shader.GetData(), output.shader.GetSize());
 			return true;
 		}
 
@@ -258,13 +258,9 @@ namespace adria
 			if (input.flags & ShaderCompilerFlag_Debug)
 			{
 				compile_args.push_back(DXC_ARG_DEBUG);
-				compile_args.push_back(L"-Qembed_debug");
 			}
-			else
-			{
-				compile_args.push_back(L"-Qstrip_debug");
-				compile_args.push_back(L"-Qstrip_reflect");
-			}
+			//compile_args.push_back(L"-Qstrip_debug");
+			//compile_args.push_back(L"-Qstrip_reflect");
 
 			if (input.flags & ShaderCompilerFlag_DisableOptimization)
 			{
@@ -304,7 +300,7 @@ namespace adria
 			DxcBuffer source_buffer;
 			source_buffer.Ptr = source_blob->GetBufferPointer();
 			source_buffer.Size = source_blob->GetBufferSize();
-			source_buffer.Encoding = 0;
+			source_buffer.Encoding = DXC_CP_ACP;
 			GfxIncludeHandler custom_include_handler{};
 
 			ArcPtr<IDxcResult> result;
@@ -328,8 +324,27 @@ namespace adria
 					else if (result == IDCANCEL) return false;
 				}
 			}
+			
 			ArcPtr<IDxcBlob> blob;
 			GFX_CHECK_HR(result->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(blob.GetAddressOf()), nullptr));
+			
+			ArcPtr<IDxcBlob> pdb_blob;
+			ArcPtr<IDxcBlobUtf16> pdb_path_utf16;
+			if (SUCCEEDED(result->GetOutput(DXC_OUT_PDB, IID_PPV_ARGS(pdb_blob.GetAddressOf()), pdb_path_utf16.GetAddressOf())))
+			{
+				ArcPtr<IDxcBlobUtf8> pdb_path_utf8;
+				utils->GetBlobAsUtf8(pdb_path_utf16.Get(), pdb_path_utf8.GetAddressOf());
+				char pdb_path[256];
+				sprintf_s(pdb_path, "%s%s", paths::ShaderPDBDir().c_str(), pdb_path_utf8->GetStringPointer());
+				FILE* pdb_file = nullptr;
+				fopen_s(&pdb_file, pdb_path, "w");
+				if (pdb_file)
+				{
+					fwrite(pdb_blob->GetBufferPointer(), pdb_blob->GetBufferSize(), 1, pdb_file);
+					fclose(pdb_file);
+				}
+			}
+			
 			ArcPtr<IDxcBlob> hash;
 			if (SUCCEEDED(result->GetOutput(DXC_OUT_SHADER_HASH, IID_PPV_ARGS(hash.GetAddressOf()), nullptr)))
 			{
@@ -338,7 +353,7 @@ namespace adria
 			}
 
 			output.shader.SetDesc(input);
-			output.shader.SetBytecode(blob->GetBufferPointer(), blob->GetBufferSize());
+			output.shader.SetShaderData(blob->GetBufferPointer(), blob->GetBufferSize());
 			output.includes = std::move(custom_include_handler.include_files);
 			output.includes.push_back(input.file);
 			SaveToCache(cache_path, output);
@@ -348,7 +363,7 @@ namespace adria
 		{
 			ArcPtr<IDxcContainerReflection> reflection;
 			HRESULT hr = DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(reflection.GetAddressOf()));
-			GfxReflectionBlob my_blob{ vs_blob.GetData(), vs_blob.GetLength() };
+			GfxReflectionBlob my_blob{ vs_blob.GetData(), vs_blob.GetSize() };
 			GFX_CHECK_HR(hr);
 			hr = reflection->Load(&my_blob);
 			GFX_CHECK_HR(hr);
