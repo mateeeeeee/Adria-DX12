@@ -6,6 +6,7 @@
 #include "Rendering/ShaderCache.h"
 #include "Logging/Logger.h"
 #include "Core/Paths.h"
+#include "Utilities/Timer.h"
 
 namespace adria
 {
@@ -60,10 +61,11 @@ namespace adria
 
 	void GfxNsightAftermathGpuCrashTracker::HandleGpuHang()
 	{
+		Timer<> timer;
 		GFSDK_Aftermath_CrashDump_Status status = GFSDK_Aftermath_CrashDump_Status_Unknown;
 		GFSDK_Aftermath_GetCrashDumpStatus(&status);
 		while (status != GFSDK_Aftermath_CrashDump_Status_CollectingDataFailed &&
-			status != GFSDK_Aftermath_CrashDump_Status_Finished)
+			status != GFSDK_Aftermath_CrashDump_Status_Finished && timer.ElapsedInSeconds() < 3.0f)
 		{
 			std::this_thread::sleep_for(std::chrono::milliseconds(50));
 			GFSDK_Aftermath_GetCrashDumpStatus(&status);
