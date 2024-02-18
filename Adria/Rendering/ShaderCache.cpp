@@ -636,6 +636,7 @@ namespace adria
 		std::ignore = file_watcher->GetFileModifiedEvent().Add(OnShaderFileChanged);
 		fs::create_directory(paths::ShaderCacheDir());
 		fs::create_directory(paths::ShaderPDBDir());
+		fs::create_directory(paths::AftermathDir());
 		CompileAllShaders();
 	}
 	void ShaderCache::Destroy()

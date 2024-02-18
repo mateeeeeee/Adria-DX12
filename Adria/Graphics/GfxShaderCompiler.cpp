@@ -231,7 +231,7 @@ namespace adria
 			uint64 macro_hash = crc64(macro_key.c_str(), macro_key.size());
 			std::string build_string = input.flags & ShaderCompilerFlag_Debug ? "debug" : "release";
 			char cache_path[256];
-			sprintf_s(cache_path, "%s%s_%s_%llx_%s.bin", paths::ShaderCacheDir().c_str(), GetFilenameWithoutExtension(input.file).c_str(),
+			sprintf_s(cache_path, "%s%s_%s_%llx_%s.cso", paths::ShaderCacheDir().c_str(), GetFilenameWithoutExtension(input.file).c_str(),
 												    input.entry_point.c_str(), macro_hash, build_string.c_str());
 
 			if (!bypass_cache && CheckCache(cache_path, input, output)) return true;
@@ -297,7 +297,7 @@ namespace adria
 				compile_args.push_back(macros.back().c_str());
 			}
 
-			DxcBuffer source_buffer;
+			DxcBuffer source_buffer{};
 			source_buffer.Ptr = source_blob->GetBufferPointer();
 			source_buffer.Size = source_blob->GetBufferSize();
 			source_buffer.Encoding = DXC_CP_ACP;

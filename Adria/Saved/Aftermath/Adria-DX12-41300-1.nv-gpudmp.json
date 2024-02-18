@@ -1,0 +1,191 @@
+[
+  {
+    "Base info": {
+      "Application name": "adria.exe",
+      "Dump date": "Sun Feb 18 18:27:54 2024",
+      "Graphics API": "Direct3D 12",
+      "PID": 41300
+    }
+  },
+  {
+    "OS info": {
+      "Build number": 22631,
+      "Service pack major version": 0,
+      "Service pack minor version": 0,
+      "Windows major version": 10,
+      "Windows minor version": 0,
+      "Windows product type": 1
+    }
+  },
+  {
+    "Display driver info": {
+      "Version": "537.13"
+    }
+  },
+  {
+    "Device info": {
+      "Adapter reset occurred": false,
+      "Device state": "Hung",
+      "Engine reset occurred": true
+    }
+  },
+  {
+    "GPU info": {
+      "Adapter LUID": 66200,
+      "Adapter name": "AD107-B"
+    }
+  },
+  {
+    "Shader infos": {
+      "Info": {
+        "Shader hash": 16398451735339028463,
+        "Shader name": "compute_02",
+        "Shader size": 3584,
+        "Shader type": "Compute"
+      }
+    }
+  },
+  {
+    "Aftermath markers": [
+      {
+        "Context": {
+          "Events": [
+            {
+              "Event": {
+                "Pipe": "Bottom",
+                "Status": "NotStarted",
+                "Type": "User"
+              }
+            },
+            {
+              "Event": {
+                "Pipe": "Bottom",
+                "Status": "NotStarted",
+                "Type": "DriverEvent_AppRegime"
+              }
+            },
+            {
+              "Event": {
+                "Pipe": "Bottom",
+                "Status": "NotStarted",
+                "Type": "Automatic"
+              }
+            },
+            {
+              "Event": {
+                "Pipe": "Bottom",
+                "Status": "NotStarted",
+                "Type": "DriverEvent_ShaderHash"
+              }
+            }
+          ],
+          "Type": "CommandQueue"
+        }
+      },
+      {
+        "Context": {
+          "Events": [
+            {
+              "Event": {
+                "Pipe": "Bottom",
+                "Status": "Finished",
+                "Type": "User"
+              }
+            },
+            {
+              "Event": {
+                "Pipe": "Bottom",
+                "Status": "Finished",
+                "Type": "DriverEvent_AppRegime"
+              }
+            },
+            {
+              "Event": {
+                "Pipe": "Bottom",
+                "Status": "Finished",
+                "Type": "Automatic"
+              }
+            },
+            {
+              "Event": {
+                "Pipe": "Bottom",
+                "Status": "Finished",
+                "Type": "DriverEvent_ShaderHash"
+              }
+            }
+          ],
+          "Type": "CommandQueue"
+        }
+      },
+      {
+        "Context": {
+          "Events": [
+            {
+              "Event": {
+                "Pipe": "Bottom",
+                "Status": "Finished",
+                "Type": "User"
+              }
+            },
+            {
+              "Event": {
+                "Pipe": "Bottom",
+                "Status": "Finished",
+                "Type": "DriverEvent_AppRegime"
+              }
+            },
+            {
+              "Event": {
+                "Pipe": "Bottom",
+                "Status": "Finished",
+                "Type": "Automatic"
+              }
+            },
+            {
+              "Event": {
+                "Pipe": "Bottom",
+                "Status": "Finished",
+                "Type": "DriverEvent_ShaderHash"
+              }
+            }
+          ],
+          "Type": "CommandQueue"
+        }
+      }
+    ]
+  },
+  {
+    "ApplicationName": "Adria-DX12"
+  },
+  {
+    "ApplicationVersion": "v1.0"
+  },
+  {
+    "UserDefined+0": "Nvidia Nsight Aftermath crash dump"
+  },
+  {
+    "Active Warps": [
+      {
+        "GPU PC Address": "compute_02 @ 0x00000c20",
+        "Shader mapping": "dxil:275",
+        "Warp count": 858
+      },
+      {
+        "GPU PC Address": "compute_02 @ 0x00000c30",
+        "Shader mapping": "dxil:279",
+        "Warp count": 51
+      },
+      {
+        "GPU PC Address": "compute_02 @ 0x00000c40",
+        "Shader mapping": "dxil:282",
+        "Warp count": 243
+      }
+    ]
+  },
+  {
+    "Fingerprint": {
+      "Hash": 2273450396220022818,
+      "Quality": 0
+    }
+  }
+]
