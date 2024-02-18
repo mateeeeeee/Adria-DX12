@@ -259,8 +259,8 @@ namespace adria
 			{
 				compile_args.push_back(DXC_ARG_DEBUG);
 			}
-			//compile_args.push_back(L"-Qstrip_debug");
-			//compile_args.push_back(L"-Qstrip_reflect");
+			compile_args.push_back(L"-Qstrip_debug");
+			compile_args.push_back(L"-Qstrip_reflect");
 
 			if (input.flags & ShaderCompilerFlag_DisableOptimization)
 			{
@@ -333,15 +333,17 @@ namespace adria
 			if (SUCCEEDED(result->GetOutput(DXC_OUT_PDB, IID_PPV_ARGS(pdb_blob.GetAddressOf()), pdb_path_utf16.GetAddressOf())))
 			{
 				ArcPtr<IDxcBlobUtf8> pdb_path_utf8;
-				utils->GetBlobAsUtf8(pdb_path_utf16.Get(), pdb_path_utf8.GetAddressOf());
-				char pdb_path[256];
-				sprintf_s(pdb_path, "%s%s", paths::ShaderPDBDir().c_str(), pdb_path_utf8->GetStringPointer());
-				FILE* pdb_file = nullptr;
-				fopen_s(&pdb_file, pdb_path, "w");
-				if (pdb_file)
+				if (SUCCEEDED(utils->GetBlobAsUtf8(pdb_path_utf16.Get(), pdb_path_utf8.GetAddressOf())))
 				{
-					fwrite(pdb_blob->GetBufferPointer(), pdb_blob->GetBufferSize(), 1, pdb_file);
-					fclose(pdb_file);
+					char pdb_path[256];
+					sprintf_s(pdb_path, "%s%s", paths::ShaderPDBDir().c_str(), pdb_path_utf8->GetStringPointer());
+					FILE* pdb_file = nullptr;
+					fopen_s(&pdb_file, pdb_path, "wb");
+					if (pdb_file)
+					{
+						fwrite(pdb_blob->GetBufferPointer(), pdb_blob->GetBufferSize(), 1, pdb_file);
+						fclose(pdb_file);
+					}
 				}
 			}
 			
