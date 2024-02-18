@@ -69,10 +69,6 @@ void Tonemap(CSInput input)
         default:
             tone_mapped_color = float4(1.0f, 0.0f, 0.0f, 1.0f);
     }
-    while(true)
-    {
-        tone_mapped_color.r += 0.01f;
-        if(FrameCB.totalTime < 5) break;
-    }
+
 	outputTx[input.DispatchThreadId.xy] = tone_mapped_color;
 }
