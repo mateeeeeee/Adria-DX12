@@ -47,7 +47,7 @@ void Tonemap(CSInput input)
 	}
 
     float exposure = exposureTx[uint2(0, 0)];
-    float4 tone_mapped_color = float4(1.0f, 0.0f, 0.0f, 1.0f);
+    float4 toneMappedColor = float4(1.0f, 0.0f, 0.0f, 1.0f);
 
     uint2 toneMapOperatorLUTUnpacked = UnpackTwoUint16FromUint32(PassCB.tonemapOperatorLUTPacked);
     uint tonemapOperator = toneMapOperatorLUTUnpacked.x;
@@ -55,20 +55,20 @@ void Tonemap(CSInput input)
     switch (tonemapOperator)
     {
         case 0:
-            tone_mapped_color = float4(ReinhardToneMapping(color.xyz * exposure * PassCB.tonemapExposure), 1.0);
+            toneMappedColor = float4(ReinhardToneMapping(color.xyz * exposure * PassCB.tonemapExposure), 1.0);
             break;
         case 1:
-            tone_mapped_color = float4(HableToneMapping(color.xyz * exposure * PassCB.tonemapExposure), 1.0);
+            toneMappedColor = float4(HableToneMapping(color.xyz * exposure * PassCB.tonemapExposure), 1.0);
             break;
         case 2:
-            tone_mapped_color = float4(LinearToneMapping(color.xyz * exposure * PassCB.tonemapExposure), 1.0);
+            toneMappedColor = float4(LinearToneMapping(color.xyz * exposure * PassCB.tonemapExposure), 1.0);
             break;
         case 3:
-            tone_mapped_color = float4(TonyMcMapface(LUT, LinearClampSampler, color.xyz * exposure * PassCB.tonemapExposure), 1.0);
+            toneMappedColor = float4(TonyMcMapface(LUT, LinearClampSampler, color.xyz * exposure * PassCB.tonemapExposure), 1.0);
             break;
         default:
-            tone_mapped_color = float4(1.0f, 0.0f, 0.0f, 1.0f);
+            toneMappedColor = float4(1.0f, 0.0f, 0.0f, 1.0f);
     }
 
-	outputTx[input.DispatchThreadId.xy] = tone_mapped_color;
+	outputTx[input.DispatchThreadId.xy] = toneMappedColor;
 }

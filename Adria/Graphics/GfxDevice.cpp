@@ -425,7 +425,7 @@ namespace adria
 		ProcessReleaseQueue();
 
 		bool present_successful = swapchain->Present(vsync);
-		if (!present_successful && nsight_aftermath->IsInitialized())
+		if (!present_successful && nsight_aftermath && nsight_aftermath->IsInitialized())
 		{
 			nsight_aftermath->HandleGpuCrash();
 			std::terminate();
