@@ -67,7 +67,6 @@ namespace adria
 
 	private:
 		GfxShaderBlob shader_blob;
-		GfxDebugBlob  debug_blob;
 		GfxShaderDesc desc;
 	};
 }
