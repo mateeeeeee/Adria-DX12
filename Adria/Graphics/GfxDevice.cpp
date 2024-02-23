@@ -428,7 +428,8 @@ namespace adria
 		if (!present_successful && nsight_aftermath && nsight_aftermath->IsInitialized())
 		{
 			nsight_aftermath->HandleGpuCrash();
-			std::terminate();
+			MessageBoxA(nullptr, "Swapchain present failed!", "GPU Crash", MB_OK);
+			std::exit(1);
 		}
 
 		backbuffer_index = swapchain->GetBackbufferIndex();

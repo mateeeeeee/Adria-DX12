@@ -1,4 +1,5 @@
 #include <iomanip>
+#include <filesystem>
 #include "GfxNsightAftermathGpuCrashTracker.h"
 #include "GFSDK_Aftermath.h"
 #include "GfxShader.h"
@@ -41,6 +42,7 @@ namespace adria
 			ResolveMarkerCallback,												// Register callback for resolving application-managed markers.
 			this);																// Set the GpuCrashTracker object as user data for the above callbacks.
 
+		std::filesystem::create_directory(paths::AftermathDir());
 		ShaderCache::GetShaderRecompiledEvent().AddMember(&GfxNsightAftermathGpuCrashTracker::OnShaderOrLibraryCompiled, *this);
 	}
 
@@ -154,8 +156,18 @@ namespace adria
 	// This is used by the JSON decoder for mapping shader instruction addresses to
 	// HLSL source lines, if the shaders used by the application were compiled with
 	// separate debug info data files.
-	void GfxNsightAftermathGpuCrashTracker::OnShaderSourceDebugInfoLookup(GFSDK_Aftermath_ShaderDebugName const& shaderDebugName, PFN_GFSDK_Aftermath_SetData setShaderBinary) const
+	void GfxNsightAftermathGpuCrashTracker::OnShaderSourceDebugInfoLookup(GFSDK_Aftermath_ShaderDebugName const& shader_debug_name, PFN_GFSDK_Aftermath_SetData set_shader_binary) const
 	{
+		std::ifstream file(paths::ShaderPDBDir() + shader_debug_name.name, std::ios::binary); 
+		std::vector<uint8> debug_info;
+		if (file)
+		{
+			file.seekg(0, std::ios::end);
+			std::streamsize file_size = file.tellg();
+			file.seekg(0, std::ios::beg);
+			debug_info.resize(file_size);
+			if (file.read(reinterpret_cast<char*>(debug_info.data()), file_size)) set_shader_binary(debug_info.data(), uint32(debug_info.size()));
+		}
 	}
 
 	void GfxNsightAftermathGpuCrashTracker::WriteGpuCrashDumpToFile(void const* gpu_crash_dump_data, uint32 gpu_crash_dump_size)

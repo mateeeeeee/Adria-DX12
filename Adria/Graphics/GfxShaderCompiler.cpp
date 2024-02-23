@@ -1,5 +1,6 @@
 #pragma comment(lib, "dxcompiler.lib")
 #include <d3dcompiler.h>
+#include <filesystem>
 #include "dxcapi.h"
 #include "cereal/archives/binary.hpp"
 #include "cereal/types/string.hpp"
@@ -212,6 +213,8 @@ namespace adria
 			GFX_CHECK_HR(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(compiler.GetAddressOf())));
 			GFX_CHECK_HR(library->CreateIncludeHandler(include_handler.GetAddressOf()));
 			GFX_CHECK_HR(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(utils.GetAddressOf())));
+
+			std::filesystem::create_directory(paths::ShaderPDBDir());
 		}
 		void Destroy()
 		{
@@ -231,7 +234,7 @@ namespace adria
 			uint64 macro_hash = crc64(macro_key.c_str(), macro_key.size());
 			std::string build_string = input.flags & ShaderCompilerFlag_Debug ? "debug" : "release";
 			char cache_path[256];
-			sprintf_s(cache_path, "%s%s_%s_%llx_%s.cso", paths::ShaderCacheDir().c_str(), GetFilenameWithoutExtension(input.file).c_str(),
+			sprintf_s(cache_path, "%s%s_%s_%llx_%s.bin", paths::ShaderCacheDir().c_str(), GetFilenameWithoutExtension(input.file).c_str(),
 												    input.entry_point.c_str(), macro_hash, build_string.c_str());
 
 			if (!bypass_cache && CheckCache(cache_path, input, output)) return true;
@@ -259,8 +262,8 @@ namespace adria
 			{
 				compile_args.push_back(DXC_ARG_DEBUG);
 			}
-			compile_args.push_back(L"-Qstrip_debug");
-			compile_args.push_back(L"-Qstrip_reflect");
+			//compile_args.push_back(L"-Qstrip_debug");
+			//compile_args.push_back(L"-Qstrip_reflect");
 
 			if (input.flags & ShaderCompilerFlag_DisableOptimization)
 			{
@@ -328,25 +331,27 @@ namespace adria
 			ArcPtr<IDxcBlob> blob;
 			GFX_CHECK_HR(result->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(blob.GetAddressOf()), nullptr));
 			
-			ArcPtr<IDxcBlob> pdb_blob;
-			ArcPtr<IDxcBlobUtf16> pdb_path_utf16;
-			if (SUCCEEDED(result->GetOutput(DXC_OUT_PDB, IID_PPV_ARGS(pdb_blob.GetAddressOf()), pdb_path_utf16.GetAddressOf())))
+			if (input.flags & ShaderCompilerFlag_Debug)
 			{
-				ArcPtr<IDxcBlobUtf8> pdb_path_utf8;
-				if (SUCCEEDED(utils->GetBlobAsUtf8(pdb_path_utf16.Get(), pdb_path_utf8.GetAddressOf())))
+				ArcPtr<IDxcBlob> pdb_blob;
+				ArcPtr<IDxcBlobUtf16> pdb_path_utf16;
+				if (SUCCEEDED(result->GetOutput(DXC_OUT_PDB, IID_PPV_ARGS(pdb_blob.GetAddressOf()), pdb_path_utf16.GetAddressOf())))
 				{
-					char pdb_path[256];
-					sprintf_s(pdb_path, "%s%s", paths::ShaderPDBDir().c_str(), pdb_path_utf8->GetStringPointer());
-					FILE* pdb_file = nullptr;
-					fopen_s(&pdb_file, pdb_path, "wb");
-					if (pdb_file)
+					ArcPtr<IDxcBlobUtf8> pdb_path_utf8;
+					if (SUCCEEDED(utils->GetBlobAsUtf8(pdb_path_utf16.Get(), pdb_path_utf8.GetAddressOf())))
 					{
-						fwrite(pdb_blob->GetBufferPointer(), pdb_blob->GetBufferSize(), 1, pdb_file);
-						fclose(pdb_file);
+						char pdb_path[256];
+						sprintf_s(pdb_path, "%s%s", paths::ShaderPDBDir().c_str(), pdb_path_utf8->GetStringPointer());
+						FILE* pdb_file = nullptr;
+						fopen_s(&pdb_file, pdb_path, "wb");
+						if (pdb_file)
+						{
+							fwrite(pdb_blob->GetBufferPointer(), pdb_blob->GetBufferSize(), 1, pdb_file);
+							fclose(pdb_file);
+						}
 					}
 				}
 			}
-			
 			ArcPtr<IDxcBlob> hash;
 			if (SUCCEEDED(result->GetOutput(DXC_OUT_SHADER_HASH, IID_PPV_ARGS(hash.GetAddressOf()), nullptr)))
 			{
