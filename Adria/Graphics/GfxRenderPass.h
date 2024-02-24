@@ -30,7 +30,11 @@ namespace adria
         GfxRenderPassFlagBit_SuspendingPass = 0x8,
         GfxRenderPassFlagBit_ResumingPass = 0x10,
     };
-    DEFINE_ENUM_BIT_OPERATORS(GfxRenderPassFlagBit);
+	template <> 
+	struct EnumBitmaskOperators<GfxRenderPassFlagBit>
+	{
+		static constexpr bool enable = true;
+	};
     using GfxRenderPassFlags = uint32;
 
     struct GfxColorAttachmentDesc

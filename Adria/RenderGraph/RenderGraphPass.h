@@ -23,7 +23,11 @@ namespace adria
 		LegacyRenderPass = 0x04,				//Don't use DX12 Render Passes, use OMSetRenderTargets
 		AllowUAVWrites = 0x08 					//Allow uav writes, only makes sense if LegacyRenderPassEnabled is not used
 	};
-	DEFINE_ENUM_BIT_OPERATORS(RGPassFlags);
+	template <>
+	struct EnumBitmaskOperators<RGPassFlags>
+	{
+		static constexpr bool enable = true;
+	};
 
 	enum RGReadAccess : uint8
 	{

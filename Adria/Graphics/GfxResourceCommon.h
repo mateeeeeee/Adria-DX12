@@ -25,7 +25,11 @@ namespace adria
 		DepthStencil = 1 << 2,
 		UnorderedAccess = 1 << 3,
 	};
-	DEFINE_ENUM_BIT_OPERATORS(GfxBindFlag);
+	template <>
+	struct EnumBitmaskOperators<GfxBindFlag>
+	{
+		static constexpr bool enable = true;
+	};
 
 	enum class GfxResourceUsage : uint8
 	{
@@ -39,7 +43,11 @@ namespace adria
 		None = 0,
 		TextureCube = 1 << 0
 	};
-	DEFINE_ENUM_BIT_OPERATORS(GfxTextureMiscFlag);
+	template <>
+	struct EnumBitmaskOperators<GfxTextureMiscFlag>
+	{
+		static constexpr bool enable = true;
+	};
 
 	enum class GfxBufferMiscFlag : uint32
 	{
@@ -52,7 +60,11 @@ namespace adria
 		IndexBuffer = 1 << 5,
 		AccelStruct = 1 << 6
 	};
-	DEFINE_ENUM_BIT_OPERATORS(GfxBufferMiscFlag);
+	template <>
+	struct EnumBitmaskOperators<GfxBufferMiscFlag>
+	{
+		static constexpr bool enable = true;
+	};
 
 	enum class GfxResourceState : uint64
 	{
@@ -73,7 +85,11 @@ namespace adria
 		Present = 0x1000,
 		GenericRead = VertexAndConstantBuffer | IndexBuffer | DepthRead | NonPixelShaderResource | PixelShaderResource | IndirectArgument | CopySource,
 	};
-	DEFINE_ENUM_BIT_OPERATORS(GfxResourceState);
+	template <>
+	struct EnumBitmaskOperators<GfxResourceState>
+	{
+		static constexpr bool enable = true;
+	};
 
 	inline constexpr bool IsReadState(GfxResourceState state)
 	{

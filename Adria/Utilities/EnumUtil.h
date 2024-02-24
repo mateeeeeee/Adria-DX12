@@ -5,16 +5,57 @@
 namespace adria
 {
 
-#define DEFINE_ENUM_BIT_OPERATORS(ENUMTYPE) \
-	static_assert(std::is_enum_v<ENUMTYPE>); \
-	using ENUMTYPE##UnderlyingType = std::underlying_type_t<ENUMTYPE>; \
-	inline ENUMTYPE  operator|(ENUMTYPE a, ENUMTYPE b) { return ENUMTYPE(((ENUMTYPE##UnderlyingType)a) | ((ENUMTYPE##UnderlyingType)b)); } \
-	inline ENUMTYPE& operator|=(ENUMTYPE& a, ENUMTYPE b) { return (ENUMTYPE &)(((ENUMTYPE##UnderlyingType&)a) |= ((ENUMTYPE##UnderlyingType)b)); } \
-	inline ENUMTYPE  operator&(ENUMTYPE a, ENUMTYPE b) { return ENUMTYPE(((ENUMTYPE##UnderlyingType)a) & ((ENUMTYPE##UnderlyingType)b)); } \
-	inline ENUMTYPE& operator&=(ENUMTYPE& a, ENUMTYPE b) { return (ENUMTYPE &)(((ENUMTYPE##UnderlyingType&)a) &= ((ENUMTYPE##UnderlyingType)b)); } \
-	inline ENUMTYPE  operator~(ENUMTYPE a) { return ENUMTYPE(~((ENUMTYPE##UnderlyingType)a)); } \
-	inline ENUMTYPE  operator^(ENUMTYPE a, ENUMTYPE b) { return ENUMTYPE(((ENUMTYPE##UnderlyingType)a) ^ ((ENUMTYPE##UnderlyingType)b)); } \
-	inline ENUMTYPE& operator^=(ENUMTYPE& a, ENUMTYPE b) { return (ENUMTYPE &)(((ENUMTYPE##UnderlyingType&)a) ^= ((ENUMTYPE##UnderlyingType)b)); }
+	template <typename E> requires std::is_enum_v<E>
+	struct EnumBitmaskOperators
+	{
+		static constexpr bool enable = false;
+	};
+	template <typename E>
+	constexpr bool EnableEnumBitmaskOperators = EnumBitmaskOperators<E>::enable;
+
+	template <typename E>
+	typename std::enable_if_t<EnableEnumBitmaskOperators<E>, E> operator|(E lhs, E rhs) 
+	{
+		using T = std::underlying_type_t<E>;
+		return static_cast<E>(static_cast<T>(lhs) | static_cast<T>(rhs));
+	}
+	template <typename E>
+	typename std::enable_if_t<EnableEnumBitmaskOperators<E>, E> operator&(E lhs, E rhs)
+	{
+		using T = std::underlying_type_t<E>;
+		return static_cast<E>(static_cast<T>(lhs) & static_cast<T>(rhs));
+	}
+	template <typename E>
+	typename std::enable_if_t<EnableEnumBitmaskOperators<E>, E> operator^(E lhs, E rhs)
+	{
+		using T = std::underlying_type_t<E>;
+		return static_cast<E>(static_cast<T>(lhs) ^ static_cast<T>(rhs));
+	}
+	template <typename E>
+	typename std::enable_if_t<EnableEnumBitmaskOperators<E>, E> operator~(E e)
+	{
+		using T = std::underlying_type_t<E>;
+		return static_cast<E>(~static_cast<T>(e));
+	}
+
+	template <typename E>
+	typename std::enable_if_t<EnableEnumBitmaskOperators<E>, E&> operator|=(E& lhs, E rhs)
+	{
+		using T = std::underlying_type_t<E>;
+		return lhs = static_cast<E>(static_cast<T>(lhs) | static_cast<T>(rhs));
+	}
+	template <typename E>
+	typename std::enable_if_t<EnableEnumBitmaskOperators<E>, E&> operator&=(E& lhs, E rhs)
+	{
+		using T = std::underlying_type_t<E>;
+		return lhs = static_cast<E>(static_cast<T>(lhs) & static_cast<T>(rhs));
+	}
+	template <typename E>
+	typename std::enable_if_t<EnableEnumBitmaskOperators<E>, E&> operator^=(E& lhs, E rhs)
+	{
+		using T = std::underlying_type_t<E>;
+		return lhs = static_cast<E>(static_cast<T>(lhs) ^ static_cast<T>(rhs));
+	}
 
 	template<typename Enum> requires std::is_enum_v<Enum> 
 	inline constexpr bool HasAllFlags(Enum value, Enum flags)
