@@ -374,7 +374,8 @@ namespace adria
 		d3d12_desc.PrimitiveTopologyType = ConvertPrimitiveTopologyType(desc.topology_type);
 		d3d12_desc.SampleMask = desc.sample_mask;
 		if (d3d12_desc.DSVFormat == DXGI_FORMAT_UNKNOWN) d3d12_desc.DepthStencilState.DepthEnable = false;
-		GFX_CHECK_HR(gfx->GetDevice()->CreateGraphicsPipelineState(&d3d12_desc, IID_PPV_ARGS(pso.ReleaseAndGetAddressOf())));
+		HRESULT hr = gfx->GetDevice()->CreateGraphicsPipelineState(&d3d12_desc, IID_PPV_ARGS(pso.ReleaseAndGetAddressOf()));
+		GFX_CHECK_HR(hr);
 	}
 
 	ComputePipelineState::ComputePipelineState(GfxDevice* gfx, ComputePipelineStateDesc const& desc) : GfxPipelineState(gfx, GfxPipelineStateType::Compute), desc(desc)

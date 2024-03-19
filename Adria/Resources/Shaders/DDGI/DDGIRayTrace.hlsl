@@ -12,10 +12,11 @@ struct DDGIRayTracePassConstants
 };
 ConstantBuffer<DDGIRayTracePassConstants> PassCB : register(b1);
 
-struct DDGIPayload
+
+struct [raypayload] DDGIPayload
 {
-	float3 radiance;
-	float  distance;
+	float3 radiance : read(closesthit, caller) : write(closesthit, miss, caller);
+	float  distance : read(closesthit, caller) : write(closesthit, caller);
 };
 
 

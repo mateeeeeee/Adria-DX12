@@ -15,10 +15,10 @@ struct RayTracedReflectionsConstants
 };
 ConstantBuffer<RayTracedReflectionsConstants> PassCB : register(b1);
 
-struct RTR_Payload
+struct [raypayload] RTR_Payload
 {
-	float3 reflectionColor;
-	uint   randSeed;
+	float3 reflectionColor: write(caller, closesthit, miss) : read(caller);
+	uint   randSeed : write(caller) : read(closesthit);
 };
 
 [shader("raygeneration")]

@@ -8,9 +8,9 @@ struct RayTracedShadowsConstants
 };
 ConstantBuffer<RayTracedShadowsConstants> PassCB : register(b1);
 
-struct ShadowRayData
+struct [raypayload] ShadowRayData
 {
-	bool hit;
+	bool hit : read(caller) : write(caller, miss, anyhit);
 };
 
 [shader("raygeneration")]

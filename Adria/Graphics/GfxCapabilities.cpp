@@ -57,6 +57,7 @@ namespace adria
 			case D3D_SHADER_MODEL_6_5: return SM_6_5;
 			case D3D_SHADER_MODEL_6_6: return SM_6_6;
 			case D3D_SHADER_MODEL_6_7: return SM_6_7;
+			case D3D_SHADER_MODEL_6_8: return SM_6_8;
 			default:
 				return SM_Unknown;
 			}

@@ -12,9 +12,9 @@ struct RayTracedAmbientOcclusionConstants
 ConstantBuffer<RayTracedAmbientOcclusionConstants> PassCB : register(b1);
 
 
-struct AORayData
+struct [raypayload] AORayData
 {
-	float tHit;
+	float tHit : read(caller) : write(caller, miss, anyhit);
 };
 
 static const int RAY_COUNT = 1;

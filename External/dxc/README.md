@@ -18,6 +18,28 @@ The included licenses apply to the following files:
 
 ## Changelog
 
+### Version 1.8.2403
+
+DX Compiler release for March 2024
+
+- Shader Model 6.8 is fully supported
+  - Work Graphs allow node shaders with user-defined input and output payloads
+  - New Barrier builtin functions with specific memory types and semantics
+  - Expanded Comparison sampler intrinsics: SampleCmpBias, SampleCmpGrad, and CalculateLevelOfDetail
+  - StartVertexLocation and StartInstanceLocation semantics
+  - WaveSizeRange entry point attribute allows specifying a range of supported wave sizes
+- Improved compile-time validation and runtime validation information
+- Various stability improvements including numerous address sanitation fixes
+- Several Diagnostic improvements
+  - Many diagnostics are generated earlier and with more detailed information
+  - Library profile diagnostic improvements
+  - No longer infer library shader type when not specified
+  - More helpful diagnostics for numthreads and other entry point attributes
+  - Validation errors more accurately determine usage by the entry point
+- Improve debug info generation
+- Further improvements to Linux build quality
+
+
 ### Version 1.7.2308
 
 DX Compiler release for August 2023

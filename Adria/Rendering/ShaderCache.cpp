@@ -579,7 +579,7 @@ namespace adria
 			shader_desc.entry_point = GetEntryPoint(shader);
 			shader_desc.stage = GetShaderStage(shader);
 			shader_desc.macros = GetShaderMacros(shader);
-			shader_desc.model = SM_6_6;
+			shader_desc.model = SM_6_7;
 			shader_desc.file = paths::ShaderDir() + GetShaderSource(shader);
 #if _DEBUG
 			shader_desc.flags = ShaderCompilerFlag_DisableOptimization | ShaderCompilerFlag_Debug;

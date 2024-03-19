@@ -170,6 +170,12 @@ namespace adria
 		case SM_6_6:
 			target += L"6_6";
 			break;
+		case SM_6_7:
+			target += L"6_7";
+			break;
+		case SM_6_8:
+			target += L"6_8";
+			break;
 		default:
 			break;
 		}
