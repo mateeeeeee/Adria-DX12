@@ -1098,6 +1098,9 @@
     <ClInclude Include="Graphics\GfxNsightAftermathGpuCrashTracker.h">
       <Filter>Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\GfxStateObjectBuilder.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

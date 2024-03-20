@@ -2,8 +2,8 @@
 #include "BlackboardData.h"
 #include "ShaderCache.h"
 #include "PSOCache.h"
-
 #include "Graphics/GfxShader.h"
+#include "Graphics/GfxStateObjectBuilder.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
 #include "Graphics/GfxLinearDynamicAllocator.h"
 #include "RenderGraph/RenderGraph.h"

@@ -23,6 +23,12 @@ namespace adria
 		Tier1
 	};
 
+	enum class WorkGraphSupport : uint8
+	{
+		TierNotSupported,
+		Tier1_0
+	};
+
 	class GfxCapabilities
 	{
 	public:
@@ -40,6 +46,10 @@ namespace adria
 		{
 			return CheckVSRSupport(VSRSupport::Tier1);
 		}
+		bool SupportsWorkGraphs() const
+		{
+			return CheckWorkGraphSupport(WorkGraphSupport::Tier1_0);
+		}
 
 		bool CheckRayTracingSupport(RayTracingSupport rts) const
 		{
@@ -53,6 +63,10 @@ namespace adria
 		{
 			return mesh_shader_support >= mss;
 		}
+		bool CheckWorkGraphSupport(WorkGraphSupport wgs) const
+		{
+			return work_graph_support >= wgs;
+		}
 
 		bool SupportsShaderModel(GfxShaderModel sm) const
 		{
@@ -64,6 +78,7 @@ namespace adria
 		RayTracingSupport ray_tracing_support = RayTracingSupport::TierNotSupported;
 		VSRSupport vsr_support = VSRSupport::TierNotSupported;
 		MeshShaderSupport mesh_shader_support = MeshShaderSupport::TierNotSupported;
+		WorkGraphSupport work_graph_support = WorkGraphSupport::TierNotSupported;
 		GfxShaderModel shader_model = SM_Unknown;
 	};
 }

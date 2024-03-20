@@ -45,6 +45,16 @@ namespace adria
 			return MeshShaderSupport::TierNotSupported;
 		}
 
+		constexpr WorkGraphSupport ConvertWorkGraphTier(D3D12_WORK_GRAPHS_TIER work_graph_tier)
+		{
+			switch (work_graph_tier)
+			{
+			case D3D12_WORK_GRAPHS_TIER_NOT_SUPPORTED: return WorkGraphSupport::TierNotSupported;
+			case D3D12_WORK_GRAPHS_TIER_1_0:		   return WorkGraphSupport::Tier1_0;
+			}
+			return WorkGraphSupport::TierNotSupported;
+		}
+
 		constexpr GfxShaderModel ConvertShaderModel(D3D_SHADER_MODEL shader_model)
 		{
 			switch (shader_model)
@@ -72,9 +82,10 @@ namespace adria
 		ray_tracing_support = ConvertRayTracingTier(feature_support.RaytracingTier());
 		vsr_support			= ConvertVSRTier(feature_support.VariableShadingRateTier());
 		mesh_shader_support = ConvertMeshShaderTier(feature_support.MeshShaderTier());
+		work_graph_support = ConvertWorkGraphTier(feature_support.WorkGraphsTier());
 		shader_model		= ConvertShaderModel(feature_support.HighestShaderModel());
 
-		if (shader_model < SM_6_6)
+		if (shader_model < SM_6_7)
 		{
 			ADRIA_LOG(ERROR, "Device doesn't support Shader Model 6.6 which is required!");
 			return false;

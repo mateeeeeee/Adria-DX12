@@ -6,6 +6,7 @@
 #include "PSOCache.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxShader.h"
+#include "Graphics/GfxStateObjectBuilder.h"
 #include "Graphics/GfxRayTracingShaderTable.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Math/Constants.h"

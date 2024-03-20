@@ -20,6 +20,7 @@
 #define ADRIA_NODISCARD				[[nodiscard]]
 #define ADRIA_NORETURN				[[noreturn]]
 #define ADRIA_DEPRECATED			[[deprecated]]
+#define ADRIA_MAYBE_UNUSED          [[maybe_unused]]
 #define ADRIA_DEPRECATED_MSG(msg)	[[deprecated(#msg)]]
 #define ADRIA_ALIGN(align)           alignas(align) 
 
