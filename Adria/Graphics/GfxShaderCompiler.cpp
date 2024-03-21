@@ -186,30 +186,43 @@ namespace adria
 	{
 		static bool CheckCache(char const* cache_path, GfxShaderCompileInput const& input, GfxShaderCompileOutput& output)
 		{
-			if (!FileExists(cache_path)) return false;
-			if (GetFileLastWriteTime(cache_path) < GetFileLastWriteTime(input.file)) return false;
+			std::string cache_binary(cache_path); cache_binary += ".bin";
+			std::string cache_metadata(cache_path); cache_metadata += ".meta";
 
-			std::ifstream is(cache_path, std::ios::binary);
-			cereal::BinaryInputArchive archive(is);
+			if (!FileExists(cache_binary) || !FileExists(cache_metadata)) return false;
+			if (GetFileLastWriteTime(cache_binary) < GetFileLastWriteTime(input.file)) return false;
 
-			archive(output.shader_hash);
-			archive(output.includes);
+			std::ifstream is(cache_metadata, std::ios::binary);
+			cereal::BinaryInputArchive metadata_archive(is);
+
+			metadata_archive(output.shader_hash);
+			metadata_archive(output.includes);
 			uint64 binary_size = 0;
-			archive(binary_size);
+			metadata_archive(binary_size);
+
+			std::ifstream is2(cache_binary, std::ios::binary);
+			cereal::BinaryInputArchive binary_archive(is2);
+
 			std::unique_ptr<char[]> binary_data(new char[binary_size]);
-			archive.loadBinary(binary_data.get(), binary_size);
+			binary_archive.loadBinary(binary_data.get(), binary_size);
 			output.shader.SetShaderData(binary_data.get(), binary_size);
 			output.shader.SetDesc(input);
 			return true;
 		}
 		static bool SaveToCache(char const* cache_path, GfxShaderCompileOutput const& output)
 		{
-			std::ofstream os(cache_path, std::ios::binary);
-			cereal::BinaryOutputArchive archive(os);
-			archive(output.shader_hash);
-			archive(output.includes);
-			archive(output.shader.GetSize());
-			archive.saveBinary(output.shader.GetData(), output.shader.GetSize());
+			std::string cache_metadata(cache_path); cache_metadata += ".meta";
+			std::ofstream os(cache_metadata, std::ios::binary);
+			cereal::BinaryOutputArchive metadata_archive(os);
+			metadata_archive(output.shader_hash);
+			metadata_archive(output.includes);
+			metadata_archive(output.shader.GetSize());
+
+			std::string cache_binary(cache_path); cache_binary += ".bin";
+			std::ofstream os2(cache_binary, std::ios::binary);
+			cereal::BinaryOutputArchive binary_archive(os2);
+			binary_archive.saveBinary(output.shader.GetData(), output.shader.GetSize());
+
 			return true;
 		}
 
@@ -240,7 +253,7 @@ namespace adria
 			uint64 macro_hash = crc64(macro_key.c_str(), macro_key.size());
 			std::string build_string = input.flags & ShaderCompilerFlag_Debug ? "debug" : "release";
 			char cache_path[256];
-			sprintf_s(cache_path, "%s%s_%s_%llx_%s.bin", paths::ShaderCacheDir().c_str(), GetFilenameWithoutExtension(input.file).c_str(),
+			sprintf_s(cache_path, "%s%s_%s_%llx_%s", paths::ShaderCacheDir().c_str(), GetFilenameWithoutExtension(input.file).c_str(),
 												    input.entry_point.c_str(), macro_hash, build_string.c_str());
 
 			if (!bypass_cache && CheckCache(cache_path, input, output)) return true;
