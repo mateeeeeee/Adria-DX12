@@ -1186,7 +1186,6 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="adria.log" />
-    <Text Include="todo.txt" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\DDGI\DDGIRayTrace.hlsl">
