@@ -452,6 +452,7 @@
     <ClInclude Include="Rendering\GPUDebugPrinter.h" />
     <ClInclude Include="Rendering\RainBlockerMapPass.h" />
     <ClInclude Include="Rendering\RainPass.h" />
+    <ClInclude Include="Rendering\ReSTIRGI.h" />
     <ClInclude Include="Rendering\ShaderStructs.h" />
     <ClInclude Include="Rendering\HelperPasses.h" />
     <ClInclude Include="Rendering\DecalsPass.h" />

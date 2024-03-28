@@ -1101,6 +1101,9 @@
     <ClInclude Include="Graphics\GfxStateObjectBuilder.h">
       <Filter>Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\ReSTIRGI.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
