@@ -372,29 +372,29 @@ namespace adria
 			case CS_Exposure:
 				return "ExposureCS";
 			case CS_Ssao:
-				return "SSAO";
+				return "SSAO_CS";
 			case CS_Hbao:
-				return "HBAO";
+				return "HBAO_CS";
 			case CS_Ssr:
-				return "SSR";
+				return "SSR_CS";
 			case CS_Fog:
-				return "Fog";
+				return "FogCS";
 			case CS_Tonemap:
-				return "Tonemap";
+				return "TonemapCS";
 			case CS_MotionVectors:
-				return "MotionVectors";
+				return "MotionVectorsCS";
 			case CS_MotionBlur:
-				return "MotionBlur";
+				return "MotionBlurCS";
 			case CS_Dof:
-				return "DepthOfField";
+				return "DepthOfFieldCS";
 			case CS_GodRays:
-				return "GodRays";
+				return "GodRaysCS";
 			case CS_FilmEffects:
-				return "FilmEffects";
+				return "FilmEffectsCS";
 			case CS_Fxaa:
-				return "FXAA";
+				return "FXAA_CS";
 			case CS_Ambient:
-				return "Ambient";
+				return "AmbientCS";
 			case VS_GBuffer:
 				return "GBufferVS";
 			case PS_GBuffer:
@@ -422,11 +422,11 @@ namespace adria
 				return "CloudTypeCS";
 			case CS_BloomDownsample:
 			case CS_BloomDownsampleFirstPass:
-				return "BloomDownsample";
+				return "BloomDownsampleCS";
 			case CS_BloomUpsample:
-				return "BloomUpsample";
+				return "BloomUpsampleCS";
 			case CS_BokehGeneration:
-				return "BokehGeneration";
+				return "BokehGenerationCS";
 			case VS_Bokeh:
 				return "BokehVS";
 			case GS_Bokeh:
@@ -434,11 +434,11 @@ namespace adria
 			case PS_Bokeh:
 				return "BokehPS";
 			case CS_Blur_Horizontal:
-				return "Blur_Horizontal";
+				return "Blur_HorizontalCS";
 			case CS_Blur_Vertical:
-				return "Blur_Vertical";
+				return "Blur_VerticalCS";
 			case CS_Picking:
-				return "Picking";
+				return "PickingCS";
 			case VS_Ocean:
 				return "OceanVS";
 			case PS_Ocean:
@@ -450,23 +450,23 @@ namespace adria
 			case HS_OceanLOD:
 				return "OceanHS_LOD";
 			case CS_FFT_Horizontal:
-				return "FFT_Horizontal";
+				return "FFT_HorizontalCS";
 			case CS_FFT_Vertical:
-				return "FFT_Vertical";
+				return "FFT_VerticalCS";
 			case CS_InitialSpectrum:
-				return "InitialSpectrum";
+				return "InitialSpectrumCS";
 			case CS_Spectrum:
-				return "Spectrum";
+				return "SpectrumCS";
 			case CS_Phase:
-				return "Phase";
+				return "PhaseCS";
 			case CS_OceanNormals:
-				return "OceanNormals";
+				return "OceanNormalsCS";
 			case VS_FullscreenTriangle:
-				return "FullscreenTriangle";
+				return "FullscreenTriangleVS";
 			case PS_Add:
-				return "AddTextures";
+				return "AddTexturesPS";
 			case PS_Copy:
-				return "CopyTexture";
+				return "CopyTexturePS";
 			case VS_Sky:
 				return "SkyVS";
 			case PS_Sky:
@@ -497,21 +497,21 @@ namespace adria
 			case PS_Decals_ModifyNormals:
 				return "DecalsPS";
 			case CS_GenerateMips:
-				return "GenerateMips";
+				return "GenerateMipsCS";
 			case CS_Taa:
-				return "TAA";
+				return "TAA_CS";
 			case CS_DeferredLighting:
-				return "DeferredLighting";
+				return "DeferredLightingCS";
 			case CS_VolumetricLighting:
-				return "VolumetricLighting";
+				return "VolumetricLightingCS";
 			case CS_TiledDeferredLighting:
-				return "TiledDeferredLighting";
+				return "TiledDeferredLightingCS";
 			case CS_ClusteredDeferredLighting:
-				return "ClusteredDeferredLighting";
+				return "ClusteredDeferredLightingCS";
 			case CS_ClusterBuilding:
-				return "ClusterBuilding";
+				return "ClusterBuildingCS";
 			case CS_ClusterCulling:
-				return "ClusterCulling";
+				return "ClusterCullingCS";
 			case VS_Shadow:
 			case VS_Shadow_Transparent:
 				return "ShadowVS";
@@ -527,9 +527,9 @@ namespace adria
 			case CS_RTAOFilter:
 				return "RTAOFilterCS";
 			case CS_DDGIUpdateIrradiance:
-				return "DDGI_UpdateIrradiance";
+				return "DDGI_UpdateIrradianceCS";
 			case CS_DDGIUpdateDistance:
-				return "DDGI_UpdateDistance";
+				return "DDGI_UpdateDistanceCS";
 			case VS_DDGIVisualize:
 				return "DDGIVisualizeVS";
 			case PS_DDGIVisualize:

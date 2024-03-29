@@ -66,7 +66,7 @@ struct CSInput
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void Fog(CSInput input)
+void FogCS(CSInput input)
 {
     Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
     Texture2D sceneTx = ResourceDescriptorHeap[PassCB.sceneIdx];

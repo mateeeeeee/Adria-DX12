@@ -93,7 +93,7 @@ struct CSInput
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void SSR(CSInput input)
+void SSR_CS(CSInput input)
 {
     Texture2D normalTx = ResourceDescriptorHeap[PassCB.normalIdx];
     Texture2D diffuseTx = ResourceDescriptorHeap[PassCB.diffuseIdx];

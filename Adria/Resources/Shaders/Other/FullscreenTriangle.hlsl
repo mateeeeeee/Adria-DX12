@@ -5,7 +5,7 @@ struct VSToPS
 
 };
 
-VSToPS FullscreenTriangle(uint vertexId : SV_VERTEXID)
+VSToPS FullscreenTriangleVS(uint vertexId : SV_VERTEXID)
 {
 	VSToPS output = (VSToPS)0;
 	uint2 v = uint2(vertexId & 1, vertexId >> 1);

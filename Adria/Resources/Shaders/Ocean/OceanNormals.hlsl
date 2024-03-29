@@ -23,7 +23,7 @@ struct CSInput
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void OceanNormals(CSInput input)
+void OceanNormalsCS(CSInput input)
 {
 	Texture2D<float4> displacementTx = ResourceDescriptorHeap[PassCB.displacementIdx];
 	RWTexture2D<float4> normalTx = ResourceDescriptorHeap[PassCB.outputIdx];

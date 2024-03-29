@@ -24,7 +24,7 @@ struct CSInput
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void VolumetricLighting(CSInput input)
+void VolumetricLightingCS(CSInput input)
 {
 	Texture2D<float>        depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
 	StructuredBuffer<Light> lights	= ResourceDescriptorHeap[FrameCB.lightsIdx];

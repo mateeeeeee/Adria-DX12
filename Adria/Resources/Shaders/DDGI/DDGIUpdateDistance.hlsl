@@ -43,7 +43,7 @@ static const uint4 BORDER_OFFSETS[BORDER_TEXELS] =
 };
 
 [numthreads(PROBE_DISTANCE_TEXELS, PROBE_DISTANCE_TEXELS, 1)]
-void DDGI_UpdateDistance(CSInput input)
+void DDGI_UpdateDistanceCS(CSInput input)
 {
 	StructuredBuffer<DDGIVolume> ddgiVolumes = ResourceDescriptorHeap[FrameCB.ddgiVolumesIdx];
 	DDGIVolume ddgiVolume = ddgiVolumes[0];

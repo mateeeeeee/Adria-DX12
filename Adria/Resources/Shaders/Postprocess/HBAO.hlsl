@@ -70,7 +70,7 @@ float ComputeCoarseAO(Texture2D<float> depthTx, float2 UV, float radiusInPixels,
 }
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void HBAO(CSInput input)
+void HBAO_CS(CSInput input)
 {
     Texture2D normalTx = ResourceDescriptorHeap[PassCB.normalIdx];
     Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];

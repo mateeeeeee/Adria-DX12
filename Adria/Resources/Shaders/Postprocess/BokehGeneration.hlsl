@@ -43,7 +43,7 @@ struct CSInput
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void BokehGeneration(CSInput input)
+void BokehGenerationCS(CSInput input)
 {
 	Texture2D hdrTx = ResourceDescriptorHeap[PassCB2.hdrIdx];
 	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB2.depthIdx];

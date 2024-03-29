@@ -33,7 +33,7 @@ struct CSInput
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void DepthOfField(CSInput input)
+void DepthOfFieldCS(CSInput input)
 {
 	Texture2D sceneTx = ResourceDescriptorHeap[PassCB.sceneIdx];
 	Texture2D blurredSceneTx = ResourceDescriptorHeap[PassCB.blurredSceneIdx];

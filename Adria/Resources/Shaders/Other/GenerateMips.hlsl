@@ -11,7 +11,7 @@ cbuffer PassCB : register(b1)
 }
 
 [numthreads(8, 8, 1)]
-void GenerateMips(uint3 DTid : SV_DispatchThreadID)
+void GenerateMipsCS(uint3 DTid : SV_DispatchThreadID)
 {
 	Texture2D<float4> SrcTexture = ResourceDescriptorHeap[srcIdx];
 	RWTexture2D<float4> DstTexture = ResourceDescriptorHeap[dstIdx];

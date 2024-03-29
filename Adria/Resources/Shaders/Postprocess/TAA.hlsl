@@ -78,7 +78,7 @@ struct CSInput
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void TAA(CSInput input)
+void TAA_CS(CSInput input)
 {
 	Texture2D<float4> sceneTx = ResourceDescriptorHeap[PassCB.sceneIdx];
 	Texture2D<float4> prevSceneTx = ResourceDescriptorHeap[PassCB.prevSceneIdx];

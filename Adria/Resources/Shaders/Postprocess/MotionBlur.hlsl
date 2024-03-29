@@ -20,7 +20,7 @@ struct CSInput
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void MotionBlur(CSInput input)
+void MotionBlurCS(CSInput input)
 {
 	Texture2D<float4> sceneTx = ResourceDescriptorHeap[PassCB.sceneIdx];
 	Texture2D<float2> velocityTx = ResourceDescriptorHeap[PassCB.velocityIdx];

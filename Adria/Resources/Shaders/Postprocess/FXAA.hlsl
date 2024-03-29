@@ -18,7 +18,7 @@ struct CSInput
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void FXAA(CSInput input)
+void FXAA_CS(CSInput input)
 {
 	Texture2D<float4> ldrTx = ResourceDescriptorHeap[PassCB.ldrIdx];
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];

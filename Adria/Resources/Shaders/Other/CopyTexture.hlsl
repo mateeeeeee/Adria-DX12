@@ -12,7 +12,7 @@ struct CopyTextureConstants
 };
 ConstantBuffer<CopyTextureConstants> PassCB : register(b1);
 
-float4 CopyTexture(VSToPS input) : SV_Target0
+float4 CopyTexturePS(VSToPS input) : SV_Target0
 {
 	Texture2D<float4> inputTx = ResourceDescriptorHeap[PassCB.inputIdx];
 	float4 color = inputTx.Sample(LinearWrapSampler, input.Tex);

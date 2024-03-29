@@ -46,7 +46,7 @@ struct CSInput
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void Spectrum(CSInput input)
+void SpectrumCS(CSInput input)
 {
 	Texture2D<float4> phasesTx = ResourceDescriptorHeap[PassCB.phasesIdx];
 	Texture2D<float4> initialSpectrumTx = ResourceDescriptorHeap[PassCB.initialSpectrumIdx];

@@ -26,7 +26,7 @@ struct CSInput
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void Tonemap(CSInput input)
+void TonemapCS(CSInput input)
 {
     Texture2D<float4> hdrTx = ResourceDescriptorHeap[PassCB.hdrIdx];
     Texture2D<float> exposureTx = ResourceDescriptorHeap[PassCB.exposureIdx];

@@ -37,7 +37,7 @@ struct CSInput
 };
 
 [numthreads(1, 1, 1)]
-void ClusterBuilding(CSInput input)
+void ClusterBuildingCS(CSInput input)
 {
 	RWStructuredBuffer<ClusterAABB> clusters = ResourceDescriptorHeap[PassCB.clustersIdx];
 	uint clustersCount, unused;

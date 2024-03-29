@@ -25,7 +25,7 @@ struct CSInput
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void GodRays(CSInput input)
+void GodRaysCS(CSInput input)
 {
 	Texture2D<float4> sunTx = ResourceDescriptorHeap[PassCB.sunIdx];
 	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];

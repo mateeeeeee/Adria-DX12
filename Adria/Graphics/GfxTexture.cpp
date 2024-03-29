@@ -234,11 +234,6 @@ namespace adria
 		return resource.Get();
 	}
 
-	GfxTextureDesc const& GfxTexture::GetDesc() const
-	{
-		return desc;
-	}
-
 	bool GfxTexture::IsMapped() const
 	{
 		return mapped_data != nullptr;

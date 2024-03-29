@@ -33,7 +33,7 @@ struct CSInput
 };
 
 [numthreads(FFT_WORK_GROUP_DIM, 1, 1)]
-void FFT_Horizontal(CSInput input)
+void FFT_HorizontalCS(CSInput input)
 {
 	uint2 pixelCoord = uint2(input.GroupThreadId.x, input.GroupId.x);
 
@@ -59,7 +59,7 @@ void FFT_Horizontal(CSInput input)
 }
 
 [numthreads(FFT_WORK_GROUP_DIM, 1, 1)]
-void FFT_Vertical(CSInput input)
+void FFT_VerticalCS(CSInput input)
 {
 	uint2 pixelCoord = uint2(input.GroupId.x, input.GroupThreadId.x);
 

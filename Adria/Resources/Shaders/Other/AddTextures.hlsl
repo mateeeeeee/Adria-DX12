@@ -13,7 +13,7 @@ struct AddTexturesConstants
 };
 ConstantBuffer<AddTexturesConstants> PassCB : register(b1);
 
-float4 AddTextures(VSToPS input) : SV_Target0
+float4 AddTexturesPS(VSToPS input) : SV_Target0
 {
 	Texture2D<float4> inputTx1 = ResourceDescriptorHeap[PassCB.inputIdx1];
 	Texture2D<float4> inputTx2 = ResourceDescriptorHeap[PassCB.inputIdx2];

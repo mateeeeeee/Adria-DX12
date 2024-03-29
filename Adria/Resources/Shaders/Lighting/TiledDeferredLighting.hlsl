@@ -31,7 +31,7 @@ struct CSInput
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void TiledDeferredLighting(CSInput input)
+void TiledDeferredLightingCS(CSInput input)
 {
 	Texture2D               normalMetallicTx = ResourceDescriptorHeap[PassCB.normalMetallicIdx];
 	Texture2D               diffuseTx		 = ResourceDescriptorHeap[PassCB.diffuseIdx];

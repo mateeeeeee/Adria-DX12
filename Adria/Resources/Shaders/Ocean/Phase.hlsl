@@ -35,7 +35,7 @@ struct CSInput
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void Phase(CSInput input)
+void PhaseCS(CSInput input)
 {
 	Texture2D<float4> phasesTx = ResourceDescriptorHeap[PassCB.phasesIdx];
 	RWTexture2D<float4> deltaPhasesTx = ResourceDescriptorHeap[PassCB.outputIdx];

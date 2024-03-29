@@ -15,7 +15,7 @@ struct PickingConstants
 ConstantBuffer<PickingConstants> PassCB : register(b1);
 
 [numthreads(1, 1, 1)]
-void Picking()
+void PickingCS()
 {
 	if (any(FrameCB.mouseNormalizedCoords > 1.0f) || any(FrameCB.mouseNormalizedCoords < 0.0f)) return;
 

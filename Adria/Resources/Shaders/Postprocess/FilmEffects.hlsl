@@ -98,7 +98,7 @@ float3 ApplyFilmGrain(float3 color, uint2 coord)
 }
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void FilmEffects(uint3 dispatchThreadId : SV_DispatchThreadID)
+void FilmEffectsCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
 	float2 uv = (dispatchThreadId.xy + 0.5f) /  FrameCB.renderResolution;
 	uv = ApplyLensDistortion(uv);

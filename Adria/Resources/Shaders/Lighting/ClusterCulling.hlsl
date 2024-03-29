@@ -50,7 +50,7 @@ struct CSInput
 groupshared Light shared_lights[GROUP_SIZE];
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void ClusterCulling(CSInput input)
+void ClusterCullingCS(CSInput input)
 {
 	StructuredBuffer<ClusterAABB> clusters			 = ResourceDescriptorHeap[PassCB.clustersIdx];
 	StructuredBuffer<Light> lights					 = ResourceDescriptorHeap[FrameCB.lightsIdx];

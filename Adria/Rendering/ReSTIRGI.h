@@ -13,26 +13,35 @@ namespace adria
 	class ReSTIRGI
 	{
 	public:
-		ReSTIRGI(GfxDevice* gfx, uint32 width, uint32 height) : gfx(gfx), width(width), height(height)
-		{
+		ReSTIRGI(GfxDevice* gfx, uint32 width, uint32 height);
 
-		}
-
-		void AddPasses(RenderGraph& rg)
-		{
-
-		}
+		void AddPasses(RenderGraph& rg);
 
 		void OnResize(uint32 w, uint32 h)
 		{
 			width = w, height = h;
 		}
 
-		int32 GetIrradianceIndex() const { return -1; }
-
 	private:
 		GfxDevice* gfx;
 		uint32 width, height;
 
+		bool enable = false;
+
+		struct TemporalReservoirBuffers
+		{
+			std::unique_ptr<GfxTexture> sample_radiance;
+			std::unique_ptr<GfxTexture> ray_direction;
+			std::unique_ptr<GfxTexture> depth_normal;
+			std::unique_ptr<GfxTexture> reservoir;
+		};
+		TemporalReservoirBuffers temporal_reservoir_buffers[2];
+
+	private:
+		void AddInitialSamplingPass(RenderGraph& rg);
+		void AddTemporalSamplingPass(RenderGraph& rg);
+		void AddSpatialSamplingPass(RenderGraph& rg);
+
+		void CreateBuffers();
 	};
 }

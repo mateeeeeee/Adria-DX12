@@ -117,7 +117,10 @@ namespace adria
 		ID3D12Resource* GetNative() const;
 
 		GfxDevice* GetParent() const { return gfx; }
-		GfxTextureDesc const& GetDesc() const;
+		GfxTextureDesc const& GetDesc() const { return desc; }
+		uint32 GetWidth() const { return desc.width; }
+		uint32 GetHeight() const { return desc.height; }
+		GfxFormat GetFormat() const { return desc.format; }
 		uint64 GetGpuAddress() const;
 
 		bool IsMapped() const;

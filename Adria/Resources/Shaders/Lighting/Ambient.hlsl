@@ -24,7 +24,7 @@ struct CSInput
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void Ambient(CSInput input)
+void AmbientCS(CSInput input)
 {
 	Texture2D               normalMetallicTx = ResourceDescriptorHeap[PassCB.normalMetallicIdx];
 	Texture2D               diffuseTx        = ResourceDescriptorHeap[PassCB.diffuseIdx];

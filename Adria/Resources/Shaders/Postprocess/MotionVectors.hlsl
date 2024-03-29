@@ -19,7 +19,7 @@ struct CSInput
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void MotionVectors(CSInput input)
+void MotionVectorsCS(CSInput input)
 {
 	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
 	RWTexture2D<float2> velocityTx = ResourceDescriptorHeap[PassCB.outputIdx];

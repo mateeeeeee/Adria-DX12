@@ -44,7 +44,7 @@ float3 ComputePartialAverage(float3 v0, float3 v1, float3 v2, float3 v3)
 }
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void BloomDownsample(CSInput input)
+void BloomDownsampleCS(CSInput input)
 {
 	Texture2D sourceTx = ResourceDescriptorHeap[PassCB.sourceIdx];
 	RWTexture2D<float4> targetTx = ResourceDescriptorHeap[PassCB.targetIdx];
@@ -87,7 +87,7 @@ struct BloomUpsampleConstants
 ConstantBuffer<BloomUpsampleConstants> PassCB2 : register(b1);
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void BloomUpsample(CSInput input)
+void BloomUpsampleCS(CSInput input)
 {
 	Texture2D inputLowTx = ResourceDescriptorHeap[PassCB2.lowInputIdx];
 	Texture2D inputHighTx = ResourceDescriptorHeap[PassCB2.highInputIdx];

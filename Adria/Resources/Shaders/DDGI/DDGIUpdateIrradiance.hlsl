@@ -37,7 +37,7 @@ static const uint4 BORDER_OFFSETS[BORDER_TEXELS] =
 };
 
 [numthreads(PROBE_IRRADIANCE_TEXELS, PROBE_IRRADIANCE_TEXELS, 1)]
-void DDGI_UpdateIrradiance(CSInput input)
+void DDGI_UpdateIrradianceCS(CSInput input)
 {
 	StructuredBuffer<DDGIVolume> ddgiVolumes = ResourceDescriptorHeap[FrameCB.ddgiVolumesIdx];
 	DDGIVolume ddgiVolume = ddgiVolumes[0];

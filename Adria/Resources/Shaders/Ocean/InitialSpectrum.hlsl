@@ -42,7 +42,7 @@ struct CSInput
 };
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
-void InitialSpectrum(CSInput input)
+void InitialSpectrumCS(CSInput input)
 {
 	RWTexture2D<float> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
 
