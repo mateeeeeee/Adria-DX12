@@ -20,14 +20,23 @@ namespace adria
 				if (ImGui::TreeNode("ReSTIR GI"))
 				{
 					ImGui::Checkbox("Enable ReSTIR", &enable);
+					static int current_resampling_mode = static_cast<int>(resampling_mode);
+					if (ImGui::Combo("Resampling mode", &current_resampling_mode, "None\0Temporal\0Spatial\0TemporalAndSpatial\0", 4))
+					{
+						resampling_mode = static_cast<ResamplingMode>(current_resampling_mode);
+					}
 					ImGui::TreePop();
 				}
 			});
 		if (!enable) return;
 
 		AddInitialSamplingPass(rg);
-		AddTemporalSamplingPass(rg);
-		AddSpatialSamplingPass(rg);
+		if (resampling_mode != ResamplingMode::None)
+		{
+			std::swap(temporal_reservoir_buffers[0], temporal_reservoir_buffers[1]);
+			if (resampling_mode == ResamplingMode::Temporal || resampling_mode == ResamplingMode::TemporalAndSpatial) AddTemporalResamplingPass(rg);
+			if (resampling_mode == ResamplingMode::Spatial  || resampling_mode == ResamplingMode::TemporalAndSpatial) AddSpatialResamplingPass(rg);
+		}
 	}
 
 	void ReSTIRGI::AddInitialSamplingPass(RenderGraph& rg)
@@ -69,10 +78,14 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 				uint32 i = gfx->AllocateDescriptorsGPU(4).GetIndex();
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.depth_normal));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadOnlyTexture(data.irradiance_history));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 2), ctx.GetReadWriteTexture(data.irradiance));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 3), ctx.GetReadWriteTexture(data.ray_direction));
+				GfxDescriptor src_descriptors[] =
+				{
+					ctx.GetReadOnlyTexture(data.depth_normal),
+					ctx.GetReadOnlyTexture(data.irradiance_history),
+					ctx.GetReadWriteTexture(data.irradiance),
+					ctx.GetReadWriteTexture(data.ray_direction)
+				};
+				gfx->CopyDescriptors(gfx->GetDescriptorGPU(i), src_descriptors);
 
 				struct InitialSamplingPassParameters
 				{
@@ -89,19 +102,46 @@ namespace adria
 				};
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, parameters);
+				cmd_list->SetPipelineState(nullptr); //#todo add restir psos and shaders
 				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(width / 16.0f), 1);
 
 			}, RGPassType::Compute);
 	}
 
-	void ReSTIRGI::AddTemporalSamplingPass(RenderGraph& rg)
+	void ReSTIRGI::AddTemporalResamplingPass(RenderGraph& rg)
 	{
+		struct TemporalResamplingPassData
+		{
 
+		};
+
+		rg.AddPass<TemporalResamplingPassData>("ReSTIR GI Temporal Resampling Pass", 
+			[=](TemporalResamplingPassData& data, RGBuilder& builder)
+			{
+				
+			},
+			[=](TemporalResamplingPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list) mutable
+			{
+				
+			}, RGPassType::Compute);
 	}
 
-	void ReSTIRGI::AddSpatialSamplingPass(RenderGraph& rg)
+	void ReSTIRGI::AddSpatialResamplingPass(RenderGraph& rg)
 	{
+		struct SpatialResamplingPassData
+		{
 
+		};
+
+		rg.AddPass<SpatialResamplingPassData>("ReSTIR GI Spatial Resampling Pass",
+			[=](SpatialResamplingPassData& data, RGBuilder& builder)
+			{
+
+			},
+			[=](SpatialResamplingPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list) mutable
+			{
+
+			}, RGPassType::Compute);
 	}
 
 	void ReSTIRGI::CreateBuffers()
