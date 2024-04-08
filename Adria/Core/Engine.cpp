@@ -258,11 +258,6 @@ namespace adria
 		Render();
 	}
 
-	void Engine::Present()
-	{
-		gfx->EndFrame(vsync);
-	}
-
 	void Engine::Update(float dt)
 	{
 		camera->Tick(dt);
@@ -274,6 +269,7 @@ namespace adria
 	{
 		gfx->BeginFrame();
 		renderer->Render();
+		gfx->EndFrame(vsync);
 	}
 
 	void Engine::SetViewportData(std::optional<ViewportData> _viewport_data)

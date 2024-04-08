@@ -119,10 +119,8 @@ namespace adria
 			&identifier);
 		ADRIA_ASSERT(result == GFSDK_Aftermath_Result_Success);
 
-		// Store information for decoding of GPU crash dumps with shader address mapping // from within the application.
 		std::vector<uint8> data((uint8*)shader_debug_info, (uint8*)shader_debug_info + shader_debug_info_size);
 		shader_debug_info_map[identifier] = std::move(data);
-		// Write to file for later in-depth analysis of crash dumps with Nsight Graphics
 		WriteShaderDebugInformationToFile(identifier, shader_debug_info, shader_debug_info_size);
 	}
 
@@ -181,13 +179,10 @@ namespace adria
 			&decoder);
 		if (result != GFSDK_Aftermath_Result_Success) return;
 
-		// Use the decoder object to read basic information, like application
-		// name, PID, etc. from the GPU crash dump.
 		GFSDK_Aftermath_GpuCrashDump_BaseInfo base_info{};
 		result = GFSDK_Aftermath_GpuCrashDump_GetBaseInfo(decoder, &base_info);
 		if (result != GFSDK_Aftermath_Result_Success) return;
-		// Use the decoder object to query the application name that was set
-		// in the GPU crash dump description.
+		
 		uint32 application_name_length = 0;
 		GFSDK_Aftermath_GpuCrashDump_GetDescriptionSize(
 			decoder, GFSDK_Aftermath_GpuCrashDumpDescriptionKey_ApplicationName,
@@ -199,10 +194,6 @@ namespace adria
 			decoder, GFSDK_Aftermath_GpuCrashDumpDescriptionKey_ApplicationName,
 			uint32(application_name.size()), application_name.data());
 
-		// Create a unique file name for writing the crash dump data to a file.
-		// Note: due to an Nsight Aftermath bug (will be fixed in an upcoming
-		// driver release) we may see redundant crash dumps. As a workaround,
-		// attach a unique count to each generated file name.
 		static uint32 count = 0;
 		const std::string base_file_name =
 			std::string(application_name.data())
@@ -211,8 +202,6 @@ namespace adria
 			+ "-"
 			+ std::to_string(++count);
 
-		// Write the crash dump data to a file using the .nv-gpudmp extension
-		// registered with Nsight Graphics.
 		std::string crash_dump_filename = paths::AftermathDir() + base_file_name + ".nv-gpudmp";
 		std::ofstream dump_file(crash_dump_filename, std::ios::out | std::ios::binary);
 		if (dump_file)
@@ -221,8 +210,6 @@ namespace adria
 			dump_file.close();
 		}
 
-		// Decode the crash dump to a JSON string.
-		// Step 1: Generate the JSON and get the size.
 		uint32 json_size = 0;
 		result = GFSDK_Aftermath_GpuCrashDump_GenerateJSON(
 			decoder,
@@ -234,12 +221,10 @@ namespace adria
 			this,
 			&json_size);
 
-		// Step 2: Allocate a buffer and fetch the generated JSON.
 		std::vector<char> json(json_size);
 		result = GFSDK_Aftermath_GpuCrashDump_GetJSON(decoder, uint32_t(json.size()), json.data());
 		if (result != GFSDK_Aftermath_Result_Success) return;
 
-		// Write the crash dump data as JSON to a file.
 		const std::string json_filename = crash_dump_filename + ".json";
 		std::ofstream json_file(json_filename, std::ios::out | std::ios::binary);
 		if (json_file)

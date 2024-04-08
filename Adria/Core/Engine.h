@@ -40,7 +40,6 @@ namespace adria
 
 		void OnWindowEvent(WindowEventData const& msg_data);
 		void Run();
-		void Present();
 
 	private:
 		Window* window = nullptr;

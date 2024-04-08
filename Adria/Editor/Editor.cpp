@@ -90,7 +90,6 @@ namespace adria
 		else engine->SetViewportData(std::nullopt);
 
 		engine->Run();
-		engine->Present();
 
 		if (reload_shaders)
 		{
