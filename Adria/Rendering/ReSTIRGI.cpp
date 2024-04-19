@@ -155,7 +155,7 @@ namespace adria
 			temporal_reservoir_buffers[0].reservoir->GetWidth() != width ||
 			temporal_reservoir_buffers[0].reservoir->GetHeight() != height)
 		{
-			for (uint32 i = 0; i < 2; ++i)
+			for (uint32 i = 0; i < ARRAYSIZE(temporal_reservoir_buffers); ++i)
 			{
 				GfxTextureDesc sample_radiance_desc{};
 				sample_radiance_desc.width = width;

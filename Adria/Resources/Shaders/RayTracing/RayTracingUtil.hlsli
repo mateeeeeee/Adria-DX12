@@ -75,6 +75,7 @@ struct HitInfo
     float3x4 objectToWorldMatrix;
     float3x4 worldToObjectMatrix;
 	float    hitT;
+    float3   hitPosition;
 };
 
 bool TraceRay(RayDesc ray, out HitInfo hitInfo)
@@ -117,6 +118,7 @@ bool TraceRay(RayDesc ray, out HitInfo hitInfo)
     hitInfo.objectToWorldMatrix = q.CommittedObjectToWorld3x4();
     hitInfo.worldToObjectMatrix = q.CommittedWorldToObject3x4();
     hitInfo.hitT = q.CommittedRayT();
+    hitInfo.hitPosition = q.WorldRayOrigin() + q.WorldRayDirection() * q.CommittedRayT();
 
     return true;
 }

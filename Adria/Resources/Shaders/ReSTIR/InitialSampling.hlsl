@@ -7,12 +7,36 @@
 struct ReSTIRConstants
 {
     uint depthIdx;
+    uint prevDepthIdx;
     uint normalIdx;
     uint irradianceHistoryIdx;
     uint outputIrradianceIdx;
     uint outputRayDirectionIdx;
 };
 ConstantBuffer<ReSTIRConstants> PassCB : register(b1);
+
+
+float3 GetIndirectDiffuseLighting(float3 position, MaterialProperties materialProperties)
+{
+    if (PassCB.irradianceHistoryIdx < 0) //#todo make int, not uint
+    {
+        return 0.0;
+    }
+    Texture2D historyIrradianceTexture = ResourceDescriptorHeap[PassCB.irradianceHistoryIdx];
+    Texture2D prevDepthTexture = ResourceDescriptorHeap[PassCB.prevDepthIdx];
+    
+    float4 prevClipPos = mul(float4(position, 1.0), FrameCB.prevViewProjection);
+    float3 prevNdcPos = prevClipPos.xyz / prevClipPos.w;
+    float2 prevUV = prevNdcPos.xy * float2(0.5, -0.5) + 0.5;
+    float prevLinearDepth = LinearizeDepth(prevDepthTexture.SampleLevel(PointClampSampler, prevUV, 0.0).x);
+    
+    if (any(prevUV < 0.0) || any(prevUV > 1.0) || abs(LinearizeDepth(prevNdcPos.z) - prevLinearDepth) > 0.05)
+    {
+        return 0.0;
+    }
+    float3 irradiance = historyIrradianceTexture.SampleLevel(LinearWrapSampler, prevUV, 0).xyz;
+    return irradiance * materialProperties.baseColor;
+}
 
 [numthreads(16, 16, 1)]
 void InitialSamplingCS( uint3 dispatchThreadID : SV_DispatchThreadID )
@@ -66,7 +90,18 @@ void InitialSamplingCS( uint3 dispatchThreadID : SV_DispatchThreadID )
         BrdfData brdfData = GetBrdfData(matProperties);
         
 
-        //trace visibility ray
+        //#todo use all lights
+        Light light = lights[0];
+		float visibility = TraceShadowRay(light, worldPosition.xyz);
+        float3 wi = normalize(-light.direction.xyz);
+        float3 wo = normalize(FrameCB.cameraPosition.xyz - worldPosition);
+		float NdotL = saturate(dot(worldNormal, wi));
+
+        float3 directLighting = DefaultBRDF(wi, wo, worldNormal, brdfData.Diffuse, brdfData.Specular, brdfData.Roughness) * visibility * light.color.rgb * NdotL;
+        float3 indirectLighting = GetIndirectDiffuseLighting(info.hitPosition, matProperties);
+
+        radiance = (directLighting + indirectLighting + matProperties.emissive);
+        hitNormal = worldNormal;
     }
     else
     {
