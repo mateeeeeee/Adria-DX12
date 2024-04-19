@@ -44,7 +44,7 @@ void PT_RayGen()
     float pdf = 1.0;
     for (int i = 0; i < PassCB.bounceCount; ++i)
     {
-        HitInfo info;
+        HitInfo info = (HitInfo)0;
         if (TraceRay(ray, info))
         {
 			Instance instanceData = GetInstanceData(info.instanceIndex);

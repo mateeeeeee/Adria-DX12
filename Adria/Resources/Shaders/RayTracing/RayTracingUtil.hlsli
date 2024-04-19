@@ -74,6 +74,7 @@ struct HitInfo
     uint     instanceIndex;
     float3x4 objectToWorldMatrix;
     float3x4 worldToObjectMatrix;
+	float    hitT;
 };
 
 bool TraceRay(RayDesc ray, out HitInfo hitInfo)
@@ -106,6 +107,7 @@ bool TraceRay(RayDesc ray, out HitInfo hitInfo)
     }
     if (q.CommittedStatus() == COMMITTED_NOTHING)
     {
+		hitInfo.hitT = ray.TMax;
         return false;
     }
 
@@ -114,6 +116,8 @@ bool TraceRay(RayDesc ray, out HitInfo hitInfo)
     hitInfo.instanceIndex = q.CommittedInstanceIndex();
     hitInfo.objectToWorldMatrix = q.CommittedObjectToWorld3x4();
     hitInfo.worldToObjectMatrix = q.CommittedWorldToObject3x4();
+    hitInfo.hitT = q.CommittedRayT();
+
     return true;
 }
 
