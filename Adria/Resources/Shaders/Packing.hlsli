@@ -50,19 +50,35 @@ float2 OctWrap(float2 v)
 
 float2 EncodeNormalOctahedron(float3 n)
 {
-	float2 p = float2(n.x, n.y) * (1.0f / (abs(n.x) + abs(n.y) + abs(n.z)));
-	p = (n.z < 0.0f) ? OctWrap(p) : p;
-	return p;
+	n /= (abs(n.x) + abs(n.y) + abs(n.z));
+    //n.xy = n.z >= 0.0 ? n.xy : (1.0 - abs(n.yx)) * (n.xy >= 0.0 ? 1.0 : -1.0);
+    n.xy = n.z >= 0.0 ? n.xy : (1.0 - abs(n.yx)) * lerp(-1.0, 1.0, n.xy >= 0.0);
+    return n.xy;
 }
 
-float3 DecodeNormalOctahedron(float2 p)
+float3 DecodeNormalOctahedron(float2 f)
 {
-	float3 n = float3(p.x, p.y, 1.0f - abs(p.x) - abs(p.y));
-	float2 tmp = (n.z < 0.0f) ? OctWrap(float2(n.x, n.y)) : float2(n.x, n.y);
-	n.x = tmp.x;
-	n.y = tmp.y;
-	return normalize(n);
+	 float3 n = float3(f.x, f.y, 1.0 - abs(f.x) - abs(f.y));
+    float t = saturate(-n.z);
+    //n.xy += n.xy >= 0.0 ? -t : t;
+    n.xy += lerp(t, -t, n.xy >= 0.0);
+    return normalize(n);
 }
 
+uint EncodeNormal16x2(float3 n)
+{
+    float2 v = EncodeNormalOctahedron(n) * 0.5 + 0.5;
+    uint2 u16 = (uint2)round(v * 65535.0);
+
+    return (u16.x << 16) | u16.y;
+}
+
+float3 DecodeNormal16x2(uint f)
+{
+    uint2 u16 = uint2(f >> 16, f & 0xffff);
+    float2 n = u16 / 65535.0;
+    
+    return DecodeNormalOctahedron(n * 2.0 - 1.0);
+}
 
 #endif

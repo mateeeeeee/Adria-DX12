@@ -108,4 +108,22 @@ static float LinearizeDepth(float z)
 	return FrameCB.cameraFar / (FrameCB.cameraFar + z * (FrameCB.cameraNear - FrameCB.cameraFar));
 }
 
+static uint2 FullScreenPosition(uint2 halfScreenPos)
+{
+    static const uint2 offsets[4] =
+    {
+        uint2(1, 1),
+        uint2(1, 0),
+        uint2(0, 0),
+        uint2(0, 1),
+    };
+    return halfScreenPos * 2 + offsets[FrameCB.frameCount % 4];
+}
+
+float3 GetWorldPosition(uint2 screenPos, float depth)
+{
+	float2 screenUV = ((float2)screenPos + 0.5) * rcp(FrameCB.renderResolution);
+    return GetWorldPosition(screenUV, depth);
+}
+
 #endif

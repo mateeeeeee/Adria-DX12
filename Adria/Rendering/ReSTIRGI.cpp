@@ -1,5 +1,6 @@
 #include "ReSTIRGI.h"
 #include "BlackboardData.h"
+#include "PSOCache.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Graphics/GfxTexture.h"
 #include "Graphics/GfxDevice.h"
@@ -47,7 +48,8 @@ namespace adria
 
 		struct InitialSamplingPassData
 		{
-			RGTextureReadOnlyId depth_normal;
+			RGTextureReadOnlyId depth;
+			RGTextureReadOnlyId normal;
 			RGTextureReadOnlyId prev_depth;
 			RGTextureReadOnlyId irradiance_history;
 			RGTextureReadWriteId irradiance;
@@ -57,7 +59,8 @@ namespace adria
 		rg.AddPass<InitialSamplingPassData>("RESTIR GI Initial Sampling Pass",
 			[=](InitialSamplingPassData& data, RenderGraphBuilder& builder)
 			{
-				data.depth_normal = builder.ReadTexture(RG_RES_NAME(DepthNormal));
+				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil));
+				data.normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal));
 				data.prev_depth = builder.ReadTexture(RG_RES_NAME(DepthHistory));
 
 				RGTextureDesc irradiance_desc{};
@@ -80,7 +83,8 @@ namespace adria
 				uint32 i = gfx->AllocateDescriptorsGPU(4).GetIndex();
 				GfxDescriptor src_descriptors[] =
 				{
-					ctx.GetReadOnlyTexture(data.depth_normal),
+					ctx.GetReadOnlyTexture(data.depth),
+					ctx.GetReadOnlyTexture(data.normal),
 					ctx.GetReadOnlyTexture(data.irradiance_history),
 					ctx.GetReadWriteTexture(data.irradiance),
 					ctx.GetReadWriteTexture(data.ray_direction)
@@ -89,22 +93,23 @@ namespace adria
 
 				struct InitialSamplingPassParameters
 				{
-					uint32 depth_normal_idx;
+					uint32 depth_idx;
+					uint32 normal_idx;
 					uint32 irradiance_history_idx;
 					uint32 output_irradiance_idx;
 					uint32 output_ray_direction_idx;
 				} parameters = 
 				{
-					.depth_normal_idx = i,
-					.irradiance_history_idx = i + 1,
-					.output_irradiance_idx = i + 2,
-					.output_ray_direction_idx = i + 3
+					.depth_idx = i,
+					.normal_idx = i + 1,
+					.irradiance_history_idx = i + 2,
+					.output_irradiance_idx = i + 3,
+					.output_ray_direction_idx = i + 4
 				};
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, parameters);
-				cmd_list->SetPipelineState(nullptr); //#todo add restir psos and shaders
-				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(width / 16.0f), 1);
-
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ReSTIRGI_InitialSampling)); 
+				cmd_list->Dispatch((uint32)std::ceil(half_width / 16.0f), (uint32)std::ceil(half_height / 16.0f), 1);
 			}, RGPassType::Compute);
 	}
 
@@ -169,15 +174,6 @@ namespace adria
 				ray_direction_desc.bind_flags = GfxBindFlag::UnorderedAccess;
 				ray_direction_desc.initial_state = GfxResourceState::UnorderedAccess;
 				temporal_reservoir_buffers[i].ray_direction = gfx->CreateTexture(sample_radiance_desc);
-
-				GfxTextureDesc depth_normal_desc{};
-				depth_normal_desc.width = width;
-				depth_normal_desc.height = height;
-				depth_normal_desc.mip_levels = 1;
-				depth_normal_desc.format = GfxFormat::R32G32_UINT;
-				depth_normal_desc.bind_flags = GfxBindFlag::UnorderedAccess;
-				depth_normal_desc.initial_state = GfxResourceState::UnorderedAccess;
-				temporal_reservoir_buffers[i].depth_normal = gfx->CreateTexture(depth_normal_desc);
 
 				GfxTextureDesc reservoir_desc{};
 				reservoir_desc.width = width;

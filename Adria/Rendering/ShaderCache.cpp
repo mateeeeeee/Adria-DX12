@@ -20,8 +20,6 @@ namespace adria
 		std::unordered_map<GfxShaderID, GfxShader> shader_map;
 		std::unordered_map<GfxShaderID, std::vector<fs::path>> dependent_files_map;
 
-
-
 		constexpr GfxShaderStage GetShaderStage(GfxShaderID shader)
 		{
 			switch (shader)
@@ -131,6 +129,7 @@ namespace adria
 			case CS_DDGIUpdateIrradiance:
 			case CS_DDGIUpdateDistance:
 			case CS_RainSimulation:
+			case CS_ReSTIRGI_InitialSampling:
 				return GfxShaderStage::CS;
 			case HS_OceanLOD:
 				return GfxShaderStage::HS;
@@ -329,6 +328,8 @@ namespace adria
 				return "RayTracing/RayTracedReflections.hlsl";
 			case LIB_PathTracing:
 				return "RayTracing/PathTracer.hlsl";
+			case CS_ReSTIRGI_InitialSampling:
+				return "ReSTIR/InitialSampling.hlsl";
 			case ShaderId_Count:
 			default:
 				return "";
@@ -534,6 +535,8 @@ namespace adria
 				return "DDGIVisualizeVS";
 			case PS_DDGIVisualize:
 				return "DDGIVisualizePS";
+			case CS_ReSTIRGI_InitialSampling:
+				return "InitialSamplingCS";
 			default:
 				return "main";
 			}

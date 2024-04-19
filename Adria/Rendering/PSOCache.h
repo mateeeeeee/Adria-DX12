@@ -102,6 +102,7 @@ namespace adria
 		DDGIUpdateIrradiance,
 		DDGIUpdateDistance,
 		DDGIVisualize,
+		ReSTIRGI_InitialSampling,
 		Unknown
 	};
 

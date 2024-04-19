@@ -41,7 +41,6 @@ namespace adria
 		{
 			std::unique_ptr<GfxTexture> sample_radiance;
 			std::unique_ptr<GfxTexture> ray_direction;
-			std::unique_ptr<GfxTexture> depth_normal;
 			std::unique_ptr<GfxTexture> reservoir;
 		};
 		TemporalReservoirBuffers temporal_reservoir_buffers[2];

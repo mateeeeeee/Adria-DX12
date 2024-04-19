@@ -114,6 +114,7 @@ namespace adria
 		CS_DDGIUpdateDistance,
 		VS_DDGIVisualize,
 		PS_DDGIVisualize,
+		CS_ReSTIRGI_InitialSampling,
 		LIB_DDGIRayTracing,
 		LIB_Shadows,
 		LIB_AmbientOcclusion,
