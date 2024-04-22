@@ -3,7 +3,7 @@
 #include "GfxFormat.h"
 #include "GfxDefines.h"
 #include "GfxDescriptor.h"
-#include "Utilities/ArcPtr.h"
+#include "Utilities/Handle.h"
 
 namespace adria
 {
@@ -35,7 +35,7 @@ namespace adria
 		
 	private:
 		GfxDevice* gfx = nullptr;
-		ArcPtr<IDXGISwapChain4>				swapchain = nullptr;
+		Handle<IDXGISwapChain4>				swapchain = nullptr;
 		std::unique_ptr<GfxTexture>			back_buffers[GFX_BACKBUFFER_COUNT] = { nullptr };
 		GfxDescriptor					    backbuffer_rtvs[GFX_BACKBUFFER_COUNT];
 		uint32		 width;

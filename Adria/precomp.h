@@ -34,4 +34,4 @@
 #include "Core/CoreTypes.h"
 #include "Core/Defines.h"
 #include "Math/MathTypes.h"
-#include "Utilities/ArcPtr.h"
+#include "Utilities/Handle.h"

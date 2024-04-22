@@ -74,7 +74,7 @@ namespace adria
 
 	private:
 		ID3D12StateObject* state_object;
-		ArcPtr<ID3D12StateObjectProperties> pso_info = nullptr;
+		Handle<ID3D12StateObjectProperties> pso_info = nullptr;
 		GfxShaderRecord ray_gen_record;
 		uint32 ray_gen_record_size = 0;
 		std::vector<GfxShaderRecord> miss_shader_records;

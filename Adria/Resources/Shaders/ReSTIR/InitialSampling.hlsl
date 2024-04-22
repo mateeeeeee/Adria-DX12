@@ -63,7 +63,6 @@ void InitialSamplingCS( uint3 dispatchThreadID : SV_DispatchThreadID )
     uint randSeed = InitRand(dispatchThreadID.x + dispatchThreadID.y * 16, 0, 16);
     float2 randFloat2 = float2(NextRand(randSeed), NextRand(randSeed));
     float3 direction = GetCosHemisphereSample(randSeed, N);
-    float pdf = 1.0 / (2.0 * M_PI);
 
     RayDesc ray;
     ray.Origin = worldPos + N * 0.01;

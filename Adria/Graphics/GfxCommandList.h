@@ -134,8 +134,8 @@ namespace adria
 		GfxDevice* gfx = nullptr;
 		GfxCommandListType type;
 		GfxCommandQueue& cmd_queue;
-		ArcPtr<ID3D12GraphicsCommandList6> cmd_list = nullptr;
-		ArcPtr<ID3D12CommandAllocator> cmd_allocator = nullptr;
+		Handle<ID3D12GraphicsCommandList6> cmd_list = nullptr;
+		Handle<ID3D12CommandAllocator> cmd_allocator = nullptr;
 
 		uint32 command_count = 0;
 		GfxPipelineState* current_pso = nullptr;

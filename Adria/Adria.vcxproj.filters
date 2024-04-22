@@ -809,7 +809,7 @@
     <ClInclude Include="Graphics\GfxCommon.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\ArcPtr.h">
+    <ClInclude Include="Utilities\Handle.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxFormat.h">

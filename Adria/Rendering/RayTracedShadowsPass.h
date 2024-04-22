@@ -21,7 +21,7 @@ namespace adria
 
 	private:
 		GfxDevice* gfx;
-		ArcPtr<ID3D12StateObject> ray_traced_shadows;
+		Handle<ID3D12StateObject> ray_traced_shadows;
 		uint32 width, height;
 		bool is_supported;
 

@@ -134,7 +134,7 @@ namespace adria
 
 	private:
 		GfxDevice* gfx;
-		ArcPtr<ID3D12Resource> resource;
+		Handle<ID3D12Resource> resource;
 		GfxTextureDesc desc;
 		ReleasablePtr<D3D12MA::Allocation> allocation = nullptr;
 		void* mapped_data = nullptr;

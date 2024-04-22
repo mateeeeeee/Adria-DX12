@@ -5,43 +5,43 @@ namespace adria
 {
 	//modified ComPtr code to avoid header inclusion
 	template <typename T>
-	class AutoRefCountPtr
+	class RefCountPtr
 	{
 	public:
 		using InterfaceType = T;
 
 	public:
 #pragma region constructors
-		AutoRefCountPtr() : ptr_(nullptr)
+		RefCountPtr() : ptr_(nullptr)
 		{
 		}
 
-		AutoRefCountPtr(decltype(nullptr)) : ptr_(nullptr)
+		RefCountPtr(decltype(nullptr)) : ptr_(nullptr)
 		{
 		}
 
 		template<typename U>
-		AutoRefCountPtr(U* other)  : ptr_(other)
+		RefCountPtr(U* other)  : ptr_(other)
 		{
 			InternalAddRef();
 		}
 
-		AutoRefCountPtr(AutoRefCountPtr const& other) : ptr_(other.ptr_)
+		RefCountPtr(RefCountPtr const& other) : ptr_(other.ptr_)
 		{
 			InternalAddRef();
 		}
 
 		// copy constructor that allows to instantiate class when U* is convertible to T*
 		template<typename U>
-		AutoRefCountPtr(const AutoRefCountPtr<U>& other, typename std::enable_if_t<std::is_convertible_v<U*, T*>, void*>* = 0) :
+		RefCountPtr(const RefCountPtr<U>& other, typename std::enable_if_t<std::is_convertible_v<U*, T*>, void*>* = 0) :
 			ptr_(other.ptr_)
 		{
 			InternalAddRef();
 		}
 
-		AutoRefCountPtr(AutoRefCountPtr&& other) : ptr_(nullptr)
+		RefCountPtr(RefCountPtr&& other) : ptr_(nullptr)
 		{
-			if (this != reinterpret_cast<AutoRefCountPtr*>(&reinterpret_cast<unsigned char&>(other)))
+			if (this != reinterpret_cast<RefCountPtr*>(&reinterpret_cast<unsigned char&>(other)))
 			{
 				Swap(other);
 			}
@@ -49,7 +49,7 @@ namespace adria
 
 		// Move constructor that allows instantiation of a class when U* is convertible to T*
 		template<typename U>
-		AutoRefCountPtr(AutoRefCountPtr<U>&& other, typename std::enable_if_t<std::is_convertible_v<U*, T*>, void*>* = 0) :
+		RefCountPtr(RefCountPtr<U>&& other, typename std::enable_if_t<std::is_convertible_v<U*, T*>, void*>* = 0) :
 			ptr_(other.ptr_)
 		{
 			other.ptr_ = nullptr;
@@ -57,74 +57,74 @@ namespace adria
 #pragma endregion
 
 #pragma region destructor
-		~AutoRefCountPtr() throw()
+		~RefCountPtr() throw()
 		{
 			InternalRelease();
 		}
 #pragma endregion
 
 #pragma region assignment
-		AutoRefCountPtr& operator=(decltype(nullptr)) 
+		RefCountPtr& operator=(decltype(nullptr)) 
 		{
 			InternalRelease();
 			return *this;
 		}
 
-		AutoRefCountPtr& operator=(T* other) 
+		RefCountPtr& operator=(T* other) 
 		{
 			if (ptr_ != other)
 			{
-				AutoRefCountPtr(other).Swap(*this);
+				RefCountPtr(other).Swap(*this);
 			}
 			return *this;
 		}
 
 		template <typename U>
-		AutoRefCountPtr& operator=(U* other) 
+		RefCountPtr& operator=(U* other) 
 		{
-			AutoRefCountPtr(other).Swap(*this);
+			RefCountPtr(other).Swap(*this);
 			return *this;
 		}
 
-		AutoRefCountPtr& operator=(const AutoRefCountPtr& other)
+		RefCountPtr& operator=(const RefCountPtr& other)
 		{
 			if (ptr_ != other.ptr_)
 			{
-				AutoRefCountPtr(other).Swap(*this);
+				RefCountPtr(other).Swap(*this);
 			}
 			return *this;
 		}
 
 		template<typename U>
-		AutoRefCountPtr& operator=(const AutoRefCountPtr<U>& other) 
+		RefCountPtr& operator=(const RefCountPtr<U>& other) 
 		{
-			AutoRefCountPtr(other).Swap(*this);
+			RefCountPtr(other).Swap(*this);
 			return *this;
 		}
 
-		AutoRefCountPtr& operator=(AutoRefCountPtr&& other) 
+		RefCountPtr& operator=(RefCountPtr&& other) 
 		{
-			AutoRefCountPtr(static_cast<AutoRefCountPtr&&>(other)).Swap(*this);
+			RefCountPtr(static_cast<RefCountPtr&&>(other)).Swap(*this);
 			return *this;
 		}
 
 		template<typename U>
-		AutoRefCountPtr& operator=(_Inout_ AutoRefCountPtr<U>&& other)
+		RefCountPtr& operator=(_Inout_ RefCountPtr<U>&& other)
 		{
-			AutoRefCountPtr(static_cast<AutoRefCountPtr<U>&&>(other)).Swap(*this);
+			RefCountPtr(static_cast<RefCountPtr<U>&&>(other)).Swap(*this);
 			return *this;
 		}
 #pragma endregion
 
 #pragma region modifiers
-		void Swap(AutoRefCountPtr&& r) 
+		void Swap(RefCountPtr&& r) 
 		{
 			T* tmp = ptr_;
 			ptr_ = r.ptr_;
 			r.ptr_ = tmp;
 		}
 
-		void Swap(AutoRefCountPtr& r)
+		void Swap(RefCountPtr& r)
 		{
 			T* tmp = ptr_;
 			ptr_ = r.ptr_;
@@ -192,14 +192,14 @@ namespace adria
 
 		// query for U interface
 		template<typename U>
-		HRESULT As(AutoRefCountPtr<U>* p) const 
+		HRESULT As(RefCountPtr<U>* p) const 
 		{
 			return ptr_->QueryInterface(__uuidof(U), reinterpret_cast<void**>(p->ReleaseAndGetAddressOf()));
 		}
 
 	protected:
 		InterfaceType* ptr_;
-		template<class U> friend class AutoRefCountPtr;
+		template<class U> friend class RefCountPtr;
 
 		void InternalAddRef() const
 		{
@@ -224,5 +224,5 @@ namespace adria
 	};    // AutoRefCountPtr
 
 	template <typename T>
-	using ArcPtr = AutoRefCountPtr<T>;
+	using Handle = RefCountPtr<T>;
 }

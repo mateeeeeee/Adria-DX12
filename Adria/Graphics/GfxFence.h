@@ -22,7 +22,7 @@ namespace adria
 
 		operator ID3D12Fence* () const { return fence.Get(); }
 	private:
-		ArcPtr<ID3D12Fence> fence = nullptr;
+		Handle<ID3D12Fence> fence = nullptr;
 		HANDLE event = nullptr;
 	};
 }

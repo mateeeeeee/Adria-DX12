@@ -26,7 +26,7 @@ namespace adria
 		operator ID3D12QueryHeap* () const { return query_heap.Get(); }
 
 	private:
-		ArcPtr<ID3D12QueryHeap> query_heap;
+		Handle<ID3D12QueryHeap> query_heap;
 		GfxQueryHeapDesc desc;
 	};
 

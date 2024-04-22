@@ -11,7 +11,7 @@
 #include "Utilities/StringUtil.h"
 #include "Utilities/FilesUtil.h"
 #include "Utilities/HashUtil.h"
-#include "Utilities/ArcPtr.h"
+#include "Utilities/Handle.h"
 #include "Logging/Logger.h"
 
 
@@ -19,10 +19,10 @@ namespace adria
 {
 	namespace
 	{
-		ArcPtr<IDxcLibrary> library = nullptr;
-		ArcPtr<IDxcCompiler3> compiler = nullptr;
-		ArcPtr<IDxcUtils> utils = nullptr;
-		ArcPtr<IDxcIncludeHandler> include_handler = nullptr;
+		Handle<IDxcLibrary> library = nullptr;
+		Handle<IDxcCompiler3> compiler = nullptr;
+		Handle<IDxcUtils> utils = nullptr;
+		Handle<IDxcIncludeHandler> include_handler = nullptr;
 	}
 	class GfxIncludeHandler : public IDxcIncludeHandler
 	{
@@ -31,7 +31,7 @@ namespace adria
 
 		HRESULT STDMETHODCALLTYPE LoadSource(_In_ LPCWSTR pFilename, _COM_Outptr_result_maybenull_ IDxcBlob** ppIncludeSource) override
 		{
-			ArcPtr<IDxcBlobEncoding> encoding;
+			Handle<IDxcBlobEncoding> encoding;
 			std::string include_file = NormalizePath(ToString(pFilename));
 			if (!FileExists(include_file))
 			{
@@ -261,7 +261,7 @@ namespace adria
 
 			compile:
 			uint32 code_page = CP_UTF8;
-			ArcPtr<IDxcBlobEncoding> source_blob;
+			Handle<IDxcBlobEncoding> source_blob;
 
 			std::wstring shader_source = ToWideString(input.file);
 			HRESULT hr = library->CreateBlobFromFile(shader_source.data(), &code_page, source_blob.GetAddressOf());
@@ -325,14 +325,14 @@ namespace adria
 			source_buffer.Encoding = DXC_CP_ACP;
 			GfxIncludeHandler custom_include_handler{};
 
-			ArcPtr<IDxcResult> result;
+			Handle<IDxcResult> result;
 			hr = compiler->Compile(
 				&source_buffer,
 				compile_args.data(), (uint32)compile_args.size(),
 				&custom_include_handler,
 				IID_PPV_ARGS(result.GetAddressOf()));
 
-			ArcPtr<IDxcBlobUtf8> errors;
+			Handle<IDxcBlobUtf8> errors;
 			if (SUCCEEDED(result->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(errors.GetAddressOf()), nullptr)))
 			{
 				if (errors && errors->GetStringLength() > 0)
@@ -347,16 +347,16 @@ namespace adria
 				}
 			}
 			
-			ArcPtr<IDxcBlob> blob;
+			Handle<IDxcBlob> blob;
 			GFX_CHECK_HR(result->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(blob.GetAddressOf()), nullptr));
 			
 			if (input.flags & ShaderCompilerFlag_Debug)
 			{
-				ArcPtr<IDxcBlob> pdb_blob;
-				ArcPtr<IDxcBlobUtf16> pdb_path_utf16;
+				Handle<IDxcBlob> pdb_blob;
+				Handle<IDxcBlobUtf16> pdb_path_utf16;
 				if (SUCCEEDED(result->GetOutput(DXC_OUT_PDB, IID_PPV_ARGS(pdb_blob.GetAddressOf()), pdb_path_utf16.GetAddressOf())))
 				{
-					ArcPtr<IDxcBlobUtf8> pdb_path_utf8;
+					Handle<IDxcBlobUtf8> pdb_path_utf8;
 					if (SUCCEEDED(utils->GetBlobAsUtf8(pdb_path_utf16.Get(), pdb_path_utf8.GetAddressOf())))
 					{
 						char pdb_path[256];
@@ -371,7 +371,7 @@ namespace adria
 					}
 				}
 			}
-			ArcPtr<IDxcBlob> hash;
+			Handle<IDxcBlob> hash;
 			if (SUCCEEDED(result->GetOutput(DXC_OUT_SHADER_HASH, IID_PPV_ARGS(hash.GetAddressOf()), nullptr)))
 			{
 				DxcShaderHash* hash_buf = (DxcShaderHash*)hash->GetBufferPointer();
@@ -387,7 +387,7 @@ namespace adria
 		}
 		void FillInputLayoutDesc(GfxShader const& vs_blob, GfxInputLayout& input_layout)
 		{
-			ArcPtr<IDxcContainerReflection> reflection;
+			Handle<IDxcContainerReflection> reflection;
 			HRESULT hr = DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(reflection.GetAddressOf()));
 			GfxReflectionBlob my_blob{ vs_blob.GetData(), vs_blob.GetSize() };
 			GFX_CHECK_HR(hr);
@@ -400,7 +400,7 @@ namespace adria
 			GFX_CHECK_HR(reflection->FindFirstPartKind(MAKEFOURCC('D', 'X', 'I', 'L'), &part_index));
 #undef MAKEFOURCC
 
-			ArcPtr<ID3D12ShaderReflection> vertex_shader_reflection;
+			Handle<ID3D12ShaderReflection> vertex_shader_reflection;
 			GFX_CHECK_HR(reflection->GetPartReflection(part_index, IID_PPV_ARGS(vertex_shader_reflection.GetAddressOf())));
 
 			D3D12_SHADER_DESC shader_desc;
@@ -456,7 +456,7 @@ namespace adria
 		{
 			std::wstring wide_filename = ToWideString(filename);
 			uint32 code_page = CP_UTF8;
-			ArcPtr<IDxcBlobEncoding> source_blob;
+			Handle<IDxcBlobEncoding> source_blob;
 			HRESULT hr = library->CreateBlobFromFile(wide_filename.data(), &code_page, source_blob.GetAddressOf());
 			GFX_CHECK_HR(hr);
 			blob.resize(source_blob->GetBufferSize());

@@ -65,7 +65,7 @@ namespace adria
 		entt::registry& reg;
 		uint32 width, height;
 		bool is_supported;
-		ArcPtr<ID3D12StateObject> ddgi_trace_so;
+		Handle<ID3D12StateObject> ddgi_trace_so;
 		DDGIVolume ddgi_volume;
 		std::unique_ptr<GfxBuffer>  ddgi_volume_buffer;
 		GfxDescriptor ddgi_volume_buffer_srv;

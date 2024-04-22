@@ -29,7 +29,7 @@ namespace adria
 
 		operator ID3D12CommandQueue* () const { return command_queue.Get(); }
 	private:
-		ArcPtr<ID3D12CommandQueue> command_queue;
+		Handle<ID3D12CommandQueue> command_queue;
 		uint64 timestamp_frequency;
 		GfxCommandListType type;
 	};

@@ -192,14 +192,14 @@ namespace adria
 			HRESULT removed_reason = device->GetDeviceRemovedReason();
 			ADRIA_LOG(ERROR, "Device removed, reason code: %ld", removed_reason);
 
-			ArcPtr<ID3D12DeviceRemovedExtendedData1> dred;
+			Handle<ID3D12DeviceRemovedExtendedData1> dred;
 			if (FAILED(device->QueryInterface(IID_PPV_ARGS(dred.GetAddressOf())))) ADRIA_LOG(ERROR, "Failed to get DRED interface");
 			else LogDredInfo(device, dred.Get());
 			std::exit(1);
 		}
 		inline void ReportLiveObjects()
 		{
-			ArcPtr<IDXGIDebug1> dxgi_debug;
+			Handle<IDXGIDebug1> dxgi_debug;
 			if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(dxgi_debug.GetAddressOf()))))
 			{
 				dxgi_debug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_DETAIL | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
@@ -261,7 +261,7 @@ namespace adria
 		SetupOptions(options, dxgi_factory_flags);
 		GFX_CHECK_HR(CreateDXGIFactory2(dxgi_factory_flags, IID_PPV_ARGS(dxgi_factory.GetAddressOf())));
 
-		ArcPtr<IDXGIAdapter4> adapter;
+		Handle<IDXGIAdapter4> adapter;
 		uint32 adapter_index = 0;
 		ADRIA_LOG(INFO, "Available adapters:");
 		DXGI_GPU_PREFERENCE gpu_preference = DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE;
@@ -754,7 +754,7 @@ namespace adria
 	}
 	void GfxDevice::SetInfoQueue()
 	{
-		ArcPtr<ID3D12InfoQueue> info_queue;
+		Handle<ID3D12InfoQueue> info_queue;
 		if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(info_queue.GetAddressOf()))))
 		{
 			//D3D12_MESSAGE_CATEGORY Categories[0] = {};
@@ -782,7 +782,7 @@ namespace adria
 			GFX_CHECK_HR(info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true));
 			info_queue->PushStorageFilter(&NewFilter);
 
-			ArcPtr<ID3D12InfoQueue1> info_queue1;
+			Handle<ID3D12InfoQueue1> info_queue1;
 			info_queue.As(&info_queue1);
 			if (info_queue1)
 			{
@@ -806,7 +806,7 @@ namespace adria
 		if (options.aftermath) return;
 		if (options.debug_layer)
 		{
-			ArcPtr<ID3D12Debug> debug_controller = nullptr;
+			Handle<ID3D12Debug> debug_controller = nullptr;
 			if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(debug_controller.GetAddressOf()))))
 			{
 				debug_controller->EnableDebugLayer();
@@ -821,7 +821,7 @@ namespace adria
 		}
 		if (options.dred)
 		{
-			ArcPtr<ID3D12DeviceRemovedExtendedDataSettings1> dred_settings;
+			Handle<ID3D12DeviceRemovedExtendedDataSettings1> dred_settings;
 			HRESULT hr = D3D12GetDebugInterface(IID_PPV_ARGS(dred_settings.GetAddressOf()));
 			if (SUCCEEDED(hr) && dred_settings != NULL)
 			{
@@ -838,7 +838,7 @@ namespace adria
 		}
 		if (options.gpu_validation)
 		{
-			ArcPtr<ID3D12Debug1> debug_controller = nullptr;
+			Handle<ID3D12Debug1> debug_controller = nullptr;
 			if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(debug_controller.GetAddressOf()))))
 			{
 				debug_controller->SetEnableGPUBasedValidation(true);
@@ -902,8 +902,8 @@ namespace adria
 		CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC desc{};
 		desc.Init_1_1(ARRAYSIZE(root_parameters), root_parameters, ARRAYSIZE(static_samplers), static_samplers, flags);
 
-		ArcPtr<ID3DBlob> signature;
-		ArcPtr<ID3DBlob> error;
+		Handle<ID3DBlob> signature;
+		Handle<ID3DBlob> error;
 		HRESULT hr = D3DX12SerializeVersionedRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1_1, signature.GetAddressOf(), error.GetAddressOf());
 		GFX_CHECK_HR(hr);
 		hr = device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(global_root_signature.GetAddressOf()));

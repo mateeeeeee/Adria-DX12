@@ -21,7 +21,7 @@ namespace adria
 		void Reset();
 	private:
 		GfxDevice* gfx;
-		ArcPtr<ID3D12StateObject> path_tracing;
+		Handle<ID3D12StateObject> path_tracing;
 		uint32 width, height;
 		bool is_supported;
 		std::unique_ptr<GfxTexture> accumulation_texture = nullptr;

@@ -22,7 +22,7 @@ namespace adria
 	private:
 		GfxDevice* gfx;
 		BlurPass blur_pass;
-		ArcPtr<ID3D12StateObject> ray_traced_reflections;
+		Handle<ID3D12StateObject> ray_traced_reflections;
 		uint32 width, height;
 		bool is_supported;
 		float reflection_roughness_scale = 0.0f;

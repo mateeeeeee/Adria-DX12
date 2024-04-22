@@ -30,7 +30,7 @@ namespace adria
 	private:
 		GfxDevice* gfx;
 		BlurPass blur_pass;
-		ArcPtr<ID3D12StateObject> ray_traced_ambient_occlusion;
+		Handle<ID3D12StateObject> ray_traced_ambient_occlusion;
 		uint32 width, height;
 		bool is_supported;
 		RTAOParams params{};
