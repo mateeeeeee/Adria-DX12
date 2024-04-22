@@ -242,11 +242,15 @@ namespace adria
 				if (light.use_cascades && light_shadow_maps[light_id].size() != SHADOW_CASCADE_COUNT)
 				{
 					light_shadow_maps[light_id].clear();
+					light_shadow_map_srvs[light_id].clear();
+					light_shadow_map_dsvs[light_id].clear();
 					for (uint32 i = 0; i < SHADOW_CASCADE_COUNT; ++i) AddShadowMap(light_id, SHADOW_CASCADE_MAP_SIZE);
 				}
 				else if (!light.use_cascades && light_shadow_maps[light_id].size() != 1)
 				{
 					light_shadow_maps[light_id].clear();
+					light_shadow_map_srvs[light_id].clear();
+					light_shadow_map_dsvs[light_id].clear();
 					AddShadowMap(light_id, SHADOW_MAP_SIZE);
 				}
 			}
@@ -256,6 +260,8 @@ namespace adria
 				if (light_shadow_maps[light_id].size() != 6)
 				{
 					light_shadow_maps[light_id].clear();
+					light_shadow_map_srvs[light_id].clear();
+					light_shadow_map_dsvs[light_id].clear();
 					for (uint32 i = 0; i < 6; ++i) AddShadowMap(light_id, SHADOW_CUBE_SIZE);
 				}
 			}
@@ -265,6 +271,8 @@ namespace adria
 				if (light_shadow_maps[light_id].size() != 1)
 				{
 					light_shadow_maps[light_id].clear();
+					light_shadow_map_srvs[light_id].clear();
+					light_shadow_map_dsvs[light_id].clear();
 					AddShadowMap(light_id, SHADOW_MAP_SIZE);
 				}
 			}
@@ -328,9 +336,9 @@ namespace adria
 					if (light.use_cascades)
 					{
 						std::array<Matrix, SHADOW_CASCADE_COUNT> proj_matrices = RecalculateProjectionMatrices(*camera, cascades_split_lambda, split_distances);
+						AddShadowMaps(light, entt::to_integral(e));
 						for (uint32 i = 0; i < SHADOW_CASCADE_COUNT; ++i)
 						{
-							AddShadowMaps(light, entt::to_integral(e));
 							auto const& [V, P] = LightViewProjection_Cascades(light, *camera, proj_matrices[i], SHADOW_CASCADE_MAP_SIZE);
 							_light_matrices.push_back(XMMatrixTranspose(V * P));
 						}
@@ -345,9 +353,9 @@ namespace adria
 				}
 				else if (light.type == LightType::Point)
 				{
+					AddShadowMaps(light, entt::to_integral(e));
 					for (uint32 i = 0; i < 6; ++i)
 					{
-						AddShadowMaps(light, entt::to_integral(e));
 						auto const& [V, P] = LightViewProjection_Point(light, i);
 						_light_matrices.push_back(XMMatrixTranspose(V * P));
 					}
