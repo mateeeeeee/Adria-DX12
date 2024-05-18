@@ -250,8 +250,9 @@ namespace adria
 			[=](CopyPrintfBufferPassData& data, RenderGraphBuilder& builder)
 			{
 				data.printf_buffer = builder.ReadCopySrcBuffer(RG_RES_NAME(PrintfBuffer));
+				std::ignore = builder.ReadCopySrcTexture(RG_RES_NAME(FinalTexture)); //forcing dependency with the final texture so the printf pass doesn't run before some other pass
 			},
-			[=](CopyPrintfBufferPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			[&](CopyPrintfBufferPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 				uint64 current_backbuffer_index = gfx->GetBackbufferIndex();
