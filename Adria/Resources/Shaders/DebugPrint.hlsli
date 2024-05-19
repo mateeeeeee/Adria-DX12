@@ -108,11 +108,6 @@ template<typename T> uint CharToUint(in T c)
     return 0;
 }
 
-template<typename T, uint N> uint StrLen(T str[N])
-{
-    return N;
-}
-
 enum ArgCode
 {
     DebugPrint_Uint = 0,
@@ -317,20 +312,56 @@ struct DebugPrinter
     }
 };
 
-#define printf(str, ...) do                              \
-{                                                            \
+template<uint N>
+struct StrSize
+{
+     static const uint value = N;
+}; 
+
+template<typename T, uint N>
+static StrSize<N> StrLen(T In[N])
+{
+    return (StrSize<N>)0;
+}
+
+#define APPEND1(Str, i, n) if (i >= n) break; printer.AppendChar(CharToUint(Str[i]));
+#define APPEND4(Str, i, n) \
+APPEND1(Str, i, n) \
+APPEND1(Str, i + 1, n) \
+APPEND1(Str, i + 2, n) \
+APPEND1(Str, i + 3, n)
+
+#define APPEND16(Str, i, n) \
+APPEND4(Str, i, n) \
+APPEND4(Str, i + 4, n) \
+APPEND4(Str, i + 8, n) \
+APPEND4(Str, i + 12, n)
+
+#define APPEND64(Str, i, n) \
+APPEND16(Str, i, n) \
+APPEND16(Str, i + 16, n) \
+APPEND16(Str, i + 32, n) \
+APPEND16(Str, i + 48, n)
+
+#define APPEND256(Str, i, n) \
+APPEND64(Str, i, n) \
+APPEND64(Str, i + 64, n) \
+APPEND64(Str, i + 128, n) \
+APPEND64(Str, i + 192, n)
+
+#define printf(str,...)             \
+do{                                                          \
     DebugPrinter printer;                                    \
     printer.Init();                                          \
-    const uint strLen = StrLen(str);                         \
-    for(uint i = 0; i < strLen; ++i)                         \
-        printer.AppendChar(CharToUint(str[i]));              \
+    do                                                       \
+    {                                                        \
+        using StrSizeType = __decltype(StrLen(str));       \
+        APPEND256(str, 0, StrSizeType::value)              \
+    }while(false);                                           \
     printer.StringSize = printer.ByteCount;                  \
     printer.AppendArgs(__VA_ARGS__);                         \
     printer.Commit();                                        \
-} while(0)
-
-
-
+} while(false)
 
 
 #endif

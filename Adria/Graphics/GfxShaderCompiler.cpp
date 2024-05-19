@@ -286,8 +286,7 @@ namespace adria
 
 			if (input.flags & ShaderCompilerFlag_DisableOptimization)
 			{
-				//temporary commented out, messes up compilation of shader printf
-				//compile_args.push_back(DXC_ARG_SKIP_OPTIMIZATIONS);
+				compile_args.push_back(DXC_ARG_SKIP_OPTIMIZATIONS);
 			}
 			else
 			{
