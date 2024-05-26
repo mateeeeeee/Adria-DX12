@@ -42,7 +42,7 @@ namespace adria
 				GfxDevice* gfx = cmd_list->GetDevice();
 
 				uint32 i = gfx->AllocateDescriptorsGPU(1).GetIndex();
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.depth));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i), ctx.GetReadOnlyTexture(data.depth));
 
 				struct RayTracedShadowsConstants
 				{
@@ -50,7 +50,7 @@ namespace adria
 					uint32  light_idx;
 				} constants =
 				{
-					.depth_idx = i + 0,
+					.depth_idx = i,
 					.light_idx = light_index
 				};
 				auto& table = cmd_list->SetStateObject(ray_traced_shadows_so.get());
