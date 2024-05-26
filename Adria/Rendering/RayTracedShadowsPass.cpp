@@ -3,7 +3,7 @@
 #include "ShaderCache.h"
 #include "PSOCache.h"
 #include "Graphics/GfxShader.h"
-#include "Graphics/GfxStateObjectBuilder.h"
+#include "Graphics/GfxStateObject.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
 #include "RenderGraph/RenderGraph.h"
 
@@ -20,6 +20,7 @@ namespace adria
 			ShaderCache::GetLibraryRecompiledEvent().AddMember(&RayTracedShadowsPass::OnLibraryRecompiled, *this);
 		}
 	}
+	RayTracedShadowsPass::~RayTracedShadowsPass() = default;
 
 	void RayTracedShadowsPass::AddPass(RenderGraph& rg, uint32 light_index)
 	{
@@ -52,7 +53,7 @@ namespace adria
 					.depth_idx = i + 0,
 					.light_idx = light_index
 				};
-				auto& table = cmd_list->SetStateObject(ray_traced_shadows.Get());
+				auto& table = cmd_list->SetStateObject(ray_traced_shadows_so.get());
 				table.SetRayGenShader("RTS_RayGen_Hard");
 				table.AddMissShader("RTS_Miss", 0);
 				table.AddHitGroup("ShadowAnyHitGroup", 0);
@@ -76,10 +77,7 @@ namespace adria
 
 	void RayTracedShadowsPass::CreateStateObject()
 	{
-		ID3D12Device5* device = gfx->GetDevice();
-
 		GfxShader const& rt_shadows_blob = ShaderCache::GetShader(LIB_Shadows);
-
 		GfxStateObjectBuilder rt_shadows_state_object_builder(6);
 		{
 			D3D12_EXPORT_DESC export_descs[] =
@@ -96,7 +94,6 @@ namespace adria
 			dxil_lib_desc.pExports = export_descs;
 			rt_shadows_state_object_builder.AddSubObject(dxil_lib_desc);
 
-			// Add a state subobject for the shader payload configuration
 			D3D12_RAYTRACING_SHADER_CONFIG rt_shadows_shader_config{};
 			rt_shadows_shader_config.MaxPayloadSizeInBytes = 4;
 			rt_shadows_shader_config.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
@@ -106,8 +103,7 @@ namespace adria
 			global_root_sig.pGlobalRootSignature = gfx->GetCommonRootSignature();
 			rt_shadows_state_object_builder.AddSubObject(global_root_sig);
 
-			// Add a state subobject for the ray tracing pipeline config
-			D3D12_RAYTRACING_PIPELINE_CONFIG pipeline_config = {};
+			D3D12_RAYTRACING_PIPELINE_CONFIG pipeline_config{};
 			pipeline_config.MaxTraceRecursionDepth = 1;
 			rt_shadows_state_object_builder.AddSubObject(pipeline_config);
 
@@ -116,15 +112,13 @@ namespace adria
 			anyhit_group.AnyHitShaderImport = L"RTS_AnyHit";
 			anyhit_group.HitGroupExport = L"ShadowAnyHitGroup";
 			rt_shadows_state_object_builder.AddSubObject(anyhit_group);
-
-			ray_traced_shadows.Attach(rt_shadows_state_object_builder.CreateStateObject(device));
 		}
+		ray_traced_shadows_so.reset(rt_shadows_state_object_builder.CreateStateObject(gfx));
 	}
 
 	void RayTracedShadowsPass::OnLibraryRecompiled(GfxShaderID shader)
 	{
 		if (shader == LIB_Shadows) CreateStateObject();
 	}
-
 }
 

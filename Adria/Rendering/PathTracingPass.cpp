@@ -3,7 +3,7 @@
 #include "ShaderCache.h"
 #include "PSOCache.h"
 #include "Graphics/GfxShader.h"
-#include "Graphics/GfxStateObjectBuilder.h"
+#include "Graphics/GfxStateObject.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
 #include "Graphics/GfxLinearDynamicAllocator.h"
 #include "RenderGraph/RenderGraph.h"
@@ -23,6 +23,7 @@ namespace adria
 			ShaderCache::GetLibraryRecompiledEvent().AddMember(&PathTracingPass::OnLibraryRecompiled, *this);
 		}
 	}
+	PathTracingPass::~PathTracingPass() = default;
 
 	void PathTracingPass::AddPass(RenderGraph& rg)
 	{
@@ -71,7 +72,7 @@ namespace adria
 
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
-				auto& table = cmd_list->SetStateObject(path_tracing.Get());
+				auto& table = cmd_list->SetStateObject(path_tracing_so.get());
 				table.SetRayGenShader("PT_RayGen");
 				cmd_list->DispatchRays(width, height);
 
@@ -118,7 +119,6 @@ namespace adria
 
 	void PathTracingPass::CreateStateObject()
 	{
-		ID3D12Device5* device = gfx->GetDevice();
 		GfxShader const& pt_blob = ShaderCache::GetShader(LIB_PathTracing);
 
 		GfxStateObjectBuilder pt_state_object_builder(5);
@@ -139,7 +139,6 @@ namespace adria
 			global_root_sig.pGlobalRootSignature = gfx->GetCommonRootSignature();
 			pt_state_object_builder.AddSubObject(global_root_sig);
 
-			// Add a state subobject for the ray tracing pipeline config
 			D3D12_RAYTRACING_PIPELINE_CONFIG pipeline_config{};
 			pipeline_config.MaxTraceRecursionDepth = 3;
 			pt_state_object_builder.AddSubObject(pipeline_config);
@@ -149,9 +148,8 @@ namespace adria
 			//closesthit_group.ClosestHitShaderImport = L"PT_ClosestHit";
 			//closesthit_group.HitGroupExport = L"PT_HitGroup";
 			//pt_state_object_builder.AddSubObject(closesthit_group);
-
-			path_tracing.Attach(pt_state_object_builder.CreateStateObject(device));
 		}
+		path_tracing_so.reset(pt_state_object_builder.CreateStateObject(gfx));
 	}
 
 	void PathTracingPass::OnLibraryRecompiled(GfxShaderID shader)

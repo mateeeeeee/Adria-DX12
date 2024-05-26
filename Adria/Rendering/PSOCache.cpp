@@ -2,6 +2,7 @@
 #include "ShaderCache.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxPipelineState.h"
+#include "Graphics/GfxStateObject.h"
 #include "Graphics/GfxStates.h"
 #include "Graphics/GfxShaderCompiler.h"
 #include "Logging/Logger.h"

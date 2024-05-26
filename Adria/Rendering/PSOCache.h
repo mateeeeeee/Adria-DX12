@@ -4,6 +4,7 @@ namespace adria
 {
 	class GfxDevice;
 	class GfxPipelineState;
+	class GfxStateObject;
 
 	enum class GfxPipelineStateID : uint8
 	{

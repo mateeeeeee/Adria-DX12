@@ -3,7 +3,7 @@
 #include "ShaderCache.h"
 #include "PSOCache.h"
 #include "Graphics/GfxShader.h"
-#include "Graphics/GfxStateObjectBuilder.h"
+#include "Graphics/GfxStateObject.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
@@ -21,6 +21,8 @@ namespace adria
 			ShaderCache::GetLibraryRecompiledEvent().AddMember(&RayTracedAmbientOcclusionPass::OnLibraryRecompiled, *this);
 		}
 	}
+
+	RayTracedAmbientOcclusionPass::~RayTracedAmbientOcclusionPass() = default;
 
 	void RayTracedAmbientOcclusionPass::AddPass(RenderGraph& rg)
 	{
@@ -69,7 +71,7 @@ namespace adria
 					.ao_radius = params.radius, .ao_power = pow(2.f, params.power_log)
 				};
 
-				auto& table = cmd_list->SetStateObject(ray_traced_ambient_occlusion.Get());
+				auto& table = cmd_list->SetStateObject(ray_traced_ambient_occlusion_so.get());
 				table.SetRayGenShader("RTAO_RayGen");
 				table.AddMissShader("RTAO_Miss", 0);
 				table.AddHitGroup("RTAOAnyHitGroup", 0);
@@ -186,9 +188,7 @@ namespace adria
 
 	void RayTracedAmbientOcclusionPass::CreateStateObject()
 	{
-		ID3D12Device5* device = gfx->GetDevice();
 		GfxShader const& rtao_blob = ShaderCache::GetShader(LIB_AmbientOcclusion);
-
 		GfxStateObjectBuilder rtao_state_object_builder(5);
 		{
 			D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc{};
@@ -207,7 +207,6 @@ namespace adria
 			global_root_sig.pGlobalRootSignature = gfx->GetCommonRootSignature();
 			rtao_state_object_builder.AddSubObject(global_root_sig);
 
-			// Add a state subobject for the ray tracing pipeline config
 			D3D12_RAYTRACING_PIPELINE_CONFIG pipeline_config{};
 			pipeline_config.MaxTraceRecursionDepth = 1;
 			rtao_state_object_builder.AddSubObject(pipeline_config);
@@ -217,10 +216,8 @@ namespace adria
 			anyhit_group.AnyHitShaderImport = L"RTAO_AnyHit";
 			anyhit_group.HitGroupExport = L"RTAOAnyHitGroup";
 			rtao_state_object_builder.AddSubObject(anyhit_group);
-
-			ray_traced_ambient_occlusion.Attach(rtao_state_object_builder.CreateStateObject(device));
 		}
-
+		ray_traced_ambient_occlusion_so.reset(rtao_state_object_builder.CreateStateObject(gfx));
 	}
 
 	void RayTracedAmbientOcclusionPass::OnLibraryRecompiled(GfxShaderID shader)

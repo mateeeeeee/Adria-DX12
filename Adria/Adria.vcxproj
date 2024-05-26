@@ -217,6 +217,8 @@
     <ClCompile Include="Graphics\GfxNsightAftermathGpuCrashTracker.cpp" />
     <ClCompile Include="Graphics\GfxQueryHeap.cpp" />
     <ClCompile Include="Graphics\GfxRayTracingAS.cpp" />
+    <ClCompile Include="Graphics\GfxRayTracingShaderTable.cpp" />
+    <ClCompile Include="Graphics\GfxStateObject.cpp" />
     <ClCompile Include="Graphics\GfxSwapchain.cpp" />
     <ClCompile Include="Graphics\GfxTexture.cpp" />
     <ClCompile Include="Graphics\GfxLinearDynamicAllocator.cpp" />
@@ -380,7 +382,7 @@
     <ClInclude Include="Graphics\GfxRayTracingAS.h" />
     <ClInclude Include="Graphics\GfxRingDescriptorAllocator.h" />
     <ClInclude Include="Graphics\GfxShaderEnums.h" />
-    <ClInclude Include="Graphics\GfxStateObjectBuilder.h" />
+    <ClInclude Include="Graphics\GfxStateObject.h" />
     <ClInclude Include="Graphics\GfxSwapchain.h" />
     <ClInclude Include="Graphics\GfxDefines.h" />
     <ClInclude Include="Graphics\GfxCommon.h" />

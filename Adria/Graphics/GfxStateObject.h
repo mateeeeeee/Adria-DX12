@@ -4,16 +4,42 @@
 
 namespace adria
 {
+	class GfxDevice;
+
+	enum class GfxStateObjectType
+	{
+		Collection,
+		RayTracingPipeline,
+		Executable
+	};
+
+	class GfxStateObject
+	{
+		friend class GfxStateObjectBuilder;
+		friend class GfxCommandList;
+		friend class GfxRayTracingShaderTable;
+
+	public:
+		bool IsValid() const { return d3d12_so != nullptr; }
+
+	private:
+		Handle<ID3D12StateObject> d3d12_so;
+
+	private:
+		explicit GfxStateObject(ID3D12StateObject* so)
+		{
+			d3d12_so.Attach(so);
+		}
+	};
+
 	class GfxStateObjectBuilder
 	{
 		static constexpr uint64 MAX_SUBOBJECT_DESC_SIZE = sizeof(D3D12_HIT_GROUP_DESC);
 	public:
-
-		explicit GfxStateObjectBuilder(uint64 max_subobjects) : max_subobjects(max_subobjects), num_subobjects(0u), subobjects(max_subobjects), subobject_data(max_subobjects* MAX_SUBOBJECT_DESC_SIZE)
-		{}
+		explicit GfxStateObjectBuilder(uint64 max_subobjects) : max_subobjects(max_subobjects), num_subobjects(0u), subobjects(max_subobjects), subobject_data(max_subobjects* MAX_SUBOBJECT_DESC_SIZE) {}
 
 		template<typename SubObjectDesc>
-		ADRIA_MAYBE_UNUSED D3D12_STATE_SUBOBJECT const* AddSubObject(SubObjectDesc const& desc)
+		void AddSubObject(SubObjectDesc const& desc)
 		{
 			if constexpr (std::is_same_v<SubObjectDesc, D3D12_STATE_OBJECT_CONFIG>)
 				return AddSubObject(&desc, sizeof(desc), D3D12_STATE_SUBOBJECT_TYPE_STATE_OBJECT_CONFIG);
@@ -43,22 +69,7 @@ namespace adria
 				return nullptr;
 		}
 
-		ID3D12StateObject* CreateStateObject(ID3D12Device5* device, D3D12_STATE_OBJECT_TYPE type = D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE)
-		{
-			D3D12_STATE_OBJECT_DESC desc{};
-			BuildDescription(type, desc);
-			ID3D12StateObject* state_obj = nullptr;
-			HRESULT hr = device->CreateStateObject(&desc, IID_PPV_ARGS(&state_obj));
-			GFX_CHECK_HR(hr);
-			return state_obj;
-		}
-
-		D3D12_STATE_OBJECT_DESC GetDesc(D3D12_STATE_OBJECT_TYPE type = D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE) const
-		{
-			D3D12_STATE_OBJECT_DESC desc{};
-			BuildDescription(type, desc);
-			return desc;
-		}
+		GfxStateObject* CreateStateObject(GfxDevice* gfx, GfxStateObjectType type = GfxStateObjectType::RayTracingPipeline);
 
 	private:
 		std::vector<uint8> subobject_data;
@@ -67,8 +78,7 @@ namespace adria
 		uint64 num_subobjects;
 
 	private:
-
-		D3D12_STATE_SUBOBJECT const* AddSubObject(void const* desc, uint64 desc_size, D3D12_STATE_SUBOBJECT_TYPE type)
+		void AddSubObject(void const* desc, uint64 desc_size, D3D12_STATE_SUBOBJECT_TYPE type)
 		{
 			ADRIA_ASSERT(desc != nullptr);
 			ADRIA_ASSERT(desc_size > 0);
@@ -83,16 +93,6 @@ namespace adria
 			subobject.Type = type;
 			subobject.pDesc = subobject_data.data() + subobject_offset;
 			++num_subobjects;
-
-			return &subobject;
 		}
-
-		void BuildDescription(D3D12_STATE_OBJECT_TYPE type, D3D12_STATE_OBJECT_DESC& desc) const
-		{
-			desc.Type = type;
-			desc.NumSubobjects = static_cast<uint32>(num_subobjects);
-			desc.pSubobjects = num_subobjects ? subobjects.data() : nullptr;
-		}
-
 	};
 }

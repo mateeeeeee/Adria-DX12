@@ -3,7 +3,7 @@
 #include "ShaderCache.h"
 #include "PSOCache.h"
 #include "Graphics/GfxShader.h"
-#include "Graphics/GfxStateObjectBuilder.h"
+#include "Graphics/GfxStateObject.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
@@ -21,6 +21,7 @@ namespace adria
 			ShaderCache::GetLibraryRecompiledEvent().AddMember(&RayTracedReflectionsPass::OnLibraryRecompiled, *this);
 		}
 	}
+	RayTracedReflectionsPass::~RayTracedReflectionsPass() = default;
 
 	RGResourceName RayTracedReflectionsPass::AddPass(RenderGraph& rg)
 	{
@@ -71,7 +72,7 @@ namespace adria
 					.roughness_scale = reflection_roughness_scale,
 					.depth_idx = i + 0, .normal_idx = i + 1, .albedo_idx = i + 2, .output_idx = i + 3
 				};
-				auto& table = cmd_list->SetStateObject(ray_traced_reflections.Get());
+				auto& table = cmd_list->SetStateObject(ray_traced_reflections_so.get());
 				table.SetRayGenShader("RTR_RayGen");
 				table.AddMissShader("RTR_Miss", 0);
 				table.AddHitGroup("RTRClosestHitGroupPrimaryRay", 0);
@@ -80,7 +81,6 @@ namespace adria
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->DispatchRays(width, height);
 			}, RGPassType::Compute, RGPassFlags::None);
-
 		blur_pass.AddPass(rg, RG_RES_NAME(RTR_OutputNoisy), RG_RES_NAME(RTR_Output), "RTR Denoise");
 
 		GUI_RunCommand([&]()
@@ -93,7 +93,6 @@ namespace adria
 				}
 			}
 		);
-
 		return RG_RES_NAME(RTR_Output);
 	}
 
@@ -111,9 +110,7 @@ namespace adria
 
 	void RayTracedReflectionsPass::CreateStateObject()
 	{
-		ID3D12Device5* device = gfx->GetDevice();
 		GfxShader const& rtr_blob = ShaderCache::GetShader(LIB_Reflections);
-
 		GfxStateObjectBuilder rtr_state_object_builder(6);
 		{
 			D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc{};
@@ -146,9 +143,8 @@ namespace adria
 			//closesthit_group.ClosestHitShaderImport = L"RTR_ClosestHitReflectionRay";
 			//closesthit_group.HitGroupExport = L"RTRClosestHitGroupReflectionRay";
 			//rtr_state_object_builder.AddSubObject(closesthit_group);
-
-			ray_traced_reflections.Attach(rtr_state_object_builder.CreateStateObject(device));
 		}
+		ray_traced_reflections_so.reset(rtr_state_object_builder.CreateStateObject(gfx));
 	}
 
 	void RayTracedReflectionsPass::OnLibraryRecompiled(GfxShaderID shader)

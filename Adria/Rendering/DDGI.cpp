@@ -6,7 +6,7 @@
 #include "PSOCache.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxShader.h"
-#include "Graphics/GfxStateObjectBuilder.h"
+#include "Graphics/GfxStateObject.h"
 #include "Graphics/GfxRayTracingShaderTable.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Math/Constants.h"
@@ -33,6 +33,8 @@ namespace adria
 			enabled = true;
 		}
 	}
+
+	DDGI::~DDGI() = default;
 
 	void DDGI::OnSceneInitialized()
 	{
@@ -177,7 +179,7 @@ namespace adria
 					.ray_buffer_index = i
 				};
 
-				GfxRayTracingShaderTable& table = cmd_list->SetStateObject(ddgi_trace_so.Get());
+				GfxRayTracingShaderTable& table = cmd_list->SetStateObject(ddgi_trace_so.get());
 				table.SetRayGenShader("DDGI_RayGen");
 				table.AddMissShader("DDGI_Miss", 0);
 				table.AddHitGroup("DDGI_HitGroup", 0);
@@ -365,7 +367,6 @@ namespace adria
 
 	void DDGI::CreateStateObject()
 	{
-		ID3D12Device5* device = gfx->GetDevice();
 		GfxShader const& ddgi_blob = ShaderCache::GetShader(LIB_DDGIRayTracing);
 
 		GfxStateObjectBuilder ddgi_state_object_builder(5);
@@ -396,7 +397,7 @@ namespace adria
 			hit_group.HitGroupExport = L"DDGI_HitGroup";
 			ddgi_state_object_builder.AddSubObject(hit_group);
 		}
-		ddgi_trace_so.Attach(ddgi_state_object_builder.CreateStateObject(device));
+		ddgi_trace_so.reset(ddgi_state_object_builder.CreateStateObject(gfx));
 	}
 
 	void DDGI::OnLibraryRecompiled(GfxShaderID shader)

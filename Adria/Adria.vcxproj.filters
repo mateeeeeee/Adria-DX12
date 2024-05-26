@@ -501,6 +501,12 @@
     <ClCompile Include="Rendering\ReSTIRGI.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\GfxStateObject.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\GfxRayTracingShaderTable.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1104,7 +1110,7 @@
     <ClInclude Include="Graphics\GfxNsightAftermathGpuCrashTracker.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GfxStateObjectBuilder.h">
+    <ClInclude Include="Graphics\GfxStateObject.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\ReSTIRGI.h">

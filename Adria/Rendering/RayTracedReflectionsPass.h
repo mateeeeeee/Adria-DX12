@@ -1,8 +1,6 @@
 #pragma once
-
 #include "BlurPass.h"
 #include "Graphics/GfxRayTracingShaderTable.h"
-#include "Core/CoreTypes.h"
 #include "RenderGraph/RenderGraphResourceName.h"
 
 namespace adria
@@ -10,11 +8,13 @@ namespace adria
 	enum GfxShaderID : uint8;
 	class RenderGraph;
 	class GfxDevice;
+	class GfxStateObject;
 
 	class RayTracedReflectionsPass
 	{
 	public:
 		RayTracedReflectionsPass(GfxDevice* gfx, uint32 width, uint32 height);
+		~RayTracedReflectionsPass();
 		RGResourceName AddPass(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h);
 		bool IsSupported() const;
@@ -22,7 +22,7 @@ namespace adria
 	private:
 		GfxDevice* gfx;
 		BlurPass blur_pass;
-		Handle<ID3D12StateObject> ray_traced_reflections;
+		std::unique_ptr<GfxStateObject> ray_traced_reflections_so;
 		uint32 width, height;
 		bool is_supported;
 		float reflection_roughness_scale = 0.0f;

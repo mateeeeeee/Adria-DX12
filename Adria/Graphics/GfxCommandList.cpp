@@ -9,6 +9,7 @@
 #include "GfxRingDescriptorAllocator.h"
 #include "GfxLinearDynamicAllocator.h"
 #include "GfxRayTracingShaderTable.h"
+#include "GfxStateObject.h"
 #include "Utilities/StringUtil.h"
 
 namespace adria
@@ -554,13 +555,13 @@ namespace adria
 		}
 	}
 
-	GfxRayTracingShaderTable& GfxCommandList::SetStateObject(ID3D12StateObject* state_object)
+	GfxRayTracingShaderTable& GfxCommandList::SetStateObject(GfxStateObject* state_object)
 	{
-		if (state_object != current_state_object)
+		if (state_object->d3d12_so != current_state_object)
 		{
-			current_state_object = state_object;
-			cmd_list->SetPipelineState1(state_object);
-			current_context = state_object ? Context::Compute : Context::Invalid;
+			current_state_object = state_object->d3d12_so;
+			cmd_list->SetPipelineState1(state_object->d3d12_so.Get());
+			current_context = state_object->d3d12_so ? Context::Compute : Context::Invalid;
 			current_rt_table = std::make_unique<GfxRayTracingShaderTable>(state_object);
 		}
 		return *current_rt_table;

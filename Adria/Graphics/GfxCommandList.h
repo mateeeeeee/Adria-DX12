@@ -13,6 +13,7 @@ namespace adria
 	class GfxBuffer;
 	class GfxTexture;
 	class GfxPipelineState;
+	class GfxStateObject;
 	class GfxQueryHeap;
 	struct GfxVertexBufferView;
 	struct GfxIndexBufferView;
@@ -93,7 +94,7 @@ namespace adria
 		void EndRenderPass();
 
 		void SetPipelineState(GfxPipelineState* state);
-		GfxRayTracingShaderTable& SetStateObject(ID3D12StateObject* state_object);
+		GfxRayTracingShaderTable& SetStateObject(GfxStateObject* state_object);
 
 		void SetStencilReference(uint8 stencil);
 		void SetBlendFactor(float const* blend_factor);

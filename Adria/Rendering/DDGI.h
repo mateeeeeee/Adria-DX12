@@ -8,6 +8,7 @@ namespace adria
 	class GfxBuffer;
 	class GfxTexture;
 	class GfxDevice;
+	class GfxStateObject;
 	class RenderGraph;
 
 	class DDGI
@@ -49,6 +50,7 @@ namespace adria
 	public:
 
 		DDGI(GfxDevice* gfx, entt::registry& reg, uint32 w, uint32 h);
+		~DDGI();
 
 		void OnSceneInitialized();
 		void OnResize(uint32 w, uint32 h);
@@ -65,7 +67,7 @@ namespace adria
 		entt::registry& reg;
 		uint32 width, height;
 		bool is_supported;
-		Handle<ID3D12StateObject> ddgi_trace_so;
+		std::unique_ptr<GfxStateObject> ddgi_trace_so;
 		DDGIVolume ddgi_volume;
 		std::unique_ptr<GfxBuffer>  ddgi_volume_buffer;
 		GfxDescriptor ddgi_volume_buffer_srv;
