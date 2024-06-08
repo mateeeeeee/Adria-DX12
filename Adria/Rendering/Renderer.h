@@ -108,6 +108,7 @@ namespace adria
 		PostProcessor postprocessor;
 		DDGI		  ddgi;
 		PathTracingPass path_tracer;
+		GPUDebugPrinter gpu_debug_printer;
 
 		//ray tracing
 		bool ray_tracing_supported = false;
@@ -119,7 +120,7 @@ namespace adria
 		PickingData picking_data;
 
 		RendererPathType path_type = RendererPathType::RegularDeferred;
-		GPUDebugPrinter gpu_debug_printer;
+		bool use_gpu_driven_rendering = true;
 
 		//weather
 		float					 ambient_color[3] = { 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f };

@@ -52,6 +52,7 @@ namespace adria
 		path_tracer(gfx, width, height), ddgi(gfx, reg, width, height), gpu_debug_printer(gfx)
 	{
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
+		use_gpu_driven_rendering = gfx->GetCapabilities().SupportsMeshShaders();
 		g_DebugRenderer.Initialize(width, height);
 		g_GfxProfiler.Initialize(gfx);
 		GfxTracyProfiler::Initialize(gfx);
@@ -443,7 +444,7 @@ namespace adria
 			update_picking_data = false;
 		}
 		if (rain_enabled) rain_pass.AddBlockerPass(render_graph);
-		if (gfx->GetCapabilities().SupportsMeshShaders()) gpu_driven_renderer.Render(render_graph);
+		if (use_gpu_driven_rendering) gpu_driven_renderer.Render(render_graph);
 		else gbuffer_pass.AddPass(render_graph);
 
 		ddgi.AddPasses(render_graph);
@@ -483,6 +484,10 @@ namespace adria
 				if (ImGui::Combo("Renderer Path", &current_render_path_type, "Deferred\0Tiled Deferred\0Clustered Deferred\0Path Tracing\0", 4))
 				{
 					if (!ray_tracing_supported && current_render_path_type == 3) current_render_path_type = 0;
+				}
+				if (gfx->GetCapabilities().SupportsMeshShaders())
+				{
+					ImGui::Checkbox("Use GPU-Driven Rendering", &use_gpu_driven_rendering);
 				}
 				ImGui::ColorEdit3("Ambient Color", ambient_color);
 
