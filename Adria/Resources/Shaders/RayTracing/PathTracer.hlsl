@@ -25,8 +25,8 @@ void PT_RayGen()
 
     float2 ncdXY = (pixel / (resolution * 0.5f)) - 1.0f;
     ncdXY.y *= -1.0f;
-    float4 rayStart = mul(float4(ncdXY, 0.0f, 1.0f), FrameCB.inverseViewProjection);
-    float4 rayEnd = mul(float4(ncdXY, 1.0f, 1.0f), FrameCB.inverseViewProjection);
+    float4 rayStart = mul(float4(ncdXY, 1.0f, 1.0f), FrameCB.inverseViewProjection);
+    float4 rayEnd = mul(float4(ncdXY, 0.0f, 1.0f), FrameCB.inverseViewProjection);
 
     rayStart.xyz /= rayStart.w;
     rayEnd.xyz /= rayEnd.w;

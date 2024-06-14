@@ -43,13 +43,16 @@ void TiledDeferredLightingCS(CSInput input)
 
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
 
-	float minZ = FrameCB.cameraFar;
-	float maxZ = FrameCB.cameraNear;
+	float nearPlane = min(FrameCB.cameraNear, FrameCB.cameraFar);
+	float farPlane = max(FrameCB.cameraNear, FrameCB.cameraFar);
+
+	float minZ = farPlane;
+	float maxZ = nearPlane;
 
 	float depth = depthTx.Load(int3(input.DispatchThreadId.xy, 0));
 	float linearDepth = LinearizeDepth(depth);
 
-	bool validPixel = linearDepth >= FrameCB.cameraNear && linearDepth < FrameCB.cameraFar;
+	bool validPixel = linearDepth >= nearPlane && linearDepth < farPlane;
 
 	[flatten]
 	if (validPixel)
