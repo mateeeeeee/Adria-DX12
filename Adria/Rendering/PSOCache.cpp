@@ -32,7 +32,7 @@ namespace adria
 				gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
 				gfx_pso_desc.depth_state.depth_enable = true;
 				gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::Zero;
-				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::LessEqual;
+				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::GreaterEqual;
 				gfx_pso_desc.num_render_targets = 1;
 				gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
 				gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
@@ -45,7 +45,7 @@ namespace adria
 				gfx_pso_desc.PS = PS_GBuffer;
 				gfx_pso_desc.depth_state.depth_enable = true;
 				gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
-				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::LessEqual;
+				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::GreaterEqual;
 				gfx_pso_desc.num_render_targets = 3u;
 				gfx_pso_desc.rtv_formats[0] = GfxFormat::R8G8B8A8_UNORM;
 				gfx_pso_desc.rtv_formats[1] = GfxFormat::R8G8B8A8_UNORM;
@@ -93,7 +93,7 @@ namespace adria
 				gfx_pso_desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;
 				gfx_pso_desc.depth_state.depth_enable = true;
 				gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::Zero;
-				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::LessEqual;
+				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::GreaterEqual;
 				gfx_pso_desc.num_render_targets = 1;
 				gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
 				gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
@@ -194,7 +194,7 @@ namespace adria
 				gfx_pso_desc.PS = PS_Ocean;
 				gfx_pso_desc.depth_state.depth_enable = true;
 				gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
-				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::LessEqual;
+				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::GreaterEqual;
 				gfx_pso_desc.num_render_targets = 1;
 				gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
 				gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
@@ -260,7 +260,7 @@ namespace adria
 				gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
 				gfx_pso_desc.depth_state.depth_enable = true;
 				gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
-				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::LessEqual;
+				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::GreaterEqual;
 				gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
 				gfx_pso_desc.rasterizer_state.fill_mode = GfxFillMode::Wireframe;
 				gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Line;
@@ -277,7 +277,7 @@ namespace adria
 				gfx_pso_desc.PS = PS_DDGIVisualize;
 				gfx_pso_desc.depth_state.depth_enable = true;
 				gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
-				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::LessEqual;
+				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::GreaterEqual;
 				gfx_pso_desc.num_render_targets = 1u;
 				gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
 				gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
@@ -314,7 +314,7 @@ namespace adria
 				gfx_pso_desc.rasterizer_state.slope_scaled_depth_bias = 1.0f;
 				gfx_pso_desc.depth_state.depth_enable = true;
 				gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
-				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::LessEqual;
+				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::GreaterEqual;
 				gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
 				gfx_pso_map[GfxPipelineStateID::RainBlocker] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 			}
@@ -520,7 +520,7 @@ namespace adria
 					mesh_pso_desc.PS = PS_DrawMeshlets;
 					mesh_pso_desc.depth_state.depth_enable = true;
 					mesh_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
-					mesh_pso_desc.depth_state.depth_func = GfxComparisonFunc::LessEqual;
+					mesh_pso_desc.depth_state.depth_func = GfxComparisonFunc::GreaterEqual;
 					mesh_pso_desc.num_render_targets = 3u;
 					mesh_pso_desc.rtv_formats[0] = GfxFormat::R8G8B8A8_UNORM;
 					mesh_pso_desc.rtv_formats[1] = GfxFormat::R8G8B8A8_UNORM;

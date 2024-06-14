@@ -146,7 +146,7 @@ namespace adria
 	{
 		bool depth_enable = true;
 		GfxDepthWriteMask depth_write_mask = GfxDepthWriteMask::All;
-		GfxComparisonFunc depth_func = GfxComparisonFunc::Less;
+		GfxComparisonFunc depth_func = GfxComparisonFunc::Greater;
 		bool stencil_enable = false;
 		uint8 stencil_read_mask = 0xff;
 		uint8 stencil_write_mask = 0xff;

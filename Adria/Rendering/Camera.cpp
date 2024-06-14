@@ -10,7 +10,7 @@ namespace adria
 {
 
 	Camera::Camera(CameraParameters const& desc) : position{ desc.position }, right_vector{ 1.0f,0.0f,0.0f }, up_vector{ 0.0f,1.0f,0.0f },
-		aspect_ratio{ desc.aspect_ratio }, fov{ desc.fov }, near_plane{ desc.near_plane }, far_plane{ desc.far_plane },
+		aspect_ratio{ desc.aspect_ratio }, fov{ desc.fov }, near_plane{ desc.far_plane }, far_plane{ desc.near_plane },
 		speed{ desc.speed }, sensitivity{ desc.sensitivity }
 	{
 		look_vector = desc.look_at - position; look_vector.Normalize();
@@ -117,6 +117,7 @@ namespace adria
 	BoundingFrustum Camera::Frustum() const
 	{
 		BoundingFrustum frustum(Proj());
+		if (frustum.Far < frustum.Near) std::swap(frustum.Far, frustum.Near);
 		frustum.Transform(frustum, view_matrix.Invert());
 		return frustum;
 	}

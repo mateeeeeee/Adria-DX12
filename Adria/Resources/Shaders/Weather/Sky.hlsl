@@ -13,9 +13,10 @@ struct VSToPS
 
 VSToPS SkyVS(VertexIn input)
 {
-	VSToPS output;
+	VSToPS output = (VSToPS)0;
 	output.Pos = float4(input.PosL + FrameCB.cameraPosition.xyz, 1.0f);
 	output.Pos = mul(output.Pos, FrameCB.viewProjection).xyww;
+	output.Pos.z = 0.0f;
 	output.PosL = input.PosL;
 	return output;
 }

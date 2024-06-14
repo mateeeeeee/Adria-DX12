@@ -540,6 +540,9 @@ namespace adria
 	{
 		float camera_near = camera.Near();
 		float camera_far = camera.Far();
+		float near_plane = std::min(camera_near, camera_far);
+		float far_plane  = std::max(camera_near, camera_far);
+
 		float fov = camera.Fov();
 		float ar = camera.AspectRatio();
 
@@ -547,13 +550,13 @@ namespace adria
 		for (uint32 i = 0; i < split_distances.size(); i++)
 		{
 			float fi = (i + 1) * f;
-			float l = camera_near * pow(camera_far / camera_near, fi);
-			float u = camera_near + (camera_far - camera_near) * fi;
+			float l = near_plane * pow(far_plane / near_plane, fi);
+			float u = near_plane + (far_plane - near_plane) * fi;
 			split_distances[i] = l * split_lambda + u * (1.0f - split_lambda);
 		}
 
 		std::array<Matrix, SHADOW_CASCADE_COUNT> projection_matrices{};
-		projection_matrices[0] = XMMatrixPerspectiveFovLH(fov, ar, camera_near, split_distances[0]);
+		projection_matrices[0] = XMMatrixPerspectiveFovLH(fov, ar, near_plane, split_distances[0]);
 		for (uint32 i = 1; i < projection_matrices.size(); ++i)
 			projection_matrices[i] = XMMatrixPerspectiveFovLH(fov, ar, split_distances[i - 1], split_distances[i]);
 		return projection_matrices;

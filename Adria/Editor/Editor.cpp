@@ -790,7 +790,7 @@ namespace adria
 			ImGui::SliderFloat("FOV", &fov, 0.01f, 1.5707f);
 			Vector3 look_at = camera.Forward();
 			ImGui::Text("Look Vector: (%f,%f,%f)", look_at.x, look_at.y, look_at.z);
-			camera.SetNearAndFar(near_plane, far_plane);
+			camera.SetNearAndFar(far_plane, near_plane);
 			camera.SetFov(fov);
 		}
 		ImGui::End();
