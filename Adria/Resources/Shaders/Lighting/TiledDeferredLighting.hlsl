@@ -50,7 +50,7 @@ void TiledDeferredLightingCS(CSInput input)
 	float maxZ = nearPlane;
 
 	float depth = depthTx.Load(int3(input.DispatchThreadId.xy, 0));
-	float linearDepth = LinearizeDepth(depth);
+	float linearDepth = ReverseLinearizeDepth(depth);
 
 	bool validPixel = linearDepth >= nearPlane && linearDepth < farPlane;
 

@@ -52,10 +52,12 @@ void ClusteredDeferredLightingCS(CSInput input)
 	float3 V = normalize(float3(0.0f, 0.0f, 0.0f) - viewPosition);
 	float3 albedo = albedoRoughness.rgb;
 	float  roughness = albedoRoughness.a;
-	float linearDepth = LinearizeDepth(depth);
+	float linearDepth = ReverseLinearizeDepth(depth);
+	
+	float nearPlane = min(FrameCB.cameraNear, FrameCB.cameraFar);
+	float farPlane = max(FrameCB.cameraNear, FrameCB.cameraFar);
 
-
-	uint zCluster = uint(max((log2(linearDepth) - log2(FrameCB.cameraNear)) * 16.0f / log2(FrameCB.cameraFar / FrameCB.cameraNear), 0.0f));
+	uint zCluster = uint(max((log2(linearDepth) - log2(nearPlane)) * 16.0f / log2(farPlane / nearPlane), 0.0f));
 	uint2 clusterDim = ceil(FrameCB.renderResolution / float2(16, 16));
 	uint3 tiles = uint3(uint2(((float2) input.DispatchThreadId.xy + 0.5f) / clusterDim), zCluster);
 

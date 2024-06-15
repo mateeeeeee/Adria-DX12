@@ -109,6 +109,11 @@ static float LinearizeDepth(float z)
 	return FrameCB.cameraFar / (FrameCB.cameraFar + z * (FrameCB.cameraNear - FrameCB.cameraFar));
 }
 
+static float ReverseLinearizeDepth(float z)
+{
+    return FrameCB.cameraNear * FrameCB.cameraFar / (FrameCB.cameraFar - z * (FrameCB.cameraFar - FrameCB.cameraNear));
+}
+
 static uint2 FullScreenPosition(uint2 halfScreenPos)
 {
     static const uint2 offsets[4] =
