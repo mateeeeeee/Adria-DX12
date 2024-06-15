@@ -46,7 +46,7 @@ namespace adria
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
-			}
+			}, GUICommandGroup_PostProcessing
 		);
 
 		return upsample_mips.front();

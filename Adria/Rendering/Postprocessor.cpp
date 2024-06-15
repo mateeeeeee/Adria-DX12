@@ -408,7 +408,7 @@ namespace adria
 				if (cvars::taa) anti_aliasing = static_cast<AntiAliasing>(anti_aliasing | AntiAliasing_TAA);
 				else anti_aliasing = static_cast<AntiAliasing>(anti_aliasing & (~AntiAliasing_TAA));
 
-			});
+			}, GUICommandGroup_None);
 	}
 
 }

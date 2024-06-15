@@ -482,30 +482,36 @@ namespace adria
 		GUI_RunCommand([&]()
 			{
 				int& current_render_path_type = cvars::renderpath.Get();
-				
-				if (ImGui::Combo("Renderer Path", &current_render_path_type, "Deferred\0Tiled Deferred\0Clustered Deferred\0Path Tracing\0", 4))
-				{
-					if (!ray_tracing_supported && current_render_path_type == 3) current_render_path_type = 0;
-				}
-				if (gfx->GetCapabilities().SupportsMeshShaders())
-				{
-					ImGui::Checkbox("Use GPU-Driven Rendering", &use_gpu_driven_rendering);
-				}
-				ImGui::ColorEdit3("Ambient Color", ambient_color);
 
-				if (ImGui::TreeNode("Weather"))
+				if (ImGui::TreeNode("Renderer Settings"))
 				{
-					if (ImGui::Checkbox("Rain", &rain_enabled))
+					if (ImGui::Combo("Renderer Path", &current_render_path_type, "Deferred\0Tiled Deferred\0Clustered Deferred\0Path Tracing\0", 4))
 					{
-						rain_pass.OnRainEnabled(rain_enabled);
+						if (!ray_tracing_supported && current_render_path_type == 3) current_render_path_type = 0;
 					}
-					ImGui::SliderFloat3("Wind Direction", wind_dir, -1.0f, 1.0f);
-					ImGui::SliderFloat("Wind Speed", &wind_speed, 0.0f, 32.0f);
-					ImGui::TreePop();
-				}
+					if (gfx->GetCapabilities().SupportsMeshShaders())
+					{
+						ImGui::Checkbox("Use GPU-Driven Rendering", &use_gpu_driven_rendering);
+					}
+					ImGui::ColorEdit3("Ambient Color", ambient_color);
 
-				path_type = static_cast<RendererPathType>(current_render_path_type);
-			});
+					if (ImGui::TreeNode("Weather"))
+					{
+						if (ImGui::Checkbox("Rain", &rain_enabled))
+						{
+							rain_pass.OnRainEnabled(rain_enabled);
+						}
+						ImGui::SliderFloat3("Wind Direction", wind_dir, -1.0f, 1.0f);
+						ImGui::SliderFloat("Wind Speed", &wind_speed, 0.0f, 32.0f);
+						ImGui::TreePop();
+					}
+
+					path_type = static_cast<RendererPathType>(current_render_path_type);
+
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
+			}, GUICommandGroup_None);
 	}
 
 	void Renderer::CopyToBackbuffer(RenderGraph& rg)

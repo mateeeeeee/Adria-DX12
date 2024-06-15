@@ -3,14 +3,14 @@
 
 namespace adria
 {
-	void GUI_RunCommand(std::function<void()>&& cb)
+	void GUI_RunCommand(std::function<void()>&& cb, GUICommandGroup group)
 	{
-		Editor::Get().AddCommand(GUICommand{ .callback = std::move(cb) });
+		g_Editor.AddCommand(GUICommand{ .callback = std::move(cb), .group = group });
 	}
 
 	void GUI_DisplayTexture(char const* name, GfxTexture* gfx_texture)
 	{
-		Editor::Get().AddDebugTexture(GUITexture{ .name = name, .gfx_texture = gfx_texture });
+		g_Editor.AddDebugTexture(GUITexture{ .name = name, .gfx_texture = gfx_texture });
 	}
 
 }

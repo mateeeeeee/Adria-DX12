@@ -136,7 +136,7 @@ namespace adria
 					if(sharpening_enabled) ImGui::SliderFloat("Sharpness", &sharpness, 0.0f, 1.0f, "%.2f");
 					ImGui::TreePop();
 				}
-			});
+			}, GUICommandGroup_PostProcessing);
 
 		return RG_RES_NAME(FSR3Output);
 	}

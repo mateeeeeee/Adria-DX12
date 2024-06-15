@@ -83,7 +83,7 @@ namespace adria
 				ImGui::TreePop();
 				ImGui::Separator();
 			}
-			});
+			}, GUICommandGroup_PostProcessing);
 		return RG_RES_NAME(SSR_Output);
 	}
 

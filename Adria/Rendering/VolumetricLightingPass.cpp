@@ -80,7 +80,7 @@ namespace adria
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
-			});
+			}, GUICommandGroup_Renderer);
 		shadow_textures.clear();
 	}
 

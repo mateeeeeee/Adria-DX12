@@ -118,7 +118,7 @@ namespace adria
 					}
 					ImGui::TreePop();
 				}
-			});
+			}, GUICommandGroup_Renderer);
 
 		if (!enabled) return;
 

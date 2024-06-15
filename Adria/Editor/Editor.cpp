@@ -863,9 +863,23 @@ namespace adria
 	void Editor::Settings()
 	{
 		if (!visibility_flags[Flag_Settings]) return;
+
+		std::map<GUICommandGroup, std::vector<GUICommand*>> grouped_commands;
+		for (auto&& cmd : commands)
+		{
+			grouped_commands[cmd.group].push_back(&cmd);
+		}
+
 		if (ImGui::Begin(ICON_FA_GEAR" Settings", &visibility_flags[Flag_Settings]))
 		{
-			for (auto&& cmd : commands) cmd.callback();
+			for (auto&& [group, cmds] : grouped_commands)
+			{
+				if (group != GUICommandGroup_None)
+				{
+					ImGui::SeparatorText(GUICommandGroupNames[group]);
+				}
+				for (auto* cmd : cmds) cmd->callback();
+			}
 		}
 		ImGui::End();
 	}

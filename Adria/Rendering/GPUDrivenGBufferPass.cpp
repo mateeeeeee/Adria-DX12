@@ -66,7 +66,7 @@ namespace adria
 					}
 					ImGui::End();
 				}
-			}
+			}, GUICommandGroup_Renderer
 		);
 	}
 

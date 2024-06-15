@@ -157,7 +157,7 @@ namespace adria
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
-			}
+			}, GUICommandGroup_Renderer
 		);
 	}
 
