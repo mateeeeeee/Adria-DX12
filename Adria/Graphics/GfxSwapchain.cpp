@@ -32,7 +32,7 @@ namespace adria
 		fullscreen_desc.Windowed = desc.fullscreen_windowed;
 
 		GfxCommandQueue& graphics_queue = gfx->GetCommandQueue(GfxCommandListType::Graphics);
-		Handle<IDXGISwapChain1> swapchain1 = nullptr;
+		Ref<IDXGISwapChain1> swapchain1 = nullptr;
 
 		GFX_CHECK_HR(gfx->GetFactory()->CreateSwapChainForHwnd(
 			graphics_queue,
@@ -94,7 +94,7 @@ namespace adria
 	{
 		for (uint32 i = 0; i < GFX_BACKBUFFER_COUNT; ++i)
 		{
-			Handle<ID3D12Resource> backbuffer = nullptr;
+			Ref<ID3D12Resource> backbuffer = nullptr;
 			HRESULT hr = swapchain->GetBuffer(i, IID_PPV_ARGS(backbuffer.GetAddressOf()));
 			GFX_CHECK_HR(hr);
 			D3D12_RESOURCE_DESC desc = backbuffer->GetDesc();

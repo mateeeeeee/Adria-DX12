@@ -815,7 +815,7 @@
     <ClInclude Include="Graphics\GfxCommon.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\Handle.h">
+    <ClInclude Include="Utilities\Ref.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxFormat.h">

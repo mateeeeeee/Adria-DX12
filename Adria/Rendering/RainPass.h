@@ -20,6 +20,7 @@ namespace adria
 	public:
 		RainPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h);
 
+		void Update(float dt);
 		void AddBlockerPass(RenderGraph& rg);
 		void AddPass(RenderGraph& rg);
 		void OnResize(uint32 w, uint32 h)
@@ -35,6 +36,7 @@ namespace adria
 			rain_event.Broadcast(enabled && !cheap);
 		}
 
+		float GetRainTotalTime()		  const { return rain_total_time; }
 		int32 GetRainSplashDiffuseIndex() const { return (int32)rain_splash_diffuse_handle; }
 		int32 GetRainSplashBumpIndex()    const { return (int32)rain_splash_bump_handle;    }
 		int32 GetRainBlockerMapIndex()    const { return rain_blocker_map_pass.GetRainBlockerMapIdx(); }
@@ -54,9 +56,9 @@ namespace adria
 		float rain_density = 0.5f;
 		float streak_scale = 0.33f;
 		float range_radius = 40.0f;
+		float rain_total_time = 0.0f;
 
 		RainEvent rain_event;
-
 		RainBlockerMapPass rain_blocker_map_pass;
 	};
 }

@@ -52,7 +52,7 @@ namespace adria
 		GfxPipelineState(GfxDevice* gfx, GfxPipelineStateType type) : gfx(gfx), type(type) {}
 	protected:
 		GfxDevice* gfx;
-		Handle<ID3D12PipelineState> pso;
+		Ref<ID3D12PipelineState> pso;
 		GfxPipelineStateType type;
 		DelegateHandle event_handle;
 	};

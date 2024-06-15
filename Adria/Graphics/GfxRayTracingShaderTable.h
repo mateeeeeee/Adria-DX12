@@ -40,7 +40,7 @@ namespace adria
 		void Commit(GfxRingDynamicAllocator& allocator, D3D12_DISPATCH_RAYS_DESC& desc);
 
 	private:
-		Handle<ID3D12StateObjectProperties> pso_info = nullptr;
+		Ref<ID3D12StateObjectProperties> pso_info = nullptr;
 		GfxShaderRecord ray_gen_record;
 		uint32 ray_gen_record_size = 0;
 		std::vector<GfxShaderRecord> miss_shader_records;

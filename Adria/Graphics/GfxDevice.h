@@ -192,8 +192,8 @@ namespace adria
 		uint32 width, height;
 		uint32 frame_index;
 
-		Handle<IDXGIFactory6> dxgi_factory = nullptr;
-		Handle<ID3D12Device5> device = nullptr;
+		Ref<IDXGIFactory6> dxgi_factory = nullptr;
+		Ref<ID3D12Device5> device = nullptr;
 		GfxCapabilities device_capabilities{};
 		GfxVendor vendor = GfxVendor::Unknown;
 
@@ -234,7 +234,7 @@ namespace adria
 		};
 		std::queue<ReleasableItem>  release_queue;
 
-		Handle<ID3D12RootSignature> global_root_signature = nullptr;
+		Ref<ID3D12RootSignature> global_root_signature = nullptr;
 
 		std::vector<std::unique_ptr<GfxLinearDynamicAllocator>> dynamic_allocators;
 		std::unique_ptr<GfxLinearDynamicAllocator> dynamic_allocator_on_init;

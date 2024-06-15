@@ -64,6 +64,7 @@ namespace adria
 		int32  rain_splash_diffuse_idx;
 		int32  rain_splash_bump_idx;
 		int32  rain_blocker_map_idx;
+		float  rain_total_time;
 	};
 
 	struct LightHLSL

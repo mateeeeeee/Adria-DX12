@@ -62,7 +62,7 @@ namespace adria
 
 	private:
 		GfxDevice* gfx;
-		Handle<ID3D12Resource> resource;
+		Ref<ID3D12Resource> resource;
 		GfxBufferDesc desc;
 		ReleasablePtr<D3D12MA::Allocation> allocation = nullptr;
 		void* mapped_data = nullptr;

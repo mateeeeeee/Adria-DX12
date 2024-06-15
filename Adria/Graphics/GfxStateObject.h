@@ -23,7 +23,7 @@ namespace adria
 		bool IsValid() const { return d3d12_so != nullptr; }
 
 	private:
-		Handle<ID3D12StateObject> d3d12_so;
+		Ref<ID3D12StateObject> d3d12_so;
 
 	private:
 		explicit GfxStateObject(ID3D12StateObject* so)

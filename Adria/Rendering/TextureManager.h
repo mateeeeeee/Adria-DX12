@@ -7,7 +7,7 @@
 #include "TextureHandle.h"
 #include "Graphics/GfxDescriptor.h"
 #include "Utilities/Singleton.h"
-#include "Utilities/Handle.h"
+#include "Utilities/Ref.h"
 
 namespace adria
 {

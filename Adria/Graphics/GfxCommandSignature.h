@@ -2,7 +2,7 @@
 #include <memory>
 #include <d3d12.h>
 #include "GfxDefines.h"
-#include "Utilities/Handle.h"
+#include "Utilities/Ref.h"
 
 namespace adria
 {
@@ -61,7 +61,7 @@ namespace adria
 			return cmd_signature.Get();
 		}
 	private:
-		Handle<ID3D12CommandSignature> cmd_signature;
+		Ref<ID3D12CommandSignature> cmd_signature;
 	};
 
 	using DrawIndirectSignature			= IndirectCommandSignature<IndirectCommandType::Draw>;

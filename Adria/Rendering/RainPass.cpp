@@ -21,6 +21,14 @@ namespace adria
 	{
 	}
 
+	void RainPass::Update(float dt)
+	{
+		if (!pause_simulation)
+		{
+			rain_total_time += dt;
+		}
+	}
+
 	void RainPass::AddBlockerPass(RenderGraph& rg)
 	{
 		rain_blocker_map_pass.AddPass(rg);

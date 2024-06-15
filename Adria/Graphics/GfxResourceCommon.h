@@ -3,7 +3,7 @@
 #include "D3D12MemAlloc.h"
 #include "Utilities/EnumUtil.h"
 #include "Utilities/StringUtil.h"
-#include "Utilities/Handle.h"
+#include "Utilities/Ref.h"
 #include "Utilities/Releasable.h"
 
 namespace adria

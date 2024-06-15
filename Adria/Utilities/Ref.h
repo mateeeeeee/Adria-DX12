@@ -224,5 +224,5 @@ namespace adria
 	};    // AutoRefCountPtr
 
 	template <typename T>
-	using Handle = RefCountPtr<T>;
+	using Ref = RefCountPtr<T>;
 }

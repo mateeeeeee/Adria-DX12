@@ -502,7 +502,7 @@
     <ClInclude Include="Resources\Shaders\SPD\ffx_a.h" />
     <ClInclude Include="Resources\Shaders\SPD\ffx_spd.h" />
     <ClInclude Include="Utilities\AllocatorUtil.h" />
-    <ClInclude Include="Utilities\Handle.h" />
+    <ClInclude Include="Utilities\Ref.h" />
     <ClInclude Include="Utilities\CLIParser.h" />
     <ClInclude Include="Utilities\Delegate.h" />
     <ClInclude Include="Utilities\EnumUtil.h" />

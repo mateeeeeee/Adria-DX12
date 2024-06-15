@@ -23,8 +23,8 @@ void ApplyRain(in float3 worldPosition, inout float3 albedoColor, inout float ro
 	{
 		Texture3D rainSplashDiffuseTx = ResourceDescriptorHeap[FrameCB.rainSplashDiffuseIdx];
 		Texture3D rainSplashBumpTx = ResourceDescriptorHeap[FrameCB.rainSplashBumpIdx];
-		float3 rainSplashDiffuse = rainSplashDiffuseTx.SampleLevel(LinearMirrorSampler, float3(worldPosition.xz / 5.0f, FrameCB.totalTime), 0).rgb;
-		float3 rainSplashBump = rainSplashBumpTx.SampleLevel(LinearMirrorSampler, float3(worldPosition.xz  / 10.0f, FrameCB.totalTime), 0).rgb - 0.5f;
+		float3 rainSplashDiffuse = rainSplashDiffuseTx.SampleLevel(LinearMirrorSampler, float3(worldPosition.xz / 5.0f, FrameCB.rainTotalTime), 0).rgb;
+		float3 rainSplashBump = rainSplashBumpTx.SampleLevel(LinearMirrorSampler, float3(worldPosition.xz  / 10.0f, FrameCB.rainTotalTime), 0).rgb - 0.5f;
 		normal += wetFactor * 2 * (rainSplashBump.x * tangent + rainSplashBump.y * bitangent);
 		albedoColor += wetFactor * rainSplashDiffuse;
 	}

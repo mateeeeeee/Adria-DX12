@@ -314,7 +314,7 @@ namespace adria
 				gfx_pso_desc.rasterizer_state.slope_scaled_depth_bias = 1.0f;
 				gfx_pso_desc.depth_state.depth_enable = true;
 				gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
-				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::GreaterEqual;
+				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::LessEqual;
 				gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
 				gfx_pso_map[GfxPipelineStateID::RainBlocker] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 			}

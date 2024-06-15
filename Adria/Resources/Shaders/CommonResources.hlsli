@@ -47,6 +47,7 @@ struct FrameCBuffer
 	int	   rainSplashDiffuseIdx;
 	int	   rainSplashBumpIdx;
 	int	   rainBlockerMapIdx;
+	float  rainTotalTime;
 };
 ConstantBuffer<FrameCBuffer> FrameCB  : register(b0);
 

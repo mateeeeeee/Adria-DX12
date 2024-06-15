@@ -1,6 +1,6 @@
 #pragma once
 #include "GfxDescriptor.h"
-#include "Utilities/Handle.h"
+#include "Utilities/Ref.h"
 
 namespace adria
 {
@@ -41,7 +41,7 @@ namespace adria
 		
 	protected:
 		GfxDevice* gfx;
-		Handle<ID3D12DescriptorHeap> heap = nullptr;
+		Ref<ID3D12DescriptorHeap> heap = nullptr;
 		GfxDescriptor head_descriptor;
 		uint32 descriptor_handle_size = 0;
 		GfxDescriptorHeapType type = GfxDescriptorHeapType::Invalid;

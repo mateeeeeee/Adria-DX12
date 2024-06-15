@@ -357,6 +357,7 @@ namespace adria
 	{
 		static float total_time = 0.0f;
 		total_time += dt;
+		rain_pass.Update(dt);
 
 		camera_jitter = Vector2(0.0f, 0.0f);
 		if (postprocessor.NeedsJitter()) camera_jitter = camera->Jitter(gfx->GetFrameIndex());
@@ -396,6 +397,7 @@ namespace adria
 		frame_cbuf_data.rain_splash_bump_idx = rain_pass.GetRainSplashBumpIndex();
 		frame_cbuf_data.rain_blocker_map_idx = rain_pass.GetRainBlockerMapIndex();
 		frame_cbuf_data.rain_view_projection = rain_pass.GetRainViewProjection();
+		frame_cbuf_data.rain_total_time = rain_pass.GetRainTotalTime();
 
 		if (ray_tracing_supported && reg.view<RayTracing>().size())
 		{
