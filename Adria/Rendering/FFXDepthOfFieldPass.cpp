@@ -95,7 +95,7 @@ namespace adria
 
 					ImGui::TreePop();
 				}
-			}, GUICommandGroup_PostProcessing);
+			}, GUICommandGroup_PostProcessor);
 
 		return RG_RES_NAME(FFXDoFOutput);
 	}

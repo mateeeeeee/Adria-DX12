@@ -9,13 +9,14 @@ namespace adria
 	{
 		GUICommandGroup_None,
 		GUICommandGroup_Renderer,
-		GUICommandGroup_PostProcessing
+		GUICommandGroup_PostProcessor,
+		GUICommandGroup_Count
 	};
 	static char const* GUICommandGroupNames[] =
 	{
 		"",
-		"Renderer",
-		"PostProcessing"
+		"Renderer Settings",
+		"PostProcessor Settings"
 	};
 
 	struct GUICommand

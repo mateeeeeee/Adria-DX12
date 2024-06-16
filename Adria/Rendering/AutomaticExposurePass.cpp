@@ -226,7 +226,7 @@ namespace adria
 					}
 					ImGui::TreePop();
 				}
-			}, GUICommandGroup_PostProcessing
+			}, GUICommandGroup_PostProcessor
 		);
 	}
 

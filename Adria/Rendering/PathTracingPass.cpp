@@ -58,7 +58,7 @@ namespace adria
 					ctx.GetReadWriteTexture(data.accumulation),
 					ctx.GetReadWriteTexture(data.output)
 				};
-				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(std::size(src_descriptors));
+				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
 				uint32 const i = dst_descriptor.GetIndex();
 

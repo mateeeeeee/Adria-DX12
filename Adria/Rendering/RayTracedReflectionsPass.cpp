@@ -60,7 +60,7 @@ namespace adria
 					ctx.GetReadOnlyTexture(data.diffuse),
 					ctx.GetReadWriteTexture(data.output)
 				};
-				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(std::size(src_descriptors));
+				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
 				uint32 const i = dst_descriptor.GetIndex();
 
@@ -95,7 +95,7 @@ namespace adria
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
-			}, GUICommandGroup_PostProcessing
+			}, GUICommandGroup_PostProcessor
 		);
 		return RG_RES_NAME(RTR_Output);
 	}

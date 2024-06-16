@@ -341,7 +341,7 @@ namespace adria
 				int& current_upscaler = cvars::upscaler.Get();
 				int& current_reflection_type = cvars::reflections.Get();
 				int& current_dof_type = cvars::dof.Get();
-				if (ImGui::TreeNode("Post-processing"))
+				if (ImGui::TreeNode("PostProcessor"))
 				{
 					if (ImGui::Combo("Ambient Occlusion", &current_ao_type, "None\0SSAO\0HBAO\0CACAO\0RTAO\0", 5))
 					{

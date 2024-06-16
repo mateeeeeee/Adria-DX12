@@ -883,7 +883,7 @@ namespace adria
 	{
 		if (!visibility_flags[Flag_Settings]) return;
 
-		std::map<GUICommandGroup, std::vector<GUICommand*>> grouped_commands;
+		std::array<std::vector<GUICommand*>, GUICommandGroup_Count> grouped_commands;
 		for (auto&& cmd : commands)
 		{
 			grouped_commands[cmd.group].push_back(&cmd);
@@ -891,11 +891,12 @@ namespace adria
 
 		if (ImGui::Begin(ICON_FA_GEAR" Settings", &visibility_flags[Flag_Settings]))
 		{
-			for (auto&& [group, cmds] : grouped_commands)
+			for (uint32 i = 0; i < GUICommandGroup_Count; ++i)
 			{
-				if (group != GUICommandGroup_None)
+				auto& cmds = grouped_commands[i];
+				if (i != GUICommandGroup_None)
 				{
-					ImGui::SeparatorText(GUICommandGroupNames[group]);
+					ImGui::SeparatorText(GUICommandGroupNames[i]);
 				}
 				for (auto* cmd : cmds) cmd->callback();
 			}

@@ -363,7 +363,7 @@ namespace adria
 
 					ImGui::TreePop();
 				}
-			}, GUICommandGroup_PostProcessing);
+			}, GUICommandGroup_PostProcessor);
 	}
 
 	void FFXCACAOPass::OnResize(uint32 w, uint32 h)

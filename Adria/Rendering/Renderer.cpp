@@ -483,7 +483,7 @@ namespace adria
 			{
 				int& current_render_path_type = cvars::renderpath.Get();
 
-				if (ImGui::TreeNode("Renderer Settings"))
+				if (ImGui::TreeNode("Renderer"))
 				{
 					if (ImGui::Combo("Renderer Path", &current_render_path_type, "Deferred\0Tiled Deferred\0Clustered Deferred\0Path Tracing\0", 4))
 					{
