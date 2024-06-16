@@ -618,13 +618,19 @@ namespace adria
 				if (material && ImGui::CollapsingHeader("Material"))
 				{
 					ImGui::Text("Albedo Texture");
-					GfxDescriptor tex_handle = g_TextureManager.GetSRV(material->albedo_texture);
-					GfxDescriptor dst_descriptor = gui->AllocateDescriptorsGPU();
-					gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
-					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, ImVec2(48.0f, 48.0f));
+					if (material->albedo_texture != INVALID_TEXTURE_HANDLE)
+					{
+						GfxDescriptor tex_handle = g_TextureManager.GetSRV(material->albedo_texture);
+						GfxDescriptor dst_descriptor = gui->AllocateDescriptorsGPU();
+						gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
+						ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr, ImVec2(48.0f, 48.0f));
+					}
 
 					ImGui::PushID(0);
-					if (ImGui::Button("Remove")) material->albedo_texture = INVALID_TEXTURE_HANDLE;
+					if (ImGui::Button("Remove"))
+					{
+						material->albedo_texture = INVALID_TEXTURE_HANDLE;
+					}
 					if (ImGui::Button("Select"))
 					{
 						nfdchar_t* file_path = NULL;
@@ -639,14 +645,21 @@ namespace adria
 					ImGui::PopID();
 
 					ImGui::Text("Metallic-Roughness Texture");
-					tex_handle = g_TextureManager.GetSRV(material->metallic_roughness_texture);
-					dst_descriptor = gui->AllocateDescriptorsGPU();
-					gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
-					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
-						ImVec2(48.0f, 48.0f));
+					if (material->metallic_roughness_texture != INVALID_TEXTURE_HANDLE)
+					{
+						GfxDescriptor tex_handle = g_TextureManager.GetSRV(material->metallic_roughness_texture);
+						GfxDescriptor dst_descriptor = gui->AllocateDescriptorsGPU();
+						gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
+						ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
+							ImVec2(48.0f, 48.0f));
+					}
+
 
 					ImGui::PushID(1);
-					if (ImGui::Button("Remove")) material->metallic_roughness_texture = INVALID_TEXTURE_HANDLE;
+					if (ImGui::Button("Remove"))
+					{
+						material->metallic_roughness_texture = INVALID_TEXTURE_HANDLE;
+					}
 					if (ImGui::Button("Select"))
 					{
 						nfdchar_t* file_path = NULL;
@@ -661,14 +674,20 @@ namespace adria
 					ImGui::PopID();
 
 					ImGui::Text("Emissive Texture");
-					tex_handle = g_TextureManager.GetSRV(material->emissive_texture);
-					dst_descriptor = gui->AllocateDescriptorsGPU();
-					gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
-					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
-						ImVec2(48.0f, 48.0f));
+					if (material->emissive_texture != INVALID_TEXTURE_HANDLE)
+					{
+						GfxDescriptor tex_handle = g_TextureManager.GetSRV(material->emissive_texture);
+						GfxDescriptor dst_descriptor = gui->AllocateDescriptorsGPU();
+						gfx->CopyDescriptors(1, dst_descriptor, tex_handle);
+						ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(dst_descriptor).ptr,
+							ImVec2(48.0f, 48.0f));
+					}
 
 					ImGui::PushID(2);
-					if (ImGui::Button("Remove")) material->emissive_texture = INVALID_TEXTURE_HANDLE;
+					if (ImGui::Button("Remove"))
+					{
+						material->emissive_texture = INVALID_TEXTURE_HANDLE;
+					}
 					if (ImGui::Button("Select"))
 					{
 						nfdchar_t* file_path = NULL;
