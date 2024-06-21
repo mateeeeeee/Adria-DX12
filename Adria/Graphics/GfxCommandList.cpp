@@ -119,7 +119,7 @@ namespace adria
 		}
 	}
 
-	GfxCommandList::GfxCommandList(GfxDevice* gfx, GfxCommandListType type /*= GfxCommandListType::Graphics*/, char const* name /*""*/)
+	GfxCommandList::GfxCommandList(GfxDevice* gfx, GfxCommandListType type, char const* name)
 		: gfx(gfx), type(type), cmd_queue(gfx->GetCommandQueue(type)), current_rt_table(nullptr)
 	{
 		D3D12_COMMAND_LIST_TYPE cmd_list_type = ToD3D12CommandListType(type);
@@ -299,78 +299,75 @@ namespace adria
 		cmd_list->DispatchRays(&dispatch_desc);
 	}
 
-	void GfxCommandList::TransitionBarrier(GfxBuffer const& resource, GfxResourceState old_state, GfxResourceState new_state)
+	void GfxCommandList::TextureBarrier(GfxTexture const& texture, GfxBarrierFlags flags_before, GfxBarrierFlags flags_after, uint32 subresource)
 	{
-		D3D12_RESOURCE_BARRIER barrier{};
-		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-		barrier.Transition.pResource = resource.GetNative();
-		barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-		barrier.Transition.StateBefore = ConvertGfxResourceStateToD3D12(old_state);
-		barrier.Transition.StateAfter = ConvertGfxResourceStateToD3D12(new_state);
-		pending_barriers.push_back(barrier);
+		D3D12_TEXTURE_BARRIER barrier{};
+		barrier.SyncBefore		= ToD3D12BarrierSync(flags_before);
+		barrier.SyncAfter		= ToD3D12BarrierSync(flags_after);
+		barrier.AccessBefore	= ToD3D12BarrierAccess(flags_before);
+		barrier.AccessAfter		= ToD3D12BarrierAccess(flags_after);
+		barrier.LayoutBefore	= ToD3D12BarrierLayout(flags_before);
+		barrier.LayoutAfter		= ToD3D12BarrierLayout(flags_after);
+		barrier.pResource		= texture.GetNative();
+		barrier.Subresources = CD3DX12_BARRIER_SUBRESOURCE_RANGE(subresource);
+
+		if (flags_before & GfxBarrierFlag_Discard) barrier.Flags = D3D12_TEXTURE_BARRIER_FLAG_DISCARD;
+		texture_barriers.push_back(barrier);
 	}
 
-	void GfxCommandList::TransitionBarrier(GfxTexture const& resource, GfxResourceState old_state, GfxResourceState new_state, uint32 subresource /*= D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES*/)
+	void GfxCommandList::BufferBarrier(GfxBuffer const& buffer, GfxBarrierFlags flags_before, GfxBarrierFlags flags_after)
 	{
-		D3D12_RESOURCE_BARRIER barrier{};
-		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-		barrier.Transition.pResource = resource.GetNative();
-		barrier.Transition.Subresource = subresource;
-		barrier.Transition.StateBefore = ConvertGfxResourceStateToD3D12(old_state);
-		barrier.Transition.StateAfter = ConvertGfxResourceStateToD3D12(new_state);
-		pending_barriers.push_back(barrier);
+		D3D12_BUFFER_BARRIER barrier{};
+		barrier.SyncBefore		= ToD3D12BarrierSync(flags_before);
+		barrier.SyncAfter		= ToD3D12BarrierSync(flags_after);
+		barrier.AccessBefore	= ToD3D12BarrierAccess(flags_before);
+		barrier.AccessAfter		= ToD3D12BarrierAccess(flags_after);
+		barrier.pResource		= buffer.GetNative();
+		barrier.Offset = 0;
+		barrier.Size = UINT64_MAX;
+
+		buffer_barriers.push_back(barrier);
 	}
 
-	void GfxCommandList::UavBarrier(GfxBuffer const& resource)
+	void GfxCommandList::GlobalBarrier(GfxBarrierFlags flags_before, GfxBarrierFlags flags_after)
 	{
-		D3D12_RESOURCE_BARRIER barrier{};
-		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
-		barrier.UAV.pResource = resource.GetNative();
-		pending_barriers.push_back(barrier);
-	}
-
-	void GfxCommandList::UavBarrier(GfxTexture const& resource)
-	{
-		D3D12_RESOURCE_BARRIER barrier{};
-		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
-		barrier.UAV.pResource = resource.GetNative();
-		pending_barriers.push_back(barrier);
-	}
-
-	void GfxCommandList::UavBarrier()
-	{
-		D3D12_RESOURCE_BARRIER barrier{};
-		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
-		barrier.UAV.pResource = nullptr;
-		pending_barriers.push_back(barrier);
-	}
-
-	void GfxCommandList::AliasBarrier(GfxBuffer const& before_resource, GfxBuffer const& after_resource)
-	{
-		D3D12_RESOURCE_BARRIER barrier{};
-		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_ALIASING;
-		barrier.Aliasing.pResourceBefore = before_resource.GetNative();
-		barrier.Aliasing.pResourceAfter = after_resource.GetNative();
-		pending_barriers.push_back(barrier);
-	}
-
-	void GfxCommandList::AliasBarrier(GfxTexture const& before_resource, GfxTexture const& after_resource)
-	{
-		D3D12_RESOURCE_BARRIER barrier{};
-		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_ALIASING;
-		barrier.Aliasing.pResourceBefore = before_resource.GetNative();
-		barrier.Aliasing.pResourceAfter = after_resource.GetNative();
-		pending_barriers.push_back(barrier);
+		D3D12_GLOBAL_BARRIER barrier{};
+		barrier.SyncBefore		= ToD3D12BarrierSync(flags_before);
+		barrier.SyncAfter		= ToD3D12BarrierSync(flags_after);
+		barrier.AccessBefore	= ToD3D12BarrierAccess(flags_before);
+		barrier.AccessAfter		= ToD3D12BarrierAccess(flags_after);
+		global_barriers.push_back(barrier);
 	}
 
 	void GfxCommandList::FlushBarriers()
 	{
-		if (!pending_barriers.empty())
+		std::vector<D3D12_BARRIER_GROUP> barrier_groups;
+		barrier_groups.reserve(3);
+
+		if (!texture_barriers.empty())
 		{
-			cmd_list->ResourceBarrier((uint32)pending_barriers.size(), pending_barriers.data());
-			pending_barriers.clear();
+			barrier_groups.push_back(CD3DX12_BARRIER_GROUP((uint32)texture_barriers.size(), texture_barriers.data()));
+		}
+
+		if (!buffer_barriers.empty())
+		{
+			barrier_groups.push_back(CD3DX12_BARRIER_GROUP((uint32)buffer_barriers.size(), buffer_barriers.data()));
+		}
+
+		if (!global_barriers.empty())
+		{
+			barrier_groups.push_back(CD3DX12_BARRIER_GROUP((uint32)global_barriers.size(), global_barriers.data()));
+		}
+
+		if (!barrier_groups.empty())
+		{
+			cmd_list->Barrier((uint32)barrier_groups.size(), barrier_groups.data());
 			++command_count;
 		}
+
+		texture_barriers.clear();
+		buffer_barriers.clear();
+		global_barriers.clear();
 	}
 
 	void GfxCommandList::CopyBuffer(GfxBuffer& dst, uint64 dst_offset, GfxBuffer const& src, uint64 src_offset, uint64 size)

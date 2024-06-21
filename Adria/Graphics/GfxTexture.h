@@ -32,8 +32,8 @@ namespace adria
 		GfxResourceUsage heap_type = GfxResourceUsage::Default;
 		GfxBindFlag bind_flags = GfxBindFlag::None;
 		GfxTextureMiscFlag misc_flags = GfxTextureMiscFlag::None;
-		GfxResourceState initial_state = GfxResourceState::PixelShaderResource | GfxResourceState::NonPixelShaderResource;
 		GfxClearValue clear_value{};
+		GfxBarrierFlags initial_layout;
 		GfxFormat format = GfxFormat::UNKNOWN;
 
 		std::strong_ordering operator<=>(GfxTextureDesc const& other) const = default;

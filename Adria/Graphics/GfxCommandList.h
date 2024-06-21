@@ -69,13 +69,9 @@ namespace adria
 		void DispatchMeshIndirect(GfxBuffer const& buffer, uint32 offset);
 		void DispatchRays(uint32 dispatch_width, uint32 dispatch_height, uint32 dispatch_depth = 1);
 
-		void TransitionBarrier(GfxBuffer const& resource, GfxResourceState old_state, GfxResourceState new_state);
-		void TransitionBarrier(GfxTexture const& resource, GfxResourceState old_state, GfxResourceState new_state, uint32 subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
-		void UavBarrier(GfxBuffer const& resource);
-		void UavBarrier(GfxTexture const& resource);
-		void UavBarrier();
-		void AliasBarrier(GfxBuffer const& before_resource, GfxBuffer const& after_resource);
-		void AliasBarrier(GfxTexture const& before_resource, GfxTexture const& after_resource);
+		void TextureBarrier(GfxTexture const& texture, GfxBarrierFlags flags_before, GfxBarrierFlags flags_after, uint32 subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
+		void BufferBarrier(GfxBuffer const& buffer, GfxBarrierFlags flags_before, GfxBarrierFlags flags_after);
+		void GlobalBarrier(GfxBarrierFlags flags_before, GfxBarrierFlags flags_after);
 		void FlushBarriers();
 
 		void CopyBuffer(GfxBuffer& dst, GfxBuffer const& src);
@@ -135,7 +131,7 @@ namespace adria
 		GfxDevice* gfx = nullptr;
 		GfxCommandListType type;
 		GfxCommandQueue& cmd_queue;
-		Ref<ID3D12GraphicsCommandList6> cmd_list = nullptr;
+		Ref<ID3D12GraphicsCommandList7> cmd_list = nullptr;
 		Ref<ID3D12CommandAllocator> cmd_allocator = nullptr;
 
 		uint32 command_count = 0;
@@ -149,6 +145,8 @@ namespace adria
 
 		std::vector<std::pair<GfxFence&, uint64>> pending_waits;
 		std::vector<std::pair<GfxFence&, uint64>> pending_signals;
-		std::vector<D3D12_RESOURCE_BARRIER> pending_barriers;
+		std::vector<D3D12_TEXTURE_BARRIER>		  texture_barriers;
+		std::vector<D3D12_BUFFER_BARRIER>		  buffer_barriers;
+		std::vector<D3D12_GLOBAL_BARRIER>		  global_barriers;
 	};
 }
