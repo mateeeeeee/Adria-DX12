@@ -24,9 +24,9 @@
 
 /** \mainpage D3D12 Memory Allocator
 
-<b>Version 2.0.1</b> (2022-04-05)
+<b>Version 2.1.0-development</b> (2023-07-05)
 
-Copyright (c) 2019-2022 Advanced Micro Devices, Inc. All rights reserved. \n
+Copyright (c) 2019-2023 Advanced Micro Devices, Inc. All rights reserved. \n
 License: MIT
 
 Documentation of all members: D3D12MemAlloc.h
@@ -51,7 +51,7 @@ Documentation of all members: D3D12MemAlloc.h
   - [Thread safety](@ref general_considerations_thread_safety)
   - [Versioning and compatibility](@ref general_considerations_versioning_and_compatibility)
   - [Features not supported](@ref general_considerations_features_not_supported)
-		
+        
 \section main_see_also See also
 
 - [Product page on GPUOpen](https://gpuopen.com/gaming-product/d3d12-memory-allocator/)
@@ -59,9 +59,18 @@ Documentation of all members: D3D12MemAlloc.h
 */
 
 // If using this library on a platform different than Windows PC or want to use different version of DXGI,
-// you should include D3D12-compatible headers before this library on your own and define this macro.
+// you should include D3D12-compatible headers before this library on your own and define 
+// D3D12MA_D3D12_HEADERS_ALREADY_INCLUDED.
+// Alternatively, if you are targeting the open sourced DirectX headers, defining D3D12MA_USING_DIRECTX_HEADERS
+// will include them rather the ones provided by the Windows SDK.
 #ifndef D3D12MA_D3D12_HEADERS_ALREADY_INCLUDED
-    #include <d3d12.h>
+    #if defined(D3D12MA_USING_DIRECTX_HEADERS)
+        #include <directx/d3d12.h>
+        #include <dxguids/dxguids.h>
+    #else
+        #include <d3d12.h>
+    #endif
+    
     #include <dxgi1_4.h>
 #endif
 
@@ -133,6 +142,18 @@ If providing your own implementation, you need to implement a subset of std::ato
 // Forward declaration if ID3D12ProtectedResourceSession is not defined inside the headers (older SDK, pre ID3D12Device4)
 struct ID3D12ProtectedResourceSession;
 
+// Define this enum even if SDK doesn't provide it, to simplify the API.
+#ifndef __ID3D12Device1_INTERFACE_DEFINED__
+typedef enum D3D12_RESIDENCY_PRIORITY
+{
+    D3D12_RESIDENCY_PRIORITY_MINIMUM = 0x28000000,
+    D3D12_RESIDENCY_PRIORITY_LOW = 0x50000000,
+    D3D12_RESIDENCY_PRIORITY_NORMAL = 0x78000000,
+    D3D12_RESIDENCY_PRIORITY_HIGH = 0xa0010000,
+    D3D12_RESIDENCY_PRIORITY_MAXIMUM = 0xc8000000
+} D3D12_RESIDENCY_PRIORITY;
+#endif
+
 namespace D3D12MA
 {
 class D3D12MA_API IUnknownImpl : public IUnknown
@@ -145,7 +166,7 @@ public:
 protected:
     virtual void ReleaseThis() { delete this; }
 private:
-    D3D12MA_ATOMIC_UINT32 m_RefCount = 1;
+    D3D12MA_ATOMIC_UINT32 m_RefCount = {1};
 };
 } // namespace D3D12MA
 
@@ -304,7 +325,6 @@ struct ALLOCATION_DESC
     /** \brief Custom pool to place the new resource in. Optional.
 
     When not NULL, the resource will be created inside specified custom pool.
-    It will then never be created as committed.
     */
     Pool* CustomPool;
     /// Custom general-purpose pointer that will be stored in D3D12MA::Allocation.
@@ -838,7 +858,7 @@ enum POOL_FLAGS
     /** \brief Optimization, allocate MSAA textures as committed resources always.
     
     Specify this flag to create MSAA textures with implicit heaps, as if they were created
-    with flag ALLOCATION_FLAG_COMMITTED. Usage of this flags enables pool to create its heaps
+    with flag D3D12MA::ALLOCATION_FLAG_COMMITTED. Usage of this flags enables pool to create its heaps
     on smaller alignment not suitable for MSAA textures.
     */
     POOL_FLAG_MSAA_TEXTURES_ALWAYS_COMMITTED = 0x2,
@@ -900,6 +920,29 @@ struct POOL_DESC
     Valid only if ID3D12Device4 interface is present in current Windows SDK!
     */
     ID3D12ProtectedResourceSession* pProtectedSession;
+    /** \brief Residency priority to be set for all allocations made in this pool. Optional.
+    
+    Set this parameter to one of the possible enum values e.g. `D3D12_RESIDENCY_PRIORITY_HIGH`
+    to apply specific residency priority to all allocations made in this pool:
+    `ID3D12Heap` memory blocks used to sub-allocate for placed resources, as well as
+    committed resources or heaps created when D3D12MA::ALLOCATION_FLAG_COMMITTED is used.
+    This can increase/decrease chance that the memory will be pushed out from VRAM
+    to system RAM when the system runs out of memory, which is invisible to the developer
+    using D3D12 API while it can degrade performance.
+
+    Priority is set using function `ID3D12Device1::SetResidencyPriority`.
+    It is performed only when `ID3D12Device1` interface is defined and successfully obtained.
+    Otherwise, this parameter is ignored.
+
+    This parameter is optional. If you set it to `D3D12_RESIDENCY_PRIORITY(0)`,
+    residency priority will not be set for allocations made in this pool.
+
+    There is no equivalent parameter for allocations made in default pools.
+    If you want to set residency priority for such allocation, you need to do it manually:
+    allocate with D3D12MA::ALLOCATION_FLAG_COMMITTED and call
+    `ID3D12Device1::SetResidencyPriority`, passing `allocation->GetResource()`.
+    */
+    D3D12_RESIDENCY_PRIORITY ResidencyPriority;
 };
 
 /** \brief Custom memory pool
@@ -1018,7 +1061,7 @@ enum ALLOCATOR_FLAGS
     /** \brief Optimization, allocate MSAA textures as committed resources always.
 
     Specify this flag to create MSAA textures with implicit heaps, as if they were created
-    with flag ALLOCATION_FLAG_COMMITTED. Usage of this flags enables all default pools
+    with flag D3D12MA::ALLOCATION_FLAG_COMMITTED. Usage of this flags enables all default pools
     to create its heaps on smaller alignment not suitable for MSAA textures.
     */
     ALLOCATOR_FLAG_MSAA_TEXTURES_ALWAYS_COMMITTED = 0x8,
@@ -1157,7 +1200,26 @@ public:
         Allocation** ppAllocation,
         REFIID riidResource,
         void** ppvResource);
-#endif // #ifdef __ID3D12Device4_INTERFACE_DEFINED__
+#endif // #ifdef __ID3D12Device8_INTERFACE_DEFINED__
+
+#ifdef __ID3D12Device10_INTERFACE_DEFINED__
+    /** \brief Similar to Allocator::CreateResource2, but there are initial layout instead of state and 
+    castable formats list
+
+    It internally uses `ID3D12Device10::CreateCommittedResource3` or `ID3D12Device10::CreatePlacedResource2`.
+
+    To work correctly, `ID3D12Device10` interface must be available in the current system. Otherwise, `E_NOINTERFACE` is returned.
+    */
+    HRESULT CreateResource3(const ALLOCATION_DESC* pAllocDesc,
+        const D3D12_RESOURCE_DESC1* pResourceDesc,
+        D3D12_BARRIER_LAYOUT InitialLayout,
+        const D3D12_CLEAR_VALUE* pOptimizedClearValue,
+        UINT32 NumCastableFormats,
+        DXGI_FORMAT* pCastableFormats,
+        Allocation** ppAllocation,
+        REFIID riidResource,
+        void** ppvResource);
+#endif  // #ifdef __ID3D12Device10_INTERFACE_DEFINED__
 
     /** \brief Allocates memory without creating any resource placed in it.
 
@@ -1214,6 +1276,41 @@ public:
         REFIID riidResource,
         void** ppvResource);
 
+#ifdef __ID3D12Device8_INTERFACE_DEFINED__
+    /** \brief Similar to Allocator::CreateAliasingResource, but supports new structure `D3D12_RESOURCE_DESC1`.
+    
+    It internally uses `ID3D12Device8::CreatePlacedResource1`.
+
+    To work correctly, `ID3D12Device8` interface must be available in the current system. Otherwise, `E_NOINTERFACE` is returned.
+    */
+    HRESULT CreateAliasingResource1(Allocation* pAllocation,
+        UINT64 AllocationLocalOffset,
+        const D3D12_RESOURCE_DESC1* pResourceDesc,
+        D3D12_RESOURCE_STATES InitialResourceState,
+        const D3D12_CLEAR_VALUE* pOptimizedClearValue,
+        REFIID riidResource,
+        void** ppvResource);
+#endif // #ifdef __ID3D12Device8_INTERFACE_DEFINED__
+
+#ifdef __ID3D12Device10_INTERFACE_DEFINED__
+    /** \brief Similar to Allocator::CreateAliasingResource1, but there are initial layout instead of state and 
+    castable formats list
+
+    It internally uses `ID3D12Device10::CreatePlacedResource2`.
+
+    To work correctly, `ID3D12Device10` interface must be available in the current system. Otherwise, `E_NOINTERFACE` is returned.
+    */
+    HRESULT CreateAliasingResource2(Allocation* pAllocation,
+        UINT64 AllocationLocalOffset,
+        const D3D12_RESOURCE_DESC1* pResourceDesc,
+        D3D12_BARRIER_LAYOUT InitialLayout,
+        const D3D12_CLEAR_VALUE* pOptimizedClearValue,
+        UINT32 NumCastableFormats,
+        DXGI_FORMAT* pCastableFormats,
+        REFIID riidResource,
+        void** ppvResource);
+#endif  // #ifdef __ID3D12Device10_INTERFACE_DEFINED__
+
     /** \brief Creates custom pool.
     */
     HRESULT CreatePool(
@@ -1236,7 +1333,7 @@ public:
       - `pNonLocalBudget` returns the budget of the system memory available for D3D12 resources.
     - When IsUMA() `== TRUE` (integrated graphics chip):
       - `pLocalBudget` returns the budget of the shared memory available for all D3D12 resources.
-        All memory is considered "local".
+         All memory is considered "local".
       - `pNonLocalBudget` is not applicable and returns zeros.
 
     This function is called "get" not "calculate" because it is very fast, suitable to be called
