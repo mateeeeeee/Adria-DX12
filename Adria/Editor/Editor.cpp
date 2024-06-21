@@ -1175,7 +1175,7 @@ namespace adria
 						gfx->CopyDescriptors(1, debug_srv_gpu, debug_srv_cpu);
 					}
 					uint32 width = debug_texture.gfx_texture->GetDesc().width;
-					uint32 height = debug_texture.gfx_texture->GetDesc().width;
+					uint32 height = debug_texture.gfx_texture->GetDesc().height;
 					float window_width = ImGui::GetWindowWidth();
 					ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(debug_srv_gpu).ptr, ImVec2(window_width * 0.9f, window_width * 0.9f * (float)height / width));
 					ImGui::PopID();
