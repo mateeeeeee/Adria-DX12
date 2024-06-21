@@ -209,7 +209,7 @@ namespace adria
 		srv_descriptor = gfx->CreateBufferSRV(printf_buffer.get());
 		uav_descriptor = gfx->CreateBufferUAV(printf_buffer.get());
 
-		gfx->GetCommandList()->TransitionBarrier(*printf_buffer, GfxResourceState::Common, GfxResourceState::UnorderedAccess);
+		gfx->GetCommandList()->BufferBarrier(*printf_buffer, GfxBarrierFlag_Common, GfxBarrierFlag_ComputeUAV);
 
 		for (auto& readback_buffer : readback_buffers)
 			readback_buffer = gfx->CreateBuffer(ReadBackBufferDesc(printf_buffer_desc.size));

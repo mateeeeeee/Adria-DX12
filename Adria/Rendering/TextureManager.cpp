@@ -47,7 +47,7 @@ namespace adria
 			desc.depth = img.Depth();
 			desc.bind_flags = GfxBindFlag::ShaderResource;
 			desc.format = img.Format();
-			desc.initial_state = GfxResourceState::PixelShaderResource | GfxResourceState::NonPixelShaderResource;
+			desc.initial_state = GfxBarrierFlag_AllSRV; 
 			desc.heap_type = GfxResourceUsage::Default;
 			desc.mip_levels = img.MipLevels();
             desc.misc_flags = img.IsCubemap() ? GfxTextureMiscFlag::TextureCube : GfxTextureMiscFlag::None;
@@ -129,7 +129,7 @@ namespace adria
 		desc.height = 1;
 		desc.format = GfxFormat::R32_FLOAT;
 		desc.bind_flags = GfxBindFlag::ShaderResource;
-		desc.initial_state = GfxResourceState::AllShaderResource;
+		desc.initial_state = GfxBarrierFlag_AllSRV;
 
 		float v = 0.0f;
 		GfxTextureInitialData init_data{};

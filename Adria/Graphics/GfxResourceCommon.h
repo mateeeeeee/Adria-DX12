@@ -68,7 +68,8 @@ namespace adria
 
 	enum GfxBarrierFlag : uint64
 	{
-		GfxBarrierFlag_Present = 1 << 0,
+		GfxBarrierFlag_Common = 1 << 0,
+		GfxBarrierFlag_Present = GfxBarrierFlag_Common,
 		GfxBarrierFlag_RTV = 1 << 1,
 		GfxBarrierFlag_DSV = 1 << 2,
 		GfxBarrierFlag_DSV_ReadOnly = 1 << 3,
@@ -88,14 +89,15 @@ namespace adria
 		GfxBarrierFlag_ASWrite = 1 << 17,
 		GfxBarrierFlag_Discard = 1 << 18,
 
-		GfxBarrierFlag_AllVertex = VertexSRV | VertexUAV,
-		GfxBarrierFlag_AllPixel = PixelSRV | PixelUAV,
-		GfxBarrierFlag_AllCompute = ComputeSRV | ComputeUAV,
-		GfxBarrierFlag_AllSRV = VertexSRV | PixelSRV | ComputeSRV,
-		GfxBarrierFlag_AllUAV = VertexUAV | PixelUAV | ComputeUAV,
-		GfxBarrierFlag_AllDSV = DSV | DSV_ReadOnly,
-		GfxBarrierFlag_AllCopy = CopyDst | CopySrc,
-		GfxBarrierFlag_AllAS = ASRead | ASWrite
+		GfxBarrierFlag_AllVertex = GfxBarrierFlag_VertexSRV | GfxBarrierFlag_VertexUAV,
+		GfxBarrierFlag_AllPixel = GfxBarrierFlag_PixelSRV | GfxBarrierFlag_PixelUAV,
+		GfxBarrierFlag_AllCompute = GfxBarrierFlag_ComputeSRV | GfxBarrierFlag_ComputeUAV,
+		GfxBarrierFlag_AllSRV = GfxBarrierFlag_VertexSRV | GfxBarrierFlag_PixelSRV | GfxBarrierFlag_ComputeSRV,
+		GfxBarrierFlag_AllUAV = GfxBarrierFlag_VertexUAV | GfxBarrierFlag_PixelUAV | GfxBarrierFlag_ComputeUAV,
+		GfxBarrierFlag_AllDSV = GfxBarrierFlag_DSV | GfxBarrierFlag_DSV_ReadOnly,
+		GfxBarrierFlag_AllCopy = GfxBarrierFlag_CopyDst | GfxBarrierFlag_CopySrc,
+		GfxBarrierFlag_AllAS = GfxBarrierFlag_ASRead | GfxBarrierFlag_ASWrite,
+		GfxBarrierFlag_GenericRead = GfxBarrierFlag_CopySrc | GfxBarrierFlag_AllSRV
 	};
 	using GfxBarrierFlags = uint64;
 
@@ -157,6 +159,15 @@ namespace adria
 	{
 		return ToD3D12BarrierLayout(flags1) == ToD3D12BarrierLayout(flags2);
 	}
+
+	inline constexpr std::string ConvertBarrierFlagsToString(GfxBarrierFlags flags)
+	{
+		std::string resource_state_string = "";
+		if (flags & GfxBarrierFlag_Discard) resource_state_string += "GfxBarrierFlag_Discard |";
+		if (!resource_state_string.empty()) resource_state_string.pop_back();
+		return resource_state_string.empty() ? "Common" : resource_state_string;
+	}
+
 
 #pragma region old_resource_state
 

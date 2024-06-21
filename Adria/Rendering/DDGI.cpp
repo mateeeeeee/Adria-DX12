@@ -63,7 +63,7 @@ namespace adria
 		irradiance_desc.height = irradiance_dimensions.y;
 		irradiance_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 		irradiance_desc.bind_flags = GfxBindFlag::ShaderResource;
-		irradiance_desc.initial_state = GfxResourceState::CopyDest;
+		irradiance_desc.initial_state = GfxBarrierFlag_CopyDst;
 		ddgi_volume.irradiance_history = gfx->CreateTexture(irradiance_desc);
 		ddgi_volume.irradiance_history->SetName("DDGI Irradiance History");
 
@@ -75,7 +75,7 @@ namespace adria
 		distance_desc.height = distance_dimensions.y;
 		distance_desc.format = GfxFormat::R16G16_FLOAT;
 		distance_desc.bind_flags = GfxBindFlag::ShaderResource;
-		distance_desc.initial_state = GfxResourceState::CopyDest;
+		distance_desc.initial_state = GfxBarrierFlag_CopyDst;
 		ddgi_volume.distance_history = gfx->CreateTexture(distance_desc);
 		ddgi_volume.distance_history->SetName("DDGI Distance History");
 
@@ -188,8 +188,7 @@ namespace adria
 				cmd_list->SetRootConstants(1, parameters);
 				
 				cmd_list->DispatchRays(ddgi_volume.num_rays, num_probes_flat);
-				cmd_list->UavBarrier(ctx.GetBuffer(*data.ray_buffer));
-
+				cmd_list->BufferBarrier(ctx.GetBuffer(*data.ray_buffer), GfxBarrierFlag_ComputeUAV, GfxBarrierFlag_ComputeUAV);
 			}, RGPassType::Compute);
 
 		struct DDGIUpdateIrradiancePassData
@@ -241,7 +240,7 @@ namespace adria
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, parameters);
 				cmd_list->Dispatch(num_probes_flat, 1, 1);
-				cmd_list->UavBarrier(ctx.GetTexture(*data.irradiance));
+				cmd_list->TextureBarrier(ctx.GetTexture(*data.irradiance), GfxBarrierFlag_ComputeUAV, GfxBarrierFlag_ComputeUAV);
 			}, RGPassType::Compute);
 
 		struct DDGIUpdateDistancePassData
@@ -294,7 +293,7 @@ namespace adria
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, parameters);
 				cmd_list->Dispatch(num_probes_flat, 1, 1);
-				cmd_list->UavBarrier(ctx.GetTexture(*data.distance));
+				cmd_list->TextureBarrier(ctx.GetTexture(*data.distance), GfxBarrierFlag_ComputeUAV, GfxBarrierFlag_ComputeUAV);
 			}, RGPassType::Compute);
 
 		rg.ExportTexture(RG_RES_NAME(DDGIIrradiance), ddgi_volume.irradiance_history.get());

@@ -396,7 +396,7 @@ namespace adria
 		ocean_texture_desc.height = FFT_RESOLUTION;
 		ocean_texture_desc.format = GfxFormat::R32_FLOAT;
 		ocean_texture_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
-		ocean_texture_desc.initial_state = GfxResourceState::UnorderedAccess;
+		ocean_texture_desc.initial_state = GfxBarrierFlag_ComputeUAV;
 		initial_spectrum = gfx->CreateTexture(ocean_texture_desc);
 
 		std::vector<float> ping_array(FFT_RESOLUTION * FFT_RESOLUTION);

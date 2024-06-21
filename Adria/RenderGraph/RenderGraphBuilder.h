@@ -42,7 +42,7 @@ namespace adria
 		tex_desc.misc_flags = rg_tex_desc.misc_flags;
 		tex_desc.clear_value = rg_tex_desc.clear_value;
 		tex_desc.bind_flags = GfxBindFlag::None;
-		tex_desc.initial_state = GfxResourceState::Common;
+		tex_desc.initial_state = GfxBarrierFlag_Common;
 	}
 	inline void InitGfxBufferDesc(RGBufferDesc const& rg_buf_desc, GfxBufferDesc& buf_desc)
 	{
@@ -103,9 +103,7 @@ namespace adria
 		[[nodiscard]] RGBufferCopySrcId ReadCopySrcBuffer(RGResourceName name);
 		[[nodiscard]] RGBufferCopyDstId WriteCopyDstBuffer(RGResourceName name);
 		[[nodiscard]] RGBufferIndirectArgsId ReadIndirectArgsBuffer(RGResourceName name);
-		[[nodiscard]] RGBufferVertexId ReadVertexBuffer(RGResourceName name);
 		[[nodiscard]] RGBufferIndexId ReadIndexBuffer(RGResourceName name);
-		[[nodiscard]] RGBufferConstantId ReadConstantBuffer(RGResourceName name);
 		
 		[[nodiscard]] RGTextureReadOnlyId ReadTexture(RGResourceName name, RGReadAccess read_access = ReadAccess_AllShader,
 			uint32 first_mip = 0, uint32 mip_count = -1, uint32 first_slice = 0, uint32 slice_count = -1)

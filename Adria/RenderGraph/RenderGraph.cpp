@@ -164,8 +164,7 @@ namespace adria
 				{
 					if (!HasAllFlags(texture->GetDesc().initial_state, state))
 					{
-						ADRIA_ASSERT_MSG(IsValidState(state), "Invalid State Combination!");
-						cmd_list->TransitionBarrier(*texture, texture->GetDesc().initial_state, state);
+						cmd_list->TextureBarrier(*texture, texture->GetDesc().initial_state, state);
 					}
 					continue;
 				}
@@ -175,18 +174,16 @@ namespace adria
 					auto& prev_dependency_level = dependency_levels[j];
 					if (prev_dependency_level.texture_state_map.contains(tex_id))
 					{
-						ADRIA_ASSERT_MSG(IsValidState(state), "Invalid State Combination!");
-						GfxResourceState prev_state = prev_dependency_level.texture_state_map[tex_id];
-						if (prev_state != state) cmd_list->TransitionBarrier(*texture, prev_state, state);
+						GfxBarrierFlags prev_state = prev_dependency_level.texture_state_map[tex_id];
+						if (prev_state != state) cmd_list->TextureBarrier(*texture, prev_state, state);
 						found = true;
 						break;
 					}
 				}
 				if (!found && rg_texture->imported)
 				{
-					ADRIA_ASSERT_MSG(IsValidState(state), "Invalid State Combination!");
-					GfxResourceState prev_state = rg_texture->desc.initial_state;
-					if (prev_state != state) cmd_list->TransitionBarrier(*texture, prev_state, state);
+					GfxBarrierFlags prev_state = rg_texture->desc.initial_state;
+					if (prev_state != state) cmd_list->TextureBarrier(*texture, prev_state, state);
 				}
 			}
 			for (auto const& [buf_id, state] : dependency_level.buffer_state_map)
@@ -195,10 +192,9 @@ namespace adria
 				GfxBuffer* buffer = rg_buffer->resource;
 				if (dependency_level.buffer_creates.contains(buf_id))
 				{
-					if (state != GfxResourceState::Common) //check if there is an implicit transition, maybe this can be avoided
+					if (state != GfxBarrierFlag_Common) //check if there is an implicit transition, maybe this can be avoided
 					{
-						ADRIA_ASSERT_MSG(IsValidState(state), "Invalid State Combination!");
-						cmd_list->TransitionBarrier(*buffer, GfxResourceState::Common, state);
+						cmd_list->BufferBarrier(*buffer, GfxBarrierFlag_Common, state);
 					}
 					continue;
 				}
@@ -208,17 +204,15 @@ namespace adria
 					auto& prev_dependency_level = dependency_levels[j];
 					if (prev_dependency_level.buffer_state_map.contains(buf_id))
 					{
-						ADRIA_ASSERT_MSG(IsValidState(state), "Invalid State Combination!");
-						GfxResourceState prev_state = prev_dependency_level.buffer_state_map[buf_id];
-						if (prev_state != state) cmd_list->TransitionBarrier(*buffer, prev_state, state);
+						GfxBarrierFlags prev_state = prev_dependency_level.buffer_state_map[buf_id];
+						if (prev_state != state) cmd_list->BufferBarrier(*buffer, prev_state, state);
 						found = true;
 						break;
 					}
 				}
 				if (!found && rg_buffer->imported)
 				{
-					ADRIA_ASSERT_MSG(IsValidState(state), "Invalid State Combination!");
-					if (GfxResourceState::Common != state)cmd_list->TransitionBarrier(*buffer, GfxResourceState::Common, state);
+					if (GfxBarrierFlag_Common != state) cmd_list->BufferBarrier(*buffer, GfxBarrierFlag_Common, state);
 				}
 			}
 
@@ -229,10 +223,10 @@ namespace adria
 			{
 				RGTexture* rg_texture = GetRGTexture(tex_id);
 				GfxTexture* texture = rg_texture->resource;
-				GfxResourceState initial_state = texture->GetDesc().initial_state;
+				GfxBarrierFlags initial_state = texture->GetDesc().initial_state;
 				ADRIA_ASSERT(dependency_level.texture_state_map.contains(tex_id));
-				GfxResourceState state = dependency_level.texture_state_map[tex_id];
-				if (initial_state != state) cmd_list->TransitionBarrier(*texture, state, initial_state);
+				GfxBarrierFlags state = dependency_level.texture_state_map[tex_id];
+				if (initial_state != state) cmd_list->TextureBarrier(*texture, state, initial_state);
 				if (!rg_texture->imported) pool.ReleaseTexture(rg_texture->resource);
 			}
 			for (RGBufferId buf_id : dependency_level.buffer_destroys)
@@ -240,8 +234,8 @@ namespace adria
 				RGBuffer* rg_buffer = GetRGBuffer(buf_id);
 				GfxBuffer* buffer = rg_buffer->resource;
 				ADRIA_ASSERT(dependency_level.buffer_state_map.contains(buf_id));
-				GfxResourceState state = dependency_level.buffer_state_map[buf_id];
-				if(state != GfxResourceState::Common) cmd_list->TransitionBarrier(*buffer, state, GfxResourceState::Common);
+				GfxBarrierFlags state = dependency_level.buffer_state_map[buf_id];
+				if(state != GfxBarrierFlag_Common) cmd_list->BufferBarrier(*buffer, state, GfxBarrierFlag_Common);
 				if (!rg_buffer->imported) pool.ReleaseBuffer(rg_buffer->resource);
 			}
 			cmd_list->FlushBarriers();
@@ -603,9 +597,9 @@ namespace adria
 		RGTextureId handle = texture_name_id_map[name];
 		ADRIA_ASSERT_MSG(IsValidTextureHandle(handle), "Resource has not been declared!");
 		RGTexture* rg_texture = GetRGTexture(handle);
-		if (rg_texture->desc.initial_state == GfxResourceState::Common)
+		if (rg_texture->desc.initial_state == GfxBarrierFlag_Common)
 		{
-			rg_texture->desc.initial_state = GfxResourceState::CopySource;
+			rg_texture->desc.initial_state = GfxBarrierFlag_CopyDst;
 		}
 		return RGTextureCopySrcId(handle);
 	}
@@ -615,9 +609,9 @@ namespace adria
 		RGTextureId handle = texture_name_id_map[name];
 		ADRIA_ASSERT_MSG(IsValidTextureHandle(handle), "Resource has not been declared!");
 		RGTexture* rg_texture = GetRGTexture(handle);
-		if (rg_texture->desc.initial_state == GfxResourceState::Common)
+		if (rg_texture->desc.initial_state == GfxBarrierFlag_Common)
 		{
-			rg_texture->desc.initial_state = GfxResourceState::CopyDest;
+			rg_texture->desc.initial_state = GfxBarrierFlag_CopyDst;
 		}
 		return RGTextureCopyDstId(handle);
 	}
@@ -670,9 +664,9 @@ namespace adria
 		ADRIA_ASSERT_MSG(IsValidTextureHandle(handle), "Resource has not been declared!");
 		RGTexture* rg_texture = GetRGTexture(handle);
 		rg_texture->desc.bind_flags |= GfxBindFlag::RenderTarget;
-		if (rg_texture->desc.initial_state == GfxResourceState::Common)
+		if (rg_texture->desc.initial_state == GfxBarrierFlag_Common)
 		{
-			rg_texture->desc.initial_state = GfxResourceState::RenderTarget;
+			rg_texture->desc.initial_state = GfxBarrierFlag_RTV;
 		}
 		std::vector<std::pair<GfxTextureDescriptorDesc, RGDescriptorType>>& view_descs = texture_view_desc_map[handle];
 		for (uint64 i = 0; i < view_descs.size(); ++i)
@@ -691,9 +685,9 @@ namespace adria
 		ADRIA_ASSERT_MSG(IsValidTextureHandle(handle), "Resource has not been declared!");
 		RGTexture* rg_texture = GetRGTexture(handle);
 		rg_texture->desc.bind_flags |= GfxBindFlag::DepthStencil;
-		if (rg_texture->desc.initial_state == GfxResourceState::Common)
+		if (rg_texture->desc.initial_state == GfxBarrierFlag_Common)
 		{
-			rg_texture->desc.initial_state = GfxResourceState::DepthWrite;
+			rg_texture->desc.initial_state = GfxBarrierFlag_DSV;
 		}
 		std::vector<std::pair<GfxTextureDescriptorDesc, RGDescriptorType>>& view_descs = texture_view_desc_map[handle];
 		for (uint64 i = 0; i < view_descs.size(); ++i)
@@ -712,9 +706,9 @@ namespace adria
 		ADRIA_ASSERT_MSG(IsValidTextureHandle(handle), "Resource has not been declared!");
 		RGTexture* rg_texture = GetRGTexture(handle);
 		rg_texture->desc.bind_flags |= GfxBindFlag::ShaderResource;
-		if (rg_texture->desc.initial_state == GfxResourceState::Common)
+		if (rg_texture->desc.initial_state == GfxBarrierFlag_Common)
 		{
-			rg_texture->desc.initial_state = GfxResourceState::PixelShaderResource | GfxResourceState::NonPixelShaderResource;
+			rg_texture->desc.initial_state = GfxBarrierFlag_PixelSRV | GfxBarrierFlag_ComputeSRV;
 		}
 		std::vector<std::pair<GfxTextureDescriptorDesc, RGDescriptorType>>& view_descs = texture_view_desc_map[handle];
 		for (uint64 i = 0; i < view_descs.size(); ++i)
@@ -733,9 +727,9 @@ namespace adria
 		ADRIA_ASSERT_MSG(IsValidTextureHandle(handle), "Resource has not been declared!");
 		RGTexture* rg_texture = GetRGTexture(handle);
 		rg_texture->desc.bind_flags |= GfxBindFlag::UnorderedAccess;
-		if (rg_texture->desc.initial_state == GfxResourceState::Common)
+		if (rg_texture->desc.initial_state == GfxBarrierFlag_Common)
 		{
-			rg_texture->desc.initial_state = GfxResourceState::UnorderedAccess;
+			rg_texture->desc.initial_state = GfxBarrierFlag_AllUAV;
 		}
 		std::vector<std::pair<GfxTextureDescriptorDesc, RGDescriptorType>>& view_descs = texture_view_desc_map[handle];
 		for (uint64 i = 0; i < view_descs.size(); ++i)
@@ -1264,12 +1258,12 @@ namespace adria
 			render_graph_data += "\nTexture usage:\n";
 			for (auto [tex_id, state] : pass->texture_state_map)
 			{
-				render_graph_data += std::format("Texture ID: {}, State: {}\n", tex_id.id, ConvertGfxResourceStateToString(state));
+				render_graph_data += std::format("Texture ID: {}, State: {}\n", tex_id.id, ConvertBarrierFlagsToString(state));
 			}
 			render_graph_data += "\nBuffer usage:\n";
 			for (auto [buf_id, state] : pass->buffer_state_map)
 			{
-				render_graph_data += std::format("Buffer ID: {}, State: {}\n", buf_id.id, ConvertGfxResourceStateToString(state));
+				render_graph_data += std::format("Buffer ID: {}, State: {}\n", buf_id.id, ConvertBarrierFlagsToString(state));
 			}
 			render_graph_data += "\n";
 		}
@@ -1299,12 +1293,12 @@ namespace adria
 			render_graph_data += "\nTexture usage:\n";
 			for (auto [tex_id, state] : level.texture_state_map)
 			{
-				render_graph_data += std::format("Texture ID: {}, State: {}\n", tex_id.id, ConvertGfxResourceStateToString(state));
+				render_graph_data += std::format("Texture ID: {}, State: {}\n", tex_id.id, ConvertBarrierFlagsToString(state));
 			}
 			render_graph_data += "\nBuffer usage:\n";
 			for (auto [buf_id, state] : level.buffer_state_map)
 			{
-				render_graph_data += std::format("Buffer ID: {}, State: {}\n", buf_id.id, ConvertGfxResourceStateToString(state));
+				render_graph_data += std::format("Buffer ID: {}, State: {}\n", buf_id.id, ConvertBarrierFlagsToString(state));
 			}
 			render_graph_data += "\n";
 		}

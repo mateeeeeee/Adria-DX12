@@ -389,7 +389,7 @@ namespace adria
 		clouds_output_desc.height = height >> resolution;
 		clouds_output_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 		clouds_output_desc.bind_flags = GfxBindFlag::ShaderResource;
-		clouds_output_desc.initial_state = GfxResourceState::NonPixelShaderResource;
+		clouds_output_desc.initial_state = GfxBarrierFlag_ComputeSRV;
 
 		prev_clouds = gfx->CreateTexture(clouds_output_desc);
 		CreateCloudTextures(gfx);

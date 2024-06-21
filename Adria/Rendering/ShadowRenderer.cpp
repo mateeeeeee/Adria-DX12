@@ -205,7 +205,7 @@ namespace adria
 				mask_desc.width = width;
 				mask_desc.height = height;
 				mask_desc.format = GfxFormat::R8_UNORM;
-				mask_desc.initial_state = GfxResourceState::UnorderedAccess;
+				mask_desc.initial_state = GfxBarrierFlag_ComputeUAV;
 				mask_desc.bind_flags = GfxBindFlag::UnorderedAccess | GfxBindFlag::UnorderedAccess;
 
 				light_mask_textures[light_id] = gfx->CreateTexture(mask_desc);
@@ -227,7 +227,7 @@ namespace adria
 			depth_desc.format = GfxFormat::R32_TYPELESS;
 			depth_desc.clear_value = GfxClearValue(1.0f, 0);
 			depth_desc.bind_flags = GfxBindFlag::DepthStencil | GfxBindFlag::ShaderResource;
-			depth_desc.initial_state = GfxResourceState::DepthWrite;
+			depth_desc.initial_state = GfxBarrierFlag_DSV;
 
 			light_shadow_maps[light_id].emplace_back(gfx->CreateTexture(depth_desc));
 			light_shadow_map_srvs[light_id].push_back(gfx->CreateTextureSRV(light_shadow_maps[light_id].back().get()));

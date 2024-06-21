@@ -61,7 +61,7 @@ namespace adria
 	{
 		RGTextureCopySrcId copy_src_id = rg.ReadCopySrcTexture(name);
 		RGTextureId res_id(copy_src_id);
-		rg_pass.texture_state_map[res_id] = GfxResourceState::CopySource;
+		rg_pass.texture_state_map[res_id] = GfxBarrierFlag_CopySrc;
 		rg_pass.texture_reads.insert(res_id);
 		return copy_src_id;
 	}
@@ -70,7 +70,7 @@ namespace adria
 	{
 		RGTextureCopyDstId copy_dst_id = rg.WriteCopyDstTexture(name);
 		RGTextureId res_id(copy_dst_id);
-		rg_pass.texture_state_map[res_id] = GfxResourceState::CopyDest;
+		rg_pass.texture_state_map[res_id] = GfxBarrierFlag_CopyDst;
 		if (!rg_pass.texture_creates.contains(res_id))
 		{
 			DummyReadTexture(name);
@@ -91,21 +91,21 @@ namespace adria
 			switch (read_access)
 			{
 			case ReadAccess_PixelShader:
-				rg_pass.texture_state_map[res_id] = GfxResourceState::PixelShaderResource;
+				rg_pass.texture_state_map[res_id] = GfxBarrierFlag_PixelSRV;
 				break;
 			case ReadAccess_NonPixelShader:
-				rg_pass.texture_state_map[res_id] = GfxResourceState::NonPixelShaderResource;
+				rg_pass.texture_state_map[res_id] = GfxBarrierFlag_ComputeSRV;
 				break;
 			case ReadAccess_AllShader:
-				rg_pass.texture_state_map[res_id] = GfxResourceState::AllShaderResource;
+				rg_pass.texture_state_map[res_id] = GfxBarrierFlag_AllSRV;
 				break;
 			default:
-				ADRIA_ASSERT(false && "Invalid Read Flag!");
+				ADRIA_ASSERT_MSG(false, "Invalid Read Flag!");
 			}
 		}
 		else if(rg_pass.type == RGPassType::Compute || rg_pass.type == RGPassType::ComputeAsync)
 		{
-			rg_pass.texture_state_map[res_id] = GfxResourceState::NonPixelShaderResource;
+			rg_pass.texture_state_map[res_id] = GfxBarrierFlag_ComputeSRV;
 		}
 		
 		rg_pass.texture_reads.insert(res_id);
@@ -117,7 +117,7 @@ namespace adria
 		ADRIA_ASSERT(rg_pass.type != RGPassType::Copy && "Invalid Call in Copy Pass");
 		RGTextureReadWriteId read_write_id = rg.WriteTexture(name, desc);
 		RGTextureId res_id = read_write_id.GetResourceId();
-		rg_pass.texture_state_map[res_id] = GfxResourceState::UnorderedAccess;
+		rg_pass.texture_state_map[res_id] = GfxBarrierFlag_ComputeUAV;
 		if (!rg_pass.texture_creates.contains(res_id))
 		{
 			DummyReadTexture(name);
@@ -133,7 +133,7 @@ namespace adria
 		ADRIA_ASSERT(rg_pass.type != RGPassType::Copy && "Invalid Call in Copy Pass");
 		RGRenderTargetId render_target_id = rg.RenderTarget(name, desc);
 		RGTextureId res_id = render_target_id.GetResourceId();
-		rg_pass.texture_state_map[res_id] = GfxResourceState::RenderTarget;
+		rg_pass.texture_state_map[res_id] = GfxBarrierFlag_RTV;
 		rg_pass.render_targets_info.push_back(RenderGraphPassBase::RenderTargetInfo{ .render_target_handle = render_target_id, .render_target_access = load_store_op });
 		if (!rg_pass.texture_creates.contains(res_id))
 		{
@@ -150,7 +150,7 @@ namespace adria
 		ADRIA_ASSERT(rg_pass.type != RGPassType::Copy && "Invalid Call in Copy Pass");
 		RGDepthStencilId depth_stencil_id = rg.DepthStencil(name, desc);
 		RGTextureId res_id = depth_stencil_id.GetResourceId();
-		rg_pass.texture_state_map[res_id] = GfxResourceState::DepthWrite;
+		rg_pass.texture_state_map[res_id] = GfxBarrierFlag_DSV;
 		rg_pass.depth_stencil = RenderGraphPassBase::DepthStencilInfo{ .depth_stencil_handle = depth_stencil_id, .depth_access = load_store_op,.stencil_access = stencil_load_store_op, .depth_read_only = false };
 		if (!rg_pass.texture_creates.contains(res_id))
 		{
@@ -173,7 +173,7 @@ namespace adria
 		rg_pass.texture_reads.insert(res_id);
 
 		if (rg_texture->imported) rg_pass.flags |= RGPassFlags::ForceNoCull;
-		rg_pass.texture_state_map[res_id] = GfxResourceState::DepthRead;
+		rg_pass.texture_state_map[res_id] = GfxBarrierFlag_DSV_ReadOnly;
 		return depth_stencil_id;
 	}
 
@@ -181,7 +181,7 @@ namespace adria
 	{
 		RGBufferCopySrcId copy_src_id = rg.ReadCopySrcBuffer(name);
 		RGBufferId res_id(copy_src_id);
-		rg_pass.buffer_state_map[res_id] = GfxResourceState::CopySource;
+		rg_pass.buffer_state_map[res_id] = GfxBarrierFlag_CopySrc;
 		rg_pass.buffer_reads.insert(res_id);
 		return copy_src_id;
 	}
@@ -190,7 +190,7 @@ namespace adria
 	{
 		RGBufferCopyDstId copy_dst_id = rg.WriteCopyDstBuffer(name);
 		RGBufferId res_id(copy_dst_id);
-		rg_pass.buffer_state_map[res_id] = GfxResourceState::CopyDest;
+		rg_pass.buffer_state_map[res_id] = GfxBarrierFlag_CopyDst;
 		if (!rg_pass.buffer_creates.contains(res_id))
 		{
 			DummyReadBuffer(name);
@@ -205,36 +205,18 @@ namespace adria
 	{
 		RGBufferIndirectArgsId indirect_args_id = rg.ReadIndirectArgsBuffer(name);
 		RGBufferId res_id(indirect_args_id);
-		rg_pass.buffer_state_map[res_id] = GfxResourceState::IndirectArgument;
+		rg_pass.buffer_state_map[res_id] = GfxBarrierFlag_IndirectArgs;
 		rg_pass.buffer_reads.insert(res_id);
 		return indirect_args_id;
-	}
-
-	RGBufferVertexId RenderGraphBuilder::ReadVertexBuffer(RGResourceName name)
-	{
-		RGBufferVertexId vertex_buf_id = rg.ReadVertexBuffer(name);
-		RGBufferId res_id(vertex_buf_id);
-		rg_pass.buffer_state_map[res_id] = GfxResourceState::VertexAndConstantBuffer;
-		rg_pass.buffer_reads.insert(res_id);
-		return vertex_buf_id;
 	}
 
 	RGBufferIndexId RenderGraphBuilder::ReadIndexBuffer(RGResourceName name)
 	{
 		RGBufferIndexId index_buf_id = rg.ReadVertexBuffer(name);
 		RGBufferId res_id(index_buf_id);
-		rg_pass.buffer_state_map[res_id] = GfxResourceState::IndexBuffer;
+		rg_pass.buffer_state_map[res_id] = GfxBarrierFlag_IndexBuffer;
 		rg_pass.buffer_reads.insert(res_id);
 		return index_buf_id;
-	}
-
-	RGBufferConstantId RenderGraphBuilder::ReadConstantBuffer(RGResourceName name)
-	{
-		RGBufferConstantId constant_buf_id = rg.ReadVertexBuffer(name);
-		RGBufferId res_id(constant_buf_id);
-		rg_pass.buffer_state_map[res_id] = GfxResourceState::VertexAndConstantBuffer;
-		rg_pass.buffer_reads.insert(res_id);
-		return constant_buf_id;
 	}
 
 	RGBufferReadOnlyId RenderGraphBuilder::ReadBufferImpl(RGResourceName name, RGReadAccess read_access, GfxBufferDescriptorDesc const& desc /*= {}*/)
@@ -249,13 +231,13 @@ namespace adria
 			switch (read_access)
 			{
 			case ReadAccess_PixelShader:
-				rg_pass.buffer_state_map[res_id] = GfxResourceState::PixelShaderResource;
+				rg_pass.buffer_state_map[res_id] = GfxBarrierFlag_PixelSRV;
 				break;
 			case ReadAccess_NonPixelShader:
-				rg_pass.buffer_state_map[res_id] = GfxResourceState::NonPixelShaderResource;
+				rg_pass.buffer_state_map[res_id] = GfxBarrierFlag_ComputeSRV;
 				break;
 			case ReadAccess_AllShader:
-				rg_pass.buffer_state_map[res_id] = GfxResourceState::AllShaderResource;
+				rg_pass.buffer_state_map[res_id] = GfxBarrierFlag_AllSRV;
 				break;
 			default:
 				ADRIA_ASSERT(false && "Invalid Read Flag!");
@@ -263,7 +245,7 @@ namespace adria
 		}
 		else if (rg_pass.type == RGPassType::Compute || rg_pass.type == RGPassType::ComputeAsync)
 		{
-			rg_pass.buffer_state_map[res_id] = GfxResourceState::NonPixelShaderResource;
+			rg_pass.buffer_state_map[res_id] = GfxBarrierFlag_ComputeSRV;
 		}
 		rg_pass.buffer_reads.insert(res_id);
 		return read_only_id;
@@ -274,7 +256,7 @@ namespace adria
 		ADRIA_ASSERT(rg_pass.type != RGPassType::Copy && "Invalid Call in Copy Pass");
 		RGBufferReadWriteId read_write_id = rg.WriteBuffer(name, desc);
 		RGBufferId res_id = read_write_id.GetResourceId();
-		rg_pass.buffer_state_map[res_id] = GfxResourceState::UnorderedAccess;
+		rg_pass.buffer_state_map[res_id] = GfxBarrierFlag_ComputeUAV;
 		if (!rg_pass.buffer_creates.contains(res_id))
 		{
 			DummyReadBuffer(name);
@@ -293,8 +275,8 @@ namespace adria
 		RGBufferId counter_id = rg.GetBufferId(counter_name);
 		
 		RGBufferId res_id = read_write_id.GetResourceId();
-		rg_pass.buffer_state_map[res_id] = GfxResourceState::UnorderedAccess;
-		rg_pass.buffer_state_map[counter_id] = GfxResourceState::UnorderedAccess;
+		rg_pass.buffer_state_map[res_id] = GfxBarrierFlag_ComputeUAV;
+		rg_pass.buffer_state_map[counter_id] = GfxBarrierFlag_ComputeUAV;
 		DummyWriteBuffer(counter_name);
 		if (!rg_pass.buffer_creates.contains(res_id))
 		{

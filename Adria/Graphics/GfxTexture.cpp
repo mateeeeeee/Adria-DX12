@@ -112,10 +112,10 @@ namespace adria
 			clear_value_ptr = &clear_value;
 		}
 
-		D3D12_RESOURCE_STATES resource_state = ConvertGfxResourceStateToD3D12(desc.initial_state);
+		GfxBarrierFlags initial_state = desc.initial_state;
 		if (initial_data != nullptr)
 		{
-			resource_state = D3D12_RESOURCE_STATE_COMMON;
+			initial_state = GfxBarrierFlag_Common;
 		}
 
 		auto device = gfx->GetDevice();
@@ -135,22 +135,23 @@ namespace adria
 			if (desc.heap_type == GfxResourceUsage::Readback)
 			{
 				allocation_desc.HeapType = D3D12_HEAP_TYPE_READBACK;
-				resource_state = D3D12_RESOURCE_STATE_COPY_DEST;
+				initial_state = GfxBarrierFlag_CopyDst;
 			}
 			else if (desc.heap_type == GfxResourceUsage::Upload)
 			{
 				allocation_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-				resource_state = D3D12_RESOURCE_STATE_GENERIC_READ;
+				initial_state = GfxBarrierFlag_GenericRead;
 			}
 		}
 		auto allocator = gfx->GetAllocator();
 
+		D3D12_RESOURCE_DESC1 resource_desc1 = CD3DX12_RESOURCE_DESC1(resource_desc);
 		D3D12MA::Allocation* alloc = nullptr;
-		hr = allocator->CreateResource(
+		hr = allocator->CreateResource3(
 			&allocation_desc,
-			&resource_desc,
-			resource_state,
-			clear_value_ptr,
+			&resource_desc1,
+			ToD3D12BarrierLayout(initial_state),
+			clear_value_ptr, 0, nullptr,
 			&alloc,
 			IID_PPV_ARGS(resource.GetAddressOf())
 		);
@@ -191,9 +192,9 @@ namespace adria
 			}
 			UpdateSubresources(cmd_list->GetNative(), resource.Get(), dyn_alloc.buffer->GetNative(), dyn_alloc.offset, 0, subresource_count, subresource_data.data());
 
-			if (desc.initial_state != GfxResourceState::CopyDest)
+			if (initial_state != GfxBarrierFlag_CopyDst)
 			{
-				cmd_list->TransitionBarrier(*this, GfxResourceState::CopyDest, desc.initial_state);
+				cmd_list->TextureBarrier(*this, GfxBarrierFlag_CopyDst, initial_state);
 				cmd_list->FlushBarriers();
 			}
 		}

@@ -71,4 +71,14 @@ namespace adria
 		return (((T)value) & (T)flags) != 0;
 	}
 
+	template<typename T> requires std::is_integral_v<T>
+	inline constexpr bool HasAllFlags(T value, T flags)
+	{
+		return (value & flags) == (flags);
+	}
+	template<typename T> requires std::is_integral_v<T>
+	inline constexpr bool HasAnyFlag(T value, T flags)
+	{
+		return (value & flags) != 0;
+	}
 }

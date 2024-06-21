@@ -33,6 +33,7 @@ namespace adria
 		GfxBindFlag bind_flags = GfxBindFlag::None;
 		GfxTextureMiscFlag misc_flags = GfxTextureMiscFlag::None;
 		GfxClearValue clear_value{};
+		GfxBarrierFlags initial_state = GfxBarrierFlag_AllSRV;
 		GfxFormat format = GfxFormat::UNKNOWN;
 
 		std::strong_ordering operator<=>(GfxTextureDesc const& other) const = default;
