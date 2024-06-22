@@ -55,7 +55,6 @@ namespace adria
 							uint32 backbuffer_index = gfx->GetBackbufferIndex();
 							DebugStats current_debug_stats = debug_stats[backbuffer_index];
 
-
 							ImGui::BeginTable("Profiler", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg);
 							ImGui::TableSetupColumn("Description");
 							ImGui::TableSetupColumn("Count");

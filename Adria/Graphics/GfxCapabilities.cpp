@@ -84,13 +84,14 @@ namespace adria
 		mesh_shader_support = ConvertMeshShaderTier(feature_support.MeshShaderTier());
 		work_graph_support = ConvertWorkGraphTier(feature_support.WorkGraphsTier());
 		shader_model		= ConvertShaderModel(feature_support.HighestShaderModel());
+		enhanced_barriers_supported = feature_support.EnhancedBarriersSupported();
 
 		if (shader_model < SM_6_6)
 		{
 			ADRIA_LOG(ERROR, "Device doesn't support Shader Model 6.6 which is required!");
 			return false;
 		}
-		if (!feature_support.EnhancedBarriersSupported())
+		if (!enhanced_barriers_supported)
 		{
 			ADRIA_LOG(ERROR, "Device doesn't support Enhanced Barriers which is required!");
 			return false;

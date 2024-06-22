@@ -73,6 +73,11 @@ namespace adria
 			return shader_model >= sm;
 		}
 
+		bool SupportsEnhancedBarriers() const 
+		{
+			return enhanced_barriers_supported;
+		}
+
 	private:
 		
 		RayTracingSupport ray_tracing_support = RayTracingSupport::TierNotSupported;
@@ -80,5 +85,6 @@ namespace adria
 		MeshShaderSupport mesh_shader_support = MeshShaderSupport::TierNotSupported;
 		WorkGraphSupport work_graph_support = WorkGraphSupport::TierNotSupported;
 		GfxShaderModel shader_model = SM_Unknown;
+		bool enhanced_barriers_supported = false;
 	};
 }
