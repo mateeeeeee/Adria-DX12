@@ -116,6 +116,7 @@ namespace adria
 		if (!discard && HasFlag(flags, ClearUAV)) sync |= D3D12_BARRIER_SYNC_CLEAR_UNORDERED_ACCESS_VIEW;
 
 		if (HasFlag(flags, Present))		sync |= D3D12_BARRIER_SYNC_ALL;
+		if (HasFlag(flags, Common))			sync |= D3D12_BARRIER_SYNC_ALL;
 		if (HasFlag(flags, RTV))			sync |= D3D12_BARRIER_SYNC_RENDER_TARGET;
 		if (HasAnyFlag(flags, AllDSV))		sync |= D3D12_BARRIER_SYNC_DEPTH_STENCIL;
 		if (HasAnyFlag(flags, AllVertex))	sync |= D3D12_BARRIER_SYNC_VERTEX_SHADING;

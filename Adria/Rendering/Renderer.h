@@ -60,6 +60,7 @@ namespace adria
 		PickingData const& GetPickingData() const { return picking_data; }
 		Vector2u GetDisplayResolution() const { return Vector2u(display_width, display_height); }
 
+
 	private:
 		entt::registry& reg;
 		GfxDevice* gfx;

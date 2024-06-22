@@ -507,8 +507,11 @@ namespace adria
 				compute_pso_desc.CS = CS_RainSimulation;
 				compute_pso_map[GfxPipelineStateID::RainSimulation] = gfx->CreateComputePipelineState(compute_pso_desc);
 
-				compute_pso_desc.CS = CS_ReSTIRGI_InitialSampling;
-				compute_pso_map[GfxPipelineStateID::ReSTIRGI_InitialSampling] = gfx->CreateComputePipelineState(compute_pso_desc);
+				if (gfx->GetCapabilities().CheckRayTracingSupport(RayTracingSupport::Tier1_1))
+				{
+					compute_pso_desc.CS = CS_ReSTIRGI_InitialSampling;
+					compute_pso_map[GfxPipelineStateID::ReSTIRGI_InitialSampling] = gfx->CreateComputePipelineState(compute_pso_desc);
+				}
 			}
 
 			if (gfx->GetCapabilities().SupportsMeshShaders())

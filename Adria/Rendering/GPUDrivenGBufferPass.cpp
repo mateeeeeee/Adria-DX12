@@ -45,27 +45,77 @@ namespace adria
 				{
 					ImGui::Checkbox("Occlusion Cull", &occlusion_culling);
 					ImGui::Checkbox("Display Debug Stats", &display_debug_stats);
+					if (display_debug_stats)
+					{
+						ImGui::SetNextWindowPos(ImVec2(50, 50), ImGuiCond_FirstUseEver);
+						ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
+
+						ImGui::SeparatorText("GPU Driven Debug Stats");
+						{
+							uint32 backbuffer_index = gfx->GetBackbufferIndex();
+							DebugStats current_debug_stats = debug_stats[backbuffer_index];
+
+
+							ImGui::BeginTable("Profiler", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg);
+							ImGui::TableSetupColumn("Description");
+							ImGui::TableSetupColumn("Count");
+							{
+								ImGui::TableNextRow();
+								ImGui::TableSetColumnIndex(0);
+								ImGui::Text("Total Instances");
+								ImGui::TableSetColumnIndex(1);
+								ImGui::Text("%u", current_debug_stats.num_instances);
+
+								ImGui::TableNextRow();
+								ImGui::TableSetColumnIndex(0);
+								ImGui::Text("Occluded Instances");
+								ImGui::TableSetColumnIndex(1);
+								ImGui::Text("%u", current_debug_stats.occluded_instances);
+
+								ImGui::TableNextRow();
+								ImGui::TableSetColumnIndex(0);
+								ImGui::Text("Visible Instances");
+								ImGui::TableSetColumnIndex(1);
+								ImGui::Text("%u", current_debug_stats.visible_instances);
+
+								ImGui::TableNextRow();
+								ImGui::TableSetColumnIndex(0);
+								ImGui::Text("Phase 1 Candidate Meshlets");
+								ImGui::TableSetColumnIndex(1);
+								ImGui::Text("%u", current_debug_stats.phase1_candidate_meshlets);
+
+								ImGui::TableNextRow();
+								ImGui::TableSetColumnIndex(0);
+								ImGui::Text("Phase 1 Visible Meshlets");
+								ImGui::TableSetColumnIndex(1);
+								ImGui::Text("%u", current_debug_stats.phase1_visible_meshlets);
+
+								ImGui::TableNextRow();
+								ImGui::TableSetColumnIndex(0);
+								ImGui::Text("Phase 2 Candidate Meshlets");
+								ImGui::TableSetColumnIndex(1);
+								ImGui::Text("%u", current_debug_stats.phase2_candidate_meshlets);
+
+								ImGui::TableNextRow();
+								ImGui::TableSetColumnIndex(0);
+								ImGui::Text("Phase 2 Visible Meshlets");
+								ImGui::TableSetColumnIndex(1);
+								ImGui::Text("%u", current_debug_stats.phase2_visible_meshlets);
+
+								ImGui::TableNextRow();
+								ImGui::TableSetColumnIndex(0);
+								ImGui::Text("Processed");
+								ImGui::TableSetColumnIndex(1);
+								ImGui::Text("%u", current_debug_stats.processed_meshlets);
+							}
+							ImGui::EndTable();
+						}
+					}
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
 
-				if (display_debug_stats)
-				{
-					if (ImGui::Begin("GPU Driven Debug Stats"))
-					{
-						uint32 backbuffer_index = gfx->GetBackbufferIndex();
-						DebugStats current_debug_stats = debug_stats[backbuffer_index];
-						ImGui::Text("Total Instances: %u", current_debug_stats.num_instances);
-						ImGui::Text("Occluded Instances: %u", current_debug_stats.occluded_instances);
-						ImGui::Text("Visible Instances: %u", current_debug_stats.visible_instances);
-						ImGui::Text("Phase 1 Candidate Meshlets: %u", current_debug_stats.phase1_candidate_meshlets);
-						ImGui::Text("Phase 1 Visible Meshlets: %u", current_debug_stats.phase1_visible_meshlets);
-						ImGui::Text("Phase 2 Candidate Meshlets: %u", current_debug_stats.phase2_candidate_meshlets);
-						ImGui::Text("Phase 2 Visible Meshlets: %u", current_debug_stats.phase2_visible_meshlets);
-						ImGui::Text("Processed Meshlets: %u", current_debug_stats.processed_meshlets);
-					}
-					ImGui::End();
-				}
+				
 			}, GUICommandGroup_Renderer
 		);
 	}

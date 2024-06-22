@@ -119,6 +119,7 @@ namespace adria
 
 				GfxPipelineState* rain_pso = PSOCache::Get(GfxPipelineStateID::Rain);
 				cmd_list->SetPipelineState(rain_pso);
+				cmd_list->SetTopology(GfxPrimitiveTopology::TriangleList);
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Draw(uint32(rain_density * MAX_RAIN_DATA_BUFFER_SIZE) * 6);

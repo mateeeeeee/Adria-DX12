@@ -85,9 +85,14 @@ namespace adria
 		work_graph_support = ConvertWorkGraphTier(feature_support.WorkGraphsTier());
 		shader_model		= ConvertShaderModel(feature_support.HighestShaderModel());
 
-		if (shader_model < SM_6_7)
+		if (shader_model < SM_6_6)
 		{
 			ADRIA_LOG(ERROR, "Device doesn't support Shader Model 6.6 which is required!");
+			return false;
+		}
+		if (!feature_support.EnhancedBarriersSupported())
+		{
+			ADRIA_LOG(ERROR, "Device doesn't support Enhanced Barriers which is required!");
 			return false;
 		}
 
