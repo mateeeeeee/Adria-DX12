@@ -1,6 +1,7 @@
-#pragma once
+﻿#pragma once
 #include <type_traits>
 #include <concepts>
+#include <bit>
 
 namespace adria
 {
@@ -71,14 +72,11 @@ namespace adria
 		return (((T)value) & (T)flags) != 0;
 	}
 
-	template<typename T> requires std::is_integral_v<T>
-	inline constexpr bool HasAllFlags(T value, T flags)
+	template<typename Enum> requires std::is_enum_v<Enum>
+	inline constexpr bool HasFlag(Enum value, Enum flag)
 	{
-		return (value & flags) == (flags);
-	}
-	template<typename T> requires std::is_integral_v<T>
-	inline constexpr bool HasAnyFlag(T value, T flags)
-	{
-		return (value & flags) != 0;
+		using T = std::underlying_type_t<Enum>;
+		static_assert(std::has_single_bit((T)flag));
+		return HasAnyFlag(value, flag);
 	}
 }

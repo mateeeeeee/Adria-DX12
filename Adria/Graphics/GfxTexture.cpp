@@ -112,10 +112,10 @@ namespace adria
 			clear_value_ptr = &clear_value;
 		}
 
-		GfxBarrierFlags initial_state = desc.initial_state;
+		GfxBarrierState initial_state = desc.initial_state;
 		if (initial_data != nullptr)
 		{
-			initial_state = GfxBarrierFlag_Common;
+			initial_state = GfxBarrierState::CopyDst;
 		}
 
 		auto device = gfx->GetDevice();
@@ -135,12 +135,12 @@ namespace adria
 			if (desc.heap_type == GfxResourceUsage::Readback)
 			{
 				allocation_desc.HeapType = D3D12_HEAP_TYPE_READBACK;
-				initial_state = GfxBarrierFlag_CopyDst;
+				initial_state = GfxBarrierState::CopyDst;
 			}
 			else if (desc.heap_type == GfxResourceUsage::Upload)
 			{
 				allocation_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-				initial_state = GfxBarrierFlag_GenericRead;
+				initial_state = GfxBarrierState::GenericRead;
 			}
 		}
 		auto allocator = gfx->GetAllocator();
@@ -192,9 +192,9 @@ namespace adria
 			}
 			UpdateSubresources(cmd_list->GetNative(), resource.Get(), dyn_alloc.buffer->GetNative(), dyn_alloc.offset, 0, subresource_count, subresource_data.data());
 
-			if (initial_state != GfxBarrierFlag_CopyDst)
+			if (initial_state != GfxBarrierState::CopyDst)
 			{
-				cmd_list->TextureBarrier(*this, GfxBarrierFlag_CopyDst, initial_state);
+				cmd_list->TextureBarrier(*this, GfxBarrierState::CopyDst, initial_state);
 				cmd_list->FlushBarriers();
 			}
 		}

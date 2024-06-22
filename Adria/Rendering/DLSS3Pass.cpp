@@ -220,7 +220,7 @@ namespace adria
 
 			NVSDK_NGX_Result result = NGX_D3D12_CREATE_DLSS_EXT(cmd_list->GetNative(), 0, 0, &dlss_feature, ngx_parameters, &dlss_create_params);
 			ADRIA_ASSERT(NVSDK_NGX_SUCCEED(result));
-			cmd_list->GlobalBarrier(GfxBarrierFlag_ComputeUAV, GfxBarrierFlag_ComputeUAV);
+			cmd_list->GlobalBarrier(GfxBarrierState::ComputeUAV, GfxBarrierState::ComputeUAV);
 			needs_create = false;
 		}
 	}

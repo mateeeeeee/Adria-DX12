@@ -69,9 +69,9 @@ namespace adria
 		void DispatchMeshIndirect(GfxBuffer const& buffer, uint32 offset);
 		void DispatchRays(uint32 dispatch_width, uint32 dispatch_height, uint32 dispatch_depth = 1);
 
-		void TextureBarrier(GfxTexture const& texture, GfxBarrierFlags flags_before, GfxBarrierFlags flags_after, uint32 subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
-		void BufferBarrier(GfxBuffer const& buffer, GfxBarrierFlags flags_before, GfxBarrierFlags flags_after);
-		void GlobalBarrier(GfxBarrierFlags flags_before, GfxBarrierFlags flags_after);
+		void TextureBarrier(GfxTexture const& texture, GfxBarrierState flags_before, GfxBarrierState flags_after, uint32 subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
+		void BufferBarrier(GfxBuffer const& buffer, GfxBarrierState flags_before, GfxBarrierState flags_after);
+		void GlobalBarrier(GfxBarrierState flags_before, GfxBarrierState flags_after);
 		void FlushBarriers();
 
 		void CopyBuffer(GfxBuffer& dst, GfxBuffer const& src);

@@ -299,7 +299,7 @@ namespace adria
 		cmd_list->DispatchRays(&dispatch_desc);
 	}
 
-	void GfxCommandList::TextureBarrier(GfxTexture const& texture, GfxBarrierFlags flags_before, GfxBarrierFlags flags_after, uint32 subresource)
+	void GfxCommandList::TextureBarrier(GfxTexture const& texture, GfxBarrierState flags_before, GfxBarrierState flags_after, uint32 subresource)
 	{
 		D3D12_TEXTURE_BARRIER barrier{};
 		barrier.SyncBefore		= ToD3D12BarrierSync(flags_before);
@@ -311,11 +311,11 @@ namespace adria
 		barrier.pResource		= texture.GetNative();
 		barrier.Subresources = CD3DX12_BARRIER_SUBRESOURCE_RANGE(subresource);
 
-		if (flags_before & GfxBarrierFlag_Discard) barrier.Flags = D3D12_TEXTURE_BARRIER_FLAG_DISCARD;
+		if (HasAnyFlag(flags_before,GfxBarrierState::Discard)) barrier.Flags = D3D12_TEXTURE_BARRIER_FLAG_DISCARD;
 		texture_barriers.push_back(barrier);
 	}
 
-	void GfxCommandList::BufferBarrier(GfxBuffer const& buffer, GfxBarrierFlags flags_before, GfxBarrierFlags flags_after)
+	void GfxCommandList::BufferBarrier(GfxBuffer const& buffer, GfxBarrierState flags_before, GfxBarrierState flags_after)
 	{
 		D3D12_BUFFER_BARRIER barrier{};
 		barrier.SyncBefore		= ToD3D12BarrierSync(flags_before);
@@ -329,7 +329,7 @@ namespace adria
 		buffer_barriers.push_back(barrier);
 	}
 
-	void GfxCommandList::GlobalBarrier(GfxBarrierFlags flags_before, GfxBarrierFlags flags_after)
+	void GfxCommandList::GlobalBarrier(GfxBarrierState flags_before, GfxBarrierState flags_after)
 	{
 		D3D12_GLOBAL_BARRIER barrier{};
 		barrier.SyncBefore		= ToD3D12BarrierSync(flags_before);

@@ -211,7 +211,7 @@ namespace adria
 		ldr_desc.height = display_height;
 		ldr_desc.format = GfxFormat::R8G8B8A8_UNORM;
 		ldr_desc.bind_flags = GfxBindFlag::UnorderedAccess | GfxBindFlag::ShaderResource | GfxBindFlag::RenderTarget;
-		ldr_desc.initial_state = GfxBarrierFlag_ComputeUAV;
+		ldr_desc.initial_state = GfxBarrierState::ComputeUAV;
 		final_texture = gfx->CreateTexture(ldr_desc);
 	}
 	void Renderer::CreateAS()

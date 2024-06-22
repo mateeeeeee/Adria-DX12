@@ -21,7 +21,7 @@ namespace adria
 				desc.height = 1;
 				desc.format = GfxFormat::R32_FLOAT;
 				desc.bind_flags = GfxBindFlag::ShaderResource;
-				desc.initial_state = GfxBarrierFlag_PixelSRV;
+				desc.initial_state = GfxBarrierState::PixelSRV;
 				desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 
 				GfxTextureInitialData init_data{};

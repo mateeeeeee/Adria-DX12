@@ -118,7 +118,7 @@ namespace adria
 		noise_desc.width = NOISE_DIM;
 		noise_desc.height = NOISE_DIM;
 		noise_desc.format = GfxFormat::R32G32B32A32_FLOAT;
-		noise_desc.initial_state = GfxBarrierFlag_PixelSRV;
+		noise_desc.initial_state = GfxBarrierState::PixelSRV;
 		noise_desc.bind_flags = GfxBindFlag::ShaderResource;
 
 		hbao_random_texture = gfx->CreateTexture(noise_desc, &data);

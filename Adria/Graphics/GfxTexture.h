@@ -33,7 +33,7 @@ namespace adria
 		GfxBindFlag bind_flags = GfxBindFlag::None;
 		GfxTextureMiscFlag misc_flags = GfxTextureMiscFlag::None;
 		GfxClearValue clear_value{};
-		GfxBarrierFlags initial_state = GfxBarrierFlag_AllSRV;
+		GfxBarrierState initial_state = GfxBarrierState::AllSRV;
 		GfxFormat format = GfxFormat::UNKNOWN;
 
 		std::strong_ordering operator<=>(GfxTextureDesc const& other) const = default;
@@ -70,10 +70,10 @@ namespace adria
 		constexpr uint32 GfxTextureChannelMappingAlwaysSetBit = 1 << (GfxTextureChannelMappingShift * 4);
 
 		return GfxTextureChannelMapping(
-			(((R)&GfxTextureChannelMappingMask) << (GfxTextureChannelMappingShift * 0)) |
-			(((G)&GfxTextureChannelMappingMask) << (GfxTextureChannelMappingShift * 1)) |
-			(((B)&GfxTextureChannelMappingMask) << (GfxTextureChannelMappingShift * 2)) |
-			(((A)&GfxTextureChannelMappingMask) << (GfxTextureChannelMappingShift * 3)) |
+			(((R) & GfxTextureChannelMappingMask) << (GfxTextureChannelMappingShift * 0)) |
+			(((G) & GfxTextureChannelMappingMask) << (GfxTextureChannelMappingShift * 1)) |
+			(((B) & GfxTextureChannelMappingMask) << (GfxTextureChannelMappingShift * 2)) |
+			(((A) & GfxTextureChannelMappingMask) << (GfxTextureChannelMappingShift * 3)) |
 			GfxTextureChannelMappingAlwaysSetBit);
 	}
 

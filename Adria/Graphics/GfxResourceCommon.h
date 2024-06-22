@@ -66,104 +66,108 @@ namespace adria
 		static constexpr bool enable = true;
 	};
 
-	enum GfxBarrierFlag : uint64
+	enum class GfxBarrierState : uint64
 	{
-		GfxBarrierFlag_Common = 1 << 0,
-		GfxBarrierFlag_Present = GfxBarrierFlag_Common,
-		GfxBarrierFlag_RTV = 1 << 1,
-		GfxBarrierFlag_DSV = 1 << 2,
-		GfxBarrierFlag_DSV_ReadOnly = 1 << 3,
-		GfxBarrierFlag_VertexSRV = 1 << 4,
-		GfxBarrierFlag_PixelSRV = 1 << 5,
-		GfxBarrierFlag_ComputeSRV = 1 << 6,
-		GfxBarrierFlag_VertexUAV = 1 << 7,
-		GfxBarrierFlag_PixelUAV = 1 << 8,
-		GfxBarrierFlag_ComputeUAV = 1 << 9,
-		GfxBarrierFlag_ClearUAV = 1 << 10,
-		GfxBarrierFlag_CopyDst = 1 << 11,
-		GfxBarrierFlag_CopySrc = 1 << 12,
-		GfxBarrierFlag_ShadingRate = 1 << 13,
-		GfxBarrierFlag_IndexBuffer = 1 << 14,
-		GfxBarrierFlag_IndirectArgs = 1 << 15,
-		GfxBarrierFlag_ASRead = 1 << 16,
-		GfxBarrierFlag_ASWrite = 1 << 17,
-		GfxBarrierFlag_Discard = 1 << 18,
+		None = 0,
+		Common = 1 << 0,
+		Present = Common,
+		RTV = 1 << 1,
+		DSV = 1 << 2,
+		DSV_ReadOnly = 1 << 3,
+		VertexSRV = 1 << 4,
+		PixelSRV = 1 << 5,
+		ComputeSRV = 1 << 6,
+		VertexUAV = 1 << 7,
+		PixelUAV = 1 << 8,
+		ComputeUAV = 1 << 9,
+		ClearUAV = 1 << 10,
+		CopyDst = 1 << 11,
+		CopySrc = 1 << 12,
+		ShadingRate = 1 << 13,
+		IndexBuffer = 1 << 14,
+		IndirectArgs = 1 << 15,
+		ASRead = 1 << 16,
+		ASWrite = 1 << 17,
+		Discard = 1 << 18,
 
-		GfxBarrierFlag_AllVertex = GfxBarrierFlag_VertexSRV | GfxBarrierFlag_VertexUAV,
-		GfxBarrierFlag_AllPixel = GfxBarrierFlag_PixelSRV | GfxBarrierFlag_PixelUAV,
-		GfxBarrierFlag_AllCompute = GfxBarrierFlag_ComputeSRV | GfxBarrierFlag_ComputeUAV,
-		GfxBarrierFlag_AllSRV = GfxBarrierFlag_VertexSRV | GfxBarrierFlag_PixelSRV | GfxBarrierFlag_ComputeSRV,
-		GfxBarrierFlag_AllUAV = GfxBarrierFlag_VertexUAV | GfxBarrierFlag_PixelUAV | GfxBarrierFlag_ComputeUAV,
-		GfxBarrierFlag_AllDSV = GfxBarrierFlag_DSV | GfxBarrierFlag_DSV_ReadOnly,
-		GfxBarrierFlag_AllCopy = GfxBarrierFlag_CopyDst | GfxBarrierFlag_CopySrc,
-		GfxBarrierFlag_AllAS = GfxBarrierFlag_ASRead | GfxBarrierFlag_ASWrite,
-		GfxBarrierFlag_GenericRead = GfxBarrierFlag_CopySrc | GfxBarrierFlag_AllSRV
+		AllVertex = VertexSRV | VertexUAV,
+		AllPixel = PixelSRV | PixelUAV,
+		AllCompute = ComputeSRV | ComputeUAV,
+		AllSRV = VertexSRV | PixelSRV | ComputeSRV,
+		AllUAV = VertexUAV | PixelUAV | ComputeUAV,
+		AllDSV = DSV | DSV_ReadOnly,
+		AllCopy = CopyDst | CopySrc,
+		AllAS = ASRead | ASWrite,
+		GenericRead = CopySrc | AllSRV
 	};
-	using GfxBarrierFlags = uint64;
+	template <>
+	struct EnumBitmaskOperators<GfxBarrierState>
+	{
+		static constexpr bool enable = true;
+	};
 
-	inline D3D12_BARRIER_SYNC ToD3D12BarrierSync(GfxBarrierFlags flags)
+	inline D3D12_BARRIER_SYNC ToD3D12BarrierSync(GfxBarrierState flags)
 	{
 		D3D12_BARRIER_SYNC sync = D3D12_BARRIER_SYNC_NONE;
-		bool discard = (flags & GfxBarrierFlag_Discard) != 0;
-		if (!discard && (flags & GfxBarrierFlag_ClearUAV)) sync |= D3D12_BARRIER_SYNC_CLEAR_UNORDERED_ACCESS_VIEW;
-		if (flags & GfxBarrierFlag_Present)         sync |= D3D12_BARRIER_SYNC_ALL;
-		if (flags & GfxBarrierFlag_RTV)				sync |= D3D12_BARRIER_SYNC_RENDER_TARGET;
-		if (flags & GfxBarrierFlag_AllDSV)			sync |= D3D12_BARRIER_SYNC_DEPTH_STENCIL;
-		if (flags & GfxBarrierFlag_AllVertex)		sync |= D3D12_BARRIER_SYNC_VERTEX_SHADING;
-		if (flags & GfxBarrierFlag_AllPixel)		sync |= D3D12_BARRIER_SYNC_PIXEL_SHADING;
-		if (flags & GfxBarrierFlag_AllCompute)		sync |= D3D12_BARRIER_SYNC_COMPUTE_SHADING;
-		if (flags & GfxBarrierFlag_AllCopy)			sync |= D3D12_BARRIER_SYNC_COPY;
-		if (flags & GfxBarrierFlag_ShadingRate)		sync |= D3D12_BARRIER_SYNC_PIXEL_SHADING;
-		if (flags & GfxBarrierFlag_IndexBuffer)		sync |= D3D12_BARRIER_SYNC_INDEX_INPUT;
-		if (flags & GfxBarrierFlag_IndirectArgs)	sync |= D3D12_BARRIER_SYNC_EXECUTE_INDIRECT;
-		if (flags & GfxBarrierFlag_AllAS)			sync |= D3D12_BARRIER_SYNC_BUILD_RAYTRACING_ACCELERATION_STRUCTURE;
+		bool discard = HasAnyFlag(flags, GfxBarrierState::Discard);
+		if (!discard && HasAnyFlag(flags,GfxBarrierState::ClearUAV)) sync |= D3D12_BARRIER_SYNC_CLEAR_UNORDERED_ACCESS_VIEW;
+		if (HasAnyFlag(flags, GfxBarrierState::Present))		sync |= D3D12_BARRIER_SYNC_ALL;
+		if (HasAnyFlag(flags, GfxBarrierState::RTV))			sync |= D3D12_BARRIER_SYNC_RENDER_TARGET;
+		if (HasAnyFlag(flags, GfxBarrierState::AllDSV))			sync |= D3D12_BARRIER_SYNC_DEPTH_STENCIL;
+		if (HasAnyFlag(flags, GfxBarrierState::AllVertex))		sync |= D3D12_BARRIER_SYNC_VERTEX_SHADING;
+		if (HasAnyFlag(flags, GfxBarrierState::AllPixel))		sync |= D3D12_BARRIER_SYNC_PIXEL_SHADING;
+		if (HasAnyFlag(flags, GfxBarrierState::AllCompute))		sync |= D3D12_BARRIER_SYNC_COMPUTE_SHADING;
+		if (HasAnyFlag(flags, GfxBarrierState::AllCopy))		sync |= D3D12_BARRIER_SYNC_COPY;
+		if (HasAnyFlag(flags, GfxBarrierState::ShadingRate))	sync |= D3D12_BARRIER_SYNC_PIXEL_SHADING;
+		if (HasAnyFlag(flags, GfxBarrierState::IndexBuffer))	sync |= D3D12_BARRIER_SYNC_INDEX_INPUT;
+		if (HasAnyFlag(flags, GfxBarrierState::IndirectArgs))	sync |= D3D12_BARRIER_SYNC_EXECUTE_INDIRECT;
+		if (HasAnyFlag(flags, GfxBarrierState::AllAS))			sync |= D3D12_BARRIER_SYNC_BUILD_RAYTRACING_ACCELERATION_STRUCTURE;
 		return sync;
 	}
-	inline D3D12_BARRIER_LAYOUT ToD3D12BarrierLayout(GfxBarrierFlags flags)
+	inline D3D12_BARRIER_LAYOUT ToD3D12BarrierLayout(GfxBarrierState flags)
 	{
-		if (flags & GfxBarrierFlag_Discard)			return D3D12_BARRIER_LAYOUT_UNDEFINED;
-		if (flags & GfxBarrierFlag_Present)			return D3D12_BARRIER_LAYOUT_PRESENT;
-		if (flags & GfxBarrierFlag_RTV)				return D3D12_BARRIER_LAYOUT_RENDER_TARGET;
-		if (flags & GfxBarrierFlag_DSV)             return D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_WRITE;
-		if (flags & GfxBarrierFlag_DSV_ReadOnly)    return D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_READ;
-		if (flags & GfxBarrierFlag_AllSRV)			return D3D12_BARRIER_LAYOUT_SHADER_RESOURCE;
-		if (flags & GfxBarrierFlag_AllUAV)			return D3D12_BARRIER_LAYOUT_UNORDERED_ACCESS;
-		if (flags & GfxBarrierFlag_ClearUAV)		return D3D12_BARRIER_LAYOUT_UNORDERED_ACCESS;
-		if (flags & GfxBarrierFlag_CopyDst)			return D3D12_BARRIER_LAYOUT_COPY_DEST;
-		if (flags & GfxBarrierFlag_CopySrc)			return D3D12_BARRIER_LAYOUT_COPY_SOURCE;
-		if (flags & GfxBarrierFlag_ShadingRate)		return D3D12_BARRIER_LAYOUT_SHADING_RATE_SOURCE;
+		if (HasAnyFlag(flags, GfxBarrierState::Discard))		return D3D12_BARRIER_LAYOUT_UNDEFINED;
+		if (HasAnyFlag(flags, GfxBarrierState::Present))		return D3D12_BARRIER_LAYOUT_PRESENT;
+		if (HasAnyFlag(flags, GfxBarrierState::RTV))			return D3D12_BARRIER_LAYOUT_RENDER_TARGET;
+		if (HasAnyFlag(flags, GfxBarrierState::DSV))            return D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_WRITE;
+		if (HasAnyFlag(flags, GfxBarrierState::DSV_ReadOnly))   return D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_READ;
+		if (HasAnyFlag(flags, GfxBarrierState::AllSRV))			return D3D12_BARRIER_LAYOUT_SHADER_RESOURCE;
+		if (HasAnyFlag(flags, GfxBarrierState::AllUAV))			return D3D12_BARRIER_LAYOUT_UNORDERED_ACCESS;
+		if (HasAnyFlag(flags, GfxBarrierState::ClearUAV))		return D3D12_BARRIER_LAYOUT_UNORDERED_ACCESS;
+		if (HasAnyFlag(flags, GfxBarrierState::CopyDst))		return D3D12_BARRIER_LAYOUT_COPY_DEST;
+		if (HasAnyFlag(flags, GfxBarrierState::CopySrc))		return D3D12_BARRIER_LAYOUT_COPY_SOURCE;
+		if (HasAnyFlag(flags, GfxBarrierState::ShadingRate))	return D3D12_BARRIER_LAYOUT_SHADING_RATE_SOURCE;
 		ADRIA_UNREACHABLE();
 		return D3D12_BARRIER_LAYOUT_UNDEFINED;
 	}
-	inline D3D12_BARRIER_ACCESS ToD3D12BarrierAccess(GfxBarrierFlags flags)
+	inline D3D12_BARRIER_ACCESS ToD3D12BarrierAccess(GfxBarrierState flags)
 	{
-		if (flags & GfxBarrierFlag_Discard) return D3D12_BARRIER_ACCESS_NO_ACCESS;
+		if (HasAnyFlag(flags, GfxBarrierState::Discard)) return D3D12_BARRIER_ACCESS_NO_ACCESS;
 		D3D12_BARRIER_ACCESS access = D3D12_BARRIER_ACCESS_COMMON;
-		if (flags & GfxBarrierFlag_RTV)             access |= D3D12_BARRIER_ACCESS_RENDER_TARGET;
-		if (flags & GfxBarrierFlag_DSV)             access |= D3D12_BARRIER_ACCESS_DEPTH_STENCIL_WRITE;
-		if (flags & GfxBarrierFlag_DSV_ReadOnly)    access |= D3D12_BARRIER_ACCESS_DEPTH_STENCIL_READ;
-		if (flags & GfxBarrierFlag_AllSRV)          access |= D3D12_BARRIER_ACCESS_SHADER_RESOURCE;
-		if (flags & GfxBarrierFlag_AllUAV)          access |= D3D12_BARRIER_ACCESS_UNORDERED_ACCESS;
-		if (flags & GfxBarrierFlag_ClearUAV)        access |= D3D12_BARRIER_ACCESS_UNORDERED_ACCESS;
-		if (flags & GfxBarrierFlag_CopyDst)         access |= D3D12_BARRIER_ACCESS_COPY_DEST;
-		if (flags & GfxBarrierFlag_CopySrc)         access |= D3D12_BARRIER_ACCESS_COPY_SOURCE;
-		if (flags & GfxBarrierFlag_ShadingRate)     access |= D3D12_BARRIER_ACCESS_SHADING_RATE_SOURCE;
-		if (flags & GfxBarrierFlag_IndexBuffer)     access |= D3D12_BARRIER_ACCESS_INDEX_BUFFER;
-		if (flags & GfxBarrierFlag_IndirectArgs)    access |= D3D12_BARRIER_ACCESS_INDIRECT_ARGUMENT;
-		if (flags & GfxBarrierFlag_ASRead)          access |= D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ;
-		if (flags & GfxBarrierFlag_ASWrite)         access |= D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_WRITE;
+		if (HasAnyFlag(flags, GfxBarrierState::RTV))             access |= D3D12_BARRIER_ACCESS_RENDER_TARGET;
+		if (HasAnyFlag(flags, GfxBarrierState::DSV))             access |= D3D12_BARRIER_ACCESS_DEPTH_STENCIL_WRITE;
+		if (HasAnyFlag(flags, GfxBarrierState::DSV_ReadOnly))    access |= D3D12_BARRIER_ACCESS_DEPTH_STENCIL_READ;
+		if (HasAnyFlag(flags, GfxBarrierState::AllSRV))          access |= D3D12_BARRIER_ACCESS_SHADER_RESOURCE;
+		if (HasAnyFlag(flags, GfxBarrierState::AllUAV))          access |= D3D12_BARRIER_ACCESS_UNORDERED_ACCESS;
+		if (HasAnyFlag(flags, GfxBarrierState::ClearUAV))        access |= D3D12_BARRIER_ACCESS_UNORDERED_ACCESS;
+		if (HasAnyFlag(flags, GfxBarrierState::CopyDst))         access |= D3D12_BARRIER_ACCESS_COPY_DEST;
+		if (HasAnyFlag(flags, GfxBarrierState::CopySrc))         access |= D3D12_BARRIER_ACCESS_COPY_SOURCE;
+		if (HasAnyFlag(flags, GfxBarrierState::ShadingRate))     access |= D3D12_BARRIER_ACCESS_SHADING_RATE_SOURCE;
+		if (HasAnyFlag(flags, GfxBarrierState::IndexBuffer))     access |= D3D12_BARRIER_ACCESS_INDEX_BUFFER;
+		if (HasAnyFlag(flags, GfxBarrierState::IndirectArgs))    access |= D3D12_BARRIER_ACCESS_INDIRECT_ARGUMENT;
+		if (HasAnyFlag(flags, GfxBarrierState::ASRead))          access |= D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ;
+		if (HasAnyFlag(flags, GfxBarrierState::ASWrite))         access |= D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_WRITE;
 		return access;
 	}
 
-	inline bool CompareByLayout(GfxBarrierFlags flags1, GfxBarrierFlags flags2)
+	inline bool CompareByLayout(GfxBarrierState flags1, GfxBarrierState flags2)
 	{
 		return ToD3D12BarrierLayout(flags1) == ToD3D12BarrierLayout(flags2);
 	}
 
-	inline constexpr std::string ConvertBarrierFlagsToString(GfxBarrierFlags flags)
+	inline constexpr std::string ConvertBarrierFlagsToString(GfxBarrierState flags)
 	{
 		std::string resource_state_string = "";
-		if (flags & GfxBarrierFlag_Discard) resource_state_string += "GfxBarrierFlag_Discard |";
 		if (!resource_state_string.empty()) resource_state_string.pop_back();
 		return resource_state_string.empty() ? "Common" : resource_state_string;
 	}
