@@ -76,7 +76,7 @@ namespace adria
 	inline constexpr bool HasFlag(Enum value, Enum flag)
 	{
 		using T = std::underlying_type_t<Enum>;
-		static_assert(std::has_single_bit((T)flag));
+		ADRIA_ASSERT(std::has_single_bit((T)flag));
 		return HasAnyFlag(value, flag);
 	}
 }
