@@ -91,11 +91,6 @@ namespace adria
 			ADRIA_LOG(ERROR, "Device doesn't support Shader Model 6.6 which is required!");
 			return false;
 		}
-		if (!enhanced_barriers_supported)
-		{
-			ADRIA_LOG(ERROR, "Device doesn't support Enhanced Barriers which is required!");
-			return false;
-		}
 
 		return true;
 	}

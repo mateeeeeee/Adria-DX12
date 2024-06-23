@@ -65,6 +65,7 @@ Graphics engine written in C++ using DirectX12.
     - Render graph dump and visualization
     - Shader debug printf
     - Nsight Aftermath SDK
+* D3D12 Enhanced Barriers
 
 ## TODO
 * ReSTIR GI

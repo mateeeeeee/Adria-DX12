@@ -89,6 +89,7 @@ namespace adria
 		AMD,
 		Nvidia,
 		Intel,
+		Microsoft,
 		Unknown
 	};
 

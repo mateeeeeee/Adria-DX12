@@ -120,7 +120,7 @@ namespace adria
 	}
 
 	GfxCommandList::GfxCommandList(GfxDevice* gfx, GfxCommandListType type, char const* name)
-		: gfx(gfx), type(type), cmd_queue(gfx->GetCommandQueue(type)), current_rt_table(nullptr)
+		: gfx(gfx), type(type), cmd_queue(gfx->GetCommandQueue(type)), use_legacy_barriers(!gfx->GetCapabilities().SupportsEnhancedBarriers()), current_rt_table(nullptr)
 	{
 		D3D12_COMMAND_LIST_TYPE cmd_list_type = ToD3D12CommandListType(type);
 		ID3D12Device* device = gfx->GetDevice();
@@ -301,73 +301,148 @@ namespace adria
 
 	void GfxCommandList::TextureBarrier(GfxTexture const& texture, GfxBarrierState flags_before, GfxBarrierState flags_after, uint32 subresource)
 	{
-		D3D12_TEXTURE_BARRIER barrier{};
-		barrier.SyncBefore		= ToD3D12BarrierSync(flags_before);
-		barrier.SyncAfter		= ToD3D12BarrierSync(flags_after);
-		barrier.AccessBefore	= ToD3D12BarrierAccess(flags_before);
-		barrier.AccessAfter		= ToD3D12BarrierAccess(flags_after);
-		barrier.LayoutBefore	= ToD3D12BarrierLayout(flags_before);
-		barrier.LayoutAfter		= ToD3D12BarrierLayout(flags_after);
-		barrier.pResource		= texture.GetNative();
-		barrier.Subresources = CD3DX12_BARRIER_SUBRESOURCE_RANGE(subresource);
+		if (use_legacy_barriers)
+		{
+			if (flags_before == GfxBarrierState::ComputeUAV && flags_after == GfxBarrierState::ComputeUAV)
+			{
+				D3D12_RESOURCE_BARRIER barrier{};
+				barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+				barrier.UAV.pResource = texture.GetNative();
+				legacy_barriers.push_back(barrier);
+			}
+			else
+			{
+				D3D12_RESOURCE_BARRIER barrier{};
+				barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+				barrier.Transition.pResource = texture.GetNative();
+				barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+				barrier.Transition.StateBefore = ToD3D12LegacyResourceState(flags_before);
+				barrier.Transition.StateAfter = ToD3D12LegacyResourceState(flags_after);
+				legacy_barriers.push_back(barrier);
+			}
+		}
+		else
+		{
+			D3D12_TEXTURE_BARRIER barrier{};
+			barrier.SyncBefore = ToD3D12BarrierSync(flags_before);
+			barrier.SyncAfter = ToD3D12BarrierSync(flags_after);
+			barrier.AccessBefore = ToD3D12BarrierAccess(flags_before);
+			barrier.AccessAfter = ToD3D12BarrierAccess(flags_after);
+			barrier.LayoutBefore = ToD3D12BarrierLayout(flags_before);
+			barrier.LayoutAfter = ToD3D12BarrierLayout(flags_after);
+			barrier.pResource = texture.GetNative();
+			barrier.Subresources = CD3DX12_BARRIER_SUBRESOURCE_RANGE(subresource);
 
-		if (HasAnyFlag(flags_before,GfxBarrierState::Discard)) barrier.Flags = D3D12_TEXTURE_BARRIER_FLAG_DISCARD;
-		texture_barriers.push_back(barrier);
+			if (HasAnyFlag(flags_before, GfxBarrierState::Discard)) barrier.Flags = D3D12_TEXTURE_BARRIER_FLAG_DISCARD;
+			texture_barriers.push_back(barrier);
+		}
 	}
 
 	void GfxCommandList::BufferBarrier(GfxBuffer const& buffer, GfxBarrierState flags_before, GfxBarrierState flags_after)
 	{
-		D3D12_BUFFER_BARRIER barrier{};
-		barrier.SyncBefore		= ToD3D12BarrierSync(flags_before);
-		barrier.SyncAfter		= ToD3D12BarrierSync(flags_after);
-		barrier.AccessBefore	= ToD3D12BarrierAccess(flags_before);
-		barrier.AccessAfter		= ToD3D12BarrierAccess(flags_after);
-		barrier.pResource		= buffer.GetNative();
-		barrier.Offset = 0;
-		barrier.Size = UINT64_MAX;
+		if (use_legacy_barriers)
+		{
+			if (flags_before == GfxBarrierState::ComputeUAV && flags_after == GfxBarrierState::ComputeUAV)
+			{
+				D3D12_RESOURCE_BARRIER barrier{};
+				barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+				barrier.UAV.pResource = buffer.GetNative();
+				legacy_barriers.push_back(barrier);
+			}
+			else
+			{
+				D3D12_RESOURCE_BARRIER barrier{};
+				barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+				barrier.Transition.pResource = buffer.GetNative();
+				barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+				barrier.Transition.StateBefore = ToD3D12LegacyResourceState(flags_before);
+				barrier.Transition.StateAfter = ToD3D12LegacyResourceState(flags_after);
+				legacy_barriers.push_back(barrier);
+			}
+		}
+		else
+		{
+			D3D12_BUFFER_BARRIER barrier{};
+			barrier.SyncBefore = ToD3D12BarrierSync(flags_before);
+			barrier.SyncAfter = ToD3D12BarrierSync(flags_after);
+			barrier.AccessBefore = ToD3D12BarrierAccess(flags_before);
+			barrier.AccessAfter = ToD3D12BarrierAccess(flags_after);
+			barrier.pResource = buffer.GetNative();
+			barrier.Offset = 0;
+			barrier.Size = UINT64_MAX;
 
-		buffer_barriers.push_back(barrier);
+			buffer_barriers.push_back(barrier);
+		}
 	}
 
 	void GfxCommandList::GlobalBarrier(GfxBarrierState flags_before, GfxBarrierState flags_after)
 	{
-		D3D12_GLOBAL_BARRIER barrier{};
-		barrier.SyncBefore		= ToD3D12BarrierSync(flags_before);
-		barrier.SyncAfter		= ToD3D12BarrierSync(flags_after);
-		barrier.AccessBefore	= ToD3D12BarrierAccess(flags_before);
-		barrier.AccessAfter		= ToD3D12BarrierAccess(flags_after);
-		global_barriers.push_back(barrier);
+		if (use_legacy_barriers)
+		{
+			if (flags_before == GfxBarrierState::ComputeUAV && flags_after == GfxBarrierState::ComputeUAV)
+			{
+				D3D12_RESOURCE_BARRIER barrier{};
+				barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+				barrier.UAV.pResource = nullptr;
+				legacy_barriers.push_back(barrier);
+			}
+			else
+			{
+				ADRIA_ASSERT_MSG(false, "Unsupported flags for legacy barriers!");
+			}
+		}
+		else
+		{
+			D3D12_GLOBAL_BARRIER barrier{};
+			barrier.SyncBefore = ToD3D12BarrierSync(flags_before);
+			barrier.SyncAfter = ToD3D12BarrierSync(flags_after);
+			barrier.AccessBefore = ToD3D12BarrierAccess(flags_before);
+			barrier.AccessAfter = ToD3D12BarrierAccess(flags_after);
+			global_barriers.push_back(barrier);
+		}
 	}
 
 	void GfxCommandList::FlushBarriers()
 	{
-		std::vector<D3D12_BARRIER_GROUP> barrier_groups;
-		barrier_groups.reserve(3);
-
-		if (!texture_barriers.empty())
+		if (use_legacy_barriers)
 		{
-			barrier_groups.push_back(CD3DX12_BARRIER_GROUP((uint32)texture_barriers.size(), texture_barriers.data()));
+			if (!legacy_barriers.empty())
+			{
+				cmd_list->ResourceBarrier((uint32)legacy_barriers.size(), legacy_barriers.data());
+				legacy_barriers.clear();
+				++command_count;
+			}
 		}
-
-		if (!buffer_barriers.empty())
+		else
 		{
-			barrier_groups.push_back(CD3DX12_BARRIER_GROUP((uint32)buffer_barriers.size(), buffer_barriers.data()));
-		}
+			std::vector<D3D12_BARRIER_GROUP> barrier_groups;
+			barrier_groups.reserve(3);
 
-		if (!global_barriers.empty())
-		{
-			barrier_groups.push_back(CD3DX12_BARRIER_GROUP((uint32)global_barriers.size(), global_barriers.data()));
-		}
+			if (!texture_barriers.empty())
+			{
+				barrier_groups.push_back(CD3DX12_BARRIER_GROUP((uint32)texture_barriers.size(), texture_barriers.data()));
+			}
 
-		if (!barrier_groups.empty())
-		{
-			cmd_list->Barrier((uint32)barrier_groups.size(), barrier_groups.data());
-			++command_count;
-		}
+			if (!buffer_barriers.empty())
+			{
+				barrier_groups.push_back(CD3DX12_BARRIER_GROUP((uint32)buffer_barriers.size(), buffer_barriers.data()));
+			}
 
-		texture_barriers.clear();
-		buffer_barriers.clear();
-		global_barriers.clear();
+			if (!global_barriers.empty())
+			{
+				barrier_groups.push_back(CD3DX12_BARRIER_GROUP((uint32)global_barriers.size(), global_barriers.data()));
+			}
+
+			if (!barrier_groups.empty())
+			{
+				cmd_list->Barrier((uint32)barrier_groups.size(), barrier_groups.data());
+				++command_count;
+			}
+
+			texture_barriers.clear();
+			buffer_barriers.clear();
+			global_barriers.clear();
+		}
 	}
 
 	void GfxCommandList::CopyBuffer(GfxBuffer& dst, uint64 dst_offset, GfxBuffer const& src, uint64 src_offset, uint64 size)

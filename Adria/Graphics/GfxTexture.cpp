@@ -145,16 +145,30 @@ namespace adria
 		}
 		auto allocator = gfx->GetAllocator();
 
-		D3D12_RESOURCE_DESC1 resource_desc1 = CD3DX12_RESOURCE_DESC1(resource_desc);
 		D3D12MA::Allocation* alloc = nullptr;
-		hr = allocator->CreateResource3(
-			&allocation_desc,
-			&resource_desc1,
-			ToD3D12BarrierLayout(initial_state),
-			clear_value_ptr, 0, nullptr,
-			&alloc,
-			IID_PPV_ARGS(resource.GetAddressOf())
-		);
+		if (gfx->GetCapabilities().SupportsEnhancedBarriers())
+		{
+			D3D12_RESOURCE_DESC1 resource_desc1 = CD3DX12_RESOURCE_DESC1(resource_desc);
+			hr = allocator->CreateResource3(
+				&allocation_desc,
+				&resource_desc1,
+				ToD3D12BarrierLayout(initial_state),
+				clear_value_ptr, 0, nullptr,
+				&alloc,
+				IID_PPV_ARGS(resource.GetAddressOf())
+			);
+		}
+		else
+		{
+			hr = allocator->CreateResource(
+				&allocation_desc,
+				&resource_desc,
+				ToD3D12LegacyResourceState(initial_state),
+				clear_value_ptr,
+				&alloc,
+				IID_PPV_ARGS(resource.GetAddressOf())
+			);
+		}
 		GFX_CHECK_HR(hr);
 		allocation.reset(alloc);
 

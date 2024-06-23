@@ -145,8 +145,11 @@ namespace adria
 
 		std::vector<std::pair<GfxFence&, uint64>> pending_waits;
 		std::vector<std::pair<GfxFence&, uint64>> pending_signals;
+
+		bool use_legacy_barriers = false;
 		std::vector<D3D12_TEXTURE_BARRIER>		  texture_barriers;
 		std::vector<D3D12_BUFFER_BARRIER>		  buffer_barriers;
 		std::vector<D3D12_GLOBAL_BARRIER>		  global_barriers;
+		std::vector<D3D12_RESOURCE_BARRIER>		  legacy_barriers;
 	};
 }
