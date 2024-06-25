@@ -138,7 +138,7 @@ namespace adria
 		};
 
 		NVSDK_NGX_FeatureCommonInfo feature_common_info{};
-		feature_common_info.LoggingInfo.LoggingCallback = nullptr;
+		feature_common_info.LoggingInfo.LoggingCallback = DLSS3Log;
 		feature_common_info.LoggingInfo.MinimumLoggingLevel = NVSDK_NGX_LOGGING_LEVEL_ON;
 		feature_common_info.LoggingInfo.DisableOtherLoggingSinks = true;
 		feature_common_info.PathListInfo.Path = dll_paths;
@@ -149,9 +149,7 @@ namespace adria
 			NVSDK_NGX_ENGINE_TYPE_CUSTOM,
 			"1.0",
 			L".",
-			device,
-			&feature_common_info,
-			NVSDK_NGX_Version_API);
+			device, &feature_common_info);
 
 		result = NVSDK_NGX_D3D12_GetCapabilityParameters(&ngx_parameters);
 		if (NVSDK_NGX_FAILED(result)) return false;
@@ -216,7 +214,8 @@ namespace adria
 			dlss_create_params.InFeatureCreateFlags = NVSDK_NGX_DLSS_Feature_Flags_IsHDR |
 													  NVSDK_NGX_DLSS_Feature_Flags_MVLowRes |
 													  NVSDK_NGX_DLSS_Feature_Flags_AutoExposure |
-													  NVSDK_NGX_DLSS_Feature_Flags_DoSharpening;
+													  NVSDK_NGX_DLSS_Feature_Flags_DoSharpening |
+													  NVSDK_NGX_DLSS_Feature_Flags_DepthInverted;
 
 			NVSDK_NGX_Result result = NGX_D3D12_CREATE_DLSS_EXT(cmd_list->GetNative(), 0, 0, &dlss_feature, ngx_parameters, &dlss_create_params);
 			ADRIA_ASSERT(NVSDK_NGX_SUCCEED(result));

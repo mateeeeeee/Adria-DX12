@@ -148,7 +148,7 @@ namespace adria
 		fsr3_context_desc.maxRenderSize.height = render_height;
 		fsr3_context_desc.upscaleOutputSize.width = display_width;
 		fsr3_context_desc.upscaleOutputSize.height = display_height;
-		fsr3_context_desc.flags = FFX_FSR3_ENABLE_HIGH_DYNAMIC_RANGE | FFX_FSR3_ENABLE_AUTO_EXPOSURE | FFX_FSR3_ENABLE_UPSCALING_ONLY;
+		fsr3_context_desc.flags = FFX_FSR3_ENABLE_HIGH_DYNAMIC_RANGE | FFX_FSR3_ENABLE_AUTO_EXPOSURE | FFX_FSR3_ENABLE_UPSCALING_ONLY | FFX_FSR3_ENABLE_DEPTH_INVERTED;
 		FfxErrorCode error_code = ffxFsr3ContextCreate(&fsr3_context, &fsr3_context_desc);
 		ADRIA_ASSERT(error_code == FFX_OK);
 		recreate_context = false;

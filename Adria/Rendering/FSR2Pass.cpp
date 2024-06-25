@@ -147,7 +147,7 @@ namespace adria
 		fsr2_context_desc.maxRenderSize.height = render_height;
 		fsr2_context_desc.displaySize.width = display_width;
 		fsr2_context_desc.displaySize.height = display_height;
-		fsr2_context_desc.flags = FFX_FSR2_ENABLE_HIGH_DYNAMIC_RANGE | FFX_FSR2_ENABLE_AUTO_EXPOSURE;
+		fsr2_context_desc.flags = FFX_FSR2_ENABLE_HIGH_DYNAMIC_RANGE | FFX_FSR2_ENABLE_AUTO_EXPOSURE | FFX_FSR2_ENABLE_DEPTH_INVERTED;
 
 		FfxErrorCode error_code = ffxFsr2ContextCreate(&fsr2_context, &fsr2_context_desc);
 		ADRIA_ASSERT(error_code == FFX_OK);

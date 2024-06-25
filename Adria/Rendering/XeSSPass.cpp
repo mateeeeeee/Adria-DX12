@@ -147,7 +147,7 @@ namespace adria
 			params.outputResolution.x = display_width;
 			params.outputResolution.y = display_height;
 			params.qualitySetting = quality_setting;
-			params.initFlags = XESS_INIT_FLAG_ENABLE_AUTOEXPOSURE;
+			params.initFlags = XESS_INIT_FLAG_ENABLE_AUTOEXPOSURE | XESS_INIT_FLAG_INVERTED_DEPTH;
 
 			xess_result_t result = xessD3D12Init(context, &params);
 			ADRIA_ASSERT(result == XESS_RESULT_SUCCESS);
