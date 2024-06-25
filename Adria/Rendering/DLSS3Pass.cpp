@@ -88,17 +88,20 @@ namespace adria
 
 				NVSDK_NGX_D3D12_DLSS_Eval_Params dlss_eval_params{};
 				dlss_eval_params.Feature.pInColor = input_texture.GetNative();
+                dlss_eval_params.Feature.pInOutput = output_texture.GetNative();
+                dlss_eval_params.Feature.InSharpness = sharpness;
+
 				dlss_eval_params.pInDepth = depth_texture.GetNative();
 				dlss_eval_params.pInMotionVectors = velocity_texture.GetNative();
-				dlss_eval_params.Feature.pInOutput = output_texture.GetNative();
+                dlss_eval_params.InMVScaleX = (float)render_width;
+                dlss_eval_params.InMVScaleY = (float)render_height;
+
 				dlss_eval_params.pInExposureTexture = nullptr;
+                dlss_eval_params.InExposureScale = 1.0f;
+
 				dlss_eval_params.InJitterOffsetX = frame_data.camera_jitter_x;
 				dlss_eval_params.InJitterOffsetY = frame_data.camera_jitter_y;
-				dlss_eval_params.Feature.InSharpness = sharpness;
 				dlss_eval_params.InReset = false;
-				dlss_eval_params.InExposureScale = 1.0f;
-				dlss_eval_params.InMVScaleX = (float)render_width;
-				dlss_eval_params.InMVScaleY = (float)render_height;
 				dlss_eval_params.InRenderSubrectDimensions = { render_width, render_height };
 
 				NVSDK_NGX_Result result = NGX_D3D12_EVALUATE_DLSS_EXT(cmd_list->GetNative(), dlss_feature, ngx_parameters, &dlss_eval_params);
@@ -111,13 +114,11 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
 				{
-					if (ImGui::Combo("Performance Quality", (int*)&perf_quality, "Quality (1.5x)\0Balanced (1.7x)\0Performance (2.0x)\0Ultra Performance (3.0x)\0UltraQuality\0", 5))
+					if (ImGui::Combo("Performance Quality", (int*)&perf_quality, "Max Performance\0Balanced\0Max Quality\0Ultra Performance\0UltraQuality\0", 5))
 					{
 						RecreateRenderResolution();
 						needs_create = true;
 					}
-
-					ImGui::SliderFloat("Sharpness", &sharpness, 0.0f, 1.0f, "%.2f");
 					ImGui::TreePop();
 				}
 			}, GUICommandGroup_PostProcessor);
@@ -205,7 +206,7 @@ namespace adria
 		ReleaseDLSS();
 		if (needs_create)
 		{
-			NVSDK_NGX_DLSS_Create_Params dlss_create_params = {};
+			NVSDK_NGX_DLSS_Create_Params dlss_create_params{};
 			dlss_create_params.Feature.InWidth = render_width;
 			dlss_create_params.Feature.InHeight = render_height;
 			dlss_create_params.Feature.InTargetWidth = display_width;
@@ -216,8 +217,9 @@ namespace adria
 													  NVSDK_NGX_DLSS_Feature_Flags_AutoExposure |
 													  NVSDK_NGX_DLSS_Feature_Flags_DoSharpening |
 													  NVSDK_NGX_DLSS_Feature_Flags_DepthInverted;
+			dlss_create_params.InEnableOutputSubrects = false;
 
-			NVSDK_NGX_Result result = NGX_D3D12_CREATE_DLSS_EXT(cmd_list->GetNative(), 0, 0, &dlss_feature, ngx_parameters, &dlss_create_params);
+			NVSDK_NGX_Result result = NGX_D3D12_CREATE_DLSS_EXT(cmd_list->GetNative(), 1, 1, &dlss_feature, ngx_parameters, &dlss_create_params);
 			ADRIA_ASSERT(NVSDK_NGX_SUCCEED(result));
 			cmd_list->GlobalBarrier(GfxBarrierState::ComputeUAV, GfxBarrierState::ComputeUAV);
 			needs_create = false;
