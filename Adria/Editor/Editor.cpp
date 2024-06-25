@@ -59,8 +59,9 @@ namespace adria
 	Editor::~Editor() = default;
 	void Editor::Init(EditorInit&& init)
 	{
-		logger = std::make_unique<EditorLogger>();
 		console = std::make_unique<EditorConsole>();
+		logger = new EditorLogger();
+		LOG_REGISTER(logger);
 
 		engine = std::make_unique<Engine>(init.engine_init);
 		gfx = engine->gfx.get();
@@ -76,7 +77,6 @@ namespace adria
 		gui.reset();
 		engine.reset();
 		console.reset();
-		logger.reset();
 	}
 	void Editor::OnWindowEvent(WindowEventData const& msg_data)
 	{

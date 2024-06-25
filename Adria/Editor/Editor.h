@@ -62,8 +62,8 @@ namespace adria
 		GfxDevice* gfx;
 		bool ray_tracing_supported = false;
 
-		std::unique_ptr<EditorLogger> logger;
 		std::unique_ptr<EditorConsole> console;
+		EditorLogger* logger;
 
 		bool scene_focused = false;
 		entt::entity selected_entity;

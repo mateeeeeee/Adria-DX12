@@ -40,11 +40,11 @@ namespace adria
 
 	DLSS3Pass::~DLSS3Pass()
 	{
-		if (ngx_parameters)
-		{
-			NVSDK_NGX_D3D12_DestroyParameters(ngx_parameters);
-		}
-		NVSDK_NGX_D3D12_Shutdown1(gfx->GetDevice());
+		gfx->WaitForGPU();
+		NVSDK_NGX_Result result = NVSDK_NGX_D3D12_DestroyParameters(ngx_parameters);
+		ADRIA_ASSERT(NVSDK_NGX_SUCCEED(result));
+		result = NVSDK_NGX_D3D12_Shutdown1(gfx->GetDevice());
+		ADRIA_ASSERT(NVSDK_NGX_SUCCEED(result));
 	}
 
 	RGResourceName DLSS3Pass::AddPass(RenderGraph& rg, RGResourceName input)
@@ -219,7 +219,7 @@ namespace adria
 													  NVSDK_NGX_DLSS_Feature_Flags_DepthInverted;
 			dlss_create_params.InEnableOutputSubrects = false;
 
-			NVSDK_NGX_Result result = NGX_D3D12_CREATE_DLSS_EXT(cmd_list->GetNative(), 1, 1, &dlss_feature, ngx_parameters, &dlss_create_params);
+			NVSDK_NGX_Result result = NGX_D3D12_CREATE_DLSS_EXT(cmd_list->GetNative(), 0, 0, &dlss_feature, ngx_parameters, &dlss_create_params);
 			ADRIA_ASSERT(NVSDK_NGX_SUCCEED(result));
 			cmd_list->GlobalBarrier(GfxBarrierState::ComputeUAV, GfxBarrierState::ComputeUAV);
 			needs_create = false;

@@ -105,7 +105,6 @@ namespace adria
 
 	EditorLogger::EditorLogger(LogLevel logger_level) : logger_level{ logger_level }, imgui_log(new ImGuiLogger{})
 	{
-		REGISTER_LOGGER(this);
 	}
 	void EditorLogger::Log(LogLevel level, char const* entry, char const* file, uint32_t line)
 	{

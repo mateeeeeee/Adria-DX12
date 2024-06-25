@@ -28,14 +28,14 @@ namespace adria
 
 		void RegisterLogger(ILogger* logger)
 		{
-			loggers.push_back(logger);
+			loggers.emplace_back(logger);
 		}
 		void Log(LogLevel level, char const* str, char const* filename, uint32 line)
 		{
 			log_queue.Push(QueueEntry{ level, str, filename, line });
 		}
 
-		std::vector<ILogger*> loggers;
+		std::vector<std::unique_ptr<ILogger>> loggers;
 		ConcurrentQueue<QueueEntry> log_queue;
 		std::thread log_thread;
 		std::atomic_bool exit = false;

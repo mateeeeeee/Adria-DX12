@@ -45,7 +45,7 @@ namespace adria
 
 	inline LogManager g_log{};
 
-	#define REGISTER_LOGGER(logger) adria::g_log.RegisterLogger(logger)
+	#define LOG_REGISTER(logger) adria::g_log.RegisterLogger(logger)
 	#define ADRIA_LOG(level, ... ) [&]()  \
 	{ \
 		uint64 const size = snprintf(nullptr, 0, __VA_ARGS__) + 1; \
