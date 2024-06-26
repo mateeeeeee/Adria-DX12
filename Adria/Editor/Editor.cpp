@@ -61,7 +61,7 @@ namespace adria
 	{
 		console = std::make_unique<EditorConsole>();
 		logger = new EditorLogger();
-		LOG_REGISTER(logger);
+		g_Log.Register(logger);
 
 		engine = std::make_unique<Engine>(init.engine_init);
 		gfx = engine->gfx.get();

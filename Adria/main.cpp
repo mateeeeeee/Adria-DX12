@@ -36,8 +36,8 @@ int APIENTRY wWinMain(
     {
         std::string log_file = log.AsStringOr("adria.log");
         LogLevel log_level = static_cast<LogLevel>(loglevel.AsIntOr(0));
-        LOG_REGISTER(new FileLogger(log_file.c_str(), log_level));
-        LOG_REGISTER(new OutputDebugStringLogger(log_level));
+        g_Log.Register(new FileLogger(log_file.c_str(), log_level));
+        g_Log.Register(new OutputDebugStringLogger(log_level));
 
 		std::string title_str = title.AsStringOr("Adria").c_str();
         WindowInit window_init{};
@@ -62,7 +62,7 @@ int APIENTRY wWinMain(
         EditorInit editor_init{.engine_init = engine_init };
         g_Editor.Init(std::move(editor_init));
 
-        window.GetWindowEvent().Add([](WindowEventData const& msg_data) {g_Editor.OnWindowEvent(msg_data); });
+        window.GetWindowEvent().Add([](WindowEventData const& msg_data) { g_Editor.OnWindowEvent(msg_data); });
         while (window.Loop())
         {
             g_Editor.Run();

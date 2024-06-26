@@ -87,7 +87,7 @@ namespace adria
 	LogManager::LogManager() : pimpl(new LogManagerImpl) {}
 	LogManager::~LogManager() = default;
 
-	void LogManager::RegisterLogger(ILogger* logger)
+	void LogManager::Register(ILogger* logger)
 	{
 		pimpl->RegisterLogger(logger);
 	}
