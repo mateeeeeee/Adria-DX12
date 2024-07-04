@@ -20,7 +20,7 @@ namespace adria
 		resource_desc.Height = desc.height;
 		resource_desc.MipLevels = desc.mip_levels;
 		resource_desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-		resource_desc.DepthOrArraySize = (UINT16)desc.array_size;
+		resource_desc.DepthOrArraySize = (uint16)desc.array_size;
 		resource_desc.SampleDesc.Count = desc.sample_count;
 		resource_desc.SampleDesc.Quality = 0;
 		resource_desc.Alignment = 0;
@@ -206,9 +206,9 @@ namespace adria
 			}
 			UpdateSubresources(cmd_list->GetNative(), resource.Get(), dyn_alloc.buffer->GetNative(), dyn_alloc.offset, 0, subresource_count, subresource_data.data());
 
-			if (initial_state != GfxBarrierState::CopyDst)
+			if (desc.initial_state != GfxBarrierState::CopyDst)
 			{
-				cmd_list->TextureBarrier(*this, GfxBarrierState::CopyDst, initial_state);
+				cmd_list->TextureBarrier(*this, GfxBarrierState::CopyDst, desc.initial_state);
 				cmd_list->FlushBarriers();
 			}
 		}

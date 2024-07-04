@@ -209,7 +209,6 @@ namespace adria
 			pong_spectrum = !pong_spectrum;
 		}
 
-		//Add Vertical FFT
 		for (uint32 p = 1; p < FFT_RESOLUTION; p <<= 1)
 		{
 			struct FFTVerticalPassData

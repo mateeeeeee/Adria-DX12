@@ -9,10 +9,7 @@ namespace adria
 
 	public:
 		GfxDescriptor() {}
-		GfxDescriptor(GfxDescriptor const&) = default;
-		GfxDescriptor(GfxDescriptor&&) = default;
-		GfxDescriptor& operator=(GfxDescriptor const&) = default;
-		GfxDescriptor& operator=(GfxDescriptor&&) = default;
+		ADRIA_DEFAULT_COPYABLE_MOVABLE(GfxDescriptor)
 
 		operator D3D12_CPU_DESCRIPTOR_HANDLE() const { return cpu; }
 		operator D3D12_GPU_DESCRIPTOR_HANDLE() const { return gpu; }
