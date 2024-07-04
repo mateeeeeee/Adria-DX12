@@ -127,13 +127,13 @@ namespace adria
 		std::unordered_set<RGTextureId> texture_reads;
 		std::unordered_set<RGTextureId> texture_writes;
 		std::unordered_set<RGTextureId> texture_destroys;
-		std::unordered_map<RGTextureId, GfxBarrierState> texture_state_map;
+		std::unordered_map<RGTextureId, GfxResourceState> texture_state_map;
 		
 		std::unordered_set<RGBufferId> buffer_creates;
 		std::unordered_set<RGBufferId> buffer_reads;
 		std::unordered_set<RGBufferId> buffer_writes;
 		std::unordered_set<RGBufferId> buffer_destroys;
-		std::unordered_map<RGBufferId, GfxBarrierState> buffer_state_map;
+		std::unordered_map<RGBufferId, GfxResourceState> buffer_state_map;
 
 		std::vector<RenderTargetInfo> render_targets_info;
 		std::optional<DepthStencilInfo> depth_stencil = std::nullopt;

@@ -24,7 +24,7 @@ namespace adria
 		desc.mip_levels = 1;
 		desc.bind_flags = GfxBindFlag::UnorderedAccess;
 		desc.misc_flags = GfxTextureMiscFlag::None;
-		desc.initial_state = GfxBarrierState::ComputeUAV;
+		desc.initial_state = GfxResourceState::ComputeUAV;
 		desc.format = GfxFormat::R16_FLOAT;
 
 		previous_ev100 = gfx->CreateTexture(desc);
@@ -73,7 +73,7 @@ namespace adria
 				GfxBuffer const& histogram_buffer = context.GetBuffer(*data.histogram_buffer);
 				uint32 clear_value[4] = { 0, 0, 0, 0 };
 				cmd_list->ClearUAV(histogram_buffer, buffer_gpu, context.GetReadWriteBuffer(data.histogram_buffer), clear_value);
-				cmd_list->BufferBarrier(histogram_buffer, GfxBarrierState::ComputeUAV, GfxBarrierState::ComputeUAV);
+				cmd_list->BufferBarrier(histogram_buffer, GfxResourceState::ComputeUAV, GfxResourceState::ComputeUAV);
 				cmd_list->FlushBarriers();
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::BuildHistogram));
 

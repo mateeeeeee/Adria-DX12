@@ -1,8 +1,6 @@
 #pragma once
 #include <typeindex>
 #include <memory>
-#include "Core/CoreTypes.h"
-#include "Core/Defines.h"
 #include "Utilities/TemplatesUtil.h"
 
 namespace adria

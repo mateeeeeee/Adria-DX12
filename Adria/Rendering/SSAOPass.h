@@ -2,7 +2,6 @@
 #include <DirectXMath.h>
 #include <memory>
 #include "BlurPass.h"
-#include "Core/CoreTypes.h"
 #include "Graphics/GfxDescriptor.h"
 #include "RenderGraph/RenderGraphResourceId.h"
 

@@ -98,7 +98,7 @@ namespace adria
 
 			if (HasAnyFlag(desc.bind_flags, GfxBindFlag::ShaderResource))
 			{
-				cmd_list->BufferBarrier(*this, GfxBarrierState::CopyDst, GfxBarrierState::AllSRV);
+				cmd_list->BufferBarrier(*this, GfxResourceState::CopyDst, GfxResourceState::AllSRV);
 				cmd_list->FlushBarriers();
 			}
 		}

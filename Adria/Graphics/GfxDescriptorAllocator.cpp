@@ -1,10 +1,7 @@
 #include "GfxDescriptorAllocator.h"
-#include "Core/Defines.h"
 
 namespace adria
 {
-
-
 	GfxDescriptorAllocator::GfxDescriptorAllocator(GfxDevice* gfx, GfxDescriptorAllocatorDesc const& desc)
 		: GfxDescriptorAllocatorBase(gfx, desc.type, desc.descriptor_count, desc.shader_visible),
 		tail_descriptor(head_descriptor)

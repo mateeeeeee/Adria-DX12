@@ -1,6 +1,5 @@
 #pragma once
 #include "HelperPasses.h"
-#include "Core/CoreTypes.h"
 #include "RenderGraph/RenderGraphResourceId.h"
 #include "entt/entity/entity.hpp"
 

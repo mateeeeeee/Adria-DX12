@@ -1,7 +1,6 @@
 #pragma once
 #include <memory>
 #include "GfxDefines.h"
-#include "Core/CoreTypes.h"
 #include "Utilities/Singleton.h"
 
 

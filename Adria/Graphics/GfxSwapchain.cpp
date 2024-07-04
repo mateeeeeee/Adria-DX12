@@ -102,7 +102,7 @@ namespace adria
 			gfx_desc.width = (uint32)desc.Width;
 			gfx_desc.height = (uint32)desc.Height;
 			gfx_desc.format = ConvertDXGIFormat(desc.Format);
-			gfx_desc.initial_state = GfxBarrierState::Present;
+			gfx_desc.initial_state = GfxResourceState::Present;
 			gfx_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 			gfx_desc.bind_flags = GfxBindFlag::RenderTarget;
 			back_buffers[i] = gfx->CreateBackbufferTexture(gfx_desc, backbuffer);

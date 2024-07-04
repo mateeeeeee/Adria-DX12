@@ -37,7 +37,7 @@ namespace adria
 		blocker_desc.format = GfxFormat::R32_TYPELESS;
 		blocker_desc.clear_value = GfxClearValue(1.0f, 0);
 		blocker_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::DepthStencil;
-		blocker_desc.initial_state = GfxBarrierState::AllSRV;
+		blocker_desc.initial_state = GfxResourceState::AllSRV;
 		blocker_map = std::make_unique<GfxTexture>(gfx, blocker_desc);
 		blocker_map_srv = gfx->CreateTextureSRV(blocker_map.get());
 	}

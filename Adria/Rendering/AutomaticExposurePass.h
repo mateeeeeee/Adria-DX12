@@ -1,6 +1,5 @@
 #pragma once
 #include <memory>
-#include "Core/CoreTypes.h"
 #include "Graphics/GfxDescriptor.h"
 #include "RenderGraph/RenderGraphResourceId.h"
 #include "RenderGraph/RenderGraphResourceName.h"

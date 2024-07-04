@@ -2,7 +2,6 @@
 #include <memory>
 #include <DirectXCollision.h>
 #include "GeometryBufferCache.h"
-#include "Core/CoreTypes.h"
 #include "Graphics/GfxVertexFormat.h"
 #include "Graphics/GfxBuffer.h"
 #include "Graphics/GfxStates.h"

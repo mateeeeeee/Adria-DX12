@@ -1,6 +1,5 @@
 #pragma once
 #include <unordered_set>
-#include "Core/CoreTypes.h"
 #include "RenderGraph/RenderGraphResourceId.h"
 #include "RenderGraph/RenderGraphResourceName.h"
 #include "entt/entity/entity.hpp"

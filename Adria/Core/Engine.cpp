@@ -314,7 +314,7 @@ namespace adria
 		{
 			auto const& mesh = ray_tracing_view.get<Mesh>(entity);
 			GfxBuffer* buffer = g_GeometryBufferCache.GetGeometryBuffer(mesh.geometry_buffer_handle);
-			cmd_list->BufferBarrier(*buffer, GfxBarrierState::CopyDst, GfxBarrierState::AllSRV);
+			cmd_list->BufferBarrier(*buffer, GfxResourceState::CopyDst, GfxResourceState::AllSRV);
 		}
 
 		renderer->OnSceneInitialized();

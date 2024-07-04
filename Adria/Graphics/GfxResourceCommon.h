@@ -165,7 +165,7 @@ namespace adria
 		static constexpr bool enable = true;
 	};
 
-	enum class GfxBarrierState : uint64
+	enum class GfxResourceState : uint64
 	{
 		None = 0,
 		Common = 1 << 0,
@@ -202,14 +202,14 @@ namespace adria
 		AllShading = AllSRV | AllUAV | ShadingRate | ASRead
 	};
 	template <>
-	struct EnumBitmaskOperators<GfxBarrierState>
+	struct EnumBitmaskOperators<GfxResourceState>
 	{
 		static constexpr bool enable = true;
 	};
 
-	inline D3D12_BARRIER_SYNC ToD3D12BarrierSync(GfxBarrierState flags)
+	inline D3D12_BARRIER_SYNC ToD3D12BarrierSync(GfxResourceState flags)
 	{
-		using enum GfxBarrierState;
+		using enum GfxResourceState;
 
 		D3D12_BARRIER_SYNC sync = D3D12_BARRIER_SYNC_NONE;
 		bool const discard = HasFlag(flags, Discard);
@@ -229,9 +229,9 @@ namespace adria
 		if (HasAnyFlag(flags, AllAS))		sync |= D3D12_BARRIER_SYNC_BUILD_RAYTRACING_ACCELERATION_STRUCTURE;
 		return sync;
 	}
-	inline D3D12_BARRIER_LAYOUT ToD3D12BarrierLayout(GfxBarrierState flags)
+	inline D3D12_BARRIER_LAYOUT ToD3D12BarrierLayout(GfxResourceState flags)
 	{
-		using enum GfxBarrierState;
+		using enum GfxResourceState;
 
 		if(HasFlag(flags, CopySrc) && HasAnyFlag(flags, AllSRV)) return D3D12_BARRIER_LAYOUT_GENERIC_READ;
 		if(HasFlag(flags, CopyDst) && HasAnyFlag(flags, AllUAV)) return D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_COMMON;
@@ -250,9 +250,9 @@ namespace adria
 		ADRIA_UNREACHABLE();
 		return D3D12_BARRIER_LAYOUT_UNDEFINED;
 	}
-	inline D3D12_BARRIER_ACCESS ToD3D12BarrierAccess(GfxBarrierState flags)
+	inline D3D12_BARRIER_ACCESS ToD3D12BarrierAccess(GfxResourceState flags)
 	{
-		using enum GfxBarrierState;
+		using enum GfxResourceState;
 		if (HasFlag(flags, Discard)) return D3D12_BARRIER_ACCESS_NO_ACCESS;
 
 		D3D12_BARRIER_ACCESS access = D3D12_BARRIER_ACCESS_COMMON;
@@ -271,9 +271,9 @@ namespace adria
 		if (HasFlag(flags, ASWrite))         access |= D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_WRITE;
 		return access;
 	}
-	inline constexpr D3D12_RESOURCE_STATES ToD3D12LegacyResourceState(GfxBarrierState state)
+	inline constexpr D3D12_RESOURCE_STATES ToD3D12LegacyResourceState(GfxResourceState state)
 	{
-		using enum GfxBarrierState;
+		using enum GfxResourceState;
 
 		D3D12_RESOURCE_STATES api_state = D3D12_RESOURCE_STATE_COMMON;
 		if (HasAnyFlag(state, IndexBuffer))		api_state |= D3D12_RESOURCE_STATE_INDEX_BUFFER;
@@ -291,11 +291,11 @@ namespace adria
 		return api_state;
 	}
 
-	inline bool CompareByLayout(GfxBarrierState flags1, GfxBarrierState flags2)
+	inline bool CompareByLayout(GfxResourceState flags1, GfxResourceState flags2)
 	{
 		return ToD3D12BarrierLayout(flags1) == ToD3D12BarrierLayout(flags2);
 	}
-	inline constexpr std::string ConvertBarrierFlagsToString(GfxBarrierState flags)
+	inline constexpr std::string ConvertBarrierFlagsToString(GfxResourceState flags)
 	{
 		std::string resource_state_string = "";
 		if (!resource_state_string.empty()) resource_state_string.pop_back();

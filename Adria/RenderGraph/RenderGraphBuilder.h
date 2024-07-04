@@ -42,7 +42,7 @@ namespace adria
 		tex_desc.misc_flags = rg_tex_desc.misc_flags;
 		tex_desc.clear_value = rg_tex_desc.clear_value;
 		tex_desc.bind_flags = GfxBindFlag::None;
-		tex_desc.initial_state = GfxBarrierState::Common;
+		tex_desc.initial_state = GfxResourceState::Common;
 	}
 	inline void InitGfxBufferDesc(RGBufferDesc const& rg_buf_desc, GfxBufferDesc& buf_desc)
 	{

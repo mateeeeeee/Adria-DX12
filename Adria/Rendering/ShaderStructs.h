@@ -1,6 +1,4 @@
 #pragma once
-#include "Core/CoreTypes.h"
-#include <DirectXMath.h>
 
 #ifndef DECLSPEC_ALIGN
 #define DECLSPEC_ALIGN(x)   __declspec(align(x))

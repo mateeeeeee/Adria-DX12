@@ -163,7 +163,7 @@ namespace adria
 				sample_radiance_desc.mip_levels = 1;
 				sample_radiance_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 				sample_radiance_desc.bind_flags = GfxBindFlag::UnorderedAccess;
-				sample_radiance_desc.initial_state = GfxBarrierState::ComputeUAV;
+				sample_radiance_desc.initial_state = GfxResourceState::ComputeUAV;
 				temporal_reservoir_buffers[i].sample_radiance = gfx->CreateTexture(sample_radiance_desc);
 
 				GfxTextureDesc ray_direction_desc{};
@@ -172,7 +172,7 @@ namespace adria
 				ray_direction_desc.mip_levels = 1;
 				ray_direction_desc.format = GfxFormat::R32_UINT;
 				ray_direction_desc.bind_flags = GfxBindFlag::UnorderedAccess;
-				ray_direction_desc.initial_state = GfxBarrierState::ComputeUAV;
+				ray_direction_desc.initial_state = GfxResourceState::ComputeUAV;
 				temporal_reservoir_buffers[i].ray_direction = gfx->CreateTexture(sample_radiance_desc);
 
 				GfxTextureDesc reservoir_desc{};
@@ -181,7 +181,7 @@ namespace adria
 				reservoir_desc.mip_levels = 1;
 				reservoir_desc.format = GfxFormat::R16G16_FLOAT;
 				reservoir_desc.bind_flags = GfxBindFlag::UnorderedAccess;
-				reservoir_desc.initial_state = GfxBarrierState::ComputeUAV;
+				reservoir_desc.initial_state = GfxResourceState::ComputeUAV;
 				temporal_reservoir_buffers[i].reservoir = gfx->CreateTexture(reservoir_desc);
 			}
 		}

@@ -1,7 +1,6 @@
 #pragma once
 #include <optional>
 
-#include "Core/CoreTypes.h"
 #include "RenderGraph/RenderGraphResourceName.h"
 
 namespace adria

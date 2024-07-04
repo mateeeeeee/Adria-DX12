@@ -6,7 +6,6 @@
 #include "RenderGraph/RenderGraph.h"
 #include "entt/entity/registry.hpp"
 #include "Logging/Logger.h"
-#include "Core/Defines.h"
 #include "Editor/GUICommand.h"
 
 #define A_CPU 1
@@ -128,7 +127,7 @@ namespace adria
 		hzb_desc.height = hzb_height;
 		hzb_desc.mip_levels = hzb_mip_count;
 		hzb_desc.format = GfxFormat::R32_FLOAT;
-		hzb_desc.initial_state = GfxBarrierState::ComputeUAV;
+		hzb_desc.initial_state = GfxResourceState::ComputeUAV;
 		hzb_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
 
 		HZB = gfx->CreateTexture(hzb_desc);
@@ -186,7 +185,7 @@ namespace adria
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ClearCounters));
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(1, 1, 1);
-				cmd_list->GlobalBarrier(GfxBarrierState::ComputeUAV, GfxBarrierState::ComputeUAV);
+				cmd_list->GlobalBarrier(GfxResourceState::ComputeUAV, GfxResourceState::ComputeUAV);
 			}, RGPassType::Compute, RGPassFlags::None);
 	}
 
@@ -879,7 +878,7 @@ namespace adria
 				GfxBuffer& spd_counter = ctx.GetBuffer(*data.spd_counter);
 				uint32 clear[] = { 0u };
 				cmd_list->ClearUAV(spd_counter, counter_uav_gpu, counter_uav_cpu, clear);
-				cmd_list->GlobalBarrier(GfxBarrierState::ComputeUAV, GfxBarrierState::ComputeUAV);
+				cmd_list->GlobalBarrier(GfxResourceState::ComputeUAV, GfxResourceState::ComputeUAV);
 
 				struct HZBMipsConstants
 				{

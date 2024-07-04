@@ -1,6 +1,5 @@
 #pragma once
 #include <memory>
-#include "Core/CoreTypes.h"
 #include "Graphics/GfxDescriptor.h"
 #include "Utilities/Singleton.h"
 

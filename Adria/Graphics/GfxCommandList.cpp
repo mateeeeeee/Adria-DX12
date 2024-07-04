@@ -299,11 +299,11 @@ namespace adria
 		cmd_list->DispatchRays(&dispatch_desc);
 	}
 
-	void GfxCommandList::TextureBarrier(GfxTexture const& texture, GfxBarrierState flags_before, GfxBarrierState flags_after, uint32 subresource)
+	void GfxCommandList::TextureBarrier(GfxTexture const& texture, GfxResourceState flags_before, GfxResourceState flags_after, uint32 subresource)
 	{
 		if (use_legacy_barriers)
 		{
-			if (flags_before == GfxBarrierState::ComputeUAV && flags_after == GfxBarrierState::ComputeUAV)
+			if (flags_before == GfxResourceState::ComputeUAV && flags_after == GfxResourceState::ComputeUAV)
 			{
 				D3D12_RESOURCE_BARRIER barrier{};
 				barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
@@ -333,16 +333,16 @@ namespace adria
 			barrier.pResource = texture.GetNative();
 			barrier.Subresources = CD3DX12_BARRIER_SUBRESOURCE_RANGE(subresource);
 
-			if (HasAnyFlag(flags_before, GfxBarrierState::Discard)) barrier.Flags = D3D12_TEXTURE_BARRIER_FLAG_DISCARD;
+			if (HasAnyFlag(flags_before, GfxResourceState::Discard)) barrier.Flags = D3D12_TEXTURE_BARRIER_FLAG_DISCARD;
 			texture_barriers.push_back(barrier);
 		}
 	}
 
-	void GfxCommandList::BufferBarrier(GfxBuffer const& buffer, GfxBarrierState flags_before, GfxBarrierState flags_after)
+	void GfxCommandList::BufferBarrier(GfxBuffer const& buffer, GfxResourceState flags_before, GfxResourceState flags_after)
 	{
 		if (use_legacy_barriers)
 		{
-			if (flags_before == GfxBarrierState::ComputeUAV && flags_after == GfxBarrierState::ComputeUAV)
+			if (flags_before == GfxResourceState::ComputeUAV && flags_after == GfxResourceState::ComputeUAV)
 			{
 				D3D12_RESOURCE_BARRIER barrier{};
 				barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
@@ -375,11 +375,11 @@ namespace adria
 		}
 	}
 
-	void GfxCommandList::GlobalBarrier(GfxBarrierState flags_before, GfxBarrierState flags_after)
+	void GfxCommandList::GlobalBarrier(GfxResourceState flags_before, GfxResourceState flags_after)
 	{
 		if (use_legacy_barriers)
 		{
-			if (flags_before == GfxBarrierState::ComputeUAV && flags_after == GfxBarrierState::ComputeUAV)
+			if (flags_before == GfxResourceState::ComputeUAV && flags_after == GfxResourceState::ComputeUAV)
 			{
 				D3D12_RESOURCE_BARRIER barrier{};
 				barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;

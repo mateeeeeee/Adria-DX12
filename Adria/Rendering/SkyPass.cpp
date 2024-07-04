@@ -201,7 +201,7 @@ namespace adria
 		sky_desc.array_size = 6;
 		sky_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 		sky_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
-		sky_desc.initial_state = GfxBarrierState::ComputeUAV;
+		sky_desc.initial_state = GfxResourceState::ComputeUAV;
 		sky_texture = gfx->CreateTexture(sky_desc);
 
 		GfxTextureDescriptorDesc sky_srv_desc{};

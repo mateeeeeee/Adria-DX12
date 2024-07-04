@@ -1,5 +1,4 @@
 #pragma once
-#include "Core/CoreTypes.h"
 #include <vector>
 #include <string_view>
 

@@ -243,7 +243,7 @@ namespace adria
 		render_target_desc.width = display_width;
 		render_target_desc.height = display_height;
 		render_target_desc.bind_flags = GfxBindFlag::ShaderResource;
-		render_target_desc.initial_state = GfxBarrierState::CopyDst;
+		render_target_desc.initial_state = GfxResourceState::CopyDst;
 		history_buffer = gfx->CreateTexture(render_target_desc);
 	}
 

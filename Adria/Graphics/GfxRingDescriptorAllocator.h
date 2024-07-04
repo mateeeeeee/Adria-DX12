@@ -2,7 +2,6 @@
 #include <mutex>
 #include "GfxDescriptorAllocatorBase.h"
 #include "Utilities/RingAllocator.h"
-#include "Core/Defines.h"
 
 namespace adria
 {
