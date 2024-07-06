@@ -1,6 +1,5 @@
 #pragma once
 #include <vector>
-#include "Core/CoreTypes.h"
 #include "RenderGraph/RenderGraphResourceId.h"
 #include "RenderGraph/RenderGraphResourceName.h"
 

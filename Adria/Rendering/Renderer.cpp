@@ -504,14 +504,16 @@ namespace adria
 						ImGui::SliderFloat3("Wind Direction", wind_dir, -1.0f, 1.0f);
 						ImGui::SliderFloat("Wind Speed", &wind_speed, 0.0f, 32.0f);
 
-						auto lights = reg.view<Light>();
+						auto lights = reg.view<Light, Transform>();
 						Light* sun_light = nullptr;
+						Transform* sun_transform = nullptr;
 						for (entt::entity light : lights)
 						{
 							Light& light_data = lights.get<Light>(light);
 							if (light_data.type == LightType::Directional && light_data.active)
 							{
 								sun_light = &light_data;
+								sun_transform = &lights.get<Transform>(light);
 								break;
 							}
 						}
@@ -548,6 +550,8 @@ namespace adria
 								ImGui::SliderFloat("God Rays Density", &sun_light->godrays_density, 0.1f, 2.0f);
 								ImGui::SliderFloat("God Rays Exposure", &sun_light->godrays_exposure, 0.1f, 10.0f);
 							}
+							sun_transform->current_transform = XMMatrixTranslationFromVector(sun_light->position);
+
 							ImGui::TreePop();
 						}
 						ImGui::TreePop();

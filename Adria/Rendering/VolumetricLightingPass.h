@@ -1,7 +1,6 @@
 #pragma once
 #include <optional>
 #include "HelperPasses.h"
-#include "Core/CoreTypes.h"
 #include "RenderGraph/RenderGraphResourceId.h"
 
 namespace adria
