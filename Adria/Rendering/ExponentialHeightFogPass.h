@@ -10,10 +10,10 @@ namespace adria
 	{
 		struct FogParameters
 		{
-			float  fog_falloff		= 0.2f;
-			float  fog_density		= 0.02f;
+			float  fog_falloff		= 0.125f;
+			float  fog_density		= 3.0f;
 			float  fog_height		= 100.0f;
-			float  fog_min_opacity  = 0.0f;
+			float  fog_min_opacity  = 0.7f;
 			float  fog_start		= 0.0f;
 			float  fog_cutoff_distance = 0.0f;
 

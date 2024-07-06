@@ -95,11 +95,14 @@ namespace adria
 
 		GUI_RunCommand([&]() 
 			{
-				if(ImGui::TreeNodeEx("Fog", 0))
+				if(ImGui::TreeNodeEx("Exponential Height Fog", 0))
 				{
-					ImGui::SliderFloat("Fog Falloff", &params.fog_falloff, 0.0001f, 0.01f);
-					ImGui::SliderFloat("Fog Density", &params.fog_density, 0.0001f, 0.01f);
-					ImGui::SliderFloat("Fog Start", &params.fog_start, 0.1f, 10000.0f);
+					ImGui::SliderFloat("Fog Falloff", &params.fog_falloff, 0.0001f, 10.0f);
+					ImGui::SliderFloat("Fog Density", &params.fog_density, 0.0000001f, 100.0f); 
+					ImGui::SliderFloat("Fog Start", &params.fog_start, 0.0f, 10000.0f);
+					ImGui::SliderFloat("Fog Min Opacity", &params.fog_min_opacity, 0.0f, 1.0f);
+					ImGui::SliderFloat("Fog Cutoff Distance", &params.fog_cutoff_distance, 0.0f, 10000.0f);
+					ImGui::SliderFloat("Fog Height", &params.fog_height, -10000.0f, 10000.0f);
 					ImGui::ColorEdit3("Fog Color", params.fog_color);
 
 					ImGui::TreePop();
