@@ -23,7 +23,7 @@ Graphics engine written in C++ using DirectX12.
     - DLSS3
 * Ultimate Bindless 
     - Only one root signature 
-* Volumetric lighting for shadow casting lights
+* Volumetric lighting (2D Raymarching)
 * Tiled deferred rendering 
 * Clustered deferred rendering
 * Shadows

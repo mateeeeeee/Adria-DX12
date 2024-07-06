@@ -303,7 +303,6 @@
     <ClCompile Include="Rendering\ToneMapPass.cpp" />
     <ClCompile Include="Rendering\MotionVectorsPass.cpp" />
     <ClCompile Include="Rendering\VolumetricCloudsPass.cpp" />
-    <ClCompile Include="Rendering\VolumetricFogPass.cpp" />
     <ClCompile Include="Rendering\VolumetricLightingPass.cpp" />
     <ClCompile Include="Rendering\XeSSPass.cpp" />
     <ClCompile Include="Utilities\FilesUtil.cpp" />
@@ -497,7 +496,6 @@
     <ClInclude Include="Rendering\TiledDeferredLightingPass.h" />
     <ClInclude Include="Rendering\ToneMapPass.h" />
     <ClInclude Include="Rendering\VolumetricCloudsPass.h" />
-    <ClInclude Include="Rendering\VolumetricFogPass.h" />
     <ClInclude Include="Rendering\VolumetricLightingPass.h" />
     <ClInclude Include="Rendering\XeSSPass.h" />
     <ClInclude Include="resource.h" />

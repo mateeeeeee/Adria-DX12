@@ -51,7 +51,7 @@ void VolumetricLightingCS(CSInput input)
 	for (uint i = 0; i < lightCount; ++i)
 	{
 		Light light = lights[i];
-		if (!light.active || !light.volumetric || light.shadowTextureIndex < 0) continue;
+		if (!light.active || !light.volumetric) continue;
 
 		float3 P = viewPosition;
 		float3 lightAccumulation = 0.0f;
@@ -74,6 +74,8 @@ void VolumetricLightingCS(CSInput input)
 
 float GetAttenuation(Light light, float3 P)
 {
+	if(light.shadowTextureIndex < 0) return 1.0f;
+
 	StructuredBuffer<float4x4> lightViewProjections = ResourceDescriptorHeap[FrameCB.lightsMatricesIdx];
 	float attenuation = 0.0f;
 	if (light.type == DIRECTIONAL_LIGHT)
