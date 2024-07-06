@@ -70,10 +70,6 @@ namespace adria
 					float   fog_cutoff_distance;
 					uint32  fog_color;
 
-					Vector3 inscattering_light_direction;
-					uint32  directional_inscattering_color;
-					float   directional_inscattering_exponent;
-
 					uint32  depth_idx;
 					uint32  scene_idx;
 					uint32  output_idx;

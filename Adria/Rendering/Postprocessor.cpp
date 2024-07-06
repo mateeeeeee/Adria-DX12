@@ -90,6 +90,7 @@ namespace adria
 			if (light_data.type == LightType::Directional)
 			{
 				AddSunPass(rg, light);
+
 				if (light_data.god_rays)
 				{
 					god_rays_pass.AddPass(rg, light_data);

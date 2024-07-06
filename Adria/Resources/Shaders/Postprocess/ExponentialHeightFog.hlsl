@@ -15,10 +15,6 @@ struct ExponentialHeightFogConstants
 	float fogCutoffDistance;
     uint  fogColor;
 
-	float3 inscatteringLightDirection;
-    uint   directionalInscatteringColor;
-	float  directionalInscatteringExponent;
-    
     uint  depthIdx;
     uint  sceneIdx;
     uint  outputIdx;
@@ -61,19 +57,13 @@ float4 CalculateExponentialHeightFog(float4 viewPosition)
 	float expFogFactor = max(saturate(exp2(-exponentialHeightLineIntegral)), PassCB.fogMinOpacity);
 
 	float3 inscatteringColor = UnpackUintColor(PassCB.fogColor).rgb;
-	float3 directionalInscattering = 0.0f;
-	//float3 directionalLightInscattering = UnpackUintColor(PassCB.DirectionalInscatteringColor).rgb * pow(saturate(dot(cameraToPosNormalized, PassCB.inscatteringLightDirection)), PassCB.directionalInscatteringExponent);
-	//float dirExponentialHeightLineIntegral = exponentialHeightLineIntegralCalc * max(rayLength - exponentialHeightFog.DirectionalInscatteringStartDistance, 0.0f);
-	//float directionalInscatteringFogFactor = saturate(exp2(-dirExponentialHeightLineIntegral));
-	//float3 directionalInscattering = directionalLightInscattering * (1.0f - directionalInscatteringFogFactor);
 
 	if (PassCB.fogCutoffDistance > 0 && distance > PassCB.fogCutoffDistance)
 	{
 		expFogFactor = 1;
-		directionalInscattering = 0;
 	}
 
-	return float4(inscatteringColor * (1.0f - expFogFactor) + directionalInscattering, expFogFactor);
+	return float4(inscatteringColor * (1.0f - expFogFactor), expFogFactor);
 }
 
 struct CSInput

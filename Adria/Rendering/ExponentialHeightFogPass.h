@@ -16,9 +16,7 @@ namespace adria
 			float  fog_min_opacity  = 0.7f;
 			float  fog_start		= 0.0f;
 			float  fog_cutoff_distance = 0.0f;
-
-			float DirectionalInscatteringExponent = 4.0f;
-			float  fog_color[3]		= { 0.5f,0.6f, 1.0f };
+			float  fog_color[3]		= { 0.5f, 0.6f, 1.0f };
 		};
 
 	public:
