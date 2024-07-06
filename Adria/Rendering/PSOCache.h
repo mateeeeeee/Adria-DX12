@@ -56,7 +56,7 @@ namespace adria
 		CloudShape,
 		CloudType,
 		CloudsCombine,
-		Fog,
+		ExponentialHeightFog,
 		MotionBlur,
 		Blur_Horizontal,
 		Blur_Vertical,

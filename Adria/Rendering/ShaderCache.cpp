@@ -87,7 +87,7 @@ namespace adria
 			case CS_Ssao:
 			case CS_Hbao:
 			case CS_Ssr:
-			case CS_Fog:
+			case CS_ExponentialHeightFog:
 			case CS_Tonemap:
 			case CS_MotionVectors:
 			case CS_MotionBlur:
@@ -255,8 +255,8 @@ namespace adria
 				return "Postprocess/HBAO.hlsl";
 			case CS_Ssr:
 				return "Postprocess/SSR.hlsl";
-			case CS_Fog:
-				return "Postprocess/Fog.hlsl";
+			case CS_ExponentialHeightFog:
+				return "Postprocess/ExponentialHeightFog.hlsl";
 			case CS_Tonemap:
 				return "Postprocess/Tonemap.hlsl";
 			case CS_MotionVectors:
@@ -378,8 +378,8 @@ namespace adria
 				return "HBAO_CS";
 			case CS_Ssr:
 				return "SSR_CS";
-			case CS_Fog:
-				return "FogCS";
+			case CS_ExponentialHeightFog:
+				return "ExponentialHeightFogCS";
 			case CS_Tonemap:
 				return "TonemapCS";
 			case CS_MotionVectors:

@@ -69,7 +69,7 @@ namespace adria
 		CS_Ssao,
 		CS_Hbao,
 		CS_Ssr,
-		CS_Fog,
+		CS_ExponentialHeightFog,
 		CS_Tonemap,
 		CS_MotionVectors,
 		CS_MotionBlur,

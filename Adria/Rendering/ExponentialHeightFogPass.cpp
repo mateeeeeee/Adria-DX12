@@ -1,4 +1,4 @@
-#include "FogPass.h"
+#include "ExponentialHeightFogPass.h"
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
@@ -13,22 +13,22 @@
 
 namespace adria
 {
-	FogPass::FogPass(uint32 w, uint32 h)
-		: width(w), height(h) {}
+	ExponentialHeightFogPass::ExponentialHeightFogPass(uint32 w, uint32 h)
+		: width(w), height(h), params() {}
 
-	RGResourceName FogPass::AddPass(RenderGraph& rg, RGResourceName input)
+	RGResourceName ExponentialHeightFogPass::AddPass(RenderGraph& rg, RGResourceName input)
 	{
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
 		RGResourceName last_resource = input;
-		struct FogPassData
+		struct ExponentialHeightFogPassData
 		{
 			RGTextureReadOnlyId depth;
 			RGTextureReadOnlyId input;
 			RGTextureReadWriteId output;
 		};
 
-		rg.AddPass<FogPassData>("Fog Pass",
-			[=](FogPassData& data, RenderGraphBuilder& builder)
+		rg.AddPass<ExponentialHeightFogPassData>("Exponential Height Fog Pass",
+			[=](ExponentialHeightFogPassData& data, RenderGraphBuilder& builder)
 			{
 				RGTextureDesc fog_output_desc{};
 				fog_output_desc.width = width;
@@ -41,36 +41,55 @@ namespace adria
 				data.output = builder.WriteTexture(RG_RES_NAME(FogOutput));
 				builder.SetViewport(width, height);
 			},
-			[=](FogPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
+			[=](ExponentialHeightFogPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				uint32 i = gfx->AllocateDescriptorsGPU(3).GetIndex();
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.depth));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadOnlyTexture(data.input));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 2), ctx.GetReadWriteTexture(data.output));
-
-				struct FogConstants
+				GfxDescriptor src_descriptors[] =
 				{
-					float fog_falloff;
-					float fog_density;
-					float fog_start;
+					ctx.GetReadOnlyTexture(data.depth),
+					ctx.GetReadOnlyTexture(data.input),
+					ctx.GetReadWriteTexture(data.output)
+				};	
+				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
+				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
+				uint32 const i = dst_descriptor.GetIndex();
+
+				float density = params.fog_density / 1000.0f;
+				float falloff = params.fog_falloff / 1000.0f;
+
+				struct ExponentialHeightFogConstants
+				{
+					float   fog_falloff;
+					float   fog_density;
+					float   fog_height;
+					float   fog_start;
+
+					float   fog_at_view_position;
+					float   fog_min_opacity;
+					float   fog_cutoff_distance;
 					uint32  fog_color;
-					uint32  fog_type;
+
+					Vector3 inscattering_light_direction;
+					uint32  directional_inscattering_color;
+					float   directional_inscattering_exponent;
 
 					uint32  depth_idx;
 					uint32  scene_idx;
 					uint32  output_idx;
 				} constants = 
 				{
-					.fog_falloff = params.fog_falloff, .fog_density = params.fog_density, .fog_start = params.fog_start,
-					.fog_color = PackToUint(params.fog_color), .fog_type = static_cast<uint32>(params.fog_type),
+					.fog_falloff = params.fog_falloff, .fog_density = params.fog_density, .fog_height = params.fog_height, .fog_start = params.fog_start,
+					.fog_at_view_position = density * pow(2.0f, -falloff * (frame_data.camera_position[1] - height)), 
+					.fog_min_opacity = params.fog_min_opacity,
+					.fog_cutoff_distance = params.fog_cutoff_distance,
+					.fog_color = PackToUint(params.fog_color),
 					.depth_idx = i, .scene_idx = i + 1, .output_idx = i + 2
 				};
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Fog));
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ExponentialHeightFog));
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
-				cmd_list->SetRootConstants(1, constants);
+				cmd_list->SetRootCBV(2, constants);
 				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 
@@ -78,22 +97,6 @@ namespace adria
 			{
 				if(ImGui::TreeNodeEx("Fog", 0))
 				{
-					static const char* fog_types[] = { "Exponential", "Exponential Height" };
-					static int current_fog_type = 0; // Here we store our selection data as an index.
-					const char* combo_label = fog_types[current_fog_type];  // Label to preview before opening the combo (technically it could be anything)
-					if (ImGui::BeginCombo("Fog Type", combo_label, 0))
-					{
-						for (int n = 0; n < IM_ARRAYSIZE(fog_types); n++)
-						{
-							const bool is_selected = (current_fog_type == n);
-							if (ImGui::Selectable(fog_types[n], is_selected)) current_fog_type = n;
-							if (is_selected) ImGui::SetItemDefaultFocus();
-						}
-						ImGui::EndCombo();
-					}
-
-					params.fog_type = static_cast<FogType>(current_fog_type);
-
 					ImGui::SliderFloat("Fog Falloff", &params.fog_falloff, 0.0001f, 0.01f);
 					ImGui::SliderFloat("Fog Density", &params.fog_density, 0.0001f, 0.01f);
 					ImGui::SliderFloat("Fog Start", &params.fog_start, 0.1f, 10000.0f);
@@ -106,7 +109,7 @@ namespace adria
 		return RG_RES_NAME(FogOutput);
 	}
 
-	void FogPass::OnResize(uint32 w, uint32 h)
+	void ExponentialHeightFogPass::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
 	}

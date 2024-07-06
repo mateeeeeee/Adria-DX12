@@ -206,7 +206,7 @@
     <ClCompile Include="Rendering\SSRPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\FogPass.cpp">
+    <ClCompile Include="Rendering\ExponentialHeightFogPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\DepthOfFieldPass.cpp">
@@ -737,7 +737,7 @@
     <ClInclude Include="Rendering\SSRPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\FogPass.h">
+    <ClInclude Include="Rendering\ExponentialHeightFogPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\DepthOfFieldPass.h">
@@ -1308,7 +1308,7 @@
     <FxCompile Include="Resources\Shaders\Postprocess\FilmEffects.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\Fog.hlsl">
+    <FxCompile Include="Resources\Shaders\Postprocess\ExponentialHeightFog.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\FXAA.hlsl">

@@ -393,8 +393,8 @@ namespace adria
 				compute_pso_desc.CS = CS_Ssr;
 				compute_pso_map[GfxPipelineStateID::SSR] = gfx->CreateComputePipelineState(compute_pso_desc);
 
-				compute_pso_desc.CS = CS_Fog;
-				compute_pso_map[GfxPipelineStateID::Fog] = gfx->CreateComputePipelineState(compute_pso_desc);
+				compute_pso_desc.CS = CS_ExponentialHeightFog;
+				compute_pso_map[GfxPipelineStateID::ExponentialHeightFog] = gfx->CreateComputePipelineState(compute_pso_desc);
 
 				compute_pso_desc.CS = CS_Tonemap;
 				compute_pso_map[GfxPipelineStateID::ToneMap] = gfx->CreateComputePipelineState(compute_pso_desc);

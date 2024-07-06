@@ -267,7 +267,7 @@
     <ClCompile Include="Rendering\HelperPasses.cpp" />
     <ClCompile Include="Rendering\DecalsPass.cpp" />
     <ClCompile Include="Rendering\DepthOfFieldPass.cpp" />
-    <ClCompile Include="Rendering\FogPass.cpp" />
+    <ClCompile Include="Rendering\ExponentialHeightFogPass.cpp" />
     <ClCompile Include="Rendering\GeometryBufferCache.cpp" />
     <ClCompile Include="Rendering\GodRaysPass.cpp" />
     <ClCompile Include="Rendering\GPUDrivenGBufferPass.cpp" />
@@ -460,7 +460,7 @@
     <ClInclude Include="Rendering\HelperPasses.h" />
     <ClInclude Include="Rendering\DecalsPass.h" />
     <ClInclude Include="Rendering\DepthOfFieldPass.h" />
-    <ClInclude Include="Rendering\FogPass.h" />
+    <ClInclude Include="Rendering\ExponentialHeightFogPass.h" />
     <ClInclude Include="Rendering\GodRaysPass.h" />
     <ClInclude Include="Rendering\LensFlarePass.h" />
     <ClInclude Include="Rendering\EntityLoader.h" />
@@ -734,7 +734,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\Fog.hlsl">
+    <FxCompile Include="Resources\Shaders\Postprocess\ExponentialHeightFog.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>

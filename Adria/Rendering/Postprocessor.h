@@ -11,7 +11,7 @@
 #include "VolumetricCloudsPass.h"
 #include "SSRPass.h"
 #include "RayTracedReflectionsPass.h"
-#include "FogPass.h"
+#include "ExponentialHeightFogPass.h"
 #include "DepthOfFieldPass.h"
 #include "BloomPass.h"
 #include "MotionVectorsPass.h"
@@ -132,7 +132,7 @@ namespace adria
 		VolumetricCloudsPass clouds_pass;
 		SSRPass ssr_pass;
 		RayTracedReflectionsPass rtr_pass;
-		FogPass fog_pass;
+		ExponentialHeightFogPass fog_pass;
 		DepthOfFieldPass dof_pass;
 		FFXDepthOfFieldPass ffx_dof_pass;
 		BloomPass bloom_pass;
