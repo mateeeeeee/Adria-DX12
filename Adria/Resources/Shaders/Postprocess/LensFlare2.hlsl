@@ -85,7 +85,7 @@ void LensFlareCS(CSInput input)
 		{
 			samples += 1.0f;
 			float2 depthUv = PassCB.sunScreenSpacePosition.xy + float2(x, y);
-			if (IsSaturated(depthUv)) visibility += depthTx.SampleLevel(PointClampSampler, depthUv, 0).r < 1.0f ? 0 : 1;
+			if (IsSaturated(depthUv)) visibility += depthTx.SampleLevel(PointClampSampler, depthUv, 0).r > 0.0f ? 0 : 1;
 		}
 	}
 	visibility /= samples;

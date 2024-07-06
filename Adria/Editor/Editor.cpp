@@ -506,11 +506,6 @@ namespace adria
 					else if (light->type == LightType::Spot)	ImGui::Text("Spot Light");
 					else if (light->type == LightType::Point)	ImGui::Text("Point Light");
 
-					//Vector4 light_color, light_direction, light_position;
-					//XMStoreFloat4(&light_color, light->color);
-					//XMStoreFloat4(&light_direction, light->direction);
-					//XMStoreFloat4(&light_position, light->position);
-
 					float color[3] = { light->color.x, light->color.y, light->color.z };
 					ImGui::ColorEdit3("Light Color", color);
 					light->color = Vector4(color[0], color[1], color[2], 1.0f);
@@ -564,7 +559,7 @@ namespace adria
 					if (light->type == LightType::Directional)
 					{
 						static int current_shadow_type = light->casts_shadows;
-						ImGui::Combo("Light Shadow Type", &current_shadow_type, "None\0Shadow Map\0Ray Traced Shadows\0", 3);
+						ImGui::Combo("Shadow Technique", &current_shadow_type, "None\0Shadow Map\0Ray Traced Shadows\0", 3);
 						if (!ray_tracing_supported && current_shadow_type == 2) current_shadow_type = 1;
 
 						light->casts_shadows = (current_shadow_type == 1);
@@ -577,11 +572,9 @@ namespace adria
 
 					if (light->casts_shadows)
 					{
-						if (light->type == LightType::Directional && light->casts_shadows)
+						if (light->type == LightType::Directional)
 						{
-							bool use_cascades = static_cast<bool>(light->use_cascades);
-							ImGui::Checkbox("Use Cascades", &use_cascades);
-							light->use_cascades = use_cascades;
+							ImGui::Checkbox("Use Cascades", &light->use_cascades);
 						}
 						ImGui::Checkbox("Screen Space Contact Shadows", &light->sscs);
 						if (light->sscs)
@@ -591,18 +584,14 @@ namespace adria
 							ImGui::SliderFloat("Max Depth Distance", &light->sscs_max_depth_distance, 0.0f, 500.0f);
 						}
 					}
-					else if (light->ray_traced_shadows)
-					{
-						ImGui::Checkbox("Soft Shadows", &light->soft_rts);
-					}
 
 					ImGui::Checkbox("God Rays", &light->god_rays);
 					if (light->god_rays)
 					{
-						ImGui::SliderFloat("God Rays decay", &light->godrays_decay, 0.0f, 1.0f);
-						ImGui::SliderFloat("God Rays weight", &light->godrays_weight, 0.0f, 1.0f);
-						ImGui::SliderFloat("God Rays density", &light->godrays_density, 0.1f, 2.0f);
-						ImGui::SliderFloat("God Rays exposure", &light->godrays_exposure, 0.1f, 10.0f);
+						ImGui::SliderFloat("God Rays Decay", &light->godrays_decay, 0.0f, 1.0f);
+						ImGui::SliderFloat("God Rays Weight", &light->godrays_weight, 0.0f, 1.0f);
+						ImGui::SliderFloat("God Rays Density", &light->godrays_density, 0.1f, 2.0f);
+						ImGui::SliderFloat("God Rays Exposure", &light->godrays_exposure, 0.1f, 10.0f);
 					}
 
 					ImGui::Checkbox("Volumetric Lighting", &light->volumetric);

@@ -90,7 +90,6 @@ namespace adria
 		bool casts_shadows = false;
 		bool use_cascades = false;
 		bool ray_traced_shadows = false;
-		bool soft_rts = false;
 		int32 shadow_texture_index = -1;
 		int32 shadow_matrix_index = -1;
 		int32 shadow_mask_index = -1;
@@ -100,10 +99,10 @@ namespace adria
 		bool volumetric = false;
 		bool lens_flare = false;
 		bool god_rays = false;
-		float godrays_decay = 0.98f;
-		float godrays_weight = 0.07f;
-		float godrays_density = 0.9f;
-		float godrays_exposure = 0.45f;
+		float godrays_decay = 0.9f;
+		float godrays_weight = 0.65f;
+		float godrays_density = 1.45f;
+		float godrays_exposure = 3.25f;
 		bool  sscs = false;
 		float sscs_thickness = 0.5f;
 		float sscs_max_ray_distance = 0.05f;

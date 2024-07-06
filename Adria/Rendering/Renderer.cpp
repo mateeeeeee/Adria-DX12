@@ -503,6 +503,53 @@ namespace adria
 						}
 						ImGui::SliderFloat3("Wind Direction", wind_dir, -1.0f, 1.0f);
 						ImGui::SliderFloat("Wind Speed", &wind_speed, 0.0f, 32.0f);
+
+						auto lights = reg.view<Light>();
+						Light* sun_light = nullptr;
+						for (entt::entity light : lights)
+						{
+							Light& light_data = lights.get<Light>(light);
+							if (light_data.type == LightType::Directional && light_data.active)
+							{
+								sun_light = &light_data;
+								break;
+							}
+						}
+
+						if (sun_light && ImGui::TreeNode("Sun"))
+						{
+							ImGui::ColorEdit3("Color", (float*)&sun_light->color);
+							ImGui::SliderFloat("Energy", &sun_light->energy, 0.0f, 50.0f);
+							ImGui::SliderFloat3("Direction", (float*)&sun_light->direction, -1.0f, 1.0f);
+							sun_light->position = -sun_light->direction * 1e3;
+
+							static int current_shadow_type = sun_light->casts_shadows;
+							ImGui::Combo("Shadow Technique", &current_shadow_type, "None\0Shadow Map\0Ray Traced Shadows\0", 3);
+							if (!ray_tracing_supported && current_shadow_type == 2) current_shadow_type = 1;
+
+							if (sun_light->casts_shadows)
+							{
+								ImGui::Checkbox("Use Cascades", &sun_light->use_cascades);
+							}
+							sun_light->casts_shadows = (current_shadow_type == 1);
+							sun_light->ray_traced_shadows = (current_shadow_type == 2);
+
+							ImGui::Checkbox("Volumetric Lighting", &sun_light->volumetric);
+							if (sun_light->volumetric)
+							{
+								ImGui::SliderFloat("Volumetric lighting Strength", &sun_light->volumetric_strength, 0.0f, 0.1f);
+							}
+							ImGui::Checkbox("Lens Flare", &sun_light->lens_flare);
+							ImGui::Checkbox("God Rays", &sun_light->god_rays);
+							if (sun_light->god_rays)
+							{
+								ImGui::SliderFloat("God Rays Decay", &sun_light->godrays_decay, 0.0f, 1.0f);
+								ImGui::SliderFloat("God Rays Weight", &sun_light->godrays_weight, 0.0f, 1.0f);
+								ImGui::SliderFloat("God Rays Density", &sun_light->godrays_density, 0.1f, 2.0f);
+								ImGui::SliderFloat("God Rays Exposure", &sun_light->godrays_exposure, 0.1f, 10.0f);
+							}
+							ImGui::TreePop();
+						}
 						ImGui::TreePop();
 					}
 
