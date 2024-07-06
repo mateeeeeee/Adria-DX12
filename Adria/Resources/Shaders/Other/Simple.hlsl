@@ -51,7 +51,7 @@ VSToPS SunVS(VSInput input)
 	float4 PosH = mul(viewPosition, FrameCB.projection);
 
 	VSToPS output;
-	output.Position = float4(PosH.xy, PosH.w - 0.001f, PosH.w); 
+	output.Position = float4(PosH.xy, 0.001f, PosH.w); 
 	output.TexCoord = input.Uv;
 	return output;
 }
