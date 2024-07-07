@@ -65,7 +65,7 @@ namespace adria
 		float  rain_total_time;
 	};
 
-	struct LightHLSL
+	struct LightGPU
 	{
 		Vector4 position;
 		Vector4 direction;
@@ -86,7 +86,7 @@ namespace adria
 		int32 padd;
 	};
 
-	struct MeshHLSL
+	struct MeshGPU
 	{
 		uint32 buffer_idx;
 		uint32 positions_offset;
@@ -100,7 +100,7 @@ namespace adria
 		uint32 meshlet_count;
 	};
 
-	struct MaterialHLSL
+	struct MaterialGPU
 	{
 		uint32 diffuse_idx;
 		uint32 normal_idx;
@@ -113,7 +113,7 @@ namespace adria
 		float alpha_cutoff;
 	};
 
-	struct InstanceHLSL
+	struct InstanceGPU
 	{
 		Matrix world_matrix;
 		Matrix inverse_world_matrix;

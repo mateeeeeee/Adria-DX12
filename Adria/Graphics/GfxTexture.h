@@ -120,6 +120,7 @@ namespace adria
 		GfxTextureDesc const& GetDesc() const { return desc; }
 		uint32 GetWidth() const { return desc.width; }
 		uint32 GetHeight() const { return desc.height; }
+		uint32 GetDepth() const { return desc.depth; }
 		GfxFormat GetFormat() const { return desc.format; }
 		uint64 GetGpuAddress() const;
 

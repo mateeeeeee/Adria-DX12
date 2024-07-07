@@ -1,8 +1,6 @@
 #include "FXAAPass.h"
 #include "BlackboardData.h"
 #include "PSOCache.h" 
-
-#include "Graphics/GfxRingDescriptorAllocator.h"
 #include "RenderGraph/RenderGraph.h"
 
 namespace adria
@@ -35,7 +33,7 @@ namespace adria
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.ldr));
 				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadWriteTexture(data.output));
 				
-				struct SSRConstants
+				struct FXAAConstants
 				{
 					uint32 depth_idx;
 					uint32 output_idx;
@@ -47,7 +45,7 @@ namespace adria
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::FXAA));
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
-				cmd_list->Dispatch((UINT)std::ceil(width / 16.0f), (UINT)std::ceil(height / 16.0f), 1);
+				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 	}
 

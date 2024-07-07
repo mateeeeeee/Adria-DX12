@@ -357,7 +357,7 @@ do{                                                          \
     {                                                        \
         using StrSizeType = __decltype(StrLen(str));       \
         APPEND256(str, 0, StrSizeType::value)              \
-    }while(false);                                           \
+    } while(false);                                           \
     printer.StringSize = printer.ByteCount;                  \
     printer.AppendArgs(__VA_ARGS__);                         \
     printer.Commit();                                        \

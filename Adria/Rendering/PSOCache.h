@@ -104,6 +104,8 @@ namespace adria
 		DDGIUpdateDistance,
 		DDGIVisualize,
 		ReSTIRGI_InitialSampling,
+		VolumetricFog_LightInjection,
+		VolumetricFog_ScatteringAccumulation,
 		Unknown
 	};
 

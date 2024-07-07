@@ -235,7 +235,7 @@ namespace adria
 			reg.destroy(e);
 		reg.clear<Batch>();
 
-		std::vector<LightHLSL> hlsl_lights{};
+		std::vector<LightGPU> hlsl_lights{};
 		uint32 light_index = 0;
 		Matrix light_transform = path_type == RendererPathType::PathTracing ? Matrix::Identity : camera->View();
 		for (auto light_entity : reg.view<Light>())
@@ -244,7 +244,7 @@ namespace adria
 			light.light_index = light_index;
 			++light_index;
 
-			LightHLSL& hlsl_light = hlsl_lights.emplace_back();
+			LightGPU& hlsl_light = hlsl_lights.emplace_back();
 			hlsl_light.color = light.color * light.energy;
 			hlsl_light.position = Vector4::Transform(light.position, light_transform);
 			hlsl_light.direction = Vector4::Transform(light.direction, light_transform);
@@ -262,9 +262,9 @@ namespace adria
 			if (light.volumetric) ++volumetric_lights;
 		}
 
-		std::vector<MeshHLSL> meshes;
-		std::vector<InstanceHLSL> instances;
-		std::vector<MaterialHLSL> materials;
+		std::vector<MeshGPU> meshes;
+		std::vector<InstanceGPU> instances;
+		std::vector<MaterialGPU> materials;
 		uint32 instanceID = 0;
 
 		for (auto mesh_entity : reg.view<Mesh>())
@@ -291,7 +291,7 @@ namespace adria
 				batch.world_transform = instance.world_transform;
 				submesh.bounding_box.Transform(batch.bounding_box, batch.world_transform);
 
-				InstanceHLSL& instance_hlsl = instances.emplace_back();
+				InstanceGPU& instance_hlsl = instances.emplace_back();
 				instance_hlsl.instance_id = instanceID;
 				instance_hlsl.material_idx = static_cast<uint32>(materials.size() + submesh.material_index);
 				instance_hlsl.mesh_index = static_cast<uint32>(meshes.size() + instance.submesh_index);
@@ -304,7 +304,7 @@ namespace adria
 			}
 			for (auto const& submesh : mesh.submeshes)
 			{
-				MeshHLSL& mesh_hlsl = meshes.emplace_back();
+				MeshGPU& mesh_hlsl = meshes.emplace_back();
 				mesh_hlsl.buffer_idx = mesh_buffer_online_srv.GetIndex();
 				mesh_hlsl.indices_offset = submesh.indices_offset;
 				mesh_hlsl.positions_offset = submesh.positions_offset;
@@ -320,7 +320,7 @@ namespace adria
 
 			for (auto const& material : mesh.materials)
 			{
-				MaterialHLSL& material_hlsl = materials.emplace_back();
+				MaterialGPU& material_hlsl = materials.emplace_back();
 				material_hlsl.diffuse_idx = (uint32)material.albedo_texture;
 				material_hlsl.normal_idx = (uint32)material.normal_texture;
 				material_hlsl.roughness_metallic_idx = (uint32)material.metallic_roughness_texture;

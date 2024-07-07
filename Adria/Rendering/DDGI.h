@@ -29,7 +29,7 @@ namespace adria
 			GfxDescriptor irradiance_history_srv;
 			GfxDescriptor distance_history_srv;
 		};
-		struct DDGIVolumeHLSL
+		struct DDGIVolumeGPU
 		{
 			Vector3 start_position;
 			int32 rays_per_probe;
