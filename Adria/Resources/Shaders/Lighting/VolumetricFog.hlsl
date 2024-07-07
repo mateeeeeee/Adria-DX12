@@ -10,9 +10,20 @@ struct CSInput
 	uint  GroupIndex : SV_GroupIndex;
 };
 
+struct FogVolume
+{
+	float3  center;
+	float3  extents;
+	float3  color;
+	float   density_base;
+	float   density_change;
+};
+
 struct LightInjectionConstants
 {
-	uint pad;
+	uint voxelGridIdx;
+	uint voxelGridHistoryIdx;
+	uint fogVolumeBufferIdx;
 };
 ConstantBuffer<LightInjectionConstants> PassCB : register(b1);
 
@@ -20,12 +31,14 @@ ConstantBuffer<LightInjectionConstants> PassCB : register(b1);
 [numthreads(8, 8, 8)]
 void LightInjectionCS(CSInput input)
 {
-	
+	uint3 voxelGridCoords = input.DispatchThreadId;
 }
 
 struct ScatteringAccumulationConstants
 {
-	uint pad;
+	uint voxelGridIdx;
+	uint voxelGridHistoryIdx;
+	uint fogVolumeBufferIdx;
 };
 ConstantBuffer<ScatteringAccumulationConstants> PassCB2 : register(b1);
 

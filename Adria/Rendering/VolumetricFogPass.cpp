@@ -1,8 +1,12 @@
 #include "VolumetricFogPass.h"
 #include "BlackboardData.h"
 #include "PSOCache.h" 
+#include "Components.h"
 #include "Graphics/GfxTexture.h"
+#include "Graphics/GfxBuffer.h"
 #include "RenderGraph/RenderGraph.h"
+#include "Editor/GUICommand.h"
+
 
 namespace adria
 {
@@ -11,20 +15,68 @@ namespace adria
 	static constexpr uint32 VOXEL_GRID_SIZE_Z  = 128;
 
 
-	VolumetricFogPass::VolumetricFogPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
+	VolumetricFogPass::VolumetricFogPass(GfxDevice* gfx, entt::registry& reg, uint32 w, uint32 h) : gfx(gfx), reg(reg), width(w), height(h)
 	{
 		CreateVoxelTexture();
 	}
 
 	void VolumetricFogPass::AddPasses(RenderGraph& rg)
 	{
+		GfxDescriptor ddgi_volume_buffer_srv_gpu = gfx->AllocateDescriptorsGPU();
+		gfx->CopyDescriptors(1, ddgi_volume_buffer_srv_gpu, fog_volume_buffer_srv);
+		fog_volume_buffer_idx = ddgi_volume_buffer_srv_gpu.GetIndex();
+
 		AddLightInjectionPass(rg);
 		AddScatteringAccumulationPass(rg);
+
+		GUI_RunCommand([&]()
+			{
+				if (fog_volumes.empty()) return;
+
+				FogVolume& fog_volume = fog_volumes[0];
+				if (ImGui::TreeNode("Volumetric Fog"))
+				{
+					bool update_fog_volume_buffer = false;
+					update_fog_volume_buffer |= ImGui::SliderFloat("Density Base", &fog_volume.density_base, 0.0f, 1.0f);
+					update_fog_volume_buffer |= ImGui::SliderFloat("Density Change", &fog_volume.density_change, 0.0f, 1.0f);
+					Vector3 fog_color = fog_volume.color.ToVector3();
+					update_fog_volume_buffer |= ImGui::ColorEdit3("Fog Color", (float*)&fog_color);
+					fog_volume.color = Color(fog_color);
+
+					if (update_fog_volume_buffer)
+					{
+						CreateFogVolumeBuffer();
+					}
+					
+					ImGui::TreePop();
+				}
+			}, GUICommandGroup_Renderer);
 	}
 
 	void VolumetricFogPass::OnSceneInitialized()
 	{
 		//create and upload noise texture
+
+		BoundingBox scene_bounding_box;
+		for (auto mesh_entity : reg.view<Mesh>())
+		{
+			Mesh& mesh = reg.get<Mesh>(mesh_entity);
+			for (auto const& instance : mesh.instances)
+			{
+				SubMeshGPU& submesh = mesh.submeshes[instance.submesh_index];
+				BoundingBox instance_bounding_box;
+				submesh.bounding_box.Transform(instance_bounding_box, instance.world_transform);
+				BoundingBox::CreateMerged(scene_bounding_box, scene_bounding_box, instance_bounding_box);
+			}
+		}
+
+		FogVolume& fog_volume = fog_volumes.emplace_back();
+		fog_volume.volume = scene_bounding_box;
+		fog_volume.color = Color(1, 1, 1);
+		fog_volume.density_base = 0.0f;
+		fog_volume.density_change = 0.05f;
+
+		CreateFogVolumeBuffer();
 	}
 
 	void VolumetricFogPass::CreateVoxelTexture()
@@ -50,17 +102,41 @@ namespace adria
 		voxel_grid_history_srv = gfx->CreateTextureSRV(voxel_grid_history.get());
 	}
 
+	void VolumetricFogPass::CreateFogVolumeBuffer()
+	{
+		if (!fog_volume_buffer || fog_volume_buffer->GetCount() < fog_volumes.size())
+		{
+			fog_volume_buffer = gfx->CreateBuffer(StructuredBufferDesc<FogVolumeGPU>(fog_volumes.size(), false, true));
+			fog_volume_buffer_srv = gfx->CreateBufferSRV(fog_volume_buffer.get());
+		}
+
+		std::vector<FogVolumeGPU> gpu_fog_volumes;
+		for (auto const& fog_volume : fog_volumes)
+		{
+			FogVolumeGPU fog_volume_gpu =
+			{
+				.center = fog_volume.volume.Center,
+				.extents = fog_volume.volume.Extents,
+				.color = fog_volume.color.ToVector3(),
+				.density_base = fog_volume.density_base,
+				.density_change = fog_volume.density_change
+			};
+			gpu_fog_volumes.push_back(std::move(fog_volume_gpu));
+		}
+		fog_volume_buffer->Update(gpu_fog_volumes.data(), gpu_fog_volumes.size() * sizeof(FogVolumeGPU));
+	}
+
 	void VolumetricFogPass::AddLightInjectionPass(RenderGraph& rg)
 	{
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
-
 
 		rg.ImportTexture(RG_RES_NAME(FogVoxelGridHistory), voxel_grid_history.get());
 
 		struct LightInjectionPassData
 		{
 			RGTextureReadWriteId voxel_grid;
-			RGTextureReadOnlyId voxel_grid_history;
+			RGTextureReadOnlyId  voxel_grid_history;
+			RGBufferReadOnlyId   fog_volume_buffer;
 		};
 
 		rg.AddPass<LightInjectionPassData>("Volumetric Fog Light Injection Pass",
@@ -83,15 +159,21 @@ namespace adria
 			[=](LightInjectionPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				//
-				//uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();
-				////gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.ldr));
-				//
+				
+				uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadWriteTexture(data.voxel_grid));
+				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadOnlyTexture(data.voxel_grid_history));
+				
 				struct LightInjectionConstants
 				{
+					uint32 voxel_grid_idx;
+					uint32 voxel_grid_history_idx;
+					uint32 fog_volume_buffer_idx;
 				} constants =
 				{
-					
+					.voxel_grid_idx = i,
+					.voxel_grid_history_idx = i + 1,
+					.fog_volume_buffer_idx = fog_volume_buffer_idx
 				};
 				
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::VolumetricFog_LightInjection));

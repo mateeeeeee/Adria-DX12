@@ -1,5 +1,7 @@
 #pragma once
 #include "Graphics/GfxDescriptor.h"
+#include "entt/entity/fwd.hpp"
+
 
 namespace adria
 {
@@ -10,17 +12,26 @@ namespace adria
 
 	class VolumetricFogPass
 	{
-		struct FogVolume
-		{
-
-		};
 		struct FogVolumeGPU
 		{
-			
+			Vector3 center;
+			Vector3 extents;
+			Vector3 color;
+			float   density_base;
+			float   density_change;
 		};
+
+		struct FogVolume
+		{
+			BoundingBox volume;
+			Color		color;
+			float       density_base;
+			float       density_change;
+		};
+
 	public:
 
-		VolumetricFogPass(GfxDevice* gfx, uint32 w, uint32 h);
+		VolumetricFogPass(GfxDevice* gfx, entt::registry& reg, uint32 w, uint32 h);
 		void AddPasses(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h)
 		{
@@ -32,20 +43,22 @@ namespace adria
 
 	private:
 		GfxDevice* gfx;
+		entt::registry& reg;
 		uint32 width, height;
 
 		std::unique_ptr<GfxTexture> voxel_grid_history;
 		GfxDescriptor voxel_grid_history_srv;
 		uint32 voxel_grid_history_idx;
 
-		std::vector<FogVolumeGPU> fog_volumes;
-		std::unique_ptr<GfxBuffer> fog_volumes_buffer;
-		GfxDescriptor fog_volumes_buffer_srv;
-		uint32 fog_volumes_buffer_idx;
+		std::vector<FogVolume> fog_volumes;
+		std::unique_ptr<GfxBuffer> fog_volume_buffer;
+		GfxDescriptor fog_volume_buffer_srv;
+		uint32 fog_volume_buffer_idx;
 
 	private:
 
 		void CreateVoxelTexture();
+		void CreateFogVolumeBuffer();
 
 		void AddLightInjectionPass(RenderGraph& rendergraph);
 		void AddScatteringAccumulationPass(RenderGraph& rendergraph);

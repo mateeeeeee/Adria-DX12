@@ -16,18 +16,6 @@ namespace adria
 	{
 		void NVSDK_CONV DLSS3Log(char const* message, NVSDK_NGX_Logging_Level logging_level, NVSDK_NGX_Feature source_component)
 		{
-			switch (logging_level)
-			{
-			case NVSDK_NGX_LOGGING_LEVEL_VERBOSE:
-				ADRIA_LOG(DEBUG, message);
-				break;
-			case NVSDK_NGX_LOGGING_LEVEL_ON:
-				ADRIA_LOG(INFO, message);
-				break;
-			case NVSDK_NGX_LOGGING_LEVEL_OFF:
-			default:
-				break;
-			}
 		}
 	}
 
