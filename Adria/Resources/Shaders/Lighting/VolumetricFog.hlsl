@@ -15,15 +15,18 @@ struct FogVolume
 	float3  center;
 	float3  extents;
 	float3  color;
-	float   density_base;
-	float   density_change;
+	float   densityBase;
+	float   densityChange;
 };
+
 
 struct LightInjectionConstants
 {
-	uint voxelGridIdx;
-	uint voxelGridHistoryIdx;
-	uint fogVolumeBufferIdx;
+	float3 voxelGridDimensions;
+	uint   fogVolumesCount;
+	uint   fogVolumeBufferIdx;
+	uint   voxelGridIdx;
+	uint   voxelGridHistoryIdx;
 };
 ConstantBuffer<LightInjectionConstants> PassCB : register(b1);
 

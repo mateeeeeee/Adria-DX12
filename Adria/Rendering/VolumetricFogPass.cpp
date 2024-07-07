@@ -166,14 +166,18 @@ namespace adria
 				
 				struct LightInjectionConstants
 				{
+					Vector3 voxel_grid_dimensions;
+					uint32 fog_volumes_count;
+					uint32 fog_volume_buffer_idx;
 					uint32 voxel_grid_idx;
 					uint32 voxel_grid_history_idx;
-					uint32 fog_volume_buffer_idx;
 				} constants =
 				{
+					.voxel_grid_dimensions = Vector3(voxel_grid_history->GetWidth(), voxel_grid_history->GetHeight(), voxel_grid_history->GetDepth()),
+					.fog_volumes_count = fog_volume_buffer->GetCount(),
+					.fog_volume_buffer_idx = fog_volume_buffer_idx,
 					.voxel_grid_idx = i,
 					.voxel_grid_history_idx = i + 1,
-					.fog_volume_buffer_idx = fog_volume_buffer_idx
 				};
 				
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::VolumetricFog_LightInjection));
