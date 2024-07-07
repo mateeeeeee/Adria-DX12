@@ -507,6 +507,9 @@
     <ClCompile Include="Graphics\GfxRayTracingShaderTable.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\VolumetricFogPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -557,9 +560,6 @@
     <ClInclude Include="Utilities\Image.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Math\BoundingVolumeHelpers.h">
-      <Filter>Math</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\Components.h">
       <Filter>Rendering</Filter>
     </ClInclude>
@@ -599,17 +599,11 @@
     <ClInclude Include="Utilities\EnumUtil.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Math\ComputeTangentFrame.h">
-      <Filter>Math</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\GfxDevice.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\HosekDataRGB.h">
       <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\ComputeNormals.h">
-      <Filter>Math</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\SkyModel.h">
       <Filter>Rendering</Filter>
@@ -1116,6 +1110,18 @@
     <ClInclude Include="Rendering\ReSTIRGI.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\VolumetricFogPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\NormalsUtil.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\MathCommon.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\BoundingVolumeUtil.h">
+      <Filter>Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
@@ -1400,6 +1406,9 @@
     </FxCompile>
     <FxCompile Include="Resources\Shaders\ReSTIR\InitialSampling.hlsl">
       <Filter>Shaders\ReSTIR</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Lighting\VolumetricFog.hlsl">
+      <Filter>Shaders\Lighting</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>
