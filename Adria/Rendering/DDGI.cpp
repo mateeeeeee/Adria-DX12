@@ -335,8 +335,8 @@ namespace adria
 	{
 		if (!IsSupported() || !enabled)  return -1;
 
-		std::vector<DDGIVolumeHLSL> ddgi_data;
-		DDGIVolumeHLSL& ddgi_hlsl = ddgi_data.emplace_back();
+		std::vector<DDGIVolumeGPU> ddgi_data;
+		DDGIVolumeGPU& ddgi_hlsl = ddgi_data.emplace_back();
 		ddgi_hlsl.start_position = ddgi_volume.origin - ddgi_volume.extents;
 		ddgi_hlsl.probe_size = 2 * ddgi_volume.extents / (Vector3((float)ddgi_volume.num_probes.x, (float)ddgi_volume.num_probes.y, (float)ddgi_volume.num_probes.z) - Vector3::One);
 		ddgi_hlsl.rays_per_probe = ddgi_volume.num_rays;
@@ -354,11 +354,11 @@ namespace adria
 		ddgi_hlsl.distance_history_idx = (int32)distance_gpu.GetIndex();
 		if (!ddgi_volume_buffer || ddgi_volume_buffer->GetCount() < ddgi_data.size())
 		{
-			ddgi_volume_buffer = gfx->CreateBuffer(StructuredBufferDesc<DDGIVolumeHLSL>(ddgi_data.size(), false, true));
+			ddgi_volume_buffer = gfx->CreateBuffer(StructuredBufferDesc<DDGIVolumeGPU>(ddgi_data.size(), false, true));
 			ddgi_volume_buffer_srv = gfx->CreateBufferSRV(ddgi_volume_buffer.get());
 		}
 
-		ddgi_volume_buffer->Update(ddgi_data.data(), ddgi_data.size() * sizeof(DDGIVolumeHLSL));
+		ddgi_volume_buffer->Update(ddgi_data.data(), ddgi_data.size() * sizeof(DDGIVolumeGPU));
 		GfxDescriptor ddgi_volume_buffer_srv_gpu = gfx->AllocateDescriptorsGPU();
 		gfx->CopyDescriptors(1, ddgi_volume_buffer_srv_gpu, ddgi_volume_buffer_srv);
 		return (int32)ddgi_volume_buffer_srv_gpu.GetIndex();

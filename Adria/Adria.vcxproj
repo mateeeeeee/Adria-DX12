@@ -405,9 +405,9 @@
     <ClInclude Include="Logging\Logger.h" />
     <ClInclude Include="Logging\OutputDebugStringLogger.h" />
     <ClInclude Include="Logging\OutputStreamLogger.h" />
-    <ClInclude Include="Math\BoundingVolumeHelpers.h" />
-    <ClInclude Include="Math\ComputeNormals.h" />
-    <ClInclude Include="Math\ComputeTangentFrame.h" />
+    <ClInclude Include="Math\BoundingVolumeUtil.h" />
+    <ClInclude Include="Math\MathCommon.h" />
+    <ClInclude Include="Math\NormalsUtil.h" />
     <ClInclude Include="Math\Constants.h" />
     <ClInclude Include="Math\Halton.h" />
     <ClInclude Include="Math\MathTypes.h" />
@@ -645,6 +645,13 @@
     <FxCompile Include="Resources\Shaders\Lighting\TiledDeferredLighting.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Lighting\VolumetricFog.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Lighting\VolumetricLighting.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

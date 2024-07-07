@@ -130,6 +130,8 @@ namespace adria
 			case CS_DDGIUpdateDistance:
 			case CS_RainSimulation:
 			case CS_ReSTIRGI_InitialSampling:
+			case CS_VolumetricFog_LightInjection:
+			case CS_VolumetricFog_ScatteringAccumulation:
 				return GfxShaderStage::CS;
 			case HS_OceanLOD:
 				return GfxShaderStage::HS;
@@ -176,7 +178,6 @@ namespace adria
 			case PS_Decals:
 			case PS_Decals_ModifyNormals:
 				return "Other/Decals.hlsl";
-			
 			case VS_GBuffer:
 			case PS_GBuffer:
 			case PS_GBuffer_Rain:
@@ -309,6 +310,9 @@ namespace adria
 			case CS_InitializeHZB:
 			case CS_HZBMips:
 				return "GpuDrivenRendering/HZB.hlsl";
+			case CS_VolumetricFog_LightInjection:
+			case CS_VolumetricFog_ScatteringAccumulation:
+				return "Lighting/VolumetricFog.hlsl";
 			case CS_RTAOFilter:
 				return "RayTracing/RTAOFilter.hlsl";
 			case CS_DDGIUpdateIrradiance:
@@ -513,6 +517,10 @@ namespace adria
 				return "ClusterBuildingCS";
 			case CS_ClusterCulling:
 				return "ClusterCullingCS";
+			case CS_VolumetricFog_LightInjection:
+				return "LightInjectionCS";
+			case CS_VolumetricFog_ScatteringAccumulation:
+				return "ScatteringAccumulationCS";
 			case VS_Shadow:
 			case VS_Shadow_Transparent:
 				return "ShadowVS";

@@ -33,5 +33,5 @@
 
 #include "Core/CoreTypes.h"
 #include "Core/Defines.h"
-#include "Math/MathTypes.h"
+#include "Math/MathCommon.h"
 #include "Utilities/Ref.h"

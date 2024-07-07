@@ -23,7 +23,7 @@
 #include "Utilities/FilesUtil.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/Random.h"
-#include "Math/BoundingVolumeHelpers.h"
+#include "Math/BoundingVolumeUtil.h"
 
 using namespace DirectX;
 
