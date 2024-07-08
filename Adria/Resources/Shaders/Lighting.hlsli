@@ -172,8 +172,29 @@ struct LightingResult
 	}
 };
 
+float GetLightAttenuation(Light light, float3 P, out float3 L)
+{
+	L = normalize(light.position.xyz - P);
+	float attenuation = 1.0f;
+	if(light.type == POINT_LIGHT)
+	{
+		float distance = length(light.position.xyz - P);
+		attenuation = DoAttenuation(distance, light.range);
+	}
+	else if(light.type == SPOT_LIGHT)
+	{
+		float distance = length(light.position.xyz - P);
+		attenuation = DoAttenuation(distance, light.range);
 
+		float3 normalizedLightDir = normalize(light.direction.xyz);
+		float cosAng = dot(-normalizedLightDir, L);
+		float conAtt = saturate((cosAng - light.outerCosine) / (light.innerCosine - light.outerCosine));
+		conAtt *= conAtt;
 
+		attenuation *= conAtt;
+	}
+	return attenuation;
+}
 
 
 LightingResult DefaultLitBxDF(float3 diffuseColor, float3 specularColor, float specularRoughness, float3 N, float3 V, float3 L, float attenuation)
@@ -202,25 +223,8 @@ LightingResult DoLightNoShadows(Light light, float3 P, float3 N, float3 V, float
 {
 	LightingResult result = (LightingResult)0;
 	
-	float3 L = normalize(light.position.xyz - P);
-	float attenuation = 1.0f;
-	if(light.type == POINT_LIGHT)
-	{
-		float distance = length(light.position.xyz - P);
-		attenuation = DoAttenuation(distance, light.range);
-	}
-	else if(light.type == SPOT_LIGHT)
-	{
-		float distance = length(light.position.xyz - P);
-		attenuation = DoAttenuation(distance, light.range);
-
-		float3 normalized_light_dir = normalize(light.direction.xyz);
-		float cosAng = dot(-normalized_light_dir, L);
-		float conAtt = saturate((cosAng - light.outerCosine) / (light.innerCosine - light.outerCosine));
-		conAtt *= conAtt;
-
-		attenuation *= conAtt;
-	}
+	float3 L;
+	float attenuation = GetLightAttenuation(light, P, L);
 	if(attenuation <= 0.0f) return result;
 
 	BrdfData brdfData = GetBrdfData(albedo, metallic, roughness);
@@ -235,26 +239,8 @@ LightingResult DoLight(Light light, BrdfData brdfData, float3 P, float3 N, float
 {
 	LightingResult result = (LightingResult)0;
 	
-	float3 L = normalize(light.position.xyz - P);
-	float attenuation = 1.0f;
-	if(light.type == POINT_LIGHT)
-	{
-		float distance = length(light.position.xyz - P);
-		attenuation = DoAttenuation(distance, light.range);
-	}
-	else if(light.type == SPOT_LIGHT)
-	{
-		float distance = length(light.position.xyz - P);
-		attenuation = DoAttenuation(distance, light.range);
-
-		float3 normalized_light_dir = normalize(light.direction.xyz);
-		float cosAng = dot(-normalized_light_dir, L);
-		float conAtt = saturate((cosAng - light.outerCosine) / (light.innerCosine - light.outerCosine));
-		conAtt *= conAtt;
-
-		attenuation *= conAtt;
-	}
-
+	float3 L;
+	float attenuation = GetLightAttenuation(light, P, L);
 	if(attenuation <= 0.0f) return result;
 
 	attenuation *= GetShadowMapFactor(light, P);

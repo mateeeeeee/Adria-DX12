@@ -35,6 +35,13 @@ struct LightInjectionConstants
 };
 ConstantBuffer<LightInjectionConstants> PassCB : register(b1);
 
+//already exists in VolumetricClouds.hlsl, move volumetric common stuff to Volumetrics.hlsli
+float HenyeyGreensteinPhase(float LdotV, float G)
+{
+	float result = 1.0f - G * G;
+	result /= (4.0f * 3.1415f * pow(1.0f + G * G - (2.0f * G) * LdotV, 1.5f));
+	return result;
+}
 
 float SampleBlueNoise(uint3 coords)
 {
@@ -48,7 +55,7 @@ float3 GetUVWFromVoxelCoords(uint3 voxelCoords, float jitter)
 	float2 texelUV = ((float2)voxelCoords.xy + 0.5f) / PassCB.voxelGridDimensions.xy;
 	float n = FrameCB.cameraNear;
 	float f = FrameCB.cameraFar;
-    float viewZ = n * pow(f / n, (float(voxelCoords.z) + 0.5f + jitter) / float(VOXEL_GRID_SIZE_Z)); //maybe switch n and f?
+    float viewZ = n * pow(f / n, (float(voxelCoords.z) + 0.5f + jitter) / float(VOXEL_GRID_SIZE_Z));
 	return float3(texelUV, viewZ / f);
 }
 
@@ -107,7 +114,16 @@ void LightInjectionCS(CSInput input)
 			Light light = lights[i];
 			if (!light.active || !light.volumetric) continue;
 
-			//do the lighting stuff
+			float3 L;
+			float attenuation = GetLightAttenuation(light, worldPosition, L);
+			if(attenuation <= 0.0f) continue;
+
+			float shadowFactor = GetShadowMapFactor(light, worldPosition);
+			attenuation *= shadowFactor;
+			if(attenuation <= 0.0f) continue;
+
+			float VdotL = dot(viewDirection, L);
+			totalLighting += attenuation * light.color.rgb * saturate(HenyeyGreensteinPhase(VdotL, 0.3f));
 		}
 	}
 
@@ -119,7 +135,6 @@ void LightInjectionCS(CSInput input)
 	float4 oldScattering = voxelGridTextureHistory[voxelGridCoords];
 	float lerpFactor = 0.0f;
 	newScattering = lerp(oldScattering, newScattering, lerpFactor);
-	//todo finish this
 #endif
 	
 	RWTexture3D<float4> voxelGridTexture = ResourceDescriptorHeap[PassCB.voxelGridIdx];
@@ -137,7 +152,16 @@ ConstantBuffer<ScatteringAccumulationConstants> PassCB2 : register(b1);
 [numthreads(8, 8, 8)]
 void ScatteringAccumulationCS(CSInput input)
 {
-	
+	float3 accumulatedScattering = 0.0f;
+	float  accumulatedTransmittance = 1.0f;
+
+	for (uint z = 0; z < VOXEL_GRID_SIZE_Z; ++z)
+	{
+		uint3  voxelGridCoords = uint3(input.DispatchThreadId.xy, z);
+		//float4 scatteringAndDensity;
+		
+		
+	}
 }
 
 

@@ -74,102 +74,11 @@ void VolumetricLightingCS(CSInput input)
 
 float GetAttenuation(Light light, float3 P)
 {
-	if(light.shadowTextureIndex < 0) return 1.0f;
+	float3 L;
+	float attenuation = GetLightAttenuation(light, P, L);
+	if(attenuation <= 0.0f) return 0.0f;
 
-	StructuredBuffer<float4x4> lightViewProjections = ResourceDescriptorHeap[FrameCB.lightsMatricesIdx];
-	float attenuation = 0.0f;
-	if (light.type == DIRECTIONAL_LIGHT)
-	{
-		if (light.useCascades)
-		{
-			for (uint i = 0; i < 4; ++i)
-			{
-				float4 worldPosition = mul(float4(P, 1.0f), FrameCB.inverseView);
-				worldPosition /= worldPosition.w;
-				float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex + i];
-				float4 shadowMapPosition = mul(worldPosition, lightViewProjection);
-				float3 UVD = shadowMapPosition.xyz / shadowMapPosition.w;
-				UVD.xy = 0.5 * UVD.xy + 0.5;
-				UVD.y = 1.0 - UVD.y;
-
-                if (P.z < FrameCB.cascadeSplits[i])
-				{
-					Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex + i)];
-					attenuation = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 2048);
-					break;
-				}
-			}
-        }
-		else
-		{
-			float4 worldPosition = mul(float4(P, 1.0f), FrameCB.inverseView);
-			worldPosition /= worldPosition.w;
-			float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex];
-			float4 shadowMapPosition = mul(worldPosition, lightViewProjection);
-			float3 UVD = shadowMapPosition.xyz / shadowMapPosition.w;
-			UVD.xy = 0.5 * UVD.xy + 0.5;
-			UVD.y = 1.0 - UVD.y;
-			[branch]
-			if (IsSaturated(UVD.xy))
-			{
-				Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex)];
-				attenuation = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 1024);
-			}
-		}
-	}
-	else if (light.type == POINT_LIGHT)
-	{
-        float distanceToLight = distance(light.position.xyz, P);
-        attenuation = DoAttenuation(distanceToLight, light.range);
-		
-		float3 lightToPixelWS = mul(float4(P - light.position.xyz, 0.0f), FrameCB.inverseView).xyz;
-		uint cubeFaceIndex = GetCubeFaceIndex(lightToPixelWS);
-		float4 worldPosition = mul(float4(P, 1.0f), FrameCB.inverseView);
-		worldPosition /= worldPosition.w;
-		float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex + cubeFaceIndex];
-		float4 shadowMapPosition = mul(worldPosition, lightViewProjection);
-		float3 UVD = shadowMapPosition.xyz / shadowMapPosition.w;
-		UVD.xy = 0.5 * UVD.xy + 0.5;
-		UVD.y = 1.0 - UVD.y;
-		[branch]
-		if (IsSaturated(UVD.xy))
-		{
-			Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex + cubeFaceIndex)];
-			attenuation *= CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 512);
-		}
-	}
-	else if (light.type == SPOT_LIGHT)
-	{
-        float3 L = light.position.xyz - P;
-        float distanceToLight = length(L);
-        L /= distanceToLight;
-		
-        float spotFactor = dot(L, normalize(-light.direction.xyz));
-        float spotCutOff = light.outerCosine;
-
-		[branch]
-        if (spotFactor > spotCutOff)
-        {
-            attenuation = DoAttenuation(distanceToLight, light.range);
-			
-            float conAttenuation = saturate((spotFactor - light.outerCosine) / (light.innerCosine - light.outerCosine));
-            conAttenuation *= conAttenuation;
-            attenuation *= conAttenuation;
-			
-            float4 worldPosition = mul(float4(P, 1.0f), FrameCB.inverseView);
-            worldPosition /= worldPosition.w;
-            float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex];
-            float4 shadowMapPosition = mul(worldPosition, lightViewProjection);
-            float3 UVD = shadowMapPosition.xyz / shadowMapPosition.w;
-            UVD.xy = 0.5 * UVD.xy + 0.5;
-            UVD.y = 1.0 - UVD.y;
-			[branch]
-            if (IsSaturated(UVD.xy))
-            {
-                Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex)];
-                attenuation = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 1024);
-            }
-        }
-	}
+	float shadowFactor = GetShadowMapFactor(light, P);
+	attenuation *= shadowFactor;
 	return attenuation;
 }
