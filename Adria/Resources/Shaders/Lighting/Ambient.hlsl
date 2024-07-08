@@ -44,8 +44,8 @@ void AmbientCS(CSInput input)
 		float ao = 1.0f;
 		if (AmbientPassCB.aoIdx >= 0)
 		{
-			Texture2D<float> aoTx = ResourceDescriptorHeap[AmbientPassCB.aoIdx];
-			ao = aoTx.Sample(LinearWrapSampler, uv);
+			Texture2D<float> ambientOcclusionTexture = ResourceDescriptorHeap[AmbientPassCB.aoIdx];
+			ao = ambientOcclusionTexture.Sample(LinearWrapSampler, uv);
 		}
 		float4 ambientColor = UnpackUintColor(AmbientPassCB.color);
 		RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[AmbientPassCB.outputIdx];

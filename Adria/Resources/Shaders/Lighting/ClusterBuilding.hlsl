@@ -17,7 +17,7 @@ struct ClusterBuildingConstants
 {
 	uint clustersIdx;
 };
-ConstantBuffer<ClusterBuildingConstants> PassCB : register(b1);
+ConstantBuffer<ClusterBuildingConstants> ClusterBuildingPassCB : register(b1);
 
 float3 IntersectionZPlane(float3 B, float zDist)
 {
@@ -39,9 +39,9 @@ struct CSInput
 [numthreads(1, 1, 1)]
 void ClusterBuildingCS(CSInput input)
 {
-	RWStructuredBuffer<ClusterAABB> clusters = ResourceDescriptorHeap[PassCB.clustersIdx];
+	RWStructuredBuffer<ClusterAABB> clusterBuffer = ResourceDescriptorHeap[ClusterBuildingPassCB.clustersIdx];
 	uint clustersCount, unused;
-	clusters.GetDimensions(clustersCount, unused);
+	clusterBuffer.GetDimensions(clustersCount, unused);
 
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
 
@@ -66,6 +66,6 @@ void ClusterBuildingCS(CSInput input)
 	float3 minPointAABB = min(min(minPointNear, minPointFar), min(maxPointNear, maxPointFar));
 	float3 maxPointAABB = max(max(minPointNear, minPointFar), max(maxPointNear, maxPointFar));
 
-	clusters[tileIndex].minPoint = float4(minPointAABB, 0.0);
-	clusters[tileIndex].maxPoint = float4(maxPointAABB, 0.0);
+	clusterBuffer[tileIndex].minPoint = float4(minPointAABB, 0.0);
+	clusterBuffer[tileIndex].maxPoint = float4(maxPointAABB, 0.0);
 }

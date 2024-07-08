@@ -14,15 +14,15 @@
 
 struct DDGIVolume
 {
-	float3 startPosition;
-	int raysPerProbe;
-	float3 probeSize;
-	int maxRaysPerProbe;
-	int3 probeCounts;
-	float normalBias;
-	float energyPreservation;
-	int irradianceHistoryIdx;
-	int distanceHistoryIdx;
+	float3	startPosition;
+	int		raysPerProbe;
+	float3	probeSize;
+	int		maxRaysPerProbe;
+	int3	probeCounts;
+	float	normalBias;
+	float	energyPreservation;
+	int		irradianceHistoryIdx;
+	int		distanceHistoryIdx;
 };
 
 uint2 GetProbeTexel(DDGIVolume ddgi, uint3 probeIndex3D, uint numProbeInteriorTexels)

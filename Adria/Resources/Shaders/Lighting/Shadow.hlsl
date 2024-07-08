@@ -6,7 +6,7 @@ struct ShadowConstants
 	uint  lightIndex;
 	uint  matrixIndex;
 };
-ConstantBuffer<ShadowConstants> ShadowCB : register(b1);
+ConstantBuffer<ShadowConstants> ShadowPassCB : register(b1);
 
 struct ModelConstants
 {
@@ -23,24 +23,24 @@ struct VSToPS
 #endif
 };
 
-VSToPS ShadowVS(uint vertexId : SV_VertexID)
+VSToPS ShadowVS(uint VertexId : SV_VertexID)
 {
-	StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
+	StructuredBuffer<Light> lightBuffer = ResourceDescriptorHeap[FrameCB.lightsIdx];
 	StructuredBuffer<float4x4> lightViewProjections = ResourceDescriptorHeap[FrameCB.lightsMatricesIdx];
-	Light light = lights[ShadowCB.lightIndex];
-	float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex + ShadowCB.matrixIndex];
+	Light light = lightBuffer[ShadowPassCB.lightIndex];
+	float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex + ShadowPassCB.matrixIndex];
 
 	VSToPS output = (VSToPS)0;
 	Instance instanceData = GetInstanceData(ModelCB.instanceId);
 	Mesh meshData = GetMeshData(instanceData.meshIndex);
 
-	float3 pos = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.positionsOffset, vertexId);
+	float3 pos = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.positionsOffset, VertexId);
 	float4 posWS = mul(float4(pos, 1.0f), instanceData.worldMatrix);
 	float4 posLS = mul(posWS, lightViewProjection);
 	output.Pos = posLS;
 
 #if ALPHA_TEST
-	float2 uv = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, vertexId);
+	float2 uv = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, VertexId);
 	output.TexCoords = uv;
 #endif
 	return output;

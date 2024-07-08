@@ -23,21 +23,21 @@ struct CullInstancesConstants
 	uint candidateMeshletsIdx;
 	uint candidateMeshletsCounterIdx;
 };
-ConstantBuffer<CullInstancesConstants> PassCB : register(b1);
+ConstantBuffer<CullInstancesConstants> CullInstancesPassCB : register(b1);
 
 [numthreads(BLOCK_SIZE, 1, 1)]
-void CullInstancesCS(uint threadId : SV_DispatchThreadID)
+void CullInstancesCS(uint ThreadId : SV_DispatchThreadID)
 {
 #if !SECOND_PHASE
-	uint numInstances = PassCB.numInstances;
-	uint instanceIndex = threadId;
+	uint numInstances = CullInstancesPassCB.numInstances;
+	uint instanceIndex = ThreadId;
 #else
-	Buffer<uint> occludedInstancesCounter = ResourceDescriptorHeap[PassCB.occludedInstancesCounterIdx];
-	StructuredBuffer<uint> occludedInstances = ResourceDescriptorHeap[PassCB.occludedInstancesIdx];
+	Buffer<uint> occludedInstancesCounter = ResourceDescriptorHeap[CullInstancesPassCB.occludedInstancesCounterIdx];
+	StructuredBuffer<uint> occludedInstancesBuffer = ResourceDescriptorHeap[CullInstancesPassCB.occludedInstancesIdx];
 	uint numInstances = occludedInstancesCounter[0];
-	uint instanceIndex = occludedInstances[threadId];
+	uint instanceIndex = occludedInstancesBuffer[ThreadId];
 #endif
-	if (threadId >= numInstances) return;
+	if (ThreadId >= numInstances) return;
 
 	Instance instance = GetInstanceData(instanceIndex);
 	Mesh mesh = GetMeshData(instance.meshIndex);
@@ -49,32 +49,32 @@ void CullInstancesCS(uint threadId : SV_DispatchThreadID)
 #if OCCLUSION_CULL
 	if (isVisible)
 	{
-		Texture2D<float> hzbTx = ResourceDescriptorHeap[PassCB.hzbIdx];
+		Texture2D<float> hzbTexture = ResourceDescriptorHeap[CullInstancesPassCB.hzbIdx];
 #if !SECOND_PHASE
 		FrustumCullData prevCullData = FrustumCull(instance.bbOrigin, instance.bbExtents, instance.worldMatrix, FrameCB.prevViewProjection);
 		if (prevCullData.isVisible)
 		{
-			wasOccluded = !HZBCull(prevCullData, hzbTx);
+			wasOccluded = !HZBCull(prevCullData, hzbTexture);
 		}
 
 		if (wasOccluded)
 		{
-			RWBuffer<uint> occludedInstancesCounter = ResourceDescriptorHeap[PassCB.occludedInstancesCounterIdx];
-			RWStructuredBuffer<uint> occludedInstances = ResourceDescriptorHeap[PassCB.occludedInstancesIdx];
+			RWBuffer<uint> occludedInstancesCounter = ResourceDescriptorHeap[CullInstancesPassCB.occludedInstancesCounterIdx];
+			RWStructuredBuffer<uint> occludedInstancesBuffer = ResourceDescriptorHeap[CullInstancesPassCB.occludedInstancesIdx];
 			uint elementOffset = 0;
 			InterlockedAdd(occludedInstancesCounter[0], 1, elementOffset);
-			occludedInstances[elementOffset] = instance.instanceId;
+			occludedInstancesBuffer[elementOffset] = instance.instanceId;
 		}
 #else
-		isVisible = HZBCull(cullData, hzbTx);
+		isVisible = HZBCull(cullData, hzbTexture);
 #endif
 	}
 #endif
 
 	if (isVisible && !wasOccluded)
 	{
-		RWBuffer<uint> candidateMeshletsCounter = ResourceDescriptorHeap[PassCB.candidateMeshletsCounterIdx];
-		RWStructuredBuffer<MeshletCandidate> candidateMeshlets = ResourceDescriptorHeap[PassCB.candidateMeshletsIdx];
+		RWBuffer<uint> candidateMeshletsCounter = ResourceDescriptorHeap[CullInstancesPassCB.candidateMeshletsCounterIdx];
+		RWStructuredBuffer<MeshletCandidate> candidateMeshletsBuffer = ResourceDescriptorHeap[CullInstancesPassCB.candidateMeshletsIdx];
 
 		uint globalMeshletIndex;
 		InterlockedAdd(candidateMeshletsCounter[COUNTER_TOTAL_CANDIDATE_MESHLETS], mesh.meshletCount, globalMeshletIndex);
@@ -93,7 +93,7 @@ void CullInstancesCS(uint threadId : SV_DispatchThreadID)
 			MeshletCandidate meshlet;
 			meshlet.instanceID = instance.instanceId;
 			meshlet.meshletIndex = i;
-			candidateMeshlets[elementOffset + i] = meshlet;
+			candidateMeshletsBuffer[elementOffset + i] = meshlet;
 		}
 	}
 }
@@ -104,13 +104,13 @@ struct BuildInstanceCullArgsConstants
 	uint occludedInstancesCounterIdx;
 	uint instanceCullArgsIdx;
 };
-ConstantBuffer<BuildInstanceCullArgsConstants> PassCB2 : register(b1);
+ConstantBuffer<BuildInstanceCullArgsConstants> BuildInstanceCullArgsPassCB : register(b1);
 
 [numthreads(1, 1, 1)]
 void BuildInstanceCullArgsCS()
 {
-	RWBuffer<uint> occludedInstancesCounter = ResourceDescriptorHeap[PassCB2.occludedInstancesCounterIdx];
-	RWStructuredBuffer<uint3> instanceCullArgs = ResourceDescriptorHeap[PassCB2.instanceCullArgsIdx];
+	RWBuffer<uint> occludedInstancesCounter = ResourceDescriptorHeap[BuildInstanceCullArgsPassCB.occludedInstancesCounterIdx];
+	RWStructuredBuffer<uint3> instanceCullArgsBuffer = ResourceDescriptorHeap[BuildInstanceCullArgsPassCB.instanceCullArgsIdx];
 	uint3 args = uint3(ceil(occludedInstancesCounter[0] * 1.0f / BLOCK_SIZE), 1, 1);
-	instanceCullArgs[0] = args;
+	instanceCullArgsBuffer[0] = args;
 }

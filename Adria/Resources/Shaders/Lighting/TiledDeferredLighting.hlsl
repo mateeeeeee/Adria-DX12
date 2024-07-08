@@ -15,7 +15,7 @@ struct TiledLightingConstants
 	uint outputIdx;
 	int  debugIdx;
 };
-ConstantBuffer<TiledLightingConstants> PassCB : register(b1);
+ConstantBuffer<TiledLightingConstants> TiledLightingPassCB : register(b1);
 
 groupshared uint MinZ;
 groupshared uint MaxZ;
@@ -33,13 +33,13 @@ struct CSInput
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void TiledDeferredLightingCS(CSInput input)
 {
-	Texture2D               normalMetallicTx = ResourceDescriptorHeap[PassCB.normalMetallicIdx];
-	Texture2D               diffuseTexture		 = ResourceDescriptorHeap[PassCB.diffuseIdx];
-	Texture2D<float>        depthTexture			 = ResourceDescriptorHeap[PassCB.depthIdx];
+	Texture2D               normalMetallicTexture	= ResourceDescriptorHeap[TiledLightingPassCB.normalMetallicIdx];
+	Texture2D               diffuseTexture			= ResourceDescriptorHeap[TiledLightingPassCB.diffuseIdx];
+	Texture2D<float>        depthTexture			= ResourceDescriptorHeap[TiledLightingPassCB.depthIdx];
 
-	StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
+	StructuredBuffer<Light> lightBuffer = ResourceDescriptorHeap[FrameCB.lightsIdx];
 	uint totalLights, _unused;
-	lights.GetDimensions(totalLights, _unused);
+	lightBuffer.GetDimensions(totalLights, _unused);
 
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
 
@@ -104,7 +104,7 @@ void TiledDeferredLightingCS(CSInput input)
 
 	for (uint lightIndex = input.GroupIndex; lightIndex < totalLights; lightIndex += BLOCK_SIZE * BLOCK_SIZE)
 	{
-		Light light = lights[lightIndex];
+		Light light = lightBuffer[lightIndex];
 		if (!light.active) continue;
 		bool inFrustum = true;
 		if (light.type != DIRECTIONAL_LIGHT)
@@ -129,7 +129,7 @@ void TiledDeferredLightingCS(CSInput input)
 	GroupMemoryBarrierWithGroupSync();
 
 	float3 viewPosition = GetViewPosition(uv, depth);
-	float4 normalMetallic = normalMetallicTx.Load(int3(input.DispatchThreadId.xy, 0));
+	float4 normalMetallic = normalMetallicTexture.Load(int3(input.DispatchThreadId.xy, 0));
 	float3 viewNormal  = 2.0f * normalMetallic.rgb - 1.0f;
 	float metallic = normalMetallic.a;
 	float4 albedoRoughness = diffuseTexture.Load(int3(input.DispatchThreadId.xy, 0));
@@ -143,24 +143,24 @@ void TiledDeferredLightingCS(CSInput input)
 	{
 		for (int i = 0; i < TileNumLights; ++i)
 		{
-			Light light = lights[TileLightIndices[i]];
+			Light light = lightBuffer[TileLightIndices[i]];
 			if (!light.active) continue;
             lightResult = lightResult + DoLight(light, brdfData, viewPosition, viewNormal, V, uv);
         }
 	}
 
-	Texture2D<float> aoTx = ResourceDescriptorHeap[PassCB.aoIdx];
-	float ambientOcclusion = aoTx.Sample(LinearWrapSampler, uv);
+	Texture2D<float> ambientOcclusionTexture = ResourceDescriptorHeap[TiledLightingPassCB.aoIdx];
+	float ambientOcclusion = ambientOcclusionTexture.Sample(LinearWrapSampler, uv);
 	float3 indirectLighting = GetIndirectLighting(viewPosition, viewNormal, brdfData.Diffuse, ambientOcclusion);
 
-	Texture2D emissiveTx = ResourceDescriptorHeap[PassCB.emissiveIdx];
-	float4 emissiveData = emissiveTx.Sample(LinearWrapSampler, uv);
+	Texture2D emissiveTexture = ResourceDescriptorHeap[TiledLightingPassCB.emissiveIdx];
+	float4 emissiveData = emissiveTexture.Sample(LinearWrapSampler, uv);
 	float3 emissiveColor = emissiveData.rgb * emissiveData.a * 256;
 	
-	RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[PassCB.outputIdx];
+	RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[TiledLightingPassCB.outputIdx];
 	outputTexture[input.DispatchThreadId.xy] = float4(indirectLighting + lightResult.Diffuse + lightResult.Specular + emissiveColor, 1.0f);
 
-	if (PassCB.debugIdx > 0)
+	if (TiledLightingPassCB.debugIdx > 0)
 	{
 		const float3 heatMap[] =
 		{
@@ -172,13 +172,13 @@ void TiledDeferredLightingCS(CSInput input)
 			float3(1, 0, 0),
 		};
 		const uint heatMapMax = 5;
-		float  l = saturate((float)TileNumLights / PassCB.maxLightsVisualization) * heatMapMax;
+		float  l = saturate((float)TileNumLights / TiledLightingPassCB.maxLightsVisualization) * heatMapMax;
 		float3 a = heatMap[floor(l)];
 		float3 b = heatMap[ceil(l)];
 
 		float4 debugColor = float4(lerp(a, b, l - floor(l)), 0.5f);
 
-		RWTexture2D<float4> debugTx = ResourceDescriptorHeap[PassCB.debugIdx];
-		debugTx[input.DispatchThreadId.xy] = debugColor;
+		RWTexture2D<float4> debugTexture = ResourceDescriptorHeap[TiledLightingPassCB.debugIdx];
+		debugTexture[input.DispatchThreadId.xy] = debugColor;
 	}
 }

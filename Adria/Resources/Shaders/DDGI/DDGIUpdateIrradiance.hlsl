@@ -9,11 +9,11 @@ struct DDGIPassConstants
 	uint   rayBufferIdx;
 	uint   irradianceIdx;
 };
-ConstantBuffer<DDGIPassConstants> PassCB : register(b1);
+ConstantBuffer<DDGIPassConstants> DDGIPassCB : register(b1);
 
 #define CACHE_SIZE PROBE_IRRADIANCE_TEXELS * PROBE_IRRADIANCE_TEXELS
-groupshared float3 RadianceCache[CACHE_SIZE];
-groupshared float3 DirectionCache[CACHE_SIZE];
+groupshared float3 SharedRadianceCache[CACHE_SIZE];
+groupshared float3 SharedDirectionCache[CACHE_SIZE];
 
 struct CSInput
 {
@@ -39,8 +39,8 @@ static const uint4 BORDER_OFFSETS[BORDER_TEXELS] =
 [numthreads(PROBE_IRRADIANCE_TEXELS, PROBE_IRRADIANCE_TEXELS, 1)]
 void DDGI_UpdateIrradianceCS(CSInput input)
 {
-	StructuredBuffer<DDGIVolume> ddgiVolumes = ResourceDescriptorHeap[FrameCB.ddgiVolumesIdx];
-	DDGIVolume ddgiVolume = ddgiVolumes[0];
+	StructuredBuffer<DDGIVolume> ddgiVolumeBuffer = ResourceDescriptorHeap[FrameCB.ddgiVolumesIdx];
+	DDGIVolume ddgiVolume = ddgiVolumeBuffer[0];
 
 	uint  probeIdx = input.GroupId.x;
 	uint3 probeGridCoords = GetProbeGridCoord(ddgiVolume, probeIdx);
@@ -48,13 +48,13 @@ void DDGI_UpdateIrradianceCS(CSInput input)
 	uint2 cornerTexelLocation = texelLocation - 1u;
 	texelLocation += input.GroupThreadId.xy;
 
-	Texture2D<float4> irradianceHistoryTx = ResourceDescriptorHeap[ddgiVolume.irradianceHistoryIdx];
-	float3 prevRadiance = irradianceHistoryTx[texelLocation].rgb;
+	Texture2D<float4> irradianceHistoryTexture = ResourceDescriptorHeap[ddgiVolume.irradianceHistoryIdx];
+	float3 prevRadiance = irradianceHistoryTexture[texelLocation].rgb;
 
 	float3   probeDirection = DecodeNormalOctahedron(((input.GroupThreadId.xy + 0.5f) / (float)PROBE_IRRADIANCE_TEXELS) * 2 - 1);
-	float3x3 randomRotation = AngleAxis3x3(PassCB.randomAngle, PassCB.randomVector);
+	float3x3 randomRotation = AngleAxis3x3(DDGIPassCB.randomAngle, DDGIPassCB.randomVector);
 
-	Buffer<float4> rayBuffer = ResourceDescriptorHeap[PassCB.rayBufferIdx];
+	Buffer<float4> rayBuffer = ResourceDescriptorHeap[DDGIPassCB.rayBufferIdx];
 	float  weightSum = 0;
 	float3 result = 0;
 	uint remainingRays = ddgiVolume.raysPerProbe;
@@ -64,15 +64,15 @@ void DDGI_UpdateIrradianceCS(CSInput input)
 		uint numRays = min(CACHE_SIZE, remainingRays);
 		if(input.GroupIndex < numRays)
 		{
-			RadianceCache[input.GroupIndex] = rayBuffer[probeIdx * ddgiVolume.maxRaysPerProbe + offset + input.GroupIndex].rgb;
-			DirectionCache[input.GroupIndex] = GetRayDirection(offset + input.GroupIndex, ddgiVolume.raysPerProbe, randomRotation);
+			SharedRadianceCache[input.GroupIndex] = rayBuffer[probeIdx * ddgiVolume.maxRaysPerProbe + offset + input.GroupIndex].rgb;
+			SharedDirectionCache[input.GroupIndex] = GetRayDirection(offset + input.GroupIndex, ddgiVolume.raysPerProbe, randomRotation);
 		}
 		GroupMemoryBarrierWithGroupSync();
 
 		for(uint i = 0; i < numRays; ++i)
 		{
-			float3 radiance = RadianceCache[i].rgb;
-			float3 direction = DirectionCache[i];
+			float3 radiance = SharedRadianceCache[i].rgb;
+			float3 direction = SharedDirectionCache[i];
 			float weight = saturate(dot(probeDirection, direction));
 			result += weight * radiance;
 			weightSum += weight;
@@ -86,11 +86,11 @@ void DDGI_UpdateIrradianceCS(CSInput input)
 	result *= 1.0f / max(2.0f * weightSum, epsilon);
 
 	result = pow(result, rcp(5.0f));
-	const float historyBlendWeight = saturate(1.0f - PassCB.historyBlendWeight);
+	const float historyBlendWeight = saturate(1.0f - DDGIPassCB.historyBlendWeight);
 	result = lerp(prevRadiance, result, historyBlendWeight);
 
-	RWTexture2D<float4> irradianceTx = ResourceDescriptorHeap[PassCB.irradianceIdx];
-	irradianceTx[texelLocation] = float4(result, 1);
+	RWTexture2D<float4> irradianceTexture = ResourceDescriptorHeap[DDGIPassCB.irradianceIdx];
+	irradianceTexture[texelLocation] = float4(result, 1);
 
 	GroupMemoryBarrierWithGroupSync();
 
@@ -98,7 +98,7 @@ void DDGI_UpdateIrradianceCS(CSInput input)
 	{
 		uint2 sourceIndex = cornerTexelLocation + BORDER_OFFSETS[index].xy;
 		uint2 targetIndex = cornerTexelLocation + BORDER_OFFSETS[index].zw;
-		irradianceTx[targetIndex] = irradianceTx[sourceIndex];
+		irradianceTexture[targetIndex] = irradianceTexture[sourceIndex];
 	}
 }
 

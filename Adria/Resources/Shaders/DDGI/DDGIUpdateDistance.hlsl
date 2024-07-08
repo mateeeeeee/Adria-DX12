@@ -9,11 +9,11 @@ struct DDGIPassConstants
 	uint   rayBufferIdx;
 	uint   distanceIdx;
 };
-ConstantBuffer<DDGIPassConstants> PassCB : register(b1);
+ConstantBuffer<DDGIPassConstants> DDGIPassCB : register(b1);
 
 #define CACHE_SIZE PROBE_DISTANCE_TEXELS * PROBE_DISTANCE_TEXELS
-groupshared float  DepthCache[CACHE_SIZE];
-groupshared float3 DirectionCache[CACHE_SIZE];
+groupshared float  SharedDepthCache[CACHE_SIZE];
+groupshared float3 SharedDirectionCache[CACHE_SIZE];
 
 struct CSInput
 {
@@ -45,8 +45,8 @@ static const uint4 BORDER_OFFSETS[BORDER_TEXELS] =
 [numthreads(PROBE_DISTANCE_TEXELS, PROBE_DISTANCE_TEXELS, 1)]
 void DDGI_UpdateDistanceCS(CSInput input)
 {
-	StructuredBuffer<DDGIVolume> ddgiVolumes = ResourceDescriptorHeap[FrameCB.ddgiVolumesIdx];
-	DDGIVolume ddgiVolume = ddgiVolumes[0];
+	StructuredBuffer<DDGIVolume> ddgiVolumeBuffer = ResourceDescriptorHeap[FrameCB.ddgiVolumesIdx];
+	DDGIVolume ddgiVolume = ddgiVolumeBuffer[0];
 
 	uint  probeIdx = input.GroupId.x;
 	uint3 probeGridCoords = GetProbeGridCoord(ddgiVolume, probeIdx);
@@ -54,13 +54,13 @@ void DDGI_UpdateDistanceCS(CSInput input)
 	uint2 cornerTexelLocation = texelLocation - 1u;
 	texelLocation += input.GroupThreadId.xy;
 
-	Texture2D<float2> distanceHistoryTx = ResourceDescriptorHeap[ddgiVolume.distanceHistoryIdx];
-	float2 prevDistance = distanceHistoryTx[texelLocation];
+	Texture2D<float2> distanceHistoryTexture = ResourceDescriptorHeap[ddgiVolume.distanceHistoryIdx];
+	float2 prevDistance = distanceHistoryTexture[texelLocation];
 
 	float3   probeDirection = DecodeNormalOctahedron(((input.GroupThreadId.xy + 0.5f) / (float)PROBE_DISTANCE_TEXELS) * 2 - 1);
-	float3x3 randomRotation = AngleAxis3x3(PassCB.randomAngle, PassCB.randomVector);
+	float3x3 randomRotation = AngleAxis3x3(DDGIPassCB.randomAngle, DDGIPassCB.randomVector);
 
-	Buffer<float4> rayBuffer = ResourceDescriptorHeap[PassCB.rayBufferIdx];
+	Buffer<float4> rayBuffer = ResourceDescriptorHeap[DDGIPassCB.rayBufferIdx];
 	float  weightSum = 0;
 	float2 result = 0;
 	uint remainingRays = ddgiVolume.raysPerProbe;
@@ -70,15 +70,15 @@ void DDGI_UpdateDistanceCS(CSInput input)
 		uint numRays = min(CACHE_SIZE, remainingRays);
 		if(input.GroupIndex < numRays)
 		{
-			DepthCache[input.GroupIndex] = rayBuffer[probeIdx * ddgiVolume.maxRaysPerProbe + offset + input.GroupIndex].a;
-			DirectionCache[input.GroupIndex] = GetRayDirection(offset + input.GroupIndex, ddgiVolume.raysPerProbe, randomRotation);
+			SharedDepthCache[input.GroupIndex] = rayBuffer[probeIdx * ddgiVolume.maxRaysPerProbe + offset + input.GroupIndex].a;
+			SharedDirectionCache[input.GroupIndex] = GetRayDirection(offset + input.GroupIndex, ddgiVolume.raysPerProbe, randomRotation);
 		}
 		GroupMemoryBarrierWithGroupSync();
 
 		for(uint i = 0; i < numRays; ++i)
 		{
-			float depth = DepthCache[i];
-			float3 direction = DirectionCache[i];
+			float depth = SharedDepthCache[i];
+			float3 direction = SharedDirectionCache[i];
 			float weight = saturate(dot(probeDirection, direction));
 			weight = pow(weight, 64);
 			if(weight > MIN_WEIGHT)
@@ -96,11 +96,11 @@ void DDGI_UpdateDistanceCS(CSInput input)
 		result /= weightSum;
 	}
 
-	const float historyBlendWeight = saturate(1.0f - PassCB.historyBlendWeight);
+	const float historyBlendWeight = saturate(1.0f - DDGIPassCB.historyBlendWeight);
 	result = lerp(prevDistance, result, historyBlendWeight);
 
-	RWTexture2D<float2> distanceTx = ResourceDescriptorHeap[PassCB.distanceIdx];
-	distanceTx[texelLocation] = result;
+	RWTexture2D<float2> distanceTexture = ResourceDescriptorHeap[DDGIPassCB.distanceIdx];
+	distanceTexture[texelLocation] = result;
 
 	GroupMemoryBarrierWithGroupSync();
 
@@ -108,7 +108,7 @@ void DDGI_UpdateDistanceCS(CSInput input)
 	{
 		uint2 sourceIndex = cornerTexelLocation + BORDER_OFFSETS[index].xy;
 		uint2 targetIndex = cornerTexelLocation + BORDER_OFFSETS[index].zw;
-		distanceTx[targetIndex] = distanceTx[sourceIndex];
+		distanceTexture[targetIndex] = distanceTexture[sourceIndex];
 	}
 }
 

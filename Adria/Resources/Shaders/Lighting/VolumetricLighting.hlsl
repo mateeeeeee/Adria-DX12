@@ -11,7 +11,7 @@ struct VolumetricLightingConstants
 	uint outputIdx;
 	uint resolutionFactor;
 };
-ConstantBuffer<VolumetricLightingConstants> PassCB : register(b1);
+ConstantBuffer<VolumetricLightingConstants> VolumetricLightingPassCB : register(b1);
 
 float GetAttenuation(Light light, float3 P);
 
@@ -26,13 +26,13 @@ struct CSInput
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void VolumetricLightingCS(CSInput input)
 {
-	Texture2D<float>        depthTexture = ResourceDescriptorHeap[PassCB.depthIdx];
-	StructuredBuffer<Light> lights	= ResourceDescriptorHeap[FrameCB.lightsIdx];
-	RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[PassCB.outputIdx];
+	StructuredBuffer<Light> lightBuffer	= ResourceDescriptorHeap[FrameCB.lightsIdx];
+	Texture2D<float>        depthTexture = ResourceDescriptorHeap[VolumetricLightingPassCB.depthIdx];
+	RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[VolumetricLightingPassCB.outputIdx];
 
 	uint lightCount, unused;
-	lights.GetDimensions(lightCount, unused);
-	uint2 resolution = uint2(FrameCB.renderResolution) >> PassCB.resolutionFactor;
+	lightBuffer.GetDimensions(lightCount, unused);
+	uint2 resolution = uint2(FrameCB.renderResolution) >> VolumetricLightingPassCB.resolutionFactor;
 
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / resolution;
 	float depth = depthTexture.SampleLevel(LinearClampSampler, uv, 2);
@@ -50,7 +50,7 @@ void VolumetricLightingCS(CSInput input)
 	float3 totalAccumulation = 0.0f;
 	for (uint i = 0; i < lightCount; ++i)
 	{
-		Light light = lights[i];
+		Light light = lightBuffer[i];
 		if (!light.active || !light.volumetric) continue;
 
 		float3 P = viewPosition;

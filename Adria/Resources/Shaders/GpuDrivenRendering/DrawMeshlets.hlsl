@@ -10,7 +10,7 @@ struct DrawMeshletsConstants
 {
 	uint visibleMeshletsIdx;
 };
-ConstantBuffer<DrawMeshletsConstants> PassCB : register(b1);
+ConstantBuffer<DrawMeshletsConstants> DrawMeshletsPassCB : register(b1);
 
 
 struct MSToPS
@@ -48,31 +48,31 @@ MSToPS GetVertex(Mesh mesh, Instance instance, uint vertexId)
 [outputtopology("triangle")]
 [numthreads(BLOCK_SIZE, 1, 1)]
 void DrawMeshletsMS(
-	in uint groupThreadId : SV_GroupIndex,
-	in uint groupId : SV_GroupID,
-	out vertices MSToPS verts[MESHLET_MAX_VERTICES],
-	out indices uint3 triangles[MESHLET_MAX_TRIANGLES])
+	in uint GroupThreadId : SV_GroupIndex,
+	in uint GroupId : SV_GroupID,
+	out vertices MSToPS Verts[MESHLET_MAX_VERTICES],
+	out indices uint3 Triangles[MESHLET_MAX_TRIANGLES])
 {
-	StructuredBuffer<MeshletCandidate> visibleMeshlets = ResourceDescriptorHeap[PassCB.visibleMeshletsIdx];
-	uint meshletIndex = groupId;
+	StructuredBuffer<MeshletCandidate> visibleMeshletsBuffer = ResourceDescriptorHeap[DrawMeshletsPassCB.visibleMeshletsIdx];
+	uint meshletIndex = GroupId;
 
-	MeshletCandidate candidate = visibleMeshlets[meshletIndex];
+	MeshletCandidate candidate = visibleMeshletsBuffer[meshletIndex];
 	Instance instance = GetInstanceData(candidate.instanceID);
 	Mesh mesh = GetMeshData(instance.meshIndex);
 	Meshlet meshlet = GetMeshletData(mesh.bufferIdx, mesh.meshletOffset, candidate.meshletIndex);
 	SetMeshOutputCounts(meshlet.vertexCount, meshlet.triangleCount);
 
-	for (uint i = groupThreadId; i < meshlet.vertexCount; i += BLOCK_SIZE)
+	for (uint i = GroupThreadId; i < meshlet.vertexCount; i += BLOCK_SIZE)
 	{
 		uint vertexId = LoadMeshBuffer<uint>(mesh.bufferIdx, mesh.meshletVerticesOffset, meshlet.vertexOffset + i);
-		verts[i] = GetVertex(mesh, instance, vertexId);
-		verts[i].MeshletIndex = meshletIndex;
+		Verts[i] = GetVertex(mesh, instance, vertexId);
+		Verts[i].MeshletIndex = meshletIndex;
 	}
 
-	for (uint j = groupThreadId; j < meshlet.triangleCount; j += BLOCK_SIZE)
+	for (uint j = GroupThreadId; j < meshlet.triangleCount; j += BLOCK_SIZE)
 	{
 		MeshletTriangle tri = LoadMeshBuffer<MeshletTriangle>(mesh.bufferIdx, mesh.meshletTrianglesOffset, meshlet.triangleOffset + j);
-		triangles[j] = uint3(tri.V0, tri.V1, tri.V2);
+		Triangles[j] = uint3(tri.V0, tri.V1, tri.V2);
 	}
 }
 
@@ -94,15 +94,15 @@ PSOutput PackGBuffer(float3 BaseColor, float3 NormalVS, float4 emissive, float r
 
 PSOutput DrawMeshletsPS(MSToPS input)
 {
-	StructuredBuffer<MeshletCandidate> visibleMeshlets = ResourceDescriptorHeap[PassCB.visibleMeshletsIdx];
-	MeshletCandidate candidate = visibleMeshlets[input.MeshletIndex];
+	StructuredBuffer<MeshletCandidate> visibleMeshletsBuffer = ResourceDescriptorHeap[DrawMeshletsPassCB.visibleMeshletsIdx];
+	MeshletCandidate candidate = visibleMeshletsBuffer[input.MeshletIndex];
 	Instance instance = GetInstanceData(candidate.instanceID);
 	Material material = GetMaterialData(instance.materialIdx);
 
 	Texture2D albedoTexture = ResourceDescriptorHeap[material.diffuseIdx];
 	Texture2D normalTexture = ResourceDescriptorHeap[material.normalIdx];
-	Texture2D metallicRoughnessTx = ResourceDescriptorHeap[material.roughnessMetallicIdx];
-	Texture2D emissiveTx = ResourceDescriptorHeap[material.emissiveIdx];
+	Texture2D metallicRoughnessTexture = ResourceDescriptorHeap[material.roughnessMetallicIdx];
+	Texture2D emissiveTexture = ResourceDescriptorHeap[material.emissiveIdx];
 
 	float4 albedoColor = albedoTexture.Sample(LinearWrapSampler, input.Uvs) * float4(material.baseColorFactor, 1.0f);
 	if (albedoColor.a < material.alphaCutoff) discard;
@@ -116,13 +116,13 @@ PSOutput DrawMeshletsPS(MSToPS input)
 	normalTS.z = sqrt(1.0f - normalTS.x * normalTS.x - normalTS.y * normalTS.y);
 	normal = mul(normalTS, TBN);
 
-	float3 aoRoughnessMetallic = metallicRoughnessTx.Sample(LinearWrapSampler, input.Uvs).rgb;
+	float3 aoRoughnessMetallic = metallicRoughnessTexture.Sample(LinearWrapSampler, input.Uvs).rgb;
 #if RAIN
 	ApplyRain(input.PositionWS.xyz, albedoColor.rgb, aoRoughnessMetallic.g, normal, tangent, bitangent);
 #endif
 	float3 normalVS = normalize(mul(normal, (float3x3) FrameCB.view));
 
-	float3 emissiveColor = emissiveTx.Sample(LinearWrapSampler, input.Uvs).rgb;
+	float3 emissiveColor = emissiveTexture.Sample(LinearWrapSampler, input.Uvs).rgb;
 	return PackGBuffer(albedoColor.xyz, normalVS, float4(emissiveColor, material.emissiveFactor),
 		aoRoughnessMetallic.g * material.roughnessFactor, aoRoughnessMetallic.b * material.metallicFactor);
 }
@@ -133,14 +133,14 @@ struct BuildMeshletDrawArgsConstants
 	uint visibleMeshletsCounterIdx;
 	uint meshletDrawArgsIdx;
 };
-ConstantBuffer<BuildMeshletDrawArgsConstants> PassCB2 : register(b1);
+ConstantBuffer<BuildMeshletDrawArgsConstants> BuildMeshletDrawArgsPassCB : register(b1);
 
 
 [numthreads(1, 1, 1)]
 void BuildMeshletDrawArgsCS()
 {
-	RWBuffer<uint> visibleMeshletsCounter = ResourceDescriptorHeap[PassCB2.visibleMeshletsCounterIdx];
-	RWStructuredBuffer<uint3> meshletDrawArgs = ResourceDescriptorHeap[PassCB2.meshletDrawArgsIdx];
+	RWBuffer<uint> visibleMeshletsCounter = ResourceDescriptorHeap[BuildMeshletDrawArgsPassCB.visibleMeshletsCounterIdx];
+	RWStructuredBuffer<uint3> meshletDrawArgsBuffer = ResourceDescriptorHeap[BuildMeshletDrawArgsPassCB.meshletDrawArgsIdx];
 
 #if !SECOND_PHASE
 	uint numMeshlets = visibleMeshletsCounter[COUNTER_PHASE1_VISIBLE_MESHLETS];
@@ -148,5 +148,5 @@ void BuildMeshletDrawArgsCS()
 	uint numMeshlets = visibleMeshletsCounter[COUNTER_PHASE2_VISIBLE_MESHLETS];
 #endif
 	uint3 args = uint3(ceil(numMeshlets / 1.0f), 1, 1);
-	meshletDrawArgs[0] = args;
+	meshletDrawArgsBuffer[0] = args;
 }

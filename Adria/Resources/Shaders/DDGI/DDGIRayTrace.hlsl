@@ -10,8 +10,7 @@ struct DDGIRayTracePassConstants
 	float  historyBlendWeight;
 	uint   rayBufferIdx;
 };
-ConstantBuffer<DDGIRayTracePassConstants> PassCB : register(b1);
-
+ConstantBuffer<DDGIRayTracePassConstants> DDGIRayTracePassCB : register(b1);
 
 struct [raypayload] DDGIPayload
 {
@@ -19,18 +18,17 @@ struct [raypayload] DDGIPayload
 	float  distance : read(closesthit, caller) : write(closesthit, caller);
 };
 
-
 [shader("raygeneration")]
 void DDGI_RayGen()
 {
 	RaytracingAccelerationStructure tlas = ResourceDescriptorHeap[FrameCB.accelStructIdx];
-	StructuredBuffer<DDGIVolume> ddgiVolumes = ResourceDescriptorHeap[FrameCB.ddgiVolumesIdx];
-	DDGIVolume ddgiVolume = ddgiVolumes[0];
+	StructuredBuffer<DDGIVolume> ddgiVolumeBuffer = ResourceDescriptorHeap[FrameCB.ddgiVolumesIdx];
+	DDGIVolume ddgiVolume = ddgiVolumeBuffer[0];
 
 	uint const probeIdx = DispatchRaysIndex().y;
 	uint const rayIdx = DispatchRaysIndex().x;
 
-	float3x3 randomRotation  = AngleAxis3x3(PassCB.randomAngle, PassCB.randomVector);
+	float3x3 randomRotation  = AngleAxis3x3(DDGIRayTracePassCB.randomAngle, DDGIRayTracePassCB.randomVector);
 	float3   randomDirection = normalize(mul(SphericalFibonacci(rayIdx, ddgiVolume.raysPerProbe), randomRotation));
 
 	float3 probeLocation = GetProbeLocation(ddgiVolume, probeIdx);
@@ -45,22 +43,22 @@ void DDGI_RayGen()
 	payload.radiance = float3(0, 0, 0);
 	payload.distance = Max(ddgiVolume.probeSize) * 2;
 	TraceRay(tlas, RAY_FLAG_NONE, 0xFF, 0, 0, 0, ray, payload);
-	RWBuffer<float4> rayBuffer = ResourceDescriptorHeap[PassCB.rayBufferIdx];
+	RWBuffer<float4> rayBuffer = ResourceDescriptorHeap[DDGIRayTracePassCB.rayBufferIdx];
 	rayBuffer[probeIdx * ddgiVolume.maxRaysPerProbe + rayIdx] = float4(payload.radiance, payload.distance);
 }
 
 [shader("miss")]
 void DDGI_Miss(inout DDGIPayload payload)
 {
-	TextureCube envMap = ResourceDescriptorHeap[FrameCB.envMapIdx];
-	payload.radiance = envMap.SampleLevel(LinearWrapSampler, WorldRayDirection(), 0).rgb;
+	TextureCube envMapTexture = ResourceDescriptorHeap[FrameCB.envMapIdx];
+	payload.radiance = envMapTexture.SampleLevel(LinearWrapSampler, WorldRayDirection(), 0).rgb;
 }
 
 [shader("closesthit")]
 void DDGI_ClosestHit(inout DDGIPayload payload, in HitAttributes attribs)
 {
-	StructuredBuffer<DDGIVolume> ddgiVolumes = ResourceDescriptorHeap[FrameCB.ddgiVolumesIdx];
-	DDGIVolume ddgiVolume = ddgiVolumes[0];
+	StructuredBuffer<DDGIVolume> ddgiVolumeBuffer = ResourceDescriptorHeap[FrameCB.ddgiVolumesIdx];
+	DDGIVolume ddgiVolume = ddgiVolumeBuffer[0];
 
 	Instance instanceData = GetInstanceData(InstanceIndex());
 	Mesh meshData = GetMeshData(instanceData.meshIndex);

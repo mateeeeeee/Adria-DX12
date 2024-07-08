@@ -7,7 +7,7 @@ struct GBufferConstants
 {
     uint instanceId;
 };
-ConstantBuffer<GBufferConstants> PassCB : register(b1);
+ConstantBuffer<GBufferConstants> GBufferPassCB : register(b1);
 
 struct VSToPS
 {
@@ -30,7 +30,7 @@ VSToPS GBufferVS(uint vertexId : SV_VertexID)
 {
 	VSToPS output = (VSToPS)0;
 
-    Instance instanceData = GetInstanceData(PassCB.instanceId);
+    Instance instanceData = GetInstanceData(GBufferPassCB.instanceId);
     Mesh meshData = GetMeshData(instanceData.meshIndex);
 
 	float3 pos = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.positionsOffset, vertexId);
@@ -62,13 +62,13 @@ PSOutput PackGBuffer(float3 BaseColor, float3 NormalVS, float4 emissive, float r
 
 PSOutput GBufferPS(VSToPS input)
 {
-    Instance instanceData = GetInstanceData(PassCB.instanceId);
+    Instance instanceData = GetInstanceData(GBufferPassCB.instanceId);
     Material materialData = GetMaterialData(instanceData.materialIdx);
 
 	Texture2D albedoTexture = ResourceDescriptorHeap[materialData.diffuseIdx];
 	Texture2D normalTexture = ResourceDescriptorHeap[materialData.normalIdx];
-	Texture2D metallicRoughnessTx = ResourceDescriptorHeap[materialData.roughnessMetallicIdx];
-	Texture2D emissiveTx = ResourceDescriptorHeap[materialData.emissiveIdx];
+	Texture2D metallicRoughnessTexture = ResourceDescriptorHeap[materialData.roughnessMetallicIdx];
+	Texture2D emissiveTexture = ResourceDescriptorHeap[materialData.emissiveIdx];
 
 	float4 albedoColor = albedoTexture.Sample(LinearWrapSampler, input.Uvs) * float4(materialData.baseColorFactor, 1.0f);
 	if (albedoColor.a < materialData.alphaCutoff) discard;
@@ -81,13 +81,13 @@ PSOutput GBufferPS(VSToPS input)
 	normalTS.xy = 2.0f * normalTS.xy - 1.0f;
 	normalTS.z = sqrt(1.0f - normalTS.x * normalTS.x - normalTS.y * normalTS.y);
 	normal = mul(normalTS, TBN);
-	float3 aoRoughnessMetallic = metallicRoughnessTx.Sample(LinearWrapSampler, input.Uvs).rgb;
+	float3 aoRoughnessMetallic = metallicRoughnessTexture.Sample(LinearWrapSampler, input.Uvs).rgb;
 #if RAIN
 	ApplyRain(input.PositionWS.xyz, albedoColor.rgb, aoRoughnessMetallic.g, normal, tangent, bitangent);
 #endif
 	float3 normalVS = normalize(mul(normal, (float3x3) FrameCB.view));
 
-	float3 emissiveColor = emissiveTx.Sample(LinearWrapSampler, input.Uvs).rgb;
+	float3 emissiveColor = emissiveTexture.Sample(LinearWrapSampler, input.Uvs).rgb;
 	return PackGBuffer(albedoColor.xyz, normalVS, float4(emissiveColor, materialData.emissiveFactor),
 		aoRoughnessMetallic.g * materialData.roughnessFactor, aoRoughnessMetallic.b * materialData.metallicFactor);
 }

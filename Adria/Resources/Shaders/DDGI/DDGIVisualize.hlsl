@@ -10,7 +10,7 @@ struct DDGIVisualizeConstants
 {
     uint visualizeMode;
 };
-ConstantBuffer<DDGIVisualizeConstants> PassCB : register(b1);
+ConstantBuffer<DDGIVisualizeConstants> DDGIVisualizePassCB : register(b1);
 
 
 struct VSToPS
@@ -20,16 +20,16 @@ struct VSToPS
 	uint   ProbeIndex	: PROBE_INDEX;
 };
 
-VSToPS DDGIVisualizeVS(uint vertexId : SV_VertexID, uint instanceId : SV_InstanceID)
+VSToPS DDGIVisualizeVS(uint VertexID : SV_VertexID, uint InstanceID : SV_InstanceID)
 {
 	VSToPS output = (VSToPS)0;
 
-	StructuredBuffer<DDGIVolume> ddgiVolumes = ResourceDescriptorHeap[FrameCB.ddgiVolumesIdx];
-	DDGIVolume ddgiVolume = ddgiVolumes[0];
+	StructuredBuffer<DDGIVolume> ddgiVolumeBuffer = ResourceDescriptorHeap[FrameCB.ddgiVolumesIdx];
+	DDGIVolume ddgiVolume = ddgiVolumeBuffer[0];
 
-	uint probeIdx = instanceId;
+	uint probeIdx = InstanceID;
 	float3 probePosition = GetProbeLocation(ddgiVolume, probeIdx);
-	float3 sphereVertex = SphereVertices[vertexId].xyz;
+	float3 sphereVertex = SphereVertices[VertexID].xyz;
 	const float sphereRadius = 1.0f;
 	float3 worldPos = probePosition + sphereRadius * sphereVertex;
 
@@ -43,27 +43,27 @@ VSToPS DDGIVisualizeVS(uint vertexId : SV_VertexID, uint instanceId : SV_Instanc
 
 float4 DDGIVisualizePS(VSToPS input) : SV_TARGET
 {
-	StructuredBuffer<DDGIVolume> ddgiVolumes = ResourceDescriptorHeap[FrameCB.ddgiVolumesIdx];
-	DDGIVolume ddgiVolume = ddgiVolumes[0];
+	StructuredBuffer<DDGIVolume> ddgiVolumeBuffer = ResourceDescriptorHeap[FrameCB.ddgiVolumesIdx];
+	DDGIVolume ddgiVolume = ddgiVolumeBuffer[0];
 
 	uint3 gridCoord = GetProbeGridCoord(ddgiVolume, input.ProbeIndex);
 	float3 probePosition = GetProbeLocationFromGridCoord(ddgiVolume, gridCoord);
 
 	float4 result = 0.0f;
-	if (PassCB.visualizeMode == DDGI_VISUALIZE_IRRADIANCE)
+	if (DDGIVisualizePassCB.visualizeMode == DDGI_VISUALIZE_IRRADIANCE)
 	{
 		float2 uv = GetProbeUV(ddgiVolume, gridCoord, input.Normal, PROBE_IRRADIANCE_TEXELS);
-		Texture2D<float4> irradianceTx = ResourceDescriptorHeap[ddgiVolume.irradianceHistoryIdx];
-		float3 radiance = irradianceTx.SampleLevel(LinearClampSampler, uv, 0).rgb;
+		Texture2D<float4> irradianceTexture = ResourceDescriptorHeap[ddgiVolume.irradianceHistoryIdx];
+		float3 radiance = irradianceTexture.SampleLevel(LinearClampSampler, uv, 0).rgb;
 		radiance = pow(radiance, 2.5f);
 		float3 color = radiance / M_PI;
 		result = float4(color, 1.0f);
 	}
-	else if (PassCB.visualizeMode == DDGI_VISUALIZE_DISTANCE)
+	else if (DDGIVisualizePassCB.visualizeMode == DDGI_VISUALIZE_DISTANCE)
 	{
 		float2 uv = GetProbeUV(ddgiVolume, gridCoord, input.Normal, PROBE_DISTANCE_TEXELS);
-		Texture2D<float2> distanceTx = ResourceDescriptorHeap[ddgiVolume.distanceHistoryIdx];
-		float distance = distanceTx.SampleLevel(LinearClampSampler, uv, 0).r;
+		Texture2D<float2> distanceTexture = ResourceDescriptorHeap[ddgiVolume.distanceHistoryIdx];
+		float distance = distanceTexture.SampleLevel(LinearClampSampler, uv, 0).r;
 		float3 color = distance.xxx / (Max(ddgiVolume.probeSize) * 3);
 		result = float4(color, 1.0f);
 	}

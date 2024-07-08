@@ -16,14 +16,14 @@ struct OceanIndices
 	uint skyIdx;
 	uint foamIdx;
 };
-ConstantBuffer<OceanIndices> PassCB2 : register(b1);
+ConstantBuffer<OceanIndices> OceanPassCB : register(b1);
 
 struct OceanConstants
 {
 	row_major matrix oceanModelMatrix;
 	float3 oceanColor;
 };
-ConstantBuffer<OceanConstants> PassCB : register(b2);
+ConstantBuffer<OceanConstants> OceanPassCB2 : register(b2);
 
 struct VSInput
 {
@@ -40,7 +40,7 @@ struct VSToHS
 VSToHS OceanVS_LOD(VSInput input)
 {
 	VSToHS output = (VSToHS)0;
-	output.WorldPos = mul(float4(input.Pos, 1.0), PassCB.oceanModelMatrix);
+	output.WorldPos = mul(float4(input.Pos, 1.0), OceanPassCB2.oceanModelMatrix);
 	output.WorldPos /= output.WorldPos.w;
 	output.TexCoord = input.Uvs;
 	return output;
@@ -123,8 +123,8 @@ DSToPS OceanDS_LOD(
 		domain.y * patch[1].WorldPos +
 		domain.z * patch[2].WorldPos;
 
-	Texture2D displacementTx = ResourceDescriptorHeap[PassCB2.displacementIdx];
-	float3 displacement = displacementTx.SampleLevel(LinearWrapSampler, output.TexCoord, 0.0f).xyz;
+	Texture2D displacementTexture = ResourceDescriptorHeap[OceanPassCB.displacementIdx];
+	float3 displacement = displacementTexture.SampleLevel(LinearWrapSampler, output.TexCoord, 0.0f).xyz;
 	WorldPos += displacement * LAMBDA;
 
 	output.WorldPos = float4(WorldPos, 1.0f);

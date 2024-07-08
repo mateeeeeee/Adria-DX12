@@ -6,14 +6,14 @@ struct ClearCountersConstants
 	uint occludedInstancesCounterIdx;
 };
 
-ConstantBuffer<ClearCountersConstants> PassCB : register(b1);
+ConstantBuffer<ClearCountersConstants> ClearCountersPassCB : register(b1);
 
 [numthreads(1, 1, 1)]
 void ClearCountersCS()
 {
-	RWBuffer<uint> candidateMeshletsCounter = ResourceDescriptorHeap[PassCB.candidateMeshletsCounterIdx];
-	RWBuffer<uint> visibleMeshletsCounter = ResourceDescriptorHeap[PassCB.visibleMeshletsCounterIdx];
-	RWBuffer<uint> occludedInstancesCounter = ResourceDescriptorHeap[PassCB.occludedInstancesCounterIdx];
+	RWBuffer<uint> candidateMeshletsCounter = ResourceDescriptorHeap[ClearCountersPassCB.candidateMeshletsCounterIdx];
+	RWBuffer<uint> visibleMeshletsCounter = ResourceDescriptorHeap[ClearCountersPassCB.visibleMeshletsCounterIdx];
+	RWBuffer<uint> occludedInstancesCounter = ResourceDescriptorHeap[ClearCountersPassCB.occludedInstancesCounterIdx];
 
 	candidateMeshletsCounter[0] = 0;
 	candidateMeshletsCounter[1] = 0;

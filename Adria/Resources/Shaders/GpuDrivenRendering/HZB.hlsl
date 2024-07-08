@@ -7,18 +7,18 @@ struct InitializeHZBConstants
 	float2 hzbDimsInv;
 };
 
-ConstantBuffer<InitializeHZBConstants> PassCB : register(b1);
+ConstantBuffer<InitializeHZBConstants> HZBPassCB : register(b1);
 
 [numthreads(16, 16, 1)]
 void InitializeHZB_CS(uint3 threadId : SV_DispatchThreadID)
 {
-	RWTexture2D<float> hzbTx = ResourceDescriptorHeap[PassCB.hzbIdx];
-	Texture2D<float> depthTexture = ResourceDescriptorHeap[PassCB.depthIdx];
+	RWTexture2D<float> hzbTexture = ResourceDescriptorHeap[HZBPassCB.hzbIdx];
+	Texture2D<float> depthTexture = ResourceDescriptorHeap[HZBPassCB.depthIdx];
 
-	float2 uv = ((float2)threadId.xy + 0.5f) * PassCB.hzbDimsInv;
+	float2 uv = ((float2)threadId.xy + 0.5f) * HZBPassCB.hzbDimsInv;
 	float4 depths = depthTexture.Gather(PointClampSampler, uv);
 	float  maxDepth = max(max(max(depths.x, depths.y), depths.z), depths.w);
-	hzbTx[threadId.xy] = maxDepth;
+	hzbTexture[threadId.xy] = maxDepth;
 }
 
 ///////////////////////////////////////////////////////////////////////////

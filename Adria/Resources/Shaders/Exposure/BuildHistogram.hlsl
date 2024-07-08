@@ -12,30 +12,30 @@ struct BuildHistogramConstants
 	uint  sceneIdx;
 	uint  histogramIdx;
 };
-ConstantBuffer<BuildHistogramConstants> PassCB : register(b1);
+ConstantBuffer<BuildHistogramConstants> BuildHistogramPassCB : register(b1);
 
 SamplerState				  LinearClampSampler : register(s1);
-groupshared uint			  HistogramBins[HISTOGRAM_BIN_NUM];
+groupshared uint			  SharedHistogramBins[HISTOGRAM_BIN_NUM];
 
 [numthreads(GROUP_SIZE_X, GROUP_SIZE_Y, 1)]
-void BuildHistogramCS(uint groupIndex : SV_GroupIndex, uint3 dispatchThreadId : SV_DispatchThreadID)
+void BuildHistogramCS(uint GroupIndex : SV_GroupIndex, uint3 DispatchThreadId : SV_DispatchThreadID)
 {
-	HistogramBins[groupIndex] = 0;
+	SharedHistogramBins[GroupIndex] = 0;
 	GroupMemoryBarrierWithGroupSync();
 
-	Texture2D SceneTexture = ResourceDescriptorHeap[PassCB.sceneIdx];
-	if (all(dispatchThreadId.xy < uint2(PassCB.width, PassCB.height)))
+	Texture2D sceneTexture = ResourceDescriptorHeap[BuildHistogramPassCB.sceneIdx];
+	if (all(DispatchThreadId.xy < uint2(BuildHistogramPassCB.width, BuildHistogramPassCB.height)))
 	{
-		float2 screenPos = (float2) dispatchThreadId.xy + 0.5;
-		float2 uv = screenPos * float2(PassCB.rcpWidth, PassCB.rcpHeight);
-		float3 color = SceneTexture.SampleLevel(LinearClampSampler, uv, 0).xyz;
+		float2 screenPos = (float2) DispatchThreadId.xy + 0.5;
+		float2 uv = screenPos * float2(BuildHistogramPassCB.rcpWidth, BuildHistogramPassCB.rcpHeight);
+		float3 color = sceneTexture.SampleLevel(LinearClampSampler, uv, 0).xyz;
 
-		float luminance = clamp(Luminance(color), PassCB.minLuminance, PassCB.maxLuminance);
-		uint bin = GetHistogramBin(luminance, PassCB.minLuminance, PassCB.maxLuminance);
-		InterlockedAdd(HistogramBins[bin], 1);
+		float luminance = clamp(Luminance(color), BuildHistogramPassCB.minLuminance, BuildHistogramPassCB.maxLuminance);
+		uint bin = GetHistogramBin(luminance, BuildHistogramPassCB.minLuminance, BuildHistogramPassCB.maxLuminance);
+		InterlockedAdd(SharedHistogramBins[bin], 1);
 	}
 	GroupMemoryBarrierWithGroupSync();
 
-	RWByteAddressBuffer HistogramBuffer = ResourceDescriptorHeap[PassCB.histogramIdx];
-	HistogramBuffer.InterlockedAdd(groupIndex * 4, HistogramBins[groupIndex]);
+	RWByteAddressBuffer HistogramBuffer = ResourceDescriptorHeap[BuildHistogramPassCB.histogramIdx];
+	HistogramBuffer.InterlockedAdd(GroupIndex * 4, SharedHistogramBins[GroupIndex]);
 }

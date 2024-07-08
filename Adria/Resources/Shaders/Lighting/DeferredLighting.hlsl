@@ -12,7 +12,7 @@ struct DeferredLightingConstants
 	uint aoIdx;
 	uint outputIdx;
 };
-ConstantBuffer<DeferredLightingConstants> PassCB : register(b1);
+ConstantBuffer<DeferredLightingConstants> DeferredLightingPassCB : register(b1);
 
 struct CSInput
 {
@@ -25,17 +25,17 @@ struct CSInput
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void DeferredLightingCS(CSInput input)
 {
-	Texture2D               normalMetallicTx = ResourceDescriptorHeap[PassCB.normalMetallicIdx];
-	Texture2D               diffuseTexture		 = ResourceDescriptorHeap[PassCB.diffuseIdx];
-	Texture2D<float>        depthTexture			 = ResourceDescriptorHeap[PassCB.depthIdx];
-	StructuredBuffer<Light> lights		     = ResourceDescriptorHeap[FrameCB.lightsIdx];
+	Texture2D               normalMetallicTexture = ResourceDescriptorHeap[DeferredLightingPassCB.normalMetallicIdx];
+	Texture2D               diffuseTexture		  = ResourceDescriptorHeap[DeferredLightingPassCB.diffuseIdx];
+	Texture2D<float>        depthTexture		  = ResourceDescriptorHeap[DeferredLightingPassCB.depthIdx];
+	StructuredBuffer<Light> lightBuffer		      = ResourceDescriptorHeap[FrameCB.lightsIdx];
 
 	uint lightCount, _unused;
-	lights.GetDimensions(lightCount, _unused);
+	lightBuffer.GetDimensions(lightCount, _unused);
 
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
 
-	float4 normalMetallic = normalMetallicTx.Sample(LinearWrapSampler, uv);
+	float4 normalMetallic = normalMetallicTexture.Sample(LinearWrapSampler, uv);
 	float3 viewNormal	  = 2.0f * normalMetallic.rgb - 1.0f;
 	float  metallic		  = normalMetallic.a;
 	float  depth		  = depthTexture.Sample(LinearWrapSampler, uv);
@@ -50,18 +50,18 @@ void DeferredLightingCS(CSInput input)
 	LightingResult lightResult = (LightingResult)0;
 	for (uint i = 0; i < lightCount; ++i)
 	{
-		Light light = lights[i];
+		Light light = lightBuffer[i];
 		if (!light.active) continue;
         lightResult = lightResult + DoLight(light, brdfData, viewPosition, viewNormal, V, uv);
     }
 
-	Texture2D<float> aoTx = ResourceDescriptorHeap[PassCB.aoIdx];
-	float ambientOcclusion = aoTx.Sample(LinearWrapSampler, uv);
+	Texture2D<float> ambientOcclusionTexture = ResourceDescriptorHeap[DeferredLightingPassCB.aoIdx];
+	float ambientOcclusion = ambientOcclusionTexture.Sample(LinearWrapSampler, uv);
 	float3 indirectLighting = GetIndirectLighting(viewPosition, viewNormal, brdfData.Diffuse, ambientOcclusion);
-	Texture2D emissiveTx = ResourceDescriptorHeap[PassCB.emissiveIdx];
-	float4 emissiveData = emissiveTx.Sample(LinearWrapSampler, uv);
+	Texture2D emissiveTexture = ResourceDescriptorHeap[DeferredLightingPassCB.emissiveIdx];
+	float4 emissiveData = emissiveTexture.Sample(LinearWrapSampler, uv);
 	float3 emissiveColor = emissiveData.rgb * emissiveData.a * 256;
 	
-	RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[PassCB.outputIdx];
+	RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[DeferredLightingPassCB.outputIdx];
 	outputTexture[input.DispatchThreadId.xy] = float4(indirectLighting + lightResult.Diffuse + lightResult.Specular + emissiveColor, 1.0f);
 }

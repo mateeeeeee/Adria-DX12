@@ -29,7 +29,7 @@ struct ClusterCullingConstants
 	uint lightIndexListIdx;	   
 	uint lightGridIdx;		   
 };
-ConstantBuffer<ClusterCullingConstants> PassCB : register(b1);
+ConstantBuffer<ClusterCullingConstants> ClusterCullingPassCB : register(b1);
 
 bool LightIntersectsCluster(Light light, ClusterAABB cluster)
 {
@@ -47,16 +47,16 @@ struct CSInput
 	uint  GroupIndex : SV_GroupIndex;
 };
 
-groupshared Light shared_lights[GROUP_SIZE];
+groupshared Light SharedLights[GROUP_SIZE];
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void ClusterCullingCS(CSInput input)
 {
-	StructuredBuffer<ClusterAABB> clusters			 = ResourceDescriptorHeap[PassCB.clustersIdx];
-	StructuredBuffer<Light> lights					 = ResourceDescriptorHeap[FrameCB.lightsIdx];
-	RWStructuredBuffer<uint> lightIndexList			 = ResourceDescriptorHeap[PassCB.lightIndexListIdx];
-	RWStructuredBuffer<uint> lightIndexCounter		 = ResourceDescriptorHeap[PassCB.lightIndexCounterIdx];
-	RWStructuredBuffer<LightGrid> lightGrid          = ResourceDescriptorHeap[PassCB.lightGridIdx];
+	StructuredBuffer<ClusterAABB> clusterBuffer		 = ResourceDescriptorHeap[ClusterCullingPassCB.clustersIdx];
+	StructuredBuffer<Light> lightBuffer				 = ResourceDescriptorHeap[FrameCB.lightsIdx];
+	RWStructuredBuffer<uint> lightIndexList			 = ResourceDescriptorHeap[ClusterCullingPassCB.lightIndexListIdx];
+	RWStructuredBuffer<uint> lightIndexCounter		 = ResourceDescriptorHeap[ClusterCullingPassCB.lightIndexCounterIdx];
+	RWStructuredBuffer<LightGrid> lightGridBuffer    = ResourceDescriptorHeap[ClusterCullingPassCB.lightGridIdx];
 
 	if (all(input.DispatchThreadId == 0))
 	{
@@ -67,11 +67,11 @@ void ClusterCullingCS(CSInput input)
 	uint visibleLightIndices[MAX_CLUSTER_LIGHTS];
 
 	uint clusterIndex = input.GroupIndex + GROUP_SIZE * input.GroupId.z;
-	ClusterAABB cluster = clusters[clusterIndex];
+	ClusterAABB cluster = clusterBuffer[clusterIndex];
 
 	uint lightOffset = 0;
 	uint lightCount, _unused;
-	lights.GetDimensions(lightCount, _unused);
+	lightBuffer.GetDimensions(lightCount, _unused);
 
 	while (lightOffset < lightCount)
 	{
@@ -79,13 +79,13 @@ void ClusterCullingCS(CSInput input)
 		if (input.GroupIndex < batchSize)
 		{
 			uint lightIndex = lightOffset + input.GroupIndex;
-			Light light = lights[lightIndex];
-			shared_lights[input.GroupIndex] = light;
+			Light light = lightBuffer[lightIndex];
+			SharedLights[input.GroupIndex] = light;
 		}
 		GroupMemoryBarrierWithGroupSync();
 		for (uint i = 0; i < batchSize; i++)
 		{
-			Light light = lights[i];
+			Light light = lightBuffer[i];
 			if (!light.active) continue;
 			if (visibleLightCount < MAX_CLUSTER_LIGHTS && LightIntersectsCluster(light, cluster))
 			{
@@ -102,6 +102,6 @@ void ClusterCullingCS(CSInput input)
 	{
 		lightIndexList[offset + i] = visibleLightIndices[i];
 	}
-	lightGrid[clusterIndex].offset = offset;
-	lightGrid[clusterIndex].lightCount = visibleLightCount;
+	lightGridBuffer[clusterIndex].offset = offset;
+	lightGridBuffer[clusterIndex].lightCount = visibleLightCount;
 }
