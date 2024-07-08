@@ -933,16 +933,16 @@ namespace adria
 				{
 					// This is a Raw Buffer
 					srv_desc.Format = DXGI_FORMAT_R32_TYPELESS;
-					srv_desc.Buffer.FirstElement = (UINT)view_desc.offset / sizeof(uint32_t);
+					srv_desc.Buffer.FirstElement = (uint32)view_desc.offset / sizeof(uint32);
 					srv_desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
-					srv_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / sizeof(uint32_t);
+					srv_desc.Buffer.NumElements = (uint32)std::min<uint64>(view_desc.size, desc.size - view_desc.offset) / sizeof(uint32);
 				}
 				else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::BufferStructured))
 				{
 					// This is a Structured Buffer
 					srv_desc.Format = DXGI_FORMAT_UNKNOWN;
-					srv_desc.Buffer.FirstElement = (UINT)view_desc.offset / desc.stride;
-					srv_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / desc.stride;
+					srv_desc.Buffer.FirstElement = (uint32)view_desc.offset / desc.stride;
+					srv_desc.Buffer.NumElements = (uint32)std::min<uint64>(view_desc.size, desc.size - view_desc.offset) / desc.stride;
 					srv_desc.Buffer.StructureByteStride = desc.stride;
 				}
 				else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::AccelStruct))
@@ -959,7 +959,7 @@ namespace adria
 				srv_desc.Format = ConvertGfxFormat(format);
 				srv_desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
 				srv_desc.Buffer.FirstElement = view_desc.offset / stride;
-				srv_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / stride;
+				srv_desc.Buffer.NumElements = (uint32)std::min<uint64>(view_desc.size, desc.size - view_desc.offset) / stride;
 			}
 			device->CreateShaderResourceView(!is_accel_struct ? buffer->GetNative() : nullptr, &srv_desc, heap_descriptor);
 		}
@@ -976,21 +976,21 @@ namespace adria
 				{
 					uav_desc.Format = DXGI_FORMAT_R32_TYPELESS;
 					uav_desc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
-					uav_desc.Buffer.FirstElement = (UINT)view_desc.offset / sizeof(uint32_t);
-					uav_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / sizeof(uint32_t);
+					uav_desc.Buffer.FirstElement = (uint32)view_desc.offset / sizeof(uint32);
+					uav_desc.Buffer.NumElements = (uint32)std::min<uint64>(view_desc.size, desc.size - view_desc.offset) / sizeof(uint32);
 				}
 				else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::BufferStructured))
 				{
 					uav_desc.Format = DXGI_FORMAT_UNKNOWN;
 					uav_desc.Buffer.FirstElement = (UINT)view_desc.offset / desc.stride;
-					uav_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / desc.stride;
+					uav_desc.Buffer.NumElements = (UINT)std::min<uint64>(view_desc.size, desc.size - view_desc.offset) / desc.stride;
 					uav_desc.Buffer.StructureByteStride = desc.stride;
 				}
 				else if (HasAllFlags(desc.misc_flags, GfxBufferMiscFlag::IndirectArgs))
 				{
 					uav_desc.Format = DXGI_FORMAT_R32_UINT;
-					uav_desc.Buffer.FirstElement = (UINT)view_desc.offset / sizeof(uint32_t);
-					uav_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / sizeof(uint32_t);
+					uav_desc.Buffer.FirstElement = (uint32)view_desc.offset / sizeof(uint32);
+					uav_desc.Buffer.NumElements = (uint32)std::min<uint64>(view_desc.size, desc.size - view_desc.offset) / sizeof(uint32);
 
 				}
 			}
@@ -998,8 +998,8 @@ namespace adria
 			{
 				uint32 stride = GetGfxFormatStride(format);
 				uav_desc.Format = ConvertGfxFormat(format);
-				uav_desc.Buffer.FirstElement = (UINT)view_desc.offset / stride;
-				uav_desc.Buffer.NumElements = (UINT)std::min<UINT64>(view_desc.size, desc.size - view_desc.offset) / stride;
+				uav_desc.Buffer.FirstElement = (uint32)view_desc.offset / stride;
+				uav_desc.Buffer.NumElements = (uint32)std::min<uint64>(view_desc.size, desc.size - view_desc.offset) / stride;
 			}
 
 			device->CreateUnorderedAccessView(buffer->GetNative(), uav_counter ? uav_counter->GetNative() : nullptr, &uav_desc, heap_descriptor);

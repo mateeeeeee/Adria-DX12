@@ -6,7 +6,7 @@
 #include "Graphics/GfxBuffer.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
-
+#include "Core/Paths.h"
 
 namespace adria
 {
@@ -36,6 +36,8 @@ namespace adria
 				FogVolume& fog_volume = fog_volumes[0];
 				if (ImGui::TreeNode("Volumetric Fog"))
 				{
+					ImGui::Checkbox("Temporal Accumulation", &temporal_accumulation);
+
 					bool update_fog_volume_buffer = false;
 					update_fog_volume_buffer |= ImGui::SliderFloat("Density Base", &fog_volume.density_base, 0.0f, 1.0f);
 					update_fog_volume_buffer |= ImGui::SliderFloat("Density Change", &fog_volume.density_change, 0.0f, 1.0f);
@@ -55,7 +57,12 @@ namespace adria
 
 	void VolumetricFogPass::OnSceneInitialized()
 	{
-		//create and upload noise texture
+		std::string blue_noise_base_path = paths::TexturesDir() + "BlueNoise/";
+		for (uint32 i = 0; i < BLUE_NOISE_TEXTURE_COUNT; ++i)
+		{
+			std::string blue_noise_texture_path = blue_noise_base_path + "LDR_LLL1_" + std::to_string(i) + ".png";
+			blue_noise_handles[i] = g_TextureManager.LoadTexture(blue_noise_texture_path);
+		}
 
 		BoundingBox scene_bounding_box;
 		for (auto mesh_entity : reg.view<Mesh>())
@@ -166,18 +173,20 @@ namespace adria
 				
 				struct LightInjectionConstants
 				{
-					Vector3 voxel_grid_dimensions;
+					Vector3u voxel_grid_dimensions;
 					uint32 fog_volumes_count;
 					uint32 fog_volume_buffer_idx;
 					uint32 voxel_grid_idx;
 					uint32 voxel_grid_history_idx;
+					uint32 blue_noise_idx;
 				} constants =
 				{
-					.voxel_grid_dimensions = Vector3(voxel_grid_history->GetWidth(), voxel_grid_history->GetHeight(), voxel_grid_history->GetDepth()),
+					.voxel_grid_dimensions = Vector3u(voxel_grid_history->GetWidth(), voxel_grid_history->GetHeight(), voxel_grid_history->GetDepth()),
 					.fog_volumes_count = fog_volume_buffer->GetCount(),
 					.fog_volume_buffer_idx = fog_volume_buffer_idx,
 					.voxel_grid_idx = i,
 					.voxel_grid_history_idx = i + 1,
+					.blue_noise_idx = (uint32)blue_noise_handles[temporal_accumulation ? gfx->GetFrameIndex() % BLUE_NOISE_TEXTURE_COUNT : 0]
 				};
 				
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::VolumetricFog_LightInjection));

@@ -21,5 +21,4 @@ namespace adria::paths
 	std::string ShaderPDBDir();
 	std::string IniDir();
 	std::string AftermathDir();
-
 }

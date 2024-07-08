@@ -1,4 +1,5 @@
 #pragma once
+#include "TextureHandle.h"
 #include "Graphics/GfxDescriptor.h"
 #include "entt/entity/fwd.hpp"
 
@@ -29,6 +30,8 @@ namespace adria
 			float       density_change;
 		};
 
+		static constexpr uint32 BLUE_NOISE_TEXTURE_COUNT = 16;
+
 	public:
 
 		VolumetricFogPass(GfxDevice* gfx, entt::registry& reg, uint32 w, uint32 h);
@@ -54,6 +57,9 @@ namespace adria
 		std::unique_ptr<GfxBuffer> fog_volume_buffer;
 		GfxDescriptor fog_volume_buffer_srv;
 		uint32 fog_volume_buffer_idx;
+
+		std::array<TextureHandle, BLUE_NOISE_TEXTURE_COUNT> blue_noise_handles;
+		bool temporal_accumulation = false;
 
 	private:
 
