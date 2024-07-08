@@ -4,20 +4,20 @@
 
 #define BLOCK_SIZE 256
 
-struct Constants
+struct RainSimulationConstants
 {
 	uint   rainDataIdx;
 	uint   depthIdx;
 	float  simulationSpeed;
 	float  rangeRadius;
 };
-ConstantBuffer<Constants> PassCB : register(b1);
+ConstantBuffer<RainSimulationConstants> RainSimulationPassCB : register(b1);
 
 struct RainData
 {
 	float3 Pos;
 	float3 Vel;
-	float State;
+	float  State;
 };
 
 struct CSInput
@@ -33,14 +33,14 @@ void RainSimulationCS(CSInput input)
 {
 	uint3 dispatchThreadId = input.DispatchThreadId;
 	
-	RWStructuredBuffer<RainData> rainDataBuffer = ResourceDescriptorHeap[PassCB.rainDataIdx];
+	RWStructuredBuffer<RainData> rainDataBuffer = ResourceDescriptorHeap[RainSimulationPassCB.rainDataIdx];
 	uint GroupIdx = dispatchThreadId.x;
 
 	RainData rainDrop = rainDataBuffer[GroupIdx];
-	rainDrop.Pos += rainDrop.Vel * FrameCB.deltaTime * PassCB.simulationSpeed; 
+	rainDrop.Pos += rainDrop.Vel * FrameCB.deltaTime * RainSimulationPassCB.simulationSpeed; 
 	
 	const float3 boundsCenter = FrameCB.cameraPosition.xyz;
-	const float3 boundsExtents = float3(PassCB.rangeRadius, PassCB.rangeRadius, PassCB.rangeRadius); 
+	const float3 boundsExtents = float3(RainSimulationPassCB.rangeRadius, RainSimulationPassCB.rangeRadius, RainSimulationPassCB.rangeRadius); 
 	
 	float2 offsetAmount = (rainDrop.Pos.xz - boundsCenter.xz) / boundsExtents.xz;
 	rainDrop.Pos.xz -= boundsExtents.xz * ceil(0.5 * offsetAmount - 0.5);

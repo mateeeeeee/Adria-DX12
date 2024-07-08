@@ -2,7 +2,7 @@
 
 #define BLOCK_SIZE 16
 
-struct CloudsConstants
+struct VolumetricCloudsConstants
 {
 	uint      typeIdx;
 	uint      shapeIdx;
@@ -37,7 +37,7 @@ struct CloudsConstants
 	float 	  henyeyGreensteinGBackward;
 	uint      resolutionFactor;
 };
-ConstantBuffer<CloudsConstants> PassCB : register(b2);
+ConstantBuffer<VolumetricCloudsConstants> VolumetricCloudsPassCB : register(b2);
 
 static const float BayerFactor = 1.0f / 16.0f;
 static const int BayerFilter[16] =
@@ -64,10 +64,10 @@ float3 ToClipSpaceCoord(float2 uv)
 
 bool IntersectSphere(Ray ray, out float3 minT, out float3 maxT)
 {
-	float innerRadius = PassCB.planetRadius + PassCB.cloudMinHeight;
-	float outerRadius = innerRadius + PassCB.cloudMaxHeight;
+	float innerRadius = VolumetricCloudsPassCB.planetRadius + VolumetricCloudsPassCB.cloudMinHeight;
+	float outerRadius = innerRadius + VolumetricCloudsPassCB.cloudMaxHeight;
 
-	float3 sphereToOrigin = (ray.origin - PassCB.planetCenter);
+	float3 sphereToOrigin = (ray.origin - VolumetricCloudsPassCB.planetCenter);
 	float b = dot(ray.direction, sphereToOrigin);
 	float c = dot(sphereToOrigin, sphereToOrigin);
 	float sqrtOpInner = b * b - (c - innerRadius * innerRadius);
@@ -94,7 +94,7 @@ bool IntersectSphere(Ray ray, out float3 minT, out float3 maxT)
 	maxSOuter = maxSOuter < 0.0 ? 0.0 : maxSOuter;
 	float minSol = min(maxSInner, maxSOuter);
 
-	if (minSol > PassCB.planetRadius * 0.3f) return false;
+	if (minSol > VolumetricCloudsPassCB.planetRadius * 0.3f) return false;
 	float maxSol = max(maxSInner, maxSOuter);
 
 	minT = ray.origin + ray.direction * minSol;
@@ -140,15 +140,15 @@ float Remap(float originalValue, float originalMin, float originalMax, float new
 }
 float HeightFractionForPoint(float3 position)
 {
-	return clamp((distance(position, PassCB.planetCenter) - (PassCB.planetRadius + PassCB.cloudMinHeight)) / (PassCB.cloudMaxHeight - PassCB.cloudMinHeight), 0.0f, 1.0f);
+	return clamp((distance(position, VolumetricCloudsPassCB.planetCenter) - (VolumetricCloudsPassCB.planetRadius + VolumetricCloudsPassCB.cloudMinHeight)) / (VolumetricCloudsPassCB.cloudMaxHeight - VolumetricCloudsPassCB.cloudMinHeight), 0.0f, 1.0f);
 }
 float BeerLambertLaw(float density)
 {
-	return exp(-density * PassCB.precipitation);
+	return exp(-density * VolumetricCloudsPassCB.precipitation);
 }
 float BeerLaw(float density)
 {
-	float d = -density * PassCB.precipitation;
+	float d = -density * VolumetricCloudsPassCB.precipitation;
 	return max(exp(d), exp(d * 0.5f) * 0.7f);
 }
 float HenyeyGreensteinPhase(float cosAngle, float g)
@@ -164,42 +164,42 @@ float PowderEffect(float density, float cosAngle)
 float CalculateLightEnergy(float density, float cosAngle, float powderDensity)
 {
 	float beerPowder = 2.0f * BeerLaw(density) * PowderEffect(powderDensity, cosAngle);
-	float HG = max(HenyeyGreensteinPhase(cosAngle, PassCB.henyeyGreensteinGForward), HenyeyGreensteinPhase(cosAngle, PassCB.henyeyGreensteinGBackward)) * 0.07f + 0.8f;
+	float HG = max(HenyeyGreensteinPhase(cosAngle, VolumetricCloudsPassCB.henyeyGreensteinGForward), HenyeyGreensteinPhase(cosAngle, VolumetricCloudsPassCB.henyeyGreensteinGBackward)) * 0.07f + 0.8f;
 	return beerPowder * HG;
 }
 
 float SampleCloudDensity(float3 positionStatic, float heightFraction, float lod, bool useDetail)
 {
-	Texture3D shapeTx = ResourceDescriptorHeap[PassCB.shapeIdx];
-	Texture3D detailTx = ResourceDescriptorHeap[PassCB.detailIdx];
-	Texture2D typeTx = ResourceDescriptorHeap[PassCB.typeIdx];
+	Texture3D cloudShapeTexture = ResourceDescriptorHeap[VolumetricCloudsPassCB.shapeIdx];
+	Texture3D cloudDetailTexture = ResourceDescriptorHeap[VolumetricCloudsPassCB.detailIdx];
+	Texture2D cloudTypeTexture = ResourceDescriptorHeap[VolumetricCloudsPassCB.typeIdx];
 
 	float3 position = positionStatic + FrameCB.windParams.xyz * heightFraction;
 	position += (FrameCB.windParams.xyz + float3(0.0f, 0.1f, 0.0f)) * FrameCB.windParams.w * (FrameCB.totalTime + 256.0f);
 
-	float4 lowFrequencyNoises = shapeTx.SampleLevel(LinearWrapSampler, position * PassCB.shapeNoiseScale, lod);
+	float4 lowFrequencyNoises = cloudShapeTexture.SampleLevel(LinearWrapSampler, position * VolumetricCloudsPassCB.shapeNoiseScale, lod);
 	float lowFreqFbm = (lowFrequencyNoises.g * 0.625f) + (lowFrequencyNoises.b * 0.25f) + (lowFrequencyNoises.a * 0.125f);
 	float baseCloud = Remap(lowFrequencyNoises.r, (1.0f - lowFreqFbm), 1.0f, 0.0f, 1.0f);
-	float cloudCoverage =  PassCB.cloudCoverage;
+	float cloudCoverage =  VolumetricCloudsPassCB.cloudCoverage;
 	float baseCloudWithCoverage = Remap(baseCloud, 1.0f - cloudCoverage, 1.0f, 0.0f, 1.0f);
 
 	baseCloudWithCoverage *= cloudCoverage;
 	float finalCloud = baseCloudWithCoverage;
 
-	float verticalDensity = typeTx.SampleLevel(LinearWrapSampler, float2(PassCB.cloudType, heightFraction), 0).x;
+	float verticalDensity = cloudTypeTexture.SampleLevel(LinearWrapSampler, float2(VolumetricCloudsPassCB.cloudType, heightFraction), 0).x;
 	baseCloudWithCoverage *= verticalDensity;
 
 	if (baseCloudWithCoverage <= 0.0f) return 0.0f;
 
 	if (useDetail)
 	{
-		float3 highFrequencyNoises = detailTx.SampleLevel(LinearWrapSampler, position * PassCB.detailNoiseScale, lod).xyz; 
+		float3 highFrequencyNoises = cloudDetailTexture.SampleLevel(LinearWrapSampler, position * VolumetricCloudsPassCB.detailNoiseScale, lod).xyz; 
 		float highFreqFbm = (highFrequencyNoises.r * 0.625f) + (highFrequencyNoises.g * 0.25f) + (highFrequencyNoises.b * 0.125f);
 		float highFreqNoiseModifier = lerp(1.0f - highFreqFbm, highFreqFbm, clamp(heightFraction * 10.0f, 0.0f, 1.0f));
-		finalCloud = Remap(baseCloudWithCoverage, highFreqNoiseModifier * PassCB.detailNoiseModifier, 1.0f, 0.0f, 1.0f);
+		finalCloud = Remap(baseCloudWithCoverage, highFreqNoiseModifier * VolumetricCloudsPassCB.detailNoiseModifier, 1.0f, 0.0f, 1.0f);
 	}
 
-	return saturate(finalCloud * PassCB.globalDensity);
+	return saturate(finalCloud * VolumetricCloudsPassCB.globalDensity);
 }
 float SampleCloudDensityAlongCone(float3 position, float3 lightDir)
 {
@@ -217,14 +217,14 @@ float SampleCloudDensityAlongCone(float3 position, float3 lightDir)
 	const int NUM_CONE_SAMPLES = 6;
 	for (int i = 0; i < NUM_CONE_SAMPLES; i++)
 	{
-		position += lightDir * PassCB.lightStepLength;
-		float3 random_offset = noiseKernel[i] * PassCB.lightStepLength * PassCB.lightConeRadius * (float(i + 1));
+		position += lightDir * VolumetricCloudsPassCB.lightStepLength;
+		float3 random_offset = noiseKernel[i] * VolumetricCloudsPassCB.lightStepLength * VolumetricCloudsPassCB.lightConeRadius * (float(i + 1));
 		float3 p = position + random_offset;
 		float heightFraction = HeightFractionForPoint(p); 
 		bool useDetailNoise = i < 2;
 		densityAlongCone += SampleCloudDensity(p, heightFraction, float(i) * 0.5f, useDetailNoise);
 	}
-	position += 32.0f * PassCB.lightStepLength * lightDir;
+	position += 32.0f * VolumetricCloudsPassCB.lightStepLength * lightDir;
 	float heightFraction = HeightFractionForPoint(position);
 	densityAlongCone += SampleCloudDensity(position, heightFraction, 2.0f, false) * 3.0f;
 
@@ -254,8 +254,8 @@ float4 RayMarch(float3 rayOrigin, float3 rayDirection, float cosAngle, float ste
 			alpha += (1.0f - stepTransmittance) * (1.0f - alpha);
 
 			float coneDensity = SampleCloudDensityAlongCone(position, sunDirection);
-			float3 inScatteredLight = CalculateLightEnergy(coneDensity * stepSize, cosAngle, density * stepSize) * sunColor * PassCB.sunLightFactor * alpha;
-			float3 ambientLight = lerp(PassCB.cloudBaseColor, PassCB.cloudTopColor, heightFraction) * PassCB.ambientLightFactor;
+			float3 inScatteredLight = CalculateLightEnergy(coneDensity * stepSize, cosAngle, density * stepSize) * sunColor * VolumetricCloudsPassCB.sunLightFactor * alpha;
+			float3 ambientLight = lerp(VolumetricCloudsPassCB.cloudBaseColor, VolumetricCloudsPassCB.cloudTopColor, heightFraction) * VolumetricCloudsPassCB.ambientLightFactor;
 			accumScattering += (ambientLight + inScatteredLight) * accumTransmittance * density;
 
 			if (alpha > 0.99f || accumTransmittance < 0.01f) break;
@@ -277,9 +277,9 @@ struct CSInput
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void CloudsCS(CSInput input)
 {
-	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
+	RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[VolumetricCloudsPassCB.outputIdx];
 	uint3 threadId = input.DispatchThreadId;
-	uint2 resolution = uint2(FrameCB.renderResolution) >> PassCB.resolutionFactor;
+	uint2 resolution = uint2(FrameCB.renderResolution) >> VolumetricCloudsPassCB.resolutionFactor;
 	float2 uv = ((float2) threadId.xy + 0.5f) * 1.0f / resolution;
 
 #if REPROJECTION
@@ -293,15 +293,15 @@ void CloudsCS(CSInput input)
 	float2 prevUv = reproj.xy * 0.5 + 0.5;
 	prevUv.y = 1.0f - prevUv.y;
 
-	Texture2D<float4> prevOutputTx = ResourceDescriptorHeap[PassCB.prevOutputIdx];
-	float4 prevColor = prevOutputTx.Sample(LinearClampSampler, prevUv);
+	Texture2D<float4> prevOutputTexture = ResourceDescriptorHeap[VolumetricCloudsPassCB.prevOutputIdx];
+	float4 prevColor = prevOutputTexture.Sample(LinearClampSampler, prevUv);
 
 	uint index = FrameCB.frameCount % 16;
 	bool shouldUpdate = (((threadId.x + 4 * threadId.y) % 16) == BayerFilter[index]);
 
 	if (!shouldUpdate && all(prevUv <= 1.0f) && all(prevUv >= 0.0f))
 	{
-		outputTx[threadId.xy] = prevColor;
+		outputTexture[threadId.xy] = prevColor;
 		return;
 	}
 #endif
@@ -320,14 +320,14 @@ void CloudsCS(CSInput input)
 
 	if (!intersect)
 	{
-		outputTx[threadId.xy] = 0.0f;
+		outputTexture[threadId.xy] = 0.0f;
 		return;
 	}
 
 	int a = int(threadId.x) % 4;
 	int b = int(threadId.y) % 4;
 
-	const float maxSteps = PassCB.maxNumSteps;
+	const float maxSteps = VolumetricCloudsPassCB.maxNumSteps;
 	const float minSteps = (maxSteps * 0.5f) + BayerFilter[a * 4 + b] / 8.0f;
 	float numSteps = lerp(maxSteps, minSteps, ray.direction.y);
 	float stepSize = length(rayEnd - rayStart) / numSteps;
@@ -337,7 +337,7 @@ void CloudsCS(CSInput input)
 	float cosAngle = dot(ray.direction, normalize(FrameCB.sunDirection.xyz));
 	float4 clouds = RayMarch(rayStart, ray.direction, cosAngle, stepSize, numSteps);
 
-	outputTx[threadId.xy] = clouds;
+	outputTexture[threadId.xy] = clouds;
 }
 
 
@@ -364,12 +364,12 @@ struct CloudsCombineConstants
 {
 	uint inputIdx;
 };
-ConstantBuffer<CloudsCombineConstants> CombineCB : register(b1);
+ConstantBuffer<CloudsCombineConstants> CloudsCombinePassCB : register(b1);
 
 float4 CloudsCombinePS(VSToPS input) : SV_Target0
 {
-	Texture2D<float4> inputTx = ResourceDescriptorHeap[CombineCB.inputIdx];
-	float4 color = inputTx.Sample(LinearWrapSampler, input.Tex);
+	Texture2D<float4> inputTexture = ResourceDescriptorHeap[CloudsCombinePassCB.inputIdx];
+	float4 color = inputTexture.Sample(LinearWrapSampler, input.Tex);
 	if (!any(color.xyz) || color.a < 0.03f) discard;
 	return color;
 }

@@ -12,7 +12,7 @@ struct OceanNormalsConstants
 	uint  displacementIdx;
 	uint  outputIdx;
 };
-ConstantBuffer<OceanNormalsConstants> PassCB : register(b1);
+ConstantBuffer<OceanNormalsConstants> OceanNormalsPassCB : register(b1);
 
 struct CSInput
 {
@@ -25,19 +25,19 @@ struct CSInput
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void OceanNormalsCS(CSInput input)
 {
-	Texture2D<float4> displacementTx = ResourceDescriptorHeap[PassCB.displacementIdx];
-	RWTexture2D<float4> normalTx = ResourceDescriptorHeap[PassCB.outputIdx];
+	Texture2D<float4> displacementTexture = ResourceDescriptorHeap[OceanNormalsPassCB.displacementIdx];
+	RWTexture2D<float4> normalTexture = ResourceDescriptorHeap[OceanNormalsPassCB.outputIdx];
 
 	uint2 pixelCoord = input.DispatchThreadId.xy;
-	float texel = 1.f / PassCB.fftResolution;
-	float texelSize = PassCB.oceanSize * texel;
+	float texel = 1.f / OceanNormalsPassCB.fftResolution;
+	float texelSize = OceanNormalsPassCB.oceanSize * texel;
 
-	float3 displacementRight = displacementTx.Load(uint3(uint2(clamp(pixelCoord.x + 1, 0, PassCB.fftResolution - 1), pixelCoord.y), 0)).xyz;
-	float3 displacementLeft = displacementTx.Load(uint3(uint2(clamp(pixelCoord.x - 1, 0, PassCB.fftResolution - 1), pixelCoord.y), 0)).xyz;
-	float3 displacementTop = displacementTx.Load(uint3(uint2(pixelCoord.x, clamp(pixelCoord.y - 1, 0, PassCB.fftResolution - 1)), 0)).xyz;
-	float3 displacementBottom = displacementTx.Load(uint3(uint2(pixelCoord.x, clamp(pixelCoord.y + 1, 0, PassCB.fftResolution - 1)), 0)).xyz;
+	float3 displacementRight = displacementTexture.Load(uint3(uint2(clamp(pixelCoord.x + 1, 0, OceanNormalsPassCB.fftResolution - 1), pixelCoord.y), 0)).xyz;
+	float3 displacementLeft = displacementTexture.Load(uint3(uint2(clamp(pixelCoord.x - 1, 0, OceanNormalsPassCB.fftResolution - 1), pixelCoord.y), 0)).xyz;
+	float3 displacementTop = displacementTexture.Load(uint3(uint2(pixelCoord.x, clamp(pixelCoord.y - 1, 0, OceanNormalsPassCB.fftResolution - 1)), 0)).xyz;
+	float3 displacementBottom = displacementTexture.Load(uint3(uint2(pixelCoord.x, clamp(pixelCoord.y + 1, 0, OceanNormalsPassCB.fftResolution - 1)), 0)).xyz;
 
-	float3 center = displacementTx.Load(uint3(pixelCoord, 0)).xyz;
+	float3 center = displacementTexture.Load(uint3(pixelCoord, 0)).xyz;
 	float3 right = float3(texelSize, 0.f, 0.f) + displacementRight;
 	float3 left = float3(-texelSize, 0.f, 0.f) + displacementLeft;
 	float3 top = float3(0.f, 0.f, -texelSize) + displacementTop;
@@ -53,5 +53,5 @@ void OceanNormalsCS(CSInput input)
 
 	float J = (1.0 + dDx.x * LAMBDA) * (1.0 + dDy.y * LAMBDA) - dDx.y * dDy.x * LAMBDA * LAMBDA;
 	float foamFactor = max(-J, 0.0); //negative J means foam
-	normalTx[pixelCoord] = float4(normalize(topRight + bottomRight + topLeft + bottomLeft), foamFactor);
+	normalTexture[pixelCoord] = float4(normalize(topRight + bottomRight + topLeft + bottomLeft), foamFactor);
 }

@@ -13,10 +13,10 @@ ConstantBuffer<InitializeHZBConstants> PassCB : register(b1);
 void InitializeHZB_CS(uint3 threadId : SV_DispatchThreadID)
 {
 	RWTexture2D<float> hzbTx = ResourceDescriptorHeap[PassCB.hzbIdx];
-	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
+	Texture2D<float> depthTexture = ResourceDescriptorHeap[PassCB.depthIdx];
 
 	float2 uv = ((float2)threadId.xy + 0.5f) * PassCB.hzbDimsInv;
-	float4 depths = depthTx.Gather(PointClampSampler, uv);
+	float4 depths = depthTexture.Gather(PointClampSampler, uv);
 	float  maxDepth = max(max(max(depths.x, depths.y), depths.z), depths.w);
 	hzbTx[threadId.xy] = maxDepth;
 }

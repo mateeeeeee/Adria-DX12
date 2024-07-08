@@ -8,7 +8,7 @@ struct MotionVectorsConstants
 	uint outputIdx;
 };
 
-ConstantBuffer<MotionVectorsConstants> PassCB : register(b1);
+ConstantBuffer<MotionVectorsConstants> MotionVectorsPassCB : register(b1);
 
 struct CSInput
 {
@@ -21,13 +21,13 @@ struct CSInput
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void MotionVectorsCS(CSInput input)
 {
-	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
-	RWTexture2D<float2> velocityTx = ResourceDescriptorHeap[PassCB.outputIdx];
+	Texture2D<float> depthTexture = ResourceDescriptorHeap[MotionVectorsPassCB.depthIdx];
+	RWTexture2D<float2> velocityTexture = ResourceDescriptorHeap[MotionVectorsPassCB.outputIdx];
 
 	float2 uv = ((float2)input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
 	float2 currentClip = uv * float2(2, -2) + float2(-1, 1);
-	float depth = depthTx[input.DispatchThreadId.xy];
+	float depth = depthTexture[input.DispatchThreadId.xy];
 	float4 previousClip = mul(float4(currentClip, depth, 1.0f), FrameCB.reprojection);
 	previousClip.xy /= previousClip.w;
-	velocityTx[input.DispatchThreadId.xy] = (previousClip.xy - currentClip) * float2(0.5f, -0.5f);
+	velocityTexture[input.DispatchThreadId.xy] = (previousClip.xy - currentClip) * float2(0.5f, -0.5f);
 }

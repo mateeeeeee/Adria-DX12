@@ -6,39 +6,39 @@ struct CloudNoiseConstants
 	uint frequency;
 	uint outputIdx;
 };
-ConstantBuffer<CloudNoiseConstants> PassCB : register(b1);
+ConstantBuffer<CloudNoiseConstants> CloudNoisePassCB : register(b1);
 
 [numthreads(8, 8, 8)]
-void CloudShapeCS(uint3 threadId : SV_DispatchThreadID)
+void CloudShapeCS(uint3 ThreadId : SV_DispatchThreadID)
 {
-	float3 uvw = (threadId.xyz + 0.5f) * (float)PassCB.resolutionInv;
+	float3 uvw = (ThreadId.xyz + 0.5f) * (float)CloudNoisePassCB.resolutionInv;
 
 	float perlin = lerp(1.0f, PerlinFBM(uvw, 4.0f, 7), 0.5f);
 	perlin = abs(perlin * 2.0f - 1.0f);
 
 	float4 noise = 0;
-	noise.y = WorleyFBM(uvw, PassCB.frequency);
-	noise.z = WorleyFBM(uvw, PassCB.frequency * 2);
-	noise.w = WorleyFBM(uvw, PassCB.frequency * 4);
+	noise.y = WorleyFBM(uvw, CloudNoisePassCB.frequency);
+	noise.z = WorleyFBM(uvw, CloudNoisePassCB.frequency * 2);
+	noise.w = WorleyFBM(uvw, CloudNoisePassCB.frequency * 4);
 	noise.x = Remap(perlin, 0.0f, 1.0f, noise.y, 1.0f);
 
-	RWTexture3D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
-	outputTx[threadId.xyz] = noise;
+	RWTexture3D<float4> outputTexture = ResourceDescriptorHeap[CloudNoisePassCB.outputIdx];
+	outputTexture[ThreadId.xyz] = noise;
 }
 
 [numthreads(8, 8, 8)]
-void CloudDetailCS(uint3 threadId : SV_DispatchThreadID)
+void CloudDetailCS(uint3 ThreadId : SV_DispatchThreadID)
 {
-	float3 uvw = (threadId.xyz + 0.5f) * (float)PassCB.resolutionInv;
+	float3 uvw = (ThreadId.xyz + 0.5f) * (float)CloudNoisePassCB.resolutionInv;
 
 	float4 noise = 0;
-	noise.x = WorleyFBM(uvw, PassCB.frequency);
-	noise.y = WorleyFBM(uvw, PassCB.frequency * 2);
-	noise.z = WorleyFBM(uvw, PassCB.frequency * 4);
-	noise.w = WorleyFBM(uvw, PassCB.frequency * 8);
+	noise.x = WorleyFBM(uvw, CloudNoisePassCB.frequency);
+	noise.y = WorleyFBM(uvw, CloudNoisePassCB.frequency * 2);
+	noise.z = WorleyFBM(uvw, CloudNoisePassCB.frequency * 4);
+	noise.w = WorleyFBM(uvw, CloudNoisePassCB.frequency * 8);
 
-	RWTexture3D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
-	outputTx[threadId.xyz] = noise;
+	RWTexture3D<float4> outputTexture = ResourceDescriptorHeap[CloudNoisePassCB.outputIdx];
+	outputTexture[ThreadId.xyz] = noise;
 }
 
 
@@ -48,9 +48,9 @@ float GetRatio(float value, float minValue, float maxValue)
 }
 
 [numthreads(8, 8, 8)]
-void CloudTypeCS(uint3 threadId : SV_DispatchThreadID)
+void CloudTypeCS(uint3 ThreadId : SV_DispatchThreadID)
 {
-	float3 uvw = (threadId.xyz + 0.5f) * PassCB.resolutionInv;
+	float3 uvw = (ThreadId.xyz + 0.5f) * CloudNoisePassCB.resolutionInv;
 	float cloudType = uvw.x;
 	float height = uvw.y;
 
@@ -67,7 +67,7 @@ void CloudTypeCS(uint3 threadId : SV_DispatchThreadID)
 	float v2 = saturate(GetRatio(height, gradient.w, gradient.z));
 	float v = v1 * v2;
 
-	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
-	outputTx[threadId.xy] = v;
+	RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[CloudNoisePassCB.outputIdx];
+	outputTexture[ThreadId.xy] = v;
 }
 

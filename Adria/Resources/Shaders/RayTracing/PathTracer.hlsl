@@ -7,13 +7,13 @@ struct PathTracingConstants
     uint accumIdx;
     uint outputIdx;
 };
-ConstantBuffer<PathTracingConstants> PassCB : register(b1);
+ConstantBuffer<PathTracingConstants> PathTracingPassCB : register(b1);
 
 [shader("raygeneration")]
 void PT_RayGen()
 {
-    StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
-    RWTexture2D<float4> accumTx = ResourceDescriptorHeap[PassCB.accumIdx];
+    StructuredBuffer<Light> lightBuffer = ResourceDescriptorHeap[FrameCB.lightsIdx];
+    RWTexture2D<float4> accumulationTexture = ResourceDescriptorHeap[PathTracingPassCB.accumIdx];
 
     float2 pixel = float2(DispatchRaysIndex().xy);
     float2 resolution = float2(DispatchRaysDimensions().xy);
@@ -42,7 +42,7 @@ void PT_RayGen()
     float3 radiance = 0.0f;
     float3 throughput = 1.0f;
     float pdf = 1.0;
-    for (int i = 0; i < PassCB.bounceCount; ++i)
+    for (int i = 0; i < PathTracingPassCB.bounceCount; ++i)
     {
         HitInfo info = (HitInfo)0;
         if (TraceRay(ray, info))
@@ -64,7 +64,7 @@ void PT_RayGen()
             float lightWeight = 0.0f;
 
 			//#todo use all lights
-            Light light = lights[0];
+            Light light = lightBuffer[0];
 			float visibility = TraceShadowRay(light, worldPosition.xyz);
             float3 wi = normalize(-light.direction.xyz);
             float3 wo = normalize(FrameCB.cameraPosition.xyz - worldPosition);
@@ -73,7 +73,7 @@ void PT_RayGen()
             float3 directLighting = DefaultBRDF(wi, wo, worldNormal, brdfData.Diffuse, brdfData.Specular, brdfData.Roughness) * visibility * light.color.rgb * NdotL;
             radiance += (directLighting + matProperties.emissive) * throughput / pdf;
 
-            if (i == PassCB.bounceCount - 1) break;
+            if (i == PathTracingPassCB.bounceCount - 1) break;
 
             //indirect light
             float probDiffuse = ProbabilityToSampleDiffuse(brdfData.Diffuse, brdfData.Specular);
@@ -119,14 +119,14 @@ void PT_RayGen()
         }
         else
         {
-            TextureCube envMap = ResourceDescriptorHeap[FrameCB.envMapIdx];
-            radiance += envMap.SampleLevel(LinearWrapSampler, ray.Direction, 0).rgb * throughput / pdf;
+            TextureCube envMapTexture = ResourceDescriptorHeap[FrameCB.envMapIdx];
+            radiance += envMapTexture.SampleLevel(LinearWrapSampler, ray.Direction, 0).rgb * throughput / pdf;
             break;
         }
     }
 
-    float3 previousColor = accumTx[DispatchRaysIndex().xy].rgb;
-    if (PassCB.accumulatedFrames > 1)
+    float3 previousColor = accumulationTexture[DispatchRaysIndex().xy].rgb;
+    if (PathTracingPassCB.accumulatedFrames > 1)
     {
         radiance += previousColor;
     }
@@ -136,8 +136,8 @@ void PT_RayGen()
         radiance = float3(1, 0, 0);
     }
 
-    RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
-    accumTx[DispatchRaysIndex().xy] = float4(radiance, 1.0);
-    outputTx[DispatchRaysIndex().xy] = float4(radiance / PassCB.accumulatedFrames, 1.0f);
+    RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[PathTracingPassCB.outputIdx];
+    accumulationTexture[DispatchRaysIndex().xy] = float4(radiance, 1.0);
+    outputTexture[DispatchRaysIndex().xy] = float4(radiance / PathTracingPassCB.accumulatedFrames, 1.0f);
 }
 

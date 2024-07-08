@@ -52,7 +52,7 @@ void ShadowPS(VSToPS input)
 	Instance instanceData = GetInstanceData(ModelCB.instanceId);
 	Material materialData = GetMaterialData(instanceData.materialIdx);
 
-	Texture2D albedoTx = ResourceDescriptorHeap[materialData.diffuseIdx];
-	if (albedoTx.Sample(LinearWrapSampler, input.TexCoords).a < materialData.alphaCutoff) discard;
+	Texture2D albedoTexture = ResourceDescriptorHeap[materialData.diffuseIdx];
+	if (albedoTexture.Sample(LinearWrapSampler, input.TexCoords).a < materialData.alphaCutoff) discard;
 #endif
 }

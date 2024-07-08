@@ -59,7 +59,6 @@ float CalcShadowFactor_PCF3x3(SamplerComparisonState shadowSampler,
     return percentLit;
 }
 
-
 float GetShadowMapFactor(Light light, float3 P)
 {
 	StructuredBuffer<float4x4> lightViewProjections = ResourceDescriptorHeap[FrameCB.lightsMatricesIdx];
@@ -152,12 +151,6 @@ float GetRayTracedShadowsFactor(Light light, float2 uv)
 }
 
 
-float DoAttenuation(float distance, float range)
-{
-	float att = saturate(1.0f - (distance * distance / (range * range)));
-	return att * att;
-}
-
 struct LightingResult
 {
 	float3 Diffuse;
@@ -171,6 +164,13 @@ struct LightingResult
 		return res;
 	}
 };
+
+
+float DoAttenuation(float distance, float range)
+{
+	float att = saturate(1.0f - (distance * distance / (range * range)));
+	return att * att;
+}
 
 float GetLightAttenuation(Light light, float3 P, out float3 L)
 {
@@ -245,7 +245,6 @@ LightingResult DoLight(Light light, BrdfData brdfData, float3 P, float3 N, float
 
 	attenuation *= GetShadowMapFactor(light, P);
 	attenuation *= GetRayTracedShadowsFactor(light, uv);
-
 	if(attenuation <= 0.0f) return result;
 
 	result = DefaultLitBxDF(brdfData.Diffuse, brdfData.Specular, brdfData.Roughness, N, V, L, attenuation);
@@ -292,7 +291,7 @@ float ScreenSpaceShadows(Light light, float3 viewPosition)
 	rayProjected.xy /= rayProjected.w;
 	rayUV = rayProjected.xy * float2(0.5f, -0.5f) + 0.5f;
 
-	float depth = depthTx.Sample(PointClampSampler, rayUV);
+	float depth = depthTexture.Sample(PointClampSampler, rayUV);
 	float linearDepth = LinearizeDepth(depth);
 
 	const float SSCS_STEP_LENGTH = light.sscsMaxRayDistance / (float)SSCS_MAX_STEPS;
@@ -315,7 +314,7 @@ float ScreenSpaceShadows(Light light, float3 viewPosition)
 		[branch]
 		if (IsSaturated(rayUV))
 		{
-			depth = depthTx.Sample(PointClampSampler, rayUV);
+			depth = depthTexture.Sample(PointClampSampler, rayUV);
 			linearDepth = LinearizeDepth(depth);
 			float depthDelta = rayProjected.z - linearDepth;
 

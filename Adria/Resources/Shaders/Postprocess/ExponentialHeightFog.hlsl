@@ -19,7 +19,7 @@ struct ExponentialHeightFogConstants
     uint  sceneIdx;
     uint  outputIdx;
 };
-ConstantBuffer<ExponentialHeightFogConstants> PassCB : register(b2);
+ConstantBuffer<ExponentialHeightFogConstants> ExponentialHeightFogPassCB : register(b2);
 
 
 
@@ -32,10 +32,10 @@ float4 CalculateExponentialHeightFog(float4 viewPosition)
 
 	float3 cameraToPos = (worldPosition - cameraPosition).xyz;
 	float distance = length(cameraToPos);
-	float fogStartDistance = PassCB.fogStart;
+	float fogStartDistance = ExponentialHeightFogPassCB.fogStart;
 	float3 cameraToPosNormalized = cameraToPos / distance;
 
-	float rayOriginTerms = PassCB.fogAtViewPosition;
+	float rayOriginTerms = ExponentialHeightFogPassCB.fogAtViewPosition;
 	float rayLength = distance;
 	float rayDirectionY = cameraToPos.y;
 	if (fogStartDistance > 0)
@@ -45,20 +45,20 @@ float4 CalculateExponentialHeightFog(float4 viewPosition)
 		float exclusionIntersectionY = cameraPosition.y + cameraToExclusionIntersectionY;
 		rayLength = (1.0f - excludeIntersectionTime) * distance;
 		rayDirectionY = cameraToPos.y - cameraToExclusionIntersectionY;
-		float exponent = PassCB.fogFalloff * (exclusionIntersectionY - PassCB.fogHeight);
-		rayOriginTerms = PassCB.fogDensity * exp2(-exponent);
+		float exponent = ExponentialHeightFogPassCB.fogFalloff * (exclusionIntersectionY - ExponentialHeightFogPassCB.fogHeight);
+		rayOriginTerms = ExponentialHeightFogPassCB.fogDensity * exp2(-exponent);
 	}
 
-	float falloff = max(-127.0f, PassCB.fogFalloff * rayDirectionY);
+	float falloff = max(-127.0f, ExponentialHeightFogPassCB.fogFalloff * rayDirectionY);
 	float lineIntegral = (1.0f - exp2(-falloff)) / falloff;
 	float lineIntegralTaylor = log(2.0f) - (0.5f * pow(log(2.0f), 2)) * falloff;
 	float exponentialHeightLineIntegralCalc = rayOriginTerms * (abs(falloff) > 0.01f ? lineIntegral : lineIntegralTaylor);
 	float exponentialHeightLineIntegral = exponentialHeightLineIntegralCalc * rayLength;
-	float expFogFactor = max(saturate(exp2(-exponentialHeightLineIntegral)), PassCB.fogMinOpacity);
+	float expFogFactor = max(saturate(exp2(-exponentialHeightLineIntegral)), ExponentialHeightFogPassCB.fogMinOpacity);
 
-	float3 inscatteringColor = UnpackUintColor(PassCB.fogColor).rgb;
+	float3 inscatteringColor = UnpackUintColor(ExponentialHeightFogPassCB.fogColor).rgb;
 
-	if (PassCB.fogCutoffDistance > 0 && distance > PassCB.fogCutoffDistance)
+	if (ExponentialHeightFogPassCB.fogCutoffDistance > 0 && distance > ExponentialHeightFogPassCB.fogCutoffDistance)
 	{
 		expFogFactor = 1;
 	}
@@ -77,19 +77,19 @@ struct CSInput
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void ExponentialHeightFogCS(CSInput input)
 {
-    Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
-    Texture2D sceneTx = ResourceDescriptorHeap[PassCB.sceneIdx];
-    RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
+    Texture2D<float> depthTexture = ResourceDescriptorHeap[ExponentialHeightFogPassCB.depthIdx];
+    Texture2D sceneTexture = ResourceDescriptorHeap[ExponentialHeightFogPassCB.sceneIdx];
+    RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[ExponentialHeightFogPassCB.outputIdx];
     
     float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
     
-    float depth = depthTx.Sample(LinearWrapSampler, uv);
+    float depth = depthTexture.Sample(LinearWrapSampler, uv);
     float3 viewPosition = GetViewPosition(uv, depth);
 
     float4 fog = CalculateExponentialHeightFog(float4(viewPosition, 1.0f));
 
-	float4 mainColor = sceneTx.Sample(LinearWrapSampler, uv);
+	float4 mainColor = sceneTexture.Sample(LinearWrapSampler, uv);
     float4 result = mainColor;
     result.rgb += fog.a * fog.rgb;
-    outputTx[input.DispatchThreadId.xy] = result;
+    outputTexture[input.DispatchThreadId.xy] = result;
 }

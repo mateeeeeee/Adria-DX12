@@ -10,21 +10,21 @@ struct RainBlockerConstants
 {
 	row_major matrix rainViewProjectionMatrix;
 };
-ConstantBuffer<RainBlockerConstants> RainBlockerCB : register(b2);
+ConstantBuffer<RainBlockerConstants> RainBlockerPassCB : register(b2);
 
 struct VSToPS
 {
 	float4 Pos : SV_POSITION;
 };
 
-VSToPS RainBlockerVS(uint vertexId : SV_VertexID)
+VSToPS RainBlockerVS(uint VertexID : SV_VertexID)
 {
 	VSToPS output = (VSToPS)0;
 	Instance instanceData = GetInstanceData(ModelCB.instanceId);
 	Mesh meshData = GetMeshData(instanceData.meshIndex);
-	float3 pos = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.positionsOffset, vertexId);
+	float3 pos = LoadMeshBuffer<float3>(meshData.bufferIdx, meshData.positionsOffset, VertexID);
 	float4 posWS = mul(float4(pos, 1.0f), instanceData.worldMatrix);
-	float4 posLS = mul(posWS, RainBlockerCB.rainViewProjectionMatrix);
+	float4 posLS = mul(posWS, RainBlockerPassCB.rainViewProjectionMatrix);
 	output.Pos = posLS;
 	return output;
 }

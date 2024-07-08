@@ -26,16 +26,16 @@ struct CSInput
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void VolumetricLightingCS(CSInput input)
 {
-	Texture2D<float>        depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
+	Texture2D<float>        depthTexture = ResourceDescriptorHeap[PassCB.depthIdx];
 	StructuredBuffer<Light> lights	= ResourceDescriptorHeap[FrameCB.lightsIdx];
-	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
+	RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[PassCB.outputIdx];
 
 	uint lightCount, unused;
 	lights.GetDimensions(lightCount, unused);
 	uint2 resolution = uint2(FrameCB.renderResolution) >> PassCB.resolutionFactor;
 
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / resolution;
-	float depth = depthTx.SampleLevel(LinearClampSampler, uv, 2);
+	float depth = depthTexture.SampleLevel(LinearClampSampler, uv, 2);
 
 	float3 viewPosition = GetViewPosition(uv, depth);
 	float3 cameraPosition = float3(0.0f, 0.0f, 0.0f);
@@ -68,7 +68,7 @@ void VolumetricLightingCS(CSInput input)
 		totalAccumulation += lightAccumulation * light.color.rgb * light.volumetricStrength;
 	}
 
-	outputTx[input.DispatchThreadId.xy] = float4(totalAccumulation, 1.0f);
+	outputTexture[input.DispatchThreadId.xy] = float4(totalAccumulation, 1.0f);
 }
 
 

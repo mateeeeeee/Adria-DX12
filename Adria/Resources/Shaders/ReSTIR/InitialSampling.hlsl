@@ -13,17 +13,17 @@ struct ReSTIRConstants
     uint outputIrradianceIdx;
     uint outputRayDirectionIdx;
 };
-ConstantBuffer<ReSTIRConstants> PassCB : register(b1);
+ConstantBuffer<ReSTIRConstants> ReSTIRPassCB : register(b1);
 
 
 float3 GetIndirectDiffuseLighting(float3 position, MaterialProperties materialProperties)
 {
-    if (PassCB.irradianceHistoryIdx < 0) //#todo make int, not uint
+    if (ReSTIRPassCB.irradianceHistoryIdx < 0) //#todo make int, not uint
     {
         return 0.0;
     }
-    Texture2D historyIrradianceTexture = ResourceDescriptorHeap[PassCB.irradianceHistoryIdx];
-    Texture2D prevDepthTexture = ResourceDescriptorHeap[PassCB.prevDepthIdx];
+    Texture2D historyIrradianceTexture = ResourceDescriptorHeap[ReSTIRPassCB.irradianceHistoryIdx];
+    Texture2D prevDepthTexture = ResourceDescriptorHeap[ReSTIRPassCB.prevDepthIdx];
     
     float4 prevClipPos = mul(float4(position, 1.0), FrameCB.prevViewProjection);
     float3 prevNdcPos = prevClipPos.xyz / prevClipPos.w;
@@ -41,10 +41,10 @@ float3 GetIndirectDiffuseLighting(float3 position, MaterialProperties materialPr
 [numthreads(16, 16, 1)]
 void InitialSamplingCS( uint3 dispatchThreadID : SV_DispatchThreadID )
 {
-    Texture2D<float> depthTexture = ResourceDescriptorHeap[PassCB.depthIdx];
-    Texture2D<float3> normalTexture = ResourceDescriptorHeap[PassCB.normalIdx];
-    RWTexture2D<float4> outputRadiance = ResourceDescriptorHeap[PassCB.outputIrradianceIdx];
-    RWTexture2D<uint> outputRayDirection = ResourceDescriptorHeap[PassCB.outputRayDirectionIdx];
+    Texture2D<float> depthTexture = ResourceDescriptorHeap[ReSTIRPassCB.depthIdx];
+    Texture2D<float3> normalTexture = ResourceDescriptorHeap[ReSTIRPassCB.normalIdx];
+    RWTexture2D<float4> outputRadiance = ResourceDescriptorHeap[ReSTIRPassCB.outputIrradianceIdx];
+    RWTexture2D<uint> outputRayDirection = ResourceDescriptorHeap[ReSTIRPassCB.outputRayDirectionIdx];
     StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
     
     float depth = depthTexture[dispatchThreadID.xy].r;

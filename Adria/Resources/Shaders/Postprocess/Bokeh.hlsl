@@ -13,23 +13,23 @@ struct BokehConstants
 	uint bokehIdx;
 	uint bokehStackIdx;
 };
-ConstantBuffer<BokehConstants> PassCB : register(b1);
+ConstantBuffer<BokehConstants> BokehPassCB : register(b1);
 
 
-struct BokehVSOutput
+struct VSToGS
 {
 	float2 Position : POSITION;
 	float2 Size     : SIZE;
 	float3 Color    : COLOR;
-	float  Depth : DEPTH;
+	float  Depth    : DEPTH;
 };
 
-BokehVSOutput BokehVS(in uint VertexID : SV_VertexID)
+VSToGS BokehVS(in uint VertexID : SV_VertexID)
 {
-	StructuredBuffer<Bokeh> BokehStack = ResourceDescriptorHeap[PassCB.bokehStackIdx];
+	StructuredBuffer<Bokeh> BokehStack = ResourceDescriptorHeap[BokehPassCB.bokehStackIdx];
 
 	Bokeh bokeh = BokehStack[VertexID];
-	BokehVSOutput output;
+	VSToGS output;
 
 	output.Position.xy = bokeh.Position.xy;
 	output.Position.xy = output.Position.xy * 2.0f - 1.0f;
@@ -41,7 +41,7 @@ BokehVSOutput BokehVS(in uint VertexID : SV_VertexID)
 	return output;
 }
 
-struct BokehGSOutput
+struct GSToPS
 {
 	float4 PositionCS   : SV_Position;
 	float2 TexCoord     : TEXCOORD;
@@ -50,7 +50,7 @@ struct BokehGSOutput
 };
 
 [maxvertexcount(4)]
-void BokehGS(point BokehVSOutput input[1], inout TriangleStream<BokehGSOutput> spriteStream)
+void BokehGS(point VSToGS input[1], inout TriangleStream<GSToPS> spriteStream)
 {
 	const float2 Offsets[4] =
 	{
@@ -68,7 +68,7 @@ void BokehGS(point BokehVSOutput input[1], inout TriangleStream<BokehGSOutput> s
 		float2(1, 1)
 	};
 
-	BokehGSOutput output;
+	GSToPS output;
 	[unroll(4)]
 	for (int i = 0; i < 4; i++)
 	{
@@ -82,9 +82,9 @@ void BokehGS(point BokehVSOutput input[1], inout TriangleStream<BokehGSOutput> s
 	spriteStream.RestartStrip();
 }
 
-float4 BokehPS(BokehGSOutput input) : SV_TARGET
+float4 BokehPS(GSToPS input) : SV_TARGET
 {
-	Texture2D BokehTexture = ResourceDescriptorHeap[PassCB.bokehIdx];
-	float bokehFactor = BokehTexture.Sample(LinearWrapSampler, input.TexCoord).r;
+	Texture2D bokehTexture = ResourceDescriptorHeap[BokehPassCB.bokehIdx];
+	float bokehFactor = bokehTexture.Sample(LinearWrapSampler, input.TexCoord).r;
 	return float4(input.Color * bokehFactor, 1.0f);
 }

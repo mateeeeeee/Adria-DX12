@@ -24,7 +24,7 @@ struct PhaseConstants
 	uint  phasesIdx;
 	uint  outputIdx;
 };
-ConstantBuffer<PhaseConstants> PassCB : register(b1);
+ConstantBuffer<PhaseConstants> PhasePassCB : register(b1);
 
 struct CSInput
 {
@@ -37,20 +37,20 @@ struct CSInput
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void PhaseCS(CSInput input)
 {
-	Texture2D<float4> phasesTx = ResourceDescriptorHeap[PassCB.phasesIdx];
-	RWTexture2D<float4> deltaPhasesTx = ResourceDescriptorHeap[PassCB.outputIdx];
+	Texture2D<float4> phasesTexture = ResourceDescriptorHeap[PhasePassCB.phasesIdx];
+	RWTexture2D<float4> deltaPhasesTexture = ResourceDescriptorHeap[PhasePassCB.outputIdx];
 
 	uint2 pixelCoord = input.DispatchThreadId.xy;
-	float n = (pixelCoord.x < 0.5f * uint(PassCB.fftResolution)) ? pixelCoord.x : pixelCoord.x - PassCB.fftResolution;
-	float m = (pixelCoord.y < 0.5f * uint(PassCB.fftResolution)) ? pixelCoord.y : pixelCoord.y - PassCB.fftResolution;
+	float n = (pixelCoord.x < 0.5f * uint(PhasePassCB.fftResolution)) ? pixelCoord.x : pixelCoord.x - PhasePassCB.fftResolution;
+	float m = (pixelCoord.y < 0.5f * uint(PhasePassCB.fftResolution)) ? pixelCoord.y : pixelCoord.y - PhasePassCB.fftResolution;
 
-	float2 waveVector = (2.f * M_PI * float2(n, m)) / PassCB.oceanSize;
+	float2 waveVector = (2.f * M_PI * float2(n, m)) / PhasePassCB.oceanSize;
 	float k = length(waveVector);
 	float slowdownFactor = 1.f;
 
 	float deltaPhase = Omega(k) * FrameCB.deltaTime * slowdownFactor;
-	float phase = phasesTx.Load(uint3(pixelCoord, 0)).r;
+	float phase = phasesTexture.Load(uint3(pixelCoord, 0)).r;
 
 	phase = Mod(phase + deltaPhase, 2.f * M_PI);
-	deltaPhasesTx[pixelCoord] = float4(phase, 0.f, 0.f, 0.f);
+	deltaPhasesTexture[pixelCoord] = float4(phase, 0.f, 0.f, 0.f);
 }

@@ -13,7 +13,7 @@ struct RayTracedReflectionsConstants
 	uint  albedoIdx;
 	uint  outputIdx;
 };
-ConstantBuffer<RayTracedReflectionsConstants> PassCB : register(b1);
+ConstantBuffer<RayTracedReflectionsConstants> RayTracedReflectionsPassCB : register(b1);
 
 struct [raypayload] RTR_Payload
 {
@@ -25,22 +25,22 @@ struct [raypayload] RTR_Payload
 void RTR_RayGen()
 {
 	RaytracingAccelerationStructure tlas = ResourceDescriptorHeap[FrameCB.accelStructIdx];
-	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
-	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
-	Texture2D normalMetallicTx = ResourceDescriptorHeap[PassCB.normalIdx];
-	Texture2D albedoRoughnessTx = ResourceDescriptorHeap[PassCB.albedoIdx];
+	RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[RayTracedReflectionsPassCB.outputIdx];
+	Texture2D<float> depthTexture = ResourceDescriptorHeap[RayTracedReflectionsPassCB.depthIdx];
+	Texture2D normalMetallicTexture = ResourceDescriptorHeap[RayTracedReflectionsPassCB.normalIdx];
+	Texture2D albedoRoughnessTexture = ResourceDescriptorHeap[RayTracedReflectionsPassCB.albedoIdx];
 
 	uint2 launchIndex = DispatchRaysIndex().xy;
 	uint2 launchDim = DispatchRaysDimensions().xy;
 
 	float2 uv = (launchIndex + 0.5f) / FrameCB.renderResolution;
-	float depth = depthTx.Load(int3(launchIndex.xy, 0));
-	float4 normalMetallic = normalMetallicTx.Load(int3(launchIndex.xy, 0));
-	float roughness = albedoRoughnessTx.Load(int3(launchIndex.xy, 0)).a;
+	float depth = depthTexture.Load(int3(launchIndex.xy, 0));
+	float4 normalMetallic = normalMetallicTexture.Load(int3(launchIndex.xy, 0));
+	float roughness = albedoRoughnessTexture.Load(int3(launchIndex.xy, 0)).a;
 
 	if (roughness >= ROUGHNESS_CUTOFF)
 	{
-		outputTx[launchIndex.xy] = 0.0f;
+		outputTexture[launchIndex.xy] = 0.0f;
 		return;
 	}
 
@@ -53,7 +53,7 @@ void RTR_RayGen()
 	float3 rayDir = reflect(V, worldNormal);
 
 	uint randSeed = InitRand(launchIndex.x + launchIndex.y * launchDim.x, 0, 16);
-	rayDir = GetConeSample(randSeed, rayDir, PassCB.roughnessScale);
+	rayDir = GetConeSample(randSeed, rayDir, RayTracedReflectionsPassCB.roughnessScale);
 
 	RayDesc ray;
 	ray.Origin = worldPosition;
@@ -69,7 +69,7 @@ void RTR_RayGen()
 		0xFF, 0, 0, 0, ray, payloadData);
 
 	float3 fresnel = clamp(pow(1 - dot(normalize(worldPosition), worldNormal), 1), 0, 1);
-	outputTx[launchIndex.xy] = float4(0.25f * fresnel * payloadData.reflectionColor, 1.0f);
+	outputTexture[launchIndex.xy] = float4(0.25f * fresnel * payloadData.reflectionColor, 1.0f);
 }
 
 [shader("miss")]

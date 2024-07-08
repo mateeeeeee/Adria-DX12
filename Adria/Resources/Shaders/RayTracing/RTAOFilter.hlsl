@@ -8,7 +8,7 @@ struct RTAOFilterIndices
 	uint  inputIdx;
 	uint  outputIdx;
 };
-ConstantBuffer<RTAOFilterIndices> PassCB : register(b1);
+ConstantBuffer<RTAOFilterIndices> RTAOFilterPassCB : register(b1);
 
 struct RTAOFilterConstants
 {
@@ -23,7 +23,7 @@ struct RTAOFilterConstants
 	float filterDistKernel4;
 	float filterDistKernel5;
 };
-ConstantBuffer<RTAOFilterConstants> PassCB2 : register(b2);
+ConstantBuffer<RTAOFilterConstants> RTAOFilterPassCB2 : register(b2);
 
 
 
@@ -34,18 +34,18 @@ groupshared float2 DistanceAndAO[PADDED_PIXEL_WIDTH][PADDED_PIXEL_WIDTH];
 
 float FilterAO(int2 paddedPixelPos)
 {
-	if (PassCB2.filterDistanceSigma <= 0.f || PassCB2.filterDepthSigma <= 0.f)
+	if (RTAOFilterPassCB2.filterDistanceSigma <= 0.f || RTAOFilterPassCB2.filterDepthSigma <= 0.f)
 	{
 		return DistanceAndAO[paddedPixelPos.x][paddedPixelPos.y].y;
 	}
 
 	float distanceKernel[FILTER_RADIUS + 1];
-	distanceKernel[0] = PassCB2.filterDistKernel0;
-	distanceKernel[1] = PassCB2.filterDistKernel1;
-	distanceKernel[2] = PassCB2.filterDistKernel2;
-	distanceKernel[3] = PassCB2.filterDistKernel3;
-	distanceKernel[4] = PassCB2.filterDistKernel4;
-	distanceKernel[5] = PassCB2.filterDistKernel5;
+	distanceKernel[0] = RTAOFilterPassCB2.filterDistKernel0;
+	distanceKernel[1] = RTAOFilterPassCB2.filterDistKernel1;
+	distanceKernel[2] = RTAOFilterPassCB2.filterDistKernel2;
+	distanceKernel[3] = RTAOFilterPassCB2.filterDistKernel3;
+	distanceKernel[4] = RTAOFilterPassCB2.filterDistKernel4;
+	distanceKernel[5] = RTAOFilterPassCB2.filterDistKernel5;
 
 	float totalWeight = 0.f;
 	float sum = 0.f;
@@ -58,7 +58,7 @@ float FilterAO(int2 paddedPixelPos)
 			float weight = distanceKernel[abs(x)] * distanceKernel[abs(y)];
 			float depth = DistanceAndAO[paddedPixelPos.x + x][paddedPixelPos.y + y].x;
 			float depthDifference = depth - centerDepth;
-			float depthSigma = PassCB2.filterDepthSigma;
+			float depthSigma = RTAOFilterPassCB2.filterDepthSigma;
 
 			weight *= exp(-(depthDifference * depthDifference) / (2.f * depthSigma * depthSigma));
 			sum += DistanceAndAO[paddedPixelPos.x + x][paddedPixelPos.y + y].y * weight;
@@ -80,9 +80,9 @@ struct CSInput
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void RTAOFilterCS(CSInput input)
 {
-	Texture2D<float> rtaoTx = ResourceDescriptorHeap[PassCB.inputIdx];
-	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
-	RWTexture2D<float> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
+	Texture2D<float> rtaoTexture = ResourceDescriptorHeap[RTAOFilterPassCB.inputIdx];
+	Texture2D<float> depthTexture = ResourceDescriptorHeap[RTAOFilterPassCB.depthIdx];
+	RWTexture2D<float> outputTexture = ResourceDescriptorHeap[RTAOFilterPassCB.outputIdx];
 
 	// Load hit distance and ambient occlusion for this pixel and share it with the thread group
 	int2 pixelBase = int2(input.GroupID.xy) * int2(BLOCK_SIZE, BLOCK_SIZE) - int2(FILTER_RADIUS, FILTER_RADIUS);
@@ -98,17 +98,17 @@ void RTAOFilterCS(CSInput input)
 		if (paddedPixel.x < PADDED_PIXEL_WIDTH && paddedPixel.y < PADDED_PIXEL_WIDTH)
 		{
 			int2 srcPixel = paddedPixel + pixelBase;
-			if (srcPixel.x < 0 || srcPixel.y < 0 || srcPixel.x >= PassCB2.filterWidth || srcPixel.y >= PassCB2.filterHeight)
+			if (srcPixel.x < 0 || srcPixel.y < 0 || srcPixel.x >= RTAOFilterPassCB2.filterWidth || srcPixel.y >= RTAOFilterPassCB2.filterHeight)
 			{
 				DistanceAndAO[paddedPixel.x][paddedPixel.y] = float2(0.0f, 0.0f);
 			}
 			else
 			{
-				float depth = depthTx.Load(int3(srcPixel, 0));
-				float2 texCoords = (srcPixel + 0.5f) / float2(PassCB2.filterWidth, PassCB2.filterHeight);
+				float depth = depthTexture.Load(int3(srcPixel, 0));
+				float2 texCoords = (srcPixel + 0.5f) / float2(RTAOFilterPassCB2.filterWidth, RTAOFilterPassCB2.filterHeight);
 				float3 worldPosition = GetWorldPosition(texCoords, depth);
 				float distance = length(worldPosition - FrameCB.cameraPosition.xyz);
-				float occlusion = rtaoTx.Load(int3(srcPixel, 0));
+				float occlusion = rtaoTexture.Load(int3(srcPixel, 0));
 				DistanceAndAO[paddedPixel.x][paddedPixel.y] = float2(distance, occlusion);
 			}
 		}
@@ -123,6 +123,6 @@ void RTAOFilterCS(CSInput input)
 	// Filter using group shared memory
 	{
 		int2 pixelIndex = int2(input.GroupThreadID.xy) + int2(FILTER_RADIUS, FILTER_RADIUS);
-		outputTx[input.DispatchThreadID.xy] = FilterAO(pixelIndex);
+		outputTexture[input.DispatchThreadID.xy] = FilterAO(pixelIndex);
 	}
 }

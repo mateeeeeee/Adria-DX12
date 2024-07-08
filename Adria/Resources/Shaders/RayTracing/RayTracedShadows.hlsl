@@ -6,7 +6,7 @@ struct RayTracedShadowsConstants
 	uint  depthIdx;
 	uint  lightIdx;
 };
-ConstantBuffer<RayTracedShadowsConstants> PassCB : register(b1);
+ConstantBuffer<RayTracedShadowsConstants> RayTracedShadowsPassCB : register(b1);
 
 struct [raypayload] ShadowRayData
 {
@@ -17,15 +17,15 @@ struct [raypayload] ShadowRayData
 void RTS_RayGen()
 {
 	RaytracingAccelerationStructure tlas = ResourceDescriptorHeap[FrameCB.accelStructIdx];
-	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
-	StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
-	Light light = lights[PassCB.lightIdx];
-	RWTexture2D<float> outputTx = ResourceDescriptorHeap[light.shadowMaskIndex];
+	Texture2D<float> depthTexture = ResourceDescriptorHeap[RayTracedShadowsPassCB.depthIdx];
+	StructuredBuffer<Light> lightBuffer = ResourceDescriptorHeap[FrameCB.lightsIdx];
+	Light light = lightBuffer[RayTracedShadowsPassCB.lightIdx];
+	RWTexture2D<float> outputTexture = ResourceDescriptorHeap[light.shadowMaskIndex];
 
 	uint2 launchIndex = DispatchRaysIndex().xy;
 	uint2 launchDim = DispatchRaysDimensions().xy;
 
-	float depth = depthTx.Load(int3(launchIndex.xy, 0)).r;
+	float depth = depthTexture.Load(int3(launchIndex.xy, 0)).r;
 	float2 texCoords = (launchIndex + 0.5f) / FrameCB.renderResolution;
 	float3 worldPos = GetWorldPosition(texCoords, depth);
 
@@ -61,7 +61,7 @@ void RTS_RayGen()
 	payload.hit = true;
 	TraceRay(tlas, (RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES),
 		0xFF, 0, 0, 0, ray, payload);
-    outputTx[launchIndex.xy] = payload.hit ? 0.0f : 1.0f;
+    outputTexture[launchIndex.xy] = payload.hit ? 0.0f : 1.0f;
 }
 
 [shader("miss")]

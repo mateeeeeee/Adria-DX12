@@ -67,7 +67,7 @@ struct TAAConstants
 	uint velocityIdx;
 	uint outputIdx;
 };
-ConstantBuffer<TAAConstants> PassCB : register(b1);
+ConstantBuffer<TAAConstants> TAAPassCB : register(b1);
 
 struct CSInput
 {
@@ -80,15 +80,15 @@ struct CSInput
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void TAA_CS(CSInput input)
 {
-	Texture2D<float4> sceneTx = ResourceDescriptorHeap[PassCB.sceneIdx];
-	Texture2D<float4> prevSceneTx = ResourceDescriptorHeap[PassCB.prevSceneIdx];
-	Texture2D<float2> velocityTx = ResourceDescriptorHeap[PassCB.velocityIdx];
-	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
+	Texture2D<float4> sceneTexture = ResourceDescriptorHeap[TAAPassCB.sceneIdx];
+	Texture2D<float4> prevSceneTexture = ResourceDescriptorHeap[TAAPassCB.prevSceneIdx];
+	Texture2D<float2> velocityTexture = ResourceDescriptorHeap[TAAPassCB.velocityIdx];
+	RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[TAAPassCB.outputIdx];
 
 	int2 pos = input.DispatchThreadId.xy;
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.displayResolution);
 
-	float3 color = sceneTx.Load(int3(pos, 0)).rgb;
+	float3 color = sceneTexture.Load(int3(pos, 0)).rgb;
 	color = RGBToYCgCo(color);
 	float3 colorAvg = color;
 	float3 colorVar = color * color;
@@ -96,7 +96,7 @@ void TAA_CS(CSInput input)
 	[unroll(8)]
 	for (int i = 0; i < 8; i++)
 	{
-		float3 c = sceneTx.Load(int3(pos + Offsets[i], 0)).rgb;
+		float3 c = sceneTexture.Load(int3(pos + Offsets[i], 0)).rgb;
 		c = RGBToYCgCo(c);
 		colorAvg += c;
 		colorVar += c * c;
@@ -109,15 +109,15 @@ void TAA_CS(CSInput input)
 	float3 colorMin = colorAvg - ColorBoxSigma * sigma;
 	float3 colorMax = colorAvg + ColorBoxSigma * sigma;
 
-	float2 motion = velocityTx.Load(int3(pos, 0));
+	float2 motion = velocityTexture.Load(int3(pos, 0));
 	[unroll(8)]
 	for (int j = 0; j < 8; j++)
 	{
-		float2 m = velocityTx.Load(int3(pos + Offsets[j], 0)).rg;
+		float2 m = velocityTexture.Load(int3(pos + Offsets[j], 0)).rg;
 		motion = dot(m, m) > dot(motion, motion) ? m : motion;
 	}
 
-	float3 history = BicubicSampleCatmullRom(prevSceneTx, (uv + motion) * FrameCB.renderResolution, FrameCB.renderResolution);
+	float3 history = BicubicSampleCatmullRom(prevSceneTexture, (uv + motion) * FrameCB.renderResolution, FrameCB.renderResolution);
 	history = RGBToYCgCo(history);
 
 	float distToClamp = min(abs(colorMin.x - history.x), abs(colorMax.x - history.x));
@@ -125,5 +125,5 @@ void TAA_CS(CSInput input)
 
 	history = clamp(history, colorMin, colorMax);
 	float3 result = YCgCoToRGB(lerp(history, color, alpha));
-	outputTx[input.DispatchThreadId.xy] = float4(result, 1.0f);
+	outputTexture[input.DispatchThreadId.xy] = float4(result, 1.0f);
 }

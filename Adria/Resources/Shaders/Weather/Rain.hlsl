@@ -1,12 +1,12 @@
 #include "CommonResources.hlsli"
 
-struct Constants
+struct RainConstants
 {
 	uint   rainDataIdx;
 	uint   rainStreakIdx;
 	float  rainStreakScale;
 };
-ConstantBuffer<Constants> PassCB : register(b1);
+ConstantBuffer<RainConstants> RainPassCB : register(b1);
 
 struct RainData
 {
@@ -47,7 +47,7 @@ VSToPS RainVS(uint VertexID : SV_VERTEXID)
 {
 	VSToPS output = (VSToPS)0;
 
-	StructuredBuffer<RainData> rainDataBuffer = ResourceDescriptorHeap[PassCB.rainDataIdx];
+	StructuredBuffer<RainData> rainDataBuffer = ResourceDescriptorHeap[RainPassCB.rainDataIdx];
 	RainData rainDrop = rainDataBuffer[VertexID / 6];
 
 	float3x3 viewRotation = (float3x3)FrameCB.view;
@@ -59,8 +59,8 @@ VSToPS RainVS(uint VertexID : SV_VERTEXID)
 	rainRight = normalize(rainRight);
 
 	float2 offsets = PositionOffsets[VertexID % 6];
-	pos += rainRight * offsets.x * PassCB.rainStreakScale * 0.025;
-	pos += rainDir * offsets.y * PassCB.rainStreakScale;
+	pos += rainRight * offsets.x * RainPassCB.rainStreakScale * 0.025;
+	pos += rainDir * offsets.y * RainPassCB.rainStreakScale;
 
 	output.Position = mul(float4(pos, 1.0), FrameCB.viewProjection);
 	output.TexCoord = UVs[VertexID % 6];
@@ -70,8 +70,8 @@ VSToPS RainVS(uint VertexID : SV_VERTEXID)
 
 float4 RainPS(VSToPS input) : SV_TARGET
 {
-	Texture2D rainStreakTx = ResourceDescriptorHeap[PassCB.rainStreakIdx];
-	float4 rainColor = rainStreakTx.Sample(LinearBorderSampler, input.TexCoord);
+	Texture2D rainStreakTexture = ResourceDescriptorHeap[RainPassCB.rainStreakIdx];
+	float4 rainColor = rainStreakTexture.Sample(LinearBorderSampler, input.TexCoord);
 
 	return rainColor.rgbr;
 }

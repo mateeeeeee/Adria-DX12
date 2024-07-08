@@ -1,12 +1,12 @@
 #include "CommonResources.hlsli"
 
-struct VSToPS
+struct VSToGS
 {
     float4 Pos : SV_POSITION;
     nointerpolation uint VertexId : VERTEXID;
 };
 
-struct GeometryOut
+struct GSToPS
 {
     float4 Pos : SV_POSITION;
     float3 TexPos : TEXCOORD0; 
@@ -15,16 +15,6 @@ struct GeometryOut
 };
 
 static const float mods[] = { 1, 0.55, 0.4, 0.1, -0.1, -0.3, -0.5 };
-
-Texture2D lensTx0 : register(t0);
-Texture2D lensTx1 : register(t1);
-Texture2D lensTx2 : register(t2);
-Texture2D lensTx3 : register(t3);
-Texture2D lensTx4 : register(t4);
-Texture2D lensTx5 : register(t5);
-Texture2D lensTx6 : register(t6);
-
-Texture2D depthTx : register(t7);
 
 struct LensFlareConstants
 {
@@ -43,11 +33,13 @@ struct LensFlareConstants2
     float3 sunScreenSpacePosition;
 };
 
-ConstantBuffer<LensFlareConstants> PassCB : register(b1);
-ConstantBuffer<LensFlareConstants2> PassCB2 : register(b2);
-void Append(inout TriangleStream<GeometryOut> triStream, GeometryOut p1, uint selector, float2 posMod, float2 size)
+ConstantBuffer<LensFlareConstants> LensFlarePassCB : register(b1);
+ConstantBuffer<LensFlareConstants2> LensFlareLensFlarePassCB2 : register(b2);
+
+
+void Append(inout TriangleStream<GSToPS> triStream, GSToPS p1, uint selector, float2 posMod, float2 size)
 {
-    float2 pos = (PassCB2.sunScreenSpacePosition.xy - 0.5f) * float2(2.0f, -2.0f);
+    float2 pos = (LensFlareLensFlarePassCB2.sunScreenSpacePosition.xy - 0.5f) * float2(2.0f, -2.0f);
     float2 moddedPos = pos * posMod;
     float dis = distance(pos, moddedPos);
 
@@ -70,61 +62,59 @@ void Append(inout TriangleStream<GeometryOut> triStream, GeometryOut p1, uint se
     triStream.Append(p1);
 }
 
-VSToPS LensFlareVS(uint vid : SV_VERTEXID)
+VSToGS LensFlareVS(uint VertexID : SV_VERTEXID)
 {
-    VSToPS o = (VSToPS)0;
+    VSToGS o = (VSToGS)0;
     o.Pos = 0;
-    o.VertexId = vid;
+    o.VertexId = VertexID;
     return o;
 }
 
 [maxvertexcount(4)]
-void LensFlareGS(point VSToPS p[1], inout TriangleStream<GeometryOut> triStream)
+void LensFlareGS(point VSToGS p[1], inout TriangleStream<GSToPS> triStream)
 {
-    Texture2D lensTx0 = ResourceDescriptorHeap[PassCB.lensIdx0];
-    Texture2D lensTx1 = ResourceDescriptorHeap[PassCB.lensIdx1];
-    Texture2D lensTx2 = ResourceDescriptorHeap[PassCB.lensIdx2];
-    Texture2D lensTx3 = ResourceDescriptorHeap[PassCB.lensIdx3];
-    Texture2D lensTx4 = ResourceDescriptorHeap[PassCB.lensIdx4];
-    Texture2D lensTx5 = ResourceDescriptorHeap[PassCB.lensIdx5];
-    Texture2D lensTx6 = ResourceDescriptorHeap[PassCB.lensIdx6];
-    Texture2D depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
+    Texture2D lensTexture0 = ResourceDescriptorHeap[LensFlarePassCB.lensIdx0];
+    Texture2D lensTexture1 = ResourceDescriptorHeap[LensFlarePassCB.lensIdx1];
+    Texture2D lensTexture2 = ResourceDescriptorHeap[LensFlarePassCB.lensIdx2];
+    Texture2D lensTexture3 = ResourceDescriptorHeap[LensFlarePassCB.lensIdx3];
+    Texture2D lensTexture4 = ResourceDescriptorHeap[LensFlarePassCB.lensIdx4];
+    Texture2D lensTexture5 = ResourceDescriptorHeap[LensFlarePassCB.lensIdx5];
+    Texture2D lensTexture6 = ResourceDescriptorHeap[LensFlarePassCB.lensIdx6];
+    Texture2D depthTexture = ResourceDescriptorHeap[LensFlarePassCB.depthIdx];
     
-    GeometryOut p1 = (GeometryOut) 0;
+    GSToPS p1 = (GSToPS) 0;
     float2 flareSize = float2(256, 256);
 	[branch]
     switch (p[0].VertexId)
     {
         case 0:
-            lensTx0.GetDimensions(flareSize.x, flareSize.y);
+            lensTexture0.GetDimensions(flareSize.x, flareSize.y);
             break;
         case 1:
-            lensTx1.GetDimensions(flareSize.x, flareSize.y);
+            lensTexture1.GetDimensions(flareSize.x, flareSize.y);
             break;
         case 2:
-            lensTx2.GetDimensions(flareSize.x, flareSize.y);
+            lensTexture2.GetDimensions(flareSize.x, flareSize.y);
             break;
         case 3:
-            lensTx3.GetDimensions(flareSize.x, flareSize.y);
+            lensTexture3.GetDimensions(flareSize.x, flareSize.y);
             break;
         case 4:
-            lensTx4.GetDimensions(flareSize.x, flareSize.y);
+            lensTexture4.GetDimensions(flareSize.x, flareSize.y);
             break;
         case 5:
-            lensTx5.GetDimensions(flareSize.x, flareSize.y);
+            lensTexture5.GetDimensions(flareSize.x, flareSize.y);
             break;
         case 6:
-            lensTx6.GetDimensions(flareSize.x, flareSize.y);
+            lensTexture6.GetDimensions(flareSize.x, flareSize.y);
             break;
         default:
             break;
     };
 
     float2 screenResolution = FrameCB.renderResolution;
-   
     flareSize /= screenResolution;
-
-    float referenceDepth = saturate(PassCB2.sunScreenSpacePosition.z);
+    float referenceDepth = saturate(LensFlareLensFlarePassCB2.sunScreenSpacePosition.z);
 
 	const float2 step = 1.0f / screenResolution;
     const float2 range = 10.5f * step;
@@ -135,7 +125,7 @@ void LensFlareGS(point VSToPS p[1], inout TriangleStream<GeometryOut> triStream)
         for (float x = -range.x; x <= range.x; x += step.x)
         {
             samples += 1.0f;
-            visibility += depthTx.SampleLevel(PointClampSampler, PassCB2.sunScreenSpacePosition.xy + float2(x, y), 0).r <= referenceDepth + 0.001 ? 1 : 0;
+            visibility += depthTexture.SampleLevel(PointClampSampler, LensFlareLensFlarePassCB2.sunScreenSpacePosition.xy + float2(x, y), 0).r <= referenceDepth + 0.001 ? 1 : 0;
         }
     }
     visibility /= samples;
@@ -149,42 +139,42 @@ void LensFlareGS(point VSToPS p[1], inout TriangleStream<GeometryOut> triStream)
     }
 }
 
-float4 LensFlarePS(GeometryOut In) : SV_TARGET
+float4 LensFlarePS(GSToPS In) : SV_TARGET
 {
-    Texture2D lensTx0 = ResourceDescriptorHeap[PassCB.lensIdx0];
-    Texture2D lensTx1 = ResourceDescriptorHeap[PassCB.lensIdx1];
-    Texture2D lensTx2 = ResourceDescriptorHeap[PassCB.lensIdx2];
-    Texture2D lensTx3 = ResourceDescriptorHeap[PassCB.lensIdx3];
-    Texture2D lensTx4 = ResourceDescriptorHeap[PassCB.lensIdx4];
-    Texture2D lensTx5 = ResourceDescriptorHeap[PassCB.lensIdx5];
-    Texture2D lensTx6 = ResourceDescriptorHeap[PassCB.lensIdx6];               
-    Texture2D depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
+    Texture2D lensTexture0 = ResourceDescriptorHeap[LensFlarePassCB.lensIdx0];
+    Texture2D lensTexture1 = ResourceDescriptorHeap[LensFlarePassCB.lensIdx1];
+    Texture2D lensTexture2 = ResourceDescriptorHeap[LensFlarePassCB.lensIdx2];
+    Texture2D lensTexture3 = ResourceDescriptorHeap[LensFlarePassCB.lensIdx3];
+    Texture2D lensTexture4 = ResourceDescriptorHeap[LensFlarePassCB.lensIdx4];
+    Texture2D lensTexture5 = ResourceDescriptorHeap[LensFlarePassCB.lensIdx5];
+    Texture2D lensTexture6 = ResourceDescriptorHeap[LensFlarePassCB.lensIdx6];               
+    Texture2D depthTexture = ResourceDescriptorHeap[LensFlarePassCB.depthIdx];
     
     float4 color = 0.0f;
 	[branch]
     switch (In.Selector)
     {
         case 0:
-            //color = lensTx0.SampleLevel(PointClampSampler, In.TexPos.xy, 0);
+            //color = lensTexture0.SampleLevel(PointClampSampler, In.TexPos.xy, 0);
             color = float4(0.0f, 0.0f, 0.0f, 1.0f);
             break;                                         
         case 1:                                            
-            color = lensTx1.SampleLevel(PointClampSampler, In.TexPos.xy, 0);
+            color = lensTexture1.SampleLevel(PointClampSampler, In.TexPos.xy, 0);
             break;                                         
         case 2:                                            
-            color = lensTx2.SampleLevel(PointClampSampler, In.TexPos.xy, 0);
+            color = lensTexture2.SampleLevel(PointClampSampler, In.TexPos.xy, 0);
             break;                                         
         case 3:                                            
-            color = lensTx3.SampleLevel(PointClampSampler, In.TexPos.xy, 0);
+            color = lensTexture3.SampleLevel(PointClampSampler, In.TexPos.xy, 0);
             break;                                         
         case 4:                                            
-            color = lensTx4.SampleLevel(PointClampSampler, In.TexPos.xy, 0);
+            color = lensTexture4.SampleLevel(PointClampSampler, In.TexPos.xy, 0);
             break;                                         
         case 5:                                            
-            color = lensTx5.SampleLevel(PointClampSampler, In.TexPos.xy, 0);
+            color = lensTexture5.SampleLevel(PointClampSampler, In.TexPos.xy, 0);
             break;                                         
         case 6:                                            
-            color = lensTx6.SampleLevel(PointClampSampler, In.TexPos.xy, 0);
+            color = lensTexture6.SampleLevel(PointClampSampler, In.TexPos.xy, 0);
             break;
         default:
             break;

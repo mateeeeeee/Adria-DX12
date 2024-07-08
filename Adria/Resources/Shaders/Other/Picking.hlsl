@@ -12,25 +12,25 @@ struct PickingConstants
 	uint normalIdx;
 	uint bufferIdx;
 };
-ConstantBuffer<PickingConstants> PassCB : register(b1);
+ConstantBuffer<PickingConstants> PickingPassCB : register(b1);
 
 [numthreads(1, 1, 1)]
 void PickingCS()
 {
 	if (any(FrameCB.mouseNormalizedCoords > 1.0f) || any(FrameCB.mouseNormalizedCoords < 0.0f)) return;
 
-	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
-	Texture2D<float4> normalTx = ResourceDescriptorHeap[PassCB.normalIdx];
-	RWStructuredBuffer<PickingData> pickingBuffer = ResourceDescriptorHeap[PassCB.bufferIdx];
+	Texture2D<float> depthTexture = ResourceDescriptorHeap[PickingPassCB.depthIdx];
+	Texture2D<float4> normalTexture = ResourceDescriptorHeap[PickingPassCB.normalIdx];
+	RWStructuredBuffer<PickingData> pickingBuffer = ResourceDescriptorHeap[PickingPassCB.bufferIdx];
 
 	uint2 mouseCoords = uint2(FrameCB.mouseNormalizedCoords * FrameCB.renderResolution);
 	float2 uv = (mouseCoords + 0.5f) / FrameCB.renderResolution;
 
-	float zw = depthTx[mouseCoords].x;
+	float zw = depthTexture[mouseCoords].x;
 	uv = uv * 2.0f - 1.0f;
 	uv.y *= -1.0f;
 	float4 worldPosition = mul(float4(uv, zw, 1.0f), FrameCB.inverseViewProjection);
-	float3 viewNormal = normalTx[mouseCoords].xyz;
+	float3 viewNormal = normalTexture[mouseCoords].xyz;
 	viewNormal = 2.0f * viewNormal - 1.0f;
 
 	PickingData pickingData;

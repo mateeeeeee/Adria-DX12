@@ -2,7 +2,7 @@
 
 #define BLOCK_SIZE 16
 
-struct DoFConstants
+struct DepthOfFieldConstants
 {
 	float focusDistance;
 	float focusRadius;
@@ -11,11 +11,11 @@ struct DoFConstants
 	uint blurredSceneIdx;
 	uint outputIdx;
 };
-ConstantBuffer<DoFConstants> PassCB : register(b1);
+ConstantBuffer<DepthOfFieldConstants> DepthOfFieldPassCB : register(b1);
 
 float BlurFactor(in float depth)
 {
-	return saturate(abs(depth - PassCB.focusDistance) / PassCB.focusRadius);
+	return saturate(abs(depth - DepthOfFieldPassCB.focusDistance) / DepthOfFieldPassCB.focusRadius);
 }
 
 float3 DistanceDOF(float3 colorFocus, float3 colorBlurred, float depth)
@@ -35,15 +35,15 @@ struct CSInput
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void DepthOfFieldCS(CSInput input)
 {
-	Texture2D sceneTx = ResourceDescriptorHeap[PassCB.sceneIdx];
-	Texture2D blurredSceneTx = ResourceDescriptorHeap[PassCB.blurredSceneIdx];
-	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
-	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
+	Texture2D sceneTexture = ResourceDescriptorHeap[DepthOfFieldPassCB.sceneIdx];
+	Texture2D blurredSceneTexture = ResourceDescriptorHeap[DepthOfFieldPassCB.blurredSceneIdx];
+	Texture2D<float> depthTexture = ResourceDescriptorHeap[DepthOfFieldPassCB.depthIdx];
+	RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[DepthOfFieldPassCB.outputIdx];
 	float2 uv = ((float2)input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
 	
-	float depth = depthTx.Sample(LinearBorderSampler, uv);
-	float3 color = sceneTx.Sample(LinearWrapSampler, uv).rgb;
-	float3 colorBlurred = blurredSceneTx.Sample(LinearWrapSampler, uv).rgb;
+	float depth = depthTexture.Sample(LinearBorderSampler, uv);
+	float3 color = sceneTexture.Sample(LinearWrapSampler, uv).rgb;
+	float3 colorBlurred = blurredSceneTexture.Sample(LinearWrapSampler, uv).rgb;
 	depth = LinearizeDepth(depth);
-	outputTx[input.DispatchThreadId.xy] = float4(DistanceDOF(color.xyz, colorBlurred, depth), 1.0);
+	outputTexture[input.DispatchThreadId.xy] = float4(DistanceDOF(color.xyz, colorBlurred, depth), 1.0);
 }

@@ -13,7 +13,7 @@ struct DecalsConstants
 	uint decalNormalIdx;
 	uint depthIdx;
 };
-ConstantBuffer<DecalsConstants> PassCB : register(b2);
+ConstantBuffer<DecalsConstants> DecalsPassCB : register(b2);
 
 struct VSInput
 {
@@ -30,10 +30,10 @@ struct VSToPS
 VSToPS DecalsVS(VSInput input)
 {
 	VSToPS output = (VSToPS)0;
-	float4 worldPos = mul(float4(input.Pos, 1.0f), PassCB.modelMatrix);
+	float4 worldPos = mul(float4(input.Pos, 1.0f), DecalsPassCB.modelMatrix);
 	output.Position = mul(worldPos, FrameCB.viewProjection);
 	output.ClipSpacePos = output.Position;
-	output.InverseModel = transpose(PassCB.transposedInverseModel);
+	output.InverseModel = transpose(DecalsPassCB.transposedInverseModel);
 	return output;
 }
 
@@ -49,12 +49,12 @@ PSOutput DecalsPS(VSToPS input)
 {
 	PSOutput output = (PSOutput)0;
 
-	Texture2D<float4> albedoTx = ResourceDescriptorHeap[PassCB.decalAlbedoIdx];
-	Texture2D<float>  depthTx  = ResourceDescriptorHeap[PassCB.depthIdx];
+	Texture2D<float4> albedoTexture = ResourceDescriptorHeap[DecalsPassCB.decalAlbedoIdx];
+	Texture2D<float>  depthTexture  = ResourceDescriptorHeap[DecalsPassCB.depthIdx];
 
 	float2 screenPos = input.ClipSpacePos.xy / input.ClipSpacePos.w;
 	float2 depthCoords = screenPos * float2(0.5f, -0.5f) + 0.5f;
-	float  depth = depthTx.Sample(PointClampSampler, depthCoords).r;
+	float  depth = depthTexture.Sample(PointClampSampler, depthCoords).r;
 
 	float4 posVS = float4(GetViewPosition(depthCoords, depth), 1.0f);
 	float4 posWS = mul(posVS, FrameCB.inverseView);
@@ -63,7 +63,7 @@ PSOutput DecalsPS(VSToPS input)
 	clip(0.5f - abs(posLS.xyz));
 
 	float2 texCoords = 0.0f;
-	switch (PassCB.decalType)
+	switch (DecalsPassCB.decalType)
 	{
 	case DECAL_XY:
 		texCoords = posLS.xy + 0.5f;
@@ -79,12 +79,12 @@ PSOutput DecalsPS(VSToPS input)
 		return output;
 	}
 
-	float4 albedo = albedoTx.SampleLevel(LinearWrapSampler, texCoords, 0);
+	float4 albedo = albedoTexture.SampleLevel(LinearWrapSampler, texCoords, 0);
 	if (albedo.a < 0.1) discard;
 	output.DiffuseRoughness.rgb = albedo.rgb;
 
 #ifdef DECAL_MODIFY_NORMALS
-	Texture2D<float4> normalTx = ResourceDescriptorHeap[PassCB.decalNormalIdx];
+	Texture2D<float4> normalTexture = ResourceDescriptorHeap[DecalsPassCB.decalNormalIdx];
 	posWS /= posWS.w;
 	float3 ddxWorldSpace = ddx(posWS.xyz);
 	float3 ddyWorldSpace = ddy(posWS.xyz);
@@ -95,7 +95,7 @@ PSOutput DecalsPS(VSToPS input)
 
 	float3x3 TBN = float3x3(tangent, binormal, normal);
 
-	float3 DecalNormal = normalTx.Sample(LinearWrapSampler, texCoords).xyz;
+	float3 DecalNormal = normalTexture.Sample(LinearWrapSampler, texCoords).xyz;
 	DecalNormal = 2.0f * DecalNormal - 1.0f;
 	DecalNormal = mul(DecalNormal, TBN);
 	float3 DecalNormalVS = normalize(mul(DecalNormal, (float3x3)FrameCB.view));

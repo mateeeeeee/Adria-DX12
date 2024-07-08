@@ -7,7 +7,7 @@ struct Constants
 	float3 diffuseColor;
 	uint   diffuseIdx;
 };
-ConstantBuffer<Constants> PassCB : register(b2);
+ConstantBuffer<Constants> SimplePassCB : register(b2);
 
 struct VSInput
 {
@@ -24,14 +24,14 @@ struct VSToPS
 VSToPS SimpleVS(VSInput input)
 {
 	VSToPS output;
-	output.Position = mul(mul(float4(input.Pos, 1.0), PassCB.modelMatrix), FrameCB.viewProjection);
+	output.Position = mul(mul(float4(input.Pos, 1.0), SimplePassCB.modelMatrix), FrameCB.viewProjection);
 	output.TexCoord = input.Uv;
 	return output;
 }
 
 VSToPS SunVS(VSInput input)
 {
-	float4x4 modelMatrix = PassCB.modelMatrix;
+	float4x4 modelMatrix = SimplePassCB.modelMatrix;
 	modelMatrix[3][0] += FrameCB.inverseView[3][0];
 	modelMatrix[3][1] += FrameCB.inverseView[3][1];
 	modelMatrix[3][2] += FrameCB.inverseView[3][2];
@@ -58,12 +58,12 @@ VSToPS SunVS(VSInput input)
 
 float4 TexturePS(VSToPS input) : SV_TARGET
 {
-	Texture2D diffuseTx = ResourceDescriptorHeap[PassCB.diffuseIdx];
-	float4 texColor = diffuseTx.Sample(LinearWrapSampler, input.TexCoord) * float4(PassCB.diffuseColor, 1.0);
+	Texture2D diffuseTexture = ResourceDescriptorHeap[SimplePassCB.diffuseIdx];
+	float4 texColor = diffuseTexture.Sample(LinearWrapSampler, input.TexCoord) * float4(SimplePassCB.diffuseColor, 1.0);
 	return texColor;
 }
 
 float4 SolidPS(VSToPS input) : SV_TARGET
 {
-	return float4(PassCB.diffuseColor, 1.0);
+	return float4(SimplePassCB.diffuseColor, 1.0);
 }

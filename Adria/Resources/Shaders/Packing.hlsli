@@ -51,7 +51,6 @@ float2 OctWrap(float2 v)
 float2 EncodeNormalOctahedron(float3 n)
 {
 	n /= (abs(n.x) + abs(n.y) + abs(n.z));
-    //n.xy = n.z >= 0.0 ? n.xy : (1.0 - abs(n.yx)) * (n.xy >= 0.0 ? 1.0 : -1.0);
     n.xy = n.z >= 0.0 ? n.xy : (1.0 - abs(n.yx)) * lerp(-1.0, 1.0, n.xy >= 0.0);
     return n.xy;
 }
@@ -60,7 +59,6 @@ float3 DecodeNormalOctahedron(float2 f)
 {
 	 float3 n = float3(f.x, f.y, 1.0 - abs(f.x) - abs(f.y));
     float t = saturate(-n.z);
-    //n.xy += n.xy >= 0.0 ? -t : t;
     n.xy += lerp(t, -t, n.xy >= 0.0);
     return normalize(n);
 }

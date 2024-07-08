@@ -14,7 +14,7 @@ struct GodRaysConstants
 	uint   sunIdx;
 	uint   outputIdx;
 };
-ConstantBuffer<GodRaysConstants> PassCB : register(b1);
+ConstantBuffer<GodRaysConstants> GodRaysPassCB : register(b1);
 
 struct CSInput
 {
@@ -27,14 +27,14 @@ struct CSInput
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void GodRaysCS(CSInput input)
 {
-	Texture2D<float4> sunTx = ResourceDescriptorHeap[PassCB.sunIdx];
-	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
+	Texture2D<float4> sunTexture = ResourceDescriptorHeap[GodRaysPassCB.sunIdx];
+	RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[GodRaysPassCB.outputIdx];
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
 
-	float3 color = sunTx.SampleLevel(LinearClampSampler, uv, 0).rgb;
+	float3 color = sunTexture.SampleLevel(LinearClampSampler, uv, 0).rgb;
 
-	float2 deltaUV = (uv - PassCB.sunScreenSpacePosition);
-	deltaUV *= PassCB.density / NUM_SAMPLES;
+	float2 deltaUV = (uv - GodRaysPassCB.sunScreenSpacePosition);
+	deltaUV *= GodRaysPassCB.density / NUM_SAMPLES;
 
 	float illuminationDecay = 1.0f;
 	float3 accumulatedGodRays = 0.0f;
@@ -42,11 +42,11 @@ void GodRaysCS(CSInput input)
 	for (int i = 0; i < NUM_SAMPLES; i++)
 	{
 		uv -= deltaUV;
-		float3 sam = sunTx.SampleLevel(LinearClampSampler, uv, 0).rgb;
-		sam *= illuminationDecay * PassCB.weight;
+		float3 sam = sunTexture.SampleLevel(LinearClampSampler, uv, 0).rgb;
+		sam *= illuminationDecay * GodRaysPassCB.weight;
 		accumulated += sam;
-		illuminationDecay *= PassCB.decay;
+		illuminationDecay *= GodRaysPassCB.decay;
 	}
-	accumulated *= PassCB.exposure;
-	outputTx[input.DispatchThreadId.xy] = float4(color + accumulated, 1.0f);
+	accumulated *= GodRaysPassCB.exposure;
+	outputTexture[input.DispatchThreadId.xy] = float4(color + accumulated, 1.0f);
 }

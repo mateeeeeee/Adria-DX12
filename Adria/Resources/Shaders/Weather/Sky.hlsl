@@ -22,8 +22,8 @@ VSToPS SkyVS(VertexIn input)
 }
 float4 SkyPS(VSToPS input) : SV_Target
 {
-	TextureCube cubemapTx = ResourceDescriptorHeap[FrameCB.envMapIdx];
-	return cubemapTx.Sample(LinearWrapSampler, input.PosL);
+	TextureCube skyCubemapTexture = ResourceDescriptorHeap[FrameCB.envMapIdx];
+	return skyCubemapTexture.Sample(LinearWrapSampler, input.PosL);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

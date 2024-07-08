@@ -9,7 +9,7 @@ struct LensFlareConstants
 	uint   depthIdx;
 	uint   outputIdx;
 };
-ConstantBuffer<LensFlareConstants> PassCB : register(b1);
+ConstantBuffer<LensFlareConstants> LensFlarePassCB : register(b1);
 
 //https://www.shadertoy.com/view/4sX3Rs
 float3 LensFlare(float2 uv, float2 pos)
@@ -67,12 +67,12 @@ struct CSInput
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void LensFlareCS(CSInput input)
 {
-	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
-	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
+	Texture2D<float> depthTexture = ResourceDescriptorHeap[LensFlarePassCB.depthIdx];
+	RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[LensFlarePassCB.outputIdx];
 
 	uint3 threadId = input.DispatchThreadId;
 	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
-	float2 sunPos = 2.0f * PassCB.sunScreenSpacePosition - 1.0f;
+	float2 sunPos = 2.0f * LensFlarePassCB.sunScreenSpacePosition - 1.0f;
 
 	//#todo maybe check occlusion queries?
 	const float2 step = 1.0f / FrameCB.renderResolution;
@@ -84,12 +84,12 @@ void LensFlareCS(CSInput input)
 		for (float x = -range.x; x <= range.x; x += step.x)
 		{
 			samples += 1.0f;
-			float2 depthUv = PassCB.sunScreenSpacePosition.xy + float2(x, y);
-			if (IsSaturated(depthUv)) visibility += depthTx.SampleLevel(PointClampSampler, depthUv, 0).r > 0.0f ? 0 : 1;
+			float2 depthUv = LensFlarePassCB.sunScreenSpacePosition.xy + float2(x, y);
+			if (IsSaturated(depthUv)) visibility += depthTexture.SampleLevel(PointClampSampler, depthUv, 0).r > 0.0f ? 0 : 1;
 		}
 	}
 	visibility /= samples;
 
 	float3 lensFlareColor = max(LensFlare(uv, sunPos), 0.0f) * visibility;
-	outputTx[threadId.xy] += float4(lensFlareColor, 1.0f);
+	outputTexture[threadId.xy] += float4(lensFlareColor, 1.0f);
 }

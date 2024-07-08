@@ -31,7 +31,7 @@ struct InitialSpectrumConstants
 	float oceanSize;
 	uint  outputIdx;
 };
-ConstantBuffer<InitialSpectrumConstants> PassCB : register(b1);
+ConstantBuffer<InitialSpectrumConstants> InitialSpectrumPassCB : register(b1);
 
 struct CSInput
 {
@@ -44,17 +44,17 @@ struct CSInput
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void InitialSpectrumCS(CSInput input)
 {
-	RWTexture2D<float> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
+	RWTexture2D<float> outputTexture = ResourceDescriptorHeap[InitialSpectrumPassCB.outputIdx];
 
 	uint2 pixelCoord = input.DispatchThreadId.xy;
-	float n = (pixelCoord.x < 0.5f * uint(PassCB.fftResolution)) ? pixelCoord.x : pixelCoord.x - PassCB.fftResolution;
-	float m = (pixelCoord.y < 0.5f * uint(PassCB.fftResolution)) ? pixelCoord.y : pixelCoord.y - PassCB.fftResolution;
+	float n = (pixelCoord.x < 0.5f * uint(InitialSpectrumPassCB.fftResolution)) ? pixelCoord.x : pixelCoord.x - InitialSpectrumPassCB.fftResolution;
+	float m = (pixelCoord.y < 0.5f * uint(InitialSpectrumPassCB.fftResolution)) ? pixelCoord.y : pixelCoord.y - InitialSpectrumPassCB.fftResolution;
 
-	float2 waveVector = (2.f * M_PI * float2(n, m)) / PassCB.oceanSize;
+	float2 waveVector = (2.f * M_PI * float2(n, m)) / InitialSpectrumPassCB.oceanSize;
 	float k = length(waveVector);
 	if (waveVector.x == 0.0 && waveVector.y == 0.0)
 	{
-		outputTx[pixelCoord] = 0.0f;
+		outputTexture[pixelCoord] = 0.0f;
 		return;
 	}
 	float2 windDir = FrameCB.windParams.xz * FrameCB.windParams.w;
@@ -89,8 +89,8 @@ void InitialSpectrumCS(CSInput input)
 
 	float S = (1.0 / (2.0 * M_PI)) * pow(k, -4.0) * (Bl + Bh) * (1.0 + Delta * (2.0 * cosPhi * cosPhi - 1.0));
 
-	float dk = 2.0 * M_PI / PassCB.oceanSize;
+	float dk = 2.0 * M_PI / InitialSpectrumPassCB.oceanSize;
 	float h = sqrt(S / 2.0) * dk;
 
-	outputTx[pixelCoord] = h;
+	outputTexture[pixelCoord] = h;
 }

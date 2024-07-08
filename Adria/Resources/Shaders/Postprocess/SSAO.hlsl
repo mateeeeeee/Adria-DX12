@@ -15,13 +15,13 @@ struct SSAOConstants
     uint noiseIdx;
     uint outputIdx;
 };
-ConstantBuffer<SSAOConstants> PassCB : register(b1);
+ConstantBuffer<SSAOConstants> SSAOPassCB : register(b1);
 
 struct SSAOKernel
 {
     float4 samples[16];
 };
-ConstantBuffer<SSAOKernel> KernelCB : register(b2);
+ConstantBuffer<SSAOKernel> SSAOKernelCB : register(b2);
 
 struct CSInput
 {
@@ -34,24 +34,24 @@ struct CSInput
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void SSAO_CS(CSInput input)
 {
-    Texture2D normalTx = ResourceDescriptorHeap[PassCB.normalIdx];
-    Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
-    Texture2D noiseTx = ResourceDescriptorHeap[PassCB.noiseIdx];
-    RWTexture2D<float> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
+    Texture2D normalTexture = ResourceDescriptorHeap[SSAOPassCB.normalIdx];
+    Texture2D<float> depthTexture = ResourceDescriptorHeap[SSAOPassCB.depthIdx];
+    Texture2D noiseTexture = ResourceDescriptorHeap[SSAOPassCB.noiseIdx];
+    RWTexture2D<float> outputTexture = ResourceDescriptorHeap[SSAOPassCB.outputIdx];
 
-    float2 ssaoParams = UnpackHalf2(PassCB.ssaoParamsPacked);
+    float2 ssaoParams = UnpackHalf2(SSAOPassCB.ssaoParamsPacked);
     float ssaoRadius = ssaoParams.x;
     float ssaoPower = ssaoParams.y;
     
-    uint2 resolution = uint2(FrameCB.renderResolution) >> PassCB.resolutionFactor;
+    uint2 resolution = uint2(FrameCB.renderResolution) >> SSAOPassCB.resolutionFactor;
     float2 uv = ((float2)input.DispatchThreadId.xy + 0.5f) * 1.0f / resolution;
-    float3 viewNormal = normalTx.Sample(LinearBorderSampler, uv).rgb;
+    float3 viewNormal = normalTexture.Sample(LinearBorderSampler, uv).rgb;
     viewNormal = 2.0f * viewNormal - 1.0f;
     viewNormal = normalize(viewNormal);
     
-    float depth = depthTx.Sample(LinearBorderSampler, uv);
+    float depth = depthTexture.Sample(LinearBorderSampler, uv);
     float3 viewPosition = GetViewPosition(uv, depth);
-    float3 randomVector = normalize(2 * noiseTx.Sample(PointWrapSampler, uv * PassCB.noiseScale).xyz - 1);
+    float3 randomVector = normalize(2 * noiseTexture.Sample(PointWrapSampler, uv * SSAOPassCB.noiseScale).xyz - 1);
 
     float3 tangent = normalize(randomVector - viewNormal * dot(randomVector, viewNormal));
     float3 bitangent = cross(viewNormal, tangent);
@@ -61,16 +61,16 @@ void SSAO_CS(CSInput input)
     [unroll(SSAO_KERNEL_SIZE)]
     for (int i = 0; i < SSAO_KERNEL_SIZE; ++i)
     {
-        float3 sampleDir = mul(KernelCB.samples[i].xyz, TBN); 
+        float3 sampleDir = mul(SSAOKernelCB.samples[i].xyz, TBN); 
         float3 samplePos = viewPosition + sampleDir * ssaoRadius;
         float4 offset = float4(samplePos, 1.0);
         offset = mul(offset, FrameCB.projection);
         offset.xy = ((offset.xy / offset.w) * float2(1.0f, -1.0f)) * 0.5f + 0.5f;
-        float sampleDepth = depthTx.Sample(LinearBorderSampler, offset.xy);
+        float sampleDepth = depthTexture.Sample(LinearBorderSampler, offset.xy);
         sampleDepth = GetViewPosition(offset.xy, sampleDepth).z;
         float rangeCheck = smoothstep(0.0, 1.0, ssaoRadius / abs(viewPosition.z - sampleDepth));
         occlusion += rangeCheck * step(sampleDepth, samplePos.z - 0.01);
     }
     occlusion = 1.0 - (occlusion / SSAO_KERNEL_SIZE);
-    outputTx[input.DispatchThreadId.xy] = pow(abs(occlusion), ssaoPower);
+    outputTexture[input.DispatchThreadId.xy] = pow(abs(occlusion), ssaoPower);
 }

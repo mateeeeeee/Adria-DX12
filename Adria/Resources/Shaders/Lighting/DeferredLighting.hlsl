@@ -26,8 +26,8 @@ struct CSInput
 void DeferredLightingCS(CSInput input)
 {
 	Texture2D               normalMetallicTx = ResourceDescriptorHeap[PassCB.normalMetallicIdx];
-	Texture2D               diffuseTx		 = ResourceDescriptorHeap[PassCB.diffuseIdx];
-	Texture2D<float>        depthTx			 = ResourceDescriptorHeap[PassCB.depthIdx];
+	Texture2D               diffuseTexture		 = ResourceDescriptorHeap[PassCB.diffuseIdx];
+	Texture2D<float>        depthTexture			 = ResourceDescriptorHeap[PassCB.depthIdx];
 	StructuredBuffer<Light> lights		     = ResourceDescriptorHeap[FrameCB.lightsIdx];
 
 	uint lightCount, _unused;
@@ -38,10 +38,10 @@ void DeferredLightingCS(CSInput input)
 	float4 normalMetallic = normalMetallicTx.Sample(LinearWrapSampler, uv);
 	float3 viewNormal	  = 2.0f * normalMetallic.rgb - 1.0f;
 	float  metallic		  = normalMetallic.a;
-	float  depth		  = depthTx.Sample(LinearWrapSampler, uv);
+	float  depth		  = depthTexture.Sample(LinearWrapSampler, uv);
 
 	float3 viewPosition		= GetViewPosition(uv, depth);
-	float4 albedoRoughness	= diffuseTx.Sample(LinearWrapSampler, uv);
+	float4 albedoRoughness	= diffuseTexture.Sample(LinearWrapSampler, uv);
 	float3 V				= normalize(float3(0.0f, 0.0f, 0.0f) - viewPosition);
 	float3 albedo			= albedoRoughness.rgb;
 	float  roughness		= albedoRoughness.a;
@@ -62,6 +62,6 @@ void DeferredLightingCS(CSInput input)
 	float4 emissiveData = emissiveTx.Sample(LinearWrapSampler, uv);
 	float3 emissiveColor = emissiveData.rgb * emissiveData.a * 256;
 	
-	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
-	outputTx[input.DispatchThreadId.xy] = float4(indirectLighting + lightResult.Diffuse + lightResult.Specular + emissiveColor, 1.0f);
+	RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[PassCB.outputIdx];
+	outputTexture[input.DispatchThreadId.xy] = float4(indirectLighting + lightResult.Diffuse + lightResult.Specular + emissiveColor, 1.0f);
 }

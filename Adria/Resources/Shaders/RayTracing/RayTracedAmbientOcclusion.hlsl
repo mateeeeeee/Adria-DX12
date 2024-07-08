@@ -9,7 +9,7 @@ struct RayTracedAmbientOcclusionConstants
 	float aoPower;
 };
 
-ConstantBuffer<RayTracedAmbientOcclusionConstants> PassCB : register(b1);
+ConstantBuffer<RayTracedAmbientOcclusionConstants> RayTracedAmbientOcclusionPassCB : register(b1);
 
 
 struct [raypayload] AORayData
@@ -23,17 +23,17 @@ static const int RAY_COUNT = 1;
 void RTAO_RayGen()
 {
     RaytracingAccelerationStructure tlas = ResourceDescriptorHeap[FrameCB.accelStructIdx];
-	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
-	Texture2D normalsTx = ResourceDescriptorHeap[PassCB.normalsIdx];
-	RWTexture2D<float> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
+	Texture2D<float> depthTexture = ResourceDescriptorHeap[RayTracedAmbientOcclusionPassCB.depthIdx];
+	Texture2D normalTexture = ResourceDescriptorHeap[RayTracedAmbientOcclusionPassCB.normalsIdx];
+	RWTexture2D<float> outputTexture = ResourceDescriptorHeap[RayTracedAmbientOcclusionPassCB.outputIdx];
 
 	uint2 launchIndex = DispatchRaysIndex().xy;
 	uint2 launchDim = DispatchRaysDimensions().xy;
 
-	float depth = depthTx.Load(int3(launchIndex.xy, 0)).r;
+	float depth = depthTexture.Load(int3(launchIndex.xy, 0)).r;
 	float2 texCoords = (launchIndex + 0.5f) / FrameCB.renderResolution;
 	float3 worldPosition = GetWorldPosition(texCoords, depth);
-	float3 viewNormal = normalsTx.Load(int3(launchIndex.xy, 0)).xyz;
+	float3 viewNormal = normalTexture.Load(int3(launchIndex.xy, 0)).xyz;
 	viewNormal = 2.0 * viewNormal - 1.0;
 	float3 worldNormal = normalize(mul(viewNormal, (float3x3) FrameCB.inverseView));
 
@@ -45,13 +45,13 @@ void RTAO_RayGen()
 	rayAO.Origin = OffsetRay(worldPosition, worldNormal);
 	rayAO.Direction = normalize(worldDir);
 	rayAO.TMin = 0.02f;
-	rayAO.TMax = PassCB.aoRadius;
+	rayAO.TMax = RayTracedAmbientOcclusionPassCB.aoRadius;
 
 	TraceRay(tlas,
 		(RAY_FLAG_CULL_BACK_FACING_TRIANGLES),
 		0xFF, 0, 0, 0, rayAO, rayPayload);
 
-	outputTx[launchIndex.xy] = rayPayload.tHit < 0.0f ? 1.0f : pow(saturate(rayPayload.tHit / PassCB.aoRadius), PassCB.aoPower);
+	outputTexture[launchIndex.xy] = rayPayload.tHit < 0.0f ? 1.0f : pow(saturate(rayPayload.tHit / RayTracedAmbientOcclusionPassCB.aoRadius), RayTracedAmbientOcclusionPassCB.aoPower);
 }
 
 [shader("miss")]

@@ -19,7 +19,7 @@ struct HBAOConstants
     uint noiseIdx;
     uint outputIdx;
 };
-ConstantBuffer<HBAOConstants> PassCB : register(b1);
+ConstantBuffer<HBAOConstants> HBAOPassCB : register(b1);
 
 struct CSInput
 {
@@ -31,7 +31,7 @@ struct CSInput
 
 float Falloff(float distanceSquare)
 {
-    return distanceSquare * (-1.0f / PassCB.r2) + 1.0;
+    return distanceSquare * (-1.0f / HBAOPassCB.r2) + 1.0;
 }
 float ComputeAO(float3 p, float3 n, float3 s)
 {
@@ -45,7 +45,7 @@ float2 RotateDirection(float2 dir, float2 cosSin)
     return float2(dir.x * cosSin.x - dir.y * cosSin.y,
                   dir.x * cosSin.y + dir.y * cosSin.x);
 }
-float ComputeCoarseAO(Texture2D<float> depthTx, float2 UV, float radiusInPixels, float3 rand, float3 viewPosition, float3 viewNormal)
+float ComputeCoarseAO(Texture2D<float> depthTexture, float2 UV, float radiusInPixels, float3 rand, float3 viewPosition, float3 viewNormal)
 {
     float stepSizeInPixels = radiusInPixels / (HBAO_NUM_STEPS + 1);
     const float theta = 2.0 * M_PI / HBAO_NUM_DIRECTIONS;
@@ -59,7 +59,7 @@ float ComputeCoarseAO(Texture2D<float> depthTx, float2 UV, float radiusInPixels,
         for (float stepIndex = 0; stepIndex < HBAO_NUM_STEPS; ++stepIndex)
         {
             float2 SnappedUV = round(rayT * direction) / FrameCB.renderResolution + UV;
-            float depth = depthTx.Sample(LinearBorderSampler, SnappedUV);
+            float depth = depthTexture.Sample(LinearBorderSampler, SnappedUV);
             float3 S = GetViewPosition(SnappedUV, depth);
             rayT += stepSizeInPixels;
             AO += ComputeAO(viewPosition, viewNormal, S);
@@ -72,21 +72,21 @@ float ComputeCoarseAO(Texture2D<float> depthTx, float2 UV, float radiusInPixels,
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void HBAO_CS(CSInput input)
 {
-    Texture2D normalTx = ResourceDescriptorHeap[PassCB.normalIdx];
-    Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB.depthIdx];
-    Texture2D noiseTx = ResourceDescriptorHeap[PassCB.noiseIdx];
-    RWTexture2D<float> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
+    Texture2D normalTexture = ResourceDescriptorHeap[HBAOPassCB.normalIdx];
+    Texture2D<float> depthTexture = ResourceDescriptorHeap[HBAOPassCB.depthIdx];
+    Texture2D noiseTexture = ResourceDescriptorHeap[HBAOPassCB.noiseIdx];
+    RWTexture2D<float> outputTexture = ResourceDescriptorHeap[HBAOPassCB.outputIdx];
     
     float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f / (FrameCB.renderResolution);
-    float depth = depthTx.Sample(LinearBorderSampler, uv);
+    float depth = depthTexture.Sample(LinearBorderSampler, uv);
     float3 viewPosition = GetViewPosition(uv, depth);
 
-    float3 viewNormal = normalTx.Sample(LinearBorderSampler, uv).rgb;
+    float3 viewNormal = normalTexture.Sample(LinearBorderSampler, uv).rgb;
     viewNormal = 2.0f * viewNormal - 1.0f;
     viewNormal = normalize(viewNormal);
-    float radius_in_pixels = PassCB.radiusToScreen / viewPosition.z;
-    float3 rand = noiseTx.Sample(PointWrapSampler, uv * PassCB.noiseScale).xyz;
+    float radiusInPixels = HBAOPassCB.radiusToScreen / viewPosition.z;
+    float3 rand = noiseTexture.Sample(PointWrapSampler, uv * HBAOPassCB.noiseScale).xyz;
 
-    float AO = ComputeCoarseAO(depthTx, uv, radius_in_pixels, rand, viewPosition, viewNormal);
-    outputTx[input.DispatchThreadId.xy] = pow(AO, PassCB.power);
+    float AO = ComputeCoarseAO(depthTexture, uv, radiusInPixels, rand, viewPosition, viewNormal);
+    outputTexture[input.DispatchThreadId.xy] = pow(AO, HBAOPassCB.power);
 }

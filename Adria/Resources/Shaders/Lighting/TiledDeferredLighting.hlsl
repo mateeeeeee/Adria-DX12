@@ -34,8 +34,8 @@ struct CSInput
 void TiledDeferredLightingCS(CSInput input)
 {
 	Texture2D               normalMetallicTx = ResourceDescriptorHeap[PassCB.normalMetallicIdx];
-	Texture2D               diffuseTx		 = ResourceDescriptorHeap[PassCB.diffuseIdx];
-	Texture2D<float>        depthTx			 = ResourceDescriptorHeap[PassCB.depthIdx];
+	Texture2D               diffuseTexture		 = ResourceDescriptorHeap[PassCB.diffuseIdx];
+	Texture2D<float>        depthTexture			 = ResourceDescriptorHeap[PassCB.depthIdx];
 
 	StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
 	uint totalLights, _unused;
@@ -49,7 +49,7 @@ void TiledDeferredLightingCS(CSInput input)
 	float minZ = farPlane;
 	float maxZ = nearPlane;
 
-	float depth = depthTx.Load(int3(input.DispatchThreadId.xy, 0));
+	float depth = depthTexture.Load(int3(input.DispatchThreadId.xy, 0));
 	float linearDepth = ReverseLinearizeDepth(depth);
 
 	bool validPixel = linearDepth >= nearPlane && linearDepth < farPlane;
@@ -132,7 +132,7 @@ void TiledDeferredLightingCS(CSInput input)
 	float4 normalMetallic = normalMetallicTx.Load(int3(input.DispatchThreadId.xy, 0));
 	float3 viewNormal  = 2.0f * normalMetallic.rgb - 1.0f;
 	float metallic = normalMetallic.a;
-	float4 albedoRoughness = diffuseTx.Load(int3(input.DispatchThreadId.xy, 0));
+	float4 albedoRoughness = diffuseTexture.Load(int3(input.DispatchThreadId.xy, 0));
 	float3 V = normalize(0.0f.xxx - viewPosition);
 	float3 albedo = albedoRoughness.rgb;
 	float  roughness = albedoRoughness.a;
@@ -157,8 +157,8 @@ void TiledDeferredLightingCS(CSInput input)
 	float4 emissiveData = emissiveTx.Sample(LinearWrapSampler, uv);
 	float3 emissiveColor = emissiveData.rgb * emissiveData.a * 256;
 	
-	RWTexture2D<float4> outputTx = ResourceDescriptorHeap[PassCB.outputIdx];
-	outputTx[input.DispatchThreadId.xy] = float4(indirectLighting + lightResult.Diffuse + lightResult.Specular + emissiveColor, 1.0f);
+	RWTexture2D<float4> outputTexture = ResourceDescriptorHeap[PassCB.outputIdx];
+	outputTexture[input.DispatchThreadId.xy] = float4(indirectLighting + lightResult.Diffuse + lightResult.Specular + emissiveColor, 1.0f);
 
 	if (PassCB.debugIdx > 0)
 	{

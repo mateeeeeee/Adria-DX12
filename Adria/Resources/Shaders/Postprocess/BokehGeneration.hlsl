@@ -19,7 +19,7 @@ struct BokehGenerationConstants
 	float  bokehScale;
 	float  bokehFallout;
 };
-ConstantBuffer<BokehGenerationConstants> PassCB : register(b1);
+ConstantBuffer<BokehGenerationConstants> BokehGenerationPassCB : register(b1);
 
 struct BokehGenerationIndices
 {
@@ -27,11 +27,11 @@ struct BokehGenerationIndices
 	uint depthIdx;
 	uint bokehStackIdx;
 };
-ConstantBuffer<BokehGenerationIndices> PassCB2 : register(b2);
+ConstantBuffer<BokehGenerationIndices> BokehGenerationBokehGenerationPassCB2 : register(b2);
 
 float BlurFactor(in float depth)
 {
-	return saturate(abs(depth - PassCB.focusDistance)) / PassCB.focusRadius;
+	return saturate(abs(depth - BokehGenerationPassCB.focusDistance)) / BokehGenerationPassCB.focusRadius;
 }
 
 struct CSInput
@@ -45,20 +45,20 @@ struct CSInput
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void BokehGenerationCS(CSInput input)
 {
-	Texture2D hdrTx = ResourceDescriptorHeap[PassCB2.hdrIdx];
-	Texture2D<float> depthTx = ResourceDescriptorHeap[PassCB2.depthIdx];
-	AppendStructuredBuffer<Bokeh> bokehBuffer = ResourceDescriptorHeap[PassCB2.bokehStackIdx];
+	Texture2D hdrTexture = ResourceDescriptorHeap[BokehGenerationBokehGenerationPassCB2.hdrIdx];
+	Texture2D<float> depthTexture = ResourceDescriptorHeap[BokehGenerationBokehGenerationPassCB2.depthIdx];
+	AppendStructuredBuffer<Bokeh> bokehBuffer = ResourceDescriptorHeap[BokehGenerationBokehGenerationPassCB2.bokehStackIdx];
 
 	uint2 globalCoords = input.DispatchThreadId.xy;
 	float2 uv = ((float2) globalCoords + 0.5f) * 1.0f / (FrameCB.displayResolution);
 
-	float depth = depthTx.Load(int3(globalCoords, 0));
+	float depth = depthTexture.Load(int3(globalCoords, 0));
 	float centerDepth = LinearizeDepth(depth);
 
 	if (depth < 1.0f)
 	{
 		float centerBlur = BlurFactor(centerDepth);
-		float3 centerColor = hdrTx.Load(int3(globalCoords, 0)).rgb;
+		float3 centerColor = hdrTexture.Load(int3(globalCoords, 0)).rgb;
 		float3 averageColor = 0.0f;
 
 		const uint NumSamples = 9;
@@ -70,7 +70,7 @@ void BokehGenerationCS(CSInput input)
 		};
 		for (uint i = 0; i < NumSamples; ++i)
 		{
-			float3 hdrSample = hdrTx.Load(int3(globalCoords + SamplePoints[i], 0)).rgb;
+			float3 hdrSample = hdrTexture.Load(int3(globalCoords + SamplePoints[i], 0)).rgb;
 			averageColor += hdrSample;
 		}
 		averageColor /= NumSamples;
@@ -79,15 +79,15 @@ void BokehGenerationCS(CSInput input)
 		float centerBrightness = dot(centerColor, 1.0f);
 		float brightnessDiff = max(centerBrightness - averageBrightness, 0.0f);
 		[branch]
-		if (brightnessDiff >= PassCB.bokehLumThreshold && centerBlur > PassCB.bokehBlurThreshold)
+		if (brightnessDiff >= BokehGenerationPassCB.bokehLumThreshold && centerBlur > BokehGenerationPassCB.bokehBlurThreshold)
 		{
 			Bokeh bPoint;
 			bPoint.Position = float3(uv, centerDepth);
-			bPoint.Size = centerBlur * PassCB.bokehScale / FrameCB.displayResolution;
+			bPoint.Size = centerBlur * BokehGenerationPassCB.bokehScale / FrameCB.displayResolution;
 
-			float cocRadius = centerBlur * PassCB.bokehScale * 0.45f;
+			float cocRadius = centerBlur * BokehGenerationPassCB.bokehScale * 0.45f;
 			float cocArea = cocRadius * cocRadius * 3.14159f;
-			float falloff = pow(saturate(1.0f / cocArea), PassCB.bokehFallout);
+			float falloff = pow(saturate(1.0f / cocArea), BokehGenerationPassCB.bokehFallout);
 			bPoint.Color = centerColor * falloff;
 			bokehBuffer.Append(bPoint);
 		}

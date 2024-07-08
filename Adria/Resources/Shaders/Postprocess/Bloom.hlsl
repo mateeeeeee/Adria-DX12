@@ -20,7 +20,7 @@ struct BloomDownsampleConstants
 	uint   sourceIdx;
 	uint   targetIdx;
 };
-ConstantBuffer<BloomDownsampleConstants> PassCB : register(b1);
+ConstantBuffer<BloomDownsampleConstants> BloomDownsamplePassCB : register(b1);
 
 float Luminance(float3 color)
 {
@@ -46,10 +46,10 @@ float3 ComputePartialAverage(float3 v0, float3 v1, float3 v2, float3 v3)
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void BloomDownsampleCS(CSInput input)
 {
-	Texture2D sourceTx = ResourceDescriptorHeap[PassCB.sourceIdx];
-	RWTexture2D<float4> targetTx = ResourceDescriptorHeap[PassCB.targetIdx];
+	Texture2D sourceTx = ResourceDescriptorHeap[BloomDownsamplePassCB.sourceIdx];
+	RWTexture2D<float4> targetTx = ResourceDescriptorHeap[BloomDownsamplePassCB.targetIdx];
 
-	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f * PassCB.dimsInv;
+	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f * BloomDownsamplePassCB.dimsInv;
 
 	float3 outColor = 0.0f;
 	float3 M0 = sourceTx.SampleLevel(LinearClampSampler, uv, 0, int2(-1.0f, 1.0f)).xyz;
@@ -84,27 +84,27 @@ struct BloomUpsampleConstants
 	uint   outputIdx;
 	float  radius;
 };
-ConstantBuffer<BloomUpsampleConstants> PassCB2 : register(b1);
+ConstantBuffer<BloomUpsampleConstants> BloomUpsampleBloomDownsamplePassCB : register(b1);
 
 [numthreads(BLOCK_SIZE, BLOCK_SIZE, 1)]
 void BloomUpsampleCS(CSInput input)
 {
-	Texture2D inputLowTx = ResourceDescriptorHeap[PassCB2.lowInputIdx];
-	Texture2D inputHighTx = ResourceDescriptorHeap[PassCB2.highInputIdx];
-	RWTexture2D<float3> outputTx = ResourceDescriptorHeap[PassCB2.outputIdx];
+	Texture2D inputLowTexture = ResourceDescriptorHeap[BloomUpsampleBloomDownsamplePassCB.lowInputIdx];
+	Texture2D inputHighTexture = ResourceDescriptorHeap[BloomUpsampleBloomDownsamplePassCB.highInputIdx];
+	RWTexture2D<float3> outputTexture = ResourceDescriptorHeap[BloomUpsampleBloomDownsamplePassCB.outputIdx];
 
-	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f * PassCB2.dimsInv;
+	float2 uv = ((float2) input.DispatchThreadId.xy + 0.5f) * 1.0f * BloomUpsampleBloomDownsamplePassCB.dimsInv;
 
 	float3 outColor = 0.0f;
-	outColor += 0.0625f * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0, int2(-1.0f, 1.0f)).xyz;
-	outColor += 0.125f  * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0, int2(0.0f, 1.0f)).xyz;
-	outColor += 0.0625f * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0, int2(1.0f, 1.0f)).xyz;
-	outColor += 0.125f  * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0, int2(-1.0f, 0.0f)).xyz;
-	outColor += 0.25f   * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0, int2(0.0f, 0.0f)).xyz;
-	outColor += 0.125f  * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0, int2(1.0f, 0.0f)).xyz;
-	outColor += 0.0625f * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0, int2(-1.0f, -1.0f)).xyz;
-	outColor += 0.125f  * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0, int2(0.0f, -1.0f)).xyz;
-	outColor += 0.0625f * inputLowTx.SampleLevel(LinearBorderSampler, uv, 0, int2(1.0f, -1.0f)).xyz;
+	outColor += 0.0625f * inputLowTexture.SampleLevel(LinearBorderSampler, uv, 0, int2(-1.0f, 1.0f)).xyz;
+	outColor += 0.125f  * inputLowTexture.SampleLevel(LinearBorderSampler, uv, 0, int2(0.0f, 1.0f)).xyz;
+	outColor += 0.0625f * inputLowTexture.SampleLevel(LinearBorderSampler, uv, 0, int2(1.0f, 1.0f)).xyz;
+	outColor += 0.125f  * inputLowTexture.SampleLevel(LinearBorderSampler, uv, 0, int2(-1.0f, 0.0f)).xyz;
+	outColor += 0.25f   * inputLowTexture.SampleLevel(LinearBorderSampler, uv, 0, int2(0.0f, 0.0f)).xyz;
+	outColor += 0.125f  * inputLowTexture.SampleLevel(LinearBorderSampler, uv, 0, int2(1.0f, 0.0f)).xyz;
+	outColor += 0.0625f * inputLowTexture.SampleLevel(LinearBorderSampler, uv, 0, int2(-1.0f, -1.0f)).xyz;
+	outColor += 0.125f  * inputLowTexture.SampleLevel(LinearBorderSampler, uv, 0, int2(0.0f, -1.0f)).xyz;
+	outColor += 0.0625f * inputLowTexture.SampleLevel(LinearBorderSampler, uv, 0, int2(1.0f, -1.0f)).xyz;
 
-	outputTx[input.DispatchThreadId.xy] = lerp(inputHighTx[input.DispatchThreadId.xy].xyz, outColor, PassCB2.radius);
+	outputTexture[input.DispatchThreadId.xy] = lerp(inputHighTexture[input.DispatchThreadId.xy].xyz, outColor, BloomUpsampleBloomDownsamplePassCB.radius);
 }

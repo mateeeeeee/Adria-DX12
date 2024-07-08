@@ -65,19 +65,19 @@ PSOutput GBufferPS(VSToPS input)
     Instance instanceData = GetInstanceData(PassCB.instanceId);
     Material materialData = GetMaterialData(instanceData.materialIdx);
 
-	Texture2D albedoTx = ResourceDescriptorHeap[materialData.diffuseIdx];
-	Texture2D normalTx = ResourceDescriptorHeap[materialData.normalIdx];
+	Texture2D albedoTexture = ResourceDescriptorHeap[materialData.diffuseIdx];
+	Texture2D normalTexture = ResourceDescriptorHeap[materialData.normalIdx];
 	Texture2D metallicRoughnessTx = ResourceDescriptorHeap[materialData.roughnessMetallicIdx];
 	Texture2D emissiveTx = ResourceDescriptorHeap[materialData.emissiveIdx];
 
-	float4 albedoColor = albedoTx.Sample(LinearWrapSampler, input.Uvs) * float4(materialData.baseColorFactor, 1.0f);
+	float4 albedoColor = albedoTexture.Sample(LinearWrapSampler, input.Uvs) * float4(materialData.baseColorFactor, 1.0f);
 	if (albedoColor.a < materialData.alphaCutoff) discard;
 
 	float3 normal = normalize(input.NormalWS);
 	float3 tangent = normalize(input.TangentWS);
 	float3 bitangent = normalize(input.BitangentWS);
 	float3x3 TBN = float3x3(tangent, bitangent, normal); 
-	float3 normalTS = normalTx.Sample(LinearWrapSampler, input.Uvs).xyz;
+	float3 normalTS = normalTexture.Sample(LinearWrapSampler, input.Uvs).xyz;
 	normalTS.xy = 2.0f * normalTS.xy - 1.0f;
 	normalTS.z = sqrt(1.0f - normalTS.x * normalTS.x - normalTS.y * normalTS.y);
 	normal = mul(normalTS, TBN);
