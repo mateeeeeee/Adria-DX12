@@ -52,11 +52,11 @@ void ClusterBuildingCS(CSInput input)
 
 	float2 tileSize = rcp(float2(CLUSTER_BUILDING_DISPATCH_SIZE_X, CLUSTER_BUILDING_DISPATCH_SIZE_Y)); 
 
-	float3 maxPoint = GetViewPosition((groupId.xy + 1) * tileSize, 1.0f);
-	float3 minPoint = GetViewPosition(groupId.xy * tileSize, 1.0f);
+	float3 maxPoint = GetViewPosition((groupId.xy + 1) * tileSize, 0.0f);
+	float3 minPoint = GetViewPosition(groupId.xy * tileSize, 0.0f);
 
-	float clusterNear = FrameCB.cameraNear * pow(FrameCB.cameraFar / FrameCB.cameraNear, groupId.z / float(CLUSTER_BUILDING_DISPATCH_SIZE_Z));
-	float clusterFar = FrameCB.cameraNear * pow(FrameCB.cameraFar / FrameCB.cameraNear, (groupId.z + 1) / float(CLUSTER_BUILDING_DISPATCH_SIZE_Z));
+	float clusterNear = FrameCB.cameraFar * pow(FrameCB.cameraNear / FrameCB.cameraFar, groupId.z / float(CLUSTER_BUILDING_DISPATCH_SIZE_Z));
+	float clusterFar = FrameCB.cameraFar * pow(FrameCB.cameraNear / FrameCB.cameraFar, (groupId.z + 1) / float(CLUSTER_BUILDING_DISPATCH_SIZE_Z));
 
 	float3 minPointNear = IntersectionZPlane(minPoint, clusterNear);
 	float3 minPointFar = IntersectionZPlane(minPoint, clusterFar);
