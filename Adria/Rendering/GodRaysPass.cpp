@@ -48,9 +48,14 @@ namespace adria
 					return;
 				}
 
-				uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.sun));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadWriteTexture(data.output));
+				GfxDescriptor src_descriptors[] =
+				{
+					ctx.GetReadOnlyTexture(data.sun),
+					ctx.GetReadWriteTexture(data.output)
+				};
+				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
+				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
+				uint32 const i = dst_descriptor.GetIndex();
 
 				Vector4 camera_position(frame_data.camera_position);
 				Vector4 light_pos = Vector4::Transform(light.position, XMMatrixTranslation(camera_position.x, 0.0f, camera_position.y));
@@ -78,7 +83,7 @@ namespace adria
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::GodRays));
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
-				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
+				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 	}
 

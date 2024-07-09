@@ -136,10 +136,14 @@ namespace adria
 					light_ss.y = -0.5f * light_pos.y / light_pos.w + 0.5f;
 					light_ss.z = light_pos.z / light_pos.w;
 				}
-				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(2);
-				GfxDescriptor src_descriptors[] = { context.GetReadOnlyTexture(data.depth), context.GetReadWriteTexture(data.output) };
+				GfxDescriptor src_descriptors[] = 
+				{ 
+					context.GetReadOnlyTexture(data.depth), 
+					context.GetReadWriteTexture(data.output) 
+				};
+				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
 				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
-				uint32 i = dst_descriptor.GetIndex();
+				uint32 const i = dst_descriptor.GetIndex();
 
 				struct LensFlareConstants
 				{
@@ -158,7 +162,7 @@ namespace adria
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::LensFlare2));
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
-				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
+				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 
 			}, RGPassType::Compute, RGPassFlags::None);
 	}

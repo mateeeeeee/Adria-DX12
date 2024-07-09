@@ -77,7 +77,7 @@ namespace adria
 						};
 						cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::CloudShape));
 						cmd_list->SetRootConstants(1, constants);
-						uint32 dispatch = (uint32)std::ceil(resolution * 1.0f / 8);
+						uint32 const dispatch = DivideAndRoundUp(resolution, 8);
 						cmd_list->Dispatch(dispatch, dispatch, dispatch);
 					}, RGPassType::Compute, RGPassFlags::None);
 			}
@@ -112,7 +112,7 @@ namespace adria
 						};
 						cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::CloudDetail));
 						cmd_list->SetRootConstants(1, constants);
-						uint32 dispatch = (uint32)std::ceil(resolution * 1.0f / 8);
+						uint32 const dispatch = DivideAndRoundUp(resolution, 8);
 						cmd_list->Dispatch(dispatch, dispatch, dispatch);
 					}, RGPassType::Compute, RGPassFlags::None);
 			}
@@ -144,7 +144,7 @@ namespace adria
 					};
 					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::CloudType));
 					cmd_list->SetRootConstants(1, constants);
-					uint32 dispatch = (uint32)std::ceil(resolution * 1.0f / 8);
+					uint32 const dispatch = DivideAndRoundUp(resolution, 8);
 					cmd_list->Dispatch(dispatch, dispatch, dispatch);
 				}, RGPassType::Compute, RGPassFlags::None);
 		}
@@ -268,7 +268,7 @@ namespace adria
 				cmd_list->SetPipelineState(clouds_pso);
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootCBV(2, constants);
-				cmd_list->Dispatch((uint32)std::ceil((width >> resolution) / 16.0f), (uint32)std::ceil((height >> resolution) / 16.0f), 1);
+				cmd_list->Dispatch(DivideAndRoundUp((width >> resolution), 16), DivideAndRoundUp((height >> resolution), 16), 1);
 
 			}, RGPassType::Compute, RGPassFlags::None);
 

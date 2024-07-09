@@ -261,7 +261,7 @@ namespace adria
 				cmd_list->SetPipelineState(PSOCache::Get(pso_id));
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
-				cmd_list->Dispatch((uint32)std::ceil(num_instances / 64.0f), 1, 1);
+				cmd_list->Dispatch(DivideAndRoundUp(num_instances, 64), 1, 1);
 
 			}, RGPassType::Compute, RGPassFlags::None);
 
@@ -795,7 +795,8 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				GfxDescriptor src_handles[] = {
+				GfxDescriptor src_handles[] = 
+				{
 					ctx.GetReadOnlyTexture(data.depth),
 					ctx.GetReadWriteTexture(data.hzb)
 				};
@@ -818,7 +819,7 @@ namespace adria
 				};
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::InitializeHZB));
 				cmd_list->SetRootConstants(1, constants);
-				cmd_list->Dispatch((uint32)std::ceil(hzb_width / 16.0f), (uint32)std::ceil(hzb_width / 16.0f), 1);
+				cmd_list->Dispatch(DivideAndRoundUp(hzb_width, 16), DivideAndRoundUp(hzb_height, 16), 1);
 			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
 
 		struct HZBMipsPassData

@@ -40,15 +40,17 @@ namespace adria
 			[&](HBAOPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				auto dynamic_allocator = gfx->GetDynamicAllocator();
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::HBAO));
-
-				uint32 i = gfx->AllocateDescriptorsGPU(4).GetIndex();
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.depth_stencil_srv));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadOnlyTexture(data.gbuffer_normal_srv));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 2), hbao_random_texture_srv);
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 3), ctx.GetReadWriteTexture(data.output_uav));
+				GfxDescriptor src_descriptors[] =
+				{
+					ctx.GetReadOnlyTexture(data.depth_stencil_srv),
+					ctx.GetReadOnlyTexture(data.gbuffer_normal_srv),
+					hbao_random_texture_srv,
+					ctx.GetReadWriteTexture(data.output_uav)
+				};
+				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
+				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
+				uint32 const i = dst_descriptor.GetIndex();
 
 				struct HBAOConstants
 				{
@@ -69,9 +71,10 @@ namespace adria
 					.depth_idx = i, .normal_idx = i + 1, .noise_idx = i + 2, .output_idx = i + 3
 				};
 
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::HBAO));
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
-				cmd_list->SetRootConstants(1,constants);
-				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
+				cmd_list->SetRootConstants(1, constants);
+				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 			}, RGPassType::Compute);
 
 		blur_pass.AddPass(rendergraph, RG_RES_NAME(HBAO_Output), RG_RES_NAME(AmbientOcclusion), " HBAO");

@@ -44,13 +44,18 @@ namespace adria
 			[=](SSRPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				
-				uint32 i = gfx->AllocateDescriptorsGPU(5).GetIndex();
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.depth));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadOnlyTexture(data.normals));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 2), ctx.GetReadOnlyTexture(data.roughness));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 3), ctx.GetReadOnlyTexture(data.input));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 4), ctx.GetReadWriteTexture(data.output));
+
+				GfxDescriptor src_descriptors[] =
+				{
+					ctx.GetReadOnlyTexture(data.depth),
+					ctx.GetReadOnlyTexture(data.normals),
+					ctx.GetReadOnlyTexture(data.roughness),
+					ctx.GetReadOnlyTexture(data.input),
+					ctx.GetReadWriteTexture(data.output)
+				};
+				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
+				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
+				uint32 const i = dst_descriptor.GetIndex();
 
 				struct SSRConstants
 				{
@@ -71,7 +76,7 @@ namespace adria
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::SSR));
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
-				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
+				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 			}, RGPassType::Compute);
 
 		GUI_RunCommand([&]() {

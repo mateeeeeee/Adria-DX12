@@ -112,10 +112,15 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				uint32 i = gfx->AllocateDescriptorsGPU(3).GetIndex();
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.depth));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadOnlyTexture(data.input));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 2), ctx.GetReadWriteTexture(data.output));
+				GfxDescriptor src_descriptors[] =
+				{
+					ctx.GetReadOnlyTexture(data.depth),
+					ctx.GetReadOnlyTexture(data.input),
+					ctx.GetReadWriteTexture(data.output)
+				};
+				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
+				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
+				uint32 const i = dst_descriptor.GetIndex();
 
 				struct RTAOFilterIndices
 				{
@@ -158,7 +163,7 @@ namespace adria
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, indices);
 				cmd_list->SetRootCBV(2, constants);
-				cmd_list->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
+				cmd_list->Dispatch(DivideAndRoundUp(width, 32), DivideAndRoundUp(height, 32), 1);
 
 				GUI_DisplayTexture("RTAO Filtered", &ctx.GetTexture(*data.output));
 

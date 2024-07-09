@@ -38,9 +38,15 @@ namespace adria
 			[=](BlurPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i), context.GetReadOnlyTexture(data.src_texture));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), context.GetReadWriteTexture(data.dst_texture));
+
+				GfxDescriptor src_descriptors[] =
+				{
+					context.GetReadOnlyTexture(data.src_texture),
+					context.GetReadWriteTexture(data.dst_texture)
+				};
+				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
+				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
+				uint32 const i = dst_descriptor.GetIndex();
 
 				struct BlurConstants
 				{
@@ -54,7 +60,7 @@ namespace adria
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Blur_Horizontal));
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
-				cmd_list->Dispatch((uint32)std::ceil(width / 1024.0f), height, 1);
+				cmd_list->Dispatch(DivideAndRoundUp(width, 1024), height, 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 
 		name = "Vertical Blur Pass" + std::string(pass_name);
@@ -70,9 +76,14 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i), context.GetReadOnlyTexture(data.src_texture));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), context.GetReadWriteTexture(data.dst_texture));
+				GfxDescriptor src_descriptors[] =
+				{
+					context.GetReadOnlyTexture(data.src_texture),
+					context.GetReadWriteTexture(data.dst_texture)
+				};
+				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
+				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
+				uint32 const i = dst_descriptor.GetIndex();
 
 				struct BlurConstants
 				{
@@ -86,7 +97,7 @@ namespace adria
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Blur_Vertical));
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1,constants);
-				cmd_list->Dispatch(width, (uint32)std::ceil(height / 1024.0f), 1);
+				cmd_list->Dispatch(width, DivideAndRoundUp(height, 1024), 1);
 
 			}, RGPassType::Compute, RGPassFlags::None);
 

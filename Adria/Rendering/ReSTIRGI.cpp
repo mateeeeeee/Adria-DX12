@@ -109,7 +109,7 @@ namespace adria
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, parameters);
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ReSTIRGI_InitialSampling)); 
-				cmd_list->Dispatch((uint32)std::ceil(half_width / 16.0f), (uint32)std::ceil(half_height / 16.0f), 1);
+				cmd_list->Dispatch(DivideAndRoundUp(half_width, 16), DivideAndRoundUp(half_height, 16), 1);
 			}, RGPassType::Compute);
 	}
 

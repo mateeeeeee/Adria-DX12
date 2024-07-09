@@ -59,19 +59,22 @@ namespace adria
 			[&](SSAOPassData const& data, RenderGraphContext& ctx, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::SSAO));
 
-				uint32 i = gfx->AllocateDescriptorsGPU(4).GetIndex();
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.depth));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1), ctx.GetReadOnlyTexture(data.gbuffer_normal));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 2), ssao_random_texture_srv);
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 3), ctx.GetReadWriteTexture(data.output));
+				GfxDescriptor src_descriptors[] =
+				{
+					ctx.GetReadOnlyTexture(data.depth),
+					ctx.GetReadOnlyTexture(data.gbuffer_normal),
+					ssao_random_texture_srv,
+					ctx.GetReadWriteTexture(data.output)
+				};
+				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
+				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
+				uint32 const i = dst_descriptor.GetIndex();
 
 				struct SSAOConstants
 				{
 					uint32 ssao_params_packed;
-					uint32 resolutionFactor;
+					uint32 resolution_factor;
 					float  noise_scale_x;
 					float  noise_scale_y;
 		
@@ -81,15 +84,16 @@ namespace adria
 					uint32   output_idx;
 				} constants = 
 				{
-					.ssao_params_packed = PackTwoFloatsToUint32(params.ssao_radius,params.ssao_power), .resolutionFactor = (uint32)resolution,
+					.ssao_params_packed = PackTwoFloatsToUint32(params.ssao_radius,params.ssao_power), .resolution_factor = (uint32)resolution,
 					.noise_scale_x = (width >> resolution) * 1.0f / NOISE_DIM, .noise_scale_y = (height >> resolution) * 1.0f / NOISE_DIM,
 					.depth_idx = i, .normal_idx = i + 1, .noise_idx = i + 2, .output_idx = i + 3
 				};
 
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::SSAO));
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->SetRootCBV(2, ssao_kernel);
-				cmd_list->Dispatch((uint32)std::ceil((width >> resolution) / 16.0f), (uint32)std::ceil((height >> resolution) / 16.0f), 1);
+				cmd_list->Dispatch(DivideAndRoundUp((width >> resolution), 16), DivideAndRoundUp((height >> resolution), 16), 1);
 
 			}, RGPassType::Compute);
 

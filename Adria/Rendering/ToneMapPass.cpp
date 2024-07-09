@@ -47,14 +47,18 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				uint32 i = gfx->AllocateDescriptorsGPU(4).GetIndex();
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.hdr_input));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1),
-					data.exposure.IsValid() ? ctx.GetReadOnlyTexture(data.exposure) : gfxcommon::GetCommonView(GfxCommonViewType::WhiteTexture2D_SRV));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 2), ctx.GetReadWriteTexture(data.output));
-				
+				GfxDescriptor src_descriptors[] =
+				{
+					ctx.GetReadOnlyTexture(data.hdr_input),
+					data.exposure.IsValid() ? ctx.GetReadOnlyTexture(data.exposure) : gfxcommon::GetCommonView(GfxCommonViewType::WhiteTexture2D_SRV),
+					ctx.GetReadWriteTexture(data.output)
+				};
+				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors) + 1);
+				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
+				uint32 const i = dst_descriptor.GetIndex();
+
 				bool const bloom_enabled = data.bloom.IsValid();
-				if (bloom_enabled) gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 3), ctx.GetReadOnlyTexture(data.bloom));
+				if (bloom_enabled) gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + ARRAYSIZE(src_descriptors)), ctx.GetReadOnlyTexture(data.bloom));
 
 				struct TonemapConstants
 				{
@@ -74,7 +78,7 @@ namespace adria
 				if (bloom_enabled)
 				{
 					ADRIA_ASSERT(bloom_data != nullptr);
-					constants.bloom_idx = i + 3;
+					constants.bloom_idx = i + ARRAYSIZE(src_descriptors);
 					constants.lens_dirt_idx = (uint32)lens_dirt_handle;
 					constants.bloom_params_packed = PackTwoFloatsToUint32(bloom_data->bloom_intensity, bloom_data->bloom_blend_factor);
 				}
@@ -82,7 +86,7 @@ namespace adria
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ToneMap));
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
-				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
+				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
 
 		GUI();
@@ -128,14 +132,18 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				uint32 i = gfx->AllocateDescriptorsGPU(4).GetIndex();
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 0), ctx.GetReadOnlyTexture(data.hdr_input));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 1),
-					data.exposure.IsValid() ? ctx.GetReadOnlyTexture(data.exposure) : gfxcommon::GetCommonView(GfxCommonViewType::WhiteTexture2D_SRV));
-				gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 2), ctx.GetReadWriteTexture(data.output));
-				
+				GfxDescriptor src_descriptors[] =
+				{
+					ctx.GetReadOnlyTexture(data.hdr_input),
+					data.exposure.IsValid() ? ctx.GetReadOnlyTexture(data.exposure) : gfxcommon::GetCommonView(GfxCommonViewType::WhiteTexture2D_SRV),
+					ctx.GetReadWriteTexture(data.output)
+				};
+				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors) + 1);
+				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
+				uint32 const i = dst_descriptor.GetIndex();
+
 				bool const bloom_enabled = data.bloom.IsValid();
-				if (bloom_enabled) gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + 3), ctx.GetReadOnlyTexture(data.bloom));
+				if (bloom_enabled) gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i + ARRAYSIZE(src_descriptors)), ctx.GetReadOnlyTexture(data.bloom));
 
 				struct TonemapConstants
 				{
@@ -155,7 +163,7 @@ namespace adria
 				if (bloom_enabled)
 				{
 					ADRIA_ASSERT(bloom_data != nullptr);
-					constants.bloom_idx = i + 3;
+					constants.bloom_idx = i + ARRAYSIZE(src_descriptors);
 					constants.lens_dirt_idx = (uint32)lens_dirt_handle;
 					constants.bloom_params_packed = PackTwoFloatsToUint32(bloom_data->bloom_intensity, bloom_data->bloom_blend_factor);
 				}
@@ -163,7 +171,7 @@ namespace adria
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ToneMap));
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
-				cmd_list->Dispatch((uint32)std::ceil(width / 16.0f), (uint32)std::ceil(height / 16.0f), 1);
+				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 			}, RGPassType::Compute, flags);
 
 		GUI();
