@@ -110,7 +110,7 @@ namespace adria
 
 		void BeginFrame();
 		void EndFrame(bool vsync = false);
-		void TakePixCapture(uint32 num_frames);
+		void TakePixCapture(char const* capture_name, uint32 num_frames);
 
 		void* GetHwnd() const { return hwnd; }
 		IDXGIFactory4* GetFactory() const;

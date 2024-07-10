@@ -447,19 +447,19 @@ namespace adria
 		gpu_descriptor_allocator->FinishCurrentFrame(frame_index);
 	}
 
-	void GfxDevice::TakePixCapture(uint32 num_frames)
+	void GfxDevice::TakePixCapture(char const* capture_name, uint32 num_frames)
 	{
+		ADRIA_ASSERT(num_frames != 0);
 		if (!pix_dll_loaded)
 		{
 			ADRIA_LOG(WARNING, "All PIX capture requests are ignored because PIX dll wasn't loaded! Did you pass -pix as a command line argument?");
 			return;
 		}
-		static uint32 capture_index = 0;
-		std::wstring capture_name = L"adria";
-		capture_name += std::to_wstring(capture_index++) + L".wpix";
-		HRESULT hr = PIXGpuCaptureNextFrames(capture_name.data(), num_frames);
-		GFX_CHECK_HR(hr);
-		ADRIA_LOG(INFO, "Capturing %d frames...", num_frames);
+
+		std::string full_capture_name = std::string(capture_name) + "_" + std::to_string(frame_index) + ".wpix";
+		std::wstring wcapture_name = ToWideString(full_capture_name);
+		GFX_CHECK_HR(PIXGpuCaptureNextFrames(wcapture_name.c_str(), num_frames));
+		ADRIA_LOG(INFO, "Saving capture of %d frame(s) to %s...", num_frames, full_capture_name.c_str());
 	}
 
 	IDXGIFactory4* GfxDevice::GetFactory() const

@@ -1,3 +1,4 @@
+#include <filesystem>
 #include "nfd.h"
 #include "Editor.h"
 #include "GUI.h"
@@ -5,6 +6,7 @@
 #include "EditorConsole.h"
 #include "Core/Engine.h"
 #include "Core/Input.h"
+#include "Core/Paths.h"
 #include "Core/ConsoleVariable.h"
 #include "Core/ConsoleCommand.h"
 #include "IconsFontAwesome6.h"
@@ -26,6 +28,7 @@
 #include "Math/BoundingVolumeUtil.h"
 
 using namespace DirectX;
+namespace fs = std::filesystem;
 
 namespace adria
 {
@@ -71,6 +74,8 @@ namespace adria
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 		selected_entity = entt::null;
 		SetStyle();
+
+		fs::create_directory(paths::PixCapturesDir());
 	}
 	void Editor::Destroy()
 	{
@@ -1129,11 +1134,16 @@ namespace adria
 
 			if (ImGui::TreeNode("PIX"))
 			{
+				static char capture_name[32] = { 'a', 'd', 'r', 'i', 'a' };
+				ImGui::InputText("Capture name", capture_name, sizeof(capture_name));
+
 				static int frame_count = 1;
 				ImGui::SliderInt("Number of capture frames", &frame_count, 1, 10);
+
 				if (ImGui::Button("Take capture"))
 				{
-					gfx->TakePixCapture(frame_count);
+					std::string capture_full_path = paths::PixCapturesDir() + capture_name;
+					gfx->TakePixCapture(capture_full_path.c_str(), frame_count);
 				}
 				ImGui::TreePop();
 			}

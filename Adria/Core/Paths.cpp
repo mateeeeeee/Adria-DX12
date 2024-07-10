@@ -72,5 +72,10 @@ namespace adria
 		return SavedDir() + "Aftermath/";
 	}
 
+	std::string paths::PixCapturesDir()
+	{
+		return SavedDir() + "PixCaptures/";
+	}
+
 }
 
