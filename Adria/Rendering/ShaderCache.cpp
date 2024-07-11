@@ -131,7 +131,7 @@ namespace adria
 			case CS_RainSimulation:
 			case CS_ReSTIRGI_InitialSampling:
 			case CS_VolumetricFog_LightInjection:
-			case CS_VolumetricFog_ScatteringAccumulation:
+			case CS_VolumetricFog_ScatteringIntegration:
 				return GfxShaderStage::CS;
 			case HS_OceanLOD:
 				return GfxShaderStage::HS;
@@ -311,7 +311,7 @@ namespace adria
 			case CS_HZBMips:
 				return "GpuDrivenRendering/HZB.hlsl";
 			case CS_VolumetricFog_LightInjection:
-			case CS_VolumetricFog_ScatteringAccumulation:
+			case CS_VolumetricFog_ScatteringIntegration:
 				return "Lighting/VolumetricFog.hlsl";
 			case CS_RTAOFilter:
 				return "RayTracing/RTAOFilter.hlsl";
@@ -519,8 +519,8 @@ namespace adria
 				return "ClusterCullingCS";
 			case CS_VolumetricFog_LightInjection:
 				return "LightInjectionCS";
-			case CS_VolumetricFog_ScatteringAccumulation:
-				return "ScatteringAccumulationCS";
+			case CS_VolumetricFog_ScatteringIntegration:
+				return "ScatteringIntegrationCS";
 			case VS_Shadow:
 			case VS_Shadow_Transparent:
 				return "ShadowVS";
@@ -583,11 +583,7 @@ namespace adria
 		}
 		constexpr GfxShaderModel GetShaderModel(GfxShaderID shader)
 		{
-			switch (shader)
-			{
-			default:
-				return SM_6_7;
-			}
+			return SM_6_7;
 		}
 
 		void CompileShader(GfxShaderID shader, bool bypass_cache = false)

@@ -336,22 +336,22 @@ namespace adria
 		if (!IsSupported() || !enabled)  return -1;
 
 		std::vector<DDGIVolumeGPU> ddgi_data;
-		DDGIVolumeGPU& ddgi_hlsl = ddgi_data.emplace_back();
-		ddgi_hlsl.start_position = ddgi_volume.origin - ddgi_volume.extents;
-		ddgi_hlsl.probe_size = 2 * ddgi_volume.extents / (Vector3((float)ddgi_volume.num_probes.x, (float)ddgi_volume.num_probes.y, (float)ddgi_volume.num_probes.z) - Vector3::One);
-		ddgi_hlsl.rays_per_probe = ddgi_volume.num_rays;
-		ddgi_hlsl.max_rays_per_probe = ddgi_volume.max_num_rays;
-		ddgi_hlsl.probe_count = Vector3i(ddgi_volume.num_probes.x, ddgi_volume.num_probes.y, ddgi_volume.num_probes.z);
-		ddgi_hlsl.normal_bias = 0.25f;
-		ddgi_hlsl.energy_preservation = 0.85f;
+		DDGIVolumeGPU& ddgi_gpu = ddgi_data.emplace_back();
+		ddgi_gpu.start_position = ddgi_volume.origin - ddgi_volume.extents;
+		ddgi_gpu.probe_size = 2 * ddgi_volume.extents / (Vector3((float)ddgi_volume.num_probes.x, (float)ddgi_volume.num_probes.y, (float)ddgi_volume.num_probes.z) - Vector3::One);
+		ddgi_gpu.rays_per_probe = ddgi_volume.num_rays;
+		ddgi_gpu.max_rays_per_probe = ddgi_volume.max_num_rays;
+		ddgi_gpu.probe_count = Vector3i(ddgi_volume.num_probes.x, ddgi_volume.num_probes.y, ddgi_volume.num_probes.z);
+		ddgi_gpu.normal_bias = 0.25f;
+		ddgi_gpu.energy_preservation = 0.85f;
 
 		GfxDescriptor irradiance_gpu = gfx->AllocateDescriptorsGPU();
 		GfxDescriptor distance_gpu = gfx->AllocateDescriptorsGPU();
 		gfx->CopyDescriptors(1, irradiance_gpu, ddgi_volume.irradiance_history_srv);
 		gfx->CopyDescriptors(1, distance_gpu, ddgi_volume.distance_history_srv);
 
-		ddgi_hlsl.irradiance_history_idx = (int32)irradiance_gpu.GetIndex();
-		ddgi_hlsl.distance_history_idx = (int32)distance_gpu.GetIndex();
+		ddgi_gpu.irradiance_history_idx = (int32)irradiance_gpu.GetIndex();
+		ddgi_gpu.distance_history_idx = (int32)distance_gpu.GetIndex();
 		if (!ddgi_volume_buffer || ddgi_volume_buffer->GetCount() < ddgi_data.size())
 		{
 			ddgi_volume_buffer = gfx->CreateBuffer(StructuredBufferDesc<DDGIVolumeGPU>(ddgi_data.size(), false, true));

@@ -215,7 +215,7 @@ namespace adria
 					if (show_histogram)
 					{
 						ADRIA_ASSERT(histogram_copy->IsMapped());
-						uint64 histogram_size = histogram_copy->GetDesc().size / sizeof(int32);
+						uint64 histogram_size = histogram_copy->GetSize() / sizeof(int32);
 						int32* hist_data = histogram_copy->GetMappedData<int32>();
 						int32 max_value = *std::max_element(hist_data, hist_data + histogram_size);
 						auto converter = [](void* data, int32 idx)-> float

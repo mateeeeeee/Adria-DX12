@@ -52,7 +52,7 @@ void ClusteredDeferredLightingCS(CSInput input)
 	float3 V = normalize(float3(0.0f, 0.0f, 0.0f) - viewPosition);
 	float3 albedo = albedoRoughness.rgb;
 	float  roughness = albedoRoughness.a;
-	float linearDepth = ReverseLinearizeDepth(depth);
+	float linearDepth = LinearizeDepth(depth);
 	
 	float nearPlane = min(FrameCB.cameraNear, FrameCB.cameraFar);
 	float farPlane = max(FrameCB.cameraNear, FrameCB.cameraFar);

@@ -46,10 +46,11 @@ float HenyeyGreensteinPhase(float LdotV, float G)
 float3 GetUVWFromVoxelCoords(uint3 voxelCoords, float jitter, uint3 voxelGridDimensions)
 {
 	float2 texelUV = ((float2)voxelCoords.xy + 0.5f) / voxelGridDimensions.xy;
-	float n = FrameCB.cameraNear;
-	float f = FrameCB.cameraFar;
-    float viewZ = n * pow(f / n, (float(voxelCoords.z) + 0.5f + jitter) / float(VOXEL_GRID_SIZE_Z));
-	return float3(texelUV, viewZ / n);
+	float z = (float)(voxelCoords.z + jitter) / voxelGridDimensions.z;
+	const float n = FrameCB.cameraNear;
+	const float f = FrameCB.cameraFar; 
+	float linearDepth = f + saturate(z) * (n - f);
+	return float3(texelUV, DelinearizeDepth(linearDepth));
 }
 
 float3 GetWorldPositionFromVoxelCoords(uint3 voxelCoords, float jitter, uint3 voxelGridDimensions)
@@ -141,19 +142,19 @@ void LightInjectionCS(CSInput input)
 	lightInjectionTarget[voxelGridCoords] = newScattering;
 }
 
-struct ScatteringAccumulationConstants
+struct ScatteringIntegrationConstants
 {
 	uint3 voxelGridDimensions;
-	uint voxelGridIdx;
-	uint outputIdx;
+	uint  lightInjectionTargetIdx;
+	uint  outputIdx;
 };
-ConstantBuffer<ScatteringAccumulationConstants> ScatteringAccumulationPassCB : register(b1);
+ConstantBuffer<ScatteringIntegrationConstants> ScatteringIntegrationPassCB : register(b1);
 
 [numthreads(8, 8, 8)]
-void ScatteringAccumulationCS(CSInput input)
+void ScatteringIntegrationCS(CSInput input)
 {
-	Texture3D<float4> scatteringTexture = ResourceDescriptorHeap[ScatteringAccumulationPassCB.voxelGridIdx];
-	RWTexture3D<float4> outputTexture = ResourceDescriptorHeap[ScatteringAccumulationPassCB.outputIdx];
+	Texture3D<float4> lightInjectionTarget = ResourceDescriptorHeap[ScatteringIntegrationPassCB.lightInjectionTargetIdx];
+	RWTexture3D<float4> outputTexture = ResourceDescriptorHeap[ScatteringIntegrationPassCB.outputIdx];
 
 	float3 accumulatedScattering = 0.0f;
 	float  accumulatedTransmittance = 1.0f;
@@ -162,15 +163,15 @@ void ScatteringAccumulationCS(CSInput input)
 	for (int z = 0; z < VOXEL_GRID_SIZE_Z; ++z)
 	{
 		uint3  voxelGridCoords = uint3(input.DispatchThreadId.xy, z);
-		float3 worldPosition = GetWorldPositionFromVoxelCoords(voxelGridCoords, 0.0f, ScatteringAccumulationPassCB.voxelGridDimensions);
+		float3 worldPosition = GetWorldPositionFromVoxelCoords(voxelGridCoords, 0.0f, ScatteringIntegrationPassCB.voxelGridDimensions);
 		float  distance = length(worldPosition - prevWorldPosition);
 
-		float4 scatteringAndDensity = scatteringTexture[int3(input.DispatchThreadId.xy, z - 1)];
+		float4 scatteringAndDensity = lightInjectionTarget[int3(input.DispatchThreadId.xy, z - 1)];
 		const float3 scattering = scatteringAndDensity.rgb;
 		const float density = scatteringAndDensity.a;
 		float transmittance = exp(-density * distance);
 
-		float3 scatteringOverSlice = scattering * (1 - transmittance) / max(density, 1e-5f);
+		float3 scatteringOverSlice = scattering * (1 - transmittance) / max(density, 1e-6f);
 		accumulatedScattering += scatteringOverSlice * accumulatedTransmittance;
 		accumulatedTransmittance *= transmittance;
 

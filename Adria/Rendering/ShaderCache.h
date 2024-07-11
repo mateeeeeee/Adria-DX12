@@ -115,7 +115,7 @@ namespace adria
 		VS_DDGIVisualize,
 		PS_DDGIVisualize,
 		CS_VolumetricFog_LightInjection,
-		CS_VolumetricFog_ScatteringAccumulation,
+		CS_VolumetricFog_ScatteringIntegration,
 		CS_ReSTIRGI_InitialSampling,
 		LIB_DDGIRayTracing,
 		LIB_Shadows,

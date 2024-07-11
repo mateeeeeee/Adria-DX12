@@ -21,7 +21,7 @@ namespace adria
 		struct TonemapParams
 		{
 			ToneMap tone_map_op = ToneMap::TonyMcMapface;
-			float tonemap_exposure = 2.5f;
+			float tonemap_exposure = 1.5f;
 		};
 	public:
 		ToneMapPass(uint32 w, uint32 h);

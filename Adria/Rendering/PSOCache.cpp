@@ -510,7 +510,7 @@ namespace adria
 				compute_pso_desc.CS = CS_VolumetricFog_LightInjection;
 				compute_pso_map[GfxPipelineStateID::VolumetricFog_LightInjection] = gfx->CreateComputePipelineState(compute_pso_desc);
 				
-				compute_pso_desc.CS = CS_VolumetricFog_ScatteringAccumulation;
+				compute_pso_desc.CS = CS_VolumetricFog_ScatteringIntegration;
 				compute_pso_map[GfxPipelineStateID::VolumetricFog_ScatteringAccumulation] = gfx->CreateComputePipelineState(compute_pso_desc);
 
 				if (gfx->GetCapabilities().CheckRayTracingSupport(RayTracingSupport::Tier1_1))

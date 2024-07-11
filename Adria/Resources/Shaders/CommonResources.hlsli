@@ -104,12 +104,12 @@ static float3 ViewToWindow(float3 view)
 	return proj.xyz;
 }
 
-static float LinearizeDepth(float z)
+static float DelinearizeDepth(float linearZ)
 {
-	return FrameCB.cameraFar / (FrameCB.cameraFar + z * (FrameCB.cameraNear - FrameCB.cameraFar));
+    return (linearZ * FrameCB.cameraFar - FrameCB.cameraNear * FrameCB.cameraFar) / (linearZ * (FrameCB.cameraFar - FrameCB.cameraNear));
 }
 
-static float ReverseLinearizeDepth(float z)
+static float LinearizeDepth(float z)
 {
     return FrameCB.cameraNear * FrameCB.cameraFar / (FrameCB.cameraFar - z * (FrameCB.cameraFar - FrameCB.cameraNear));
 }
