@@ -128,7 +128,7 @@ namespace adria
 				cmd_list->DrawIndexed(cube_ib->GetCount());
 			}, RGPassType::Graphics, RGPassFlags::None);
 
-		GUI_RunCommand([&]()
+		GUI_Command([&]()
 			{
 				if (ImGui::TreeNodeEx("Sky", ImGuiTreeNodeFlags_None))
 				{

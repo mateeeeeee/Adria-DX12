@@ -169,7 +169,7 @@ namespace adria
 
 			}, RGPassType::Compute, RGPassFlags::None);
 
-		GUI_RunCommand([&]()
+		GUI_Command([&]()
 			{
 				if (ImGui::TreeNodeEx("RTAO", ImGuiTreeNodeFlags_None))
 				{

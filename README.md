@@ -23,7 +23,9 @@ Graphics engine written in C++ using DirectX12.
     - DLSS3
 * Ultimate Bindless 
     - Only one root signature 
-* Volumetric lighting (2D Raymarching)
+* Volumetric lighting
+    - 2D Raymarching
+    - Fog volumes (wip)
 * Tiled deferred rendering 
 * Clustered deferred rendering
 * Shadows
@@ -69,6 +71,7 @@ Graphics engine written in C++ using DirectX12.
 
 ## TODO
 * ReSTIR GI
+* Font Rendering
 
 ## Screenshots
 

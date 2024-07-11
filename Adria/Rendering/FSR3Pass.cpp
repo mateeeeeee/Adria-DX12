@@ -114,7 +114,7 @@ namespace adria
 				cmd_list->ResetState();
 			}, RGPassType::Compute);
 
-		GUI_RunCommand([&]()
+		GUI_Command([&]()
 			{
 				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
 				{

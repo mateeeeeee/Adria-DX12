@@ -92,7 +92,7 @@ namespace adria
 	{
 		if (!IsSupported()) return;
 
-		GUI_RunCommand([&]()
+		GUI_Command([&]()
 			{
 				if (ImGui::TreeNode("DDGI"))
 				{

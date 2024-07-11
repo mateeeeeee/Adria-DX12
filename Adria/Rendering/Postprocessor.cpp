@@ -336,7 +336,7 @@ namespace adria
 
 	void PostProcessor::PostprocessorGUI()
 	{
-		GUI_RunCommand([&]()
+		GUI_Command([&]()
 			{
 				int& current_ao_type = cvars::ambient_occlusion.Get();
 				int& current_upscaler = cvars::upscaler.Get();

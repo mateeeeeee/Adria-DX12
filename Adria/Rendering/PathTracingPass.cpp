@@ -83,7 +83,7 @@ namespace adria
 			}, RGPassType::Compute, RGPassFlags::None);
 
 		++accumulated_frames;
-		GUI_RunCommand([&]()
+		GUI_Command([&]()
 			{
 				if (ImGui::TreeNodeEx("Path tracing", ImGuiTreeNodeFlags_None))
 				{

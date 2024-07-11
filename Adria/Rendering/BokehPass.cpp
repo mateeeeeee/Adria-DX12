@@ -29,7 +29,7 @@ namespace adria
 	{
 		AddGenerateBokehPass(rendergraph, input);
 		AddDrawBokehPass(rendergraph, input);
-		GUI_RunCommand([&]()
+		GUI_Command([&]()
 			{
 				if (ImGui::TreeNodeEx("Bokeh", 0))
 				{

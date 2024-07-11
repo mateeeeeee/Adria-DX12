@@ -28,7 +28,7 @@ namespace adria
 			callback();
 		}
 	};
-	void GUI_RunCommand(std::function<void()>&& cb, GUICommandGroup group = GUICommandGroup_None);
+	void GUI_Command(std::function<void()>&& cb, GUICommandGroup group = GUICommandGroup_None);
 
 	class GfxTexture;
 	struct GUITexture

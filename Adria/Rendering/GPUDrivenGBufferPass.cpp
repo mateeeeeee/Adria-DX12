@@ -38,7 +38,7 @@ namespace adria
 		Add2ndPhasePasses(rg);
 		AddDebugPass(rg);
 
-		GUI_RunCommand([&]()
+		GUI_Command([&]()
 			{
 				if (ImGui::TreeNodeEx("GPU Driven Rendering", ImGuiTreeNodeFlags_None))
 				{

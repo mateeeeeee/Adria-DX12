@@ -79,7 +79,7 @@ namespace adria
 
 		blur_pass.AddPass(rendergraph, RG_RES_NAME(HBAO_Output), RG_RES_NAME(AmbientOcclusion), " HBAO");
 		
-		GUI_RunCommand([&]()
+		GUI_Command([&]()
 			{
 				if (ImGui::TreeNodeEx("HBAO", ImGuiTreeNodeFlags_None))
 				{

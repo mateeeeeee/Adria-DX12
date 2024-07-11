@@ -7,6 +7,7 @@
 #include "SkyPass.h"
 #include "DeferredLightingPass.h"
 #include "VolumetricLightingPass.h"
+#include "VolumetricFogPass.h"
 #include "TiledDeferredLightingPass.h"
 #include "ClusteredDeferredLightingPass.h"
 #include "DDGI.h"
@@ -39,6 +40,13 @@ namespace adria
 			TiledDeferred,
 			ClusteredDeferred,
 			PathTracing
+		};
+
+		enum class VolumetricPathType : uint8
+		{
+			None,
+			Raymarching2D,
+			FogVolume
 		};
 
 	public:
@@ -97,6 +105,7 @@ namespace adria
 		SkyPass		 sky_pass;
 		DeferredLightingPass deferred_lighting_pass;
 		VolumetricLightingPass volumetric_lighting_pass;
+		VolumetricFogPass volumetric_fog_pass;
 		TiledDeferredLightingPass tiled_deferred_lighting_pass;
 		ClusteredDeferredLightingPass clustered_deferred_lighting_pass;
 		CopyToTexturePass copy_to_texture_pass;
@@ -137,8 +146,10 @@ namespace adria
 		uint64						screenshot_fence_value = 1;
 		std::unique_ptr<GfxBuffer>  screenshot_buffer;
 
-		//misc
+		//volumetric
 		uint32			         volumetric_lights = 0;
+		VolumetricPathType		 volumetric_path_type = VolumetricPathType::Raymarching2D;
+		//misc
 		ViewportData			 viewport_data;
 
 	private:

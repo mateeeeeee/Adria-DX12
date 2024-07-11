@@ -364,7 +364,7 @@ namespace adria
 			},
 			RGPassType::Graphics, RGPassFlags::None);
 
-		GUI_RunCommand([&]()
+		GUI_Command([&]()
 			{
 				if (ImGui::TreeNodeEx("Ocean Settings", 0))
 				{

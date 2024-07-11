@@ -36,6 +36,7 @@ namespace adria
 	namespace cvars
 	{
 		static ConsoleVariable renderpath("renderpath", 0);
+		static ConsoleVariable volumetricpath("volumetricpath", 1);
 	}
 
 	Renderer::Renderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx),
@@ -43,7 +44,8 @@ namespace adria
 		backbuffer_count(gfx->GetBackbufferCount()), backbuffer_index(gfx->GetBackbufferIndex()), final_texture(nullptr),
 		frame_cbuffer(gfx, backbuffer_count), gpu_driven_renderer(reg, gfx, width, height),
 		gbuffer_pass(reg, width, height),
-		sky_pass(reg, gfx, width, height), deferred_lighting_pass(width, height), volumetric_lighting_pass(width, height),
+		sky_pass(reg, gfx, width, height), deferred_lighting_pass(width, height), 
+		volumetric_lighting_pass(width, height), volumetric_fog_pass(gfx, reg, width, height),
 		tiled_deferred_lighting_pass(reg, width, height) , copy_to_texture_pass(width, height), add_textures_pass(width, height),
 		postprocessor(gfx, reg, width, height), picking_pass(gfx, width, height),
 		clustered_deferred_lighting_pass(reg, gfx, width, height),
@@ -162,6 +164,7 @@ namespace adria
 			sky_pass.OnResize(w, h);
 			deferred_lighting_pass.OnResize(w, h);
 			volumetric_lighting_pass.OnResize(w, h);
+			volumetric_fog_pass.OnResize(w, h);
 			tiled_deferred_lighting_pass.OnResize(w, h);
 			clustered_deferred_lighting_pass.OnResize(w, h);
 			copy_to_texture_pass.OnResize(w, h);
@@ -183,6 +186,7 @@ namespace adria
 		postprocessor.OnSceneInitialized();
 		ocean_renderer.OnSceneInitialized(gfx);
 		ddgi.OnSceneInitialized();
+		volumetric_fog_pass.OnSceneInitialized();
 		CreateAS();
 
 		gfxcommon::Initialize(gfx);
@@ -461,7 +465,14 @@ namespace adria
 		case RendererPathType::TiledDeferred: tiled_deferred_lighting_pass.AddPass(render_graph); break;
 		case RendererPathType::ClusteredDeferred: clustered_deferred_lighting_pass.AddPass(render_graph, true); break;
 		}
-		if (volumetric_lights > 0) volumetric_lighting_pass.AddPass(render_graph);
+		if (volumetric_lights > 0)
+		{
+			switch (volumetric_path_type)
+			{
+			case VolumetricPathType::Raymarching2D: volumetric_lighting_pass.AddPass(render_graph); break;
+			case VolumetricPathType::FogVolume:		volumetric_fog_pass.AddPasses(render_graph); break;
+			}
+		}
 		if (ddgi.Visualize()) ddgi.AddVisualizePass(render_graph);
 		ocean_renderer.AddPasses(render_graph);
 		sky_pass.AddComputeSkyPass(render_graph, sun_direction);
@@ -479,9 +490,10 @@ namespace adria
 
 	void Renderer::RendererGUI()
 	{
-		GUI_RunCommand([&]()
+		GUI_Command([&]()
 			{
 				int& current_render_path_type = cvars::renderpath.Get();
+				int& current_volumetric_path_type = cvars::volumetricpath.Get();
 
 				if (ImGui::TreeNode("Renderer"))
 				{
@@ -489,6 +501,8 @@ namespace adria
 					{
 						if (!ray_tracing_supported && current_render_path_type == 3) current_render_path_type = 0;
 					}
+					ImGui::Combo("Volumetric Path", &current_volumetric_path_type, "None\0 Raymarching 2D\0Fog Volume\0", 3);
+
 					if (gfx->GetCapabilities().SupportsMeshShaders())
 					{
 						ImGui::Checkbox("Use GPU-Driven Rendering", &use_gpu_driven_rendering);
@@ -558,6 +572,7 @@ namespace adria
 					}
 
 					path_type = static_cast<RendererPathType>(current_render_path_type);
+					volumetric_path_type = static_cast<VolumetricPathType>(current_volumetric_path_type);
 
 					ImGui::TreePop();
 					ImGui::Separator();

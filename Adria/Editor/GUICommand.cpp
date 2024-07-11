@@ -3,7 +3,7 @@
 
 namespace adria
 {
-	void GUI_RunCommand(std::function<void()>&& cb, GUICommandGroup group)
+	void GUI_Command(std::function<void()>&& cb, GUICommandGroup group)
 	{
 		g_Editor.AddCommand(GUICommand{ .callback = std::move(cb), .group = group });
 	}

@@ -29,11 +29,11 @@ struct LightInjectionConstants
 	uint3  voxelGridDimensions;
 	uint   fogVolumesCount;
 	uint   fogVolumeBufferIdx;
-	uint   voxelGridIdx;
-	uint   voxelGridHistoryIdx;
+	uint   lightInjectionTargetIdx;
+	uint   lightInjectionTargetHistoryIdx;
     uint   blueNoiseIdx;
 };
-ConstantBuffer<LightInjectionConstants> PassCB : register(b1);
+ConstantBuffer<LightInjectionConstants> LightInjectionPassCB : register(b1);
 
 //already exists in VolumetricClouds.hlsl, move volumetric common stuff to Volumetrics.hlsli
 float HenyeyGreensteinPhase(float LdotV, float G)
@@ -43,42 +43,42 @@ float HenyeyGreensteinPhase(float LdotV, float G)
 	return result;
 }
 
-float SampleBlueNoise(uint3 coords)
+float3 GetUVWFromVoxelCoords(uint3 voxelCoords, float jitter, uint3 voxelGridDimensions)
 {
-	int2 noiseCoords = (coords.xy + int2(0, 1) * coords.z * BLUE_NOISE_TEXTURE_SIZE) % BLUE_NOISE_TEXTURE_SIZE;
-	Texture2D<float> blueNoiseTexture = ResourceDescriptorHeap[PassCB.blueNoiseIdx];
-    return blueNoiseTexture.Load(int3(noiseCoords, 0));
-}
-
-float3 GetUVWFromVoxelCoords(uint3 voxelCoords, float jitter)
-{
-	float2 texelUV = ((float2)voxelCoords.xy + 0.5f) / PassCB.voxelGridDimensions.xy;
+	float2 texelUV = ((float2)voxelCoords.xy + 0.5f) / voxelGridDimensions.xy;
 	float n = FrameCB.cameraNear;
 	float f = FrameCB.cameraFar;
     float viewZ = n * pow(f / n, (float(voxelCoords.z) + 0.5f + jitter) / float(VOXEL_GRID_SIZE_Z));
-	return float3(texelUV, viewZ / f);
+	return float3(texelUV, viewZ / n);
 }
 
-float3 GetWorldPositionFromVoxelCoords(uint3 voxelCoords, float jitter)
+float3 GetWorldPositionFromVoxelCoords(uint3 voxelCoords, float jitter, uint3 voxelGridDimensions)
 {
-	float3 uvw = GetUVWFromVoxelCoords(voxelCoords, jitter);
+	float3 uvw = GetUVWFromVoxelCoords(voxelCoords, jitter, voxelGridDimensions);
 	return GetWorldPosition(uvw.xy, uvw.z);
+}
+
+float SampleBlueNoise(uint3 coords)
+{
+	int2 noiseCoords = (coords.xy + int2(0, 1) * coords.z * BLUE_NOISE_TEXTURE_SIZE) % BLUE_NOISE_TEXTURE_SIZE;
+	Texture2D<float> blueNoiseTexture = ResourceDescriptorHeap[LightInjectionPassCB.blueNoiseIdx];
+    return blueNoiseTexture.Load(int3(noiseCoords, 0));
 }
 
 [numthreads(8, 8, 8)]
 void LightInjectionCS(CSInput input)
 {
 	uint3 voxelGridCoords = input.DispatchThreadId;
-	if(any(voxelGridCoords >= PassCB.voxelGridDimensions)) return;
+	if(any(voxelGridCoords >= LightInjectionPassCB.voxelGridDimensions)) return;
 
 	const float jitter	 = (SampleBlueNoise(voxelGridCoords) - 0.5f);
-    float3 worldPosition = GetWorldPositionFromVoxelCoords(voxelGridCoords, jitter);
+    float3 worldPosition = GetWorldPositionFromVoxelCoords(voxelGridCoords, jitter, LightInjectionPassCB.voxelGridDimensions);
 
 	float3 cellAbsorption = 0.0f;
 	float  cellDensity	  = 0.0f;
 
-	StructuredBuffer<FogVolume> fogVolumeBuffer = ResourceDescriptorHeap[PassCB.fogVolumeBufferIdx];
-	for(uint i = 0; i < PassCB.fogVolumesCount; ++i)
+	StructuredBuffer<FogVolume> fogVolumeBuffer = ResourceDescriptorHeap[LightInjectionPassCB.fogVolumeBufferIdx];
+	for(uint i = 0; i < LightInjectionPassCB.fogVolumesCount; ++i)
 	{
 		FogVolume fogVolume = fogVolumeBuffer[i];
 
@@ -131,36 +131,51 @@ void LightInjectionCS(CSInput input)
 
 #ifdef TEMPORAL_REPROJECTION
 	float3 reprojUVW = 0.0f;
-	Texture3D voxelGridTextureHistory = ResourceDescriptorHeap[PassCB.voxelGridHistoryIdx];
-	float4 oldScattering = voxelGridTextureHistory[voxelGridCoords];
+	Texture3D lightInjectionTargetHistory = ResourceDescriptorHeap[LightInjectionPassCB.lightInjectionTargetHistoryIdx];
+	float4 oldScattering = lightInjectionTargetHistory[voxelGridCoords];
 	float lerpFactor = 0.0f;
 	newScattering = lerp(oldScattering, newScattering, lerpFactor);
 #endif
 	
-	RWTexture3D<float4> voxelGridTexture = ResourceDescriptorHeap[PassCB.voxelGridIdx];
-	voxelGridTexture[voxelGridCoords] = newScattering;
+	RWTexture3D<float4> lightInjectionTarget = ResourceDescriptorHeap[LightInjectionPassCB.lightInjectionTargetIdx];
+	lightInjectionTarget[voxelGridCoords] = newScattering;
 }
 
 struct ScatteringAccumulationConstants
 {
+	uint3 voxelGridDimensions;
 	uint voxelGridIdx;
-	uint voxelGridHistoryIdx;
-	uint fogVolumeBufferIdx;
+	uint outputIdx;
 };
-ConstantBuffer<ScatteringAccumulationConstants> PassCB2 : register(b1);
+ConstantBuffer<ScatteringAccumulationConstants> ScatteringAccumulationPassCB : register(b1);
 
 [numthreads(8, 8, 8)]
 void ScatteringAccumulationCS(CSInput input)
 {
+	Texture3D<float4> scatteringTexture = ResourceDescriptorHeap[ScatteringAccumulationPassCB.voxelGridIdx];
+	RWTexture3D<float4> outputTexture = ResourceDescriptorHeap[ScatteringAccumulationPassCB.outputIdx];
+
 	float3 accumulatedScattering = 0.0f;
 	float  accumulatedTransmittance = 1.0f;
-
-	for (uint z = 0; z < VOXEL_GRID_SIZE_Z; ++z)
+	float3 prevWorldPosition = FrameCB.cameraPosition.xyz;
+	
+	for (int z = 0; z < VOXEL_GRID_SIZE_Z; ++z)
 	{
 		uint3  voxelGridCoords = uint3(input.DispatchThreadId.xy, z);
-		//float4 scatteringAndDensity;
-		
-		
+		float3 worldPosition = GetWorldPositionFromVoxelCoords(voxelGridCoords, 0.0f, ScatteringAccumulationPassCB.voxelGridDimensions);
+		float  distance = length(worldPosition - prevWorldPosition);
+
+		float4 scatteringAndDensity = scatteringTexture[int3(input.DispatchThreadId.xy, z - 1)];
+		const float3 scattering = scatteringAndDensity.rgb;
+		const float density = scatteringAndDensity.a;
+		float transmittance = exp(-density * distance);
+
+		float3 scatteringOverSlice = scattering * (1 - transmittance) / max(density, 1e-5f);
+		accumulatedScattering += scatteringOverSlice * accumulatedTransmittance;
+		accumulatedTransmittance *= transmittance;
+
+		outputTexture[voxelGridCoords] = float4(accumulatedScattering, accumulatedTransmittance);
+		prevWorldPosition = worldPosition;
 	}
 }
 

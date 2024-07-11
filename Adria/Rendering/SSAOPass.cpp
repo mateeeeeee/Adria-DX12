@@ -102,7 +102,7 @@ namespace adria
 		params.ssao_power = std::clamp(cvars::ssao_power.Get(), 1.0f, 16.0f);
 		params.ssao_radius = std::clamp(cvars::ssao_radius.Get(), 0.5f, 4.0f);
 
-		GUI_RunCommand([&]() 
+		GUI_Command([&]() 
 			{
 				if (ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_None))
 				{

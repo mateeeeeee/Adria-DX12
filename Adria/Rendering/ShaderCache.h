@@ -138,4 +138,6 @@ namespace adria
 		static LibraryRecompiledEvent& GetLibraryRecompiledEvent();
 		static GfxShader const& GetShader(GfxShaderID shader);
 	};
+
+	
 }

@@ -201,7 +201,7 @@ namespace adria
 
 		if (show_histogram) rg.ExportBuffer(RG_RES_NAME(HistogramBuffer), histogram_copy.get());
 
-		GUI_RunCommand([&]()
+		GUI_Command([&]()
 			{
 				if (ImGui::TreeNodeEx("Automatic Exposure", 0))
 				{

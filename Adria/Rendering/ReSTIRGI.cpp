@@ -16,7 +16,7 @@ namespace adria
 
 	void ReSTIRGI::AddPasses(RenderGraph& rg)
 	{
-		GUI_RunCommand([&]()
+		GUI_Command([&]()
 			{
 				if (ImGui::TreeNode("ReSTIR GI"))
 				{

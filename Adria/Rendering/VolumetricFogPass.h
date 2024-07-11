@@ -21,7 +21,6 @@ namespace adria
 			float   density_base;
 			float   density_change;
 		};
-
 		struct FogVolume
 		{
 			BoundingBox volume;
@@ -39,7 +38,7 @@ namespace adria
 		void OnResize(uint32 w, uint32 h)
 		{
 			width = w, height = h;
-			CreateVoxelTexture();
+			CreateLightInjectionHistoryTexture();
 		}
 
 		void OnSceneInitialized();
@@ -49,9 +48,8 @@ namespace adria
 		entt::registry& reg;
 		uint32 width, height;
 
-		std::unique_ptr<GfxTexture> voxel_grid_history;
-		GfxDescriptor voxel_grid_history_srv;
-		uint32 voxel_grid_history_idx;
+		std::unique_ptr<GfxTexture> light_injection_target_history;
+		GfxDescriptor light_injection_target_history_srv;
 
 		std::vector<FogVolume> fog_volumes;
 		std::unique_ptr<GfxBuffer> fog_volume_buffer;
@@ -59,14 +57,14 @@ namespace adria
 		uint32 fog_volume_buffer_idx;
 
 		std::array<TextureHandle, BLUE_NOISE_TEXTURE_COUNT> blue_noise_handles;
-		bool temporal_accumulation = false;
+		bool temporal_lighting = false;
 
 	private:
 
-		void CreateVoxelTexture();
+		void CreateLightInjectionHistoryTexture();
 		void CreateFogVolumeBuffer();
 
 		void AddLightInjectionPass(RenderGraph& rendergraph);
-		void AddScatteringAccumulationPass(RenderGraph& rendergraph);
+		void AddScatteringIntegrationPass(RenderGraph& rendergraph);
 	};
 }

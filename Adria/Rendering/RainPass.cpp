@@ -126,7 +126,7 @@ namespace adria
 			},
 			RGPassType::Graphics, RGPassFlags::None);
 
-		GUI_RunCommand([&]()
+		GUI_Command([&]()
 			{
 				if (ImGui::TreeNodeEx("Rain Settings", 0))
 				{
