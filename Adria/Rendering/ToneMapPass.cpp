@@ -63,7 +63,7 @@ namespace adria
 				struct TonemapConstants
 				{
 					float    tonemap_exposure;
-					uint32   tonemap_operator;
+					uint32   tonemap_operator_lut_packed;
 					uint32   hdr_idx;
 					uint32   exposure_idx;
 					uint32   output_idx;
@@ -72,7 +72,7 @@ namespace adria
 					uint32   bloom_params_packed;
 				} constants = 
 				{
-					.tonemap_exposure = params.tonemap_exposure, .tonemap_operator = static_cast<uint32>(params.tone_map_op),
+					.tonemap_exposure = params.tonemap_exposure, .tonemap_operator_lut_packed = PackTwoUint16ToUint32((uint16)params.tone_map_op, (uint16)tony_mc_mapface_lut_handle),
 					.hdr_idx = i, .exposure_idx = i + 1, .output_idx = i + 2, .bloom_idx = -1
 				};
 				if (bloom_enabled)
