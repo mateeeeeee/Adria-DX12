@@ -317,6 +317,20 @@ namespace adria
 				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::LessEqual;
 				gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
 				gfx_pso_map[GfxPipelineStateID::RainBlocker] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
+
+				gfx_pso_desc = {};
+				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
+				gfx_pso_desc.VS = VS_FullscreenTriangle;
+				gfx_pso_desc.PS = PS_VolumetricFog_CombineFog;
+				gfx_pso_desc.num_render_targets = 1;
+				gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
+				gfx_pso_desc.depth_state.depth_enable = false;
+				gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
+				gfx_pso_desc.blend_state.render_target[0].src_blend = GfxBlend::One;
+				gfx_pso_desc.blend_state.render_target[0].dest_blend = GfxBlend::SrcAlpha;
+				gfx_pso_desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;
+				gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
+				gfx_pso_map[GfxPipelineStateID::VolumetricFog_CombineFog] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 			}
 
 			ComputePipelineStateDesc compute_pso_desc{};

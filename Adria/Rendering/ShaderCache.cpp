@@ -63,6 +63,7 @@ namespace adria
 			case PS_DDGIVisualize:
 			case PS_Rain:
 			case PS_DrawMeshlets_Rain:
+			case PS_VolumetricFog_CombineFog:
 				return GfxShaderStage::PS;
 			case GS_LensFlare:
 			case GS_Bokeh:
@@ -312,6 +313,7 @@ namespace adria
 				return "GpuDrivenRendering/HZB.hlsl";
 			case CS_VolumetricFog_LightInjection:
 			case CS_VolumetricFog_ScatteringIntegration:
+			case PS_VolumetricFog_CombineFog:
 				return "Lighting/VolumetricFog.hlsl";
 			case CS_RTAOFilter:
 				return "RayTracing/RTAOFilter.hlsl";
@@ -521,6 +523,8 @@ namespace adria
 				return "LightInjectionCS";
 			case CS_VolumetricFog_ScatteringIntegration:
 				return "ScatteringIntegrationCS";
+			case PS_VolumetricFog_CombineFog:
+				return "CombineFogPS";
 			case VS_Shadow:
 			case VS_Shadow_Transparent:
 				return "ShadowVS";

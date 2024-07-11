@@ -59,6 +59,7 @@ namespace adria
 
 		AddLightInjectionPass(rg);
 		AddScatteringIntegrationPass(rg);
+		AddCombineFogPass(rg);
 
 		GUI_Command([&]()
 			{
@@ -208,6 +209,39 @@ namespace adria
 					DivideAndRoundUp(light_injection_target_history->GetDepth(), 8));
 
 			}, RGPassType::Compute, RGPassFlags::ForceNoCull);
+	}
+
+	void VolumetricFogPass::AddCombineFogPass(RenderGraph& rg)
+	{
+		struct CombinePassData
+		{
+			RGTextureReadOnlyId fog;
+			RGTextureReadOnlyId depth;
+		};
+
+		rg.AddPass<CombinePassData>("Volumetric Fog Combine Pass",
+			[=](CombinePassData& data, RenderGraphBuilder& builder)
+			{
+				builder.WriteRenderTarget(RG_RES_NAME(HDR_RenderTarget), RGLoadStoreAccessOp::Preserve_Preserve);
+				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_PixelShader);
+				data.fog = builder.ReadTexture(RG_RES_NAME(FogFinal), ReadAccess_PixelShader);
+				builder.SetViewport(width, height);
+			},
+			[=](CombinePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
+			{
+				GfxDevice* gfx = cmd_list->GetDevice();
+				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::VolumetricFog_CombineFog));
+
+				GfxDescriptor src_descriptors[] = { context.GetReadOnlyTexture(data.fog), context.GetReadOnlyTexture(data.depth) };
+				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
+				gfx->CopyDescriptors(dst_descriptor, src_descriptors);
+				uint32 const i = dst_descriptor.GetIndex();
+
+				cmd_list->SetRootConstant(1, i, 0);
+				cmd_list->SetRootConstant(1, i + 1, 1);
+				cmd_list->SetTopology(GfxPrimitiveTopology::TriangleList);
+				cmd_list->Draw(3);
+			}, RGPassType::Graphics, RGPassFlags::None);
 	}
 
 	void VolumetricFogPass::CreateLightInjectionHistoryTexture()

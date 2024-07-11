@@ -106,6 +106,7 @@ namespace adria
 		ReSTIRGI_InitialSampling,
 		VolumetricFog_LightInjection,
 		VolumetricFog_ScatteringAccumulation,
+		VolumetricFog_CombineFog,
 		Unknown
 	};
 

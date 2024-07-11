@@ -182,4 +182,30 @@ void ScatteringIntegrationCS(CSInput input)
 
 
 
+struct VSToPS
+{
+	float4 Pos  : SV_POSITION;
+	float2 Tex  : TEX;
+};
+
+struct CombineFogConstants
+{
+	uint fogIdx;
+	uint depthIdx;
+};
+ConstantBuffer<CombineFogConstants> CombineFogPassCB : register(b1);
+
+float4 CombineFogPS(VSToPS input) : SV_Target0
+{
+	float2 uv = input.Tex;
+    Texture2D<float> depthTexture = ResourceDescriptorHeap[CombineFogPassCB.depthIdx];
+	float depth = depthTexture.Sample(LinearBorderSampler, uv);
+    float3 viewPosition = GetViewPosition(uv, depth);
+
+	Texture3D<float4> fogTexture = ResourceDescriptorHeap[CombineFogPassCB.fogIdx];
+	float fogZ = (viewPosition.z - FrameCB.cameraFar) / (FrameCB.cameraNear - FrameCB.cameraFar);
+	float4 scatteringTransmittance = fogTexture.SampleLevel(LinearClampSampler, float3(uv, fogZ), 0);
+	return scatteringTransmittance;
+}
+
 

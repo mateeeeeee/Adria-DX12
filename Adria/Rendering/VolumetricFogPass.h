@@ -66,5 +66,6 @@ namespace adria
 
 		void AddLightInjectionPass(RenderGraph& rendergraph);
 		void AddScatteringIntegrationPass(RenderGraph& rendergraph);
+		void AddCombineFogPass(RenderGraph& rendergraph);
 	};
 }
