@@ -4,10 +4,10 @@
 
 namespace adria
 {
-	enum GfxShaderID : uint8;
 	class GfxBuffer;
 	class GfxTexture;
 	class GfxDevice;
+	class GfxShaderKey;
 	class GfxStateObject;
 	class RenderGraph;
 
@@ -78,6 +78,6 @@ namespace adria
 	private:
 
 		void CreateStateObject();
-		void OnLibraryRecompiled(GfxShaderID shader);
+		void OnLibraryRecompiled(GfxShaderKey const&);
 	};
 }

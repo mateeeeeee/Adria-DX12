@@ -2,10 +2,11 @@
 #include "BlackboardData.h"
 #include "Components.h"
 #include "ShaderStructs.h"
-#include "ShaderCache.h"
+#include "ShaderManager.h"
 #include "PSOCache.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxShader.h"
+#include "Graphics/GfxShaderKey.h"
 #include "Graphics/GfxStateObject.h"
 #include "Graphics/GfxRayTracingShaderTable.h"
 #include "RenderGraph/RenderGraph.h"
@@ -29,7 +30,7 @@ namespace adria
 		if (IsSupported())
 		{
 			CreateStateObject();
-			ShaderCache::GetLibraryRecompiledEvent().AddMember(&DDGI::OnLibraryRecompiled, *this);
+			ShaderManager::GetLibraryRecompiledEvent().AddMember(&DDGI::OnLibraryRecompiled, *this);
 			enabled = true;
 		}
 	}
@@ -366,7 +367,7 @@ namespace adria
 
 	void DDGI::CreateStateObject()
 	{
-		GfxShader const& ddgi_blob = ShaderCache::GetShader(LIB_DDGIRayTracing);
+		GfxShader const& ddgi_blob = ShaderManager::GetShader(LIB_DDGIRayTracing);
 
 		GfxStateObjectBuilder ddgi_state_object_builder(5);
 		{
@@ -399,9 +400,10 @@ namespace adria
 		ddgi_trace_so.reset(ddgi_state_object_builder.CreateStateObject(gfx));
 	}
 
-	void DDGI::OnLibraryRecompiled(GfxShaderID shader)
+	void DDGI::OnLibraryRecompiled(GfxShaderKey const& key)
 	{
-		if (shader == LIB_DDGIRayTracing) CreateStateObject();
+		if (key.GetShaderID() == LIB_DDGIRayTracing) CreateStateObject();
 	}
+
 }
 

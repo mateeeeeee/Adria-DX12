@@ -1,8 +1,9 @@
 #include "RayTracedAmbientOcclusionPass.h"
 #include "BlackboardData.h"
-#include "ShaderCache.h"
+#include "ShaderManager.h"
 #include "PSOCache.h"
 #include "Graphics/GfxShader.h"
+#include "Graphics/GfxShaderKey.h"
 #include "Graphics/GfxStateObject.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
 #include "RenderGraph/RenderGraph.h"
@@ -18,7 +19,7 @@ namespace adria
 		if (IsSupported())
 		{
 			CreateStateObject();
-			ShaderCache::GetLibraryRecompiledEvent().AddMember(&RayTracedAmbientOcclusionPass::OnLibraryRecompiled, *this);
+			ShaderManager::GetLibraryRecompiledEvent().AddMember(&RayTracedAmbientOcclusionPass::OnLibraryRecompiled, *this);
 		}
 	}
 
@@ -197,7 +198,7 @@ namespace adria
 
 	void RayTracedAmbientOcclusionPass::CreateStateObject()
 	{
-		GfxShader const& rtao_blob = ShaderCache::GetShader(LIB_AmbientOcclusion);
+		GfxShader const& rtao_blob = ShaderManager::GetShader(LIB_AmbientOcclusion);
 		GfxStateObjectBuilder rtao_state_object_builder(5);
 		{
 			D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc{};
@@ -229,9 +230,9 @@ namespace adria
 		ray_traced_ambient_occlusion_so.reset(rtao_state_object_builder.CreateStateObject(gfx));
 	}
 
-	void RayTracedAmbientOcclusionPass::OnLibraryRecompiled(GfxShaderID shader)
+	void RayTracedAmbientOcclusionPass::OnLibraryRecompiled(GfxShaderKey const& key)
 	{
-		if (shader == LIB_AmbientOcclusion) CreateStateObject();
+		if (key.GetShaderID() == LIB_AmbientOcclusion) CreateStateObject();
 	}
 
 }

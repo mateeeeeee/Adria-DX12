@@ -1,5 +1,6 @@
 #pragma once
 #include <mutex>
+#include "Graphics/GfxShaderKey.h"
 #include "GFSDK_Aftermath_Defines.h"
 #include "GFSDK_Aftermath_GpuCrashDump.h"
 #include "GFSDK_Aftermath_GpuCrashDumpDecoding.h"
@@ -19,7 +20,7 @@ namespace adria
 	};
 
 	class GfxDevice;
-	enum GfxShaderID : uint8;
+	enum ShaderID : uint8;
 
 	class GfxNsightAftermathGpuCrashTracker
 	{
@@ -36,7 +37,7 @@ namespace adria
 		bool initialized = false;
 		mutable std::mutex m_mutex;
 		std::map<GFSDK_Aftermath_ShaderDebugInfoIdentifier, std::vector<uint8>, GFSDK_Aftermath_ShaderDebugInfoIdentifierComparator> shader_debug_info_map;
-		mutable std::unordered_map<uint64, GfxShaderID> shader_hash_map;
+		mutable std::unordered_map<uint64, GfxShaderKey> shader_hash_map;
 
 	private:
 		void OnCrashDump(const void* gpu_crash_dump_data, const uint32 gpu_crash_dump_size);
@@ -91,7 +92,7 @@ namespace adria
 		void WriteGpuCrashDumpToFile(void const* gpu_crash_dump_data, uint32 gpu_crash_dump_size);
 		void WriteShaderDebugInformationToFile(GFSDK_Aftermath_ShaderDebugInfoIdentifier identifier, void const* shader_debug_info, uint32 shader_debug_info_size);
 
-		void OnShaderOrLibraryCompiled(GfxShaderID);
+		void OnShaderOrLibraryCompiled(GfxShaderKey const&);
 	};
 
 }

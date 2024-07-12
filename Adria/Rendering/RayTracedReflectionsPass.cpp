@@ -1,8 +1,9 @@
 #include "RayTracedReflectionsPass.h"
 #include "BlackboardData.h"
-#include "ShaderCache.h"
+#include "ShaderManager.h"
 #include "PSOCache.h"
 #include "Graphics/GfxShader.h"
+#include "Graphics/GfxShaderKey.h"
 #include "Graphics/GfxStateObject.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
 #include "RenderGraph/RenderGraph.h"
@@ -18,7 +19,7 @@ namespace adria
 		if (IsSupported())
 		{
 			CreateStateObject();
-			ShaderCache::GetLibraryRecompiledEvent().AddMember(&RayTracedReflectionsPass::OnLibraryRecompiled, *this);
+			ShaderManager::GetLibraryRecompiledEvent().AddMember(&RayTracedReflectionsPass::OnLibraryRecompiled, *this);
 		}
 	}
 	RayTracedReflectionsPass::~RayTracedReflectionsPass() = default;
@@ -114,7 +115,7 @@ namespace adria
 
 	void RayTracedReflectionsPass::CreateStateObject()
 	{
-		GfxShader const& rtr_blob = ShaderCache::GetShader(LIB_Reflections);
+		GfxShader const& rtr_blob = ShaderManager::GetShader(LIB_Reflections);
 		GfxStateObjectBuilder rtr_state_object_builder(6);
 		{
 			D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc{};
@@ -151,9 +152,9 @@ namespace adria
 		ray_traced_reflections_so.reset(rtr_state_object_builder.CreateStateObject(gfx));
 	}
 
-	void RayTracedReflectionsPass::OnLibraryRecompiled(GfxShaderID shader)
+	void RayTracedReflectionsPass::OnLibraryRecompiled(GfxShaderKey const& key)
 	{
-		if (shader == LIB_Reflections) CreateStateObject();
+		if (key.GetShaderID() == LIB_Reflections) CreateStateObject();
 	}
 
 }

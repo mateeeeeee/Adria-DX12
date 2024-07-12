@@ -1,8 +1,9 @@
 #include "RayTracedShadowsPass.h"
 #include "BlackboardData.h"
-#include "ShaderCache.h"
+#include "ShaderManager.h"
 #include "PSOCache.h"
 #include "Graphics/GfxShader.h"
+#include "Graphics/GfxShaderKey.h"
 #include "Graphics/GfxStateObject.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
 #include "RenderGraph/RenderGraph.h"
@@ -17,7 +18,7 @@ namespace adria
 		if (IsSupported())
 		{
 			CreateStateObject();
-			ShaderCache::GetLibraryRecompiledEvent().AddMember(&RayTracedShadowsPass::OnLibraryRecompiled, *this);
+			ShaderManager::GetLibraryRecompiledEvent().AddMember(&RayTracedShadowsPass::OnLibraryRecompiled, *this);
 		}
 	}
 	RayTracedShadowsPass::~RayTracedShadowsPass() = default;
@@ -77,7 +78,7 @@ namespace adria
 
 	void RayTracedShadowsPass::CreateStateObject()
 	{
-		GfxShader const& rt_shadows_blob = ShaderCache::GetShader(LIB_Shadows);
+		GfxShader const& rt_shadows_blob = ShaderManager::GetShader(LIB_Shadows);
 		GfxStateObjectBuilder rt_shadows_state_object_builder(6);
 		{
 			D3D12_EXPORT_DESC export_descs[] =
@@ -116,9 +117,9 @@ namespace adria
 		ray_traced_shadows_so.reset(rt_shadows_state_object_builder.CreateStateObject(gfx));
 	}
 
-	void RayTracedShadowsPass::OnLibraryRecompiled(GfxShaderID shader)
+	void RayTracedShadowsPass::OnLibraryRecompiled(GfxShaderKey const& key)
 	{
-		if (shader == LIB_Shadows) CreateStateObject();
+		if (key.GetShaderID() == LIB_Shadows) CreateStateObject();
 	}
 }
 

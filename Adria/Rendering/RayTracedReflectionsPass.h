@@ -5,10 +5,10 @@
 
 namespace adria
 {
-	enum GfxShaderID : uint8;
 	class RenderGraph;
 	class GfxDevice;
 	class GfxStateObject;
+	class GfxShaderKey;
 
 	class RayTracedReflectionsPass
 	{
@@ -29,6 +29,6 @@ namespace adria
 
 	private:
 		void CreateStateObject();
-		void OnLibraryRecompiled(GfxShaderID shader);
+		void OnLibraryRecompiled(GfxShaderKey const&);
 	};
 }

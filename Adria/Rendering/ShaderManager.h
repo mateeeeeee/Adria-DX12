@@ -5,10 +5,11 @@ namespace adria
 {
 	class GfxDevice;
 	class GfxShader;
+	class GfxShaderKey;
 
-	enum GfxShaderID : uint8
+	enum ShaderID : uint8
 	{
-		GfxShaderID_Invalid,
+		ShaderID_Invalid,
 		VS_Sky,
 		PS_Sky,
 		CS_MinimalAtmosphereSky,
@@ -126,19 +127,18 @@ namespace adria
 		ShaderId_Count
 	};
 
-	DECLARE_MULTICAST_DELEGATE(ShaderRecompiledEvent, GfxShaderID)
-	DECLARE_MULTICAST_DELEGATE(LibraryRecompiledEvent, GfxShaderID)
-
-	class ShaderCache
+	DECLARE_MULTICAST_DELEGATE(ShaderRecompiledEvent, GfxShaderKey const&)
+	DECLARE_MULTICAST_DELEGATE(LibraryRecompiledEvent, GfxShaderKey const&)
+	class ShaderManager
 	{
 	public:
 		static void Initialize();
 		static void Destroy();
 		static void CheckIfShadersHaveChanged();
+
 		static ShaderRecompiledEvent& GetShaderRecompiledEvent();
 		static LibraryRecompiledEvent& GetLibraryRecompiledEvent();
-		static GfxShader const& GetShader(GfxShaderID shader);
-	};
 
-	
+		static GfxShader const& GetShader(GfxShaderKey const& shader_key);
+	};
 }

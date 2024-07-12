@@ -1,5 +1,5 @@
 #include "PSOCache.h"
-#include "ShaderCache.h"
+#include "ShaderManager.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxPipelineState.h"
 #include "Graphics/GfxStateObject.h"
@@ -17,9 +17,9 @@ namespace adria
 		std::unordered_map<GfxPipelineStateID, std::unique_ptr<ComputePipelineState>>		compute_pso_map;
 		std::unordered_map<GfxPipelineStateID, std::unique_ptr<MeshShaderPipelineState>>    mesh_pso_map;
 
-		inline GfxShader const& GetShader(GfxShaderID shader)
+		inline GfxShader const& GetShader(ShaderID shader)
 		{
-			return ShaderCache::GetShader(shader);
+			return ShaderManager::GetShader(shader);
 		}
 		void CreateAllPSOs()
 		{
@@ -306,7 +306,7 @@ namespace adria
 				GfxShaderCompiler::FillInputLayoutDesc(GetShader(VS_RainBlocker), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 				gfx_pso_desc.VS = VS_RainBlocker;
-				gfx_pso_desc.PS = GfxShaderID_Invalid;
+				gfx_pso_desc.PS = ShaderID_Invalid;
 				gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::Front;
 				gfx_pso_desc.rasterizer_state.fill_mode = GfxFillMode::Solid;
 				gfx_pso_desc.rasterizer_state.depth_bias = 7500;

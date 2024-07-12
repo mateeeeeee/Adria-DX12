@@ -9,7 +9,7 @@
 #include "Rendering/Renderer.h"
 #include "Rendering/Camera.h"
 #include "Rendering/EntityLoader.h"
-#include "Rendering/ShaderCache.h"
+#include "Rendering/ShaderManager.h"
 #include "Rendering/PSOCache.h"
 #include "Utilities/ThreadPool.h"
 #include "Utilities/Random.h"
@@ -213,7 +213,7 @@ namespace adria
 		GfxShaderCompiler::Initialize();
 		gfx = std::make_unique<GfxDevice>(window, GfxOptions{.debug_layer = init.debug_layer, .dred = init.dred,
 														     .gpu_validation = init.gpu_validation, .pix = init.pix, .aftermath = init.aftermath });
-		ShaderCache::Initialize();
+		ShaderManager::Initialize();
 		PSOCache::Initialize(gfx.get());
 		g_TextureManager.Initialize(gfx.get(), 1000);
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), window->Width(), window->Height());
@@ -224,7 +224,7 @@ namespace adria
 		input_events.window_resized_event.AddMember(&Renderer::OnResize, *renderer);
 		input_events.right_mouse_clicked.AddMember(&Renderer::OnRightMouseClicked, *renderer);
 		input_events.f6_pressed_event.AddMember(&Renderer::OnTakeScreenshot, *renderer);
-		std::ignore = input_events.f5_pressed_event.Add(ShaderCache::CheckIfShadersHaveChanged);
+		std::ignore = input_events.f5_pressed_event.Add(ShaderManager::CheckIfShadersHaveChanged);
 
 		std::optional<SceneConfig> scene_config = ParseSceneConfig(init.scene_file);
 		if (scene_config.has_value()) InitializeScene(scene_config.value());
@@ -238,7 +238,7 @@ namespace adria
 	{
 		g_TextureManager.Destroy();
 		PSOCache::Destroy();
-		ShaderCache::Destroy();
+		ShaderManager::Destroy();
 		GfxShaderCompiler::Destroy();
 		g_ThreadPool.Destroy();
 	}

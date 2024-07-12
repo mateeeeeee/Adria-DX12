@@ -1,13 +1,13 @@
 #pragma once
 #include "GfxStates.h"
 #include "GfxShader.h"
+#include "GfxShaderKey.h"
 #include "GfxInputLayout.h"
 #include "GfxResourceCommon.h"
 #include "Utilities/Delegate.h"
 
 namespace adria
 {
-	enum GfxShaderID : uint8;
 	class GfxDevice;
 
 	enum class GfxRootSignatureID : uint8
@@ -27,11 +27,11 @@ namespace adria
 		GfxFormat dsv_format = GfxFormat::UNKNOWN;
 		GfxInputLayout input_layout;
 		GfxRootSignatureID root_signature = GfxRootSignatureID::Invalid;
-		GfxShaderID VS;
-		GfxShaderID PS;
-		GfxShaderID DS;
-		GfxShaderID HS;
-		GfxShaderID GS;
+		GfxShaderKey VS;
+		GfxShaderKey PS;
+		GfxShaderKey DS;
+		GfxShaderKey HS;
+		GfxShaderKey GS;
 		uint32 sample_mask = UINT_MAX;
 	};
 
@@ -66,14 +66,14 @@ namespace adria
 	private:
 		GraphicsPipelineStateDesc desc;
 	private:
-		void OnShaderRecompiled(GfxShaderID s);
+		void OnShaderRecompiled(GfxShaderKey const&);
 		void Create(GraphicsPipelineStateDesc const& desc);
 	};
 
 	struct ComputePipelineStateDesc
 	{
 		GfxRootSignatureID root_signature;
-		GfxShaderID CS;
+		GfxShaderKey CS;
 	};
 
 	class ComputePipelineState : public GfxPipelineState
@@ -86,7 +86,7 @@ namespace adria
 		ComputePipelineStateDesc desc;
 		
 	private:
-		void OnShaderRecompiled(GfxShaderID s);
+		void OnShaderRecompiled(GfxShaderKey const&);
 		void Create(ComputePipelineStateDesc const& desc);
 	};
 
@@ -100,9 +100,9 @@ namespace adria
 		GfxFormat rtv_formats[8];
 		GfxFormat dsv_format = GfxFormat::UNKNOWN;
 		GfxRootSignatureID root_signature = GfxRootSignatureID::Invalid;
-		GfxShaderID AS;
-		GfxShaderID MS;
-		GfxShaderID PS;
+		GfxShaderKey AS;
+		GfxShaderKey MS;
+		GfxShaderKey PS;
 		uint32 sample_mask = UINT_MAX;
 	};
 	class MeshShaderPipelineState : public GfxPipelineState
@@ -115,7 +115,7 @@ namespace adria
 		MeshShaderPipelineStateDesc desc;
 
 	private:
-		void OnShaderRecompiled(GfxShaderID s);
+		void OnShaderRecompiled(GfxShaderKey const&);
 		void Create(MeshShaderPipelineStateDesc const& desc);
 	};
 }

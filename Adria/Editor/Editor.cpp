@@ -13,7 +13,7 @@
 #include "Rendering/Renderer.h"
 #include "Rendering/Camera.h"
 #include "Rendering/EntityLoader.h"
-#include "Rendering/ShaderCache.h"
+#include "Rendering/ShaderManager.h"
 #include "Rendering/DebugRenderer.h"
 #include "Rendering/HelperPasses.h"
 #include "Graphics/GfxDevice.h"
@@ -99,7 +99,7 @@ namespace adria
 		if (reload_shaders)
 		{
 			gfx->WaitForGPU();
-			ShaderCache::CheckIfShadersHaveChanged();
+			ShaderManager::CheckIfShadersHaveChanged();
 			reload_shaders = false;
 		}
 	}

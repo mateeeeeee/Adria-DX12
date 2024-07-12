@@ -4,7 +4,7 @@
 #include "GFSDK_Aftermath.h"
 #include "GfxShader.h"
 #include "GfxDevice.h"
-#include "Rendering/ShaderCache.h"
+#include "Rendering/ShaderManager.h"
 #include "Logging/Logger.h"
 #include "Core/Paths.h"
 #include "Utilities/Timer.h"
@@ -43,7 +43,7 @@ namespace adria
 			this);																// Set the GpuCrashTracker object as user data for the above callbacks.
 
 		std::filesystem::create_directory(paths::AftermathDir());
-		ShaderCache::GetShaderRecompiledEvent().AddMember(&GfxNsightAftermathGpuCrashTracker::OnShaderOrLibraryCompiled, *this);
+		ShaderManager::GetShaderRecompiledEvent().AddMember(&GfxNsightAftermathGpuCrashTracker::OnShaderOrLibraryCompiled, *this);
 	}
 
 	GfxNsightAftermathGpuCrashTracker::~GfxNsightAftermathGpuCrashTracker()
@@ -147,7 +147,7 @@ namespace adria
 	// shader binaries.
 	void GfxNsightAftermathGpuCrashTracker::OnShaderLookup(GFSDK_Aftermath_ShaderBinaryHash const& shader_hash, PFN_GFSDK_Aftermath_SetData set_shader_binary) const
 	{
-		GfxShader const& shader = ShaderCache::GetShader(shader_hash_map[shader_hash.hash]);
+		GfxShader const& shader = ShaderManager::GetShader(shader_hash_map[shader_hash.hash]);
 		set_shader_binary(shader.GetData(), (uint32)shader.GetSize());
 	}
 	// Handler for shader source debug info lookup callbacks.
@@ -242,14 +242,14 @@ namespace adria
 		if (f) f.write((const char*)shader_debug_info, shader_debug_info_size);
 	}
 
-	void GfxNsightAftermathGpuCrashTracker::OnShaderOrLibraryCompiled(GfxShaderID shader_id)
+	void GfxNsightAftermathGpuCrashTracker::OnShaderOrLibraryCompiled(GfxShaderKey const& shader_key)
 	{
-		GfxShader const& shader = ShaderCache::GetShader(shader_id);
+		GfxShader const& shader = ShaderManager::GetShader(shader_key);
 		D3D12_SHADER_BYTECODE shader_bytecode{ shader.GetData(), shader.GetSize() };
 		GFSDK_Aftermath_ShaderBinaryHash shader_hash;
 		bool result = GFSDK_Aftermath_GetShaderHash(GFSDK_Aftermath_Version_API, &shader_bytecode, &shader_hash);
 		ADRIA_ASSERT(result == GFSDK_Aftermath_Result_Success);
-		shader_hash_map[shader_hash.hash] = shader_id;
+		shader_hash_map[shader_hash.hash] = shader_key;
 	}
 }
 

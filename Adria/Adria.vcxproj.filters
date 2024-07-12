@@ -185,7 +185,7 @@
     <ClCompile Include="Rendering\OceanRenderer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\ShaderCache.cpp">
+    <ClCompile Include="Rendering\ShaderManager.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\PSOCache.cpp">
@@ -701,7 +701,7 @@
     <ClInclude Include="Utilities\FileWatcher.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\ShaderCache.h">
+    <ClInclude Include="Rendering\ShaderManager.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxShader.h">

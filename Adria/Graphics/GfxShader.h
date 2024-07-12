@@ -6,7 +6,7 @@
 
 namespace adria
 {
-	struct GfxShaderMacro
+	struct GfxShaderDefine
 	{
 		std::string name;
 		std::string value;
@@ -22,10 +22,10 @@ namespace adria
 	struct GfxShaderDesc
 	{
 		GfxShaderStage stage = GfxShaderStage::ShaderCount;
-		GfxShaderModel model = SM_6_6;
+		GfxShaderModel model = SM_6_7;
 		std::string file = "";
 		std::string entry_point = "";
-		std::vector<GfxShaderMacro> macros{};
+		std::vector<GfxShaderDefine> defines{};
 		GfxShaderCompilerFlags flags = ShaderCompilerFlag_None;
 	};
 

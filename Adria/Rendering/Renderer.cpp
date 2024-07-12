@@ -3,7 +3,7 @@
 #include "Camera.h"
 #include "Components.h"
 #include "PSOCache.h"
-#include "ShaderCache.h"
+#include "ShaderManager.h"
 #include "SkyModel.h"
 #include "TextureManager.h"
 #include "DebugRenderer.h"

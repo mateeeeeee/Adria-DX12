@@ -1,9 +1,10 @@
 #include <execution>
 #include "GFSDK_Aftermath_GpuCrashDumpDecoding.h"
-#include "ShaderCache.h"
+#include "ShaderManager.h"
 #include "Core/Paths.h"
 #include "Graphics/GfxShaderCompiler.h"
 #include "Graphics/GfxDevice.h"
+#include "Graphics/GfxPipelineState.h"
 #include "Logging/Logger.h"
 #include "Utilities/Timer.h"
 #include "Utilities/FileWatcher.h"
@@ -17,10 +18,10 @@ namespace adria
 		std::unique_ptr<FileWatcher> file_watcher;
 		ShaderRecompiledEvent shader_recompiled_event;
 		LibraryRecompiledEvent library_recompiled_event;
-		std::unordered_map<GfxShaderID, GfxShader> shader_map;
-		std::unordered_map<GfxShaderID, std::vector<fs::path>> dependent_files_map;
+		std::unordered_map<GfxShaderKey, GfxShader, GfxShaderKeyHash> shader_map;
+		std::unordered_map<GfxShaderKey, std::vector<fs::path>, GfxShaderKeyHash> dependent_files_map;
 
-		constexpr GfxShaderStage GetShaderStage(GfxShaderID shader)
+		constexpr GfxShaderStage GetShaderStage(ShaderID shader)
 		{
 			switch (shader)
 			{
@@ -151,7 +152,7 @@ namespace adria
 				return GfxShaderStage::ShaderCount;
 			}
 		}
-		constexpr std::string GetShaderSource(GfxShaderID shader)
+		constexpr std::string GetShaderSource(ShaderID shader)
 		{
 			switch (shader)
 			{
@@ -341,7 +342,7 @@ namespace adria
 				return "";
 			}
 		}
-		constexpr std::string GetEntryPoint(GfxShaderID shader)
+		constexpr std::string GetEntryPoint(ShaderID shader)
 		{
 			switch (shader)
 			{
@@ -554,7 +555,12 @@ namespace adria
 			}
 			return "main";
 		}
-		constexpr std::vector<GfxShaderMacro> GetShaderMacros(GfxShaderID shader)
+		constexpr GfxShaderModel GetShaderModel(ShaderID shader)
+		{
+			return SM_6_7;
+		}
+
+		constexpr std::vector<GfxShaderDefine> GetShaderMacros(ShaderID shader)
 		{
 			switch (shader)
 			{
@@ -585,21 +591,17 @@ namespace adria
 				return {};
 			}
 		}
-		constexpr GfxShaderModel GetShaderModel(GfxShaderID shader)
-		{
-			return SM_6_7;
-		}
 
-		void CompileShader(GfxShaderID shader, bool bypass_cache = false)
+		void CompileShader(GfxShaderKey const& shader, bool bypass_cache = false)
 		{
-			if (shader == GfxShaderID_Invalid) return;
+			if (!shader.IsValid()) return;
 
 			GfxShaderDesc shader_desc{};
 			shader_desc.entry_point = GetEntryPoint(shader);
 			shader_desc.stage = GetShaderStage(shader);
-			shader_desc.macros = GetShaderMacros(shader);
 			shader_desc.model = GetShaderModel(shader);
 			shader_desc.file = paths::ShaderDir() + GetShaderSource(shader);
+			shader_desc.defines = GetShaderMacros(shader); // shader.GetDefines();
 #if _DEBUG
 			shader_desc.flags = ShaderCompilerFlag_DisableOptimization | ShaderCompilerFlag_Debug;
 #else
@@ -614,14 +616,14 @@ namespace adria
 
 			dependent_files_map[shader].clear();
 			for (auto const& include : output.includes) dependent_files_map[shader].push_back(fs::path(include));
-
 			shader_desc.stage == GfxShaderStage::LIB ? library_recompiled_event.Broadcast(shader) : shader_recompiled_event.Broadcast(shader);
 		}
+
 		void CompileAllShaders()
 		{
 			ADRIA_LOG(INFO, "Compiling all shaders...");
 			Timer t;
-			using UnderlyingType = std::underlying_type_t<GfxShaderID>;
+			using UnderlyingType = std::underlying_type_t<ShaderID>;
 			std::vector<UnderlyingType> shaders(ShaderId_Count);
 			std::iota(std::begin(shaders), std::end(shaders), 0);
 			std::for_each(
@@ -630,11 +632,12 @@ namespace adria
 				std::end(shaders),
 				[](UnderlyingType s)
 				{
-					GfxShaderID shader = static_cast<GfxShaderID>(s);
+					ShaderID shader = static_cast<ShaderID>(s);
 					CompileShader(shader);
 				});
 			ADRIA_LOG(INFO, "Compilation done in %f seconds!", t.ElapsedInSeconds());
 		}
+
 		void OnShaderFileChanged(std::string const& filename)
 		{
 			for (auto const& [shader, files] : dependent_files_map)
@@ -648,7 +651,7 @@ namespace adria
 		}
 	}
 
-	void ShaderCache::Initialize()
+	void ShaderManager::Initialize()
 	{
 		file_watcher = std::make_unique<FileWatcher>();
 		file_watcher->AddPathToWatch(paths::ShaderDir());
@@ -656,26 +659,29 @@ namespace adria
 		fs::create_directory(paths::ShaderCacheDir());
 		CompileAllShaders();
 	}
-	void ShaderCache::Destroy()
+	void ShaderManager::Destroy()
 	{
 		file_watcher = nullptr;
 		shader_map.clear();
 		dependent_files_map.clear();
 	}
-	void ShaderCache::CheckIfShadersHaveChanged()
+	void ShaderManager::CheckIfShadersHaveChanged()
 	{
 		file_watcher->CheckWatchedFiles();
 	}
 
-	GfxShader const& ShaderCache::GetShader(GfxShaderID shader)
+	GfxShader const& ShaderManager::GetShader(GfxShaderKey const& shader_key)
 	{
-		return shader_map[shader];
+		if (shader_map.contains(shader_key)) return shader_map[shader_key];
+		CompileShader(shader_key);
+		return shader_map[shader_key];
 	}
-	ShaderRecompiledEvent& ShaderCache::GetShaderRecompiledEvent()
+
+	ShaderRecompiledEvent& ShaderManager::GetShaderRecompiledEvent()
 	{
 		return shader_recompiled_event;
 	}
-	LibraryRecompiledEvent& ShaderCache::GetLibraryRecompiledEvent()
+	LibraryRecompiledEvent& ShaderManager::GetLibraryRecompiledEvent()
 	{
 		return library_recompiled_event;
 	}

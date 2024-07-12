@@ -218,6 +218,7 @@
     <ClCompile Include="Graphics\GfxQueryHeap.cpp" />
     <ClCompile Include="Graphics\GfxRayTracingAS.cpp" />
     <ClCompile Include="Graphics\GfxRayTracingShaderTable.cpp" />
+    <ClCompile Include="Graphics\GfxShaderKey.cpp" />
     <ClCompile Include="Graphics\GfxStateObject.cpp" />
     <ClCompile Include="Graphics\GfxSwapchain.cpp" />
     <ClCompile Include="Graphics\GfxTexture.cpp" />
@@ -290,7 +291,7 @@
     <ClCompile Include="Rendering\RayTracedShadowsPass.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
     <ClCompile Include="Rendering\ReSTIRGI.cpp" />
-    <ClCompile Include="Rendering\ShaderCache.cpp" />
+    <ClCompile Include="Rendering\ShaderManager.cpp" />
     <ClCompile Include="Rendering\GPUDebugPrinter.cpp" />
     <ClCompile Include="Rendering\ShadowRenderer.cpp" />
     <ClCompile Include="Rendering\SkyModel.cpp" />
@@ -383,6 +384,7 @@
     <ClInclude Include="Graphics\GfxRayTracingAS.h" />
     <ClInclude Include="Graphics\GfxRingDescriptorAllocator.h" />
     <ClInclude Include="Graphics\GfxShaderEnums.h" />
+    <ClInclude Include="Graphics\GfxShaderKey.h" />
     <ClInclude Include="Graphics\GfxStateObject.h" />
     <ClInclude Include="Graphics\GfxSwapchain.h" />
     <ClInclude Include="Graphics\GfxDefines.h" />
@@ -482,7 +484,7 @@
     <ClInclude Include="Rendering\RayTracedReflectionsPass.h" />
     <ClInclude Include="Rendering\RayTracedShadowsPass.h" />
     <ClInclude Include="Rendering\Renderer.h" />
-    <ClInclude Include="Rendering\ShaderCache.h" />
+    <ClInclude Include="Rendering\ShaderManager.h" />
     <ClInclude Include="Rendering\ShadowRenderer.h" />
     <ClInclude Include="Rendering\SSRPass.h" />
     <ClInclude Include="Rendering\TAAPass.h" />

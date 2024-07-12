@@ -244,17 +244,17 @@ namespace adria
 		}
 		bool CompileShader(GfxShaderCompileInput const& input, GfxShaderCompileOutput& output, bool bypass_cache)
 		{
-			std::string macro_key;
-			for (GfxShaderMacro const& macro : input.macros)
+			std::string define_key;
+			for (GfxShaderDefine const& define : input.defines)
 			{
-				macro_key += macro.name;
-				macro_key += macro.value;
+				define_key += define.name;
+				define_key += define.value;
 			}
-			uint64 macro_hash = crc64(macro_key.c_str(), macro_key.size());
+			uint64 define_hash = crc64(define_key.c_str(), define_key.size());
 			std::string build_string = input.flags & ShaderCompilerFlag_Debug ? "debug" : "release";
 			char cache_path[256];
 			sprintf_s(cache_path, "%s%s_%s_%llx_%s", paths::ShaderCacheDir().c_str(), GetFilenameWithoutExtension(input.file).c_str(),
-												    input.entry_point.c_str(), macro_hash, build_string.c_str());
+												    input.entry_point.c_str(), define_hash, build_string.c_str());
 
 			if (!bypass_cache && CheckCache(cache_path, input, output)) return true;
 			ADRIA_LOG(INFO, "Shader '%s.%s' not found in cache. Compiling...", input.file.c_str(), input.entry_point.c_str());
@@ -304,18 +304,16 @@ namespace adria
 			compile_args.push_back(L"-I");
 			compile_args.push_back(path.c_str());
 
-			std::vector<std::wstring> macros;
-			macros.reserve(input.macros.size());
-			for (auto const& macro : input.macros)
+			std::vector<std::wstring> defines;
+			defines.reserve(input.defines.size());
+			for (auto const& define : input.defines)
 			{
-				std::wstring macro_name = ToWideString(macro.name);
-				std::wstring macro_value = ToWideString(macro.value);
+				std::wstring define_name = ToWideString(define.name);
+				std::wstring define_value = ToWideString(define.value);
 				compile_args.push_back(L"-D");
-				if (macro.value.empty())
-					macros.push_back(macro_name + L"=1");
-				else
-					macros.push_back(macro_name + L"=" + macro_value);
-				compile_args.push_back(macros.back().c_str());
+				if (define.value.empty()) defines.push_back(define_name + L"=1");
+				else defines.push_back(define_name + L"=" + define_value);
+				compile_args.push_back(defines.back().c_str());
 			}
 
 			DxcBuffer source_buffer{};

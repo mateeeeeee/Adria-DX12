@@ -1,8 +1,9 @@
 #include "PathTracingPass.h"
 #include "BlackboardData.h"
-#include "ShaderCache.h"
+#include "ShaderManager.h"
 #include "PSOCache.h"
 #include "Graphics/GfxShader.h"
+#include "Graphics/GfxShaderKey.h"
 #include "Graphics/GfxStateObject.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
 #include "Graphics/GfxLinearDynamicAllocator.h"
@@ -20,7 +21,7 @@ namespace adria
 		{
 			CreateStateObject();
 			OnResize(width, height);
-			ShaderCache::GetLibraryRecompiledEvent().AddMember(&PathTracingPass::OnLibraryRecompiled, *this);
+			ShaderManager::GetLibraryRecompiledEvent().AddMember(&PathTracingPass::OnLibraryRecompiled, *this);
 		}
 	}
 	PathTracingPass::~PathTracingPass() = default;
@@ -123,7 +124,7 @@ namespace adria
 
 	void PathTracingPass::CreateStateObject()
 	{
-		GfxShader const& pt_blob = ShaderCache::GetShader(LIB_PathTracing);
+		GfxShader const& pt_blob = ShaderManager::GetShader(LIB_PathTracing);
 
 		GfxStateObjectBuilder pt_state_object_builder(5);
 		{
@@ -156,9 +157,9 @@ namespace adria
 		path_tracing_so.reset(pt_state_object_builder.CreateStateObject(gfx));
 	}
 
-	void PathTracingPass::OnLibraryRecompiled(GfxShaderID shader)
+	void PathTracingPass::OnLibraryRecompiled(GfxShaderKey const& key)
 	{
-		if (shader == LIB_PathTracing) CreateStateObject();
+		if (key.GetShaderID() == LIB_PathTracing) CreateStateObject();
 	}
 
 }
