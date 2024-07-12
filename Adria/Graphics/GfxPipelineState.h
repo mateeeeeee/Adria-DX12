@@ -16,25 +16,6 @@ namespace adria
 		Common
 	};
 
-	struct GraphicsPipelineStateDesc
-	{
-		GfxRasterizerState rasterizer_state{};
-		GfxBlendState blend_state{};
-		GfxDepthStencilState depth_state{};
-		GfxPrimitiveTopologyType topology_type = GfxPrimitiveTopologyType::Triangle;
-		uint32 num_render_targets = 0;
-		GfxFormat rtv_formats[8];
-		GfxFormat dsv_format = GfxFormat::UNKNOWN;
-		GfxInputLayout input_layout;
-		GfxRootSignatureID root_signature = GfxRootSignatureID::Invalid;
-		GfxShaderKey VS;
-		GfxShaderKey PS;
-		GfxShaderKey DS;
-		GfxShaderKey HS;
-		GfxShaderKey GS;
-		uint32 sample_mask = UINT_MAX;
-	};
-
 	enum class GfxPipelineStateType : uint8
 	{
 		Graphics,
@@ -57,6 +38,24 @@ namespace adria
 		DelegateHandle event_handle;
 	};
 
+	struct GraphicsPipelineStateDesc
+	{
+		GfxRasterizerState rasterizer_state{};
+		GfxBlendState blend_state{};
+		GfxDepthStencilState depth_state{};
+		GfxPrimitiveTopologyType topology_type = GfxPrimitiveTopologyType::Triangle;
+		uint32 num_render_targets = 0;
+		GfxFormat rtv_formats[8];
+		GfxFormat dsv_format = GfxFormat::UNKNOWN;
+		GfxInputLayout input_layout;
+		GfxRootSignatureID root_signature = GfxRootSignatureID::Invalid;
+		GfxShaderKey VS;
+		GfxShaderKey PS;
+		GfxShaderKey DS;
+		GfxShaderKey HS;
+		GfxShaderKey GS;
+		uint32 sample_mask = UINT_MAX;
+	};
 	class GraphicsPipelineState : public GfxPipelineState
 	{
 	public:
@@ -75,7 +74,6 @@ namespace adria
 		GfxRootSignatureID root_signature;
 		GfxShaderKey CS;
 	};
-
 	class ComputePipelineState : public GfxPipelineState
 	{
 	public:
@@ -118,4 +116,7 @@ namespace adria
 		void OnShaderRecompiled(GfxShaderKey const&);
 		void Create(MeshShaderPipelineStateDesc const& desc);
 	};
+
+
+	
 }
