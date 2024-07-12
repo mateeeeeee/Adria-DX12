@@ -40,8 +40,6 @@ namespace adria
 		Add,
 		Add_AlphaBlend,
 		Add_AdditiveBlend,
-		Shadow,
-		Shadow_Transparent,
 		SSAO,
 		HBAO,
 		SSR,

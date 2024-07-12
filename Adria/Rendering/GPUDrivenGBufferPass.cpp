@@ -18,10 +18,19 @@ namespace adria
 {
 	static constexpr uint32 MAX_NUM_MESHLETS = 1 << 20u;
 	static constexpr uint32 MAX_NUM_INSTANCES = 1 << 14u;
+
 	struct MeshletCandidate
 	{
 		uint32 instance_id;
 		uint32 meshlet_index;
+	};
+
+	enum CullPSOIndex
+	{
+		CullPSO = 0,
+		CullPSO_2ndPhase = 1,
+		CullPSO_NoOcclusionCull = 1,
+		CullPSO_Count = 3
 	};
 
 	GPUDrivenGBufferPass::GPUDrivenGBufferPass(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) 

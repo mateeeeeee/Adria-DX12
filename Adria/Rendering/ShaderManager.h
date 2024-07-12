@@ -21,8 +21,6 @@ namespace adria
 		PS_GBuffer_Mask,
 		VS_Shadow,
 		PS_Shadow,
-		VS_Shadow_Transparent,
-		PS_Shadow_Transparent,
 		VS_LensFlare,
 		GS_LensFlare,
 		PS_LensFlare,

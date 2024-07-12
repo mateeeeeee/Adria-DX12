@@ -28,13 +28,6 @@ namespace adria
 			uint32 phase2_visible_meshlets;
 		};
 
-		enum CullPSOIndex
-		{
-			CullPSO = 0,
-			CullPSO_2ndPhase = 1,
-			CullPSO_NoOcclusionCull = 1,
-			CullPSO_Count = 3
-		};
 
 	public:
 		GPUDrivenGBufferPass(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height);

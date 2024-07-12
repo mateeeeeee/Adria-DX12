@@ -1,13 +1,14 @@
 #include "ShadowRenderer.h"
 #include "Components.h"
 #include "Camera.h"
-#include "PSOCache.h"
+#include "ShaderManager.h"
 #include "BlackboardData.h"
 #include "ShaderStructs.h"
 #include "Graphics/GfxBuffer.h"
 #include "Graphics/GfxTexture.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxCommandList.h"
+#include "Graphics/GfxShaderCompiler.h"
 #include "RenderGraph/RenderGraph.h"
 
 using namespace DirectX;
@@ -184,7 +185,10 @@ namespace adria
 	}
 
 	ShadowRenderer::ShadowRenderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), width(width), height(height),
-		ray_traced_shadows_pass(gfx, width, height) {}
+		ray_traced_shadows_pass(gfx, width, height) 
+	{
+		CreatePSOs();
+	}
 	ShadowRenderer::~ShadowRenderer() {}
 
 	void ShadowRenderer::FillFrameCBuffer(FrameCBuffer& frame_cbuffer)
@@ -493,6 +497,29 @@ namespace adria
 		}
 	}
 
+	void ShadowRenderer::CreatePSOs()
+	{
+		using enum GfxShaderStage;
+		GraphicsPipelineStateDesc gfx_pso_desc{};
+		GfxShaderCompiler::FillInputLayoutDesc(ShaderManager::GetShader(VS_Shadow), gfx_pso_desc.input_layout);
+		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
+		gfx_pso_desc.VS = VS_Shadow;
+		gfx_pso_desc.PS = PS_Shadow;
+		gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::Front;
+		gfx_pso_desc.rasterizer_state.fill_mode = GfxFillMode::Solid;
+		gfx_pso_desc.rasterizer_state.depth_bias = 7500;
+		gfx_pso_desc.rasterizer_state.depth_bias_clamp = 0.0f;
+		gfx_pso_desc.rasterizer_state.slope_scaled_depth_bias = 1.0f;
+		gfx_pso_desc.depth_state.depth_enable = true;
+		gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
+		gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::LessEqual;
+		gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
+
+		shadow_psos.Init(gfx_pso_desc);
+		shadow_psos.AddDefine<1>("TRANSPARENT", "1");
+		shadow_psos.Finalize(gfx);
+	}
+
 	void ShadowRenderer::ShadowMapPass_Common(GfxDevice* gfx, GfxCommandList* cmd_list, uint64 light_index, uint64 matrix_index, uint64 matrix_offset)
 	{
 		struct ShadowConstants
@@ -516,9 +543,9 @@ namespace adria
 		auto DrawBatch = [&](GfxCommandList* cmd_list, bool masked_batch)
 		{
 			std::vector<Batch*>& batches = masked_batch ? masked_batches : opaque_batches;
-			GfxPipelineStateID pso = masked_batch ? GfxPipelineStateID::Shadow_Transparent : GfxPipelineStateID::Shadow;
+			GfxPipelineState* pso = masked_batch ? shadow_psos.Get<1>() : shadow_psos.Get<0>();
 			cmd_list->SetRootConstants(1, constants);
-			cmd_list->SetPipelineState(PSOCache::Get(pso));
+			cmd_list->SetPipelineState(pso);
 			for (Batch* batch : batches)
 			{
 				struct ModelConstants

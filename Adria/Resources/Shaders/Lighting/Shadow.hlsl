@@ -18,7 +18,7 @@ ConstantBuffer<ModelConstants> ModelCB : register(b2);
 struct VSToPS
 {
 	float4 Pos : SV_POSITION;
-#if ALPHA_TEST
+#if TRANSPARENT
 	float2 TexCoords : TEX;
 #endif
 };
@@ -39,7 +39,7 @@ VSToPS ShadowVS(uint VertexId : SV_VertexID)
 	float4 posLS = mul(posWS, lightViewProjection);
 	output.Pos = posLS;
 
-#if ALPHA_TEST
+#if TRANSPARENT
 	float2 uv = LoadMeshBuffer<float2>(meshData.bufferIdx, meshData.uvsOffset, VertexId);
 	output.TexCoords = uv;
 #endif
@@ -48,7 +48,7 @@ VSToPS ShadowVS(uint VertexId : SV_VertexID)
 
 void ShadowPS(VSToPS input)
 {
-#if ALPHA_TEST 
+#if TRANSPARENT 
 	Instance instanceData = GetInstanceData(ModelCB.instanceId);
 	Material materialData = GetMaterialData(instanceData.materialIdx);
 

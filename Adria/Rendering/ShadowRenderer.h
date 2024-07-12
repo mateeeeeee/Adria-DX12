@@ -3,6 +3,7 @@
 #include "RayTracedShadowsPass.h"
 #include "Graphics/GfxDefines.h"
 #include "Graphics/GfxDescriptor.h"
+#include "Graphics/GfxPSOPermutations.h"
 #include "Utilities/Delegate.h"
 
 namespace adria
@@ -53,6 +54,7 @@ namespace adria
 		uint32 width;
 		uint32 height;
 		RayTracedShadowsPass ray_traced_shadows_pass;
+		GraphicsPSOPermutations<2> shadow_psos;
 
 		std::unique_ptr<GfxBuffer>  light_matrices_buffer;
 		GfxDescriptor				light_matrices_buffer_srvs[GFX_BACKBUFFER_COUNT];
@@ -71,6 +73,7 @@ namespace adria
 		ShadowTextureRenderedEvent shadow_rendered_event;
 
 	private:
+		void CreatePSOs();
 		void ShadowMapPass_Common(GfxDevice* gfx, GfxCommandList* cmd_list, uint64 light_index, uint64 matrix_index, uint64 matrix_offset);
 		static std::array<Matrix, SHADOW_CASCADE_COUNT> RecalculateProjectionMatrices(Camera const& camera, float split_lambda, std::array<float, SHADOW_CASCADE_COUNT>& split_distances);
 	};

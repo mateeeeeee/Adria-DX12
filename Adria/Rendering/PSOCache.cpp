@@ -62,27 +62,6 @@ namespace adria
 				gfx_pso_map[GfxPipelineStateID::GBuffer_Rain] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				GfxShaderCompiler::FillInputLayoutDesc(GetShader(VS_Shadow), gfx_pso_desc.input_layout);
-				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
-				gfx_pso_desc.VS = VS_Shadow;
-				gfx_pso_desc.PS = PS_Shadow;
-				gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::Front;
-				gfx_pso_desc.rasterizer_state.fill_mode = GfxFillMode::Solid;
-				gfx_pso_desc.rasterizer_state.depth_bias = 7500;
-				gfx_pso_desc.rasterizer_state.depth_bias_clamp = 0.0f;
-				gfx_pso_desc.rasterizer_state.slope_scaled_depth_bias = 1.0f;
-				gfx_pso_desc.depth_state.depth_enable = true;
-				gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
-				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::LessEqual;
-				gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
-				gfx_pso_map[GfxPipelineStateID::Shadow] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-
-				GfxShaderCompiler::FillInputLayoutDesc(GetShader(VS_Shadow_Transparent), gfx_pso_desc.input_layout);
-				gfx_pso_desc.VS = VS_Shadow_Transparent;
-				gfx_pso_desc.PS = PS_Shadow_Transparent;
-				gfx_pso_map[GfxPipelineStateID::Shadow_Transparent] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-
-				gfx_pso_desc = {};
 				GfxShaderCompiler::FillInputLayoutDesc(GetShader(VS_Sun), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 				gfx_pso_desc.VS = VS_Sun;

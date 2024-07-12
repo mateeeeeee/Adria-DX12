@@ -34,7 +34,6 @@ namespace adria
 			case VS_LensFlare:
 			case VS_Bokeh:
 			case VS_Shadow:
-			case VS_Shadow_Transparent:
 			case VS_Ocean:
 			case VS_OceanLOD:
 			case VS_CloudsCombine:
@@ -56,7 +55,6 @@ namespace adria
 			case PS_LensFlare:
 			case PS_Bokeh:
 			case PS_Shadow:
-			case PS_Shadow_Transparent:
 			case PS_Ocean:
 			case PS_CloudsCombine:
 			case PS_DrawMeshlets:
@@ -204,9 +202,7 @@ namespace adria
 			case CS_CloudType:
 				return "Weather/CloudNoise.hlsl";
 			case VS_Shadow:
-			case VS_Shadow_Transparent:
 			case PS_Shadow:
-			case PS_Shadow_Transparent:
 				return "Lighting/Shadow.hlsl";
 			case CS_Blur_Horizontal:
 			case CS_Blur_Vertical:
@@ -506,10 +502,8 @@ namespace adria
 			case PS_VolumetricFog_CombineFog:
 				return "CombineFogPS";
 			case VS_Shadow:
-			case VS_Shadow_Transparent:
 				return "ShadowVS";
 			case PS_Shadow:
-			case PS_Shadow_Transparent:
 				return "ShadowPS";
 			case VS_CloudsCombine:
 				return "CloudsCombineVS";
@@ -545,9 +539,6 @@ namespace adria
 			{
 			case PS_Decals_ModifyNormals:
 				return { {"DECAL_MODIFY_NORMALS", ""} };
-			case VS_Shadow_Transparent:
-			case PS_Shadow_Transparent:
-				return { {"ALPHA_TEST", "1"} };
 			case PS_GBuffer_Rain:
 				return { { "RAIN", "1" } };
 			case PS_GBuffer_Mask:
