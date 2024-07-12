@@ -72,7 +72,7 @@ namespace adria
 		}
 
 		template<uint32 P, typename F> requires std::is_invocable_v<F, PSODesc&>
-		void ModifyPSODesc(F&& f)
+		void ModifyDesc(F&& f)
 		{
 			static_assert(P < N);
 			f(pso_descs[P]);
@@ -100,8 +100,27 @@ namespace adria
 			}
 		}
 
+		template<uint32 P>
+		PSO* Get() const
+		{
+			static_assert(P < N);
+			return pso_permutations[P].get();
+		}
+
+		PSO* operator[](uint32 i) const
+		{
+			return pso_permutations[i].get();
+		}
+
 	private:
 		std::unique_ptr<PSO> pso_permutations[N];
 		PSODesc pso_descs[N];
 	};
+
+	template<uint32 N> using GraphicsPSOPermutations	= GfxPSOPermutations<GraphicsPipelineState, N>;
+	template<uint32 N> using ComputePSOPermutations		= GfxPSOPermutations<ComputePipelineState, N>;
+	template<uint32 N> using MeshShaderPSOPermutations	= GfxPSOPermutations<MeshShaderPipelineState, N>;
+	template<uint32 N> using GraphicsPSOPermutationsPtr		= std::unique_ptr<GraphicsPSOPermutations<N>>;
+	template<uint32 N> using ComputePSOPermutationsPtr		= std::unique_ptr<ComputePSOPermutations<N>>;
+	template<uint32 N> using MeshShaderPSOPermutationsPtr	= std::unique_ptr<MeshShaderPSOPermutations<N>>;
 }

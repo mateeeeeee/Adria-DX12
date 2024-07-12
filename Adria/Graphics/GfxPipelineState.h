@@ -1,9 +1,7 @@
 #pragma once
 #include "GfxStates.h"
-#include "GfxShader.h"
 #include "GfxShaderKey.h"
 #include "GfxInputLayout.h"
-#include "GfxResourceCommon.h"
 #include "Utilities/Delegate.h"
 
 namespace adria
@@ -116,7 +114,4 @@ namespace adria
 		void OnShaderRecompiled(GfxShaderKey const&);
 		void Create(MeshShaderPipelineStateDesc const& desc);
 	};
-
-
-	
 }

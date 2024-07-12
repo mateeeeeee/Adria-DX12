@@ -3,6 +3,7 @@
 #include "GfxDevice.h"
 #include "GfxStates.h"
 #include "GfxShader.h"
+#include "GfxResourceCommon.h"
 #include "Rendering/ShaderManager.h"
 #include "Utilities/HashUtil.h"
 
