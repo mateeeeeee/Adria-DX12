@@ -34,6 +34,8 @@ struct Light
 };
 
 
+///Shadows
+
 float CalcShadowFactor_PCF3x3(SamplerComparisonState shadowSampler,
 	Texture2D<float> shadowMap, float3 uvd, int shadowMapSize)
 {
@@ -59,7 +61,7 @@ float CalcShadowFactor_PCF3x3(SamplerComparisonState shadowSampler,
     return percentLit;
 }
 
-float GetShadowMapFactor(Light light, float3 P)
+float GetShadowMapFactorWS(Light light, float3 worldPosition)
 {
 	StructuredBuffer<float4x4> lightViewProjections = ResourceDescriptorHeap[FrameCB.lightsMatricesIdx];
 	bool castsShadows = light.shadowTextureIndex >= 0;
@@ -72,10 +74,82 @@ float GetShadowMapFactor(Light light, float3 P)
 		{
 			if (light.useCascades)
 			{
-				float viewDepth = P.z;
+				float4 viewPosition = mul(float4(worldPosition, 1.0f), FrameCB.view);
+				float viewDepth = viewPosition.z;
 				for (uint i = 0; i < 4; ++i)
 				{
-					float4 worldPosition = mul(float4(P, 1.0f), FrameCB.inverseView);
+					float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex + i];
+					float4 shadowMapPosition = mul(float4(worldPosition, 1.0f), lightViewProjection);
+					float3 UVD = shadowMapPosition.xyz / shadowMapPosition.w;
+					UVD.xy = 0.5 * UVD.xy + 0.5;
+					UVD.y = 1.0 - UVD.y;
+
+					if (viewDepth < FrameCB.cascadeSplits[i])
+					{
+						Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex + i)];
+						shadowFactor = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 2048);
+						break;
+					}
+				}
+			}
+			else
+			{
+				float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex];
+				float4 shadowMapPosition = mul(float4(worldPosition, 1.0f), lightViewProjection);
+				float3 UVD = shadowMapPosition.xyz / shadowMapPosition.w;
+				UVD.xy = 0.5 * UVD.xy + 0.5;
+				UVD.y = 1.0 - UVD.y;
+				Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex)];
+				shadowFactor = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 1024);
+			}
+		}
+		break;
+		case POINT_LIGHT:
+		{
+			float3 lightToPixelWS = worldPosition - light.position.xyz;
+			uint cubeFaceIndex = GetCubeFaceIndex(lightToPixelWS);
+			float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex + cubeFaceIndex];
+			float4 shadowMapPosition = mul(float4(worldPosition, 1.0f), lightViewProjection);
+			float3 UVD = shadowMapPosition.xyz / shadowMapPosition.w;
+			UVD.xy = 0.5 * UVD.xy + 0.5;
+			UVD.y = 1.0 - UVD.y;
+			Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex + cubeFaceIndex)];
+			shadowFactor = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 512);
+		}
+		break;
+		case SPOT_LIGHT:
+		{
+			float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex];
+			float4 shadowMapPosition = mul(float4(worldPosition, 1.0f), lightViewProjection);
+			float3 UVD = shadowMapPosition.xyz / shadowMapPosition.w;
+			UVD.xy = 0.5 * UVD.xy + 0.5;
+			UVD.y = 1.0 - UVD.y;
+			Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.shadowTextureIndex)];
+			shadowFactor = CalcShadowFactor_PCF3x3(ShadowWrapSampler, shadowMap, UVD, 1024);
+		}
+		break;
+		}
+	}
+	return shadowFactor;
+}
+
+float GetShadowMapFactor(Light light, float3 viewPosition)
+{
+	StructuredBuffer<float4x4> lightViewProjections = ResourceDescriptorHeap[FrameCB.lightsMatricesIdx];
+	bool castsShadows = light.shadowTextureIndex >= 0;
+	float shadowFactor = 1.0f;
+	if (castsShadows)
+	{
+		switch (light.type)
+		{
+		case DIRECTIONAL_LIGHT:
+		{
+			if (light.useCascades)
+			{
+				float viewDepth = viewPosition.z;
+				for (uint i = 0; i < 4; ++i)
+				{
+					float4 worldPosition = mul(float4(viewPosition, 1.0f), FrameCB.inverseView);
 					worldPosition /= worldPosition.w;
 					float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex + i];
 					float4 shadowMapPosition = mul(worldPosition, lightViewProjection);
@@ -93,7 +167,7 @@ float GetShadowMapFactor(Light light, float3 P)
 			}
 			else
 			{
-				float4 worldPosition = mul(float4(P, 1.0f), FrameCB.inverseView);
+				float4 worldPosition = mul(float4(viewPosition, 1.0f), FrameCB.inverseView);
 				worldPosition /= worldPosition.w;
 				float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex];
 				float4 shadowMapPosition = mul(worldPosition, lightViewProjection);
@@ -107,9 +181,9 @@ float GetShadowMapFactor(Light light, float3 P)
 		break;
 		case POINT_LIGHT:
 		{
-			float3 lightToPixelWS = mul(float4(P - light.position.xyz, 0.0f), FrameCB.inverseView).xyz;
+			float3 lightToPixelWS = mul(float4(viewPosition - light.position.xyz, 0.0f), FrameCB.inverseView).xyz;
 			uint cubeFaceIndex = GetCubeFaceIndex(lightToPixelWS);
-			float4 worldPosition = mul(float4(P, 1.0f), FrameCB.inverseView);
+			float4 worldPosition = mul(float4(viewPosition, 1.0f), FrameCB.inverseView);
 			worldPosition /= worldPosition.w;
 			float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex + cubeFaceIndex];
 			float4 shadowMapPosition = mul(worldPosition, lightViewProjection);
@@ -122,7 +196,7 @@ float GetShadowMapFactor(Light light, float3 P)
 		break;
 		case SPOT_LIGHT:
 		{
-			float4 worldPosition = mul(float4(P, 1.0f), FrameCB.inverseView);
+			float4 worldPosition = mul(float4(viewPosition, 1.0f), FrameCB.inverseView);
 			worldPosition /= worldPosition.w;
 			float4x4 lightViewProjection = lightViewProjections[light.shadowMatrixIndex];
 			float4 shadowMapPosition = mul(worldPosition, lightViewProjection);
@@ -150,6 +224,8 @@ float GetRayTracedShadowsFactor(Light light, float2 uv)
 	return 1.0f;
 }
 
+
+///Lighting
 
 struct LightingResult
 {

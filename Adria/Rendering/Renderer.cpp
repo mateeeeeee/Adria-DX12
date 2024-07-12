@@ -444,7 +444,6 @@ namespace adria
 
 	void Renderer::Render_Deferred(RenderGraph& render_graph)
 	{
-		bool const add_volumetric_pass = (volumetric_lights > 0);
 		if (update_picking_data)
 		{
 			picking_data = picking_pass.GetPickingData();
@@ -462,11 +461,11 @@ namespace adria
 		shadow_renderer.AddRayTracingShadowPasses(render_graph);
 		switch (path_type)
 		{
-		case RendererPathType::RegularDeferred: deferred_lighting_pass.AddPass(render_graph); break;
-		case RendererPathType::TiledDeferred: tiled_deferred_lighting_pass.AddPass(render_graph); break;
-		case RendererPathType::ClusteredDeferred: clustered_deferred_lighting_pass.AddPass(render_graph, true); break;
+		case RendererPathType::RegularDeferred:		deferred_lighting_pass.AddPass(render_graph); break;
+		case RendererPathType::TiledDeferred:		tiled_deferred_lighting_pass.AddPass(render_graph); break;
+		case RendererPathType::ClusteredDeferred:	clustered_deferred_lighting_pass.AddPass(render_graph, true); break;
 		}
-		if (add_volumetric_pass)
+		if (volumetric_lights > 0)
 		{
 			switch (volumetric_path_type)
 			{

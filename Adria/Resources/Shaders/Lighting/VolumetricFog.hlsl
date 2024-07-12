@@ -119,7 +119,7 @@ void LightInjectionCS(CSInput input)
 			float attenuation = GetLightAttenuation(light, worldPosition, L);
 			if(attenuation <= 0.0f) continue;
 
-			float shadowFactor = GetShadowMapFactor(light, worldPosition);
+			float shadowFactor = GetShadowMapFactorWS(light, worldPosition);
 			attenuation *= shadowFactor;
 			if(attenuation <= 0.0f) continue;
 
