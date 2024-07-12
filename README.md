@@ -25,7 +25,7 @@ Graphics engine written in C++ using DirectX12.
     - Only one root signature 
 * Volumetric lighting
     - 2D Raymarching
-    - Fog volumes (wip)
+    - Fog volumes
 * Tiled deferred rendering 
 * Clustered deferred rendering
 * Shadows

@@ -57,7 +57,6 @@ namespace adria
 		uint32 fog_volume_buffer_idx;
 
 		std::array<TextureHandle, BLUE_NOISE_TEXTURE_COUNT> blue_noise_handles;
-		bool temporal_lighting = false;
 
 	private:
 

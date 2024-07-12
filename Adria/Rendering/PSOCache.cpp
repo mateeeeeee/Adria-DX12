@@ -329,6 +329,9 @@ namespace adria
 				gfx_pso_desc.blend_state.render_target[0].src_blend = GfxBlend::One;
 				gfx_pso_desc.blend_state.render_target[0].dest_blend = GfxBlend::SrcAlpha;
 				gfx_pso_desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;
+				gfx_pso_desc.blend_state.render_target[0].src_blend_alpha = GfxBlend::Zero;
+				gfx_pso_desc.blend_state.render_target[0].dest_blend_alpha = GfxBlend::One;
+				gfx_pso_desc.blend_state.render_target[0].blend_op_alpha = GfxBlendOp::Add;
 				gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
 				gfx_pso_map[GfxPipelineStateID::VolumetricFog_CombineFog] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 			}

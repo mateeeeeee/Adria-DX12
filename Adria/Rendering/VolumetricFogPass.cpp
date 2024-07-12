@@ -46,7 +46,7 @@ namespace adria
 		fog_volume.volume = scene_bounding_box;
 		fog_volume.color = Color(1, 1, 1);
 		fog_volume.density_base = 0.0f;
-		fog_volume.density_change = 0.05f;
+		fog_volume.density_change = 0.003f;
 
 		CreateFogVolumeBuffer();
 	}
@@ -68,11 +68,9 @@ namespace adria
 				FogVolume& fog_volume = fog_volumes[0];
 				if (ImGui::TreeNode("Volumetric Fog"))
 				{
-					ImGui::Checkbox("Temporal Lighting", &temporal_lighting);
-
 					bool update_fog_volume_buffer = false;
-					update_fog_volume_buffer |= ImGui::SliderFloat("Density Base", &fog_volume.density_base, 0.0f, 1.0f);
-					update_fog_volume_buffer |= ImGui::SliderFloat("Density Change", &fog_volume.density_change, 0.0f, 1.0f);
+					update_fog_volume_buffer |= ImGui::SliderFloat("Density Base", &fog_volume.density_base, 0.0f, 0.02f);
+					update_fog_volume_buffer |= ImGui::SliderFloat("Density Change", &fog_volume.density_change, 0.0f, 0.05f);
 					Vector3 fog_color = fog_volume.color.ToVector3();
 					update_fog_volume_buffer |= ImGui::ColorEdit3("Fog Color", (float*)&fog_color);
 					fog_volume.color = Color(fog_color);
@@ -140,7 +138,7 @@ namespace adria
 					.fog_volume_buffer_idx = fog_volume_buffer_idx,
 					.light_injection_target_idx = i,
 					.light_injection_target_history_idx = i + 1,
-					.blue_noise_idx = (uint32)blue_noise_handles[temporal_lighting ? gfx->GetFrameIndex() % BLUE_NOISE_TEXTURE_COUNT : 0]
+					.blue_noise_idx = (uint32)blue_noise_handles[gfx->GetFrameIndex() % BLUE_NOISE_TEXTURE_COUNT]
 				};
 				
 				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::VolumetricFog_LightInjection));

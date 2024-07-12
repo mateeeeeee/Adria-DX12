@@ -46,10 +46,11 @@ float HenyeyGreensteinPhase(float LdotV, float G)
 float3 GetUVWFromVoxelCoords(uint3 voxelCoords, float jitter, uint3 voxelGridDimensions)
 {
 	float2 texelUV = ((float2)voxelCoords.xy + 0.5f) / voxelGridDimensions.xy;
-	float z = (float)(voxelCoords.z + jitter) / voxelGridDimensions.z;
+	float z = (float)(voxelCoords.z + 0.5f + jitter) / voxelGridDimensions.z;
+	z = saturate(z);
 	const float n = FrameCB.cameraNear;
 	const float f = FrameCB.cameraFar; 
-	float linearDepth = f + saturate(z) * (n - f);
+	float linearDepth = f + z * z * (n - f);
 	return float3(texelUV, DelinearizeDepth(linearDepth));
 }
 
@@ -102,7 +103,6 @@ void LightInjectionCS(CSInput input)
 
 	float3 inScattering = cellAbsorption;
 	float3 totalLighting = 0.0f;
-	float dither = InterleavedGradientNoise(voxelGridCoords.xy);
 	float3 viewDirection = normalize(FrameCB.cameraPosition.xyz - worldPosition);
 
 	if(any(inScattering > 0.0f))
@@ -128,18 +128,24 @@ void LightInjectionCS(CSInput input)
 		}
 	}
 
-	float4 newScattering = float4(inScattering * totalLighting, cellDensity);
+	float4 currentScattering = float4(inScattering * totalLighting, cellDensity);
 
-#ifdef TEMPORAL_REPROJECTION
-	float3 reprojUVW = 0.0f;
-	Texture3D lightInjectionTargetHistory = ResourceDescriptorHeap[LightInjectionPassCB.lightInjectionTargetHistoryIdx];
-	float4 oldScattering = lightInjectionTargetHistory[voxelGridCoords];
-	float lerpFactor = 0.0f;
-	newScattering = lerp(oldScattering, newScattering, lerpFactor);
-#endif
+	float3 worldPositionNoJitter = GetWorldPositionFromVoxelCoords(voxelGridCoords, 0.0f, LightInjectionPassCB.voxelGridDimensions);
+	float4 prevNDC = mul(float4(worldPositionNoJitter, 1), FrameCB.prevViewProjection);
+	prevNDC.xyz /= prevNDC.w;
+	float3 prevUVW = float3(prevNDC.x * 0.5f + 0.5f, -prevNDC.y * 0.5f + 0.5f, prevNDC.z);
+	prevUVW.z = LinearizeDepth(prevUVW.z);
+	prevUVW.z = sqrt((prevUVW.z - FrameCB.cameraFar) / (FrameCB.cameraNear - FrameCB.cameraFar));
+
+	Texture3D<float4> lightInjectionTargetHistory = ResourceDescriptorHeap[LightInjectionPassCB.lightInjectionTargetHistoryIdx];
+	float4 prevScattering = lightInjectionTargetHistory.SampleLevel(LinearClampSampler, prevUVW, 0);
+	
+	float lerpFactor = 0.1f;
+	if(any(prevUVW < 0.0f) || any(prevUVW > 1.0f)) lerpFactor = 0.5f;
+	currentScattering = lerp(prevScattering, currentScattering, lerpFactor);
 	
 	RWTexture3D<float4> lightInjectionTarget = ResourceDescriptorHeap[LightInjectionPassCB.lightInjectionTargetIdx];
-	lightInjectionTarget[voxelGridCoords] = newScattering;
+	lightInjectionTarget[voxelGridCoords] = currentScattering;
 }
 
 struct ScatteringIntegrationConstants
@@ -204,6 +210,7 @@ float4 CombineFogPS(VSToPS input) : SV_Target0
 
 	Texture3D<float4> fogTexture = ResourceDescriptorHeap[CombineFogPassCB.fogIdx];
 	float fogZ = (viewPosition.z - FrameCB.cameraFar) / (FrameCB.cameraNear - FrameCB.cameraFar);
+	fogZ = sqrt(fogZ);
 	float4 scatteringTransmittance = fogTexture.SampleLevel(LinearClampSampler, float3(uv, fogZ), 0);
 	return scatteringTransmittance;
 }
