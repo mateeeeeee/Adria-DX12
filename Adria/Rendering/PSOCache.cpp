@@ -470,48 +470,6 @@ namespace adria
 				compute_pso_desc.CS = CS_LensFlare2;
 				compute_pso_map[GfxPipelineStateID::LensFlare2] = gfx->CreateComputePipelineState(compute_pso_desc);
 
-				compute_pso_desc.CS = CS_ClearCounters;
-				compute_pso_map[GfxPipelineStateID::ClearCounters] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_CullInstances1stPhase;
-				compute_pso_map[GfxPipelineStateID::CullInstances1stPhase] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_CullInstances1stPhase_NoOcclusionCull;
-				compute_pso_map[GfxPipelineStateID::CullInstances1stPhase_NoOcclusionCull] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_CullInstances2ndPhase;
-				compute_pso_map[GfxPipelineStateID::CullInstances2ndPhase] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_BuildMeshletCullArgs1stPhase;
-				compute_pso_map[GfxPipelineStateID::BuildMeshletCullArgs1stPhase] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_BuildMeshletCullArgs2ndPhase;
-				compute_pso_map[GfxPipelineStateID::BuildMeshletCullArgs2ndPhase] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_CullMeshlets1stPhase;
-				compute_pso_map[GfxPipelineStateID::CullMeshlets1stPhase] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_CullMeshlets1stPhase_NoOcclusionCull;
-				compute_pso_map[GfxPipelineStateID::CullMeshlets1stPhase_NoOcclusionCull] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_CullMeshlets2ndPhase;
-				compute_pso_map[GfxPipelineStateID::CullMeshlets2ndPhase] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_BuildMeshletDrawArgs1stPhase;
-				compute_pso_map[GfxPipelineStateID::BuildMeshletDrawArgs1stPhase] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_BuildMeshletDrawArgs2ndPhase;
-				compute_pso_map[GfxPipelineStateID::BuildMeshletDrawArgs2ndPhase] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_BuildInstanceCullArgs;
-				compute_pso_map[GfxPipelineStateID::BuildInstanceCullArgs] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_InitializeHZB;
-				compute_pso_map[GfxPipelineStateID::InitializeHZB] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_HZBMips;
-				compute_pso_map[GfxPipelineStateID::HZBMips] = gfx->CreateComputePipelineState(compute_pso_desc);
-
 				compute_pso_desc.CS = CS_RTAOFilter;
 				compute_pso_map[GfxPipelineStateID::RTAOFilter] = gfx->CreateComputePipelineState(compute_pso_desc);
 
@@ -534,28 +492,6 @@ namespace adria
 				{
 					compute_pso_desc.CS = CS_ReSTIRGI_InitialSampling;
 					compute_pso_map[GfxPipelineStateID::ReSTIRGI_InitialSampling] = gfx->CreateComputePipelineState(compute_pso_desc);
-				}
-			}
-
-			if (gfx->GetCapabilities().SupportsMeshShaders())
-			{
-				MeshShaderPipelineStateDesc mesh_pso_desc{};
-				{
-					mesh_pso_desc.root_signature = GfxRootSignatureID::Common;
-					mesh_pso_desc.MS = MS_DrawMeshlets;
-					mesh_pso_desc.PS = PS_DrawMeshlets;
-					mesh_pso_desc.depth_state.depth_enable = true;
-					mesh_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
-					mesh_pso_desc.depth_state.depth_func = GfxComparisonFunc::GreaterEqual;
-					mesh_pso_desc.num_render_targets = 3u;
-					mesh_pso_desc.rtv_formats[0] = GfxFormat::R8G8B8A8_UNORM;
-					mesh_pso_desc.rtv_formats[1] = GfxFormat::R8G8B8A8_UNORM;
-					mesh_pso_desc.rtv_formats[2] = GfxFormat::R8G8B8A8_UNORM;
-					mesh_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
-					mesh_pso_map[GfxPipelineStateID::DrawMeshlets] = gfx->CreateMeshShaderPipelineState(mesh_pso_desc);
-
-					mesh_pso_desc.PS = PS_DrawMeshlets_Rain;
-					mesh_pso_map[GfxPipelineStateID::DrawMeshlets_Rain] = gfx->CreateMeshShaderPipelineState(mesh_pso_desc);
 				}
 			}
 		}

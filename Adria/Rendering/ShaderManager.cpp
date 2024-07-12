@@ -63,7 +63,6 @@ namespace adria
 			case PS_Debug:
 			case PS_DDGIVisualize:
 			case PS_Rain:
-			case PS_DrawMeshlets_Rain:
 			case PS_VolumetricFog_CombineFog:
 				return GfxShaderStage::PS;
 			case GS_LensFlare:
@@ -114,16 +113,10 @@ namespace adria
 			case CS_MinimalAtmosphereSky:
 			case CS_LensFlare2:
 			case CS_ClearCounters:
-			case CS_CullInstances1stPhase:
-			case CS_CullInstances1stPhase_NoOcclusionCull:
-			case CS_CullInstances2ndPhase:
-			case CS_BuildMeshletCullArgs1stPhase:
-			case CS_BuildMeshletCullArgs2ndPhase:
-			case CS_CullMeshlets1stPhase:
-			case CS_CullMeshlets1stPhase_NoOcclusionCull:
-			case CS_CullMeshlets2ndPhase:
-			case CS_BuildMeshletDrawArgs1stPhase:
-			case CS_BuildMeshletDrawArgs2ndPhase:
+			case CS_CullInstances:
+			case CS_BuildMeshletCullArgs:
+			case CS_CullMeshlets:
+			case CS_BuildMeshletDrawArgs:
 			case CS_BuildInstanceCullArgs:
 			case CS_InitializeHZB:
 			case CS_HZBMips:
@@ -149,7 +142,7 @@ namespace adria
 				return GfxShaderStage::LIB;
 			case ShaderId_Count:
 			default:
-				return GfxShaderStage::ShaderCount;
+				return GfxShaderStage::ShaderStageCount;
 			}
 		}
 		constexpr std::string GetShaderSource(ShaderID shader)
@@ -292,22 +285,15 @@ namespace adria
 				return "Lighting/ClusterCulling.hlsl";
 			case CS_ClearCounters:
 				return "GpuDrivenRendering/ClearCounters.hlsl";
-			case CS_BuildMeshletCullArgs1stPhase:
-			case CS_BuildMeshletCullArgs2ndPhase:
-			case CS_CullMeshlets1stPhase:
-			case CS_CullMeshlets1stPhase_NoOcclusionCull:
-			case CS_CullMeshlets2ndPhase:
+			case CS_BuildMeshletCullArgs:
+			case CS_CullMeshlets:
 				return "GpuDrivenRendering/CullMeshlets.hlsl";
 			case CS_BuildInstanceCullArgs:
-			case CS_CullInstances1stPhase:
-			case CS_CullInstances1stPhase_NoOcclusionCull:
-			case CS_CullInstances2ndPhase:
+			case CS_CullInstances:
 				return "GpuDrivenRendering/CullInstances.hlsl";
-			case CS_BuildMeshletDrawArgs1stPhase:
-			case CS_BuildMeshletDrawArgs2ndPhase:
+			case CS_BuildMeshletDrawArgs:
 			case MS_DrawMeshlets:
 			case PS_DrawMeshlets:
-			case PS_DrawMeshlets_Rain:
 				return "GpuDrivenRendering/DrawMeshlets.hlsl";
 			case CS_InitializeHZB:
 			case CS_HZBMips:
@@ -348,26 +334,19 @@ namespace adria
 			{
 			case CS_ClearCounters:
 				return "ClearCountersCS";
-			case CS_CullMeshlets1stPhase:
-			case CS_CullMeshlets1stPhase_NoOcclusionCull:
-			case CS_CullMeshlets2ndPhase:
+			case CS_CullMeshlets:
 				return "CullMeshletsCS";
-			case CS_BuildMeshletCullArgs1stPhase:
-			case CS_BuildMeshletCullArgs2ndPhase:
+			case CS_BuildMeshletCullArgs:
 				return "BuildMeshletCullArgsCS";
-			case CS_CullInstances1stPhase:
-			case CS_CullInstances1stPhase_NoOcclusionCull:
-			case CS_CullInstances2ndPhase:
+			case CS_CullInstances:
 				return "CullInstancesCS";
 			case CS_BuildInstanceCullArgs:
 				return "BuildInstanceCullArgsCS";
-			case CS_BuildMeshletDrawArgs1stPhase:
-			case CS_BuildMeshletDrawArgs2ndPhase:
+			case CS_BuildMeshletDrawArgs:
 				return "BuildMeshletDrawArgsCS";
 			case MS_DrawMeshlets:
 				return "DrawMeshletsMS";
 			case PS_DrawMeshlets:
-			case PS_DrawMeshlets_Rain:
 				return "DrawMeshletsPS";
 			case CS_InitializeHZB:
 				return "InitializeHZB_CS";
@@ -577,16 +556,6 @@ namespace adria
 				return { {"FIRST_PASS", "1"} };
 			case CS_Clouds_Reprojection:
 				return { {"REPROJECTION", "1"} };
-			case CS_CullMeshlets2ndPhase:
-			case CS_BuildMeshletCullArgs2ndPhase:
-			case CS_CullInstances2ndPhase:
-			case CS_BuildMeshletDrawArgs2ndPhase:
-				return { {"SECOND_PHASE", "1"} };
-			case CS_CullInstances1stPhase_NoOcclusionCull:
-			case CS_CullMeshlets1stPhase_NoOcclusionCull:
-				return { {"OCCLUSION_CULL", "0"} };
-			case PS_DrawMeshlets_Rain:
-				return { {"RAIN", "1"} };
 			default:
 				return {};
 			}
@@ -601,12 +570,19 @@ namespace adria
 			shader_desc.stage = GetShaderStage(shader);
 			shader_desc.model = GetShaderModel(shader);
 			shader_desc.file = paths::ShaderDir() + GetShaderSource(shader);
-			shader_desc.defines = GetShaderMacros(shader); // shader.GetDefines();
 #if _DEBUG
 			shader_desc.flags = ShaderCompilerFlag_DisableOptimization | ShaderCompilerFlag_Debug;
 #else
 			shader_desc.flags = ShaderCompilerFlag_None;
 #endif
+			shader_desc.defines = GetShaderMacros(shader); 
+			
+			//temporary
+			for (GfxShaderDefine const& define : shader.GetDefines())
+			{
+				shader_desc.defines.push_back(define);
+			}
+
 			GfxShaderCompileOutput output;
 			bool compile_result = GfxShaderCompiler::CompileShader(shader_desc, output, bypass_cache);
 			ADRIA_ASSERT(compile_result);
@@ -617,25 +593,6 @@ namespace adria
 			dependent_files_map[shader].clear();
 			for (auto const& include : output.includes) dependent_files_map[shader].push_back(fs::path(include));
 			shader_desc.stage == GfxShaderStage::LIB ? library_recompiled_event.Broadcast(shader) : shader_recompiled_event.Broadcast(shader);
-		}
-
-		void CompileAllShaders()
-		{
-			ADRIA_LOG(INFO, "Compiling all shaders...");
-			Timer t;
-			using UnderlyingType = std::underlying_type_t<ShaderID>;
-			std::vector<UnderlyingType> shaders(ShaderId_Count);
-			std::iota(std::begin(shaders), std::end(shaders), 0);
-			std::for_each(
-				std::execution::seq,
-				std::begin(shaders),
-				std::end(shaders),
-				[](UnderlyingType s)
-				{
-					ShaderID shader = static_cast<ShaderID>(s);
-					CompileShader(shader);
-				});
-			ADRIA_LOG(INFO, "Compilation done in %f seconds!", t.ElapsedInSeconds());
 		}
 
 		void OnShaderFileChanged(std::string const& filename)
@@ -657,7 +614,6 @@ namespace adria
 		file_watcher->AddPathToWatch(paths::ShaderDir());
 		std::ignore = file_watcher->GetFileModifiedEvent().Add(OnShaderFileChanged);
 		fs::create_directory(paths::ShaderCacheDir());
-		CompileAllShaders();
 	}
 	void ShaderManager::Destroy()
 	{

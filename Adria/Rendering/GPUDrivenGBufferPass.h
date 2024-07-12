@@ -2,6 +2,7 @@
 #include <memory>
 #include "RenderGraph/RenderGraphResourceId.h"
 #include "Graphics/GfxDefines.h"
+#include "Graphics/GfxPSOPermutations.h"
 
 
 namespace adria
@@ -25,6 +26,14 @@ namespace adria
 			uint32 phase2_candidate_meshlets;
 			uint32 phase1_visible_meshlets;
 			uint32 phase2_visible_meshlets;
+		};
+
+		enum CullPSOIndex
+		{
+			CullPSO = 0,
+			CullPSO_2ndPhase = 1,
+			CullPSO_NoOcclusionCull = 1,
+			CullPSO_Count = 3
 		};
 
 	public:
@@ -60,8 +69,18 @@ namespace adria
 		DebugStats debug_stats[GFX_BACKBUFFER_COUNT];
 
 		bool rain_active = false;
+		MeshShaderPSOPermutations<2> draw_psos;
+		ComputePSOPermutations<3>	 cull_meshlets_psos;
+		ComputePSOPermutations<3>	 cull_instances_psos;
+		ComputePSOPermutations<2>    build_meshlet_cull_args_psos;
+		ComputePSOPermutations<2>    build_meshlet_draw_args_psos;
+		std::unique_ptr<ComputePipelineState> clear_counters_pso;
+		std::unique_ptr<ComputePipelineState> build_instance_cull_args_pso;
+		std::unique_ptr<ComputePipelineState> initialize_hzb_pso;
+		std::unique_ptr<ComputePipelineState> hzb_mips_pso;
 
 	private:
+		void CreatePSOs();
 		void InitializeHZB();
 
 		void AddClearCountersPass(RenderGraph& rg);

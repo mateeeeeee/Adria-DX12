@@ -21,7 +21,7 @@ namespace adria
 	using GfxShaderCompilerFlags = uint32;
 	struct GfxShaderDesc
 	{
-		GfxShaderStage stage = GfxShaderStage::ShaderCount;
+		GfxShaderStage stage = GfxShaderStage::ShaderStageCount;
 		GfxShaderModel model = SM_6_7;
 		std::string file = "";
 		std::string entry_point = "";

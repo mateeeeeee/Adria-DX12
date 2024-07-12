@@ -13,7 +13,7 @@ namespace adria
 		LIB,
 		MS,
 		AS,
-		ShaderCount
+		ShaderStageCount
 	};
 	enum GfxShaderModel
 	{
