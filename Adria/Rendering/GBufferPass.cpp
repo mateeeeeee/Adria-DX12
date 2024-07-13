@@ -17,7 +17,9 @@ namespace adria
 
 	GBufferPass::GBufferPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h) :
 		reg{ reg }, gfx{ gfx }, width{ w }, height{ h }
-	{}
+	{
+		CreatePSOs();
+	}
 
 	void GBufferPass::AddPass(RenderGraph& rendergraph)
 	{
@@ -119,6 +121,7 @@ namespace adria
 		gbuffer_psos.SetCullMode<2>(GfxCullMode::None);
 		gbuffer_psos.SetCullMode<3>(GfxCullMode::None);
 		gbuffer_psos.AddDefine<PS, 4>("RAIN", "1");
+		gbuffer_psos.Finalize(gfx);
 	}
 
 }
