@@ -16,8 +16,6 @@ namespace adria
 		RainBlocker,
 		Texture,
 		Solid_Wireframe,
-		Debug_Wireframe,
-		Debug_Solid,
 		Sun,
 		Ambient,
 		DeferredLighting,

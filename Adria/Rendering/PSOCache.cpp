@@ -177,26 +177,6 @@ namespace adria
 				gfx_pso_map[GfxPipelineStateID::Solid_Wireframe] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				GfxReflection::FillInputLayoutDesc(GetShader(VS_Debug), gfx_pso_desc.input_layout);
-				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
-				gfx_pso_desc.VS = VS_Debug;
-				gfx_pso_desc.PS = PS_Debug;
-				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = GfxFormat::R8G8B8A8_UNORM;
-				gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
-				gfx_pso_desc.depth_state.depth_enable = true;
-				gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
-				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::GreaterEqual;
-				gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
-				gfx_pso_desc.rasterizer_state.fill_mode = GfxFillMode::Wireframe;
-				gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Line;
-				gfx_pso_map[GfxPipelineStateID::Debug_Wireframe] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-
-				gfx_pso_desc.rasterizer_state.fill_mode = GfxFillMode::Solid;
-				gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Triangle;
-				gfx_pso_map[GfxPipelineStateID::Debug_Solid] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-
-				gfx_pso_desc = {};
 				GfxReflection::FillInputLayoutDesc(GetShader(VS_DDGIVisualize), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 				gfx_pso_desc.VS = VS_DDGIVisualize;

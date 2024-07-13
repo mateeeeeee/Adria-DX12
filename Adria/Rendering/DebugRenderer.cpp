@@ -1,7 +1,8 @@
 #include "DebugRenderer.h"
 #include "BlackboardData.h"
-#include "PSOCache.h"
+#include "ShaderManager.h"
 #include "Graphics/GfxDynamicAllocation.h"
+#include "Graphics/GfxReflection.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Math/Packing.h"
 #include "Math/Constants.h"
@@ -28,10 +29,12 @@ namespace adria
 		return PackToUint(col.R(), col.G(), col.B(), col.A());
 	}
 
-	void DebugRenderer::Initialize(uint32 _width, uint32 _height)
+	void DebugRenderer::Initialize(GfxDevice* _gfx, uint32 _width, uint32 _height)
 	{
+		gfx = _gfx;
 		width = _width;
 		height = _height; 
+		CreatePSOs();
 	}
 
 	void DebugRenderer::Destroy()
@@ -39,6 +42,7 @@ namespace adria
 		transient_lines.clear();
 		transient_triangles.clear();
 		width = 0, height = 0;
+		gfx = nullptr;
 	}
 
 	void DebugRenderer::OnResize(uint32 w, uint32 h)
@@ -86,7 +90,7 @@ namespace adria
 
 					GfxVertexBufferView vbv[] = { GfxVertexBufferView(vb_alloc.gpu_address, vb_count, vb_stride) };
 
-					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Debug_Wireframe));
+					cmd_list->SetPipelineState(debug_psos.Get<0>());
 					cmd_list->SetVertexBuffers(vbv);
 					cmd_list->SetTopology(GfxPrimitiveTopology::LineList);
 					cmd_list->Draw(vb_count);
@@ -104,7 +108,7 @@ namespace adria
 
 					GfxVertexBufferView vbv[] = { GfxVertexBufferView(vb_alloc.gpu_address, vb_count, vb_stride) };
 
-					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Debug_Solid));
+					cmd_list->SetPipelineState(debug_psos.Get<1>());
 					cmd_list->SetVertexBuffers(vbv);
 					cmd_list->SetTopology(GfxPrimitiveTopology::TriangleList);
 					cmd_list->Draw(vb_count);
@@ -308,6 +312,30 @@ namespace adria
 		AddLine(corners[1], corners[5], color);
 		AddLine(corners[2], corners[6], color);
 		AddLine(corners[3], corners[7], color);
+	}
+
+	void DebugRenderer::CreatePSOs()
+	{
+		using enum GfxShaderStage;
+		GraphicsPipelineStateDesc gfx_pso_desc = {};
+		GfxReflection::FillInputLayoutDesc(GetGfxShader(VS_Debug), gfx_pso_desc.input_layout);
+		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
+		gfx_pso_desc.VS = VS_Debug;
+		gfx_pso_desc.PS = PS_Debug;
+		gfx_pso_desc.num_render_targets = 1;
+		gfx_pso_desc.rtv_formats[0] = GfxFormat::R8G8B8A8_UNORM;
+		gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
+		gfx_pso_desc.depth_state.depth_enable = true;
+		gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
+		gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::GreaterEqual;
+		gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
+		gfx_pso_desc.rasterizer_state.fill_mode = GfxFillMode::Wireframe;
+		gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Line;
+
+		debug_psos.Initialize(gfx_pso_desc);
+		debug_psos.SetTopologyType<1>(GfxPrimitiveTopologyType::Triangle);
+		debug_psos.SetFillMode<1>(GfxFillMode::Solid);
+		debug_psos.Finalize(gfx);
 	}
 
 }

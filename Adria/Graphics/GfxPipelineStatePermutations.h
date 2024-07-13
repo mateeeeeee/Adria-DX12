@@ -26,6 +26,30 @@ namespace adria
 		using PSODesc = MeshShaderPipelineStateDesc;
 	};
 
+	template<typename PSO>
+	struct IsGraphicsPipelineStateUtil
+	{
+		static constexpr bool value = PSOTraits<PSO>::type == GfxPipelineStateType::Graphics;
+	};
+	template<typename PSO>
+	constexpr bool IsGraphicsPipelineState = IsGraphicsPipelineStateUtil<PSO>::value;
+
+	template<typename PSO>
+	struct IsComputePipelineStateUtil
+	{
+		static constexpr bool value = PSOTraits<PSO>::type == GfxPipelineStateType::Compute;
+	};
+	template<typename PSO>
+	constexpr bool IsComputePipelineState = IsComputePipelineStateUtil<PSO>::value;
+
+	template<typename PSO>
+	struct IsMeshShaderPipelineStateUtil
+	{
+		static constexpr bool value = PSOTraits<PSO>::type == GfxPipelineStateType::MeshShader;
+	};
+	template<typename PSO>
+	constexpr bool IsMeshShaderPipelineState = IsMeshShaderPipelineStateUtil<PSO>::value;
+
 	template<typename PSO, uint32 N>
 	class GfxPipelineStatePermutations
 	{
@@ -101,12 +125,28 @@ namespace adria
 			AddDefine<stage, P>(name, "");
 		}
 
-		template<uint32 P> //requires pso_type != GfxPipelineStateType::Compute
+		template<uint32 P> requires !IsComputePipelineState<PSO>
 		void SetCullMode(GfxCullMode cull_mode)
 		{
 			static_assert(P < N);
 			PSODesc& desc = pso_descs[P];
 			desc.rasterizer_state.cull_mode = cull_mode;
+		}
+
+		template<uint32 P> requires !IsComputePipelineState<PSO>
+		void SetFillMode(GfxFillMode fill_mode)
+		{
+			static_assert(P < N);
+			PSODesc& desc = pso_descs[P];
+			desc.rasterizer_state.fill_mode = fill_mode;
+		}
+
+		template<uint32 P> requires !IsComputePipelineState<PSO>
+		void SetTopologyType(GfxPrimitiveTopologyType topology_type)
+		{
+			static_assert(P < N);
+			PSODesc& desc = pso_descs[P];
+			desc.topology_type = topology_type;
 		}
 
 		template<uint32 P, typename F> requires std::is_invocable_v<F, PSODesc&>

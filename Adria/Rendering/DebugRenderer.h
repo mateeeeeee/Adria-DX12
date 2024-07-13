@@ -1,5 +1,5 @@
 #pragma once
-#include <vector>
+#include "Graphics/GfxPipelineStatePermutations.h"
 #include "Utilities/Singleton.h"
 
 using namespace DirectX;
@@ -24,7 +24,7 @@ namespace adria
 		struct DebugVertex
 		{
 			Vector3 position = Vector3(0,0,0);
-			uint32 color = 0xffffffff;;
+			uint32 color = 0xffffffff;
 		};
 		struct DebugLine
 		{
@@ -54,7 +54,7 @@ namespace adria
 			DebugVertex vertex2;
 		};
 	public:
-		void Initialize(uint32 width, uint32 height);
+		void Initialize(GfxDevice* gfx, uint32 width, uint32 height);
 		void Destroy();
 		void OnResize(uint32 w, uint32 h);
 
@@ -77,14 +77,18 @@ namespace adria
 		void ClearPersistent() { ClearPersistentLines(); ClearPersistentTriangles(); }
 
 	private:
+		GfxDevice* gfx;
 		DebugRendererMode mode = DebugRendererMode::Transient;
 		std::vector<DebugLine> transient_lines, persistent_lines;
 		std::vector<DebugTriangle> transient_triangles, persistent_triangles;
 		uint32 width = 0, height = 0;
+		GraphicsPipelineStatePermutations<2> debug_psos;
 
 	private:
 		DebugRenderer() = default;
 		~DebugRenderer() = default;
+
+		void CreatePSOs();
 	};
 	#define g_DebugRenderer DebugRenderer::Get()
 }

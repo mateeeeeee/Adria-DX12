@@ -55,7 +55,7 @@ namespace adria
 	{
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 		use_gpu_driven_rendering = gfx->GetCapabilities().SupportsMeshShaders();
-		g_DebugRenderer.Initialize(width, height);
+		g_DebugRenderer.Initialize(gfx, width, height);
 		g_GfxProfiler.Initialize(gfx);
 		GfxTracyProfiler::Initialize(gfx);
 		CreateSizeDependentResources();
