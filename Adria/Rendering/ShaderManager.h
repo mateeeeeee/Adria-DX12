@@ -78,7 +78,6 @@ namespace adria
 		CS_FilmEffects,
 		CS_Ambient,
 		CS_Clouds,
-		CS_Clouds_Reprojection,
 		CS_CloudDetail,
 		CS_CloudShape,
 		CS_CloudType,

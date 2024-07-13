@@ -1,8 +1,7 @@
 #pragma once
-#include <vector>
 #include "RenderGraph/RenderGraphResourceId.h"
 #include "RenderGraph/RenderGraphResourceName.h"
-
+#include "Graphics/GfxPSOPermutations.h"
 
 namespace adria
 {
@@ -50,11 +49,11 @@ namespace adria
 		};
 
 	public:
-		VolumetricCloudsPass(uint32 w, uint32 h);
+		VolumetricCloudsPass(GfxDevice* gfx, uint32 w, uint32 h);
 
 		void AddPass(RenderGraph& rendergraph);
-		void OnResize(GfxDevice* gfx, uint32 w, uint32 h);
-		void OnSceneInitialized(GfxDevice* gfx);
+		void OnResize(uint32 w, uint32 h);
+		void OnSceneInitialized();
 		void OnRainEvent(bool enabled)
 		{
 			if (enabled)
@@ -71,6 +70,7 @@ namespace adria
 			}
 		}
 	private:
+		GfxDevice* gfx;
 		uint32 width, height;
 
 		std::unique_ptr<GfxTexture> prev_clouds;
@@ -82,8 +82,14 @@ namespace adria
 		CloudResolution resolution = CloudResolution_Full;
 		bool should_generate_textures = false;
 		bool temporal_reprojection = true;
-		
+		ComputePipelineStatePermutations<2> clouds_psos;
+		std::unique_ptr<ComputePipelineState> clouds_type_pso;
+		std::unique_ptr<ComputePipelineState> clouds_shape_pso;
+		std::unique_ptr<ComputePipelineState> clouds_detail_pso;
+		std::unique_ptr<GraphicsPipelineState> clouds_combine_pso;
+
 	private:
+		void CreatePSOs();
 		void CreateCloudTextures(GfxDevice* gfx = nullptr);
 		void AddCombinePass(RenderGraph& rendergraph, RGResourceName render_target);
 

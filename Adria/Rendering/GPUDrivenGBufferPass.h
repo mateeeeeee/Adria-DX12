@@ -59,14 +59,14 @@ namespace adria
 
 		std::unique_ptr<GfxBuffer> debug_buffer;
 		bool display_debug_stats = false;
-		DebugStats debug_stats[GFX_BACKBUFFER_COUNT];
+		DebugStats debug_stats[GFX_BACKBUFFER_COUNT] = {};
 
 		bool rain_active = false;
-		MeshShaderPSOPermutations<2> draw_psos;
-		ComputePSOPermutations<3>	 cull_meshlets_psos;
-		ComputePSOPermutations<3>	 cull_instances_psos;
-		ComputePSOPermutations<2>    build_meshlet_cull_args_psos;
-		ComputePSOPermutations<2>    build_meshlet_draw_args_psos;
+		MeshShaderPipelineStatePermutations<2> draw_psos;
+		ComputePipelineStatePermutations<3>	 cull_meshlets_psos;
+		ComputePipelineStatePermutations<3>	 cull_instances_psos;
+		ComputePipelineStatePermutations<2>    build_meshlet_cull_args_psos;
+		ComputePipelineStatePermutations<2>    build_meshlet_draw_args_psos;
 		std::unique_ptr<ComputePipelineState> clear_counters_pso;
 		std::unique_ptr<ComputePipelineState> build_instance_cull_args_pso;
 		std::unique_ptr<ComputePipelineState> initialize_hzb_pso;

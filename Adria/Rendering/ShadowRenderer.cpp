@@ -515,7 +515,7 @@ namespace adria
 		gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::LessEqual;
 		gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
 
-		shadow_psos.Init(gfx_pso_desc);
+		shadow_psos.Initialize(gfx_pso_desc);
 		shadow_psos.AddDefine<1>("TRANSPARENT", "1");
 		shadow_psos.Finalize(gfx);
 	}

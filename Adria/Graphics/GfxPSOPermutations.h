@@ -27,16 +27,16 @@ namespace adria
 	};
 
 	template<typename PSO, uint32 N>
-	class GfxPSOPermutations
+	class GfxPipelineStatePermutations
 	{
 		using PSODesc = PSOTraits<PSO>::PSODesc;
 		static constexpr GfxPipelineStateType pso_type = PSOTraits<PSO>::type;
 
 	public:
-		GfxPSOPermutations() = default;
-		~GfxPSOPermutations() = default;
+		GfxPipelineStatePermutations() = default;
+		~GfxPipelineStatePermutations() = default;
 
-		void Init(PSODesc const& desc)
+		void Initialize(PSODesc const& desc)
 		{
 			for (auto& pso_desc : pso_descs) pso_desc = desc;
 		}
@@ -135,10 +135,7 @@ namespace adria
 	#define PSOPermutationKeyDefine(p, i, name, ...) p.AddDefine<i>(ADRIA_STRINGIFY(name)__VA_OPT__(,) ADRIA_STRINGIFY(__VA_ARGS__))
 
 
-	template<uint32 N> using GraphicsPSOPermutations	= GfxPSOPermutations<GraphicsPipelineState, N>;
-	template<uint32 N> using ComputePSOPermutations		= GfxPSOPermutations<ComputePipelineState, N>;
-	template<uint32 N> using MeshShaderPSOPermutations	= GfxPSOPermutations<MeshShaderPipelineState, N>;
-	template<uint32 N> using GraphicsPSOPermutationsPtr		= std::unique_ptr<GraphicsPSOPermutations<N>>;
-	template<uint32 N> using ComputePSOPermutationsPtr		= std::unique_ptr<ComputePSOPermutations<N>>;
-	template<uint32 N> using MeshShaderPSOPermutationsPtr	= std::unique_ptr<MeshShaderPSOPermutations<N>>;
+	template<uint32 N> using GraphicsPipelineStatePermutations	= GfxPipelineStatePermutations<GraphicsPipelineState, N>;
+	template<uint32 N> using ComputePipelineStatePermutations		= GfxPipelineStatePermutations<ComputePipelineState, N>;
+	template<uint32 N> using MeshShaderPipelineStatePermutations	= GfxPipelineStatePermutations<MeshShaderPipelineState, N>;
 }

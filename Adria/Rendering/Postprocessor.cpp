@@ -38,7 +38,7 @@ namespace adria
 		: gfx(gfx), reg(reg), display_width(width), display_height(height), render_width(width), render_height(height),
 		blur_pass(width, height), copy_to_texture_pass(width, height), film_effects_pass(width, height),
 		add_textures_pass(width, height), ssao_pass(width, height), hbao_pass(width, height), rtao_pass(gfx, width, height),
-		automatic_exposure_pass(width, height), lens_flare_pass(width, height), clouds_pass(width, height), 
+		automatic_exposure_pass(width, height), lens_flare_pass(width, height), clouds_pass(gfx, width, height), 
 		ssr_pass(width, height), fog_pass(width, height), dof_pass(width, height), bloom_pass(width, height), 
 		velocity_buffer_pass(width, height), motion_blur_pass(width, height), taa_pass(width, height), 
 		god_rays_pass(width, height), xess_pass(gfx, width, height), dlss3_pass(gfx, width, height),
@@ -213,7 +213,7 @@ namespace adria
 		cacao_pass.OnResize(w, h);
 		rtao_pass.OnResize(w, h);
 
-		clouds_pass.OnResize(gfx, w, h);
+		clouds_pass.OnResize(w, h);
 		blur_pass.OnResize(w, h);
 		add_textures_pass.OnResize(w, h);
 		copy_to_texture_pass.OnResize(w, h);
@@ -234,7 +234,7 @@ namespace adria
 		ssao_pass.OnSceneInitialized(gfx);
 		hbao_pass.OnSceneInitialized(gfx);
 		automatic_exposure_pass.OnSceneInitialized(gfx);
-		clouds_pass.OnSceneInitialized(gfx);
+		clouds_pass.OnSceneInitialized();
 		dof_pass.OnSceneInitialized(gfx);
 		lens_flare_pass.OnSceneInitialized();
 		tonemap_pass.OnSceneInitialized(); 

@@ -2,6 +2,7 @@
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
+#include "ShaderManager.h" 
 #include "PSOCache.h" 
 
 #include "RenderGraph/RenderGraph.h"
@@ -18,9 +19,11 @@ using namespace DirectX;
 namespace adria
 {
 
-	VolumetricCloudsPass::VolumetricCloudsPass(uint32 w, uint32 h)
-		: width{ w }, height{ h }
-	{}
+	VolumetricCloudsPass::VolumetricCloudsPass(GfxDevice* gfx, uint32 w, uint32 h)
+		: gfx(gfx), width{ w }, height{ h }
+	{
+		CreatePSOs();
+	}
 
 	void VolumetricCloudsPass::AddPass(RenderGraph& rg)
 	{
@@ -75,7 +78,7 @@ namespace adria
 							.frequency = (uint32)params.shape_noise_frequency,
 							.output_idx = j
 						};
-						cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::CloudShape));
+						cmd_list->SetPipelineState(clouds_shape_pso.get());
 						cmd_list->SetRootConstants(1, constants);
 						uint32 const dispatch = DivideAndRoundUp(resolution, 8);
 						cmd_list->Dispatch(dispatch, dispatch, dispatch);
@@ -110,7 +113,7 @@ namespace adria
 							.frequency = (uint32)params.detail_noise_frequency,
 							.output_idx = j
 						};
-						cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::CloudDetail));
+						cmd_list->SetPipelineState(clouds_detail_pso.get());
 						cmd_list->SetRootConstants(1, constants);
 						uint32 const dispatch = DivideAndRoundUp(resolution, 8);
 						cmd_list->Dispatch(dispatch, dispatch, dispatch);
@@ -142,7 +145,7 @@ namespace adria
 						.resolution_inv = 1.0f / resolution,
 						.output_idx = j
 					};
-					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::CloudType));
+					cmd_list->SetPipelineState(clouds_type_pso.get());
 					cmd_list->SetRootConstants(1, constants);
 					uint32 const dispatch = DivideAndRoundUp(resolution, 8);
 					cmd_list->Dispatch(dispatch, dispatch, dispatch);
@@ -264,7 +267,7 @@ namespace adria
 					.resolution_factor = (uint32)resolution
 				};
 
-				GfxPipelineState* clouds_pso = PSOCache::Get(temporal_reprojection ? GfxPipelineStateID::Clouds_Reprojection : GfxPipelineStateID::Clouds);
+				GfxPipelineState* clouds_pso = temporal_reprojection ? clouds_psos.Get<1>() : clouds_psos.Get<0>();
 				cmd_list->SetPipelineState(clouds_pso);
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootCBV(2, constants);
@@ -323,13 +326,13 @@ namespace adria
 					if (ImGui::Combo("Volumetric Clouds Resolution", &_resolution, "Full\0Half\0Quarter\0", 3))
 					{
 						resolution = (CloudResolution)_resolution;
-						OnResize(nullptr, width, height);
+						OnResize(width, height);
 					}
 
 					if (resolution != _resolution)
 					{
 						resolution = (CloudResolution)_resolution;
-						OnResize(nullptr, width, height);
+						OnResize(width, height);
 					}
 					
 					ImGui::TreePop();
@@ -357,7 +360,7 @@ namespace adria
 			[=](CloudsCombinePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::CloudsCombine));
+				cmd_list->SetPipelineState(clouds_combine_pso.get());
 				GfxDescriptor dst = gfx->AllocateDescriptorsGPU();
 				gfx->CopyDescriptors(1, dst, context.GetReadOnlyTexture(data.clouds_src));
 
@@ -367,7 +370,7 @@ namespace adria
 			}, RGPassType::Graphics, RGPassFlags::None);
 	}
 
-	void VolumetricCloudsPass::OnResize(GfxDevice* gfx, uint32 w, uint32 h)
+	void VolumetricCloudsPass::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
 		if (prev_clouds)
@@ -381,7 +384,7 @@ namespace adria
 		}
 	}
 
-	void VolumetricCloudsPass::OnSceneInitialized(GfxDevice* gfx)
+	void VolumetricCloudsPass::OnSceneInitialized()
 	{
 		GfxTextureDesc clouds_output_desc{};
 		clouds_output_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
@@ -393,6 +396,40 @@ namespace adria
 
 		prev_clouds = gfx->CreateTexture(clouds_output_desc);
 		CreateCloudTextures(gfx);
+	}
+
+	void VolumetricCloudsPass::CreatePSOs()
+	{
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_Clouds;
+		clouds_psos.Initialize(compute_pso_desc);
+		clouds_psos.AddDefine<1>("REPROJECTION", "1");
+		clouds_psos.Finalize(gfx);
+
+		compute_pso_desc.CS = CS_CloudType;
+		clouds_type_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
+		compute_pso_desc.CS = CS_CloudShape;
+		clouds_shape_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
+		compute_pso_desc.CS = CS_CloudDetail;
+		clouds_detail_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
+
+		GraphicsPipelineStateDesc gfx_pso_desc{};
+		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
+		gfx_pso_desc.VS = VS_CloudsCombine;
+		gfx_pso_desc.PS = PS_CloudsCombine;
+		gfx_pso_desc.num_render_targets = 1;
+		gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
+		gfx_pso_desc.depth_state.depth_enable = true;
+		gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
+		gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
+		gfx_pso_desc.blend_state.render_target[0].src_blend = GfxBlend::One;
+		gfx_pso_desc.blend_state.render_target[0].dest_blend = GfxBlend::InvSrcAlpha;
+		gfx_pso_desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;
+		gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
+		clouds_combine_pso = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 	}
 
 	void VolumetricCloudsPass::CreateCloudTextures(GfxDevice* gfx)
@@ -433,26 +470,3 @@ namespace adria
 	}
 
 }
-
-//AddGUI_Debug([&](void* descriptor_ptr)
-//	{
-//		if (ImGui::TreeNodeEx("Clouds Debug", ImGuiTreeNodeFlags_None))
-//		{
-//			GfxDescriptor gpu_descriptor = *static_cast<GfxDescriptor*>(descriptor_ptr);
-//			ImVec2 v_min = ImGui::GetWindowContentRegionMin();
-//			ImVec2 v_max = ImGui::GetWindowContentRegionMax();
-//			v_min.x += ImGui::GetWindowPos().x;
-//			v_min.y += ImGui::GetWindowPos().y;
-//			v_max.x += ImGui::GetWindowPos().x;
-//			v_max.y += ImGui::GetWindowPos().y;
-//			ImVec2 size(v_max.x - v_min.x, v_max.y - v_min.y);
-//
-//			GfxDevice* gfx = prev_clouds->GetParent();
-//			GfxDescriptor tex_srv = gfx->CreateTextureSRV(prev_clouds.get());
-//			gfx->CopyDescriptors(1, gpu_descriptor, tex_srv);
-//			gfx->FreeDescriptorCPU(tex_srv, GfxDescriptorHeapType::CBV_SRV_UAV);
-//			ImGui::Image((ImTextureID)static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(gpu_descriptor).ptr, size);
-//			ImGui::TreePop();
-//			ImGui::Separator();
-//		}
-//	});

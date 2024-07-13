@@ -96,7 +96,6 @@ namespace adria
 			case CS_Fxaa:
 			case CS_Ambient:
 			case CS_Clouds:
-			case CS_Clouds_Reprojection:
 			case CS_CloudShape:
 			case CS_CloudDetail:
 			case CS_CloudType:
@@ -193,7 +192,6 @@ namespace adria
 			case PS_Bokeh:
 				return "Postprocess/Bokeh.hlsl";
 			case CS_Clouds:
-			case CS_Clouds_Reprojection:
 			case VS_CloudsCombine:
 			case PS_CloudsCombine:
 				return "Weather/VolumetricClouds.hlsl";
@@ -395,7 +393,6 @@ namespace adria
 			case PS_Debug:
 				return "DebugPS";
 			case CS_Clouds:
-			case CS_Clouds_Reprojection:
 				return "CloudsCS";
 			case CS_CloudShape:
 				return "CloudShapeCS";
@@ -545,8 +542,6 @@ namespace adria
 				return { { "MASK", "1" } };
 			case CS_BloomDownsampleFirstPass:
 				return { {"FIRST_PASS", "1"} };
-			case CS_Clouds_Reprojection:
-				return { {"REPROJECTION", "1"} };
 			default:
 				return {};
 			}
