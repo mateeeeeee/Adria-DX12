@@ -2,18 +2,24 @@
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
+#include "ShaderManager.h" 
+#include "Graphics/GfxPipelineState.h"
 #include "Graphics/GfxCommon.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
 #include "Math/Packing.h"
 #include "Logging/Logger.h"
-#include "pix3.h"
 
 using namespace DirectX;
 
 namespace adria
 {
+
+	DeferredLightingPass::DeferredLightingPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
+	{
+		CreatePSOs();
+	}
+
 	void DeferredLightingPass::AddPass(RenderGraph& rendergraph)
 	{
 		struct LightingPassData
@@ -80,13 +86,20 @@ namespace adria
 					.normal_metallic_idx = i, .diffuse_idx = i + 1, .depth_idx = i + 2, .emissive_idx = i + 3, .ao_idx = i + 4, .output_idx = i + 5
 				};
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DeferredLighting));
+				cmd_list->SetPipelineState(deferred_lighting_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 			}, RGPassType::Compute);
 
 		shadow_textures.clear();
+	}
+
+	void DeferredLightingPass::CreatePSOs()
+	{
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_DeferredLighting;
+		deferred_lighting_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
 }

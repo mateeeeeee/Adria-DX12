@@ -576,7 +576,7 @@ namespace adria
 		file_watcher->CheckWatchedFiles();
 	}
 
-	GfxShader const& ShaderManager::GetShader(GfxShaderKey const& shader_key)
+	GfxShader const& ShaderManager::GetGfxShader(GfxShaderKey const& shader_key)
 	{
 		if (shader_map.contains(shader_key)) return shader_map[shader_key];
 		CompileShader(shader_key);

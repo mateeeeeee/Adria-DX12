@@ -2,9 +2,10 @@
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
-
+#include "ShaderManager.h" 
 #include "Graphics/GfxCommon.h"
+#include "Graphics/GfxDevice.h"
+#include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Logging/Logger.h"
 #include "entt/entity/registry.hpp"
@@ -25,12 +26,14 @@ namespace adria
 		uint32 light_count;
 	};
 
-	ClusteredDeferredLightingPass::ClusteredDeferredLightingPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h) : reg(reg), width(w), height(h),
+	ClusteredDeferredLightingPass::ClusteredDeferredLightingPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h) 
+		: reg(reg), gfx(gfx), width(w), height(h),
 		clusters(gfx, StructuredBufferDesc<ClusterAABB>(CLUSTER_COUNT)),
 		light_counter(gfx, StructuredBufferDesc<uint32>(1)),
 		light_list(gfx, StructuredBufferDesc<uint32>(CLUSTER_COUNT * CLUSTER_MAX_LIGHTS)),
 		light_grid(gfx, StructuredBufferDesc<LightGrid>(CLUSTER_COUNT))
 	{
+		CreatePSOs();
 	}
 
 	void ClusteredDeferredLightingPass::AddPass(RenderGraph& rendergraph, bool recreate_clusters)
@@ -60,7 +63,7 @@ namespace adria
 					GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU();
 					gfx->CopyDescriptors(1, dst_descriptor, context.GetReadWriteBuffer(data.clusters));
 
-					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ClusterBuilding));
+					cmd_list->SetPipelineState(clustered_building_pso.get());
 					cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 					cmd_list->SetRootConstant(1, dst_descriptor.GetIndex(), 0);
 					cmd_list->Dispatch(CLUSTER_SIZE_X, CLUSTER_SIZE_Y, CLUSTER_SIZE_Z);
@@ -107,7 +110,7 @@ namespace adria
 					.light_index_list_idx = i + 2, .light_grid_idx = i + 3
 				};
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ClusterCulling));
+				cmd_list->SetPipelineState(clustered_culling_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(CLUSTER_SIZE_X / 16, CLUSTER_SIZE_Y / 16, CLUSTER_SIZE_Z / 1);
@@ -181,11 +184,25 @@ namespace adria
 					.depth_idx = i + 4, .emissive_idx = i + 5, .ao_idx = i + 6, .output_idx = i + 7
 				};
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ClusteredDeferredLighting));
+				cmd_list->SetPipelineState(clustered_lighting_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 			}, RGPassType::Compute, RGPassFlags::None);
+	}
+
+	void ClusteredDeferredLightingPass::CreatePSOs()
+	{
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_ClusteredDeferredLighting;
+		clustered_lighting_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
+		compute_pso_desc.CS = CS_ClusterBuilding;
+		clustered_building_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
+		compute_pso_desc.CS = CS_ClusterCulling;
+		clustered_culling_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
 	}
 
 }

@@ -1,5 +1,4 @@
 #pragma once
-#include <optional>
 #include "Graphics/GfxBuffer.h"
 #include "RenderGraph/RenderGraphResourceId.h"
 #include "entt/entity/entity.hpp"
@@ -8,6 +7,7 @@ namespace adria
 {
 	class RenderGraph;
 	class GfxDevice;
+	class ComputePipelineState;
 
 	class ClusteredDeferredLightingPass
 	{
@@ -28,12 +28,20 @@ namespace adria
 		}
 
 	private:
-		entt::registry& reg;
+		entt::registry& reg; 
+		GfxDevice* gfx;
 		uint32 width, height;
 		GfxBuffer clusters;
 		GfxBuffer light_counter;
 		GfxBuffer light_list;
 		GfxBuffer light_grid;
+
+		std::unique_ptr<ComputePipelineState> clustered_lighting_pso;
+		std::unique_ptr<ComputePipelineState> clustered_building_pso;
+		std::unique_ptr<ComputePipelineState> clustered_culling_pso;
+
+	private:
+		void CreatePSOs();
 	};
 
 }

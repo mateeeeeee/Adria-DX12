@@ -124,7 +124,7 @@ namespace adria
 
 		static ShaderRecompiledEvent& GetShaderRecompiledEvent();
 		static LibraryRecompiledEvent& GetLibraryRecompiledEvent();
-		static GfxShader const& GetShader(GfxShaderKey const& shader_key);
+		static GfxShader const& GetGfxShader(GfxShaderKey const& shader_key);
 	};
-	#define GetGfxShader(key) ShaderManager::GetShader(key)
+	#define GetGfxShader(key) ShaderManager::GetGfxShader(key)
 }

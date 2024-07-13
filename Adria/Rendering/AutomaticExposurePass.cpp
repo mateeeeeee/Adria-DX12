@@ -1,22 +1,22 @@
 #include "AutomaticExposurePass.h"
 #include "BlackboardData.h"
-#include "PSOCache.h"
-
+#include "ShaderManager.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Graphics/GfxTexture.h"
 #include "Graphics/GfxBuffer.h"
-#include "Graphics/GfxLinearDynamicAllocator.h"
-#include "Graphics/GfxRingDescriptorAllocator.h"
+#include "Graphics/GfxPipelineState.h"
 #include "Editor/GUICommand.h"
-
 #include <algorithm> // remove this later
 
 namespace adria
 {
 
-	AutomaticExposurePass::AutomaticExposurePass(uint32 w, uint32 h) : width(w), height(h) {}
+	AutomaticExposurePass::AutomaticExposurePass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
+	{
+		CreatePSOs();
+	}
 
-	void AutomaticExposurePass::OnSceneInitialized(GfxDevice* gfx)
+	void AutomaticExposurePass::OnSceneInitialized()
 	{
 		GfxTextureDesc desc{};
 		desc.width = 1;
@@ -75,7 +75,7 @@ namespace adria
 				cmd_list->ClearUAV(histogram_buffer, buffer_gpu, context.GetReadWriteBuffer(data.histogram_buffer), clear_value);
 				cmd_list->BufferBarrier(histogram_buffer, GfxResourceState::ComputeUAV, GfxResourceState::ComputeUAV);
 				cmd_list->FlushBarriers();
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::BuildHistogram));
+				cmd_list->SetPipelineState(build_histogram_pso.get());
 
 				struct BuildHistogramConstants
 				{
@@ -120,7 +120,7 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::HistogramReduction));
+				cmd_list->SetPipelineState(histogram_reduction_pso.get());
 				uint32 descriptor_index = gfx->AllocateDescriptorsGPU(2).GetIndex();
 
 				GfxDescriptor buffer_srv = gfx->GetDescriptorGPU(descriptor_index);
@@ -174,7 +174,7 @@ namespace adria
 					invalid_history = false;
 				}
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Exposure));
+				cmd_list->SetPipelineState(exposure_pso.get());
 				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(3);
 				GfxDescriptor src_descriptors[] = {
 					previous_ev100_uav,
@@ -233,6 +233,19 @@ namespace adria
 	void AutomaticExposurePass::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
+	}
+
+	void AutomaticExposurePass::CreatePSOs()
+	{
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_BuildHistogram;
+		build_histogram_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
+		compute_pso_desc.CS = CS_HistogramReduction;
+		histogram_reduction_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
+		compute_pso_desc.CS = CS_Exposure;
+		exposure_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
 }

@@ -2,13 +2,11 @@
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
-
+#include "ShaderManager.h" 
+#include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
 #include "TextureManager.h"
 #include "Core/Paths.h"
-#include "Graphics/GfxLinearDynamicAllocator.h"
-#include "Graphics/GfxRingDescriptorAllocator.h"
 #include "Logging/Logger.h"
 
 using namespace DirectX;
@@ -16,9 +14,11 @@ using namespace DirectX;
 namespace adria
 {
 
-	LensFlarePass::LensFlarePass(uint32 w, uint32 h)
-		: width{ w }, height{ h }
-	{}
+	LensFlarePass::LensFlarePass(GfxDevice* gfx, uint32 w, uint32 h)
+		: gfx(gfx), width(w), height(h)
+	{
+		CreatePSOs();
+	}
 
 	void LensFlarePass::AddPass(RenderGraph& rg, Light const& light)
 	{
@@ -92,7 +92,7 @@ namespace adria
 					.light_ss_y = light_ss.y,
 					.light_ss_z = light_ss.z
 				};
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::LensFlare));
+				cmd_list->SetPipelineState(lens_flare_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->SetRootCBV(2, constants2);
@@ -159,7 +159,7 @@ namespace adria
 					.output_idx = i + 1
 				};
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::LensFlare2));
+				cmd_list->SetPipelineState(lens_flare_pso2.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
@@ -181,6 +181,27 @@ namespace adria
 		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir() + "LensFlare/flare4.jpg"));
 		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir() + "LensFlare/flare5.jpg"));
 		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir() + "LensFlare/flare6.jpg"));
+	}
+
+	void LensFlarePass::CreatePSOs()
+	{
+		GraphicsPipelineStateDesc gfx_pso_desc{};
+		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
+		gfx_pso_desc.VS = VS_LensFlare;
+		gfx_pso_desc.GS = GS_LensFlare;
+		gfx_pso_desc.PS = PS_LensFlare;
+		gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
+		gfx_pso_desc.blend_state.render_target[0].src_blend = GfxBlend::One;
+		gfx_pso_desc.blend_state.render_target[0].dest_blend = GfxBlend::One;
+		gfx_pso_desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;
+		gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Point;
+		gfx_pso_desc.num_render_targets = 1;
+		gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
+		lens_flare_pso = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
+
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_LensFlare2;
+		lens_flare_pso2 = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
 }

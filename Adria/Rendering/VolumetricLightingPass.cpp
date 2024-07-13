@@ -2,10 +2,9 @@
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
-
+#include "ShaderManager.h" 
+#include "Graphics/GfxPipelineState.h"
 #include "Editor/GUICommand.h"
-#include "Graphics/GfxRingDescriptorAllocator.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Logging/Logger.h"
 
@@ -14,6 +13,11 @@ using namespace DirectX;
 
 namespace adria
 {
+
+	VolumetricLightingPass::VolumetricLightingPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), copy_to_texture_pass(gfx, w, h)
+	{
+		CreatePSOs();
+	}
 
 	void VolumetricLightingPass::AddPass(RenderGraph& rendergraph)
 	{
@@ -58,7 +62,7 @@ namespace adria
 					.depth_idx = i, .output_idx = i + 1, .resolution_scale = (uint32)resolution
 				};
 				
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::VolumetricLighting));
+				cmd_list->SetPipelineState(volumetric_lighting_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp((width >> resolution), 16), DivideAndRoundUp((height >> resolution), 16), 1);
@@ -82,6 +86,13 @@ namespace adria
 				}
 			}, GUICommandGroup_Renderer);
 		shadow_textures.clear();
+	}
+
+	void VolumetricLightingPass::CreatePSOs()
+	{
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_VolumetricLighting;
+		volumetric_lighting_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
 }

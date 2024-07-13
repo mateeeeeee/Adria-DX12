@@ -1,9 +1,10 @@
 #include "ReSTIRGI.h"
 #include "BlackboardData.h"
-#include "PSOCache.h"
+#include "ShaderManager.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Graphics/GfxTexture.h"
 #include "Graphics/GfxDevice.h"
+#include "Graphics/GfxPipelineState.h"
 #include "Editor/GUICommand.h"
 
 namespace adria
@@ -11,6 +12,12 @@ namespace adria
 
 	ReSTIRGI::ReSTIRGI(GfxDevice* gfx, uint32 width, uint32 height) : gfx(gfx), width(width), height(height)
 	{
+		if (gfx->GetCapabilities().CheckRayTracingSupport(RayTracingSupport::Tier1_1))
+		{
+			ComputePipelineStateDesc compute_pso_desc{};
+			compute_pso_desc.CS = CS_ReSTIRGI_InitialSampling;
+			initial_sampling_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+		}
 		CreateBuffers();
 	}
 
@@ -108,7 +115,7 @@ namespace adria
 				};
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, parameters);
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ReSTIRGI_InitialSampling)); 
+				cmd_list->SetPipelineState(initial_sampling_pso.get());
 				cmd_list->Dispatch(DivideAndRoundUp(half_width, 16), DivideAndRoundUp(half_height, 16), 1);
 			}, RGPassType::Compute);
 	}

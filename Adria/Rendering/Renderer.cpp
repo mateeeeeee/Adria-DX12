@@ -44,7 +44,7 @@ namespace adria
 		backbuffer_count(gfx->GetBackbufferCount()), backbuffer_index(gfx->GetBackbufferIndex()), final_texture(nullptr),
 		frame_cbuffer(gfx, backbuffer_count), gpu_driven_renderer(reg, gfx, width, height),
 		gbuffer_pass(reg, gfx, width, height),
-		sky_pass(reg, gfx, width, height), deferred_lighting_pass(width, height), 
+		sky_pass(reg, gfx, width, height), deferred_lighting_pass(gfx, width, height), 
 		volumetric_lighting_pass(gfx, width, height), volumetric_fog_pass(gfx, reg, width, height),
 		tiled_deferred_lighting_pass(reg, gfx, width, height) , copy_to_texture_pass(gfx, width, height), add_textures_pass(gfx, width, height),
 		postprocessor(gfx, reg, width, height), picking_pass(gfx, width, height),

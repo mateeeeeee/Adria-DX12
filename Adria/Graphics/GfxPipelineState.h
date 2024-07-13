@@ -46,7 +46,7 @@ namespace adria
 		GfxFormat rtv_formats[8];
 		GfxFormat dsv_format = GfxFormat::UNKNOWN;
 		GfxInputLayout input_layout;
-		GfxRootSignatureID root_signature = GfxRootSignatureID::Invalid;
+		GfxRootSignatureID root_signature = GfxRootSignatureID::Common;
 		GfxShaderKey VS;
 		GfxShaderKey PS;
 		GfxShaderKey DS;
@@ -69,7 +69,7 @@ namespace adria
 
 	struct ComputePipelineStateDesc
 	{
-		GfxRootSignatureID root_signature;
+		GfxRootSignatureID root_signature = GfxRootSignatureID::Common;
 		GfxShaderKey CS;
 	};
 	class ComputePipelineState : public GfxPipelineState
@@ -95,7 +95,7 @@ namespace adria
 		uint32 num_render_targets = 0;
 		GfxFormat rtv_formats[8];
 		GfxFormat dsv_format = GfxFormat::UNKNOWN;
-		GfxRootSignatureID root_signature = GfxRootSignatureID::Invalid;
+		GfxRootSignatureID root_signature = GfxRootSignatureID::Common;
 		GfxShaderKey AS;
 		GfxShaderKey MS;
 		GfxShaderKey PS;

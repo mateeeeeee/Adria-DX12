@@ -1,11 +1,11 @@
 #pragma once
-#include <optional>
 #include "HelperPasses.h"
 #include "RenderGraph/RenderGraphResourceId.h"
 
 namespace adria
 {
 	class GfxDevice;
+	class ComputePipelineState;
 	class RenderGraph;
 
 	class VolumetricLightingPass
@@ -18,7 +18,7 @@ namespace adria
 		};
 
 	public:
-		VolumetricLightingPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), copy_to_texture_pass(gfx, w, h) {}
+		VolumetricLightingPass(GfxDevice* gfx, uint32 w, uint32 h);
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h)
 		{
@@ -36,6 +36,10 @@ namespace adria
 		uint32 width, height;
 		VolumetricLightingResolution resolution = VolumetricLightingResolution_Full;
 		std::vector<RGResourceName> shadow_textures;
+		std::unique_ptr<ComputePipelineState> volumetric_lighting_pso;
+
+	private:
+		void CreatePSOs();
 	};
 
 }

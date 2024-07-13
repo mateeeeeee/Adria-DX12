@@ -2,9 +2,10 @@
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h"
+#include "ShaderManager.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxCommon.h"
+#include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Logging/Logger.h"
 #include "Editor/GUICommand.h"
@@ -15,9 +16,11 @@ using namespace DirectX;
 namespace adria
 {
 
-	TiledDeferredLightingPass::TiledDeferredLightingPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h) : reg(reg), width(w), height(h),
+	TiledDeferredLightingPass::TiledDeferredLightingPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h) : reg(reg), gfx(gfx), width(w), height(h),
 		add_textures_pass(gfx, width, height), copy_to_texture_pass(gfx, width, height)
-	{}
+	{
+		CreatePSOs();
+	}
 
 	void TiledDeferredLightingPass::AddPass(RenderGraph& rendergraph)
 	{
@@ -96,7 +99,7 @@ namespace adria
 				cmd_list->ClearUAV(tiled_target, gfx->GetDescriptorGPU(i + 5), context.GetReadWriteTexture(data.output), black);
 				cmd_list->ClearUAV(tiled_debug_target, gfx->GetDescriptorGPU(i + 6), context.GetReadWriteTexture(data.debug_output), black);
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::TiledDeferredLighting));
+				cmd_list->SetPipelineState(tiled_deferred_lighting_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
@@ -116,6 +119,13 @@ namespace adria
 				}
 			}, GUICommandGroup_Renderer
 		);
+	}
+
+	void TiledDeferredLightingPass::CreatePSOs()
+	{
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_TiledDeferredLighting;
+		tiled_deferred_lighting_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
 }

@@ -20,7 +20,7 @@ namespace adria
 
 		inline GfxShader const& GetShader(ShaderID shader)
 		{
-			return ShaderManager::GetShader(shader);
+			return ShaderManager::GetGfxShader(shader);
 		}
 		void CreateAllPSOs()
 		{
@@ -45,22 +45,6 @@ namespace adria
 
 				gfx_pso_desc = {};
 				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
-				gfx_pso_desc.VS = VS_LensFlare;
-				gfx_pso_desc.GS = GS_LensFlare;
-				gfx_pso_desc.PS = PS_LensFlare;
-				gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
-				gfx_pso_desc.blend_state.render_target[0].src_blend = GfxBlend::One;
-				gfx_pso_desc.blend_state.render_target[0].dest_blend = GfxBlend::One;
-				gfx_pso_desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;
-
-				gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Point;
-				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
-
-				gfx_pso_map[GfxPipelineStateID::LensFlare] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-
-				gfx_pso_desc = {};
-				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 				gfx_pso_desc.VS = VS_Bokeh;
 				gfx_pso_desc.GS = GS_Bokeh;
 				gfx_pso_desc.PS = PS_Bokeh;
@@ -78,18 +62,6 @@ namespace adria
 			ComputePipelineStateDesc compute_pso_desc{};
 			compute_pso_desc.root_signature = GfxRootSignatureID::Common;
 			{
-				compute_pso_desc.CS = CS_ClusteredDeferredLighting;
-				compute_pso_map[GfxPipelineStateID::ClusteredDeferredLighting] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_ClusterBuilding;
-				compute_pso_map[GfxPipelineStateID::ClusterBuilding] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_ClusterCulling;
-				compute_pso_map[GfxPipelineStateID::ClusterCulling] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_TiledDeferredLighting;
-				compute_pso_map[GfxPipelineStateID::TiledDeferredLighting] = gfx->CreateComputePipelineState(compute_pso_desc);
-
 				compute_pso_desc.CS = CS_Picking;
 				compute_pso_map[GfxPipelineStateID::Picking] = gfx->CreateComputePipelineState(compute_pso_desc);
 
@@ -99,20 +71,8 @@ namespace adria
 				compute_pso_desc.CS = CS_Blur_Vertical;
 				compute_pso_map[GfxPipelineStateID::Blur_Vertical] = gfx->CreateComputePipelineState(compute_pso_desc);
 
-				compute_pso_desc.CS = CS_GenerateMips;
-				compute_pso_map[GfxPipelineStateID::GenerateMips] = gfx->CreateComputePipelineState(compute_pso_desc);
-
 				compute_pso_desc.CS = CS_BokehGeneration;
 				compute_pso_map[GfxPipelineStateID::BokehGenerate] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_BuildHistogram;
-				compute_pso_map[GfxPipelineStateID::BuildHistogram] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_HistogramReduction;
-				compute_pso_map[GfxPipelineStateID::HistogramReduction] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_Exposure;
-				compute_pso_map[GfxPipelineStateID::Exposure] = gfx->CreateComputePipelineState(compute_pso_desc);
 
 				compute_pso_desc.CS = CS_Ssao;
 				compute_pso_map[GfxPipelineStateID::SSAO] = gfx->CreateComputePipelineState(compute_pso_desc);
@@ -153,23 +113,8 @@ namespace adria
 				compute_pso_desc.CS = CS_Taa;
 				compute_pso_map[GfxPipelineStateID::TAA] = gfx->CreateComputePipelineState(compute_pso_desc);
 
-				compute_pso_desc.CS = CS_DeferredLighting;
-				compute_pso_map[GfxPipelineStateID::DeferredLighting] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_VolumetricLighting;
-				compute_pso_map[GfxPipelineStateID::VolumetricLighting] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_LensFlare2;
-				compute_pso_map[GfxPipelineStateID::LensFlare2] = gfx->CreateComputePipelineState(compute_pso_desc);
-
 				compute_pso_desc.CS = CS_RTAOFilter;
 				compute_pso_map[GfxPipelineStateID::RTAOFilter] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				if (gfx->GetCapabilities().CheckRayTracingSupport(RayTracingSupport::Tier1_1))
-				{
-					compute_pso_desc.CS = CS_ReSTIRGI_InitialSampling;
-					compute_pso_map[GfxPipelineStateID::ReSTIRGI_InitialSampling] = gfx->CreateComputePipelineState(compute_pso_desc);
-				}
 			}
 		}
 	}

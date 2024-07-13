@@ -1,17 +1,18 @@
 #pragma once
-#include <unordered_set>
 #include "RenderGraph/RenderGraphResourceId.h"
 #include "RenderGraph/RenderGraphResourceName.h"
 #include "entt/entity/entity.hpp"
 
 namespace adria
 {
+	class GfxDevice;
+	class ComputePipelineState;
 	class RenderGraph;
 
 	class DeferredLightingPass
 	{
 	public:
-		DeferredLightingPass(uint32 w, uint32 h) : width(w), height(h) {}
+		DeferredLightingPass(GfxDevice* gfx, uint32 w, uint32 h);
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h)
 		{
@@ -24,8 +25,13 @@ namespace adria
 		}
 
 	private:
+		GfxDevice* gfx;
 		uint32 width, height;
 		std::vector<RGResourceName> shadow_textures;
+		std::unique_ptr<ComputePipelineState> deferred_lighting_pso;
+
+	private:
+		void CreatePSOs();
 	};
 
 }

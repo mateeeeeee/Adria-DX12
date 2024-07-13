@@ -10,12 +10,6 @@ namespace adria
 	{
 		Sun,
 		Ambient,
-		DeferredLighting,
-		VolumetricLighting,
-		TiledDeferredLighting,
-		ClusteredDeferredLighting,
-		ClusterBuilding,
-		ClusterCulling,
 		ToneMap,
 		FXAA,
 		TAA,
@@ -24,8 +18,6 @@ namespace adria
 		SSR,
 		GodRays,
 		FilmEffects,
-		LensFlare,
-		LensFlare2,
 		DOF,
 		ExponentialHeightFog,
 		MotionBlur,
@@ -33,14 +25,9 @@ namespace adria
 		Blur_Vertical,
 		BokehGenerate,
 		Bokeh,
-		GenerateMips,
 		MotionVectors,
 		Picking,
-		BuildHistogram,
-		HistogramReduction,
-		Exposure,
 		RTAOFilter,
-		ReSTIRGI_InitialSampling,
 		Unknown
 	};
 
