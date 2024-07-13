@@ -1,16 +1,17 @@
 #pragma once
-#include <optional>
-
 #include "RenderGraph/RenderGraphResourceName.h"
 
 namespace adria
 {
+	class GfxDevice;
+	class ComputePipelineState;
 	class RenderGraph;
 
 	class BlurPass
 	{
 	public:
-		BlurPass(uint32 w, uint32 h) : width(w), height(h) {}
+		BlurPass(GfxDevice* gfx, uint32 w, uint32 h);
+		~BlurPass();
 
 		void AddPass(RenderGraph& rendergraph,
 			RGResourceName src_texture, RGResourceName blurred_texture, char const* pass_name = "");
@@ -19,6 +20,11 @@ namespace adria
 		void SetResolution(uint32 w, uint32 h);
 
 	private:
+		GfxDevice* gfx;
 		uint32 width, height;
+		std::unique_ptr<ComputePipelineState> blur_horizontal_pso;
+		std::unique_ptr<ComputePipelineState> blur_vertical_pso;
+	private:
+		void CreatePSOs();
 	};
 }

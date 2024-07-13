@@ -1,9 +1,9 @@
 #include "HBAOPass.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
-
-#include "Graphics/GfxRingDescriptorAllocator.h"
+#include "ShaderManager.h" 
+#include "Graphics/GfxDevice.h"
+#include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Utilities/Random.h"
 #include "Editor/GUICommand.h"
@@ -11,8 +11,11 @@
 namespace adria
 {
 
-	HBAOPass::HBAOPass(uint32 w, uint32 h) : width(w), height(h), hbao_random_texture(nullptr),
-		blur_pass(w, h){}
+	HBAOPass::HBAOPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), hbao_random_texture(nullptr),
+		blur_pass(gfx, w, h)
+	{
+		CreatePSO();
+	}
 
 	void HBAOPass::AddPass(RenderGraph& rendergraph)
 	{
@@ -71,7 +74,7 @@ namespace adria
 					.depth_idx = i, .normal_idx = i + 1, .noise_idx = i + 2, .output_idx = i + 3
 				};
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::HBAO));
+				cmd_list->SetPipelineState(hbao_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
@@ -99,7 +102,7 @@ namespace adria
 		blur_pass.OnResize(w, h);
 	}
 
-	void HBAOPass::OnSceneInitialized(GfxDevice* gfx)
+	void HBAOPass::OnSceneInitialized()
 	{
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
 		std::vector<float> random_texture_data;
@@ -127,6 +130,13 @@ namespace adria
 		hbao_random_texture = gfx->CreateTexture(noise_desc, &data);
 		hbao_random_texture->SetName("HBAO Random Texture");
 		hbao_random_texture_srv = gfx->CreateTextureSRV(hbao_random_texture.get());
+	}
+
+	void HBAOPass::CreatePSO()
+	{
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_Hbao;
+		hbao_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
 }

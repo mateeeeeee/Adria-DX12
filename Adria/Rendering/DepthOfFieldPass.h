@@ -5,6 +5,8 @@
 
 namespace adria
 {
+	class GfxDevice;
+	class ComputePipelineState;
 	class RenderGraph;
 
 	class DepthOfFieldPass
@@ -15,18 +17,24 @@ namespace adria
 			float focus_radius   = 25.0f;
 		};
 	public:
-		DepthOfFieldPass(uint32 w, uint32 h);
+		DepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h);
 
 		RGResourceName AddPass(RenderGraph& rendergraph, RGResourceName input, RGResourceName blurred_input);
 		void OnResize(uint32 w, uint32 h);
-		void OnSceneInitialized(GfxDevice* gfx);
+		void OnSceneInitialized();
 
 	private:
+		GfxDevice* gfx;
 		uint32 width, height;
 		DoFParameters params{};
 
 		BokehPass bokeh_pass;
 		BlurPass blur_pass;
+
+		std::unique_ptr<ComputePipelineState> dof_pso;
+
+	private:
+		void CreatePSO();
 	};
 
 }

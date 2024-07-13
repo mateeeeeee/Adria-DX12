@@ -8,26 +8,13 @@ namespace adria
 
 	enum class GfxPipelineStateID : uint8
 	{
-		Sun,
-		Ambient,
-		ToneMap,
-		FXAA,
-		TAA,
-		SSAO,
-		HBAO,
 		SSR,
 		GodRays,
 		FilmEffects,
-		DOF,
 		ExponentialHeightFog,
 		MotionBlur,
-		Blur_Horizontal,
-		Blur_Vertical,
-		BokehGenerate,
-		Bokeh,
 		MotionVectors,
 		Picking,
-		RTAOFilter,
 		Unknown
 	};
 

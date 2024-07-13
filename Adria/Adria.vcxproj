@@ -299,6 +299,7 @@
     <ClCompile Include="Rendering\SkyPass.cpp" />
     <ClCompile Include="Rendering\SSAOPass.cpp" />
     <ClCompile Include="Rendering\SSRPass.cpp" />
+    <ClCompile Include="Rendering\SunPass.cpp" />
     <ClCompile Include="Rendering\TAAPass.cpp" />
     <ClCompile Include="Rendering\TextureManager.cpp" />
     <ClCompile Include="Rendering\TiledDeferredLightingPass.cpp" />
@@ -490,6 +491,7 @@
     <ClInclude Include="Rendering\ShaderManager.h" />
     <ClInclude Include="Rendering\ShadowRenderer.h" />
     <ClInclude Include="Rendering\SSRPass.h" />
+    <ClInclude Include="Rendering\SunPass.h" />
     <ClInclude Include="Rendering\TAAPass.h" />
     <ClInclude Include="Rendering\MotionVectorsPass.h" />
     <ClInclude Include="Rendering\TextureChannelMappingPass.h" />

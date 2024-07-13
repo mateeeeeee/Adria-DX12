@@ -29,6 +29,7 @@
 #include "FFXCACAOPass.h"
 #include "FXAAPass.h"
 #include "ToneMapPass.h"
+#include "SunPass.h"
 #include "RenderGraph/RenderGraphResourceId.h"
 #include "Utilities/Delegate.h"
 #include "entt/entity/entity.hpp"
@@ -146,6 +147,7 @@ namespace adria
 		XeSSPass xess_pass;
 		DLSS3Pass dlss3_pass;
 		FFXCASPass cas_pass;
+		SunPass sun_pass;
 		ToneMapPass  tonemap_pass;
 		FXAAPass	 fxaa_pass;
 
@@ -169,7 +171,6 @@ namespace adria
 
 	private:
 		RGResourceName AddHDRCopyPass(RenderGraph& rg);
-		void AddSunPass(RenderGraph& rg, entt::entity sun);
 
 		bool NeedsVelocityBuffer() const { return HasUpscaler() || HasTAA() || clouds || motion_blur; }
 		bool HasUpscaler() const { return upscaler != UpscalerType::None; }

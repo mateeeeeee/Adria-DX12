@@ -8,10 +8,10 @@
 
 namespace adria
 {
-	class RenderGraph;
 	class GfxDevice;
 	class GfxTexture;
-
+	class ComputePipelineState;
+	class RenderGraph;
 
 	class SSAOPass
 	{
@@ -32,13 +32,14 @@ namespace adria
 		static constexpr uint32 KERNEL_SIZE = 16;
 
 	public:
-		SSAOPass(uint32 w, uint32 h);
+		SSAOPass(GfxDevice* gfx, uint32 w, uint32 h);
 
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h);
-		void OnSceneInitialized(GfxDevice* gfx);
+		void OnSceneInitialized();
 
 	private:
+		GfxDevice* gfx;
 		uint32 width, height;
 		SSAOParams params{};
 		SSAOResolution resolution = SSAOResolution_Half;
@@ -47,6 +48,11 @@ namespace adria
 		std::unique_ptr<GfxTexture> ssao_random_texture;
 		GfxDescriptor ssao_random_texture_srv;
 		BlurPass blur_pass;
+
+		std::unique_ptr<ComputePipelineState> ssao_pso;
+
+	private:
+		void CreatePSO();
 	};
 
 }

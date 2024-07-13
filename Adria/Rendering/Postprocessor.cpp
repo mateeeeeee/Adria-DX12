@@ -4,9 +4,6 @@
 #include "BlackboardData.h"
 #include "PSOCache.h"
 #include "RainPass.h"
-
-#include "Graphics/GfxRingDescriptorAllocator.h"
-#include "Graphics/GfxLinearDynamicAllocator.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Logging/Logger.h"
 #include "Core/ConsoleVariable.h"
@@ -36,13 +33,13 @@ namespace adria
 
 	PostProcessor::PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height)
 		: gfx(gfx), reg(reg), display_width(width), display_height(height), render_width(width), render_height(height),
-		blur_pass(width, height), copy_to_texture_pass(gfx, width, height), film_effects_pass(width, height),
-		add_textures_pass(gfx, width, height), ssao_pass(width, height), hbao_pass(width, height), rtao_pass(gfx, width, height),
+		blur_pass(gfx, width, height), copy_to_texture_pass(gfx, width, height), film_effects_pass(width, height),
+		add_textures_pass(gfx, width, height), ssao_pass(gfx, width, height), hbao_pass(gfx, width, height), rtao_pass(gfx, width, height),
 		automatic_exposure_pass(gfx, width, height), lens_flare_pass(gfx, width, height), clouds_pass(gfx, width, height), 
-		ssr_pass(width, height), fog_pass(width, height), dof_pass(width, height), bloom_pass(gfx, width, height), 
-		velocity_buffer_pass(width, height), motion_blur_pass(width, height), taa_pass(width, height), 
+		ssr_pass(width, height), fog_pass(width, height), dof_pass(gfx, width, height), bloom_pass(gfx, width, height), 
+		velocity_buffer_pass(width, height), motion_blur_pass(width, height), taa_pass(gfx, width, height), 
 		god_rays_pass(width, height), xess_pass(gfx, width, height), dlss3_pass(gfx, width, height),
-		tonemap_pass(width, height), fxaa_pass(width, height), rtr_pass(gfx, width, height),
+		tonemap_pass(gfx, width, height), fxaa_pass(gfx, width, height), rtr_pass(gfx, width, height), sun_pass(reg, gfx, width, height),
 		ffx_dof_pass(gfx, width, height), fsr2_pass(gfx, width, height), fsr3_pass(gfx, width, height),  cas_pass(gfx, width, height), cacao_pass(gfx, width, height)
 	{
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
@@ -89,7 +86,7 @@ namespace adria
 
 			if (light_data.type == LightType::Directional)
 			{
-				AddSunPass(rg, light);
+				sun_pass.AddPass(rg, final_resource, light);
 
 				if (light_data.god_rays)
 				{
@@ -227,15 +224,16 @@ namespace adria
 
 		dof_pass.OnResize(w, h);
 		ffx_dof_pass.OnResize(w, h);
+		sun_pass.OnResize(w, h);
 	}
 
 	void PostProcessor::OnSceneInitialized()
 	{
-		ssao_pass.OnSceneInitialized(gfx);
-		hbao_pass.OnSceneInitialized(gfx);
+		ssao_pass.OnSceneInitialized();
+		hbao_pass.OnSceneInitialized();
 		automatic_exposure_pass.OnSceneInitialized();
 		clouds_pass.OnSceneInitialized();
-		dof_pass.OnSceneInitialized(gfx);
+		dof_pass.OnSceneInitialized();
 		lens_flare_pass.OnSceneInitialized();
 		tonemap_pass.OnSceneInitialized(); 
 
@@ -286,52 +284,6 @@ namespace adria
 			}, RGPassType::Copy, RGPassFlags::None);
 
 		return RG_RES_NAME(PostprocessMain);
-	}
-
-	void PostProcessor::AddSunPass(RenderGraph& rg, entt::entity sun)
-	{
-		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
-		RGResourceName last_resource = final_resource;
-
-		rg.AddPass<void>("Sun Pass",
-			[=](RenderGraphBuilder& builder)
-			{
-				RGTextureDesc sun_output_desc{};
-				sun_output_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-				sun_output_desc.width = render_width;
-				sun_output_desc.height = render_height;
-				sun_output_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
-
-				builder.DeclareTexture(RG_RES_NAME(SunOutput), sun_output_desc);
-				builder.ReadDepthStencil(RG_RES_NAME(DepthStencil), RGLoadStoreAccessOp::Preserve_Preserve);
-				builder.WriteRenderTarget(RG_RES_NAME(SunOutput), RGLoadStoreAccessOp::Clear_Preserve);
-				builder.SetViewport(render_width, render_height);
-			},
-			[=](RenderGraphContext& context, GfxCommandList* cmd_list)
-			{
-				GfxDevice* gfx = cmd_list->GetDevice();
-				auto dynamic_allocator = gfx->GetDynamicAllocator();
-
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Sun));
-				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
-				auto [transform, mesh, material] = reg.get<Transform, SubMesh, Material>(sun);
-
-				struct Constants
-				{
-					Matrix model_matrix;
-					Vector3 diffuse_color;
-					uint32   diffuse_idx;
-				} constants =
-				{
-					.model_matrix = transform.current_transform,
-					.diffuse_color = Vector3(material.base_color),
-					.diffuse_idx = (uint32)material.albedo_texture
-				};
-				GfxDynamicAllocation allocation = dynamic_allocator->AllocateCBuffer<Constants>();
-				allocation.Update(constants);
-				cmd_list->SetRootCBV(2, allocation.gpu_address);
-				Draw(mesh, cmd_list);
-			}, RGPassType::Graphics, RGPassFlags::None);
 	}
 
 	void PostProcessor::PostprocessorGUI()

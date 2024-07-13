@@ -2,12 +2,12 @@
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h"
+#include "ShaderManager.h"
 #include "TextureManager.h"
+#include "Graphics/GfxDevice.h"
+#include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Core/Paths.h"
-#include "Graphics/GfxLinearDynamicAllocator.h"
-#include "Graphics/GfxRingDescriptorAllocator.h"
 #include "Editor/GUICommand.h"
 
 using namespace DirectX;
@@ -21,9 +21,12 @@ namespace adria
 		Vector3 Color;
 	};
 
-	BokehPass::BokehPass(uint32 w, uint32 h)
-		: width(w), height(h)
-	{}
+	BokehPass::BokehPass(GfxDevice* gfx, uint32 w, uint32 h)
+		: gfx(gfx), width(w), height(h)
+	{
+		CreatePSOs();
+	}
+	BokehPass::~BokehPass() = default;
 
 	void BokehPass::AddPass(RenderGraph& rendergraph, RGResourceName input)
 	{
@@ -55,7 +58,7 @@ namespace adria
 		width = w, height = h;
 	}
 
-	void BokehPass::OnSceneInitialized(GfxDevice* gfx)
+	void BokehPass::OnSceneInitialized()
 	{
 		bokeh_textures[(uint32)BokehType::Hex] = g_TextureManager.LoadTexture(paths::TexturesDir() + "bokeh/Bokeh_Hex.dds");
 		bokeh_textures[(uint32)BokehType::Oct] = g_TextureManager.LoadTexture(paths::TexturesDir() + "bokeh/Bokeh_Oct.dds");
@@ -77,7 +80,6 @@ namespace adria
 		uint32 init_data[] = { 0,1,0,0 };
 		bokeh_indirect_buffer = gfx->CreateBuffer(buffer_desc, init_data);
 	}
-
 
 	void BokehPass::AddGenerateBokehPass(RenderGraph& rg, RGResourceName input)
 	{
@@ -157,7 +159,7 @@ namespace adria
 					.bokeh_scale = params.bokeh_radius_scale, .bokeh_fallout = params.bokeh_fallout
 				};
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::BokehGenerate));
+				cmd_list->SetPipelineState(bokeh_generation_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->SetRootCBV(2, indices);
@@ -220,7 +222,7 @@ namespace adria
 					.bokeh_tex_idx = i, .bokeh_stack_idx = i + 1
 				};
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Bokeh));
+				cmd_list->SetPipelineState(bokeh_draw_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->SetVertexBuffers({});
@@ -229,7 +231,28 @@ namespace adria
 				GfxBuffer const& indirect_args_buffer = context.GetIndirectArgsBuffer(data.bokeh_indirect_args);
 				cmd_list->DrawIndirect(indirect_args_buffer, 0);
 			}, RGPassType::Graphics, RGPassFlags::None);
+	}
 
+
+	void BokehPass::CreatePSOs()
+	{
+		GraphicsPipelineStateDesc gfx_pso_desc{};
+		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
+		gfx_pso_desc.VS = VS_Bokeh;
+		gfx_pso_desc.GS = GS_Bokeh;
+		gfx_pso_desc.PS = PS_Bokeh;
+		gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
+		gfx_pso_desc.blend_state.render_target[0].src_blend = GfxBlend::One;
+		gfx_pso_desc.blend_state.render_target[0].dest_blend = GfxBlend::One;
+		gfx_pso_desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;
+		gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Point;
+		gfx_pso_desc.num_render_targets = 1;
+		gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
+		bokeh_draw_pso = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
+
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_BokehGeneration;
+		bokeh_generation_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
 }

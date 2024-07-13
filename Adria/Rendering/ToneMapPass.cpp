@@ -1,10 +1,11 @@
 #include "ToneMapPass.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
+#include "ShaderManager.h" 
 #include "TextureManager.h"
 #include "Core/Paths.h"
+#include "Graphics/GfxDevice.h"
+#include "Graphics/GfxPipelineState.h"
 #include "Graphics/GfxCommon.h"
-#include "Graphics/GfxRingDescriptorAllocator.h"
 #include "Math/Packing.h"
 #include "Editor/GUICommand.h"
 #include "RenderGraph/RenderGraph.h"
@@ -12,8 +13,10 @@
 namespace adria
 {
 
-	ToneMapPass::ToneMapPass(uint32 w, uint32 h) : width(w), height(h)
-	{}
+	ToneMapPass::ToneMapPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
+	{
+		CreatePSO();
+	}
 
 	void ToneMapPass::AddPass(RenderGraph& rg, RGResourceName hdr_src)
 	{
@@ -83,7 +86,7 @@ namespace adria
 					constants.bloom_params_packed = PackTwoFloatsToUint32(bloom_data->bloom_intensity, bloom_data->bloom_blend_factor);
 				}
 				
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ToneMap));
+				cmd_list->SetPipelineState(tonemap_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
@@ -168,7 +171,7 @@ namespace adria
 					constants.bloom_params_packed = PackTwoFloatsToUint32(bloom_data->bloom_intensity, bloom_data->bloom_blend_factor);
 				}
 				
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ToneMap));
+				cmd_list->SetPipelineState(tonemap_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
@@ -186,6 +189,13 @@ namespace adria
 	{
 		lens_dirt_handle		   = g_TextureManager.LoadTexture(paths::TexturesDir() + "LensDirt.dds");
 		tony_mc_mapface_lut_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "tony_mc_mapface.dds");
+	}
+
+	void ToneMapPass::CreatePSO()
+	{
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_Tonemap;
+		tonemap_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
 	void ToneMapPass::GUI()

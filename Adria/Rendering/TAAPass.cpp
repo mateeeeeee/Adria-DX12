@@ -2,16 +2,17 @@
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
-
+#include "ShaderManager.h"
+#include "Graphics/GfxDevice.h"
+#include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
-#include "Graphics/GfxRingDescriptorAllocator.h"
 
 namespace adria
 {
-
-	TAAPass::TAAPass(uint32 w, uint32 h) : width(w), height(h)
-	{}
+	TAAPass::TAAPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
+	{
+		CreatePSO();
+	}
 
 	RGResourceName TAAPass::AddPass(RenderGraph& rg, RGResourceName input, RGResourceName history)
 	{
@@ -66,7 +67,7 @@ namespace adria
 					.scene_idx = i, .prev_scene_idx = i + 1, .velocity_idx = i + 2, .output_idx = i + 3
 				};
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::TAA));
+				cmd_list->SetPipelineState(taa_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
@@ -78,6 +79,13 @@ namespace adria
 	void TAAPass::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
+	}
+
+	void TAAPass::CreatePSO()
+	{
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_Taa;
+		taa_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
 }

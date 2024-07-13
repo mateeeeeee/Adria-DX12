@@ -2,9 +2,9 @@
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
-
+#include "ShaderManager.h" 
 #include "Graphics/GfxDevice.h"
+#include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
 
@@ -13,7 +13,10 @@ using namespace DirectX;
 namespace adria
 {
 
-	DepthOfFieldPass::DepthOfFieldPass(uint32 w, uint32 h) : width(w), height(h), bokeh_pass(w, h), blur_pass(w, h) {}
+	DepthOfFieldPass::DepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), bokeh_pass(gfx, w, h), blur_pass(gfx, w, h)
+	{
+		CreatePSO();
+	}
 
 	RGResourceName DepthOfFieldPass::AddPass(RenderGraph& rg, RGResourceName input, RGResourceName blurred_input)
 	{
@@ -48,7 +51,7 @@ namespace adria
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DOF));
+				cmd_list->SetPipelineState(dof_pso.get());
 
 				GfxDescriptor src_descriptors[] =
 				{
@@ -99,9 +102,16 @@ namespace adria
 		bokeh_pass.OnResize(w, h);
 	}
 
-	void DepthOfFieldPass::OnSceneInitialized(GfxDevice* gfx)
+	void DepthOfFieldPass::OnSceneInitialized()
 	{
-		bokeh_pass.OnSceneInitialized(gfx);
+		bokeh_pass.OnSceneInitialized();
+	}
+
+	void DepthOfFieldPass::CreatePSO()
+	{
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_Dof;
+		dof_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
 }

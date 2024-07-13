@@ -7,6 +7,8 @@ namespace adria
 	class RenderGraph;
 	class GfxDevice;
 	class GfxBuffer;
+	class GraphicsPipelineState;
+	class ComputePipelineState;
 
 	class BokehPass
 	{
@@ -31,19 +33,26 @@ namespace adria
 		};
 
 	public:
-		BokehPass(uint32 w, uint32 h);
+		BokehPass(GfxDevice* gfx, uint32 w, uint32 h);
+		~BokehPass();
 
 		void AddPass(RenderGraph& rendergraph, RGResourceName input);
 		void OnResize(uint32 w, uint32 h);
-		void OnSceneInitialized(GfxDevice* gfx);
+		void OnSceneInitialized();
 
 	private:
+		GfxDevice* gfx;
 		uint32 width, height;
 		BokehParameters params{};
 		TextureHandle bokeh_textures[(uint32)BokehType::Count] = { INVALID_TEXTURE_HANDLE };
 		std::unique_ptr<GfxBuffer> counter_reset_buffer;
 		std::unique_ptr<GfxBuffer> bokeh_indirect_buffer;
+
+		std::unique_ptr<GraphicsPipelineState> bokeh_draw_pso;
+		std::unique_ptr<ComputePipelineState>  bokeh_generation_pso;
+
 	private:
+		void CreatePSOs();
 		void AddGenerateBokehPass(RenderGraph& rg, RGResourceName input);
 		void AddDrawBokehPass(RenderGraph& rg, RGResourceName input);
 	};

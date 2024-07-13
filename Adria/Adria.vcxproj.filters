@@ -516,6 +516,9 @@
     <ClCompile Include="Graphics\GfxReflection.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\SunPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1136,6 +1139,9 @@
     </ClInclude>
     <ClInclude Include="Graphics\GfxPipelineStatePermutations.h">
       <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\SunPass.h">
+      <Filter>Rendering\Passes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

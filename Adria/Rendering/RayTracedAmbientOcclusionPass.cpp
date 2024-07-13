@@ -1,11 +1,10 @@
 #include "RayTracedAmbientOcclusionPass.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h"
-#include "PSOCache.h"
 #include "Graphics/GfxShader.h"
 #include "Graphics/GfxShaderKey.h"
 #include "Graphics/GfxStateObject.h"
-#include "Graphics/GfxRingDescriptorAllocator.h"
+#include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
 
@@ -13,11 +12,12 @@ namespace adria
 {
 
 	RayTracedAmbientOcclusionPass::RayTracedAmbientOcclusionPass(GfxDevice* gfx, uint32 width, uint32 height)
-		: gfx(gfx), width(width), height(height), blur_pass(width, height)
+		: gfx(gfx), width(width), height(height), blur_pass(gfx, width, height)
 	{
 		is_supported = gfx->GetCapabilities().SupportsRayTracing();
 		if (IsSupported())
 		{
+			CreatePSO();
 			CreateStateObject();
 			ShaderManager::GetLibraryRecompiledEvent().AddMember(&RayTracedAmbientOcclusionPass::OnLibraryRecompiled, *this);
 		}
@@ -159,7 +159,7 @@ namespace adria
 					.filter_dist_kernel4 = distance_kernel[4], .filter_dist_kernel5 = distance_kernel[5],
 				};
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::RTAOFilter));
+				cmd_list->SetPipelineState(rtao_filter_pso.get());
 
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, indices);
@@ -194,6 +194,13 @@ namespace adria
 	bool RayTracedAmbientOcclusionPass::IsSupported() const
 	{
 		return is_supported;
+	}
+
+	void RayTracedAmbientOcclusionPass::CreatePSO()
+	{
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_RTAOFilter;
+		rtao_filter_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
 	void RayTracedAmbientOcclusionPass::CreateStateObject()

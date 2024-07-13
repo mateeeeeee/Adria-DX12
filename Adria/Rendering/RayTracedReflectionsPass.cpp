@@ -13,7 +13,7 @@ namespace adria
 {
 
 	RayTracedReflectionsPass::RayTracedReflectionsPass(GfxDevice* gfx, uint32 width, uint32 height)
-		: gfx(gfx), width(width), height(height), blur_pass(width, height)
+		: gfx(gfx), width(width), height(height), blur_pass(gfx, width, height)
 	{
 		is_supported = gfx->GetCapabilities().CheckRayTracingSupport(RayTracingSupport::Tier1_1);
 		if (IsSupported())

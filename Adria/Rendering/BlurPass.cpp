@@ -2,15 +2,22 @@
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h"
-
-#include "Graphics/GfxLinearDynamicAllocator.h"
-#include "Graphics/GfxRingDescriptorAllocator.h"
+#include "ShaderManager.h"
+#include "Graphics/GfxDevice.h"
+#include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
 
 
 namespace adria
 {
+
+	BlurPass::BlurPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
+	{
+		CreatePSOs();
+	}
+
+	BlurPass::~BlurPass() = default;
+
 	void BlurPass::AddPass(RenderGraph& rendergraph, RGResourceName src_texture, RGResourceName blurred_texture,
 		char const* pass_name)
 	{
@@ -57,7 +64,7 @@ namespace adria
 					.input_idx = i, .output_idx = i + 1
 				};
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Blur_Horizontal));
+				cmd_list->SetPipelineState(blur_horizontal_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 1024), height, 1);
@@ -94,7 +101,7 @@ namespace adria
 					.input_idx = i, .output_idx = i + 1
 				};
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Blur_Vertical));
+				cmd_list->SetPipelineState(blur_vertical_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1,constants);
 				cmd_list->Dispatch(width, DivideAndRoundUp(height, 1024), 1);
@@ -111,6 +118,16 @@ namespace adria
 	void BlurPass::SetResolution(uint32 w, uint32 h)
 	{
 		width = w, height = h;
+	}
+
+	void BlurPass::CreatePSOs()
+	{
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_Blur_Horizontal;
+		blur_horizontal_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
+		compute_pso_desc.CS = CS_Blur_Vertical;
+		blur_vertical_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
 }

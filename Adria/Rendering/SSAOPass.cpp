@@ -1,11 +1,10 @@
 #include "SSAOPass.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
-
+#include "ShaderManager.h" 
+#include "Graphics/GfxDevice.h"
+#include "Graphics/GfxPipelineState.h"
 #include "Math/Packing.h"
-#include "Graphics/GfxLinearDynamicAllocator.h"
-#include "Graphics/GfxRingDescriptorAllocator.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Utilities/Random.h"
 #include "Core/ConsoleVariable.h"
@@ -21,9 +20,10 @@ namespace adria
 		static ConsoleVariable ssao_radius("ssao.radius", 1.0f);
 	}
 
-	SSAOPass::SSAOPass(uint32 w, uint32 h) : width(w), height(h), ssao_random_texture(nullptr),
-		blur_pass(w >> resolution, h >> resolution)
+	SSAOPass::SSAOPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ssao_random_texture(nullptr),
+		blur_pass(gfx, w >> resolution, h >> resolution)
 	{
+		CreatePSO();
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
 		for (uint32 i = 0; i < ARRAYSIZE(ssao_kernel); i++)
 		{
@@ -89,7 +89,7 @@ namespace adria
 					.depth_idx = i, .normal_idx = i + 1, .noise_idx = i + 2, .output_idx = i + 3
 				};
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::SSAO));
+				cmd_list->SetPipelineState(ssao_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->SetRootCBV(2, ssao_kernel);
@@ -128,7 +128,7 @@ namespace adria
 		blur_pass.OnResize(w >> resolution, h >> resolution);
 	}
 
-	void SSAOPass::OnSceneInitialized(GfxDevice* gfx)
+	void SSAOPass::OnSceneInitialized()
 	{
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
 		std::vector<float> random_texture_data;
@@ -156,5 +156,13 @@ namespace adria
 		ssao_random_texture->SetName("SSAO Random Texture");
 		ssao_random_texture_srv = gfx->CreateTextureSRV(ssao_random_texture.get());
 	}
+
+	void SSAOPass::CreatePSO()
+	{
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_Ssao;
+		ssao_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+	}
+
 }
 

@@ -5,8 +5,9 @@
 
 namespace adria
 {
-	class RenderGraph;
 	class GfxDevice;
+	class ComputePipelineState;
+	class RenderGraph;
 
 	class ToneMapPass
 	{
@@ -24,18 +25,22 @@ namespace adria
 			float tonemap_exposure = 1.5f;
 		};
 	public:
-		ToneMapPass(uint32 w, uint32 h);
+		ToneMapPass(GfxDevice* gfx, uint32 w, uint32 h);
 		void AddPass(RenderGraph& rg, RGResourceName hdr_src);
 		void AddPass(RenderGraph& rg, RGResourceName hdr_src, RGResourceName output);
 		void OnResize(uint32 w, uint32 h);
 		void OnSceneInitialized();
+
 	private:
+		GfxDevice* gfx;
 		uint32 width, height;
 		TonemapParams params;
 		TextureHandle lens_dirt_handle = INVALID_TEXTURE_HANDLE;
 		TextureHandle tony_mc_mapface_lut_handle = INVALID_TEXTURE_HANDLE;
+		std::unique_ptr<ComputePipelineState> tonemap_pso;
 
 	private:
+		void CreatePSO();
 		void GUI();
 	};
 }
