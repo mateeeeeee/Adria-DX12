@@ -39,7 +39,6 @@ namespace adria
 		CS_Blur_Horizontal,
 		CS_Blur_Vertical,
 		CS_BloomDownsample,
-		CS_BloomDownsampleFirstPass,
 		CS_BloomUpsample,
 		CS_BokehGeneration,
 		CS_GenerateMips,

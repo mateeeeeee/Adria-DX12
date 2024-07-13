@@ -39,7 +39,7 @@ namespace adria
 		blur_pass(width, height), copy_to_texture_pass(width, height), film_effects_pass(width, height),
 		add_textures_pass(width, height), ssao_pass(width, height), hbao_pass(width, height), rtao_pass(gfx, width, height),
 		automatic_exposure_pass(width, height), lens_flare_pass(width, height), clouds_pass(gfx, width, height), 
-		ssr_pass(width, height), fog_pass(width, height), dof_pass(width, height), bloom_pass(width, height), 
+		ssr_pass(width, height), fog_pass(width, height), dof_pass(width, height), bloom_pass(gfx, width, height), 
 		velocity_buffer_pass(width, height), motion_blur_pass(width, height), taa_pass(width, height), 
 		god_rays_pass(width, height), xess_pass(gfx, width, height), dlss3_pass(gfx, width, height),
 		tonemap_pass(width, height), fxaa_pass(width, height), rtr_pass(gfx, width, height),

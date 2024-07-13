@@ -2,7 +2,7 @@
 #include <memory>
 #include "RenderGraph/RenderGraphResourceId.h"
 #include "Graphics/GfxDefines.h"
-#include "Graphics/GfxPSOPermutations.h"
+#include "Graphics/GfxPipelineStatePermutations.h"
 
 
 namespace adria

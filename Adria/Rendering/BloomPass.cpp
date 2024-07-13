@@ -3,7 +3,7 @@
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h"
+#include "ShaderManager.h"
 
 #include "Graphics/GfxLinearDynamicAllocator.h"
 #include "Graphics/GfxRingDescriptorAllocator.h"
@@ -12,8 +12,10 @@
 
 namespace adria
 {
-	BloomPass::BloomPass(uint32 w, uint32 h) : width(w), height(h)
-	{}
+	BloomPass::BloomPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
+	{
+		CreatePSOs();
+	}
 
 	RGResourceName BloomPass::AddPass(RenderGraph& rg, RGResourceName color_texture)
 	{
@@ -55,6 +57,18 @@ namespace adria
 	void BloomPass::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
+	}
+
+	void BloomPass::CreatePSOs()
+	{
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_BloomDownsample;
+		downsample_psos.Initialize(compute_pso_desc);
+		downsample_psos.AddDefine<1>("FIRST_PASS", "1");
+		downsample_psos.Finalize(gfx);
+
+		compute_pso_desc.CS = CS_BloomUpsample;
+		upsample_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
 	RGResourceName BloomPass::DownsamplePass(RenderGraph& rg, RGResourceName input, uint32 pass_idx)
@@ -110,8 +124,8 @@ namespace adria
 					.source_idx = i,
 					.target_idx = i + 1
 				};
-				GfxPipelineStateID pso = pass_idx == 1 ? GfxPipelineStateID::BloomDownsample_FirstPass : GfxPipelineStateID::BloomDownsample;
-				cmd_list->SetPipelineState(PSOCache::Get(pso));
+				GfxPipelineState* pso = pass_idx == 1 ? downsample_psos.Get<1>() : downsample_psos.Get<0>();
+				cmd_list->SetPipelineState(pso);
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(target_dim_x, 8), DivideAndRoundUp(target_dim_y, 8), 1);
@@ -181,7 +195,7 @@ namespace adria
 					.radius = params.radius
 				};
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::BloomUpsample));
+				cmd_list->SetPipelineState(upsample_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(target_dim_x, 8), DivideAndRoundUp(target_dim_y, 8), 1);

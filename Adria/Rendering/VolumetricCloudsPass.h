@@ -1,7 +1,7 @@
 #pragma once
 #include "RenderGraph/RenderGraphResourceId.h"
 #include "RenderGraph/RenderGraphResourceName.h"
-#include "Graphics/GfxPSOPermutations.h"
+#include "Graphics/GfxPipelineStatePermutations.h"
 
 namespace adria
 {

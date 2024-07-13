@@ -3,7 +3,7 @@
 #include "RayTracedShadowsPass.h"
 #include "Graphics/GfxDefines.h"
 #include "Graphics/GfxDescriptor.h"
-#include "Graphics/GfxPSOPermutations.h"
+#include "Graphics/GfxPipelineStatePermutations.h"
 #include "Utilities/Delegate.h"
 
 namespace adria

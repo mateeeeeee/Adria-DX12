@@ -324,15 +324,6 @@ namespace adria
 				compute_pso_desc.CS = CS_Blur_Vertical;
 				compute_pso_map[GfxPipelineStateID::Blur_Vertical] = gfx->CreateComputePipelineState(compute_pso_desc);
 
-				compute_pso_desc.CS = CS_BloomDownsample;
-				compute_pso_map[GfxPipelineStateID::BloomDownsample] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_BloomDownsampleFirstPass;
-				compute_pso_map[GfxPipelineStateID::BloomDownsample_FirstPass] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_BloomUpsample;
-				compute_pso_map[GfxPipelineStateID::BloomUpsample] = gfx->CreateComputePipelineState(compute_pso_desc);
-
 				compute_pso_desc.CS = CS_GenerateMips;
 				compute_pso_map[GfxPipelineStateID::GenerateMips] = gfx->CreateComputePipelineState(compute_pso_desc);
 

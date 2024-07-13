@@ -70,7 +70,6 @@ namespace adria
 			case CS_Blur_Vertical:
 			case CS_BokehGeneration:
 			case CS_BloomDownsample:
-			case CS_BloomDownsampleFirstPass:
 			case CS_BloomUpsample:
 			case CS_InitialSpectrum:
 			case CS_Phase:
@@ -208,7 +207,6 @@ namespace adria
 			case CS_BokehGeneration:
 				return "Postprocess/BokehGeneration.hlsl";
 			case CS_BloomDownsample:
-			case CS_BloomDownsampleFirstPass:
 			case CS_BloomUpsample:
 				return "Postprocess/Bloom.hlsl";
 			case CS_InitialSpectrum:
@@ -401,7 +399,6 @@ namespace adria
 			case CS_CloudType:
 				return "CloudTypeCS";
 			case CS_BloomDownsample:
-			case CS_BloomDownsampleFirstPass:
 				return "BloomDownsampleCS";
 			case CS_BloomUpsample:
 				return "BloomUpsampleCS";
@@ -540,8 +537,6 @@ namespace adria
 				return { { "RAIN", "1" } };
 			case PS_GBuffer_Mask:
 				return { { "MASK", "1" } };
-			case CS_BloomDownsampleFirstPass:
-				return { {"FIRST_PASS", "1"} };
 			default:
 				return {};
 			}
