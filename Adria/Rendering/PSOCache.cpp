@@ -26,19 +26,6 @@ namespace adria
 		{
 			GraphicsPipelineStateDesc gfx_pso_desc{};
 			{
-				GfxReflection::FillInputLayoutDesc(GetShader(VS_Sky), gfx_pso_desc.input_layout);
-				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
-				gfx_pso_desc.VS = VS_Sky;
-				gfx_pso_desc.PS = PS_Sky;
-				gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
-				gfx_pso_desc.depth_state.depth_enable = true;
-				gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::Zero;
-				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::GreaterEqual;
-				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
-				gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
-				gfx_pso_map[GfxPipelineStateID::Sky] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-
 				gfx_pso_desc = {};
 				GfxReflection::FillInputLayoutDesc(GetShader(VS_Sun), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
@@ -86,55 +73,6 @@ namespace adria
 				gfx_pso_desc.num_render_targets = 1;
 				gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
 				gfx_pso_map[GfxPipelineStateID::Bokeh] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-
-				gfx_pso_desc = {};
-				GfxReflection::FillInputLayoutDesc(GetShader(VS_Ocean), gfx_pso_desc.input_layout);
-				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
-				gfx_pso_desc.VS = VS_Ocean;
-				gfx_pso_desc.PS = PS_Ocean;
-				gfx_pso_desc.depth_state.depth_enable = true;
-				gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
-				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::GreaterEqual;
-				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
-				gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
-				gfx_pso_map[GfxPipelineStateID::Ocean] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-
-				gfx_pso_desc.rasterizer_state.fill_mode = GfxFillMode::Wireframe;
-				gfx_pso_map[GfxPipelineStateID::Ocean_Wireframe] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-
-				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
-				gfx_pso_desc.VS = VS_OceanLOD;
-				gfx_pso_desc.DS = DS_OceanLOD;
-				gfx_pso_desc.HS = HS_OceanLOD;
-				gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Patch;
-				gfx_pso_map[GfxPipelineStateID::OceanLOD_Wireframe] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-
-				gfx_pso_desc.rasterizer_state.fill_mode = GfxFillMode::Solid;
-				gfx_pso_map[GfxPipelineStateID::OceanLOD] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-
-				gfx_pso_desc = {};
-				GfxReflection::FillInputLayoutDesc(GetShader(VS_Simple), gfx_pso_desc.input_layout);
-				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
-				gfx_pso_desc.VS = VS_Simple;
-				gfx_pso_desc.PS = PS_Texture;
-				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
-				gfx_pso_map[GfxPipelineStateID::Texture] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-
-				gfx_pso_desc = {};
-				GfxReflection::FillInputLayoutDesc(GetShader(VS_Simple), gfx_pso_desc.input_layout);
-				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
-				gfx_pso_desc.VS = VS_Simple;
-				gfx_pso_desc.PS = PS_Solid;
-				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
-				gfx_pso_desc.depth_state.depth_enable = false;
-				gfx_pso_desc.rasterizer_state.fill_mode = GfxFillMode::Wireframe;
-				gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Line;
-				gfx_pso_map[GfxPipelineStateID::Solid_Wireframe] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-
-
 			}
 
 			ComputePipelineStateDesc compute_pso_desc{};
@@ -166,23 +104,6 @@ namespace adria
 
 				compute_pso_desc.CS = CS_BokehGeneration;
 				compute_pso_map[GfxPipelineStateID::BokehGenerate] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_FFT_Horizontal;
-				compute_pso_map[GfxPipelineStateID::FFT_Horizontal] = gfx->CreateComputePipelineState(compute_pso_desc);
-				compute_pso_desc.CS = CS_FFT_Vertical;
-				compute_pso_map[GfxPipelineStateID::FFT_Vertical] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_InitialSpectrum;
-				compute_pso_map[GfxPipelineStateID::InitialSpectrum] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_OceanNormals;
-				compute_pso_map[GfxPipelineStateID::OceanNormals] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_Phase;
-				compute_pso_map[GfxPipelineStateID::Phase] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_Spectrum;
-				compute_pso_map[GfxPipelineStateID::Spectrum] = gfx->CreateComputePipelineState(compute_pso_desc);
 
 				compute_pso_desc.CS = CS_BuildHistogram;
 				compute_pso_map[GfxPipelineStateID::BuildHistogram] = gfx->CreateComputePipelineState(compute_pso_desc);
@@ -237,12 +158,6 @@ namespace adria
 
 				compute_pso_desc.CS = CS_VolumetricLighting;
 				compute_pso_map[GfxPipelineStateID::VolumetricLighting] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_MinimalAtmosphereSky;
-				compute_pso_map[GfxPipelineStateID::MinimalAtmosphereSky] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_HosekWilkieSky;
-				compute_pso_map[GfxPipelineStateID::HosekWilkieSky] = gfx->CreateComputePipelineState(compute_pso_desc);
 
 				compute_pso_desc.CS = CS_LensFlare2;
 				compute_pso_map[GfxPipelineStateID::LensFlare2] = gfx->CreateComputePipelineState(compute_pso_desc);

@@ -2,13 +2,12 @@
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h"
+#include "ShaderManager.h"
 #include "TextureManager.h"
 #include "Core/Paths.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Graphics/GfxTexture.h"
-#include "Graphics/GfxRingDescriptorAllocator.h"
-#include "Graphics/GfxLinearDynamicAllocator.h"
+#include "Graphics/GfxReflection.h"
 #include "Graphics/GfxCommon.h"
 #include "Editor/GUICommand.h"
 #include "Utilities/Random.h"
@@ -20,9 +19,11 @@ using namespace DirectX;
 namespace adria
 {
 
-	OceanRenderer::OceanRenderer(entt::registry& reg, uint32 w, uint32 h)
-		: reg{ reg }, width{ w }, height{ h }
-	{}
+	OceanRenderer::OceanRenderer(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h)
+		: reg{ reg }, gfx{ gfx }, width{ w }, height{ h }
+	{
+		CreatePSOs();
+	}
 
 	void OceanRenderer::AddPasses(RenderGraph& rendergraph)
 	{
@@ -73,7 +74,7 @@ namespace adria
 						.fft_resolution = FFT_RESOLUTION, .ocean_size = FFT_RESOLUTION, .output_idx = dst_descriptor.GetIndex()
 					};
 
-					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::InitialSpectrum));
+					cmd_list->SetPipelineState(initial_spectrum_pso.get());
 					cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 					cmd_list->SetRootConstants(1, constants);
 					cmd_list->Dispatch(FFT_RESOLUTION / 16, FFT_RESOLUTION / 16, 1);
@@ -111,7 +112,7 @@ namespace adria
 					.phases_idx = i, .output_idx = i + 1
 				};
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Phase));
+				cmd_list->SetPipelineState(phase_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(FFT_RESOLUTION / 16, FFT_RESOLUTION / 16, 1);
@@ -154,7 +155,7 @@ namespace adria
 				};
 
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Spectrum));
+				cmd_list->SetPipelineState(spectrum_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(FFT_RESOLUTION / 16, FFT_RESOLUTION / 16, 1);
@@ -190,7 +191,7 @@ namespace adria
 					GfxDevice* gfx = cmd_list->GetDevice();
 					
 
-					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::FFT_Horizontal));
+					cmd_list->SetPipelineState(fft_horizontal_pso.get());
 
 					uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();
 					gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i), ctx.GetReadOnlyTexture(data.spectrum_srv));
@@ -230,7 +231,7 @@ namespace adria
 					GfxDevice* gfx = cmd_list->GetDevice();
 					
 
-					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::FFT_Vertical));
+					cmd_list->SetPipelineState(fft_vertical_pso.get());
 
 					uint32 i = gfx->AllocateDescriptorsGPU(2).GetIndex();
 					gfx->CopyDescriptors(1, gfx->GetDescriptorGPU(i), ctx.GetReadOnlyTexture(data.spectrum_srv));
@@ -287,7 +288,7 @@ namespace adria
 					.displacement_idx = i, .output_idx = i + 1
 				};
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::OceanNormals));
+				cmd_list->SetPipelineState(ocean_normals_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(FFT_RESOLUTION / 16, FFT_RESOLUTION / 16, 1);
@@ -315,14 +316,14 @@ namespace adria
 				if (ocean_tesselation)
 				{
 					cmd_list->SetPipelineState(
-						ocean_wireframe ? PSOCache::Get(GfxPipelineStateID::OceanLOD_Wireframe) :
-						PSOCache::Get(GfxPipelineStateID::OceanLOD));
+						ocean_wireframe ? ocean_lod_psos.Get<1>() :
+										  ocean_lod_psos.Get<0>());
 				}
 				else
 				{
 					cmd_list->SetPipelineState(
-						ocean_wireframe ? PSOCache::Get(GfxPipelineStateID::Ocean_Wireframe) :
-						PSOCache::Get(GfxPipelineStateID::Ocean));
+						ocean_wireframe ? ocean_psos.Get<1>() :
+										  ocean_psos.Get<0>());
 				}
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 
@@ -385,7 +386,7 @@ namespace adria
 		width = w, height = h;
 	}
 
-	void OceanRenderer::OnSceneInitialized(GfxDevice* gfx)
+	void OceanRenderer::OnSceneInitialized()
 	{
 		foam_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "Ocean/Foam.jpg");
 		perlin_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "Ocean/Perlin.png");
@@ -413,6 +414,53 @@ namespace adria
 		ocean_texture_desc.format = GfxFormat::R32G32B32A32_FLOAT;
 		ping_pong_spectrum_textures[pong_spectrum] = gfx->CreateTexture(ocean_texture_desc);
 		ping_pong_spectrum_textures[!pong_spectrum] = gfx->CreateTexture(ocean_texture_desc);
+	}
+
+	void OceanRenderer::CreatePSOs()
+	{
+		using enum GfxShaderStage;
+		GraphicsPipelineStateDesc gfx_pso_desc{};
+		GfxReflection::FillInputLayoutDesc(GetGfxShader(VS_Ocean), gfx_pso_desc.input_layout);
+		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
+		gfx_pso_desc.VS = VS_Ocean;
+		gfx_pso_desc.PS = PS_Ocean;
+		gfx_pso_desc.depth_state.depth_enable = true;
+		gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
+		gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::GreaterEqual;
+		gfx_pso_desc.num_render_targets = 1;
+		gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
+		gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
+
+		ocean_psos.Initialize(gfx_pso_desc);
+		ocean_psos.SetFillMode<1>(GfxFillMode::Wireframe);
+		ocean_psos.Finalize(gfx);
+
+		gfx_pso_desc.VS = VS_OceanLOD;
+		gfx_pso_desc.DS = DS_OceanLOD;
+		gfx_pso_desc.HS = HS_OceanLOD;
+		gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Patch;
+		ocean_lod_psos.Initialize(gfx_pso_desc);
+		ocean_lod_psos.SetFillMode<1>(GfxFillMode::Wireframe);
+		ocean_lod_psos.Finalize(gfx);
+
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_FFT_Horizontal;
+		fft_horizontal_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
+		compute_pso_desc.CS = CS_FFT_Vertical;
+		fft_vertical_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
+		compute_pso_desc.CS = CS_InitialSpectrum;
+		initial_spectrum_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
+		compute_pso_desc.CS = CS_Spectrum;
+		spectrum_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
+		compute_pso_desc.CS = CS_Phase;
+		phase_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
+		compute_pso_desc.CS = CS_OceanNormals;
+		ocean_normals_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
 }

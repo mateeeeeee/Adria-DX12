@@ -49,7 +49,7 @@ namespace adria
 		tiled_deferred_lighting_pass(reg, gfx, width, height) , copy_to_texture_pass(gfx, width, height), add_textures_pass(gfx, width, height),
 		postprocessor(gfx, reg, width, height), picking_pass(gfx, width, height),
 		clustered_deferred_lighting_pass(reg, gfx, width, height),
-		decals_pass(reg, gfx, width, height), rain_pass(reg, gfx, width, height), ocean_renderer(reg, width, height),
+		decals_pass(reg, gfx, width, height), rain_pass(reg, gfx, width, height), ocean_renderer(reg, gfx, width, height),
 		shadow_renderer(reg, gfx, width, height), 
 		path_tracer(gfx, width, height), ddgi(gfx, reg, width, height), gpu_debug_printer(gfx)
 	{
@@ -180,11 +180,11 @@ namespace adria
 
 	void Renderer::OnSceneInitialized()
 	{
-		sky_pass.OnSceneInitialized(gfx);
+		sky_pass.OnSceneInitialized();
 		decals_pass.OnSceneInitialized();
 		rain_pass.OnSceneInitialized();
 		postprocessor.OnSceneInitialized();
-		ocean_renderer.OnSceneInitialized(gfx);
+		ocean_renderer.OnSceneInitialized();
 		ddgi.OnSceneInitialized();
 		volumetric_fog_pass.OnSceneInitialized();
 		CreateAS();

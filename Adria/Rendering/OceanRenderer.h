@@ -1,6 +1,6 @@
 #pragma once
-#include <memory>
 #include "TextureHandle.h"
+#include "Graphics/GfxPipelineStatePermutations.h"
 #include "RenderGraph/RenderGraphResourceId.h"
 #include "entt/entity/fwd.hpp"
 
@@ -10,21 +10,24 @@ namespace adria
 	class TextureManager;
 	class GfxDevice;
 	class GfxTexture;
+	class GraphicsPipelineState;
+	class ComputePipelineState;
 
 	class OceanRenderer
 	{
 		static constexpr uint32 FFT_RESOLUTION = 512;
 
 	public:
-		OceanRenderer(entt::registry& reg, uint32 w, uint32 h);
+		OceanRenderer(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h);
 
 		void AddPasses(RenderGraph& rendergraph);
 
 		void OnResize(uint32 w, uint32 h);
-		void OnSceneInitialized(GfxDevice* gfx);
+		void OnSceneInitialized();
 
 	private:
 		entt::registry& reg;
+		GfxDevice* gfx;
 		TextureHandle foam_handle = INVALID_TEXTURE_HANDLE;
 		TextureHandle perlin_handle = INVALID_TEXTURE_HANDLE;
 		uint32 width, height;
@@ -34,6 +37,15 @@ namespace adria
 		std::unique_ptr<GfxTexture> ping_pong_spectrum_textures[2];
 		bool pong_spectrum = false;
 
+		GraphicsPipelineStatePermutations<2> ocean_psos;
+		GraphicsPipelineStatePermutations<2> ocean_lod_psos;
+		std::unique_ptr<ComputePipelineState> fft_horizontal_pso;
+		std::unique_ptr<ComputePipelineState> fft_vertical_pso;
+		std::unique_ptr<ComputePipelineState> initial_spectrum_pso;
+		std::unique_ptr<ComputePipelineState> spectrum_pso;
+		std::unique_ptr<ComputePipelineState> phase_pso;
+		std::unique_ptr<ComputePipelineState> ocean_normals_pso;
+
 		//settings
 		bool ocean_wireframe = false;
 		bool ocean_tesselation = false;
@@ -42,5 +54,8 @@ namespace adria
 		bool ocean_color_changed = false;
 		bool recreate_initial_spectrum = true;
 		float wind_direction[2] = { 10.0f, 10.0f };
+
+	private:
+		void CreatePSOs();
 	};
 }

@@ -3,7 +3,9 @@
 #include "Components.h"
 #include "TextureManager.h"
 #include "BlackboardData.h"
-#include "PSOCache.h"
+#include "ShaderManager.h"
+#include "Graphics/GfxPipelineState.h"
+#include "Graphics/GfxReflection.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
 #include "entt/entity/registry.hpp"
@@ -15,8 +17,10 @@ namespace adria
 	static constexpr uint32 SKYCUBE_SIZE = 128;
 
 	SkyPass::SkyPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h)
-		: reg(reg), gfx(gfx), width(w), height(h), sky_type(SkyType::MinimalAtmosphere)
-	{}
+		: reg(reg), gfx(gfx), width(w), height(h), sky_type(SkyType::HosekWilkie)
+	{
+		CreatePSOs();
+	}
 
 	void SkyPass::AddComputeSkyPass(RenderGraph& rg, Vector3 const& dir)
 	{
@@ -61,12 +65,12 @@ namespace adria
 				{
 				case SkyType::MinimalAtmosphere:
 				{
-					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::MinimalAtmosphereSky));
+					cmd_list->SetPipelineState(minimal_atmosphere_pso.get());
 					break;
 				}
 				case SkyType::HosekWilkie:
 				{
-					cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::HosekWilkieSky));
+					cmd_list->SetPipelineState(hosek_wilkie_pso.get());
 					SkyParameters parameters = CalculateSkyParameters(turbidity, ground_albedo, dir);
 					struct HosekWilkieConstants
 					{
@@ -119,7 +123,7 @@ namespace adria
 			[=](RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Sky));
+				cmd_list->SetPipelineState(sky_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetTopology(GfxPrimitiveTopology::TriangleList);
 				cmd_list->SetVertexBuffer(GfxVertexBufferView(cube_vb.get()));
@@ -161,9 +165,9 @@ namespace adria
 		);
 	}
 
-	void SkyPass::OnSceneInitialized(GfxDevice* gfx)
+	void SkyPass::OnSceneInitialized()
 	{
-		CreateCubeBuffers(gfx);
+		CreateCubeBuffers();
 	}
 
 	void SkyPass::OnResize(uint32 w, uint32 h)
@@ -191,7 +195,31 @@ namespace adria
 		return (int32)sky_srv_gpu.GetIndex();
 	}
 
-	void SkyPass::CreateCubeBuffers(GfxDevice* gfx)
+	void SkyPass::CreatePSOs()
+	{
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_MinimalAtmosphereSky;
+		minimal_atmosphere_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
+		compute_pso_desc.CS = CS_HosekWilkieSky;
+		hosek_wilkie_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
+		GraphicsPipelineStateDesc gfx_pso_desc{};
+		GfxReflection::FillInputLayoutDesc(GetGfxShader(VS_Sky), gfx_pso_desc.input_layout);
+		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
+		gfx_pso_desc.VS = VS_Sky;
+		gfx_pso_desc.PS = PS_Sky;
+		gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
+		gfx_pso_desc.depth_state.depth_enable = true;
+		gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::Zero;
+		gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::GreaterEqual;
+		gfx_pso_desc.num_render_targets = 1;
+		gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
+		gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
+		sky_pso = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
+	}
+
+	void SkyPass::CreateCubeBuffers()
 	{
 		GfxTextureDesc sky_desc{};
 		sky_desc.type = GfxTextureType_2D;

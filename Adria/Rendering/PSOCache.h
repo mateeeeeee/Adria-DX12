@@ -8,11 +8,6 @@ namespace adria
 
 	enum class GfxPipelineStateID : uint8
 	{
-		Sky,
-		MinimalAtmosphereSky,
-		HosekWilkieSky,
-		Texture,
-		Solid_Wireframe,
 		Sun,
 		Ambient,
 		DeferredLighting,
@@ -40,16 +35,6 @@ namespace adria
 		Bokeh,
 		GenerateMips,
 		MotionVectors,
-		FFT_Horizontal,
-		FFT_Vertical,
-		InitialSpectrum,
-		OceanNormals,
-		Phase,
-		Spectrum,
-		Ocean,
-		Ocean_Wireframe,
-		OceanLOD,
-		OceanLOD_Wireframe,
 		Picking,
 		BuildHistogram,
 		HistogramReduction,
