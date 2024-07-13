@@ -1,6 +1,6 @@
 #pragma once
 #include "RenderGraph/RenderGraphResourceName.h"
-#include "Graphics/GfxTexture.h"
+#include "Graphics/GfxPipelineStatePermutations.h"
 
 namespace adria
 {
@@ -16,7 +16,7 @@ namespace adria
 	class CopyToTexturePass
 	{
 	public:
-		CopyToTexturePass(uint32 w, uint32 h) : width(w), height(h) {}
+		CopyToTexturePass(GfxDevice* gfx, uint32 w, uint32 h);
 
 		void AddPass(RenderGraph& rendergraph,
 			RGResourceName texture_dst,
@@ -26,13 +26,18 @@ namespace adria
 		void SetResolution(uint32 w, uint32 h);
 
 	private:
+		GfxDevice* gfx;
 		uint32 width, height;
+		GraphicsPipelineStatePermutations<3> copy_psos;
+
+	private:
+		void CreatePSOs();
 	};
 
 	class AddTexturesPass
 	{
 	public:
-		AddTexturesPass(uint32 w, uint32 h);
+		AddTexturesPass(GfxDevice* gfx, uint32 w, uint32 h);
 
 		void AddPass(RenderGraph& rendergraph,
 			RGResourceName texture_dst,
@@ -42,17 +47,11 @@ namespace adria
 		void SetResolution(uint32 w, uint32 h);
 
 	private:
+		GfxDevice* gfx;
 		uint32 width, height;
-	};
+		GraphicsPipelineStatePermutations<3> add_psos;
 
-	class TextureChannelMappingPass
-	{
-	public:
-		TextureChannelMappingPass() = default;
-
-		void AddPass(RenderGraph& rendergraph,
-			RGResourceName texture_dst,
-			RGResourceName texture_src, GfxTextureChannelMapping);
-
+	private:
+		void CreatePSOs();
 	};
 }

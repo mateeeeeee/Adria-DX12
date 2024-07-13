@@ -5,12 +5,13 @@
 
 namespace adria
 {
+	class GfxDevice;
 	class RenderGraph;
 
 	class TiledDeferredLightingPass
 	{
 	public:
-		TiledDeferredLightingPass(entt::registry& reg, uint32 w, uint32 h);
+		TiledDeferredLightingPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h);
 
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h)
@@ -21,6 +22,7 @@ namespace adria
 		}
 	private:
 		entt::registry& reg;
+		GfxDevice* gfx;
 		uint32 width, height;
 		CopyToTexturePass copy_to_texture_pass;
 		AddTexturesPass add_textures_pass;

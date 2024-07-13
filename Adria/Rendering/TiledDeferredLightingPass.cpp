@@ -3,6 +3,7 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "PSOCache.h"
+#include "Graphics/GfxDevice.h"
 #include "Graphics/GfxCommon.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Logging/Logger.h"
@@ -14,8 +15,8 @@ using namespace DirectX;
 namespace adria
 {
 
-	TiledDeferredLightingPass::TiledDeferredLightingPass(entt::registry& reg, uint32 w, uint32 h) : reg(reg), width(w), height(h),
-		add_textures_pass(width, height), copy_to_texture_pass(width, height)
+	TiledDeferredLightingPass::TiledDeferredLightingPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h) : reg(reg), width(w), height(h),
+		add_textures_pass(gfx, width, height), copy_to_texture_pass(gfx, width, height)
 	{}
 
 	void TiledDeferredLightingPass::AddPass(RenderGraph& rendergraph)

@@ -74,48 +74,6 @@ namespace adria
 
 				gfx_pso_desc = {};
 				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
-				gfx_pso_desc.VS = VS_FullscreenTriangle;
-				gfx_pso_desc.PS = PS_Copy;
-				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
-				gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
-
-				gfx_pso_map[GfxPipelineStateID::Copy] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-
-				gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
-				gfx_pso_desc.blend_state.render_target[0].src_blend = GfxBlend::SrcAlpha;
-				gfx_pso_desc.blend_state.render_target[0].dest_blend = GfxBlend::InvSrcAlpha;
-				gfx_pso_desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;
-				gfx_pso_map[GfxPipelineStateID::Copy_AlphaBlend] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-
-				gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
-				gfx_pso_desc.blend_state.render_target[0].src_blend = GfxBlend::One;
-				gfx_pso_desc.blend_state.render_target[0].dest_blend = GfxBlend::One;
-				gfx_pso_desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;
-				gfx_pso_map[GfxPipelineStateID::Copy_AdditiveBlend] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-
-				gfx_pso_desc = {};
-				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
-				gfx_pso_desc.VS = VS_FullscreenTriangle;
-				gfx_pso_desc.PS = PS_Add;
-				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
-				gfx_pso_map[GfxPipelineStateID::Add] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-
-				gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
-				gfx_pso_desc.blend_state.render_target[0].src_blend = GfxBlend::SrcAlpha;
-				gfx_pso_desc.blend_state.render_target[0].dest_blend = GfxBlend::InvSrcAlpha;
-				gfx_pso_desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;
-				gfx_pso_map[GfxPipelineStateID::Add_AlphaBlend] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-
-				gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
-				gfx_pso_desc.blend_state.render_target[0].src_blend = GfxBlend::One;
-				gfx_pso_desc.blend_state.render_target[0].dest_blend = GfxBlend::One;
-				gfx_pso_desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;
-				gfx_pso_map[GfxPipelineStateID::Add_AdditiveBlend] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-
-				gfx_pso_desc = {};
-				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 				gfx_pso_desc.VS = VS_Bokeh;
 				gfx_pso_desc.GS = GS_Bokeh;
 				gfx_pso_desc.PS = PS_Bokeh;
@@ -176,70 +134,7 @@ namespace adria
 				gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Line;
 				gfx_pso_map[GfxPipelineStateID::Solid_Wireframe] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 
-				gfx_pso_desc = {};
-				GfxReflection::FillInputLayoutDesc(GetShader(VS_DDGIVisualize), gfx_pso_desc.input_layout);
-				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
-				gfx_pso_desc.VS = VS_DDGIVisualize;
-				gfx_pso_desc.PS = PS_DDGIVisualize;
-				gfx_pso_desc.depth_state.depth_enable = true;
-				gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
-				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::GreaterEqual;
-				gfx_pso_desc.num_render_targets = 1u;
-				gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
-				gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
-				gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Triangle;
-				gfx_pso_map[GfxPipelineStateID::DDGIVisualize] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 
-				gfx_pso_desc = {};
-				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
-				gfx_pso_desc.VS = VS_Rain;
-				gfx_pso_desc.PS = PS_Rain;
-				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = GfxFormat::R8G8B8A8_UNORM;
-				gfx_pso_desc.depth_state.depth_enable = true;
-				gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
-				gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
-				gfx_pso_desc.blend_state.render_target[0].src_blend = GfxBlend::SrcAlpha;
-				gfx_pso_desc.blend_state.render_target[0].dest_blend = GfxBlend::InvSrcAlpha;
-				gfx_pso_desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;
-				gfx_pso_desc.blend_state.render_target[0].blend_op_alpha = GfxBlendOp::Max;
-				gfx_pso_desc.blend_state.render_target[0].src_blend_alpha = GfxBlend::One;
-				gfx_pso_desc.blend_state.render_target[0].dest_blend_alpha = GfxBlend::One;
-				gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
-				gfx_pso_map[GfxPipelineStateID::Rain] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-
-				gfx_pso_desc = {};
-				GfxReflection::FillInputLayoutDesc(GetShader(VS_RainBlocker), gfx_pso_desc.input_layout);
-				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
-				gfx_pso_desc.VS = VS_RainBlocker;
-				gfx_pso_desc.PS = ShaderID_Invalid;
-				gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::Front;
-				gfx_pso_desc.rasterizer_state.fill_mode = GfxFillMode::Solid;
-				gfx_pso_desc.rasterizer_state.depth_bias = 7500;
-				gfx_pso_desc.rasterizer_state.depth_bias_clamp = 0.0f;
-				gfx_pso_desc.rasterizer_state.slope_scaled_depth_bias = 1.0f;
-				gfx_pso_desc.depth_state.depth_enable = true;
-				gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
-				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::LessEqual;
-				gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
-				gfx_pso_map[GfxPipelineStateID::RainBlocker] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-
-				gfx_pso_desc = {};
-				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
-				gfx_pso_desc.VS = VS_FullscreenTriangle;
-				gfx_pso_desc.PS = PS_VolumetricFog_CombineFog;
-				gfx_pso_desc.num_render_targets = 1;
-				gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
-				gfx_pso_desc.depth_state.depth_enable = false;
-				gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
-				gfx_pso_desc.blend_state.render_target[0].src_blend = GfxBlend::One;
-				gfx_pso_desc.blend_state.render_target[0].dest_blend = GfxBlend::SrcAlpha;
-				gfx_pso_desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;
-				gfx_pso_desc.blend_state.render_target[0].src_blend_alpha = GfxBlend::Zero;
-				gfx_pso_desc.blend_state.render_target[0].dest_blend_alpha = GfxBlend::One;
-				gfx_pso_desc.blend_state.render_target[0].blend_op_alpha = GfxBlendOp::Add;
-				gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
-				gfx_pso_map[GfxPipelineStateID::VolumetricFog_CombineFog] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 			}
 
 			ComputePipelineStateDesc compute_pso_desc{};
@@ -354,21 +249,6 @@ namespace adria
 
 				compute_pso_desc.CS = CS_RTAOFilter;
 				compute_pso_map[GfxPipelineStateID::RTAOFilter] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_DDGIUpdateIrradiance;
-				compute_pso_map[GfxPipelineStateID::DDGIUpdateIrradiance] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_DDGIUpdateDistance;
-				compute_pso_map[GfxPipelineStateID::DDGIUpdateDistance] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_RainSimulation;
-				compute_pso_map[GfxPipelineStateID::RainSimulation] = gfx->CreateComputePipelineState(compute_pso_desc);
-
-				compute_pso_desc.CS = CS_VolumetricFog_LightInjection;
-				compute_pso_map[GfxPipelineStateID::VolumetricFog_LightInjection] = gfx->CreateComputePipelineState(compute_pso_desc);
-				
-				compute_pso_desc.CS = CS_VolumetricFog_ScatteringIntegration;
-				compute_pso_map[GfxPipelineStateID::VolumetricFog_ScatteringAccumulation] = gfx->CreateComputePipelineState(compute_pso_desc);
 
 				if (gfx->GetCapabilities().CheckRayTracingSupport(RayTracingSupport::Tier1_1))
 				{

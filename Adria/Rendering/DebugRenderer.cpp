@@ -39,6 +39,7 @@ namespace adria
 
 	void DebugRenderer::Destroy()
 	{
+		debug_psos.Destroy();
 		transient_lines.clear();
 		transient_triangles.clear();
 		width = 0, height = 0;

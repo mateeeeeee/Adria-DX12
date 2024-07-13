@@ -1,14 +1,14 @@
 #pragma once
-#include <memory>
 #include "Graphics/GfxDescriptor.h"
 #include "RenderGraph/RenderGraphResourceId.h"
 #include "entt/entity/fwd.hpp"
 
 namespace adria
 {
-	class RenderGraph;
 	class GfxTexture;
 	class GfxDevice;
+	class GraphicsPipelineState;
+	class RenderGraph;
 	
 	class RainBlockerMapPass
 	{
@@ -29,5 +29,9 @@ namespace adria
 		Matrix view_projection;
 		std::unique_ptr<GfxTexture> blocker_map;
 		GfxDescriptor blocker_map_srv;
+		std::unique_ptr<GraphicsPipelineState> rain_blocker_pso;
+
+	private:
+		void CreatePSOs();
 	};
 }

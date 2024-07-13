@@ -2,9 +2,11 @@
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h"
+#include "ShaderManager.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxTexture.h"
+#include "Graphics/GfxPipelineState.h"
+#include "Graphics/GfxReflection.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
 #include "entt/entity/registry.hpp"
@@ -31,6 +33,7 @@ namespace adria
 
 	RainBlockerMapPass::RainBlockerMapPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h) : reg(reg), gfx(gfx), width(w), height(h)
 	{
+		CreatePSOs();
 		GfxTextureDesc blocker_desc{};
 		blocker_desc.width = BLOCKER_DIM;
 		blocker_desc.height = BLOCKER_DIM;
@@ -74,9 +77,7 @@ namespace adria
 				for (auto batch_entity : batch_view)
 				{
 					Batch& batch = batch_view.get<Batch>(batch_entity);
-
-					GfxPipelineStateID pso_id = GfxPipelineStateID::RainBlocker;
-					cmd_list->SetPipelineState(PSOCache::Get(pso_id));
+					cmd_list->SetPipelineState(rain_blocker_pso.get());
 
 					struct GBufferConstants
 					{
@@ -103,6 +104,25 @@ namespace adria
 		GfxDescriptor blocker_map_srv_gpu = gfx->AllocateDescriptorsGPU();
 		gfx->CopyDescriptors(1, blocker_map_srv_gpu, blocker_map_srv);
 		return (int32)blocker_map_srv_gpu.GetIndex();
+	}
+
+	void RainBlockerMapPass::CreatePSOs()
+	{
+		GraphicsPipelineStateDesc gfx_pso_desc{};
+		GfxReflection::FillInputLayoutDesc(GetGfxShader(VS_RainBlocker), gfx_pso_desc.input_layout);
+		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
+		gfx_pso_desc.VS = VS_RainBlocker;
+		gfx_pso_desc.PS = ShaderID_Invalid;
+		gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::Front;
+		gfx_pso_desc.rasterizer_state.fill_mode = GfxFillMode::Solid;
+		gfx_pso_desc.rasterizer_state.depth_bias = 7500;
+		gfx_pso_desc.rasterizer_state.depth_bias_clamp = 0.0f;
+		gfx_pso_desc.rasterizer_state.slope_scaled_depth_bias = 1.0f;
+		gfx_pso_desc.depth_state.depth_enable = true;
+		gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
+		gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::LessEqual;
+		gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
+		rain_blocker_pso = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 	}
 
 }

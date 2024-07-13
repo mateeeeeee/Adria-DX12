@@ -3,11 +3,12 @@
 #include "Components.h"
 #include "ShaderStructs.h"
 #include "ShaderManager.h"
-#include "PSOCache.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxShader.h"
 #include "Graphics/GfxShaderKey.h"
 #include "Graphics/GfxStateObject.h"
+#include "Graphics/GfxPipelineState.h"
+#include "Graphics/GfxReflection.h"
 #include "Graphics/GfxRayTracingShaderTable.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Math/Constants.h"
@@ -29,6 +30,7 @@ namespace adria
 		is_supported = gfx->GetCapabilities().SupportsRayTracing();
 		if (IsSupported())
 		{
+			CreatePSOs();
 			CreateStateObject();
 			ShaderManager::GetLibraryRecompiledEvent().AddMember(&DDGI::OnLibraryRecompiled, *this);
 			enabled = true;
@@ -237,7 +239,7 @@ namespace adria
 					.irradiance_idx = i
 				};
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIUpdateIrradiance));
+				cmd_list->SetPipelineState(update_irradiance_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, parameters);
 				cmd_list->Dispatch(num_probes_flat, 1, 1);
@@ -290,7 +292,7 @@ namespace adria
 					.distance_idx = i
 				};
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIUpdateDistance));
+				cmd_list->SetPipelineState(update_distance_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, parameters);
 				cmd_list->Dispatch(num_probes_flat, 1, 1);
@@ -325,7 +327,7 @@ namespace adria
 					.visualize_mode = (uint32)ddgi_visualize_mode
 				};
 				cmd_list->SetTopology(GfxPrimitiveTopology::TriangleList);
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::DDGIVisualize));
+				cmd_list->SetPipelineState(visualize_probes_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, parameters);
 				cmd_list->Draw(2880, ddgi_volume.num_probes.x * ddgi_volume.num_probes.y * ddgi_volume.num_probes.z);
@@ -363,6 +365,30 @@ namespace adria
 		GfxDescriptor ddgi_volume_buffer_srv_gpu = gfx->AllocateDescriptorsGPU();
 		gfx->CopyDescriptors(1, ddgi_volume_buffer_srv_gpu, ddgi_volume_buffer_srv);
 		return (int32)ddgi_volume_buffer_srv_gpu.GetIndex();
+	}
+
+	void DDGI::CreatePSOs()
+	{
+		GraphicsPipelineStateDesc  gfx_pso_desc{};
+		GfxReflection::FillInputLayoutDesc(GetGfxShader(VS_DDGIVisualize), gfx_pso_desc.input_layout);
+		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
+		gfx_pso_desc.VS = VS_DDGIVisualize;
+		gfx_pso_desc.PS = PS_DDGIVisualize;
+		gfx_pso_desc.depth_state.depth_enable = true;
+		gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
+		gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::GreaterEqual;
+		gfx_pso_desc.num_render_targets = 1u;
+		gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
+		gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
+		gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Triangle;
+		visualize_probes_pso = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
+
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_DDGIUpdateIrradiance;
+		update_irradiance_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
+		compute_pso_desc.CS = CS_DDGIUpdateDistance;
+		update_distance_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
 	void DDGI::CreateStateObject()

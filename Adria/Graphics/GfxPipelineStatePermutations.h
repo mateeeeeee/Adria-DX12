@@ -64,6 +64,13 @@ namespace adria
 		{
 			for (auto& pso_desc : pso_descs) pso_desc = desc;
 		}
+		void Destroy()
+		{
+			for (uint32 i = 0; i < N; ++i)
+			{
+				if(pso_permutations[i]) pso_permutations[i].reset(nullptr);
+			}
+		}
 
 		template<uint32 P>
 		void AddDefine(char const* name, char const* value)

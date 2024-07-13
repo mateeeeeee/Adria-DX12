@@ -1,9 +1,10 @@
 #include "VolumetricFogPass.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
+#include "ShaderManager.h" 
 #include "Components.h"
 #include "Graphics/GfxTexture.h"
 #include "Graphics/GfxBuffer.h"
+#include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
 #include "Core/Paths.h"
@@ -17,6 +18,7 @@ namespace adria
 
 	VolumetricFogPass::VolumetricFogPass(GfxDevice* gfx, entt::registry& reg, uint32 w, uint32 h) : gfx(gfx), reg(reg), width(w), height(h)
 	{
+		CreatePSOs();
 		CreateLightInjectionHistoryTexture();
 	}
 
@@ -141,7 +143,7 @@ namespace adria
 					.blue_noise_idx = (uint32)blue_noise_handles[gfx->GetFrameIndex() % BLUE_NOISE_TEXTURE_COUNT]
 				};
 				
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::VolumetricFog_LightInjection));
+				cmd_list->SetPipelineState(light_injection_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(light_injection_target_history->GetWidth(), 8), 
@@ -199,7 +201,7 @@ namespace adria
 					.integrated_scattering_idx = i + 1
 				};
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::VolumetricFog_ScatteringAccumulation));
+				cmd_list->SetPipelineState(scattering_integration_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(light_injection_target_history->GetWidth(), 8),
@@ -228,7 +230,7 @@ namespace adria
 			[=](CombinePassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::VolumetricFog_CombineFog));
+				cmd_list->SetPipelineState(combine_fog_pso.get());
 
 				GfxDescriptor src_descriptors[] = { context.GetReadOnlyTexture(data.fog), context.GetReadOnlyTexture(data.depth) };
 				GfxDescriptor dst_descriptor = gfx->AllocateDescriptorsGPU(ARRAYSIZE(src_descriptors));
@@ -240,6 +242,33 @@ namespace adria
 				cmd_list->SetTopology(GfxPrimitiveTopology::TriangleList);
 				cmd_list->Draw(3);
 			}, RGPassType::Graphics, RGPassFlags::None);
+	}
+
+	void VolumetricFogPass::CreatePSOs()
+	{
+		GraphicsPipelineStateDesc gfx_pso_desc{};
+		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
+		gfx_pso_desc.VS = VS_FullscreenTriangle;
+		gfx_pso_desc.PS = PS_VolumetricFog_CombineFog;
+		gfx_pso_desc.num_render_targets = 1;
+		gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
+		gfx_pso_desc.depth_state.depth_enable = false;
+		gfx_pso_desc.blend_state.render_target[0].blend_enable = true;
+		gfx_pso_desc.blend_state.render_target[0].src_blend = GfxBlend::One;
+		gfx_pso_desc.blend_state.render_target[0].dest_blend = GfxBlend::SrcAlpha;
+		gfx_pso_desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;
+		gfx_pso_desc.blend_state.render_target[0].src_blend_alpha = GfxBlend::Zero;
+		gfx_pso_desc.blend_state.render_target[0].dest_blend_alpha = GfxBlend::One;
+		gfx_pso_desc.blend_state.render_target[0].blend_op_alpha = GfxBlendOp::Add;
+		gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
+		combine_fog_pso = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
+
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_VolumetricFog_LightInjection;
+		light_injection_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+
+		compute_pso_desc.CS = CS_VolumetricFog_ScatteringIntegration;
+		scattering_integration_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
 	void VolumetricFogPass::CreateLightInjectionHistoryTexture()

@@ -9,6 +9,8 @@ namespace adria
 {
 	class GfxDevice;
 	class GfxBuffer;
+	class GraphicsPipelineState;
+	class ComputePipelineState;
 	class RenderGraph;
 
 	DECLARE_EVENT(RainEvent, RainPass, bool)
@@ -60,5 +62,10 @@ namespace adria
 
 		RainEvent rain_event;
 		RainBlockerMapPass rain_blocker_map_pass;
+		std::unique_ptr<GraphicsPipelineState> rain_pso;
+		std::unique_ptr<ComputePipelineState> rain_simulation_pso;
+
+	private:
+		void CreatePSOs();
 	};
 }

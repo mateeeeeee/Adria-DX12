@@ -36,8 +36,8 @@ namespace adria
 
 	PostProcessor::PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height)
 		: gfx(gfx), reg(reg), display_width(width), display_height(height), render_width(width), render_height(height),
-		blur_pass(width, height), copy_to_texture_pass(width, height), film_effects_pass(width, height),
-		add_textures_pass(width, height), ssao_pass(width, height), hbao_pass(width, height), rtao_pass(gfx, width, height),
+		blur_pass(width, height), copy_to_texture_pass(gfx, width, height), film_effects_pass(width, height),
+		add_textures_pass(gfx, width, height), ssao_pass(width, height), hbao_pass(width, height), rtao_pass(gfx, width, height),
 		automatic_exposure_pass(width, height), lens_flare_pass(width, height), clouds_pass(gfx, width, height), 
 		ssr_pass(width, height), fog_pass(width, height), dof_pass(width, height), bloom_pass(gfx, width, height), 
 		velocity_buffer_pass(width, height), motion_blur_pass(width, height), taa_pass(width, height), 
