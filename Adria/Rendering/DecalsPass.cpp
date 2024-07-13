@@ -2,12 +2,10 @@
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
-
-#include "RenderGraph/RenderGraph.h"
+#include "ShaderManager.h"
 #include "TextureManager.h"
-#include "Graphics/GfxLinearDynamicAllocator.h"
-#include "Graphics/GfxRingDescriptorAllocator.h"
+#include "Graphics/GfxReflection.h"
+#include "RenderGraph/RenderGraph.h"
 #include "entt/entity/registry.hpp"
 
 using namespace DirectX;
@@ -15,9 +13,11 @@ using namespace DirectX;
 namespace adria
 {
 
-	DecalsPass::DecalsPass(entt::registry& reg, uint32 w, uint32 h)
-	 : reg{ reg }, width{ w }, height{ h }
-	{}
+	DecalsPass::DecalsPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h)
+	 : reg{ reg }, gfx{ gfx }, width{ w }, height{ h }
+	{
+		CreatePSOs();
+	}
 
 	void DecalsPass::AddPass(RenderGraph& rendergraph)
 	{
@@ -57,14 +57,14 @@ namespace adria
 					.depth_idx = depth_idx
 				};
 
-				
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				auto decal_view = reg.view<Decal>();
 
 				auto decal_pass_lambda = [&](bool modify_normals)
 				{
 					if (decal_view.empty()) return;
-					cmd_list->SetPipelineState(PSOCache::Get(modify_normals ? GfxPipelineStateID::Decals_ModifyNormals : GfxPipelineStateID::Decals));
+					GfxPipelineState* pso = modify_normals ? decal_psos.Get<1>() : decal_psos.Get<0>();
+					cmd_list->SetPipelineState(pso);
 					for (auto e : decal_view)
 					{
 						Decal& decal = decal_view.get<Decal>(e);
@@ -94,12 +94,34 @@ namespace adria
 		width = w, height = h;
 	}
 
-	void DecalsPass::OnSceneInitialized(GfxDevice* gfx)
+	void DecalsPass::OnSceneInitialized()
 	{
-		CreateCubeBuffers(gfx);
+		CreateCubeBuffers();
 	}
 
-	void DecalsPass::CreateCubeBuffers(GfxDevice* gfx)
+	void DecalsPass::CreatePSOs()
+	{
+		using enum GfxShaderStage;
+		GraphicsPipelineStateDesc gfx_pso_desc{};
+		GfxReflection::FillInputLayoutDesc(GetGfxShader(VS_Decals), gfx_pso_desc.input_layout);
+		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
+		gfx_pso_desc.VS = VS_Decals;
+		gfx_pso_desc.PS = PS_Decals;
+		gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
+		gfx_pso_desc.depth_state.depth_enable = false;
+		gfx_pso_desc.num_render_targets = 1;
+		gfx_pso_desc.rtv_formats[0] = GfxFormat::R8G8B8A8_UNORM;
+
+		decal_psos.Initialize(gfx_pso_desc);
+		decal_psos.AddDefine<PS, 1>("DECAL_MODIFY_NORMALS");
+		decal_psos.ModifyDesc<1>([](GraphicsPipelineStateDesc& desc) {
+			desc.num_render_targets = 2;
+			desc.rtv_formats[1] = GfxFormat::R8G8B8A8_UNORM;
+			});
+		decal_psos.Finalize(gfx);
+	}
+
+	void DecalsPass::CreateCubeBuffers()
 	{
 		SimpleVertex const cube_vertices[8] =
 		{

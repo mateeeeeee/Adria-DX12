@@ -510,7 +510,12 @@
     <ClCompile Include="Rendering\VolumetricFogPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\GfxShaderKey.cpp" />
+    <ClCompile Include="Graphics\GfxShaderKey.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\GfxReflection.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1123,8 +1128,15 @@
     <ClInclude Include="Math\BoundingVolumeUtil.h">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GfxPipelineStatePermutations.h" />
-    <ClInclude Include="Graphics\GfxShaderKey.h" />
+    <ClInclude Include="Graphics\GfxReflection.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxShaderKey.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxPipelineStatePermutations.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

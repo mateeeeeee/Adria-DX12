@@ -198,7 +198,7 @@ namespace adria
 
 	void RayTracedAmbientOcclusionPass::CreateStateObject()
 	{
-		GfxShader const& rtao_blob = ShaderManager::GetShader(LIB_AmbientOcclusion);
+		GfxShader const& rtao_blob = GetGfxShader(LIB_AmbientOcclusion);
 		GfxStateObjectBuilder rtao_state_object_builder(5);
 		{
 			D3D12_DXIL_LIBRARY_DESC	dxil_lib_desc{};

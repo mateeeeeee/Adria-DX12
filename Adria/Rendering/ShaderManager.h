@@ -50,7 +50,6 @@ namespace adria
 		PS_Ocean,
 		VS_Decals,
 		PS_Decals,
-		PS_Decals_ModifyNormals,
 		VS_OceanLOD,
 		DS_OceanLOD,
 		HS_OceanLOD,
@@ -125,7 +124,7 @@ namespace adria
 
 		static ShaderRecompiledEvent& GetShaderRecompiledEvent();
 		static LibraryRecompiledEvent& GetLibraryRecompiledEvent();
-
 		static GfxShader const& GetShader(GfxShaderKey const& shader_key);
 	};
+	#define GetGfxShader(key) ShaderManager::GetShader(key)
 }

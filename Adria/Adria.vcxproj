@@ -218,6 +218,7 @@
     <ClCompile Include="Graphics\GfxQueryHeap.cpp" />
     <ClCompile Include="Graphics\GfxRayTracingAS.cpp" />
     <ClCompile Include="Graphics\GfxRayTracingShaderTable.cpp" />
+    <ClCompile Include="Graphics\GfxReflection.cpp" />
     <ClCompile Include="Graphics\GfxShaderKey.cpp" />
     <ClCompile Include="Graphics\GfxStateObject.cpp" />
     <ClCompile Include="Graphics\GfxSwapchain.cpp" />
@@ -383,6 +384,7 @@
     <ClInclude Include="Graphics\GfxPipelineStatePermutations.h" />
     <ClInclude Include="Graphics\GfxQueryHeap.h" />
     <ClInclude Include="Graphics\GfxRayTracingAS.h" />
+    <ClInclude Include="Graphics\GfxReflection.h" />
     <ClInclude Include="Graphics\GfxRingDescriptorAllocator.h" />
     <ClInclude Include="Graphics\GfxShaderEnums.h" />
     <ClInclude Include="Graphics\GfxShaderKey.h" />

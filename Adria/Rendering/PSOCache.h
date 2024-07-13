@@ -62,8 +62,6 @@ namespace adria
 		OceanLOD,
 		OceanLOD_Wireframe,
 		Picking,
-		Decals,
-		Decals_ModifyNormals,
 		BuildHistogram,
 		HistogramReduction,
 		Exposure,

@@ -109,6 +109,14 @@ namespace adria
 			desc.rasterizer_state.cull_mode = cull_mode;
 		}
 
+		template<uint32 P, typename F> requires std::is_invocable_v<F, PSODesc&>
+		void ModifyDesc(F&& f)
+		{
+			static_assert(P < N);
+			PSODesc& desc = pso_descs[P];
+			f(desc);
+		}
+
 		void Finalize(GfxDevice* gfx)
 		{
 			for (uint32 i = 0; i < N; ++i)

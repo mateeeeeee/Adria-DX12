@@ -1,6 +1,5 @@
 #pragma once
 #include "GfxShader.h"
-#include "GfxInputLayout.h"
 #include "Utilities/Delegate.h"
 
 namespace adria
@@ -18,7 +17,6 @@ namespace adria
 		void Initialize();
 		void Destroy();
 		bool CompileShader(GfxShaderCompileInput const& input, GfxShaderCompileOutput& output, bool bypass_cache);
-		void FillInputLayoutDesc(GfxShader const& vertex_shader, GfxInputLayout& input_layout);
 		void ReadBlobFromFile(std::string const& filename, GfxShaderBlob& blob);
 	}
 }

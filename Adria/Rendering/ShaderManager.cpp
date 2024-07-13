@@ -46,7 +46,6 @@ namespace adria
 			case PS_Texture:
 			case PS_Solid:
 			case PS_Decals:
-			case PS_Decals_ModifyNormals:
 			case PS_GBuffer:
 			case PS_Copy:
 			case PS_Add:
@@ -165,7 +164,6 @@ namespace adria
 				return "Other/Debug.hlsl";
 			case VS_Decals:
 			case PS_Decals:
-			case PS_Decals_ModifyNormals:
 				return "Other/Decals.hlsl";
 			case VS_GBuffer:
 			case PS_GBuffer:
@@ -465,7 +463,6 @@ namespace adria
 			case VS_Decals:
 				return "DecalsVS";
 			case PS_Decals:
-			case PS_Decals_ModifyNormals:
 				return "DecalsPS";
 			case CS_GenerateMips:
 				return "GenerateMipsCS";
@@ -521,16 +518,6 @@ namespace adria
 			return SM_6_7;
 		}
 
-		constexpr std::vector<GfxShaderDefine> GetShaderMacros(ShaderID shader)
-		{
-			switch (shader)
-			{
-			case PS_Decals_ModifyNormals:
-				return { {"DECAL_MODIFY_NORMALS", ""} };
-			default:
-				return {};
-			}
-		}
 		void CompileShader(GfxShaderKey const& shader, bool bypass_cache = false)
 		{
 			if (!shader.IsValid()) return;
@@ -545,13 +532,7 @@ namespace adria
 #else
 			shader_desc.flags = ShaderCompilerFlag_None;
 #endif
-			shader_desc.defines = GetShaderMacros(shader); 
-			
-			//temporary
-			for (GfxShaderDefine const& define : shader.GetDefines())
-			{
-				shader_desc.defines.push_back(define);
-			}
+			shader_desc.defines = shader.GetDefines();
 
 			GfxShaderCompileOutput output;
 			bool compile_result = GfxShaderCompiler::CompileShader(shader_desc, output, bypass_cache);

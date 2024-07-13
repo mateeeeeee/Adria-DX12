@@ -367,7 +367,7 @@ namespace adria
 
 	void DDGI::CreateStateObject()
 	{
-		GfxShader const& ddgi_blob = ShaderManager::GetShader(LIB_DDGIRayTracing);
+		GfxShader const& ddgi_blob = GetGfxShader(LIB_DDGIRayTracing);
 
 		GfxStateObjectBuilder ddgi_state_object_builder(5);
 		{

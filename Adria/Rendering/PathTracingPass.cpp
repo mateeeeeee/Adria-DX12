@@ -124,7 +124,7 @@ namespace adria
 
 	void PathTracingPass::CreateStateObject()
 	{
-		GfxShader const& pt_blob = ShaderManager::GetShader(LIB_PathTracing);
+		GfxShader const& pt_blob = GetGfxShader(LIB_PathTracing);
 
 		GfxStateObjectBuilder pt_state_object_builder(5);
 		{

@@ -355,11 +355,11 @@ namespace adria
 	{
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC d3d12_desc{};
 		d3d12_desc.pRootSignature = gfx->GetCommonRootSignature();
-		d3d12_desc.VS = ShaderManager::GetShader(desc.VS);
-		d3d12_desc.PS = ShaderManager::GetShader(desc.PS);
-		d3d12_desc.GS = ShaderManager::GetShader(desc.GS);
-		d3d12_desc.HS = ShaderManager::GetShader(desc.HS);
-		d3d12_desc.DS = ShaderManager::GetShader(desc.DS);
+		d3d12_desc.VS = GetGfxShader(desc.VS);
+		d3d12_desc.PS = GetGfxShader(desc.PS);
+		d3d12_desc.GS = GetGfxShader(desc.GS);
+		d3d12_desc.HS = GetGfxShader(desc.HS);
+		d3d12_desc.DS = GetGfxShader(desc.DS);
 		std::vector<D3D12_INPUT_ELEMENT_DESC> input_element_descs;
 		ConvertInputLayout(desc.input_layout, input_element_descs);
 		d3d12_desc.InputLayout = { .pInputElementDescs = input_element_descs.data(), .NumElements = (UINT)input_element_descs.size() };
@@ -397,7 +397,7 @@ namespace adria
 	{
 		D3D12_COMPUTE_PIPELINE_STATE_DESC d3d12_desc{};
 		d3d12_desc.pRootSignature = gfx->GetCommonRootSignature();
-		d3d12_desc.CS = ShaderManager::GetShader(desc.CS);
+		d3d12_desc.CS = GetGfxShader(desc.CS);
 		GFX_CHECK_HR(gfx->GetDevice()->CreateComputePipelineState(&d3d12_desc, IID_PPV_ARGS(pso.ReleaseAndGetAddressOf())));
 	}
 
@@ -419,9 +419,9 @@ namespace adria
 		D3DX12_MESH_SHADER_PIPELINE_STATE_DESC d3d12_desc{};
 
 		d3d12_desc.pRootSignature = gfx->GetCommonRootSignature();
-		d3d12_desc.AS = ShaderManager::GetShader(desc.AS);
-		d3d12_desc.MS = ShaderManager::GetShader(desc.MS);
-		d3d12_desc.PS = ShaderManager::GetShader(desc.PS);
+		d3d12_desc.AS = GetGfxShader(desc.AS);
+		d3d12_desc.MS = GetGfxShader(desc.MS);
+		d3d12_desc.PS = GetGfxShader(desc.PS);
 		d3d12_desc.BlendState = ConvertBlendDesc(desc.blend_state);
 		d3d12_desc.RasterizerState = ConvertRasterizerDesc(desc.rasterizer_state);
 		d3d12_desc.DepthStencilState = ConvertDepthStencilDesc(desc.depth_state);

@@ -8,7 +8,7 @@
 #include "Graphics/GfxTexture.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxCommandList.h"
-#include "Graphics/GfxShaderCompiler.h"
+#include "Graphics/GfxReflection.h"
 #include "RenderGraph/RenderGraph.h"
 
 using namespace DirectX;
@@ -501,7 +501,7 @@ namespace adria
 	{
 		using enum GfxShaderStage;
 		GraphicsPipelineStateDesc gfx_pso_desc{};
-		GfxShaderCompiler::FillInputLayoutDesc(ShaderManager::GetShader(VS_Shadow), gfx_pso_desc.input_layout);
+		GfxReflection::FillInputLayoutDesc(GetGfxShader(VS_Shadow), gfx_pso_desc.input_layout);
 		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 		gfx_pso_desc.VS = VS_Shadow;
 		gfx_pso_desc.PS = PS_Shadow;

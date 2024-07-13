@@ -4,7 +4,7 @@
 #include "Components.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h"
-#include "Graphics/GfxShaderCompiler.h"
+#include "Graphics/GfxReflection.h"
 #include "Graphics/GfxTracyProfiler.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
@@ -100,7 +100,7 @@ namespace adria
 	{
 		using enum GfxShaderStage;
 		GraphicsPipelineStateDesc gfx_pso_desc{};
-		GfxShaderCompiler::FillInputLayoutDesc(ShaderManager::GetShader(VS_GBuffer), gfx_pso_desc.input_layout);
+		GfxReflection::FillInputLayoutDesc(GetGfxShader(VS_GBuffer), gfx_pso_desc.input_layout);
 		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 		gfx_pso_desc.VS = VS_GBuffer;
 		gfx_pso_desc.PS = PS_GBuffer;
