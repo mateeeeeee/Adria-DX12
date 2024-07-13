@@ -48,8 +48,6 @@ namespace adria
 			case PS_Decals:
 			case PS_Decals_ModifyNormals:
 			case PS_GBuffer:
-			case PS_GBuffer_Rain:
-			case PS_GBuffer_Mask:
 			case PS_Copy:
 			case PS_Add:
 			case PS_LensFlare:
@@ -171,8 +169,6 @@ namespace adria
 				return "Other/Decals.hlsl";
 			case VS_GBuffer:
 			case PS_GBuffer:
-			case PS_GBuffer_Rain:
-			case PS_GBuffer_Mask:
 				return "Lighting/GBuffer.hlsl";
 			case VS_FullscreenTriangle:
 				return "Other/FullscreenTriangle.hlsl";
@@ -377,8 +373,6 @@ namespace adria
 			case VS_GBuffer:
 				return "GBufferVS";
 			case PS_GBuffer:
-			case PS_GBuffer_Rain:
-			case PS_GBuffer_Mask:
 				return "GBufferPS";
 			case VS_LensFlare:
 				return "LensFlareVS";
@@ -533,15 +527,10 @@ namespace adria
 			{
 			case PS_Decals_ModifyNormals:
 				return { {"DECAL_MODIFY_NORMALS", ""} };
-			case PS_GBuffer_Rain:
-				return { { "RAIN", "1" } };
-			case PS_GBuffer_Mask:
-				return { { "MASK", "1" } };
 			default:
 				return {};
 			}
 		}
-
 		void CompileShader(GfxShaderKey const& shader, bool bypass_cache = false)
 		{
 			if (!shader.IsValid()) return;
@@ -575,7 +564,6 @@ namespace adria
 			for (auto const& include : output.includes) dependent_files_map[shader].push_back(fs::path(include));
 			shader_desc.stage == GfxShaderStage::LIB ? library_recompiled_event.Broadcast(shader) : shader_recompiled_event.Broadcast(shader);
 		}
-
 		void OnShaderFileChanged(std::string const& filename)
 		{
 			for (auto const& [shader, files] : dependent_files_map)

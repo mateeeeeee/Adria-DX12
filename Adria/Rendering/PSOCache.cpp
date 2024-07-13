@@ -39,29 +39,6 @@ namespace adria
 				gfx_pso_map[GfxPipelineStateID::Sky] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 
 				gfx_pso_desc = {};
-				GfxShaderCompiler::FillInputLayoutDesc(GetShader(VS_GBuffer), gfx_pso_desc.input_layout);
-				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
-				gfx_pso_desc.VS = VS_GBuffer;
-				gfx_pso_desc.PS = PS_GBuffer;
-				gfx_pso_desc.depth_state.depth_enable = true;
-				gfx_pso_desc.depth_state.depth_write_mask = GfxDepthWriteMask::All;
-				gfx_pso_desc.depth_state.depth_func = GfxComparisonFunc::GreaterEqual;
-				gfx_pso_desc.num_render_targets = 3u;
-				gfx_pso_desc.rtv_formats[0] = GfxFormat::R8G8B8A8_UNORM;
-				gfx_pso_desc.rtv_formats[1] = GfxFormat::R8G8B8A8_UNORM;
-				gfx_pso_desc.rtv_formats[2] = GfxFormat::R8G8B8A8_UNORM;
-				gfx_pso_desc.dsv_format = GfxFormat::D32_FLOAT;
-				gfx_pso_map[GfxPipelineStateID::GBuffer] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-				gfx_pso_desc.PS = PS_GBuffer_Mask;
-				gfx_pso_map[GfxPipelineStateID::GBuffer_Mask] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-				gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
-				gfx_pso_map[GfxPipelineStateID::GBuffer_Mask_NoCull] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-				gfx_pso_desc.PS = PS_GBuffer;
-				gfx_pso_map[GfxPipelineStateID::GBuffer_NoCull] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-				gfx_pso_desc.PS = PS_GBuffer_Rain;
-				gfx_pso_map[GfxPipelineStateID::GBuffer_Rain] = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
-
-				gfx_pso_desc = {};
 				GfxShaderCompiler::FillInputLayoutDesc(GetShader(VS_Sun), gfx_pso_desc.input_layout);
 				gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 				gfx_pso_desc.VS = VS_Sun;

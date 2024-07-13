@@ -17,8 +17,6 @@ namespace adria
 		VS_FullscreenTriangle,
 		VS_GBuffer,
 		PS_GBuffer,
-		PS_GBuffer_Rain,
-		PS_GBuffer_Mask,
 		VS_Shadow,
 		PS_Shadow,
 		VS_LensFlare,

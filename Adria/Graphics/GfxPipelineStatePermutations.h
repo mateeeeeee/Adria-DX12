@@ -101,11 +101,12 @@ namespace adria
 			AddDefine<stage, P>(name, "");
 		}
 
-		template<uint32 P, typename F> requires std::is_invocable_v<F, PSODesc&>
-		void ModifyDesc(F&& f)
+		template<uint32 P> //requires pso_type != GfxPipelineStateType::Compute
+		void SetCullMode(GfxCullMode cull_mode)
 		{
 			static_assert(P < N);
-			f(pso_descs[P]);
+			PSODesc& desc = pso_descs[P];
+			desc.rasterizer_state.cull_mode = cull_mode;
 		}
 
 		void Finalize(GfxDevice* gfx)
@@ -132,10 +133,8 @@ namespace adria
 		std::unique_ptr<PSO> pso_permutations[N];
 		PSODesc pso_descs[N];
 	};
-	#define PSOPermutationKeyDefine(p, i, name, ...) p.AddDefine<i>(ADRIA_STRINGIFY(name)__VA_OPT__(,) ADRIA_STRINGIFY(__VA_ARGS__))
 
-
-	template<uint32 N> using GraphicsPipelineStatePermutations	= GfxPipelineStatePermutations<GraphicsPipelineState, N>;
+	template<uint32 N> using GraphicsPipelineStatePermutations		= GfxPipelineStatePermutations<GraphicsPipelineState, N>;
 	template<uint32 N> using ComputePipelineStatePermutations		= GfxPipelineStatePermutations<ComputePipelineState, N>;
 	template<uint32 N> using MeshShaderPipelineStatePermutations	= GfxPipelineStatePermutations<MeshShaderPipelineState, N>;
 }
