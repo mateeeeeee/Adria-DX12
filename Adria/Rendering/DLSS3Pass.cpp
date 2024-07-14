@@ -28,11 +28,14 @@ namespace adria
 
 	DLSS3Pass::~DLSS3Pass()
 	{
-		gfx->WaitForGPU();
-		NVSDK_NGX_Result result = NVSDK_NGX_D3D12_DestroyParameters(ngx_parameters);
-		ADRIA_ASSERT(NVSDK_NGX_SUCCEED(result));
-		result = NVSDK_NGX_D3D12_Shutdown1(gfx->GetDevice());
-		ADRIA_ASSERT(NVSDK_NGX_SUCCEED(result));
+		if (is_supported)
+		{
+			gfx->WaitForGPU();
+			NVSDK_NGX_Result result = NVSDK_NGX_D3D12_DestroyParameters(ngx_parameters);
+			ADRIA_ASSERT(NVSDK_NGX_SUCCEED(result));
+			result = NVSDK_NGX_D3D12_Shutdown1(gfx->GetDevice());
+			ADRIA_ASSERT(NVSDK_NGX_SUCCEED(result));
+		}
 	}
 
 	RGResourceName DLSS3Pass::AddPass(RenderGraph& rg, RGResourceName input)

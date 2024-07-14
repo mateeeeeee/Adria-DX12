@@ -276,7 +276,7 @@ namespace adria
 			std::string adapter_description = ToString(adapter_wide_description);
 			ADRIA_LOG(INFO, "\t%s - %f GB", adapter_description.c_str(), (float)desc.DedicatedVideoMemory / (1 << 30) );
 		}
-		dxgi_factory->EnumAdapterByGpuPreference(0, gpu_preference, IID_PPV_ARGS(adapter.GetAddressOf()));
+		dxgi_factory->EnumAdapterByGpuPreference(1, gpu_preference, IID_PPV_ARGS(adapter.GetAddressOf()));
 		DXGI_ADAPTER_DESC3 desc{};
 		adapter->GetDesc3(&desc);
 
