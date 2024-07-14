@@ -10,8 +10,8 @@ namespace adria
 	class TextureManager;
 	class GfxDevice;
 	class GfxTexture;
-	class GraphicsPipelineState;
-	class ComputePipelineState;
+	class GfxGraphicsPipelineState;
+	class GfxComputePipelineState;
 
 	class OceanRenderer
 	{
@@ -37,14 +37,14 @@ namespace adria
 		std::unique_ptr<GfxTexture> ping_pong_spectrum_textures[2];
 		bool pong_spectrum = false;
 
-		GraphicsPipelineStatePermutations<2> ocean_psos;
-		GraphicsPipelineStatePermutations<2> ocean_lod_psos;
-		std::unique_ptr<ComputePipelineState> fft_horizontal_pso;
-		std::unique_ptr<ComputePipelineState> fft_vertical_pso;
-		std::unique_ptr<ComputePipelineState> initial_spectrum_pso;
-		std::unique_ptr<ComputePipelineState> spectrum_pso;
-		std::unique_ptr<ComputePipelineState> phase_pso;
-		std::unique_ptr<ComputePipelineState> ocean_normals_pso;
+		GfxGraphicsPipelineStatePermutations<2> ocean_psos;
+		GfxGraphicsPipelineStatePermutations<2> ocean_lod_psos;
+		std::unique_ptr<GfxComputePipelineState> fft_horizontal_pso;
+		std::unique_ptr<GfxComputePipelineState> fft_vertical_pso;
+		std::unique_ptr<GfxComputePipelineState> initial_spectrum_pso;
+		std::unique_ptr<GfxComputePipelineState> spectrum_pso;
+		std::unique_ptr<GfxComputePipelineState> phase_pso;
+		std::unique_ptr<GfxComputePipelineState> ocean_normals_pso;
 
 		//settings
 		bool ocean_wireframe = false;

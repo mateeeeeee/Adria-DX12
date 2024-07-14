@@ -166,7 +166,7 @@ namespace adria
 
 	void RainPass::CreatePSOs()
 	{
-		GraphicsPipelineStateDesc gfx_pso_desc{};
+		GfxGraphicsPipelineStateDesc gfx_pso_desc{};
 		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 		gfx_pso_desc.VS = VS_Rain;
 		gfx_pso_desc.PS = PS_Rain;
@@ -184,7 +184,7 @@ namespace adria
 		gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
 		rain_pso = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_RainSimulation;
 		rain_simulation_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}

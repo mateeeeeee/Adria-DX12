@@ -37,7 +37,7 @@ namespace adria
 		DelegateHandle event_handle;
 	};
 
-	struct GraphicsPipelineStateDesc
+	struct GfxGraphicsPipelineStateDesc
 	{
 		GfxRasterizerState rasterizer_state{};
 		GfxBlendState blend_state{};
@@ -55,39 +55,39 @@ namespace adria
 		GfxShaderKey GS;
 		uint32 sample_mask = UINT_MAX;
 	};
-	class GraphicsPipelineState : public GfxPipelineState
+	class GfxGraphicsPipelineState : public GfxPipelineState
 	{
 	public:
-		GraphicsPipelineState(GfxDevice* gfx, GraphicsPipelineStateDesc const& desc);
-		~GraphicsPipelineState();
+		GfxGraphicsPipelineState(GfxDevice* gfx, GfxGraphicsPipelineStateDesc const& desc);
+		~GfxGraphicsPipelineState();
 
 	private:
-		GraphicsPipelineStateDesc desc;
+		GfxGraphicsPipelineStateDesc desc;
 	private:
 		void OnShaderRecompiled(GfxShaderKey const&);
-		void Create(GraphicsPipelineStateDesc const& desc);
+		void Create(GfxGraphicsPipelineStateDesc const& desc);
 	};
 
-	struct ComputePipelineStateDesc
+	struct GfxComputePipelineStateDesc
 	{
 		GfxRootSignatureID root_signature = GfxRootSignatureID::Common;
 		GfxShaderKey CS;
 	};
-	class ComputePipelineState : public GfxPipelineState
+	class GfxComputePipelineState : public GfxPipelineState
 	{
 	public:
-		ComputePipelineState(GfxDevice* gfx, ComputePipelineStateDesc const& desc);
-		~ComputePipelineState();
+		GfxComputePipelineState(GfxDevice* gfx, GfxComputePipelineStateDesc const& desc);
+		~GfxComputePipelineState();
 
 	private:
-		ComputePipelineStateDesc desc;
+		GfxComputePipelineStateDesc desc;
 		
 	private:
 		void OnShaderRecompiled(GfxShaderKey const&);
-		void Create(ComputePipelineStateDesc const& desc);
+		void Create(GfxComputePipelineStateDesc const& desc);
 	};
 
-	struct MeshShaderPipelineStateDesc
+	struct GfxMeshShaderPipelineStateDesc
 	{
 		GfxRasterizerState rasterizer_state{};
 		GfxBlendState blend_state{};
@@ -102,17 +102,17 @@ namespace adria
 		GfxShaderKey PS;
 		uint32 sample_mask = UINT_MAX;
 	};
-	class MeshShaderPipelineState : public GfxPipelineState
+	class GfxMeshShaderPipelineState : public GfxPipelineState
 	{
 	public:
-		MeshShaderPipelineState(GfxDevice* gfx, MeshShaderPipelineStateDesc const& desc);
-		~MeshShaderPipelineState();
+		GfxMeshShaderPipelineState(GfxDevice* gfx, GfxMeshShaderPipelineStateDesc const& desc);
+		~GfxMeshShaderPipelineState();
 
 	private:
-		MeshShaderPipelineStateDesc desc;
+		GfxMeshShaderPipelineStateDesc desc;
 
 	private:
 		void OnShaderRecompiled(GfxShaderKey const&);
-		void Create(MeshShaderPipelineStateDesc const& desc);
+		void Create(GfxMeshShaderPipelineStateDesc const& desc);
 	};
 }

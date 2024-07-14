@@ -9,8 +9,8 @@ namespace adria
 	class GfxDevice;
 	class GfxShaderKey;
 	class GfxStateObject;
-	class GraphicsPipelineState;
-	class ComputePipelineState;
+	class GfxGraphicsPipelineState;
+	class GfxComputePipelineState;
 	class RenderGraph;
 
 	class DDGI
@@ -76,9 +76,9 @@ namespace adria
 		bool enabled = false;
 		bool visualize = false;
 		DDGIVisualizeMode ddgi_visualize_mode = DDGIVisualizeMode_Irradiance;
-		std::unique_ptr<ComputePipelineState>  update_irradiance_pso;
-		std::unique_ptr<ComputePipelineState>  update_distance_pso;
-		std::unique_ptr<GraphicsPipelineState> visualize_probes_pso;
+		std::unique_ptr<GfxComputePipelineState>  update_irradiance_pso;
+		std::unique_ptr<GfxComputePipelineState>  update_distance_pso;
+		std::unique_ptr<GfxGraphicsPipelineState> visualize_probes_pso;
 
 	private:
 		void CreatePSOs();

@@ -159,7 +159,7 @@ namespace adria
 
 	void SSAOPass::CreatePSO()
 	{
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_Ssao;
 		ssao_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}

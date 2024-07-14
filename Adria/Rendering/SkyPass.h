@@ -12,8 +12,8 @@ namespace adria
 	class GfxDevice;
 	class GfxBuffer;
 	class GfxTexture;
-	class GraphicsPipelineState;
-	class ComputePipelineState;
+	class GfxGraphicsPipelineState;
+	class GfxComputePipelineState;
 
 	enum class SkyType : uint8
 	{
@@ -46,9 +46,9 @@ namespace adria
 		std::unique_ptr<GfxTexture> sky_texture = nullptr;
 		GfxDescriptor sky_texture_srv;
 
-		std::unique_ptr<ComputePipelineState> minimal_atmosphere_pso;
-		std::unique_ptr<ComputePipelineState> hosek_wilkie_pso;
-		std::unique_ptr<GraphicsPipelineState> sky_pso;
+		std::unique_ptr<GfxComputePipelineState> minimal_atmosphere_pso;
+		std::unique_ptr<GfxComputePipelineState> hosek_wilkie_pso;
+		std::unique_ptr<GfxGraphicsPipelineState> sky_pso;
 		
 		SkyType sky_type;
 		float turbidity = 2.0f;

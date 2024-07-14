@@ -25,8 +25,8 @@ namespace adria
 		GfxDevice* gfx;
 		uint32 width, height;
 		BloomParameters params{};
-		ComputePipelineStatePermutations<2> downsample_psos;
-		std::unique_ptr<ComputePipelineState> upsample_pso;
+		GfxComputePipelineStatePermutations<2> downsample_psos;
+		std::unique_ptr<GfxComputePipelineState> upsample_pso;
 
 	private:
 		void CreatePSOs();

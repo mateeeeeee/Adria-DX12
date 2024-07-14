@@ -7,8 +7,8 @@ namespace adria
 {
 	class RenderGraph;
 	class GfxDevice;
-	class GraphicsPipelineState;
-	class ComputePipelineState;
+	class GfxGraphicsPipelineState;
+	class GfxComputePipelineState;
 	struct Light;
 
 	class LensFlarePass
@@ -25,8 +25,8 @@ namespace adria
 		GfxDevice* gfx;
 		uint32 width, height;
 		std::vector<TextureHandle> lens_flare_textures;
-		std::unique_ptr<GraphicsPipelineState> lens_flare_pso;
-		std::unique_ptr<ComputePipelineState> lens_flare_pso2;
+		std::unique_ptr<GfxGraphicsPipelineState> lens_flare_pso;
+		std::unique_ptr<GfxComputePipelineState> lens_flare_pso2;
 
 	private:
 		void CreatePSOs();

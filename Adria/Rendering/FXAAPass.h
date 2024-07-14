@@ -5,7 +5,7 @@
 namespace adria
 {
 	class GfxDevice;
-	class ComputePipelineState;
+	class GfxComputePipelineState;
 	class RenderGraph;
 
 	class FXAAPass
@@ -18,7 +18,7 @@ namespace adria
 	private:
 		GfxDevice* gfx;
 		uint32 width, height;
-		std::unique_ptr<ComputePipelineState> fxaa_pso;
+		std::unique_ptr<GfxComputePipelineState> fxaa_pso;
 
 	private:
 		void CreatePSO();

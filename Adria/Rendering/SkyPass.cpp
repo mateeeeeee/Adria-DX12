@@ -197,14 +197,14 @@ namespace adria
 
 	void SkyPass::CreatePSOs()
 	{
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_MinimalAtmosphereSky;
 		minimal_atmosphere_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 
 		compute_pso_desc.CS = CS_HosekWilkieSky;
 		hosek_wilkie_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 
-		GraphicsPipelineStateDesc gfx_pso_desc{};
+		GfxGraphicsPipelineStateDesc gfx_pso_desc{};
 		GfxReflection::FillInputLayoutDesc(GetGfxShader(VS_Sky), gfx_pso_desc.input_layout);
 		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 		gfx_pso_desc.VS = VS_Sky;

@@ -11,7 +11,7 @@ namespace adria
 
 	class GfxDevice;
 	class GfxBuffer;
-	class ComputePipelineState;
+	class GfxComputePipelineState;
 	class RenderGraph;
 
 	class PickingPass
@@ -30,7 +30,7 @@ namespace adria
 		GfxDevice* gfx;
 		uint32 width, height;
 		std::vector<std::unique_ptr<GfxBuffer>> read_picking_buffers;
-		std::unique_ptr<ComputePipelineState> picking_pso;
+		std::unique_ptr<GfxComputePipelineState> picking_pso;
 
 	private:
 		void CreatePSO();

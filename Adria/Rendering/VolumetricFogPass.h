@@ -10,8 +10,8 @@ namespace adria
 	class GfxDevice;
 	class GfxTexture;
 	class GfxBuffer;
-	class ComputePipelineState;
-	class GraphicsPipelineState;
+	class GfxComputePipelineState;
+	class GfxGraphicsPipelineState;
 
 	class VolumetricFogPass
 	{
@@ -57,9 +57,9 @@ namespace adria
 		uint32 fog_volume_buffer_idx;
 
 		std::array<TextureHandle, BLUE_NOISE_TEXTURE_COUNT> blue_noise_handles;
-		std::unique_ptr<ComputePipelineState>  light_injection_pso;
-		std::unique_ptr<ComputePipelineState>  scattering_integration_pso;
-		std::unique_ptr<GraphicsPipelineState> combine_fog_pso;
+		std::unique_ptr<GfxComputePipelineState>  light_injection_pso;
+		std::unique_ptr<GfxComputePipelineState>  scattering_integration_pso;
+		std::unique_ptr<GfxGraphicsPipelineState> combine_fog_pso;
 
 	private:
 		void CreatePSOs();

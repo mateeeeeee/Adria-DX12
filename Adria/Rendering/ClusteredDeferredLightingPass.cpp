@@ -193,7 +193,7 @@ namespace adria
 
 	void ClusteredDeferredLightingPass::CreatePSOs()
 	{
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_ClusteredDeferredLighting;
 		clustered_lighting_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 

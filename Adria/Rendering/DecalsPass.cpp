@@ -102,7 +102,7 @@ namespace adria
 	void DecalsPass::CreatePSOs()
 	{
 		using enum GfxShaderStage;
-		GraphicsPipelineStateDesc gfx_pso_desc{};
+		GfxGraphicsPipelineStateDesc gfx_pso_desc{};
 		GfxReflection::FillInputLayoutDesc(GetGfxShader(VS_Decals), gfx_pso_desc.input_layout);
 		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 		gfx_pso_desc.VS = VS_Decals;
@@ -114,7 +114,7 @@ namespace adria
 
 		decal_psos.Initialize(gfx_pso_desc);
 		decal_psos.AddDefine<PS, 1>("DECAL_MODIFY_NORMALS");
-		decal_psos.ModifyDesc<1>([](GraphicsPipelineStateDesc& desc) {
+		decal_psos.ModifyDesc<1>([](GfxGraphicsPipelineStateDesc& desc) {
 			desc.num_render_targets = 2;
 			desc.rtv_formats[1] = GfxFormat::R8G8B8A8_UNORM;
 			});

@@ -5,7 +5,7 @@
 namespace adria
 {
 	class GfxDevice;
-	class ComputePipelineState;
+	class GfxComputePipelineState;
 	class RenderGraph;
 
 	class FilmEffectsPass
@@ -19,7 +19,7 @@ namespace adria
 	private:
 		GfxDevice* gfx;
 		uint32 width, height;
-		std::unique_ptr<ComputePipelineState> film_effects_pso;
+		std::unique_ptr<GfxComputePipelineState> film_effects_pso;
 
 		bool lens_distortion_enabled = false;
 		float lens_distortion_intensity = 0.2f;

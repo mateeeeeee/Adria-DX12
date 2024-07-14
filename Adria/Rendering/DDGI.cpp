@@ -369,7 +369,7 @@ namespace adria
 
 	void DDGI::CreatePSOs()
 	{
-		GraphicsPipelineStateDesc  gfx_pso_desc{};
+		GfxGraphicsPipelineStateDesc  gfx_pso_desc{};
 		GfxReflection::FillInputLayoutDesc(GetGfxShader(VS_DDGIVisualize), gfx_pso_desc.input_layout);
 		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 		gfx_pso_desc.VS = VS_DDGIVisualize;
@@ -383,7 +383,7 @@ namespace adria
 		gfx_pso_desc.topology_type = GfxPrimitiveTopologyType::Triangle;
 		visualize_probes_pso = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_DDGIUpdateIrradiance;
 		update_irradiance_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 

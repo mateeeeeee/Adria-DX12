@@ -26,7 +26,7 @@ namespace adria
 		uint32 width, height;
 		std::unique_ptr<GfxBuffer>	cube_vb = nullptr;
 		std::unique_ptr<GfxBuffer>	cube_ib = nullptr;
-		GraphicsPipelineStatePermutations<2> decal_psos;
+		GfxGraphicsPipelineStatePermutations<2> decal_psos;
 
 	private:
 		void CreatePSOs();

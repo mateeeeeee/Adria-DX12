@@ -9,7 +9,7 @@ namespace adria
 	class RenderGraph;
 	class GfxDevice;
 	class GfxTexture;
-	class ComputePipelineState;
+	class GfxComputePipelineState;
 
 	class HBAOPass
 	{
@@ -35,7 +35,7 @@ namespace adria
 		std::unique_ptr<GfxTexture> hbao_random_texture;
 		GfxDescriptor hbao_random_texture_srv;
 		BlurPass blur_pass;
-		std::unique_ptr<ComputePipelineState> hbao_pso;
+		std::unique_ptr<GfxComputePipelineState> hbao_pso;
 
 	private:
 		void CreatePSO();

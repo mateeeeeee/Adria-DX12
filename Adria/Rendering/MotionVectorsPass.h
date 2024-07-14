@@ -4,7 +4,7 @@
 namespace adria
 {
 	class GfxDevice;
-	class ComputePipelineState;
+	class GfxComputePipelineState;
 	class RenderGraph;
 
 	class MotionVectorsPass
@@ -18,7 +18,7 @@ namespace adria
 	private:
 		GfxDevice* gfx;
 		uint32 width, height;
-		std::unique_ptr<ComputePipelineState> motion_vectors_pso;
+		std::unique_ptr<GfxComputePipelineState> motion_vectors_pso;
 
 	private:
 		void CreatePSO();

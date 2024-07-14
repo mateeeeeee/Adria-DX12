@@ -59,7 +59,7 @@ namespace adria
 
 	void BloomPass::CreatePSOs()
 	{
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_BloomDownsample;
 		downsample_psos.Initialize(compute_pso_desc);
 		downsample_psos.AddDefine<1>("FIRST_PASS", "1");

@@ -8,22 +8,22 @@ namespace adria
 	struct PSOTraits;
 
 	template<>
-	struct PSOTraits<GraphicsPipelineState>
+	struct PSOTraits<GfxGraphicsPipelineState>
 	{
 		static constexpr GfxPipelineStateType type = GfxPipelineStateType::Graphics;
-		using PSODesc = GraphicsPipelineStateDesc;
+		using PSODesc = GfxGraphicsPipelineStateDesc;
 	};
 	template<>
-	struct PSOTraits<ComputePipelineState>
+	struct PSOTraits<GfxComputePipelineState>
 	{
 		static constexpr GfxPipelineStateType type = GfxPipelineStateType::Compute;
-		using PSODesc = ComputePipelineStateDesc;
+		using PSODesc = GfxComputePipelineStateDesc;
 	};
 	template<>
-	struct PSOTraits<MeshShaderPipelineState>
+	struct PSOTraits<GfxMeshShaderPipelineState>
 	{
 		static constexpr GfxPipelineStateType type = GfxPipelineStateType::MeshShader;
-		using PSODesc = MeshShaderPipelineStateDesc;
+		using PSODesc = GfxMeshShaderPipelineStateDesc;
 	};
 
 	template<typename PSO>
@@ -189,7 +189,7 @@ namespace adria
 		PSODesc pso_descs[N];
 	};
 
-	template<uint32 N> using GraphicsPipelineStatePermutations		= GfxPipelineStatePermutations<GraphicsPipelineState, N>;
-	template<uint32 N> using ComputePipelineStatePermutations		= GfxPipelineStatePermutations<ComputePipelineState, N>;
-	template<uint32 N> using MeshShaderPipelineStatePermutations	= GfxPipelineStatePermutations<MeshShaderPipelineState, N>;
+	template<uint32 N> using GfxGraphicsPipelineStatePermutations		= GfxPipelineStatePermutations<GfxGraphicsPipelineState, N>;
+	template<uint32 N> using GfxComputePipelineStatePermutations		= GfxPipelineStatePermutations<GfxComputePipelineState, N>;
+	template<uint32 N> using GfxMeshShaderPipelineStatePermutations		= GfxPipelineStatePermutations<GfxMeshShaderPipelineState, N>;
 }

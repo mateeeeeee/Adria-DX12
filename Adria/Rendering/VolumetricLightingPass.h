@@ -5,7 +5,7 @@
 namespace adria
 {
 	class GfxDevice;
-	class ComputePipelineState;
+	class GfxComputePipelineState;
 	class RenderGraph;
 
 	class VolumetricLightingPass
@@ -36,7 +36,7 @@ namespace adria
 		uint32 width, height;
 		VolumetricLightingResolution resolution = VolumetricLightingResolution_Full;
 		std::vector<RGResourceName> shadow_textures;
-		std::unique_ptr<ComputePipelineState> volumetric_lighting_pso;
+		std::unique_ptr<GfxComputePipelineState> volumetric_lighting_pso;
 
 	private:
 		void CreatePSOs();

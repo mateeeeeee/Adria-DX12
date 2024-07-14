@@ -123,7 +123,7 @@ namespace adria
 
 	void TiledDeferredLightingPass::CreatePSOs()
 	{
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_TiledDeferredLighting;
 		tiled_deferred_lighting_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}

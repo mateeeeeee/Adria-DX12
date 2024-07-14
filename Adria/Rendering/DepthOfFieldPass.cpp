@@ -109,7 +109,7 @@ namespace adria
 
 	void DepthOfFieldPass::CreatePSO()
 	{
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_Dof;
 		dof_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}

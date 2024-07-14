@@ -105,7 +105,7 @@ namespace adria
 
 	void PickingPass::CreatePSO()
 	{
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_Picking;
 		picking_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}

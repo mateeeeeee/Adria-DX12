@@ -78,7 +78,7 @@ namespace adria
 
 	void MotionBlurPass::CreatePSO()
 	{
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_MotionBlur;
 		motion_blur_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}

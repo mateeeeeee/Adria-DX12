@@ -72,7 +72,7 @@ namespace adria
 
 	void MotionVectorsPass::CreatePSO()
 	{
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_MotionVectors;
 		motion_vectors_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}

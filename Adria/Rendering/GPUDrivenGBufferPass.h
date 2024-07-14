@@ -62,15 +62,15 @@ namespace adria
 		DebugStats debug_stats[GFX_BACKBUFFER_COUNT] = {};
 
 		bool rain_active = false;
-		MeshShaderPipelineStatePermutations<2> draw_psos;
-		ComputePipelineStatePermutations<3>	 cull_meshlets_psos;
-		ComputePipelineStatePermutations<3>	 cull_instances_psos;
-		ComputePipelineStatePermutations<2>    build_meshlet_cull_args_psos;
-		ComputePipelineStatePermutations<2>    build_meshlet_draw_args_psos;
-		std::unique_ptr<ComputePipelineState> clear_counters_pso;
-		std::unique_ptr<ComputePipelineState> build_instance_cull_args_pso;
-		std::unique_ptr<ComputePipelineState> initialize_hzb_pso;
-		std::unique_ptr<ComputePipelineState> hzb_mips_pso;
+		GfxMeshShaderPipelineStatePermutations<2> draw_psos;
+		GfxComputePipelineStatePermutations<3>	 cull_meshlets_psos;
+		GfxComputePipelineStatePermutations<3>	 cull_instances_psos;
+		GfxComputePipelineStatePermutations<2>    build_meshlet_cull_args_psos;
+		GfxComputePipelineStatePermutations<2>    build_meshlet_draw_args_psos;
+		std::unique_ptr<GfxComputePipelineState> clear_counters_pso;
+		std::unique_ptr<GfxComputePipelineState> build_instance_cull_args_pso;
+		std::unique_ptr<GfxComputePipelineState> initialize_hzb_pso;
+		std::unique_ptr<GfxComputePipelineState> hzb_mips_pso;
 
 	private:
 		void CreatePSOs();

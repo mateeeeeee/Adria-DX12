@@ -8,7 +8,7 @@ namespace adria
 	class GfxBuffer;
 	class GfxTexture;
 	class GfxDevice;
-	class ComputePipelineState;
+	class GfxComputePipelineState;
 	class RenderGraph;
 
 	class ReSTIRGI
@@ -46,7 +46,7 @@ namespace adria
 		};
 		TemporalReservoirBuffers temporal_reservoir_buffers[2];
 
-		std::unique_ptr<ComputePipelineState> initial_sampling_pso;
+		std::unique_ptr<GfxComputePipelineState> initial_sampling_pso;
 
 	private:
 		void AddInitialSamplingPass(RenderGraph& rg);

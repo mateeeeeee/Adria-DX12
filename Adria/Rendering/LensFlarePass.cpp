@@ -185,7 +185,7 @@ namespace adria
 
 	void LensFlarePass::CreatePSOs()
 	{
-		GraphicsPipelineStateDesc gfx_pso_desc{};
+		GfxGraphicsPipelineStateDesc gfx_pso_desc{};
 		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 		gfx_pso_desc.VS = VS_LensFlare;
 		gfx_pso_desc.GS = GS_LensFlare;
@@ -199,7 +199,7 @@ namespace adria
 		gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
 		lens_flare_pso = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_LensFlare2;
 		lens_flare_pso2 = gfx->CreateComputePipelineState(compute_pso_desc);
 	}

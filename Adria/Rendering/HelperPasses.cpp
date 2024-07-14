@@ -68,7 +68,7 @@ namespace adria
 
 	void CopyToTexturePass::CreatePSOs()
 	{
-		GraphicsPipelineStateDesc gfx_pso_desc{};
+		GfxGraphicsPipelineStateDesc gfx_pso_desc{};
 		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 		gfx_pso_desc.VS = VS_FullscreenTriangle;
 		gfx_pso_desc.PS = PS_Copy;
@@ -77,14 +77,14 @@ namespace adria
 		gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
 
 		copy_psos.Initialize(gfx_pso_desc);
-		copy_psos.ModifyDesc<1>([](GraphicsPipelineStateDesc& desc) 
+		copy_psos.ModifyDesc<1>([](GfxGraphicsPipelineStateDesc& desc) 
 			{
 				desc.blend_state.render_target[0].blend_enable = true;
 				desc.blend_state.render_target[0].src_blend = GfxBlend::SrcAlpha;
 				desc.blend_state.render_target[0].dest_blend = GfxBlend::InvSrcAlpha;
 				desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;
 			});
-		copy_psos.ModifyDesc<2>([](GraphicsPipelineStateDesc& desc)
+		copy_psos.ModifyDesc<2>([](GfxGraphicsPipelineStateDesc& desc)
 			{
 				desc.blend_state.render_target[0].blend_enable = true;
 				desc.blend_state.render_target[0].src_blend = GfxBlend::One;
@@ -158,7 +158,7 @@ namespace adria
 
 	void AddTexturesPass::CreatePSOs()
 	{
-		GraphicsPipelineStateDesc gfx_pso_desc{};
+		GfxGraphicsPipelineStateDesc gfx_pso_desc{};
 		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 		gfx_pso_desc.VS = VS_FullscreenTriangle;
 		gfx_pso_desc.PS = PS_Add;
@@ -166,14 +166,14 @@ namespace adria
 		gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
 
 		add_psos.Initialize(gfx_pso_desc);
-		add_psos.ModifyDesc<1>([](GraphicsPipelineStateDesc& desc)
+		add_psos.ModifyDesc<1>([](GfxGraphicsPipelineStateDesc& desc)
 			{
 				desc.blend_state.render_target[0].blend_enable = true;
 				desc.blend_state.render_target[0].src_blend = GfxBlend::SrcAlpha;
 				desc.blend_state.render_target[0].dest_blend = GfxBlend::InvSrcAlpha;
 				desc.blend_state.render_target[0].blend_op = GfxBlendOp::Add;
 			});
-		add_psos.ModifyDesc<2>([](GraphicsPipelineStateDesc& desc)
+		add_psos.ModifyDesc<2>([](GfxGraphicsPipelineStateDesc& desc)
 			{
 				desc.blend_state.render_target[0].blend_enable = true;
 				desc.blend_state.render_target[0].src_blend = GfxBlend::One;

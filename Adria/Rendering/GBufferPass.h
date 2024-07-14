@@ -26,7 +26,7 @@ namespace adria
 		GfxDevice* gfx;
 		uint32 width, height;
 		bool use_rain_pso = false;
-		GraphicsPipelineStatePermutations<5> gbuffer_psos;
+		GfxGraphicsPipelineStatePermutations<5> gbuffer_psos;
 
 	private:
 		void CreatePSOs();

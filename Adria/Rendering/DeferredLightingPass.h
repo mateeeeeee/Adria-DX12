@@ -6,7 +6,7 @@
 namespace adria
 {
 	class GfxDevice;
-	class ComputePipelineState;
+	class GfxComputePipelineState;
 	class RenderGraph;
 
 	class DeferredLightingPass
@@ -28,7 +28,7 @@ namespace adria
 		GfxDevice* gfx;
 		uint32 width, height;
 		std::vector<RGResourceName> shadow_textures;
-		std::unique_ptr<ComputePipelineState> deferred_lighting_pso;
+		std::unique_ptr<GfxComputePipelineState> deferred_lighting_pso;
 
 	private:
 		void CreatePSOs();

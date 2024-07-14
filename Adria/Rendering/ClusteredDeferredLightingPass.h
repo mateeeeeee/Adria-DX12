@@ -7,7 +7,7 @@ namespace adria
 {
 	class RenderGraph;
 	class GfxDevice;
-	class ComputePipelineState;
+	class GfxComputePipelineState;
 
 	class ClusteredDeferredLightingPass
 	{
@@ -36,9 +36,9 @@ namespace adria
 		GfxBuffer light_list;
 		GfxBuffer light_grid;
 
-		std::unique_ptr<ComputePipelineState> clustered_lighting_pso;
-		std::unique_ptr<ComputePipelineState> clustered_building_pso;
-		std::unique_ptr<ComputePipelineState> clustered_culling_pso;
+		std::unique_ptr<GfxComputePipelineState> clustered_lighting_pso;
+		std::unique_ptr<GfxComputePipelineState> clustered_building_pso;
+		std::unique_ptr<GfxComputePipelineState> clustered_culling_pso;
 
 	private:
 		void CreatePSOs();

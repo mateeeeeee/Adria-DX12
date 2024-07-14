@@ -7,8 +7,8 @@ namespace adria
 	class RenderGraph;
 	class GfxDevice;
 	class GfxBuffer;
-	class GraphicsPipelineState;
-	class ComputePipelineState;
+	class GfxGraphicsPipelineState;
+	class GfxComputePipelineState;
 
 	class BokehPass
 	{
@@ -48,8 +48,8 @@ namespace adria
 		std::unique_ptr<GfxBuffer> counter_reset_buffer;
 		std::unique_ptr<GfxBuffer> bokeh_indirect_buffer;
 
-		std::unique_ptr<GraphicsPipelineState> bokeh_draw_pso;
-		std::unique_ptr<ComputePipelineState>  bokeh_generation_pso;
+		std::unique_ptr<GfxGraphicsPipelineState> bokeh_draw_pso;
+		std::unique_ptr<GfxComputePipelineState>  bokeh_generation_pso;
 
 	private:
 		void CreatePSOs();

@@ -5,7 +5,7 @@
 namespace adria
 {
 	class GfxDevice;
-	class ComputePipelineState;
+	class GfxComputePipelineState;
 	class RenderGraph;
 
 	class ExponentialHeightFogPass
@@ -30,7 +30,7 @@ namespace adria
 	private:
 		GfxDevice* gfx;
 		uint32 width, height;
-		std::unique_ptr<ComputePipelineState> fog_pso;
+		std::unique_ptr<GfxComputePipelineState> fog_pso;
 		FogParameters params;
 
 	private:

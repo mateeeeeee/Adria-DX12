@@ -419,7 +419,7 @@ namespace adria
 	void OceanRenderer::CreatePSOs()
 	{
 		using enum GfxShaderStage;
-		GraphicsPipelineStateDesc gfx_pso_desc{};
+		GfxGraphicsPipelineStateDesc gfx_pso_desc{};
 		GfxReflection::FillInputLayoutDesc(GetGfxShader(VS_Ocean), gfx_pso_desc.input_layout);
 		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 		gfx_pso_desc.VS = VS_Ocean;
@@ -443,7 +443,7 @@ namespace adria
 		ocean_lod_psos.SetFillMode<1>(GfxFillMode::Wireframe);
 		ocean_lod_psos.Finalize(gfx);
 
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_FFT_Horizontal;
 		fft_horizontal_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 

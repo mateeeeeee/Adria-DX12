@@ -50,12 +50,12 @@ namespace adria
 	class GfxQueryHeap;
 	struct GfxQueryHeapDesc;
 
-	struct GraphicsPipelineStateDesc;
-	struct ComputePipelineStateDesc;
-	struct MeshShaderPipelineStateDesc;
-	class GraphicsPipelineState;
-	class ComputePipelineState;
-	class MeshShaderPipelineState;
+	struct GfxGraphicsPipelineStateDesc;
+	struct GfxComputePipelineStateDesc;
+	struct GfxMeshShaderPipelineStateDesc;
+	class GfxGraphicsPipelineState;
+	class GfxComputePipelineState;
+	class GfxMeshShaderPipelineState;
 
 	class GfxLinearDynamicAllocator;
 	class GfxDescriptorAllocator;
@@ -151,9 +151,9 @@ namespace adria
 		std::unique_ptr<GfxBuffer> CreateBuffer(GfxBufferDesc const& desc, GfxBufferInitialData const& initial_data);
 		std::unique_ptr<GfxBuffer> CreateBuffer(GfxBufferDesc const& desc);
 
-		std::unique_ptr<GraphicsPipelineState>		CreateGraphicsPipelineState(GraphicsPipelineStateDesc const& desc);
-		std::unique_ptr<ComputePipelineState>		CreateComputePipelineState(ComputePipelineStateDesc const& desc);
-		std::unique_ptr<MeshShaderPipelineState>	CreateMeshShaderPipelineState(MeshShaderPipelineStateDesc const& desc);
+		std::unique_ptr<GfxGraphicsPipelineState>		CreateGraphicsPipelineState(GfxGraphicsPipelineStateDesc const& desc);
+		std::unique_ptr<GfxComputePipelineState>		CreateComputePipelineState(GfxComputePipelineStateDesc const& desc);
+		std::unique_ptr<GfxMeshShaderPipelineState>	CreateMeshShaderPipelineState(GfxMeshShaderPipelineStateDesc const& desc);
 
 		std::unique_ptr<GfxQueryHeap>	   CreateQueryHeap(GfxQueryHeapDesc const& desc);
 

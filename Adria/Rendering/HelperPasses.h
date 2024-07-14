@@ -28,7 +28,7 @@ namespace adria
 	private:
 		GfxDevice* gfx;
 		uint32 width, height;
-		GraphicsPipelineStatePermutations<3> copy_psos;
+		GfxGraphicsPipelineStatePermutations<3> copy_psos;
 
 	private:
 		void CreatePSOs();
@@ -49,7 +49,7 @@ namespace adria
 	private:
 		GfxDevice* gfx;
 		uint32 width, height;
-		GraphicsPipelineStatePermutations<3> add_psos;
+		GfxGraphicsPipelineStatePermutations<3> add_psos;
 
 	private:
 		void CreatePSOs();

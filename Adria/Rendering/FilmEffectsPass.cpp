@@ -125,7 +125,7 @@ namespace adria
 
 	void FilmEffectsPass::CreatePSO()
 	{
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_FilmEffects;
 		film_effects_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}

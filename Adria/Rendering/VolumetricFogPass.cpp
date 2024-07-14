@@ -246,7 +246,7 @@ namespace adria
 
 	void VolumetricFogPass::CreatePSOs()
 	{
-		GraphicsPipelineStateDesc gfx_pso_desc{};
+		GfxGraphicsPipelineStateDesc gfx_pso_desc{};
 		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 		gfx_pso_desc.VS = VS_FullscreenTriangle;
 		gfx_pso_desc.PS = PS_VolumetricFog_CombineFog;
@@ -263,7 +263,7 @@ namespace adria
 		gfx_pso_desc.rasterizer_state.cull_mode = GfxCullMode::None;
 		combine_fog_pso = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_VolumetricFog_LightInjection;
 		light_injection_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 

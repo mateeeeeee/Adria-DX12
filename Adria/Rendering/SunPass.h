@@ -5,7 +5,7 @@
 namespace adria
 {
 	class GfxDevice;
-	class GraphicsPipelineState;
+	class GfxGraphicsPipelineState;
 	class RenderGraph;
 
 	class SunPass
@@ -25,7 +25,7 @@ namespace adria
 		GfxDevice* gfx;
 		uint32 width;
 		uint32 height;
-		std::unique_ptr<GraphicsPipelineState> sun_pso;
+		std::unique_ptr<GfxGraphicsPipelineState> sun_pso;
 
 	private:
 		void CreatePSO();

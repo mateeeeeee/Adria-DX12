@@ -14,7 +14,7 @@ namespace adria
 	{
 		if (gfx->GetCapabilities().CheckRayTracingSupport(RayTracingSupport::Tier1_1))
 		{
-			ComputePipelineStateDesc compute_pso_desc{};
+			GfxComputePipelineStateDesc compute_pso_desc{};
 			compute_pso_desc.CS = CS_ReSTIRGI_InitialSampling;
 			initial_sampling_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 		}

@@ -236,7 +236,7 @@ namespace adria
 
 	void BokehPass::CreatePSOs()
 	{
-		GraphicsPipelineStateDesc gfx_pso_desc{};
+		GfxGraphicsPipelineStateDesc gfx_pso_desc{};
 		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 		gfx_pso_desc.VS = VS_Bokeh;
 		gfx_pso_desc.GS = GS_Bokeh;
@@ -250,7 +250,7 @@ namespace adria
 		gfx_pso_desc.rtv_formats[0] = GfxFormat::R16G16B16A16_FLOAT;
 		bokeh_draw_pso = gfx->CreateGraphicsPipelineState(gfx_pso_desc);
 
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_BokehGeneration;
 		bokeh_generation_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}

@@ -330,16 +330,16 @@ namespace adria
 		return pso.Get();
 	}
 
-	GraphicsPipelineState::GraphicsPipelineState(GfxDevice* gfx, GraphicsPipelineStateDesc const& desc) : GfxPipelineState(gfx, GfxPipelineStateType::Graphics), desc(desc)
+	GfxGraphicsPipelineState::GfxGraphicsPipelineState(GfxDevice* gfx, GfxGraphicsPipelineStateDesc const& desc) : GfxPipelineState(gfx, GfxPipelineStateType::Graphics), desc(desc)
 	{
 		Create(desc);
-		event_handle = ShaderManager::GetShaderRecompiledEvent().AddMember(&GraphicsPipelineState::OnShaderRecompiled, *this);
+		event_handle = ShaderManager::GetShaderRecompiledEvent().AddMember(&GfxGraphicsPipelineState::OnShaderRecompiled, *this);
 	}
-	GraphicsPipelineState::~GraphicsPipelineState()
+	GfxGraphicsPipelineState::~GfxGraphicsPipelineState()
 	{
 		ShaderManager::GetShaderRecompiledEvent().Remove(event_handle);
 	}
-	void GraphicsPipelineState::OnShaderRecompiled(GfxShaderKey const& s)
+	void GfxGraphicsPipelineState::OnShaderRecompiled(GfxShaderKey const& s)
 	{
 		GfxShaderKey shaders[] = { desc.VS, desc.PS, desc.GS, desc.HS, desc.DS };
 		for (uint64 i = 0; i < ARRAYSIZE(shaders); ++i)
@@ -351,7 +351,7 @@ namespace adria
 			}
 		}
 	}
-	void GraphicsPipelineState::Create(GraphicsPipelineStateDesc const& desc)
+	void GfxGraphicsPipelineState::Create(GfxGraphicsPipelineStateDesc const& desc)
 	{
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC d3d12_desc{};
 		d3d12_desc.pRootSignature = gfx->GetCommonRootSignature();
@@ -380,20 +380,20 @@ namespace adria
 		GFX_CHECK_HR(hr);
 	}
 
-	ComputePipelineState::ComputePipelineState(GfxDevice* gfx, ComputePipelineStateDesc const& desc) : GfxPipelineState(gfx, GfxPipelineStateType::Compute), desc(desc)
+	GfxComputePipelineState::GfxComputePipelineState(GfxDevice* gfx, GfxComputePipelineStateDesc const& desc) : GfxPipelineState(gfx, GfxPipelineStateType::Compute), desc(desc)
 	{
 		Create(desc);
-		event_handle = ShaderManager::GetShaderRecompiledEvent().AddMember(&ComputePipelineState::OnShaderRecompiled, *this);
+		event_handle = ShaderManager::GetShaderRecompiledEvent().AddMember(&GfxComputePipelineState::OnShaderRecompiled, *this);
 	}
-	ComputePipelineState::~ComputePipelineState()
+	GfxComputePipelineState::~GfxComputePipelineState()
 	{
 		ShaderManager::GetShaderRecompiledEvent().Remove(event_handle);
 	}
-	void ComputePipelineState::OnShaderRecompiled(GfxShaderKey const& s)
+	void GfxComputePipelineState::OnShaderRecompiled(GfxShaderKey const& s)
 	{
 		if (s == desc.CS) Create(desc);
 	}
-	void ComputePipelineState::Create(ComputePipelineStateDesc const& desc)
+	void GfxComputePipelineState::Create(GfxComputePipelineStateDesc const& desc)
 	{
 		D3D12_COMPUTE_PIPELINE_STATE_DESC d3d12_desc{};
 		d3d12_desc.pRootSignature = gfx->GetCommonRootSignature();
@@ -401,20 +401,20 @@ namespace adria
 		GFX_CHECK_HR(gfx->GetDevice()->CreateComputePipelineState(&d3d12_desc, IID_PPV_ARGS(pso.ReleaseAndGetAddressOf())));
 	}
 
-	MeshShaderPipelineState::MeshShaderPipelineState(GfxDevice* gfx, MeshShaderPipelineStateDesc const& desc) : GfxPipelineState(gfx, GfxPipelineStateType::MeshShader), desc(desc)
+	GfxMeshShaderPipelineState::GfxMeshShaderPipelineState(GfxDevice* gfx, GfxMeshShaderPipelineStateDesc const& desc) : GfxPipelineState(gfx, GfxPipelineStateType::MeshShader), desc(desc)
 	{
 		Create(desc);
-		event_handle = ShaderManager::GetShaderRecompiledEvent().AddMember(&MeshShaderPipelineState::OnShaderRecompiled, *this);
+		event_handle = ShaderManager::GetShaderRecompiledEvent().AddMember(&GfxMeshShaderPipelineState::OnShaderRecompiled, *this);
 	}
-	MeshShaderPipelineState::~MeshShaderPipelineState()
+	GfxMeshShaderPipelineState::~GfxMeshShaderPipelineState()
 	{
 		ShaderManager::GetShaderRecompiledEvent().Remove(event_handle);
 	}
-	void MeshShaderPipelineState::OnShaderRecompiled(GfxShaderKey const& s)
+	void GfxMeshShaderPipelineState::OnShaderRecompiled(GfxShaderKey const& s)
 	{
 		if (s == desc.AS || s == desc.MS || s == desc.PS) Create(desc);
 	}
-	void MeshShaderPipelineState::Create(MeshShaderPipelineStateDesc const& desc)
+	void GfxMeshShaderPipelineState::Create(GfxMeshShaderPipelineStateDesc const& desc)
 	{
 		D3DX12_MESH_SHADER_PIPELINE_STATE_DESC d3d12_desc{};
 

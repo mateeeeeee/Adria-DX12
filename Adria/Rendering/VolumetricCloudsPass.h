@@ -82,11 +82,11 @@ namespace adria
 		CloudResolution resolution = CloudResolution_Full;
 		bool should_generate_textures = false;
 		bool temporal_reprojection = true;
-		ComputePipelineStatePermutations<2> clouds_psos;
-		std::unique_ptr<ComputePipelineState> clouds_type_pso;
-		std::unique_ptr<ComputePipelineState> clouds_shape_pso;
-		std::unique_ptr<ComputePipelineState> clouds_detail_pso;
-		std::unique_ptr<GraphicsPipelineState> clouds_combine_pso;
+		GfxComputePipelineStatePermutations<2> clouds_psos;
+		std::unique_ptr<GfxComputePipelineState> clouds_type_pso;
+		std::unique_ptr<GfxComputePipelineState> clouds_shape_pso;
+		std::unique_ptr<GfxComputePipelineState> clouds_detail_pso;
+		std::unique_ptr<GfxGraphicsPipelineState> clouds_combine_pso;
 
 	private:
 		void CreatePSOs();

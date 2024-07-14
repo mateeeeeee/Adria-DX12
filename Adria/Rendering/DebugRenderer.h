@@ -82,7 +82,7 @@ namespace adria
 		std::vector<DebugLine> transient_lines, persistent_lines;
 		std::vector<DebugTriangle> transient_triangles, persistent_triangles;
 		uint32 width = 0, height = 0;
-		GraphicsPipelineStatePermutations<2> debug_psos;
+		GfxGraphicsPipelineStatePermutations<2> debug_psos;
 
 	private:
 		DebugRenderer() = default;

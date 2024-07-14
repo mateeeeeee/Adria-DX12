@@ -6,7 +6,7 @@
 namespace adria
 {
 	class GfxDevice;
-	class ComputePipelineState;
+	class GfxComputePipelineState;
 	class RenderGraph;
 
 	class ToneMapPass
@@ -37,7 +37,7 @@ namespace adria
 		TonemapParams params;
 		TextureHandle lens_dirt_handle = INVALID_TEXTURE_HANDLE;
 		TextureHandle tony_mc_mapface_lut_handle = INVALID_TEXTURE_HANDLE;
-		std::unique_ptr<ComputePipelineState> tonemap_pso;
+		std::unique_ptr<GfxComputePipelineState> tonemap_pso;
 
 	private:
 		void CreatePSO();

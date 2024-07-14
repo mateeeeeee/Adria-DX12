@@ -10,7 +10,7 @@ namespace adria
 {
 	class GfxDevice;
 	class GfxTexture;
-	class ComputePipelineState;
+	class GfxComputePipelineState;
 	class RenderGraph;
 
 	class SSAOPass
@@ -49,7 +49,7 @@ namespace adria
 		GfxDescriptor ssao_random_texture_srv;
 		BlurPass blur_pass;
 
-		std::unique_ptr<ComputePipelineState> ssao_pso;
+		std::unique_ptr<GfxComputePipelineState> ssao_pso;
 
 	private:
 		void CreatePSO();

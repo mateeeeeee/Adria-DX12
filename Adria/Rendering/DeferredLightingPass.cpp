@@ -97,7 +97,7 @@ namespace adria
 
 	void DeferredLightingPass::CreatePSOs()
 	{
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_DeferredLighting;
 		deferred_lighting_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}

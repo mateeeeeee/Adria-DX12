@@ -54,7 +54,7 @@ namespace adria
 		uint32 width;
 		uint32 height;
 		RayTracedShadowsPass ray_traced_shadows_pass;
-		GraphicsPipelineStatePermutations<2> shadow_psos;
+		GfxGraphicsPipelineStatePermutations<2> shadow_psos;
 
 		std::unique_ptr<GfxBuffer>  light_matrices_buffer;
 		GfxDescriptor				light_matrices_buffer_srvs[GFX_BACKBUFFER_COUNT];

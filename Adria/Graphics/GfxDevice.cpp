@@ -667,17 +667,17 @@ namespace adria
 		return std::make_unique<GfxBuffer>(this, desc);
 	}
 
-	std::unique_ptr<GraphicsPipelineState> GfxDevice::CreateGraphicsPipelineState(GraphicsPipelineStateDesc const& desc)
+	std::unique_ptr<GfxGraphicsPipelineState> GfxDevice::CreateGraphicsPipelineState(GfxGraphicsPipelineStateDesc const& desc)
 	{
-		return std::make_unique<GraphicsPipelineState>(this, desc);
+		return std::make_unique<GfxGraphicsPipelineState>(this, desc);
 	}
-	std::unique_ptr<ComputePipelineState> GfxDevice::CreateComputePipelineState(ComputePipelineStateDesc const& desc)
+	std::unique_ptr<GfxComputePipelineState> GfxDevice::CreateComputePipelineState(GfxComputePipelineStateDesc const& desc)
 	{
-		return std::make_unique<ComputePipelineState>(this, desc);
+		return std::make_unique<GfxComputePipelineState>(this, desc);
 	}
-	std::unique_ptr<MeshShaderPipelineState> GfxDevice::CreateMeshShaderPipelineState(MeshShaderPipelineStateDesc const& desc)
+	std::unique_ptr<GfxMeshShaderPipelineState> GfxDevice::CreateMeshShaderPipelineState(GfxMeshShaderPipelineStateDesc const& desc)
 	{
-		return std::make_unique<MeshShaderPipelineState>(this, desc);
+		return std::make_unique<GfxMeshShaderPipelineState>(this, desc);
 	}
 
 	std::unique_ptr<GfxQueryHeap> GfxDevice::CreateQueryHeap(GfxQueryHeapDesc const& desc)

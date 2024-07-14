@@ -124,7 +124,7 @@ namespace adria
 	void GPUDrivenGBufferPass::CreatePSOs()
 	{
 		using enum GfxShaderStage;
-		MeshShaderPipelineStateDesc mesh_pso_desc{};
+		GfxMeshShaderPipelineStateDesc mesh_pso_desc{};
 		mesh_pso_desc.root_signature = GfxRootSignatureID::Common;
 		mesh_pso_desc.MS = MS_DrawMeshlets;
 		mesh_pso_desc.PS = PS_DrawMeshlets;
@@ -140,7 +140,7 @@ namespace adria
 		draw_psos.AddDefine<PS, 1>("RAIN", "1");
 		draw_psos.Finalize(gfx);
 
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 
 		compute_pso_desc.CS = CS_CullInstances;
 		cull_instances_psos.Initialize(compute_pso_desc);
@@ -168,7 +168,7 @@ namespace adria
 		build_instance_cull_args_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 
 		compute_pso_desc.CS = CS_ClearCounters;
-		clear_counters_pso = std::make_unique<ComputePipelineState>(gfx, compute_pso_desc);
+		clear_counters_pso = std::make_unique<GfxComputePipelineState>(gfx, compute_pso_desc);
 
 		compute_pso_desc.CS = CS_InitializeHZB;
 		initialize_hzb_pso = gfx->CreateComputePipelineState(compute_pso_desc);

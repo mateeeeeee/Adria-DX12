@@ -6,7 +6,7 @@
 namespace adria
 {
 	class GfxDevice;
-	class ComputePipelineState;
+	class GfxComputePipelineState;
 	class RenderGraph;
 
 	class TiledDeferredLightingPass
@@ -25,7 +25,7 @@ namespace adria
 		entt::registry& reg;
 		GfxDevice* gfx;
 		uint32 width, height;
-		std::unique_ptr<ComputePipelineState> tiled_deferred_lighting_pso;
+		std::unique_ptr<GfxComputePipelineState> tiled_deferred_lighting_pso;
 		CopyToTexturePass copy_to_texture_pass;
 		AddTexturesPass add_textures_pass;
 		bool visualize_tiled = false;

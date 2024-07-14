@@ -101,7 +101,7 @@ namespace adria
 
 	void SSRPass::CreatePSO()
 	{
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_Ssr;
 		ssr_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}

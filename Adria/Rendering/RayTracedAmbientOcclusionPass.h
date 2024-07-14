@@ -8,7 +8,7 @@ namespace adria
 	class GfxDevice;
 	class GfxStateObject;
 	class GfxShaderKey;
-	class ComputePipelineState;
+	class GfxComputePipelineState;
 	class RenderGraph;
 
 	class RayTracedAmbientOcclusionPass
@@ -33,7 +33,7 @@ namespace adria
 		GfxDevice* gfx;
 		BlurPass blur_pass;
 		std::unique_ptr<GfxStateObject> ray_traced_ambient_occlusion_so;
-		std::unique_ptr<ComputePipelineState> rtao_filter_pso;
+		std::unique_ptr<GfxComputePipelineState> rtao_filter_pso;
 		uint32 width, height;
 		bool is_supported;
 		RTAOParams params{};

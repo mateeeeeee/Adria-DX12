@@ -134,7 +134,7 @@ namespace adria
 
 	void HBAOPass::CreatePSO()
 	{
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_Hbao;
 		hbao_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}

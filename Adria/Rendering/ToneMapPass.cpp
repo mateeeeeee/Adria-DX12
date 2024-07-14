@@ -193,7 +193,7 @@ namespace adria
 
 	void ToneMapPass::CreatePSO()
 	{
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_Tonemap;
 		tonemap_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}

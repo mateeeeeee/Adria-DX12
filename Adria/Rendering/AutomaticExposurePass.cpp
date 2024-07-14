@@ -237,7 +237,7 @@ namespace adria
 
 	void AutomaticExposurePass::CreatePSOs()
 	{
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_BuildHistogram;
 		build_histogram_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 

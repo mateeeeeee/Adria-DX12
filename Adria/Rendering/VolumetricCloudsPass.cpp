@@ -399,7 +399,7 @@ namespace adria
 
 	void VolumetricCloudsPass::CreatePSOs()
 	{
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_Clouds;
 		clouds_psos.Initialize(compute_pso_desc);
 		clouds_psos.AddDefine<1>("REPROJECTION", "1");
@@ -415,7 +415,7 @@ namespace adria
 		clouds_detail_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 
 
-		GraphicsPipelineStateDesc gfx_pso_desc{};
+		GfxGraphicsPipelineStateDesc gfx_pso_desc{};
 		gfx_pso_desc.root_signature = GfxRootSignatureID::Common;
 		gfx_pso_desc.VS = VS_CloudsCombine;
 		gfx_pso_desc.PS = PS_CloudsCombine;

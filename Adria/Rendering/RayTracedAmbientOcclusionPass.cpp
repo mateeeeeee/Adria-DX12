@@ -198,7 +198,7 @@ namespace adria
 
 	void RayTracedAmbientOcclusionPass::CreatePSO()
 	{
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_RTAOFilter;
 		rtao_filter_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}

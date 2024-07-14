@@ -65,7 +65,7 @@ namespace adria
 
 	void FXAAPass::CreatePSO()
 	{
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_Fxaa;
 		fxaa_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}

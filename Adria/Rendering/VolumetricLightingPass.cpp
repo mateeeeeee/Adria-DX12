@@ -90,7 +90,7 @@ namespace adria
 
 	void VolumetricLightingPass::CreatePSOs()
 	{
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_VolumetricLighting;
 		volumetric_lighting_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}

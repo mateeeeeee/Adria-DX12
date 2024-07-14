@@ -118,7 +118,7 @@ namespace adria
 
 	void ExponentialHeightFogPass::CreatePSO()
 	{
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_ExponentialHeightFog;
 		fog_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}

@@ -6,7 +6,7 @@
 namespace adria
 {
 	class GfxDevice;
-	class ComputePipelineState;
+	class GfxComputePipelineState;
 	class RenderGraph;
 
 	class DepthOfFieldPass
@@ -31,7 +31,7 @@ namespace adria
 		BokehPass bokeh_pass;
 		BlurPass blur_pass;
 
-		std::unique_ptr<ComputePipelineState> dof_pso;
+		std::unique_ptr<GfxComputePipelineState> dof_pso;
 
 	private:
 		void CreatePSO();

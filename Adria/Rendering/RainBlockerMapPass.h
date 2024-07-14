@@ -7,7 +7,7 @@ namespace adria
 {
 	class GfxTexture;
 	class GfxDevice;
-	class GraphicsPipelineState;
+	class GfxGraphicsPipelineState;
 	class RenderGraph;
 	
 	class RainBlockerMapPass
@@ -29,7 +29,7 @@ namespace adria
 		Matrix view_projection;
 		std::unique_ptr<GfxTexture> blocker_map;
 		GfxDescriptor blocker_map_srv;
-		std::unique_ptr<GraphicsPipelineState> rain_blocker_pso;
+		std::unique_ptr<GfxGraphicsPipelineState> rain_blocker_pso;
 
 	private:
 		void CreatePSOs();

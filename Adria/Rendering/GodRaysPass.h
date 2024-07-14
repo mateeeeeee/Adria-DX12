@@ -4,7 +4,7 @@
 namespace adria
 {
 	class GfxDevice;
-	class ComputePipelineState;
+	class GfxComputePipelineState;
 	class RenderGraph;
 	struct Light;
 
@@ -19,7 +19,7 @@ namespace adria
 	private:
 		GfxDevice* gfx;
 		uint32 width, height;
-		std::unique_ptr<ComputePipelineState> god_rays_pso;
+		std::unique_ptr<GfxComputePipelineState> god_rays_pso;
 
 	private:
 		void CreatePSO();

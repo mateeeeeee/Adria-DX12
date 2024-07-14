@@ -9,7 +9,7 @@ namespace adria
 	class GfxTexture;
 	class GfxBuffer;
 	class GfxDevice;
-	class ComputePipelineState;
+	class GfxComputePipelineState;
 
 	class AutomaticExposurePass
 	{
@@ -27,9 +27,9 @@ namespace adria
 		std::unique_ptr<GfxBuffer> histogram_copy;
 		bool invalid_history = true;
 
-		std::unique_ptr<ComputePipelineState> build_histogram_pso;
-		std::unique_ptr<ComputePipelineState> histogram_reduction_pso;
-		std::unique_ptr<ComputePipelineState> exposure_pso;
+		std::unique_ptr<GfxComputePipelineState> build_histogram_pso;
+		std::unique_ptr<GfxComputePipelineState> histogram_reduction_pso;
+		std::unique_ptr<GfxComputePipelineState> exposure_pso;
 
 		float min_luminance = 0.0f;
 		float max_luminance = 10.0f;

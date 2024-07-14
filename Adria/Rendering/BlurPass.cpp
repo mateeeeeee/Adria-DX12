@@ -122,7 +122,7 @@ namespace adria
 
 	void BlurPass::CreatePSOs()
 	{
-		ComputePipelineStateDesc compute_pso_desc{};
+		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_Blur_Horizontal;
 		blur_horizontal_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 
