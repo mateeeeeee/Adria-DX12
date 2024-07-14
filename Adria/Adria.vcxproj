@@ -284,7 +284,6 @@
     <ClCompile Include="Rendering\PathTracingPass.cpp" />
     <ClCompile Include="Rendering\PickingPass.cpp" />
     <ClCompile Include="Rendering\PostProcessor.cpp" />
-    <ClCompile Include="Rendering\PSOCache.cpp" />
     <ClCompile Include="Rendering\RainBlockerMapPass.cpp" />
     <ClCompile Include="Rendering\RainPass.cpp" />
     <ClCompile Include="Rendering\RayTracedAmbientOcclusionPass.cpp" />
@@ -483,7 +482,6 @@
     <ClInclude Include="Rendering\PathTracingPass.h" />
     <ClInclude Include="Rendering\PickingPass.h" />
     <ClInclude Include="Rendering\PostProcessor.h" />
-    <ClInclude Include="Rendering\PSOCache.h" />
     <ClInclude Include="Rendering\RayTracedAmbientOcclusionPass.h" />
     <ClInclude Include="Rendering\RayTracedReflectionsPass.h" />
     <ClInclude Include="Rendering\RayTracedShadowsPass.h" />

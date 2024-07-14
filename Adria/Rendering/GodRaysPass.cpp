@@ -1,9 +1,10 @@
-#include <DirectXMath.h>
 #include "GodRaysPass.h"
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
+#include "ShaderManager.h"
+#include "Graphics/GfxDevice.h" 
+#include "Graphics/GfxPipelineState.h" 
 #include "RenderGraph/RenderGraph.h"
 #include "Logging/Logger.h"
 
@@ -13,8 +14,10 @@ using namespace DirectX;
 namespace adria
 {
 
-	GodRaysPass::GodRaysPass(uint32 w, uint32 h) : width(w), height(h)
-	{}
+	GodRaysPass::GodRaysPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
+	{
+		CreatePSO();
+	}
 
 	void GodRaysPass::AddPass(RenderGraph& rg, Light const& light)
 	{
@@ -80,7 +83,7 @@ namespace adria
 					.decay = light.godrays_decay, .exposure = light.godrays_exposure,
 					.sun_idx = i, .output_idx = i + 1
 				};
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::GodRays));
+				cmd_list->SetPipelineState(god_rays_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
@@ -90,6 +93,13 @@ namespace adria
 	void GodRaysPass::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
+	}
+
+	void GodRaysPass::CreatePSO()
+	{
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_GodRays;
+		god_rays_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
 }

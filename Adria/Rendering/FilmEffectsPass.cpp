@@ -1,15 +1,18 @@
 #include "FilmEffectsPass.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
+#include "ShaderManager.h" 
 #include "Graphics/GfxDevice.h"
+#include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
 
 namespace adria
 {
 
-	FilmEffectsPass::FilmEffectsPass(uint32 w, uint32 h) : width(w), height(h)
-	{}
+	FilmEffectsPass::FilmEffectsPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
+	{
+		CreatePSO();
+	}
 
 	RGResourceName FilmEffectsPass::AddPass(RenderGraph& rg, RGResourceName input)
 	{
@@ -75,7 +78,7 @@ namespace adria
 					.input_idx  = i + 0,
 					.output_idx = i + 1
 				};
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::FilmEffects));
+				cmd_list->SetPipelineState(film_effects_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootCBV(2, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
@@ -118,6 +121,13 @@ namespace adria
 	void FilmEffectsPass::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
+	}
+
+	void FilmEffectsPass::CreatePSO()
+	{
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_FilmEffects;
+		film_effects_pso = gfx->CreateComputePipelineState(compute_pso_desc);
 	}
 
 	uint32 FilmEffectsPass::GetFilmGrainSeed(float dt, float seed_update_rate)

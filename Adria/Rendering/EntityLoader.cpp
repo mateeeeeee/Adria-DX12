@@ -2,13 +2,10 @@
 #define TINYGLTF_NO_EXTERNAL_IMAGE
 #define TINYGLTF_NOEXCEPTION
 #include "tiny_gltf.h"
-
 #define TINYOBJLOADER_IMPLEMENTATION
 #define TINYOBJLOADER_USE_MAPBOX_EARCUT
 #include "tiny_obj_loader.h"
-
 #include "meshoptimizer.h"
-
 #include "EntityLoader.h"
 #include "Components.h"
 #include "Meshlet.h"

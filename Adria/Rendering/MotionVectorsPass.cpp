@@ -2,17 +2,19 @@
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
-
-#include "Graphics/GfxRingDescriptorAllocator.h"
+#include "ShaderManager.h" 
+#include "Graphics/GfxDevice.h"
+#include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
 
 namespace adria
 {
-	MotionVectorsPass::MotionVectorsPass(uint32 w, uint32 h)
-		: width(w), height(h)
-	{}
+	MotionVectorsPass::MotionVectorsPass(GfxDevice* gfx, uint32 w, uint32 h)
+		: gfx(gfx), width(w), height(h)
+	{
+		CreatePSO();
+	}
 
 	void MotionVectorsPass::AddPass(RenderGraph& rg)
 	{
@@ -56,7 +58,7 @@ namespace adria
 					.depth_idx = i, .output_idx = i + 1
 				};
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::MotionVectors));
+				cmd_list->SetPipelineState(motion_vectors_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
@@ -67,5 +69,13 @@ namespace adria
 	{
 		width = w, height = h;
 	}
+
+	void MotionVectorsPass::CreatePSO()
+	{
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_MotionVectors;
+		motion_vectors_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+	}
+
 }
 

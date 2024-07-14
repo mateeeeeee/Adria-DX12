@@ -1,11 +1,9 @@
 #include "RayTracedReflectionsPass.h"
 #include "BlackboardData.h"
 #include "ShaderManager.h"
-#include "PSOCache.h"
 #include "Graphics/GfxShader.h"
 #include "Graphics/GfxShaderKey.h"
 #include "Graphics/GfxStateObject.h"
-#include "Graphics/GfxRingDescriptorAllocator.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
 

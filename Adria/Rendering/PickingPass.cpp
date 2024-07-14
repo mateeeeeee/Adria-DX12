@@ -1,10 +1,11 @@
 #include "PickingPass.h"
-#include "PSOCache.h" 
 #include "BlackboardData.h"
-
-#include "Graphics/GfxRingDescriptorAllocator.h"
-#include "Logging/Logger.h"
+#include "ShaderManager.h" 
+#include "Graphics/GfxDevice.h"
+#include "Graphics/GfxBuffer.h"
+#include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
+#include "Logging/Logger.h"
 
 namespace adria
 {
@@ -12,10 +13,8 @@ namespace adria
 	PickingPass::PickingPass(GfxDevice* gfx, uint32 width, uint32 height) : gfx(gfx),
 		width(width), height(height)
 	{
-		for (uint64 i = 0; i < gfx->GetBackbufferCount(); ++i)
-		{
-			read_picking_buffers.emplace_back(gfx->CreateBuffer(ReadBackBufferDesc(sizeof(PickingData))));
-		}
+		CreatePSO();
+		CreatePickingBuffers();
 	}
 
 	void PickingPass::OnResize(uint32 w, uint32 h)
@@ -71,9 +70,8 @@ namespace adria
 				{
 					.depth_idx = i, .normal_idx = i + 1, .buffer_idx = i + 2
 				};
-
 				
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::Picking));
+				cmd_list->SetPipelineState(picking_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
@@ -103,6 +101,21 @@ namespace adria
 		PickingData const* data = read_picking_buffers[backbuffer_index]->GetMappedData<PickingData>();
 		PickingData picking_data = *data;
 		return picking_data;
+	}
+
+	void PickingPass::CreatePSO()
+	{
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_Picking;
+		picking_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+	}
+
+	void PickingPass::CreatePickingBuffers()
+	{
+		for (uint64 i = 0; i < gfx->GetBackbufferCount(); ++i)
+		{
+			read_picking_buffers.emplace_back(gfx->CreateBuffer(ReadBackBufferDesc(sizeof(PickingData))));
+		}
 	}
 
 }

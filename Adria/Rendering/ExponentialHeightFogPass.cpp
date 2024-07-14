@@ -2,19 +2,22 @@
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h" 
-
+#include "ShaderManager.h" 
+#include "Graphics/GfxDevice.h"
+#include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
 #include "TextureManager.h"
-#include "Graphics/GfxRingDescriptorAllocator.h"
 #include "Logging/Logger.h"
 #include "Editor/GUICommand.h"
 #include "Math/Packing.h"
 
 namespace adria
 {
-	ExponentialHeightFogPass::ExponentialHeightFogPass(uint32 w, uint32 h)
-		: width(w), height(h), params() {}
+	ExponentialHeightFogPass::ExponentialHeightFogPass(GfxDevice* gfx, uint32 w, uint32 h)
+		: gfx(gfx), width(w), height(h), params()
+	{
+		CreatePSO();
+	}
 
 	RGResourceName ExponentialHeightFogPass::AddPass(RenderGraph& rg, RGResourceName input)
 	{
@@ -83,7 +86,7 @@ namespace adria
 					.depth_idx = i, .scene_idx = i + 1, .output_idx = i + 2
 				};
 
-				cmd_list->SetPipelineState(PSOCache::Get(GfxPipelineStateID::ExponentialHeightFog));
+				cmd_list->SetPipelineState(fog_pso.get());
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootCBV(2, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
@@ -112,6 +115,14 @@ namespace adria
 	{
 		width = w, height = h;
 	}
+
+	void ExponentialHeightFogPass::CreatePSO()
+	{
+		ComputePipelineStateDesc compute_pso_desc{};
+		compute_pso_desc.CS = CS_ExponentialHeightFog;
+		fog_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+	}
+
 }
 
 

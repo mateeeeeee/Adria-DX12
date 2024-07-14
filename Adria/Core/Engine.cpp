@@ -10,7 +10,6 @@
 #include "Rendering/Camera.h"
 #include "Rendering/EntityLoader.h"
 #include "Rendering/ShaderManager.h"
-#include "Rendering/PSOCache.h"
 #include "Utilities/ThreadPool.h"
 #include "Utilities/Random.h"
 #include "Utilities/Timer.h"
@@ -214,7 +213,6 @@ namespace adria
 		gfx = std::make_unique<GfxDevice>(window, GfxOptions{.debug_layer = init.debug_layer, .dred = init.dred,
 														     .gpu_validation = init.gpu_validation, .pix = init.pix, .aftermath = init.aftermath });
 		ShaderManager::Initialize();
-		PSOCache::Initialize(gfx.get());
 		g_TextureManager.Initialize(gfx.get(), 1000);
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), window->Width(), window->Height());
 		entity_loader = std::make_unique<EntityLoader>(reg, gfx.get());
@@ -237,7 +235,6 @@ namespace adria
 	Engine::~Engine()
 	{
 		g_TextureManager.Destroy();
-		PSOCache::Destroy();
 		ShaderManager::Destroy();
 		GfxShaderCompiler::Destroy();
 		g_ThreadPool.Destroy();

@@ -4,18 +4,23 @@
 
 namespace adria
 {
+	class GfxDevice;
+	class ComputePipelineState;
 	class RenderGraph;
 
 	class FilmEffectsPass
 	{
 	public:
-		FilmEffectsPass(uint32 w, uint32 h);
+		FilmEffectsPass(GfxDevice* gfx, uint32 w, uint32 h);
 
 		RGResourceName AddPass(RenderGraph& rendergraph, RGResourceName input);
 		void OnResize(uint32 w, uint32 h);
 
 	private:
+		GfxDevice* gfx;
 		uint32 width, height;
+		std::unique_ptr<ComputePipelineState> film_effects_pso;
+
 		bool lens_distortion_enabled = false;
 		float lens_distortion_intensity = 0.2f;
 		bool chromatic_aberration_enabled = true;
@@ -28,6 +33,7 @@ namespace adria
 		float film_grain_seed_update_rate = 0.02f;
 
 	private:
+		void CreatePSO();
 		static uint32 GetFilmGrainSeed(float dt, float seed_update_rate);
 	};
 }

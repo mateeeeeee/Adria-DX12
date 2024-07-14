@@ -4,6 +4,8 @@
 
 namespace adria
 {
+	class GfxDevice;
+	class ComputePipelineState;
 	class RenderGraph;
 
 	class ExponentialHeightFogPass
@@ -20,14 +22,19 @@ namespace adria
 		};
 
 	public:
-		ExponentialHeightFogPass(uint32 w, uint32 h);
+		ExponentialHeightFogPass(GfxDevice* gfx, uint32 w, uint32 h);
 
 		RGResourceName AddPass(RenderGraph& rendergraph, RGResourceName input);
 		void OnResize(uint32 w, uint32 h);
 
 	private:
+		GfxDevice* gfx;
 		uint32 width, height;
+		std::unique_ptr<ComputePipelineState> fog_pso;
 		FogParameters params;
+
+	private:
+		void CreatePSO();
 	};
 
 }

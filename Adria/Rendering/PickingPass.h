@@ -1,8 +1,4 @@
 #pragma once
-#include <memory>
-#include <vector>
-#include <DirectXMath.h>
-#include "Graphics/GfxBuffer.h"
 
 
 namespace adria
@@ -14,6 +10,8 @@ namespace adria
 	};
 
 	class GfxDevice;
+	class GfxBuffer;
+	class ComputePipelineState;
 	class RenderGraph;
 
 	class PickingPass
@@ -30,7 +28,12 @@ namespace adria
 
 	private:
 		GfxDevice* gfx;
-		std::vector<std::unique_ptr<GfxBuffer>> read_picking_buffers;
 		uint32 width, height;
+		std::vector<std::unique_ptr<GfxBuffer>> read_picking_buffers;
+		std::unique_ptr<ComputePipelineState> picking_pso;
+
+	private:
+		void CreatePSO();
+		void CreatePickingBuffers();
 	};
 }

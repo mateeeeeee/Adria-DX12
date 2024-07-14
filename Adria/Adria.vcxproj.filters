@@ -188,9 +188,6 @@
     <ClCompile Include="Rendering\ShaderManager.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\PSOCache.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\AutomaticExposurePass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
@@ -715,9 +712,6 @@
     </ClInclude>
     <ClInclude Include="Graphics\GfxShader.h">
       <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\PSOCache.h">
-      <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxStates.h">
       <Filter>Graphics</Filter>

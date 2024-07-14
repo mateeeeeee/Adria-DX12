@@ -4,6 +4,8 @@
 
 namespace adria
 {
+	class GfxDevice;
+	class ComputePipelineState;
 	class RenderGraph;
 
 	class SSRPass
@@ -14,13 +16,19 @@ namespace adria
 			float ssr_ray_hit_threshold = 2.00f;
 		};
 	public:
-		SSRPass(uint32 w, uint32 h);
+		SSRPass(GfxDevice* gfx, uint32 w, uint32 h);
 
 		RGResourceName AddPass(RenderGraph& rendergraph, RGResourceName input);
 		void OnResize(uint32 w, uint32 h);
+
 	private:
+		GfxDevice* gfx;
 		uint32 width, height;
 		SSRParameters params{};
+		std::unique_ptr<ComputePipelineState> ssr_pso;
+		
+	private:
+		void CreatePSO();
 	};
 
 }

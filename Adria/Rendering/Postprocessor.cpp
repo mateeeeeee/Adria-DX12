@@ -2,7 +2,6 @@
 #include "ShaderStructs.h"
 #include "Components.h"
 #include "BlackboardData.h"
-#include "PSOCache.h"
 #include "RainPass.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Logging/Logger.h"
@@ -33,12 +32,12 @@ namespace adria
 
 	PostProcessor::PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height)
 		: gfx(gfx), reg(reg), display_width(width), display_height(height), render_width(width), render_height(height),
-		blur_pass(gfx, width, height), copy_to_texture_pass(gfx, width, height), film_effects_pass(width, height),
+		blur_pass(gfx, width, height), copy_to_texture_pass(gfx, width, height), film_effects_pass(gfx, width, height),
 		add_textures_pass(gfx, width, height), ssao_pass(gfx, width, height), hbao_pass(gfx, width, height), rtao_pass(gfx, width, height),
 		automatic_exposure_pass(gfx, width, height), lens_flare_pass(gfx, width, height), clouds_pass(gfx, width, height), 
-		ssr_pass(width, height), fog_pass(width, height), dof_pass(gfx, width, height), bloom_pass(gfx, width, height), 
-		velocity_buffer_pass(width, height), motion_blur_pass(width, height), taa_pass(gfx, width, height), 
-		god_rays_pass(width, height), xess_pass(gfx, width, height), dlss3_pass(gfx, width, height),
+		ssr_pass(gfx, width, height), fog_pass(gfx, width, height), dof_pass(gfx, width, height), bloom_pass(gfx, width, height), 
+		velocity_buffer_pass(gfx, width, height), motion_blur_pass(gfx, width, height), taa_pass(gfx, width, height),
+		god_rays_pass(gfx, width, height), xess_pass(gfx, width, height), dlss3_pass(gfx, width, height),
 		tonemap_pass(gfx, width, height), fxaa_pass(gfx, width, height), rtr_pass(gfx, width, height), sun_pass(reg, gfx, width, height),
 		ffx_dof_pass(gfx, width, height), fsr2_pass(gfx, width, height), fsr3_pass(gfx, width, height),  cas_pass(gfx, width, height), cacao_pass(gfx, width, height)
 	{
