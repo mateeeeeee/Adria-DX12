@@ -793,18 +793,18 @@ namespace adria
 		if (ImGui::Begin(ICON_FA_CAMERA" Camera", &visibility_flags[Flag_Camera]))
 		{
 			Vector3 cam_pos = camera.Position();
-			float pos[3] = { cam_pos.x , cam_pos.y, cam_pos.z };
-			ImGui::SliderFloat3("Position", pos, 0.0f, 2000.0f);
-			camera.SetPosition(Vector3(pos));
+			ImGui::SliderFloat3("Position", (float*)&cam_pos, 0.0f, 2000.0f);
+			camera.SetPosition(cam_pos);
 			float near_plane = camera.Near(), far_plane = camera.Far();
-			float fov = camera.Fov(), ar = camera.AspectRatio();
-			ImGui::SliderFloat("Near", &near_plane, 0.0f, 2.0f);
-			ImGui::SliderFloat("Far", &far_plane, 10.0f, 3000.0f);
+			float fov = camera.Fov();
+			ImGui::SliderFloat("Near", &near_plane, 10.0f, 3000.0f);
+			ImGui::SliderFloat("Far", &far_plane, 0.001f, 2.0f);
 			ImGui::SliderFloat("FOV", &fov, 0.01f, 1.5707f);
+			camera.SetNearAndFar(near_plane, far_plane);
+			camera.SetFov(fov);
 			Vector3 look_at = camera.Forward();
 			ImGui::Text("Look Vector: (%f,%f,%f)", look_at.x, look_at.y, look_at.z);
-			camera.SetNearAndFar(far_plane, near_plane);
-			camera.SetFov(fov);
+			
 		}
 		ImGui::End();
 	}
