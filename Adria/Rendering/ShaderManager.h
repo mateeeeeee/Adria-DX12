@@ -97,6 +97,7 @@ namespace adria
 		CS_InitializeHZB,
 		CS_HZBMips,
 		CS_RTAOFilter,
+		CS_RendererOutput,
 		CS_DDGIUpdateIrradiance,
 		CS_DDGIUpdateDistance,
 		VS_DDGIVisualize,

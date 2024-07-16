@@ -516,6 +516,9 @@
     <ClCompile Include="Rendering\SunPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\DebugOutputPass.cpp">
+      <Filter>Rendering\Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -1137,6 +1140,9 @@
     <ClInclude Include="Rendering\SunPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\DebugOutputPass.h">
+      <Filter>Rendering\Passes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
@@ -1424,6 +1430,9 @@
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Lighting\VolumetricFog.hlsl">
       <Filter>Shaders\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Rendering\DebugOutput.hlsl">
+      <Filter>Shaders\Other</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

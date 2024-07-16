@@ -21,8 +21,7 @@ Graphics engine written in C++ using DirectX12.
     - FSR2, FSR3
     - XeSS 
     - DLSS3
-* Ultimate Bindless 
-    - Only one root signature 
+* Ultimate Bindless resources
 * Volumetric lighting
     - 2D Raymarching
     - Fog volumes
@@ -33,34 +32,21 @@ Graphics engine written in C++ using DirectX12.
     - Cascade shadow maps for directional lights
     - Ray traced shadows (DXR)
 * Volumetric clouds
-    - Temporal reprojection
 * Hosek-Wilkie sky
-* Ocean FFT
+* FFT Ocean
 * Automatic exposure
 * Bloom
+* Rain
 * Tony McMapface tonemapping
-* Depth of field + Bokeh 
-    - Custom
-    - FFX
-* Ambient occlusion: 
-    - SSAO
-    - HBAO
-    - CACAO (FFX)
-    - RTAO (DXR)
-* Reflections: 
-    - SSR
-    - RTR (DXR)
+* Depth of field + Bokeh: Custom, FFX
+* Ambient occlusion: SSAO, HBAO, CACAO (FFX), RTAO (DXR)
+* Reflections: SSR, RTR (DXR)
 * Antialiasing: FXAA, TAA
 * Contrast Adaptive Sharpening (FFX)
 * Film effects: Lens distortion, Chromatic aberration, Vignette, Film grain
-* Rain
-* God rays
-* Lens flare
-* Motion blur
-* Decals
-* ImGui editor
-* Profiler
-    - custom and tracy profiler
+* Screen-space god rays
+* Lens flare: texture-based and procedural
+* Profiler: custom and tracy profiler
 * Debug tools
     - Debug renderer
     - Shader hot reloading

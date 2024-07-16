@@ -32,7 +32,7 @@ namespace adria
 	extern bool dump_render_graph;
 	namespace cvars
 	{
-		static ConsoleVariable renderpath("renderpath", 0);
+		static ConsoleVariable lightingpath("lightingpath", 0);
 		static ConsoleVariable volumetricpath("volumetricpath", 1);
 	}
 
@@ -47,7 +47,7 @@ namespace adria
 		postprocessor(gfx, reg, width, height), picking_pass(gfx, width, height),
 		clustered_deferred_lighting_pass(reg, gfx, width, height),
 		decals_pass(reg, gfx, width, height), rain_pass(reg, gfx, width, height), ocean_renderer(reg, gfx, width, height),
-		shadow_renderer(reg, gfx, width, height), 
+		shadow_renderer(reg, gfx, width, height), renderer_output_pass(gfx, width, height),
 		path_tracer(gfx, width, height), ddgi(gfx, reg, width, height), gpu_debug_printer(gfx)
 	{
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
@@ -125,7 +125,7 @@ namespace adria
 		render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
 
 		gpu_debug_printer.AddClearPass(render_graph);
-		if (path_type == RendererPathType::PathTracing) Render_PathTracing(render_graph);
+		if (lighting_path == RendererLightingPath::PathTracing) Render_PathTracing(render_graph);
 		else Render_Deferred(render_graph);
 		if (take_screenshot) TakeScreenshot(render_graph);
 		gpu_debug_printer.AddPrintPass(render_graph);
@@ -145,9 +145,9 @@ namespace adria
 			display_width = w; display_height = h;
 			CreateSizeDependentResources();
 			postprocessor.OnResize(w, h);
-
 			g_DebugRenderer.OnResize(w, h);
 			path_tracer.OnResize(w, h);
+			renderer_output_pass.OnResize(w, h);
 		}
 	}
 	void Renderer::OnRenderResolutionChanged(uint32 w, uint32 h)
@@ -238,7 +238,7 @@ namespace adria
 
 		std::vector<LightGPU> hlsl_lights{};
 		uint32 light_index = 0;
-		Matrix light_transform = path_type == RendererPathType::PathTracing ? Matrix::Identity : camera->View();
+		Matrix light_transform = lighting_path == RendererLightingPath::PathTracing ? Matrix::Identity : camera->View();
 		for (auto light_entity : reg.view<Light>())
 		{
 			Light& light = reg.get<Light>(light_entity);
@@ -456,28 +456,36 @@ namespace adria
 		postprocessor.AddAmbientOcclusionPass(render_graph);
 		shadow_renderer.AddShadowMapPasses(render_graph);
 		shadow_renderer.AddRayTracingShadowPasses(render_graph);
-		switch (path_type)
+
+		if (output_type == RendererOutputType::Final)
 		{
-		case RendererPathType::RegularDeferred:		deferred_lighting_pass.AddPass(render_graph); break;
-		case RendererPathType::TiledDeferred:		tiled_deferred_lighting_pass.AddPass(render_graph); break;
-		case RendererPathType::ClusteredDeferred:	clustered_deferred_lighting_pass.AddPass(render_graph, true); break;
-		}
-		if (volumetric_lights > 0)
-		{
-			switch (volumetric_path_type)
+			switch (lighting_path)
 			{
-			case VolumetricPathType::Raymarching2D: volumetric_lighting_pass.AddPass(render_graph); break;
-			case VolumetricPathType::FogVolume:		volumetric_fog_pass.AddPasses(render_graph); break;
+			case RendererLightingPath::Deferred:			deferred_lighting_pass.AddPass(render_graph); break;
+			case RendererLightingPath::TiledDeferred:		tiled_deferred_lighting_pass.AddPass(render_graph); break;
+			case RendererLightingPath::ClusteredDeferred:	clustered_deferred_lighting_pass.AddPass(render_graph, true); break;
 			}
+			if (volumetric_lights > 0)
+			{
+				switch (volumetric_path_type)
+				{
+				case VolumetricPathType::Raymarching2D: volumetric_lighting_pass.AddPass(render_graph); break;
+				case VolumetricPathType::FogVolume:		volumetric_fog_pass.AddPasses(render_graph); break;
+				}
+			}
+			if (ddgi.Visualize()) ddgi.AddVisualizePass(render_graph);
+			ocean_renderer.AddPasses(render_graph);
+			sky_pass.AddComputeSkyPass(render_graph, sun_direction);
+			sky_pass.AddDrawSkyPass(render_graph);
+			picking_pass.AddPass(render_graph);
+			postprocessor.AddPasses(render_graph);
+			if (rain_enabled) rain_pass.AddPass(render_graph);
+			g_DebugRenderer.Render(render_graph);
 		}
-		if (ddgi.Visualize()) ddgi.AddVisualizePass(render_graph);
-		ocean_renderer.AddPasses(render_graph);
-		sky_pass.AddComputeSkyPass(render_graph, sun_direction);
-		sky_pass.AddDrawSkyPass(render_graph);
-		picking_pass.AddPass(render_graph);
-		postprocessor.AddPasses(render_graph);
-		if (rain_enabled) rain_pass.AddPass(render_graph);
-		g_DebugRenderer.Render(render_graph);
+		else
+		{
+			renderer_output_pass.AddPass(render_graph, output_type);
+		}
 	}
 	void Renderer::Render_PathTracing(RenderGraph& render_graph)
 	{
@@ -489,14 +497,20 @@ namespace adria
 	{
 		GUI_Command([&]()
 			{
-				int& current_render_path_type = cvars::renderpath.Get();
+				int& current_lighting_path_type = cvars::lightingpath.Get();
 				int& current_volumetric_path_type = cvars::volumetricpath.Get();
+
+				static int renderer_output_type = (int)output_type;
 
 				if (ImGui::TreeNode("Renderer"))
 				{
-					if (ImGui::Combo("Renderer Path", &current_render_path_type, "Deferred\0Tiled Deferred\0Clustered Deferred\0Path Tracing\0", 4))
+					if (ImGui::Combo("Lighting Path", &current_lighting_path_type, "Deferred\0Tiled Deferred\0Clustered Deferred\0Path Tracing\0", 4))
 					{
-						if (!ray_tracing_supported && current_render_path_type == 3) current_render_path_type = 0;
+						if (!ray_tracing_supported && current_lighting_path_type == 3) current_lighting_path_type = 0;
+					}
+					if (current_lighting_path_type != 3)
+					{
+						ImGui::Combo("Renderer Output", &renderer_output_type, "Final\0Diffuse\0World Normal\0Roughness\0Metallic\0Emissive\0Ambient Oclussion\0Indirect Lighting\0", 8);
 					}
 					ImGui::Combo("Volumetric Path", &current_volumetric_path_type, "None\0 Raymarching 2D\0Fog Volume\0", 3);
 
@@ -568,7 +582,8 @@ namespace adria
 						ImGui::TreePop();
 					}
 
-					path_type = static_cast<RendererPathType>(current_render_path_type);
+					lighting_path = static_cast<RendererLightingPath>(current_lighting_path_type);
+					output_type = static_cast<RendererOutputType>(renderer_output_type);
 					volumetric_path_type = static_cast<VolumetricPathType>(current_volumetric_path_type);
 
 					ImGui::TreePop();

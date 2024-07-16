@@ -120,6 +120,7 @@ namespace adria
 			case CS_ReSTIRGI_InitialSampling:
 			case CS_VolumetricFog_LightInjection:
 			case CS_VolumetricFog_ScatteringIntegration:
+			case CS_RendererOutput:
 				return GfxShaderStage::CS;
 			case HS_OceanLOD:
 				return GfxShaderStage::HS;
@@ -309,6 +310,8 @@ namespace adria
 				return "RayTracing/PathTracer.hlsl";
 			case CS_ReSTIRGI_InitialSampling:
 				return "ReSTIR/InitialSampling.hlsl";
+			case CS_RendererOutput:
+				return "Other/RendererOutput.hlsl";
 			case ShaderId_Count:
 			default:
 				return "";
@@ -508,6 +511,8 @@ namespace adria
 				return "DDGIVisualizePS";
 			case CS_ReSTIRGI_InitialSampling:
 				return "InitialSamplingCS";
+			case CS_RendererOutput:
+				return "RendererOutputCS";
 			default:
 				return "main";
 			}

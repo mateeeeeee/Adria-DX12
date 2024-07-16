@@ -1,28 +1,23 @@
-#include "DeferredLightingPass.h"
-#include "ShaderStructs.h"
-#include "Components.h"
+#include "RendererOutputPass.h"
 #include "BlackboardData.h"
-#include "ShaderManager.h" 
-#include "Graphics/GfxPipelineState.h"
+#include "ShaderManager.h"
+#include "Graphics/GfxDevice.h"
 #include "Graphics/GfxCommon.h"
 #include "RenderGraph/RenderGraph.h"
-#include "Editor/GUICommand.h"
-#include "Math/Packing.h"
-#include "Logging/Logger.h"
-
-using namespace DirectX;
 
 namespace adria
 {
 
-	DeferredLightingPass::DeferredLightingPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
+	RendererOutputPass::RendererOutputPass(GfxDevice* gfx, uint32 width, uint32 height) : gfx(gfx), width(width), height(height)
 	{
 		CreatePSOs();
 	}
 
-	void DeferredLightingPass::AddPass(RenderGraph& rg)
+	void RendererOutputPass::AddPass(RenderGraph& rg, RendererOutputType type)
 	{
-		struct LightingPassData
+		ADRIA_ASSERT(type != RendererOutputType::Final); 
+
+		struct RendererOutputPassData
 		{
 			RGTextureReadOnlyId  gbuffer_normal;
 			RGTextureReadOnlyId  gbuffer_albedo;
@@ -33,28 +28,19 @@ namespace adria
 		};
 
 		FrameBlackboardData const& frame_data = rg.GetBlackboard().Get<FrameBlackboardData>();
-		rg.AddPass<LightingPassData>("Deferred Lighting Pass",
-			[=](LightingPassData& data, RenderGraphBuilder& builder)
+		rg.AddPass<RendererOutputPassData>("Renderer Output Pass",
+			[=](RendererOutputPassData& data, RenderGraphBuilder& builder)
 			{
-				RGTextureDesc hdr_desc{};
-				hdr_desc.format = GfxFormat::R16G16B16A16_FLOAT;
-				hdr_desc.width = width;
-				hdr_desc.height = height;
-				hdr_desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
-				builder.DeclareTexture(RG_RES_NAME(HDR_RenderTarget), hdr_desc);
-
-				data.output			  = builder.WriteTexture(RG_RES_NAME(HDR_RenderTarget));
-				data.gbuffer_normal   = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
-				data.gbuffer_albedo   = builder.ReadTexture(RG_RES_NAME(GBufferAlbedo), ReadAccess_NonPixelShader);
+				data.output = builder.WriteTexture(RG_RES_NAME(FinalTexture));
+				data.gbuffer_normal = builder.ReadTexture(RG_RES_NAME(GBufferNormal), ReadAccess_NonPixelShader);
+				data.gbuffer_albedo = builder.ReadTexture(RG_RES_NAME(GBufferAlbedo), ReadAccess_NonPixelShader);
 				data.gbuffer_emissive = builder.ReadTexture(RG_RES_NAME(GBufferEmissive), ReadAccess_NonPixelShader);
-				data.depth			  = builder.ReadTexture(RG_RES_NAME(DepthStencil),  ReadAccess_NonPixelShader);
+				data.depth = builder.ReadTexture(RG_RES_NAME(DepthStencil), ReadAccess_NonPixelShader);
 
 				if (builder.IsTextureDeclared(RG_RES_NAME(AmbientOcclusion))) data.ambient_occlusion = builder.ReadTexture(RG_RES_NAME(AmbientOcclusion), ReadAccess_NonPixelShader);
 				else data.ambient_occlusion.Invalidate();
-
-				for (auto& shadow_texture : shadow_textures) std::ignore = builder.ReadTexture(shadow_texture);
 			},
-			[=](LightingPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
+			[=](RendererOutputPassData const& data, RenderGraphContext& context, GfxCommandList* cmd_list)
 			{
 				GfxDevice* gfx = cmd_list->GetDevice();
 
@@ -73,7 +59,7 @@ namespace adria
 				cmd_list->ClearUAV(context.GetTexture(*data.output), gfx->GetDescriptorGPU(i + 5),
 					context.GetReadWriteTexture(data.output), clear);
 
-				struct DeferredLightingConstants
+				struct RendererOutputConstants
 				{
 					uint32 normal_metallic_idx;
 					uint32 diffuse_idx;
@@ -86,21 +72,27 @@ namespace adria
 					.normal_metallic_idx = i, .diffuse_idx = i + 1, .depth_idx = i + 2, .emissive_idx = i + 3, .ao_idx = i + 4, .output_idx = i + 5
 				};
 
-				cmd_list->SetPipelineState(deferred_lighting_pso.get());
+				cmd_list->SetPipelineState(renderer_output_psos[(uint32)type]);
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 16), DivideAndRoundUp(height, 16), 1);
 			}, RGPassType::Compute);
-
-		shadow_textures.clear();
 	}
 
-	void DeferredLightingPass::CreatePSOs()
+	void RendererOutputPass::CreatePSOs()
 	{
+		using enum RendererOutputType;
 		GfxComputePipelineStateDesc compute_pso_desc{};
-		compute_pso_desc.CS = CS_DeferredLighting;
-		deferred_lighting_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+		compute_pso_desc.CS = CS_RendererOutput;
+		renderer_output_psos.Initialize(compute_pso_desc);
+		renderer_output_psos.AddDefine<(uint32)Diffuse>("OUTPUT_DIFFUSE", "1");
+		renderer_output_psos.AddDefine<(uint32)WorldNormal>("OUTPUT_NORMALS", "1");
+		renderer_output_psos.AddDefine<(uint32)Roughness>("OUTPUT_ROUGHNESS", "1");
+		renderer_output_psos.AddDefine<(uint32)Metallic>("OUTPUT_METALLIC", "1");
+		renderer_output_psos.AddDefine<(uint32)Emissive>("OUTPUT_EMISSIVE", "1");
+		renderer_output_psos.AddDefine<(uint32)AmbientOcclusion>("OUTPUT_AO", "1");
+		renderer_output_psos.AddDefine<(uint32)IndirectLighting>("OUTPUT_INDIRECT", "1");
+		renderer_output_psos.Finalize(gfx);
 	}
 
 }
-

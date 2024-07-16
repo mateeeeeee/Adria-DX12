@@ -20,6 +20,7 @@
 #include "AccelerationStructure.h"
 #include "ShadowRenderer.h"
 #include "PathTracingPass.h"
+#include "RendererOutputPass.h"
 #include "Graphics/GfxShaderCompiler.h"
 #include "Graphics/GfxConstantBuffer.h"
 #include "RenderGraph/RenderGraphResourcePool.h"
@@ -34,9 +35,9 @@ namespace adria
 
 	class Renderer
 	{
-		enum class RendererPathType : uint8
+		enum class RendererLightingPath : uint8
 		{
-			RegularDeferred,
+			Deferred,
 			TiledDeferred,
 			ClusteredDeferred,
 			PathTracing
@@ -118,6 +119,7 @@ namespace adria
 		PostProcessor postprocessor;
 		DDGI		  ddgi;
 		PathTracingPass path_tracer;
+		RendererOutputPass renderer_output_pass;
 		GPUDebugPrinter gpu_debug_printer;
 
 		//ray tracing
@@ -129,7 +131,8 @@ namespace adria
 		bool update_picking_data = false;
 		PickingData picking_data;
 
-		RendererPathType path_type = RendererPathType::RegularDeferred;
+		RendererLightingPath lighting_path = RendererLightingPath::Deferred;
+		RendererOutputType   output_type = RendererOutputType::Final;
 		bool use_gpu_driven_rendering = true;
 
 		//weather
