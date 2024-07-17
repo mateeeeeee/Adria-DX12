@@ -810,8 +810,48 @@ namespace adria
 	}
 	void Editor::Scene(GfxDescriptor& src)
 	{
-		ImGui::Begin(ICON_FA_GLOBE" Scene");
+		ImGui::Begin(ICON_FA_GLOBE" Scene", nullptr, ImGuiWindowFlags_MenuBar);
 		{
+			if (ImGui::BeginMenuBar())
+			{
+				if (ImGui::BeginMenu("Lighting Path"))
+				{
+					LightingPath current_path = engine->renderer->GetLightingPath();
+					auto AddMenuItem = [&](LightingPath lighting_path, char const* item_name)
+					{
+						if (ImGui::MenuItem(item_name, nullptr, lighting_path == current_path)) { engine->renderer->SetLightingPath(lighting_path); }
+					};
+				#define AddLightingPathMenuItem(name) AddMenuItem(LightingPath::##name, #name)
+					AddLightingPathMenuItem(Deferred);
+					AddLightingPathMenuItem(TiledDeferred);
+					AddLightingPathMenuItem(ClusteredDeferred);
+					AddLightingPathMenuItem(PathTracing);
+				#undef AddLightingPathMenuItem
+					ImGui::EndMenu();
+				}
+				if (ImGui::BeginMenu("Renderer Output"))
+				{
+					RendererOutput current_output = engine->renderer->GetRendererOutput();
+					auto AddMenuItem = [&](RendererOutput output, char const* item_name)
+					{
+						if (ImGui::MenuItem(item_name, nullptr, output == current_output)) { engine->renderer->SetRendererOutput(output); }
+					};
+
+				#define AddRendererOutputMenuItem(name) AddMenuItem(RendererOutput::##name, #name)
+					AddRendererOutputMenuItem(Final);
+					AddRendererOutputMenuItem(Diffuse);
+					AddRendererOutputMenuItem(WorldNormal);
+					AddRendererOutputMenuItem(Roughness);
+					AddRendererOutputMenuItem(Metallic);
+					AddRendererOutputMenuItem(Emissive);
+					AddRendererOutputMenuItem(AmbientOcclusion);
+					AddRendererOutputMenuItem(IndirectLighting);
+				#undef AddRendererOutputMenuItem
+					ImGui::EndMenu();
+				}
+				ImGui::EndMenuBar();
+			}
+
 			ImVec2 v_min = ImGui::GetWindowContentRegionMin();
 			ImVec2 v_max = ImGui::GetWindowContentRegionMax();
 			v_min.x += ImGui::GetWindowPos().x;

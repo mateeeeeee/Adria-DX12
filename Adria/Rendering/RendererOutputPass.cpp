@@ -13,9 +13,9 @@ namespace adria
 		CreatePSOs();
 	}
 
-	void RendererOutputPass::AddPass(RenderGraph& rg, RendererOutputType type)
+	void RendererOutputPass::AddPass(RenderGraph& rg, RendererOutput type)
 	{
-		ADRIA_ASSERT(type != RendererOutputType::Final); 
+		ADRIA_ASSERT(type != RendererOutput::Final); 
 
 		struct RendererOutputPassData
 		{
@@ -81,7 +81,7 @@ namespace adria
 
 	void RendererOutputPass::CreatePSOs()
 	{
-		using enum RendererOutputType;
+		using enum RendererOutput;
 		GfxComputePipelineStateDesc compute_pso_desc{};
 		compute_pso_desc.CS = CS_RendererOutput;
 		renderer_output_psos.Initialize(compute_pso_desc);

@@ -516,7 +516,7 @@
     <ClCompile Include="Rendering\SunPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\DebugOutputPass.cpp">
+    <ClCompile Include="Rendering\RendererOutputPass.cpp">
       <Filter>Rendering\Passes</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1140,7 +1140,7 @@
     <ClInclude Include="Rendering\SunPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\DebugOutputPass.h">
+    <ClInclude Include="Rendering\RendererOutputPass.h">
       <Filter>Rendering\Passes</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1431,7 +1431,7 @@
     <FxCompile Include="Resources\Shaders\Lighting\VolumetricFog.hlsl">
       <Filter>Shaders\Lighting</Filter>
     </FxCompile>
-    <FxCompile Include="Rendering\DebugOutput.hlsl">
+    <FxCompile Include="Resources\Shaders\Other\RendererOutput.hlsl">
       <Filter>Shaders\Other</Filter>
     </FxCompile>
   </ItemGroup>

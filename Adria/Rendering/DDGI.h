@@ -73,7 +73,6 @@ namespace adria
 		DDGIVolume ddgi_volume;
 		std::unique_ptr<GfxBuffer>  ddgi_volume_buffer;
 		GfxDescriptor ddgi_volume_buffer_srv;
-		bool enabled = false;
 		bool visualize = false;
 		DDGIVisualizeMode ddgi_visualize_mode = DDGIVisualizeMode_Irradiance;
 		std::unique_ptr<GfxComputePipelineState>  update_irradiance_pso;

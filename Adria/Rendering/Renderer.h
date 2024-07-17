@@ -33,17 +33,17 @@ namespace adria
 	class GfxTexture;
 	struct Light;
 
+	enum class LightingPath : uint8
+	{
+		Deferred,
+		TiledDeferred,
+		ClusteredDeferred,
+		PathTracing
+	};
+
 	class Renderer
 	{
-		enum class RendererLightingPath : uint8
-		{
-			Deferred,
-			TiledDeferred,
-			ClusteredDeferred,
-			PathTracing
-		};
-
-		enum class VolumetricPathType : uint8
+		enum class VolumetricPath : uint8
 		{
 			None,
 			Raymarching2D,
@@ -58,7 +58,6 @@ namespace adria
 		void Tick(Camera const* camera);
 		void Update(float dt);
 		void Render();
-		void SetViewportData(ViewportData const& vp);
 
 		void OnResize(uint32 w, uint32 h);
 		void OnRenderResolutionChanged(uint32 w, uint32 h);
@@ -69,6 +68,17 @@ namespace adria
 		PickingData const& GetPickingData() const { return picking_data; }
 		Vector2u GetDisplayResolution() const { return Vector2u(display_width, display_height); }
 
+		RendererOutput GetRendererOutput() const { return renderer_output; }
+		LightingPath GetLightingPath() const { return lighting_path; }
+		void SetRendererOutput(RendererOutput type)
+		{
+			renderer_output = type;
+		}
+		void SetLightingPath(LightingPath path)
+		{
+			lighting_path = path;
+		}
+		void SetViewportData(ViewportData const& vp);
 
 	private:
 		entt::registry& reg;
@@ -91,7 +101,14 @@ namespace adria
 		GfxConstantBuffer<FrameCBuffer> frame_cbuffer;
 
 		//scene buffers
-		enum SceneBufferType { SceneBuffer_Light, SceneBuffer_Mesh, SceneBuffer_Material, SceneBuffer_Instance, SceneBuffer_Count };
+		enum SceneBufferType 
+		{ 
+			SceneBuffer_Light, 
+			SceneBuffer_Mesh, 
+			SceneBuffer_Material, 
+			SceneBuffer_Instance, 
+			SceneBuffer_Count 
+		};
 		struct SceneBuffer
 		{
 			std::unique_ptr<GfxBuffer>  buffer;
@@ -131,9 +148,10 @@ namespace adria
 		bool update_picking_data = false;
 		PickingData picking_data;
 
-		RendererLightingPath lighting_path = RendererLightingPath::Deferred;
-		RendererOutputType   output_type = RendererOutputType::Final;
+		LightingPath lighting_path = LightingPath::Deferred;
+		RendererOutput   renderer_output = RendererOutput::Final;
 		bool use_gpu_driven_rendering = true;
+		bool use_ddgi = true;
 
 		//weather
 		float					 ambient_color[3] = { 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f };
@@ -151,7 +169,7 @@ namespace adria
 
 		//volumetric
 		uint32			         volumetric_lights = 0;
-		VolumetricPathType		 volumetric_path_type = VolumetricPathType::Raymarching2D;
+		VolumetricPath		 volumetric_path_type = VolumetricPath::Raymarching2D;
 		//misc
 		ViewportData			 viewport_data;
 

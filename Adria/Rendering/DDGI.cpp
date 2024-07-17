@@ -33,7 +33,6 @@ namespace adria
 			CreatePSOs();
 			CreateStateObject();
 			ShaderManager::GetLibraryRecompiledEvent().AddMember(&DDGI::OnLibraryRecompiled, *this);
-			enabled = true;
 		}
 	}
 
@@ -93,40 +92,9 @@ namespace adria
 
 	void DDGI::AddPasses(RenderGraph& rg)
 	{
-		if (!IsSupported()) return;
-
-		GUI_Command([&]()
-			{
-				if (ImGui::TreeNode("DDGI"))
-				{
-					ImGui::Checkbox("Enable DDGI", &enabled);
-					if(enabled) ImGui::Checkbox("Visualize DDGI", &visualize);
-					if (visualize)
-					{
-						static const char* visualize_mode[] = { "Irradiance", "Distance" };
-						static int current_visualize_mode = 0;
-						const char* visualize_mode_label = visualize_mode[current_visualize_mode];
-						if (ImGui::BeginCombo("DDGI Visualize Mode", visualize_mode_label, 0))
-						{
-							for (int n = 0; n < IM_ARRAYSIZE(visualize_mode); n++)
-							{
-								const bool is_selected = (current_visualize_mode == n);
-								if (ImGui::Selectable(visualize_mode[n], is_selected)) current_visualize_mode = n;
-								if (is_selected) ImGui::SetItemDefaultFocus();
-							}
-							ImGui::EndCombo();
-						}
-
-						ddgi_visualize_mode = (DDGIVisualizeMode)current_visualize_mode;
-					}
-					ImGui::TreePop();
-				}
-			}, GUICommandGroup_Renderer);
-
-		if (!enabled) return;
+		ADRIA_ASSERT(IsSupported());
 
 		uint32 const num_probes_flat = ddgi_volume.num_probes.x * ddgi_volume.num_probes.y * ddgi_volume.num_probes.z;
-
 		RealRandomGenerator rng(0.0f, 1.0f);
 		Vector3 random_vector(2.0f * rng() - 1.0f, 2.0f * rng() - 1.0f, 2.0f * rng() - 1.0f); random_vector.Normalize();
 		float random_angle = rng() * pi<float> * 2.0f;
@@ -301,6 +269,33 @@ namespace adria
 
 		rg.ExportTexture(RG_RES_NAME(DDGIIrradiance), ddgi_volume.irradiance_history.get());
 		rg.ExportTexture(RG_RES_NAME(DDGIDistance), ddgi_volume.distance_history.get());
+
+		GUI_Command([&]()
+			{
+				if (ImGui::TreeNode("DDGI"))
+				{
+					ImGui::Checkbox("Visualize DDGI", &visualize);
+					if (visualize)
+					{
+						static const char* visualize_mode[] = { "Irradiance", "Distance" };
+						static int current_visualize_mode = 0;
+						const char* visualize_mode_label = visualize_mode[current_visualize_mode];
+						if (ImGui::BeginCombo("DDGI Visualize Mode", visualize_mode_label, 0))
+						{
+							for (int n = 0; n < IM_ARRAYSIZE(visualize_mode); n++)
+							{
+								const bool is_selected = (current_visualize_mode == n);
+								if (ImGui::Selectable(visualize_mode[n], is_selected)) current_visualize_mode = n;
+								if (is_selected) ImGui::SetItemDefaultFocus();
+							}
+							ImGui::EndCombo();
+						}
+
+						ddgi_visualize_mode = (DDGIVisualizeMode)current_visualize_mode;
+					}
+					ImGui::TreePop();
+				}
+			}, GUICommandGroup_Renderer);
 	}
 
 	void DDGI::AddVisualizePass(RenderGraph& rg)
@@ -336,7 +331,7 @@ namespace adria
 
 	int32 DDGI::GetDDGIVolumeIndex()
 	{
-		if (!IsSupported() || !enabled)  return -1;
+		if (!IsSupported())  return -1;
 
 		std::vector<DDGIVolumeGPU> ddgi_data;
 		DDGIVolumeGPU& ddgi_gpu = ddgi_data.emplace_back();

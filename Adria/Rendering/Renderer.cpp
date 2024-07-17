@@ -30,11 +30,6 @@ using namespace DirectX;
 namespace adria
 {
 	extern bool dump_render_graph;
-	namespace cvars
-	{
-		static ConsoleVariable lightingpath("lightingpath", 0);
-		static ConsoleVariable volumetricpath("volumetricpath", 1);
-	}
 
 	Renderer::Renderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx),
 		accel_structure(gfx), camera(nullptr), display_width(width), display_height(height), render_width(width), render_height(height),
@@ -52,6 +47,7 @@ namespace adria
 	{
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 		use_gpu_driven_rendering = gfx->GetCapabilities().SupportsMeshShaders();
+		use_ddgi = ddgi.IsSupported();
 		g_DebugRenderer.Initialize(gfx, width, height);
 		g_GfxProfiler.Initialize(gfx);
 		GfxTracyProfiler::Initialize(gfx);
@@ -125,7 +121,7 @@ namespace adria
 		render_graph.ImportTexture(RG_RES_NAME(FinalTexture), final_texture.get());
 
 		gpu_debug_printer.AddClearPass(render_graph);
-		if (lighting_path == RendererLightingPath::PathTracing) Render_PathTracing(render_graph);
+		if (lighting_path == LightingPath::PathTracing) Render_PathTracing(render_graph);
 		else Render_Deferred(render_graph);
 		if (take_screenshot) TakeScreenshot(render_graph);
 		gpu_debug_printer.AddPrintPass(render_graph);
@@ -238,7 +234,7 @@ namespace adria
 
 		std::vector<LightGPU> hlsl_lights{};
 		uint32 light_index = 0;
-		Matrix light_transform = lighting_path == RendererLightingPath::PathTracing ? Matrix::Identity : camera->View();
+		Matrix light_transform = lighting_path == LightingPath::PathTracing ? Matrix::Identity : camera->View();
 		for (auto light_entity : reg.view<Light>())
 		{
 			Light& light = reg.get<Light>(light_entity);
@@ -392,7 +388,7 @@ namespace adria
 		frame_cbuf_data.instances_idx = (int32)scene_buffers[SceneBuffer_Instance].buffer_srv_gpu.GetIndex();
 		frame_cbuf_data.lights_idx = (int32)scene_buffers[SceneBuffer_Light].buffer_srv_gpu.GetIndex();
 		shadow_renderer.FillFrameCBuffer(frame_cbuf_data);
-		frame_cbuf_data.ddgi_volumes_idx = ddgi.GetDDGIVolumeIndex();
+		frame_cbuf_data.ddgi_volumes_idx = use_ddgi ? ddgi.GetDDGIVolumeIndex() : -1;
 		frame_cbuf_data.printf_buffer_idx = gpu_debug_printer.GetPrintfBufferIndex();
 		frame_cbuf_data.rain_splash_diffuse_idx = rain_pass.GetRainSplashDiffuseIndex();
 		frame_cbuf_data.rain_splash_bump_idx = rain_pass.GetRainSplashBumpIndex();
@@ -450,30 +446,32 @@ namespace adria
 		if (use_gpu_driven_rendering) gpu_driven_renderer.Render(render_graph);
 		else gbuffer_pass.AddPass(render_graph);
 
-		ddgi.AddPasses(render_graph);
+		if(use_ddgi) ddgi.AddPasses(render_graph);
 
 		decals_pass.AddPass(render_graph);
 		postprocessor.AddAmbientOcclusionPass(render_graph);
 		shadow_renderer.AddShadowMapPasses(render_graph);
 		shadow_renderer.AddRayTracingShadowPasses(render_graph);
 
-		if (output_type == RendererOutputType::Final)
+		if (renderer_output == RendererOutput::Final)
 		{
 			switch (lighting_path)
 			{
-			case RendererLightingPath::Deferred:			deferred_lighting_pass.AddPass(render_graph); break;
-			case RendererLightingPath::TiledDeferred:		tiled_deferred_lighting_pass.AddPass(render_graph); break;
-			case RendererLightingPath::ClusteredDeferred:	clustered_deferred_lighting_pass.AddPass(render_graph, true); break;
+			case LightingPath::Deferred:			deferred_lighting_pass.AddPass(render_graph); break;
+			case LightingPath::TiledDeferred:		tiled_deferred_lighting_pass.AddPass(render_graph); break;
+			case LightingPath::ClusteredDeferred:	clustered_deferred_lighting_pass.AddPass(render_graph, true); break;
 			}
+
 			if (volumetric_lights > 0)
 			{
 				switch (volumetric_path_type)
 				{
-				case VolumetricPathType::Raymarching2D: volumetric_lighting_pass.AddPass(render_graph); break;
-				case VolumetricPathType::FogVolume:		volumetric_fog_pass.AddPasses(render_graph); break;
+				case VolumetricPath::Raymarching2D: volumetric_lighting_pass.AddPass(render_graph); break;
+				case VolumetricPath::FogVolume:		volumetric_fog_pass.AddPasses(render_graph); break;
 				}
 			}
-			if (ddgi.Visualize()) ddgi.AddVisualizePass(render_graph);
+
+			if (use_ddgi && ddgi.Visualize()) ddgi.AddVisualizePass(render_graph);
 			ocean_renderer.AddPasses(render_graph);
 			sky_pass.AddComputeSkyPass(render_graph, sun_direction);
 			sky_pass.AddDrawSkyPass(render_graph);
@@ -484,7 +482,7 @@ namespace adria
 		}
 		else
 		{
-			renderer_output_pass.AddPass(render_graph, output_type);
+			renderer_output_pass.AddPass(render_graph, renderer_output);
 		}
 	}
 	void Renderer::Render_PathTracing(RenderGraph& render_graph)
@@ -497,27 +495,22 @@ namespace adria
 	{
 		GUI_Command([&]()
 			{
-				int& current_lighting_path_type = cvars::lightingpath.Get();
-				int& current_volumetric_path_type = cvars::volumetricpath.Get();
-
-				static int renderer_output_type = (int)output_type;
+				static int current_lighting_path_type = (int)lighting_path;
+				static int current_volumetric_path_type = (int)volumetric_path_type;
 
 				if (ImGui::TreeNode("Renderer"))
 				{
-					if (ImGui::Combo("Lighting Path", &current_lighting_path_type, "Deferred\0Tiled Deferred\0Clustered Deferred\0Path Tracing\0", 4))
-					{
-						if (!ray_tracing_supported && current_lighting_path_type == 3) current_lighting_path_type = 0;
-					}
-					if (current_lighting_path_type != 3)
-					{
-						ImGui::Combo("Renderer Output", &renderer_output_type, "Final\0Diffuse\0World Normal\0Roughness\0Metallic\0Emissive\0Ambient Oclussion\0Indirect Lighting\0", 8);
-					}
 					ImGui::Combo("Volumetric Path", &current_volumetric_path_type, "None\0 Raymarching 2D\0Fog Volume\0", 3);
 
 					if (gfx->GetCapabilities().SupportsMeshShaders())
 					{
 						ImGui::Checkbox("Use GPU-Driven Rendering", &use_gpu_driven_rendering);
 					}
+					if (ddgi.IsSupported())
+					{
+						ImGui::Checkbox("Use DDGI", &use_ddgi);
+					}
+
 					ImGui::ColorEdit3("Ambient Color", ambient_color);
 
 					if (ImGui::TreeNode("Weather"))
@@ -582,9 +575,8 @@ namespace adria
 						ImGui::TreePop();
 					}
 
-					lighting_path = static_cast<RendererLightingPath>(current_lighting_path_type);
-					output_type = static_cast<RendererOutputType>(renderer_output_type);
-					volumetric_path_type = static_cast<VolumetricPathType>(current_volumetric_path_type);
+					lighting_path = static_cast<LightingPath>(current_lighting_path_type);
+					volumetric_path_type = static_cast<VolumetricPath>(current_volumetric_path_type);
 
 					ImGui::TreePop();
 					ImGui::Separator();
