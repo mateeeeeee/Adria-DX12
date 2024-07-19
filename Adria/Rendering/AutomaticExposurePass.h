@@ -34,9 +34,9 @@ namespace adria
 		float min_luminance = 0.0f;
 		float max_luminance = 10.0f;
 		float adaption_speed = 1.5f;
-		float exposure_compensation = 0.0f;
+		float exposure_compensation = -0.5f;
 		float low_percentile = 0.49f;
-		float high_percentile = 0.9f;
+		float high_percentile = 0.99f;
 		bool show_histogram = false;
 
 	private:

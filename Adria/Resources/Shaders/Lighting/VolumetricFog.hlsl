@@ -140,8 +140,8 @@ void LightInjectionCS(CSInput input)
 	Texture3D<float4> lightInjectionTargetHistory = ResourceDescriptorHeap[LightInjectionPassCB.lightInjectionTargetHistoryIdx];
 	float4 prevScattering = lightInjectionTargetHistory.SampleLevel(LinearClampSampler, prevUVW, 0);
 	
-	float lerpFactor = 0.1f;
-	if(any(prevUVW < 0.0f) || any(prevUVW > 1.0f)) lerpFactor = 0.5f;
+	float lerpFactor = 0.02f;
+	if(any(prevUVW < 0.0f) || any(prevUVW > 1.0f)) lerpFactor = 1.0f;
 	currentScattering = lerp(prevScattering, currentScattering, lerpFactor);
 	
 	RWTexture3D<float4> lightInjectionTarget = ResourceDescriptorHeap[LightInjectionPassCB.lightInjectionTargetIdx];
