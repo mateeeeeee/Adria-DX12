@@ -58,6 +58,7 @@ Graphics engine written in C++ using DirectX12.
 ## TODO
 * ReSTIR GI
 * Font Rendering
+* Area Lights
 
 ## Screenshots
 

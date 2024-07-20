@@ -78,18 +78,15 @@ void DDGI_ClosestHit(inout DDGIPayload payload, in HitAttributes attribs)
 	StructuredBuffer<Light> lights = ResourceDescriptorHeap[FrameCB.lightsIdx];
 	Light light = lights[0];
 	bool visibility = TraceShadowRay(light, worldPosition.xyz, FrameCB.inverseView);
-
-	if (!visibility)
-	{
-		float3 L = mul(light.direction.xyz, (float3x3) FrameCB.inverseView);
-		L = normalize(-L);
-		float3 diffuse = saturate(dot(L, N)) * DiffuseBRDF(brdfData.Diffuse);
-		float3 radiance = diffuse * light.color.rgb;
-
-		radiance += matProperties.emissive;
-		radiance += DiffuseBRDF(min(brdfData.Diffuse, 0.9f)) * SampleDDGIIrradiance(ddgiVolume, worldPosition, N, WorldRayDirection());
 	
-		payload.radiance = radiance;
-	}
+	if (!visibility) return;
+	float3 L = mul(light.direction.xyz, (float3x3) FrameCB.inverseView);
+	L = normalize(-L);
+	float3 diffuse = saturate(dot(L, N)) * DiffuseBRDF(brdfData.Diffuse);
+	float3 radiance = diffuse * light.color.rgb;
+
+	radiance += matProperties.emissive;
+	radiance += DiffuseBRDF(min(brdfData.Diffuse, 0.9f)) * SampleDDGIIrradiance(ddgiVolume, worldPosition, N, WorldRayDirection());
+	payload.radiance = radiance;
 	payload.distance = min(RayTCurrent(), payload.distance);
 }
