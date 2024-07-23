@@ -81,7 +81,7 @@ namespace adria
 		Vector4 direction = Vector4(0, -1, 0, 0);
 		Vector4 color = Vector4(1, 1, 1, 1);
 		float range = 100.0f;
-		float energy = 1.0f;
+		float intensity = 1.0f;
 		LightType type = LightType::Directional;
 		float outer_cosine = 0.0f;
 		float inner_cosine = 0.707f;

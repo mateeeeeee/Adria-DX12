@@ -97,17 +97,37 @@ namespace adria
 				LightParameters light{};
 				float position[3] = { 0.0f, 0.0f, 0.0f };
 				light_params.FindArray("position", position);
-				light.light_data.position = XMVectorSet(position[0], position[1], position[2], 1.0f);
+				light.light_data.position = Vector4(position[0], position[1], position[2], 1.0f);
 
 				float direction[3] = { 0.0f, -1.0f, 0.0f };
-				light_params.FindArray("direction", direction);
-				light.light_data.direction = XMVectorSet(direction[0], direction[1], direction[2], 0.0f);
+				if (light_params.FindArray("direction", direction))
+				{
+					light.light_data.direction = Vector4(direction[0], direction[1], direction[2], 0.0f);
+				}
+				else if (type == "directional")
+				{
+					float elevation, azimuth;
+					if (light_params.Find<float>("elevation", elevation) && light_params.Find<float>("azimuth", azimuth))
+					{
+						light.light_data.direction = -ConvertElevationAndAzimuthToDirection(elevation, azimuth);
+					}
+				}
 
 				float color[3] = { 1.0f, 1.0f, 1.0f };
-				light_params.FindArray("color", color);
-				light.light_data.color = XMVectorSet(color[0], color[1], color[2], 1.0f);
+				if (light_params.FindArray("color", color))
+				{
+					light.light_data.color = Vector4(color[0], color[1], color[2], 1.0f);
+				}
+				else if (type == "directional")
+				{
+					float temperature;
+					if (light_params.Find<float>("temperature", temperature))
+					{
+						light.light_data.color = ConvertTemperatureToColor(temperature);
+					}
+				}
 
-				light.light_data.energy = light_params.FindOr<float>("energy", 1.0f);
+				light.light_data.intensity = light_params.FindOr<float>("intensity", 1.0f);
 				light.light_data.range = light_params.FindOr<float>("range", 100.0f);
 
 				light.light_data.outer_cosine = std::cos(XMConvertToRadians(light_params.FindOr<float>("outer_angle", 45.0f)));

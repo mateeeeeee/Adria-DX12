@@ -101,7 +101,6 @@ namespace adria
 		}
 
 		void OnRainEvent(bool enabled);
-
 		RGResourceName GetFinalResource() const;
 
 		void OnResize(uint32 w, uint32 h);

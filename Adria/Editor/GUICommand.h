@@ -16,7 +16,7 @@ namespace adria
 	{
 		"",
 		"Renderer Settings",
-		"PostProcessor Settings"
+		"Post-processing Settings"
 	};
 
 	struct GUICommand

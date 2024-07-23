@@ -515,7 +515,7 @@ namespace adria
 					ImGui::ColorEdit3("Light Color", color);
 					light->color = Vector4(color[0], color[1], color[2], 1.0f);
 
-					ImGui::SliderFloat("Light Energy", &light->energy, 0.0f, 50.0f);
+					ImGui::SliderFloat("Light Intensity", &light->intensity, 0.0f, 50.0f);
 
 					if (engine->reg.all_of<Material>(selected_entity))
 					{

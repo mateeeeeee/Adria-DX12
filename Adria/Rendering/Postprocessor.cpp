@@ -22,12 +22,13 @@ namespace adria
 		static ConsoleVariable taa("TAA", false);
 		static ConsoleVariable fxaa("FXAA", true);
 		static ConsoleVariable exposure("exposure", true);
-		static ConsoleVariable clouds("clouds", true);
 		static ConsoleVariable bloom("bloom", false);
 		static ConsoleVariable motion_blur("motionblur", false);
-		static ConsoleVariable fog("fog", false);
 		static ConsoleVariable film_effects("filmeffects", false);
 		static ConsoleVariable cas("cas", false);
+
+		extern ConsoleVariable clouds("clouds", true);
+		extern ConsoleVariable fog("fog", false);
 	}
 
 	PostProcessor::PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height)
@@ -293,7 +294,7 @@ namespace adria
 				int& current_upscaler = cvars::upscaler.Get();
 				int& current_reflection_type = cvars::reflections.Get();
 				int& current_dof_type = cvars::dof.Get();
-				if (ImGui::TreeNode("PostProcessor"))
+				if (ImGui::TreeNode("Post-processing"))
 				{
 					if (ImGui::Combo("Ambient Occlusion", &current_ao_type, "None\0SSAO\0HBAO\0CACAO\0RTAO\0", 5))
 					{

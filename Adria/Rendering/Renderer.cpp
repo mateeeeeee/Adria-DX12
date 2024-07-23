@@ -31,6 +31,11 @@ using namespace DirectX;
 namespace adria
 {
 	extern bool dump_render_graph;
+	namespace cvars
+	{
+		extern ConsoleVariable<bool> clouds;
+		extern ConsoleVariable<bool> fog;
+	}
 
 	Renderer::Renderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx),
 		accel_structure(gfx), camera(nullptr), display_width(width), display_height(height), render_width(width), render_height(height),
@@ -244,7 +249,7 @@ namespace adria
 			++light_index;
 
 			LightGPU& hlsl_light = hlsl_lights.emplace_back();
-			hlsl_light.color = light.color * light.energy;
+			hlsl_light.color = light.color * light.intensity;
 			hlsl_light.position = Vector4::Transform(light.position, light_transform);
 			hlsl_light.direction = Vector4::Transform(light.direction, light_transform);
 			hlsl_light.range = light.range;
@@ -410,7 +415,7 @@ namespace adria
 			if (light_data.type == LightType::Directional && light_data.active)
 			{
 				frame_cbuf_data.sun_direction = -light_data.direction;
-				frame_cbuf_data.sun_color = light_data.color * light_data.energy;
+				frame_cbuf_data.sun_color = light_data.color * light_data.intensity;
 				sun_direction = Vector3(light_data.direction);
 				break;
 			}
@@ -497,9 +502,7 @@ namespace adria
 	{
 		GUI_Command([&]()
 			{
-				static int current_lighting_path_type = (int)lighting_path;
 				static int current_volumetric_path_type = (int)volumetric_path_type;
-
 				if (ImGui::TreeNode("Renderer"))
 				{
 					if (gpu_driven_renderer.IsSupported())
@@ -531,30 +534,23 @@ namespace adria
                             }
                         }
 
-                        if (sun_light && ImGui::TreeNode("Sun"))
+                        if (sun_light)
                         {
-                            ImGui::ColorEdit3("Color", (float*)&sun_light->color);
-                            ImGui::SliderFloat("Energy", &sun_light->energy, 0.0f, 50.0f);
-                            ImGui::SliderFloat3("Direction", (float*)&sun_light->direction, -1.0f, 1.0f);
-                            sun_light->position = -sun_light->direction * 1e3;
+							static float sun_elevation = 75.0f;
+							static float sun_azimuth = 260.0f;
+							static float sun_temperature = 5900.0f;
+							ConvertDirectionToAzimuthAndElevation(-sun_light->direction, sun_elevation, sun_azimuth);
+
+							ImGui::SliderFloat("Sun Temperature", &sun_temperature, 1000.0f, 15000.0f);
+                            ImGui::SliderFloat("Sun Energy", &sun_light->intensity, 0.0f, 50.0f);
+                            ImGui::SliderFloat("Sun Elevation", &sun_elevation, -90.0f, 90.0f);
+                            ImGui::SliderFloat("Sun Azimuth", &sun_azimuth, 0.0f, 360.0f);
+							
+							sun_light->color = ConvertTemperatureToColor(sun_temperature);
+							sun_light->direction = ConvertElevationAndAzimuthToDirection(sun_elevation, sun_azimuth);
+							sun_light->position = 1e3 * sun_light->direction;
+							sun_light->direction = -sun_light->direction;
                             sun_transform->current_transform = XMMatrixTranslationFromVector(sun_light->position);
-
-							//todo
-                            //static float sun_elevation = 80.0f;
-                            //static float sun_azimuth = 265.0f;
-                            //ImGui::SliderFloat("Sun Elevation", &sun_elevation, -90.0f, 90.0f);
-                            //ImGui::SliderFloat("Sun Azimuth", &sun_azimuth, 0.0f, 360.0f);
-                            //
-                            //float phi = XMConvertToRadians(sun_azimuth);
-                            //float theta = pi_div_2<float> - XMConvertToRadians(sun_elevation);
-                            //sun_light->direction.x = sin(theta) * sin(phi);
-                            //sun_light->direction.y = sin(theta) * cos(phi);
-                            //sun_light->direction.z = cos(theta);
-                            //sun_light->position = sun_light->direction * 1e3;
-                            //
-                            //sun_transform->current_transform = XMMatrixTranslationFromVector(sun_light->position);
-
-                            ImGui::TreePop();
                         }
                         ImGui::TreePop();
 
@@ -564,7 +560,8 @@ namespace adria
                         {
                             sky_type = static_cast<SkyType>(current_sky_type);
                         }
-
+						ImGui::Checkbox("Volumetric Clouds", &cvars::clouds.Get());
+						ImGui::Checkbox("Fog", &cvars::fog.Get());
                         if (ImGui::Checkbox("Rain", &rain_enabled))
                         {
                             rain_pass.OnRainEnabled(rain_enabled);
@@ -574,7 +571,6 @@ namespace adria
                         ImGui::SliderFloat("Wind Speed", &wind_speed, 0.0f, 32.0f);
 					}
 
-					lighting_path = static_cast<LightingPath>(current_lighting_path_type);
 					volumetric_path_type = static_cast<VolumetricPath>(current_volumetric_path_type);
 
 					ImGui::TreePop();
