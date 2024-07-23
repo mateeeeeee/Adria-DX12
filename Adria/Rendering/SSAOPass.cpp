@@ -7,19 +7,12 @@
 #include "Math/Packing.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Utilities/Random.h"
-#include "Core/ConsoleVariable.h"
 #include "Editor/GUICommand.h"
 
 using namespace DirectX;
 
 namespace adria
 {
-	namespace cvars
-	{
-		static ConsoleVariable ssao_power("ssao.power",   1.5f);
-		static ConsoleVariable ssao_radius("ssao.radius", 1.0f);
-	}
-
 	SSAOPass::SSAOPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ssao_random_texture(nullptr),
 		blur_pass(gfx, w >> resolution, h >> resolution)
 	{
@@ -98,16 +91,13 @@ namespace adria
 			}, RGPassType::Compute);
 
 		blur_pass.AddPass(rendergraph, RG_RES_NAME(SSAO_Output), RG_RES_NAME(AmbientOcclusion), " SSAO");
-		
-		params.ssao_power = std::clamp(cvars::ssao_power.Get(), 1.0f, 16.0f);
-		params.ssao_radius = std::clamp(cvars::ssao_radius.Get(), 0.5f, 4.0f);
 
 		GUI_Command([&]() 
 			{
 				if (ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_None))
 				{
-					ImGui::SliderFloat("Power", &cvars::ssao_power.Get(), 1.0f, 16.0f);
-					ImGui::SliderFloat("Radius", &cvars::ssao_radius.Get(), 0.5f, 4.0f);
+					ImGui::SliderFloat("Power", &params.ssao_power, 1.0f, 16.0f);
+					ImGui::SliderFloat("Radius", &params.ssao_radius, 0.5f, 4.0f);
 
 					static int _resolution = (int)resolution;
 					if (ImGui::Combo("SSAO Resolution", &_resolution, "Full\0Half\0Quarter\0", 3))

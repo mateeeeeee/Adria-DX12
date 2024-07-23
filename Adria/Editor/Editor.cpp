@@ -7,7 +7,6 @@
 #include "Core/Engine.h"
 #include "Core/Input.h"
 #include "Core/Paths.h"
-#include "Core/ConsoleVariable.h"
 #include "Core/ConsoleCommand.h"
 #include "IconsFontAwesome6.h"
 #include "Rendering/Renderer.h"

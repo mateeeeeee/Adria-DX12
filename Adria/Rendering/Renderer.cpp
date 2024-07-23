@@ -22,7 +22,6 @@
 #include "Math/Constants.h"
 #include "Logging/Logger.h"
 #include "Core/Paths.h"
-#include "Core/ConsoleVariable.h"
 #include "entt/entity/registry.hpp"
 
 
@@ -31,11 +30,6 @@ using namespace DirectX;
 namespace adria
 {
 	extern bool dump_render_graph;
-	namespace cvars
-	{
-		extern ConsoleVariable<bool> clouds;
-		extern ConsoleVariable<bool> fog;
-	}
 
 	Renderer::Renderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx),
 		accel_structure(gfx), camera(nullptr), display_width(width), display_height(height), render_width(width), render_height(height),
@@ -560,9 +554,7 @@ namespace adria
                         {
                             sky_type = static_cast<SkyType>(current_sky_type);
                         }
-						ImGui::Checkbox("Volumetric Clouds", &cvars::clouds.Get());
-						ImGui::Checkbox("Fog", &cvars::fog.Get());
-                        if (ImGui::Checkbox("Rain", &rain_enabled))
+						if (ImGui::Checkbox("Rain", &rain_enabled))
                         {
                             rain_pass.OnRainEnabled(rain_enabled);
                         }

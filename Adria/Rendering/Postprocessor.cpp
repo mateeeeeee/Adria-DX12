@@ -5,7 +5,6 @@
 #include "RainPass.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Logging/Logger.h"
-#include "Core/ConsoleVariable.h"
 #include "Editor/GUICommand.h"
 #include "entt/entity/registry.hpp"
 
@@ -13,24 +12,6 @@ using namespace DirectX;
 
 namespace adria
 {
-	namespace cvars
-	{
-		static ConsoleVariable ambient_occlusion("ao", 1);
-		static ConsoleVariable upscaler("upscaler", 0);
-		static ConsoleVariable reflections("reflections", 0);
-		static ConsoleVariable dof("dof", 0);
-		static ConsoleVariable taa("TAA", false);
-		static ConsoleVariable fxaa("FXAA", true);
-		static ConsoleVariable exposure("exposure", true);
-		static ConsoleVariable bloom("bloom", false);
-		static ConsoleVariable motion_blur("motionblur", false);
-		static ConsoleVariable film_effects("filmeffects", false);
-		static ConsoleVariable cas("cas", false);
-
-		extern ConsoleVariable clouds("clouds", true);
-		extern ConsoleVariable fog("fog", false);
-	}
-
 	PostProcessor::PostProcessor(GfxDevice* gfx, entt::registry& reg, uint32 width, uint32 height)
 		: gfx(gfx), reg(reg), display_width(width), display_height(height), render_width(width), render_height(height),
 		blur_pass(gfx, width, height), copy_to_texture_pass(gfx, width, height), film_effects_pass(gfx, width, height),
@@ -290,10 +271,13 @@ namespace adria
 	{
 		GUI_Command([&]()
 			{
-				int& current_ao_type = cvars::ambient_occlusion.Get();
-				int& current_upscaler = cvars::upscaler.Get();
-				int& current_reflection_type = cvars::reflections.Get();
-				int& current_dof_type = cvars::dof.Get();
+				static int current_ao_type = (int)ambient_occlusion;
+				static int current_upscaler = (int)upscaler;
+				static int current_reflection_type = (int)reflections;
+				static int current_dof_type = (int)dof;
+				static bool fxaa = anti_aliasing & AntiAliasing_FXAA;
+				static bool taa = anti_aliasing & AntiAliasing_TAA;
+
 				if (ImGui::TreeNode("Post-processing"))
 				{
 					if (ImGui::Combo("Ambient Occlusion", &current_ao_type, "None\0SSAO\0HBAO\0CACAO\0RTAO\0", 5))
@@ -330,35 +314,28 @@ namespace adria
 						dof = static_cast<DepthOfField>(current_dof_type);
 					}
 
-					ImGui::Checkbox("Automatic Exposure", &cvars::exposure.Get());
-					ImGui::Checkbox("Volumetric Clouds", &cvars::clouds.Get());
-					ImGui::Checkbox("Bloom", &cvars::bloom.Get());
-					ImGui::Checkbox("Motion Blur", &cvars::motion_blur.Get());
-					ImGui::Checkbox("Film Effects", &cvars::film_effects.Get());
-					ImGui::Checkbox("Fog", &cvars::fog.Get());
+					ImGui::Checkbox("Automatic Exposure", &automatic_exposure);
+					ImGui::Checkbox("Volumetric Clouds", &clouds);
+					ImGui::Checkbox("Bloom", &bloom);
+					ImGui::Checkbox("Motion Blur", &motion_blur);
+					ImGui::Checkbox("Film Effects", &film_effects);
+					ImGui::Checkbox("Fog", &fog);
 
 					if (ImGui::TreeNode("Anti-Aliasing"))
 					{
-						ImGui::Checkbox("FXAA", &cvars::fxaa.Get());
-						ImGui::Checkbox("TAA", &cvars::taa.Get());
+						ImGui::Checkbox("FXAA", &fxaa);
+						ImGui::Checkbox("TAA", &taa);
 						ImGui::TreePop();
 					}
-					if (cvars::taa) ImGui::Checkbox("CAS", &cvars::cas.Get());
+					if (taa) ImGui::Checkbox("CAS", &cas);
 
 					ImGui::TreePop();
 				}
-				
-				automatic_exposure = cvars::exposure;
-				clouds = cvars::clouds;
-				bloom = cvars::bloom;
-				motion_blur = cvars::motion_blur;
-				fog = cvars::fog;
-				film_effects = cvars::film_effects;
-				cas = cvars::cas;
-				if (cvars::fxaa) anti_aliasing = static_cast<AntiAliasing>(anti_aliasing | AntiAliasing_FXAA);
+
+				if (fxaa) anti_aliasing = static_cast<AntiAliasing>(anti_aliasing | AntiAliasing_FXAA);
 				else anti_aliasing = static_cast<AntiAliasing>(anti_aliasing & (~AntiAliasing_FXAA));
 
-				if (cvars::taa) anti_aliasing = static_cast<AntiAliasing>(anti_aliasing | AntiAliasing_TAA);
+				if (taa) anti_aliasing = static_cast<AntiAliasing>(anti_aliasing | AntiAliasing_TAA);
 				else anti_aliasing = static_cast<AntiAliasing>(anti_aliasing & (~AntiAliasing_TAA));
 
 			}, GUICommandGroup_None);
