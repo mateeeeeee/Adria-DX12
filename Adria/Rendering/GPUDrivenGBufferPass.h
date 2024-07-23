@@ -32,6 +32,8 @@ namespace adria
 	public:
 		GPUDrivenGBufferPass(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height);
 
+		bool IsSupported() const;
+
 		void Render(RenderGraph& rg);
 
 		void OnResize(uint32 w, uint32 h)

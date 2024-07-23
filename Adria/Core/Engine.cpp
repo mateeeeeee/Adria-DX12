@@ -258,7 +258,7 @@ namespace adria
 	void Engine::Update(float dt)
 	{
 		camera->Tick(dt);
-		renderer->Tick(camera.get());
+		renderer->NewFrame(camera.get());
 		renderer->Update(dt);
 	}
 
@@ -303,8 +303,8 @@ namespace adria
 		camera = std::make_unique<Camera>(config.camera_params);
 		entity_loader->LoadSkybox(config.skybox_params);
 
-		for (auto&& model : config.scene_models) entity_loader->ImportModel_GLTF(model);
-		for (auto&& light : config.scene_lights) entity_loader->LoadLight(light);
+		for (auto const& model : config.scene_models) entity_loader->ImportModel_GLTF(model);
+		for (auto const& light : config.scene_lights) entity_loader->LoadLight(light);
 
 		auto ray_tracing_view = reg.view<Mesh, RayTracing>();
 		for (auto entity : ray_tracing_view)

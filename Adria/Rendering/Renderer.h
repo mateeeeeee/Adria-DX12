@@ -55,7 +55,7 @@ namespace adria
 		Renderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height);
 		~Renderer();
 
-		void Tick(Camera const* camera);
+		void NewFrame(Camera const* camera);
 		void Update(float dt);
 		void Render();
 
@@ -154,6 +154,7 @@ namespace adria
 		bool use_ddgi = true;
 
 		//weather
+        SkyType					 sky_type = SkyType::HosekWilkie;
 		float					 ambient_color[3] = { 1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f };
 		float					 wind_dir[3] = { 1.0f, 0.0f, 1.0f };
 		float					 wind_speed = 10.0f;

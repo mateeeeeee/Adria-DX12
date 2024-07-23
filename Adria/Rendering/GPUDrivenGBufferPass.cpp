@@ -28,14 +28,21 @@ namespace adria
 	GPUDrivenGBufferPass::GPUDrivenGBufferPass(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) 
 		: reg(reg), gfx(gfx), width(width), height(height)
 	{
-		if (!gfx->GetCapabilities().SupportsMeshShaders()) return;
+		if (!IsSupported()) return;
 		CreateDebugBuffer();
 		InitializeHZB();
 		CreatePSOs();
 	}
 
-	void GPUDrivenGBufferPass::Render(RenderGraph& rg)
+    bool GPUDrivenGBufferPass::IsSupported() const
+    {
+        return gfx->GetCapabilities().SupportsMeshShaders();
+    }
+
+    void GPUDrivenGBufferPass::Render(RenderGraph& rg)
 	{
+		if (!IsSupported()) return;
+
 		AddClearCountersPass(rg);
 		Add1stPhasePasses(rg);
 		Add2ndPhasePasses(rg);

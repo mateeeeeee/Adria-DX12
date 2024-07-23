@@ -19,6 +19,7 @@
 #include "Utilities/ThreadPool.h"
 #include "Utilities/Random.h"
 #include "Utilities/ImageWrite.h"
+#include "Math/Constants.h"
 #include "Logging/Logger.h"
 #include "Core/Paths.h"
 #include "Core/ConsoleVariable.h"
@@ -46,7 +47,7 @@ namespace adria
 		path_tracer(gfx, width, height), ddgi(gfx, reg, width, height), gpu_debug_printer(gfx)
 	{
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
-		use_gpu_driven_rendering = gfx->GetCapabilities().SupportsMeshShaders();
+		use_gpu_driven_rendering = gpu_driven_renderer.IsSupported();
 		use_ddgi = ddgi.IsSupported();
 		g_DebugRenderer.Initialize(gfx, width, height);
 		g_GfxProfiler.Initialize(gfx);
@@ -76,7 +77,7 @@ namespace adria
 	{
 		viewport_data = vp;
 	}
-	void Renderer::Tick(Camera const* _camera)
+	void Renderer::NewFrame(Camera const* _camera)
 	{
 		ADRIA_ASSERT(_camera);
 		camera = _camera;
@@ -87,6 +88,7 @@ namespace adria
 	void Renderer::Update(float dt)
 	{
 		shadow_renderer.SetupShadows(camera);
+		sky_pass.SetSkyType(sky_type);
 		UpdateSceneBuffers();
 		UpdateFrameConstants(dt);
 		CameraFrustumCulling();
@@ -500,9 +502,7 @@ namespace adria
 
 				if (ImGui::TreeNode("Renderer"))
 				{
-					ImGui::Combo("Volumetric Path", &current_volumetric_path_type, "None\0 Raymarching 2D\0Fog Volume\0", 3);
-
-					if (gfx->GetCapabilities().SupportsMeshShaders())
+					if (gpu_driven_renderer.IsSupported())
 					{
 						ImGui::Checkbox("Use GPU-Driven Rendering", &use_gpu_driven_rendering);
 					}
@@ -510,69 +510,68 @@ namespace adria
 					{
 						ImGui::Checkbox("Use DDGI", &use_ddgi);
 					}
-
-					ImGui::ColorEdit3("Ambient Color", ambient_color);
+					if(!use_ddgi)
+					{
+						ImGui::ColorEdit3("Ambient Color", ambient_color);
+					}
 
 					if (ImGui::TreeNode("Weather"))
 					{
-						if (ImGui::Checkbox("Rain", &rain_enabled))
-						{
-							rain_pass.OnRainEnabled(rain_enabled);
-						}
-						ImGui::SliderFloat3("Wind Direction", wind_dir, -1.0f, 1.0f);
-						ImGui::SliderFloat("Wind Speed", &wind_speed, 0.0f, 32.0f);
+                        auto lights = reg.view<Light, Transform>();
+                        Light* sun_light = nullptr;
+                        Transform* sun_transform = nullptr;
+                        for (entt::entity light : lights)
+                        {
+                            Light& light_data = lights.get<Light>(light);
+                            if (light_data.type == LightType::Directional && light_data.active)
+                            {
+                                sun_light = &light_data;
+                                sun_transform = &lights.get<Transform>(light);
+                                break;
+                            }
+                        }
 
-						auto lights = reg.view<Light, Transform>();
-						Light* sun_light = nullptr;
-						Transform* sun_transform = nullptr;
-						for (entt::entity light : lights)
-						{
-							Light& light_data = lights.get<Light>(light);
-							if (light_data.type == LightType::Directional && light_data.active)
-							{
-								sun_light = &light_data;
-								sun_transform = &lights.get<Transform>(light);
-								break;
-							}
-						}
+                        if (sun_light && ImGui::TreeNode("Sun"))
+                        {
+                            ImGui::ColorEdit3("Color", (float*)&sun_light->color);
+                            ImGui::SliderFloat("Energy", &sun_light->energy, 0.0f, 50.0f);
+                            ImGui::SliderFloat3("Direction", (float*)&sun_light->direction, -1.0f, 1.0f);
+                            sun_light->position = -sun_light->direction * 1e3;
+                            sun_transform->current_transform = XMMatrixTranslationFromVector(sun_light->position);
 
-						if (sun_light && ImGui::TreeNode("Sun"))
-						{
-							ImGui::ColorEdit3("Color", (float*)&sun_light->color);
-							ImGui::SliderFloat("Energy", &sun_light->energy, 0.0f, 50.0f);
-							ImGui::SliderFloat3("Direction", (float*)&sun_light->direction, -1.0f, 1.0f);
-							sun_light->position = -sun_light->direction * 1e3;
+							//todo
+                            //static float sun_elevation = 80.0f;
+                            //static float sun_azimuth = 265.0f;
+                            //ImGui::SliderFloat("Sun Elevation", &sun_elevation, -90.0f, 90.0f);
+                            //ImGui::SliderFloat("Sun Azimuth", &sun_azimuth, 0.0f, 360.0f);
+                            //
+                            //float phi = XMConvertToRadians(sun_azimuth);
+                            //float theta = pi_div_2<float> - XMConvertToRadians(sun_elevation);
+                            //sun_light->direction.x = sin(theta) * sin(phi);
+                            //sun_light->direction.y = sin(theta) * cos(phi);
+                            //sun_light->direction.z = cos(theta);
+                            //sun_light->position = sun_light->direction * 1e3;
+                            //
+                            //sun_transform->current_transform = XMMatrixTranslationFromVector(sun_light->position);
 
-							static int current_shadow_type = sun_light->casts_shadows;
-							ImGui::Combo("Shadow Technique", &current_shadow_type, "None\0Shadow Map\0Ray Traced Shadows\0", 3);
-							if (!ray_tracing_supported && current_shadow_type == 2) current_shadow_type = 1;
+                            ImGui::TreePop();
+                        }
+                        ImGui::TreePop();
 
-							if (sun_light->casts_shadows)
-							{
-								ImGui::Checkbox("Use Cascades", &sun_light->use_cascades);
-							}
-							sun_light->casts_shadows = (current_shadow_type == 1);
-							sun_light->ray_traced_shadows = (current_shadow_type == 2);
+                        ImGui::Combo("Volumetric Fog", &current_volumetric_path_type, "None\0 Raymarching 2D\0Fog Volume\0", 3);
+                        static int current_sky_type = 2;
+                        if (ImGui::Combo("Sky", &current_sky_type, "Skybox\0Minimal Atmosphere\0Hosek-Wilkie\0", 3))
+                        {
+                            sky_type = static_cast<SkyType>(current_sky_type);
+                        }
 
-							ImGui::Checkbox("Volumetric Lighting", &sun_light->volumetric);
-							if (sun_light->volumetric)
-							{
-								ImGui::SliderFloat("Volumetric lighting Strength", &sun_light->volumetric_strength, 0.0f, 0.1f);
-							}
-							ImGui::Checkbox("Lens Flare", &sun_light->lens_flare);
-							ImGui::Checkbox("God Rays", &sun_light->god_rays);
-							if (sun_light->god_rays)
-							{
-								ImGui::SliderFloat("God Rays Decay", &sun_light->godrays_decay, 0.0f, 1.0f);
-								ImGui::SliderFloat("God Rays Weight", &sun_light->godrays_weight, 0.0f, 1.0f);
-								ImGui::SliderFloat("God Rays Density", &sun_light->godrays_density, 0.1f, 2.0f);
-								ImGui::SliderFloat("God Rays Exposure", &sun_light->godrays_exposure, 0.1f, 10.0f);
-							}
-							sun_transform->current_transform = XMMatrixTranslationFromVector(sun_light->position);
+                        if (ImGui::Checkbox("Rain", &rain_enabled))
+                        {
+                            rain_pass.OnRainEnabled(rain_enabled);
+                        }
 
-							ImGui::TreePop();
-						}
-						ImGui::TreePop();
+                        ImGui::SliderFloat3("Wind Direction", wind_dir, -1.0f, 1.0f);
+                        ImGui::SliderFloat("Wind Speed", &wind_speed, 0.0f, 32.0f);
 					}
 
 					lighting_path = static_cast<LightingPath>(current_lighting_path_type);

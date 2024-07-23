@@ -34,7 +34,10 @@ namespace adria
 		void OnResize(uint32 w, uint32 h);
 
 		int32 GetSkyIndex() const;
-		SkyType GetSkyType() const { return sky_type; }
+		void SetSkyType(SkyType type)
+		{
+			sky_type = type;
+		}
 
 	private:
 		entt::registry& reg;

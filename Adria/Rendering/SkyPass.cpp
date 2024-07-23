@@ -136,23 +136,8 @@ namespace adria
 			{
 				if (ImGui::TreeNodeEx("Sky", ImGuiTreeNodeFlags_None))
 				{
-					static int current_sky_type = 1;
-					const char* sky_types[] = { "Skybox", "Minimal Atmosphere", "Hosek-Wilkie" };
-					const char* combo_label = sky_types[current_sky_type];
-					if (ImGui::BeginCombo("Sky Type", combo_label, 0))
-					{
-						for (int n = 0; n < IM_ARRAYSIZE(sky_types); n++)
-						{
-							const bool is_selected = (current_sky_type == n);
-							if (ImGui::Selectable(sky_types[n], is_selected)) current_sky_type = n;
-							if (is_selected) ImGui::SetItemDefaultFocus();
-						}
-						ImGui::EndCombo();
-					}
-
-					if (current_sky_type == 0) sky_type = SkyType::Skybox;
-					else if (current_sky_type == 1) sky_type = SkyType::MinimalAtmosphere;
-					else if (current_sky_type == 2)
+					
+					if (sky_type == SkyType::HosekWilkie)
 					{
 						sky_type = SkyType::HosekWilkie;
 						ImGui::SliderFloat("Turbidity", &turbidity, 2.0f, 30.0f);
