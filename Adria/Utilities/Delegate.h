@@ -23,9 +23,9 @@ namespace adria
 	{ \
 	private: \
 		friend class owner; \
-		using MultiCastDelegate::Broadcast; \
-		using MultiCastDelegate::RemoveAll; \
-		using MultiCastDelegate::Remove; \
+		using MultiCastDelegate<__VA_ARGS__>::Broadcast; \
+		using MultiCastDelegate<__VA_ARGS__>::RemoveAll; \
+		using MultiCastDelegate<__VA_ARGS__>::Remove; \
 	};
 
 	template<typename...>

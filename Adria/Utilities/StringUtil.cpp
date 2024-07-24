@@ -53,10 +53,7 @@ namespace adria
 		return out;
 	}
 
-	template<typename T>
-	bool FromCString(const char* in, T& out);
-
-	template<>
+	
 	bool FromCString(const char* in, int& out)
 	{
 		std::istringstream iss(in);
@@ -64,7 +61,6 @@ namespace adria
 		return !iss.fail() && iss.eof();
 	}
 
-	template<>
 	bool FromCString(const char* in, float& out)
 	{
 		std::istringstream iss(in);
@@ -72,14 +68,12 @@ namespace adria
 		return !iss.fail() && iss.eof();
 	}
 
-	template<>
 	bool FromCString(const char* in, const char*& out)
 	{
 		out = in;
 		return true;
 	}
 
-	template<>
 	bool FromCString(const char* in, bool& out)
 	{
 		std::string str(in);

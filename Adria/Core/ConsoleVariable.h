@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include "Utilities/StringUtil.h"
+#include "Utilities/Delegate.h"
 
 namespace adria
 {
@@ -24,18 +25,18 @@ namespace adria
 	};
 
 	template<typename T>
-	class ConsoleVariable : public IConsoleVariable
+	class SimpleConsoleVariable : public IConsoleVariable
 	{
 	public:
-		ConsoleVariable(char const* name, T&& def)
-			: IConsoleVariable(name), value(std::forward<T>(def))
+		SimpleConsoleVariable(char const* name, T const& def)
+			: IConsoleVariable(name), value(def)
 		{}
 
 		void SetValue(T const& v)
 		{
 			value = v;
 		}
-		[[maybe_unused]] virtual bool SetValue(const char* str_value) override
+		ADRIA_MAYBE_UNUSED virtual bool SetValue(const char* str_value) override
 		{
 			T value;
 			if (FromCString(str_value, value))
@@ -46,7 +47,7 @@ namespace adria
 			return false;
 		}
 
-		[[nodiscard]] virtual int AsInt() const override
+		ADRIA_NODISCARD virtual int AsInt() const override
 		{
 			if constexpr (std::is_same_v<T, int>)
 			{
@@ -67,7 +68,7 @@ namespace adria
 				return out;
 			}
 		}
-		[[nodiscard]] virtual float AsFloat() const override
+		ADRIA_NODISCARD virtual float AsFloat() const override
 		{
 			if constexpr (std::is_same_v<T, int>)
 			{
@@ -88,7 +89,7 @@ namespace adria
 				return out;
 			}
 		}
-		[[nodiscard]] virtual bool AsBool() const override
+		ADRIA_NODISCARD virtual bool AsBool() const override
 		{
 			if constexpr (std::is_same_v<T, int>)
 			{
@@ -109,7 +110,7 @@ namespace adria
 				return out;
 			}
 		}
-		[[nodiscard]] virtual std::string AsString() const override 
+		ADRIA_NODISCARD virtual std::string AsString() const override
 		{
 			std::string output;
 			if constexpr (std::is_same_v<T, int>)
@@ -138,7 +139,32 @@ namespace adria
 		{
 			return value;
 		}
-	private:
+
+	protected:
 		T value;
 	};
+
+	template<typename T>
+	class ConsoleVariable : public SimpleConsoleVariable<T>
+	{
+		DECLARE_EVENT(ConsoleVariableChangedEvent, ConsoleVariable<T>, T)
+	public:
+		ConsoleVariable(char const* name, T&& def) : SimpleConsoleVariable<T>(name, def) {}
+		ConsoleVariableChangedEvent& GetConsoleVariableChangedEvent() { return console_variable_changed_event; }
+
+		ADRIA_MAYBE_UNUSED virtual bool SetValue(const char* str_value) override
+		{
+			T value;
+			if (FromCString(str_value, value))
+			{
+				SimpleConsoleVariable<T>::SetValue(value);
+				console_variable_changed_event.Broadcast(value);
+				return true;
+			}
+			return false;
+		}
+	private:
+		ConsoleVariableChangedEvent console_variable_changed_event;
+	};
+	#define ADRIA_CVAR_CALLBACK(cvar,...) cvars::##cvar.GetConsoleVariableChangedEvent().Add([this]##__VA_ARGS__##)
 }
