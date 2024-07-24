@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <sstream>
 #include "StringUtil.h"
 
 namespace adria
@@ -52,88 +53,43 @@ namespace adria
 		return out;
 	}
 
+	template<typename T>
+	bool FromCString(const char* in, T& out);
+
+	template<>
 	bool FromCString(const char* in, int& out)
 	{
-		size_t idx = 0;
-		char sign = 1;
-		out = 0;
-		while (*in != '\0')
-		{
-			if (idx == 0 && *in == '-')
-			{
-				sign = -1;
-			}
-			else if (*in && *in >= '0' && *in <= '9')
-			{
-				out *= 10;
-				out += *in - '0';
-			}
-			else
-			{
-				return false;
-			}
-
-			++in;
-			++idx;
-		}
-		out *= sign;
-		return true;
+		std::istringstream iss(in);
+		iss >> out;
+		return !iss.fail() && iss.eof();
 	}
+
+	template<>
 	bool FromCString(const char* in, float& out)
 	{
-		size_t idx = 0;
-		char sign = 1;
-		char comma = 0;
-		int divisor = 1;
-		out = 0.0f;
-		while (*in != '\0')
-		{
-			if (idx == 0 && *in == '-')
-			{
-				sign = -1;
-			}
-			else if (*in == '.' && comma == 0)
-			{
-				comma = 1;
-			}
-			else if (*in && *in >= '0' && *in <= '9')
-			{
-				out *= 10;
-				out += *in - '0';
-				if (comma)
-				{
-					divisor *= 10;
-				}
-			}
-			else if (*in == 'f' && in[1] == '\0')
-			{
-
-			}
-			else
-			{
-				return false;
-			}
-
-			++in;
-			++idx;
-		}
-		out *= sign;
-		out /= divisor;
-		return true;
+		std::istringstream iss(in);
+		iss >> out;
+		return !iss.fail() && iss.eof();
 	}
+
+	template<>
 	bool FromCString(const char* in, const char*& out)
 	{
 		out = in;
 		return true;
 	}
+
+	template<>
 	bool FromCString(const char* in, bool& out)
 	{
-		if (*in == '0' || !strcmp(in, "false"))
+		std::string str(in);
+		std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+		if (str == "0" || str == "false")
 		{
 			out = false;
 			return true;
 		}
-		else if (*in == '1' || !strcmp(in, "true"))
+		else if (str == "1" || str == "true")
 		{
 			out = true;
 			return true;

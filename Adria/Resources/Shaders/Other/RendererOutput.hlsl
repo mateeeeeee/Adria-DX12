@@ -80,10 +80,8 @@ void RendererOutputCS(CSInput input)
 	Texture2D<float> ambientOcclusionTexture = ResourceDescriptorHeap[RendererOutputPassCB.aoIdx];
 	float ambientOcclusion = ambientOcclusionTexture.Sample(LinearWrapSampler, uv);
 	outputTexture[input.DispatchThreadId.xy] = float4(ambientOcclusion, ambientOcclusion, ambientOcclusion, 1.0f);
-
 	float3 indirectLighting = GetIndirectLighting(viewPosition, viewNormal, brdfData.Diffuse, ambientOcclusion);
-
-	outputTexture[input.DispatchThreadId.xy] = float4(indirectLighting, 1.0f); 
+	outputTexture[input.DispatchThreadId.xy] = float4(indirectLighting * M_PI / brdfData.Diffuse, 1.0f); 
 #else 
 	outputTexture[input.DispatchThreadId.xy] = float4(1.0f, 0.0f, 0.0f, 1.0f); 
 #endif
