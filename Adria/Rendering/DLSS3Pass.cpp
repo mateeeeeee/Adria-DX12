@@ -11,7 +11,6 @@
 namespace adria
 {
 	static constexpr char const* project_guid = "a0f57b54-1daf-4934-90ae-c4035c19df04";
-
 	namespace
 	{
 		void NVSDK_CONV DLSS3Log(char const* message, NVSDK_NGX_Logging_Level logging_level, NVSDK_NGX_Feature source_component)

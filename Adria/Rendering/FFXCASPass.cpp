@@ -5,9 +5,16 @@
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
 #include "Logging/Logger.h"
+#include "Core/ConsoleVariable.h"
+
 
 namespace adria
 {
+	namespace cvars
+	{
+		static ConsoleVariable cas_sharpness("ffx.cas.sharpness", 0.5f);
+	}
+
 	FFXCASPass::FFXCASPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ffx_interface(nullptr)
 	{
 		if (!gfx->GetCapabilities().SupportsShaderModel(SM_6_6)) return;
@@ -15,6 +22,7 @@ namespace adria
 		ffx_interface = CreateFfxInterface(gfx, FFX_CAS_CONTEXT_COUNT);
 		cas_context_desc.backendInterface = *ffx_interface;
 		CreateContext();
+		ADRIA_CVAR_CALLBACK(cas_sharpness, (int v) { sharpness = v; });
 	}
 
 	FFXCASPass::~FFXCASPass()

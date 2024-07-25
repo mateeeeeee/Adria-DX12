@@ -4,6 +4,8 @@
 #include "Graphics/GfxDevice.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
+#include "Core/ConsoleVariable.h"
+
 
 namespace adria
 {
@@ -14,8 +16,7 @@ namespace adria
 			bool use_downsampled_ssao;
 			FfxCacaoSettings cacao_settings;
 		};
-
-		static std::vector<std::string> FfxCacaoPresetNames = 
+		std::vector<std::string> FfxCacaoPresetNames = 
 		{
 			"Native - Adaptive Quality",
 			"Native - High Quality",
@@ -29,8 +30,7 @@ namespace adria
 			"Downsampled - Lowest Quality",
 			"Custom"
 		};
-
-		static const CacaoPreset FfxCacaoPresets[] = 
+		const CacaoPreset FfxCacaoPresets[] = 
 		{
 			// Native - Adaptive Quality
 			{
@@ -265,6 +265,11 @@ namespace adria
 		};
 	}
 
+	namespace cvars
+	{
+		static ConsoleVariable cacao_preset("ffx.cacao.preset", 0);
+	}
+
 	FFXCACAOPass::FFXCACAOPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ffx_interface(nullptr)
 	{
 		if (!gfx->GetCapabilities().SupportsShaderModel(SM_6_6)) return;
@@ -277,6 +282,7 @@ namespace adria
 		preset_id = 2;
 		cacao_settings = FfxCacaoPresets[preset_id].cacao_settings;
 		use_downsampled_ssao = FfxCacaoPresets[preset_id].use_downsampled_ssao;
+		ADRIA_CVAR_CALLBACK(cacao_preset, (int v) { preset_id = Clamp(v, 0, 9); });
 	}
 
 	FFXCACAOPass::~FFXCACAOPass()
@@ -344,22 +350,20 @@ namespace adria
 				cmd_list->ResetState();
 			}, RGPassType::Compute);
 
+		cacao_settings = FfxCacaoPresets[preset_id].cacao_settings;
+		use_downsampled_ssao = FfxCacaoPresets[preset_id].use_downsampled_ssao;
 		GUI_Command([&]()
 			{
 				if (ImGui::TreeNodeEx(name_version, ImGuiTreeNodeFlags_None))
 				{
-					if (ImGui::Combo("Preset", &preset_id,
+					ImGui::Combo("Preset", &preset_id,
 						[](void* vec, int idx, const char** out_text)
 						{
 							std::vector<std::string>* vector = reinterpret_cast<std::vector<std::string>*>(vec);
 							if (idx < 0 || idx >= vector->size()) return false;
 							*out_text = vector->at(idx).c_str();
 							return true;
-						}, reinterpret_cast<void*>(&FfxCacaoPresetNames), (int32)FfxCacaoPresetNames.size()))
-					{
-						cacao_settings = FfxCacaoPresets[preset_id].cacao_settings;
-						use_downsampled_ssao = FfxCacaoPresets[preset_id].use_downsampled_ssao;
-					}
+						}, reinterpret_cast<void*>(&FfxCacaoPresetNames), (int32)FfxCacaoPresetNames.size());
 
 					ImGui::TreePop();
 				}

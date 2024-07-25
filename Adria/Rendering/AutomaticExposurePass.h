@@ -41,6 +41,7 @@ namespace adria
 
 	private:
 		void CreatePSOs();
+		void SetCVarCallbacks();
 	};
 }
 

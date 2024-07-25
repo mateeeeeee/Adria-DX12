@@ -8,7 +8,6 @@
 
 namespace adria
 {
-
 	FilmEffectsPass::FilmEffectsPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
 	{
 		CreatePSO();

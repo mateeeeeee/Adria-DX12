@@ -7,11 +7,21 @@
 #include "Graphics/GfxDevice.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
+#include "Core/ConsoleVariable.h"
+
 
 namespace adria
 {
+	namespace cvars
+	{
+		static ConsoleVariable bloom_radius("bloom.radius", 0.25f);
+		static ConsoleVariable bloom_intensity("bloom.intensity", 0.25f);
+		static ConsoleVariable bloom_blend_factor("bloom.blend.factor", 0.25f);
+	}
+
 	BloomPass::BloomPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
 	{
+		SetCVarCallbacks();
 		CreatePSOs();
 	}
 
@@ -33,7 +43,7 @@ namespace adria
 			upsample_mips[i] = UpsamplePass(rg, downsample_mips[i], upsample_mips[i + 1], i + 1);
 		}
 
-		BloomBlackboardData blackboard_data{ .bloom_intensity = params.bloom_intensity, .bloom_blend_factor = params.bloom_blend_factor };
+		BloomBlackboardData blackboard_data{ .bloom_intensity = params.intensity, .bloom_blend_factor = params.blend_factor };
 		rg.GetBlackboard().Add<BloomBlackboardData>(std::move(blackboard_data));
 
 		GUI_Command([&]()
@@ -41,8 +51,8 @@ namespace adria
 				if (ImGui::TreeNodeEx("Bloom", 0))
 				{
 					ImGui::SliderFloat("Bloom Radius", &params.radius, 0.0f, 1.0f);
-					ImGui::SliderFloat("Bloom Intensity", &params.bloom_intensity, 0.0f, 8.0f);
-					ImGui::SliderFloat("Bloom Blend Factor", &params.bloom_blend_factor, 0.0f, 1.0f);
+					ImGui::SliderFloat("Bloom Intensity", &params.intensity, 0.0f, 8.0f);
+					ImGui::SliderFloat("Bloom Blend Factor", &params.blend_factor, 0.0f, 1.0f);
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
@@ -67,6 +77,13 @@ namespace adria
 
 		compute_pso_desc.CS = CS_BloomUpsample;
 		upsample_pso = gfx->CreateComputePipelineState(compute_pso_desc);
+	}
+
+	void BloomPass::SetCVarCallbacks()
+	{
+		ADRIA_CVAR_CALLBACK(bloom_radius, (float v) { params.radius = v; });
+		ADRIA_CVAR_CALLBACK(bloom_intensity, (float v) { params.intensity = v; });
+		ADRIA_CVAR_CALLBACK(bloom_blend_factor, (float v) { params.blend_factor = v; });
 	}
 
 	RGResourceName BloomPass::DownsamplePass(RenderGraph& rg, RGResourceName input, uint32 pass_idx)

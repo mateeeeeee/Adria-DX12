@@ -12,8 +12,8 @@ namespace adria
 		struct BloomParameters
 		{
 			float radius = 0.25f;
-			float bloom_intensity = 1.33f;
-			float bloom_blend_factor = 0.25f;
+			float intensity = 1.33f;
+			float blend_factor = 0.25f;
 		};
 	public:
 		BloomPass(GfxDevice* gfx, uint32 w, uint32 h);
@@ -30,6 +30,8 @@ namespace adria
 
 	private:
 		void CreatePSOs();
+		void SetCVarCallbacks();
+
 		RGResourceName DownsamplePass(RenderGraph& rendergraph, RGResourceName input, uint32 pass_idx);
 		RGResourceName UpsamplePass(RenderGraph& rendergraph, RGResourceName input, RGResourceName, uint32 pass_idx);
 	};

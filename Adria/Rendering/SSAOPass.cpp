@@ -16,8 +16,8 @@ namespace adria
 {
 	namespace cvars
 	{
-		ConsoleVariable ssao_power("ssao.power", 1.5f);
-		ConsoleVariable ssao_radius("ssao.radius", 1.0f);
+		static ConsoleVariable ssao_power("ssao.power", 1.5f);
+		static ConsoleVariable ssao_radius("ssao.radius", 1.0f);
 	}
 
 	SSAOPass::SSAOPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ssao_random_texture(nullptr),
