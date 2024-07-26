@@ -174,13 +174,13 @@ namespace adria
 
 	void LensFlarePass::OnSceneInitialized()
 	{
-		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir() + "LensFlare/flare0.jpg"));
-		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir() + "LensFlare/flare1.jpg"));
-		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir() + "LensFlare/flare2.jpg"));
-		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir() + "LensFlare/flare3.jpg"));
-		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir() + "LensFlare/flare4.jpg"));
-		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir() + "LensFlare/flare5.jpg"));
-		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir() + "LensFlare/flare6.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir + "LensFlare/flare0.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir + "LensFlare/flare1.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir + "LensFlare/flare2.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir + "LensFlare/flare3.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir + "LensFlare/flare4.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir + "LensFlare/flare5.jpg"));
+		lens_flare_textures.push_back(g_TextureManager.LoadTexture(paths::TexturesDir + "LensFlare/flare6.jpg"));
 	}
 
 	void LensFlarePass::CreatePSOs()

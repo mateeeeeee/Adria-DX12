@@ -42,7 +42,7 @@ namespace adria
 			ResolveMarkerCallback,												// Register callback for resolving application-managed markers.
 			this);																// Set the GpuCrashTracker object as user data for the above callbacks.
 
-		std::filesystem::create_directory(paths::AftermathDir());
+		std::filesystem::create_directory(paths::AftermathDir);
 		ShaderManager::GetShaderRecompiledEvent().AddMember(&GfxNsightAftermathGpuCrashTracker::OnShaderOrLibraryCompiled, *this);
 	}
 
@@ -156,7 +156,7 @@ namespace adria
 	// separate debug info data files.
 	void GfxNsightAftermathGpuCrashTracker::OnShaderSourceDebugInfoLookup(GFSDK_Aftermath_ShaderDebugName const& shader_debug_name, PFN_GFSDK_Aftermath_SetData set_shader_binary) const
 	{
-		std::ifstream file(paths::ShaderPDBDir() + shader_debug_name.name, std::ios::binary); 
+		std::ifstream file(paths::ShaderPDBDir + shader_debug_name.name, std::ios::binary); 
 		std::vector<uint8> debug_info;
 		if (file)
 		{
@@ -202,7 +202,7 @@ namespace adria
 			+ "-"
 			+ std::to_string(++count);
 
-		std::string crash_dump_filename = paths::AftermathDir() + base_file_name + ".nv-gpudmp";
+		std::string crash_dump_filename = paths::AftermathDir + base_file_name + ".nv-gpudmp";
 		std::ofstream dump_file(crash_dump_filename, std::ios::out | std::ios::binary);
 		if (dump_file)
 		{
@@ -237,7 +237,7 @@ namespace adria
 
 	void GfxNsightAftermathGpuCrashTracker::WriteShaderDebugInformationToFile(GFSDK_Aftermath_ShaderDebugInfoIdentifier identifier, void const* shader_debug_info, uint32 shader_debug_info_size)
 	{
-		std::string file_path = paths::AftermathDir() + "shader-" + ToString(identifier) + ".nvdbg";
+		std::string file_path = paths::AftermathDir + "shader-" + ToString(identifier) + ".nvdbg";
 		std::ofstream f(file_path, std::ios::out | std::ios::binary);
 		if (f) f.write((const char*)shader_debug_info, shader_debug_info_size);
 	}

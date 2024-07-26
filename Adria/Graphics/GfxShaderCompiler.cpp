@@ -200,7 +200,7 @@ namespace adria
 			GFX_CHECK_HR(library->CreateIncludeHandler(include_handler.GetAddressOf()));
 			GFX_CHECK_HR(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(utils.GetAddressOf())));
 
-			std::filesystem::create_directory(paths::ShaderPDBDir());
+			std::filesystem::create_directory(paths::ShaderPDBDir);
 		}
 		void Destroy()
 		{
@@ -220,7 +220,7 @@ namespace adria
 			uint64 define_hash = crc64(define_key.c_str(), define_key.size());
 			std::string build_string = input.flags & ShaderCompilerFlag_Debug ? "debug" : "release";
 			char cache_path[256];
-			sprintf_s(cache_path, "%s%s_%s_%llx_%s", paths::ShaderCacheDir().c_str(), GetFilenameWithoutExtension(input.file).c_str(),
+			sprintf_s(cache_path, "%s%s_%s_%llx_%s", paths::ShaderCacheDir.c_str(), GetFilenameWithoutExtension(input.file).c_str(),
 												    input.entry_point.c_str(), define_hash, build_string.c_str());
 
 			if (!bypass_cache && CheckCache(cache_path, input, output)) return true;
@@ -235,7 +235,7 @@ namespace adria
 			GFX_CHECK_HR(hr);
 
 			std::wstring name = ToWideString(GetFilenameWithoutExtension(input.file));
-			std::wstring dir  = ToWideString(paths::ShaderDir());
+			std::wstring dir  = ToWideString(paths::ShaderDir);
 			std::wstring path = ToWideString(GetParentPath(input.file));
 
 			std::wstring target = GetTarget(input.stage, input.model);
@@ -324,7 +324,7 @@ namespace adria
 					if (SUCCEEDED(utils->GetBlobAsUtf8(pdb_path_utf16.Get(), pdb_path_utf8.GetAddressOf())))
 					{
 						char pdb_path[256];
-						sprintf_s(pdb_path, "%s%s", paths::ShaderPDBDir().c_str(), pdb_path_utf8->GetStringPointer());
+						sprintf_s(pdb_path, "%s%s", paths::ShaderPDBDir.c_str(), pdb_path_utf8->GetStringPointer());
 						FILE* pdb_file = nullptr;
 						fopen_s(&pdb_file, pdb_path, "wb");
 						if (pdb_file)

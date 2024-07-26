@@ -5,7 +5,7 @@ namespace adria
 {
 
 	FileLogger::FileLogger(char const* log_file, LogLevel logger_level) 
-		: log_stream{ paths::LogDir() + log_file, std::ios::out }, logger_level{ logger_level }
+		: log_stream{ paths::LogDir + log_file, std::ios::out }, logger_level{ logger_level }
 	{}
 
 	FileLogger::~FileLogger()

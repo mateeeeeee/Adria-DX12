@@ -74,7 +74,7 @@ namespace adria
 		selected_entity = entt::null;
 		SetStyle();
 
-		fs::create_directory(paths::PixCapturesDir());
+		fs::create_directory(paths::PixCapturesDir);
 	}
 	void Editor::Destroy()
 	{
@@ -1181,7 +1181,7 @@ namespace adria
 
 				if (ImGui::Button("Take capture"))
 				{
-					std::string capture_full_path = paths::PixCapturesDir() + capture_name;
+					std::string capture_full_path = paths::PixCapturesDir + capture_name;
 					gfx->TakePixCapture(capture_full_path.c_str(), frame_count);
 				}
 				ImGui::TreePop();

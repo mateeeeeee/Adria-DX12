@@ -24,7 +24,7 @@ namespace adria
 
 	void VolumetricFogPass::OnSceneInitialized()
 	{
-		std::string blue_noise_base_path = paths::TexturesDir() + "BlueNoise/";
+		std::string blue_noise_base_path = paths::TexturesDir + "BlueNoise/";
 		for (uint32 i = 0; i < BLUE_NOISE_TEXTURE_COUNT; ++i)
 		{
 			std::string blue_noise_texture_path = blue_noise_base_path + "LDR_LLL1_" + std::to_string(i) + ".png";

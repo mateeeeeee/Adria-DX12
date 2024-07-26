@@ -382,7 +382,7 @@ namespace adria
             if (params.light_texture.has_value())
                 material.albedo_texture = g_TextureManager.LoadTexture(params.light_texture.value()); //
             else if (params.light_data.type == LightType::Directional)
-                material.albedo_texture = g_TextureManager.LoadTexture(paths::TexturesDir() + "sun.dds");
+                material.albedo_texture = g_TextureManager.LoadTexture(paths::TexturesDir + "sun.dds");
 
             reg.emplace<Material>(light, material);
 			Matrix translation_matrix = Matrix::CreateTranslation(Vector3(&params.light_data.position.x));
@@ -400,7 +400,7 @@ namespace adria
            //if (params.light_texture.has_value())
            //    material.diffuse_texture = texture_manager.LoadTexture(params.light_texture.value()); //
            //else if (params.light_data.type == LightType::eDirectional)
-           //    material.diffuse_texture = texture_manager.LoadTexture(paths::TexturesDir() + "sun.png");
+           //    material.diffuse_texture = texture_manager.LoadTexture(paths::TexturesDir + "sun.png");
            //
            //if (params.light_data.type == LightType::eDirectional)
            //    material.shader = StandardShader::eSun;
@@ -450,9 +450,9 @@ namespace adria
 		Decal decal{};
 		g_TextureManager.EnableMipMaps(false);
 		if (!params.albedo_texture_path.empty()) decal.albedo_decal_texture = g_TextureManager.LoadTexture(params.albedo_texture_path);
-		else decal.albedo_decal_texture = g_TextureManager.LoadTexture(paths::TexturesDir() + "Decals/Decal_00_Albedo.tga");
+		else decal.albedo_decal_texture = g_TextureManager.LoadTexture(paths::TexturesDir + "Decals/Decal_00_Albedo.tga");
 		if (!params.normal_texture_path.empty()) decal.normal_decal_texture = g_TextureManager.LoadTexture(params.normal_texture_path);
-		else decal.normal_decal_texture = g_TextureManager.LoadTexture(paths::TexturesDir() + "Decals/Decal_00_Normal.tga");
+		else decal.normal_decal_texture = g_TextureManager.LoadTexture(paths::TexturesDir + "Decals/Decal_00_Normal.tga");
 		g_TextureManager.EnableMipMaps(true);
 
 		Vector3 P = params.position;

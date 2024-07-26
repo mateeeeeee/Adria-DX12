@@ -1233,7 +1233,7 @@ namespace adria
 			}
 		}
 
-		std::string absolute_graph_path = paths::RenderGraphDir() + graph_file_name;
+		std::string absolute_graph_path = paths::RenderGraphDir + graph_file_name;
 		std::ofstream graph_file(absolute_graph_path);
 		graph_file << "digraph RenderGraph{ \n";
 		graph_file << graphviz.defaults << "\n";
@@ -1243,7 +1243,7 @@ namespace adria
 		graph_file.close();
 
 		std::string filename = GetFilenameWithoutExtension(graph_file_name);
-		std::string cmd = std::format("Tools\\graphviz\\dot.exe -Tsvg {} > {}{}.svg", absolute_graph_path, paths::RenderGraphDir(), filename);
+		std::string cmd = std::format("Tools\\graphviz\\dot.exe -Tsvg {} > {}{}.svg", absolute_graph_path, paths::RenderGraphDir, filename);
 		system(cmd.c_str());
 	}
 

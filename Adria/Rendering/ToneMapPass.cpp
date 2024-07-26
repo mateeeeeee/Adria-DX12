@@ -187,8 +187,8 @@ namespace adria
 
 	void ToneMapPass::OnSceneInitialized()
 	{
-		lens_dirt_handle		   = g_TextureManager.LoadTexture(paths::TexturesDir() + "LensDirt.dds");
-		tony_mc_mapface_lut_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "tony_mc_mapface.dds");
+		lens_dirt_handle		   = g_TextureManager.LoadTexture(paths::TexturesDir + "LensDirt.dds");
+		tony_mc_mapface_lut_handle = g_TextureManager.LoadTexture(paths::TexturesDir + "tony_mc_mapface.dds");
 	}
 
 	void ToneMapPass::CreatePSO()

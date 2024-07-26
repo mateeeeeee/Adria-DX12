@@ -60,10 +60,10 @@ namespace adria
 
 	void BokehPass::OnSceneInitialized()
 	{
-		bokeh_textures[(uint32)BokehType::Hex] = g_TextureManager.LoadTexture(paths::TexturesDir() + "bokeh/Bokeh_Hex.dds");
-		bokeh_textures[(uint32)BokehType::Oct] = g_TextureManager.LoadTexture(paths::TexturesDir() + "bokeh/Bokeh_Oct.dds");
-		bokeh_textures[(uint32)BokehType::Circle] = g_TextureManager.LoadTexture(paths::TexturesDir() + "bokeh/Bokeh_Circle.dds");
-		bokeh_textures[(uint32)BokehType::Cross] = g_TextureManager.LoadTexture(paths::TexturesDir() + "bokeh/Bokeh_Cross.dds");
+		bokeh_textures[(uint32)BokehType::Hex] = g_TextureManager.LoadTexture(paths::TexturesDir + "bokeh/Bokeh_Hex.dds");
+		bokeh_textures[(uint32)BokehType::Oct] = g_TextureManager.LoadTexture(paths::TexturesDir + "bokeh/Bokeh_Oct.dds");
+		bokeh_textures[(uint32)BokehType::Circle] = g_TextureManager.LoadTexture(paths::TexturesDir + "bokeh/Bokeh_Circle.dds");
+		bokeh_textures[(uint32)BokehType::Cross] = g_TextureManager.LoadTexture(paths::TexturesDir + "bokeh/Bokeh_Cross.dds");
 
 		GfxBufferDesc reset_buffer_desc{};
 		reset_buffer_desc.size = sizeof(uint32);

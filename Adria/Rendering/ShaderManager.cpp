@@ -531,7 +531,7 @@ namespace adria
 			shader_desc.entry_point = GetEntryPoint(shader);
 			shader_desc.stage = GetShaderStage(shader);
 			shader_desc.model = GetShaderModel(shader);
-			shader_desc.file = paths::ShaderDir() + GetShaderSource(shader);
+			shader_desc.file = paths::ShaderDir + GetShaderSource(shader);
 #if _DEBUG
 			shader_desc.flags = ShaderCompilerFlag_DisableOptimization | ShaderCompilerFlag_Debug;
 #else
@@ -566,9 +566,9 @@ namespace adria
 	void ShaderManager::Initialize()
 	{
 		file_watcher = std::make_unique<FileWatcher>();
-		file_watcher->AddPathToWatch(paths::ShaderDir());
+		file_watcher->AddPathToWatch(paths::ShaderDir);
 		std::ignore = file_watcher->GetFileModifiedEvent().Add(OnShaderFileChanged);
-		fs::create_directory(paths::ShaderCacheDir());
+		fs::create_directory(paths::ShaderCacheDir);
 	}
 	void ShaderManager::Destroy()
 	{

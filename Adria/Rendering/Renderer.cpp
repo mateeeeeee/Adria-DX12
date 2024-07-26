@@ -597,7 +597,7 @@ namespace adria
 	{
 		ADRIA_ASSERT(take_screenshot);
 
-		std::string absolute_screenshot_path = paths::ScreenshotsDir() + screenshot_name + ".png";
+		std::string absolute_screenshot_path = paths::ScreenshotsDir + screenshot_name + ".png";
 		ADRIA_LOG(INFO, "Taking screenshot: %s.png...", screenshot_name.c_str());
 
 		D3D12_PLACED_SUBRESOURCE_FOOTPRINT final_texture_footprint{};
