@@ -807,7 +807,7 @@ namespace adria
 	void GfxDevice::SetupOptions(GfxOptions const& options, uint32& dxgi_factory_flags)
 	{
 		if (options.aftermath) return;
-		if (options.debug_layer)
+		if (options.debug_device)
 		{
 			Ref<ID3D12Debug> debug_controller = nullptr;
 			if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(debug_controller.GetAddressOf()))))

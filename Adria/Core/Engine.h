@@ -22,7 +22,7 @@ namespace adria
 		Window* window = nullptr;
 		//gfx options
 		bool vsync = false;
-		bool debug_layer = false;
+		bool debug_device = false;
 		bool gpu_validation = false;
 		bool dred = false;
 		bool pix = false;

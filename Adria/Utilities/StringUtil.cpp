@@ -91,6 +91,15 @@ namespace adria
 		return false;
 	}
 
+	bool FromCString(char const* in, Vector3& out)
+	{
+		std::istringstream iss(in);
+		iss >> out.x;
+		iss >> out.y;
+		iss >> out.z;
+		return !iss.fail() && iss.eof();
+	}
+
 	std::string IntToString(int val)
 	{
 		return std::to_string(val);

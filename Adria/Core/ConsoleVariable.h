@@ -11,14 +11,15 @@ namespace adria
 		IConsoleVariable(char const* name);
 		virtual ~IConsoleVariable() = default;
 
-		[[maybe_unused]] virtual bool SetValue(const char* pValue) = 0;
+		ADRIA_MAYBE_UNUSED virtual bool SetValue(const char* pValue) = 0;
 
 		char const* const GetName() const { return name; }
 
-		[[nodiscard]] virtual int AsInt() const = 0;
-		[[nodiscard]] virtual float AsFloat() const = 0;
-		[[nodiscard]] virtual bool AsBool() const = 0;
-		[[nodiscard]] virtual std::string AsString() const = 0;
+		ADRIA_NODISCARD virtual int AsInt() const = 0;
+		ADRIA_NODISCARD virtual float AsFloat() const = 0;
+		ADRIA_NODISCARD virtual bool AsBool() const = 0;
+		ADRIA_NODISCARD virtual std::string AsString() const = 0;
+		ADRIA_NODISCARD virtual Vector3 AsVector() const = 0;
 
 	private:
 		char const* name;
@@ -130,6 +131,34 @@ namespace adria
 				output = CStrToString(value);
 			}
 			return output;
+		}
+		ADRIA_NODISCARD virtual Vector3 AsVector() const override
+		{
+			if constexpr (std::is_same_v<T, Vector3>)
+			{
+				return value;
+			}
+			else if constexpr (std::is_same_v<T, bool>)
+			{
+				return value ? Vector3(1.0f, 1.0f, 1.0f) : Vector3(0.0f, 0.0f, 0.0f);
+			}
+			else if constexpr (std::is_same_v<T, float>)
+			{
+				return Vector3(value, value, value);
+			}
+			else if constexpr (std::is_same_v<T, int>)
+			{
+				return Vector3((float)value, (float)value, (float)value);
+			}
+			else if constexpr (std::is_same_v<T, const char*>)
+			{
+				Vector3 out;
+				if (FromCString(value, out))
+				{
+					return out;
+				}
+				return Vector3{};
+			}
 		}
 
 		[[nodiscard]] T& Get() { return value; }

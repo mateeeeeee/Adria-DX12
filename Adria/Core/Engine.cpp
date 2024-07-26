@@ -230,7 +230,7 @@ namespace adria
 	{
 		g_ThreadPool.Initialize();
 		GfxShaderCompiler::Initialize();
-		gfx = std::make_unique<GfxDevice>(window, GfxOptions{.debug_layer = init.debug_layer, .dred = init.dred,
+		gfx = std::make_unique<GfxDevice>(window, GfxOptions{.debug_device = init.debug_device, .dred = init.dred,
 														     .gpu_validation = init.gpu_validation, .pix = init.pix, .aftermath = init.aftermath });
 		ShaderManager::Initialize();
 		g_TextureManager.Initialize(gfx.get(), 1000);

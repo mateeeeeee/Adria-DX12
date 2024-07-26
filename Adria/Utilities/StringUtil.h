@@ -14,6 +14,7 @@ namespace adria
 	bool FromCString(char const* in, float& out);
 	bool FromCString(char const* in, const char*& out);
 	bool FromCString(char const* in, bool& out);
+	bool FromCString(char const* in, Vector3& out);
 
 	std::string IntToString(int val);
 	std::string FloatToString(float val);
