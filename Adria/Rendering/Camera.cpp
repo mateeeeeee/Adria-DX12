@@ -13,8 +13,8 @@ namespace adria
 		aspect_ratio{ desc.aspect_ratio }, fov{ desc.fov }, near_plane{ desc.far_plane }, far_plane{ desc.near_plane },
 		speed{ desc.speed }, sensitivity{ desc.sensitivity }
 	{
-		look_vector = desc.look_at - position; look_vector.Normalize();
-		SetView();
+		look_vector = desc.look_at - position;
+		UpdateViewMatrix();
 		SetLens(fov, aspect_ratio, near_plane, far_plane);
 	}
 
@@ -126,9 +126,10 @@ namespace adria
 	void Camera::UpdateViewMatrix()
 	{
 		look_vector.Normalize();
+		right_vector = up_vector.Cross(look_vector);
+		right_vector.Normalize();
 		up_vector = look_vector.Cross(right_vector);
 		up_vector.Normalize();
-		right_vector = up_vector.Cross(look_vector);
 		SetView();
 	}
 
