@@ -113,7 +113,7 @@ namespace adria
 			frame_data.camera_far = camera->Far();
 			frame_data.camera_jitter_x = camera_jitter.x;
 			frame_data.camera_jitter_y = camera_jitter.y;
-			frame_data.frame_delta_time = frame_cbuf_data.delta_time;
+			frame_data.delta_time = frame_cbuf_data.delta_time;
 			frame_data.frame_cbuffer_address = frame_cbuffer.GetGpuAddress(backbuffer_index);
 		}
 		rg_blackboard.Add<FrameBlackboardData>(std::move(frame_data));

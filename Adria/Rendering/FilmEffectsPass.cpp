@@ -5,11 +5,29 @@
 #include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
+#include "Core/ConsoleVariable.h"
 
 namespace adria
 {
+	namespace cvars
+	{
+		static ConsoleVariable lens_distortion("r.FilmEffects.EnableLensDistortion", false);
+		static ConsoleVariable chromatic_aberration("r.FilmEffects.EnableChromaticAberration", false);
+		static ConsoleVariable vignette("r.FilmEffects.EnableVignette", false);
+		static ConsoleVariable film_grain("r.FilmEffects.EnableFilmGrain", false);
+
+		static ConsoleVariable lens_distortion_intensity("r.FilmEffects.LensDistortion.Intensity", 0.2f);
+		static ConsoleVariable chromatic_aberration_intensity("r.FilmEffects.ChromaticAberration.intensity", 10.0f);
+		static ConsoleVariable vignette_intensity("r.FilmEffects.Vignette.intensity", 0.5f);
+
+		static ConsoleVariable film_grain_scale("r.FilmEffects.FilmGrain.Scale", 3.0f);
+		static ConsoleVariable film_grain_amount("r.FilmEffects.FilmGrain.Amount", 0.5f);
+		static ConsoleVariable film_grain_seed_update_rate("r.FilmEffects.FilmGrain.SeedUpdateRate", 0.02f);
+	}
+
 	FilmEffectsPass::FilmEffectsPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
 	{
+		SetCVarCallbacks();
 		CreatePSO();
 	}
 
@@ -73,7 +91,7 @@ namespace adria
 					.film_grain_enabled = film_grain_enabled,
 					.film_grain_scale = film_grain_scale,
 					.film_grain_amount = film_grain_amount,
-					.film_grain_seed = GetFilmGrainSeed(frame_data.frame_delta_time, film_grain_seed_update_rate),
+					.film_grain_seed = GetFilmGrainSeed(frame_data.delta_time, film_grain_seed_update_rate),
 					.input_idx  = i + 0,
 					.output_idx = i + 1
 				};
@@ -120,6 +138,22 @@ namespace adria
 	void FilmEffectsPass::OnResize(uint32 w, uint32 h)
 	{
 		width = w, height = h;
+	}
+
+	void FilmEffectsPass::SetCVarCallbacks()
+	{
+		ADRIA_CVAR_CALLBACK(lens_distortion, (bool b) { lens_distortion_enabled = b; });
+		ADRIA_CVAR_CALLBACK(chromatic_aberration, (bool b) { chromatic_aberration_enabled = b; });
+		ADRIA_CVAR_CALLBACK(vignette, (bool b) { vignette_enabled = b; });
+		ADRIA_CVAR_CALLBACK(film_grain, (bool b) { film_grain_enabled = b; });
+
+		ADRIA_CVAR_CALLBACK(lens_distortion_intensity, (float v) { lens_distortion_intensity = v; });
+		ADRIA_CVAR_CALLBACK(chromatic_aberration_intensity, (float v) { chromatic_aberration_intensity = v; });
+		ADRIA_CVAR_CALLBACK(vignette_intensity, (float v) { vignette_intensity = v; });
+
+		ADRIA_CVAR_CALLBACK(film_grain_scale, (float v) { film_grain_scale = v; });
+		ADRIA_CVAR_CALLBACK(film_grain_amount, (float v) { film_grain_amount = v; });
+		ADRIA_CVAR_CALLBACK(film_grain_seed_update_rate, (float v) { film_grain_seed_update_rate = v; });
 	}
 
 	void FilmEffectsPass::CreatePSO()

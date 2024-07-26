@@ -50,6 +50,7 @@ namespace adria
 
 	private:
 
+		void SetCVarCallbacks();
 		void CreateContext();
 		void DestroyContext();
 		void RecreateRenderResolution();

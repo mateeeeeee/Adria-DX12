@@ -15,8 +15,8 @@ namespace adria
 {
 	namespace cvars
 	{
-		static ConsoleVariable dof_focus_distance("dof.focus.distance", 0.25f);
-		static ConsoleVariable dof_focus_radius("dof.focus.radius", 0.25f);
+		static ConsoleVariable dof_focus_distance("r.DepthOfField.FocusDistance", 0.25f);
+		static ConsoleVariable dof_focus_radius("r.DepthOfField.FocusRadius", 0.25f);
 	}
 
 	DepthOfFieldPass::DepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), bokeh_pass(gfx, w, h), blur_pass(gfx, w, h)

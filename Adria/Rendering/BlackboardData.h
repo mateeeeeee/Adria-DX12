@@ -14,7 +14,7 @@ namespace adria
 		float						camera_jitter_x;
 		float						camera_jitter_y;
 		float						camera_position[4];
-		float						frame_delta_time;
+		float						delta_time;
 		uint64						frame_cbuffer_address;
 	};
 

@@ -267,7 +267,7 @@ namespace adria
 
 	namespace cvars
 	{
-		static ConsoleVariable cacao_preset("ffx.cacao.preset", 0);
+		static ConsoleVariable cacao_preset("r.FFX.CACAO.Preset", 0);
 	}
 
 	FFXCACAOPass::FFXCACAOPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ffx_interface(nullptr)

@@ -33,6 +33,8 @@ namespace adria
 		float film_grain_seed_update_rate = 0.02f;
 
 	private:
+
+		void SetCVarCallbacks();
 		void CreatePSO();
 		static uint32 GetFilmGrainSeed(float dt, float seed_update_rate);
 	};

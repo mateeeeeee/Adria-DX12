@@ -14,12 +14,12 @@ namespace adria
 
 	namespace cvars
 	{
-		static ConsoleVariable dof_aperture("ffx.dof.aperture", 0.01f);
-		static ConsoleVariable dof_focus_distance("ffx.dof.focus.distance", 400.0f);
-		static ConsoleVariable dof_sensor_size("ffx.dof.sensor.size", 0.02f);
-		static ConsoleVariable dof_coc_limit("ffx.dof.coc.limit", 0.01f);
-		static ConsoleVariable dof_quality("ffx.dof.quality", 10);
-		static ConsoleVariable dof_ring_merging("ffx.dof.ring.merging", false);
+		static ConsoleVariable dof_aperture("r.FFX.DepthOfField.Aperture", 0.01f);
+		static ConsoleVariable dof_focus_distance("r.FFX.DepthOfField.Distance", 400.0f);
+		static ConsoleVariable dof_sensor_size("r.FFX.DepthOfField.SensorSize", 0.02f);
+		static ConsoleVariable dof_coc_limit("r.FFX.DepthOfField.CoCLimit", 0.01f);
+		static ConsoleVariable dof_quality("r.FFX.DepthOfField.Quality", 10);
+		static ConsoleVariable dof_ring_merging("r.FFX.DepthOfField.RingMerging", false);
 	}
 
 	FFXDepthOfFieldPass::FFXDepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ffx_interface(nullptr)

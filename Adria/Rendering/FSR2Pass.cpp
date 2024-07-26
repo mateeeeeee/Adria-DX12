@@ -6,9 +6,17 @@
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
 #include "Logging/Logger.h"
+#include "Core/ConsoleVariable.h"
 
 namespace adria
 {
+	namespace cvars
+	{
+		static ConsoleVariable fsr2_quality_mode("r.FSR2.QualityMode", 1);
+		static ConsoleVariable fsr2_upscale_ratio("r.FSR2.UpscaleRatio", 1.0f);
+		static ConsoleVariable fsr2_sharpness("r.FSR2.Sharpness", 0.5f);
+	}
+
 	namespace
 	{
 		void FSR2Log(FfxMsgType type, const wchar_t* message)
@@ -34,6 +42,7 @@ namespace adria
 		fsr2_context_desc.backendInterface = *ffx_interface;
 		RecreateRenderResolution();
 		CreateContext();
+		SetCVarCallbacks();
 	}
 
 	FSR2Pass::~FSR2Pass()
@@ -99,7 +108,7 @@ namespace adria
 				dispatch_desc.reset = false;
 				dispatch_desc.enableSharpening = true;
 				dispatch_desc.sharpness = sharpness;
-				dispatch_desc.frameTimeDelta = frame_data.frame_delta_time;
+				dispatch_desc.frameTimeDelta = frame_data.delta_time;
 				dispatch_desc.preExposure = 1.0f;
 				dispatch_desc.renderSize.width = render_width;
 				dispatch_desc.renderSize.height = render_height;
@@ -138,6 +147,13 @@ namespace adria
 			}, GUICommandGroup_PostProcessor);
 
 		return RG_RES_NAME(FSR2Output);
+	}
+
+	void FSR2Pass::SetCVarCallbacks()
+	{
+		ADRIA_CVAR_CALLBACK(fsr2_quality_mode, (int v) { fsr2_quality_mode = (FfxFsr2QualityMode)Clamp(v, 1, 4); });
+		ADRIA_CVAR_CALLBACK(fsr2_upscale_ratio, (float v) { custom_upscale_ratio = v; });
+		ADRIA_CVAR_CALLBACK(fsr2_sharpness, (float v) { sharpness = Clamp(v, 0.0f, 1.0f); });
 	}
 
 	void FSR2Pass::CreateContext()

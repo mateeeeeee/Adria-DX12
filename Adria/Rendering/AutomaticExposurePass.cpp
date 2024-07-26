@@ -13,12 +13,12 @@ namespace adria
 {
 	namespace cvars
 	{
-		static ConsoleVariable min_luminance("autoexposure.min.luminance", 0.0f);
-		static ConsoleVariable max_luminance("autoexposure.max.luminance", 10.0f);
-		static ConsoleVariable low_percentile("autoexposure.low.percentile", 0.49f);
-		static ConsoleVariable high_percentile("autoexposure.high.percentile", 0.99f);
-		static ConsoleVariable adaption_speed("autoexposure.adaption.speed", 1.5f);
-		static ConsoleVariable exposure_compensation("autoexposure.exposure.compensation", 1.5f);
+		static ConsoleVariable min_luminance("r.AutoExposure.MinLuminance", 0.0f);
+		static ConsoleVariable max_luminance("r.AutoExposure.MaxLuminance", 10.0f);
+		static ConsoleVariable low_percentile("r.AutoExposure.LowPercentile", 0.49f);
+		static ConsoleVariable high_percentile("r.AutoExposure.HighPercentile", 0.99f);
+		static ConsoleVariable adaption_speed("r.AutoExposure.AdaptionSpeed", 1.5f);
+		static ConsoleVariable exposure_compensation("r.AutoExposure.ExposureCompensation", 1.5f);
 	}
 
 

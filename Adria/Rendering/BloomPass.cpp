@@ -14,9 +14,9 @@ namespace adria
 {
 	namespace cvars
 	{
-		static ConsoleVariable bloom_radius("bloom.radius", 0.25f);
-		static ConsoleVariable bloom_intensity("bloom.intensity", 0.25f);
-		static ConsoleVariable bloom_blend_factor("bloom.blend.factor", 0.25f);
+		static ConsoleVariable bloom_radius("r.Bloom.Radius", 0.25f);
+		static ConsoleVariable bloom_intensity("r.Bloom.Intensity", 0.25f);
+		static ConsoleVariable bloom_blend_factor("r.Bloom.BlendFactor", 0.25f);
 	}
 
 	BloomPass::BloomPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
