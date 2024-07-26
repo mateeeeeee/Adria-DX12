@@ -56,7 +56,7 @@ int APIENTRY wWinMain(
         engine_init.gpu_validation = gpu_validation;
         engine_init.pix = pix;
         engine_init.aftermath = aftermath;
-        engine_init.scene_file = scene.AsStringOr("scene.json");
+        engine_init.scene_file = scene.AsStringOr("sponza.json");
 		engine_init.window = &window;
 
         EditorInit editor_init{.engine_init = engine_init };

@@ -128,6 +128,7 @@
       <PrecompiledHeaderFile>precomp.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>precomp.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -569,7 +570,7 @@
     <None Include="Resources\Shaders\Scene.hlsli" />
     <None Include="Resources\Shaders\Tonemapping.hlsli" />
     <None Include="Resources\Shaders\Weather\RainUtil.hlsli" />
-    <None Include="Saved\Ini\scene.json" />
+    <None Include="Saved\Ini\sponza.json" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="adria.log" />
