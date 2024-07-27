@@ -1047,9 +1047,6 @@
     <ClInclude Include="Graphics\GfxShaderEnums.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\TextureChannelMappingPass.h">
-      <Filter>Rendering\Passes</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\GfxCommandListPool.h">
       <Filter>Graphics</Filter>
     </ClInclude>

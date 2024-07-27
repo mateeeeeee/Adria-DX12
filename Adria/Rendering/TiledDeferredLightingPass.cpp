@@ -8,6 +8,7 @@
 #include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Logging/Logger.h"
+#include "Core/ConsoleVariable.h"
 #include "Editor/GUICommand.h"
 #include "entt/entity/registry.hpp"
 
@@ -15,10 +16,17 @@ using namespace DirectX;
 
 namespace adria
 {
+	namespace cvars
+	{
+		static ConsoleVariable tiled_deferred_visualize("r.TiledDeferred.Visualize", false);
+		static ConsoleVariable tiled_deferred_visualize_max_lights("r.TiledDeferred.Visualize.MaxLights", 16);
+	}
 
 	TiledDeferredLightingPass::TiledDeferredLightingPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h) : reg(reg), gfx(gfx), width(w), height(h),
 		add_textures_pass(gfx, width, height), copy_to_texture_pass(gfx, width, height)
 	{
+		ADRIA_CVAR_CALLBACK(tiled_deferred_visualize, (bool v) { visualize_tiled = v; });
+		ADRIA_CVAR_CALLBACK(tiled_deferred_visualize_max_lights, (int v) { visualize_max_lights = v; });
 		CreatePSOs();
 	}
 

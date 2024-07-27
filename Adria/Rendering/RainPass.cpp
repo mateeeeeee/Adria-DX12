@@ -14,12 +14,12 @@ namespace adria
 {
 	namespace cvars
 	{
-		ConsoleVariable rain_pause_simulation("r.Rain.PauseSimulation", false);
-		ConsoleVariable rain_cheap("r.Rain.Cheap", false);
-		ConsoleVariable rain_simulation_speed("r.Rain.SimulationSpeed", 1.0f);
-		ConsoleVariable rain_density("r.Rain.Density", 0.5f);
-		ConsoleVariable rain_streak_scale("r.Rain.StreakScale", 0.33f);
-		ConsoleVariable rain_range_radius("r.Rain.RangeRadius", 40.0f);
+		static ConsoleVariable rain_pause_simulation("r.Rain.PauseSimulation", false);
+		static ConsoleVariable rain_cheap("r.Rain.Cheap", false);
+		static ConsoleVariable rain_simulation_speed("r.Rain.SimulationSpeed", 1.0f);
+		static ConsoleVariable rain_density("r.Rain.Density", 0.5f);
+		static ConsoleVariable rain_streak_scale("r.Rain.StreakScale", 0.33f);
+		static ConsoleVariable rain_range_radius("r.Rain.RangeRadius", 40.0f);
 	}
 
 	struct RainData

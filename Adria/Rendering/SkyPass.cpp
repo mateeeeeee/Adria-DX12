@@ -7,6 +7,7 @@
 #include "Graphics/GfxPipelineState.h"
 #include "Graphics/GfxReflection.h"
 #include "RenderGraph/RenderGraph.h"
+#include "Core/ConsoleVariable.h"
 #include "Editor/GUICommand.h"
 #include "entt/entity/registry.hpp"
 
@@ -14,6 +15,11 @@ using namespace DirectX;
 
 namespace adria
 {
+	namespace cvars
+	{
+		static ConsoleVariable sky_turbidity("r.Sky.HosekWilkie.Turbidity", 2.0f);
+		static ConsoleVariable sky_ground_albedo("r.Sky.HosekWilkie.GroundAlbedo", 0.1f);
+	}
 	static constexpr uint32 SKYCUBE_SIZE = 128;
 
 	SkyPass::SkyPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h)

@@ -1,7 +1,7 @@
 #pragma once
 #include "HelperPasses.h"
 #include "RenderGraph/RenderGraphResourceId.h"
-#include "entt/entity/entity.hpp"
+#include "entt/entity/fwd.hpp"
 
 namespace adria
 {

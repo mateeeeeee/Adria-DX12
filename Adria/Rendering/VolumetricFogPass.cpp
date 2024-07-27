@@ -43,7 +43,6 @@ namespace adria
 				BoundingBox::CreateMerged(scene_bounding_box, scene_bounding_box, instance_bounding_box);
 			}
 		}
-
 		FogVolume& fog_volume = fog_volumes.emplace_back();
 		fog_volume.volume = scene_bounding_box;
 		fog_volume.color = Color(1, 1, 1);

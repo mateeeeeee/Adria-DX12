@@ -94,10 +94,12 @@ namespace adria
 	bool FromCString(char const* in, Vector3& out)
 	{
 		std::istringstream iss(in);
-		iss >> out.x;
-		iss >> out.y;
-		iss >> out.z;
-		return !iss.fail() && iss.eof();
+		char open_parenthesis, comma1, comma2, close_parenthesis;
+		if (iss >> open_parenthesis >> out.x >> comma1 >> out.y >> comma2 >> out.z >> close_parenthesis) 
+		{
+			return open_parenthesis == '(' && comma1 == ',' && comma2 == ',' && close_parenthesis == ')' && iss.eof();
+		}
+		return false;
 	}
 
 	std::string IntToString(int val)
@@ -115,6 +117,11 @@ namespace adria
 	std::string BoolToString(bool val)
 	{
 		return val ? "true" : "false";
+	}
+
+	std::string Vector3ToString(Vector3 const& val)
+	{
+		return "(" + std::to_string(val.x) + "," + std::to_string(val.y) + "," + std::to_string(val.z) + ")";
 	}
 
 	std::vector<std::string> SplitString(const std::string& text, char delimeter)

@@ -54,21 +54,8 @@ namespace adria
 		void AddPass(RenderGraph& rendergraph);
 		void OnResize(uint32 w, uint32 h);
 		void OnSceneInitialized();
-		void OnRainEvent(bool enabled)
-		{
-			if (enabled)
-			{
-				params.precipitation = 2.5f;
-				params.cloud_coverage = 0.75f;
-				params.sun_light_factor = 0.15f;
-			}
-			else
-			{
-				params.precipitation = 1.78f;
-				params.cloud_coverage = 0.625f;
-				params.sun_light_factor = 0.7f;
-			}
-		}
+		void OnRainEvent(bool enabled);
+
 	private:
 		GfxDevice* gfx;
 		uint32 width, height;
@@ -89,6 +76,8 @@ namespace adria
 		std::unique_ptr<GfxGraphicsPipelineState> clouds_combine_pso;
 
 	private:
+
+		void SetCVarCallbacks();
 		void CreatePSOs();
 		void CreateCloudTextures(GfxDevice* gfx = nullptr);
 		void AddCombinePass(RenderGraph& rendergraph, RGResourceName render_target);

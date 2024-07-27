@@ -22,6 +22,7 @@
 #include "Math/Constants.h"
 #include "Logging/Logger.h"
 #include "Core/Paths.h"
+#include "Core/ConsoleCommand.h"
 #include "entt/entity/registry.hpp"
 
 
@@ -29,7 +30,6 @@ using namespace DirectX;
 
 namespace adria
 {
-	extern bool dump_render_graph;
 
 	Renderer::Renderer(entt::registry& reg, GfxDevice* gfx, uint32 width, uint32 height) : reg(reg), gfx(gfx), resource_pool(gfx),
 		accel_structure(gfx), camera(nullptr), display_width(width), display_height(height), render_width(width), render_height(height),
@@ -131,7 +131,6 @@ namespace adria
 		else g_Editor.AddRenderPass(render_graph);
 
 		render_graph.Build();
-		if (dump_render_graph) render_graph.Dump("rendergraph.gv");
 		render_graph.Execute();
 	}
 

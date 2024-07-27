@@ -11,6 +11,7 @@
 #include "Graphics/GfxTexture.h"
 #include "Graphics/GfxDevice.h"
 #include "Logging/Logger.h"
+#include "Core/ConsoleVariable.h"
 #include "Editor/GUICommand.h"
 
 using namespace DirectX;
@@ -18,6 +19,11 @@ using namespace DirectX;
 namespace adria
 {
 
+	namespace cvars
+	{
+
+	}
+	
 	VolumetricCloudsPass::VolumetricCloudsPass(GfxDevice* gfx, uint32 w, uint32 h)
 		: gfx(gfx), width{ w }, height{ h }
 	{
@@ -395,6 +401,27 @@ namespace adria
 
 		prev_clouds = gfx->CreateTexture(clouds_output_desc);
 		CreateCloudTextures(gfx);
+	}
+
+	void VolumetricCloudsPass::OnRainEvent(bool enabled)
+	{
+		if (enabled)
+		{
+			params.precipitation = 2.5f;
+			params.cloud_coverage = 0.75f;
+			params.sun_light_factor = 0.15f;
+		}
+		else
+		{
+			params.precipitation = 1.78f;
+			params.cloud_coverage = 0.625f;
+			params.sun_light_factor = 0.7f;
+		}
+	}
+
+	void VolumetricCloudsPass::SetCVarCallbacks()
+	{
+
 	}
 
 	void VolumetricCloudsPass::CreatePSOs()

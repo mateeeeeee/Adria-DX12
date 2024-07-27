@@ -7,7 +7,6 @@
 #include "Core/Engine.h"
 #include "Core/Input.h"
 #include "Core/Paths.h"
-#include "Core/ConsoleCommand.h"
 #include "IconsFontAwesome6.h"
 #include "Rendering/Renderer.h"
 #include "Rendering/Camera.h"
@@ -31,11 +30,7 @@ namespace fs = std::filesystem;
 
 namespace adria
 {
-	extern bool dump_render_graph = false;
-	namespace cvars
-	{
-		static ConsoleCommand<> dump_render_graph_cmd("dump.rendergraph", []() { dump_render_graph = true; });
-	}
+	extern bool dump_render_graph;
 
 	struct ProfilerState
 	{

@@ -6,10 +6,18 @@
 #include "Graphics/GfxStateObject.h"
 #include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
+#include "Core/ConsoleVariable.h"
 #include "Editor/GUICommand.h"
 
 namespace adria
 {
+	namespace cvars
+	{
+		static ConsoleVariable rtao_radius("r.RayTracing.AmbientOcclusion.Radius", 2.0f);
+		static ConsoleVariable rtao_power_log("r.RayTracing.AmbientOcclusion.PowerLog", -1.0f);
+		static ConsoleVariable rtao_filter_distance_sigma("r.RayTracing.AmbientOcclusion.Filter.DistanceSigma", 10.0f);
+		static ConsoleVariable rtao_filter_depth_sigma("r.RayTracing.AmbientOcclusion.Filter.DepthSigma", 0.25f);
+	}
 
 	RayTracedAmbientOcclusionPass::RayTracedAmbientOcclusionPass(GfxDevice* gfx, uint32 width, uint32 height)
 		: gfx(gfx), width(width), height(height), blur_pass(gfx, width, height)
@@ -17,6 +25,7 @@ namespace adria
 		is_supported = gfx->GetCapabilities().SupportsRayTracing();
 		if (IsSupported())
 		{
+			SetCVarCallbacks();
 			CreatePSO();
 			CreateStateObject();
 			ShaderManager::GetLibraryRecompiledEvent().AddMember(&RayTracedAmbientOcclusionPass::OnLibraryRecompiled, *this);
@@ -84,8 +93,6 @@ namespace adria
 				cmd_list->SetRootCBV(0, frame_data.frame_cbuffer_address);
 				cmd_list->SetRootConstants(1, constants);
 				cmd_list->DispatchRays(width, height);
-
-				GUI_DisplayTexture("RTAO Raw", &ctx.GetTexture(*data.output));
 
 			}, RGPassType::Compute, RGPassFlags::None);
 
@@ -166,8 +173,6 @@ namespace adria
 				cmd_list->SetRootCBV(2, constants);
 				cmd_list->Dispatch(DivideAndRoundUp(width, 32), DivideAndRoundUp(height, 32), 1);
 
-				GUI_DisplayTexture("RTAO Filtered", &ctx.GetTexture(*data.output));
-
 			}, RGPassType::Compute, RGPassFlags::None);
 
 		GUI_Command([&]()
@@ -176,6 +181,9 @@ namespace adria
 				{
 					ImGui::SliderFloat("Radius", &params.radius, 1.0f, 32.0f);
 					ImGui::SliderFloat("Power (log2)", &params.power_log, -10.0f, 10.0f);
+					ImGui::SliderFloat("Power (log2)", &params.power_log, -10.0f, 10.0f);
+					ImGui::SliderFloat("Filter Distance Sigma", &params.filter_distance_sigma, 0.0f, 25.0f);
+					ImGui::SliderFloat("Filter Depth Sigma", &params.filter_depth_sigma, 0.0f, 1.0f);
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
@@ -194,6 +202,14 @@ namespace adria
 	bool RayTracedAmbientOcclusionPass::IsSupported() const
 	{
 		return is_supported;
+	}
+
+	void RayTracedAmbientOcclusionPass::SetCVarCallbacks()
+	{
+		ADRIA_CVAR_CALLBACK(rtao_radius, (float v) { params.radius = v; });
+		ADRIA_CVAR_CALLBACK(rtao_power_log, (float v) { params.power_log = v; });
+		ADRIA_CVAR_CALLBACK(rtao_filter_distance_sigma, (float v) { params.filter_distance_sigma = v; });
+		ADRIA_CVAR_CALLBACK(rtao_filter_depth_sigma, (float v) { params.filter_depth_sigma = v; });
 	}
 
 	void RayTracedAmbientOcclusionPass::CreatePSO()

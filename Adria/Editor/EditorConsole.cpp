@@ -36,12 +36,12 @@ namespace adria
 			{
 				Commands.push_back(cvar->GetName());
 			};
-		ConsoleManager::ForEachCVar(RegisterVariables);
+		g_ConsoleManager.ForEachCVar(RegisterVariables);
 		auto RegisterCommands = [&](IConsoleCommand* ccmd)
 			{
 				Commands.push_back(ccmd->GetName());
 			};
-		ConsoleManager::ForEachCCmd(RegisterCommands);
+		g_ConsoleManager.ForEachCCmd(RegisterCommands);
 
 		AutoScroll = true;
 		ScrollToBottom = false;
@@ -49,8 +49,7 @@ namespace adria
 	EditorConsole::~EditorConsole()
 	{
 		ClearLog();
-		for (int i = 0; i < History.Size; i++)
-			free(History[i]);
+		for (int i = 0; i < History.Size; i++) free(History[i]);
 	}
 
 	void EditorConsole::Draw(const char* title, bool* p_open)
@@ -177,7 +176,7 @@ namespace adria
 			for (int i = first > 0 ? first : 0; i < History.Size; i++)
 				AddLog("%3d: %s\n", i, History[i]);
 		}
-		else if (!ConsoleManager::Execute(cmd))
+		else if (!g_ConsoleManager.Execute(cmd))
 		{
 			AddLog("Unknown command: '%s'\n", cmd);
 		}

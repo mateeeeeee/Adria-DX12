@@ -496,7 +496,6 @@
     <ClInclude Include="Rendering\SunPass.h" />
     <ClInclude Include="Rendering\TAAPass.h" />
     <ClInclude Include="Rendering\MotionVectorsPass.h" />
-    <ClInclude Include="Rendering\TextureChannelMappingPass.h" />
     <ClInclude Include="Rendering\TextureHandle.h" />
     <ClInclude Include="Rendering\TextureManager.h" />
     <ClInclude Include="Rendering\ViewportData.h" />

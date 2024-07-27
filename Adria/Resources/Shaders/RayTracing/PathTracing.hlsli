@@ -54,6 +54,10 @@ bool SampleLightRIS(inout uint seed, float3 position, float3 N, out int lightInd
             continue;
         }
         float targetPdf = Luminance(DoAttenuation(distance, light.range) * light.color.rgb);
+        if (light.type == DIRECTIONAL_LIGHT)
+        {
+            targetPdf = Luminance(light.color.rgb);
+        }
         float risWeight = targetPdf / sourcePdf;
         reservoir.TotalWeight += risWeight;
 

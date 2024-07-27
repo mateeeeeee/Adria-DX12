@@ -5,10 +5,11 @@
 #include "Graphics/GfxShaderKey.h"
 #include "Graphics/GfxStateObject.h"
 #include "RenderGraph/RenderGraph.h"
+#include "Core/ConsoleVariable.h"
+
 
 namespace adria
 {
-
 	RayTracedShadowsPass::RayTracedShadowsPass(GfxDevice* gfx, uint32 width, uint32 height)
 		: gfx(gfx), width(width), height(height)
 	{

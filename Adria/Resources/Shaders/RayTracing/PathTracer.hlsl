@@ -63,21 +63,25 @@ void PT_RayGen()
             int lightIndex = 0;
             float lightWeight = 0.0f;
 
-			//#todo use all lights
-            Light light = lightBuffer[0];
-			float visibility = TraceShadowRay(light, worldPosition.xyz);
-            float3 wi = normalize(-light.direction.xyz);
             float3 wo = normalize(FrameCB.cameraPosition.xyz - worldPosition);
-			float NdotL = saturate(dot(worldNormal, wi));
+            if (SampleLightRIS(randSeed, worldPosition, worldNormal, lightIndex, lightWeight))
+            {
+                  Light light = lightBuffer[lightIndex];
+			      float visibility = TraceShadowRay(light, worldPosition.xyz);
+                  float3 wi = normalize(-light.direction.xyz);
+			      float NdotL = saturate(dot(worldNormal, wi));
 
-            float3 directLighting = DefaultBRDF(wi, wo, worldNormal, brdfData.Diffuse, brdfData.Specular, brdfData.Roughness) * visibility * light.color.rgb * NdotL;
-            radiance += (directLighting + matProperties.emissive) * throughput / pdf;
+                  float3 directLighting = DefaultBRDF(wi, wo, worldNormal, brdfData.Diffuse, brdfData.Specular, brdfData.Roughness) * visibility * light.color.rgb * NdotL;
+                  radiance += lightWeight * (directLighting + matProperties.emissive) * throughput / pdf;
+            }
 
             if (i == PathTracingPassCB.bounceCount - 1) break;
 
             //indirect light
             float probDiffuse = ProbabilityToSampleDiffuse(brdfData.Diffuse, brdfData.Specular);
             bool chooseDiffuse = NextRand(randSeed) < probDiffuse;
+
+            float3 wi;
             if (chooseDiffuse)
             {
                 wi = GetCosHemisphereSample(randSeed, worldNormal);
@@ -94,7 +98,6 @@ void PT_RayGen()
                 float3 H = SampleGGX(u, brdfData.Roughness, worldNormal);
 
                 float roughness = max(brdfData.Roughness, 0.065);
-
                 wi = reflect(-wo, H);
 
                 float3 F;

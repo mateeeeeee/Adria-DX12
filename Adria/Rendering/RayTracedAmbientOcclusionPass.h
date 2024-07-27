@@ -39,6 +39,7 @@ namespace adria
 		RTAOParams params{};
 
 	private:
+		void SetCVarCallbacks();
 		void CreatePSO();
 		void CreateStateObject();
 		void OnLibraryRecompiled(GfxShaderKey const&);

@@ -5,8 +5,6 @@ namespace adria
 {
 	IConsoleVariable::IConsoleVariable(char const* name) : name(name)
 	{
-		ConsoleManager::RegisterConsoleVariable(this, name);
+		g_ConsoleManager.RegisterConsoleVariable(this, name);
 	}
-
 }
-

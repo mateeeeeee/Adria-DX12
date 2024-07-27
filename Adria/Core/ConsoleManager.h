@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <type_traits>
+#include "Utilities/Singleton.h"
 
 namespace adria
 {
@@ -19,30 +20,32 @@ namespace adria
 		{ f(ccmd) } -> std::same_as<void>;
 	};
 
-	class ConsoleManager
+	class ConsoleManager : public Singleton<ConsoleManager>
 	{
+		friend class Singleton<ConsoleManager>;
 		friend class IConsoleVariable;
 		friend class IConsoleCommand;
 	public:
-		static bool Execute(char const* cmd);
+		bool Execute(char const* cmd);
 
 		template<CVarCallback F>
-		static void ForEachCVar(F&& pfn)
+		void ForEachCVar(F&& pfn)
 		{
 			for (auto&& [name, cvar] : cvars) pfn(cvar);
 		}
 		template<CCmdCallback F>
-		static void ForEachCCmd(F&& pfn)
+		void ForEachCCmd(F&& pfn)
 		{
 			for (auto&& [name, ccmd] : ccmds) pfn(ccmd);
 		}
 	private:
-		inline static std::unordered_map<std::string, IConsoleVariable*> cvars{};
-		inline static std::unordered_map<std::string, IConsoleCommand*>  ccmds{};
+		std::unordered_map<std::string, IConsoleVariable*> cvars{};
+		std::unordered_map<std::string, IConsoleCommand*>  ccmds{};
 
 	private:
-		static void RegisterConsoleVariable(IConsoleVariable* cvar, char const* name);
-		static void RegisterConsoleCommand(IConsoleCommand* ccmd, char const* name);
+		void RegisterConsoleVariable(IConsoleVariable* cvar, char const* name);
+		void RegisterConsoleCommand(IConsoleCommand* ccmd, char const* name);
 	};
+	#define g_ConsoleManager ConsoleManager::Get()
 
 }
