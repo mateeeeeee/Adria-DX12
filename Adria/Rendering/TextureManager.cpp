@@ -3,8 +3,8 @@
 #include "TextureManager.h"
 #include "Graphics/GfxTexture.h"
 #include "Graphics/GfxDevice.h"
+#include "Graphics/GfxCommon.h"
 #include "Graphics/GfxCommandList.h"
-#include "Graphics/GfxRingDescriptorAllocator.h"
 #include "Graphics/GfxShaderCompiler.h"
 #include "Logging/Logger.h"
 #include "Utilities/Image.h"
@@ -123,23 +123,12 @@ namespace adria
 
 	void TextureManager::OnSceneInitialized()
 	{
-		GfxTextureDesc desc{};
-		desc.width = 1;
-		desc.height = 1;
-		desc.format = GfxFormat::R32_FLOAT;
-		desc.bind_flags = GfxBindFlag::ShaderResource;
-		desc.initial_state = GfxResourceState::AllSRV;
-
-		float v = 0.0f;
-		GfxTextureInitialData init_data{};
-		init_data.data = &v;
-		init_data.row_pitch = sizeof(float);
-		init_data.slice_pitch = 0;
-		std::unique_ptr<GfxTexture> black_default_texture = gfx->CreateTexture(desc, &init_data);
-		texture_map[INVALID_TEXTURE_HANDLE] = std::move(black_default_texture);
-
 		gfx->InitShaderVisibleAllocator(1024);
-		for (uint64 i = 0; i <= handle; ++i)
+		gfx->CopyDescriptors(1, gfx->GetDescriptorGPU((uint32)DEFAULT_BLACK_TEXTURE_HANDLE), gfxcommon::GetCommonView(GfxCommonViewType::BlackTexture2D_SRV));
+		gfx->CopyDescriptors(1, gfx->GetDescriptorGPU((uint32)DEFAULT_WHITE_TEXTURE_HANDLE), gfxcommon::GetCommonView(GfxCommonViewType::WhiteTexture2D_SRV));
+		gfx->CopyDescriptors(1, gfx->GetDescriptorGPU((uint32)DEFAULT_NORMAL_TEXTURE_HANDLE), gfxcommon::GetCommonView(GfxCommonViewType::DefaultNormal2D_SRV));
+		gfx->CopyDescriptors(1, gfx->GetDescriptorGPU((uint32)DEFAULT_METALLIC_ROUGHNESS_TEXTURE_HANDLE), gfxcommon::GetCommonView(GfxCommonViewType::WhiteTexture2D_SRV));
+		for (uint64 i = TEXTURE_MANAGER_START_HANDLE; i <= handle; ++i)
         {
             GfxTexture* texture = texture_map[TextureHandle(i)].get();
             if (texture)
@@ -157,8 +146,7 @@ namespace adria
 		GfxTexture* texture = texture_map[handle].get();
 		ADRIA_ASSERT(texture);
         texture_srv_map[handle] = gfx->CreateTextureSRV(texture);
-        gfx->CopyDescriptors(1, gfx->GetDescriptorGPU((uint32)handle),
-            texture_srv_map[handle]);
+        gfx->CopyDescriptors(1, gfx->GetDescriptorGPU((uint32)handle), texture_srv_map[handle]);
 	}
 
 }

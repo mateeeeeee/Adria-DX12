@@ -37,7 +37,7 @@ namespace adria
 		std::unordered_map<TextureName, TextureHandle> loaded_textures;
 		std::unordered_map<TextureHandle, std::unique_ptr<GfxTexture>> texture_map;
 		std::unordered_map<TextureHandle, GfxDescriptor> texture_srv_map;
-		TextureHandle handle = 0;
+		TextureHandle handle = TEXTURE_MANAGER_START_HANDLE;
 		bool mipmaps = true;
 		bool is_scene_initialized = false;
 

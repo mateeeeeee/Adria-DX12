@@ -1218,10 +1218,11 @@
     <None Include="Resources\Shaders\RayTracing\RayTracingUtil.hlsli">
       <Filter>Shaders\RayTracing</Filter>
     </None>
-    <None Include="Saved\Ini\sponza.json" />
     <None Include="Resources\Shaders\Weather\RainUtil.hlsli">
       <Filter>Shaders\Weather</Filter>
     </None>
+    <None Include="Saved\Scenes\sanmiguel.json" />
+    <None Include="Saved\Scenes\sponza.json" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="adria.log" />

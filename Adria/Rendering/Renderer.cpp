@@ -228,8 +228,7 @@ namespace adria
 	void Renderer::UpdateSceneBuffers()
 	{
 		volumetric_lights = 0;
-		for (auto e : reg.view<Batch>())
-			reg.destroy(e);
+		for (auto e : reg.view<Batch>()) reg.destroy(e);
 		reg.clear<Batch>();
 
 		std::vector<LightGPU> hlsl_lights{};

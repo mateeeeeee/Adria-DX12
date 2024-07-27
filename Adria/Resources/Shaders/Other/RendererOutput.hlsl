@@ -43,7 +43,8 @@ void RendererOutputCS(CSInput input)
 	float4 normalMetallic = normalMetallicTexture.Sample(LinearWrapSampler, uv);
 	float3 viewNormal	  = 2.0f * normalMetallic.rgb - 1.0f;
 	float3 worldNormal = mul(viewNormal, (float3x3)transpose(FrameCB.view));
-	outputTexture[input.DispatchThreadId.xy] = float4(worldNormal, 1.0f); 
+	worldNormal = 0.5f * worldNormal + 0.5f;
+	outputTexture[input.DispatchThreadId.xy] = float4(normalize(worldNormal), 1.0f);
 
 #elif OUTPUT_ROUGHNESS
 	float4 albedoRoughness	= diffuseTexture.Sample(LinearWrapSampler, uv);

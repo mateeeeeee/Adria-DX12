@@ -19,19 +19,34 @@ namespace adria
 				GfxTextureDesc desc{};
 				desc.width = 1;
 				desc.height = 1;
-				desc.format = GfxFormat::R32_FLOAT;
+				desc.format = GfxFormat::R8G8B8A8_UNORM;
 				desc.bind_flags = GfxBindFlag::ShaderResource;
 				desc.initial_state = GfxResourceState::PixelSRV;
-				desc.clear_value = GfxClearValue(0.0f, 0.0f, 0.0f, 0.0f);
 
 				GfxTextureInitialData init_data{};
-				float v = 1.0f;
-				init_data.data = &v;
-				init_data.row_pitch = sizeof(float);
+				uint8 white[] = { 0xff, 0xff, 0xff, 0xff };
+				init_data.data = white;
+				init_data.row_pitch = sizeof(white);
 				init_data.slice_pitch = 0;
 				common_textures[(uint64)GfxCommonTextureType::WhiteTexture2D] = gfx->CreateTexture(desc, &init_data);
-				v = 0.0f;
+				uint8 black[] = { 0x00, 0x00, 0x00, 0xff };
+				init_data.data = black;
+				init_data.row_pitch = sizeof(black);
 				common_textures[(uint64)GfxCommonTextureType::BlackTexture2D] = gfx->CreateTexture(desc, &init_data);
+
+				GfxTextureDesc default_normal_desc{};
+				default_normal_desc.width = 1;
+				default_normal_desc.height = 1;
+				default_normal_desc.format = GfxFormat::R8G8B8A8_UNORM;
+				default_normal_desc.bind_flags = GfxBindFlag::ShaderResource;
+				default_normal_desc.initial_state = GfxResourceState::PixelSRV;
+
+				uint8 default_normal[] = { 0x7f, 0x7f, 0xff, 0xff };
+				GfxTextureInitialData default_normal_init_data{};
+				default_normal_init_data.data = default_normal;
+				default_normal_init_data.row_pitch = sizeof(default_normal);
+				default_normal_init_data.slice_pitch = 0;
+				common_textures[(uint64)GfxCommonTextureType::DefaultNormal2D] = gfx->CreateTexture(default_normal_desc, &default_normal_init_data);
 			}
 
 			void CreateCommonViews(GfxDevice* gfx)
@@ -68,9 +83,11 @@ namespace adria
 
 				GfxDescriptor white_srv = gfx->CreateTextureSRV(common_textures[(uint64)GfxCommonTextureType::WhiteTexture2D].get());
 				GfxDescriptor black_srv = gfx->CreateTextureSRV(common_textures[(uint64)GfxCommonTextureType::BlackTexture2D].get());
+				GfxDescriptor default_normal_srv = gfx->CreateTextureSRV(common_textures[(uint64)GfxCommonTextureType::DefaultNormal2D].get());
 
 				gfx->CopyDescriptors(1, common_views_heap->GetHandle((uint64)WhiteTexture2D_SRV), white_srv);
 				gfx->CopyDescriptors(1, common_views_heap->GetHandle((uint64)BlackTexture2D_SRV), black_srv);
+				gfx->CopyDescriptors(1, common_views_heap->GetHandle((uint64)DefaultNormal2D_SRV), default_normal_srv);
 			}
 		}
 

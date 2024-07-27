@@ -10,6 +10,7 @@ namespace adria
 	{
 		WhiteTexture2D,
 		BlackTexture2D,
+		DefaultNormal2D,
 		Count
 	};
 
@@ -21,6 +22,7 @@ namespace adria
 		NullTexture2DArray_SRV,
 		WhiteTexture2D_SRV,
 		BlackTexture2D_SRV,
+		DefaultNormal2D_SRV,
 		Count
 	};
 

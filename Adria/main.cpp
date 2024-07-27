@@ -59,7 +59,7 @@ int APIENTRY wWinMain(
         engine_init.scene_file = scene.AsStringOr("sponza.json");
 		engine_init.window = &window;
 
-        EditorInit editor_init{.engine_init = engine_init };
+        EditorInit editor_init{ .engine_init = engine_init };
         g_Editor.Init(std::move(editor_init));
 
         window.GetWindowEvent().Add([](WindowEventData const& msg_data) { g_Editor.OnWindowEvent(msg_data); });

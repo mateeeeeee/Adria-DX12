@@ -76,11 +76,10 @@ PSOutput GBufferPS(VSToPS input)
 	float3 normal = normalize(input.NormalWS);
 	float3 tangent = normalize(input.TangentWS);
 	float3 bitangent = normalize(input.BitangentWS);
-	float3x3 TBN = float3x3(tangent, bitangent, normal); 
-	float3 normalTS = normalTexture.Sample(LinearWrapSampler, input.Uvs).xyz;
-	normalTS.xy = 2.0f * normalTS.xy - 1.0f;
-	normalTS.z = sqrt(1.0f - normalTS.x * normalTS.x - normalTS.y * normalTS.y);
-	normal = mul(normalTS, TBN);
+    float3 normalTS = normalize(normalTexture.Sample(LinearWrapSampler, input.Uvs).xyz * 2.0f - 1.0f);
+    float3x3 TBN = float3x3(tangent, bitangent, normal); 
+    normal = normalize(mul(normalTS, TBN));
+
 	float3 aoRoughnessMetallic = metallicRoughnessTexture.Sample(LinearWrapSampler, input.Uvs).rgb;
 #if RAIN
 	ApplyRain(input.PositionWS.xyz, albedoColor.rgb, aoRoughnessMetallic.g, normal, tangent, bitangent);

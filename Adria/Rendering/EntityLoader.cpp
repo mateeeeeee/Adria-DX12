@@ -548,17 +548,25 @@ namespace adria
 				tinygltf::Texture const& base_texture = model.textures[pbr_metallic_roughness.baseColorTexture.index];
 				tinygltf::Image const& base_image = model.images[base_texture.source];
 				std::string texbase = params.textures_path + base_image.uri;
-
 				material.albedo_texture = g_TextureManager.LoadTexture(texbase);
 			}
+			else
+			{
+				material.albedo_texture = DEFAULT_WHITE_TEXTURE_HANDLE;
+			}
+
 			if (pbr_metallic_roughness.metallicRoughnessTexture.index >= 0)
 			{
 				tinygltf::Texture const& metallic_roughness_texture = model.textures[pbr_metallic_roughness.metallicRoughnessTexture.index];
 				tinygltf::Image const& metallic_roughness_image = model.images[metallic_roughness_texture.source];
 				std::string texmetallicroughness = params.textures_path + metallic_roughness_image.uri;
 				material.metallic_roughness_texture = g_TextureManager.LoadTexture(texmetallicroughness);
-				
 			}
+			else
+			{
+				material.metallic_roughness_texture = DEFAULT_METALLIC_ROUGHNESS_TEXTURE_HANDLE;
+			}
+
 			if (gltf_material.normalTexture.index >= 0)
 			{
 				tinygltf::Texture const& normal_texture = model.textures[gltf_material.normalTexture.index];
@@ -566,12 +574,21 @@ namespace adria
 				std::string texnormal = params.textures_path + normal_image.uri;
 				material.normal_texture = g_TextureManager.LoadTexture(texnormal);
 			}
+			else
+			{
+				material.normal_texture = DEFAULT_NORMAL_TEXTURE_HANDLE;
+			}
+
 			if (gltf_material.emissiveTexture.index >= 0)
 			{
 				tinygltf::Texture const& emissive_texture = model.textures[gltf_material.emissiveTexture.index];
 				tinygltf::Image const& emissive_image = model.images[emissive_texture.source];
 				std::string texemissive = params.textures_path + emissive_image.uri;
 				material.emissive_texture = g_TextureManager.LoadTexture(texemissive);
+			}
+			else
+			{
+				material.emissive_texture = DEFAULT_BLACK_TEXTURE_HANDLE;
 			}
 		}
 
