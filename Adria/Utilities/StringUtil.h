@@ -12,7 +12,7 @@ namespace adria
 
 	bool FromCString(char const* in, int& out);
 	bool FromCString(char const* in, float& out);
-	bool FromCString(char const* in, const char*& out);
+	bool FromCString(char const* in, std::string& out);
 	bool FromCString(char const* in, bool& out);
 	bool FromCString(char const* in, Vector3& out);
 

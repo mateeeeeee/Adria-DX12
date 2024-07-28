@@ -7,6 +7,7 @@
 #include "Math/Packing.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Utilities/Random.h"
+#include "Core/ConsoleManager.h"
 #include "Editor/GUICommand.h"
 
 using namespace DirectX;
@@ -17,7 +18,6 @@ namespace adria
 	SSAOPass::SSAOPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ssao_random_texture(nullptr),
 		blur_pass(gfx, w >> resolution, h >> resolution)
 	{
-
 		CreatePSO();
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
 		for (uint32 i = 0; i < ARRAYSIZE(ssao_kernel); i++)

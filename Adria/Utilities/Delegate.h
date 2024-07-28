@@ -58,9 +58,13 @@ namespace adria
 			callback = nullptr;
 		}
 
-		R Execute(Args&&... args)
+		R Execute(Args... args)
 		{
-			return callback(std::forward<Args>(args)...);
+			return callback(args...);
+		}
+		R ExecuteIfBound(Args... args)
+		{
+			return IsBound() ? callback(args...) : R();
 		}
 
 		bool IsBound() const { return callback != nullptr; }

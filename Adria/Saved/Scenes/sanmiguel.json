@@ -12,7 +12,7 @@
 		],
         "fov": 45.0,
         "near": 1.0,
-        "far": 420.0,
+        "far": 800.0,
         "speed": 50.0,
 		"sensitivity" : 0.3
     },
@@ -31,8 +31,8 @@
 		{
 			"type": "directional",
 			"temperature" :  3500.0,
-			"elevation": 70.0,
-			"azimuth" :  220.0,
+			"elevation": 45.0,
+			"azimuth" :  180.0,
 			"intensity": 5.0,
 			"shadows": true,
 			"cascades": true,

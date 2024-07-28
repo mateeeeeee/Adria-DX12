@@ -68,7 +68,7 @@ namespace adria
 		return !iss.fail() && iss.eof();
 	}
 
-	bool FromCString(const char* in, const char*& out)
+	bool FromCString(const char* in, std::string& out)
 	{
 		out = in;
 		return true;
