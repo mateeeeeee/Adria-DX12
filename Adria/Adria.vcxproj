@@ -194,9 +194,7 @@
     <ClCompile Include="..\External\meshoptimizer\vfetchoptimizer.cpp" />
     <ClCompile Include="..\External\SimpleMath\SimpleMath.cpp" />
     <ClCompile Include="..\External\tracy\TracyClient.cpp" />
-    <ClCompile Include="Core\ConsoleCommand.cpp" />
     <ClCompile Include="Core\ConsoleManager.cpp" />
-    <ClCompile Include="Core\ConsoleVariable.cpp" />
     <ClCompile Include="Core\Engine.cpp" />
     <ClCompile Include="Core\Input.cpp" />
     <ClCompile Include="Core\Paths.cpp" />
@@ -354,9 +352,8 @@
     <ClInclude Include="..\External\SimpleMath\SimpleMath.h" />
     <ClInclude Include="..\External\tracy\tracy\Tracy.hpp" />
     <ClInclude Include="..\External\tracy\tracy\TracyD3D12.hpp" />
-    <ClInclude Include="Core\ConsoleCommand.h" />
     <ClInclude Include="Core\ConsoleManager.h" />
-    <ClInclude Include="Core\ConsoleVariable.h" />
+    <ClInclude Include="Core\IConsoleManager.h" />
     <ClInclude Include="Core\CoreTypes.h" />
     <ClInclude Include="Core\Engine.h" />
     <ClInclude Include="Core\Defines.h" />

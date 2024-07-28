@@ -7,24 +7,16 @@
 #include "Math/Packing.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Utilities/Random.h"
-#include "Core/ConsoleVariable.h"
 #include "Editor/GUICommand.h"
 
 using namespace DirectX;
 
 namespace adria
 {
-	namespace cvars
-	{
-		static ConsoleVariable ssao_power("r.SSAO.Power", 1.5f);
-		static ConsoleVariable ssao_radius("r.SSAO.Radius", 1.0f);
-	}
-
+	
 	SSAOPass::SSAOPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ssao_random_texture(nullptr),
 		blur_pass(gfx, w >> resolution, h >> resolution)
 	{
-		ADRIA_CVAR_CALLBACK(ssao_power,  (float v) { params.ssao_power = v; });
-		ADRIA_CVAR_CALLBACK(ssao_radius, (float v) { params.ssao_radius = v; });
 
 		CreatePSO();
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };

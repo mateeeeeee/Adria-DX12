@@ -7,26 +7,14 @@
 #include "Graphics/GfxPipelineState.h"
 #include "Graphics/GfxCommon.h"
 #include "Math/Packing.h"
-#include "Core/ConsoleVariable.h"
 #include "Editor/GUICommand.h"
 #include "RenderGraph/RenderGraph.h"
 
 namespace adria
 {
-	namespace cvars
-	{
-		static ConsoleVariable tone_map_operator("r.ToneMap.Operator", 3);
-		static ConsoleVariable tone_map_exposure("r.ToneMap.Exposure", 1.5f);
-
-		static ConsoleVariable tone_map_reinhard("r.ToneMap.Reinhard", false);
-		static ConsoleVariable tone_map_hable("r.ToneMap.Hable", false);
-		static ConsoleVariable tone_map_linear("r.ToneMap.Linear", false);
-		static ConsoleVariable tone_map_mcmapface("r.ToneMap.TonyMcMapface", true);
-	}
-
+	
 	ToneMapPass::ToneMapPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
 	{
-		SetCVarCallbacks();
 		CreatePSO();
 	}
 
@@ -201,16 +189,6 @@ namespace adria
 	{
 		lens_dirt_handle		   = g_TextureManager.LoadTexture(paths::TexturesDir + "LensDirt.dds");
 		tony_mc_mapface_lut_handle = g_TextureManager.LoadTexture(paths::TexturesDir + "tony_mc_mapface.dds");
-	}
-
-	void ToneMapPass::SetCVarCallbacks()
-	{
-		ADRIA_CVAR_CALLBACK(tone_map_operator, (int v) { params.tone_map_op = static_cast<ToneMap>(v); });
-		ADRIA_CVAR_CALLBACK(tone_map_exposure, (float v) { params.tonemap_exposure = v; });
-		ADRIA_CVAR_CALLBACK(tone_map_reinhard, (bool b) { params.tone_map_op = b ? ToneMap::Reinhard : ToneMap::TonyMcMapface; });
-		ADRIA_CVAR_CALLBACK(tone_map_hable, (bool b) { params.tone_map_op = b ? ToneMap::Hable : ToneMap::TonyMcMapface; });
-		ADRIA_CVAR_CALLBACK(tone_map_linear, (bool b) { params.tone_map_op = b ? ToneMap::Linear : ToneMap::TonyMcMapface; });
-		ADRIA_CVAR_CALLBACK(tone_map_mcmapface, (bool b) { params.tone_map_op = b ? ToneMap::TonyMcMapface : ToneMap::Reinhard; });
 	}
 
 	void ToneMapPass::CreatePSO()

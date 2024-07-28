@@ -5,23 +5,17 @@
 #include "Graphics/GfxShaderKey.h"
 #include "Graphics/GfxStateObject.h"
 #include "RenderGraph/RenderGraph.h"
-#include "Core/ConsoleVariable.h"
 #include "Editor/GUICommand.h"
 
 namespace adria
 {
-	namespace cvars
-	{
-		static ConsoleVariable rtr_roughness_scale("r.RayTracing.Reflections..RoughnessScale", 0.0f);
-	}
-
+	
 	RayTracedReflectionsPass::RayTracedReflectionsPass(GfxDevice* gfx, uint32 width, uint32 height)
 		: gfx(gfx), width(width), height(height), blur_pass(gfx, width, height)
 	{
 		is_supported = gfx->GetCapabilities().CheckRayTracingSupport(RayTracingSupport::Tier1_1);
 		if (IsSupported())
 		{
-			ADRIA_CVAR_CALLBACK(rtr_roughness_scale, (float v) { reflection_roughness_scale = v; });
 			CreateStateObject();
 			ShaderManager::GetLibraryRecompiledEvent().AddMember(&RayTracedReflectionsPass::OnLibraryRecompiled, *this);
 		}

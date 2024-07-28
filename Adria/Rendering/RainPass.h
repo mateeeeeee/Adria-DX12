@@ -66,7 +66,6 @@ namespace adria
 		std::unique_ptr<GfxComputePipelineState> rain_simulation_pso;
 
 	private:
-		void SetCVarCallbacks();
 		void CreatePSOs();
 	};
 }

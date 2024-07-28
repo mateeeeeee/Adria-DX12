@@ -40,7 +40,6 @@ namespace adria
 		std::unique_ptr<GfxComputePipelineState> tonemap_pso;
 
 	private:
-		void SetCVarCallbacks();
 		void CreatePSO();
 		void GUI();
 	};

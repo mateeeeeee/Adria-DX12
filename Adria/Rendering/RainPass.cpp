@@ -7,21 +7,11 @@
 #include "Graphics/GfxPipelineState.h"
 #include "Editor/GUICommand.h"
 #include "Core/Paths.h"
-#include "Core/ConsoleVariable.h"
 #include "Utilities/Random.h"
 
 namespace adria
 {
-	namespace cvars
-	{
-		static ConsoleVariable rain_pause_simulation("r.Rain.PauseSimulation", false);
-		static ConsoleVariable rain_cheap("r.Rain.Cheap", false);
-		static ConsoleVariable rain_simulation_speed("r.Rain.SimulationSpeed", 1.0f);
-		static ConsoleVariable rain_density("r.Rain.Density", 0.5f);
-		static ConsoleVariable rain_streak_scale("r.Rain.StreakScale", 0.33f);
-		static ConsoleVariable rain_range_radius("r.Rain.RangeRadius", 40.0f);
-	}
-
+	
 	struct RainData
 	{
 		Vector3 position;
@@ -31,7 +21,6 @@ namespace adria
 	
 	RainPass::RainPass(entt::registry& reg, GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), rain_blocker_map_pass(reg, gfx, w, h)
 	{
-		SetCVarCallbacks();
 		CreatePSOs();
 	}
 
@@ -174,18 +163,6 @@ namespace adria
 			rain_data_buffer_init[i].state = 0.0f;
 		}
 		rain_data_buffer = std::make_unique<GfxBuffer>(gfx, rain_data_buffer_desc, rain_data_buffer_init.data());
-	}
-
-	void RainPass::SetCVarCallbacks()
-	{
-		ADRIA_CVAR_CALLBACK(rain_pause_simulation, (bool v) { pause_simulation = v; });
-		ADRIA_CVAR_CALLBACK(rain_simulation_speed, (float v) { simulation_speed = v; });
-		ADRIA_CVAR_CALLBACK(rain_range_radius, (float v) { range_radius = v; });
-		ADRIA_CVAR_CALLBACK(rain_streak_scale, (float v) { streak_scale = v; });
-		ADRIA_CVAR_CALLBACK(rain_cheap, (bool v) 
-		{
-			cheap = v; OnRainEnabled(true);
-		});
 	}
 
 	void RainPass::CreatePSOs()

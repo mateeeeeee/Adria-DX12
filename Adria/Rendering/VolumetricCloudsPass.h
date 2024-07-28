@@ -76,8 +76,6 @@ namespace adria
 		std::unique_ptr<GfxGraphicsPipelineState> clouds_combine_pso;
 
 	private:
-
-		void SetCVarCallbacks();
 		void CreatePSOs();
 		void CreateCloudTextures(GfxDevice* gfx = nullptr);
 		void AddCombinePass(RenderGraph& rendergraph, RGResourceName render_target);

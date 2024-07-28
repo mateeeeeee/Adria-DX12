@@ -1,48 +1,140 @@
 #include "ConsoleManager.h"
-#include "ConsoleVariable.h"
-#include "ConsoleCommand.h"
-#include "Utilities/StringUtil.h"
 
 namespace adria
 {
-	void ConsoleManager::RegisterConsoleVariable(IConsoleVariable* cvar, char const* name)
+
+	class ConsoleVariableBase : public IConsoleVariable
 	{
-		std::string lower_name = ToLower(name);
-		if (cvars.find(lower_name) == cvars.end())
+	public:
+
+		virtual char const* GetHelp() const override { return help.c_str(); }
+		virtual void SetHelp(char const* _help) override { help = _help; }
+
+		virtual void Set(char const* value) = 0;
+
+		virtual bool IsBool() const { return false; }
+		virtual bool IsInt() const { return false; }
+		virtual bool IsFloat() const { return false; }
+		virtual bool IsString() const { return false; }
+		virtual bool IsVector() const { return false; }
+
+		virtual int& GetIntRef() = 0;
+		virtual float& GetFloatRef() = 0;
+		virtual bool& GetBoolRef() = 0;
+		virtual std::string& GetStringRef() = 0;
+		virtual Vector3& GetVectorRef() = 0;
+
+		virtual int GetInt() const = 0;
+		virtual float GetFloat() const = 0;
+		virtual bool GetBool() const = 0;
+		virtual std::string GetString() const = 0;
+		virtual Vector3 GetVector() const = 0;
+
+		virtual void SetOnChangedCallback(ConsoleVariableDelegate const& delegate)
 		{
-			cvars[lower_name] = cvar;
+			on_changed_callback.Add(delegate);
 		}
+		virtual ConsoleVariableMulticastDelegate& OnChangedDelegate() { return on_changed_callback; }
+
+	private:
+		std::string help;
+		ConsoleVariableMulticastDelegate on_changed_callback;
+	};
+	
+	IConsoleVariable* ConsoleManager::RegisterConsoleVariable(char const* name, bool default_value, char const* help)
+	{
+		return nullptr;
 	}
 
-	void ConsoleManager::RegisterConsoleCommand(IConsoleCommand* ccmd, char const* name)
+	IConsoleVariable* ConsoleManager::RegisterConsoleVariable(char const* name, int default_value, char const* help)
 	{
-		std::string lower_name = ToLower(name);
-		if (ccmds.find(lower_name) == ccmds.end())
-		{
-			ccmds[lower_name] = ccmd;
-		}
+		return nullptr;
 	}
 
-	bool ConsoleManager::Execute(char const* cmd)
+	IConsoleVariable* ConsoleManager::RegisterConsoleVariable(char const* name, float default_value, char const* help)
 	{
-		auto args = SplitString(cmd, ' ');
-		if (args.empty()) return false;
+		return nullptr;
+	}
 
-		std::vector<char const*> c_args(std::max<uint64>(args.size(), 8));
-		for (uint64 i = 0; i < args.size(); ++i) c_args[i] = args[i].c_str();
+	IConsoleVariable* ConsoleManager::RegisterConsoleVariable(char const* name, char const* default_value, char const* help)
+	{
+		return nullptr;
+	}
 
-		if (auto it = cvars.find(args[0]); it != cvars.end())
-		{
-			auto& [name, cvar] = *it;
-			if (args.size() == 1) return false;
-			else return cvar->SetValue(args[1].c_str());
-		}
-		if (auto it = ccmds.find(args[0]); it != ccmds.end())
-		{
-			auto& [name, ccmd] = *it;
-			return ccmd->Execute(std::span<char const*>(c_args.data() + 1, args.size() - 1));
-		}
+	IConsoleVariable* ConsoleManager::RegisterConsoleVariable(char const* name, std::string const& default_value, char const* help)
+	{
+		return nullptr;
+	}
+
+	IConsoleVariable* ConsoleManager::RegisterConsoleVariable(char const* name, Vector3 const& default_value, char const* help)
+	{
+		return nullptr;
+	}
+
+	IConsoleVariable* ConsoleManager::RegisterConsoleVariableRef(char const* name, bool& value, char const* help)
+	{
+		return nullptr;
+	}
+
+	IConsoleVariable* ConsoleManager::RegisterConsoleVariableRef(char const* name, int& value, char const* help)
+	{
+		return nullptr;
+	}
+
+	IConsoleVariable* ConsoleManager::RegisterConsoleVariableRef(char const* name, float& value, char const* help)
+	{
+		return nullptr;
+	}
+
+	IConsoleVariable* ConsoleManager::RegisterConsoleVariableRef(char const* name, std::string& value, char const* help)
+	{
+		return nullptr;
+	}
+
+	IConsoleVariable* ConsoleManager::RegisterConsoleVariableRef(char const* name, Vector3& value, char const* help)
+	{
+		return nullptr;
+	}
+
+	IConsoleCommand* ConsoleManager::RegisterConsoleCommand(char const* name, char const* help, ConsoleCommandDelegate const& command)
+	{
+		return nullptr;
+	}
+
+	IConsoleCommand* ConsoleManager::RegisterConsoleCommand(char const* name, char const* help, ConsoleCommandWithArgsDelegate const& command)
+	{
+		return nullptr;
+	}
+
+	void ConsoleManager::UnregisterConsoleObject(IConsoleObject* obj)
+	{
+
+	}
+
+	void ConsoleManager::UnregisterConsoleObject(char const* name)
+	{
+
+	}
+
+	IConsoleVariable* ConsoleManager::FindConsoleVariable(char const* name) const
+	{
+		return nullptr;
+	}
+
+	IConsoleCommand* ConsoleManager::FindConsoleCommand(char const* name) const
+	{
+		return nullptr;
+	}
+
+	IConsoleObject* ConsoleManager::FindConsoleObject(char const* name) const
+	{
+		return nullptr;
+	}
+
+	bool ConsoleManager::ProcessInput(char const* cmd)
+	{
 		return false;
 	}
+
 }
 

@@ -10,7 +10,6 @@
 #include "Utilities/StringUtil.h"
 #include "Utilities/FilesUtil.h"
 #include "Core/Paths.h"
-#include "Core/ConsoleCommand.h"
 #include "Logging/Logger.h"
 
 
@@ -23,10 +22,6 @@
 namespace adria
 {
 	extern bool dump_render_graph = false;
-	namespace cvars
-	{
-		static ConsoleCommand<> dump_render_graph_cmd("r.RenderGraph.Dump", []() { dump_render_graph = true; });
-	}
 
 	RGTextureId RenderGraph::DeclareTexture(RGResourceName name, RGTextureDesc const& desc)
 	{

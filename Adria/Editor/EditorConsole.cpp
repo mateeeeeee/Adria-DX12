@@ -1,7 +1,5 @@
 #include "EditorConsole.h"
 #include "Core/ConsoleManager.h"
-#include "Core/ConsoleVariable.h" 
-#include "Core/ConsoleCommand.h"	
 
 namespace adria
 {
@@ -32,16 +30,16 @@ namespace adria
 		Commands.push_back("history");
 		Commands.push_back("clear");
 
-		auto RegisterVariables = [&](IConsoleVariable* cvar)
-			{
-				Commands.push_back(cvar->GetName());
-			};
-		g_ConsoleManager.ForEachCVar(RegisterVariables);
-		auto RegisterCommands = [&](IConsoleCommand* ccmd)
-			{
-				Commands.push_back(ccmd->GetName());
-			};
-		g_ConsoleManager.ForEachCCmd(RegisterCommands);
+		//auto RegisterVariables = [&](IConsoleVariable* cvar)
+		//	{
+		//		Commands.push_back(cvar->GetName());
+		//	};
+		//g_ConsoleManager.ForEachCVar(RegisterVariables);
+		//auto RegisterCommands = [&](IConsoleCommand* ccmd)
+		//	{
+		//		Commands.push_back(ccmd->GetName());
+		//	};
+		//g_ConsoleManager.ForEachCCmd(RegisterCommands);
 
 		AutoScroll = true;
 		ScrollToBottom = false;
@@ -176,10 +174,10 @@ namespace adria
 			for (int i = first > 0 ? first : 0; i < History.Size; i++)
 				AddLog("%3d: %s\n", i, History[i]);
 		}
-		else if (!g_ConsoleManager.Execute(cmd))
-		{
-			AddLog("Unknown command: '%s'\n", cmd);
-		}
+		//else if (!g_ConsoleManager.Execute(cmd))
+		//{
+		//	AddLog("Unknown command: '%s'\n", cmd);
+		//}
 
 		ScrollToBottom = true;
 	}

@@ -257,12 +257,6 @@
     <ClCompile Include="Core\ConsoleManager.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Core\ConsoleVariable.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\ConsoleCommand.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Editor\EditorLogger.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
@@ -797,13 +791,7 @@
     <ClInclude Include="Editor\EditorLogger.h">
       <Filter>Editor</Filter>
     </ClInclude>
-    <ClInclude Include="Core\ConsoleManager.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\ConsoleVariable.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\ConsoleCommand.h">
+    <ClInclude Include="Core\IConsoleManager.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\GeometryBufferCache.h">
@@ -1139,6 +1127,9 @@
     </ClInclude>
     <ClInclude Include="Rendering\RendererOutputPass.h">
       <Filter>Rendering\Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ConsoleManager.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

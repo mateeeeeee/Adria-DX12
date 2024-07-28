@@ -6,26 +6,17 @@
 #include "Graphics/GfxStateObject.h"
 #include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
-#include "Core/ConsoleVariable.h"
 #include "Editor/GUICommand.h"
 
 namespace adria
 {
-	namespace cvars
-	{
-		static ConsoleVariable rtao_radius("r.RayTracing.AmbientOcclusion.Radius", 2.0f);
-		static ConsoleVariable rtao_power_log("r.RayTracing.AmbientOcclusion.PowerLog", -1.0f);
-		static ConsoleVariable rtao_filter_distance_sigma("r.RayTracing.AmbientOcclusion.Filter.DistanceSigma", 10.0f);
-		static ConsoleVariable rtao_filter_depth_sigma("r.RayTracing.AmbientOcclusion.Filter.DepthSigma", 0.25f);
-	}
-
+	
 	RayTracedAmbientOcclusionPass::RayTracedAmbientOcclusionPass(GfxDevice* gfx, uint32 width, uint32 height)
 		: gfx(gfx), width(width), height(height), blur_pass(gfx, width, height)
 	{
 		is_supported = gfx->GetCapabilities().SupportsRayTracing();
 		if (IsSupported())
 		{
-			SetCVarCallbacks();
 			CreatePSO();
 			CreateStateObject();
 			ShaderManager::GetLibraryRecompiledEvent().AddMember(&RayTracedAmbientOcclusionPass::OnLibraryRecompiled, *this);
@@ -202,14 +193,6 @@ namespace adria
 	bool RayTracedAmbientOcclusionPass::IsSupported() const
 	{
 		return is_supported;
-	}
-
-	void RayTracedAmbientOcclusionPass::SetCVarCallbacks()
-	{
-		ADRIA_CVAR_CALLBACK(rtao_radius, (float v) { params.radius = v; });
-		ADRIA_CVAR_CALLBACK(rtao_power_log, (float v) { params.power_log = v; });
-		ADRIA_CVAR_CALLBACK(rtao_filter_distance_sigma, (float v) { params.filter_distance_sigma = v; });
-		ADRIA_CVAR_CALLBACK(rtao_filter_depth_sigma, (float v) { params.filter_depth_sigma = v; });
 	}
 
 	void RayTracedAmbientOcclusionPass::CreatePSO()

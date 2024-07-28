@@ -242,7 +242,7 @@ namespace adria
 		input_events.window_resized_event.AddMember(&Renderer::OnResize, *renderer);
 		input_events.right_mouse_clicked.AddMember(&Renderer::OnRightMouseClicked, *renderer);
 		input_events.f6_pressed_event.AddMember(&Renderer::OnTakeScreenshot, *renderer);
-		std::ignore = input_events.f5_pressed_event.Add(ShaderManager::CheckIfShadersHaveChanged);
+		std::ignore = input_events.f5_pressed_event.AddStatic(ShaderManager::CheckIfShadersHaveChanged);
 
 		std::optional<SceneConfig> scene_config = ParseSceneConfig(init.scene_file);
 		if (scene_config.has_value()) InitializeScene(scene_config.value());

@@ -6,22 +6,9 @@
 #include "Editor/GUICommand.h"
 #include "Logging/Logger.h"
 #include "Math/Constants.h"
-#include "Core/ConsoleVariable.h"
 
 namespace adria
 {
-
-
-	namespace cvars
-	{
-		static ConsoleVariable dof_aperture("r.FFX.DepthOfField.Aperture", 0.01f);
-		static ConsoleVariable dof_focus_distance("r.FFX.DepthOfField.Distance", 400.0f);
-		static ConsoleVariable dof_sensor_size("r.FFX.DepthOfField.SensorSize", 0.02f);
-		static ConsoleVariable dof_coc_limit("r.FFX.DepthOfField.CoCLimit", 0.01f);
-		static ConsoleVariable dof_quality("r.FFX.DepthOfField.Quality", 10);
-		static ConsoleVariable dof_ring_merging("r.FFX.DepthOfField.RingMerging", false);
-	}
-
 	FFXDepthOfFieldPass::FFXDepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ffx_interface(nullptr)
 	{
 		if (!gfx->GetCapabilities().SupportsShaderModel(SM_6_6)) return;
@@ -30,7 +17,6 @@ namespace adria
 		ffx_interface = CreateFfxInterface(gfx, FFX_DOF_CONTEXT_COUNT);
 		dof_context_desc.backendInterface = *ffx_interface;
 		CreateContext();
-		SetCVarCallbacks();
 	}
 
 	FFXDepthOfFieldPass::~FFXDepthOfFieldPass()
@@ -118,28 +104,6 @@ namespace adria
 		width = w, height = h;
 		DestroyContext();
 		CreateContext();
-	}
-
-	void FFXDepthOfFieldPass::SetCVarCallbacks()
-	{
-		ADRIA_CVAR_CALLBACK(dof_aperture, (float v) { aperture = v; });
-		ADRIA_CVAR_CALLBACK(dof_sensor_size, (float v) { sensor_size = v; });
-		ADRIA_CVAR_CALLBACK(dof_focus_distance, (float v) { focus_dist = v; });
-		ADRIA_CVAR_CALLBACK(dof_quality, (int v) {
-			quality = v; 
-			DestroyContext();
-			CreateContext();
-		});
-		ADRIA_CVAR_CALLBACK(dof_coc_limit, (float v) {
-			coc_limit = v;
-			DestroyContext();
-			CreateContext();
-		});
-		ADRIA_CVAR_CALLBACK(dof_ring_merging, (bool v) {
-			enable_ring_merge = v;
-			DestroyContext();
-			CreateContext();
-		});
 	}
 
 	void FFXDepthOfFieldPass::CreateContext()

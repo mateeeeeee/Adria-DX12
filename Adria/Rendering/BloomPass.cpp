@@ -7,21 +7,12 @@
 #include "Graphics/GfxDevice.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
-#include "Core/ConsoleVariable.h"
-
 
 namespace adria
 {
-	namespace cvars
-	{
-		static ConsoleVariable bloom_radius("r.Bloom.Radius", 0.25f);
-		static ConsoleVariable bloom_intensity("r.Bloom.Intensity", 0.25f);
-		static ConsoleVariable bloom_blend_factor("r.Bloom.BlendFactor", 0.25f);
-	}
-
+	
 	BloomPass::BloomPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
 	{
-		SetCVarCallbacks();
 		CreatePSOs();
 	}
 
@@ -77,13 +68,6 @@ namespace adria
 
 		compute_pso_desc.CS = CS_BloomUpsample;
 		upsample_pso = gfx->CreateComputePipelineState(compute_pso_desc);
-	}
-
-	void BloomPass::SetCVarCallbacks()
-	{
-		ADRIA_CVAR_CALLBACK(bloom_radius, (float v) { params.radius = v; });
-		ADRIA_CVAR_CALLBACK(bloom_intensity, (float v) { params.intensity = v; });
-		ADRIA_CVAR_CALLBACK(bloom_blend_factor, (float v) { params.blend_factor = v; });
 	}
 
 	RGResourceName BloomPass::DownsamplePass(RenderGraph& rg, RGResourceName input, uint32 pass_idx)

@@ -7,22 +7,14 @@
 #include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
-#include "Core/ConsoleVariable.h"
 
 using namespace DirectX;
 
 namespace adria
 {
-	namespace cvars
-	{
-		static ConsoleVariable dof_focus_distance("r.DepthOfField.FocusDistance", 0.25f);
-		static ConsoleVariable dof_focus_radius("r.DepthOfField.FocusRadius", 0.25f);
-	}
-
+	
 	DepthOfFieldPass::DepthOfFieldPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), bokeh_pass(gfx, w, h), blur_pass(gfx, w, h)
 	{
-		ADRIA_CVAR_CALLBACK(dof_focus_distance, (float v) { params.focus_distance = v; });
-		ADRIA_CVAR_CALLBACK(dof_focus_radius, (float v) { params.focus_radius = v; });
 		CreatePSO();
 	}
 

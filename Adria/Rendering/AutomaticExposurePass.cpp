@@ -6,25 +6,12 @@
 #include "Graphics/GfxBuffer.h"
 #include "Graphics/GfxPipelineState.h"
 #include "Editor/GUICommand.h"
-#include "Core/ConsoleVariable.h"
 #include <algorithm> // remove this later
 
 namespace adria
 {
-	namespace cvars
-	{
-		static ConsoleVariable min_luminance("r.AutoExposure.MinLuminance", 0.0f);
-		static ConsoleVariable max_luminance("r.AutoExposure.MaxLuminance", 10.0f);
-		static ConsoleVariable low_percentile("r.AutoExposure.LowPercentile", 0.49f);
-		static ConsoleVariable high_percentile("r.AutoExposure.HighPercentile", 0.99f);
-		static ConsoleVariable adaption_speed("r.AutoExposure.AdaptionSpeed", 1.5f);
-		static ConsoleVariable exposure_compensation("r.AutoExposure.ExposureCompensation", 1.5f);
-	}
-
-
 	AutomaticExposurePass::AutomaticExposurePass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
 	{
-		SetCVarCallbacks();
 		CreatePSOs();
 	}
 
@@ -258,16 +245,6 @@ namespace adria
 
 		compute_pso_desc.CS = CS_Exposure;
 		exposure_pso = gfx->CreateComputePipelineState(compute_pso_desc);
-	}
-
-	void AutomaticExposurePass::SetCVarCallbacks()
-	{
-		ADRIA_CVAR_CALLBACK(min_luminance, (float v) { min_luminance = v; });
-		ADRIA_CVAR_CALLBACK(max_luminance, (float v) { max_luminance = v; });
-		ADRIA_CVAR_CALLBACK(low_percentile, (float v) { low_percentile = v; });
-		ADRIA_CVAR_CALLBACK(high_percentile, (float v) { high_percentile = v; });
-		ADRIA_CVAR_CALLBACK(adaption_speed, (float v) { adaption_speed = v; });
-		ADRIA_CVAR_CALLBACK(exposure_compensation, (float v) { exposure_compensation = v; });
 	}
 
 }

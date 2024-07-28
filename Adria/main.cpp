@@ -62,7 +62,7 @@ int APIENTRY wWinMain(
         EditorInit editor_init{ .engine_init = engine_init };
         g_Editor.Init(std::move(editor_init));
 
-        window.GetWindowEvent().Add([](WindowEventData const& msg_data) { g_Editor.OnWindowEvent(msg_data); });
+        window.GetWindowEvent().AddLambda([](WindowEventData const& msg_data) { g_Editor.OnWindowEvent(msg_data); });
         while (window.Loop())
         {
             g_Editor.Run();

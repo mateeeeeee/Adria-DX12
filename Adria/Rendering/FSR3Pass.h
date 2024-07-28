@@ -51,8 +51,6 @@ namespace adria
 
 		RenderResolutionChanged render_resolution_changed_event;
 	private:
-
-		void SetCVarCallbacks();
 		void CreateContext();
 		void DestroyContext();
 		void RecreateRenderResolution();

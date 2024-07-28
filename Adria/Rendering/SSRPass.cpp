@@ -6,21 +6,13 @@
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
-#include "Core/ConsoleVariable.h"
 #include "Editor/GUICommand.h"
 
 namespace adria
 {
-	namespace cvars
-	{
-		static ConsoleVariable ssr_ray_step("r.SSR.RayStep", 1.60f);
-		static ConsoleVariable ssr_ray_hit_threshold("r.SSR.RayHitThreshold", 2.0f);
-	}
-
+	
 	SSRPass::SSRPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
 	{
-		ADRIA_CVAR_CALLBACK(ssr_ray_step, (float v) { params.ssr_ray_step = v; });
-		ADRIA_CVAR_CALLBACK(ssr_ray_hit_threshold, (float v) { params.ssr_ray_hit_threshold = v; });
 		CreatePSO();
 	}
 

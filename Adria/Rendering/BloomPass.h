@@ -30,7 +30,6 @@ namespace adria
 
 	private:
 		void CreatePSOs();
-		void SetCVarCallbacks();
 
 		RGResourceName DownsamplePass(RenderGraph& rendergraph, RGResourceName input, uint32 pass_idx);
 		RGResourceName UpsamplePass(RenderGraph& rendergraph, RGResourceName input, RGResourceName, uint32 pass_idx);

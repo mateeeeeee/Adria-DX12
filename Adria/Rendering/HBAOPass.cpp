@@ -6,22 +6,14 @@
 #include "Graphics/GfxPipelineState.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Utilities/Random.h"
-#include "Core/ConsoleVariable.h"
 #include "Editor/GUICommand.h"
 
 namespace adria
 {
-	namespace cvars
-	{
-		static ConsoleVariable hbao_power("r.HBAO.Power", 1.5f);
-		static ConsoleVariable hbao_radius("r.HBAO.Radius", 1.0f);
-	}
-
+	
 	HBAOPass::HBAOPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), hbao_random_texture(nullptr),
 		blur_pass(gfx, w, h)
 	{
-		ADRIA_CVAR_CALLBACK(hbao_power, (float v) { params.hbao_power = v; });
-		ADRIA_CVAR_CALLBACK(hbao_radius, (float v) { params.hbao_radius = v; });
 		CreatePSO();
 	}
 

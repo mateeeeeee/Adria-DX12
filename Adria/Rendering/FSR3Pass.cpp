@@ -6,18 +6,10 @@
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
 #include "Logging/Logger.h"
-#include "Core/ConsoleVariable.h"
 
 namespace adria
 {
-	namespace cvars
-	{
-		static ConsoleVariable fsr3_quality_mode("r.FSR3.QualityMode", 1);
-		static ConsoleVariable fsr3_upscale_ratio("r.FSR3.UpscaleRatio", 1.0f);
-		static ConsoleVariable fsr3_sharpness_enable("r.FSR3.EnableSharpness", false);
-		static ConsoleVariable fsr3_sharpness("r.FSR3.Sharpness", 0.5f);
-	}
-
+	
 	namespace
 	{
 		void FSR3Log(FfxMsgType type, wchar_t const* message)
@@ -45,7 +37,6 @@ namespace adria
 		fsr3_context_desc.backendInterfaceUpscaling = *ffx_interface;
 		RecreateRenderResolution();
 		CreateContext();
-		SetCVarCallbacks();
 	}
 
 	FSR3Pass::~FSR3Pass()
@@ -149,14 +140,6 @@ namespace adria
 			}, GUICommandGroup_PostProcessor);
 
 		return RG_RES_NAME(FSR3Output);
-	}
-
-	void FSR3Pass::SetCVarCallbacks()
-	{
-		ADRIA_CVAR_CALLBACK(fsr3_quality_mode, (int v) { fsr3_quality_mode = (FfxFsr3QualityMode)Clamp(v, 1, 4); });
-		ADRIA_CVAR_CALLBACK(fsr3_upscale_ratio, (float v) { custom_upscale_ratio = v; });
-		ADRIA_CVAR_CALLBACK(fsr3_sharpness_enable, (bool v) { sharpening_enabled = v; });
-		ADRIA_CVAR_CALLBACK(fsr3_sharpness, (float v) { sharpness = Clamp(v, 0.0f, 1.0f); });
 	}
 
 	void FSR3Pass::CreateContext()

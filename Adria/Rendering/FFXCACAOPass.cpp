@@ -4,8 +4,6 @@
 #include "Graphics/GfxDevice.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Editor/GUICommand.h"
-#include "Core/ConsoleVariable.h"
-
 
 namespace adria
 {
@@ -265,11 +263,7 @@ namespace adria
 		};
 	}
 
-	namespace cvars
-	{
-		static ConsoleVariable cacao_preset("r.FFX.CACAO.Preset", 0);
-	}
-
+	
 	FFXCACAOPass::FFXCACAOPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ffx_interface(nullptr)
 	{
 		if (!gfx->GetCapabilities().SupportsShaderModel(SM_6_6)) return;
@@ -282,7 +276,6 @@ namespace adria
 		preset_id = 2;
 		cacao_settings = FfxCacaoPresets[preset_id].cacao_settings;
 		use_downsampled_ssao = FfxCacaoPresets[preset_id].use_downsampled_ssao;
-		ADRIA_CVAR_CALLBACK(cacao_preset, (int v) { preset_id = Clamp(v, 0, 9); });
 	}
 
 	FFXCACAOPass::~FFXCACAOPass()

@@ -33,7 +33,6 @@ namespace adria
 		bool  enable_ring_merge = false;
 
 	private:
-		void SetCVarCallbacks();
 
 		void CreateContext();
 		void DestroyContext();
