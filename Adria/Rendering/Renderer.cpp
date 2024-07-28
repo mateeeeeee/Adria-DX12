@@ -530,7 +530,7 @@ namespace adria
                         {
 							static float sun_elevation = 75.0f;
 							static float sun_azimuth = 260.0f;
-							static float sun_temperature = 5900.0f;
+							static float sun_temperature = 3500.0f;
 							ConvertDirectionToAzimuthAndElevation(-sun_light->direction, sun_elevation, sun_azimuth);
 
 							ImGui::SliderFloat("Sun Temperature", &sun_temperature, 1000.0f, 15000.0f);

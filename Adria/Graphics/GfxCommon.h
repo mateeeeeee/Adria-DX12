@@ -11,6 +11,7 @@ namespace adria
 		WhiteTexture2D,
 		BlackTexture2D,
 		DefaultNormal2D,
+		MetallicRoughness2D,
 		Count
 	};
 
@@ -23,6 +24,7 @@ namespace adria
 		WhiteTexture2D_SRV,
 		BlackTexture2D_SRV,
 		DefaultNormal2D_SRV,
+		MetallicRoughness2D_SRV,
 		Count
 	};
 

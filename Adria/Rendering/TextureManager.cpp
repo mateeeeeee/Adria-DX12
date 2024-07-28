@@ -127,7 +127,7 @@ namespace adria
 		gfx->CopyDescriptors(1, gfx->GetDescriptorGPU((uint32)DEFAULT_BLACK_TEXTURE_HANDLE), gfxcommon::GetCommonView(GfxCommonViewType::BlackTexture2D_SRV));
 		gfx->CopyDescriptors(1, gfx->GetDescriptorGPU((uint32)DEFAULT_WHITE_TEXTURE_HANDLE), gfxcommon::GetCommonView(GfxCommonViewType::WhiteTexture2D_SRV));
 		gfx->CopyDescriptors(1, gfx->GetDescriptorGPU((uint32)DEFAULT_NORMAL_TEXTURE_HANDLE), gfxcommon::GetCommonView(GfxCommonViewType::DefaultNormal2D_SRV));
-		gfx->CopyDescriptors(1, gfx->GetDescriptorGPU((uint32)DEFAULT_METALLIC_ROUGHNESS_TEXTURE_HANDLE), gfxcommon::GetCommonView(GfxCommonViewType::WhiteTexture2D_SRV));
+		gfx->CopyDescriptors(1, gfx->GetDescriptorGPU((uint32)DEFAULT_METALLIC_ROUGHNESS_TEXTURE_HANDLE), gfxcommon::GetCommonView(GfxCommonViewType::MetallicRoughness2D_SRV));
 		for (uint64 i = TEXTURE_MANAGER_START_HANDLE; i <= handle; ++i)
         {
             GfxTexture* texture = texture_map[TextureHandle(i)].get();

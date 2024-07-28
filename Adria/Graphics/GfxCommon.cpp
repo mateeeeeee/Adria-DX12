@@ -47,6 +47,20 @@ namespace adria
 				default_normal_init_data.row_pitch = sizeof(default_normal);
 				default_normal_init_data.slice_pitch = 0;
 				common_textures[(uint64)GfxCommonTextureType::DefaultNormal2D] = gfx->CreateTexture(default_normal_desc, &default_normal_init_data);
+
+				GfxTextureDesc metallic_roughness_desc{};
+				metallic_roughness_desc.width = 1;
+				metallic_roughness_desc.height = 1;
+				metallic_roughness_desc.format = GfxFormat::R8G8B8A8_UNORM;
+				metallic_roughness_desc.bind_flags = GfxBindFlag::ShaderResource;
+				metallic_roughness_desc.initial_state = GfxResourceState::PixelSRV;
+
+				uint8 metallic_roughness[] = { 0xff, 0x7f, 0x00, 0xff };
+				GfxTextureInitialData metallic_roughness_init_data{};
+				metallic_roughness_init_data.data = metallic_roughness;
+				metallic_roughness_init_data.row_pitch = sizeof(metallic_roughness);
+				metallic_roughness_init_data.slice_pitch = 0;
+				common_textures[(uint64)GfxCommonTextureType::MetallicRoughness2D] = gfx->CreateTexture(metallic_roughness_desc, &metallic_roughness_init_data);
 			}
 
 			void CreateCommonViews(GfxDevice* gfx)
@@ -84,10 +98,12 @@ namespace adria
 				GfxDescriptor white_srv = gfx->CreateTextureSRV(common_textures[(uint64)GfxCommonTextureType::WhiteTexture2D].get());
 				GfxDescriptor black_srv = gfx->CreateTextureSRV(common_textures[(uint64)GfxCommonTextureType::BlackTexture2D].get());
 				GfxDescriptor default_normal_srv = gfx->CreateTextureSRV(common_textures[(uint64)GfxCommonTextureType::DefaultNormal2D].get());
+				GfxDescriptor metallic_roughness_srv = gfx->CreateTextureSRV(common_textures[(uint64)GfxCommonTextureType::MetallicRoughness2D].get());
 
 				gfx->CopyDescriptors(1, common_views_heap->GetHandle((uint64)WhiteTexture2D_SRV), white_srv);
 				gfx->CopyDescriptors(1, common_views_heap->GetHandle((uint64)BlackTexture2D_SRV), black_srv);
 				gfx->CopyDescriptors(1, common_views_heap->GetHandle((uint64)DefaultNormal2D_SRV), default_normal_srv);
+				gfx->CopyDescriptors(1, common_views_heap->GetHandle((uint64)MetallicRoughness2D_SRV), metallic_roughness_srv);
 			}
 		}
 

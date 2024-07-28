@@ -239,8 +239,7 @@ namespace adria
             _In_reads_(vertex_count) XMFLOAT3 const* normals,
             _In_reads_(vertex_count) XMFLOAT2 const* texcoords,
             uint64 vertex_count,
-            _Out_writes_opt_(vertex_count) XMFLOAT3* out_tangents,
-            _Out_writes_opt_(vertex_count) XMFLOAT3* out_bitangents)
+            _Out_writes_opt_(vertex_count) XMFLOAT4* out_tangents)
         {
 			XMFLOAT3* tangents = new XMFLOAT3[vertex_count]{}; //use unique_ptr<T[]>
 			XMFLOAT3* bitangents = new XMFLOAT3[vertex_count]{};
@@ -302,18 +301,15 @@ namespace adria
 			{
 				XMFLOAT3 const& n = normals[i];
 				XMFLOAT3 const& t = tangents[i];
-				XMFLOAT3 const& b = bitangents[i];
+                XMFLOAT3 const& b = bitangents[i];
 
-				XMVECTOR _out_tangent = XMVector3Normalize(XMVectorSubtract(XMLoadFloat3(&t), XMVector3Dot(XMLoadFloat3(&n), XMLoadFloat3(&t))));
-				XMStoreFloat3(out_tangents + i, _out_tangent);
-				// Calculate handedness
 				float tangent_w = (XMVectorGetX(XMVector3Dot(XMVector3Cross(XMLoadFloat3(&n), XMLoadFloat3(&t)), XMLoadFloat3(&b))) < 0.0F) ? -1.0F : 1.0F;
-				XMVECTOR _bitangent = XMVectorScale(XMVector3Cross(XMLoadFloat3(&n), XMLoadFloat3(out_tangents + i)), tangent_w);
-				XMStoreFloat3(out_bitangents + i, XMVector3Normalize(_bitangent));
+				XMVECTOR _out_tangent = XMVector3Normalize(XMVectorSubtract(XMLoadFloat3(&t), XMVector3Dot(XMLoadFloat3(&n), XMLoadFloat3(&t))));
+                XMFLOAT3 tangent;
+                XMStoreFloat3(&tangent, _out_tangent);
+                *(out_tangents + i) = XMFLOAT4(tangent.x, tangent.y, tangent.z, tangent_w);
 			}
-
 			delete[] tangents;
-			delete[] bitangents;
         }
     }
 
@@ -352,10 +348,9 @@ namespace adria
 		_In_reads_(vertex_count) DirectX::XMFLOAT3 const* normals,
 		_In_reads_(vertex_count) DirectX::XMFLOAT2 const* texcoords,
         uint64 vertex_count,
-		_Out_writes_opt_(vertex_count) DirectX::XMFLOAT3* out_tangents,
-		_Out_writes_opt_(vertex_count) DirectX::XMFLOAT3* out_bitangents)
+		_Out_writes_opt_(vertex_count) DirectX::XMFLOAT4* out_tangents)
 	{
-        impl::ComputeTangentFrame(indices, index_count, positions, normals, texcoords, vertex_count, out_tangents, out_bitangents);
+        impl::ComputeTangentFrame(indices, index_count, positions, normals, texcoords, vertex_count, out_tangents);
 	}
 }
 
