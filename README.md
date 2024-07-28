@@ -77,13 +77,14 @@ Graphics engine written in C++ using DirectX12.
 
 ### San Miguel
 ![](Adria/Saved/Screenshots/sanmiguel.png "San Miguel") 
+![](Adria/Saved/Screenshots/sanmiguel2.png "San Miguel") 
 
 ### Ocean
 ![](Adria/Saved/Screenshots/ocean.png "Ocean") 
 
 ### Path Tracer
 ![](Adria/Saved/Screenshots/pathtracing1.png "Path tracing") 
-![](Adria/Saved/Screenshots/pathtracing2.png "Path tracing") 
+![](Adria/Saved/Screenshots/sanmiguel-pt.png "Path tracing") 
 
 ### Editor
 ![](Adria/Saved/Screenshots/editor.png "Editor") 
