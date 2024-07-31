@@ -56,15 +56,14 @@ namespace adria
 	Editor::~Editor() = default;
 	void Editor::Init(EditorInit&& init)
 	{
-		console = std::make_unique<EditorConsole>();
 		logger = new EditorLogger();
 		g_Log.Register(logger);
-
 		engine = std::make_unique<Engine>(init.engine_init);
 		gfx = engine->gfx.get();
 		gui = std::make_unique<GUI>(gfx);
 		engine->RegisterEditorEventCallbacks(editor_events);
 
+		console = std::make_unique<EditorConsole>();
 		ray_tracing_supported = gfx->GetCapabilities().SupportsRayTracing();
 		selected_entity = entt::null;
 		SetStyle();
@@ -221,6 +220,7 @@ namespace adria
 			g_Input.SetMouseVisibility(gui->IsVisible());
 		}
 		if (scene_focused && g_Input.IsKeyDown(KeyCode::G)) gizmo_enabled = !gizmo_enabled;
+		if (g_Input.IsKeyDown(KeyCode::Tilde)) show_basic_console = !show_basic_console;
 		if (gizmo_enabled && gui->IsVisible())
 		{
 			if (g_Input.IsKeyDown(KeyCode::T)) gizmo_op = ImGuizmo::TRANSLATE;
@@ -903,6 +903,12 @@ namespace adria
 	}
 	void Editor::Console()
 	{
+		if (show_basic_console)
+		{
+			ImGui::SetNextWindowSize(ImVec2(viewport_data.scene_viewport_size_x, 65));
+			ImGui::SetNextWindowPos(ImVec2(viewport_data.scene_viewport_pos_x, viewport_data.scene_viewport_pos_y + viewport_data.scene_viewport_size_y - 65));
+			console->DrawBasic(ICON_FA_TERMINAL "BasicConsole ", nullptr);
+		}
 		if (!visibility_flags[Flag_Console]) return;
 		console->Draw(ICON_FA_TERMINAL "Console ", &visibility_flags[Flag_Console]);
 	}

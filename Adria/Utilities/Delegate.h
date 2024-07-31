@@ -58,13 +58,18 @@ namespace adria
 			callback = nullptr;
 		}
 
-		R Execute(Args... args)
+		R Execute(Args... args) const
 		{
 			return callback(args...);
 		}
-		R ExecuteIfBound(Args... args)
+		R ExecuteIfBound(Args... args) const
 		{
 			return IsBound() ? callback(args...) : R();
+		}
+
+		R operator()(Args... args) const
+		{
+			return callback(args...);
 		}
 
 		bool IsBound() const { return callback != nullptr; }
@@ -99,19 +104,18 @@ namespace adria
 	public:
 		DelegateHandle() : id(INVALID_ID) {}
 		explicit DelegateHandle(int) : id(GenerateID()) {}
-		~DelegateHandle() noexcept = default;
-		DelegateHandle(DelegateHandle const&) = default;
+		ADRIA_DEFAULT_COPYABLE(DelegateHandle)
 		DelegateHandle(DelegateHandle&& that) noexcept : id(that.id)
 		{
 			that.Reset();
 		}
-		DelegateHandle& operator=(DelegateHandle const&) = default;
 		DelegateHandle& operator=(DelegateHandle&& that) noexcept
 		{
 			id = that.id;
 			that.Reset();
 			return *this;
 		}
+		~DelegateHandle() noexcept = default;
 
 		operator bool() const
 		{
@@ -218,7 +222,7 @@ namespace adria
 		{
 			for (uint64 i = 0; i < delegate_array.size(); ++i)
 			{
-				if (delegate_array[i].first.IsValid()) delegate_array[i].second.Execute(std::forward<Args>(args)...);
+				if (delegate_array[i].first.IsValid()) delegate_array[i].second.ExecuteIfBound(std::forward<Args>(args)...);
 			}
 		}
 

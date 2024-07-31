@@ -27,20 +27,17 @@ namespace adria
 		HistoryPos = -1;
 
 		Commands.push_back("help");
+		CommandDescriptions.push_back("Displays all the possible commands");
 		Commands.push_back("history");
+		CommandDescriptions.push_back("Shows the previous commands used");
 		Commands.push_back("clear");
-
-		//auto RegisterVariables = [&](IConsoleVariable* cvar)
-		//	{
-		//		Commands.push_back(cvar->GetName());
-		//	};
-		//g_ConsoleManager.ForEachCVar(RegisterVariables);
-		//auto RegisterCommands = [&](IConsoleCommand* ccmd)
-		//	{
-		//		Commands.push_back(ccmd->GetName());
-		//	};
-		//g_ConsoleManager.ForEachCCmd(RegisterCommands);
-
+		CommandDescriptions.push_back("Clear the history");
+		g_ConsoleManager.ForAllObjects(ConsoleObjectDelegate::CreateLambda([&](IConsoleObject* const cobj)
+			{
+				Commands.push_back(cobj->GetName());
+				CommandDescriptions.push_back(cobj->GetHelp());
+			}
+		));
 		AutoScroll = true;
 		ScrollToBottom = false;
 	}
@@ -127,11 +124,75 @@ namespace adria
 
 		ImGui::End();
 	}
+
+	void EditorConsole::DrawBasic(const char* title, bool* p_open)
+	{
+		ImGui::SetNextWindowBgAlpha(0.5f);
+
+		if (!ImGui::Begin(title, p_open, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoDecoration))
+		{
+			ImGui::End();
+			return;
+		}
+
+		if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0))
+			ImGui::SetKeyboardFocusHere(0);
+
+		auto TextEditCallbackStub = [](ImGuiInputTextCallbackData* data)
+			{
+				EditorConsole* console = (EditorConsole*)data->UserData;
+				console->CursorPos = data->CursorPos;
+				return console->TextEditCallback(data);
+			};
+
+		ImGui::TextUnformatted("> ");
+		ImGui::SameLine();
+
+		// Save current style
+		ImVec4 inputBgColor = ImGui::GetStyleColorVec4(ImGuiCol_FrameBg);
+		ImVec4 inputBgHoveredColor = ImGui::GetStyleColorVec4(ImGuiCol_FrameBgHovered);
+		ImVec4 inputBgActiveColor = ImGui::GetStyleColorVec4(ImGuiCol_FrameBgActive);
+		ImVec4 borderColor = ImGui::GetStyleColorVec4(ImGuiCol_Border);
+
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
+		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0, 0, 0, 0));
+		ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0, 0, 0, 0));
+		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+
+		ImGuiInputTextFlags input_text_flags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory;
+		ImGui::PushItemWidth(-1);
+		bool reclaim_focus = false;
+		if (ImGui::InputText("##console", InputBuf, IM_ARRAYSIZE(InputBuf), input_text_flags, TextEditCallbackStub, (void*)this))
+		{
+			char* s = InputBuf;
+			Strtrim(s);
+			if (s[0]) ExecCommand(s);
+			strcpy(s, "");
+			ImGui::SetItemDefaultFocus();
+			ImGui::SetKeyboardFocusHere(-1);
+		}
+		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+		ImGui::PopStyleColor(4);
+
+		ImGui::SameLine();
+		ImGui::TextUnformatted(InputBuf);
+
+		for (int i = History.Size - 1; i >= 0 ; i--)
+		{
+			ImGui::TextUnformatted(History[i]);
+		}
+		
+		ImGui::End();
+	}
+
 	void EditorConsole::ClearLog()
 	{
-		for (int i = 0; i < Items.Size; i++)
-			free(Items[i]);
+		for (int i = 0; i < Items.Size; i++) free(Items[i]);
 		Items.clear();
+		for (int i = 0; i < History.Size; i++) free(History[i]);
+		History.clear();
 	}
 	void EditorConsole::AddLog(const char* fmt, ...) IM_FMTARGS(2)
 	{
@@ -166,7 +227,7 @@ namespace adria
 		else if (Stricmp(cmd, "help") == 0)
 		{
 			AddLog("Commands:");
-			for (int i = 0; i < Commands.Size; i++) AddLog("- %s", Commands[i]); //add cvar descriptions
+			for (int i = 0; i < Commands.Size; i++) AddLog("- %s : %s", Commands[i], CommandDescriptions[i]);
 		}
 		else if (Stricmp(cmd, "history") == 0)
 		{
@@ -174,10 +235,10 @@ namespace adria
 			for (int i = first > 0 ? first : 0; i < History.Size; i++)
 				AddLog("%3d: %s\n", i, History[i]);
 		}
-		//else if (!g_ConsoleManager.Execute(cmd))
-		//{
-		//	AddLog("Unknown command: '%s'\n", cmd);
-		//}
+		else if (!g_ConsoleManager.ProcessInput(cmd))
+		{
+			AddLog("Unknown command: '%s'\n", cmd);
+		}
 
 		ScrollToBottom = true;
 	}
@@ -204,12 +265,10 @@ namespace adria
 
 			if (candidates.Size == 0)
 			{
-				// No match
 				AddLog("No match for \"%.*s\"!\n", (int)(word_end - word_start), word_start);
 			}
 			else if (candidates.Size == 1)
 			{
-				// Single match. Delete the beginning of the word and replace it entirely so we've got nice casing.
 				data->DeleteChars((int)(word_start - data->Buf), (int)(word_end - word_start));
 				data->InsertChars(data->CursorPos, candidates[0]);
 				data->InsertChars(data->CursorPos, " ");
@@ -247,7 +306,6 @@ namespace adria
 		}
 		case ImGuiInputTextFlags_CallbackHistory:
 		{
-			// Example of HISTORY
 			const int prev_history_pos = HistoryPos;
 			if (data->EventKey == ImGuiKey_UpArrow)
 			{

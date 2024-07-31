@@ -1214,6 +1214,7 @@
     </None>
     <None Include="Saved\Scenes\sanmiguel.json" />
     <None Include="Saved\Scenes\sponza.json" />
+    <None Include="Saved\Ini\cvars.ini" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="adria.log" />

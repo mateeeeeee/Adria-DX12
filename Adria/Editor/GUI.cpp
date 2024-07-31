@@ -18,7 +18,7 @@ namespace adria
 		ImGui::StyleColorsDark();
 
 		ImGuiIO& io = ImGui::GetIO();
-		ini_file = paths::ImGuiDir + "imgui.ini";
+		ini_file = paths::IniDir + "imgui.ini";
 		io.IniFilename = ini_file.c_str();
 
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;

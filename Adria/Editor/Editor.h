@@ -78,6 +78,7 @@ namespace adria
 		
 		EditorEvents editor_events;
 		ViewportData viewport_data;
+		bool show_basic_console = false;
 
 	private:
 		Editor();

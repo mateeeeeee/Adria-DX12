@@ -5,9 +5,11 @@
 
 namespace adria
 {
+	class IConsoleObject;
 	class IConsoleCommand;
 	class IConsoleVariable;
 
+	DECLARE_DELEGATE(ConsoleObjectDelegate, IConsoleObject* const)
 	class IConsoleObject
 	{
 	public:
@@ -16,6 +18,9 @@ namespace adria
 
 		virtual char const* GetHelp() const = 0;
 		virtual void SetHelp(char const*) = 0;
+
+		virtual char const* GetName() const = 0;
+		virtual void SetName(char const*) = 0;
 
 		virtual IConsoleVariable* AsVariable()
 		{
@@ -85,8 +90,10 @@ namespace adria
 		virtual IConsoleVariable* FindConsoleVariable(std::string const& name) const = 0;
 		virtual IConsoleCommand* FindConsoleCommand(std::string const& name) const = 0;
 		virtual IConsoleObject* FindConsoleObject(std::string const& name) const = 0;
+		virtual void ForAllObjects(ConsoleObjectDelegate const&) const = 0;
 
 		virtual bool ProcessInput(std::string const& cmd) = 0;
+
 
 	protected:
 		virtual ~IConsoleManager() { }

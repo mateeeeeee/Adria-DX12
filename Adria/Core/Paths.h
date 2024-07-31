@@ -20,7 +20,7 @@ namespace adria::paths
 	extern std::string const RenderGraphDir;
 	extern std::string const ShaderCacheDir;
 	extern std::string const ShaderPDBDir;
-	extern std::string const ImGuiDir;
+	extern std::string const IniDir;
 	extern std::string const ScenesDir;
 	extern std::string const AftermathDir;
 }

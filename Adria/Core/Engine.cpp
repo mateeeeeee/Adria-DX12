@@ -1,8 +1,9 @@
 #include "tracy/Tracy.hpp"
 #include "Engine.h"
 #include "Window.h"
-#include "Core/Input.h"
-#include "Core/Paths.h"
+#include "Input.h"
+#include "Paths.h"
+#include "ConsoleManager.h"
 #include "Logging/Logger.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxCommandList.h"
@@ -18,7 +19,6 @@
 #include "Utilities/FilesUtil.h"
 #include "Math/Constants.h"
 #include "Editor/EditorEvents.h"
-
 
 using namespace DirectX;
 using json = nlohmann::json;
@@ -244,6 +244,7 @@ namespace adria
 		input_events.f6_pressed_event.AddMember(&Renderer::OnTakeScreenshot, *renderer);
 		std::ignore = input_events.f5_pressed_event.AddStatic(ShaderManager::CheckIfShadersHaveChanged);
 
+		ProcessCVarIniFile();
 		std::optional<SceneConfig> scene_config = ParseSceneConfig(init.scene_file);
 		if (scene_config.has_value()) InitializeScene(scene_config.value());
 		else window->Quit(1);
@@ -339,5 +340,22 @@ namespace adria
 		cmd_list->Submit();
 		gfx->WaitForGPU();
 	}
+
+	void Engine::ProcessCVarIniFile()
+	{
+		std::string cvar_ini_path = paths::IniDir + "cvars.ini";
+		std::ifstream cvar_ini_file(cvar_ini_path);
+		if (!cvar_ini_file.is_open()) 
+		{
+			return;
+		}
+		std::string line;
+		while (std::getline(cvar_ini_file, line))
+		{
+			if (line.empty() || line[0] == '#') continue;
+			g_ConsoleManager.ProcessInput(line);
+		}
+	}
+
 }
 

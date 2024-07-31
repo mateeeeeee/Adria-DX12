@@ -13,10 +13,10 @@
 using namespace DirectX;
 
 namespace adria
-{
-	
+{	
 	SSAOPass::SSAOPass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h), ssao_random_texture(nullptr),
-		blur_pass(gfx, w >> resolution, h >> resolution)
+		blur_pass(gfx, w >> resolution, h >> resolution), console_ssao_power("r.SSAO.Power", params.ssao_power, "Controls the power of SSAO"),
+		console_ssao_radius("r.SSAO.Radius", params.ssao_radius, "Controls the radius of SSAO")
 	{
 		CreatePSO();
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };

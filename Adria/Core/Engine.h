@@ -54,10 +54,12 @@ namespace adria
 		bool vsync;
 
 	private:
-	
-		virtual void InitializeScene(SceneConfig const& config);
-		virtual void Update(float dt);
-		virtual void Render();
+		void InitializeScene(SceneConfig const& config);
+		void ProcessCVarIniFile();
+
+		void Update(float dt);
+		void Render();
+
 		void SetViewportData(std::optional<ViewportData> viewport_data);
 		void RegisterEditorEventCallbacks(EditorEvents&);
 	};

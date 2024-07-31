@@ -1,9 +1,8 @@
 #pragma once
-#include <DirectXMath.h>
-#include <memory>
 #include "BlurPass.h"
 #include "Graphics/GfxDescriptor.h"
 #include "RenderGraph/RenderGraphResourceId.h"
+#include "Core/ConsoleManager.h"
 
 
 namespace adria
@@ -43,6 +42,8 @@ namespace adria
 		uint32 width, height;
 		SSAOParams params{};
 		SSAOResolution resolution = SSAOResolution_Half;
+		AutoConsoleVariableRef console_ssao_power;
+		AutoConsoleVariableRef console_ssao_radius;
 
 		DirectX::XMVECTOR ssao_kernel[KERNEL_SIZE] = {};
 		std::unique_ptr<GfxTexture> ssao_random_texture;

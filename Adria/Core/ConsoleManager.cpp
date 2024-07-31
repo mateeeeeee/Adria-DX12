@@ -6,13 +6,17 @@ namespace adria
 	class ConsoleVariableBase : public IConsoleVariable
 	{
 	public:
-		explicit ConsoleVariableBase(char const* help)
+		ConsoleVariableBase(char const* name, char const* help)
 		{
+			SetName(name);
 			SetHelp(help);
 		}
 
 		virtual char const* GetHelp() const override { return help.c_str(); }
 		virtual void SetHelp(char const* _help) override { help = _help; }
+
+		virtual char const* GetName() const override { return name.c_str(); }
+		virtual void SetName(char const* _name) override { name = _name; }
 
 		virtual void SetOnChangedCallback(ConsoleVariableDelegate const& delegate)
 		{
@@ -26,6 +30,7 @@ namespace adria
 		}
 
 	private:
+		std::string name;
 		std::string help;
 		ConsoleVariableMulticastDelegate on_changed_callback;
 	};
@@ -116,13 +121,17 @@ namespace adria
 	class ConsoleCommandBase : public IConsoleCommand
 	{
 	public:
-		explicit ConsoleCommandBase(char const* help)
+		ConsoleCommandBase(char const* name, char const* help)
 		{
+			SetName(name);
 			SetHelp(help);
 		}
 
 		virtual char const* GetHelp() const override { return help.c_str(); }
 		virtual void SetHelp(char const* _help) override { help = _help; }
+
+		virtual char const* GetName() const override { return name.c_str(); }
+		virtual void SetName(char const* _name) override { name = _name; }
 
 		virtual IConsoleCommand* AsCommand() override
 		{
@@ -130,6 +139,7 @@ namespace adria
 		}
 
 	private: 
+		std::string name;
 		std::string help;
 	};
 
@@ -137,7 +147,7 @@ namespace adria
 	class ConsoleVariable : public ConsoleVariableBase
 	{
 	public:
-		ConsoleVariable(T default_value, char const* help) : ConsoleVariableBase(help), value(default_value)
+		ConsoleVariable(T default_value, char const* name, char const* help) : ConsoleVariableBase(name, help), value(default_value)
 		{
 		}
 
@@ -209,7 +219,7 @@ namespace adria
 	class ConsoleVariableRef : public ConsoleVariableBase
 	{
 	public:
-		ConsoleVariableRef(T& ref_value, char const* help) : ConsoleVariableBase(help), value(ref_value)
+		ConsoleVariableRef(T& ref_value, char const* name, char const* help) : ConsoleVariableBase(name, help), value(ref_value)
 		{
 		}
 
@@ -258,8 +268,8 @@ namespace adria
 	{
 
 	public:
-		ConsoleCommand(ConsoleCommandDelegate const& delegate, char const* help)
-			: ConsoleCommandBase(help), delegate(delegate)
+		ConsoleCommand(ConsoleCommandDelegate const& delegate, char const* name, char const* help)
+			: ConsoleCommandBase(name, help), delegate(delegate)
 		{}
 
 		virtual bool Execute(std::span<char const*> args) override
@@ -276,8 +286,8 @@ namespace adria
 	{
 
 	public:
-		ConsoleCommandWithArgs(ConsoleCommandWithArgsDelegate const& delegate, char const* help)
-			: ConsoleCommandBase(help), delegate(delegate)
+		ConsoleCommandWithArgs(ConsoleCommandWithArgsDelegate const& delegate, char const* name, char const* help)
+			: ConsoleCommandBase(name, help), delegate(delegate)
 		{
 		}
 
@@ -298,58 +308,58 @@ namespace adria
 
 	IConsoleVariable* ConsoleManager::RegisterConsoleVariable(char const* name, bool default_value, char const* help)
 	{
-		return AddObject(name, new ConsoleVariable<bool>(default_value, help))->AsVariable();
+		return AddObject(name, new ConsoleVariable<bool>(default_value, name, help))->AsVariable();
 	}
 
 	IConsoleVariable* ConsoleManager::RegisterConsoleVariable(char const* name, int default_value, char const* help)
 	{
-		return AddObject(name, new ConsoleVariable<int>(default_value, help))->AsVariable();
+		return AddObject(name, new ConsoleVariable<int>(default_value, name, help))->AsVariable();
 	}
 
 	IConsoleVariable* ConsoleManager::RegisterConsoleVariable(char const* name, float default_value, char const* help)
 	{
-		return AddObject(name, new ConsoleVariable<float>(default_value, help))->AsVariable();
+		return AddObject(name, new ConsoleVariable<float>(default_value, name, help))->AsVariable();
 	}
 
 	IConsoleVariable* ConsoleManager::RegisterConsoleVariable(char const* name, char const* default_value, char const* help)
 	{
-		return AddObject(name, new ConsoleVariable<std::string>(default_value, help))->AsVariable();
+		return AddObject(name, new ConsoleVariable<std::string>(default_value, name, help))->AsVariable();
 	}
 
 	IConsoleVariable* ConsoleManager::RegisterConsoleVariable(char const* name, std::string const& default_value, char const* help)
 	{
-		return AddObject(name, new ConsoleVariable<std::string>(default_value, help))->AsVariable();
+		return AddObject(name, new ConsoleVariable<std::string>(default_value, name, help))->AsVariable();
 	}
 
 	IConsoleVariable* ConsoleManager::RegisterConsoleVariableRef(char const* name, bool& value, char const* help)
 	{
-		return AddObject(name, new ConsoleVariableRef<bool>(value, help))->AsVariable();
+		return AddObject(name, new ConsoleVariableRef<bool>(value, name, help))->AsVariable();
 	}
 
 	IConsoleVariable* ConsoleManager::RegisterConsoleVariableRef(char const* name, int& value, char const* help)
 	{
-		return AddObject(name, new ConsoleVariableRef<int>(value, help))->AsVariable();
+		return AddObject(name, new ConsoleVariableRef<int>(value, name, help))->AsVariable();
 	}
 
 	IConsoleVariable* ConsoleManager::RegisterConsoleVariableRef(char const* name, float& value, char const* help)
 	{
-		return AddObject(name, new ConsoleVariableRef<float>(value, help))->AsVariable();
+		return AddObject(name, new ConsoleVariableRef<float>(value, name, help))->AsVariable();
 
 	}
 
 	IConsoleVariable* ConsoleManager::RegisterConsoleVariableRef(char const* name, std::string& value, char const* help)
 	{
-		return AddObject(name, new ConsoleVariableRef<std::string>(value, help))->AsVariable();
+		return AddObject(name, new ConsoleVariableRef<std::string>(value, name, help))->AsVariable();
 	}
 
 	IConsoleCommand* ConsoleManager::RegisterConsoleCommand(char const* name, char const* help, ConsoleCommandDelegate const& command)
 	{
-		return AddObject(name, new ConsoleCommand(command, help))->AsCommand();
+		return AddObject(name, new ConsoleCommand(command, name, help))->AsCommand();
 	}
 
 	IConsoleCommand* ConsoleManager::RegisterConsoleCommand(char const* name, char const* help, ConsoleCommandWithArgsDelegate const& command)
 	{
-		return AddObject(name, new ConsoleCommandWithArgs(command, help))->AsCommand();
+		return AddObject(name, new ConsoleCommandWithArgs(command, name, help))->AsCommand();
 	}
 
 	void ConsoleManager::UnregisterConsoleObject(IConsoleObject* console_obj)
@@ -387,12 +397,19 @@ namespace adria
 		return console_objects.find(name)->second;
 	}
 
+	void ConsoleManager::ForAllObjects(ConsoleObjectDelegate const& delegate) const
+	{
+		for (auto& [name, obj] : console_objects) delegate(obj);
+	}
+
 	bool ConsoleManager::ProcessInput(std::string const& cmd)
 	{
 		auto args = SplitString(cmd, ' ');
 		if (args.empty()) return false;
 
 		IConsoleObject* object = FindConsoleObject(args[0]);
+		if (!object) return false;
+
 		if (IConsoleVariable* cvar = object->AsVariable())
 		{
 			if (args.size() == 1) return false;

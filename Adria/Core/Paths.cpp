@@ -31,7 +31,7 @@ namespace adria
 
 	std::string const paths::ShaderPDBDir = SavedDir + "ShaderPDB/";
 
-	std::string const paths::ImGuiDir = SavedDir + "Ini/";
+	std::string const paths::IniDir = SavedDir + "Ini/";
 
 	std::string const paths::ScenesDir = SavedDir + "Scenes/";
 

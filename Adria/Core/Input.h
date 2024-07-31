@@ -33,6 +33,7 @@ namespace adria
 		MouseLeft,
 		MouseMiddle,
 		MouseRight,
+		Tilde,
 		Count
 	};
 

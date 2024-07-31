@@ -32,6 +32,7 @@ namespace adria
 		virtual IConsoleVariable* FindConsoleVariable(std::string const& name) const override;
 		virtual IConsoleCommand* FindConsoleCommand(std::string const& name) const override;
 		virtual IConsoleObject* FindConsoleObject(std::string const& name) const override;
+		virtual void ForAllObjects(ConsoleObjectDelegate const&) const override;
 
 		virtual bool ProcessInput(std::string const& cmd) override;
 

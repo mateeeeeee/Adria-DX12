@@ -124,6 +124,7 @@ namespace adria
 			keys[(uint64)Home] = IsPressed(VK_HOME);
 			keys[(uint64)End] = IsPressed(VK_END);
 			keys[(uint64)Insert] = IsPressed(VK_INSERT);
+			keys[(uint64)Tilde] = IsPressed(VK_OEM_3);
 
 			if (GetKey(KeyCode::Esc)) PostQuitMessage(0);
 		}

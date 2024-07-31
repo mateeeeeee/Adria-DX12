@@ -567,6 +567,7 @@
     <None Include="Resources\Shaders\Scene.hlsli" />
     <None Include="Resources\Shaders\Tonemapping.hlsli" />
     <None Include="Resources\Shaders\Weather\RainUtil.hlsli" />
+    <None Include="Saved\Ini\cvars.ini" />
     <None Include="Saved\Scenes\sanmiguel.json" />
     <None Include="Saved\Scenes\sponza.json" />
   </ItemGroup>

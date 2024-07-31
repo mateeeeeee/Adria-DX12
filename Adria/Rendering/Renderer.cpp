@@ -508,62 +508,54 @@ namespace adria
 					{
 						ImGui::ColorEdit3("Ambient Color", ambient_color);
 					}
-
-					if (ImGui::TreeNode("Weather"))
+					auto lights = reg.view<Light, Transform>();
+					Light* sun_light = nullptr;
+					Transform* sun_transform = nullptr;
+					for (entt::entity light : lights)
 					{
-                        auto lights = reg.view<Light, Transform>();
-                        Light* sun_light = nullptr;
-                        Transform* sun_transform = nullptr;
-                        for (entt::entity light : lights)
-                        {
-                            Light& light_data = lights.get<Light>(light);
-                            if (light_data.type == LightType::Directional && light_data.active)
-                            {
-                                sun_light = &light_data;
-                                sun_transform = &lights.get<Transform>(light);
-                                break;
-                            }
-                        }
-
-                        if (sun_light)
-                        {
-							static float sun_elevation = 75.0f;
-							static float sun_azimuth = 260.0f;
-							static float sun_temperature = 3500.0f;
-							ConvertDirectionToAzimuthAndElevation(-sun_light->direction, sun_elevation, sun_azimuth);
-
-							ImGui::SliderFloat("Sun Temperature", &sun_temperature, 1000.0f, 15000.0f);
-                            ImGui::SliderFloat("Sun Energy", &sun_light->intensity, 0.0f, 50.0f);
-                            ImGui::SliderFloat("Sun Elevation", &sun_elevation, -90.0f, 90.0f);
-                            ImGui::SliderFloat("Sun Azimuth", &sun_azimuth, 0.0f, 360.0f);
-							
-							sun_light->color = ConvertTemperatureToColor(sun_temperature);
-							sun_light->direction = ConvertElevationAndAzimuthToDirection(sun_elevation, sun_azimuth);
-							sun_light->position = 1e3 * sun_light->direction;
-							sun_light->direction = -sun_light->direction;
-                            sun_transform->current_transform = XMMatrixTranslationFromVector(sun_light->position);
-                        }
-                        ImGui::TreePop();
-
-                        ImGui::Combo("Volumetric Fog", &current_volumetric_path_type, "None\0 Raymarching 2D\0Fog Volume\0", 3);
-                        static int current_sky_type = 2;
-                        if (ImGui::Combo("Sky", &current_sky_type, "Skybox\0Minimal Atmosphere\0Hosek-Wilkie\0", 3))
-                        {
-                            sky_type = static_cast<SkyType>(current_sky_type);
-                        }
-						if (ImGui::Checkbox("Rain", &rain_enabled))
-                        {
-                            rain_pass.OnRainEnabled(rain_enabled);
-                        }
-
-                        ImGui::SliderFloat3("Wind Direction", wind_dir, -1.0f, 1.0f);
-                        ImGui::SliderFloat("Wind Speed", &wind_speed, 0.0f, 32.0f);
+						Light& light_data = lights.get<Light>(light);
+						if (light_data.type == LightType::Directional && light_data.active)
+						{
+							sun_light = &light_data;
+							sun_transform = &lights.get<Transform>(light);
+							break;
+						}
 					}
 
-					volumetric_path_type = static_cast<VolumetricPath>(current_volumetric_path_type);
+					if (sun_light)
+					{
+						static float sun_elevation = 75.0f;
+						static float sun_azimuth = 260.0f;
+						static float sun_temperature = 5900.0f;
+						ConvertDirectionToAzimuthAndElevation(-sun_light->direction, sun_elevation, sun_azimuth);
 
+						ImGui::SliderFloat("Sun Temperature", &sun_temperature, 1000.0f, 15000.0f);
+						ImGui::SliderFloat("Sun Energy", &sun_light->intensity, 0.0f, 50.0f);
+						ImGui::SliderFloat("Sun Elevation", &sun_elevation, -90.0f, 90.0f);
+						ImGui::SliderFloat("Sun Azimuth", &sun_azimuth, 0.0f, 360.0f);
+
+						sun_light->color = ConvertTemperatureToColor(sun_temperature);
+						sun_light->direction = ConvertElevationAndAzimuthToDirection(sun_elevation, sun_azimuth);
+						sun_light->position = 1e3 * sun_light->direction;
+						sun_light->direction = -sun_light->direction;
+						sun_transform->current_transform = XMMatrixTranslationFromVector(sun_light->position);
+					}
 					ImGui::TreePop();
-					ImGui::Separator();
+
+					ImGui::Combo("Volumetric Fog", &current_volumetric_path_type, "None\0 Raymarching 2D\0Fog Volume\0", 3);
+					static int current_sky_type = 2;
+					if (ImGui::Combo("Sky", &current_sky_type, "Skybox\0Minimal Atmosphere\0Hosek-Wilkie\0", 3))
+					{
+						sky_type = static_cast<SkyType>(current_sky_type);
+					}
+					if (ImGui::Checkbox("Rain", &rain_enabled))
+					{
+						rain_pass.OnRainEnabled(rain_enabled);
+					}
+
+					ImGui::SliderFloat3("Wind Direction", wind_dir, -1.0f, 1.0f);
+					ImGui::SliderFloat("Wind Speed", &wind_speed, 0.0f, 32.0f);
+					volumetric_path_type = static_cast<VolumetricPath>(current_volumetric_path_type);
 				}
 			}, GUICommandGroup_None);
 	}
