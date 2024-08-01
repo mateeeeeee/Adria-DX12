@@ -6,10 +6,13 @@
 #include "Graphics/GfxBuffer.h"
 #include "Graphics/GfxPipelineState.h"
 #include "Editor/GUICommand.h"
+#include "Core/ConsoleManager.h"
 #include <algorithm> // remove this later
 
 namespace adria
 {
+	static TAutoConsoleVariable<float> exposure_bias("r.AutoExposure.ExposureBias", -0.5f, "Bias applied to the computed EV100 when calculating final exposure");
+
 	AutomaticExposurePass::AutomaticExposurePass(GfxDevice* gfx, uint32 w, uint32 h) : gfx(gfx), width(w), height(h)
 	{
 		CreatePSOs();
@@ -186,12 +189,12 @@ namespace adria
 				struct ExposureConstants
 				{
 					float adaption_speed;
-					float exposure_compensation;
+					float exposure_bias;
 					float frame_time;
 					uint32  previous_ev_idx;
 					uint32  exposure_idx;
 					uint32  luminance_idx;
-				} constants{.adaption_speed = adaption_speed, .exposure_compensation = exposure_compensation, .frame_time = 0.166f,
+				} constants{.adaption_speed = adaption_speed, .exposure_bias = exposure_bias.Get(), .frame_time = 0.166f,
 						.previous_ev_idx = descriptor_index, .exposure_idx = descriptor_index + 1, .luminance_idx  = descriptor_index + 2};
 
 				cmd_list->SetRootConstants(1, constants);
@@ -207,7 +210,7 @@ namespace adria
 					ImGui::SliderFloat("Min Luminance", &min_luminance, 0.0f, 1.0f);
 					ImGui::SliderFloat("Max Luminance", &max_luminance, 0.3f, 20.0f);
 					ImGui::SliderFloat("Adaption Speed", &adaption_speed, 0.01f, 5.0f);
-					ImGui::SliderFloat("Exposure Compensation", &exposure_compensation, -5.0f, 5.0f);
+					ImGui::SliderFloat("Exposure Bias", exposure_bias.GetPtr(), -5.0f, 5.0f);
 					ImGui::SliderFloat("Low Percentile", &low_percentile, 0.0f, 0.49f);
 					ImGui::SliderFloat("High Percentile", &high_percentile, 0.51f, 1.0f);
 					ImGui::Checkbox("Histogram", &show_histogram);

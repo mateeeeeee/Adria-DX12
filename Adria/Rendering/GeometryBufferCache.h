@@ -24,10 +24,7 @@ namespace adria
 	private:
 		GeometryBufferHandle() = default;
 		GeometryBufferHandle(uint64 h) : handle(h) {}
-		GeometryBufferHandle(GeometryBufferHandle const&) = default;
-		GeometryBufferHandle(GeometryBufferHandle&&) = default;
-		GeometryBufferHandle& operator=(GeometryBufferHandle const&) = default;
-		GeometryBufferHandle& operator=(GeometryBufferHandle&&) = default;
+		ADRIA_DEFAULT_COPYABLE_MOVABLE(GeometryBufferHandle)
 
 	private:
 		uint64 handle = INVALID_GEOMETRY_BUFFER_HANDLE;
