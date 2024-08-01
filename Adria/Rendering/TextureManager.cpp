@@ -27,7 +27,6 @@ namespace adria
         gfx = nullptr;
 	}
 
-    [[nodiscard]]
     TextureHandle TextureManager::LoadTexture(std::string_view path)
     {
         std::string texture_name(path);
@@ -102,13 +101,11 @@ namespace adria
 		return handle;
 	}
 
-    [[nodiscard]]
 	GfxDescriptor TextureManager::GetSRV(TextureHandle tex_handle)
 	{
 		return texture_srv_map[tex_handle];
 	}
 
-    [[nodiscard]]
 	GfxTexture* TextureManager::GetTexture(TextureHandle handle) const
 	{
 		if (handle == INVALID_TEXTURE_HANDLE) return nullptr;

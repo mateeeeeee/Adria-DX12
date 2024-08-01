@@ -97,55 +97,55 @@ namespace adria
 		void DummyReadBuffer(RGResourceName name);
 		void DummyWriteBuffer(RGResourceName name);
 
-		[[nodiscard]] RGTextureCopySrcId ReadCopySrcTexture(RGResourceName name);
-		[[nodiscard]] RGTextureCopyDstId WriteCopyDstTexture(RGResourceName name);
+		ADRIA_NODISCARD RGTextureCopySrcId ReadCopySrcTexture(RGResourceName name);
+		ADRIA_NODISCARD RGTextureCopyDstId WriteCopyDstTexture(RGResourceName name);
 
-		[[nodiscard]] RGBufferCopySrcId ReadCopySrcBuffer(RGResourceName name);
-		[[nodiscard]] RGBufferCopyDstId WriteCopyDstBuffer(RGResourceName name);
-		[[nodiscard]] RGBufferIndirectArgsId ReadIndirectArgsBuffer(RGResourceName name);
-		[[nodiscard]] RGBufferIndexId ReadIndexBuffer(RGResourceName name);
+		ADRIA_NODISCARD RGBufferCopySrcId ReadCopySrcBuffer(RGResourceName name);
+		ADRIA_NODISCARD RGBufferCopyDstId WriteCopyDstBuffer(RGResourceName name);
+		ADRIA_NODISCARD RGBufferIndirectArgsId ReadIndirectArgsBuffer(RGResourceName name);
+		ADRIA_NODISCARD RGBufferIndexId ReadIndexBuffer(RGResourceName name);
 		
-		[[nodiscard]] RGTextureReadOnlyId ReadTexture(RGResourceName name, RGReadAccess read_access = ReadAccess_AllShader,
+		ADRIA_NODISCARD RGTextureReadOnlyId ReadTexture(RGResourceName name, RGReadAccess read_access = ReadAccess_AllShader,
 			uint32 first_mip = 0, uint32 mip_count = -1, uint32 first_slice = 0, uint32 slice_count = -1)
 		{
 			return ReadTextureImpl(name, read_access, GfxTextureDescriptorDesc{ first_slice, slice_count, first_mip, mip_count });
 		}
-		[[nodiscard]] RGTextureReadOnlyId ReadTexture(RGResourceName name, GfxTextureChannelMapping channel_mapping, 
+		ADRIA_NODISCARD RGTextureReadOnlyId ReadTexture(RGResourceName name, GfxTextureChannelMapping channel_mapping,
 			RGReadAccess read_access = ReadAccess_AllShader,
 			uint32 first_mip = 0, uint32 mip_count = -1, uint32 first_slice = 0, uint32 slice_count = -1)
 		{
 			return ReadTextureImpl(name, read_access, GfxTextureDescriptorDesc{ first_slice, slice_count, first_mip, mip_count, GfxTextureDescriptorFlag_None, channel_mapping });
 		}
-		[[nodiscard]] RGTextureReadWriteId WriteTexture(RGResourceName name,
+		ADRIA_NODISCARD RGTextureReadWriteId WriteTexture(RGResourceName name,
 			uint32 first_mip = 0, uint32 mip_count = -1, uint32 first_slice = 0, uint32 slice_count = -1)
 		{
 			return WriteTextureImpl(name, GfxTextureDescriptorDesc{ first_slice, slice_count, first_mip, mip_count });
 		}
-		[[maybe_unused]] RGRenderTargetId WriteRenderTarget(RGResourceName name, RGLoadStoreAccessOp load_store_op, 
+		ADRIA_MAYBE_UNUSED RGRenderTargetId WriteRenderTarget(RGResourceName name, RGLoadStoreAccessOp load_store_op,
 			uint32 first_mip = 0, uint32 mip_count = -1, uint32 first_slice = 0, uint32 slice_count = -1)
 		{
 			return WriteRenderTargetImpl(name, load_store_op, GfxTextureDescriptorDesc{ first_slice, slice_count, first_mip, mip_count });
 		}
-		[[maybe_unused]] RGDepthStencilId WriteDepthStencil(RGResourceName name, RGLoadStoreAccessOp load_store_op, 
+		ADRIA_MAYBE_UNUSED RGDepthStencilId WriteDepthStencil(RGResourceName name, RGLoadStoreAccessOp load_store_op,
 			uint32 first_mip = 0, uint32 mip_count = -1, uint32 first_slice = 0, uint32 slice_count = -1)
 		{
 			return WriteDepthStencilImpl(name, load_store_op, RGLoadStoreAccessOp::NoAccess_NoAccess, GfxTextureDescriptorDesc{ first_slice, slice_count, first_mip, mip_count, GfxTextureDescriptorFlag_None });
 		}
-		[[maybe_unused]] RGDepthStencilId ReadDepthStencil(RGResourceName name, RGLoadStoreAccessOp load_store_op,
+		ADRIA_MAYBE_UNUSED RGDepthStencilId ReadDepthStencil(RGResourceName name, RGLoadStoreAccessOp load_store_op,
 			uint32 first_mip = 0, uint32 mip_count = -1, uint32 first_slice = 0, uint32 slice_count = -1)
 		{
 			return ReadDepthStencilImpl(name, load_store_op, RGLoadStoreAccessOp::NoAccess_NoAccess, GfxTextureDescriptorDesc{ first_slice, slice_count, first_mip, mip_count, GfxTextureDescriptorFlag_DepthReadOnly });
 		}
 
-		[[nodiscard]] RGBufferReadOnlyId ReadBuffer(RGResourceName name, RGReadAccess read_access = ReadAccess_AllShader, uint32 offset = 0, uint32 size = -1)
+		ADRIA_NODISCARD RGBufferReadOnlyId ReadBuffer(RGResourceName name, RGReadAccess read_access = ReadAccess_AllShader, uint32 offset = 0, uint32 size = -1)
 		{
 			return ReadBufferImpl(name, read_access, GfxBufferDescriptorDesc{ offset, size });
 		}
-		[[nodiscard]] RGBufferReadWriteId WriteBuffer(RGResourceName name, uint32 offset = 0, uint32 size = -1)
+		ADRIA_NODISCARD RGBufferReadWriteId WriteBuffer(RGResourceName name, uint32 offset = 0, uint32 size = -1)
 		{
 			return WriteBufferImpl(name, GfxBufferDescriptorDesc{ offset, size });
 		}
-		[[nodiscard]] RGBufferReadWriteId WriteBuffer(RGResourceName name, RGResourceName counter_name, uint32 offset = 0, uint32 size = -1)
+		ADRIA_NODISCARD RGBufferReadWriteId WriteBuffer(RGResourceName name, RGResourceName counter_name, uint32 offset = 0, uint32 size = -1)
 		{
 			return WriteBufferImpl(name, counter_name, GfxBufferDescriptorDesc{ offset, size });
 		}
@@ -162,14 +162,14 @@ namespace adria
 	private:
 		RenderGraphBuilder(RenderGraph&, RenderGraphPassBase&);
 
-		[[nodiscard]] RGTextureReadOnlyId ReadTextureImpl(RGResourceName name, RGReadAccess read_access, GfxTextureDescriptorDesc const& desc);
-		[[nodiscard]] RGTextureReadWriteId WriteTextureImpl(RGResourceName name, GfxTextureDescriptorDesc const& desc);
-		[[maybe_unused]] RGRenderTargetId WriteRenderTargetImpl(RGResourceName name, RGLoadStoreAccessOp load_store_op, GfxTextureDescriptorDesc const& desc);
-		[[maybe_unused]] RGDepthStencilId WriteDepthStencilImpl(RGResourceName name, RGLoadStoreAccessOp load_store_op, RGLoadStoreAccessOp stencil_load_store_op, GfxTextureDescriptorDesc const& desc);
-		[[maybe_unused]] RGDepthStencilId ReadDepthStencilImpl(RGResourceName name, RGLoadStoreAccessOp load_store_op, RGLoadStoreAccessOp stencil_load_store_op, GfxTextureDescriptorDesc const& desc);
-		[[nodiscard]] RGBufferReadOnlyId ReadBufferImpl(RGResourceName name, RGReadAccess read_access, GfxBufferDescriptorDesc const& desc);
-		[[nodiscard]] RGBufferReadWriteId WriteBufferImpl(RGResourceName name, GfxBufferDescriptorDesc const& desc);
-		[[nodiscard]] RGBufferReadWriteId WriteBufferImpl(RGResourceName name, RGResourceName counter_name, GfxBufferDescriptorDesc const& desc);
+		ADRIA_NODISCARD RGTextureReadOnlyId ReadTextureImpl(RGResourceName name, RGReadAccess read_access, GfxTextureDescriptorDesc const& desc);
+		ADRIA_NODISCARD RGTextureReadWriteId WriteTextureImpl(RGResourceName name, GfxTextureDescriptorDesc const& desc);
+		ADRIA_MAYBE_UNUSED RGRenderTargetId WriteRenderTargetImpl(RGResourceName name, RGLoadStoreAccessOp load_store_op, GfxTextureDescriptorDesc const& desc);
+		ADRIA_MAYBE_UNUSED RGDepthStencilId WriteDepthStencilImpl(RGResourceName name, RGLoadStoreAccessOp load_store_op, RGLoadStoreAccessOp stencil_load_store_op, GfxTextureDescriptorDesc const& desc);
+		ADRIA_MAYBE_UNUSED RGDepthStencilId ReadDepthStencilImpl(RGResourceName name, RGLoadStoreAccessOp load_store_op, RGLoadStoreAccessOp stencil_load_store_op, GfxTextureDescriptorDesc const& desc);
+		ADRIA_NODISCARD RGBufferReadOnlyId ReadBufferImpl(RGResourceName name, RGReadAccess read_access, GfxBufferDescriptorDesc const& desc);
+		ADRIA_NODISCARD RGBufferReadWriteId WriteBufferImpl(RGResourceName name, GfxBufferDescriptorDesc const& desc);
+		ADRIA_NODISCARD RGBufferReadWriteId WriteBufferImpl(RGResourceName name, RGResourceName counter_name, GfxBufferDescriptorDesc const& desc);
 	};
 
 	using RGBuilder = RenderGraphBuilder;

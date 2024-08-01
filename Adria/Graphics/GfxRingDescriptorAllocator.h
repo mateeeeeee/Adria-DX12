@@ -17,7 +17,7 @@ namespace adria
 
 		~GfxRingDescriptorAllocator() = default;
 
-		[[nodiscard]] GfxDescriptor Allocate(uint32 count = 1)
+		ADRIA_NODISCARD GfxDescriptor Allocate(uint32 count = 1)
 		{
 			OffsetType start = INVALID_OFFSET;
 			{

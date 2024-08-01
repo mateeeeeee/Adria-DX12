@@ -30,7 +30,7 @@ namespace adria
 		}
 
 		template<typename T>
-		[[nodiscard]] T FindOr(std::string const& name, std::type_identity_t<T> const& default_value)
+		ADRIA_NODISCARD T FindOr(std::string const& name, std::type_identity_t<T> const& default_value)
 		{
 			bool has_field = _json.contains(name);
 			if (!has_field) return default_value;
@@ -44,7 +44,7 @@ namespace adria
 		}
 
 		template<typename T>
-		[[maybe_unused]] bool Find(std::string const& name, std::type_identity_t<T>& value)
+		ADRIA_MAYBE_UNUSED bool Find(std::string const& name, std::type_identity_t<T>& value)
 		{
 			bool has_field = _json.contains(name);
 			if (!has_field) return false;
@@ -56,7 +56,7 @@ namespace adria
 		}
 
 		template<typename T, uint64 N>
-		[[maybe_unused]] bool FindArray(std::string const& name, T(&arr)[N])
+		ADRIA_MAYBE_UNUSED bool FindArray(std::string const& name, T(&arr)[N])
 		{
 			bool has_field = _json.contains(name);
 			if (has_field)
@@ -75,7 +75,7 @@ namespace adria
 		}
 
 		template<typename T>
-		[[maybe_unused]] bool FindDynamicArray(std::string const& name, std::vector<T>& arr)
+		ADRIA_MAYBE_UNUSED bool FindDynamicArray(std::string const& name, std::vector<T>& arr)
 		{
 			bool has_field = _json.contains(name);
 			if (has_field)

@@ -50,7 +50,7 @@ namespace adria
 		void Execute();
 
 		template<typename PassData, typename... Args> requires std::is_constructible_v<RenderGraphPass<PassData>, Args...>
-		[[maybe_unused]] decltype(auto) AddPass(Args&&... args)
+		ADRIA_MAYBE_UNUSED decltype(auto) AddPass(Args&&... args)
 		{
 			passes.emplace_back(std::make_unique<RenderGraphPass<PassData>>(std::forward<Args>(args)...));
 			std::unique_ptr<RGPassBase>& pass = passes.back(); pass->id = passes.size() - 1;

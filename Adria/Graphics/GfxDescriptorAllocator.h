@@ -23,7 +23,7 @@ namespace adria
 		GfxDescriptorAllocator(GfxDevice* gfx_device, GfxDescriptorAllocatorDesc const& desc);
 		~GfxDescriptorAllocator();
 
-		[[nodiscard]] GfxDescriptor AllocateDescriptor();
+		ADRIA_NODISCARD GfxDescriptor AllocateDescriptor();
 		void FreeDescriptor(GfxDescriptor handle);
 
 	private:

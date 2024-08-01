@@ -52,7 +52,7 @@ namespace adria
 		void* GetMappedData() const;
 		template<typename T>
 		T* GetMappedData() const;
-		[[maybe_unused]] void* Map();
+		ADRIA_MAYBE_UNUSED void* Map();
 		void Unmap();
 		void Update(void const* src_data, uint64 data_size, uint64 offset = 0);
 		template<typename T>

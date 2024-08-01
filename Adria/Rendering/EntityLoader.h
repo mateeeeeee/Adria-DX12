@@ -72,19 +72,18 @@ namespace adria
  
 	class EntityLoader
 	{
-		[[nodiscard]] std::vector<entt::entity> LoadGrid(GridParameters const&);
-		[[nodiscard]] std::vector<entt::entity> LoadObjMesh(std::string const&);
+		ADRIA_NODISCARD std::vector<entt::entity> LoadGrid(GridParameters const&);
+		ADRIA_NODISCARD std::vector<entt::entity> LoadObjMesh(std::string const&);
 	public:
         
         EntityLoader(entt::registry& reg, GfxDevice* device);
 		~EntityLoader();
 
-		[[maybe_unused]] entt::entity LoadSkybox(SkyboxParameters const&);
-        [[maybe_unused]] entt::entity LoadLight(LightParameters const&);
-		[[maybe_unused]] std::vector<entt::entity> LoadOcean(OceanParameters const&);
-		[[maybe_unused]] entt::entity LoadDecal(DecalParameters const&);
-
-		[[maybe_unused]] entt::entity ImportModel_GLTF(ModelParameters const&);
+		ADRIA_MAYBE_UNUSED entt::entity LoadSkybox(SkyboxParameters const&);
+        ADRIA_MAYBE_UNUSED entt::entity LoadLight(LightParameters const&);
+		ADRIA_MAYBE_UNUSED std::vector<entt::entity> LoadOcean(OceanParameters const&);
+		ADRIA_MAYBE_UNUSED entt::entity LoadDecal(DecalParameters const&);
+		ADRIA_MAYBE_UNUSED entt::entity ImportModel_GLTF(ModelParameters const&);
 	private:
         entt::registry& reg;
         GfxDevice* gfx;
