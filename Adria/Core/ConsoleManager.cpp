@@ -18,7 +18,7 @@ namespace adria
 		virtual char const* GetName() const override { return name.c_str(); }
 		virtual void SetName(char const* _name) override { name = _name; }
 
-		virtual void SetOnChangedCallback(ConsoleVariableDelegate const& delegate)
+		virtual void AddOnChanged(ConsoleVariableDelegate const& delegate)
 		{
 			on_changed_callback.Add(delegate);
 		}
@@ -173,10 +173,10 @@ namespace adria
 		virtual bool IsFloat() const override { return false; }
 		virtual bool IsString() const override { return false; }
 
-		virtual bool* GetBoolRef() override { return nullptr; }
-		virtual int32* GetIntRef() override { return nullptr; }
-		virtual float* GetFloatRef() override { return nullptr; }
-		virtual std::string* GetStringRef() override { return nullptr; }
+		virtual bool* GetBoolPtr() override { return nullptr; }
+		virtual int32* GetIntPtr() override { return nullptr; }
+		virtual float* GetFloatPtr() override { return nullptr; }
+		virtual std::string* GetStringPtr() override { return nullptr; }
 
 	private:
 		T value;
@@ -198,19 +198,19 @@ namespace adria
 	{
 		return true;
 	}
-	template<> bool* ConsoleVariable<bool>::GetBoolRef()
+	template<> bool* ConsoleVariable<bool>::GetBoolPtr()
 	{
 		return &value;
 	}
-	template<> int32* ConsoleVariable<int32>::GetIntRef()
+	template<> int32* ConsoleVariable<int32>::GetIntPtr()
 	{
 		return &value;
 	}
-	template<> float* ConsoleVariable<float>::GetFloatRef()
+	template<> float* ConsoleVariable<float>::GetFloatPtr()
 	{
 		return &value;
 	}
-	template<> std::string* ConsoleVariable<std::string>::GetStringRef()
+	template<> std::string* ConsoleVariable<std::string>::GetStringPtr()
 	{
 		return &value;
 	}

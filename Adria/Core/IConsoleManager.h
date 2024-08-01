@@ -44,17 +44,17 @@ namespace adria
 		virtual bool IsFloat() const { return false; }
 		virtual bool IsString() const { return false; }
 
-		virtual int* GetIntRef() { return nullptr; }
-		virtual float* GetFloatRef() { return nullptr; }
-		virtual bool* GetBoolRef() { return nullptr; }
-		virtual std::string* GetStringRef() { return nullptr; }
+		virtual int* GetIntPtr() { return nullptr; }
+		virtual float* GetFloatPtr() { return nullptr; }
+		virtual bool* GetBoolPtr() { return nullptr; }
+		virtual std::string* GetStringPtr() { return nullptr; }
 
 		virtual int GetInt() const = 0;
 		virtual float GetFloat() const = 0;
 		virtual bool GetBool() const = 0;
 		virtual std::string GetString() const = 0;
 
-		virtual void SetOnChangedCallback(ConsoleVariableDelegate const&) = 0;
+		virtual void AddOnChanged(ConsoleVariableDelegate const&) = 0;
 		virtual ConsoleVariableMulticastDelegate& OnChangedDelegate() = 0;
 	};
 
